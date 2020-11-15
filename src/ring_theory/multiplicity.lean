@@ -145,6 +145,10 @@ lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ mul
     by rw [eq_top_iff_not_finite.2 hab, eq_top_iff_not_finite.2
       (not_finite_iff_forall.2 this)]⟩
 
+lemma multiplicity_le_multiplicity_of_dvd {a b c : α} (hdvd : a ∣ b) :
+  multiplicity b c ≤ multiplicity a c :=
+multiplicity_le_multiplicity_iff.2 $ λ n h, dvd_trans (pow_dvd_pow_of_dvd hdvd n) h
+
 lemma dvd_of_multiplicity_pos {a b : α} (h : (0 : enat) < multiplicity a b) : a ∣ b :=
 by rw [← pow_one a]; exact pow_dvd_of_le_multiplicity (enat.pos_iff_one_le.1 h)
 
@@ -205,7 +209,7 @@ variables [comm_ring α] [decidable_rel ((∣) : α → α → Prop)]
 open_locale classical
 
 @[simp] protected lemma neg (a b : α) : multiplicity a (-b) = multiplicity a b :=
-roption.ext' (by simp only [multiplicity]; conv in (_ ∣ - _) {rw dvd_neg})
+roption.ext' (by simp only [multiplicity, dvd_neg])
   (λ h₁ h₂, enat.coe_inj.1 (by rw [enat.coe_get]; exact
     eq.symm (unique ((dvd_neg _ _).2 (pow_multiplicity_dvd _))
       (mt (dvd_neg _ _).1 (is_greatest' _ (lt_succ_self _))))))

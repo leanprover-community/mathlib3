@@ -251,6 +251,26 @@ begin
   { rwa (is_limit.lift' t _ _ _).2.2 },
 end
 
+/--
+The pullback cone `(𝟙 X, 𝟙 X)` for the pair `(f, f)` is a limit if `f` is a mono. The converse is
+shown in `mono_of_pullback_is_id`.
+-/
+def is_limit_mk_id_id (f : X ⟶ Y) [mono f] :
+  is_limit (mk (𝟙 X) (𝟙 X) rfl : pullback_cone f f) :=
+is_limit.mk _ _ _
+  (λ s, s.fst)
+  (λ s, category.comp_id _)
+  (λ s, by rw [←cancel_mono f, category.comp_id, s.condition])
+  (λ s m m₁ m₂, by simpa using m₁)
+
+/--
+`f` is a mono if the pullback cone `(𝟙 X, 𝟙 X)` is a limit for the pair `(f, f)`. The converse is
+given in `pullback_cone.is_id_of_mono`.
+-/
+lemma mono_of_is_limit_mk_id_id (f : X ⟶ Y) (t : is_limit (mk (𝟙 X) (𝟙 X) rfl : pullback_cone f f)) :
+  mono f :=
+⟨λ Z g h eq, by { rcases pullback_cone.is_limit.lift' t _ _ eq with ⟨_, rfl, rfl⟩, refl } ⟩
+
 end pullback_cone
 
 /-- A pushout cocone is just a cocone on the span formed by two morphisms `f : X ⟶ Y` and

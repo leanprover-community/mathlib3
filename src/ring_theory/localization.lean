@@ -912,7 +912,7 @@ Defines the `R`-algebra instance on a copy of `S` carrying the data of the local
 
 /-- We use a copy of the localization map `f`'s codomain `S` carrying the data of `f` so that the
 `R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra structure. -/
-instance : algebra R f.codomain := f.to_map.to_algebra
+instance algebra : algebra R f.codomain := f.to_map.to_algebra
 
 end localization_map
 namespace localization
@@ -1007,15 +1007,16 @@ end
 
 /-- `integer_normalization g` normalizes `g` to have integer coefficients
 by clearing the denominators -/
-noncomputable def integer_normalization : polynomial f.codomain → polynomial R :=
+noncomputable def integer_normalization (f : localization_map M S) :
+  polynomial f.codomain → polynomial R :=
 λ p, on_finset p.support (coeff_integer_normalization p) (coeff_integer_normalization_mem_support p)
 
 @[simp]
 lemma integer_normalization_coeff (p : polynomial f.codomain) (i : ℕ) :
-  (integer_normalization p).coeff i = coeff_integer_normalization p i := rfl
+  (f.integer_normalization p).coeff i = coeff_integer_normalization p i := rfl
 
 lemma integer_normalization_spec (p : polynomial f.codomain) :
-  ∃ (b : M), ∀ i, f.to_map ((integer_normalization p).coeff i) = f.to_map b * p.coeff i :=
+  ∃ (b : M), ∀ i, f.to_map ((f.integer_normalization p).coeff i) = f.to_map b * p.coeff i :=
 begin
   use classical.some (f.exist_integer_multiples_of_finset (p.support.image p.coeff)),
   intro i,
@@ -1031,20 +1032,20 @@ begin
 end
 
 lemma integer_normalization_map_to_map (p : polynomial f.codomain) :
-  ∃ (b : M), (integer_normalization p).map f.to_map = f.to_map b • p :=
+  ∃ (b : M), (f.integer_normalization p).map f.to_map = f.to_map b • p :=
 let ⟨b, hb⟩ := integer_normalization_spec p in
 ⟨b, polynomial.ext (λ i, by { rw coeff_map, exact hb i })⟩
 
 variables {R' : Type*} [comm_ring R']
 
 lemma integer_normalization_eval₂_eq_zero (g : f.codomain →+* R') (p : polynomial f.codomain)
-  {x : R'} (hx : eval₂ g x p = 0) : eval₂ (g.comp f.to_map) x (integer_normalization p) = 0 :=
+  {x : R'} (hx : eval₂ g x p = 0) : eval₂ (g.comp f.to_map) x (f.integer_normalization p) = 0 :=
 let ⟨b, hb⟩ := integer_normalization_map_to_map p in
 trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, smul_zero])
 
 lemma integer_normalization_aeval_eq_zero [algebra R R'] [algebra f.codomain R']
   [is_scalar_tower R f.codomain R'] (p : polynomial f.codomain)
-  {x : R'} (hx : aeval x p = 0) : aeval x (integer_normalization p) = 0 :=
+  {x : R'} (hx : aeval x p = 0) : aeval x (f.integer_normalization p) = 0 :=
 by rw [aeval_def, is_scalar_tower.algebra_map_eq R f.codomain R', algebra_map_eq,
     integer_normalization_eval₂_eq_zero _ _ hx]
 
@@ -1284,7 +1285,7 @@ def int.fraction_map : fraction_map ℤ ℚ :=
   ..int.cast_ring_hom ℚ }
 
 lemma integer_normalization_eq_zero_iff {p : polynomial f.codomain} :
-  integer_normalization p = 0 ↔ p = 0 :=
+  f.integer_normalization p = 0 ↔ p = 0 :=
 begin
   refine (polynomial.ext_iff.trans (polynomial.ext_iff.trans _).symm),
   obtain ⟨⟨b, nonzero⟩, hb⟩ := integer_normalization_spec p,
@@ -1309,7 +1310,7 @@ begin
   { have : f.to_map (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
     exact f.to_map_eq_zero_iff.mp this },
   { rwa [is_scalar_tower.aeval_apply _ f.codomain, algebra_map_eq] at px } },
-  { exact ⟨integer_normalization p,
+  { exact ⟨f.integer_normalization p,
            mt f.integer_normalization_eq_zero_iff.mp hp,
            integer_normalization_aeval_eq_zero p px⟩ },
 end

@@ -48,7 +48,8 @@ instance has_forget_to_Module : has_forget₂ (Algebra R) (Module R) :=
   { obj := λ M, Module.of R M,
     map := λ M₁ M₂ f, alg_hom.to_linear_map f, } }
 
-/-- The object in the category of R-algebras associated to a type equipped with the appropriate typeclasses. -/
+/-- The object in the category of R-algebras associated to a type equipped with the appropriate
+typeclasses. -/
 def of (X : Type v) [ring X] [algebra R X] : Algebra R := ⟨X⟩
 
 instance : inhabited (Algebra R) := ⟨of R R⟩
@@ -58,7 +59,8 @@ lemma coe_of (X : Type u) [ring X] [algebra R X] : (of R X : Type u) = X := rfl
 
 variables {R}
 
-/-- Forgetting to the underlying type and then building the bundled object returns the original algebra. -/
+/-- Forgetting to the underlying type and then building the bundled object returns the original
+algebra. -/
 @[simps]
 def of_self_iso (M : Algebra R) : Algebra.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }
@@ -80,17 +82,12 @@ def free : Type* ⥤ Algebra R :=
   map := λ S T f, free_algebra.lift _ $ (free_algebra.ι _) ∘ f }
 
 /-- The free/forget ajunction for `R`-algebras. -/
-@[simps]
 def adj : free R ⊣ forget (Algebra R) :=
-{ hom_equiv := λ X A,
-  { to_fun := λ f, f ∘ (free_algebra.ι _),
-    inv_fun := λ f, free_algebra.lift _ f,
-    left_inv := by tidy,
-    right_inv := by tidy },
-  unit := { app := λ S, free_algebra.ι _ },
-  counit :=
-  { app := λ S, free_algebra.lift _ $ id,
-    naturality' := by {intros, ext, simp} } } -- tidy times out :(
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X A, (free_algebra.lift _).symm,
+  -- Relying on `obviously` to fill out these proofs is very slow :(
+  hom_equiv_naturality_left_symm' := by {intros, ext, simp},
+  hom_equiv_naturality_right' := by {intros, ext, simp} }
 
 end Algebra
 
@@ -122,7 +119,8 @@ def to_alg_equiv {X Y : Algebra R} (i : X ≅ Y) : X ≃ₐ[R] Y :=
 
 end category_theory.iso
 
-/-- algebra equivalences between `algebras`s are the same as (isomorphic to) isomorphisms in `Algebra` -/
+/-- Algebra equivalences between `algebras`s are the same as (isomorphic to) isomorphisms in
+`Algebra`. -/
 @[simps]
 def alg_equiv_iso_Algebra_iso {X Y : Type u}
   [ring X] [ring Y] [algebra R X] [algebra R Y] :

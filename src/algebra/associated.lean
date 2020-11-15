@@ -164,7 +164,8 @@ begin
   exact H _ o.1 _ o.2 h.symm
 end
 
-lemma irreducible_of_prime [comm_cancel_monoid_with_zero α] {p : α} (hp : prime p) : irreducible p :=
+lemma irreducible_of_prime [comm_cancel_monoid_with_zero α] {p : α} (hp : prime p) :
+  irreducible p :=
 ⟨hp.not_unit, λ a b hab,
   (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.div_or_div (hab ▸ (dvd_refl _))).elim
     (λ ⟨x, hx⟩, or.inr (is_unit_iff_dvd_one.2
@@ -246,6 +247,13 @@ lemma associated_mul_mul [comm_monoid α] {a₁ a₂ b₁ b₂ : α} :
   a₁ ~ᵤ b₁ → a₂ ~ᵤ b₂ → (a₁ * a₂) ~ᵤ (b₁ * b₂)
 | ⟨c₁, h₁⟩ ⟨c₂, h₂⟩ := ⟨c₁ * c₂, by simp [h₁.symm, h₂.symm, mul_assoc, mul_comm, mul_left_comm]⟩
 
+lemma associated_pow_pow [comm_monoid α] {a b : α} {n : ℕ} (h : a ~ᵤ b) :
+  a ^ n ~ᵤ b ^ n :=
+begin
+  induction n with n ih, { simp [h] },
+  convert associated_mul_mul h ih,
+end
+
 lemma dvd_of_associated [monoid α] {a b : α} : a ~ᵤ b → a ∣ b := λ ⟨u, hu⟩, ⟨u, hu.symm⟩
 
 lemma dvd_dvd_of_associated [monoid α] {a b : α} (h : a ~ᵤ b) : a ∣ b ∧ b ∣ a :=
@@ -298,7 +306,8 @@ lemma eq_zero_iff_of_associated [comm_monoid_with_zero α] {a b : α} (h : a ~�
 lemma ne_zero_iff_of_associated [comm_monoid_with_zero α] {a b : α} (h : a ~ᵤ b) : a ≠ 0 ↔ b ≠ 0 :=
 by haveI := classical.dec; exact not_iff_not.2 (eq_zero_iff_of_associated h)
 
-lemma prime_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~ᵤ q) (hp : prime p) : prime q :=
+lemma prime_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~ᵤ q) (hp : prime p) :
+  prime q :=
 ⟨(ne_zero_iff_of_associated h).1 hp.ne_zero,
   let ⟨u, hu⟩ := h in
     ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv, hu.symm]⟩,
@@ -423,6 +432,16 @@ instance : preorder (associates α) :=
   le_trans := λ a b c, dvd_trans}
 
 @[simp] lemma mk_one : associates.mk (1 : α) = 1 := rfl
+
+/-- `associates.mk` as a `monoid_hom`. -/
+protected def mk_monoid_hom : α →* (associates α) := ⟨associates.mk, mk_one, λ x y, mk_mul_mk⟩
+
+@[simp] lemma mk_monoid_hom_apply (a : α) : associates.mk_monoid_hom a = associates.mk a := rfl
+
+lemma associated_map_mk {f : associates α →* α}
+  (hinv : function.right_inverse f associates.mk) (a : α) :
+  a ~ᵤ f (associates.mk a) :=
+associates.mk_eq_mk_iff_associated.1 (hinv (associates.mk a)).symm
 
 lemma mk_pow (a : α) (n : ℕ) : associates.mk (a ^ n) = (associates.mk a) ^ n :=
 by induction n; simp [*, pow_succ, associates.mk_mul_mk.symm]

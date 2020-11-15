@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker
 -/
 
+import data.nat.prime
 import tactic.linarith
 import tactic.norm_cast
 import tactic.ring
@@ -40,7 +41,7 @@ by exact_mod_cast lt_of_lt_of_le h le_nat_abs
 lemma int_not_prime (a b : ℤ) (c : ℕ) (h1 : 1 < a) (h2 : 1 < b) (h3 : a*b = ↑c) : ¬ prime c :=
 have h4 : (a*b).nat_abs = a.nat_abs * b.nat_abs, from nat_abs_mul a b,
 have h5 : a.nat_abs * b.nat_abs = c, by finish,
-norm_num.not_prime_helper a.nat_abs b.nat_abs c h5 (int_large a h1) (int_large b h2)
+tactic.norm_num.not_prime_helper a.nat_abs b.nat_abs c h5 (int_large a h1) (int_large b h2)
 
 lemma polynomial_not_prime (m n : ℕ) (h1 : 1 < m) : ¬ prime (n^4 + 4*m^4) :=
 have h2 : 1 < of_nat m, from coe_nat_lt.mpr h1,
@@ -66,5 +67,3 @@ begin
   assume n,
   exact polynomial_not_prime (2+b) n h1
 end
-
-

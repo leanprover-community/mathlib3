@@ -17,7 +17,8 @@ Let `R` be a commutative ring (or semiring) and aet `A` be an `R`-algebra.
 * `1 : submodule R A`       : the R-submodule R of the R-algebra A
 * `has_mul (submodule R A)` : multiplication of two sub-R-modules M and N of A is defined to be
                               the smallest submodule containing all the products `m * n`.
-* `has_div (submodule R A)` : `I / J` is defined to be the submodule consisting of all `a : A` such that `a • J ⊆ I`
+* `has_div (submodule R A)` : `I / J` is defined to be the submodule consisting of all `a : A` such
+                              that `a • J ⊆ I`
 
 It is proved that `submodule R A` is a semiring, and also an algebra over `set A`.
 
@@ -96,10 +97,12 @@ variables {R}
 
 variables (M N P Q)
 protected theorem mul_assoc : (M * N) * P = M * (N * P) :=
-le_antisymm (mul_le.2 $ λ mn hmn p hp, suffices M * N ≤ (M * (N * P)).comap ((algebra.lmul R A).flip p), from this hmn,
+le_antisymm (mul_le.2 $ λ mn hmn p hp,
+  suffices M * N ≤ (M * (N * P)).comap (algebra.lmul_right R p), from this hmn,
   mul_le.2 $ λ m hm n hn, show m * n * p ∈ M * (N * P), from
   (mul_assoc m n p).symm ▸ mul_mem_mul hm (mul_mem_mul hn hp))
-(mul_le.2 $ λ m hm np hnp, suffices N * P ≤ (M * N * P).comap (algebra.lmul R A m), from this hnp,
+(mul_le.2 $ λ m hm np hnp,
+  suffices N * P ≤ (M * N * P).comap (algebra.lmul_left R m), from this hnp,
   mul_le.2 $ λ n hn p hp, show m * (n * p) ∈ M * N * P, from
   mul_assoc m n p ▸ mul_mem_mul (mul_mem_mul hm hn) hp)
 
@@ -187,7 +190,8 @@ begin
     apply mul_subset_mul }
 end
 
-/-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets on either side). -/
+/-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
+on either side). -/
 def span.ring_hom : set_semiring A →+* submodule R A :=
 { to_fun := submodule.span R,
   map_zero' := span_empty,
@@ -240,7 +244,7 @@ lemma smul_le_smul {s t : set_semiring A} {M N : submodule R A} (h₁ : s.down �
 mul_le_mul (span_mono h₁) h₂
 
 lemma smul_singleton (a : A) (M : submodule R A) :
-  ({a} : set A).up • M = M.map (lmul_left _ _ a) :=
+  ({a} : set A).up • M = M.map (lmul_left _ a) :=
 begin
   conv_lhs {rw ← span_eq M},
   change span _ _ * span _ _ = _,
@@ -282,6 +286,30 @@ lemma le_div_iff {I J K : submodule R A} : I ≤ J / K ↔ ∀ (x ∈ I) (z ∈ 
 
 lemma le_div_iff_mul_le {I J K : submodule R A} : I ≤ J / K ↔ I * K ≤ J :=
 by rw [le_div_iff, mul_le]
+
+@[simp] lemma one_le_one_div {I : submodule R A} :
+  1 ≤ 1 / I ↔ I ≤ 1 :=
+begin
+  split, all_goals {intro hI},
+  {rwa [le_div_iff_mul_le, one_mul] at hI},
+  {rwa [le_div_iff_mul_le, one_mul]},
+end
+
+lemma le_self_mul_one_div {I : submodule R A} (hI : I ≤ 1) :
+  I ≤ I * (1 / I) :=
+begin
+  rw [← mul_one I] {occs := occurrences.pos [1]},
+  apply mul_le_mul_right (one_le_one_div.mpr hI),
+end
+
+lemma mul_one_div_le_one {I : submodule R A} : I * (1 / I) ≤ 1 :=
+begin
+  rw submodule.mul_le,
+  intros m hm n hn,
+  rw [submodule.mem_div_iff_forall_mul_mem] at hn,
+  rw mul_comm,
+  exact hn m hm,
+end
 
 @[simp] lemma map_div {B : Type*} [comm_ring B] [algebra R B]
   (I J : submodule R A) (h : A ≃ₐ[R] B) :

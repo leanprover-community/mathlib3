@@ -20,6 +20,7 @@ free monoid on two generators) and the theory of continued fractions.
 -/
 import tactic.ring
 import tactic.abel
+import data.pnat.prime
 
 namespace pnat
 open nat pnat

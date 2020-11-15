@@ -114,7 +114,7 @@ begin
     rw [f.map_coord_zero i hi, norm_zero],
     exact mul_nonneg (le_of_lt C_pos) (prod_nonneg (λi hi, norm_nonneg _)) },
   { push_neg at h,
-    have : ∀i, ∃d:𝕜, d ≠ 0 ∧ ∥d • m i∥ ≤ δ ∧ (δ/∥c∥ ≤ ∥d • m i∥) ∧ (∥d∥⁻¹ ≤ δ⁻¹ * ∥c∥ * ∥m i∥) :=
+    have : ∀i, ∃d:𝕜, d ≠ 0 ∧ ∥d • m i∥ < δ ∧ (δ/∥c∥ ≤ ∥d • m i∥) ∧ (∥d∥⁻¹ ≤ δ⁻¹ * ∥c∥ * ∥m i∥) :=
       λi, rescale_to_shell hc δ_pos (h i),
     choose d hd using this,
     have A : 0 ≤ 1 + ∥f 0∥ := add_nonneg zero_le_one (norm_nonneg _),
@@ -127,7 +127,7 @@ begin
       ... = (∏ i, ∥d i∥⁻¹) * ∥f (λi, d i • m i)∥ :
         by { rw [norm_smul, normed_field.norm_prod], congr' with i, rw normed_field.norm_inv }
       ... ≤ (∏ i, ∥d i∥⁻¹) * (1 + ∥f 0∥) :
-        mul_le_mul_of_nonneg_left (H ((pi_norm_le_iff (le_of_lt δ_pos)).2 (λi, (hd i).2.1)))
+        mul_le_mul_of_nonneg_left (H ((pi_norm_le_iff (le_of_lt δ_pos)).2 (λi, (hd i).2.1.le)))
           (prod_nonneg B)
       ... ≤ (∏ i, δ⁻¹ * ∥c∥ * ∥m i∥) * (1 + ∥f 0∥) :
         mul_le_mul_of_nonneg_right (prod_le_prod B (λi hi, (hd i).2.2.2)) A
@@ -350,20 +350,23 @@ begin
   split,
   { assume h,
     ext m,
-    simpa [h, norm_le_zero_iff.symm] using f.le_op_norm m },
-  { assume h,
-    apply le_antisymm (op_norm_le_bound f (le_refl _) (λm, _)) (op_norm_nonneg _),
-    rw h,
+    simpa [h] using f.le_op_norm m },
+  { rintro rfl,
+    apply le_antisymm (op_norm_le_bound 0 le_rfl (λm, _)) (op_norm_nonneg _),
     simp }
 end
 
-lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
-(Inf_le _ bounds_bdd_below
-  ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _), λ _,
+variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜' 𝕜]
+  [normed_space 𝕜' E₂] [is_scalar_tower 𝕜' 𝕜 E₂]
+
+lemma op_norm_smul_le (c : 𝕜') : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
+(c • f).op_norm_le_bound
+  (mul_nonneg (norm_nonneg _) (op_norm_nonneg _))
   begin
+    intro m,
     erw [norm_smul, mul_assoc],
     exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
-  end⟩)
+  end
 
 lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext, simp }
 
@@ -372,8 +375,34 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext
 instance to_normed_group : normed_group (continuous_multilinear_map 𝕜 E₁ E₂) :=
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
-instance to_normed_space : normed_space 𝕜 (continuous_multilinear_map 𝕜 E₁ E₂) :=
-⟨op_norm_smul_le⟩
+instance to_normed_space : normed_space 𝕜' (continuous_multilinear_map 𝕜 E₁ E₂) :=
+⟨λ c f, f.op_norm_smul_le c⟩
+
+section restrict_scalars
+
+variables [Π i, normed_space 𝕜' (E₁ i)] [∀ i, is_scalar_tower 𝕜' 𝕜 (E₁ i)]
+
+@[simp] lemma norm_restrict_scalars : ∥f.restrict_scalars 𝕜'∥ = ∥f∥ :=
+by simp only [norm_def, coe_restrict_scalars]
+
+variable (𝕜')
+
+/-- `continuous_multilinear_map.restrict_scalars` as a `continuous_multilinear_map`. -/
+def restrict_scalars_linear :
+  continuous_multilinear_map 𝕜 E₁ E₂ →L[𝕜'] continuous_multilinear_map 𝕜' E₁ E₂ :=
+linear_map.mk_continuous
+{ to_fun := restrict_scalars 𝕜',
+  map_add' := λ m₁ m₂, rfl,
+  map_smul' := λ c m, rfl } 1 $ λ f, by simp
+
+variable {𝕜'}
+
+lemma continuous_restrict_scalars :
+  continuous (restrict_scalars 𝕜' : continuous_multilinear_map 𝕜 E₁ E₂ →
+    continuous_multilinear_map 𝕜' E₁ E₂) :=
+(restrict_scalars_linear 𝕜').continuous
+
+end restrict_scalars
 
 /-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, precise version.
 For a less precise but more usable version, see `norm_image_sub_le_of_bound`. The bound reads

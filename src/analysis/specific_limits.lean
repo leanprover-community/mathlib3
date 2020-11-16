@@ -156,7 +156,7 @@ section geometric
 
 lemma has_sum_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   has_sum (λn:ℕ, r ^ n) (1 - r)⁻¹ :=
-have r ≠ 1, from ne_of_lt h₂,
+have r ≠ 1, from n_of_lt h₂,
 have r + -1 ≠ 0,
   by rw [←sub_eq_add_neg, ne, sub_eq_iff_eq_add]; simp; assumption,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (𝓝 ((0 - 1) * (r - 1)⁻¹)),

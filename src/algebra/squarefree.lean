@@ -44,8 +44,8 @@ is_unit_one.squarefree
 @[simp]
 lemma not_squarefree_zero [monoid_with_zero R] [nontrivial R] : ¬ squarefree (0 : R) :=
 begin
-  rw [squarefree, not_forall],
-  exact ⟨0, not_imp.2 (by simp)⟩,
+  erw [not_forall],
+  exact ⟨0, (by simp)⟩,
 end
 
 @[simp]
@@ -75,11 +75,11 @@ variables [comm_monoid R] [decidable_rel (has_dvd.dvd : R → R → Prop)]
 lemma squarefree_iff_multiplicity_le_one (r : R) :
   squarefree r ↔ ∀ x : R, multiplicity x r ≤ 1 ∨ is_unit x :=
 begin
-  rw [squarefree],
   refine forall_congr (λ a, _),
-  rw [or_iff_not_imp_left, ← pow_two, pow_dvd_iff_le_multiplicity, ← one_add_one_eq_two,
-    enat.coe_add, enat.coe_one, enat.add_one_le_iff_lt, lt_iff_not_ge],
-  apply enat.coe_ne_top,
+  rw [← pow_two, pow_dvd_iff_le_multiplicity, or_iff_not_imp_left, not_le, imp_congr],
+  swap, { refl },
+  convert enat.add_one_le_iff_lt (enat.coe_ne_top _),
+  norm_cast,
 end
 
 end multiplicity
@@ -98,28 +98,21 @@ begin
   rw [multiplicity.squarefree_iff_multiplicity_le_one, multiset.nodup_iff_count_le_one],
   split; intros h a,
   { by_cases hmem : a ∈ factors x,
-    { rcases h a with h | h,
-      { rw [multiplicity_eq_count_factors (irreducible_of_factor _ hmem) x0,
-          ← enat.coe_one, enat.coe_le_coe, normalize_factor _ hmem] at h,
-        apply h },
-      { exfalso,
-        apply (irreducible_of_factor _ hmem).1 h } },
-    { rw multiset.count_eq_zero_of_not_mem,
-        { simp },
-        { apply hmem } } },
-  { by_cases hu : is_unit a,
-    { right,
-      apply hu },
-    left,
+    { have ha := irreducible_of_factor _ hmem,
+      rcases h a with h | h,
+      { rw ← normalize_factor _ hmem,
+        rw [multiplicity_eq_count_factors ha x0] at h,
+        assumption_mod_cast },
+      { have := ha.1, contradiction, } },
+    { simp [multiset.count_eq_zero_of_not_mem hmem] } },
+  { rw or_iff_not_imp_right, intro hu,
     by_cases h0 : a = 0,
-    { rw [h0, multiplicity.multiplicity_eq_zero_of_not_dvd],
-      { simp },
-      rw zero_dvd_iff,
-      apply x0 },
+    { simp [h0, x0] },
     rcases wf_dvd_monoid.exists_irreducible_factor hu h0 with ⟨b, hib, hdvd⟩,
     apply le_trans (multiplicity.multiplicity_le_multiplicity_of_dvd hdvd),
-    rw [multiplicity_eq_count_factors hib x0, ← enat.coe_one, enat.coe_le_coe],
-    apply h }
+    rw [multiplicity_eq_count_factors hib x0],
+    specialize h (normalize b),
+    assumption_mod_cast }
 end
 
 end unique_factorization_monoid

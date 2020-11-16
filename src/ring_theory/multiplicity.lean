@@ -145,6 +145,7 @@ lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ mul
     by rw [eq_top_iff_not_finite.2 hab, eq_top_iff_not_finite.2
       (not_finite_iff_forall.2 this)]⟩
 
+
 lemma multiplicity_le_multiplicity_of_dvd {a b c : α} (hdvd : a ∣ b) :
   multiplicity b c ≤ multiplicity a c :=
 multiplicity_le_multiplicity_iff.2 $ λ n h, dvd_trans (pow_dvd_pow_of_dvd hdvd n) h
@@ -185,6 +186,13 @@ variable [decidable_rel ((∣) : α → α → Prop)]
 
 @[simp] protected lemma zero (a : α) : multiplicity a 0 = ⊤ :=
 roption.eq_none_iff.2 (λ n ⟨⟨k, hk⟩, _⟩, hk (dvd_zero _))
+
+@[simp] lemma multiplicity_zero_eq_zero_of_ne_zero (a : α) (ha : a ≠ 0) : multiplicity 0 a = 0 :=
+begin
+  apply multiplicity.multiplicity_eq_zero_of_not_dvd,
+  rwa zero_dvd_iff,
+end
+
 
 end comm_monoid_with_zero
 

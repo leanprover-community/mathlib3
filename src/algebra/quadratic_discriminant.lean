@@ -113,7 +113,6 @@ variables {K : Type*} [linear_ordered_field K] {a b c : K}
 
 /-- If a polynomial of degree 2 is always nonnegative, then its discriminant is nonpositive -/
 lemma discrim_le_zero (h : ∀ x : K, 0 ≤ a * x * x + b * x + c) : discrim a b c ≤ 0 :=
-have hc : 0 ≤ c, by { have := h 0, linarith },
 begin
   rw [discrim, pow_two],
   obtain ha|rfl|ha : a < 0 ∨ a = 0 ∨ 0 < a := lt_trichotomy a 0,

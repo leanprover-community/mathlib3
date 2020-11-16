@@ -233,7 +233,6 @@ section
       (xy_coprime _).coprime_dvd_right (y_mul_dvd m (n / m)),
     have m0 : 0 < m, from m.eq_zero_or_pos.resolve_left $
       λe, by rw [e, nat.mod_zero] at hp; rw [e] at h; exact
-      have 0 < yn a1 n, from y_increasing _ hp,
       ne_of_lt (y_increasing a1 hp) (eq_zero_of_zero_dvd h).symm,
     by rw [← nat.mod_add_div n m, yn_add] at h; exact
     not_le_of_gt (y_increasing _ $ nat.mod_lt n m0)

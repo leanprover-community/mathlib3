@@ -601,10 +601,6 @@ def moebius : arithmetic_function ℤ :=
 localized "notation `μ` := moebius" in arithmetic_function
 
 @[simp]
-lemma moebius_one : μ 1 = 1 :=
-by simp [moebius]
-
-@[simp]
 lemma moebius_apply_of_squarefree {n : ℕ} (h : squarefree n): μ n = (-1) ^ (card_factors n) :=
 if_pos h
 

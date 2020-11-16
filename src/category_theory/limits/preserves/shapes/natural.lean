@@ -265,7 +265,7 @@ end preserves_pair
 
 section general
 
-variables [has_terminal C] {J : Type v} [small_category J]
+variables {J : Type v} [small_category J]
 variables (K : decomposed J ⥤ C)
 -- open_locale classical
 
@@ -331,61 +331,163 @@ open_locale classical
 def right (j) : (decomposed J ⥤ C) ⥤ component J j ⥤ C :=
 (whiskering_left _ _ _).obj (inclusion _ _)
 
+def plus_obj {T : C} (hT : is_terminal T) (j : connected_components J) :
+  (component J j ⥤ C) → decomposed J ⥤ C :=
+λ H, desc (λ k, if h : k = j then eq_to_functor J h ⋙ H else (functor.const _).obj T)
 
+def plus_obj' {T : C} (hT : is_terminal T) (j : connected_components J) :
+  (component J j ⥤ C) → decomposed J ⥤ C :=
+λ H, desc (λ k,
+{ obj := λ X,
+  begin
+    refine dite (j = k) _ _,
+    { intro h,
+      apply H.obj,
+      apply (eq_to_functor _ h.symm).obj X },
+    { intro h,
+      apply T }
+  end,
+  map := λ X Y f,
+  begin
+    refine dite (j = k) _ _,
+    { intro h,
+      subst h,
+      apply eq_to_hom _ ≫ H.map f ≫ eq_to_hom _,
+      simp,
+      simp },
+    { intro h,
+      apply eq_to_hom _,
+      simp [h] }
+  end,
+  map_id' :=
+  begin
+    by_cases (j = k),
+    { intro X,
+      subst h,
+      simp },
+    { intro X,
+      simp [h] }
+  end,
+  map_comp' := λ X Y Z f g,
+  begin
+    by_cases (j = k),
+    { subst h,
+      simp },
+    { simp [h] }
+  end
+})
 
--- def plus_obj (j : connected_components J) : (component J j ⥤ C) → decomposed J ⥤ C :=
--- λ H, desc (λ k, if h : k = j then eq_to_functor J h ⋙ H else (functor.const _).obj (⊤_ C))
+def plus {T : C} (hT : is_terminal T) (j : connected_components J) :
+  (component J j ⥤ C) ⥤ decomposed J ⥤ C :=
+{ obj := plus_obj hT j,
+  map := λ X Y f,
+  begin
+    apply joining,
+    intro i,
+    apply (incl_desc _ _).hom ≫ _ ≫ (incl_desc _ _).inv,
+    apply dite (i = j) _ _,
+    { intro h,
+      apply eq_to_hom _ ≫ whisker_left (eq_to_functor _ h) f ≫ eq_to_hom _,
+      { simp [h] },
+      { simp [h] } },
+    { intro h,
+      apply eq_to_hom _,
+      simp [h] }
+  end,
+  map_id' := λ X,
+  begin
+    ext (⟨i, Y⟩ : decomposed _),
+    dsimp [joining],
+    by_cases (i = j),
+    { subst h,
+      simpa },
+    { change 𝟙 _ ≫ _ ≫ 𝟙 _ = _,
+      simpa [h] }
+  end,
+  map_comp' := λ X Y Z f g,
+  begin
+    ext ⟨i, W⟩,
+    dsimp [joining],
+    by_cases (i = j),
+    { dsimp [incl_desc],
+      simp [h] },
+    { dsimp [incl_desc],
+      simp [h] }
+  end }.
 
--- def plus (j : connected_components J) : (component J j ⥤ C) ⥤ decomposed J ⥤ C :=
--- { obj := plus_obj j,
---   map := λ X Y f,
---   begin
---     apply joining,
---     intro i,
---     refine ⟨_, _⟩,
---     { intro k,
---       refine (dite (i = j) _ _),
---       { intro h,
---         dsimp [plus_obj],
---         rw dif_pos h,
---         rw dif_pos h,
---         subst h,
---         apply f.app k },
---       { intro h,
---         dsimp [plus_obj],
---         rw dif_neg h,
---         rw dif_neg h,
---         apply (𝟙 _) } },
---     intros i₁ i₂ g,
---     split_ifs,
---     { subst h,
---       dsimp [plus_obj, desc, desc_map],
---       change functor.map _ _ ≫ _ = _,
---       dsimp,
+def plus_hom_equiv {T : C} (hT : is_terminal T) (j : connected_components J)
+  (G : decomposed J ⥤ C) (H : component J j ⥤ C) :
+  ((right j).obj G ⟶ H) ≃ (G ⟶ (plus_obj' hT j) H) :=
+begin
+  apply equiv.trans _ (thingy J G _).symm.to_equiv,
+  refine ⟨_, _, _, _⟩,
+  { intros f i,
+    apply _ ≫ (incl_desc _ _).inv,
+    refine dite (j = i) _ _,
+    { intro h,
+      subst h,
+      apply f ≫ _,
+      refine ⟨_, _⟩,
+      { intro Z,
+        exact eq_to_hom (by simp) },
+      { intros Z₁ Z₂ g,
+        simp } },
+    { intro h,
+      refine ⟨_, _⟩,
+      { intro Z,
+        apply hT.from (G.obj ⟨_, Z⟩) ≫ eq_to_hom _,
+        simp [h] },
+      { intros X Y f,
+        dsimp,
+        simp only [h, eq_self_iff_true, eq_to_hom_trans, dif_neg, assoc, not_false_iff],
+        rw ← assoc,
+        congr' 1,
+        apply hT.hom_ext } } },
+  { intro f,
+    apply f j ≫ (incl_desc _ _).hom ≫ _,
+    refine ⟨_, _⟩,
+    { intro X,
+      apply eq_to_hom _,
+      simp },
+    { intros X Y g,
+      simp } },
+  { intros f,
+    ext i,
+    dsimp,
+    simp },
+  { intro f,
+    ext i X,
+    by_cases (j = i),
+    { subst h,
+      simp },
+    { rw dif_neg h,
+      change (_ ≫ _) ≫ _ = _,
+      rw ← is_iso.comp_is_iso_eq,
+      rw ← is_iso.comp_is_iso_eq,
+      apply hT.hom_ext } }
+end.
 
---     },
---   end
+lemma plus_symm_natural {T : C} (hT : is_terminal T) (j : connected_components J)
+  (G G' : decomposed J ⥤ C) (H : component J j ⥤ C)
+  (f : G' ⟶ G) (g : G ⟶ (plus_obj' hT j) H) :
+  (right j).map f ≫ (plus_hom_equiv hT j _ _).symm g = (plus_hom_equiv hT j _ _).symm (f ≫ g) :=
+begin
+  ext X,
+  change _ ≫ _ ≫ _ ≫ _ = (_ ≫ _) ≫ _ ≫ _,
+  rw assoc,
+  refl,
+end
 
--- }
-
--- def equivalate (j : connected_components J) (G : decomposed J ⥤ C) (H : component J j ⥤ C) :
---   (inclusion _ _ ⋙ G ⟶ H) ≃ (G ⟶ plus_obj j H) :=
--- { to_fun := λ f,
---   { app :=
---     begin
---       rintro ⟨k, X⟩,
---       refine dite (k = j) (λ h, _) _,
-
---       dsimp [plus_obj],
-
---     end,
---     naturality' := sorry
-
---   }
-
--- }
-
--- def plus := adjunction.left_adjoint_of_equiv _ _
+def plus' {T : C} (hT : is_terminal T) (j : connected_components J) :
+  (component J j ⥤ C) ⥤ decomposed J ⥤ C :=
+begin
+  refine adjunction.right_adjoint_of_equiv (plus_hom_equiv hT j) _,
+  intros G' G H f g,
+  rw ← equiv.eq_symm_apply,
+  ext X,
+  rw ← plus_symm_natural,
+  simp,
+end
 
 end general
 

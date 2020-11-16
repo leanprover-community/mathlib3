@@ -329,6 +329,9 @@ end
 def eq_to_functor : ∀ {j k}, j = k → component J j ⥤ component J k
 | _ _ (eq.refl _) := 𝟭 _
 
+@[simp]
+lemma eq_to_functor_refl (j) : eq_to_functor J (rfl : j = j) = 𝟭 _ := rfl
+
 lemma list.last_map {α β : Type*} (l : list α) (f : α → β) (hl : l ≠ []) :
   (l.map f).last (mt list.eq_nil_of_map_eq_nil hl) = f (l.last hl) :=
 begin
@@ -432,9 +435,17 @@ instance : ess_surj (forward J) :=
 -- This gives that any category is equivalent to a disjoint union of connected categories.
 instance : is_equivalence (forward J) := equivalence.equivalence_of_fully_faithfully_ess_surj _
 
+@[simps]
 def thingy (H F : decomposed J ⥤ C) :
   (H ⟶ F) ≅ Π j, (incl j ⋙ H ⟶ incl j ⋙ F) :=
 { hom := λ α j, whisker_left _ α,
   inv := joining _ _ }
+
+def thingy_natural {H H' F F' : decomposed J ⥤ C} (α : H' ⟶ H) (β : F ⟶ F') (γ : H ⟶ F) :
+  (thingy J H' F').hom (α ≫ γ ≫ β) = (λ j, whisker_left _ α ≫ (thingy J H F).hom γ j ≫ whisker_left _ β) :=
+begin
+  ext j X,
+  refl,
+end
 
 end category_theory

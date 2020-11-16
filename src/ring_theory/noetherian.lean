@@ -514,12 +514,12 @@ end submodule
 
 namespace primes
 
-variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [nontrivial R] --[decidable_eq (prime_spectrum R)]
+variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [nontrivial R]
 
-  /-In a noetherian ring, every ideal contains a product of prime ideals
-([samuel, § 3.3, Lemma 3])-/
-lemma prime_product (I : ideal R) : ∃ (Z : multiset (prime_spectrum R)),
-  multiset.prod (Z.map subtype.val) ≤ I :=
+  /--In a noetherian ring, every ideal contains a product of prime ideals
+([samuel, § 3.3, Lemma 3])--/
+lemma exists_prime_spectrum_prod_le (I : ideal R) :
+  ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ I :=
 begin
   let P := λ J, ∀ (Y : multiset (prime_spectrum R)), ¬ multiset.prod (Y.map subtype.val) ≤ J,
   let Ω := {J : ideal R | P J },

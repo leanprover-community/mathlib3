@@ -125,4 +125,10 @@ instance : star_monoid (free_monoid α) :=
   star_involutive := list.reverse_reverse,
   star_mul := list.reverse_append, }
 
+@[simp]
+lemma star_of (x : α) : star (of x) = of x := rfl
+
+@[simp]
+lemma star_one : star (1 : free_monoid α) = 1 := rfl
+
 end free_monoid

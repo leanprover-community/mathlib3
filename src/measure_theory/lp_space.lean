@@ -25,7 +25,6 @@ for `p:ℝ` with `1 ≤ p`.
 -/
 
 open measure_theory
-open_locale big_operators
 
 noncomputable theory
 

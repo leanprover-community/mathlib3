@@ -1394,6 +1394,16 @@ theorem map_filter_eq_foldr (f : α → β) (p : α → Prop) [decidable_pred p]
   map f (filter p as) = foldr (λ a bs, if p a then f a :: bs else bs) [] as :=
 by { induction as, { refl }, { simp! [*, apply_ite (map f)] } }
 
+lemma last_map (f : α → β) {l : list α} (hl : l ≠ []) :
+  (l.map f).last (mt eq_nil_of_map_eq_nil hl) = f (l.last hl) :=
+begin
+  induction l with l_ih l_tl l_ih,
+  { apply (hl rfl).elim },
+  { cases l_tl,
+    { simp },
+    { simpa using l_ih } }
+end
+
 /-! ### map₂ -/
 
 theorem nil_map₂ (f : α → β → γ) (l : list β) : map₂ f [] l = [] :=
@@ -2533,6 +2543,17 @@ by induction l; [refl, simp only [*, pmap, length]]
 by rw [← length_eq_zero, length_pmap, length_eq_zero]
 
 @[simp] lemma attach_eq_nil (l : list α) : l.attach = [] ↔ l = [] := pmap_eq_nil
+
+lemma last_pmap {α β : Type*} (p : α → Prop) (f : Π a, p a → β)
+  (l : list α) (hl₁ : ∀ a ∈ l, p a) (hl₂ : l ≠ []) :
+  (l.pmap f hl₁).last (mt list.pmap_eq_nil.1 hl₂) = f (l.last hl₂) (hl₁ _ (list.last_mem hl₂)) :=
+begin
+  induction l with l_hd l_tl l_ih,
+  { apply (hl₂ rfl).elim },
+  { cases l_tl,
+    { simp },
+    { apply l_ih } }
+end
 
 /-! ### find -/
 

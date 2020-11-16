@@ -184,6 +184,12 @@ lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
+instance : star_ring ℂ :=
+{ star := λ z, conj z,
+  star_involutive := λ z, by simp,
+  star_mul := λ r s, by { ext; simp [mul_comm], },
+  star_add := by simp, }
+
 /-! ### Norm squared -/
 
 /-- The norm squared function. -/

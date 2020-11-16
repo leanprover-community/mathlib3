@@ -74,21 +74,24 @@ section ring
 variables [ring β] [algebra α β] [nontrivial β]
 variables {x : β} (hx : is_integral α x)
 
-/--The degree of a minimal polynomial is nonzero.-/
-lemma degree_ne_zero : degree (minimal_polynomial hx) ≠ 0 :=
+/--The degree of a minimal polynomial is positive. -/
+lemma degree_pos [nontrivial α] [nontrivial β] : 0 < degree (minimal_polynomial hx) :=
 begin
+  apply lt_of_le_of_ne,
+  { simpa only [zero_le_degree_iff] using ne_zero hx },
   assume deg_eq_zero,
+  rw eq_comm at deg_eq_zero,
   have ndeg_eq_zero : nat_degree (minimal_polynomial hx) = 0,
   { simpa using congr_arg nat_degree (eq_C_of_degree_eq_zero deg_eq_zero) },
   have eq_one : minimal_polynomial hx = 1,
   { rw eq_C_of_degree_eq_zero deg_eq_zero, convert C_1,
-    simpa [ndeg_eq_zero.symm] using (monic hx).leading_coeff },
-  simpa [eq_one, aeval_def] using aeval hx
+    simpa only [ndeg_eq_zero.symm] using (monic hx).leading_coeff },
+  simpa only [eq_one, alg_hom.map_one, one_ne_zero] using aeval hx
 end
 
 /--A minimal polynomial is not a unit.-/
 lemma not_is_unit : ¬ is_unit (minimal_polynomial hx) :=
-assume H, degree_ne_zero hx $ degree_eq_zero_of_is_unit H
+assume H, (ne_of_lt (degree_pos hx)).symm $ degree_eq_zero_of_is_unit H
 
 end ring
 
@@ -211,10 +214,6 @@ lemma dvd_map_of_is_scalar_tower {α γ : Type*} (β : Type*) [comm_ring α] [fi
 by { apply minimal_polynomial.dvd, rw [← is_scalar_tower.aeval_apply, minimal_polynomial.aeval] }
 
 variables [nontrivial β]
-
-/--The degree of a minimal polynomial is positive.-/
-lemma degree_pos : 0 < degree (minimal_polynomial hx) :=
-degree_pos_of_ne_zero_of_nonunit (ne_zero hx) (not_is_unit hx)
 
 theorem unique' {p : polynomial α} (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval x p = 0)
   (hp3 : p.monic) : p = minimal_polynomial hx :=

@@ -97,28 +97,18 @@ variables (t : R) (x y z : L) (m n : M)
 
 @[simp] lemma lie_lie : ⁅⁅x, y⁆, m⁆ = ⁅x, ⁅y, m⁆⁆ - ⁅y, ⁅x, m⁆⁆ := lie_ring_module.lie_lie x y m
 
-@[simp] lemma lie_zero : ⁅x, 0⁆ = (0 : M) :=
-(add_monoid_hom.mk' _ (lie_ring_module.lie_add x)).map_zero
+@[simp] lemma lie_zero : ⁅x, 0⁆ = (0 : M) := (add_monoid_hom.mk' _ (lie_add x)).map_zero
 
 @[simp] lemma zero_lie : ⁅(0 : L), m⁆ = 0 :=
-begin
-  refine (add_monoid_hom.mk' (λ (x : L), ⁅x, m⁆) _).map_zero,
-  simp,
-end
+(add_monoid_hom.mk' (λ (x : L), ⁅x, m⁆) (λ x y, add_lie x y m)).map_zero
 
 @[simp] lemma lie_self : ⁅x, x⁆ = 0 := lie_ring.lie_self x
 
-instance lie_ring_self_module : lie_ring_module L L :=
-{ ..(infer_instance : lie_ring L) }
+instance lie_ring_self_module : lie_ring_module L L := { ..(infer_instance : lie_ring L) }
 
 @[simp] lemma lie_skew : -⁅y, x⁆ = ⁅x, y⁆ :=
-begin
-  symmetry,
-  rw [←sub_eq_zero_iff_eq, sub_neg_eq_add],
-  have H : ⁅x + y, x + y⁆ = 0, from lie_self _,
-  rw add_lie at H,
-  simpa only [lie_add, lie_self, add_zero, zero_add] using H,
-end
+have h : ⁅x + y, x⁆ + ⁅x + y, y⁆ = 0, { rw ← lie_add, apply lie_self, },
+by simpa [neg_eq_iff_add_eq_zero] using h
 
 /-- Every Lie algebra is a module over itself. -/
 instance lie_algebra_self_module : lie_module R L L :=
@@ -138,11 +128,7 @@ add_monoid_hom.map_gsmul ⟨λ (x : L), ⁅x, m⁆, zero_lie m, λ _ _, add_lie 
 add_monoid_hom.map_gsmul ⟨λ (m : M), ⁅x, m⁆, lie_zero x, λ _ _, lie_add _ _ _⟩ _ _
 
 lemma jacobi : ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
-begin
-  have h : ⁅z,⁅y,x⁆⁆ = -⁅z,⁅x,y⁆⁆, { rw ← lie_neg, congr, rw lie_skew, },
-  rw [←lie_skew, lie_lie, h],
-  abel,
-end
+by { rw [← neg_neg ⁅x, y⁆, lie_neg z, lie_skew y x, ← lie_skew, lie_lie], abel, }
 
 end basic_properties
 

@@ -103,8 +103,8 @@ begin
     ring },
   obtain ⟨u, hu⟩ : associated (c * d) (content (f.integer_normalization a) *
             content (f.integer_normalization b)),
-  { rw [← dvd_dvd_iff_associated, ← normalize_eq_normalize_iff, monoid_hom.map_mul,
-        monoid_hom.map_mul, normalize_content, normalize_content,
+  { rw [← dvd_dvd_iff_associated, ← normalize_eq_normalize_iff, normalize.map_mul,
+        normalize.map_mul, normalize_content, normalize_content,
         ← mul_one (normalize c * normalize d), ← hp.content_eq_one, ← content_C, ← content_C,
         ← content_mul, ← content_mul, ← content_mul, h1] },
   rw [← ring_hom.map_mul, eq_comm,

@@ -1338,17 +1338,13 @@ lemma eventually_eq_dirac' [measurable_singleton_class α] {a : α} (f : α → 
   f =ᵐ[dirac a] const α (f a) :=
 by { rw [dirac_ae_eq], show f a = f a, refl }
 
-lemma measure_diff_of_ae_le {s t : set α} (H : s ≤ᵐ[μ] t) :
-  μ (s \ t) = 0 :=
-flip measure_mono_null H $ λ x hx H, hx.2 (H hx.1)
-
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
 lemma measure_mono_ae {s t : set α} (H : s ≤ᵐ[μ] t) :
   μ s ≤ μ t :=
 calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
      ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
      ... ≤ μ t + μ (s \ t) : measure_union_le _ _
-     ... = μ t             : by rw [measure_diff_of_ae_le H, add_zero]
+     ... = μ t             : by rw [ae_le_set.1 H, add_zero]
 
 alias measure_mono_ae ← filter.eventually_le.measure_le
 

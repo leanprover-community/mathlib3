@@ -381,18 +381,4 @@ def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵒᵖ :=
 { commutes' := λ r, by simp [star_algebra_map],
   ..star_ring_equiv}
 
--- instance [star_ring R] : star_algebra R (free_algebra R X) :=
--- { star_smul := λ c a, by {
---   unfold star has_star.star,
---   simp only [algebra.smul_def''],
---   simp only [function.comp_apply],
---   apply opposite.op_injective,
---   rw opposite.op_unop,
---   induction a using free_algebra.induction,
---   { simp [*], rw ← opposite.op_mul, rw algebra.commutes, rw opposite.op_mul, congr, sorry},
---   { simp [*], sorry},
---   { simp [*], sorry},
---   { simp [*], sorry},
--- }}
-
 end free_algebra

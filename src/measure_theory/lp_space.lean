@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Rémy Degenne.
 -/
 import measure_theory.l1_space
-import analysis.special_functions.pow
-import analysis.convex.specific_functions
+import analysis.mean_inequalities
 
 /-!
 # ℒp space
@@ -26,6 +25,7 @@ for `p:ℝ` with `1 ≤ p`.
 -/
 
 open measure_theory
+open_locale big_operators
 
 noncomputable theory
 
@@ -121,60 +121,45 @@ lemma mem_ℒp.neg_mem_ℒp {f : α → E} (hf : mem_ℒp f p μ) : mem_ℒp (-f
 
 variable [topological_space.second_countable_topology E]
 
-lemma rpow_nnnorm_add_le_const_mul_add_rpow_nnnorm {β} {f g : β → F} (hp1 : 1 ≤ p) (a : β) :
-  (nnnorm (f a + g a)) ^ p ≤ 2 ^ (p - 1) * ((nnnorm (f a)) ^ p + (nnnorm (g a)) ^ p):=
-begin
-  have hp0_lt : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
-  have h_zero_lt_half : (0 : nnreal) < 1 / 2, by simp [zero_lt_one],
-  have h_zero_lt_half_rpow : (0 : nnreal) < (1 / 2) ^ p,
-  { rw [←nnreal.zero_rpow (ne_of_lt hp0_lt).symm, nnreal.rpow_lt_rpow_iff hp0_lt],
-    exact h_zero_lt_half, },
-  have h_rw : (1 / 2) ^ p * (2:nnreal) ^ (p - 1) = 1 / 2,
-  { rw [nnreal.rpow_sub two_ne_zero, nnreal.div_rpow, nnreal.one_rpow, nnreal.rpow_one,
-      ←mul_div_assoc, one_div, inv_mul_cancel],
-    simp [two_ne_zero], },
-  rw [←mul_le_mul_left h_zero_lt_half_rpow, mul_add, mul_add, ← mul_assoc, ← mul_assoc, h_rw,
-    ←nnreal.mul_rpow],
-  refine le_trans _ _,
-  exact ((1/2) * (nnnorm (f a)) + (1/2) * (nnnorm (g a))) ^ p,
-  { refine nnreal.rpow_le_rpow _ (le_of_lt hp0_lt),
-    rw [← mul_add, mul_le_mul_left h_zero_lt_half],
-    exact nnnorm_add_le (f a) (g a), },
-  -- go from nnreal to ℝ to use convexity (which is not defined for nnreal)
-  suffices h_R :
-    (((1 / (2:nnreal)) * nnnorm (f a) + (1 / (2:nnreal)) * nnnorm (g a)) ^ p).val
-    ≤ ((1 / (2:nnreal)) * nnnorm (f a) ^ p + (1 / (2:nnreal)) * nnnorm (g a) ^ p).val,
-  from h_R,
-  simp only [one_div, nnreal.val_eq_coe, nnreal.coe_inv, nnreal.coe_add, coe_nnnorm,
-    nnreal.coe_rpow, nnreal.coe_one, nnreal.coe_bit0, nnreal.coe_mul],
-  -- use convexity of rpow
-  repeat {rw ←smul_eq_mul},
-  refine (convex_on_rpow hp1).right (norm_nonneg (f a)) (norm_nonneg (g a)) _ _ _,
-  simp [zero_le_two],
-  simp [zero_le_two],
-  ring,
-end
-
-lemma mem_ℒp.add_mem_ℒp {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) (hp1 : 1 ≤ p) :
+lemma mem_ℒp.add {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) (hp1 : 1 ≤ p) :
   mem_ℒp (f+g) p μ :=
 begin
-  have hp0 : 0 ≤ p, from le_trans zero_le_one hp1,
+  have hp0_lt : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
+  have hp0 : 0 ≤ p, from le_of_lt hp0_lt,
   have hp0_sub1 : 0 ≤ p - 1, by { rw sub_nonneg, exact hp1, },
   split,
   { exact measurable.add hf.1 hg.1, },
-  simp_rw pi.add_apply,
+  simp_rw [pi.add_apply, ennreal.coe_rpow_of_nonneg _ hp0],
+  -- step 1: use nnnorm_add_le
   refine lt_of_le_of_lt _ _,
-  exact ∫⁻ a, (2^(p-1) * (nnnorm (f a) : ennreal) ^ p + 2^(p-1) * (nnnorm (g a) : ennreal) ^ p) ∂ μ,
-  { refine lintegral_mono _,
+  exact ∫⁻ a, ↑((nnnorm (f a) + nnnorm (g a)) ^ p) ∂ μ,
+  { refine lintegral_mono_nnreal _,
     intro a,
-    simp_rw [←@ennreal.coe_two, ennreal.coe_rpow_of_nonneg _ hp0,
-      ennreal.coe_rpow_of_nonneg _ hp0_sub1, ←ennreal.coe_mul, ←ennreal.coe_add,
-      ennreal.coe_le_coe, ←mul_add],
-    exact rpow_nnnorm_add_le_const_mul_add_rpow_nnnorm hp1 a, },
-  { rw [lintegral_add, lintegral_const_mul, lintegral_const_mul, ennreal.add_lt_top],
+    exact nnreal.rpow_le_rpow (nnnorm_add_le (f a) (g a)) (le_of_lt hp0_lt), },
+  -- step 2: use convexity of rpow
+  refine lt_of_le_of_lt _ _,
+  exact ∫⁻ a, ↑((2:nnreal)^(p-1) * (nnnorm (f a)) ^ p + (2:nnreal)^(p-1) * (nnnorm (g a)) ^ p) ∂ μ,
+  { refine lintegral_mono_nnreal _,
+    intro a,
+    dsimp only,
+    have h_zero_lt_half_rpow : (0 : nnreal) < (1 / 2) ^ p,
+    { rw [←nnreal.zero_rpow (ne_of_lt hp0_lt).symm, nnreal.rpow_lt_rpow_iff hp0_lt],
+      simp [zero_lt_one], },
+    have h_rw : (1 / 2) ^ p * (2:nnreal) ^ (p - 1) = 1 / 2,
+    { rw [nnreal.rpow_sub two_ne_zero, nnreal.div_rpow, nnreal.one_rpow, nnreal.rpow_one,
+        ←mul_div_assoc, one_div, inv_mul_cancel],
+      simp [two_ne_zero], },
+    rw [←mul_le_mul_left h_zero_lt_half_rpow, mul_add, ← mul_assoc, ← mul_assoc, h_rw,
+      ←nnreal.mul_rpow, mul_add],
+    refine nnreal.rpow_arith_mean_le_arith_mean2_rpow (1/2 : nnreal) (1/2 : nnreal)
+      (nnnorm (f a)) (nnnorm (g a)) _ hp1,
+    rw [nnreal.div_add_div_same, one_add_one_eq_two, nnreal.div_self two_ne_zero], },
+  -- step 3: use hypotheses hf and hg
+  { simp_rw [ennreal.coe_add, ennreal.coe_mul, ←ennreal.coe_rpow_of_nonneg _ hp0],
+    rw [lintegral_add, lintegral_const_mul, lintegral_const_mul, ennreal.add_lt_top],
     split; rw ennreal.mul_lt_top_iff; left;
       { split,
-        exact ennreal.rpow_lt_top_of_nonneg hp0_sub1 ennreal.coe_ne_top,
+        exact ennreal.coe_lt_top,
         try { exact hf.2, },
         try { exact hg.2, }, },
     -- finish by proving the measurability of all functions involved

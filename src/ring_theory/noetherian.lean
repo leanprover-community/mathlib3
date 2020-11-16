@@ -395,7 +395,7 @@ theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module
 by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
 
 /-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/
-lemma is_noetherian.induction {R M} [ring R] [add_comm_group M] [module R M] [is_noetherian R M]
+lemma is_noetherian_induction {R M} [ring R] [add_comm_group M] [module R M] [is_noetherian R M]
   {P : submodule R M → Sort*} (hgt : ∀ I, (∀ J > I, P J) → P I)
   (I : submodule R M) : P I :=
 well_founded.recursion (well_founded_submodule_gt R M) I hgt
@@ -520,7 +520,7 @@ end submodule
 
 namespace primes
 
-variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [nontrivial R]
+variables {R : Type*} [comm_ring R] [is_noetherian_ring R]
 
 /--In a noetherian ring, every ideal contains a product of prime ideals
 ([samuel, § 3.3, Lemma 3])--/
@@ -528,7 +528,7 @@ variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [nontrivial R]
 lemma exists_prime_spectrum_prod_le (I : ideal R) :
   ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ I :=
 begin
-  refine is_noetherian.induction (λ (M : ideal R) hgt, _) I,
+  refine is_noetherian_induction (λ (M : ideal R) hgt, _) I,
   by_cases h_prM : M.is_prime,
   { use {⟨M, h_prM⟩},
     rw [multiset.map_singleton, multiset.singleton_eq_singleton, multiset.prod_singleton,
@@ -587,7 +587,7 @@ begin
       exact (ne_of_lt (h_nzI)).symm },
     obtain ⟨M, ⟨⟨h_PM, h_nzM⟩, h_maxM⟩⟩ : ∃ (M : ideal A) (H: M ∈ Ω),
       ∀ (J : ideal A), J ∈ Ω → M ≤ J → J = M,
-    { apply set_has_maximal_iff_noetherian.mpr _inst_5 Ω,
+    { apply set_has_maximal_iff_noetherian.mpr _inst_4 Ω,
       apply ne_empty_iff_nonempty.mp,
       assumption },
     have h_not_prM : ¬ M.is_prime,

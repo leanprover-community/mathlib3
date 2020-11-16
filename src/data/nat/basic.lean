@@ -116,8 +116,8 @@ lt_trans zero_lt_one h
 
 end facts
 
-namespace nat
 variables {m n k : ℕ}
+namespace nat
 
 /-!
 ### Recursion and `set.range`
@@ -1135,6 +1135,14 @@ strict_mono.injective (pow_right_strict_mono k)
 
 lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
 λ _ _ h, pow_lt_pow_of_lt_left h k
+
+end nat
+
+lemma strict_mono.nat_pow {n : ℕ} (hn : 1 ≤ n) {f : ℕ → ℕ} (hf : strict_mono f) :
+  strict_mono (λ m, (f m) ^ n) :=
+(nat.pow_left_strict_mono hn).comp hf
+
+namespace nat
 
 lemma pow_le_iff_le_left {m x y : ℕ} (k : 1 ≤ m) : x^m ≤ y^m ↔ x ≤ y :=
 strict_mono.le_iff_le (pow_left_strict_mono k)

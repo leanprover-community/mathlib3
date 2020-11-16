@@ -516,8 +516,9 @@ namespace primes
 
 variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [nontrivial R]
 
-  /--In a noetherian ring, every ideal contains a product of prime ideals
+/--In a noetherian ring, every ideal contains a product of prime ideals
 ([samuel, § 3.3, Lemma 3])--/
+
 lemma exists_prime_spectrum_prod_le (I : ideal R) :
   ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ I :=
 begin
@@ -602,12 +603,12 @@ begin
   apply absurd h_PM h_absM,
 end
 
-  /-In a noetherian integral domain which is not a field, every non-zero ideal contains a non-zero
+/--In a noetherian integral domain which is not a field, every non-zero ideal contains a non-zero
   product of prime ideals; in a field, the whole ring is a non-zero ideal containing only 0 as product
   or prime ideals ([samuel, § 3.3, Lemma 3])
--/
-variables {A : Type*} [integral_domain A] [is_noetherian_ring A]
+--/
 
+variables {A : Type*} [integral_domain A] [is_noetherian_ring A]
 
 lemma integral_nonzero_prime_product_of_nonzero (h_fA : ¬ is_field A) (I : ideal A) (h_nzI: ⊥ < I):
   ∃ (Z : multiset (prime_spectrum A)), multiset.prod (Z.map subtype.val) ≤ I ∧

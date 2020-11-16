@@ -528,7 +528,6 @@ variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [nontrivial R]
 lemma exists_prime_spectrum_prod_le (I : ideal R) :
   ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ I :=
 begin
-  begin
   refine is_noetherian.induction (λ (M : ideal R) hgt, _) I,
   by_cases h_prM : M.is_prime,
   { use {⟨M, h_prM⟩},
@@ -543,7 +542,7 @@ begin
     refine lt_of_le_of_ne le_sup_left (λ m_eq, hz _),
     rw m_eq,
     exact mem_sup_right (mem_span_singleton_self z) },
-  obtain ⟨x, hx, y, hy, hxy⟩ := (not_is_prime_iff.mp h_prM).resolve_left htop,
+  obtain ⟨x, hx, y, hy, hxy⟩ := (ideal.not_is_prime_iff.mp h_prM).resolve_left htop,
   let Jx := M + span R {x},
   let Jy := M + span R {y},
   obtain ⟨Wx, h_Wx⟩ := hgt (M + span R {x}) (lt_add _ hx),

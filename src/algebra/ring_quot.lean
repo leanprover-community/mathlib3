@@ -226,6 +226,15 @@ def star_ring {R : Type u₁} [semiring R] [star_ring R] (r : R → R → Prop)
   star_mul := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (star_mul _ _), },
   star_add := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (star_add _ _), } }
 
+@[simp]
+def star_ring_algebra_map [_root_.star_ring A] (s : A → A → Prop)
+  (hr : ∀ {a b : A}, s a b → s (star a) (star b))
+  (ha : ∀ {r : S}, star (algebra_map S A r) = algebra_map S A r)
+  (r : S) :
+  let i := star_ring s @hr in by exactI
+  star (algebra_map S (ring_quot s) r) = (algebra_map S (ring_quot s) r) :=
+by exact congr_arg (quot.mk _) ha
+
 section algebra
 
 variables (S)
@@ -303,21 +312,6 @@ by { ext, simp [h], }
 lemma eq_lift_alg_hom_comp_mk_alg_hom {s : A → A → Prop} (f : ring_quot s →ₐ[S] B) :
   f = lift_alg_hom S ⟨f.comp (mk_alg_hom S s), λ x y h, by { dsimp, erw mk_alg_hom_rel S h, }⟩ :=
 ((lift_alg_hom S).apply_symm_apply f).symm
-
-def star_ring_algebra_map [_root_.star_ring A] (s : A → A → Prop)
-  (hr : ∀ {a b : A}, s a b → s (star a) (star b))
-  (ha : ∀ {r : S}, star (algebra_map S A r) = algebra_map S A r)
-  (r : S) :
-  let i := star_ring s @hr in by exactI
-  star (algebra_map S (ring_quot s) r) = (algebra_map S (ring_quot s) r) :=
-begin
-  dunfold star has_star.star ring_quot.star_ring,
-  generalize h : (algebra_map S _ r) = z,
-  simp only,
-  rcases z,
-  apply congr_arg (quot.mk _) _,
-  convert ha,
-end
 
 end algebra
 

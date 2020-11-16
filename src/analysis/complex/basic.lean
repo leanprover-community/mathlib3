@@ -191,8 +191,9 @@ end
 
 end real_deriv_of_complex
 
-section differentiable_re
-open complex
+namespace complex
+
+section differentiable_re_im
 
 /-! Differentiability of the real and imaginary part functions. -/
 
@@ -220,15 +221,14 @@ has_fderiv_at_im.fderiv
 @[simp] lemma deriv_im' : fderiv ℝ im = λ _, continuous_linear_map.im :=
 funext $ λ _, deriv_im
 
-end differentiable_re
+end differentiable_re_im
 
 section cauchy_riemann
-open complex
 
 /-- First Cauchy-Riemann equation: for a complex-differentiable function `f`, the `x`-derivative of
 `re ∘ f` is equal to the `y`-derivative of `im ∘ f`. -/
-lemma fderiv_re_comp_eq_fderiv_im_comp (f : ℂ → ℂ) (z : ℂ) (hz : differentiable_at ℂ f z) :
-  fderiv ℝ (re ∘ f) z 1 = fderiv ℝ (im ∘ f ) z I :=
+lemma fderiv_re_comp_eq_fderiv_im_comp {f : ℂ → ℂ} {z : ℂ} (hz : differentiable_at ℂ f z) :
+  fderiv ℝ (re ∘ f) z 1 = fderiv ℝ (im ∘ f) z I :=
 begin
   have hz' := hz.has_fderiv_at.restrict_scalars ℝ,
   have hI : I = I • 1 := by simp,
@@ -240,8 +240,8 @@ end
 
 /-- Second Cauchy-Riemann equation: for a complex-differentiable function `f`, the `x`-derivative of
 `im ∘ f` is equal to the negative of the `y`-derivative of `re ∘ f`. -/
-lemma fderiv_re_comp_eq_neg_fderiv_im_comp (f : ℂ → ℂ) (z : ℂ) (hz : differentiable_at ℂ f z) :
-  fderiv ℝ (re ∘ f) z I = - fderiv ℝ (im ∘ f ) z 1 :=
+lemma fderiv_re_comp_eq_neg_fderiv_im_comp {f : ℂ → ℂ} {z : ℂ} (hz : differentiable_at ℂ f z) :
+  fderiv ℝ (re ∘ f) z I = - fderiv ℝ (im ∘ f) z 1 :=
 begin
   have hz' := hz.has_fderiv_at.restrict_scalars ℝ,
   have hI : I = I • 1 := by simp,
@@ -252,3 +252,5 @@ begin
 end
 
 end cauchy_riemann
+
+end complex

@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johan Commelin
 -/
 import ring_theory.integral_closure
 import data.polynomial.field_division
+import ring_theory.polynomial.gauss_lemma
 
 /-!
 # Minimal polynomials
@@ -221,6 +222,21 @@ let ⟨q, hq⟩ := dvd hx hp2 in
 eq_of_monic_of_associated hp3 (monic hx) $
 mul_one (minimal_polynomial hx) ▸ hq.symm ▸ associated_mul_mul (associated.refl _) $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit hx
+
+lemma gcd_domain_eq_field_fractions {α : Type u} {β : Type v} {γ : Type v} [integral_domain α]
+  [gcd_monoid α] [field β] [integral_domain γ] (f : fraction_map α β) [algebra f.codomain γ]
+  [algebra α γ] [is_scalar_tower α f.codomain γ] {x : γ} (hx : is_integral α x) : minimal_polynomial
+  (@is_integral_of_is_scalar_tower α f.codomain γ _ _ _ _ _ _ _ x hx) = ((minimal_polynomial hx).map
+  (localization_map.to_ring_hom f)) :=
+begin
+  refine (unique' (@is_integral_of_is_scalar_tower α f.codomain γ _ _ _ _ _ _ _ x hx) _ _ _).symm,
+  { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map f
+  (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
+  { have htower := is_scalar_tower.aeval_apply α f.codomain γ x (minimal_polynomial hx),
+    simp only [localization_map.algebra_map_eq, aeval] at htower,
+    exact htower.symm },
+  { exact monic_map _ (monic hx) }
+end
 
 /--If L/K is a field extension, and x is an element of L in the image of K,
 then the minimal polynomial of x is X - C x.-/

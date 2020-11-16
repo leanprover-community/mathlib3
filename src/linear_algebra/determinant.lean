@@ -390,7 +390,7 @@ sign_bij
   (λ i _, i.succ)
   (λ i _ _, by rw succ_perm_fin_succ_aux_eq_iff)
   (λ i j _ _ hij, fin.succ_injective _ hij)
-  (λ i, by { refine fin.cons _ _ i,
+  (λ i, by { refine fin.cases _ _ i,
              { contradiction },
              { intros i hi, exact ⟨i, mt perm_fin_succ_aux_eq_iff.mp hi, rfl⟩ } })
 
@@ -410,7 +410,7 @@ by rw [perm_fin_succ_inv_aux, fin.cons_succ]
 lemma perm_fin_succ_inv_aux_eq_iff {n : ℕ} {i j : fin n.succ} {σ : equiv.perm (fin n)} :
   perm_fin_succ_inv_aux σ i = j ↔ (i = 0 ∧ j = 0) ∨ (∃ h : i ≠ 0, (σ (i.pred h)).succ = j) :=
 begin
-  refine fin.cons _ (λ i, _) i,
+  refine fin.cases _ (λ i, _) i,
   { rw perm_fin_succ_inv_aux_zero,
     simp only [ne.def, eq_self_iff_true, eq_comm,
                true_and, not_true, or_false, not_false_iff, exists_prop_of_false] },
@@ -452,7 +452,7 @@ def perm_fin_succ_equiv (n : ℕ) : equiv.perm (fin n.succ) ≃ fin n.succ × eq
   inv_fun := λ iσ, swap 0 iσ.1 * perm_fin_succ_inv iσ.2,
   left_inv := λ σ, begin
     ext1 j,
-    refine @fin.cons _ _ _ (λ j, _) j,
+    refine @fin.cases _ _ _ (λ j, _) j,
     { simp only [equiv.perm.mul_apply, perm_fin_succ_inv_zero, swap_apply_left] },
     { simp only [equiv.perm.mul_apply, perm_fin_succ_inv_succ, ← eq_inv_iff_eq, swap_inv,
                  succ_perm_fin_succ_aux_eq_iff, swap_apply_self, inv_apply_self] },
@@ -544,7 +544,7 @@ end
 lemma cons_succ_above_eq_self_iff {n : ℕ} {i j : fin (n + 1)} :
   @fin.cons _ (λ _, fin (n + 1)) i i.succ_above j = i ↔ j = 0 :=
 begin
-  refine fin.cons _ (λ j, _) j,
+  refine fin.cases _ (λ j, _) j,
   { simp },
   { simp [fin.succ_above_ne, fin.succ_ne_zero] }
 end
@@ -552,7 +552,7 @@ end
 lemma le_cast_succ_pred {n : ℕ} {i j : fin (n + 1)} :
   Π (h : j ≠ 0), i ≤ (j.pred h).cast_succ ↔ i < j :=
 begin
-  refine fin.cons _ (λ j, _) j,
+  refine fin.cases _ (λ j, _) j,
   { contradiction },
   intro h,
   rw [fin.le_iff_coe_le_coe, fin.coe_cast_succ, fin.lt_iff_coe_lt_coe, fin.coe_succ, fin.pred_succ],
@@ -588,7 +588,7 @@ def cycle_range : Π {n : ℕ} (i : fin n), equiv.perm (fin n)
     simp only, split_ifs with h,
     { exact (cons_succ_above_eq_self_iff.mp h).symm },
     revert h,
-    refine fin.cons _ (λ j, _) j,
+    refine fin.cases _ (λ j, _) j,
     { simp },
     { intro h, simp [fin.cons_succ] }
   end })
@@ -599,7 +599,7 @@ lemma cycle_range_apply {n : ℕ} (i j : fin (n + 1)) :
     (λ i, if h : j = i.cast_succ then 0 else (fin.pred_above i.cast_succ j h).succ)
     i :=
 begin
-  refine @fin.cons _ _ _ (λ i, _) i,
+  refine @fin.cases _ _ _ (λ i, _) i,
   { simp only [cycle_range, fin.cons_zero, equiv.perm.one_apply] },
   { simp only [cycle_range, fin.cons_succ, coe_fn_mk] },
 end
@@ -659,7 +659,7 @@ end
 lemma cycle_range_succ_above {n : ℕ} (i : fin (n + 1)) (j : fin n) :
   cycle_range i (i.succ_above j) = swap 0 i j.succ :=
 begin
-  refine @fin.cons _ (λ i, (cycle_range i) (i.succ_above j) = (swap 0 i) j.succ) _ (λ i, _) i,
+  refine @fin.cases _ (λ i, (cycle_range i) (i.succ_above j) = (swap 0 i) j.succ) _ (λ i, _) i,
   { simp [swap_self] },
   by_cases hji : j = i,
   { rw [hji, swap_apply_right, fin.succ_above_below, cycle_range_succ_self],
@@ -686,7 +686,7 @@ def cycle_range' : Π {n : ℕ} (i : fin n), equiv.perm (fin n)
     simp only, split_ifs with h,
     { exact (cons_succ_above_eq_self_iff.mp h).symm },
     revert h,
-    refine fin.cons _ (λ j, _) j,
+    refine fin.cases _ (λ j, _) j,
     { simp },
     { intro h, simp [fin.cons_succ] }
   end }
@@ -832,7 +832,7 @@ lemma is_cycle_cycle_range' {n : ℕ} (i : fin n) : is_cycle (cycle_range' i.suc
   sign (cycle_range' i) = (-1) ^ (i : ℕ) :=
 begin
   cases n, { exact fin_zero_elim i },
-  refine @fin.cons _ (λ i, sign (cycle_range' i) = (-1) ^ (i : ℕ)) _ (λ i, _) i,
+  refine @fin.cases _ (λ i, sign (cycle_range' i) = (-1) ^ (i : ℕ)) _ (λ i, _) i,
   { simp },
   rw [sign_cycle (is_cycle_cycle_range' i), support_cycle_range'_succ,
       finset.card_fin_range_inclusive, pow_succ, units.neg_mul, one_mul, units.neg_neg],
@@ -849,7 +849,7 @@ lemma det_succ_row {n : ℕ} (M : matrix (fin n.succ) (fin n.succ) R) :
 begin
   convert det_succ_eq_sum_swap M,
   ext j,
-  refine fin.cons _ (λ j, _) j,
+  refine fin.cases _ (λ j, _) j,
   { simp [swap_self] },
   rw [if_neg j.succ_ne_zero],
   simp_rw ← succ_above_cycle_range',

@@ -187,11 +187,8 @@ def ι : X → free_algebra R X := λ m, quot.mk _ m
 
 variables {A : Type*} [semiring A] [algebra R A]
 
-/--
-Given a function `f : X → A` where `A` is an `R`-algebra, `lift R f` is the unique lift
-of `f` to a morphism of `R`-algebras `free_algebra R X → A`.
--/
-def lift (f : X → A) : free_algebra R X →ₐ[R] A :=
+/-- Internal definition used to define `lift` -/
+private def lift_aux (f : X → A) : (free_algebra R X →ₐ[R] A) :=
 { to_fun := λ a, quot.lift_on a (lift_fun _ _ f) $ λ a b h,
   begin
     induction h,
@@ -231,6 +228,36 @@ def lift (f : X → A) : free_algebra R X →ₐ[R] A :=
   map_add' := by { rintros ⟨⟩ ⟨⟩, refl },
   commutes' := by tauto }
 
+/--
+Given a function `f : X → A` where `A` is an `R`-algebra, `lift R f` is the unique lift
+of `f` to a morphism of `R`-algebras `free_algebra R X → A`.
+-/
+def lift : (X → A) ≃ (free_algebra R X →ₐ[R] A) :=
+{ to_fun := lift_aux R,
+  inv_fun := λ F, F ∘ (ι R),
+  left_inv := λ f, by {ext, refl},
+  right_inv := λ F, by {
+    ext x,
+    rcases x,
+    induction x,
+    case pre.of : {
+      change ((F : free_algebra R X → A) ∘ (ι R)) _ = _,
+      refl },
+    case pre.of_scalar : {
+      change algebra_map _ _ x = F (algebra_map _ _ x),
+      rw alg_hom.commutes F x, },
+    case pre.add : a b ha hb {
+      change lift_aux R (F ∘ ι R) (quot.mk _ _ + quot.mk _ _) = F (quot.mk _ _ + quot.mk _ _),
+      rw [alg_hom.map_add, alg_hom.map_add, ha, hb], },
+    case pre.mul : a b ha hb {
+      change lift_aux R (F ∘ ι R) (quot.mk _ _ * quot.mk _ _) = F (quot.mk _ _ * quot.mk _ _),
+      rw [alg_hom.map_mul, alg_hom.map_mul, ha, hb], }, }, }
+
+@[simp] lemma lift_aux_eq (f : X → A) : lift_aux R f = lift R f := rfl
+
+@[simp]
+lemma lift_symm_apply (F : free_algebra R X →ₐ[R] A) : (lift R).symm F = F ∘ (ι R) := rfl
+
 variables {R X}
 
 @[simp]
@@ -244,40 +271,29 @@ theorem lift_ι_apply (f : X → A) (x) :
 @[simp]
 theorem lift_unique (f : X → A) (g : free_algebra R X →ₐ[R] A) :
   (g : free_algebra R X → A) ∘ (ι R) = f ↔ g = lift R f :=
-begin
-  refine ⟨λ hyp, _, λ hyp, by rw [hyp, ι_comp_lift]⟩,
-  ext,
-  rcases x,
-  induction x,
-  { change ((g : free_algebra R X → A) ∘ (ι R)) _ = _,
-    rw hyp,
-    refl },
-  { exact alg_hom.commutes g x },
-  { change g (quot.mk _ _ + quot.mk _ _) = _,
-    simp only [alg_hom.map_add, *],
-    refl },
-  { change g (quot.mk _ _ * quot.mk _ _) = _,
-    simp only [alg_hom.map_mul, *],
-    refl },
-end
+(lift R).symm_apply_eq
 
 /-!
 At this stage we set the basic definitions as `@[irreducible]`, so from this point onwards one should only use the universal properties of the free algebra, and consider the actual implementation as a quotient of an inductive type as completely hidden.
 
 Of course, one still has the option to locally make these definitions `semireducible` if so desired, and Lean is still willing in some circumstances to do unification based on the underlying definition.
 -/
-attribute [irreducible] free_algebra ι lift
+attribute [irreducible] ι lift
+-- Marking `free_algebra` irreducible makes `ring` instances inaccessible on quotients.
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
+-- For now, we avoid this by not marking it irreducible.
 
 @[simp]
 theorem lift_comp_ι (g : free_algebra R X →ₐ[R] A) :
-  lift R ((g : free_algebra R X → A) ∘ (ι R)) = g := by {symmetry, rw ←lift_unique}
+  lift R ((g : free_algebra R X → A) ∘ (ι R)) = g :=
+by { rw ←lift_symm_apply, exact (lift R).apply_symm_apply g }
 
 @[ext]
 theorem hom_ext {f g : free_algebra R X →ₐ[R] A}
   (w : ((f : free_algebra R X → A) ∘ (ι R)) = ((g : free_algebra R X → A) ∘ (ι R))) : f = g :=
 begin
-  have : g = lift R ((g : free_algebra R X → A) ∘ (ι R)), by rw ←lift_unique,
-  rw [this, ←lift_unique, w],
+  rw [←lift_symm_apply, ←lift_symm_apply] at w,
+  exact (lift R).symm.injective w,
 end
 
 /--

@@ -566,11 +566,10 @@ lemma moebius_eq_zero_of_not_squarefree {n : ℕ} (h : ¬ squarefree n): μ n = 
 
 lemma moebius_ne_zero_iff_squarefree {n : ℕ} : μ n ≠ 0 ↔ squarefree n :=
 begin
-  refine ⟨_, λ h, _⟩,
-  { intro h,
-    contrapose! h,
+  split; intro h,
+  { contrapose! h,
     simp [h] },
-  { simp [moebius_apply_of_squarefree h, pow_ne_zero] }
+  { simp [h, pow_ne_zero] }
 end
 
 end special_functions

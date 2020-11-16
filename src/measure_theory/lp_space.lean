@@ -114,7 +114,7 @@ by simp [snorm]
 section borel_space
 variable [borel_space E]
 
-lemma mem_ℒp.neg_mem_ℒp {f : α → E} (hf : mem_ℒp f p μ) : mem_ℒp (-f) p μ :=
+lemma mem_ℒp.neg {f : α → E} (hf : mem_ℒp f p μ) : mem_ℒp (-f) p μ :=
 ⟨measurable.neg hf.1, by simp [hf.right]⟩
 
 

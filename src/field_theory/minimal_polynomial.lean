@@ -75,7 +75,7 @@ variables [ring β] [algebra α β] [nontrivial β]
 variables {x : β} (hx : is_integral α x)
 
 /--The degree of a minimal polynomial is positive. -/
-lemma degree_pos [nontrivial α] [nontrivial β] : 0 < degree (minimal_polynomial hx) :=
+lemma degree_pos [nontrivial α] : 0 < degree (minimal_polynomial hx) :=
 begin
   apply lt_of_le_of_ne,
   { simpa only [zero_le_degree_iff] using ne_zero hx },

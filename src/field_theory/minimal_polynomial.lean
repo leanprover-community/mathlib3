@@ -97,11 +97,37 @@ section domain
 variables [domain β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
+/-- If `a` strictly divides the minimal polynomial of `x`, then `x` cannot be a root for `a`. -/
+lemma aeval_ne_zero_of_dvd_not_unit_minimal_polynomial {a : polynomial α}
+  (hamonic : a.monic) (hdvd : dvd_not_unit a (minimal_polynomial hx)) :
+  polynomial.aeval x a ≠ 0 :=
+begin
+  intro ha,
+  refine not_lt_of_ge (minimal_polynomial.min hx hamonic ha) _,
+  obtain ⟨hzeroa, b, hb_nunit, prod⟩ := hdvd,
+  have hbmonic : b.monic,
+  { rw monic.def,
+    have := monic hx,
+    rwa [monic.def, prod, leading_coeff_mul, monic.def.mp hamonic, one_mul] at this },
+  have hzerob : b ≠ 0 := hbmonic.ne_zero,
+  have degbzero : 0 < b.nat_degree,
+  { apply nat.pos_of_ne_zero,
+    intro h,
+    have h₁ := eq_C_of_nat_degree_eq_zero h,
+    rw [←h, ←leading_coeff, monic.def.1 hbmonic, C_1] at h₁,
+    rw h₁ at hb_nunit,
+    have := is_unit_one,
+    contradiction },
+  rw [prod, degree_mul, degree_eq_nat_degree hzeroa, degree_eq_nat_degree hzerob],
+  exact_mod_cast lt_add_of_pos_right _ degbzero,
+end
+
 /--A minimal polynomial is irreducible.-/
 lemma irreducible : irreducible (minimal_polynomial hx) :=
 begin
   cases irreducible_or_factor (minimal_polynomial hx) (not_is_unit hx) with hirr hred,
   { exact hirr },
+  exfalso,
   obtain ⟨a, b, ha_nunit, hb_nunit, hab_eq⟩ := hred,
   have coeff_prod : a.leading_coeff * b.leading_coeff = 1,
   { rw [←monic.def.1 (monic hx), ←hab_eq],
@@ -112,78 +138,21 @@ begin
   have hbmonic : (b * C a.leading_coeff).monic,
   { rw [monic.def, mul_comm],
     simp only [coeff_prod, leading_coeff_mul, leading_coeff_C] },
-  have prod : (a * C b.leading_coeff) * (b * C a.leading_coeff) = minimal_polynomial hx,
-  { calc a * C b.leading_coeff * (b * C a.leading_coeff)
-      = a * b * (C a.leading_coeff * C b.leading_coeff) : by ring
-      ...  = a * b * (C (a.leading_coeff * b.leading_coeff)) : by simp only [ring_hom.map_mul]
-      ...  = a * b : by rw [coeff_prod, C_1, mul_one]
-      ...  =  minimal_polynomial hx : by rw [←hab_eq] },
-  have hzero : (polynomial.aeval x (a * C b.leading_coeff) = 0)
-  ∨ (polynomial.aeval x (b * C a.leading_coeff) = 0),
-  { have hzero := aeval hx,
-    rw [←prod, aeval_mul, mul_eq_zero] at hzero,
-    exact hzero },
-  have hzeroa : a * C b.leading_coeff ≠ 0,
-  { intro h,
-    rw h at prod,
-    simp only [zero_mul] at prod,
-    exact ne_zero hx prod.symm },
-  have hzerob : b * C a.leading_coeff ≠ 0,
-  { intro h,
-    rw h at prod,
-    simp only [mul_zero] at prod,
-    exact ne_zero hx prod.symm },
-  have aunit : ¬is_unit (a * C b.leading_coeff),
-  { intro h,
-    obtain ⟨d, hd⟩ := is_unit_iff_exists_inv.1 h,
-    rw [mul_assoc] at hd,
-    refine ha_nunit _,
-    rw is_unit_iff_exists_inv,
-    use (C b.leading_coeff * d),
-    exact hd },
-  have bunit : ¬is_unit (b * C a.leading_coeff),
-  { intro h,
-    obtain ⟨d, hd⟩ := is_unit_iff_exists_inv.1 h,
-    rw [mul_assoc] at hd,
-    refine hb_nunit _,
-    rw is_unit_iff_exists_inv,
-    use (C a.leading_coeff * d),
-    exact hd },
-  have degazero : 0 < (a * C b.leading_coeff).degree,
-  { apply nat_degree_pos_iff_degree_pos.1,
-    apply nat.pos_of_ne_zero,
-    intro h,
-    have h₁ := eq_C_of_nat_degree_eq_zero h,
-    rw [←h, ←leading_coeff, monic.def.1 hamonic, C_1] at h₁,
-    refine aunit _,
-    rw h₁,
-    exact is_unit_one },
-  have degbzero : 0 < (b * C a.leading_coeff).degree,
-  { apply nat_degree_pos_iff_degree_pos.1,
-    apply nat.pos_of_ne_zero,
-    intro h,
-    have h₁ := eq_C_of_nat_degree_eq_zero h,
-    rw [←h, ←leading_coeff, monic.def.1 hbmonic, C_1] at h₁,
-    refine bunit _,
-    rw h₁,
-    exact is_unit_one },
-  have degalt : (a * C b.leading_coeff).degree < (minimal_polynomial hx).degree,
-  { rw [←prod, @degree_mul α _ _ (b * C a.leading_coeff), degree_eq_nat_degree hzeroa,
-    degree_eq_nat_degree hzerob],
-    norm_cast,
-    refine lt_add_of_pos_right (a * C b.leading_coeff).nat_degree _,
-    exact nat_degree_pos_iff_degree_pos.2 degbzero },
-  have degblt : (b * C a.leading_coeff).degree < (minimal_polynomial hx).degree,
-  { rw [←prod, @degree_mul α _ (a * C b.leading_coeff) _, degree_eq_nat_degree hzerob,
-    degree_eq_nat_degree hzeroa],
-    norm_cast,
-    refine lt_add_of_pos_left (b * C a.leading_coeff).nat_degree _,
-    exact nat_degree_pos_iff_degree_pos.2 degazero },
-  cases hzero with ha hb,
-  { exfalso,
-    exact not_lt_of_ge (minimal_polynomial.min hx hamonic ha) degalt },
-  { exfalso,
-    exact not_lt_of_ge (minimal_polynomial.min hx hbmonic hb) degblt }
+  have prod : minimal_polynomial hx = (a * C b.leading_coeff) * (b * C a.leading_coeff),
+  { symmetry,
+    calc a * C b.leading_coeff * (b * C a.leading_coeff)
+        = a * b * (C a.leading_coeff * C b.leading_coeff) : by ring
+    ... = a * b * (C (a.leading_coeff * b.leading_coeff)) : by simp only [ring_hom.map_mul]
+    ... = a * b : by rw [coeff_prod, C_1, mul_one]
+    ... = minimal_polynomial hx : hab_eq },
+  have hzero := aeval hx,
+  rw [prod, aeval_mul, mul_eq_zero] at hzero,
+  cases hzero,
+  { refine aeval_ne_zero_of_dvd_not_unit_minimal_polynomial hx hamonic _ hzero,
+    exact ⟨hamonic.ne_zero, _, mt is_unit_of_mul_is_unit_left hb_nunit, prod⟩ },
+  { refine aeval_ne_zero_of_dvd_not_unit_minimal_polynomial hx hbmonic _ hzero,
+    rw mul_comm at prod,
+    exact ⟨hbmonic.ne_zero, _, mt is_unit_of_mul_is_unit_left ha_nunit, prod⟩ },
 end
 
 end domain

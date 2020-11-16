@@ -3,11 +3,11 @@ Copyright (c) 2018 Mario Carneiro and Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
-import ring_theory.ideal.operations
-import linear_algebra.linear_independent
-import order.order_iso_nat
 import algebraic_geometry.prime_spectrum
 import data.multiset.finset_ops
+import linear_algebra.linear_independent
+import order.order_iso_nat
+import ring_theory.ideal.operations
 
 /-!
 # Noetherian rings and modules

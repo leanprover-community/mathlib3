@@ -605,13 +605,8 @@ section measurability_real
 
 lemma real.measurable_rpow : measurable (λ p : ℝ × ℝ, p.1 ^ p.2) :=
 begin
-  have h_prod : {p : ℝ × ℝ | p.1 = 0} = set.prod {(0:ℝ)} set.univ,
-  { ext,
-    rw [set.mem_set_of_eq, set.mem_prod, set.mem_singleton_iff],
-    simp, },
-  have h_meas : is_measurable {p : ℝ × ℝ | p.1 = 0},
-  { rw [h_prod, is_measurable_prod],
-    simp, },
+  have h_meas : is_measurable {p : ℝ × ℝ | p.1 = 0} :=
+    (is_closed_singleton.preimage continuous_fst).is_measurable,
   refine measurable_of_measurable_union_cover {p : ℝ × ℝ | p.1 = 0} {p : ℝ × ℝ | p.1 ≠ 0} h_meas
     h_meas.compl _ _ _,
   { intro x, simp [em (x.fst = 0)], },

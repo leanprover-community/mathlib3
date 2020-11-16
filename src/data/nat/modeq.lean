@@ -269,7 +269,6 @@ have h₃ : m < list.length (l ++ [a]), by simpa using hml,
       add_assoc m n 1 ▸ nat.modeq.modeq_add
         (hml'.trans (nat.mod_eq_of_lt (nat.lt_succ_self _)).symm) rfl
     ... = 0 : by simp,
-  have h₂ : l.length < (l ++ [a]).length, by simp [nat.lt_succ_self],
   by rw [list.length, list.rotate_cons_succ, nth_rotate h₃, list.length_append,
     list.length_cons, list.length, zero_add, hml', h₁, list.nth_concat_length]; refl)
 

@@ -248,6 +248,14 @@ lemma conj_neg : (-a).conj = -a.conj := (conj : ℍ[R, c₁, c₂] ≃ₗ[R] _).
 
 lemma conj_sub : (a - b).conj = a.conj - b.conj := (conj : ℍ[R, c₁, c₂] ≃ₗ[R] _).map_sub a b
 
+instance : star_ring ℍ[R, c₁, c₂] :=
+{ star := conj,
+  star_involutive := conj_conj,
+  star_add := conj_add,
+  star_mul := conj_mul }
+
+@[simp] lemma star_def (a : ℍ[R, c₁, c₂]) : star a = conj a := rfl
+
 open opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
@@ -278,6 +286,7 @@ instance : has_coe_t R ℍ[R] := quaternion_algebra.has_coe_t
 instance : ring ℍ[R] := quaternion_algebra.ring
 instance : inhabited ℍ[R] := quaternion_algebra.inhabited
 instance : algebra R ℍ[R] := quaternion_algebra.algebra
+instance : star_ring ℍ[R] := quaternion_algebra.star_ring
 
 @[ext] lemma ext : a.re = b.re → a.im_i = b.im_i → a.im_j = b.im_j → a.im_k = b.im_k → a = b :=
 quaternion_algebra.ext a b

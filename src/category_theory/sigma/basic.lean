@@ -9,30 +9,34 @@ import data.sigma.basic
 import category_theory.pi.basic
 
 /-!
-# Categories of indexed families of objects.
+# Disjoint union of categories
 
-We define the pointwise category structure on indexed families of objects in a category
-(and also the dependent generalization).
-
+We define the category structure on a sigma-type (disjoint union) of categories.
 -/
 
 namespace category_theory
 namespace sigma
 
-universes w₀ w₁ w₂ v₁ v₂ u₁ u₂
+universes w₁ w₂ w₃ v₁ v₂ u₁ u₂
 
-variables {I : Type w₀} {C : I → Type u₁} [Π i, category.{v₁} (C i)]
+variables {I : Type w₁} {C : I → Type u₁} [Π i, category.{v₁} (C i)]
 
-inductive sigma_hom : (Σ i, C i) → (Σ i, C i) → Type (max w₀ v₁ u₁)
-| matched : Π (i : I) (X Y : C i), (X ⟶ Y) → sigma_hom ⟨_, X⟩ ⟨_, Y⟩
+/--
+The type of morphisms of a disjoint union of categories: for `X : C i` and `Y : C j`, a morphism
+`(i, X) ⟶ (j, Y)` if `i = j` is just a morphism `X ⟶ Y`, and if `i ≠ j` there are no such morphisms.
+-/
+inductive sigma_hom : (Σ i, C i) → (Σ i, C i) → Type (max w₁ v₁ u₁)
+| mk : Π (i : I) (X Y : C i), (X ⟶ Y) → sigma_hom ⟨i, X⟩ ⟨i, Y⟩
 
 namespace sigma_hom
 
+/-- The identity morphism on an object. -/
 def id : Π (X : Σ i, C i), sigma_hom X X
-| ⟨i, X⟩ := matched i _ _ (𝟙 _)
+| ⟨i, X⟩ := mk i _ _ (𝟙 _)
 
+/-- Composition of sigma homomorphisms. -/
 def comp : Π {X Y Z : Σ i, C i}, sigma_hom X Y → sigma_hom Y Z → sigma_hom X Z
-| _ _ _ (matched _ X _ f) (matched i Y Z g) := matched _ _ _ (f ≫ g)
+| _ _ _ (mk _ X _ f) (mk i Y Z g) := mk _ _ _ (f ≫ g)
 
 instance : category_struct (Σ i, C i) :=
 { hom := sigma_hom,
@@ -41,13 +45,13 @@ instance : category_struct (Σ i, C i) :=
 
 @[simp]
 lemma comp_def (i : I) (X Y Z : C i) (f : X ⟶ Y) (g : Y ⟶ Z) :
-  comp (matched i X Y f) (matched i Y Z g) = matched i X Z (f ≫ g) :=
+  comp (mk i X Y f) (mk i Y Z g) = mk i X Z (f ≫ g) :=
 rfl
 
 lemma assoc : ∀ (X Y Z W : Σ i, C i) (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W), (f ≫ g) ≫ h = f ≫ g ≫ h
-| _ _ _ _ (matched _ X _ f) (matched _ Y _ g) (matched i Z W h) :=
+| _ _ _ _ (mk _ X _ f) (mk _ Y _ g) (mk i Z W h) :=
   begin
-    change matched _ _ _ _ = matched _ _ _ _,
+    change mk _ _ _ _ = matched _ _ _ _,
     simp,
   end
 
@@ -90,7 +94,7 @@ variables {D : Type u₂} [category.{v₂} D] (F : Π i, C i ⥤ D)
 def desc_map : ∀ (X Y : Σ i, C i), (X ⟶ Y) → ((F X.1).obj X.2 ⟶ (F Y.1).obj Y.2)
 | _ _ (sigma_hom.matched i X Y g) := (F i).map g
 
-@[simps]
+@[simps obj]
 def desc : (Σ i, C i) ⥤ D :=
 { obj := λ X, (F X.1).obj X.2,
   map := λ X Y g, desc_map F X Y g,
@@ -137,7 +141,7 @@ end
 
 section
 
-variables (C) {J : Type w₁}
+variables (C) {J : Type w₂}
 
 @[simps {rhs_md := semireducible}]
 def map (h : J → I) : (Σ (j : J), C (h j)) ⥤ (Σ (i : I), C i) :=
@@ -151,7 +155,7 @@ variable (I)
 def map_id : map C (id : I → I) ≅ 𝟭 (Σ i, C i) :=
 desc_hom_ext _ _ (λ i, nat_iso.of_components (λ X, iso.refl _) (by tidy))
 
-variables {I} {K : Type w₂}
+variables {I} {K : Type w₃}
 
 def map_comp (f : K → J) (g : J → I) : map (C ∘ g) f ⋙ (map C g : _) ≅ map C (g ∘ f) :=
 desc_uniq _ _ $ λ k,

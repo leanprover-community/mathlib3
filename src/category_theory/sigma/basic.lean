@@ -26,17 +26,19 @@ The type of morphisms of a disjoint union of categories: for `X : C i` and `Y : 
 `(i, X) ⟶ (j, Y)` if `i = j` is just a morphism `X ⟶ Y`, and if `i ≠ j` there are no such morphisms.
 -/
 inductive sigma_hom : (Σ i, C i) → (Σ i, C i) → Type (max w₁ v₁ u₁)
-| mk : Π (i : I) (X Y : C i), (X ⟶ Y) → sigma_hom ⟨i, X⟩ ⟨i, Y⟩
+| mk : Π {i : I} {X Y : C i}, (X ⟶ Y) → sigma_hom ⟨i, X⟩ ⟨i, Y⟩
 
 namespace sigma_hom
 
 /-- The identity morphism on an object. -/
 def id : Π (X : Σ i, C i), sigma_hom X X
-| ⟨i, X⟩ := mk i _ _ (𝟙 _)
+| ⟨i, X⟩ := mk (𝟙 _)
+
+instance (X : Σ i, C i) : inhabited (sigma_hom X X) := ⟨id X⟩
 
 /-- Composition of sigma homomorphisms. -/
 def comp : Π {X Y Z : Σ i, C i}, sigma_hom X Y → sigma_hom Y Z → sigma_hom X Z
-| _ _ _ (mk _ X _ f) (mk i Y Z g) := mk _ _ _ (f ≫ g)
+| _ _ _ (mk f) (mk g) := mk (f ≫ g)
 
 instance : category_struct (Σ i, C i) :=
 { hom := sigma_hom,
@@ -45,28 +47,28 @@ instance : category_struct (Σ i, C i) :=
 
 @[simp]
 lemma comp_def (i : I) (X Y Z : C i) (f : X ⟶ Y) (g : Y ⟶ Z) :
-  comp (mk i X Y f) (mk i Y Z g) = mk i X Z (f ≫ g) :=
+  comp (mk f) (mk g) = mk (f ≫ g) :=
 rfl
 
 lemma assoc : ∀ (X Y Z W : Σ i, C i) (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W), (f ≫ g) ≫ h = f ≫ g ≫ h
-| _ _ _ _ (mk _ X _ f) (mk _ Y _ g) (mk i Z W h) :=
+| _ _ _ _ (mk f) (mk g) (mk h) :=
   begin
-    change mk _ _ _ _ = matched _ _ _ _,
-    simp,
+    change mk ((f ≫ g) ≫ h) = mk (f ≫ g ≫ h),
+    rw [category.assoc],
   end
 
 lemma id_comp : ∀ (X Y : Σ i, C i) (f : X ⟶ Y), 𝟙 X ≫ f = f
-| _ _ (matched i X Y f) :=
+| _ _ (mk f) :=
   begin
-    change matched _ _ _ _ = matched _ _ _ _,
-    simp,
+    change mk (𝟙 _ ≫ f) = mk f,
+    rw [category.id_comp],
   end
 
 lemma comp_id : ∀ (X Y : Σ i, C i) (f : X ⟶ Y), f ≫ 𝟙 Y = f
-| _ _ (matched i X Y f) :=
+| _ _ (mk f) :=
   begin
-    change matched _ _ _ _ = matched _ _ _ _,
-    simp,
+    change mk (f ≫ 𝟙 _) = mk f,
+    rw [category.comp_id],
   end
 
 end sigma_hom
@@ -80,44 +82,63 @@ instance sigma : category (Σ i, C i) :=
 @[simps]
 def incl (i : I) : C i ⥤ Σ i, C i :=
 { obj := λ X, ⟨i, X⟩,
-  map := λ X Y f, sigma_hom.matched _ _ _ f }
+  map := λ X Y, sigma_hom.mk }
 
 instance (i : I) : full (incl i : C i ⥤ Σ i, C i) :=
-{ preimage := λ X Y ⟨_, _, _, f⟩, f,
-  witness' := λ X Y ⟨_, _, _, f⟩, rfl }.
+{ preimage := λ X Y ⟨f⟩, f,
+  witness' := λ X Y ⟨f⟩, rfl }.
 
 instance (i : I) : faithful (incl i : C i ⥤ Σ i, C i) := {}.
 
 section
 variables {D : Type u₂} [category.{v₂} D] (F : Π i, C i ⥤ D)
 
+/-- (Implementation). An auxiliary definition -/
 def desc_map : ∀ (X Y : Σ i, C i), (X ⟶ Y) → ((F X.1).obj X.2 ⟶ (F Y.1).obj Y.2)
-| _ _ (sigma_hom.matched i X Y g) := (F i).map g
+| _ _ (sigma_hom.mk g) := (F _).map g
 
+/--
+Given a collection of functors `F i : C i ⥤ D`, we can produce a functor `(Σ i, C i) ⥤ D`.
+
+The produced functor `desc F` satisfies: `incl i ⋙ desc F ≅ F i`, i.e. restricted to just the
+subcategory `C i`, `desc F` agrees with `F i`, and it is unique (up to natural isomorphism) with
+this property.
+
+This witnesses that the sigma-type is the coproduct in Cat.
+-/
 @[simps obj]
 def desc : (Σ i, C i) ⥤ D :=
 { obj := λ X, (F X.1).obj X.2,
   map := λ X Y g, desc_map F X Y g,
-  map_id' := λ X,
-  begin
-    cases X with i X,
-    apply (F i).map_id,
-  end,
-  map_comp' :=
-  begin
-    rintro ⟨i, X⟩ ⟨_, Y⟩ ⟨_, Z⟩ ⟨i, _, Y, f⟩ ⟨_, _, Z, g⟩,
-    apply (F i).map_comp,
-  end }
+  map_id' := by { rintro ⟨i, X⟩, apply (F i).map_id },
+  map_comp' := by { rintro ⟨i, X⟩ ⟨_, Y⟩ ⟨_, Z⟩ ⟨i, _, Y, f⟩ ⟨_, _, Z, g⟩, apply (F i).map_comp } }
 
+@[simp]
+lemma desc_map_mk {i : I} (X Y : C i) (f : X ⟶ Y) :
+  (desc F).map (sigma_hom.mk f) = (F i).map f :=
+rfl
+
+/--
+This shows that when `desc F` is restricted to just the subcategory `C i`, `desc F` agrees with
+`F i`.
+-/
+-- We hand-generate the simp lemmas about this since they come out cleaner.
 def incl_desc (i : I) : incl i ⋙ desc F ≅ F i :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
+@[simp]
+lemma incl_desc_hom_app (i : I) (X : C i) :
+  (incl_desc F i).hom.app X = 𝟙 ((F i).obj X) :=
+rfl
+
+@[simp]
+lemma incl_desc_inv_app (i : I) (X : C i) :
+  (incl_desc F i).inv.app X = 𝟙 ((F i).obj X) :=
+rfl
+
 def desc_uniq (q : (Σ i, C i) ⥤ D) (h : Π i, incl i ⋙ q ≅ F i) : q ≅ desc F :=
-nat_iso.of_components (λ ⟨i, X⟩, (h i).app X)
-begin
-  rintro ⟨i, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩,
-  apply (h i).hom.naturality f,
-end
+nat_iso.of_components (λ ⟨i, X⟩, (h i).app X) $
+  by { rintro ⟨i, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩, apply (h i).hom.naturality f }
 
 def desc_hom_ext (q₁ q₂ : (Σ i, C i) ⥤ D) (h : Π i, incl i ⋙ q₁ ≅ incl i ⋙ q₂) :
   q₁ ≅ q₂ :=
@@ -186,11 +207,11 @@ variables {F G : Π i, C i ⥤ D i}
 Assemble an `I`-indexed family of natural transformations into a single natural transformation.
 -/
 def sigma (α : Π i, F i ⟶ G i) : functor.sigma F ⟶ functor.sigma G :=
-{ app := λ f, sigma_hom.matched _ _ _ ((α f.1).app _),
+{ app := λ f, sigma_hom.mk ((α f.1).app _),
   naturality' :=
   begin
     rintro ⟨i, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩,
-    change sigma_hom.matched _ _ _ _ = sigma_hom.matched _ _ _ _,
+    change sigma_hom.mk _ = sigma_hom.mk _,
     rw (α i).naturality,
   end }
 

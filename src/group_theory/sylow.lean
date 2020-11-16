@@ -220,10 +220,6 @@ have hm' : p ∣ card (quotient (subgroup.comap ((normalizer H).subtype : normal
   nat.dvd_of_mod_eq_zero
     (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm),
 let ⟨x, hx⟩ := @exists_prime_order_of_dvd_card _ (quotient_group.quotient.group _) _ _ hp hm' in
-have hxcard : ∀ {f : fintype (subgroup.gpowers x)}, card (subgroup.gpowers x) = p,
-  from λ f, by rw [← hx, order_eq_card_gpowers]; congr,
-have fintype (subgroup.comap (quotient_group.mk' (comap H.normalizer.subtype H)) (gpowers x)),
-  by apply_instance,
 have hequiv : H ≃ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
   ⟨λ a, ⟨⟨a.1, le_normalizer a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,

@@ -70,8 +70,8 @@ variables {R A M N P : Type*}
 
 section restrict_scalars
 variables [comm_semiring R] [comm_semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
-variables [add_comm_monoid N] [semimodule R N] [semimodule A N] [is_scalar_tower R A N]
+variables [add_comm_monoid M] [semimodule A M]
+variables [add_comm_monoid N] [semimodule A N]
 
 variables (R A M N)
 
@@ -83,6 +83,8 @@ restrict_scalars.semimodule R A (M ⊗ N)
 instance restrict_scalars.is_scalar_tower : is_scalar_tower R A (M ⊗[A] N) :=
 show is_scalar_tower R A (restrict_scalars R A (M ⊗ N)), from
 restrict_scalars.is_scalar_tower R A (M ⊗ N)
+
+variables [semimodule R M] [semimodule R N]
 
 /- Check that we didn't introduce a diamond. -/
 example : tensor_product.restrict_scalars.semimodule R R M N =
@@ -158,6 +160,11 @@ variables [add_comm_monoid N] [semimodule R N]
 variables [add_comm_monoid P] [semimodule R P] [semimodule A P] [is_scalar_tower R A P]
 
 variables {R A M N P}
+/-- Heterobasic version of `tensor_product.lift`:
+
+Constructing a linear map `M ⊗[R] N →[A] P` given a bilinear map `M →[A] N →[R] P` with the
+property that its composition with the canonical bilinear map `M →[A] N →[R] M ⊗[R] N` is
+the given bilinear map `M →[A] N →[R] P`. -/
 @[simps] def lift' (f : M →ₗ[A] (N →ₗ[R] P)) : (M ⊗[R] N) →ₗ[A] P :=
 { map_smul' := λ c, show ∀ x : M ⊗[R] N, (lift (f.restrict_scalars R)).comp (lsmul R _ c) x =
       (lsmul R _ c).comp (lift (f.restrict_scalars R)) x,
@@ -170,21 +177,39 @@ variables {R A M N P}
   lift' f (x ⊗ₜ y) = f x y :=
 lift.tmul' x y
 
+/-- Heterobasic version of `tensor_product.curry`:
+
+Given a linear map `M ⊗[R] N →[A] P`, compose it with the canonical
+bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N →[R] P`. -/
 @[simps] def curry' (f : (M ⊗[R] N) →ₗ[A] P) : M →ₗ[A] (N →ₗ[R] P) :=
 { map_smul' := λ c x, linear_map.ext $ λ y, f.map_smul c (x ⊗ₜ y),
   .. curry (f.restrict_scalars R) }
 
 variables (R A M N P)
+/-- Heterobasic version of `tensor_product.uncurry`:
+
+Linearly constructing a linear map `M ⊗[R] N →[A] P` given a bilinear map `M →[A] N →[R] P`
+with the property that its composition with the canonical bilinear map `M →[A] N →[R] M ⊗[R] N` is
+the given bilinear map `M →[A] N →[R] P`. -/
 @[simps] def uncurry' : (M →ₗ[A] (N →ₗ[R] P)) →ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
 { to_fun := lift',
   map_add' := λ f g, ext $ λ x y, by simp only [lift'_tmul, add_apply],
   map_smul' := λ c f, ext $ λ x y, by simp only [lift'_tmul, smul_apply'] }
 
+/-- Heterobasic version of `tensor_product.lcurry`:
+
+Given a linear map `M ⊗[R] N →[A] P`, compose it with the canonical
+bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N →[R] P`. -/
 @[simps] def lcurry' : ((M ⊗[R] N) →ₗ[A] P) →ₗ[A] (M →ₗ[A] (N →ₗ[R] P)) :=
 { to_fun := curry',
   map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl }
 
+/-- Heterobasic version of `tensor_product.lift_equiv`:
+
+A linear equivalence constructing a linear map `M ⊗[R] N →[A] P` given a
+bilinear map `M →[A] N →[R] P` with the property that its composition with the
+canonical bilinear map `M →[A] N →[R] M ⊗[R] N` is the given bilinear map `M →[A] N →[R] P`. -/
 def lift_equiv' : (M →ₗ[A] (N →ₗ[R] P)) ≃ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
 linear_equiv.of_linear (uncurry' R A M N P) (lcurry' R A M N P)
   (linear_map.ext $ λ f, ext $ λ x y, lift'_tmul _ x y)
@@ -195,6 +220,9 @@ lemma curry'_inj : function.injective (@curry' R A M N P _ _ _ _ _ _ _ _ _ _ _ _
 (lift_equiv' R A M N P).to_equiv.symm.injective
 
 variables (R A M N P)
+/-- Heterobasic version of `tensor_product.mk`:
+
+The canonical bilinear map `M →[A] N →[R] M ⊗[R] N`. -/
 @[simps] def mk' : M →ₗ[A] N →ₗ[R] M ⊗[R] N :=
 { map_smul' := λ c x, rfl,
   .. mk R M N }
@@ -203,10 +231,13 @@ end comm_semiring
 
 section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
+variables [add_comm_monoid M] [semimodule A M]
 variables [add_comm_monoid N] [semimodule R N] [semimodule A N] [is_scalar_tower R A N]
 variables [add_comm_monoid P] [semimodule R P]
 
+/-- Heterobasic version of `tensor_product.assoc`:
+
+Linear equivalence between `(M ⊗[A] N) ⊗[R] P` and `M ⊗[A] (N ⊗[R] P)`. -/
 def assoc : ((M ⊗[A] N) ⊗[R] P) ≃ₗ[A] (M ⊗[A] (N ⊗[R] P)) :=
 linear_equiv.of_linear
   (lift' $ uncurry A _ _ _ $ comp (lcurry' R A _ _ _) $ mk A M (N ⊗[R] P))

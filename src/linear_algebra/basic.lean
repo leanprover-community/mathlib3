@@ -436,7 +436,7 @@ lemma one_def : (1 : M →ₗ[R] M) = id := rfl
 
 lemma mul_def (g f : M →ₗ[R] M) : g * f = g.comp f := rfl
 
-@[simp] lemma one_coe : ((1 : M →ₗ[R] M) : M → M) = id := rfl
+lemma one_coe : ((1 : M →ₗ[R] M) : M → M) = id := rfl
 
 lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
 

@@ -331,10 +331,6 @@ open_locale classical
 def right (j) : (decomposed J ⥤ C) ⥤ component J j ⥤ C :=
 (whiskering_left _ _ _).obj (inclusion _ _)
 
-def plus_obj {T : C} (hT : is_terminal T) (j : connected_components J) :
-  (component J j ⥤ C) → decomposed J ⥤ C :=
-λ H, desc (λ k, if h : k = j then eq_to_functor J h ⋙ H else (functor.const _).obj T)
-
 def plus_obj' {T : C} (hT : is_terminal T) (j : connected_components J) :
   (component J j ⥤ C) → decomposed J ⥤ C :=
 λ H, desc (λ k,
@@ -342,8 +338,9 @@ def plus_obj' {T : C} (hT : is_terminal T) (j : connected_components J) :
   begin
     refine dite (j = k) _ _,
     { intro h,
-      apply H.obj,
-      apply (eq_to_functor _ h.symm).obj X },
+      refine H.obj _,
+      subst h,
+      apply X },
     { intro h,
       apply T }
   end,
@@ -352,21 +349,16 @@ def plus_obj' {T : C} (hT : is_terminal T) (j : connected_components J) :
     refine dite (j = k) _ _,
     { intro h,
       subst h,
-      apply eq_to_hom _ ≫ H.map f ≫ eq_to_hom _,
-      simp,
-      simp },
+      exact eq_to_hom (by simp) ≫ H.map f ≫ eq_to_hom (by simp) },
     { intro h,
-      apply eq_to_hom _,
-      simp [h] }
+      refine eq_to_hom (by simp [h]) }
   end,
-  map_id' :=
+  map_id' := λ X,
   begin
     by_cases (j = k),
-    { intro X,
-      subst h,
+    { subst h,
       simp },
-    { intro X,
-      simp [h] }
+    { simp [h] }
   end,
   map_comp' := λ X Y Z f g,
   begin
@@ -374,46 +366,7 @@ def plus_obj' {T : C} (hT : is_terminal T) (j : connected_components J) :
     { subst h,
       simp },
     { simp [h] }
-  end
-})
-
-def plus {T : C} (hT : is_terminal T) (j : connected_components J) :
-  (component J j ⥤ C) ⥤ decomposed J ⥤ C :=
-{ obj := plus_obj hT j,
-  map := λ X Y f,
-  begin
-    apply joining,
-    intro i,
-    apply (incl_desc _ _).hom ≫ _ ≫ (incl_desc _ _).inv,
-    apply dite (i = j) _ _,
-    { intro h,
-      apply eq_to_hom _ ≫ whisker_left (eq_to_functor _ h) f ≫ eq_to_hom _,
-      { simp [h] },
-      { simp [h] } },
-    { intro h,
-      apply eq_to_hom _,
-      simp [h] }
-  end,
-  map_id' := λ X,
-  begin
-    ext (⟨i, Y⟩ : decomposed _),
-    dsimp [joining],
-    by_cases (i = j),
-    { subst h,
-      simpa },
-    { change 𝟙 _ ≫ _ ≫ 𝟙 _ = _,
-      simpa [h] }
-  end,
-  map_comp' := λ X Y Z f g,
-  begin
-    ext ⟨i, W⟩,
-    dsimp [joining],
-    by_cases (i = j),
-    { dsimp [incl_desc],
-      simp [h] },
-    { dsimp [incl_desc],
-      simp [h] }
-  end }.
+  end })
 
 def plus_hom_equiv {T : C} (hT : is_terminal T) (j : connected_components J)
   (G : decomposed J ⥤ C) (H : component J j ⥤ C) :

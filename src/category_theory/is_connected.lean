@@ -326,12 +326,6 @@ begin
   refine ⟨⟨k, rfl⟩⟩,
 end
 
-def eq_to_functor : ∀ {j k}, j = k → component J j ⥤ component J k
-| _ _ (eq.refl _) := 𝟭 _
-
-@[simp]
-lemma eq_to_functor_refl (j) : eq_to_functor J (rfl : j = j) = 𝟭 _ := rfl
-
 lemma list.last_map {α β : Type*} (l : list α) (f : α → β) (hl : l ≠ []) :
   (l.map f).last (mt list.eq_nil_of_map_eq_nil hl) = f (l.last hl) :=
 begin

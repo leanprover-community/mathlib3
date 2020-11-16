@@ -541,13 +541,58 @@ def card_factors : arithmetic_function ℕ :=
 localized "notation `Ω` := card_factors" in arithmetic_function
 
 @[simp]
-lemma card_factors_one : Ω 1 = 0 := rfl
+lemma card_factors_apply {n : ℕ} :
+  Ω n = (unique_factorization_monoid.factors n).card :=
+by { rw [nat.factors_eq, multiset.coe_card], refl }
+
+lemma card_factors_eq_one_of_irreducible {n : ℕ} (h : irreducible n) :
+  Ω n = 1 :=
+by { rw [card_factors_apply, unique_factorization_monoid.factors_irreducible h], refl }
+
+lemma card_factors_eq_one_of_prime {n : ℕ} (h : n.prime) :
+  Ω n = 1 :=
+card_factors_eq_one_of_irreducible (nat.irreducible_iff_prime.2 (nat.prime_iff_prime.1 h))
+
+lemma card_factors_mul {m n : ℕ} (m0 : m ≠ 0) (n0 : n ≠ 0) :
+  Ω (m * n) = Ω m + Ω n :=
+by rw [card_factors_apply, card_factors_apply, card_factors_apply,
+    unique_factorization_monoid.factors_mul m0 n0, multiset.card_add]
+
+lemma card_factors_multiset_prod {s : multiset ℕ} (h0 : s.prod ≠ 0) :
+  Ω s.prod = (multiset.map Ω s).sum :=
+begin
+  revert h0,
+  apply s.induction_on, { intro h, refl },
+  intros a t h h0,
+  rw [multiset.prod_cons, mul_ne_zero_iff] at h0,
+  rw [multiset.prod_cons, card_factors_mul h0.1 h0.2, multiset.map_cons, multiset.sum_cons, h h0.2]
+end
 
 /-- `ω n` is the number of distinct prime factors of `n`. -/
 def card_distinct_factors : arithmetic_function ℕ :=
 ⟨λ n, n.factors.erase_dup.length, rfl⟩
 
 localized "notation `ω` := card_distinct_factors" in arithmetic_function
+
+lemma card_distinct_factors_zero : ω 0 = 0 := rfl
+
+@[simp]
+lemma card_distinct_factors_apply {n : ℕ} :
+  ω n = (unique_factorization_monoid.factors n).to_finset.card :=
+begin
+  rw [nat.factors_eq, finset.card, multiset.to_finset_val,
+  multiset.coe_erase_dup, multiset.coe_card],
+  refl
+end
+
+lemma card_distinct_factors_eq_card_factors_of_squarefree {n : ℕ} (h : squarefree n) :
+  ω n = Ω n :=
+begin
+  cases n, { refl },
+  rw [card_distinct_factors_apply, finset.card, multiset.to_finset_val, multiset.erase_dup_eq_self.2
+    ((unique_factorization_monoid.squarefree_iff_nodup_factors (nat.succ_ne_zero _)).1 h),
+    card_factors_apply],
+end
 
 /-- `μ` is the Möbius function. If `n` is squarefree with an even number of distinct prime factors,
   `μ n = 1`. If `n` is squarefree with an odd number of distinct prime factors, `μ n = -1`.

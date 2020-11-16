@@ -270,7 +270,7 @@ begin
   { convert ring.direct_limit.polynomial.exists_of f },
   unfreezingI { obtain ⟨n, p, rfl⟩ := this },
   rw monic_map_iff at hfm,
-  have := irreducible_of_irreducible_map (of_step k n) p hfm hfi,
+  have := hfm.irreducible_of_irreducible_map (of_step k n) p hfi,
   obtain ⟨x, hx⟩ := to_step_succ.exists_root k hfm this,
   refine ⟨of_step k (n + 1) x, _⟩,
   rw [← of_step_succ k n, eval_map, ← hom_eval₂, hx, ring_hom.map_zero]

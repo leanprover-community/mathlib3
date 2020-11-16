@@ -67,11 +67,11 @@ variables (G : Type*) [group G]
 
 theorem eval_smul' [mul_semiring_action G S] (g : G) (f : polynomial S) (x : S) :
   f.eval (g • x) = g • (g⁻¹ • f).eval x :=
-by rw [← smul_eval_smul, mul_action.smul_inv_smul]
+by rw [← smul_eval_smul, smul_inv_smul]
 
 theorem smul_eval [mul_semiring_action G S] (g : G) (f : polynomial S) (x : S) :
   (g • f).eval x = g • f.eval (g⁻¹ • x) :=
-by rw [← smul_eval_smul, mul_action.smul_inv_smul]
+by rw [← smul_eval_smul, smul_inv_smul]
 
 end polynomial
 

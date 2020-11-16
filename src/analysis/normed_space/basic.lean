@@ -194,6 +194,22 @@ calc ∥v∥ = ∥u - (u - v)∥ : by abel
 lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
+lemma mem_ball_iff_norm {g h : α} {r : ℝ} :
+  h ∈ ball g r ↔ ∥h - g∥ < r :=
+by rw [mem_ball, dist_eq_norm]
+
+lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
+  h ∈ ball g r ↔ ∥g - h∥ < r :=
+by rw [mem_ball', dist_eq_norm]
+
+lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
+  h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
+by rw [mem_closed_ball, dist_eq_norm]
+
+lemma mem_closed_ball_iff_norm' {g h : α} {r : ℝ} :
+  h ∈ closed_ball g r ↔ ∥g - h∥ ≤ r :=
+by rw [mem_closed_ball', dist_eq_norm]
+
 lemma norm_le_of_mem_closed_ball {g h : α} {r : ℝ} (H : h ∈ closed_ball g r) :
   ∥h∥ ≤ ∥g∥ + r :=
 calc
@@ -955,7 +971,7 @@ open normed_field
 any shell of width `∥c∥`. Also recap information on the norm of the rescaling element that shows
 up in applications. -/
 lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
-  ∃d:α, d ≠ 0 ∧ ∥d • x∥ ≤ ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
+  ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
 begin
   have xεpos : 0 < ∥x∥/ε := div_pos (norm_pos_iff.2 hx) εpos,
   rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,
@@ -964,9 +980,9 @@ begin
   refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
   show (c ^ (n + 1))⁻¹  ≠ 0,
     by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
-  show ∥(c ^ (n + 1))⁻¹ • x∥ ≤ ε,
-  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_le_iff cnpos, mul_comm, norm_fpow],
-    exact (div_le_iff εpos).1 (le_of_lt (hn.2)) },
+  show ∥(c ^ (n + 1))⁻¹ • x∥ < ε,
+  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_fpow],
+    exact (div_lt_iff εpos).1 (hn.2) },
   show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
   { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
         fpow_one, mul_inv_rev', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),

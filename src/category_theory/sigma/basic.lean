@@ -17,6 +17,7 @@ We define the pointwise category structure on indexed families of objects in a c
 -/
 
 namespace category_theory
+namespace sigma
 
 universes w₀ w₁ w₂ v₁ v₂ u₁ u₂
 
@@ -64,39 +65,14 @@ lemma comp_id : ∀ (X Y : Σ i, C i) (f : X ⟶ Y), f ≫ 𝟙 Y = f
     simp,
   end
 
-instance sigma : category (Σ i, C i) :=
-{ id_comp' := id_comp,
-  comp_id' := comp_id,
-  assoc' := assoc }
-
-/--
-This provides some assistance to typeclass search in a common situation,
-which otherwise fails. (Without this `category_theory.pi.has_limit_of_has_limit_comp_eval` fails.)
--/
-abbreviation sigma' {I : Type v₁} (C : I → Type u₁) [Π i, category.{v₁} (C i)] :
-  category.{max v₁ u₁} (Σ i, C i) :=
-category_theory.sigma_hom.sigma
-
-attribute [instance] pi'
-
 end sigma_hom
 
--- /--
--- This provides some assistance to typeclass search in a common situation,
--- which otherwise fails. (Without this `category_theory.pi.has_limit_of_has_limit_comp_eval` fails.)
--- -/
--- abbreviation pi' {I : Type v₁} (C : I → Type u₁) [Π i, category.{v₁} (C i)] :
---   category.{v₁} (Π i, C i) :=
--- category_theory.pi C
+instance sigma : category (Σ i, C i) :=
+{ id_comp' := sigma_hom.id_comp,
+  comp_id' := sigma_hom.comp_id,
+  assoc' := sigma_hom.assoc }
 
--- attribute [instance] pi'
-
--- namespace pi
-
--- @[simp] lemma id_apply (X : Π i, C i) (i) : (𝟙 X : Π i, X i ⟶ X i) i = 𝟙 (X i) := rfl
--- @[simp] lemma comp_apply {X Y Z : Π i, C i} (f : X ⟶ Y) (g : Y ⟶ Z) (i) :
---   (f ≫ g : Π i, X i ⟶ Z i) i = f i ≫ g i := rfl
-
+/-- The inclusion functor into the disjoint union of categories. -/
 @[simps]
 def incl (i : I) : C i ⥤ Σ i, C i :=
 { obj := λ X, ⟨i, X⟩,
@@ -114,7 +90,7 @@ variables {D : Type u₂} [category.{v₂} D] (F : Π i, C i ⥤ D)
 def desc_map : ∀ (X Y : Σ i, C i), (X ⟶ Y) → ((F X.1).obj X.2 ⟶ (F Y.1).obj Y.2)
 | _ _ (sigma_hom.matched i X Y g) := (F i).map g
 
-@[simps obj]
+@[simps]
 def desc : (Σ i, C i) ⥤ D :=
 { obj := λ X, (F X.1).obj X.2,
   map := λ X Y g, desc_map F X Y g,
@@ -183,37 +159,6 @@ desc_uniq _ _ $ λ k,
 
 end
 
--- variables {I}
--- /-- The natural isomorphism between pulling back then evaluating, and just evaluating. -/
--- @[simps {rhs_md := semireducible}]
--- def comap_eval_iso_eval (h : J → I) (j : J) : comap C h ⋙ eval (C ∘ h) j ≅ eval C (h j) :=
--- nat_iso.of_components (λ f, iso.refl _) (by tidy)
-
--- end
-
--- section
--- variables {J : Type w₀} {D : J → Type u₁} [Π j, category.{v₁} (D j)]
-
--- instance sum_elim_category : Π (s : I ⊕ J), category.{v₁} (sum.elim C D s)
--- | (sum.inl i) := by { dsimp, apply_instance, }
--- | (sum.inr j) := by { dsimp, apply_instance, }
-
--- /--
--- The bifunctor combining an `I`-indexed family of objects with a `J`-indexed family of objects
--- to obtain an `I ⊕ J`-indexed family of objects.
--- -/
--- @[simps]
--- def sum : (Π i, C i) ⥤ (Π j, D j) ⥤ (Π s : I ⊕ J, sum.elim C D s) :=
--- { obj := λ f,
---   { obj := λ g s, sum.rec f g s,
---     map := λ g g' α s, sum.rec (λ i, 𝟙 (f i)) α s },
---   map := λ f f' α,
---   { app := λ g s, sum.rec α (λ j, 𝟙 (g j)) s, }}
-
--- end
-
--- end pi
-
 namespace functor
 
 variables {C}
@@ -224,11 +169,6 @@ Assemble an `I`-indexed family of functors into a functor between the sigma type
 -/
 def sigma (F : Π i, C i ⥤ D i) : (Σ i, C i) ⥤ (Σ i, D i) :=
 desc (λ i, F i ⋙ incl i)
--- { obj := λ f i, (F i).obj (f i),
---   map := λ f g α i, (F i).map (α i) }
-
--- One could add some natural isomorphisms showing
--- how `functor.pi` commutes with `pi.eval` and `pi.comap`.
 
 end functor
 
@@ -252,4 +192,5 @@ def sigma (α : Π i, F i ⟶ G i) : functor.sigma F ⟶ functor.sigma G :=
 
 end nat_trans
 
+end sigma
 end category_theory

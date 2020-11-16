@@ -2548,7 +2548,7 @@ lemma last_pmap {α β : Type*} (p : α → Prop) (f : Π a, p a → β)
   (l : list α) (hl₁ : ∀ a ∈ l, p a) (hl₂ : l ≠ []) :
   (l.pmap f hl₁).last (mt list.pmap_eq_nil.1 hl₂) = f (l.last hl₂) (hl₁ _ (list.last_mem hl₂)) :=
 begin
-  induction l,
+  induction l with l_hd l_tl l_ih,
   { apply (hl₂ rfl).elim },
   { cases l_tl,
     { simp },

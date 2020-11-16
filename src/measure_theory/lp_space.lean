@@ -125,7 +125,6 @@ lemma mem_ℒp.add {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ
 begin
   have hp0_lt : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
   have hp0 : 0 ≤ p, from le_of_lt hp0_lt,
-  have hp0_sub1 : 0 ≤ p - 1, by { rw sub_nonneg, exact hp1, },
   split,
   { exact measurable.add hf.1 hg.1, },
   simp_rw [pi.add_apply, ennreal.coe_rpow_of_nonneg _ hp0],

@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 import algebra.big_operators.ring
 import number_theory.divisors
 import algebra.squarefree
+import algebra.invertible
 
 /-!
 # Arithmetic Functions and Dirichlet Convolution
@@ -664,6 +665,11 @@ end
 
 lemma zeta_mul_moebius_eq_one : ζ * μ = 1 :=
 by rw [mul_comm, moebius_mul_zeta_eq_one]
+
+instance : invertible ζ :=
+{ inv_of := μ,
+  inv_of_mul_self := moebius_mul_zeta_eq_one,
+  mul_inv_of_self := zeta_mul_moebius_eq_one}
 
 end special_functions
 end arithmetic_function

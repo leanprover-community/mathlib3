@@ -79,7 +79,7 @@ instance sigma : category (Σ i, C i) :=
   assoc' := sigma_hom.assoc }
 
 /-- The inclusion functor into the disjoint union of categories. -/
-@[simps]
+@[simps map]
 def incl (i : I) : C i ⥤ Σ i, C i :=
 { obj := λ X, ⟨i, X⟩,
   map := λ X Y, sigma_hom.mk }

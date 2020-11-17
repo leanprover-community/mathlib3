@@ -70,11 +70,12 @@ namespace submonoid
 @[to_additive]
 instance : has_coe (submonoid M) (set M) := ⟨submonoid.carrier⟩
 
-@[to_additive]
-instance : has_coe_to_sort (submonoid M) := ⟨Type*, λ S, S.carrier⟩
 
 @[to_additive]
 instance : has_mem M (submonoid M) := ⟨λ m S, m ∈ (S:set M)⟩
+
+@[to_additive]
+instance : has_coe_to_sort (submonoid M) := ⟨Type*, λ S, {x : M // x ∈ S}⟩
 
 @[simp, to_additive]
 lemma mem_carrier {s : submonoid M} {x : M} : x ∈ s.carrier ↔ x ∈ s := iff.rfl

@@ -1395,16 +1395,16 @@ A single `list.map` of a composition of functions is equal to
 composing a `list.map` with another `list.map`, fully applied.
 This is the reverse direction of `list.map_map`.
 -/
-lemma comp_map (l : list α) (g : α → β) (h : β → γ)  :
+lemma comp_map (h : β → γ) (g : α → β) (l : list α) :
   map (h ∘ g) l = map h (map g l) := (map_map _ _ _).symm
 
 /--
 Composing a `list.map` with another `list.map` is equal to
 a single `list.map` of composed functions.
 -/
-@[simp] lemma map_comp_map (f : α → β) (g : β → γ) :
+@[simp] lemma map_comp_map (g : β → γ) (f : α → β) :
   map g ∘ map f = map (g ∘ f) :=
-by apply funext; intro; rw comp_map
+by { ext l, rw comp_map }
 
 theorem map_filter_eq_foldr (f : α → β) (p : α → Prop) [decidable_pred p] (as : list α) :
   map f (filter p as) = foldr (λ a bs, if p a then f a :: bs else bs) [] as :=

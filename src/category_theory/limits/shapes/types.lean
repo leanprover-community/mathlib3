@@ -63,17 +63,24 @@ def initial_limit_cone : limits.colimit_cocone (functor.empty (Type u)) :=
 
 open category_theory.limits.walking_pair
 
-local attribute [tidy] tactic.case_bash
+def binary_product_cone (X Y : Type u) : cone (pair X Y) :=
+binary_fan.mk prod.fst prod.snd
 
+def binary_product_limit (X Y : Type u) : is_limit (binary_product_cone X Y) :=
+{ lift := λ (s : binary_fan X Y) x, (s.fst x, s.snd x),
+  fac' := λ s j, walking_pair.cases_on j rfl rfl,
+  uniq' := sorry
+
+
+}
+
+#exit
 /--
 The category of types has `X × Y`, the usual cartesian product,
 as the binary product of `X` and `Y`.
 -/
 def binary_product_limit_cone (X Y : Type u) : limits.limit_cone (pair X Y) :=
-{ cone :=
-  { X := X × Y,
-    π :=
-    { app := by { rintro ⟨_|_⟩, exact prod.fst, exact prod.snd, } }, },
+{ cone := binary_product_cone X Y,
   is_limit :=
   { lift := λ s x, (s.π.app left x, s.π.app right x),
     uniq' := λ s m w,

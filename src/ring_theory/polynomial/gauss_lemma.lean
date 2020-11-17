@@ -98,7 +98,7 @@ begin
   obtain ⟨⟨c, c0⟩, hc⟩ := @integer_normalization_map_to_map _ _ _ _ _ f a,
   obtain ⟨⟨d, d0⟩, hd⟩ := @integer_normalization_map_to_map _ _ _ _ _ f b,
   rw [algebra.smul_def, ← C_eq_algebra_map, subtype.coe_mk] at hc hd,
-  rw [submonoid.mem_carrier, mem_non_zero_divisors_iff_ne_zero] at c0 d0,
+  rw mem_non_zero_divisors_iff_ne_zero at c0 d0,
   have hcd0 : c * d ≠ 0 := mul_ne_zero c0 d0,
   rw [ne.def, ← C_eq_zero] at hcd0,
   have h1 : C c * C d * p = f.integer_normalization a * f.integer_normalization b,

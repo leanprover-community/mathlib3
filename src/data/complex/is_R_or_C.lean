@@ -292,7 +292,7 @@ begin
   { simp [h, of_real_zero] },
   { change r ≠ 0 at h,
     rw [div_eq_mul_inv, ←of_real_inv, div_eq_mul_inv],
-    simp [norm_sq, norm_sq_of_real, div_mul_eq_div_mul_one_div, div_self h] }
+    simp [norm_sq, div_mul_eq_div_mul_one_div, div_self h] }
 end
 
 @[simp] lemma of_real_fpow (r : ℝ) (n : ℤ) : 𝓚 (r ^ n) = (𝓚 r) ^ n :=
@@ -386,7 +386,7 @@ local notation `abs'` := _root_.abs
 local notation `absK` := @abs K _
 
 @[simp] lemma abs_of_real (r : ℝ) : absK (𝓚 r) = abs' r :=
-by simp [abs, norm_sq, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
+by simp [abs, norm_sq, real.sqrt_mul_self_eq_abs]
 
 lemma norm_eq_abs (z : K) : ∥z∥ = absK z := by simp [abs, norm_sq_eq_def']
 

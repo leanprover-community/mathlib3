@@ -518,7 +518,7 @@ nat.rec_on n
 
 end submodule
 
-namespace primes
+section primes
 
 variables {R : Type*} [comm_ring R] [is_noetherian_ring R]
 

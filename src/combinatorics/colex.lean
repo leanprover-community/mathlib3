@@ -243,7 +243,7 @@ begin
     simp only [true_and, eq_self_iff_true, mem_singleton] },
 end
 
--- s <ᶜ {r} iff all elements of s are less than r.
+/-- s <ᶜ {r} iff all elements of s are less than r. -/
 lemma lt_singleton_iff_mem_lt [linear_order α] {r : α} {s : finset α}:
   s <ᶜ {r} ↔ ∀ x ∈ s, x < r :=
 begin

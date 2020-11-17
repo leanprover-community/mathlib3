@@ -55,8 +55,8 @@ We also provide equivalent conditions to satisfy alternate definitions given in 
   statement of `yoneda_condition_iff_sheaf_condition` (since the bijection described there carries
   the same information as the unique existence.)
 
-* Maclane-Moerdijk [MM92]: Using `compatible_iff_sieve_compatible`, the definitions of `is_sheaf` are
-  equivalent. There are also alternate definitions given:
+* Maclane-Moerdijk [MM92]: Using `compatible_iff_sieve_compatible`, the definitions of `is_sheaf`
+  are equivalent. There are also alternate definitions given:
   - Yoneda condition: Defined in `yoneda_sheaf_condition` and equivalence in
     `yoneda_condition_iff_sheaf_condition`.
   - Equalizer condition (Equation 3): Defined in the `equalizer.sieve` namespace, and equivalence

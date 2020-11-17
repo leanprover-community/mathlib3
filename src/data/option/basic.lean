@@ -87,15 +87,21 @@ by cases a; cases b; refl
 lemma bind_assoc (x : option α) (f : α → option β) (g : β → option γ) :
   (x.bind f).bind g = x.bind (λ y, (f y).bind g) := by cases x; refl
 
-@[simp] theorem map_none {α β} {f : α → β} : f <$> none = none := rfl
+/--
+Mapping in the `option α` `functor` is equal to `option.map`.
+-/
+@[simp] lemma map_eq_map {α β} {f : α → β} :
+  (<$>) f = option.map f := rfl
 
-@[simp] theorem map_some {α β} {a : α} {f : α → β} : f <$> some a = some (f a) := rfl
+theorem map_none {α β} {f : α → β} : f <$> none = none := rfl
+
+theorem map_some {α β} {a : α} {f : α → β} : f <$> some a = some (f a) := rfl
 
 @[simp] theorem map_none' {f : α → β} : option.map f none = none := rfl
 
 @[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
 
-@[simp] theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} :
+theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} :
   f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 

@@ -63,11 +63,6 @@ def exterior_algebra := ring_quot (exterior_algebra.rel R M)
 
 namespace exterior_algebra
 
-instance : star_ring (exterior_algebra R M) := ring_quot.star_ring (rel R M) $ λ a b h, begin
-  induction h,
-  simp,
-end
-
 variables {M}
 
 -- typeclass resolution times out here, so we give it a hand

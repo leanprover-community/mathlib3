@@ -63,12 +63,6 @@ namespace tensor_algebra
 instance {S : Type*} [comm_ring S] [semimodule S M] : ring (tensor_algebra S M) :=
 ring_quot.ring (rel S M)
 
-instance : star_ring (tensor_algebra R M) := ring_quot.star_ring (rel R M) $ λ a b h, begin
-  induction h,
-  { simpa using rel.add, },
-  { simpa [←algebra.commutes] using rel.smul },
-end
-
 variables {M}
 /--
 The canonical linear map `M →ₗ[R] tensor_algebra R M`.
@@ -108,25 +102,6 @@ theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
   (g : tensor_algebra R M →ₐ[R] A) : g.to_linear_map.comp (ι R) = f ↔ g = lift R f :=
 (lift R).symm_apply_eq
 
-section
-
--- We can't show these propagate through the quotient if we don't have the quotient
-local attribute [semireducible] ring_quot ring_quot.mk_ring_hom ring_quot.mk_alg_hom
-
-@[simp]
-lemma star_algebra_map (r : R) : star (algebra_map R (tensor_algebra R M) r) = (algebra_map R _ r) :=
-congr_arg (quot.mk _) (free_algebra.star_algebra_map R M r)
-
-@[simp]
-lemma star_ι (m : M) : star (ι R m) = (ι R m) :=
-congr_arg (quot.mk _) (free_algebra.star_ι R M m)
-
-end
-
-def star_hom : tensor_algebra R M ≃ₐ[R] (tensor_algebra R M)ᵒᵖ :=
-{ commutes' := λ r, by simp [star_algebra_map],
-  ..star_ring_equiv,}
-
 -- Marking `tensor_algebra` irreducible makes `ring` instances inaccessible on quotients.
 -- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
 -- For now, we avoid this by not marking it irreducible.
@@ -144,6 +119,5 @@ begin
   rw [←lift_symm_apply, ←lift_symm_apply] at w,
   exact (lift R).symm.injective w,
 end
-
 
 end tensor_algebra

@@ -226,15 +226,6 @@ def star_ring {R : Type u₁} [semiring R] [star_ring R] (r : R → R → Prop)
   star_mul := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (star_mul _ _), },
   star_add := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (star_add _ _), } }
 
-@[simp]
-def star_ring_algebra_map [_root_.star_ring A] (s : A → A → Prop)
-  (hr : ∀ {a b : A}, s a b → s (star a) (star b))
-  (ha : ∀ {r : S}, star (algebra_map S A r) = algebra_map S A r)
-  (r : S) :
-  let i := star_ring s @hr in by exactI
-  star (algebra_map S (ring_quot s) r) = (algebra_map S (ring_quot s) r) :=
-by exact congr_arg (quot.mk _) ha
-
 section algebra
 
 variables (S)

@@ -177,9 +177,6 @@ have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one h;
   have hpnr0 : leading_coeff (p ^ (nat_degree q + 1)) * leading_coeff r ≠ 0,
     by simp only [leading_coeff_pow' hpn0', leading_coeff_eq_zero, hpn1,
       one_pow, one_mul, ne.def, hr0]; simp,
-  have hpn0 : p ^ (nat_degree q + 1) ≠ 0,
-    from mt leading_coeff_eq_zero.2 $
-      by rw [leading_coeff_pow' hpn0', show _ = _, from hmp, one_pow]; exact zn0.symm,
   have hnp : 0 < nat_degree p,
     by rw [← with_bot.coe_lt_coe, ← degree_eq_nat_degree hp0];
     exact hp,

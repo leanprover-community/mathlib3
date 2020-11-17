@@ -982,7 +982,6 @@ else
   have ha : 0 < a, from nat.pos_of_ne_zero ha,
   have h1 : ∃ d, c = a * b * d, from h,
   let ⟨d, hd⟩ := h1 in
-  have hac : a ∣ c, from dvd_of_mul_right_dvd h,
   have h2 : c / a = b * d, from nat.div_eq_of_eq_mul_right ha (by simpa [mul_assoc] using hd),
   show ∃ d, c / a = b * d, from ⟨d, h2⟩
 

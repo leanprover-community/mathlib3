@@ -63,50 +63,45 @@ def initial_limit_cone : limits.colimit_cocone (functor.empty (Type u)) :=
 
 open category_theory.limits.walking_pair
 
+/-- The product type `X × Y` forms a cone for the binary product of `X` and `Y`. -/
+@[simps {rhs_md := semireducible}]
 def binary_product_cone (X Y : Type u) : cone (pair X Y) :=
 binary_fan.mk prod.fst prod.snd
 
+/-- The product type `X × Y` is a binary product for `X` and `Y`. -/
+@[simps]
 def binary_product_limit (X Y : Type u) : is_limit (binary_product_cone X Y) :=
 { lift := λ (s : binary_fan X Y) x, (s.fst x, s.snd x),
   fac' := λ s j, walking_pair.cases_on j rfl rfl,
-  uniq' := sorry
+  uniq' := λ s m w, funext $ λ x, prod.ext (congr_fun (w left) x) (congr_fun (w right) x) }
 
-
-}
-
-#exit
 /--
 The category of types has `X × Y`, the usual cartesian product,
 as the binary product of `X` and `Y`.
 -/
+@[simps]
 def binary_product_limit_cone (X Y : Type u) : limits.limit_cone (pair X Y) :=
-{ cone := binary_product_cone X Y,
-  is_limit :=
-  { lift := λ s x, (s.π.app left x, s.π.app right x),
-    uniq' := λ s m w,
-    begin
-      ext,
-      exact congr_fun (w left) x,
-      exact congr_fun (w right) x,
-    end }, }
+⟨_, binary_product_limit X Y⟩
+
+
+/-- The product type `X × Y` forms a cone for the binary product of `X` and `Y`. -/
+@[simps {rhs_md := semireducible}]
+def binary_coproduct_cocone (X Y : Type u) : cocone (pair X Y) :=
+binary_cofan.mk sum.inl sum.inr
+
+/-- The product type `X × Y` is a binary product for `X` and `Y`. -/
+@[simps]
+def binary_coproduct_colimit (X Y : Type u) : is_colimit (binary_coproduct_cocone X Y) :=
+{ desc := λ (s : binary_cofan X Y), sum.elim s.inl s.inr,
+  fac' := λ s j, walking_pair.cases_on j rfl rfl,
+  uniq' := λ s m w, funext $ λ x, sum.cases_on x (congr_fun (w left)) (congr_fun (w right)) }
 
 /--
 The category of types has `X ⊕ Y`,
 as the binary coproduct of `X` and `Y`.
 -/
-def binary_coproduct_limit_cone (X Y : Type u) : limits.colimit_cocone (pair X Y) :=
-{ cocone :=
-  { X := X ⊕ Y,
-    ι :=
-    { app := by { rintro ⟨_|_⟩, exact sum.inl, exact sum.inr, } }, },
-  is_colimit :=
-  { desc := λ s x, sum.elim (s.ι.app left) (s.ι.app right) x,
-    uniq' := λ s m w,
-    begin
-      ext (x|x),
-      exact (congr_fun (w left) x : _),
-      exact (congr_fun (w right) x : _),
-    end }, }
+def binary_coproduct_colimit_cocone (X Y : Type u) : limits.colimit_cocone (pair X Y) :=
+⟨_, binary_coproduct_colimit X Y⟩
 
 /--
 The category of types has `Π j, f j` as the product of a type family `f : J → Type`.
@@ -128,7 +123,8 @@ def product_limit_cone {J : Type u} (F : J → Type u) : limits.limit_cone (disc
 /--
 The category of types has `Σ j, f j` as the coproduct of a type family `f : J → Type`.
 -/
-def coproduct_limit_cone {J : Type u} (F : J → Type u) : limits.colimit_cocone (discrete.functor F) :=
+def coproduct_colimit_cocone {J : Type u} (F : J → Type u) :
+  limits.colimit_cocone (discrete.functor F) :=
 { cocone :=
   { X := Σ j, F j,
     ι :=

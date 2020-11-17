@@ -646,26 +646,26 @@ instance to_norm_one_class : norm_one_class α :=
   by rw [← norm_mul, mul_one, mul_one]⟩
 
 /-- `norm` as a `monoid_hom`. -/
-@[simps] def norm_hom : α →* ℝ := ⟨norm, norm_one, norm_mul⟩
+@[simps] def norm_hom : monoid_with_zero_hom α ℝ := ⟨norm, norm_zero, norm_one, norm_mul⟩
 
 @[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
-norm_hom.map_pow a
+norm_hom.to_monoid_hom.map_pow a
 
 @[simp] lemma norm_prod (s : finset β) (f : β → α) :
   ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=
-(norm_hom : α →* ℝ).map_prod f s
+(norm_hom.to_monoid_hom : α →* ℝ).map_prod f s
 
 @[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ :=
-(norm_hom : α →* ℝ).map_div norm_zero a b
+(norm_hom : monoid_with_zero_hom α ℝ).map_div a b
 
 @[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
-(norm_hom : α →* ℝ).map_inv' norm_zero a
+(norm_hom : monoid_with_zero_hom α ℝ).map_inv' a
 
 @[simp] lemma nnnorm_inv (a : α) : nnnorm (a⁻¹) = (nnnorm a)⁻¹ :=
 nnreal.eq $ by simp
 
 @[simp] lemma norm_fpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n :=
-(norm_hom : α →* ℝ).map_fpow norm_zero
+(norm_hom : monoid_with_zero_hom α ℝ).map_fpow
 
 @[priority 100] -- see Note [lower instance priority]
 instance : has_continuous_inv' α :=

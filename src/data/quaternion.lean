@@ -435,8 +435,9 @@ def conj_alg_equiv : ℍ[R] ≃ₐ[R] (ℍ[R]ᵒᵖ) := quaternion_algebra.conj_
 @[simp] lemma coe_conj_alg_equiv : ⇑(conj_alg_equiv : ℍ[R] ≃ₐ[R] ℍ[R]ᵒᵖ) = op ∘ conj := rfl
 
 /-- Square of the norm. -/
-def norm_sq : ℍ[R] →* R :=
+def norm_sq : monoid_with_zero_hom ℍ[R] R :=
 { to_fun := λ a, (a * a.conj).re,
+  map_zero' := by rw [conj_zero, zero_mul, zero_re],
   map_one' := by rw [conj_one, one_mul, one_re],
   map_mul' := λ x y, coe_injective $ by conv_lhs { rw [← mul_conj_eq_coe, conj_mul, mul_assoc,
     ← mul_assoc y, y.mul_conj_eq_coe, coe_commutes, ← mul_assoc, x.mul_conj_eq_coe, ← coe_mul] } }
@@ -449,9 +450,6 @@ by simp only [norm_sq_def, pow_two, ← neg_mul_eq_mul_neg, sub_neg_eq_add,
 
 lemma norm_sq_coe : norm_sq (x : ℍ[R]) = x^2 :=
 by rw [norm_sq_def, conj_coe, ← coe_mul, coe_re, pow_two]
-
-lemma norm_sq_zero : norm_sq (0 : ℍ[R]) = 0 :=
-by simp [norm_sq_def', pow_two, mul_zero, add_zero]
 
 @[simp] lemma norm_sq_neg : norm_sq (-a) = norm_sq a :=
 by simp only [norm_sq_def, conj_neg, neg_mul_neg]
@@ -476,7 +474,7 @@ variables [linear_ordered_comm_ring R] {a : ℍ[R]}
 
 @[simp] lemma norm_sq_eq_zero : norm_sq a = 0 ↔ a = 0 :=
 begin
-  refine ⟨λ h, _, λ h, h.symm ▸ norm_sq_zero⟩,
+  refine ⟨λ h, _, λ h, h.symm ▸ norm_sq.map_zero⟩,
   rw [norm_sq_def', add_eq_zero_iff_eq_zero_of_nonneg, add_eq_zero_iff_eq_zero_of_nonneg,
     add_eq_zero_iff_eq_zero_of_nonneg] at h,
   exact ext a 0 (pow_eq_zero h.1.1.1) (pow_eq_zero h.1.1.2) (pow_eq_zero h.1.2) (pow_eq_zero h.2),
@@ -516,10 +514,10 @@ instance : division_ring ℍ[R] :=
   .. quaternion.domain }
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ :=
-(norm_sq : ℍ[R] →* R).map_inv' norm_sq_zero _
+monoid_with_zero_hom.map_inv' norm_sq _
 
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b :=
-(norm_sq : ℍ[R] →* R).map_div norm_sq_zero a b
+monoid_with_zero_hom.map_div norm_sq a b
 
 end field
 

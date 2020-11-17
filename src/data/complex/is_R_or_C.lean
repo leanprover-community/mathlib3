@@ -58,7 +58,7 @@ local notation `𝓚` := @is_R_or_C.of_real K _
 local postfix `†`:100 := @is_R_or_C.conj K _
 
 lemma of_real_alg (x : ℝ) : 𝓚 x = x • (1 : K) :=
-mul_one (𝓚 x) ▸ (algebra.smul_def x (1 : K)).symm
+algebra.algebra_map_eq_smul_one x
 
 @[simp] lemma re_add_im (z : K) : 𝓚 (re z) + 𝓚 (im z) * I = z := is_R_or_C.re_add_im_ax z
 @[simp] lemma of_real_re : ∀ r : ℝ, re (𝓚 r) = r := is_R_or_C.of_real_re_ax
@@ -80,19 +80,17 @@ by { simp_rw ext_iff, cc }
 
 @[simp] lemma zero_re : re (𝓚 0) = (0 : ℝ) := by simp only [of_real_re]
 @[simp] lemma zero_im : im (𝓚 0) = 0 := by rw [of_real_im]
-lemma of_real_zero : 𝓚 0 = 0 := by rw [of_real_alg, zero_smul]
+lemma of_real_zero : 𝓚 0 = 0 := (algebra_map ℝ K).map_zero
 
-@[simp] lemma zero_re' : re (0 : K) = (0 : ℝ) :=
-by simp only [add_monoid_hom.map_zero]
+@[simp] lemma zero_re' : re (0 : K) = (0 : ℝ) := re.map_zero
 
 
-@[simp] lemma of_real_one : 𝓚 1 = 1 := by rw [of_real_alg, one_smul]
+@[simp] lemma of_real_one : 𝓚 1 = 1 := (algebra_map ℝ K).map_one
 @[simp] lemma one_re : re (1 : K) = 1 := by rw [←of_real_one, of_real_re]
 @[simp] lemma one_im : im (1 : K) = 0 := by rw [←of_real_one, of_real_im]
 
 @[simp] theorem of_real_inj {z w : ℝ} : 𝓚 z = 𝓚 w ↔ z = w :=
-{ mp := λ h, by { convert congr_arg re h; simp only [of_real_re] },
-  mpr := λ h, by rw h }
+(algebra_map ℝ K).injective.eq_iff
 
 
 @[simp] lemma bit0_re (z : K) : re (bit0 z) = bit0 (re z) := by simp [bit0]
@@ -103,16 +101,16 @@ by simp only [bit1, add_monoid_hom.map_add, bit0_re, add_right_inj, one_re]
 by simp only [bit1, add_right_eq_self, add_monoid_hom.map_add, bit0_im, one_im]
 
 @[simp] theorem of_real_eq_zero {z : ℝ} : 𝓚 z = 0 ↔ z = 0 :=
-by rw [←of_real_zero]; exact of_real_inj
+(algebra_map ℝ K).map_eq_zero
 
 @[simp] lemma of_real_add ⦃r s : ℝ⦄ : 𝓚 (r + s) = 𝓚 r + 𝓚 s :=
-by apply (@is_R_or_C.ext_iff K _ (𝓚 (r + s)) (𝓚 r + 𝓚 s)).mpr; simp
+(algebra_map ℝ K).map_add r s
 
 @[simp] lemma of_real_bit0 (r : ℝ) : 𝓚 (bit0 r : ℝ) = bit0 (𝓚 r) :=
-ext_iff.2 $ by simp [bit0]
+(algebra_map ℝ K).map_bit0 r
 
 @[simp] lemma of_real_bit1 (r : ℝ) : 𝓚 (bit1 r : ℝ) = bit1 (𝓚 r) :=
-ext_iff.2 $ by simp [bit1]
+(algebra_map ℝ K).map_bit1 r
 
 /- Note: This can be proven by `norm_num` once K is proven to be of characteristic zero below. -/
 lemma two_ne_zero : (2 : K) ≠ 0 :=
@@ -270,10 +268,7 @@ by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
 by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
 
 @[simp] lemma of_real_inv (r : ℝ) : 𝓚 (r⁻¹) = (𝓚 r)⁻¹ :=
-begin
-  rw ext_iff, by_cases r = 0, { simp [h] },
-  { simp; field_simp [h, norm_sq] },
-end
+(algebra_map ℝ K).map_inv r
 
 protected lemma inv_zero : (0⁻¹ : K) = 0 :=
 by rw [← of_real_zero, ← of_real_inv, inv_zero]

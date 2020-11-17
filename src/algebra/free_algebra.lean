@@ -372,6 +372,7 @@ by simp [star, has_star.star]
 lemma star_algebra_map (r : R) : star (algebra_map R (free_algebra R X) r) = (algebra_map R _ r) :=
 by simp [star, has_star.star]
 
+/- `star` as an `alg_equiv` -/
 def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵒᵖ :=
 { commutes' := λ r, by simp [star_algebra_map],
   ..star_ring_equiv}

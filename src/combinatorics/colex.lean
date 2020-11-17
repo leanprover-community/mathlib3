@@ -215,56 +215,31 @@ instance [linear_order α] : is_strict_weak_order (finset.colex α) (<) := {}
 
 instance [linear_order α] : is_strict_total_order (finset.colex α) (<) := {}
 
--- {r} <ᶜ s iff s contains an element greater than r
-lemma singleton_lt_iff_mem_gt [linear_order α] {r : α} {s : finset α}:
-  ({r} : finset α) <ᶜ s ↔ ∃ x ∈ s, r < x :=
+/-- If {r} is less than or equal to s in the colexicographical sense,
+  then s contains an element greater than or equal to r. -/
+lemma mem_ge_of_singleton_le [linear_order α] {r : α} {s : finset α}:
+  ({r} : finset α) ≤ᶜ s → ∃ x ∈ s, r ≤ x :=
 begin
-  split,
-  { intro h,
+  intro h,
+  rw colex.le_def at h,
+  cases h with lt eq,
+  { rw colex.lt_def at lt,
+    rcases lt with ⟨k, hk, hi, hj⟩,
     by_cases hr : r ∈ s,
-    {
-      sorry,
-    },
-    rw colex.lt_def at h,
-    cases h with k hk,
-    cases hk with hka hkb,
-    use k,
-    split,
-    tauto,
-    cases hkb with hx hy,
-    simp only [mem_singleton] at hx,
-    contrapose! hka,
+    { use r,
+      tauto },
+    { contrapose! hk,
+      simp only [mem_singleton],
+      specialize hk k,
+      use r,
+      split,
+      { apply hk,
+        cc },
+      { simp,
+        exact hr } } },
+  { rw ← eq,
     use r,
-    simp,
-    simp [hr],
-    contrapose! hx,
-    exact le_antisymm hka hx },
-  { intro h,
-    rcases h with ⟨p, hp, hpr⟩,
-    by_cases hr : r ∈ s,
-    { rw colex.lt_def,
-      use p,
-      split,
-      { sorry },
-      split,
-      simp,
-      have := ne_of_lt hpr,
-      tauto,
-      exact hp },
-    { rw colex.lt_def,
-      use p,
-      split,
-      intros a h2,
-      sorry,
-      sorry },
-  },
-end
-
--- s <ᶜ {r} iff all elements of s are less than r.
-lemma lt_singleton_iff_mem_lt [linear_order α] {r : α} {s : finset α}:
-  s <ᶜ {r} ↔ ∀ x ∈ s, x < r :=
-begin
-  sorry,
+    simp only [true_and, eq_self_iff_true, mem_singleton] },
 end
 
 /-- Colex is an extension of the base ordering on α. -/

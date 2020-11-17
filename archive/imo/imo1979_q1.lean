@@ -67,25 +67,33 @@ namespace imo1979q1
   valuation of e + f is positive.
 -/
 
-@[reducible] def double : ℕ ↪ ℕ := ⟨λ n, 2 * n, λ a b, mul_left_cancel' (by norm_num)⟩
+@[reducible] def double : ℕ ↪ ℕ := ⟨λ n, 2 * n, mul_right_injective dec_trivial⟩
 
+@[simp] theorem neg_one_square {α : Type*} [ring α] : (-1 : α)^2 = 1 := by simp
+#lint
+#exit
+theorem neg_one_pow_of_even {α : Type*} [ring α] {n : ℕ} : even n → (-1 : α)^n = 1 :=
+begin
+  rintro ⟨c, rfl⟩,
+  rw [pow_mul]
+  convert one_pow c,
+  simp only [one_pow, neg_square],
+end
+#exit
 lemma lemma1 : b - a = c :=
   calc b - a = ∑ n in range 1320, (1/n - (-1)^(n+1)/n) : by rw sum_sub_distrib
     ... = ∑ n in range 1320, ite (even n) (2/n) 0 : by {
       apply sum_congr rfl,
       rintros x hx,
+      rw neg_one_pow_eq_one_iff_even,
       rw [pow_add, pow_one, mul_neg_one, neg_div, sub_neg_eq_add, ← _root_.add_div],
       split_ifs,
       { rcases h with ⟨n, rfl⟩,
         rw [pow_mul, pow_two],
         simp, norm_num },
-      { rw not_even_iff at h,
-        have h8 := nat.mod_add_div x 2,
-        rw h at h8,
-        suffices : (1 : ℚ) + (-1)^x = 0,
-          rw this, simp,
-        rw ← h8,
-        simp [pow_add, pow_mul], } }
+      { rcases odd_iff_not_even.2 h with ⟨y, rfl⟩,
+        rw [pow_add, pow_one, pow_mul, neg_one_pow_eq_pow_mod_two],
+      } }
     ... = ∑ (x : ℕ) in filter even (range 1320), 2 / x : by rw sum_filter
     ... = ∑ (x : ℕ) in map double (range 660), 2 / x : by {
       apply sum_congr _ (λ _ _, rfl),

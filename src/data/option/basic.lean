@@ -105,6 +105,30 @@ by cases x; simp
 
 @[simp] theorem map_id' : option.map (@id α) = id := map_id
 
+/--
+Composing an `option.map` with another `option.map` is equal to
+a single `option.map` of a composition of functions, fully applied.
+This is the reverse direction of `option.comp_map`.
+-/
+@[simp] lemma map_map (h : β → γ) (g : α → β) (x : option α) :
+  option.map h (option.map g x) = option.map (h ∘ g) x :=
+by { cases x; simp only [map_none', map_some'] }
+
+/--
+A single `option.map` of a composition of functions is equal to
+composing an `option.map` with another `option.map`, fully applied.
+This is the reverse direction of `option.map_map`.
+-/
+lemma comp_map (h : β → γ) (g : α → β) (x : option α) :
+  option.map (h ∘ g) x = option.map h (option.map g x) := (map_map _ _ _).symm
+
+/--
+Composing an `option.map` with another `option.map` is equal to a single `option.map` of composed functions.
+-/
+@[simp] lemma map_comp_map (f : α → β) (g : β → γ) :
+  option.map g ∘ option.map f = option.map (g ∘ f) :=
+by { ext x, rw comp_map }
+
 @[simp] theorem seq_some {α β} {a : α} {f : α → β} : some f <*> some a = some (f a) := rfl
 
 @[simp] theorem some_orelse' (a : α) (x : option α) : (some a).orelse x = some a := rfl

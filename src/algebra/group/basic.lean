@@ -34,29 +34,23 @@ variables {α : Type*}
 Composing two multiplications on the left by `y` then `x`
 is equal to a multiplication on the left by `x * y`.
 -/
-@[simp, to_additive] lemma comp_mul_left [semigroup α] (x y : α) :
+@[simp, to_additive
+"Composing two additions on the left by `y` then `x`
+is equal to a addition on the left by `x + y`."]
+lemma comp_mul_left [semigroup α] (x y : α) :
   ((*) x) ∘ ((*) y) = ((*) (x * y)) :=
 comp_assoc_left _ _ _
-
-/--
-Composing two additions on the left by `y` then `x`
-is equal to a addition on the left by `x + y`.
--/
-add_decl_doc comp_add_left
 
 /--
 Composing two multiplications on the right by `y` and `x`
 is equal to a multiplication on the right by `y * x`.
 -/
-@[simp, to_additive] lemma comp_mul_right [semigroup α] (x y : α) :
+@[simp, to_additive
+"Composing two additions on the right by `y` and `x`
+is equal to a addition on the right by `y + x`."]
+lemma comp_mul_right [semigroup α] (x y : α) :
   (* x) ∘ (* y) = (* (y * x)) :=
 comp_assoc_right _ _ _
-
-/--
-Composing two additions on the right by `y` and `x`
-is equal to a addition on the right by `y + x`.
--/
-add_decl_doc comp_add_right
 
 end semigroup
 

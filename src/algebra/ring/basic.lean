@@ -200,7 +200,10 @@ lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
 
 end add_monoid_hom
 
-/-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too. -/
+/-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too.
+
+This extends from both `monoid_hom` and `monoid_with_zero_hom` in order to put the fields in a
+sensible order, even though `monoid_with_zero_hom` already extends `monoid_hom`. -/
 structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
   extends monoid_hom α β, add_monoid_hom α β, monoid_with_zero_hom α β
 

@@ -184,9 +184,7 @@ section
 
 variables (C) {J : Type w₂} (g : J → I)
 
-/--
-
--/
+/-- A function `J → I` induces a functor `Σ j, C (g j) ⥤ Σ i, C i`. -/
 def map : (Σ (j : J), C (g j)) ⥤ (Σ (i : I), C i) :=
 desc (λ j, incl (g j))
 
@@ -195,17 +193,22 @@ desc (λ j, incl (g j))
   (sigma.map C g).map (sigma_hom.mk f) = sigma_hom.mk f :=
 rfl
 
+/--
+The functor `sigma.map C g` restricted to the subcategory `C j` acts as the inclusion of `g j`.
+-/
 @[simps {rhs_md := semireducible, simp_rhs := tt}]
 def incl_comp_map (j : J) : incl j ⋙ map C g ≅ incl (g j) := iso.refl _
 
 variable (I)
 
+/-- The functor `sigma.map` applied to the identity function is just the identity functor. -/
 @[simps {rhs_md := semireducible, simp_rhs := tt}]
 def map_id : map C (id : I → I) ≅ 𝟭 (Σ i, C i) :=
 nat_iso (λ i, nat_iso.of_components (λ X, iso.refl _) (by tidy))
 
 variables {I} {K : Type w₃}
 
+/-- The functor `sigma.map` applied to a composition is a composition of functors. -/
 @[simps {rhs_md := semireducible, simp_rhs := tt}]
 def map_comp (f : K → J) (g : J → I) : map (C ∘ g) f ⋙ (map C g : _) ≅ map C (g ∘ f) :=
 desc_uniq _ _ $ λ k,

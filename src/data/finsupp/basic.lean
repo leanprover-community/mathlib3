@@ -1599,6 +1599,11 @@ instance [semiring R] [add_comm_monoid M] [semimodule R M] : has_scalar R (α �
 
 variables (α M)
 
+/-!
+Throughout this section, some `semiring` arguments are specified with `{}` instead of `[]`.
+See note [implicit instance arguments].
+-/
+
 @[simp] lemma smul_apply' {_:semiring R} [add_comm_monoid M] [semimodule R M]
   {a : α} {b : R} {v : α →₀ M} : (b • v) a = b • (v a) :=
 rfl

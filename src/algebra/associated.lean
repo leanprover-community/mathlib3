@@ -247,6 +247,13 @@ lemma associated_mul_mul [comm_monoid α] {a₁ a₂ b₁ b₂ : α} :
   a₁ ~ᵤ b₁ → a₂ ~ᵤ b₂ → (a₁ * a₂) ~ᵤ (b₁ * b₂)
 | ⟨c₁, h₁⟩ ⟨c₂, h₂⟩ := ⟨c₁ * c₂, by simp [h₁.symm, h₂.symm, mul_assoc, mul_comm, mul_left_comm]⟩
 
+lemma associated_pow_pow [comm_monoid α] {a b : α} {n : ℕ} (h : a ~ᵤ b) :
+  a ^ n ~ᵤ b ^ n :=
+begin
+  induction n with n ih, { simp [h] },
+  convert associated_mul_mul h ih,
+end
+
 lemma dvd_of_associated [monoid α] {a b : α} : a ~ᵤ b → a ∣ b := λ ⟨u, hu⟩, ⟨u, hu.symm⟩
 
 lemma dvd_dvd_of_associated [monoid α] {a b : α} (h : a ~ᵤ b) : a ∣ b ∧ b ∣ a :=

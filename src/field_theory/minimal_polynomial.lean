@@ -70,7 +70,7 @@ begin
   rw [aeval_def, eval₂_add, eval₂_X, eval₂_C]
 end
 
-/--A minimal polynomial is nonzero.-/
+/-- A minimal polynomial is nonzero. -/
 lemma ne_zero [nontrivial α] : (minimal_polynomial hx) ≠ 0 :=
 ne_zero_of_monic (monic hx)
 

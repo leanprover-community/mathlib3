@@ -150,13 +150,10 @@ X ^ pb.dim -
 lemma nat_degree_minpoly_gen (pb : power_basis A S) :
   nat_degree (minpoly_gen pb) = pb.dim :=
 begin
-  rw [minpoly_gen, sub_eq_add_neg],
+  unfold minpoly_gen,
   apply nat_degree_eq_of_degree_eq_some,
-  -- TODO: find a good lemma to encapsulate the next three lines
-  rw [add_comm, ← @degree_X_pow A _ _ pb.dim],
-  apply degree_add_eq_of_degree_lt,
-  rw [degree_neg, @degree_X_pow A _ _ pb.dim],
-  exact degree_sum_fin_lt _
+  rw degree_sub_eq_left_of_degree_lt; rw degree_X_pow,
+  apply degree_sum_fin_lt
 end
 
 lemma minpoly_gen_monic (pb : power_basis A S) : monic (minpoly_gen pb) :=
@@ -219,16 +216,6 @@ end minpoly
 section equiv
 
 variables [algebra A S] {S' : Type*} [comm_ring S'] [algebra A S']
-
-lemma eval₂_mod_by_monic_eq_self_of_root {f : R →+* S}
-  {p q : polynomial R} (hq : q.monic) {x : S} (hx : q.eval₂ f x = 0) :
-  (p %ₘ q).eval₂ f x = p.eval₂ f x :=
-by rw [mod_by_monic_eq_sub_mul_div p hq, eval₂_sub, eval₂_mul, hx, zero_mul, sub_zero]
-
-lemma aeval_mod_by_monic_eq_self_of_root
-  {p q : polynomial R} (hq : q.monic) {x : S} (hx : aeval x q = 0) :
-  aeval x (p %ₘ q) = aeval x p :=
-eval₂_mod_by_monic_eq_self_of_root hq hx
 
 lemma nat_degree_lt_nat_degree {p q : polynomial R} (hp : p ≠ 0) (hpq : p.degree < q.degree) :
   p.nat_degree < q.nat_degree :=
@@ -302,7 +289,7 @@ pb.constr_pow_gen hy
 pb.constr_pow_aeval hy f
 
 /-- `pb.equiv pb' h` is an equivalence of algebras with the same power basis. -/
-noncomputable def equiv [nontrivial S] [nontrivial S'] [algebra A S']
+noncomputable def equiv [nontrivial S] [nontrivial S']
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minimal_polynomial pb.is_integral_gen = minimal_polynomial pb'.is_integral_gen) :
   S ≃ₐ[A] S' :=
@@ -313,7 +300,7 @@ alg_equiv.of_alg_hom
   (by { ext x, obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x, simp })
 
 @[simp]
-lemma equiv_aeval [nontrivial S] [nontrivial S'] [algebra A S']
+lemma equiv_aeval [nontrivial S] [nontrivial S']
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minimal_polynomial pb.is_integral_gen = minimal_polynomial pb'.is_integral_gen)
   (f : polynomial A) :
@@ -321,7 +308,7 @@ lemma equiv_aeval [nontrivial S] [nontrivial S'] [algebra A S']
 pb.lift_aeval _ (h.symm ▸ minimal_polynomial.aeval _) _
 
 @[simp]
-lemma equiv_gen [nontrivial S] [nontrivial S'] [algebra A S']
+lemma equiv_gen [nontrivial S] [nontrivial S']
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minimal_polynomial pb.is_integral_gen = minimal_polynomial pb'.is_integral_gen) :
   pb.equiv pb' h pb.gen = pb'.gen :=
@@ -330,7 +317,7 @@ pb.lift_gen _ (h.symm ▸ minimal_polynomial.aeval _)
 local attribute [irreducible] power_basis.lift
 
 @[simp]
-lemma equiv_symm [nontrivial S] [nontrivial S'] [algebra A S']
+lemma equiv_symm [nontrivial S] [nontrivial S']
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minimal_polynomial pb.is_integral_gen = minimal_polynomial pb'.is_integral_gen) :
   (pb.equiv pb' h).symm = pb'.equiv pb h.symm :=

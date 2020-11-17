@@ -254,33 +254,28 @@ adjoin_adjoin_left _ _ _
 lemma adjoin_simple_comm (β : E) : ↑F⟮α⟯⟮β⟯ = (↑F⟮β⟯⟮α⟯ : intermediate_field F E) :=
 adjoin_adjoin_comm _ _ _
 
+-- TODO: develop the API for `subalgebra.is_field_of_algebraic` so it can be used here
 lemma adjoin_simple_to_subalgebra_of_integral (hα : is_integral F α) :
   (F⟮α⟯).to_subalgebra = algebra.adjoin F {α} :=
 begin
   apply adjoin_eq_algebra_adjoin,
   intros x hx,
   by_cases x = 0,
-  { rw h,
-    rw inv_zero,
-    exact subalgebra.zero_mem (algebra.adjoin F {α}) },
+  { rw [h, inv_zero], exact subalgebra.zero_mem (algebra.adjoin F {α}) },
+
   let ϕ := alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial F α hα,
   let inv := (@adjoin_root.field F _ _ (minimal_polynomial.irreducible hα)).inv,
-  suffices key : ↑(ϕ.symm (inv (ϕ (⟨x, hx⟩)))) = x⁻¹,
-  { rw ←key,
-    exact subtype.mem (ϕ.symm (inv (ϕ ⟨x, hx⟩))) },
   suffices : ϕ ⟨x, hx⟩ * inv (ϕ ⟨x, hx⟩) = 1,
-  { apply eq_inv_of_mul_right_eq_one,
+  { convert subtype.mem (ϕ.symm (inv (ϕ ⟨x, hx⟩))),
+    refine (eq_inv_of_mul_right_eq_one _).symm,
     apply_fun ϕ.symm at this,
     rw [alg_equiv.map_one, alg_equiv.map_mul, alg_equiv.symm_apply_apply] at this,
     rw [←subsemiring.coe_one, ←this, subsemiring.coe_mul, subtype.coe_mk] },
-  rw field.mul_inv_cancel,
-  intro key,
-  rw ← alg_equiv.map_zero ϕ at key,
-  replace key := ϕ.injective key,
-  apply h,
+
+  rw field.mul_inv_cancel (mt (λ key, _) h),
+  rw ← ϕ.map_zero at key,
   change ↑(⟨x, hx⟩ : algebra.adjoin F {α}) = _,
-  rw key,
-  refl,
+  rw [ϕ.injective key, submodule.coe_zero]
 end
 
 end adjoin_simple
@@ -474,6 +469,18 @@ begin
   refine adjoin_root.lift_root,
   { exact minimal_polynomial h },
   { exact aeval_gen_minimal_polynomial F h }
+end
+
+lemma card_alg_hom_adjoin_integral (h : is_integral F α) (h_sep : (minimal_polynomial h).separable)
+  (h_splits : (minimal_polynomial h).splits (algebra_map F K)) :
+  @fintype.card (F⟮α⟯ →ₐ[F] K) (fintype_of_alg_hom_adjoin_integral F h) =
+    (minimal_polynomial h).nat_degree :=
+begin
+  let s := ((minimal_polynomial h).map (algebra_map F K)).roots.to_finset,
+  have H := λ x, multiset.mem_to_finset,
+  rw [fintype.card_congr (alg_hom_adjoin_integral_equiv F h), fintype.card_of_subtype s H,
+      polynomial.nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
+  exact polynomial.nodup_roots ((polynomial.separable_map (algebra_map F K)).mpr h_sep),
 end
 
 end adjoin_integral_element

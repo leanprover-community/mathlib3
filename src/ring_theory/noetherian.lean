@@ -528,7 +528,7 @@ variables {R : Type*} [comm_ring R] [is_noetherian_ring R]
 lemma exists_prime_spectrum_prod_le (I : ideal R) :
   ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ I :=
 begin
-  refine proposition_noetherian_induction (λ (M : ideal R) hgt, _) I,
+  refine is_noetherian.induction (λ (M : ideal R) hgt, _) I,
   by_cases h_prM : M.is_prime,
   { use {⟨M, h_prM⟩},
     rw [multiset.map_singleton, multiset.singleton_eq_singleton, multiset.prod_singleton,
@@ -570,7 +570,7 @@ lemma exists_prime_spectrum_prod_le_and_ne_bot_of_domain (h_fA : ¬ is_field A) 
     multiset.prod (Z.map (coe : subtype _ → ideal A)) ≠ ⊥ :=
 begin
   revert h_nzI,
-  refine proposition_noetherian_induction (λ (M : ideal A) hgt, _) I,
+  refine is_noetherian.induction (λ (M : ideal A) hgt, _) I,
   intro h_nzM,
   have hA_nont : nontrivial A,
   apply is_integral_domain.to_nontrivial (integral_domain.to_is_integral_domain A),

@@ -123,7 +123,8 @@ lemma comp_map (h : β → γ) (g : α → β) (x : option α) :
   option.map (h ∘ g) x = option.map h (option.map g x) := (map_map _ _ _).symm
 
 /--
-Composing an `option.map` with another `option.map` is equal to a single `option.map` of composed functions.
+Composing an `option.map` with another `option.map` is equal to
+a single `option.map` of composed functions.
 -/
 @[simp] lemma map_comp_map (f : α → β) (g : β → γ) :
   option.map g ∘ option.map f = option.map (g ∘ f) :=

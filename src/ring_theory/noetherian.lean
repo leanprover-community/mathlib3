@@ -566,8 +566,8 @@ variables {A : Type*} [integral_domain A] [is_noetherian_ring A]
 -/
 
 lemma exists_prime_spectrum_prod_le_and_ne_bot_of_domain (h_fA : ¬ is_field A) {I : ideal A} (h_nzI: I ≠ ⊥) :
-∃ (Z : multiset (prime_spectrum A)), multiset.prod (Z.map (coe : subtype _ → ideal A)) ≤ I ∧
- multiset.prod (Z.map (coe : subtype _ → ideal A)) ≠ ⊥ :=
+  ∃ (Z : multiset (prime_spectrum A)), multiset.prod (Z.map (coe : subtype _ → ideal A)) ≤ I ∧
+    multiset.prod (Z.map (coe : subtype _ → ideal A)) ≠ ⊥ :=
 begin
   revert h_nzI,
   refine proposition_noetherian_induction (λ (M : ideal A) hgt, _) I,

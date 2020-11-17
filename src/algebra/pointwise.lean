@@ -5,6 +5,7 @@ Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module.basic
 import data.set.finite
+import group_theory.submonoid.basic
 
 /-!
 # Pointwise addition, multiplication, and scalar multiplication of sets.

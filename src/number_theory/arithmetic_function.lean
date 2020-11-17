@@ -565,7 +565,7 @@ begin
   apply s.induction_on, { intro h, refl },
   intros a t h h0,
   rw [multiset.prod_cons, mul_ne_zero_iff] at h0,
-  rw [multiset.prod_cons, card_factors_mul h0.1 h0.2, multiset.map_cons, multiset.sum_cons, h h0.2]
+  simp [h0, card_factors_mul, h],
 end
 
 /-- `ω n` is the number of distinct prime factors of `n`. -/
@@ -580,9 +580,9 @@ lemma card_distinct_factors_zero : ω 0 = 0 := rfl
 lemma card_distinct_factors_apply {n : ℕ} :
   ω n = (unique_factorization_monoid.factors n).to_finset.card :=
 begin
-  rw [nat.factors_eq, finset.card, multiset.to_finset_val,
-  multiset.coe_erase_dup, multiset.coe_card],
-  refl
+  rw [nat.factors_eq, finset.card, multiset.to_finset_val],
+  simp,
+  refl,
 end
 
 lemma card_distinct_factors_eq_card_factors_of_squarefree {n : ℕ} (h : squarefree n) :

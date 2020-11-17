@@ -43,7 +43,7 @@ is proved in `ring_theory.polynomial`.
 ## References
 
 * [M. F. Atiyah and I. G. Macdonald, *Introduction to commutative algebra*][atiyah-macdonald]
-* [P. Samuel, *Théorie algébrique des nombres*][samuel]
+* [samuel]
 
 ## Tags
 

@@ -623,17 +623,7 @@ begin
     change measurable ((λ x : ℝ, ite (x = 0) (1:ℝ) (0:ℝ))
       ∘ (λ a : {p : ℝ × ℝ | p.fst = 0}, (a:ℝ×ℝ).snd)),
     refine measurable.comp _ (measurable_snd.comp measurable_subtype_coe),
-    { refine measurable_of_measurable_on_compl_singleton 0 _,
-      have h_const : set.restrict (λ (x : ℝ), ite (x = 0) (1:ℝ) (0:ℝ)) {x : ℝ | x ≠ 0}
-        = λ x : {x : ℝ | x ≠ 0}, (0:ℝ),
-      { ext1 x,
-        rw set.restrict_eq,
-        change ite (x.val = 0) (1:ℝ) (0:ℝ) = (0:ℝ),
-        split_ifs,
-        { exfalso, exact x.prop h, },
-        refl, },
-      rw h_const,
-      exact measurable_const, }, },
+    exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const, },
   { refine continuous.measurable _,
     rw continuous_iff_continuous_at,
     intro x,
@@ -1442,3 +1432,106 @@ begin
 end
 
 end ennreal
+
+section measurability_ennreal
+
+lemma ennreal.measurable_rpow : measurable (λ p : ennreal × ℝ, p.1 ^ p.2) :=
+begin
+  -- We have three cases:
+  --   p.fst = ⊤ ,
+  --   p.fst = 0 ,
+  --   p.fst ≠ ⊤ ∧ p.fst ≠ 0 .
+  -- The first two cases reduce to measurablility of piecewise functions, the third one uses
+  -- the nnreal case.
+  have h_meas : is_measurable {p : ennreal × ℝ | p.1 = ⊤},
+  from (is_closed_singleton.preimage continuous_fst).is_measurable,
+  refine measurable_of_measurable_union_cover {p : ennreal × ℝ | p.1 = ⊤}
+    {p : ennreal × ℝ | p.1 ≠ ⊤} h_meas h_meas.compl _ _ _,
+  { intro x, simp [em (x.fst = ⊤)], },
+  { -- case p.fst = ⊤
+    have h_eq_ite : (λ a : {p : ennreal × ℝ | p.fst = ⊤}, (a:ennreal×ℝ).fst ^ (a:ennreal×ℝ).snd)
+      = λ a : {p : ennreal × ℝ | p.fst = ⊤},
+        ite (0 < (a:ennreal×ℝ).snd) ⊤ (ite ((a:ennreal×ℝ).snd = 0) 1 0),
+    { ext1 a,
+      have h_fst_zero : (a:ennreal×ℝ).fst = ⊤, from a.prop,
+      rw [h_fst_zero, ennreal.top_rpow_def], },
+    rw h_eq_ite,
+    change measurable ((λ x : ℝ, ite (0 < x) ⊤ (ite (x = 0) (1:ennreal) 0))
+      ∘ (λ a : {p : ennreal × ℝ | p.fst = ⊤}, (a:ennreal×ℝ).snd)),
+    refine measurable.comp _ (measurable_snd.comp measurable_subtype_coe),
+    refine measurable.ite is_measurable_Ioi measurable_const _,
+    exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const, },
+  have h_meas : is_measurable {a : {p : ennreal × ℝ | p.1 ≠ ⊤} | a.val.fst = 0},
+  { change is_measurable ((prod.fst ∘ (λ a : {p : ennreal × ℝ | p.fst ≠ ⊤}, a.val)) ⁻¹' {0}),
+    suffices hm : measurable (prod.fst ∘ (λ a : {p : ennreal × ℝ | p.fst ≠ ⊤}, a.val)),
+    { exact hm (is_measurable_singleton 0), },
+    exact measurable_fst.comp measurable_subtype_coe, },
+  refine measurable_of_measurable_union_cover {a : {p : ennreal × ℝ | p.1 ≠ ⊤} | a.val.fst = 0}
+    {a : {p : ennreal × ℝ | p.1 ≠ ⊤} | a.val.fst ≠ 0} h_meas h_meas.compl _ _ _,
+  {intro x,
+    simp only [forall_prop_of_true, set.mem_univ, ne.def, set.mem_union_eq, set.mem_set_of_eq,
+      subtype.val_eq_coe],
+    exact em _, },
+  { -- case p.fst = 0
+    change measurable (λ a : {a : {p : ennreal × ℝ | p.fst ≠ ⊤} | a.val.fst = 0},
+      a.val.val.fst ^ a.val.val.snd),
+    have h_eq : (λ a : {b : {p : ennreal × ℝ | p.fst ≠ ⊤} | b.val.fst = 0},
+    a.val.val.fst ^ a.val.val.snd) = (λ a : {b : {p : ennreal × ℝ | p.fst ≠ ⊤} | b.val.fst = 0},
+    ite (0 < a.val.val.snd) 0 (ite (a.val.val.snd = 0) 1 ⊤)),
+    { ext1 a,
+      have h0 : a.val.val.fst = (0 : ennreal), from a.prop,
+      rw h0,
+      rw ennreal.zero_rpow_def, },
+    rw h_eq,
+    have hm : measurable (prod.snd
+        ∘ (λ (a : {b : {p : ennreal × ℝ | p.fst ≠ ⊤} | b.val.fst = 0}), a.val.val)),
+    from measurable_snd.comp (measurable_subtype_coe.comp measurable_subtype_coe),
+    refine measurable.ite (hm is_measurable_Ioi) measurable_const _,
+    exact measurable.ite (hm (is_measurable_singleton 0)) measurable_const measurable_const, },
+  { -- In that case, we can reduce to nnreal.
+    change measurable (λ a : {a : {p : ennreal × ℝ | p.fst ≠ ⊤} | a.val.fst ≠ 0},
+      a.val.val.fst ^ a.val.val.snd),
+    have h_coe_to_nnreal : (λ a : {a : {p : ennreal × ℝ | p.fst ≠ ⊤} | a.val.fst ≠ 0},
+      a.val.val.fst ^ a.val.val.snd)
+      = λ a : {a : {p : ennreal × ℝ | p.fst ≠ ⊤} | a.val.fst ≠ 0},
+      ↑(a.val.val.fst.to_nnreal ^ a.val.val.snd),
+    { ext1 a,
+      have h_ne_top : a.val.val.fst ≠ ⊤, from a.val.prop,
+      nth_rewrite 0 ←ennreal.coe_to_nnreal h_ne_top,
+      rw ennreal.coe_rpow_of_ne_zero,
+      rw [ne.def, ennreal.to_nnreal_eq_zero_iff],
+      push_neg,
+      exact ⟨a.prop, a.val.prop⟩, },
+    rw h_coe_to_nnreal,
+    refine measurable.ennreal_coe _,
+    change measurable ((λ p : nnreal × ℝ, p.fst ^ p.snd)
+      ∘ (λ p : ennreal × ℝ, (p.fst.to_nnreal, p.snd))
+      ∘ (λ (a : ↥{a : ↥{p : ennreal × ℝ | p.fst ≠ ⊤} | a.val.fst ≠ 0}),
+        a.val.val)),
+    refine nnreal.measurable_rpow.comp
+      (measurable.comp _ (measurable_subtype_coe.comp measurable_subtype_coe)),
+    exact measurable.prod measurable_fst.to_nnreal measurable_snd, },
+end
+
+lemma measurable.ennreal_rpow {α} [measurable_space α] {f : α → ennreal} (hf : measurable f)
+  {g : α → ℝ} (hg : measurable g) :
+  measurable (λ a : α, (f a) ^ (g a)) :=
+begin
+  change measurable ((λ p : ennreal × ℝ, p.1 ^ p.2) ∘ (λ a, (f a, g a))),
+  exact ennreal.measurable_rpow.comp (measurable.prod hf hg),
+end
+
+lemma ennreal.measurable_rpow_const {y : ℝ} : measurable (λ a : ennreal, a ^ y) :=
+begin
+  change measurable ((λ p : ennreal × ℝ, p.1 ^ p.2) ∘ (λ a, (a, y))),
+  refine ennreal.measurable_rpow.comp (measurable.prod measurable_id _),
+  dsimp only,
+  exact measurable_const,
+end
+
+lemma measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ennreal} (hf : measurable f)
+  {y : ℝ} :
+  measurable (λ a : α, (f a) ^ y) :=
+hf.ennreal_rpow measurable_const
+
+end measurability_ennreal

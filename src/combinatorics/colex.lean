@@ -6,6 +6,7 @@ Authors: Bhavik Mehta, Alena Gusakov
 import data.finset
 import data.fintype.basic
 import algebra.geom_sum
+import tactic
 
 /-!
 # Colex
@@ -217,7 +218,7 @@ instance [linear_order α] : is_strict_total_order (finset.colex α) (<) := {}
 
 /-- If {r} is less than or equal to s in the colexicographical sense,
   then s contains an element greater than or equal to r. -/
-lemma mem_ge_of_singleton_le [linear_order α] {r : α} {s : finset α}:
+lemma mem_le_of_singleton_le [linear_order α] {r : α} {s : finset α}:
   ({r} : finset α) ≤ᶜ s → ∃ x ∈ s, r ≤ x :=
 begin
   intro h,
@@ -240,6 +241,58 @@ begin
   { rw ← eq,
     use r,
     simp only [true_and, eq_self_iff_true, mem_singleton] },
+end
+
+-- s <ᶜ {r} iff all elements of s are less than r.
+lemma lt_singleton_iff_mem_lt [linear_order α] {r : α} {s : finset α}:
+  s <ᶜ {r} ↔ ∀ x ∈ s, x < r :=
+begin
+  split,
+  { intros h x hx,
+    rw colex.lt_def at h,
+    rcases h with ⟨k, hk, hs, hr⟩,
+    simp only [mem_singleton] at hr,
+    contrapose! hk,
+    simp only [mem_singleton],
+    use x,
+    split,
+    { rw ← hr at hk,
+      have hne : k ≠ x,
+      { by_contra,
+        apply hs,
+        push_neg at h,
+        rw h,
+        exact hx },
+      exact (ne.le_iff_lt hne).mp hk },
+    by_contra,
+    cases h with hl hr2,
+    specialize hl hx,
+    rw ← hl at hr,
+    apply hs,
+    rw hr,
+    exact hx },
+  { intro h,
+    rw colex.lt_def,
+    use r,
+    refine ⟨_, _, _⟩,
+    { intros x hx,
+      split,
+      { contrapose,
+        intro hxm,
+        by_contra h2,
+        specialize h x h2,
+        apply lt_asymm h hx },
+      { contrapose,
+        intro h2,
+        simp only [mem_singleton],
+        rw ← ne,
+        symmetry,
+        exact ne_of_lt hx } },
+    { by_contra h2,
+      specialize h r h2,
+      apply lt_irrefl r,
+      exact h },
+    { rw mem_singleton } },
 end
 
 /-- Colex is an extension of the base ordering on α. -/

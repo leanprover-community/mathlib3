@@ -52,6 +52,7 @@ end
 namespace is_R_or_C
 variables {K : Type*} [is_R_or_C K]
 
+/-- Shorthand for `algebra_map ℝ K` -/
 noncomputable abbreviation of_real (r : ℝ) := algebra_map ℝ K r
 
 local notation `𝓚` := @is_R_or_C.of_real K _
@@ -200,8 +201,8 @@ def norm_sq (z : K) : ℝ := re z * re z + im z * im z
 lemma norm_sq_eq_def {z : K} : ∥z∥^2 = (re z) * (re z) + (im z) * (im z) := norm_sq_eq_def_ax z
 lemma norm_sq_eq_def' (z : K) : norm_sq z = ∥z∥^2 := by rw [norm_sq_eq_def, norm_sq]
 
-@[simp] lemma norm_sq_of_real (r : ℝ) : ∥𝓚 r∥^2 = r * r :=
-by simp [norm_sq_eq_def, -norm_algebra_map_eq]
+lemma norm_sq_of_real (r : ℝ) : ∥𝓚 r∥^2 = r * r :=
+by simp [pow_two, real.norm_eq_abs, abs_mul_abs_self]
 
 @[simp] lemma norm_sq_zero : norm_sq (0 : K) = 0 := by simp [norm_sq, pow_two]
 @[simp] lemma norm_sq_one : norm_sq (1 : K) = 1 := by simp [norm_sq]

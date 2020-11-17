@@ -84,6 +84,8 @@ def incl (i : I) : C i ⥤ Σ i, C i :=
 { obj := λ X, ⟨i, X⟩,
   map := λ X Y, sigma_hom.mk }
 
+@[simp] lemma incl_obj {i : I} (X : C i) : (incl i).obj X = ⟨i, X⟩ := rfl
+
 instance (i : I) : full (incl i : C i ⥤ Σ i, C i) :=
 { preimage := λ X Y ⟨f⟩, f,
   witness' := λ X Y ⟨f⟩, rfl }.
@@ -93,7 +95,20 @@ instance (i : I) : faithful (incl i : C i ⥤ Σ i, C i) := {}.
 section
 variables {D : Type u₂} [category.{v₂} D] (F : Π i, C i ⥤ D)
 
-/-- (Implementation). An auxiliary definition -/
+/--
+To build a natural transformation over the sigma category, it suffices to specify it restricted to
+each subcategory.
+-/
+@[simps]
+def nat_trans {F G : (Σ i, C i) ⥤ D} (h : Π (i : I), incl i ⋙ F ⟶ incl i ⋙ G) : F ⟶ G :=
+{ app := by { rintro ⟨j, X⟩, apply (h j).app X },
+  naturality' :=
+  begin
+    rintro ⟨j, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩,
+    apply (h j).naturality,
+  end }
+
+/-- (Implementation). An auxiliary definition to build the functor `desc`. -/
 def desc_map : ∀ (X Y : Σ i, C i), (X ⟶ Y) → ((F X.1).obj X.2 ⟶ (F Y.1).obj Y.2)
 | _ _ (sigma_hom.mk g) := (F _).map g
 
@@ -136,48 +151,62 @@ lemma incl_desc_inv_app (i : I) (X : C i) :
   (incl_desc F i).inv.app X = 𝟙 ((F i).obj X) :=
 rfl
 
+/--
+If `q` when restricted to each subcategory `C i` agrees with `F i`, then `q` is isomorphic to
+`desc F`.
+-/
 def desc_uniq (q : (Σ i, C i) ⥤ D) (h : Π i, incl i ⋙ q ≅ F i) : q ≅ desc F :=
 nat_iso.of_components (λ ⟨i, X⟩, (h i).app X) $
   by { rintro ⟨i, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩, apply (h i).hom.naturality f }
 
-def desc_hom_ext (q₁ q₂ : (Σ i, C i) ⥤ D) (h : Π i, incl i ⋙ q₁ ≅ incl i ⋙ q₂) :
-  q₁ ≅ q₂ :=
-desc_uniq (λ i, incl i ⋙ q₂) q₁ h ≪≫ (desc_uniq _ _ (λ i, iso.refl _)).symm
+@[simp]
+lemma desc_uniq_hom_app (q : (Σ i, C i) ⥤ D) (h : Π i, incl i ⋙ q ≅ F i) (i : I) (X : C i) :
+  (desc_uniq F q h).hom.app ⟨i, X⟩ = (h i).hom.app X :=
+rfl
 
+@[simp]
+lemma desc_uniq_inv_app (q : (Σ i, C i) ⥤ D) (h : Π i, incl i ⋙ q ≅ F i) (i : I) (X : C i) :
+  (desc_uniq F q h).inv.app ⟨i, X⟩ = (h i).inv.app X :=
+rfl
+
+/--
+If `q₁` and `q₂` when restricted to each subcategory `C i` agree, then `q₁` and `q₂` are isomorphic.
+-/
 @[simps]
-def joining (F G : (Σ i, C i) ⥤ D) (h : Π (i : I), incl i ⋙ F ⟶ incl i ⋙ G): F ⟶ G :=
-{ app :=
-  begin
-    rintro ⟨j, X⟩,
-    apply (h j).app X,
-  end,
-  naturality' :=
-  begin
-    rintro ⟨j, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩,
-    apply (h j).naturality,
-  end }
-
+def nat_iso {q₁ q₂ : (Σ i, C i) ⥤ D} (h : Π i, incl i ⋙ q₁ ≅ incl i ⋙ q₂) :
+  q₁ ≅ q₂ :=
+{ hom := nat_trans (λ i, (h i).hom),
+  inv := nat_trans (λ i, (h i).inv) }
 
 end
 
 section
 
-variables (C) {J : Type w₂}
+variables (C) {J : Type w₂} (g : J → I)
 
-@[simps {rhs_md := semireducible}]
-def map (h : J → I) : (Σ (j : J), C (h j)) ⥤ (Σ (i : I), C i) :=
-desc (λ j, incl (h j))
+/--
 
-def incl_comp_map (h : J → I) (j : J) : incl j ⋙ map C h ≅ incl (h j) :=
-incl_desc _ _
+-/
+def map : (Σ (j : J), C (g j)) ⥤ (Σ (i : I), C i) :=
+desc (λ j, incl (g j))
+
+@[simp] lemma map_obj (j : J) (X : C (g j)) : (sigma.map C g).obj ⟨j, X⟩ = ⟨g j, X⟩ := rfl
+@[simp] lemma map_map {j : J} {X Y : C (g j)} (f : X ⟶ Y) :
+  (sigma.map C g).map (sigma_hom.mk f) = sigma_hom.mk f :=
+rfl
+
+@[simps {rhs_md := semireducible, simp_rhs := tt}]
+def incl_comp_map (j : J) : incl j ⋙ map C g ≅ incl (g j) := iso.refl _
 
 variable (I)
 
+@[simps {rhs_md := semireducible, simp_rhs := tt}]
 def map_id : map C (id : I → I) ≅ 𝟭 (Σ i, C i) :=
-desc_hom_ext _ _ (λ i, nat_iso.of_components (λ X, iso.refl _) (by tidy))
+nat_iso (λ i, nat_iso.of_components (λ X, iso.refl _) (by tidy))
 
 variables {I} {K : Type w₃}
 
+@[simps {rhs_md := semireducible, simp_rhs := tt}]
 def map_comp (f : K → J) (g : J → I) : map (C ∘ g) f ⋙ (map C g : _) ≅ map C (g ∘ f) :=
 desc_uniq _ _ $ λ k,
   (iso_whisker_right (incl_comp_map (C ∘ g) f k) (map C g : _) : _) ≪≫ incl_comp_map _ _ _

@@ -111,7 +111,7 @@ infixr ` →* `:25 := monoid_hom
 -- completely uninteresting lemmas about coercion to function, that all homs need
 section coes
 
--- Allow downcasting to be automatic
+/-! Bundled morphisms can be down-cast to weaker bundlings -/
 @[to_additive]
 instance monoid_hom.has_coe_to_one_hom {mM : monoid M} {mN : monoid N} :
   has_coe (M →* N) (one_hom M N) := ⟨monoid_hom.to_one_hom⟩
@@ -125,7 +125,9 @@ instance monoid_with_zero_hom.has_coe_to_zero_hom
   {mM : monoid_with_zero M} {mN : monoid_with_zero N} :
   has_coe (monoid_with_zero_hom M N) (zero_hom M N) := ⟨monoid_with_zero_hom.to_zero_hom⟩
 
--- But simplify to explicit downcasting
+/-! The simp-normal form of morphism coercion is `f.to_..._hom`. This choice is primarily because
+this is the way things were before the above coercions were introduced. Bundled morphisms defined
+elsewhere in Mathlib may choose `↑f` as their simp-normal form instead. -/
 @[simp, to_additive]
 lemma monoid_hom.coe_eq_to_one_hom {mM : monoid M} {mN : monoid N} (f : M →* N) :
   (f : one_hom M N) = f.to_one_hom := rfl

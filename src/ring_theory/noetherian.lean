@@ -605,5 +605,4 @@ begin
   { rintro (hx | hy); contradiction },
 end
 
-
 end primes

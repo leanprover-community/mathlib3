@@ -1481,8 +1481,7 @@ begin
     ite (0 < a.val.val.snd) 0 (ite (a.val.val.snd = 0) 1 ⊤)),
     { ext1 a,
       have h0 : a.val.val.fst = (0 : ennreal), from a.prop,
-      rw h0,
-      rw ennreal.zero_rpow_def, },
+      rw [h0, ennreal.zero_rpow_def], },
     rw h_eq,
     have hm : measurable (prod.snd
         ∘ (λ (a : {b : {p : ennreal × ℝ | p.fst ≠ ⊤} | b.val.fst = 0}), a.val.val)),

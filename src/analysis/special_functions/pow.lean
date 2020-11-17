@@ -1459,8 +1459,7 @@ begin
         have h_zero : a.val.fst = 0, from a.prop,
         rw [h_zero, ennreal.coe_zero, ennreal.zero_rpow_def], },
       rw h_eq,
-      change measurable ((λ x : ℝ,
-        ite (0 < x) 0 (ite (x = 0) (1:ennreal) ⊤))
+      change measurable ((λ x : ℝ, ite (0 < x) 0 (ite (x = 0) (1:ennreal) ⊤))
         ∘ (λ a : nnreal × ℝ, a.snd)
         ∘ (λ a : {p : ℝ≥0 × ℝ | p.fst = 0}, a.val)),
       refine measurable.comp (measurable.ite is_measurable_Ioi measurable_const _) _,

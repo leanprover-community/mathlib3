@@ -11,13 +11,12 @@ import tactic.omega
 /-!
 # Regular Expression
 
-This file contains the formal definition for regular expressions on finite alphabets with decidable
-equality and basic lemmas.
+This file contains the formal definition for regular expressions on basic lemmas.
 -/
 
 universe u
 
-variables {α : Type u} [decidable_eq α] [fintype α]
+variables {α : Type u} [dec : decidable_eq α]
 
 /-- This is the definition of regular expressions
   `RZero` matches nothing
@@ -36,6 +35,7 @@ inductive regex (α : Type u) : Type (u+1)
 
 namespace regex
 
+-- omit dec
 /-- `match_null M` is true if and only if `M` matches the empty string -/
 def match_null : regex α → bool
 | RZero := ff
@@ -44,6 +44,8 @@ def match_null : regex α → bool
 | (RStar M) := tt
 | (RPlus M N) := M.match_null || N.match_null
 | (RComp M N) := M.match_null && N.match_null
+
+include dec
 
 /-- `M.feed a` matches `x` if `M` matches `"a" ++ x` -/
 def feed : regex α → α → regex α

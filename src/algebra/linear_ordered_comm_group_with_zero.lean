@@ -125,23 +125,4 @@ calc f (x - y) = f (-(y - x)) : by rw show x - y = -(y-x), by abel
 lemma inv_le_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 @inv_le_inv_iff _ _ (units.mk0 a ha) (units.mk0 b hb)
 
-namespace monoid_hom
-
-variables {R : Type*} [ring R] (f : R →* α)
-
-theorem map_neg_one : f (-1) = 1 :=
-begin
-  apply eq_one_of_pow_eq_one (nat.succ_ne_zero 1) (_ : _ ^ 2 = _),
-  rw [pow_two, ← f.map_mul, neg_one_mul, neg_neg, f.map_one],
-end
-
-@[simp] lemma map_neg (x : R) : f (-x) = f x :=
-calc f (-x) = f (-1 * x)   : by rw [neg_one_mul]
-        ... = f (-1) * f x : map_mul _ _ _
-        ... = f x          : by rw [f.map_neg_one, one_mul]
-
-lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) :=
-calc f (x - y) = f (-(y - x)) : by rw show x - y = -(y-x), by abel
-           ... = _ : map_neg _ _
-
 end monoid_hom

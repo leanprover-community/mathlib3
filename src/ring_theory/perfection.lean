@@ -13,9 +13,9 @@ import ring_theory.subring
 import ring_theory.valuation.integers
 
 /-!
-# Ring Perfectization and Tilt
+# Ring Perfection and Tilt
 
-In this file we define the perfectization of a ring of characteristic p, and the tilt of a field
+In this file we define the perfection of a ring of characteristic p, and the tilt of a field
 given a valuation to `ℝ≥0`.
 
 ## TODO
@@ -28,23 +28,23 @@ universes u v w
 
 open_locale nnreal
 
-/-- The perfectization of a monoid `M`, defined to be the projective limit of `M`
+/-- The perfection of a monoid `M`, defined to be the projective limit of `M`
 using the `p`-th power maps `M → M` indexed by the natural numbers, implemented as
 `{ f : ℕ → M | ∀ n, f (n + 1) ^ p = f n }`. -/
-def perfectization_m (M : Type u) [comm_monoid M] (p : ℕ) : submonoid (ℕ → M) :=
+def perfection_m (M : Type u) [comm_monoid M] (p : ℕ) : submonoid (ℕ → M) :=
 { carrier := { f | ∀ n, f (n + 1) ^ p = f n },
   one_mem' := λ n, one_pow _,
   mul_mem' := λ f g hf hg n, (mul_pow _ _ _).trans $ congr_arg2 _ (hf n) (hg n) }
 
-/-- The perfectization of a ring `R` with characteristic `p`,
+/-- The perfection of a ring `R` with characteristic `p`,
 defined to be the projective limit of `R` using the Frobenius maps `R → R`
 indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 1) ^ p = f n }`. -/
-def perfectization (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime] [char_p R p] :
+def perfection (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime] [char_p R p] :
   subring (ℕ → R) :=
 { zero_mem' := λ n, zero_pow $ hp.pos,
   add_mem' := λ f g hf hg n, (frobenius_add R p _ _).trans $ congr_arg2 _ (hf n) (hg n),
   neg_mem' := λ f hf n, (frobenius_neg R p _).trans $ congr_arg _ (hf n),
-  .. perfectization_m R p }
+  .. perfection_m R p }
 
 namespace ring_char
 
@@ -103,13 +103,13 @@ hp2 $ is_unit_iff_dvd_one.2 $ ideal.mem_span_singleton.1 $ ideal.quotient.eq_zer
 
 end char_p
 
-namespace perfectization
+namespace perfection
 
 variables (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime] [char_p R p]
 include hp
 
-/-- The `n`-th coefficient of an element of the perfectization. -/
-def coeff (n : ℕ) : perfectization R p →+* R :=
+/-- The `n`-th coefficient of an element of the perfection. -/
+def coeff (n : ℕ) : perfection R p →+* R :=
 { to_fun := λ f, f.1 n,
   map_one' := rfl,
   map_mul' := λ f g, rfl,
@@ -118,13 +118,13 @@ def coeff (n : ℕ) : perfectization R p →+* R :=
 
 variables {R p}
 
-@[ext] lemma ext {f g : perfectization R p} (h : ∀ n, coeff R p n f = coeff R p n g) : f = g :=
+@[ext] lemma ext {f g : perfection R p} (h : ∀ n, coeff R p n f = coeff R p n g) : f = g :=
 subtype.eq $ funext h
 
 variables (R p)
 
-/-- The `p`-th root of an element of the perfectization. -/
-def pth_root : perfectization R p →+* perfectization R p :=
+/-- The `p`-th root of an element of the perfection. -/
+def pth_root : perfection R p →+* perfection R p :=
 { to_fun := λ f, ⟨λ n, coeff R p (n + 1) f, λ n, f.2 _⟩,
   map_one' := rfl,
   map_mul' := λ f g, rfl,
@@ -133,15 +133,15 @@ def pth_root : perfectization R p →+* perfectization R p :=
 
 variables {R p}
 
-lemma coeff_pth_root (f : perfectization R p) (n : ℕ) :
+lemma coeff_pth_root (f : perfection R p) (n : ℕ) :
   coeff R p n (pth_root R p f) = coeff R p (n + 1) f :=
 rfl
 
-lemma coeff_pow_p (f : perfectization R p) (n : ℕ) :
+lemma coeff_pow_p (f : perfection R p) (n : ℕ) :
   coeff R p (n + 1) (f ^ p) = coeff R p n f :=
 by { rw ring_hom.map_pow, exact f.2 n }
 
-lemma coeff_frobenius (f : perfectization R p) (n : ℕ) :
+lemma coeff_frobenius (f : perfection R p) (n : ℕ) :
   coeff R p (n + 1) (frobenius _ p f) = coeff R p n f :=
 by convert coeff_pow_p f n
 
@@ -154,15 +154,15 @@ ring_hom.ext $ λ x, ext $ λ n,
 by rw [ring_hom.comp_apply, ring_hom.id_apply, ring_hom.map_frobenius, coeff_pth_root,
     ← ring_hom.map_frobenius, coeff_frobenius]
 
-lemma coeff_add_ne_zero {f : perfectization R p} {n : ℕ} (hfn : coeff R p n f ≠ 0) (k : ℕ) :
+lemma coeff_add_ne_zero {f : perfection R p} {n : ℕ} (hfn : coeff R p n f ≠ 0) (k : ℕ) :
   coeff R p (n + k) f ≠ 0 :=
 nat.rec_on k hfn $ λ k ih h, ih $ by erw [← coeff_pow_p, ring_hom.map_pow, h, zero_pow hp.pos]
 
-lemma coeff_ne_zero_of_le {f : perfectization R p} {m n : ℕ} (hfm : coeff R p m f ≠ 0)
+lemma coeff_ne_zero_of_le {f : perfection R p} {m n : ℕ} (hfm : coeff R p m f ≠ 0)
   (hmn : m ≤ n) : coeff R p n f ≠ 0 :=
 let ⟨k, hk⟩ := nat.exists_eq_add_of_le hmn in hk.symm ▸ coeff_add_ne_zero hfm k
 
-end perfectization
+end perfection
 
 section perfectoid
 
@@ -282,19 +282,19 @@ end classical
 end mod_p
 
 include hp hvp
-/-- Perfectization of `O/(p)` where `O` is the ring of integers of `K`. -/
+/-- Perfection of `O/(p)` where `O` is the ring of integers of `K`. -/
 @[nolint has_inhabited_instance] def pre_tilt :=
-perfectization (mod_p K v O hv p) p
+perfection (mod_p K v O hv p) p
 
 namespace pre_tilt
 
 section classical
 local attribute [instance] classical.dec
 
-open perfectization
+open perfection
 
-/-- The valuation `Perfectization(O/(p)) → ℝ≥0` as a function.
-Given `f ∈ Perfectization(O/(p))`, if `f = 0` then output `0`;
+/-- The valuation `Perfection(O/(p)) → ℝ≥0` as a function.
+Given `f ∈ Perfection(O/(p))`, if `f = 0` then output `0`;
 otherwise output `pre_val(f(n))^(p^n)` for any `n` such that `f(n) ≠ 0`. -/
 noncomputable def val_aux (f : pre_tilt K v O hv p) : ℝ≥0 :=
 if h : ∃ n, coeff _ _ n f ≠ 0
@@ -336,8 +336,8 @@ lemma val_aux_mul (f g : pre_tilt K v O hv p) :
 begin
   by_cases hf : f = 0, { rw [hf, zero_mul, val_aux_zero, zero_mul] },
   by_cases hg : g = 0, { rw [hg, mul_zero, val_aux_zero, mul_zero] },
-  replace hf : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf $ perfectization.ext h),
-  replace hg : ∃ n, coeff _ _ n g ≠ 0 := not_forall.1 (λ h, hg $ perfectization.ext h),
+  replace hf : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf $ perfection.ext h),
+  replace hg : ∃ n, coeff _ _ n g ≠ 0 := not_forall.1 (λ h, hg $ perfection.ext h),
   obtain ⟨m, hm⟩ := hf, obtain ⟨n, hn⟩ := hg,
   replace hm := coeff_ne_zero_of_le hm (le_max_left m n),
   replace hn := coeff_ne_zero_of_le hn (le_max_right m n),
@@ -354,9 +354,9 @@ begin
   by_cases hf : f = 0, { rw [hf, zero_add, val_aux_zero, max_eq_right], exact zero_le _ },
   by_cases hg : g = 0, { rw [hg, add_zero, val_aux_zero, max_eq_left], exact zero_le _ },
   by_cases hfg : f + g = 0, { rw [hfg, val_aux_zero], exact zero_le _ },
-  replace hf : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf $ perfectization.ext h),
-  replace hg : ∃ n, coeff _ _ n g ≠ 0 := not_forall.1 (λ h, hg $ perfectization.ext h),
-  replace hfg : ∃ n, coeff _ _ n (f + g) ≠ 0 := not_forall.1 (λ h, hfg $ perfectization.ext h),
+  replace hf : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf $ perfection.ext h),
+  replace hg : ∃ n, coeff _ _ n g ≠ 0 := not_forall.1 (λ h, hg $ perfection.ext h),
+  replace hfg : ∃ n, coeff _ _ n (f + g) ≠ 0 := not_forall.1 (λ h, hfg $ perfection.ext h),
   obtain ⟨m, hm⟩ := hf, obtain ⟨n, hn⟩ := hg, obtain ⟨k, hk⟩ := hfg,
   replace hm := coeff_ne_zero_of_le hm (le_trans (le_max_left m n) (le_max_left _ k)),
   replace hn := coeff_ne_zero_of_le hn (le_trans (le_max_right m n) (le_max_left _ k)),
@@ -369,8 +369,8 @@ begin
 end
 
 variables (K v O hv p)
-/-- The valuation `Perfectization(O/(p)) → ℝ≥0`.
-Given `f ∈ Perfectization(O/(p))`, if `f = 0` then output `0`;
+/-- The valuation `Perfection(O/(p)) → ℝ≥0`.
+Given `f ∈ Perfection(O/(p))`, if `f = 0` then output `0`;
 otherwise output `pre_val(f(n))^(p^n)` for any `n` such that `f(n) ≠ 0`. -/
 noncomputable def val : valuation (pre_tilt K v O hv p) ℝ≥0 :=
 { to_fun := val_aux K v O hv p,
@@ -383,7 +383,7 @@ variables {K v O hv p}
 lemma map_eq_zero {f : pre_tilt K v O hv p} : val K v O hv p f = 0 ↔ f = 0 :=
 begin
   by_cases hf0 : f = 0, { rw hf0, exact iff_of_true (valuation.map_zero _) rfl },
-  obtain ⟨n, hn⟩ : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf0 $ perfectization.ext h),
+  obtain ⟨n, hn⟩ : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf0 $ perfection.ext h),
   show val_aux K v O hv p f = 0 ↔ f = 0, refine iff_of_false (λ hvf, hn _) hf0,
   rw val_aux_eq hn at hvf, replace hvf := nnreal.pow_eq_zero hvf, rwa mod_p.pre_val_eq_zero at hvf
 end
@@ -401,7 +401,7 @@ end pre_tilt
 
 /-- The tilt of a field, as defined in Perfectoid Spaces by Peter Scholze.
 Given a field `K` with valuation `K → ℝ≥0` and ring of integers `O`, this is implemented
-as the fraction field of the perfectization of `O/(p)`. -/
+as the fraction field of the perfection of `O/(p)`. -/
 @[nolint has_inhabited_instance] def tilt :=
 fraction_ring (pre_tilt K v O hv p)
 

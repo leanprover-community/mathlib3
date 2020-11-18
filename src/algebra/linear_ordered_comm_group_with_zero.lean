@@ -6,7 +6,8 @@ Authors: Kenny Lau, Johan Commelin, Patrick Massot
 
 import algebra.ordered_comm_group_with_zero
 import algebra.group_with_zero
-import algebra.group_with_zero_power
+import algebra.group_with_zero.power
+import tactic.abel
 
 /-!
 # Linearly ordered commutative groups with a zero element adjoined
@@ -101,6 +102,28 @@ exact mul_lt_right' _ hx (pow_ne_zero _ $ ne_of_gt (lt_trans zero_lt_one'' hx)) 
 
 lemma pow_lt_pow' {x : α} {m n : ℕ} (hx : 1 < x) (hmn : m < n) : x ^ m < x ^ n :=
 by { induction hmn with n hmn ih, exacts [pow_lt_pow_succ hx, lt_trans ih (pow_lt_pow_succ hx)] }
+
+namespace monoid_hom
+
+variables {R : Type*} [ring R] (f : R →* α)
+
+theorem map_neg_one : f (-1) = 1 :=
+begin
+  apply eq_one_of_pow_eq_one (nat.succ_ne_zero 1) (_ : _ ^ 2 = _),
+  rw [pow_two, ← f.map_mul, neg_one_mul, neg_neg, f.map_one],
+end
+
+@[simp] lemma map_neg (x : R) : f (-x) = f x :=
+calc f (-x) = f (-1 * x)   : by rw [neg_one_mul]
+        ... = f (-1) * f x : map_mul _ _ _
+        ... = f x          : by rw [f.map_neg_one, one_mul]
+
+lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) :=
+calc f (x - y) = f (-(y - x)) : by rw show x - y = -(y-x), by abel
+           ... = _ : map_neg _ _
+
+lemma inv_le_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
+@inv_le_inv_iff _ _ (units.mk0 a ha) (units.mk0 b hb)
 
 namespace monoid_hom
 

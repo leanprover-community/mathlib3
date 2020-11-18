@@ -327,12 +327,11 @@ namespace opposite
 variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 
 instance : algebra R Aᵒᵖ :=
-{ smul := λ c x, op (c • unop x),
-  to_ring_hom := (algebra_map R A).to_opposite $ λ x y, algebra.commutes _ _,
-  smul_def' := λ c x, by dsimp; simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop],
-  commutes' := λ r, op_induction $ λ x, by dsimp; simp only [← op_mul, algebra.commutes] }
-
-@[simp] lemma op_smul (c : R) (a : A) : op (c • a) = c • op a := rfl
+{ to_ring_hom := (algebra_map R A).to_opposite $ λ x y, algebra.commutes _ _,
+  smul_def' := λ c x, unop_injective $
+    by { dsimp, simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop] },
+  commutes' := λ r, op_induction $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
+  ..opposite.has_scalar A R }
 
 @[simp] lemma algebra_map_apply (c : R) : algebra_map R Aᵒᵖ c = op (algebra_map R A c) := rfl
 

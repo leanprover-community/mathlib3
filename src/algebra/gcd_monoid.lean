@@ -83,8 +83,9 @@ variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoi
 norm_unit_coe_units 1
 
 /-- Chooses an element of each associate class, by multiplying by `norm_unit` -/
-def normalize : α →* α :=
+def normalize : monoid_with_zero_hom α α :=
 { to_fun := λ x, x * norm_unit x,
+  map_zero' := by simp,
   map_one' := by rw [norm_unit_one, units.coe_one, mul_one],
   map_mul' := λ x y,
   classical.by_cases (λ hx : x = 0, by rw [hx, zero_mul, zero_mul, zero_mul]) $ λ hx,
@@ -102,7 +103,7 @@ associates.mk_eq_mk_iff_associated.2 normalize_associated
 
 @[simp] lemma normalize_apply {x : α} : normalize x = x * norm_unit x := rfl
 
-@[simp] lemma normalize_zero : normalize (0 : α) = 0 := by simp
+@[simp] lemma normalize_zero : normalize (0 : α) = 0 := normalize.map_zero
 
 @[simp] lemma normalize_one : normalize (1 : α) = 1 := normalize.map_one
 

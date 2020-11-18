@@ -6,6 +6,7 @@ Author: Scott Morrison, Adam Topaz.
 import algebra.algebra.subalgebra
 import algebra.monoid_algebra
 import linear_algebra
+import data.equiv.transfer_instance
 
 /-!
 # Free Algebras
@@ -313,6 +314,9 @@ begin
   { intros x y ih, simp at ih, simp [ih], }
 end
 (by { ext, simp, })
+
+instance [nontrivial R] : nontrivial (free_algebra R X) :=
+equiv_monoid_algebra_free_monoid.to_equiv.nontrivial
 
 end free_algebra
 

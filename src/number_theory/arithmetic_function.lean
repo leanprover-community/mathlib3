@@ -26,7 +26,7 @@ to form the Dirichlet ring.
  * `pow k` is the arithmetic function such that `pow k x = x ^ k` for `0 < x`.
  * `id` is the identity arithmetic function on `ℕ`.
  * `ω n` is the number of distinct prime factors of `n`.
- * `Ω n` is the number of prime factors of `n` with multiplicity.
+ * `Ω n` is the number of prime factors of `n` counted with multiplicity.
  * `μ` is the Möbius function.
 
 ## Notation
@@ -541,23 +541,27 @@ def card_factors : arithmetic_function ℕ :=
 
 localized "notation `Ω` := card_factors" in arithmetic_function
 
-@[simp]
 lemma card_factors_apply {n : ℕ} :
-  Ω n = (unique_factorization_monoid.factors n).card :=
-by { rw [nat.factors_eq, multiset.coe_card], refl }
+  Ω n = n.factors.length := rfl
 
-lemma card_factors_eq_one_of_irreducible {n : ℕ} (h : irreducible n) :
-  Ω n = 1 :=
-by { rw [card_factors_apply, unique_factorization_monoid.factors_irreducible h], refl }
-
-lemma card_factors_eq_one_of_prime {n : ℕ} (h : n.prime) :
-  Ω n = 1 :=
-card_factors_eq_one_of_irreducible (nat.irreducible_iff_prime.2 (nat.prime_iff_prime.1 h))
+lemma card_factors_eq_one_iff_prime {n : ℕ} :
+  Ω n = 1 ↔ n.prime :=
+begin
+  refine ⟨λ h, _, λ h, list.length_eq_one.2 ⟨n, factors_prime h⟩⟩,
+  cases n,
+  { contrapose! h,
+    simp },
+  rcases list.length_eq_one.1 h with ⟨x, hx⟩,
+  rw [← prod_factors n.succ_pos, hx, list.prod_singleton],
+  apply mem_factors,
+  rw [hx, list.mem_singleton]
+end
 
 lemma card_factors_mul {m n : ℕ} (m0 : m ≠ 0) (n0 : n ≠ 0) :
   Ω (m * n) = Ω m + Ω n :=
-by rw [card_factors_apply, card_factors_apply, card_factors_apply,
-    unique_factorization_monoid.factors_mul m0 n0, multiset.card_add]
+by rw [card_factors_apply, card_factors_apply, card_factors_apply, ← multiset.coe_card,
+  ← factors_eq, unique_factorization_monoid.factors_mul m0 n0, factors_eq, factors_eq,
+  multiset.card_add, multiset.coe_card, multiset.coe_card]
 
 lemma card_factors_multiset_prod {s : multiset ℕ} (h0 : s.prod ≠ 0) :
   Ω s.prod = (multiset.map Ω s).sum :=
@@ -566,7 +570,7 @@ begin
   apply s.induction_on, { intro h, refl },
   intros a t h h0,
   rw [multiset.prod_cons, mul_ne_zero_iff] at h0,
-  rw [multiset.prod_cons, card_factors_mul h0.1 h0.2, multiset.map_cons, multiset.sum_cons, h h0.2]
+  simp [h0, card_factors_mul, h],
 end
 
 /-- `ω n` is the number of distinct prime factors of `n`. -/
@@ -576,21 +580,20 @@ def card_distinct_factors : arithmetic_function ℕ :=
 localized "notation `ω` := card_distinct_factors" in arithmetic_function
 
 @[simp]
-lemma card_distinct_factors_apply {n : ℕ} :
-  ω n = (unique_factorization_monoid.factors n).to_finset.card :=
-begin
-  rw [nat.factors_eq, finset.card, multiset.to_finset_val,
-  multiset.coe_erase_dup, multiset.coe_card],
-  refl
-end
+lemma card_distinct_factors_zero : ω 0 = 0 := rfl
 
-lemma card_distinct_factors_eq_card_factors_of_squarefree {n : ℕ} (h : squarefree n) :
-  ω n = Ω n :=
+lemma card_distinct_factors_apply {n : ℕ} :
+  ω n = n.factors.erase_dup.length := rfl
+
+lemma card_distinct_factors_eq_card_factors_iff_squarefree {n : ℕ} (h0 : n ≠ 0) :
+  ω n = Ω n ↔ squarefree n :=
 begin
-  cases n, { refl },
-  rw [card_distinct_factors_apply, finset.card, multiset.to_finset_val, multiset.erase_dup_eq_self.2
-    ((unique_factorization_monoid.squarefree_iff_nodup_factors (nat.succ_ne_zero _)).1 h),
-    card_factors_apply],
+  rw [squarefree_iff_nodup_factors h0, card_distinct_factors_apply],
+  split; intro h,
+  { rw ← list.eq_of_sublist_of_length_eq n.factors.erase_dup_sublist h,
+    apply list.nodup_erase_dup },
+  { rw list.erase_dup_eq_self.2 h,
+    refl }
 end
 
 /-- `μ` is the Möbius function. If `n` is squarefree with an even number of distinct prime factors,

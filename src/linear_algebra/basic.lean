@@ -198,6 +198,8 @@ def smul_right (f : M₂ →ₗ[R] R) (x : M) : M₂ →ₗ[R] M :=
 instance : has_one (M →ₗ[R] M) := ⟨linear_map.id⟩
 instance : has_mul (M →ₗ[R] M) := ⟨linear_map.comp⟩
 
+lemma mul_eq_comp (f g : M →ₗ[R] M) : f * g = f.comp g := rfl
+
 @[simp] lemma one_app (x : M) : (1 : M →ₗ[R] M) x = x := rfl
 @[simp] lemma mul_app (A B : M →ₗ[R] M) (x : M) : (A * B) x = A (B x) := rfl
 
@@ -1319,9 +1321,7 @@ by simp [disjoint_def, @eq_comm M 0, @eq_comm M₂ 0] {contextual := tt}; intros
 
 theorem ker_eq_bot' {f : M →ₗ[R] M₂} :
   ker f = ⊥ ↔ (∀ m, f m = 0 → m = 0) :=
-have h : (∀ m ∈ (⊤ : submodule R M), f m = 0 → m = 0) ↔ (∀ m, f m = 0 → m = 0),
-  from ⟨λ h m, h m mem_top, λ h m _, h m⟩,
-by simpa [h, disjoint] using @disjoint_ker _ _ _ _ _ _ _ _ f ⊤
+by simpa [disjoint] using @disjoint_ker _ _ _ _ _ _ _ _ f ⊤
 
 lemma le_ker_iff_map {f : M →ₗ[R] M₂} {p : submodule R M} : p ≤ ker f ↔ map f p = ⊥ :=
 by rw [ker, eq_bot_iff, map_le_iff_le_comap]

@@ -458,7 +458,7 @@ begin
   exact or.inl (multiplicity_le_one_of_seperable hunit hsep)
 end
 
-lemma root_multiplicity_le_one_of_seperable {p : polynomial F} (hp : p ≠ 0)
+lemma root_multiplicity_le_one_of_separable {p : polynomial F} (hp : p ≠ 0)
   (hsep : separable p) (x : F) : root_multiplicity x p ≤ 1 :=
 begin
   rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get],

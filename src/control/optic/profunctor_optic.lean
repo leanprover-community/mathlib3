@@ -1,5 +1,6 @@
 import control.profunctor
 import control.optic.concrete
+import data.vector
 
 -- https://dl.acm.org/doi/pdf/10.1145/3236779
 
@@ -39,7 +40,7 @@ section defs
   def setter  := ∀ ⦃P⦄ [affine P] [mapping P], optic P A B S T
   def setter' := setter A B A B
 
-  def grate := ∀ ⦃P⦄ [closed P], optic P A B S T
+  def grate := ∀ ⦃P⦄ [profunctor P] [closed P], optic P A B S T
 
   def fold := ∀ ⦃P⦄ [affine P] [traversing P] [coerce_r P], optic' P A S
 
@@ -90,17 +91,17 @@ namespace setter
 end setter
 
 namespace grate
-
   def mk (f : ((S → A) → B) → T) ⦃P⦄ [profunctor P] [closed P] : optic P A B S T
   | p := profunctor.dimap (λ a (g : S → A), g a) f (closed.close (S → A) p)
 
   def out : grate A B S T → (((S → A) → B) → T)
-  | g :=  g concrete.grate.id
+  | g := g concrete.grate.id
 
-  def zip_f_with_of {F : Type → Type} [functor F] : grate A B S T → (F A → B) → (F S → T)
-  | g f := @g (costar F) _ f
-
+  def zip_with_of {F : Type → Type} [functor F] : grate A B S T → (F A → B) → (F S → T)
+  | g f := @g (costar F) _ _ f
 end grate
+
+
 
 end optic
 end control

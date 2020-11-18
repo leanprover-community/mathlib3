@@ -1,4 +1,5 @@
 import control.profunctor
+import data.vector
 
 namespace control.optic.concrete
 
@@ -45,43 +46,32 @@ namespace prism
   }
 end prism
 
-inductive fun_list (A B : Type) : Type → Type 1
-| done {T : Type} : T → fun_list T
-| more {T : Type} : A → fun_list (B → T) → fun_list T
-
-namespace fun_list
-  def out : fun_list A B T → T ⊕ (A × fun_list A B (B → T))
-  | (done t) := sum.inl t
-  | (more a f) := sum.inr $ prod.mk a f
-
-  def inn : (T ⊕ (A × fun_list A B (B → T))) → fun_list A B T
-  | (sum.inl t) := done t
-  | (sum.inr (a,f)) := more a f
-end fun_list
-
+/-- An inefficient, concrete definition of a traversal. -/
 def traversal (A B S T : Type) :=
-S → fun_list A B T
+S → Σ (n : nat), (vector A n) × (vector B n → T)
 
 def setter (A B S T : Type) :=
 (A → B) → (S → T)
 
-instance setter.affine : affine (setter A B) :=
-{ dimap := λ U V W X vu wx h ab v, wx $ h ab $ vu v
-, left := λ U V W s ab uw, sum.map (s ab) id uw
-, right := λ U V W s ab uw, sum.map id (s ab) uw
-, first := λ U V W s ab uw, prod.map (s ab) id uw
-, second := λ U V W s ab uw, prod.map id (s ab) uw
-}
+namespace setter
+  instance : affine (setter A B) :=
+  { dimap := λ U V W X vu wx h ab v, wx $ h ab $ vu v
+  , left := λ U V W s ab uw, sum.map (s ab) id uw
+  , right := λ U V W s ab uw, sum.map id (s ab) uw
+  , first := λ U V W s ab uw, prod.map (s ab) id uw
+  , second := λ U V W s ab uw, prod.map id (s ab) uw
+  }
 
-instance setter.mapping : mapping (setter A B) :=
-{ Rep := λ X, (A → B) → X
-, sieve := λ X Y s x ab, s ab x
-, tabulate := λ X Y s ab x, s x ab
-, a := { pure := λ A a ab, a
-       , seq := λ X Y xy x ab, xy ab $ x ab
-       }
-, d := ⟨λ F ftor X frx ab, @functor.map F ftor _ _ (λ (j : (A → B) → X), j ab) frx⟩
-}
+  instance : mapping (setter A B) :=
+  { Rep := λ X, (A → B) → X
+  , sieve := λ X Y s x ab, s ab x
+  , tabulate := λ X Y s ab x, s x ab
+  , a := { pure := λ A a ab, a
+         , seq := λ X Y xy x ab, xy ab $ x ab
+         }
+  , d := ⟨λ F ftor X frx ab, @functor.map F ftor _ _ (λ (j : (A → B) → X), j ab) frx⟩
+  }
+end setter
 
 def grate (A B S T : Type) := ((S → A) → B) → T
 
@@ -92,6 +82,8 @@ namespace grate
   instance : closed (grate A B) :=
   {close := λ X Y S g f s, g $ λ i, f $ λ j, i $ j s }
 
+  instance : profunctor (grate A B) :=
+  {dimap := λ X Y S T yx st g yab, st $ g $ λ xa, yab $ xa ∘ yx}
 end grate
 
 end control.optic.concrete

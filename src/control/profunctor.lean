@@ -106,11 +106,11 @@ namespace function
   }
 
   /-- `A → _` is a functor. -/
-  instance arr_fun {A : Type} : functor ((→) A) :=
+  instance is_functor {A : Type} : functor ((→) A) :=
   {map := λ X Y f g a, f $ g $ a}
 
   def dist_reader {R : Type → Type} [distributive R] {A B : Type} : (A → R B) → R (A → B)
-  | f := @distributive.dist R _ ((→) A) function.arr_fun _ f
+  | f := @distributive.dist R _ ((→) A) function.is_functor _ f
 
 end function
 

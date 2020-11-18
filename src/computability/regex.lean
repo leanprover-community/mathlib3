@@ -11,7 +11,7 @@ import tactic.omega
 /-!
 # Regular Expression
 
-This file contains the formal defintion for regular expressions on finite alphabets with decidable
+This file contains the formal definition for regular expressions on finite alphabets with decidable
 equality and basic lemmas.
 -/
 
@@ -23,7 +23,7 @@ variables {α : Type u} [decidable_eq α] [fintype α]
   `RZero` matches nothing
   `RNull` matches only the empty string
   `RChar a` matches only the string 'a'
-  `RStar M` matches any finite concatination of strings which match `M`
+  `RStar M` matches any finite concatenation of strings which match `M`
   `RPlus M N` matches anything which match `M` or `N`
   `RComp M N` matches `x ++ y` if `x` matches `M` and `y` matches `N` -/
 inductive regex (α : Type u) : Type (u+1)

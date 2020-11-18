@@ -7,8 +7,6 @@ Authors: Fox Thomson
 import data.fintype.basic
 import computability.DFA
 
-universes u v
-
 /-!
 # Nondeterministic Finite Automata
 This file contains the definition of a Nondeterministic Finite Automata (NFA), a state machine which
@@ -18,6 +16,7 @@ We show that DFA's are equivalent to NFA's however the construction from NFA to 
 exponential number of states.
 -/
 
+universes u v
 
 /-- A DFA is a set of states (`state`), a transition function from state to state labelled by the
   alphabet (`step`), a starting state (`start`) and a set of acceptance states (`accept`).

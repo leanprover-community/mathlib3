@@ -6,7 +6,7 @@ Authors: Anne Baanen
 
 import algebra.ordered_group
 import algebra.group_with_zero
-import algebra.group_with_zero_power
+import algebra.group_with_zero.power
 
 /-!
 # Ordered commutative groups with a zero element adjoined

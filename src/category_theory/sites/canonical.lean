@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 Bhavik Mehta, E. W. Ayers. All rights reserved.
+Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta, E. W. Ayers
+Authors: Bhavik Mehta
 -/
 
 import category_theory.sites.grothendieck
@@ -44,7 +44,7 @@ begin
   { intros Y f hf,
     apply (hB hf).is_amalgamation _ },
   have hT : t.compatible,
-  { rw presieve.sieve_compatible_iff,
+  { rw presieve.compatible_iff_sieve_compatible,
     intros Z W f h hf,
     apply (hB (U.downward_closed hf h)).is_separated_for.ext,
     intros Y l hl,

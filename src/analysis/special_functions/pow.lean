@@ -1442,13 +1442,11 @@ section measurability_ennreal
 lemma ennreal.measurable_rpow : measurable (λ p : ennreal × ℝ, p.1 ^ p.2) :=
 begin
   refine ennreal.measurable_of_measurable_nnreal_prod _ _,
-  { change measurable (λ (p : ℝ≥0 × ℝ), ↑(p.fst) ^  p.snd),
-    simp_rw ennreal.coe_rpow_def,
+  { simp_rw ennreal.coe_rpow_def,
     refine measurable.ite _ measurable_const nnreal.measurable_rpow.ennreal_coe,
     exact is_measurable.inter (measurable_fst (is_measurable_singleton 0))
       (measurable_snd is_measurable_Iio), },
-  { change measurable (λ (x : ℝ), (⊤ : ennreal) ^ x),
-    simp_rw ennreal.top_rpow_def,
+  { simp_rw ennreal.top_rpow_def,
     refine measurable.ite is_measurable_Ioi measurable_const _,
     exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const, },
 end

@@ -216,7 +216,8 @@ by { rw [separable_def, derivative_mul], exact ((hf.mul_right h).add_mul_left_ri
   ((h.symm.mul_right hg).mul_add_right_right _) }
 
 lemma separable_prod' {ι : Sort*} {f : ι → polynomial R} {s : finset ι} :
-  (∀x∈s, ∀y∈s, x ≠ y → is_coprime (f x) (f y)) → (∀x∈s, (f x).separable) → (∏ x in s, f x).separable :=
+  (∀x∈s, ∀y∈s, x ≠ y → is_coprime (f x) (f y)) → (∀x∈s, (f x).separable) →
+  (∏ x in s, f x).separable :=
 finset.induction_on s (λ _ _, separable_one) $ λ a s has ih h1 h2, begin
   simp_rw [finset.forall_mem_insert, forall_and_distrib] at h1 h2, rw prod_insert has,
   exact h2.1.mul (ih h1.2.2 h2.2) (is_coprime.prod_right $ λ i his, h1.1.2 i his $
@@ -401,7 +402,8 @@ begin
     { rw is_unit_iff at h, rcases h with ⟨r, hr, rfl⟩,
       simp_rw expand_C at hf, exact absurd (is_unit_C.2 hr) hf.1 },
     { rw [add_zero, pow_zero, expand_one], split; refl } },
-  exact λ g₁ g₂ hg₁ hgf₁ hg₂ hgf₂, let ⟨hn, hg⟩ := this g₂ g₁ hg₂ hgf₂ hg₁ hgf₁ in ⟨hn.symm, hg.symm⟩
+  exact λ g₁ g₂ hg₁ hgf₁ hg₂ hgf₂, let ⟨hn, hg⟩ :=
+    this g₂ g₁ hg₂ hgf₂ hg₁ hgf₁ in ⟨hn.symm, hg.symm⟩
 end
 
 end char_p
@@ -520,7 +522,8 @@ begin
   obtain ⟨hx, hs⟩ := h (algebra_map K E x),
   have hx' : is_integral F x := is_integral_tower_bot_of_is_integral_field hx,
   obtain ⟨q, hq⟩ := minimal_polynomial.dvd hx'
-    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field (minimal_polynomial.aeval hx)),
+    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field
+      (minimal_polynomial.aeval hx)),
   use hx',
   apply polynomial.separable.of_mul_left,
   rw ← hq,

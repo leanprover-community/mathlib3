@@ -1712,16 +1712,6 @@ iff_not_comm.1 $ count_pos.symm.trans pos_iff_ne_zero
 theorem count_ne_zero {a : α} {s : multiset α} : count a s ≠ 0 ↔ a ∈ s :=
 by simp [ne.def, count_eq_zero]
 
-@[simp]
-lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
-  a ∈ n •ℕ s ↔ a ∈ s :=
-begin
-  cases n,
-  { exfalso, apply h0 rfl },
-  rw [← not_iff_not, ← count_eq_zero, ← count_eq_zero],
-  simp [h0],
-end
-
 @[simp] theorem count_repeat_self (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by simp [repeat]
 
@@ -1812,6 +1802,17 @@ instance : semilattice_sup_bot (multiset α) :=
   bot_le := zero_le,
   ..multiset.lattice }
 
+end
+
+@[simp]
+lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
+  a ∈ n •ℕ s ↔ a ∈ s :=
+begin
+  classical,
+  cases n,
+  { exfalso, apply h0 rfl },
+  rw [← not_iff_not, ← count_eq_zero, ← count_eq_zero],
+  simp [h0],
 end
 
 /- relator -/

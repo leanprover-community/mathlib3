@@ -569,7 +569,7 @@ begin
   apply s.induction_on, { intro h, refl },
   intros a t h h0,
   rw [multiset.prod_cons, mul_ne_zero_iff] at h0,
-  rw [multiset.prod_cons, card_factors_mul h0.1 h0.2, multiset.map_cons, multiset.sum_cons, h h0.2]
+  simp [h0, card_factors_mul, h],
 end
 
 /-- `ω n` is the number of distinct prime factors of `n`. -/

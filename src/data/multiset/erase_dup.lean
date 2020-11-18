@@ -88,11 +88,13 @@ lemma nodup.le_erase_dup_iff_le {s t : multiset α} (hno : s.nodup) :
   s ≤ t.erase_dup ↔ s ≤ t :=
 by simp [le_erase_dup, hno]
 
-lemma nodup.le_nsmul_iff_le {s t : multiset α} {n : ℕ} (h : s.nodup) (hn : n ≠ 0) :
+end multiset
+
+lemma multiset.nodup.le_nsmul_iff_le {α : Type*} {s t : multiset α}
+  {n : ℕ} (h : s.nodup) (hn : n ≠ 0) :
   s ≤ n •ℕ t ↔ s ≤ t :=
 begin
+  classical,
   rw [← h.le_erase_dup_iff_le, iff.comm, ← h.le_erase_dup_iff_le],
   simp [hn]
 end
-
-end multiset

@@ -15,10 +15,8 @@ in linear time.
 
 universes u v
 
-variable {α : Type u}
-
 /-- A DFA is a set of states (`state`), a transition function from state to state labled by the
-alphabet (`step`), a starting state (`start`) and a set of acceptance states (`accept`) -/
+  alphabet (`step`), a starting state (`start`) and a set of acceptance states (`accept`) -/
 structure DFA (alphabet : Type u) :=
 (state : Type v)
 [state_fintype : fintype state]
@@ -29,9 +27,9 @@ structure DFA (alphabet : Type u) :=
 
 namespace DFA
 
-instance DFA_inhabited : inhabited (DFA α) := ⟨ DFA.mk punit (λ _ _, punit.star) punit.star ∅ ⟩
+variables {α : Type u} (M : DFA α)
 
-variable M : DFA α
+instance DFA_inhabited : inhabited (DFA α) := ⟨ DFA.mk punit (λ _ _, punit.star) punit.star ∅ ⟩
 
 instance dec := M.state_dec
 instance fin := M.state_fintype

@@ -1128,17 +1128,8 @@ begin
   { exact coe_rpow_of_ne_zero hx _ }
 end
 
-lemma coe_rpow_def {p : nnreal × ℝ} :
-  (p.1 : ennreal) ^ p.2 = ite (p.1=0 ∧ p.2<0) ⊤ ↑(p.1 ^ p.2) :=
-begin
-  split_ifs,
-  { rw [h.left, ennreal.coe_zero, ennreal.zero_rpow_of_neg h.right], },
-  rw auto.not_and_eq at h,
-  cases h,
-    { rw coe_rpow_of_ne_zero h, },
-    { push_neg at h,
-      rw coe_rpow_of_nonneg _ h, },
-end
+lemma coe_rpow_def (x : ℝ≥0) (y : ℝ) :
+  (x : ennreal) ^ y = if x = 0 ∧ y < 0 then ⊤ else (x ^ y : ℝ≥0) := rfl
 
 @[simp] lemma rpow_one (x : ennreal) : x ^ (1 : ℝ) = x :=
 by cases x; dsimp only [(^), rpow]; simp [zero_lt_one, not_lt_of_le zero_le_one]

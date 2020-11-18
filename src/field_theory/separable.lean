@@ -438,7 +438,7 @@ begin
   simpa only [multiset.map_cons, multiset.prod_cons] using mul_dvd_mul_left _ (dvd_mul_right _ _)
 end
 
-lemma multiplicity_le_one_of_seperable {p q : polynomial F} (hq : ¬ is_unit q)
+lemma multiplicity_le_one_of_separable {p q : polynomial F} (hq : ¬ is_unit q)
   (hsep : separable p) : multiplicity q p ≤ 1 :=
 begin
   contrapose! hq,
@@ -455,14 +455,14 @@ begin
   intro f,
   by_cases hunit : is_unit f,
   { exact or.inr hunit },
-  exact or.inl (multiplicity_le_one_of_seperable hunit hsep)
+  exact or.inl (multiplicity_le_one_of_separable hunit hsep)
 end
 
 lemma root_multiplicity_le_one_of_separable {p : polynomial F} (hp : p ≠ 0)
   (hsep : separable p) (x : F) : root_multiplicity x p ≤ 1 :=
 begin
   rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get],
-  exact multiplicity_le_one_of_seperable (not_unit_X_sub_C _) hsep
+  exact multiplicity_le_one_of_separable (not_unit_X_sub_C _) hsep
 end
 
 lemma count_roots_le_one {p : polynomial F} (hsep : separable p) (x : F) :
@@ -471,7 +471,7 @@ begin
   by_cases hp : p = 0,
   { simp [hp] },
   rw count_roots hp,
-  exact root_multiplicity_le_one_of_seperable hp hsep x
+  exact root_multiplicity_le_one_of_separable hp hsep x
 end
 
 lemma nodup_roots {p : polynomial F} (hsep : separable p) :

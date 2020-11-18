@@ -101,3 +101,24 @@ exact mul_lt_right' _ hx (pow_ne_zero _ $ ne_of_gt (lt_trans zero_lt_one'' hx)) 
 
 lemma pow_lt_pow' {x : α} {m n : ℕ} (hx : 1 < x) (hmn : m < n) : x ^ m < x ^ n :=
 by { induction hmn with n hmn ih, exacts [pow_lt_pow_succ hx, lt_trans ih (pow_lt_pow_succ hx)] }
+
+namespace monoid_hom
+
+variables {R : Type*} [ring R] (f : R →* α)
+
+theorem map_neg_one : f (-1) = 1 :=
+begin
+  apply eq_one_of_pow_eq_one (nat.succ_ne_zero 1) (_ : _ ^ 2 = _),
+  rw [pow_two, ← f.map_mul, neg_one_mul, neg_neg, f.map_one],
+end
+
+@[simp] lemma map_neg (x : R) : f (-x) = f x :=
+calc f (-x) = f (-1 * x)   : by rw [neg_one_mul]
+        ... = f (-1) * f x : map_mul _ _ _
+        ... = f x          : by rw [f.map_neg_one, one_mul]
+
+lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) :=
+calc f (x - y) = f (-(y - x)) : by rw show x - y = -(y-x), by abel
+           ... = _ : map_neg _ _
+
+end monoid_hom

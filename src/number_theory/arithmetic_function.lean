@@ -544,6 +544,9 @@ localized "notation `Ω` := card_factors" in arithmetic_function
 lemma card_factors_apply {n : ℕ} :
   Ω n = n.factors.length := rfl
 
+@[simp]
+lemma card_factors_one : Ω 1 = 0 := rfl
+
 lemma card_factors_eq_one_iff_prime {n : ℕ} :
   Ω n = 1 ↔ n.prime :=
 begin
@@ -650,7 +653,7 @@ begin
       apply irreducible_of_factor _ (multiset.subset_of_le
         (le_trans hy (multiset.erase_dup_le _)) hz) },
     rw [if_pos],
-    { rw [card_factors_apply, h, finset.card] },
+    { rw [card_factors_apply, ← multiset.coe_card, ← factors_eq, h, finset.card] },
     rw [unique_factorization_monoid.squarefree_iff_nodup_factors, h],
     { apply y.nodup },
     rw [ne.def, multiset.prod_eq_zero_iff],

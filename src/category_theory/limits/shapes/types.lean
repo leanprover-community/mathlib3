@@ -65,8 +65,17 @@ open category_theory.limits.walking_pair
 
 /-- The product type `X × Y` forms a cone for the binary product of `X` and `Y`. -/
 @[simps {rhs_md := semireducible}]
-def binary_product_cone (X Y : Type u) : cone (pair X Y) :=
+def binary_product_cone (X Y : Type u) : binary_fan X Y :=
 binary_fan.mk prod.fst prod.snd
+
+@[simp]
+lemma binary_product_cone_fst (X Y : Type u) :
+  (binary_product_cone X Y).fst = prod.fst :=
+rfl
+@[simp]
+lemma binary_product_cone_snd (X Y : Type u) :
+  (binary_product_cone X Y).snd = prod.snd :=
+rfl
 
 /-- The product type `X × Y` is a binary product for `X` and `Y`. -/
 @[simps]
@@ -83,13 +92,44 @@ as the binary product of `X` and `Y`.
 def binary_product_limit_cone (X Y : Type u) : limits.limit_cone (pair X Y) :=
 ⟨_, binary_product_limit X Y⟩
 
+/-- The functor which sends `X, Y` to `X × Y`. -/
+@[simps]
+def binary_product_functor : Type u ⥤ Type u ⥤ Type u :=
+{ obj := λ X,
+  { obj := λ Y, (binary_product_cone X Y).X,
+    map := λ Y₁ Y₂ f,
+    begin
+      apply (binary_product_limit X Y₂).lift (binary_fan.mk _ _),
+      apply (binary_product_cone X Y₁).fst,
+      apply (binary_product_cone X Y₁).snd ≫ f,
+    end },
+  map := λ X₁ X₂ f,
+  { app := λ Y,
+    begin
+      apply (binary_product_limit X₂ Y).lift (binary_fan.mk _ _),
+      apply (binary_product_cone X₁ Y).fst ≫ f,
+      apply (binary_product_cone X₁ Y).snd,
+    end } }
 
-/-- The product type `X × Y` forms a cone for the binary product of `X` and `Y`. -/
+noncomputable def same_prod : binary_product_functor ≅ (prod.functor : Type u ⥤ _) :=
+begin
+  apply nat_iso.of_components (λ X, _) _,
+  { apply nat_iso.of_components (λ Y, _) _,
+    { exact ((limit.is_limit _).cone_point_unique_up_to_iso (binary_product_limit X Y)).symm },
+    { intros Y₁ Y₂ f,
+      ext1;
+      simp } },
+  { intros X₁ X₂ g,
+    ext : 3;
+    simp }
+end
+
+/-- The sum type `X ⊕ Y` forms a cocone for the binary coproduct of `X` and `Y`. -/
 @[simps {rhs_md := semireducible}]
 def binary_coproduct_cocone (X Y : Type u) : cocone (pair X Y) :=
 binary_cofan.mk sum.inl sum.inr
 
-/-- The product type `X × Y` is a binary product for `X` and `Y`. -/
+/-- The sum type `X ⊕ Y` is a binary coproduct for `X` and `Y`. -/
 @[simps]
 def binary_coproduct_colimit (X Y : Type u) : is_colimit (binary_coproduct_cocone X Y) :=
 { desc := λ (s : binary_cofan X Y), sum.elim s.inl s.inr,

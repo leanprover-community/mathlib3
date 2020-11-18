@@ -44,11 +44,12 @@ instance fin := M.state_fintype
 def step_set : finset M.state → α → finset M.state :=
 λ Ss a, finset.bind Ss (λ S, (M.step S a))
 
-lemma mem_step_set (s : M.state) (S : finset M.state) (a : α) : s ∈ M.step_set S a ↔ ∃ t ∈ S, s ∈ M.step t a :=
+lemma mem_step_set (s : M.state) (S : finset M.state) (a : α) :
+  s ∈ M.step_set S a ↔ ∃ t ∈ S, s ∈ M.step t a :=
 by rw [step_set, finset.mem_bind]
 
-/-- `M.eval_from S x` computes all possible paths though `M` with input `x` starting at an element of
-  `S` -/
+/-- `M.eval_from S x` computes all possible paths though `M` with input `x` starting at an element
+  of `S` -/
 def eval_from (start : finset M.state) : list α → finset M.state :=
 list.foldl M.step_set start
 

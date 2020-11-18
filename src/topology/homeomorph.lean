@@ -82,17 +82,19 @@ lemma induced_eq
   {α : Type*} {β : Type*} [tα : topological_space α] [tβ : topological_space β] (h : α ≃ₜ β) :
   tβ.induced h = tα :=
 le_antisymm
-  (calc topological_space.induced ⇑h tβ ≤ _ : induced_mono (coinduced_le_iff_le_induced.1 h.symm.continuous)
+  (calc topological_space.induced ⇑h tβ ≤ _ :
+    induced_mono (coinduced_le_iff_le_induced.1 h.symm.continuous.coinduced_le)
   ... ≤ tα : by rw [induced_compose, symm_comp_self, induced_id] ; exact le_refl _)
-  (coinduced_le_iff_le_induced.1 h.continuous)
+    (coinduced_le_iff_le_induced.1 h.continuous.coinduced_le)
 
 lemma coinduced_eq
   {α : Type*} {β : Type*} [tα : topological_space α] [tβ : topological_space β] (h : α ≃ₜ β) :
   tα.coinduced h = tβ :=
 le_antisymm
-  h.continuous
+  h.continuous.coinduced_le
   begin
-    have : (tβ.coinduced h.symm).coinduced h ≤ tα.coinduced h := coinduced_mono h.symm.continuous,
+    have : (tβ.coinduced h.symm).coinduced h ≤ tα.coinduced h :=
+      coinduced_mono h.symm.continuous.coinduced_le,
     rwa [coinduced_compose, self_comp_symm, coinduced_id] at this,
   end
 
@@ -114,7 +116,7 @@ protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h :=
 begin
   assume s,
   rw ← h.preimage_symm,
-  exact h.symm.continuous s
+  exact continuous_def.1 h.symm.continuous s
 end
 
 protected lemma is_closed_map (h : α ≃ₜ β) : is_closed_map h :=
@@ -129,7 +131,7 @@ closed_embedding_of_embedding_closed h.embedding h.is_closed_map
 
 @[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
 begin
-  refine ⟨λ hs, _, h.continuous_to_fun s⟩,
+  refine ⟨λ hs, _, continuous_def.1 h.continuous_to_fun s⟩,
   rw [← (image_preimage_eq h.to_equiv.surjective : _ = s)], exact h.is_open_map _ hs
 end
 
@@ -138,6 +140,7 @@ def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : 
   α ≃ₜ β :=
 { continuous_to_fun := h₁,
   continuous_inv_fun := begin
+    rw continuous_def,
     intros s hs,
     convert ← h₂ s hs using 1,
     apply e.image_eq_preimage
@@ -171,9 +174,15 @@ def set_congr {s t : set α} (h : s = t) : s ≃ₜ t :=
 /-- Sum of two homeomorphisms. -/
 def sum_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α ⊕ γ ≃ₜ β ⊕ δ :=
 { continuous_to_fun  :=
-    continuous_sum_rec (continuous_inl.comp h₁.continuous) (continuous_inr.comp h₂.continuous),
+  begin
+    convert continuous_sum_rec (continuous_inl.comp h₁.continuous) (continuous_inr.comp h₂.continuous),
+    ext x, cases x; refl,
+  end,
   continuous_inv_fun :=
-    continuous_sum_rec (continuous_inl.comp h₁.symm.continuous) (continuous_inr.comp h₂.symm.continuous),
+  begin
+    convert continuous_sum_rec (continuous_inl.comp h₁.symm.continuous) (continuous_inr.comp h₂.symm.continuous),
+    ext x, cases x; refl
+  end,
   .. h₁.to_equiv.sum_congr h₂.to_equiv }
 
 /-- Product of two homeomorphisms. -/
@@ -215,14 +224,16 @@ section distrib
 
 /-- `(α ⊕ β) × γ` is homeomorphic to `α × γ ⊕ β × γ`. -/
 def sum_prod_distrib : (α ⊕ β) × γ ≃ₜ α × γ ⊕ β × γ :=
-homeomorph.symm $
-homeomorph.homeomorph_of_continuous_open (equiv.sum_prod_distrib α β γ).symm
-  (continuous_sum_rec
-    ((continuous_inl.comp continuous_fst).prod_mk continuous_snd)
-    ((continuous_inr.comp continuous_fst).prod_mk continuous_snd))
-  (is_open_map_sum
+begin
+  refine (homeomorph.homeomorph_of_continuous_open (equiv.sum_prod_distrib α β γ).symm _ _).symm,
+  { convert continuous_sum_rec
+      ((continuous_inl.comp continuous_fst).prod_mk continuous_snd)
+      ((continuous_inr.comp continuous_fst).prod_mk continuous_snd),
+    ext1 x, cases x; refl, },
+  { exact (is_open_map_sum
     (open_embedding_inl.prod open_embedding_id).is_open_map
-    (open_embedding_inr.prod open_embedding_id).is_open_map)
+    (open_embedding_inr.prod open_embedding_id).is_open_map) }
+end
 
 /-- `α × (β ⊕ γ)` is homeomorphic to `α × β ⊕ α × γ`. -/
 def prod_sum_distrib : α × (β ⊕ γ) ≃ₜ α × β ⊕ α × γ :=

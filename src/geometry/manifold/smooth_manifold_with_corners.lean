@@ -231,7 +231,7 @@ end
 
 lemma model_with_corners.unique_diff_preimage {s : set H} (hs : is_open s) :
   unique_diff_on 𝕜 (I.symm ⁻¹' s ∩ range I) :=
-by { rw inter_comm, exact I.unique_diff.inter (I.continuous_inv_fun _ hs) }
+by { rw inter_comm, exact I.unique_diff.inter (hs.preimage I.continuous_inv_fun) }
 
 lemma model_with_corners.unique_diff_preimage_source {β : Type*} [topological_space β]
   {e : local_homeomorph H β} : unique_diff_on 𝕜 (I.symm ⁻¹' (e.source) ∩ range I) :=
@@ -383,7 +383,7 @@ pregroupoid.groupoid
       congr' 1,
       rw inter_comm },
     rw this at hv,
-    exact ⟨I.symm ⁻¹' v, I.continuous_symm _ v_open, by simpa, hv⟩
+    exact ⟨I.symm ⁻¹' v, v_open.preimage I.continuous_symm, by simpa, hv⟩
   end,
   congr    := λf g u hu fg hf, begin
     apply hf.congr,
@@ -647,7 +647,7 @@ begin
   rw [ext_chart_at, local_equiv.trans_target],
   simp only [function.comp_app, local_equiv.coe_trans, model_with_corners.target],
   refine inter_mem_nhds_within _
-    (mem_nhds_sets (I.continuous_symm _ (chart_at H x).open_target) _),
+    (mem_nhds_sets ((chart_at H x).open_target.preimage I.continuous_symm) _),
   simp only with mfld_simps
 end
 

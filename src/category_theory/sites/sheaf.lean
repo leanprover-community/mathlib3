@@ -15,8 +15,8 @@ conditions useful in different situations.
 
 First define what it means for a presheaf `P : Cᵒᵖ ⥤ Type v` to be a sheaf *for* a particular
 presieve `R` on `X`:
-* A *family of elements* for `P` at `R` is an element of `P Y` for every `f : Y ⟶ X` in `R`.
-  See `family_of_elements`.
+* A *family of elements* `x` for `P` at `R` is an element `x_f` of `P Y` for every `f : Y ⟶ X` in
+  `R`. See `family_of_elements`.
 * The family `x` is *compatible* if, for any `f₁ : Y₁ ⟶ X` and `f₂ : Y₂ ⟶ X` both in `R`,
   and any `g₁ : Z ⟶ Y₁` and `g₂ : Z ⟶ Y₂` such that `g₁ ≫ f₁ = g₂ ≫ f₂`, the restriction of
   `x_f₁` along `g₁` agrees with the restriction of `x_f₂` along `g₂`.
@@ -24,14 +24,14 @@ presieve `R` on `X`:
 * An *amalgamation* `t` for the family is an element of `P X` such that for every `f : Y ⟶ X` in
   `R`, the restriction of `t` on `f` is `x_f`.
   See `family_of_elements.is_amalgamation`.
-We then say `P` is a *sheaf* for `R` if every compatible family has a unique amalgamation (and it
-is *separated* for `R` if every compatible family has at most one amalgamation).
-See `is_sheaf_for`.
+We then say `P` is *separated* for `R` if every compatible family has at most one amalgamation,
+and it is a *sheaf* for `R` if every compatible family has a unique amalgamation.
+See `is_separated_for` and `is_sheaf_for`.
 
 In the special case where `R` is a sieve, the compatibility condition can be simplified:
 * The family `x` is *compatible* if, for any `f : Y ⟶ X` in `R` and `g : Z ⟶ Y`, the restriction of
   `x_f` along `g` agrees with `x_(g ≫ f)` (which is well defined since `g ≫ f` is in `R`).
-See `family_of_elements.sieve_compatible` and `sieve_compatible_iff`.
+See `family_of_elements.sieve_compatible` and `compatible_iff_sieve_compatible`.
 
 In the special case where `C` has pullbacks, the compatibility condition can be simplified:
 * The family `x` is *compatible* if, for any `f : Y ⟶ X` and `g : Z ⟶ X` both in `R`,
@@ -55,8 +55,8 @@ We also provide equivalent conditions to satisfy alternate definitions given in 
   statement of `yoneda_condition_iff_sheaf_condition` (since the bijection described there carries
   the same information as the unique existence.)
 
-* Maclane-Moerdijk [MM92]: Using `sieve_compatible_iff`, the definitions of `is_sheaf` are
-  equivalent. There are also alternate definitions given:
+* Maclane-Moerdijk [MM92]: Using `compatible_iff_sieve_compatible`, the definitions of `is_sheaf`
+  are equivalent. There are also alternate definitions given:
   - Yoneda condition: Defined in `yoneda_sheaf_condition` and equivalence in
     `yoneda_condition_iff_sheaf_condition`.
   - Equalizer condition (Equation 3): Defined in the `equalizer.sieve` namespace, and equivalence
@@ -103,8 +103,8 @@ A presheaf is a sheaf (resp, separated) if every *compatible* family of elements
 (resp, at most one) amalgamation.
 
 This data is referred to as a `family` in [MM92], Chapter III, Section 4. It is also a concrete
-version of the middle object in https://stacks.math.columbia.edu/tag/00VM which is more useful for
-direct calculations. It is also used implicitly in Definition C2.1.2 in [Elephant].
+version of the elements of the middle object in https://stacks.math.columbia.edu/tag/00VM which is
+more useful for direct calculations. It is also used implicitly in Definition C2.1.2 in [Elephant].
 -/
 def family_of_elements (P : Cᵒᵖ ⥤ Type v) (R : presieve X) :=
 Π ⦃Y : C⦄ (f : Y ⟶ X), R f → P.obj (op Y)
@@ -120,13 +120,13 @@ def family_of_elements.restrict {R₁ R₂ : presieve X} (h : R₁ ≤ R₂) :
 λ x Y f hf, x f (h _ hf)
 
 /--
-A family of elements for the arrow set `R` is compatible if for any `f₁ : Y₁ ⟶ X` and `f₂ : Y₂ ⟶ X`
-in `R`, and any `g₁ : Z ⟶ Y₁` and `g₂ : Z ⟶ Y₂`, if the square `g₁ ≫ f₁ = g₂ ≫ f₂` commutes then
-the elements of `P Z` obtained by restricting the element of `P Y₁` along `g₁` and restricting
-the element of `P Y₂` along `g₂` are the same.
+A family of elements for the arrow set `R` is *compatible* if for any `f₁ : Y₁ ⟶ X` and
+`f₂ : Y₂ ⟶ X` in `R`, and any `g₁ : Z ⟶ Y₁` and `g₂ : Z ⟶ Y₂`, if the square `g₁ ≫ f₁ = g₂ ≫ f₂`
+commutes then the elements of `P Z` obtained by restricting the element of `P Y₁` along `g₁` and
+restricting the element of `P Y₂` along `g₂` are the same.
 
 In special cases, this condition can be simplified, see `pullback_compatible_iff` and
-`sieve_compatible_iff`.
+`compatible_iff_sieve_compatible`.
 
 This is referred to as a "compatible family" in Definition C2.1.2 of [Elephant], and on nlab:
 https://ncatlab.org/nlab/show/sheaf#GeneralDefinitionInComponents
@@ -212,7 +212,7 @@ end
 /--
 If the arrow set for a family of elements is actually a sieve (i.e. it is downward closed) then the
 consistency condition can be simplified.
-This is an equivalent condition, see `sieve_compatible_iff`.
+This is an equivalent condition, see `compatible_iff_sieve_compatible`.
 
 This is the notion of "matching" given for families on sieves given in [MM92], Chapter III,
 Section 4, Equation 1, and nlab: https://ncatlab.org/nlab/show/matching+family.
@@ -221,7 +221,7 @@ See also the discussion before Lemma C2.1.4 of [Elephant].
 def family_of_elements.sieve_compatible (x : family_of_elements P S) : Prop :=
 ∀ ⦃Y Z⦄ (f : Y ⟶ X) (g : Z ⟶ Y) (hf), x (g ≫ f) (S.downward_closed hf g) = P.map g.op (x f hf)
 
-lemma sieve_compatible_iff (x : family_of_elements P S) :
+lemma compatible_iff_sieve_compatible (x : family_of_elements P S) :
   x.compatible ↔ x.sieve_compatible :=
 begin
   split,
@@ -233,20 +233,28 @@ end
 
 lemma family_of_elements.compatible.to_sieve_compatible {x : family_of_elements P S}
   (t : x.compatible) : x.sieve_compatible :=
-(sieve_compatible_iff x).1 t
+(compatible_iff_sieve_compatible x).1 t
 
+/--
+Two compatible families on the sieve generated by a presieve `R` are equal if and only if they are
+equal when restricted to `R`.
+-/
 lemma restrict_inj {x₁ x₂ : family_of_elements P (generate R)}
   (t₁ : x₁.compatible) (t₂ : x₂.compatible) :
   x₁.restrict (le_generate R) = x₂.restrict (le_generate R) → x₁ = x₂ :=
 begin
   intro h,
   ext Z f ⟨Y, f, g, hg, rfl⟩,
-  rw sieve_compatible_iff at t₁ t₂,
+  rw compatible_iff_sieve_compatible at t₁ t₂,
   erw [t₁ g f ⟨_, _, g, hg, id_comp _⟩, t₂ g f ⟨_, _, g, hg, id_comp _⟩],
   congr' 1,
   apply congr_fun (congr_fun (congr_fun h _) g) hg,
 end
 
+/--
+Given a family of elements `x` for the sieve `S` generated by a presieve `R`, if `x` is restricted
+to `R` and then extended back up to `S`, the resulting extension equals `x`.
+-/
 @[simp]
 lemma extend_restrict {x : family_of_elements P (generate R)} (t : x.compatible) :
   (x.restrict (le_generate R)).sieve_extend = x :=
@@ -259,7 +267,7 @@ begin
 end
 
 /--
-The given element `t` of `P.obj (op X)` is an amalgamation for the family of elements `x` if every
+The given element `t` of `P.obj (op X)` is an *amalgamation* for the family of elements `x` if every
 restriction `P.map f.op t = x_f` for every arrow `f` in the presieve `R`.
 
 This is the definition given in  https://ncatlab.org/nlab/show/sheaf#GeneralDefinitionInComponents,
@@ -284,7 +292,7 @@ lemma is_amalgamation_restrict {R₁ R₂ : presieve X} (h : R₁ ≤ R₂)
   (x.restrict h).is_amalgamation t :=
 λ Y f hf, ht f (h Y hf)
 
-lemma is_amalgamation_extend {R : presieve X}
+lemma is_amalgamation_sieve_extend {R : presieve X}
   (x : family_of_elements P R) (t : P.obj (op X)) (ht : x.is_amalgamation t) :
   x.sieve_extend.is_amalgamation  t :=
 begin
@@ -313,8 +321,8 @@ begin
     { exact is_amalgamation_restrict _ x t₂ ht₂ } },
   { intros h x t₁ t₂ ht₁ ht₂,
     apply h (x.sieve_extend),
-    { exact is_amalgamation_extend x t₁ ht₁ },
-    { exact is_amalgamation_extend x t₂ ht₂ } }
+    { exact is_amalgamation_sieve_extend x t₁ ht₁ },
+    { exact is_amalgamation_sieve_extend x t₂ ht₂ } }
 end
 
 lemma is_separated_for_top (P : Cᵒᵖ ⥤ Type v) : is_separated_for P (⊤ : presieve X) :=
@@ -331,7 +339,7 @@ We define `P` to be a sheaf for the presieve `R` if every compatible family has 
 amalgamation.
 
 This is the definition of a sheaf for the given presieve given in C2.1.2 of [Elephant], and
-https://ncatlab.org/nlab/show/sheaf#GeneralDefinitionInComponents. Using `sieve_compatible_iff`,
+https://ncatlab.org/nlab/show/sheaf#GeneralDefinitionInComponents. Using `compatible_iff_sieve_compatible`,
 this is equivalent to the definition of a sheaf in [MM92], Chapter III, Section 4.
 -/
 def is_sheaf_for (P : Cᵒᵖ ⥤ Type v) (R : presieve X) : Prop :=
@@ -363,7 +371,7 @@ def nat_trans_equiv_compatible_family :
   begin
     refine ⟨λ Y f hf, _, _⟩,
     { apply α.app (op Y) ⟨_, hf⟩ },
-    { rw sieve_compatible_iff,
+    { rw compatible_iff_sieve_compatible,
       intros Y Z f g hf,
       dsimp,
       rw ← functor_to_types.naturality _ _ α g.op,
@@ -389,35 +397,22 @@ def nat_trans_equiv_compatible_family :
 
 /-- (Implementation). A lemma useful to prove `yoneda_condition_iff_sheaf_condition`. -/
 lemma extension_iff_amalgamation (x : S.functor ⟶ P) (g : yoneda.obj X ⟶ P) :
-  S.functor_inclusion ≫ g = x ↔ (nat_trans_equiv_compatible_family x).1.is_amalgamation (yoneda_equiv g) :=
+  S.functor_inclusion ≫ g = x ↔
+  (nat_trans_equiv_compatible_family x).1.is_amalgamation (yoneda_equiv g) :=
 begin
   change _ ↔ ∀ ⦃Y : C⦄ (f : Y ⟶ X) (h : S f), P.map f.op (yoneda_equiv g) = x.app (op Y) ⟨f, h⟩,
   split,
   { rintro rfl Y f hf,
-    rw yoneda_equiv_nat,
+    rw yoneda_equiv_naturality,
     dsimp,
-    simp },
+    simp },  -- See note [dsimp, simp].
   { intro h,
     ext Y ⟨f, hf⟩,
     have : _ = x.app Y _ := h f hf,
-    rw yoneda_equiv_nat at this,
+    rw yoneda_equiv_naturality at this,
     rw ← this,
     dsimp,
-    simp },
-end
-
--- TODO: MOVE ME BEFORE PR
-lemma equiv.exists_unique_congr {α β : Type*} (p : β → Prop) (e : α ≃ β) :
-  (∃! (y : β), p y) ↔ ∃! (x : α), p (e x) :=
-begin
-  split,
-  { rintro ⟨b, hb₁, hb₂⟩,
-    exact ⟨e.symm b, by simpa using hb₁, λ x hx, by simp [←hb₂ (e x) hx]⟩ },
-  { rintro ⟨a, ha₁, ha₂⟩,
-    refine ⟨e a, ha₁, λ y hy, _⟩,
-    rw ← equiv.symm_apply_eq,
-    apply ha₂,
-    simpa using hy },
+    simp }, -- See note [dsimp, simp].
 end
 
 /--
@@ -434,13 +429,14 @@ begin
   rw subtype.forall,
   apply ball_congr,
   intros x hx,
-  rw ← equiv.exists_unique_congr _ _,
+  rw equiv.exists_unique_congr_left _,
   simp,
 end
 
 /-- `P` is a sheaf for `R` iff it is separated for `R` and there exists an amalgamation. -/
-lemma separated_for_and_exists_amalgamation_iff_sheaf_for :
-  is_separated_for P R ∧ (∀ (x : family_of_elements P R), x.compatible → ∃ t, x.is_amalgamation t) ↔ is_sheaf_for P R :=
+lemma is_separated_for_and_exists_is_amalgamation_iff_sheaf_for :
+  is_separated_for P R ∧ (∀ (x : family_of_elements P R), x.compatible → ∃ t, x.is_amalgamation t) ↔
+  is_sheaf_for P R :=
 begin
   rw [is_separated_for, ←forall_and_distrib],
   apply forall_congr,
@@ -454,14 +450,20 @@ begin
     exact is_compatible_of_exists_amalgamation x ⟨_, ht₂⟩ }
 end
 
-/-- If `P` is separated for `R` and every family has an amalgamation is a sheaf. -/
+/--
+If `P` is separated for `R` and every family has an amalgamation, then `P` is a sheaf for `R`.
+-/
 lemma is_separated_for.is_sheaf_for (t : is_separated_for P R) :
   (∀ (x : family_of_elements P R), x.compatible → ∃ t, x.is_amalgamation t) →
   is_sheaf_for P R :=
 begin
-  rw ← separated_for_and_exists_amalgamation_iff_sheaf_for,
-  apply and.intro t,
+  rw ← is_separated_for_and_exists_is_amalgamation_iff_sheaf_for,
+  exact and.intro t,
 end
+
+/-- If `P` is a sheaf for `R`, it is separated for `R`. -/
+lemma is_sheaf_for.is_separated_for : is_sheaf_for P R → is_separated_for P R :=
+λ q, (is_separated_for_and_exists_is_amalgamation_iff_sheaf_for.2 q).1
 
 /-- Get the amalgamation of the given compatible family, provided we have a sheaf. -/
 noncomputable def is_sheaf_for.amalgamate
@@ -480,23 +482,19 @@ lemma is_sheaf_for.valid_glue
   P.map f.op (t.amalgamate x hx) = x f Hf :=
 t.is_amalgamation hx f Hf
 
-/-- If `P` is a sheaf for `R`, it is separated for `R`. -/
-lemma is_sheaf_for.is_separated_for : is_sheaf_for P R → is_separated_for P R :=
-λ q, (separated_for_and_exists_amalgamation_iff_sheaf_for.2 q).1
-
 /-- C2.1.3 in [Elephant] -/
 lemma is_sheaf_for_iff_generate :
   is_sheaf_for P R ↔ is_sheaf_for P (generate R) :=
 begin
-  rw ← separated_for_and_exists_amalgamation_iff_sheaf_for,
-  rw ← separated_for_and_exists_amalgamation_iff_sheaf_for,
+  rw ← is_separated_for_and_exists_is_amalgamation_iff_sheaf_for,
+  rw ← is_separated_for_and_exists_is_amalgamation_iff_sheaf_for,
   rw ← is_separated_for_iff_generate,
   apply and_congr (iff.refl _),
   split,
   { intros q x hx,
     apply exists_imp_exists _ (q _ (hx.restrict (le_generate R))),
     intros t ht,
-    simpa [hx] using is_amalgamation_extend _ _ ht },
+    simpa [hx] using is_amalgamation_sieve_extend _ _ ht },
   { intros q x hx,
     apply exists_imp_exists _ (q _ (hx.sieve_extend _)),
     intros t ht,
@@ -565,8 +563,8 @@ lemma is_sheaf_for_subsieve_aux (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : pres
   (trans : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄, R f → is_separated_for P (S.pullback f)) :
   is_sheaf_for P R :=
 begin
-  rw ← separated_for_and_exists_amalgamation_iff_sheaf_for,
-  refine ⟨_, _⟩,
+  rw ← is_separated_for_and_exists_is_amalgamation_iff_sheaf_for,
+  split,
   { intros x t₁ t₂ ht₁ ht₂,
     exact hS.is_separated_for _ _ _ (is_amalgamation_restrict h x t₁ ht₁)
                                     (is_amalgamation_restrict h x t₂ ht₂) },
@@ -647,36 +645,6 @@ end
 
 end presieve
 
--- TODO: move me before PR
-lemma type_equalizer {X Y Z : Type v} (f : X ⟶ Y) (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h) :
-  (∀ (y : Y), g y = h y → ∃! (x : X), f x = y) ↔ nonempty (is_limit (fork.of_ι _ w)) :=
-begin
-  split,
-  { intro t,
-    apply nonempty.intro,
-    apply fork.is_limit.mk',
-    intro s,
-    refine ⟨λ i, _, _, _⟩,
-    { apply classical.some (t (s.ι i) _),
-      apply congr_fun s.condition i },
-    { ext i,
-      apply (classical.some_spec (t (s.ι i) _)).1 },
-    { intros m hm,
-      ext i,
-      apply (classical.some_spec (t (s.ι i) _)).2,
-      apply congr_fun hm i } },
-  { rintro ⟨t⟩ y hy,
-    let y' : punit ⟶ Y := λ _, y,
-    have hy' : y' ≫ g = y' ≫ h := funext (λ _, hy),
-    refine ⟨(fork.is_limit.lift' t _ hy').1 ⟨⟩, congr_fun (fork.is_limit.lift' t y' _).2 ⟨⟩, _⟩,
-    intros x' hx',
-    suffices : (λ (_ : punit), x') = (fork.is_limit.lift' t y' hy').1,
-      rw ← this,
-    apply fork.is_limit.hom_ext t,
-    ext ⟨⟩,
-    apply hx'.trans (congr_fun (fork.is_limit.lift' t _ hy').2 ⟨⟩).symm },
-end
-
 namespace equalizer
 
 variables {C : Type v} [small_category C] (P : Cᵒᵖ ⥤ Type v) {X : C} (R : presieve X) (S : sieve X)
@@ -753,23 +721,22 @@ map it to the same point.
 lemma compatible_iff (x : first_obj P S) :
   ((first_obj_eq_family P S).hom x).compatible ↔ first_map P S x = second_map P S x :=
 begin
-  rw presieve.sieve_compatible_iff,
+  rw presieve.compatible_iff_sieve_compatible,
   split,
   { intro t,
     ext ⟨Y, Z, g, f, hf⟩,
     simpa [first_map, second_map] using t _ g hf },
   { intros t Y Z f g hf,
-    have : (first_map P S ≫ pi.π _ (⟨Y, Z, g, f, hf⟩ : Σ (Y Z : C) (g : Z ⟶ Y), {f' // S f'})) x =
-           (second_map P S ≫ pi.π _ (⟨Y, Z, g, f, hf⟩ : Σ (Y Z : C) (g : Z ⟶ Y), {f' // S f'})) x,
-    { dsimp, rw t },
-    simpa [first_map, second_map] using this }
+    rw types.limit_ext_iff at t,
+    simpa [first_map, second_map] using t ⟨Y, Z, g, f, hf⟩ }
 end
 
 /-- `P` is a sheaf for `S`, iff the fork given by `w` is an equalizer. -/
 lemma equalizer_sheaf_condition :
   presieve.is_sheaf_for P S ↔ nonempty (is_limit (fork.of_ι _ (w P S))) :=
 begin
-  rw [← type_equalizer, ← equiv.forall_congr_left (first_obj_eq_family P S).to_equiv.symm],
+  rw [types.type_equalizer_iff_unique,
+      ← equiv.forall_congr_left (first_obj_eq_family P S).to_equiv.symm],
   simp_rw ← compatible_iff,
   simp only [inv_hom_id_apply, iso.to_equiv_symm_fun],
   apply ball_congr,
@@ -839,10 +806,8 @@ begin
     ext ⟨⟨Y, f, hf⟩, Z, g, hg⟩,
     simpa [first_map, second_map] using t hf hg },
   { intros t Y Z f g hf hg,
-    have : (first_map P R ≫ pi.π _ (⟨⟨Y, f, hf⟩, Z, g, hg⟩ : (Σ Y, {f : Y ⟶ X // R f}) × (Σ Z, {g : Z ⟶ X // R g}))) x =
-           (second_map P R ≫ pi.π _ (⟨⟨Y, f, hf⟩, Z, g, hg⟩ : (Σ Y, {f : Y ⟶ X // R f}) × (Σ Z, {g : Z ⟶ X // R g}))) x,
-    { dsimp, rw t },
-    simpa [first_map, second_map] using this }
+    rw types.limit_ext_iff at t,
+    simpa [first_map, second_map] using t ⟨⟨Y, f, hf⟩, Z, g, hg⟩ }
 end
 
 /--
@@ -852,7 +817,7 @@ See https://stacks.math.columbia.edu/tag/00VM.
 lemma sheaf_condition :
   R.is_sheaf_for P ↔ nonempty (is_limit (fork.of_ι _ (w P R))) :=
 begin
-  rw ← type_equalizer,
+  rw types.type_equalizer_iff_unique,
   erw ← equiv.forall_congr_left (first_obj_eq_family P R).to_equiv.symm,
   simp_rw [← compatible_iff, ← iso.to_equiv_fun, equiv.apply_symm_apply],
   apply ball_congr,
@@ -871,5 +836,4 @@ end
 
 end presieve
 end equalizer
-
 end category_theory

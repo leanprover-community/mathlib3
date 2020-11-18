@@ -848,22 +848,22 @@ noncomputable def subset_conditionally_complete_linear_order [inhabited s]
     rintros t c h_bdd hct,
     -- The following would be a more natural way to finish, but gives a "deep recursion" error:
     -- simpa [subset_Sup_of_within (h_Sup t)] using (strict_mono_coe s).monotone.le_cSup_image hct h_bdd,
-    have := (strict_mono_coe s).monotone.le_cSup_image hct h_bdd,
+    have := (subtype.mono_coe s).le_cSup_image hct h_bdd,
     rwa subset_Sup_of_within s (h_Sup ⟨c, hct⟩ h_bdd) at this,
   end,
   cSup_le := begin
     rintros t B ht hB,
-    have := (strict_mono_coe s).monotone.cSup_image_le ht hB,
+    have := (subtype.mono_coe s).cSup_image_le ht hB,
     rwa subset_Sup_of_within s (h_Sup ht ⟨B, hB⟩) at this,
   end,
   le_cInf := begin
     intros t B ht hB,
-    have := (strict_mono_coe s).monotone.le_cInf_image ht hB,
+    have := (subtype.mono_coe s).le_cInf_image ht hB,
     rwa subset_Inf_of_within s (h_Inf ht ⟨B, hB⟩) at this,
   end,
   cInf_le := begin
     rintros t c h_bdd hct,
-    have := (strict_mono_coe s).monotone.cInf_image_le hct h_bdd,
+    have := (subtype.mono_coe s).cInf_image_le hct h_bdd,
     rwa subset_Inf_of_within s (h_Inf ⟨c, hct⟩ h_bdd) at this,
   end,
   ..subset_has_Sup s,
@@ -882,8 +882,8 @@ begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
   obtain ⟨B, hB⟩ : ∃ B, B ∈ upper_bounds t := h_bdd,
   refine hs c.2 B.2 ⟨_, _⟩,
-  { exact (strict_mono_coe s).monotone.le_cSup_image hct ⟨B, hB⟩ },
-  { exact (strict_mono_coe s).monotone.cSup_image_le ⟨c, hct⟩ hB },
+  { exact (subtype.mono_coe s).le_cSup_image hct ⟨B, hB⟩ },
+  { exact (subtype.mono_coe s).cSup_image_le ⟨c, hct⟩ hB },
 end
 
 /-- The `Inf` function on a nonempty `ord_connected` set `s` in a conditionally complete linear
@@ -895,8 +895,8 @@ begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
   obtain ⟨B, hB⟩ : ∃ B, B ∈ lower_bounds t := h_bdd,
   refine hs B.2 c.2 ⟨_, _⟩,
-  { exact (strict_mono_coe s).monotone.le_cInf_image ⟨c, hct⟩ hB },
-  { exact (strict_mono_coe s).monotone.cInf_image_le hct ⟨B, hB⟩ },
+  { exact (subtype.mono_coe s).le_cInf_image ⟨c, hct⟩ hB },
+  { exact (subtype.mono_coe s).cInf_image_le hct ⟨B, hB⟩ },
 end
 
 /-- A nonempty `ord_connected` set in a conditionally complete linear order is naturally a

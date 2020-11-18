@@ -601,6 +601,73 @@ end sqrt
 
 end real
 
+section measurability_real
+
+lemma real.measurable_rpow : measurable (λ p : ℝ × ℝ, p.1 ^ p.2) :=
+begin
+  have h_meas : is_measurable {p : ℝ × ℝ | p.1 = 0} :=
+    (is_closed_singleton.preimage continuous_fst).is_measurable,
+  refine measurable_of_measurable_union_cover {p : ℝ × ℝ | p.1 = 0} {p : ℝ × ℝ | p.1 ≠ 0} h_meas
+    h_meas.compl _ _ _,
+  { intro x, simp [em (x.fst = 0)], },
+  { have h_eq_ite : (λ a : {p : ℝ × ℝ | p.fst = 0}, (a:ℝ×ℝ).fst ^ (a:ℝ×ℝ).snd) =
+      λ a : {p : ℝ × ℝ | p.fst = 0}, ite ((a:ℝ×ℝ).snd = 0) 1 0,
+    { ext1 a,
+      have h_fst_zero : (a:ℝ×ℝ).fst = 0, from a.prop,
+      rw h_fst_zero,
+      split_ifs with h_snd,
+      { rw h_snd,
+        exact real.rpow_zero _, },
+      exact real.zero_rpow h_snd, },
+    rw h_eq_ite,
+    change measurable ((λ x : ℝ, ite (x = 0) (1:ℝ) (0:ℝ))
+      ∘ (λ a : {p : ℝ × ℝ | p.fst = 0}, (a:ℝ×ℝ).snd)),
+    refine measurable.comp _ (measurable_snd.comp measurable_subtype_coe),
+    { refine measurable_of_measurable_on_compl_singleton 0 _,
+      have h_const : set.restrict (λ (x : ℝ), ite (x = 0) (1:ℝ) (0:ℝ)) {x : ℝ | x ≠ 0}
+        = λ x : {x : ℝ | x ≠ 0}, (0:ℝ),
+      { ext1 x,
+        rw set.restrict_eq,
+        change ite (x.val = 0) (1:ℝ) (0:ℝ) = (0:ℝ),
+        split_ifs,
+        { exfalso, exact x.prop h, },
+        refl, },
+      rw h_const,
+      exact measurable_const, }, },
+  { refine continuous.measurable _,
+    rw continuous_iff_continuous_at,
+    intro x,
+    change continuous_at ((λ a : ℝ × ℝ, a.fst ^ a.snd)
+      ∘ (λ a : {p : ℝ × ℝ | p.fst ≠ 0}, (a:ℝ×ℝ))) x,
+    refine continuous_at.comp _ continuous_at_subtype_coe,
+    change continuous_at (λ (p : ℝ × ℝ), p.fst ^ p.snd) x.val,
+    have h_x : x.val = (x.val.fst, x.val.snd), by simp,
+    rw h_x,
+    exact real.continuous_at_rpow_of_ne_zero x.prop _, },
+end
+
+lemma measurable.rpow {α} [measurable_space α] {f g : α → ℝ} (hf : measurable f)
+  (hg : measurable g) :
+  measurable (λ a : α, (f a) ^ (g a)) :=
+begin
+  change measurable ((λ p : ℝ × ℝ, p.1 ^ p.2) ∘ (λ a : α, (f a, g a))),
+  exact real.measurable_rpow.comp (measurable.prod hf hg),
+end
+
+lemma real.measurable_rpow_const {y : ℝ} : measurable (λ x : ℝ, x ^ y) :=
+begin
+  change measurable ((λ p : ℝ × ℝ, p.1 ^ p.2) ∘ (λ x : ℝ, (id x, (λ x, y) x))),
+  refine real.measurable_rpow.comp (measurable.prod measurable_id _),
+  change measurable (λ (a : ℝ), y),
+  exact measurable_const,
+end
+
+lemma measurable.rpow_const {α} [measurable_space α] {f : α → ℝ} (hf : measurable f) {y : ℝ} :
+  measurable (λ a : α, (f a) ^ y) :=
+hf.rpow measurable_const
+
+end measurability_real
+
 section differentiability
 open real
 
@@ -947,6 +1014,41 @@ end
 
 end nnreal
 
+section measurability_nnreal
+
+lemma nnreal.measurable_rpow : measurable (λ p : nnreal × ℝ, p.1 ^ p.2) :=
+begin
+  have h_rw : (λ p : nnreal × ℝ, p.1 ^ p.2) = (λ p : nnreal × ℝ, nnreal.of_real(↑(p.1) ^ p.2)),
+  { ext1 a,
+    rw [←nnreal.coe_rpow, nnreal.of_real_coe], },
+  rw h_rw,
+  exact (measurable_fst.nnreal_coe.rpow measurable_snd).nnreal_of_real,
+end
+
+lemma measurable.nnreal_rpow {α} [measurable_space α] {f : α → nnreal} (hf : measurable f)
+  {g : α → ℝ} (hg : measurable g) :
+  measurable (λ a : α, (f a) ^ (g a)) :=
+begin
+  change measurable ((λ p : nnreal × ℝ, p.1 ^ p.2) ∘ (λ a : α, (f a, g a))),
+  exact nnreal.measurable_rpow.comp (measurable.prod hf hg),
+end
+
+lemma nnreal.measurable_rpow_const {y : ℝ} : measurable (λ a : nnreal, a ^ y) :=
+begin
+  have h_rw : (λ a : nnreal, a ^ y) = (λ a : nnreal, nnreal.of_real(↑a ^ y)),
+  { ext1 a,
+    rw [←nnreal.coe_rpow, nnreal.of_real_coe], },
+  rw h_rw,
+  exact nnreal.measurable_coe.rpow_const.nnreal_of_real,
+end
+
+lemma measurable.nnreal_rpow_const {α} [measurable_space α] {f : α → nnreal} (hf : measurable f)
+  {y : ℝ} :
+  measurable (λ a : α, (f a) ^ y) :=
+hf.nnreal_rpow measurable_const
+
+end measurability_nnreal
+
 open filter
 
 lemma filter.tendsto.nnrpow {α : Type*} {f : filter α} {u : α → ℝ≥0} {v : α → ℝ} {x : ℝ≥0} {y : ℝ}
@@ -1064,6 +1166,21 @@ begin
       simp [h, H, zero_rpow_of_neg, zero_rpow_of_pos, le_of_lt] },
     { simp [coe_rpow_of_ne_zero h, h] } }
 end
+
+lemma rpow_eq_top_of_nonneg (x : ennreal) {y : ℝ} (hy0 : 0 ≤ y) : x ^ y = ⊤ → x = ⊤ :=
+begin
+  rw ennreal.rpow_eq_top_iff,
+  intro h,
+  cases h,
+  { exfalso, rw lt_iff_not_ge at h, exact h.right hy0, },
+  { exact h.left, },
+end
+
+lemma rpow_ne_top_of_nonneg {x : ennreal} {y : ℝ} (hy0 : 0 ≤ y) (h : x ≠ ⊤) : x ^ y ≠ ⊤ :=
+mt (ennreal.rpow_eq_top_of_nonneg x hy0) h
+
+lemma rpow_lt_top_of_nonneg {x : ennreal} {y : ℝ} (hy0 : 0 ≤ y) (h : x ≠ ⊤) : x ^ y < ⊤ :=
+ennreal.lt_top_iff_ne_top.mpr (ennreal.rpow_ne_top_of_nonneg hy0 h)
 
 lemma rpow_add {x : ennreal} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y + z) = x ^ y * x ^ z :=
 begin

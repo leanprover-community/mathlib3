@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.sheaves.sheaf
-import category_theory.limits.preserves.shapes
+import category_theory.limits.preserves.shapes.products
 import category_theory.limits.types
 
 /-!
@@ -59,17 +59,19 @@ def diagram_comp_preserves_limits :
 begin
   fapply nat_iso.of_components,
   rintro ⟨j⟩,
-  exact (preserves_products_iso _ _),
-  exact (preserves_products_iso _ _),
+  exact (preserves.preserves_products_iso _ _),
+  exact (preserves.preserves_products_iso _ _),
   rintros ⟨⟩ ⟨⟩ ⟨⟩,
   { ext, simp, dsimp, simp, }, -- non-terminal `simp`, but `squeeze_simp` fails
   { ext,
-    simp only [limit.lift_π, functor.comp_map, parallel_pair_map_left, fan.mk_π_app,
-      map_lift_comp_preserves_products_iso_hom, functor.map_comp, category.assoc],
+    simp only [limit.lift_π, functor.comp_map, map_lift_pi_comparison, fan.mk_π_app,
+               preserves.preserves_products_iso_hom, parallel_pair_map_left, functor.map_comp,
+               category.assoc],
     dsimp, simp, },
   { ext,
     simp only [limit.lift_π, functor.comp_map, parallel_pair_map_right, fan.mk_π_app,
-      map_lift_comp_preserves_products_iso_hom, functor.map_comp, category.assoc],
+               preserves.preserves_products_iso_hom, map_lift_pi_comparison, functor.map_comp,
+               category.assoc],
     dsimp, simp, },
  { ext, simp, dsimp, simp, },
 end
@@ -182,7 +184,7 @@ begin
         ext1 j,
         dsimp,
         simp only [category.assoc, ←functor.map_comp_assoc, equalizer.lift_ι,
-          map_lift_comp_preserves_products_iso_hom_assoc],
+          map_lift_pi_comparison_assoc],
         dsimp [res], simp,
       end,
       -- conclude that it is an isomorphism,

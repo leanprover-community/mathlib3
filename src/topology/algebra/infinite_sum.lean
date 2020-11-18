@@ -769,12 +769,12 @@ summable_iff_vanishing.2 $
           finset.sum_congr rfl (assume b hb, (finset.mem_filter.1 hb).2.symm)
         ... = ∑ b in t, g b :
         begin
-          refine finset.sum_subset (finset.filter_subset _) _,
+          refine finset.sum_subset (finset.filter_subset _ _) _,
           assume b hbt hb,
           simp only [(∉), finset.mem_filter, and_iff_right hbt] at hb,
           exact (h b).resolve_right hb
         end,
-    eq ▸ hs _ $ finset.disjoint_of_subset_left (finset.filter_subset _) ht⟩
+    eq ▸ hs _ $ finset.disjoint_of_subset_left (finset.filter_subset _ _) ht⟩
 
 protected lemma summable.indicator (hf : summable f) (s : set β) :
   summable (s.indicator f) :=

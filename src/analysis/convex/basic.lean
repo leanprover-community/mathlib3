@@ -977,7 +977,7 @@ end
 
 lemma finset.center_mass_filter_ne_zero :
   (t.filter (λ i, w i ≠ 0)).center_mass w z = t.center_mass w z :=
-finset.center_mass_subset z (filter_subset _) $ λ i hit hit',
+finset.center_mass_subset z (filter_subset _ _) $ λ i hit hit',
 by simpa only [hit, mem_filter, true_and, ne.def, not_not] using hit'
 
 variable {z}

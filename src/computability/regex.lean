@@ -211,4 +211,3 @@ using_well_founded {
 }
 
 end regex
-#lint

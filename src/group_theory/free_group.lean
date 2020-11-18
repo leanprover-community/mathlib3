@@ -361,7 +361,7 @@ calc (mk L₁ = mk L₂) ↔ eqv_gen red.step L₁ L₂ : iff.intro (quot.exact 
   ... ↔ join red L₁ L₂ : eqv_gen_step_iff_join_red
 
 /-- The canonical injection from the type to the free group is an injection. -/
-theorem of_injective {x y : α} : function.injective (@of α) :=
+theorem of_injective : function.injective (@of α) :=
 λ _ _ H, let ⟨L₁, hx, hy⟩ := red.exact.1 H in
   by simp [red.singleton_iff] at hx hy; cc
 

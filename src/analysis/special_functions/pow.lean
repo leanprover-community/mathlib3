@@ -1128,6 +1128,18 @@ begin
   { exact coe_rpow_of_ne_zero hx _ }
 end
 
+lemma coe_rpow_def {p : nnreal × ℝ} :
+  (p.1 : ennreal) ^ p.2 = ite (p.1=0 ∧ p.2<0) ⊤ ↑(p.1 ^ p.2) :=
+begin
+  split_ifs,
+  { rw [h.left, ennreal.coe_zero, ennreal.zero_rpow_of_neg h.right], },
+  rw auto.not_and_eq at h,
+  cases h,
+    { rw coe_rpow_of_ne_zero h, },
+    { push_neg at h,
+      rw coe_rpow_of_nonneg _ h, },
+end
+
 @[simp] lemma rpow_one (x : ennreal) : x ^ (1 : ℝ) = x :=
 by cases x; dsimp only [(^), rpow]; simp [zero_lt_one, not_lt_of_le zero_le_one]
 
@@ -1438,47 +1450,13 @@ section measurability_ennreal
 
 lemma ennreal.measurable_rpow : measurable (λ p : ennreal × ℝ, p.1 ^ p.2) :=
 begin
-  -- We have three cases:
-  --   p.fst = ⊤ ,
-  --   p.fst = 0 ,
-  --   p.fst ≠ ⊤ ∧ p.fst ≠ 0 .
-  -- The first two cases reduce to measurablility of piecewise constant functions, the third one
-  -- uses the nnreal version of this result.
   refine ennreal.measurable_of_measurable_nnreal_prod _ _,
   { change measurable (λ (p : ℝ≥0 × ℝ), ↑(p.fst) ^  p.snd),
-    have h_meas : is_measurable {p : nnreal × ℝ | p.1 = 0},
-    from (is_closed_singleton.preimage continuous_fst).is_measurable,
-    refine measurable_of_measurable_union_cover {p : nnreal × ℝ | p.1 = 0}
-      {p : nnreal × ℝ | p.1 ≠ 0} h_meas h_meas.compl _ _ _,
-    { intro x, simp [em (x.fst = 0)], },
-    { -- case p.fst = 0
-      change measurable (λ (a : {p : ℝ≥0 × ℝ | p.fst = 0}), (a.val.fst : ennreal) ^ a.val.snd),
-      have h_eq : (λ (a : {p : ℝ≥0 × ℝ | p.fst = 0}), (a.val.fst : ennreal) ^ a.val.snd)
-        = (λ (a : {p : ℝ≥0 × ℝ | p.fst = 0}), ite (0 < a.val.snd) 0 (ite (a.val.snd = 0) 1 ⊤)),
-      { ext1 a,
-        have h_zero : a.val.fst = 0, from a.prop,
-        rw [h_zero, ennreal.coe_zero, ennreal.zero_rpow_def], },
-      rw h_eq,
-      change measurable ((λ x : ℝ, ite (0 < x) 0 (ite (x = 0) (1:ennreal) ⊤))
-        ∘ (λ a : nnreal × ℝ, a.snd)
-        ∘ (λ a : {p : ℝ≥0 × ℝ | p.fst = 0}, a.val)),
-      refine measurable.comp (measurable.ite is_measurable_Ioi measurable_const _) _,
-      exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const,
-      exact measurable_snd.comp measurable_subtype_coe, },
-    { -- In that case, we can reduce to nnreal.
-      change measurable (λ a : {p : nnreal × ℝ | p.fst ≠ 0}, ↑a.val.fst ^ a.val.snd),
-      have h_eq : (λ a : {p : ℝ≥0 × ℝ | p.fst ≠ 0}, (a.val.fst : ennreal) ^ a.val.snd)
-        = (λ a : {p : ℝ≥0 × ℝ | p.fst ≠ 0}, ↑(a.val.fst ^ a.val.snd)),
-      { ext1 a,
-        have h_zero : a.val.fst ≠ 0, from a.prop,
-        rw ←ennreal.coe_rpow_of_ne_zero h_zero, },
-      rw h_eq,
-      refine measurable.ennreal_coe _,
-      change measurable ((λ p : nnreal × ℝ, p.fst ^ p.snd)
-        ∘ (λ (a : {p : nnreal × ℝ | p.fst ≠ 0}), a.val)),
-      exact nnreal.measurable_rpow.comp measurable_subtype_coe, }, },
-  { -- case p.fst = ⊤
-    change measurable (λ (x : ℝ), (⊤ : ennreal) ^ x),
+    simp_rw ennreal.coe_rpow_def,
+    refine measurable.ite _ measurable_const nnreal.measurable_rpow.ennreal_coe,
+    exact is_measurable.inter (measurable_fst (is_measurable_singleton 0))
+      (measurable_snd is_measurable_Iio), },
+  { change measurable (λ (x : ℝ), (⊤ : ennreal) ^ x),
     simp_rw ennreal.top_rpow_def,
     refine measurable.ite is_measurable_Ioi measurable_const _,
     exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const, },

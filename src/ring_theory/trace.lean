@@ -42,7 +42,7 @@ variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
 variables {A: Type*} [integral_domain A] [algebra A S]
 variables [algebra R S] [algebra R T]
 variables {K L : Type*} [field K] [field L] [algebra K L]
-variables {ι : Type w} [fintype ι] {b : ι → S} (hb : is_basis R b)
+variables {ι : Type w} [fintype ι]
 
 open finite_dimensional
 open intermediate_field
@@ -53,6 +53,8 @@ open_locale big_operators
 open_locale matrix
 
 section power_basis
+
+variables {b : ι → S} (hb : is_basis R b)
 
 open algebra field polynomial
 
@@ -482,6 +484,8 @@ end power_basis
 
 namespace algebra
 
+variables {b : ι → S} (hb : is_basis R b)
+
 variables (R S)
 
 /-- The trace of an element `s` of an `R`-algebra is the trace of `(*) s`,
@@ -580,6 +584,10 @@ lemma matrix.trace_apply (A : matrix ι ι S) : matrix.trace ι R S A = ∑ i, A
 end trace_form
 
 end algebra
+
+section trace_eq_sum_roots
+
+variables {b : ι → S} (hb : is_basis R b)
 
 open intermediate_field.adjoin_simple
 open algebra
@@ -1426,7 +1434,7 @@ by { ext, simp }
   (M.map f).det = f M.det :=
 by { unfold det, simp only [f.map_sum, f.map_mul, f.map_prod, f.map_int_cast, map_apply] }
 
-lemma det_trace_form_ne_zero [is_separable K L] :
+lemma det_trace_form_ne_zero' [is_separable K L] :
   det (bilin_form_equiv_matrix pb.is_basis (trace_form K L)) ≠ 0 :=
 begin
   suffices : algebra_map K (algebraic_closure K)
@@ -1446,27 +1454,29 @@ begin
     exact mt (λ hij, pb.conjugates_injective hF hij) (ne_of_lt (finset.mem_filter.mp hj).2).symm }
 end
 
+lemma det_trace_form_ne_zero  [is_separable K L] {b : ι → L} (hb : is_basis K b) :
+  det (bilin_form_equiv_matrix hb (trace_form K L)) ≠ 0 :=
+begin
+  let pb : power_basis K L := sorry,
+  have : bilin_form_equiv_matrix hb (trace_form K L) =
+    (hb.to_matrix (λ (i : fin pb.dim), pb.gen ^ (i : ℕ))) ⬝
+    bilin_form_equiv_matrix pb.is_basis (trace_form K L) ⬝
+    (pb.is_basis.to_matrix b) := sorry,
+  rw [this, det_conjugate_aux],
+  { exact det_trace_form_ne_zero' pb },
+  sorry, -- { library_search }
+  sorry,
+end
+
 end conjugates
+
+end trace_eq_sum_roots
 
 section dual_basis
 
-/-- If `pb` is a power basis for the finite separable field extension `L / K`,
-`dual_basis pb` is another basis such that
-`trace_form (pb.gen ^ i) (dual_basis pb j) = if i = j then 1 else 0`. -/
-noncomputable def dual_basis (pb : power_basis K L) :
-  fin pb.dim → L :=
-λ i, matrix.to_lin pb.is_basis pb.is_basis
-  (bilin_form_equiv_matrix pb.is_basis (trace_form K L))⁻¹ (pb.gen ^ (i : ℕ))
+open algebra
 
-lemma dual_basis_apply (pb : power_basis K L) (i : fin pb.dim) :
-  dual_basis pb i = matrix.to_lin pb.is_basis pb.is_basis
-    (bilin_form_equiv_matrix pb.is_basis (trace_form K L))⁻¹ (pb.gen ^ (i : ℕ)) :=
-rfl
-
-#check trace_form_to_matrix_power_basis
-#check is_unit
-#check bilin_form_equiv_matrix_apply
-#check bilin_form.comp_right_apply
+variables [decidable_eq ι] {b : ι → L} (hb : is_basis K b)
 
 lemma bilin_form.congr_comp {V V' : Type*} [add_comm_group V] [vector_space K V]
   [add_comm_group V'] [vector_space K V'] (e : V ≃ₗ[K] V')
@@ -1502,38 +1512,52 @@ lemma bilin_form_equiv_matrix_mul {V : Type*} [add_comm_group V] [vector_space K
   bilin_form_equiv_matrix hb B ⬝ A = bilin_form_equiv_matrix hb (B.comp_right (to_lin hb hb A)) :=
 by rw [bilin_form_equiv_matrix_comp_right, to_matrix_to_lin]
 
-lemma trace_form_dual_basis_power_basis [is_separable K L] (pb : power_basis K L) (i j : fin pb.dim) :
-  trace_form K L (pb.gen ^ (i : ℕ)) (dual_basis pb j) = (1 : matrix _ _ K) i j :=
-calc trace_form K L (pb.gen ^ (i : ℕ)) (dual_basis pb j)
-    = ((bilin_form_equiv_matrix pb.is_basis (trace_form K L)) ⬝ (bilin_form_equiv_matrix pb.is_basis (trace_form K L))⁻¹) i j :
-      by simp_rw [dual_basis, ← bilin_form.comp_right_apply, bilin_form_equiv_matrix_mul pb.is_basis, bilin_form_equiv_matrix_apply]
-... = (1 : matrix _ _ K) i j : by rw matrix.mul_nonsing_inv _ (is_unit.mk0 _ (det_trace_form_ne_zero pb))
+include hb
 
-lemma trace_dual_basis_mul_power_basis [is_separable K L] (pb : power_basis K L) (i j : fin pb.dim) :
-  algebra.trace K L (pb.gen ^ (i : ℕ) * dual_basis pb j) = if i = j then 1 else 0 :=
-trace_form_dual_basis_power_basis pb i j
+/-- If `pb` is a power basis for the finite separable field extension `L / K`,
+`dual_basis pb` is another basis such that
+`trace_form (pb.gen ^ i) (dual_basis pb j) = if i = j then 1 else 0`. -/
+noncomputable def dual_basis : ι → L :=
+λ i, matrix.to_lin hb hb
+  (bilin_form_equiv_matrix hb (trace_form K L))⁻¹ (b i)
 
-lemma is_basis_dual_basis [is_separable K L] (pb : power_basis K L) :
-  is_basis K (dual_basis pb) :=
+lemma dual_basis_apply (i : ι) :
+  dual_basis hb i = matrix.to_lin hb hb
+    (bilin_form_equiv_matrix hb (trace_form K L))⁻¹ (b i) :=
+rfl
+
+lemma trace_form_dual_basis_power_basis [is_separable K L] (i j : ι) :
+  trace_form K L (b i) (dual_basis hb j) = (1 : matrix _ _ K) i j :=
+calc trace_form K L (b i) (dual_basis hb j)
+    = ((bilin_form_equiv_matrix hb (trace_form K L)) ⬝ (bilin_form_equiv_matrix hb (trace_form K L))⁻¹) i j :
+      by simp_rw [dual_basis, ← bilin_form.comp_right_apply, bilin_form_equiv_matrix_mul hb, bilin_form_equiv_matrix_apply]
+... = (1 : matrix _ _ K) i j : by rw matrix.mul_nonsing_inv _ (is_unit.mk0 _ (det_trace_form_ne_zero hb))
+
+lemma trace_dual_basis_mul_power_basis [is_separable K L] (i j : ι) :
+  algebra.trace K L (b i * dual_basis hb j) = if i = j then 1 else 0 :=
+trace_form_dual_basis_power_basis hb i j
+
+lemma is_basis_dual_basis [is_separable K L] :
+  is_basis K (dual_basis hb) :=
   let e : L ≃ₗ[K] L := linear_equiv.of_bijective
-    (matrix.to_lin pb.is_basis pb.is_basis (bilin_form_equiv_matrix pb.is_basis (trace_form K L))⁻¹)
+    (matrix.to_lin hb hb (bilin_form_equiv_matrix hb (trace_form K L))⁻¹)
     sorry sorry
     in
-@linear_equiv.is_basis (fin pb.dim) _ _ _ _ _ _ _ _ _ pb.is_basis e
+@linear_equiv.is_basis ι _ _ _ _ _ _ _ _ _ hb e
 
-lemma trace_gen_pow_mul [is_separable K L] (pb : power_basis K L) (x : L) (i : fin pb.dim) :
-  algebra.trace K L (pb.gen ^ (i : ℕ) * x) = (is_basis_dual_basis pb).repr x i :=
+lemma trace_gen_pow_mul [is_separable K L] (x : L) (i : ι) :
+  algebra.trace K L (b i * x) = (is_basis_dual_basis hb).repr x i :=
 begin
-  calc algebra.trace K L (pb.gen ^ (i : ℕ) * x)
-      = algebra.trace K L (pb.gen ^ (i : ℕ) * (∑ j, (is_basis_dual_basis pb).repr x j • dual_basis pb j)) :
+  calc algebra.trace K L (b i * x)
+      = algebra.trace K L (b i * (∑ j, (is_basis_dual_basis hb).repr x j • dual_basis hb j)) :
     by rw sum_repr
-  ... = algebra.trace K L (∑ j, (is_basis_dual_basis pb).repr x j • (pb.gen ^ (i : ℕ) * dual_basis pb j)) :
+  ... = algebra.trace K L (∑ j, (is_basis_dual_basis hb).repr x j • (b i * dual_basis hb j)) :
     by simp_rw [finset.mul_sum, mul_smul_comm]
-  ... = ∑ j, (is_basis_dual_basis pb).repr x j • algebra.trace K L (pb.gen ^ (i : ℕ) * dual_basis pb j) :
+  ... = ∑ j, (is_basis_dual_basis hb).repr x j • algebra.trace K L (b i * dual_basis hb j) :
     by simp_rw [linear_map.map_sum, linear_map.map_smul]
-  ... = (is_basis_dual_basis pb).repr x i * algebra.trace K L (pb.gen ^ (i : ℕ) * dual_basis pb i) :
+  ... = (is_basis_dual_basis hb).repr x i * algebra.trace K L (b i * dual_basis hb i) :
     finset.sum_eq_single _ _ _
-  ... = (is_basis_dual_basis pb).repr x i : by rw [trace_dual_basis_mul_power_basis, if_pos rfl, mul_one],
+  ... = (is_basis_dual_basis hb).repr x i : by rw [trace_dual_basis_mul_power_basis, if_pos rfl, mul_one],
   { intros j _ ne,
     rw [trace_dual_basis_mul_power_basis, if_neg ne.symm, smul_zero] },
   { intro not_mem_univ,

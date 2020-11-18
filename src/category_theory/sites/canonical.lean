@@ -23,6 +23,13 @@ variables {P : Cᵒᵖ ⥤ Type v}
 variables {X Y : C} {S : sieve X} {R : presieve X}
 variables (J J₂ : grothendieck_topology C)
 
+/--
+To show `P` is a sheaf for the binding of `U` with `B`, it suffices to show that `P` is a sheaf for
+`U`, that `P` is a sheaf for each sieve in `B`, and that it is separated for any pullback of any
+sieve in `B`.
+
+This is mostly an auxiliary lemma to show `is_sheaf_for_trans`.
+-/
 lemma is_sheaf_for_bind (P : Cᵒᵖ ⥤ Type v) (U : sieve X)
   (B : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, U f → sieve Y)
   (hU : presieve.is_sheaf_for P U)
@@ -76,6 +83,14 @@ begin
         hU.valid_glue _ _ hf, ht hf _ hg] }
 end
 
+/--
+Given two sieves `R` and `S`, to show that `P` is a sheaf for `S`, we can show:
+* `P` is a sheaf for `R`
+* `P` is a sheaf for the pullback of `S` along any arrow in `R`
+* `P` is separated for the pullback of `R` along any arrow in `S`.
+
+This is mostly an auxiliary lemma to construct `finest_topology`.
+-/
 lemma is_sheaf_for_trans (P : Cᵒᵖ ⥤ Type v) (R S : sieve X)
   (hR : presieve.is_sheaf_for P R)
   (hR' : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : S f), presieve.is_separated_for P (R.pullback f))
@@ -105,7 +120,7 @@ begin
     apply hR' hf },
 end
 
-/-- Construct the finest Grothendieck topology for which the given presheaf is a sheaf. -/
+/-- Construct the finest (largest) Grothendieck topology for which the given presheaf is a sheaf. -/
 def finest_topology_single (P : Cᵒᵖ ⥤ Type v) : grothendieck_topology C :=
 { sieves := λ X S, ∀ Y (f : Y ⟶ X), presieve.is_sheaf_for P (S.pullback f),
   top_mem' := λ X Y f,
@@ -120,6 +135,8 @@ def finest_topology_single (P : Cᵒᵖ ⥤ Type v) : grothendieck_topology C :=
   end,
   transitive' := λ X S hS R hR Z g,
   begin
+    -- This is the hard part of the construction, showing that the given set of sieves satisfies
+    -- the transitivity axiom.
     refine is_sheaf_for_trans P (pullback g S) _ (hS Z g) _ _,
     { intros Y f hf,
       rw ← pullback_comp,
@@ -130,10 +147,13 @@ def finest_topology_single (P : Cᵒᵖ ⥤ Type v) : grothendieck_topology C :=
       apply this },
   end }
 
-/-- Construct the finest Grothendieck topology for which the given presheaves are sheaves. -/
+/--
+Construct the finest (largest) Grothendieck topology for which all the given presheaves are sheaves.
+-/
 def finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) : grothendieck_topology C :=
 Inf (finest_topology_single '' Ps)
 
+/-- Check that if `P ∈ Ps`, then `P` is indeed a sheaf for the finest topology on `Ps`. -/
 lemma sheaf_for_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) :
   P ∈ Ps → presieve.is_sheaf (finest_topology Ps) P :=
 begin
@@ -141,6 +161,9 @@ begin
   simpa using hS _ ⟨⟨_, _, ⟨_, h, rfl⟩, rfl⟩, rfl⟩ _ (𝟙 _),
 end
 
+/--
+Check that if each `P ∈ Ps` is a sheaf for `J`, then `J` is a subtopology of `finest_topology Ps`.
+-/
 lemma is_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) (J : grothendieck_topology C)
   (hJ : ∀ P ∈ Ps, presieve.is_sheaf J P) : J ≤ finest_topology Ps :=
 begin
@@ -150,14 +173,49 @@ begin
   exact hJ P hP (S.pullback f) (J.pullback_stable f hS),
 end
 
-def effective_epimorphic (S : sieve X) : Prop :=
-∀ (Z : C), presieve.is_sheaf_for (yoneda.obj Z) S
-
-def universally_effective_epimorphic (S : sieve X) : Prop :=
-∀ ⦃Y⦄ (f : Y ⟶ X), effective_epimorphic (S.pullback f)
-
-def canonical_topology : grothendieck_topology C :=
+/--
+The `canonical_topology` on a category is the finest (largest) topology for which every
+representable presheaf is a sheaf.
+-/
+-- TODO: Show that if `P` is a sheaf for this topology, then `P` is representable
+def canonical_topology (C : Type u) [category.{v} C] : grothendieck_topology C :=
 finest_topology (set.range yoneda.obj)
+
+/-- `yoneda.obj X` is a sheaf for the canonical topology. -/
+lemma yoneda_obj_is_sheaf (X : C) : presieve.is_sheaf (canonical_topology C) (yoneda.obj X) :=
+λ Y S hS, sheaf_for_finest_topology _ (set.mem_range_self _) _ hS
+
+/-- A representable functor is a sheaf for the canonical topology. -/
+lemma representable_is_sheaf (P : Cᵒᵖ ⥤ Type v) [representable P] :
+  presieve.is_sheaf (canonical_topology C) P :=
+presieve.is_sheaf_iso (canonical_topology C) representable.w (yoneda_obj_is_sheaf _)
+
+/--
+A subcanonical topology is a topology which is smaller than the canonical topology.
+Equivalently, a topology is subcanonical iff every representable is a sheaf.
+-/
+def subcanonical (J : grothendieck_topology C) : Prop :=
+J ≤ canonical_topology C
+
+namespace subcanonical
+
+/-- If every functor `yoneda.obj X` is a `J`-sheaf, then `J` is subcanonical. -/
+lemma of_yoneda_is_sheaf (J : grothendieck_topology C)
+  (h : ∀ X, presieve.is_sheaf J (yoneda.obj X)) :
+  subcanonical J :=
+begin
+  apply is_finest_topology,
+  rintro P ⟨X, rfl⟩,
+  apply h,
+end
+
+/-- If `J` is subcanonical, then any representable is a `J`-sheaf. -/
+lemma representable_is_sheaf {J : grothendieck_topology C} (hJ : subcanonical J)
+  (P : Cᵒᵖ ⥤ Type v) [representable P] :
+  presieve.is_sheaf J P :=
+presieve.is_sheaf_for_coarser_topology _ hJ (representable_is_sheaf P)
+
+end subcanonical
 
 end sheaf
 

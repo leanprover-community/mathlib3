@@ -16,8 +16,6 @@ determines whether a string (implemented as a list over an arbritary alphabet) i
 by evalulating the string over every posible path.
 We show that DFA's are equivalent to NFA's however the construction from NFA to DFA uses an
 expionential number of states.
-ε-NFA's are an extention of NFA's which allow for ε-transitions, where you may change state without
-any input. Again we show these are equivalent to DFA's.
 -/
 
 
@@ -39,8 +37,7 @@ variables {α : Type u} (M : NFA α)
 
 instance NFA_inhabited : inhabited (NFA α) := ⟨ NFA.mk pempty pempty.elim ∅ ∅ ⟩
 
-instance dec  := M.state_dec
-
+instance dec := M.state_dec
 instance fin := M.state_fintype
 
 /-- `M.step_set S a` is the union of `M.step s a` for all `s ∈ S` -/

@@ -448,7 +448,7 @@ begin
   exact_mod_cast (enat.add_one_le_of_lt hq)
 end
 
-lemma square_free_of_separable {p : polynomial F} (hp : p ≠ 0)  (hsep : separable p) :
+lemma squarefree_of_separable {p : polynomial F} (hp : p ≠ 0)  (hsep : separable p) :
   squarefree p :=
 begin
   apply (multiplicity.squarefree_iff_multiplicity_le_one p).2,

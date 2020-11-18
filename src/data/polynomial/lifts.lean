@@ -8,7 +8,6 @@ import data.polynomial.algebra_map
 import algebra.algebra.subalgebra
 import algebra.polynomial.big_operators
 import data.polynomial.erase_lead
-import data.polynomial.degree.basic
 
 /-!
 # Polynomials that lift

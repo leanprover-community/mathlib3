@@ -28,7 +28,6 @@ lemma sum_two_squares_of_two_mul_sum_two_squares {m x y : ℤ} (h : 2 * m =  x^2
 have even (x^2 + y^2), by simp [h.symm, even_mul],
 have hxaddy : even (x + y), by simpa [pow_two] with parity_simps,
 have hxsuby : even (x - y), by simpa [pow_two] with parity_simps,
-have (x^2 + y^2) % 2 = 0, by simp [h.symm],
 (mul_right_inj' (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
 calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 ... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :

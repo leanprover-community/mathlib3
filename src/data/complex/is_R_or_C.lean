@@ -61,9 +61,6 @@ local postfix `†`:100 := @is_R_or_C.conj K _
 lemma of_real_alg (x : ℝ) : 𝓚 x = x • (1 : K) :=
 algebra.algebra_map_eq_smul_one x
 
-lemma algebra_map_eq_of_real (x : ℝ) : algebra_map ℝ K x = of_real x :=
-by rw [of_real_alg, algebra.algebra_map_eq_smul_one]
-
 @[simp] lemma re_add_im (z : K) : 𝓚 (re z) + 𝓚 (im z) * I = z := is_R_or_C.re_add_im_ax z
 @[simp] lemma of_real_re : ∀ r : ℝ, re (𝓚 r) = r := is_R_or_C.of_real_re_ax
 @[simp] lemma of_real_im : ∀ r : ℝ, im (𝓚 r) = 0 := is_R_or_C.of_real_im_ax

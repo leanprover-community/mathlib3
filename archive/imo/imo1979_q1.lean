@@ -46,12 +46,12 @@ instance : fact (nat.prime 1979) := by norm_num
 namespace imo1979q1
 
 -- some constants
-@[reducible] def a : ℚ := ∑ n in range 1320, (-1)^(n + 1) / n
-@[reducible] def b : ℚ := ∑ n in range 1320, 1 / n
-@[reducible] def c : ℚ := ∑ n in range 660, 1 / n
-@[reducible] def d : ℚ := ∑ n in Ico 660 1320, 1 / n
-@[reducible] def e : ℚ := ∑ n in range 330, 1 / (n + 660)
-@[reducible] def f : ℚ := ∑ n in range 330, 1 / (1319 - n)
+@[reducible, nolint fails_quickly] def a : ℚ := ∑ n in range 1320, (-1)^(n + 1) / n
+@[reducible, nolint fails_quickly] def b : ℚ := ∑ n in range 1320, 1 / n
+@[reducible, nolint fails_quickly] def c : ℚ := ∑ n in range 660, 1 / n
+@[reducible, nolint fails_quickly] def d : ℚ := ∑ n in Ico 660 1320, 1 / n
+@[reducible, nolint fails_quickly] def e : ℚ := ∑ n in range 330, 1 / (n + 660)
+@[reducible, nolint fails_quickly] def f : ℚ := ∑ n in range 330, 1 / (1319 - n)
 
 /-
   The goal is equivalent to showing that the 1979-adic valuation of a is positive.
@@ -67,33 +67,17 @@ namespace imo1979q1
   valuation of e + f is positive.
 -/
 
-@[reducible] def double : ℕ ↪ ℕ := ⟨λ n, 2 * n, mul_right_injective dec_trivial⟩
+def double : ℕ ↪ ℕ := ⟨λ n, 2 * n, mul_right_injective dec_trivial⟩
 
-@[simp] theorem neg_one_square {α : Type*} [ring α] : (-1 : α)^2 = 1 := by simp
-#lint
-#exit
-theorem neg_one_pow_of_even {α : Type*} [ring α] {n : ℕ} : even n → (-1 : α)^n = 1 :=
-begin
-  rintro ⟨c, rfl⟩,
-  rw [pow_mul]
-  convert one_pow c,
-  simp only [one_pow, neg_square],
-end
-#exit
 lemma lemma1 : b - a = c :=
   calc b - a = ∑ n in range 1320, (1/n - (-1)^(n+1)/n) : by rw sum_sub_distrib
     ... = ∑ n in range 1320, ite (even n) (2/n) 0 : by {
       apply sum_congr rfl,
-      rintros x hx,
-      rw neg_one_pow_eq_one_iff_even,
-      rw [pow_add, pow_one, mul_neg_one, neg_div, sub_neg_eq_add, ← _root_.add_div],
+      rintros x -,
+      rw [pow_succ, neg_one_mul, neg_div, sub_neg_eq_add, div_add_div_same],
       split_ifs,
-      { rcases h with ⟨n, rfl⟩,
-        rw [pow_mul, pow_two],
-        simp, norm_num },
-      { rcases odd_iff_not_even.2 h with ⟨y, rfl⟩,
-        rw [pow_add, pow_one, pow_mul, neg_one_pow_eq_pow_mod_two],
-      } }
+      { rw [neg_one_pow_of_even h], norm_num },
+      { rw [neg_one_pow_of_odd (odd_iff_not_even.2 h)], simp } }
     ... = ∑ (x : ℕ) in filter even (range 1320), 2 / x : by rw sum_filter
     ... = ∑ (x : ℕ) in map double (range 660), 2 / x : by {
       apply sum_congr _ (λ _ _, rfl),
@@ -111,41 +95,28 @@ lemma lemma1 : b - a = c :=
         linarith } }
     ... = c : by {
       rw sum_map (range 660) double (λ n, (2 : ℚ) / n),
-      apply sum_congr, refl, -- is there a better way?
-      intros x hx,
-      show (2 : ℚ) / (2 * x : ℕ) = _,
-      push_cast,
-      change (2 : ℚ) / (2 * x) = 1 / x,
-      generalize h : (x : ℚ) = q,
-      by_cases hq : q = 0,
-        rw hq, ring,
-      field_simp [hq] }
+      apply sum_congr rfl,
+      rintro x -,
+      suffices : (2 : ℚ) / (2 * x) = 1 / x,
+      { assumption_mod_cast },
+      by_cases hq : (x : ℚ) = 0,
+      { rw hq, simp },
+      { field_simp [hq] } }
 
 lemma lemma2 : c + d = b :=
 begin
   unfold c d b,
   simp only [← Ico.zero_bot],
-  rw ← sum_union,
-  { apply sum_congr,
-    { ext x,
-      suffices : x < 660 ∨ 660 ≤ x ∧ x < 1320 ↔ x < 1320,
-        simpa,
-      split,
-      { rintro (a | ⟨b, c⟩); linarith },
-      { intro hx,
-        cases lt_or_le x 660,
-        { left, assumption },
-        { right, cc } } },
-    { intros, refl } },
-  apply Ico.disjoint_consecutive
+  rw ← sum_union (Ico.disjoint_consecutive _ _ _),
+  refine sum_congr _ (by {intros, refl}),
+  apply Ico.union_consecutive;
+  linarith,
 end
 
 lemma corollary3 : a = d :=
 begin
-  apply add_left_cancel, swap, exact c,
-  rw lemma2,
-  rw ← lemma1,
-  apply sub_add_cancel,
+  apply @add_left_cancel _ _ c,
+  rw [lemma2, ← lemma1, sub_add_cancel],
 end
 
 lemma lemma4 : e + f = d :=
@@ -154,8 +125,7 @@ begin
   rw (Ico.zero_bot 330).symm,
   have h : ∑ (n : ℕ) in Ico 0 330, (1 : ℚ) / (n + 660) =
     ∑ (m : ℕ) in Ico 660 990, (1 : ℚ) / m,
-  {
-    rw ←Ico.image_add 0 330 660,
+  { rw ←Ico.image_add 0 330 660,
     rw sum_image,
     { apply sum_congr, refl,
       intros, simp [add_comm] },
@@ -168,8 +138,7 @@ begin
   { have h2 : image (λ (j : ℕ), 1319 - j) (Ico 0 330) =
       Ico (990) (1320),
     { rw Ico.image_const_sub, refl, linarith },
-    rw ← h2,
-    rw sum_image,
+    rw [← h2, sum_image],
     { apply sum_congr, refl,
       intros,
       apply congr_arg,

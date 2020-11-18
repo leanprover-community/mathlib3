@@ -51,25 +51,13 @@ lemma comp_def (i : I) (X Y Z : C i) (f : X ⟶ Y) (g : Y ⟶ Z) :
 rfl
 
 lemma assoc : ∀ (X Y Z W : Σ i, C i) (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W), (f ≫ g) ≫ h = f ≫ g ≫ h
-| _ _ _ _ (mk f) (mk g) (mk h) :=
-  begin
-    change mk ((f ≫ g) ≫ h) = mk (f ≫ g ≫ h),
-    rw [category.assoc],
-  end
+| _ _ _ _ (mk f) (mk g) (mk h) := congr_arg mk (category.assoc _ _ _)
 
 lemma id_comp : ∀ (X Y : Σ i, C i) (f : X ⟶ Y), 𝟙 X ≫ f = f
-| _ _ (mk f) :=
-  begin
-    change mk (𝟙 _ ≫ f) = mk f,
-    rw [category.id_comp],
-  end
+| _ _ (mk f) := congr_arg mk (category.id_comp _)
 
 lemma comp_id : ∀ (X Y : Σ i, C i) (f : X ⟶ Y), f ≫ 𝟙 Y = f
-| _ _ (mk f) :=
-  begin
-    change mk (f ≫ 𝟙 _) = mk f,
-    rw [category.comp_id],
-  end
+| _ _ (mk f) := congr_arg mk (category.comp_id _)
 
 end sigma_hom
 
@@ -99,14 +87,15 @@ variables {D : Type u₂} [category.{v₂} D] (F : Π i, C i ⥤ D)
 To build a natural transformation over the sigma category, it suffices to specify it restricted to
 each subcategory.
 -/
-@[simps]
 def nat_trans {F G : (Σ i, C i) ⥤ D} (h : Π (i : I), incl i ⋙ F ⟶ incl i ⋙ G) : F ⟶ G :=
-{ app := by { rintro ⟨j, X⟩, apply (h j).app X },
-  naturality' :=
-  begin
-    rintro ⟨j, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩,
-    apply (h j).naturality,
-  end }
+{ app := λ ⟨j, X⟩, (h j).app X,
+  naturality' := by { rintro ⟨j, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩, apply (h j).naturality } }
+
+@[simp]
+lemma nat_trans_app {F G : (Σ i, C i) ⥤ D} (h : Π (i : I), incl i ⋙ F ⟶ incl i ⋙ G)
+  (i : I) (X : C i) :
+  (nat_trans h).app ⟨i, X⟩ = (h i).app X :=
+rfl
 
 /-- (Implementation). An auxiliary definition to build the functor `desc`. -/
 def desc_map : ∀ (X Y : Σ i, C i), (X ⟶ Y) → ((F X.1).obj X.2 ⟶ (F Y.1).obj Y.2)

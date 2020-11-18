@@ -315,7 +315,7 @@ begin
 end
 (by { ext, simp, })
 
-instance [nontrivial R] [nontrivial X] : nontrivial (free_algebra R X) :=
+instance [nontrivial R] : nontrivial (free_algebra R X) :=
 equiv_monoid_algebra_free_monoid.to_equiv.nontrivial
 
 end free_algebra

@@ -70,11 +70,6 @@ begin
   exact lt_of_not_ge (λ h, hf (leading_coeff_eq_zero.mp (dif_neg (not_lt_of_ge h))))
 end
 
-lemma eval₂_mod_by_monic_eq_self_of_root {K L : Type*} [comm_ring K] [comm_ring L] {f : K →+* L}
-  {p q : polynomial K} (hq : q.monic) {x : L} (hx : q.eval₂ f x = 0) :
-    (p %ₘ q).eval₂ f x = p.eval₂ f x :=
-by rw [mod_by_monic_eq_sub_mul_div p hq, eval₂_sub, eval₂_mul, hx, zero_mul, sub_zero]
-
 end polynomial
 
 variables (K L : Type*) [field K] [field L] [algebra K L]

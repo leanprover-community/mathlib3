@@ -377,7 +377,7 @@ section det
 
 open linear_map matrix
 
-variables {R : Type} [comm_ring R]
+variables {R : Type*} [comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
 variables {M' : Type*} [add_comm_group M'] [module R M']
 variables {ι : Type*} [decidable_eq ι] [fintype ι] {v : ι → M} {v' : ι → M'}

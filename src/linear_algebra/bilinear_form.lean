@@ -190,10 +190,10 @@ variables {N : Type w} [add_comm_group N] [module R N]
 /-- Apply a linear map on the left and right argument of a bilinear form. -/
 def comp (B : bilin_form R N) (l r : M →ₗ[R] N) : bilin_form R M :=
 { bilin := λ x y, B (l x) (r y),
-  bilin_add_left := λ x y z, by simp [add_left],
-  bilin_smul_left := λ x y z, by simp [smul_left],
-  bilin_add_right := λ x y z, by simp [add_right],
-  bilin_smul_right := λ x y z, by simp [smul_right] }
+  bilin_add_left := λ x y z, by simp only [add_left, linear_map.map_add],
+  bilin_smul_left := λ x y z, by simp only [smul_left, linear_map.map_smul],
+  bilin_add_right := λ x y z, by simp only [add_right, linear_map.map_add],
+  bilin_smul_right := λ x y z, by simp only [smul_right, linear_map.map_smul] }
 
 /-- Apply a linear map to the left argument of a bilinear form. -/
 def comp_left (B : bilin_form R M) (f : M →ₗ[R] M) : bilin_form R M :=
@@ -254,12 +254,20 @@ def congr (e : M ≃ₗ[R₂] N) : bilin_form R₂ M ≃ₗ[R₂] bilin_form R�
 linear_equiv.of_linear
   (comp_lin e.symm.to_linear_map e.symm.to_linear_map)
   (comp_lin e.to_linear_map e.to_linear_map)
-  (by { ext B x y, simp })
-  (by { ext B x y, simp })
+  (by { ext B x y, simp only [linear_map.id_coe, comp_apply,
+          linear_equiv.coe_coe, linear_equiv.to_linear_map_eq_coe, comp_lin_apply,
+          id.def, linear_equiv.apply_symm_apply, linear_map.comp_apply] })
+  (by { ext B x y, simp only [linear_map.id_coe, comp_apply,
+          linear_equiv.coe_coe, linear_equiv.to_linear_map_eq_coe, comp_lin_apply,
+          id.def, linear_equiv.symm_apply_apply, linear_map.comp_apply] })
 
 @[simp] lemma congr_apply (e : M ≃ₗ[R₂] N) (B : bilin_form R₂ M) :
   congr e B = B.comp e.symm.to_linear_map e.symm.to_linear_map :=
-by simp [congr]
+by simp only [congr, comp_lin_apply, linear_equiv.of_linear_apply]
+
+@[simp] lemma congr_symm_apply (e : M ≃ₗ[R₂] N) (B : bilin_form R₂ N) :
+  (congr e).symm B = B.comp e.to_linear_map e.to_linear_map :=
+by simp only [congr, comp_lin_apply, linear_equiv.of_linear_symm_apply]
 
 end comp
 
@@ -270,10 +278,10 @@ variables {R₂ : Type*} [comm_ring R₂] [module R₂ M] {N : Type*} [add_comm_
 /-- `lin_mul_lin f g` is the bilinear form mapping `x` and `y` to `f x * g y` -/
 def lin_mul_lin (f g : M →ₗ[R₂] R₂) : bilin_form R₂ M :=
 { bilin := λ x y, f x * g y,
-  bilin_add_left := λ x y z, by simp [add_mul],
-  bilin_smul_left := λ x y z, by simp [mul_assoc],
-  bilin_add_right := λ x y z, by simp [mul_add],
-  bilin_smul_right := λ x y z, by simp [mul_left_comm] }
+  bilin_add_left := λ x y z, by simp only [add_mul, linear_map.map_add],
+  bilin_smul_left := λ x y z, by simp only [mul_assoc, linear_map.map_smul, smul_eq_mul],
+  bilin_add_right := λ x y z, by simp only [mul_add, linear_map.map_add],
+  bilin_smul_right := λ x y z, by simp only [mul_left_comm, linear_map.map_smul, smul_eq_mul] }
 
 variables {f g : M →ₗ[R₂] R₂}
 
@@ -433,6 +441,12 @@ def bilin_form_equiv_matrix' : bilin_form R (n → R) ≃ₗ[R] matrix n n R :=
   right_inv := to_bilin_form_to_matrix',
   ..bilin_form.to_matrixₗ' }
 
+@[simp] lemma bilin_form_equiv_matrix'_apply {B : bilin_form R (n → R)} :
+  bilin_form_equiv_matrix' B = bilin_form.to_matrix' B := rfl
+
+@[simp] lemma bilin_form_equiv_matrix'_symm_apply {A : matrix n n R} :
+  bilin_form_equiv_matrix'.symm A = matrix.to_bilin_form A := rfl
+
 variables {M : Type*} [add_comm_group M] [module R M] {b : n → M} (hb : is_basis R b)
 
 /-- Bilinear forms are linearly equivalent to matrices. -/
@@ -442,6 +456,16 @@ linear_equiv.trans (congr (hb.equiv_fun)) bilin_form_equiv_matrix'
 @[simp] lemma bilin_form_equiv_matrix_apply (B : bilin_form R M) (i j : n) :
   bilin_form_equiv_matrix hb B i j = B (b i) (b j) :=
 by simp [bilin_form_equiv_matrix, bilin_form_equiv_matrix', to_matrixₗ', ite_smul]
+
+@[simp] lemma bilin_form_equiv_matrix_symm_apply (A : matrix n n R) (x y : M) :
+  (bilin_form_equiv_matrix hb).symm A x y = ∑ i j : n, hb.repr x i * A i j * hb.repr y j :=
+by { rw [bilin_form_equiv_matrix, linear_equiv.symm_trans_apply,
+         bilin_form_equiv_matrix'_symm_apply, congr_symm_apply, comp_apply,
+         linear_equiv.to_linear_map_eq_coe, linear_equiv.coe_coe,
+         matrix.to_bilin_form_apply, matrix.mul_apply],
+     simp_rw [matrix.mul_apply,
+          matrix.col_apply, matrix.row_apply, finset.sum_mul, is_basis.equiv_fun_apply],
+     apply finset.sum_comm }
 
 lemma matrix.to_bilin_form_comp {n o : Type w} [fintype n] [fintype o] [decidable_eq o]
   (M : matrix n n R) (P Q : matrix n o R) :

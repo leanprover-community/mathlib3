@@ -661,7 +661,7 @@ lemma matrix.card_le_card_of_left_inv' {m n : ℕ}
 have function.left_inverse
   ((M.map (algebra_map A (fraction_ring A))).mul_vec)
   ((M'.map (algebra_map A (fraction_ring A))).mul_vec) :=
-λ x, by rw [mul_vec_mul_vec, ← matrix.map_mul, hMM', matrix.map_one, mul_vec_one],
+λ x, by rw [mul_vec_mul_vec, ← matrix.map_mul, hMM', matrix.ring_hom_map_one, mul_vec_one],
 have function.injective ((M'.map (algebra_map A (fraction_ring A))).to_lin') :=
 function.left_inverse.injective this,
 calc m = findim (fraction_ring A) (fin m → fraction_ring A) : (findim_fin_fun _).symm
@@ -708,8 +708,8 @@ lemma char_poly_conjugate_aux {m n : Type*} [fintype m] [decidable_eq m]
   [fintype n] [decidable_eq n] {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   char_poly (M ⬝ N ⬝ M') = char_poly N :=
-have hCACA' : M.map C ⬝ M'.map C = 1 := by rw [← matrix.map_mul, hMM', matrix.map_one],
-have hCA'CA : M'.map C ⬝ M.map C = 1 := by rw [← matrix.map_mul, hM'M, matrix.map_one],
+have hCACA' : M.map C ⬝ M'.map C = 1 := by rw [← matrix.map_mul, hMM', matrix.ring_hom_map_one],
+have hCA'CA : M'.map C ⬝ M.map C = 1 := by rw [← matrix.map_mul, hM'M, matrix.ring_hom_map_one],
 calc (X • 1 - C.map_matrix (M ⬝ N ⬝ M')).det
     = (M.map C ⬝ (scalar n X - N.map C) ⬝ M'.map C).det :
     by rw [matrix.mul_sub, matrix.sub_mul, ring_hom.map_matrix_apply, matrix.map_mul,
@@ -1329,8 +1329,8 @@ lemma sum_embeddings_eq_findim_mul {M : Type*} [add_comm_monoid M]
       (λ σ : ↥K⟮x⟯ →ₐ[K] F, f (σ (adjoin_simple.gen K x))) :=
 begin
   rw finset.smul_sum,
+  sorry
 end
-
 
 section
 
@@ -1364,6 +1364,7 @@ end
 section
 variables (K)
 
+-- TODO: go via `power_basis` instead of adjoin K x
 lemma trace_eq_sum_embeddings
   [finite_dimensional K L] [hsep : is_separable K L]
   {x : L} (hx : is_integral K x)
@@ -1446,3 +1447,149 @@ begin
 end
 
 end conjugates
+
+section dual_basis
+
+/-- If `pb` is a power basis for the finite separable field extension `L / K`,
+`dual_basis pb` is another basis such that
+`trace_form (pb.gen ^ i) (dual_basis pb j) = if i = j then 1 else 0`. -/
+noncomputable def dual_basis (pb : power_basis K L) :
+  fin pb.dim → L :=
+λ i, matrix.to_lin pb.is_basis pb.is_basis
+  (bilin_form_equiv_matrix pb.is_basis (trace_form K L))⁻¹ (pb.gen ^ (i : ℕ))
+
+lemma dual_basis_apply (pb : power_basis K L) (i : fin pb.dim) :
+  dual_basis pb i = matrix.to_lin pb.is_basis pb.is_basis
+    (bilin_form_equiv_matrix pb.is_basis (trace_form K L))⁻¹ (pb.gen ^ (i : ℕ)) :=
+rfl
+
+#check trace_form_to_matrix_power_basis
+#check is_unit
+#check bilin_form_equiv_matrix_apply
+#check bilin_form.comp_right_apply
+
+lemma bilin_form.congr_comp {V V' : Type*} [add_comm_group V] [vector_space K V]
+  [add_comm_group V'] [vector_space K V'] (e : V ≃ₗ[K] V')
+  (B : bilin_form K V) (l r : V →ₗ[K] V) :
+  bilin_form.congr e (B.comp l r) = (B.comp l r).comp e.symm e.symm :=
+begin
+  ext x y,
+  simp only [bilin_form.congr_apply, bilin_form.comp_apply, linear_map.comp_apply,
+             linear_equiv.to_linear_map_eq_coe],
+end
+
+lemma bilin_form_equiv_matrix_comp {V : Type*} [add_comm_group V] [vector_space K V]
+  {b : ι → V} (hb : is_basis K b)
+  (B : bilin_form K V) (l r : V →ₗ[K] V) :
+  bilin_form_equiv_matrix hb (B.comp l r) =
+    (linear_map.to_matrix hb hb l)ᵀ ⬝ bilin_form_equiv_matrix hb B ⬝ linear_map.to_matrix hb hb r :=
+begin
+  rw [bilin_form_equiv_matrix, linear_equiv.trans_apply, bilin_form_equiv_matrix'_apply,
+      bilin_form.congr_comp],
+  sorry
+end
+
+lemma bilin_form_equiv_matrix_comp_right {V : Type*} [add_comm_group V] [vector_space K V]
+  {b : ι → V} (hb : is_basis K b)
+  (B : bilin_form K V) (r : V →ₗ[K] V) :
+  bilin_form_equiv_matrix hb (B.comp_right r) =
+    bilin_form_equiv_matrix hb B ⬝ linear_map.to_matrix hb hb r :=
+by rw [bilin_form.comp_right, bilin_form_equiv_matrix_comp, to_matrix_id, transpose_one, matrix.one_mul]
+
+lemma bilin_form_equiv_matrix_mul {V : Type*} [add_comm_group V] [vector_space K V]
+  {b : ι → V} (hb : is_basis K b)
+  (B : bilin_form K V) (A : matrix ι ι K) :
+  bilin_form_equiv_matrix hb B ⬝ A = bilin_form_equiv_matrix hb (B.comp_right (to_lin hb hb A)) :=
+by rw [bilin_form_equiv_matrix_comp_right, to_matrix_to_lin]
+
+lemma trace_form_dual_basis_power_basis [is_separable K L] (pb : power_basis K L) (i j : fin pb.dim) :
+  trace_form K L (pb.gen ^ (i : ℕ)) (dual_basis pb j) = (1 : matrix _ _ K) i j :=
+calc trace_form K L (pb.gen ^ (i : ℕ)) (dual_basis pb j)
+    = ((bilin_form_equiv_matrix pb.is_basis (trace_form K L)) ⬝ (bilin_form_equiv_matrix pb.is_basis (trace_form K L))⁻¹) i j :
+      by simp_rw [dual_basis, ← bilin_form.comp_right_apply, bilin_form_equiv_matrix_mul pb.is_basis, bilin_form_equiv_matrix_apply]
+... = (1 : matrix _ _ K) i j : by rw matrix.mul_nonsing_inv _ (is_unit.mk0 _ (det_trace_form_ne_zero pb))
+
+lemma trace_dual_basis_mul_power_basis [is_separable K L] (pb : power_basis K L) (i j : fin pb.dim) :
+  algebra.trace K L (pb.gen ^ (i : ℕ) * dual_basis pb j) = if i = j then 1 else 0 :=
+trace_form_dual_basis_power_basis pb i j
+
+lemma is_basis_dual_basis [is_separable K L] (pb : power_basis K L) :
+  is_basis K (dual_basis pb) :=
+  let e : L ≃ₗ[K] L := linear_equiv.of_bijective
+    (matrix.to_lin pb.is_basis pb.is_basis (bilin_form_equiv_matrix pb.is_basis (trace_form K L))⁻¹)
+    sorry sorry
+    in
+@linear_equiv.is_basis (fin pb.dim) _ _ _ _ _ _ _ _ _ pb.is_basis e
+
+lemma trace_gen_pow_mul [is_separable K L] (pb : power_basis K L) (x : L) (i : fin pb.dim) :
+  algebra.trace K L (pb.gen ^ (i : ℕ) * x) = (is_basis_dual_basis pb).repr x i :=
+begin
+  calc algebra.trace K L (pb.gen ^ (i : ℕ) * x)
+      = algebra.trace K L (pb.gen ^ (i : ℕ) * (∑ j, (is_basis_dual_basis pb).repr x j • dual_basis pb j)) :
+    by rw sum_repr
+  ... = algebra.trace K L (∑ j, (is_basis_dual_basis pb).repr x j • (pb.gen ^ (i : ℕ) * dual_basis pb j)) :
+    by simp_rw [finset.mul_sum, mul_smul_comm]
+  ... = ∑ j, (is_basis_dual_basis pb).repr x j • algebra.trace K L (pb.gen ^ (i : ℕ) * dual_basis pb j) :
+    by simp_rw [linear_map.map_sum, linear_map.map_smul]
+  ... = (is_basis_dual_basis pb).repr x i * algebra.trace K L (pb.gen ^ (i : ℕ) * dual_basis pb i) :
+    finset.sum_eq_single _ _ _
+  ... = (is_basis_dual_basis pb).repr x i : by rw [trace_dual_basis_mul_power_basis, if_pos rfl, mul_one],
+  { intros j _ ne,
+    rw [trace_dual_basis_mul_power_basis, if_neg ne.symm, smul_zero] },
+  { intro not_mem_univ,
+    have := finset.mem_univ i,
+    contradiction }
+end
+
+end dual_basis
+
+section trace_mem
+
+open polynomial
+
+variables {F : Type*} [field F] [algebra R L] [algebra L F] [algebra R F] [is_scalar_tower R L F]
+
+lemma is_integral.nat_smul (n : ℕ) (x : F) (hx : is_integral R x) : is_integral R (n • x) :=
+begin
+  rw [algebra.smul_def, is_scalar_tower.algebra_map_apply ℕ R F],
+  exact is_integral_mul is_integral_algebra_map hx,
+end
+
+lemma is_integral.multiset_sum (m : multiset F) :
+  (∀ x ∈ m, is_integral R x) → is_integral R m.sum :=
+begin
+  refine m.induction _ _,
+  { intros, simpa only [multiset.sum_zero] using is_integral_zero },
+  { intros x m ih h,
+    simpa [multiset.sum_cons] using
+      is_integral_add
+        (h x (multiset.mem_cons_self x m))
+        (ih (λ x hx, h x (multiset.mem_cons.mpr (or.inr hx)))) }
+end
+
+lemma is_integral_trace [finite_dimensional L F] {x : F} (hx : is_integral R x) :
+  is_integral R (algebra.trace L F x) :=
+begin
+  have hx' : is_integral L x := is_integral_of_is_scalar_tower _ hx,
+  letI : algebra L (algebraic_closure F) := ((algebra_map F _).comp (algebra_map _ F)).to_algebra,
+  letI : algebra R (algebraic_closure F) := ((algebra_map L _).comp (algebra_map _ L)).to_algebra,
+  letI : is_scalar_tower L F (algebraic_closure F) := is_scalar_tower.of_algebra_map_eq (λ x, rfl),
+  letI : is_scalar_tower R L (algebraic_closure F) := is_scalar_tower.of_algebra_map_eq (λ x, rfl),
+  apply (is_integral_algebra_map_iff (algebra_map L (algebraic_closure F)).injective).mp,
+  rw trace_eq_sum_roots hx',
+  { apply is_integral.nat_smul,
+    apply is_integral.multiset_sum,
+    intros y hy,
+    rw mem_roots_map (minimal_polynomial.ne_zero hx') at hy,
+    use [minimal_polynomial hx, minimal_polynomial.monic hx],
+    rw [← aeval_def, is_scalar_tower.aeval_apply R L, aeval_def],
+    apply is_simple_extension.eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (minimal_polynomial.dvd hx' _) hy,
+    rw ← is_scalar_tower.aeval_apply R L,
+    apply minimal_polynomial.aeval },
+  { apply splits_of_is_alg_closed },
+  { apply_instance }
+end
+
+end trace_mem
+
+#lint

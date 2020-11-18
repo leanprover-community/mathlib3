@@ -12,14 +12,14 @@ universes u v
 /-!
 # Nondeterministic Finite Automata
 This file contains the definition of a Nondeterministic Finite Automata (NFA), a state machine which
-determines whether a string (implemented as a list over an arbritary alphabet) is in a regular set
-by evalulating the string over every posible path.
+determines whether a string (implemented as a list over an arbitrary alphabet) is in a regular set
+by evaluating  the string over every possible path.
 We show that DFA's are equivalent to NFA's however the construction from NFA to DFA uses an
-expionential number of states.
+exponential number of states.
 -/
 
 
-/-- A DFA is a set of states (`state`), a transition function from state to state labled by the
+/-- A DFA is a set of states (`state`), a transition function from state to state labelled by the
   alphabet (`step`), a starting state (`start`) and a set of acceptance states (`accept`).
   Note the transition function sends a state to a `finset` of states. These are the states that it
   may be sent to. -/
@@ -47,12 +47,12 @@ def step_set : finset M.state → α → finset M.state :=
 lemma mem_step_set (s : M.state) (S : finset M.state) (a : α) : s ∈ M.step_set S a ↔ ∃ t ∈ S, s ∈ M.step t a :=
 by rw [step_set, finset.mem_bind]
 
-/-- `M.eval_from S x` computes all posible paths though `M` with input `x` starting at an element of
+/-- `M.eval_from S x` computes all possible paths though `M` with input `x` starting at an element of
   `S` -/
 def eval_from (start : finset M.state) : list α → finset M.state :=
 list.foldl M.step_set start
 
-/-- `M.eval x` computes all posible paths though `M` with input `x` starting at an element of
+/-- `M.eval x` computes all possible paths though `M` with input `x` starting at an element of
   `M.start` -/
 def eval := M.eval_from M.start
 
@@ -61,7 +61,7 @@ def accepts (s : list α) : Prop :=
 ∃ S ∈ M.accept, S ∈ M.eval s
 
 /-- `NFA_of_DFA M` is an `NFA` constructed from a `DFA` `M` by using the same start and accept
-  states and a transition function which sends `s` with input `a` to the singlton `M.step s a` -/
+  states and a transition function which sends `s` with input `a` to the singleton `M.step s a` -/
 def NFA_of_DFA (M : DFA α) : NFA α :=
 { state := M.state,
   state_fintype := M.state_fintype,

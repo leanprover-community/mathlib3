@@ -35,7 +35,8 @@ inductive regex (α : Type u) : Type (u+1)
 
 namespace regex
 
--- omit dec
+instance regex_inhabited : inhabited (regex α) := ⟨ RZero ⟩
+
 /-- `match_null M` is true if and only if `M` matches the empty string -/
 def match_null : regex α → bool
 | RZero := ff

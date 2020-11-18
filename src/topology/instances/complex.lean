@@ -56,7 +56,7 @@ lemma tendsto_inv {r : ℂ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (�
 by rw ← abs_pos at r0; exact
 tendsto_of_uniform_continuous_subtype
   (uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
-  (mem_nhds_sets (continuous_abs _ $ is_open_lt' (abs r / 2)) (half_lt_self r0))
+  (mem_nhds_sets ((is_open_lt' (abs r / 2)).preimage continuous_abs) (half_lt_self r0))
 
 lemma continuous_inv : continuous (λa:{r:ℂ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
@@ -91,8 +91,8 @@ tendsto_of_uniform_continuous_subtype
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
     (λ x, id))
   (mem_nhds_sets
-    ((continuous_abs _ $ is_open_gt' (abs a₁ + 1)).prod
-      (continuous_abs _ $ is_open_gt' (abs a₂ + 1)))
+    (((is_open_gt' (abs a₁ + 1)).preimage continuous_abs).prod
+      ((is_open_gt' (abs a₂ + 1)).preimage continuous_abs))
     ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
 
 local attribute [semireducible] real.le

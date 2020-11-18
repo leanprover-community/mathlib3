@@ -451,7 +451,7 @@ end
 lemma separable.squarefree {p : polynomial F} (hp : p ≠ 0)  (hsep : separable p) :
   squarefree p :=
 begin
-  apply (multiplicity.squarefree_iff_multiplicity_le_one p).2,
+  rw multiplicity.squarefree_iff_multiplicity_le_one p,
   intro f,
   by_cases hunit : is_unit f,
   { exact or.inr hunit },

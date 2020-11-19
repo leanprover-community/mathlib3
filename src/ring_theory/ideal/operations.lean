@@ -433,7 +433,8 @@ have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial
     refine m.add_mem (m.mul_mem_right hpm) (m.add_mem (m.mul_mem_left hfm) (m.mul_mem_left hxym))⟩⟩,
 hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
 
-lemma radical_bot_of_integral_domain {R : Type u} [integral_domain R] : radical (⊥ : ideal R) = ⊥ :=
+@[simp] lemma radical_bot_of_integral_domain {R : Type u} [integral_domain R] :
+  radical (⊥ : ideal R) = ⊥ :=
 eq_bot_iff.2 (λ x hx, hx.rec_on (λ n hn, pow_eq_zero hn))
 
 instance : comm_semiring (ideal R) := submodule.comm_semiring
@@ -925,10 +926,11 @@ begin
     refine ⟨hJ' ▸ map_mono hJ.left, hJ' ▸ map_is_prime_of_surjective hf (le_trans h hJ.left)⟩ },
 end
 
-lemma is_maximal_iff_bot_quotient_is_maximal (I : ideal R) :
-  I.is_maximal ↔ (⊥ : ideal I.quotient).is_maximal :=
-⟨λ hI, @bot_is_maximal _ (@quotient.field _ _ I hI), λ hI, (@mk_ker _ _ I) ▸
-  @comap_is_maximal_of_surjective _ _ _ _ (quotient.mk I) ⊥ quotient.mk_surjective hI⟩
+@[simp] lemma bot_quotient_is_maximal_iff (I : ideal R) :
+  (⊥ : ideal I.quotient).is_maximal ↔ I.is_maximal :=
+⟨λ hI, (@mk_ker _ _ I) ▸
+  @comap_is_maximal_of_surjective _ _ _ _ (quotient.mk I) ⊥ quotient.mk_surjective hI,
+ λ hI, @bot_is_maximal _ (@quotient.field _ _ I hI) ⟩
 
 section quotient_algebra
 

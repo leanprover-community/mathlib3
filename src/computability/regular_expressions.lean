@@ -9,9 +9,11 @@ import tactic.rcases
 import tactic.omega
 
 /-!
-# Regular Expression
+# Regular Expressions
 
-This file contains the formal definition for regular expressions and basic lemmas.
+This file contains the formal definition for regular expressions and basic lemmas. Note these are
+regular expressions in terms of formal language theory. Note this is different to regex's used in
+computer science such as the POSIX standard.
 -/
 
 universe u
@@ -25,25 +27,25 @@ variables {α : Type u} [dec : decidable_eq α]
   `RStar M` matches any finite concatenation of strings which match `M`
   `RPlus M N` matches anything which match `M` or `N`
   `RComp M N` matches `x ++ y` if `x` matches `M` and `y` matches `N` -/
-inductive regex (α : Type u) : Type (u+1)
-| RZero : regex
-| RNull : regex
-| RChar : α → regex
-| RStar : regex → regex
-| RPlus : regex → regex → regex
-| RComp : regex → regex → regex
+inductive regular_expression (α : Type u) : Type (u+1)
+| RZero : regular_expression
+| RNull : regular_expression
+| RChar : α → regular_expression
+| RStar : regular_expression → regular_expression
+| RPlus : regular_expression → regular_expression → regular_expression
+| RComp : regular_expression → regular_expression → regular_expression
 
-namespace regex
+namespace regular_expression
 
-instance regex_inhabited : inhabited (regex α) := ⟨ RZero ⟩
+instance regular_expression_inhabited : inhabited (regular_expression α) := ⟨ RZero ⟩
 
-instance : has_add (regex α) := ⟨RPlus⟩
-instance : has_mul (regex α) := ⟨RComp⟩
-instance : has_one (regex α) := ⟨RNull⟩
-instance : has_zero (regex α) := ⟨RZero⟩
+instance : has_add (regular_expression α) := ⟨RPlus⟩
+instance : has_mul (regular_expression α) := ⟨RComp⟩
+instance : has_one (regular_expression α) := ⟨RNull⟩
+instance : has_zero (regular_expression α) := ⟨RZero⟩
 
 /-- `match_null M` is true if and only if `M` matches the empty string -/
-def match_null : regex α → bool
+def match_null : regular_expression α → bool
 | RZero := ff
 | RNull := tt
 | (RChar _) := ff
@@ -54,7 +56,7 @@ def match_null : regex α → bool
 include dec
 
 /-- `M.feed a` matches `x` if `M` matches `"a" ++ x` -/
-def feed : regex α → α → regex α
+def feed : regular_expression α → α → regular_expression α
 | RZero _ := RZero
 | RNull _ := RZero
 | (RChar a₁) a₂ := if a₁ = a₂ then RNull else RZero
@@ -64,7 +66,7 @@ def feed : regex α → α → regex α
   ite M.match_null (RPlus (RComp (feed M a) N) (feed N a)) (RComp (feed M a) N)
 
 /-- `M.rmatch x` is true if and only if `M` matches `x` -/
-def rmatch : regex α → list α → bool
+def rmatch : regular_expression α → list α → bool
 | M [] := match_null M
 | M (a::as) := rmatch (M.feed a) as
 
@@ -99,7 +101,7 @@ begin
   tauto
 end
 
-lemma RPlus_rmatch_iff (P Q : regex α) (s : list α) :
+lemma RPlus_rmatch_iff (P Q : regular_expression α) (s : list α) :
   (RPlus P Q).rmatch s ↔ P.rmatch s ∨ Q.rmatch s :=
 begin
   induction s with _ _ ih generalizing P Q,
@@ -111,7 +113,7 @@ begin
     exact ih _ _ }
 end
 
-lemma RComp_rmatch_iff (P Q : regex α) (s : list α) :
+lemma RComp_rmatch_iff (P Q : regular_expression α) (s : list α) :
   (RComp P Q).rmatch s ↔ ∃ t u : list α, s = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
 begin
   induction s with a s ih generalizing P Q,
@@ -157,7 +159,7 @@ begin
           finish } } } }
 end
 
-lemma RStar_rmatch_iff (P : regex α) : ∀ (s : list α),
+lemma RStar_rmatch_iff (P : regular_expression α) : ∀ (s : list α),
   (RStar P).rmatch s ↔ ∃ S : list (list α), s = S.join ∧ ∀ t ∈ S, ¬(list.empty t) ∧ P.rmatch t
 | s :=
 begin
@@ -212,4 +214,4 @@ using_well_founded {
   rel_tac := λ _ _, `[exact ⟨(λ L₁ L₂ : list _, L₁.length < L₂.length), inv_image.wf _ nat.lt_wf⟩]
 }
 
-end regex
+end regular_expression

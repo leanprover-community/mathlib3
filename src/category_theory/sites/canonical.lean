@@ -193,9 +193,9 @@ def finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) : grothendieck_topology C :=
 Inf (finest_topology_single '' Ps)
 
 /-- Check that if `P ∈ Ps`, then `P` is indeed a sheaf for the finest topology on `Ps`. -/
-lemma sheaf_for_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) :
-  P ∈ Ps → presieve.is_sheaf (finest_topology Ps) P :=
-λ h X S hS, by simpa using hS _ ⟨⟨_, _, ⟨_, h, rfl⟩, rfl⟩, rfl⟩ _ (𝟙 _)
+lemma sheaf_for_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) (h : P ∈ Ps) :
+  presieve.is_sheaf (finest_topology Ps) P :=
+λ X S hS, by simpa using hS _ ⟨⟨_, _, ⟨_, h, rfl⟩, rfl⟩, rfl⟩ _ (𝟙 _)
 
 /--
 Check that if each `P ∈ Ps` is a sheaf for `J`, then `J` is a subtopology of `finest_topology Ps`.

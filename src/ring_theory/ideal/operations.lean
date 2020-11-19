@@ -940,7 +940,7 @@ def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.coma
 
 @[simp]
 lemma quotient_map_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
-  {x : R} : (quotient_map I f H) (quotient.mk J x) = (quotient.mk I) (f x) :=
+  {x : R} : quotient_map I f H (quotient.mk J x) = quotient.mk I (f x) :=
 quotient.lift_mk J _ _
 
 /-- If we take `J = I.comap f` then `quotient_map` is injective -/

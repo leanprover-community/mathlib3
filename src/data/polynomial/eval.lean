@@ -366,10 +366,10 @@ end
 lemma map_injective (hf : function.injective f) : function.injective (map f) :=
 λ p q h, ext $ λ m, hf $ by rw [← coeff_map f, ← coeff_map f, h]
 
-lemma map_surjective (hf : function.surjective f) : (function.surjective (map f)) :=
+lemma map_surjective (hf : function.surjective f) : function.surjective (map f) :=
 λ p, polynomial.induction_on' p
-(λ p q hp hq, let ⟨p', hp'⟩ := hp in let ⟨q', hq'⟩ := hq in ⟨p' + q', by rw [map_add f, hp', hq']⟩)
-(λ n s, let ⟨r, hr⟩ := hf s in ⟨monomial n r, by rw [map_monomial f, hr]⟩)
+ (λ p q hp hq, let ⟨p', hp'⟩ := hp, ⟨q', hq'⟩ := hq in ⟨p' + q', by rw [map_add f, hp', hq']⟩)
+ (λ n s, let ⟨r, hr⟩ := hf s in ⟨monomial n r, by rw [map_monomial f, hr]⟩)
 
 variables {f}
 

@@ -210,6 +210,63 @@ def comp : M →ₗ[R] M₃ := ⟨f ∘ g, by simp, by simp⟩
 @[norm_cast]
 lemma comp_coe : (f : M₂ → M₃) ∘ (g : M → M₂) = f.comp g := rfl
 
+@[simp] theorem comp_id : f.comp id = f :=
+linear_map.ext $ λ x, rfl
+
+@[simp] theorem id_comp : id.comp f = f :=
+linear_map.ext $ λ x, rfl
+
+end
+
+section
+
+variables [semimodule R M] (f : M →ₗ[R] M)
+
+/-- Iteration of a linear map is a linear map -/
+def iterate : ℕ → (M →ₗ[R] M)
+| 0       := id
+| (n + 1) := comp (iterate n) f
+
+lemma iterate_succ (n) : (iterate f (n + 1)) = comp (iterate f n) f := rfl
+
+lemma iterate_zero : f.iterate 0 = id := rfl
+lemma iterate_one : f.iterate 1 = f :=
+by rw [iterate_succ, iterate_zero, id_comp]
+
+theorem iterate_add : ∀ (m n : ℕ), iterate f (m + n) = comp (iterate f m) (iterate f n)
+| m 0       := by rw [add_zero, iterate, comp_id]
+| m (n + 1) := by { rw [← add_assoc, iterate_succ, iterate_add m n], refl }
+
+lemma iterate_succ' (n) : (iterate f (n + 1)) = comp f (iterate f n) :=
+by rw [add_comm, iterate_add, iterate_one]
+
+@[simp] lemma iterate_to_fun : ∀ n, (iterate f n).to_fun = nat.iterate f.to_fun n
+| 0       := rfl
+| (n + 1) := by {
+    change (iterate f n).to_fun ∘ f.to_fun = (nat.iterate f.to_fun n) ∘ f.to_fun,
+    rw iterate_to_fun n
+  }
+
+variables {f}
+
+lemma iterate_surj (h : surjective f) : ∀ n, surjective (iterate f n)
+| 0       := surjective_id
+| (n + 1) := surjective.comp (iterate_surj n) h
+
+lemma iterate_inj (h : injective f) : ∀ n, injective (iterate f n)
+| 0       := injective_id
+| (n + 1) := injective.comp (iterate_inj n) h
+
+lemma iterate_bij (h : bijective f) : ∀ n, bijective (iterate f n)
+| 0       := bijective_id
+| (n + 1) := bijective.comp (iterate_bij n) h
+
+lemma inj_of_iterate_inj {n : ℕ} (hn : n ≠ 0) (h : injective (iterate f n)) : injective f :=
+begin
+  rw ← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn) at h,
+  exact injective.of_comp h,
+end
+
 end
 
 /-- If a function `g` is a left and right inverse of a linear map `f`, then `g` is linear itself. -/

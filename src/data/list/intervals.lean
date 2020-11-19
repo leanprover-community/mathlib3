@@ -53,8 +53,14 @@ end
 theorem eq_nil_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = [] :=
 by simp [Ico, nat.sub_eq_zero_of_le h]
 
-theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
-by rw [Ico, Ico, map_add_range', nat.add_sub_add_right, add_comm n k]
+theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (k + n) (k + m) :=
+by rw [Ico, Ico, map_add_range', nat.add_sub_add_left]
+
+theorem map_add' (n m k : ℕ) : (Ico n m).map (λ x, x + k) = Ico (n + k) (m + k) :=
+begin
+  convert map_add,
+end
+--by rw [Ico, Ico, map_add_range', nat.add_sub_add_right, add_comm n k]
 
 theorem map_sub (n m k : ℕ) (h₁ : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
 begin
@@ -66,6 +72,11 @@ begin
     rw [eq_nil_of_le h₂],
     rw [eq_nil_of_le (nat.sub_le_sub_right h₂ _)],
     refl }
+end
+
+theorem map_sub' (n m k : ℕ) : (Ico n m).map (λ x, k - x) = Ico (k - m) (k - n) :=
+begin
+  sorry
 end
 
 @[simp] theorem self_empty {n : ℕ} : Ico n n = [] :=

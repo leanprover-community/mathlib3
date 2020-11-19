@@ -45,7 +45,8 @@ instance : fact (nat.prime 1979) := by norm_num
 
 namespace imo1979q1
 
--- some constants
+-- some constants. The nolint attribute is to work around lean#502 (not part of mathlib
+-- at the time of writing)
 @[reducible, nolint fails_quickly] def a : ℚ := ∑ n in range 1320, (-1)^(n + 1) / n
 @[reducible, nolint fails_quickly] def b : ℚ := ∑ n in range 1320, 1 / n
 @[reducible, nolint fails_quickly] def c : ℚ := ∑ n in range 660, 1 / n
@@ -119,19 +120,39 @@ begin
   rw [lemma2, ← lemma1, sub_add_cancel],
 end
 
+--  have h : ∑ (n : ℕ) in Ico 0 330, (1 : ℚ) / (1319 - n) =
+--    ∑ (m : ℕ) in Ico 990 1320, (1 : ℚ) / m,
+
+-- move to finset
+lemma finset.sum_add_right {α : Type*} [add_comm_monoid α] {f : ℕ → α} {a b c : ℕ} :
+  ∑ (n : ℕ) in Ico a b, f (n + c) = ∑ m in Ico (a + c) (b + c), f m :=
+begin
+  rw [← Ico.image_add, sum_image],
+  { simp_rw [add_comm] },
+  rintro _ _ _ _,
+  apply nat.add_right_injective c,
+end
+
+lemma finset.sum_add_left {α : Type*} [add_comm_monoid α] {f : ℕ → α} {a b c : ℕ} :
+  ∑ (n : ℕ) in Ico a b, f (c + n) = ∑ m in Ico (c + a) (c + b), f m :=
+begin
+  rw [← Ico.add_image, sum_image],
+  { simp_rw [add_comm] },
+  rintro _ _ _ _,
+  apply nat.add_right_injective c,
+end
+
 lemma lemma4 : e + f = d :=
 begin
   unfold d e f,
   rw (Ico.zero_bot 330).symm,
   have h : ∑ (n : ℕ) in Ico 0 330, (1 : ℚ) / (n + 660) =
     ∑ (m : ℕ) in Ico 660 990, (1 : ℚ) / m,
-  { rw ←Ico.image_add 0 330 660,
-    rw sum_image,
+  { rw [←Ico.image_add 0 330 660, sum_image],
     { apply sum_congr, refl,
       intros, simp [add_comm] },
     { intros x hx y hy,
-      exact (add_right_inj 660).mp }
-  },
+      exact (add_right_inj 660).mp } },
   rw h, clear h,
   have h : ∑ (n : ℕ) in Ico 0 330, (1 : ℚ) / (1319 - n) =
     ∑ (m : ℕ) in Ico 990 1320, (1 : ℚ) / m,
@@ -152,8 +173,7 @@ begin
       rw nat.sub_add_eq_add_sub (show y ≤ 1319, by linarith) at h,
       symmetry' at h,
       rw nat.sub_eq_iff_eq_add at h, swap, linarith,
-      exact (add_right_inj 1319).mp h }
-  },
+      exact (add_right_inj 1319).mp h } },
   rw h, clear h,
   rw ←sum_union,
   { apply sum_congr,
@@ -177,8 +197,7 @@ begin
     rw nat.cast_sub,
     { norm_cast },
     { linarith },
-  rw h,
-  rw ← padic_val_rat_of_nat,
+  rw [h, ← padic_val_rat_of_nat],
   norm_cast,
   apply padic_val_nat_of_not_dvd,
   apply nat.not_dvd_of_pos_of_lt,
@@ -217,9 +236,9 @@ begin
 end
 
 theorem imo1979_q1 (p q : ℕ) (hq : 0 < q) : (p : ℚ) / q =
--- 1 - (1/2) + (1/3) - (1/4) + ... + (1/1319),
-∑ n in finset.range 1320, (-1)^(n + 1) / n
-→ 1979 ∣ p :=
+  -- 1 - (1/2) + (1/3) - (1/4) + ... + (1/1319),
+  ∑ n in finset.range 1320, (-1)^(n + 1) / n
+  → 1979 ∣ p :=
 begin
   change _ = a → _,
   rw corollary3,

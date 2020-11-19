@@ -29,7 +29,10 @@ namespace Ico
 @[simp] theorem to_finset (n m : ℕ) : (multiset.Ico n m).to_finset = Ico n m :=
 (multiset.to_finset_eq _).symm
 
-theorem image_add (n m k : ℕ) : (Ico n m).image ((+) k) = Ico (n + k) (m + k) :=
+theorem image_add_left (n m k : ℕ) : (Ico n m).image ((+) k) = Ico (k + n) (k + m) :=
+by simp [image, multiset.Ico.map_add, add_comm]
+
+theorem image_add_right (n m k : ℕ) : (Ico n m).image (λ x, x + k) = Ico (n + k) (m + k) :=
 by simp [image, multiset.Ico.map_add]
 
 theorem image_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).image (λ x, x - k) = Ico (n - k) (m - k) :=

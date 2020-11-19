@@ -231,17 +231,19 @@ section comparison
 variables {C} {D : Type u₂} [category.{v} D] (G : C ⥤ D)
 
 /--
-The comparison morphism from the image of a terminal object to the terminal in the target category.
-TODO: Show this is an isomorphism if and only if `G` preserves terminal objects.
+The comparison morphism from the image of a terminal object to the terminal object in the target
+category.
 -/
+-- TODO: Show this is an isomorphism if and only if `G` preserves terminal objects.
 def terminal_comparison [has_terminal C] [has_terminal D] :
   G.obj (⊤_ C) ⟶ ⊤_ D :=
 terminal.from _
 
 /--
-The comparison morphism from the image of a terminal object to the terminal in the target category.
-TODO: Show this is an isomorphism if and only if `G` preserves initial objects.
+The comparison morphism from the initial object in the target category to the image of the initial
+object.
 -/
+-- TODO: Show this is an isomorphism if and only if `G` preserves initial objects.
 def initial_comparison [has_initial C] [has_initial D] :
   ⊥_ D ⟶ G.obj (⊥_ C) :=
 initial.to _

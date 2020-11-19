@@ -68,7 +68,7 @@ This allows us to show that the functor X ⨯ - preserves connected limits.
 
 See https://stacks.math.columbia.edu/tag/002S
 -/
-class is_connected (J : Type u₂) [category.{v₁} J] extends is_preconnected J : Prop :=
+class is_connected (J : Type u₁) [category.{v₁} J] extends is_preconnected J : Prop :=
 [is_nonempty : nonempty J]
 
 attribute [instance, priority 100] is_connected.is_nonempty
@@ -173,6 +173,27 @@ lemma is_preconnected_induction [is_preconnected J] (Z : J → Sort*)
 (induct_on_objects {j | nonempty (Z j)} ⟨x⟩
   (λ j₁ j₂ f, ⟨by { rintro ⟨y⟩, exact ⟨h₁ f y⟩, }, by { rintro ⟨y⟩, exact ⟨h₂ f y⟩, }⟩) j : _)
 
+/-- If `J` and `K` are equivalent, then if `J` is preconnected then `K` is as well. -/
+lemma is_preconnected_of_equivalent {K : Type u₁} [category.{v₂} K] [is_preconnected J]
+  (e : J ≌ K) :
+  is_preconnected K :=
+{ iso_constant := λ α F k, ⟨
+  calc F ≅ e.inverse ⋙ e.functor ⋙ F : (e.inv_fun_id_assoc F).symm
+     ... ≅ e.inverse ⋙ (functor.const J).obj ((e.functor ⋙ F).obj (e.inverse.obj k)) :
+                       iso_whisker_left e.inverse (iso_constant (e.functor ⋙ F) (e.inverse.obj k))
+
+     ... ≅ e.inverse ⋙ (functor.const J).obj (F.obj k) :
+          iso_whisker_left _ ((F ⋙ functor.const J).map_iso (e.counit_iso.app k))
+     ... ≅ (functor.const K).obj (F.obj k) : nat_iso.of_components (λ X, iso.refl _) (by simp),
+  ⟩ }
+
+/-- If `J` and `K` are equivalent, then if `J` is connected then `K` is as well. -/
+lemma is_connected_of_equivalent {K : Type u₁} [category.{v₂} K]
+  (e : J ≌ K) [is_connected J] :
+  is_connected K :=
+{ is_nonempty := nonempty.map e.functor.obj (by apply_instance),
+  to_is_preconnected := is_preconnected_of_equivalent e }
+
 /-- j₁ and j₂ are related by `zag` if there is a morphism between them. -/
 @[reducible]
 def zag (j₁ j₂ : J) : Prop := nonempty (j₁ ⟶ j₂) ∨ nonempty (j₂ ⟶ j₁)
@@ -191,15 +212,23 @@ lemma zigzag_symmetric : symmetric (@zigzag J _) :=
 relation.refl_trans_gen.symmetric zag_symmetric
 
 lemma zigzag_equivalence : _root_.equivalence (@zigzag J _) :=
-(mk_equivalence _
+mk_equivalence _
     relation.reflexive_refl_trans_gen
     zigzag_symmetric
-    relation.transitive_refl_trans_gen)
+    relation.transitive_refl_trans_gen
 
+/--
+The setoid given by the equivalence relation `zigzag`. A quotient for this
+setoid is a connected component of the category.
+-/
 def zigzag.setoid (J : Type u₂) [category.{v₁} J] : setoid J :=
 { r := zigzag,
   iseqv := zigzag_equivalence }
 
+/--
+If there is a zigzag from `j₁` to `j₂`, then there is a zigzag from `F j₁` to
+`F j₂` as long as `F` is a functor.
+-/
 lemma zigzag_obj_of_zigzag (F : J ⥤ K) {j₁ j₂ : J} (h : zigzag j₁ j₂) :
   zigzag (F.obj j₁) (F.obj j₂) :=
 begin
@@ -208,15 +237,11 @@ begin
   exact or.imp (nonempty.map (λ f, F.map f)) (nonempty.map (λ f, F.map f))
 end
 
+-- TODO: figure out the right way to generalise this to `zigzag`.
 lemma zag_of_zag_obj (F : J ⥤ K) [full F] {j₁ j₂ : J} (h : zag (F.obj j₁) (F.obj j₂)) :
   zag j₁ j₂ :=
-begin
-  apply or.imp _ _ h,
-  apply nonempty.map _,
-  apply F.preimage,
-  apply nonempty.map _,
-  apply F.preimage,
-end
+or.imp (nonempty.map F.preimage) (nonempty.map F.preimage) h
+
 /-- Any equivalence relation containing (⟶) holds for all pairs of a connected category. -/
 lemma equiv_relation [is_connected J] (r : J → J → Prop) (hr : _root_.equivalence r)
   (h : ∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), r j₁ j₂) :

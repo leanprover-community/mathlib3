@@ -822,9 +822,18 @@ begin
   exact mul_mem_mul hx hy,
 end
 
+example {I : fractional_ideal g} : (1 / I) = 1 / I :=
+by library_search
+
 theorem self_div_cancel_iff {I : fractional_ideal g} :
-  I * 1 / I = 1 ↔ ∃ J, I * J = 1 := sorry
--- ⟨λ h, ⟨I⁻¹, h⟩, λ ⟨J, hJ⟩, by rwa [←right_inverse_eq I J hJ]⟩
+  I * 1 / I = 1 ↔ ∃ J, I * J = 1 := --sorry
+begin
+  rw prod_one_self_div_eq _,
+end
+
+-- ⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩,
+
+--  by rwa [exact_rlf, ← prod_one_self_div_eq I J hJ]⟩
 
 variables {K' : Type*} [field K'] {g' : fraction_map R₁ K'}
 
@@ -989,65 +998,21 @@ begin
     split,
     { rw [← coe_le_coe, coe_div (span_singleton_ne_zero_iff.mpr h), coe_one,
       coe_span_singleton, coe_span_singleton, submodule.le_span_singleton_iff],
-      -- rw coe_div (span_singleton_ne_zero_iff.mpr h),
-    -- rw coe_one,
-    -- rw [coe_span_singleton],
-    -- rw [coe_span_singleton],
-    -- rw submodule.le_span_singleton_iff,
-    intros y hy,
-    -- have hxy : x * y ∈ 1, sorry,
-    rw submodule.mem_div_iff_forall_mul_mem at hy,
-    obtain ⟨r, hr⟩ : ∃ (r : R₁), (g.to_map r) = y *x ,
-    { specialize hy x (mem_span_singleton_self x),
-      apply fractional_ideal.mem_one_iff.mp,
-      simp * at *,
-      sorry,
-      -- rw ← coe_mk 1 _ at hy,
-      -- rw ← coe_one_eq_coe_submodule_one at hy,
-      rw ← coe_one,
-      rw ext,
-      rw coe_one at hy,
-      exact hy, },
+      intros y hy,
+      rw submodule.mem_div_iff_forall_mul_mem at hy,
+      obtain ⟨r, hr⟩ : ∃ (r : R₁), (g.to_map r) = y *x ,
+      { specialize hy x (mem_span_singleton_self x),
+        apply fractional_ideal.mem_one_iff.mp,
+        rwa ← coe_one at hy },
     use r,
     change (g.to_map r) * x⁻¹ = y,
-    simp only [*, ne.def, not_false_iff, mul_inv_cancel_right']},
+    simp only [*, ne.def, not_false_iff, mul_inv_cancel_right'] },
     { apply (le_div_iff_mul_le (span_singleton_ne_zero_iff.mpr h)).mpr,
       rw [span_singleton_mul_span_singleton, inv_mul_cancel h, span_singleton_one],
-      sorry } },
---(right_inverse_eq _ _ (by simp [h])).symm
+      apply le_of_eq _, simp only [eq_self_iff_true] } },
 end
 
--- @[simp] lemma span_singleton_inv (x : g.codomain) :
---   1 / span_singleton x)⁻¹ = span_singleton (x⁻¹) :=
--- one_div_span_singleton x
 
--- lemma invertible_of_principal (I : fractional_ideal g)
---   [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
---   I * I⁻¹ = 1 :=
--- mul_inv_cancel_iff.mpr
---   ⟨span_singleton (generator (I : submodule R₁ g.codomain))⁻¹, mul_generator_self_inv I h⟩
-
--- lemma invertible_iff_generator_nonzero (I : fractional_ideal g)
---   [submodule.is_principal (I : submodule R₁ g.codomain)] :
---   I * I⁻¹ = 1 ↔ generator (I : submodule R₁ g.codomain) ≠ 0 :=
--- begin
---   split,
---   { intros hI hg,
---     apply ne_zero_of_mul_eq_one _ _ hI,
---     rw [eq_span_singleton_of_principal I, hg, span_singleton_zero] },
---   { intro hg,
---     apply invertible_of_principal,
---     rw [eq_span_singleton_of_principal I],
---     intro hI,
---     have := mem_span_singleton_self (generator (I : submodule R₁ g.codomain)),
---     rw [hI, mem_zero_iff] at this,
---     contradiction }
--- end
-
--- lemma is_principal_inv (I : fractional_ideal g)
---   [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
---   submodule.is_principal (I⁻¹).1 :=
--- I⁻¹.is_principal_iff.mpr ⟨_, (right_inverse_eq _ _ (mul_generator_self_inv I h)).symm⟩
 
 @[simp] lemma div_span_singleton (J : fractional_ideal g) (d : g.codomain) :
   J / span_singleton d = span_singleton (d⁻¹) * J :=

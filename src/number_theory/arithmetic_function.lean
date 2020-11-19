@@ -758,4 +758,3 @@ end comm_ring
 end special_functions
 end arithmetic_function
 end nat
-#lint

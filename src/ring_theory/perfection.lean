@@ -31,20 +31,27 @@ open_locale nnreal
 /-- The perfection of a monoid `M`, defined to be the projective limit of `M`
 using the `p`-th power maps `M → M` indexed by the natural numbers, implemented as
 `{ f : ℕ → M | ∀ n, f (n + 1) ^ p = f n }`. -/
-def perfection_m (M : Type u) [comm_monoid M] (p : ℕ) : submonoid (ℕ → M) :=
+def submonoid.perfection (M : Type u) [comm_monoid M] (p : ℕ) : submonoid (ℕ → M) :=
 { carrier := { f | ∀ n, f (n + 1) ^ p = f n },
   one_mem' := λ n, one_pow _,
   mul_mem' := λ f g hf hg n, (mul_pow _ _ _).trans $ congr_arg2 _ (hf n) (hg n) }
 
+/-- The perfection of a semiring `R` with characteristic `p`,
+defined to be the projective limit of `R` using the Frobenius maps `R → R`
+indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 1) ^ p = f n }`. -/
+def perfection_s (R : Type u) [comm_semiring R] (p : ℕ) [hp : fact p.prime] [char_p R p] :
+  subsemiring (ℕ → R) :=
+{ zero_mem' := λ n, zero_pow $ hp.pos,
+  add_mem' := λ f g hf hg n, (frobenius_add R p _ _).trans $ congr_arg2 _ (hf n) (hg n),
+  .. perfection_m R p }
+  
 /-- The perfection of a ring `R` with characteristic `p`,
 defined to be the projective limit of `R` using the Frobenius maps `R → R`
 indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 1) ^ p = f n }`. -/
 def perfection (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime] [char_p R p] :
   subring (ℕ → R) :=
-{ zero_mem' := λ n, zero_pow $ hp.pos,
-  add_mem' := λ f g hf hg n, (frobenius_add R p _ _).trans $ congr_arg2 _ (hf n) (hg n),
-  neg_mem' := λ f hf n, (frobenius_neg R p _).trans $ congr_arg _ (hf n),
-  .. perfection_m R p }
+{ neg_mem' := λ f hf n, (frobenius_neg R p _).trans $ congr_arg _ (hf n),
+  .. perfection_s R p }
 
 namespace ring_char
 

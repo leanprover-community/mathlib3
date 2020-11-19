@@ -1,5 +1,12 @@
+/-
+Copyright (c) 2020 E.W.Ayers. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: E.W.Ayers
+-/
 import control.profunctor
 import data.vector
+import data.vector2
+import tactic
 
 namespace control.optic.concrete
 
@@ -46,9 +53,56 @@ namespace prism
   }
 end prism
 
-/-- An inefficient, concrete definition of a traversal. -/
-def traversal (A B S T : Type) :=
-S → Σ (n : nat), (vector A n) × (vector B n → T)
+structure traversal0 (A B S T : Type) :=
+(get    : S → T ⊕ A)
+(review : S → B → T)
+
+/-- The representation functor for `traversal`. -/
+structure fun_list (A B T : Type) :=
+(n : nat)
+(get : vector A n)
+(out : vector B n → T)
+
+namespace fun_list
+  def vector.split {n m : nat} : vector A (n + m) → vector A n × vector A m :=
+  begin
+    intro bs,
+    let b1 := vector.take n bs,
+    let b2 := vector.drop n bs,
+    have : min n (n + m) = n,
+      refine le_antisymm (min_le_left _ _) (le_min (le_refl _) (le_add_right (le_refl _))),
+    rw this at b1,
+    have : (n + m) - n = m,
+      rw [add_comm, nat.add_sub_assoc (le_refl _)], simp,
+    rw this at b2,
+    exact (b1, b2)
+  end
+
+  instance : functor (fun_list A B) :=
+  { map := λ X Y xy ⟨n,a,b⟩, ⟨n,a, xy ∘ b⟩}
+
+  instance : applicative (fun_list A B) :=
+  { pure := λ T t, ⟨0, vector.nil, λ _, t⟩
+  , seq := λ X Y ⟨n, a1, bxy⟩ ⟨m, a2, bx⟩,
+      ⟨ n + m
+      , vector.append a1 a2
+      , λ bs, prod.cases_on (vector.split bs) $ λ b1 b2, bxy b1 $ bx b2
+      ⟩
+  }
+end fun_list
+
+/-- A concrete definition of a traversal. -/
+def traversal (A B S T : Type) := star (fun_list A B) S T
+
+namespace traversal
+  instance : profunctor (traversal A B) := star.is_profunctor
+  instance : strong (traversal A B) := star.is_strong
+  instance : choice (traversal A B) := star.is_choice
+  instance : representable (traversal A B) := star.is_representable
+  instance : traversing (traversal A B) := {}
+  protected def id : traversal A B A B :=
+  λ a, fun_list.mk 1 (vector.cons a $ vector.nil) (vector.head)
+end traversal
 
 def setter (A B S T : Type) :=
 (A → B) → (S → T)

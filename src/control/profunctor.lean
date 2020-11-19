@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 E.W.Ayers. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: E.W.Ayers
+-/
 import control.functor control.traversable
 
 namespace control
@@ -14,14 +19,18 @@ class lawful_profunctor (P : Type → Type → Type) extends profunctor P :=
 namespace profunctor
 
 class strong (P : Type → Type → Type) :=
-(first {A B} (C) : P A B → P (A × C) (B × C))
+(first  {A B} (C) : P A B → P (A × C) (B × C))
 (second {A B} (C) : P A B → P (C × A) (C × B))
 
 @[reducible] def first := @strong.first
 @[reducible] def second := @strong.second
 
+class costrong (P : Type → Type → Type) :=
+(unfirst  {A B} (C : Type) : P (A × C) (B × C) → P A B)
+(unsecond {A B} (C : Type) : P (C × A) (C × B) → P A B)
+
 class choice (P : Type → Type → Type) :=
-(left {A B} (C) : P A B → P (A ⊕ C) (B ⊕ C))
+(left  {A B} (C) : P A B → P (A ⊕ C) (B ⊕ C))
 (right {A B} (C) : P A B → P (C ⊕ A) (C ⊕ B))
 
 @[reducible] def left := @choice.left
@@ -42,8 +51,8 @@ class distributive (R : Type → Type) :=
 
 class representable (P : Type → Type → Type) :=
 (Rep : Type → Type)
-(sieve {A B} : P A B → A → Rep B)
-(tabulate {A B} : (A → Rep B) → P A B)
+(sieve    {A B} : P A B        → (A → Rep B))
+(tabulate {A B} : (A → Rep B) → P A B       )
 
 class contrafunctor (F : Type → Type) :=
 (comap : ∀ (A B : Type), (B → A) → F A → F B)
@@ -71,14 +80,26 @@ def star (F : Type → Type) (A B : Type) := A → F B
 namespace star
   variables {F : Type → Type} [functor F]
 
-  instance : profunctor (star F) :=
-  {dimap := λ A B C D f g h a, g <$> (h $ f a)}
+  instance is_profunctor : profunctor (star F) :=
+  { dimap := λ A B C D f g h a, g <$> (h $ f a) }
 
-  instance : representable (star F) :=
-  { Rep := F
-  , sieve := λ A B, id
-  , tabulate := λ A B, id
+  instance is_choice [has_pure F]: choice (star F) :=
+  { left :=  λ A B C afb ac, match ac with | (sum.inl a) := sum.inl <$> afb a | (sum.inr c) := sum.inr <$> pure c end
+  , right := λ A B C afb ca, match ca with | (sum.inr a) := sum.inr <$> afb a | (sum.inl c) := sum.inl <$> pure c end
   }
+
+  instance is_strong : strong (star F) :=
+  { first  := λ A B C afb ⟨a,c⟩, (λ b, prod.mk b c) <$> afb a
+  , second := λ A B C afb ⟨c,a⟩, (λ b, prod.mk c b) <$> afb a
+  }
+
+  instance is_representable : representable (star F) :=
+  { Rep := F, sieve := λ A B, id, tabulate := λ A B, id }
+
+  @[simp] lemma rep_star : Rep (star F) = F := rfl
+
+  instance is_affine [has_pure F] : affine (star F) := {}
+  instance is_traversing [applicative F] : traversing (star F) := {}
 end star
 
 /-- `costar F A B = F A → B` -/
@@ -87,10 +108,10 @@ def costar (F : Type → Type) (A B : Type) := F A → B
 namespace costar
   variables {F : Type → Type} [functor F]
   instance : profunctor (costar F) :=
-  { dimap := λ A B X Y ba xy cs fb, xy $ cs $ functor.map ba fb}
+  { dimap := λ A B X Y ba xy cs fb, xy $ cs $ functor.map ba fb }
 
   instance : closed (costar F) :=
-  { close := λ A B X fab fxa x, fab $ (λ (f : X → A), f x) <$> fxa}
+  { close := λ A B X fab fxa x, fab $ (λ (f : X → A), f x) <$> fxa }
 end costar
 
 namespace function
@@ -101,9 +122,20 @@ namespace function
   }
 
   instance is_strong : strong (→) :=
-  { first := λ A B C f, prod.map f id
+  { first  := λ A B C f, prod.map f id
   , second := λ A B C f, prod.map id f
   }
+
+  instance is_choice : choice (→) :=
+  { left  := λ A B C f, sum.map f id
+  , right := λ A B C f, sum.map id f
+  }
+
+  instance is_closed : closed (→) :=
+  { close := λ A B X ab xa x, ab $ xa $ x}
+
+  instance is_representable : representable (→) :=
+  { Rep := id, sieve := λ _ _, id, tabulate := λ _ _, id }
 
   /-- `A → _` is a functor. -/
   instance is_functor {A : Type} : functor ((→) A) :=
@@ -116,6 +148,9 @@ end function
 
 instance applicative_rep_of_traversing {P : Type → Type → Type} [traversing P] : applicative (Rep P) :=
 traversing.a
+
+instance functor_rep_of_traversing {P : Type → Type → Type} [traversing P] : functor (Rep P) :=
+by apply_instance
 
 instance dist_rep_of_mapping {P : Type → Type → Type} [mapping P] : distributive (Rep P) :=
 mapping.d

@@ -426,6 +426,8 @@ have multiset.rel associated (p ::ₘ factors b) (factors a),
           (associated.symm (factors_prod hb0))),
 multiset.exists_mem_of_rel_of_mem this (by simp)
 
+@[simp] lemma factors_zero : factors (0 : α) = 0 := dif_pos rfl
+
 @[simp] lemma factors_one : factors (1 : α) = 0 :=
 begin
   rw ← multiset.rel_zero_right,
@@ -457,6 +459,26 @@ begin
   { rw multiset.prod_add,
     exact associated.trans (associated_mul_mul (factors_prod hx) (factors_prod hy))
       (factors_prod (mul_ne_zero hx hy)).symm, }
+end
+
+@[simp] lemma factors_pow {x : α} (n : ℕ) :
+  factors (x ^ n) = n •ℕ factors x :=
+begin
+  induction n with n ih,
+  { simp },
+  by_cases h0 : x = 0,
+  { simp [h0, zero_pow n.succ_pos, smul_zero] },
+  rw [pow_succ, succ_nsmul, factors_mul h0 (pow_ne_zero _ h0), ih],
+end
+
+lemma dvd_iff_factors_le_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
+  x ∣ y ↔ factors x ≤ factors y :=
+begin
+  split,
+  { rintro ⟨c, rfl⟩,
+    simp [hx, right_ne_zero_of_mul hy] },
+  { rw [← dvd_iff_dvd_of_rel_left (factors_prod hx), ← dvd_iff_dvd_of_rel_right (factors_prod hy)],
+    apply multiset.prod_dvd_prod }
 end
 
 end unique_factorization_monoid

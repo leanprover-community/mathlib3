@@ -334,8 +334,7 @@ lemma chaar_mono {K₀ : positive_compacts G} {K₁ K₂ : compacts G} (h : K₁
   chaar K₀ K₁ ≤ chaar K₀ K₂ :=
 begin
   let eval : (compacts G → ℝ) → ℝ := λ f, f K₂ - f K₁,
-  have : continuous eval := continuous_sub.comp
-    (continuous.prod_mk (continuous_apply K₂) (@continuous_apply _ (λ _, ℝ) _ K₁)),
+  have : continuous eval := (continuous_apply K₂).sub (continuous_apply K₁),
   rw [← sub_nonneg], show chaar K₀ ∈ eval ⁻¹' (Ici (0 : ℝ)),
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
@@ -348,10 +347,9 @@ lemma chaar_sup_le {K₀ : positive_compacts G} (K₁ K₂ : compacts G) :
   chaar K₀ (K₁ ⊔ K₂) ≤ chaar K₀ K₁ + chaar K₀ K₂ :=
 begin
   let eval : (compacts G → ℝ) → ℝ := λ f, f K₁ + f K₂ - f (K₁ ⊔ K₂),
-  have : continuous eval := continuous_sub.comp
-    (continuous.prod_mk (continuous_add.comp
-      (continuous.prod_mk (continuous_apply K₁) (@continuous_apply _ (λ _, ℝ) _ K₂)))
-      (@continuous_apply _ (λ _, ℝ) _(K₁ ⊔ K₂))),
+  have : continuous eval :=
+    ((@continuous_add ℝ _ _ _).comp ((continuous_apply K₁).prod_mk (continuous_apply K₂))).sub
+      (continuous_apply (K₁ ⊔ K₂)),
   rw [← sub_nonneg], show chaar K₀ ∈ eval ⁻¹' (Ici (0 : ℝ)),
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
@@ -369,14 +367,13 @@ begin
   rcases compact_open_separated_mul K₁.2 h1U₁ h2U₁ with ⟨V₁, h1V₁, h2V₁, h3V₁⟩,
   rcases compact_open_separated_mul K₂.2 h1U₂ h2U₂ with ⟨V₂, h1V₂, h2V₂, h3V₂⟩,
   let eval : (compacts G → ℝ) → ℝ := λ f, f K₁ + f K₂ - f (K₁ ⊔ K₂),
-  have : continuous eval := continuous_sub.comp
-    (continuous.prod_mk (continuous_add.comp
-      (continuous.prod_mk (continuous_apply K₁) (@continuous_apply _ (λ _, ℝ) _ K₂)))
-      (@continuous_apply _ (λ _, ℝ) _(K₁ ⊔ K₂))),
+  have : continuous eval :=
+    ((@continuous_add ℝ _ _ _).comp ((continuous_apply K₁).prod_mk (continuous_apply K₂))).sub
+      (continuous_apply (K₁ ⊔ K₂)),
   rw [eq_comm, ← sub_eq_zero], show chaar K₀ ∈ eval ⁻¹' {(0 : ℝ)},
   let V := V₁ ∩ V₂,
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀
-    ⟨V⁻¹, continuous_inv V (is_open_inter h1V₁ h1V₂),
+    ⟨V⁻¹, (is_open_inter h1V₁ h1V₂).preimage continuous_inv,
     by simp only [mem_inv, one_inv, h2V₁, h2V₂, V, mem_inter_eq, true_and]⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩,
@@ -395,8 +392,7 @@ lemma is_left_invariant_chaar {K₀ : positive_compacts G} (g : G) (K : compacts
   chaar K₀ (K.map _ $ continuous_mul_left g) = chaar K₀ K :=
 begin
   let eval : (compacts G → ℝ) → ℝ := λ f, f (K.map _ $ continuous_mul_left g) - f K,
-  have : continuous eval := continuous_sub.comp
-    (continuous.prod_mk (continuous_apply (K.map _ _)) (@continuous_apply _ (λ _, ℝ) _ K)),
+  have : continuous eval := (continuous_apply (K.map _ _)).sub (continuous_apply K),
   rw [← sub_eq_zero], show chaar K₀ ∈ eval ⁻¹' {(0 : ℝ)},
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,

@@ -100,7 +100,7 @@ begin
     refine mt (λ hu, _) hx,
     convert U.mul_mem (U.inv_mem hux) hu,
     simp },
-  { exact (continuous_mul_right _) _ U.is_open },
+  { exact U.is_open.preimage (continuous_mul_right _) },
   { simp [U.one_mem] }
 end
 

@@ -293,7 +293,7 @@ begin
   apply is_connected.of_induct,
   intros p d k j,
   obtain ⟨l, zags, lst⟩ := h j (classical.arbitrary J),
-  apply list.chain.induction p l zags lst _ d,
+  apply list.chain.induction_head p l zags lst _ d,
   rintros _ _ (⟨⟨xy⟩⟩ | ⟨⟨yx⟩⟩),
   { exact (k xy).2 },
   { exact (k yx).1 }
@@ -351,27 +351,6 @@ begin
   refine ⟨⟨k, rfl⟩⟩,
 end
 
-lemma list.last_map {α β : Type*} (l : list α) (f : α → β) (hl : l ≠ []) :
-  (l.map f).last (mt list.eq_nil_of_map_eq_nil hl) = f (l.last hl) :=
-begin
-  induction l generalizing hl,
-  { exfalso, apply hl, refl },
-  { cases l_tl,
-    { simp },
-    { simpa using l_ih } }
-end
-
-lemma list.last_pmap {α β : Type*} (p : α → Prop) (f : Π a, p a → β)
-  (l : list α) (hl₁ : ∀ a ∈ l, p a) (hl₂ : l ≠ []) :
-  (l.pmap f hl₁).last (mt list.pmap_eq_nil.1 hl₂) = f (l.last hl₂) (hl₁ _ (list.last_mem hl₂)) :=
-begin
-  induction l generalizing hl₁ hl₂,
-  { exfalso, apply hl₂, refl },
-  { cases l_tl,
-    { simp },
-    { apply l_ih } }
-end
-
 instance (j) : is_connected (component J j) :=
 begin
   apply zigzag_is_connected,
@@ -382,7 +361,7 @@ begin
     λ x h, subtype.mk x (quotient.sound' h),
   have hf : ∀ (a : J), a ∈ l → zigzag a j₂,
   { intros i hi,
-    apply list.chain.induction' (λ t, zigzag t j₂) _ hl₁ hl₂ _ _ _ (or.inr hi),
+    apply list.chain.induction (λ t, zigzag t j₂) _ hl₁ hl₂ _ _ _ (or.inr hi),
     { intros j k, apply relation.refl_trans_gen.head },
     { apply relation.refl_trans_gen.refl } },
   let l' : list (component J (quotient.mk' j₂)),
@@ -398,7 +377,7 @@ begin
       { refine l_ih _ _ _ hl₃.2 _ _,
         { apply relation.refl_trans_gen.head (zag_symmetric hl₃.1) h₁₂ },
         { rwa list.last_cons_cons at hl₂ } } } },
-  apply list.chain.induction (λ t, zigzag t (⟨j₂, rfl⟩ : component J _)) _ this _ _ _,
+  apply list.chain.induction_head (λ t, zigzag t (⟨j₂, rfl⟩ : component J _)) _ this _ _ _,
   { refine ⟨_, rfl⟩ },
   { have h : ∀ (a : J), a ∈ j₁ :: l → zigzag a j₂,
     { simpa [h₁₂] using hf },

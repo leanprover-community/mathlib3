@@ -77,6 +77,8 @@ begin
   rwa [rmatch, feed],
 end
 
+lemma zero_rmatch (x : list α) : rmatch 0 x = ff := RZero_rmatch x
+
 lemma RNull_rmatch_iff (x : list α) : rmatch RNull x ↔ x = [] :=
 begin
   cases x,
@@ -84,6 +86,8 @@ begin
   rw [rmatch, feed, RZero_rmatch],
   dec_trivial
 end
+
+lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] := RNull_rmatch_iff x
 
 lemma RChar_rmatch_iff (a : α) (x : list α) : rmatch (RChar a) x ↔ x = [a] :=
 begin
@@ -112,6 +116,9 @@ begin
     rw feed,
     exact ih _ _ }
 end
+
+lemma add_rmatch_iff (P Q : regular_expression α) (x : list α) :
+  (P + Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x := RPlus_rmatch_iff P Q x
 
 lemma RComp_rmatch_iff (P Q : regular_expression α) (x : list α) :
   (RComp P Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
@@ -158,6 +165,9 @@ begin
           convert hP,
           finish } } } }
 end
+
+lemma mul_rmatch_iff (P Q : regular_expression α) (x : list α) :
+  (P * Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u := RComp_rmatch_iff P Q x
 
 lemma RStar_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
   (RStar P).rmatch x ↔ ∃ S : list (list α), x = S.join ∧ ∀ t ∈ S, ¬(list.empty t) ∧ P.rmatch t

@@ -51,6 +51,9 @@ def of (x : α) : free_monoid α := [x]
 @[to_additive]
 lemma of_def (x : α) : of x = [x] := rfl
 
+lemma of_injective : function.injective (@of α) :=
+λ a b, list.head_eq_of_cons_eq
+
 /-- Recursor for `free_monoid` using `1` and `of x * xs` instead of `[]` and `x :: xs`. -/
 @[to_additive "Recursor for `free_add_monoid` using `0` and `of x + xs` instead of `[]` and `x :: xs`."]
 def rec_on {C : free_monoid α → Sort*} (xs : free_monoid α) (h0 : C 1)

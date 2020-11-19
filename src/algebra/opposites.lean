@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 import data.opposite
 import algebra.field
+import group_theory.group_action.defs
 import data.equiv.mul_add
 
 /-!
@@ -144,6 +145,20 @@ instance [field α] : field (opposite α) :=
   inv_zero := unop_injective inv_zero,
   .. opposite.comm_ring α, .. opposite.has_inv α, .. opposite.nontrivial α }
 
+instance (R : Type*) [has_scalar R α] : has_scalar R (opposite α) :=
+{ smul := λ c x, op (c • unop x) }
+
+instance (R : Type*) [monoid R] [mul_action R α] : mul_action R (opposite α) :=
+{ one_smul := λ x, unop_injective $ one_smul R (unop x),
+  mul_smul := λ r₁ r₂ x, unop_injective $ mul_smul r₁ r₂ (unop x),
+  ..opposite.has_scalar α R  }
+
+instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
+  distrib_mul_action R (opposite α) :=
+{ smul_add := λ r x₁ x₂, unop_injective $ smul_add r (unop x₁) (unop x₂),
+  smul_zero := λ r, unop_injective $ smul_zero r,
+  ..opposite.mul_action α R }
+
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl
 
@@ -166,6 +181,10 @@ variable {α}
 
 @[simp] lemma op_sub [add_group α] (x y : α) : op (x - y) = op x - op y := rfl
 @[simp] lemma unop_sub [add_group α] (x y : αᵒᵖ) : unop (x - y) = unop x - unop y := rfl
+
+@[simp] lemma op_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : op (c • a) = c • op a := rfl
+@[simp] lemma unop_smul {R : Type*} [has_scalar R α] (c : R) (a : αᵒᵖ) :
+  unop (c • a) = c • unop a := rfl
 
 /-- The function `op` is an additive equivalence. -/
 def op_add_equiv [has_add α] : α ≃+ αᵒᵖ :=

@@ -64,7 +64,9 @@ def initial_limit_cone : limits.colimit_cocone (functor.empty (Type u)) :=
 open category_theory.limits.walking_pair
 
 /-- The product type `X × Y` forms a cone for the binary product of `X` and `Y`. -/
-@[simps {rhs_md := semireducible}]
+-- We manually generate the other projection lemmas since the simp-normal form for the legs is
+-- otherwise not created correctly.
+@[simps X {rhs_md := semireducible}]
 def binary_product_cone (X Y : Type u) : binary_fan X Y :=
 binary_fan.mk prod.fst prod.snd
 

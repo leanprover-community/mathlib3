@@ -90,7 +90,8 @@ lemma one_apply_ne {x : ℕ} (h : x ≠ 1) : (1 : arithmetic_function R) x = 0 :
 end has_one
 end has_zero
 
-instance nat_coe [semiring R] : has_coe (arithmetic_function ℕ) (arithmetic_function R) :=
+instance nat_coe [has_zero R] [has_one R] [has_add R] :
+  has_coe (arithmetic_function ℕ) (arithmetic_function R) :=
 ⟨λ f, ⟨↑(f : ℕ → ℕ), by { transitivity ↑(f 0), refl, simp }⟩⟩
 
 @[simp]
@@ -104,10 +105,11 @@ begin
 end
 
 @[simp]
-lemma nat_coe_apply [semiring R] {f : arithmetic_function ℕ} {x : ℕ} :
+lemma nat_coe_apply [has_zero R] [has_one R] [has_add R] {f : arithmetic_function ℕ} {x : ℕ} :
   (f : arithmetic_function R) x = f x := rfl
 
-instance int_coe [ring R] : has_coe (arithmetic_function ℤ) (arithmetic_function R) :=
+instance int_coe [has_zero R] [has_one R] [has_add R] [has_neg R] :
+  has_coe (arithmetic_function ℤ) (arithmetic_function R) :=
 ⟨λ f, ⟨↑(f : ℕ → ℤ), by { transitivity ↑(f 0), refl, simp }⟩⟩
 
 @[simp]
@@ -121,11 +123,12 @@ begin
 end
 
 @[simp]
-lemma int_coe_apply [ring R] {f : arithmetic_function ℤ} {x : ℕ} :
+lemma int_coe_apply [has_zero R] [has_one R] [has_add R] [has_neg R]
+  {f : arithmetic_function ℤ} {x : ℕ} :
   (f : arithmetic_function R) x = f x := rfl
 
 @[simp]
-lemma coe_coe [ring R] {f : arithmetic_function ℕ} :
+lemma coe_coe [has_zero R] [has_one R] [has_add R] [has_neg R] {f : arithmetic_function ℕ} :
   ((f : arithmetic_function ℤ) : arithmetic_function R) = f :=
 by { ext, simp, }
 

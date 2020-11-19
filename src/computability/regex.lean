@@ -11,7 +11,7 @@ import tactic.omega
 /-!
 # Regular Expression
 
-This file contains the formal definition for regular expressions on basic lemmas.
+This file contains the formal definition for regular expressions and basic lemmas.
 -/
 
 universe u

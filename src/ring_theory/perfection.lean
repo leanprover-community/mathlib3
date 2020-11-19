@@ -54,47 +54,6 @@ def perfection (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime] [char_p 
 { neg_mem' := λ f hf n, (frobenius_neg R p _).trans $ congr_arg _ (hf n),
   .. comm_semiring.perfection R p }
 
-namespace char_p
-
-instance pi (ι : Type u) [hi : nonempty ι] (R : Type v) [semiring R] (p : ℕ) [char_p R p] :
-  char_p (ι → R) p :=
-⟨λ x, let ⟨i⟩ := hi in iff.symm $ (char_p.cast_eq_zero_iff R p x).symm.trans
-⟨λ h, funext $ λ j, show ring_hom.apply (λ _, R) j (↑x : ι → R) = 0,
-    by rw [ring_hom.map_nat_cast, h],
-  λ h, (ring_hom.apply (λ _, R) i).map_nat_cast x ▸ by rw [h, ring_hom.map_zero]⟩⟩
-
--- diamonds
-instance pi' (ι : Type u) [hi : nonempty ι] (R : Type v) [comm_ring R] (p : ℕ) [char_p R p] :
-  char_p (ι → R) p :=
-char_p.pi ι R p
-
-instance subsemiring (R : Type u) [semiring R] (p : ℕ) [char_p R p] (S : subsemiring R) :
-  char_p S p :=
-⟨λ x, iff.symm $ (char_p.cast_eq_zero_iff R p x).symm.trans
-⟨λ h, subtype.eq $ show S.subtype x = 0, by rw [ring_hom.map_nat_cast, h],
-  λ h, S.subtype.map_nat_cast x ▸ by rw [h, ring_hom.map_zero]⟩⟩
-
-instance subring (R : Type u) [ring R] (p : ℕ) [char_p R p] (S : subring R) :
-  char_p S p :=
-⟨λ x, iff.symm $ (char_p.cast_eq_zero_iff R p x).symm.trans
-⟨λ h, subtype.eq $ show S.subtype x = 0, by rw [ring_hom.map_nat_cast, h],
-  λ h, S.subtype.map_nat_cast x ▸ by rw [h, ring_hom.map_zero]⟩⟩
-
-instance subring' (R : Type u) [comm_ring R] (p : ℕ) [char_p R p] (S : subring R) :
-  char_p S p :=
-char_p.subring R p S
-
-theorem quotient (R : Type u) [comm_ring R] (p : ℕ) [hp1 : fact p.prime] (hp2 : ↑p ∈ nonunits R) :
-  char_p (ideal.span {p} : ideal R).quotient p :=
-have hp0 : (p : (ideal.span {p} : ideal R).quotient) = 0,
-  from (ideal.quotient.mk (ideal.span {p} : ideal R)).map_nat_cast p ▸
-    ideal.quotient.eq_zero_iff_mem.2 (ideal.subset_span $ set.mem_singleton _),
-ring_char.of_eq $ or.resolve_left ((nat.dvd_prime hp1).1 $ ring_char.dvd hp0) $ λ h1,
-hp2 $ is_unit_iff_dvd_one.2 $ ideal.mem_span_singleton.1 $ ideal.quotient.eq_zero_iff_mem.1 $
-@@subsingleton.elim (@@char_p.subsingleton _ $ ring_char.of_eq h1) _ _
-
-end char_p
-
 namespace perfection
 
 variables (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime] [char_p R p]

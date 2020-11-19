@@ -25,7 +25,8 @@ class char_p (α : Type u) [semiring α] (p : ℕ) : Prop :=
 theorem char_p.cast_eq_zero (α : Type u) [semiring α] (p : ℕ) [char_p α p] : (p:α) = 0 :=
 (char_p.cast_eq_zero_iff α p p).2 (dvd_refl p)
 
-@[simp] lemma char_p.cast_card_eq_zero (R : Type*) [ring R] [fintype R] : (fintype.card R : R) = 0 :=
+@[simp] lemma char_p.cast_card_eq_zero (R : Type*) [ring R] [fintype R] :
+  (fintype.card R : R) = 0 :=
 begin
   have : fintype.card R •ℕ (1 : R) = 0 :=
     @pow_card_eq_one (multiplicative R) _ _ (multiplicative.of_add 1),
@@ -68,7 +69,8 @@ classical.by_cases
         (nat.mod_lt x $ nat.pos_of_ne_zero $ not_of_not_imp $
           nat.find_spec (not_forall.1 H))
         (not_imp_of_and_not ⟨by rwa [← nat.mod_add_div x (nat.find (not_forall.1 H)),
-          nat.cast_add, nat.cast_mul, of_not_not (not_not_of_not_imp $ nat.find_spec (not_forall.1 H)),
+          nat.cast_add, nat.cast_mul, of_not_not (not_not_of_not_imp $ nat.find_spec
+            (not_forall.1 H)),
           zero_mul, add_zero] at H1, H2⟩)),
     λ H1, by rw [← nat.mul_div_cancel' H1, nat.cast_mul,
       of_not_not (not_not_of_not_imp $ nat.find_spec (not_forall.1 H)), zero_mul]⟩⟩⟩)

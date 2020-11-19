@@ -350,9 +350,9 @@ instance : integral_domain (pre_tilt K v O hv p) :=
 
 end pre_tilt
 
-/-- The tilt of a field, as defined in Perfectoid Spaces by Peter Scholze.
-Given a field `K` with valuation `K → ℝ≥0` and ring of integers `O`, this is implemented
-as the fraction field of the perfection of `O/(p)`. -/
+/-- The tilt of a field, as defined in Perfectoid Spaces by Peter Scholze, as in
+[scholze2011perfectoid]. Given a field `K` with valuation `K → ℝ≥0` and ring of integers `O`,
+this is implemented as the fraction field of the perfection of `O/(p)`. -/
 @[nolint has_inhabited_instance] def tilt :=
 fraction_ring (pre_tilt K v O hv p)
 

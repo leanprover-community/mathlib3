@@ -31,7 +31,7 @@ open_locale nnreal
 /-- The perfection of a monoid `M`, defined to be the projective limit of `M`
 using the `p`-th power maps `M → M` indexed by the natural numbers, implemented as
 `{ f : ℕ → M | ∀ n, f (n + 1) ^ p = f n }`. -/
-def submonoid.perfection (M : Type u) [comm_monoid M] (p : ℕ) : submonoid (ℕ → M) :=
+def monoid.perfection (M : Type u) [comm_monoid M] (p : ℕ) : submonoid (ℕ → M) :=
 { carrier := { f | ∀ n, f (n + 1) ^ p = f n },
   one_mem' := λ n, one_pow _,
   mul_mem' := λ f g hf hg n, (mul_pow _ _ _).trans $ congr_arg2 _ (hf n) (hg n) }
@@ -39,35 +39,20 @@ def submonoid.perfection (M : Type u) [comm_monoid M] (p : ℕ) : submonoid (ℕ
 /-- The perfection of a semiring `R` with characteristic `p`,
 defined to be the projective limit of `R` using the Frobenius maps `R → R`
 indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 1) ^ p = f n }`. -/
-def perfection_s (R : Type u) [comm_semiring R] (p : ℕ) [hp : fact p.prime] [char_p R p] :
+def comm_semiring.perfection (R : Type u) [comm_semiring R]
+  (p : ℕ) [hp : fact p.prime] [char_p R p] :
   subsemiring (ℕ → R) :=
 { zero_mem' := λ n, zero_pow $ hp.pos,
   add_mem' := λ f g hf hg n, (frobenius_add R p _ _).trans $ congr_arg2 _ (hf n) (hg n),
-  .. perfection_m R p }
-  
+  .. monoid.perfection R p }
+
 /-- The perfection of a ring `R` with characteristic `p`,
 defined to be the projective limit of `R` using the Frobenius maps `R → R`
 indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 1) ^ p = f n }`. -/
 def perfection (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime] [char_p R p] :
   subring (ℕ → R) :=
 { neg_mem' := λ f hf n, (frobenius_neg R p _).trans $ congr_arg _ (hf n),
-  .. perfection_s R p }
-
-namespace ring_char
-
-instance char_p (R : Type u) [semiring R] : char_p R (ring_char R) :=
-⟨spec R⟩
-
-theorem of_eq {R : Type u} [semiring R] {p : ℕ} (h : ring_char R = p) : char_p R p :=
-h ▸ ring_char.char_p R
-
-theorem eq_iff {R : Type u} [semiring R] {p : ℕ} : ring_char R = p ↔ char_p R p :=
-⟨of_eq, eq.symm ∘ eq R⟩
-
-theorem dvd {R : Type u} [semiring R] {x : ℕ} (hx : (x : R) = 0) : ring_char R ∣ x :=
-(spec R x).1 hx
-
-end ring_char
+  .. comm_semiring.perfection R p }
 
 namespace char_p
 

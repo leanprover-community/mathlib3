@@ -614,7 +614,7 @@ def talg.of_scalar : R →+* (talg R M) :=
   map_mul' := λ x y,
     begin
       rw ←mul_one (x * y),
-      conv_rhs {rw ←mul_one x, rw ←mul_one y},--rw ←mul_one x, rw ←mul_one y,
+      conv_rhs {rw ←mul_one x, rw ←mul_one y},
       erw [linear_map.map_smul, linear_map.map_smul, linear_map.map_smul],
       show _ = mul R M (x • talg_mk R M (default (fin 0 → M))) (y • talg_mk R M (default (fin 0 → M))),
       rw linear_map.map_smul,
@@ -668,6 +668,53 @@ instance : algebra R (talg R M) :=
     rw mul_def, rw one_mul, } }
 
 variables {R M}
+
+def alg_prod {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (n : ℕ) :
+  multilinear_map R (λ i : fin n, M) A :=
+{ to_fun := λ g, (list.of_fn (f ∘ g)).prod,
+  map_add' := λ g i x y,
+    begin
+      induction n with m hm,
+        exact fin.elim0 i,
+      rw list.of_fn_succ, rw list.of_fn_succ, rw list.of_fn_succ,
+      rw list.prod_cons,
+      rw list.prod_cons,
+      rw list.prod_cons,
+      simp only [function.comp_app],
+      rcases classical.em (i = 0) with ⟨rfl, hi⟩,
+      erw function.update_same,
+      erw function.update_same,
+      erw function.update_same,
+      rw f.map_add,
+      rw add_mul,
+      congr,
+      any_goals
+      {ext l, rw function.update_noteq,
+      rw function.update_noteq,
+      any_goals {intro hnot, apply nat.succ_ne_zero (l : ℕ),
+      rw fin.ext_iff at hnot,
+      rw fin.coe_succ at hnot,
+      exact hnot}},
+      rw function.update_noteq,
+      rw function.update_noteq,
+      rw function.update_noteq,
+      rw ←mul_add,
+      congr,
+      have := hm (λ i : fin m, g i.succ),
+      simp only [function.update_noteq],
+      sorry, sorry, sorry, sorry,
+    end,
+  map_smul' := sorry }
+
+def talg.lift {A : Type*} [semiring A] [algebra R A]
+  (f : M →ₗ[R] A) : talg R M →ₐ[R] A :=
+{ to_fun := direct_sum2.to_semimodule R ℕ A $ λ n, @tpow.lift R _ M _ _ n A _ _ (alg_prod f n),
+  map_one' := sorry,
+  map_mul' := sorry,
+  map_zero' := sorry,
+  map_add' := sorry,
+  commutes' := sorry }
+
 
 local attribute [instance] free_algebra.pre.has_mul
 

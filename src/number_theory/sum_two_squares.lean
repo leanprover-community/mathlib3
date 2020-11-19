@@ -26,7 +26,5 @@ begin
   norm_num
 end
 
---  (by rw [irreducible_iff_prime, prime_iff_mod_four_eq_three_of_nat_prime p, hp1]; norm_num)
-
 end prime
 end nat

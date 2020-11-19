@@ -674,8 +674,8 @@ by rw [mul_comm, moebius_mul_zeta_eq_one]
 
 instance : invertible ζ :=
 { inv_of := μ,
-  inv_of_mul_self := moebius_mul_zeta_eq_one,
-  mul_inv_of_self := zeta_mul_moebius_eq_one}
+  inv_of_mul_self := moebius_mul_zeta,
+  mul_inv_of_self := zeta_mul_moebius}
 
 end special_functions
 end arithmetic_function

@@ -4,11 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import category_theory.sites.grothendieck
-import category_theory.sites.pretopology
 import category_theory.sites.sheaf
-import category_theory.full_subcategory
-import category_theory.types
 
 
 /-!

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Anne Baanen
+Authors: Anne Baanen, Filippo A. E. Nuccio
 -/
 import ring_theory.localization
 import ring_theory.noetherian
@@ -719,9 +719,9 @@ noncomputable instance fractional_ideal_has_div :
 
 variables {I J : fractional_ideal g} [ J ≠ 0 ]
 
-noncomputable instance : has_inv (fractional_ideal g) := ⟨λ I, 1 / I⟩
+-- noncomputable instance : has_inv (fractional_ideal g) := ⟨λ I, 1 / I⟩
 
-lemma inv_eq {I : fractional_ideal g} : I⁻¹ = 1 / I := rfl
+-- lemma inv_eq {I : fractional_ideal g} : I⁻¹ = 1 / I := rfl
 
 @[simp] lemma div_zero {I : fractional_ideal g} :
   I / 0 = 0 :=
@@ -731,11 +731,11 @@ lemma div_nonzero {I J : fractional_ideal g} (h : J ≠ 0) :
   (I / J) = ⟨I.1 / J.1, fractional_div_of_nonzero h⟩ :=
 dif_neg h
 
-lemma inv_zero : (0 : fractional_ideal g)⁻¹ = 0 := div_zero
+-- lemma inv_zero : (0 : fractional_ideal g)⁻¹ = 0 := div_zero
 
-lemma inv_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
-  I⁻¹ = ⟨(1 : fractional_ideal g) / I, fractional_div_of_nonzero h⟩ :=
-div_nonzero h
+-- lemma inv_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
+--   I⁻¹ = ⟨(1 : fractional_ideal g) / I, fractional_div_of_nonzero h⟩ :=
+-- div_nonzero h
 
 @[simp] lemma coe_div {I J : fractional_ideal g} (hJ : J ≠ 0) :
   (↑(I / J) : submodule R₁ g.codomain) = ↑I / (↑J : submodule R₁ g.codomain) :=
@@ -780,9 +780,9 @@ begin
   refl,
 end
 
-lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
-  (↑I⁻¹ : submodule R₁ g.codomain) = g.coe_submodule 1 / I :=
-by { rw inv_nonzero h, refl }
+-- lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
+--   (↑I⁻¹ : submodule R₁ g.codomain) = g.coe_submodule 1 / I :=
+-- by { rw inv_nonzero h, refl }
 
 @[simp] lemma div_one {I : fractional_ideal g} : I / 1 = I :=
 begin
@@ -802,9 +802,9 @@ end
 lemma ne_zero_of_mul_eq_one (I J : fractional_ideal g) (h : I * J = 1) : I ≠ 0 :=
 λ hI, @zero_ne_one (fractional_ideal g) _ _ (by { convert h, simp [hI], })
 
-/-- `I⁻¹` is the inverse of `I` if `I` has an inverse. -/
-theorem right_inverse_eq (I J : fractional_ideal g) (h : I * J = 1) :
-  J = I⁻¹ :=
+
+theorem prod_one_self_div_eq (I J : fractional_ideal g) (h : I * J = 1) :
+  J = 1 / I :=
 begin
   have hI : I ≠ 0 := ne_zero_of_mul_eq_one I J h,
   suffices h' : I * (1 / I) = 1,
@@ -820,12 +820,12 @@ begin
   apply (le_div_iff_of_nonzero hI).mpr _,
   intros y hy x hx,
   rw mul_comm,
-  exact mul_mem_mul hx hy
+  exact mul_mem_mul hx hy,
 end
 
-theorem mul_inv_cancel_iff {I : fractional_ideal g} :
-  I * I⁻¹ = 1 ↔ ∃ J, I * J = 1 :=
-⟨λ h, ⟨I⁻¹, h⟩, λ ⟨J, hJ⟩, by rwa [←right_inverse_eq I J hJ]⟩
+theorem self_div_cancel_iff {I : fractional_ideal g} :
+  I * 1 / I = 1 ↔ ∃ J, I * J = 1 := sorry
+-- ⟨λ h, ⟨I⁻¹, h⟩, λ ⟨J, hJ⟩, by rwa [←right_inverse_eq I J hJ]⟩
 
 variables {K' : Type*} [field K'] {g' : fraction_map R₁ K'}
 
@@ -837,10 +837,6 @@ begin
   { ext x,
     simp [div_nonzero H, div_nonzero (map_ne_zero _ H), submodule.map_div] }
 end
-
-@[simp] lemma map_inv (I : fractional_ideal g) (h : g.codomain ≃ₐ[R₁] g'.codomain) :
-  (I⁻¹).map (h : g.codomain →ₐ[R₁] g'.codomain) = (I.map h)⁻¹ :=
-by rw [inv_eq, map_div, map_one, inv_eq]
 
 end quotient
 
@@ -980,45 +976,81 @@ begin
   rw [eq_span_singleton_of_principal I, generator_I_eq_zero, span_singleton_zero]
 end
 
+-- lemma le_div_iff_of_nonzero {I J J' : fractional_ideal g} (hJ' : J' ≠ 0) :
+--   I ≤ J / J' ↔ ∀ (x ∈ I) (y ∈ J'), x * y ∈ J :=
+
+-- lemma le_div_iff_mul_le {I J J' : fractional_ideal g} (hJ' : J' ≠ 0) : I ≤ J / J' ↔ I * J' ≤ J :=
+
 lemma one_div_span_singleton (x : g.codomain) :
   1 / span_singleton x = span_singleton (x⁻¹) :=
-if h : x = 0 then by simp [h] else (right_inverse_eq _ _ (by simp [h])).symm
-
-@[simp]
-lemma span_singleton_inv (x : g.codomain) :
-  (span_singleton x)⁻¹ = span_singleton (x⁻¹) :=
-one_div_span_singleton x
-
-lemma invertible_of_principal (I : fractional_ideal g)
-  [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
-  I * I⁻¹ = 1 :=
-mul_inv_cancel_iff.mpr
-  ⟨span_singleton (generator (I : submodule R₁ g.codomain))⁻¹, mul_generator_self_inv I h⟩
-
-lemma invertible_iff_generator_nonzero (I : fractional_ideal g)
-  [submodule.is_principal (I : submodule R₁ g.codomain)] :
-  I * I⁻¹ = 1 ↔ generator (I : submodule R₁ g.codomain) ≠ 0 :=
 begin
-  split,
-  { intros hI hg,
-    apply ne_zero_of_mul_eq_one _ _ hI,
-    rw [eq_span_singleton_of_principal I, hg, span_singleton_zero] },
-  { intro hg,
-    apply invertible_of_principal,
-    rw [eq_span_singleton_of_principal I],
-    intro hI,
-    have := mem_span_singleton_self (generator (I : submodule R₁ g.codomain)),
-    rw [hI, mem_zero_iff] at this,
-    contradiction }
+  by_cases h : x = 0,
+  { simp [h] },
+  { rw le_antisymm_iff,
+    split,
+    { rw [← coe_le_coe, coe_div (span_singleton_ne_zero_iff.mpr h), coe_one,
+      coe_span_singleton, coe_span_singleton, submodule.le_span_singleton_iff],
+      -- rw coe_div (span_singleton_ne_zero_iff.mpr h),
+    -- rw coe_one,
+    -- rw [coe_span_singleton],
+    -- rw [coe_span_singleton],
+    -- rw submodule.le_span_singleton_iff,
+    intros y hy,
+    -- have hxy : x * y ∈ 1, sorry,
+    rw submodule.mem_div_iff_forall_mul_mem at hy,
+    obtain ⟨r, hr⟩ : ∃ (r : R₁), (g.to_map r) = y *x ,
+    { specialize hy x (mem_span_singleton_self x),
+      apply fractional_ideal.mem_one_iff.mp,
+      simp * at *,
+      sorry,
+      -- rw ← coe_mk 1 _ at hy,
+      -- rw ← coe_one_eq_coe_submodule_one at hy,
+      rw ← coe_one,
+      rw ext,
+      rw coe_one at hy,
+      exact hy, },
+    use r,
+    change (g.to_map r) * x⁻¹ = y,
+    simp only [*, ne.def, not_false_iff, mul_inv_cancel_right']},
+    { apply (le_div_iff_mul_le (span_singleton_ne_zero_iff.mpr h)).mpr,
+      rw [span_singleton_mul_span_singleton, inv_mul_cancel h, span_singleton_one],
+      sorry } },
+--(right_inverse_eq _ _ (by simp [h])).symm
 end
 
-lemma is_principal_inv (I : fractional_ideal g)
-  [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
-  submodule.is_principal (I⁻¹).1 :=
-I⁻¹.is_principal_iff.mpr ⟨_, (right_inverse_eq _ _ (mul_generator_self_inv I h)).symm⟩
+-- @[simp] lemma span_singleton_inv (x : g.codomain) :
+--   1 / span_singleton x)⁻¹ = span_singleton (x⁻¹) :=
+-- one_div_span_singleton x
 
-@[simp]
-lemma div_span_singleton (J : fractional_ideal g) (d : g.codomain) :
+-- lemma invertible_of_principal (I : fractional_ideal g)
+--   [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
+--   I * I⁻¹ = 1 :=
+-- mul_inv_cancel_iff.mpr
+--   ⟨span_singleton (generator (I : submodule R₁ g.codomain))⁻¹, mul_generator_self_inv I h⟩
+
+-- lemma invertible_iff_generator_nonzero (I : fractional_ideal g)
+--   [submodule.is_principal (I : submodule R₁ g.codomain)] :
+--   I * I⁻¹ = 1 ↔ generator (I : submodule R₁ g.codomain) ≠ 0 :=
+-- begin
+--   split,
+--   { intros hI hg,
+--     apply ne_zero_of_mul_eq_one _ _ hI,
+--     rw [eq_span_singleton_of_principal I, hg, span_singleton_zero] },
+--   { intro hg,
+--     apply invertible_of_principal,
+--     rw [eq_span_singleton_of_principal I],
+--     intro hI,
+--     have := mem_span_singleton_self (generator (I : submodule R₁ g.codomain)),
+--     rw [hI, mem_zero_iff] at this,
+--     contradiction }
+-- end
+
+-- lemma is_principal_inv (I : fractional_ideal g)
+--   [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
+--   submodule.is_principal (I⁻¹).1 :=
+-- I⁻¹.is_principal_iff.mpr ⟨_, (right_inverse_eq _ _ (mul_generator_self_inv I h)).symm⟩
+
+@[simp] lemma div_span_singleton (J : fractional_ideal g) (d : g.codomain) :
   J / span_singleton d = span_singleton (d⁻¹) * J :=
 begin
   rw ← one_div_span_singleton,

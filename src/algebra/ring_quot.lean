@@ -214,14 +214,13 @@ end comm_ring
 def star_ring {R : Type u₁} [semiring R] [star_ring R] (r : R → R → Prop)
   (hr : ∀ {a b}, r a b → r (star a) (star b)) :
   star_ring (ring_quot r) :=
-{ star := quot.map star (λ a b, begin
-    intro h,
+{ star := quot.map star $ λ a b h, begin
     induction h,
     { exact rel.of (hr h_h) },
     { rw [star_add, star_add], exact rel.add_left h_ih, },
     { rw [star_mul, star_mul], exact rel.mul_right h_ih, },
     { rw [star_mul, star_mul], exact rel.mul_left h_ih, },
-  end),
+  end,
   star_involutive := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (star_star _), },
   star_mul := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (star_mul _ _), },
   star_add := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (star_add _ _), } }

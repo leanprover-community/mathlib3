@@ -12,7 +12,7 @@ import tactic.omega
 # Regular Expressions
 
 This file contains the formal definition for regular expressions and basic lemmas. Note these are
-regular expressions in terms of formal language theory. Note this is different to regex's used in
+regular expressions in terms of formal language theory. Note this is different to regex'x used in
 computer science such as the POSIX standard.
 -/
 
@@ -70,26 +70,26 @@ def rmatch : regular_expression α → list α → bool
 | M [] := match_null M
 | M (a::as) := rmatch (M.feed a) as
 
-lemma RZero_rmatch (s : list α) : rmatch RZero s = ff :=
+lemma RZero_rmatch (x : list α) : rmatch RZero x = ff :=
 begin
-  induction s,
+  induction x,
     rw [rmatch, match_null],
   rwa [rmatch, feed],
 end
 
-lemma RNull_rmatch_iff (s : list α) : rmatch RNull s ↔ s = [] :=
+lemma RNull_rmatch_iff (x : list α) : rmatch RNull x ↔ x = [] :=
 begin
-  cases s,
+  cases x,
     dec_trivial,
   rw [rmatch, feed, RZero_rmatch],
   dec_trivial
 end
 
-lemma RChar_rmatch_iff (a : α) (s : list α) : rmatch (RChar a) s ↔ s = [a] :=
+lemma RChar_rmatch_iff (a : α) (x : list α) : rmatch (RChar a) x ↔ x = [a] :=
 begin
-  cases s with _ s,
+  cases x with _ x,
     dec_trivial,
-  cases s,
+  cases x,
     rw [rmatch, feed],
     split_ifs;
     tauto,
@@ -101,10 +101,10 @@ begin
   tauto
 end
 
-lemma RPlus_rmatch_iff (P Q : regular_expression α) (s : list α) :
-  (RPlus P Q).rmatch s ↔ P.rmatch s ∨ Q.rmatch s :=
+lemma RPlus_rmatch_iff (P Q : regular_expression α) (x : list α) :
+  (RPlus P Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x :=
 begin
-  induction s with _ _ ih generalizing P Q,
+  induction x with _ _ ih generalizing P Q,
   { repeat {rw rmatch},
     rw match_null,
     finish },
@@ -113,10 +113,10 @@ begin
     exact ih _ _ }
 end
 
-lemma RComp_rmatch_iff (P Q : regular_expression α) (s : list α) :
-  (RComp P Q).rmatch s ↔ ∃ t u : list α, s = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
+lemma RComp_rmatch_iff (P Q : regular_expression α) (x : list α) :
+  (RComp P Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
 begin
-  induction s with a s ih generalizing P Q,
+  induction x with a x ih generalizing P Q,
   { rw [rmatch, match_null],
     split,
     { intro h,
@@ -135,7 +135,7 @@ begin
       split,
       { rintro (⟨ t, u, _ ⟩ | h),
         { exact ⟨ a :: t, u, by tauto ⟩ },
-        { exact ⟨ [], a :: s, rfl, hnull, h ⟩ } },
+        { exact ⟨ [], a :: x, rfl, hnull, h ⟩ } },
       { rintro ⟨ t, u, h, hP, hQ ⟩,
         cases t with b t,
         { right,
@@ -159,21 +159,21 @@ begin
           finish } } } }
 end
 
-lemma RStar_rmatch_iff (P : regular_expression α) : ∀ (s : list α),
-  (RStar P).rmatch s ↔ ∃ S : list (list α), s = S.join ∧ ∀ t ∈ S, ¬(list.empty t) ∧ P.rmatch t
-| s :=
+lemma RStar_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
+  (RStar P).rmatch x ↔ ∃ S : list (list α), x = S.join ∧ ∀ t ∈ S, ¬(list.empty t) ∧ P.rmatch t
+| x :=
 begin
-  have IH := λ t (h : list.length t < list.length s), RStar_rmatch_iff t,
+  have IH := λ t (h : list.length t < list.length x), RStar_rmatch_iff t,
   clear RStar_rmatch_iff,
   split,
-  { cases s with a s,
+  { cases x with a x,
     { intro,
       fconstructor,
       exact [],
       tauto },
     { rw [rmatch, feed, RComp_rmatch_iff],
       rintro ⟨ t, u, hs, ht, hu ⟩,
-      have hwf : u.length < (list.cons a s).length,
+      have hwf : u.length < (list.cons a x).length,
       { rw [hs, list.length_cons, list.length_append],
         omega },
       rw IH _ hwf at hu,
@@ -187,7 +187,7 @@ begin
           exact ⟨ dec_trivial, ht ⟩ },
         { exact helem _ ht' } } } },
   { rintro ⟨ S, hsum, helem ⟩,
-    cases s with a s,
+    cases x with a x,
     { dec_trivial },
     { rw [rmatch, feed, RComp_rmatch_iff],
       cases S with t' U,
@@ -200,7 +200,7 @@ begin
           convert helem.2,
           finish,
           finish },
-        { have hwf : U.join.length < (list.cons a s).length,
+        { have hwf : U.join.length < (list.cons a x).length,
           { rw hsum,
             simp only
               [list.join, list.length_append, list.cons_append, list.length_join, list.length],

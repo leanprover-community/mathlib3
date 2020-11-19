@@ -225,9 +225,9 @@ associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is
 
 lemma gcd_domain_eq_field_fractions {α : Type u} {β : Type v} {γ : Type v} [integral_domain α]
   [gcd_monoid α] [field β] [integral_domain γ] (f : fraction_map α β) [algebra f.codomain γ]
-  [algebra α γ] [is_scalar_tower α f.codomain γ] {x : γ} (hx : is_integral α x) : minimal_polynomial
-  (@is_integral_of_is_scalar_tower α f.codomain γ _ _ _ _ _ _ _ x hx) = ((minimal_polynomial hx).map
-  (localization_map.to_ring_hom f)) :=
+  [algebra α γ] [is_scalar_tower α f.codomain γ] {x : γ} (hx : is_integral α x) :
+  minimal_polynomial (@is_integral_of_is_scalar_tower α f.codomain γ _ _ _ _ _ _ _ x hx) =
+    ((minimal_polynomial hx).map (localization_map.to_ring_hom f)) :=
 begin
   refine (unique' (@is_integral_of_is_scalar_tower α f.codomain γ _ _ _ _ _ _ _ x hx) _ _ _).symm,
   { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map f

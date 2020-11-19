@@ -28,19 +28,6 @@ open measure_theory
 
 noncomputable theory
 
-section measurability_lemmas
-variables {α E : Type*} [measurable_space α] [measurable_space E] [normed_group E]
-  [opens_measurable_space E]
-
-lemma measurable.rpow_coe_nnnorm {f : α → E} {p : ℝ} (hp0 : 0 ≤ p) (hf : measurable f) :
-  measurable (λ (a : α), (nnnorm (f a) : ennreal) ^ p) :=
-begin
-  simp_rw ennreal.coe_rpow_of_nonneg _ hp0,
-  exact (nnreal.measurable_rpow_const.comp (measurable_nnnorm.comp hf)).ennreal_coe,
-end
-
-end measurability_lemmas
-
 namespace ℒp_space
 
 variables {α E F : Type*} [measurable_space α] {μ : measure α}
@@ -161,10 +148,12 @@ begin
         try { exact hf.2, },
         try { exact hg.2, }, },
     -- finish by proving the measurability of all functions involved
-    exact hg.left.rpow_coe_nnnorm hp0,
-    exact hf.left.rpow_coe_nnnorm hp0,
-    exact (ennreal.continuous_const_mul (by simp)).measurable.comp (hf.1.rpow_coe_nnnorm hp0),
-    exact (ennreal.continuous_const_mul (by simp)).measurable.comp (hg.1.rpow_coe_nnnorm hp0), },
+    exact hg.left.nnnorm.ennreal_coe.ennreal_rpow_const,
+    exact hf.left.nnnorm.ennreal_coe.ennreal_rpow_const,
+    exact (ennreal.continuous_const_mul (by simp)).measurable.comp
+      hf.left.nnnorm.ennreal_coe.ennreal_rpow_const,
+    exact (ennreal.continuous_const_mul (by simp)).measurable.comp
+      hg.left.nnnorm.ennreal_coe.ennreal_rpow_const, },
 end
 
 end borel_space

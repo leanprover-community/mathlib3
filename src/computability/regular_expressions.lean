@@ -77,7 +77,7 @@ begin
   rwa [rmatch, feed],
 end
 
-lemma zero_rmatch (x : list α) : rmatch 0 x = ff := RZero_rmatch x
+@[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff := RZero_rmatch x
 
 lemma RNull_rmatch_iff (x : list α) : rmatch RNull x ↔ x = [] :=
 begin
@@ -87,7 +87,7 @@ begin
   dec_trivial
 end
 
-lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] := RNull_rmatch_iff x
+@[simp] lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] := RNull_rmatch_iff x
 
 lemma RChar_rmatch_iff (a : α) (x : list α) : rmatch (RChar a) x ↔ x = [a] :=
 begin
@@ -117,7 +117,7 @@ begin
     exact ih _ _ }
 end
 
-lemma add_rmatch_iff (P Q : regular_expression α) (x : list α) :
+@[simp] lemma add_rmatch_iff (P Q : regular_expression α) (x : list α) :
   (P + Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x := RPlus_rmatch_iff P Q x
 
 lemma RComp_rmatch_iff (P Q : regular_expression α) (x : list α) :
@@ -166,7 +166,7 @@ begin
           finish } } } }
 end
 
-lemma mul_rmatch_iff (P Q : regular_expression α) (x : list α) :
+@[simp] lemma mul_rmatch_iff (P Q : regular_expression α) (x : list α) :
   (P * Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u := RComp_rmatch_iff P Q x
 
 lemma RStar_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
@@ -223,5 +223,56 @@ end
 using_well_founded {
   rel_tac := λ _ _, `[exact ⟨(λ L₁ L₂ : list _, L₁.length < L₂.length), inv_image.wf _ nat.lt_wf⟩]
 }
+
+lemma add_assoc (P Q R : regular_expression α) (x : list α) :
+  ((P + Q) + R).rmatch x ↔ (P + (Q + R)).rmatch x := by finish
+
+lemma add_comm (P Q : regular_expression α) (x : list α) :
+  (P + Q).rmatch x ↔ (Q + P).rmatch x := by finish
+
+lemma mul_add (P Q R : regular_expression α) (x : list α) :
+  (P * (Q + R)).rmatch x ↔ ((P * Q) + (P * R)).rmatch x :=
+begin
+  simp only [mul_rmatch_iff, add_rmatch_iff],
+  split,
+  { rintro ⟨ s, t, hsum, hP, (hQ | hR) ⟩,
+    left,
+    rotate,
+    right,
+    all_goals
+    { use [s, t],
+      tauto } },
+  { rintro (h | h);
+    rcases h with ⟨ s, t, hsum, hP, h ⟩;
+    use [s, t];
+    tauto }
+end
+
+lemma add_zero (P : regular_expression α) (x : list α) : (P + 0).rmatch x ↔ P.rmatch x := by finish
+lemma zero_add (P : regular_expression α) (x : list α) : (0 + P).rmatch x ↔ P.rmatch x := by finish
+lemma mul_zero (P : regular_expression α) (x : list α) : (P * 0).rmatch x ↔ rmatch 0 x := by finish
+lemma zero_mul (P : regular_expression α) (x : list α) : (0 * P).rmatch x ↔ rmatch 0 x := by finish
+lemma mul_one (P : regular_expression α) (x : list α) : (P * 1).rmatch x ↔ P.rmatch x :=
+begin
+  simp only [mul_rmatch_iff, one_rmatch_iff],
+  split,
+  { rintro ⟨ t, u, hx, hp, hu ⟩,
+    finish },
+  { intro h,
+    use [x, []],
+    finish }
+end
+lemma one_mul (P : regular_expression α) (x : list α) : (1 * P).rmatch x ↔ P.rmatch x :=
+begin
+  simp only [mul_rmatch_iff, one_rmatch_iff],
+  split,
+  { rintro ⟨ t, u, hx, hp, hu ⟩,
+    finish },
+  { intro h,
+    use [[], x],
+    finish }
+end
+
+lemma add_self (P : regular_expression α) (x : list α) : (P + P).rmatch x ↔ P.rmatch x := by finish
 
 end regular_expression

@@ -315,6 +315,20 @@ begin
   rw [mul_comm x y, ← mul_assoc, hr, one_mul],
 end
 
+theorem is_integral_of_is_integral_mul_unit' {R S : Type*} [comm_ring R] [comm_ring S] {f : R →+* S}
+  (x y : S) (r : R) (hr : f r * y = 1) (hx : f.is_integral_elem (x * y)) : f.is_integral_elem x :=
+@is_integral_of_is_integral_mul_unit R S _ _ f.to_algebra x y r hr hx
+
+/-- Generalization of `is_integral_of_mem_closure` bootstrapped up from that lemma -/
+lemma is_integral_of_mem_closure' (G : set A) (hG : ∀ x ∈ G, is_integral R x) :
+  ∀ x ∈ (subring.closure G), is_integral R x :=
+λ x hx, subring.closure_induction hx hG is_integral_zero is_integral_one
+  (λ _ _, is_integral_add) (λ _, is_integral_neg) (λ _ _, is_integral_mul)
+
+lemma is_integral_of_mem_closure'' {S : Type*} [comm_ring S] {f : R →+* S} (G : set S)
+  (hG : ∀ x ∈ G, f.is_integral_elem x) : ∀ x ∈ (subring.closure G), f.is_integral_elem x :=
+λ x hx, @is_integral_of_mem_closure' R S _ _ f.to_algebra G hG x hx
+
 end
 
 section algebra

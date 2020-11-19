@@ -326,45 +326,46 @@ begin
     have : ∃ (p : polynomial R) (hp : p ∈ P), p ≠ 0,
     { contrapose! hP,
       exact eq_bot_iff.2 (λ x hx, (hP x hx).symm ▸ (ideal.zero_mem ⊥)) },
-    obtain ⟨p, hp, hp0⟩ := this,
-    have hp0 : (p.map (quotient.mk P')) ≠ 0 :=
+    obtain ⟨pX, hpX, hp0⟩ := this,
+    have hp0 : (pX.map (quotient.mk P')) ≠ 0 :=
       λ hp0', hp0 $ map_injective (quotient.mk P') hP'_inj (by simpa using hp0'),
     let φ : P'.quotient →+* P.quotient := quotient_map P C le_rfl,
     have hφ' : φ.comp (quotient.mk P') = (quotient.mk P).comp C := rfl,
     have hφ : function.injective φ := quotient_map_injective,
-    let M : submonoid P'.quotient := submonoid.powers (p.map (quotient.mk P')).leading_coeff,
+    let M : submonoid P'.quotient := submonoid.powers (pX.map (quotient.mk P')).leading_coeff,
     let ϕ : localization_map M (localization M) := localization.of M,
     let ϕ' : localization_map (M.map ↑φ) (localization (M.map ↑φ)) := localization.of (M.map ↑φ),
     let φ' : (localization M) →+* (localization (M.map ↑φ)) :=
       (ϕ.map (M.mem_map_of_mem (φ : P'.quotient →* P.quotient)) ϕ'),
-    refine jacobson_bot_of_integral_localization φ hφ (p.map (quotient.mk P')).leading_coeff
-       (λ hx, hp0 (leading_coeff_eq_zero.1 hx)) ϕ ϕ' _,
-    suffices : φ'.is_integral_elem (ϕ'.to_map ((quotient.mk P) X)),
-    { intro p,
-      obtain ⟨p, q, rfl⟩ := ϕ'.mk'_surjective p,
-      induction q with q' hq,
-      induction hq with q'' hq',
-      suffices : φ'.is_integral_elem (ϕ'.to_map p),
-      { rw ϕ'.mk'_eq_mul_mk'_one,
-        refine @is_integral_mul _ _ _ _ φ'.to_algebra _ _ this
-          ⟨X - C (ϕ.mk' 1 ⟨q'', hq'.left⟩), monic_X_sub_C _, _⟩,
-        erw [eval₂_sub, eval₂_X, eval₂_C, sub_eq_zero_iff_eq, localization_map.map_mk' ϕ _ 1 _],
-        simp only [φ.map_one, ← hq'.right, ring_hom.coe_monoid_hom, subtype.coe_mk] },
-      obtain ⟨p, rfl⟩ := quotient.mk_surjective p,
-      refine polynomial.induction_on p _ _ _,
-      { refine λ r, ⟨X - C (ϕ.to_map ((quotient.mk P') r)), monic_X_sub_C _, _⟩,
+    refine jacobson_bot_of_integral_localization φ hφ (pX.map (quotient.mk P')).leading_coeff
+       (λ hx, hp0 (leading_coeff_eq_zero.1 hx)) ϕ ϕ' (λ p, _),
+    obtain ⟨⟨p', ⟨q, hq⟩⟩, hp⟩ := ϕ'.surj p,
+    suffices : φ'.is_integral_elem (ϕ'.to_map p'),
+    { obtain ⟨q', hq', rfl⟩ := hq,
+      obtain ⟨q'', hq''⟩ := is_unit_iff_exists_inv'.1 (ϕ.map_units ⟨q', hq'⟩),
+      refine is_integral_of_is_integral_mul_unit' p (ϕ'.to_map (φ q')) q'' _ (hp.symm ▸ this),
+      convert trans (trans (φ'.map_mul _ _).symm (congr_arg φ' hq'')) φ'.map_one using 2,
+      rw [← φ'.comp_apply, localization_map.map_comp, ϕ'.to_map.comp_apply, subtype.coe_mk] },
+    refine is_integral_of_mem_closure''
+      ((ϕ'.to_map.comp (quotient.mk P)) '' (insert X {p | p.degree ≤ 0})) _ _ _,
+    { rintros x ⟨p, hp, rfl⟩,
+      refine hp.rec_on (λ hy, _) (λ hy, _),
+      { refine hy.symm ▸ (is_integral_localization_at_leading_coeff' ((quotient.mk P) X)
+          (pX.map (quotient.mk P')) φ _ M ⟨1, pow_one _⟩ _ _),
+        rwa [eval₂_map, hφ', ← hom_eval₂, quotient.eq_zero_iff_mem, eval₂_C_X] },
+      { rw [set.mem_set_of_eq, degree_le_zero_iff] at hy,
+        refine hy.symm ▸ ⟨X - C (ϕ.to_map ((quotient.mk P') (p.coeff 0))), monic_X_sub_C _, _⟩,
         simp only [eval₂_sub, eval₂_C, eval₂_X],
         rw [sub_eq_zero_iff_eq, ← φ'.comp_apply, localization_map.map_comp, ring_hom.comp_apply],
-        refl },
-      { refine λ p q hp hq, _,
-        rw [ring_hom.map_add, ring_hom.map_add],
-        exact @is_integral_add _ _ _ _ φ'.to_algebra _ _ hp hq },
-      { refine λ n r h, _,
-        rw [pow_succ X n, mul_comm X, ← mul_assoc, ring_hom.map_mul, ϕ'.to_map.map_mul],
-        exact @is_integral_mul _ _ _ _ φ'.to_algebra _ _ h this } },
-    refine is_integral_localization_at_leading_coeff' ((quotient.mk P) X) (p.map (quotient.mk P'))
-      φ _ (submonoid.powers (p.map (quotient.mk P')).leading_coeff) ⟨1, pow_one _⟩ _ _,
-    rwa [eval₂_map, hφ', ← hom_eval₂, quotient.eq_zero_iff_mem, eval₂_C_X] },
+        refl } },
+    { obtain ⟨p, rfl⟩ := quotient.mk_surjective p',
+      refine polynomial.induction_on p
+        (λ r, subring.subset_closure $ set.mem_image_of_mem _ (or.inr degree_C_le))
+        (λ _ _ h1 h2, _) (λ n _ hr, _),
+      { convert subring.add_mem _ h1 h2,
+        rw [ring_hom.map_add, ring_hom.map_add] },
+      { rw [pow_succ X n, mul_comm X, ← mul_assoc, ring_hom.map_mul, ϕ'.to_map.map_mul],
+        exact subring.mul_mem _ hr (subring.subset_closure (set.mem_image_of_mem _ (or.inl rfl))) } } }
 end
 
 theorem is_jacobson_polynomial_iff_is_jacobson : is_jacobson R ↔ is_jacobson (polynomial R) :=

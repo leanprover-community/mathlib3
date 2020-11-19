@@ -70,12 +70,9 @@ begin
   { intros Y f H Y₁ Y₂ Z g₁ g₂ f₁ f₂ hf₁ hf₂ comm,
     apply hs,
     apply reassoc_of comm },
-  let t : presieve.family_of_elements P U,
-  { intros Y f hf,
-    apply (hB hf).amalgamate (y hf) (hy hf) },
-  have ht : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), (y hf).is_amalgamation (t f hf),
-  { intros Y f hf,
-    apply (hB hf).is_amalgamation _ },
+  let t : presieve.family_of_elements P U := λ Y f hf, (hB hf).amalgamate (y hf) (hy hf),
+  have ht : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), (y hf).is_amalgamation (t f hf) :=
+    λ Y f hf, (hB hf).is_amalgamation _,
   have hT : t.compatible,
   { rw presieve.compatible_iff_sieve_compatible,
     intros Z W f h hf,
@@ -83,7 +80,7 @@ begin
     intros Y l hl,
     apply (hB' hf (l ≫ h)).ext,
     intros M m hm,
-    have : (bind U B) (m ≫ l ≫ h ≫ f),
+    have : bind U B (m ≫ l ≫ h ≫ f),
     { have : bind U B _ := presieve.bind_comp f hf hm,
       simpa using this },
     transitivity s (m ≫ l ≫ h ≫ f) this,
@@ -125,7 +122,7 @@ lemma is_sheaf_for_trans (P : Cᵒᵖ ⥤ Type v) (R S : sieve X)
   (hS : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : R f), presieve.is_sheaf_for P (S.pullback f)) :
   presieve.is_sheaf_for P S :=
 begin
-  have : (bind ⇑R (λ (Y : C) (f : Y ⟶ X) (hf : R f), pullback f S) : presieve X) ≤ S,
+  have : (bind R (λ Y f hf, S.pullback f) : presieve X) ≤ S,
   { rintros Z f ⟨W, f, g, hg, (hf : S _), rfl⟩,
     apply hf },
   apply presieve.is_sheaf_for_subsieve_aux P this,

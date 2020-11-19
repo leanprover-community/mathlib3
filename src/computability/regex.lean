@@ -37,6 +37,11 @@ namespace regex
 
 instance regex_inhabited : inhabited (regex α) := ⟨ RZero ⟩
 
+instance : has_add (regex α) := ⟨RPlus⟩
+instance : has_mul (regex α) := ⟨RComp⟩
+instance : has_one (regex α) := ⟨RNull⟩
+instance : has_zero (regex α) := ⟨RZero⟩
+
 /-- `match_null M` is true if and only if `M` matches the empty string -/
 def match_null : regex α → bool
 | RZero := ff

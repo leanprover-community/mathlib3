@@ -52,7 +52,7 @@ include dec
 def feed : regex α → α → regex α
 | RZero _ := RZero
 | RNull _ := RZero
-| (RChar a₁) a₂ := ite (a₁ = a₂) RNull RZero
+| (RChar a₁) a₂ := if a₁ = a₂ then RNull else RZero
 | (RStar M) a := RComp (feed M a) (RStar M)
 | (RPlus M N) a := RPlus (feed M a) (feed N a)
 | (RComp M N) a :=

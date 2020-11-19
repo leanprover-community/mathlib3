@@ -670,7 +670,7 @@ begin
 end
 
 @[simp] lemma zeta_mul_moebius : ζ * μ = 1 :=
-by rw [mul_comm, moebius_mul_zeta_eq_one]
+by rw [mul_comm, moebius_mul_zeta]
 
 instance : invertible ζ :=
 { inv_of := μ,

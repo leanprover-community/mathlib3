@@ -92,25 +92,19 @@ as the binary product of `X` and `Y`.
 def binary_product_limit_cone (X Y : Type u) : limits.limit_cone (pair X Y) :=
 ⟨_, binary_product_limit X Y⟩
 
-/-- The functor which sends `X, Y` to `X × Y`. -/
+/-- The functor which sends `X, Y` to the product type `X × Y`. -/
 @[simps]
 def binary_product_functor : Type u ⥤ Type u ⥤ Type u :=
 { obj := λ X,
-  { obj := λ Y, (binary_product_cone X Y).X,
-    map := λ Y₁ Y₂ f,
-    begin
-      apply (binary_product_limit X Y₂).lift (binary_fan.mk _ _),
-      apply (binary_product_cone X Y₁).fst,
-      apply (binary_product_cone X Y₁).snd ≫ f,
-    end },
+  { obj := λ Y, X × Y,
+    map := λ Y₁ Y₂ f, (binary_product_limit X Y₂).lift (binary_fan.mk prod.fst (prod.snd ≫ f)) },
   map := λ X₁ X₂ f,
-  { app := λ Y,
-    begin
-      apply (binary_product_limit X₂ Y).lift (binary_fan.mk _ _),
-      apply (binary_product_cone X₁ Y).fst ≫ f,
-      apply (binary_product_cone X₁ Y).snd,
-    end } }
+  { app := λ Y, (binary_product_limit X₂ Y).lift (binary_fan.mk (prod.fst ≫ f) prod.snd) } }
 
+/--
+The product functor given by the instance `has_binary_products (Type u)` is isomorphic to the
+explicit binary product functor given by the product type.
+-/
 noncomputable def same_prod : binary_product_functor ≅ (prod.functor : Type u ⥤ _) :=
 begin
   apply nat_iso.of_components (λ X, _) _,
@@ -149,16 +143,10 @@ The category of types has `Π j, f j` as the product of a type family `f : J →
 def product_limit_cone {J : Type u} (F : J → Type u) : limits.limit_cone (discrete.functor F) :=
 { cone :=
   { X := Π j, F j,
-    π :=
-    { app := λ j f, f j }, },
+    π := { app := λ j f, f j }, },
   is_limit :=
   { lift := λ s x j, s.π.app j x,
-    uniq' := λ s m w,
-    begin
-      ext x j,
-      have := congr_fun (w j) x,
-      exact this,
-    end }, }
+    uniq' := λ s m w, funext $ λ x, funext $ λ j, (congr_fun (w j) x : _) } }
 
 /--
 The category of types has `Σ j, f j` as the coproduct of a type family `f : J → Type`.

@@ -10,6 +10,33 @@ import category_theory.sites.sheaf
 import category_theory.full_subcategory
 import category_theory.types
 
+
+/-!
+# The canonical topology on a category
+
+We define the finest (largest) Grothendieck topology for which a given presheaf `P` is a sheaf.
+This is well defined since if `P` is a sheaf for a topology `J`, then it is a sheaf for any
+coarser (smaller) topology. Nonetheless we define the topology explicitly by specifying its sieves:
+A sieve `S` on `X` is covering for `finest_topology_single P` iff
+  for any `f : Y ⟶ X`, `P` satisfies the sheaf axiom for `S.pullback f`.
+Showing that this is a genuine Grothendieck topology (namely that it satisfies the transitivity
+axiom) forms the bulk of this file.
+
+This generalises to a set of presheaves, giving the topology `finest_topology Ps` which is the
+finest topology for which every presheaf in `Ps` is a sheaf.
+Using `Ps` as the set of representable presheaves defines the `canonical_topology`: the finest
+topology for which every representable is a sheaf.
+
+A Grothendieck topology is called `subcanonical` if it is smaller than the canonical topology,
+equivalently it is subcanonical iff every representable presheaf is a sheaf.
+
+## References
+* https://ncatlab.org/nlab/show/canonical+topology
+* https://ncatlab.org/nlab/show/subcanonical+coverage
+* https://stacks.math.columbia.edu/tag/00Z9
+* https://math.stackexchange.com/a/358709/
+-/
+
 universes v u
 namespace category_theory
 
@@ -29,12 +56,15 @@ To show `P` is a sheaf for the binding of `U` with `B`, it suffices to show that
 sieve in `B`.
 
 This is mostly an auxiliary lemma to show `is_sheaf_for_trans`.
+Adapted from [Elephant], Lemma C2.1.7(i) with suggestions as mentioned in
+https://math.stackexchange.com/a/358709/
 -/
 lemma is_sheaf_for_bind (P : Cᵒᵖ ⥤ Type v) (U : sieve X)
   (B : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, U f → sieve Y)
   (hU : presieve.is_sheaf_for P U)
   (hB : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), presieve.is_sheaf_for P (B hf))
-  (hB' : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (h : U f) ⦃Z⦄ (g : Z ⟶ Y), presieve.is_separated_for P ((B h).pullback g)) :
+  (hB' : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (h : U f) ⦃Z⦄ (g : Z ⟶ Y),
+              presieve.is_separated_for P ((B h).pullback g)) :
   presieve.is_sheaf_for P (sieve.bind U B) :=
 begin
   intros s hs,
@@ -57,7 +87,7 @@ begin
     intros Y l hl,
     apply (hB' hf (l ≫ h)).ext,
     intros M m hm,
-    have : (bind ⇑U B) (m ≫ l ≫ h ≫ f),
+    have : (bind U B) (m ≫ l ≫ h ≫ f),
     { have : bind U B _ := presieve.bind_comp f hf hm,
       simpa using this },
     transitivity s (m ≫ l ≫ h ≫ f) this,
@@ -90,6 +120,8 @@ Given two sieves `R` and `S`, to show that `P` is a sheaf for `S`, we can show:
 * `P` is separated for the pullback of `R` along any arrow in `S`.
 
 This is mostly an auxiliary lemma to construct `finest_topology`.
+Adapted from [Elephant], Lemma C2.1.7(ii) with suggestions as mentioned in
+https://math.stackexchange.com/a/358709
 -/
 lemma is_sheaf_for_trans (P : Cᵒᵖ ⥤ Type v) (R S : sieve X)
   (hR : presieve.is_sheaf_for P R)
@@ -120,7 +152,12 @@ begin
     apply hR' hf },
 end
 
-/-- Construct the finest (largest) Grothendieck topology for which the given presheaf is a sheaf. -/
+/--
+Construct the finest (largest) Grothendieck topology for which the given presheaf is a sheaf.
+
+This is a special case of https://stacks.math.columbia.edu/tag/00Z9, but following a different
+proof (see the comments there).
+-/
 def finest_topology_single (P : Cᵒᵖ ⥤ Type v) : grothendieck_topology C :=
 { sieves := λ X S, ∀ Y (f : Y ⟶ X), presieve.is_sheaf_for P (S.pullback f),
   top_mem' := λ X Y f,
@@ -149,6 +186,8 @@ def finest_topology_single (P : Cᵒᵖ ⥤ Type v) : grothendieck_topology C :=
 
 /--
 Construct the finest (largest) Grothendieck topology for which all the given presheaves are sheaves.
+
+This is equal to the construction of https://stacks.math.columbia.edu/tag/00Z9.
 -/
 def finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) : grothendieck_topology C :=
 Inf (finest_topology_single '' Ps)
@@ -156,10 +195,7 @@ Inf (finest_topology_single '' Ps)
 /-- Check that if `P ∈ Ps`, then `P` is indeed a sheaf for the finest topology on `Ps`. -/
 lemma sheaf_for_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) :
   P ∈ Ps → presieve.is_sheaf (finest_topology Ps) P :=
-begin
-  intros h X S hS,
-  simpa using hS _ ⟨⟨_, _, ⟨_, h, rfl⟩, rfl⟩, rfl⟩ _ (𝟙 _),
-end
+λ h X S hS, by simpa using hS _ ⟨⟨_, _, ⟨_, h, rfl⟩, rfl⟩, rfl⟩ _ (𝟙 _)
 
 /--
 Check that if each `P ∈ Ps` is a sheaf for `J`, then `J` is a subtopology of `finest_topology Ps`.
@@ -167,17 +203,17 @@ Check that if each `P ∈ Ps` is a sheaf for `J`, then `J` is a subtopology of `
 lemma is_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) (J : grothendieck_topology C)
   (hJ : ∀ P ∈ Ps, presieve.is_sheaf J P) : J ≤ finest_topology Ps :=
 begin
-  intros X S hS,
-  rintro _ ⟨⟨_, _, ⟨P, hP, rfl⟩, rfl⟩, rfl⟩,
-  intros Y f,
+  rintro X S hS _ ⟨⟨_, _, ⟨P, hP, rfl⟩, rfl⟩, rfl⟩,
+  intros Y f, -- this can't be combined with the previous because the `subst` is applied at the end
   exact hJ P hP (S.pullback f) (J.pullback_stable f hS),
 end
 
 /--
 The `canonical_topology` on a category is the finest (largest) topology for which every
 representable presheaf is a sheaf.
+
+See https://stacks.math.columbia.edu/tag/00ZA
 -/
--- TODO: Show that if `P` is a sheaf for this topology, then `P` is representable
 def canonical_topology (C : Type u) [category.{v} C] : grothendieck_topology C :=
 finest_topology (set.range yoneda.obj)
 
@@ -203,11 +239,7 @@ namespace subcanonical
 lemma of_yoneda_is_sheaf (J : grothendieck_topology C)
   (h : ∀ X, presieve.is_sheaf J (yoneda.obj X)) :
   subcanonical J :=
-begin
-  apply is_finest_topology,
-  rintro P ⟨X, rfl⟩,
-  apply h,
-end
+is_finest_topology _ _ (by { rintro P ⟨X, rfl⟩, apply h })
 
 /-- If `J` is subcanonical, then any representable is a `J`-sheaf. -/
 lemma representable_is_sheaf {J : grothendieck_topology C} (hJ : subcanonical J)

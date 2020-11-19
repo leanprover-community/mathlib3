@@ -359,8 +359,7 @@ instance : star_ring (free_algebra R X) :=
   star_involutive := λ x, by {
     unfold has_star.star,
     simp only [function.comp_apply],
-    refine free_algebra.induction R X _ _ _ _ x; intros; simp [*],
-  },
+    refine free_algebra.induction R X _ _ _ _ x; intros; simp [*] },
   star_mul := λ a b, by simp,
   star_add := λ a b, by simp }
 
@@ -375,6 +374,6 @@ by simp [star, has_star.star]
 /-- `star` as an `alg_equiv` -/
 def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵒᵖ :=
 { commutes' := λ r, by simp [star_algebra_map],
-  ..star_ring_equiv}
+  ..star_ring_equiv }
 
 end free_algebra

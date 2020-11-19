@@ -634,7 +634,7 @@ end
 open unique_factorization_monoid
 
 /-- Moebius Inversion -/
-lemma moebius_mul_zeta_eq_one : μ * ζ = 1 :=
+@[simp] lemma moebius_mul_zeta : μ * ζ = 1 :=
 begin
   ext x,
   cases x, simp,
@@ -669,7 +669,7 @@ begin
     omega },
 end
 
-lemma zeta_mul_moebius_eq_one : ζ * μ = 1 :=
+@[simp] lemma zeta_mul_moebius : ζ * μ = 1 :=
 by rw [mul_comm, moebius_mul_zeta_eq_one]
 
 instance : invertible ζ :=

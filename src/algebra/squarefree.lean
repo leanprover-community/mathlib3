@@ -86,9 +86,9 @@ end multiplicity
 
 namespace unique_factorization_monoid
 variables [comm_cancel_monoid_with_zero R] [nontrivial R] [unique_factorization_monoid R]
-variables [normalization_monoid R] [decidable_eq R]
+variables [normalization_monoid R]
 
-lemma squarefree_iff_nodup_factors {x : R} (x0 : x ≠ 0) :
+lemma squarefree_iff_nodup_factors [decidable_eq R] {x : R} (x0 : x ≠ 0) :
   squarefree x ↔ multiset.nodup (factors x) :=
 begin
   have drel : decidable_rel (has_dvd.dvd : R → R → Prop),
@@ -113,6 +113,20 @@ begin
     rw [multiplicity_eq_count_factors hib x0],
     specialize h (normalize b),
     assumption_mod_cast }
+end
+
+lemma dvd_pow_iff_dvd_of_squarefree {x y : R} {n : ℕ} (hsq : squarefree x) (h0 : n ≠ 0) :
+  x ∣ y ^ n ↔ x ∣ y :=
+begin
+  classical,
+  by_cases hx : x = 0,
+  { simp [hx, pow_eq_zero_iff (nat.pos_of_ne_zero h0)] },
+  by_cases hy : y = 0,
+  { simp [hy, zero_pow (nat.pos_of_ne_zero h0)] },
+  refine ⟨λ h, _, λ h, dvd_pow h h0⟩,
+  rw [dvd_iff_factors_le_factors hx (pow_ne_zero n hy), factors_pow,
+    ((squarefree_iff_nodup_factors hx).1 hsq).le_nsmul_iff_le h0] at h,
+  rwa dvd_iff_factors_le_factors hx hy,
 end
 
 end unique_factorization_monoid

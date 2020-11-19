@@ -511,7 +511,7 @@ end
 
 lemma uniform_space.is_open_ball (x : α) {V : set (α × α)} (hV : is_open V) :
   is_open (ball x V) :=
-continuous_const.prod_mk continuous_id V hV
+hV.preimage $ continuous_const.prod_mk continuous_id
 
 lemma mem_comp_comp {V W M : set (β × β)} (hW' : symmetric_rel W) {p : β × β} :
   p ∈ V ○ M ○ W ↔ ((ball p.1 V).prod (ball p.2 W) ∩ M).nonempty :=
@@ -859,7 +859,7 @@ lemma uniformity_has_basis_open_symmetric :
 begin
   simp only [← and_assoc],
   refine uniformity_has_basis_open.restrict (λ s hs, ⟨symmetrize_rel s, _⟩),
-  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open_inter hs.2 (continuous_swap _ hs.2)⟩,
+  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open_inter hs.2 (hs.2.preimage continuous_swap)⟩,
     symmetric_symmetrize_rel s, symmetrize_rel_subset_self s⟩
 end
 

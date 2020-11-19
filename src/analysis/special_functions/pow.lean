@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébastien Gouëzel
+Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébastien Gouëzel,
+  Rémy Degenne
 -/
 import analysis.special_functions.trigonometric
 import analysis.calculus.extend_deriv
@@ -623,17 +624,7 @@ begin
     change measurable ((λ x : ℝ, ite (x = 0) (1:ℝ) (0:ℝ))
       ∘ (λ a : {p : ℝ × ℝ | p.fst = 0}, (a:ℝ×ℝ).snd)),
     refine measurable.comp _ (measurable_snd.comp measurable_subtype_coe),
-    { refine measurable_of_measurable_on_compl_singleton 0 _,
-      have h_const : set.restrict (λ (x : ℝ), ite (x = 0) (1:ℝ) (0:ℝ)) {x : ℝ | x ≠ 0}
-        = λ x : {x : ℝ | x ≠ 0}, (0:ℝ),
-      { ext1 x,
-        rw set.restrict_eq,
-        change ite (x.val = 0) (1:ℝ) (0:ℝ) = (0:ℝ),
-        split_ifs,
-        { exfalso, exact x.prop h, },
-        refl, },
-      rw h_const,
-      exact measurable_const, }, },
+    exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const, },
   { refine continuous.measurable _,
     rw continuous_iff_continuous_at,
     intro x,
@@ -1137,6 +1128,9 @@ begin
   { exact coe_rpow_of_ne_zero hx _ }
 end
 
+lemma coe_rpow_def (x : ℝ≥0) (y : ℝ) :
+  (x : ennreal) ^ y = if x = 0 ∧ y < 0 then ⊤ else (x ^ y : ℝ≥0) := rfl
+
 @[simp] lemma rpow_one (x : ennreal) : x ^ (1 : ℝ) = x :=
 by cases x; dsimp only [(^), rpow]; simp [zero_lt_one, not_lt_of_le zero_le_one]
 
@@ -1442,3 +1436,40 @@ begin
 end
 
 end ennreal
+
+section measurability_ennreal
+
+lemma ennreal.measurable_rpow : measurable (λ p : ennreal × ℝ, p.1 ^ p.2) :=
+begin
+  refine ennreal.measurable_of_measurable_nnreal_prod _ _,
+  { simp_rw ennreal.coe_rpow_def,
+    refine measurable.ite _ measurable_const nnreal.measurable_rpow.ennreal_coe,
+    exact is_measurable.inter (measurable_fst (is_measurable_singleton 0))
+      (measurable_snd is_measurable_Iio), },
+  { simp_rw ennreal.top_rpow_def,
+    refine measurable.ite is_measurable_Ioi measurable_const _,
+    exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const, },
+end
+
+lemma measurable.ennreal_rpow {α} [measurable_space α] {f : α → ennreal} (hf : measurable f)
+  {g : α → ℝ} (hg : measurable g) :
+  measurable (λ a : α, (f a) ^ (g a)) :=
+begin
+  change measurable ((λ p : ennreal × ℝ, p.1 ^ p.2) ∘ (λ a, (f a, g a))),
+  exact ennreal.measurable_rpow.comp (measurable.prod hf hg),
+end
+
+lemma ennreal.measurable_rpow_const {y : ℝ} : measurable (λ a : ennreal, a ^ y) :=
+begin
+  change measurable ((λ p : ennreal × ℝ, p.1 ^ p.2) ∘ (λ a, (a, y))),
+  refine ennreal.measurable_rpow.comp (measurable.prod measurable_id _),
+  dsimp only,
+  exact measurable_const,
+end
+
+lemma measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ennreal} (hf : measurable f)
+  {y : ℝ} :
+  measurable (λ a : α, (f a) ^ y) :=
+hf.ennreal_rpow measurable_const
+
+end measurability_ennreal

@@ -46,7 +46,7 @@ has_continuous_mul.continuous_mul
 lemma continuous.mul [topological_space α] {f : α → M} {g : α → M}
   (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=
-continuous_mul.comp (hf.prod_mk hg)
+continuous_mul.comp (hf.prod_mk hg : _)
 
 attribute [continuity] continuous.add
 

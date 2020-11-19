@@ -198,9 +198,9 @@ subspace.
 @[simps]
 def to_restrict_top (X : PresheafedSpace C) :
   X ⟶ X.restrict (opens.inclusion ⊤) (opens.inclusion_open_embedding ⊤) :=
-{ base := ⟨λ x, ⟨x, trivial⟩, λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩,
+{ base := ⟨λ x, ⟨x, trivial⟩, continuous_def.2 $ λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩,
   c := { app := λ U, X.presheaf.map $ (hom_of_le $ λ x hxU, ⟨⟨x, trivial⟩, hxU, rfl⟩ :
-      (opens.map (⟨λ x, ⟨x, trivial⟩, λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩ :
+      (opens.map (⟨λ x, ⟨x, trivial⟩, continuous_def.2 $ λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩ :
           X.1 ⟶ (opens.to_Top X.1).obj ⊤)).obj (unop U) ⟶
         (opens.inclusion_open_embedding ⊤).is_open_map.functor.obj (unop U)).op,
     naturality':= λ U V f, show X.presheaf.map _ ≫ _ = _ ≫ X.presheaf.map _,

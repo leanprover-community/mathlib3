@@ -143,18 +143,14 @@ begin
   begin
     simp_rw [ennreal.coe_add, ennreal.coe_mul, ←ennreal.coe_rpow_of_nonneg _ hp0],
     rw [lintegral_add, lintegral_const_mul, lintegral_const_mul, ennreal.add_lt_top],
-    split; rw ennreal.mul_lt_top_iff; left;
-      { split,
-        exact ennreal.coe_lt_top,
-        try { exact hf.2, },
-        try { exact hg.2, }, },
+    { simp [ennreal.mul_lt_top_iff, hf.2, hg.2] },
     -- finish by proving the measurability of all functions involved
-    exact hg.left.nnnorm.ennreal_coe.ennreal_rpow_const,
-    exact hf.left.nnnorm.ennreal_coe.ennreal_rpow_const,
-    exact (ennreal.continuous_const_mul (by simp)).measurable.comp
-      hf.left.nnnorm.ennreal_coe.ennreal_rpow_const,
-    exact (ennreal.continuous_const_mul (by simp)).measurable.comp
-      hg.left.nnnorm.ennreal_coe.ennreal_rpow_const
+    { exact hg.left.nnnorm.ennreal_coe.ennreal_rpow_const, },
+    { exact hf.left.nnnorm.ennreal_coe.ennreal_rpow_const, },
+    { exact (ennreal.continuous_const_mul (by simp)).measurable.comp
+        hf.left.nnnorm.ennreal_coe.ennreal_rpow_const, },
+    { exact (ennreal.continuous_const_mul (by simp)).measurable.comp
+        hg.left.nnnorm.ennreal_coe.ennreal_rpow_const },
   end
 end
 

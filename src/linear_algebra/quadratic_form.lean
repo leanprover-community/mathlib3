@@ -23,7 +23,7 @@ and composition with linear maps `f`, `Q.comp f x = Q (f x)`.
 
  * `quadratic_form.associated`: associated bilinear form
  * `quadratic_form.pos_def`: positive definite quadratic forms
- * `quadratic_form.non_degenerate`: non-degenerate quadratic forms
+ * `quadratic_form.nondegenerate`: non-degenerate quadratic forms
  * `quadratic_form.discr`: discriminant of a quadratic form
 
 ## Main statements

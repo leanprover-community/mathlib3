@@ -146,9 +146,9 @@ def fixing_subgroup_iso : fixing_subgroup K ≃* (E ≃ₐ[K] E) :=
   inv_fun := λ ϕ, ⟨of_bijective (alg_hom.mk ϕ (ϕ.map_one) (ϕ.map_mul)
     (ϕ.map_zero) (ϕ.map_add) (λ r, ϕ.commutes (algebra_map F K r)))
       (ϕ.bijective), ϕ.commutes⟩,
-  left_inv := λ _, by {ext, refl},
-  right_inv := λ _, by {ext, refl},
-  map_mul' := λ _ _, by {ext, refl} }
+  left_inv := λ _, by { ext, refl },
+  right_inv := λ _, by { ext, refl },
+  map_mul' := λ _ _, by { ext, refl } }
 
 theorem fixing_subgroup_of_fixed_field [finite_dimensional F E] :
   fixing_subgroup (fixed_field H) = H :=

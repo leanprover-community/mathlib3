@@ -57,7 +57,7 @@ instance aut : group (E ≃ₐ[F] E) :=
   inv := symm,
   mul_left_inv := λ ϕ, by { ext, exact symm_apply_apply ϕ a } }
 
-lemma is_galois_implies_card_aut_eq_findim [finite_dimensional F E] [h : is_galois F E] :
+lemma card_aut_eq_findim_of_is_galois [finite_dimensional F E] [h : is_galois F E] :
   fintype.card (E ≃ₐ[F] E) = findim F E :=
 begin
   cases field.exists_primitive_element h.1 with α hα,

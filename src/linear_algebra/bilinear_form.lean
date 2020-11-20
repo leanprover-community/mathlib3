@@ -193,6 +193,7 @@ def linear_map.to_bilin : (M₂ →ₗ[R₂] M₂ →ₗ[R₂] R₂) ≃ₗ[R₂
   left_inv := λ B, by { ext, refl },
   right_inv := λ B, by { ext, refl } }
 
+/-- Bilinear forms are linearly equivalent to maps with two arguments that are linear in both. -/
 def bilin_form.to_lin : bilin_form R₂ M₂ ≃ₗ[R₂] (M₂ →ₗ[R₂] M₂ →ₗ[R₂] R₂) :=
 linear_map.to_bilin.symm
 

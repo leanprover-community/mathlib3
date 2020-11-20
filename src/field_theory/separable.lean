@@ -8,6 +8,7 @@ import algebra.polynomial.big_operators
 import field_theory.minimal_polynomial
 import field_theory.splitting_field
 import field_theory.tower
+import algebra.squarefree
 
 /-!
 
@@ -448,6 +449,45 @@ begin
   apply multiplicity.pow_dvd_of_le_multiplicity,
   exact_mod_cast (enat.add_one_le_of_lt hq)
 end
+
+lemma separable.squarefree {p : polynomial F}  (hsep : separable p) : squarefree p :=
+begin
+  rw multiplicity.squarefree_iff_multiplicity_le_one p,
+  intro f,
+  by_cases hunit : is_unit f,
+  { exact or.inr hunit },
+  exact or.inl (multiplicity_le_one_of_separable hunit hsep)
+end
+
+/--If `n ≠ 0` in `F`, then ` X ^ n - a` is separable for any `a ≠ 0`. -/
+lemma separable_of_X_pow_sub_C {n : ℕ} (a : F) (hn : ↑n ≠ (0 : F)) (hpos : 0 < n) (ha : a ≠ 0) :
+  separable (X ^ n - C a) :=
+begin
+  apply (separable_def' (X ^ n - C a)).2,
+  use -C (a⁻¹),
+  use (C ((a⁻¹) * (↑n)⁻¹) *  X),
+  have hpred : n - 1 + 1 = n,
+  { exact nat.succ_pred_eq_of_pos hpos },
+  rw [derivative_sub, derivative_C, sub_zero, derivative_pow X n, derivative_X, mul_one],
+  calc -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * X * (↑n * X ^ (n - 1))
+      = -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X * X ^ (n - 1))) : by ring
+  ... = -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by rw [←pow_succ, hpred]
+  ... = -C a⁻¹ * X ^ n + C a⁻¹ * C a + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by ring
+  ... = -C a⁻¹ * X ^ n + C (a⁻¹ * a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by rw [←C_mul]
+  ... = -C a⁻¹ * X ^ n + C 1 + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by field_simp [ha]
+  ... = -C a⁻¹ * X ^ n + 1 + C a⁻¹ * C ((↑n)⁻¹) * (↑n * (X ^ n)) : by rw [C_mul, C_1]
+  ... = -C a⁻¹ * X ^ n + 1 + C a⁻¹ * C ((↑n)⁻¹) * (C ↑n * (X ^ n)) : by rw [C_eq_nat_cast]
+  ... = -C a⁻¹ * X ^ n + 1 + C a⁻¹ * (C ((↑n)⁻¹) * C ↑n) * (X ^ n) : by ring
+  ... = -C a⁻¹ * X ^ n + 1 + C a⁻¹ * C ((↑n)⁻¹ * ↑n) * (X ^ n) : by rw [←C_mul]
+  ... = -C a⁻¹ * X ^ n + 1 + C a⁻¹ * C 1 * (X ^ n) : by field_simp [hn]
+  ... = -C a⁻¹ * X ^ n + 1 + C a⁻¹ * (X ^ n) : by rw [C_1, mul_one]
+  ...  = (1 : polynomial F) : by ring
+end
+
+/--If `n ≠ 0` in `F`, then ` X ^ n - a` is squarefree for any `a ≠ 0`. -/
+lemma squarefree_of_X_pow_sub_C {n : ℕ} (a : F) (hn : ↑n ≠ (0 : F)) (hpos : 0 < n) (ha : a ≠ 0) :
+  squarefree (X ^ n - C a) :=
+separable.squarefree (separable_of_X_pow_sub_C a hn hpos ha)
 
 lemma root_multiplicity_le_one_of_separable {p : polynomial F} (hp : p ≠ 0)
   (hsep : separable p) (x : F) : root_multiplicity x p ≤ 1 :=

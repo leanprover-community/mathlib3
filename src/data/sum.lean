@@ -180,3 +180,9 @@ lemma surjective.sum_map {f : α → β} {g : α' → β'} (hf : surjective f) (
 | (inr y) := let ⟨x, hx⟩ := hg y in ⟨inr x, congr_arg inr hx⟩
 
 end function
+
+/-- functor-map the item in the sum. -/
+def sum.fmap {m : Type u → Type v} [functor m] {α α' : Type v} {β β' : Type u}
+  (f : α → m β) (g : α' → m β') : α ⊕ α' → m (β ⊕ β')
+| (sum.inl a) := sum.inl <$> f a
+| (sum.inr b) := sum.inr <$> g b

@@ -176,7 +176,7 @@ c.add_left _ _ _
 lemma inner_add_right {x y z : F} : ⟪x, y + z⟫ = ⟪x, y⟫ + ⟪x, z⟫ :=
 by rw [←inner_conj_sym, inner_add_left, ring_hom.map_add]; simp only [inner_conj_sym]
 
-lemma inner_norm_sq_eq_inner_self (x : F) : ((norm_sqF x) : 𝕜) = ⟪x, x⟫ :=
+lemma inner_norm_sq_eq_inner_self (x : F) : (norm_sqF x : 𝕜) = ⟪x, x⟫ :=
 begin
   rw ext_iff,
   exact ⟨by simp only [of_real_re]; refl, by simp only [inner_self_nonneg_im, of_real_im]⟩

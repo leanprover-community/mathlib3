@@ -224,5 +224,3 @@ begin
 end
 
 end galois_equivalent_definitions
-
-end galois

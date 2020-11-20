@@ -35,7 +35,6 @@ open_locale classical
 
 open finite_dimensional alg_equiv
 
-namespace galois
 
 section
 

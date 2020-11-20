@@ -70,11 +70,6 @@ begin
   exact lt_of_not_ge (λ h, hf (leading_coeff_eq_zero.mp (dif_neg (not_lt_of_ge h))))
 end
 
-lemma eval₂_mod_by_monic_eq_self_of_root {K L : Type*} [comm_ring K] [comm_ring L] {f : K →+* L}
-  {p q : polynomial K} (hq : q.monic) {x : L} (hx : q.eval₂ f x = 0) :
-    (p %ₘ q).eval₂ f x = p.eval₂ f x :=
-by rw [mod_by_monic_eq_sub_mul_div p hq, eval₂_sub, eval₂_mul, hx, zero_mul, sub_zero]
-
 end polynomial
 
 variables (K L : Type*) [field K] [field L] [algebra K L]
@@ -263,7 +258,8 @@ begin
   rw ← finsupp.emb_fin_nat_eq_zero,
   refine minimal_polynomial.eq_zero_of_degree_lt (primitive_element_is_integral alg) _ hp,
   rw degree_eq_nat_degree (minimal_polynomial.ne_zero _),
-  exact polynomial.degree_emb_fin_nat_lt _
+  exact polynomial.degree_emb_fin_nat_lt _,
+  apply_instance
 end
 
 lemma mem_span_power_basis (x : L) : x ∈ submodule.span K (set.range (power_basis alg)) :=
@@ -642,7 +638,7 @@ lemma minpoly_y_splits :
     ((algebra_map L M).comp
       (algebra_map (adjoin K ({x + c K M x y • y} : set L)) L)) :=
 splits_of_splits_of_dvd _
-  (map_ne_zero (minimal_polynomial.ne_zero _))
+  (map_ne_zero (minimal_polynomial.ne_zero (is_separable.is_integral K y)))
   ((splits_map_iff _ _).mpr (by { rw [ring_hom.comp_assoc, ← is_scalar_tower.algebra_map_eq,
                                       ← is_scalar_tower.algebra_map_eq],
                                   exact splits }))
@@ -698,7 +694,8 @@ lemma degree_minpoly_y :
 begin
   erw degree_eq_nat_degree (minimal_polynomial.ne_zero _),
   apply with_bot.some_le_some.mpr,
-  exact nat_degree_minpoly_y K M x y splits
+  exact nat_degree_minpoly_y K M x y splits,
+  apply_instance
 end
 omit M splits inf_K
 

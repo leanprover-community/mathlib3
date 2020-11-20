@@ -666,10 +666,6 @@ end
 
 open unique_factorization_monoid
 
-lemma finset.sum_int_cast {α β : Type*} [add_comm_group β] [has_one β] (s : finset α) (f : α → ℤ) :
-  ↑(∑ x in s, f x : ℤ) = (∑ x in s, (f x : β)) :=
-(int.cast_add_hom β).map_sum f s
-
 @[simp] lemma coe_moebius_mul_coe_zeta [comm_ring R] : (μ * ζ : arithmetic_function R) = 1 :=
 begin
   ext x,

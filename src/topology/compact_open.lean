@@ -46,7 +46,7 @@ end
 /-- C(α, -) is a functor. -/
 lemma continuous_induced : continuous (continuous_map.induced hg : C(α, β) → C(α, γ)) :=
 continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
-  by rw [hm, preimage_gen hg hs hu]; exact is_open_gen hs (hg _ hu)
+  by rw [hm, preimage_gen hg hs hu]; exact is_open_gen hs (hu.preimage hg)
 
 end functorial
 

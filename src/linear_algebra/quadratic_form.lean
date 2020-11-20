@@ -23,6 +23,7 @@ and composition with linear maps `f`, `Q.comp f x = Q (f x)`.
 
  * `quadratic_form.associated`: associated bilinear form
  * `quadratic_form.pos_def`: positive definite quadratic forms
+ * `quadratic_form.nondegenerate`: non-degenerate quadratic forms
  * `quadratic_form.discr`: discriminant of a quadratic form
 
 ## Main statements
@@ -387,6 +388,21 @@ quadratic_form.ext $ λ x,
   ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
 
 end associated
+
+section nondegenerate
+
+/-- A non-degenerate quadratic form is zero only on zero vectors. -/
+def nondegenerate (Q : quadratic_form R M) : Prop := ∀ x, Q x = 0 → x = 0
+
+lemma not_nondegenerate_iff_exists (Q : quadratic_form R M) :
+  ¬nondegenerate Q ↔ ∃ x ≠ 0, Q x = 0 :=
+begin
+  unfold nondegenerate,
+  push_neg,
+  simp only [and_comm, exists_prop],
+end
+
+end nondegenerate
 
 section pos_def
 

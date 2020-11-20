@@ -28,13 +28,13 @@ def coyoneda.ext {X Y : C} (p : Π {Z : C}, (X ⟶ Z) ≃ (Y ⟶ Z))
 Given a subcategory `D` of `C` expressed as an (inclusion) functor `i : D ⥤ C`, the object `A : C`
 is said to be "in" the subcategory if there is a witness in `D`, such that `i.obj witness` is
 isomorphic to `A`.
-This notion is useful mostly when `i` is faithful.
+This notion is useful primarily when `i` is faithful.
 -/
-def in_subcategory (i : D ⥤ C) (A : C) := ∃ (B : D), nonempty (i.obj B ≅ A)
+def in_subcategory (i : D ⥤ C) (A : C) : Prop := ∃ (B : D), nonempty (i.obj B ≅ A)
 
 def in_subcategory.witness {A : C} (h : in_subcategory i A) : D := h.some
 
-def in_subcategory.get_iso {A : C} (h : in_subcategory i A) : i.obj (h.witness) ≅ A :=
+def in_subcategory.get_iso {A : C} (h : in_subcategory i A) : i.obj h.witness ≅ A :=
 classical.choice h.some_spec
 
 /-- Being in the subcategory is a "hygenic" property: it is preserved under isomorphism. -/
@@ -49,6 +49,36 @@ iso.hom_comp_eq_id (as_iso g)
 
 lemma comp_hom_eq_id {X Y : C} (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y ↔ f = inv g :=
 iso.comp_hom_eq_id (as_iso g)
+
+/-- Auxiliary definition for `unit_comp_partial_bijective`. -/
+def unit_comp_partial_bijective_aux [reflective i] (A : C) (B : D) :
+  (A ⟶ i.obj B) ≃ (i.obj ((left_adjoint i).obj A) ⟶ i.obj B) :=
+((adjunction.of_right_adjoint i).hom_equiv _ _).symm.trans (equiv_of_fully_faithful i)
+
+/-- The description of the inverse of the bijection. -/
+lemma unit_comp_partial_bijective_aux_symm_apply [reflective i] {A : C} {B : D}
+  (f : i.obj ((left_adjoint i).obj A) ⟶ i.obj B) :
+  (unit_comp_partial_bijective_aux _ _).symm f = (adjunction.of_right_adjoint i).unit.app A ≫ f :=
+by simp [unit_comp_partial_bijective_aux]
+
+/--
+If `i` has a reflector `L`, then the function `(i L A ⟶ B) → (A ⟶ B)` given by precomposing with
+`η.app A` is a bijection provided `B` is in the subcategory given by `i`.
+
+This establishes there is a natural bijection `(A ⟶ B) ≃ (i L A ⟶ B)`. In other words, from the
+point of view of objects in `i`, `A` and `i L A` look the same.
+-/
+def unit_comp_partial_bijective [reflective i] (A : C) {B : C} (hB : in_subcategory i B) :
+  (A ⟶ B) ≃ (i.obj ((left_adjoint i).obj A) ⟶ B) :=
+calc (A ⟶ B) ≃ (A ⟶ i.obj hB.witness) : iso.hom_congr (iso.refl _) hB.get_iso.symm
+     ...     ≃ (i.obj _ ⟶ i.obj hB.witness) : unit_comp_partial_bijective_aux _ _
+     ...     ≃ (i.obj ((left_adjoint i).obj A) ⟶ B) : iso.hom_congr (iso.refl _) hB.get_iso
+
+@[simp]
+lemma unit_comp_partial_bijective_symm_apply [reflective i] (A : C) {B : C}
+  (hB : in_subcategory i B) (f) :
+  (unit_comp_partial_bijective A hB).symm f = (adjunction.of_right_adjoint i).unit.app A ≫ f :=
+by simp [unit_comp_partial_bijective, unit_comp_partial_bijective_aux_symm_apply]
 
 /--
 If `A` is in the reflective subcategory, then `η_A` is an isomorphism.
@@ -109,7 +139,7 @@ end subcat
 
 section ideal
 
-variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D] {i : D ⥤ C}
+variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D] {i : D ⥤ C}
 variables (i) [has_finite_products C] [cartesian_closed C]
 
 /--
@@ -176,7 +206,7 @@ variables (i : D ⥤ C) [has_finite_products C] [cartesian_closed C]
 
 def reflective_products [reflective i] : has_finite_products D :=
 λ J 𝒥₁ 𝒥₂,
-{ has_limit := λ F, by exactI monadic_creates_limits _ i }
+{ has_limit := λ F, by { have := monadic_creates_limits i, exactI has_limit_of_created F i } }
 
 local attribute [instance] reflective_products
 
@@ -184,7 +214,7 @@ local attribute [instance] reflective_products
 If `i` witnesses that `D` is a reflective subcategory and an exponential ideal, then `D` is
 itself cartesian closed.
 -/
-instance reflective_cc [reflective i] [exponential_ideal i] : cartesian_closed D :=
+def reflective_cc [reflective i] [exponential_ideal i] : cartesian_closed D :=
 { closed := λ B,
   { is_adj :=
     { right := i ⋙ exp (i.obj B) ⋙ left_adjoint i,
@@ -204,7 +234,7 @@ instance reflective_cc [reflective i] [exponential_ideal i] : cartesian_closed D
       end } } }
 
 /-- If the reflector preserves binary products, the subcategory is an exponential ideal. -/
-def ideal_of_binary_products [reflective i]
+def ideal_of_preserves_binary_products [reflective i]
   [preserves_limits_of_shape (discrete walking_pair) (left_adjoint i)] :
   exponential_ideal i :=
 begin
@@ -237,6 +267,23 @@ begin
   haveI : split_mono (η.app (i.obj B ^^ A)) := ⟨_, this⟩,
   apply in_subcategory_of_unit_split_mono,
 end
+
+def hom_equiv_aux1 {A B : C} {X : D} [reflective i] :
+  ((left_adjoint i).obj (A ⨯ B) ⟶ X) ≃ (B ⟶ (i.obj X) ^^ A) :=
+begin
+end
+
+def inner_mul_unit_iso {A B : C} [reflective i] :
+  (left_adjoint i).obj (A ⨯ B) ≅ (left_adjoint i).obj (A ⨯ i.obj ((left_adjoint i).obj B)) :=
+begin
+
+end
+
+-- def preserves_binary_products_of_ideal [reflective i] [exponential_ideal i] :
+--   preserves_limits_of_shape (discrete walking_pair) (left_adjoint i) :=
+-- begin
+
+-- end
 
 end
 

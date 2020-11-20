@@ -62,12 +62,12 @@ local notation `𝓚` := @is_R_or_C.of_real K _
 local postfix `†`:100 := @is_R_or_C.conj K _
 
 -- see Note [coercion into rings]
-@[priority 900] noncomputable instance cast_coe : has_coe_t ℝ K := ⟨of_real⟩
+@[priority 900] noncomputable instance cast_coe : has_coe_t ℝ K := ⟨algebra_map ℝ K⟩
 
-lemma coe_eq_of_real {x : ℝ} : @is_R_or_C.of_real K _ x = x := rfl
+--lemma coe_eq_of_real {x : ℝ} : algebra_map ℝ K x = x := rfl
 
 lemma of_real_alg (x : ℝ) : (x : K) = x • (1 : K) :=
-by { rw [←coe_eq_of_real], exact algebra.algebra_map_eq_smul_one x }
+algebra.algebra_map_eq_smul_one x
 
 @[simp] lemma re_add_im (z : K) : ((re z) : K) + (im z) * I = z := is_R_or_C.re_add_im_ax z
 @[simp, norm_cast] lemma of_real_re : ∀ r : ℝ, re (r : K) = r := is_R_or_C.of_real_re_ax
@@ -78,7 +78,7 @@ is_R_or_C.mul_re_ax
 is_R_or_C.mul_im_ax
 
 theorem inv_def (z : K) : z⁻¹ = conj z * ((∥z∥^2)⁻¹:ℝ) :=
-by { rw [←coe_eq_of_real], exact is_R_or_C.inv_def_ax z }
+is_R_or_C.inv_def_ax z
 
 theorem ext_iff : ∀ {z w : K}, z = w ↔ re z = re w ∧ im z = im w :=
 λ z w, { mp := by { rintro rfl, cc },

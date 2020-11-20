@@ -199,7 +199,7 @@ def galois_correspondence [finite_dimensional F E] [is_galois F E] :
   left_inv := λ K, fixed_field_of_fixing_subgroup K,
   right_inv := λ H, fixing_subgroup_of_fixed_field H,
   map_rel_iff' := λ K L, by { rw [←fixed_field_of_fixing_subgroup L, le_iff_le,
-                                  fixed_field_of_fixing_subgroup L, ←order_dual.dual_le], refl} }
+                                  fixed_field_of_fixing_subgroup L, ←order_dual.dual_le], refl } }
 
 end galois_correspondence
 

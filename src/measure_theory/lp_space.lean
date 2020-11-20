@@ -116,17 +116,15 @@ begin
   { exact measurable.add hf.1 hg.1, },
   simp_rw [pi.add_apply, ennreal.coe_rpow_of_nonneg _ hp0],
   -- step 1: use nnnorm_add_le
-  refine lt_of_le_of_lt _ _,
-  exact ∫⁻ a, ↑((nnnorm (f a) + nnnorm (g a)) ^ p) ∂ μ,
-  { refine lintegral_mono_nnreal _,
-    intro a,
-    exact nnreal.rpow_le_rpow (nnnorm_add_le (f a) (g a)) (le_of_lt hp0_lt), },
+  calc ∫⁻ (a : α), ↑(nnnorm (f a + g a) ^ p) ∂μ ≤ ∫⁻ a, ↑((nnnorm (f a) + nnnorm (g a)) ^ p) ∂ μ :
+  begin
+    refine lintegral_mono_nnreal (λ a, _),
+    exact nnreal.rpow_le_rpow (nnnorm_add_le (f a) (g a)) (le_of_lt hp0_lt)
+  end
   -- step 2: use convexity of rpow
-  refine lt_of_le_of_lt _ _,
-  exact ∫⁻ a, ↑((2:nnreal)^(p-1) * (nnnorm (f a)) ^ p + (2:nnreal)^(p-1) * (nnnorm (g a)) ^ p) ∂ μ,
-  { refine lintegral_mono_nnreal _,
-    intro a,
-    dsimp only,
+  ... ≤ ∫⁻ a, ↑((2:nnreal)^(p-1) * (nnnorm (f a)) ^ p + (2:nnreal)^(p-1) * (nnnorm (g a)) ^ p) ∂ μ :
+  begin
+    refine lintegral_mono_nnreal (λ a, _),
     have h_zero_lt_half_rpow : (0 : nnreal) < (1 / 2) ^ p,
     { rw [←nnreal.zero_rpow (ne_of_lt hp0_lt).symm, nnreal.rpow_lt_rpow_iff hp0_lt],
       simp [zero_lt_one], },
@@ -138,9 +136,12 @@ begin
       ←nnreal.mul_rpow, mul_add],
     refine nnreal.rpow_arith_mean_le_arith_mean2_rpow (1/2 : nnreal) (1/2 : nnreal)
       (nnnorm (f a)) (nnnorm (g a)) _ hp1,
-    rw [nnreal.div_add_div_same, one_add_one_eq_two, nnreal.div_self two_ne_zero], },
+    rw [nnreal.div_add_div_same, one_add_one_eq_two, nnreal.div_self two_ne_zero]
+  end
   -- step 3: use hypotheses hf and hg
-  { simp_rw [ennreal.coe_add, ennreal.coe_mul, ←ennreal.coe_rpow_of_nonneg _ hp0],
+  ... < ⊤ :
+  begin
+    simp_rw [ennreal.coe_add, ennreal.coe_mul, ←ennreal.coe_rpow_of_nonneg _ hp0],
     rw [lintegral_add, lintegral_const_mul, lintegral_const_mul, ennreal.add_lt_top],
     split; rw ennreal.mul_lt_top_iff; left;
       { split,
@@ -153,7 +154,8 @@ begin
     exact (ennreal.continuous_const_mul (by simp)).measurable.comp
       hf.left.nnnorm.ennreal_coe.ennreal_rpow_const,
     exact (ennreal.continuous_const_mul (by simp)).measurable.comp
-      hg.left.nnnorm.ennreal_coe.ennreal_rpow_const, },
+      hg.left.nnnorm.ennreal_coe.ennreal_rpow_const
+  end
 end
 
 end borel_space

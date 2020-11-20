@@ -110,6 +110,14 @@ theorem neg_one_pow_eq_one_iff_even {α : Type*} [ring α] {n : ℕ} (h1 : (-1 :
   (λ hn, by rw [neg_one_pow_eq_pow_mod_two, hn, pow_one] at h; exact (h1 h).elim),
   λ ⟨m, hm⟩, by rw [neg_one_pow_eq_pow_mod_two, hm]; simp⟩
 
+@[simp] theorem neg_one_pow_two {α : Type*} [ring α] : (-1 : α) ^ 2 = 1 := by simp
+
+theorem neg_one_pow_of_even {α : Type*} [ring α] {n : ℕ} : even n → (-1 : α) ^ n = 1 :=
+by { rintro ⟨c, rfl⟩, simp [pow_mul] }
+
+theorem neg_one_pow_of_odd {α : Type*} [ring α] {n : ℕ} : odd n → (-1 : α) ^ n = -1 :=
+by { rintro ⟨c, rfl⟩, simp [pow_add, pow_mul] }
+
 -- Here are examples of how `parity_simps` can be used with `nat`.
 
 example (m n : ℕ) (h : even m) : ¬ even (n + 3) ↔ even (m^2 + m + n) :=

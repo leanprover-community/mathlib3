@@ -485,7 +485,7 @@ begin
 end
 
 /--If `n ≠ 0` in `F`, then ` X ^ n - a` is squarefree for any `a ≠ 0`. -/
-lemma squarefree_of_X_pow_sub_C {n : ℕ} (a : F) (hn : ↑n ≠ (0 : F)) (hpos : 0 < n) (ha : a ≠ 0) :
+lemma squarefree_X_pow_sub_C {n : ℕ} (a : F) (hn : ↑n ≠ (0 : F)) (hpos : 0 < n) (ha : a ≠ 0) :
   squarefree (X ^ n - C a) :=
 separable.squarefree (separable_of_X_pow_sub_C a hn hpos ha)
 

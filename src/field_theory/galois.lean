@@ -116,13 +116,13 @@ instance subgroup_action : faithful_mul_semiring_action H E :=
 /-- The intermediate_field fixed by a subgroup -/
 def fixed_field : intermediate_field F E :=
 { carrier := mul_action.fixed_points H E,
-  zero_mem' := smul_zero,
-  add_mem' := λ _ _ hx hy _, by rw [smul_add, hx, hy],
-  neg_mem' := λ _ hx _, by rw [smul_neg, hx],
-  one_mem' := smul_one,
-  mul_mem' := λ _ _ hx hy _, by rw [smul_mul', hx, hy],
-  inv_mem' := λ _ hx _, by rw [smul_inv, hx],
-  algebra_map_mem' := λ _ _, commutes _ _ }
+  zero_mem' := λ g, smul_zero g,
+  add_mem' := λ a b hx hy g, by rw [smul_add g a b, hx, hy],
+  neg_mem' := λ a hx g, by rw [smul_neg g a, hx],
+  one_mem' := λ g, smul_one g,
+  mul_mem' := λ a b hx hy g, by rw [smul_mul' g a b, hx, hy],
+  inv_mem' := λ a hx g, by rw [smul_inv _ g a, hx],
+  algebra_map_mem' := λ a g, commutes g a }
 
 lemma findim_fixed_field_eq_card [finite_dimensional F E] :
   findim (fixed_field H) E = fintype.card H :=

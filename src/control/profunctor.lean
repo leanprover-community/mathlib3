@@ -49,6 +49,7 @@ class monoidal (P : Type → Type → Type) :=
 class distributive (R : Type → Type) :=
 (dist : ∀ ⦃F⦄ [functor F] {A}, F (R A) → R (F A))
 
+/-- A profunctor is representable if `P A B` is iso to `A → R B`. -/
 class representable (P : Type → Type → Type) :=
 (Rep : Type → Type)
 (sieve    {A B} : P A B        → (A → Rep B))
@@ -63,8 +64,11 @@ class coerce_r (P : Type → Type → Type) :=
 /-- The representation functor of a representable profunctor-/
 def Rep := @representable.Rep
 
-instance (P : Type → Type → Type) [representable P] [functor (representable.Rep P)] : profunctor P :=
-{dimap := λ A B C D ba cd pac, representable.tabulate $ (λ b, cd <$> representable.sieve pac (ba b))}
+def representable.lift {P : Type → Type → Type} [representable P] {A B S T : Type} (f : (A → Rep P B) → S → Rep P T) : P A B → P S T
+| pab := representable.tabulate $ f $ representable.sieve pab
+
+instance (P : Type → Type → Type) [representable P] [rf : functor (representable.Rep P)] : profunctor P :=
+{dimap := λ A B C D ba cd, representable.lift $ (λ pac b, @functor.map _ rf _ _ cd $ pac (ba b))}
 
 /-- A profunctor `P` is __traversing__ when it is representable with an applicative functor. -/
 class traversing (P : Type → Type → Type) extends (representable P) :=
@@ -141,6 +145,7 @@ namespace function
   instance is_functor {A : Type} : functor ((→) A) :=
   {map := λ X Y f g a, f $ g $ a}
 
+  /-- R distributes with the functor `(A → _)`. -/
   def dist_reader {R : Type → Type} [distributive R] {A B : Type} : (A → R B) → R (A → B)
   | f := @distributive.dist R _ ((→) A) function.is_functor _ f
 
@@ -157,6 +162,9 @@ mapping.d
 
 instance applicative_rep_of_mapping {P : Type → Type → Type} [mapping P] : applicative (Rep P) :=
 mapping.to_traversing.a
+
+instance closed_of_mapping {P : Type → Type → Type} [mapping P] : closed P :=
+{ close := λ A B C, representable.lift $ λ pab ca, @function.dist_reader _ profunctor.dist_rep_of_mapping _ _ $ λ c, pab $ ca c}
 
 end profunctor
 

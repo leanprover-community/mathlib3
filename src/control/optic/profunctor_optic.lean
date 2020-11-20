@@ -17,6 +17,9 @@ def prod.elim {A B C} : (A → B → C) → A × B → C
 def prod.intro {A B C} : (C → A) → (C → B) → C → (A × B)
 | f g c := (f c, g c)
 
+def prod.duplicate {A} : A → A × A
+| a := (a,a)
+
 namespace control
 
 open control
@@ -36,22 +39,22 @@ section defs
   def iso         := ∀ ⦃P⦄ [profunctor P], optic P A B S T
 
   def lens        := ∀ ⦃P⦄ [profunctor P] [strong P], optic P A B S T
-  def lens'       := lens A B A B
+  def lens'       := lens A A B B
 
   def colens      := ∀ ⦃P⦄ [profunctor P] [costrong P], optic P A B S T
 
   def prism       := ∀ ⦃P⦄ [profunctor P] [choice P], optic P A B S T
-  def prism'      := prism A B A B
+  def prism'      := prism A A B B
 
   def traversal0  := ∀ ⦃P⦄ [affine P], optic P A B S T
-  def traversal0' := traversal0 A B A B
+  def traversal0' := traversal0 A A B B
   def traversal   := ∀ ⦃P⦄ [traversing P], optic P A B S T
 
   def setter      := ∀ ⦃P⦄ [affine P] [mapping P], optic P A B S T
-  def setter'     := setter A B A B
+  def setter'     := setter A A B B
 
   def grate       := ∀ ⦃P⦄ [profunctor P] [closed P], optic P A B S T
-  def grate'      := grate A B A B
+  def grate'      := grate A A B B
 
   def fold        := ∀ ⦃P⦄ [affine P] [traversing P] [coerce_r P], optic' P A S
 end defs
@@ -77,15 +80,19 @@ namespace lens
   def update (l : lens A B S T) : B → S → T :=
   concrete.lens.update $ l $ concrete.lens.id
 
-  def matching (sca : S → C × A) (cbt : C × B → T) : lens A B S T := sorry
+  def matching (sca : S → C × A) (cbt : C × B → T) : lens A B S T :=
+  mk (prod.snd ∘ sca) (λ b s, cbt (prod.fst $ sca s,b))
 
-  def united : lens' A unit := sorry
-  def voided : lens' empty A := sorry
+  def united : lens unit unit A A := mk (λ a, ⟨⟩) (λ x a, a)
+  def voided : lens A A empty empty := mk (λ e, by cases e) (λ a e, e)
+
+  protected def id : lens A B A B := mk (λ a, a) (λ b _, b)
 end lens
 
 namespace colens
-  def mk (bsa : B → S → A) (bt : B → T) : colens A B S T := sorry
-  def comatching (csa : C × S → A) (cbt : B → C × T) : lens A B S T := sorry
+  def mk_core (bsa : B → S → A) (bt : B → T) ⦃P⦄ [profunctor P] [costrong P] : optic P A B S T
+  | p := profunctor.dimap id bt $ costrong.unsecond B $ profunctor.dimap (prod.elim bsa) prod.duplicate $ p
+
 end colens
 
 namespace prism
@@ -105,16 +112,14 @@ namespace traversal
 
   def traversed (F : Type → Type) [traversable F] {S T : Type} : traversal S T (F S) (F T) := traversed_core F
 
-  def mk (f : concrete.traversal A B S T) ⦃P⦄ [traversing P] : optic P A B S T
-  | h := representable.tabulate $ λ s, let ⟨n,a,b⟩ := f s in @functor.map _ _ _ _ b $ @vector.traverse _ _ (profunctor.applicative_rep_of_traversing) _ _ (representable.sieve h) a
+  def mk (f : concrete.traversal A B S T) ⦃P⦄ [traversing P] : optic P A B S T :=
+  representable.lift $ λ h s, let ⟨n,a,b⟩ := f s in @functor.map _ _ _ _ b $ @vector.traverse _ _ profunctor.applicative_rep_of_traversing _ _ h a
+
+  def out : traversal A B S T → concrete.traversal A B S T
+  | tr := tr $ concrete.traversal.id
 
   def lists : traversal A B S T → S → list A
-  | t s := sorry
-
-  def both : traversal A B (A × A) (B × B) := sorry
-
-  -- >>> lists (both . duplicated) ("hello","world")
-  def duplicated : traversal A B A B := sorry
+  | t s := let ⟨n, a, _⟩ := t.out s in a.to_list
 end traversal
 
 namespace setter
@@ -132,16 +137,15 @@ namespace grate
   def out : grate A B S T → (((S → A) → B) → T)
   | g := g concrete.grate.id
 
-  def zip_with_of {F : Type → Type} [functor F] : grate A B S T → (F A → B) → (F S → T)
+  def zip_with {F : Type → Type} [functor F] : grate A B S T → (F A → B) → (F S → T)
   | g f := @g (costar F) _ _ f
 
-  def distributed {F : Type → Type} [distributive F] : grate A B (F A) (F B) := sorry
+  def distributed {F : Type → Type} [functor F] [distributive F] : grate A B (F A) (F B) :=
+  mk (λ k, k <$> function.dist_reader id)
 
-  def endomorphed : grate' (A → A) A := sorry
-
+  def endomorphed : grate' A (A → A)
+  | P _ c p := @closed.close P c _ _ A p
 end grate
-
-
 
 end optic
 end control

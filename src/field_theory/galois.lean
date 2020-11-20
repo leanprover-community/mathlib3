@@ -157,10 +157,10 @@ begin
   suffices : fintype.card H = fintype.card (fixing_subgroup (fixed_field H)),
   { exact subgroup.ext' (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
     (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
-  rw fintype.card_congr (fixing_subgroup_iso (fixed_field H)).to_equiv,
-  rw fintype.card_congr (fixed_points.to_alg_hom_equiv H E),
-  rw fintype.card_congr (alg_equiv_equiv_alg_hom (fixed_field H) E),
-  exact fintype.card_congr (by refl),
+  apply fintype.card_congr,
+  refine (fixed_points.to_alg_hom_equiv H E).trans _,
+  refine (alg_equiv_equiv_alg_hom (fixed_field H) E).symm.trans _,
+  exact (fixing_subgroup_iso (fixed_field H)).to_equiv.symm
 end
 
 instance alg_instance : algebra K (fixed_field (fixing_subgroup K)) :=

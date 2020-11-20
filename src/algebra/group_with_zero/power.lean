@@ -239,6 +239,10 @@ theorem one_div_fpow {a : G₀} (n : ℤ) :
   (1 / a) ^ n = 1 / a ^ n :=
 by simp only [one_div, inv_fpow]
 
+@[simp] lemma inv_fpow' {a : G₀} (n : ℤ) :
+  (a ⁻¹) ^ n = a ^ (-n) :=
+by { rw [inv_fpow, ← fpow_neg_one, ← fpow_mul], simp }
+
 end int_pow
 
 section
@@ -259,8 +263,8 @@ end
 
 /-- If a monoid homomorphism `f` between two `group_with_zero`s maps `0` to `0`, then it maps `x^n`,
 `n : ℤ`, to `(f x)^n`. -/
-lemma monoid_hom.map_fpow {G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
-  (f : G₀ →* G₀') (h0 : f 0 = 0) (x : G₀) :
+lemma monoid_with_zero_hom.map_fpow {G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
+  (f : monoid_with_zero_hom G₀ G₀') (x : G₀) :
   ∀ n : ℤ, f (x ^ n) = f x ^ n
-| (n : ℕ) := f.map_pow x n
-| -[1+n] := (f.map_inv' h0 _).trans $ congr_arg _ $ f.map_pow x _
+| (n : ℕ) := f.to_monoid_hom.map_pow x n
+| -[1+n] := (f.map_inv' _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _

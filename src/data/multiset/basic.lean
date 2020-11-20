@@ -848,6 +848,13 @@ quotient.induction_on s $ λ l,
 lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
 
+lemma prod_dvd_prod [comm_monoid α] {s t : multiset α} (h : s ≤ t) :
+  s.prod ∣ t.prod :=
+begin
+  rcases multiset.le_iff_exists_add.1 h with ⟨z, rfl⟩,
+  simp,
+end
+
 theorem prod_eq_zero_iff [comm_cancel_monoid_with_zero α] [nontrivial α]
   {s : multiset α} :
   s.prod = 0 ↔ (0 : α) ∈ s :=
@@ -1797,17 +1804,26 @@ instance : semilattice_sup_bot (multiset α) :=
 
 end
 
+@[simp]
+lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
+  a ∈ n •ℕ s ↔ a ∈ s :=
+begin
+  classical,
+  cases n,
+  { exfalso, apply h0 rfl },
+  rw [← not_iff_not, ← count_eq_zero, ← count_eq_zero],
+  simp [h0],
+end
+
 /- relator -/
 
 section rel
 
 /-- `rel r s t` -- lift the relation `r` between two elements to a relation between `s` and `t`,
 s.t. there is a one-to-one mapping betweem elements in `s` and `t` following `r`. -/
-inductive rel (r : α → β → Prop) : multiset α → multiset β → Prop
+@[mk_iff] inductive rel (r : α → β → Prop) : multiset α → multiset β → Prop
 | zero : rel 0 0
 | cons {a b as bs} : r a b → rel as bs → rel (a ::ₘ as) (b ::ₘ bs)
-
-mk_iff_of_inductive_prop multiset.rel multiset.rel_iff
 
 variables {δ : Type*} {r : α → β → Prop} {p : γ → δ → Prop}
 

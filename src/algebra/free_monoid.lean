@@ -5,6 +5,7 @@ Authors: Simon Hudon, Yury Kudryashov
 -/
 import data.equiv.basic
 import data.list.basic
+import algebra.star.basic
 
 /-!
 # Free monoid over a given alphabet
@@ -50,6 +51,9 @@ def of (x : α) : free_monoid α := [x]
 
 @[to_additive]
 lemma of_def (x : α) : of x = [x] := rfl
+
+lemma of_injective : function.injective (@of α) :=
+λ a b, list.head_eq_of_cons_eq
 
 /-- Recursor for `free_monoid` using `1` and `of x * xs` instead of `[]` and `x :: xs`. -/
 @[to_additive "Recursor for `free_add_monoid` using `0` and `of x + xs` instead of `[]` and `x :: xs`."]
@@ -118,5 +122,17 @@ hom_eq $ λ x, rfl
 @[to_additive]
 lemma map_comp (g : β → γ) (f : α → β) : map (g ∘ f) = (map g).comp (map f) :=
 hom_eq $ λ x, rfl
+
+instance : star_monoid (free_monoid α) :=
+{ star := list.reverse,
+  star_involutive := list.reverse_reverse,
+  star_mul := list.reverse_append, }
+
+@[simp]
+lemma star_of (x : α) : star (of x) = of x := rfl
+
+/-- Note that `star_one` is already a global simp lemma, but this one works with dsimp too -/
+@[simp]
+lemma star_one : star (1 : free_monoid α) = 1 := rfl
 
 end free_monoid

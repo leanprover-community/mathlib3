@@ -969,6 +969,21 @@ lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
 @prod_flip (multiplicative β) _ _ _
 attribute [to_additive] prod_flip
 
+section opposite
+
+open opposite
+
+/-- Moving to the opposite additive commutative monoid commutes with summing. -/
+@[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
+  op (∑ x in s, f x) = ∑ x in s, op (f x) :=
+(op_add_equiv : β ≃+ βᵒᵖ).map_sum _ _
+
+@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵒᵖ) :
+  unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
+(op_add_equiv : β ≃+ βᵒᵖ).symm.map_sum _ _
+
+end opposite
+
 section comm_group
 variables [comm_group β]
 

@@ -586,8 +586,26 @@ def map_cocone_inv_map_cocone {F : J ⥤ D} (H : D ⥤ C) [is_equivalence H] (c 
   map_cocone_inv H (map_cocone H c) ≅ c :=
 (limits.cocones.functoriality_equivalence F (as_equivalence H)).unit_iso.symm.app c
 
+/-- `functoriality F _ ⋙ postcompose (whisker_left F _)` simplifies to `functoriality F _`. -/
+@[simps {rhs_md:=semireducible}]
+def functoriality_comp_postcompose {H H' : C ⥤ D} (α : H ≅ H') :
+  cones.functoriality F H ⋙ cones.postcompose (whisker_left F α.hom) ≅ cones.functoriality F H' :=
+nat_iso.of_components (λ c, cones.ext (α.app _) (by tidy)) (by tidy)
+
 /--
-`map_cone` commutes with `postcompose`
+For `F : J ⥤ C`, given a cone `c : cone F`, and a natural isomorphism `α : H ≅ H'` for functors
+`H H' : C ⥤ D`, the postcomposition of the cone `H.map_cone` using the isomorphism `α` is
+isomorphic to the cone `H'.map_cone`.
+-/
+@[simps {rhs_md:=semireducible}]
+def postcompose_whisker_left_map_cone {H H' : C ⥤ D} (α : H ≅ H') (c : cone F) :
+  (cones.postcompose (whisker_left F α.hom : _)).obj (H.map_cone c) ≅ H'.map_cone c :=
+(functoriality_comp_postcompose α).app c
+
+/--
+`map_cone` commutes with `postcompose`. In particular, for `F : J ⥤ C`, given a cone `c : cone F`, a
+natural transformation `α : F ⟶ G` and a functor `H : C ⥤ D`, we have two obvious ways of producing
+a cone over `G ⋙ H`, and they are both isomorphic.
 -/
 @[simps {rhs_md:=semireducible}]
 def map_cone_postcompose {α : F ⟶ G} {c} :
@@ -604,8 +622,27 @@ def map_cone_postcompose_equivalence_functor {α : F ≅ G} {c} :
     (cones.postcompose_equivalence (iso_whisker_right α H : _)).functor.obj (H.map_cone c) :=
 cones.ext (iso.refl _) (by tidy)
 
+/-- `functoriality F _ ⋙ precompose (whisker_left F _)` simplifies to `functoriality F _`. -/
+@[simps {rhs_md:=semireducible}]
+def functoriality_comp_precompose {H H' : C ⥤ D} (α : H ≅ H') :
+   cocones.functoriality F H ⋙ cocones.precompose (whisker_left F α.inv)
+ ≅ cocones.functoriality F H' :=
+nat_iso.of_components (λ c, cocones.ext (α.app _) (by tidy)) (by tidy)
+
 /--
-`map_cocone` commutes with `precompose`
+For `F : J ⥤ C`, given a cocone `c : cocone F`, and a natural isomorphism `α : H ≅ H'` for functors
+`H H' : C ⥤ D`, the precomposition of the cocone `H.map_cocone` using the isomorphism `α` is
+isomorphic to the cocone `H'.map_cocone`.
+-/
+@[simps {rhs_md:=semireducible}]
+def precompose_whisker_left_map_cocone {H H' : C ⥤ D} (α : H ≅ H') (c : cocone F) :
+  (cocones.precompose (whisker_left F α.inv : _)).obj (H.map_cocone c) ≅ H'.map_cocone c :=
+(functoriality_comp_precompose α).app c
+
+/--
+`map_cocone` commutes with `precompose`. In particular, for `F : J ⥤ C`, given a cocone
+`c : cocone F`, a natural transformation `α : F ⟶ G` and a functor `H : C ⥤ D`, we have two obvious
+ways of producing a cocone over `G ⋙ H`, and they are both isomorphic.
 -/
 @[simps {rhs_md:=semireducible}]
 def map_cocone_precompose {α : F ⟶ G} {c} :

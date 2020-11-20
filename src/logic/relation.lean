@@ -71,27 +71,22 @@ protected def map (r : α → β → Prop) (f : α → γ) (g : β → δ) : γ 
 variables {r : α → α → Prop} {a b c d : α}
 
 /-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
+@[mk_iff relation.refl_trans_gen.cases_tail_iff]
 inductive refl_trans_gen (r : α → α → Prop) (a : α) : α → Prop
 | refl : refl_trans_gen a
 | tail {b c} : refl_trans_gen b → r b c → refl_trans_gen c
 
 attribute [refl] refl_trans_gen.refl
 
-mk_iff_of_inductive_prop relation.refl_trans_gen relation.refl_trans_gen.cases_tail_iff
-
 /-- `refl_gen r`: reflexive closure of `r` -/
-inductive refl_gen (r : α → α → Prop) (a : α) : α → Prop
+@[mk_iff] inductive refl_gen (r : α → α → Prop) (a : α) : α → Prop
 | refl : refl_gen a
 | single {b} : r a b → refl_gen b
 
-mk_iff_of_inductive_prop relation.refl_gen relation.refl_gen_iff
-
 /-- `trans_gen r`: transitive closure of `r` -/
-inductive trans_gen (r : α → α → Prop) (a : α) : α → Prop
+@[mk_iff] inductive trans_gen (r : α → α → Prop) (a : α) : α → Prop
 | single {b} : r a b → trans_gen b
 | tail {b c} : trans_gen b → r b c → trans_gen c
-
-mk_iff_of_inductive_prop relation.trans_gen relation.trans_gen_iff
 
 attribute [refl] refl_gen.refl
 

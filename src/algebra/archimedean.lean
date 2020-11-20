@@ -110,10 +110,12 @@ end linear_ordered_ring
 
 section linear_ordered_field
 
-/-- Every positive x is between two successive integer powers of
-another y greater than one. This is the same as `exists_int_pow_near'`,
+variables [linear_ordered_field α]
+
+/-- Every positive `x` is between two successive integer powers of
+another `y` greater than one. This is the same as `exists_int_pow_near'`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near [linear_ordered_field α] [archimedean α]
+lemma exists_int_pow_near [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
 by classical; exact
@@ -128,10 +130,10 @@ let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
 let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
 
-/-- Every positive x is between two successive integer powers of
-another y greater than one. This is the same as `exists_int_pow_near`,
+/-- Every positive `x` is between two successive integer powers of
+another `y` greater than one. This is the same as `exists_int_pow_near`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near' [linear_ordered_field α] [archimedean α]
+lemma exists_int_pow_near' [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
 let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
@@ -141,7 +143,31 @@ by rwa [fpow_neg, inv_lt (fpow_pos_of_pos hyp _) hx],
 by rwa [neg_add, neg_add_cancel_right, fpow_neg,
         le_inv hx (fpow_pos_of_pos hyp _)]⟩
 
-variables [linear_ordered_field α] [floor_ring α]
+/-- For any `y < 1` and any positive `x`, there exists `n : ℕ` with `y ^ n < x`. -/
+lemma exists_pow_lt_of_lt_one [archimedean α] {x y : α} (hx : 0 < x) (hy : y < 1) :
+  ∃ n : ℕ, y ^ n < x :=
+begin
+  by_cases y_pos : y ≤ 0,
+  { use 1, simp only [pow_one], linarith, },
+  rw [not_le] at y_pos,
+  rcases pow_unbounded_of_one_lt (x⁻¹) (one_lt_inv y_pos hy) with ⟨q, hq⟩,
+  exact ⟨q, by rwa [inv_pow', inv_lt_inv hx (pow_pos y_pos _)] at hq⟩
+end
+
+/-- Given `x` and `y` between `0` and `1`, `x` is between two successive powers of `y`.
+This is the same as `exists_nat_pow_near`, but for elements between `0` and `1` -/
+lemma exists_nat_pow_near_of_lt_one [archimedean α]
+  {x : α} {y : α} (xpos : 0 < x) (hx : x ≤ 1) (ypos : 0 < y) (hy : y < 1) :
+  ∃ n : ℕ, y ^ (n + 1) < x ∧ x ≤ y ^ n :=
+begin
+  rcases exists_nat_pow_near (one_le_inv_iff.2 ⟨xpos, hx⟩) (one_lt_inv_iff.2 ⟨ypos, hy⟩)
+    with ⟨n, hn, h'n⟩,
+  refine ⟨n, _, _⟩,
+  { rwa [inv_pow', inv_lt_inv xpos (pow_pos ypos _)] at h'n },
+  { rwa [inv_pow', inv_le_inv (pow_pos ypos _) xpos] at hn }
+end
+
+variables [floor_ring α]
 
 lemma sub_floor_div_mul_nonneg (x : α) {y : α} (hy : 0 < y) :
   0 ≤ x - ⌊x / y⌋ * y :=

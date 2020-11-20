@@ -23,6 +23,10 @@ immediately from the two instances of the class.
 
 open_locale big_operators
 
+section
+
+local notation `𝓚` := algebra_map ℝ _
+
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
@@ -31,13 +35,11 @@ class is_R_or_C (K : Type*) extends nondiscrete_normed_field K, normed_algebra �
 (im : K →+ ℝ)
 (conj : K →+* K)
 (I : K)                 -- Meant to be set to 0 for K=ℝ
-(of_real : ℝ → K)      -- Meant to be id for K=ℝ and the coercion from ℝ for K=ℂ
 (I_re_ax : re I = 0)
 (I_mul_I_ax : I = 0 ∨ I * I = -1)
-(re_add_im_ax : ∀ (z : K), of_real (re z) + of_real (im z) * I = z)
-(smul_coe_mul_ax : ∀ (z : K) (r : ℝ), r • z = of_real r * z)
-(of_real_re_ax : ∀ r : ℝ, re (of_real r) = r)
-(of_real_im_ax : ∀ r : ℝ, im (of_real r) = 0)
+(re_add_im_ax : ∀ (z : K), 𝓚 (re z) + 𝓚 (im z) * I = z)
+(of_real_re_ax : ∀ r : ℝ, re (𝓚 r) = r)
+(of_real_im_ax : ∀ r : ℝ, im (𝓚 r) = 0)
 (mul_re_ax : ∀ z w : K, re (z * w) = re z * re w - im z * im w)
 (mul_im_ax : ∀ z w : K, im (z * w) = re z * im w + im z * re w)
 (conj_re_ax : ∀ z : K, re (conj z) = re z)
@@ -45,21 +47,27 @@ class is_R_or_C (K : Type*) extends nondiscrete_normed_field K, normed_algebra �
 (conj_I_ax : conj I = -I)
 (norm_sq_eq_def_ax : ∀ (z : K), ∥z∥^2 = (re z) * (re z) + (im z) * (im z))
 (mul_im_I_ax : ∀ (z : K), (im z) * im I = im z)
-(inv_def_ax : ∀ (z : K), z⁻¹ = conj z * of_real ((∥z∥^2)⁻¹))
+(inv_def_ax : ∀ (z : K), z⁻¹ = conj z * 𝓚 ((∥z∥^2)⁻¹))
 (div_I_ax : ∀ (z : K), z / I = -(z * I))
 
-namespace is_R_or_C
+end
 
+namespace is_R_or_C
 variables {K : Type*} [is_R_or_C K]
+
+/-- Shorthand for `algebra_map ℝ K` -/
+noncomputable abbreviation of_real (r : ℝ) := algebra_map ℝ K r
+
+local notation `𝓚` := @is_R_or_C.of_real K _
 local postfix `†`:100 := @is_R_or_C.conj K _
 
 -- see Note [coercion into rings]
-@[priority 900] instance cast_coe : has_coe_t ℝ K := ⟨of_real⟩
+@[priority 900] noncomputable instance cast_coe : has_coe_t ℝ K := ⟨of_real⟩
 
 lemma coe_eq_of_real {x : ℝ} : @is_R_or_C.of_real K _ x = x := rfl
 
-lemma of_real_alg : ∀ x : ℝ, (x : K) = x • (1 : K) :=
-λ x, by rw [←mul_one (x : K), ←coe_eq_of_real, smul_coe_mul_ax]
+lemma of_real_alg (x : ℝ) : (x : K) = x • (1 : K) :=
+by { rw [←coe_eq_of_real], exact algebra.algebra_map_eq_smul_one x }
 
 @[simp] lemma re_add_im (z : K) : ((re z) : K) + (im z) * I = z := is_R_or_C.re_add_im_ax z
 @[simp, norm_cast] lemma of_real_re : ∀ r : ℝ, re (r : K) = r := is_R_or_C.of_real_re_ax
@@ -83,7 +91,7 @@ by { simp_rw ext_iff, cc }
 @[simp, norm_cast, priority 900] lemma of_real_zero : ((0 : ℝ) : K) = 0 :=
 by rw [of_real_alg, zero_smul]
 
-lemma zero_re' : re (0 : K) = (0 : ℝ) := by simp only [add_monoid_hom.map_zero]
+@[simp] lemma zero_re' : re (0 : K) = (0 : ℝ) := re.map_zero
 
 @[simp, norm_cast, priority 900] lemma of_real_one : ((1 : ℝ) : K) = 1 :=
 by rw [of_real_alg, one_smul]
@@ -133,9 +141,9 @@ lemma smul_im (r : ℝ) (z : K) : im (↑r * z) = r * (im z) :=
 by simp only [add_zero, of_real_im, zero_mul, of_real_re, mul_im]
 
 lemma smul_re' : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
-λ r z, by { rw [smul_coe_mul_ax], apply smul_re }
+λ r z, by { rw algebra.smul_def, apply smul_re }
 lemma smul_im' : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
-λ r z, by { rw [smul_coe_mul_ax], apply smul_im }
+λ r z, by { rw algebra.smul_def, apply smul_im }
 
 /-! ### The imaginary unit, `I` -/
 
@@ -243,10 +251,10 @@ theorem add_conj (z : K) : z + conj z = 2 * (re z) :=
 by simp [ext_iff, two_mul]
 
 /-- The pseudo-coercion `of_real` as a `ring_hom`. -/
-def of_real_hom : ℝ →+* K := ⟨of_real, of_real_one, of_real_mul, of_real_zero, of_real_add⟩
+noncomputable def of_real_hom : ℝ →+* K := algebra_map ℝ K
 
 /-- The coercion from reals as a `ring_hom`. -/
-def coe_hom : ℝ →+* K := ⟨coe, of_real_one, of_real_mul, of_real_zero, of_real_add⟩
+noncomputable def coe_hom : ℝ →+* K := ⟨coe, of_real_one, of_real_mul, of_real_zero, of_real_add⟩
 
 @[simp, norm_cast, priority 900] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : K) = r - s :=
 ext_iff.2 $ by simp
@@ -302,7 +310,7 @@ begin
   { simp [h, of_real_zero] },
   { change r ≠ 0 at h,
     rw [div_eq_mul_inv, ←of_real_inv, div_eq_mul_inv],
-    simp [norm_sq, norm_sq_of_real, div_mul_eq_div_mul_one_div, div_self h] }
+    simp [norm_sq, div_mul_eq_div_mul_one_div, div_self h] }
 end
 
 @[simp, norm_cast, priority 900] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : K) = r ^ n :=
@@ -541,21 +549,21 @@ lemma is_cau_seq_abs {f : ℕ → K} (hf : is_cau_seq abs f) :
 
 @[simp, norm_cast, priority 900] lemma of_real_prod {α : Type*} (s : finset α) (f : α → ℝ) :
   ((∏ i in s, f i : ℝ) : K) = ∏ i in s, (f i : K) :=
-ring_hom.map_prod (@coe_hom K _) _ _
+ring_hom.map_prod _ _ _
 
 @[simp, norm_cast, priority 900] lemma of_real_sum {α : Type*} (s : finset α) (f : α → ℝ) :
   ((∑ i in s, f i : ℝ) : K) = ∑ i in s, (f i : K) :=
-ring_hom.map_sum (@coe_hom K _) _ _
+ring_hom.map_sum _ _ _
 
 @[simp, norm_cast] lemma of_real_finsupp_sum
   {α M : Type*} [has_zero M] (f : α →₀ M) (g : α → M → ℝ) :
   ((f.sum (λ a b, g a b) : ℝ) : K) = f.sum (λ a b, ((g a b) : K)) :=
-ring_hom.map_finsupp_sum (@coe_hom K _) f g
+ring_hom.map_finsupp_sum _ f g
 
 @[simp, norm_cast] lemma of_real_finsupp_prod
   {α M : Type*} [has_zero M] (f : α →₀ M) (g : α → M → ℝ) :
   ((f.prod (λ a b, g a b) : ℝ) : K) = f.prod (λ a b, ((g a b) : K)) :=
-ring_hom.map_finsupp_prod (@coe_hom K _) f g
+ring_hom.map_finsupp_prod _ f g
 
 end is_R_or_C
 
@@ -566,12 +574,10 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   im := 0,
   conj := ring_hom.id ℝ,
   I := 0,
-  of_real := id,
   I_re_ax := by simp only [add_monoid_hom.map_zero],
   I_mul_I_ax := or.intro_left _ rfl,
   re_add_im_ax := λ z, by unfold_coes; simp [add_zero, id.def, mul_zero],
-  smul_coe_mul_ax := λ z r, by simp only [algebra.id.smul_eq_mul, id.def],
-  of_real_re_ax := λ r, by simp only [id.def, add_monoid_hom.id_apply],
+  of_real_re_ax := λ r, by simp only [add_monoid_hom.id_apply, algebra.id.map_eq_self],
   of_real_im_ax := λ r, by simp only [add_monoid_hom.zero_apply],
   mul_re_ax := λ z w, by simp only [sub_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_ax := λ z w, by simp only [add_zero, zero_mul, mul_zero, add_monoid_hom.zero_apply],
@@ -601,13 +607,14 @@ noncomputable instance complex.is_R_or_C : is_R_or_C ℂ :=
   im := ⟨complex.im, complex.zero_im, complex.add_im⟩,
   conj := complex.conj,
   I := complex.I,
-  of_real := coe,
   I_re_ax := by simp only [add_monoid_hom.coe_mk, complex.I_re],
   I_mul_I_ax := by simp only [complex.I_mul_I, eq_self_iff_true, or_true],
-  re_add_im_ax := by simp only [forall_const, add_monoid_hom.coe_mk, complex.re_add_im, eq_self_iff_true],
-  smul_coe_mul_ax := λ z r, rfl,
-  of_real_re_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_re],
-  of_real_im_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_im],
+  re_add_im_ax := λ z, by simp only [add_monoid_hom.coe_mk, complex.re_add_im,
+                                     complex.coe_algebra_map, complex.of_real_eq_coe],
+  of_real_re_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_re,
+                                      complex.coe_algebra_map, complex.of_real_eq_coe],
+  of_real_im_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_im,
+                                      complex.coe_algebra_map, complex.of_real_eq_coe],
   mul_re_ax := λ z w, by simp only [complex.mul_re, add_monoid_hom.coe_mk],
   mul_im_ax := λ z w, by simp only [add_monoid_hom.coe_mk, complex.mul_im],
   conj_re_ax := λ z, by simp only [ring_hom.coe_mk, add_monoid_hom.coe_mk, complex.conj_re],
@@ -615,7 +622,10 @@ noncomputable instance complex.is_R_or_C : is_R_or_C ℂ :=
   conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
   norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq, add_monoid_hom.coe_mk, complex.norm_eq_abs],
   mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
-  inv_def_ax := λ z, by convert complex.inv_def z; exact (complex.norm_sq_eq_abs z).symm,
+  inv_def_ax := λ z, by {
+    simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
+               complex.of_real_eq_coe, complex.norm_eq_abs],
+  },
   div_I_ax := complex.div_I }
 
 end instances

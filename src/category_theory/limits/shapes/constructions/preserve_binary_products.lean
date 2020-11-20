@@ -61,7 +61,7 @@ instance preserves_binary_prods_of_prod_comparison_iso [∀ A B, is_iso (prod_co
 { preserves_limit := λ K,
   begin
     haveI := preserves_binary_prod_of_prod_comparison_iso F (K.obj walking_pair.left) (K.obj walking_pair.right),
-    apply preserves_limit_of_iso F (diagram_iso_pair K).symm,
+    apply preserves_limit_of_iso_diagram F (diagram_iso_pair K).symm,
   end }
 
 variables [preserves_limits_of_shape (discrete walking_pair) F]

@@ -131,7 +131,7 @@ structure inner_product_space.core
 (inner     : F → F → 𝕜)
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
 (nonneg_im : ∀ x, im (inner x x) = 0)
-(nonneg_re : ∀ x, re (inner x x) ≥ 0)
+(nonneg_re : ∀ x, 0 ≤ re (inner x x))
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = (conj r) * inner x y)
@@ -1112,14 +1112,12 @@ def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
 { norm_sq_eq_inner := norm_sq_eq_inner,
   conj_sym := λ x y, inner_re_symm,
   nonneg_im := λ x, rfl,
-  add_left := λ x y z, by { change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫, simp [inner_add_left] },
-  smul_left :=
-  begin
-    intros x y r,
-    change re ⟪(algebra_map ℝ 𝕜 r) • x, y⟫ = r * re ⟪x, y⟫,
-    have : algebra_map ℝ 𝕜 r = r • (1 : 𝕜) := by simp [algebra_map, algebra.smul_def'],
-    simp [this, inner_smul_left, coe_eq_of_real, smul_coe_mul_ax],
-  end,
+  add_left := λ x y z, by {
+    change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
+    simp [inner_add_left] },
+  smul_left := λ x y r, by {
+    change re ⟪(r : 𝕜) • x, y⟫ = r * re ⟪x, y⟫,
+    simp [inner_smul_left] },
   ..has_inner.is_R_or_C_to_real 𝕜,
   ..normed_space.restrict_scalars ℝ 𝕜 E }
 

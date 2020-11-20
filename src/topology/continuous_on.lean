@@ -332,12 +332,15 @@ theorem continuous_within_at_iff_continuous_at_restrict (f : α → β) {x : α}
   continuous_within_at f s x ↔ continuous_at (s.restrict f) ⟨x, h⟩ :=
 tendsto_nhds_within_iff_subtype h f _
 
+theorem continuous_within_at.tendsto_nhds_within {f : α → β} {x : α} {s : set α} {t : set β}
+  (h : continuous_within_at f s x) (ht : maps_to f s t) :
+  tendsto f (𝓝[s] x) (𝓝[t] (f x)) :=
+tendsto_inf.2 ⟨h, tendsto_principal.2 $ mem_inf_sets_of_right $ mem_principal_sets.2 $ ht⟩
+
 theorem continuous_within_at.tendsto_nhds_within_image {f : α → β} {x : α} {s : set α}
   (h : continuous_within_at f s x) :
   tendsto f (𝓝[s] x) (𝓝[f '' s] (f x)) :=
-tendsto_inf.2 ⟨h, tendsto_principal.2 $
-  mem_inf_sets_of_right $ mem_principal_sets.2 $
-  λ x, mem_image_of_mem _⟩
+h.tendsto_nhds_within (maps_to_image _ _)
 
 lemma continuous_within_at.prod_map {f : α → γ} {g : β → δ} {s : set α} {t : set β}
   {x : α} {y : β}
@@ -373,7 +376,7 @@ have ∀ t, is_open (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_open u ∧ 
     simp only [subtype.preimage_coe_eq_preimage_coe_iff],
     split; { rintros ⟨u, ou, useq⟩, exact ⟨u, ou, useq.symm⟩ }
   end,
-by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
+by rw [continuous_on_iff_continuous_restrict, continuous_def]; simp only [this]
 
 theorem continuous_on_iff_is_closed {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ t : set β, is_closed t → ∃ u, is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s :=

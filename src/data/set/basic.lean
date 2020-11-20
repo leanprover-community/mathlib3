@@ -86,7 +86,7 @@ namespace set
 variable {α : Type*}
 
 instance : has_le (set α) := ⟨(⊆)⟩
-instance : has_lt (set α) := ⟨λ s t, s ≤ t ∧ ¬t ≤ s⟩
+instance : has_lt (set α) := ⟨λ s t, s ≤ t ∧ ¬t ≤ s⟩  -- `⊂` is not defined until further down
 
 instance {α : Type*} : boolean_algebra (set α) :=
 { sup := (∪),
@@ -99,10 +99,12 @@ instance {α : Type*} : boolean_algebra (set α) :=
   sdiff := (\),
   .. (infer_instance : boolean_algebra (α → Prop)) }
 
+@[simp] lemma top_eq_univ : (⊤ : set α) = univ := rfl
 @[simp] lemma bot_eq_empty : (⊥ : set α) = ∅ := rfl
 @[simp] lemma sup_eq_union (s t : set α) : s ⊔ t = s ∪ t := rfl
 @[simp] lemma inf_eq_inter (s t : set α) : s ⊓ t = s ∩ t := rfl
 @[simp] lemma le_eq_subset (s t : set α) : s ≤ t = (s ⊆ t) := rfl
+/-! `set.lt_eq_ssubset` is defined further down -/
 
 /-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
@@ -2026,6 +2028,9 @@ by refl
 by simp
 
 @[simp] lemma empty_pi (s : Π i, set (α i)) : pi ∅ s = univ := by { ext, simp [pi] }
+
+lemma pi_mono (h : ∀ i ∈ s, t₁ i ⊆ t₂ i) : pi s t₁ ⊆ pi s t₂ :=
+λ x hx i hi, (h i hi $ hx i hi)
 
 lemma pi_eq_empty {i : ι} (hs : i ∈ s) (ht : t i = ∅) : s.pi t = ∅ :=
 by { ext f, simp only [mem_empty_eq, not_forall, iff_false, mem_pi, not_imp],

@@ -7,11 +7,11 @@ import field_theory.minimal_polynomial
 import linear_algebra.finite_dimensional
 import logic.function.basic
 import order.zorn
-import ring_theory.adjoin_root
 import ring_theory.discrete_valuation_ring
 import ring_theory.fractional_ideal
 import ring_theory.ideal.over
 import ring_theory.polynomial.rational_root
+import ring_theory.power_basis
 import set_theory.cardinal
 import tactic
 
@@ -223,7 +223,6 @@ begin
   simp,
 end
 
--- TODO: times out
 lemma ideal_le_iff_frac_ideal_le (I J : ideal A) : I ≤ J ↔ (I : fractional_ideal (fraction_ring.of A)) ≤ (J : fractional_ideal (fraction_ring.of A)) :=
 begin
   split,
@@ -232,19 +231,13 @@ begin
     tidy,
   },
   rintros h,
-  rw le_iff at h,
+  rw le_iff_mem at h,
   change (∀ (x : A), x ∈ I → x ∈ J),
   rintros x hI,
   specialize h ((localization_map.to_map (fraction_ring.of A)) x),
-  rw mem_coe at h,
+  rw mem_coe_ideal at h,
   simp at h,
-  specialize h x hI rfl,
-  rcases h with ⟨y, hJ, h⟩,
-  have f : y = x,
-  apply fraction_map.injective (fraction_ring.of A),
-  assumption,
-  rw f at hJ,
-  assumption,
+  exact h hI
 end
 
 open_locale classical -- to deal with union of two finsets!
@@ -321,10 +314,10 @@ begin
 end
 
 lemma fg_is_frac_ideal (I : submodule A (localization_map.codomain (fraction_ring.of A))) : I.fg -> is_fractional (fraction_ring.of A) I :=
-fractional_of_fg
+is_fractional_of_fg
 
 lemma fraction_ring_fractional_ideal (x : (fraction_ring A)) (hx : is_integral A x) : is_fractional (fraction_ring.of A) ((algebra.adjoin A {x}).to_submodule : submodule A (localization_map.codomain (fraction_ring.of A))) :=
-fractional_of_fg (fg_adjoin_singleton_of_integral x hx)
+is_fractional_of_fg (fg_adjoin_singleton_of_integral x hx)
 
 lemma mem_adjoin (x : fraction_ring A) : x ∈ ((algebra.adjoin A {x}) : subalgebra A (localization_map.codomain (fraction_ring.of A))) :=
 begin
@@ -470,7 +463,7 @@ begin
   exfalso,
   have g : I ≤ (p : fractional_ideal (fraction_ring.of A)),
   {
-    rw le_iff,
+    rw le_iff_mem,
     rintros x hxI,
     have hpM :  ∃ (x : A), x ∈ M ∧ x ∉ p,
     {
@@ -483,7 +476,7 @@ begin
       assumption,
     },
     rcases hpM with ⟨z, hz, hpz⟩,
-    rw le_iff at f',
+    rw le_iff_mem at f',
     specialize f' x hxI,
     change x ∈ ((1 : ideal A) : fractional_ideal (fraction_ring.of A)) at f',
     rw fractional_ideal.mem_coe_ideal at f',
@@ -506,10 +499,10 @@ begin
       },
       rw <-f,
       rw mul_comm,
-      apply submodule.mul_mem_mul,
+      apply fractional_ideal.mul_mem_mul,
       let z' := (localization_map.to_map (fraction_ring.of A)) z,
       change z' ∈ (M : fractional_ideal (fraction_ring.of A)),
-      rw mem_coe,
+      rw mem_coe_ideal,
       use z,
       split, assumption, refl,
       assumption,
@@ -520,7 +513,7 @@ begin
     {
       let z' := (localization_map.to_map (fraction_ring.of A)) y,
       change z' ∈ (p : fractional_ideal (fraction_ring.of A)),
-      rw mem_coe,
+      rw mem_coe_ideal,
       use y,
       split, assumption, refl,
     },
@@ -562,7 +555,7 @@ begin
   rw ext' at k,
   specialize k 1,
   have k' := k.1 (one_mem A),
-  rw mem_coe at k',
+  rw mem_coe_ideal at k',
   cases k' with x k',
   cases k' with hx k',
   suffices f' : x = 1,
@@ -700,7 +693,8 @@ begin
         use [z, hz] } } },
   let IA : fractional_ideal f := ⟨A, h_fracA⟩,
   have h_noethA : is_noetherian R A,
-  { apply fractional_ideal.fg_of_noetherian hR.2 IA },
+  { haveI : is_noetherian_ring R := hR.2,
+    apply fractional_ideal.is_noetherian IA },
   obtain ⟨px, h_px , h_int_x⟩ : is_integral R x,
   { apply @is_integral_of_submodule_noetherian R K _ _ h_RalgK A h_noethA x h_xA },
   use px,
@@ -719,7 +713,7 @@ lemma maximal_ideal_inv_of_dedekind (hR : is_dedekind_domain R) (hM : ideal.is_m
 begin
   have hnz_M : M ≠ 0, apply (lt_iff_le_and_ne.mp (ideal.bot_lt_of_maximal M hR.1) ).2.symm,
   have hnz_Mf : (↑M : fractional_ideal f) ≠ (⊥ : fractional_ideal f),
-  apply (fractional_ideal.coe_nonzero_of_nonzero _).mp hnz_M, tauto,
+  { exact (fractional_ideal.coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors R))).mpr hnz_M },
   have h_MfinR : (↑M : fractional_ideal f) ≤ (1 : fractional_ideal f),
   apply fractional_ideal.coe_ideal_le_one,
   have hM_inclMinv : (↑M : fractional_ideal f) ≤ (↑M : fractional_ideal f) * (1 / (↑M : fractional_ideal f)),

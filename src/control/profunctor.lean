@@ -2,8 +2,13 @@
 Copyright (c) 2020 E.W.Ayers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: E.W.Ayers
+
+Functors `Typeᵒᵖ → Type → Type`.
+c.f. control.bifunctor
 -/
-import control.functor control.traversable
+import control.functor
+import control.traversable
+import control.bifunctor
 
 namespace control
 
@@ -49,6 +54,8 @@ class monoidal (P : Type → Type → Type) :=
 class distributive (R : Type → Type) :=
 (dist : ∀ ⦃F⦄ [functor F] {A}, F (R A) → R (F A))
 
+instance id_dist : distributive id := { dist := λ _ _ _, id}
+
 /-- A profunctor is representable if `P A B` is iso to `A → R B`. -/
 class representable (P : Type → Type → Type) :=
 (Rep : Type → Type)
@@ -64,8 +71,11 @@ class coerce_r (P : Type → Type → Type) :=
 /-- The representation functor of a representable profunctor-/
 def Rep := @representable.Rep
 
-def representable.lift {P : Type → Type → Type} [representable P] {A B S T : Type} (f : (A → Rep P B) → S → Rep P T) : P A B → P S T
+variables {P : Type → Type → Type}
+
+def representable.lift [representable P] {A B S T : Type} (f : (A → Rep P B) → S → Rep P T) : P A B → P S T
 | pab := representable.tabulate $ f $ representable.sieve pab
+
 
 instance (P : Type → Type → Type) [representable P] [rf : functor (representable.Rep P)] : profunctor P :=
 {dimap := λ A B C D ba cd, representable.lift $ (λ pac b, @functor.map _ rf _ _ cd $ pac (ba b))}
@@ -88,8 +98,8 @@ namespace star
   { dimap := λ A B C D f g h a, g <$> (h $ f a) }
 
   instance is_choice [has_pure F]: choice (star F) :=
-  { left :=  λ A B C afb ac, match ac with | (sum.inl a) := sum.inl <$> afb a | (sum.inr c) := sum.inr <$> pure c end
-  , right := λ A B C afb ca, match ca with | (sum.inr a) := sum.inr <$> afb a | (sum.inl c) := sum.inl <$> pure c end
+  { left :=  λ A B C afb, sum.fmap afb pure
+  , right := λ A B C afb, sum.fmap pure afb
   }
 
   instance is_strong : strong (star F) :=
@@ -104,7 +114,11 @@ namespace star
 
   instance is_affine [has_pure F] : affine (star F) := {}
   instance is_traversing [applicative F] : traversing (star F) := {}
+  -- instance is_mapping [distributive F] : mapping (star F) := {}
+
 end star
+
+def representable.star_lift [representable P] {A B S T : Type} (f : star (Rep P) A B → star (Rep P) S T) : P A B → P S T := representable.lift f
 
 /-- `costar F A B = F A → B` -/
 def costar (F : Type → Type) (A B : Type) := F A → B
@@ -125,20 +139,7 @@ namespace function
   , dcomp := λ _ _ _ _ _ _ _ _ _ _, rfl
   }
 
-  instance is_strong : strong (→) :=
-  { first  := λ A B C f, prod.map f id
-  , second := λ A B C f, prod.map id f
-  }
-
-  instance is_choice : choice (→) :=
-  { left  := λ A B C f, sum.map f id
-  , right := λ A B C f, sum.map id f
-  }
-
-  instance is_closed : closed (→) :=
-  { close := λ A B X ab xa x, ab $ xa $ x}
-
-  instance is_representable : representable (→) :=
+  instance is_mapping : mapping (→) :=
   { Rep := id, sieve := λ _ _, id, tabulate := λ _ _, id }
 
   /-- `A → _` is a functor. -/
@@ -151,20 +152,42 @@ namespace function
 
 end function
 
-instance applicative_rep_of_traversing {P : Type → Type → Type} [traversing P] : applicative (Rep P) :=
+instance applicative_rep_of_traversing  [traversing P] : applicative (Rep P) :=
 traversing.a
 
-instance functor_rep_of_traversing {P : Type → Type → Type} [traversing P] : functor (Rep P) :=
+instance functor_rep_of_traversing [traversing P] : functor (Rep P) :=
 by apply_instance
 
-instance dist_rep_of_mapping {P : Type → Type → Type} [mapping P] : distributive (Rep P) :=
+instance dist_rep_of_mapping [mapping P] : distributive (Rep P) :=
 mapping.d
 
-instance applicative_rep_of_mapping {P : Type → Type → Type} [mapping P] : applicative (Rep P) :=
+instance applicative_rep_of_mapping  [mapping P] : applicative (Rep P) :=
 mapping.to_traversing.a
 
-instance closed_of_mapping {P : Type → Type → Type} [mapping P] : closed P :=
-{ close := λ A B C, representable.lift $ λ pab ca, @function.dist_reader _ profunctor.dist_rep_of_mapping _ _ $ λ c, pab $ ca c}
+instance star.is_closed {F} [distributive F] : closed (star F) :=
+{ close := λ A B C pab ca, function.dist_reader $ λ c, pab $ ca c}
+
+open representable
+
+instance closed_of_mapping [mapping P] : closed P :=
+{ close := λ A B C, star_lift $ closed.close _}
+
+instance strong_of_traversing [traversing P] : strong P :=
+{ first  := λ A B C, star_lift $ first  C
+, second := λ A B C, star_lift $ second C
+}
+
+instance choice_of_traversing [traversing P] : choice P :=
+{ left  := λ A B C, star_lift $ left  C
+, right := λ A B C, star_lift $ right C
+}
+
+instance profunctor_of_traversing [traversing P] : profunctor P :=
+{ dimap := λ A B C D ba cd, star_lift $ dimap ba cd }
+
+instance affine_of_traversing [traversing P] : affine P := {}
+
+instance affine_of_mapping [mapping P] : affine P := {}
 
 end profunctor
 

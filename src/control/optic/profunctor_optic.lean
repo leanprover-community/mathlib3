@@ -17,7 +17,7 @@ def prod.elim {A B C} : (A → B → C) → A × B → C
 def prod.intro {A B C} : (C → A) → (C → B) → C → (A × B)
 | f g c := (f c, g c)
 
-def prod.duplicate {A} : A → A × A
+def prod.delta {A} : A → A × A
 | a := (a,a)
 
 namespace control
@@ -50,7 +50,7 @@ section defs
   def traversal0' := traversal0 A A B B
   def traversal   := ∀ ⦃P⦄ [traversing P], optic P A B S T
 
-  def setter      := ∀ ⦃P⦄ [affine P] [mapping P], optic P A B S T
+  def setter      := ∀ ⦃P⦄ [mapping P], optic P A B S T
   def setter'     := setter A A B B
 
   def grate       := ∀ ⦃P⦄ [profunctor P] [closed P], optic P A B S T
@@ -91,8 +91,7 @@ end lens
 
 namespace colens
   def mk_core (bsa : B → S → A) (bt : B → T) ⦃P⦄ [profunctor P] [costrong P] : optic P A B S T
-  | p := profunctor.dimap id bt $ costrong.unsecond B $ profunctor.dimap (prod.elim bsa) prod.duplicate $ p
-
+  | p := profunctor.dimap id bt $ costrong.unsecond B $ profunctor.dimap (prod.elim bsa) prod.delta $ p
 end colens
 
 namespace prism
@@ -123,11 +122,8 @@ namespace traversal
 end traversal
 
 namespace setter
-  def setter.mk_core (f : (A → B) → S → T) ⦃P⦄ [affine P] [mapping P] : optic P A B S T
-  | g := representable.tabulate
-          $ λ s, @has_seq.seq (Rep P) _ _ _ (pure $ λ ab, f ab s)
-          $ function.dist_reader
-          $ representable.sieve $ g
+  def setter.mk_core (f : (A → B) → S → T) ⦃P⦄ [mapping P] : optic P A B S T :=
+  representable.lift $ λ g s, (λ ab, f ab s) <$> (function.dist_reader g)
 end setter
 
 namespace grate

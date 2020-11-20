@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.algebra.basic
-import linear_algebra.bilinear_form
-import linear_algebra.direct_sum.finsupp
+import linear_algebra.matrix
 import tactic.noncomm_ring
 
 /-!
@@ -65,8 +64,8 @@ identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring.
 @[protect_proj] class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] extends semimodule R L :=
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
 
-/-- A Lie ring module is a module over a commutative ring, together with an additive action of a
-Lie ring on this module, such that the Lie bracket acts as the commutator of endomorphisms. -/
+/-- A Lie ring module is an additive group, together with an additive action of a
+Lie ring on this group, such that the Lie bracket acts as the commutator of endomorphisms. -/
 @[protect_proj] class lie_ring_module (L : Type v) (M : Type w)
   [lie_ring L] [add_comm_group M] extends has_bracket L M :=
 (add_lie : ∀ (x y : L) (m : M), ⁅x + y, m⁆ = ⁅x, m⁆ + ⁅y, m⁆)
@@ -281,36 +280,36 @@ def trans (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) : L�
 
 end equiv
 
-namespace direct_sum
-open dfinsupp
-open_locale direct_sum
-
-variables {R : Type u} [comm_ring R]
-variables {ι : Type v} {L : ι → Type w}
-variables [Π i, lie_ring (L i)] [Π i, lie_algebra R (L i)]
-
-/-- The direct sum of Lie rings carries a natural Lie ring structure. -/
-instance : lie_ring (⨁ i, L i) :=
-{ bracket     := zip_with (λ i, λ x y, ⁅x, y⁆) (λ i, lie_zero 0),
-  add_lie     := λ x y z, by { ext, simp only [zip_with_apply, add_apply, add_lie], },
-  lie_add     := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_add], },
-  lie_self    := λ x, by { ext, simp only [zip_with_apply, add_apply, lie_self, zero_apply], },
-  leibniz_lie := λ x y z, by { ext, simp only [direct_sum.sub_apply,
-    zip_with_apply, add_apply, zero_apply], apply leibniz_lie, },
-  ..(infer_instance : add_comm_group _) }
-
-@[simp] lemma bracket_apply {x y : (⨁ i, L i)} {i : ι} :
-  ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply _ _ x y i
-
-/-- The direct sum of Lie algebras carries a natural Lie algebra structure. -/
-instance : lie_algebra R (⨁ i, L i) :=
-{ lie_smul := λ c x y, by { ext, simp only [
-    zip_with_apply, direct_sum.smul_apply, bracket_apply, lie_smul] },
-  ..(infer_instance : module R _) }
-
-end direct_sum
-
 end lie_algebra
+
+section lie_module_morphisms
+
+variables (R : Type u) (L : Type v) {M : Type w} {N : Type w₁}
+variables [comm_ring R] [lie_ring L] [lie_algebra R L]
+variables [add_comm_group M] [add_comm_group N] [module R M] [module R N]
+variables [lie_ring_module L M] [lie_ring_module L N] [lie_module R L M] [lie_module R L N]
+
+/-- The condition for a linear map between two modules to be a morphism of Lie modules. -/
+class is_lie_module_hom (f : M →ₗ[R] N) : Prop :=
+(map_lie : ∀ (x : L) (m : M), f ⁅x, m⁆ = ⁅x, f m⁆)
+
+/-- The condition for a linear equivalence between two modules to be an equivalence of Lie
+modules. -/
+class is_lie_module_equiv (e : M ≃ₗ[R] N) extends is_lie_module_hom R L (e : M →ₗ[R] N) : Prop
+
+variables {R L}
+
+lemma is_lie_module_equiv.map_lie' {e : M ≃ₗ[R] N} (h : is_lie_module_equiv R L e) (x : L) (m : M) :
+  e ⁅x, m⁆ = ⁅x, e m⁆ :=
+by rw [← e.coe_coe, h.map_lie]
+
+lemma is_lie_module_equiv.symm {e : M ≃ₗ[R] N} (h : is_lie_module_equiv R L e) :
+  is_lie_module_equiv R L e.symm :=
+{ map_lie := λ x n, calc e.symm ⁅x, n⁆ = e.symm ⁅x, e (e.symm n)⁆ : by rw e.apply_symm_apply
+                                   ... = e.symm (e ⁅x, e.symm n⁆) : by rw h.map_lie'
+                                   ... = ⁅x, e.symm n⁆ : by rw e.symm_apply_apply }
+
+end lie_module_morphisms
 
 section of_associative
 
@@ -831,130 +830,3 @@ rfl
 rfl
 
 end matrices
-
-section skew_adjoint_endomorphisms
-open bilin_form
-
-variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
-variables (B : bilin_form R M)
-
-lemma bilin_form.is_skew_adjoint_bracket (f g : module.End R M)
-  (hf : f ∈ B.skew_adjoint_submodule) (hg : g ∈ B.skew_adjoint_submodule) :
-  ⁅f, g⁆ ∈ B.skew_adjoint_submodule :=
-begin
-  rw mem_skew_adjoint_submodule at *,
-  have hfg : is_adjoint_pair B B (f * g) (g * f), { rw ←neg_mul_neg g f, exact hf.mul hg, },
-  have hgf : is_adjoint_pair B B (g * f) (f * g), { rw ←neg_mul_neg f g, exact hg.mul hf, },
-  change bilin_form.is_adjoint_pair B B (f * g - g * f) (-(f * g - g * f)), rw neg_sub,
-  exact hfg.sub hgf,
-end
-
-/-- Given an `R`-module `M`, equipped with a bilinear form, the skew-adjoint endomorphisms form a
-Lie subalgebra of the Lie algebra of endomorphisms. -/
-def skew_adjoint_lie_subalgebra : lie_subalgebra R (module.End R M) :=
-{ lie_mem := B.is_skew_adjoint_bracket, ..B.skew_adjoint_submodule }
-
-variables {N : Type w} [add_comm_group N] [module R N] (e : N ≃ₗ[R] M)
-
-/-- An equivalence of modules with bilinear forms gives equivalence of Lie algebras of skew-adjoint
-endomorphisms. -/
-def skew_adjoint_lie_subalgebra_equiv :
-  skew_adjoint_lie_subalgebra (B.comp (↑e : N →ₗ[R] M) ↑e) ≃ₗ⁅R⁆ skew_adjoint_lie_subalgebra B :=
-begin
-  apply lie_algebra.equiv.of_subalgebras _ _ e.lie_conj,
-  ext f,
-  simp only [lie_subalgebra.mem_coe, submodule.mem_map_equiv, lie_subalgebra.mem_map_submodule,
-    coe_coe],
-  exact (bilin_form.is_pair_self_adjoint_equiv (-B) B e f).symm,
-end
-
-@[simp] lemma skew_adjoint_lie_subalgebra_equiv_apply
-  (f : skew_adjoint_lie_subalgebra (B.comp ↑e ↑e)) :
-  ↑(skew_adjoint_lie_subalgebra_equiv B e f) = e.lie_conj f :=
-by simp [skew_adjoint_lie_subalgebra_equiv]
-
-@[simp] lemma skew_adjoint_lie_subalgebra_equiv_symm_apply (f : skew_adjoint_lie_subalgebra B) :
-  ↑((skew_adjoint_lie_subalgebra_equiv B e).symm f) = e.symm.lie_conj f :=
-by simp [skew_adjoint_lie_subalgebra_equiv]
-
-end skew_adjoint_endomorphisms
-
-section skew_adjoint_matrices
-open_locale matrix
-
-variables {R : Type u} {n : Type w} [comm_ring R] [decidable_eq n] [fintype n]
-variables (J : matrix n n R)
-
-lemma matrix.lie_transpose (A B : matrix n n R) : ⁅A, B⁆ᵀ = ⁅Bᵀ, Aᵀ⁆ :=
-show (A * B - B * A)ᵀ = (Bᵀ * Aᵀ - Aᵀ * Bᵀ), by simp
-
-lemma matrix.is_skew_adjoint_bracket (A B : matrix n n R)
-  (hA : A ∈ skew_adjoint_matrices_submodule J) (hB : B ∈ skew_adjoint_matrices_submodule J) :
-  ⁅A, B⁆ ∈ skew_adjoint_matrices_submodule J :=
-begin
-  simp only [mem_skew_adjoint_matrices_submodule] at *,
-  change ⁅A, B⁆ᵀ ⬝ J = J ⬝ -⁅A, B⁆, change Aᵀ ⬝ J = J ⬝ -A at hA, change Bᵀ ⬝ J = J ⬝ -B at hB,
-  simp only [←matrix.mul_eq_mul] at *,
-  rw [matrix.lie_transpose, lie_ring.of_associative_ring_bracket, lie_ring.of_associative_ring_bracket,
-    sub_mul, mul_assoc, mul_assoc, hA, hB, ←mul_assoc, ←mul_assoc, hA, hB],
-  noncomm_ring,
-end
-
-/-- The Lie subalgebra of skew-adjoint square matrices corresponding to a square matrix `J`. -/
-def skew_adjoint_matrices_lie_subalgebra : lie_subalgebra R (matrix n n R) :=
-{ lie_mem := J.is_skew_adjoint_bracket, ..(skew_adjoint_matrices_submodule J) }
-
-@[simp] lemma mem_skew_adjoint_matrices_lie_subalgebra (A : matrix n n R) :
-  A ∈ skew_adjoint_matrices_lie_subalgebra J ↔ A ∈ skew_adjoint_matrices_submodule J :=
-iff.rfl
-
-/-- An invertible matrix `P` gives a Lie algebra equivalence between those endomorphisms that are
-skew-adjoint with respect to a square matrix `J` and those with respect to `PᵀJP`. -/
-noncomputable def skew_adjoint_matrices_lie_subalgebra_equiv (P : matrix n n R) (h : is_unit P) :
-  skew_adjoint_matrices_lie_subalgebra J ≃ₗ⁅R⁆ skew_adjoint_matrices_lie_subalgebra (Pᵀ ⬝ J ⬝ P) :=
-lie_algebra.equiv.of_subalgebras _ _ (P.lie_conj h).symm
-begin
-  ext A,
-  suffices : P.lie_conj h A ∈ skew_adjoint_matrices_submodule J ↔
-    A ∈ skew_adjoint_matrices_submodule (Pᵀ ⬝ J ⬝ P),
-  { simp only [lie_subalgebra.mem_coe, submodule.mem_map_equiv, lie_subalgebra.mem_map_submodule,
-      coe_coe], exact this, },
-  simp [matrix.is_skew_adjoint, J.is_adjoint_pair_equiv _ _ P h],
-end
-
-lemma skew_adjoint_matrices_lie_subalgebra_equiv_apply
-  (P : matrix n n R) (h : is_unit P) (A : skew_adjoint_matrices_lie_subalgebra J) :
-  ↑(skew_adjoint_matrices_lie_subalgebra_equiv J P h A) = P⁻¹ ⬝ ↑A ⬝ P :=
-by simp [skew_adjoint_matrices_lie_subalgebra_equiv]
-
-/-- An equivalence of matrix algebras commuting with the transpose endomorphisms restricts to an
-equivalence of Lie algebras of skew-adjoint matrices. -/
-def skew_adjoint_matrices_lie_subalgebra_equiv_transpose {m : Type w} [decidable_eq m] [fintype m]
-  (e : matrix n n R ≃ₐ[R] matrix m m R) (h : ∀ A, (e A)ᵀ = e (Aᵀ)) :
-  skew_adjoint_matrices_lie_subalgebra J ≃ₗ⁅R⁆ skew_adjoint_matrices_lie_subalgebra (e J) :=
-lie_algebra.equiv.of_subalgebras _ _ e.to_lie_equiv
-begin
-  ext A,
-  suffices : J.is_skew_adjoint (e.symm A) ↔ (e J).is_skew_adjoint A, by simpa [this],
-  simp [matrix.is_skew_adjoint, matrix.is_adjoint_pair, ← matrix.mul_eq_mul,
-    ← h, ← function.injective.eq_iff e.injective],
-end
-
-@[simp] lemma skew_adjoint_matrices_lie_subalgebra_equiv_transpose_apply
-  {m : Type w} [decidable_eq m] [fintype m]
-  (e : matrix n n R ≃ₐ[R] matrix m m R) (h : ∀ A, (e A)ᵀ = e (Aᵀ))
-  (A : skew_adjoint_matrices_lie_subalgebra J) :
-  (skew_adjoint_matrices_lie_subalgebra_equiv_transpose J e h A : matrix m m R) = e A :=
-rfl
-
-lemma mem_skew_adjoint_matrices_lie_subalgebra_unit_smul (u : units R) (J A : matrix n n R) :
-  A ∈ skew_adjoint_matrices_lie_subalgebra ((u : R) • J) ↔ A ∈ skew_adjoint_matrices_lie_subalgebra J :=
-begin
-  change A ∈ skew_adjoint_matrices_submodule ((u : R) • J) ↔  A ∈ skew_adjoint_matrices_submodule J,
-  simp only [mem_skew_adjoint_matrices_submodule, matrix.is_skew_adjoint, matrix.is_adjoint_pair],
-  split; intros h,
-  { simpa using congr_arg (λ B, (↑u⁻¹ : R) • B) h, },
-  { simp [h], },
-end
-
-end skew_adjoint_matrices

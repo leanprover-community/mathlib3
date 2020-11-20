@@ -231,10 +231,8 @@ theorem rpow_arith_mean_le_arith_mean2_rpow (w₁ w₂ z₁ z₂ : ℝ≥0) (hw'
 begin
   have h := rpow_arith_mean_le_arith_mean_rpow (univ : finset (fin 2))
     (fin.cons w₁ $ fin.cons w₂ fin_zero_elim) (fin.cons z₁ $ fin.cons z₂ $ fin_zero_elim) _ hp,
-  simp [fin.sum_univ_succ, fin.sum_univ_zero, fin.cons_succ, fin.cons_zero] at h,
-  exact h,
-  have h0 : default (fin 1) = 0, by simp,
-  simp [h0, hw', fin.sum_univ_succ, fin.sum_univ_zero, fin.cons_succ, fin.cons_zero],
+  { simpa [fin.sum_univ_succ, fin.sum_univ_zero, fin.cons_succ, fin.cons_zero] using h, },
+  { simp [hw', fin.sum_univ_succ, fin.sum_univ_zero, fin.cons_succ, fin.cons_zero], },
 end
 
 /-- Weighted generalized mean inequality, version for sums over finite sets, with `ℝ≥0`-valued

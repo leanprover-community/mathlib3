@@ -52,10 +52,10 @@ instance aut : group (E ≃ₐ[F] E) :=
 { mul := λ ϕ ψ, ψ.trans ϕ,
   mul_assoc := λ ϕ ψ χ, rfl,
   one := 1,
-  one_mul := λ ϕ, by {ext, refl},
-  mul_one := λ ϕ, by {ext, refl},
+  one_mul := λ ϕ, by { ext, refl },
+  mul_one := λ ϕ, by { ext, refl },
   inv := symm,
-  mul_left_inv := λ ϕ, by {ext, exact symm_apply_apply ϕ a} }
+  mul_left_inv := λ ϕ, by { ext, exact symm_apply_apply ϕ a } }
 
 lemma is_galois_implies_card_aut_eq_findim [finite_dimensional F E] [h : is_galois F E] :
   fintype.card (E ≃ₐ[F] E) = findim F E :=

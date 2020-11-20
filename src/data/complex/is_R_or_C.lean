@@ -19,6 +19,17 @@ Possible applications include defining inner products and Hilbert spaces for bot
 complex case. One would produce the definitions and proof for an arbitrary field of this
 typeclass, which basically amounts to doing the complex case, and the two cases then fall out
 immediately from the two instances of the class.
+
+## Implementation notes
+
+The coercion from reals into an `is_R_or_C` field is done by registering `algebra_map ℝ K` as
+a `has_coe_t`. For this to work, we must proceed carefully to avoid problems involving circular
+coercions in the case `K=ℝ`; in particular, we cannot use the plain `has_coe` and must set
+priorities carefully. This problem was already solved for `ℕ`, and we copy the solution detailed
+in `data/nat/cast`. See also Note [coercion into rings] for more details.
+
+In addition, several lemmas need to be set at priority 900 to make sure that they do not override
+their counterparts in `complex.lean` (which causes linter errors).
 -/
 
 open_locale big_operators
@@ -55,16 +66,11 @@ end
 namespace is_R_or_C
 variables {K : Type*} [is_R_or_C K]
 
-/-- Shorthand for `algebra_map ℝ K` -/
-noncomputable abbreviation of_real (r : ℝ) := algebra_map ℝ K r
-
-local notation `𝓚` := @is_R_or_C.of_real K _
 local postfix `†`:100 := @is_R_or_C.conj K _
 
--- see Note [coercion into rings]
-@[priority 900] noncomputable instance cast_coe : has_coe_t ℝ K := ⟨algebra_map ℝ K⟩
-
---lemma coe_eq_of_real {x : ℝ} : algebra_map ℝ K x = x := rfl
+/- The priority must be set at 900 to ensure that coercions are tried in the right order.
+See Note [coercion into rings], or `data/nat/cast.lean` for more details. -/
+@[priority 900] noncomputable instance algebra_map_coe : has_coe_t ℝ K := ⟨algebra_map ℝ K⟩
 
 lemma of_real_alg (x : ℝ) : (x : K) = x • (1 : K) :=
 algebra.algebra_map_eq_smul_one x
@@ -638,7 +644,6 @@ local notation `reR` := @is_R_or_C.re ℝ _
 local notation `imR` := @is_R_or_C.im ℝ _
 local notation `conjR` := @is_R_or_C.conj ℝ _
 local notation `IR` := @is_R_or_C.I ℝ _
-local notation `of_realR` := @is_R_or_C.of_real ℝ _
 local notation `absR` := @is_R_or_C.abs ℝ _
 local notation `norm_sqR` := @is_R_or_C.norm_sq ℝ _
 
@@ -646,7 +651,6 @@ local notation `reC` := @is_R_or_C.re ℂ _
 local notation `imC` := @is_R_or_C.im ℂ _
 local notation `conjC` := @is_R_or_C.conj ℂ _
 local notation `IC` := @is_R_or_C.I ℂ _
-local notation `of_realC` := @is_R_or_C.of_real ℂ _
 local notation `absC` := @is_R_or_C.abs ℂ _
 local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _
 
@@ -654,7 +658,6 @@ local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _
 @[simp] lemma im_to_real {x : ℝ} : imR x = 0 := rfl
 @[simp] lemma conj_to_real {x : ℝ} : conjR x = x := rfl
 @[simp] lemma I_to_real : IR = 0 := rfl
-@[simp] lemma of_real_to_real {x : ℝ} : of_realR x = x := rfl
 @[simp] lemma norm_sq_to_real {x : ℝ} : norm_sqR x = x*x := by simp [is_R_or_C.norm_sq]
 @[simp] lemma abs_to_real {x : ℝ} : absR x = _root_.abs x :=
 by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
@@ -665,7 +668,6 @@ by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 @[simp] lemma im_to_complex {x : ℂ} : imC x = x.im := rfl
 @[simp] lemma conj_to_complex {x : ℂ} : conjC x = x.conj := rfl
 @[simp] lemma I_to_complex : IC = complex.I := rfl
-@[simp] lemma of_real_to_complex {x : ℝ} : of_realC x = x := rfl
 @[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x :=
 by simp [is_R_or_C.norm_sq, complex.norm_sq]
 @[simp] lemma abs_to_complex {x : ℂ} : absC x = complex.abs x :=

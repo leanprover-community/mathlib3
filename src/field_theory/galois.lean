@@ -183,7 +183,7 @@ begin
   suffices : findim K E = findim (fixed_field (fixing_subgroup K)) E,
   { exact (intermediate_field.eq_of_le_of_findim_eq' K_le this).symm },
   rw [findim_fixed_field_eq_card, fintype.card_congr (fixing_subgroup_iso K).to_equiv],
-  exact (is_galois_implies_card_aut_eq_findim K E).symm,
+  exact (card_aut_eq_findim_of_is_galois K E).symm,
 end
 
 lemma card_fixing_subgroup_eq_findim [finite_dimensional F E] [is_galois F E] :
@@ -213,14 +213,14 @@ begin
   cases h.1 α with h2 h3,
   cases h.2 α with _ h4,
   use [minimal_polynomial h2, h3, h4],
-    { rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
-      rw intermediate_field.adjoin_simple_to_subalgebra_of_integral F α h2,
-      apply algebra.adjoin_mono,
-      rw [set.singleton_subset_iff, finset.mem_coe, multiset.mem_to_finset, polynomial.mem_roots],
-      { dsimp only [polynomial.is_root],
-        rw [polynomial.eval_map, ←polynomial.aeval_def],
-        exact minimal_polynomial.aeval h2 },
-      { exact polynomial.map_ne_zero (minimal_polynomial.ne_zero h2) } } }
+  rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
+  rw intermediate_field.adjoin_simple_to_subalgebra_of_integral F α h2,
+  apply algebra.adjoin_mono,
+  rw [set.singleton_subset_iff, finset.mem_coe, multiset.mem_to_finset, polynomial.mem_roots],
+  { dsimp only [polynomial.is_root],
+    rw [polynomial.eval_map, ←polynomial.aeval_def],
+    exact minimal_polynomial.aeval h2 },
+  { exact polynomial.map_ne_zero (minimal_polynomial.ne_zero h2) }
 end
 
 end galois_equivalent_definitions

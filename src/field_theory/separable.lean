@@ -460,9 +460,13 @@ begin
 end
 
 /--If `n ≠ 0` in `F`, then ` X ^ n - a` is separable for any `a ≠ 0`. -/
-lemma separable_of_X_pow_sub_C {n : ℕ} (a : F) (hn : ↑n ≠ (0 : F)) (hpos : 0 < n) (ha : a ≠ 0) :
+lemma separable_of_X_pow_sub_C {n : ℕ} (a : F) (hn : ↑n ≠ (0 : F)) (ha : a ≠ 0) :
   separable (X ^ n - C a) :=
 begin
+  cases nat.eq_zero_or_pos n with hzero hpos,
+  { exfalso,
+    rw hzero at hn,
+    exact hn (refl 0) },
   apply (separable_def' (X ^ n - C a)).2,
   use -C (a⁻¹),
   use (C ((a⁻¹) * (↑n)⁻¹) *  X),
@@ -487,7 +491,7 @@ end
 /--If `n ≠ 0` in `F`, then ` X ^ n - a` is squarefree for any `a ≠ 0`. -/
 lemma squarefree_X_pow_sub_C {n : ℕ} (a : F) (hn : ↑n ≠ (0 : F)) (hpos : 0 < n) (ha : a ≠ 0) :
   squarefree (X ^ n - C a) :=
-(separable_of_X_pow_sub_C a hn hpos ha).squarefree
+(separable_of_X_pow_sub_C a hn ha).squarefree
 
 lemma root_multiplicity_le_one_of_separable {p : polynomial F} (hp : p ≠ 0)
   (hsep : separable p) (x : F) : root_multiplicity x p ≤ 1 :=

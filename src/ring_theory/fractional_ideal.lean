@@ -810,13 +810,8 @@ begin
 end
 
 theorem self_div_cancel_iff {I : fractional_ideal g} :
-  I * (1 / I) = 1 ↔ ∃ J, I * J = 1 := --sorry
-begin
-  split, all_goals {intro h},
-  { use 1 / I, assumption },
-  { rcases h with ⟨J, hJ⟩,
-    rwa ← prod_one_self_div_eq I J hJ },
-end
+  I * (1 / I) = 1 ↔ ∃ J, I * J = 1 :=
+⟨λ h, ⟨ (1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← prod_one_self_div_eq I J hJ]⟩
 
 variables {K' : Type*} [field K'] {g' : fraction_map R₁ K'}
 
@@ -970,11 +965,6 @@ begin
   apply h,
   rw [eq_span_singleton_of_principal I, generator_I_eq_zero, span_singleton_zero]
 end
-
--- lemma le_div_iff_of_nonzero {I J J' : fractional_ideal g} (hJ' : J' ≠ 0) :
---   I ≤ J / J' ↔ ∀ (x ∈ I) (y ∈ J'), x * y ∈ J :=
-
--- lemma le_div_iff_mul_le {I J J' : fractional_ideal g} (hJ' : J' ≠ 0) : I ≤ J / J' ↔ I * J' ≤ J :=
 
 lemma one_div_span_singleton (x : g.codomain) :
   1 / span_singleton x = span_singleton (x⁻¹) :=

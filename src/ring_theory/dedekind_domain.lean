@@ -62,8 +62,8 @@ begin
     (h _ (integral_closure.comap_ne_bot ne_bot) _),
   apply is_prime.comap
 end
-end ring
 
+end ring
 /--
 A Dedekind domain is an integral domain that is Noetherian, integrally closed, and
 has Krull dimension exactly one (`not_is_field` and `dimension_le_one`).
@@ -111,20 +111,23 @@ structure is_dedekind_domain_dvr : Prop :=
 /--
 A Dedekind domain is an integral domain that is not a field such that every fractional ideal has an inverse.
 
+What follows is commented while waiting to implement the definitions of invertible ideals
+
 This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
--/
+
 structure is_dedekind_domain_inv : Prop :=
 (not_is_field : ¬ is_field A)
-(mul_inv_cancel : ∀ I ≠ (⊥ : fractional_ideal (fraction_ring.of A)), I * I⁻¹ = 1)
+(mul_inv_cancel : ∀ I ≠ (⊥ : fractional_ideal (fraction_ring.of A)), I * 1 / I = 1)
 
 section
 
 open ring.fractional_ideal
 
+
 lemma is_dedekind_domain_inv_iff (f : fraction_map A K) :
   is_dedekind_domain_inv A ↔
-    (¬ is_field A) ∧ (∀ I ≠ (⊥ : fractional_ideal f), I * I⁻¹ = 1) :=
+    (¬ is_field A) ∧ (∀ I ≠ (⊥ : fractional_ideal f), I * 1 / I = 1) :=
 begin
   split; rintros ⟨hf, hi⟩; use hf; intros I hI,
   { have := hi (map (fraction_ring.alg_equiv_of_quotient f).symm.to_alg_hom I) (map_ne_zero _ hI),
@@ -136,5 +139,4 @@ begin
     convert congr_arg (map (fraction_ring.alg_equiv_of_quotient f).symm.to_alg_hom) this;
       simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one] }
 end
-
-end
+-/

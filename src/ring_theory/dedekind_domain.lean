@@ -782,7 +782,7 @@ end
 
 
 lemma fractional_ideal_invertible_of_dedekind (h : is_dedekind_domain R) (I : fractional_ideal f) :
-  I * I⁻¹ = 1 :=
+  I * 1 / I = 1 :=
 begin
   sorry
 end

@@ -31,7 +31,8 @@ Let `K` be the localization of `R` at `R \ {0}` and `g` the natural ring hom fro
 ## Main statements
 
   * `mul_left_mono` and `mul_right_mono` state that ideal multiplication is monotone
-  * `right_inverse_eq` states that `1 / I` is the inverse of `I` if one exists
+  * `prod_one_self_div_eq` states that `1 / I` is the inverse of `I` if one exists
+  * `is_noetherian` states that very fractional ideal of a noetherian integral domain is noetherian
 
 ## Implementation notes
 
@@ -719,10 +720,6 @@ noncomputable instance fractional_ideal_has_div :
 
 variables {I J : fractional_ideal g} [ J ≠ 0 ]
 
--- noncomputable instance : has_inv (fractional_ideal g) := ⟨λ I, 1 / I⟩
-
--- lemma inv_eq {I : fractional_ideal g} : I⁻¹ = 1 / I := rfl
-
 @[simp] lemma div_zero {I : fractional_ideal g} :
   I / 0 = 0 :=
 dif_pos rfl
@@ -730,12 +727,6 @@ dif_pos rfl
 lemma div_nonzero {I J : fractional_ideal g} (h : J ≠ 0) :
   (I / J) = ⟨I.1 / J.1, fractional_div_of_nonzero h⟩ :=
 dif_neg h
-
--- lemma inv_zero : (0 : fractional_ideal g)⁻¹ = 0 := div_zero
-
--- lemma inv_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
---   I⁻¹ = ⟨(1 : fractional_ideal g) / I, fractional_div_of_nonzero h⟩ :=
--- div_nonzero h
 
 @[simp] lemma coe_div {I J : fractional_ideal g} (hJ : J ≠ 0) :
   (↑(I / J) : submodule R₁ g.codomain) = ↑I / (↑J : submodule R₁ g.codomain) :=
@@ -780,10 +771,6 @@ begin
   refl,
 end
 
--- lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
---   (↑I⁻¹ : submodule R₁ g.codomain) = g.coe_submodule 1 / I :=
--- by { rw inv_nonzero h, refl }
-
 @[simp] lemma div_one {I : fractional_ideal g} : I / 1 = I :=
 begin
   rw [div_nonzero (@one_ne_zero (fractional_ideal g) _ _)],
@@ -823,18 +810,14 @@ begin
   exact mul_mem_mul hx hy,
 end
 
-example {I : fractional_ideal g} : (1 / I) = 1 / I :=
-by library_search
-
 theorem self_div_cancel_iff {I : fractional_ideal g} :
-  I * 1 / I = 1 ↔ ∃ J, I * J = 1 := --sorry
+  I * (1 / I) = 1 ↔ ∃ J, I * J = 1 := --sorry
 begin
-  rw prod_one_self_div_eq _,
+  split, all_goals {intro h},
+  { use 1 / I, assumption },
+  { rcases h with ⟨J, hJ⟩,
+    rwa ← prod_one_self_div_eq I J hJ },
 end
-
--- ⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩,
-
---  by rwa [exact_rlf, ← prod_one_self_div_eq I J hJ]⟩
 
 variables {K' : Type*} [field K'] {g' : fraction_map R₁ K'}
 
@@ -1116,7 +1099,7 @@ begin
 end
 
 /-- Every fractional ideal of a noetherian integral domain is noetherian. -/
-lemma is_noetherian [is_noetherian_ring R₁] (I : fractional_ideal g) : is_noetherian R₁ I :=
+theorem is_noetherian [is_noetherian_ring R₁] (I : fractional_ideal g) : is_noetherian R₁ I :=
 begin
   obtain ⟨d, J, h_nzd, rfl⟩ := exists_eq_span_singleton_mul I,
   apply is_noetherian_span_singleton_to_map_inv_mul,

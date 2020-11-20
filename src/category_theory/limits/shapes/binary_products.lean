@@ -506,7 +506,6 @@ by simp
 
 end coprod_lemmas
 
-
 variables (C)
 
 /--

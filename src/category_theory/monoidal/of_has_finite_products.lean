@@ -47,8 +47,8 @@ def monoidal_of_has_finite_products [has_terminal C] [has_binary_products C] : m
   tensor_obj   := λ X Y, X ⨯ Y,
   tensor_hom   := λ _ _ _ _ f g, limits.prod.map f g,
   associator   := prod.associator,
-  left_unitor  := prod.left_unitor,
-  right_unitor := prod.right_unitor,
+  left_unitor  := λ P, prod.left_unitor P,
+  right_unitor := λ P, prod.right_unitor P,
   pentagon'    := prod.pentagon,
   triangle'    := prod.triangle,
   associator_naturality' := @prod.associator_naturality _ _ _, }
@@ -65,11 +65,11 @@ The monoidal structure coming from finite products is symmetric.
 @[simps]
 def symmetric_of_has_finite_products [has_terminal C] [has_binary_products C] :
   symmetric_category C :=
-{ braiding := limits.prod.braiding,
+{ braiding := λ X Y, limits.prod.braiding X Y,
   braiding_naturality' := λ X X' Y Y' f g,
-    by { dsimp [tensor_hom], ext; simp, },
+    by { dsimp [tensor_hom], simp, },
   hexagon_forward' := λ X Y Z,
-    by ext; { dsimp [monoidal_of_has_finite_products], simp; dsimp; simp, },
+    by { dsimp [monoidal_of_has_finite_products], simp; dsimp; simp, },
   hexagon_reverse' := λ X Y Z,
     by ext; { dsimp [monoidal_of_has_finite_products], simp; dsimp; simp, },
   symmetry' := λ X Y, by { dsimp, simp, refl, }, }

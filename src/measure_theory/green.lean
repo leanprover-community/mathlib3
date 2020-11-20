@@ -99,7 +99,49 @@ lemma covers (n : ℕ) (s : set (fin n → ℝ)) ⦃I : s.subinterval⦄
     Ioc I.left (update I.right i (a i)) ∪
       Ioc (update I.left i (a i)) I.right :=
 begin
-  sorry
+--  rw Ioc,
+  ext,
+--  simp,
+  split,
+  {
+    intros h,
+    rw Ioc at h,
+    -- either x i < a i or a i <= x i
+    by_cases ineq : x i <= a i,
+    { -- case bottom half
+      left,
+      split,
+      exact h.1,
+      intros j,
+      by_cases ji : j = i,
+      { -- case j=i
+        convert ineq,
+        --rw update,
+        convert dif_pos ji,
+        simp,
+      },
+      { -- case j!= i
+        convert h.2 j,
+        convert dif_neg ji,
+      },
+    },
+    { -- case top half
+    --- ALEX
+      sorry,
+    },
+  },
+  {
+    intros h,
+    cases h,
+    {
+    --- ALEX
+      sorry,
+    },
+    {
+    --- ALEX
+      sorry,
+    },
+  },
 end
 
 lemma is_disjoint (n : ℕ) (s : set (fin n → ℝ)) ⦃I : s.subinterval⦄
@@ -108,7 +150,42 @@ lemma is_disjoint (n : ℕ) (s : set (fin n → ℝ)) ⦃I : s.subinterval⦄
   disjoint (Ioc I.left (update I.right i (a i)))
     (Ioc (update I.left i (a i)) I.right) :=
 begin
-  sorry
+  rw disjoint,
+  intros x h,
+  simp,
+  have xiLai : x i ≤  a i,
+  {
+    convert h.1.2 i,
+    simp,
+  },
+--  have xiGai : a i <  x i,
+--  {
+  --have h211i := h.2.1.1 i,
+  --simp at h211i,
+  have h212 := h.2.1.2,
+  have claim : ∀ (i_1 : fin n), x i_1 ≤ update I.left i (a i) i_1 ,
+  {
+    intros j,
+    rw update,
+    split_ifs,
+    simp [h_1,xiLai],
+    have h1 := h.1.2 j,
+    convert h1,
+    simp [h_1],
+--    refine h.2.1,
+--ALEX
+    --by_cases ji : j= i,
+
+    sorry,
+  },
+  exact h212 claim,
+--    have h212i := h212 i,
+    --convert h.2.1.2 i,
+    --simp,
+   sorry,
+--  },
+
+
 end
 
 end box_partition
@@ -177,3 +254,7 @@ begin
   { exact integrable_restrict _ _ _ _ hu },
   { exact integrable_restrict' _ _ _ _ hu }
 end
+
+
+--- next steps: Lean definition of Divergence, prove additive by invoking these
+-- prove that integral over perimeter - integral interior of divergence = o(volume)

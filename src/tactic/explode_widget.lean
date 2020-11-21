@@ -20,6 +20,7 @@ open widget_override.interactive_expression
 open tagged_format
 open widget.html widget.attr
 
+/-- Redefine some of the style attributes for better formatting. -/
 meta def get_block_attrs {γ}: sf → tactic (sf × list (attr γ))
 | (sf.block i a) := do
   let s : attr (γ) := style [
@@ -34,6 +35,7 @@ meta def get_block_attrs {γ}: sf → tactic (sf × list (attr γ))
   pure (a, (cn c.to_string) :: rest)
 | a := pure (a,[])
 
+/-- Explode button for subsequent exploding. -/
 meta def insert_explode {γ} : expr → tactic (list (html (action γ)))
 | (expr.const n _) := (do 
     pure $ [h "button" [
@@ -43,6 +45,9 @@ meta def insert_explode {γ} : expr → tactic (list (html (action γ)))
   ) <|> pure []
 | e := pure []
 
+/--
+Render a subexpression as a list of html elements.
+-/
 meta def view {γ} (tooltip_component : tc subexpr (action γ)) 
   (click_address : option expr.address) 
   (select_address : option expr.address) :
@@ -91,6 +96,7 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ))
   inner ← view ca a,
   pure [h "span" attrs inner]
 
+/-- Make an interactive expression. -/
 meta def mk {γ} (tooltip : tc subexpr γ) : tc expr γ :=
 let tooltip_comp :=
    component.with_should_update 
@@ -134,6 +140,7 @@ $ tc.mk_simple
       ]
   )
 
+/-- Render the implicit arguments for an expression in fancy, little pills. -/
 meta def implicit_arg_list (tooltip : tc subexpr empty) (e : expr) : tactic $ html empty := do
   fn ← (mk tooltip) $ expr.get_app_fn e,
   args ← list.mmap (mk tooltip) $ expr.get_app_args e,
@@ -142,6 +149,9 @@ meta def implicit_arg_list (tooltip : tc subexpr empty) (e : expr) : tactic $ ht
       list.map (λ a, h "span" [className "bg-gray br3 ma1 ph2 white"] [a]) args
     )
 
+/--
+Component for the type tooltip.
+-/
 meta def type_tooltip : tc subexpr empty :=
 tc.stateless (λ ⟨e,ea⟩, do
     y ← tactic.infer_type e,
@@ -156,6 +166,9 @@ tc.stateless (λ ⟨e,ea⟩, do
       ]
   )
 
+/--
+Component that shows a type.
+-/
 meta def show_type_component : tc expr empty :=
 tc.stateless (λ x, do
   y ← infer_type x,
@@ -163,27 +176,41 @@ tc.stateless (λ x, do
   pure y_comp
 )
 
+/--
+Component that shows a constant.
+-/
 meta def show_constant_component : tc expr empty :=
 tc.stateless (λ x, do
   y_comp ← mk type_tooltip x,
   pure y_comp
 )
 
-
+/--
+Search for an entry that has the specified line number.
+-/
 meta def lookup_lines : entries → nat → entry
 | ⟨_, []⟩ n := ⟨default _, 0, 0, status.sintro, thm.string "", []⟩
 | ⟨rb, (hd::tl)⟩ n := if hd.line = n then hd else lookup_lines ⟨rb, tl⟩ n
 
+/--
+Render a row that shows a goal.
+-/
 meta def goal_row (e : expr) (show_expr := tt): tactic (list (html empty)) := 
 do t ← explode_widget.show_type_component e,
 return $ [h "td" [cn "ba bg-dark-green tc"] "Goal", 
           h "td" [cn "ba tc"] 
           (if show_expr then [html.of_name e.local_pp_name, " : ", t] else t)]
 
+/--
+Render a row that shows the ID of a goal.
+-/
 meta def id_row {γ} (l : nat): tactic (list (html γ)) := 
 return $ [h "td" [cn "ba bg-dark-green tc"] "ID", 
           h "td" [cn "ba tc"] (to_string l)]
 
+/--
+Render a row that shows the rule or theorem being applied.
+-/
 meta def rule_row : thm →  tactic (list (html empty))
 | (thm.expr e) := do t ← explode_widget.show_constant_component e,
                      return $ [h "td" [cn "ba bg-dark-green tc"] "Rule", 
@@ -191,6 +218,10 @@ meta def rule_row : thm →  tactic (list (html empty))
 | t := return $ [h "td" [cn "ba bg-dark-green tc"] "Rule", 
                  h "td" [cn "ba tc"] t.to_string]
 
+/--
+Render a row that contains the sub-proofs, i.e., the proofs of the
+arguments.
+-/
 meta def proof_row {γ} (args : list (html γ)): list (html γ) := 
 [h "td" [cn "ba bg-dark-green tc"] "Proofs", h "td" [cn "ba tc"] 
     [h "details" [] $
@@ -199,6 +230,9 @@ meta def proof_row {γ} (args : list (html γ)): list (html γ) :=
                 "Details")::args]
 ]
 
+/--
+Combine the goal row, id row, rule row and proof row to make them a table.
+-/
 meta def assemble_table {γ} (gr ir rr) : list (html γ) → html γ
 | [] := 
 h "table" [cn "collapse"] 
@@ -211,6 +245,9 @@ h "table" [cn "collapse"]
         [h "tr" [] gr, h "tr" [] ir, h "tr" [] rr, h "tr" [] pr]
     ]
 
+/--
+Render a table for a given entry.
+-/
 meta def assemble (es : entries): entry → tactic (html empty)
 | ⟨e, l, d, status.sintro, t, ref⟩ := do
     gr ← goal_row e, ir ← id_row l, rr ← rule_row $ thm.string "Assumption",
@@ -225,9 +262,15 @@ meta def assemble (es : entries): entry → tactic (html empty)
     let pr := proof_row $ ls.intersperse (h "br" [] []),
     return $ assemble_table gr ir rr pr
 
+/--
+Render a widget from given entries.
+-/
 meta def explode_component (es : entries) : tactic (html empty) := 
 let concl := lookup_lines es (es.l.length - 1) in assemble es concl
 
+/--
+Explode a theorem and return entries.
+-/
 meta def explode_entries (n : name) (hide_non_prop := tt) : tactic entries :=
 do expr.const n _ ← resolve_name n | fail "cannot resolve name",
   d ← get_decl n,
@@ -243,6 +286,9 @@ end explode_widget
 
 open lean lean.parser interactive explode_widget
 
+/--
+User command of the explode widget.
+-/
 @[user_command]
 meta def explode_widget_cmd (_ : parse $ tk "#explode_widget") : lean.parser unit :=
 do ⟨li,co⟩ ← cur_pos,

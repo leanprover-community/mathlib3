@@ -19,11 +19,18 @@ namespace explode
 @[derive inhabited]
 inductive status : Type | reg | intro | lam | sintro
 
+/--
+A type to distinguish introduction or elimination rules represented as 
+strings from theorems referred to by their names.
+-/
 meta inductive thm : Type
 | expr (e : expr)
 | name (n : name)
 | string (s : string)
 
+/--
+Turn a thm into a string.
+-/
 meta def thm.to_string : thm → string
 | (thm.expr e) := e.to_string
 | (thm.name n) := n.to_string

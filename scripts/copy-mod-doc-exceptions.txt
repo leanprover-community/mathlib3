@@ -207,7 +207,7 @@ src/analysis/convex/extrema.lean : line 50 : ERR_LIN : Line has more than 100 ch
 src/analysis/convex/extrema.lean : line 96 : ERR_LIN : Line has more than 100 characters
 src/analysis/hofer.lean : line 41 : ERR_LIN : Line has more than 100 characters
 src/analysis/mean_inequalities.lean : line 117 : ERR_LIN : Line has more than 100 characters
-src/analysis/mean_inequalities.lean : line 248 : ERR_LIN : Line has more than 100 characters
+src/analysis/mean_inequalities.lean : line 259 : ERR_LIN : Line has more than 100 characters
 src/analysis/normed_space/banach.lean : line 184 : ERR_LIN : Line has more than 100 characters
 src/analysis/normed_space/basic.lean : line 1172 : ERR_LIN : Line has more than 100 characters
 src/analysis/normed_space/basic.lean : line 298 : ERR_LIN : Line has more than 100 characters
@@ -709,9 +709,9 @@ src/data/equiv/mul_add.lean : line 493 : ERR_LIN : Line has more than 100 charac
 src/data/equiv/mul_add.lean : line 506 : ERR_LIN : Line has more than 100 characters
 src/data/equiv/nat.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/erased.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/data/fin.lean : line 1064 : ERR_LIN : Line has more than 100 characters
-src/data/fin.lean : line 287 : ERR_LIN : Line has more than 100 characters
-src/data/fin.lean : line 375 : ERR_LIN : Line has more than 100 characters
+src/data/fin.lean : line 1066 : ERR_LIN : Line has more than 100 characters
+src/data/fin.lean : line 289 : ERR_LIN : Line has more than 100 characters
+src/data/fin.lean : line 377 : ERR_LIN : Line has more than 100 characters
 src/data/fin2.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/data/finset/gcd.lean : line 133 : ERR_LIN : Line has more than 100 characters
 src/data/finsupp/pointwise.lean : line 57 : ERR_LIN : Line has more than 100 characters

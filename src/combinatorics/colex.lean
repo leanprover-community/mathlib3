@@ -75,6 +75,10 @@ instance [has_lt α] : has_lt (finset.colex α) :=
 instance [has_lt α] : has_le (finset.colex α) :=
 ⟨λ A B, A < B ∨ A = B⟩
 
+@[simp]
+lemma colex.eq_iff [has_lt α] (A B : finset α) :
+  A.to_colex = B.to_colex ↔ A = B := by refl
+
 -- You can just delete the def of colex.lt and le
 -- In the partial order instance just replace it with the def there
 
@@ -86,11 +90,11 @@ def colex.le [has_lt α] (A B : finset α) : Prop := A.to_colex ≤ B.to_colex
 infix ` <ᶜ `:50 := colex.lt
 infix ` ≤ᶜ `:50 := colex.le-/
 
-lemma colex.lt_def [has_lt α] (A B : finset.colex α) :
-  A < B ↔ ∃ k, (∀ {x}, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A ∧ k ∈ B :=
+lemma colex.lt_def [has_lt α] (A B : finset α) :
+  A.to_colex < B.to_colex ↔ ∃ k, (∀ {x}, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A ∧ k ∈ B :=
 iff.rfl
-lemma colex.le_def [has_lt α] (A B : finset.colex α) :
-  A ≤ B ↔ A < B ∨ A = B :=
+lemma colex.le_def [has_lt α] (A B : finset α) :
+  A.to_colex ≤ B.to_colex ↔ A.to_colex < B.to_colex ∨ A = B :=
 iff.rfl
 
 /-- If everything in A is less than k, we can bound the sum of powers. -/
@@ -109,7 +113,7 @@ namespace colex
 /-- Strictly monotone functions preserve the colex ordering. -/
 lemma hom {β : Type*} [linear_order α] [decidable_eq β] [preorder β]
   {f : α → β} (h₁ : strict_mono f) (A B : finset α) :
-  A.image f <ᶜ B.image f ↔ A <ᶜ B :=
+  (A.image f).to_colex < (B.image f).to_colex ↔ A.to_colex < B.to_colex :=
 begin
   simp only [colex.lt_def, not_exists, mem_image, exists_prop, not_and],
   split,
@@ -129,7 +133,8 @@ end
 
 /-- A special case of `colex_hom` which is sometimes useful. -/
 @[simp] lemma hom_fin {n : ℕ} (A B : finset (fin n)) :
-  A.image (λ n, (n : ℕ)) <ᶜ B.image (λ n, (n : ℕ)) ↔ A <ᶜ B :=
+  finset.to_colex (A.image (λ n, (n : ℕ))) < finset.to_colex (B.image (λ n, (n : ℕ)))
+   ↔ finset.to_colex A < finset.to_colex B :=
 colex.hom (λ x y k, k) _ _
 
 instance [has_lt α] : is_irrefl (finset.colex α) (<) :=
@@ -222,7 +227,7 @@ instance [linear_order α] : is_strict_total_order (finset.colex α) (<) := {}
 /-- If {r} is less than or equal to s in the colexicographical sense,
   then s contains an element greater than or equal to r. -/
 lemma mem_le_of_singleton_le [linear_order α] {r : α} {s : finset α}:
-  ({r} : finset α) ≤ᶜ s → ∃ x ∈ s, r ≤ x :=
+  ({r} : finset α).to_colex ≤ s.to_colex → ∃ x ∈ s, r ≤ x :=
 begin
   intro h,
   rw colex.le_def at h,
@@ -248,7 +253,7 @@ end
 
 /-- s <ᶜ {r} iff all elements of s are less than r. -/
 lemma lt_singleton_iff_mem_lt [linear_order α] {r : α} {s : finset α}:
-  s <ᶜ {r} ↔ ∀ x ∈ s, x < r :=
+  s.to_colex < finset.to_colex {r} ↔ ∀ x ∈ s, x < r :=
 begin
   simp only [lt_def, mem_singleton, ← and_assoc, exists_eq_right],
   split,
@@ -275,7 +280,7 @@ end
 
 /-- Colex is an extension of the base ordering on α. -/
 lemma singleton_lt_iff_lt [linear_order α] {r s : α} :
-  ({r} : finset α) <ᶜ {s} ↔ r < s :=
+  ({r} : finset α).to_colex < ({s} : finset α).to_colex ↔ r < s :=
 begin
   rw colex.lt_def,
   simp only [mem_singleton, ← and_assoc, exists_eq_right],
@@ -292,7 +297,7 @@ end
 If A is before B in colex, and everything in B is small, then everything in A is small.
 -/
 lemma forall_lt_of_colex_lt_of_forall_lt [linear_order α] {A B : finset α}
-(t : α) (h₁ : A <ᶜ B) (h₂ : ∀ x ∈ B, x < t) :
+(t : α) (h₁ : A.to_colex < B.to_colex) (h₂ : ∀ x ∈ B, x < t) :
   ∀ x ∈ A, x < t :=
 begin
   rw colex.lt_def at h₁,
@@ -307,7 +312,7 @@ end
 
 /-- Colex doesn't care if you remove the other set -/
 @[simp] lemma sdiff_lt_sdiff_iff_lt [has_lt α] [decidable_eq α] (A B : finset α) :
-  A \ B <ᶜ B \ A ↔ A <ᶜ B :=
+  (A \ B).to_colex < (B \ A).to_colex ↔ A.to_colex < B.to_colex :=
 begin
   rw [colex.lt_def, colex.lt_def],
   apply exists_congr,
@@ -326,9 +331,10 @@ begin
 end
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
-lemma sum_pow_two_lt_iff_lt (A B : finset ℕ) : A.sum (pow 2) < B.sum (pow 2) ↔ A <ᶜ B :=
+lemma sum_pow_two_lt_iff_lt (A B : finset ℕ) : A.sum (pow 2) < B.sum (pow 2) ↔
+  A.to_colex < B.to_colex :=
 begin
-  have z : ∀ (A B : finset ℕ), A <ᶜ B → A.sum (pow 2) < B.sum (pow 2),
+  have z : ∀ (A B : finset ℕ), A.to_colex < B.to_colex → A.sum (pow 2) < B.sum (pow 2),
   { intros A B,
     rw [← sdiff_lt_sdiff_iff_lt, colex.lt_def],
     rintro ⟨k, z, kA, kB⟩,

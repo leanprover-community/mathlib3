@@ -28,6 +28,9 @@ by rw [even_iff, mod_two_ne_zero]
 @[simp] lemma odd_iff_not_even {n : ℕ} : odd n ↔ ¬ even n :=
 by rw [not_even_iff, odd_iff]
 
+lemma even_or_odd (n : ℕ) : even n ∨ odd n :=
+or.imp_right (odd_iff_not_even.2) (em (even n))
+
 lemma odd_gt_zero {n : ℕ} (h : odd n) : 0 < n :=
 by { obtain ⟨k, hk⟩ := h, rw hk, exact succ_pos', }
 

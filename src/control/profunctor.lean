@@ -66,6 +66,8 @@ class representable (P : Type → Type → Type) :=
 (sieve    {A B} : P A B        → (A → Rep B))
 (tabulate {A B} : (A → Rep B) → P A B       )
 
+/-- A functor but `map` is reversed. That is, `map : (B → A) → F A → F B`.
+A functor `Typeᵒᵖ → Type`. -/
 class contrafunctor (F : Type → Type) :=
 (comap : ∀ (A B : Type), (B → A) → F A → F B)
 
@@ -80,7 +82,6 @@ variables {P : Type → Type → Type}
 def representable.lift [representable P] {A B S T : Type}
   (f : (A → Rep P B) → S → Rep P T) : P A B → P S T
 | pab := representable.tabulate $ f $ representable.sieve pab
-
 
 instance (P : Type → Type → Type) [representable P] [rf : functor (representable.Rep P)]
   : profunctor P :=

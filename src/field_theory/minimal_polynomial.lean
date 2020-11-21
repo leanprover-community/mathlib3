@@ -64,6 +64,13 @@ le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩
 lemma ne_zero [nontrivial α] : (minimal_polynomial hx) ≠ 0 :=
 ne_zero_of_monic (monic hx)
 
+/--If an element x is a root of a nonzero monic polynomial p,
+then the degree of p is at least the degree of the minimal polynomial of x.-/
+lemma degree_le_of_monic
+  {p : polynomial α} (hmonic : p.monic) (hp : polynomial.aeval x p = 0) :
+  degree (minimal_polynomial hx) ≤ degree p :=
+calc degree (minimal_polynomial hx) ≤ degree p : min _ hmonic (by simp [hp])
+
 end ring
 
 section integral_domain
@@ -88,6 +95,35 @@ begin
   { rw eq_C_of_degree_eq_zero deg_eq_zero, convert C_1,
     simpa only [ndeg_eq_zero.symm] using (monic hx).leading_coeff },
   simpa only [eq_one, alg_hom.map_one, one_ne_zero] using aeval hx
+end
+
+/--If L/K is a ring extension, and x is an element of L in the image of K,
+then the minimal polynomial of x is X - C x.-/
+lemma algebra_map_inj [nontrivial α] (a : α) (hf : function.injective (algebra_map α β))
+  (ha : is_integral α (algebra_map α β a)) : minimal_polynomial ha = X - C a :=
+begin
+  have hdegle : (minimal_polynomial ha).nat_degree ≤ 1,
+  { apply with_bot.coe_le_coe.1,
+    rw [←degree_eq_nat_degree (ne_zero ha), with_top.coe_one],
+    rw [←degree_X_sub_C a],
+    refine degree_le_of_monic ha (monic_X_sub_C a) _,
+    simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self] },
+  have hdeg : (minimal_polynomial ha).degree = 1,
+  { apply (degree_eq_iff_nat_degree_eq (ne_zero ha)).2,
+    exact (has_le.le.antisymm hdegle (nat.succ_le_of_lt (with_bot.coe_lt_coe.1
+    (lt_of_lt_of_le (degree_pos ha) degree_le_nat_degree)))) },
+  have hrw := eq_X_add_C_of_degree_eq_one hdeg,
+  simp only [monic ha, one_mul, monic.leading_coeff, ring_hom.map_one] at hrw,
+  have h0 : (minimal_polynomial ha).coeff 0 = -a,
+  { have hroot := aeval ha,
+    rw [hrw, add_comm] at hroot,
+    simp only [aeval_C, aeval_X, aeval_add] at hroot,
+    replace hroot := eq_neg_of_add_eq_zero hroot,
+    rw [←ring_hom.map_neg _ a] at hroot,
+    exact (hf hroot) },
+  rw hrw,
+  simp only [h0, ring_hom.map_neg],
+  ring
 end
 
 /--A minimal polynomial is not a unit.-/

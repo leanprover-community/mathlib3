@@ -5,6 +5,10 @@ Author: E.W.Ayers
 -/
 import .profunctor_optic
 
+/-!
+Examples of optics.
+-/
+
 open control.optic
 open control.profunctor
 

@@ -8,8 +8,13 @@ import control.optic.concrete
 import data.vector
 import data.vector2
 
--- https://hackage.haskell.org/package/profunctor-optics-0.0.2/docs/index.html
--- https://dl.acm.org/doi/pdf/10.1145/3236779
+/-!
+Definitions of profunctor optics.
+
+### References:
+- https://hackage.haskell.org/package/profunctor-optics-0.0.2/docs/index.html
+- https://dl.acm.org/doi/pdf/10.1145/3236779
+-/
 
 def prod.elim {A B C} : (A → B → C) → A × B → C
 | f (a,b) := f a b
@@ -90,8 +95,12 @@ namespace lens
 end lens
 
 namespace colens
-  def mk_core (bsa : B → S → A) (bt : B → T) ⦃P⦄ [profunctor P] [costrong P] : optic P A B S T
-  | p := profunctor.dimap id bt $ costrong.unsecond B $ profunctor.dimap (prod.elim bsa) prod.delta $ p
+  def mk_core (bsa : B → S → A) (bt : B → T) ⦃P⦄ [profunctor P] [costrong P]
+    : optic P A B S T
+  | p := profunctor.dimap id bt
+          $ costrong.unsecond B
+          $ profunctor.dimap (prod.elim bsa) prod.delta
+          $ p
 end colens
 
 namespace prism
@@ -106,13 +115,18 @@ namespace prism
 end prism
 
 namespace traversal
-  def traversed_core (F : Type → Type) [traversable F] ⦃P⦄ [traversing P] : optic P S T (F S) (F T)
-  | h := representable.tabulate $ λ fs, @sequence F _ (Rep P) _ _ ((representable.sieve $ h) <$> fs)
+  def traversed_core (F : Type → Type) [traversable F] ⦃P⦄ [traversing P]
+    : optic P S T (F S) (F T) :=
+  representable.lift $ λ h fs, @sequence F _ (Rep P) _ _ (h <$> fs)
 
-  def traversed (F : Type → Type) [traversable F] {S T : Type} : traversal S T (F S) (F T) := traversed_core F
+  def traversed (F : Type → Type) [traversable F] {S T : Type} : traversal S T (F S) (F T) :=
+  traversed_core F
 
   def mk (f : concrete.traversal A B S T) ⦃P⦄ [traversing P] : optic P A B S T :=
-  representable.lift $ λ h s, let ⟨n,a,b⟩ := f s in @functor.map _ _ _ _ b $ @vector.traverse _ _ profunctor.applicative_rep_of_traversing _ _ h a
+  representable.lift $ λ h s,
+    let ⟨n,a,b⟩ := f s in
+    @functor.map _ _ _ _ b
+    $ @vector.traverse _ _ profunctor.applicative_rep_of_traversing _ _ h a
 
   def out : traversal A B S T → concrete.traversal A B S T
   | tr := tr $ concrete.traversal.id

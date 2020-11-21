@@ -2,13 +2,16 @@
 Copyright (c) 2020 E.W.Ayers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: E.W.Ayers
-
-Functors `Typeᵒᵖ → Type → Type`.
-c.f. control.bifunctor
 -/
+
 import control.functor
 import control.traversable
 import control.bifunctor
+
+/-!
+Functors `Typeᵒᵖ → Type → Type` and various typeclasses based on them.
+c.f. control.bifunctor
+-/
 
 namespace control
 
@@ -44,7 +47,8 @@ class choice (P : Type → Type → Type) :=
 class closed (P : Type → Type → Type) :=
 (close {A B : Type} : ∀ (X : Type), P A B → P (X → A) (X → B))
 
-/-- A profunctor is __affine__ when it is strong and choice. That is, it plays well with `⊕` and `×`. -/
+/-- A profunctor is __affine__ when it is strong and choice.
+That is, it plays well with `⊕` and `×`. -/
 class affine (P : Type → Type → Type) extends profunctor P, strong P, choice P
 
 class monoidal (P : Type → Type → Type) :=
@@ -73,11 +77,13 @@ def Rep := @representable.Rep
 
 variables {P : Type → Type → Type}
 
-def representable.lift [representable P] {A B S T : Type} (f : (A → Rep P B) → S → Rep P T) : P A B → P S T
+def representable.lift [representable P] {A B S T : Type}
+  (f : (A → Rep P B) → S → Rep P T) : P A B → P S T
 | pab := representable.tabulate $ f $ representable.sieve pab
 
 
-instance (P : Type → Type → Type) [representable P] [rf : functor (representable.Rep P)] : profunctor P :=
+instance (P : Type → Type → Type) [representable P] [rf : functor (representable.Rep P)]
+  : profunctor P :=
 {dimap := λ A B C D ba cd, representable.lift $ (λ pac b, @functor.map _ rf _ _ cd $ pac (ba b))}
 
 /-- A profunctor `P` is __traversing__ when it is representable with an applicative functor. -/
@@ -117,7 +123,9 @@ namespace star
 
 end star
 
-def representable.star_lift [representable P] {A B S T : Type} (f : star (Rep P) A B → star (Rep P) S T) : P A B → P S T := representable.lift f
+def representable.star_lift [representable P] {A B S T : Type}
+  (f : star (Rep P) A B → star (Rep P) S T) : P A B → P S T :=
+representable.lift f
 
 /-- `costar F A B = F A → B` -/
 def costar (F : Type → Type) (A B : Type) := F A → B

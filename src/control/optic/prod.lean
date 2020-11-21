@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: E.W.Ayers
 -/
 import control.optic.profunctor_optic
+/-!
+Some definitions for optics on products.
+-/
 
 universes u v
 variables {A B S T X Y : Type}
 
+/-- `square A := A × A` -/
 def prod.square (A : Type u) := A × A
 
 namespace prod.square

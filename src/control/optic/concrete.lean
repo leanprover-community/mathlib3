@@ -8,6 +8,10 @@ import data.vector
 import data.vector2
 import tactic
 
+/-!
+Definitions of concrete lenses (as opposed to profunctor definitions).
+-/
+
 namespace control.optic.concrete
 
 open control

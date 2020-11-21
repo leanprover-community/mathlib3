@@ -259,15 +259,9 @@ end
 
 lemma continuous_uncurry_of_discrete_topology_left [discrete_topology α]
   {f : α → β → γ} (h : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
-begin
-  intros v hv₁,
-  rw is_open_prod_iff,
-  intros a b hv₂,
-  use [{a}, (f a ⁻¹' v), is_open_discrete _, h a _ hv₁, mem_singleton _, hv₂],
-  rintro ⟨p₁, p₂⟩ ⟨hp₁, hp₂⟩,
-  have : p₁ = a, by rwa mem_singleton_iff at hp₁,
-  show f p₁ p₂ ∈ v, from this.symm ▸ hp₂,
-end
+continuous_iff_continuous_at.2 $ λ ⟨a, b⟩,
+  by simp only [continuous_at, nhds_prod_eq, nhds_discrete α, pure_prod, tendsto_map'_iff, (∘),
+    function.uncurry, (h a).tendsto]
 
 /-- Given a neighborhood `s` of `(x, x)`, then `(x, x)` has a square open neighborhood
   that is a subset of `s`. -/
@@ -327,13 +321,13 @@ have (𝓝 a ×ᶠ 𝓝 b) ⊓ 𝓟 (set.prod s t) = (𝓝 a ⊓ 𝓟 s) ×ᶠ (
   by rw [←prod_inf_prod, prod_principal_principal],
 by simp [closure_eq_cluster_pts, cluster_pt, nhds_prod_eq, this]; exact prod_ne_bot
 
-lemma mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
+lemma map_mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
   (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)
   (hu : ∀a b, a ∈ s → b ∈ t → f a b ∈ u) :
   f a b ∈ closure u :=
 have (a, b) ∈ closure (set.prod s t), by rw [closure_prod_eq]; from ⟨ha, hb⟩,
 show (λp:α×β, f p.1 p.2) (a, b) ∈ closure u, from
-  mem_closure hf this $ assume ⟨a, b⟩ ⟨ha, hb⟩, hu a b ha hb
+  map_mem_closure hf this $ assume ⟨a, b⟩ ⟨ha, hb⟩, hu a b ha hb
 
 lemma is_closed.prod {s₁ : set α} {s₂ : set β} (h₁ : is_closed s₁) (h₂ : is_closed s₂) :
   is_closed (set.prod s₁ s₂) :=

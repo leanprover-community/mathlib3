@@ -2289,6 +2289,12 @@ by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal
 @[simp] lemma prod_pure_pure {a : α} {b : β} : (pure a) ×ᶠ (pure b) = pure (a, b) :=
 by simp only [← principal_singleton, prod_principal_principal, singleton_prod_singleton]
 
+@[simp] lemma pure_prod {a : α} {f : filter β} : pure a ×ᶠ f = map (prod.mk a) f :=
+by rw [prod_eq, map_pure, pure_seq_eq_map]
+
+@[simp] lemma prod_pure {f : filter α} {b : β} : f ×ᶠ pure b = map (λ a, (a, b)) f :=
+by rw [prod_eq, seq_pure, map_map]
+
 lemma prod_eq_bot {f : filter α} {g : filter β} : f ×ᶠ g = ⊥ ↔ (f = ⊥ ∨ g = ⊥) :=
 begin
   split,

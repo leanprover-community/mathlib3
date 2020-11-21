@@ -97,8 +97,8 @@ begin
   simpa only [eq_one, alg_hom.map_one, one_ne_zero] using aeval hx
 end
 
-/--If L/K is a ring extension, and x is an element of L in the image of K,
-then the minimal polynomial of x is X - C x.-/
+/-- If `L/K` is a ring extension, and `x` is an element of `L` in the image of `K`,
+then the minimal polynomial of `x` is `X - C x`. -/
 lemma algebra_map_inj [nontrivial α] (a : α) (hf : function.injective (algebra_map α β))
   (ha : is_integral α (algebra_map α β a)) : minimal_polynomial ha = X - C a :=
 begin

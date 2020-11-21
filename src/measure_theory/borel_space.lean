@@ -5,6 +5,8 @@ Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.measure_space
 import analysis.normed_space.finite_dimension
+import topology.G_delta
+
 /-!
 # Borel (measurable) space
 
@@ -134,7 +136,7 @@ lemma continuous.borel_measurable [topological_space α] [topological_space β]
   {f : α → β} (hf : continuous f) :
   @measurable α β (borel α) (borel β) f :=
 measurable.of_le_map $ generate_from_le $
-  λ s hs, generate_measurable.basic (f ⁻¹' s) (hf s hs)
+  λ s hs, generate_measurable.basic (f ⁻¹' s) (hs.preimage hf)
 
 /-- A space with `measurable_space` and `topological_space` structures such that
 all open sets are measurable. -/
@@ -172,6 +174,16 @@ lemma is_open.is_measurable (h : is_open s) : is_measurable s :=
 opens_measurable_space.borel_le _ $ generate_measurable.basic _ h
 
 lemma is_measurable_interior : is_measurable (interior s) := is_open_interior.is_measurable
+
+lemma is_Gδ.is_measurable (h : is_Gδ s) : is_measurable s :=
+begin
+  rcases h with ⟨S, hSo, hSc, rfl⟩,
+  exact is_measurable.sInter hSc (λ t ht, (hSo t ht).is_measurable)
+end
+
+lemma is_measurable_set_of_continuous_at {β} [emetric_space β] (f : α → β) :
+  is_measurable {x | continuous_at f x} :=
+(is_Gδ_set_of_continuous_at f).is_measurable
 
 lemma is_closed.is_measurable (h : is_closed s) : is_measurable s :=
 h.is_measurable.of_compl
@@ -221,10 +233,29 @@ instance opens_measurable_space.to_measurable_singleton_class [t1_space α] :
   measurable_singleton_class α :=
 ⟨λ x, is_closed_singleton.is_measurable⟩
 
+instance pi.opens_measurable_space {ι : Type*} {π : ι → Type*} [fintype ι]
+  [t' : Π i, topological_space (π i)]
+  [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
+  [∀ i, opens_measurable_space (π i)] :
+  opens_measurable_space (Π i, π i) :=
+begin
+  constructor,
+  choose g hc he ho hu hinst using λ i, is_open_generated_countable_inter (π i),
+  have : Pi.topological_space =
+    generate_from {t | ∃(s:Πa, set (π a)) (i : finset ι), (∀a∈i, s a ∈ g a) ∧ t = pi ↑i s},
+  { rw [funext hinst, pi_generate_from_eq] },
+  rw [borel_eq_generate_from_of_subbasis this],
+  apply generate_from_le,
+  rintros _ ⟨s, i, hi, rfl⟩,
+  refine is_measurable_pi i.countable_to_set (λ a ha, is_open.is_measurable _),
+  rw [hinst],
+  exact generate_open.basic _ (hi a ha)
+end
+
 instance prod.opens_measurable_space [second_countable_topology α] [second_countable_topology β] :
   opens_measurable_space (α × β) :=
 begin
-  refine ⟨_⟩,
+  constructor,
   rcases is_open_generated_countable_inter α with ⟨a, ha₁, ha₂, ha₃, ha₄, ha₅⟩,
   rcases is_open_generated_countable_inter β with ⟨b, hb₁, hb₂, hb₃, hb₄, hb₅⟩,
   have : prod.topological_space = generate_from {g | ∃u∈a, ∃v∈b, g = set.prod u v},
@@ -392,6 +423,16 @@ variables [topological_space α] [measurable_space α] [borel_space α]
   [topological_space γ] [measurable_space γ] [borel_space γ]
   [measurable_space δ]
 
+lemma pi_le_borel_pi {ι : Type*} {π : ι → Type*} [Π i, topological_space (π i)]
+  [Π i, measurable_space (π i)] [∀ i, borel_space (π i)] :
+  measurable_space.pi ≤ borel (Π i, π i) :=
+begin
+  have : ‹Π i, measurable_space (π i)› = λ i, borel (π i) :=
+    funext (λ i, borel_space.measurable_eq),
+  rw [this],
+  exact supr_le (λ i, comap_le_iff_le_map.2 $ (continuous_apply i).borel_measurable)
+end
+
 lemma prod_le_borel_prod : prod.measurable_space ≤ borel (α × β) :=
 begin
   rw [‹borel_space α›.measurable_eq, ‹borel_space β›.measurable_eq],
@@ -399,6 +440,13 @@ begin
   { exact comap_le_iff_le_map.mpr continuous_fst.borel_measurable },
   { exact comap_le_iff_le_map.mpr continuous_snd.borel_measurable }
 end
+
+instance pi.borel_space {ι : Type*} {π : ι → Type*} [fintype ι]
+  [t' : Π i, topological_space (π i)]
+  [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
+  [∀ i, borel_space (π i)] :
+  borel_space (Π i, π i) :=
+⟨le_antisymm pi_le_borel_pi opens_measurable_space.borel_le⟩
 
 instance prod.borel_space [second_countable_topology α] [second_countable_topology β] :
   borel_space (α × β) :=
@@ -412,7 +460,7 @@ continuous_mul.measurable
 @[to_additive]
 lemma measurable.mul [has_mul α] [has_continuous_mul α] [second_countable_topology α]
   {f : δ → α} {g : δ → α} : measurable f → measurable g → measurable (λ a, f a * g a) :=
-continuous_mul.measurable2
+(@continuous_mul α _ _ _).measurable2
 
 /-- A variant of `measurable.mul` that uses `*` on functions -/
 @[to_additive]
@@ -689,14 +737,14 @@ continuous_dist.measurable
 
 lemma measurable.dist {f g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ b, dist (f b) (g b)) :=
-continuous_dist.measurable2 hf hg
+(@continuous_dist α _).measurable2 hf hg
 
 lemma measurable_nndist : measurable (λ p : α × α, nndist p.1 p.2) :=
 continuous_nndist.measurable
 
 lemma measurable.nndist {f g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ b, nndist (f b) (g b)) :=
-continuous_nndist.measurable2 hf hg
+(@continuous_nndist α _).measurable2 hf hg
 
 end metric_space
 
@@ -730,7 +778,7 @@ continuous_edist.measurable
 
 lemma measurable.edist {f g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ b, edist (f b) (g b)) :=
-continuous_edist.measurable2 hf hg
+(@continuous_edist α _).measurable2 hf hg
 
 end emetric_space
 
@@ -794,7 +842,7 @@ variable [measurable_space α]
 
 lemma measurable.sub_nnreal {f g : α → ℝ≥0} :
   measurable f → measurable g → measurable (λ a, f a - g a) :=
-continuous_sub.measurable2
+(@continuous_sub ℝ≥0 _ _ _).measurable2
 
 lemma measurable.nnreal_of_real {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, nnreal.of_real (f x)) :=
@@ -1054,7 +1102,8 @@ begin
     intro U, apply infi_congr_Prop f.is_open_preimage, intro hU,
     apply infi_congr_Prop h3f.preimage_subset_preimage_iff, intro h2U,
     rw [map_apply hf hU.is_measurable], },
-  { intros U hU, rw [map_apply hf hU.is_measurable, ← hμ.inner_regular_eq (f.continuous U hU)],
+  { intros U hU,
+    rw [map_apply hf hU.is_measurable, ← hμ.inner_regular_eq (hU.preimage f.continuous)],
     refine ge_of_eq _, apply supr_congr (preimage f) h2f,
     intro K, apply supr_congr_Prop f.compact_preimage, intro hK,
     apply supr_congr_Prop h3f.preimage_subset_preimage_iff, intro h2U,

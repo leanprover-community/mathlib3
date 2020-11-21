@@ -300,6 +300,17 @@ begin
     apply nat.mem_factors hx, }
 end
 
+lemma nat.factors_multiset_prod_of_irreducible
+  {s : multiset ℕ} (h : ∀ (x : ℕ), x ∈ s → irreducible x) :
+  unique_factorization_monoid.factors (s.prod) = s :=
+begin
+  rw [← multiset.rel_eq, ← associated_eq_eq],
+  apply (unique_factorization_monoid.factors_unique irreducible_of_factor h (factors_prod _)),
+  rw [ne.def, multiset.prod_eq_zero_iff],
+  intro con,
+  exact not_irreducible_zero (h 0 con),
+end
+
 namespace multiplicity
 
 lemma finite_int_iff_nat_abs_finite {a b : ℤ} : finite a b ↔ finite a.nat_abs b.nat_abs :=

@@ -12,6 +12,7 @@ import order.liminf_limsup
 import data.set.intervals.image_preimage
 import data.set.intervals.ord_connected
 import data.set.intervals.surj_on
+import data.set.intervals.pi
 import topology.algebra.group
 import topology.extend_from_subset
 import order.filter.interval
@@ -140,7 +141,7 @@ lemma is_closed_Ici {a : α} : is_closed (Ici a) :=
 is_closed_ge' a
 
 instance : order_closed_topology (order_dual α) :=
-⟨continuous_swap _ (@order_closed_topology.is_closed_le' α _ _ _)⟩
+⟨(@order_closed_topology.is_closed_le' α _ _ _).preimage continuous_swap⟩
 
 lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
 is_closed_inter is_closed_Ici is_closed_Iic
@@ -973,8 +974,104 @@ mem_nhds_sets is_open_Iio h
 lemma Ioi_mem_nhds {a b : α} (h : a < b) : Ioi a ∈ 𝓝 b :=
 mem_nhds_sets is_open_Ioi h
 
+lemma Iic_mem_nhds {a b : α} (h : a < b) : Iic b ∈ 𝓝 a :=
+mem_sets_of_superset (Iio_mem_nhds h) Iio_subset_Iic_self
+
+lemma Ici_mem_nhds {a b : α} (h : a < b) : Ici a ∈ 𝓝 b :=
+mem_sets_of_superset (Ioi_mem_nhds h) Ioi_subset_Ici_self
+
 lemma Ioo_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioo a b ∈ 𝓝 x :=
 mem_nhds_sets is_open_Ioo ⟨ha, hb⟩
+
+lemma Ioc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioc a b ∈ 𝓝 x :=
+mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ioc_self
+
+lemma Ico_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ico a b ∈ 𝓝 x :=
+mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ico_self
+
+lemma Icc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Icc a b ∈ 𝓝 x :=
+mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Icc_self
+
+section pi
+
+/-!
+### Intervals in `Π i, π i` belong to `𝓝 x`
+
+For each leamma `pi_Ixx_mem_nhds` we add a non-dependent version `pi_Ixx_mem_nhds'` because
+sometimes Lean fails to unify different instances while trying to apply the dependent version to,
+e.g., `ι → ℝ`.
+-/
+
+variables {ι : Type*} {π : ι → Type*} [fintype ι] [Π i, linear_order (π i)]
+  [Π i, topological_space (π i)] [∀ i, order_topology (π i)] {a b x : Π i, π i} {a' b' x' : ι → α}
+
+lemma pi_Iic_mem_nhds (ha : ∀ i, x i < a i) : Iic a ∈ 𝓝 x :=
+pi_univ_Iic a ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Iic_mem_nhds (ha _))
+
+lemma pi_Iic_mem_nhds' (ha : ∀ i, x' i < a' i) : Iic a' ∈ 𝓝 x' :=
+pi_Iic_mem_nhds ha
+
+lemma pi_Ici_mem_nhds (ha : ∀ i, a i < x i) : Ici a ∈ 𝓝 x :=
+pi_univ_Ici a ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Ici_mem_nhds (ha _))
+
+lemma pi_Ici_mem_nhds' (ha : ∀ i, a' i < x' i) : Ici a' ∈ 𝓝 x' :=
+pi_Ici_mem_nhds ha
+
+lemma pi_Icc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Icc a b ∈ 𝓝 x :=
+pi_univ_Icc a b ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Icc_mem_nhds (ha _) (hb _))
+
+lemma pi_Icc_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Icc a' b' ∈ 𝓝 x' :=
+pi_Icc_mem_nhds ha hb
+
+variables [nonempty ι]
+
+lemma pi_Iio_mem_nhds (ha : ∀ i, x i < a i) : Iio a ∈ 𝓝 x :=
+begin
+  refine mem_sets_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+    (pi_univ_Iio_subset a),
+  exact Iio_mem_nhds (ha i)
+end
+
+lemma pi_Iio_mem_nhds' (ha : ∀ i, x' i < a' i) : Iio a' ∈ 𝓝 x' :=
+pi_Iio_mem_nhds ha
+
+lemma pi_Ioi_mem_nhds (ha : ∀ i, a i < x i) : Ioi a ∈ 𝓝 x :=
+@pi_Iio_mem_nhds ι (λ i, order_dual (π i)) _ _ _ _ _ _ _ ha
+
+lemma pi_Ioi_mem_nhds' (ha : ∀ i, a' i < x' i) : Ioi a' ∈ 𝓝 x' :=
+pi_Ioi_mem_nhds ha
+
+lemma pi_Ioc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ioc a b ∈ 𝓝 x :=
+begin
+  refine mem_sets_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+    (pi_univ_Ioc_subset a b),
+  exact Ioc_mem_nhds (ha i) (hb i)
+end
+
+lemma pi_Ioc_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Ioc a' b' ∈ 𝓝 x' :=
+pi_Ioc_mem_nhds ha hb
+
+lemma pi_Ico_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ico a b ∈ 𝓝 x :=
+begin
+  refine mem_sets_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+    (pi_univ_Ico_subset a b),
+  exact Ico_mem_nhds (ha i) (hb i)
+end
+
+lemma pi_Ico_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Ico a' b' ∈ 𝓝 x' :=
+pi_Ico_mem_nhds ha hb
+
+lemma pi_Ioo_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ioo a b ∈ 𝓝 x :=
+begin
+  refine mem_sets_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+    (pi_univ_Ioo_subset a b),
+  exact Ioo_mem_nhds (ha i) (hb i)
+end
+
+lemma pi_Ioo_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Ioo a' b' ∈ 𝓝 x' :=
+pi_Ioo_mem_nhds ha hb
+
+end pi
 
 lemma disjoint_nhds_at_top [no_top_order α] (x : α) :
   disjoint (𝓝 x) at_top :=

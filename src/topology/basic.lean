@@ -1122,7 +1122,7 @@ begin
   simp only [maps_to, mem_closure_iff_cluster_pt],
   exact λ x hx, hx.map hc.continuous_at (tendsto_principal_principal.2 h)
 end
-  
+
 lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
   f '' closure s ⊆ closure (f '' s) :=
 ((maps_to_image f s).closure h).image_subset

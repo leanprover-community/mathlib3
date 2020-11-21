@@ -306,6 +306,9 @@ if h : a = a' then eq.rec v h.symm else f a
 @[simp] lemma update_same (a : α) (v : β a) (f : Πa, β a) : update f a v a = v :=
 dif_pos rfl
 
+lemma update_injective (f : Πa, β a) (a' : α) : injective (update f a') :=
+λ v v' h, have _ := congr_fun h a', by rwa [update_same, update_same] at this
+
 @[simp] lemma update_noteq {a a' : α} (h : a ≠ a') (v : β a') (f : Πa, β a) : update f a' v a = f a :=
 dif_neg h
 

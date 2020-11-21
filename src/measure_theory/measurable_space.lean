@@ -350,19 +350,14 @@ iff.refl _
 
 theorem is_measurable_Sup {ms : set (measurable_space α)} {s : set α} :
   @is_measurable _ (Sup ms) s ↔
-    generate_measurable (⋃₀ (measurable_space.is_measurable' '' ms)) s :=
+    generate_measurable {s : set α | ∃ m ∈ ms, @is_measurable _ m s} s :=
 begin
-  change @is_measurable' _ (generate_from _) _ ↔ _,
-  dsimp [generate_from],
-  rw (show (⨆ (b : measurable_space α) (H : b ∈ ms), set_of (@is_measurable _ b)) =
-    (⋃₀ (is_measurable' '' ms)),
-  { ext,
-    simp only [exists_prop, mem_Union, sUnion_image, mem_set_of_eq],
-    refl, })
+  change @is_measurable' _ (generate_from $ ⋃ m ∈ ms, _) _ ↔ _,
+  simp [generate_from, ← set_of_exists]
 end
 
 theorem is_measurable_supr {ι} {m : ι → measurable_space α} {s : set α} :
-  @is_measurable _ (supr m) s ↔ generate_measurable (⋃ i, (m i).is_measurable') s :=
+  @is_measurable _ (supr m) s ↔ generate_measurable {s : set α | ∃ i, @is_measurable _ (m i) s} s :=
 begin
   convert @is_measurable_Sup _ (range m) s,
   simp,
@@ -499,6 +494,15 @@ begin
   simp only [piecewise_preimage],
   exact (hs.inter $ hf ht).union (hs.compl.inter $ hg ht)
 end
+
+/-- this is slightly different from `measurable.piecewise`. It can be used to show
+`measurable (ite (x=0) 0 1)` by
+`exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const`,
+but replacing `measurable.ite` by `measurable.piecewise` in that example proof does not work. -/
+lemma measurable.ite {p : α → Prop} {_ : decidable_pred p} {f g : α → β}
+  (hp : is_measurable {a : α | p a}) (hf : measurable f) (hg : measurable g) :
+  measurable (λ x, ite (p x) (f x) (g x)) :=
+measurable.piecewise hp hf hg
 
 @[simp] lemma measurable_const {a : α} : measurable (λ b : β, a) :=
 assume s hs, is_measurable.const (a ∈ s)
@@ -712,6 +716,14 @@ measurable.of_comap_le $ le_supr _ a
 lemma measurable_pi_lambda (f : α → Π a, π a) (hf : ∀ a, measurable (λ c, f c a)) :
   measurable f :=
 measurable.of_le_map $ supr_le $ assume a, measurable_space.comap_le_iff_le_map.2 (hf a)
+
+lemma is_measurable_pi {s : set δ} {t : Π i : δ, set (π i)} (hs : countable s)
+  (ht : ∀ i ∈ s, is_measurable (t i)) :
+  is_measurable (s.pi t) :=
+begin
+  rw [pi_def],
+  exact is_measurable.bInter hs (λ i hi, measurable_pi_apply _ (ht i hi))
+end
 
 end pi
 

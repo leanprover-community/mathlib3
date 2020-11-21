@@ -132,7 +132,7 @@ structure inner_product_space.core
 (inner     : F → F → 𝕜)
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
 (nonneg_im : ∀ x, im (inner x x) = 0)
-(nonneg_re : ∀ x, re (inner x x) ≥ 0)
+(nonneg_re : ∀ x, 0 ≤ re (inner x x))
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = (conj r) * inner x y)
@@ -920,7 +920,7 @@ norms, has absolute value 1 if and only if they are nonzero and one is
 a multiple of the other. One form of equality case for Cauchy-Schwarz. -/
 lemma abs_real_inner_div_norm_mul_norm_eq_one_iff (x y : F) :
   absR (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r ≠ 0 ∧ y = r • x) :=
-by { simpa using abs_inner_div_norm_mul_norm_eq_one_iff x y, assumption }
+by simpa using abs_inner_div_norm_mul_norm_eq_one_iff x y
 
 /--
 If the inner product of two vectors is equal to the product of their norms, then the two vectors
@@ -1102,14 +1102,12 @@ def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
 { norm_sq_eq_inner := norm_sq_eq_inner,
   conj_sym := λ x y, inner_re_symm,
   nonneg_im := λ x, rfl,
-  add_left := λ x y z, by { change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫, simp [inner_add_left] },
-  smul_left :=
-  begin
-    intros x y r,
+  add_left := λ x y z, by {
+    change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
+    simp [inner_add_left] },
+  smul_left := λ x y r, by {
     change re ⟪(algebra_map ℝ 𝕜 r) • x, y⟫ = r * re ⟪x, y⟫,
-    have : algebra_map ℝ 𝕜 r = r • (1 : 𝕜) := by simp [algebra_map, algebra.smul_def'],
-    simp [this, inner_smul_left, smul_coe_mul_ax],
-  end,
+    simp [inner_smul_left] },
   ..has_inner.is_R_or_C_to_real 𝕜,
   ..normed_space.restrict_scalars ℝ 𝕜 E }
 

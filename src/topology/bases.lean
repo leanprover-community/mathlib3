@@ -82,6 +82,10 @@ begin
     exact ⟨i, h2, h1⟩ }
 end
 
+lemma is_topological_basis.nhds_has_basis {b : set (set α)} (hb : is_topological_basis b) {a : α} :
+  (𝓝 a).has_basis (λ t : set α, t ∈ b ∧ a ∈ t) (λ t, t) :=
+⟨λ s, (mem_nhds_of_is_topological_basis hb).trans $ by simp only [exists_prop, and_assoc]⟩
+
 lemma is_open_of_is_topological_basis {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) (hs : s ∈ b) : is_open s :=
 is_open_iff_mem_nhds.2 $ λ a as,

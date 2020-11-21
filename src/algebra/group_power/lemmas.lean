@@ -323,6 +323,13 @@ lemma pow_lt_pow_of_lt_one  {a : R} (h : 0 < a) (ha : a < 1)
 let ⟨k, hk⟩ := nat.exists_eq_add_of_lt hij in
 by rw hk; exact pow_lt_pow_of_lt_one_aux h ha _ _
 
+lemma pow_lt_pow_iff_of_lt_one {a : R} {n m : ℕ} (hpos : 0 < a) (h : a < 1) :
+  a ^ m < a ^ n ↔ n < m :=
+begin
+  have : strict_mono (λ (n : order_dual ℕ), a ^ (id n : ℕ)) := λ m n, pow_lt_pow_of_lt_one hpos h,
+  exact this.lt_iff_lt
+end
+
 lemma pow_le_pow_of_le_one  {a : R} (h : 0 ≤ a) (ha : a ≤ 1)
   {i j : ℕ} (hij : i ≤ j) : a ^ j ≤ a ^ i :=
 let ⟨k, hk⟩ := nat.exists_eq_add_of_le hij in
@@ -371,6 +378,11 @@ by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_pow_tw
 
 @[simp] lemma nat_abs_pow_two (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
 by rw [pow_two, int.nat_abs_mul_self', pow_two]
+
+lemma abs_le_self_pow_two (a : ℤ) : (int.nat_abs a : ℤ) ≤ a ^ 2 :=
+by { rw [← int.nat_abs_pow_two a, pow_two], norm_cast, apply nat.le_mul_self }
+
+lemma le_self_pow_two (b : ℤ) : b ≤ b ^ 2 := le_trans (le_nat_abs) (abs_le_self_pow_two _)
 
 end int
 

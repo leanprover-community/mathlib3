@@ -33,6 +33,14 @@ instance division_ring.to_group_with_zero :
 { .. ‹division_ring α›,
   .. (infer_instance : semiring α) }
 
+lemma inverse_eq_has_inv : (ring.inverse : α → α) = has_inv.inv :=
+begin
+  ext x,
+  by_cases hx : x = 0,
+  { simp [hx] },
+  { exact ring.inverse_unit (units.mk0 x hx) }
+end
+
 @[field_simps] lemma inv_eq_one_div (a : α) : a⁻¹ = 1 / a := by simp
 
 local attribute [simp]
@@ -239,15 +247,15 @@ section
 variables {β γ : Type*} [division_ring α] [semiring β] [nontrivial β] [division_ring γ]
   (f : α →+* β) (g : α →+* γ) {x y : α}
 
-lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (f : α →* β).map_ne_zero f.map_zero
+lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := f.to_monoid_with_zero_hom.map_ne_zero
 
-lemma map_eq_zero : f x = 0 ↔ x = 0 := (f : α →* β).map_eq_zero f.map_zero
+lemma map_eq_zero : f x = 0 ↔ x = 0 := f.to_monoid_with_zero_hom.map_eq_zero
 
 variables (x y)
 
-lemma map_inv : g x⁻¹ = (g x)⁻¹ := (g : α →* γ).map_inv' g.map_zero x
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv' x
 
-lemma map_div : g (x / y) = g x / g y := (g : α →* γ).map_div g.map_zero x y
+lemma map_div : g (x / y) = g x / g y := g.to_monoid_with_zero_hom.map_div x y
 
 protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
 

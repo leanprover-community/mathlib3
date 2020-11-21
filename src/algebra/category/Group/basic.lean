@@ -53,7 +53,7 @@ instance : has_one Group := ⟨Group.of punit⟩
 instance : inhabited Group := ⟨1⟩
 
 @[to_additive]
-instance : unique (1 : Group) :=
+instance one.unique : unique (1 : Group) :=
 { default := 1,
   uniq := λ a, begin cases a, refl, end }
 
@@ -104,7 +104,7 @@ instance comm_group_instance (G : CommGroup) : comm_group G := G.str
 @[to_additive] instance : inhabited CommGroup := ⟨1⟩
 
 @[to_additive]
-instance : unique (1 : CommGroup) :=
+instance one.unique : unique (1 : CommGroup) :=
 { default := 1,
   uniq := λ a, begin cases a, refl, end }
 

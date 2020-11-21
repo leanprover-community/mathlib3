@@ -71,7 +71,7 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
 { mul       := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a * b)),
   zero_mul  := λ a, rfl,
   mul_zero  := λ a, by cases a; refl,
-  ..hidden.has_zero }
+  ..hidden.with_zero.has_zero }
 
 @[norm_cast] lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 

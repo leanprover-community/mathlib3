@@ -208,7 +208,7 @@ calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) 
   (finset.sum_filter _ _).symm
 ... = ∑ p in s.filter (λ p : G × G, p.1 ∈ f.support ∧ p.2 ∈ g.support), f p.1 * g p.2 :
   sum_congr (by { ext, simp only [mem_filter, mem_product, hs, and_comm] }) (λ _ _, rfl)
-... = ∑ p in s, f p.1 * g p.2 : sum_subset (filter_subset _) $ λ p hps hp,
+... = ∑ p in s, f p.1 * g p.2 : sum_subset (filter_subset _ _) $ λ p hps hp,
   begin
     simp only [mem_filter, mem_support_iff, not_and, not_not] at hp ⊢,
     by_cases h1 : f p.1 = 0,
@@ -261,6 +261,9 @@ def of : G →* monoid_algebra k G :=
 end
 
 @[simp] lemma of_apply (a : G) : of k G a = single a 1 := rfl
+
+lemma of_injective [nontrivial k] : function.injective (of k G) :=
+λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
 
 lemma mul_single_apply_aux (f : monoid_algebra k G) {r : k}
   {x y z : G} (H : ∀ a, a * x = z ↔ a = y) :
@@ -730,6 +733,9 @@ def of : multiplicative G →* add_monoid_algebra k G :=
 end
 
 @[simp] lemma of_apply (a : multiplicative G) : of k G a = single a.to_add 1 := rfl
+
+lemma of_injective [nontrivial k] : function.injective (of k G) :=
+λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
 
 lemma mul_single_apply_aux (f : add_monoid_algebra k G) (r : k)
   (x y z : G) (H : ∀ a, a + x = z ↔ a = y) :

@@ -125,7 +125,7 @@ include h
 
 lemma equivariant_projection_condition (v : V) : (π.equivariant_projection G) (i v) = v :=
 begin
-  rw [equivariant_projection, linear_map.algebra_module.smul_apply, sum_of_conjugates_equivariant,
+  rw [equivariant_projection, smul_apply, sum_of_conjugates_equivariant,
     equivariant_of_linear_of_comm_apply, sum_of_conjugates],
   rw [linear_map.sum_apply],
   simp only [conjugate_i π i h],

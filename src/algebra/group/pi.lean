@@ -3,7 +3,9 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
+import data.pi
 import algebra.ordered_group
+import algebra.group_with_zero
 import tactic.pi_instances
 /-!
 # Pi instances for groups and monoids
@@ -82,6 +84,15 @@ instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
   ..pi.comm_group,
   ..pi.partial_order }
 
+instance mul_zero_class [∀ i, mul_zero_class $ f i] :
+  mul_zero_class (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
+
+instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :
+  comm_monoid_with_zero (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*), .. };
+  tactic.pi_instance_derive_field
+
 section instance_lemmas
 open function
 
@@ -94,31 +105,6 @@ variables {α β γ : Type*}
 @[simp, to_additive] lemma one_comp [has_one γ] {f : α → β} : (1 : β → γ) ∘ f = 1 := rfl
 
 end instance_lemmas
-
-variables [decidable_eq I]
-variables [Π i, has_zero (f i)]
-
-/-- The function supported at `i`, with value `x` there. -/
-def single (i : I) (x : f i) : Π i, f i :=
-λ i', if h : i' = i then (by { subst h, exact x }) else 0
-
-@[simp]
-lemma single_eq_same (i : I) (x : f i) : single i x i = x :=
-begin
-  dsimp [single],
-  split_ifs,
-  { refl, },
-  { exfalso, exact h rfl, }
-end
-
-@[simp]
-lemma single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : single i x i' = 0 :=
-begin
-  dsimp [single],
-  split_ifs with h',
-  { exfalso, exact h h', },
-  { refl, }
-end
 
 end pi
 

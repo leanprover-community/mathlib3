@@ -118,7 +118,7 @@ begin
     { simp [h'] at h, exact h } },
   { transitivity x :: y :: ys.erase x,
     { constructor, apply l₀_ih ‹ _ ›,
-      { simp, split, { intro, apply nd₁_left, apply mem_of_mem_erase a },
+      { simp, split, { intro, apply nd₁_left, apply mem_of_mem_erase ‹_› },
         apply nodup_erase_of_nodup; assumption },
       { intro a, specialize h a, simp at h,
         by_cases h' : a = x,

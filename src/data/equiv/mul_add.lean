@@ -3,9 +3,10 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-import data.equiv.basic
-import deprecated.group
 import algebra.group.hom
+import algebra.group.type_tags
+import algebra.group.units_hom
+import data.equiv.basic
 
 /-!
 # Multiplicative and additive equivs
@@ -74,10 +75,6 @@ lemma to_equiv_apply {f : M ≃* N} {m : M} : f.to_equiv m = f m := rfl
 @[simp, to_additive]
 lemma map_mul (f : M ≃* N) : ∀ x y, f (x * y) = f x * f y := f.map_mul'
 
-/-- A multiplicative isomorphism preserves multiplication (deprecated). -/
-@[to_additive]
-instance (h : M ≃* N) : is_mul_hom h := ⟨h.map_mul⟩
-
 /-- Makes a multiplicative isomorphism from a bijection which preserves multiplication. -/
 @[to_additive "Makes an additive isomorphism from a bijection which preserves addition."]
 def mk' (f : M ≃ N) (h : ∀ x y, f (x * y) = f x * f y) : M ≃* N :=
@@ -109,6 +106,13 @@ def symm (h : M ≃* N) : N ≃* M :=
       simp only [this, h.map_mul]
     end,
   .. h.to_equiv.symm}
+
+/-- See Note [custom simps projection] -/
+@[to_additive add_equiv.simps.inv_fun "See Note [custom simps projection]"]
+def simps.inv_fun (e : M ≃* N) : N → M := e.symm
+
+initialize_simps_projections add_equiv (to_fun → apply, inv_fun → symm_apply)
+initialize_simps_projections mul_equiv (to_fun → apply, inv_fun → symm_apply)
 
 @[simp, to_additive]
 theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
@@ -202,18 +206,6 @@ rfl
 @[simp, to_additive]
 lemma map_inv [group G] [group H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
 h.to_monoid_hom.map_inv x
-
-/-- A multiplicative bijection between two monoids is a monoid hom
-  (deprecated -- use to_monoid_hom). -/
-@[to_additive]
-instance is_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) : is_monoid_hom h :=
-⟨h.map_one⟩
-
-/-- A multiplicative bijection between two groups is a group hom
-  (deprecated -- use to_monoid_hom). -/
-@[to_additive]
-instance is_group_hom {G H} [group G] [group H] (h : G ≃* H) :
-  is_group_hom h := { map_mul := h.map_mul }
 
 /-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/

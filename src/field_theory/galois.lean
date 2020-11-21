@@ -56,41 +56,39 @@ instance aut : group (E ≃ₐ[F] E) :=
   inv := symm,
   mul_left_inv := λ ϕ, by { ext, exact symm_apply_apply ϕ a } }
 
+lemma intermediate_field.adjoin_simple.card_aut_eq_findim
+  [finite_dimensional F E] {α : E} (hα : is_integral F α)
+  (h_sep : (minimal_polynomial hα).separable)
+  (h_splits : (minimal_polynomial hα).splits (algebra_map F F⟮α⟯)) :
+  fintype.card (F⟮α⟯ ≃ₐ[F] F⟮α⟯) = findim F F⟮α⟯ :=
+begin
+  letI : fintype (F⟮α⟯ →ₐ[F] F⟮α⟯) := intermediate_field.fintype_of_alg_hom_adjoin_integral F hα,
+  rw intermediate_field.adjoin.findim hα,
+  rw ← intermediate_field.card_alg_hom_adjoin_integral F hα h_sep h_splits,
+  exact fintype.card_congr (alg_equiv_equiv_alg_hom F F⟮α⟯)
+end
+
 lemma card_aut_eq_findim_of_is_galois [finite_dimensional F E] [h : is_galois F E] :
   fintype.card (E ≃ₐ[F] E) = findim F E :=
 begin
   cases field.exists_primitive_element h.1 with α hα,
-  cases h.1 α with H1 h_separable,
+  have iso : F⟮α⟯ ≃ₐ[F] E,
+  { rw hα,
+    exact intermediate_field.top_equiv },
+  cases h.1 α with H1 h_sep,
   cases h.2 α with H2 h_splits,
-  have switch : (⊤ : intermediate_field F E).to_subalgebra.to_submodule = ⊤ :=
-    by { ext, exact iff_of_true intermediate_field.mem_top submodule.mem_top },
-  rw [←findim_top, ←switch],
-  change fintype.card (E ≃ₐ[F] E) = findim F (⊤ : intermediate_field F E),
   replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minimal_polynomial H2),
-  { rw hα,
-    let map : E →+* (⊤ : intermediate_field F E) :=
-    { to_fun := λ x, ⟨x, intermediate_field.mem_top⟩,
-      map_one' := rfl,
-      map_mul' := λ _ _, rfl,
-      map_zero' := rfl,
-      map_add' := λ _ _, rfl },
-    rw (show algebra_map F (⊤ : intermediate_field F E) = map.comp (algebra_map F E),
-      by { ext, refl }),
-    exact polynomial.splits_comp_of_splits (algebra_map F E) map h_splits },
-  rw [←hα, intermediate_field.adjoin.findim H2],
-  rw ← intermediate_field.card_alg_hom_adjoin_integral F H2 h_separable h_splits,
+  { convert polynomial.splits_comp_of_splits (algebra_map F E) iso.symm.to_alg_hom.to_ring_hom h_splits,
+    ext1,
+    exact (iso.symm.commutes x).symm },
+  rw ← linear_equiv.findim_eq iso.to_linear_equiv,
+  rw ← intermediate_field.adjoin_simple.card_aut_eq_findim F E H1 h_sep h_splits,
   apply fintype.card_congr,
-  transitivity (F⟮α⟯ ≃ₐ[F] F⟮α⟯),
-  { rw hα,
-    change (E ≃ₐ[F] E) ≃ ((⊤ : intermediate_field F E).to_subalgebra ≃ₐ[F]
-      (⊤ : intermediate_field F E).to_subalgebra),
-    rw intermediate_field.top_to_subalgebra,
-    exact
-    { to_fun := λ ϕ, (algebra.top_equiv).trans (trans ϕ (algebra.top_equiv).symm),
-      inv_fun := λ ϕ, (algebra.top_equiv).symm.trans (trans ϕ (algebra.top_equiv)),
-      left_inv := λ _, by { ext, simp only [apply_symm_apply, trans_apply] },
-      right_inv := λ _, by { ext, simp only [symm_apply_apply, trans_apply] } } },
-  { exact alg_equiv_equiv_alg_hom F F⟮α⟯ },
+  apply equiv.mk (λ ϕ, iso.trans (trans ϕ iso.symm)) (λ ϕ, iso.symm.trans (trans ϕ iso)),
+  { intro ϕ, ext1, simp only [apply_symm_apply, trans_apply] },
+  { intro ϕ, ext1, simp only [trans_apply],
+    rw symm_apply_apply iso,
+    rw symm_apply_apply iso, /- This second rewrite is REALLY SLOW!!!! -/  },
 end
 
 end

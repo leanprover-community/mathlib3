@@ -80,6 +80,15 @@ by { ext, rw [mem_to_subalgebra, algebra.mem_bot, mem_bot] }
 @[simp] lemma top_to_subalgebra : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
 by { ext, rw [mem_to_subalgebra, iff_true_right algebra.mem_top], exact mem_top }
 
+def subalgebra.equiv_of_eq {X Y : subalgebra F E} (h : X = Y) : X ≃ₐ[F] Y :=
+by refine { to_fun := λ x, ⟨x, _⟩, inv_fun := λ x, ⟨x, _⟩, .. }; tidy
+
+noncomputable def bot_equiv : (⊥ : intermediate_field F E) ≃ₐ[F] F :=
+(subalgebra.equiv_of_eq bot_to_subalgebra).trans (algebra.bot_equiv F E)
+
+noncomputable def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
+(subalgebra.equiv_of_eq top_to_subalgebra).trans algebra.top_equiv
+
 @[simp] lemma coe_bot_eq_self (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
 by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
 

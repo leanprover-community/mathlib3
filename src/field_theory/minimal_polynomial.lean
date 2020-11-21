@@ -64,12 +64,12 @@ le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩
 lemma ne_zero [nontrivial α] : (minimal_polynomial hx) ≠ 0 :=
 ne_zero_of_monic (monic hx)
 
-/--If an element x is a root of a nonzero monic polynomial p,
-then the degree of p is at least the degree of the minimal polynomial of x.-/
+/-- If an element `x` is a root of a nonzero monic polynomial `p`,
+then the degree of `p` is at least the degree of the minimal polynomial of `x`. -/
 lemma degree_le_of_monic
   {p : polynomial α} (hmonic : p.monic) (hp : polynomial.aeval x p = 0) :
   degree (minimal_polynomial hx) ≤ degree p :=
-calc degree (minimal_polynomial hx) ≤ degree p : min _ hmonic (by simp [hp])
+min _ hmonic (by simp [hp])
 
 end ring
 

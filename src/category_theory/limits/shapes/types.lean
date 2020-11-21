@@ -173,6 +173,10 @@ begin
   apply hx'.trans (congr_fun (fork.is_limit.lift' t _ hy').2 ⟨⟩).symm,
 end
 
+lemma type_equalizer_iff_unique :
+  nonempty (is_limit (fork.of_ι _ w)) ↔ (∀ (y : Y), g y = h y → ∃! (x : X), f x = y) :=
+⟨λ i, unique_of_type_equalizer _ _ (classical.choice i), λ k, ⟨type_equalizer_of_unique f w k⟩⟩
+
 /-- Show that the subtype `{x : Y // g x = h x}` is an equalizer for the pair `(g,h)`. -/
 def equalizer_limit : limits.limit_cone (parallel_pair g h) :=
 { cone := fork.of_ι (subtype.val : {x : Y // g x = h x} → Y) (funext subtype.prop),

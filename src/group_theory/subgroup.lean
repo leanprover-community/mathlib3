@@ -560,6 +560,7 @@ lemma closure_union (s t : set G) : closure (s ∪ t) = closure s ⊔ closure t 
 lemma closure_Union {ι} (s : ι → set G) : closure (⋃ i, s i) = ⨆ i, closure (s i) :=
 (subgroup.gi G).gc.l_supr
 
+@[to_additive]
 lemma closure_eq_bot_iff (G : Type*) [group G] (S : set G) :
   closure S = ⊥ ↔ S ⊆ {1} :=
 by { rw [← le_bot_iff], exact closure_le _}

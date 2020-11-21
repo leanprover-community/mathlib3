@@ -34,7 +34,7 @@ fixed size. If the size is 3, colex on ℕ starts
   (this also proves binary expansions are unique)
 
 ## Notation
-We define `<ᶜ` and `≤ᶜ` to denote colex ordering, useful in particular when
+We define `<` and `≤` to denote colex ordering, useful in particular when
 multiple orderings are available in context.
 
 ## Tags
@@ -64,6 +64,10 @@ use the colex ordering rather than the subset ordering.
 -/
 def finset.to_colex {α} (s : finset α) : finset.colex α := s
 
+@[simp]
+lemma colex.eq_iff [has_lt α] (A B : finset α) :
+  A.to_colex = B.to_colex ↔ A = B := by refl
+
 /--
 `A` is less than `B` in the colex ordering if the largest thing that's not in both sets is in B.
 In other words, max (A ▵ B) ∈ B (if the maximum exists).
@@ -74,21 +78,6 @@ instance [has_lt α] : has_lt (finset.colex α) :=
 /-- We can define (≤) in the obvious way. -/
 instance [has_lt α] : has_le (finset.colex α) :=
 ⟨λ A B, A < B ∨ A = B⟩
-
-@[simp]
-lemma colex.eq_iff [has_lt α] (A B : finset α) :
-  A.to_colex = B.to_colex ↔ A = B := by refl
-
--- You can just delete the def of colex.lt and le
--- In the partial order instance just replace it with the def there
-
-/-/-- The colex ordering on finsets. -/
-def colex.lt [has_lt α] (A B : finset α) : Prop := A.to_colex < B.to_colex
-/-- The colex ordering on finsets. -/
-def colex.le [has_lt α] (A B : finset α) : Prop := A.to_colex ≤ B.to_colex
-
-infix ` <ᶜ `:50 := colex.lt
-infix ` ≤ᶜ `:50 := colex.le-/
 
 lemma colex.lt_def [has_lt α] (A B : finset α) :
   A.to_colex < B.to_colex ↔ ∃ k, (∀ {x}, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A ∧ k ∈ B :=
@@ -251,7 +240,7 @@ begin
     simp only [true_and, eq_self_iff_true, mem_singleton] },
 end
 
-/-- s <ᶜ {r} iff all elements of s are less than r. -/
+/-- s.to_colex < finset.to_colex {r} iff all elements of s are less than r. -/
 lemma lt_singleton_iff_mem_lt [linear_order α] {r : α} {s : finset α}:
   s.to_colex < finset.to_colex {r} ↔ ∀ x ∈ s, x < r :=
 begin

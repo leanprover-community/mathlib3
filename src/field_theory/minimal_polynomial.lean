@@ -104,8 +104,7 @@ lemma algebra_map_inj [nontrivial α] (a : α) (hf : function.injective (algebra
 begin
   have hdegle : (minimal_polynomial ha).nat_degree ≤ 1,
   { apply with_bot.coe_le_coe.1,
-    rw [←degree_eq_nat_degree (ne_zero ha), with_top.coe_one],
-    rw [←degree_X_sub_C a],
+    rw [←degree_eq_nat_degree (ne_zero ha), with_top.coe_one, ←degree_X_sub_C a],
     refine degree_le_of_monic ha (monic_X_sub_C a) _,
     simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self] },
   have hdeg : (minimal_polynomial ha).degree = 1,

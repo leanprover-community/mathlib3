@@ -160,9 +160,7 @@ lemma lt_trichotomy [linear_order α] (A B : finset.colex α) :
   A < B ∨ A = B ∨ B < A :=
 begin
   by_cases h₁ : (A = B),
-  { right,
-    left,
-    assumption  },
+  { tauto },
   rcases (exists_max_image (A \ B ∪ B \ A) id _) with ⟨k, hk, z⟩,
   { simp only [mem_union, mem_sdiff] at hk,
     cases hk,

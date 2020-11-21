@@ -49,18 +49,18 @@ def comm_semiring.perfection (R : Type u) [comm_semiring R]
 /-- The perfection of a ring `R` with characteristic `p`,
 defined to be the projective limit of `R` using the Frobenius maps `R → R`
 indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 1) ^ p = f n }`. -/
-def perfection (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime] [char_p R p] :
+def ring.perfection (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime] [char_p R p] :
   subring (ℕ → R) :=
 { neg_mem' := λ f hf n, (frobenius_neg R p _).trans $ congr_arg _ (hf n),
   .. comm_semiring.perfection R p }
 
-namespace perfection
+namespace ring.perfection
 
 variables (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime] [char_p R p]
 include hp
 
 /-- The `n`-th coefficient of an element of the perfection. -/
-def coeff (n : ℕ) : perfection R p →+* R :=
+def coeff (n : ℕ) : ring.perfection R p →+* R :=
 { to_fun := λ f, f.1 n,
   map_one' := rfl,
   map_mul' := λ f g, rfl,
@@ -69,13 +69,13 @@ def coeff (n : ℕ) : perfection R p →+* R :=
 
 variables {R p}
 
-@[ext] lemma ext {f g : perfection R p} (h : ∀ n, coeff R p n f = coeff R p n g) : f = g :=
+@[ext] lemma ext {f g : ring.perfection R p} (h : ∀ n, coeff R p n f = coeff R p n g) : f = g :=
 subtype.eq $ funext h
 
 variables (R p)
 
 /-- The `p`-th root of an element of the perfection. -/
-def pth_root : perfection R p →+* perfection R p :=
+def pth_root : ring.perfection R p →+* ring.perfection R p :=
 { to_fun := λ f, ⟨λ n, coeff R p (n + 1) f, λ n, f.2 _⟩,
   map_one' := rfl,
   map_mul' := λ f g, rfl,
@@ -84,15 +84,15 @@ def pth_root : perfection R p →+* perfection R p :=
 
 variables {R p}
 
-lemma coeff_pth_root (f : perfection R p) (n : ℕ) :
+lemma coeff_pth_root (f : ring.perfection R p) (n : ℕ) :
   coeff R p n (pth_root R p f) = coeff R p (n + 1) f :=
 rfl
 
-lemma coeff_pow_p (f : perfection R p) (n : ℕ) :
+lemma coeff_pow_p (f : ring.perfection R p) (n : ℕ) :
   coeff R p (n + 1) (f ^ p) = coeff R p n f :=
 by { rw ring_hom.map_pow, exact f.2 n }
 
-lemma coeff_frobenius (f : perfection R p) (n : ℕ) :
+lemma coeff_frobenius (f : ring.perfection R p) (n : ℕ) :
   coeff R p (n + 1) (frobenius _ p f) = coeff R p n f :=
 by convert coeff_pow_p f n
 
@@ -105,15 +105,15 @@ ring_hom.ext $ λ x, ext $ λ n,
 by rw [ring_hom.comp_apply, ring_hom.id_apply, ring_hom.map_frobenius, coeff_pth_root,
     ← ring_hom.map_frobenius, coeff_frobenius]
 
-lemma coeff_add_ne_zero {f : perfection R p} {n : ℕ} (hfn : coeff R p n f ≠ 0) (k : ℕ) :
+lemma coeff_add_ne_zero {f : ring.perfection R p} {n : ℕ} (hfn : coeff R p n f ≠ 0) (k : ℕ) :
   coeff R p (n + k) f ≠ 0 :=
 nat.rec_on k hfn $ λ k ih h, ih $ by erw [← coeff_pow_p, ring_hom.map_pow, h, zero_pow hp.pos]
 
-lemma coeff_ne_zero_of_le {f : perfection R p} {m n : ℕ} (hfm : coeff R p m f ≠ 0)
+lemma coeff_ne_zero_of_le {f : ring.perfection R p} {m n : ℕ} (hfm : coeff R p m f ≠ 0)
   (hmn : m ≤ n) : coeff R p n f ≠ 0 :=
 let ⟨k, hk⟩ := nat.exists_eq_add_of_le hmn in hk.symm ▸ coeff_add_ne_zero hfm k
 
-end perfection
+end ring.perfection
 
 section perfectoid
 
@@ -235,14 +235,14 @@ end mod_p
 include hp hvp
 /-- Perfection of `O/(p)` where `O` is the ring of integers of `K`. -/
 @[nolint has_inhabited_instance] def pre_tilt :=
-perfection (mod_p K v O hv p) p
+ring.perfection (mod_p K v O hv p) p
 
 namespace pre_tilt
 
 section classical
 local attribute [instance] classical.dec
 
-open perfection
+open ring.perfection
 
 /-- The valuation `Perfection(O/(p)) → ℝ≥0` as a function.
 Given `f ∈ Perfection(O/(p))`, if `f = 0` then output `0`;
@@ -287,8 +287,8 @@ lemma val_aux_mul (f g : pre_tilt K v O hv p) :
 begin
   by_cases hf : f = 0, { rw [hf, zero_mul, val_aux_zero, zero_mul] },
   by_cases hg : g = 0, { rw [hg, mul_zero, val_aux_zero, mul_zero] },
-  replace hf : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf $ perfection.ext h),
-  replace hg : ∃ n, coeff _ _ n g ≠ 0 := not_forall.1 (λ h, hg $ perfection.ext h),
+  replace hf : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf $ ring.perfection.ext h),
+  replace hg : ∃ n, coeff _ _ n g ≠ 0 := not_forall.1 (λ h, hg $ ring.perfection.ext h),
   obtain ⟨m, hm⟩ := hf, obtain ⟨n, hn⟩ := hg,
   replace hm := coeff_ne_zero_of_le hm (le_max_left m n),
   replace hn := coeff_ne_zero_of_le hn (le_max_right m n),
@@ -305,9 +305,9 @@ begin
   by_cases hf : f = 0, { rw [hf, zero_add, val_aux_zero, max_eq_right], exact zero_le _ },
   by_cases hg : g = 0, { rw [hg, add_zero, val_aux_zero, max_eq_left], exact zero_le _ },
   by_cases hfg : f + g = 0, { rw [hfg, val_aux_zero], exact zero_le _ },
-  replace hf : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf $ perfection.ext h),
-  replace hg : ∃ n, coeff _ _ n g ≠ 0 := not_forall.1 (λ h, hg $ perfection.ext h),
-  replace hfg : ∃ n, coeff _ _ n (f + g) ≠ 0 := not_forall.1 (λ h, hfg $ perfection.ext h),
+  replace hf : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf $ ring.perfection.ext h),
+  replace hg : ∃ n, coeff _ _ n g ≠ 0 := not_forall.1 (λ h, hg $ ring.perfection.ext h),
+  replace hfg : ∃ n, coeff _ _ n (f + g) ≠ 0 := not_forall.1 (λ h, hfg $ ring.perfection.ext h),
   obtain ⟨m, hm⟩ := hf, obtain ⟨n, hn⟩ := hg, obtain ⟨k, hk⟩ := hfg,
   replace hm := coeff_ne_zero_of_le hm (le_trans (le_max_left m n) (le_max_left _ k)),
   replace hn := coeff_ne_zero_of_le hn (le_trans (le_max_right m n) (le_max_left _ k)),
@@ -334,7 +334,7 @@ variables {K v O hv p}
 lemma map_eq_zero {f : pre_tilt K v O hv p} : val K v O hv p f = 0 ↔ f = 0 :=
 begin
   by_cases hf0 : f = 0, { rw hf0, exact iff_of_true (valuation.map_zero _) rfl },
-  obtain ⟨n, hn⟩ : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf0 $ perfection.ext h),
+  obtain ⟨n, hn⟩ : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf0 $ ring.perfection.ext h),
   show val_aux K v O hv p f = 0 ↔ f = 0, refine iff_of_false (λ hvf, hn _) hf0,
   rw val_aux_eq hn at hvf, replace hvf := nnreal.pow_eq_zero hvf, rwa mod_p.pre_val_eq_zero at hvf
 end

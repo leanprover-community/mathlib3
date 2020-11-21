@@ -9,10 +9,10 @@ import data.polynomial.erase_lead
 import data.polynomial.cancel_leads
 
 /-!
-# Gauss's Lemma, and GCD structures on polynomials
+# GCD structures on polynomials
 
-Gauss's Lemma is one of a few results pertaining to `gcd`s and irreducibility in polynomials over
-GCD domains.
+Definitions and basic results about polynomials over GCD domains, particularly their contents
+and primitive polynomials.
 
 ## Main Definitions
 Let `p : polynomial R`.
@@ -20,7 +20,10 @@ Let `p : polynomial R`.
  - `p.is_primitive` indicates that `p.content = 1`.
 
 ## Main Results
- - If `p q : polynomial R`, then `(p * q).content = p.content * q.content`.
+ - `polynomial.content_mul`:
+  If `p q : polynomial R`, then `(p * q).content = p.content * q.content`.
+ - `polynomial.gcd_monoid`:
+  The polynomial ring of a GCD domain is itself a GCD domain.
 
 -/
 
@@ -345,6 +348,15 @@ begin
     p.eq_C_content_mul_prim_part, q.eq_C_content_mul_prim_part] },
   rw [content_mul, ring_hom.map_mul],
   ring,
+end
+
+lemma is_primitive.is_primitive_of_dvd {p q : polynomial R} (hp : p.is_primitive) (hdvd : q ∣ p) :
+  q.is_primitive :=
+begin
+  rcases hdvd with ⟨r, rfl⟩,
+  rw [is_primitive, ← normalize_content, normalize_eq_one, is_unit_iff_dvd_one],
+  apply dvd.intro r.content,
+  rwa [is_primitive, content_mul] at hp,
 end
 
 lemma is_primitive.dvd_prim_part_iff_dvd {p q : polynomial R}

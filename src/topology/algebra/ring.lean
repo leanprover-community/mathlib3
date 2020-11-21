@@ -106,7 +106,11 @@ instance topological_ring_quotient : topological_ring N.quotient :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst + p.snd)) :=
       continuous_quot_mk.comp continuous_add,
     (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont,
-  continuous_neg := continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg),
+  continuous_neg :=
+  begin
+    convert continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg),
+    apply_instance,
+  end,
   continuous_mul :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst * p.snd)) :=
       continuous_quot_mk.comp continuous_mul,

@@ -126,7 +126,7 @@ begin
   ring
 end
 
-/--A minimal polynomial is not a unit.-/
+/-- A minimal polynomial is not a unit. -/
 lemma not_is_unit : ¬ is_unit (minimal_polynomial hx) :=
 assume H, (ne_of_lt (degree_pos hx)).symm $ degree_eq_zero_of_is_unit H
 

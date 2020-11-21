@@ -75,19 +75,22 @@ instance [has_lt α] : has_lt (finset.colex α) :=
 instance [has_lt α] : has_le (finset.colex α) :=
 ⟨λ A B, A < B ∨ A = B⟩
 
-/-- The colex ordering on finsets. -/
+-- You can just delete the def of colex.lt and le
+-- In the partial order instance just replace it with the def there
+
+/-/-- The colex ordering on finsets. -/
 def colex.lt [has_lt α] (A B : finset α) : Prop := A.to_colex < B.to_colex
 /-- The colex ordering on finsets. -/
 def colex.le [has_lt α] (A B : finset α) : Prop := A.to_colex ≤ B.to_colex
 
 infix ` <ᶜ `:50 := colex.lt
-infix ` ≤ᶜ `:50 := colex.le
+infix ` ≤ᶜ `:50 := colex.le-/
 
-lemma colex.lt_def [has_lt α] (A B : finset α) :
-  A <ᶜ B ↔ ∃ k, (∀ {x}, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A ∧ k ∈ B :=
+lemma colex.lt_def [has_lt α] (A B : finset.colex α) :
+  A < B ↔ ∃ k, (∀ {x}, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A ∧ k ∈ B :=
 iff.rfl
-lemma colex.le_def [has_lt α] (A B : finset α) :
-  A ≤ᶜ B ↔ A <ᶜ B ∨ A = B :=
+lemma colex.le_def [has_lt α] (A B : finset.colex α) :
+  A ≤ B ↔ A < B ∨ A = B :=
 iff.rfl
 
 /-- If everything in A is less than k, we can bound the sum of powers. -/

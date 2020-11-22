@@ -987,7 +987,6 @@ def to_linear_ordered_add_comm_group
 
 end nonneg_add_comm_group
 
--- fine up to here
 namespace order_dual
 
 instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=

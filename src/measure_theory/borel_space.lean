@@ -271,9 +271,9 @@ end
 section preorder
 variables [preorder α] [order_closed_topology α] {a b : α}
 
-lemma is_measurable_Ici : is_measurable (Ici a) := is_closed_Ici.is_measurable
-lemma is_measurable_Iic : is_measurable (Iic a) := is_closed_Iic.is_measurable
-lemma is_measurable_Icc : is_measurable (Icc a b) := is_closed_Icc.is_measurable
+@[simp] lemma is_measurable_Ici : is_measurable (Ici a) := is_closed_Ici.is_measurable
+@[simp] lemma is_measurable_Iic : is_measurable (Iic a) := is_closed_Iic.is_measurable
+@[simp] lemma is_measurable_Icc : is_measurable (Icc a b) := is_closed_Icc.is_measurable
 
 instance nhds_within_Ici_is_measurably_generated :
   (𝓝[Ici b] a).is_measurably_generated :=
@@ -309,11 +309,15 @@ end partial_order
 section linear_order
 variables [linear_order α] [order_closed_topology α] {a b : α}
 
-lemma is_measurable_Iio : is_measurable (Iio a) := is_open_Iio.is_measurable
-lemma is_measurable_Ioi : is_measurable (Ioi a) := is_open_Ioi.is_measurable
-lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_open_Ioo.is_measurable
-lemma is_measurable_Ioc : is_measurable (Ioc a b) := is_measurable_Ioi.inter is_measurable_Iic
-lemma is_measurable_Ico : is_measurable (Ico a b) := is_measurable_Ici.inter is_measurable_Iio
+@[simp] lemma is_measurable_Iio : is_measurable (Iio a) := is_open_Iio.is_measurable
+@[simp] lemma is_measurable_Ioi : is_measurable (Ioi a) := is_open_Ioi.is_measurable
+@[simp] lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_open_Ioo.is_measurable
+
+@[simp] lemma is_measurable_Ioc : is_measurable (Ioc a b) :=
+is_measurable_Ioi.inter is_measurable_Iic
+
+@[simp] lemma is_measurable_Ico : is_measurable (Ico a b) :=
+is_measurable_Ici.inter is_measurable_Iio
 
 instance nhds_within_Ioi_is_measurably_generated :
   (𝓝[Ioi b] a).is_measurably_generated :=

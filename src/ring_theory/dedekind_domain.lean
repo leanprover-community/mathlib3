@@ -118,21 +118,21 @@ noncomputable instance fractional_ideal_has_div :
   has_div (fractional_ideal g) :=
 ⟨ λ I J, if h : J = 0 then 0 else ⟨I.1 / J.1, fractional_ideal.fractional_div_of_nonzero h⟩ ⟩
 
-variables {I J : fractional_ideal g} [ J ≠ 0 ]
+variables {I J : fractional_ideal g} [ fact(J ≠ 0) ]
 
 noncomputable instance : has_inv (fractional_ideal g) := ⟨λ I, 1 / I⟩
 
-lemma inv_eq {I : fractional_ideal g} : I⁻¹ = 1 / I := rfl
+lemma inv_eq : I⁻¹ = 1 / I := rfl
 
 lemma inv_zero' : (0 : fractional_ideal g)⁻¹ = 0 := fractional_ideal.div_zero
 
-lemma inv_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
-  I⁻¹ = ⟨(1 : fractional_ideal g) / I, fractional_ideal.fractional_div_of_nonzero h⟩ :=
-fractional_ideal.div_nonzero h
+lemma inv_nonzero {J : fractional_ideal g} (h : J ≠ 0) :
+J⁻¹ = ⟨(1 : fractional_ideal g) / J, fractional_ideal.fractional_div_of_nonzero h⟩ :=
+fractional_ideal.div_nonzero _
 
-lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
-  (↑I⁻¹ : submodule R₁ g.codomain) = g.coe_submodule 1 / I :=
-sorry--by { rw inv_nonzero h, refl }
+lemma coe_inv_of_nonzero {J : fractional_ideal g} (h : J ≠ 0) :
+  (↑J⁻¹ : submodule R₁ g.codomain) = g.coe_submodule 1 / J :=
+by { rwa inv_nonzero _, refl, assumption}
 
 /-- `I⁻¹` is the inverse of `I` if `I` has an inverse. -/
 theorem right_inverse_eq (I J : fractional_ideal g) (h : I * J = 1) :
@@ -157,13 +157,17 @@ end
 
 theorem mul_inv_cancel_iff {I : fractional_ideal g} :
   I * I⁻¹ = 1 ↔ ∃ J, I * J = 1 :=
-sorry--⟨λ h, ⟨I⁻¹, h⟩, λ ⟨J, hJ⟩, by rwa [← right_inverse_eq I J hJ]⟩
+⟨λ h, ⟨I⁻¹, h⟩, λ ⟨J, hJ⟩, by rwa [← @right_inverse_eq _ _ _ _ _ I J hJ]⟩
 
 variables {K' : Type*} [field K'] {g' : fraction_map R₁ K'}
 
 @[simp] lemma map_inv (I : fractional_ideal g) (h : g.codomain ≃ₐ[R₁] g'.codomain) :
   (I⁻¹).map (h : g.codomain →ₐ[R₁] g'.codomain) = (I.map h)⁻¹ :=
-sorry--by rw [fractional_ideal.inv_eq, fractional_ideal.map_div, fractional_ideal.map_one,
+begin
+  rw fractional_ideal.inv_eq,
+end
+
+--sorry--by rw [fractional_ideal.inv_eq, fractional_ideal.map_div, fractional_ideal.map_one,
     --fractional_ideal.inv_eq]
 
 open_locale classical

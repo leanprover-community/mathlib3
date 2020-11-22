@@ -48,16 +48,7 @@ All sets in the union have size `r` iff both sets individually have this
 property.
 -/
 lemma union_layer [decidable_eq α] {A B : finset (finset α)} :
-  all_sized A r ∧ all_sized B r ↔ all_sized (A ∪ B) r :=
-begin
-  split; intros p,
-  { rw all_sized,
-    intros,
-    rw mem_union at H,
-    exact H.elim (p.1 _) (p.2 _) },
-  { split,
-    all_goals {rw all_sized, intros, apply p, rw mem_union, tauto} },
-end
+  all_sized A r ∧ all_sized B r ↔ all_sized (A ∪ B) r := finset.forall_mem_union
 
 
 lemma mem_powerset_len_iff_card [fintype α] {r : ℕ} : ∀ (x : finset α),

@@ -954,18 +954,6 @@ begin
     exact mul_mem_mul (mem_span_singleton.mpr ⟨1, one_smul _ _⟩) hy' }
 end
 
-lemma mul_generator_self_inv (I : fractional_ideal g)
-  [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
-  I * span_singleton (generator (I : submodule R₁ g.codomain))⁻¹ = 1 :=
-begin
-  -- Rewrite only the `I` that appears alone.
-  conv_lhs { congr, rw eq_span_singleton_of_principal I },
-  rw [span_singleton_mul_span_singleton, mul_inv_cancel, span_singleton_one],
-  intro generator_I_eq_zero,
-  apply h,
-  rw [eq_span_singleton_of_principal I, generator_I_eq_zero, span_singleton_zero]
-end
-
 lemma one_div_span_singleton (x : g.codomain) :
   1 / span_singleton x = span_singleton (x⁻¹) :=
 begin

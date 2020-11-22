@@ -45,7 +45,8 @@ universe u
 
 open ideal local_ring
 
-/-- An integral domain is a discrete valuation ring if it's a local PID which is not a field -/
+/-- An integral domain is a *discrete valuation ring* (DVR) if it's a local PID which
+  is not a field -/
 class discrete_valuation_ring (R : Type u) [integral_domain R]
   extends is_principal_ideal_ring R, local_ring R : Prop :=
 (not_a_field' : maximal_ideal R ≠ ⊥)
@@ -169,7 +170,7 @@ begin
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
 end
 
-/-- Implementation detail: an integral domain in which there is a unit `p`
+/-- Implementation detail: an integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p` is a unique factorization domain.
 See `discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization`. -/
 theorem ufd : unique_factorization_monoid R :=
@@ -286,7 +287,7 @@ begin
 end
 
 /--
-An integral domain in which there is a unit `p`
+An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p`
 is a discrete valuation ring.
 -/

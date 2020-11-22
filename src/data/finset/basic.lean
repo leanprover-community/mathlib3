@@ -397,8 +397,7 @@ finset.induction h₁ h₂ s
 theorem induction_on' {α : Type*} {p : finset α → Prop} [decidable_eq α]
   (S : finset α) (h₁ : p ∅) (h₂ : ∀ {a ∈ S} {s ⊆ S}, a ∉ s → p s → p (insert a s)) : p S :=
 @finset.induction_on α (λ T, T ⊆ S → p T) _ S (λ _, h₁) (λ a s has hqs hs,
-  (@h₂ a (finset.insert_subset.1 hs).1 s (finset.insert_subset.1 hs).2
-  has (hqs (finset.insert_subset.1 hs).2))) (finset.subset.refl S)
+  let ⟨hS, sS⟩ := finset.insert_subset.1 hs in @h₂ a hS s sS has (hqs sS)) (finset.subset.refl S)
 
 /-- Inserting an element to a finite set is equivalent to the option type. -/
 def subtype_insert_equiv_option {t : finset α} {x : α} (h : x ∉ t) :

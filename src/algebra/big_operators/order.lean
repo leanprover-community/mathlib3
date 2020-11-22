@@ -37,7 +37,7 @@ le_sum_of_subadditive _ abs_zero abs_add s f
 
 lemma abs_prod [linear_ordered_comm_ring α] {f : β → α} {s : finset β} :
   abs (∏ x in s, f x) = ∏ x in s, abs (f x) :=
-(abs_hom : α →* α).map_prod _ _
+(abs_hom.to_monoid_hom : α →* α).map_prod _ _
 
 section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]

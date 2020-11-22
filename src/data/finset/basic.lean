@@ -824,6 +824,18 @@ begin
   exact ⟨hy.1, λ hxy, h $ hxy ▸ hy.1, hy.2⟩
 end
 
+@[simp] lemma insert_sdiff_insert (s t : finset α) (x : α) :
+  (insert x s) \ (insert x t) = s \ insert x t :=
+insert_sdiff_of_mem _ (mem_insert_self _ _)
+
+lemma sdiff_insert_of_not_mem {s : finset α} {x : α} (h : x ∉ s) (t : finset α) :
+  s \ (insert x t) = s \ t :=
+begin
+  refine subset.antisymm (sdiff_subset_sdiff (subset.refl _) (subset_insert _ _)) (λ y hy, _),
+  simp only [mem_sdiff, mem_insert, not_or_distrib] at hy ⊢,
+  exact ⟨hy.1, λ hxy, h $ hxy ▸ hy.1, hy.2⟩
+end
+
 @[simp] lemma sdiff_subset (s t : finset α) : s \ t ⊆ s :=
 by simp [subset_iff, mem_sdiff] {contextual := tt}
 

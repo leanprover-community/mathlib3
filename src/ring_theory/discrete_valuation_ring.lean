@@ -46,7 +46,7 @@ universe u
 open ideal local_ring
 
 /-- An integral domain is a *discrete valuation ring* (DVR) if it's a local PID which
-  is not a field -/
+  is not a field. -/
 class discrete_valuation_ring (R : Type u) [integral_domain R]
   extends is_principal_ideal_ring R, local_ring R : Prop :=
 (not_a_field' : maximal_ideal R ≠ ⊥)

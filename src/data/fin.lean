@@ -171,8 +171,6 @@ lemma coe_one' {n : ℕ} : ((1 : fin (n+1)) : ℕ) = 1 % (n+1) := rfl
 
 @[simp] lemma mk_one : (⟨1, nat.succ_lt_succ (nat.succ_pos n)⟩ : fin (n + 2)) = (1 : fin _) := rfl
 
-@[simp] lemma default_fin_one : default (fin 1) = 0 := by simp
-
 section bit
 
 @[simp] lemma mk_bit0 {m n : ℕ} (h : bit0 m < n) :

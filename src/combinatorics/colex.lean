@@ -65,7 +65,7 @@ use the colex ordering rather than the subset ordering.
 def finset.to_colex {α} (s : finset α) : finset.colex α := s
 
 @[simp]
-lemma colex.eq_iff [has_lt α] (A B : finset α) :
+lemma colex.eq_iff (A B : finset α) :
   A.to_colex = B.to_colex ↔ A = B := by refl
 
 /--

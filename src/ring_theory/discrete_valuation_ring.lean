@@ -33,7 +33,6 @@ Let R be an integral domain, assumed to be a principal ideal ring and a local ri
 It's a theorem that an element of a DVR is a uniformizer if and only if it's irreducible.
 We do not hence define `uniformizer` at all, because we can use `irreducible` instead.
 
-
 ## Tags
 
 discrete valuation ring
@@ -45,7 +44,8 @@ universe u
 
 open ideal local_ring
 
-/-- An integral domain is a discrete valuation ring if it's a local PID which is not a field -/
+/-- An integral domain is a *discrete valuation ring* (DVR) if it's a local PID which
+  is not a field. -/
 class discrete_valuation_ring (R : Type u) [integral_domain R]
   extends is_principal_ideal_ring R, local_ring R : Prop :=
 (not_a_field' : maximal_ideal R ≠ ⊥)
@@ -139,12 +139,12 @@ namespace discrete_valuation_ring
 variable (R : Type*)
 
 /-- Alternative characterisation of discrete valuation rings. -/
-def has_unit_mul_pow_irreducible_factorization [integral_domain R] : Prop :=
+def has_irreducible_mul_pow_irreducible_factorization [integral_domain R] : Prop :=
 ∃ p : R, irreducible p ∧ ∀ {x : R}, x ≠ 0 → ∃ (n : ℕ), associated (p ^ n) x
 
-namespace has_unit_mul_pow_irreducible_factorization
+namespace has_irreducible_mul_pow_irreducible_factorization
 
-variables {R} [integral_domain R] (hR : has_unit_mul_pow_irreducible_factorization R)
+variables {R} [integral_domain R] (hR : has_irreducible_mul_pow_irreducible_factorization R)
 include hR
 
 lemma unique_irreducible ⦃p q : R⦄ (hp : irreducible p) (hq : irreducible q) :
@@ -169,9 +169,9 @@ begin
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
 end
 
-/-- Implementation detail: an integral domain in which there is a unit `p`
+/-- Implementation detail: an integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p` is a unique factorization domain.
-See `discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization`. -/
+See `discrete_valuation_ring.of_has_irreducible_mul_pow_irreducible_factorization`. -/
 theorem ufd : unique_factorization_monoid R :=
 let p := classical.some hR in
 let spec := classical.some_spec hR in
@@ -204,7 +204,7 @@ omit hR
 lemma of_ufd_of_unique_irreducible [unique_factorization_monoid R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
-  has_unit_mul_pow_irreducible_factorization R :=
+  has_irreducible_mul_pow_irreducible_factorization R :=
 begin
   obtain ⟨p, hp⟩ := h₁,
   refine ⟨p, hp, _⟩,
@@ -224,7 +224,7 @@ begin
   apply h₂ (hfx.1 _ hq) hp,
 end
 
-end has_unit_mul_pow_irreducible_factorization
+end has_irreducible_mul_pow_irreducible_factorization
 
 lemma aux_pid_of_ufd_of_unique_irreducible
   (R : Type u) [integral_domain R] [unique_factorization_monoid R]
@@ -237,7 +237,7 @@ begin
   by_cases I0 : I = ⊥, { rw I0, use 0, simp only [set.singleton_zero, submodule.span_zero], },
   obtain ⟨x, hxI, hx0⟩ : ∃ x ∈ I, x ≠ (0:R) := I.ne_bot_iff.mp I0,
   obtain ⟨p, hp, H⟩ :=
-    has_unit_mul_pow_irreducible_factorization.of_ufd_of_unique_irreducible h₁ h₂,
+    has_irreducible_mul_pow_irreducible_factorization.of_ufd_of_unique_irreducible h₁ h₂,
   have ex : ∃ n : ℕ, p ^ n ∈ I,
   { obtain ⟨n, u, rfl⟩ := H hx0,
     refine ⟨n, _⟩,
@@ -286,12 +286,12 @@ begin
 end
 
 /--
-An integral domain in which there is a unit `p`
+An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p`
 is a discrete valuation ring.
 -/
-lemma of_has_unit_mul_pow_irreducible_factorization {R : Type u} [integral_domain R]
-  (hR : has_unit_mul_pow_irreducible_factorization R) :
+lemma of_has_irreducible_mul_pow_irreducible_factorization {R : Type u} [integral_domain R]
+  (hR : has_irreducible_mul_pow_irreducible_factorization R) :
   discrete_valuation_ring R :=
 begin
   letI : unique_factorization_monoid R := hR.ufd,

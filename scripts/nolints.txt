@@ -876,11 +876,6 @@ apply_nolint tactic.local_cache.internal.save_data doc_blame unused_arguments
 -- tactic/localized.lean
 apply_nolint localized_attr doc_blame
 
--- tactic/mk_iff_of_inductive_prop.lean
-apply_nolint tactic.constr_to_prop doc_blame
-apply_nolint tactic.mk_iff doc_blame
-apply_nolint tactic.select doc_blame
-
 -- tactic/monotonicity/basic.lean
 apply_nolint tactic.interactive.compare doc_blame
 apply_nolint tactic.interactive.filter_instances doc_blame
@@ -953,9 +948,6 @@ apply_nolint tactic.interactive.same_function_aux doc_blame
 apply_nolint tactic.interactive.side_conditions doc_blame
 apply_nolint tactic.interactive.solve_mvar doc_blame
 apply_nolint tactic.interactive.unify_with_instance doc_blame
-
--- tactic/norm_num.lean
-apply_nolint norm_num.derive doc_blame
 
 -- tactic/obviously.lean
 apply_nolint obviously.attr doc_blame

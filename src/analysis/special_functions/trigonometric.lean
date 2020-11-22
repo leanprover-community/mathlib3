@@ -307,7 +307,7 @@ namespace real
 variables {x y z : ℝ}
 
 lemma has_deriv_at_sin (x : ℝ) : has_deriv_at sin (cos x) x :=
-has_deriv_at_real_of_complex (complex.has_deriv_at_sin x)
+(complex.has_deriv_at_sin x).real_of_complex
 
 lemma differentiable_sin : differentiable ℝ sin :=
 λx, (has_deriv_at_sin x).differentiable_at
@@ -324,7 +324,7 @@ differentiable_sin.continuous
 lemma measurable_sin : measurable sin := continuous_sin.measurable
 
 lemma has_deriv_at_cos (x : ℝ) : has_deriv_at cos (-sin x) x :=
-(has_deriv_at_real_of_complex (complex.has_deriv_at_cos x) : _)
+(complex.has_deriv_at_cos x).real_of_complex
 
 lemma differentiable_cos : differentiable ℝ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
@@ -346,7 +346,7 @@ lemma continuous_on_cos {s} : continuous_on cos s := continuous_cos.continuous_o
 lemma measurable_cos : measurable cos := continuous_cos.measurable
 
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
-has_deriv_at_real_of_complex (complex.has_deriv_at_sinh x)
+(complex.has_deriv_at_sinh x).real_of_complex
 
 lemma differentiable_sinh : differentiable ℝ sinh :=
 λx, (has_deriv_at_sinh x).differentiable_at
@@ -363,7 +363,7 @@ differentiable_sinh.continuous
 lemma measurable_sinh : measurable sinh := continuous_sinh.measurable
 
 lemma has_deriv_at_cosh (x : ℝ) : has_deriv_at cosh (sinh x) x :=
-has_deriv_at_real_of_complex (complex.has_deriv_at_cosh x)
+(complex.has_deriv_at_cosh x).real_of_complex
 
 lemma differentiable_cosh : differentiable ℝ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
@@ -1445,7 +1445,6 @@ if hx₁ : 0 ≤ x.re
 then by rw [arg, if_pos hx₁];
   exact le_trans (real.arcsin_le_pi_div_two _) (le_of_lt (half_lt_self real.pi_pos))
 else
-  have hx : x ≠ 0, from λ h, by simpa [h, lt_irrefl] using hx₁,
   if hx₂ : 0 ≤ x.im
   then by rw [arg, if_neg hx₁, if_pos hx₂];
     exact le_sub_iff_add_le.1 (by rw sub_self;
@@ -1809,13 +1808,13 @@ begin
         neg_eq_neg_one_mul (exp (-θ * I)), ← div_eq_iff (exp_ne_zero (-θ * I)), ← exp_sub],
     field_simp, ring },
   rw [cos, h, ← exp_pi_mul_I, exp_eq_exp_iff_exists_int],
-  split; simp; intros; use x,
-  { field_simp, ring at a,
+  split; simp; intros x h2; use x,
+  { field_simp, ring at h2,
     rwa [mul_right_comm 2 I θ, mul_right_comm (2*(x:ℂ)+1) I (π:ℂ), mul_left_inj' I_ne_zero,
-        mul_comm 2 θ] at a },
-  { field_simp at a, ring,
+        mul_comm 2 θ] at h2},
+  { field_simp at h2, ring,
     rw [mul_right_comm 2 I θ, mul_right_comm (2*(x:ℂ)+1) I (π:ℂ), mul_left_inj' I_ne_zero,
-        mul_comm 2 θ, a] },
+        mul_comm 2 θ, h2] },
 end
 
 theorem cos_ne_zero_iff {θ : ℂ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
@@ -1991,7 +1990,7 @@ end
 lemma has_deriv_at_tan {x : ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) :
   has_deriv_at tan (1 / (cos x)^2) x :=
 begin
-  convert has_deriv_at_real_of_complex (complex.has_deriv_at_tan (by { convert h, norm_cast } )),
+  convert (complex.has_deriv_at_tan (by { convert h, norm_cast } )).real_of_complex,
   rw ← complex.of_real_re (1/((cos x)^2)),
   simp,
 end

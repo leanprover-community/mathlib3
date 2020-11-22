@@ -77,16 +77,18 @@ end
 end writer_t
 
 
-/-- An implementation of [MonadReader](https://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-Reader-Class.html#t:MonadReader).
-    It does not contain `local` because this function cannot be lifted using `monad_lift`.
-    Instead, the `monad_reader_adapter` class provides the more general `adapt_reader` function.
+/--
+An implementation of [MonadReader](
+https://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-Reader-Class.html#t:MonadReader).
+It does not contain `local` because this function cannot be lifted using `monad_lift`.
+Instead, the `monad_reader_adapter` class provides the more general `adapt_reader` function.
 
-    Note: This class can be seen as a simplification of the more "principled" definition
-    ```
-    class monad_reader (ρ : out_param (Type u)) (n : Type u → Type u) :=
-    (lift {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α) → n α)
-    ```
-    -/
+Note: This class can be seen as a simplification of the more "principled" definition
+```
+class monad_reader (ρ : out_param (Type u)) (n : Type u → Type u) :=
+(lift {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α) → n α)
+```
+-/
 class monad_writer (ω : out_param (Type u)) (m : Type u → Type v) :=
 (tell (w : ω) : m punit)
 (listen {α} : m α → m (α × ω))

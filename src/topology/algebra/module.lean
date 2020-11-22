@@ -283,6 +283,7 @@ end
 
 instance : has_one (M →L[R] M) := ⟨id R M⟩
 
+lemma one_def : (1 : M →L[R] M) = id R M := rfl
 lemma id_apply : id R M x = x := rfl
 @[simp, norm_cast] lemma coe_id : (id R M : M →ₗ[R] M) = linear_map.id := rfl
 @[simp, norm_cast] lemma coe_id' : (id R M : M → M) = _root_.id := rfl
@@ -691,8 +692,8 @@ algebra.of_semimodule' (λ c f, ext $ λ x, rfl) (λ c f, ext $ λ x, f.map_smul
 sending `f` to `λ e, c e • f`. See also `continuous_linear_map.smul_rightL`. -/
 def smul_rightₗ (c : M →L[R] R) : M₂ →ₗ[R] (M →L[R] M₂) :=
 { to_fun := c.smul_right,
-  map_add' := λ x y, by { ext e, simp [smul_add] },
-  map_smul' := λ a x, by { ext e, simp [smul_comm] } }
+  map_add' := λ x y, by { ext e, apply smul_add },
+  map_smul' := λ a x, by { ext e, apply smul_comm } }
 
 end comm_ring
 
@@ -768,14 +769,14 @@ protected lemma continuous_within_at (e : M ≃L[R] M₂) {s : set M} {x : M} :
 e.continuous.continuous_within_at
 
 lemma comp_continuous_on_iff
-  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) (s : set α) :
+  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) {f : α → M} {s : set α} :
   continuous_on (e ∘ f) s ↔ continuous_on f s :=
 e.to_homeomorph.comp_continuous_on_iff _ _
 
 lemma comp_continuous_iff
-  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) :
+  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) {f : α → M} :
   continuous (e ∘ f) ↔ continuous f :=
-e.to_homeomorph.comp_continuous_iff _
+e.to_homeomorph.comp_continuous_iff
 
 /-- An extensionality lemma for `R ≃L[R] M`. -/
 lemma ext₁ [topological_space R] {f g : R ≃L[R] M} (h : f 1 = g 1) : f = g :=

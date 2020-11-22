@@ -77,7 +77,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
     fintype.pi_finset_univ]; rw [finset.sum_comm]
 ... = ∑ p in (@univ (n → n) _).filter bijective, ∑ σ : perm n,
     ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
-  eq.symm $ sum_subset (filter_subset _)
+  eq.symm $ sum_subset (filter_subset _ _)
     (λ f _ hbij, det_mul_aux $ by simpa using hbij)
 ... = ∑ τ : perm n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (τ i) * N (τ i) i) :
   sum_bij (λ p h, equiv.of_bijective p (mem_filter.1 h).2) (λ _ _, mem_univ _)

@@ -339,15 +339,4 @@ begin
   exact sum_lt_top_iff
 end
 
-open opposite
-
-/-- Moving to the opposite additive commutative monoid commutes with summing. -/
-@[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
-  op (∑ x in s, f x) = ∑ x in s, op (f x) :=
-(@op_add_hom β _).map_sum _ _
-
-@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵒᵖ) :
-  unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
-(@unop_add_hom β _).map_sum _ _
-
 end with_top

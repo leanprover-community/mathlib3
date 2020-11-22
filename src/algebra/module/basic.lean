@@ -3,9 +3,12 @@ Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
-import group_theory.group_action
-import tactic.nth_rewrite
+import algebra.big_operators.basic
 import algebra.group.hom
+import algebra.ring.basic
+import data.rat.cast
+import group_theory.group_action.group
+import tactic.nth_rewrite
 
 /-!
 # Modules over a ring
@@ -59,6 +62,8 @@ variables (R)
 @[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
+
+theorem two_smul' : (2 : R) • x = bit0 x := two_smul R x
 
 /-- Pullback a `semimodule` structure along an injective additive monoid homomorphism. -/
 protected def function.injective.semimodule [add_comm_monoid M₂] [has_scalar R M₂] (f : M₂ →+ M)

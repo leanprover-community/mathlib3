@@ -275,9 +275,9 @@ begin
   -- If F contains a closed set A, then x is contained in A.
   have claim1 : ∀ (A : set X), is_closed A → A ∈ F.1 → x ∈ A,
   { intros A hA h,
-    by_contradiction,
+    by_contradiction H,
     rw le_nhds_iff at cond,
-    specialize cond Aᶜ a hA,
+    specialize cond Aᶜ H hA,
     rw ultrafilter_iff_compl_mem_iff_not_mem.mp F.2 at cond,
     contradiction },
   -- If A ∈ F, then x ∈ cl A.
@@ -446,10 +446,11 @@ noncomputable def iso_of_topological_space {D : CompHaus} :
   Compactum_to_CompHaus.obj (Compactum.of_topological_space D) ≅ D :=
 { hom :=
   { to_fun := id,
-    continuous_to_fun := λ _ h, by {rw is_open_iff_ultrafilter' at h, exact h} },
+    continuous_to_fun := continuous_def.2 $ λ _ h, by {rw is_open_iff_ultrafilter' at h, exact h} },
   inv :=
   { to_fun := id,
-    continuous_to_fun := λ _ h1, by {rw is_open_iff_ultrafilter', intros _ h2, exact h1 _ h2} } }
+    continuous_to_fun := continuous_def.2 $
+      λ _ h1, by {rw is_open_iff_ultrafilter', intros _ h2, exact h1 _ h2} } }
 
 /-- The functor Compactum_to_CompHaus is essentially surjective. -/
 noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=

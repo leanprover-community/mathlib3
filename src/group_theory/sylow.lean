@@ -33,6 +33,9 @@ begin
       ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
 end
 
+-- This instance causes `exact card_quotient_dvd_card _` to timeout.
+local attribute [-instance] quotient_group.quotient.fintype
+
 lemma card_modeq_card_fixed_points [fintype α] [fintype G] [fintype (fixed_points G α)]
   (p : ℕ) {n : ℕ} [hp : fact p.prime] (h : card G = p ^ n) :
   card α ≡ card (fixed_points G α) [MOD p] :=
@@ -51,7 +54,7 @@ begin
         simp only [quotient.eq']; congr)),
   { refine quotient.induction_on' b (λ b _ hb, _),
     have : card (orbit G b) ∣ p ^ n,
-    { rw [← h, fintype.card_congr (orbit_equiv_quotient_stabilizer G b)];
+    { rw [← h, fintype.card_congr (orbit_equiv_quotient_stabilizer G b)],
       exact card_quotient_dvd_card _ },
     rcases (nat.dvd_prime_pow hp).1 this with ⟨k, _, hk⟩,
     have hb' :¬ p ^ 1 ∣ p ^ k,
@@ -207,7 +210,7 @@ let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 have hcard : card (quotient H) = s * p :=
   (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
       ⟨⟨1, H.one_mem⟩⟩)).1
-    (by rwa [← card_eq_card_quotient_mul_card_subgroup, hH2, hs,
+    (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH2, hs,
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
   card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
@@ -216,11 +219,7 @@ have hm : s * p % p =
 have hm' : p ∣ card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) :=
   nat.dvd_of_mod_eq_zero
     (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm),
-let ⟨x, hx⟩ := @exists_prime_order_of_dvd_card _ (quotient_group.group _) _ _ hp hm' in
-have hxcard : ∀ {f : fintype (subgroup.gpowers x)}, card (subgroup.gpowers x) = p,
-  from λ f, by rw [← hx, order_eq_card_gpowers]; congr,
-have fintype (subgroup.comap (quotient_group.mk' (comap H.normalizer.subtype H)) (gpowers x)),
-  by apply_instance,
+let ⟨x, hx⟩ := @exists_prime_order_of_dvd_card _ (quotient_group.quotient.group _) _ _ hp hm' in
 have hequiv : H ≃ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
   ⟨λ a, ⟨⟨a.1, le_normalizer a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,

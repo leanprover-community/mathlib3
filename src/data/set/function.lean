@@ -606,6 +606,11 @@ begin
   { rintro (⟨x, hx, rfl⟩|⟨x, hx, rfl⟩); use x; simp * at * }
 end
 
+lemma piecewise_mem_pi {δ : α → Type*} {t : set α} {t' : Π i, set (δ i)}
+  {f g} (hf : f ∈ pi t t') (hg : g ∈ pi t t') :
+  s.piecewise f g ∈ pi t t' :=
+by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
+
 end set
 
 lemma strict_mono_incr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}

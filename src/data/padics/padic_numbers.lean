@@ -767,7 +767,7 @@ instance : normed_field ℚ_[p] :=
 { dist_eq := λ _ _, rfl,
   norm_mul' := by simp [has_norm.norm, padic_norm_e.mul'] }
 
-instance : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
+instance is_absolute_value : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := λ _, norm_eq_zero,
   abv_add := norm_add_le,

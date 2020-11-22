@@ -136,7 +136,7 @@ section normed_field
 
 variables {α β : Type*} [normed_field β] {t u v w : α → β} {l : filter α}
 
-lemma is_equivalent_iff_exists_mul_eq : u ~[l] v ↔
+lemma is_equivalent_iff_exists_eq_mul : u ~[l] v ↔
   ∃ (φ : α → β) (hφ : tendsto φ l (𝓝 1)), u =ᶠ[l] φ * v :=
 begin
   rw [is_equivalent, is_o_iff_exists_eq_mul],
@@ -149,14 +149,14 @@ begin
   { convert h.sub (eventually_eq.refl l v); ext; simp [sub_mul] }
 end
 
-lemma is_equivalent.exists_mul_eq (huv : u ~[l] v) :
+lemma is_equivalent.exists_eq_mul (huv : u ~[l] v) :
   ∃ (φ : α → β) (hφ : tendsto φ l (𝓝 1)), u =ᶠ[l] φ * v :=
-is_equivalent_iff_exists_mul_eq.mp huv
+is_equivalent_iff_exists_eq_mul.mp huv
 
 lemma is_equivalent_of_tendsto_one (hz : ∀ᶠ x in l, v x = 0 → u x = 0)
   (huv : tendsto (u/v) l (𝓝 1)) : u ~[l] v :=
 begin
-  rw is_equivalent_iff_exists_mul_eq,
+  rw is_equivalent_iff_exists_eq_mul,
   refine ⟨u/v, huv, hz.mono $ λ x hz', (div_mul_cancel_of_imp hz').symm⟩,
 end
 
@@ -181,7 +181,7 @@ end
 
 lemma is_equivalent.mul (htu : t ~[l] u) (hvw : v ~[l] w) : t * v ~[l] u * w :=
 begin
-  rw is_equivalent_iff_exists_mul_eq at *,
+  rw is_equivalent_iff_exists_eq_mul at *,
   rcases htu with ⟨φ₁, hφ₁, h₁⟩,
   rcases hvw with ⟨φ₂, hφ₂, h₂⟩,
   rw ← one_mul (1 : β),
@@ -194,7 +194,7 @@ end
 
 lemma is_equivalent.inv (huv : u ~[l] v) : (λ x, (u x)⁻¹) ~[l] (λ x, (v x)⁻¹) :=
 begin
-  rw is_equivalent_iff_exists_mul_eq at *,
+  rw is_equivalent_iff_exists_eq_mul at *,
   rcases huv with ⟨φ, hφ, h⟩,
   rw ← inv_one,
   refine ⟨λ x, (φ x)⁻¹, tendsto.inv' hφ (by norm_num) , _⟩,
@@ -215,12 +215,53 @@ variables {α β : Type*} [normed_linear_ordered_field β] {u v : α → β} {l 
 
 lemma is_equivalent.tendsto_at_top [order_topology β] (huv : u ~[l] v) (hu : tendsto u l at_top) :
   tendsto v l at_top :=
-let ⟨φ, hφ, h⟩ := huv.symm.exists_mul_eq in
+let ⟨φ, hφ, h⟩ := huv.symm.exists_eq_mul in
 tendsto.congr' h.symm ((mul_comm u φ) ▸ (tendsto_mul_at_top zero_lt_one hu hφ))
 
 lemma is_equivalent.tendsto_at_top_iff [order_topology β] (huv : u ~[l] v) :
   tendsto u l at_top ↔ tendsto v l at_top := ⟨huv.tendsto_at_top, huv.symm.tendsto_at_top⟩
 
 end normed_linear_ordered_field
+
+section smul
+
+lemma is_equivalent.smul {α E 𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_group E]
+  [normed_space 𝕜 E] {a b : α → 𝕜} {u v : α → E} {l : filter α} (hab : a ~[l] b) (huv : u ~[l] v) :
+  (λ x, a x • u x) ~[l] (λ x, b x • v x) :=
+begin
+  rcases hab.exists_eq_mul with ⟨φ, hφ, habφ⟩,
+  have : (λ (x : α), a x • u x) - (λ (x : α), b x • v x) =ᶠ[l] λ x, b x • ((φ x • u x) - v x),
+  { convert (habφ.comp₂ (•) $ eventually_eq.refl _ u).sub (eventually_eq.refl _ (λ x, b x • v x)),
+    ext,
+    rw [pi.mul_apply, mul_comm, mul_smul, ← smul_sub] },
+  refine (is_o_congr this.symm $ eventually_eq.refl _ _).mp ((is_O_refl b l).smul_is_o _),
+
+  rcases huv.is_O.exists_pos with ⟨C, hC, hCuv⟩,
+  rw is_equivalent at *,
+  rw is_o_iff at *,
+  rw is_O_with at hCuv,
+  simp only [metric.tendsto_nhds, dist_eq_norm] at hφ,
+  intros c hc,
+  specialize hφ ((c/2)/C) (div_pos (by linarith) hC),
+  specialize huv (show 0 < c/2, by linarith),
+  refine hφ.mp (huv.mp $ hCuv.mono $ λ x hCuvx huvx hφx, _),
+
+  have key :=
+    calc  _ = ∥φ x - 1∥ * ∥u x∥ : rfl
+        ... ≤ (c/2) / C * ∥u x∥ : mul_le_mul_of_nonneg_right hφx.le (norm_nonneg $ u x)
+        ... ≤ (c/2) / C * (C*∥v x∥) : mul_le_mul_of_nonneg_left hCuvx (div_pos (by linarith) hC).le
+        ... = (c/2) / C * C * ∥v x∥ : by ac_refl
+        ... = c/2 * ∥v x∥ : by rw div_mul_cancel (c/2) hC.ne.symm,
+
+  calc  _ = ∥((λ (x : α), φ x • u x) - v) x∥ : rfl
+      ... = ∥(φ x - 1) • u x + (u x - v x)∥ : by simp [sub_smul, sub_add]
+      ... ≤ ∥(φ x - 1) • u x∥ + ∥u x - v x∥ : norm_add_le _ _
+      ... = ∥φ x - 1∥ * ∥u x∥ + ∥u x - v x∥ : by rw norm_smul
+      ... ≤ c / 2 * ∥v x∥ + ∥u x - v x∥ : add_le_add_right key _
+      ... ≤ c / 2 * ∥v x∥ + c / 2 * ∥v x∥ : add_le_add_left huvx _
+      ... = c * ∥v x∥ : by ring,
+end
+
+end smul
 
 end asymptotics

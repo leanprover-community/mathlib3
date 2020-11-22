@@ -13,7 +13,8 @@ Basic definitions for finite sets which are useful for combinatorics.
 We define antichains, and a proposition asserting that a set is a set of r-sets.
 ## Main definitions
 * `antichain` is a family of sets where no set is a subset of another.
-* `all_sized` is a proposition that
+* `all_sized` is a finset of finsets of size r
+*
 -/
 
 open finset

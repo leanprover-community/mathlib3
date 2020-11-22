@@ -26,7 +26,7 @@ variable {r : ℕ}
 A family of sets is an antichain if no set is a subset of another. For example,
 `{{1}, {4,6,7}, {2,4,5,6}}` is an antichain.
 -/
-def antichain (𝒜 : finset (finset α)) : Prop := ∀ A ∈ 𝒜, ∀ B ∈ 𝒜, A ≠ B → ¬(A ⊆ B)
+def antichain (𝒜 : finset (finset α)) : Prop := ∀ A ∈ 𝒜, ∀ B ∈ 𝒜, A ⊆ B → A = B
 
 /-- `all_sized 𝒜 r` states that every set in 𝒜 has size r. -/
 @[reducible]
@@ -39,7 +39,6 @@ begin
   have h4 : card A = card B,
   { rw a A h1,
     rw a B h2 },
-  contrapose! h3,
   convert eq_of_subset_of_card_le h3 _,
   rw h4,
 end

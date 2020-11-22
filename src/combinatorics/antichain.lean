@@ -37,7 +37,7 @@ begin
   intros A h1 B h2 h3,
   have h4 : card A = card B,
   { rw a A h1,
-    rw a B h2},
+    rw a B h2 },
   contrapose! h3,
   convert eq_of_subset_of_card_le h3 _,
   rw h4,

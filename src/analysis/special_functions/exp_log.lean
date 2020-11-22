@@ -119,7 +119,7 @@ namespace real
 variables {x y z : ℝ}
 
 lemma has_deriv_at_exp (x : ℝ) : has_deriv_at exp (exp x) x :=
-has_deriv_at_real_of_complex (complex.has_deriv_at_exp x)
+(complex.has_deriv_at_exp x).real_of_complex
 
 lemma differentiable_exp : differentiable ℝ exp :=
 λx, (has_deriv_at_exp x).differentiable_at

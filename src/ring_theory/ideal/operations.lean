@@ -1075,15 +1075,14 @@ begin
   { intros y hy,
     cases hf y with x hx,
     refine hx ▸ (mem_map_of_mem _),
-    rw Inf_eq_infi at ⊢ hy,
-    simp at ⊢ hy,
+    have : ∀ I ∈ A, y ∈ map f I, by simpa using hy,
+    rw [submodule.mem_Inf],
     intros J hJ,
-    cases (mem_map_iff_of_surjective f hf).1 (hy (map f J) J hJ rfl) with x' hx',
+    rcases (mem_map_iff_of_surjective f hf).1 (this J hJ) with ⟨x', hx', rfl⟩,
     have : x - x' ∈ J,
     { apply h J hJ,
-      rw [ring_hom.mem_ker, ring_hom.map_sub, hx, hx'.right, sub_self y], },
-    convert J.add_mem this hx'.left,
-    ring, }
+      rw [ring_hom.mem_ker, ring_hom.map_sub, hx, sub_self] },
+    simpa only [sub_add_cancel] using J.add_mem this hx' }
 end
 
 theorem map_is_prime_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}

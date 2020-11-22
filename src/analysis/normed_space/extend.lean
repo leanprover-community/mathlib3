@@ -23,29 +23,30 @@ given an `fr : F →ₗ[ℝ] ℝ`, we define `fc x = fr x - fr (I • x) * I`.
 open is_R_or_C
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [normed_group F] [normed_space 𝕜 F]
-local notation `𝓚` := @is_R_or_C.of_real 𝕜 _
 local notation `abs𝕜` := @is_R_or_C.abs 𝕜 _
 
 /-- Extend `fr : F →ₗ[ℝ] ℝ` to `F →ₗ[𝕜] 𝕜` in a way that will also be continuous and have its norm
 bounded by `∥fr∥` if `fr` is continuous. -/
 noncomputable def linear_map.extend_to_𝕜 (fr : (restrict_scalars ℝ 𝕜 F) →ₗ[ℝ] ℝ) : F →ₗ[𝕜] 𝕜 :=
 begin
-  let fc : F → 𝕜 := λ x, 𝓚 (fr x) - (I : 𝕜) * 𝓚 (fr ((I : 𝕜) • x)),
+  let fc : F → 𝕜 := λ x, (fr x : 𝕜) - (I : 𝕜) * (fr ((I : 𝕜) • x)),
   have add : ∀ x y : F, fc (x + y) = fc x + fc y,
   { assume x y,
     simp only [fc],
     unfold_coes,
-    simp only [mul_add, smul_add, of_real_add, linear_map.to_fun_eq_coe, linear_map.map_add],
-    abel },
-  have A : ∀ (c : ℝ) (x : F), 𝓚 (fr ((𝓚 c) • x)) = (𝓚 c) * (𝓚 (fr x)),
+    simp only [smul_add, ring_hom.map_add, ring_hom.to_fun_eq_coe, linear_map.to_fun_eq_coe,
+               linear_map.map_add],
+    rw mul_add,
+    abel, },
+  have A : ∀ (c : ℝ) (x : F), (fr ((c : 𝕜) • x) : 𝕜) = (c : 𝕜) * (fr x : 𝕜),
   { assume c x,
     rw [← of_real_mul],
     congr' 1,
     exact fr.map_smul c x },
-  have smul_ℝ : ∀ (c : ℝ) (x : F), fc ((𝓚 c) • x) = (𝓚 c) * fc x,
+  have smul_ℝ : ∀ (c : ℝ) (x : F), fc ((c : 𝕜) • x) = (c : 𝕜) * fc x,
   { assume c x,
     simp only [fc, A],
-    rw [smul_smul, mul_comm I (𝓚 c), ← smul_smul, A, mul_sub],
+    rw [smul_smul, mul_comm I (c : 𝕜), ← smul_smul, A, mul_sub],
     ring },
   have smul_I : ∀ x : F, fc ((I : 𝕜) • x) = (I : 𝕜) * fc x,
   { assume x,
@@ -56,8 +57,8 @@ begin
       mul_neg_eq_neg_mul_symm, of_real_neg, neg_smul, sub_neg_eq_add, add_comm] },
   have smul_𝕜 : ∀ (c : 𝕜) (x : F), fc (c • x) = c • fc x,
   { assume c x,
-    rw [← re_add_im_ax c, add_smul, add_smul, add, smul_ℝ, ← smul_smul, smul_ℝ, smul_I,
-        ← mul_assoc, algebra.id.smul_eq_mul, algebra.id.smul_eq_mul] },
+    rw [← re_add_im c, add_smul, add_smul, add, smul_ℝ, ← smul_smul, smul_ℝ, smul_I, ← mul_assoc],
+    refl },
   exact { to_fun := fc, map_add' := add, map_smul' := smul_𝕜 }
 end
 
@@ -77,10 +78,10 @@ begin
   { rw [h, norm_zero],
     apply mul_nonneg; exact norm_nonneg _ },
   let fx := (lm x)⁻¹,
-  let t := fx / 𝓚 (abs𝕜 fx),
+  let t := fx / (abs𝕜 fx : 𝕜),
   have ht : abs𝕜 t = 1, by field_simp [abs_of_real, of_real_inv, is_R_or_C.abs_inv,
     is_R_or_C.abs_div, is_R_or_C.abs_abs, h],
-  have h1 : 𝓚 (fr (t • x)) = lm (t • x),
+  have h1 : (fr (t • x) : 𝕜) = lm (t • x),
   { apply ext,
     { simp only [lm, of_real_re, linear_map.extend_to_𝕜, mul_re, I_re, of_real_im, zero_mul,
         linear_map.coe_mk, add_monoid_hom.map_sub, sub_zero, mul_zero],
@@ -88,14 +89,14 @@ begin
     { symmetry,
       calc im (lm (t • x))
           = im (t * lm x) : by rw [lm.map_smul, smul_eq_mul]
-      ... = im ((lm x)⁻¹ / 𝓚 (abs𝕜 (lm x)⁻¹) * lm x) : rfl
-      ... = im (1 / 𝓚 (abs𝕜 (lm x)⁻¹)) : by rw [div_mul_eq_mul_div, inv_mul_cancel h]
+      ... = im ((lm x)⁻¹ / (abs𝕜 (lm x)⁻¹) * lm x) : rfl
+      ... = im (1 / (abs𝕜 (lm x)⁻¹ : 𝕜)) : by rw [div_mul_eq_mul_div, inv_mul_cancel h]
       ... = 0 : by rw [← of_real_one, ← of_real_div, of_real_im]
-      ... = im (𝓚 (fr (t • x))) : by rw [of_real_im] } },
+      ... = im (fr (t • x) : 𝕜) : by rw [of_real_im] } },
   calc ∥lm x∥ = abs𝕜 t * ∥lm x∥ : by rw [ht, one_mul]
   ... = ∥t * lm x∥ : by rw [← norm_eq_abs, normed_field.norm_mul]
   ... = ∥lm (t • x)∥ : by rw [←smul_eq_mul, lm.map_smul]
-  ... = ∥𝓚 (fr (t • x))∥ : by rw h1
+  ... = ∥(fr (t • x) : 𝕜)∥ : by rw h1
   ... = ∥fr (t • x)∥ : by rw [norm_eq_abs, abs_of_real, norm_eq_abs, abs_to_real]
   ... ≤ ∥fr∥ * ∥t • x∥ : continuous_linear_map.le_op_norm _ _
   ... = ∥fr∥ * (∥t∥ * ∥x∥) : by rw norm_smul

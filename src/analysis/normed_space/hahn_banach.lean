@@ -76,8 +76,6 @@ open is_R_or_C
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [normed_group F] [normed_space 𝕜 F]
 
 /-- Hahn-Banach theorem for continuous linear functions over `𝕜` satisyfing `is_R_or_C 𝕜`. -/
-local notation `𝓚` := @is_R_or_C.of_real 𝕜 _
-
 theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :
   ∃ g : F →L[𝕜] 𝕜, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥ :=
 begin
@@ -96,9 +94,9 @@ begin
   -- It is an extension of `f`.
   have h : ∀ x : p, g.extend_to_𝕜 x = f x,
   { assume x,
-    change 𝓚 (g (x : F)) - (I : 𝕜) * 𝓚 (g ((((I : 𝕜) • x) : p) : F)) = f x,
+    change (g (x : F) : 𝕜) - (I : 𝕜) * g ((((I : 𝕜) • x) : p) : F) = f x,
     rw [hextends, hextends],
-    change 𝓚 (re (f x)) - (I : 𝕜) * 𝓚 (re (f ((I : 𝕜) • x))) = f x,
+    change (re (f x) : 𝕜) - (I : 𝕜) * (re (f ((I : 𝕜) • x))) = f x,
     apply ext,
     { simp only [add_zero, algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add,
         zero_sub, I_im', zero_mul, of_real_re, eq_self_iff_true, sub_zero, mul_neg_eq_neg_mul_symm,

@@ -946,12 +946,16 @@ variables [topological_space α] [topological_space β] [topological_space γ]
 open_locale topological_space
 
 /-- A function between topological spaces is continuous if the preimage
-  of every open set is open. -/
-def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
+  of every open set is open. Registered as a structure to make sure it is not unfolded by Lean. -/
+structure continuous (f : α → β) : Prop :=
+(is_open_preimage : ∀s, is_open s → is_open (f ⁻¹' s))
+
+lemma continuous_def {f : α → β} : continuous f ↔ (∀s, is_open s → is_open (f ⁻¹' s)) :=
+⟨λ hf s hs, hf.is_open_preimage s hs, λ h, ⟨h⟩⟩
 
 lemma is_open.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_open s) :
   is_open (f ⁻¹' s) :=
-hf s h
+hf.is_open_preimage s h
 
 /-- A function between topological spaces is continuous at a point `x₀`
 if `f x` tends to `f x₀` when `x` tends to `x₀`. -/
@@ -967,14 +971,14 @@ h ht
 
 lemma preimage_interior_subset_interior_preimage {f : α → β} {s : set β}
   (hf : continuous f) : f⁻¹' (interior s) ⊆ interior (f⁻¹' s) :=
-interior_maximal (preimage_mono interior_subset) (hf _ is_open_interior)
+interior_maximal (preimage_mono interior_subset) (is_open_interior.preimage hf)
 
 lemma continuous_id : continuous (id : α → α) :=
-assume s h, h
+continuous_def.2 $ assume s h, h
 
 lemma continuous.comp {g : β → γ} {f : α → β} (hg : continuous g) (hf : continuous f) :
   continuous (g ∘ f) :=
-assume s h, hf _ (hg s h)
+continuous_def.2 $ assume s h, (h.preimage hg).preimage hf
 
 lemma continuous.iterate {f : α → α} (h : continuous f) (n : ℕ) : continuous (f^[n]) :=
 nat.rec_on n continuous_id (λ n ihn, ihn.comp h)
@@ -987,7 +991,7 @@ hg.comp hf
 lemma continuous.tendsto {f : α → β} (hf : continuous f) (x) :
   tendsto f (𝓝 x) (𝓝 (f x)) :=
 ((nhds_basis_opens x).tendsto_iff $ nhds_basis_opens $ f x).2 $
-  λ t ⟨hxt, ht⟩, ⟨f ⁻¹' t, ⟨hxt, hf _ ht⟩, subset.refl _⟩
+  λ t ⟨hxt, ht⟩, ⟨f ⁻¹' t, ⟨hxt, ht.preimage hf⟩, subset.refl _⟩
 
 lemma continuous.continuous_at {f : α → β} {x : α} (h : continuous f) :
   continuous_at f x :=
@@ -996,6 +1000,7 @@ h.tendsto x
 lemma continuous_iff_continuous_at {f : α → β} : continuous f ↔ ∀ x, continuous_at f x :=
 ⟨continuous.tendsto,
   assume hf : ∀x, tendsto f (𝓝 x) (𝓝 (f x)),
+  continuous_def.2 $
   assume s, assume hs : is_open s,
   have ∀a, f a ∈ s → s ∈ 𝓝 (f a),
     from λ a ha, mem_nhds_sets hs ha,
@@ -1019,8 +1024,9 @@ from continuous_at.comp (hx.symm ▸ ihn) hf
 
 lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=
-⟨assume hf s hs, hf sᶜ hs,
-  assume hf s, by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
+⟨assume hf s hs, continuous_def.1 hf sᶜ hs,
+  assume hf, continuous_def.2 $ assume s,
+    by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
 
 lemma is_closed.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_closed s) :
   is_closed (f ⁻¹' s) :=

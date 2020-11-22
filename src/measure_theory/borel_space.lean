@@ -136,7 +136,7 @@ lemma continuous.borel_measurable [topological_space α] [topological_space β]
   {f : α → β} (hf : continuous f) :
   @measurable α β (borel α) (borel β) f :=
 measurable.of_le_map $ generate_from_le $
-  λ s hs, generate_measurable.basic (f ⁻¹' s) (hf s hs)
+  λ s hs, generate_measurable.basic (f ⁻¹' s) (hs.preimage hf)
 
 /-- A space with `measurable_space` and `topological_space` structures such that
 all open sets are measurable. -/
@@ -248,7 +248,7 @@ begin
   apply generate_from_le,
   rintros _ ⟨s, i, hi, rfl⟩,
   refine is_measurable_pi i.countable_to_set (λ a ha, is_open.is_measurable _),
-  rw [hinst], 
+  rw [hinst],
   exact generate_open.basic _ (hi a ha)
 end
 
@@ -460,7 +460,7 @@ continuous_mul.measurable
 @[to_additive]
 lemma measurable.mul [has_mul α] [has_continuous_mul α] [second_countable_topology α]
   {f : δ → α} {g : δ → α} : measurable f → measurable g → measurable (λ a, f a * g a) :=
-continuous_mul.measurable2
+(@continuous_mul α _ _ _).measurable2
 
 /-- A variant of `measurable.mul` that uses `*` on functions -/
 @[to_additive]
@@ -737,14 +737,14 @@ continuous_dist.measurable
 
 lemma measurable.dist {f g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ b, dist (f b) (g b)) :=
-continuous_dist.measurable2 hf hg
+(@continuous_dist α _).measurable2 hf hg
 
 lemma measurable_nndist : measurable (λ p : α × α, nndist p.1 p.2) :=
 continuous_nndist.measurable
 
 lemma measurable.nndist {f g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ b, nndist (f b) (g b)) :=
-continuous_nndist.measurable2 hf hg
+(@continuous_nndist α _).measurable2 hf hg
 
 end metric_space
 
@@ -778,7 +778,7 @@ continuous_edist.measurable
 
 lemma measurable.edist {f g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ b, edist (f b) (g b)) :=
-continuous_edist.measurable2 hf hg
+(@continuous_edist α _).measurable2 hf hg
 
 end emetric_space
 
@@ -842,7 +842,7 @@ variable [measurable_space α]
 
 lemma measurable.sub_nnreal {f g : α → ℝ≥0} :
   measurable f → measurable g → measurable (λ a, f a - g a) :=
-continuous_sub.measurable2
+(@continuous_sub ℝ≥0 _ _ _).measurable2
 
 lemma measurable.nnreal_of_real {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, nnreal.of_real (f x)) :=
@@ -1102,7 +1102,8 @@ begin
     intro U, apply infi_congr_Prop f.is_open_preimage, intro hU,
     apply infi_congr_Prop h3f.preimage_subset_preimage_iff, intro h2U,
     rw [map_apply hf hU.is_measurable], },
-  { intros U hU, rw [map_apply hf hU.is_measurable, ← hμ.inner_regular_eq (f.continuous U hU)],
+  { intros U hU,
+    rw [map_apply hf hU.is_measurable, ← hμ.inner_regular_eq (hU.preimage f.continuous)],
     refine ge_of_eq _, apply supr_congr (preimage f) h2f,
     intro K, apply supr_congr_Prop f.compact_preimage, intro hK,
     apply supr_congr_Prop h3f.preimage_subset_preimage_iff, intro h2U,

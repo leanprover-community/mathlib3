@@ -446,10 +446,11 @@ noncomputable def iso_of_topological_space {D : CompHaus} :
   Compactum_to_CompHaus.obj (Compactum.of_topological_space D) ≅ D :=
 { hom :=
   { to_fun := id,
-    continuous_to_fun := λ _ h, by {rw is_open_iff_ultrafilter' at h, exact h} },
+    continuous_to_fun := continuous_def.2 $ λ _ h, by {rw is_open_iff_ultrafilter' at h, exact h} },
   inv :=
   { to_fun := id,
-    continuous_to_fun := λ _ h1, by {rw is_open_iff_ultrafilter', intros _ h2, exact h1 _ h2} } }
+    continuous_to_fun := continuous_def.2 $
+      λ _ h1, by {rw is_open_iff_ultrafilter', intros _ h2, exact h1 _ h2} } }
 
 /-- The functor Compactum_to_CompHaus is essentially surjective. -/
 noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=

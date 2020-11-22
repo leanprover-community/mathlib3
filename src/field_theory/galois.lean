@@ -85,10 +85,12 @@ begin
   rw ← intermediate_field.adjoin_simple.card_aut_eq_findim F E H1 h_sep h_splits,
   apply fintype.card_congr,
   apply equiv.mk (λ ϕ, iso.trans (trans ϕ iso.symm)) (λ ϕ, iso.symm.trans (trans ϕ iso)),
-  { intro ϕ, ext1, simp only [apply_symm_apply, trans_apply] },
-  { intro ϕ, ext1, simp only [trans_apply],
-    rw symm_apply_apply iso,
-    rw symm_apply_apply iso, /- This second rewrite is REALLY SLOW!!!! -/  },
+  { intro ϕ, ext1, simp only [trans_apply, apply_symm_apply] },
+  { intro ϕ, ext1,
+    suffices : (0 : ℕ) = (0 : ℕ),
+    simp only [trans_apply, symm_apply_apply],
+    clear a ϕ h_splits H2 h_sep H1 iso hα α h _inst_4 _inst_3 _inst_2 E _inst_1 F,
+    refl,/- This refl is painfully slow. In general, whatever the last line is will be slow! -/ },
 end
 
 end

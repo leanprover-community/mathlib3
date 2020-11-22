@@ -1212,11 +1212,11 @@ begin
     λ x hx, norm_image_sub_le_of_norm_deriv_le_segment hdiff H x hx,
 end
 
-variables {f' g : ℝ → E} {x : ℝ}
+variables {f' g : ℝ → E}
 
 theorem eq_of_right_deriv_eq
-  (derivf : has_deriv_within_at f (f' x) (Ici x) x)
-  (derivg : has_deriv_within_at g (f' x) (Ici x) x)
+  (derivf : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
+  (derivg : ∀ x ∈ Ico a b, has_deriv_within_at g (f' x) (Ici x) x)
   (fcont : continuous_on f (Icc a b)) (gcont : continuous_on g (Icc a b))
   (hi : f a = g a) :
   ∀ y ∈ Icc a b, f y = g y :=
@@ -1232,8 +1232,8 @@ begin
 end
 
 theorem eq_of_deriv_eq (hu : ∀ s : set ℝ, ∀ c ∈ s, unique_diff_within_at ℝ s c)
-  (fdiff : differentiable_on ℝ f (Icc a b)) (derivf : ∀ x ∈ Ico a b, deriv_within f (Icc a b) x = 0)
-  (gdiff : differentiable_on ℝ g (Icc a b)) (derivg : ∀ x ∈ Ico a b, deriv_within g (Icc a b) x = 0)
+  (fdiff : differentiable_on ℝ f (Icc a b)) (gdiff : differentiable_on ℝ g (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, deriv_within f (Icc a b) x = deriv_within g (Icc a b) x)
   (hi : f a = g a) :
   ∀ y ∈ Icc a b, f y = g y :=
 begin
@@ -1250,7 +1250,7 @@ begin
     λ y hy, norm_image_sub_le_of_norm_deriv_le_segment (fdiff.sub gdiff) H y hy,
 end
 
-theorem has_deriv_within_at_right_integrable (hx : x ∈ Ico a b)
+theorem has_deriv_within_at_right_integrable {x} (hx : x ∈ Ico a b)
   (contf : continuous_on f (Icc a b)) (derivf : has_deriv_within_at f (f' x) (Ici x) x)
   (contf' : continuous_within_at f' (Ioi x) x) (intgf' : interval_integrable f' volume a x) :
   ∫ y in a..x, f' y = f x - f a :=

@@ -209,6 +209,37 @@ def zigzag : J → J → Prop := relation.refl_trans_gen zag
 lemma zigzag_symmetric : symmetric (@zigzag J _) :=
 relation.refl_trans_gen.symmetric zag_symmetric
 
+lemma zigzag_equivalence : _root_.equivalence (@zigzag J _) :=
+mk_equivalence _
+    relation.reflexive_refl_trans_gen
+    zigzag_symmetric
+    relation.transitive_refl_trans_gen
+
+/--
+The setoid given by the equivalence relation `zigzag`. A quotient for this
+setoid is a connected component of the category.
+-/
+def zigzag.setoid (J : Type u₂) [category.{v₁} J] : setoid J :=
+{ r := zigzag,
+  iseqv := zigzag_equivalence }
+
+/--
+If there is a zigzag from `j₁` to `j₂`, then there is a zigzag from `F j₁` to
+`F j₂` as long as `F` is a functor.
+-/
+lemma zigzag_obj_of_zigzag (F : J ⥤ K) {j₁ j₂ : J} (h : zigzag j₁ j₂) :
+  zigzag (F.obj j₁) (F.obj j₂) :=
+begin
+  refine relation.refl_trans_gen_lift _ _ h,
+  intros j k,
+  exact or.imp (nonempty.map (λ f, F.map f)) (nonempty.map (λ f, F.map f))
+end
+
+-- TODO: figure out the right way to generalise this to `zigzag`.
+lemma zag_of_zag_obj (F : J ⥤ K) [full F] {j₁ j₂ : J} (h : zag (F.obj j₁) (F.obj j₂)) :
+  zag j₁ j₂ :=
+or.imp (nonempty.map F.preimage) (nonempty.map F.preimage) h
+
 /-- Any equivalence relation containing (⟶) holds for all pairs of a connected category. -/
 lemma equiv_relation [is_connected J] (r : J → J → Prop) (hr : _root_.equivalence r)
   (h : ∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), r j₁ j₂) :
@@ -222,11 +253,7 @@ end
 
 /-- In a connected category, any two objects are related by `zigzag`. -/
 lemma is_connected_zigzag [is_connected J] (j₁ j₂ : J) : zigzag j₁ j₂ :=
-equiv_relation _
-  (mk_equivalence _
-    relation.reflexive_refl_trans_gen
-    (relation.refl_trans_gen.symmetric (λ _ _ _, by rwa [zag, or_comm]))
-    relation.transitive_refl_trans_gen)
+equiv_relation _ zigzag_equivalence
   (λ _ _ f, relation.refl_trans_gen.single (or.inl (nonempty.intro f))) _ _
 
 /--

@@ -163,12 +163,7 @@ variables {K' : Type*} [field K'] {g' : fraction_map R₁ K'}
 
 @[simp] lemma map_inv (I : fractional_ideal g) (h : g.codomain ≃ₐ[R₁] g'.codomain) :
   (I⁻¹).map (h : g.codomain →ₐ[R₁] g'.codomain) = (I.map h)⁻¹ :=
-begin
-  rw fractional_ideal.inv_eq,
-end
-
---sorry--by rw [fractional_ideal.inv_eq, fractional_ideal.map_div, fractional_ideal.map_one,
-    --fractional_ideal.inv_eq]
+by rw [inv_eq, fractional_ideal.map_div, fractional_ideal.map_one, inv_eq]
 
 open_locale classical
 
@@ -205,10 +200,34 @@ begin
     contradiction }
 end
 
+lemma mul_generator_self_inv (I : fractional_ideal g)
+  [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
+  I * fractional_ideal.span_singleton (generator (I : submodule R₁ g.codomain))⁻¹ = 1 :=
+begin
+  -- Rewrite only the `I` that appears alone.
+  conv_lhs { congr, rw fractional_ideal.eq_span_singleton_of_principal I },
+  rw [fractional_ideal.span_singleton_mul_span_singleton, mul_inv_cancel,
+    fractional_ideal.span_singleton_one],
+  intro generator_I_eq_zero,
+  apply h,
+  rw [fractional_ideal.eq_span_singleton_of_principal I, generator_I_eq_zero,
+    fractional_ideal.span_singleton_zero],
+end
+
 lemma is_principal_inv (I : fractional_ideal g)
   [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
   submodule.is_principal (I⁻¹).1 :=
-sorry--I⁻¹.is_principal_iff.mpr ⟨_, (fractional_ideal.right_inverse_eq _ _ (fractional_ideal.mul_generator_self_inv I h)).symm⟩
+begin
+  let a := generator (I : submodule R₁ g.codomain),
+  have h_nza : a ≠ 0, sorry,
+  use a⁻¹,
+  have ha : I * fractional_ideal.span_singleton a⁻¹ = 1, sorry,
+  --apply inv_eq,
+  apply right_inverse_eq _ _,-- ha, --(mul_generator_self_inv I h),
+end
+-- sorry--
+-- I⁻¹.is_principal_iff.mpr ⟨_, (right_inverse_eq _ _
+-- (mul_generator_self_inv I h)).symm⟩
 
 /--
 A Dedekind domain is an integral domain that is not a field such that every fractional ideal has an inverse.

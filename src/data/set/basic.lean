@@ -1367,7 +1367,7 @@ lemma image_preimage_inter (f : α → β) (s : set α) (t : set β) :
   f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
 by simp only [inter_comm, image_inter_preimage]
 
-@[simp] lemma image_inter_nonempty_iff (f : α → β) (s : set α) (t : set β) :
+@[simp] lemma image_inter_nonempty_iff {f : α → β} {s : set α} {t : set β} :
   (f '' s ∩ t).nonempty ↔ (s ∩ f ⁻¹' t).nonempty :=
 by rw [←image_inter_preimage, nonempty_image_iff]
 

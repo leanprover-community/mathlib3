@@ -92,6 +92,14 @@ lemma monic_pow (hp : monic p) : ∀ (n : ℕ), monic (p ^ n)
 | 0     := monic_one
 | (n+1) := monic_mul hp (monic_pow n)
 
+lemma monic_add_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :
+  monic (p + q) :=
+by rwa [monic, add_comm, leading_coeff_add_of_degree_lt hpq]
+
+lemma monic_add_of_right {p q : polynomial R} (hq : monic q) (hpq : degree p < degree q) :
+  monic (p + q) :=
+by rwa [monic, leading_coeff_add_of_degree_lt hpq]
+
 end semiring
 
 section comm_semiring
@@ -143,7 +151,7 @@ lemma coeff_nat_degree {p : polynomial R} (hp : p.monic) : p.coeff (p.nat_degree
 
 @[simp]
 lemma degree_eq_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
-p.nat_degree = 0 ↔ p = 1 :=
+  p.nat_degree = 0 ↔ p = 1 :=
 begin
   split; intro h,
   swap, { rw h, exact nat_degree_one },
@@ -158,41 +166,37 @@ lemma nat_degree_mul [nontrivial R] {p q : polynomial R} (hp : p.monic) (hq : q.
 by { apply nat_degree_mul', rw [hp.leading_coeff, hq.leading_coeff], simp }
 
 lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
-next_coeff (p * q) = next_coeff p + next_coeff q :=
+  next_coeff (p * q) = next_coeff p + next_coeff q :=
 begin
-  nontriviality,
-  dsimp only [next_coeff],
-  simp only [monic.nat_degree_mul hp hq, add_eq_zero_iff, degree_eq_zero_iff_eq_one, hp, hq],
-  by_cases hp0 : p = 1; by_cases hq0 : q = 1;
-  simp only [hp0, hq0, true_and, and_true, false_and, one_mul, mul_one, if_true, if_false,
-    add_zero, zero_add, nat.zero_sub, nat_degree_one, coeff_one_zero, eq_self_iff_true],
-  simp only [← degree_eq_zero_iff_eq_one, hp, hq] at hp0 hq0,
-  -- we've reduced to the case where the degrees of p and q are nonzero
+  classical,
+  nontriviality R,
+  simp only [next_coeff, monic.nat_degree_mul hp hq],
+  simp only [hp, hq, degree_eq_zero_iff_eq_one, add_eq_zero_iff],
   set dp := p.nat_degree, set dq := q.nat_degree,
+  suffices : p ≠ 1 → q ≠ 1 → (p * q).coeff (dp + dq - 1) = p.coeff (dp - 1) + q.coeff (dq - 1),
+  { by_cases hp0 : p = 1; by_cases hq0 : q = 1; simp [dp, dq, hp0, hq0, this] },
+  intros hp0 hq0,
+  replace hp0 : dp ≠ 0 := mt hp.degree_eq_zero_iff_eq_one.1 hp0,
+  replace hq0 : dq ≠ 0 := mt hq.degree_eq_zero_iff_eq_one.1 hq0,
   rw coeff_mul,
-  have : {(dp, dq - 1), (dp - 1, dq)} ⊆ nat.antidiagonal (dp + dq - 1),
-  { simp only [insert_subset, singleton_subset_iff, nat.mem_antidiagonal],
-    split,
-    { rw nat.add_sub_assoc, exact nat.pos_of_ne_zero hq0 },
-    { apply nat.sub_add_eq_add_sub, exact nat.pos_of_ne_zero hp0 } },
-  rw ← sum_subset this; clear this,
-  { rw [sum_insert, sum_singleton],
-    { rw [coeff_nat_degree hp, coeff_nat_degree hq, mul_one, one_mul, add_comm] },
-    { simp only [not_and, prod.mk.inj_iff, mem_singleton], revert hp0, omega manual } },
-  simp only [prod.forall, mem_insert, prod.mk.inj_iff, nat.mem_antidiagonal, mem_singleton],
-  push_neg, rintros i j h1 ⟨h2, h3⟩,
-  suffices : p.coeff i = 0 ∨ q.coeff j = 0,
-  { exact mul_eq_zero_of_ne_zero_imp_eq_zero this.resolve_left },
-  suffices : dp < i ∨ dq < j, { apply this.imp _ _; exact coeff_eq_zero_of_nat_degree_lt },
-  rw or_iff_not_imp_left, push_neg, intro h,
-  have aux1 : i ≠ dp,
-  { intro hi, subst i,
-    rw nat.add_sub_assoc (nat.pos_of_ne_zero hq0) at h1,
-    exact h2 rfl (nat.add_left_cancel h1) },
-  rw nat.sub_add_comm (nat.pos_of_ne_zero hp0) at h1,
-  have aux2 : i ≠ dp - 1, { rintro rfl, exact h3 rfl (nat.add_left_cancel h1) },
-  have aux3 : i < dp - 1, { revert h aux1 aux2, omega manual },
-  revert aux3 h1, omega manual
+  have : {(dp - 1, dq), (dp, dq - 1)} ⊆ nat.antidiagonal (dp + dq - 1),
+  { suffices : dp - 1 + dq = dp + dq - 1 ∧ dp + (dq - 1) = dp + dq - 1,
+      by simpa [insert_subset, singleton_subset_iff],
+    omega },
+  rw [← sum_subset this, sum_pair],
+  { simp [hp, hq] },
+  { suffices : dp - 1 ≠ dp, from mt (congr_arg prod.fst) this,
+    omega },
+  { rintros ⟨x, y⟩ hx hx1,
+    simp only [nat.mem_antidiagonal] at hx,
+    simp only [mem_insert, mem_singleton] at hx1,
+    contrapose! hx1,
+    have hxp : x ≤ dp, from le_nat_degree_of_ne_zero (left_ne_zero_of_mul hx1),
+    have hyq : y ≤ dq, from le_nat_degree_of_ne_zero (right_ne_zero_of_mul hx1),
+    have : dq - 1 ≤ y, omega,
+    by_cases hy : y = dq,
+    { subst y, left, congr, omega },
+    { have : y = dq - 1, by omega, subst y, right, congr, omega } }
 end
 
 lemma next_coeff_prod

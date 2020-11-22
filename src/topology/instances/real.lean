@@ -294,6 +294,9 @@ compact_of_totally_bounded_is_closed
   (real.totally_bounded_Icc a b)
   (is_closed_inter (is_closed_ge' a) (is_closed_le' b))
 
+lemma compact_pi_Icc {ι : Type*} {a b : ι → ℝ} : is_compact (Icc a b) :=
+pi_univ_Icc a b ▸ compact_univ_pi $ λ i, compact_Icc
+
 instance : proper_space ℝ :=
 { compact_ball := λx r, by rw closed_ball_Icc; apply compact_Icc }
 

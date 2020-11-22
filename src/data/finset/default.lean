@@ -7,3 +7,4 @@ import data.finset.pi
 import data.finset.powerset
 import data.finset.sort
 import data.finset.preimage
+import data.finset.all_sized

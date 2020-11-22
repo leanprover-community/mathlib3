@@ -334,12 +334,6 @@ begin
   exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
 end
 
-lemma add_left_injective (a : ℕ) : function.injective (λ x, x + a) :=
-λ _ _, add_right_cancel
-
-lemma add_right_injective (a : ℕ) : function.injective (λ x, a + x) :=
-λ _ _, add_left_cancel
-
 /-! ### `pred` -/
 
 @[simp]

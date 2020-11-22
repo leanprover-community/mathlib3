@@ -92,6 +92,14 @@ lemma monic_pow (hp : monic p) : ∀ (n : ℕ), monic (p ^ n)
 | 0     := monic_one
 | (n+1) := monic_mul hp (monic_pow n)
 
+lemma monic_add_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :
+  monic (p + q) :=
+by rwa [monic, add_comm, leading_coeff_add_of_degree_lt hpq]
+
+lemma monic_add_of_right {p q : polynomial R} (hq : monic q) (hpq : degree p < degree q) :
+  monic (p + q) :=
+by rwa [monic, leading_coeff_add_of_degree_lt hpq]
+
 end semiring
 
 section comm_semiring

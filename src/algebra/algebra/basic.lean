@@ -327,12 +327,11 @@ namespace opposite
 variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 
 instance : algebra R Aᵒᵖ :=
-{ smul := λ c x, op (c • unop x),
-  to_ring_hom := (algebra_map R A).to_opposite $ λ x y, algebra.commutes _ _,
-  smul_def' := λ c x, by dsimp; simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop],
-  commutes' := λ r, op_induction $ λ x, by dsimp; simp only [← op_mul, algebra.commutes] }
-
-@[simp] lemma op_smul (c : R) (a : A) : op (c • a) = c • op a := rfl
+{ to_ring_hom := (algebra_map R A).to_opposite $ λ x y, algebra.commutes _ _,
+  smul_def' := λ c x, unop_injective $
+    by { dsimp, simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop] },
+  commutes' := λ r, op_induction $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
+  ..opposite.has_scalar A R }
 
 @[simp] lemma algebra_map_apply (c : R) : algebra_map R Aᵒᵖ c = op (algebra_map R A c) := rfl
 
@@ -818,6 +817,44 @@ e.to_alg_hom.map_div x y
 end division_ring
 
 end alg_equiv
+
+namespace matrix
+
+/-! ### `matrix` section
+
+Specialize `matrix.one_map` and `matrix.zero_map` to `alg_hom` and `alg_equiv`.
+TODO: there should be a way to avoid restating these for each `foo_hom`.
+-/
+
+variables {R A₁ A₂ n : Type*} [fintype n]
+
+section semiring
+
+variables [comm_semiring R] [semiring A₁] [algebra R A₁] [semiring A₂] [algebra R A₂]
+
+/-- A version of `matrix.one_map` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_one [decidable_eq n]
+  (f : A₁ →ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `matrix.one_map` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_one [decidable_eq n]
+  (f : A₁ ≃ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `matrix.zero_map` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_zero
+  (f : A₁ →ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `matrix.zero_map` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_zero
+  (f : A₁ ≃ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
+map_zero f.map_zero
+
+end semiring
+
+end matrix
 
 namespace algebra
 

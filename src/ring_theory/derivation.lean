@@ -144,6 +144,8 @@ instance : add_comm_group (derivation R A M) :=
   add_left_neg := λ D, ext $ λ a, add_left_neg _,
   ..derivation.add_comm_monoid }
 
+@[simp] lemma sub_apply : (D1 - D2) a = D1 a - D2 a := rfl
+
 end
 
 section lie_structures
@@ -156,20 +158,24 @@ open ring_commutator
 
 /-- The commutator of derivations is again a derivation. -/
 def commutator (D1 D2 : derivation R A A) : derivation R A A :=
-⟨⁅D1, D2⁆, λ a b, by {simp only [commutator, map_add, id.smul_eq_mul, linear_map.mul_app,
-  leibniz, linear_map.to_fun_eq_coe, coe_fn_coe, linear_map.sub_apply], ring }⟩
+{ leibniz' := λ a b, by
+  { simp only [commutator, map_add, id.smul_eq_mul, linear_map.mul_app, leibniz,
+               linear_map.to_fun_eq_coe, coe_fn_coe, linear_map.sub_apply], ring, },
+  ..⁅(D1 : module.End R A), (D2 : module.End R A)⁆, }
 
-instance : has_bracket (derivation R A A) := ⟨derivation.commutator⟩
+instance : has_bracket (derivation R A A) (derivation R A A) := ⟨derivation.commutator⟩
 
-@[simp] lemma commutator_coe_linear_map : ↑⁅D1, D2⁆ = (⁅D1, D2⁆ : A →ₗ[R] A) := rfl
+@[simp] lemma commutator_coe_linear_map :
+  ↑⁅D1, D2⁆ = ⁅(D1 : module.End R A), (D2 : module.End R A)⁆ := rfl
 
 lemma commutator_apply : ⁅D1, D2⁆ a = D1 (D2 a) - D2 (D1 a) := rfl
 
 instance : lie_ring (derivation R A A) :=
-{ add_lie := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring },
-  lie_add := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring },
-  lie_self := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring },
-  jacobi := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_sub], ring } }
+{ add_lie     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
+  lie_add     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
+  lie_self    := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
+  leibniz_lie := λ d e f,
+    by { ext a, simp only [commutator_apply, add_apply, sub_apply, map_sub], ring, } }
 
 instance : lie_algebra R (derivation R A A) :=
 { lie_smul := λ r d e, by { ext a, simp only [commutator_apply, map_smul, smul_sub, Rsmul_apply]},

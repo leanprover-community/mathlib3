@@ -395,7 +395,7 @@ def preserves_limits_of_reflects_of_preserves [preserves_limits (F ⋙ G)] [refl
   preserves_limits F :=
 { preserves_limits_of_shape := λ J 𝒥₁,
     by exactI preserves_limits_of_shape_of_reflects_of_preserves F G }
-
+    
 /-- Transfer reflection of a limit along a natural isomorphism in the functor. -/
 def reflects_limit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [reflects_limit K F] :
   reflects_limit K G :=

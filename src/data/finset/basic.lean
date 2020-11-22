@@ -394,6 +394,7 @@ protected theorem induction_on {α : Type*} {p : finset α → Prop} [decidable_
   (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
 
+@[elab_as_eliminator]
 theorem induction_on' {α : Type*} {p : finset α → Prop} [decidable_eq α]
   (S : finset α) (h₁ : p ∅) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → a ∉ s → p s → p (insert a s)) : p S :=
 @finset.induction_on α (λ T, T ⊆ S → p T) _ S (λ _, h₁) (λ a s has hqs hs,

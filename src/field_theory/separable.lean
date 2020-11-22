@@ -469,11 +469,13 @@ begin
     exact hn (refl 0) },
   apply (separable_def' (X ^ n - C a)).2,
   use [-C (a⁻¹), (C ((a⁻¹) * (↑n)⁻¹) *  X)],
+  have mul_pow_sub : X * X ^ (n - 1) = X ^ n,
+  { nth_rewrite 0 [←pow_one X],
+    rw pow_mul_pow_sub X (nat.succ_le_iff.mpr hpos) },
   rw [derivative_sub, derivative_C, sub_zero, derivative_pow X n, derivative_X, mul_one],
   calc -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * X * (↑n * X ^ (n - 1))
       = -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X * X ^ (n - 1))) : by ring
-  ... = -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by rw [←pow_succ,
-  ← nat.pred_eq_sub_one, ← nat.succ_eq_add_one, nat.succ_pred_eq_of_pos hpos]
+  ... = -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by rw [mul_pow_sub]
   ... = -C a⁻¹ * X ^ n + C a⁻¹ * C a + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by ring
   ... = -C a⁻¹ * X ^ n + C (a⁻¹ * a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by rw [←C_mul]
   ... = -C a⁻¹ * X ^ n + C 1 + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by field_simp [ha]

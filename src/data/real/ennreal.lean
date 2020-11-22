@@ -751,8 +751,8 @@ lemma to_nnreal_sum {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < �
 begin
   rw [← coe_eq_coe, coe_to_nnreal, coe_finset_sum, sum_congr],
   { refl },
-  { intros x hx, rw coe_to_nnreal, rw ← ennreal.lt_top_iff_ne_top, exact hf x hx },
-  { rw ← ennreal.lt_top_iff_ne_top, exact sum_lt_top hf }
+  { intros x hx, exact (coe_to_nnreal (hf x hx).ne).symm },
+  { exact (sum_lt_top hf).ne }
 end
 
 /-- seeing `ennreal` as `real` does not change their sum, unless one of the `ennreal` is infinity -/
@@ -1095,12 +1095,36 @@ lemma exists_inv_nat_lt {a : ennreal} (h : a ≠ 0) :
   ∃n:ℕ, (n:ennreal)⁻¹ < a :=
 @inv_inv a ▸ by simp only [inv_lt_inv, ennreal.exists_nat_gt (inv_ne_top.2 h)]
 
-lemma exists_nat_mul_gt (ha : a ≠ 0) (hb : b ≠ ⊤) :
-  ∃ n : ℕ, b < n * a :=
+lemma exists_nat_pos_mul_gt (ha : a ≠ 0) (hb : b ≠ ⊤) :
+  ∃ n > 0, b < (n : ℕ) * a :=
 begin
   have : b / a ≠ ⊤, from mul_ne_top hb (inv_ne_top.2 ha),
   refine (ennreal.exists_nat_gt this).imp (λ n hn, _),
+  have : 0 < (n : ennreal), from (zero_le _).trans_lt hn,
+  refine ⟨coe_nat_lt_coe_nat.1 this, _⟩,
   rwa [← ennreal.div_lt_iff (or.inl ha) (or.inr hb)]
+end
+
+lemma exists_nat_mul_gt (ha : a ≠ 0) (hb : b ≠ ⊤) :
+  ∃ n : ℕ, b < n * a :=
+(exists_nat_pos_mul_gt ha hb).imp $ λ n, Exists.snd
+
+lemma exists_nat_pos_inv_mul_lt (ha : a ≠ ⊤) (hb : b ≠ 0) :
+  ∃ n > 0, ((n : ℕ) : ennreal)⁻¹ * a < b :=
+begin
+  rcases exists_nat_pos_mul_gt hb ha with ⟨n, npos, hn⟩,
+  have : (n : ennreal) ≠ 0 := nat.cast_ne_zero.2 npos.lt.ne',
+  use [n, npos],
+  rwa [← one_mul b, ← inv_mul_cancel this coe_nat_ne_top,
+    mul_assoc, mul_lt_mul_left (inv_ne_zero.2 coe_nat_ne_top) (inv_ne_top.2 this)]
+end
+
+lemma exists_nnreal_pos_mul_lt (ha : a ≠ ⊤) (hb : b ≠ 0) :
+  ∃ n > 0, ↑(n : ℝ≥0) * a < b :=
+begin
+  rcases exists_nat_pos_inv_mul_lt ha hb with ⟨n, npos : 0 < n, hn⟩,
+  use (n : ℝ≥0)⁻¹,
+  simp [*, npos.ne', zero_lt_one]
 end
 
 end inv
@@ -1232,12 +1256,18 @@ begin
     congr, apply nnreal.coe_of_real, exact h }
 end
 
-@[simp] lemma to_real_mul_top (a : ennreal) : ennreal.to_real (a * ⊤) = 0 :=
+@[simp] lemma to_nnreal_mul_top (a : ennreal) : ennreal.to_nnreal (a * ∞) = 0 :=
 begin
   by_cases h : a = 0,
-  { rw [h, zero_mul, zero_to_real] },
-  { rw [mul_top, if_neg h, top_to_real] }
+  { rw [h, zero_mul, zero_to_nnreal] },
+  { rw [mul_top, if_neg h, top_to_nnreal] }
 end
+
+@[simp] lemma to_nnreal_top_mul (a : ennreal) : ennreal.to_nnreal (∞ * a) = 0 :=
+by rw [mul_comm, to_nnreal_mul_top]
+
+@[simp] lemma to_real_mul_top (a : ennreal) : ennreal.to_real (a * ⊤) = 0 :=
+by rw [ennreal.to_real, to_nnreal_mul_top, nnreal.coe_zero]
 
 @[simp] lemma to_real_top_mul (a : ennreal) : ennreal.to_real (⊤ * a) = 0 :=
 by { rw mul_comm, exact to_real_mul_top _ }
@@ -1245,26 +1275,31 @@ by { rw mul_comm, exact to_real_mul_top _ }
 lemma to_real_eq_to_real (ha : a < ⊤) (hb : b < ⊤) :
   ennreal.to_real a = ennreal.to_real b ↔ a = b :=
 begin
-  rw ennreal.lt_top_iff_ne_top at *,
-  split,
-  { assume h, apply le_antisymm,
-      rw ← to_real_le_to_real ha hb, exact le_of_eq h,
-      rw ← to_real_le_to_real hb ha, exact le_of_eq h.symm },
-  { assume h, rw h }
+  lift a to ℝ≥0 using ha.ne,
+  lift b to ℝ≥0 using hb.ne,
+  simp only [coe_eq_coe, nnreal.coe_eq, coe_to_real],
 end
 
-lemma to_real_mul_to_real :
-  (ennreal.to_real a) * (ennreal.to_real b) = ennreal.to_real (a * b) :=
-begin
-  by_cases ha : a = ⊤,
-  { rw ha, simp },
-  by_cases hb : b = ⊤,
-  { rw hb, simp },
-  have ha : ennreal.of_real (ennreal.to_real a) = a := of_real_to_real ha,
-  have hb : ennreal.of_real (ennreal.to_real b) = b := of_real_to_real hb,
-  conv_rhs { rw [← ha, ← hb, ← of_real_mul to_real_nonneg] },
-  rw [to_real_of_real (mul_nonneg to_real_nonneg to_real_nonneg)]
-end
+/-- `ennreal.to_nnreal` as a `monoid_hom`. -/
+def to_nnreal_hom : ennreal →* ℝ≥0 :=
+{ to_fun := ennreal.to_nnreal,
+  map_one' := to_nnreal_coe,
+  map_mul' := by rintro (_|x) (_|y); simp only [← coe_mul, none_eq_top, some_eq_coe,
+    to_nnreal_top_mul, to_nnreal_mul_top, top_to_nnreal, mul_zero, zero_mul, to_nnreal_coe] }
+
+/-- `ennreal.to_real` as a `monoid_hom`. -/
+def to_real_hom : ennreal →* ℝ :=
+(nnreal.to_real_hom : ℝ≥0 →* ℝ).comp to_nnreal_hom
+
+lemma to_real_mul : (a * b).to_real = a.to_real * b.to_real :=
+to_real_hom.map_mul a b
+
+lemma to_real_pow (a : ennreal) (n : ℕ) : (a ^ n).to_real = a.to_real ^ n :=
+to_real_hom.map_pow a n
+
+lemma to_real_prod {ι : Type*} {s : finset ι} {f : ι → ennreal} :
+  (∏ i in s, f i).to_real = ∏ i in s, (f i).to_real :=
+to_real_hom.map_prod _ _
 
 end real
 

@@ -1162,15 +1162,13 @@ iff.intro
   (assume ⟨b, hb, eq⟩, (hf eq) ▸ hb)
   (assume h, mem_image_of_mem _ h)
 
-theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
-  (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
-by finish [mem_image_eq]
-
 theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
-iff.intro
-  (assume h a ha, h _ $ mem_image_of_mem _ ha)
-  (assume h b ⟨a, ha, eq⟩, eq ▸ h a ha)
+by simp
+
+theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
+  (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
+ball_image_iff.2 h
 
 theorem bex_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∃ y ∈ f '' s, p y) ↔ (∃ x ∈ s, p (f x)) :=

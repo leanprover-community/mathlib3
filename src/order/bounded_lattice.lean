@@ -346,41 +346,33 @@ instance pi.has_top {ι : Type*} {α : ι → Type*} [Π i, has_top (α i)] : ha
   (⊤ : Π i, α i) i = ⊤ :=
 rfl
 
-@[simps]
 instance pi.semilattice_sup {ι : Type*} {α : ι → Type*} [Π i, semilattice_sup (α i)] :
   semilattice_sup (Π i, α i) :=
 by refine_struct { sup := (⊔), .. pi.partial_order }; tactic.pi_instance_derive_field
 
-@[simps]
 instance pi.semilattice_inf {ι : Type*} {α : ι → Type*} [Π i, semilattice_inf (α i)] :
   semilattice_inf (Π i, α i) :=
 by refine_struct { inf := (⊓), .. pi.partial_order }; tactic.pi_instance_derive_field
 
-@[simps]
 instance pi.semilattice_inf_bot {ι : Type*} {α : ι → Type*} [Π i, semilattice_inf_bot (α i)] :
   semilattice_inf_bot (Π i, α i) :=
 by refine_struct { inf := (⊓), bot := ⊥, .. pi.partial_order }; tactic.pi_instance_derive_field
 
-@[simps]
 instance pi.semilattice_inf_top {ι : Type*} {α : ι → Type*} [Π i, semilattice_inf_top (α i)] :
   semilattice_inf_top (Π i, α i) :=
 by refine_struct { inf := (⊓), top := ⊤, .. pi.partial_order }; tactic.pi_instance_derive_field
 
-@[simps]
 instance pi.semilattice_sup_bot {ι : Type*} {α : ι → Type*} [Π i, semilattice_sup_bot (α i)] :
   semilattice_sup_bot (Π i, α i) :=
 by refine_struct { sup := (⊔), bot := ⊥, .. pi.partial_order }; tactic.pi_instance_derive_field
 
-@[simps]
 instance pi.semilattice_sup_top {ι : Type*} {α : ι → Type*} [Π i, semilattice_sup_top (α i)] :
   semilattice_sup_top (Π i, α i) :=
 by refine_struct { sup := (⊔), top := ⊤, .. pi.partial_order }; tactic.pi_instance_derive_field
 
-@[simps]
 instance pi.lattice {ι : Type*} {α : ι → Type*} [Π i, lattice (α i)] : lattice (Π i, α i) :=
 { .. pi.semilattice_sup, .. pi.semilattice_inf }
 
-@[simps]
 instance pi.bounded_lattice {ι : Type*} {α : ι → Type*} [Π i, bounded_lattice (α i)] :
   bounded_lattice (Π i, α i) :=
 { .. pi.semilattice_sup_top, .. pi.semilattice_inf_bot }

@@ -51,17 +51,22 @@ lemma pi_univ_Ico_subset : pi univ (λ i, Ico (x i) (y i)) ⊆ Ico x y :=
 
 end pi_preorder
 
-lemma Icc_diff_pi_univ_Ioc_subset [decidable_eq ι] [Π i, linear_order (α i)] (x y z : Π i, α i) :
+variables [decidable_eq ι] [Π i, linear_order (α i)]
+
+lemma Icc_diff_pi_univ_Ioo_subset (x y x' y' : Π i, α i) :
+  Icc x y \ pi univ (λ i, Ioo (x' i) (y' i)) ⊆
+    (⋃ i : ι, Icc x (function.update y i (x' i))) ∪ ⋃ i : ι, Icc (function.update x i (y' i)) y :=
+begin
+  rintros a ⟨⟨hxa, hay⟩, ha'⟩,
+  simpa [le_update_iff, update_le_iff, hxa, hay, hxa _, hay _, ← exists_or_distrib,
+    not_and_distrib] using ha'
+end
+
+lemma Icc_diff_pi_univ_Ioc_subset (x y z : Π i, α i) :
   Icc x z \ pi univ (λ i, Ioc (y i) (z i)) ⊆ ⋃ i : ι, Icc x (function.update z i (y i)) :=
 begin
   rintros a ⟨⟨hax, haz⟩, hay⟩,
-  simp only [mem_Ioc, mem_univ_pi, not_forall, not_and_distrib, not_lt] at hay,
-  rcases hay with ⟨i, hi⟩,
-  replace hi : a i ≤ y i := hi.elim id (λ h, (h $ haz i).elim),
-  refine mem_Union.2 ⟨i, ⟨hax, λ j, _⟩⟩,
-  by_cases hj : j = i,
-  { subst j, simpa },
-  { simp [hj, haz j] }
+  simpa [not_and_distrib, hax, le_update_iff, haz _] using hay
 end
 
 end set

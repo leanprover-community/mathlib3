@@ -327,15 +327,11 @@ begin
     by_cases h : ∑ (x : ℕ) in finset.range d, F x = 0,
     { rw [h, add_zero],
       exact hF d (lt_add_one _) },
-    { apply lt_of_lt_of_le _ (min_le_padic_val_rat_add p _ h hn0),
-      { apply lt_min,
-        { exact hF d (lt_add_one _) },
-        { apply hd _ h,
-          intros i hi,
-          exact hF _ (lt_trans hi (lt_add_one _)) } },
-      { intro h,
-        have h2 := hF d (lt_add_one _),
-        rw h at h2,
+    { refine lt_of_lt_of_le _ (min_le_padic_val_rat_add p (λ h1, _) h hn0),
+      { refine lt_min (hF d (lt_add_one _)) (hd (λ i hi, _) h),
+        exact hF _ (lt_trans hi (lt_add_one _)) },
+      { have h2 := hF d (lt_add_one _),
+        rw h1 at h2,
         exact lt_irrefl _ h2 } } }
 end
 

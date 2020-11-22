@@ -128,6 +128,8 @@ theorem eq_on.maps_to_iff (H : eq_on f₁ f₂ s) : maps_to f₁ s t ↔ maps_to
 theorem maps_to.comp (h₁ : maps_to g t p) (h₂ : maps_to f s t) : maps_to (g ∘ f) s p :=
 λ x h, h₁ (h₂ h)
 
+theorem maps_to_id (s : set α) : maps_to id s s := λ x, id
+
 theorem maps_to.iterate {f : α → α} {s : set α} (h : maps_to f s s) :
   ∀ n, maps_to (f^[n]) s s
 | 0 := λ _, id

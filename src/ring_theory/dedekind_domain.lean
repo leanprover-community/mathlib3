@@ -175,12 +175,26 @@ fractional_ideal.one_div_span_singleton x
 
 local attribute [semireducible] fractional_ideal.span_singleton
 
+lemma mul_generator_self_inv (I : fractional_ideal g)
+  [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
+  I * fractional_ideal.span_singleton (generator (I : submodule R₁ g.codomain))⁻¹ = 1 :=
+begin
+  -- Rewrite only the `I` that appears alone.
+  conv_lhs { congr, rw fractional_ideal.eq_span_singleton_of_principal I },
+  rw [fractional_ideal.span_singleton_mul_span_singleton, mul_inv_cancel,
+    fractional_ideal.span_singleton_one],
+  intro generator_I_eq_zero,
+  apply h,
+  rw [fractional_ideal.eq_span_singleton_of_principal I, generator_I_eq_zero,
+    fractional_ideal.span_singleton_zero]
+end
+
 lemma invertible_of_principal (I : fractional_ideal g)
   [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
   I * I⁻¹ = 1 :=
 (fractional_ideal.self_div_cancel_iff).mpr
   ⟨fractional_ideal.span_singleton (generator (I : submodule R₁ g.codomain))⁻¹,
-    fractional_ideal.mul_generator_self_inv I h⟩
+    @mul_generator_self_inv _ _ _ _ _ I _ h⟩
 
 lemma invertible_iff_generator_nonzero (I : fractional_ideal g)
   [submodule.is_principal (I : submodule R₁ g.codomain)] :
@@ -200,34 +214,16 @@ begin
     contradiction }
 end
 
-lemma mul_generator_self_inv (I : fractional_ideal g)
-  [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
-  I * fractional_ideal.span_singleton (generator (I : submodule R₁ g.codomain))⁻¹ = 1 :=
-begin
-  -- Rewrite only the `I` that appears alone.
-  conv_lhs { congr, rw fractional_ideal.eq_span_singleton_of_principal I },
-  rw [fractional_ideal.span_singleton_mul_span_singleton, mul_inv_cancel,
-    fractional_ideal.span_singleton_one],
-  intro generator_I_eq_zero,
-  apply h,
-  rw [fractional_ideal.eq_span_singleton_of_principal I, generator_I_eq_zero,
-    fractional_ideal.span_singleton_zero],
-end
-
 lemma is_principal_inv (I : fractional_ideal g)
   [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
   submodule.is_principal (I⁻¹).1 :=
 begin
-  let a := generator (I : submodule R₁ g.codomain),
-  have h_nza : a ≠ 0, sorry,
-  use a⁻¹,
-  have ha : I * fractional_ideal.span_singleton a⁻¹ = 1, sorry,
-  --apply inv_eq,
-  apply right_inverse_eq _ _,-- ha, --(mul_generator_self_inv I h),
+  rw [fractional_ideal.val_eq_coe, fractional_ideal.is_principal_iff],
+  use (generator (I : submodule R₁ g.codomain))⁻¹,
+  have hI : I  * fractional_ideal.span_singleton ((generator (I : submodule R₁ g.codomain))⁻¹)  = 1,
+  apply @mul_generator_self_inv _ _ _ _ _ I _ h,
+  apply (@right_inverse_eq _ _ _ _ _ I (fractional_ideal.span_singleton ((generator (I : submodule R₁ g.codomain))⁻¹)) hI).symm,
 end
--- sorry--
--- I⁻¹.is_principal_iff.mpr ⟨_, (right_inverse_eq _ _
--- (mul_generator_self_inv I h)).symm⟩
 
 /--
 A Dedekind domain is an integral domain that is not a field such that every fractional ideal has an inverse.
@@ -249,10 +245,10 @@ lemma is_dedekind_domain_inv_iff (f : fraction_map A K) :
 begin
   split; rintros ⟨hf, hi⟩; use hf; intros I hI,
   { have := hi (map (fraction_ring.alg_equiv_of_quotient f).symm.to_alg_hom I) (map_ne_zero _ hI),
-    -- erw [← map_inv, ← fractional_ideal.map_mul] at this,
-    -- convert congr_arg (map (fraction_ring.alg_equiv_of_quotient f).to_alg_hom) this;
-      -- simp only [alg_equiv.to_alg_hom_eq_coe, map_symm_map, map_one]
-      sorry},
+    erw [← map_inv, ← fractional_ideal.map_mul] at this,
+    convert congr_arg (map (fraction_ring.alg_equiv_of_quotient f).to_alg_hom) this;
+      simp only [alg_equiv.to_alg_hom_eq_coe, map_symm_map, map_one]
+      },
   { have := hi (map (fraction_ring.alg_equiv_of_quotient f).to_alg_hom I) (map_ne_zero _ hI),
     erw [← map_inv, ← fractional_ideal.map_mul] at this,
     convert congr_arg (map (fraction_ring.alg_equiv_of_quotient f).symm.to_alg_hom) this;

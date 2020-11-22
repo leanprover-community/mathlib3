@@ -9,8 +9,6 @@ import algebra.group.prod
 import algebra.order_functions
 import order.bounded_lattice
 
-set_option old_structure_cmd true
-
 /-!
 # Ordered monoids
 
@@ -23,6 +21,8 @@ may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
 
 -/
+
+set_option old_structure_cmd true
 
 universe u
 variable {α : Type u}
@@ -615,7 +615,8 @@ end canonically_linear_ordered_add_monoid
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,
 in which addition is cancellative and strictly monotone. -/
-@[protect_proj, ancestor add_comm_monoid add_left_cancel_semigroup add_right_cancel_semigroup partial_order]
+@[protect_proj, ancestor add_comm_monoid add_left_cancel_semigroup
+  add_right_cancel_semigroup partial_order]
 class ordered_cancel_add_comm_monoid (α : Type u)
       extends add_comm_monoid α, add_left_cancel_semigroup α,
               add_right_cancel_semigroup α, partial_order α :=

@@ -53,17 +53,34 @@ end pi_preorder
 
 variables [decidable_eq ι] [Π i, linear_order (α i)]
 
+open function (update)
+
+/-- If `x`, `y`, `x'`, and `y'` are functions `Π i : ι, α i`, then
+the set difference between the box `[x, y]` and the product of the open intervals `(x' i, y' i)`
+is covered by the union of the following boxes: for each `i : ι`, we take
+`[x, update y i (x' i)]` and `[update x i (y' i), y]`.
+
+E.g., if `x' = x` and `y' = y`, then this lemma states that the difference between a closed box
+`[x, y]` and the corresponding open box `{z | ∀ i, x i < z i < y i}` is covered by the union
+of the faces of `[x, y]`. -/
 lemma Icc_diff_pi_univ_Ioo_subset (x y x' y' : Π i, α i) :
   Icc x y \ pi univ (λ i, Ioo (x' i) (y' i)) ⊆
-    (⋃ i : ι, Icc x (function.update y i (x' i))) ∪ ⋃ i : ι, Icc (function.update x i (y' i)) y :=
+    (⋃ i : ι, Icc x (update y i (x' i))) ∪ ⋃ i : ι, Icc (update x i (y' i)) y :=
 begin
   rintros a ⟨⟨hxa, hay⟩, ha'⟩,
   simpa [le_update_iff, update_le_iff, hxa, hay, hxa _, hay _, ← exists_or_distrib,
     not_and_distrib] using ha'
 end
 
+/-- If `x`, `y`, `z` are functions `Π i : ι, α i`, then
+the set difference between the box `[x, z]` and the product of the intervals `(y i, z i]`
+is covered by the union of the boxes `[x, update z i (y i)]`.
+
+E.g., if `x = y`, then this lemma states that the difference between a closed box
+`[x, y]` and the product of half-open intervals `{z | ∀ i, x i < z i ≤ y i}` is covered by the union
+of the faces of `[x, y]` adjacent to `x`. -/
 lemma Icc_diff_pi_univ_Ioc_subset (x y z : Π i, α i) :
-  Icc x z \ pi univ (λ i, Ioc (y i) (z i)) ⊆ ⋃ i : ι, Icc x (function.update z i (y i)) :=
+  Icc x z \ pi univ (λ i, Ioc (y i) (z i)) ⊆ ⋃ i : ι, Icc x (update z i (y i)) :=
 begin
   rintros a ⟨⟨hax, haz⟩, hay⟩,
   simpa [not_and_distrib, hax, le_update_iff, haz _] using hay

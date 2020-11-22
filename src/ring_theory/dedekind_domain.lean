@@ -239,20 +239,19 @@ structure is_dedekind_domain_inv : Prop :=
 
 open ring.fractional_ideal
 
-lemma is_dedekind_domain_inv_iff (f : fraction_map A K) :
-  is_dedekind_domain_inv A ↔
-    (¬ is_field A) ∧ (∀ I ≠ (⊥ : fractional_ideal f), I * I⁻¹ = 1) :=
-begin
-  split; rintros ⟨hf, hi⟩; use hf; intros I hI,
-  { have := hi (map (fraction_ring.alg_equiv_of_quotient f).symm.to_alg_hom I) (map_ne_zero _ hI),
-    erw [← map_inv, ← fractional_ideal.map_mul] at this,
-    convert congr_arg (map (fraction_ring.alg_equiv_of_quotient f).to_alg_hom) this;
-      simp only [alg_equiv.to_alg_hom_eq_coe, map_symm_map, map_one]
-      },
-  { have := hi (map (fraction_ring.alg_equiv_of_quotient f).to_alg_hom I) (map_ne_zero _ hI),
-    erw [← map_inv, ← fractional_ideal.map_mul] at this,
-    convert congr_arg (map (fraction_ring.alg_equiv_of_quotient f).symm.to_alg_hom) this;
-      simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one], sorry }
-end
+-- lemma is_dedekind_domain_inv_iff (f : fraction_map A K) :
+--   is_dedekind_domain_inv A ↔
+--     (¬ is_field A) ∧ (∀ I ≠ (⊥ : fractional_ideal f), I * I⁻¹ = 1) :=
+-- begin
+--   split; rintros ⟨hf, hi⟩; use hf; intros I hI,
+--   { have := hi (map (fraction_ring.alg_equiv_of_quotient f).symm.to_alg_hom I) (map_ne_zero _ hI),
+--     erw [← map_inv, ← fractional_ideal.map_mul] at this,
+--     convert congr_arg (map (fraction_ring.alg_equiv_of_quotient f).to_alg_hom) this;
+--       simp only [alg_equiv.to_alg_hom_eq_coe, map_symm_map, map_one] },
+--   { have := hi (map (fraction_ring.alg_equiv_of_quotient f).to_alg_hom I) (map_ne_zero _ hI),
+--     erw [← map_inv, ← fractional_ideal.map_mul] at this,
+--     convert congr_arg (map (fraction_ring.alg_equiv_of_quotient f).symm.to_alg_hom) this;
+--       simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one] }
+-- end
 
 end inverse

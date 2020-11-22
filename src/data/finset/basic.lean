@@ -433,9 +433,9 @@ theorem mem_union_right {a : α} {s₂ : finset α} (s₁ : finset α) (h : a �
 mem_union.2 $ or.inr h
 
 theorem forall_mem_union {s₁ s₂ : finset α} {p : α → Prop} :
-  (∀ a ∈ s₁, p a) ∧ (∀ b ∈ s₂, p b) ↔ ∀ ab ∈ (s₁ ∪ s₂), p ab :=
-⟨λ h ab hab, (mem_union.mp hab).elim (h.1 _) (h.2 _),
- λ h, ⟨λ a, h a ∘ mem_union_left _, λ b, h b ∘ mem_union_right _⟩⟩
+  (∀ ab ∈ (s₁ ∪ s₂), p ab) ↔ (∀ a ∈ s₁, p a) ∧ (∀ b ∈ s₂, p b) :=
+⟨λ h, ⟨λ a, h a ∘ mem_union_left _, λ b, h b ∘ mem_union_right _⟩,
+ λ h ab hab, (mem_union.mp hab).elim (h.1 _) (h.2 _),⟩
 
 theorem not_mem_union {a : α} {s₁ s₂ : finset α} : a ∉ s₁ ∪ s₂ ↔ a ∉ s₁ ∧ a ∉ s₂ :=
 by rw [mem_union, not_or_distrib]

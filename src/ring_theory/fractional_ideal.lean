@@ -825,7 +825,7 @@ begin
 end
 
 @[simp] lemma map_self_div (I : fractional_ideal g) (h : g.codomain ≃ₐ[R₁] g'.codomain) :
-  (1 / I).map (h : g.codomain →ₐ[R₁] g'.codomain) = 1 / (I.map h) :=
+  (1 / I).map (h : g.codomain →ₐ[R₁] g'.codomain) = 1 / I.map h :=
 by rw [map_div, map_one]
 
 end quotient

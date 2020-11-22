@@ -35,6 +35,10 @@ lemma abs_sum_le_sum_abs [linear_ordered_field α] {f : β → α} {s : finset �
   abs (∑ x in s, f x) ≤ ∑ x in s, abs (f x) :=
 le_sum_of_subadditive _ abs_zero abs_add s f
 
+lemma abs_prod [linear_ordered_comm_ring α] {f : β → α} {s : finset β} :
+  abs (∏ x in s, f x) = ∏ x in s, abs (f x) :=
+(abs_hom : α →* α).map_prod _ _
+
 section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]
 

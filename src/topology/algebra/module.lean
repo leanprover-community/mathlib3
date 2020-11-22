@@ -769,14 +769,14 @@ protected lemma continuous_within_at (e : M ≃L[R] M₂) {s : set M} {x : M} :
 e.continuous.continuous_within_at
 
 lemma comp_continuous_on_iff
-  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) (s : set α) :
+  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) {f : α → M} {s : set α} :
   continuous_on (e ∘ f) s ↔ continuous_on f s :=
 e.to_homeomorph.comp_continuous_on_iff _ _
 
 lemma comp_continuous_iff
-  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) :
+  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) {f : α → M} :
   continuous (e ∘ f) ↔ continuous f :=
-e.to_homeomorph.comp_continuous_iff _
+e.to_homeomorph.comp_continuous_iff
 
 /-- An extensionality lemma for `R ≃L[R] M`. -/
 lemma ext₁ [topological_space R] {f g : R ≃L[R] M} (h : f 1 = g 1) : f = g :=

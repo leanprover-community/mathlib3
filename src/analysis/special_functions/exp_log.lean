@@ -110,7 +110,7 @@ section
 variables {E : Type*} [normed_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
   {x : E} {s : set E}
 
-lemma measurable.cexp [measurable_space E] (hf : measurable f) :
+lemma measurable.cexp {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
   measurable (λ x, complex.exp (f x)) :=
 complex.measurable_exp.comp hf
 
@@ -219,9 +219,7 @@ function, for standalone use and use with `simp`. -/
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
   {x : E} {s : set E}
 
-/-! `real.exp` -/
-
-lemma measurable.exp [measurable_space E] (hf : measurable f) :
+lemma measurable.exp {α : Type*} [measurable_space α] {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, real.exp (f x)) :=
 real.measurable_exp.comp hf
 

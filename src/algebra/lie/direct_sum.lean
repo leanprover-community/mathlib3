@@ -50,15 +50,21 @@ instance : lie_module R L (⨁ i, M i) :=
 
 variables (R ι L M)
 
-lemma is_lie_module_hom_of [decidable_eq ι] (j : ι) : is_lie_module_hom R L (lof R ι M j) :=
-⟨λ x m, begin
-  ext i, by_cases h : j = i,
-  { rw ← h, simp, },
-  { simp [lof, single_eq_of_ne h], },
-end⟩
+/-- The inclusion of each component into a direct sum as a morphism of Lie modules. -/
+def lie_module_of [decidable_eq ι] (j : ι) : M j →ₗ⁅R,L⁆ ⨁ i, M i :=
+{ map_lie := λ x m,
+    begin
+      ext i, by_cases h : j = i,
+      { rw ← h, simp, },
+      { simp [lof, single_eq_of_ne h], },
+    end,
+  ..lof R ι M j }
 
-lemma is_lie_module_hom_component (j : ι) : is_lie_module_hom R L (component R ι M j) :=
-⟨λ x m, by simp only [component, lie_module_bracket_apply, lapply_apply]⟩
+/-- The projection map onto one component, as a morphism of Lie modules. -/
+def lie_module_component (j : ι) : (⨁ i, M i) →ₗ⁅R,L⁆ M j :=
+{ map_lie := λ x m,
+    by simp only [component, lapply_apply, lie_module_bracket_apply, linear_map.to_fun_eq_coe],
+  ..component R ι M j }
 
 end modules
 

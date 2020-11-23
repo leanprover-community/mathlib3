@@ -75,6 +75,8 @@ See Note [coercion into rings], or `data/nat/cast.lean` for more details. -/
 lemma of_real_alg (x : ℝ) : (x : K) = x • (1 : K) :=
 algebra.algebra_map_eq_smul_one x
 
+lemma algebra_map_eq_of_real : ⇑(algebra_map ℝ K) = coe := rfl
+
 @[simp] lemma re_add_im (z : K) : ((re z) : K) + (im z) * I = z := is_R_or_C.re_add_im_ax z
 @[simp, norm_cast] lemma of_real_re : ∀ r : ℝ, re (r : K) = r := is_R_or_C.of_real_re_ax
 @[simp, norm_cast] lemma of_real_im : ∀ r : ℝ, im (r : K) = 0 := is_R_or_C.of_real_im_ax
@@ -150,6 +152,12 @@ lemma smul_re' : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
 λ r z, by { rw algebra.smul_def, apply smul_re }
 lemma smul_im' : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
 λ r z, by { rw algebra.smul_def, apply smul_im }
+
+/-- The real part in a `is_R_or_C` field, as a linear map. -/
+noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
+{ map_smul' := smul_re',  .. re }
+
+@[simp] lemma re_lm_coe : (re_lm : K → ℝ) = re := rfl
 
 /-! ### The imaginary unit, `I` -/
 
@@ -529,6 +537,21 @@ begin
   refine ⟨by simp [of_real_re, mul_re, conj_re, conj_im, norm_sq],_⟩,
   simp [of_real_im, mul_im, conj_im, conj_re, mul_comm],
 end
+
+/-- The real part in a `is_R_or_C` field, as a continuous linear map. -/
+noncomputable def re_clm : K →L[ℝ] ℝ :=
+re_lm.mk_continuous 1 $ by { simp only [norm_eq_abs, re_lm_coe, one_mul], exact abs_re_le_abs }
+
+@[simp] lemma norm_re_clm : ∥(re_clm : K →L[ℝ] ℝ)∥ = 1 :=
+begin
+  apply le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _),
+  convert continuous_linear_map.ratio_le_op_norm _ (1 : K),
+  simp,
+end
+
+@[simp, norm_cast] lemma re_clm_coe : ((re_clm : K →L[ℝ] ℝ) : K →ₗ[ℝ] ℝ) = re_lm := rfl
+
+@[simp] lemma re_clm_apply : ((re_clm : K →L[ℝ] ℝ) : K → ℝ) = re := rfl
 
 /-! ### Cauchy sequences -/
 

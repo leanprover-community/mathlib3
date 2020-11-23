@@ -14,7 +14,7 @@ noncomputable theory
 The main definition is the type class `topological space α` which endows a type `α` with a topology.
 Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
 `frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
-`x` as a cluster point if `is_cluster_pt x F : 𝓝 x ⊓ F ≠ ⊥`. A map `f : ι → α` clusters at `x`
+`x` as a cluster point if `cluster_pt x F : 𝓝 x ⊓ F ≠ ⊥`. A map `f : ι → α` clusters at `x`
 along `F : filter ι` if `map_cluster_pt x F f : cluster_pt x (map f F)`. In particular
 the notion of cluster point of a sequence `u` is `map_cluster_pt x at_top u`.
 
@@ -969,6 +969,11 @@ lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h :
   (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ 𝓝 x :=
 h ht
 
+lemma cluster_pt.map {x : α} {la : filter α} {lb : filter β} (H : cluster_pt x la)
+  {f : α → β} (hfc : continuous_at f x) (hf : tendsto f la lb) :
+  cluster_pt (f x) lb :=
+ne_bot_of_le_ne_bot ((map_ne_bot_iff f).2 H) $ hfc.tendsto.inf hf
+
 lemma preimage_interior_subset_interior_preimage {f : α → β} {s : set β}
   (hf : continuous f) : f⁻¹' (interior s) ⊆ interior (f⁻¹' s) :=
 interior_maximal (preimage_mono interior_subset) (is_open_interior.preimage hf)
@@ -1110,23 +1115,21 @@ begin
   apply h', rw mem_nhds_sets_iff, exact ⟨s, set.subset.refl _, os, ys⟩
 end
 
+/-- If a continuous map `f` maps `s` to `t`, then it maps `closure s` to `closure t`. -/
+lemma set.maps_to.closure {s : set α} {t : set β} {f : α → β} (h : maps_to f s t)
+  (hc : continuous f) : maps_to f (closure s) (closure t) :=
+begin
+  simp only [maps_to, mem_closure_iff_cluster_pt],
+  exact λ x hx, hx.map hc.continuous_at (tendsto_principal_principal.2 h)
+end
+
 lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
   f '' closure s ⊆ closure (f '' s) :=
-have ∀ (a : α), cluster_pt a (𝓟 s) → cluster_pt (f a) (𝓟 (f '' s)),
-  from assume a ha,
-  have h₁ : ¬ map f (𝓝 a ⊓ 𝓟 s) = ⊥,
-    by rwa[map_eq_bot_iff],
-  have h₂ : map f (𝓝 a ⊓ 𝓟 s) ≤ 𝓝 (f a) ⊓ 𝓟 (f '' s),
-    from le_inf
-      (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_continuous_at] at h; exact h a)
-      (le_trans (map_mono inf_le_right) $ by simp [subset_preimage_image] ),
-  ne_bot_of_le_ne_bot h₁ h₂,
-by simp [image_subset_iff, closure_eq_cluster_pts]; assumption
+((maps_to_image f s).closure h).image_subset
 
-lemma mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
+lemma map_mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
   (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=
-subset.trans (image_closure_subset_closure_image hf) (closure_mono $ image_subset_iff.2 ht) $
-  (mem_image_of_mem f ha)
+set.maps_to.closure ht hf ha
 
 /-!
 ### Function with dense range

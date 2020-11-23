@@ -11,7 +11,6 @@ import category_theory.monoidal.of_has_finite_products
 import category_theory.adjunction
 import category_theory.epi_mono
 
-#exit
 /-!
 # Cartesian closed categories
 

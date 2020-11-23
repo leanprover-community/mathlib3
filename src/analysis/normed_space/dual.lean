@@ -87,8 +87,7 @@ end general
 
 section bidual_isometry
 
-variables {𝕜 : Type v} [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
-[has_exists_extension_norm_eq.{u} 𝕜]
+variables {𝕜 : Type v} [is_R_or_C 𝕜]
 {E : Type u} [normed_group E] [normed_space 𝕜 E]
 
 /-- If one controls the norm of every `f x`, then one controls the norm of `x`.

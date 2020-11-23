@@ -43,6 +43,21 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 /-- A field extension E/F is galois if it is both separable and normal -/
 @[class] def is_galois : Prop := is_separable F E ∧ normal F E
 
+variables {F} {E}
+
+lemma is_galois.is_integral (h : is_galois F E) (x : E) : is_integral F x :=
+Exists.cases_on (h.1 x) (λ H _, H)
+
+lemma is_galois.separable (h : is_galois F E) (x : E) :
+  (minimal_polynomial (is_galois.is_integral h x)).separable :=
+Exists.cases_on (h.1 x) (λ _ H, H)
+
+lemma is_galois.normal (h : is_galois F E) (x : E) :
+  (minimal_polynomial (is_galois.is_integral h x)).splits (algebra_map F E) :=
+Exists.cases_on (h.2 x) (λ _ H, H)
+
+variables (F) (E)
+
 instance of_fixed_field (G : Type*) [group G] [fintype G] [mul_semiring_action G E] :
   is_galois (mul_action.fixed_points G E) E :=
 ⟨fixed_points.separable G E, fixed_points.normal G E⟩
@@ -75,21 +90,22 @@ begin
   have iso : F⟮α⟯ ≃ₐ[F] E,
   { rw hα,
     exact intermediate_field.top_equiv },
-  cases h.1 α with H1 h_sep,
-  cases h.2 α with H2 h_splits,
-  replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minimal_polynomial H2),
+  have H := h.is_integral α,
+  have h_sep : (minimal_polynomial H).separable := h.separable α,
+  have h_splits : (minimal_polynomial H).splits (algebra_map F E) := h.normal α,
+  replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minimal_polynomial H),
   { convert polynomial.splits_comp_of_splits (algebra_map F E) iso.symm.to_alg_hom.to_ring_hom h_splits,
     ext1,
     exact (iso.symm.commutes x).symm },
   rw ← linear_equiv.findim_eq iso.to_linear_equiv,
-  rw ← intermediate_field.adjoin_simple.card_aut_eq_findim F E H1 h_sep h_splits,
+  rw ← intermediate_field.adjoin_simple.card_aut_eq_findim F E H h_sep h_splits,
   apply fintype.card_congr,
   apply equiv.mk (λ ϕ, iso.trans (trans ϕ iso.symm)) (λ ϕ, iso.symm.trans (trans ϕ iso)),
   { intro ϕ, ext1, simp only [trans_apply, apply_symm_apply] },
   { intro ϕ, ext1,
     suffices : (0 : ℕ) = (0 : ℕ),
     simp only [trans_apply, symm_apply_apply],
-    clear a ϕ h_splits H2 h_sep H1 iso hα α h _inst_4 _inst_3 _inst_2 E _inst_1 F,
+    clear a ϕ h_splits h_sep H iso hα α h _inst_4 _inst_3 _inst_2 E _inst_1 F,
     refl,/- This refl is painfully slow. In general, whatever the last line is will be slow! -/ },
 end
 
@@ -210,8 +226,9 @@ lemma is_separable_splitting_field_of_is_galois [finite_dimensional F E] [h : is
   ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
 begin
   cases field.exists_primitive_element h.1 with α h1,
-  cases h.1 α with h2 h3,
-  cases h.2 α with _ h4,
+  have h2 := h.is_integral α,
+  have h3 : (minimal_polynomial h2).separable := h.separable α,
+  have h4 : (minimal_polynomial h2).splits (algebra_map F E) := h.normal α,
   use [minimal_polynomial h2, h3, h4],
   rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
   rw intermediate_field.adjoin_simple_to_subalgebra_of_integral F α h2,

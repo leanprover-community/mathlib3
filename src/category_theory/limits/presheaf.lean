@@ -316,23 +316,14 @@ converse to `left_adjoint_preserves_colimits`.
 def is_left_adjoint_of_preserves_colimits (L : (C ⥤ Type u₁) ⥤ ℰ) [preserves_colimits L] :
   is_left_adjoint L :=
 begin
-  let L' : (Cᵒᵖᵒᵖ ⥤ Type u₁) ⥤ ℰ := ((op_op_equivalence C).congr_left).functor ⋙ L,
-  let : preserves_colimits L',
+  let L' : (Cᵒᵖᵒᵖ ⥤ Type u₁) ⥤ ℰ := (op_op_equivalence C).congr_left.functor ⋙ L,
+  letI : preserves_colimits L',
   { refine ⟨λ J 𝒥₁, _⟩,
     constructor,
-    refine λ K, _,
-    apply_instance },
-  let : is_left_adjoint L',
-  { refine ⟨restricted_yoneda (yoneda ⋙ L'), _⟩,
-    resetI,
-    apply (yoneda_adjunction _).of_nat_iso_left _,
-    { apply_instance },
+    refine λ K, by apply_instance },
+  letI : is_left_adjoint L',
+  { refine ⟨restricted_yoneda (yoneda ⋙ L'), (yoneda_adjunction _).of_nat_iso_left _⟩,
     apply (unique_extension_along_yoneda _ L' (iso.refl _)).symm },
-  let : is_left_adjoint (((op_op_equivalence C).congr_left).inverse ⋙ L'),
-  { apply adjunction.left_adjoint_of_comp _ _,
-    apply_instance,
-    apply this },
-  resetI,
   apply adjunction.left_adjoint_of_nat_iso ((op_op_equivalence C).congr_left.inv_fun_id_assoc L),
 end
 

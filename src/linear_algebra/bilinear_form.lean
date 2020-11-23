@@ -294,8 +294,10 @@ section congr
 def congr (e : M₂ ≃ₗ[R₂] M₂') : bilin_form R₂ M₂ ≃ₗ[R₂] bilin_form R₂ M₂' :=
 { to_fun := λ B, B.comp e.symm e.symm,
   inv_fun := λ B, B.comp e e,
-  left_inv := λ B, ext (λ x y, by simp only [comp_apply, linear_equiv.coe_coe, e.symm_apply_apply]),
-  right_inv := λ B, ext (λ x y, by simp only [comp_apply, linear_equiv.coe_coe, e.apply_symm_apply]),
+  left_inv :=
+    λ B, ext (λ x y, by simp only [comp_apply, linear_equiv.coe_coe, e.symm_apply_apply]),
+  right_inv :=
+    λ B, ext (λ x y, by simp only [comp_apply, linear_equiv.coe_coe, e.apply_symm_apply]),
   map_add' := λ B B', ext (λ x y, by simp only [comp_apply, add_apply]),
   map_smul' := λ B B', ext (λ x y, by simp only [comp_apply, smul_apply]) }
 

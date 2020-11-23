@@ -43,6 +43,9 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 /-- A field extension E/F is galois if it is both separable and normal -/
 @[class] def is_galois : Prop := is_separable F E ∧ normal F E
 
+instance is_galois.to_is_separable [h : is_galois F E] : is_separable F E := h.1
+
+instance is_galois.to_normal [h : is_galois F E] : normal F E := h.2
 variables {F} {E}
 
 lemma is_galois.is_integral (h : is_galois F E) (x : E) : is_integral F x :=

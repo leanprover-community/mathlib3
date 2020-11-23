@@ -264,7 +264,7 @@ end
 /-- Like `swap_induction_on`, but with the composition on the right of `f` -/
 @[elab_as_eliminator] lemma swap_induction_on' [fintype α] {P : perm α → Prop} (f : perm α) :
   P 1 → (∀ f x y, x ≠ y → P f → P (f * swap x y)) → P f :=
-λ h1 IH, inv_inv f ▸ @swap_induction_on α _ _ (λ f, P f⁻¹) f⁻¹ h1 (λ f, IH f⁻¹)
+λ h1 IH, inv_inv f ▸ swap_induction_on f⁻¹ h1 (λ f, IH f⁻¹)
 
 lemma swap_mul_swap_mul_swap {x y z : α} (hwz: x ≠ y) (hxz : x ≠ z) :
   swap y z * swap x y * swap y z = swap z x :=

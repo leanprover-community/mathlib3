@@ -903,9 +903,9 @@ def order_iso_of_prime (f : localization_map M S) :
   map_rel_iff' := λ I I', ⟨λ h x hx, h hx, λ h, (show I.val ≤ I'.val,
     from (map_comap f I.val) ▸ (map_comap f I'.val) ▸ (ideal.map_mono h))⟩ }
 
-/-- `quotient_map` appllied to maximal ideals of a localization is `surjective`.
+/-- `quotient_map` applied to maximal ideals of a localization is `surjective`.
   The quotient by a maximal ideal is a field, so inverses to elements already exist,
-  and the localization necessarilly maps the equivalene class of the inverse in the localization -/
+  and the localization necessarily maps the equivalence class of the inverse in the localization -/
 lemma surjective_quotient_map_of_maximal_of_localization {f : localization_map M S} {I : ideal S}
   [I.is_prime] {J : ideal R} {H : J ≤ I.comap f.to_map} (hI : (I.comap f.to_map).is_maximal) :
   function.surjective (I.quotient_map f.to_map H) :=
@@ -1479,7 +1479,7 @@ begin
     exact trans (congr_arg g.to_map hp) g.to_map.map_zero }
 end
 
-theorem is_integral_localization_at_leading_coeff' {R S : Type*} [comm_ring R] [comm_ring S]
+theorem is_integral_elem_localization_at_leading_coeff' {R S : Type*} [comm_ring R] [comm_ring S]
   (x : S) (p : polynomial R) (f : R →+* S) (hf : p.eval₂ f x = 0) (M : submonoid R)
   (hM : p.leading_coeff ∈ M) {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
   (ϕ : localization_map M Rₘ) (ϕ' : localization_map (M.map ↑f : submonoid S) Sₘ) :

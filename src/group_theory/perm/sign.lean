@@ -261,7 +261,7 @@ begin
     exact hmul_swap _ _ _ hxy.1 (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
 end
 
-/-- Like `swap_induction_on`, but with the composition on the right of `f`
+/-- Like `swap_induction_on`, but with the composition on the right of `f`.
 
 An induction principle for permutations. If `P` holds for the identity permutation, and
 is preserved under composition with a non-trivial swap, then `P` holds for all permutations. -/

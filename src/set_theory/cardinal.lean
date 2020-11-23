@@ -93,14 +93,13 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
-instance : linear_order cardinal.{u} :=
+noncomputable instance : linear_order cardinal.{u} :=
 { le          := (≤),
   le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
   le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
   le_antisymm := by rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩; exact quotient.sound (e₁.antisymm e₂),
-  le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total }
-
-noncomputable instance : decidable_linear_order cardinal.{u} := classical.DLO _
+  le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total,
+  decidable_le := classical.dec_rel _ }
 
 noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance -- short-circuit type class inference
 
@@ -369,7 +368,7 @@ begin
   cases h.left with f,
   have : ¬ surjective f := λ hn,
     ne_of_lt h (quotient.sound ⟨equiv.of_bijective f ⟨f.injective, hn⟩⟩),
-  cases classical.not_forall.1 this with b nex,
+  cases not_forall.1 this with b nex,
   refine ⟨⟨sum.rec (by exact f) _, _⟩⟩,
   { exact λ _, b },
   { intros a b h, rcases a with a|⟨⟨⟨⟩⟩⟩; rcases b with b|⟨⟨⟨⟩⟩⟩,
@@ -443,9 +442,9 @@ theorem prod_le_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : pro
 
 theorem prod_ne_zero {ι} (f : ι → cardinal) : prod f ≠ 0 ↔ ∀ i, f i ≠ 0 :=
 begin
-  conv in (f _) {rw ← mk_out (f i)},
-  simp [prod, ne_zero_iff_nonempty, -mk_out, -ne.def],
-  exact ⟨λ ⟨F⟩ i, ⟨F i⟩, λ h, ⟨λ i, classical.choice (h i)⟩⟩,
+  suffices : nonempty (Π i, (f i).out) ↔ ∀ i, nonempty (f i).out,
+    by simpa [← ne_zero_iff_nonempty, prod],
+  exact classical.nonempty_pi
 end
 
 theorem prod_eq_zero {ι} (f : ι → cardinal) : prod f = 0 ↔ ∃ i, f i = 0 :=
@@ -615,7 +614,7 @@ begin
 end
 
 @[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
-by induction n; simp [nat.pow_succ, -_root_.add_comm, power_add, *]
+by induction n; simp [pow_succ', -_root_.add_comm, power_add, *]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 by rw [← lift_mk_fin, ← lift_mk_fin, lift_le]; exact
@@ -640,6 +639,17 @@ le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _)
 @[simp] theorem succ_zero : succ 0 = 1 :=
 by norm_cast
 
+theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) :
+  # α ≤ n :=
+begin
+  refine lt_succ.1 (lt_of_not_ge $ λ hn, _),
+  rw [← cardinal.nat_succ, ← cardinal.lift_mk_fin n.succ] at hn,
+  cases hn with f,
+  refine not_lt_of_le (H $ finset.univ.map f) _,
+  rw [finset.card_map, ← fintype.card, fintype.card_ulift, fintype.card_fin],
+  exact n.lt_succ_self
+end
+
 theorem cantor' (a) {b : cardinal} (hb : 1 < b) : a < b ^ a :=
 by rw [← succ_le, (by norm_cast : succ 1 = 2)] at hb;
    exact lt_of_lt_of_le (cantor _) (power_le_power_right hb)
@@ -652,7 +662,7 @@ by rw [one_le_iff_pos, pos_iff_ne_zero]
 
 theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
 succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
-⟨⟨fin.val, λ a b, fin.eq_of_veq⟩⟩
+⟨⟨coe, λ a b, fin.ext⟩⟩
 
 @[simp] theorem one_lt_omega : 1 < omega :=
 by simpa using nat_lt_omega 1
@@ -669,7 +679,7 @@ theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
   have P : ∀ (n : ℕ) (IH : ∀ i<n, S), ∃ a : S, ¬ ∃ y h, IH y h = a :=
     λ n IH,
     let g : {i | i < n} → S := λ ⟨i, h⟩, IH i h in
-    classical.not_forall.1 (λ h, nf
+    not_forall.1 (λ h, nf
       ⟨fintype.of_surjective g (λ a, subtype.exists.2 (h a))⟩),
   let F : ℕ → S := nat.lt_wf.fix (λ n IH, classical.some (P n IH)),
   refine not_le_of_lt h' ⟨⟨F, _⟩⟩,
@@ -799,7 +809,7 @@ lt_of_not_ge $ λ ⟨F⟩, begin
   have sG : surjective G := inv_fun_surjective F.2,
   choose C hc using show ∀ i, ∃ b, ∀ a, G ⟨i, a⟩ i ≠ b,
   { assume i,
-    simp only [- not_exists, not_exists.symm, classical.not_forall.symm],
+    simp only [- not_exists, not_exists.symm, not_forall.symm],
     refine λ h, not_le_of_lt (H i) _,
     rw [← mk_out (f i), ← mk_out (g i)],
     exact ⟨embedding.of_surjective _ h⟩ },
@@ -832,6 +842,12 @@ quotient.sound ⟨equiv.bool_equiv_punit_sum_punit⟩
 
 @[simp] theorem mk_Prop : mk Prop = 2 :=
 (quotient.sound ⟨equiv.Prop_equiv_bool⟩ : mk Prop = mk bool).trans mk_bool
+
+@[simp] theorem mk_set {α : Type u} : mk (set α) = 2 ^ mk α :=
+begin
+  rw [← prop_eq_two, cardinal.power_def (ulift Prop) α, cardinal.eq],
+  exact ⟨equiv.arrow_congr (equiv.refl _) equiv.ulift.symm⟩,
+end
 
 @[simp] theorem mk_option {α : Type u} : mk (option α) = mk α + 1 :=
 quotient.sound ⟨equiv.option_equiv_sum_punit α⟩

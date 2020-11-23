@@ -1,5 +1,6 @@
 import tactic.simps
 
+universe variables v u w
 -- set_option trace.simps.verbose true
 -- set_option trace.app_builder true
 
@@ -59,12 +60,14 @@ run_cmd do
     "Invalid `simps` attribute. Target is not a structure",
   success_if_fail_with_msg (simps_tac `foo.bar2)
     "Invalid `simps` attribute. The body is not a constructor application:
-prod.map (λ (x : ℕ), x + 2) (λ (y : ℤ), y - 3) (3, 4)
-Possible solution: add option {rhs_md := semireducible}.",
+  prod.map (λ (x : ℕ), x + 2) (λ (y : ℤ), y - 3) (3, 4)
+Possible solution: add option {rhs_md := semireducible}.
+The option {simp_rhs := tt} might also be useful to simplify the right-hand side.",
   success_if_fail_with_msg (simps_tac `foo.bar3)
     "Invalid `simps` attribute. The body is not a constructor application:
-classical.choice bar3._proof_1
-Possible solution: add option {rhs_md := semireducible}.",
+  classical.choice bar3._proof_1
+Possible solution: add option {rhs_md := semireducible}.
+The option {simp_rhs := tt} might also be useful to simplify the right-hand side.",
   e ← get_env,
   let nm := `foo.bar1,
   d ← e.get nm,
@@ -233,15 +236,28 @@ run_cmd do
   guard $ 12 = e.fold 0 -- there are no other lemmas generated
     (λ d n, n + if d.to_name.components.init.ilast = `specify then 1 else 0),
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["fst_fst"])
-    "Invalid simp-lemma specify.specify1_fst_fst. Projection fst doesn't exist, because target is not a structure.",
+    "Invalid simp-lemma specify.specify1_fst_fst.
+Projection fst doesn't exist, because target is not a structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["foo_fst"])
-    "Invalid simp-lemma specify.specify1_foo_fst. Projection foo doesn't exist.",
+    "Invalid simp-lemma specify.specify1_foo_fst. Structure prod does not have projection foo.
+The known projections are:
+  [fst, snd]
+You can also see this information by running
+  `initialize_simps_projections prod`.
+Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["snd_bar"])
-    "Invalid simp-lemma specify.specify1_snd_bar. Projection bar doesn't exist.",
+    "Invalid simp-lemma specify.specify1_snd_bar. Structure prod does not have projection bar.
+The known projections are:
+  [fst, snd]
+You can also see this information by running
+  `initialize_simps_projections prod`.
+Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
-    "Invalid simp-lemma specify.specify5_snd_snd. The given definition is not a constructor application:
-prod.map (λ (x : ℕ), x) (λ (y : ℕ), y) (2, 3)
-Possible solution: add option {rhs_md := semireducible}."
+    "Invalid simp-lemma specify.specify5_snd_snd.
+The given definition is not a constructor application:
+  prod.map (λ (x : ℕ), x) (λ (y : ℕ), y) (2, 3)
+Possible solution: add option {rhs_md := semireducible}.
+The option {simp_rhs := tt} might also be useful to simplify the right-hand side."
 
 
 /- We also eta-reduce if we explicitly specify the projection. -/
@@ -308,18 +324,14 @@ run_cmd do
   e.get `pprod_equiv_prod_inv_fun_snd
 
 /- Tests with universe levels -/
-universe variables v u
 class has_hom (obj : Type u) : Type (max u (v+1)) :=
 (hom : obj → obj → Type v)
 
 infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
-section prio
-set_option default_priority 100
 class category_struct (obj : Type u) extends has_hom.{v} obj : Type (max u (v+1)) :=
 (id       : Π X : obj, hom X X)
 (comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
-end prio
 
 notation `𝟙` := category_struct.id -- type as \b1
 infixr ` ≫ `:80 := category_struct.comp -- type as \gg
@@ -481,27 +493,33 @@ def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
 @[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
 
+example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : γ) : (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) :=
+by simp only [equiv.trans_inv_fun]
+
 end manual_coercion
 
-namespace failty_manual_coercion
-variables {α β γ : Sort*}
+namespace faulty_manual_coercion
 
 structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := failty_manual_coercion.equiv
+local infix ` ≃ `:25 := faulty_manual_coercion.equiv
+
+variables {α β γ : Sort*}
 
 /-- See Note [custom simps projection] -/
 noncomputable def equiv.simps.inv_fun (e : α ≃ β) : β → α := classical.choice ⟨e.inv_fun⟩
 
-run_cmd do e ← get_env, success_if_fail (simps_get_raw_projections e `faulty_manual_coercion.equiv)
+run_cmd do e ← get_env, success_if_fail_with_msg (simps_get_raw_projections e `faulty_manual_coercion.equiv)
+"Invalid custom projection:
+  λ {α : Sort u_1} {β : Sort u_2} (e : α ≃ β), classical.choice _
+Expression is not definitionally equal to equiv.inv_fun."
 
-end failty_manual_coercion
+end faulty_manual_coercion
 
 namespace manual_initialize
-/- defining a manual coercion. This should be made more easily. -/
-
+/- defining a manual coercion. -/
 variables {α β γ : Sort*}
 
 structure equiv (α : Sort*) (β : Sort*) :=
@@ -527,6 +545,101 @@ run_cmd has_attribute `_simps_str `manual_initialize.equiv
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
 
 end manual_initialize
+
+namespace faulty_universes
+
+variables {α β γ : Sort*}
+
+structure equiv (α : Sort u) (β : Sort v) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+
+local infix ` ≃ `:25 := faulty_universes.equiv
+
+instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+
+def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
+
+/-- See Note [custom simps projection] -/
+-- test: intentionally using different names for the universe variables for equiv.symm than for
+-- equiv
+def equiv.simps.inv_fun {α : Type u} {β : Type v} (e : α ≃ β) : β → α := e.symm
+
+run_cmd do e ← get_env,
+  success_if_fail_with_msg (simps_get_raw_projections e `faulty_universes.equiv)
+"Invalid custom projection:
+  λ {α : Type u} {β : Type v} (e : α ≃ β), ⇑(e.symm)
+Expression has different type than equiv.inv_fun. Given type:
+  Π {α : Type u} {β : Type v} (e : α ≃ β), has_coe_to_fun.F e.symm
+Expected type:
+  Π {α : Sort u} {β : Sort v}, α ≃ β → β → α"
+
+end faulty_universes
+
+namespace manual_universes
+
+variables {α β γ : Sort*}
+
+structure equiv (α : Sort u) (β : Sort v) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+
+local infix ` ≃ `:25 := manual_universes.equiv
+
+instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+
+def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
+
+/-- See Note [custom simps projection] -/
+-- test: intentionally using different unvierse levels for equiv.symm than for equiv
+def equiv.simps.inv_fun {α : Sort w} {β : Sort u} (e : α ≃ β) : β → α := e.symm
+
+-- check whether we can generate custom projections even if the universe names don't match
+initialize_simps_projections equiv
+
+end manual_universes
+
+namespace manual_projection_names
+
+structure equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+
+local infix ` ≃ `:25 := manual_projection_names.equiv
+
+variables {α β γ : Sort*}
+
+instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+
+def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
+
+/-- See Note [custom simps projection] -/
+def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
+
+initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
+
+run_cmd do
+  e ← get_env,
+  data ← simps_get_raw_projections e `manual_projection_names.equiv,
+  guard $ data.2.map prod.fst = [`apply, `symm_apply]
+
+@[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
+
+example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : α) : (e₁.trans e₂) x = e₂ (e₁ x) :=
+by simp only [equiv.trans_apply]
+
+example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : γ) : (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) :=
+by simp only [equiv.trans_symm_apply]
+
+-- the new projection names are parsed correctly (the old projection names won't work anymore)
+@[simps apply symm_apply] protected def equiv.trans2 (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
+
+-- initialize_simps_projections equiv
+
+end manual_projection_names
+
 
 -- test transparency setting
 structure set_plus (α : Type) :=
@@ -595,6 +708,7 @@ end
 
 end nested_non_fully_applied
 
+
 /- fail if you add an attribute with a parameter. -/
 run_cmd success_if_fail $ simps_tac `foo.rfl { attrs := [`higher_order] }
 
@@ -609,3 +723,24 @@ structure needs_prop_class (n : ℕ) [prop_class n] :=
 
 @[simps] def test_prop_class : needs_prop_class 1 :=
 { t := trivial }
+
+/- check that when the coercion is given in eta-expanded form, we can also find the coercion. -/
+structure alg_hom (R A B : Type*) :=
+(to_fun : A → B)
+
+instance (R A B : Type*) : has_coe_to_fun (alg_hom R A B) := ⟨_, λ f, f.to_fun⟩
+
+@[simps] def my_alg_hom : alg_hom unit bool bool :=
+{ to_fun := id }
+
+example (x : bool) : my_alg_hom x = id x := by simp only [my_alg_hom_to_fun]
+
+structure ring_hom (A B : Type*) :=
+(to_fun : A → B)
+
+instance (A B : Type*) : has_coe_to_fun (ring_hom A B) := ⟨_, λ f, f.to_fun⟩
+
+@[simps] def my_ring_hom : ring_hom bool bool :=
+{ to_fun := id }
+
+example (x : bool) : my_ring_hom x = id x := by simp only [my_ring_hom_to_fun]

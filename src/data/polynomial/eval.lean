@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.induction
-import data.polynomial.degree.basic
+import data.polynomial.degree.definitions
 import deprecated.ring
 
 /-!
@@ -37,6 +37,11 @@ p.sum (λ e a, f a * x ^ e)
 
 lemma eval₂_eq_sum {f : R →+* S} {x : S} : p.eval₂ f x = p.sum (λ e a, f a * x ^ e) := rfl
 
+lemma eval₂_congr {R S : Type*} [semiring R] [semiring S]
+  {f g : R →+* S} {s t : S} {φ ψ : polynomial R} :
+  f = g → s = t → φ = ψ → eval₂ f s φ = eval₂ g t ψ :=
+by rintro rfl rfl rfl; refl
+
 @[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
 finsupp.sum_zero_index
 
@@ -54,7 +59,7 @@ end
 
 @[simp] lemma eval₂_X_pow {n : ℕ} : (X^n).eval₂ f x = x^n :=
 begin
-  rw ←monomial_one_eq_X_pow,
+  rw X_pow_eq_monomial,
   convert eval₂_monomial f x,
   simp,
 end
@@ -103,6 +108,40 @@ begin
   rw [sum_insert, eval₂_add, hs, sum_insert]; assumption,
 end
 
+lemma eval₂_mul_noncomm (hf : ∀ b a, f b * a = a * f b) :
+  (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
+begin
+  have f_zero : ∀ (a : ℕ), f 0 * x ^ a = 0,
+  { intro, simp },
+  have f_add : ∀ (a : ℕ) (b₁ b₂ : R), f (b₁ + b₂) * x ^ a = f b₁ * x ^ a + f b₂ * x ^ a,
+  { intros, rw [f.map_add, add_mul] },
+
+  simp_rw [eval₂, add_monoid_algebra.mul_def, finsupp.sum_mul _ p, finsupp.mul_sum _ q],
+  rw sum_sum_index; try { assumption },
+  apply sum_congr rfl, assume i hi, dsimp only,
+  rw sum_sum_index; try { assumption },
+  apply sum_congr rfl, assume j hj, dsimp only,
+  rw [sum_single_index, is_semiring_hom.map_mul f, pow_add],
+  { rw [mul_assoc, ←mul_assoc _ (x ^ i), hf _ (x ^ i), mul_assoc, mul_assoc] },
+  { apply f_zero }
+ end
+
+lemma eval₂_list_prod_noncomm (ps : list (polynomial R)) (hf : ∀ b a, f b * a = a * f b):
+  ps.prod.eval₂ f x = (ps.map (polynomial.eval₂ f x)).prod :=
+begin
+  induction ps,
+  { simp },
+  { simp [eval₂_mul_noncomm _ _ hf, ps_ih] {contextual := tt} }
+end
+
+/-- `eval₂` as a `ring_hom` for noncommutative rings -/
+def eval₂_ring_hom' (f : R →+* S) (hf : ∀ b a, f b * a = a * f b) (x : S) : polynomial R →+* S :=
+{ to_fun := eval₂ f x,
+  map_add' := λ _ _, eval₂_add _ _,
+  map_zero' := eval₂_zero _ _,
+  map_mul' := λ _ _, eval₂_mul_noncomm _ _ hf,
+  map_one' := eval₂_one _ _ }
+
 end
 
 /-!
@@ -116,18 +155,22 @@ variables (f : R →+* S) (x : S)
 
 @[simp] lemma eval₂_mul : (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
 begin
-  dunfold eval₂,
-  rw [add_monoid_algebra.mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q],
-  rw [sum_sum_index],
-  { apply sum_congr rfl, assume i hi, dsimp only, rw [sum_sum_index],
-    { apply sum_congr rfl, assume j hj, dsimp only,
-      rw [sum_single_index, f.map_mul, pow_add],
-      { simp only [mul_assoc, mul_left_comm] },
-      { rw [f.map_zero, zero_mul] } },
-    { intro, rw [f.map_zero, zero_mul] },
-    { intros, rw [f.map_add, add_mul] } },
-  { intro, rw [f.map_zero, zero_mul] },
-  { intros, rw [f.map_add, add_mul] }
+  apply eval₂_mul_noncomm,
+  simp [mul_comm]
+end
+
+lemma eval₂_mul_eq_zero_of_left (q : polynomial R) (hp : p.eval₂ f x = 0) :
+  (p * q).eval₂ f x = 0 :=
+begin
+  rw eval₂_mul f x,
+  exact mul_eq_zero_of_left hp (q.eval₂ f x)
+end
+
+lemma eval₂_mul_eq_zero_of_right (p : polynomial R) (hq : q.eval₂ f x = 0) :
+  (p * q).eval₂ f x = 0 :=
+begin
+  rw eval₂_mul f x,
+  exact mul_eq_zero_of_right (p.eval₂ f x) hq
 end
 
 instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f x) :=
@@ -140,6 +183,18 @@ ring_hom.of (eval₂ f x)
 @[simp] lemma coe_eval₂_ring_hom (f : R →+* S) (x) : ⇑(eval₂_ring_hom f x) = eval₂ f x := rfl
 
 lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := (eval₂_ring_hom _ _).map_pow _ _
+
+lemma eval₂_eq_sum_range :
+  p.eval₂ f x = ∑ i in finset.range (p.nat_degree + 1), f (p.coeff i) * x^i :=
+trans (congr_arg _ p.as_sum_range) (trans (eval₂_finset_sum f _ _ x) (congr_arg _ (by simp)))
+
+lemma eval₂_eq_sum_range' (f : R →+* S) {p : polynomial R} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
+  eval₂ f x p = ∑ i in finset.range n, f (p.coeff i) * x ^ i :=
+begin
+  rw [eval₂_eq_sum, p.sum_over_range' _ _ hn],
+  intro i,
+  rw [f.map_zero, zero_mul]
+end
 
 end eval₂
 
@@ -180,7 +235,8 @@ lemma eval_sum (p : polynomial R) (f : ℕ → R → polynomial R) (x : R) :
   (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
 eval₂_sum _ _ _ _
 
-
+lemma eval_finset_sum (s : finset ι) (g : ι → polynomial R) (x : R) :
+  (∑ i in s, g i).eval x = ∑ i in s, (g i).eval x := eval₂_finset_sum _ _ _ _
 
 /-- `is_root p x` implies `x` is a root of `p`. The evaluation of `p` at `x` is zero -/
 def is_root (p : polynomial R) (a : R) : Prop := p.eval a = 0
@@ -211,11 +267,8 @@ rfl
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
-  refine ext (λ n, _),
-  rw [comp, eval₂],
-  conv in (C _ * _) { rw ← single_eq_C_mul_X },
-  congr,
-  convert finsupp.sum_single _,
+  simp only [comp, eval₂, ← single_eq_C_mul_X],
+  exact finsupp.sum_single _,
 end
 
 @[simp] lemma X_comp : X.comp p = p := eval₂_X _ _
@@ -242,6 +295,22 @@ by rw [← C_1, comp_C]
 by rw [← C_1, C_comp]
 
 @[simp] lemma add_comp : (p + q).comp r = p.comp r + q.comp r := eval₂_add _ _
+
+@[simp] lemma mul_comp {R : Type*} [comm_semiring R] (p q r : polynomial R) :
+  (p * q).comp r = p.comp r * q.comp r := eval₂_mul _ _
+
+@[simp] lemma bit0_comp : comp (bit0 p : polynomial R) q = bit0 (p.comp q) :=
+by simp only [bit0, add_comp]
+
+@[simp] lemma bit1_comp : comp (bit1 p : polynomial R) q = bit1 (p.comp q) :=
+by simp only [bit1, add_comp, bit0_comp, one_comp]
+
+lemma comp_assoc {R : Type*} [comm_semiring R] (φ ψ χ : polynomial R) :
+  (φ.comp ψ).comp χ = φ.comp (ψ.comp χ) :=
+begin
+  apply polynomial.induction_on φ;
+  { intros, simp only [add_comp, mul_comp, C_comp, X_comp, pow_succ', ← mul_assoc, *] at * }
+end
 
 end comp
 
@@ -281,7 +350,7 @@ begin
   conv_rhs { rw [← sum_C_mul_X_eq p, coeff_sum, finsupp.sum,
     ← p.support.sum_hom f], },
   refine finset.sum_congr rfl (λ x hx, _),
-  simp [function.comp, coeff_C_mul_X, is_semiring_hom.map_mul f],
+  simp [function.comp, coeff_C_mul_X, f.map_mul],
   split_ifs; simp [is_semiring_hom.map_zero f],
 end
 
@@ -344,7 +413,7 @@ instance map.is_semiring_hom : is_semiring_hom (map f) :=
   map_mul := λ _ _, map_mul f, }
 
 lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
-eq.symm $ list.prod_hom _ _
+eq.symm $ list.prod_hom _ (monoid_hom.of (map f))
 
 @[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := is_monoid_hom.map_pow (map f) _ _
 
@@ -353,7 +422,7 @@ lemma mem_map_range {p : polynomial S} :
 begin
   split,
   { rintro ⟨p, rfl⟩ n, rw coeff_map, exact set.mem_range_self _ },
-  { intro h, rw p.as_sum,
+  { intro h, rw p.as_sum_range_C_mul_X_pow,
     apply is_add_submonoid.finset_sum_mem,
     intros i hi,
     rcases h i with ⟨c, hc⟩,
@@ -375,6 +444,10 @@ end
 
 lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
 eval₂_map f (ring_hom.id _) x
+
+lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
+  (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
+eq.symm $ sum_hom _ _
 
 end map
 
@@ -420,11 +493,7 @@ instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_
 
 lemma eval₂_hom [comm_semiring S] (f : R →+* S) (x : R) :
   p.eval₂ f (f x) = f (p.eval x) :=
-polynomial.induction_on p
-  (by simp)
-  (by simp [f.map_add] {contextual := tt})
-  (by simp [f.map_mul, eval_pow,
-    f.map_pow, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
+(ring_hom.comp_id f) ▸ (hom_eval₂ p (ring_hom.id R) f x).symm
 
 lemma root_mul_left_of_is_root (p : polynomial R) {q : polynomial R} :
   is_root q a → is_root (p * q) a :=
@@ -434,6 +503,21 @@ lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
   is_root p a → is_root (p * q) a :=
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
 
+/--
+Polynomial evaluation commutes with finset.prod
+-/
+lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → polynomial R) (x : R) :
+  eval x (∏ j in s, p j) = ∏ j in s, eval x (p j) :=
+begin
+  classical,
+  apply finset.induction_on s,
+    { simp only [finset.prod_empty, eval_one] },
+    { intros j s hj hpj,
+      have h0 : ∏ i in insert j s, eval x (p i) = (eval x (p j)) * ∏ i in s, eval x (p i),
+      { apply finset.prod_insert hj },
+      rw [h0, ← hpj, finset.prod_insert hj, eval_mul] },
+end
+
 end eval
 
 section map
@@ -441,18 +525,36 @@ section map
 variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
 
 lemma map_multiset_prod (m : multiset (polynomial R)) : m.prod.map f = (m.map $ map f).prod :=
-eq.symm $ multiset.prod_hom _ _
+eq.symm $ multiset.prod_hom _ (monoid_hom.of (map f))
 
 lemma map_prod {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
 eq.symm $ prod_hom _ _
+
+lemma support_map_subset (p : polynomial R) : (map f p).support ⊆ p.support :=
+begin
+  intros x,
+  simp only [mem_support_iff],
+  contrapose!,
+  change p.coeff x = 0 → (map f p).coeff x = 0,
+  rw coeff_map,
+  intro hx,
+  rw hx,
+  exact ring_hom.map_zero f,
+end
+
+lemma map_comp (p q : polynomial R) : map f (p.comp q) = (map f p).comp (map f q) :=
+polynomial.induction_on p
+  (by simp)
+  (by simp {contextual := tt})
+  (by simp [pow_succ', ← mul_assoc, polynomial.comp] {contextual := tt})
 
 end map
 
 end comm_semiring
 
 section ring
-variables [ring R] {p q : polynomial R}
+variables [ring R] {p q r : polynomial R}
 
 -- @[simp]
 -- lemma C_eq_int_cast (n : ℤ) : C ↑n = (n : polynomial R) :=
@@ -465,13 +567,17 @@ lemma C_sub : C (a - b) = C a - C b := ring_hom.map_sub C a b
 instance map.is_ring_hom {S} [ring S] (f : R →+* S) : is_ring_hom (map f) :=
 by apply is_ring_hom.of_semiring
 
-@[simp] lemma map_sub {S} [comm_ring S] (f : R →+* S) :
+@[simp] lemma map_sub {S} [ring S] (f : R →+* S) :
   (p - q).map f = p.map f - q.map f :=
 is_ring_hom.map_sub _
 
-@[simp] lemma map_neg {S} [comm_ring S] (f : R →+* S) :
+@[simp] lemma map_neg {S} [ring S] (f : R →+* S) :
   (-p).map f = -(p.map f) :=
 is_ring_hom.map_neg _
+
+@[simp] lemma map_int_cast {S} [ring S] (f : R →+* S) (n : ℤ) :
+  map f ↑n = ↑n :=
+(ring_hom.of (map f)).map_int_cast n
 
 @[simp] lemma eval_int_cast {n : ℤ} {x : R} : (n : polynomial R).eval x = n :=
 by simp only [←C_eq_int_cast, eval_C]
@@ -493,6 +599,9 @@ eval₂_sub _
 lemma root_X_sub_C : is_root (X - C a) b ↔ a = b :=
 by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 
+@[simp] lemma neg_comp : (-p).comp q = -p.comp q := eval₂_neg _
+
+@[simp] lemma sub_comp : (p - q).comp r = p.comp r - q.comp r := eval₂_sub _
 
 end ring
 

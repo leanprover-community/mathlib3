@@ -196,6 +196,13 @@ The transport tries to do the right thing in most cases using several
 heuristics described below.  However, in some cases it fails, and
 requires manual intervention.
 
+If the declaration to be transported has attributes which need to be
+copied to the additive version, then `to_additive` should come last:
+
+```
+@[simp, to_additive] lemma mul_one' {G : Type*} [group G] (x : G) : x * 1 = x := mul_one x
+```
+
 ## Implementation notes
 
 The transport process generally works by taking all the names of

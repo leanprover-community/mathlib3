@@ -19,13 +19,18 @@ and sometimes we want to think of a different monoidal structure entirely,
 we don't set up either construct as an instance.
 
 ## Implementation
-For the sake of nicer definitional properties,
-we rely on `has_terminal` and `has_binary_products` instead of `has_finite_products`,
-so that if a particular category provides customised instances of these
-we pick those up instead.
+We had previously chosen to rely on `has_terminal` and `has_binary_products` instead of
+`has_finite_products`, because we were later relying on the definitional form of the tensor product.
+Now that `has_limit` has been refactored to be a `Prop`,
+this issue is irrelevant and we could simplify the construction here.
+
+See `category_theory.monoidal.of_chosen_finite_products` for a variant of this construction
+which allows specifying a particular choice of terminal object and binary products.
 -/
 
 universes v u
+
+noncomputable theory
 
 namespace category_theory
 
@@ -68,8 +73,8 @@ by simp
     (prod.snd ≫ prod.snd) }
 
 /-- The product functor can be decomposed. -/
-def prod_functor_left_comp (X Y : C) :
-  prod_functor.obj (X ⨯ Y) ≅ prod_functor.obj Y ⋙ prod_functor.obj X :=
+def prod.functor_left_comp (X Y : C) :
+  prod.functor.obj (X ⨯ Y) ≅ prod.functor.obj Y ⋙ prod.functor.obj X :=
 nat_iso.of_components (prod.associator _ _) (by tidy)
 
 @[reassoc]
@@ -84,8 +89,6 @@ lemma prod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X�
   prod.map (prod.map f₁ f₂) f₃ ≫ (prod.associator Y₁ Y₂ Y₃).hom =
     (prod.associator X₁ X₂ X₃).hom ≫ prod.map f₁ (prod.map f₂ f₃) :=
 by tidy
-
-
 
 variables [has_terminal C]
 
@@ -102,24 +105,24 @@ variables [has_terminal C]
   inv := prod.lift (𝟙 _) (terminal.from P) }
 
 @[reassoc]
-lemma prod_left_unitor_hom_naturality (f : X ⟶ Y):
+lemma prod.left_unitor_hom_naturality (f : X ⟶ Y):
   prod.map (𝟙 _) f ≫ (prod.left_unitor Y).hom = (prod.left_unitor X).hom ≫ f :=
 prod.map_snd _ _
 
 @[reassoc]
-lemma prod_left_unitor_inv_naturality (f : X ⟶ Y):
+lemma prod.left_unitor_inv_naturality (f : X ⟶ Y):
   (prod.left_unitor X).inv ≫ prod.map (𝟙 _) f = f ≫ (prod.left_unitor Y).inv :=
-by rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv, prod_left_unitor_hom_naturality]
+by rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv, prod.left_unitor_hom_naturality]
 
 @[reassoc]
-lemma prod_right_unitor_hom_naturality (f : X ⟶ Y):
+lemma prod.right_unitor_hom_naturality (f : X ⟶ Y):
   prod.map f (𝟙 _) ≫ (prod.right_unitor Y).hom = (prod.right_unitor X).hom ≫ f :=
 prod.map_fst _ _
 
 @[reassoc]
 lemma prod_right_unitor_inv_naturality (f : X ⟶ Y):
   (prod.right_unitor X).inv ≫ prod.map f (𝟙 _) = f ≫ (prod.right_unitor Y).inv :=
-by rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv, prod_right_unitor_hom_naturality]
+by rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv, prod.right_unitor_hom_naturality]
 
 lemma prod.triangle (X Y : C) :
   (prod.associator X (⊤_ C) Y).hom ≫ prod.map (𝟙 X) ((prod.left_unitor Y).hom) =

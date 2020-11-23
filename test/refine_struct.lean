@@ -136,3 +136,13 @@ begin
     guard_tags _field mul_one monoid, admit, },
   trivial
 end
+
+def my_semigroup := semigroup
+
+example {α} (mul : α → α → α) (h : false) : my_semigroup α :=
+begin
+  refine_struct { mul := mul, .. },
+  field mul_assoc {
+    guard_target ∀ a b c : α, mul (mul a b) c = mul a (mul b c),
+    exact h.elim }
+end

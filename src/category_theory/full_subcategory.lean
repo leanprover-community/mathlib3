@@ -3,7 +3,6 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Reid Barton
 -/
-import category_theory.fully_faithful
 import category_theory.groupoid
 
 namespace category_theory
@@ -88,6 +87,11 @@ section full_subcategory
 variables {C : Type u₂} [category.{v} C]
 variables (Z : C → Prop)
 
+/--
+The category structure on a subtype; morphisms just ignore the property.
+
+See https://stacks.math.columbia.edu/tag/001D. We do not define 'strictly full' subcategories.
+-/
 instance full_subcategory : category.{v} {X : C // Z X} :=
 induced_category.category subtype.val
 

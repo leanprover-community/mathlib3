@@ -130,8 +130,8 @@ variables [monoid α] [monoid β] {f : filter α} (m : α → β)
 
 @[to_additive]
 protected lemma map_mul [is_mul_hom m] {f₁ f₂ : filter α} : map m (f₁ * f₂) = map m f₁ * map m f₂ :=
-filter_eq $ set.ext $ assume s,
 begin
+  ext s,
   simp only [mem_mul], split,
   { rintro ⟨t₁, t₂, ht₁, ht₂, t₁t₂⟩,
     have : m '' (t₁ * t₂) ⊆ s := subset.trans (image_subset m t₁t₂) (image_preimage_subset _ _),

@@ -222,7 +222,7 @@ theorem arzela_ascoli₁ [compact_space β]
 begin
   refine compact_of_totally_bounded_is_closed _ closed,
   refine totally_bounded_of_finite_discretization (λ ε ε0, _),
-  rcases dense ε0 with ⟨ε₁, ε₁0, εε₁⟩,
+  rcases exists_between ε0 with ⟨ε₁, ε₁0, εε₁⟩,
   let ε₂ := ε₁/2/2,
   /- We have to find a finite discretization of `u`, i.e., finite information
   that is sufficient to reconstruct `u` up to ε. This information will be
@@ -335,7 +335,7 @@ lemma equicontinuous_of_continuity_modulus {α : Type u} [metric_space α]
   (b : ℝ → ℝ) (b_lim : tendsto b (𝓝 0) (𝓝 0))
   (A : set (α →ᵇ β))
   (H : ∀(x y:α) (f : α →ᵇ β), f ∈ A → dist (f x) (f y) ≤ b (dist x y))
-  (x:α) (ε : ℝ) (ε0 : ε > 0) : ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
+  (x:α) (ε : ℝ) (ε0 : 0 < ε) : ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε :=
 begin
   rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
@@ -524,6 +524,25 @@ instance : normed_ring (α →ᵇ R) :=
   .. bounded_continuous_function.normed_group }
 
 end normed_ring
+
+section normed_comm_ring
+/-!
+### Normed commutative ring structure
+
+In this section, if `R` is a normed commutative ring, then we show that the space of bounded
+continuous functions from `α` to `R` inherits a normed commutative ring structure, by using
+pointwise operations and checking that they are compatible with the uniform distance. -/
+
+variables [topological_space α] {R : Type*} [normed_comm_ring R]
+
+instance : comm_ring (α →ᵇ R) :=
+{ mul_comm := λ f₁ f₂, ext $ λ x, mul_comm _ _,
+  .. bounded_continuous_function.ring }
+
+instance : normed_comm_ring (α →ᵇ R) :=
+{ .. bounded_continuous_function.comm_ring, .. bounded_continuous_function.normed_group }
+
+end normed_comm_ring
 
 section normed_algebra
 /-!

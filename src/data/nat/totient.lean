@@ -10,6 +10,8 @@ open_locale big_operators
 
 namespace nat
 
+/-- Euler's totient function. This counts the number of positive integers less than `n` which are
+coprime with `n`. -/
 def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
 
 localized "notation `φ` := nat.totient" in nat
@@ -17,7 +19,7 @@ localized "notation `φ` := nat.totient" in nat
 @[simp] theorem totient_zero : φ 0 = 0 := rfl
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
-calc totient n ≤ (range n).card : card_le_of_subset (filter_subset _)
+calc totient n ≤ (range n).card : card_le_of_subset (filter_subset _ _)
            ... = n              : card_range _
 
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n

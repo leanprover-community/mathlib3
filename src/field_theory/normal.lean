@@ -45,7 +45,8 @@ begin
     splits_prod _ $ λ x hx, normal.splits F K x,
     subalgebra.to_submodule_injective _⟩,
   rw [algebra.coe_top, eq_top_iff, ← hs.2, submodule.span_le, set.range_subset_iff],
-  refine λ x, algebra.subset_adjoin ((mem_roots $ mt (map_eq_zero $ algebra_map F K).1 $
+  refine λ x, algebra.subset_adjoin (multiset.mem_to_finset.mpr $
+    (mem_roots $ mt (map_eq_zero $ algebra_map F K).1 $
     finset.prod_ne_zero_iff.2 $ λ x hx, _).2 _),
   { exact minimal_polynomial.ne_zero _ },
   rw [is_root.def, eval_map, ← aeval_def, alg_hom.map_prod],

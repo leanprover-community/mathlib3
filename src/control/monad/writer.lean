@@ -8,7 +8,7 @@ The writer monad transformer for passing immutable state.
 import control.monad.basic
 import algebra.group.basic
 
-universes u v w
+universes u v w u₀ u₁ v₀ v₁
 
 structure writer_t (ω : Type u) (m : Type u → Type v) (α : Type u) : Type (max u v) :=
 (run : m (α × ω))
@@ -77,16 +77,18 @@ end
 end writer_t
 
 
-/-- An implementation of [MonadReader](https://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-Reader-Class.html#t:MonadReader).
-    It does not contain `local` because this function cannot be lifted using `monad_lift`.
-    Instead, the `monad_reader_adapter` class provides the more general `adapt_reader` function.
+/--
+An implementation of [MonadReader](
+https://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-Reader-Class.html#t:MonadReader).
+It does not contain `local` because this function cannot be lifted using `monad_lift`.
+Instead, the `monad_reader_adapter` class provides the more general `adapt_reader` function.
 
-    Note: This class can be seen as a simplification of the more "principled" definition
-    ```
-    class monad_reader (ρ : out_param (Type u)) (n : Type u → Type u) :=
-    (lift {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α) → n α)
-    ```
-    -/
+Note: This class can be seen as a simplification of the more "principled" definition
+```
+class monad_reader (ρ : out_param (Type u)) (n : Type u → Type u) :=
+(lift {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α) → n α)
+```
+-/
 class monad_writer (ω : out_param (Type u)) (m : Type u → Type v) :=
 (tell (w : ω) : m punit)
 (listen {α} : m α → m (α × ω))
@@ -170,3 +172,13 @@ end
 
 instance (ω : Type u) (m out) [monad_run out m] : monad_run (λ α, out (α × ω)) (writer_t ω m) :=
 ⟨λ α x, run $ x.run ⟩
+
+/-- reduce the equivalence between two writer monads to the equivalence between
+their underlying monad -/
+def writer_t.equiv {m₁ : Type u₀ → Type v₀} {m₂ : Type u₁ → Type v₁}
+  {α₁ ω₁ : Type u₀} {α₂ ω₂ : Type u₁} (F : (m₁ (α₁ × ω₁)) ≃ (m₂ (α₂ × ω₂))) :
+  writer_t ω₁ m₁ α₁ ≃ writer_t ω₂ m₂ α₂ :=
+{ to_fun := λ ⟨f⟩, ⟨F f⟩,
+  inv_fun := λ ⟨f⟩, ⟨F.symm f⟩,
+  left_inv := λ ⟨f⟩, congr_arg writer_t.mk $ F.left_inv _,
+  right_inv := λ ⟨f⟩, congr_arg writer_t.mk $ F.right_inv _ }

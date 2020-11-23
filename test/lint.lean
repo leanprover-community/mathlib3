@@ -21,7 +21,7 @@ l.mmap_filter $ λ d, option.map (λ x, (d, x)) <$> tac d
 run_cmd do
   let t := name × list ℕ,
   e ← get_env,
-  let l := e.filter (λ d, e.in_current_file' d.to_name ∧ ¬ d.is_auto_or_internal e),
+  let l := e.filter (λ d, e.in_current_file d.to_name ∧ ¬ d.is_auto_or_internal e),
   l2 ← fold_over_with_cond l (return ∘ check_unused_arguments),
   guard $ l2.length = 4,
   let l2 : list t := l2.map $ λ x, ⟨x.1.to_name, x.2⟩,

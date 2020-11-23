@@ -7,6 +7,8 @@ import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
 import category_theory.abelian.basic
 
+noncomputable theory
+
 open category_theory.limits
 
 namespace category_theory

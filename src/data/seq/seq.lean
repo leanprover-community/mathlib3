@@ -73,7 +73,7 @@ instance : has_mem α (seq α) :=
 ⟨seq.mem⟩
 
 theorem le_stable (s : seq α) {m n} (h : m ≤ n) :
-  s.1 m = none → s.1 n = none :=
+  s.nth m = none → s.nth n = none :=
 by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
 
 /-- If a sequence terminated at position `n`, it also terminated at `m ≥ n `. -/
@@ -91,7 +91,7 @@ lemma ge_stable (s : seq α) {aₙ : α} {n m : ℕ} (m_le_n : m ≤ n)
   ∃ (aₘ : α), s.nth m = some aₘ :=
 have s.nth n ≠ none, by simp [s_nth_eq_some],
 have s.nth m ≠ none, from mt (s.le_stable m_le_n) this,
-with_one.ne_one_iff_exists.elim_left this
+option.ne_none_iff_exists'.mp this
 
 theorem not_mem_nil (a : α) : a ∉ @nil α :=
 λ ⟨n, (h : some a = none)⟩, by injection h

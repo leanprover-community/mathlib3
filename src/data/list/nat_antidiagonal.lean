@@ -37,5 +37,14 @@ rfl
 lemma nodup_antidiagonal (n : ℕ) : nodup (antidiagonal n) :=
 nodup_map (@left_inverse.injective ℕ (ℕ × ℕ) prod.fst (λ i, (i, n-i)) $ λ i, rfl) (nodup_range _)
 
+@[simp] lemma antidiagonal_succ {n : ℕ} :
+  antidiagonal (n + 1) = (0, n + 1) :: ((antidiagonal n).map (prod.map nat.succ id) ) :=
+begin
+  simp only [antidiagonal, range_succ_eq_map, map_cons, true_and, nat.add_succ_sub_one, add_zero, 
+    id.def, eq_self_iff_true, nat.sub_zero, map_map, prod.map_mk],
+  apply congr (congr rfl _) rfl,
+  ext; simp,
+end
+
 end nat
 end list

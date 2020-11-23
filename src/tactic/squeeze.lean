@@ -64,6 +64,12 @@ def squeeze_loc_attr_carrier := ()
 
 run_cmd squeeze_loc_attr.set ``squeeze_loc_attr_carrier none tt
 
+/-- Format a list of arguments for use with `simp` and friends. This omits the
+list entirely if it is empty. -/
+meta def render_simp_arg_list : list simp_arg_type → tactic format
+| [] := pure ""
+| args := (++) " " <$> to_line_wrap_format <$> args.mmap pp
+
 /-- Emit a suggestion to the user. If inside a `squeeze_scope` block,
 the suggestions emitted through `mk_suggestion` will be aggregated so that
 every tactic that makes a suggestion can consider multiple execution of the
@@ -74,7 +80,7 @@ meta def mk_suggestion (p : pos) (pre post : string) (args : list simp_arg_type)
 do xs ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier,
    match xs with
    | none := do
-     args ← to_line_wrap_format <$> args.mmap pp,
+     args ← render_simp_arg_list args,
      if at_pos then
        @scope_trace _ p.line p.column $ λ _, _root_.trace sformat!"{pre}{args}{post}" (pure () : tactic unit)
      else
@@ -178,6 +184,15 @@ do v ← target >>= mk_meta_var,
 namespace interactive
 
 attribute [derive decidable_eq] simp_arg_type
+
+/-- Turn a `simp_arg_type` into a string. -/
+meta instance simp_arg_type.has_to_string : has_to_string simp_arg_type :=
+⟨λ a, match a with
+| simp_arg_type.all_hyps := "*"
+| (simp_arg_type.except n) := "-" ++ to_string n
+| (simp_arg_type.expr e) := to_string e
+| (simp_arg_type.symm_expr e) := "←" ++ to_string e
+end⟩
 
 /-- combinator meant to aggregate the suggestions issued by multiple calls
 of `squeeze_simp` (due, for instance, to `;`).
@@ -283,7 +298,7 @@ do (cfg',c) ← parse_config cfg,
             attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
             loc := loc.to_string locat in
         mk_suggestion (key.move_left 1)
-          sformat!"Try this: simp{use_iota_eqn} only "
+          sformat!"Try this: simp{use_iota_eqn} only"
           sformat!"{attrs}{loc}{c}" args)
 
 /-- see `squeeze_simp` -/
@@ -303,7 +318,7 @@ do (cfg',c) ← parse_config cfg,
             attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
             tgt' := tgt'.get_or_else "" in
         mk_suggestion (key.move_left 1)
-          sformat!"Try this: simpa{use_iota_eqn} only "
+          sformat!"Try this: simpa{use_iota_eqn} only"
           sformat!"{attrs}{tgt'}{c}" args)
 
 /-- `squeeze_dsimp` behaves like `dsimp` (including all its arguments)
@@ -325,7 +340,7 @@ do (cfg',c) ← parse_dsimp_config cfg,
             attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
             loc := loc.to_string locat in
         mk_suggestion (key.move_left 1)
-          sformat!"Try this: dsimp{use_iota_eqn} only "
+          sformat!"Try this: dsimp{use_iota_eqn} only"
           sformat!"{attrs}{loc}{c}" args)
 
 end interactive

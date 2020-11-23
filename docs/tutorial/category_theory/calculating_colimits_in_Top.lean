@@ -96,11 +96,10 @@ Let's define the point whose `n`-th coordinate is `n + 1` (as a real number).
 def q : pt ⟶ Y :=
 pi.lift (λ (n : ℕ), ⟨λ (_ : pt), (n + 1 : ℝ), by continuity⟩)
 
--- "Looking under the hood", we see that `q` is a `subtype`, whose `val` is a function `unit → Y.α`.
--- #check q.val -- q.val : pt.α → Y.α
--- `q.property` is the fact this function is continuous (i.e. no content, since `pt` is a singleton)
-
--- We can check that this function is definitionally just the function we specified.
-example : (q ()).val (9 : ℕ) = ((10 : ℕ) : ℝ) := rfl
+-- Note that writing `Y := ∏ (λ n : ℕ, R)` gives us *some* topological space which satisfies the
+-- universal property of the product, not some explicit construction of the product, so we cannot
+-- rely on any definitional properties of `Y` or `q`.
+-- If we really want to talk about a specific construction of the limit, we have to work directly
+-- with the corresponding limit cones. In this case, `Top.limit_cone`.
 
 end Products

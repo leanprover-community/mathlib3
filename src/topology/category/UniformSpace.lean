@@ -38,6 +38,8 @@ def of (α : Type u) [uniform_space α] : UniformSpace := ⟨α⟩
 
 instance : inhabited UniformSpace := ⟨UniformSpace.of empty⟩
 
+@[simp] lemma coe_of (X : Type u) [uniform_space X] : (of X : Type u) = X := rfl
+
 instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
 { F := λ _, X → Y, coe := category_theory.functor.map (forget UniformSpace) }
 
@@ -74,11 +76,17 @@ attribute [instance] is_uniform_space is_complete_space is_separated
 def to_UniformSpace (X : CpltSepUniformSpace) : UniformSpace :=
 UniformSpace.of X
 
-instance (X : CpltSepUniformSpace) : complete_space ((to_UniformSpace X).α) := CpltSepUniformSpace.is_complete_space X
-instance (X : CpltSepUniformSpace) : separated_space ((to_UniformSpace X).α) := CpltSepUniformSpace.is_separated X
+instance complete_space (X : CpltSepUniformSpace) : complete_space ((to_UniformSpace X).α) :=
+CpltSepUniformSpace.is_complete_space X
+
+instance separated_space (X : CpltSepUniformSpace) : separated_space ((to_UniformSpace X).α) :=
+CpltSepUniformSpace.is_separated X
 
 /-- Construct a bundled `UniformSpace` from the underlying type and the appropriate typeclasses. -/
 def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] : CpltSepUniformSpace := ⟨X⟩
+
+@[simp] lemma coe_of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] :
+  (of X : Type u) = X := rfl
 
 instance : inhabited CpltSepUniformSpace :=
 begin
@@ -162,7 +170,7 @@ noncomputable instance : reflective (forget₂ CpltSepUniformSpace UniformSpace)
 open category_theory.limits
 
 -- TODO Once someone defines `has_limits UniformSpace`, turn this into an instance.
-noncomputable example [has_limits.{u} UniformSpace.{u}] : has_limits.{u} CpltSepUniformSpace.{u} :=
+example [has_limits.{u} UniformSpace.{u}] : has_limits.{u} CpltSepUniformSpace.{u} :=
 has_limits_of_reflective $ forget₂ CpltSepUniformSpace UniformSpace
 
 end UniformSpace

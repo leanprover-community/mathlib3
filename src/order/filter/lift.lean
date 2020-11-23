@@ -91,19 +91,16 @@ infi_le_infi $ assume s, infi_le_infi $ assume hs, hg s hs
 lemma map_lift_eq {m : β → γ} (hg : monotone g) : map m (f.lift g) = f.lift (map m ∘ g) :=
 have monotone (map m ∘ g),
   from map_mono.comp hg,
-filter_eq $ set.ext $
-  by simp only [mem_lift_sets hg, mem_lift_sets this, exists_prop, forall_const, mem_map, iff_self,
-    function.comp_app]
+filter.ext $ λ s,
+  by simp only [mem_lift_sets hg, mem_lift_sets this, exists_prop, mem_map, function.comp_app]
 
 lemma comap_lift_eq {m : γ → β} (hg : monotone g) : comap m (f.lift g) = f.lift (comap m ∘ g) :=
 have monotone (comap m ∘ g),
   from comap_mono.comp hg,
-filter_eq $ set.ext begin
-  simp only [mem_lift_sets hg, mem_lift_sets this, comap, mem_lift_sets, mem_set_of_eq, exists_prop,
-    function.comp_apply],
-  exact λ s,
-   ⟨λ ⟨b, ⟨a, ha, hb⟩, hs⟩, ⟨a, ha, b, hb, hs⟩,
-    λ ⟨a, ha, b, hb, hs⟩, ⟨b, ⟨a, ha, hb⟩, hs⟩⟩
+begin
+  ext,
+  simp only [mem_lift_sets hg, mem_lift_sets this, mem_comap_sets, exists_prop, mem_lift_sets],
+  exact ⟨λ ⟨b, ⟨a, ha, hb⟩, hs⟩, ⟨a, ha, b, hb, hs⟩, λ ⟨a, ha, b, hb, hs⟩, ⟨b, ⟨a, ha, hb⟩, hs⟩⟩
 end
 
 theorem comap_lift_eq2 {m : β → α} {g : set β → filter γ} (hg : monotone g) :
@@ -272,6 +269,13 @@ lemma lift'_principal {s : set α} (hh : monotone h) :
   (𝓟 s).lift' h = 𝓟 (h s) :=
 lift_principal $ monotone_principal.comp hh
 
+lemma lift'_pure {a : α} (hh : monotone h) :
+  (pure a : filter α).lift' h = 𝓟 (h {a}) :=
+by rw [← principal_singleton, lift'_principal hh]
+
+lemma lift'_bot (hh : monotone h) : (⊥ : filter α).lift' h = 𝓟 (h ∅) :=
+by rw [← principal_empty, lift'_principal hh]
+
 lemma principal_le_lift' {t : set β} (hh : ∀s∈f, t ⊆ h s) :
   𝓟 t ≤ f.lift' h :=
 le_infi $ assume s, le_infi $ assume hs, principal_mono.mpr (hh s hs)
@@ -336,15 +340,25 @@ le_antisymm
 
 lemma lift'_infi {f : ι → filter α} {g : set α → set β}
   [nonempty ι] (hg : ∀{s t}, g s ∩ g t = g (s ∩ t)) : (infi f).lift' g = (⨅i, (f i).lift' g) :=
-lift_infi $ by simp only [principal_eq_iff_eq, inf_principal, function.comp_app]; apply assume s t, hg
+lift_infi $ λ s t, by simp only [principal_eq_iff_eq, inf_principal, (∘), hg]
+
+lemma lift'_inf (f g : filter α) {s : set α → set β} (hs : ∀ {t₁ t₂}, s t₁ ∩ s t₂ = s (t₁ ∩ t₂)) :
+  (f ⊓ g).lift' s = f.lift' s ⊓ g.lift' s :=
+have (⨅ b : bool, cond b f g).lift' s = ⨅ b : bool, (cond b f g).lift' s :=
+  lift'_infi @hs,
+by simpa only [infi_bool_eq]
 
 theorem comap_eq_lift' {f : filter β} {m : α → β} :
   comap m f = f.lift' (preimage m) :=
 filter.ext $ λ s, (mem_lift'_sets monotone_preimage).symm
 
+lemma lift'_inf_powerset (f g : filter α) :
+  (f ⊓ g).lift' powerset = f.lift' powerset ⊓ g.lift' powerset :=
+lift'_inf f g $ λ _ _, (powerset_inter _ _).symm
+
 lemma eventually_lift'_powerset {f : filter α} {p : set α → Prop} :
   (∀ᶠ s in f.lift' powerset, p s) ↔ ∃ s ∈ f, ∀ t ⊆ s, p t :=
-eventually_lift'_iff (λ _ _, powerset_mono.2)
+eventually_lift'_iff monotone_powerset
 
 lemma eventually_lift'_powerset' {f : filter α} {p : set α → Prop}
   (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
@@ -353,7 +367,15 @@ eventually_lift'_powerset.trans $ exists_congr $ λ s, exists_congr $
   λ hsf, ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
 
 instance lift'_powerset_ne_bot (f : filter α) : ne_bot (f.lift' powerset) :=
-(lift'_ne_bot_iff (λ _ _, powerset_mono.2)).2 $ λ _ _, powerset_nonempty
+(lift'_ne_bot_iff monotone_powerset).2 $ λ _ _, powerset_nonempty
+
+lemma tendsto_lift'_powerset_mono {la : filter α} {lb : filter β} {s t : α → set β}
+  (ht : tendsto t la (lb.lift' powerset)) (hst : ∀ᶠ x in la, s x ⊆ t x) :
+  tendsto s la (lb.lift' powerset) :=
+begin
+  simp only [filter.lift', filter.lift, (∘), tendsto_infi, tendsto_principal] at ht ⊢,
+  exact λ u hu, (ht u hu).mp (hst.mono $ λ a hst ht, subset.trans hst ht)
+end
 
 @[simp] lemma eventually_lift'_powerset_forall {f : filter α} {p : α → Prop} :
   (∀ᶠ s in f.lift' powerset, ∀ x ∈ s, p x) ↔ ∀ᶠ x in f, p x :=
@@ -378,7 +400,7 @@ end lift'
 section prod
 variables {f : filter α}
 
-lemma prod_def {f : filter α} {g : filter β} : f.prod g = (f.lift $ λs, g.lift' $ set.prod s) :=
+lemma prod_def {f : filter α} {g : filter β} : f ×ᶠ g = (f.lift $ λs, g.lift' $ set.prod s) :=
 have ∀(s:set α) (t : set β),
     𝓟 (set.prod s t) = (𝓟 s).comap prod.fst ⊓ (𝓟 t).comap prod.snd,
   by simp only [principal_eq_iff_eq, comap_principal, inf_principal]; intros; refl,
@@ -388,18 +410,18 @@ begin
   simp only [filter.prod, lift_principal2, eq_self_iff_true]
 end
 
-lemma prod_same_eq : filter.prod f f = f.lift' (λt, set.prod t t) :=
+lemma prod_same_eq : f ×ᶠ f = f.lift' (λt, set.prod t t) :=
 by rw [prod_def];
 from lift_lift'_same_eq_lift'
   (assume s, set.monotone_prod monotone_const monotone_id)
   (assume t, set.monotone_prod monotone_id monotone_const)
 
 lemma mem_prod_same_iff {s : set (α×α)} :
-  s ∈ filter.prod f f ↔ (∃t∈f, set.prod t t ⊆ s) :=
+  s ∈ f ×ᶠ f ↔ (∃t∈f, set.prod t t ⊆ s) :=
 by rw [prod_same_eq, mem_lift'_sets]; exact set.monotone_prod monotone_id monotone_id
 
 lemma tendsto_prod_self_iff {f : α × α → β} {x : filter α} {y : filter β} :
-  filter.tendsto f (filter.prod x x) y ↔
+  filter.tendsto f (x ×ᶠ x) y ↔
   ∀ W ∈ y, ∃ U ∈ x, ∀ (x x' : α), x ∈ U → x' ∈ U → f (x, x') ∈ W :=
 by simp only [tendsto_def, mem_prod_same_iff, prod_sub_preimage_iff, exists_prop, iff_self]
 
@@ -408,7 +430,7 @@ variables {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : Type*}
 lemma prod_lift_lift
   {f₁ : filter α₁} {f₂ : filter α₂} {g₁ : set α₁ → filter β₁} {g₂ : set α₂ → filter β₂}
   (hg₁ : monotone g₁) (hg₂ : monotone g₂) :
-  filter.prod (f₁.lift g₁) (f₂.lift g₂) = f₁.lift (λs, f₂.lift (λt, filter.prod (g₁ s) (g₂ t))) :=
+  (f₁.lift g₁) ×ᶠ (f₂.lift g₂) = f₁.lift (λs, f₂.lift (λt, g₁ s ×ᶠ g₂ t)) :=
 begin
   simp only [prod_def],
   rw [lift_assoc],
@@ -423,7 +445,7 @@ end
 lemma prod_lift'_lift'
   {f₁ : filter α₁} {f₂ : filter α₂} {g₁ : set α₁ → set β₁} {g₂ : set α₂ → set β₂}
   (hg₁ : monotone g₁) (hg₂ : monotone g₂) :
-  filter.prod (f₁.lift' g₁) (f₂.lift' g₂) = f₁.lift (λs, f₂.lift' (λt, set.prod (g₁ s) (g₂ t))) :=
+  f₁.lift' g₁ ×ᶠ f₂.lift' g₂ = f₁.lift (λs, f₂.lift' (λt, (g₁ s).prod (g₂ t))) :=
 begin
   rw [prod_def, lift_lift'_assoc],
   apply congr_arg, funext x,

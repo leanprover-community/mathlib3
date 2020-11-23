@@ -70,11 +70,12 @@ namespace submonoid
 @[to_additive]
 instance : has_coe (submonoid M) (set M) := ⟨submonoid.carrier⟩
 
-@[to_additive]
-instance : has_coe_to_sort (submonoid M) := ⟨Type*, λ S, S.carrier⟩
 
 @[to_additive]
 instance : has_mem M (submonoid M) := ⟨λ m S, m ∈ (S:set M)⟩
+
+@[to_additive]
+instance : has_coe_to_sort (submonoid M) := ⟨Type*, λ S, {x : M // x ∈ S}⟩
 
 @[simp, to_additive]
 lemma mem_carrier {s : submonoid M} {x : M} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -338,6 +339,23 @@ lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, clos
 (submonoid.gi M).gc.l_supr
 
 end submonoid
+
+section is_unit
+
+/-- The submonoid consisting of the units of a monoid -/
+def is_unit.submonoid (M : Type*) [monoid M] : submonoid M :=
+{ carrier := set_of is_unit,
+  one_mem' := by simp only [is_unit_one, set.mem_set_of_eq],
+  mul_mem' := by { intros a b ha hb, rw set.mem_set_of_eq at *, exact is_unit.mul ha hb } }
+
+lemma is_unit.mem_submonoid_iff {M : Type*} [monoid M] (a : M) :
+  a ∈ is_unit.submonoid M ↔ is_unit a :=
+begin
+  change a ∈ set_of is_unit ↔ is_unit a,
+  rw set.mem_set_of_eq
+end
+
+end is_unit
 
 namespace monoid_hom
 

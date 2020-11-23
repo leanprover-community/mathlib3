@@ -31,7 +31,7 @@ begin
   fin_cases x3,
   success_if_fail { fin_cases * },
   success_if_fail { fin_cases y },
-  all_goals { simp },
+  all_goals { refl },
 end
 
 open finset
@@ -97,6 +97,6 @@ end
 example (n : ℕ) (h : n % 3 ∈ [0,1]) : true :=
 begin
   fin_cases h,
-  guard_hyp h := n % 3 = 0, trivial,
-  guard_hyp h := n % 3 = 1, trivial,
+  guard_hyp h : n % 3 = 0, trivial,
+  guard_hyp h : n % 3 = 1, trivial,
 end

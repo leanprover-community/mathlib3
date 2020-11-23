@@ -58,9 +58,14 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
   is_alg_closed k :=
 ⟨λ p, or.inr $ λ q hq hqp,
  have irreducible (q * C (leading_coeff q)⁻¹),
-   by { rw ← coe_norm_unit hq.ne_zero, exact irreducible_of_associated associated_normalize hq },
+   by { rw ← coe_norm_unit_of_ne_zero hq.ne_zero,
+        exact irreducible_of_associated associated_normalize hq },
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
+
+lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : p ≠ 0) (hp : irreducible p) :
+  p.degree = 1 :=
+degree_eq_one_of_irreducible_of_splits h_nz hp (polynomial.splits' _)
 
 end is_alg_closed
 
@@ -151,7 +156,7 @@ theorem adjoin_monic.is_integral (z : adjoin_monic k) : is_integral k z :=
 let ⟨p, hp⟩ := ideal.quotient.mk_surjective z in hp ▸
 mv_polynomial.induction_on p (λ x, is_integral_algebra_map) (λ p q, is_integral_add)
   (λ p f ih, @is_integral_mul _ _ _ _ _ _ (ideal.quotient.mk _ _) ih ⟨f, f.2.1,
-    by { erw [polynomial.aeval_def, adjoin_monic.algebra_map, ← hom_eval₂,
+    by { erw [adjoin_monic.algebra_map, ← hom_eval₂,
               ideal.quotient.eq_zero_iff_mem],
       exact le_max_ideal k (ideal.subset_span ⟨f, rfl⟩) }⟩)
 
@@ -217,8 +222,8 @@ rfl
 instance step.algebra (n) : algebra k (step k n) :=
 (to_step_of_le k 0 n n.zero_le).to_algebra
 
-instance step.algebra_tower (n) : is_algebra_tower k (step k n) (step k (n + 1)) :=
-is_algebra_tower.of_algebra_map_eq $ λ z,
+instance step.scalar_tower (n) : is_scalar_tower k (step k n) (step k (n + 1)) :=
+is_scalar_tower.of_algebra_map_eq $ λ z,
   @nat.le_rec_on_succ (step k) 0 n n.zero_le (n + 1).zero_le (λ n, to_step_succ k n) z
 
 theorem step.is_integral (n) : ∀ z : step k n, is_integral k z :=
@@ -265,7 +270,7 @@ begin
   { convert ring.direct_limit.polynomial.exists_of f },
   unfreezingI { obtain ⟨n, p, rfl⟩ := this },
   rw monic_map_iff at hfm,
-  have := irreducible_of_irreducible_map (of_step k n) p hfm hfi,
+  have := hfm.irreducible_of_irreducible_map (of_step k n) p hfi,
   obtain ⟨x, hx⟩ := to_step_succ.exists_root k hfm this,
   refine ⟨of_step k (n + 1) x, _⟩,
   rw [← of_step_succ k n, eval_map, ← hom_eval₂, hx, ring_hom.map_zero]

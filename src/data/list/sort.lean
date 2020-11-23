@@ -18,6 +18,9 @@ variables {α : Type uu} {r : α → α → Prop}
   is a `<` or `≤`-like relation (transitive and antisymmetric or asymmetric) -/
 def sorted := @pairwise
 
+instance decidable_sorted [decidable_rel r] (l : list α) : decidable (sorted r l) :=
+list.decidable_pairwise _
+
 @[simp] theorem sorted_nil : sorted r [] := pairwise.nil
 
 theorem sorted_of_sorted_cons {a : α} {l : list α} : sorted r (a :: l) → sorted r l :=

@@ -268,9 +268,9 @@ have cauchy g, from
     from mem_lift (symm_le_uniformity hs₁) $ @mem_lift' α α f _ t ht,
   have hg₂ : p s₂ t ∈ g,
     from mem_lift hs₂ $ @mem_lift' α α f _ t ht,
-  have hg : set.prod (p (preimage prod.swap s₁) t) (p s₂ t) ∈ filter.prod g g,
+  have hg : set.prod (p (preimage prod.swap s₁) t) (p s₂ t) ∈ g ×ᶠ g,
     from @prod_mem_prod α α _ _ g g hg₁ hg₂,
-  (filter.prod g g).sets_of_superset hg
+  (g ×ᶠ g).sets_of_superset hg
     (assume ⟨a, b⟩ ⟨⟨c₁, c₁t, hc₁⟩, ⟨c₂, c₂t, hc₂⟩⟩,
       have (c₁, c₂) ∈ set.prod t t, from ⟨c₁t, c₂t⟩,
       comp_s₁ $ prod_mk_mem_comp_rel hc₁ $
@@ -385,7 +385,7 @@ begin
     rw [uniformly_extend_of_ind _ _ h_f, ← de.nhds_eq_comap],
     exact h_f.continuous.tendsto _ },
   { simp only [dense_inducing.extend, dif_neg ha],
-    exact lim_spec (uniformly_extend_exists h_e h_dense h_f _) }
+    exact tendsto_nhds_lim (uniformly_extend_exists h_e h_dense h_f _) }
 end
 
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] : uniform_continuous ψ :=
@@ -410,7 +410,7 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
   assume ⟨x₁, x₂⟩ hx_t,
   have 𝓝 (x₁, x₂) ≤ 𝓟 (interior t),
     from is_open_iff_nhds.mp is_open_interior (x₁, x₂) hx_t,
-  have interior t ∈ filter.prod (𝓝 x₁) (𝓝 x₂),
+  have interior t ∈ 𝓝 x₁ ×ᶠ 𝓝 x₂,
     by rwa [nhds_prod_eq, le_principal_iff] at this,
   let ⟨m₁, hm₁, m₂, hm₂, (hm : set.prod m₁ m₂ ⊆ interior t)⟩ := mem_prod_iff.mp this in
   let ⟨a, ha₁, _, ha₂⟩ := h_pnt hm₁ in

@@ -16,8 +16,8 @@ lemma mul_mono_nonneg {x y z : α} [ordered_semiring α]
 : x * z ≤ y * z :=
 by apply mul_le_mul_of_nonneg_right; assumption
 
-lemma gt_of_mul_lt_mul_neg_right {a b c : α}  [linear_ordered_ring α]
-  (h : a * c < b * c) (hc : c ≤ 0) : a > b :=
+lemma lt_of_mul_lt_mul_neg_right {a b c : α}  [linear_ordered_ring α]
+  (h : a * c < b * c) (hc : c ≤ 0) : b < a :=
 have nhc : -c ≥ 0, from neg_nonneg_of_nonpos hc,
 have h2 : -(b * c) < -(a * c), from neg_lt_neg h,
 have h3 : b * (-c) < a * (-c), from calc
@@ -28,15 +28,13 @@ lt_of_mul_lt_mul_right h3 nhc
 
 @[mono]
 lemma mul_mono_nonpos {x y z : α} [linear_ordered_ring α]
-  (h' : 0 ≥ z)
-  (h : y ≤ x)
-: x * z ≤ y * z :=
+  (h' : z ≤ 0) (h : y ≤ x) : x * z ≤ y * z :=
 begin
   classical,
   by_contradiction h'',
   revert h,
   apply not_le_of_lt,
-  apply gt_of_mul_lt_mul_neg_right _ h',
+  apply lt_of_mul_lt_mul_neg_right _ h',
   apply lt_of_not_ge h''
 end
 

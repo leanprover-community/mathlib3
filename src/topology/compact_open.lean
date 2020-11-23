@@ -46,7 +46,7 @@ end
 /-- C(α, -) is a functor. -/
 lemma continuous_induced : continuous (continuous_map.induced hg : C(α, β) → C(α, γ)) :=
 continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
-  by rw [hm, preimage_gen hg hs hu]; exact is_open_gen hs (hg _ hu)
+  by rw [hm, preimage_gen hg hs hu]; exact is_open_gen hs (hu.preimage hg)
 
 end functorial
 
@@ -71,7 +71,7 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
     f' x' ∈ f' '' s  : mem_image_of_mem f' (us hx')
     ...       ⊆ v            : hf'
     ...       ⊆ n            : vn,
-  have is_open w, from is_open_prod (is_open_gen sc vo) uo,
+  have is_open w, from (is_open_gen sc vo).prod uo,
   have (f, x) ∈ w, from ⟨image_subset_iff.mpr sv, xu⟩,
   mem_nhds_sets_iff.mpr ⟨w, by assumption, by assumption, by assumption⟩
 

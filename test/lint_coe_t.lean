@@ -18,7 +18,7 @@ end
 noncomputable instance quot_to_a {α} (R : setoid α) : has_coe (quotient R) α :=
 ⟨λ q, quot.rec_on q (λ a, classical.choice ⟨a⟩) (by cc)⟩
 
-#eval do
+run_cmd do
 decl ← get_decl ``quot_to_a,
 -- linter does not complain
 none ← linter.has_coe_variable.test decl,
@@ -29,7 +29,7 @@ section
 local attribute [instance]
 def int_to_a {α} [inhabited α] : has_coe ℤ α := ⟨λ _, default _⟩
 
-#eval do
+run_cmd do
 decl ← get_decl ``int_to_a,
 -- linter does not complain
 some _ ← linter.has_coe_variable.test decl,

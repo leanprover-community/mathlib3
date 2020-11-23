@@ -35,8 +35,34 @@ funext $ map_fst f g
 lemma map_snd' (f : α → γ) (g : β → δ) : (prod.snd ∘ map f g) = g ∘ prod.snd :=
 funext $ map_snd f g
 
+/--
+Composing a `prod.map` with another `prod.map` is equal to
+a single `prod.map` of composed functions.
+-/
+lemma map_comp_map {ε ζ : Type*}
+  (f : α → β) (f' : γ → δ) (g : β → ε) (g' : δ → ζ) :
+  prod.map g g' ∘ prod.map f f' = prod.map (g ∘ f) (g' ∘ f') :=
+rfl
+
+/--
+Composing a `prod.map` with another `prod.map` is equal to
+a single `prod.map` of composed functions, fully applied.
+-/
+lemma map_map {ε ζ : Type*}
+  (f : α → β) (f' : γ → δ) (g : β → ε) (g' : δ → ζ) (x : α × γ) :
+  prod.map g g' (prod.map f f' x) = prod.map (g ∘ f) (g' ∘ f') x :=
+rfl
+
 @[simp] theorem mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
 ⟨prod.mk.inj, by cc⟩
+
+lemma mk.inj_left {α β : Type*} (a : α) :
+  function.injective (prod.mk a : β → α × β) :=
+by { intros b₁ b₂ h, simpa only [true_and, prod.mk.inj_iff, eq_self_iff_true] using h }
+
+lemma mk.inj_right {α β : Type*} (b : β) :
+  function.injective (λ a, prod.mk a b : α → α × β) :=
+by { intros b₁ b₂ h, by simpa only [and_true, eq_self_iff_true, mk.inj_iff] using h }
 
 lemma ext_iff {p q : α × β} : p = q ↔ p.1 = q.1 ∧ p.2 = q.2 :=
 by rw [← @mk.eta _ _ p, ← @mk.eta _ _ q, mk.inj_iff]

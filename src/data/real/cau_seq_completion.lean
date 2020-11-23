@@ -12,7 +12,7 @@ namespace cau_seq.completion
 open cau_seq
 
 section
-parameters {α : Type*} [discrete_linear_ordered_field α]
+parameters {α : Type*} [linear_ordered_field α]
 parameters {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
 def Cauchy := @quotient (cau_seq _ abv) cau_seq.equiv
@@ -86,7 +86,7 @@ end
 open_locale classical
 section
 
-parameters {α : Type*} [discrete_linear_ordered_field α]
+parameters {α : Type*} [linear_ordered_field α]
 parameters {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
 local notation `Cauchy` := @Cauchy _ _ _ _ abv _
 
@@ -131,7 +131,7 @@ noncomputable def field : field Cauchy :=
   mul_inv_cancel   := λ x x0, by rw [mul_comm, cau_seq.completion.inv_mul_cancel x0],
   exists_pair_ne   := ⟨0, 1, zero_ne_one⟩,
   inv_zero         := inv_zero,
-  ..cau_seq.completion.comm_ring }
+  .. Cauchy.comm_ring }
 
 local attribute [instance] field
 
@@ -144,7 +144,7 @@ by simp only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
 end
 end cau_seq.completion
 
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
 namespace cau_seq
 section
 

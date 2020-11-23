@@ -72,10 +72,10 @@ instance semilattice_inf_bot : semilattice_inf_bot (α →₀ γ) :=
 
 lemma of_multiset_strict_mono : strict_mono (@finsupp.of_multiset α) :=
 begin
-  unfold strict_mono, intros, rw lt_iff_le_and_ne at *, split,
+  unfold strict_mono, intros a b hab, rw lt_iff_le_and_ne at *, split,
   { rw finsupp.le_iff, intros s hs, repeat {rw finsupp.of_multiset_apply},
-    rw multiset.le_iff_count at a_1, apply a_1.left },
-  { have h := a_1.right, contrapose h, simp at *,
+    rw multiset.le_iff_count at hab, apply hab.left },
+  { have h := hab.right, contrapose h, simp at *,
     apply finsupp.equiv_multiset.symm.injective h }
 end
 
@@ -89,7 +89,7 @@ end
 
 /-- The lattice of `finsupp`s to `ℕ` is order-isomorphic to that of `multiset`s.  -/
 def order_iso_multiset :
-  (has_le.le : (α →₀ ℕ) → (α →₀ ℕ) → Prop) ≃o (has_le.le : (multiset α) → (multiset α) → Prop) :=
+  (α →₀ ℕ) ≃o multiset α :=
 ⟨finsupp.equiv_multiset, begin
   intros a b, unfold finsupp.equiv_multiset, dsimp,
   rw multiset.le_iff_count, simp only [finsupp.count_to_multiset], refl
@@ -99,13 +99,13 @@ end ⟩
 
 @[simp] lemma order_iso_multiset_symm_apply {s : multiset α} :
   order_iso_multiset.symm s = s.to_finsupp :=
-by { conv_rhs { rw ← (order_iso.apply_symm_apply order_iso_multiset) s}, simp }
+by { conv_rhs { rw ← (rel_iso.apply_symm_apply order_iso_multiset) s}, simp }
 
 variable [partial_order β]
 
 /-- The order on `finsupp`s over a partial order embeds into the order on functions -/
 def order_embedding_to_fun :
-  (has_le.le : (α →₀ β) → (α →₀ β) → Prop) ≼o (has_le.le : (α → β) → (α → β) → Prop) :=
+  (α →₀ β) ↪o (α → β) :=
 ⟨⟨λ (f : α →₀ β) (a : α), f a,  λ f g h, finsupp.ext (λ a, by { dsimp at h, rw h,} )⟩,
   λ a b, le_def⟩
 

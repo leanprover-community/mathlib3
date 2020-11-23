@@ -42,7 +42,7 @@ The following linters are run by default:
 15. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of simp lemmas.
 16. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
 17. `decidable_classical` checks for `decidable` hypotheses that are used in the proof of a proposition but not
-    in the statement, and could be removed using `classical`.
+    in the statement, and could be removed using `classical`. Theorems in the `decidable` namespace are exempt.
 18. `has_coe_to_fun` checks that every type that coerces to a function has a direct `has_coe_to_fun` instance.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.

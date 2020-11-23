@@ -107,17 +107,24 @@ end
 
 open topological_space
 
+/-- The range of `pure : α → ultrafilter α` is dense in `ultrafilter α`. -/
+lemma dense_range_pure : dense_range (pure : α → ultrafilter α) :=
+λ x, mem_closure_iff_ultrafilter.mpr
+       ⟨x.map ultrafilter.pure, range_mem_map, ultrafilter_converges_iff.mpr (bind_pure x).symm⟩
+
+/-- The map `pure : α → ultra_filter α` induces on `a` the discrete topology. -/
+lemma induced_topology_pure :
+  topological_space.induced (pure : α → ultrafilter α) filter.ultrafilter.topological_space = ⊥ :=
+begin
+  apply eq_bot_of_singletons_open,
+  intros x,
+  use [{u : ultrafilter α | {x} ∈ u.val}, ultrafilter_is_open_basic _],
+  simp [pure, ultrafilter.pure]
+end
+
 /-- `pure : α → ultrafilter α` defines a dense inducing of `α` in `ultrafilter α`. -/
 lemma dense_inducing_pure : @dense_inducing _ _ ⊥ _ (pure : α → ultrafilter α) :=
-by letI : topological_space α := ⊥; exact
-dense_inducing.mk' pure continuous_bot
-  (assume x, mem_closure_iff_ultrafilter.mpr
-     ⟨x.map ultrafilter.pure, range_mem_map,
-      ultrafilter_converges_iff.mpr (bind_pure x).symm⟩)
-  (assume a s as,
-     ⟨{u | s ∈ u.val},
-      mem_nhds_sets (ultrafilter_is_open_basic s) (mem_of_nhds as : a ∈ s),
-      assume b hb, mem_pure_sets.mp hb⟩)
+by letI : topological_space α := ⊥; exact ⟨⟨induced_topology_pure.symm⟩, dense_range_pure⟩
 
 -- The following refined version will never be used
 
@@ -146,7 +153,7 @@ variables [t2_space γ]
 lemma ultrafilter_extend_extends (f : α → γ) : ultrafilter.extend f ∘ pure = f :=
 begin
   letI : topological_space α := ⊥,
-  letI : discrete_topology α := ⟨rfl⟩,
+  haveI : discrete_topology α := ⟨rfl⟩,
   exact funext (dense_inducing_pure.extend_eq continuous_of_discrete_topology)
 end
 
@@ -160,7 +167,7 @@ have ∀ (b : ultrafilter α), ∃ c, tendsto f (comap ultrafilter.pure (𝓝 b)
   ⟨c, le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h⟩,
 begin
   letI : topological_space α := ⊥,
-  letI : normal_space γ := normal_of_compact_t2,
+  haveI : normal_space γ := normal_of_compact_t2,
   exact dense_inducing_pure.continuous_extend this
 end
 
@@ -220,11 +227,8 @@ def stone_cech_unit (x : α) : stone_cech α := ⟦pure x⟧
 
 /-- The image of stone_cech_unit is dense. (But stone_cech_unit need
   not be an embedding, for example if α is not Hausdorff.) -/
-lemma stone_cech_unit_dense : closure (range (@stone_cech_unit α _)) = univ :=
-begin
-  convert quotient_dense_of_dense (eq_univ_iff_forall.mp dense_inducing_pure.closure_range),
-  rw [←range_comp], refl
-end
+lemma dense_range_stone_cech_unit : dense_range (stone_cech_unit : α → stone_cech α) :=
+dense_range_pure.quotient
 
 section extension
 

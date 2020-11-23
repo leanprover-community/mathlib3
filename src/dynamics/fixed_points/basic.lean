@@ -73,6 +73,10 @@ end is_fixed_pt
 /-- The set of fixed points of a map `f : α → α`. -/
 def fixed_points (f : α → α) : set α := {x : α | is_fixed_pt f x}
 
+instance fixed_points.decidable [decidable_eq α] (f : α → α) (x : α) :
+  decidable (x ∈ fixed_points f) :=
+is_fixed_pt.decidable
+
 @[simp] lemma mem_fixed_points : x ∈ fixed_points f ↔ is_fixed_pt f x := iff.rfl
 
 /-- If `g` semiconjugates `fa` to `fb`, then it sends fixed points of `fa` to fixed points

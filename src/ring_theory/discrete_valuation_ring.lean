@@ -388,8 +388,12 @@ noncomputable def add_val (R : Type u) [integral_domain R] [discrete_valuation_r
 λ r, if hr : r = 0 then 0 else
   classical.some (associated_pow_irreducible hr (classical.some_spec $ exists_irreducible R))
 
-def add_val_spec {r : R} (hr : r ≠ 0) :=
-  classical.some_spec (associated_pow_irreducible hr (classical.some_spec $ exists_irreducible R))
+theorem add_val_spec {r : R} (hr : r ≠ 0) :
+  let ϖ := classical.some (exists_irreducible R) in
+  let n := classical.some
+    (associated_pow_irreducible hr (classical.some_spec (exists_irreducible R))) in
+  associated r (ϖ ^ n) :=
+classical.some_spec (associated_pow_irreducible hr (classical.some_spec $ exists_irreducible R))
 
 lemma add_val_def (r : R) (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) (hr : r = u * ϖ ^ n) :
   add_val R r = n :=

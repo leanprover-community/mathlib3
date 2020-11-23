@@ -1140,7 +1140,7 @@ section deriv
 
 variables [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
 
-lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ  (λ p : E × E, ⟪p.1, p.2⟫) :=
+lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
 { add_left := λ _ _ _, inner_add_left,
   smul_left := λ r x y,
     by simp only [← algebra_map_smul 𝕜 r x, algebra_map_eq_of_real, inner_smul_real_left],

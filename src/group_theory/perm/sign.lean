@@ -818,15 +818,15 @@ lemma prod_swap_adj_aug {n i j : ℕ} (hi : i < n) (hj : i + 1 ≤ j) (hj' : j +
 begin
   rw hM,
   rw [list.prod_append, list.prod_append, hL, list.prod_singleton],
-  rw swap_comm (fin.mk i _) (fin.mk (j+1) _),
+  rw swap_comm (⟨i, _⟩ : fin n) ⟨j + 1, _⟩,
   apply swap_mul_swap_mul_swap,
   { apply ne_of_lt, exact hj },
   { apply ne_of_lt, show i < j+1, linarith }
 end
 
 lemma swap_eq_prod_swap_adj_aux (n : ℕ) {i j : fin n} (hij : i < j) : ∃ L : list (perm (fin n)),
-L.prod = equiv.swap i j ∧ ∀ l ∈ L, ∃ k : fin n, ∃ h : k.1 + 1 < n,
- l = equiv.swap k ⟨k.1 + 1, h⟩ :=
+L.prod = equiv.swap i j ∧ ∀ l ∈ L, ∃ k : fin n, ∃ h : ↑k + 1 < n,
+ l = equiv.swap k ⟨k + 1, h⟩ :=
 begin
   cases j with j hj,
   cases i with i hi,
@@ -853,14 +853,14 @@ begin
     { intros l hl,
       rw [list.mem_append, list.mem_append, list.mem_singleton] at hl,
       rcases hl with ⟨rfl | hl⟩ | rfl,
-      { use fin.mk j hjn, use hj' },
+      { use ⟨j, hjn⟩, use hj', refl },
       { apply hL2, assumption, },
-      { use fin.mk j hjn, use hj' }, }, },
+      { use ⟨j, hjn⟩, use hj', refl }, }, },
 end
 
 lemma swap_eq_prod_swap_adj (n : ℕ) {i j : fin n} (hij : i ≠ j) : ∃ L : list (perm (fin n)),
-L.prod = equiv.swap i j ∧ ∀ l ∈ L, ∃ k : fin n, ∃ h : k.1 + 1 < n,
- l = equiv.swap k ⟨k.1 + 1, h⟩ :=
+L.prod = equiv.swap i j ∧ ∀ l ∈ L, ∃ k : fin n, ∃ h : ↑k + 1 < n,
+ l = equiv.swap k ⟨k + 1, h⟩ :=
 begin
   wlog h1 : i < j using [i j, j i],
   { rcases lt_trichotomy i j with h1 | rfl | h3,
@@ -874,7 +874,7 @@ begin
 end
 
 lemma perm_eq_prod_swap_adj (n : ℕ) (f : perm $ fin n) : ∃ L : list (perm (fin n)),
-L.prod = f ∧ ∀ l ∈ L, ∃ k : fin n, ∃ h : k.1 + 1 < n, l = equiv.swap k ⟨k.1 + 1, h⟩ :=
+L.prod = f ∧ ∀ l ∈ L, ∃ k : fin n, ∃ h : ↑k + 1 < n, l = equiv.swap k ⟨k + 1, h⟩ :=
 begin
   apply swap_induction_on f,
   { use list.nil,
@@ -905,7 +905,7 @@ end
 
 
 lemma swap_adj_induction_on {n : ℕ} {P : perm (fin n) → Prop} (f : equiv.perm $ fin n) :
-P 1 → (∀ f (x y : fin n), x.val + 1 = y.val → P f → P (swap x y * f)) → P f :=
+P 1 → (∀ f (x y : fin n), ↑x + 1 = ↑y → P f → P (swap x y * f)) → P f :=
 begin
   cases perm_eq_prod_swap_adj n f with l hl,
   induction l with g l ih generalizing f,
@@ -913,7 +913,7 @@ begin
   { assume h1 hmul_swap,
     rcases hl.2 g (by simp) with ⟨x, hx, hxy⟩,
     rw [← hl.1, list.prod_cons, hxy],
-    exact hmul_swap l.prod x ⟨x.val + 1, hx⟩ (by simp)
+    exact hmul_swap l.prod x ⟨x + 1, hx⟩ (by simp)
     (ih l.prod
     begin
       split, refl,
@@ -923,7 +923,7 @@ begin
 end
 
 lemma swap_adj_induction_on' {n : ℕ} {P : perm (fin n) → Prop} (f : equiv.perm $ fin n) :
-P 1 → (∀ s (x y : fin n), x.val + 1 = y.val → P s → P (s * swap x y)) → P f :=
+P 1 → (∀ s (x y : fin n), ↑x + 1 = ↑y → P s → P (s * swap x y)) → P f :=
 begin
   intros h1 IH,
   let Q : perm (fin n) → Prop := λ f, P (f⁻¹),

@@ -157,7 +157,7 @@ end
 
 lemma map_jacobson_of_bijective {f : R →+* S} (hf : function.bijective f) {I : ideal R} :
   map f (I.jacobson) = (map f I).jacobson :=
-map_jacobson_of_surjective (hf.right)
+map_jacobson_of_surjective hf.right
   (le_trans (le_of_eq (f.injective_iff_ker_eq_bot.1 hf.left)) bot_le)
 
 lemma comap_jacobson {f : R →+* S} {K : ideal S} :

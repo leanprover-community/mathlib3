@@ -273,13 +273,12 @@ lemma jacobson_bot_of_integral_localization {R S : Type*} [integral_domain R] [i
   (⊥ : ideal S).jacobson = ⊥ :=
 begin
   have hM : ((submonoid.powers x).map φ : submonoid S) ≤ non_zero_divisors S :=
-    map_le_non_zero_divisors_of_injective hφ
-      (le_non_zero_divisors_of_domain (λ h0, hx (let ⟨n, hn⟩ := h0 in pow_eq_zero hn))),
+    map_le_non_zero_divisors_of_injective hφ (powers_le_non_zero_divisors_of_domain hx),
   letI : integral_domain Sₘ := localization_map.integral_domain_of_le_non_zero_divisors ϕ' hM,
   let φ' : Rₘ →+* Sₘ := ϕ.map ((submonoid.powers x).mem_map_of_mem (φ : R →* S)) ϕ',
   suffices : ∀ I : ideal Sₘ, I.is_maximal → (I.comap ϕ'.to_map).is_maximal,
-  { have hϕ' : comap ϕ'.to_map ⊥ = ⊥ :=
-    by simpa [ring_hom.injective_iff_ker_eq_bot, ring_hom.ker_eq_comap_bot] using (ϕ'.injective hM),
+  { have hϕ' : comap ϕ'.to_map ⊥ = ⊥,
+    { simpa [ring_hom.injective_iff_ker_eq_bot, ring_hom.ker_eq_comap_bot] using ϕ'.injective hM },
     refine eq_bot_iff.2 (le_trans _ (le_of_eq hϕ')),
     have hSₘ : is_jacobson Sₘ := is_jacobson_of_is_integral' φ' hφ' (is_jacobson_localization ϕ),
     rw [← hSₘ ⊥ radical_bot_of_integral_domain, comap_jacobson],
@@ -296,10 +295,10 @@ begin
   let g' : ((I.comap ϕ'.to_map).comap φ).quotient →+* (I.comap φ').quotient :=
     quotient_map (I.comap φ') ϕ.to_map
     (le_of_eq (trans (comap_comap φ ϕ'.to_map) (hcomm ▸ (comap_comap ϕ.to_map φ').symm))),
-  have : ((I.comap ϕ'.to_map).comap φ).is_maximal := (by rw [comap_comap, hcomm, ← comap_comap] :
-    ((I.comap φ').comap ϕ.to_map) = ((I.comap ϕ'.to_map).comap φ)) ▸
-      ((is_maximal_iff_is_maximal_disjoint ϕ _).1
-      (is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ' I hI)).left,
+  have := ((is_maximal_iff_is_maximal_disjoint ϕ _).1
+    (is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ' I hI)).left,
+  have : ((I.comap ϕ'.to_map).comap φ).is_maximal,
+  { rwa [comap_comap, hcomm, ← comap_comap] at this },
   rw is_maximal_iff_bot_quotient_is_maximal at this ⊢,
   refine is_maximal_of_is_integral_of_is_maximal_comap' f _ ⊥
     ((eq_bot_iff.2 (comap_bot_le_of_injective f quotient_map_injective)).symm ▸ this),
@@ -368,7 +367,7 @@ begin
         exact subring.mul_mem _ hr (subring.subset_closure (set.mem_image_of_mem _ (or.inl rfl))) } } }
 end
 
-theorem is_jacobson_polynomial_iff_is_jacobson : is_jacobson R ↔ is_jacobson (polynomial R) :=
+theorem is_jacobson_polynomial_iff_is_jacobson : is_jacobson (polynomial R) ↔  is_jacobson R :=
 begin
   split; introI H,
   { rw is_jacobson_iff_prime_eq,
@@ -397,11 +396,14 @@ begin
   { exact is_jacobson_of_surjective ⟨eval₂_ring_hom (ring_hom.id _) 1, λ x, ⟨C x, by simp⟩⟩ }
 end
 
+instance [is_jacobson R] : is_jacobson (polynomial R) :=
+is_jacobson_polynomial_iff_is_jacobson.mpr ‹is_jacobson R›
+
 /-- General form of the nullstellensatz for jacobson rings, since in a jacobson ring we have
   `Inf {P maximal | P ≥ I} = Inf {P prime | P ≥ I} = I.radical`. Fields are always jacobson,
   and in that special case this is (most of) the classical nullstellensatz,
   since `I(V(I))` is the intersection of maximal ideals containing `I`, which is then `I.radical` -/
-lemma is_jacobson_mv_polynomial (H : is_jacobson R) (n : ℕ) :
+lemma is_jacobson_mv_polynomial_fin [H : is_jacobson R] (n : ℕ) :
   is_jacobson (mv_polynomial (fin n) R) :=
 nat.rec_on n
   ((is_jacobson_iso
@@ -409,6 +411,14 @@ nat.rec_on n
     (mv_polynomial.pempty_ring_equiv R))).mpr H)
   (λ n hn, (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).2
     (is_jacobson_polynomial_iff_is_jacobson.1 hn))
+
+instance {ι : Type*} [fintype ι] [is_jacobson R] : is_jacobson (mv_polynomial ι R) :=
+begin
+  haveI := classical.dec_eq ι,
+  obtain ⟨e⟩ := fintype.equiv_fin ι,
+  rw is_jacobson_iso (mv_polynomial.ring_equiv_of_equiv R e),
+  exact is_jacobson_mv_polynomial _
+end
 
 end polynomial
 

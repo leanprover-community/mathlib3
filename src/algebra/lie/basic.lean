@@ -66,7 +66,8 @@ identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring.
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
 
 /-- A Lie ring module is an additive group, together with an additive action of a
-Lie ring on this group, such that the Lie bracket acts as the commutator of endomorphisms. -/
+Lie ring on this group, such that the Lie bracket acts as the commutator of endomorphisms.
+(For representations of Lie *algebras* see `lie_module`.) -/
 @[protect_proj] class lie_ring_module (L : Type v) (M : Type w)
   [lie_ring L] [add_comm_group M] extends has_bracket L M :=
 (add_lie : ∀ (x y : L) (m : M), ⁅x + y, m⁆ = ⁅x, m⁆ + ⁅y, m⁆)

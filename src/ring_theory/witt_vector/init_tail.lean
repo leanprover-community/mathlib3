@@ -92,7 +92,8 @@ begin
   { rw [alg_hom.map_zero] }
 end
 
-@[is_poly] lemma select_is_poly (P : ℕ → Prop) : is_poly p (λ R _Rcr x, by exactI select P x) :=
+@[is_poly] lemma select_is_poly (P : ℕ → Prop) :
+  is_poly p (λ R _Rcr x, by exactI select P x) :=
 begin
   use (select_poly P),
   rintro R _Rcr x,
@@ -102,7 +103,7 @@ end
 
 include hp
 
-lemma add_select_select_not :
+lemma select_add_select_not :
   ∀ (x : 𝕎 R), select P x + select (λ i, ¬ P i) x = x :=
 begin
   ghost_calc _,
@@ -122,16 +123,16 @@ end
 lemma coeff_add_of_disjoint (x y : 𝕎 R) (h : ∀ n, x.coeff n = 0 ∨ y.coeff n = 0) :
   (x + y).coeff n = x.coeff n + y.coeff n :=
 begin
-  classical,
   let P : ℕ → Prop := λ n, y.coeff n = 0,
-  let z := mk p (λ n, if P n then x.coeff n else y.coeff n),
+  haveI : decidable_pred P := classical.dec_pred P,
+  set z := mk p (λ n, if P n then x.coeff n else y.coeff n) with hz,
   have hx : select P z = x,
   { ext1 n, rw [select, coeff_mk, coeff_mk],
     split_ifs with hn, { refl }, { rw (h n).resolve_right hn } },
   have hy : select (λ i, ¬ P i) z = y,
   { ext1 n, rw [select, coeff_mk, coeff_mk],
     split_ifs with hn, { exact hn.symm }, { refl } },
-  calc (x + y).coeff n = z.coeff n : by rw [← hx, ← hy, add_select_select_not P z]
+  calc (x + y).coeff n = z.coeff n : by rw [← hx, ← hy, select_add_select_not P z]
   ... = x.coeff n + y.coeff n : _,
   dsimp [z],
   split_ifs with hn,
@@ -156,7 +157,7 @@ include hp
 
 @[simp] lemma init_add_tail (x : 𝕎 R) (n : ℕ) :
   init n x + tail n x = x :=
-by simp only [init, tail, ← not_lt, add_select_select_not]
+by simp only [init, tail, ← not_lt, select_add_select_not]
 
 end
 

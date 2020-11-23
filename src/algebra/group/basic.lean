@@ -95,7 +95,7 @@ theorem left_inverse_inv (G) [group G] :
   function.left_inverse (λ a : G, a⁻¹) (λ a, a⁻¹) :=
 inv_inv
 
-@[to_additive]
+@[simp, to_additive]
 lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
 
 @[to_additive]
@@ -168,6 +168,10 @@ by have := @mul_right_inj _ _ a a 1; rwa mul_one at this
 @[simp, to_additive]
 theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 :=
 by rw [← @inv_inj _ _ a 1, one_inv]
+
+@[simp, to_additive]
+theorem one_eq_inv : 1 = a⁻¹ ↔ a = 1 :=
+by rw [eq_comm, inv_eq_one]
 
 @[to_additive]
 theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 :=

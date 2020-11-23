@@ -280,8 +280,9 @@ lemma is_bounded_bilinear_map_smul :
   bound      := ⟨1, zero_lt_one, λx y, by simp [norm_smul]⟩ }
 
 lemma is_bounded_bilinear_map_smul_algebra {𝕜' : Type*} [normed_field 𝕜']
-  [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_group E] [normed_space 𝕜' E] :
-  is_bounded_bilinear_map 𝕜 (λ (p : 𝕜' × (semimodule.restrict_scalars 𝕜 𝕜' E)), p.1 • p.2) :=
+  [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
+  [is_scalar_tower 𝕜 𝕜' E] :
+  is_bounded_bilinear_map 𝕜 (λ (p : 𝕜' × E), p.1 • p.2) :=
 { add_left   := add_smul,
   smul_left  := λ c x y, by simp [smul_assoc],
   add_right  := smul_add,

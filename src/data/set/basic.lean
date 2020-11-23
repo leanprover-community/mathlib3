@@ -86,7 +86,7 @@ namespace set
 variable {α : Type*}
 
 instance : has_le (set α) := ⟨(⊆)⟩
-instance : has_lt (set α) := ⟨λ s t, s ≤ t ∧ ¬t ≤ s⟩
+instance : has_lt (set α) := ⟨λ s t, s ≤ t ∧ ¬t ≤ s⟩  -- `⊂` is not defined until further down
 
 instance {α : Type*} : boolean_algebra (set α) :=
 { sup := (∪),
@@ -99,10 +99,12 @@ instance {α : Type*} : boolean_algebra (set α) :=
   sdiff := (\),
   .. (infer_instance : boolean_algebra (α → Prop)) }
 
+@[simp] lemma top_eq_univ : (⊤ : set α) = univ := rfl
 @[simp] lemma bot_eq_empty : (⊥ : set α) = ∅ := rfl
 @[simp] lemma sup_eq_union (s t : set α) : s ⊔ t = s ∪ t := rfl
 @[simp] lemma inf_eq_inter (s t : set α) : s ⊓ t = s ∩ t := rfl
 @[simp] lemma le_eq_subset (s t : set α) : s ≤ t = (s ⊆ t) := rfl
+/-! `set.lt_eq_ssubset` is defined further down -/
 
 /-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
@@ -713,11 +715,17 @@ rfl
 @[simp] theorem union_singleton : s ∪ {a} = insert a s :=
 by rw [union_comm, singleton_union]
 
-theorem singleton_inter_eq_empty : {a} ∩ s = ∅ ↔ a ∉ s :=
+@[simp] theorem singleton_inter_eq_empty : {a} ∩ s = ∅ ↔ a ∉ s :=
 by simp [eq_empty_iff_forall_not_mem]
 
-theorem inter_singleton_eq_empty : s ∩ {a} = ∅ ↔ a ∉ s :=
+@[simp] theorem inter_singleton_eq_empty : s ∩ {a} = ∅ ↔ a ∉ s :=
 by rw [inter_comm, singleton_inter_eq_empty]
+
+@[simp] theorem singleton_inter_nonempty : ({a} ∩ s).nonempty ↔ a ∈ s :=
+by rw [← ne_empty_iff_nonempty, ne.def, singleton_inter_eq_empty, not_not]
+
+@[simp] theorem inter_singleton_nonempty : (s ∩ {a}).nonempty ↔ a ∈ s :=
+by rw [inter_comm, singleton_inter_nonempty]
 
 lemma nmem_singleton_empty {s : set α} : s ∉ ({∅} : set (set α)) ↔ s.nonempty :=
 by rw [mem_singleton_iff, ← ne.def, ne_empty_iff_nonempty]
@@ -1160,15 +1168,13 @@ iff.intro
   (assume ⟨b, hb, eq⟩, (hf eq) ▸ hb)
   (assume h, mem_image_of_mem _ h)
 
-theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
-  (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
-by finish [mem_image_eq]
-
 theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
-iff.intro
-  (assume h a ha, h _ $ mem_image_of_mem _ ha)
-  (assume h b ⟨a, ha, eq⟩, eq ▸ h a ha)
+by simp
+
+theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
+  (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
+ball_image_iff.2 h
 
 theorem bex_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∃ y ∈ f '' s, p y) ↔ (∃ x ∈ s, p (f x)) :=
@@ -1239,9 +1245,6 @@ ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
 @[simp] lemma image_eq_empty {α β} {f : α → β} {s : set α} : f '' s = ∅ ↔ s = ∅ :=
 by { simp only [eq_empty_iff_forall_not_mem],
      exact ⟨λ H a ha, H _ ⟨_, ha, rfl⟩, λ H b ⟨_, ha, _⟩, H _ ha⟩ }
-
-lemma inter_singleton_nonempty {s : set α} {a : α} : (s ∩ {a}).nonempty ↔ a ∈ s :=
-by finish [set.nonempty]
 
 -- TODO(Jeremy): there is an issue with - t unfolding to compl t
 theorem mem_compl_image (t : set α) (S : set (set α)) :
@@ -1361,6 +1364,10 @@ end
 lemma image_preimage_inter (f : α → β) (s : set α) (t : set β) :
   f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
 by simp only [inter_comm, image_inter_preimage]
+
+@[simp] lemma image_inter_nonempty_iff {f : α → β} {s : set α} {t : set β} :
+  (f '' s ∩ t).nonempty ↔ (s ∩ f ⁻¹' t).nonempty :=
+by rw [←image_inter_preimage, nonempty_image_iff]
 
 lemma image_diff_preimage {f : α → β} {s : set α} {t : set β} : f '' (s \ f ⁻¹' t) = f '' s \ t :=
 by simp_rw [diff_eq, ← preimage_compl, image_inter_preimage]
@@ -2026,6 +2033,9 @@ by refl
 by simp
 
 @[simp] lemma empty_pi (s : Π i, set (α i)) : pi ∅ s = univ := by { ext, simp [pi] }
+
+lemma pi_mono (h : ∀ i ∈ s, t₁ i ⊆ t₂ i) : pi s t₁ ⊆ pi s t₂ :=
+λ x hx i hi, (h i hi $ hx i hi)
 
 lemma pi_eq_empty {i : ι} (hs : i ∈ s) (ht : t i = ∅) : s.pi t = ∅ :=
 by { ext f, simp only [mem_empty_eq, not_forall, iff_false, mem_pi, not_imp],

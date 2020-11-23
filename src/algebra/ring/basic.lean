@@ -35,11 +35,6 @@ The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, 
 `map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
 between rings from monoid homs given only a proof that addition is preserved.
 
-Throughout the section on `ring_hom` implicit `{}` brackets are often used instead
-of type class `[]` brackets. This is done when the instances can be inferred because they are
-implicit arguments to the type `ring_hom`. When they can be inferred from the type it is faster
-to use this method than to use type class inference.
-
 ## Tags
 
 `ring_hom`, `semiring_hom`, `semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`,
@@ -197,16 +192,26 @@ def mul_right {R : Type*} [semiring R] (r : R) : R →+ R :=
   map_zero' := zero_mul r,
   map_add' := λ _ _, add_mul _ _ r }
 
-@[simp] lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
-  (mul_right r : R → R) a = a * r := rfl
+@[simp] lemma coe_mul_right {R : Type*} [semiring R] (r : R) :
+  ⇑(mul_right r) = (* r) := rfl
+
+lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
+  mul_right r a = a * r := rfl
 
 end add_monoid_hom
 
-/-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too. -/
+/-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too.
+
+This extends from both `monoid_hom` and `monoid_with_zero_hom` in order to put the fields in a
+sensible order, even though `monoid_with_zero_hom` already extends `monoid_hom`. -/
 structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
-  extends monoid_hom α β, add_monoid_hom α β
+  extends monoid_hom α β, add_monoid_hom α β, monoid_with_zero_hom α β
 
 infixr ` →+* `:25 := ring_hom
+
+/-- Reinterpret a ring homomorphism `f : R →+* S` as a `monoid_with_zero_hom R S`.
+The `simp`-normal form is `(f : monoid_with_zero_hom R S)`. -/
+add_decl_doc ring_hom.to_monoid_with_zero_hom
 
 /-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid homomorphism `R →* S`.
 The `simp`-normal form is `(f : R →* S)`. -/
@@ -220,11 +225,17 @@ namespace ring_hom
 
 section coe
 
+/-!
+Throughout this section, some `semiring` arguments are specified with `{}` instead of `[]`.
+See note [implicit instance arguments].
+-/
 variables {rα : semiring α} {rβ : semiring β}
 
 include rα rβ
 
 instance : has_coe_to_fun (α →+* β) := ⟨_, ring_hom.to_fun⟩
+
+initialize_simps_projections ring_hom (to_fun → apply)
 
 @[simp] lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
 

@@ -128,6 +128,8 @@ theorem eq_on.maps_to_iff (H : eq_on f₁ f₂ s) : maps_to f₁ s t ↔ maps_to
 theorem maps_to.comp (h₁ : maps_to g t p) (h₂ : maps_to f s t) : maps_to (g ∘ f) s p :=
 λ x h, h₁ (h₂ h)
 
+theorem maps_to_id (s : set α) : maps_to id s s := λ x, id
+
 theorem maps_to.iterate {f : α → α} {s : set α} (h : maps_to f s s) :
   ∀ n, maps_to (f^[n]) s s
 | 0 := λ _, id
@@ -605,6 +607,11 @@ begin
   { rintro ⟨x, rfl⟩, by_cases h : x ∈ s;[left, right]; use x; simp [h] },
   { rintro (⟨x, hx, rfl⟩|⟨x, hx, rfl⟩); use x; simp * at * }
 end
+
+lemma piecewise_mem_pi {δ : α → Type*} {t : set α} {t' : Π i, set (δ i)}
+  {f g} (hf : f ∈ pi t t') (hg : g ∈ pi t t') :
+  s.piecewise f g ∈ pi t t' :=
+by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
 
 end set
 

@@ -60,7 +60,7 @@ p.continuous_aeval.continuous_on
 
 end topological_algebra
 
-lemma abv_tendsto_at_top {R k : Type*} [comm_ring R] [discrete_linear_ordered_field k]
+lemma abv_tendsto_at_top {R k : Type*} [comm_ring R] [linear_ordered_field k]
   (abv : R → k) [is_absolute_value abv] (p : polynomial R) (h : 0 < degree p) :
   tendsto (λ z, abv (p.eval z)) (comap abv at_top) at_top :=
 begin

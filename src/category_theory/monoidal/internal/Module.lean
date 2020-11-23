@@ -90,7 +90,7 @@ Converting a bundled algebra to a monoid object in `Module R`.
 def inverse_obj (A : Algebra.{u} R) : Mon_ (Module.{u} R) :=
 { X := Module.of R A,
   one := algebra.linear_map R A,
-  mul := algebra.lmul' R A,
+  mul := @algebra.lmul' R A _ _ _,
   one_mul' :=
   begin
     ext x,
@@ -112,8 +112,9 @@ def inverse_obj (A : Algebra.{u} R) : Mon_ (Module.{u} R) :=
     dsimp,
     apply tensor_product.induction_on xy,
     { simp only [linear_map.map_zero, tensor_product.zero_tmul], },
-    { intros x y, dsimp, simp [mul_assoc], },
-    { intros x y hx hy, dsimp, simp [tensor_product.add_tmul, hx, hy], },
+    { intros x y, dsimp, simp only [mul_assoc, algebra.lmul'_apply], },
+    { intros x y hx hy, dsimp,
+      simp only [tensor_product.add_tmul, hx, hy, map_add], },
   end }
 
 /--

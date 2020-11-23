@@ -28,6 +28,8 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 
 @[simp] lemma get_or_else_some (x y : α) : option.get_or_else (some x) y = x := rfl
 
+@[simp] lemma get_or_else_coe (x y : α) : option.get_or_else ↑x y = x := rfl
+
 lemma get_or_else_of_ne_none {x : option α} (hx : x ≠ none) (y : α) : some (x.get_or_else y) = x :=
 by cases x; [contradiction, rw get_or_else_some]
 

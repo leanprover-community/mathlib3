@@ -91,19 +91,16 @@ infi_le_infi $ assume s, infi_le_infi $ assume hs, hg s hs
 lemma map_lift_eq {m : β → γ} (hg : monotone g) : map m (f.lift g) = f.lift (map m ∘ g) :=
 have monotone (map m ∘ g),
   from map_mono.comp hg,
-filter_eq $ set.ext $
-  by simp only [mem_lift_sets hg, mem_lift_sets this, exists_prop, forall_const, mem_map, iff_self,
-    function.comp_app]
+filter.ext $ λ s,
+  by simp only [mem_lift_sets hg, mem_lift_sets this, exists_prop, mem_map, function.comp_app]
 
 lemma comap_lift_eq {m : γ → β} (hg : monotone g) : comap m (f.lift g) = f.lift (comap m ∘ g) :=
 have monotone (comap m ∘ g),
   from comap_mono.comp hg,
-filter_eq $ set.ext begin
-  simp only [mem_lift_sets hg, mem_lift_sets this, comap, mem_lift_sets, mem_set_of_eq, exists_prop,
-    function.comp_apply],
-  exact λ s,
-   ⟨λ ⟨b, ⟨a, ha, hb⟩, hs⟩, ⟨a, ha, b, hb, hs⟩,
-    λ ⟨a, ha, b, hb, hs⟩, ⟨b, ⟨a, ha, hb⟩, hs⟩⟩
+begin
+  ext,
+  simp only [mem_lift_sets hg, mem_lift_sets this, mem_comap_sets, exists_prop, mem_lift_sets],
+  exact ⟨λ ⟨b, ⟨a, ha, hb⟩, hs⟩, ⟨a, ha, b, hb, hs⟩, λ ⟨a, ha, b, hb, hs⟩, ⟨b, ⟨a, ha, hb⟩, hs⟩⟩
 end
 
 theorem comap_lift_eq2 {m : β → α} {g : set β → filter γ} (hg : monotone g) :

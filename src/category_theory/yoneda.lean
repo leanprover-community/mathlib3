@@ -237,11 +237,51 @@ given by the Yoneda lemma.
 (yoneda_lemma C).app (op X, F)
 
 /--
+We have a type-level equivalence between natural transformations from the yoneda embedding
+and elements of `F.obj X`, without any universe switching.
+-/
+def yoneda_equiv {X : C} {F : Cᵒᵖ ⥤ Type v₁} : (yoneda.obj X ⟶ F) ≃ F.obj (op X) :=
+(yoneda_sections X F).to_equiv.trans equiv.ulift
+
+lemma yoneda_equiv_naturality {X Y : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) (g : Y ⟶ X) :
+  F.map g.op (yoneda_equiv f) = yoneda_equiv (yoneda.map g ≫ f) :=
+begin
+  change (f.app (op X) ≫ F.map g.op) (𝟙 X) = f.app (op Y) (𝟙 Y ≫ g),
+  rw ← f.naturality,
+  dsimp,
+  simp,
+end
+
+@[simp]
+lemma yoneda_equiv_apply {X : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) :
+  yoneda_equiv f = f.app (op X) (𝟙 X) :=
+rfl
+
+@[simp]
+lemma yoneda_equiv_symm_app_apply {X : C} {F : Cᵒᵖ ⥤ Type v₁} (x : F.obj (op X))
+  (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
+  (yoneda_equiv.symm x).app Y f = F.map f.op x :=
+rfl
+
+/--
 When `C` is a small category, we can restate the isomorphism from `yoneda_sections`
 without having to change universes.
 -/
-@[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) :
+def yoneda_sections_small {C : Type u₁} [small_category C] (X : C)
+  (F : Cᵒᵖ ⥤ Type u₁) :
   (yoneda.obj X ⟶ F) ≅ F.obj (op X) :=
 yoneda_sections X F ≪≫ ulift_trivial _
+
+@[simp]
+lemma yoneda_sections_small_hom {C : Type u₁} [small_category C] (X : C)
+  (F : Cᵒᵖ ⥤ Type u₁) (f : yoneda.obj X ⟶ F) :
+  (yoneda_sections_small X F).hom f = f.app _ (𝟙 _) :=
+rfl
+
+@[simp]
+lemma yoneda_sections_small_inv_app_apply {C : Type u₁} [small_category C] (X : C)
+  (F : Cᵒᵖ ⥤ Type u₁) (t : F.obj (op X)) (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
+  ((yoneda_sections_small X F).inv t).app Y f = F.map f.op t :=
+rfl
 
 end category_theory

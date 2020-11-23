@@ -386,9 +386,9 @@ end semilattice_inf
 
 /-! ### Pointwise `min`/`max` -/
 
-section decidable_linear_order
+section linear_order
 
-variables [decidable_linear_order β] {f g : α → β} {a : α} {s : set α} {l : filter α}
+variables [linear_order β] {f g : α → β} {a : α} {s : set α} {l : filter α}
 
 lemma is_local_min.min (hf : is_local_min f a) (hg : is_local_min g a) :
   is_local_min (λ x, min (f x) (g x)) a :=
@@ -422,7 +422,7 @@ lemma is_local_max_on.max (hf : is_local_max_on f s a) (hg : is_local_max_on g s
   is_local_max_on (λ x, max (f x) (g x)) s a :=
 hf.max hg
 
-end decidable_linear_order
+end linear_order
 
 section eventually
 

@@ -366,7 +366,7 @@ lemma nhds_contain_boxes.symm {s : set α} {t : set β} :
 assume H n hn hp,
   let ⟨u, v, uo, vo, su, tv, p⟩ :=
     H (prod.swap ⁻¹' n)
-      (continuous_swap n hn)
+      (hn.preimage continuous_swap)
       (by rwa [←image_subset_iff, image_swap_prod]) in
   ⟨v, u, vo, uo, tv, su,
     by rwa [←image_subset_iff, image_swap_prod] at p⟩
@@ -407,6 +407,8 @@ have set.prod u v ⊆ n, from assume ⟨x',y'⟩ ⟨hx',hy'⟩,
   (h i).2.2.2.2 ⟨hi, (bInter_subset_of_mem is0 : v ⊆ (uvs i).2) hy'⟩,
 ⟨u, v, ‹is_open u›, ‹is_open v›, s0_cover, ‹t ⊆ v›, ‹set.prod u v ⊆ n›⟩
 
+/-- If `s` and `t` are compact sets and `n` is an open neighborhood of `s × t`, then there exist
+open neighborhoods `u ⊇ s` and `v ⊇ t` such that `u × v ⊆ n`. -/
 lemma generalized_tube_lemma {s : set α} (hs : is_compact s) {t : set β} (ht : is_compact t)
   {n : set (α × β)} (hn : is_open n) (hp : set.prod s t ⊆ n) :
   ∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ set.prod u v ⊆ n :=
@@ -1296,6 +1298,12 @@ class totally_separated_space (α : Type u) [topological_space α] : Prop :=
 @[priority 100] -- see Note [lower instance priority]
 instance totally_separated_space.totally_disconnected_space (α : Type u) [topological_space α]
   [totally_separated_space α] : totally_disconnected_space α :=
-⟨is_totally_disconnected_of_is_totally_separated $ totally_separated_space.is_totally_separated_univ α⟩
+⟨is_totally_disconnected_of_is_totally_separated $
+  totally_separated_space.is_totally_separated_univ α⟩
+
+@[priority 100] -- see Note [lower instance priority]
+instance totally_separated_space.of_discrete
+  (α : Type*) [topological_space α] [discrete_topology α] : totally_separated_space α :=
+⟨λ a _ b _ h, ⟨{b}ᶜ, {b}, is_open_discrete _, is_open_discrete _, by simpa⟩⟩
 
 end totally_separated

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.induction
-import data.polynomial.degree.basic
+import data.polynomial.degree.definitions
 import deprecated.ring
 
 /-!
@@ -59,7 +59,7 @@ end
 
 @[simp] lemma eval₂_X_pow {n : ℕ} : (X^n).eval₂ f x = x^n :=
 begin
-  rw ←monomial_one_eq_X_pow,
+  rw X_pow_eq_monomial,
   convert eval₂_monomial f x,
   simp,
 end
@@ -188,6 +188,14 @@ lemma eval₂_eq_sum_range :
   p.eval₂ f x = ∑ i in finset.range (p.nat_degree + 1), f (p.coeff i) * x^i :=
 trans (congr_arg _ p.as_sum_range) (trans (eval₂_finset_sum f _ _ x) (congr_arg _ (by simp)))
 
+lemma eval₂_eq_sum_range' (f : R →+* S) {p : polynomial R} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
+  eval₂ f x p = ∑ i in finset.range n, f (p.coeff i) * x ^ i :=
+begin
+  rw [eval₂_eq_sum, p.sum_over_range' _ _ hn],
+  intro i,
+  rw [f.map_zero, zero_mul]
+end
+
 end eval₂
 
 section eval
@@ -259,11 +267,8 @@ rfl
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
-  refine ext (λ n, _),
-  rw [comp, eval₂],
-  conv in (C _ * _) { rw ← single_eq_C_mul_X },
-  congr,
-  convert finsupp.sum_single _,
+  simp only [comp, eval₂, ← single_eq_C_mul_X],
+  exact finsupp.sum_single _,
 end
 
 @[simp] lemma X_comp : X.comp p = p := eval₂_X _ _
@@ -417,7 +422,7 @@ lemma mem_map_range {p : polynomial S} :
 begin
   split,
   { rintro ⟨p, rfl⟩ n, rw coeff_map, exact set.mem_range_self _ },
-  { intro h, rw p.as_sum_range,
+  { intro h, rw p.as_sum_range_C_mul_X_pow,
     apply is_add_submonoid.finset_sum_mem,
     intros i hi,
     rcases h i with ⟨c, hc⟩,
@@ -439,6 +444,10 @@ end
 
 lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
 eval₂_map f (ring_hom.id _) x
+
+lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
+  (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
+eq.symm $ sum_hom _ _
 
 end map
 
@@ -522,10 +531,6 @@ lemma map_prod {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
 eq.symm $ prod_hom _ _
 
-lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
-  (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
-eq.symm $ sum_hom _ _
-
 lemma support_map_subset (p : polynomial R) : (map f p).support ⊆ p.support :=
 begin
   intros x,
@@ -562,13 +567,17 @@ lemma C_sub : C (a - b) = C a - C b := ring_hom.map_sub C a b
 instance map.is_ring_hom {S} [ring S] (f : R →+* S) : is_ring_hom (map f) :=
 by apply is_ring_hom.of_semiring
 
-@[simp] lemma map_sub {S} [comm_ring S] (f : R →+* S) :
+@[simp] lemma map_sub {S} [ring S] (f : R →+* S) :
   (p - q).map f = p.map f - q.map f :=
 is_ring_hom.map_sub _
 
-@[simp] lemma map_neg {S} [comm_ring S] (f : R →+* S) :
+@[simp] lemma map_neg {S} [ring S] (f : R →+* S) :
   (-p).map f = -(p.map f) :=
 is_ring_hom.map_neg _
+
+@[simp] lemma map_int_cast {S} [ring S] (f : R →+* S) (n : ℤ) :
+  map f ↑n = ↑n :=
+(ring_hom.of (map f)).map_int_cast n
 
 @[simp] lemma eval_int_cast {n : ℤ} {x : R} : (n : polynomial R).eval x = n :=
 by simp only [←C_eq_int_cast, eval_C]

@@ -1009,7 +1009,7 @@ match lt_or_eq_of_le (le_add_left b a), lt_or_eq_of_le (le_add_right a b) with
   end) h₁ h₂
 end
 
-instance : decidable_linear_order ordinal :=
+instance : linear_order ordinal :=
 { le_total     := le_total,
   decidable_le := classical.dec_rel _,
   ..ordinal.partial_order }

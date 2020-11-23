@@ -46,7 +46,7 @@ end sort
 
 section sort_linear_order
 
-variables [decidable_linear_order α]
+variables [linear_order α]
 
 theorem sort_sorted_lt (s : finset α) :
   list.sorted (<) (sort (≤) s) :=

@@ -101,6 +101,11 @@ variables {R}
 @[symm] protected def symm (e : R ≃+* S) : S ≃+* R :=
 { .. e.to_mul_equiv.symm, .. e.to_add_equiv.symm }
 
+/-- See Note [custom simps projection] -/
+def simps.inv_fun (e : R ≃+* S) : S → R := e.symm
+
+initialize_simps_projections ring_equiv (to_fun → apply, inv_fun → symm_apply)
+
 /-- Transitivity of `ring_equiv`. -/
 @[trans] protected def trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') : R ≃+* S' :=
 { .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }

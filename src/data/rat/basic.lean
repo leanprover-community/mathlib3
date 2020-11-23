@@ -5,6 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.encodable.basic
 import algebra.euclidean_domain
+import data.nat.gcd
+import data.int.cast
 
 /-!
 # Basics for the Rational Numbers
@@ -612,7 +614,7 @@ by rw [← int.cast_coe_nat, coe_int_num]
 by rw [← int.cast_coe_nat, coe_int_denom]
 
 -- Will be subsumed by `int.coe_inj` after we have defined
--- `discrete_linear_ordered_field ℚ` (which implies characteristic zero).
+-- `linear_ordered_field ℚ` (which implies characteristic zero).
 lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n :=
 ⟨λ h, by simpa using congr_arg num h, congr_arg _⟩
 

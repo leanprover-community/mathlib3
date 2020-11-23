@@ -15,6 +15,7 @@ We promote `eval₂` to an algebra hom in `aeval`.
 
 noncomputable theory
 open finset
+open_locale big_operators
 
 namespace polynomial
 universes u v w z
@@ -79,13 +80,12 @@ eval₂_algebra_map_X p { commutes' := λ n, by simp, .. f }
 section comp
 
 lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
-  (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) :=
-by rw [comp, p.as_sum_range]; simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_finset_sum, eval₂_X]
-
+  eval₂ f x (p.comp q) = eval₂ f (eval₂ f x q) p :=
+by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
 
 lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
 
-instance : is_semiring_hom (λ q : polynomial R, q.comp p) :=
+instance comp.is_semiring_hom : is_semiring_hom (λ q : polynomial R, q.comp p) :=
 by unfold comp; apply_instance
 
 end comp
@@ -106,6 +106,9 @@ def aeval : polynomial R →ₐ[R] A :=
   ..eval₂_ring_hom' (algebra_map R A) algebra.commutes x }
 
 variables {R A}
+
+@[ext] lemma alg_hom_ext {f g : polynomial R →ₐ[R] A} (h : f X = g X) : f = g :=
+by { ext, exact h }
 
 theorem aeval_def (p : polynomial R) : aeval x p = eval₂ (algebra_map R A) x p := rfl
 
@@ -204,6 +207,14 @@ end
 lemma dvd_term_of_is_root_of_dvd_terms {r p : S} {f : polynomial S} (i : ℕ)
   (hr : f.is_root r) (h : ∀ (j ≠ i), p ∣ f.coeff j * r ^ j) : p ∣ f.coeff i * r ^ i :=
 dvd_term_of_dvd_eval_of_dvd_terms i (eq.symm hr ▸ dvd_zero p) h
+
+lemma aeval_eq_sum_range [algebra R S] {p : polynomial R} (x : S) :
+  aeval x p = ∑ i in finset.range (p.nat_degree + 1), p.coeff i • x ^ i :=
+by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range (algebra_map R S) x }
+
+lemma aeval_eq_sum_range' [algebra R S] {p : polynomial R} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
+  aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
+by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
 
 end aeval
 

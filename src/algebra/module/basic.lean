@@ -3,9 +3,12 @@ Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
-import group_theory.group_action
-import tactic.nth_rewrite
+import algebra.big_operators.basic
 import algebra.group.hom
+import algebra.ring.basic
+import data.rat.cast
+import group_theory.group_action.group
+import tactic.nth_rewrite
 
 /-!
 # Modules over a ring
@@ -25,15 +28,13 @@ In this file we define
 
 * `linear_map R M M₂`, `M →ₗ[R] M₂` : a linear map between two R-`semimodule`s.
 
-* `is_linear_map R f` : predicate saying that `f : M → M₂` is a linear map.
-
 ## Implementation notes
 
 * `vector_space` and `module` are abbreviations for `semimodule R M`.
 
 ## Tags
 
-semimodule, module, vector space, linear map
+semimodule, module, vector space
 -/
 
 open function
@@ -61,6 +62,8 @@ variables (R)
 @[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
+
+theorem two_smul' : (2 : R) • x = bit0 x := two_smul R x
 
 /-- Pullback a `semimodule` structure along an injective additive monoid homomorphism. -/
 protected def function.injective.semimodule [add_comm_monoid M₂] [has_scalar R M₂] (f : M₂ →+ M)
@@ -238,217 +241,6 @@ def ring_hom.to_semimodule [semiring R] [semiring S] (f : R →+* S) : semimodul
   zero_smul := λ x, show f 0 * x = 0, by rw [f.map_zero, zero_mul],
   smul_zero := λ r, mul_zero (f r) }
 
-/-- A map `f` between semimodules over a semiring is linear if it satisfies the two properties
-`f (x + y) = f x + f y` and `f (c • x) = c • f x`. The predicate `is_linear_map R f` asserts this
-property. A bundled version is available with `linear_map`, and should be favored over
-`is_linear_map` most of the time. -/
-structure is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
-  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
-  (f : M → M₂) : Prop :=
-(map_add : ∀ x y, f (x + y) = f x + f y)
-(map_smul : ∀ (c : R) x, f (c • x) = c • f x)
-
-
-set_option old_structure_cmd true
-
-/-- A map `f` between semimodules over a semiring is linear if it satisfies the two properties
-`f (x + y) = f x + f y` and `f (c • x) = c • f x`. Elements of `linear_map R M M₂` (available under
-the notation `M →ₗ[R] M₂`) are bundled versions of such maps. An unbundled version is available with
-the predicate `is_linear_map`, but it should be avoided most of the time. -/
-structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
-  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] extends add_hom M M₂ :=
-(map_smul' : ∀(c : R) x, to_fun (c • x) = c • to_fun x)
-
-/-- The `add_hom` underlying a `linear_map`. -/
-add_decl_doc linear_map.to_add_hom
-
-set_option old_structure_cmd false
-
-infixr ` →ₗ `:25 := linear_map _
-notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂
-
-namespace linear_map
-
-section add_comm_monoid
-
-variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
-
-section
-variables [semimodule R M] [semimodule R M₂]
-
-instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
-
-@[simp] lemma coe_mk (f : M → M₂) (h₁ h₂) :
-  ((linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) : M → M₂) = f := rfl
-
-/-- Identity map as a `linear_map` -/
-def id : M →ₗ[R] M :=
-⟨id, λ _ _, rfl, λ _ _, rfl⟩
-
-lemma id_apply (x : M) :
-  @id R M _ _ _ x = x := rfl
-
-@[simp, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id :=
-by { ext x, refl }
-
-end
-
-section
--- We can infer the module structure implicitly from the linear maps,
--- rather than via typeclass resolution.
-variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
-variables (f g : M →ₗ[R] M₂)
-include semimodule_M semimodule_M₂
-
-@[simp] lemma to_fun_eq_coe : f.to_fun = ⇑f := rfl
-
-theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
-
-variables {f g}
-
-theorem coe_injective : injective (λ f : M →ₗ[R] M₂, show M → M₂, from f) :=
-by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
-
-@[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-coe_injective $ funext H
-
-protected lemma congr_arg : Π {x x' : M}, x = x' → f x = f x'
-| _ _ rfl := rfl
-
-/-- If two linear maps are equal, they are equal at each point. -/
-protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
-
-theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
-⟨by { rintro rfl x, refl } , ext⟩
-
-variables (f g)
-
-@[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y
-
-@[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.map_smul' c x
-
-@[simp] lemma map_zero : f 0 = 0 :=
-by rw [← zero_smul R, map_smul f 0 0, zero_smul]
-
-instance : is_add_monoid_hom f :=
-{ map_add := map_add f,
-  map_zero := map_zero f }
-
-/-- convert a linear map to an additive map -/
-def to_add_monoid_hom : M →+ M₂ :=
-{ to_fun := f,
-  map_zero' := f.map_zero,
-  map_add' := f.map_add }
-
-@[simp] lemma to_add_monoid_hom_coe :
-  ((f.to_add_monoid_hom) : M → M₂) = f := rfl
-
-@[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
-  f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
-f.to_add_monoid_hom.map_sum _ _
-
-theorem to_add_monoid_hom_injective :
-  function.injective (to_add_monoid_hom : (M →ₗ[R] M₂) → (M →+ M₂)) :=
-λ f g h, ext $ add_monoid_hom.congr_fun h
-
-end
-
-section
-
-variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
-{semimodule_M₃ : semimodule R M₃}
-variables (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂)
-
-/-- Composition of two linear maps is a linear map -/
-def comp : M →ₗ[R] M₃ := ⟨f ∘ g, by simp, by simp⟩
-
-@[simp] lemma comp_apply (x : M) : f.comp g x = f (g x) := rfl
-
-@[norm_cast]
-lemma comp_coe : (f : M₂ → M₃) ∘ (g : M → M₂) = f.comp g := rfl
-
-end
-
-end add_comm_monoid
-
-section add_comm_group
-
-variables [semiring R] [add_comm_group M] [add_comm_group M₂]
-variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
-variables (f : M →ₗ[R] M₂)
-
-@[simp] lemma map_neg (x : M) : f (- x) = - f x :=
-f.to_add_monoid_hom.map_neg x
-
-@[simp] lemma map_sub (x y : M) : f (x - y) = f x - f y :=
-f.to_add_monoid_hom.map_sub x y
-
-instance : is_add_group_hom f :=
-{ map_add := map_add f}
-
-end add_comm_group
-
-end linear_map
-
-namespace is_linear_map
-
-section add_comm_monoid
-variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
-variables [semimodule R M] [semimodule R M₂]
-include R
-
-/-- Convert an `is_linear_map` predicate to a `linear_map` -/
-def mk' (f : M → M₂) (H : is_linear_map R f) : M →ₗ M₂ := ⟨f, H.1, H.2⟩
-
-@[simp] theorem mk'_apply {f : M → M₂} (H : is_linear_map R f) (x : M) :
-  mk' f H x = f x := rfl
-
-lemma is_linear_map_smul {R M : Type*} [comm_semiring R] [add_comm_monoid M] [semimodule R M] (c : R) :
-  is_linear_map R (λ (z : M), c • z) :=
-begin
-  refine is_linear_map.mk (smul_add c) _,
-  intros _ _,
-  simp only [smul_smul, mul_comm]
-end
-
---TODO: move
-lemma is_linear_map_smul' {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M] (a : M) :
-  is_linear_map R (λ (c : R), c • a) :=
-is_linear_map.mk (λ x y, add_smul x y a) (λ x y, mul_smul x y a)
-
-variables {f : M → M₂} (lin : is_linear_map R f)
-include M M₂ lin
-
-lemma map_zero : f (0 : M) = (0 : M₂) := (lin.mk' f).map_zero
-
-end add_comm_monoid
-
-section add_comm_group
-
-variables [semiring R] [add_comm_group M] [add_comm_group M₂]
-variables [semimodule R M] [semimodule R M₂]
-include R
-
-lemma is_linear_map_neg :
-  is_linear_map R (λ (z : M), -z) :=
-is_linear_map.mk neg_add (λ x y, (smul_neg x y).symm)
-
-variables {f : M → M₂} (lin : is_linear_map R f)
-include M M₂ lin
-
-lemma map_neg (x : M) : f (- x) = - f x := (lin.mk' f).map_neg x
-
-lemma map_sub (x y) : f (x - y) = f x - f y := (lin.mk' f).map_sub x y
-
-end add_comm_group
-
-end is_linear_map
-
-/-- Ring of linear endomorphismsms of a module. -/
-abbreviation module.End (R : Type u) (M : Type v)
-  [semiring R] [add_comm_monoid M] [semimodule R M] := M →ₗ[R] M
-
-
 /--
 Vector spaces are defined as an `abbreviation` for semimodules,
 if the base ring is a field.
@@ -622,14 +414,3 @@ rat.cast_id c ▸ f.map_rat_cast_smul c x
 
 -- We finally turn on these instances globally:
 attribute [instance] add_comm_monoid.nat_semimodule add_comm_group.int_module
-
-/-- Reinterpret an additive homomorphism as a `ℤ`-linear map. -/
-def add_monoid_hom.to_int_linear_map [add_comm_group M] [add_comm_group M₂] (f : M →+ M₂) :
-  M →ₗ[ℤ] M₂ :=
-⟨f, f.map_add, f.map_int_module_smul⟩
-
-/-- Reinterpret an additive homomorphism as a `ℚ`-linear map. -/
-def add_monoid_hom.to_rat_linear_map [add_comm_group M] [vector_space ℚ M]
-  [add_comm_group M₂] [vector_space ℚ M₂] (f : M →+ M₂) :
-  M →ₗ[ℚ] M₂ :=
-⟨f, f.map_add, f.map_rat_module_smul⟩

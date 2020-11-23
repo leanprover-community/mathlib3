@@ -355,8 +355,8 @@ lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 �
     { rintro ⟨k, rfl⟩, rw [nat.cast_mul, H, zero_mul] }
   end }
 
-lemma char_p_of_prime_pow_injective (p : ℕ) [hp : fact p.prime] (n : ℕ) (hn : fintype.card R = p ^ n)
-  (hR : ∀ i ≤ n, (p ^ i : R) = 0 → i = n) :
+lemma char_p_of_prime_pow_injective (p : ℕ) [hp : fact p.prime] (n : ℕ)
+  (hn : fintype.card R = p ^ n) (hR : ∀ i ≤ n, (p ^ i : R) = 0 → i = n) :
   char_p R (p ^ n) :=
 begin
   obtain ⟨c, hc⟩ := char_p.exists R, resetI,

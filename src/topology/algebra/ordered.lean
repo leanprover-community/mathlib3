@@ -12,6 +12,7 @@ import order.liminf_limsup
 import data.set.intervals.image_preimage
 import data.set.intervals.ord_connected
 import data.set.intervals.surj_on
+import data.set.intervals.pi
 import topology.algebra.group
 import topology.extend_from_subset
 import order.filter.interval
@@ -140,7 +141,7 @@ lemma is_closed_Ici {a : α} : is_closed (Ici a) :=
 is_closed_ge' a
 
 instance : order_closed_topology (order_dual α) :=
-⟨continuous_swap _ (@order_closed_topology.is_closed_le' α _ _ _)⟩
+⟨(@order_closed_topology.is_closed_le' α _ _ _).preimage continuous_swap⟩
 
 lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
 is_closed_inter is_closed_Ici is_closed_Iic
@@ -509,8 +510,8 @@ by simp only [continuous_within_at, nhds_within_Ioc_eq_nhds_within_Iic h]
 
 end linear_order
 
-section decidable_linear_order
-variables [topological_space α] [decidable_linear_order α] [order_closed_topology α] {f g : β → α}
+section linear_order
+variables [topological_space α] [linear_order α] [order_closed_topology α] {f g : β → α}
 
 section
 variables [topological_space β]
@@ -552,7 +553,7 @@ lemma tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)
   tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
 (continuous_min.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
-end decidable_linear_order
+end linear_order
 
 end order_closed_topology
 
@@ -730,7 +731,7 @@ induced_order_topology' f @hf
 /-- On an `ord_connected` subset of a linear order, the order topology for the restriction of the
 order is the same as the restriction to the subset of the order topology. -/
 instance order_topology_of_ord_connected {α : Type u}
-  [ta : topological_space α] [decidable_linear_order α] [order_topology α]
+  [ta : topological_space α] [linear_order α] [order_topology α]
   {t : set α} [ht : ord_connected t] :
   order_topology t :=
 begin
@@ -827,7 +828,6 @@ begin
     from this.imp (λ l', Exists.imp $ λ hl' hl x hx, B ⟨hl hx.1, hx.2⟩) },
   clear hts ht₂ t₂,
   -- Now we find `l` such that `(l', ∞) ⊆ t₁`
-  letI := classical.DLO α,
   rw [mem_binfi] at ht₁,
   { rcases ht₁ with ⟨b, hb, hb'⟩,
     exact ⟨max b l, ⟨le_max_right _ _, max_lt hb hl⟩,
@@ -865,7 +865,6 @@ iff.intro
       intro p, rcases p with ⟨⟨l, hl⟩, ⟨u, hu⟩⟩,
       simp [set.subset_def],
       intros s₁ s₂ hs₁ l' hl' u' hu' hs₂,
-      letI := classical.DLO α,
       refine ⟨max l l', _, min u u', _⟩;
       simp [*, lt_min_iff, max_lt_iff] {contextual := tt}
     end
@@ -975,15 +974,111 @@ mem_nhds_sets is_open_Iio h
 lemma Ioi_mem_nhds {a b : α} (h : a < b) : Ioi a ∈ 𝓝 b :=
 mem_nhds_sets is_open_Ioi h
 
+lemma Iic_mem_nhds {a b : α} (h : a < b) : Iic b ∈ 𝓝 a :=
+mem_sets_of_superset (Iio_mem_nhds h) Iio_subset_Iic_self
+
+lemma Ici_mem_nhds {a b : α} (h : a < b) : Ici a ∈ 𝓝 b :=
+mem_sets_of_superset (Ioi_mem_nhds h) Ioi_subset_Ici_self
+
 lemma Ioo_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioo a b ∈ 𝓝 x :=
 mem_nhds_sets is_open_Ioo ⟨ha, hb⟩
+
+lemma Ioc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioc a b ∈ 𝓝 x :=
+mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ioc_self
+
+lemma Ico_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ico a b ∈ 𝓝 x :=
+mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ico_self
+
+lemma Icc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Icc a b ∈ 𝓝 x :=
+mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Icc_self
+
+section pi
+
+/-!
+### Intervals in `Π i, π i` belong to `𝓝 x`
+
+For each leamma `pi_Ixx_mem_nhds` we add a non-dependent version `pi_Ixx_mem_nhds'` because
+sometimes Lean fails to unify different instances while trying to apply the dependent version to,
+e.g., `ι → ℝ`.
+-/
+
+variables {ι : Type*} {π : ι → Type*} [fintype ι] [Π i, linear_order (π i)]
+  [Π i, topological_space (π i)] [∀ i, order_topology (π i)] {a b x : Π i, π i} {a' b' x' : ι → α}
+
+lemma pi_Iic_mem_nhds (ha : ∀ i, x i < a i) : Iic a ∈ 𝓝 x :=
+pi_univ_Iic a ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Iic_mem_nhds (ha _))
+
+lemma pi_Iic_mem_nhds' (ha : ∀ i, x' i < a' i) : Iic a' ∈ 𝓝 x' :=
+pi_Iic_mem_nhds ha
+
+lemma pi_Ici_mem_nhds (ha : ∀ i, a i < x i) : Ici a ∈ 𝓝 x :=
+pi_univ_Ici a ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Ici_mem_nhds (ha _))
+
+lemma pi_Ici_mem_nhds' (ha : ∀ i, a' i < x' i) : Ici a' ∈ 𝓝 x' :=
+pi_Ici_mem_nhds ha
+
+lemma pi_Icc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Icc a b ∈ 𝓝 x :=
+pi_univ_Icc a b ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Icc_mem_nhds (ha _) (hb _))
+
+lemma pi_Icc_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Icc a' b' ∈ 𝓝 x' :=
+pi_Icc_mem_nhds ha hb
+
+variables [nonempty ι]
+
+lemma pi_Iio_mem_nhds (ha : ∀ i, x i < a i) : Iio a ∈ 𝓝 x :=
+begin
+  refine mem_sets_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+    (pi_univ_Iio_subset a),
+  exact Iio_mem_nhds (ha i)
+end
+
+lemma pi_Iio_mem_nhds' (ha : ∀ i, x' i < a' i) : Iio a' ∈ 𝓝 x' :=
+pi_Iio_mem_nhds ha
+
+lemma pi_Ioi_mem_nhds (ha : ∀ i, a i < x i) : Ioi a ∈ 𝓝 x :=
+@pi_Iio_mem_nhds ι (λ i, order_dual (π i)) _ _ _ _ _ _ _ ha
+
+lemma pi_Ioi_mem_nhds' (ha : ∀ i, a' i < x' i) : Ioi a' ∈ 𝓝 x' :=
+pi_Ioi_mem_nhds ha
+
+lemma pi_Ioc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ioc a b ∈ 𝓝 x :=
+begin
+  refine mem_sets_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+    (pi_univ_Ioc_subset a b),
+  exact Ioc_mem_nhds (ha i) (hb i)
+end
+
+lemma pi_Ioc_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Ioc a' b' ∈ 𝓝 x' :=
+pi_Ioc_mem_nhds ha hb
+
+lemma pi_Ico_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ico a b ∈ 𝓝 x :=
+begin
+  refine mem_sets_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+    (pi_univ_Ico_subset a b),
+  exact Ico_mem_nhds (ha i) (hb i)
+end
+
+lemma pi_Ico_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Ico a' b' ∈ 𝓝 x' :=
+pi_Ico_mem_nhds ha hb
+
+lemma pi_Ioo_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ioo a b ∈ 𝓝 x :=
+begin
+  refine mem_sets_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+    (pi_univ_Ioo_subset a b),
+  exact Ioo_mem_nhds (ha i) (hb i)
+end
+
+lemma pi_Ioo_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Ioo a' b' ∈ 𝓝 x' :=
+pi_Ioo_mem_nhds ha hb
+
+end pi
 
 lemma disjoint_nhds_at_top [no_top_order α] (x : α) :
   disjoint (𝓝 x) at_top :=
 begin
   rw filter.disjoint_iff,
   cases no_top x with a ha,
-  use [Iio a, Ici a, Iio_mem_nhds ha, mem_at_top a],
+  use [Iio a, Iio_mem_nhds ha, Ici a, mem_at_top a],
   rw [inter_comm, Ici_inter_Iio, Ico_self]
 end
 
@@ -1368,8 +1463,8 @@ end
 
 end linear_ordered_ring
 
-section decidable_linear_ordered_semiring
-variables [decidable_linear_ordered_semiring α]
+section linear_ordered_semiring
+variables [linear_ordered_semiring α]
 
 /-- The function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_at_top`. -/
@@ -1382,10 +1477,7 @@ begin
   exact le_trans (le_of_max_le_left (by rwa pow_one x)) (pow_le_pow (le_of_max_le_right hx) hn),
 end
 
-end decidable_linear_ordered_semiring
-
-section linear_ordered_semiring
-variables [linear_ordered_semiring α] [archimedean α]
+variables [archimedean α]
 variables {l : filter β} {f : β → α}
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
@@ -1395,7 +1487,6 @@ given in `tendsto_at_top_mul_left'`). -/
 lemma tendsto_at_top_mul_left  {r : α} (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, r * f x) l at_top :=
 begin
-  letI := classical.DLO α,
   apply tendsto_at_top.2 (λb, _),
   obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ r * n, by rwa nsmul_eq_mul' at hn,
@@ -1414,7 +1505,6 @@ given in `tendsto_at_top_mul_right'`). -/
 lemma tendsto_at_top_mul_right {r : α} (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, f x * r) l at_top :=
 begin
-  letI := classical.DLO α,
   apply tendsto_at_top.2 (λb, _),
   obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ (n : α) * r, by rwa nsmul_eq_mul at hn,
@@ -1486,8 +1576,8 @@ end
 
 end linear_ordered_field
 
-section discrete_linear_ordered_field
-variables [discrete_linear_ordered_field α] [topological_space α] [order_topology α]
+section linear_ordered_field
+variables [linear_ordered_field α] [topological_space α] [order_topology α]
 
 /-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
 lemma tendsto_inv_zero_at_top : tendsto (λx:α, x⁻¹) (𝓝[set.Ioi (0:α)] 0) at_top :=
@@ -1530,7 +1620,7 @@ lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ 
 tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (fpow_neg x n).symm))
   (tendsto.inv_tendsto_at_top (tendsto_pow_at_top hn))
 
-end discrete_linear_ordered_field
+end linear_ordered_field
 
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
@@ -1664,7 +1754,6 @@ lemma is_compact.bdd_below {α : Type u} [topological_space α] [linear_order α
   [order_closed_topology α] [nonempty α] {s : set α} (hs : is_compact s) : bdd_below s :=
 begin
   by_contra H,
-  letI := classical.DLO α,
   rcases hs.elim_finite_subcover_image (λ x (_ : x ∈ s), @is_open_Ioi _ _ _ _ x) _
     with ⟨t, st, ft, ht⟩,
   { refine H (ft.bdd_below.imp $ λ C hC y hy, _),
@@ -1833,9 +1922,9 @@ nhds_within_Iio_ne_bot (le_refl a)
 
 end linear_order
 
-section decidable_linear_order
+section linear_order
 
-variables [topological_space α] [decidable_linear_order α] [order_topology α] [densely_ordered α]
+variables [topological_space α] [linear_order α] [order_topology α] [densely_ordered α]
 
 /-- The `at_top` filter for an open interval `Ioo a b` comes from the left-neighbourhoods filter at
 the right endpoint in the ambient order. -/
@@ -1879,7 +1968,7 @@ begin
     exact hts (hxt ⟨z.2.1, lt_of_le_of_lt hz (lt_of_lt_of_le hyb (min_le_right b x))⟩) }
 end
 
-end decidable_linear_order
+end linear_order
 
 section complete_linear_order
 
@@ -2498,7 +2587,7 @@ end liminf_limsup
 end order_topology
 
 lemma order_topology_of_nhds_abs
-  {α : Type*} [decidable_linear_ordered_add_comm_group α] [topological_space α]
+  {α : Type*} [linear_ordered_add_comm_group α] [topological_space α]
   (h_nhds : ∀a:α, 𝓝 a = (⨅r>0, 𝓟 {b | abs (a - b) < r})) : order_topology α :=
 order_topology.mk $ eq_of_nhds_eq_nhds $ assume a:α, le_antisymm_iff.mpr
 begin
@@ -2529,14 +2618,14 @@ begin
 end
 
 /-- $\lim_{x\to+\infty}|x|=+\infty$ -/
-lemma tendsto_abs_at_top_at_top [decidable_linear_ordered_add_comm_group α] :
+lemma tendsto_abs_at_top_at_top [linear_ordered_add_comm_group α] :
   tendsto (abs : α → α) at_top at_top :=
 tendsto_at_top_mono (λ n, le_abs_self _) tendsto_id
 
 local notation `|` x `|` := abs x
 
-lemma decidable_linear_ordered_add_comm_group.tendsto_nhds
-  [decidable_linear_ordered_add_comm_group α] [topological_space α] [order_topology α] {β : Type*}
+lemma linear_ordered_add_comm_group.tendsto_nhds
+  [linear_ordered_add_comm_group α] [topological_space α] [order_topology α] {β : Type*}
   (f : β → α) (x : filter β) (a : α) :
   filter.tendsto f x (nhds a) ↔ ∀ ε > (0 : α), ∀ᶠ b in x, |f b - a| < ε :=
 begin

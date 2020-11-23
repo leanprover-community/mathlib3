@@ -145,15 +145,15 @@ by rw [← cast_zero, cast_lt]
 @[simp] theorem cast_lt_zero [linear_ordered_ring α] {n : ℤ} : (n : α) < 0 ↔ n < 0 :=
 by rw [← cast_zero, cast_lt]
 
-@[simp, norm_cast] theorem cast_min [decidable_linear_ordered_comm_ring α] {a b : ℤ} :
+@[simp, norm_cast] theorem cast_min [linear_ordered_comm_ring α] {a b : ℤ} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min]
 
-@[simp, norm_cast] theorem cast_max [decidable_linear_ordered_comm_ring α] {a b : ℤ} :
+@[simp, norm_cast] theorem cast_max [linear_ordered_comm_ring α] {a b : ℤ} :
   (↑(max a b) : α) = max a b :=
 by by_cases b ≤ a; simp [h, max]
 
-@[simp, norm_cast] theorem cast_abs [decidable_linear_ordered_comm_ring α] {q : ℤ} :
+@[simp, norm_cast] theorem cast_abs [linear_ordered_comm_ring α] {q : ℤ} :
   ((abs q : ℤ) : α) = abs q :=
 by simp [abs]
 

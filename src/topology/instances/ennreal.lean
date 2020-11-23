@@ -423,7 +423,7 @@ protected lemma tendsto_coe_sub : ∀{b:ennreal}, tendsto (λb:ennreal, ↑r - b
 begin
   refine (forall_ennreal.2 $ and.intro (assume a, _) _),
   { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, coe_sub.symm],
-    exact nnreal.tendsto.sub tendsto_const_nhds tendsto_id },
+    exact tendsto_const_nhds.sub tendsto_id },
   simp,
   exact (tendsto.congr' (mem_sets_of_superset (lt_mem_nhds $ @coe_lt_top r) $
     by simp [le_of_lt] {contextual := tt})) tendsto_const_nhds
@@ -586,13 +586,13 @@ protected lemma tsum_apply {ι α : Type*} {f : ι → α → ennreal} {x : α} 
   (∑' i, f i) x = ∑' i, f i x :=
 tsum_apply $ pi.summable.mpr $ λ _, ennreal.summable
 
-lemma tsum_sub {f : ℕ → ennreal} {g : ℕ → ennreal} (h₁ : (∑' i, g i) < ∞) (h₂ : g ≤ f) : 
+lemma tsum_sub {f : ℕ → ennreal} {g : ℕ → ennreal} (h₁ : (∑' i, g i) < ∞) (h₂ : g ≤ f) :
   (∑' i, (f i - g i)) = (∑' i, f i) - (∑' i, g i) :=
 begin
   have h₃:(∑' i, (f i - g i)) = (∑' i, (f i - g i) + (g i))-(∑' i, g i),
-  { rw [ennreal.tsum_add, add_sub_self h₁]},   
+  { rw [ennreal.tsum_add, add_sub_self h₁]},
   have h₄:(λ i, (f i - g i) + (g i)) = f,
-  { ext n, rw ennreal.sub_add_cancel_of_le (h₂ n)}, 
+  { ext n, rw ennreal.sub_add_cancel_of_le (h₂ n)},
   rw h₄ at h₃, apply h₃,
 end
 
@@ -859,7 +859,7 @@ end
 
 theorem continuous.edist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, edist (f b) (g b)) :=
-continuous_edist.comp (hf.prod_mk hg)
+continuous_edist.comp (hf.prod_mk hg : _)
 
 theorem filter.tendsto.edist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :

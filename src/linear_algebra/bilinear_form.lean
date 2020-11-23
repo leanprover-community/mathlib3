@@ -16,8 +16,10 @@ such as orthogonality are also introduced, as well as reflexivive,
 symmetric and alternating bilinear forms. Adjoints of linear maps
 with respect to a bilinear form are also introduced.
 
-A bilinear form on an R-module M, is a function from M x M to R,
-that is linear in both arguments
+A bilinear form on an R-(semi)module M, is a function from M x M to R,
+that is linear in both arguments. Comments will typically abbreviate
+"(semi)module" as just "module", but the definitions should be as general as
+possible.
 
 ## Notations
 
@@ -42,7 +44,7 @@ open_locale big_operators
 
 universes u v w
 
-/-- A bilinear form over a module  -/
+/-- `bilin_form R M` is the type of `R`-bilinear functions `M → M → R`. -/
 structure bilin_form (R : Type u) (M : Type v) [semiring R] [add_comm_monoid M] [semimodule R M] :=
 (bilin : M → M → R)
 (bilin_add_left : ∀ (x y z : M), bilin (x + y) z = bilin x z + bilin y z)

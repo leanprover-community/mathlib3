@@ -199,8 +199,7 @@ begin
     apply dvd_mul_of_dvd_left (dvd_refl _) _ },
   { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
 end
-#where
-#check @unique_factorization_monoid
+
 omit hR
 
 lemma of_ufd_of_unique_irreducible [unique_factorization_monoid R]

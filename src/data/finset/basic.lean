@@ -394,6 +394,12 @@ protected theorem induction_on {α : Type*} {p : finset α → Prop} [decidable_
   (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
 
+/--
+To prove a proposition about `S : finset α`,
+it suffices to prove it for the empty `finset`,
+and to show that if it holds for some `finset α ⊆ S`,
+then it holds for the `finset` obtained by inserting a new element of `S`.
+-/
 @[elab_as_eliminator]
 theorem induction_on' {α : Type*} {p : finset α → Prop} [decidable_eq α]
   (S : finset α) (h₁ : p ∅) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → a ∉ s → p s → p (insert a s)) : p S :=

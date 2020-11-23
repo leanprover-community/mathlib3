@@ -309,7 +309,7 @@ lemma function.update_apply {β : Type*} (f : α → β) (a' : α) (b : β) (a :
 begin
   dunfold function.update,
   congr,
-  ext,
+  funext,
   rw eq_rec_constant,
 end
 

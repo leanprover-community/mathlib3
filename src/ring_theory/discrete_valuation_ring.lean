@@ -433,8 +433,6 @@ begin
   simp only [hϖ, add_val_def', ← pow_add, ← units.coe_mul],
 end
 
---example : @pow_ne_zero = @pow_ne_zero' := rfl
-
 lemma add_val_pow (a : R) (n : ℕ) : add_val R (a ^ n) = n * add_val R a :=
 begin
   by_cases ha : a = 0,

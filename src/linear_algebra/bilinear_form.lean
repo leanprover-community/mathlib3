@@ -900,6 +900,7 @@ section matrix_adjoints
 open_locale matrix
 
 variables {n : Type w} [fintype n]
+variables {b : n → M₃} (hb : is_basis R₃ b)
 variables (J J₃ A A' : matrix n n R₃)
 
 /-- The condition for the square matrices `A`, `A'` to be an adjoint pair with respect to the square
@@ -914,19 +915,39 @@ def matrix.is_self_adjoint := matrix.is_adjoint_pair J J A A
 `J`. -/
 def matrix.is_skew_adjoint := matrix.is_adjoint_pair J J A (-A)
 
-@[simp] lemma matrix_is_adjoint_pair_bilin_form [decidable_eq n] :
-  bilin_form.is_adjoint_pair J.to_bilin_form J₃.to_bilin_form A.to_lin' A'.to_lin' ↔
+@[simp] lemma is_adjoint_pair_to_bilin' [decidable_eq n] :
+  bilin_form.is_adjoint_pair (matrix.to_bilin' J) (matrix.to_bilin' J₃)
+      (matrix.to_lin' A) (matrix.to_lin' A') ↔
     matrix.is_adjoint_pair J J₃ A A' :=
 begin
   rw bilin_form.is_adjoint_pair_iff_comp_left_eq_comp_right,
-  have h : ∀ (B B' : bilin_form R₃ (n → R₃)), B = B' ↔ B.to_matrix = B'.to_matrix,
+  have h : ∀ (B B' : bilin_form R₃ (n → R₃)), B = B' ↔
+    (bilin_form.to_matrix' B) = (bilin_form.to_matrix' B'),
   { intros B B',
     split; intros h,
     { rw h },
-    { rw [←to_matrix_to_bilin_form B, h, to_matrix_to_bilin_form B'] } },
-  rw [h, J₃.to_bilin_form.to_matrix_comp_left A.to_lin',
-      J.to_bilin_form.to_matrix_comp_right A'.to_lin', linear_map.to_matrix'_to_lin',
-      linear_map.to_matrix'_to_lin', to_bilin_form_to_matrix, to_bilin_form_to_matrix],
+    { exact bilin_form.to_matrix'.injective h } },
+  rw [h, bilin_form.to_matrix'_comp_left, bilin_form.to_matrix'_comp_right,
+      linear_map.to_matrix'_to_lin', linear_map.to_matrix'_to_lin',
+      bilin_form.to_matrix'_to_bilin', bilin_form.to_matrix'_to_bilin'],
+  refl,
+end
+
+@[simp] lemma is_adjoint_pair_to_bilin [decidable_eq n] :
+  bilin_form.is_adjoint_pair (matrix.to_bilin hb J) (matrix.to_bilin hb J₃)
+      (matrix.to_lin hb hb A) (matrix.to_lin hb hb A') ↔
+    matrix.is_adjoint_pair J J₃ A A' :=
+begin
+  rw bilin_form.is_adjoint_pair_iff_comp_left_eq_comp_right,
+  have h : ∀ (B B' : bilin_form R₃ M₃), B = B' ↔
+    (bilin_form.to_matrix hb B) = (bilin_form.to_matrix hb B'),
+  { intros B B',
+    split; intros h,
+    { rw h },
+    { exact (bilin_form.to_matrix hb).injective h } },
+  rw [h, bilin_form.to_matrix_comp_left, bilin_form.to_matrix_comp_right,
+      linear_map.to_matrix_to_lin, linear_map.to_matrix_to_lin,
+      bilin_form.to_matrix_to_bilin, bilin_form.to_matrix_to_bilin],
   refl,
 end
 
@@ -952,10 +973,10 @@ end
 variables [decidable_eq n]
 
 /-- The submodule of pair-self-adjoint matrices with respect to bilinear forms corresponding to
-given matrices `J`, `J₃`. -/
+given matrices `J`, `J₂`. -/
 def pair_self_adjoint_matrices_submodule : submodule R₃ (matrix n n R₃) :=
-(bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₃.to_bilin_form).map
-  (linear_map.to_matrix' : ((n → R₃) →ₗ[R₃] n → R₃) ≃ₗ[R₃] matrix n n R₃)
+(bilin_form.is_pair_self_adjoint_submodule (matrix.to_bilin' J) (matrix.to_bilin' J₃)).map
+  (linear_map.to_matrix' : ((n → R₃) →ₗ[R₃] (n → R₃)) ≃ₗ[R₃] matrix n n R₃)
 
 @[simp] lemma mem_pair_self_adjoint_matrices_submodule :
   A ∈ (pair_self_adjoint_matrices_submodule J J₃) ↔ matrix.is_adjoint_pair J J₃ A A :=
@@ -965,9 +986,10 @@ begin
   split,
   { rintros ⟨f, hf, hA⟩,
     have hf' : f = A.to_lin' := by rw [←hA, matrix.to_lin'_to_matrix'], rw hf' at hf,
-    rw ←matrix_is_adjoint_pair_bilin_form, exact hf, },
+    rw ← is_adjoint_pair_to_bilin',
+    exact hf, },
   { intros h, refine ⟨A.to_lin', _, linear_map.to_matrix'_to_lin' _⟩,
-    exact (matrix_is_adjoint_pair_bilin_form _ _ _ _).mpr h, },
+    exact (is_adjoint_pair_to_bilin' _ _ _ _).mpr h, },
 end
 
 /-- The submodule of self-adjoint matrices with respect to the bilinear form corresponding to

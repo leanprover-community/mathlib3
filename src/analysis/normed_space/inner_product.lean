@@ -20,7 +20,6 @@ dot product in `ℝ^n` and provides the means of defining the length of a vector
 two vectors. In particular vectors `x` and `y` are orthogonal if their inner product equals zero.
 We define both the real and complex cases at the same time using the `is_R_or_C` typeclass.
 
-
 ## Main results
 
 - We define the class `inner_product_space 𝕜 E` extending `normed_space 𝕜 E` with a number of basic
@@ -1089,8 +1088,8 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
   add_left := λ x y z, by simp [inner, add_mul],
   smul_left := λ x y z, by simp [inner, mul_assoc] }
 
-/-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional space
-use `euclidean_space 𝕜 (fin n)`.  -/
+/-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional
+space use `euclidean_space 𝕜 (fin n)`. -/
 @[reducible, nolint unused_arguments]
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
@@ -1139,68 +1138,70 @@ end is_R_or_C_to_real
 
 section deriv
 
-include 𝕜 E
+variables [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
 
-lemma is_bounded_bilinear_map_inner :
-  by letI := inner_product_space.is_R_or_C_to_real 𝕜 E;
-    exact is_bounded_bilinear_map ℝ  (λ p : E × E, ⟪p.1, p.2⟫) :=
+lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ  (λ p : E × E, ⟪p.1, p.2⟫) :=
 { add_left := λ _ _ _, inner_add_left,
-  smul_left := λ _ _ _, inner_smul_left,
+  smul_left := λ r x y,
+    by simp only [← algebra_map_smul 𝕜 r x, algebra_map_eq_of_real, inner_smul_real_left],
   add_right := λ _ _ _, inner_add_right,
-  smul_right := λ _ _ _, inner_smul_right,
-  bound := ⟨1, zero_lt_one, λ x y, by { rw one_mul, exact abs_real_inner_le_norm x y, }⟩ }
+  smul_right := λ r x y,
+    by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
+  bound := ⟨1, zero_lt_one, λ x y,
+    by { rw [one_mul, is_R_or_C.norm_eq_abs], exact abs_inner_le_norm x y, }⟩ }
 
-lemma times_cont_diff_inner {n} : times_cont_diff ℝ n (λ p : F × F, ⟪p.1, p.2⟫_ℝ) :=
+lemma times_cont_diff_inner {n} : times_cont_diff ℝ n (λ p : E × E, ⟪p.1, p.2⟫) :=
 is_bounded_bilinear_map_inner.times_cont_diff
 
-lemma times_cont_diff_at_inner {p : F × F} {n} :
-  times_cont_diff_at ℝ n (λ p : F × F, ⟪p.1, p.2⟫_ℝ) p :=
+lemma times_cont_diff_at_inner {p : E × E} {n} :
+  times_cont_diff_at ℝ n (λ p : E × E, ⟪p.1, p.2⟫) p :=
 times_cont_diff_inner.times_cont_diff_at
 
-lemma differentiable_inner : differentiable ℝ (λ p : F × F, ⟪p.1, p.2⟫_ℝ) :=
+lemma differentiable_inner : differentiable ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
 times_cont_diff_inner.differentiable le_rfl
 
--- TODO: generalize to `is_R_or_C`
-lemma continuous_inner : continuous (λ p : F × F, ⟪p.1, p.2⟫_ℝ) :=
+lemma continuous_inner : continuous (λ p : E × E, ⟪p.1, p.2⟫) :=
 differentiable_inner.continuous
 
 variables {G : Type*} [normed_group G] [normed_space ℝ G]
-  {f g : G → F} {f' g' : G →L[ℝ] F} {s : set G} {x : G} {n : with_top ℕ}
+  {f g : G → E} {f' g' : G →L[ℝ] E} {s : set G} {x : G} {n : with_top ℕ}
+
+include 𝕜
 
 lemma times_cont_diff_within_at.inner (hf : times_cont_diff_within_at ℝ n f s x)
   (hg : times_cont_diff_within_at ℝ n g s x) :
-  times_cont_diff_within_at ℝ n (λ x, ⟪f x, g x⟫_ℝ) s x :=
+  times_cont_diff_within_at ℝ n (λ x, ⟪f x, g x⟫) s x :=
 times_cont_diff_at_inner.comp_times_cont_diff_within_at x (hf.prod hg)
 
 lemma times_cont_diff_at.inner (hf : times_cont_diff_at ℝ n f x)
   (hg : times_cont_diff_at ℝ n g x) :
-  times_cont_diff_at ℝ n (λ x, ⟪f x, g x⟫_ℝ) x :=
+  times_cont_diff_at ℝ n (λ x, ⟪f x, g x⟫) x :=
 hf.inner hg
 
 lemma times_cont_diff_on.inner (hf : times_cont_diff_on ℝ n f s) (hg : times_cont_diff_on ℝ n g s) :
-  times_cont_diff_on ℝ n (λ x, ⟪f x, g x⟫_ℝ) s :=
+  times_cont_diff_on ℝ n (λ x, ⟪f x, g x⟫) s :=
 λ x hx, (hf x hx).inner (hg x hx)
 
 lemma times_cont_diff.inner (hf : times_cont_diff ℝ n f) (hg : times_cont_diff ℝ n g) :
-  times_cont_diff ℝ n (λ x, ⟪f x, g x⟫_ℝ) :=
+  times_cont_diff ℝ n (λ x, ⟪f x, g x⟫) :=
 times_cont_diff_inner.comp (hf.prod hg)
 
 lemma differentiable_within_at.inner (hf : differentiable_within_at ℝ f s x)
   (hg : differentiable_within_at ℝ g s x) :
-  differentiable_within_at ℝ (λ x, ⟪f x, g x⟫_ℝ) s x :=
+  differentiable_within_at ℝ (λ x, ⟪f x, g x⟫) s x :=
 ((differentiable_inner _).has_fderiv_at.comp_has_fderiv_within_at x
   (hf.prod hg).has_fderiv_within_at).differentiable_within_at
 
 lemma differentiable_at.inner (hf : differentiable_at ℝ f x) (hg : differentiable_at ℝ g x) :
-  differentiable_at ℝ (λ x, ⟪f x, g x⟫_ℝ) x :=
+  differentiable_at ℝ (λ x, ⟪f x, g x⟫) x :=
 (differentiable_inner _).comp x (hf.prod hg)
 
 lemma differentiable_on.inner (hf : differentiable_on ℝ f s) (hg : differentiable_on ℝ g s) :
-  differentiable_on ℝ (λ x, ⟪f x, g x⟫_ℝ) s :=
+  differentiable_on ℝ (λ x, ⟪f x, g x⟫) s :=
 λ x hx, (hf x hx).inner (hg x hx)
 
 lemma differentiable.inner (hf : differentiable ℝ f) (hg : differentiable ℝ g) :
-  differentiable ℝ (λ x, ⟪f x, g x⟫_ℝ) :=
+  differentiable ℝ (λ x, ⟪f x, g x⟫) :=
 λ x, (hf x).inner (hg x)
 
 end deriv

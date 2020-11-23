@@ -75,6 +75,8 @@ See Note [coercion into rings], or `data/nat/cast.lean` for more details. -/
 lemma of_real_alg (x : ℝ) : (x : K) = x • (1 : K) :=
 algebra.algebra_map_eq_smul_one x
 
+lemma algebra_map_eq_of_real : ⇑(algebra_map ℝ K) = coe := rfl
+
 @[simp] lemma re_add_im (z : K) : ((re z) : K) + (im z) * I = z := is_R_or_C.re_add_im_ax z
 @[simp, norm_cast] lemma of_real_re : ∀ r : ℝ, re (r : K) = r := is_R_or_C.of_real_re_ax
 @[simp, norm_cast] lemma of_real_im : ∀ r : ℝ, im (r : K) = 0 := is_R_or_C.of_real_im_ax

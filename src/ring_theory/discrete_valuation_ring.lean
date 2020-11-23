@@ -466,7 +466,7 @@ end
 lemma add_val_add {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) (hab : a + b ≠ 0) :
   min (add_val R a) (add_val R b) ≤ add_val R (a + b) :=
 begin
-  -- wlog is sloooow!
+  -- wlog is slow but I'm grateful it works.
   wlog h : add_val R a ≤ add_val R b := le_total (add_val R a) (add_val R b) using [a b, b a],
   rw [min_eq_left h, add_val_le_iff_dvd ha hab],
   rw add_val_le_iff_dvd ha hb at h,

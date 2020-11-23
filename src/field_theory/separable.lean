@@ -8,6 +8,7 @@ import algebra.polynomial.big_operators
 import field_theory.minimal_polynomial
 import field_theory.splitting_field
 import field_theory.tower
+import algebra.squarefree
 
 /-!
 
@@ -447,6 +448,15 @@ begin
   rw ← pow_two,
   apply multiplicity.pow_dvd_of_le_multiplicity,
   exact_mod_cast (enat.add_one_le_of_lt hq)
+end
+
+lemma separable.squarefree {p : polynomial F}  (hsep : separable p) : squarefree p :=
+begin
+  rw multiplicity.squarefree_iff_multiplicity_le_one p,
+  intro f,
+  by_cases hunit : is_unit f,
+  { exact or.inr hunit },
+  exact or.inl (multiplicity_le_one_of_separable hunit hsep)
 end
 
 lemma root_multiplicity_le_one_of_separable {p : polynomial F} (hp : p ≠ 0)

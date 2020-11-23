@@ -400,14 +400,14 @@ lemma add_val_def (r : R) (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ
 begin
   subst hr,
   let ϖ₀ := classical.some (exists_irreducible R),
-  have ϖ₀irred : irreducible ϖ₀ := classical.some_spec (exists_irreducible R),
+  have hϖ₀ : irreducible ϖ₀ := classical.some_spec (exists_irreducible R),
   have h0 : (u : R) * ϖ ^ n ≠ 0,
   { simp only [units.mul_right_eq_zero, ne.def, pow_ne_zero n hϖ.ne_zero, not_false_iff] },
   unfold add_val,
   rw dif_neg h0,
   obtain ⟨v, hv⟩ := (add_val_spec h0).symm,
   rw mul_comm at hv,
-  refine unit_mul_pow_congr_pow ϖ₀irred hϖ _ u _ _ hv,
+  refine unit_mul_pow_congr_pow hϖ₀ hϖ _ u _ _ hv,
 end
 
 lemma add_val_def' (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) :

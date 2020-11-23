@@ -46,6 +46,7 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 instance is_galois.to_is_separable [h : is_galois F E] : is_separable F E := h.1
 
 instance is_galois.to_normal [h : is_galois F E] : normal F E := h.2
+
 variables {F} {E}
 
 lemma is_galois.is_integral (h : is_galois F E) (x : E) : is_integral F x :=
@@ -93,7 +94,7 @@ begin
   have iso : F⟮α⟯ ≃ₐ[F] E,
   { rw hα,
     exact intermediate_field.top_equiv },
-  have H := h.is_integral α,
+  have H : is_integral F α := h.is_integral α,
   have h_sep : (minimal_polynomial H).separable := h.separable α,
   have h_splits : (minimal_polynomial H).splits (algebra_map F E) := h.normal α,
   replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minimal_polynomial H),
@@ -101,15 +102,14 @@ begin
     ext1,
     exact (iso.symm.commutes x).symm },
   rw ← linear_equiv.findim_eq iso.to_linear_equiv,
-  rw ← intermediate_field.adjoin_simple.card_aut_eq_findim F E H h_sep h_splits,
-  apply fintype.card_congr,
-  apply equiv.mk (λ ϕ, iso.trans (trans ϕ iso.symm)) (λ ϕ, iso.symm.trans (trans ϕ iso)),
-  { intro ϕ, ext1, simp only [trans_apply, apply_symm_apply] },
-  { intro ϕ, ext1,
-    suffices : (0 : ℕ) = (0 : ℕ),
-    simp only [trans_apply, symm_apply_apply],
-    clear a ϕ h_splits h_sep H iso hα α h _inst_4 _inst_3 _inst_2 E _inst_1 F,
-    refl,/- This refl is painfully slow. In general, whatever the last line is will be slow! -/ },
+  have card_eq_card : fintype.card (E ≃ₐ[F] E) = fintype.card (F⟮α⟯ ≃ₐ[F] F⟮α⟯),
+  { apply fintype.card_congr,
+    apply equiv.mk (λ ϕ, iso.trans (trans ϕ iso.symm)) (λ ϕ, iso.symm.trans (trans ϕ iso)),
+    { intro ϕ, ext1, simp only [trans_apply, apply_symm_apply] },
+    { intro ϕ, ext1, simp only [trans_apply, symm_apply_apply] } },
+  rw card_eq_card,
+  have key := intermediate_field.adjoin_simple.card_aut_eq_findim F E H h_sep h_splits,
+  --exact key,
 end
 
 end
@@ -229,7 +229,7 @@ lemma is_separable_splitting_field_of_is_galois [finite_dimensional F E] [h : is
   ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
 begin
   cases field.exists_primitive_element h.1 with α h1,
-  have h2 := h.is_integral α,
+  have h2 : is_integral F α := h.is_integral α,
   have h3 : (minimal_polynomial h2).separable := h.separable α,
   have h4 : (minimal_polynomial h2).splits (algebra_map F E) := h.normal α,
   use [minimal_polynomial h2, h3, h4],

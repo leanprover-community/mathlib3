@@ -126,6 +126,9 @@ theorem not_prime_mul {a b : ℕ} (a1 : 1 < a) (b1 : 1 < b) : ¬ prime (a * b) :
 λ h, ne_of_lt (nat.mul_lt_mul_of_pos_left b1 (lt_of_succ_lt a1)) $
 by simpa using (dvd_prime_two_le h a1).1 (dvd_mul_right _ _)
 
+lemma not_prime_mul' {a b n : ℕ} (h : a * b = n) (h₁ : 1 < a) (h₂ : 1 < b) : ¬ prime n :=
+by { rw ← h, exact not_prime_mul h₁ h₂ }
+
 section min_fac
   private lemma min_fac_lemma (n k : ℕ) (h : ¬ n < k * k) :
     sqrt n - k < sqrt n + 2 - k :=
@@ -248,7 +251,8 @@ section min_fac
   | ⟨1, h1⟩     :=
     begin
       rw mul_one at h1,
-      rw [prime_def_min_fac, not_and_distrib, ← h1, eq_self_iff_true, not_true, or_false, not_le] at np,
+      rw [prime_def_min_fac, not_and_distrib, ← h1, eq_self_iff_true, not_true, or_false,
+        not_le] at np,
       rw [le_antisymm (le_of_lt_succ np) (succ_le_of_lt pos), min_fac_one, nat.div_one]
     end
   | ⟨(x+2), hx⟩ :=
@@ -556,7 +560,8 @@ lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ �
     by rwa [← prod_cons, ← prod_cons, ← hb.prod_eq],
   perm.trans ((perm_of_prod_eq_prod hl hl₁' hl₂').cons _) hb.symm
 
-lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) : l ~ factors n :=
+lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) :
+  l ~ factors n :=
 have hn : 0 < n := nat.pos_of_ne_zero $ λ h, begin
   rw h at *, clear h,
   induction l with a l hi,
@@ -606,10 +611,6 @@ end nat
 namespace tactic
 namespace norm_num
 open norm_num
-
-lemma not_prime_helper (a b n : ℕ)
-  (h : a * b = n) (h₁ : 1 < a) (h₂ : 1 < b) : ¬ nat.prime n :=
-by rw ← h; exact nat.not_prime_mul h₁ h₂
 
 lemma is_prime_helper (n : ℕ)
   (h₁ : 1 < n) (h₂ : nat.min_fac n = n) : nat.prime n :=
@@ -698,7 +699,7 @@ do let e₁ := reflect d₁,
   (c, e', p) ← prove_mul_nat c e₁ e₂,
   guard (e' =ₐ e),
   (c, p₂) ← prove_lt_nat c `(1) e₂,
-  return $ `(not_prime_helper).mk_app [e₁, e₂, e, p, p₁, p₂]
+  return $ `(@nat.not_prime_mul').mk_app [e₁, e₂, e, p, p₁, p₂]
 
 /-- Given `a`,`a1 := bit1 a`, `n1` the value of `a1`, `b` and `p : min_fac_helper a b`,
   returns `(c, ⊢ min_fac a1 = c)`. -/

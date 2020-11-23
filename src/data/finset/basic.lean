@@ -432,6 +432,11 @@ mem_union.2 $ or.inl h
 theorem mem_union_right {a : α} {s₂ : finset α} (s₁ : finset α) (h : a ∈ s₂) : a ∈ s₁ ∪ s₂ :=
 mem_union.2 $ or.inr h
 
+theorem forall_mem_union {s₁ s₂ : finset α} {p : α → Prop} :
+  (∀ ab ∈ (s₁ ∪ s₂), p ab) ↔ (∀ a ∈ s₁, p a) ∧ (∀ b ∈ s₂, p b) :=
+⟨λ h, ⟨λ a, h a ∘ mem_union_left _, λ b, h b ∘ mem_union_right _⟩,
+ λ h ab hab, (mem_union.mp hab).elim (h.1 _) (h.2 _)⟩
+
 theorem not_mem_union {a : α} {s₁ s₂ : finset α} : a ∉ s₁ ∪ s₂ ↔ a ∉ s₁ ∧ a ∉ s₂ :=
 by rw [mem_union, not_or_distrib]
 
@@ -2349,8 +2354,12 @@ congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
 end list
 
 namespace multiset
+variable [decidable_eq α]
 
-lemma disjoint_to_finset [decidable_eq α] (m1 m2 : multiset α) :
+theorem to_finset_card_of_nodup {l : multiset α} (h : l.nodup) : l.to_finset.card = l.card :=
+congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
+
+lemma disjoint_to_finset (m1 m2 : multiset α) :
   _root_.disjoint m1.to_finset m2.to_finset ↔ m1.disjoint m2 :=
 begin
   rw finset.disjoint_iff_ne,

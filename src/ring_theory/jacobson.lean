@@ -350,7 +350,7 @@ begin
       ((ϕ'.to_map.comp (quotient.mk P)) '' (insert X {p | p.degree ≤ 0})) _ _ _,
     { rintros x ⟨p, hp, rfl⟩,
       refine hp.rec_on (λ hy, _) (λ hy, _),
-      { refine hy.symm ▸ (is_integral_localization_at_leading_coeff' ((quotient.mk P) X)
+      { refine hy.symm ▸ (is_integral_elem_localization_at_leading_coeff' ((quotient.mk P) X)
           (pX.map (quotient.mk P')) φ _ M ⟨1, pow_one _⟩ _ _),
         rwa [eval₂_map, hφ', ← hom_eval₂, quotient.eq_zero_iff_mem, eval₂_C_X] },
       { rw [set.mem_set_of_eq, degree_le_zero_iff] at hy,

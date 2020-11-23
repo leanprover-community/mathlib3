@@ -47,7 +47,8 @@ group.
 * `rack.opp` gives the rack with the action replaced by its inverse.
 
 ## Main statements
-* `rack.envel_group` is universal (`to_envel_group.univ` and `to_envel_group.univ_uniq`)
+* `rack.envel_group` is left adjoint to `quandle.conj` (`to_envel_group.map`).
+  The universality statements are `to_envel_group.univ` and `to_envel_group.univ_uniq`.
 
 ## Notation
 
@@ -584,19 +585,32 @@ end to_envel_group.map_aux
 
 /--
 Given a map from a rack to a group, lift it to being a map from the enveloping group.
+More precisely, the `envel_group` functor is left adjoint to `quandle.conj`.
 -/
-def to_envel_group.map {R : Type*} [rack R] {G : Type*} [group G]
-  (f : R →◃ quandle.conj G) : envel_group R →* G :=
-{ to_fun := λ x, quotient.lift_on x (to_envel_group.map_aux f)
-                   (λ a b ⟨hab⟩, to_envel_group.map_aux.well_def f hab),
-  map_one' := begin
-    change quotient.lift_on ⟦unit⟧ (to_envel_group.map_aux f) _ = 1,
-    simp [to_envel_group.map_aux],
-  end,
-  map_mul' := λ x y, quotient.induction_on₂ x y (λ x y, begin
-    change quotient.lift_on ⟦mul x y⟧ (to_envel_group.map_aux f) _ = _,
-    simp [to_envel_group.map_aux],
-  end) }
+def to_envel_group.map {R : Type*} [rack R] {G : Type*} [group G] :
+  (R →◃ quandle.conj G) ≃ (envel_group R →* G) :=
+{ to_fun := λ f,
+  { to_fun := λ x, quotient.lift_on x (to_envel_group.map_aux f)
+                    (λ a b ⟨hab⟩, to_envel_group.map_aux.well_def f hab),
+    map_one' := begin
+      change quotient.lift_on ⟦unit⟧ (to_envel_group.map_aux f) _ = 1,
+      simp [to_envel_group.map_aux],
+    end,
+    map_mul' := λ x y, quotient.induction_on₂ x y (λ x y, begin
+      change quotient.lift_on ⟦mul x y⟧ (to_envel_group.map_aux f) _ = _,
+      simp [to_envel_group.map_aux],
+    end) },
+  inv_fun := λ F, (quandle.conj.map F).comp (to_envel_group R),
+  left_inv := λ f, by { ext, refl },
+  right_inv := λ F, monoid_hom.ext $ λ x, quotient.induction_on x $ λ x, begin
+    induction x,
+    { exact F.map_one.symm, },
+    { refl, },
+    { have hm : ⟦x_a.mul x_b⟧ = @has_mul.mul (envel_group R) _ ⟦x_a⟧ ⟦x_b⟧ := rfl,
+      rw [hm, F.map_mul, monoid_hom.map_mul, ←x_ih_a, ←x_ih_b] },
+    { have hm : ⟦x_a.inv⟧ = @has_inv.inv (envel_group R) _ ⟦x_a⟧ := rfl,
+      rw [hm, F.map_inv, monoid_hom.map_inv, x_ih], }
+  end, }
 
 /--
 Given a homomorphism from a rack to a group, it factors through the enveloping group.
@@ -604,7 +618,7 @@ Given a homomorphism from a rack to a group, it factors through the enveloping g
 lemma to_envel_group.univ (R : Type*) [rack R] (G : Type*) [group G]
   (f : R →◃ quandle.conj G) :
   (quandle.conj.map (to_envel_group.map f)).comp (to_envel_group R) = f :=
-by { ext, refl }
+to_envel_group.map.symm_apply_apply f
 
 /--
 The homomorphism `to_envel_group.map f` is the unique map that fits into the commutative
@@ -614,16 +628,7 @@ lemma to_envel_group.univ_uniq (R : Type*) [rack R] (G : Type*) [group G]
   (f : R →◃ quandle.conj G)
   (g : envel_group R →* G) (h : f = (quandle.conj.map g).comp (to_envel_group R)) :
   g = to_envel_group.map f :=
-begin
-  subst f, ext, refine quotient.ind (λ x, _) x,
-  induction x,
-  convert g.map_one, refl,
-  dunfold to_envel_group.map, simp [to_envel_group.map_aux, to_envel_group],
-  have hm : ⟦x_a.mul x_b⟧ = @has_mul.mul (envel_group R) _ ⟦x_a⟧ ⟦x_b⟧ := rfl,
-  rw hm, simpa [x_ih_a, x_ih_b],
-  have hm : ⟦x_a.inv⟧ = @has_inv.inv (envel_group R) _ ⟦x_a⟧ := rfl,
-  rw hm, simp [x_ih],
-end
+h.symm ▸ (to_envel_group.map.apply_symm_apply g).symm
 
 /--
 The induced group homomorphism from the enveloping group into bijections of the rack,

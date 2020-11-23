@@ -192,7 +192,7 @@ continuous_iff_continuous_at.mpr $ assume ⟨a, l⟩,
 lemma continuous_insert_nth {n : ℕ} {i : fin (n+1)}
   {f : β → α} {g : β → vector α n} (hf : continuous f) (hg : continuous g) :
   continuous (λb, insert_nth (f b) i (g b)) :=
-continuous_insert_nth'.comp (continuous.prod_mk hf hg)
+continuous_insert_nth'.comp (hf.prod_mk hg : _)
 
 lemma continuous_at_remove_nth {n : ℕ} {i : fin (n+1)} :
   ∀{l:vector α (n+1)}, continuous_at (remove_nth i) l

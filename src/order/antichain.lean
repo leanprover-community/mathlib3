@@ -17,8 +17,8 @@ We define antichains.
 
 open partial_order
 
-universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
+universe u
+variable {α : Type u}
 
 section
 variables [partial_order α]

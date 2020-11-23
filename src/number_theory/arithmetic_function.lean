@@ -317,12 +317,10 @@ begin
       if_false, zeta_apply, zero_hom.coe_mk, nat_coe_apply, cast_one] }
 end
 
-@[simp]
 theorem zeta_mul_apply {f : arithmetic_function ℕ} {x : ℕ} :
   (ζ * f) x = ∑ i in divisors x, f i :=
 by rw [← nat_coe_nat ζ, coe_zeta_mul_apply]
 
-@[simp]
 theorem mul_zeta_apply {f : arithmetic_function ℕ} {x : ℕ} :
   (f * ζ) x = ∑ i in divisors x, f i :=
 by rw [← nat_coe_nat ζ, coe_mul_zeta_apply]
@@ -732,7 +730,7 @@ lemma coe_zeta_unit :
 lemma inv_zeta_unit :
   ((zeta_unit⁻¹ : units (arithmetic_function R)) : arithmetic_function R) = μ := rfl
 
-/-- This theorem is also known as Möbius inversion. -/
+/-- One version of Möbius inversion. -/
 theorem sum_eq_iff_sum_moebius_eq {f g : ℕ → R} (hf : f 0 = 0) (hg : g 0 = 0) :
   (∀ (n : ℕ), ∑ i in (n.divisors), f i = g n) ↔
     ∀ (n : ℕ), ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, (μ x.fst : R) * g x.snd = f n :=

@@ -170,10 +170,10 @@ begin
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
 end
 
-/-- Implementation detail: an integral domain in which there is an irreducible element `p`
+/-- An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p` is a unique factorization domain.
 See `discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization`. -/
-theorem ufd : unique_factorization_monoid R :=
+theorem to_unique_factorization_monoid : unique_factorization_monoid R :=
 let p := classical.some hR in
 let spec := classical.some_spec hR in
 unique_factorization_monoid.of_exists_prime_factors $ λ x hx,
@@ -199,7 +199,8 @@ begin
     apply dvd_mul_of_dvd_left (dvd_refl _) _ },
   { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
 end
-
+#where
+#check @unique_factorization_monoid
 omit hR
 
 lemma of_ufd_of_unique_irreducible [unique_factorization_monoid R]
@@ -295,7 +296,7 @@ lemma of_has_unit_mul_pow_irreducible_factorization {R : Type u} [integral_domai
   (hR : has_unit_mul_pow_irreducible_factorization R) :
   discrete_valuation_ring R :=
 begin
-  letI : unique_factorization_monoid R := hR.ufd,
+  letI : unique_factorization_monoid R := hR.to_unique_factorization_monoid,
   apply of_ufd_of_unique_irreducible _ hR.unique_irreducible,
   unfreezingI { obtain ⟨p, hp, H⟩ := hR, exact ⟨p, hp⟩, },
 end

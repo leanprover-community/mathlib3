@@ -264,6 +264,33 @@ instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
     (λ h₁, separated_by_f prod.fst inf_le_left h₁)
     (λ h₂, separated_by_f prod.snd inf_le_right h₂)⟩
 
+instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
+  [t₂ : topological_space β] [t2_space β] : t2_space (α ⊕ β) :=
+begin
+  constructor,
+  rintros (x|x) (y|y) h,
+  { replace h : x ≠ y := λ c, (c.subst h) rfl,
+    rcases t2_separation h with ⟨U,V,hU,hV,hx,hy,disj⟩,
+    refine ⟨sum.inl '' U, sum.inl '' V, _, _, ⟨x,hx,rfl⟩, ⟨y,hy,rfl⟩, _⟩,
+    any_goals {rw ←open_embedding.open_iff_image_open, assumption},
+    any_goals {exact open_embedding_inl},
+    rw [set.image_inter sum.injective_inl, disj, image_empty] },
+  { refine ⟨set.range sum.inl, set.range sum.inr, _, _, ⟨x, rfl⟩, ⟨y, rfl⟩, _⟩,
+    exact open_embedding_inl.open_range,
+    exact open_embedding_inr.open_range,
+    tidy },
+  { refine ⟨set.range sum.inr, set.range sum.inl, _, _, ⟨x, rfl⟩, ⟨y, rfl⟩, _⟩,
+    exact open_embedding_inr.open_range,
+    exact open_embedding_inl.open_range,
+    tidy },
+  { replace h : x ≠ y := λ c, (c.subst h) rfl,
+    rcases t2_separation h with ⟨U,V,hU,hV,hx,hy,disj⟩,
+    refine ⟨sum.inr '' U, sum.inr '' V, _, _, ⟨x, hx, rfl⟩, ⟨y, hy, rfl⟩, _⟩,
+    any_goals {rw ←open_embedding.open_iff_image_open, assumption},
+    any_goals {exact open_embedding_inr},
+    rw [set.image_inter sum.injective_inr, disj, image_empty] },
+end
+
 instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_space (β a)] [Πa, t2_space (β a)] :
   t2_space (Πa, β a) :=
 ⟨assume x y h,

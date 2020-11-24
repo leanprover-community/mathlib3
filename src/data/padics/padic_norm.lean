@@ -313,6 +313,28 @@ theorem min_le_padic_val_rat_add {q r : ℚ}
   (λ h, by rw [min_eq_right h, add_comm]; exact le_padic_val_rat_add_of_le _ hr hq
     (by rwa add_comm) h)
 
+open_locale big_operators
+
+/-- A finite sum of rationals with positive p-adic valuation has positive p-adic valuation
+  (if the sum is non-zero). -/
+theorem sum_pos_of_pos {n : ℕ} {F : ℕ → ℚ}
+  (hF : ∀ i, i < n → 0 < padic_val_rat p (F i)) (hn0 : ∑ i in finset.range n, F i ≠ 0) :
+  0 < padic_val_rat p (∑ i in finset.range n, F i) :=
+begin
+  induction n with d hd,
+  { exact false.elim (hn0 rfl) },
+  { rw finset.sum_range_succ at hn0 ⊢,
+    by_cases h : ∑ (x : ℕ) in finset.range d, F x = 0,
+    { rw [h, add_zero],
+      exact hF d (lt_add_one _) },
+    { refine lt_of_lt_of_le _ (min_le_padic_val_rat_add p (λ h1, _) h hn0),
+      { refine lt_min (hF d (lt_add_one _)) (hd (λ i hi, _) h),
+        exact hF _ (lt_trans hi (lt_add_one _)) },
+      { have h2 := hF d (lt_add_one _),
+        rw h1 at h2,
+        exact lt_irrefl _ h2 } } }
+end
+
 end padic_val_rat
 
 namespace padic_val_nat
@@ -361,6 +383,14 @@ begin
   { rw padic_val_nat_def hn,
     exact (@multiplicity.unique' _ _ _ p n 0 (by simp) (by simpa using not_dvd)).symm,
     assumption, },
+end
+
+lemma dvd_of_one_le_padic_val_nat {n p : nat} [prime : fact p.prime] (hp : 1 ≤ padic_val_nat p n) :
+  p ∣ n :=
+begin
+  by_contra h,
+  rw padic_val_nat_of_not_dvd h at hp,
+  exact lt_irrefl 0 (lt_of_lt_of_le zero_lt_one hp),
 end
 
 lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime] (neq : p ≠ q) :

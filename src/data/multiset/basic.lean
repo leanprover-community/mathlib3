@@ -2058,12 +2058,7 @@ by simp [disjoint, or_imp_distrib, forall_and_distrib]
 
 lemma disjoint_map_map {f : α → γ} {g : β → γ} {s : multiset α} {t : multiset β} :
   disjoint (s.map f) (t.map g) ↔ (∀a∈s, ∀b∈t, f a ≠ g b) :=
-begin
-  simp [disjoint],
-  split,
-  from assume h a ha b hb eq, h _ ha rfl _ hb eq.symm,
-  from assume h c a ha eq₁ b hb eq₂, h _ ha _ hb (eq₂.symm ▸ eq₁)
-end
+by { simp [disjoint, @eq_comm _ (f _) (g _)], refl }
 
 /-- `pairwise r m` states that there exists a list of the elements s.t. `r` holds pairwise on this list. -/
 def pairwise (r : α → α → Prop) (m : multiset α) : Prop :=

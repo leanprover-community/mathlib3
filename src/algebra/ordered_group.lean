@@ -682,24 +682,6 @@ sub_lt_iff_lt_add'.trans (lt_add_iff_pos_left _)
 
 end ordered_add_comm_group
 
-/-
-TODO:
-The `add_lt_add_left` field of `ordered_add_comm_group` is redundant,
-and it is no longer in core so we can remove it now.
-This alternative constructor is a workaround until someone fixes this.
--/
-
-/-- Alternative constructor for ordered commutative groups,
-that avoids the field `mul_lt_mul_left`. -/
-@[to_additive "Alternative constructor for ordered commutative groups,
-that avoids the field `mul_lt_mul_left`."]
-def ordered_comm_group.mk' {α : Type u} [comm_group α] [partial_order α]
-  (mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b) :
-  ordered_comm_group α :=
-{ mul_le_mul_left := mul_le_mul_left,
-  ..(by apply_instance : comm_group α),
-  ..(by apply_instance : partial_order α) }
-
 /-- A decidable linearly ordered additive commutative group is an
 additive commutative group with a decidable linear order in which
 addition is strictly monotone. -/

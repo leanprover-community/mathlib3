@@ -271,7 +271,7 @@ end
 theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
 
-@[simp] theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
+theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
 
 @[simp] lemma inv_apply_self {α : Type u} (f : perm α) (x) :
   f⁻¹ (f x) = x := equiv.symm_apply_apply _ _

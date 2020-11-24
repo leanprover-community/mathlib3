@@ -103,7 +103,8 @@ begin
   have h_sep : (minimal_polynomial H).separable := h.separable α,
   have h_splits : (minimal_polynomial H).splits (algebra_map F E) := h.normal α,
   replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minimal_polynomial H),
-  { convert polynomial.splits_comp_of_splits (algebra_map F E) iso.symm.to_alg_hom.to_ring_hom h_splits },
+  { convert polynomial.splits_comp_of_splits
+    (algebra_map F E) iso.symm.to_alg_hom.to_ring_hom h_splits },
   rw ← linear_equiv.findim_eq iso.to_linear_equiv,
   rw ← intermediate_field.adjoin_simple.card_aut_eq_findim F E H h_sep h_splits,
   apply fintype.card_congr,

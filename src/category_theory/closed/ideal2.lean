@@ -83,7 +83,7 @@ by simp
 lemma unit_comp_partial_bijective_natural [reflective i] (A : C) {B B' : C} (h : B ⟶ B')
   (hB : in_subcategory i B) (hB' : in_subcategory i B') (f : A ⟶ B) :
   (unit_comp_partial_bijective A hB') (f ≫ h) = unit_comp_partial_bijective A hB f ≫ h :=
-by rw [← equiv.eq_symm_apply, unit_comp_partial_bijective_symm_natural A h hB, equiv.symm_apply_apply]
+by rw [←equiv.eq_symm_apply, unit_comp_partial_bijective_symm_natural A h, equiv.symm_apply_apply]
 
 /--
 If `A` is in the reflective subcategory, then `η_A` is an isomorphism.

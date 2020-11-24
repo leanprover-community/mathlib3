@@ -367,12 +367,12 @@ begin
         exact subring.mul_mem _ hr (subring.subset_closure (set.mem_image_of_mem _ (or.inl rfl))) } } }
 end
 
-theorem is_jacobson_polynomial_iff_is_jacobson : is_jacobson (polynomial R) ↔ is_jacobson R :=
+theorem is_jacobson_polynomial_iff_is_jacobson {R : Type*} [comm_ring R] : is_jacobson (polynomial R) ↔ is_jacobson R :=
 begin
   split; introI H,
   { exact is_jacobson_of_surjective ⟨eval₂_ring_hom (ring_hom.id _) 1, λ x, ⟨C x, by simp⟩⟩ },
   { rw is_jacobson_iff_prime_eq,
-    introsI I hI,
+    intros I hI,
     let R' := ((quotient.mk I).comp C).range,
     let i : R →+* R' := ((quotient.mk I).comp C).range_restrict,
     have hi : function.surjective (i : R → R') := ((quotient.mk I).comp C).surjective_onto_range,

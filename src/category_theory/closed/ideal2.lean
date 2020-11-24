@@ -1,5 +1,6 @@
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.constructions.preserve_binary_products
+import category_theory.limits.preserves.basic
 import category_theory.adjunction
 import category_theory.monad.limits
 import category_theory.adjunction.fully_faithful
@@ -59,7 +60,8 @@ If `i` has a reflector `L`, then the function `(i L A ⟶ B) → (A ⟶ B)` give
 `η.app A` is a bijection provided `B` is in the subcategory given by `i`.
 
 This establishes there is a natural bijection `(A ⟶ B) ≃ (i L A ⟶ B)`. In other words, from the
-point of view of objects in `D`, `A` and `i L A` look the same.
+point of view of objects in `D`, `A` and `i L A` look the same: specifically that `η.app A` is
+an isomorphism.
 -/
 def unit_comp_partial_bijective [reflective i] (A : C) {B : C} (hB : in_subcategory i B) :
   (A ⟶ B) ≃ (i.obj ((left_adjoint i).obj A) ⟶ B) :=
@@ -93,46 +95,41 @@ reflection of `A`, with the isomorphism as `η_A`.
 def in_subcategory.unit_iso [reflective i] {A : C} (h : in_subcategory i A) :
   is_iso ((adjunction.of_right_adjoint i).unit.app A) :=
 begin
-  let ir := adjunction.of_right_adjoint i,
-  let L : C ⥤ D := left_adjoint i,
-  let η : 𝟭 C ⟶ L ⋙ i := ir.unit,
-  let ε : i ⋙ L ⟶ 𝟭 D := ir.counit,
-  have : ∀ (B : D), is_iso (η.app (i.obj B)),
+  have : ∀ (B : D), is_iso ((adjunction.of_right_adjoint i).unit.app (i.obj B)),
   { intro B,
-    have : η.app (i.obj B) = inv (i.map (ε.app B)),
+    have : (adjunction.of_right_adjoint i).unit.app (i.obj B) =
+             inv (i.map ((adjunction.of_right_adjoint i).counit.app B)),
     { rw ← comp_hom_eq_id,
-      apply ir.right_triangle_components },
+      apply (adjunction.of_right_adjoint i).right_triangle_components },
     rw this,
     apply_instance },
   resetI,
-  change is_iso (η.app A),
-  suffices : η.app A = h.get_iso.inv ≫ η.app (i.obj h.witness) ≫ (L ⋙ i).map h.get_iso.hom,
+  suffices :
+    (adjunction.of_right_adjoint i).unit.app A =
+      h.get_iso.inv ≫
+        (adjunction.of_right_adjoint i).unit.app (i.obj h.witness) ≫
+          (left_adjoint i ⋙ i).map h.get_iso.hom,
   { rw this,
     apply_instance },
-  rw ← η.naturality,
+  rw ← nat_trans.naturality,
   simp only [functor.id_map, iso.inv_hom_id_assoc],
 end
 
-def in_subcategory_of_unit_is_iso [reflective i] (A : C)
+/--  If `η_A` is an isomorphism, then `A` is in the subcategory. -/
+def in_subcategory_of_unit_is_iso [is_right_adjoint i] (A : C)
   [is_iso ((adjunction.of_right_adjoint i).unit.app A)] : in_subcategory i A :=
-begin
-  refine ⟨(left_adjoint i).obj A, ⟨_⟩⟩,
-  apply (as_iso ((adjunction.of_right_adjoint i).unit.app A)).symm,
-end
+⟨(left_adjoint i).obj A, ⟨(as_iso ((adjunction.of_right_adjoint i).unit.app A)).symm⟩⟩
 
+/-- If `η_A` is a split monomorphism, then `A` is in the reflective subcategory. -/
 def in_subcategory_of_unit_split_mono [reflective i] {A : C}
   [split_mono ((adjunction.of_right_adjoint i).unit.app A)] : in_subcategory i A :=
 begin
-  let ir := adjunction.of_right_adjoint i,
-  let η : 𝟭 C ⟶ left_adjoint i ⋙ i := ir.unit,
+  let η : 𝟭 C ⟶ left_adjoint i ⋙ i := (adjunction.of_right_adjoint i).unit,
   haveI : is_iso (η.app (i.obj ((left_adjoint i).obj A))) := (inclusion_is_in _ _).unit_iso,
   have : epi (η.app A),
-    apply epi_of_epi (retraction (η.app A)) _,
-    have : retraction _ ≫ η.app A = _ := η.naturality (retraction (η.app A)),
-    rw this,
-    apply epi_comp (η.app (i.obj ((left_adjoint i).obj A))) _,
-    apply split_epi.epi _,
-    apply_instance,
+  { apply epi_of_epi (retraction (η.app A)) _,
+    rw (show retraction _ ≫ η.app A = _, from η.naturality (retraction (η.app A))),
+    apply epi_comp (η.app (i.obj ((left_adjoint i).obj A))) },
   resetI,
   haveI := is_iso_of_epi_of_split_mono (η.app A),
   exact in_subcategory_of_unit_is_iso A,
@@ -152,6 +149,25 @@ The subcategory `D` of `C` expressed as an inclusion functor is an *exponential 
 class exponential_ideal : Prop :=
 (exp_closed : ∀ {B}, in_subcategory i B → ∀ A, in_subcategory i (A ⟹ B))
 
+/--
+To show `i` is an exponential ideal it suffices to show that `(iB)^A` is `in` `D` for any `A` in `C`
+and `B` in `D`.
+-/
+def exponential_ideal.mk' (h : ∀ (B : D) (A : C), in_subcategory i (A ⟹ i.obj B)) :
+  exponential_ideal i :=
+⟨λ B hB A,
+begin
+  rcases hB with ⟨B', ⟨iB'⟩⟩,
+  apply in_subcategory_of_iso _ (h B' A),
+  apply (exp A).map_iso iB',
+end⟩
+
+/--
+If `D` is a reflective subcategory, the property of being an exponential ideal is equivalent to
+the presence of a natural isomorphism `i ⋙ exp A ⋙ left_adjoint i ⋙ i ≅ i ⋙ exp A`, that is:
+`(iB)^A ≅ i L (iB)^A`, naturally in `B`.
+THe converse is given in `exponential_ideal.mk_of_iso`.
+-/
 def exponential_ideal_reflective (A : C) [reflective i] [exponential_ideal i] :
   i ⋙ exp A ⋙ left_adjoint i ⋙ i ≅ i ⋙ exp A :=
 begin
@@ -165,15 +181,10 @@ begin
   { simp }
 end
 
-def exponential_ideal.mk' (h : ∀ (B : D) (A : C), in_subcategory i (A ⟹ i.obj B)) :
-  exponential_ideal i :=
-⟨λ B hB A,
-begin
-  rcases hB with ⟨B', ⟨iB'⟩⟩,
-  apply in_subcategory_of_iso _ (h B' A),
-  apply (exp A).map_iso iB',
-end⟩
-
+/--
+Given a natural isomorphism `i ⋙ exp A ⋙ left_adjoint i ⋙ i ≅ i ⋙ exp A`, we can show `i`
+is an exponential ideal.
+-/
 def exponential_ideal.mk_of_iso [reflective i]
   (h : Π (A : C), i ⋙ exp A ⋙ left_adjoint i ⋙ i ≅ i ⋙ exp A) :
   exponential_ideal i :=
@@ -183,21 +194,27 @@ begin
   exact ⟨_, ⟨(h A).app B⟩⟩,
 end
 
+/--
+The category of subterminals in `C` is the subcategory of objects for which the unique morphism to
+the terminal object is a monomorphism.
+TODO: If `C` is the category of sheaves on a topological space `X`, this category is equivalent
+to the lattice of open subsets of `X`.
+-/
 @[derive category]
-def subterminals (C : Type u₁) [category.{v₁} C] [has_terminal C] :=
-{A : C // mono (terminal.from A)}
+def subterminals (C : Type u₁) [category.{v₁} C] :=
+{A : C // ∀ {Z : C} (f g : Z ⟶ A), f = g}
 
+/-- The inclusion of the subterminal objects into the original category. -/
+@[derive [full, faithful]]
 def subterminal_inclusion : subterminals C ⥤ C := full_subcategory_inclusion _
 
+/-- The subcategory of subterminal objects is an exponential ideal. -/
 instance : exponential_ideal (subterminal_inclusion : _ ⥤ C) :=
 begin
   apply exponential_ideal.mk',
-  rintros ⟨B, hB'⟩ A,
-  refine ⟨⟨B ^^ A, ⟨_⟩⟩, ⟨iso.refl _⟩⟩,
-  introsI Z g h eq,
-  apply uncurry_injective,
-  rw [← cancel_mono (terminal.from B)],
-  apply subsingleton.elim,
+  rintros B A,
+  refine ⟨⟨B.1 ^^ A, λ Z g h, _⟩, ⟨iso.refl _⟩⟩,
+  exact uncurry_injective (B.2 (cartesian_closed.uncurry g) (cartesian_closed.uncurry h))
 end
 
 end ideal
@@ -248,165 +265,129 @@ begin
   apply exponential_ideal.mk',
   intros B A,
   let q : i.obj (L.obj (i.obj B ^^ A)) ⟶ i.obj B ^^ A,
-    apply cartesian_closed.curry,
-    apply ir.hom_equiv _ _ _,
+    apply cartesian_closed.curry (ir.hom_equiv _ _ _),
     apply _ ≫ (ir.hom_equiv _ _).symm ((ev A).app (i.obj B)),
     refine prod_comparison L A _ ≫ limits.prod.map (𝟙 _) (ε.app _) ≫ inv (prod_comparison _ _ _),
   have : η.app (i.obj B ^^ A) ≫ q = 𝟙 (i.obj B ^^ A),
-    rw ← curry_natural_left,
-    rw curry_eq_iff,
-    rw uncurry_id_eq_ev,
+  { rw [← curry_natural_left, curry_eq_iff, uncurry_id_eq_ev],
     erw ← ir.hom_equiv_naturality_left,
     rw ir.hom_equiv_apply_eq,
     change L.map _ ≫ _ ≫ _ = _,
     rw [assoc, assoc],
     erw prod_comparison_natural_assoc,
-    rw [limits.prod.map_map_assoc, L.map_id, id_comp],
-    rw ir.left_triangle_components,
+    rw [limits.prod.map_map_assoc, L.map_id, id_comp, ir.left_triangle_components],
     erw prod.map_id_id,
     rw id_comp,
-    erw is_iso.hom_inv_id_assoc,
-    refl,
+    apply is_iso.hom_inv_id_assoc },
   haveI : split_mono (η.app (i.obj B ^^ A)) := ⟨_, this⟩,
   apply in_subcategory_of_unit_split_mono,
 end
 
-def hom_equiv_aux1 [reflective i] (A B : C) (X : D) :
-  ((left_adjoint i).obj (A ⨯ B) ⟶ X) ≃ (B ⟶ (i.obj X) ^^ A) :=
-(adjunction.comp _ _ (exp.adjunction A) (adjunction.of_right_adjoint i)).hom_equiv _ _
+noncomputable def bijection (A B : C) (C' : D) [reflective i] [exponential_ideal i] :
+  ((left_adjoint i).obj (A ⨯ B) ⟶ C') ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ C') :=
+calc _ ≃ (A ⨯ B ⟶ i.obj C') :
+              (adjunction.of_right_adjoint i).hom_equiv _ _
+   ... ≃ (B ⨯ A ⟶ i.obj C') :
+              (limits.prod.braiding _ _).hom_congr (iso.refl _)
+   ... ≃ (A ⟶ B ⟹ i.obj C') :
+              (exp.adjunction _).hom_equiv _ _
+   ... ≃ (i.obj ((left_adjoint i).obj A) ⟶ B ⟹ i.obj C') :
+              unit_comp_partial_bijective _ (exponential_ideal.exp_closed (inclusion_is_in i _) _)
+   ... ≃ (B ⨯ i.obj ((left_adjoint i).obj A) ⟶ i.obj C') :
+              ((exp.adjunction _).hom_equiv _ _).symm
+   ... ≃ (i.obj ((left_adjoint i).obj A) ⨯ B ⟶ i.obj C') :
+              (limits.prod.braiding _ _).hom_congr (iso.refl _)
+   ... ≃ (B ⟶ i.obj ((left_adjoint i).obj A) ⟹ i.obj C') :
+              (exp.adjunction _).hom_equiv _ _
+   ... ≃ (i.obj ((left_adjoint i).obj B) ⟶ i.obj ((left_adjoint i).obj A) ⟹ i.obj C') :
+              unit_comp_partial_bijective _ (exponential_ideal.exp_closed (inclusion_is_in i _) _)
+   ... ≃ (i.obj ((left_adjoint i).obj A) ⨯ i.obj ((left_adjoint i).obj B) ⟶ i.obj C') :
+              ((exp.adjunction _).hom_equiv _ _).symm
+   ... ≃ (i.obj ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B) ⟶ i.obj C') :
+     begin
+       apply iso.hom_congr _ (iso.refl _),
+       apply (as_iso (prod_comparison _ _ _)).symm,
+       haveI : preserves_limits i := (adjunction.of_right_adjoint i).right_adjoint_preserves_limits,
+       apply_instance,
+     end
+   ... ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ C') :
+              (equiv_of_fully_faithful _).symm
 
-lemma pre_natural {A A' : C} (B : C) (X : D) (f : A' ⟶ A) (k) :
-  cartesian_closed.curry k ≫ pre (i.obj X) f = cartesian_closed.curry (limits.prod.map f (𝟙 B) ≫ k) :=
+lemma bijection_symm_apply_id (A B : C) [reflective i] [exponential_ideal i] :
+  (bijection i A B _).symm (𝟙 _) = prod_comparison _ _ _ :=
 begin
-  rw [pre, eq_curry_iff, uncurry_natural_left, uncurry_curry, prod.map_swap_assoc, curry_eq,
-      prod.map_id_comp, assoc, ev_naturality],
-  erw ev_coev_assoc,
-end
+  let L := left_adjoint i,
+  let adj : L ⊣ i := adjunction.of_right_adjoint i,
+  let η : _ ⟶ L ⋙ i := adj.unit,
+  dsimp [bijection],
+  rw [equiv.symm_symm, equiv.symm_symm, equiv.symm_symm, comp_id, comp_id, comp_id,
+      equiv_of_fully_faithful_apply, i.map_id, comp_id, unit_comp_partial_bijective_symm_apply,
+      unit_comp_partial_bijective_symm_apply],
+  change (adj.hom_equiv _ _).symm
+    ((limits.prod.braiding A B).hom ≫
+      cartesian_closed.uncurry (η.app _ ≫
+        cartesian_closed.curry ((limits.prod.braiding _ B).inv ≫
+          cartesian_closed.uncurry (η.app _ ≫
+            cartesian_closed.curry _)))) =
+    prod_comparison L _ _,
+  rw [uncurry_natural_left, uncurry_curry, uncurry_natural_left, uncurry_curry,
+      ←braid_natural_assoc, iso.hom_inv_id_assoc, limits.prod.map_map_assoc, comp_id, id_comp,
+      ← adjunction.eq_hom_equiv_apply, adjunction.hom_equiv_unit, is_iso.comp_inv_eq, assoc],
+  apply prod.hom_ext,
+  { rw [limits.prod.map_fst, assoc, assoc, prod_comparison, prod_comparison, prod.lift_fst,
+        ←i.map_comp, prod.lift_fst],
+    apply η.naturality },
+  { rw [limits.prod.map_snd, assoc, assoc, prod_comparison, prod_comparison, prod.lift_snd,
+        ←i.map_comp, prod.lift_snd],
+    apply η.naturality },
+end.
 
-lemma hom_equiv_aux1_naturality_A [reflective i] {A A' : C} (B : C) (X : D)
-  (f : A' ⟶ A) (k) :
-  hom_equiv_aux1 i A B X k ≫ pre _ f = hom_equiv_aux1 i A' B X ((left_adjoint i).map (limits.prod.map f (𝟙 _)) ≫ k) :=
+lemma bijection_natural [reflective i] [exponential_ideal i]
+  (A B : C) (C' C'' : D) (f : ((left_adjoint i).obj (A ⨯ B) ⟶ C')) (g : C' ⟶ C'') :
+  bijection i _ _ _ (f ≫ g) = bijection i _ _ _ f ≫ g :=
 begin
-  dsimp [hom_equiv_aux1, adjunction.comp],
-  change cartesian_closed.curry _ ≫ _ = cartesian_closed.curry _,
-  rw (adjunction.of_right_adjoint i).hom_equiv_naturality_left,
-  rw pre_natural,
-end
-
-def hom_equiv_aux2 [reflective i] [exponential_ideal i] (A B : C) (X : D) :
-  ((left_adjoint i).obj (A ⨯ B) ⟶ X) ≃
-  ((left_adjoint i).obj (A ⨯ i.obj ((left_adjoint i).obj B)) ⟶ X) :=
-(hom_equiv_aux1 i _ _ _).trans
-  ((unit_comp_partial_bijective _ (exponential_ideal.exp_closed (inclusion_is_in _ _) _)).trans
-    (hom_equiv_aux1 i _ _ _).symm)
-
-@[reassoc]
-lemma hom_equiv_aux2_naturality_A [reflective i] [exponential_ideal i] {A A' : C} (B : C) (X : D)
-  (f : A' ⟶ A) (k) :
-    (left_adjoint i).map (limits.prod.map f (𝟙 _)) ≫ hom_equiv_aux2 i A B X k
-  = hom_equiv_aux2 i A' B X ((left_adjoint i).map (limits.prod.map f (𝟙 _)) ≫ k) :=
-begin
-  dsimp [hom_equiv_aux2],
-  rw [← hom_equiv_aux1_naturality_A, equiv.eq_symm_apply, ← hom_equiv_aux1_naturality_A,
-      equiv.apply_symm_apply, unit_comp_partial_bijective_natural],
-end
-
-lemma hom_equiv_aux2_naturality_B [reflective i] [exponential_ideal i] (A : C) {B B' : C} (X : D)
-  (f : B' ⟶ B) (k) :
-    (left_adjoint i).map (limits.prod.map (𝟙 _) (i.map ((left_adjoint i).map f))) ≫ hom_equiv_aux2 i A B X k
-  = hom_equiv_aux2 i A B' X ((left_adjoint i).map (limits.prod.map (𝟙 _) f) ≫ k) :=
-begin
-  dsimp [hom_equiv_aux2, hom_equiv_aux1],
-  erw adjunction.hom_equiv_naturality_left,
-  erw ← (adjunction.comp _ i (exp.adjunction A) _).hom_equiv_naturality_left_symm,
-  congr' 1,
-  rw [← equiv.symm_apply_eq, unit_comp_partial_bijective_symm_apply],
-  erw ← (adjunction.of_right_adjoint i).unit.naturality_assoc,
-  rw [← unit_comp_partial_bijective_symm_apply B, equiv.symm_apply_apply],
+  apply i.map_injective,
+  dsimp [bijection],
+  rw [i.image_preimage, i.map_comp, i.image_preimage, comp_id, comp_id, comp_id, comp_id, comp_id,
+      comp_id],
+  change prod_comparison _ _ _ ≫
+    cartesian_closed.uncurry
+      (unit_comp_partial_bijective _ _
+        (cartesian_closed.curry ((limits.prod.braiding _ _).hom ≫
+          cartesian_closed.uncurry
+            (unit_comp_partial_bijective _ _
+              (cartesian_closed.curry
+                ((limits.prod.braiding _ _).hom ≫ _)))))) = _,
+  rw [adjunction.hom_equiv_naturality_right, ← assoc, curry_natural_right _ (i.map g),
+      unit_comp_partial_bijective_natural, uncurry_natural_right, ← assoc, curry_natural_right,
+      unit_comp_partial_bijective_natural, uncurry_natural_right, assoc],
   refl,
 end
 
-lemma hom_equiv_aux2_naturality_X [reflective i] [exponential_ideal i] (A : C) (B : C) {X X' : D}
-  (f : X ⟶ X') (k) :
-  hom_equiv_aux2 i A B X k ≫ f = hom_equiv_aux2 i A B X' (k ≫ f) :=
+noncomputable def preserves_pair_of_exponential_ideal [reflective i] [exponential_ideal i]
+  (A B : C) : preserves_limit (pair A B) (left_adjoint i) :=
 begin
-  dsimp [hom_equiv_aux2, hom_equiv_aux1],
-  rw [adjunction.hom_equiv_naturality_right, unit_comp_partial_bijective_natural,
-      ←adjunction.hom_equiv_naturality_right_symm],
+  let ir : is_right_adjoint i := by apply_instance,
+  let L := ir.left,
+  let adj : L ⊣ i := ir.adj,
+  let η : _ ⟶ L ⋙ i := adj.unit,
+  apply preserves_binary_prod_of_prod_comparison_iso L _ _,
+  refine is_iso.of_iso ⟨prod_comparison _ _ _, bijection i _ _ _ (𝟙 _), _, _⟩,
+  { dsimp,
+    rw [←(bijection i _ _ _).injective.eq_iff, bijection_natural, ← bijection_symm_apply_id,
+        equiv.apply_symm_apply, id_comp] },
+  { dsimp,
+    rw [←bijection_natural, id_comp, ←bijection_symm_apply_id, equiv.apply_symm_apply] }
 end
 
-lemma hom_equiv_aux2_naturality_symm_X [reflective i] [exponential_ideal i] (A : C) (B : C) {X X' : D}
-  (f : X ⟶ X') (k) :
-  (hom_equiv_aux2 i A B X).symm k ≫ f = (hom_equiv_aux2 i A B X').symm (k ≫ f) :=
-by rw [equiv.eq_symm_apply, ← hom_equiv_aux2_naturality_X, equiv.apply_symm_apply]
-
-def inner_mul_unit_iso [reflective i] [exponential_ideal i] (A B : C) :
-  (left_adjoint i).obj (A ⨯ B) ≅ (left_adjoint i).obj (A ⨯ i.obj ((left_adjoint i).obj B)) :=
-{ hom := (hom_equiv_aux2 _ _ _ _).symm (𝟙 _),
-  inv := (hom_equiv_aux2 _ _ _ _) (𝟙 _),
-  hom_inv_id' := by rw [hom_equiv_aux2_naturality_symm_X, id_comp, equiv.symm_apply_apply],
-  inv_hom_id' := by rw [hom_equiv_aux2_naturality_X, id_comp, equiv.apply_symm_apply] }
-
-@[reassoc]
-lemma inner_mul_natural [reflective i] [exponential_ideal i] {A A' B B' : C} (f : A ⟶ A') (g : B ⟶ B') :
-  (inner_mul_unit_iso i A B).hom ≫ (left_adjoint i).map (limits.prod.map f (i.map ((left_adjoint i).map g))) = (left_adjoint i).map (limits.prod.map f g) ≫ (inner_mul_unit_iso i A' B').hom :=
-begin
-  rw [← iso.comp_inv_eq, assoc, ← iso.eq_inv_comp],
-  change _ ≫ hom_equiv_aux2 _ _ _ _ _ = hom_equiv_aux2 _ _ _ _ _ ≫ _,
-  have : limits.prod.map f (i.map ((left_adjoint i).map g)) = limits.prod.map f (𝟙 _) ≫ limits.prod.map (𝟙 _) (i.map ((left_adjoint i).map g)),
-    simp,
-  rw [this, (left_adjoint i).map_comp, assoc, hom_equiv_aux2_naturality_B, comp_id,
-      hom_equiv_aux2_naturality_A, hom_equiv_aux2_naturality_X, id_comp,
-      ← (left_adjoint i).map_comp],
-  simp,
-end
-
-def inner_mul_unit_iso_right [reflective i] [exponential_ideal i] (A B : C) :
-  (left_adjoint i).obj (A ⨯ B) ≅ (left_adjoint i).obj (i.obj ((left_adjoint i).obj A) ⨯ B) :=
-(left_adjoint i).map_iso (limits.prod.braiding A B) ≪≫
-inner_mul_unit_iso _ _ _ ≪≫
-(left_adjoint i).map_iso (limits.prod.braiding _ _)
-
-@[reassoc]
-lemma inner_mul_right_natural [reflective i] [exponential_ideal i] {A A' B B' : C} (f : A ⟶ A') (g : B ⟶ B') :
-  (inner_mul_unit_iso_right i A B).hom ≫ (left_adjoint i).map (limits.prod.map (i.map ((left_adjoint i).map f)) g) = (left_adjoint i).map (limits.prod.map f g) ≫ (inner_mul_unit_iso_right i A' B').hom :=
-begin
-  change ((left_adjoint i).map _ ≫ _ ≫ (left_adjoint i).map _) ≫ _ = _ ≫ _ ≫ _ ≫ _,
-  rw [assoc, assoc, ← (left_adjoint i).map_comp, ← limits.braid_natural, (left_adjoint i).map_comp,
-      inner_mul_natural_assoc, ← (left_adjoint i).map_comp_assoc, ← limits.braid_natural,
-      (left_adjoint i).map_comp, assoc],
-  refl,
-end
-
-def main_iso [reflective i] [exponential_ideal i] (A B : C) :
-  (left_adjoint i).obj (A ⨯ B) ≅ (left_adjoint i).obj A ⨯ (left_adjoint i).obj B :=
-begin
-  refine
-    inner_mul_unit_iso _ _ _ ≪≫
-    inner_mul_unit_iso_right _ _ _ ≪≫
-    (left_adjoint i).map_iso _ ≪≫
-    as_iso ((adjunction.of_right_adjoint i).counit.app _),
-  haveI := adjunction.right_adjoint_preserves_limits (adjunction.of_right_adjoint i),
-  exact (as_iso (prod_comparison i _ _)).symm,
-end
-
-lemma main_iso_natural [reflective i] [exponential_ideal i] {A A' B B' : C}
-  (f : A ⟶ A') (g : B ⟶ B') :
-  (main_iso i A B).hom ≫ limits.prod.map ((left_adjoint i).map f) ((left_adjoint i).map g) =
-  (left_adjoint i).map (limits.prod.map f g) ≫ (main_iso i A' B').hom :=
-begin
-  change (_ ≫ _ ≫ _ ≫ (adjunction.of_right_adjoint i).counit.app _) ≫ _ = _ ≫ _ ≫ _ ≫ _ ≫ (adjunction.of_right_adjoint i).counit.app _,
-  rw [assoc, assoc, assoc, ← inner_mul_natural_assoc, ← inner_mul_right_natural_assoc],
-  congr' 2,
-  rw ← iso.eq_inv_comp,
-  change _ = (left_adjoint i).map (prod_comparison _ _ _) ≫ (left_adjoint i).map _ ≫ (left_adjoint i).map _ ≫ _,
-  rw [← (left_adjoint i).map_comp_assoc, ← (left_adjoint i).map_comp_assoc,
-      ← prod_comparison_natural, assoc],
-  dsimp,
-  rw [is_iso.hom_inv_id, comp_id],
-  apply ((adjunction.of_right_adjoint i).counit.naturality _).symm,
-end
-
+noncomputable def preserves_binary_products_of_exponential_ideal
+  [reflective i] [exponential_ideal i] :
+  preserves_limits_of_shape (discrete walking_pair) (left_adjoint i) :=
+{ preserves_limit := λ K,
+  begin
+    apply limits.preserves_limit_of_iso_diagram _ (diagram_iso_pair K).symm,
+    apply preserves_pair_of_exponential_ideal,
+  end }
 end
 
 end category_theory

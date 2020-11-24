@@ -803,12 +803,11 @@ end
 end sign
 
 lemma prod_swap_adj_aug {n i j : ℕ} (hi : i < n) (hj : i + 1 ≤ j) (hj' : j + 1 < n)
-  {L : list (perm (fin n))} (M : list (perm (fin n)))
-  (hL : L.prod = swap ⟨i, hi⟩ ⟨j, buffer.lt_aux_1 hj'⟩)
-  (hM : M = [swap ⟨j, buffer.lt_aux_1 hj'⟩ ⟨j + 1, hj'⟩] ++ L ++ [swap ⟨j, buffer.lt_aux_1 hj'⟩ ⟨j + 1, hj'⟩]) :
-  M.prod = swap ⟨i, hi⟩ ⟨j + 1, hj'⟩ :=
+  {L : list (perm (fin n))}
+  (hL : L.prod = swap ⟨i, hi⟩ ⟨j, buffer.lt_aux_1 hj'⟩) :
+  ([swap ⟨j, buffer.lt_aux_1 hj'⟩ ⟨j + 1, hj'⟩] ++ L ++
+   [swap ⟨j, buffer.lt_aux_1 hj'⟩ ⟨j + 1, hj'⟩] : list (perm $ fin n)).prod = swap ⟨i, hi⟩ ⟨j + 1, hj'⟩ :=
 begin
-  rw hM,
   rw [list.prod_append, list.prod_append, hL, list.prod_singleton],
   rw swap_comm (⟨i, _⟩ : fin n) ⟨j + 1, _⟩,
   apply swap_mul_swap_mul_swap,
@@ -826,28 +825,23 @@ begin
   revert hj,
   refine nat.le_induction _ _ j (show i+1 ≤ j, from hij),
   { intro hj,
-    let L := [swap (⟨i, hi⟩ : fin n) (⟨i + 1, hj⟩ : fin n)],
-    use L,
-    split, simp,
-    intros l hl,
-    use i, exact hi,
-    use hj,
-    cases hl, exact hl,
-    cases hl },
+    refine ⟨[swap (⟨i, hi⟩ : fin n) (⟨i + 1, hj⟩ : fin n)], _, _⟩,
+    { exact list.prod_singleton, },
+    { intros l hl,
+      refine ⟨⟨i, hi⟩, hj, list.mem_singleton.mp hl⟩, }, },
   { clear hij j,
     intros j hj h hj',
     have hjn : j < n := lt_trans (nat.lt_succ_self j) hj',
     rcases h hjn with ⟨L, hL1, hL2⟩,
     let M := [swap (⟨j, hjn⟩ : fin n) (⟨j+1, hj'⟩ : fin n)] ++ L ++ [swap (⟨j, hjn⟩ : fin n) (⟨j+1, hj'⟩)],
-    use M,
-    split,
-    { exact prod_swap_adj_aug hi hj hj' M hL1 rfl, },
+    refine ⟨M, _, _⟩,
+    { exact prod_swap_adj_aug hi hj hj' hL1, },
     { intros l hl,
       rw [list.mem_append, list.mem_append, list.mem_singleton] at hl,
       rcases hl with ⟨rfl | hl⟩ | rfl,
-      { use ⟨j, hjn⟩, use hj', refl },
-      { apply hL2, assumption, },
-      { use ⟨j, hjn⟩, use hj', refl }, }, },
+      { exact ⟨⟨j, hjn⟩, hj', rfl⟩ },
+      { exact hL2 _ hl, },
+      { exact ⟨⟨j, hjn⟩, hj', rfl⟩ }, }, },
 end
 
 lemma swap_eq_prod_swap_adj (n : ℕ) {i j : fin n} (hij : i ≠ j) : ∃ L : list (perm (fin n)),

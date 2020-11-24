@@ -501,7 +501,7 @@ rfl
 lemma matrix.to_bilin'_apply (M : matrix n n R₃) (x y : n → R₃) :
   matrix.to_bilin' M x y = ∑ i j, x i * M i j * y j := rfl
 
-lemma matrix.to_bilin'_std_basis (M : matrix n n R₃) (i j : n) :
+@[simp] lemma matrix.to_bilin'_std_basis (M : matrix n n R₃) (i j : n) :
   matrix.to_bilin' M (std_basis R₃ (λ _, R₃) i 1) (std_basis R₃ (λ _, R₃) j 1) =
     M i j :=
 matrix.to_bilin'_aux_std_basis M i j

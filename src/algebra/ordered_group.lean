@@ -700,7 +700,19 @@ def ordered_comm_group.mk' {α : Type u} [comm_group α] [partial_order α]
   ..(by apply_instance : comm_group α),
   ..(by apply_instance : partial_order α) }
 
-/-- A decidable linearly ordered additive commutative group is an
+/-!
+
+## linearly ordered commutative groups and add_groups.
+-/
+
+/-- A linearly ordered commutative group is an
+commutative group with a linear order in which
+multiplication is monotone. -/
+@[protect_proj] class linear_ordered_comm_group (α : Type u)
+  extends comm_group α, linear_order α :=
+(mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
+
+/-- A linearly ordered additive commutative group is an
 additive commutative group with a decidable linear order in which
 addition is strictly monotone. -/
 @[protect_proj] class linear_ordered_add_comm_group (α : Type u)
@@ -708,9 +720,15 @@ addition is strictly monotone. -/
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_ordered_add_comm_group (α : Type u)
+instance linear_ordered_comm_group.to_ordered_comm_group (α : Type u)
+  [s : linear_ordered_comm_group α] : ordered_comm_group α :=
+{ mul := s.mul, ..s }
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_add_comm_group.to_ordered_add_comm_group (α : Type u)
   [s : linear_ordered_add_comm_group α] : ordered_add_comm_group α :=
-{ add := s.add, ..s }
+--{ add := s.add, ..s }
+{ ..s }
 
 section linear_ordered_add_comm_group
 variables [linear_ordered_add_comm_group α] {a b c : α}

@@ -80,6 +80,7 @@ by { ext, rw [mem_to_subalgebra, algebra.mem_bot, mem_bot] }
 @[simp] lemma top_to_subalgebra : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
 by { ext, rw [mem_to_subalgebra, iff_true_right algebra.mem_top], exact mem_top }
 
+/--  Construct an algebra isomorphism from an equality of subalgebras -/
 def subalgebra.equiv_of_eq {X Y : subalgebra F E} (h : X = Y) : X ≃ₐ[F] Y :=
 by refine { to_fun := λ x, ⟨x, _⟩, inv_fun := λ x, ⟨x, _⟩, .. }; tidy
 

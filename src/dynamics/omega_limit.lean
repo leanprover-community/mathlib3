@@ -107,6 +107,8 @@ lemma omega_limit_preimage_subset {α' : Type*} (ϕ : τ → α' → β) (s : se
 maps_to_omega_limit _ (maps_to_preimage _ _) (λ t x, rfl) continuous_id
 
 /-!
+### Equivalent definitions of the omega limit
+
 The next few lemmas are various versions of the property
 characterising ω-limits:
 -/
@@ -331,6 +333,10 @@ nonempty_omega_limit_of_is_compact_absorbing _ _ _
 
 end omega_limit
 
+/-!
+### ω-limits of Flows by a Monoid
+-/
+
 namespace flow
 
 variables
@@ -356,8 +362,9 @@ end
 end flow
 
 /-!
-#### ω-limits of Flows by a Group:
+### ω-limits of Flows by a Group
 -/
+
 namespace flow
 
 variables

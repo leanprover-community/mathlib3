@@ -69,9 +69,21 @@ functions to collect this information for a specific goal.
 
 
 /--
-Information about a constructor argument. Contains:
+Information about a constructor argument. E.g. given the declaration
 
-- `aname`: the argument's name.
+```
+induction ℕ : Type
+| zero : ℕ
+| suc (n : ℕ) : ℕ
+```
+
+the `zero` constructor has no arguments and the `suc` constructor has one
+argument, `n`.
+
+We record the following information:
+
+- `aname`: the argument's name. If the argument was not explicitly named in the
+  declaration, the elaborator generates a name for it.
 - `type` : the argument's type.
 - `dependent`: whether the argument is dependent, i.e. whether it occurs in the
   remainder of the constructor type.

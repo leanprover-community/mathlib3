@@ -275,14 +275,12 @@ begin
     any_goals {rw ←open_embedding.open_iff_image_open, assumption},
     any_goals {exact open_embedding_inl},
     rw [set.image_inter sum.injective_inl, disj, image_empty] },
-  { refine ⟨set.range sum.inl, set.range sum.inr, _, _, ⟨x, rfl⟩, ⟨y, rfl⟩, _⟩,
+  { refine ⟨set.range sum.inl, set.range sum.inr, _, _, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩,
     exact open_embedding_inl.open_range,
+    exact open_embedding_inr.open_range },
+  { refine ⟨set.range sum.inr, set.range sum.inl, _, _, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩,
     exact open_embedding_inr.open_range,
-    tidy },
-  { refine ⟨set.range sum.inr, set.range sum.inl, _, _, ⟨x, rfl⟩, ⟨y, rfl⟩, _⟩,
-    exact open_embedding_inr.open_range,
-    exact open_embedding_inl.open_range,
-    tidy },
+    exact open_embedding_inl.open_range },
   { replace h : x ≠ y := λ c, (c.subst h) rfl,
     rcases t2_separation h with ⟨U,V,hU,hV,hx,hy,disj⟩,
     refine ⟨sum.inr '' U, sum.inr '' V, _, _, ⟨x, hx, rfl⟩, ⟨y, hy, rfl⟩, _⟩,
@@ -296,6 +294,24 @@ instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_
 ⟨assume x y h,
   let ⟨i, hi⟩ := not_forall.mp (mt funext h) in
   separated_by_f (λz, z i) (infi_le _ i) hi⟩
+
+instance Sigma.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_space (β a)] [Πa, t2_space (β a)] :
+  t2_space (Σa, β a) :=
+begin
+  constructor,
+  rintros ⟨a,x⟩ ⟨b,y⟩ neq,
+  by_cases a = b,
+  { subst h,
+    replace neq : x ≠ y := λ c, (c.subst neq) rfl,
+    rcases t2_separation neq with ⟨U,V,hY,hV,hx,hy,disj⟩,
+    refine ⟨(sigma.mk a) '' U, (sigma.mk a) '' V, _, _, ⟨x, hx, rfl⟩, ⟨y, hy, rfl⟩, _⟩,
+    any_goals {rw ←open_embedding.open_iff_image_open, assumption},
+    any_goals {exact open_embedding_sigma_mk},
+    rw [set.image_inter, disj, image_empty],
+    tidy },
+  { refine ⟨set.range (sigma.mk a), set.range (sigma.mk b), _, _, ⟨x,rfl⟩, ⟨y,rfl⟩, by tidy⟩,
+    all_goals {exact open_embedding_sigma_mk.open_range} },
+end
 
 variables [topological_space β]
 

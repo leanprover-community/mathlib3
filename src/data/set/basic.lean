@@ -715,11 +715,17 @@ rfl
 @[simp] theorem union_singleton : s ∪ {a} = insert a s :=
 by rw [union_comm, singleton_union]
 
-theorem singleton_inter_eq_empty : {a} ∩ s = ∅ ↔ a ∉ s :=
+@[simp] theorem singleton_inter_eq_empty : {a} ∩ s = ∅ ↔ a ∉ s :=
 by simp [eq_empty_iff_forall_not_mem]
 
-theorem inter_singleton_eq_empty : s ∩ {a} = ∅ ↔ a ∉ s :=
+@[simp] theorem inter_singleton_eq_empty : s ∩ {a} = ∅ ↔ a ∉ s :=
 by rw [inter_comm, singleton_inter_eq_empty]
+
+@[simp] theorem singleton_inter_nonempty : ({a} ∩ s).nonempty ↔ a ∈ s :=
+by rw [← ne_empty_iff_nonempty, ne.def, singleton_inter_eq_empty, not_not]
+
+@[simp] theorem inter_singleton_nonempty : (s ∩ {a}).nonempty ↔ a ∈ s :=
+by rw [inter_comm, singleton_inter_nonempty]
 
 lemma nmem_singleton_empty {s : set α} : s ∉ ({∅} : set (set α)) ↔ s.nonempty :=
 by rw [mem_singleton_iff, ← ne.def, ne_empty_iff_nonempty]
@@ -1162,15 +1168,13 @@ iff.intro
   (assume ⟨b, hb, eq⟩, (hf eq) ▸ hb)
   (assume h, mem_image_of_mem _ h)
 
-theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
-  (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
-by finish [mem_image_eq]
-
 theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
-iff.intro
-  (assume h a ha, h _ $ mem_image_of_mem _ ha)
-  (assume h b ⟨a, ha, eq⟩, eq ▸ h a ha)
+by simp
+
+theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
+  (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
+ball_image_iff.2 h
 
 theorem bex_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∃ y ∈ f '' s, p y) ↔ (∃ x ∈ s, p (f x)) :=
@@ -1241,9 +1245,6 @@ ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
 @[simp] lemma image_eq_empty {α β} {f : α → β} {s : set α} : f '' s = ∅ ↔ s = ∅ :=
 by { simp only [eq_empty_iff_forall_not_mem],
      exact ⟨λ H a ha, H _ ⟨_, ha, rfl⟩, λ H b ⟨_, ha, _⟩, H _ ha⟩ }
-
-lemma inter_singleton_nonempty {s : set α} {a : α} : (s ∩ {a}).nonempty ↔ a ∈ s :=
-by finish [set.nonempty]
 
 -- TODO(Jeremy): there is an issue with - t unfolding to compl t
 theorem mem_compl_image (t : set α) (S : set (set α)) :
@@ -1363,6 +1364,10 @@ end
 lemma image_preimage_inter (f : α → β) (s : set α) (t : set β) :
   f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
 by simp only [inter_comm, image_inter_preimage]
+
+@[simp] lemma image_inter_nonempty_iff {f : α → β} {s : set α} {t : set β} :
+  (f '' s ∩ t).nonempty ↔ (s ∩ f ⁻¹' t).nonempty :=
+by rw [←image_inter_preimage, nonempty_image_iff]
 
 lemma image_diff_preimage {f : α → β} {s : set α} {t : set β} : f '' (s \ f ⁻¹' t) = f '' s \ t :=
 by simp_rw [diff_eq, ← preimage_compl, image_inter_preimage]

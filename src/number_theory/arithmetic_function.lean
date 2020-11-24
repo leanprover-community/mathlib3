@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 import algebra.big_operators.ring
 import number_theory.divisors
 import algebra.squarefree
+import algebra.invertible
 
 /-!
 # Arithmetic Functions and Dirichlet Convolution
@@ -543,6 +544,9 @@ localized "notation `Ω` := card_factors" in arithmetic_function
 lemma card_factors_apply {n : ℕ} :
   Ω n = n.factors.length := rfl
 
+@[simp]
+lemma card_factors_one : Ω 1 = 0 := rfl
+
 lemma card_factors_eq_one_iff_prime {n : ℕ} :
   Ω n = 1 ↔ n.prime :=
 begin
@@ -617,6 +621,61 @@ begin
     simp [h] },
   { simp [h, pow_ne_zero] }
 end
+
+lemma moebius_ne_zero_iff_eq_or {n : ℕ} : μ n ≠ 0 ↔ μ n = 1 ∨ μ n = -1 :=
+begin
+  split; intro h,
+  { rw moebius_ne_zero_iff_squarefree at h,
+    rw moebius_apply_of_squarefree h,
+    apply neg_one_pow_eq_or },
+  { rcases h with h | h; simp [h] }
+end
+
+open unique_factorization_monoid
+
+/-- Moebius Inversion -/
+@[simp] lemma moebius_mul_zeta : μ * ζ = 1 :=
+begin
+  ext x,
+  cases x, simp,
+  cases x, simp,
+  rw [mul_zeta_apply, one_apply_ne (ne_of_gt (succ_lt_succ (nat.succ_pos _)))],
+  rw ← sum_filter_ne_zero,
+  simp only [moebius_ne_zero_iff_squarefree],
+  transitivity,
+  convert (sum_divisors_filter_squarefree (nat.succ_ne_zero _)),
+  apply eq.trans (sum_congr rfl _) (sum_powerset_neg_one_pow_card_of_nonempty _),
+  { intros y hy,
+    rw [finset.mem_powerset, ← finset.val_le_iff, multiset.to_finset_val] at hy,
+    have h : unique_factorization_monoid.factors y.val.prod = y.val,
+    { apply factors_multiset_prod_of_irreducible,
+      intros z hz,
+      apply irreducible_of_factor _ (multiset.subset_of_le
+        (le_trans hy (multiset.erase_dup_le _)) hz) },
+    rw [if_pos],
+    { rw [card_factors_apply, ← multiset.coe_card, ← factors_eq, h, finset.card] },
+    rw [unique_factorization_monoid.squarefree_iff_nodup_factors, h],
+    { apply y.nodup },
+    rw [ne.def, multiset.prod_eq_zero_iff],
+    intro con,
+    rw ← h at con,
+    exact not_irreducible_zero (irreducible_of_factor 0 con) },
+  { rw finset.nonempty,
+    rcases wf_dvd_monoid.exists_irreducible_factor _ (nat.succ_ne_zero _) with ⟨i, hi⟩,
+    { rcases exists_mem_factors_of_dvd (nat.succ_ne_zero _) hi.1 hi.2 with ⟨j, hj, hj2⟩,
+      use j,
+      apply multiset.mem_to_finset.2 hj },
+    rw nat.is_unit_iff,
+    omega },
+end
+
+@[simp] lemma zeta_mul_moebius : ζ * μ = 1 :=
+by rw [mul_comm, moebius_mul_zeta]
+
+instance : invertible ζ :=
+{ inv_of := μ,
+  inv_of_mul_self := moebius_mul_zeta,
+  mul_inv_of_self := zeta_mul_moebius}
 
 end special_functions
 end arithmetic_function

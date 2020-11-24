@@ -6,6 +6,8 @@ Authors: Robert Y. Lewis, Keeley Hoek
 import data.nat.cast
 import tactic.localized
 import logic.embedding
+import data.set.intervals.basic
+
 /-!
 # The finite type with `n` elements
 
@@ -1070,6 +1072,34 @@ end
 @[simp] lemma insert_nth_last' (x : β) (p : fin n → β) :
   @insert_nth _ (λ _, β) (last n) x p = snoc p x :=
 by simp [insert_nth_last]
+
+variables [Π i, preorder (α i)]
+
+lemma insert_nth_le_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
+  i.insert_nth x p ≤ q ↔ x ≤ q i ∧ p ≤ (λ j, q (i.succ_above j)) :=
+by simp [pi.le_def, forall_iff_succ_above i]
+
+lemma le_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
+  q ≤ i.insert_nth x p ↔ q i ≤ x ∧ (λ j, q (i.succ_above j)) ≤ p :=
+by simp [pi.le_def, forall_iff_succ_above i]
+
+open set
+
+lemma insert_nth_mem_Icc {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)}
+  {q₁ q₂ : Π j, α j} :
+  i.insert_nth x p ∈ Icc q₁ q₂ ↔
+    x ∈ Icc (q₁ i) (q₂ i) ∧ p ∈ Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
+by simp only [mem_Icc, insert_nth_le_iff, le_insert_nth_iff, and.assoc, and.left_comm]
+
+lemma preimage_insert_nth_Icc_of_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
+  (hx : x ∈ Icc (q₁ i) (q₂ i)) :
+  i.insert_nth x ⁻¹' (Icc q₁ q₂) = Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
+set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, true_and]
+
+lemma preimage_insert_nth_Icc_of_not_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
+  (hx : x ∉ Icc (q₁ i) (q₂ i)) :
+  i.insert_nth x ⁻¹' (Icc q₁ q₂) = ∅ :=
+set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_eq]
 
 end insert_nth
 

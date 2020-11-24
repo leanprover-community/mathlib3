@@ -1475,7 +1475,7 @@ begin
     intros x y x_in y_in,
     exact this (x, y) (mk_mem_prod x_in y_in) },
   intros p p_in,
-  have := mem_closure continuous_dist p_in h,
+  have := map_mem_closure continuous_dist p_in h,
   rwa (is_closed_le' C).closure_eq at this
 end
 

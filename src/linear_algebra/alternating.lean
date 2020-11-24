@@ -20,7 +20,7 @@ from`ι → M` into `N` is denoted `alternating_map R M N ι`. For some results,
 
 ## Theorems
 1. `map_perm` asserts that for a map `f : alternating_map R M N ι`, and a
-permutation `sigma` of `ι`, we have that `f ν = (sign σ) f (ν ∘ σ)`.
+permutation `sigma` of `ι`, we have that `f v = (sign σ) f (v ∘ σ)`.
 -/
 
 variables (R : Type*) [semiring R]
@@ -29,52 +29,100 @@ variables (N : Type*) [add_comm_monoid N] [semimodule R N]
 variables (L : Type*) [add_comm_group L] [semimodule R L]
 variables (ι : Type*) [decidable_eq ι]
 
+set_option old_structure_cmd true
+
 /--
 An alternating map is a multilinear map that vanishes when two of its arguments are equal.
 -/
 structure alternating_map extends multilinear_map R (λ i : ι, M) N :=
-(map_alternating {ν : ι → M} {i j : ι} (h : ν i = ν j) (hij : i ≠ j) : to_fun ν = 0)
+(map_eq_args' : ∀ (v : ι → M) (i j : ι) (h : v i = v j) (hij : i ≠ j), to_fun v = 0)
 
 namespace alternating_map
 
-variable {f : alternating_map R M N ι}
-variable (ν : ι → M)
+variables (f f' : alternating_map R M N ι)
+variable (v : ι → M)
 variables {R M N L ι}
 open function
 
+/-! Basic coercion simp lemmas, largely copied from ring_hom -/
+section coercions
+
+instance : has_coe_to_fun (alternating_map R M N ι) := ⟨_, λ x, x.to_fun⟩
+
+initialize_simps_projections alternating_map (to_fun → apply)
+
+@[simp] lemma to_fun_eq_coe : f.to_fun = f := rfl
+
+@[simp] lemma coe_mk (f : (ι → M) → N) (h₁ h₂ h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ :
+  alternating_map R M N ι) = f := rfl
+
 instance : has_coe (alternating_map R M N ι) (multilinear_map R (λ i : ι, M) N) :=
-⟨λ x , ⟨x.to_fun, x.map_add', x.map_smul'⟩⟩
+⟨λ x, x.to_multilinear_map⟩
 
-instance : has_coe_to_fun (alternating_map R M N ι) := by apply_instance
+@[simp, norm_cast] lemma coe_multilinear_map : ⇑(f : multilinear_map R (λ i : ι, M) N) = f := rfl
 
-instance : inhabited (alternating_map R M N ι) :=
-⟨⟨0, λ _ _ _ _ _, rfl⟩⟩
+@[simp] lemma to_multilinear_map_eq_coe : f.to_multilinear_map = f := rfl
+
+@[simp] lemma coe_multilinear_map_mk (f : (ι → M) → N) (h₁ h₂ h₃) :
+  ((⟨f, h₁, h₂, h₃⟩ : alternating_map R M N ι) :  multilinear_map R (λ i : ι, M) N) = ⟨f, h₁, h₂⟩ :=
+rfl
+
+@[ext] theorem ext {f f' : alternating_map R M N ι} (H : ∀ x, f x = f' x) : f = f' :=
+by cases f; cases f'; congr'; exact funext H
+
+end coercions
 
 @[simp] lemma map_add (i : ι) (x y : M) :
-  f (update ν i (x + y)) = f (update ν i x) + f (update ν i y) :=
-f.to_multilinear_map.map_add' ν i x y
+  f (update v i (x + y)) = f (update v i x) + f (update v i y) :=
+f.to_multilinear_map.map_add' v i x y
 
 @[simp] lemma map_smul (i : ι) (r : R) (x : M) :
-  f (update ν i (r • x)) = r • f (update ν i x) :=
-f.to_multilinear_map.map_smul' ν i r x
+  f (update v i (r • x)) = r • f (update v i x) :=
+f.to_multilinear_map.map_smul' v i r x
 
-lemma eq_args {i j : ι} (h : ν i = ν j) (hij : i ≠ j) : f ν = 0 := f.map_alternating h hij
+@[simp] lemma map_eq_args (v : ι → M) {i j : ι} (h : v i = v j) (hij : i ≠ j) :
+  f v = 0 :=
+f.map_eq_args' v i j h hij
+
+/-! `alternating_map` carries the same `add_comm_monoid` structure as `multilinear_map` -/
+section add_monoid
+
+instance : has_add (alternating_map R M N ι) :=
+⟨λ a b,
+  { map_eq_args' := λ v i j h hij, by simp [a.map_eq_args v h hij, b.map_eq_args v h hij],
+    ..(a + b : multilinear_map R (λ i : ι, M) N)}⟩
+
+@[simp] lemma add_apply : (f + f') v = f v + f' v := rfl
+
+instance : has_zero (alternating_map R M N ι) :=
+⟨{map_eq_args' := λ v i j h hij, by simp,
+  ..(0 : multilinear_map R (λ i : ι, M) N)}⟩
+
+@[simp] lemma zero_apply : (0 : alternating_map R M N ι) v = 0 := rfl
+
+instance : inhabited (alternating_map R M N ι) := ⟨0⟩
+
+instance : add_comm_monoid (alternating_map R M N ι) :=
+by refine {zero := 0, add := (+), ..};
+   intros; ext; simp [add_comm, add_left_comm]
+
+end add_monoid
 
 lemma map_add_swap {i j : ι} (hij : i ≠ j) :
-  f ν + f (ν ∘ equiv.swap i j) = 0 :=
+  f v + f (v ∘ equiv.swap i j) = 0 :=
 begin
-  have key : f (function.update (function.update ν i (ν i + ν j)) j (ν i + ν j)) = 0 :=
-    by rw eq_args (function.update (function.update ν i (ν i + ν j)) j (ν i + ν j))
-    (by rw [function.update_same, function.update_noteq hij,  function.update_same]) hij,
+  have key : f (function.update (function.update v i (v i + v j)) j (v i + v j)) = 0 :=
+    by rw f.map_eq_args (function.update (function.update v i (v i + v j)) j (v i + v j))
+    (by rw [function.update_same, function.update_noteq hij, function.update_same]) hij,
   rw map_add at key,
-  rw [function.update_comm hij (ν i + ν j) (ν i) ν, map_add] at key,
-  rw eq_args (function.update (function.update ν j (ν i)) i (ν i))
-    (by rw [function.update_same, function.update_comm (ne_comm.mp hij) (ν i) (ν i) ν,
+  rw [function.update_comm hij (v i + v j) (v i) v, map_add] at key,
+  rw f.map_eq_args (function.update (function.update v j (v i)) i (v i))
+    (by rw [function.update_same, function.update_comm (ne_comm.mp hij) (v i) (v i) v,
     function.update_same]) hij at key,
   rw zero_add at key,
-  rw [function.update_comm hij (ν i + ν j) (ν j) ν, map_add] at key,
-  rw eq_args (function.update (function.update ν j (ν j)) i (ν j))
-  (by rw [function.update_same, function.update_comm (ne_comm.mp hij) (ν j) (ν j) ν,
+  rw [function.update_comm hij (v i + v j) (v j) v, map_add] at key,
+  rw f.map_eq_args (function.update (function.update v j (v j)) i (v j))
+  (by rw [function.update_same, function.update_comm (ne_comm.mp hij) (v j) (v j) v,
   function.update_same]) hij at key,
   rw [add_zero, add_comm] at key,
   convert key,
@@ -96,28 +144,28 @@ begin
         rw equiv.swap_apply_of_ne_of_ne hx hx1, }, }, },
 end
 
-variable {g : alternating_map R M L ι}
+variable (g : alternating_map R M L ι)
 
 lemma map_swap {i j : ι} (hij : i ≠ j) :
-  g (ν ∘ equiv.swap i j) = - g ν  :=
+  g (v ∘ equiv.swap i j) = - g v  :=
 begin
   apply eq_neg_of_add_eq_zero,
   rw add_comm,
-  exact map_add_swap ν hij,
+  exact g.map_add_swap v hij,
 end
 
 variable [fintype ι]
 
 lemma map_perm (σ : equiv.perm ι) :
-  g ν = (equiv.perm.sign σ : ℤ) • g (ν ∘ σ) :=
+  g v = (equiv.perm.sign σ : ℤ) • g (v ∘ σ) :=
 begin
   apply equiv.perm.swap_induction_on' σ,
   { rw equiv.perm.sign_one,
     simp only [units.coe_one, one_smul, coe_fn_coe_base],
     congr,  },
   { intros s x y hxy hI,
-    have assoc : ν ∘ (s * equiv.swap x y : equiv.perm ι) = (ν ∘ s ∘ equiv.swap x y) := rfl,
-    rw [assoc, map_swap (ν ∘ s) hxy, ←neg_one_smul ℤ (g (ν ∘ s))],
+    have assoc : v ∘ (s * equiv.swap x y : equiv.perm ι) = (v ∘ s ∘ equiv.swap x y) := rfl,
+    rw [assoc, g.map_swap (v ∘ s) hxy, ←neg_one_smul ℤ (g (v ∘ s))],
     have h1 : (-1 : ℤ) = equiv.perm.sign (equiv.swap x y) := by simp [hxy],
     rw [h1, smul_smul, ←units.coe_mul, ←equiv.perm.sign_mul, mul_assoc, equiv.swap_mul_self,
       mul_one],

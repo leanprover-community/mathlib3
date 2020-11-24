@@ -6,6 +6,7 @@ Author: Scott Morrison, Adam Topaz.
 import algebra.algebra.subalgebra
 import algebra.monoid_algebra
 import linear_algebra
+import data.equiv.transfer_instance
 
 /-!
 # Free Algebras
@@ -314,6 +315,9 @@ begin
 end
 (by { ext, simp, })
 
+instance [nontrivial R] : nontrivial (free_algebra R X) :=
+equiv_monoid_algebra_free_monoid.to_equiv.nontrivial
+
 end free_algebra
 
 -- There is something weird in the above namespace that breaks the typeclass resolution of `has_coe_to_sort` below.
@@ -352,5 +356,28 @@ begin
   simp [alg_hom.ext_iff] at of_id,
   exact of_id a,
 end
+
+/-- The star ring formed by reversing the elements of products -/
+instance : star_ring (free_algebra R X) :=
+{ star := opposite.unop ∘ lift R (opposite.op ∘ ι R),
+  star_involutive := λ x, by {
+    unfold has_star.star,
+    simp only [function.comp_apply],
+    refine free_algebra.induction R X _ _ _ _ x; intros; simp [*] },
+  star_mul := λ a b, by simp,
+  star_add := λ a b, by simp }
+
+@[simp]
+lemma star_ι (x : X) : star (ι R x) = (ι R x) :=
+by simp [star, has_star.star]
+
+@[simp]
+lemma star_algebra_map (r : R) : star (algebra_map R (free_algebra R X) r) = (algebra_map R _ r) :=
+by simp [star, has_star.star]
+
+/-- `star` as an `alg_equiv` -/
+def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵒᵖ :=
+{ commutes' := λ r, by simp [star_algebra_map],
+  ..star_ring_equiv }
 
 end free_algebra

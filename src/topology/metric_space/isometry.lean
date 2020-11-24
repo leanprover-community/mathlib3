@@ -211,6 +211,8 @@ protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 
 @[simp] lemma coe_to_homeomorph (h : α ≃ᵢ β) : ⇑(h.to_homeomorph) = h := rfl
 
+@[simp] lemma coe_to_homeomorph_symm (h : α ≃ᵢ β) : ⇑(h.to_homeomorph.symm) = h.symm := rfl
+
 @[simp] lemma to_homeomorph_to_equiv (h : α ≃ᵢ β) :
   h.to_homeomorph.to_equiv = h.to_equiv :=
 rfl

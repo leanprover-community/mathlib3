@@ -28,6 +28,9 @@ by rw [even_iff, mod_two_ne_zero]
 @[simp] lemma odd_iff_not_even {n : ℕ} : odd n ↔ ¬ even n :=
 by rw [not_even_iff, odd_iff]
 
+lemma even_or_odd (n : ℕ) : even n ∨ odd n :=
+or.imp_right (odd_iff_not_even.2) (em (even n))
+
 lemma odd_gt_zero {n : ℕ} (h : odd n) : 0 < n :=
 by { obtain ⟨k, hk⟩ := h, rw hk, exact succ_pos', }
 
@@ -109,6 +112,14 @@ theorem neg_one_pow_eq_one_iff_even {α : Type*} [ring α] {n : ℕ} (h1 : (-1 :
 ⟨λ h, n.mod_two_eq_zero_or_one.elim (dvd_iff_mod_eq_zero _ _).2
   (λ hn, by rw [neg_one_pow_eq_pow_mod_two, hn, pow_one] at h; exact (h1 h).elim),
   λ ⟨m, hm⟩, by rw [neg_one_pow_eq_pow_mod_two, hm]; simp⟩
+
+@[simp] theorem neg_one_pow_two {α : Type*} [ring α] : (-1 : α) ^ 2 = 1 := by simp
+
+theorem neg_one_pow_of_even {α : Type*} [ring α] {n : ℕ} : even n → (-1 : α) ^ n = 1 :=
+by { rintro ⟨c, rfl⟩, simp [pow_mul] }
+
+theorem neg_one_pow_of_odd {α : Type*} [ring α] {n : ℕ} : odd n → (-1 : α) ^ n = -1 :=
+by { rintro ⟨c, rfl⟩, simp [pow_add, pow_mul] }
 
 -- Here are examples of how `parity_simps` can be used with `nat`.
 

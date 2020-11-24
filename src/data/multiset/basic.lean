@@ -848,6 +848,13 @@ quotient.induction_on s $ λ l,
 lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
 
+lemma prod_dvd_prod [comm_monoid α] {s t : multiset α} (h : s ≤ t) :
+  s.prod ∣ t.prod :=
+begin
+  rcases multiset.le_iff_exists_add.1 h with ⟨z, rfl⟩,
+  simp,
+end
+
 theorem prod_eq_zero_iff [comm_cancel_monoid_with_zero α] [nontrivial α]
   {s : multiset α} :
   s.prod = 0 ↔ (0 : α) ∈ s :=
@@ -1797,6 +1804,17 @@ instance : semilattice_sup_bot (multiset α) :=
 
 end
 
+@[simp]
+lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
+  a ∈ n •ℕ s ↔ a ∈ s :=
+begin
+  classical,
+  cases n,
+  { exfalso, apply h0 rfl },
+  rw [← not_iff_not, ← count_eq_zero, ← count_eq_zero],
+  simp [h0],
+end
+
 /- relator -/
 
 section rel
@@ -2040,12 +2058,7 @@ by simp [disjoint, or_imp_distrib, forall_and_distrib]
 
 lemma disjoint_map_map {f : α → γ} {g : β → γ} {s : multiset α} {t : multiset β} :
   disjoint (s.map f) (t.map g) ↔ (∀a∈s, ∀b∈t, f a ≠ g b) :=
-begin
-  simp [disjoint],
-  split,
-  from assume h a ha b hb eq, h _ ha rfl _ hb eq.symm,
-  from assume h c a ha eq₁ b hb eq₂, h _ ha _ hb (eq₂.symm ▸ eq₁)
-end
+by { simp [disjoint, @eq_comm _ (f _) (g _)], refl }
 
 /-- `pairwise r m` states that there exists a list of the elements s.t. `r` holds pairwise on this list. -/
 def pairwise (r : α → α → Prop) (m : multiset α) : Prop :=

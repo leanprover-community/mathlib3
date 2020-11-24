@@ -64,7 +64,9 @@ def initial_limit_cone : limits.colimit_cocone (functor.empty (Type u)) :=
 open category_theory.limits.walking_pair
 
 /-- The product type `X × Y` forms a cone for the binary product of `X` and `Y`. -/
-@[simps {rhs_md := semireducible}]
+-- We manually generate the other projection lemmas since the simp-normal form for the legs is
+-- otherwise not created correctly.
+@[simps X {rhs_md := semireducible}]
 def binary_product_cone (X Y : Type u) : binary_fan X Y :=
 binary_fan.mk prod.fst prod.snd
 
@@ -105,7 +107,7 @@ def binary_product_functor : Type u ⥤ Type u ⥤ Type u :=
 The product functor given by the instance `has_binary_products (Type u)` is isomorphic to the
 explicit binary product functor given by the product type.
 -/
-noncomputable def same_prod : binary_product_functor ≅ (prod.functor : Type u ⥤ _) :=
+noncomputable def binary_product_iso_prod : binary_product_functor ≅ (prod.functor : Type u ⥤ _) :=
 begin
   apply nat_iso.of_components (λ X, _) _,
   { apply nat_iso.of_components (λ Y, _) _,
@@ -203,6 +205,10 @@ begin
   ext ⟨⟩,
   apply hx'.trans (congr_fun (fork.is_limit.lift' t _ hy').2 ⟨⟩).symm,
 end
+
+lemma type_equalizer_iff_unique :
+  nonempty (is_limit (fork.of_ι _ w)) ↔ (∀ (y : Y), g y = h y → ∃! (x : X), f x = y) :=
+⟨λ i, unique_of_type_equalizer _ _ (classical.choice i), λ k, ⟨type_equalizer_of_unique f w k⟩⟩
 
 /-- Show that the subtype `{x : Y // g x = h x}` is an equalizer for the pair `(g,h)`. -/
 def equalizer_limit : limits.limit_cone (parallel_pair g h) :=

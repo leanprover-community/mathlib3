@@ -875,6 +875,17 @@ proceed as follows:
   `eq'ᵢ : x = y`.
 - Otherwise `eqᵢ` remains unchanged.
 -/
+/-
+TODO `simplify_ih` currently uses Lean's builtin unification procedure to
+process the index equations. This procedure has some limitations. For example,
+we would like to clear an IH that assumes `0 = 1` since this IH can never be
+applied, but Lean's unification doesn't allow us to conclude this.
+
+It would therefore be preferable to use the algorithm from
+`tactic.unify_equations` instead. There is no problem with this in principle,
+but it requires a complete refactoring of `unify_equations` so that it works
+not only on hypotheses but on arbitrary terms.
+-/
 meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr) :
   tactic expr := do
   T ← infer_type ih,

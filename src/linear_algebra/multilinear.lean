@@ -84,8 +84,8 @@ initialize_simps_projections multilinear_map (to_fun → apply)
 
 @[simp] lemma to_fun_eq_coe : f.to_fun = f := rfl
 
-@[simp] lemma coe_mk (f : (Π i, M₁ i) → M₂) (h₁ h₂ ) : ⇑(⟨f, h₁, h₂⟩ :
-  multilinear_map R M₁ M₂) = f := rfl
+@[simp] lemma coe_mk (f : (Π i, M₁ i) → M₂) (h₁ h₂ ) :
+  ⇑(⟨f, h₁, h₂⟩ : multilinear_map R M₁ M₂) = f := rfl
 
 theorem congr_fun {f g : multilinear_map R M₁ M₂} (h : f = g) (x : Π i, M₁ i) : f x = g x :=
 congr_arg (λ h : multilinear_map R M₁ M₂, h x) h

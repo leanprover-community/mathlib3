@@ -895,9 +895,9 @@ begin
       use k, use hk, exact hlk, },  },
 end
 
-
+@[elab_as_eliminator]
 lemma swap_adj_induction_on {n : ℕ} {P : perm (fin n) → Prop} (f : equiv.perm $ fin n) :
-P 1 → (∀ f (x y : fin n), ↑x + 1 = ↑y → P f → P (swap x y * f)) → P f :=
+  P 1 → (∀ f (x y : fin n), ↑x + 1 = ↑y → P f → P (swap x y * f)) → P f :=
 begin
   cases perm_eq_prod_swap_adj n f with l hl,
   induction l with g l ih generalizing f,
@@ -914,24 +914,9 @@ begin
     end h1 hmul_swap),  },
 end
 
+@[elab_as_eliminator]
 lemma swap_adj_induction_on' {n : ℕ} {P : perm (fin n) → Prop} (f : equiv.perm $ fin n) :
-P 1 → (∀ s (x y : fin n), ↑x + 1 = ↑y → P s → P (s * swap x y)) → P f :=
-begin
-  intros h1 IH,
-  let Q : perm (fin n) → Prop := λ f, P (f⁻¹),
-  suffices hQ : ∀ f, Q f,
-  { convert hQ f⁻¹,
-    simp, },
-  intro f,
-  apply swap_adj_induction_on,
-  {exact h1},
-  intros f x y h hQ,
-  show P (((swap x y) * f)⁻¹),
-  rw [mul_inv_rev, swap_inv],
-  apply IH,
-  { exact h,  },
-  { exact hQ, },
-end
-
+  P 1 → (∀ s (x y : fin n), ↑x + 1 = ↑y → P s → P (s * swap x y)) → P f :=
+λ h1 IH, inv_inv f ▸ swap_adj_induction_on f⁻¹ h1 (λ f, IH f⁻¹)
 
 end equiv.perm

@@ -1058,7 +1058,7 @@ begin
   exact fg_map (is_noetherian.noetherian J),
 end
 
-lemma is_noetherian_span_singleton_to_map_inv_mul (x : R₁) {I : fractional_ideal g}
+lemma is_noetherian_span_singleton_inv_to_map_mul (x : R₁) {I : fractional_ideal g}
   (hI : is_noetherian R₁ I) :
   is_noetherian R₁ (span_singleton (g.to_map x)⁻¹ * I : fractional_ideal g) :=
 begin
@@ -1084,7 +1084,7 @@ end
 theorem is_noetherian [is_noetherian_ring R₁] (I : fractional_ideal g) : is_noetherian R₁ I :=
 begin
   obtain ⟨d, J, h_nzd, rfl⟩ := exists_eq_span_singleton_mul I,
-  apply is_noetherian_span_singleton_to_map_inv_mul,
+  apply is_noetherian_span_singleton_inv_to_map_mul,
   apply is_noetherian_coe_to_fractional_ideal,
 end
 

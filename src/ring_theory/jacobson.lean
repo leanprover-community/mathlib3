@@ -299,14 +299,14 @@ begin
     (is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ' I hI)).left,
   have : ((I.comap ϕ'.to_map).comap φ).is_maximal,
   { rwa [comap_comap, hcomm, ← comap_comap] at this },
-  rw is_maximal_iff_bot_quotient_is_maximal at this ⊢,
+  rw ← bot_quotient_is_maximal_iff at this ⊢,
   refine is_maximal_of_is_integral_of_is_maximal_comap' f _ ⊥
     ((eq_bot_iff.2 (comap_bot_le_of_injective f quotient_map_injective)).symm ▸ this),
   exact is_integral_tower_bot_of_is_integral' f g quotient_map_injective
     ((comp_quotient_map_eq_of_comp_eq hcomm I).symm ▸
     (ring_hom.is_integral_trans (is_integral_of_surjective'
       (localization_map.surjective_quotient_map_of_maximal_of_localization
-      (by rwa [comap_comap, hcomm, is_maximal_iff_bot_quotient_is_maximal])))
+      (by rwa [comap_comap, hcomm, ← bot_quotient_is_maximal_iff])))
       (is_integral_quotient_of_is_integral' hφ'))),
 end
 
@@ -367,9 +367,10 @@ begin
         exact subring.mul_mem _ hr (subring.subset_closure (set.mem_image_of_mem _ (or.inl rfl))) } } }
 end
 
-theorem is_jacobson_polynomial_iff_is_jacobson : is_jacobson (polynomial R) ↔  is_jacobson R :=
+theorem is_jacobson_polynomial_iff_is_jacobson : is_jacobson (polynomial R) ↔ is_jacobson R :=
 begin
   split; introI H,
+  { exact is_jacobson_of_surjective ⟨eval₂_ring_hom (ring_hom.id _) 1, λ x, ⟨C x, by simp⟩⟩ },
   { rw is_jacobson_iff_prime_eq,
     introsI I hI,
     let R' := ((quotient.mk I).comp C).range,
@@ -393,7 +394,6 @@ begin
         (le_trans (le_of_eq this) (sup_le le_rfl hi'))) le_jacobson,
       all_goals {exact polynomial.map_surjective i hi} },
     refine is_jacobson_polynomial_of_domain R' I' (eq_zero_of_polynomial_mem_map_range I hi') },
-  { exact is_jacobson_of_surjective ⟨eval₂_ring_hom (ring_hom.id _) 1, λ x, ⟨C x, by simp⟩⟩ }
 end
 
 instance [is_jacobson R] : is_jacobson (polynomial R) :=
@@ -410,14 +410,14 @@ nat.rec_on n
     ((mv_polynomial.ring_equiv_of_equiv R (equiv.equiv_pempty $ fin.elim0)).trans
     (mv_polynomial.pempty_ring_equiv R))).mpr H)
   (λ n hn, (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).2
-    (is_jacobson_polynomial_iff_is_jacobson.1 hn))
+    (is_jacobson_polynomial_iff_is_jacobson.2 hn))
 
 instance {ι : Type*} [fintype ι] [is_jacobson R] : is_jacobson (mv_polynomial ι R) :=
 begin
   haveI := classical.dec_eq ι,
   obtain ⟨e⟩ := fintype.equiv_fin ι,
   rw is_jacobson_iso (mv_polynomial.ring_equiv_of_equiv R e),
-  exact is_jacobson_mv_polynomial _
+  exact is_jacobson_mv_polynomial_fin _
 end
 
 end polynomial

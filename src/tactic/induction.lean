@@ -157,18 +157,19 @@ meta structure inductive_info :=
 (num_indices : ℕ)
 
 /--
-Information about an eliminee (i.e. the hypothesis on which we are performing
-induction). Contains:
+Information about a major premise (i.e. the hypothesis on which we are
+performing induction). Contains:
 
-- `ename`: the eliminee's name.
-- `eexpr`: the eliminee hypothesis.
-- `type`: the type of `eexpr`.
-- `args`: the eliminee's arguments. The eliminee has type `I x₀ ... xₙ`, where
-  `I` is an inductive type. `args` is the map `[0 → x₀, ..., n → xₙ]`.
+- `mpname`: the major premise's name.
+- `mpexpr`: the major premise itself.
+- `type`: the type of `mpexpr`.
+- `args`: the arguments of the major premise. The major premise has type
+  `I x₀ ... xₙ`, where `I` is an inductive type. `args` is the map
+  `[0 → x₀, ..., n → xₙ]`.
 -/
-meta structure eliminee_info :=
-(ename : name)
-(eexpr : expr)
+meta structure major_premise_info :=
+(mpname : name)
+(mpexpr : expr)
 (type : expr)
 (args : rb_map ℕ expr)
 
@@ -300,14 +301,16 @@ meta def get_inductive_info (I : name) : tactic inductive_info := do
       num_indices := num_indices }
 
 /--
-Get information about an eliminee. The eliminee must be a local hypothesis.
+Get information about a major premise. The given `expr` must be a local
+hypothesis.
 -/
-meta def get_eliminee_info (eliminee : expr) : tactic eliminee_info := do
-  type ← infer_type eliminee,
+meta def get_major_premise_info (major_premise : expr) :
+  tactic major_premise_info := do
+  type ← infer_type major_premise,
   ⟨f, args⟩ ← get_app_fn_args_whnf type,
   pure
-    { ename := eliminee.local_pp_name,
-      eexpr := eliminee,
+    { mpname := major_premise.local_pp_name,
+      mpexpr := major_premise,
       type := type,
       args := args.to_rb_map }
 
@@ -315,7 +318,7 @@ meta def get_eliminee_info (eliminee : expr) : tactic eliminee_info := do
 /-!
 ## Constructor Argument Naming
 
-We define the algorithm for naming constructor argument (which is a remarkably
+We define the algorithm for naming constructor arguments (which is a remarkably
 big part of the tactic).
 -/
 
@@ -324,7 +327,7 @@ big part of the tactic).
 Information used when naming a constructor argument.
 -/
 meta structure constructor_argument_naming_info :=
-(einfo : eliminee_info)
+(mpinfo : major_premise_info)
 (iinfo : inductive_info)
 (cinfo : constructor_info)
 (ainfo : constructor_argument_info)
@@ -341,7 +344,7 @@ constructor_argument_naming_info → tactic (list name)
 Naming rule for recursive constructor arguments.
 -/
 meta def constructor_argument_naming_rule_rec : constructor_argument_naming_rule :=
-λ i, pure $ if i.ainfo.is_recursive then [i.einfo.ename] else []
+λ i, pure $ if i.ainfo.is_recursive then [i.mpinfo.mpname] else []
 
 /--
 Naming rule for constructor arguments associated with an index.
@@ -349,17 +352,20 @@ Naming rule for constructor arguments associated with an index.
 meta def constructor_argument_naming_rule_index : constructor_argument_naming_rule :=
 λ i,
 let index_occs := i.ainfo.index_occurrences in
-let eliminee_args := i.einfo.args in
-let get_eliminee_arg_local_names : ℕ → option (name × name) := λ i, do {
-  arg ← eliminee_args.find i,
+let major_premise_args := i.mpinfo.args in
+let get_major_premise_arg_local_names : ℕ → option (name × name) := λ i, do {
+  arg ← major_premise_args.find i,
   (uname, ppname, _) ← arg.match_local_const,
   pure (uname, ppname)
 } in
 let local_index_instantiations :=
-  (index_occs.map get_eliminee_arg_local_names).all_some in
--- Right now, this rule only triggers if the eliminee arg is exactly a local
--- const. We could consider a more permissive rule where the eliminee arg can be
--- an arbitrary term as long as that term *contains* only a single local const.
+  (index_occs.map get_major_premise_arg_local_names).all_some in
+/-
+Right now, this rule only triggers if the major premise arg is exactly a
+local const. We could consider a more permissive rule where the major premise
+arg can be an arbitrary term as long as that term *contains* only a single local
+const.
+-/
 pure $
   match local_index_instantiations with
   | none := []
@@ -503,7 +509,7 @@ Input:
 
 - `generate_induction_hyps`: whether we generate induction hypotheses (i.e.
   whether `eliminate_hyp` is in `induction` or `cases` mode).
-- `einfo`: information about the eliminee.
+- `mpinfo`: information about the major premise.
 - `iinfo`: information about the inductive type.
 - `cinfo`: information about the constructor whose minor premise we are
   processing.
@@ -518,9 +524,9 @@ Output:
 - The newly introduced induction hypotheses.
 -/
 meta def constructor_renames (generate_induction_hyps : bool)
-  (einfo : eliminee_info) (iinfo : inductive_info) (cinfo : constructor_info)
-  (with_names : list name) (args : list (name × constructor_argument_info))
-  (ihs : list (name × name)) :
+  (mpinfo : major_premise_info) (iinfo : inductive_info)
+  (cinfo : constructor_info) (with_names : list name)
+  (args : list (name × constructor_argument_info)) (ihs : list (name × name)) :
   tactic (list expr × list expr) := do
 
   -- Rename constructor arguments
@@ -532,7 +538,7 @@ meta def constructor_renames (generate_induction_hyps : bool)
       new ←
         match get_with_name with_name with
         | some with_name := pure [with_name]
-        | none := constructor_argument_names ⟨einfo, iinfo, cinfo, ainfo⟩
+        | none := constructor_argument_names ⟨mpinfo, iinfo, cinfo, ainfo⟩
         end,
       -- Some of the arg hyps may have been cleared by earlier simplification
       -- steps, so get_local may fail.
@@ -593,13 +599,13 @@ auto-generalisation functionality:
   * Hypotheses depending on any `h` in `hs` also remain fixed. If we were to
     generalise them, we would have to generalise `h` as well.
   * Hypotheses which do not occur in the target and which do not mention the
-    eliminee or its dependencies are never generalised. Generalising them would
-    not lead to a more general induction hypothesis.
+    major premise or its dependencies are never generalised. Generalising them
+    would not lead to a more general induction hypothesis.
   * Frozen local instances and their dependencies are never generalised.
 
 - `generalize_only hs` means that only the `hs` are generalised. Exception:
-  hypotheses which depend on the eliminee are generalised even if they do not
-  appear in `hs`.
+  hypotheses which depend on the major premise are generalised even if they do
+  not appear in `hs`.
 -/
 @[derive has_reflect]
 inductive generalization_mode
@@ -612,39 +618,42 @@ instance : inhabited generalization_mode :=
 namespace generalization_mode
 
 /--
-Given the eliminee and a generalization_mode, this function returns the
+Given the major premise and a generalization_mode, this function returns the
 unique names of the hypotheses that should be generalized. See
 `generalization_mode` for what these are.
 -/
-meta def to_generalize (eliminee : expr) : generalization_mode → tactic name_set
+meta def to_generalize (major_premise : expr) :
+  generalization_mode → tactic name_set
 | (generalize_only ns) := do
-  eliminee_rev_deps ← reverse_dependencies_of_hyps [eliminee],
-  let eliminee_rev_deps :=
-    name_set.of_list $ eliminee_rev_deps.map local_uniq_name,
+  major_premise_rev_deps ← reverse_dependencies_of_hyps [major_premise],
+  let major_premise_rev_deps :=
+    name_set.of_list $ major_premise_rev_deps.map local_uniq_name,
   ns ← ns.mmap (functor.map local_uniq_name ∘ get_local),
-  pure $ eliminee_rev_deps.insert_list ns
+  pure $ major_premise_rev_deps.insert_list ns
 | (generalize_all_except fixed) := do
   fixed ← fixed.mmap get_local,
   tgt ← target,
   let tgt_dependencies := tgt.list_local_const_unique_names,
-  eliminee_type ← infer_type eliminee,
-  eliminee_dependencies ← dependency_name_set_of_hyp_inclusive eliminee,
+  major_premise_type ← infer_type major_premise,
+  major_premise_dependencies ← dependency_name_set_of_hyp_inclusive major_premise,
   fixed_dependencies ←
-    (eliminee :: fixed).mmap dependency_name_set_of_hyp_inclusive,
+    (major_premise :: fixed).mmap dependency_name_set_of_hyp_inclusive,
   let fixed_dependencies := fixed_dependencies.foldl name_set.union mk_name_set,
   ctx ← revertible_local_context,
   to_revert ← ctx.mmap_filter $ λ h, do {
-    h_depends_on_eliminee_deps ←
+    h_depends_on_major_premise_deps ←
       -- TODO `hyp_depends_on_local_name_set` is somewhat expensive
-      hyp_depends_on_local_name_set h eliminee_dependencies,
+      hyp_depends_on_local_name_set h major_premise_dependencies,
     let h_name := h.local_uniq_name,
     let rev :=
       ¬ fixed_dependencies.contains h_name ∧
-      (h_depends_on_eliminee_deps ∨ tgt_dependencies.contains h_name),
-    -- I think `h_depends_on_eliminee_deps` is an overapproximation. What we
-    -- actually want is any hyp that depends either on the eliminee or on one of
-    -- the eliminee's index args. (But the overapproximation seems to work okay
-    -- in practice as well.)
+      (h_depends_on_major_premise_deps ∨ tgt_dependencies.contains h_name),
+    /-
+    I think `h_depends_on_major_premise_deps` is an overapproximation. What we
+    actually want is any hyp that depends either on the major_premise or on one
+    of the major_premise's index args. (But the overapproximation seems to work
+    okay in practice as well.)
+    -/
     pure $ if rev then some h_name else none
   },
   pure $ name_set.of_list to_revert
@@ -652,11 +661,12 @@ meta def to_generalize (eliminee : expr) : generalization_mode → tactic name_s
 end generalization_mode
 
 /--
-Generalize hypotheses for the given eliminee and generalization mode. See
+Generalize hypotheses for the given major premise and generalization mode. See
 `generalization_mode` and `to_generalize`.
 -/
-meta def generalize_hyps (eliminee : expr) (gm : generalization_mode) : tactic ℕ := do
-  to_revert ← gm.to_generalize eliminee,
+meta def generalize_hyps (major_premise : expr) (gm : generalization_mode) :
+  tactic ℕ := do
+  to_revert ← gm.to_generalize major_premise,
   ⟨n, _⟩ ← revert_name_set to_revert,
   pure n
 
@@ -664,7 +674,7 @@ meta def generalize_hyps (eliminee : expr) (gm : generalization_mode) : tactic �
 /-!
 ## Complex Index Generalisation
 
-We define how complex index arguments of the eliminee are generalised.
+We define how complex index arguments of the major premise are generalised.
 -/
 
 /--
@@ -672,49 +682,52 @@ Generalise the complex index arguments.
 
 Input:
 
-- `eliminee`: the eliminee.
+- `major premise`: the major premise.
 - `num_params`: the number of parameters of the inductive type.
 - `generate_induction_hyps`: whether we generate induction hypotheses (i.e.
   whether `eliminate_hyp` is in `induction` or `cases` mode).
 
 Output:
 
-- The new eliminee. This procedure may change the eliminee's type signature, so
-  the old eliminee hypothesis is invalidated.
+- The new major premise. This procedure may change the major premise's type
+  signature, so the old major premise hypothesis is invalidated.
 - The number of index placeholder hypotheses we introduced.
 - The index placeholder hypotheses we introduced.
 - The number of hypotheses which were reverted because they contain complex
   indices.
 -/
-meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
+meta def generalize_complex_index_args (major_premise : expr) (num_params : ℕ)
   (generate_induction_hyps : bool) : tactic (expr × ℕ × list name × ℕ) :=
 focus1 $ do
-  eliminee_type ← infer_type eliminee,
-  (eliminee_head, eliminee_args) ← get_app_fn_args_whnf eliminee_type,
-  let ⟨eliminee_param_args, eliminee_index_args⟩ :=
-    eliminee_args.split_at num_params,
+  major_premise_type ← infer_type major_premise,
+  (major_premise_head, major_premise_args) ←
+    get_app_fn_args_whnf major_premise_type,
+  let ⟨major_premise_param_args, major_premise_index_args⟩ :=
+    major_premise_args.split_at num_params,
 
   -- TODO Add equations only for complex index args (not all index args).
   -- This shouldn't matter semantically, but we'd get simpler terms.
 
-  let js := eliminee_index_args,
+  let js := major_premise_index_args,
   ctx ← revertible_local_context,
   tgt ← target,
-  eliminee_deps ← dependency_name_set_of_hyp_inclusive eliminee,
+  major_premise_deps ← dependency_name_set_of_hyp_inclusive major_premise,
 
-  -- Revert the hypotheses which depend on the index args or the eliminee. We
-  -- exclude dependencies of the eliminee because we can't replace their index
-  -- occurrences anyway when we apply the recursor.
+  -- Revert the hypotheses which depend on the index args or the major_premise.
+  -- We exclude dependencies of the major premise because we can't replace their
+  -- index occurrences anyway when we apply the recursor.
   relevant_ctx ← ctx.mfilter $ λ h, do {
-    let dep_of_eliminee := eliminee_deps.contains h.local_uniq_name,
-    dep_on_eliminee ← hyp_depends_on_locals h [eliminee],
+    let dep_of_major_premise := major_premise_deps.contains h.local_uniq_name,
+    dep_on_major_premise ← hyp_depends_on_locals h [major_premise],
     H ← infer_type h,
     dep_of_index ← js.many $ λ j, kdepends_on H j,
     -- TODO We need a variant of `kdepends_on` that takes local defs into account.
-    pure $ (dep_on_eliminee ∧ h ≠ eliminee) ∨ (dep_of_index ∧ ¬ dep_of_eliminee)
+    pure $
+      (dep_on_major_premise ∧ h ≠ major_premise) ∨
+      (dep_of_index ∧ ¬ dep_of_major_premise)
   },
   ⟨relevant_ctx_size, relevant_ctx⟩ ← revert_lst' relevant_ctx,
-  revert eliminee,
+  revert major_premise,
 
   -- Create the local constants that will replace the index args. We have to be
   -- careful to get the right types.
@@ -732,15 +745,16 @@ focus1 $ do
   -- Replace the index args in the relevant context.
   new_ctx ← relevant_ctx.mmap $ λ h, js_ks.mfoldr (λ ⟨j, k⟩ h, kreplace h j k) h,
 
-  -- Replace the index args in the eliminee
-  let new_eliminee_type := eliminee_head.mk_app (eliminee_param_args ++ ks),
-  let new_eliminee :=
-    local_const eliminee.local_uniq_name eliminee.local_pp_name
-      eliminee.binding_info new_eliminee_type,
+  -- Replace the index args in the major premise.
+  let new_major_premise_type :=
+    major_premise_head.mk_app (major_premise_param_args ++ ks),
+  let new_major_premise :=
+    local_const major_premise.local_uniq_name major_premise.local_pp_name
+      major_premise.binding_info new_major_premise_type,
 
   -- Replace the index args in the target.
   new_tgt ← js_ks.mfoldr (λ ⟨j, k⟩ tgt, kreplace tgt j k) tgt,
-  let new_tgt := new_tgt.pis (new_eliminee :: new_ctx),
+  let new_tgt := new_tgt.pis (new_major_premise :: new_ctx),
 
   -- Generate the index equations and their proofs.
   let eq_name := if generate_induction_hyps then `induction_eq else `cases_eq,
@@ -752,16 +766,16 @@ focus1 $ do
   -- Assert the generalized goal and derive the current goal from it.
   generalizes.step3 new_tgt js ks eqs eq_proofs,
 
-  -- Introduce the index variables and eliminee. The index equations
+  -- Introduce the index variables and major premise. The index equations
   -- and the relevant context remain reverted.
   let num_index_vars := js.length,
   index_vars ← intron' num_index_vars,
   index_equations ← intron' num_index_vars,
-  eliminee ← intro1,
+  major_premise ← intro1,
   revert_lst index_equations,
 
   let index_vars := index_vars.map local_pp_name,
-  pure (eliminee, index_vars.length, index_vars, relevant_ctx_size)
+  pure (major_premise, index_vars.length, index_vars, relevant_ctx_size)
 
 
 /-!
@@ -972,9 +986,9 @@ non-interactive variant `eliminate_hyp.`
 open eliminate
 
 /--
-`eliminate_hyp generate_ihs eliminee gm with_names` performs induction or case
-analysis on the hypothesis `eliminee`. If `generate_ihs` is true, the tactic
-performs induction, otherwise case analysis.
+`eliminate_hyp generate_ihs h gm with_names` performs induction or case analysis
+on the hypothesis `h`. If `generate_ihs` is true, the tactic performs induction,
+otherwise case analysis.
 
 In case analysis mode, `eliminate_hyp` is very similar to `tactic.cases`. The
 only differences (assuming no bugs in `eliminate_hyp`) are that `eliminate_hyp`
@@ -984,16 +998,16 @@ generates more human-friendly names.
 In induction mode, `eliminate_hyp` is similar to `tactic.induction`, but with
 more significant differences:
 
-- If the eliminee (the hypothesis we are performing induction on) has complex
-  indices, `eliminate_hyp` 'remembers' them. A complex expression is any
-  expression that is not merely a local hypothesis. An eliminee
-  `e : I p₁ ... pₙ j₁ ... jₘ`, where `I` is an inductive type with `n`
-  parameters and `m` indices, has a complex index if any of the `jᵢ` are
-  complex. In this situation, standard `induction` effectively forgets the exact
-  values of the complex indices, which often leads to unprovable goals.
-  `eliminate_hyp` 'remembers' them by adding propositional equalities. As a
-  result, you may find equalities named `induction_eq` in your goal, and the
-  induction hypotheses may also quantify over additional equalities.
+- If `h` (the hypothesis we are performing induction on) has complex indices,
+  `eliminate_hyp` 'remembers' them. A complex expression is any expression that
+  is not merely a local hypothesis. A hypothesis `h : I p₁ ... pₙ j₁ ... jₘ`,
+  where `I` is an inductive type with `n` parameters and `m` indices, has a
+  complex index if any of the `jᵢ` are complex. In this situation, standard
+  `induction` effectively forgets the exact values of the complex indices,
+  which often leads to unprovable goals. `eliminate_hyp` 'remembers' them by
+  adding propositional equalities. As a  result, you may find equalities named
+  `induction_eq` in your goal, and the induction hypotheses may also quantify
+  over additional equalities.
 - `eliminate_hyp` generalises induction hypotheses as much as possible by
   default. This means that if you eliminate `n` in the goal
   ```
@@ -1018,19 +1032,18 @@ To debug this tactic, use
 set_option trace.eliminate_hyp true
 ```
 -/
-meta def eliminate_hyp (generate_ihs : bool) (eliminee : expr)
+meta def eliminate_hyp (generate_ihs : bool) (major_premise : expr)
   (gm := generalization_mode.generalize_all_except [])
   (with_names : list name := []) : tactic unit :=
 focus1 $ do
-  einfo ← get_eliminee_info eliminee,
-  let eliminee := einfo.eexpr,
-  let eliminee_type := einfo.type,
-  let eliminee_args := einfo.args.values.reverse,
+  mpinfo ← get_major_premise_info major_premise,
+  let major_premise_type := mpinfo.type,
+  let major_premise_args := mpinfo.args.values.reverse,
   env ← get_env,
 
   -- Get info about the inductive type
-  iname ← get_app_fn_const_whnf eliminee_type <|> fail!
-    "The type of {eliminee} should be an inductive type, but it is\n{eliminee_type}",
+  iname ← get_app_fn_const_whnf major_premise_type <|> fail!
+    "The type of {major_premise} should be an inductive type, but it is\n{major_premise_type}",
   iinfo ← get_inductive_info iname,
 
   -- We would like to disallow mutual/nested inductive types, since these have
@@ -1041,14 +1054,14 @@ focus1 $ do
   trace_state_eliminate_hyp "State before complex index generalisation:",
 
   -- Generalise complex indices
-  (eliminee, num_index_vars, index_var_names, num_index_generalized) ←
-    generalize_complex_index_args eliminee iinfo.num_params generate_ihs,
+  (major_premise, num_index_vars, index_var_names, num_index_generalized) ←
+    generalize_complex_index_args major_premise iinfo.num_params generate_ihs,
 
   trace_state_eliminate_hyp
     "State after complex index generalisation and before auto-generalisation:",
 
   -- Generalise hypotheses according to the given generalization_mode.
-  num_auto_generalized ← generalize_hyps eliminee gm,
+  num_auto_generalized ← generalize_hyps major_premise gm,
   let num_generalized := num_index_generalized + num_auto_generalized,
 
   -- NOTE: The previous step may have changed the unique names of all hyps in
@@ -1064,21 +1077,22 @@ focus1 $ do
   -- Apply the recursor. We first try the nondependent recursor, then the
   -- dependent recursor (if available).
 
-  -- Construct a pexpr `@rec _ ... _ eliminee`. Why not ``(%%rec %%eliminee)?
-  -- Because for whatever reason, `false.rec_on` takes the motive not as an
-  -- implicit argument, like any other recursor, but as an explicit one.
-  -- Why not something based on `mk_app` or `mk_mapp`? Because we need the
-  -- special elaborator support for `elab_as_eliminator` definitions.
+  -- Construct a pexpr `@rec _ ... _ major_premise`. Why not
+  -- ``(%%rec %%major_premise)? Because for whatever reason, `false.rec_on`
+  -- takes the motive not as an implicit argument, like any other recursor, but
+  -- as an explicit one. Why not something based on `mk_app` or `mk_mapp`?
+  -- Because we need the special elaborator support for `elab_as_eliminator`
+  -- definitions.
   let rec_app : name → pexpr := λ rec_suffix,
     (unchecked_cast expr.mk_app : pexpr → list pexpr → pexpr)
       (pexpr.mk_explicit (const (iname ++ rec_suffix) []))
-      (list.repeat pexpr.mk_placeholder (eliminee_args.length + 1) ++
-        [to_pexpr eliminee]),
+      (list.repeat pexpr.mk_placeholder (major_premise_args.length + 1) ++
+        [to_pexpr major_premise]),
   let rec_suffix := if generate_ihs then "rec_on" else "cases_on",
   let drec_suffix := if generate_ihs then "drec_on" else "dcases_on",
   interactive.apply (rec_app rec_suffix)
     <|> interactive.apply (rec_app drec_suffix)
-    <|> fail! "Failed to apply the (dependent) recursor for {iname} on {eliminee}.",
+    <|> fail! "Failed to apply the (dependent) recursor for {iname} on {major_premise}.",
 
   -- Prepare the "with" names for each constructor case.
   let with_names := prod.fst $
@@ -1093,19 +1107,19 @@ focus1 $ do
       trace_eliminate_hyp $ format! "Case {cinfo.cname}",
       trace_state_eliminate_hyp "Initial state:",
 
-      -- Get the eliminee's arguments. (Some of these may have changed due to
-      -- the generalising step above.)
-      eliminee_type ← infer_type eliminee,
-      eliminee_args ← get_app_args_whnf eliminee_type,
+      -- Get the major premise's arguments. (Some of these may have changed due
+      -- to the generalising step above.)
+      major_premise_type ← infer_type major_premise,
+      major_premise_args ← get_app_args_whnf major_premise_type,
 
       -- Clear the eliminated hypothesis (if possible)
-      try $ clear eliminee,
+      try $ clear major_premise,
 
       -- Clear the index args (unless other stuff in the goal depends on them)
-      eliminee_args.mmap' (try ∘ clear),
+      major_premise_args.mmap' (try ∘ clear),
 
       trace_state_eliminate_hyp
-        "State after clearing the eliminee (and its arguments) and before introductions:",
+        "State after clearing the major premise (and its arguments) and before introductions:",
 
       -- Introduce the constructor arguments
       (constructor_arg_names, ih_names) ←
@@ -1156,7 +1170,7 @@ focus1 $ do
       -- hypotheses in the context, and therefore more of the desired
       -- names may be free.
       (constructor_arg_hyps, ih_hyps) ←
-        constructor_renames generate_ihs einfo iinfo cinfo with_names
+        constructor_renames generate_ihs mpinfo iinfo cinfo with_names
           constructor_arg_names ih_names,
 
       trace_state_eliminate_hyp "Final state:",
@@ -1175,28 +1189,28 @@ focus1 $ do
 
 /--
 A variant of `tactic.eliminate_hyp` which performs induction or case analysis on
-an arbitrary expression. `eliminate_hyp` requires that the eliminee is a
+an arbitrary expression. `eliminate_hyp` requires that the major premise is a
 hypothesis. `eliminate_expr` lifts this restriction by generalising the goal
-over the eliminee before calling `eliminate_hyp`. The generalisation replaces
-the eliminee with a new hypothesis `x` everywhere in the goal. If `eq_name` is
-`some h`, an equation `h : eliminee = x` is added to remember the value of the
-eliminee.
+over the major premise before calling `eliminate_hyp`. The generalisation
+replaces the major premise with a new hypothesis `x` everywhere in the goal.
+If `eq_name` is `some h`, an equation `h : major_premise = x` is added to
+remember the value of the major premise.
 -/
-meta def eliminate_expr (generate_induction_hyps : bool) (eliminee : expr)
+meta def eliminate_expr (generate_induction_hyps : bool) (major_premise : expr)
   (eq_name : option name := none) (gm := generalization_mode.generalize_all_except [])
   (with_names : list name := []) : tactic unit := do
-  num_reverted ← revert_reverse_dependencies_of_hyp eliminee,
+  num_reverted ← revert_reverse_dependencies_of_hyp major_premise,
   hyp ← match eq_name with
       | some h := do
           x ← get_unused_name `x,
-          interactive.generalize h () (to_pexpr eliminee, x),
+          interactive.generalize h () (to_pexpr major_premise, x),
           get_local x
       | none := do
-          if eliminee.is_local_constant
-            then pure eliminee
+          if major_premise.is_local_constant
+            then pure major_premise
             else do
               x ← get_unused_name `x,
-              generalize' eliminee x
+              generalize' major_premise x
       end,
   intron num_reverted,
   eliminate_hyp generate_induction_hyps hyp gm with_names
@@ -1226,10 +1240,10 @@ precedence `fixing`:0
 /--
 A variant of `tactic.interactive.induction`, with the following differences:
 
-- If the eliminee (the hypothesis we are performing induction on) has complex
-  indices, `induction'` 'remembers' them. A complex expression is any
-  expression that is not merely a local hypothesis. An eliminee
-  `e : I p₁ ... pₙ j₁ ... jₘ`, where `I` is an inductive type with `n`
+- If the major premise (the hypothesis we are performing induction on) has
+  complex indices, `induction'` 'remembers' them. A complex expression is any
+  expression that is not merely a local hypothesis. A major premise
+  `h : I p₁ ... pₙ j₁ ... jₘ`, where `I` is an inductive type with `n`
   parameters and `m` indices, has a complex index if any of the `jᵢ` are
   complex. In this situation, standard `induction` effectively forgets the exact
   values of the complex indices, which often leads to unprovable goals.
@@ -1259,7 +1273,7 @@ hypothesis is not generalised over these hypotheses.
 functionality, so this mode behaves like standard `induction`.
 
 `induction' e generalizing h₁ ... hₙ` generalises only the hypotheses `hᵢ`. This
-mode behaves like `induction e generalising h₁ ... hₙ`.
+mode behaves like `induction e generalizing h₁ ... hₙ`.
 
 `induction' t`, where `t` is an arbitrary term (rather than a hypothesis),
 generalises the goal over `t`, then performs induction on the generalised goal.
@@ -1273,10 +1287,10 @@ To debug this tactic, use
 set_option trace.eliminate_hyp true
 ```
 -/
-meta def induction' (eliminee : parse cases_arg_p)
+meta def induction' (major_premise : parse cases_arg_p)
   (gm : parse generalisation_mode_parser)
   (with_names : parse (optional with_ident_list)) : tactic unit := do
-  let ⟨eq_name, e⟩ := eliminee,
+  let ⟨eq_name, e⟩ := major_premise,
   e ← to_expr e,
   eliminate_expr tt e eq_name gm (with_names.get_or_else [])
 
@@ -1303,9 +1317,9 @@ To debug this tactic, use
 set_option trace.eliminate_hyp true
 ```
 -/
-meta def cases' (eliminee : parse cases_arg_p)
+meta def cases' (major_premise : parse cases_arg_p)
   (with_names : parse (optional with_ident_list)) : tactic unit := do
-  let ⟨eq_name, e⟩ := eliminee,
+  let ⟨eq_name, e⟩ := major_premise,
   e ← to_expr e,
   eliminate_expr ff e eq_name (generalization_mode.generalize_only [])
     (with_names.get_or_else [])

@@ -229,8 +229,8 @@ begin
 end
 
 -- We can also fix all hypotheses. This gives us the behaviour of stock
--- `induction`. Hypotheses which depend on the eliminee (or its index arguments)
--- still get generalised.
+-- `induction`. Hypotheses which depend on the major premise (or its index
+-- arguments) still get generalised.
 example {n m k : ℕ} (h : n + m = k) : n + m = k :=
 begin
   induction' n fixing *,
@@ -248,8 +248,8 @@ end
 
 -- We can also generalise only certain hypotheses using a `generalizing`
 -- clause. This gives us the behaviour of stock `induction ... generalizing`.
--- Hypotheses which depend on the eliminee get generalised even if they are not
--- mentioned in the `generalizing` clause.
+-- Hypotheses which depend on the major premise get generalised even if they are
+-- not mentioned in the `generalizing` clause.
 example {n m k : ℕ} (h : n + m = k) : n + m = k :=
 begin
   induction' n generalizing k,
@@ -442,7 +442,7 @@ begin
 end
 
 -- Index generalisation should leave early occurrences of complex index terms
--- alone. This means that given the eliminee `e : E (f y) y` where `y` is a
+-- alone. This means that given the major premise `e : E (f y) y` where `y` is a
 -- complex term, index generalisation should give us
 --
 --     e : E (f y) i,

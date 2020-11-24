@@ -29,18 +29,6 @@ begin
   { exact zero_pow' n h.ne.symm }
 end
 
-theorem pow_eq_zero' [no_zero_divisors M] {a : M} {n : ℕ} (H : a ^ n = 0) : a = 0 :=
-begin
-  induction n with n ih,
-  { rw pow_zero at H,
-    rw [← mul_one a, H, mul_zero] },
-  exact or.cases_on (mul_eq_zero.1 H) id ih
-end
-
-@[field_simps]
-theorem pow_ne_zero' [no_zero_divisors M] {a : M} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
-mt pow_eq_zero' h
-
 end zero
 
 section group_with_zero
@@ -55,7 +43,7 @@ by induction n with n ih; [exact inv_one.symm,
 theorem pow_sub' (a : G₀) {m n : ℕ} (ha : a ≠ 0) (h : n ≤ m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 have h1 : m - n + n = m, from nat.sub_add_cancel h,
 have h2 : a ^ (m - n) * a ^ n = a ^ m, by rw [←pow_add, h1],
-eq_div_of_mul_eq (pow_ne_zero' _ ha) h2
+eq_div_of_mul_eq (pow_ne_zero _ ha) h2
 
 theorem pow_inv_comm' (a : G₀) (m n : ℕ) : (a⁻¹) ^ m * a ^ n = a ^ n * (a⁻¹) ^ m :=
 (commute.refl a).inv_left'.pow_pow m n
@@ -197,8 +185,8 @@ by rw [mul_comm, fpow_mul]
 | -[1+k] := by rw [gpow_neg_succ_of_nat, fpow_neg_succ_of_nat, units.coe_inv', u.coe_pow]
 
 lemma fpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z ≠ 0
-| (of_nat n) := pow_ne_zero' _ ha
-| -[1+n]     := inv_ne_zero $ pow_ne_zero' _ ha
+| (of_nat n) := pow_ne_zero _ ha
+| -[1+n]     := inv_ne_zero $ pow_ne_zero _ ha
 
 lemma fpow_sub {a : G₀} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 - z2) = a ^ z1 / a ^ z2 :=
 by rw [sub_eq_add_neg, fpow_add ha, fpow_neg]; refl

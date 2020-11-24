@@ -273,6 +273,10 @@ equiv.trans_apply _ _ _
 
 @[simp] theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
 
+@[simp] lemma comp_one (f : α → β) : f ∘ (1 : equiv.perm α) = f := rfl
+
+@[simp] lemma one_comp (f : α → β) : (1 : equiv.perm β) ∘ f = f := rfl
+
 @[simp] lemma inv_apply_self {α : Type u} (f : perm α) (x) :
   f⁻¹ (f x) = x := equiv.symm_apply_apply _ _
 

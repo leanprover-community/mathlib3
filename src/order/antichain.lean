@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 Bhavik Mehta. All rights reserved.
+Copyright (c) 2020 Bhavik Mehta, Alena Gusakov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov
 -/
@@ -62,15 +62,8 @@ The join of two antichains `A` and `B` is the set obtained by taking
 the union of `A` and `B` and removing all elements `a` that are
 less than some element `b`.
 -/
-def antichain_join (A B : finset α) :
-  set α := { a | a ∈ A ∪ B ∧ ∀ b ∈ A ∪ B, a ≤ b → a = b}
-
-/--
-The finset obtained by applying `antichain_join` to `A ∪ B` using
-`finset.filter`
--/
 def antichain.join (A B : finset α):
-  finset α := (A ∪ B).filter (λ a, a ∈ antichain_join A B)
+  finset α := (A ∪ B).filter (λ a, a ∈ A ∪ B ∧ ∀ b ∈ A ∪ B, a ≤ b → a = b)
 
 /--
 The meet of two antichains `A` and `B` is the set obtained by taking
@@ -104,4 +97,3 @@ end
 
 
 end
-#lint

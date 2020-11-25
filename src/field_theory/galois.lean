@@ -186,7 +186,7 @@ begin
   exact (fixing_subgroup_equiv (fixed_field H)).to_equiv.symm
 end
 
-instance alg_instance : algebra K (fixed_field (fixing_subgroup K)) :=
+instance fixed_field.algebra : algebra K (fixed_field (fixing_subgroup K)) :=
 { smul := λ x y, ⟨x*y, λ ϕ, by rw [smul_mul', (show ϕ • ↑x = ↑x, by exact subtype.mem ϕ x),
     (show ϕ • ↑y = ↑y, by exact subtype.mem y ϕ)]⟩,
   to_fun := λ x, ⟨x, λ ϕ, subtype.mem ϕ x⟩,

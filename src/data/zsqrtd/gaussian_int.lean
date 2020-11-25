@@ -90,7 +90,7 @@ by rw [norm, norm_sq]; simp
 @[simp] lemma nat_cast_complex_norm (x : ℤ[i]) : (x.norm : ℂ) = (x : ℂ).norm_sq :=
 by cases x; rw [norm, norm_sq]; simp
 
-lemma norm_nonneg (x : ℤ[i]) : 0 ≤ norm x := norm_nonneg trivial _
+lemma norm_nonneg (x : ℤ[i]) : 0 ≤ norm x := norm_nonneg (by norm_num) _
 
 @[simp] lemma norm_eq_zero {x : ℤ[i]} : norm x = 0 ↔ x = 0 :=
 by rw [← @int.cast_inj ℝ _ _ _]; simp
@@ -178,7 +178,7 @@ lemma norm_le_norm_mul_left (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
   (norm x).nat_abs ≤ (norm (x * y)).nat_abs :=
 by rw [norm_mul, int.nat_abs_mul];
   exact le_mul_of_one_le_right (nat.zero_le _)
-    (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact norm_pos.2 hy))
+    (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact int.add_one_le_of_lt (norm_pos.2 hy)))
 
 instance : nontrivial ℤ[i] :=
 ⟨⟨0, 1, dec_trivial⟩⟩
@@ -222,12 +222,12 @@ hp.eq_two_or_odd.elim
       have hpk : p ∣ k ^ 2 + 1,
         by rw [← char_p.cast_eq_zero_iff (zmod p) p]; simp *,
       have hkmul : (k ^ 2 + 1 : ℤ[i]) = ⟨k, 1⟩ * ⟨k, -1⟩ :=
-        by simp [_root_.pow_two, zsqrtd.ext],
+        by simp [pow_two, zsqrtd.ext],
       have hpne1 : p ≠ 1, from (ne_of_lt (hp.one_lt)).symm,
       have hkltp : 1 + k * k < p * p,
         from calc 1 + k * k ≤ k + k * k :
           add_le_add_right (nat.pos_of_ne_zero
-            (λ hk0, by clear_aux_decl; simp [*, nat.pow_succ] at *)) _
+            (λ hk0, by clear_aux_decl; simp [*, pow_succ'] at *)) _
         ... = k * (k + 1) : by simp [add_comm, mul_add]
         ... < p * p : mul_lt_mul k_lt_p k_lt_p (nat.succ_pos _) (nat.zero_le _),
       have hpk₁ : ¬ (p : ℤ[i]) ∣ ⟨k, -1⟩ :=
@@ -262,10 +262,10 @@ have hab : ∃ a b, (p : ℤ[i]) = a * b ∧ ¬ is_unit a ∧ ¬ is_unit b,
 let ⟨a, b, hpab, hau, hbu⟩ := hab in
 have hnap : (norm a).nat_abs = p, from ((hp.mul_eq_prime_pow_two_iff
     (mt norm_eq_one_iff.1 hau) (mt norm_eq_one_iff.1 hbu)).1 $
-  by rw [← int.coe_nat_inj', int.coe_nat_pow, _root_.pow_two,
+  by rw [← int.coe_nat_inj', int.coe_nat_pow, pow_two,
     ← @norm_nat_cast (-1), hpab];
     simp).1,
-⟨a.re.nat_abs, a.im.nat_abs, by simpa [nat_abs_norm_eq, nat.pow_two] using hnap⟩
+⟨a.re.nat_abs, a.im.nat_abs, by simpa [nat_abs_norm_eq, pow_two] using hnap⟩
 
 lemma prime_of_nat_prime_of_mod_four_eq_three (p : ℕ) [hp : fact p.prime] (hp3 : p % 4 = 3) :
   prime (p : ℤ[i]) :=

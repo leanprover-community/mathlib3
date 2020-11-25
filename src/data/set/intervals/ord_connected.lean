@@ -47,9 +47,17 @@ begin
   simp [*, insert_subset]
 end
 
+protected lemma Icc_subset (s : set α) [hs : ord_connected s] {x y} (hx : x ∈ s) (hy : y ∈ s) :
+  Icc x y ⊆ s :=
+hs hx hy
+
 lemma ord_connected.inter {s t : set α} (hs : ord_connected s) (ht : ord_connected t) :
   ord_connected (s ∩ t) :=
 λ x hx y hy, subset_inter (hs hx.1 hy.1) (ht hx.2 hy.2)
+
+instance ord_connected.inter' {s t : set α} [ord_connected s] [ord_connected t] :
+  ord_connected (s ∩ t) :=
+ord_connected.inter ‹_› ‹_›
 
 lemma ord_connected.dual {s : set α} (hs : ord_connected s) : @ord_connected (order_dual α) _ s :=
 λ x hx y hy z hz, hs hy hx ⟨hz.2, hz.1⟩
@@ -65,38 +73,54 @@ lemma ord_connected_Inter {ι : Sort*} {s : ι → set α} (hs : ∀ i, ord_conn
   ord_connected (⋂ i, s i) :=
 ord_connected_sInter $ forall_range_iff.2 hs
 
+instance ord_connected_Inter' {ι : Sort*} {s : ι → set α} [∀ i, ord_connected (s i)] :
+  ord_connected (⋂ i, s i) :=
+ord_connected_Inter ‹_›
+
 lemma ord_connected_bInter {ι : Sort*} {p : ι → Prop} {s : Π (i : ι) (hi : p i), set α}
   (hs : ∀ i hi, ord_connected (s i hi)) :
   ord_connected (⋂ i hi, s i hi) :=
 ord_connected_Inter $ λ i, ord_connected_Inter $ hs i
 
-lemma ord_connected_Ici {a : α} : ord_connected (Ici a) := λ x hx y hy z hz, le_trans hx hz.1
-lemma ord_connected_Iic {a : α} : ord_connected (Iic a) := λ x hx y hy z hz, le_trans hz.2 hy
-lemma ord_connected_Ioi {a : α} : ord_connected (Ioi a) := λ x hx y hy z hz, lt_of_lt_of_le hx hz.1
-lemma ord_connected_Iio {a : α} : ord_connected (Iio a) := λ x hx y hy z hz, lt_of_le_of_lt hz.2 hy
+lemma ord_connected_pi {ι : Type*} {α : ι → Type*} [Π i, preorder (α i)] {s : set ι}
+  {t : Π i, set (α i)} (h : ∀ i ∈ s, ord_connected (t i)) : ord_connected (s.pi t) :=
+λ x hx y hy z hz i hi, h i hi (hx i hi) (hy i hi) ⟨hz.1 i, hz.2 i⟩
 
-lemma ord_connected_Icc {a b : α} : ord_connected (Icc a b) :=
+instance ord_connected_pi' {ι : Type*} {α : ι → Type*} [Π i, preorder (α i)] {s : set ι}
+  {t : Π i, set (α i)} [h : ∀ i, ord_connected (t i)] : ord_connected (s.pi t) :=
+ord_connected_pi $ λ i hi, h i
+
+@[instance] lemma ord_connected_Ici {a : α} : ord_connected (Ici a) :=
+λ x hx y hy z hz, le_trans hx hz.1
+
+@[instance] lemma ord_connected_Iic {a : α} : ord_connected (Iic a) :=
+λ x hx y hy z hz, le_trans hz.2 hy
+
+@[instance] lemma ord_connected_Ioi {a : α} : ord_connected (Ioi a) :=
+λ x hx y hy z hz, lt_of_lt_of_le hx hz.1
+
+@[instance] lemma ord_connected_Iio {a : α} : ord_connected (Iio a) :=
+λ x hx y hy z hz, lt_of_le_of_lt hz.2 hy
+
+@[instance] lemma ord_connected_Icc {a b : α} : ord_connected (Icc a b) :=
 ord_connected_Ici.inter ord_connected_Iic
 
-lemma ord_connected_Ico {a b : α} : ord_connected (Ico a b) :=
+@[instance] lemma ord_connected_Ico {a b : α} : ord_connected (Ico a b) :=
 ord_connected_Ici.inter ord_connected_Iio
 
-lemma ord_connected_Ioc {a b : α} : ord_connected (Ioc a b) :=
+@[instance] lemma ord_connected_Ioc {a b : α} : ord_connected (Ioc a b) :=
 ord_connected_Ioi.inter ord_connected_Iic
 
-lemma ord_connected_Ioo {a b : α} : ord_connected (Ioo a b) :=
+@[instance] lemma ord_connected_Ioo {a b : α} : ord_connected (Ioo a b) :=
 ord_connected_Ioi.inter ord_connected_Iio
 
-attribute [instance] ord_connected_Ici ord_connected_Iic ord_connected_Ioi ord_connected_Iio
-ord_connected_Icc ord_connected_Ico ord_connected_Ioc ord_connected_Ioo
-
-lemma ord_connected_singleton {α : Type*} [partial_order α] {a : α} :
+@[instance] lemma ord_connected_singleton {α : Type*} [partial_order α] {a : α} :
   ord_connected ({a} : set α) :=
 by { rw ← Icc_self, exact ord_connected_Icc }
 
-lemma ord_connected_empty : ord_connected (∅ : set α) := λ x, false.elim
+@[instance] lemma ord_connected_empty : ord_connected (∅ : set α) := λ x, false.elim
 
-lemma ord_connected_univ : ord_connected (univ : set α) := λ _ _ _ _, subset_univ _
+@[instance] lemma ord_connected_univ : ord_connected (univ : set α) := λ _ _ _ _, subset_univ _
 
 /-- In a dense order `α`, the subtype from an `ord_connected` set is also densely ordered. -/
 instance [densely_ordered α] {s : set α} [hs : ord_connected s] :
@@ -104,14 +128,14 @@ instance [densely_ordered α] {s : set α} [hs : ord_connected s] :
 ⟨ begin
     intros a₁ a₂ ha,
     have ha' : ↑a₁ < ↑a₂ := ha,
-    obtain ⟨x, ha₁x, hxa₂⟩ := dense ha',
+    obtain ⟨x, ha₁x, hxa₂⟩ := exists_between ha',
     refine ⟨⟨x, _⟩, ⟨ha₁x, hxa₂⟩⟩,
     exact (hs a₁.2 a₂.2) (Ioo_subset_Icc_self ⟨ha₁x, hxa₂⟩),
   end ⟩
 
-variables {β : Type*} [decidable_linear_order β]
+variables {β : Type*} [linear_order β]
 
-lemma ord_connected_interval {a b : β} : ord_connected (interval a b) :=
+@[instance] lemma ord_connected_interval {a b : β} : ord_connected (interval a b) :=
 ord_connected_Icc
 
 lemma ord_connected.interval_subset {s : set β} (hs : ord_connected s)

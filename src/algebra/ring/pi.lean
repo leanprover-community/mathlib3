@@ -19,9 +19,6 @@ variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 
-instance mul_zero_class [Π i, mul_zero_class $ f i] : mul_zero_class (Π i : I, f i) :=
-by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
-
 instance distrib [Π i, distrib $ f i] : distrib (Π i : I, f i) :=
 by refine_struct { add := (+), mul := (*), .. }; tactic.pi_instance_derive_field
 

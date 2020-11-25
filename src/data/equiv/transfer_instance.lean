@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 import data.equiv.basic
 import algebra.field
 import algebra.module
-import ring_theory.algebra
+import algebra.algebra.basic
 import algebra.group.type_tags
 import ring_theory.ideal.basic
 

@@ -25,7 +25,7 @@ This files introduces:
 `Hausdorff_dist`.
 -/
 noncomputable theory
-open_locale classical
+open_locale classical nnreal
 universes u v w
 
 open classical set function topological_space filter
@@ -35,6 +35,8 @@ namespace emetric
 section inf_edist
 open_locale ennreal
 variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β] {x y : α} {s t : set α} {Φ : α → β}
+
+/-! ### Distance of a point to a set as a function into `ennreal`. -/
 
 /-- The minimal edistance of a point to a set -/
 def inf_edist (x : α) (s : set α) : ennreal := Inf ((edist x) '' s)
@@ -141,6 +143,8 @@ begin
 end
 
 end inf_edist --section
+
+/-! ### The Hausdorff distance as a function into `ennreal`. -/
 
 /-- The Hausdorff edistance between two sets is the smallest `r` such that each set
 is contained in the `r`-neighborhood of the other one -/
@@ -374,16 +378,18 @@ end Hausdorff_edist -- section
 end emetric --namespace
 
 
-/-Now, we turn to the same notions in metric spaces. To avoid the difficulties related to
-Inf and Sup on ℝ (which is only conditionnally complete), we use the notions in ennreal formulated
-in terms of the edistance, and coerce them to ℝ. Then their properties follow readily from the
-corresponding properties in ennreal, modulo some tedious rewriting of inequalities from one to the
-other -/
+/-! Now, we turn to the same notions in metric spaces. To avoid the difficulties related to
+`Inf` and `Sup` on `ℝ` (which is only conditionally complete), we use the notions in `ennreal`
+formulated in terms of the edistance, and coerce them to `ℝ`.
+Then their properties follow readily from the corresponding properties in `ennreal`,
+modulo some tedious rewriting of inequalities from one to the other. -/
 
 namespace metric
 section
 variables {α : Type u} {β : Type v} [metric_space α] [metric_space β] {s t u : set α} {x y : α} {Φ : α → β}
 open emetric
+
+/-! ### Distance of a point to a set as a function into `ℝ`. -/
 
 /-- The minimal distance of a point to a set -/
 def inf_dist (x : α) (s : set α) : ℝ := ennreal.to_real (inf_edist x s)
@@ -491,6 +497,27 @@ end
 lemma inf_dist_image (hΦ : isometry Φ) :
   inf_dist (Φ x) (Φ '' t) = inf_dist x t :=
 by simp [inf_dist, inf_edist_image hΦ]
+
+/-! ### Distance of a point to a set as a function into `ℝ≥0`. -/
+
+/-- The minimal distance of a point to a set as a `nnreal` -/
+def inf_nndist (x : α) (s : set α) : ℝ≥0 := ennreal.to_nnreal (inf_edist x s)
+@[simp] lemma coe_inf_nndist : (inf_nndist x s : ℝ) = inf_dist x s := rfl
+
+/-- The minimal distance to a set (as `nnreal`) is Lipschitz in point with constant 1 -/
+lemma lipschitz_inf_nndist_pt (s : set α) : lipschitz_with 1 (λx, inf_nndist x s) :=
+lipschitz_with.of_le_add $ λ x y, inf_dist_le_inf_dist_add_dist
+
+/-- The minimal distance to a set (as `nnreal`) is uniformly continuous in point -/
+lemma uniform_continuous_inf_nndist_pt (s : set α) :
+  uniform_continuous (λx, inf_nndist x s) :=
+(lipschitz_inf_nndist_pt s).uniform_continuous
+
+/-- The minimal distance to a set (as `nnreal`) is continuous in point -/
+lemma continuous_inf_nndist_pt (s : set α) : continuous (λx, inf_nndist x s) :=
+(uniform_continuous_inf_nndist_pt s).continuous
+
+/-! ### The Hausdorff distance as a function into `ℝ`. -/
 
 /-- The Hausdorff distance between two sets is the smallest nonnegative `r` such that each set is
 included in the `r`-neighborhood of the other. If there is no such `r`, it is defined to

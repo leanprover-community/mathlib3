@@ -9,6 +9,50 @@ import data.array.lemmas
 import algebra.group
 import data.sigma.basic
 
+/-!
+# Hash maps
+
+Defines a hash map data structure, representing a finite key-value map
+with a value type that may depend on the key type.  The structure
+requires a `nat`-valued hash function to associate keys to buckets.
+
+## Main definitions
+
+* `hash_map`: constructed with `mk_hash_map`.
+
+## Implementation details
+
+A hash map with key type `α` and (dependent) value type `β : α → Type*`
+consists of an array of *buckets*, which are lists containing
+key/value pairs for that bucket.  The hash function is taken modulo `n`
+to assign keys to their respective bucket.  Because of this, some care
+should be put into the hash function to ensure it evenly distributes
+keys.
+
+The bucket array is an `array`.  These have special VM support for
+in-place modification if there is only ever one reference to them.  If
+one takes special care to never keep references to old versions of a
+hash map alive after updating it, then the hash map will be modified
+in-place.  In this documentation, when we say a hash map is modified
+in-place, we are assuming the API is being used in this manner.
+
+When inserting (`hash_map.insert`), if the number of stored pairs (the
+*size*) is going to exceed the number of buckets, then a new hash map
+is first created with double the number of buckets and everything in
+the old hash map is reinserted along with the new key/value pair.
+Otherwise, the bucket array is modified in-place.  The amortized
+running time of inserting $$n$$ elements into a hash map is $$O(n)$$.
+
+When removing (`hash_map.erase`), the hash map is modified in-place.
+The implementation does not reduce the number of buckets in the hash
+map if the size gets too low.
+
+## Tags
+
+hash map
+
+-/
+
 universes u v w
 
 /-- `bucket_array α β` is the underlying data type for `hash_map α β`,
@@ -149,9 +193,9 @@ theorem valid.as_list_nodup {n} {bkts : bucket_array α β n} {sz : nat} (v : va
   (bkts.as_list.map sigma.fst).nodup :=
 begin
   suffices : (bkts.to_list.map (list.map sigma.fst)).pairwise list.disjoint,
-  { simp [bucket_array.as_list, list.nodup_join, this],
-    change ∀ l s, array.mem s bkts → list.map sigma.fst s = l → l.nodup,
-    introv m e, subst e, cases m with i e, subst e,
+  { suffices : ∀ l, array.mem l bkts → (l.map sigma.fst).nodup,
+      by simpa [bucket_array.as_list, list.nodup_join, *],
+    rintros l ⟨i, rfl⟩,
     apply v.nodup },
   rw [← list.enum_map_snd bkts.to_list, list.pairwise_map, list.pairwise_map],
   have : (bkts.to_list.enum.map prod.fst).nodup := by simp [list.nodup_range],
@@ -630,4 +674,8 @@ group $ to_fmt "⟨" ++
 meta instance : has_to_format (hash_map α β) :=
 ⟨to_format⟩
 end format
+
+/-- `hash_map` with key type `nat` and value type that may vary. -/
+instance {β : ℕ → Type*} : inhabited (hash_map ℕ β) := ⟨mk_hash_map id⟩
+
 end hash_map

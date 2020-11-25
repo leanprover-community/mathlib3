@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Bases of topologies. Countability axioms.
 -/
-import topology.constructions
 import topology.continuous_on
 
 open set filter classical
@@ -83,6 +82,10 @@ begin
     exact ⟨i, h2, h1⟩ }
 end
 
+lemma is_topological_basis.nhds_has_basis {b : set (set α)} (hb : is_topological_basis b) {a : α} :
+  (𝓝 a).has_basis (λ t : set α, t ∈ b ∧ a ∈ t) (λ t, t) :=
+⟨λ s, (mem_nhds_of_is_topological_basis hb).trans $ by simp only [exists_prop, and_assoc]⟩
+
 lemma is_open_of_is_topological_basis {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) (hs : s ∈ b) : is_open s :=
 is_open_iff_mem_nhds.2 $ λ a as,
@@ -109,24 +112,61 @@ let ⟨S, sb, su⟩ := sUnion_basis_of_is_open hB ou in
 
 variables (α)
 
-/-- A separable space is one with a countable dense subset. -/
-class separable_space : Prop :=
-(exists_countable_closure_eq_univ : ∃s:set α, countable s ∧ closure s = univ)
+/-- A separable space is one with a countable dense subset, available through
+`topological_space.exists_countable_dense`. If `α` is also known to be nonempty, then
+`topological_space.dense_seq` provides a sequence `ℕ → α` with dense range, see
+`topological_space.dense_range_dense_seq`.
 
-lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, closure (range u) = univ :=
+If `α` is a uniform space with countably generated uniformity filter (e.g., an `emetric_space`),
+then this condition is equivalent to `topological_space.second_countable_topology α`. In this case
+the latter should be used as a typeclass argument in theorems because Lean can automatically deduce
+`separable_space` from `second_countable_topology` but it can't deduce `second_countable_topology`
+and `emetric_space`. -/
+class separable_space : Prop :=
+(exists_countable_dense : ∃s:set α, countable s ∧ dense s)
+
+lemma exists_countable_dense [separable_space α] :
+  ∃ s : set α, countable s ∧ dense s :=
+separable_space.exists_countable_dense
+
+/-- A nonempty separable space admits a sequence with dense range. Instead of running `cases` on the
+conclusion of this lemma, you might want to use `topological_space.dense_seq` and
+`topological_space.dense_range_dense_seq`.
+
+If `α` might be empty, then `exists_countable_dense` is the main way to use separability of `α`. -/
+lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, dense_range u :=
 begin
-  obtain ⟨s : set α, hs, s_dense⟩ := @separable_space.exists_countable_closure_eq_univ α _ _,
+  obtain ⟨s : set α, hs, s_dense⟩ := exists_countable_dense α,
   cases countable_iff_exists_surjective.mp hs with u hu,
-  use u,
-  apply eq_univ_of_univ_subset,
-  simpa [s_dense] using closure_mono hu
+  exact ⟨u, s_dense.mono hu⟩,
 end
 
-/-- A sequence dense in a non-empty separable topological space. -/
+/-- A sequence dense in a non-empty separable topological space.
+
+If `α` might be empty, then `exists_countable_dense` is the main way to use separability of `α`. -/
 def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some (exists_dense_seq α)
 
-lemma dense_seq_dense [separable_space α] [nonempty α] :
-  closure (range $ dense_seq α) = univ := classical.some_spec (exists_dense_seq α)
+/-- The sequence `dense_seq α` has dense range. -/
+@[simp] lemma dense_range_dense_seq [separable_space α] [nonempty α] :
+  dense_range (dense_seq α) := classical.some_spec (exists_dense_seq α)
+
+end topological_space
+
+open topological_space
+
+/-- If `α` is a separable space and `f : α → β` is a continuous map with dense range, then `β` is
+a separable space as well. E.g., the completion of a separable uniform space is separable. -/
+protected lemma dense_range.separable_space {α β : Type*} [topological_space α] [separable_space α]
+  [topological_space β] {f : α → β} (h : dense_range f) (h' : continuous f) :
+  separable_space β :=
+let ⟨s, s_cnt, s_dense⟩ := exists_countable_dense α in
+⟨⟨f '' s, countable.image s_cnt f, h.dense_image h' s_dense⟩⟩
+
+namespace topological_space
+universe u
+variables (α : Type u) [t : topological_space α]
+include t
+
 
 /-- A first-countable space is one in which every point has a
   countable neighborhood basis. -/
@@ -230,8 +270,7 @@ begin
   have : ∀ s ∈ b, set.nonempty s :=
     assume s hs, ne_empty_iff_nonempty.1 $ λ eq, absurd hs (eq.symm ▸ hbne),
   choose f hf,
-  refine ⟨⟨⋃ s ∈ b, {f s ‹_›}, hbc.bUnion (λ _ _, countable_singleton _), _⟩⟩,
-  refine eq_univ_of_forall (λ a, _),
+  refine ⟨⟨⋃ s ∈ b, {f s ‹_›}, hbc.bUnion (λ _ _, countable_singleton _), λ a, _⟩⟩,
   suffices : (⨅ s ∈ S a, 𝓟 (s ∩ ⋃ t ∈ b, {f t ‹_›})).ne_bot,
   { obtain ⟨t, htb, hta⟩ : a ∈ ⋃₀ b, { simp only [hbU] },
     have A : ∃ s, s ∈ S a := ⟨t, hta, htb⟩,

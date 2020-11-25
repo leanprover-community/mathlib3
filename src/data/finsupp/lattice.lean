@@ -72,10 +72,10 @@ instance semilattice_inf_bot : semilattice_inf_bot (α →₀ γ) :=
 
 lemma of_multiset_strict_mono : strict_mono (@finsupp.of_multiset α) :=
 begin
-  unfold strict_mono, intros, rw lt_iff_le_and_ne at *, split,
+  unfold strict_mono, intros a b hab, rw lt_iff_le_and_ne at *, split,
   { rw finsupp.le_iff, intros s hs, repeat {rw finsupp.of_multiset_apply},
-    rw multiset.le_iff_count at a_1, apply a_1.left },
-  { have h := a_1.right, contrapose h, simp at *,
+    rw multiset.le_iff_count at hab, apply hab.left },
+  { have h := hab.right, contrapose h, simp at *,
     apply finsupp.equiv_multiset.symm.injective h }
 end
 

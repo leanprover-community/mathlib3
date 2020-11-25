@@ -22,8 +22,8 @@ notation `ℝ*` := hyperreal
 
 private def U : is_ultrafilter (@hyperfilter ℕ) := is_ultrafilter_hyperfilter
 
-noncomputable instance : discrete_linear_ordered_field ℝ* :=
-germ.discrete_linear_ordered_field U
+noncomputable instance : linear_ordered_field ℝ* :=
+germ.linear_ordered_field U
 
 noncomputable instance : inhabited ℝ* := ⟨0⟩
 
@@ -51,9 +51,9 @@ germ.const_inj
 @[simp, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x :=
 coe_lt_coe
 @[simp, norm_cast] lemma coe_le_coe {x y : ℝ} : (x : ℝ*) ≤ y ↔ x ≤ y := germ.const_le_iff
-@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((abs x : ℝ) : ℝ*) = abs x := germ.const_abs _ _
-@[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _ _
-@[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _ _
+@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((abs x : ℝ) : ℝ*) = abs x := germ.const_abs U _
+@[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max U _ _
+@[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min U _ _
 
 /-- Construct a hyperreal number from a sequence of real numbers. -/
 noncomputable def of_seq (f : ℕ → ℝ) : ℝ* := (↑f : germ (@hyperfilter ℕ) ℝ)
@@ -158,8 +158,8 @@ end
 
 theorem not_infinite_of_exists_st {x : ℝ*} : (∃ r : ℝ, is_st x r) → ¬ infinite x :=
 λ he hi, Exists.dcases_on he $ λ r hr, hi.elim
-   (λ hip, not_lt_of_lt (hr 2 two_pos).2 (hip $ r + 2))
-   (λ hin, not_lt_of_lt (hr 2 two_pos).1 (hin $ r - 2))
+   (λ hip, not_lt_of_lt (hr 2 zero_lt_two).2 (hip $ r + 2))
+   (λ hin, not_lt_of_lt (hr 2 zero_lt_two).1 (hin $ r - 2))
 
 theorem is_st_Sup {x : ℝ*} (hni : ¬ infinite x) : is_st x (Sup {y : ℝ | (y : ℝ*) < x}) :=
 let S : set ℝ := {y : ℝ | (y : ℝ*) < x} in
@@ -342,7 +342,7 @@ lemma infinite_iff_infinite_neg {x : ℝ*} : infinite x ↔ infinite (-x) :=
   (λ hinp, or.inl (infinite_pos_iff_infinite_neg_neg.mpr hinp))⟩
 
 lemma not_infinite_of_infinitesimal {x : ℝ*} : infinitesimal x → ¬ infinite x :=
-λ hi hI, have hi' : _ := (hi 2 two_pos), or.dcases_on hI
+λ hi hI, have hi' : _ := (hi 2 zero_lt_two), or.dcases_on hI
   (λ hip, have hip' : _ := hip 2, not_lt_of_lt hip' (by convert hi'.2; exact (zero_add 2).symm))
   (λ hin, have hin' : _ := hin (-2), not_lt_of_lt hin' (by convert hi'.1; exact (zero_sub 2).symm))
 
@@ -436,7 +436,7 @@ lemma infinite_neg_add_not_infinite {x y : ℝ*} :
 
 theorem infinite_pos_of_tendsto_top {f : ℕ → ℝ} (hf : tendsto f at_top at_top) :
   infinite_pos (of_seq f) :=
-λ r, have hf' : _ := (tendsto_at_top_at_top _).mp hf,
+λ r, have hf' : _ := tendsto_at_top_at_top.mp hf,
 Exists.cases_on (hf' (r + 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), f a < (r + 1) → a < i :=
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),
@@ -448,7 +448,7 @@ Exists.cases_on (hf' (r + 1)) $ λ i hi,
 
 theorem infinite_neg_of_tendsto_bot {f : ℕ → ℝ} (hf : tendsto f at_top at_bot) :
   infinite_neg (of_seq f) :=
-λ r, have hf' : _ := (tendsto_at_top_at_bot _).mp hf,
+λ r, have hf' : _ := tendsto_at_top_at_bot.mp hf,
 Exists.cases_on (hf' (r - 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), r - 1 < f a → a < i :=
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),
@@ -504,7 +504,7 @@ is_st_iff_abs_sub_lt_delta.mpr $ λ d hd,
         (mul_le_mul_of_nonneg_left (le_of_lt $ hys' _ $ half_pos $ div_pos hd $
           coe_pos.1 $ lt_of_le_of_lt (abs_nonneg x) ht) $ abs_nonneg _)
         (mul_le_mul_of_nonneg_right (le_of_lt $ hxr' _ $ half_pos $ div_pos hd $
-          abs_pos_of_ne_zero hs) $ abs_nonneg _)
+          abs_pos.2 hs) $ abs_nonneg _)
   ... = (d / 2 * (abs x / t) + d / 2 : ℝ*) : by
       { push_cast,
         have : (abs s : ℝ*) ≠ 0, by simpa,
@@ -582,7 +582,7 @@ exact (neg_neg ↑r).symm
 theorem abs_lt_real_iff_infinitesimal {x : ℝ*} :
   infinitesimal x ↔ ∀ r : ℝ, r ≠ 0 → abs x < abs r :=
 ⟨ λ hi r hr, abs_lt.mpr (by rw ←coe_abs;
-  exact infinitesimal_def.mp hi (abs r) (abs_pos_of_ne_zero hr)),
+  exact infinitesimal_def.mp hi (abs r) (abs_pos.2 hr)),
   λ hR, infinitesimal_def.mpr $ λ r hr, abs_lt.mp $
   (abs_of_pos $ coe_pos.2 hr) ▸ hR r $ ne_of_gt hr ⟩
 
@@ -634,16 +634,15 @@ lemma infinite_pos_iff_infinitesimal_inv_pos {x : ℝ*} :
   inv_pos.2 $ hip 0 ⟩,
   λ ⟨hi, hp⟩ r, @classical.by_cases (r = 0) (↑r < x) (λ h, eq.substr h (inv_pos.mp hp)) $
   λ h, lt_of_le_of_lt (coe_le_coe.2 (le_abs_self r))
-  ((inv_lt_inv (inv_pos.mp hp) (coe_lt_coe.2 (abs_pos_of_ne_zero h))).mp
-  ((infinitesimal_def.mp hi) ((abs r)⁻¹) (inv_pos.2 (abs_pos_of_ne_zero h))).2) ⟩
+  ((inv_lt_inv (inv_pos.mp hp) (coe_lt_coe.2 (abs_pos.2 h))).mp
+  ((infinitesimal_def.mp hi) ((abs r)⁻¹) (inv_pos.2 (abs_pos.2 h))).2) ⟩
 
 lemma infinite_neg_iff_infinitesimal_inv_neg {x : ℝ*} :
   infinite_neg x ↔ (infinitesimal x⁻¹ ∧ x⁻¹ < 0) :=
 ⟨ λ hin, have hin' : _ := infinite_pos_iff_infinitesimal_inv_pos.mp
   (infinite_pos_neg_of_infinite_neg hin),
   by rwa [infinitesimal_neg_iff, ←neg_pos, neg_inv],
-  λ hin, have h0 : x ≠ 0 := λ h0, (lt_irrefl (0 : ℝ*) (by convert hin.2; rw [h0, inv_zero])),
-  by rwa [←neg_pos, infinitesimal_neg_iff, neg_inv,
+  λ hin, by rwa [←neg_pos, infinitesimal_neg_iff, neg_inv,
     ←infinite_pos_iff_infinitesimal_inv_pos, ←infinite_neg_iff_infinite_pos_neg] at hin ⟩
 
 theorem infinitesimal_inv_of_infinite {x : ℝ*} : infinite x → infinitesimal x⁻¹ :=

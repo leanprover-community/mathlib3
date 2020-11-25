@@ -33,6 +33,13 @@ end adjunction
 
 namespace monad
 
+/--
+Gven any adjunction `L ⊣ R`, there is a comparison functor `category_theory.monad.comparison R`
+sending objects `Y : D` to Eilenberg-Moore algebras for `L ⋙ R` with underlying object `R.obj X`.
+
+We later show that this is full when `R` is full, faithful when `R` is faithful,
+and essentially surjective when `R` is reflective.
+-/
 -- We can't use `@[simps]` here because it can't cope with `let` statements.
 def comparison [is_right_adjoint R] : D ⥤ algebra ((left_adjoint R) ⋙ R) :=
 let h : _ ⊣ R := is_right_adjoint.adj in
@@ -49,6 +56,9 @@ let h : _ ⊣ R := is_right_adjoint.adj in
 @[simp] lemma comparison_obj_a [is_right_adjoint R] (X) :
   ((comparison R).obj X).a = R.map (is_right_adjoint.adj.counit.app X) := rfl
 
+/--
+The underlying object of `(monad.comparison R).obj X` is just `R.obj X`.
+-/
 def comparison_forget [is_right_adjoint R] : comparison R ⋙ forget ((left_adjoint R) ⋙ R) ≅ R :=
 { hom := { app := λ X, 𝟙 _, },
   inv := { app := λ X, 𝟙 _, } }
@@ -97,7 +107,7 @@ let h : L ⊣ R := (is_right_adjoint.adj) in
     refl
   end }
 
-instance comparison_ess_surj [reflective R]: ess_surj (monad.comparison R) :=
+instance comparison_ess_surj [reflective R] : ess_surj (monad.comparison R) :=
 let L := left_adjoint R in
 let h : L ⊣ R := is_right_adjoint.adj in
 { obj_preimage := λ X, L.obj X.A,

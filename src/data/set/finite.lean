@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.fintype.basic
-import algebra.big_operators.basic
 
 /-!
 # Finite sets
@@ -14,7 +13,6 @@ basic facts about finite sets.
 -/
 
 open set function
-open_locale big_operators
 
 universes u v w x
 variables {α : Type u} {β : Type v} {ι : Sort w} {γ : Type x}
@@ -40,6 +38,11 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 
 @[simp] theorem finite.mem_to_finset {s : set α} {h : finite s} {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ h.fintype _
+
+@[simp] theorem finite.to_finset.nonempty {s : set α} (h : finite s) :
+  h.to_finset.nonempty ↔ s.nonempty :=
+show (∃ x, x ∈ h.to_finset) ↔ (∃ x, x ∈ s),
+from exists_congr (λ _, finite.mem_to_finset)
 
 @[simp] lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
 @set.coe_to_finset _ s h.fintype
@@ -91,7 +94,7 @@ instance finite.inhabited : inhabited {s : set α // finite s} := ⟨⟨∅, fin
 
 /-- A `fintype` structure on `insert a s`. -/
 def fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) : fintype (insert a s : set α) :=
-fintype.of_finset ⟨a :: s.to_finset.1,
+fintype.of_finset ⟨a ::ₘ s.to_finset.1,
   multiset.nodup_cons_of_nodup (by simp [h]) s.to_finset.2⟩ $ by simp
 
 theorem card_fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) :
@@ -122,7 +125,8 @@ section
 
 local attribute [instance] decidable_mem_of_fintype
 
-instance fintype_insert [decidable_eq α] (a : α) (s : set α) [fintype s] : fintype (insert a s : set α) :=
+instance fintype_insert [decidable_eq α] (a : α) (s : set α) [fintype s] :
+  fintype (insert a s : set α) :=
 if h : a ∈ s then by rwa [insert_eq, union_eq_self_of_subset_left (singleton_subset_iff.2 h)]
 else fintype_insert' _ h
 
@@ -204,13 +208,15 @@ lemma infinite.exists_subset_card_eq {s : set α} (hs : infinite s) (n : ℕ) :
   ∃ t : finset α, ↑t ⊆ s ∧ t.card = n :=
 ⟨((finset.range n).map (hs.nat_embedding _)).map (embedding.subtype _), by simp⟩
 
-instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s ∪ t : set α) :=
+instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] :
+  fintype (s ∪ t : set α) :=
 fintype.of_finset (s.to_finset ∪ t.to_finset) $ by simp
 
 theorem finite.union {s t : set α} : finite s → finite t → finite (s ∪ t)
 | ⟨hs⟩ ⟨ht⟩ := ⟨@set.fintype_union _ (classical.dec_eq α) _ _ hs ht⟩
 
-instance fintype_sep (s : set α) (p : α → Prop) [fintype s] [decidable_pred p] : fintype ({a ∈ s | p a} : set α) :=
+instance fintype_sep (s : set α) (p : α → Prop) [fintype s] [decidable_pred p] :
+  fintype ({a ∈ s | p a} : set α) :=
 fintype.of_finset (s.to_finset.filter p) $ by simp
 
 instance fintype_inter (s t : set α) [fintype s] [decidable_pred t] : fintype (s ∩ t : set α) :=
@@ -223,6 +229,9 @@ by rw ← inter_eq_self_of_subset_right h; apply_instance
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
 | ⟨hs⟩ t h := ⟨@set.fintype_subset _ _ _ hs (classical.dec_pred t) h⟩
 
+theorem infinite_mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
+mt (λ ht, ht.subset h)
+
 instance fintype_image [decidable_eq β] (s : set α) (f : α → β) [fintype s] : fintype (f '' s) :=
 fintype.of_finset (s.to_finset.image f) $ by simp
 
@@ -234,6 +243,10 @@ by haveI := classical.dec_eq β; exact ⟨by apply_instance⟩
 
 theorem finite.image {s : set α} (f : α → β) : finite s → finite (f '' s)
 | ⟨h⟩ := ⟨@set.fintype_image _ _ (classical.dec_eq β) _ _ h⟩
+
+theorem infinite_of_infinite_image (f : α → β) {s : set α} (hs : (f '' s).infinite) :
+  s.infinite :=
+mt (finite.image f) hs
 
 lemma finite.dependent_image {s : set α} (hs : finite s) {F : Π i ∈ s, β} {t : set β}
   (H : ∀ y ∈ t, ∃ x (hx : x ∈ s), y = F x hx) : set.finite t :=
@@ -276,6 +289,22 @@ theorem finite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
   finite (f '' s) ↔ finite s :=
 ⟨finite_of_finite_image hi, finite.image _⟩
 
+theorem infinite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
+  infinite (f '' s) ↔ infinite s :=
+not_congr $ finite_image_iff hi
+
+theorem infinite_of_inj_on_maps_to {s : set α} {t : set β} {f : α → β}
+  (hi : inj_on f s) (hm : maps_to f s t) (hs : infinite s) : infinite t :=
+infinite_mono (maps_to'.mp hm) $ (infinite_image_iff hi).2 hs
+
+theorem infinite_range_of_injective [_root_.infinite α] {f : α → β} (hi : injective f) :
+  infinite (range f) :=
+by { rw [←image_univ, infinite_image_iff (inj_on_of_injective hi _)], exact infinite_univ }
+
+theorem infinite_of_injective_forall_mem [_root_.infinite α] {s : set β} {f : α → β}
+  (hi : injective f) (hf : ∀ x : α, f x ∈ s) : infinite s :=
+by { rw ←range_subset_iff at hf, exact infinite_mono hf (infinite_range_of_injective hi) }
+
 theorem finite.preimage {s : set β} {f : α → β}
   (I : set.inj_on f (f⁻¹' s)) (h : finite s) : finite (f ⁻¹' s) :=
 finite_of_finite_image I (h.subset (image_preimage_subset f s))
@@ -284,7 +313,8 @@ instance fintype_Union [decidable_eq α] {ι : Type*} [fintype ι]
   (f : ι → set α) [∀ i, fintype (f i)] : fintype (⋃ i, f i) :=
 fintype.of_finset (finset.univ.bind (λ i, (f i).to_finset)) $ by simp
 
-theorem finite_Union {ι : Type*} [fintype ι] {f : ι → set α} (H : ∀i, finite (f i)) : finite (⋃ i, f i) :=
+theorem finite_Union {ι : Type*} [fintype ι] {f : ι → set α} (H : ∀i, finite (f i)) :
+  finite (⋃ i, f i) :=
 ⟨@set.fintype_Union _ (classical.dec_eq α) _ _ _ (λ i, finite.fintype (H i))⟩
 
 /-- A union of sets with `fintype` structure over a set with `fintype` structure has a `fintype`
@@ -407,7 +437,8 @@ begin
   exact ⟨x, ⟨hx, hf _⟩⟩,
 end
 
-lemma eq_finite_Union_of_finite_subset_Union  {ι} {s : ι → set α} {t : set α} (tfin : finite t) (h : t ⊆ ⋃ i, s i) :
+lemma eq_finite_Union_of_finite_subset_Union  {ι} {s : ι → set α} {t : set α} (tfin : finite t)
+  (h : t ⊆ ⋃ i, s i) :
   ∃ I : set ι, (finite I) ∧ ∃ σ : {i | i ∈ I} → set α,
      (∀ i, finite (σ i)) ∧ (∀ i, σ i ⊆ s i) ∧ t = ⋃ i, σ i :=
 let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
@@ -424,6 +455,19 @@ let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
       { rintros ⟨i, hi, H⟩,
         exact H }
     end⟩
+
+/-- An increasing union distributes over finite intersection. -/
+lemma Union_Inter_of_monotone {ι ι' α : Type*} [fintype ι] [linear_order ι']
+  [nonempty ι'] {s : ι → ι' → set α} (hs : ∀ i, monotone (s i)) :
+  (⋃ j : ι', ⋂ i : ι, s i j) = ⋂ i : ι, ⋃ j : ι', s i j :=
+begin
+  ext x, refine ⟨λ hx, Union_Inter_subset hx, λ hx, _⟩,
+  simp only [mem_Inter, mem_Union, mem_Inter] at hx ⊢, choose j hj using hx,
+  obtain ⟨j₀⟩ := show nonempty ι', by apply_instance,
+  refine ⟨finset.univ.fold max j₀ j, λ i, hs i _ (hj i)⟩,
+  rw [finset.fold_op_rel_iff_or (@le_max_iff _ _)],
+  exact or.inr ⟨i, finset.mem_univ i, le_rfl⟩
+end
 
 instance nat.fintype_Iio (n : ℕ) : fintype (Iio n) :=
 fintype.of_finset (finset.range n) $ by simp
@@ -562,81 +606,6 @@ end
 end set
 
 namespace finset
-
-section preimage
-
-/-- Preimage of `s : finset β` under a map `f` injective of `f ⁻¹' s` as a `finset`.  -/
-noncomputable def preimage (s : finset β) (f : α → β)
-  (hf : set.inj_on f (f ⁻¹' ↑s)) : finset α :=
-(s.finite_to_set.preimage hf).to_finset
-
-@[simp] lemma mem_preimage {f : α → β} {s : finset β} {hf : set.inj_on f (f ⁻¹' ↑s)} {x : α} :
-  x ∈ preimage s f hf ↔ f x ∈ s :=
-set.finite.mem_to_finset
-
-@[simp, norm_cast] lemma coe_preimage {f : α → β} (s : finset β)
-  (hf : set.inj_on f (f ⁻¹' ↑s)) : (↑(preimage s f hf) : set α) = f ⁻¹' ↑s :=
-set.finite.coe_to_finset _
-
-lemma monotone_preimage {f : α → β} (h : injective f) :
-  monotone (λ s, preimage s f (h.inj_on _)) :=
-λ s t hst x hx, mem_preimage.2 (hst $ mem_preimage.1 hx)
-
-lemma image_subset_iff_subset_preimage [decidable_eq β] {f : α → β} {s : finset α} {t : finset β}
-  (hf : set.inj_on f (f ⁻¹' ↑t)) :
-  s.image f ⊆ t ↔ s ⊆ t.preimage f hf :=
-image_subset_iff.trans $ by simp only [subset_iff, mem_preimage]
-
-lemma map_subset_iff_subset_preimage {f : α ↪ β} {s : finset α} {t : finset β} :
-  s.map f ⊆ t ↔ s ⊆ t.preimage f (f.injective.inj_on _) :=
-by classical; rw [map_eq_image, image_subset_iff_subset_preimage]
-
-lemma image_preimage [decidable_eq β] (f : α → β) (s : finset β) [Π x, decidable (x ∈ set.range f)]
-  (hf : set.inj_on f (f ⁻¹' ↑s)) :
-  image f (preimage s f hf) = s.filter (λ x, x ∈ set.range f) :=
-finset.coe_inj.1 $ by simp only [coe_image, coe_preimage, coe_filter,
-  set.image_preimage_eq_inter_range, set.sep_mem_eq]
-
-lemma image_preimage_of_bij [decidable_eq β] (f : α → β) (s : finset β)
-  (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) :
-  image f (preimage s f hf.inj_on) = s :=
-finset.coe_inj.1 $ by simpa using hf.image_eq
-
-lemma sigma_preimage_mk {β : α → Type*} [decidable_eq α] (s : finset (Σ a, β a)) (t : finset α) :
-  t.sigma (λ a, s.preimage (sigma.mk a) $ sigma_mk_injective.inj_on _) = s.filter (λ a, a.1 ∈ t) :=
-by { ext x, simp [and_comm] }
-
-lemma sigma_preimage_mk_of_subset {β : α → Type*} [decidable_eq α] (s : finset (Σ a, β a))
-  {t : finset α} (ht : s.image sigma.fst ⊆ t) :
-  t.sigma (λ a, s.preimage (sigma.mk a) $ sigma_mk_injective.inj_on _) = s :=
-by rw [sigma_preimage_mk, filter_true_of_mem $ image_subset_iff.1 ht]
-
-lemma sigma_image_fst_preimage_mk {β : α → Type*} [decidable_eq α] (s : finset (Σ a, β a)) :
-  (s.image sigma.fst).sigma (λ a, s.preimage (sigma.mk a) $ sigma_mk_injective.inj_on _) = s :=
-s.sigma_preimage_mk_of_subset (subset.refl _)
-
-end preimage
-
-@[to_additive]
-lemma prod_preimage' [comm_monoid β] (f : α → γ) [decidable_pred $ λ x, x ∈ set.range f]
-  (s : finset γ) (hf : set.inj_on f (f ⁻¹' ↑s)) (g : γ → β) :
-  ∏ x in s.preimage f hf, g (f x) = ∏ x in s.filter (λ x, x ∈ set.range f), g x :=
-by haveI := classical.dec_eq γ;
-calc ∏ x in preimage s f hf, g (f x) = ∏ x in image f (preimage s f hf), g x :
-  eq.symm $ prod_image $ by simpa only [mem_preimage, inj_on] using hf
-  ... = ∏ x in s.filter (λ x, x ∈ set.range f), g x : by rw [image_preimage]
-
-@[to_additive]
-lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
-  (hf : set.inj_on f (f ⁻¹' ↑s)) (g : γ → β) (hg : ∀ x ∈ s, x ∉ set.range f → g x = 1) :
-  ∏ x in s.preimage f hf, g (f x) = ∏ x in s, g x :=
-by { classical, rw [prod_preimage', prod_filter_of_ne], exact λ x hx, not.imp_symm (hg x hx) }
-
-@[to_additive]
-lemma prod_preimage_of_bij [comm_monoid β] (f : α → γ) (s : finset γ)
-  (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
-  ∏ x in s.preimage f hf.inj_on, g (f x) = ∏ x in s, g x :=
-prod_preimage _ _ hf.inj_on g $ λ x hxs hxf, (hxf $ hf.subset_range hxs).elim
 
 /-- A finset is bounded above. -/
 protected lemma bdd_above [semilattice_sup α] [nonempty α] (s : finset α) :

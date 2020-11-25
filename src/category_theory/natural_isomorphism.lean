@@ -14,12 +14,13 @@ For the most part, natural isomorphisms are just another sort of isomorphism.
 We provide some special support for extracting components:
 * if `α : F ≅ G`, then `a.app X : F.obj X ≅ G.obj X`,
 and building natural isomorphisms from components:
-* ```
-  nat_iso.of_components
-    (app : ∀ X : C, F.obj X ≅ G.obj X)
-    (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
-  F ≅ G
-  ```
+*
+```
+nat_iso.of_components
+  (app : ∀ X : C, F.obj X ≅ G.obj X)
+  (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
+F ≅ G
+```
 only needing to check naturality in one direction.
 
 ## Implementation
@@ -141,11 +142,11 @@ def is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso 
 { inv :=
   { app := λ X, inv (α.app X),
     naturality' := λ X Y f,
-     begin
-       have h := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.naturality f).symm,
-       simp only [is_iso.inv_hom_id_assoc, is_iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
-       exact h
-     end } }
+    begin
+      have h := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.naturality f).symm,
+      simp only [is_iso.inv_hom_id_assoc, is_iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
+      exact h
+    end } }
 
 /--
 The components of a natural isomorphism are isomorphisms.

@@ -59,6 +59,10 @@ we have `dist (f x) (f y) ≤ K * dist x y` -/
 def lipschitz_on_with [emetric_space α] [emetric_space β] (K : ℝ≥0) (f : α → β) (s : set α) :=
 ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), edist (f x) (f y) ≤ K * edist x y
 
+@[simp] lemma lipschitz_on_with_empty [emetric_space α] [emetric_space β] (K : ℝ≥0) (f : α → β) :
+  lipschitz_on_with K f ∅ :=
+λ x x_in y y_in, false.elim x_in
+
 lemma lipschitz_on_with.mono [emetric_space α] [emetric_space β] {K : ℝ≥0} {s t : set α} {f : α → β}
   (hf : lipschitz_on_with K f t) (h : s ⊆ t) : lipschitz_on_with K f s :=
 λ x x_in y y_in, hf (h x_in) (h y_in)

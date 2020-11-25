@@ -166,6 +166,15 @@ def left_rel [group α] (s : subgroup α) : setoid α :=
   If `s` is a normal subgroup, `quotient s` is a group -/
 def quotient [group α] (s : subgroup α) : Type* := quotient (left_rel s)
 
+section
+
+open_locale classical
+
+noncomputable instance [group α] [fintype α] (s : subgroup α) : fintype (quotient_group.quotient s) :=
+quotient.fintype _
+
+end
+
 end quotient_group
 
 namespace quotient_add_group
@@ -213,6 +222,16 @@ quotient.eq'
 lemma eq_class_eq_left_coset (s : subgroup α) (g : α) :
   {x : α | (x : quotient s) = g} = left_coset g s :=
 set.ext $ λ z, by { rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq], simp }
+
+@[to_additive]
+lemma preimage_image_coe (N : subgroup α) (s : set α) :
+  coe ⁻¹' ((coe : α → quotient N) '' s) = ⋃ x : N, (λ y : α, y * x) '' s :=
+begin
+  ext x,
+  simp only [quotient_group.eq, subgroup.exists, exists_prop, set.mem_preimage, set.mem_Union,
+    set.mem_image, subgroup.coe_mk, ← eq_inv_mul_iff_mul_eq],
+  exact ⟨λ ⟨y, hs, hN⟩, ⟨_, hN, y, hs, rfl⟩, λ ⟨z, hN, y, hs, hyz⟩, ⟨y, hs, hyz ▸ hN⟩⟩
+end
 
 end quotient_group
 

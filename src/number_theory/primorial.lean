@@ -21,7 +21,7 @@ than or equal to `n`.
 
 open finset
 open nat
-open_locale big_operators
+open_locale big_operators nat
 
 /-- The primorial `n#` of `n` is the product of the primes less than or equal to `n`.
 -/
@@ -49,24 +49,24 @@ lemma dvd_choose_of_middling_prime (p : ℕ) (is_prime : prime p) (m : ℕ)
 begin
   have m_size : m + 1 ≤ 2 * m + 1 := le_of_lt (lt_of_lt_of_le p_big p_small),
   have expanded :
-    choose (2 * m + 1) (m + 1) * fact (m + 1) * fact (2 * m + 1 - (m + 1)) = fact (2 * m + 1) :=
-    @choose_mul_fact_mul_fact (2 * m + 1) (m + 1) m_size,
-  have p_div_big_fact : p ∣ fact (2 * m + 1) := (prime.dvd_fact is_prime).mpr p_small,
+    choose (2 * m + 1) (m + 1) * (m + 1)! * (2 * m + 1 - (m + 1))! = (2 * m + 1)! :=
+    @choose_mul_factorial_mul_factorial (2 * m + 1) (m + 1) m_size,
+  have p_div_big_fact : p ∣ (2 * m + 1)! := (prime.dvd_factorial is_prime).mpr p_small,
   rw [←expanded, mul_assoc] at p_div_big_fact,
-  have s : ¬(p ∣ fact (m + 1)),
+  have s : ¬(p ∣ (m + 1)!),
   { intros p_div_fact,
-    have p_le_succ_m : p ≤ m + 1 := (prime.dvd_fact is_prime).mp p_div_fact,
+    have p_le_succ_m : p ≤ m + 1 := (prime.dvd_factorial is_prime).mp p_div_fact,
     linarith, },
-  have t : ¬(p ∣ fact (2 * m + 1 - (m + 1))),
+  have t : ¬(p ∣ (2 * m + 1 - (m + 1))!),
   { intros p_div_fact,
-    have p_small : p ≤ 2 * m + 1 - (m + 1) := (prime.dvd_fact is_prime).mp p_div_fact,
+    have p_small : p ≤ 2 * m + 1 - (m + 1) := (prime.dvd_factorial is_prime).mp p_div_fact,
     have t : 2 * m + 1 - (m + 1) = m, by { norm_num, rw two_mul m, exact nat.add_sub_cancel m m, },
     rw t at p_small,
     obtain p_lt_m | rfl | m_lt_p : _ := lt_trichotomy p m,
     { have r : m < m + 1 := lt_add_one m, linarith, },
     { linarith, },
     { linarith, }, },
-  obtain p_div_choose | p_div_facts : p ∣ choose (2 * m + 1) (m + 1) ∨ p ∣ fact _ * fact _ :=
+  obtain p_div_choose | p_div_facts : p ∣ choose (2 * m + 1) (m + 1) ∨ p ∣ _! * _! :=
     (prime.dvd_mul is_prime).1 p_div_big_fact,
   { exact p_div_choose, },
   cases (prime.dvd_mul is_prime).1 p_div_facts,

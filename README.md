@@ -2,7 +2,7 @@
 
 ![](https://github.com/leanprover-community/mathlib/workflows/continuous%20integration/badge.svg?branch=master)
 [![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/24316)
-
+[![project chat](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://leanprover.zulipchat.com)
 
 [Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean theorem prover](https://leanprover.github.io).
 It contains both programming infrastructure and mathematics, as well as tactics that use the former and allow to develop the latter.

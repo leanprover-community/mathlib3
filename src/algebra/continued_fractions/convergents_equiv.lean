@@ -269,7 +269,7 @@ begin
   { have : squash_gcf g n = g, from squash_gcf_eq_self_of_terminated terminated_at_n,
     simp only [this, (convergents_stable_of_terminated n.le_succ terminated_at_n)] },
   { obtain ⟨⟨a, b⟩, s_nth_eq⟩ : ∃ gp_n, g.s.nth n = some gp_n, from
-      option.ne_none_iff_exists.elim_left not_terminated_at_n,
+      option.ne_none_iff_exists'.mp not_terminated_at_n,
     have b_ne_zero : b ≠ 0, from nth_part_denom_ne_zero (part_denom_eq_s_b s_nth_eq),
     cases n with n',
     case nat.zero
@@ -296,11 +296,10 @@ begin
       -- first compute the convergent of the squashed gcf
       have : g'.convergents (n' + 1)
            = ((pb + a / b) * pA' + pa * ppA') / ((pb + a / b) * pB' + pa * ppB'),
-      { have : g'.s.nth n' = some ⟨pa, pb + a / b⟩,
-        { simpa only [squash_nth_gcf] using
-            (squash_seq_nth_of_not_terminated s_n'th_eq s_nth_eq) },
+      { have : g'.s.nth n' = some ⟨pa, pb + a / b⟩ :=
+          squash_seq_nth_of_not_terminated s_n'th_eq s_nth_eq,
         rw [convergent_eq_conts_a_div_conts_b,
-          (continuants_recurrence_aux this n'th_conts_aux_eq'.symm succ_n'th_conts_aux_eq'.symm)], },
+          continuants_recurrence_aux this n'th_conts_aux_eq'.symm succ_n'th_conts_aux_eq'.symm], },
       rw this,
       -- then compute the convergent of the original gcf by recursively unfolding the continuants
       -- computation twice
@@ -311,7 +310,7 @@ begin
           continuants_aux_recurrence s_n'th_eq n'th_conts_aux_eq.symm succ_n'th_conts_aux_eq.symm,
         -- and a second time
         rw [convergent_eq_conts_a_div_conts_b,
-          (continuants_recurrence_aux s_nth_eq succ_n'th_conts_aux_eq.symm this)] },
+          continuants_recurrence_aux s_nth_eq succ_n'th_conts_aux_eq.symm this] },
       rw this,
       suffices : ((pb + a / b) * pA + pa * ppA) / ((pb + a / b) * pB + pa * ppB)
                = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB),
@@ -358,7 +357,7 @@ begin
           { -- the difficult case at the squashed position: we first obtain the values from
             -- the sequence
             obtain ⟨gp_succ_m, s_succ_mth_eq⟩ : ∃ gp_succ_m, g.s.nth (m + 1) = some gp_succ_m, from
-              option.ne_none_iff_exists.elim_left not_terminated_at_n,
+              option.ne_none_iff_exists'.mp not_terminated_at_n,
             obtain ⟨gp_m, mth_s_eq⟩ : ∃ gp_m, g.s.nth m = some gp_m, from
               g.s.ge_stable m.le_succ s_succ_mth_eq,
             -- we then plug them into the recurrence

@@ -357,24 +357,23 @@ def mono_factorisation_zero (X Y : C) : mono_factorisation (0 : X ⟶ Y) :=
 { I := 0, m := 0, e := 0, }
 
 /--
-Any zero morphism has an image.
-We don't set this as an instance, as it is only intended for use inside the following proofs.
+The factorisation through the zero object is an image factorisation.
 -/
-def has_image.zero (X Y : C) : has_image (0 : X ⟶ Y) :=
+def image_factorisation_zero (X Y : C) : image_factorisation (0 : X ⟶ Y) :=
 { F := mono_factorisation_zero X Y,
-  is_image :=
-  { lift := λ F', 0 }}
+  is_image := { lift := λ F', 0 } }
+
+
+instance has_image_zero {X Y : C} : has_image (0 : X ⟶ Y) :=
+has_image.mk $ image_factorisation_zero _ _
 
 /-- The image of a zero morphism is the zero object. -/
-def image_zero {X Y : C} [has_image (0 : X ⟶ Y)] : image (0 : X ⟶ Y) ≅ 0 :=
-is_image.iso_ext (image.is_image (0 : X ⟶ Y)) (has_image.zero X Y).is_image
+def image_zero {X Y : C} : image (0 : X ⟶ Y) ≅ 0 :=
+is_image.iso_ext (image.is_image (0 : X ⟶ Y)) (image_factorisation_zero X Y).is_image
 
 /-- The image of a morphism which is equal to zero is the zero object. -/
 def image_zero' {X Y : C} {f : X ⟶ Y} (h : f = 0) [has_image f] : image f ≅ 0 :=
-begin
-  haveI := has_image.zero X Y,
-  exact image.eq_to_iso h ≪≫ image_zero,
-end
+image.eq_to_iso h ≪≫ image_zero
 
 @[simp]
 lemma image.ι_zero {X Y : C} [has_image (0 : X ⟶ Y)] : image.ι (0 : X ⟶ Y) = 0 :=
@@ -391,11 +390,7 @@ because `f = g` only implies `image f ≅ image g`.
 @[simp]
 lemma image.ι_zero' [has_equalizers C] {X Y : C} {f : X ⟶ Y} (h : f = 0) [has_image f] :
   image.ι f = 0 :=
-begin
-  haveI := has_image.zero X Y,
-  rw image.eq_fac h,
-  simp,
-end
+by { rw image.eq_fac h, simp }
 
 end image
 

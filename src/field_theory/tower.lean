@@ -64,22 +64,28 @@ namespace finite_dimensional
 theorem trans [finite_dimensional F K] [finite_dimensional K A] : finite_dimensional F A :=
 let ⟨b, hb⟩ := exists_is_basis_finset F K in
 let ⟨c, hc⟩ := exists_is_basis_finset K A in
-of_finite_basis $ hb.smul hc
+of_fintype_basis $ hb.smul hc
 
 lemma right [hf : finite_dimensional F A] : finite_dimensional K A :=
 let ⟨b, hb⟩ := iff_fg.1 hf in
-iff_fg.2 ⟨b, @submodule.restrict_scalars'_injective F _ _ _ _ _ _ _ _ _ _ _ $
-by { rw [submodule.restrict_scalars'_top, eq_top_iff, ← hb, submodule.span_le],
+iff_fg.2 ⟨b, submodule.restrict_scalars_injective F _ _ $
+by { rw [submodule.restrict_scalars_top, eq_top_iff, ← hb, submodule.span_le],
   exact submodule.subset_span }⟩
 
 /-- Tower law: if `A` is a `K`-algebra and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
-theorem findim_mul_findim [finite_dimensional F K] [finite_dimensional K A] :
+theorem findim_mul_findim [finite_dimensional F K] :
   findim F K * findim K A = findim F A :=
-let ⟨b, hb⟩ := exists_is_basis_finset F K in
-let ⟨c, hc⟩ := exists_is_basis_finset K A in
-by rw [findim_eq_card_basis hb, findim_eq_card_basis hc,
-    findim_eq_card_basis (hb.smul hc), fintype.card_prod]
+begin
+  by_cases hA : finite_dimensional K A,
+  { resetI,
+    rcases exists_is_basis_finset F K with ⟨b, hb⟩,
+    rcases exists_is_basis_finset K A with ⟨c, hc⟩,
+    rw [findim_eq_card_basis hb, findim_eq_card_basis hc,
+      findim_eq_card_basis (hb.smul hc), fintype.card_prod] },
+  { rw [findim_of_infinite_dimensional hA, mul_zero, findim_of_infinite_dimensional],
+    exact mt (@right F K A _ _ _ _ _ _ _) hA }
+end
 
 instance linear_map (F : Type u) (V : Type v) (W : Type w)
   [field F] [add_comm_group V] [vector_space F V] [add_comm_group W] [vector_space F W]
@@ -87,7 +93,7 @@ instance linear_map (F : Type u) (V : Type v) (W : Type w)
   finite_dimensional F (V →ₗ[F] W) :=
 let ⟨b, hb⟩ := exists_is_basis_finset F V in
 let ⟨c, hc⟩ := exists_is_basis_finset F W in
-(linear_equiv_matrix hb hc).symm.finite_dimensional
+(matrix.to_lin hb hc).finite_dimensional
 
 lemma findim_linear_map (F : Type u) (V : Type v) (W : Type w)
   [field F] [add_comm_group V] [vector_space F V] [add_comm_group W] [vector_space F W]
@@ -95,7 +101,7 @@ lemma findim_linear_map (F : Type u) (V : Type v) (W : Type w)
   findim F (V →ₗ[F] W) = findim F V * findim F W :=
 let ⟨b, hb⟩ := exists_is_basis_finset F V in
 let ⟨c, hc⟩ := exists_is_basis_finset F W in
-by rw [linear_equiv.findim_eq (linear_equiv_matrix hb hc), matrix.findim_matrix,
+by rw [linear_equiv.findim_eq (linear_map.to_matrix hb hc), matrix.findim_matrix,
       findim_eq_card_basis hb, findim_eq_card_basis hc, mul_comm]
 
 -- TODO: generalize by removing [finite_dimensional F K]

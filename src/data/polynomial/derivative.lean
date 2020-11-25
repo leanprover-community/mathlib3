@@ -46,21 +46,17 @@ end
 @[simp] lemma derivative_zero : derivative (0 : polynomial R) = 0 :=
 finsupp.sum_zero_index
 
-lemma derivative_monomial (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
-begin
-  rw [← single_eq_C_mul_X, ← single_eq_C_mul_X, derivative, monomial,
-    sum_single_index, single_eq_C_mul_X],
-  simp only [zero_mul, C_0],
-end
+lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
+(sum_single_index $ by simp).trans (C_mul_X_pow_eq_monomial _ _)
+
+lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
+by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 
 @[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
-suffices derivative (C a * X^0) = C (a * 0:R) * X ^ 0,
-  by simpa only [mul_one, zero_mul, C_0, mul_zero, pow_zero],
-derivative_monomial a 0
+(derivative_monomial a 0).trans $ by simp
 
 @[simp] lemma derivative_X : derivative (X : polynomial R) = 1 :=
-by simpa only [mul_one, one_mul, C_1, pow_one, nat.cast_one, pow_zero]
-  using derivative_monomial (1:R) 1
+(derivative_monomial _ _).trans $ by simp
 
 @[simp] lemma derivative_one : derivative (1 : polynomial R) = 0 :=
 derivative_C
@@ -108,7 +104,7 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
     apply finset.sum_congr rfl, assume n hn, apply finset.sum_congr rfl, assume m hm,
     transitivity,
     { apply congr_arg, exact single_eq_C_mul_X },
-    exact derivative_monomial _ _
+    exact derivative_C_mul_X_pow _ _
   end
   ... = f.sum (λn a, g.sum (λm b,
       (C (a * n) * X^(n - 1)) * (C b * X^m) + (C a * X^n) * (C (b * m) * X^(m - 1)))) :
@@ -201,7 +197,7 @@ le_antisymm
       { refine le_degree_of_ne_zero _, simpa only [mem_support_iff] using hn },
       { assume h, simpa only [h, support_zero] using hn }
     end,
-    le_trans (degree_monomial_le _ _) $ with_bot.coe_le_coe.2 $ nat.sub_le_sub_right this _)
+    le_trans (degree_C_mul_X_pow_le _ _) $ with_bot.coe_le_coe.2 $ nat.sub_le_sub_right this _)
   begin
     refine le_sup _,
     rw [mem_support_derivative, nat.sub_add_cancel, mem_support_iff],
@@ -211,6 +207,26 @@ le_antisymm
       exact lt_irrefl 0 (lt_of_le_of_lt (zero_le _) hp), },
     exact hp
   end
+
+theorem nat_degree_eq_zero_of_derivative_eq_zero [char_zero R] {f : polynomial R} (h : f.derivative = 0) :
+  f.nat_degree = 0 :=
+begin
+  by_cases hf : f = 0,
+  { exact (congr_arg polynomial.nat_degree hf).trans rfl },
+  { rw nat_degree_eq_zero_iff_degree_le_zero,
+    by_contra absurd,
+    have f_nat_degree_pos : 0 < f.nat_degree,
+    { rwa [not_le, ←nat_degree_pos_iff_degree_pos] at absurd },
+    let m := f.nat_degree - 1,
+    have hm : m + 1 = f.nat_degree := nat.sub_add_cancel f_nat_degree_pos,
+    have h2 := coeff_derivative f m,
+    rw polynomial.ext_iff at h,
+    rw [h m, coeff_zero, zero_eq_mul] at h2,
+    cases h2,
+    { rw [hm, ←leading_coeff, leading_coeff_eq_zero] at h2,
+      exact hf h2, },
+    { norm_cast at h2 } }
+end
 
 end domain
 

@@ -42,6 +42,8 @@ lemma append_list_mk_buffer  :
 by ext x : 1; simp [array.to_buffer,to_list,to_list_append_list];
    induction xs; [refl,skip]; simp [to_array]; refl
 
+/-- The natural equivalence between lists and buffers, using
+`list.to_buffer` and `buffer.to_list`. -/
 def list_equiv_buffer (α : Type*) : list α ≃ buffer α :=
 begin
   refine { to_fun := list.to_buffer, inv_fun := buffer.to_list, .. };

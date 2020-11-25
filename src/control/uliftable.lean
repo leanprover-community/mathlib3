@@ -58,7 +58,7 @@ def down {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} 
 (uliftable.congr f g equiv.ulift.symm).inv_fun
 
 /-- convenient shortcut to avoid manipulating `ulift` -/
-def adapt_up {F : Type u₀ → Type u₁} {G : Type (max u₀ v₀) → Type v₁}
+def adapt_up (F : Type v₀ → Type v₁) (G : Type (max v₀ u₀) → Type u₁)
   [uliftable F G] [monad G] {α β}
   (x : F α) (f : α → G β) : G β :=
 up x >>= f ∘ ulift.down

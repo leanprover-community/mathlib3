@@ -1288,7 +1288,7 @@ begin
   have b0 := ne_of_gt (lt_trans zero_lt_one b1),
   refine CNF_rec b0 (λ _, by rw [CNF_zero]; exact false.elim) _ o,
   intros o o0 H IH,
-  simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, list.forall_mem_cons', iff_true_intro IH, and_true],
+  simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro IH, and_true],
   rw [div_lt (power_ne_zero _ b0), ← power_succ],
   exact lt_power_succ_log b1 _,
 end
@@ -1304,8 +1304,8 @@ by induction n with n IH; [simp only [nat.cast_zero, nat.mul_zero, mul_zero],
   rw [nat.mul_succ, nat.cast_add, IH, nat.cast_succ, mul_add_one]]
 
 @[simp] theorem nat_cast_power {m n : ℕ} : ((pow m n : ℕ) : ordinal) = m ^ n :=
-by induction n with n IH; [simp only [nat.pow_zero, nat.cast_zero, power_zero, nat.cast_one],
-  rw [nat.pow_succ, nat_cast_mul, IH, nat.cast_succ, ← succ_eq_add_one, power_succ]]
+by induction n with n IH; [simp only [pow_zero, nat.cast_zero, power_zero, nat.cast_one],
+  rw [pow_succ', nat_cast_mul, IH, nat.cast_succ, ← succ_eq_add_one, power_succ]]
 
 @[simp] theorem nat_cast_le {m n : ℕ} : (m : ordinal) ≤ n ↔ m ≤ n :=
 by rw [← cardinal.ord_nat, ← cardinal.ord_nat,

@@ -40,8 +40,7 @@ variables (X : Top.{u})
 
 open Top
 
-namespace Top.sheaf_condition
-
+namespace Top.presheaf
 
 /--
 We show that the presheaf of functions to a type `T`
@@ -104,7 +103,8 @@ begin
     -- Now, we assert that the two restrictions of `f` to `U i` and `U j` coincide on `U i ⊓ U j`,
     -- and in particular coincide there after evaluating at `x`.
     have s₀ := s.condition =≫ pi.π _ (j, i),
-    simp only [sheaf_condition.left_res, sheaf_condition.right_res] at s₀,
+    simp only [sheaf_condition_equalizer_products.left_res,
+      sheaf_condition_equalizer_products.right_res] at s₀,
     have s₁ := congr_fun s₀ f,
     have s₂ := congr_fun s₁ ⟨x, _⟩, clear s₀ s₁,
     -- Notice at this point we've spun after an additional goal:
@@ -121,7 +121,8 @@ begin
     -- Now, we can just assert that `s₂` is the droid you are looking for,
     -- and do a little patching up afterwards.
     convert s₂,
-    { simp only [sheaf_condition.res, presheaf_to_Types_map, types.pi_lift_π_apply, types_comp_apply],
+    { simp only [sheaf_condition_equalizer_products.res, presheaf_to_Types_map,
+        types.pi_lift_π_apply, types_comp_apply],
       dsimp [inf_le_left_apply],
       simp,
       refl, },
@@ -147,7 +148,7 @@ begin
     -- Now it's just a matter of plugging in all the values;
     -- `j` gets solved for during unification.
     convert congr_fun (congr_fun (w =≫ pi.π _ j) f) ⟨x, _⟩,
-    simp [sheaf_condition.res],
+    simp [sheaf_condition_equalizer_products.res],
     refl, }
 end.
 
@@ -159,7 +160,7 @@ a target type `T` satsifies the sheaf condition.
 def to_Type (T : Type u) : sheaf_condition (presheaf_to_Type X T) :=
 to_Types X (λ _, T)
 
-end Top.sheaf_condition
+end Top.presheaf
 
 namespace Top
 
@@ -168,13 +169,13 @@ The sheaf of not-necessarily-continuous functions on `X` with values in type fam
 -/
 def sheaf_to_Types (T : X → Type u) : sheaf (Type u) X :=
 { presheaf := presheaf_to_Types X T,
-  sheaf_condition := sheaf_condition.to_Types _ _, }
+  sheaf_condition := presheaf.to_Types _ _, }
 
 /--
 The sheaf of not-necessarily-continuous functions on `X` with values in a type `T`.
 -/
 def sheaf_to_Type (T : Type u) : sheaf (Type u) X :=
 { presheaf := presheaf_to_Type X T,
-  sheaf_condition := sheaf_condition.to_Type _ _, }
+  sheaf_condition := presheaf.to_Type _ _, }
 
 end Top

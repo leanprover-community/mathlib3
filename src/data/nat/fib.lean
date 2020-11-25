@@ -45,10 +45,12 @@ Implementation of the fibonacci sequence satisfying
 *Note:* We use a stream iterator for better performance when compared to the naive recursive
 implementation.
 -/
+@[pp_nodot]
 def fib (n : ℕ) : ℕ := (fib_aux_stream n).fst
 
 @[simp] lemma fib_zero : fib 0 = 0 := rfl
 @[simp] lemma fib_one : fib 1 = 1 := rfl
+@[simp] lemma fib_two : fib 2 = 1 := rfl
 
 private lemma fib_aux_stream_succ {n : ℕ} :
     fib_aux_stream (n + 1) = fib_aux_step (fib_aux_stream n) :=

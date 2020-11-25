@@ -86,7 +86,7 @@ lemma foo.map_mk {α β : Type} (f : α → β) (x : bool × α) :
 by simp [(<$>),foo.map]
 
 noncomputable instance qpf.foo : qpf foo :=
-@qpf.quotient_qpf (prod bool) _ ex.qpf foo _ (λ α, quot.mk _) (λ α, quot.out)
+@qpf.quotient_qpf (prod bool) _ ex.prod.qpf foo _ (λ α, quot.mk _) (λ α, quot.out)
   (by simp)
   (by intros; simp)
 
@@ -141,7 +141,7 @@ lemma foo_not_uniform : ¬ @qpf.is_uniform foo _ qpf.foo :=
 begin
   simp only [qpf.is_uniform, foo, qpf.foo, set.image_univ, not_forall, not_imp],
   existsi [bool,ff,ff,λ a : unit, tt,λ a : unit, ff], split,
-  { apply quot.sound, simp [foo.R,qpf.abs,qpf._match_1], },
+  { apply quot.sound, simp [foo.R, qpf.abs, prod.qpf._match_1] },
   { simp! only [set.range, set.ext_iff],
     simp only [not_exists, false_iff, bool.forall_bool, eq_self_iff_true, exists_false, not_true,
       and_self, set.mem_set_of_eq, iff_false],

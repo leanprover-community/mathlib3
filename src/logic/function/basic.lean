@@ -26,6 +26,8 @@ variables {α β γ : Sort*} {f : α → β}
 lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : α → β) (a : α) :
   (f ∘ g) a = f (g a) := rfl
 
+lemma const_def {y : β} : (λ x : α, y) = const α y := rfl
+
 @[simp] lemma const_apply {y : β} {x : α} : const α y x = y := rfl
 
 @[simp] lemma const_comp {f : α → β} {c : γ} : const β c ∘ f = const α c := rfl
@@ -304,40 +306,55 @@ if h : a = a' then eq.rec v h.symm else f a
 @[simp] lemma update_same (a : α) (v : β a) (f : Πa, β a) : update f a v a = v :=
 dif_pos rfl
 
+lemma update_injective (f : Πa, β a) (a' : α) : injective (update f a') :=
+λ v v' h, have _ := congr_fun h a', by rwa [update_same, update_same] at this
+
 @[simp] lemma update_noteq {a a' : α} (h : a ≠ a') (v : β a') (f : Πa, β a) : update f a' v a = f a :=
 dif_neg h
 
+lemma rel_update_iff {β' : α → Sort*} {a : α} {b : β a} {f : Π a, β a} {g : Π a, β' a}
+  (r : Π a, β a → β' a → Prop) :
+  (∀ x, r x (update f a b x) (g x)) ↔ r a b (g a) ∧ ∀ x ≠ a, r x (f x) (g x) :=
+calc (∀ x, r x (update f a b x) (g x)) ↔ ∀ x, (x = a ∨ x ≠ a) → r x (update f a b x) (g x) :
+  by simp only [ne.def, classical.em, forall_prop_of_true]
+... ↔ r a b (g a) ∧ ∀ x ≠ a, r x (update f a b x) (g x) :
+  by simp only [or_imp_distrib, forall_and_distrib, forall_eq, update_same]
+... ↔ r a b (g a) ∧ ∀ x ≠ a, r x (f x) (g x) :
+  and_congr iff.rfl $ forall_congr $ λ x, forall_congr $ λ hx, by rw [update_noteq hx]
+
+lemma update_eq_iff {a : α} {b : β a} {f g : Π a, β a} :
+  update f a b = g ↔ b = g a ∧ ∀ x ≠ a, f x = g x :=
+funext_iff.trans $ rel_update_iff (λ a x y, x = y)
+
+lemma eq_update_iff {a : α} {b : β a} {f g : Π a, β a} :
+  g = update f a b ↔ g a = b ∧ ∀ x ≠ a, g x = f x :=
+eq_comm.trans $ update_eq_iff.trans $ by simp only [eq_comm]
+
 @[simp] lemma update_eq_self (a : α) (f : Πa, β a) : update f a (f a) = f :=
-begin
-  refine funext (λi, _),
-  by_cases h : i = a,
-  { rw h, simp },
-  { simp [h] }
-end
+update_eq_iff.2 ⟨rfl, λ _ _, rfl⟩
 
 lemma update_comp {β : Sort v} (f : α → β) {g : α' → α} (hg : injective g) (a : α') (v : β) :
   (update f (g a) v) ∘ g = update (f ∘ g) a v :=
+eq_update_iff.2 ⟨update_same _ _ _, λ x hx, update_noteq (hg.ne hx) _ _⟩
+
+lemma apply_update {ι : Sort*} [decidable_eq ι] {α β : ι → Sort*}
+  (f : Π i, α i → β i) (g : Π i, α i) (i : ι) (v : α i) (j : ι) :
+  f j (update g i v j) = update (λ k, f k (g k)) i (f i v) j :=
 begin
-  refine funext (λi, _),
-  by_cases h : i = a,
-  { rw h, simp },
-  { simp [h, hg.ne] }
+  by_cases h : j = i,
+  { subst j, simp },
+  { simp [h] }
 end
 
 lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (i : α) (v : α') :
   f ∘ (update g i v) = update (f ∘ g) i (f v) :=
-begin
-  refine funext (λj, _),
-  by_cases h : j = i,
-  { rw h, simp },
-  { simp [h] }
-end
+funext $ apply_update _ _ _ _
 
 theorem update_comm {α} [decidable_eq α] {β : α → Sort*}
   {a b : α} (h : a ≠ b) (v : β a) (w : β b) (f : Πa, β a) :
   update (update f a v) b w = update (update f b w) a v :=
 begin
-  funext c, simp [update],
+  funext c, simp only [update],
   by_cases h₁ : c = b; by_cases h₂ : c = a; try {simp [h₁, h₂]},
   cases h (h₂.symm.trans h₁),
 end
@@ -348,7 +365,47 @@ by {funext b, by_cases b = a; simp [update, h]}
 
 end update
 
+section extend
+
+noncomputable theory
+local attribute [instance, priority 10] classical.prop_decidable
+
+variables {α β γ : Type*} {f : α → β}
+
+/-- `extend f g e'` extends a function `g : α → γ`
+along a function `f : α → β` to a function `β → γ`,
+by using the values of `g` on the range of `f`
+and the values of an auxiliary function `e' : β → γ` elsewhere.
+
+Mostly useful when `f` is injective. -/
+def extend (f : α → β) (g : α → γ) (e' : β → γ) : β → γ :=
+λ b, if h : ∃ a, f a = b then g (classical.some h) else e' b
+
+lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) :
+  extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b := rfl
+
+@[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
+  extend f g e' (f a) = g a :=
+begin
+  simp only [extend_def, dif_pos, exists_apply_eq_apply],
+  exact congr_arg g (hf $ classical.some_spec (exists_apply_eq_apply f a))
+end
+
+@[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :
+  extend f g e' ∘ f = g :=
+funext $ λ a, extend_apply hf g e' a
+
+end extend
+
 lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.2) :=
+rfl
+
+@[simp] lemma uncurry_apply_pair {α β γ} (f : α → β → γ) (x : α) (y : β) :
+  uncurry f (x, y) = f x y :=
+rfl
+
+@[simp] lemma curry_apply {α β γ} (f : α × β → γ) (x : α) (y : β) :
+  curry f x y = f (x, y) :=
 rfl
 
 section bicomp
@@ -407,6 +464,9 @@ funext_iff.symm
 namespace involutive
 variables {α : Sort u} {f : α → α} (h : involutive f)
 include h
+
+@[simp]
+lemma comp_self : f ∘ f = id := funext h
 
 protected lemma left_inverse : left_inverse f f := h
 protected lemma right_inverse : right_inverse f f := h

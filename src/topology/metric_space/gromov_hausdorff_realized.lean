@@ -161,12 +161,10 @@ private lemma candidates_lipschitz (fA : f ∈ candidates α β) :
 begin
   apply lipschitz_with.of_dist_le_mul,
   rintros ⟨x, y⟩ ⟨z, t⟩,
-  rw real.dist_eq,
-  apply abs_le_of_le_of_neg_le,
-  { exact candidates_lipschitz_aux fA },
-  { have : -(f (x, y) - f (z, t)) = f (z, t) - f (x, y), by ring,
-    rw [this, dist_comm],
-    exact candidates_lipschitz_aux fA }
+  rw [real.dist_eq, abs_sub_le_iff],
+  use candidates_lipschitz_aux fA,
+  rw [dist_comm],
+  exact candidates_lipschitz_aux fA
 end
 
 /-- candidates give rise to elements of bounded_continuous_functions -/

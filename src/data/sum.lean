@@ -3,7 +3,6 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury G. Kudryashov
 -/
-import tactic.lint
 
 /-!
 # More theorems about the sum type
@@ -48,6 +47,12 @@ end, λ h, match h with
 end⟩
 
 namespace sum
+
+lemma injective_inl : function.injective (sum.inl : α → α ⊕ β) :=
+λ x y, sum.inl.inj
+
+lemma injective_inr : function.injective (sum.inr : β → α ⊕ β) :=
+λ x y, sum.inr.inj
 
 /-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
 protected def map (f : α → α') (g : β → β')  : α ⊕ β → α' ⊕ β'

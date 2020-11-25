@@ -18,7 +18,7 @@ Relations.
 -/
 
 def rmap (r : rel α β) (f : filter α) : filter β :=
-{ sets             := r.core ⁻¹' f.sets,
+{ sets             := {s | r.core s ∈  f},
   univ_sets        := by { simp [rel.core], apply univ_mem_sets },
   sets_of_superset := assume s t hs st, mem_sets_of_superset hs $ rel.core_mono _ st,
   inter_sets       := by { simp [set.preimage, rel.core_inter], exact λ s t, inter_mem_sets } }

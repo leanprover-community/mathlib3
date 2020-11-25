@@ -362,6 +362,38 @@ cast_nat_cast (dvd_refl _) k
 lemma cast_int_cast' (k : ℤ) : ((k : zmod n) : R) = k :=
 cast_int_cast (dvd_refl _) k
 
+instance (R : Type*) [comm_ring R] [char_p R n] : algebra (zmod n) R :=
+(zmod.cast_hom (dvd_refl n) R).to_algebra
+
+variables (R)
+
+lemma cast_hom_injective : function.injective (zmod.cast_hom (dvd_refl n) R) :=
+begin
+  rw ring_hom.injective_iff,
+  intro x,
+  obtain ⟨k, rfl⟩ := zmod.int_cast_surjective x,
+  rw [ring_hom.map_int_cast, char_p.int_cast_eq_zero_iff R n, char_p.int_cast_eq_zero_iff (zmod n) n],
+  exact id
+end
+
+lemma cast_hom_bijective [fintype R] (h : fintype.card R = n) :
+  function.bijective (zmod.cast_hom (dvd_refl n) R) :=
+begin
+  haveI : fact (0 < n) :=
+  begin
+    rw [nat.pos_iff_ne_zero],
+    unfreezingI { rintro rfl },
+    exact fintype.card_eq_zero_iff.mp h 0
+  end,
+  rw [fintype.bijective_iff_injective_and_card, zmod.card, h, eq_self_iff_true, and_true],
+  apply zmod.cast_hom_injective
+end
+
+/-- The unique ring isomorphism between `zmod n` and a ring `R`
+of characteristic `n` and cardinality `n`. -/
+noncomputable def ring_equiv [fintype R] (h : fintype.card R = n) : zmod n ≃+* R :=
+ring_equiv.of_bijective _ (zmod.cast_hom_bijective R h)
+
 end char_eq
 
 end universal_property
@@ -395,6 +427,8 @@ begin
   rw zmod.int_coe_eq_int_coe_iff,
   apply int.modeq.mod_modeq,
 end
+
+local attribute [semireducible] int.nonneg
 
 @[simp] lemma coe_to_nat (p : ℕ) :
   ∀ {z : ℤ} (h : 0 ≤ z), (z.to_nat : zmod p) = z
@@ -771,11 +805,16 @@ begin
   rw φ.ext_int ψ,
 end
 
-instance zmod.subsingleton_ring_hom {n : ℕ} {R : Type*} [semiring R] :
-  subsingleton ((zmod n) →+* R) :=
+namespace zmod
+variables {n : ℕ} {R : Type*}
+
+instance subsingleton_ring_hom [semiring R] : subsingleton ((zmod n) →+* R) :=
 ⟨ring_hom.ext_zmod⟩
 
-lemma zmod.ring_hom_surjective {R : Type*} [comm_ring R] {n : ℕ} (f : R →+* (zmod n)) :
+instance subsingleton_ring_equiv [semiring R] : subsingleton (zmod n ≃+* R) :=
+⟨λ f g, by { rw ring_equiv.coe_ring_hom_inj_iff, apply ring_hom.ext_zmod _ _ }⟩
+
+lemma ring_hom_surjective [ring R] (f : R →+* (zmod n)) :
   function.surjective f :=
 begin
   intros k,
@@ -783,8 +822,10 @@ begin
   refine ⟨n, f.map_int_cast n⟩
 end
 
-lemma zmod.ring_hom_eq_of_ker_eq {R : Type*} [comm_ring R] {n : ℕ} (f g : R →+* (zmod n))
+lemma ring_hom_eq_of_ker_eq [comm_ring R] (f g : R →+* (zmod n))
   (h : f.ker = g.ker) : f = g :=
 by rw [← f.lift_of_surjective_comp (zmod.ring_hom_surjective f) g (le_of_eq h),
       ring_hom.ext_zmod (f.lift_of_surjective _ _ _) (ring_hom.id _),
       ring_hom.id_comp]
+
+end zmod

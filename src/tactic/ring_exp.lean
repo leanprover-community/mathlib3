@@ -627,7 +627,7 @@ with the proof of `expr.of_rat p + expr.of_rat q = expr.of_rat (p + q)`.
 meta def add_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   ctx ← get_context,
   pq_o ← mk_add [p_p, q_p],
-  (pq_p, pq_pf) ← lift $ norm_num.derive' pq_o,
+  (pq_p, pq_pf) ← lift $ norm_num.eval_field pq_o,
   pure $ ex.coeff ⟨pq_o, pq_p, pq_pf⟩ ⟨p.1 + q.1⟩
 
 lemma mul_coeff_pf_one_mul (q : α) : 1 * q = q := one_mul q
@@ -654,7 +654,7 @@ match p.1, q.1 with -- Special case to speed up multiplication with 1.
 | _, _ := do
   ctx ← get_context,
   pq' ← mk_mul [p_p, q_p],
-  (pq_p, pq_pf) ← lift $ norm_num.derive' pq',
+  (pq_p, pq_pf) ← lift $ norm_num.eval_field pq',
   pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩
 end
 
@@ -822,7 +822,7 @@ lemma mul_pf_prod_c {pps p ps qs pqs : α} :
 lemma mul_pp_pf_overlap {pps p_b ps qqs qs psqs : α} {p_e q_e : ℕ} :
   pps = p_b ^ p_e * ps → qqs = p_b ^ q_e * qs →
   p_b ^ (p_e + q_e) * (ps * qs) = psqs → pps * qqs = psqs
-:= λ ps_pf qs_pf psqs_pf, by simp [symm psqs_pf, _root_.pow_add, ps_pf, qs_pf]; ac_refl
+:= λ ps_pf qs_pf psqs_pf, by simp [symm psqs_pf, pow_add, ps_pf, qs_pf]; ac_refl
 
 lemma mul_pp_pf_prod_lt {pps p ps qqs pqs : α} :
   pps = p * ps → ps * qqs = pqs → pps * qqs = p * pqs := by cc
@@ -975,7 +975,7 @@ with the proof of `expr.of_rat p ^ expr.of_rat q = expr.of_rat (p ^ q)`.
 meta def pow_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   ctx ← get_context,
   pq' ← mk_pow [p_p, q_p],
-  (pq_p, pq_pf) ← lift $ norm_num.derive' pq',
+  (pq_p, pq_pf) ← lift $ norm_num.eval_pow pq',
   pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩
 
 /--
@@ -994,7 +994,7 @@ meta def pow_e : ex exp → ex prod → ring_exp_m (ex exp)
   pure $ ppsqs.set_info ppsqs_o pf
 
 lemma pow_pp_pf_one {ps : α} {qs : ℕ} : ps = 1 → ps ^ qs = 1 :=
-λ ps_pf, by rw [ps_pf, _root_.one_pow]
+λ ps_pf, by rw [ps_pf, one_pow]
 
 lemma pow_pf_c_c {ps ps' pq : α} {qs qs' : ℕ} :
   ps = ps' → qs = qs' → ps' ^ qs' = pq → ps ^ qs = pq := by cc

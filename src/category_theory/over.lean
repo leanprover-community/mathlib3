@@ -33,7 +33,7 @@ triangles.
 See https://stacks.math.columbia.edu/tag/001G.
 -/
 @[derive category]
-def over (X : T) := comma.{v₁ 0 v₁} (𝟭 T) (functor.from_punit X)
+def over (X : T) := comma.{v₁ v₁ v₁} (𝟭 T) (functor.from_punit X)
 
 -- Satisfying the inhabited linter
 instance over.inhabited [inhabited T] : inhabited (over (default T)) :=
@@ -187,7 +187,7 @@ end over
 /-- The under category has as objects arrows with domain `X` and as morphisms commutative
     triangles. -/
 @[derive category]
-def under (X : T) := comma.{0 v₁ v₁} (functor.from_punit X) (𝟭 T)
+def under (X : T) := comma.{v₁ v₁ v₁} (functor.from_punit X) (𝟭 T)
 
 -- Satisfying the inhabited linter
 instance under.inhabited [inhabited T] : inhabited (under (default T)) :=

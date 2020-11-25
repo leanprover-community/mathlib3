@@ -60,6 +60,19 @@ def eval := M.eval_from M.start
 def accepts (s : list α) : Prop :=
 ∃ S ∈ M.accept, S ∈ M.eval s
 
+/-- Two DFA's are equivalent if the accept exactly the same strings -/
+def equiv (M N : NFA α) : Prop := ∀ x, M.accepts x ↔ N.accepts x
+
+local infix ` ≈ ` := equiv
+
+@[refl] lemma equiv_refl (M : NFA α) : M ≈ M := λ x, by refl
+@[symm] lemma equiv_symm (M N : NFA α) : M ≈ N → N ≈ M := λ h x, (h x).symm
+@[trans] lemma equiv_trans (M N P : NFA α) : M ≈ N → N ≈ P → M ≈ P :=
+  λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
+
+@[simp] lemma equiv_def (M N : NFA α) : M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
+  by refl
+
 /-- `NFA_of_DFA M` is an `NFA` constructed from a `DFA` `M` by using the same start and accept
   states and a transition function which sends `s` with input `a` to the singleton `M.step s a` -/
 def NFA_of_DFA (M : DFA α) : NFA α :=
@@ -83,14 +96,14 @@ begin
     tauto }
 end
 
-lemma NFA_of_DFA_correct (M : DFA α) (s : list α) :
-  M.accepts s ↔ (NFA_of_DFA M).accepts s :=
+lemma NFA_of_DFA_correct (M : DFA α) (x : list α) :
+  M.accepts x ↔ (NFA_of_DFA M).accepts x :=
 begin
-  change _ ↔ ∃ S H, S ∈ (NFA_of_DFA M).eval_from {M.start} s,
+  change _ ↔ ∃ S H, S ∈ (NFA_of_DFA M).eval_from {M.start} x,
   rw ←NFA_of_DFA_eval_from_match,
   split,
   { intro h,
-    use M.eval s,
+    use M.eval x,
     finish },
   { rintro ⟨ S, hS₁, hS₂ ⟩,
     rw finset.mem_singleton at hS₂,
@@ -106,8 +119,8 @@ def DFA_of_NFA : DFA α :=
   start := M.start,
   accept := finset.univ.filter (λ S, ∃ s ∈ S, s ∈ M.accept) }
 
-lemma DFA_of_NFA_correct (s : list α) :
-  M.accepts s ↔ M.DFA_of_NFA.accepts s :=
+lemma DFA_of_NFA_correct (x : list α) :
+  M.accepts x ↔ M.DFA_of_NFA.accepts x :=
 begin
   rw [accepts, DFA.accepts, eval, DFA.eval],
   change _ ↔ list.foldl _ _ _ ∈ finset.univ.filter _,

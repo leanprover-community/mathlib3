@@ -6,6 +6,7 @@ Author: Zhangir Azerbayev.
 
 import linear_algebra.multilinear
 import group_theory.perm.sign
+import data.equiv.fin
 
 /-!
 # Alternating Maps
@@ -213,4 +214,38 @@ lemma map_congr_perm [fintype ι] (σ : equiv.perm ι) :
   g v = (equiv.perm.sign σ : ℤ) • g (v ∘ σ) :=
 by { rw [g.map_perm, smul_smul], simp }
 
+-- def fin_split {n m} (f : fin (n + m)) : fin n ⊕ fin m :=
+-- if h : ↑f < n then sum.inl ⟨f, h⟩ else sum.inr (f.sub_nat n (le_of_not_lt h)))
+
+@[simp] lemma pprod_mk_eta {α β : Sort*} {p : pprod α β} : pprod.mk p.1 p.2 = p :=
+pprod.cases_on p (λ a b, rfl)
+
+@[simp] lemma sum_elim_comp_inl_inr {α β γ : Sort*} (f : α ⊕ β → γ) : sum.elim (f ∘ sum.inl) (f ∘ sum.inr) = f :=
+funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
+
+@[simp] lemma sum_elim_comp_inl {α β γ : Sort*} (f : α → γ) (g : β → γ): sum.elim f g ∘ sum.inl = f := rfl
+@[simp] lemma sum_elim_comp_inr {α β γ : Sort*} (f : α → γ) (g : β → γ): sum.elim f g ∘ sum.inr = g := rfl
+
+#print prod.mk.eta
+
+def sum_split_func {α β γ : Sort*} : (α ⊕ β → γ) ≃ pprod (α → γ) (β → γ) :=
+{ to_fun := λ f, ⟨f ∘ sum.inl, f ∘ sum.inr⟩,
+  inv_fun := λ F h, h.elim F.1 F.2,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by simp, }
+
+def finvec_split {n m} {α : Sort*} (f : fin (n + m) → α) : pprod (fin n → α) (fin m → α) := sorry
+
+def co_mul_fin {n m} [monoid N] (a : alternating_map R M N (fin m)) (b : alternating_map R M N (fin n)) :
+  alternating_map R M N (fin (m + n)) :=
+{ to_fun := λ (v : fin (m + n) → M),
+    let v' := sum_split_func (v ∘ sum_fin_sum_equiv) in a (v'.1) * b (v'.2),
+  map_add' := _,
+  map_smul' := _,
+  map_eq_args' := _ }
+
+#check group_with_zero
+
 end alternating_map
+
+$(f )

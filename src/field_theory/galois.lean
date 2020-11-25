@@ -197,7 +197,7 @@ instance fixed_field.algebra : algebra K (fixed_field (fixing_subgroup K)) :=
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ _ _, rfl }
 
-instance tower_instance : is_scalar_tower K (fixed_field (fixing_subgroup K)) E :=
+instance fixed_field.is_scalar_tower : is_scalar_tower K (fixed_field (fixing_subgroup K)) E :=
 ⟨λ _ _ _, mul_assoc _ _ _⟩
 
 theorem fixed_field_fixing_subgroup [finite_dimensional F E] [h : is_galois F E] :

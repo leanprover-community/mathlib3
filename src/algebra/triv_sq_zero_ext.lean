@@ -37,19 +37,19 @@ namespace triv_sq_zero_ext
 section basic
 variables {R : Type u} {M : Type v}
 
-/-- The canonical inclusion `R → tsze R M`. -/
+/-- The canonical inclusion `R → triv_sq_zero_ext R M`. -/
 def inl [has_zero M] (r : R) : tsze R M :=
 (r, 0)
 
-/-- The canonical inclusion `M → tsze R M`. -/
+/-- The canonical inclusion `M → triv_sq_zero_ext R M`. -/
 def inr [has_zero R] (m : M) : tsze R M :=
 (0, m)
 
-/-- The canonical projection `tsze R M → R`. -/
+/-- The canonical projection `triv_sq_zero_ext R M → R`. -/
 def fst (x : tsze R M) : R :=
 x.1
 
-/-- The canonical projection `tsze R M → M`. -/
+/-- The canonical projection `triv_sq_zero_ext R M → M`. -/
 def snd (x : tsze R M) : M :=
 x.2
 
@@ -164,7 +164,7 @@ instance [semiring R] [add_comm_monoid M] [semimodule R M] : semimodule R (tsze 
 instance [ring R] [add_comm_group M] [module R M] : module R (tsze R M) :=
 { .. triv_sq_zero_ext.semimodule R M }
 
-/-- The canonical `R`-linear inclusion `M → tsze R M`. -/
+/-- The canonical `R`-linear inclusion `M → triv_sq_zero_ext R M`. -/
 @[simps apply]
 def inr_hom [semiring R] [add_comm_monoid M] [semimodule R M] : M →ₗ[R] tsze R M :=
 { to_fun := inr,
@@ -207,7 +207,7 @@ lemma inr_mul_inl [semiring R] [add_comm_monoid M] [semimodule R M] (r : R) (m :
   (inr m * inl r : tsze R M) = inr (r • m) :=
 ext (zero_mul r) $ show (0 : R) • 0 + r • m = r • m, by rw [smul_zero, zero_add]
 
-lemma inr_mul_inr [semiring R] [add_comm_monoid M] [semimodule R M] (m₁ m₂ : M) :
+@[simp] lemma inr_mul_inr [semiring R] [add_comm_monoid M] [semimodule R M] (m₁ m₂ : M) :
   (inr m₁ * inr m₂ : tsze R M) = 0 :=
 ext (mul_zero _) $ show (0 : R) • m₂ + (0 : R) • m₁ = 0, by rw [zero_smul, zero_add, zero_smul]
 
@@ -241,7 +241,7 @@ instance [comm_semiring R] [add_comm_monoid M] [semimodule R M] : comm_semiring 
   .. triv_sq_zero_ext.monoid R M,
   .. triv_sq_zero_ext.add_comm_monoid R M }
 
-/-- The canonical inclusion of rings `R → tsze R M`. -/
+/-- The canonical inclusion of rings `R → triv_sq_zero_ext R M`. -/
 @[simps apply]
 def inl_hom [comm_semiring R] [add_comm_monoid M] [semimodule R M] : R →+* tsze R M :=
 { to_fun := inl,
@@ -261,7 +261,7 @@ instance [comm_semiring R] [add_comm_monoid M] [semimodule R M] : algebra R (tsz
   .. triv_sq_zero_ext.semimodule R M,
   .. triv_sq_zero_ext.inl_hom R M }
 
-/-- The canonical `R`-algebra projection `tsze R M → R`. -/
+/-- The canonical `R`-algebra projection `triv_sq_zero_ext R M → R`. -/
 def fst_hom [comm_semiring R] [add_comm_monoid M] [semimodule R M] : tsze R M →ₐ[R] R :=
 { to_fun := fst,
   map_one' := fst_one R M,

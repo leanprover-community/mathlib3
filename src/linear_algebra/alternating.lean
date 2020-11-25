@@ -219,33 +219,120 @@ by { rw [g.map_perm, smul_smul], simp }
 
 @[simp] lemma pprod_mk_eta {α β : Sort*} {p : pprod α β} : pprod.mk p.1 p.2 = p :=
 pprod.cases_on p (λ a b, rfl)
+section
 
-@[simp] lemma sum_elim_comp_inl_inr {α β γ : Sort*} (f : α ⊕ β → γ) : sum.elim (f ∘ sum.inl) (f ∘ sum.inr) = f :=
+open sum
+
+@[simp] lemma elim_comp_inl {α β γ : Sort*} (f : α → γ) (g : β → γ) :
+  sum.elim f g ∘ inl = f := rfl
+
+@[simp] lemma elim_comp_inr {α β γ : Sort*} (f : α → γ) (g : β → γ) :
+  sum.elim f g ∘ inr = g := rfl
+
+@[simp] lemma elim_inl_inr {α β : Sort*} :
+  @sum.elim α β _ inl inr = id :=
 funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
 
-@[simp] lemma sum_elim_comp_inl {α β γ : Sort*} (f : α → γ) (g : β → γ): sum.elim f g ∘ sum.inl = f := rfl
-@[simp] lemma sum_elim_comp_inr {α β γ : Sort*} (f : α → γ) (g : β → γ): sum.elim f g ∘ sum.inr = g := rfl
+lemma comp_elim {α β γ δ : Sort*} (f : γ → δ) (g : α → γ) (h : β → γ):
+  f ∘ sum.elim g h = sum.elim (f ∘ g) (f ∘ h) :=
+funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
+
+@[simp] lemma elim_comp_inl_inr {α β γ : Sort*} (f : α ⊕ β → γ) :
+  sum.elim (f ∘ inl) (f ∘ inr) = f :=
+funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
+
+end
 
 #print prod.mk.eta
 
-def sum_split_func {α β γ : Sort*} : (α ⊕ β → γ) ≃ pprod (α → γ) (β → γ) :=
+def sum_split_func {α β γ : Type*} : (α ⊕ β → γ) ≃ (α → γ) × (β → γ) :=
 { to_fun := λ f, ⟨f ∘ sum.inl, f ∘ sum.inr⟩,
   inv_fun := λ F h, h.elim F.1 F.2,
-  left_inv := λ f, by simp,
-  right_inv := λ f, by simp, }
+  left_inv := elim_comp_inl_inr,
+  right_inv := λ f, by simp }
 
 def finvec_split {n m} {α : Sort*} (f : fin (n + m) → α) : pprod (fin n → α) (fin m → α) := sorry
-
-def co_mul_fin {n m} [monoid N] (a : alternating_map R M N (fin m)) (b : alternating_map R M N (fin n)) :
-  alternating_map R M N (fin (m + n)) :=
-{ to_fun := λ (v : fin (m + n) → M),
-    let v' := sum_split_func (v ∘ sum_fin_sum_equiv) in a (v'.1) * b (v'.2),
-  map_add' := _,
-  map_smul' := _,
-  map_eq_args' := _ }
 
 #check group_with_zero
 
 end alternating_map
 
-$(f )
+#check sum.lex
+
+
+#print function.update_comp
+
+def function.update_comp_equiv {α β γ : Sort*} [decidable_eq α] [decidable_eq γ]
+  (f : α → β) (σ : γ ≃ α) (i : α) (v : β) :
+  function.update f i v ∘ σ = function.update (f ∘ σ) (σ.symm i) v :=
+begin
+  conv_lhs {rw ← σ.apply_symm_apply i},
+  rw function.update_comp,
+  exact σ.injective,
+end
+
+/-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
+lemma function.update_apply {α β : Sort*} [decidable_eq α] (f : α → β) (a' : α) (b : β) (a : α) :
+  function.update f a' b a = if a = a' then b else f a :=
+begin
+  dunfold function.update,
+  congr,
+  funext,
+  rw eq_rec_constant,
+end
+
+/-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
+lemma function.update_def {α β : Sort*} [decidable_eq α] (f : α → β) (a' : α) (b : β) :
+  function.update f a' b = λ a, if a = a' then b else f a :=
+begin
+  ext,
+  apply function.update_apply,
+end
+
+def is_shuffle {m n} (p : fin m ⊕ fin n ≃ fin (m + n)) : Prop := monotone (p ∘ sum.inl) ∧ monotone (p ∘ sum.inr)
+
+instance {m n : ℕ} : decidable_pred (@is_shuffle m n) :=
+λ p, by {unfold is_shuffle monotone, apply_instance}
+
+@[derive has_coe_to_fun]
+def shuffle (m n) : Type* := {p : fin m ⊕ fin n ≃ fin (m + n) // is_shuffle p }
+
+namespace shuffle
+
+variables {m n : ℕ}
+
+def to_perm (s : shuffle m n) : (equiv.perm $ fin (m + n)) := sum_fin_sum_equiv.symm.trans s.val
+
+instance : has_coe_t (shuffle m n) (equiv.perm $ fin (m + n)) := ⟨to_perm⟩
+
+instance : fintype (shuffle m n) := subtype.fintype _
+
+end shuffle
+
+open_locale big_operators
+
+def mul_fin {n m} [monoid N] [semimodule ℤ N] (a : alternating_map R M N (fin m)) (b : alternating_map R M N (fin n)) :
+  alternating_map R M N (fin (m + n)) :=
+{ to_fun := λ (v : fin (m + n) → M),
+  ∑ σ : shuffle m n,
+    (σ.to_perm.sign : ℤ) • (a (v ∘ σ ∘ sum.inl) * b (v ∘ σ ∘ sum.inr)),
+  map_add' := sorry,
+  map_smul' := sorry,
+  map_eq_args' := sorry }
+
+
+-- begin
+--     intros v i ai bi,
+--     rw ← finset.sum_add_distrib,
+--     congr,
+--     ext1 σ,
+--     rw ←smul_add,
+--     congr,
+--     simp,
+--     repeat {rw [←function.comp.assoc _ _ sum.inr, ←function.comp.assoc _ _ sum.inl]},
+--     repeat {rw function.update_comp_equiv},
+--     simp [function.update_def],
+--     simp,
+--     sorry,
+--     -- simp,
+--   end

@@ -259,7 +259,7 @@ instance [comm_ring R] : comm_ring (arithmetic_function R) :=
   .. arithmetic_function.comm_semiring }
 
 section module
-variables {A : Type*} [comm_ring R] [add_comm_group A] [module R A]
+variables {A : Type*} [semiring R] [add_comm_monoid A] [semimodule R A]
 
 /-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
   such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
@@ -270,7 +270,7 @@ instance : has_scalar (arithmetic_function R) (arithmetic_function A) :=
 lemma smul_apply {f : arithmetic_function R} {g : arithmetic_function A} {n : ℕ} :
   (f • g) n = ∑ x in divisors_antidiagonal n, f x.fst • g x.snd := rfl
 
-instance : module (arithmetic_function R) (arithmetic_function A) :=
+instance : semimodule (arithmetic_function R) (arithmetic_function A) :=
 { one_smul := λ f,
   begin
     ext,

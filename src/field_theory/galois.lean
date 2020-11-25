@@ -46,22 +46,22 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 namespace is_galois
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_galois.to_is_separable [h : is_galois F E] : is_separable F E := h.1
+instance to_is_separable [h : is_galois F E] : is_separable F E := h.1
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_galois.to_normal [h : is_galois F E] : normal F E := h.2
+instance to_normal [h : is_galois F E] : normal F E := h.2
 
 variables {F} {E}
 
-lemma is_galois.is_integral (h : is_galois F E) (x : E) : is_integral F x :=
+lemma integral (h : is_galois F E) (x : E) : is_integral F x :=
 Exists.cases_on (h.1 x) (λ H _, H)
 
-lemma is_galois.separable (h : is_galois F E) (x : E) :
-  (minimal_polynomial (is_galois.is_integral h x)).separable :=
+lemma separable (h : is_galois F E) (x : E) :
+  (minimal_polynomial (integral h x)).separable :=
 Exists.cases_on (h.1 x) (λ _ H, H)
 
-lemma is_galois.normal (h : is_galois F E) (x : E) :
-  (minimal_polynomial (is_galois.is_integral h x)).splits (algebra_map F E) :=
+lemma normal (h : is_galois F E) (x : E) :
+  (minimal_polynomial (integral h x)).splits (algebra_map F E) :=
 Exists.cases_on (h.2 x) (λ _ H, H)
 
 variables (F) (E)
@@ -91,7 +91,7 @@ begin
   exact fintype.card_congr (alg_equiv_equiv_alg_hom F F⟮α⟯)
 end
 
-lemma card_aut_eq_findim_of_is_galois [finite_dimensional F E] [h : is_galois F E] :
+lemma card_aut_eq_findim [finite_dimensional F E] [h : is_galois F E] :
   fintype.card (E ≃ₐ[F] E) = findim F E :=
 begin
   cases field.exists_primitive_element h.1 with α hα,
@@ -103,7 +103,7 @@ begin
     map_mul' := λ _ _, rfl,
     map_add' := λ _ _, rfl,
     commutes' := λ _, rfl },
-  have H : is_integral F α := h.is_integral α,
+  have H : is_integral F α := h.integral α,
   have h_sep : (minimal_polynomial H).separable := h.separable α,
   have h_splits : (minimal_polynomial H).splits (algebra_map F E) := h.normal α,
   replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minimal_polynomial H),
@@ -116,6 +116,8 @@ begin
   { intro ϕ, ext1, simp only [trans_apply, apply_symm_apply] },
   { intro ϕ, ext1, simp only [trans_apply, symm_apply_apply] },
 end
+
+end is_galois
 
 end
 
@@ -137,7 +139,7 @@ instance subgroup_action : faithful_mul_semiring_action H E :=
   smul_one := λ _, map_one _,
   mul_smul := λ _ _ _, rfl,
   smul_mul := λ _, map_mul _,
-  eq_of_smul_eq_smul' := λ x y z, subtype.ext (ext z) }
+  eq_of_smul_eq_smul' := λ x y z, subtype.ext (alg_equiv.ext z) }
 
 /-- The intermediate_field fixed by a subgroup -/
 def fixed_field : intermediate_field F E :=
@@ -206,28 +208,33 @@ end intermediate_field
 
 namespace is_galois
 theorem fixed_field_fixing_subgroup [finite_dimensional F E] [h : is_galois F E] :
-  fixed_field (fixing_subgroup K) = K :=
+  intermediate_field.fixed_field (intermediate_field.fixing_subgroup K) = K :=
 begin
-  have K_le : K ≤ fixed_field (fixing_subgroup K) := (le_iff_le _ _).mpr (le_refl _),
-  suffices : findim K E = findim (fixed_field (fixing_subgroup K)) E,
+  have K_le : K ≤ intermediate_field.fixed_field (intermediate_field.fixing_subgroup K) :=
+    (intermediate_field.le_iff_le _ _).mpr (le_refl _),
+  suffices : findim K E =
+    findim (intermediate_field.fixed_field (intermediate_field.fixing_subgroup K)) E,
   { exact (intermediate_field.eq_of_le_of_findim_eq' K_le this).symm },
-  rw [findim_fixed_field_eq_card, fintype.card_congr (fixing_subgroup_equiv K).to_equiv],
-  exact (card_aut_eq_findim_of_is_galois K E).symm,
+  rw [intermediate_field.findim_fixed_field_eq_card,
+    fintype.card_congr (intermediate_field.fixing_subgroup_equiv K).to_equiv],
+  exact (card_aut_eq_findim K E).symm,
 end
 
 lemma card_fixing_subgroup_eq_findim [finite_dimensional F E] [is_galois F E] :
-  fintype.card (fixing_subgroup K) = findim K E :=
-by conv { to_rhs, rw [←fixed_field_fixing_subgroup K, findim_fixed_field_eq_card] }
+  fintype.card (intermediate_field.fixing_subgroup K) = findim K E :=
+by conv { to_rhs, rw [←fixed_field_fixing_subgroup K,
+  intermediate_field.findim_fixed_field_eq_card] }
 
 /-- The Galois correspondence from intermediate fields to subgroups -/
 def intermediate_field_equiv_subgroup [finite_dimensional F E] [is_galois F E] :
   intermediate_field F E ≃o order_dual (subgroup (E ≃ₐ[F] E)) :=
-{ to_fun := fixing_subgroup,
-  inv_fun := fixed_field,
+{ to_fun := intermediate_field.fixing_subgroup,
+  inv_fun := intermediate_field.fixed_field,
   left_inv := λ K, fixed_field_fixing_subgroup K,
-  right_inv := λ H, fixing_subgroup_of_fixed_field H,
-  map_rel_iff' := λ K L, by { rw [←fixed_field_fixing_subgroup L, le_iff_le,
+  right_inv := λ H, intermediate_field.fixing_subgroup_fixed_field H,
+  map_rel_iff' := λ K L, by { rw [←fixed_field_fixing_subgroup L, intermediate_field.le_iff_le,
                                   fixed_field_fixing_subgroup L, ←order_dual.dual_le], refl } }
+end is_galois
 
 end galois_correspondence
 
@@ -235,11 +242,13 @@ section galois_equivalent_definitions
 
 variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 
-lemma is_separable_splitting_field_of_is_galois [finite_dimensional F E] [h : is_galois F E] :
+namespace is_galois
+
+lemma is_separable_splitting_field [finite_dimensional F E] [h : is_galois F E] :
   ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
 begin
   cases field.exists_primitive_element h.1 with α h1,
-  have h2 : is_integral F α := h.is_integral α,
+  have h2 : is_integral F α := h.integral α,
   have h3 : (minimal_polynomial h2).separable := h.separable α,
   have h4 : (minimal_polynomial h2).splits (algebra_map F E) := h.normal α,
   use [minimal_polynomial h2, h3, h4],
@@ -252,5 +261,7 @@ begin
     exact minimal_polynomial.aeval h2 },
   { exact polynomial.map_ne_zero (minimal_polynomial.ne_zero h2) }
 end
+
+end is_galois
 
 end galois_equivalent_definitions

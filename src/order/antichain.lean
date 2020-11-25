@@ -14,15 +14,15 @@ We define antichains.
 
 ## Main definitions
 * `antichain` is a finset of elements in a partial order where
-*   no element is less than another.
+  no element is less than another.
 
 * The `join` of two antichains is the set obtained by taking
-*   their union and removing all elements that are less than
-*   another element.
+  their union and removing all elements that are less than
+  another element.
 
 * The `meet` of two antichains is the set obtained by taking
-*   their intersection and removing all elements that are less than
-*   another element.
+  their intersection and removing all elements that are less than
+  another element.
 -/
 
 open partial_order

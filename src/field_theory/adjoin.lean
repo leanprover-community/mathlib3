@@ -98,8 +98,7 @@ noncomputable def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
 @[simp] lemma top_equiv_def (x : (⊤ : intermediate_field F E)) : top_equiv x = ↑x :=
 begin
   suffices : algebra.to_top (top_equiv x) = algebra.to_top (x : E),
-  { rw subtype.ext_iff at this,
-    exact this },
+  { rwa subtype.ext_iff at this },
   exact alg_equiv.apply_symm_apply (alg_equiv.of_bijective algebra.to_top
     ⟨λ _ _, subtype.mk.inj, λ x, ⟨x.val, by { ext, refl }⟩⟩ : E ≃ₐ[F] (⊤ : subalgebra F E))
     (subalgebra.equiv_of_eq top_to_subalgebra x),

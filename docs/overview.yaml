@@ -112,7 +112,7 @@ General algebra:
     rupture field: 'adjoin_root'
     splitting field: 'polynomial.splitting_field'
     perfect closure: 'perfect_closure'
-    Galois correspondence: 'galois_correspondence'
+    Galois correspondence: 'is_galois.intermediate_field_equiv_subgroup'
 
   Homological algebra:
     chain complex: 'chain_complex'

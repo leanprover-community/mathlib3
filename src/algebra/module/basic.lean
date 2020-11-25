@@ -118,9 +118,9 @@ variables (R)
 def semimodule.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [semimodule R M] :
   add_comm_group M :=
 { neg          := λ a, (-1 : R) • a,
-  add_left_neg := λ a, by {
+  add_left_neg := λ a, show (-1 : R) • a + a = 0, by {
     nth_rewrite 1 ← one_smul _ a,
-    rw [← add_smul, add_left_neg, zero_smul], },
+    rw [← add_smul, add_left_neg, zero_smul] },
   ..(infer_instance : add_comm_monoid M), }
 
 variables {R}

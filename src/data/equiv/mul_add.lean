@@ -286,7 +286,8 @@ instance : group (mul_aut M) :=
 by refine_struct
 { mul := λ g h, mul_equiv.trans h g,
   one := mul_equiv.refl M,
-  inv := mul_equiv.symm };
+  inv := mul_equiv.symm,
+  div := _ };
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (mul_aut M) := ⟨1⟩
@@ -341,7 +342,8 @@ instance group : group (add_aut A) :=
 by refine_struct
 { mul := λ g h, add_equiv.trans h g,
   one := add_equiv.refl A,
-  inv := add_equiv.symm };
+  inv := add_equiv.symm,
+  div := _ };
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (add_aut A) := ⟨1⟩

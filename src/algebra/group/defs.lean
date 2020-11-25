@@ -332,6 +332,8 @@ with a default so that `a / b = a * b⁻¹` holds by definition.
 class group (G : Type u) extends div_inv_monoid G :=
 (mul_left_inv : ∀ a : G, a⁻¹ * a = 1)
 
+attribute [to_additive group.to_sub_neg_monoid] group.to_div_inv_monoid
+
 /-- An `add_group` is an `add_monoid` with a unary `-` satisfying `-a + a = 0`.
 
 There is also a binary operation `-` such that `a - b = a + -b`,
@@ -342,6 +344,14 @@ class add_group (A : Type u) extends sub_neg_monoid A :=
 (add_left_neg : ∀ a : A, -a + a = 0)
 
 attribute [to_additive] group
+
+/-- Abbreviation for `@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)`.
+
+Useful because it corresponds to the fact that `Grp` is a subcategory of `Mon`.
+Not an instance since it duplicates `@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)`.
+-/
+@[to_additive] def group.to_monoid (G : Type u) [group G] : monoid G :=
+@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)
 
 section group
 variables {G : Type u} [group G] {a b c : G}

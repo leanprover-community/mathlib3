@@ -110,7 +110,7 @@ lemma gpow_sub (a : G) (m n : ℤ) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 by rw [sub_eq_add_neg, gpow_add, gpow_neg]
 
 lemma sub_gsmul (m n : ℤ) (a : A) : (m - n) •ℤ a = m •ℤ a - n •ℤ a :=
-@gpow_sub (multiplicative A) _ _ _ _
+by simpa only [sub_eq_add_neg] using @gpow_sub (multiplicative A) _ _ _ _
 
 theorem gpow_one_add (a : G) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [gpow_add, gpow_one]
@@ -365,7 +365,7 @@ calc 1 + (n + 2) •ℕ a ≤ 1 + (n + 2) •ℕ a + (n •ℕ (a * a * (2 + a))
 /-- Bernoulli's inequality reformulated to estimate `a^n`. -/
 theorem one_add_sub_mul_le_pow [linear_ordered_ring R]
   {a : R} (H : -1 ≤ a) (n : ℕ) : 1 + n •ℕ (a - 1) ≤ a ^ n :=
-have -2 ≤ a - 1, by { rw [bit0, neg_add], exact sub_le_sub_right H 1 },
+have -2 ≤ a - 1, by { rw [bit0, neg_add, ← sub_eq_add_neg], exact sub_le_sub_right H 1 },
 by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 
 namespace int

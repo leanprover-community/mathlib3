@@ -263,7 +263,12 @@ namespace perm
 
 instance perm_group {α : Type u} : group (perm α) :=
 begin
-  refine { mul := λ f g, equiv.trans g f, one := equiv.refl α, inv:= equiv.symm, ..};
+  refine
+    { mul := λ f g, equiv.trans g f,
+      one := equiv.refl α,
+      inv := equiv.symm,
+      div_eq_mul_inv := λ _ _, rfl,
+      .. };
   intros; apply equiv.ext; try { apply trans_apply },
   apply symm_apply_apply
 end

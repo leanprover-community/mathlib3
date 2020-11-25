@@ -362,7 +362,7 @@ begin
   have card_pos : 0 < t.card := lt_trans (nat.succ_pos _) h,
   obtain ⟨x₀, m⟩ := (finset.card_pos.1 card_pos).bex,
   -- and apply the previous lemma to the {xᵢ - x₀}
-  let shift : V ↪ V := ⟨λ x, x - x₀, add_left_injective (-x₀)⟩,
+  let shift : V ↪ V := ⟨λ x, x - x₀, sub_left_injective⟩,
   let t' := (t.erase x₀).map shift,
   have h' : findim K V < t'.card,
   { simp only [t', card_map, finset.card_erase_of_mem m],

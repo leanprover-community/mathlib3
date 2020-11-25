@@ -27,10 +27,12 @@ to be the `R`-algebra `R ⊕ M` with multiplication given by
 
 It is a square-zero extension because `M^2 = 0`.
 -/
-@[nolint has_inhabited_instance] def tsze (R : Type u) (M : Type v) :=
+@[nolint has_inhabited_instance] def triv_sq_zero_ext (R : Type u) (M : Type v) :=
 R × M
 
-namespace tsze
+local notation `tsze` := triv_sq_zero_ext
+
+namespace triv_sq_zero_ext
 
 section basic
 variables {R : Type u} {M : Type v}
@@ -160,7 +162,7 @@ instance [semiring R] [add_comm_monoid M] [semimodule R M] : semimodule R (tsze 
   zero_smul := λ x, ext (zero_mul x.1) (zero_smul R x.2) }
 
 instance [ring R] [add_comm_group M] [module R M] : module R (tsze R M) :=
-{ .. tsze.semimodule R M }
+{ .. triv_sq_zero_ext.semimodule R M }
 
 /-- The caonnical `R`-linear inclusion `M → tsze R M`. -/
 def inr_hom [semiring R] [add_comm_monoid M] [semimodule R M] : M →ₗ[R] tsze R M :=
@@ -217,8 +219,8 @@ instance [comm_monoid R] [add_monoid M] [distrib_mul_action R M] : monoid (tsze 
     by rw [one_smul, smul_zero, add_zero],
   mul_one := λ x, ext (mul_one x.1) $ show (x.1 • 0 : M) + (1 : R) • x.2 = x.2,
     by rw [smul_zero, zero_add, one_smul],
-  .. tsze.has_one R M,
-  .. tsze.has_mul R M }
+  .. triv_sq_zero_ext.has_one R M,
+  .. triv_sq_zero_ext.has_mul R M }
 
 instance [comm_semiring R] [add_comm_monoid M] [semimodule R M] : comm_semiring (tsze R M) :=
 { mul_comm := λ x₁ x₂, ext (mul_comm x₁.1 x₂.1) $
@@ -235,8 +237,8 @@ instance [comm_semiring R] [add_comm_monoid M] [semimodule R M] : comm_semiring 
     show (x₁.1 + x₂.1) • x₃.2 + x₃.1 • (x₁.2 + x₂.2) =
       x₁.1 • x₃.2 + x₃.1 • x₁.2 + (x₂.1 • x₃.2 + x₃.1 • x₂.2),
     by simp_rw [add_smul, smul_add, add_add_add_comm],
-  .. tsze.monoid R M,
-  .. tsze.add_comm_monoid R M }
+  .. triv_sq_zero_ext.monoid R M,
+  .. triv_sq_zero_ext.add_comm_monoid R M }
 
 /-- The caonnical inclusion of rings `R → tsze R M`. -/
 def inl_hom [comm_semiring R] [add_comm_monoid M] [semimodule R M] : R →+* tsze R M :=
@@ -254,8 +256,8 @@ variables (R : Type u) (M : Type v)
 instance [comm_semiring R] [add_comm_monoid M] [semimodule R M] : algebra R (tsze R M) :=
 { commutes' := λ r x, mul_comm _ _,
   smul_def' := λ r x, ext rfl $ show r • x.2 = r • x.2 + x.1 • 0, by rw [smul_zero, add_zero],
-  .. tsze.semimodule R M,
-  .. tsze.inl_hom R M }
+  .. triv_sq_zero_ext.semimodule R M,
+  .. triv_sq_zero_ext.inl_hom R M }
 
 /-- The caonnical `R`-algebra projection `tsze R M → R`. -/
 def fst_hom [comm_semiring R] [add_comm_monoid M] [semimodule R M] : tsze R M →ₐ[R] R :=
@@ -268,4 +270,4 @@ def fst_hom [comm_semiring R] [add_comm_monoid M] [semimodule R M] : tsze R M �
 
 end algebra
 
-end tsze
+end triv_sq_zero_ext

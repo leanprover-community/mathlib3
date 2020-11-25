@@ -69,8 +69,8 @@ def antichain_join (A B : finset α) : set α :=
 The finset obtained by applying `antichain_join` to `A ∪ B` using
 `finset.filter`
 -/
-def antichain.join (A B : finset α):
-  finset α := (A ∪ B).filter (λ a, a ∈ antichain_join A B)
+def antichain.join (A B : finset α) : finset α :=
+(A ∪ B).filter (λ a, a ∈ antichain_join A B)
 
 /--
 The meet of two antichains `A` and `B` is the set obtained by taking

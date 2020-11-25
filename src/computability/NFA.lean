@@ -29,10 +29,10 @@ structure NFA (alphabet : Type u) (state : Type v) :=
 
 namespace NFA
 
-variables {α : Type u} {σ σ₁ σ₂ σ₃ : Type v} (M : NFA α σ)
+variables {α : Type u} {σ σ' σ₁ σ₂ σ₃ : Type v} (M : NFA α σ)
 variables [decidable_eq σ] [decidable_eq σ₁] [decidable_eq σ₂] [decidable_eq σ₃]
 
-instance NFA_inhabited : inhabited (NFA α σ) := ⟨ NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
+instance NFA_inhabited : inhabited (NFA α σ') := ⟨ NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
 /-- `M.step_set S a` is the union of `M.step s a` for all `s ∈ S` -/
 def step_set : finset σ → α → finset σ :=
@@ -70,7 +70,7 @@ local infix ` ≈ ` := equiv
 
 /-- `NFA_of_DFA M` is an `NFA` constructed from a `DFA` `M` by using the same start and accept
   states and a transition function which sends `s` with input `a` to the singleton `M.step s a` -/
-def NFA_of_DFA (M : DFA α σ) : NFA α σ :=
+def NFA_of_DFA (M : DFA α σ') : NFA α σ' :=
 { step := λ s a, {M.step s a},
   start := {M.start},
   accept := M.accept }

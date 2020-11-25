@@ -360,6 +360,18 @@ begin
   refl,
 end
 
+lemma init_tail {n : ℕ} (f : fin n.succ.succ → α) :
+  init (tail f) = tail (init f) :=
+begin
+  ext,
+  unfold tail,
+  unfold init,
+  congr,
+  ext,
+  simp only [coe_cast_succ, coe_succ],
+end
+
+
 theorem list.of_fn_succ' {n : ℕ} (f : fin n.succ → α) :
   list.of_fn f = list.concat (list.of_fn (fin.init f)) (f n) :=
 begin
@@ -372,7 +384,16 @@ begin
   rw h0,
   rw init_apply,
   congr,
-  sorry,
+  erw hn (tail f),
+  congr,
+  ext,
+  rw init_tail, refl,
+  unfold tail,
+  congr,
+  ext,
+  rw coe_nat_fin_succ,
+  rw coe_succ,
+  rw coe_nat_fin_succ,
 end
 
 variables (x : α)

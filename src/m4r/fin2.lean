@@ -114,23 +114,51 @@ begin
   rcases classical.em (y = cast (add_comm m 1) 0) with ⟨rfl, hy⟩,
   simp only [function.comp_app, val_zero'],
   erw cons_zero,
-  sorry,
+  simp,
+  congr',
+  { simp },
+  ext, simp, simp, simp,ext, simp, simp, swap, simp,
+  intros,
+  ext,
+  apply (fin.heq_ext_iff (zero_add m)).1 a_1,
 end
 
 lemma append2_update (i : fin n) (x : α) :
   append2 (function.update g i x) f = function.update (append2 g f) (nat_add m i) x :=
 begin
-  ext y,
-  cases classical.em ((y : ℕ) < m),
-  rw append2_apply_fst f _ y h,
-  rw function.update_noteq,
-  rw append2_apply_fst,
-  intro hy,
-  rw fin.ext_iff at hy,
-  unfold nat_add at hy,
-  linarith,
-  rw append2_apply_snd _ _ y (not_lt.1 h),
-  sorry,
+  induction m with m hm,
+    unfold append2,
+    dunfold nat_add,
+    ext y,
+    rw function.comp_app,
+    rcases classical.em ((cast (zero_add n) y) = i) with ⟨rfl, hi⟩,
+    erw function.update_same,
+    convert (function.update_same _ _ _).symm,
+    refl,
+    refl,
+    ext, simp only [val_eq_coe, coe_mk, zero_add],
+    sorry, sorry,
+end
+
+
+lemma update_append2 (i : fin m) (x : α) :
+  append2 g (function.update f i x) = function.update (append2 g f) (cast_add n i) x :=
+begin
+   sorry,
+end
+
+lemma append2_assoc {k : ℕ} (h : fin k → α) (x) :
+  append2 (append2 f g) h x = append2 f (append2 g h) (cast (add_assoc _ _ _).symm x) :=
+begin
+  sorry
+end
+
+lemma append2_assoc' {k : ℕ} (h : fin k → α) (x) :
+  append2 f (append2 g h) x = append2 (append2 f g) h (cast (add_assoc _ _ _) x) :=
+begin
+  convert (append2_assoc f g h (cast (add_assoc _ _ _) x)).symm,
+  ext,
+  refl,
 end
 
 end fin

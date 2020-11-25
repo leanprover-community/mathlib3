@@ -19,9 +19,10 @@ section subcat
 variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D] {i : D ⥤ C}
 
 /--
--- Given a subcategory `D` of `C` expressed as an (inclusion) functor `i : D ⥤ C`, the object `A : C`
--- is said to be "in" the subcategory if there is a witness in `D`, such that `i.obj witness` is
--- isomorphic to `A`.
+The essential range of a functor `i` consists of those objects in the target category which are
+isomorphic to an object in the range of the function `i.obj`. In other words, this is the closure
+under isomorphism of the function `i.obj`.
+This is the "non-evil" way of describing the range of a functor.
 -/
 def ess_range (i : D ⥤ C) : set C := λ A, ∃ (B : D), nonempty (i.obj B ≅ A)
 
@@ -32,12 +33,30 @@ def ess_range.witness {A : C} (h : A ∈ ess_range i) : D := h.some
 def ess_range.get_iso {A : C} (h : A ∈ ess_range i) : i.obj h.witness ≅ A :=
 classical.choice h.some_spec
 
-lemma ess_surjective (i : D ⥤ C) : Prop := ∀ A, A ∈ ess_range i
+/--
+The functor `i` is essentially surjective if every object of `C` is essentially in the range of `i`.
+-/
+def ess_surjective (i : D ⥤ C) : Prop := ∀ A, A ∈ ess_range i
 
 /-- Being in the subcategory is a "hygenic" property: it is preserved under isomorphism. -/
-lemma in_subcategory_of_iso {A A' : C} (h' : A ≅ A') (hA : A ∈ ess_range i) :
+lemma in_subcategory_of_iso {A A' : C} (h : A ≅ A') (hA : A ∈ ess_range i) :
   A' ∈ ess_range i :=
-hA.imp (λ B, nonempty.map (≪≫ h'))
+hA.imp (λ B, nonempty.map (≪≫ h))
+
+/-- If `A` is in the essential range of `i` then it is in the essential range of `i'`. -/
+lemma in_subcategory_of_nat_iso {i' : D ⥤ C} (h : i ≅ i') {A : C} (hA : A ∈ ess_range i) :
+  A ∈ ess_range i' :=
+hA.imp (λ B, nonempty.map (λ t, h.symm.app B ≪≫ t))
+
+/-- Isomorphic functors have equal essential ranges. -/
+lemma range_eq_of_nat_iso {i' : D ⥤ C} (h : i ≅ i') :
+  ess_range i = ess_range i' :=
+begin
+  ext A,
+  split,
+  { apply in_subcategory_of_nat_iso h },
+  { apply in_subcategory_of_nat_iso h.symm },
+end
 
 lemma inclusion_is_in (i : D ⥤ C) (B : D) : i.obj B ∈ ess_range i := ⟨B, ⟨iso.refl _⟩⟩
 
@@ -47,7 +66,7 @@ iso.hom_comp_eq_id (as_iso g)
 lemma comp_hom_eq_id {X Y : C} (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y ↔ f = inv g :=
 iso.comp_hom_eq_id (as_iso g)
 
-/-- Auxiliary definition for `unit_comp_partial_bijective`. -/
+/-- (Implementation) Auxiliary definition for `unit_comp_partial_bijective`. -/
 def unit_comp_partial_bijective_aux [reflective i] (A : C) (B : D) :
   (A ⟶ i.obj B) ≃ (i.obj ((left_adjoint i).obj A) ⟶ i.obj B) :=
 ((adjunction.of_right_adjoint i).hom_equiv _ _).symm.trans (equiv_of_fully_faithful i)
@@ -180,6 +199,15 @@ begin
   apply (exp A).map_iso iB',
 end⟩
 
+/-- The subcategory of subterminal objects is an exponential ideal. -/
+instance : exponential_ideal (subterminal_inclusion : _ ⥤ C) :=
+begin
+  apply exponential_ideal.mk',
+  rintros B A,
+  refine ⟨⟨B.1 ^^ A, λ Z g h, _⟩, ⟨iso.refl _⟩⟩,
+  exact uncurry_injective (B.2 (cartesian_closed.uncurry g) (cartesian_closed.uncurry h))
+end
+
 /--
 If `D` is a reflective subcategory, the property of being an exponential ideal is equivalent to
 the presence of a natural isomorphism `i ⋙ exp A ⋙ left_adjoint i ⋙ i ≅ i ⋙ exp A`, that is:
@@ -210,21 +238,12 @@ begin
   exact ⟨_, ⟨(h A).app B⟩⟩,
 end
 
-/-- The subcategory of subterminal objects is an exponential ideal. -/
-instance : exponential_ideal (subterminal_inclusion : _ ⥤ C) :=
-begin
-  apply exponential_ideal.mk',
-  rintros B A,
-  refine ⟨⟨B.1 ^^ A, λ Z g h, _⟩, ⟨iso.refl _⟩⟩,
-  exact uncurry_injective (B.2 (cartesian_closed.uncurry g) (cartesian_closed.uncurry h))
-end
-
 end ideal
 
 section
 
 variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D]
-variables (i : D ⥤ C) [has_finite_products C]
+variables (i : D ⥤ C) [has_finite_products C] [reflective i]
 
 lemma reflective_products [reflective i] : has_finite_products D :=
 λ J 𝒥₁ 𝒥₂, by exactI has_limits_of_shape_of_reflective i
@@ -234,10 +253,40 @@ local attribute [instance] reflective_products
 variables [cartesian_closed C]
 
 /--
+If the reflector preserves binary products, the subcategory is an exponential ideal.
+This is the converse of `preserves_binary_products_of_exponential_ideal`.
+-/
+lemma exponential_ideal_of_preserves_binary_products
+  [preserves_limits_of_shape (discrete walking_pair) (left_adjoint i)] :
+  exponential_ideal i :=
+begin
+  let ir := adjunction.of_right_adjoint i,
+  let L : C ⥤ D := left_adjoint i,
+  let η : 𝟭 C ⟶ L ⋙ i := ir.unit,
+  let ε : i ⋙ L ⟶ 𝟭 D := ir.counit,
+  apply exponential_ideal.mk',
+  intros B A,
+  let q : i.obj (L.obj (i.obj B ^^ A)) ⟶ i.obj B ^^ A,
+    apply cartesian_closed.curry (ir.hom_equiv _ _ _),
+    apply _ ≫ (ir.hom_equiv _ _).symm ((ev A).app (i.obj B)),
+    refine prod_comparison L A _ ≫ limits.prod.map (𝟙 _) (ε.app _) ≫ inv (prod_comparison _ _ _),
+  have : η.app (i.obj B ^^ A) ≫ q = 𝟙 (i.obj B ^^ A),
+  { dsimp,
+    rw [← curry_natural_left, curry_eq_iff, uncurry_id_eq_ev, ← ir.hom_equiv_naturality_left,
+        ir.hom_equiv_apply_eq, assoc, assoc, prod_comparison_natural_assoc, L.map_id,
+        ← prod.map_id_comp_assoc, ir.left_triangle_components, prod.map_id_id, id_comp],
+    apply is_iso.hom_inv_id_assoc },
+  haveI : split_mono (η.app (i.obj B ^^ A)) := ⟨_, this⟩,
+  apply in_subcategory_of_unit_split_mono,
+end
+
+variables [exponential_ideal i]
+
+/--
 If `i` witnesses that `D` is a reflective subcategory and an exponential ideal, then `D` is
 itself cartesian closed.
 -/
-def reflective_cc [reflective i] [exponential_ideal i] : cartesian_closed D :=
+def reflective_cc : cartesian_closed D :=
 { closed := λ B,
   { is_adj :=
     { right := i ⋙ exp (i.obj B) ⋙ left_adjoint i,
@@ -256,36 +305,6 @@ def reflective_cc [reflective i] [exponential_ideal i] : cartesian_closed D :=
         { apply (exponential_ideal_reflective i _).symm }
       end } } }
 
-/-- If the reflector preserves binary products, the subcategory is an exponential ideal. -/
-lemma ideal_of_preserves_binary_products [reflective i]
-  [preserves_limits_of_shape (discrete walking_pair) (left_adjoint i)] :
-  exponential_ideal i :=
-begin
-  let ir := adjunction.of_right_adjoint i,
-  let L : C ⥤ D := left_adjoint i,
-  let η : 𝟭 C ⟶ L ⋙ i := ir.unit,
-  let ε : i ⋙ L ⟶ 𝟭 D := ir.counit,
-  apply exponential_ideal.mk',
-  intros B A,
-  let q : i.obj (L.obj (i.obj B ^^ A)) ⟶ i.obj B ^^ A,
-    apply cartesian_closed.curry (ir.hom_equiv _ _ _),
-    apply _ ≫ (ir.hom_equiv _ _).symm ((ev A).app (i.obj B)),
-    refine prod_comparison L A _ ≫ limits.prod.map (𝟙 _) (ε.app _) ≫ inv (prod_comparison _ _ _),
-  have : η.app (i.obj B ^^ A) ≫ q = 𝟙 (i.obj B ^^ A),
-  { rw [← curry_natural_left, curry_eq_iff, uncurry_id_eq_ev],
-    erw ← ir.hom_equiv_naturality_left,
-    rw ir.hom_equiv_apply_eq,
-    change L.map _ ≫ _ ≫ _ = _,
-    rw [assoc, assoc],
-    erw prod_comparison_natural_assoc,
-    rw [limits.prod.map_map_assoc, L.map_id, id_comp, ir.left_triangle_components],
-    erw prod.map_id_id,
-    rw id_comp,
-    apply is_iso.hom_inv_id_assoc },
-  haveI : split_mono (η.app (i.obj B ^^ A)) := ⟨_, this⟩,
-  apply in_subcategory_of_unit_split_mono,
-end
-
 /--
 We construct a bijection between morphisms `L(A ⨯ B) ⟶ X` and morphisms `LA ⨯ LB ⟶ X`.
 This bijection has two key properties:
@@ -295,7 +314,7 @@ This bijection has two key properties:
 
 Together these help show that `L` preserves binary products.
 -/
-noncomputable def bijection [reflective i] [exponential_ideal i] (A B : C) (X : D) :
+noncomputable def bijection (A B : C) (X : D) :
   ((left_adjoint i).obj (A ⨯ B) ⟶ X) ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ X) :=
 calc _ ≃ (A ⨯ B ⟶ i.obj X) :
               (adjunction.of_right_adjoint i).hom_equiv _ _
@@ -318,14 +337,13 @@ calc _ ≃ (A ⨯ B ⟶ i.obj X) :
    ... ≃ (i.obj ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B) ⟶ i.obj X) :
      begin
        apply iso.hom_congr _ (iso.refl _),
-       apply (as_iso (prod_comparison _ _ _)).symm,
        haveI : preserves_limits i := (adjunction.of_right_adjoint i).right_adjoint_preserves_limits,
-       apply_instance,
+       refine (as_iso (prod_comparison _ _ _)).symm,
      end
    ... ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ X) :
               (equiv_of_fully_faithful _).symm
 
-lemma bijection_symm_apply_id (A B : C) [reflective i] [exponential_ideal i] :
+lemma bijection_symm_apply_id (A B : C) :
   (bijection i A B _).symm (𝟙 _) = prod_comparison _ _ _ :=
 begin
   dsimp [bijection],
@@ -358,7 +376,7 @@ end
 The bijection allows us to show that `prod_comparison L A B` is an isomorphism, where the inverse
 is the forward map of the identity morphism.
 -/
-def prod_comparison_iso [reflective i] [exponential_ideal i] (A B : C) :
+def prod_comparison_iso (A B : C) :
   is_iso (prod_comparison (left_adjoint i) A B) :=
 { inv := bijection i _ _ _ (𝟙 _),
   hom_inv_id' := by rw [←(bijection i _ _ _).injective.eq_iff, bijection_natural,
@@ -370,11 +388,11 @@ local attribute [instance] prod_comparison_iso
 
 /--
 If a reflective subcategory is an exponential ideal, then the reflector preserves binary products.
+This is the converse of `exponential_ideal_of_preserves_binary_products`.
 -/
 -- TODO: Show that the reflector also preserves the terminal object and hence that it preserves
 -- finite products.
-noncomputable def preserves_binary_products_of_exponential_ideal
-  [reflective i] [exponential_ideal i] :
+noncomputable def preserves_binary_products_of_exponential_ideal :
   preserves_limits_of_shape (discrete walking_pair) (left_adjoint i) :=
 { preserves_limit := λ K,
   begin

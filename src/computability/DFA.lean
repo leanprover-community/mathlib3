@@ -42,7 +42,20 @@ list.foldl M.step start
 def eval := M.eval_from M.start
 
 /-- `M.accepts x` says that `M.eval x` is an accept state -/
-def accepts (s : list α) : Prop :=
-M.eval s ∈ M.accept
+def accepts (x : list α) : Prop :=
+M.eval x ∈ M.accept
+
+/-- Two DFA's are equivalent if the accept exactly the same strings -/
+def equiv (M N : DFA α) : Prop := ∀ x, M.accepts x ↔ N.accepts x
+
+local infix ` ≈ ` := equiv
+
+@[refl] lemma equiv_refl (M : DFA α) : M ≈ M := λ x, by refl
+@[symm] lemma equiv_symm (M N : DFA α) : M ≈ N → N ≈ M := λ h x, (h x).symm
+@[trans] lemma equiv_trans (M N P : DFA α) : M ≈ N → N ≈ P → M ≈ P :=
+  λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
+
+@[simp] lemma equiv_def (M N : DFA α) : M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
+  by refl
 
 end DFA

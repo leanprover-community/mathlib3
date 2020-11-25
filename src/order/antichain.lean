@@ -62,8 +62,8 @@ The join of two antichains `A` and `B` is the set obtained by taking
 the union of `A` and `B` and removing all elements `a` that are
 less than some element `b`.
 -/
-def antichain_join (A B : finset α) :
-  set α := { a | a ∈ A ∪ B ∧ ∀ b ∈ A ∪ B, a ≤ b → a = b}
+def antichain_join (A B : finset α) : set α :=
+{ a | a ∈ A ∪ B ∧ ∀ b ∈ A ∪ B, a ≤ b → a = b}
 
 /--
 The finset obtained by applying `antichain_join` to `A ∪ B` using

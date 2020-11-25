@@ -30,6 +30,16 @@ begin
   apply h, rw fin.coe_eq_cast_succ, exact y.2,
 end
 
+lemma snoc_mk_apply'' {α : Type*} {n : ℕ} (i : fin n → α) (x : α)
+  (y : fin n.succ) (h : (y : ℕ) < n) :
+  (fin.snoc i x : fin n.succ → α) y = i ⟨y, h⟩ :=
+begin
+  rw ←snoc_mk_apply' i x ⟨y, h⟩,
+  congr,
+  ext,
+  simp only [coe_cast_succ, coe_mk, coe_eq_cast_succ],
+end
+
 lemma snoc_succ {α : Type*} {n : ℕ} (i : fin n.succ → α) :
   (fin.snoc (fin.init i) (i n) : fin n.succ → α) = i :=
 begin
@@ -348,6 +358,70 @@ begin
   convert (append_assoc f g h ⟨x, by cases x; linarith⟩).symm,
   ext,
   refl,
+end
+
+theorem list.of_fn_succ' {n : ℕ} (f : fin n.succ → α) :
+  list.of_fn f = list.concat (list.of_fn (fin.init f)) (f n) :=
+begin
+  induction n with n hn,
+    simp,
+  rw list.of_fn_succ, conv_rhs {rw list.of_fn_succ},
+  unfold list.concat,
+  have h0 : (0 : fin n.succ) = ⟨(0 : fin n.succ.succ), nat.succ_pos _⟩ :=
+    by {ext, refl,},
+  rw h0,
+  rw init_apply,
+  congr,
+  sorry,
+end
+
+variables (x : α)
+
+lemma snoc_append {m n : ℕ} {f : fin m → α} {g : fin n → α} (x : α) :
+  append f (snoc g x) = snoc (append f g) x :=
+begin
+  ext i,
+  cases classical.em ((i : ℕ) < m),
+  rw append_apply_fst _ _ _ h,
+  rw snoc_mk_apply'' (append f g) x i (by linarith),
+  rw append_apply_fst,
+  congr,
+  rw append_apply_snd,
+  rcases classical.em ((i : ℕ) = m + n) with hi | hi,
+  have := snoc_mk_apply (append f g) x,
+  have Hi : i = ⟨m + n, nat.lt_succ_self _⟩ := fin.ext hi,
+  have hffs : (⟨(i : ℕ) - m, by {rw nat.sub_lt_left_iff_lt_add, exact i.2, exact not_lt.1 h}⟩ : fin n.succ) = (n : fin n.succ) :=
+    by {ext, rw coe_mk, rw coe_nat_fin_succ, rw hi, rw nat.add_sub_cancel_left,},
+  rw hffs,
+  rw snoc_mk_apply g,
+  convert (snoc_mk_apply (append f g) x).symm, rw Hi,
+  ext,
+  simp only [coe_mk, coe_nat_fin_succ],
+  rw snoc_mk_apply'',
+  rw snoc_mk_apply'',
+  rw append_apply_snd,
+  congr,
+  exact not_lt.1 h,
+  exact nat.lt_of_le_and_ne (nat.le_of_lt_succ i.2) hi,
+  exact not_lt.1 h,
+end
+
+lemma of_fn_append {m n : ℕ} (f : fin m → α) (g : fin n → α) :
+  list.of_fn (append f g) = list.of_fn f ++ list.of_fn g :=
+begin
+  induction n with n hn,
+  erw list.append_nil,
+  erw append_default,
+  unfold append,
+  rw list.of_fn_succ',
+  rw init_snoc,
+  rw hn (init g),
+  simp only [list.append_assoc, list.concat_eq_append],
+  congr,
+  rw ←list.concat_eq_append,
+  rw list.of_fn_succ',
+  congr,
+  rw snoc_mk_apply,
 end
 
 end fin

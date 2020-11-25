@@ -456,6 +456,14 @@ end
 lemma lof_apply' {ι : Type*} [decidable_eq ι] {M : ι → Type*} [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
   {i} {x} : direct_sum2.lof R ι M i x = direct_sum2.of M i x := rfl
 
+lemma multiset.sum_mul {R : Type*} [semiring R] {S : multiset R} {x : R} :
+  S.sum * x = (S.map (λ y, y * x)).sum :=
+(S.sum_hom ⟨(λ y, y * x), zero_mul _, λ _ _, add_mul _ _ x⟩).symm
+
+lemma multiset.mul_sum {R : Type*} [semiring R] {S : multiset R} {x : R} :
+  x * S.sum = (S.map (λ y, x * y)).sum :=
+(S.sum_hom ⟨(λ y, x * y), mul_zero _, mul_add _⟩).symm
+
 lemma aux (x : talg R M) (k : ℕ) (s : multiset (R × (fin k → M)))
 (X : R × (fin k → M)) (i j : ℕ) (t : multiset (R × (fin j → M)))
 (Y : R × (fin j → M)) (l : ℕ) :
@@ -695,24 +703,108 @@ def alg_prod {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (n : ℕ
       rw fin.ext_iff at hnot,
       rw fin.coe_succ at hnot,
       exact hnot}},
-      rw function.update_noteq,
-      rw function.update_noteq,
-      rw function.update_noteq,
+      rw function.update_noteq (ne.symm h),
+      rw function.update_noteq (ne.symm h),
+      rw function.update_noteq (ne.symm h),
       rw ←mul_add,
       congr,
-      have := hm (λ i : fin m, g i.succ),
-      simp only [function.update_noteq],
-      sorry, sorry, sorry, sorry,
+      have := hm (fin.tail g) (i.pred h),
+      have hh := fin.tail_update_succ g (i.pred h),
+      convert this,
+      all_goals {ext z,
+      simp only [function.comp_app],
+      rw ←fin.tail_update_succ g (i.pred h),
+      rw fin.succ_pred,
+      congr},
     end,
-  map_smul' := sorry }
+  map_smul' := λ g i r x,
+    begin
+      induction n with m hm,
+        exact fin.elim0 i,
+      rw list.of_fn_succ, rw list.of_fn_succ,
+      rw list.prod_cons,
+      rw list.prod_cons,
+      simp only [function.comp_app],
+      rcases classical.em (i = 0) with ⟨rfl, hi⟩,
+      erw function.update_same,
+      erw function.update_same,
+      rw f.map_smul,
+      rw algebra.smul_mul_assoc,
+      congr,
+      any_goals
+      {ext l, rw function.update_noteq,
+      rw function.update_noteq,
+      any_goals {intro hnot, apply nat.succ_ne_zero (l : ℕ),
+      rw fin.ext_iff at hnot,
+      rw fin.coe_succ at hnot,
+      exact hnot}},
+      rw function.update_noteq (ne.symm h),
+      rw function.update_noteq (ne.symm h),
+      rw ←algebra.mul_smul_comm,
+      congr,
+      have := hm (fin.tail g) (i.pred h),
+      have hh := fin.tail_update_succ g (i.pred h),
+      convert this,
+      all_goals {ext z,
+      simp only [function.comp_app],
+      rw ←fin.tail_update_succ g (i.pred h),
+      rw fin.succ_pred,
+      congr},
+    end
+     }
 
 def talg.lift {A : Type*} [semiring A] [algebra R A]
   (f : M →ₗ[R] A) : talg R M →ₐ[R] A :=
 { to_fun := direct_sum2.to_semimodule R ℕ A $ λ n, @tpow.lift R _ M _ _ n A _ _ (alg_prod f n),
-  map_one' := sorry,
-  map_mul' := sorry,
-  map_zero' := sorry,
-  map_add' := sorry,
+  map_one' := by {rw ←one_eq_mk, erw to_semimodule_lof, rw tpow.lift_mk_apply,
+    convert list.prod_nil,},
+  map_mul' := λ x y,
+    begin
+      refine direct_sum2.linduction_on R x _ _ _,
+        rw zero_mul, rw linear_map.map_zero, rw zero_mul,
+      intros i z,
+      refine direct_sum2.linduction_on R y _ _ _,
+        rw mul_zero, rw linear_map.map_zero, rw mul_zero,
+      intros j w,
+      rw to_semimodule_lof,
+      rw to_semimodule_lof,
+      rcases exists_sum_of_tpow R M z with ⟨s, rfl⟩,
+      rw map_sum,
+      rw map_sum,
+      rw talg.sum_mul,
+      rw multiset.map_map,
+      rw map_sum,
+      rcases exists_sum_of_tpow R M w with ⟨t, rfl⟩,
+      rw map_sum,
+      rw map_sum,
+      --squeeze_simp,
+      rw multiset.sum_mul,
+      congr' 1,
+      rw multiset.map_map,
+      congr' 1,
+      ext z,
+      simp only [function.comp_app, map_smul_eq_smul_map, algebra.smul_mul_assoc],
+      congr,
+      erw tpow.lift_mk_apply,
+      erw multiset.mul_sum,
+      rw multiset.map_map,
+      rw map_sum,
+      rw multiset.mul_sum,
+      congr' 1,
+      rw multiset.map_map,
+      congr' 1,
+      ext w,
+      simp only [algebra.mul_smul_comm, function.comp_app, map_smul_eq_smul_map],
+      congr,
+      erw tpow.lift_mk_apply,
+      erw mul_apply,
+      erw to_semimodule_lof,
+      rw tpow.lift_mk_apply,
+      show list.prod _ = list.prod _ * list.prod _,
+      rw ←list.prod_append, sorry, sorry, sorry,
+    end,
+  map_zero' := linear_map.map_zero _,
+  map_add' := linear_map.map_add _,
   commutes' := sorry }
 
 
@@ -756,4 +848,3 @@ begin
   rw falg_map_mul,
   exact Hmul _ _ hy hz,
 end
-

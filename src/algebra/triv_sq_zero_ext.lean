@@ -22,7 +22,7 @@ universes u v w
 "Trivial Square-Zero Extension".
 
 Given a module `M` over a ring `R`, the trivial square-zero extension of `M` over `R` is defined
-to be the `R`-algebra `R ⊕ M` with multiplication given by
+to be the `R`-algebra `R × M` with multiplication given by
 `(r₁ + m₁) * (r₂ + m₂) = r₁ r₂ + r₁ m₂ + r₂ m₁`.
 
 It is a square-zero extension because `M^2 = 0`.
@@ -164,7 +164,8 @@ instance [semiring R] [add_comm_monoid M] [semimodule R M] : semimodule R (tsze 
 instance [ring R] [add_comm_group M] [module R M] : module R (tsze R M) :=
 { .. triv_sq_zero_ext.semimodule R M }
 
-/-- The caonnical `R`-linear inclusion `M → tsze R M`. -/
+/-- The canonical `R`-linear inclusion `M → tsze R M`. -/
+@[simps apply]
 def inr_hom [semiring R] [add_comm_monoid M] [semimodule R M] : M →ₗ[R] tsze R M :=
 { to_fun := inr,
   map_add' := inr_add R M,
@@ -240,7 +241,8 @@ instance [comm_semiring R] [add_comm_monoid M] [semimodule R M] : comm_semiring 
   .. triv_sq_zero_ext.monoid R M,
   .. triv_sq_zero_ext.add_comm_monoid R M }
 
-/-- The caonnical inclusion of rings `R → tsze R M`. -/
+/-- The canonical inclusion of rings `R → tsze R M`. -/
+@[simps apply]
 def inl_hom [comm_semiring R] [add_comm_monoid M] [semimodule R M] : R →+* tsze R M :=
 { to_fun := inl,
   map_one' := inl_one R M,
@@ -259,7 +261,7 @@ instance [comm_semiring R] [add_comm_monoid M] [semimodule R M] : algebra R (tsz
   .. triv_sq_zero_ext.semimodule R M,
   .. triv_sq_zero_ext.inl_hom R M }
 
-/-- The caonnical `R`-algebra projection `tsze R M → R`. -/
+/-- The canonical `R`-algebra projection `tsze R M → R`. -/
 def fst_hom [comm_semiring R] [add_comm_monoid M] [semimodule R M] : tsze R M →ₐ[R] R :=
 { to_fun := fst,
   map_one' := fst_one R M,

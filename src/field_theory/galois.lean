@@ -237,8 +237,10 @@ def intermediate_field_equiv_subgroup [finite_dimensional F E] [is_galois F E] :
 
 /-- The Galois correspondence as a galois_insertion -/
 def galois_insertion_intermediate_field_subgroup [finite_dimensional F E] [is_galois F E] :
-  galois_insertion (order_dual.to_dual ∘ (intermediate_field.fixing_subgroup : intermediate_field F E → subgroup (E ≃ₐ[F] E)))
-    ((intermediate_field.fixed_field : subgroup (E ≃ₐ[F] E) → intermediate_field F E) ∘ order_dual.to_dual) :=
+  galois_insertion (order_dual.to_dual ∘
+      (intermediate_field.fixing_subgroup : intermediate_field F E → subgroup (E ≃ₐ[F] E)))
+    ((intermediate_field.fixed_field : subgroup (E ≃ₐ[F] E) → intermediate_field F E) ∘
+      order_dual.to_dual) :=
 { choice := λ K _, intermediate_field.fixing_subgroup K,
   gc := λ K H, (intermediate_field.le_iff_le H K).symm,
   le_l_u := λ H, le_of_eq (intermediate_field.fixing_subgroup_fixed_field H).symm,
@@ -246,8 +248,10 @@ def galois_insertion_intermediate_field_subgroup [finite_dimensional F E] [is_ga
 
 /-- The Galois correspondence as a galois_coinsertion -/
 def galois_coinsertion_intermediate_field_subgroup [finite_dimensional F E] [is_galois F E] :
-  galois_coinsertion (order_dual.to_dual ∘ (intermediate_field.fixing_subgroup : intermediate_field F E → subgroup (E ≃ₐ[F] E)))
-    ((intermediate_field.fixed_field : subgroup (E ≃ₐ[F] E) → intermediate_field F E) ∘ order_dual.to_dual) :=
+  galois_coinsertion (order_dual.to_dual ∘
+      (intermediate_field.fixing_subgroup : intermediate_field F E → subgroup (E ≃ₐ[F] E)))
+    ((intermediate_field.fixed_field : subgroup (E ≃ₐ[F] E) → intermediate_field F E) ∘
+      order_dual.to_dual) :=
 { choice := λ H _, intermediate_field.fixed_field H,
   gc := λ K H, (intermediate_field.le_iff_le H K).symm,
   u_l_le := λ K, le_of_eq (fixed_field_fixing_subgroup K),

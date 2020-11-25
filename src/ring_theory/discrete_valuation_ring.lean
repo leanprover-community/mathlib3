@@ -453,11 +453,7 @@ begin
     rw [add_val_def' _ hϖ, add_val_def' _ hϖ, le_iff_exists_add],
     rintro ⟨q, rfl⟩,
     use ((v * u⁻¹ : units R) : R) * ϖ ^ q,
-    rw mul_mul_mul_comm,
-    congr',
-    { rw [units.coe_mul, mul_left_comm],
-      simp },
-    { exact pow_add ϖ m q } },
+    rw [mul_mul_mul_comm, pow_add, units.coe_mul, mul_left_comm ↑u, units.mul_inv, mul_one] },
   { rintro ⟨c, rfl⟩,
     rw add_val_mul ha (right_ne_zero_of_mul hb),
     simp only [zero_le, le_add_iff_nonneg_right] }

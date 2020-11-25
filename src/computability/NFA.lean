@@ -69,7 +69,7 @@ local infix ` ≈ ` := equiv
 by refl
 
 /-- `NFA_of_DFA M` is an `NFA` constructed from a `DFA` `M` by using the same start and accept
-  states and a transition function which sends `s` with input `a` to the singleton `M.step s a` -/
+  states and a transition function which sends `s` with input `a` to the singleton `M.step s a`. -/
 def NFA_of_DFA (M : DFA α σ') : NFA α σ' :=
 { step := λ s a, {M.step s a},
   start := {M.start},

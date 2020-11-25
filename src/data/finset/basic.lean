@@ -394,6 +394,18 @@ protected theorem induction_on {α : Type*} {p : finset α → Prop} [decidable_
   (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
 
+/--
+To prove a proposition about `S : finset α`,
+it suffices to prove it for the empty `finset`,
+and to show that if it holds for some `finset α ⊆ S`,
+then it holds for the `finset` obtained by inserting a new element of `S`.
+-/
+@[elab_as_eliminator]
+theorem induction_on' {α : Type*} {p : finset α → Prop} [decidable_eq α]
+  (S : finset α) (h₁ : p ∅) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → a ∉ s → p s → p (insert a s)) : p S :=
+@finset.induction_on α (λ T, T ⊆ S → p T) _ S (λ _, h₁) (λ a s has hqs hs,
+  let ⟨hS, sS⟩ := finset.insert_subset.1 hs in h₂ hS sS has (hqs sS)) (finset.subset.refl S)
+
 /-- Inserting an element to a finite set is equivalent to the option type. -/
 def subtype_insert_equiv_option {t : finset α} {x : α} (h : x ∉ t) :
   {i // i ∈ insert x t} ≃ option {i // i ∈ t} :=

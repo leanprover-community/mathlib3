@@ -315,6 +315,20 @@ begin
   rw [mul_comm x y, ← mul_assoc, hr, one_mul],
 end
 
+theorem is_integral_of_is_integral_mul_unit' {R S : Type*} [comm_ring R] [comm_ring S] {f : R →+* S}
+  (x y : S) (r : R) (hr : f r * y = 1) (hx : f.is_integral_elem (x * y)) : f.is_integral_elem x :=
+@is_integral_of_is_integral_mul_unit R S _ _ f.to_algebra x y r hr hx
+
+/-- Generalization of `is_integral_of_mem_closure` bootstrapped up from that lemma -/
+lemma is_integral_of_mem_closure' (G : set A) (hG : ∀ x ∈ G, is_integral R x) :
+  ∀ x ∈ (subring.closure G), is_integral R x :=
+λ x hx, subring.closure_induction hx hG is_integral_zero is_integral_one
+  (λ _ _, is_integral_add) (λ _, is_integral_neg) (λ _ _, is_integral_mul)
+
+lemma is_integral_of_mem_closure'' {S : Type*} [comm_ring S] {f : R →+* S} (G : set S)
+  (hG : ∀ x ∈ G, f.is_integral_elem x) : ∀ x ∈ (subring.closure G), f.is_integral_elem x :=
+λ x hx, @is_integral_of_mem_closure' R S _ _ f.to_algebra G hG x hx
+
 end
 
 section algebra
@@ -369,8 +383,18 @@ then all elements of B are integral over R.-/
 lemma algebra.is_integral_trans (hA : is_integral R A) (hB : is_integral A B) : is_integral R B :=
 λ x, is_integral_trans hA x (hB x)
 
+lemma ring_hom.is_integral_trans {R A B : Type*} [comm_ring R] [comm_ring A] [comm_ring B]
+  {f : R →+* A} {g : A →+* B} (hf : f.is_integral) (hg : g.is_integral) : (g.comp f).is_integral :=
+@algebra.is_integral_trans R A B _ _ _ g.to_algebra (g.comp f).to_algebra f.to_algebra
+  (@is_scalar_tower.of_algebra_map_eq R A B _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra
+  (ring_hom.comp_apply g f)) hf hg
+
 lemma is_integral_of_surjective (h : function.surjective (algebra_map R A)) : is_integral R A :=
 λ x, (h x).rec_on (λ y hy, (hy ▸ is_integral_algebra_map : is_integral R x))
+
+lemma is_integral_of_surjective' {R A : Type*} [comm_ring R] [comm_ring A] {f : R →+* A}
+  (hf : function.surjective f) : f.is_integral :=
+@is_integral_of_surjective R A _ _ f.to_algebra hf
 
 /-- If `R → A → B` is an algebra tower with `A → B` injective,
 then if the entire tower is an integral extension so is `R → A` -/
@@ -384,6 +408,12 @@ begin
   rw [eval₂_eq_eval_map],
   exact H hp',
 end
+
+lemma is_integral_tower_bot_of_is_integral' {R A B : Type*} [comm_ring R] [comm_ring A] [comm_ring B]
+  (f : R →+* A) (g : A →+* B) (hg : function.injective g) (hfg : (g.comp f).is_integral) : f.is_integral :=
+λ x, @is_integral_tower_bot_of_is_integral R A B _ _ _ g.to_algebra (g.comp f).to_algebra f.to_algebra
+  (@is_scalar_tower.of_algebra_map_eq R A B _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra
+  (ring_hom.comp_apply g f))  hg x (hfg (g x))
 
 lemma is_integral_tower_bot_of_is_integral_field {R A B : Type*} [comm_ring R] [field A]
   [comm_ring B] [nontrivial B] [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
@@ -408,6 +438,10 @@ begin
   refine ⟨p.map (ideal.quotient.mk _), ⟨monic_map _ p_monic, _⟩⟩,
   simpa only [aeval_def, hom_eval₂, eval₂_map] using congr_arg (ideal.quotient.mk I) hpx
 end
+
+lemma is_integral_quotient_of_is_integral' {R S : Type*} [comm_ring R] [comm_ring S]
+  {f : R →+* S} {I : ideal S} (hf : f.is_integral) : (ideal.quotient_map I f le_rfl).is_integral :=
+@is_integral_quotient_of_is_integral R S _ _ f.to_algebra I hf
 
 /-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field -/
 lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [integral_domain S]

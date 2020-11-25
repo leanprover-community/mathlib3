@@ -304,7 +304,7 @@ def update (f : Πa, β a) (a' : α) (v : β a') (a : α) : β a :=
 if h : a = a' then eq.rec v h.symm else f a
 
 /-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
-lemma update_apply {β : Type*} (f : α → β) (a' : α) (b : β) (a : α) :
+lemma update_apply {β : Sort*} (f : α → β) (a' : α) (b : β) (a : α) :
   update f a' b a = if a = a' then b else f a :=
 begin
   dunfold update,

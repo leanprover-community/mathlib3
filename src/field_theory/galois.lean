@@ -198,7 +198,7 @@ instance alg_instance : algebra K (fixed_field (fixing_subgroup K)) :=
 instance tower_instance : is_scalar_tower K (fixed_field (fixing_subgroup K)) E :=
 ⟨λ _ _ _, mul_assoc _ _ _⟩
 
-theorem fixed_field_of_fixing_subgroup [finite_dimensional F E] [h : is_galois F E] :
+theorem fixed_field_fixing_subgroup [finite_dimensional F E] [h : is_galois F E] :
   fixed_field (fixing_subgroup K) = K :=
 begin
   have K_le : K ≤ fixed_field (fixing_subgroup K) := (le_iff_le _ _).mpr (le_refl _),

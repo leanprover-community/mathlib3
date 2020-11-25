@@ -66,7 +66,7 @@ local infix ` ≈ ` := equiv
 λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
 
 @[simp] lemma equiv_def (M : NFA α σ₁) (N : NFA α σ₂) : M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
-  by refl
+by refl
 
 /-- `NFA_of_DFA M` is an `NFA` constructed from a `DFA` `M` by using the same start and accept
   states and a transition function which sends `s` with input `a` to the singleton `M.step s a` -/

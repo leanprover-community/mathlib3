@@ -181,7 +181,7 @@ begin
   apply fintype.card_congr,
   refine (fixed_points.to_alg_hom_equiv H E).trans _,
   refine (alg_equiv_equiv_alg_hom (fixed_field H) E).symm.trans _,
-  exact (fixing_subgroup_iso (fixed_field H)).to_equiv.symm
+  exact (fixing_subgroup_equiv (fixed_field H)).to_equiv.symm
 end
 
 instance alg_instance : algebra K (fixed_field (fixing_subgroup K)) :=
@@ -204,23 +204,23 @@ begin
   have K_le : K ≤ fixed_field (fixing_subgroup K) := (le_iff_le _ _).mpr (le_refl _),
   suffices : findim K E = findim (fixed_field (fixing_subgroup K)) E,
   { exact (intermediate_field.eq_of_le_of_findim_eq' K_le this).symm },
-  rw [findim_fixed_field_eq_card, fintype.card_congr (fixing_subgroup_iso K).to_equiv],
+  rw [findim_fixed_field_eq_card, fintype.card_congr (fixing_subgroup_equiv K).to_equiv],
   exact (card_aut_eq_findim_of_is_galois K E).symm,
 end
 
 lemma card_fixing_subgroup_eq_findim [finite_dimensional F E] [is_galois F E] :
   fintype.card (fixing_subgroup K) = findim K E :=
-by conv { to_rhs, rw [←fixed_field_of_fixing_subgroup K, findim_fixed_field_eq_card] }
+by conv { to_rhs, rw [←fixed_field_fixing_subgroup K, findim_fixed_field_eq_card] }
 
 /-- The Galois correspondence from intermediate fields to subgroups -/
 def galois_correspondence [finite_dimensional F E] [is_galois F E] :
   intermediate_field F E ≃o order_dual (subgroup (E ≃ₐ[F] E)) :=
 { to_fun := fixing_subgroup,
   inv_fun := fixed_field,
-  left_inv := λ K, fixed_field_of_fixing_subgroup K,
+  left_inv := λ K, fixed_field_fixing_subgroup K,
   right_inv := λ H, fixing_subgroup_of_fixed_field H,
-  map_rel_iff' := λ K L, by { rw [←fixed_field_of_fixing_subgroup L, le_iff_le,
-                                  fixed_field_of_fixing_subgroup L, ←order_dual.dual_le], refl } }
+  map_rel_iff' := λ K L, by { rw [←fixed_field_fixing_subgroup L, le_iff_le,
+                                  fixed_field_fixing_subgroup L, ←order_dual.dual_le], refl } }
 
 end galois_correspondence
 

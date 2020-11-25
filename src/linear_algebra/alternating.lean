@@ -29,30 +29,13 @@ using `map_swap` as a definition, and does not require `has_neg N`.
 section to_move
 
 -- gh-5091
-lemma comp_swap_eq_update {α β : Type*} [decidable_eq α] (i j : α) (f : α → β) :
-  f ∘ equiv.swap i j = function.update (function.update f j (f i)) i (f j) :=
-funext $ λ x,
-  if hi : x = i then
-    by rw [function.comp_app, hi, equiv.swap_apply_left, function.update_same]
-  else if hj : x = j then
-    by rw [function.comp_app, hj, equiv.swap_apply_right, function.update_comm (hj ▸ hi : j ≠ i),
-      function.update_same]
-  else
-    by rw [function.comp_app, equiv.swap_apply_of_ne_of_ne hi hj, function.update_noteq hi,
-      function.update_noteq hj]
+lemma swap_eq_update (i j : α) :
+  ⇑(equiv.swap i j) = update (update id j i) i j :=
+funext $ λ x, by rw [update_apply _ i j, update_apply _ j i, equiv.swap_apply_def, id.def]
 
-
--- gh-5100
-@[simp] lemma coe_one {α : Type*} : ⇑(1 : equiv.perm α) = id := rfl
-
--- gh-5101
-@[simp] lemma units_mul_self (u : units ℤ) : u * u = 1 :=
-(int.units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
-
--- gh-5101
--- `units.coe_mul` is a "wrong turn" for the simplifier, this undoes it and simplifies further
-@[simp] lemma units_coe_mul_self (u : units ℤ) : (u * u : ℤ) = 1 :=
-by rw [←units.coe_mul, units_mul_self, units.coe_one]
+lemma comp_swap_eq_update {β : Type*} (i j : α) (f : α → β) :
+  f ∘ equiv.swap i j = update (update f j (f i)) i (f j) :=
+by rw [swap_eq_update, comp_update, comp_update, comp.right_id]
 
 end to_move
 

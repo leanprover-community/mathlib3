@@ -124,7 +124,7 @@ begin
   refine trans (eval₂_mul_noncomm _ _ $ λ k, _) (by rw eval₂_X),
   rcases em (k = 1) with (rfl|hk),
   { simp },
-  { simp [coeff_X_ne_one hk] }
+  { simp [coeff_X_of_ne_one hk] }
 end
 
 @[simp] lemma eval₂_X_mul : eval₂ f x (X * p) = eval₂ f x p * x :=

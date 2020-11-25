@@ -88,7 +88,7 @@ by refine { to_fun := λ x, ⟨x, _⟩, inv_fun := λ x, ⟨x, _⟩, .. }; tidy
 noncomputable def bot_equiv : (⊥ : intermediate_field F E) ≃ₐ[F] F :=
 (subalgebra.equiv_of_eq bot_to_subalgebra).trans (algebra.bot_equiv F E)
 
-lemma bot_equiv_def (x : F) : bot_equiv (algebra_map F (⊥ : intermediate_field F E) x) = x :=
+@[simp] lemma bot_equiv_def (x : F) : bot_equiv (algebra_map F (⊥ : intermediate_field F E) x) = x :=
 alg_equiv.commutes bot_equiv x
 
 /-- The top intermediate_field is isomorphic to the field. -/

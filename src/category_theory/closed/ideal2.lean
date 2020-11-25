@@ -32,7 +32,7 @@ def ess_range.witness {A : C} (h : A ∈ ess_range i) : D := h.some
 def ess_range.get_iso {A : C} (h : A ∈ ess_range i) : i.obj h.witness ≅ A :=
 classical.choice h.some_spec
 
-lemma ess_surjective (i : D ⥤ C) : Prop := ess_range i = set.univ
+lemma ess_surjective (i : D ⥤ C) : Prop := ∀ A, A ∈ ess_range i
 
 /-- Being in the subcategory is a "hygenic" property: it is preserved under isomorphism. -/
 lemma in_subcategory_of_iso {A A' : C} (h' : A ≅ A') (hA : A ∈ ess_range i) :
@@ -120,7 +120,7 @@ end
 
 /--  If `η_A` is an isomorphism, then `A` is in the subcategory. -/
 lemma in_subcategory_of_unit_is_iso [is_right_adjoint i] (A : C)
-  [is_iso ((adjunction.of_right_adjoint i).unit.app A)] : ess_range i A :=
+  [is_iso ((adjunction.of_right_adjoint i).unit.app A)] : A ∈ ess_range i :=
 ⟨(left_adjoint i).obj A, ⟨(as_iso ((adjunction.of_right_adjoint i).unit.app A)).symm⟩⟩
 
 /-- If `η_A` is a split monomorphism, then `A` is in the reflective subcategory. -/
@@ -286,113 +286,102 @@ begin
   apply in_subcategory_of_unit_split_mono,
 end
 
-noncomputable def bijection (A B : C) (C' : D) [reflective i] [exponential_ideal i] :
-  ((left_adjoint i).obj (A ⨯ B) ⟶ C') ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ C') :=
-calc _ ≃ (A ⨯ B ⟶ i.obj C') :
+/--
+We construct a bijection between morphisms `L(A ⨯ B) ⟶ X` and morphisms `LA ⨯ LB ⟶ X`.
+This bijection has two key properties:
+* It is natural in `X`: See `bijection_natural`.
+* When `X = LA ⨯ LB`, then the backwards direction sends the identity morphism to the product
+  comparison morphism: See `bijection_symm_apply_id`.
+
+Together these help show that `L` preserves binary products.
+-/
+noncomputable def bijection [reflective i] [exponential_ideal i] (A B : C) (X : D) :
+  ((left_adjoint i).obj (A ⨯ B) ⟶ X) ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ X) :=
+calc _ ≃ (A ⨯ B ⟶ i.obj X) :
               (adjunction.of_right_adjoint i).hom_equiv _ _
-   ... ≃ (B ⨯ A ⟶ i.obj C') :
+   ... ≃ (B ⨯ A ⟶ i.obj X) :
               (limits.prod.braiding _ _).hom_congr (iso.refl _)
-   ... ≃ (A ⟶ B ⟹ i.obj C') :
+   ... ≃ (A ⟶ B ⟹ i.obj X) :
               (exp.adjunction _).hom_equiv _ _
-   ... ≃ (i.obj ((left_adjoint i).obj A) ⟶ B ⟹ i.obj C') :
+   ... ≃ (i.obj ((left_adjoint i).obj A) ⟶ B ⟹ i.obj X) :
               unit_comp_partial_bijective _ (exponential_ideal.exp_closed (inclusion_is_in i _) _)
-   ... ≃ (B ⨯ i.obj ((left_adjoint i).obj A) ⟶ i.obj C') :
+   ... ≃ (B ⨯ i.obj ((left_adjoint i).obj A) ⟶ i.obj X) :
               ((exp.adjunction _).hom_equiv _ _).symm
-   ... ≃ (i.obj ((left_adjoint i).obj A) ⨯ B ⟶ i.obj C') :
+   ... ≃ (i.obj ((left_adjoint i).obj A) ⨯ B ⟶ i.obj X) :
               (limits.prod.braiding _ _).hom_congr (iso.refl _)
-   ... ≃ (B ⟶ i.obj ((left_adjoint i).obj A) ⟹ i.obj C') :
+   ... ≃ (B ⟶ i.obj ((left_adjoint i).obj A) ⟹ i.obj X) :
               (exp.adjunction _).hom_equiv _ _
-   ... ≃ (i.obj ((left_adjoint i).obj B) ⟶ i.obj ((left_adjoint i).obj A) ⟹ i.obj C') :
+   ... ≃ (i.obj ((left_adjoint i).obj B) ⟶ i.obj ((left_adjoint i).obj A) ⟹ i.obj X) :
               unit_comp_partial_bijective _ (exponential_ideal.exp_closed (inclusion_is_in i _) _)
-   ... ≃ (i.obj ((left_adjoint i).obj A) ⨯ i.obj ((left_adjoint i).obj B) ⟶ i.obj C') :
+   ... ≃ (i.obj ((left_adjoint i).obj A) ⨯ i.obj ((left_adjoint i).obj B) ⟶ i.obj X) :
               ((exp.adjunction _).hom_equiv _ _).symm
-   ... ≃ (i.obj ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B) ⟶ i.obj C') :
+   ... ≃ (i.obj ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B) ⟶ i.obj X) :
      begin
        apply iso.hom_congr _ (iso.refl _),
        apply (as_iso (prod_comparison _ _ _)).symm,
        haveI : preserves_limits i := (adjunction.of_right_adjoint i).right_adjoint_preserves_limits,
        apply_instance,
      end
-   ... ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ C') :
+   ... ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ X) :
               (equiv_of_fully_faithful _).symm
 
 lemma bijection_symm_apply_id (A B : C) [reflective i] [exponential_ideal i] :
   (bijection i A B _).symm (𝟙 _) = prod_comparison _ _ _ :=
 begin
-  let L := left_adjoint i,
-  let adj : L ⊣ i := adjunction.of_right_adjoint i,
-  let η : _ ⟶ L ⋙ i := adj.unit,
   dsimp [bijection],
-  rw [equiv.symm_symm, equiv.symm_symm, equiv.symm_symm, comp_id, comp_id, comp_id,
-      equiv_of_fully_faithful_apply, i.map_id, comp_id, unit_comp_partial_bijective_symm_apply,
-      unit_comp_partial_bijective_symm_apply],
-  change (adj.hom_equiv _ _).symm
-    ((limits.prod.braiding A B).hom ≫
-      cartesian_closed.uncurry (η.app _ ≫
-        cartesian_closed.curry ((limits.prod.braiding _ B).inv ≫
-          cartesian_closed.uncurry (η.app _ ≫
-            cartesian_closed.curry _)))) =
-    prod_comparison L _ _,
-  rw [uncurry_natural_left, uncurry_curry, uncurry_natural_left, uncurry_curry,
-      ←braid_natural_assoc, iso.hom_inv_id_assoc, limits.prod.map_map_assoc, comp_id, id_comp,
-      ← adjunction.eq_hom_equiv_apply, adjunction.hom_equiv_unit, is_iso.comp_inv_eq, assoc],
+  rw [comp_id, comp_id, comp_id, i.map_id, comp_id, unit_comp_partial_bijective_symm_apply,
+      unit_comp_partial_bijective_symm_apply, uncurry_natural_left, uncurry_curry,
+      uncurry_natural_left, uncurry_curry, prod.lift_map_assoc, comp_id, prod.lift_map_assoc,
+      comp_id, prod.comp_lift_assoc, prod.lift_snd, prod.lift_fst_assoc,
+      prod.lift_fst_comp_snd_comp, ←adjunction.eq_hom_equiv_apply, adjunction.hom_equiv_unit,
+      is_iso.comp_inv_eq, assoc],
   apply prod.hom_ext,
-  { rw [limits.prod.map_fst, assoc, assoc, prod_comparison, prod_comparison, prod.lift_fst,
-        ←i.map_comp, prod.lift_fst],
-    apply η.naturality },
-  { rw [limits.prod.map_snd, assoc, assoc, prod_comparison, prod_comparison, prod.lift_snd,
-        ←i.map_comp, prod.lift_snd],
-    apply η.naturality },
-end.
+  { rw [limits.prod.map_fst, assoc, assoc, prod_comparison_fst, ←i.map_comp, prod_comparison_fst],
+    apply (adjunction.of_right_adjoint i).unit.naturality },
+  { rw [limits.prod.map_snd, assoc, assoc, prod_comparison_snd, ←i.map_comp, prod_comparison_snd],
+    apply (adjunction.of_right_adjoint i).unit.naturality },
+end
 
 lemma bijection_natural [reflective i] [exponential_ideal i]
-  (A B : C) (C' C'' : D) (f : ((left_adjoint i).obj (A ⨯ B) ⟶ C')) (g : C' ⟶ C'') :
+  (A B : C) (X X' : D) (f : ((left_adjoint i).obj (A ⨯ B) ⟶ X)) (g : X ⟶ X') :
   bijection i _ _ _ (f ≫ g) = bijection i _ _ _ f ≫ g :=
 begin
-  apply i.map_injective,
   dsimp [bijection],
+  apply i.map_injective,
   rw [i.image_preimage, i.map_comp, i.image_preimage, comp_id, comp_id, comp_id, comp_id, comp_id,
-      comp_id],
-  change prod_comparison _ _ _ ≫
-    cartesian_closed.uncurry
-      (unit_comp_partial_bijective _ _
-        (cartesian_closed.curry ((limits.prod.braiding _ _).hom ≫
-          cartesian_closed.uncurry
-            (unit_comp_partial_bijective _ _
-              (cartesian_closed.curry
-                ((limits.prod.braiding _ _).hom ≫ _)))))) = _,
-  rw [adjunction.hom_equiv_naturality_right, ← assoc, curry_natural_right _ (i.map g),
+      comp_id, adjunction.hom_equiv_naturality_right, ← assoc, curry_natural_right _ (i.map g),
       unit_comp_partial_bijective_natural, uncurry_natural_right, ← assoc, curry_natural_right,
       unit_comp_partial_bijective_natural, uncurry_natural_right, assoc],
-  refl,
 end
 
-noncomputable def preserves_pair_of_exponential_ideal [reflective i] [exponential_ideal i]
-  (A B : C) : preserves_limit (pair A B) (left_adjoint i) :=
-begin
-  let ir : is_right_adjoint i := by apply_instance,
-  let L := ir.left,
-  let adj : L ⊣ i := ir.adj,
-  let η : _ ⟶ L ⋙ i := adj.unit,
-  apply preserves_binary_prod_of_prod_comparison_iso L _ _,
-  refine is_iso.of_iso ⟨prod_comparison _ _ _, bijection i _ _ _ (𝟙 _), _, _⟩,
-  { dsimp,
-    rw [←(bijection i _ _ _).injective.eq_iff, bijection_natural, ← bijection_symm_apply_id,
-        equiv.apply_symm_apply, id_comp] },
-  { dsimp,
-    rw [←bijection_natural, id_comp, ←bijection_symm_apply_id, equiv.apply_symm_apply] }
-end
+/--
+The bijection allows us to show that `prod_comparison L A B` is an isomorphism, where the inverse
+is the forward map of the identity morphism.
+-/
+def prod_comparison_iso [reflective i] [exponential_ideal i] (A B : C) :
+  is_iso (prod_comparison (left_adjoint i) A B) :=
+{ inv := bijection i _ _ _ (𝟙 _),
+  hom_inv_id' := by rw [←(bijection i _ _ _).injective.eq_iff, bijection_natural,
+                        ← bijection_symm_apply_id, equiv.apply_symm_apply, id_comp],
+  inv_hom_id' := by rw [←bijection_natural, id_comp, ←bijection_symm_apply_id,
+                        equiv.apply_symm_apply] }
 
+local attribute [instance] prod_comparison_iso
+
+/--
+If a reflective subcategory is an exponential ideal, then the reflector preserves binary products.
+-/
+-- TODO: Show that the reflector also preserves the terminal object and hence that it preserves
+-- finite products.
 noncomputable def preserves_binary_products_of_exponential_ideal
   [reflective i] [exponential_ideal i] :
   preserves_limits_of_shape (discrete walking_pair) (left_adjoint i) :=
 { preserves_limit := λ K,
   begin
     apply limits.preserves_limit_of_iso_diagram _ (diagram_iso_pair K).symm,
-    apply preserves_pair_of_exponential_ideal,
+    refine preserves_binary_prod_of_prod_comparison_iso (left_adjoint i) _ _,
   end }
-end
 
-#lint
+end
 
 end category_theory

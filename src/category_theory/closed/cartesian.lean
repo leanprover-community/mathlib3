@@ -130,11 +130,16 @@ namespace cartesian_closed
 variables [has_finite_products C] [exponentiable A]
 
 /-- Currying in a cartesian closed category. -/
-def curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
-(closed.is_adj.adj.hom_equiv _ _).to_fun
+abbreviation curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
+((exp.adjunction A).hom_equiv _ _)
 /-- Uncurrying in a cartesian closed category. -/
-def uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
-(closed.is_adj.adj.hom_equiv _ _).inv_fun
+abbreviation uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
+((exp.adjunction A).hom_equiv _ _).symm
+
+@[simp] lemma hom_equiv_apply_eq (f : A ⨯ Y ⟶ X) :
+  (exp.adjunction A).hom_equiv _ _ f = curry f := rfl
+@[simp] lemma hom_equiv_symm_apply_eq (f : Y ⟶ A ⟹ X) :
+  ((exp.adjunction A).hom_equiv _ _).symm f = uncurry f := rfl
 
 end cartesian_closed
 

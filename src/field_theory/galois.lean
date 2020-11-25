@@ -125,6 +125,8 @@ variables (H : subgroup (E ≃ₐ[F] E)) (K : intermediate_field F E)
 instance tower_top_of_galois [h : is_galois F E] : is_galois K E :=
 ⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩
 
+namespace intermediate_field
+
 instance subgroup_action : faithful_mul_semiring_action H E :=
 { smul := λ h x, h x,
   smul_zero := λ _, map_zero _,

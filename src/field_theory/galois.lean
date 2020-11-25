@@ -161,7 +161,7 @@ lemma le_iff_le : K ≤ fixed_field H ↔ H ≤ fixing_subgroup K :=
 ⟨λ h g hg x, h (subtype.mem x) ⟨g, hg⟩, λ h x hx g, h (subtype.mem g) ⟨x, hx⟩⟩
 
 /-- The fixing_subgroup of `K : intermediate_field F E` is isomorphic to `E ≃ₐ[K] E` -/
-def fixing_subgroup_iso : fixing_subgroup K ≃* (E ≃ₐ[K] E) :=
+def fixing_subgroup_equiv : fixing_subgroup K ≃* (E ≃ₐ[K] E) :=
 { to_fun := λ ϕ, of_bijective (alg_hom.mk ϕ (map_one ϕ) (map_mul ϕ)
     (map_zero ϕ) (map_add ϕ) (ϕ.mem)) (bijective ϕ),
   inv_fun := λ ϕ, ⟨of_bijective (alg_hom.mk ϕ (ϕ.map_one) (ϕ.map_mul)

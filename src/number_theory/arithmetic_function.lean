@@ -258,6 +258,67 @@ instance [comm_ring R] : comm_ring (arithmetic_function R) :=
 { .. arithmetic_function.add_comm_group,
   .. arithmetic_function.comm_semiring }
 
+section module
+variables {A : Type*} [comm_ring R] [add_comm_group A] [module R A]
+
+/-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
+  such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
+instance : has_scalar (arithmetic_function R) (arithmetic_function A) :=
+⟨λ f g, ⟨λ n, ∑ x in divisors_antidiagonal n, f x.fst • g x.snd, by simp⟩⟩
+
+@[simp]
+lemma smul_apply {f : arithmetic_function R} {g : arithmetic_function A} {n : ℕ} :
+  (f • g) n = ∑ x in divisors_antidiagonal n, f x.fst • g x.snd := rfl
+
+instance : module (arithmetic_function R) (arithmetic_function A) :=
+{ one_smul := λ f,
+  begin
+    ext,
+    rw smul_apply,
+    by_cases x0 : x = 0, {simp [x0]},
+    have h : {(1,x)} ⊆ divisors_antidiagonal x := by simp [x0],
+    rw ← sum_subset h, {simp},
+    intros y ymem ynmem,
+    have y1ne : y.fst ≠ 1,
+    { intro con,
+      simp only [con, mem_divisors_antidiagonal, one_mul, ne.def] at ymem,
+      simp only [mem_singleton, prod.ext_iff] at ynmem,
+      tauto },
+    simp [y1ne],
+  end,
+  mul_smul := λ f g h, begin
+    ext n,
+    simp only [mul_apply, smul_apply],
+    have := @finset.sum_sigma (ℕ × ℕ) A _ _ (divisors_antidiagonal n)
+      (λ p, (divisors_antidiagonal p.1)) (λ x, f x.2.1 • g x.2.2 • h x.1.2),
+    convert this.symm using 1; clear this,
+    { apply finset.sum_congr rfl,
+      intros p hp,
+      simp only [sum_smul, mul_smul], },
+    have := @finset.sum_sigma (ℕ × ℕ) A _ _ (divisors_antidiagonal n)
+      (λ p, (divisors_antidiagonal p.2)) (λ x, f x.1.1 • (g x.2.1 • h x.2.2)),
+    convert this.symm using 1; clear this,
+    { apply finset.sum_congr rfl, intros p hp, rw smul_sum },
+    apply finset.sum_bij,
+    swap 5,
+    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l*j), (l, j)⟩ },
+    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
+      simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish },
+    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
+    { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
+      simp only [finset.mem_sigma, mem_divisors_antidiagonal,
+        and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
+      finish },
+    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩;
+      { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish } }
+  end,
+  smul_add := λ r x y, by { ext, simp [sum_add_distrib] },
+  smul_zero := λ r, by { ext, simp },
+  add_smul := λ r s x, by { ext, simp [add_smul, sum_add_distrib] },
+  zero_smul := λ r, by { ext, simp }, }
+
+end module
+
 section zeta
 
 /-- `ζ 0 = 0`, otherwise `ζ x = 1`. The Dirichlet Series is the Riemann ζ.  -/
@@ -281,6 +342,34 @@ begin
     intros i hi,
     rcases mem_divisors_antidiagonal.1 hi with ⟨rfl, h⟩,
     rw [nat_coe_apply, zeta_apply_ne (left_ne_zero_of_mul h), cast_one, one_mul] },
+  { apply sum_bij (λ i h, prod.snd i),
+    { rintros ⟨a, b⟩ h, simp [snd_mem_divisors_of_mem_antidiagonal h] },
+    { rintros ⟨a, b⟩ h, refl },
+    { rintros ⟨a1, b1⟩ ⟨a2, b2⟩ h1 h2 h,
+      dsimp at h,
+      rw h at *,
+      rw mem_divisors_antidiagonal at *,
+      ext, swap, {refl},
+      simp only [prod.fst, prod.snd] at *,
+      apply nat.eq_of_mul_eq_mul_right _ (eq.trans h1.1 h2.1.symm),
+      rcases h1 with ⟨rfl, h⟩,
+      apply nat.pos_of_ne_zero (right_ne_zero_of_mul h) },
+    { intros a ha,
+      rcases mem_divisors.1 ha with ⟨⟨b, rfl⟩, ne0⟩,
+      use (b, a),
+      simp [ne0, mul_comm] } }
+end
+
+theorem coe_zeta_smul_apply {A : Type*} [comm_ring R] [add_comm_group A] [module R A]
+  {f : arithmetic_function A} {x : ℕ} :
+  ((↑ζ : arithmetic_function R) • f) x = ∑ i in divisors x, f i :=
+begin
+  rw smul_apply,
+  transitivity ∑ i in divisors_antidiagonal x, f i.snd,
+  { apply sum_congr rfl,
+    intros i hi,
+    rcases mem_divisors_antidiagonal.1 hi with ⟨rfl, h⟩,
+    rw [nat_coe_apply, zeta_apply_ne (left_ne_zero_of_mul h), cast_one, one_smul] },
   { apply sum_bij (λ i h, prod.snd i),
     { rintros ⟨a, b⟩ h, simp [snd_mem_divisors_of_mem_antidiagonal h] },
     { rintros ⟨a, b⟩ h, refl },
@@ -751,6 +840,29 @@ begin
 end
 
 end comm_ring
+
+/-- One version of Möbius inversion. -/
+theorem sum_eq_iff_sum_moebius_eq' [add_comm_group R] {f g : ℕ → R} (hf : f 0 = 0) (hg : g 0 = 0) :
+  (∀ (n : ℕ), ∑ i in (n.divisors), f i = g n) ↔
+    ∀ (n : ℕ), ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, (μ x.fst : ℤ) • g x.snd = f n :=
+begin
+  let f' : arithmetic_function R := ⟨f, hf⟩,
+  let g' : arithmetic_function R := ⟨g, hg⟩,
+  transitivity (ζ : arithmetic_function ℤ) • f' = g',
+  { rw ext_iff,
+    apply forall_congr,
+    intro n,
+    rw coe_zeta_smul_apply,
+    simp, },
+  transitivity μ • g' = f',
+  { split; intro h,
+    { rw [← h, ← mul_smul, moebius_mul_coe_zeta, one_smul] },
+    { rw [← h, ← mul_smul, coe_zeta_mul_moebius, one_smul] } },
+  { rw ext_iff,
+    apply forall_congr,
+    intro n,
+    simp },
+end
 
 end special_functions
 end arithmetic_function

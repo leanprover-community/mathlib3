@@ -43,6 +43,8 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 /-- A field extension E/F is galois if it is both separable and normal -/
 @[class] def is_galois : Prop := is_separable F E ∧ normal F E
 
+namespace is_galois
+
 @[priority 100] -- see Note [lower instance priority]
 instance is_galois.to_is_separable [h : is_galois F E] : is_separable F E := h.1
 

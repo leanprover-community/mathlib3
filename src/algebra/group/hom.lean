@@ -734,7 +734,13 @@ end monoid_hom
 
 namespace add_monoid_hom
 
-variables [add_group G] [add_group H]
+variables [add_monoid M] [add_monoid N] [add_group G] [add_group H]
+
+@[simp] theorem map_bit0 (f : M →+ N) (x : M) : f (bit0 x) = bit0 (f x) := f.map_add x x
+
+theorem map_bit1 [has_one M] [has_one N] (f : M →+ N) (hf : f 1 = 1) (x : M) :
+  f (bit1 x) = bit1 (f x) :=
+by simp [bit1, hf]
 
 /-- Additive group homomorphisms preserve subtraction. -/
 @[simp] theorem map_sub (f : G →+ H) (g h : G) : f (g - h) = (f g) - (f h) := f.map_add_neg g h

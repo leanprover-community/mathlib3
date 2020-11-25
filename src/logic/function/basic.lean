@@ -303,6 +303,16 @@ variables {α : Sort u} {β : α → Sort v} {α' : Sort w} [decidable_eq α] [d
 def update (f : Πa, β a) (a' : α) (v : β a') (a : α) : β a :=
 if h : a = a' then eq.rec v h.symm else f a
 
+/-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
+lemma update_apply {β : Sort*} (f : α → β) (a' : α) (b : β) (a : α) :
+  update f a' b a = if a = a' then b else f a :=
+begin
+  dunfold update,
+  congr,
+  funext,
+  rw eq_rec_constant,
+end
+
 @[simp] lemma update_same (a : α) (v : β a) (f : Πa, β a) : update f a v a = v :=
 dif_pos rfl
 

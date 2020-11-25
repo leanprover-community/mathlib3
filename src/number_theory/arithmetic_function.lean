@@ -864,6 +864,11 @@ begin
     simp },
 end
 
+theorem prod_eq_iff_prod_moebius_eq [comm_group R] {f g : ℕ → R} (hf : f 0 = 1) (hg : g 0 = 1) :
+  (∀ (n : ℕ), ∏ i in (n.divisors), f i = g n) ↔
+    ∀ (n : ℕ), ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
+@sum_eq_iff_sum_moebius_eq' (additive R) _ f g hf hg
+
 end special_functions
 end arithmetic_function
 end nat

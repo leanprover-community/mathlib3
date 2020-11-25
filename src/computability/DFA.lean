@@ -36,7 +36,7 @@ list.foldl M.step start
 /-- `M.eval x` evaluates `M` with input `x` starting from the state `M.start`. -/
 def eval := M.eval_from M.start
 
-/-- `M.accepts x` says that `M.eval x` is an accept state -/
+/-- `M.accepts x` says that `M.eval x` is an accept state. -/
 def accepts (x : list α) : Prop :=
 M.eval x ∈ M.accept
 

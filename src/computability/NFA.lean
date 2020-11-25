@@ -63,7 +63,7 @@ local infix ` ≈ ` := equiv
 @[refl] lemma equiv_refl (M : NFA α σ) : M ≈ M := λ x, by refl
 @[symm] lemma equiv_symm (M : NFA α σ₁) (N : NFA α σ₂) : M ≈ N → N ≈ M := λ h x, (h x).symm
 @[trans] lemma equiv_trans (M : NFA α σ₁) (N : NFA α σ₂) (P : NFA α σ₃) : M ≈ N → N ≈ P → M ≈ P :=
-  λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
+λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
 
 @[simp] lemma equiv_def (M : NFA α σ₁) (N : NFA α σ₂) : M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
   by refl

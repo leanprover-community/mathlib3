@@ -202,6 +202,9 @@ instance fixed_field.algebra : algebra K (fixed_field (fixing_subgroup K)) :=
 instance fixed_field.is_scalar_tower : is_scalar_tower K (fixed_field (fixing_subgroup K)) E :=
 ⟨λ _ _ _, mul_assoc _ _ _⟩
 
+end intermediate_field
+
+namespace is_galois
 theorem fixed_field_fixing_subgroup [finite_dimensional F E] [h : is_galois F E] :
   fixed_field (fixing_subgroup K) = K :=
 begin

@@ -124,7 +124,7 @@ section galois_correspondence
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 variables (H : subgroup (E ≃ₐ[F] E)) (K : intermediate_field F E)
 
-instance tower_top_of_galois [h : is_galois F E] : is_galois K E :=
+instance is_galois.tower_top [h : is_galois F E] : is_galois K E :=
 ⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩
 
 namespace intermediate_field

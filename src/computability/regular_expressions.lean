@@ -12,7 +12,7 @@ import tactic.omega
 # Regular Expressions
 
 This file contains the formal definition for regular expressions and basic lemmas. Note these are
-regular expressions in terms of formal language theory. Note this is different to regex'x used in
+regular expressions in terms of formal language theory. Note this is different to regex's used in
 computer science such as the POSIX standard.
 -/
 
@@ -20,7 +20,8 @@ universe u
 
 variables {α : Type u} [dec : decidable_eq α]
 
-/-- This is the definition of regular expressions
+/-- This is the definition of regular expressions. The names used here is to mirror the definition
+  of a Kleene algebra (https://en.wikipedia.org/wiki/Kleene_algebra).
   `RZero` matches nothing
   `RNull` matches only the empty string
   `RChar a` matches only the string 'a'

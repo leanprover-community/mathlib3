@@ -366,7 +366,7 @@ lemma nhds_contain_boxes.symm {s : set α} {t : set β} :
 assume H n hn hp,
   let ⟨u, v, uo, vo, su, tv, p⟩ :=
     H (prod.swap ⁻¹' n)
-      (continuous_swap n hn)
+      (hn.preimage continuous_swap)
       (by rwa [←image_subset_iff, image_swap_prod]) in
   ⟨v, u, vo, uo, tv, su,
     by rwa [←image_subset_iff, image_swap_prod] at p⟩

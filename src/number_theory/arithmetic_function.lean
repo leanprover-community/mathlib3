@@ -5,6 +5,8 @@ Authors: Aaron Anderson
 -/
 import algebra.big_operators.ring
 import number_theory.divisors
+import algebra.squarefree
+import algebra.invertible
 
 /-!
 # Arithmetic Functions and Dirichlet Convolution
@@ -23,6 +25,9 @@ to form the Dirichlet ring.
  * `σ k` is the arithmetic function such that `σ k x = ∑ y in divisors x, y ^ k` for `0 < x`.
  * `pow k` is the arithmetic function such that `pow k x = x ^ k` for `0 < x`.
  * `id` is the identity arithmetic function on `ℕ`.
+ * `ω n` is the number of distinct prime factors of `n`.
+ * `Ω n` is the number of prime factors of `n` counted with multiplicity.
+ * `μ` is the Möbius function.
 
 ## Notation
 The arithmetic functions `ζ` and `σ` have Greek letter names, which are localized notation in
@@ -529,6 +534,148 @@ begin
   rw [← zeta_mul_pow_eq_sigma],
   apply ((is_multiplicative_zeta).mul is_multiplicative_pow)
 end
+
+/-- `Ω n` is the number of prime factors of `n`. -/
+def card_factors : arithmetic_function ℕ :=
+⟨λ n, n.factors.length, rfl⟩
+
+localized "notation `Ω` := card_factors" in arithmetic_function
+
+lemma card_factors_apply {n : ℕ} :
+  Ω n = n.factors.length := rfl
+
+@[simp]
+lemma card_factors_one : Ω 1 = 0 := rfl
+
+lemma card_factors_eq_one_iff_prime {n : ℕ} :
+  Ω n = 1 ↔ n.prime :=
+begin
+  refine ⟨λ h, _, λ h, list.length_eq_one.2 ⟨n, factors_prime h⟩⟩,
+  cases n,
+  { contrapose! h,
+    simp },
+  rcases list.length_eq_one.1 h with ⟨x, hx⟩,
+  rw [← prod_factors n.succ_pos, hx, list.prod_singleton],
+  apply mem_factors,
+  rw [hx, list.mem_singleton]
+end
+
+lemma card_factors_mul {m n : ℕ} (m0 : m ≠ 0) (n0 : n ≠ 0) :
+  Ω (m * n) = Ω m + Ω n :=
+by rw [card_factors_apply, card_factors_apply, card_factors_apply, ← multiset.coe_card,
+  ← factors_eq, unique_factorization_monoid.factors_mul m0 n0, factors_eq, factors_eq,
+  multiset.card_add, multiset.coe_card, multiset.coe_card]
+
+lemma card_factors_multiset_prod {s : multiset ℕ} (h0 : s.prod ≠ 0) :
+  Ω s.prod = (multiset.map Ω s).sum :=
+begin
+  revert h0,
+  apply s.induction_on, { intro h, refl },
+  intros a t h h0,
+  rw [multiset.prod_cons, mul_ne_zero_iff] at h0,
+  simp [h0, card_factors_mul, h],
+end
+
+/-- `ω n` is the number of distinct prime factors of `n`. -/
+def card_distinct_factors : arithmetic_function ℕ :=
+⟨λ n, n.factors.erase_dup.length, rfl⟩
+
+localized "notation `ω` := card_distinct_factors" in arithmetic_function
+
+@[simp]
+lemma card_distinct_factors_zero : ω 0 = 0 := rfl
+
+lemma card_distinct_factors_apply {n : ℕ} :
+  ω n = n.factors.erase_dup.length := rfl
+
+lemma card_distinct_factors_eq_card_factors_iff_squarefree {n : ℕ} (h0 : n ≠ 0) :
+  ω n = Ω n ↔ squarefree n :=
+begin
+  rw [squarefree_iff_nodup_factors h0, card_distinct_factors_apply],
+  split; intro h,
+  { rw ← list.eq_of_sublist_of_length_eq n.factors.erase_dup_sublist h,
+    apply list.nodup_erase_dup },
+  { rw list.erase_dup_eq_self.2 h,
+    refl }
+end
+
+/-- `μ` is the Möbius function. If `n` is squarefree with an even number of distinct prime factors,
+  `μ n = 1`. If `n` is squarefree with an odd number of distinct prime factors, `μ n = -1`.
+  If `n` is not squarefree, `μ n = 0`. -/
+def moebius : arithmetic_function ℤ :=
+⟨λ n, if squarefree n then (-1) ^ (card_factors n) else 0, by simp⟩
+
+localized "notation `μ` := moebius" in arithmetic_function
+
+@[simp]
+lemma moebius_apply_of_squarefree {n : ℕ} (h : squarefree n): μ n = (-1) ^ (card_factors n) :=
+if_pos h
+
+@[simp]
+lemma moebius_eq_zero_of_not_squarefree {n : ℕ} (h : ¬ squarefree n): μ n = 0 := if_neg h
+
+lemma moebius_ne_zero_iff_squarefree {n : ℕ} : μ n ≠ 0 ↔ squarefree n :=
+begin
+  split; intro h,
+  { contrapose! h,
+    simp [h] },
+  { simp [h, pow_ne_zero] }
+end
+
+lemma moebius_ne_zero_iff_eq_or {n : ℕ} : μ n ≠ 0 ↔ μ n = 1 ∨ μ n = -1 :=
+begin
+  split; intro h,
+  { rw moebius_ne_zero_iff_squarefree at h,
+    rw moebius_apply_of_squarefree h,
+    apply neg_one_pow_eq_or },
+  { rcases h with h | h; simp [h] }
+end
+
+open unique_factorization_monoid
+
+/-- Moebius Inversion -/
+@[simp] lemma moebius_mul_zeta : μ * ζ = 1 :=
+begin
+  ext x,
+  cases x, simp,
+  cases x, simp,
+  rw [mul_zeta_apply, one_apply_ne (ne_of_gt (succ_lt_succ (nat.succ_pos _)))],
+  rw ← sum_filter_ne_zero,
+  simp only [moebius_ne_zero_iff_squarefree],
+  transitivity,
+  convert (sum_divisors_filter_squarefree (nat.succ_ne_zero _)),
+  apply eq.trans (sum_congr rfl _) (sum_powerset_neg_one_pow_card_of_nonempty _),
+  { intros y hy,
+    rw [finset.mem_powerset, ← finset.val_le_iff, multiset.to_finset_val] at hy,
+    have h : unique_factorization_monoid.factors y.val.prod = y.val,
+    { apply factors_multiset_prod_of_irreducible,
+      intros z hz,
+      apply irreducible_of_factor _ (multiset.subset_of_le
+        (le_trans hy (multiset.erase_dup_le _)) hz) },
+    rw [if_pos],
+    { rw [card_factors_apply, ← multiset.coe_card, ← factors_eq, h, finset.card] },
+    rw [unique_factorization_monoid.squarefree_iff_nodup_factors, h],
+    { apply y.nodup },
+    rw [ne.def, multiset.prod_eq_zero_iff],
+    intro con,
+    rw ← h at con,
+    exact not_irreducible_zero (irreducible_of_factor 0 con) },
+  { rw finset.nonempty,
+    rcases wf_dvd_monoid.exists_irreducible_factor _ (nat.succ_ne_zero _) with ⟨i, hi⟩,
+    { rcases exists_mem_factors_of_dvd (nat.succ_ne_zero _) hi.1 hi.2 with ⟨j, hj, hj2⟩,
+      use j,
+      apply multiset.mem_to_finset.2 hj },
+    rw nat.is_unit_iff,
+    omega },
+end
+
+@[simp] lemma zeta_mul_moebius : ζ * μ = 1 :=
+by rw [mul_comm, moebius_mul_zeta]
+
+instance : invertible ζ :=
+{ inv_of := μ,
+  inv_of_mul_self := moebius_mul_zeta,
+  mul_inv_of_self := zeta_mul_moebius}
 
 end special_functions
 end arithmetic_function

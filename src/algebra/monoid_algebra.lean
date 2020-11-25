@@ -262,6 +262,9 @@ end
 
 @[simp] lemma of_apply (a : G) : of k G a = single a 1 := rfl
 
+lemma of_injective [nontrivial k] : function.injective (of k G) :=
+λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
+
 lemma mul_single_apply_aux (f : monoid_algebra k G) {r : k}
   {x y z : G} (H : ∀ a, a * x = z ↔ a = y) :
   (f * single x r) z = f y * r :=
@@ -730,6 +733,9 @@ def of : multiplicative G →* add_monoid_algebra k G :=
 end
 
 @[simp] lemma of_apply (a : multiplicative G) : of k G a = single a.to_add 1 := rfl
+
+lemma of_injective [nontrivial k] : function.injective (of k G) :=
+λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
 
 lemma mul_single_apply_aux (f : add_monoid_algebra k G) (r : k)
   (x y z : G) (H : ∀ a, a + x = z ↔ a = y) :

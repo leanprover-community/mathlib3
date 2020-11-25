@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import group_theory.group_action
+import group_theory.group_action.group
 import data.equiv.ring
 import deprecated.subring
 

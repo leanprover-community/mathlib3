@@ -23,6 +23,7 @@ and composition with linear maps `f`, `Q.comp f x = Q (f x)`.
 
  * `quadratic_form.associated`: associated bilinear form
  * `quadratic_form.pos_def`: positive definite quadratic forms
+ * `quadratic_form.anisotropic`: anisotropic quadratic forms
  * `quadratic_form.discr`: discriminant of a quadratic form
 
 ## Main statements
@@ -387,6 +388,17 @@ quadratic_form.ext $ λ x,
   ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
 
 end associated
+
+section anisotropic
+
+/-- An anisotropic quadratic form is zero only on zero vectors. -/
+def anisotropic (Q : quadratic_form R M) : Prop := ∀ x, Q x = 0 → x = 0
+
+lemma not_anisotropic_iff_exists (Q : quadratic_form R M) :
+  ¬anisotropic Q ↔ ∃ x ≠ 0, Q x = 0 :=
+by simp only [anisotropic, not_forall, exists_prop, and_comm]
+
+end anisotropic
 
 section pos_def
 

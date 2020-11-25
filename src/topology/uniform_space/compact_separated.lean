@@ -37,10 +37,11 @@ variables {α β : Type*} [uniform_space α] [uniform_space β]
 ### Uniformity on compact separated spaces
 -/
 
-
+/-- On a separated compact uniform space, the topology determines the uniform structure, entourages
+are exactly the neighborhoods of the diagonal. -/
 lemma compact_space_uniformity [compact_space α] [separated_space α] : 𝓤 α = ⨆ x : α, 𝓝 (x, x) :=
 begin
-  symmetry, refine le_antisymm nhds_le_uniformity _,
+  symmetry, refine le_antisymm supr_nhds_le_uniformity _,
   by_contra H,
   obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ ne_bot (𝓤 α ⊓ 𝓟 Vᶜ),
   { simpa [le_iff_forall_inf_principal_compl] using H },
@@ -204,7 +205,7 @@ map (prod.map f f) (𝓤 α) = map (prod.map f f) (⨆ x, 𝓝 (x, x))  : by rw 
                      ... =  ⨆ x, map (prod.map f f) (𝓝 (x, x)) : by rw map_supr
                      ... ≤ ⨆ x, 𝓝 (f x, f x)     : supr_le_supr (λ x, (h.prod_map h).continuous_at)
                      ... ≤ ⨆ y, 𝓝 (y, y)         : supr_comp_le (λ y, 𝓝 (y, y)) f
-                     ... ≤ 𝓤 β                   : nhds_le_uniformity
+                     ... ≤ 𝓤 β                   : supr_nhds_le_uniformity
 
 /-- Heine-Cantor: a continuous function on a compact separated set of a uniform space is
 uniformly continuous. -/

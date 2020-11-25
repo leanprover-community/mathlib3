@@ -495,6 +495,15 @@ begin
   exact (hs.inter $ hf ht).union (hs.compl.inter $ hg ht)
 end
 
+/-- this is slightly different from `measurable.piecewise`. It can be used to show
+`measurable (ite (x=0) 0 1)` by
+`exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const`,
+but replacing `measurable.ite` by `measurable.piecewise` in that example proof does not work. -/
+lemma measurable.ite {p : α → Prop} {_ : decidable_pred p} {f g : α → β}
+  (hp : is_measurable {a : α | p a}) (hf : measurable f) (hg : measurable g) :
+  measurable (λ x, ite (p x) (f x) (g x)) :=
+measurable.piecewise hp hf hg
+
 @[simp] lemma measurable_const {a : α} : measurable (λ b : β, a) :=
 assume s hs, is_measurable.const (a ∈ s)
 

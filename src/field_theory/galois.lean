@@ -173,7 +173,7 @@ def fixing_subgroup_equiv : fixing_subgroup K ≃* (E ≃ₐ[K] E) :=
   right_inv := λ _, by { ext, refl },
   map_mul' := λ _ _, by { ext, refl } }
 
-theorem fixing_subgroup_of_fixed_field [finite_dimensional F E] :
+theorem fixing_subgroup_fixed_field [finite_dimensional F E] :
   fixing_subgroup (fixed_field H) = H :=
 begin
   have H_le : H ≤ (fixing_subgroup (fixed_field H)) := (le_iff_le _ _).mp (le_refl _),

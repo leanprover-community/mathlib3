@@ -8,7 +8,7 @@ import data.fintype.basic
 
 /-!
 # Deterministic Finite Automata
-This file contains the definition of a Deterministic Finite Automata (DFA), a state machine which
+This file contains the definition of a Deterministic Finite Automaton (DFA), a state machine which
 determines whether a string (implemented as a list over an arbitrary alphabet) is in a regular set
 in linear time.
 -/

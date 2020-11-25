@@ -95,7 +95,7 @@ alg_equiv.commutes bot_equiv x
 noncomputable def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
 (subalgebra.equiv_of_eq top_to_subalgebra).trans algebra.top_equiv
 
-lemma top_equiv_def (x : (⊤ : intermediate_field F E)) : top_equiv x = ↑x :=
+@[simp] lemma top_equiv_def (x : (⊤ : intermediate_field F E)) : top_equiv x = ↑x :=
 begin
   suffices : algebra.to_top (top_equiv x) = algebra.to_top (x : E),
   { rw subtype.ext_iff at this,

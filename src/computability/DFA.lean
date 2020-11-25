@@ -33,7 +33,7 @@ instance DFA_inhabited [inhabited σ] : inhabited (DFA α σ) :=
 def eval_from (start : σ) : list α → σ :=
 list.foldl M.step start
 
-/-- `M.eval x` evaluates  `M` with input `x` starting from the state `M.start` -/
+/-- `M.eval x` evaluates `M` with input `x` starting from the state `M.start`. -/
 def eval := M.eval_from M.start
 
 /-- `M.accepts x` says that `M.eval x` is an accept state -/

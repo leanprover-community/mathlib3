@@ -65,8 +65,11 @@ class t1_space (α : Type u) [topological_space α] : Prop :=
 lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
+lemma is_open_compl_singleton [t1_space α] {x : α} : is_open ({x}ᶜ : set α) :=
+is_closed_singleton
+
 lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
-compl_singleton_eq x ▸ is_open_compl_iff.2 (t1_space.t1 x)
+is_open_compl_singleton
 
 instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p : α → Prop} :
   t1_space (subtype p) :=

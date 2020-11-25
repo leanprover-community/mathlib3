@@ -164,7 +164,7 @@ instance [semiring R] [add_comm_monoid M] [semimodule R M] : semimodule R (tsze 
 instance [ring R] [add_comm_group M] [module R M] : module R (tsze R M) :=
 { .. triv_sq_zero_ext.semimodule R M }
 
-/-- The caonnical `R`-linear inclusion `M → tsze R M`. -/
+/-- The canonical `R`-linear inclusion `M → tsze R M`. -/
 @[simps apply]
 def inr_hom [semiring R] [add_comm_monoid M] [semimodule R M] : M →ₗ[R] tsze R M :=
 { to_fun := inr,

@@ -70,15 +70,6 @@ instance of_fixed_field (G : Type*) [group G] [fintype G] [mul_semiring_action G
   is_galois (mul_action.fixed_points G E) E :=
 ⟨fixed_points.separable G E, fixed_points.normal G E⟩
 
-instance aut : group (E ≃ₐ[F] E) :=
-{ mul := λ ϕ ψ, ψ.trans ϕ,
-  mul_assoc := λ ϕ ψ χ, rfl,
-  one := 1,
-  one_mul := λ ϕ, by { ext, refl },
-  mul_one := λ ϕ, by { ext, refl },
-  inv := symm,
-  mul_left_inv := λ ϕ, by { ext, exact symm_apply_apply ϕ a } }
-
 lemma intermediate_field.adjoin_simple.card_aut_eq_findim
   [finite_dimensional F E] {α : E} (hα : is_integral F α)
   (h_sep : (minimal_polynomial hα).separable)

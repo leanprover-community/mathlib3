@@ -22,34 +22,29 @@ universes u v
   alphabet (`step`), a starting state (`start`) and a set of acceptance states (`accept`).
   Note the transition function sends a state to a `finset` of states. These are the states that it
   may be sent to. -/
-structure NFA (alphabet : Type u) :=
-(state : Type v)
-[state_fintype : fintype state]
-[state_dec : decidable_eq state]
+structure NFA (alphabet : Type u) (state : Type v) :=
 (step : state → alphabet → finset state)
 (start : finset state)
 (accept : finset state)
 
 namespace NFA
 
-variables {α : Type u} (M : NFA α)
+variables {α : Type u} {σ σ₁ σ₂ σ₃ : Type v} (M : NFA α σ)
+variables [decidable_eq σ] [decidable_eq σ₁] [decidable_eq σ₂] [decidable_eq σ₃]
 
-instance NFA_inhabited : inhabited (NFA α) := ⟨ NFA.mk pempty pempty.elim ∅ ∅ ⟩
-
-instance dec := M.state_dec
-instance fin := M.state_fintype
+instance NFA_inhabited : inhabited (NFA α σ) := ⟨ NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
 /-- `M.step_set S a` is the union of `M.step s a` for all `s ∈ S` -/
-def step_set : finset M.state → α → finset M.state :=
+def step_set : finset σ → α → finset σ :=
 λ Ss a, finset.bind Ss (λ S, (M.step S a))
 
-lemma mem_step_set (s : M.state) (S : finset M.state) (a : α) :
+lemma mem_step_set (s : σ) (S : finset σ) (a : α) :
   s ∈ M.step_set S a ↔ ∃ t ∈ S, s ∈ M.step t a :=
 by rw [step_set, finset.mem_bind]
 
 /-- `M.eval_from S x` computes all possible paths though `M` with input `x` starting at an element
   of `S` -/
-def eval_from (start : finset M.state) : list α → finset M.state :=
+def eval_from (start : finset σ) : list α → finset σ :=
 list.foldl M.step_set start
 
 /-- `M.eval x` computes all possible paths though `M` with input `x` starting at an element of
@@ -61,28 +56,26 @@ def accepts (s : list α) : Prop :=
 ∃ S ∈ M.accept, S ∈ M.eval s
 
 /-- Two DFA's are equivalent if the accept exactly the same strings -/
-def equiv (M N : NFA α) : Prop := ∀ x, M.accepts x ↔ N.accepts x
+def equiv (M : NFA α σ₁) (N : NFA α σ₂) : Prop := ∀ x, M.accepts x ↔ N.accepts x
 
 local infix ` ≈ ` := equiv
 
-@[refl] lemma equiv_refl (M : NFA α) : M ≈ M := λ x, by refl
-@[symm] lemma equiv_symm (M N : NFA α) : M ≈ N → N ≈ M := λ h x, (h x).symm
-@[trans] lemma equiv_trans (M N P : NFA α) : M ≈ N → N ≈ P → M ≈ P :=
+@[refl] lemma equiv_refl (M : NFA α σ) : M ≈ M := λ x, by refl
+@[symm] lemma equiv_symm (M : NFA α σ₁) (N : NFA α σ₂) : M ≈ N → N ≈ M := λ h x, (h x).symm
+@[trans] lemma equiv_trans (M : NFA α σ₁) (N : NFA α σ₂) (P : NFA α σ₃) : M ≈ N → N ≈ P → M ≈ P :=
   λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
 
-@[simp] lemma equiv_def (M N : NFA α) : M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
+@[simp] lemma equiv_def (M : NFA α σ₁) (N : NFA α σ₂) : M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
   by refl
 
 /-- `NFA_of_DFA M` is an `NFA` constructed from a `DFA` `M` by using the same start and accept
   states and a transition function which sends `s` with input `a` to the singleton `M.step s a` -/
-def NFA_of_DFA (M : DFA α) : NFA α :=
-{ state := M.state,
-  state_fintype := M.state_fintype,
-  step := λ s a, {M.step s a},
+def NFA_of_DFA (M : DFA α σ) : NFA α σ :=
+{ step := λ s a, {M.step s a},
   start := {M.start},
   accept := M.accept }
 
-lemma NFA_of_DFA_eval_from_match (M : DFA α) (start : M.state) (s : list α) :
+lemma NFA_of_DFA_eval_from_match (M : DFA α σ) (start : σ) (s : list α) :
   {M.eval_from start s} = (NFA_of_DFA M).eval_from {start} s :=
 begin
   change {list.foldl M.step start s} = list.foldl (NFA_of_DFA M).step_set {start} s,
@@ -96,7 +89,7 @@ begin
     tauto }
 end
 
-lemma NFA_of_DFA_correct (M : DFA α) (x : list α) :
+lemma NFA_of_DFA_correct (M : DFA α σ) (x : list α) :
   M.accepts x ↔ (NFA_of_DFA M).accepts x :=
 begin
   change _ ↔ ∃ S H, S ∈ (NFA_of_DFA M).eval_from {M.start} x,
@@ -113,13 +106,12 @@ end
 
 /-- `DFA_of_NFA M` is an `DFA` constructed from a `NFA` `M` using the subset construction. The
   states is the type of `finset`s of `M.state` and the step function is `M.step_set`. -/
-def DFA_of_NFA : DFA α :=
-{ state := finset M.state,
-  step := M.step_set,
+def DFA_of_NFA [fintype σ] : DFA α (finset σ) :=
+{ step := M.step_set,
   start := M.start,
   accept := finset.univ.filter (λ S, ∃ s ∈ S, s ∈ M.accept) }
 
-lemma DFA_of_NFA_correct (x : list α) :
+lemma DFA_of_NFA_correct [fintype σ] (x : list α) :
   M.accepts x ↔ M.DFA_of_NFA.accepts x :=
 begin
   rw [accepts, DFA.accepts, eval, DFA.eval],

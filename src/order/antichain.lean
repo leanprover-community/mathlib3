@@ -66,28 +66,30 @@ less than some element `b`.
 -/
 def antichain.meet (A B : finset α) : finset α := A ∩ B
 
+@[simp]
+lemma antichain.mem_join_iff (A B : finset α) (x : α) :
+  x ∈ antichain.join A B ↔ x ∈ A ∪ B ∧ ∀ y ∈ A ∪ B, x ≤ y → x = y :=
+  begin
+    rw [antichain.join, finset.mem_union],
+    simp only [and_self_left, finset.mem_union, finset.mem_filter],
+  end
+
 theorem join_antichain (A B : finset α) :
   antichain (antichain.join A B) :=
 begin
   intros a ha2 b hb2,
 
-  unfold antichain.join at ha2,
-  rw finset.mem_filter at ha2,
-  rcases ha2 with ⟨hamem, ⟨ha1, ha2⟩⟩,
+  rw antichain.mem_join_iff at ha2,
+  rcases ha2 with ⟨hamem, ha⟩,
 
-  unfold antichain.join at hb2,
-  rw finset.mem_filter at hb2,
-  rcases hb2 with ⟨hbmem, ⟨hb1, hb2⟩⟩,
+  rw antichain.mem_join_iff at hb2,
+  rcases hb2 with ⟨hbmem, hb⟩,
 
-  apply ha2 b hb1,
+  apply ha b hbmem,
 end
 
 theorem meet_antichain (A B : finset α) (ha : antichain A) (hb : antichain B) :
-  antichain (antichain.meet A B) :=
-begin
-  intros a ha2 b hb2,
-  apply ha a (finset.mem_inter.1 ha2).1 b (finset.mem_inter.1 hb2).1,
-end
+  antichain (antichain.meet A B) := antichain.subset A (A ∩ B) ha (finset.inter_subset_left A B)
 
 
 end

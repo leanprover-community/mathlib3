@@ -564,11 +564,11 @@ lemma trace_form_is_sym : sym_bilin_form.is_sym (trace_form R S) :=
 λ x y, congr_arg (trace R S) (mul_comm _ _)
 
 lemma trace_form_to_matrix [decidable_eq ι] (i j) :
-  bilin_form_equiv_matrix hb (trace_form R S) i j = trace R S (b i * b j) :=
-by rw [bilin_form_equiv_matrix_apply, trace_form_apply]
+  bilin_form.to_matrix hb (trace_form R S) i j = trace R S (b i * b j) :=
+by rw [bilin_form.to_matrix_apply, trace_form_apply]
 
 lemma trace_form_to_matrix_power_basis (h : power_basis R S) :
-  bilin_form_equiv_matrix h.is_basis (trace_form R S) = λ i j, (trace R S (h.gen ^ (i + j : ℕ))) :=
+  bilin_form.to_matrix h.is_basis (trace_form R S) = λ i j, (trace R S (h.gen ^ (i + j : ℕ))) :=
 by { ext, rw [trace_form_to_matrix, pow_add] }
 
 open bilin_form
@@ -1052,7 +1052,9 @@ begin
 end
 
 @[simp] lemma multiset.length_to_list {α : Type*} (m : multiset α) :
-  m.to_list.length = m.card := sorry
+  m.to_list.length = m.card :=
+calc m.to_list.length = multiset.card ↑m.to_list : (multiset.coe_card _).symm
+... = m.card : congr_arg _ m.coe_to_list
 
 section conjugates
 
@@ -1096,7 +1098,7 @@ noncomputable def power_basis.conjugate_matrix :
 
 lemma power_basis.conjugates_injective :
   function.injective (pb.conjugates hF) :=
-λ i j h, sorry
+λ i j h, _
 
 lemma sum_conjugates (f : F → R) :
   ∑ i, f (pb.conjugates hF i) = ((pb.minimal_polynomial.map (algebra_map K F)).roots.map f).sum :=
@@ -1400,7 +1402,7 @@ set_option pp.proofs true
 lemma conjugate_matrix_mul_conjugate_matrix [is_separable K L] :
   (pb.conjugate_matrix (algebraic_closure.splits _)) ⬝
     (pb.conjugate_matrix (algebraic_closure.splits _))ᵀ =
-    ((bilin_form_equiv_matrix pb.is_basis (trace_form K L)).map
+    ((bilin_form.to_matrix pb.is_basis (trace_form K L)).map
       (algebra_map K (algebraic_closure K))) :=
 begin
   ext i k,
@@ -1435,10 +1437,10 @@ by { ext, simp }
 by { unfold det, simp only [f.map_sum, f.map_mul, f.map_prod, f.map_int_cast, map_apply] }
 
 lemma det_trace_form_ne_zero' [is_separable K L] :
-  det (bilin_form_equiv_matrix pb.is_basis (trace_form K L)) ≠ 0 :=
+  det (bilin_form.to_matrix pb.is_basis (trace_form K L)) ≠ 0 :=
 begin
   suffices : algebra_map K (algebraic_closure K)
-    (det (bilin_form_equiv_matrix pb.is_basis (trace_form K L))) ≠ 0,
+    (det (bilin_form.to_matrix pb.is_basis (trace_form K L))) ≠ 0,
   { refine mt (λ ht, _) this,
     rw [ht, ring_hom.map_zero] },
   have hF := algebraic_closure.splits _,
@@ -1455,12 +1457,12 @@ begin
 end
 
 lemma det_trace_form_ne_zero  [is_separable K L] {b : ι → L} (hb : is_basis K b) :
-  det (bilin_form_equiv_matrix hb (trace_form K L)) ≠ 0 :=
+  det (bilin_form.to_matrix hb (trace_form K L)) ≠ 0 :=
 begin
   let pb : power_basis K L := sorry,
-  have : bilin_form_equiv_matrix hb (trace_form K L) =
+  have : bilin_form.to_matrix hb (trace_form K L) =
     (hb.to_matrix (λ (i : fin pb.dim), pb.gen ^ (i : ℕ))) ⬝
-    bilin_form_equiv_matrix pb.is_basis (trace_form K L) ⬝
+    bilin_form.to_matrix pb.is_basis (trace_form K L) ⬝
     (pb.is_basis.to_matrix b) := sorry,
   rw [this, det_conjugate_aux],
   { exact det_trace_form_ne_zero' pb },
@@ -1478,40 +1480,6 @@ open algebra
 
 variables [decidable_eq ι] {b : ι → L} (hb : is_basis K b)
 
-lemma bilin_form.congr_comp {V V' : Type*} [add_comm_group V] [vector_space K V]
-  [add_comm_group V'] [vector_space K V'] (e : V ≃ₗ[K] V')
-  (B : bilin_form K V) (l r : V →ₗ[K] V) :
-  bilin_form.congr e (B.comp l r) = (B.comp l r).comp e.symm e.symm :=
-begin
-  ext x y,
-  simp only [bilin_form.congr_apply, bilin_form.comp_apply, linear_map.comp_apply,
-             linear_equiv.to_linear_map_eq_coe],
-end
-
-lemma bilin_form_equiv_matrix_comp {V : Type*} [add_comm_group V] [vector_space K V]
-  {b : ι → V} (hb : is_basis K b)
-  (B : bilin_form K V) (l r : V →ₗ[K] V) :
-  bilin_form_equiv_matrix hb (B.comp l r) =
-    (linear_map.to_matrix hb hb l)ᵀ ⬝ bilin_form_equiv_matrix hb B ⬝ linear_map.to_matrix hb hb r :=
-begin
-  rw [bilin_form_equiv_matrix, linear_equiv.trans_apply, bilin_form_equiv_matrix'_apply,
-      bilin_form.congr_comp],
-  sorry
-end
-
-lemma bilin_form_equiv_matrix_comp_right {V : Type*} [add_comm_group V] [vector_space K V]
-  {b : ι → V} (hb : is_basis K b)
-  (B : bilin_form K V) (r : V →ₗ[K] V) :
-  bilin_form_equiv_matrix hb (B.comp_right r) =
-    bilin_form_equiv_matrix hb B ⬝ linear_map.to_matrix hb hb r :=
-by rw [bilin_form.comp_right, bilin_form_equiv_matrix_comp, to_matrix_id, transpose_one, matrix.one_mul]
-
-lemma bilin_form_equiv_matrix_mul {V : Type*} [add_comm_group V] [vector_space K V]
-  {b : ι → V} (hb : is_basis K b)
-  (B : bilin_form K V) (A : matrix ι ι K) :
-  bilin_form_equiv_matrix hb B ⬝ A = bilin_form_equiv_matrix hb (B.comp_right (to_lin hb hb A)) :=
-by rw [bilin_form_equiv_matrix_comp_right, to_matrix_to_lin]
-
 include hb
 
 /-- If `pb` is a power basis for the finite separable field extension `L / K`,
@@ -1519,18 +1487,18 @@ include hb
 `trace_form (pb.gen ^ i) (dual_basis pb j) = if i = j then 1 else 0`. -/
 noncomputable def dual_basis : ι → L :=
 λ i, matrix.to_lin hb hb
-  (bilin_form_equiv_matrix hb (trace_form K L))⁻¹ (b i)
+  (bilin_form.to_matrix hb (trace_form K L))⁻¹ (b i)
 
 lemma dual_basis_apply (i : ι) :
   dual_basis hb i = matrix.to_lin hb hb
-    (bilin_form_equiv_matrix hb (trace_form K L))⁻¹ (b i) :=
+    (bilin_form.to_matrix hb (trace_form K L))⁻¹ (b i) :=
 rfl
 
 lemma trace_form_dual_basis_power_basis [is_separable K L] (i j : ι) :
   trace_form K L (b i) (dual_basis hb j) = (1 : matrix _ _ K) i j :=
 calc trace_form K L (b i) (dual_basis hb j)
-    = ((bilin_form_equiv_matrix hb (trace_form K L)) ⬝ (bilin_form_equiv_matrix hb (trace_form K L))⁻¹) i j :
-      by simp_rw [dual_basis, ← bilin_form.comp_right_apply, bilin_form_equiv_matrix_mul hb, bilin_form_equiv_matrix_apply]
+    = ((bilin_form.to_matrix hb (trace_form K L)) ⬝ (bilin_form.to_matrix hb (trace_form K L))⁻¹) i j :
+      by simp_rw [dual_basis, ← bilin_form.comp_right_apply, bilin_form.to_matrix_mul hb, bilin_form.to_matrix_apply]
 ... = (1 : matrix _ _ K) i j : by rw matrix.mul_nonsing_inv _ (is_unit.mk0 _ (det_trace_form_ne_zero hb))
 
 lemma trace_dual_basis_mul_power_basis [is_separable K L] (i j : ι) :
@@ -1540,7 +1508,7 @@ trace_form_dual_basis_power_basis hb i j
 lemma is_basis_dual_basis [is_separable K L] :
   is_basis K (dual_basis hb) :=
   let e : L ≃ₗ[K] L := linear_equiv.of_bijective
-    (matrix.to_lin hb hb (bilin_form_equiv_matrix hb (trace_form K L))⁻¹)
+    (matrix.to_lin hb hb (bilin_form.to_matrix hb (trace_form K L))⁻¹)
     sorry sorry
     in
 @linear_equiv.is_basis ι _ _ _ _ _ _ _ _ _ hb e

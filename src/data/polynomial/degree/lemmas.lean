@@ -94,7 +94,7 @@ end
 variables [semiring S]
 
 lemma nat_degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* S)
-  {z : S} (hz : eval₂ f z p = 0) (inj : ∀ (x : R), f x = 0 → x = 0) :
+  {z : S} (hz : eval₂ f z p = 0) (inj : ∀ x, f x = 0 → x = 0) :
   0 < nat_degree p :=
 lt_of_not_ge $ λ hlt, begin
   rw [eq_C_of_nat_degree_le_zero hlt, eval₂_C] at hz,

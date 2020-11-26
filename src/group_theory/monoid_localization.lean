@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 import group_theory.congruence
+import group_theory.submonoid
 import algebra.group.units
 import algebra.punit_instances
 

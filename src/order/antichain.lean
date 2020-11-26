@@ -46,7 +46,7 @@ def antichain (𝒜 : finset α) : Prop := ∀ a ∈ 𝒜, ∀ b ∈ 𝒜, a ≤
 lemma antichain_def (A : finset α) (hA : antichain A) (a : α) :
   antichain A ↔ ∀ a ∈ A, ∀ b ∈ A, a ≤ b → a = b := iff.rfl
 
-theorem subset_antichain (A B : finset α) (ha : antichain A) (hb : B ⊆ A) :
+theorem antichain.subset (A B : finset α) (ha : antichain A) (hb : B ⊆ A) :
   antichain B :=
 begin
   intros a ha2 b hb2,

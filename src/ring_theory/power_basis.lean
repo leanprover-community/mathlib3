@@ -539,7 +539,7 @@ noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
   (adjoin.power_basis hx).gen = adjoin_simple.gen K x := rfl
 
 lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
-finite_dimensional.of_fintype_basis (adjoin.power_basis hx).is_basis
+power_basis.finite_dimensional (adjoin.power_basis hx)
 
 lemma adjoin.findim {x : L} (hx : is_integral K x) :
   finite_dimensional.findim K K⟮x⟯ = (minimal_polynomial hx).nat_degree :=

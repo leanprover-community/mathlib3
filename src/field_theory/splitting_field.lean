@@ -5,6 +5,7 @@ Authors: Chris Hughes
 
 Definition of splitting fields, and definition of homomorphism into any field that splits
 -/
+import algebra.polynomial.big_operators
 import ring_theory.adjoin_root
 import ring_theory.algebra_tower
 import ring_theory.algebraic
@@ -237,20 +238,6 @@ begin
   simp,
 end
 
-lemma nat_degree_multiset_prod {R : Type*} [integral_domain R] {s : multiset (polynomial R)}
-  (h : ∀ p ∈ s, p ≠ (0 : polynomial R)) :
-  nat_degree s.prod = (s.map nat_degree).sum :=
-begin
-  revert h,
-  refine s.induction_on _ _,
-  { simp },
-  intros p s ih h,
-  have hs : ∀ p ∈ s, p ≠ (0 : polynomial R) := λ p hp, h p (multiset.mem_cons_of_mem hp),
-  have hprod : s.prod ≠ 0 := multiset.prod_ne_zero (λ p hp, hs p hp),
-  rw [multiset.prod_cons, nat_degree_mul (h p (multiset.mem_cons_self _ _)) hprod, ih hs,
-      multiset.map_cons, multiset.sum_cons],
-end
-
 lemma nat_degree_eq_card_roots {p : polynomial α} {i : α →+* β}
   (hsplit : splits i p) : p.nat_degree = (p.map i).roots.card :=
 begin
@@ -265,7 +252,7 @@ begin
     obtain ⟨a, ha, rfl⟩ := multiset.mem_map.mp hp,
     exact X_sub_C_ne_zero _ },
   simp [nat_degree_mul (left_ne_zero_of_mul map_ne_zero) (right_ne_zero_of_mul map_ne_zero),
-        nat_degree_multiset_prod this]
+        nat_degree_multiset_prod _ this],
 end
 
 lemma degree_eq_card_roots {p : polynomial α} {i : α →+* β} (p_ne_zero : p ≠ 0)

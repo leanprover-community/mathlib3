@@ -144,7 +144,7 @@ by refine {zero := 0, add := (+), neg := has_neg.neg, ..alternating_map.add_comm
 
 section semimodule
 
-variables {S : Type*} [comm_semiring S] [algebra S R] [semimodule S M] [semimodule S N]
+variables {S : Type*} [comm_semiring S] [algebra S R] [semimodule S N]
   [is_scalar_tower S R N]
 
 instance : has_scalar S (alternating_map R M N ι) :=
@@ -155,7 +155,7 @@ instance : has_scalar S (alternating_map R M N ι) :=
 @[simp] lemma smul_apply (f : alternating_map R M N ι) (c : S) (m : ι → M) :
   (c • f) m = c • f m := rfl
 
-/-- The space of multilinear maps over an algebra over `R` is a module over `R`, for the pointwise
+/-- The space of multilinear maps over an algebra over `S` is a module over `S`, for the pointwise
 addition and scalar multiplication. -/
 instance : semimodule S (alternating_map R M N ι) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,

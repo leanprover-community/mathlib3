@@ -36,7 +36,8 @@ open_locale direct_sum
 
 variables {R ι M}
 
-instance : semimodule R (⨁ i, M i) := dfinsupp.to_semimodule
+instance : semimodule R (⨁ i, M i) :=
+@dfinsupp.to_semimodule ι M R _ _ _
 
 include dec_ι
 
@@ -61,6 +62,13 @@ theorem mk_smul (s : finset ι) (c : R) (x) : mk M s (c • x) = c • mk M s x 
 theorem of_smul (i : ι) (c : R) (x) : of M i (c • x) = c • of M i x :=
 (lof R ι M i).map_smul c x
 
+@[elab_as_eliminator]
+protected theorem linduction_on {C : (⨁ i, M i) → Prop}
+  (x : ⨁ i, M i) (H_zero : C 0)
+  (H_basic : ∀ (i : ι) (x : M i), C (lof R ι M i x))
+  (H_plus : ∀ x y, C x → C y → C (x + y)) : C x :=
+direct_sum.induction_on x H_zero H_basic H_plus
+
 variables {N : Type u₁} [add_comm_group N] [semimodule R N]
 variables (φ : Π i, M i →ₗ[R] N)
 
@@ -73,7 +81,6 @@ def to_module : (⨁ i, M i) →ₗ[R] N :=
     (by rw [smul_zero, to_group_zero, smul_zero])
     (λ i x, by rw [← of_smul, to_group_of, to_group_of, (φ i).map_smul c x])
     (λ x y ihx ihy, by rw [smul_add, to_group_add, ihx, ihy, to_group_add, smul_add]) }
-
 variables {ι N φ}
 
 /-- The map constructed using the universal property gives back the original maps when

@@ -11,40 +11,47 @@ lemma ext_iff {R : Type*} {ι : Type*} {M₁ : ι → Type*} {M₂ : Type*}
 end multilinear_map
 universe u
 
-def tpow_aux (R : Type u) [comm_semiring R] (M : Type u) [add_comm_monoid M] [semimodule R M] :
-  ℕ → Σ (N : Type*) (h : add_comm_monoid N), @semimodule R N _ h
+def tpow_aux (R : Type u) [comm_ring R] (M : Type u) [add_comm_group M] [module R M] :
+  ℕ → Σ (N : Type*) (h : add_comm_group N), @module R N _ h
 | 0 := ⟨R, ⟨by apply_instance, by apply_instance⟩⟩
-| (n+1) := ⟨@tensor_product R _ (tpow_aux n).1 M (tpow_aux n).2.1 _
+| (n+1) := ⟨@tensor_product R _ (tpow_aux n).1 M (@add_comm_group.to_add_comm_monoid _ (tpow_aux n).2.1) _
   (tpow_aux n).2.2 _, ⟨by apply_instance, by apply_instance⟩⟩
 
-instance tpow_acm (R : Type u) [comm_semiring R] (M : Type u)
-  [add_comm_monoid M] [semimodule R M] (n : ℕ) :
-add_comm_monoid (tpow_aux R M n).1 := (tpow_aux R M n).2.1
+instance tpow_acg (R : Type u) [comm_ring R] (M : Type u)
+  [add_comm_group M] [module R M] (n : ℕ) :
+add_comm_group (tpow_aux R M n).1 := (tpow_aux R M n).2.1
 
-instance tpow_semimodule (R : Type u) [comm_semiring R] (M : Type u)
-  [add_comm_monoid M] [semimodule R M] (n : ℕ) :
-semimodule R (tpow_aux R M n).1 := (tpow_aux R M n).2.2
+def tpow_acm (R : Type u) [comm_ring R] (M : Type u)
+  [add_comm_group M] [module R M] (n : ℕ) :
+add_comm_monoid (tpow_aux R M n).1 :=
+@add_comm_group.to_add_comm_monoid _ (tpow_aux R M n).2.1
 
-@[reducible] def tpow (R : Type u) [comm_semiring R] (M : Type u)
-  [add_comm_monoid M] [semimodule R M] (n : ℕ) :=
+instance tpow_module (R : Type u) [comm_ring R] (M : Type u)
+  [add_comm_group M] [module R M] (n : ℕ) :
+@module R (tpow_aux R M n).1 _ (tpow_acg R M n) := (tpow_aux R M n).2.2
+
+@[reducible] def tpow (R : Type u) [comm_ring R] (M : Type u)
+  [add_comm_group M] [module R M] (n : ℕ) :=
 (tpow_aux R M n).1
 
-instance tpow_zero_comm_semiring (R : Type u) [comm_semiring R] (M : Type u)
-  [add_comm_monoid M] [semimodule R M] :
-  comm_semiring (tpow_aux R M 0).1 := by assumption
+namespace tpow
 
-instance tpow_zero_scalar (R : Type u) [comm_semiring R] (M : Type u)
-  [add_comm_monoid M] [semimodule R M] :
+instance tpow_zero_comm_ring (R : Type u) [comm_ring R] (M : Type u)
+  [add_comm_group M] [module R M] :
+  comm_ring (tpow_aux R M 0).1 := by assumption
+
+instance tpow_zero_scalar (R : Type u) [comm_ring R] (M : Type u)
+  [add_comm_group M] [module R M] :
   has_scalar (tpow_aux R M 0).1 (tensor_algebra R M) :=
   { smul := ((•) : R → tensor_algebra R M → tensor_algebra R M) }
 
-instance tpow_zero_scalar' (R : Type u) [comm_semiring R] (M : Type u)
-  [add_comm_monoid M] [semimodule R M] (n : ℕ) :
+instance tpow_zero_scalar' (R : Type u) [comm_ring R] (M : Type u)
+  [add_comm_group M] [module R M] (n : ℕ) :
   has_scalar (tpow_aux R M 0).1 (tpow R M n) :=
   { smul := ((•) : R → tpow R M n → tpow R M n) }
 
-variables {R : Type u} [comm_semiring R] {M : Type u}
-  [add_comm_monoid M] [semimodule R M]
+variables {R : Type u} [comm_ring R] {M : Type u}
+  [add_comm_group M] [module R M]
 
 lemma tpow_zero : tpow R M 0 = R := rfl
 
@@ -52,8 +59,7 @@ variables (R M)
 def tpow_one : linear_equiv R (tpow R M 1) M :=
 tensor_product.lid R M
 
-namespace tpow
-def algebra_alg_hom (S : Type*) [semiring S] [algebra R S] : R →ₐ[R] S :=
+def algebra_alg_hom (S : Type*) [ring S] [algebra R S] : R →ₐ[R] S :=
 {  commutes' := λ r, rfl,
    ..algebra_map R S }
 
@@ -190,20 +196,23 @@ lemma eq_iff_eq_one (f g : R →ₗ[R] M) :
   rw [←eq_smul_one, h, eq_smul_one]⟩
 
 variables (R M)
-def lift {M : Type u} [add_comm_monoid M] [semimodule R M] :
-  Π (n : ℕ) (P : Type u) {h1 : add_comm_monoid P}, by exactI Π
-  {h2 : semimodule R P}, by exactI Π
+def lift {M : Type u} [add_comm_group M] [module R M] :
+  Π (n : ℕ) (P : Type u) {h1 : add_comm_group P}, by exactI Π
+  {h2 : module R P}, by exactI Π
   (f : @multilinear_map R (fin n) (λ _, M) P _ _ _ _ _ _),
   tpow R M n →ₗ[R] P
-| 0 P h1 h2 g := @linear_map.to_span_singleton R P _ h1 h2 $ g (default (fin 0 → M))
-| (n + 1) P h1 h2 g := @tensor_product.lift _ _ _ _ _ _ _ h1 _ _ h2
-$ lift n _ (@multilinear_map.curry_right _ _ _ _ _ _ h1 _ h2 g)
+| 0 P h1 h2 g := @linear_map.to_span_singleton R P _
+  (@add_comm_group.to_add_comm_monoid _ h1) h2 $ g (default (fin 0 → M))
+| (n + 1) P h1 h2 g := @tensor_product.lift _ _ _ _ _ _ _
+  (@add_comm_group.to_add_comm_monoid _ h1) _ _ h2
+$ lift n _ (@multilinear_map.curry_right _ _ _ _ _ _
+  (@add_comm_group.to_add_comm_monoid _ h1) _ h2 g)
 
 variables {R M}
 
 
-lemma lift_mk {M : Type u} [add_comm_monoid M] [semimodule R M] (n : ℕ) :
-  ∀ {P : Type u} [add_comm_monoid P], by exactI ∀ [semimodule R P],
+lemma lift_mk {M : Type u} [add_comm_group M] [module R M] (n : ℕ) :
+  ∀ {P : Type u} [add_comm_group P], by exactI ∀ [module R P],
   by exactI ∀
   (f : @multilinear_map R (fin n) (λ _, M) P _ _ _ _ _ _),
 (lift R n P f).comp_multilinear_map (mk' R M n) = f :=
@@ -225,14 +234,14 @@ begin
   rw fin.snoc_succ,
 end
 
-lemma lift_mk_apply {M : Type u} [add_comm_monoid M] [semimodule R M] (n : ℕ)
-  {P : Type u} [add_comm_monoid P] [semimodule R P]
+lemma lift_mk_apply {M : Type u} [add_comm_group M] [module R M] (n : ℕ)
+  {P : Type u} [add_comm_group P] [module R P]
   (f : @multilinear_map R (fin n) (λ _, M) P _ _ _ _ _ _) (x) :
 lift R n P f (mk' R M n x) = f x :=
 multilinear_map.ext_iff.1 (lift_mk n f) _
 
-lemma lift_unique {M : Type u} [add_comm_monoid M] [semimodule R M] (n : ℕ) :
-  ∀ {P : Type u} [add_comm_monoid P], by exactI ∀ [semimodule R P],
+lemma lift_unique {M : Type u} [add_comm_group M] [module R M] (n : ℕ) :
+  ∀ {P : Type u} [add_comm_group P], by exactI ∀ [module R P],
   by exactI ∀
   (f : @multilinear_map R (fin n) (λ _, M) P _ _ _ _ _ _)
   (g : tpow R M n →ₗ[R] P)

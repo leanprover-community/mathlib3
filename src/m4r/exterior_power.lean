@@ -4,26 +4,19 @@ universe u
 variables (R : Type u) [comm_ring R] (M : Type u) [add_comm_group M] [module R M]
 
 instance tpow.ring : comm_ring (tpow R M 0) := by assumption
-
-def tpow_aux.module (n : ℕ) :
-  Σ (h : add_comm_group (tpow_aux R M n).1), @module R (tpow_aux R M n).1 _ h :=
-nat.rec_on n ⟨ring.to_add_comm_group R, semiring.to_semimodule⟩ $ λ m h,
-⟨sorry, sorry⟩ -- :/
-
-instance tpow.acg (n : ℕ) : add_comm_group (tpow R M n) := (tpow_aux.module R M n).1
-
-instance tpow.module (n : ℕ) : module R (tpow R M n) := (tpow_aux.module R M n).2
-
+#exit
 local attribute [semireducible] exterior_algebra ring_quot
 
 def epow_map (n : ℕ) : tpow R M n →ₗ[R] exterior_algebra R M :=
 (((exterior_algebra.quot R M).comp (talg_equiv R M).to_alg_hom)).to_linear_map.comp
-  $ direct_sum2.lof R ℕ (tpow R M) n
+  $ (@direct_sum2.lof R _ ℕ _ (tpow R M) (tpow_acm R M) (tpow_semimodule R M) n : tpow R M n →ₗ[R] talg R M)
 
--- non defeq instances -________-
-def epow (n : ℕ) := @submodule.quotient R (tpow R M n) _ sorry sorry
-$ @linear_map.ker R (tpow R M n) (exterior_algebra R M) _
-  sorry _ sorry _ (epow_map R M n)
+def epow_map_ker (n : ℕ) := linear_map.ker (epow_map R M n)
+
+def tpow_quotient (n : ℕ) (A : submodule R (tpow R M n)) :=
+@submodule.quotient R A _ (@submodule.add_comm_group R (tpow R M n) _ (tpow.acg R M n) _ A) _
+
+def epow (n : ℕ) := @submodule.quotient R (tpow R M n) _ sorry sorry (epow_map R M n).ker
 
 def epow.mk (n : ℕ) : multilinear_map R (λ i : fin n, M) (epow R M n) :=
 linear_map.comp_multilinear_map (submodule.mkq (epow_map R M n).ker) (tpow.mk' R M n)

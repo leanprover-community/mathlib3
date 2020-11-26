@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import topology.instances.real
-import topology.algebra.proj_Icc
+import topology.algebra.ordered.proj_Icc
 
 /-!
 # Path connectedness
@@ -172,7 +172,7 @@ begin
 end
 
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
-def extend : ℝ → X := Icc_extend 0 1 zero_le_one γ
+def extend : ℝ → X := Icc_extend zero_le_one γ
 
 lemma continuous_extend : continuous γ.extend :=
 γ.continuous.Icc_extend

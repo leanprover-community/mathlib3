@@ -49,8 +49,8 @@ lemma antichain_def (A : finset α) (hA : antichain A) (a : α) :
 theorem subset_antichain (A B : finset α) (ha : antichain A) (hb : B ⊆ A) :
   antichain B :=
 begin
-  intros a ha2 b hb2 hab,
-  apply ha a (finset.mem_of_subset hb ha2) b (finset.mem_of_subset hb hb2) hab,
+  intros a ha2 b hb2,
+  apply ha a (finset.mem_of_subset hb ha2) b (finset.mem_of_subset hb hb2),
 end
 
 /--

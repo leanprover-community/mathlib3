@@ -159,7 +159,7 @@ See https://ncatlab.org/nlab/show/adjoint+triangle+theorem
 -/
 noncomputable def adjoint_triangle_lift {U : B ⥤ C} {F : C ⥤ B} (R : A ⥤ B) (adj₁ : F ⊣ U)
   (hU : Π (X : B), is_colimit (cofork.of_π (adj₁.counit.app X) (adj₁.counit_naturality _)))
-  (hA : has_reflexive_coequalizers A)
+  [has_reflexive_coequalizers A]
   [is_right_adjoint (R ⋙ U)] : is_right_adjoint R :=
 { left := lift_adjoint.construct_left_adjoint R _ adj₁ (adjunction.of_right_adjoint _) hU,
   adj := adjunction.adjunction_of_equiv_left _ _ }
@@ -179,16 +179,14 @@ def top_map : (monad.free T).obj (T.obj X.A) ⟶ (monad.free T).obj X.A :=
 def bottom_map : (monad.free T).obj (T.obj X.A) ⟶ (monad.free T).obj X.A :=
 { f := (μ_ T).app X.A,
   h' := monad.assoc X.A }
-/-- The bottom map in the coequalizer diagram we will construct. -/
+/-- The cofork map in the coequalizer diagram we will construct. -/
 @[simps]
 def coequalizer_map : (monad.free T).obj X.A ⟶ X :=
 { f := X.a,
   h' := X.assoc.symm }
+
 lemma comm : top_map T X ≫ coequalizer_map T X = bottom_map T X ≫ coequalizer_map T X :=
-begin
-  ext1,
-  apply X.assoc.symm,
-end
+monad.algebra.hom.ext _ _ X.assoc.symm
 
 /--
 The cofork constructed is a colimit. This shows that any algebra is a coequalizer of free algebras.
@@ -222,11 +220,11 @@ then `R` has a left adjoint. Note that this is a special case of `monadic_adjoin
 but is helpful for proving that.
 -/
 noncomputable def monad_forget_adjoint_triangle_lift (T : B ⥤ B) [monad T]
-  (R : A ⥤ monad.algebra T) (hA : has_reflexive_coequalizers A)
+  (R : A ⥤ monad.algebra T) [has_reflexive_coequalizers A]
   [is_right_adjoint (R ⋙ monad.forget T)] :
   is_right_adjoint R :=
 begin
-  apply adjoint_triangle_lift R (monad.adj T) _ hA,
+  apply adjoint_triangle_lift R (monad.adj T) _,
   intro A,
   have : (monad.forget T).map ((monad.adj T).counit.app A) = A.a,
   { dsimp [monad.adj, adjunction.mk_of_hom_equiv],
@@ -247,7 +245,7 @@ functor, then `R` has a left adjoint.
 This is a special case of `adjoint_triangle_lift` which is often more useful in practice.
 -/
 noncomputable def monadic_adjoint_triangle_lift (U : B ⥤ C) [monadic_right_adjoint U] {R : A ⥤ B}
-  (hA : has_reflexive_coequalizers A)
+  [has_reflexive_coequalizers A]
   [is_right_adjoint (R ⋙ U)] :
   is_right_adjoint R :=
 begin
@@ -259,8 +257,9 @@ begin
     { let : R' ⋙ (monad.comparison U).inv ≅ R :=
         (iso_whisker_left R (monad.comparison U).fun_inv_id : _) ≪≫ R.right_unitor,
       exactI adjunction.right_adjoint_of_nat_iso this } },
-  apply monad_forget_adjoint_triangle_lift _ _ hA,
-  apply adjunction.right_adjoint_of_nat_iso (iso_whisker_left R (monad.comparison_forget U).symm),
+  letI : is_right_adjoint (R' ⋙ monad.forget (left_adjoint U ⋙ U)) :=
+    adjunction.right_adjoint_of_nat_iso (iso_whisker_left R (monad.comparison_forget U).symm : _),
+  apply monad_forget_adjoint_triangle_lift _ R',
 end
 
 variables {D : Type u₄}
@@ -283,12 +282,11 @@ See https://ncatlab.org/nlab/show/adjoint+lifting+theorem
 noncomputable def adjoint_square_lift (Q : A ⥤ B) (V : B ⥤ D) (U : A ⥤ C) (R : C ⥤ D)
   (comm : U ⋙ R ≅ Q ⋙ V)
   [is_right_adjoint U] [monadic_right_adjoint V]
-  (hA : has_reflexive_coequalizers A)
-  [is_right_adjoint R] :
+  [has_reflexive_coequalizers A] [is_right_adjoint R] :
   is_right_adjoint Q :=
 begin
   let := adjunction.right_adjoint_of_nat_iso comm,
-  exactI monadic_adjoint_triangle_lift V hA,
+  exactI monadic_adjoint_triangle_lift V,
 end
 
 end category_theory

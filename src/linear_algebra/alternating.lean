@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Zhangir Azerbayev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Zhangir Azerbayev.
+Author: Zhangir Azerbayev, Eric Wieser.
 -/
 
 import linear_algebra.multilinear
@@ -18,26 +18,13 @@ arguments of the same type.
 * `f.map_eq_args` expresses that `f` is zero when two inputs are equal.
 * `f.map_swap` expresses that `f` is negated when two inputs are swapped.
 * `f.map_perm` expresses how `f` varies by a sign change under a permutation of its inputs.
-* A `add_comm_monoid` or `add_comm_group` structure over `alternating_map`s that matches
+* An `add_comm_monoid` or `add_comm_group` structure over `alternating_map`s that matches
   the definitions over `multilinear_map`s.
 
 ## Implementation notes
 `alternating_map` is defined in terms of `map_eq_args`, as this is easier to work with than
 using `map_swap` as a definition, and does not require `has_neg N`.
 -/
-
-section to_move
-
--- gh-5091
-lemma swap_eq_update (i j : α) :
-  ⇑(equiv.swap i j) = update (update id j i) i j :=
-funext $ λ x, by rw [update_apply _ i j, update_apply _ j i, equiv.swap_apply_def, id.def]
-
-lemma comp_swap_eq_update {β : Type*} (i j : α) (f : α → β) :
-  f ∘ equiv.swap i j = update (update f j (f i)) i (f j) :=
-by rw [swap_eq_update, comp_update, comp_update, comp.right_id]
-
-end to_move
 
 -- semiring / add_comm_monoid
 variables {R : Type*} [semiring R]
@@ -163,7 +150,7 @@ f.map_eq_args _
 lemma map_swap_add {i j : ι} (hij : i ≠ j) :
   f (v ∘ equiv.swap i j) + f v = 0 :=
 begin
-  rw comp_swap_eq_update,
+  rw equiv.comp_swap_eq_update,
   convert f.map_update_update v hij (v i + v j),
   simp [
     f.map_update_self _ hij,

@@ -6,6 +6,15 @@ Authors: Scott Morrison, Bhavik Mehta
 import category_theory.monad.adjunction
 import category_theory.adjunction.limits
 
+/-!
+# Limits and colimits in the category of algebras
+
+This file shows that the forgetful functor `forget T : algebra T ⥤ C` for a monad `T : C ⥤ C`
+creates limits and creates any colimits which `T` preserves.
+This is used to show that `algebra T` has any limits which `C` has, and any colimits which `C` has
+and `T` preserves.
+This is generalised to the case of a monadic functor `D ⥤ C`.
+-/
 namespace category_theory
 open category
 open category_theory.limits
@@ -72,16 +81,13 @@ def lifted_cone_is_limit : is_limit (lifted_cone D c t) :=
   { f := t.lift ((forget T).map_cone s),
     h' :=
     begin
-      apply t.hom_ext, intro j,
-      have := t.fac ((forget T).map_cone s),
-      slice_rhs 2 3 {rw t.fac ((forget T).map_cone s) j},
+      apply t.hom_ext,
+      intro j,
       dsimp,
-      slice_lhs 2 3 {rw t.fac (new_cone D c) j},
+      rw [category.assoc, t.fac (new_cone D c) j],
       dsimp,
-      rw category.id_comp,
-      slice_lhs 1 2 {rw ← T.map_comp},
-      rw t.fac ((forget T).map_cone s) j,
-      exact (s.π.app j).h
+      rw [id_comp, ← T.map_comp_assoc, category.assoc, t.fac ((forget T).map_cone s) j],
+      apply (s.π.app j).h,
     end },
   uniq' := λ s m J,
   begin
@@ -104,7 +110,8 @@ instance forget_creates_limits : creates_limits (forget T) :=
       makes_limit := forget_creates_limits.lifted_cone_is_limit _ _ _ } ) } }
 
 /-- `D ⋙ forget T` has a limit, then `D` has a limit. -/
-lemma has_limit_of_comp_forget_has_limit (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] : has_limit D :=
+lemma has_limit_of_comp_forget_has_limit (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] :
+  has_limit D :=
 has_limit_of_created D (forget T)
 
 namespace forget_creates_colimits
@@ -150,12 +157,12 @@ we will show is the colimiting object. We use the cocone constructed by `c` and 
 -/
 @[reducible]
 def lambda : (functor.map_cocone T c).X ⟶ c.X :=
-(preserves_colimit.preserves t).desc (new_cocone c)
+(is_colimit_of_preserves T t).desc (new_cocone c)
 
 /-- (Impl) The key property defining the map `λ : TL ⟶ L`. -/
 lemma commuting (j : J) :
 T.map (c.ι.app j) ≫ lambda c t = (D.obj j).a ≫ c.ι.app j :=
-is_colimit.fac (preserves_colimit.preserves t) (new_cocone c) j
+(is_colimit_of_preserves T t).fac (new_cocone c) j
 
 /--
 (Impl)
@@ -171,27 +178,25 @@ algebra T :=
   begin
     apply t.hom_ext,
     intro j,
-    erw [comp_id, ← category.assoc, (η_ T).naturality, category.assoc, commuting, ← category.assoc],
-    erw algebra.unit, apply id_comp
+    dsimp,
+    rw [comp_id, (show c.ι.app j ≫ (η_ T).app c.X ≫ _ = (η_ T).app (D.obj j).A ≫ _ ≫ _,
+                  from (η_ T).naturality_assoc _ _),
+        commuting, algebra.unit_assoc (D.obj j)],
   end,
   assoc' :=
   begin
-    apply is_colimit.hom_ext (preserves_colimit.preserves (preserves_colimit.preserves t)),
+    apply (is_colimit_of_preserves T (is_colimit_of_preserves T t)).hom_ext,
     intro j,
-    erw [← category.assoc, nat_trans.naturality (μ_ T), ← functor.map_cocone_ι, category.assoc,
-         is_colimit.fac _ (new_cocone c) j],
-    rw ← category.assoc,
-    erw [← functor.map_comp, commuting],
     dsimp,
-    erw [← category.assoc, algebra.assoc, category.assoc, functor.map_comp, category.assoc, commuting],
-    apply_instance, apply_instance
+    rw [(show T.map (T.map _) ≫ _ ≫ _ = _, from (μ_ T).naturality_assoc _ _),
+        ←T.map_comp_assoc, commuting, T.map_comp, category.assoc, commuting, algebra.assoc_assoc],
   end }
 
 /-- (Impl) Construct the lifted cocone in `algebra T` which will be colimiting. -/
 @[simps] def lifted_cocone : cocone D :=
 { X := cocone_point c t,
   ι := { app := λ j, { f := c.ι.app j, h' := commuting _ _ _ },
-         naturality' := λ A B f, by { ext1, dsimp, erw [comp_id, c.w] } } }
+         naturality' := λ A B f, by { ext1, dsimp, rw [comp_id], apply c.w } } }
 
 /-- (Impl) Prove that the lifted cocone is colimiting. -/
 @[simps]
@@ -201,14 +206,16 @@ def lifted_cocone_is_colimit : is_colimit (lifted_cocone c t) :=
     h' :=
     begin
       dsimp,
-      apply is_colimit.hom_ext (preserves_colimit.preserves t),
+      apply is_colimit.hom_ext (is_colimit_of_preserves T t),
       intro j,
-      rw ← category.assoc, erw ← functor.map_comp,
+      rw ← category.assoc,
+      erw ← functor.map_comp,
       erw t.fac',
-      rw ← category.assoc, erw forget_creates_colimits.commuting,
-      rw category.assoc, rw t.fac',
+      rw ← category.assoc,
+      erw forget_creates_colimits.commuting,
+      rw category.assoc,
+      rw t.fac',
       apply algebra.hom.h,
-      apply_instance
     end },
   uniq' := λ s m J, by { ext1, apply t.hom_ext, intro j, simpa using congr_arg algebra.hom.f (J j) } }
 
@@ -217,7 +224,6 @@ end forget_creates_colimits
 open forget_creates_colimits
 
 -- TODO: the converse of this is true as well
--- TODO: generalise to monadic functors, as for creating limits
 /--
 The forgetful functor from the Eilenberg-Moore category for a monad creates any colimit
 which the monad itself preserves.

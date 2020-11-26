@@ -293,6 +293,28 @@ cofork.is_colimit.mk t
   (λ s, (create s).2.1)
   (λ s m w, (create s).2.2 (w one))
 
+@[simps]
+def fork.is_limit.hom_iso {X Y : C} (Z : C) {f g : X ⟶ Y} {t : fork f g} (ht : is_limit t) :
+  (Z ⟶ t.X) ≃ {h : Z ⟶ X // h ≫ f = h ≫ g} :=
+{ to_fun := λ k, ⟨k ≫ t.ι, by simp⟩,
+  inv_fun := λ h, (fork.is_limit.lift' ht _ h.prop).1,
+  left_inv := λ k, fork.is_limit.hom_ext ht (fork.is_limit.lift' _ _ _).prop,
+  right_inv := λ h, subtype.ext (fork.is_limit.lift' ht _ _).prop }
+
+@[simps]
+def cofork.is_colimit.hom_iso {X Y : C} {f g : X ⟶ Y} {t : cofork f g} (Z : C) (ht : is_colimit t) :
+  (t.X ⟶ Z) ≃ {h : Y ⟶ Z // f ≫ h = g ≫ h} :=
+{ to_fun := λ k, ⟨t.π ≫ k, by simp⟩,
+  inv_fun := λ h, (cofork.is_colimit.desc' ht _ h.prop).1,
+  left_inv := λ k, cofork.is_colimit.hom_ext ht (cofork.is_colimit.desc' _ _ _).prop,
+  right_inv := λ h, subtype.ext (cofork.is_colimit.desc' ht _ _).prop }
+
+lemma cofork.is_colimit.hom_iso_natural {X Y : C} {f g : X ⟶ Y} {t : cofork f g} {Z Z' : C}
+  (q : Z ⟶ Z') (ht : is_colimit t) (k : t.X ⟶ Z) :
+    (cofork.is_colimit.hom_iso _ ht (k ≫ q) : Y ⟶ Z') =
+    (cofork.is_colimit.hom_iso _ ht k : Y ⟶ Z) ≫ q :=
+(category.assoc _ _ _).symm
+
 /-- This is a helper construction that can be useful when verifying that a category has all
     equalizers. Given `F : walking_parallel_pair ⥤ C`, which is really the same as
     `parallel_pair (F.map left) (F.map right)`, and a fork on `F.map left` and `F.map right`,

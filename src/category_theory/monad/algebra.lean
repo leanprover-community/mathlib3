@@ -36,10 +36,12 @@ structure algebra (T : C ⥤ C) [monad T] : Type (max u₁ v₁) :=
 (A : C)
 (a : T.obj A ⟶ A)
 (unit' : (η_ T).app A ≫ a = 𝟙 A . obviously)
-(assoc' : ((μ_ T).app A ≫ a) = (T.map a ≫ a) . obviously)
+(assoc' : (μ_ T).app A ≫ a = T.map a ≫ a . obviously)
 
 restate_axiom algebra.unit'
 restate_axiom algebra.assoc'
+attribute [reassoc] algebra.unit
+attribute [reassoc] algebra.assoc
 
 namespace algebra
 variables {T : C ⥤ C} [monad T]

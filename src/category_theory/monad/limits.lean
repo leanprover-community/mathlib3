@@ -48,10 +48,11 @@ variables (D : J ⥤ algebra T) (c : cone (D ⋙ forget T)) (t : is_limit c)
   begin
     apply t.hom_ext,
     intro j,
-    erw [category.assoc, t.fac (new_cone D c), id_comp],
     dsimp,
-    erw [id_comp, ← category.assoc, ← (η_ T).naturality, functor.id_map, category.assoc,
-         (D.obj j).unit, comp_id],
+    rw [id_comp, category.assoc, t.fac],
+    dsimp,
+    rw [id_comp, ← (η_ T).naturality_assoc, functor.id_map, (D.obj j).unit],
+    apply comp_id,
   end,
   assoc' :=
   begin
@@ -180,8 +181,7 @@ algebra T :=
     intro j,
     dsimp,
     rw [comp_id, (show c.ι.app j ≫ (η_ T).app c.X ≫ _ = (η_ T).app (D.obj j).A ≫ _ ≫ _,
-                  from (η_ T).naturality_assoc _ _),
-        commuting, algebra.unit_assoc (D.obj j)],
+                  from (η_ T).naturality_assoc _ _), commuting, algebra.unit_assoc (D.obj j)],
   end,
   assoc' :=
   begin
@@ -205,16 +205,10 @@ def lifted_cocone_is_colimit : is_colimit (lifted_cocone c t) :=
   { f := t.desc ((forget T).map_cocone s),
     h' :=
     begin
-      dsimp,
       apply is_colimit.hom_ext (is_colimit_of_preserves T t),
       intro j,
-      rw ← category.assoc,
-      erw ← functor.map_comp,
-      erw t.fac',
-      rw ← category.assoc,
-      erw forget_creates_colimits.commuting,
-      rw category.assoc,
-      rw t.fac',
+      dsimp,
+      rw [← T.map_comp_assoc, ← category.assoc, t.fac, commuting, category.assoc, t.fac],
       apply algebra.hom.h,
     end },
   uniq' := λ s m J, by { ext1, apply t.hom_ext, intro j, simpa using congr_arg algebra.hom.f (J j) } }

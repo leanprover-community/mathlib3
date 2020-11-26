@@ -88,19 +88,19 @@ lemma right_comp_retraction (f g : A ⟶ B) [is_coreflexive_pair f g] :
 lemma is_kernel_pair.is_reflexive_pair {R : C} {f g : R ⟶ A} {q : A ⟶ B}
   (h : is_kernel_pair q f g) :
   is_reflexive_pair f g :=
-is_reflexive_pair.mk' (h.lift' (𝟙 _) (𝟙 _) rfl).1 (h.lift' _ _ _).2.1 (h.lift' _ _ _).2.2
+is_reflexive_pair.mk' _ (h.lift' _ _ rfl).2.1 (h.lift' _ _ _).2.2
 
 /-- If `f,g` is reflexive, then `g,f` is reflexive. -/
 -- This shouldn't be an instance as it would instantly loop.
 lemma is_reflexive_pair.swap [is_reflexive_pair f g] :
   is_reflexive_pair g f :=
-is_reflexive_pair.mk' (common_section f g) (section_comp_right f g) (section_comp_left f g)
+is_reflexive_pair.mk' _ (section_comp_right f g) (section_comp_left f g)
 
 /-- If `f,g` is coreflexive, then `g,f` is coreflexive. -/
 -- This shouldn't be an instance as it would instantly loop.
 lemma is_coreflexive_pair.swap [is_coreflexive_pair f g] :
   is_coreflexive_pair g f :=
-is_coreflexive_pair.mk' (common_retraction f g) (right_comp_retraction f g) (left_comp_retraction f g)
+is_coreflexive_pair.mk' _ (right_comp_retraction f g) (left_comp_retraction f g)
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
 
@@ -158,6 +158,5 @@ instance has_coreflexive_equalizers_of_has_equalizers [has_equalizers C] :
 end limits
 
 open limits
-
 
 end category_theory

@@ -93,6 +93,24 @@ protected def elim {α β γ : Sort*} (f : α → γ) (g : β → γ) : α ⊕ �
 @[simp] lemma elim_inr {α β γ : Sort*} (f : α → γ) (g : β → γ) (x : β) :
   sum.elim f g (inr x) = g x := rfl
 
+@[simp] lemma elim_comp_inl {α β γ : Sort*} (f : α → γ) (g : β → γ) :
+  sum.elim f g ∘ inl = f := rfl
+  
+@[simp] lemma elim_comp_inr {α β γ : Sort*} (f : α → γ) (g : β → γ) :
+  sum.elim f g ∘ inr = g := rfl
+  
+@[simp] lemma elim_inl_inr {α β : Sort*} :
+  @sum.elim α β _ inl inr = id :=
+funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
+
+lemma comp_elim {α β γ δ : Sort*} (f : γ → δ) (g : α → γ) (h : β → γ):
+  f ∘ sum.elim g h = sum.elim (f ∘ g) (f ∘ h) :=
+funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
+
+@[simp] lemma elim_comp_inl_inr {α β γ : Sort*} (f : α ⊕ β → γ) :
+  sum.elim (f ∘ inl) (f ∘ inr) = f :=
+funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
+
 lemma elim_injective {α β γ : Sort*} {f : α → γ} {g : β → γ}
   (hf : function.injective f) (hg : function.injective g)
  (hfg : ∀ a b, f a ≠ g b) : function.injective (sum.elim f g) :=

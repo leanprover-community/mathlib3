@@ -227,7 +227,7 @@ def intermediate_field_equiv_subgroup [finite_dimensional F E] [is_galois F E] :
                                   fixed_field_fixing_subgroup L, ←order_dual.dual_le], refl } }
 
 /-- The Galois correspondence as a galois_insertion -/
-def galois_insertion_intermediate_field_subgroup [finite_dimensional F E] [is_galois F E] :
+def galois_insertion_intermediate_field_subgroup [finite_dimensional F E] :
   galois_insertion (order_dual.to_dual ∘
       (intermediate_field.fixing_subgroup : intermediate_field F E → subgroup (E ≃ₐ[F] E)))
     ((intermediate_field.fixed_field : subgroup (E ≃ₐ[F] E) → intermediate_field F E) ∘

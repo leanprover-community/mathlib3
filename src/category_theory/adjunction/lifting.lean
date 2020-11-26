@@ -22,11 +22,11 @@ a monadic functor, giving the corollary: `monadic_adjoint_triangle_lift`, i.e. i
 
 The adjoint lifting theorem says that given a commutative square of functors (up to isomorphism):
 
-    Q
-  A → B
-U ↓   ↓ V
-  C → D
-    R
+      Q
+    A → B
+  U ↓   ↓ V
+    C → D
+      R
 
 where `U` and `V` are monadic and `A` has reflexive coequalizers, then if `R` has a left adjoint
 then `Q` has a left adjoint.
@@ -263,11 +263,12 @@ variables [category.{v₄} D]
 
 /--
 Given a commutative square of functors
-    Q
-  A → B
-U ↓   ↓ V
-  C → D
-    R
+
+      Q
+    A → B
+  U ↓   ↓ V
+    C → D
+      R
 
 where `U` has a left adjoint, `V` is monadic and `A` has reflexive coequalizers, then if `R` has a
 left adjoint then `Q` has a left adjoint.

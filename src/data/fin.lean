@@ -274,6 +274,12 @@ by { simp only [le_iff_coe_le_coe, coe_succ], exact ⟨le_of_succ_le_succ, succ_
 @[simp] lemma succ_lt_succ_iff : a.succ < b.succ ↔ a < b :=
 by { simp only [lt_iff_coe_lt_coe, coe_succ], exact ⟨lt_of_succ_lt_succ, succ_lt_succ⟩ }
 
+@[simp] lemma pred_le_pred_iff {n : ℕ} {a b : fin n.succ} {ha hb} : a.pred ha ≤ b.pred hb ↔ b ≤ b :=
+by rw [←succ_le_succ_iff, succ_pred, succ_pred]
+
+@[simp] lemma pred_lt_pred_iff {n : ℕ} {a b : fin n.succ} {ha hb} : a.pred ha < b.pred hb ↔ b < b :=
+by rw [←succ_lt_succ_iff, succ_pred, succ_pred]
+
 lemma succ_injective (n : ℕ) : injective (@fin.succ n) :=
 λa b, succ.inj
 

@@ -245,24 +245,30 @@ instance t2_space_discrete {α : Type*} [topological_space α] [discrete_topolog
   eq_empty_iff_forall_not_mem.2 $ by intros z hz;
     cases eq_of_mem_singleton hz.1; cases eq_of_mem_singleton hz.2; cc⟩ }
 
-private lemma separated_by_f {α : Type*} {β : Type*}
-  [tα : topological_space α] [tβ : topological_space β] [t2_space β]
-  (f : α → β) (hf : tα ≤ tβ.induced f) {x y : α} (h : f x ≠ f y) :
+lemma separated_by_continuous {α : Type*} {β : Type*}
+  [topological_space α] [topological_space β] [t2_space β]
+  {f : α → β} (hf : continuous f) {x y : α} (h : f x ≠ f y) :
   ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
 let ⟨u, v, uo, vo, xu, yv, uv⟩ := t2_separation h in
-⟨f ⁻¹' u, f ⁻¹' v, hf _ ⟨u, uo, rfl⟩, hf _ ⟨v, vo, rfl⟩, xu, yv,
+⟨f ⁻¹' u, f ⁻¹' v, uo.preimage hf, vo.preimage hf, xu, yv,
   by rw [←preimage_inter, uv, preimage_empty]⟩
 
+lemma separated_by_open_embedding {α β : Type*} [topological_space α] [topological_space β]
+  [t2_space α] {f : α → β} (hf : open_embedding f) {x y : α} (h : x ≠ y) :
+  ∃ u v : set β, is_open u ∧ is_open v ∧ f x ∈ u ∧ f y ∈ v ∧ u ∩ v = ∅ :=
+let ⟨u, v, uo, vo, xu, yv, uv⟩ := t2_separation h in
+⟨f '' u, f '' v, hf.is_open_map _ uo, hf.is_open_map _ vo,
+  mem_image_of_mem _ xu, mem_image_of_mem _ yv, by rw [image_inter hf.inj, uv, image_empty]⟩
+
 instance {α : Type*} {p : α → Prop} [t : topological_space α] [t2_space α] : t2_space (subtype p) :=
-⟨assume x y h,
-  separated_by_f subtype.val (le_refl _) (mt subtype.eq h)⟩
+⟨assume x y h, separated_by_continuous continuous_subtype_val (mt subtype.eq h)⟩
 
 instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
   [t₂ : topological_space β] [t2_space β] : t2_space (α × β) :=
 ⟨assume ⟨x₁,x₂⟩ ⟨y₁,y₂⟩ h,
   or.elim (not_and_distrib.mp (mt prod.ext_iff.mpr h))
-    (λ h₁, separated_by_f prod.fst inf_le_left h₁)
-    (λ h₂, separated_by_f prod.snd inf_le_right h₂)⟩
+    (λ h₁, separated_by_continuous continuous_fst h₁)
+    (λ h₂, separated_by_continuous continuous_snd h₂)⟩
 
 instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
   [t₂ : topological_space β] [t2_space β] : t2_space (α ⊕ β) :=
@@ -270,47 +276,32 @@ begin
   constructor,
   rintros (x|x) (y|y) h,
   { replace h : x ≠ y := λ c, (c.subst h) rfl,
-    rcases t2_separation h with ⟨U, V, hU, hV, hx, hy, disj⟩,
-    refine ⟨sum.inl '' U, sum.inl '' V, _, _, ⟨x, hx, rfl⟩, ⟨y, hy, rfl⟩, _⟩,
-    any_goals {rw ←open_embedding.open_iff_image_open, assumption},
-    any_goals {exact open_embedding_inl},
-    rw [set.image_inter sum.injective_inl, disj, image_empty] },
-  { refine ⟨set.range sum.inl, set.range sum.inr, _, _, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩,
-    exact open_embedding_inl.open_range,
-    exact open_embedding_inr.open_range },
-  { refine ⟨set.range sum.inr, set.range sum.inl, _, _, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩,
-    exact open_embedding_inr.open_range,
-    exact open_embedding_inl.open_range },
+    exact separated_by_open_embedding open_embedding_inl h },
+  { exact ⟨_, _, is_open_range_inl, is_open_range_inr, ⟨x, rfl⟩, ⟨y, rfl⟩,
+      range_inl_inter_range_inr⟩ },
+  { exact ⟨_, _, is_open_range_inr, is_open_range_inl, ⟨x, rfl⟩, ⟨y, rfl⟩,
+      range_inr_inter_range_inl⟩ },
   { replace h : x ≠ y := λ c, (c.subst h) rfl,
-    rcases t2_separation h with ⟨U, V, hU, hV, hx, hy, disj⟩,
-    refine ⟨sum.inr '' U, sum.inr '' V, _, _, ⟨x, hx, rfl⟩, ⟨y, hy, rfl⟩, _⟩,
-    any_goals {rw ←open_embedding.open_iff_image_open, assumption},
-    any_goals {exact open_embedding_inr},
-    rw [set.image_inter sum.injective_inr, disj, image_empty] },
+    exact separated_by_open_embedding open_embedding_inr h }
 end
 
-instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_space (β a)] [Πa, t2_space (β a)] :
+instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_space (β a)]
+  [∀a, t2_space (β a)] :
   t2_space (Πa, β a) :=
 ⟨assume x y h,
   let ⟨i, hi⟩ := not_forall.mp (mt funext h) in
-  separated_by_f (λz, z i) (infi_le _ i) hi⟩
+  separated_by_continuous (λz, z i) (continuous_apply _) hi⟩
 
-instance sigma.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_space (β a)] [Πa, t2_space (β a)] :
-  t2_space (Σa, β a) :=
+instance sigma.t2_space {ι : Type*} {α : ι → Type*} [Πi, topological_space (α i)]
+  [∀a, t2_space (α a)] :
+  t2_space (Σi, α i) :=
 begin
   constructor,
-  rintros ⟨a, x⟩ ⟨b, y⟩ neq,
-  by_cases h : a = b,
-  { subst h,
-    replace neq : x ≠ y := λ c, (c.subst neq) rfl,
-    rcases t2_separation neq with ⟨U, V, hU, hV, hx, hy, disj⟩,
-    refine ⟨(sigma.mk a) '' U, (sigma.mk a) '' V, _, _, ⟨x, hx, rfl⟩, ⟨y, hy, rfl⟩, _⟩,
-    any_goals {rw ←open_embedding.open_iff_image_open, assumption},
-    any_goals {exact open_embedding_sigma_mk},
-    rw [set.image_inter, disj, image_empty],
-    tidy },
-  { refine ⟨set.range (sigma.mk a), set.range (sigma.mk b), _, _, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩,
-    all_goals {exact open_embedding_sigma_mk.open_range} },
+  rintros ⟨i, x⟩ ⟨j, y⟩ neq,
+  rcases em (i = j) with (rfl|h),
+  { replace neq : x ≠ y := λ c, (c.subst neq) rfl,
+    exact separated_by_open_embedding open_embedding_sigma_mk neq },
+  { exact ⟨_, _, is_open_range_sigma_mk, is_open_range_sigma_mk, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩ }
 end
 
 variables [topological_space β]

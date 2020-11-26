@@ -43,12 +43,8 @@ A set of elements of a partial order forms an antichain if no two elements
 -/
 def antichain (𝒜 : finset α) : Prop := ∀ a ∈ 𝒜, ∀ b ∈ 𝒜, a ≤ b → a = b
 
-lemma antichain_mem (A : finset α) (hA : antichain A) (a : α) :
-  a ∈ A → ∀ b ∈ A, a ≤ b → a = b :=
-begin
-  intros ha b hb hab,
-  exact hA a ha b hb hab
-end
+lemma antichain_def (A : finset α) (hA : antichain A) (a : α) :
+  antichain A ↔ ∀ a ∈ A, ∀ b ∈ A, a ≤ b → a = b := iff.rfl
 
 theorem subset_antichain (A B : finset α) (ha : antichain A) (hb : B ⊆ A) :
   antichain B :=

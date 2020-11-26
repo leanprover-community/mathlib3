@@ -14,15 +14,13 @@ We define antichains.
 
 ## Main definitions
 * `antichain` is a finset of elements in a partial order where
-  no element is less than another.
+  no element is strictly less than another.
 
 * The `join` of two antichains is the set obtained by taking
   their union and removing all elements that are less than
   another element.
 
-* The `meet` of two antichains is the set obtained by taking
-  their intersection and removing all elements that are less than
-  another element.
+* The `meet` of two antichains is their intersection.
 -/
 
 open partial_order
@@ -71,7 +69,7 @@ def antichain.meet (A B : finset α) : finset α := A ∩ B
 theorem join_antichain (A B : finset α) :
   antichain (antichain.join A B) :=
 begin
-  intros a ha2 b hb2 hle,
+  intros a ha2 b hb2,
 
   unfold antichain.join at ha2,
   rw finset.mem_filter at ha2,
@@ -81,14 +79,14 @@ begin
   rw finset.mem_filter at hb2,
   rcases hb2 with ⟨hbmem, ⟨hb1, hb2⟩⟩,
 
-  apply ha2 b hb1 hle,
+  apply ha2 b hb1,
 end
 
 theorem meet_antichain (A B : finset α) (ha : antichain A) (hb : antichain B) :
   antichain (antichain.meet A B) :=
 begin
-  intros a ha2 b hb2 hle,
-  apply ha a (finset.mem_inter.1 ha2).1 b (finset.mem_inter.1 hb2).1 hle,
+  intros a ha2 b hb2,
+  apply ha a (finset.mem_inter.1 ha2).1 b (finset.mem_inter.1 hb2).1,
 end
 
 

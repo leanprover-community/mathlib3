@@ -411,7 +411,8 @@ begin
   rcases classical.em ((i : ℕ) = m + n) with hi | hi,
   have := snoc_mk_apply (append f g) x,
   have Hi : i = ⟨m + n, nat.lt_succ_self _⟩ := fin.ext hi,
-  have hffs : (⟨(i : ℕ) - m, by {rw nat.sub_lt_left_iff_lt_add, exact i.2, exact not_lt.1 h}⟩ : fin n.succ) = (n : fin n.succ) :=
+  have hffs : (⟨(i : ℕ) - m, by {rw nat.sub_lt_left_iff_lt_add, exact i.2, exact not_lt.1 h}⟩ :
+    fin n.succ) = (n : fin n.succ) :=
     by {ext, rw coe_mk, rw coe_nat_fin_succ, rw hi, rw nat.add_sub_cancel_left,},
   rw hffs,
   rw snoc_mk_apply g,
@@ -443,6 +444,17 @@ begin
   rw list.of_fn_succ',
   congr,
   rw snoc_mk_apply,
+end
+
+lemma append_comp {β : Type*} {m n : ℕ} (f : fin m → α) (g : fin n → α)
+  (F : α → β) : append (F ∘ f) (F ∘ g) = F ∘ append f g :=
+begin
+  induction n with n hn,
+    simp only [append],
+  unfold append,
+  rw ←comp_init,
+  rw comp_snoc,
+  rw hn (init g),
 end
 
 end fin

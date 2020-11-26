@@ -953,50 +953,84 @@ section
 
 open polynomial
 
-lemma coeff_prod_X_sub_C {R : Type*} [comm_ring R] (s : multiset R) :
-  (s.map (λ x, X - C x)).prod.coeff s.card = 1 :=
+lemma multiset.sum_const_one {α R : Type*} [semiring R] (s : multiset α) :
+  (s.map (λ _, (1 : R))).sum = s.card :=
 begin
-  refine multiset.induction_on s (_) (λ a s' ih, _),
-  { rw [multiset.card_zero, multiset.map_zero, multiset.prod_zero, coeff_one_zero] },
-  rw [multiset.card_cons, multiset.map_cons, multiset.prod_cons, coeff_mul,
-      finset.nat.antidiagonal_succ, finset.sum_insert, finset.sum_map, coeff_sub,
-      coeff_X_zero, coeff_C_zero],
-  sorry,
-  sorry,
+  refine multiset.induction_on s _ _,
+  { rw [multiset.map_zero, multiset.card_zero, multiset.sum_zero],
+    norm_cast },
+  { intros a s ih,
+    rw [multiset.map_cons, multiset.sum_cons, multiset.card_cons, ih, add_comm],
+    norm_cast }
 end
 
-lemma coeff_prod_X_sub_C_of_succ_eq {R : Type*} [comm_ring R] (s : multiset R) :
+lemma coeff_prod_X_sub_C {R : Type*} [comm_ring R] [nontrivial R] (s : multiset R) :
+  (s.map (λ x, X - C x)).prod.coeff s.card = 1 :=
+begin
+  have monic : ∀ p ∈ s.map (λ x, X - C x), p.monic,
+  { simp only [multiset.mem_map],
+    rintros _ ⟨a, ha, rfl⟩,
+    exact monic_X_sub_C a },
+  have nat_degree_eq' : (nat_degree ∘ λ (x : R), X - C x) = (λ _, 1),
+  { ext a,
+    exact nat_degree_X_sub_C a },
+  have leading_coeff_eq' : (leading_coeff ∘ λ (x : R), X - C x) = (λ _, 1),
+  { ext a,
+    exact monic_X_sub_C a },
+
+  convert leading_coeff_multiset_prod' _ _,
+  { simp [nat_degree_multiset_prod_of_monic _ monic, nat_degree_eq', multiset.sum_const_one] },
+  { rw [multiset.map_map, leading_coeff_eq', multiset.prod_map_one] },
+  { convert (one_ne_zero : (1 : R) ≠ 0),
+    rw [multiset.map_map, leading_coeff_eq', multiset.prod_map_one] },
+end
+
+lemma coeff_prod_X_sub_C_of_succ_eq_aux {R : Type*} [comm_ring R] [nontrivial R]
+  (a : R) (s : multiset R) :
+  ((a ::ₘ s).map (λ x, X - C x)).prod.coeff s.card = - (a ::ₘ s).sum :=
+begin
+  refine multiset.induction_on s _ (λ b s ih, _),
+  { simp only [multiset.map_cons, multiset.map_zero, multiset.prod_cons, multiset.prod_zero,
+        mul_one, multiset.sum_cons, multiset.sum_zero, add_zero, multiset.card_zero,
+        coeff_sub, coeff_X_zero, coeff_C_zero, zero_sub] },
+  rw [multiset.cons_swap a b s, multiset.map_cons, multiset.prod_cons, multiset.sum_cons,  multiset.card_cons,
+      coeff_mul, finset.nat.antidiagonal_succ, finset.sum_insert, neg_add],
+  congr,
+  { simp only [coeff_sub, coeff_X_zero, coeff_C_zero, zero_sub],
+    rw [← multiset.card_cons a s, coeff_prod_X_sub_C (a ::ₘ s), mul_one] },
+  { rw [finset.sum_eq_single (1, s.card), ih, coeff_sub, coeff_X_one, coeff_C,
+        if_neg (one_ne_zero : (1 : ℕ) ≠ 0), sub_zero, one_mul],
+    { simp only [finset.mem_map],
+      rintros _ ⟨⟨i, j⟩, hij, rfl⟩ ij_ne,
+      have one_ne : 1 ≠ nat.succ i,
+      { intro hi,
+        apply ij_ne,
+        cases nat.succ_injective hi,
+        simp only [finset.nat.mem_antidiagonal, zero_add] at hij,
+        cases hij,
+        refl },
+      simp only [function.embedding.prod_map, function.embedding.coe_fn_mk, prod.map,
+          coeff_sub, coeff_X, if_neg one_ne, coeff_C, if_neg (nat.succ_ne_zero i),
+          sub_zero, zero_mul] },
+    { simp only [finset.mem_map, not_exists],
+      intros hx,
+      exfalso,
+      simpa using hx ⟨0, multiset.card s⟩ } },
+  { simp only [finset.mem_map, not_exists],
+    rintros ⟨i, j⟩ hij,
+    simp [i.succ_ne_zero] }
+end
+
+lemma coeff_prod_X_sub_C_of_succ_eq {R : Type*} [comm_ring R] [nontrivial R]
+  (s : multiset R) :
   ∀ {i : ℕ} (hi : i + 1 = s.card), (s.map (λ x, X - C x)).prod.coeff i = - s.sum :=
 begin
-  refine multiset.induction_on s (λ i hi, _) (λ a s' ih i hi, _),
-  { sorry },
-  rw multiset.card_cons at hi,
-  replace hi := nat.add_right_cancel hi,
-  rw [multiset.map_cons, multiset.prod_cons, multiset.sum_cons, coeff_mul],
-  cases i,
-  { rw [multiset.card_eq_zero.mp hi.symm],
-    simp only [add_zero, mul_one, zero_sub, coeff_one_zero, coeff_X_zero, multiset.prod_zero,
-               finset.nat.antidiagonal_zero, finset.sum_singleton, coeff_C_zero, multiset.map_zero,
-               coeff_sub, multiset.sum_zero] },
-  rw [finset.nat.antidiagonal_succ, finset.sum_insert, coeff_sub, coeff_X_zero, coeff_C_zero,
-      zero_sub, show (0, i + 1).snd = multiset.card s', from hi, coeff_prod_X_sub_C, mul_one,
-      finset.sum_map, neg_add],
-  { congr,
-    rw finset.sum_eq_single (0, i),
-    { simp [coeff_C, ih hi] },
-    { rintro ⟨j, k⟩ jk_mem jk_ne,
-      simp only [function.embedding.coe_fn_mk,
-        function.embedding.coe_prod_map, prod.map_mk, coeff_sub, coeff_X, coeff_C],
-      rw [if_neg (nat.succ_ne_zero j), if_neg, sub_self, zero_mul],
-      { rw finset.nat.mem_antidiagonal at jk_mem, rw ← jk_mem at jk_ne,
-        refine mt (λ hj, _) jk_ne,
-        replace hj := nat.succ_injective hj,
-        rw [← hj, zero_add] } },
-    { intro h,
-      exfalso,
-      apply h,
-      simp } },
-  { sorry }
+  refine multiset.induction _ _ s,
+  { rintros i ⟨⟩ },
+  intros a s ih i hi,
+  rw [multiset.card_cons, add_left_inj] at hi,
+  cases hi,
+  exact coeff_prod_X_sub_C_of_succ_eq_aux a s
 end
 
 lemma coeff_sub_one_eq {K L : Type*} [field K] [field L]
@@ -1009,9 +1043,6 @@ begin
 end
 
 end
-
-noncomputable abbreviation power_basis.minimal_polynomial (h : power_basis K L) : polynomial K :=
-minimal_polynomial h.is_integral_gen
 
 lemma fin.nonempty {n : ℕ} (hn : 0 < n) : nonempty (fin n) :=
 by { cases n, { cases hn }, { exact has_zero.nonempty } }
@@ -1074,12 +1105,77 @@ noncomputable instance algebra_adjoin_splitting_field {x : L} (hx : is_integral 
   (minimal_polynomial.degree_ne_zero hx))).to_ring_hom.to_algebra
 
 variables {F : Type*} [field F] [algebra K F] (pb : power_basis K L)
-  (hF : pb.minimal_polynomial.splits (algebra_map K F))
+  (hF : pb.minpoly_gen.splits (algebra_map K F))
 
 lemma power_basis.dim_eq_card_roots
-  (hF : pb.minimal_polynomial.splits (algebra_map K F)) :
-  pb.dim = (pb.minimal_polynomial.map (algebra_map K F)).roots.card :=
-sorry
+  (hF : pb.minpoly_gen.splits (algebra_map K F)) :
+  pb.dim = (pb.minpoly_gen.map (algebra_map K F)).roots.card :=
+by rw [← power_basis.nat_degree_minpoly_gen, nat_degree_eq_card_roots hF]
+
+@[simp]
+lemma multiset.to_list_nodup {α : Type*} {m : multiset α} :
+  m.to_list.nodup ↔ m.nodup :=
+by rw [← multiset.coe_nodup, m.coe_to_list]
+
+@[simp]
+lemma list.sum_nth_le {α β : Type*} [add_comm_monoid β] (l : list α) (f : α → β)
+  {n : ℕ} (hn : n = l.length) :
+  ∑ i : fin n, f (l.nth_le i.1 (lt_of_lt_of_le i.2 (le_of_eq hn))) = (l.map f).sum :=
+begin
+  cases hn,
+  induction l with a l ih,
+  { rw [list.map_nil, list.sum_nil, ← finset.sum_empty, finset.sum_congr _ (λ _ _, rfl)],
+    ext i,
+    cases i.2 },
+  { rw [list.map_cons, list.sum_cons, ← ih rfl, finset.sum_fin_eq_sum_range, finset.sum_fin_eq_sum_range],
+    conv in (finset.range (a :: l).length)
+    { rw list.length_cons a l},
+    rw [finset.sum_range_succ', add_comm],
+    dsimp only [list.length_cons],
+    refine congr (congr_arg (+) _) _,
+    { rw [dif_pos (nat.zero_lt_succ _), list.nth_le] },
+    { refine finset.sum_congr rfl _,
+      intros i hi,
+      rw finset.mem_range at hi,
+      rw [dif_pos hi, dif_pos (nat.succ_lt_succ hi), list.nth_le],
+      refl } },
+end
+
+-- TODO: `@[to_additive]` doesn't work
+@[simp]
+lemma list.prod_nth_le {α β : Type*} [comm_monoid β] (l : list α) (f : α → β)
+  {n : ℕ} (hn : n = l.length) :
+  ∏ i : fin n, f (l.nth_le i.1 (lt_of_lt_of_le i.2 (le_of_eq hn))) = (l.map f).prod :=
+begin
+  cases hn,
+  induction l with a l ih,
+  { rw [list.map_nil, list.prod_nil, ← finset.prod_empty, finset.prod_congr _ (λ _ _, rfl)],
+    ext i,
+    cases i.2 },
+  { rw [list.map_cons, list.prod_cons, ← ih rfl, finset.prod_fin_eq_prod_range,
+        finset.prod_fin_eq_prod_range],
+    conv in (finset.range (a :: l).length)
+    { rw list.length_cons a l},
+    rw [finset.prod_range_succ', mul_comm],
+    dsimp only [list.length_cons],
+    refine congr (congr_arg (*) _) _,
+    { rw [dif_pos (nat.zero_lt_succ _), list.nth_le] },
+    { refine finset.prod_congr rfl _,
+      intros i hi,
+      rw finset.mem_range at hi,
+      rw [dif_pos hi, dif_pos (nat.succ_lt_succ hi), list.nth_le],
+      refl } },
+end
+
+@[simp, to_additive]
+lemma multiset.prod_coe {α : Type*} [comm_monoid α] (l : list α) :
+  (l : multiset α).prod = l.prod :=
+by { induction l; simp }
+
+@[simp, to_additive]
+lemma multiset.prod_to_list {α : Type*} [comm_monoid α] (m : multiset α) :
+  m.to_list.prod = m.prod :=
+by rw [← multiset.prod_coe m.to_list, m.coe_to_list]
 
 include hF
 /-- `power_basis.conjugates hF` is the vector of all conjugates to the generator of `L : K`,
@@ -1089,20 +1185,26 @@ The order of the conjugates is arbitrary.
 -/
 noncomputable def power_basis.conjugates :
   fin pb.dim → F :=
-λ i, (pb.minimal_polynomial.map (algebra_map K F)).roots.to_list.nth_le i
+λ i, (pb.minpoly_gen.map (algebra_map K F)).roots.to_list.nth_le i
   (by simpa [pb.dim_eq_card_roots hF] using i.2)
 
 noncomputable def power_basis.conjugate_matrix :
   matrix (fin pb.dim) (fin pb.dim) F
 | i j := pb.conjugates hF j ^ (i : ℕ)
 
-lemma power_basis.conjugates_injective :
+lemma power_basis.conjugates_injective (hpb : pb.minpoly_gen.separable) :
   function.injective (pb.conjugates hF) :=
-λ i j h, _
+λ i j h, fin.coe_injective (list.nodup_iff_nth_le_inj.mp
+  (multiset.to_list_nodup.mpr (nodup_roots (separable.map hpb)))
+  _ _ _ _ h)
 
 lemma sum_conjugates (f : F → R) :
-  ∑ i, f (pb.conjugates hF i) = ((pb.minimal_polynomial.map (algebra_map K F)).roots.map f).sum :=
-sorry
+  ∑ i, f (pb.conjugates hF i) = ((pb.minpoly_gen.map (algebra_map K F)).roots.map f).sum :=
+begin
+  refine trans (list.sum_nth_le _ _ _) _,
+  { rw [pb.dim_eq_card_roots hF, multiset.length_to_list] },
+  rw [← multiset.sum_coe, ← multiset.coe_map, multiset.coe_to_list]
+end
 
 /-
 
@@ -1200,7 +1302,7 @@ omit hF
 
 instance algebra_tower_alg_hom (f : S →ₐ[R] T) :
   @is_scalar_tower R S T _ f.to_ring_hom.to_algebra.to_has_scalar _ :=
-sorry
+{ smul_assoc := λ x y z, show f (x • y) • z = x • (f y • z), by rw [f.map_smul, smul_assoc] }
 
 lemma trace_eq_sum_roots [finite_dimensional K L]
   {x : L} (hx : is_integral K x) (hF : (minimal_polynomial hx).splits (algebra_map K F)) :
@@ -1250,7 +1352,7 @@ finset.sum_bij'
 @[simp] lemma adjoin_root_equiv_adjoin_symm_gen {x : L} (h : is_integral K x) :
   (adjoin_root_equiv_adjoin K h).symm (adjoin_simple.gen K x) =
     adjoin_root.root (minimal_polynomial h) :=
-(adjoin_root_equiv_adjoin K h).injective (by simp [adjoin_root_equiv_adjoin_of_root])
+(adjoin_root_equiv_adjoin K h).injective (by simp [adjoin_root_equiv_adjoin_apply_root])
 
 @[simp] lemma adjoin_root_equiv_symm_apply_root {f : polynomial K} (hf : f ≠ 0)
   (x : {x // x ∈ (f.map (algebra_map K L)).roots}) :
@@ -1308,17 +1410,10 @@ rfl
   (e : S ≃ₐ[R] S') (f : S' →ₐ[R] T) (x : S) : (alg_hom_congr_left T e).symm f x = f (e x) :=
 rfl
 
-def intermediate_field.top_equiv (K L : Type*) [field K] [field L] [algebra K L] :
-  (⊤ : intermediate_field K L) ≃ₐ[K] L :=
-{ inv_fun := λ x, ⟨x, mem_top⟩,
-  left_inv := λ ⟨x, hx⟩, rfl,
-  right_inv := λ x, rfl,
-  .. (intermediate_field.val ⊤)}
-
 noncomputable def field.equiv_primitive_element
   (hsep : is_separable K L) [finite_dimensional K L] :
   Σ x : L, K⟮x⟯ ≃ₐ[K] L :=
-let f := intermediate_field.top_equiv K L in
+let f := @intermediate_field.top_equiv K _ L _ _ in
 ⟨classical.some (field.exists_primitive_element hsep),
  by rwa ← classical.some_spec (field.exists_primitive_element hsep) at f⟩
 
@@ -1350,7 +1445,7 @@ lemma power_basis.sum_embeddings_gen [is_separable K L] (f : F → R) :
   finset.sum (@finset.univ _
     (@alg_hom.fintype_of_separable _ _ _ _ _ _ _ _ _ pb.finite_dimensional))
     (λ σ : L →ₐ[K] F, f (σ pb.gen)) =
-    ((pb.minimal_polynomial.map (algebra_map K F)).roots.map f).sum :=
+    ((pb.minpoly_gen.map (algebra_map K F)).roots.map f).sum :=
 begin
   haveI := pb.finite_dimensional,
   haveI : fintype (↥K⟮pb.gen⟯ →ₐ[K] F) :=

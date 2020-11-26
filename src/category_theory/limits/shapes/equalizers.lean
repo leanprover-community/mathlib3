@@ -293,16 +293,31 @@ cofork.is_colimit.mk t
   (λ s, (create s).2.1)
   (λ s m w, (create s).2.2 (w one))
 
+/--
+Given a limit cone for the pair `f g : X ⟶ Y`, for any `Z`, morphisms from `Z` to its point are in
+bijection with morphisms `h : Z ⟶ X` such that `h ≫ f = h ≫ g`.
+This is a special case of `is_limit.hom_iso'`, often useful to construct adjunctions.
+-/
 @[simps]
-def fork.is_limit.hom_iso {X Y : C} (Z : C) {f g : X ⟶ Y} {t : fork f g} (ht : is_limit t) :
+def fork.is_limit.hom_iso {X Y : C} {f g : X ⟶ Y} {t : fork f g} (ht : is_limit t) (Z : C) :
   (Z ⟶ t.X) ≃ {h : Z ⟶ X // h ≫ f = h ≫ g} :=
 { to_fun := λ k, ⟨k ≫ t.ι, by simp⟩,
   inv_fun := λ h, (fork.is_limit.lift' ht _ h.prop).1,
   left_inv := λ k, fork.is_limit.hom_ext ht (fork.is_limit.lift' _ _ _).prop,
   right_inv := λ h, subtype.ext (fork.is_limit.lift' ht _ _).prop }
 
+lemma fork.is_limit.hom_iso_natural {X Y : C} {f g : X ⟶ Y} {t : fork f g} (ht : is_limit t)
+  {Z Z' : C} (q : Z' ⟶ Z) (k : Z ⟶ t.X) :
+  (fork.is_limit.hom_iso ht _ (q ≫ k) : Z' ⟶ X) = q ≫ (fork.is_limit.hom_iso ht _ k : Z ⟶ X) :=
+category.assoc _ _ _
+
+/--
+Given a colimit cocone for the pair `f g : X ⟶ Y`, for any `Z`, morphisms from the cocone point
+to `Z` are in bijection with morphisms `h : Y ⟶ Z` such that `f ≫ h = g ≫ h`.
+This is a special case of `is_colimit.hom_iso'`, often useful to construct adjunctions.
+-/
 @[simps]
-def cofork.is_colimit.hom_iso {X Y : C} {f g : X ⟶ Y} {t : cofork f g} (Z : C) (ht : is_colimit t) :
+def cofork.is_colimit.hom_iso {X Y : C} {f g : X ⟶ Y} {t : cofork f g} (ht : is_colimit t) (Z : C) :
   (t.X ⟶ Z) ≃ {h : Y ⟶ Z // f ≫ h = g ≫ h} :=
 { to_fun := λ k, ⟨t.π ≫ k, by simp⟩,
   inv_fun := λ h, (cofork.is_colimit.desc' ht _ h.prop).1,
@@ -311,8 +326,8 @@ def cofork.is_colimit.hom_iso {X Y : C} {f g : X ⟶ Y} {t : cofork f g} (Z : C)
 
 lemma cofork.is_colimit.hom_iso_natural {X Y : C} {f g : X ⟶ Y} {t : cofork f g} {Z Z' : C}
   (q : Z ⟶ Z') (ht : is_colimit t) (k : t.X ⟶ Z) :
-    (cofork.is_colimit.hom_iso _ ht (k ≫ q) : Y ⟶ Z') =
-    (cofork.is_colimit.hom_iso _ ht k : Y ⟶ Z) ≫ q :=
+    (cofork.is_colimit.hom_iso ht _ (k ≫ q) : Y ⟶ Z') =
+    (cofork.is_colimit.hom_iso ht _ k : Y ⟶ Z) ≫ q :=
 (category.assoc _ _ _).symm
 
 /-- This is a helper construction that can be useful when verifying that a category has all

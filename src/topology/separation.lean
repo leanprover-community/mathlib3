@@ -239,6 +239,22 @@ Lim_nhds_within h
 
 end lim
 
+/-!
+### Instances of `t2_space` typeclass
+
+We use two lemmas to prove that various standard constructions generate Hausdorff spaces from
+Hausdorff spaces:
+
+* `separated_by_continuous` says that two points `x y : α` can be separated by open neighborhoods
+  provided that there exists a continuous map `f`: α → β` with a Hausdorff codomain such that
+  `f x ≠ f y`. We use this lemma  to prove that topological spaces defined using `induced` are
+  Hausdorff spaces.
+
+* `separated_by_open_embedding` says that for an open embedding `f : α → β` of a Hausdorff space
+  `α`, the images of two distinct points `x y : α`, `x ≠ y` can be separated by open neighborhoods.
+  We use this lemma to prove that topological spaces defined using `coinduced` are Hausdorff spaces.
+-/
+
 @[priority 100] -- see Note [lower instance priority]
 instance t2_space_discrete {α : Type*} [topological_space α] [discrete_topology α] : t2_space α :=
 { t2 := assume x y hxy, ⟨{x}, {y}, is_open_discrete _, is_open_discrete _, rfl, rfl,
@@ -290,7 +306,7 @@ instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_
   t2_space (Πa, β a) :=
 ⟨assume x y h,
   let ⟨i, hi⟩ := not_forall.mp (mt funext h) in
-  separated_by_continuous (λz, z i) (continuous_apply _) hi⟩
+  separated_by_continuous (continuous_apply i) hi⟩
 
 instance sigma.t2_space {ι : Type*} {α : ι → Type*} [Πi, topological_space (α i)]
   [∀a, t2_space (α a)] :

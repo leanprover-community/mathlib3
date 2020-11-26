@@ -50,7 +50,7 @@ begin
   exact hA a ha b hb hab
 end
 
-theorem subset_antichain (A B : finset α) (ha : antichain A) (hb : B ⊆ A) :
+theorem antichain.subset (A B : finset α) (ha : antichain A) (hb : B ⊆ A) :
   antichain B :=
 begin
   intros a ha2 b hb2 hab,

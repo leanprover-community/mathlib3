@@ -296,6 +296,7 @@ cofork.is_colimit.mk t
 /--
 Given a limit cone for the pair `f g : X ⟶ Y`, for any `Z`, morphisms from `Z` to its point are in
 bijection with morphisms `h : Z ⟶ X` such that `h ≫ f = h ≫ g`.
+Further, this bijection is natural in `Z`: see `fork.is_limit.hom_iso_natural`.
 This is a special case of `is_limit.hom_iso'`, often useful to construct adjunctions.
 -/
 @[simps]
@@ -306,6 +307,7 @@ def fork.is_limit.hom_iso {X Y : C} {f g : X ⟶ Y} {t : fork f g} (ht : is_limi
   left_inv := λ k, fork.is_limit.hom_ext ht (fork.is_limit.lift' _ _ _).prop,
   right_inv := λ h, subtype.ext (fork.is_limit.lift' ht _ _).prop }
 
+/-- The bijection of `fork.is_limit.hom_iso` is natural in `Z`. -/
 lemma fork.is_limit.hom_iso_natural {X Y : C} {f g : X ⟶ Y} {t : fork f g} (ht : is_limit t)
   {Z Z' : C} (q : Z' ⟶ Z) (k : Z ⟶ t.X) :
   (fork.is_limit.hom_iso ht _ (q ≫ k) : Z' ⟶ X) = q ≫ (fork.is_limit.hom_iso ht _ k : Z ⟶ X) :=
@@ -314,6 +316,7 @@ category.assoc _ _ _
 /--
 Given a colimit cocone for the pair `f g : X ⟶ Y`, for any `Z`, morphisms from the cocone point
 to `Z` are in bijection with morphisms `h : Y ⟶ Z` such that `f ≫ h = g ≫ h`.
+Further, this bijection is natural in `Z`: see `cofork.is_colimit.hom_iso_natural`.
 This is a special case of `is_colimit.hom_iso'`, often useful to construct adjunctions.
 -/
 @[simps]
@@ -324,6 +327,7 @@ def cofork.is_colimit.hom_iso {X Y : C} {f g : X ⟶ Y} {t : cofork f g} (ht : i
   left_inv := λ k, cofork.is_colimit.hom_ext ht (cofork.is_colimit.desc' _ _ _).prop,
   right_inv := λ h, subtype.ext (cofork.is_colimit.desc' ht _ _).prop }
 
+/-- The bijection of `cofork.is_colimit.hom_iso` is natural in `Z`. -/
 lemma cofork.is_colimit.hom_iso_natural {X Y : C} {f g : X ⟶ Y} {t : cofork f g} {Z Z' : C}
   (q : Z ⟶ Z') (ht : is_colimit t) (k : t.X ⟶ Z) :
     (cofork.is_colimit.hom_iso ht _ (k ≫ q) : Y ⟶ Z') =

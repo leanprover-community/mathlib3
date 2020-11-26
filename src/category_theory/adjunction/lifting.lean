@@ -7,6 +7,35 @@ import category_theory.limits.shapes.equalizers
 import category_theory.adjunction
 import category_theory.monad.adjunction
 
+/-!
+# Adjoint lifting
+
+This file gives two constructions for building left adjoints: the adjoint triangle theorem and the
+adjoint lifting theorem.
+The adjoint triangle theorem says that given a functor `U : B ⥤ C` with a left adjoint `F` such
+that `ε_X : FUX ⟶ X` is a coequalizer for the pair `(FUε_X, ε_FUX)` for every `X` (where `ε` is the
+counit of the adjunction `F ⊣ U`). Then for any category `A` with coequalizers of reflexive pairs,
+a functor `R : A ⥤ B` has a left adjoint if the composite `R ⋙ U` does.
+Note that the condition on `U` regarding `ε_X` is automatically satisfied in the case when `U` is
+a monadic functor, giving the corollary: `monadic_adjoint_triangle_lift`, i.e. if `U` is monadic,
+`A` has reflexive coequalizers then `R : A ⥤ B` has a left adjoint provided `R ⋙ U` does.
+
+The adjoint lifting theorem says that given a commutative square of functors (up to isomorphism):
+
+    Q
+  A → B
+U ↓   ↓ V
+  C → D
+    R
+
+where `U` and `V` are monadic and `A` has reflexive coequalizers, then if `R` has a left adjoint
+then `Q` has a left adjoint.
+
+## References
+* https://ncatlab.org/nlab/show/adjoint+triangle+theorem
+* https://ncatlab.org/nlab/show/adjoint+lifting+theorem
+-/
+
 namespace category_theory
 
 open category limits
@@ -234,19 +263,20 @@ variables [category.{v₄} D]
 
 /--
 Given a commutative square of functors
+    Q
+  A → B
+U ↓   ↓ V
+  C → D
+    R
 
-A → B
-↓   ↓
-C → D
-
-where the vertical functors are monadic, and `A` has reflexive coequalizers, then if the bottom
-functor has a left adjoint, then the top functor does as well.
+where `U` has a left adjoint, `V` is monadic and `A` has reflexive coequalizers, then if `R` has a
+left adjoint then `Q` has a left adjoint.
 
 See https://ncatlab.org/nlab/show/adjoint+lifting+theorem
 -/
 noncomputable def adjoint_square_lift (Q : A ⥤ B) (V : B ⥤ D) (U : A ⥤ C) (R : C ⥤ D)
   (comm : U ⋙ R ≅ Q ⋙ V)
-  [monadic_right_adjoint U] [monadic_right_adjoint V]
+  [is_right_adjoint U] [monadic_right_adjoint V]
   (hA : has_reflexive_coequalizers A)
   [is_right_adjoint R] :
   is_right_adjoint Q :=

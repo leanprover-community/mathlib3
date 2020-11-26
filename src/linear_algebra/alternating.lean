@@ -52,6 +52,8 @@ structure alternating_map extends multilinear_map R (λ i : ι, M) N :=
 (map_eq_args' : ∀ (v : ι → M) (i j : ι) (h : v i = v j) (hij : i ≠ j), to_fun v = 0)
 end
 
+attribute [nolint doc_blame] alternating_map.to_multilinear_map
+
 namespace alternating_map
 
 variables (f f' : alternating_map R M N ι)
@@ -59,7 +61,7 @@ variables (g' : alternating_map R' M' N' ι)
 variables (v : ι → M) (v' : ι → M')
 open function
 
-/-! Basic coercion simp lemmas, largely copied from ring_hom -/
+/-! Basic coercion simp lemmas, largely copied from `ring_hom` -/
 section coercions
 
 instance : has_coe_to_fun (alternating_map R M N ι) := ⟨_, λ x, x.to_fun⟩

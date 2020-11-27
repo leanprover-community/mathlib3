@@ -163,6 +163,10 @@ end
 lemma to_dual'_isometry : isometry (@to_dual' 𝕜 E _ _) :=
 add_monoid_hom.isometry_of_norm _ (norm_to_dual'_apply 𝕜)
 
+/--
+Fréchet-Riesz representation: any ℓ in the dual of a Hilbert space E is of the form
+λ u, ⟪y, u⟫ for some y in E, i.e. to_dual' is surjective.
+-/
 lemma to_dual'_surjective [complete_space E] : function.surjective (@to_dual' 𝕜 E _ _) :=
 begin
   intros ℓ,
@@ -179,7 +183,7 @@ begin
     change Y.orthogonal ≠ ⊥ at htriv,
     rw [submodule.ne_bot_iff] at htriv,
     obtain ⟨z : E, hz : z ∈ Y.orthogonal, z_ne_0 : z ≠ 0⟩ := htriv,
-    refine ⟨((ℓ z) / ⟪z, z⟫) • z, _⟩,
+    refine ⟨((ℓ z)† / ⟪z, z⟫) • z, _⟩,
     ext x,
     have h₁ : (ℓ z) • x - (ℓ x) • z ∈ Y,
     { rw [mem_ker, map_sub, map_smul, map_smul, algebra.id.smul_eq_mul, algebra.id.smul_eq_mul,
@@ -187,20 +191,18 @@ begin
       exact sub_self (ℓ x * ℓ z) },
     have h₂ : (ℓ z) * ⟪z, x⟫ = (ℓ x) * ⟪z, z⟫,
     { have h₃ := calc
-        0    = ⟪z, (ℓ z) • x - (ℓ x) • z⟫       :
-                  by { rw [(Y.mem_orthogonal' z).mp hz], exact h₁ }
+        0    = ⟪z, (ℓ z) • x - (ℓ x) • z⟫       : by { rw [(Y.mem_orthogonal' z).mp hz], exact h₁ }
          ... = ⟪z, (ℓ z) • x⟫ - ⟪z, (ℓ x) • z⟫  : by rw [inner_sub_right]
          ... = (ℓ z) * ⟪z, x⟫ - (ℓ x) * ⟪z, z⟫  : by simp [inner_smul_right],
       exact sub_eq_zero.mp (eq.symm h₃) },
-    unfold to_dual',
     have h₄ := calc
-      ⟪((ℓ z) / ⟪z, z⟫) • z, x⟫ = conj (ℓ z) / ⟪z, z⟫ * ⟪z, x⟫
+      ⟪((ℓ z)† / ⟪z, z⟫) • z, x⟫ = (ℓ z) / ⟪z, z⟫ * ⟪z, x⟫
             : by simp [inner_smul_left, conj_div, conj_conj]
-                            ... = conj (ℓ z) * ⟪z, x⟫ / ⟪z, z⟫
+                            ... = (ℓ z) * ⟪z, x⟫ / ⟪z, z⟫
             : by rw [←div_mul_eq_mul_div]
-                            ... = conj (ℓ x) * ⟪z, z⟫ / ⟪z, z⟫
+                            ... = (ℓ x) * ⟪z, z⟫ / ⟪z, z⟫
             : by rw [h₂]
-                            ... = conj (ℓ x)
+                            ... = ℓ x
             : begin
                 have : ⟪z, z⟫ ≠ 0,
                 { change z = 0 → false at z_ne_0,
@@ -253,54 +255,8 @@ Fréchet-Riesz representation: any `ℓ` in the dual of a real Hilbert space `F`
 equivalence thus induced.
 -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
-lemma to_dual'_surjective : to_dual
-begin
-  apply linear_map.range_eq_top.mpr,
-  intros ℓ,
-  set Y := ker ℓ with hY,
-  by_cases htriv : Y = ⊤,
-  { have hℓ : ℓ = 0,
-    { have h' := linear_map.ker_eq_top.mp htriv,
-      rw [←coe_zero] at h',
-      apply coe_injective,
-      exact h' },
-    exact ⟨0, by simp [hℓ]⟩ },
-  { have Ycomplete := is_complete_ker ℓ,
-    rw [submodule.eq_top_iff_orthogonal_eq_bot Ycomplete, ←hY] at htriv,
-    change Y.orthogonal ≠ ⊥ at htriv,
-    rw [submodule.ne_bot_iff] at htriv,
-    obtain ⟨z : F, hz : z ∈ Y.orthogonal, z_ne_0 : z ≠ 0⟩ := htriv,
-    refine ⟨((ℓ z) / ⟪z, z⟫_ℝ) • z, _⟩,
-    ext x,
-    have h₁ : (ℓ z) • x - (ℓ x) • z ∈ Y,
-    { rw [mem_ker, map_sub, map_smul, map_smul, algebra.id.smul_eq_mul, algebra.id.smul_eq_mul,
-          mul_comm],
-      exact sub_self (ℓ x * ℓ z) },
-    have h₂ : (ℓ z) * ⟪z, x⟫_ℝ = (ℓ x) * ⟪z, z⟫_ℝ,
-    { have h₃ := calc
-        0    = ⟪z, (ℓ z) • x - (ℓ x) • z⟫_ℝ       :
-                  by { rw [(Y.mem_orthogonal' z).mp hz], exact h₁ }
-         ... = ⟪z, (ℓ z) • x⟫_ℝ - ⟪z, (ℓ x) • z⟫_ℝ  : by rw [inner_sub_right]
-         ... = (ℓ z) * ⟪z, x⟫_ℝ - (ℓ x) * ⟪z, z⟫_ℝ  : by simp [inner_smul_right],
-      exact sub_eq_zero.mp (eq.symm h₃) },
-    have h₄ := calc
-      ⟪((ℓ z) / ⟪z, z⟫_ℝ) • z, x⟫_ℝ = (ℓ z) / ⟪z, z⟫_ℝ * ⟪z, x⟫_ℝ
-            : by simp [inner_smul_left, conj_div, conj_conj]
-                            ... = (ℓ z) * ⟪z, x⟫_ℝ / ⟪z, z⟫_ℝ
-            : by rw [←div_mul_eq_mul_div]
-                            ... = (ℓ x) * ⟪z, z⟫_ℝ / ⟪z, z⟫_ℝ
-            : by rw [h₂]
-                            ... = ℓ x
-            : begin
-                have : ⟪z, z⟫_ℝ ≠ 0,
-                { change z = 0 → false at z_ne_0,
-                  rwa ←inner_self_eq_zero at z_ne_0 },
-                field_simp [this]
-              end,
-    exact h₄ }
-end
-
---lemma range_to_dual_map : (@to_dual_map F _).range = ⊤ :=
+lemma range_to_dual_map : (@to_dual_map F _).range = ⊤ :=
+linear_map.range_eq_top.mpr (to_dual'_surjective ℝ)
 
 /--
 Fréchet-Riesz representation: If `F` is a Hilbert space, the function that takes a vector in `F` to

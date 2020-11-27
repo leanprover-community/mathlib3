@@ -17,15 +17,16 @@ This file contains basic results about finite fields.
 Throughout most of this file, `K` denotes a finite field
 and `q` is notation for the cardinality of `K`.
 
+See `ring_theory.integral_domain` for the fact that the unit group of a finite field is a
+cyclic group, as well as the fact that every finite integral domain is a field (`field_of_integral_domain`).
+
 ## Main results
 
-1. Every finite integral domain is a field (`field_of_integral_domain`).
-2. The unit group of a finite field is a cyclic group of order `q - 1`.
-   (`finite_field.is_cyclic` and `card_units`)
-3. `sum_pow_units`: The sum of `x^i`, where `x` ranges over the units of `K`, is
+1. `card_units`: The unit group of a finite field is has cardinality `q - 1`.
+2. `sum_pow_units`: The sum of `x^i`, where `x` ranges over the units of `K`, is
    - `q-1` if `q-1 ∣ i`
    - `0`   otherwise
-4. `finite_field.card`: The cardinality `q` is a power of the characteristic of `K`.
+3. `finite_field.card`: The cardinality `q` is a power of the characteristic of `K`.
    See `card'` for a variant.
 
 ## Notation

@@ -212,16 +212,7 @@ hF.lift_fac _
 -- (uniqueness of the lift comes for free).
 
 instance lift_mono (F' : mono_factorisation f) : mono (image.lift F') :=
-begin
-  split, intros Z a b w,
-  have w' : a ≫ image.ι f = b ≫ image.ι f :=
-  calc a ≫ image.ι f = a ≫ (image.lift F' ≫ F'.m) : by simp
-                 ... = (a ≫ image.lift F') ≫ F'.m : by rw [category.assoc]
-                 ... = (b ≫ image.lift F') ≫ F'.m : by rw w
-                 ... = b ≫ (image.lift F' ≫ F'.m) : by rw [←category.assoc]
-                 ... = b ≫ image.ι f : by simp,
-  exact (cancel_mono (image.ι f)).1 w',
-end
+by { apply mono_of_mono _ F'.m, simpa using mono_factorisation.m_mono _ }
 
 lemma has_image.uniq
   (F' : mono_factorisation f) (l : image f ⟶ F'.I) (w : l ≫ F'.m = image.ι f) :

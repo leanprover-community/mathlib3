@@ -12,9 +12,7 @@ import analysis.normed_space.inner_product
 In this file we define the topological dual of a normed space, and the bounded linear map from
 a normed space into its double dual.
 
-We also prove that, for base field such as the real or the complex numbers, this map is an isometry.
-More generically, this is proved for any field in the class `has_exists_extension_norm_eq`, i.e.,
-satisfying the Hahn-Banach theorem.
+We also prove that, for base field `𝕜` with `[is_R_or_C 𝕜]`, this map is an isometry.
 
 We then consider inner product spaces, with base field over `ℝ` (the corresponding results for `ℂ`
 will require the definition of conjugate-linear maps). We define `to_dual_map`, a continuous linear
@@ -105,7 +103,7 @@ begin
     ... = M : by rw [hf.1, mul_one] }
 end
 
-/-- The inclusion of a real normed space in its double dual is an isometry onto its image.-/
+/-- The inclusion of a normed space in its double dual is an isometry onto its image.-/
 lemma inclusion_in_double_dual_isometry (x : E) : ∥inclusion_in_double_dual 𝕜 E x∥ = ∥x∥ :=
 begin
   apply le_antisymm,
@@ -165,6 +163,53 @@ end
 lemma to_dual'_isometry : isometry (@to_dual' 𝕜 E _ _) :=
 add_monoid_hom.isometry_of_norm _ (norm_to_dual'_apply 𝕜)
 
+lemma to_dual'_surjective [complete_space E] : function.surjective (@to_dual' 𝕜 E _ _) :=
+begin
+  intros ℓ,
+  set Y := ker ℓ with hY,
+  by_cases htriv : Y = ⊤,
+  { have hℓ : ℓ = 0,
+    { have h' := linear_map.ker_eq_top.mp htriv,
+      rw [←coe_zero] at h',
+      apply coe_injective,
+      exact h' },
+    exact ⟨0, by simp [hℓ]⟩ },
+  { have Ycomplete := is_complete_ker ℓ,
+    rw [submodule.eq_top_iff_orthogonal_eq_bot Ycomplete, ←hY] at htriv,
+    change Y.orthogonal ≠ ⊥ at htriv,
+    rw [submodule.ne_bot_iff] at htriv,
+    obtain ⟨z : E, hz : z ∈ Y.orthogonal, z_ne_0 : z ≠ 0⟩ := htriv,
+    refine ⟨((ℓ z) / ⟪z, z⟫) • z, _⟩,
+    ext x,
+    have h₁ : (ℓ z) • x - (ℓ x) • z ∈ Y,
+    { rw [mem_ker, map_sub, map_smul, map_smul, algebra.id.smul_eq_mul, algebra.id.smul_eq_mul,
+          mul_comm],
+      exact sub_self (ℓ x * ℓ z) },
+    have h₂ : (ℓ z) * ⟪z, x⟫ = (ℓ x) * ⟪z, z⟫,
+    { have h₃ := calc
+        0    = ⟪z, (ℓ z) • x - (ℓ x) • z⟫       :
+                  by { rw [(Y.mem_orthogonal' z).mp hz], exact h₁ }
+         ... = ⟪z, (ℓ z) • x⟫ - ⟪z, (ℓ x) • z⟫  : by rw [inner_sub_right]
+         ... = (ℓ z) * ⟪z, x⟫ - (ℓ x) * ⟪z, z⟫  : by simp [inner_smul_right],
+      exact sub_eq_zero.mp (eq.symm h₃) },
+    unfold to_dual',
+    have h₄ := calc
+      ⟪((ℓ z) / ⟪z, z⟫) • z, x⟫ = conj (ℓ z) / ⟪z, z⟫ * ⟪z, x⟫
+            : by simp [inner_smul_left, conj_div, conj_conj]
+                            ... = conj (ℓ z) * ⟪z, x⟫ / ⟪z, z⟫
+            : by rw [←div_mul_eq_mul_div]
+                            ... = conj (ℓ x) * ⟪z, z⟫ / ⟪z, z⟫
+            : by rw [h₂]
+                            ... = conj (ℓ x)
+            : begin
+                have : ⟪z, z⟫ ≠ 0,
+                { change z = 0 → false at z_ne_0,
+                  rwa ←inner_self_eq_zero at z_ne_0 },
+                field_simp [this]
+              end,
+    exact h₄ }
+end
+
 end is_R_or_C
 
 section real
@@ -208,7 +253,7 @@ Fréchet-Riesz representation: any `ℓ` in the dual of a real Hilbert space `F`
 equivalence thus induced.
 -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
-lemma range_to_dual_map : (@to_dual_map F _).range = ⊤ :=
+lemma to_dual'_surjective : to_dual
 begin
   apply linear_map.range_eq_top.mpr,
   intros ℓ,
@@ -254,6 +299,8 @@ begin
               end,
     exact h₄ }
 end
+
+--lemma range_to_dual_map : (@to_dual_map F _).range = ⊤ :=
 
 /--
 Fréchet-Riesz representation: If `F` is a Hilbert space, the function that takes a vector in `F` to

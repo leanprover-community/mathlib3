@@ -628,9 +628,12 @@ def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
   left_inv := λ o, subtype.eq $ option.some_get _,
   right_inv := λ x, option.get_some _ _ }
 
-/-- `α ⊕ β` is equivalent to a `sigma`-type over `bool`. -/
-def sum_equiv_sigma_bool (α β : Sort*) : α ⊕ β ≃ (Σ b: bool, cond b α β) :=
-⟨λ s, match s with inl a := ⟨tt, a⟩ | inr b := ⟨ff, b⟩ end,
+/-- `α ⊕ β` is equivalent to a `sigma`-type over `bool`. Note that this definition assumes `α` and
+`β` to be types from the same universe, so it cannot by used directly to transfer theorems about
+sigma types to theorems about sum types. In many cases one can use `ulift` to work around this
+difficulty. -/
+def sum_equiv_sigma_bool (α β : Type u) : α ⊕ β ≃ (Σ b: bool, cond b α β) :=
+⟨λ s, s.elim (λ x, ⟨tt, x⟩) (λ x, ⟨ff, x⟩),
  λ s, match s with ⟨tt, a⟩ := inl a | ⟨ff, b⟩ := inr b end,
  λ s, by cases s; refl,
  λ s, by rcases s with ⟨_|_, _⟩; refl⟩

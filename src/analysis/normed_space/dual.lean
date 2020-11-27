@@ -132,7 +132,7 @@ local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
 
 /--
 Given some `x` in an inner product space, we can define its dual as the continuous linear map
-`λ y, ⟪x, y⟫`. Consider using `to_dual` or `to_dual_map` instead.
+`λ y, ⟪x, y⟫`. Consider using `to_dual` or `to_dual_map` instead in the real case.
 -/
 def to_dual' : E →+ normed_space.dual 𝕜 E :=
 { to_fun := λ x, linear_map.mk_continuous

@@ -61,7 +61,7 @@ variables (g' : alternating_map R' M' N' ι)
 variables (v : ι → M) (v' : ι → M')
 open function
 
-/-! Basic coercion simp lemmas, largely copied from `ring_hom` -/
+/-! Basic coercion simp lemmas, largely copied from `ring_hom` and `multilinear_map` -/
 section coercions
 
 instance : has_coe_to_fun (alternating_map R M N ι) := ⟨_, λ x, x.to_fun⟩
@@ -72,6 +72,21 @@ initialize_simps_projections alternating_map (to_fun → apply)
 
 @[simp] lemma coe_mk (f : (ι → M) → N) (h₁ h₂ h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ :
   alternating_map R M N ι) = f := rfl
+
+theorem congr_fun {f g : alternating_map R M N ι} (h : f = g) (x : ι → M) : f x = g x :=
+congr_arg (λ h : alternating_map R M N ι, h x) h
+
+theorem congr_arg (f : alternating_map R M N ι) {x y : ι → M} (h : x = y) : f x = f y :=
+congr_arg (λ x : ι → M, f x) h
+
+theorem coe_inj ⦃f g : alternating_map R M N ι⦄ (h : ⇑f = g) : f = g :=
+by { cases f, cases g, cases h, refl }
+
+@[ext] theorem ext {f f' : alternating_map R M N ι} (H : ∀ x, f x = f' x) : f = f' :=
+coe_inj (funext H)
+
+theorem ext_iff {f g : alternating_map R M N ι} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 instance : has_coe (alternating_map R M N ι) (multilinear_map R (λ i : ι, M) N) :=
 ⟨λ x, x.to_multilinear_map⟩
@@ -84,11 +99,13 @@ instance : has_coe (alternating_map R M N ι) (multilinear_map R (λ i : ι, M) 
   ((⟨f, h₁, h₂, h₃⟩ : alternating_map R M N ι) :  multilinear_map R (λ i : ι, M) N) = ⟨f, h₁, h₂⟩ :=
 rfl
 
-@[ext] theorem ext {f f' : alternating_map R M N ι} (H : ∀ x, f x = f' x) : f = f' :=
-by cases f; cases f'; congr'; exact funext H
-
 end coercions
 
+/-!
+### Simp-normal forms of the structure fields
+
+These are expressed in terms of `⇑f` instead of `f.to_fun`.
+-/
 @[simp] lemma map_add (i : ι) (x y : M) :
   f (update v i (x + y)) = f (update v i x) + f (update v i y) :=
 f.to_multilinear_map.map_add' v i x y

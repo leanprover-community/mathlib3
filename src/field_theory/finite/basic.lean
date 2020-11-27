@@ -18,7 +18,7 @@ Throughout most of this file, `K` denotes a finite field
 and `q` is notation for the cardinality of `K`.
 
 See `ring_theory.integral_domain` for the fact that the unit group of a finite field is a
-cyclic group
+cyclic group, as well as the fact that every finite integral domain is a field (`field_of_integral_domain`).
 
 ## Main results
 

@@ -122,7 +122,6 @@ with explode.core : expr → bool → nat → entries → tactic entries
   | (nm@(const n _), args) :=
     explode.args e args depth es (thm.expr nm) []
   | (fn, []) := do
-    -- p ← pp fn,
     let en : entry := ⟨fn, es.size, depth, status.reg, thm.expr fn, []⟩,
     return (es.add en)
   | (fn, args) := do
@@ -159,6 +158,7 @@ open interactive lean lean.parser interaction_monad.result
 /--
 `#explode decl_name` displays a proof term in a line-by-line format somewhat akin to a Fitch-style
 proof or the Metamath proof style.
+`#explode_widget decl_name` renders a widget that displays an `#explode` proof.
 
 `#explode iff_true_intro` produces
 
@@ -219,9 +219,10 @@ do n ← ident,
 .
 
 add_tactic_doc
-{ name       := "#explode",
+{ name       := "#explode / #explode_widget",
   category   := doc_category.cmd,
-  decl_names := [`tactic.explode_cmd],
-  tags       := ["proof display"] }
+  decl_names := [`tactic.explode_cmd, `tactic.explode_widget_cmd],
+  inherit_description_from := `tactic.explode_cmd,
+  tags       := ["proof display", "widgets"] }
 
 end tactic

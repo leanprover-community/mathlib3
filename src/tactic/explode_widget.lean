@@ -10,7 +10,7 @@ import tactic.interactive_expr
 
 Render a widget that displays an `#explode` proof, providing more 
 interactivity such as jumping to definitions and exploding constants 
-occurring in a proof term subsequently.
+occurring in the exploded proofs.
 -/
 open widget tactic tactic.explode
 
@@ -158,7 +158,6 @@ tc.stateless (λ ⟨e,ea⟩, do
     y_comp ← mk type_tooltip y,
     implicit_args ← implicit_arg_list type_tooltip e,
     pure [h "div" [style [("minWidth", "12rem")]] [
-        -- h "div" [style [("display", "table"), ("margin", "auto")]] [
           h "div" [cn "pl1"] [y_comp],
           h "hr" [] [],
           implicit_args

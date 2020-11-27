@@ -12,6 +12,10 @@ import topology.instances.real
 import topology.algebra.polynomial
 import analysis.calculus.mean_value
 
+/-!
+This file contains the some lemmas about real polynomials and their derivatives
+-/
+
 open polynomial real set
 
 

@@ -7,6 +7,10 @@ Authors: Jujian Zhang
 import analysis.transcendental.liouville
 import data.nat.factorial
 
+/-
+This files contains a construction of a family of Liouville number
+-/
+
 namespace is_liouville
 
 noncomputable theory
@@ -33,8 +37,9 @@ begin
     { rw one_div_nonneg, norm_num } }
 end
 
-lemma summable_inv_pow_n_add_fact {hm : 2 < m} : ∀ n : ℕ, summable (λ i, 1 / (m : ℝ) ^ (i + (n + 1))!) :=
-λ n, begin
+lemma summable_inv_pow_n_add_fact {hm : 2 < m} (n : ℕ) :
+  summable (λ i, 1 / (m : ℝ) ^ (i + (n + 1))!) :=
+begin
   apply @summable_of_nonneg_of_le _ (λ n, (1 / m : ℝ) ^ n),
   { intro b, rw one_div_nonneg, apply pow_nonneg, norm_num },
   { intro b, dsimp only [],
@@ -115,7 +120,8 @@ begin
       begin
         rw tsum_mul_right,
         apply summable_geometric_of_abs_lt_1,
-        rw [abs_of_nonneg (show 0 ≤ 1/(m:ℝ), by {rw one_div_nonneg, norm_num}), one_div_lt, one_div_one];
+        rw [abs_of_nonneg (show 0 ≤ 1/(m:ℝ), by {rw one_div_nonneg, norm_num}),
+            one_div_lt, one_div_one];
         norm_num; linarith
       end
   ... = m / (m-1) * (1 / m ^ (n + 1)!) :
@@ -123,7 +129,8 @@ begin
         congr,
         rw [tsum_geometric_of_abs_lt_1, show (m/(m-1):ℝ) = ((m-1)/(m:ℝ))⁻¹,
           by rw inv_div, sub_div, div_self],
-        repeat { rw [abs_of_nonneg] <|> norm_num <|> linarith  <|> rw one_div_nonneg <|> rw one_div_lt},
+        repeat { rw [abs_of_nonneg] <|> norm_num <|> linarith  <|>
+          rw one_div_nonneg <|> rw one_div_lt},
       end
   ... < 2 * (1 / m ^ (n + 1)!) :
       by { apply mul_lt_mul,

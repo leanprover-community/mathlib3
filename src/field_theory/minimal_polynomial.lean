@@ -121,8 +121,7 @@ begin
     rw [←ring_hom.map_neg _ a] at hroot,
     exact (hf hroot) },
   rw hrw,
-  simp only [h0, ring_hom.map_neg],
-  ring
+  simp only [h0, ring_hom.map_neg, sub_eq_add_neg],
 end
 
 /-- A minimal polynomial is not a unit. -/

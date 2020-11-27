@@ -70,7 +70,8 @@ end hom
 
 /-- The category of Eilenberg-Moore algebras for a monad.
     cf Definition 5.2.4 in [Riehl][riehl2017]. -/
-@[simps] instance EilenbergMoore : category (algebra T) :=
+@[simps to_category_struct_id to_category_struct_comp]
+instance EilenbergMoore : category (algebra T) :=
 { hom := hom,
   id := hom.id,
   comp := @hom.comp _ _ _ _ }

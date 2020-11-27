@@ -7,7 +7,7 @@ Authors: Jujian Zhang
 import analysis.transcendental.liouville
 import data.nat.factorial
 
-/-
+/-!
 This files contains a construction of a family of Liouville number
 -/
 

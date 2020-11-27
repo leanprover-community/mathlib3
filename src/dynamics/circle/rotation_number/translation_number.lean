@@ -535,6 +535,11 @@ eq_neg_iff_add_eq_zero.2 $
 | (n+1) := by rw [pow_succ', translation_number_mul_of_commute (commute.pow_self f n),
   translation_number_pow n, nat.cast_add_one, add_mul, one_mul]
 
+@[simp] lemma translation_number_gpow (f : units circle_deg1_lift) :
+  ∀ n : ℤ, τ (f ^ n : units _) = n * τ f
+| (n : ℕ) := by simp [translation_number_pow f n]
+| -[1+n] := by { simp,  ring }
+
 @[simp] lemma translation_number_conj_eq (f : units circle_deg1_lift) (g : circle_deg1_lift) :
   τ (↑f * g * ↑(f⁻¹)) = τ g :=
 (translation_number_eq_of_semiconj_by (f.mk_semiconj_by g)).symm
@@ -726,6 +731,13 @@ begin
   exact (f^n).translation_number_eq_int_iff (f.continuous_pow hf n)
 end
 
+/-- Consider two actions `f₁ f₂ : G →* circle_deg1_lift` of a group on the real line by lifts of
+orientation preserving circle homeomorphisms. Suppose that for each `g : G` the homeomorphisms
+`f₁ g` and `f₂ g` have equal rotation numbers. Then there exists a lift of a circle homeomorphism
+`F` such that `F ∘ f₁ g = f₂ g ∘ F` for all `g : G`.
+
+This is a version of Proposition 5.4 from [Étienne Ghys, Groupes d'homeomorphismes du cercle et
+cohomologie bornee][ghys87:groupes]. -/
 lemma semiconj_by_of_group_action_of_forall_translation_number_eq
   {G : Type*} [group G] (f₁ f₂ : G →* circle_deg1_lift)
   (h : ∀ g, τ (f₁ g) = τ (f₂ g)) :
@@ -763,5 +775,36 @@ begin
       (monotone_id.add_const (1 : ℝ)) (this x)).symm },
   { exact this x }
 end
+
+/-- If two lifts of circle homeomorphisms have the same translation number, then they are
+semiconjugate by a `circle_deg1_lift`. This version uses arguments `f₁ f₂ : units circle_deg1_lift`
+to assume that `f₁` and `f₂` are homeomorphisms. -/
+lemma units_semiconj_of_translation_number_eq {f₁ f₂ : units circle_deg1_lift}
+  (h : τ f₁ = τ f₂) :
+  ∃ F : circle_deg1_lift, semiconj F f₁ f₂ :=
+begin
+  have : ∀ n : multiplicative ℤ, τ ((units.coe_hom _).comp (gpowers_hom _ f₁) n) =
+    τ ((units.coe_hom _).comp (gpowers_hom _ f₂) n),
+  { intro n, simp [h] },
+  exact (semiconj_by_of_group_action_of_forall_translation_number_eq _ _ this).imp
+    (λ F hF, hF (multiplicative.of_add 1))
+end
+
+/-- If two lifts of circle homeomorphisms have the same translation number, then they are
+semiconjugate by a `circle_deg1_lift`. This version uses assumptions `is_unit f₁` and `is_unit f₂`
+to assume that `f₁` and `f₂` are homeomorphisms. -/
+lemma semiconj_of_is_unit_of_translation_number_eq {f₁ f₂ : circle_deg1_lift}
+  (h₁ : is_unit f₁) (h₂ : is_unit f₂) (h : τ f₁ = τ f₂) :
+  ∃ F : circle_deg1_lift, semiconj F f₁ f₂ :=
+by { rcases ⟨h₁, h₂⟩ with ⟨⟨f₁, rfl⟩, ⟨f₂, rfl⟩⟩, exact units_semiconj_of_translation_number_eq h }
+
+/-- If two lifts of circle homeomorphisms have the same translation number, then they are
+semiconjugate by a `circle_deg1_lift`. This version uses assumptions `bijective f₁` and
+`bijective f₂` to assume that `f₁` and `f₂` are homeomorphisms. -/
+lemma semiconj_of_bijective_of_translation_number_eq {f₁ f₂ : circle_deg1_lift}
+  (h₁ : bijective f₁) (h₂ : bijective f₂) (h : τ f₁ = τ f₂) :
+  ∃ F : circle_deg1_lift, semiconj F f₁ f₂ :=
+semiconj_of_is_unit_of_translation_number_eq
+  (is_unit_iff_bijective.2 h₁) (is_unit_iff_bijective.2 h₂) h
 
 end circle_deg1_lift

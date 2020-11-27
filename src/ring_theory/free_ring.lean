@@ -47,7 +47,7 @@ variables {α}
 def of (x : α) : free_ring α :=
 free_abelian_group.of [x]
 
-lemma of_injective (α : Type u) : function.injective (of : α → free_ring α) :=
+lemma of_injective : function.injective (of : α → free_ring α) :=
 free_abelian_group.of_injective.comp free_monoid.of_injective
 
 @[elab_as_eliminator] protected lemma induction_on

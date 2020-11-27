@@ -491,7 +491,7 @@ end
 /--If `n ≠ 0` in `F`, then ` X ^ n - a` is squarefree for any `a ≠ 0`. -/
 lemma squarefree_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 0) :
   squarefree (X ^ n - C a) :=
-(separable_of_X_pow_sub_C a hn ha).squarefree
+(separable_X_pow_sub_C a hn ha).squarefree
 
 lemma root_multiplicity_le_one_of_separable {p : polynomial F} (hp : p ≠ 0)
   (hsep : separable p) (x : F) : root_multiplicity x p ≤ 1 :=

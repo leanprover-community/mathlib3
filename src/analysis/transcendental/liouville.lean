@@ -3,14 +3,9 @@ Copyright (c) 2020 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
-import data.nat.factorial
+
 import data.real.irrational
 import ring_theory.algebraic
-import algebra.big_operators
-import data.polynomial.degree
-import data.set.intervals.infinite
-import topology.algebra.polynomial
-import analysis.calculus.mean_value
 import analysis.real.polynomial
 
 /-!

@@ -11,7 +11,7 @@ import data.nat.factorial
 # Liouville constants
 
 This files contains a construction of a family of Liouville number.
-The most important property of these numbers is that they are examples of transcendental real numbers.
+The most important property is that they are examples of transcendental real numbers.
 This fact is recorded in `is_liouville.is_transcendental_of_α`.
 -/
 

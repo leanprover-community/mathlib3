@@ -100,21 +100,23 @@ end
 /-- If `L/K` is a ring extension, and `x` is an element of `L` in the image of `K`,
 then the minimal polynomial of `x` is `X - C x`. -/
 lemma algebra_map_inj [nontrivial α] (a : α) (hf : function.injective (algebra_map α β))
-  (ha : is_integral α (algebra_map α β a)) : minimal_polynomial ha = X - C a :=
+  : minimal_polynomial (@is_integral_algebra_map α β _ _ _ a) = X - C a :=
 begin
-  have hdegle : (minimal_polynomial ha).nat_degree ≤ 1,
+  have hdegle : (minimal_polynomial (@is_integral_algebra_map α β _ _ _ a)).nat_degree ≤ 1,
   { apply with_bot.coe_le_coe.1,
-    rw [←degree_eq_nat_degree (ne_zero ha), with_top.coe_one, ←degree_X_sub_C a],
-    refine degree_le_of_monic ha (monic_X_sub_C a) _,
+    rw [←degree_eq_nat_degree (ne_zero (@is_integral_algebra_map α β _ _ _ a)),
+      with_top.coe_one, ←degree_X_sub_C a],
+    refine degree_le_of_monic (@is_integral_algebra_map α β _ _ _ a) (monic_X_sub_C a) _,
     simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self] },
-  have hdeg : (minimal_polynomial ha).degree = 1,
-  { apply (degree_eq_iff_nat_degree_eq (ne_zero ha)).2,
+  have hdeg : (minimal_polynomial (@is_integral_algebra_map α β _ _ _ a)).degree = 1,
+  { apply (degree_eq_iff_nat_degree_eq (ne_zero (@is_integral_algebra_map α β _ _ _ a))).2,
     exact (has_le.le.antisymm hdegle (nat.succ_le_of_lt (with_bot.coe_lt_coe.1
-    (lt_of_lt_of_le (degree_pos ha) degree_le_nat_degree)))) },
+    (lt_of_lt_of_le (degree_pos (@is_integral_algebra_map α β _ _ _ a)) degree_le_nat_degree)))) },
   have hrw := eq_X_add_C_of_degree_eq_one hdeg,
-  simp only [monic ha, one_mul, monic.leading_coeff, ring_hom.map_one] at hrw,
-  have h0 : (minimal_polynomial ha).coeff 0 = -a,
-  { have hroot := aeval ha,
+  simp only [monic (@is_integral_algebra_map α β _ _ _ a), one_mul,
+    monic.leading_coeff, ring_hom.map_one] at hrw,
+  have h0 : (minimal_polynomial (@is_integral_algebra_map α β _ _ _ a)).coeff 0 = -a,
+  { have hroot := aeval (@is_integral_algebra_map α β _ _ _ a),
     rw [hrw, add_comm] at hroot,
     simp only [aeval_C, aeval_X, aeval_add] at hroot,
     replace hroot := eq_neg_of_add_eq_zero hroot,

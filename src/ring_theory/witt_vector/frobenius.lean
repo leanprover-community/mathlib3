@@ -235,7 +235,7 @@ begin
     rw [← IH, ← mul_sub, ← mul_assoc, ← C_mul], },
   clear IH,
 
-  -- we now apply the binomium of Newton on the right hand side,
+  -- we now rewrite the right hand side using the binomium of Newton,
   -- and split off the first term of the resulting sum
   suffices : ∑ (x : ℕ) in
     range (p ^ (n - i)),

@@ -8,7 +8,11 @@ import analysis.transcendental.liouville
 import data.nat.factorial
 
 /-!
-This files contains a construction of a family of Liouville number
+# Liouville constants
+
+This files contains a construction of a family of Liouville number.
+The most important property of these numbers is that they are examples of transcendental real numbers.
+This fact is recorded in `is_liouville.is_transcendental_of_α`.
 -/
 
 namespace is_liouville

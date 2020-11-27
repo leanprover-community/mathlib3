@@ -479,8 +479,7 @@ lemma cyclotomic_of_prime {R : Type*} [comm_ring R] [nontrivial R] {p : ℕ} (hp
   geom_series X p = cyclotomic p R :=
 begin
   apply (@eq_cyclotomic_iff R _ _ p (nat.prime.pos hp) _).2,
-  rw nat.prime.proper_divisors hp,
-  simp only [geom_sum_mul, finset.prod_singleton, cyclotomic_one],
+  simp only [nat.prime.proper_divisors hp, geom_sum_mul, finset.prod_singleton, cyclotomic_one],
 end
 
 /-- The constant term of `cyclotomic n R` is `1` if `2 ≤ n`. -/

@@ -486,8 +486,8 @@ end
 lemma cyclotomic_coeff_zero {R : Type*} [comm_ring R] (n : ℕ) :
   2 ≤ n → (cyclotomic n R).coeff 0 = 1 :=
 begin
-  apply nat.strong_induction_on n,
-  intros k hi hk,
+  induction n using nat.strong_induction_on with k hi,
+  intros hk,
   have hprod : (∏ i in nat.proper_divisors k, (polynomial.cyclotomic i R).coeff 0) = -1,
   { rw [←finset.insert_erase (nat.one_mem_proper_divisors_iff_one_lt.2
       (lt_of_lt_of_le one_lt_two hk)), finset.prod_insert (finset.not_mem_erase 1 _),

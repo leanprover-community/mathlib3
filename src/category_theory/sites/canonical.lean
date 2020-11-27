@@ -193,7 +193,7 @@ lemma sheaf_for_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) (h : P ∈ Ps) :
 /--
 Check that if each `P ∈ Ps` is a sheaf for `J`, then `J` is a subtopology of `finest_topology Ps`.
 -/
-lemma is_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) (J : grothendieck_topology C)
+lemma le_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) (J : grothendieck_topology C)
   (hJ : ∀ P ∈ Ps, presieve.is_sheaf J P) : J ≤ finest_topology Ps :=
 begin
   rintro X S hS _ ⟨⟨_, _, ⟨P, hP, rfl⟩, rfl⟩, rfl⟩,
@@ -211,13 +211,13 @@ def canonical_topology (C : Type u) [category.{v} C] : grothendieck_topology C :
 finest_topology (set.range yoneda.obj)
 
 /-- `yoneda.obj X` is a sheaf for the canonical topology. -/
-lemma yoneda_obj_is_sheaf (X : C) : presieve.is_sheaf (canonical_topology C) (yoneda.obj X) :=
+lemma is_sheaf_yoneda_obj (X : C) : presieve.is_sheaf (canonical_topology C) (yoneda.obj X) :=
 λ Y S hS, sheaf_for_finest_topology _ (set.mem_range_self _) _ hS
 
 /-- A representable functor is a sheaf for the canonical topology. -/
-lemma representable_is_sheaf (P : Cᵒᵖ ⥤ Type v) [representable P] :
+lemma is_sheaf_of_representable (P : Cᵒᵖ ⥤ Type v) [representable P] :
   presieve.is_sheaf (canonical_topology C) P :=
-presieve.is_sheaf_iso (canonical_topology C) representable.w (yoneda_obj_is_sheaf _)
+presieve.is_sheaf_iso (canonical_topology C) representable.w (is_sheaf_yoneda_obj _)
 
 /--
 A subcanonical topology is a topology which is smaller than the canonical topology.
@@ -232,13 +232,13 @@ namespace subcanonical
 lemma of_yoneda_is_sheaf (J : grothendieck_topology C)
   (h : ∀ X, presieve.is_sheaf J (yoneda.obj X)) :
   subcanonical J :=
-is_finest_topology _ _ (by { rintro P ⟨X, rfl⟩, apply h })
+le_finest_topology _ _ (by { rintro P ⟨X, rfl⟩, apply h })
 
 /-- If `J` is subcanonical, then any representable is a `J`-sheaf. -/
-lemma representable_is_sheaf {J : grothendieck_topology C} (hJ : subcanonical J)
+lemma is_sheaf_of_representable {J : grothendieck_topology C} (hJ : subcanonical J)
   (P : Cᵒᵖ ⥤ Type v) [representable P] :
   presieve.is_sheaf J P :=
-presieve.is_sheaf_for_coarser_topology _ hJ (representable_is_sheaf P)
+presieve.is_sheaf_for_coarser_topology _ hJ (is_sheaf_of_representable P)
 
 end subcanonical
 

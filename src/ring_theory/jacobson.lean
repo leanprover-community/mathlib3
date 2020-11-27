@@ -403,14 +403,12 @@ is_jacobson_polynomial_iff_is_jacobson.mpr ‹is_jacobson R›
   `Inf {P maximal | P ≥ I} = Inf {P prime | P ≥ I} = I.radical`. Fields are always jacobson,
   and in that special case this is (most of) the classical nullstellensatz,
   since `I(V(I))` is the intersection of maximal ideals containing `I`, which is then `I.radical` -/
-lemma is_jacobson_mv_polynomial_fin [H : is_jacobson R] (n : ℕ) :
-  is_jacobson (mv_polynomial (fin n) R) :=
-nat.rec_on n
-  ((is_jacobson_iso
-    ((mv_polynomial.ring_equiv_of_equiv R (equiv.equiv_pempty $ fin.elim0)).trans
-    (mv_polynomial.pempty_ring_equiv R))).mpr H)
-  (λ n hn, (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).2
-    (is_jacobson_polynomial_iff_is_jacobson.2 hn))
+lemma is_jacobson_mv_polynomial_fin [H : is_jacobson R] :
+  ∀ (n : ℕ), is_jacobson (mv_polynomial (fin n) R)
+| 0 := ((is_jacobson_iso ((mv_polynomial.ring_equiv_of_equiv R
+  (equiv.equiv_pempty $ fin.elim0)).trans (mv_polynomial.pempty_ring_equiv R))).mpr H)
+| (n+1) := (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).2
+  (is_jacobson_polynomial_iff_is_jacobson.2 (is_jacobson_mv_polynomial_fin n))
 
 instance {ι : Type*} [fintype ι] [is_jacobson R] : is_jacobson (mv_polynomial ι R) :=
 begin

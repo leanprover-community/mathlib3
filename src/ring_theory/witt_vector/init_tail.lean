@@ -70,7 +70,7 @@ section
 
 local attribute [semireducible] witt_vector
 
-/-- `witt_vector.select P x`, for a (decidable) predicate `P : ℕ → Prop` is the Witt vector
+/-- `witt_vector.select P x`, for a predicate `P : ℕ → Prop` is the Witt vector
 whose `n`-th coefficient is `x.coeff n` if `P n` is true, and `0` otherwise.
 -/
 def select (P : ℕ → Prop) (x : 𝕎 R) : 𝕎 R :=
@@ -88,8 +88,8 @@ lemma coeff_select (x : 𝕎 R) (n : ℕ) :
 begin
   dsimp [select, select_poly],
   split_ifs with hi,
-  { rw [aeval_X] },
-  { rw [alg_hom.map_zero] }
+  { rw aeval_X },
+  { rw alg_hom.map_zero }
 end
 
 @[is_poly] lemma select_is_poly (P : ℕ → Prop) :

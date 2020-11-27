@@ -263,7 +263,7 @@ section polynomial
 open polynomial
 
 /-- If `f : R → S` descends to an integral map in the localization at `x`,
-  and `R` is a jacobson ring, then the intersection of all maximal ideals in `S` is empty -/
+  and `R` is a jacobson ring, then the intersection of all maximal ideals in `S` is trivial -/
 lemma jacobson_bot_of_integral_localization {R S : Type*} [integral_domain R] [integral_domain S]
   {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ] [is_jacobson R]
   (φ : R →+* S) (hφ : function.injective φ) (x : R) (hx : x ≠ 0)
@@ -399,10 +399,6 @@ end
 instance [is_jacobson R] : is_jacobson (polynomial R) :=
 is_jacobson_polynomial_iff_is_jacobson.mpr ‹is_jacobson R›
 
-/-- General form of the nullstellensatz for jacobson rings, since in a jacobson ring we have
-  `Inf {P maximal | P ≥ I} = Inf {P prime | P ≥ I} = I.radical`. Fields are always jacobson,
-  and in that special case this is (most of) the classical nullstellensatz,
-  since `I(V(I))` is the intersection of maximal ideals containing `I`, which is then `I.radical` -/
 lemma is_jacobson_mv_polynomial_fin [H : is_jacobson R] :
   ∀ (n : ℕ), is_jacobson (mv_polynomial (fin n) R)
 | 0 := ((is_jacobson_iso ((mv_polynomial.ring_equiv_of_equiv R
@@ -410,6 +406,10 @@ lemma is_jacobson_mv_polynomial_fin [H : is_jacobson R] :
 | (n+1) := (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).2
   (is_jacobson_polynomial_iff_is_jacobson.2 (is_jacobson_mv_polynomial_fin n))
 
+/-- General form of the nullstellensatz for jacobson rings, since in a jacobson ring we have
+  `Inf {P maximal | P ≥ I} = Inf {P prime | P ≥ I} = I.radical`. Fields are always jacobson,
+  and in that special case this is (most of) the classical nullstellensatz,
+  since `I(V(I))` is the intersection of maximal ideals containing `I`, which is then `I.radical` -/
 instance {ι : Type*} [fintype ι] [is_jacobson R] : is_jacobson (mv_polynomial ι R) :=
 begin
   haveI := classical.dec_eq ι,

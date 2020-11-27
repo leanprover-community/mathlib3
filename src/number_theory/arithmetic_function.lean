@@ -249,18 +249,18 @@ instance [comm_ring R] : comm_ring (arithmetic_function R) :=
   .. arithmetic_function.comm_semiring }
 
 section module
-variables {A : Type*} [semiring R] [add_comm_monoid A] [semimodule R A]
+variables {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
 
 /-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
   such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
-instance : has_scalar (arithmetic_function R) (arithmetic_function A) :=
+instance : has_scalar (arithmetic_function R) (arithmetic_function M) :=
 ⟨λ f g, ⟨λ n, ∑ x in divisors_antidiagonal n, f x.fst • g x.snd, by simp⟩⟩
 
 @[simp]
-lemma smul_apply {f : arithmetic_function R} {g : arithmetic_function A} {n : ℕ} :
+lemma smul_apply {f : arithmetic_function R} {g : arithmetic_function M} {n : ℕ} :
   (f • g) n = ∑ x in divisors_antidiagonal n, f x.fst • g x.snd := rfl
 
-instance : semimodule (arithmetic_function R) (arithmetic_function A) :=
+instance : semimodule (arithmetic_function R) (arithmetic_function M) :=
 { one_smul := λ f,
   begin
     ext,
@@ -350,8 +350,8 @@ begin
       simp [ne0, mul_comm] } }
 end
 
-theorem coe_zeta_smul_apply {A : Type*} [comm_ring R] [add_comm_group A] [module R A]
-  {f : arithmetic_function A} {x : ℕ} :
+theorem coe_zeta_smul_apply {M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+  {f : arithmetic_function M} {x : ℕ} :
   ((↑ζ : arithmetic_function R) • f) x = ∑ i in divisors x, f i :=
 begin
   rw smul_apply,
@@ -809,8 +809,8 @@ lemma coe_zeta_unit :
 lemma inv_zeta_unit :
   ((zeta_unit⁻¹ : units (arithmetic_function R)) : arithmetic_function R) = μ := rfl
 
-/-- One version of Möbius inversion. -/
-theorem sum_eq_iff_sum_moebius_eq {f g : ℕ → R} (hf : f 0 = 0) (hg : g 0 = 0) :
+/-- Möbius inversion for functions to a `comm_ring`. -/
+theorem sum_eq_iff_sum_mul_moebius_eq {f g : ℕ → R} (hf : f 0 = 0) (hg : g 0 = 0) :
   (∀ (n : ℕ), ∑ i in (n.divisors), f i = g n) ↔
     ∀ (n : ℕ), ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, (μ x.fst : R) * g x.snd = f n :=
 begin
@@ -829,8 +829,9 @@ end
 
 end comm_ring
 
-/-- One version of Möbius inversion. -/
-theorem sum_eq_iff_sum_moebius_eq' [add_comm_group R] {f g : ℕ → R} (hf : f 0 = 0) (hg : g 0 = 0) :
+/-- Möbius inversion for functions to an `add_comm_group`. -/
+theorem sum_eq_iff_sum_smul_moebius_eq
+  [add_comm_group R] {f g : ℕ → R} (hf : f 0 = 0) (hg : g 0 = 0) :
   (∀ (n : ℕ), ∑ i in (n.divisors), f i = g n) ↔
     ∀ (n : ℕ), ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, (μ x.fst : ℤ) • g x.snd = f n :=
 begin
@@ -852,7 +853,8 @@ begin
     simp },
 end
 
-theorem prod_eq_iff_prod_moebius_eq [comm_group R] {f g : ℕ → R} (hf : f 0 = 1) (hg : g 0 = 1) :
+/-- Möbius inversion for functions to a `comm_group`. -/
+theorem prod_eq_iff_prod_pow_moebius_eq [comm_group R] {f g : ℕ → R} (hf : f 0 = 1) (hg : g 0 = 1) :
   (∀ (n : ℕ), ∏ i in (n.divisors), f i = g n) ↔
     ∀ (n : ℕ), ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
 @sum_eq_iff_sum_moebius_eq' (additive R) _ f g hf hg

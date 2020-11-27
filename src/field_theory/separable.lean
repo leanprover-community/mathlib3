@@ -460,7 +460,7 @@ begin
 end
 
 /--If `n ≠ 0` in `F`, then ` X ^ n - a` is separable for any `a ≠ 0`. -/
-lemma separable_of_X_pow_sub_C {n : ℕ} (a : F) (hn : ↑n ≠ (0 : F)) (ha : a ≠ 0) :
+lemma separable_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 0) :
   separable (X ^ n - C a) :=
 begin
   cases nat.eq_zero_or_pos n with hzero hpos,

@@ -490,8 +490,8 @@ begin
   intros k hi hk,
   have hprod : (∏ i in nat.proper_divisors k, (polynomial.cyclotomic i R).coeff 0) = -1,
   { rw [←finset.insert_erase (nat.one_mem_proper_divisors_iff_one_lt.2
-    (lt_of_lt_of_le one_lt_two hk)), finset.prod_insert (finset.not_mem_erase 1 _),
-    cyclotomic_one R],
+      (lt_of_lt_of_le one_lt_two hk)), finset.prod_insert (finset.not_mem_erase 1 _),
+      cyclotomic_one R],
     have hleq : ∀ j ∈ k.proper_divisors.erase 1, 2 ≤ j,
     { intros j hj,
       apply nat.succ_le_of_lt,

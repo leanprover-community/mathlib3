@@ -164,8 +164,8 @@ lemma to_dual'_isometry : isometry (@to_dual' 𝕜 E _ _) :=
 add_monoid_hom.isometry_of_norm _ (norm_to_dual'_apply 𝕜)
 
 /--
-Fréchet-Riesz representation: any ℓ in the dual of a Hilbert space E is of the form
-λ u, ⟪y, u⟫ for some y in E, i.e. to_dual' is surjective.
+Fréchet-Riesz representation: any `ℓ` in the dual of a Hilbert space `E` is of the form
+`λ u, ⟪y, u⟫` for some `y : E`, i.e. `to_dual'` is surjective.
 -/
 lemma to_dual'_surjective [complete_space E] : function.surjective (@to_dual' 𝕜 E _ _) :=
 begin
@@ -258,19 +258,12 @@ equivalence thus induced.
 lemma range_to_dual_map : (@to_dual_map F _).range = ⊤ :=
 linear_map.range_eq_top.mpr (to_dual'_surjective ℝ)
 
+#check @to_dual_map
 /--
 Fréchet-Riesz representation: If `F` is a Hilbert space, the function that takes a vector in `F` to
 its dual is a continuous linear equivalence.  -/
 def to_dual : F ≃L[ℝ] (normed_space.dual ℝ F) :=
-continuous_linear_equiv.of_homothety
-  ℝ
-  (linear_equiv.of_bijective
-    to_dual_map.to_linear_map
-    ker_to_dual_map
-    range_to_dual_map)
-  1
-  (by norm_num)
-  (λ x, by { convert norm_to_dual_map_apply x, simp })
+continuous_linear_equiv.of_isometry to_dual_map.to_linear_map to_dual_map_isometry range_to_dual_map
 
 /--
 Fréchet-Riesz representation: If `F` is a Hilbert space, the function that takes a vector in `F` to

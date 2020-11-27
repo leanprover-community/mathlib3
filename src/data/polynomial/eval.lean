@@ -37,6 +37,8 @@ p.sum (λ e a, f a * x ^ e)
 
 lemma eval₂_eq_sum {f : R →+* S} {x : S} : p.eval₂ f x = p.sum (λ e a, f a * x ^ e) := rfl
 
+lemma eval₂_eq_lift_nc {f : R →+* S} {x : S} : eval₂ f x = lift_nc ↑f (powers_hom S x) := rfl
+
 lemma eval₂_congr {R S : Type*} [semiring R] [semiring S]
   {f g : R →+* S} {s t : S} {φ ψ : polynomial R} :
   f = g → s = t → φ = ψ → eval₂ f s φ = eval₂ g t ψ :=
@@ -93,7 +95,6 @@ polynomial.induction_on' p (λ p q hp hq, by simp [hp, hq])
 instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
 { map_zero := eval₂_zero _ _, map_add := λ _ _, eval₂_add _ _ }
 
-
 @[simp] lemma eval₂_nat_cast (n : ℕ) : (n : polynomial R).eval₂ f x = n :=
 nat.rec_on n rfl $ λ n ih, by rw [n.cast_succ, eval₂_add, ih, eval₂_one, n.cast_succ]
 
@@ -103,7 +104,6 @@ lemma eval₂_sum (p : polynomial T) (g : ℕ → T → polynomial R) (x : S) :
 finsupp.sum_sum_index (by simp [is_add_monoid_hom.map_zero f])
   (by intros; simp [right_distrib, is_add_monoid_hom.map_add f])
 
-
 lemma eval₂_finset_sum (s : finset ι) (g : ι → polynomial R) (x : S) :
   (∑ i in s, g i).eval₂ f x = ∑ i in s, (g i).eval₂ f x :=
 begin
@@ -112,38 +112,48 @@ begin
   rw [sum_insert, eval₂_add, hs, sum_insert]; assumption,
 end
 
-lemma eval₂_mul_noncomm (hf : ∀ b a, f b * a = a * f b) :
-  (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
+lemma eval₂_mul_noncomm (hf : ∀ k, commute (f $ q.coeff k) x) :
+  eval₂ f x (p * q) = eval₂ f x p * eval₂ f x q :=
 begin
-  have f_zero : ∀ (a : ℕ), f 0 * x ^ a = 0,
-  { intro, simp },
-  have f_add : ∀ (a : ℕ) (b₁ b₂ : R), f (b₁ + b₂) * x ^ a = f b₁ * x ^ a + f b₂ * x ^ a,
-  { intros, rw [f.map_add, add_mul] },
+  simp only [eval₂_eq_lift_nc],
+  exact lift_nc_mul _ _ p q (λ k n hn, (hf k).pow_right n)
+end
 
-  simp_rw [eval₂, add_monoid_algebra.mul_def, finsupp.sum_mul _ p, finsupp.mul_sum _ q],
-  rw sum_sum_index; try { assumption },
-  apply sum_congr rfl, assume i hi, dsimp only,
-  rw sum_sum_index; try { assumption },
-  apply sum_congr rfl, assume j hj, dsimp only,
-  rw [sum_single_index, is_semiring_hom.map_mul f, pow_add],
-  { rw [mul_assoc, ←mul_assoc _ (x ^ i), hf _ (x ^ i), mul_assoc, mul_assoc] },
-  { apply f_zero }
- end
-
-lemma eval₂_list_prod_noncomm (ps : list (polynomial R)) (hf : ∀ b a, f b * a = a * f b):
-  ps.prod.eval₂ f x = (ps.map (polynomial.eval₂ f x)).prod :=
+@[simp] lemma eval₂_mul_X : eval₂ f x (p * X) = eval₂ f x p * x :=
 begin
-  induction ps,
+  refine trans (eval₂_mul_noncomm _ _ $ λ k, _) (by rw eval₂_X),
+  rcases em (k = 1) with (rfl|hk),
   { simp },
-  { simp [eval₂_mul_noncomm _ _ hf, ps_ih] {contextual := tt} }
+  { simp [coeff_X_of_ne_one hk] }
+end
+
+@[simp] lemma eval₂_X_mul : eval₂ f x (X * p) = eval₂ f x p * x :=
+by rw [X_mul, eval₂_mul_X]
+
+lemma eval₂_mul_C' (h : commute (f a) x) : eval₂ f x (p * C a) = eval₂ f x p * f a :=
+begin
+  rw [eval₂_mul_noncomm, eval₂_C],
+  intro k,
+  obtain (hk|(hk : _ = _)) : (C a).coeff k ∈ ({0, a} : set R) := finsupp.single_apply_mem _;
+    simp [hk, h]
+end
+
+lemma eval₂_list_prod_noncomm (ps : list (polynomial R))
+  (hf : ∀ (p ∈ ps) k, commute (f $ coeff p k) x) :
+  eval₂ f x ps.prod = (ps.map (polynomial.eval₂ f x)).prod :=
+begin
+  induction ps using list.reverse_rec_on with ps p ihp,
+  { simp },
+  { simp only [list.forall_mem_append, list.forall_mem_singleton] at hf,
+    simp [eval₂_mul_noncomm _ _ hf.2, ihp hf.1] }
 end
 
 /-- `eval₂` as a `ring_hom` for noncommutative rings -/
-def eval₂_ring_hom' (f : R →+* S) (hf : ∀ b a, f b * a = a * f b) (x : S) : polynomial R →+* S :=
+def eval₂_ring_hom' (f : R →+* S) (x : S) (hf : ∀ a, commute (f a) x) : polynomial R →+* S :=
 { to_fun := eval₂ f x,
   map_add' := λ _ _, eval₂_add _ _,
   map_zero' := eval₂_zero _ _,
-  map_mul' := λ _ _, eval₂_mul_noncomm _ _ hf,
+  map_mul' := λ p q, eval₂_mul_noncomm f x (λ k, hf $ coeff q k),
   map_one' := eval₂_one _ _ }
 
 end
@@ -158,10 +168,7 @@ variables [comm_semiring S]
 variables (f : R →+* S) (x : S)
 
 @[simp] lemma eval₂_mul : (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
-begin
-  apply eval₂_mul_noncomm,
-  simp [mul_comm]
-end
+eval₂_mul_noncomm _ _ $ λ k, commute.all _ _
 
 lemma eval₂_mul_eq_zero_of_left (q : polynomial R) (hp : p.eval₂ f x = 0) :
   (p * q).eval₂ f x = 0 :=

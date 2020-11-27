@@ -99,8 +99,7 @@ def linear_map.to_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n
   left_inv := λ f, begin
     apply (pi.is_basis_fun R n).ext,
     intro j, ext i,
-    simp only [matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply],
-    congr
+    simp only [matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply]
   end,
   map_add' := λ f g, by { ext i j, simp only [pi.add_apply, linear_map.add_apply] },
   map_smul' := λ c f, by { ext i j, simp only [pi.smul_apply, linear_map.smul_apply] } }

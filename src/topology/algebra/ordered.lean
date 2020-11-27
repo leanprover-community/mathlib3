@@ -1384,16 +1384,40 @@ begin
     exact ((h_mono.lt_iff_lt hx hcs).2 hxc).trans_le hcb }
 end
 
-lemma strict_mono_incr_on.continuous_at_right' [densely_ordered β] {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a) (hfs : f '' s ∈ 𝓝[Ici (f a)] (f a)) :
+lemma continuous_at_right_of_mono_incr_on' {f : α → β} {s : set α} {a : α}
+  (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝[Ici a] a)
+  (hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioo (f a) b) :
   continuous_within_at f (Ici a) a :=
 begin
-  refine h_mono.continuous_at_right'' hs (λ b hb, _),
+  have ha : a ∈ Ici a := left_mem_Ici,
+  have has : a ∈ s := mem_of_mem_nhds_within ha hs,
+  refine tendsto_order.2 ⟨λ b hb, _, λ b hb, _⟩,
+  { filter_upwards [hs, self_mem_nhds_within],
+    intros x hxs hxa,
+    exact hb.trans_le (h_mono _ has _ hxs hxa) },
+  { rcases hfs b hb with ⟨c, hcs, hac, hcb⟩,
+    have : a < c, from not_le.1 (λ h, hac.not_le $ h_mono _ hcs _ has h),
+    filter_upwards [hs, Ico_mem_nhds_within_Ici (left_mem_Ico.2 this)],
+    rintros x hx ⟨hax, hxc⟩,
+    exact (h_mono _ hx _ hcs hxc.le).trans_lt hcb }
+end
+
+lemma continuous_at_right_of_mono_incr_on [densely_ordered β] {f : α → β} {s : set α} {a : α}
+  (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝[Ici a] a)
+  (hfs : f '' s ∈ 𝓝[Ici (f a)] (f a)) :
+  continuous_within_at f (Ici a) a :=
+begin
+  refine continuous_at_right_of_mono_incr_on' h_mono hs (λ b hb, _),
   rcases (mem_nhds_within_Ici_iff_exists_mem_Ioc_Ico_subset hb).1 hfs with ⟨b', ⟨hab', hbb'⟩, hb'⟩,
   rcases exists_between hab' with ⟨c', hac', hc'b'⟩,
   rcases hb' ⟨hac'.le, hc'b'⟩ with ⟨c, hcs, rfl⟩,
-  exact ⟨c, hcs, hac', hc'b'.le.trans hbb'⟩
+  exact ⟨c, hcs, hac', hc'b'.trans_le hbb'⟩
 end
+
+lemma strict_mono_incr_on.continuous_at_right' [densely_ordered β] {f : α → β} {s : set α} {a : α}
+  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a) (hfs : f '' s ∈ 𝓝[Ici (f a)] (f a)) :
+  continuous_within_at f (Ici a) a :=
+continuous_at_right_of_mono_incr_on (λ x hx y hy, (h_mono.le_iff_le hx hy).2) hs hfs
 
 lemma strict_mono_incr_on.continuous_at_right {f : α → β} {s : set α} {a : α}
   (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a) (hfs : surj_on f s (Ioi (f a))) :
@@ -1407,6 +1431,21 @@ lemma strict_mono_incr_on.continuous_at_left'' {f : α → β} {s : set α} {a :
   continuous_within_at f (Iic a) a :=
 h_mono.dual.continuous_at_right'' hs $
   λ b hb, let ⟨c, hcs, hcb, hca⟩ := hfs b hb in ⟨c, hcs, hca, hcb⟩
+
+lemma continuous_at_left_of_mono_incr_on' {f : α → β} {s : set α} {a : α}
+  (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝[Iic a] a)
+  (hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ioo b (f a)) :
+  continuous_within_at f (Iic a) a :=
+@continuous_at_right_of_mono_incr_on' (order_dual α) (order_dual β) _ _ _ _ _ _ f s a
+  (λ x hx y hy, h_mono y hy x hx) hs $
+  λ b hb, let ⟨c, hcs, hcb, hca⟩ := hfs b hb in ⟨c, hcs, hca, hcb⟩
+
+lemma continuous_at_left_of_mono_incr_on [densely_ordered β] {f : α → β} {s : set α} {a : α}
+  (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝[Iic a] a)
+  (hfs : f '' s ∈ 𝓝[Iic (f a)] (f a)) :
+  continuous_within_at f (Iic a) a :=
+@continuous_at_right_of_mono_incr_on (order_dual α) (order_dual β) _ _ _ _ _ _ _ f s a
+  (λ x hx y hy, h_mono y hy x hx) hs hfs
 
 lemma strict_mono_incr_on.continuous_at_left' [densely_ordered β] {f : α → β} {s : set α} {a : α}
   (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a) (hfs : f '' s ∈ 𝓝[Iic (f a)] (f a)) :
@@ -2895,6 +2934,23 @@ continuous_at_iff_continuous_left_right.2
   ⟨h_mono.continuous_at_left' (mem_nhds_within_of_mem_nhds hs) (mem_nhds_within_of_mem_nhds hfs),
    h_mono.continuous_at_right' (mem_nhds_within_of_mem_nhds hs) (mem_nhds_within_of_mem_nhds hfs)⟩
 
+lemma continuous_at_of_mono_incr_on' {f : α → β} {s : set α} {a : α}
+  (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝 a)
+  (hfs_l : ∀ b < f a, ∃ c ∈ s, f c ∈ Ioo b (f a)) (hfs_r : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioo (f a) b) :
+  continuous_at f a :=
+continuous_at_iff_continuous_left_right.2
+  ⟨continuous_at_left_of_mono_incr_on' h_mono (mem_nhds_within_of_mem_nhds hs) hfs_l,
+   continuous_at_right_of_mono_incr_on' h_mono (mem_nhds_within_of_mem_nhds hs) hfs_r⟩
+
+lemma continuous_at_of_mono_incr_on [densely_ordered β] {f : α → β} {s : set α} {a : α}
+  (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝 a) (hfs : f '' s ∈ 𝓝 (f a)) :
+  continuous_at f a :=
+continuous_at_iff_continuous_left_right.2
+  ⟨continuous_at_left_of_mono_incr_on h_mono (mem_nhds_within_of_mem_nhds hs)
+     (mem_nhds_within_of_mem_nhds hfs),
+   continuous_at_right_of_mono_incr_on h_mono (mem_nhds_within_of_mem_nhds hs)
+     (mem_nhds_within_of_mem_nhds hfs)⟩
+
 lemma strict_mono_incr_on.continuous_at {f : α → β} {s : set α} {a : α}
   (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝 a) (hfs : surj_on f s univ) :
   continuous_at f a :=
@@ -2903,6 +2959,13 @@ continuous_at_iff_continuous_left_right.2
     (hfs.mono (subset.refl _) (subset_univ _)),
    h_mono.continuous_at_right (mem_nhds_within_of_mem_nhds hs)
     (hfs.mono (subset.refl _) (subset_univ _))⟩
+
+lemma continuous_of_monotone_surjective [densely_ordered β] {f : α → β}
+  (h_mono : monotone f) (h_surj : function.surjective f) :
+  continuous f :=
+continuous_iff_continuous_at.mpr $ λ a,
+  continuous_at_of_mono_incr_on (λ x _ y _ hxy, h_mono hxy)
+  univ_mem_sets $ by simp [h_surj.range_eq, univ_mem_sets]
 
 /-- If `f : α → β` is strictly monotone and surjective, it is everywhere continuous. -/
 lemma continuous_at_of_strict_mono_surjective

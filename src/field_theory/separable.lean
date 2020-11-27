@@ -473,19 +473,18 @@ begin
   { nth_rewrite 0 [←pow_one X],
     rw pow_mul_pow_sub X (nat.succ_le_iff.mpr hpos) },
   rw [derivative_sub, derivative_C, sub_zero, derivative_pow X n, derivative_X, mul_one],
+  have hcalc : C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) = C a⁻¹ * (X ^ n),
+  { calc C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n))
+       = C a⁻¹ * C ((↑n)⁻¹) * (C ↑n * (X ^ n)) : by rw [C_mul, C_eq_nat_cast]
+   ... = C a⁻¹ * (C ((↑n)⁻¹) * C ↑n) * (X ^ n) : by ring
+   ... = C a⁻¹ * C ((↑n)⁻¹ * ↑n) * (X ^ n) : by rw [← C_mul]
+   ... = C a⁻¹ * C 1 * (X ^ n) : by field_simp [hn]
+   ... = C a⁻¹ * (X ^ n) : by rw [C_1, mul_one] },
   calc -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * X * (↑n * X ^ (n - 1))
       = -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X * X ^ (n - 1))) : by ring
-  ... = -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by rw [mul_pow_sub]
-  ... = -C a⁻¹ * X ^ n + C a⁻¹ * C a + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by ring
-  ... = -C a⁻¹ * X ^ n + C (a⁻¹ * a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by rw [←C_mul]
-  ... = -C a⁻¹ * X ^ n + C 1 + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) : by field_simp [ha]
-  ... = -C a⁻¹ * X ^ n + 1 + C a⁻¹ * C ((↑n)⁻¹) * (↑n * (X ^ n)) : by rw [C_mul, C_1]
-  ... = -C a⁻¹ * X ^ n + 1 + C a⁻¹ * C ((↑n)⁻¹) * (C ↑n * (X ^ n)) : by rw [C_eq_nat_cast]
-  ... = -C a⁻¹ * X ^ n + 1 + C a⁻¹ * (C ((↑n)⁻¹) * C ↑n) * (X ^ n) : by ring
-  ... = -C a⁻¹ * X ^ n + 1 + C a⁻¹ * C ((↑n)⁻¹ * ↑n) * (X ^ n) : by rw [←C_mul]
-  ... = -C a⁻¹ * X ^ n + 1 + C a⁻¹ * C 1 * (X ^ n) : by field_simp [hn]
-  ... = -C a⁻¹ * X ^ n + 1 + C a⁻¹ * (X ^ n) : by rw [C_1, mul_one]
-  ...  = (1 : polynomial F) : by ring
+  ... = -C a⁻¹ * (X ^ n - C a) + C a⁻¹ * (X ^ n) : by rw [mul_pow_sub, hcalc]
+  ... = C a⁻¹ * C a : by ring
+  ... = (1 : polynomial F) : by rw [← C_mul, inv_mul_cancel ha, C_1]
 end
 
 /--If `n ≠ 0` in `F`, then ` X ^ n - a` is squarefree for any `a ≠ 0`. -/

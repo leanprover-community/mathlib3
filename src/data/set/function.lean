@@ -198,6 +198,10 @@ theorem maps_to.mem_iff (h : maps_to f s t) (hc : maps_to f sᶜ tᶜ) {x} : f x
 theorem inj_on_empty (f : α → β) : inj_on f ∅ :=
 λ _ h₁, false.elim h₁
 
+theorem inj_on.eq_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  f x = f y ↔ x = y :=
+⟨h hx hy, λ h, h ▸ rfl⟩
+
 theorem inj_on.congr (h₁ : inj_on f₁ s) (h : eq_on f₁ f₂ s) :
   inj_on f₂ s :=
 λ x hx y hy, h hx ▸ h hy ▸ h₁ hx hy
@@ -624,6 +628,18 @@ lemma strict_mono_decr_on.inj_on [linear_order α] [preorder β] {f : α → β}
   (H : strict_mono_decr_on f s) :
   s.inj_on f :=
 @strict_mono_incr_on.inj_on α (order_dual β) _ _ f s H
+
+lemma strict_mono_incr_on.comp [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_incr_on g t)
+  (hf : strict_mono_incr_on f s) (hs : set.maps_to f s t) :
+  strict_mono_incr_on (g ∘ f) s :=
+λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
+
+lemma strict_mono.comp_strict_mono_incr_on [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} (hg : strict_mono g)
+  (hf : strict_mono_incr_on f s) :
+  strict_mono_incr_on (g ∘ f) s :=
+λ x hx y hy hxy, hg $ hf hx hy hxy
 
 namespace function
 

@@ -258,7 +258,6 @@ equivalence thus induced.
 lemma range_to_dual_map : (@to_dual_map F _).range = ⊤ :=
 linear_map.range_eq_top.mpr (to_dual'_surjective ℝ)
 
-#check @to_dual_map
 /--
 Fréchet-Riesz representation: If `F` is a Hilbert space, the function that takes a vector in `F` to
 its dual is a continuous linear equivalence.  -/

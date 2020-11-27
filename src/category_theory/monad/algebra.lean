@@ -40,6 +40,7 @@ structure algebra (T : C ⥤ C) [monad T] : Type (max u₁ v₁) :=
 
 restate_axiom algebra.unit'
 restate_axiom algebra.assoc'
+attribute [reassoc] algebra.unit algebra.assoc
 
 namespace algebra
 variables {T : C ⥤ C} [monad T]

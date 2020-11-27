@@ -29,7 +29,7 @@ class monad (T : C ⥤ C) :=
 restate_axiom monad.assoc'
 restate_axiom monad.left_unit'
 restate_axiom monad.right_unit'
-attribute [simp] monad.left_unit monad.right_unit
+attribute [simp, reassoc] monad.left_unit monad.right_unit
 
 notation `η_` := monad.η
 notation `μ_` := monad.μ

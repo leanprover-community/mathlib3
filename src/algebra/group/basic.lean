@@ -15,14 +15,14 @@ variables {α : Type u} (f : α → α → α) [is_associative α f] (x y : α)
 Composing two associative operations of `f : α → α → α` on the left
 is equal to an associative operation on the left.
 -/
-@[simp] lemma comp_assoc_left : (f x) ∘ (f y) = (f (f x y)) :=
+lemma comp_assoc_left : (f x) ∘ (f y) = (f (f x y)) :=
 by { ext z, rw [function.comp_apply, @is_associative.assoc _ f] }
 
 /--
 Composing two associative operations of `f : α → α → α` on the right
 is equal to an associative operation on the right.
 -/
-@[simp] lemma comp_assoc_right : (λ z, f z x) ∘ (λ z, f z y) = (λ z, f z (f y x)) :=
+lemma comp_assoc_right : (λ z, f z x) ∘ (λ z, f z y) = (λ z, f z (f y x)) :=
 by { ext z, rw [function.comp_apply, @is_associative.assoc _ f] }
 
 end associative

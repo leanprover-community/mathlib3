@@ -484,10 +484,9 @@ begin
 end
 
 /-- The constant term of `cyclotomic n R` is `1` if `2 ≤ n`. -/
-lemma cyclotomic_coeff_zero {R : Type*} [comm_ring R] (n : ℕ) (hn : 2 ≤ n) :
-  (cyclotomic n R).coeff 0 = 1 :=
+lemma cyclotomic_coeff_zero {R : Type*} [comm_ring R] (n : ℕ) :
+  2 ≤ n → (cyclotomic n R).coeff 0 = 1 :=
 begin
-  revert hn,
   apply nat.strong_induction_on n,
   intros k hi hk,
   have hprod : (∏ i in nat.proper_divisors k, (polynomial.cyclotomic i R).coeff 0) = -1,

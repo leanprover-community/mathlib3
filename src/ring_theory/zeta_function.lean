@@ -30,10 +30,15 @@ def mod_function (ha : 0 < a ∧ a < F) (s : ℂ) : ℕ → ℂ := λ n, (1/(a +
 
 def H_function_char (ha : 0 < a ∧ a < F) : ℂ → ℂ := λ s, ∑' n, (mod_function a F ha s) n
 
-lemma totient_positive : 0 < nat.totient p := sorry
+lemma totient_positive : 0 < nat.totient p :=
+begin
+  apply nat.totient_pos,
+  exact nat.prime.pos _inst_1,
+end
 
---lemma exists_root (hp : is_unit (a : ℤ_[p]) ) (hp' : p ≠ 2) : ∃ ! ( ω : roots_of_unity (nat.to_pnat (nat.totient p) (totient_positive)) ℤ_[p] ), (p : ℤ_[p]) | ((a : ℤ_[p]) - ω) :=
-
-lemma exists_root (hp : is_unit (a : ℤ_[p]) ) (hp' : p ≠ 2) : ∃ ω : ℤ_[p], 1 ≤ padic_int.valuation ((a - ω) : ℤ_[p]) :=
+lemma exists_root (hp : is_unit (a : ℤ_[p]) ) (hp' : p ≠ 2) :  ∃! ( ω : roots_of_unity (nat.to_pnat (nat.totient p) (totient_positive)) ℤ_[p] ), 1 ≤ padic_int.valuation ((a - ω) : ℤ_[p]) :=
+begin
+sorry
+end
 
 end dir_character

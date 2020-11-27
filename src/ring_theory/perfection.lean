@@ -39,7 +39,7 @@ def monoid.perfection (M : Type u) [comm_monoid M] (p : ℕ) : submonoid (ℕ �
 /-- The perfection of a semiring `R` with characteristic `p`,
 defined to be the projective limit of `R` using the Frobenius maps `R → R`
 indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 1) ^ p = f n }`. -/
-def comm_semiring.perfection (R : Type u) [comm_semiring R]
+def semiring.perfection (R : Type u) [comm_semiring R]
   (p : ℕ) [hp : fact p.prime] [char_p R p] :
   subsemiring (ℕ → R) :=
 { zero_mem' := λ n, zero_pow $ hp.pos,

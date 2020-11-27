@@ -285,13 +285,13 @@ instance : semimodule (arithmetic_function R) (arithmetic_function M) :=
   mul_smul := λ f g h, begin
     ext n,
     simp only [mul_apply, smul_apply],
-    have := @finset.sum_sigma (ℕ × ℕ) A _ _ (divisors_antidiagonal n)
+    have := @finset.sum_sigma (ℕ × ℕ) M _ _ (divisors_antidiagonal n)
       (λ p, (divisors_antidiagonal p.1)) (λ x, f x.2.1 • g x.2.2 • h x.1.2),
     convert this.symm using 1; clear this,
     { apply finset.sum_congr rfl,
       intros p hp,
       simp only [sum_smul, mul_smul], },
-    have := @finset.sum_sigma (ℕ × ℕ) A _ _ (divisors_antidiagonal n)
+    have := @finset.sum_sigma (ℕ × ℕ) M _ _ (divisors_antidiagonal n)
       (λ p, (divisors_antidiagonal p.2)) (λ x, f x.1.1 • (g x.2.1 • h x.2.2)),
     convert this.symm using 1; clear this,
     { apply finset.sum_congr rfl, intros p hp, rw smul_sum },

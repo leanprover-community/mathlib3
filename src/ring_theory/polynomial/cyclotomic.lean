@@ -475,9 +475,10 @@ begin
 end
 
 /-- If `p` is prime, then `cyclotomic p R = geom_series X p`. -/
-lemma cyclotomic_of_prime {R : Type*} [comm_ring R] [nontrivial R] {p : ℕ} (hp : nat.prime p) :
-  geom_series X p = cyclotomic p R :=
+lemma cyclotomic_eq_geom_series {R : Type*} [comm_ring R] [nontrivial R] {p : ℕ} (hp : nat.prime p) :
+  cyclotomic p R = geom_series X p :=
 begin
+  symmetry,
   refine (eq_cyclotomic_iff hp.pos _).mpr _,
   simp only [nat.prime.proper_divisors hp, geom_sum_mul, finset.prod_singleton, cyclotomic_one],
 end

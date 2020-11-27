@@ -534,7 +534,25 @@ noncomputable def of_strict_mono_surjective {α β} [linear_order α] [preorder 
 { to_equiv := equiv.of_bijective f ⟨h_mono.injective, h_surj⟩,
   .. order_embedding.of_strict_mono f h_mono }
 
+/-- Order isomorphism between two equal sets. -/
+def set_congr (s t : set α) (h : s = t) : s ≃o t :=
+{ to_equiv := equiv.set_congr h,
+  map_rel_iff' := λ x y, iff.rfl }
+
+/-- Order isomorphism between `univ : set α` and `α`. -/
+def set.univ : (set.univ : set α) ≃o α :=
+{ to_equiv := equiv.set.univ α,
+  map_rel_iff' := λ x y, iff.rfl }
+
 end order_iso
+
+/-- If a function `f` is strictly monotone on a set `s`, then it defines an order isomorphism
+between `s` and its image. -/
+noncomputable def strict_mono_incr_on.order_iso {α β} [linear_order α] [preorder β]
+  (f : α → β) (s : set α) (hf : strict_mono_incr_on f s) :
+  s ≃o f '' s :=
+{ to_equiv := hf.inj_on.bij_on_image.equiv _,
+  map_rel_iff' := λ x y, iff.symm $ hf.le_iff_le x.2 y.2 }
 
 /-- A subset `p : set α` embeds into `α` -/
 def set_coe_embedding {α : Type*} (p : set α) : p ↪ α := ⟨subtype.val, @subtype.eq _ _⟩

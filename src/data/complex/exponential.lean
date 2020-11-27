@@ -762,6 +762,9 @@ lemma cos_of_real_re (x : ℝ) : (cos x).re = real.cos x := rfl
 
 lemma tan_eq_sin_div_cos : tan x = sin x / cos x := rfl
 
+lemma tan_mul_cos {x : ℂ} (hx : cos x ≠ 0) : tan x * cos x = sin x :=
+by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
+
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
 lemma tan_conj : tan (conj x) = conj (tan x) :=
@@ -784,10 +787,13 @@ by rw [← cosh_add_sinh, sinh_mul_I, cosh_mul_I]
 lemma cos_sub_sin_I : cos x - sin x * I = exp (-x * I) :=
 by rw [← neg_mul_eq_neg_mul, ← cosh_sub_sinh, sinh_mul_I, cosh_mul_I]
 
-lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
+@[simp] lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
 eq.trans
   (by rw [cosh_mul_I, sinh_mul_I, mul_pow, I_sq, mul_neg_one, sub_neg_eq_add, add_comm])
   (cosh_sq_sub_sinh_sq (x * I))
+
+@[simp] lemma cos_sq_add_sin_sq : cos x ^ 2 + sin x ^ 2 = 1 :=
+by rw [add_comm, sin_sq_add_cos_sq]
 
 lemma cos_two_mul' : cos (2 * x) = cos x ^ 2 - sin x ^ 2 :=
 by rw [two_mul, cos_add, ← pow_two, ← pow_two]
@@ -803,10 +809,17 @@ lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
 by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero', -one_div]
 
 lemma cos_square' : cos x ^ 2 = 1 - sin x ^ 2 :=
-by { rw [←sin_sq_add_cos_sq x], simp }
+by rw [←sin_sq_add_cos_sq x, add_sub_cancel']
 
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
-by { rw [←sin_sq_add_cos_sq x], simp }
+by rw [←sin_sq_add_cos_sq x, add_sub_cancel]
+
+lemma cos_sq_of_tan {x : ℂ} (hx : cos x ≠ 0) : cos x ^ 2 = 1 / (1 + tan x ^ 2) :=
+have cos x ^ 2 ≠ 0, from pow_ne_zero 2 hx,
+by { rw [tan_eq_sin_div_cos, div_pow], field_simp [this] }
+
+lemma sin_sq_of_tan {x : ℂ} (hx : cos x ≠ 0) : sin x ^ 2 = tan x ^ 2 / (1 + tan x ^ 2) :=
+by simp only [← tan_mul_cos hx, mul_pow, cos_sq_of_tan hx, div_eq_mul_inv, one_mul]
 
 lemma cos_three_mul : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
 begin
@@ -938,12 +951,18 @@ else
   by rw [sin, cos, tan, complex.tan, ← of_real_inj, div_eq_mul_inv, mul_re];
   simp [norm_sq, (div_div_eq_div_mul _ _ _).symm, div_self h]; refl
 
+lemma tan_mul_cos {x : ℝ} (hx : cos x ≠ 0) : tan x * cos x = sin x :=
+by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
+
 @[simp] lemma tan_zero : tan 0 = 0 := by simp [tan]
 
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
-lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
-of_real_inj.1 $ by simpa using sin_sq_add_cos_sq x
+@[simp] lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
+of_real_inj.1 $ by simp
+
+@[simp] lemma cos_sq_add_sin_sq : cos x ^ 2 + sin x ^ 2 = 1 :=
+by rw [add_comm, sin_sq_add_cos_sq]
 
 lemma sin_sq_le_one : sin x ^ 2 ≤ 1 :=
 by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_right (pow_two_nonneg _)
@@ -952,14 +971,10 @@ lemma cos_sq_le_one : cos x ^ 2 ≤ 1 :=
 by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_left (pow_two_nonneg _)
 
 lemma abs_sin_le_one : abs' (sin x) ≤ 1 :=
-(mul_self_le_mul_self_iff (_root_.abs_nonneg (sin x)) (by exact zero_le_one)).2 $
-by rw [← _root_.abs_mul, abs_mul_self, mul_one, ← pow_two];
-   apply sin_sq_le_one
+abs_le_one_iff_mul_self_le_one.2 $ by simp only [← pow_two, sin_sq_le_one]
 
 lemma abs_cos_le_one : abs' (cos x) ≤ 1 :=
-(mul_self_le_mul_self_iff (_root_.abs_nonneg (cos x)) (by exact zero_le_one)).2 $
-by rw [← _root_.abs_mul, abs_mul_self, mul_one, ← pow_two];
-   apply cos_sq_le_one
+abs_le_one_iff_mul_self_le_one.2 $ by simp only [← pow_two, cos_sq_le_one]
 
 lemma sin_le_one : sin x ≤ 1 :=
 (abs_le.1 (abs_sin_le_one _)).2
@@ -986,10 +1001,25 @@ lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
 of_real_inj.1 $ by simpa using cos_square x
 
 lemma cos_square' : cos x ^ 2 = 1 - sin x ^ 2 :=
-by { rw [←sin_sq_add_cos_sq x], simp }
+by rw [←sin_sq_add_cos_sq x, add_sub_cancel']
 
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
+
+lemma cos_sq_of_tan {x : ℝ} (hx : cos x ≠ 0) : cos x ^ 2 = 1 / (1 + tan x ^ 2) :=
+have complex.cos x ≠ 0, from mt (congr_arg re) hx,
+of_real_inj.1 $ by simpa using complex.cos_sq_of_tan this
+
+lemma sin_sq_of_tan {x : ℝ} (hx : cos x ≠ 0) : sin x ^ 2 = tan x ^ 2 / (1 + tan x ^ 2) :=
+by simp only [← tan_mul_cos hx, mul_pow, cos_sq_of_tan hx, div_eq_mul_inv, one_mul]
+
+lemma cos_of_tan_of_cos_pos {x : ℝ} (hx : 0 < cos x) :
+  cos x = 1 / sqrt (1 + tan x ^ 2) :=
+by rw [← sqrt_sqr hx.le, cos_sq_of_tan hx.ne', sqrt_div zero_le_one, sqrt_one]
+
+lemma sin_of_tan_of_cos_pos {x : ℝ} (hx : 0 < cos x) :
+  sin x = tan x / sqrt (1 + tan x ^ 2) :=
+by rw [← tan_mul_cos hx.ne', cos_of_tan_of_cos_pos hx, one_div, div_eq_mul_inv]
 
 lemma cos_three_mul : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
 by rw ← of_real_inj; simp [cos_three_mul]

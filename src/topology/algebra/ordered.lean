@@ -2370,6 +2370,17 @@ lemma surjective_of_continuous' {f : α → β} (hf : continuous f) (h_top : ten
   function.surjective f :=
 @surjective_of_continuous (order_dual α) β _ _ _ _ _ _ _ _ hf h_top h_bot
 
+lemma surj_on_Ioo_of_continuous_on {f : α → β} {a b : α} (hab : a < b)
+  (hf : continuous_on f (Ioo a b)) (h_top : tendsto f (𝓝[Iio b] b) at_top)
+  (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
+  surj_on f (Ioo a b) univ :=
+surj_on_iff_surjective.2 $ @surjective_of_continuous _ _
+  (@ord_connected_subset_conditionally_complete_linear_order α (Ioo a b) _
+    ⟨classical.choice (nonempty_Ioo_subtype hab)⟩ _) _ _ _ _ _ _ _
+  (continuous_on_iff_continuous_restrict.1 hf)
+  (by simpa only [Ioo_at_top_eq_nhds_within hab] using h_top.comp tendsto_comap)
+  (by simpa only [Ioo_at_bot_eq_nhds_within hab] using h_bot.comp tendsto_comap)
+
 end densely_ordered
 
 lemma is_compact.Inf_mem {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
@@ -2925,66 +2936,5 @@ def order_iso.to_homeomorph (e : α ≃o β) : α ≃ₜ β :=
 @[simp] lemma order_iso.coe_to_homeomorph (e : α ≃o β) : ⇑e.to_homeomorph = e := rfl
 
 end linear_order
-
-section conditionally_complete_linear_order
-variables [conditionally_complete_linear_order α] [densely_ordered α] [order_topology α]
-variables [conditionally_complete_linear_order β] [order_topology β]
-
-/-- If `f : α → β` is strictly monotone and continuous, and tendsto `at_top` `at_top` and to
-`at_bot` `at_bot`, then it is a homeomorphism. -/
-noncomputable def homeomorph_of_strict_mono_continuous
-  (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
-  (h_bot : tendsto f at_bot at_bot) :
-  homeomorph α β :=
-(order_iso.of_strict_mono_surjective f h_mono
-  (surjective_of_continuous h_cont h_top h_bot)).to_homeomorph
-
-@[simp] lemma coe_homeomorph_of_strict_mono_continuous
-  (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
-  (h_bot : tendsto f at_bot at_bot) :
-  (homeomorph_of_strict_mono_continuous f h_mono h_cont h_top h_bot : α → β) = f := rfl
-
-/- Now we prove a relative version of the above result.  This (`Ioo` to `univ`) is provided as a
-sample; there are at least 16 possible variations with open intervals (`univ` to `Ioo`, `Ioi` to
-`univ`, ...), not to mention the possibilities with closed or half-closed intervals. -/
-variables {a b : α}
-
-/-- If `f : α → β` is strictly monotone and continuous on the interval `Ioo a b` of `α`, and tends
-to `at_top` within `𝓝[Iio b] b` and to `at_bot` within `𝓝[Ioi a] a`, then it restricts to a
-homeomorphism from `Ioo a b` to `β`. -/
-noncomputable def homeomorph_of_strict_mono_continuous_Ioo
-  (f : α → β) (h : a < b)
-  (h_mono : ∀ ⦃x y : α⦄, a < x → y < b → x < y → f x < f y)
-  (h_cont : continuous_on f (Ioo a b))
-  (h_top : tendsto f (𝓝[Iio b] b) at_top)
-  (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
-  homeomorph (Ioo a b) β :=
-@homeomorph_of_strict_mono_continuous _ _ _ _
-(@ord_connected_subset_conditionally_complete_linear_order α (Ioo a b) _
-  ⟨classical.choice (nonempty_Ioo_subtype h)⟩ _)
-_ _ _ _
-(restrict f (Ioo a b))
-(λ x y, h_mono x.2.1 y.2.2)
-(continuous_on_iff_continuous_restrict.mp h_cont)
-begin
-  rw [restrict_eq f (Ioo a b), Ioo_at_top_eq_nhds_within h],
-  exact h_top.comp tendsto_comap
-end
-begin
-  rw [restrict_eq f (Ioo a b), Ioo_at_bot_eq_nhds_within h],
-  exact h_bot.comp tendsto_comap
-end
-
-@[simp] lemma coe_homeomorph_of_strict_mono_continuous_Ioo
-  (f : α → β) (h : a < b)
-  (h_mono : ∀ ⦃x y : α⦄, a < x → y < b → x < y → f x < f y)
-  (h_cont : continuous_on f (Ioo a b))
-  (h_top : tendsto f (𝓝[Iio b] b) at_top)
-  (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
-  (homeomorph_of_strict_mono_continuous_Ioo f h h_mono h_cont h_top h_bot : Ioo a b → β)
-  = restrict f (Ioo a b) :=
-rfl
-
-end conditionally_complete_linear_order
 
 end homeomorphisms

@@ -512,7 +512,7 @@ begin
   have hzero : (X ^ k - 1).coeff 0 = (-1 : R),
   { rw coeff_zero_eq_eval_zero _,
     simp only [zero_pow (lt_of_lt_of_le zero_lt_two hk), eval_X, eval_one, zero_sub, eval_pow,
-    eval_sub] },
+      eval_sub] },
   rw hzero at heq,
   exact neg_inj.mp (eq.symm heq)
 end

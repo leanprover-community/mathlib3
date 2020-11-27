@@ -101,6 +101,9 @@ by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }
 
 lemma coeff_X : coeff (X : polynomial R) n = if 1 = n then 1 else 0 := coeff_monomial
 
+lemma coeff_X_of_ne_one {n : ℕ} (hn : n ≠ 1) : coeff (X : polynomial R) n = 0 :=
+by rw [coeff_X, if_neg hn.symm]
+
 theorem ext_iff {p q : polynomial R} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 finsupp.ext_iff
 

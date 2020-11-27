@@ -440,7 +440,7 @@ end
 end bilinear_map
 
 /-- Construct a continuous linear map from a linear map that is also an isometry with full range. -/
-def continuous_linear_map.of_isometry (f : E →ₗ[𝕜] F) (hf : isometry f) (hfr : f.range = ⊤) :
+def continuous_linear_equiv.of_isometry (f : E →ₗ[𝕜] F) (hf : isometry f) (hfr : f.range = ⊤) :
   E ≃L[𝕜] F :=
 linear_equiv.to_continuous_linear_equiv_of_bounds
 (linear_equiv.of_bijective f (linear_map.ker_eq_bot.mpr (isometry.injective hf)) hfr)

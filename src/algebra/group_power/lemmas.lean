@@ -371,7 +371,7 @@ by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 namespace int
 
 lemma units_pow_two (u : units ℤ) : u ^ 2 = 1 :=
-(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+(pow_two u).symm ▸ units_mul_self u
 
 lemma units_pow_eq_pow_mod_two (u : units ℤ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
 by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_pow_two, one_pow, mul_one]

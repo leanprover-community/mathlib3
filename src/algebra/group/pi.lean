@@ -30,6 +30,7 @@ instance has_mul [∀ i, has_mul $ f i] : has_mul (Π i : I, f i) := ⟨λ f g i
 @[to_additive] instance has_inv [∀ i, has_inv $ f i] : has_inv (Π i : I, f i) := ⟨λ f i, (f i)⁻¹⟩
 @[simp, to_additive] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
 
+@[to_additive]
 instance has_div [Π i, has_div $ f i] : has_div (Π i : I, f i) := ⟨λ f g i, f i / g i⟩
 @[simp] lemma div_apply [Π i, has_div $ f i] : (x / y) i = x i / y i := rfl
 
@@ -92,6 +93,12 @@ instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :
   comm_monoid_with_zero (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*), .. };
   tactic.pi_instance_derive_field
+
+@[to_additive]
+instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
+  div_inv_monoid (Π i : I, f i) :=
+{ div_eq_mul_inv := λ x y, funext (λ i, div_eq_mul_inv (x i) (y i)),
+  .. pi.monoid, .. pi.has_div, .. pi.has_inv }
 
 section instance_lemmas
 open function

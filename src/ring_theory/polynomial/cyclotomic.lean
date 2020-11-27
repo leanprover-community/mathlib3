@@ -458,7 +458,7 @@ begin
   split,
   { intro hcycl,
     rw [hcycl, ← finset.prod_insert (@nat.proper_divisors.not_self_mem n),
-    ← nat.divisors_eq_proper_divisors_insert_self_of_pos hpos],
+      ← nat.divisors_eq_proper_divisors_insert_self_of_pos hpos],
     exact prod_cyclotomic_eq_X_pow_sub_one hpos R },
   { intro hP,
     have prod_monic : (∏ i in nat.proper_divisors n, cyclotomic i R).monic,

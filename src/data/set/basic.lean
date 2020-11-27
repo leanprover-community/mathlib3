@@ -2144,6 +2144,16 @@ lemma inclusion_injective {s t : set α} (h : s ⊆ t) :
   function.injective (inclusion h)
 | ⟨_, _⟩ ⟨_, _⟩ := subtype.ext_iff_val.2 ∘ subtype.ext_iff_val.1
 
+lemma eq_of_inclusion_surjective {s t : set α} {h : s ⊆ t}
+  (h_surj : function.surjective (inclusion h)) : s = t :=
+begin
+  apply set.subset.antisymm h,
+  intros x hx,
+  cases h_surj ⟨x, hx⟩ with y key,
+  rw [←subtype.coe_mk x hx, ←key, coe_inclusion],
+  exact subtype.mem y,
+end
+
 lemma range_inclusion {s t : set α} (h : s ⊆ t) : range (inclusion h) = {x : t | (x:α) ∈ s} :=
 by { ext ⟨x, hx⟩, simp [inclusion] }
 

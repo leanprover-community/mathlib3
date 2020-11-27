@@ -97,12 +97,7 @@ instance nat_coe [has_zero R] [has_one R] [has_add R] :
 @[simp]
 lemma nat_coe_nat (f : arithmetic_function ℕ) :
   (↑f : arithmetic_function ℕ) = f :=
-begin
-  ext,
-  transitivity ↑(f x),
-  { refl },
-  simp
-end
+ext $ λ _, cast_id _
 
 @[simp]
 lemma nat_coe_apply [has_zero R] [has_one R] [has_add R] {f : arithmetic_function ℕ} {x : ℕ} :
@@ -115,12 +110,7 @@ instance int_coe [has_zero R] [has_one R] [has_add R] [has_neg R] :
 @[simp]
 lemma int_coe_int (f : arithmetic_function ℤ) :
   (↑f : arithmetic_function ℤ) = f :=
-begin
-  ext,
-  transitivity ↑(f x),
-  { refl },
-  simp
-end
+ext $ λ _, int.cast_id _ 
 
 @[simp]
 lemma int_coe_apply [has_zero R] [has_one R] [has_add R] [has_neg R]
@@ -742,12 +732,10 @@ begin
     apply forall_congr,
     intro n,
     simp },
-  transitivity ↑μ * g' = f',
-  { rw ← coe_zeta_unit, rw ← units.eq_inv_mul_iff_mul_eq, rw eq_comm, refl, },
-  { rw ext_iff,
-    apply forall_congr,
-    intro n,
-    simp },
+  rw [← coe_zeta_unit, ← units.eq_inv_mul_iff_mul_eq, ext_iff],
+  apply forall_congr,
+  intro n,
+  simp [eq_comm],
 end
 
 end comm_ring

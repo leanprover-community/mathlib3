@@ -15,7 +15,7 @@ Authors: Kenny Lau
 * `polynomial.unique_factorization_monoid`:
   If an integral domain is a `unique_factorization_monoid`, then so is its polynomial ring.
 -/
-import algebra.char_p
+import algebra.char_p.basic
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
 import data.polynomial.field_division

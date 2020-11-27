@@ -7,7 +7,7 @@ A typeclass for the two-sided multiplicative inverse.
 -/
 
 import algebra.char_zero
-import algebra.char_p
+import algebra.char_p.basic
 
 /-!
 # Invertible elements

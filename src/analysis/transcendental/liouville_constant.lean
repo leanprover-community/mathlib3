@@ -23,7 +23,7 @@ local notation `α` := ∑' (i : ℕ), 1 / (m : ℝ) ^ i!
 local notation `α_first` k `terms` :=  ∑ i in range (k+1), 1 / (m : ℝ) ^ i!
 local notation `α_terms_after` k := ∑' i, 1 / (m : ℝ) ^ (i + (k+1))!
 
-lemma summable_inv_pow_fact {hm : 2 < m} : summable (λ i, 1 / (m : ℝ) ^ i!) :=
+lemma summable_inv_pow_fact (hm : 2 < m) : summable (λ i, 1 / (m : ℝ) ^ i!) :=
 begin
   apply @summable_of_nonneg_of_le _ (λ n, (1 / m : ℝ) ^ n),
   { intro b, rw one_div_nonneg, apply pow_nonneg, norm_num },
@@ -37,7 +37,7 @@ begin
     { rw one_div_nonneg, norm_num } }
 end
 
-lemma summable_inv_pow_n_add_fact {hm : 2 < m} (n : ℕ) :
+lemma summable_inv_pow_n_add_fact (hm : 2 < m) (n : ℕ) :
   summable (λ i, 1 / (m : ℝ) ^ (i + (n + 1))!) :=
 begin
   apply @summable_of_nonneg_of_le _ (λ n, (1 / m : ℝ) ^ n),
@@ -54,7 +54,7 @@ begin
     { rw one_div_nonneg, norm_num } }
 end
 
-lemma rat_of_α_k {hm : 2 < m} : ∀ k, ∃ p : ℕ, α_first k terms = p / ((m : ℝ) ^ k!) :=
+lemma rat_of_α_k (hm : 2 < m) : ∀ k, ∃ p : ℕ, α_first k terms = p / ((m : ℝ) ^ k!) :=
 λ k, begin
   induction k with k h,
   { use 1,
@@ -70,34 +70,34 @@ lemma rat_of_α_k {hm : 2 < m} : ∀ k, ∃ p : ℕ, α_first k terms = p / ((m 
     all_goals { refine pow_ne_zero _ _, norm_num, linarith } }
 end
 
-lemma α_terms_after_pos {hm : 2 < m} : ∀ k, 0 < α_terms_after k := λ n,
+lemma α_terms_after_pos (hm : 2 < m) : ∀ k, 0 < α_terms_after k := λ n,
 calc 0 < 1 / (m : ℝ) ^ (n + 1)! : by { rw one_div_pos, apply pow_pos, norm_num, linarith }
   ... = 1 / (m : ℝ) ^ (0 + (n + 1))! : by rw zero_add
   ... ≤ ∑' (i : ℕ), 1 / (m : ℝ) ^ (i + (n + 1))! :
       begin
-        refine le_tsum (@summable_inv_pow_n_add_fact _ hm _) 0 (λ _ _, _),
+        refine le_tsum (summable_inv_pow_n_add_fact _ hm _) 0 (λ _ _, _),
         rw one_div_nonneg, apply pow_nonneg, norm_num
       end
 
-lemma α_eq_first_k_terms_add_rest {hm : 2 < m} : ∀ k, α = α_first k terms + α_terms_after k :=
-λ k, (sum_add_tsum_nat_add _ (@summable_inv_pow_fact m hm)).symm
+lemma α_eq_first_k_terms_add_rest (hm : 2 < m) : ∀ k, α = α_first k terms + α_terms_after k :=
+λ k, (sum_add_tsum_nat_add _ (summable_inv_pow_fact m hm)).symm
 
-theorem is_liouville_of_α {hm : 2 < m} : is_liouville α :=
+theorem is_liouville_of_α (hm : 2 < m) : is_liouville α :=
 begin
   intro n,
-  have h_truncation_wd := α_eq_first_k_terms_add_rest m n,
-  rcases @rat_of_α_k _ hm n with ⟨p, hp⟩,
+  have h_truncation_wd := α_eq_first_k_terms_add_rest m hm n,
+  rcases rat_of_α_k m hm n with ⟨p, hp⟩,
   use [p, m ^ n!],
   rw hp at h_truncation_wd,
   push_cast,
-  rw [h_truncation_wd, add_sub_cancel', abs_of_pos (α_terms_after_pos _ _)],
+  rw [h_truncation_wd, add_sub_cancel', abs_of_pos (α_terms_after_pos _ _ _)],
   repeat { split },
   { apply one_lt_pow, norm_num, linarith, exact nat.factorial_pos _ },
-  { exact @α_terms_after_pos _ hm _ },
+  { exact α_terms_after_pos _ hm _ },
   { exact calc (∑' i, 1 / (m : ℝ) ^ (i + (n + 1))!)
       ≤ ∑' i, 1 / (m : ℝ) ^ (i + (n + 1)!) :
       begin
-        refine tsum_le_tsum (λ b, _) (summable_inv_pow_n_add_fact _ _)
+        refine tsum_le_tsum (λ b, _) (summable_inv_pow_n_add_fact _ _ _)
           (summable_of_nonneg_of_le (λ b, _) (λ b, _) (@summable_geometric_of_abs_lt_1 (1 / m : ℝ)
             (show abs (1 / m : ℝ) < 1,
              by { rw [abs_of_pos (show 0 < 1/(m:ℝ), by {rw one_div_pos, norm_num, linarith}),
@@ -152,10 +152,10 @@ begin
         repeat { norm_cast <|> linarith <|> apply pow_pos <|> apply pow_nonneg <|> rw pow_mul },
       end
   ... = 1 / (m ^ n!) ^ n : by rw pow_mul },
-  exact hm, exact hm
+  exact hm
 end
 
-lemma is_transcendental_of_α {hm : 2 < m} : is_transcendental ℤ α :=
-  real.is_liouville.transcendental_of_is_liouville (@is_liouville_of_α _ hm)
+lemma is_transcendental_of_α (hm : 2 < m) : is_transcendental ℤ α :=
+  real.is_liouville.transcendental_of_is_liouville (is_liouville_of_α _ hm)
 
 end is_liouville

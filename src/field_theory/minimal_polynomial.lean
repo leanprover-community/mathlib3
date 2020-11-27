@@ -123,8 +123,7 @@ begin
     rw [←ring_hom.map_neg _ a] at hroot,
     exact (hf hroot) },
   rw hrw,
-  simp only [h0, ring_hom.map_neg],
-  ring
+  simp only [h0, ring_hom.map_neg, sub_eq_add_neg],
 end
 
 /-- A minimal polynomial is not a unit. -/
@@ -260,7 +259,7 @@ eq_of_monic_of_associated hp3 (monic hx) $
 mul_one (minimal_polynomial hx) ▸ hq.symm ▸ associated_mul_mul (associated.refl _) $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit hx
 
-lemma gcd_domain_eq_field_fractions {α : Type u} {β : Type v} {γ : Type v} [integral_domain α]
+lemma gcd_domain_eq_field_fractions {α : Type u} {β : Type v} {γ : Type w} [integral_domain α]
   [gcd_monoid α] [field β] [integral_domain γ] (f : fraction_map α β) [algebra f.codomain γ]
   [algebra α γ] [is_scalar_tower α f.codomain γ] {x : γ} (hx : is_integral α x) :
   minimal_polynomial (@is_integral_of_is_scalar_tower α f.codomain γ _ _ _ _ _ _ _ x hx) =

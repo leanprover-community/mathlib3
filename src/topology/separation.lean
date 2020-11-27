@@ -247,7 +247,7 @@ Hausdorff spaces:
 
 * `separated_by_continuous` says that two points `x y : α` can be separated by open neighborhoods
   provided that there exists a continuous map `f`: α → β` with a Hausdorff codomain such that
-  `f x ≠ f y`. We use this lemma  to prove that topological spaces defined using `induced` are
+  `f x ≠ f y`. We use this lemma to prove that topological spaces defined using `induced` are
   Hausdorff spaces.
 
 * `separated_by_open_embedding` says that for an open embedding `f : α → β` of a Hausdorff space

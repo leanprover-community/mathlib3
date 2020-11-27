@@ -29,6 +29,12 @@ to form the Dirichlet ring.
  * `Ω n` is the number of prime factors of `n` counted with multiplicity.
  * `μ` is the Möbius function.
 
+## Main Results
+ * Several forms of Möbius inversion:
+ * `sum_eq_iff_sum_mul_moebius_eq` for functions to a `comm_ring`
+ * `sum_eq_iff_sum_smul_moebius_eq` for functions to an `add_comm_group`
+ * `prod_eq_iff_prod_pow_moebius_eq` for functions to a `comm_group`
+
 ## Notation
 The arithmetic functions `ζ` and `σ` have Greek letter names, which are localized notation in
 the namespace `arithmetic_function`.

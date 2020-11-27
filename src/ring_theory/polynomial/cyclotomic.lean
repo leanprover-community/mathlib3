@@ -466,7 +466,7 @@ begin
       intros i hi,
       exact cyclotomic.monic i R },
     rw [@cyclotomic_eq_X_pow_sub_one_div R _ _ _ hpos,
-    (div_mod_by_monic_unique P 0 prod_monic _).1],
+      (div_mod_by_monic_unique P 0 prod_monic _).1],
     split,
     { rwa [zero_add, mul_comm] },
     rw [degree_zero, bot_lt_iff_ne_bot],

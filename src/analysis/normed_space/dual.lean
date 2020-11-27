@@ -171,7 +171,7 @@ section real
 
 variables {F : Type*} [inner_product_space ℝ F]
 
-/-- In an inner product space `F`, the function that takes a vector `x` in `F` to its dual
+/-- In a real inner product space `F`, the function that takes a vector `x` in `F` to its dual
 `λ y, ⟪x, y⟫` is a continuous linear map. If the space is complete (i.e. is a Hilbert space),
 consider using `to_dual` instead. -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)

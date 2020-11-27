@@ -21,6 +21,7 @@ Any ring satisfying any of these equivalent conditions is said to be Jacobson.
 Some particular examples of Jacobson rings are also proven.
 `is_jacobson_quotient` says that the quotient of a Jacobson ring is Jacobson.
 `is_jacobson_localization` says the localization of a Jacobson ring to a single element is Jacobson.
+`is_jacobson_polynomial_iff_is_jacobson` says polynomials over a Jacobson ring form a Jacobson ring.
 
 ## Main definitions
 
@@ -37,6 +38,8 @@ Let `R` be a commutative ring. Jacobson Rings are defined using the first of the
 
 * `is_jacobson_of_surjective` says that if `R` is a Jacobson ring and `f : R →+* S` is surjective,
   then `S` is also a Jacobson ring
+
+* `is_jacobson_mv_polynomial` says that multi-variate polynomials over a jacobson ring are jacobson
 
 ## Tags
 
@@ -139,6 +142,10 @@ begin
     exact exists_ideal_over_maximal_of_is_integral (is_integral_quotient_of_is_integral hRS) J
       (comap_bot_le_of_injective _ algebra_map_quotient_injective) }
 end
+
+lemma is_jacobson_of_is_integral' (f : R →+* S) (hf : f.is_integral)
+  (hR : is_jacobson R) : is_jacobson S :=
+@is_jacobson_of_is_integral _ _ _ _ f.to_algebra hf hR
 
 end is_jacobson
 
@@ -251,5 +258,166 @@ begin
 end
 
 end localization
+
+section polynomial
+open polynomial
+
+/-- If `f : R → S` descends to an integral map in the localization at `x`,
+  and `R` is a jacobson ring, then the intersection of all maximal ideals in `S` is trivial -/
+lemma jacobson_bot_of_integral_localization {R S : Type*} [integral_domain R] [integral_domain S]
+  {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ] [is_jacobson R]
+  (φ : R →+* S) (hφ : function.injective φ) (x : R) (hx : x ≠ 0)
+  (ϕ : localization_map (submonoid.powers x) Rₘ)
+  (ϕ' : localization_map ((submonoid.powers x).map φ : submonoid S) Sₘ)
+  (hφ' : (ϕ.map ((submonoid.powers x).mem_map_of_mem (φ : R →* S)) ϕ').is_integral) :
+  (⊥ : ideal S).jacobson = ⊥ :=
+begin
+  have hM : ((submonoid.powers x).map φ : submonoid S) ≤ non_zero_divisors S :=
+    map_le_non_zero_divisors_of_injective hφ (powers_le_non_zero_divisors_of_domain hx),
+  letI : integral_domain Sₘ := localization_map.integral_domain_of_le_non_zero_divisors ϕ' hM,
+  let φ' : Rₘ →+* Sₘ := ϕ.map ((submonoid.powers x).mem_map_of_mem (φ : R →* S)) ϕ',
+  suffices : ∀ I : ideal Sₘ, I.is_maximal → (I.comap ϕ'.to_map).is_maximal,
+  { have hϕ' : comap ϕ'.to_map ⊥ = ⊥,
+    { simpa [ring_hom.injective_iff_ker_eq_bot, ring_hom.ker_eq_comap_bot] using ϕ'.injective hM },
+    refine eq_bot_iff.2 (le_trans _ (le_of_eq hϕ')),
+    have hSₘ : is_jacobson Sₘ := is_jacobson_of_is_integral' φ' hφ' (is_jacobson_localization ϕ),
+    rw [← hSₘ ⊥ radical_bot_of_integral_domain, comap_jacobson],
+    exact Inf_le_Inf (λ j hj, ⟨bot_le, let ⟨J, hJ⟩ := hj in hJ.2 ▸ this J hJ.1.2⟩) },
+  introsI I hI,
+  -- Remainder of the proof is pulling and pushing ideals around the square and the quotient square
+  haveI : (I.comap ϕ'.to_map).is_prime := comap_is_prime ϕ'.to_map I,
+  haveI : (I.comap φ').is_prime := comap_is_prime φ' I,
+  haveI : (⊥ : ideal (I.comap ϕ'.to_map).quotient).is_prime := bot_prime,
+  have hcomm: φ'.comp ϕ.to_map = ϕ'.to_map.comp φ := ϕ.map_comp _,
+  let f := quotient_map (I.comap ϕ'.to_map) φ le_rfl,
+  let f' := quotient_map I φ' le_rfl,
+  let g := quotient_map I ϕ'.to_map le_rfl,
+  let g' : ((I.comap ϕ'.to_map).comap φ).quotient →+* (I.comap φ').quotient :=
+    quotient_map (I.comap φ') ϕ.to_map
+    (le_of_eq (trans (comap_comap φ ϕ'.to_map) (hcomm ▸ (comap_comap ϕ.to_map φ').symm))),
+  have := ((is_maximal_iff_is_maximal_disjoint ϕ _).1
+    (is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ' I hI)).left,
+  have : ((I.comap ϕ'.to_map).comap φ).is_maximal,
+  { rwa [comap_comap, hcomm, ← comap_comap] at this },
+  rw ← bot_quotient_is_maximal_iff at this ⊢,
+  refine is_maximal_of_is_integral_of_is_maximal_comap' f _ ⊥
+    ((eq_bot_iff.2 (comap_bot_le_of_injective f quotient_map_injective)).symm ▸ this),
+  exact is_integral_tower_bot_of_is_integral' f g quotient_map_injective
+    ((comp_quotient_map_eq_of_comp_eq hcomm I).symm ▸
+    (ring_hom.is_integral_trans (is_integral_of_surjective'
+      (localization_map.surjective_quotient_map_of_maximal_of_localization
+      (by rwa [comap_comap, hcomm, ← bot_quotient_is_maximal_iff])))
+      (is_integral_quotient_of_is_integral' hφ'))),
+end
+
+/-- Used to bootstrap the proof of `is_jacobson_polynomial_iff_is_jacobson`.
+  That theorem is more general and should be used instead of this one -/
+private lemma is_jacobson_polynomial_of_domain (R : Type*) [integral_domain R] [hR : is_jacobson R]
+  (P : ideal (polynomial R)) [P.is_prime] (hP : ∀ (x : R), C x ∈ P → x = 0) : P.jacobson = P :=
+begin
+  by_cases hP : (P = ⊥),
+  { exact hP.symm ▸ jacobson_bot_polynomial_of_jacobson_bot (hR ⊥ radical_bot_of_integral_domain) },
+  { rw jacobson_eq_iff_jacobson_quotient_eq_bot,
+    let P' : ideal R := P.comap C,
+    have hP'_inj : function.injective (quotient.mk P') := (quotient.mk P').injective_iff.2
+      (λ x hx, by rwa [quotient.eq_zero_iff_mem, (by rwa eq_bot_iff : P' = ⊥)] at hx),
+    haveI : P'.is_prime := comap_is_prime C P,
+    have : ∃ (p : polynomial R) (hp : p ∈ P), p ≠ 0,
+    { contrapose! hP,
+      exact eq_bot_iff.2 (λ x hx, (hP x hx).symm ▸ (ideal.zero_mem ⊥)) },
+    obtain ⟨pX, hpX, hp0⟩ := this,
+    have hp0 : (pX.map (quotient.mk P')) ≠ 0 :=
+      λ hp0', hp0 $ map_injective (quotient.mk P') hP'_inj (by simpa using hp0'),
+    let φ : P'.quotient →+* P.quotient := quotient_map P C le_rfl,
+    have hφ' : φ.comp (quotient.mk P') = (quotient.mk P).comp C := rfl,
+    have hφ : function.injective φ := quotient_map_injective,
+    let M : submonoid P'.quotient := submonoid.powers (pX.map (quotient.mk P')).leading_coeff,
+    let ϕ : localization_map M (localization M) := localization.of M,
+    let ϕ' : localization_map (M.map ↑φ) (localization (M.map ↑φ)) := localization.of (M.map ↑φ),
+    let φ' : (localization M) →+* (localization (M.map ↑φ)) :=
+      (ϕ.map (M.mem_map_of_mem (φ : P'.quotient →* P.quotient)) ϕ'),
+    refine jacobson_bot_of_integral_localization φ hφ (pX.map (quotient.mk P')).leading_coeff
+       (λ hx, hp0 (leading_coeff_eq_zero.1 hx)) ϕ ϕ' (λ p, _),
+    obtain ⟨⟨p', ⟨q, hq⟩⟩, hp⟩ := ϕ'.surj p,
+    suffices : φ'.is_integral_elem (ϕ'.to_map p'),
+    { obtain ⟨q', hq', rfl⟩ := hq,
+      obtain ⟨q'', hq''⟩ := is_unit_iff_exists_inv'.1 (ϕ.map_units ⟨q', hq'⟩),
+      refine is_integral_of_is_integral_mul_unit' p (ϕ'.to_map (φ q')) q'' _ (hp.symm ▸ this),
+      convert trans (trans (φ'.map_mul _ _).symm (congr_arg φ' hq'')) φ'.map_one using 2,
+      rw [← φ'.comp_apply, localization_map.map_comp, ϕ'.to_map.comp_apply, subtype.coe_mk] },
+    refine is_integral_of_mem_closure''
+      ((ϕ'.to_map.comp (quotient.mk P)) '' (insert X {p | p.degree ≤ 0})) _ _ _,
+    { rintros x ⟨p, hp, rfl⟩,
+      refine hp.rec_on (λ hy, _) (λ hy, _),
+      { refine hy.symm ▸ (is_integral_elem_localization_at_leading_coeff' ((quotient.mk P) X)
+          (pX.map (quotient.mk P')) φ _ M ⟨1, pow_one _⟩ _ _),
+        rwa [eval₂_map, hφ', ← hom_eval₂, quotient.eq_zero_iff_mem, eval₂_C_X] },
+      { rw [set.mem_set_of_eq, degree_le_zero_iff] at hy,
+        refine hy.symm ▸ ⟨X - C (ϕ.to_map ((quotient.mk P') (p.coeff 0))), monic_X_sub_C _, _⟩,
+        simp only [eval₂_sub, eval₂_C, eval₂_X],
+        rw [sub_eq_zero_iff_eq, ← φ'.comp_apply, localization_map.map_comp, ring_hom.comp_apply],
+        refl } },
+    { obtain ⟨p, rfl⟩ := quotient.mk_surjective p',
+      refine polynomial.induction_on p
+        (λ r, subring.subset_closure $ set.mem_image_of_mem _ (or.inr degree_C_le))
+        (λ _ _ h1 h2, _) (λ n _ hr, _),
+      { convert subring.add_mem _ h1 h2,
+        rw [ring_hom.map_add, ring_hom.map_add] },
+      { rw [pow_succ X n, mul_comm X, ← mul_assoc, ring_hom.map_mul, ϕ'.to_map.map_mul],
+        exact subring.mul_mem _ hr (subring.subset_closure (set.mem_image_of_mem _ (or.inl rfl))) } } }
+end
+
+theorem is_jacobson_polynomial_iff_is_jacobson {R : Type*} [comm_ring R] : is_jacobson (polynomial R) ↔ is_jacobson R :=
+begin
+  split; introI H,
+  { exact is_jacobson_of_surjective ⟨eval₂_ring_hom (ring_hom.id _) 1, λ x, ⟨C x, by simp⟩⟩ },
+  { rw is_jacobson_iff_prime_eq,
+    intros I hI,
+    let R' := ((quotient.mk I).comp C).range,
+    let i : R →+* R' := ((quotient.mk I).comp C).range_restrict,
+    have hi : function.surjective (i : R → R') := ((quotient.mk I).comp C).surjective_onto_range,
+    have hi' : (polynomial.map_ring_hom i : polynomial R →+* polynomial R').ker ≤ I,
+    { refine λ f hf, polynomial_mem_ideal_of_coeff_mem_ideal I f (λ n, _),
+      rw [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply],
+      rw [ring_hom.mem_ker, coe_map_ring_hom] at hf,
+      replace hf := congr_arg (λ (f : polynomial R'), f.coeff n) hf,
+      simp only [coeff_map, coeff_zero] at hf,
+      rwa [subtype.ext_iff, ring_hom.coe_range_restrict] at hf },
+    haveI hR' : is_jacobson R' := is_jacobson_of_surjective ⟨i, hi⟩,
+    let I' : ideal (polynomial R') := I.map (polynomial.map_ring_hom i),
+    haveI : I'.is_prime := map_is_prime_of_surjective (polynomial.map_surjective i hi) hi',
+    suffices : (I.map (polynomial.map_ring_hom i)).jacobson = (I.map (polynomial.map_ring_hom i)),
+    { replace this := congr_arg (comap (polynomial.map_ring_hom i)) this,
+      rw [← map_jacobson_of_surjective _ hi',
+        comap_map_of_surjective _ _, comap_map_of_surjective _ _] at this,
+      refine le_antisymm (le_trans (le_sup_left_of_le le_rfl)
+        (le_trans (le_of_eq this) (sup_le le_rfl hi'))) le_jacobson,
+      all_goals {exact polynomial.map_surjective i hi} },
+    refine is_jacobson_polynomial_of_domain R' I' (eq_zero_of_polynomial_mem_map_range I hi') },
+end
+
+instance [is_jacobson R] : is_jacobson (polynomial R) :=
+is_jacobson_polynomial_iff_is_jacobson.mpr ‹is_jacobson R›
+
+lemma is_jacobson_mv_polynomial_fin [H : is_jacobson R] :
+  ∀ (n : ℕ), is_jacobson (mv_polynomial (fin n) R)
+| 0 := ((is_jacobson_iso ((mv_polynomial.ring_equiv_of_equiv R
+  (equiv.equiv_pempty $ fin.elim0)).trans (mv_polynomial.pempty_ring_equiv R))).mpr H)
+| (n+1) := (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).2
+  (is_jacobson_polynomial_iff_is_jacobson.2 (is_jacobson_mv_polynomial_fin n))
+
+/-- General form of the nullstellensatz for jacobson rings, since in a jacobson ring we have
+  `Inf {P maximal | P ≥ I} = Inf {P prime | P ≥ I} = I.radical`. Fields are always jacobson,
+  and in that special case this is (most of) the classical nullstellensatz,
+  since `I(V(I))` is the intersection of maximal ideals containing `I`, which is then `I.radical` -/
+instance {ι : Type*} [fintype ι] [is_jacobson R] : is_jacobson (mv_polynomial ι R) :=
+begin
+  haveI := classical.dec_eq ι,
+  obtain ⟨e⟩ := fintype.equiv_fin ι,
+  rw is_jacobson_iso (mv_polynomial.ring_equiv_of_equiv R e),
+  exact is_jacobson_mv_polynomial_fin _
+end
+
+end polynomial
 
 end ideal

@@ -1772,20 +1772,11 @@ protected def congr_right {r r' : setoid α}
 quot.congr_right eq
 end quotient
 
-/-- If a function is a bijection between `univ` and a set `s` in the target type, it induces an
-equivalence between the original type and the type `↑s`. -/
-noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set β} (f : α → β)
-  (h : set.bij_on f set.univ s) : α ≃ s :=
-begin
-  have : function.bijective (λ (x : α), (⟨f x, begin exact h.maps_to (set.mem_univ x) end⟩ : s)),
-  { split,
-    { assume x y hxy,
-      apply h.inj_on (set.mem_univ x) (set.mem_univ y) (subtype.mk.inj hxy) },
-    { assume x,
-      rcases h.surj_on x.2 with ⟨y, hy⟩,
-      exact ⟨y, subtype.eq hy.2⟩ } },
-  exact equiv.of_bijective _ this
-end
+/-- If a function is a bijection between two sets `s` and `t`, then it induces an
+equivalence between the the types `↥s` and ``↥t`. -/
+noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set α} {t : set β} (f : α → β)
+  (h : set.bij_on f s t) : s ≃ t :=
+equiv.of_bijective _ h.bijective
 
 /-- The composition of an updated function with an equiv on a subset can be expressed as an
 updated function. -/

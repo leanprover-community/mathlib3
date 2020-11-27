@@ -371,6 +371,11 @@ theorem bij_on.comp (hg : bij_on g t p) (hf : bij_on f s t) : bij_on (g ∘ f) s
 bij_on.mk (hg.maps_to.comp hf.maps_to) (hg.inj_on.comp hf.inj_on hf.maps_to)
   (hg.surj_on.comp hf.surj_on)
 
+theorem bij_on.bijective (h : bij_on f s t) :
+  bijective (t.cod_restrict (s.restrict f) $ λ x, h.maps_to x.val_prop) :=
+⟨λ x y h', subtype.ext $ h.inj_on x.2 y.2 $ subtype.ext_iff.1 h',
+  λ ⟨y, hy⟩, let ⟨x, hx, hxy⟩ := h.surj_on hy in ⟨⟨x, hx⟩, subtype.eq hxy⟩⟩
+
 lemma bijective_iff_bij_on_univ : bijective f ↔ bij_on f univ univ :=
 iff.intro
 (λ h, let ⟨inj, surj⟩ := h in

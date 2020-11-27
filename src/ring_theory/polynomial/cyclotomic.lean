@@ -501,10 +501,7 @@ begin
     { intros j hj,
       exact hi j (nat.mem_proper_divisors.1 (finset.mem_erase.1 hj).2).2 (hleq j hj) },
     have hrw : ∏ (x : ℕ) in k.proper_divisors.erase 1, (cyclotomic x R).coeff 0 = 1,
-    { conv_lhs {
-        apply_congr,
-        skip,
-        simp [hcongr, H] },
+    { rw finset.prod_congr (refl (k.proper_divisors.erase 1)) hcongr,
       simp only [finset.prod_const_one] },
     simp only [hrw, mul_one, zero_sub, coeff_one_zero, coeff_X_zero, coeff_sub] },
   have heq : (X ^ k - 1).coeff 0 = -(cyclotomic k R).coeff 0,

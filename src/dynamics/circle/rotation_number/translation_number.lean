@@ -5,6 +5,7 @@ Author: Yury G. Kudryashov
 -/
 import analysis.specific_limits
 import order.iterate
+import order.semiconj_Sup
 import algebra.iterate_hom
 
 /-!
@@ -47,7 +48,7 @@ We use a local notation `τ` for the translation number of `f : circle_deg1_lift
 circle homeomorphism, rotation number
 -/
 
-open filter set
+open filter set function (hiding commute)
 open_locale topological_space classical
 
 /-!
@@ -71,6 +72,9 @@ variables (f g : circle_deg1_lift)
 protected lemma monotone  : monotone f := f.monotone'
 
 @[mono] lemma mono {x y} (h : x ≤ y) : f x ≤ f y := f.monotone h
+
+lemma strict_mono_iff_injective : strict_mono f ↔ injective f :=
+f.monotone.strict_mono_iff_injective
 
 @[simp] lemma map_add_one : ∀ x, f (x + 1) = f x + 1 := f.map_add_one'
 
@@ -108,12 +112,48 @@ instance units_has_coe_to_fun : has_coe_to_fun (units circle_deg1_lift) :=
 
 @[simp, norm_cast] lemma units_coe (f : units circle_deg1_lift) : ⇑(f : circle_deg1_lift) = f := rfl
 
+@[simp] lemma units_inv_apply_apply (f : units circle_deg1_lift) (x : ℝ) :
+  (f⁻¹ : units circle_deg1_lift) (f x) = x :=
+by simp only [← units_coe, ← mul_apply, f.inv_mul, coe_one, id]
+
+@[simp] lemma units_apply_inv_apply (f : units circle_deg1_lift) (x : ℝ) :
+  f ((f⁻¹ : units circle_deg1_lift) x) = x :=
+by simp only [← units_coe, ← mul_apply, f.mul_inv, coe_one, id]
+
+/-- If a lift of a circle map is bijective, then it is an order automorphism of the line. -/
+def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
+{ to_fun := λ f,
+    { to_fun := f,
+      inv_fun := ⇑(f⁻¹),
+      left_inv := units_inv_apply_apply f,
+      right_inv := units_apply_inv_apply f,
+      map_rel_iff' := λ x y, ⟨mono f, λ h, by simpa using mono ↑(f⁻¹) h⟩ },
+  map_one' := rfl,
+  map_mul' := λ f g, rfl }
+
+@[simp] lemma coe_to_order_iso (f : units circle_deg1_lift) : ⇑(to_order_iso f) = f := rfl
+
+@[simp] lemma coe_to_order_iso_symm (f : units circle_deg1_lift) :
+  ⇑(to_order_iso f).symm = (f⁻¹ : units circle_deg1_lift) := rfl
+
+@[simp] lemma coe_to_order_iso_inv (f : units circle_deg1_lift) :
+  ⇑(to_order_iso f)⁻¹ = (f⁻¹ : units circle_deg1_lift) := rfl
+
+lemma is_unit_iff_bijective {f : circle_deg1_lift} : is_unit f ↔ bijective f :=
+⟨λ ⟨u, h⟩, h ▸ (to_order_iso u).bijective,
+  λ h, ⟨⟨f, ⟨(equiv.of_bijective f h).symm,
+    λ x y hxy, (f.strict_mono_iff_injective.2 h.1).le_iff_le.1
+      (by simp only [equiv.of_bijective_apply_symm_apply f h, hxy]),
+    λ x, h.1 $ by simp only [equiv.of_bijective_apply_symm_apply f, f.map_add_one]⟩,
+    ext $ equiv.of_bijective_apply_symm_apply f h, ext $ equiv.of_bijective_symm_apply_apply f h⟩,
+    rfl⟩⟩
+
 lemma coe_pow : ∀ n : ℕ, ⇑(f^n) = (f^[n])
 | 0 := rfl
 | (n+1) := by {ext x, simp [coe_pow n, pow_succ'] }
 
 lemma semiconj_by_iff_semiconj {f g₁ g₂ : circle_deg1_lift} :
-  semiconj_by f g₁ g₂ ↔ function.semiconj f g₁ g₂ :=
+  semiconj_by f g₁ g₂ ↔ semiconj f g₁ g₂ :=
 ext_iff
 
 lemma commute_iff_commute {f g : circle_deg1_lift} :
@@ -309,6 +349,22 @@ lemma dist_map_zero_lt_of_semiconj_by {f g₁ g₂ : circle_deg1_lift} (h : semi
 dist_map_zero_lt_of_semiconj $ semiconj_by_iff_semiconj.1 h
 
 /-!
+### Limits at infinities and continuity
+-/
+
+protected lemma tendsto_at_bot : tendsto f at_bot at_bot :=
+tendsto_at_bot_mono f.map_le_of_map_zero $ tendsto_at_bot_add_const_left _ _ $
+  tendsto_at_bot_mono (λ x, (ceil_lt_add_one x).le) $ tendsto_at_bot_add_const_right _ _ tendsto_id
+
+protected lemma tendsto_at_top : tendsto f at_top at_top :=
+tendsto_at_top_mono f.le_map_of_map_zero $ tendsto_at_top_add_const_left _ _ $
+  tendsto_at_top_mono (λ x, (sub_one_lt_floor x).le) $ tendsto_at_top_add_const_right _ _ tendsto_id
+
+lemma continuous_iff_surjective : continuous f ↔ function.surjective f :=
+⟨λ h, surjective_of_continuous h f.tendsto_at_top f.tendsto_at_bot,
+  continuous_of_monotone_surjective f.monotone⟩
+
+/-!
 ### Estimates on `(f^n) x`
 
 If we know that `f x` is `≤`/`<`/`≥`/`>`/`=` to `x + m`, then we have a similar estimate on
@@ -442,7 +498,7 @@ lemma translation_number_eq_of_dist_bounded {f g : circle_deg1_lift} (C : ℝ)
 eq.symm $ g.translation_number_eq_of_tendsto_aux $
   f.tendsto_translation_number_of_dist_bounded_aux _ C H
 
-@[simp] lemma translation_number_map_id : τ 1 = 0 :=
+@[simp] lemma translation_number_one : τ 1 = 0 :=
 translation_number_eq_of_tendsto₀ _ $ by simp [tendsto_const_nhds]
 
 lemma translation_number_eq_of_semiconj_by {f g₁ g₂ : circle_deg1_lift} (H : semiconj_by f g₁ g₂) :
@@ -467,6 +523,11 @@ begin
   rw [h.mul_pow, dist_comm],
   exact le_of_lt ((f^n).dist_map_map_zero_lt (g^n))
 end
+
+@[simp] lemma translation_number_units_inv (f : units circle_deg1_lift) :
+  τ ↑(f⁻¹) = -τ f :=
+eq_neg_iff_add_eq_zero.2 $
+  by simp [← translation_number_mul_of_commute (commute.refl _).units_inv_left]
 
 @[simp] lemma translation_number_pow :
   ∀ n : ℕ, τ (f^n) = n * τ f
@@ -568,6 +629,19 @@ not_le.1 $ mt f.le_translation_number_of_add_int_le $ not_le.2 h
 lemma map_lt_of_translation_number_lt_nat {n : ℕ} (h : τ f < n) (x : ℝ) : f x < x + n :=
 @map_lt_of_translation_number_lt_int f n h x
 
+lemma map_lt_add_floor_translation_number_add_one (x : ℝ) : f x < x + ⌊τ f⌋ + 1 :=
+begin
+  rw [add_assoc],
+  norm_cast,
+  refine map_lt_of_translation_number_lt_int _ _ _,
+  push_cast,
+  apply lt_floor_add_one
+end
+
+lemma map_lt_add_translation_number_add_one (x : ℝ) : f x < x + τ f + 1 :=
+calc f x < x + ⌊τ f⌋ + 1 : f.map_lt_add_floor_translation_number_add_one x
+... ≤ x + τ f + 1 : by { mono*, exact floor_le (τ f) }
+
 lemma lt_map_of_int_lt_translation_number {n : ℤ} (h : ↑n < τ f) (x : ℝ) : x + n < f x :=
 not_le.1 $ mt f.translation_number_le_of_le_add_int $ not_le.2 h
 
@@ -650,6 +724,44 @@ lemma translation_number_eq_rat_iff (hf : continuous f) {m : ℤ}
 begin
   rw [eq_div_iff, mul_comm, ← translation_number_pow]; [skip, exact ne_of_gt (nat.cast_pos.2 hn)],
   exact (f^n).translation_number_eq_int_iff (f.continuous_pow hf n)
+end
+
+lemma semiconj_by_of_group_action_of_forall_translation_number_eq
+  {G : Type*} [group G] (f₁ f₂ : G →* circle_deg1_lift)
+  (h : ∀ g, τ (f₁ g) = τ (f₂ g)) :
+  ∃ F : circle_deg1_lift, ∀ g, semiconj F (f₁ g) (f₂ g) :=
+begin
+  -- Equality of translation number guarantees that for each `x`
+  -- the set `{f₂ g⁻¹ (f₁ g x) | g : G}` is bounded above.
+  have : ∀ x, bdd_above (range $ λ g, f₂ g⁻¹ (f₁ g x)),
+  { refine λ x, ⟨x + 2, _⟩,
+    rintro _ ⟨g, rfl⟩,
+    have : τ (f₂ g⁻¹) = -τ (f₂ g),
+      by rw [← monoid_hom.coe_to_hom_units, monoid_hom.map_inv,
+        translation_number_units_inv, monoid_hom.coe_to_hom_units],
+    calc f₂ g⁻¹ (f₁ g x) ≤ f₂ g⁻¹ (x + τ (f₁ g) + 1) :
+      mono _ (map_lt_add_translation_number_add_one _ _).le
+    ... = f₂ g⁻¹ (x + τ (f₂ g)) + 1 :
+      by rw [h, map_add_one]
+    ... ≤ x + τ (f₂ g) + τ (f₂ g⁻¹) + 1 + 1 :
+      by { mono, exact (map_lt_add_translation_number_add_one _ _).le }
+    ... = x + 2 : by simp [this, bit0, add_assoc] },
+  -- We have a theorem about actions by `order_iso`, so we introduce auxiliary maps
+  -- to `ℝ ≃o ℝ`.
+  set F₁ := to_order_iso.comp f₁.to_hom_units,
+  set F₂ := to_order_iso.comp f₂.to_hom_units,
+  have hF₁ : ∀ g, ⇑(F₁ g) = f₁ g := λ _, rfl,
+  have hF₂ : ∀ g, ⇑(F₂ g) = f₂ g := λ _, rfl,
+  simp only [← hF₁, ← hF₂],
+  -- Now we apply `cSup_div_semiconj` and go back to `f₁` and `f₂`.
+  refine ⟨⟨_, λ x y hxy, _, λ x, _⟩, cSup_div_semiconj F₂ F₁ (λ x, _)⟩;
+    simp only [hF₁, hF₂, ← monoid_hom.map_inv, coe_mk],
+  { refine csupr_le_csupr (this y) (λ g, _),
+    exact mono _ (mono _ hxy) },
+  { simp only [map_add_one],
+    exact (map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const)
+      (monotone_id.add_const (1 : ℝ)) (this x)).symm },
+  { exact this x }
 end
 
 end circle_deg1_lift

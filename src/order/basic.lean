@@ -336,6 +336,10 @@ begin
   exact ⟨h₁ h.1, λ e, h.2 (h₂ e)⟩
 end
 
+lemma monotone.strict_mono_iff_injective [linear_order α] [partial_order β] {f : α → β}
+  (h : monotone f) : strict_mono f ↔ injective f :=
+⟨λ h, h.injective, strict_mono_of_monotone_of_injective h⟩
+
 lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
   (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=
 λ a b, by simp [lt_iff_le_not_le, h] {contextual := tt}

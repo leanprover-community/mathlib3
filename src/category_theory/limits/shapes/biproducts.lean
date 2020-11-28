@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
-import category_theory.preadditive
+import category_theory.limits.shapes.zero
 
 /-!
 # Biproducts and binary biproducts

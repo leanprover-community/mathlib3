@@ -530,12 +530,16 @@ end semimodule
 
 section
 
-/-- Apply a permutation to the order of the arguments -/
-def dom_dom_congr (m : multilinear_map R (λ i : ι, M) N) (σ : equiv.perm ι) :
-  multilinear_map R (λ i : ι, M) N :=
+/-- Apply a permutation to the order of the arguments, obtaining another multilinear map.
+
+The naming is derived from `finsupp.dom_congr`, noting that here the permutation applies to the
+domain of the domain. -/
+def dom_dom_congr [add_comm_monoid M₃] [semimodule R M₃]
+  (m : multilinear_map R (λ i : ι, M₂) M₃) (σ : equiv.perm ι) :
+  multilinear_map R (λ i : ι, M₂) M₃ :=
 { to_fun := λ v, m (λ i, v (σ i)),
-  map_add' := λ v i a b, by { simp_rw function.update_comp_equiv_apply v, rw m.map_add, },
-  map_smul' := λ v i a b, by { simp_rw function.update_comp_equiv_apply v, rw m.map_smul, }, }
+  map_add' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_add, },
+  map_smul' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_smul, }, }
 
 end
 

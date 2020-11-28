@@ -258,7 +258,7 @@ equivalence thus induced.
 -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
 lemma range_to_dual_map : (@to_dual_map F _).range = ⊤ :=
-linear_map.range_eq_top.mpr (to_dual'_surjective ℝ)
+linear_map.range_eq_top.mpr (to_dual'_surjective ℝ F)
 
 /--
 Fréchet-Riesz representation: If `F` is a Hilbert space, the function that takes a vector in `F` to
@@ -271,7 +271,7 @@ Fréchet-Riesz representation: If `F` is a Hilbert space, the function that take
 its dual is an isometry.  -/
 def isometric.to_dual : F ≃ᵢ normed_space.dual ℝ F :=
 { to_equiv := to_dual.to_linear_equiv.to_equiv,
-  isometry_to_fun := to_dual'_isometry ℝ }
+  isometry_to_fun := to_dual'_isometry ℝ F}
 
 @[simp] lemma to_dual_apply {x y : F} : to_dual x y = ⟪x, y⟫_ℝ := rfl
 

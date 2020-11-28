@@ -770,26 +770,18 @@ variables {C} [split_mono f]
 A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
 Here we build the cone, and show in `split_mono_equalizes` that it is a limit cone.
 -/
+@[simps {rhs_md := semireducible}]
 def cone_of_split_mono : cone (parallel_pair (𝟙 Y) (retraction f ≫ f)) :=
-fork.of_ι f (by tidy)
-
-@[simp] lemma cone_of_split_mono_π_app_zero : (cone_of_split_mono f).π.app zero = f := rfl
-@[simp] lemma cone_of_split_mono_π_app_one : (cone_of_split_mono f).π.app one = f ≫ 𝟙 Y := rfl
+fork.of_ι f (by simp)
 
 /--
 A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
 -/
 def split_mono_equalizes {X Y : C} (f : X ⟶ Y) [split_mono f] : is_limit (cone_of_split_mono f) :=
-{ lift := λ s, s.π.app zero ≫ retraction f,
-  fac' := λ s,
-  begin
-    rintros (⟨⟩|⟨⟩),
-    { rw [cone_of_split_mono_π_app_zero],
-      erw [category.assoc, ← s.π.naturality right, s.π.naturality left, category.comp_id], },
-    { erw [cone_of_split_mono_π_app_one, category.comp_id, category.assoc,
-            ← s.π.naturality right, category.id_comp], }
-  end,
-  uniq' := λ s m w, begin rw ←(w zero), simp, end, }
+fork.is_limit.mk' _ $ λ s,
+⟨s.ι ≫ retraction f,
+ by { dsimp, rw [category.assoc, ←s.condition], apply category.comp_id },
+ λ m hm, by simp [←hm]⟩
 
 end
 
@@ -801,26 +793,19 @@ variables {C} [split_epi f]
 A split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
 Here we build the cocone, and show in `split_epi_coequalizes` that it is a colimit cocone.
 -/
+@[simps {rhs_md := semireducible}]
 def cocone_of_split_epi : cocone (parallel_pair (𝟙 X) (f ≫ section_ f)) :=
-cofork.of_π f (by tidy)
-
-@[simp] lemma cocone_of_split_epi_ι_app_one : (cocone_of_split_epi f).ι.app one = f := rfl
-@[simp] lemma cocone_of_split_epi_ι_app_zero : (cocone_of_split_epi f).ι.app zero = 𝟙 X ≫ f := rfl
+cofork.of_π f (by simp)
 
 /--
 A split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
 -/
-def split_epi_coequalizes {X Y : C} (f : X ⟶ Y) [split_epi f] : is_colimit (cocone_of_split_epi f) :=
-{ desc := λ s, section_ f ≫ s.ι.app one,
-  fac' := λ s,
-  begin
-    rintros (⟨⟩|⟨⟩),
-    { erw [cocone_of_split_epi_ι_app_zero, category.assoc, category.id_comp, ←category.assoc,
-            s.ι.naturality right, functor.const.obj_map, category.comp_id], },
-    { erw [cocone_of_split_epi_ι_app_one, ←category.assoc, s.ι.naturality right,
-            ←s.ι.naturality left, category.id_comp] }
-  end,
-  uniq' := λ s m w, begin rw ←(w one), simp, end, }
+def split_epi_coequalizes {X Y : C} (f : X ⟶ Y) [split_epi f] :
+  is_colimit (cocone_of_split_epi f) :=
+cofork.is_colimit.mk' _ $ λ s,
+⟨section_ f ≫ s.π,
+ by { dsimp, rw [← category.assoc, ← s.condition, category.id_comp] },
+ λ m hm, by simp [← hm]⟩
 
 end
 

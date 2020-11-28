@@ -3,10 +3,6 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.limits.preserves.basic
-import category_theory.limits.shapes.kernels
-import category_theory.limits.shapes.strong_epi
-import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.regular_mono
 
 /-!
@@ -79,7 +75,8 @@ The second leg of a pullback cone is a normal monomorphism if the right componen
 See also `pullback.snd_of_mono` for the basic monomorphism version, and
 `normal_of_is_pullback_fst_of_normal` for the flipped version.
 -/
-def normal_of_is_pullback_snd_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
+def normal_of_is_pullback_snd_of_normal
+  {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [hn : normal_mono h] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
 normal_mono g :=
 { Z := hn.Z,
@@ -100,7 +97,8 @@ The first leg of a pullback cone is a normal monomorphism if the left component 
 See also `pullback.fst_of_mono` for the basic monomorphism version, and
 `normal_of_is_pullback_snd_of_normal` for the flipped version.
 -/
-def normal_of_is_pullback_fst_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
+def normal_of_is_pullback_fst_of_normal
+  {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [hn : normal_mono k] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
 normal_mono f :=
 normal_of_is_pullback_snd_of_normal comm.symm (pullback_cone.flip_is_limit t)

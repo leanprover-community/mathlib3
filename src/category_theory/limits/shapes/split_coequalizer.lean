@@ -3,9 +3,19 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.adjunction
 import category_theory.limits.shapes.equalizers
-import category_theory.limits.shapes.kernel_pair
+
+/-!
+# Split coequalizers
+
+We define what it means for a triple of morphisms `f g : X ⟶ Y`, `h : Y ⟶ Z` to be a split
+coequalizer, and show that every split coequalizer is a coequalizer and absolute.
+
+A pair `f g : X ⟶ Y` is split if there is a `Z` and `h : Y ⟶ Z` making `f,g,h` a split coequalizer.
+A pair `f g : X ⟶ Y` is `G`-split if `G f, G g` is split.
+
+These definitions and constructions are useful in particular for the monadicity theorems.
+-/
 
 namespace category_theory
 

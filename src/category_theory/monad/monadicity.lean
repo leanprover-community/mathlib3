@@ -163,7 +163,8 @@ preserves_coequalizer.is_limit_of_reflects_of_map_is_limit G _
 lemma comparison_adjunction_unit''
   [∀ (A : algebra (F ⋙ G)), has_coequalizer (F.map A.a) (adj.counit.app (F.obj A.A))]
   (A : algebra (F ⋙ G)) :
-  (comparison_adjunction.unit.app A).f = (cofork_free.beck_coequalizer (F ⋙ G) A).desc (unit_cofork A) :=
+  (comparison_adjunction.unit.app A).f =
+    (cofork_free.beck_coequalizer (F ⋙ G) A).desc (unit_cofork A) :=
 begin
   apply limits.cofork.is_colimit.hom_ext (cofork_free.beck_coequalizer (F ⋙ G) A),
   rw is_colimit.fac,

@@ -126,7 +126,8 @@ fork_map_cone_limit G w (preserves_colimit.preserves l)
 
 /-- The property of reflecting equalizers expressed in terms of forks. -/
 def is_limit_of_reflects_of_map_is_limit [reflects_colimit (parallel_pair f g) G]
-  (l : is_colimit (cofork.of_π (G.map h) (by simp only [←G.map_comp, w]) : cofork (G.map f) (G.map g))) :
+  (l : is_colimit (cofork.of_π (G.map h) (by simp only [←G.map_comp, w])
+                  : cofork (G.map f) (G.map g))) :
   is_colimit (cofork.of_π h w) :=
 reflects_colimit.reflects ((fork_map_cone_limit G w).symm l)
 

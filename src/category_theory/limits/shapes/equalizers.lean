@@ -30,8 +30,8 @@ Each of these has a dual.
 ## Main statements
 
 * `equalizer.ι_mono` states that every equalizer map is a monomorphism
-* `is_iso_limit_cone_parallel_pair_of_self` states that the identity on the domain of `f` is an equalizer
-  of `f` and `f`.
+* `is_iso_limit_cone_parallel_pair_of_self` states that the identity on the domain of `f` is an
+  equalizer of `f` and `f`.
 
 ## Implementation notes
 As with the other special shapes in the limits library, all the definitions here are given as

@@ -16,7 +16,7 @@ We also prove that, for base field `𝕜` with `[is_R_or_C 𝕜]`, this map is a
 
 We then consider inner product spaces, with base field over `ℝ` (the corresponding results for `ℂ`
 will require the definition of conjugate-linear maps). We define `to_dual_map`, a continuous linear
-map from `E` to its dual, which maps an element x of the space to `λ y, ⟪x, y⟫`. We check
+map from `E` to its dual, which maps an element `x` of the space to `λ y, ⟪x, y⟫`. We check
 (`to_dual_map_isometry`) that this map is an isometry onto its image, and particular is injective.
 We also define `to_dual'` as the function taking taking a vector to its dual for a base field `𝕜`
 with `[is_R_or_C 𝕜]`; this is a function and not a linear map.

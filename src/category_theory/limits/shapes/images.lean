@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.limits.shapes.equalizers
+import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.strong_epi
 
 /-!
@@ -628,6 +629,22 @@ instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images C] :
 { has_image_map := λ f g st, has_image_map.mk
   { map := arrow.lift $ arrow.hom_mk' $ show (st.left ≫ factor_thru_image g.hom) ≫ image.ι g.hom =
       factor_thru_image f.hom ≫ (image.ι f.hom ≫ st.right), by simp } }
+
+/-- If a category has images, equalizers and pullbacks, then images are automatically strong epi
+    images. -/
+@[priority 100]
+instance has_strong_epi_images_of_has_pullbacks_of_has_equalizers [has_pullbacks C]
+  [has_equalizers C] : has_strong_epi_images C :=
+{ strong_factor_thru_image := λ X Y f,
+  { epi := by apply_instance,
+    has_lift := λ A B x y h h_mono w, arrow.has_lift.mk
+    { lift := image.lift
+      { I := pullback h y,
+        m := pullback.snd ≫ image.ι f,
+        m_mono := by exactI mono_comp _ _,
+        e := pullback.lift _ _ w } ≫ pullback.fst,
+      fac_left := by simp,
+      fac_right := by tidy } } }
 
 end has_strong_epi_images
 

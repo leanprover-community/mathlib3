@@ -160,6 +160,8 @@ begin
       ... ≤ ∥to_dual' 𝕜 x∥ * ∥x∥ : le_op_norm (to_dual' 𝕜 x) x } }
 end
 
+variables (E)
+
 lemma to_dual'_isometry : isometry (@to_dual' 𝕜 E _ _) :=
 add_monoid_hom.isometry_of_norm _ (norm_to_dual'_apply 𝕜)
 

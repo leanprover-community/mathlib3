@@ -50,19 +50,19 @@ noncomputable def is_split_coequalizer.left_splitting
   {Z : C} {h : Y ⟶ Z} (q : is_split_coequalizer f g h) : Y ⟶ X :=
 q.2.some_spec.some
 
-@[reassoc, simp]
+@[simp, reassoc]
 lemma is_split_coequalizer.right_splitting_π
   {Z : C} {h : Y ⟶ Z} (q : is_split_coequalizer f g h) :
   q.right_splitting ≫ h = 𝟙 _ :=
 q.2.some_spec.some_spec.1
 
-@[reassoc, simp]
+@[simp, reassoc]
 lemma is_split_coequalizer.left_splitting_bottom
   {Z : C} {h : Y ⟶ Z} (q : is_split_coequalizer f g h) :
   q.left_splitting ≫ g = 𝟙 _ :=
 q.2.some_spec.some_spec.2.1
 
-@[reassoc, simp]
+@[simp, reassoc]
 lemma is_split_coequalizer.left_splitting_top
   {Z : C} {h : Y ⟶ Z} (q : is_split_coequalizer f g h) :
   q.left_splitting ≫ f = h ≫ q.right_splitting :=
@@ -84,12 +84,10 @@ section
 open limits
 
 /-- A split coequalizer clearly induces a cofork. -/
+@[simps {rhs_md := semireducible}]
 def is_split_coequalizer.as_cofork {Z : C} {h : Y ⟶ Z} (t : is_split_coequalizer f g h) :
   cofork f g :=
 cofork.of_π h t.condition
-
-@[simp] lemma split_coequalizer.as_cofork_π {Z : C} {h : Y ⟶ Z} (t : is_split_coequalizer f g h) :
-  t.as_cofork.π = h := rfl
 
 /--
 The cofork induced by a split coequalizer is a coequalizer, justifying the name. In some cases it
@@ -101,7 +99,7 @@ noncomputable def is_split_coequalizer.is_coequalizer
 cofork.is_colimit.mk' _ $ λ s,
 ⟨t.right_splitting ≫ s.π,
  by { dsimp, rw [← t.left_splitting_top_assoc, s.condition, t.left_splitting_bottom_assoc] },
- λ m hm, by { dsimp at hm, rw [← hm, t.right_splitting_π_assoc] }⟩
+ λ m hm, by { simp [←hm] }⟩
 
 end
 

@@ -39,7 +39,7 @@ def fork_map_cone_limit :
   is_limit (G.map_cone (fork.of_ι h w)) ≃
   is_limit (fork.of_ι (G.map h) (by simp only [←G.map_comp, w]) : fork (G.map f) (G.map g)) :=
 (is_limit.postcompose_hom_equiv (diagram_iso_parallel_pair _) _).symm.trans
-  (is_limit.equiv_iso_limit (fork.ext (iso.refl _) (by simp [fork.ι_eq_app_zero])))
+  (is_limit.equiv_iso_limit (fork.ext (iso.refl _) (by simp)))
 
 /-- The property of preserving equalizers expressed in terms of forks. -/
 def map_is_limit_of_preserves_of_is_limit [preserves_limit (parallel_pair f g) G]
@@ -116,7 +116,7 @@ def fork_map_cone_limit :
   is_colimit (G.map_cocone (cofork.of_π h w)) ≃
   is_colimit (cofork.of_π (G.map h) (by simp only [←G.map_comp, w]) : cofork (G.map f) (G.map g)) :=
 (is_colimit.precompose_inv_equiv (diagram_iso_parallel_pair _) _).symm.trans
-  (is_colimit.equiv_iso_colimit (cofork.ext (iso.refl _) (by { dsimp, simp [cofork.π_eq_app_one], dsimp, simp })))
+  (is_colimit.equiv_iso_colimit (cofork.ext (iso.refl _) (by { dsimp, simp })))
 
 /-- The property of preserving equalizers expressed in terms of forks. -/
 def map_is_limit_of_preserves_of_is_limit [preserves_colimit (parallel_pair f g) G]

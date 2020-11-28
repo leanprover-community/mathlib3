@@ -78,6 +78,10 @@ classical.by_cases
 theorem char_p.exists_unique (α : Type u) [semiring α] : ∃! p, char_p α p :=
 let ⟨c, H⟩ := char_p.exists α in ⟨c, H, λ y H2, char_p.eq α H2 H⟩
 
+theorem char_p.congr {R : Type u} [semiring R] {p : ℕ} (q : ℕ) [hq : char_p R q] (h : q = p) :
+  char_p R p :=
+h ▸ hq
+
 /-- Noncomputable function that outputs the unique characteristic of a semiring. -/
 noncomputable def ring_char (α : Type u) [semiring α] : ℕ :=
 classical.some (char_p.exists_unique α)
@@ -97,12 +101,8 @@ instance char_p : char_p R (ring_char R) :=
 
 variables {R}
 
-theorem congr {p : ℕ} (q : ℕ) [hq : char_p R q] (h : q = p) :
-  char_p R p :=
-h ▸ hq
-
 theorem of_eq {p : ℕ} (h : ring_char R = p) : char_p R p :=
-congr (ring_char R) h
+char_p.congr (ring_char R) h
 
 theorem eq_iff {p : ℕ} : ring_char R = p ↔ char_p R p :=
 ⟨of_eq, eq.symm ∘ eq R⟩

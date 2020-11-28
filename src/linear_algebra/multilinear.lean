@@ -530,16 +530,6 @@ end semimodule
 
 section
 
-lemma function.update_comp_equiv {α β α' : Sort*} [decidable_eq α'] [decidable_eq α] (f : α → β) (g : α' ≃ α)
-  (a : α) (v : β) :
-  (function.update f a v) ∘ g = function.update (f ∘ g) (g.symm a) v :=
-by {rw [←function.update_comp _ (g.injective), g.apply_symm_apply]}
-
-lemma function.update_comp_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable_eq α] (f : α → β) (g : α' ≃ α)
- (a : α) (v : β) (a' : α') :
-  (function.update f a v) (g a') = function.update (f ∘ g) (g.symm a) v a' :=
-congr_fun (function.update_comp_equiv f g a v) a'
-
 /-- Apply a permutation to the order of the arguments -/
 def dom_dom_congr (m : multilinear_map R (λ i : ι, M) N) (σ : equiv.perm ι) :
   multilinear_map R (λ i : ι, M) N :=

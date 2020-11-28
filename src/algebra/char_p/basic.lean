@@ -94,8 +94,11 @@ theorem eq (α : Type u) [semiring α] {p : ℕ} (C : char_p α p) : p = ring_ch
 instance char_p (R : Type u) [semiring R] : char_p R (ring_char R) :=
 ⟨spec R⟩
 
+theorem congr {R : Type u} [semiring R] {p : ℕ} (q : ℕ) [hq : char_p R q] (h : q = p) : char_p R p :=
+h ▸ hq
+
 theorem of_eq {R : Type u} [semiring R] {p : ℕ} (h : ring_char R = p) : char_p R p :=
-h ▸ ring_char.char_p R
+congr (ring_char R) h
 
 theorem eq_iff {R : Type u} [semiring R] {p : ℕ} : ring_char R = p ↔ char_p R p :=
 ⟨of_eq, eq.symm ∘ eq R⟩

@@ -66,22 +66,15 @@ begin
 end
 @[simp] lemma is_colimit_X : (cofork.of_π _ (comm T X)).X = X := rfl
 
+def beck_split_coequalizer : is_split_coequalizer (T.map X.a) ((μ_ T).app _) X.a :=
+⟨X.assoc.symm, (η_ T).app _, (η_ T).app _, X.unit, monad.left_unit _, ((η_ T).naturality _).symm⟩
+
 /-- This is the Beck cofork. It is a split coequalizer, in particular a coequalizer. -/
 def beck_cofork : cofork (T.map X.a) ((μ_ T).app _)  :=
-cofork.of_π X.a X.assoc.symm
+(beck_split_coequalizer T X).as_cofork
 
--- TODO: Define split coequalizers and show this is a split coequalizer, instead of doing it like
--- this
-def beck_coequalizer : limits.is_colimit (beck_cofork T X) :=
-cofork.is_colimit.mk' _ $ λ s,
-⟨(η_ T).app _ ≫ s.π,
- begin dsimp [beck_cofork], erw (η_ T).naturality_assoc, rw s.condition, rw monad.left_unit_assoc end,
- λ m hm,
- begin
-   rw ← hm,
-   symmetry,
-   apply X.unit_assoc,
- end⟩
+noncomputable def beck_coequalizer : limits.is_colimit (beck_cofork T X) :=
+(beck_split_coequalizer T X).is_coequalizer
 
 end cofork_free
 
@@ -108,6 +101,10 @@ begin
   { rw adj.left_triangle_components,
     refl },
 end
+
+instance main_pair_G_split (A : algebra (F ⋙ G)) :
+  G.is_split_pair (F.map A.a) (adj.counit.app (F.obj A.A)) :=
+{ splittable := ⟨_, _, cofork_free.beck_split_coequalizer (F ⋙ G) A⟩ }
 
 def comparison_left_adjoint_obj
   (A : algebra (F ⋙ G)) [has_coequalizer (F.map A.a) (adj.counit.app _)] : D :=
@@ -200,9 +197,8 @@ begin
   apply limits.cofork.is_colimit.hom_ext (cofork_free.beck_coequalizer (F ⋙ G) A),
   rw is_colimit.fac,
   dsimp [cofork_free.beck_cofork], -- TODO: need dsimp lemmas about this, and probably dsimp lemmas about cofork.of_π
-  rw [comparison_adjunction_unit, ← adjunction.hom_equiv_naturality_left,
-      adjunction.hom_equiv_apply_eq, coequalizer.condition, adj.hom_equiv_counit,
-      ← adj.counit_naturality],
+  rw [comparison_adjunction_unit, ← adj.hom_equiv_naturality_left A.a, adj.hom_equiv_apply_eq,
+      coequalizer.condition, ← adj.counit_naturality, adj.hom_equiv_counit],
   refl,
 end
 
@@ -219,11 +215,71 @@ begin
   rw category.id_comp,
 end
 
+section beck_monadicity
+
+variables [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], creates_colimit (parallel_pair f g) G]
+
+/--
+Beck's monadicity theorem. If `G` has a right adjoint and creates coequalizers of `G`-split pairs,
+then it is monadic.
+-/
+def beck_monadicity : monadic_right_adjoint G :=
+begin
+  letI : ∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], has_coequalizer f g,
+  { introsI A B f g i,
+    have : has_colimit (parallel_pair f g ⋙ G),
+    { apply has_colimit_of_iso (diagram_iso_parallel_pair _),
+      change has_coequalizer (G.map f) (G.map g),
+      apply_instance },
+    exactI has_colimit_of_created _ G },
+  letI : ∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], preserves_colimit (parallel_pair f g) G,
+  { introsI A B f g i,
+    have : has_colimit (parallel_pair f g ⋙ G),
+    { apply has_colimit_of_iso (diagram_iso_parallel_pair _),
+      change has_coequalizer (G.map f) (G.map g),
+      apply_instance },
+    resetI,
+    apply_instance },
+  let L : algebra (F ⋙ G) ⥤ D := left_adjoint_comparison,
+  letI i : is_right_adjoint (comparison G) := ⟨_, comparison_adjunction⟩,
+  constructor,
+  let : Π (X : algebra (left_adjoint G ⋙ G)),
+    is_iso ((adjunction.of_right_adjoint (comparison G)).unit.app X),
+  { intro X,
+    apply is_iso_of_reflects_iso (monad.forget (F ⋙ G)) _,
+    { apply_instance },
+    dsimp,
+    erw comparison_adjunction_unit'',
+    change
+      is_iso
+        (is_colimit.cocone_point_unique_up_to_iso
+          (cofork_free.beck_coequalizer (F ⋙ G) X)
+          (unit_colimit_of_preserves_coequalizer X)).hom,
+    apply is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) },
+  let : Π (Y : D),
+    is_iso ((adjunction.of_right_adjoint (comparison G)).counit.app Y),
+  { intro Y,
+    erw comparison_adjunction_counit,
+    change is_iso (is_colimit.cocone_point_unique_up_to_iso _ _).hom,
+    apply_instance,
+    apply counit_coequalizer_of_reflects_coequalizer _,
+    letI : G.is_split_pair (F.map (G.map (adj.counit.app Y))) (adj.counit.app (F.obj (G.obj Y))),
+      apply monadicity.main_pair_G_split ((comparison G).obj Y),
+    apply_instance },
+  exactI adjunction.is_right_adjoint_to_is_equivalence,
+end
+
+end beck_monadicity
+
 section reflexive_monadicity
 
 variables [has_reflexive_coequalizers D] [reflects_isomorphisms G]
 variables [∀ ⦃A B⦄ (f g : A ⟶ B) [is_reflexive_pair f g], preserves_colimit (parallel_pair f g) G]
 
+/--
+Reflexive (crude) monadicity theorem. If `G` has a right adjoint, `D` has and `G` preserves
+reflexive coequalizers and `G` reflects isomorphisms, then `G` is monadic.
+-/
 def reflexive_monadicity : monadic_right_adjoint G :=
 begin
   let L : algebra (F ⋙ G) ⥤ D := left_adjoint_comparison,
@@ -260,4 +316,7 @@ end
 end monadicity
 
 end monad
+
+#check @monad.monadicity.reflexive_monadicity
+
 end category_theory

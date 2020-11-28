@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes.equalizers
+import category_theory.limits.shapes.split_coequalizer
 import category_theory.limits.preserves.basic
 
 /-!
@@ -175,6 +176,17 @@ instance : is_iso (coequalizer_comparison f g G) :=
 begin
   rw ← preserves_coequalizer.iso_hom,
   apply_instance
+end
+
+/-- Any functor preserves coequalizers of split pairs. -/
+@[priority 1]
+instance preserves_split_coequalizers [is_split_pair f g] :
+  preserves_colimit (parallel_pair f g) G :=
+begin
+  apply preserves_colimit_of_preserves_colimit_cocone
+            ((is_split_pair.is_split_coequalizer f g).is_coequalizer),
+  apply (fork_map_cone_limit G _).symm
+            ((is_split_pair.is_split_coequalizer f g).map G).is_coequalizer,
 end
 
 end preserves_coequalizer

@@ -8,6 +8,7 @@ import data.fintype.card
 import group_theory.perm.sign
 import algebra.algebra.basic
 import tactic.ring
+import linear_algebra.multilinear
 
 universes u v w z
 open equiv equiv.perm finset function
@@ -272,6 +273,13 @@ begin
   rw [← det_transpose, ← update_column_transpose, det_update_column_smul],
   simp [update_column_transpose, det_transpose]
 end
+
+/-- `det` is a multilinear map over the rows of the matrix -/
+@[simps apply]
+def det_row_multilinear : multilinear_map R (λ (i : n), n → R) R :=
+{ to_fun := det,
+  map_add' := det_update_row_add,
+  map_smul' := det_update_row_smul }
 
 @[simp] lemma det_block_diagonal {o : Type*} [fintype o] [decidable_eq o] (M : o → matrix n n R) :
   (block_diagonal M).det = ∏ k, (M k).det :=

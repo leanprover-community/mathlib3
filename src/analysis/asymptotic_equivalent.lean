@@ -27,7 +27,7 @@ We introduce the notation `u ~[l] v := is_equivalent u v l`, which you can use b
 If `β` is a `normed_group` :
 
 - `_ ~[l] _` is an equivalence relation
-- Equivalent statements for `u ~[l] (λ _, c)` :
+- Equivalent statements for `u ~[l] const _ c` :
   - If `c ≠ 0`, this is true iff `tendsto u l (𝓝 c)` (see `is_equivalent_const_iff_tendsto`)
   - For `c = 0`, this is true iff `u =ᶠ[l] 0` (see `is_equivalent_zero_iff_eventually_zero`)
 
@@ -52,7 +52,7 @@ If `β` is a `normed_linear_ordered_field` :
 
 namespace asymptotics
 
-open filter
+open filter function
 open_locale topological_space
 
 section normed_group
@@ -63,7 +63,7 @@ variables {α β : Type*} [normed_group β]
     `u x - v x = o(v x)` as x converges along `l`. -/
 def is_equivalent (u v : α → β) (l : filter α) := is_o (u - v) v l
 
-localized "notation u ` ~[`:50 l:50 `] `:0 v:50 := is_equivalent u v l" in asymptotics
+localized "notation u ` ~[`:50 l:50 `] `:0 v:50 := asymptotics.is_equivalent u v l" in asymptotics
 
 variables {u v w : α → β} {l : filter α}
 
@@ -97,7 +97,7 @@ begin
   exact is_o_zero_right_iff
 end
 
-lemma is_equivalent_const_iff_tendsto {c : β} (h : c ≠ 0) : u ~[l] (λ _, c) ↔ tendsto u l (𝓝 c) :=
+lemma is_equivalent_const_iff_tendsto {c : β} (h : c ≠ 0) : u ~[l] const _ c ↔ tendsto u l (𝓝 c) :=
 begin
   rw [is_equivalent, is_o_const_iff h],
   split; intro h;
@@ -106,7 +106,7 @@ begin
   convert this; ext; simp [sub_eq_add_neg]
 end
 
-lemma is_equivalent.tendsto_const {c : β} (hu : u ~[l] (λ _, c)) : tendsto u l (𝓝 c) :=
+lemma is_equivalent.tendsto_const {c : β} (hu : u ~[l] const _ c) : tendsto u l (𝓝 c) :=
 begin
   rcases (em $ c = 0) with ⟨rfl, h⟩,
   { exact (tendsto_congr' $ is_equivalent_zero_iff_eventually_zero.mp hu).mpr tendsto_const_nhds },
@@ -120,8 +120,7 @@ begin
   { rw [h, ← is_o_one_iff ℝ] at *,
     convert (huv.symm.is_o.trans hu).add hu,
     simp },
-  { change _ ≠ _ at h,
-    rw ← is_equivalent_const_iff_tendsto h at hu ⊢,
+  { rw ← is_equivalent_const_iff_tendsto h at hu ⊢,
     exact huv.symm.trans hu }
 end
 
@@ -247,14 +246,13 @@ begin
   refine hφ.mp (huv.mp $ hCuv.mono $ λ x hCuvx huvx hφx, _),
 
   have key :=
-    calc  _ = ∥φ x - 1∥ * ∥u x∥ : rfl
-        ... ≤ (c/2) / C * ∥u x∥ : mul_le_mul_of_nonneg_right hφx.le (norm_nonneg $ u x)
+    calc ∥φ x - 1∥ * ∥u x∥
+            ≤ (c/2) / C * ∥u x∥ : mul_le_mul_of_nonneg_right hφx.le (norm_nonneg $ u x)
         ... ≤ (c/2) / C * (C*∥v x∥) : mul_le_mul_of_nonneg_left hCuvx (div_pos (by linarith) hC).le
-        ... = (c/2) / C * C * ∥v x∥ : by ac_refl
-        ... = c/2 * ∥v x∥ : by rw div_mul_cancel (c/2) hC.ne.symm,
+        ... = c/2 * ∥v x∥ : by {field_simp [hC.ne.symm], ring},
 
-  calc  _ = ∥((λ (x : α), φ x • u x) - v) x∥ : rfl
-      ... = ∥(φ x - 1) • u x + (u x - v x)∥ : by simp [sub_smul, sub_add]
+  calc ∥((λ (x : α), φ x • u x) - v) x∥
+          = ∥(φ x - 1) • u x + (u x - v x)∥ : by simp [sub_smul, sub_add]
       ... ≤ ∥(φ x - 1) • u x∥ + ∥u x - v x∥ : norm_add_le _ _
       ... = ∥φ x - 1∥ * ∥u x∥ + ∥u x - v x∥ : by rw norm_smul
       ... ≤ c / 2 * ∥v x∥ + ∥u x - v x∥ : add_le_add_right key _

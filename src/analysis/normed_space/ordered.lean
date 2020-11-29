@@ -5,6 +5,7 @@ Authors: Anatole Dedecker
 -/
 import analysis.normed_space.basic
 import algebra.ring.basic
+import analysis.asymptotics
 
 /-!
 # Ordered normed spaces
@@ -13,7 +14,7 @@ In this file, we define classes for fields and groups that are both normed and o
 These are mostly useful to avoid diamonds during type class inference.
 -/
 
-open filter
+open filter asymptotics set
 open_locale topological_space
 
 /-- A `normed_linear_ordered_group` is an additive group that is both a `normed_group` and
@@ -53,4 +54,13 @@ begin
   rw ← int.coe_nat_sub hpq.le,
   have : 1 ≤ q - p := nat.sub_pos_of_lt hpq,
   exact @tendsto_pow_neg_at_top α _ _ (by apply_instance) _ this,
+end
+
+lemma is_o_pow_pow_at_top_of_lt {α : Type} [normed_linear_ordered_field α]
+  [order_topology α] {p q : ℕ} (hpq : p < q) :
+  is_o (λ (x : α), x^p) (λ (x : α), x^q) at_top :=
+begin
+  refine (is_o_iff_tendsto' _).mpr (tendsto_pow_div_pow_at_top_of_lt hpq),
+  rw eventually_iff_exists_mem,
+  exact ⟨Ioi 0, Ioi_mem_at_top 0, λ x (hx : 0 < x) hxq, (pow_ne_zero q hx.ne.symm hxq).elim⟩,
 end

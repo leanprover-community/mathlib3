@@ -108,6 +108,7 @@ end
 /--
 Provided we have the appropriate coequalizers, we have an adjunction to the comparison functor.
 -/
+@[simps {rhs_md := semireducible}]
 def comparison_adjunction
   [∀ (A : algebra (F ⋙ G)), has_coequalizer (F.map A.a) (adj.counit.app (F.obj A.A))] :
   left_adjoint_comparison ⊣ comparison G :=
@@ -118,12 +119,7 @@ lemma comparison_adjunction_unit
   (A : algebra (F ⋙ G)) :
   (comparison_adjunction.unit.app A).f =
     adj.hom_equiv A.A (L_obj A) (coequalizer.π (F.map A.a) (adj.counit.app (F.obj A.A))) :=
-begin
-  dsimp [comparison_adjunction, adjunction.adjunction_of_equiv_left, adjunction.mk_of_hom_equiv,
-         comparison_left_adjoint_hom_equiv, adjunction.left_adjoint_of_equiv],
-         -- lots of these should be dsimp/simp lemmas instead of being unfolded here
-  erw category.comp_id,
-end
+congr_arg (adj.hom_equiv _ _) (category.comp_id _)
 
 /--
 This is a cofork which is key in understanding the unit of the adjunction.
@@ -168,7 +164,8 @@ begin
   apply limits.cofork.is_colimit.hom_ext (cofork_free.beck_coequalizer (F ⋙ G) A),
   rw is_colimit.fac,
   dsimp,
-  rw [comparison_adjunction_unit, ← adj.hom_equiv_naturality_left A.a, adj.hom_equiv_apply_eq,
+  erw category.comp_id,
+  rw [← adj.hom_equiv_naturality_left A.a, adj.hom_equiv_apply_eq,
       coequalizer.condition, ← adj.counit_naturality, adj.hom_equiv_counit],
   refl,
 end
@@ -196,29 +193,16 @@ variables (G : D ⥤ C) [is_right_adjoint G]
 
 section beck_monadicity
 
-variables [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], creates_colimit (parallel_pair f g) G]
-
 /--
-Beck's monadicity theorem. If `G` has a right adjoint and creates coequalizers of `G`-split pairs,
-then it is monadic.
+To show `G` is a monadic right adjoint, we can show it preserves and reflects `G`-split
+coequalizers, and `C` has them.
 -/
-def beck_monadicity : monadic_right_adjoint G :=
+def monadic_of_has_preserves_reflects_G_split
+  [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], has_coequalizer f g]
+  [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], preserves_colimit (parallel_pair f g) G]
+  [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], reflects_colimit (parallel_pair f g) G] :
+  monadic_right_adjoint G :=
 begin
-  letI : ∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], has_coequalizer f g,
-  { introsI A B f g i,
-    have : has_colimit (parallel_pair f g ⋙ G),
-    { apply has_colimit_of_iso (diagram_iso_parallel_pair _),
-      change has_coequalizer (G.map f) (G.map g),
-      apply_instance },
-    exactI has_colimit_of_created _ G },
-  letI : ∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], preserves_colimit (parallel_pair f g) G,
-  { introsI A B f g i,
-    have : has_colimit (parallel_pair f g ⋙ G),
-    { apply has_colimit_of_iso (diagram_iso_parallel_pair _),
-      change has_coequalizer (G.map f) (G.map g),
-      apply_instance },
-    resetI,
-    apply_instance },
   let L : algebra (left_adjoint G ⋙ G) ⥤ D := left_adjoint_comparison,
   letI i : is_right_adjoint (comparison G) := ⟨_, comparison_adjunction⟩,
   constructor,
@@ -227,14 +211,14 @@ begin
   { intro X,
     apply is_iso_of_reflects_iso (monad.forget (F ⋙ G)) _,
     { apply_instance },
-    dsimp,
-    erw comparison_adjunction_unit'',
+    change is_iso (comparison_adjunction.unit.app X).f,
+    rw comparison_adjunction_unit'',
     change
       is_iso
         (is_colimit.cocone_point_unique_up_to_iso
           (cofork_free.beck_coequalizer (F ⋙ G) X)
           (unit_colimit_of_preserves_coequalizer X)).hom,
-    apply is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) },
+    refine is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) },
   let : Π (Y : D),
     is_iso ((adjunction.of_right_adjoint (comparison G)).counit.app Y),
   { intro Y,
@@ -244,10 +228,51 @@ begin
     apply counit_coequalizer_of_reflects_coequalizer _,
     letI : G.is_split_pair
             (F.map (G.map (monadicity_internal.adj.counit.app Y)))
-            (monadicity_internal.adj.counit.app (F.obj (G.obj Y))),
-      apply monadicity_internal.main_pair_G_split ((comparison G).obj Y),
+            (monadicity_internal.adj.counit.app (F.obj (G.obj Y))) :=
+      monadicity_internal.main_pair_G_split ((comparison G).obj Y),
     apply_instance },
   exactI adjunction.is_right_adjoint_to_is_equivalence,
+end
+
+/--
+Beck's monadicity theorem. If `G` has a right adjoint and creates coequalizers of `G`-split pairs,
+then it is monadic.
+-/
+def beck_monadicity
+  [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], creates_colimit (parallel_pair f g) G] :
+  monadic_right_adjoint G :=
+begin
+  letI : ∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], has_colimit (parallel_pair f g ⋙ G),
+  { introsI A B f g i,
+    apply has_colimit_of_iso (diagram_iso_parallel_pair _),
+    change has_coequalizer (G.map f) (G.map g),
+    apply_instance },
+  apply monadic_of_has_preserves_reflects_G_split _,
+  { apply_instance },
+  { introsI A B f g i,
+    apply has_colimit_of_created (parallel_pair f g) G },
+  { introsI A B f g i,
+    apply_instance },
+  { introsI A B f g i,
+    apply_instance }
+end
+
+/--
+An alternate version of Beck's monadicity theorem. If `G` reflects isomorphisms, preserves
+coequalizers of `G`-split pairs and `C` has coequalizers of `G`-split pairs, then it is monadic.
+-/
+def beck2_monadicity
+  [reflects_isomorphisms G]
+  [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], has_coequalizer f g]
+  [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], preserves_colimit (parallel_pair f g) G] :
+  monadic_right_adjoint G :=
+begin
+  apply monadic_of_has_preserves_reflects_G_split _,
+  { apply_instance },
+  { assumption },
+  { assumption },
+  { introsI A B f g i,
+    apply reflects_colimit_of_reflects_isomorphisms },
 end
 
 end beck_monadicity
@@ -271,8 +296,8 @@ begin
   { intro X,
     apply is_iso_of_reflects_iso (monad.forget (F ⋙ G)) _,
     { apply_instance },
-    dsimp,
-    erw comparison_adjunction_unit'',
+    change is_iso (comparison_adjunction.unit.app X).f,
+    rw comparison_adjunction_unit'',
     change
       is_iso
         (is_colimit.cocone_point_unique_up_to_iso

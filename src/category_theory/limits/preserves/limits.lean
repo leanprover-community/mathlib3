@@ -69,20 +69,7 @@ lemma preserves_desc_map_cocone (c₁ c₂ : cocone F) (t : is_colimit c₁) :
   (preserves_colimit.preserves t).desc (G.map_cocone _) = G.map (t.desc c₂) :=
 ((preserves_colimit.preserves t).uniq (G.map_cocone _) _ (by simp [← G.map_comp])).symm
 
-variables [has_colimit F]
-
-def reflects_colimit_of_reflects_isomorphisms [reflects_isomorphisms G] :
-  reflects_colimit F G :=
-{ reflects := λ c t,
-  begin
-    apply is_colimit.of_point_iso (colimit.is_colimit F),
-    change is_iso ((cocones.forget _).map ((colimit.is_colimit F).desc_cocone_morphism c)),
-    apply (cocones.forget F).map_is_iso _,
-    apply is_iso_of_reflects_iso (cocones.functoriality F G) _,
-    refine (is_colimit_of_preserves G (colimit.is_colimit F)).hom_is_iso t _,
-  end }
-
-variables [has_colimit (F ⋙ G)]
+variables [has_colimit F] [has_colimit (F ⋙ G)]
 /--
 If `G` preserves colimits, we have an isomorphism from the image of the colimit of a functor `F`
 to the colimit of the functor `F ⋙ G`.

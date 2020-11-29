@@ -6,7 +6,7 @@ Authors: Bhavik Mehta
 
 import category_theory.limits.shapes.reflexive
 import category_theory.limits.preserves.limits
-import category_theory.monad.adjunction
+import category_theory.monad.limits
 import category_theory.monad.coequalizer
 
 /-!
@@ -189,7 +189,27 @@ end monadicity_internal
 open monadicity_internal
 variables {C : Type u₁} {D : Type u₂}
 variables [category.{v₁} C] [category.{v₁} D]
-variables (G : D ⥤ C) [is_right_adjoint G]
+variables (G : D ⥤ C)
+
+/--
+If `G` is monadic, it creates colimits of `G`-split pairs. This is the "boring" direction of Beck's
+monadicity theorem, the converse is given in `monadic_of_creates_G_split_coequalizers`.
+-/
+def creates_G_split_coequalizers_of_monadic [monadic_right_adjoint G] ⦃A B⦄ (f g : A ⟶ B)
+  [G.is_split_pair f g] :
+  creates_colimit (parallel_pair f g) G :=
+begin
+  apply category_theory.monadic_creates_colimit_of_preserves_colimit _ _,
+  apply_instance,
+  { apply preserves_colimit_of_iso_diagram _ (diagram_iso_parallel_pair _).symm,
+    dsimp,
+    apply_instance },
+  { apply preserves_colimit_of_iso_diagram _ (diagram_iso_parallel_pair _).symm,
+    dsimp,
+    apply_instance }
+end
+
+variables [is_right_adjoint G]
 
 section beck_monadicity
 
@@ -197,7 +217,7 @@ section beck_monadicity
 To show `G` is a monadic right adjoint, we can show it preserves and reflects `G`-split
 coequalizers, and `C` has them.
 -/
-def monadic_of_has_preserves_reflects_G_split
+def monadic_of_has_preserves_reflects_G_split_coequalizers
   [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], has_coequalizer f g]
   [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], preserves_colimit (parallel_pair f g) G]
   [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], reflects_colimit (parallel_pair f g) G] :
@@ -237,8 +257,9 @@ end
 /--
 Beck's monadicity theorem. If `G` has a right adjoint and creates coequalizers of `G`-split pairs,
 then it is monadic.
+This is the converse of `creates_G_split_of_monadic`.
 -/
-def beck_monadicity
+def monadic_of_creates_G_split_coequalizers
   [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], creates_colimit (parallel_pair f g) G] :
   monadic_right_adjoint G :=
 begin
@@ -247,7 +268,7 @@ begin
     apply has_colimit_of_iso (diagram_iso_parallel_pair _),
     change has_coequalizer (G.map f) (G.map g),
     apply_instance },
-  apply monadic_of_has_preserves_reflects_G_split _,
+  apply monadic_of_has_preserves_reflects_G_split_coequalizers _,
   { apply_instance },
   { introsI A B f g i,
     apply has_colimit_of_created (parallel_pair f g) G },
@@ -261,13 +282,13 @@ end
 An alternate version of Beck's monadicity theorem. If `G` reflects isomorphisms, preserves
 coequalizers of `G`-split pairs and `C` has coequalizers of `G`-split pairs, then it is monadic.
 -/
-def beck2_monadicity
+def monadic_of_has_preserves_G_split_coequalizers_of_reflects_isomorphisms
   [reflects_isomorphisms G]
   [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], has_coequalizer f g]
   [∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], preserves_colimit (parallel_pair f g) G] :
   monadic_right_adjoint G :=
 begin
-  apply monadic_of_has_preserves_reflects_G_split _,
+  apply monadic_of_has_preserves_reflects_G_split_coequalizers _,
   { apply_instance },
   { assumption },
   { assumption },
@@ -286,7 +307,8 @@ variables [∀ ⦃A B⦄ (f g : A ⟶ B) [is_reflexive_pair f g], preserves_coli
 Reflexive (crude) monadicity theorem. If `G` has a right adjoint, `D` has and `G` preserves
 reflexive coequalizers and `G` reflects isomorphisms, then `G` is monadic.
 -/
-def reflexive_monadicity : monadic_right_adjoint G :=
+def monadic_of_has_preserves_reflexive_coequalizers_of_reflects_isomorphisms :
+  monadic_right_adjoint G :=
 begin
   let L : algebra (F ⋙ G) ⥤ D := left_adjoint_comparison,
   letI i : is_right_adjoint (comparison G) := ⟨_, comparison_adjunction⟩,

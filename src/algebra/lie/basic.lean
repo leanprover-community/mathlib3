@@ -785,8 +785,7 @@ instance : has_top (lie_submodule R L M) :=
 lemma mem_top (x : M) : x ∈ (⊤ : lie_submodule R L M) := mem_univ x
 
 instance : has_inf (lie_submodule R L M) :=
-⟨λ N N', { lie_mem := λ x m h, by { change ⁅x, m⁆ ∈ ↑N ⊓ ↑N', rw [inf_eq_inter, mem_inter_eq],
-                                    apply mem_inter (N.lie_mem h.1) (N'.lie_mem h.2), },
+⟨λ N N', { lie_mem := λ x m h, mem_inter (N.lie_mem h.1) (N'.lie_mem h.2),
             ..(N ⊓ N' : submodule R M) }⟩
 
 instance : has_Inf (lie_submodule R L M) :=
@@ -946,8 +945,8 @@ class lie_module.is_irreducible : Prop :=
 
 /-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
 action, and it is non-Abelian. -/
-class lie_algebra.is_simple : Prop :=
-(simple : lie_module.is_irreducible R L L ∧ ¬is_lie_abelian L)
+class lie_algebra.is_simple extends lie_module.is_irreducible R L L : Prop :=
+(non_abelian: ¬is_lie_abelian L)
 
 end lie_algebra_properties
 

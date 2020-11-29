@@ -54,12 +54,28 @@ def coequalizer_map : (monad.free T).obj X.A ⟶ X :=
 lemma comm : top_map T X ≫ coequalizer_map T X = bottom_map T X ≫ coequalizer_map T X :=
 monad.algebra.hom.ext _ _ X.assoc.symm
 
+instance : is_reflexive_pair (top_map T X) (bottom_map T X) :=
+begin
+  apply is_reflexive_pair.mk' _ _ _,
+  apply (free T).map ((η_ T).app X.A),
+  { ext,
+    dsimp,
+    rw [← T.map_comp, X.unit, T.map_id] },
+  { ext,
+    apply monad.right_unit }
+end
+
+/--
+Construct the Beck cofork in the category of algebras. This cofork is reflexive as well as a
+coequalizer.
+-/
 @[simps {rhs_md := semireducible}]
 def beck_algebra_cofork : cofork (top_map T X) (bottom_map T X) :=
 cofork.of_π _ (comm T X)
 
 /--
-The cofork constructed is a colimit. This shows that any algebra is a coequalizer of free algebras.
+The cofork constructed is a colimit. This shows that any algebra is a (reflexive) coequalizer of
+free algebras.
 -/
 def beck_algebra_coequalizer : is_colimit (beck_algebra_cofork T X) :=
 cofork.is_colimit.mk' _ $ λ s,
@@ -75,8 +91,8 @@ begin
     rw [(show X.a ≫ _ ≫ _ = _, from (η_ T).naturality_assoc _ _), h₁, monad.left_unit_assoc] },
   { intros m hm,
     ext1,
-    dsimp at hm,
     dsimp,
+    dsimp at hm,
     rw ← hm,
     dsimp,
     rw X.unit_assoc }
@@ -86,12 +102,13 @@ end
 lemma beck_split_coequalizer : is_split_coequalizer (T.map X.a) ((μ_ T).app _) X.a :=
 ⟨X.assoc.symm, (η_ T).app _, (η_ T).app _, X.unit, monad.left_unit _, ((η_ T).naturality _).symm⟩
 
-/-- This is the Ceck cofork. It is a split coequalizer, in particular a coequalizer. -/
+/-- This is the Beck cofork. It is a split coequalizer, in particular a coequalizer. -/
 @[simps {rhs_md := semireducible}]
 def beck_cofork : cofork (T.map X.a) ((μ_ T).app _)  :=
 (beck_split_coequalizer T X).as_cofork
 
-noncomputable def beck_coequalizer : limits.is_colimit (beck_cofork T X) :=
+/-- The Beck cofork is a coequalizer. -/
+noncomputable def beck_coequalizer : is_colimit (beck_cofork T X) :=
 (beck_split_coequalizer T X).is_coequalizer
 
 end cofork_free

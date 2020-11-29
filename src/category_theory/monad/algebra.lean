@@ -70,11 +70,19 @@ end hom
 
 /-- The category of Eilenberg-Moore algebras for a monad.
     cf Definition 5.2.4 in [Riehl][riehl2017]. -/
-@[simps to_category_struct_id to_category_struct_comp]
 instance EilenbergMoore : category (algebra T) :=
 { hom := hom,
   id := hom.id,
   comp := @hom.comp _ _ _ _ }
+
+@[simp] lemma comp_eq_comp {A A' A'' : algebra T} (f : A ⟶ A') (g : A' ⟶ A'') :
+  algebra.hom.comp f g = f ≫ g := rfl
+@[simp] lemma id_eq_id (A : algebra T) :
+  algebra.hom.id A = 𝟙 A := rfl
+
+@[simp] lemma id_f (A : algebra T) : (𝟙 A : A ⟶ A).f = 𝟙 A.A := rfl
+@[simp] lemma comp_f {A A' A'' : algebra T} (f : A ⟶ A') (g : A' ⟶ A'') :
+  (f ≫ g).f = f.f ≫ g.f := rfl
 
 end algebra
 
@@ -182,10 +190,19 @@ namespace hom
 end hom
 
 /-- The category of Eilenberg-Moore coalgebras for a comonad. -/
-@[simps] instance EilenbergMoore : category (coalgebra G) :=
+instance EilenbergMoore : category (coalgebra G) :=
 { hom := hom,
   id := hom.id,
   comp := @hom.comp _ _ _ _ }
+
+@[simp] lemma comp_eq_comp {A A' A'' : coalgebra G} (f : A ⟶ A') (g : A' ⟶ A'') :
+  coalgebra.hom.comp f g = f ≫ g := rfl
+@[simp] lemma id_eq_id (A : coalgebra G) :
+  coalgebra.hom.id A = 𝟙 A := rfl
+
+@[simp] lemma id_f (A : coalgebra G) : (𝟙 A : A ⟶ A).f = 𝟙 A.A := rfl
+@[simp] lemma comp_f {A A' A'' : coalgebra G} (f : A ⟶ A') (g : A' ⟶ A'') :
+  (f ≫ g).f = f.f ≫ g.f := rfl
 
 end coalgebra
 

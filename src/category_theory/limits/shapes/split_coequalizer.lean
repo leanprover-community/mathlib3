@@ -52,10 +52,12 @@ variables {f g}
 lemma is_split_coequalizer.condition {Z : C} {h : Y ⟶ Z} (q : is_split_coequalizer f g h) :
   f ≫ h = g ≫ h := q.1
 
+/-- Given the split coequalizer `f,g,h` extract the splitting of `h`. -/
 noncomputable def is_split_coequalizer.right_splitting
   {Z : C} {h : Y ⟶ Z} (q : is_split_coequalizer f g h) : Z ⟶ Y :=
 q.2.some
 
+/-- Given the split coequalizer `f,g,h` extract the splitting of `g`. -/
 noncomputable def is_split_coequalizer.left_splitting
   {Z : C} {h : Y ⟶ Z} (q : is_split_coequalizer f g h) : Y ⟶ X :=
 q.2.some_spec.some

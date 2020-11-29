@@ -180,7 +180,7 @@ end
 
 /-- Any functor preserves coequalizers of split pairs. -/
 @[priority 1]
-instance preserves_split_coequalizers [is_split_pair f g] :
+instance preserves_split_coequalizers (f g : X ⟶ Y) [is_split_pair f g] :
   preserves_colimit (parallel_pair f g) G :=
 begin
   apply preserves_colimit_of_preserves_colimit_cocone

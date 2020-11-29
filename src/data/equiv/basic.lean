@@ -1787,7 +1787,7 @@ by {rw [←update_comp _ (g.injective), g.apply_symm_apply]}
 
 lemma update_apply_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable_eq α]
   (f : α → β) (g : α' ≃ α)
- (a : α) (v : β) (a' : α') :
+  (a : α) (v : β) (a' : α') :
   (update f a v) (g a') = update (f ∘ g) (g.symm a) v a' :=
 congr_fun (update_comp_equiv f g a v) a'
 

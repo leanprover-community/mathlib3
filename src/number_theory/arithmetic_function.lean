@@ -182,25 +182,9 @@ lemma mul_apply [semiring R] {f g : arithmetic_function R} {n : ℕ} :
   (f * g) n = ∑ x in divisors_antidiagonal n, f x.fst * g x.snd := rfl
 
 section module
-variables {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+variables {M : Type*} [semiring R] [add_comm_monoid M]
 
-lemma one_smul' (b : arithmetic_function M) : (1 : arithmetic_function R) • b = b :=
-begin
-    ext,
-    rw smul_apply,
-    by_cases x0 : x = 0, {simp [x0]},
-    have h : {(1,x)} ⊆ divisors_antidiagonal x := by simp [x0],
-    rw ← sum_subset h, {simp},
-    intros y ymem ynmem,
-    have y1ne : y.fst ≠ 1,
-    { intro con,
-      simp only [con, mem_divisors_antidiagonal, one_mul, ne.def] at ymem,
-      simp only [mem_singleton, prod.ext_iff] at ynmem,
-      tauto },
-    simp [y1ne],
-end
-
-lemma mul_smul'  (f g : arithmetic_function R) (h : arithmetic_function M) :
+lemma mul_smul' [mul_action R M] (f g : arithmetic_function R) (h : arithmetic_function M) :
   (f * g) • h = f • g • h :=
 begin
     ext n,
@@ -226,8 +210,25 @@ begin
         and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
       finish },
     { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩;
-      { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish } }
-  end
+    { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish } }
+end
+
+lemma one_smul' [semimodule R M] (b : arithmetic_function M) :
+  (1 : arithmetic_function R) • b = b :=
+begin
+    ext,
+    rw smul_apply,
+    by_cases x0 : x = 0, {simp [x0]},
+    have h : {(1,x)} ⊆ divisors_antidiagonal x := by simp [x0],
+    rw ← sum_subset h, {simp},
+    intros y ymem ynmem,
+    have y1ne : y.fst ≠ 1,
+    { intro con,
+      simp only [con, mem_divisors_antidiagonal, one_mul, ne.def] at ymem,
+      simp only [mem_singleton, prod.ext_iff] at ynmem,
+      tauto },
+    simp [y1ne],
+end
 
 end module
 

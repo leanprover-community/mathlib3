@@ -1782,12 +1782,12 @@ namespace function
 
 lemma update_comp_equiv {α β α' : Sort*} [decidable_eq α'] [decidable_eq α] (f : α → β) (g : α' ≃ α)
   (a : α) (v : β) :
-  (update f a v) ∘ g = update (f ∘ g) (g.symm a) v :=
-by {rw [←update_comp _ (g.injective), g.apply_symm_apply]}
+  update f a v ∘ g = update (f ∘ g) (g.symm a) v :=
+by rw [←update_comp _ g.injective, g.apply_symm_apply]
 
 lemma update_apply_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable_eq α]
   (f : α → β) (g : α' ≃ α) (a : α) (v : β) (a' : α') :
-  (update f a v) (g a') = update (f ∘ g) (g.symm a) v a' :=
+  update f a v (g a') = update (f ∘ g) (g.symm a) v a' :=
 congr_fun (update_comp_equiv f g a v) a'
 
 end function
@@ -1802,10 +1802,10 @@ lemma dite_comp_equiv_update {α : Type*} {β : Sort*} {γ : Sort*} {s : set α}
 begin
   ext i,
   by_cases h : i ∈ s,
-  { rw dif_pos h,
-    rw [function.update_apply_equiv_apply, equiv.symm_symm, function.comp],
-    rw [function.update_apply, function.update_apply],
-    rw dif_pos h,
+  { rw [dif_pos h,
+        function.update_apply_equiv_apply, equiv.symm_symm, function.comp,
+        function.update_apply, function.update_apply,
+        dif_pos h],
     have h_coe : (⟨i, h⟩ : s) = e j ↔ i = e j := subtype.ext_iff.trans (by rw subtype.coe_mk),
     simp_rw h_coe,
     congr, },

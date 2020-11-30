@@ -534,6 +534,7 @@ section
 
 The naming is derived from `finsupp.dom_congr`, noting that here the permutation applies to the
 domain of the domain. -/
+@[simps apply]
 def dom_dom_congr [add_comm_monoid M₃] [semimodule R M₃]
   (m : multilinear_map R (λ i : ι, M₂) M₃) (σ : equiv.perm ι) :
   multilinear_map R (λ i : ι, M₂) M₃ :=

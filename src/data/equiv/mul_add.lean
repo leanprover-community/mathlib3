@@ -7,6 +7,7 @@ import algebra.group.hom
 import algebra.group.type_tags
 import algebra.group.units_hom
 import data.equiv.basic
+import data.equiv.perm
 
 /-!
 # Multiplicative and additive equivs

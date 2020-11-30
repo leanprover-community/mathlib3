@@ -834,7 +834,7 @@ instance : add_comm_monoid (lie_submodule R L M) :=
   add_zero  := λ _, sup_bot_eq,
   add_comm  := λ _ _, sup_comm, }
 
-@[simp] lemma add_eq_sup (N N' : submodule R M) : N + N' = N ⊔ N' := rfl
+@[simp] lemma add_eq_sup (N N' : lie_submodule R L M) : N + N' = N ⊔ N' := rfl
 
 end lattice_structure
 

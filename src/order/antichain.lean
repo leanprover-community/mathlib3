@@ -16,11 +16,11 @@ We define antichains.
 * `antichain` is a finset of elements in a partial order where
   no element is strictly less than another.
 
-* The `join` of two antichains is the set obtained by taking
+* The `join` of two finsets is the set obtained by taking
   their union and removing all elements that are less than
   another element.
 
-* The `meet` of two antichains is their intersection.
+* The `meet` of two finsets is their intersection.
 -/
 
 open partial_order
@@ -52,17 +52,17 @@ begin
 end
 
 /--
-The join of two antichains `A` and `B` is the set obtained by taking
+The join of two finsets `A` and `B` is the set obtained by taking
 the union of `A` and `B` and removing all elements `a` that are
-less than some element `b`.
+less than some element `b`. This results in an antichain.
 -/
 def antichain.join (A B : finset α):
   finset α := (A ∪ B).filter (λ a, a ∈ A ∪ B ∧ ∀ b ∈ A ∪ B, a ≤ b → a = b)
 
 /--
-The meet of two antichains `A` and `B` is the set obtained by taking
+The meet of two finsets `A` and `B` is the set obtained by taking
 the intersection of `A` and `B` and removing all elements `a` that are
-less than some element `b`.
+less than some element `b`. This results in an antichain.
 -/
 def antichain.meet (A B : finset α) : finset α := A ∩ B
 

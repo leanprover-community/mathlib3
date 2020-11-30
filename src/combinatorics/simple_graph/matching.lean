@@ -54,8 +54,8 @@ instance : inhabited (matching G) := { default :=
     end ⟩ }
 
 /--
-A perfect matching on `G` with vertex set `V` is a matching such that
-  every vertex in `V` is contained in an edge of `G`.
+A perfect matching `M` on graph `G` is a matching such that
+  every vertex is contained in an edge of `M`.
 -/
 def perfect_matching (M : matching G) :
   Prop := ∀ v : V, ∃ x ∈ M.1, v ∈ x

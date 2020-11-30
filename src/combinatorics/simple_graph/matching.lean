@@ -13,7 +13,7 @@ import combinatorics.simple_graph.basic
 ## Main definitions
 
 * a `matching` on a simple graph is a subset of its edge set such that
-   no two edges shares an endpoint.
+   no two edges share an endpoint.
 
 * a `perfect_matching` on a simple graph is a matching in which every
    vertex belongs to an edge.
@@ -31,9 +31,6 @@ universe u
 
 namespace simple_graph
 variables {V : Type u} (G : simple_graph V) (M : set (sym2 V)) (h : M ⊆ edge_set G)
-
-instance : inhabited (set (sym2 V)) :=
-  { default := (complete_graph V).edge_set }
 
 /--
 A matching on `G` is a subset of its edges such that no two edges share a vertex.

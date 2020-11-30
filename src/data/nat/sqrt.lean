@@ -191,4 +191,20 @@ theorem exists_mul_self (x : ℕ) :
   (∃ n, n * n = x) ↔ sqrt x * sqrt x = x :=
 ⟨λ ⟨n, hn⟩, by rw [← hn, sqrt_eq], λ h, ⟨sqrt x, h⟩⟩
 
+theorem sqrt_lt_succ (n : ℕ) : sqrt n * sqrt n < n + 1 :=
+lt_succ_iff.mpr (sqrt_le _)
+
+theorem succ_le_succ_sqrt (n : ℕ) : n + 1 ≤ (sqrt n + 1) * (sqrt n + 1) :=
+le_of_pred_lt (lt_succ_sqrt _)
+
+/-- There are no perfect squares strictly between a² and (a+1)² -/
+theorem no_middle_square {n a : ℕ} (hl : a * a < n) (hr : n < (a + 1) * (a + 1)):
+    ¬ ∃ t, t * t = n :=
+begin
+    rintro ⟨t, rfl⟩,
+    have h1 : a < t, from nat.mul_self_lt_mul_self_iff.mpr hl,
+    have h2 : t < a + 1, from nat.mul_self_lt_mul_self_iff.mpr hr,
+    exact (not_lt_of_ge $ le_of_lt_succ h2) h1
+end
+
 end nat

@@ -30,18 +30,13 @@ universe u
 open_locale classical
 noncomputable theory
 
-variable {α : Type u}
-
-section
-variables [partial_order α]
-
 /--
 A set of elements of a partial order forms an antichain if no two elements
 `A` and `B` are ordered `A < B`.
 -/
 def antichain (𝒜 : finset α) : Prop := ∀ a ∈ 𝒜, ∀ b ∈ 𝒜, a ≤ b → a = b
 
-lemma antichain_def (A : finset α) (hA : antichain A) (a : α) :
+lemma antichain_def (A : finset α) :
   antichain A ↔ ∀ a ∈ A, ∀ b ∈ A, a ≤ b → a = b := iff.rfl
 
 theorem antichain.subset (A B : finset α) (ha : antichain A) (hb : B ⊆ A) :
@@ -88,7 +83,7 @@ begin
   apply ha b hbmem,
 end
 
-theorem meet_antichain (A B : finset α) (ha : antichain A) (hb : antichain B) :
+theorem meet_antichain (A B : finset α) (ha : antichain A) :
   antichain (antichain.meet A B) := antichain.subset A (A ∩ B) ha (finset.inter_subset_left A B)
 
 

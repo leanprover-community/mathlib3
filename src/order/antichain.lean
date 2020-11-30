@@ -79,8 +79,11 @@ theorem join_antichain (A B : finset α) :
 begin
   intros a ha2 b hb2,
 
-  obtain ⟨hamem, ha⟩ := antichain.mem_join_iff.mp ha2,
-  obtain ⟨hbmem, hb⟩ := antichain.mem_join_iff.mp hb2,
+  rw antichain.mem_join_iff at ha2,
+  rcases ha2 with ⟨hamem, ha⟩,
+
+  rw antichain.mem_join_iff at hb2,
+  rcases hb2 with ⟨hbmem, hb⟩,
 
   apply ha b hbmem,
 end

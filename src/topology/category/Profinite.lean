@@ -16,9 +16,9 @@ The type of profinite topological spaces is called `Profinite`. It has a categor
 instance and is a fully faithful subcategory of `Top`. The fully faithful functor
 is called `Profinite_to_Top`.
 
--- TODO
-1) existence of products, limits(?), finite coproducts
-2) `Profinite_to_Top` creates limits?
+## TODO
+1. existence of products, limits(?), finite coproducts
+2. `Profinite_to_Top` creates limits?
 -/
 
 open category_theory

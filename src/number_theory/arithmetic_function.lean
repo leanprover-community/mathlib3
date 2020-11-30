@@ -182,9 +182,9 @@ lemma mul_apply [semiring R] {f g : arithmetic_function R} {n : ℕ} :
   (f * g) n = ∑ x in divisors_antidiagonal n, f x.fst * g x.snd := rfl
 
 section module
-variables {M : Type*} [semiring R] [add_comm_monoid M]
+variables {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
 
-lemma mul_smul' [mul_action R M] (f g : arithmetic_function R) (h : arithmetic_function M) :
+lemma mul_smul' (f g : arithmetic_function R) (h : arithmetic_function M) :
   (f * g) • h = f • g • h :=
 begin
     ext n,
@@ -213,7 +213,7 @@ begin
     { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish } }
 end
 
-lemma one_smul' [semimodule R M] (b : arithmetic_function M) :
+lemma one_smul' (b : arithmetic_function M) :
   (1 : arithmetic_function R) • b = b :=
 begin
     ext,

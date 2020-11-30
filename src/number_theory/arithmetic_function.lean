@@ -787,40 +787,25 @@ lemma coe_zeta_unit :
 lemma inv_zeta_unit :
   ((zeta_unit⁻¹ : units (arithmetic_function R)) : arithmetic_function R) = μ := rfl
 
-/-- Möbius inversion for functions to a `comm_ring`. -/
-theorem sum_eq_iff_sum_mul_moebius_eq {f g : ℕ → R} (hf : f 0 = 0) (hg : g 0 = 0) :
-  (∀ (n : ℕ), ∑ i in (n.divisors), f i = g n) ↔
-    ∀ (n : ℕ), ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, (μ x.fst : R) * g x.snd = f n :=
-begin
-  let f' : arithmetic_function R := ⟨f, hf⟩,
-  let g' : arithmetic_function R := ⟨g, hg⟩,
-  transitivity ↑ζ * f' = g',
-  { rw ext_iff,
-    apply forall_congr,
-    intro n,
-    simp },
-  rw [← coe_zeta_unit, ← units.eq_inv_mul_iff_mul_eq, ext_iff],
-  apply forall_congr,
-  intro n,
-  simp [eq_comm],
-end
-
 end comm_ring
 
 /-- Möbius inversion for functions to an `add_comm_group`. -/
 theorem sum_eq_iff_sum_smul_moebius_eq
-  [add_comm_group R] {f g : ℕ → R} (hf : f 0 = 0) (hg : g 0 = 0) :
-  (∀ (n : ℕ), ∑ i in (n.divisors), f i = g n) ↔
-    ∀ (n : ℕ), ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, (μ x.fst : ℤ) • g x.snd = f n :=
+  [add_comm_group R] {f g : ℕ → R} :
+  (∀ (n : ℕ), 0 < n → ∑ i in (n.divisors), f i = g n) ↔
+    ∀ (n : ℕ), 0 < n → ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, μ x.fst • g x.snd = f n :=
 begin
-  let f' : arithmetic_function R := ⟨f, hf⟩,
-  let g' : arithmetic_function R := ⟨g, hg⟩,
+  let f' : arithmetic_function R := ⟨λ x, if x = 0 then 0 else f x, if_pos rfl⟩,
+  let g' : arithmetic_function R := ⟨λ x, if x = 0 then 0 else g x, if_pos rfl⟩,
   transitivity (ζ : arithmetic_function ℤ) • f' = g',
   { rw ext_iff,
     apply forall_congr,
     intro n,
+    cases n, { simp },
     rw coe_zeta_smul_apply,
-    simp, },
+    simp only [n.succ_ne_zero, forall_prop_of_true, succ_pos', if_false, zero_hom.coe_mk],
+    rw sum_congr rfl (λ x hx, _),
+    rw (if_neg (ne_of_gt (nat.pos_of_mem_divisors hx))) },
   transitivity μ • g' = f',
   { split; intro h,
     { rw [← h, ← mul_smul, moebius_mul_coe_zeta, one_smul] },
@@ -828,15 +813,30 @@ begin
   { rw ext_iff,
     apply forall_congr,
     intro n,
-    simp },
+    cases n, { simp },
+    simp only [n.succ_ne_zero, forall_prop_of_true, succ_pos', smul_apply,
+      if_false, zero_hom.coe_mk],
+    rw sum_congr rfl (λ x hx, _),
+    rw (if_neg (ne_of_gt (nat.pos_of_mem_divisors (snd_mem_divisors_of_mem_antidiagonal hx)))) },
+end
+
+/-- Möbius inversion for functions to a `comm_ring`. -/
+theorem sum_eq_iff_sum_mul_moebius_eq [comm_ring R] {f g : ℕ → R} :
+  (∀ (n : ℕ), 0 < n → ∑ i in (n.divisors), f i = g n) ↔
+    ∀ (n : ℕ), 0 < n → ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, (μ x.fst : R) * g x.snd = f n :=
+begin
+  rw sum_eq_iff_sum_smul_moebius_eq,
+  apply forall_congr,
+  intro a,
+  apply imp_congr (iff.refl _) (eq.congr_left (sum_congr rfl (λ x hx, _))),
+  rw [← module.gsmul_eq_smul, gsmul_eq_mul],
 end
 
 /-- Möbius inversion for functions to a `comm_group`. -/
-theorem prod_eq_iff_prod_pow_moebius_eq [comm_group R] {f g : ℕ → R} (hf : f 0 = 1) (hg : g 0 = 1) :
-  (∀ (n : ℕ), ∏ i in (n.divisors), f i = g n) ↔
-    ∀ (n : ℕ), ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
-@sum_eq_iff_sum_smul_moebius_eq (additive R) _ f g hf hg
-
+theorem prod_eq_iff_prod_pow_moebius_eq [comm_group R] {f g : ℕ → R} :
+  (∀ (n : ℕ), 0 < n → ∏ i in (n.divisors), f i = g n) ↔
+    ∀ (n : ℕ), 0 < n → ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
+@sum_eq_iff_sum_smul_moebius_eq (additive R) _ _ _
 
 end special_functions
 end arithmetic_function

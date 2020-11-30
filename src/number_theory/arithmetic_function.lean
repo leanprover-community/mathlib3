@@ -159,103 +159,8 @@ instance [add_comm_group R] : add_comm_group (arithmetic_function R) :=
 { .. arithmetic_function.add_comm_monoid,
   .. arithmetic_function.add_group }
 
-section dirichlet_ring
-variable [semiring R]
-
-/-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
-  such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
-instance : has_mul (arithmetic_function R) :=
-⟨λ f g, ⟨λ n, ∑ x in divisors_antidiagonal n, f x.fst * g x.snd, by simp⟩⟩
-
-@[simp]
-lemma mul_apply {f g : arithmetic_function R} {n : ℕ} :
-  (f * g) n = ∑ x in divisors_antidiagonal n, f x.fst * g x.snd := rfl
-
-instance : monoid (arithmetic_function R) :=
-{ one_mul := λ f,
-  begin
-    ext,
-    rw mul_apply,
-    by_cases x0 : x = 0, {simp [x0]},
-    have h : {(1,x)} ⊆ divisors_antidiagonal x := by simp [x0],
-    rw ← sum_subset h, {simp},
-    intros y ymem ynmem,
-    have y1ne : y.fst ≠ 1,
-    { intro con,
-      simp only [con, mem_divisors_antidiagonal, one_mul, ne.def] at ymem,
-      simp only [mem_singleton, prod.ext_iff] at ynmem,
-      tauto },
-    simp [y1ne],
-  end,
-  mul_one := λ f,
-  begin
-    ext,
-    rw mul_apply,
-    by_cases x0 : x = 0, {simp [x0]},
-    have h : {(x,1)} ⊆ divisors_antidiagonal x := by simp [x0],
-    rw ← sum_subset h, {simp},
-    intros y ymem ynmem,
-    have y2ne : y.snd ≠ 1,
-    { intro con,
-      simp only [con, mem_divisors_antidiagonal, mul_one, ne.def] at ymem,
-      simp only [mem_singleton, prod.ext_iff] at ynmem,
-      tauto },
-    simp [y2ne],
-  end,
-  mul_assoc := λ f g h,
-  begin
-    ext n,
-    simp only [mul_apply],
-    have := @finset.sum_sigma (ℕ × ℕ) R _ _ (divisors_antidiagonal n)
-      (λ p, (divisors_antidiagonal p.1)) (λ x, f x.2.1 * g x.2.2 * h x.1.2),
-    convert this.symm using 1; clear this,
-    { apply finset.sum_congr rfl,
-      intros p hp, exact finset.sum_mul },
-    have := @finset.sum_sigma (ℕ × ℕ) R _ _ (divisors_antidiagonal n)
-      (λ p, (divisors_antidiagonal p.2)) (λ x, f x.1.1 * (g x.2.1 * h x.2.2)),
-    convert this.symm using 1; clear this,
-    { apply finset.sum_congr rfl, intros p hp, rw finset.mul_sum },
-    apply finset.sum_bij,
-    swap 5,
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l*j), (l, j)⟩ },
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
-      simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish },
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
-    { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
-      simp only [finset.mem_sigma, mem_divisors_antidiagonal,
-        and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
-      finish },
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩;
-      { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish } }
-  end,
-  .. arithmetic_function.has_one,
-  .. arithmetic_function.has_mul }
-
-instance : semiring (arithmetic_function R) :=
-{ zero_mul := λ f, by { ext, simp, },
-  mul_zero := λ f, by { ext, simp, },
-  left_distrib := λ a b c, by { ext, simp [← sum_add_distrib, mul_add] },
-  right_distrib := λ a b c, by { ext, simp [← sum_add_distrib, add_mul] },
-  .. arithmetic_function.has_zero R,
-  .. arithmetic_function.has_mul,
-  .. arithmetic_function.has_add,
-  .. arithmetic_function.add_comm_monoid,
-  .. arithmetic_function.monoid }
-
-end dirichlet_ring
-
-instance [comm_semiring R] : comm_semiring (arithmetic_function R) :=
-{ mul_comm := λ f g, by { ext,
-    rw [mul_apply, ← map_swap_divisors_antidiagonal, sum_map],
-    simp [mul_comm] },
-  .. arithmetic_function.semiring }
-
-instance [comm_ring R] : comm_ring (arithmetic_function R) :=
-{ .. arithmetic_function.add_comm_group,
-  .. arithmetic_function.comm_semiring }
-
-section module
-variables {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+section has_scalar
+variables {M : Type*} [has_zero R] [add_comm_monoid M] [has_scalar R M]
 
 /-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
   such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
@@ -266,9 +171,21 @@ instance : has_scalar (arithmetic_function R) (arithmetic_function M) :=
 lemma smul_apply {f : arithmetic_function R} {g : arithmetic_function M} {n : ℕ} :
   (f • g) n = ∑ x in divisors_antidiagonal n, f x.fst • g x.snd := rfl
 
-instance : semimodule (arithmetic_function R) (arithmetic_function M) :=
-{ one_smul := λ f,
-  begin
+end has_scalar
+
+/-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
+  such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
+instance [semiring R] : has_mul (arithmetic_function R) := ⟨(•)⟩
+
+@[simp]
+lemma mul_apply [semiring R] {f g : arithmetic_function R} {n : ℕ} :
+  (f * g) n = ∑ x in divisors_antidiagonal n, f x.fst * g x.snd := rfl
+
+section module
+variables {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+
+lemma one_smul' (b : arithmetic_function M) : (1 : arithmetic_function R) • b = b :=
+begin
     ext,
     rw smul_apply,
     by_cases x0 : x = 0, {simp [x0]},
@@ -281,8 +198,11 @@ instance : semimodule (arithmetic_function R) (arithmetic_function M) :=
       simp only [mem_singleton, prod.ext_iff] at ynmem,
       tauto },
     simp [y1ne],
-  end,
-  mul_smul := λ f g h, begin
+end
+
+lemma mul_smul'  (f g : arithmetic_function R) (h : arithmetic_function M) :
+  (f * g) • h = f • g • h :=
+begin
     ext n,
     simp only [mul_apply, smul_apply],
     have := @finset.sum_sigma (ℕ × ℕ) M _ _ (divisors_antidiagonal n)
@@ -307,13 +227,65 @@ instance : semimodule (arithmetic_function R) (arithmetic_function M) :=
       finish },
     { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩;
       { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish } }
+  end
+
+end module
+
+section semiring
+variable [semiring R]
+
+instance : monoid (arithmetic_function R) :=
+{ one_mul := one_smul',
+  mul_one := λ f,
+  begin
+    ext,
+    rw mul_apply,
+    by_cases x0 : x = 0, {simp [x0]},
+    have h : {(x,1)} ⊆ divisors_antidiagonal x := by simp [x0],
+    rw ← sum_subset h, {simp},
+    intros y ymem ynmem,
+    have y2ne : y.snd ≠ 1,
+    { intro con,
+      simp only [con, mem_divisors_antidiagonal, mul_one, ne.def] at ymem,
+      simp only [mem_singleton, prod.ext_iff] at ynmem,
+      tauto },
+    simp [y2ne],
   end,
+  mul_assoc := mul_smul',
+  .. arithmetic_function.has_one,
+  .. arithmetic_function.has_mul }
+
+instance : semiring (arithmetic_function R) :=
+{ zero_mul := λ f, by { ext, simp, },
+  mul_zero := λ f, by { ext, simp, },
+  left_distrib := λ a b c, by { ext, simp [← sum_add_distrib, mul_add] },
+  right_distrib := λ a b c, by { ext, simp [← sum_add_distrib, add_mul] },
+  .. arithmetic_function.has_zero R,
+  .. arithmetic_function.has_mul,
+  .. arithmetic_function.has_add,
+  .. arithmetic_function.add_comm_monoid,
+  .. arithmetic_function.monoid }
+
+end semiring
+
+instance [comm_semiring R] : comm_semiring (arithmetic_function R) :=
+{ mul_comm := λ f g, by { ext,
+    rw [mul_apply, ← map_swap_divisors_antidiagonal, sum_map],
+    simp [mul_comm] },
+  .. arithmetic_function.semiring }
+
+instance [comm_ring R] : comm_ring (arithmetic_function R) :=
+{ .. arithmetic_function.add_comm_group,
+  .. arithmetic_function.comm_semiring }
+
+instance {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M] :
+  semimodule (arithmetic_function R) (arithmetic_function M) :=
+{ one_smul := one_smul',
+  mul_smul := mul_smul',
   smul_add := λ r x y, by { ext, simp [sum_add_distrib] },
   smul_zero := λ r, by { ext, simp },
   add_smul := λ r s x, by { ext, simp [add_smul, sum_add_distrib] },
   zero_smul := λ r, by { ext, simp }, }
-
-end module
 
 section zeta
 

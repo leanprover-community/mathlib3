@@ -197,14 +197,14 @@ lt_succ_iff.mpr (sqrt_le _)
 theorem succ_le_succ_sqrt (n : ℕ) : n + 1 ≤ (sqrt n + 1) * (sqrt n + 1) :=
 le_of_pred_lt (lt_succ_sqrt _)
 
-/-- There are no perfect squares strictly between a² and (a+1)² -/
-theorem no_middle_square {n a : ℕ} (hl : a * a < n) (hr : n < (a + 1) * (a + 1)):
-    ¬ ∃ t, t * t = n :=
+/-- There are no perfect squares strictly between n² and (m+1)² -/
+theorem no_middle_square {n m : ℕ} (hl : m * m < n) (hr : n < (m + 1) * (m + 1)):
+  ¬ ∃ t, t * t = n :=
 begin
-    rintro ⟨t, rfl⟩,
-    have h1 : a < t, from nat.mul_self_lt_mul_self_iff.mpr hl,
-    have h2 : t < a + 1, from nat.mul_self_lt_mul_self_iff.mpr hr,
-    exact (not_lt_of_ge $ le_of_lt_succ h2) h1
+  rintro ⟨t, rfl⟩,
+  have h1 : m < t, from nat.mul_self_lt_mul_self_iff.mpr hl,
+  have h2 : t < m + 1, from nat.mul_self_lt_mul_self_iff.mpr hr,
+  exact (not_lt_of_ge $ le_of_lt_succ h2) h1
 end
 
 end nat

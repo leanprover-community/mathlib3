@@ -544,7 +544,8 @@ section order
 
 /-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, where `p` is a prime that does not divide
 `n`, then the multiplicative order of `a` modulo `p` is exactly `n`. -/
-lemma order_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact p.prime] {a : ℕ} (hn : ¬ p ∣ n) (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
+lemma order_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact p.prime] {a : ℕ}
+  (hn : ¬ p ∣ n) (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
   order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) = n :=
 begin
   have ha := coprime_of_root_cyclotomic hpos hroot,
@@ -587,7 +588,8 @@ begin
   { intro ha,
     exact hn (int.coe_nat_dvd.1 ((zmod.int_coe_zmod_eq_zero_iff_dvd n p).1 ha)) },
   rw [pow_two] at habs,
-  replace habs := squarefree_X_pow_sub_C (1 : (zmod p)) hnzero one_ne_zero (map (int.cast_ring_hom (zmod p)) (X - a)) habs,
+  replace habs := squarefree_X_pow_sub_C (1 : (zmod p)) hnzero one_ne_zero
+    (map (int.cast_ring_hom (zmod p)) (X - a)) habs,
   simp only [map_nat_cast, map_X, map_sub] at habs,
   replace habs := degree_eq_zero_of_is_unit habs,
   rw [← C_eq_nat_cast, degree_X_sub_C] at habs,

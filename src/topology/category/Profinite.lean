@@ -8,6 +8,7 @@ import topology.category.CompHaus
 
 /-!
 # The category of Profinite Types
+
 We construct the category of profinite topological spaces,
 often called profinite sets -- perhaps they could be called
 profinite types in Lean.
@@ -16,9 +17,22 @@ The type of profinite topological spaces is called `Profinite`. It has a categor
 instance and is a fully faithful subcategory of `Top`. The fully faithful functor
 is called `Profinite_to_Top`.
 
+## Implementation notes
+
+A profinite type is defined to be a topological space which is
+compact, Hausdorff and totally disconnected.
+
 ## TODO
+
+0. Link to category of projective limits of finite discrete sets.
 1. existence of products, limits(?), finite coproducts
 2. `Profinite_to_Top` creates limits?
+3. Clausen/Scholze topology on the category `Profinite`.
+
+## Tags
+
+profinite
+
 -/
 
 open category_theory

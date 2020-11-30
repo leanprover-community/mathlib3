@@ -30,6 +30,11 @@ universe u
 open_locale classical
 noncomputable theory
 
+variable {α : Type u}
+
+section
+variables [partial_order α]
+
 /--
 A set of elements of a partial order forms an antichain if no two elements
 `A` and `B` are ordered `A < B`.

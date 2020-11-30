@@ -55,6 +55,10 @@ instance {X : Profinite} : totally_disconnected_space X := X.is_td
 
 instance category : category Profinite := induced_category.category to_Top
 
+@[simp]
+lemma coe_to_Top {X : Profinite} : (X.to_Top : Type*) = X :=
+rfl
+
 end Profinite
 
 /-- The fully faithful embedding of `Profinite` in `Top`. -/
@@ -63,9 +67,7 @@ def Profinite_to_Top : Profinite ⥤ Top := induced_functor _
 
 /-- The fully faithful embedding of `Profinite` in `Top`. -/
 @[simps] def Profinite_to_CompHaus : Profinite ⥤ CompHaus :=
-{ obj := λ X, { to_Top := X.to_Top,
-  is_compact := X.is_compact,
-  is_hausdorff := X.is_t2 },
+{ obj := λ X, { to_Top := X.to_Top },
   map := λ _ _ f, f }
 
 instance : full Profinite_to_CompHaus := { preimage := λ _ _ f, f }

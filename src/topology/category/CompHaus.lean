@@ -42,6 +42,10 @@ instance {X : CompHaus} : t2_space X := X.is_hausdorff
 
 instance category : category CompHaus := induced_category.category to_Top
 
+@[simp]
+lemma coe_to_Top {X : CompHaus} : (X.to_Top : Type*) = X :=
+rfl
+
 end  CompHaus
 
 /-- The fully faithful embedding of `CompHaus` in `Top`. -/

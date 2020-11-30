@@ -127,11 +127,7 @@ begin
 end
 
 lemma divisors_subset_of_dvd {m : ℕ} (hzero : n ≠ 0) (h : m ∣ n) : divisors m ⊆ divisors n :=
-begin
-  apply finset.subset_iff.2,
-  intros x hx,
-  exact nat.mem_divisors.2 (⟨dvd.trans (nat.mem_divisors.1 hx).1 h, hzero⟩)
-end
+finset.subset_iff.mpr $ λ x hx, nat.mem_divisors.mpr (⟨dvd.trans (nat.mem_divisors.mp hx).1 h, hzero⟩)
 
 lemma divisors_subset_proper_divisors {m : ℕ} (hzero : n ≠ 0) (h : m ∣ n) (hdiff : m ≠ n) :
   divisors m ⊆ proper_divisors n :=

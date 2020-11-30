@@ -38,26 +38,30 @@ instance : inhabited (set (sym2 V)) :=
 /--
 A matching on `G` is a subset of its edges such that no two edges share a vertex.
 -/
-def matching : Type* :=
-  { M : set (sym2 V) // M ⊆ edge_set G ∧ ∀ x ∈ M, ∀ y ∈ M, ∀ v : V, v ∈ x ∧ v ∈ y → x = y }
+structure is_matching (M : set (sym2 V)) : Prop :=
+(sub_edges : M ⊆ G.edge_set)
+(disjoint : ∀ (x y ∈ M) (v : V), v ∈ x ∧ v ∈ y → x = y)
 
-instance : inhabited (matching G) := { default :=
-  ⟨(∅ : set (sym2 V)),
-    begin
-      split,
-      exact set.empty_subset G.edge_set,
-      intros x hx y hy v hv,
-      have h2 := set.mem_empty_eq x,
-      by_contra,
-      rw ← h2,
-      exact hx,
-    end ⟩ }
+/--
+`matching G` is the type of matchings over `G`.
+-/
+def matching : Type u := {M : set (sym2 V) // G.is_matching M}
+
+instance : inhabited (matching G) :=
+  ⟨⟨∅, ⟨set.empty_subset _, λ _ _ hx, false.elim (set.not_mem_empty _ hx)⟩⟩⟩
+
+/--
+`matching_verts` is the set of vertices of `G` that are
+contained in some edge of matching `M`
+-/
+def matching_verts (M : G.matching) : set V :=
+{v : V | ∃ x ∈ M.val, v ∈ x}
 
 /--
 A perfect matching `M` on graph `G` is a matching such that
   every vertex is contained in an edge of `M`.
 -/
-def perfect_matching (M : matching G) :
-  Prop := ∀ v : V, ∃ x ∈ M.1, v ∈ x
+def perfect_matching (M : matching G) : Prop :=
+G.matching_verts M = set.univ
 
 end simple_graph

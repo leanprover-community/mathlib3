@@ -398,7 +398,7 @@ variables {ι : Type*} {b : ι → M₃} (hb : is_basis R₃ b)
 
 /-- Two bilinear forms are equal when they are equal on all basis vectors. -/
 lemma ext_basis (h : ∀ i j, B₃ (b i) (b j) = F₃ (b i) (b j)) : B₃ = F₃ :=
-to_lin.injective (hb.ext (λ i, hb.ext (λ j, h i j)))
+to_lin.injective $ hb.ext $ λ i, hb.ext $ λ j, h i j
 
 /-- Write out `B x y` as a sum over `B (b i) (b j)` if `b` is a basis. -/
 lemma sum_repr_mul_repr_mul (x y : M₃) :
@@ -501,7 +501,7 @@ rfl
 lemma matrix.to_bilin'_apply (M : matrix n n R₃) (x y : n → R₃) :
   matrix.to_bilin' M x y = ∑ i j, x i * M i j * y j := rfl
 
-lemma matrix.to_bilin'_std_basis (M : matrix n n R₃) (i j : n) :
+@[simp] lemma matrix.to_bilin'_std_basis (M : matrix n n R₃) (i j : n) :
   matrix.to_bilin' M (std_basis R₃ (λ _, R₃) i 1) (std_basis R₃ (λ _, R₃) j 1) =
     M i j :=
 matrix.to_bilin'_aux_std_basis M i j

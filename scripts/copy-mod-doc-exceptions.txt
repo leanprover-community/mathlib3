@@ -955,7 +955,7 @@ src/data/string/basic.lean : line 29 : ERR_LIN : Line has more than 100 characte
 src/data/string/basic.lean : line 52 : ERR_LIN : Line has more than 100 characters
 src/data/string/defs.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/subtype.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/data/sum.lean : line 134 : ERR_LIN : Line has more than 100 characters
+src/data/sum.lean : line 152 : ERR_LIN : Line has more than 100 characters
 src/data/sym.lean : line 135 : ERR_LIN : Line has more than 100 characters
 src/data/sym2.lean : line 173 : ERR_LIN : Line has more than 100 characters
 src/data/sym2.lean : line 9 : ERR_MOD : Module docstring missing, or too late

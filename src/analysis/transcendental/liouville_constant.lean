@@ -12,7 +12,7 @@ import data.nat.factorial
 
 This files contains a construction of a family of Liouville number.
 The most important property is that they are examples of transcendental real numbers.
-This fact is recorded in `is_liouville.is_transcendental_of_α`.
+This fact is recorded in `is_liouville.is_transcendental_of_liouville_constant`.
 -/
 
 namespace is_liouville
@@ -23,9 +23,39 @@ open set real finset
 
 variable (m : ℕ)
 
-local notation `α` := ∑' (i : ℕ), 1 / (m : ℝ) ^ i!
-local notation `α_first` k `terms` :=  ∑ i in range (k+1), 1 / (m : ℝ) ^ i!
-local notation `α_terms_after` k := ∑' i, 1 / (m : ℝ) ^ (i + (k+1))!
+/--
+liouville constant is
+∞
+---      1
+\      ______
+/        m!
+---
+i=0
+where `2 < m`
+-/
+def liouville_constant := ∑' (i : ℕ), 1 / (m : ℝ) ^ i!
+/--
+`liouville_constant_first_k_terms` is the first `k` terms of the liouville constant, i.e
+ k
+---      1
+\      ______
+/        m!
+---
+i=0
+where `2 < m`
+-/
+def liouville_constant_first_k_terms (k : ℕ) := ∑ i in range (k+1), 1 / (m : ℝ) ^ i!
+/--
+`liouville_constant_terms_after_k` is all the terms start from `k+1` of the liouville constant, i.e
+ ∞
+-----    1
+\      ______
+/        m!
+-----
+i=k+1
+where `2 < m`
+-/
+def liouville_constant_terms_after_k (k : ℕ) :=  ∑' i, 1 / (m : ℝ) ^ (i + (k+1))!
 
 lemma summable_inv_pow_fact (hm : 2 < m) : summable (λ i, 1 / (m : ℝ) ^ i!) :=
 begin
@@ -58,13 +88,15 @@ begin
     { rw one_div_nonneg, norm_num } }
 end
 
-lemma rat_of_α_k (hm : 2 < m) : ∀ k, ∃ p : ℕ, α_first k terms = p / ((m : ℝ) ^ k!) :=
-λ k, begin
+lemma rat_of_liouville_constant_first_k_terms (hm : 2 < m) (k : ℕ) :
+∃ p : ℕ, liouville_constant_first_k_terms m k = p / ((m : ℝ) ^ k!) :=
+begin
   induction k with k h,
   { use 1,
-    simp only [sum_singleton, nat.cast_one, range_one] },
+    simp only [sum_singleton, nat.cast_one, range_one, liouville_constant_first_k_terms] },
   { rcases h with ⟨p_k, h_k⟩,
     use p_k * (m ^ ((k + 1)! - k!)) + 1,
+    unfold liouville_constant_first_k_terms at h_k ⊢,
     rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, one_mul, add_mul],
     { norm_cast,
       rw [add_mul, one_mul, nat.factorial_succ, show k.succ * k! - k! = (k.succ - 1) * k!,
@@ -74,7 +106,8 @@ lemma rat_of_α_k (hm : 2 < m) : ∀ k, ∃ p : ℕ, α_first k terms = p / ((m 
     all_goals { refine pow_ne_zero _ _, norm_num, linarith } }
 end
 
-lemma α_terms_after_pos (hm : 2 < m) : ∀ k, 0 < α_terms_after k := λ n,
+lemma liouville_constant_terms_after_pos (hm : 2 < m) :
+  ∀ k, 0 < liouville_constant_terms_after_k m k := λ n,
 calc 0 < 1 / (m : ℝ) ^ (n + 1)! : by { rw one_div_pos, apply pow_pos, norm_num, linarith }
   ... = 1 / (m : ℝ) ^ (0 + (n + 1))! : by rw zero_add
   ... ≤ ∑' (i : ℕ), 1 / (m : ℝ) ^ (i + (n + 1))! :
@@ -83,21 +116,23 @@ calc 0 < 1 / (m : ℝ) ^ (n + 1)! : by { rw one_div_pos, apply pow_pos, norm_num
         rw one_div_nonneg, apply pow_nonneg, norm_num
       end
 
-lemma α_eq_first_k_terms_add_rest (hm : 2 < m) : ∀ k, α = α_first k terms + α_terms_after k :=
-λ k, (sum_add_tsum_nat_add _ (summable_inv_pow_fact m hm)).symm
+lemma liouville_constant_eq_first_k_terms_add_rest (hm : 2 < m) (k : ℕ):
+  liouville_constant m = liouville_constant_first_k_terms m k +
+  liouville_constant_terms_after_k m k :=
+(sum_add_tsum_nat_add _ (summable_inv_pow_fact m hm)).symm
 
-theorem is_liouville_of_α (hm : 2 < m) : is_liouville α :=
+theorem is_liouville_of_liouville_constant (hm : 2 < m) : is_liouville (liouville_constant m) :=
 begin
   intro n,
-  have h_truncation_wd := α_eq_first_k_terms_add_rest m hm n,
-  rcases rat_of_α_k m hm n with ⟨p, hp⟩,
+  have h_truncation_wd := liouville_constant_eq_first_k_terms_add_rest m hm n,
+  rcases rat_of_liouville_constant_first_k_terms m hm n with ⟨p, hp⟩,
   use [p, m ^ n!],
   rw hp at h_truncation_wd,
   push_cast,
-  rw [h_truncation_wd, add_sub_cancel', abs_of_pos (α_terms_after_pos _ _ _)],
+  rw [h_truncation_wd, add_sub_cancel', abs_of_pos (liouville_constant_terms_after_pos _ _ _)],
   repeat { split },
   { apply one_lt_pow, norm_num, linarith, exact nat.factorial_pos _ },
-  { exact α_terms_after_pos _ hm _ },
+  { exact liouville_constant_terms_after_pos _ hm _ },
   { exact calc (∑' i, 1 / (m : ℝ) ^ (i + (n + 1))!)
       ≤ ∑' i, 1 / (m : ℝ) ^ (i + (n + 1)!) :
       begin
@@ -159,7 +194,7 @@ begin
   exact hm
 end
 
-lemma is_transcendental_of_α (hm : 2 < m) : is_transcendental ℤ α :=
-  real.is_liouville.transcendental_of_is_liouville (is_liouville_of_α _ hm)
+lemma is_transcendental_of_liouville_constant (hm : 2 < m) : is_transcendental ℤ (liouville_constant m) :=
+  real.is_liouville.transcendental_of_is_liouville (is_liouville_of_liouville_constant _ hm)
 
 end is_liouville

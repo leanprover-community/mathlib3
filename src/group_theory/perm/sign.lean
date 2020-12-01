@@ -236,7 +236,7 @@ else let m := swap_factors_aux l (swap x (f x) * f)
 /-- `swap_factors` represents a permutation as a product of a list of transpositions.
 The representation is non unique and depends on the linear order structure.
 For types without linear order `trunc_swap_factors` can be used -/
-def swap_factors [fintype α] [decidable_linear_order α] (f : perm α) :
+def swap_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
 swap_factors_aux ((@univ α _).sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 
@@ -248,6 +248,8 @@ quotient.rec_on_subsingleton (@univ α _).1
 (λ l h, trunc.mk (swap_factors_aux l f h))
 (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
 
+/-- An induction principle for permutations. If `P` holds for the identity permutation, and
+is preserved under composition with a non-trivial swap, then `P` holds for all permutations. -/
 @[elab_as_eliminator] lemma swap_induction_on [fintype α] {P : perm α → Prop} (f : perm α) :
   P 1 → (∀ f x y, x ≠ y → P f → P (swap x y * f)) → P f :=
 begin
@@ -260,25 +262,13 @@ begin
     exact hmul_swap _ _ _ hxy.1 (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
 end
 
-lemma swap_induction_on' [fintype α] {P : perm α → Prop} (f : perm α) :
+/-- Like `swap_induction_on`, but with the composition on the right of `f`.
+
+An induction principle for permutations. If `P` holds for the identity permutation, and
+is preserved under composition with a non-trivial swap, then `P` holds for all permutations. -/
+@[elab_as_eliminator] lemma swap_induction_on' [fintype α] {P : perm α → Prop} (f : perm α) :
   P 1 → (∀ f x y, x ≠ y → P f → P (f * swap x y)) → P f :=
-begin
-  intros h1 IH,
-  let Q : perm α → Prop := λ f, P (f⁻¹),
-  suffices hQ : ∀ f, Q f,
-  { convert hQ f⁻¹,
-    simp,
-  },
-  intro f,
-  apply swap_induction_on,
-  { exact h1 },
-  intros f x y h hQ,
-  show P (((swap x y) * f)⁻¹),
-  rw [mul_inv_rev, swap_inv],
-  apply IH,
-  exact h,
-  exact hQ,
-end
+λ h1 IH, inv_inv f ▸ swap_induction_on f⁻¹ h1 (λ f, IH f⁻¹)
 
 lemma swap_mul_swap_mul_swap {x y z : α} (hwz: x ≠ y) (hxz : x ≠ z) :
   swap y z * swap x y * swap y z = swap z x :=
@@ -709,7 +699,7 @@ lemma is_cycle_swap_mul {α : Type*} [decidable_eq α] {f : perm α} (hf : is_cy
 finset.ext $ λ a, by simp [swap_apply_def]; split_ifs; cc
 
 lemma card_support_swap {x y : α} (hxy : x ≠ y) : (swap x y).support.card = 2 :=
-show (swap x y).support.card = finset.card ⟨x::y::0, by simp [hxy]⟩,
+show (swap x y).support.card = finset.card ⟨x ::ₘ y ::ₘ 0, by simp [hxy]⟩,
 from congr_arg card $ by rw [support_swap hxy]; simp [*, finset.ext_iff]; cc
 
 lemma sign_cycle : ∀ {f : perm α} (hf : is_cycle f),
@@ -802,6 +792,11 @@ begin
   rintro ⟨b, α⟩,
   refl
 end
+
+@[simp] lemma sign_perm_congr {m n : Type*} [fintype m] [fintype n]
+  (e : m ≃ n) (p : equiv.perm m) :
+  (e.perm_congr p).sign = p.sign :=
+equiv.perm.sign_eq_sign_of_equiv _ _ e.symm (by simp)
 
 end
 

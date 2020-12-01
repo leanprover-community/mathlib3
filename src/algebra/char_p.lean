@@ -163,6 +163,14 @@ begin
   rw fact at *, linarith,
 end
 
+lemma ring_hom.char_p_iff_char_p {K L : Type*} [field K] [field L] (f : K →+* L) (p : ℕ) :
+  char_p K p ↔ char_p L p :=
+begin
+  split;
+  { introI _c, constructor, intro n,
+    rw [← @char_p.cast_eq_zero_iff _ _ p _c n, ← f.injective.eq_iff, f.map_nat_cast, f.map_zero] }
+end
+
 section frobenius
 
 variables (R : Type u) [comm_ring R] {S : Type v} [comm_ring S] (f : R →* S) (g : R →+* S)
@@ -347,8 +355,8 @@ lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 �
     { rintro ⟨k, rfl⟩, rw [nat.cast_mul, H, zero_mul] }
   end }
 
-lemma char_p_of_prime_pow_injective (p : ℕ) [hp : fact p.prime] (n : ℕ) (hn : fintype.card R = p ^ n)
-  (hR : ∀ i ≤ n, (p ^ i : R) = 0 → i = n) :
+lemma char_p_of_prime_pow_injective (p : ℕ) [hp : fact p.prime] (n : ℕ)
+  (hn : fintype.card R = p ^ n) (hR : ∀ i ≤ n, (p ^ i : R) = 0 → i = n) :
   char_p R (p ^ n) :=
 begin
   obtain ⟨c, hc⟩ := char_p.exists R, resetI,

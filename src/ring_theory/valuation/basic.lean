@@ -45,10 +45,8 @@ on R / J = `ideal.quotient J` is `on_quot v h`.
 
 -/
 
-open_locale classical
+open_locale classical big_operators
 noncomputable theory
-
-local attribute [instance, priority 0] classical.DLO
 
 open function ideal
 
@@ -67,11 +65,11 @@ variables (R) (Γ₀) [ring R]
 
 /-- The type of Γ₀-valued valuations on R. -/
 @[nolint has_inhabited_instance]
-structure valuation extends R →* Γ₀ :=
-(map_zero' : to_fun 0 = 0)
+structure valuation extends monoid_with_zero_hom R Γ₀ :=
 (map_add' : ∀ x y, to_fun (x + y) ≤ max (to_fun x) (to_fun y))
 
-run_cmd tactic.add_doc_string `valuation.to_monoid_hom "The `monoid_hom` underlying a valuation."
+/-- The `monoid_with_zero_hom` underlying a valuation. -/
+add_decl_doc valuation.to_monoid_with_zero_hom
 
 end
 
@@ -84,19 +82,48 @@ variables (R) (Γ₀) [ring R]
 instance : has_coe_to_fun (valuation R Γ₀) := { F := λ _, R → Γ₀, coe := valuation.to_fun }
 
 /-- A valuation is coerced to a monoid morphism R → Γ₀. -/
-instance : has_coe (valuation R Γ₀) (R →* Γ₀) := ⟨valuation.to_monoid_hom⟩
+instance : has_coe (valuation R Γ₀) (monoid_with_zero_hom R Γ₀) :=
+⟨valuation.to_monoid_with_zero_hom⟩
 
 variables {R} {Γ₀} (v : valuation R Γ₀) {x y z : R}
 
-@[simp, norm_cast] lemma coe_coe : ((v : R →* Γ₀) : R → Γ₀) = v := rfl
+@[simp, norm_cast] lemma coe_coe : ((v : monoid_with_zero_hom R Γ₀) : R → Γ₀) = v := rfl
 
 @[simp] lemma map_zero : v 0 = 0 := v.map_zero'
 @[simp] lemma map_one  : v 1 = 1 := v.map_one'
 @[simp] lemma map_mul  : ∀ x y, v (x * y) = v x * v y := v.map_mul'
 @[simp] lemma map_add  : ∀ x y, v (x + y) ≤ max (v x) (v y) := v.map_add'
 
+lemma map_add_le {x y g} (hx : v x ≤ g) (hy : v y ≤ g) : v (x + y) ≤ g :=
+le_trans (v.map_add x y) $ max_le hx hy
+
+lemma map_add_lt {x y g} (hx : v x < g) (hy : v y < g) : v (x + y) < g :=
+lt_of_le_of_lt (v.map_add x y) $ max_lt hx hy
+
+lemma map_sum_le {ι : Type*} {s : finset ι} {f : ι → R} {g : Γ₀} (hf : ∀ i ∈ s, v (f i) ≤ g) :
+  v (∑ i in s, f i) ≤ g :=
+begin
+  refine finset.induction_on s
+    (λ _, trans_rel_right (≤) v.map_zero zero_le') (λ a s has ih hf, _) hf,
+  rw finset.forall_mem_insert at hf, rw finset.sum_insert has,
+  exact v.map_add_le hf.1 (ih hf.2)
+end
+
+lemma map_sum_lt {ι : Type*} {s : finset ι} {f : ι → R} {g : Γ₀} (hg : g ≠ 0)
+  (hf : ∀ i ∈ s, v (f i) < g) : v (∑ i in s, f i) < g :=
+begin
+  refine finset.induction_on s
+    (λ _, trans_rel_right (<) v.map_zero (zero_lt_iff.2 hg)) (λ a s has ih hf, _) hf,
+  rw finset.forall_mem_insert at hf, rw finset.sum_insert has,
+  exact v.map_add_lt hf.1 (ih hf.2)
+end
+
+lemma map_sum_lt' {ι : Type*} {s : finset ι} {f : ι → R} {g : Γ₀} (hg : 0 < g)
+  (hf : ∀ i ∈ s, v (f i) < g) : v (∑ i in s, f i) < g :=
+v.map_sum_lt (ne_of_gt hg) hf
+
 @[simp] lemma map_pow  : ∀ x (n:ℕ), v (x^n) = (v x)^n :=
-v.to_monoid_hom.map_pow
+v.to_monoid_with_zero_hom.to_monoid_hom.map_pow
 
 @[ext] lemma ext {v₁ v₂ : valuation R Γ₀} (h : ∀ r, v₁ r = v₂ r) : v₁ = v₂ :=
 by { cases v₁, cases v₂, congr, funext r, exact h r }
@@ -113,46 +140,27 @@ def to_preorder : preorder R := preorder.lift v
 /-- If `v` is a valuation on a division ring then `v(x) = 0` iff `x = 0`. -/
 @[simp] lemma zero_iff {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x = 0 ↔ x = 0 :=
-begin
-  split ; intro h,
-  { contrapose! h,
-    exact ((is_unit.mk0 _ h).map (v : K →* Γ₀)).ne_zero },
-  { exact h.symm ▸ v.map_zero },
-end
+v.to_monoid_with_zero_hom.map_eq_zero
 
 lemma ne_zero_iff {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x ≠ 0 ↔ x ≠ 0 :=
-not_iff_not_of_iff v.zero_iff
+v.to_monoid_with_zero_hom.map_ne_zero
 
 @[simp] lemma map_inv {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x⁻¹ = (v x)⁻¹ :=
-begin
-  by_cases h : x = 0,
-  { subst h, rw [inv_zero, v.map_zero, inv_zero] },
-  { apply eq_inv_of_mul_right_eq_one,
-    rw [← v.map_mul, mul_inv_cancel h, v.map_one] }
-end
+v.to_monoid_with_zero_hom.map_inv' x
 
 lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
-eq_inv_of_mul_right_eq_one $ by rw [← v.map_mul, units.mul_inv, v.map_one]
+v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
 
-@[simp] theorem unit_map_eq (u : units R) :
+theorem unit_map_eq (u : units R) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
 
-theorem map_neg_one : v (-1) = 1 :=
-begin
-  apply eq_one_of_pow_eq_one (nat.succ_ne_zero 1) (_ : _ ^ 2 = _),
-  rw [pow_two, ← v.map_mul, neg_one_mul, neg_neg, v.map_one],
-end
-
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
-calc v (-x) = v (-1 * x)   : by rw [neg_one_mul]
-        ... = v (-1) * v x : map_mul _ _ _
-        ... = v x          : by rw [v.map_neg_one, one_mul]
+v.to_monoid_with_zero_hom.to_monoid_hom.map_neg x
 
 lemma map_sub_swap (x y : R) : v (x - y) = v (y - x) :=
-calc v (x - y) = v (-(y - x)) : by rw show x - y = -(y-x), by abel
-           ... = _ : map_neg _ _
+v.to_monoid_with_zero_hom.to_monoid_hom.map_sub_swap x y
 
 lemma map_sub_le_max (x y : R) : v (x - y) ≤ max (v x) (v y) :=
 calc v (x - y) = v (x + -y)         : by rw [sub_eq_add_neg]
@@ -185,9 +193,9 @@ end
 /-- A ring homomorphism S → R induces a map valuation R Γ₀ → valuation S Γ₀ -/
 def comap {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) :
   valuation S Γ₀ :=
-by refine_struct { to_fun := v ∘ f, .. }; intros;
-  simp only [comp_app, map_one, map_mul, map_zero, map_add,
-             f.map_one, f.map_mul, f.map_zero, f.map_add]
+{ to_fun := v ∘ f, 
+  map_add' := λ x y, by simp only [comp_app, map_add, f.map_add],
+  .. v.to_monoid_with_zero_hom.comp f.to_monoid_with_zero_hom, }
 
 @[simp] lemma comap_id : v.comap (ring_hom.id R) = v := ext $ λ r, rfl
 
@@ -196,13 +204,13 @@ lemma comap_comp {S₁ : Type*} {S₂ : Type*} [ring S₁] [ring S₂] (f : S₁
 ext $ λ r, rfl
 
 /-- A ≤-preserving group homomorphism Γ₀ → Γ'₀ induces a map valuation R Γ₀ → valuation R Γ'₀. -/
-def map (f : Γ₀ →* Γ'₀) (h₀ : f 0 = 0) (hf : monotone f) (v : valuation R Γ₀) : valuation R Γ'₀ :=
+def map (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f) (v : valuation R Γ₀) :
+  valuation R Γ'₀ :=
 { to_fun := f ∘ v,
-  map_zero' := show f (v 0) = 0, by rw [v.map_zero, h₀],
   map_add' := λ r s,
     calc f (v (r + s)) ≤ f (max (v r) (v s))     : hf (v.map_add r s)
                    ... = max (f (v r)) (f (v s)) : hf.map_max,
-  .. monoid_hom.comp f (v : R →* Γ₀) }
+  .. monoid_with_zero_hom.comp f v.to_monoid_with_zero_hom }
 
 /-- Two valuations on R are defined to be equivalent if they induce the same preorder on R. -/
 def is_equiv (v₁ : valuation R Γ₀) (v₂ : valuation R Γ'₀) : Prop :=
@@ -227,9 +235,9 @@ variables {v₁ : valuation R Γ₀} {v₂ : valuation R Γ'₀} {v₃ : valuati
 lemma of_eq {v' : valuation R Γ₀} (h : v = v') : v.is_equiv v' :=
 by { subst h }
 
-lemma map {v' : valuation R Γ₀} (f : Γ₀ →* Γ'₀) (h₀ : f 0 = 0) (hf : monotone f) (inf : injective f)
-  (h : v.is_equiv v') :
-  (v.map f h₀ hf).is_equiv (v'.map f h₀ hf) :=
+lemma map {v' : valuation R Γ₀} (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f)
+  (inf : injective f) (h : v.is_equiv v') :
+  (v.map f hf).is_equiv (v'.map f hf) :=
 let H : strict_mono f := strict_mono_of_monotone_of_injective hf inf in
 λ r s,
 calc f (v r) ≤ f (v s) ↔ v r ≤ v s   : by rw H.le_iff_le
@@ -255,8 +263,8 @@ end
 end is_equiv -- end of namespace
 
 lemma is_equiv_of_map_strict_mono [ring R] {v : valuation R Γ₀}
-  (f : Γ₀ →* Γ'₀) (h₀ : f 0 = 0) (H : strict_mono f) :
-  is_equiv (v.map f h₀ (H.monotone)) v :=
+  (f : monoid_with_zero_hom Γ₀ Γ'₀) (H : strict_mono f) :
+  is_equiv (v.map f (H.monotone)) v :=
 λ x y, ⟨H.le_iff_le.mp, λ h, H.monotone h⟩
 
 lemma is_equiv_of_val_le_one {K : Type*} [division_ring K]
@@ -319,10 +327,6 @@ begin
   calc v a = v (a + s + -s) : by simp
        ... ≤ v (a + s)      : aux (a + s) (-s) (by rwa ←ideal.neg_mem_iff at h)
 end
-
--- This causes a loop between `decidable_linear_order` and `linear_order`.
--- see https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.233733.20algebraic.20closure
-local attribute [-instance] classical.DLO
 
 /-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
 Note: it's just the function; the valuation is `on_quot hJ`. -/

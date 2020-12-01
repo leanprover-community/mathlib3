@@ -33,7 +33,7 @@ for the values involved in the continued fractions computation `gcf.of`.
 namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
-variables {K : Type*} {v : K} {n : ℕ} [discrete_linear_ordered_field K] [floor_ring K]
+variables {K : Type*} {v : K} {n : ℕ} [linear_ordered_field K] [floor_ring K]
 
 /-
 We begin with some lemmas about the stream of `int_fract_pair`s, which presumably are not

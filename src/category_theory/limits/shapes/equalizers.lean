@@ -51,7 +51,7 @@ namespace category_theory.limits
 
 local attribute [tidy] tactic.case_bash
 
-universes v u
+universes v u u₂
 
 /-- The type of objects for the diagram indexing a (co)equalizer. -/
 @[derive decidable_eq, derive inhabited] inductive walking_parallel_pair : Type v
@@ -156,6 +156,7 @@ by rw [←s.w right, parallel_pair_map_right]
 
 /-- A fork on `f g : X ⟶ Y` is determined by the morphism `ι : P ⟶ X` satisfying `ι ≫ f = ι ≫ g`.
 -/
+@[simps]
 def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
 { X := P,
   π :=
@@ -170,6 +171,7 @@ def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
 
 /-- A cofork on `f g : X ⟶ Y` is determined by the morphism `π : Y ⟶ P` satisfying
     `f ≫ π = g ≫ π`. -/
+@[simps]
 def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :=
 { X := P,
   ι :=
@@ -181,15 +183,6 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
       { exact w.symm },
       { dsimp, simp, },
     end } }
-
-@[simp] lemma fork.of_ι_app_zero {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
-  (fork.of_ι ι w).π.app zero = ι := rfl
-@[simp] lemma fork.of_ι_app_one {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
-  (fork.of_ι ι w).π.app one = ι ≫ f := rfl
-@[simp] lemma cofork.of_π_app_zero {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
-  (cofork.of_π π w).ι.app zero = f ≫ π := rfl
-@[simp] lemma cofork.of_π_app_one {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
-  (cofork.of_π π w).ι.app one = π := rfl
 
 /-- A fork `t` on the parallel pair `f g : X ⟶ Y` consists of two morphisms `t.π.app zero : t.X ⟶ X`
     and `t.π.app one : t.X ⟶ Y`. Of these, only the first one is interesting, and we give it the
@@ -215,7 +208,6 @@ by rw [t.app_zero_left, t.app_zero_right]
 @[reassoc]
 lemma cofork.condition (t : cofork f g) : f ≫ cofork.π t = g ≫ cofork.π t :=
 by rw [t.left_app_one, t.right_app_one]
-
 
 /-- To check whether two maps are equalized by both maps of a fork, it suffices to check it for the
     first map -/
@@ -368,8 +360,8 @@ def fork.mk_hom {s t : fork f g} (k : s.X ⟶ t.X) (w : k ≫ t.ι = s.ι) : s �
   w' :=
   begin
     rintro ⟨_|_⟩,
-    exact w,
-    simpa using w =≫ f,
+    { exact w },
+    { simpa using w =≫ f },
   end }
 
 /--
@@ -516,7 +508,7 @@ is_iso_limit_cone_parallel_pair_of_eq ((cancel_epi _).1 (fork.condition c)) h
 
 end
 
-instance : has_equalizer f f :=
+instance has_equalizer_of_self : has_equalizer f f :=
 has_limit.mk
 { cone := id_fork rfl,
   is_limit := is_limit_id_fork rfl }
@@ -650,7 +642,7 @@ is_iso_colimit_cocone_parallel_pair_of_eq ((cancel_mono _).1 (cofork.condition c
 
 end
 
-instance : has_coequalizer f f :=
+instance has_coequalizer_of_self : has_coequalizer f f :=
 has_colimit.mk
 { cocone := id_cofork rfl,
   is_colimit := is_colimit_id_cofork rfl }
@@ -670,6 +662,48 @@ rfl
 @[simp] lemma coequalizer.iso_target_of_self_inv :
   (coequalizer.iso_target_of_self f).inv = coequalizer.π f f :=
 rfl
+
+section comparison
+
+variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+
+-- TODO: show this is an iso iff `G` preserves the equalizer of `f,g`.
+/-- The comparison morphism for the equalizer of `f,g`. -/
+def equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f) (G.map g)] :
+  G.obj (equalizer f g) ⟶ equalizer (G.map f) (G.map g) :=
+equalizer.lift (G.map (equalizer.ι _ _)) (by simp only [←G.map_comp, equalizer.condition])
+
+@[simp, reassoc]
+lemma equalizer_comparison_comp_π [has_equalizer f g] [has_equalizer (G.map f) (G.map g)] :
+  equalizer_comparison f g G ≫ equalizer.ι (G.map f) (G.map g) = G.map (equalizer.ι f g) :=
+equalizer.lift_ι _ _
+
+@[simp, reassoc]
+lemma map_lift_equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
+  {Z : C} {h : Z ⟶ X} (w : h ≫ f = h ≫ g) :
+    G.map (equalizer.lift h w) ≫ equalizer_comparison f g G =
+      equalizer.lift (G.map h) (by simp only [←G.map_comp, w]) :=
+by { ext, simp [← G.map_comp] }
+
+-- TODO: show this is an iso iff G preserves the coequalizer of `f,g`.
+/-- The comparison morphism for the coequalizer of `f,g`. -/
+def coequalizer_comparison [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)] :
+  coequalizer (G.map f) (G.map g) ⟶ G.obj (coequalizer f g) :=
+coequalizer.desc (G.map (coequalizer.π _ _)) (by simp only [←G.map_comp, coequalizer.condition])
+
+@[simp, reassoc]
+lemma ι_comp_coequalizer_comparison [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)] :
+  coequalizer.π _ _ ≫ coequalizer_comparison f g G = G.map (coequalizer.π _ _) :=
+coequalizer.π_desc _ _
+
+@[simp, reassoc]
+lemma coequalizer_comparison_map_desc [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)]
+  {Z : C} {h : Y ⟶ Z} (w : f ≫ h = g ≫ h) :
+  coequalizer_comparison f g G ≫ G.map (coequalizer.desc h w) =
+    coequalizer.desc (G.map h) (by simp only [←G.map_comp, w]) :=
+by { ext, simp [← G.map_comp] }
+
+end comparison
 
 variables (C)
 

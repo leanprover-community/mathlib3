@@ -71,11 +71,9 @@ lemma f_aux_deriv_pos (n : ℕ) (x : ℝ) (hx : 0 < x) :
   has_deriv_at (f_aux n) ((P_aux (n+1)).eval x * exp (-x⁻¹) / x^(2 * (n + 1))) x :=
 begin
   apply (f_aux_deriv n x (ne_of_gt hx)).congr_of_eventually_eq,
-  have : Ioi (0 : ℝ) ∈ 𝓝 x := lt_mem_nhds hx,
-  filter_upwards [this],
+  filter_upwards [lt_mem_nhds hx],
   assume y hy,
-  have : ¬(y ≤ 0), by simpa using hy,
-  simp [f_aux, this]
+  simp [f_aux, hy.not_le]
 end
 
 /-- To get differentiability at `0` of the auxiliary functions, we need to know that their limit
@@ -135,10 +133,9 @@ begin
   { have : f_aux (n+1) x = 0, by simp [f_aux, le_of_lt hx],
     rw this,
     apply (has_deriv_at_const x (0 : ℝ)).congr_of_eventually_eq,
-    have : Iio (0 : ℝ) ∈ 𝓝 x := gt_mem_nhds hx,
-    filter_upwards [this],
+    filter_upwards [gt_mem_nhds hx],
     assume y hy,
-    simp [f_aux, le_of_lt hy] },
+    simp [f_aux, hy.le] },
   { have : f_aux (n + 1) 0 = 0, by simp [f_aux, le_refl],
     rw [hx, this],
     exact f_aux_deriv_zero n },

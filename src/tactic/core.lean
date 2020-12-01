@@ -130,15 +130,19 @@ each line break is decided independently -/
 meta def soft_break : format :=
 group line
 
+/-- Format a list as a comma separated list, without any brackets. -/
+meta def comma_separated {α : Type*} [has_to_format α] : list α → format
+| [] := nil
+| xs := group (nest 1 $ intercalate ("," ++ soft_break) $ xs.map to_fmt)
+
 end format
 
 section format
 open format
 
 /-- format a `list` by separating elements with `soft_break` instead of `line` -/
-meta def list.to_line_wrap_format {α : Type u} [has_to_format α] : list α → format
-| [] := to_fmt "[]"
-| xs := to_fmt "[" ++ group (nest 1 $ intercalate ("," ++ soft_break) $ xs.map to_fmt) ++ to_fmt "]"
+meta def list.to_line_wrap_format {α : Type u} [has_to_format α] (l : list α) : format :=
+bracket "[" "]" (comma_separated l)
 
 end format
 
@@ -214,14 +218,14 @@ whnf type >>= get_expl_pi_arity_aux
 meta def get_expl_arity (fn : expr) : tactic nat :=
 infer_type fn >>= get_expl_pi_arity
 
-/--
-Auxiliary function for `get_app_fn_args_whnf`.
--/
 private meta def get_app_fn_args_whnf_aux (md : transparency)
   (unfold_ginductive : bool) : list expr → expr → tactic (expr × list expr) :=
 λ args e, do
-  (expr.app t u) ← whnf e md unfold_ginductive | pure (e, args),
-  get_app_fn_args_whnf_aux (u :: args) t
+  e ← whnf e md unfold_ginductive,
+  match e with
+  | (expr.app t u) := get_app_fn_args_whnf_aux (u :: args) t
+  | _ := pure (e, args)
+  end
 
 /--
 For `e = f x₁ ... xₙ`, `get_app_fn_args_whnf e` returns `(f, [x₁, ..., xₙ])`. `e`
@@ -230,6 +234,8 @@ is normalised as necessary; for example:
 ```
 get_app_fn_args_whnf `(let f := g x in f y) = (`(g), [`(x), `(y)])
 ```
+
+The returned expression is in whnf, but the arguments are generally not.
 -/
 meta def get_app_fn_args_whnf (e : expr) (md := semireducible)
   (unfold_ginductive := tt) : tactic (expr × list expr) :=
@@ -238,12 +244,31 @@ get_app_fn_args_whnf_aux md unfold_ginductive [] e
 /--
 `get_app_fn_whnf e md unfold_ginductive` is like `expr.get_app_fn e` but `e` is
 normalised as necessary (with transparency `md`). `unfold_ginductive` controls
-whether constructors of generalised inductive types are unfolded.
+whether constructors of generalised inductive types are unfolded. The returned
+expression is in whnf.
 -/
 meta def get_app_fn_whnf : expr → opt_param _ semireducible → opt_param _ tt → tactic expr
 | e md unfold_ginductive := do
-  (expr.app f _) ← whnf e md unfold_ginductive | pure e,
-  get_app_fn_whnf f md
+  e ← whnf e md unfold_ginductive,
+  match e with
+  | (expr.app f _) := get_app_fn_whnf f md unfold_ginductive
+  | _ := pure e
+  end
+
+/--
+`get_app_fn_const_whnf e md unfold_ginductive` expects that `e = C x₁ ... xₙ`,
+where `C` is a constant, after normalisation with transparency `md`. If so, the
+name of `C` is returned. Otherwise the tactic fails. `unfold_ginductive`
+controls whether constructors of generalised inductive types are unfolded.
+-/
+meta def get_app_fn_const_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic name := do
+  f ← get_app_fn_whnf e md unfold_ginductive,
+  match f with
+  | (expr.const n _) := pure n
+  | _ := fail format!
+    "expected a constant (possibly applied to some arguments), but got:\n{e}"
+  end
 
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
 `loc_consts` should be a list of local constants. The function will abstract these local
@@ -413,6 +438,21 @@ meta def mk_psigma : list expr → tactic expr
      pure $ r x y
 | _ := fail "mk_psigma expects a list of local constants"
 
+/--
+Update the type of a local constant or metavariable. For local constants and
+metavariables obtained via, for example, `tactic.get_local`, the type stored in
+the expression is not necessarily the same as the type returned by `infer_type`.
+This tactic, given a local constant or metavariable, updates the stored type to
+match the output of `infer_type`. If the input is not a local constant or
+metavariable, `update_type` does nothing.
+-/
+meta def update_type : expr → tactic expr
+| e@(expr.local_const ppname uname binfo _) :=
+  expr.local_const ppname uname binfo <$> infer_type e
+| e@(expr.mvar ppname uname _) :=
+  expr.mvar ppname uname <$> infer_type e
+| e := pure e
+
 /-- `elim_gen_prod n e _ ns` with `e` an expression of type `psigma _`, applies `cases` on `e` `n`
 times and uses `ns` to name the resulting variables. Returns a triple: list of new variables,
 remaining term and unused variable names.
@@ -561,22 +601,6 @@ tactic.unsafe.type_context.run $ do
     tactic.unsafe.type_context.fail format!"Variable {e} is not a local definition.",
   return let_val
 
-/-- `revert_deps e` reverts all the hypotheses that depend on one of the local
-constants `e`, including the local definitions that have `e` in their definition.
-This fixes a bug in `revert_kdeps` that does not revert local definitions for which `e` only
-appears in the definition. -/
-/- We cannot implement it as `revert e >> intro1`, because that would change the local constant in
-the context. -/
-meta def revert_deps (e : expr) : tactic ℕ := do
-  n ← revert_kdeps e,
-  l ← local_context,
-  [pos] ← return $ l.indexes_of e,
-  let l := l.drop pos.succ, -- local hypotheses after `e`
-  ls ← l.mfilter $ λ e', try_core (local_def_value e') >>= λ o, return $ o.elim ff $ λ e'',
-    e''.has_local_constant e,
-  n' ← revert_lst ls,
-  return $ n + n'
-
 /-- `is_local_def e` succeeds when `e` is a local definition (a local constant of the form
 `e : α := t`) and otherwise fails. -/
 meta def is_local_def (e : expr) : tactic unit :=
@@ -619,6 +643,24 @@ meta def clear_value (vs : list expr) : tactic unit := do
     gs ← get_goals,
     set_goals $ g :: gs },
   ls.reverse.mmap' $ λ vs, intro_lst $ vs.map expr.local_pp_name
+
+/--
+`context_has_local_def` is true iff there is at least one local definition in
+the context.
+-/
+meta def context_has_local_def : tactic bool := do
+  ctx ← local_context,
+  ctx.many (succeeds ∘ local_def_value)
+
+/--
+`context_upto_hyp_has_local_def h` is true iff any of the hypotheses in the
+context up to and including `h` is a local definition.
+-/
+meta def context_upto_hyp_has_local_def (h : expr) : tactic bool := do
+  ff ← succeeds (local_def_value h) | pure tt,
+  ctx ← local_context,
+  let ctx := ctx.take_while (≠ h),
+  ctx.many (succeeds ∘ local_def_value)
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
@@ -1199,12 +1241,30 @@ meta def emit_command_here (str : string) : lean.parser string :=
 do (_, left) ← with_input command_like str,
    return left
 
+/-- Inner recursion for `emit_code_here`. -/
+meta def emit_code_here_aux : string → ℕ → lean.parser unit
+| str slen := do
+  left ← emit_command_here str,
+  let llen := left.length,
+  when (llen < slen ∧ llen ≠ 0) (emit_code_here_aux left llen)
+
 /-- `emit_code_here str` behaves as if the string `str` were placed at the current location in
 source code. -/
-meta def emit_code_here : string → lean.parser unit
-| str := do left ← emit_command_here str,
-            if left.length = 0 then return ()
-            else emit_code_here left
+meta def emit_code_here (s : string) : lean.parser unit := emit_code_here_aux s s.length
+
+/-- `run_parser p` is like `run_cmd` but for the parser monad. It executes parser `p` at the
+top level, giving access to operations like `emit_code_here`. -/
+@[user_command]
+meta def run_parser_cmd (_ : interactive.parse $ tk "run_parser") : lean.parser unit :=
+do e ← lean.parser.pexpr 0,
+  p ← eval_pexpr (lean.parser unit) e,
+  p
+
+add_tactic_doc
+{ name       := "run_parser",
+  category   := doc_category.cmd,
+  decl_names := [``run_parser_cmd],
+  tags       := ["parsing"] }
 
 /-- `get_current_namespace` returns the current namespace (it could be `name.anonymous`).
 
@@ -1579,6 +1639,9 @@ meta def mk_comp (v : expr) : expr → tactic expr
      t ← infer_type e,
      mk_mapp ``id [t]
 
+/-- Given two expressions `e₀` and `e₁`, return the expression `` `(%%e₀ ↔ %%e₁)``. -/
+meta def mk_iff (e₀ : expr) (e₁ : expr) : expr := `(%%e₀ ↔ %%e₁)
+
 /--
 From a lemma of the shape `∀ x, f (g x) = h x`
 derive an auxiliary lemma of the form `f ∘ g = h`
@@ -1853,7 +1916,7 @@ meta def success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) :
 end
 
 /--
-Construct a `refine ...` or `exact ...` string which would construct `g`.
+Construct a `Try this: refine ...` or `Try this: exact ...` string which would construct `g`.
 -/
 meta def tactic_statement (g : expr) : tactic string :=
 do g ← instantiate_mvars g,

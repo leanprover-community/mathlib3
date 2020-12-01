@@ -10,6 +10,7 @@ import data.finset.powerset
 import data.finset.lattice
 import data.finset.pi
 import data.array.lemmas
+import order.well_founded
 
 open_locale nat
 
@@ -317,6 +318,9 @@ list.length_fin_range n
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
 
+lemma fin.equiv_iff_eq {m n : ℕ} : nonempty (fin m ≃ fin n) ↔ m = n :=
+  ⟨λ ⟨h⟩, by simpa using fintype.card_congr h, λ h, ⟨equiv.cast $ h ▸ rfl ⟩ ⟩
+
 /-- Embed `fin n` into `fin (n + 1)` by prepending zero to the `univ` -/
 lemma fin.univ_succ (n : ℕ) :
   (univ : finset (fin (n + 1))) = insert 0 (univ.image fin.succ) :=
@@ -351,7 +355,7 @@ begin
     refine or_iff_not_imp_left.mpr _,
     { intro h,
       use p.pred_above m h,
-      simp only [eq_self_iff_true, fin.succ_above_descend, and_self] } },
+      simp only [eq_self_iff_true, fin.succ_above_pred_above, and_self] } },
   { rw fin.succ_above_last,
     exact fin.univ_cast_succ n }
 end
@@ -386,7 +390,7 @@ instance : fintype punit := fintype.of_subsingleton punit.star
 
 @[simp] theorem fintype.card_punit : fintype.card punit = 1 := rfl
 
-instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp⟩
+instance : fintype bool := ⟨⟨tt ::ₘ ff ::ₘ 0, by simp⟩, λ x, by cases x; simp⟩
 
 @[simp] theorem fintype.univ_bool : @univ bool _ = {tt, ff} := rfl
 
@@ -407,7 +411,7 @@ by classical; exact fintype.of_injective units.val units.ext
 /-- Given a finset on `α`, lift it to being a finset on `option α`
 using `option.some` and then insert `option.none`. -/
 def finset.insert_none (s : finset α) : finset (option α) :=
-⟨none :: s.1.map some, multiset.nodup_cons.2
+⟨none ::ₘ s.1.map some, multiset.nodup_cons.2
   ⟨by simp, multiset.nodup_map (λ a b, option.some.inj) s.2⟩⟩
 
 @[simp] theorem finset.mem_insert_none {s : finset α} : ∀ {o : option α},
@@ -659,7 +663,7 @@ instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then {⟨h⟩} else ∅, λ ⟨h⟩, by simp [h]⟩
 
 instance Prop.fintype : fintype Prop :=
-⟨⟨true::false::0, by simp [true_ne_false]⟩,
+⟨⟨true ::ₘ false ::ₘ 0, by simp [true_ne_false]⟩,
  classical.cases (by simp) (by simp)⟩
 
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
@@ -794,7 +798,7 @@ if h : ∃ a, β a then ⟨{⟨h.fst, h.snd⟩}, λ ⟨_, _⟩, by simp⟩ else 
 instance set.fintype [fintype α] : fintype (set α) :=
 ⟨(@finset.univ α _).powerset.map ⟨coe, coe_injective⟩, λ s, begin
   classical, refine mem_map.2 ⟨finset.univ.filter s, mem_powerset.2 (subset_univ _), _⟩,
-  apply (coe_filter _).trans, rw [coe_univ, set.sep_univ], refl
+  apply (coe_filter _ _).trans, rw [coe_univ, set.sep_univ], refl
 end⟩
 
 instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)
@@ -1130,8 +1134,13 @@ lemma exists_not_mem_finset [infinite α] (s : finset α) : ∃ x, x ∉ s :=
 not_forall.1 $ λ h, not_fintype ⟨s, h⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance nonempty (α : Type*) [infinite α] : nonempty α :=
-nonempty_of_exists (exists_not_mem_finset (∅ : finset α))
+instance (α : Type*) [H : infinite α] : nontrivial α :=
+⟨let ⟨x, hx⟩ := exists_not_mem_finset (∅ : finset α) in
+let ⟨y, hy⟩ := exists_not_mem_finset ({x} : finset α) in
+⟨y, x, by simpa only [mem_singleton] using hy⟩⟩
+
+lemma nonempty (α : Type*) [infinite α] : nonempty α :=
+by apply_instance
 
 lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite α :=
 ⟨λ I, by exactI not_fintype (fintype.of_injective f hf)⟩

@@ -122,7 +122,8 @@ lemma ring_hom.map_multiset_sum [semiring β] [semiring γ] (f : β →+* γ) (s
   f s.sum = (s.map f).sum :=
 f.to_add_monoid_hom.map_multiset_sum s
 
-lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) (f : α → β) (s : finset α) :
+lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) (f : α → β)
+  (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
 g.to_monoid_hom.map_prod f s
 
@@ -272,7 +273,7 @@ calc (∏ x in s.sigma t, f x) =
        ∏ x in s.bind (λa, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bind
   ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
     prod_bind $ assume a₁ ha a₂ ha₂ h x hx,
-    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_to_fun] at hx,
+    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_apply] at hx,
       rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
   ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
     prod_congr rfl $ λ _ _, prod_map _ _ _
@@ -334,7 +335,7 @@ by rw [←prod_sdiff h]; simp only [this, prod_const_one, one_mul]
 @[to_additive]
 lemma prod_filter_of_ne {p : α → Prop} [decidable_pred p] (hp : ∀ x ∈ s, f x ≠ 1 → p x) :
   (∏ x in (s.filter p), f x) = (∏ x in s, f x) :=
-prod_subset (filter_subset _) $ λ x,
+prod_subset (filter_subset _ _) $ λ x,
   by { classical, rw [not_imp_comm, mem_filter], exact λ h₁ h₂, ⟨h₁, hp _ h₁ h₂⟩ }
 
 -- If we use `[decidable_eq β]` here, some rewrites fail because they find a wrong `decidable`
@@ -351,7 +352,7 @@ calc (∏ a in s.filter p, f a) = ∏ a in s.filter p, if p a then f a else 1 :
     prod_congr rfl (assume a h, by rw [if_pos (mem_filter.1 h).2])
   ... = ∏ a in s, if p a then f a else 1 :
     begin
-      refine prod_subset (filter_subset s) (assume x hs h, _),
+      refine prod_subset (filter_subset _ s) (assume x hs h, _),
       rw [mem_filter, not_and] at h,
       exact if_neg (h hs)
     end
@@ -968,6 +969,21 @@ lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
 @prod_flip (multiplicative β) _ _ _
 attribute [to_additive] prod_flip
 
+section opposite
+
+open opposite
+
+/-- Moving to the opposite additive commutative monoid commutes with summing. -/
+@[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
+  op (∑ x in s, f x) = ∑ x in s, op (f x) :=
+(op_add_equiv : β ≃+ βᵒᵖ).map_sum _ _
+
+@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵒᵖ) :
+  unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
+(op_add_equiv : β ≃+ βᵒᵖ).symm.map_sum _ _
+
+end opposite
+
 section comm_group
 variables [comm_group β]
 
@@ -1089,11 +1105,11 @@ variables [decidable_eq α]
   (∑ a in s.to_finset, s.count a) = s.card :=
 multiset.induction_on s rfl
   (assume a s ih,
-    calc (∑ x in to_finset (a :: s), count x (a :: s)) =
-      ∑ x in to_finset (a :: s), ((if x = a then 1 else 0) + count x s) :
+    calc (∑ x in to_finset (a ::ₘ s), count x (a ::ₘ s)) =
+      ∑ x in to_finset (a ::ₘ s), ((if x = a then 1 else 0) + count x s) :
         finset.sum_congr rfl $ λ _ _, by split_ifs;
         [simp only [h, count_cons_self, nat.one_add], simp only [count_cons_of_ne h, zero_add]]
-      ... = card (a :: s) :
+      ... = card (a ::ₘ s) :
       begin
         by_cases a ∈ s.to_finset,
         { have : ∑ x in s.to_finset, ite (x = a) 1 0 = ∑ x in {a}, ite (x = a) 1 0,
@@ -1112,11 +1128,11 @@ lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
 by { dunfold finset.sum, rw count_sum }
 
 lemma to_finset_sum_count_smul_eq (s : multiset α) :
-  (∑ a in s.to_finset, s.count a •ℕ (a :: 0)) = s :=
+  (∑ a in s.to_finset, s.count a •ℕ (a ::ₘ 0)) = s :=
 begin
   apply ext', intro b,
   rw count_sum',
-  have h : count b s = count b (count b s •ℕ (b :: 0)),
+  have h : count b s = count b (count b s •ℕ (b ::ₘ 0)),
   { rw [singleton_coe, count_smul, ← singleton_coe, count_singleton, mul_one] },
   rw h, clear h,
   apply finset.sum_eq_single b,
@@ -1128,9 +1144,9 @@ end
 theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} (h : ∀ (a : α), k ∣ multiset.count a s) :
   ∃ (u : multiset α), s = k •ℕ u :=
 begin
-  use ∑ a in s.to_finset, (s.count a / k) •ℕ (a :: 0),
-  have h₂ : ∑ (x : α) in s.to_finset, k •ℕ (count x s / k •ℕ (x :: 0)) =
-    ∑ (x : α) in s.to_finset, count x s •ℕ (x :: 0),
+  use ∑ a in s.to_finset, (s.count a / k) •ℕ (a ::ₘ 0),
+  have h₂ : ∑ (x : α) in s.to_finset, k •ℕ (count x s / k •ℕ (x ::ₘ 0)) =
+    ∑ (x : α) in s.to_finset, count x s •ℕ (x ::ₘ 0),
   { refine congr_arg s.to_finset.sum _,
     apply funext, intro x,
     rw [← mul_nsmul, nat.mul_div_cancel' (h x)] },

@@ -5,7 +5,7 @@ Authors: Neil Strickland
 
 Sums of finite geometric series
 -/
-import algebra.group_with_zero_power
+import algebra.group_with_zero.power
 import algebra.big_operators.order
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
@@ -31,7 +31,8 @@ theorem geom_series_def [semiring α] (x : α) (n : ℕ) :
   geom_series x 1 = 1 :=
 by { rw [geom_series_def, sum_range_one, pow_zero] }
 
-@[simp] lemma op_geom_series [ring α] (x : α) (n : ℕ) : op (geom_series x n) = geom_series (op x) n :=
+@[simp] lemma op_geom_series [ring α] (x : α) (n : ℕ) :
+  op (geom_series x n) = geom_series (op x) n :=
 by simp [geom_series_def]
 
 /-- Sum of the finite geometric series $\sum_{i=0}^{n-1} x^i y^{n-1-i}$. -/
@@ -179,7 +180,8 @@ have h₄ : x * (x ^ n)⁻¹ = (x ^ n)⁻¹ * x :=
 begin
   rw [geom_sum h₁, div_eq_iff_mul_eq h₂, ← mul_right_inj' h₃,
     ← mul_assoc, ← mul_assoc, mul_inv_cancel h₃],
-  simp [mul_add, add_mul, mul_inv_cancel hx0, mul_assoc, h₄, sub_eq_add_neg, add_comm, add_left_comm],
+  simp [mul_add, add_mul, mul_inv_cancel hx0, mul_assoc, h₄, sub_eq_add_neg, add_comm,
+    add_left_comm],
 end
 
 variables {β : Type*}

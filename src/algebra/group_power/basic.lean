@@ -3,7 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.order_functions
+import algebra.ordered_ring
 import deprecated.group
 
 /-!
@@ -200,6 +200,24 @@ by simp only [pow_succ, ihn, ← mul_assoc, (h.pow_left n).right_comm]
 
 theorem neg_pow [ring R] (a : R) (n : ℕ) : (- a) ^ n = (-1) ^ n * a ^ n :=
 (neg_one_mul a) ▸ (commute.neg_one_left a).mul_pow n
+
+theorem pow_bit0' (a : M) (n : ℕ) : a ^ bit0 n = (a * a) ^ n :=
+by rw [pow_bit0, (commute.refl a).mul_pow]
+
+theorem bit0_nsmul' (a : A) (n : ℕ) : bit0 n •ℕ a = n •ℕ (a + a) :=
+@pow_bit0' (multiplicative A) _ _ _
+
+theorem pow_bit1' (a : M) (n : ℕ) : a ^ bit1 n = (a * a) ^ n * a :=
+by rw [bit1, pow_succ', pow_bit0']
+
+theorem bit1_nsmul' : ∀ (a : A) (n : ℕ), bit1 n •ℕ a = n •ℕ (a + a) + a :=
+@pow_bit1' (multiplicative A) _
+
+@[simp] theorem neg_pow_bit0 [ring R] (a : R) (n : ℕ) : (- a) ^ (bit0 n) = a ^ (bit0 n) :=
+by rw [pow_bit0', neg_mul_neg, pow_bit0']
+
+@[simp] theorem neg_pow_bit1 [ring R] (a : R) (n : ℕ) : (- a) ^ (bit1 n) = - a ^ (bit1 n) :=
+by simp only [bit1, pow_succ, neg_pow_bit0, neg_mul_eq_neg_mul]
 
 end monoid
 
@@ -401,15 +419,24 @@ begin
   exact or.cases_on (mul_eq_zero.1 H) id ih
 end
 
+@[simp] lemma pow_eq_zero_iff [monoid_with_zero R] [no_zero_divisors R]
+  {a : R} {n : ℕ} (hn : 0 < n) :
+  a ^ n = 0 ↔ a = 0 :=
+begin
+  refine ⟨pow_eq_zero, _⟩,
+  rintros rfl,
+  exact zero_pow hn,
+end
+
 @[field_simps] theorem pow_ne_zero [monoid_with_zero R] [no_zero_divisors R]
   {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
-lemma pow_abs [decidable_linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
+lemma pow_abs [linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
 by induction n with n ih; [exact (abs_one).symm,
   rw [pow_succ, pow_succ, ih, abs_mul]]
 
-lemma abs_neg_one_pow [decidable_linear_ordered_comm_ring R] (n : ℕ) : abs ((-1 : R)^n) = 1 :=
+lemma abs_neg_one_pow [linear_ordered_comm_ring R] (n : ℕ) : abs ((-1 : R)^n) = 1 :=
 by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
 section add_monoid
@@ -484,7 +511,7 @@ namespace canonically_ordered_semiring
 variable [canonically_ordered_comm_semiring R]
 
 theorem pow_pos {a : R} (H : 0 < a) : ∀ n : ℕ, 0 < a ^ n
-| 0     := canonically_ordered_semiring.zero_lt_one
+| 0     := by { nontriviality, exact canonically_ordered_semiring.zero_lt_one }
 | (n+1) := canonically_ordered_semiring.mul_pos.2 ⟨H, pow_pos n⟩
 
 lemma pow_le_pow_of_le_left {a b : R} (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
@@ -503,7 +530,7 @@ section linear_ordered_semiring
 variable [linear_ordered_semiring R]
 
 @[simp] theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
-| 0     := zero_lt_one
+| 0     := by { nontriviality, exact zero_lt_one }
 | (n+1) := mul_pos H (pow_pos _)
 
 @[simp] theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
@@ -551,6 +578,9 @@ begin
   exact mul_lt_mul h (pow_le_pow h' (nat.le_of_lt_succ h2)) (pow_pos h'' _) (le_of_lt h'')
 end
 
+lemma pow_lt_pow_iff {a : R} {n m : ℕ} (h : 1 < a) : a ^ n < a ^ m ↔ n < m :=
+strict_mono.lt_iff_lt $ λ m n, pow_lt_pow h
+
 lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
 | 0     := by simp
 | (k+1) := mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab)
@@ -558,13 +588,19 @@ lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : �
 lemma lt_of_pow_lt_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (h : a ^ n < b ^ n) : a < b :=
 lt_of_not_ge $ λ hn, not_lt_of_ge (pow_le_pow_of_le_left hb hn _) h
 
+lemma le_of_pow_le_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (hn : 0 < n) (h : a ^ n ≤ b ^ n) : a ≤ b :=
+le_of_not_lt $ λ h1, not_le_of_lt (pow_lt_pow_of_lt_left h1 hb hn) h
+
 end linear_ordered_semiring
 
 theorem pow_two_nonneg [linear_ordered_ring R] (a : R) : 0 ≤ a ^ 2 :=
 by { rw pow_two, exact mul_self_nonneg _ }
 
 theorem pow_two_pos_of_ne_zero [linear_ordered_ring R] (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
-lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
+begin
+  nontriviality,
+  exact lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
+end
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]

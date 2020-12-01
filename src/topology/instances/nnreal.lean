@@ -6,6 +6,8 @@ Authors: Johan Commelin
 Nonnegative real numbers.
 -/
 import topology.algebra.infinite_sum
+import topology.algebra.group_with_zero
+
 noncomputable theory
 open set topological_space metric
 open_locale topological_space
@@ -36,27 +38,38 @@ continuous_subtype_mk _ $ continuous_id.max continuous_const
 lemma continuous_coe : continuous (coe : ℝ≥0 → ℝ) :=
 continuous_subtype_val
 
-lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} :
-  ∀{x : ℝ≥0}, tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x)
-| ⟨r, hr⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff]; refl
+@[simp, norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} {x : ℝ≥0} :
+  tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x) :=
+tendsto_subtype_rng.symm
+
+lemma tendsto_coe' {f : filter α} [ne_bot f] {m : α → ℝ≥0} {x : ℝ} :
+  tendsto (λ a, m a : α → ℝ) f (𝓝 x) ↔ ∃ hx : 0 ≤ x, tendsto m f (𝓝 ⟨x, hx⟩) :=
+⟨λ h, ⟨ge_of_tendsto' h (λ c, (m c).2), tendsto_coe.1 h⟩, λ ⟨hx, hm⟩, tendsto_coe.2 hm⟩
+
+@[simp] lemma map_coe_at_top : map (coe : ℝ≥0 → ℝ) at_top = at_top :=
+map_at_top_eq_of_gc nnreal.of_real 0 nnreal.coe_mono
+  (λ a b hb, (le_of_real_iff_coe_le hb).symm)
+  (λ b hb, le_coe_of_real b)
+
+lemma comap_coe_at_top : comap (coe : ℝ≥0 → ℝ) at_top = at_top :=
+by rw [← map_coe_at_top, comap_map nnreal.injective_coe]
+
+@[simp, norm_cast] lemma tendsto_coe_at_top {f : filter α} {m : α → ℝ≥0} :
+  tendsto (λ a, (m a : ℝ)) f at_top ↔ tendsto m f at_top :=
+by rw [← comap_coe_at_top, tendsto_comap_iff]
 
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
   tendsto (λa, nnreal.of_real (m a)) f (𝓝 (nnreal.of_real x)) :=
 tendsto.comp (continuous_iff_continuous_at.1 continuous_of_real _) h
 
-lemma tendsto.sub {f : filter α} {m n : α → ℝ≥0} {r p : ℝ≥0}
-  (hm : tendsto m f (𝓝 r)) (hn : tendsto n f (𝓝 p)) :
-  tendsto (λa, m a - n a) f (𝓝 (r - p)) :=
-tendsto_of_real $ (tendsto_coe.2 hm).sub (tendsto_coe.2 hn)
+instance : has_continuous_sub ℝ≥0 :=
+⟨continuous_subtype_mk _ $
+  ((continuous_coe.comp continuous_fst).sub
+   (continuous_coe.comp continuous_snd)).max continuous_const⟩
 
-lemma continuous_sub : continuous (λp:ℝ≥0×ℝ≥0, p.1 - p.2) :=
-continuous_subtype_mk _ $
-  ((continuous.comp continuous_coe continuous_fst).sub
-   (continuous.comp continuous_coe continuous_snd)).max continuous_const
-
-lemma continuous.sub [topological_space α] {f g : α → ℝ≥0}
-  (hf : continuous f) (hg : continuous g) : continuous (λ a, f a - g a) :=
-continuous_sub.comp (hf.prod_mk hg)
+instance : has_continuous_inv' ℝ≥0 :=
+⟨λ x hx, tendsto_coe.1 $ (real.tendsto_inv $ nnreal.coe_ne_zero.2 hx).comp
+  continuous_coe.continuous_at⟩
 
 @[norm_cast] lemma has_sum_coe {f : α → ℝ≥0} {r : ℝ≥0} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
@@ -89,6 +102,12 @@ lemma sum_add_tsum_nat_add {f : ℕ → ℝ≥0} (k : ℕ) (hf : summable f) :
   (∑' i, f i) = (∑ i in range k, f i) + ∑' i, f (i + k) :=
 by rw [←nnreal.coe_eq, coe_tsum, nnreal.coe_add, coe_sum, coe_tsum,
   sum_add_tsum_nat_add k (nnreal.summable_coe.2 hf)]
+
+lemma infi_real_pos_eq_infi_nnreal_pos [complete_lattice α] {f : ℝ → α} :
+  (⨅ (n : ℝ) (h : 0 < n), f n) = (⨅ (n : ℝ≥0) (h : 0 < n), f n) :=
+le_antisymm
+  (infi_le_infi2 $ assume r, ⟨r, infi_le_infi $ assume hr, le_rfl⟩)
+  (le_infi $ assume r, le_infi $ assume hr, infi_le_of_le ⟨r, hr.le⟩ $ infi_le _ hr)
 
 end coe
 

@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import data.nat.prime
 import data.rat.basic
+import order.well_founded
 import tactic.linarith
 import tactic.omega
 

@@ -150,10 +150,10 @@ lemma rat.continuous_abs : continuous (abs : ℚ → ℚ) :=
 rat.uniform_continuous_abs.continuous
 
 lemma real.tendsto_inv {r : ℝ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
-by rw ← abs_pos_iff at r0; exact
+by rw ← abs_pos at r0; exact
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
-  (mem_nhds_sets (real.continuous_abs _ $ is_open_lt' (abs r / 2)) (half_lt_self r0))
+  (mem_nhds_sets ((is_open_lt' (abs r / 2)).preimage real.continuous_abs) (half_lt_self r0))
 
 lemma real.continuous_inv : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
@@ -188,8 +188,8 @@ tendsto_of_uniform_continuous_subtype
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
     (λ x, id))
   (mem_nhds_sets
-    ((real.continuous_abs _ $ is_open_gt' (abs a₁ + 1)).prod
-      (real.continuous_abs _ $ is_open_gt' (abs a₂ + 1)))
+    (((is_open_gt' (abs a₁ + 1)).preimage real.continuous_abs).prod
+      ((is_open_gt' (abs a₂ + 1)).preimage real.continuous_abs ))
     ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
 
 instance : topological_ring ℝ :=
@@ -294,6 +294,9 @@ compact_of_totally_bounded_is_closed
   (real.totally_bounded_Icc a b)
   (is_closed_inter (is_closed_ge' a) (is_closed_le' b))
 
+lemma compact_pi_Icc {ι : Type*} {a b : ι → ℝ} : is_compact (Icc a b) :=
+pi_univ_Icc a b ▸ compact_univ_pi $ λ i, compact_Icc
+
 instance : proper_space ℝ :=
 { compact_ball := λx r, by rw closed_ball_Icc; apply compact_Icc }
 
@@ -330,11 +333,10 @@ section subgroups
 /-- Given a nontrivial subgroup `G ⊆ ℝ`, if `G ∩ ℝ_{>0}` has no minimum then `G` is dense. -/
 lemma real.subgroup_dense_of_no_min {G : add_subgroup ℝ} {g₀ : ℝ} (g₀_in : g₀ ∈ G) (g₀_ne : g₀ ≠ 0)
   (H' : ¬ ∃ a : ℝ, is_least {g : ℝ | g ∈ G ∧ 0 < g} a) :
-  closure (G : set ℝ) = univ :=
+  dense (G : set ℝ) :=
 begin
   let G_pos := {g : ℝ | g ∈ G ∧ 0 < g},
   push_neg at H',
-  rw eq_univ_iff_forall,
   intros x,
   suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, abs (x - g) < ε,
     by simpa only [real.mem_closure_iff, abs_sub],
@@ -362,7 +364,7 @@ end
 /-- Subgroups of `ℝ` are either dense or cyclic. See `real.subgroup_dense_of_no_min` and
 `subgroup_cyclic_of_min` for more precise statements. -/
 lemma real.subgroup_dense_or_cyclic (G : add_subgroup ℝ) :
-  closure (G : set ℝ) = univ ∨ ∃ a : ℝ, G = add_subgroup.closure {a} :=
+  dense (G : set ℝ) ∨ ∃ a : ℝ, G = add_subgroup.closure {a} :=
 begin
   cases add_subgroup.bot_or_exists_ne_zero G with H H,
   { right,

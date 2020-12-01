@@ -76,7 +76,7 @@ definition GH_space : Type := quotient (isometry_rel.setoid)
 definition to_GH_space (α : Type u) [metric_space α] [compact_space α] [nonempty α] : GH_space :=
   ⟦nonempty_compacts.Kuratowski_embedding α⟧
 
-instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp [-singleton_zero]⟩⟩
+instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp⟩⟩
 
 /-- A metric space representative of any abstract point in `GH_space` -/
 definition GH_space.rep (p : GH_space) : Type := (quot.out p).val
@@ -449,7 +449,7 @@ instance GH_space_metric_space : metric_space GH_space :=
                            ((to_glue_l hΦ hΨ) '' (range (optimal_GH_injr X Y)))
           + Hausdorff_dist ((to_glue_r hΦ hΨ) '' (range (optimal_GH_injl Y Z)))
                            ((to_glue_r hΦ hΨ) '' (range (optimal_GH_injr Y Z))) :
-        by simp only [eq.symm range_comp, Comm, eq_self_iff_true, add_right_inj]
+        by simp only [← range_comp, Comm, eq_self_iff_true, add_right_inj]
       ... = Hausdorff_dist (range (optimal_GH_injl X Y))
                            (range (optimal_GH_injr X Y))
           + Hausdorff_dist (range (optimal_GH_injl Y Z))

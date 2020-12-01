@@ -28,17 +28,33 @@ def additive (α : Type*) := α
 multiplicative structure. -/
 def multiplicative (α : Type*) := α
 
+namespace additive
+
 /-- Reinterpret `x : α` as an element of `additive α`. -/
-def additive.of_mul : α ≃ additive α := ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
+def of_mul : α ≃ additive α := ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
 
 /-- Reinterpret `x : additive α` as an element of `α`. -/
-def additive.to_mul : additive α ≃ α := additive.of_mul.symm
+def to_mul : additive α ≃ α := of_mul.symm
+
+@[simp] lemma of_mul_symm_eq : (@of_mul α).symm = to_mul := rfl
+
+@[simp] lemma to_mul_symm_eq : (@to_mul α).symm = of_mul := rfl
+
+end additive
+
+namespace multiplicative
 
 /-- Reinterpret `x : α` as an element of `multiplicative α`. -/
-def multiplicative.of_add : α ≃ multiplicative α := ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
+def of_add : α ≃ multiplicative α := ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
 
 /-- Reinterpret `x : multiplicative α` as an element of `α`. -/
-def multiplicative.to_add : multiplicative α ≃ α := multiplicative.of_add.symm
+def to_add : multiplicative α ≃ α := of_add.symm
+
+@[simp] lemma of_add_symm_eq : (@of_add α).symm = to_add := rfl
+
+@[simp] lemma to_add_symm_eq : (@to_add α).symm = of_add := rfl
+
+end multiplicative
 
 @[simp] lemma to_add_of_add (x : α) : (multiplicative.of_add x).to_add = x := rfl
 @[simp] lemma of_add_to_add (x : multiplicative α) : multiplicative.of_add x.to_add = x := rfl

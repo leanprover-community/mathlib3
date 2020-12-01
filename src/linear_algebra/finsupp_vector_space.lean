@@ -29,7 +29,7 @@ begin
     have h_disjoint : disjoint (span R (range (f i))) (ker (lsingle i)),
     { rw ker_lsingle,
       exact disjoint_bot_right },
-    apply linear_independent.image (hf i) h_disjoint },
+    apply (hf i).map h_disjoint },
   { intros i t ht hit,
     refine (disjoint_lsingle_lsingle {i} t (disjoint_singleton_left.2 hit)).mono _ _,
     { rw span_le,

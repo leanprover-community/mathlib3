@@ -424,7 +424,7 @@ include hnorm
 private lemma a_is_soln (ha : F.eval a = 0) :
   F.eval a = 0 ∧ ∥a - a∥ < ∥F.derivative.eval a∥ ∧ ∥F.derivative.eval a∥ = ∥F.derivative.eval a∥ ∧
   ∀ z', F.eval z' = 0 → ∥z' - a∥ < ∥F.derivative.eval a∥ → z' = a :=
-⟨ha, by simp; apply deriv_norm_pos; apply hnorm, rfl, a_soln_is_unique ha⟩
+⟨ha, by simp [deriv_ne_zero hnorm], rfl, a_soln_is_unique ha⟩
 
 lemma hensels_lemma : ∃ z : ℤ_[p], F.eval z = 0 ∧ ∥z - a∥ < ∥F.derivative.eval a∥ ∧
   ∥F.derivative.eval z∥ = ∥F.derivative.eval a∥ ∧

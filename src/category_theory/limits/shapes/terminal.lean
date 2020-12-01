@@ -15,7 +15,7 @@ import category_theory.limits.limits
 
 noncomputable theory
 
-universes v u
+universes v u u₂
 
 open category_theory
 
@@ -134,6 +134,26 @@ is_terminal.mono_from terminal_is_terminal _
 instance initial.epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : epi f :=
 is_initial.epi_to initial_is_initial _
 
+/-- An initial object is terminal in the opposite category. -/
+def terminal_op_of_initial {X : C} (t : is_initial X) : is_terminal (opposite.op X) :=
+{ lift := λ s, (t.to s.X.unop).op,
+  uniq' := λ s m w, has_hom.hom.unop_inj (t.hom_ext _ _) }
+
+/-- An initial object in the opposite category is terminal in the original category. -/
+def terminal_unop_of_initial {X : Cᵒᵖ} (t : is_initial X) : is_terminal X.unop :=
+{ lift := λ s, (t.to (opposite.op s.X)).unop,
+  uniq' := λ s m w, has_hom.hom.op_inj (t.hom_ext _ _) }
+
+/-- A terminal object is initial in the opposite category. -/
+def initial_op_of_terminal {X : C} (t : is_terminal X) : is_initial (opposite.op X) :=
+{ desc := λ s, (t.from s.X.unop).op,
+  uniq' := λ s m w, has_hom.hom.unop_inj (t.hom_ext _ _) }
+
+/-- A terminal object in the opposite category is initial in the original category. -/
+def initial_unop_of_terminal {X : Cᵒᵖ} (t : is_terminal X) : is_initial X.unop :=
+{ desc := λ s, (t.from (opposite.op s.X)).unop,
+  uniq' := λ s m w, has_hom.hom.op_inj (t.hom_ext _ _) }
+
 /-- From a functor `F : J ⥤ C`, given an initial object of `J`, construct a cone for `J`.
 In `limit_of_diagram_initial` we show it is a limit cone. -/
 @[simps]
@@ -206,5 +226,28 @@ is_colimit.cocone_point_unique_up_to_iso
   (colimit_of_diagram_terminal terminal_is_terminal F)
 
 end
+
+section comparison
+variables {C} {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+
+/--
+The comparison morphism from the image of a terminal object to the terminal object in the target
+category.
+-/
+-- TODO: Show this is an isomorphism if and only if `G` preserves terminal objects.
+def terminal_comparison [has_terminal C] [has_terminal D] :
+  G.obj (⊤_ C) ⟶ ⊤_ D :=
+terminal.from _
+
+/--
+The comparison morphism from the initial object in the target category to the image of the initial
+object.
+-/
+-- TODO: Show this is an isomorphism if and only if `G` preserves initial objects.
+def initial_comparison [has_initial C] [has_initial D] :
+  ⊥_ D ⟶ G.obj (⊥_ C) :=
+initial.to _
+
+end comparison
 
 end category_theory.limits

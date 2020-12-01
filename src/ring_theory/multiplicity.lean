@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Chris Hughes
 -/
 import algebra.associated
-import data.int.gcd
 import algebra.big_operators.basic
 import data.nat.enat
 
@@ -146,6 +145,10 @@ lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ mul
     by rw [eq_top_iff_not_finite.2 hab, eq_top_iff_not_finite.2
       (not_finite_iff_forall.2 this)]⟩
 
+lemma multiplicity_le_multiplicity_of_dvd {a b c : α} (hdvd : a ∣ b) :
+  multiplicity b c ≤ multiplicity a c :=
+multiplicity_le_multiplicity_iff.2 $ λ n h, dvd_trans (pow_dvd_pow_of_dvd hdvd n) h
+
 lemma dvd_of_multiplicity_pos {a b : α} (h : (0 : enat) < multiplicity a b) : a ∣ b :=
 by rw [← pow_one a]; exact pow_dvd_of_le_multiplicity (enat.pos_iff_one_le.1 h)
 
@@ -169,27 +172,6 @@ begin
     λ h, by cases h; simp *⟩
 end
 
-lemma finite_int_iff_nat_abs_finite {a b : ℤ} : finite a b ↔ finite a.nat_abs b.nat_abs :=
-begin
-  rw [finite_def, finite_def],
-  conv in (a ^ _ ∣ b)
-    { rw [← int.nat_abs_dvd_abs_iff, int.nat_abs_pow] }
-end
-
-lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) :=
-begin
-  have := int.nat_abs_eq a,
-  have := @int.nat_abs_ne_zero_of_ne_zero b,
-  rw [finite_int_iff_nat_abs_finite, finite_nat_iff, nat.pos_iff_ne_zero],
-  split; finish
-end
-
-instance decidable_nat : decidable_rel (λ a b : ℕ, (multiplicity a b).dom) :=
-λ a b, decidable_of_iff _ finite_nat_iff.symm
-
-instance decidable_int : decidable_rel (λ a b : ℤ, (multiplicity a b).dom) :=
-λ a b, decidable_of_iff _ finite_int_iff.symm
-
 end comm_monoid
 
 section comm_monoid_with_zero
@@ -203,6 +185,13 @@ variable [decidable_rel ((∣) : α → α → Prop)]
 
 @[simp] protected lemma zero (a : α) : multiplicity a 0 = ⊤ :=
 roption.eq_none_iff.2 (λ n ⟨⟨k, hk⟩, _⟩, hk (dvd_zero _))
+
+@[simp] lemma multiplicity_zero_eq_zero_of_ne_zero (a : α) (ha : a ≠ 0) : multiplicity 0 a = 0 :=
+begin
+  apply multiplicity.multiplicity_eq_zero_of_not_dvd,
+  rwa zero_dvd_iff,
+end
+
 
 end comm_monoid_with_zero
 
@@ -227,7 +216,7 @@ variables [comm_ring α] [decidable_rel ((∣) : α → α → Prop)]
 open_locale classical
 
 @[simp] protected lemma neg (a b : α) : multiplicity a (-b) = multiplicity a b :=
-roption.ext' (by simp only [multiplicity]; conv in (_ ∣ - _) {rw dvd_neg})
+roption.ext' (by simp only [multiplicity, dvd_neg])
   (λ h₁ h₂, enat.coe_inj.1 (by rw [enat.coe_get]; exact
     eq.symm (unique ((dvd_neg _ _).2 (pow_multiplicity_dvd _))
       (mt (dvd_neg _ _).1 (is_greatest' _ (lt_succ_self _))))))

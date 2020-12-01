@@ -109,6 +109,9 @@ roption.ext' (iff_of_true trivial h) (λ _ _, rfl)
 lemma dom_of_le_some {x : enat} {y : ℕ} : x ≤ y → x.dom :=
 λ ⟨h, _⟩, h trivial
 
+/-- The coercion `ℕ → enat` preserves `0` and addition. -/
+def coe_hom : ℕ →+ enat := ⟨coe, enat.coe_zero, enat.coe_add⟩
+
 instance : partial_order enat :=
 { le          := (≤),
   le_refl     := λ x, ⟨id, λ _, le_refl _⟩,
@@ -126,6 +129,9 @@ by rw [lt_iff_le_not_le, lt_iff_le_not_le, coe_le_coe, coe_le_coe]
 lemma get_le_get {x y : enat} {hx : x.dom} {hy : y.dom} :
   x.get hx ≤ y.get hy ↔ x ≤ y :=
 by conv { to_lhs, rw [← coe_le_coe, coe_get, coe_get]}
+
+protected lemma zero_lt_one : (0 : enat) < 1 :=
+by { norm_cast, norm_num }
 
 instance semilattice_sup_bot : semilattice_sup_bot enat :=
 { sup := (⊔),
@@ -162,7 +168,7 @@ enat.cases_on x ⟨λ _, le_top, λ _, coe_lt_top _⟩
   (λ n, ⟨λ h, enat.coe_le_coe.2 (enat.coe_lt_coe.1 h),
     λ h, enat.coe_lt_coe.2 (enat.coe_le_coe.1 h)⟩)
 
-noncomputable instance : decidable_linear_order enat :=
+noncomputable instance : linear_order enat :=
 { le_total := λ x y, enat.cases_on x
     (or.inr le_top) (enat.cases_on y (λ _, or.inl le_top)
       (λ x y, (le_total x y).elim (or.inr ∘ coe_le_coe.2)
@@ -197,7 +203,7 @@ instance : ordered_add_comm_monoid enat :=
         (λ _, coe_lt_top _)
         (λ c h,  coe_lt_coe.2 (by rw [← coe_add, ← coe_add, coe_lt_coe] at h;
             exact lt_of_add_lt_add_left h)))),
-  ..enat.decidable_linear_order,
+  ..enat.linear_order,
   ..enat.add_comm_monoid }
 
 instance : canonically_ordered_add_monoid enat :=

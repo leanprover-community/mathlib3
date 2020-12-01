@@ -301,6 +301,19 @@ f.lt_embedding.is_well_order
 protected def dual : order_dual α ↪o order_dual β :=
 ⟨f.to_embedding, λ a b, f.map_rel_iff⟩
 
+/-- A sctrictly monotone map from a linear order is an order embedding. --/
+def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
+  (h : strict_mono f) : α ↪o β :=
+{ to_fun := f,
+  inj' := strict_mono.injective h,
+  map_rel_iff' := begin
+    intros,
+    rcases lt_trichotomy a b with lt | eq | gt,
+    { exact iff_of_true (le_of_lt lt) (le_of_lt (h lt)) },
+    { rw eq, apply iff_of_true, refl, refl },
+    { apply iff_of_false (not_le_of_gt gt) (not_le_of_gt (h gt)) }
+  end }
+
 end order_embedding
 
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
@@ -355,16 +368,16 @@ lemma map_rel_iff'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃
 
 @[simp] theorem coe_fn_to_equiv (f : r ≃r s) : (f.to_equiv : α → β) = f := rfl
 
-theorem to_equiv_injective : injective (to_equiv : (r ≃r s) → α ≃ β)
+theorem injective_to_equiv : injective (to_equiv : (r ≃r s) → α ≃ β)
 | ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
 
-/-- The map `coe_fn : (r ≃r s) → (α → β)` is injective. We can't use `function.injective`
-here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_injective ⦃e₁ e₂ : r ≃r s⦄ (h : (e₁ : α → β) = e₂) : e₁ = e₂ :=
-to_equiv_injective $ equiv.coe_fn_injective h
+/-- The map `coe_fn : (r ≃r s) → (α → β)` is injective. Lean fails to parse
+`function.injective (λ e : r ≃r s, (e : α → β))`, so we use a trick to say the same. -/
+theorem injective_coe_fn : function.injective (λ (e : r ≃r s) (x : α), e x) :=
+equiv.injective_coe_fn.comp injective_to_equiv
 
 @[ext] theorem ext ⦃f g : r ≃r s⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_fn_injective (funext h)
+injective_coe_fn (funext h)
 
 theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -490,6 +503,17 @@ variables [preorder α] [preorder β]
 protected lemma monotone (e : α ≃o β) : monotone e := e.to_order_embedding.monotone
 
 protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embedding.strict_mono
+
+/-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
+    it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
+def of_cmp_eq_cmp {α β} [linear_order α] [linear_order β] (f : α → β) (g : β → α)
+  (h : ∀ (a : α) (b : β), cmp a (g b) = cmp (f a) b) : α ≃o β :=
+have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_self_eq_eq] },
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ a, (gf a).symm,
+  right_inv := by { intro, rw [←cmp_eq_eq_iff, ←h, cmp_self_eq_eq] },
+  map_rel_iff' := by { intros, apply le_iff_le_of_cmp_eq_cmp, convert h _ _, apply gf } }
 
 end order_iso
 

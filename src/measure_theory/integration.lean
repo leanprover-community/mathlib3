@@ -454,8 +454,8 @@ by rw [approx_apply _ hf, approx_apply _ (hf.comp hg)]
 
 end
 
-lemma supr_approx_apply [topological_space β] [complete_lattice β] [order_closed_topology β] [has_zero β]
-  [measurable_space β] [opens_measurable_space β]
+lemma supr_approx_apply [topological_space β] [complete_lattice β] [order_closed_topology β]
+  [has_zero β] [measurable_space β] [opens_measurable_space β]
   (i : ℕ → β) (f : α → β) (a : α) (hf : measurable f) (h_zero : (0 : β) = ⊥) :
   (⨆n, (approx i f n : α →ₛ β) a) = (⨆k (h : i k ≤ f a), i k) :=
 begin
@@ -854,6 +854,15 @@ supr_le_supr $ λ φ, supr_le_supr2 $ λ hφ, ⟨le_trans hφ hfg, lintegral_mon
 lemma lintegral_mono ⦃f g : α → ennreal⦄ (hfg : f ≤ g) :
   ∫⁻ a, f a ∂μ ≤ ∫⁻ a, g a ∂μ :=
 lintegral_mono' (le_refl μ) hfg
+
+lemma lintegral_mono_nnreal {f g : α → nnreal} (h : f ≤ g) :
+  ∫⁻ a, f a ∂μ ≤ ∫⁻ a, g a ∂μ :=
+begin
+  refine lintegral_mono _,
+  intro a,
+  rw ennreal.coe_le_coe,
+  exact h a,
+end
 
 lemma monotone_lintegral (μ : measure α) : monotone (lintegral μ) :=
 lintegral_mono
@@ -1515,7 +1524,7 @@ of [wasserman2004]). Thus, this method shows how to one can calculate expectatio
 and other moments as a function of the probability density function.
  -/
 lemma lintegral_with_density_eq_lintegral_mul {α} [measurable_space α] (μ : measure α)
-  {f : α → ennreal} (h_mf : measurable f) : ∀ {g : α → ennreal}, measurable g → 
+  {f : α → ennreal} (h_mf : measurable f) : ∀ {g : α → ennreal}, measurable g →
   ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
 begin
   apply measurable.ennreal_induction,

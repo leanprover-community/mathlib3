@@ -95,7 +95,8 @@ begin
   rw [← ennreal.sub_le_iff_le_add], exact le_of_lt h2U
 end
 
-/-- The inner content of a surpremum of opens is at most the sum of the individual inner contents. -/
+/-- The inner content of a supremum of opens is at most the sum of the individual inner
+contents. -/
 lemma inner_content_Sup_nat [t2_space G] {μ : compacts G → ennreal}
   (h1 : μ ⊥ = 0)
   (h2 : ∀ (K₁ K₂ : compacts G), μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂) (U : ℕ → opens G) :
@@ -157,9 +158,9 @@ begin
   { exact (ennreal.mul_pos.mp $ lt_of_lt_of_le hK this).2 },
   have : K.1 ⊆ ↑⨆ (g ∈ s), U.comap $ continuous_mul_left g,
   { simpa only [opens.supr_def, opens.coe_comap, subtype.coe_mk] },
-  refine le_trans (le_inner_content _ _ this) _,
-  refine le_trans
-    (rel_supr_sum (inner_content μ) (inner_content_empty h1) (≤) (inner_content_Sup_nat h1 h2) _ _) _,
+  refine (le_inner_content _ _ this).trans _,
+  refine (rel_supr_sum (inner_content μ) (inner_content_empty h1) (≤)
+    (inner_content_Sup_nat h1 h2) _ _).trans _,
   simp only [is_left_invariant_inner_content h3, finset.sum_const, nsmul_eq_mul, le_refl]
 end
 
@@ -181,6 +182,10 @@ include h2
 lemma of_content_opens (U : opens G) : of_content μ h1 U = inner_content μ U :=
 induced_outer_measure_eq' (λ _, is_open_Union) (inner_content_Union_nat h1 h2)
   inner_content_mono U.2
+
+lemma of_content_le (h : ∀ (K₁ K₂ : compacts G), K₁.1 ⊆ K₂.1 → μ K₁ ≤ μ K₂)
+  (U : opens G) (K : compacts G) (hUK : (U : set G) ⊆ K.1) : of_content μ h1 U ≤ μ K :=
+(of_content_opens h2 U).le.trans $ inner_content_le h U K hUK
 
 lemma le_of_content_compacts (K : compacts G) : μ K ≤ of_content μ h1 K.1 :=
 begin

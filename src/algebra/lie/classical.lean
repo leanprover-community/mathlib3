@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.invertible
-import algebra.lie.basic
+import algebra.lie.skew_adjoint
 import linear_algebra.matrix
 
 /-!
@@ -115,7 +115,7 @@ def Eb (h : j ≠ i) : sl n R :=
 
 end elementary_basis
 
-lemma sl_non_abelian [nontrivial R] (h : 1 < fintype.card n) : ¬lie_algebra.is_abelian ↥(sl n R) :=
+lemma sl_non_abelian [nontrivial R] (h : 1 < fintype.card n) : ¬is_lie_abelian ↥(sl n R) :=
 begin
   rcases fintype.exists_pair_of_one_lt_card h with ⟨j, i, hij⟩,
   let A := Eb R i j hij,

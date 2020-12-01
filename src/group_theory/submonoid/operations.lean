@@ -152,7 +152,7 @@ lemma mem_map {f : M →* N} {S : submonoid M} {y : N} :
 mem_image_iff_bex
 
 @[to_additive]
-lemma mem_map_of_mem {f : M →* N} {S : submonoid M} (x : S) : f x ∈ S.map f :=
+lemma mem_map_of_mem (f : M →* N) (x : S) : f x ∈ S.map f :=
 mem_image_of_mem f x.2
 
 @[to_additive]
@@ -337,6 +337,34 @@ S.coe_injective.comm_monoid coe rfl (λ _ _, rfl)
 def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
+
+/-- An induction principle on elements of the type `submonoid.closure s`.
+If `p` holds for `1` and all elements of `s`, and is preserved under multiplication, then `p`
+holds for all elements of the closure of `s`.
+
+The difference with `submonoid.closure_induction` is that this acts on the subtype.
+-/
+@[to_additive "An induction principle on elements of the type `add_submonoid.closure s`.
+If `p` holds for `0` and all elements of `s`, and is preserved under addition, then `p`
+holds for all elements of the closure of `s`.
+
+The difference with `add_submonoid.closure_induction` is that this acts on the subtype."]
+lemma closure_induction' (s : set M) {p : closure s → Prop}
+  (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_closure h⟩)
+  (H1 : p 1)
+  (Hmul : ∀ x y, p x → p y → p (x * y))
+  (x : closure s) :
+  p x :=
+subtype.rec_on x $ λ x hx, begin
+  refine exists.elim _ (λ (hx : x ∈ closure s) (hc : p ⟨x, hx⟩), hc),
+  exact closure_induction hx
+    (λ x hx, ⟨subset_closure hx, Hs x hx⟩)
+    ⟨one_mem _, H1⟩
+    (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
+      ⟨mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
+end
+
+attribute [elab_as_eliminator] submonoid.closure_induction' add_submonoid.closure_induction'
 
 /-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid
 of `M × N`. -/

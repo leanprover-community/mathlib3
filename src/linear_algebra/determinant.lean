@@ -274,7 +274,9 @@ begin
   simp [update_column_transpose, det_transpose]
 end
 
-/-- `det` is a multilinear map over the rows of the matrix -/
+/-- `det` is a multilinear map over the rows of the matrix.
+
+See also `is_basis.det`. -/
 @[simps apply]
 def det_row_multilinear : multilinear_map R (λ (i : n), n → R) R :=
 { to_fun := det,

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau.
 -/
 
+import data.polynomial.derivative
 import algebra.polynomial.big_operators
 import field_theory.minimal_polynomial
 import field_theory.splitting_field

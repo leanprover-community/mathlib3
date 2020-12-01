@@ -64,7 +64,8 @@ local attribute [instance] char_p_zmod
 variable (n)
 
 /--
-Since `truncated_witt_vector p n (zmod p)` is a finite ring with characteristic and cardinality `p^n`,
+Since `truncated_witt_vector p n (zmod p)` is a finite ring
+with characteristic and cardinality `p^n`,
 it is isomorphic to `zmod (p^n)`.
 -/
 def zmod_equiv_trunc : zmod (p^n) ≃+* truncated_witt_vector p n (zmod p) :=
@@ -125,8 +126,10 @@ def to_zmod_pow (k : ℕ) : 𝕎 (zmod p) →+* zmod (p ^ k) :=
 lemma to_zmod_pow_compat (m n : ℕ) (h : m ≤ n) :
   (zmod.cast_hom (pow_dvd_pow p h) (zmod (p ^ m))).comp ((λ (k : ℕ), to_zmod_pow p k) n) =
     (λ (k : ℕ), to_zmod_pow p k) m :=
-calc (zmod.cast_hom _ (zmod (p ^ m))).comp ((zmod_equiv_trunc p n).symm.to_ring_hom.comp (truncate n)) =
-  ((zmod_equiv_trunc p m).symm.to_ring_hom.comp (truncated_witt_vector.truncate h)).comp (truncate n) :
+calc (zmod.cast_hom _ (zmod (p ^ m))).comp
+      ((zmod_equiv_trunc p n).symm.to_ring_hom.comp (truncate n)) =
+  ((zmod_equiv_trunc p m).symm.to_ring_hom.comp
+    (truncated_witt_vector.truncate h)).comp (truncate n) :
   by rw [commutes_symm, ring_hom.comp_assoc]
 ... = (zmod_equiv_trunc p m).symm.to_ring_hom.comp (truncate m) :
   by rw [ring_hom.comp_assoc, truncate_comp_witt_vector_truncate]

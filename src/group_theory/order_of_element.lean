@@ -315,7 +315,7 @@ lemma is_cyclic_of_prime_card [group α] [fintype α] (p : ℕ) (hp : nat.prime 
     cases this with t ht,
     suffices : g = 1,
     { contradiction },
-    have hgt := ht ⟨g, by { change g ∈ subgroup.gpowers g, exact subgroup.mem_gpowers g}⟩,
+    have hgt := ht ⟨g, by { change g ∈ subgroup.gpowers g, exact subgroup.mem_gpowers g }⟩,
     rw [←ht 1] at hgt,
     change (⟨_, _⟩ : subgroup.gpowers g) = ⟨_, _⟩ at hgt,
     simpa using hgt },

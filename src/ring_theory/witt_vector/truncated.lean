@@ -48,9 +48,10 @@ We will define operations on this type that are compatible with the (untruncated
 vector operations.
 
 `truncated_witt_vector p n R` takes a parameter `p : ℕ` that is not used in the definition.
-This `p` is used to define the ring operations, and so it is needed to infer the proper ring
-structure. (`truncated_witt_vector p₁ n R` and `truncated_witt_vector p₂ n R` are definitionally
-equal but will have different ring operations.)
+In practice, this number `p` is assumed to be a prime number,
+and under this assumption we construct a ring structure on `truncated_witt_vector p n R`.
+(`truncated_witt_vector p₁ n R` and `truncated_witt_vector p₂ n R` are definitionally
+equal as types but will have different ring operations.)
 -/
 @[nolint unused_arguments]
 def truncated_witt_vector (p : ℕ) (n : ℕ) (R : Type*) := fin n → R

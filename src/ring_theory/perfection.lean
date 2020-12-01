@@ -52,7 +52,7 @@ indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 
 def ring.perfection (R : Type u) [comm_ring R] (p : ℕ) [hp : fact p.prime] [char_p R p] :
   subring (ℕ → R) :=
 { neg_mem' := λ f hf n, (frobenius_neg R p _).trans $ congr_arg _ (hf n),
-  .. comm_semiring.perfection R p }
+  .. semiring.perfection R p }
 
 namespace ring.perfection
 

@@ -65,7 +65,7 @@ by rw poly_binom_aux2; simp [left_distrib, finsupp.sum_add, mul_assoc]
 
 lemma derivative_eval (p : polynomial R) (x : R) :
   p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
-by simp only [derivative, eval_sum, eval_pow, eval_C, eval_X, eval_nat_cast, eval_mul]
+by simp only [derivative_apply, eval_sum, eval_pow, eval_C, eval_X, eval_nat_cast, eval_mul]
 
 def binom_expansion (f : polynomial R) (x y : R) :
   {k : R // f.eval (x + y) = f.eval x + (f.derivative.eval x) * y + k * y^2} :=

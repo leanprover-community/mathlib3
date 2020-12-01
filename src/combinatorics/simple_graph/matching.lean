@@ -60,7 +60,7 @@ def matching.verts (M : G.matching) : set V :=
 A perfect matching `M` on graph `G` is a matching such that
   every vertex is contained in an edge of `M`.
 -/
-def matching.is_perfect (M : matching G) : Prop :=
+def matching.is_perfect (M : G.matching) : Prop :=
 M.verts = set.univ
 
 end simple_graph

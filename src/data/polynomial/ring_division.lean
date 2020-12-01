@@ -8,6 +8,7 @@ import data.polynomial.basic
 import data.polynomial.div
 import data.polynomial.algebra_map
 import data.set.finite
+import algebra.gcd_monoid
 
 /-!
 # Theory of univariate polynomials
@@ -601,6 +602,36 @@ begin
 end
 
 end
+
+section normalization_monoid
+variables [integral_domain R] [normalization_monoid R]
+
+instance : normalization_monoid (polynomial R) :=
+{ norm_unit := λ p, ⟨C ↑(norm_unit (p.leading_coeff)), C ↑(norm_unit (p.leading_coeff))⁻¹,
+    by rw [← ring_hom.map_mul, units.mul_inv, C_1], by rw [← ring_hom.map_mul, units.inv_mul, C_1]⟩,
+  norm_unit_zero := units.ext (by simp),
+  norm_unit_mul := λ p q hp0 hq0, units.ext (begin
+      dsimp,
+      rw [ne.def, ← leading_coeff_eq_zero] at *,
+      rw [leading_coeff_mul, norm_unit_mul hp0 hq0, units.coe_mul, C_mul],
+    end),
+  norm_unit_coe_units := λ u,
+    units.ext begin
+      rw [← mul_one u⁻¹, units.coe_mul, units.eq_inv_mul_iff_mul_eq],
+      dsimp,
+      rcases polynomial.is_unit_iff.1 ⟨u, rfl⟩ with ⟨_, ⟨w, rfl⟩, h2⟩,
+      rw [← h2, leading_coeff_C, norm_unit_coe_units, ← C_mul, units.mul_inv, C_1],
+    end }
+
+@[simp]
+lemma coe_norm_unit {p : polynomial R} :
+  (norm_unit p : polynomial R) = C ↑(norm_unit p.leading_coeff) :=
+by simp [norm_unit]
+
+lemma leading_coeff_normalize (p : polynomial R) :
+  leading_coeff (normalize p) = normalize (leading_coeff p) := by simp
+
+end normalization_monoid
 
 end polynomial
 

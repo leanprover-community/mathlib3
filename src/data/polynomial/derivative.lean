@@ -194,23 +194,23 @@ by { rw [nat.cast_eq_zero], simp only [nat.succ_ne_zero, or_false] }
 
 @[simp] lemma degree_derivative_eq [char_zero R] (p : polynomial R) (hp : 0 < nat_degree p) :
   degree (derivative p) = (nat_degree p - 1 : ℕ) :=
-le_antisymm
-  (le_trans (degree_sum_le _ _) $ sup_le $ assume n hn,
-    have n ≤ nat_degree p, begin
-      rw [← with_bot.coe_le_coe, ← degree_eq_nat_degree],
-      { refine le_degree_of_ne_zero _, simpa only [mem_support_iff] using hn },
-      { assume h, simpa only [h, support_zero] using hn }
-    end,
-    le_trans (degree_C_mul_X_pow_le _ _) $ with_bot.coe_le_coe.2 $ nat.sub_le_sub_right this _)
-  begin
-    refine le_sup _,
+begin
+  have h0 : p ≠ 0,
+  { contrapose! hp,
+    simp [hp] },
+  apply le_antisymm,
+  { rw derivative_apply,
+    apply le_trans (degree_sum_le _ _) (sup_le (λ n hn, _)),
+    apply le_trans (degree_C_mul_X_pow_le _ _) (with_bot.coe_le_coe.2 (nat.sub_le_sub_right _ _)),
+    apply le_nat_degree_of_mem_supp _ hn },
+  { refine le_sup _,
     rw [mem_support_derivative, nat.sub_add_cancel, mem_support_iff],
     { show ¬ leading_coeff p = 0,
       rw [leading_coeff_eq_zero],
       assume h, rw [h, nat_degree_zero] at hp,
       exact lt_irrefl 0 (lt_of_le_of_lt (zero_le _) hp), },
-    exact hp
-  end
+    exact hp }
+end
 
 theorem nat_degree_eq_zero_of_derivative_eq_zero [char_zero R] {f : polynomial R} (h : f.derivative = 0) :
   f.nat_degree = 0 :=

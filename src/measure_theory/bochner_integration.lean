@@ -1010,7 +1010,7 @@ integral_neg f
 
 lemma integral_sub (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, f a - g a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
-by { rw [sub_eq_add_neg, ← integral_neg], exact integral_add hf hg.neg }
+by { rw [sub_eq_add_neg, sub_eq_add_neg, ← integral_neg], exact integral_add hf hg.neg }
 
 lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=

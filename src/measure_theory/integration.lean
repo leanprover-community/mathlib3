@@ -284,7 +284,8 @@ instance [has_neg β] : has_neg (α →ₛ β) := ⟨λf, f.map (has_neg.neg)⟩
 instance [add_group β] : add_group (α →ₛ β) :=
 function.injective.add_group (λ f, show α → β, from f) coe_injective coe_zero coe_add coe_neg
 
-@[simp, norm_cast] lemma coe_sub [add_group β] (f g : α →ₛ β) : ⇑(f - g) = f - g := rfl
+@[simp, norm_cast] lemma coe_sub [add_group β] (f g : α →ₛ β) : ⇑(f - g) = f - g :=
+by rw [sub_eq_add_neg, coe_add, coe_neg, sub_eq_add_neg]
 
 instance [add_comm_group β] : add_comm_group (α →ₛ β) :=
 function.injective.add_comm_group (λ f, show α → β, from f) coe_injective

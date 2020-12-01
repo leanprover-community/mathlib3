@@ -23,14 +23,23 @@ namespace dihedral
 
 variables {n : ℕ}
 
+/--
+Multiplication of the dihedral group
+-/
 def mul : dihedral n → dihedral n → dihedral n
 | (r i) (r j) := r (i + j)
 | (r i) (sr j) := sr (j - i)
 | (sr i) (r j) := sr (i + j)
 | (sr i) (sr j) := r (j - i)
 
+/--
+The identity `1` is the rotation by `0`
+-/
 def one : dihedral n := r 0
 
+/--
+The inverse of a an element of the dihedral group.
+-/
 def inv : dihedral n → dihedral n
 | (r i) := r (-i)
 | (sr i) := sr i

@@ -304,6 +304,14 @@ by { cases i, refl }
   fin.pred ⟨i + 1, add_lt_add_right h 1⟩ (ne_of_vne (ne_of_gt (mk_succ_pos i h))) = ⟨i, h⟩ :=
 by simp only [ext_iff, coe_pred, coe_mk, nat.add_sub_cancel]
 
+@[simp] lemma pred_le_pred_iff {n : ℕ} {a b : fin n.succ} {ha : a ≠ 0} {hb : b ≠ 0} :
+  a.pred ha ≤ b.pred hb ↔ a ≤ b :=
+by rw [←succ_le_succ_iff, succ_pred, succ_pred]
+
+@[simp] lemma pred_lt_pred_iff {n : ℕ} {a b : fin n.succ} {ha : a ≠ 0} {hb : b ≠ 0} :
+  a.pred ha < b.pred hb ↔ a < b :=
+by rw [←succ_lt_succ_iff, succ_pred, succ_pred]
+
 @[simp] lemma pred_inj :
   ∀ {a b : fin (n + 1)} {ha : a ≠ 0} {hb : b ≠ 0}, a.pred ha = b.pred hb ↔ a = b
 | ⟨0,   _⟩  b         ha hb := by contradiction

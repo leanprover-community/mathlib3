@@ -685,47 +685,51 @@ section lie_submodule
 
 variables (R : Type u) (L : Type v) (M : Type w)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
+variables [lie_ring_module L M] [lie_module R L M]
 
+set_option old_structure_cmd true
 /-- A Lie submodule of a Lie module is a submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie module. -/
-structure lie_submodule [lie_ring_module L M] [lie_module R L M] extends submodule R M :=
+structure lie_submodule extends submodule R M :=
 (lie_mem : ∀ {x : L} {m : M}, m ∈ carrier → ⁅x, m⁆ ∈ carrier)
 
+attribute [nolint doc_blame] lie_submodule.to_submodule
+
+namespace lie_submodule
+
 /-- The zero module is a Lie submodule of any Lie module. -/
-instance [lie_ring_module L M] [lie_module R L M] : has_zero (lie_submodule R L M) :=
+instance : has_zero (lie_submodule R L M) :=
 ⟨{ lie_mem := λ x m h, by { rw ((submodule.mem_bot R).1 h), apply lie_zero, },
    ..(0 : submodule R M)}⟩
 
-instance [lie_ring_module L M] [lie_module R L M] : inhabited (lie_submodule R L M) := ⟨0⟩
+instance : inhabited (lie_submodule R L M) := ⟨0⟩
 
-instance lie_submodule_coe_submodule [lie_ring_module L M] [lie_module R L M] :
-  has_coe (lie_submodule R L M) (submodule R M) :=
-⟨lie_submodule.to_submodule⟩
+instance coe_submodule : has_coe (lie_submodule R L M) (submodule R M) := ⟨to_submodule⟩
 
-instance lie_submodule_has_mem [lie_ring_module L M] [lie_module R L M] :
-  has_mem M (lie_submodule R L M) :=
-⟨λ x N, x ∈ (N : set M)⟩
+@[norm_cast]
+lemma coe_to_submodule (N : lie_submodule R L M) : ((N : submodule R M) : set M) = N := rfl
 
-instance lie_submodule_act [lie_ring_module L M] [lie_module R L M] (N : lie_submodule R L M) :
-  lie_ring_module L N :=
+instance has_mem : has_mem M (lie_submodule R L M) := ⟨λ x N, x ∈ (N : set M)⟩
+
+@[simp] lemma mem_carrier (N : lie_submodule R L M) {x : M} : x ∈ N.carrier ↔ x ∈ (N : set M) :=
+iff.rfl
+
+@[ext] lemma ext (N N' : lie_submodule R L M) (h : ∀ m, m ∈ N ↔ m ∈ N') : N = N' :=
+by { cases N, cases N', simp only [], ext m, exact h m, }
+
+instance (N : lie_submodule R L M) : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
   add_lie     := by { intros x y m, apply set_coe.ext, apply add_lie, },
   lie_add     := by { intros x m n, apply set_coe.ext, apply lie_add, },
   leibniz_lie := by { intros x y m, apply set_coe.ext, apply leibniz_lie, }, }
 
-instance lie_submodule_lie_module
-  [lie_ring_module L M] [lie_module R L M] (N : lie_submodule R L M) : lie_module R L N :=
+instance (N : lie_submodule R L M) : lie_module R L N :=
 { lie_smul := by { intros t x y, apply set_coe.ext, apply lie_smul, },
   smul_lie := by { intros t x y, apply set_coe.ext, apply smul_lie, }, }
 
-/-- A Lie module is irreducible if its only non-trivial Lie submodule is itself. -/
-class lie_module.is_irreducible [lie_ring_module L M] [lie_module R L M] : Prop :=
-(irreducible : ∀ (M' : lie_submodule R L M), (∃ (m : M'), m ≠ 0) → (∀ (m : M), m ∈ M'))
+end lie_submodule
 
-/-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
-action, and it is non-Abelian. -/
-class lie_algebra.is_simple : Prop :=
-(simple : lie_module.is_irreducible R L L ∧ ¬is_lie_abelian L)
+section lie_ideal
 
 variables (L)
 
@@ -742,14 +746,97 @@ def lie_ideal_subalgebra (I : lie_ideal R L) : lie_subalgebra R L :=
 { lie_mem := by { intros x y hx hy, apply lie_mem_right, exact hy, },
   ..I.to_submodule, }
 
+end lie_ideal
+
 end lie_submodule
 
 namespace lie_submodule
 
-variables {R : Type u} {L : Type v} {M : Type v}
+variables {R : Type u} {L : Type v} {M : Type w}
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
 variables [lie_ring_module L M] [lie_module R L M]
 variables (N : lie_submodule R L M) (I : lie_ideal R L)
+
+section lattice_structure
+
+open set
+
+lemma coe_injective : function.injective (coe : lie_submodule R L M → set M) :=
+λ N N' h, by { cases N, cases N', simp only, exact h, }
+
+instance : partial_order (lie_submodule R L M) :=
+{ le := λ N N', ∀ ⦃x⦄, x ∈ N → x ∈ N', -- Overriding `le` like this gives a better defeq.
+  ..partial_order.lift (coe : lie_submodule R L M → set M) coe_injective }
+
+lemma le_def (N N' : lie_submodule R L M) : N ≤ N' ↔ (N : set M) ⊆ N' := iff.rfl
+
+instance : has_bot (lie_submodule R L M) := ⟨0⟩
+
+@[simp] lemma bot_coe : ((⊥ : lie_submodule R L M) : set M) = {0} := rfl
+
+@[simp] lemma mem_bot (x : M) : x ∈ (⊥ : lie_submodule R L M) ↔ x = 0 := mem_singleton_iff
+
+instance : has_top (lie_submodule R L M) :=
+⟨{ lie_mem := λ x m h, mem_univ ⁅x, m⁆,
+   ..(⊤ : submodule R M) }⟩
+
+@[simp] lemma top_coe : ((⊤ : lie_submodule R L M) : set M) = univ := rfl
+
+lemma mem_top (x : M) : x ∈ (⊤ : lie_submodule R L M) := mem_univ x
+
+instance : has_inf (lie_submodule R L M) :=
+⟨λ N N', { lie_mem := λ x m h, mem_inter (N.lie_mem h.1) (N'.lie_mem h.2),
+            ..(N ⊓ N' : submodule R M) }⟩
+
+instance : has_Inf (lie_submodule R L M) :=
+⟨λ S, { lie_mem := λ x m h, by
+        { simp only [submodule.mem_carrier, mem_Inter, submodule.Inf_coe, mem_set_of_eq,
+            forall_apply_eq_imp_iff₂, exists_imp_distrib] at *,
+          intros N hN, apply N.lie_mem (h N hN), },
+        ..Inf {(s : submodule R M) | s ∈ S} }⟩
+
+@[simp] lemma Inf_coe_to_submodule (S : set (lie_submodule R L M)) :
+  (↑(Inf S) : submodule R M) = Inf {(s : submodule R M) | s ∈ S} := rfl
+
+@[simp] lemma Inf_coe (S : set (lie_submodule R L M)) : (↑(Inf S) : set M) = ⋂ s ∈ S, (s : set M) :=
+begin
+  rw [← lie_submodule.coe_to_submodule, Inf_coe_to_submodule, submodule.Inf_coe],
+  ext m,
+  simpa only [mem_Inter, mem_set_of_eq, forall_apply_eq_imp_iff₂, exists_imp_distrib],
+end
+
+lemma Inf_glb (S : set (lie_submodule R L M)) : is_glb S (Inf S) :=
+begin
+  have h : ∀ (N N' : lie_submodule R L M), (N : set M) ≤ N' ↔ N ≤ N', { intros, apply iff.rfl, },
+  simp only [is_glb.of_image h, Inf_coe, is_glb_binfi],
+end
+
+/-- The set of Lie submodules of a Lie module form a complete lattice.
+
+We provide explicit values for the fields `bot`, `top`, `inf` to get more convenient definitions
+than we would otherwise obtain from `complete_lattice_of_Inf`.  -/
+instance : complete_lattice (lie_submodule R L M) :=
+{ bot          := ⊥,
+  bot_le       := λ N _ h, by { rw mem_bot at h, rw h, exact N.zero_mem', },
+  top          := ⊤,
+  le_top       := λ _ _ _, trivial,
+  inf          := (⊓),
+  le_inf       := λ N₁ N₂ N₃ h₁₂ h₁₃ m hm, ⟨h₁₂ hm, h₁₃ hm⟩,
+  inf_le_left  := λ _ _ _, and.left,
+  inf_le_right := λ _ _ _, and.right,
+  ..complete_lattice_of_Inf _ Inf_glb }
+
+instance : add_comm_monoid (lie_submodule R L M) :=
+{ add       := (⊔),
+  add_assoc := λ _ _ _, sup_assoc,
+  zero      := ⊥,
+  zero_add  := λ _, bot_sup_eq,
+  add_zero  := λ _, sup_bot_eq,
+  add_comm  := λ _ _, sup_comm, }
+
+@[simp] lemma add_eq_sup (N N' : lie_submodule R L M) : N + N' = N ⊔ N' := rfl
+
+end lattice_structure
 
 /-- The quotient of a Lie module by a Lie submodule. It is a Lie module. -/
 abbreviation quotient := N.to_submodule.quotient
@@ -845,6 +932,23 @@ instance lie_quotient_lie_algebra : lie_algebra R (quotient I) :=
 end quotient
 
 end lie_submodule
+
+section lie_algebra_properties
+
+variables (R : Type u) (L : Type v) (M : Type w)
+variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
+variables [lie_ring_module L M] [lie_module R L M]
+
+/-- A Lie module is irreducible if it is zero or its only non-trivial Lie submodule is itself. -/
+class lie_module.is_irreducible : Prop :=
+(irreducible : ∀ (N : lie_submodule R L M), N ≠ ⊥ → N = ⊤)
+
+/-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
+action, and it is non-Abelian. -/
+class lie_algebra.is_simple extends lie_module.is_irreducible R L L : Prop :=
+(non_abelian: ¬is_lie_abelian L)
+
+end lie_algebra_properties
 
 namespace linear_equiv
 
@@ -947,132 +1051,3 @@ rfl
 rfl
 
 end matrices
-
-section skew_adjoint_endomorphisms
-open bilin_form
-
-variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
-variables (B : bilin_form R M)
-
-lemma bilin_form.is_skew_adjoint_bracket (f g : module.End R M)
-  (hf : f ∈ B.skew_adjoint_submodule) (hg : g ∈ B.skew_adjoint_submodule) :
-  ⁅f, g⁆ ∈ B.skew_adjoint_submodule :=
-begin
-  rw mem_skew_adjoint_submodule at *,
-  have hfg : is_adjoint_pair B B (f * g) (g * f), { rw ←neg_mul_neg g f, exact hf.mul hg, },
-  have hgf : is_adjoint_pair B B (g * f) (f * g), { rw ←neg_mul_neg f g, exact hg.mul hf, },
-  change bilin_form.is_adjoint_pair B B (f * g - g * f) (-(f * g - g * f)), rw neg_sub,
-  exact hfg.sub hgf,
-end
-
-/-- Given an `R`-module `M`, equipped with a bilinear form, the skew-adjoint endomorphisms form a
-Lie subalgebra of the Lie algebra of endomorphisms. -/
-def skew_adjoint_lie_subalgebra : lie_subalgebra R (module.End R M) :=
-{ lie_mem := B.is_skew_adjoint_bracket, ..B.skew_adjoint_submodule }
-
-variables {N : Type w} [add_comm_group N] [module R N] (e : N ≃ₗ[R] M)
-
-/-- An equivalence of modules with bilinear forms gives equivalence of Lie algebras of skew-adjoint
-endomorphisms. -/
-def skew_adjoint_lie_subalgebra_equiv :
-  skew_adjoint_lie_subalgebra (B.comp (↑e : N →ₗ[R] M) ↑e) ≃ₗ⁅R⁆ skew_adjoint_lie_subalgebra B :=
-begin
-  apply lie_algebra.equiv.of_subalgebras _ _ e.lie_conj,
-  ext f,
-  simp only [lie_subalgebra.mem_coe, submodule.mem_map_equiv, lie_subalgebra.mem_map_submodule,
-    coe_coe],
-  exact (bilin_form.is_pair_self_adjoint_equiv (-B) B e f).symm,
-end
-
-@[simp] lemma skew_adjoint_lie_subalgebra_equiv_apply
-  (f : skew_adjoint_lie_subalgebra (B.comp ↑e ↑e)) :
-  ↑(skew_adjoint_lie_subalgebra_equiv B e f) = e.lie_conj f :=
-by simp [skew_adjoint_lie_subalgebra_equiv]
-
-@[simp] lemma skew_adjoint_lie_subalgebra_equiv_symm_apply (f : skew_adjoint_lie_subalgebra B) :
-  ↑((skew_adjoint_lie_subalgebra_equiv B e).symm f) = e.symm.lie_conj f :=
-by simp [skew_adjoint_lie_subalgebra_equiv]
-
-end skew_adjoint_endomorphisms
-
-section skew_adjoint_matrices
-open_locale matrix
-
-variables {R : Type u} {n : Type w} [comm_ring R] [decidable_eq n] [fintype n]
-variables (J : matrix n n R)
-
-lemma matrix.lie_transpose (A B : matrix n n R) : ⁅A, B⁆ᵀ = ⁅Bᵀ, Aᵀ⁆ :=
-show (A * B - B * A)ᵀ = (Bᵀ * Aᵀ - Aᵀ * Bᵀ), by simp
-
-lemma matrix.is_skew_adjoint_bracket (A B : matrix n n R)
-  (hA : A ∈ skew_adjoint_matrices_submodule J) (hB : B ∈ skew_adjoint_matrices_submodule J) :
-  ⁅A, B⁆ ∈ skew_adjoint_matrices_submodule J :=
-begin
-  simp only [mem_skew_adjoint_matrices_submodule] at *,
-  change ⁅A, B⁆ᵀ ⬝ J = J ⬝ -⁅A, B⁆, change Aᵀ ⬝ J = J ⬝ -A at hA, change Bᵀ ⬝ J = J ⬝ -B at hB,
-  simp only [←matrix.mul_eq_mul] at *,
-  rw [matrix.lie_transpose, lie_ring.of_associative_ring_bracket,
-    lie_ring.of_associative_ring_bracket, sub_mul, mul_assoc, mul_assoc, hA, hB, ←mul_assoc,
-    ←mul_assoc, hA, hB],
-  noncomm_ring,
-end
-
-/-- The Lie subalgebra of skew-adjoint square matrices corresponding to a square matrix `J`. -/
-def skew_adjoint_matrices_lie_subalgebra : lie_subalgebra R (matrix n n R) :=
-{ lie_mem := J.is_skew_adjoint_bracket, ..(skew_adjoint_matrices_submodule J) }
-
-@[simp] lemma mem_skew_adjoint_matrices_lie_subalgebra (A : matrix n n R) :
-  A ∈ skew_adjoint_matrices_lie_subalgebra J ↔ A ∈ skew_adjoint_matrices_submodule J :=
-iff.rfl
-
-/-- An invertible matrix `P` gives a Lie algebra equivalence between those endomorphisms that are
-skew-adjoint with respect to a square matrix `J` and those with respect to `PᵀJP`. -/
-noncomputable def skew_adjoint_matrices_lie_subalgebra_equiv (P : matrix n n R) (h : is_unit P) :
-  skew_adjoint_matrices_lie_subalgebra J ≃ₗ⁅R⁆ skew_adjoint_matrices_lie_subalgebra (Pᵀ ⬝ J ⬝ P) :=
-lie_algebra.equiv.of_subalgebras _ _ (P.lie_conj h).symm
-begin
-  ext A,
-  suffices : P.lie_conj h A ∈ skew_adjoint_matrices_submodule J ↔
-    A ∈ skew_adjoint_matrices_submodule (Pᵀ ⬝ J ⬝ P),
-  { simp only [lie_subalgebra.mem_coe, submodule.mem_map_equiv, lie_subalgebra.mem_map_submodule,
-      coe_coe], exact this, },
-  simp [matrix.is_skew_adjoint, J.is_adjoint_pair_equiv _ _ P h],
-end
-
-lemma skew_adjoint_matrices_lie_subalgebra_equiv_apply
-  (P : matrix n n R) (h : is_unit P) (A : skew_adjoint_matrices_lie_subalgebra J) :
-  ↑(skew_adjoint_matrices_lie_subalgebra_equiv J P h A) = P⁻¹ ⬝ ↑A ⬝ P :=
-by simp [skew_adjoint_matrices_lie_subalgebra_equiv]
-
-/-- An equivalence of matrix algebras commuting with the transpose endomorphisms restricts to an
-equivalence of Lie algebras of skew-adjoint matrices. -/
-def skew_adjoint_matrices_lie_subalgebra_equiv_transpose {m : Type w} [decidable_eq m] [fintype m]
-  (e : matrix n n R ≃ₐ[R] matrix m m R) (h : ∀ A, (e A)ᵀ = e (Aᵀ)) :
-  skew_adjoint_matrices_lie_subalgebra J ≃ₗ⁅R⁆ skew_adjoint_matrices_lie_subalgebra (e J) :=
-lie_algebra.equiv.of_subalgebras _ _ e.to_lie_equiv
-begin
-  ext A,
-  suffices : J.is_skew_adjoint (e.symm A) ↔ (e J).is_skew_adjoint A, by simpa [this],
-  simp [matrix.is_skew_adjoint, matrix.is_adjoint_pair, ← matrix.mul_eq_mul,
-    ← h, ← function.injective.eq_iff e.injective],
-end
-
-@[simp] lemma skew_adjoint_matrices_lie_subalgebra_equiv_transpose_apply
-  {m : Type w} [decidable_eq m] [fintype m]
-  (e : matrix n n R ≃ₐ[R] matrix m m R) (h : ∀ A, (e A)ᵀ = e (Aᵀ))
-  (A : skew_adjoint_matrices_lie_subalgebra J) :
-  (skew_adjoint_matrices_lie_subalgebra_equiv_transpose J e h A : matrix m m R) = e A :=
-rfl
-
-lemma mem_skew_adjoint_matrices_lie_subalgebra_unit_smul (u : units R) (J A : matrix n n R) :
-  A ∈ skew_adjoint_matrices_lie_subalgebra ((u : R) • J) ↔
-  A ∈ skew_adjoint_matrices_lie_subalgebra J :=
-begin
-  change A ∈ skew_adjoint_matrices_submodule ((u : R) • J) ↔  A ∈ skew_adjoint_matrices_submodule J,
-  simp only [mem_skew_adjoint_matrices_submodule, matrix.is_skew_adjoint, matrix.is_adjoint_pair],
-  split; intros h,
-  { simpa using congr_arg (λ B, (↑u⁻¹ : R) • B) h, },
-  { simp [h], },
-end
-
-end skew_adjoint_matrices

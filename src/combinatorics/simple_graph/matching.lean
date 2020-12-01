@@ -45,7 +45,7 @@ structure is_matching (M : set (sym2 V)) : Prop :=
 def matching : Type u := {M : set (sym2 V) // G.is_matching M}
 
 instance : inhabited (matching G) :=
-  ⟨⟨∅, set.empty_subset _, λ _ _ hx, false.elim (set.not_mem_empty _ hx)⟩⟩
+⟨⟨∅, set.empty_subset _, λ _ _ hx, false.elim (set.not_mem_empty _ hx)⟩⟩
 
 variables {G}
 

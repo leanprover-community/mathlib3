@@ -36,8 +36,9 @@ variables [add_comm_monoid α] [topological_space α]
 
 /-- Infinite sum on a topological monoid
 The `at_top` filter on `finset β` is the limit of all finite sets towards the entire type. So we sum
-up bigger and bigger sets. This sum operation is still invariant under reordering, and a absolute
-sum operator.
+up bigger and bigger sets. This sum operation is still invariant under reordering, and an absolute
+sum operator. In particular, the function `ℕ → ℝ` sending n to (-1)^n/(n+1) does not have a
+sum for this definition, but a series which is absolutely convergent will have the correct sum.
 
 This is based on Mario Carneiro's infinite sum in Metamath.
 

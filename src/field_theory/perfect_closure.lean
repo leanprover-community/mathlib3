@@ -227,6 +227,7 @@ instance : comm_ring (perfect_closure K p) :=
     by simp only [ring_hom.iterate_map_zero, iterate_zero_apply, zero_add]),
   add_zero := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
     by simp only [ring_hom.iterate_map_zero, iterate_zero_apply, add_zero]),
+  sub_eq_add_neg := λ a b, rfl,
   add_left_neg := λ e, quot.induction_on e (λ ⟨n, x⟩,
     by simp only [quot_mk_eq_mk, neg_mk, mk_add_mk,
       ring_hom.iterate_map_neg, add_left_neg, mk_zero]),

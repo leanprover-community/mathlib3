@@ -273,7 +273,7 @@ by simp only [sub_eq_add_neg, rpow_add hx, rpow_neg (le_of_lt hx), div_eq_mul_in
 
 lemma rpow_sub' {x : ℝ} (hx : 0 ≤ x) {y z : ℝ} (h : y - z ≠ 0) :
   x ^ (y - z) = x ^ y / x ^ z :=
-by simp only [sub_eq_add_neg, rpow_add' hx h, rpow_neg hx, div_eq_mul_inv]
+by { simp only [sub_eq_add_neg] at h ⊢, simp only [rpow_add' hx h, rpow_neg hx, div_eq_mul_inv] }
 
 @[simp] lemma rpow_nat_cast (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
 by simp only [rpow_def, (complex.of_real_pow _ _).symm, complex.cpow_nat_cast,

@@ -79,6 +79,14 @@ lemma is_open_map_mul_right (a : G) : is_open_map (λ x, x * a) :=
 lemma is_closed_map_mul_right (a : G) : is_closed_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_closed_map
 
+@[to_additive]
+lemma is_open_map_div_right (a : G) : is_open_map (λ x, x / a) :=
+by simpa only [div_eq_mul_inv] using is_open_map_mul_right (a⁻¹)
+
+@[to_additive]
+lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
+by simpa only [div_eq_mul_inv] using is_closed_map_mul_right (a⁻¹)
+
 end continuous_mul_group
 
 section topological_group

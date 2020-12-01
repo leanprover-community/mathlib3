@@ -1007,6 +1007,11 @@ meta def eval_field : expr → tactic (expr × expr)
   if α = `(nat) then prove_sub_nat c a b
   else if inst = `(int.has_sub) then prove_sub_int c a b
   else prod.snd <$> prove_sub c a b
+-- TODO: why do we get field.inv here?
+| `(field.inv %%e) := do
+  n ← e.to_rat,
+  c ← infer_type e >>= mk_instance_cache,
+  prod.snd <$> prove_inv c e n
 | `(has_inv.inv %%e) := do
   n ← e.to_rat,
   c ← infer_type e >>= mk_instance_cache,

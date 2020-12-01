@@ -35,10 +35,8 @@ This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
 protected def division_ring [division_ring β] (U : is_ultrafilter φ) : division_ring β* :=
 { mul_inv_cancel := λ f, induction_on f $ λ f hf, coe_eq.2 $ (U.em (λ y, f y = 0)).elim
     (λ H, (hf $ coe_eq.2 H).elim) (λ H, H.mono $ λ x, mul_inv_cancel),
-  inv_mul_cancel := λ f, induction_on f $ λ f hf, coe_eq.2 $ (U.em (λ y, f y = 0)).elim
-    (λ H, (hf $ coe_eq.2 H).elim) (λ H, H.mono $ λ x, inv_mul_cancel),
   inv_zero := coe_eq.2 $ by simp only [(∘), inv_zero],
-  .. germ.ring, .. germ.has_inv, .. @germ.nontrivial _ _ _ _ U.1 }
+  .. germ.ring, .. germ.div_inv_monoid, .. @germ.nontrivial _ _ _ _ U.1 }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a field.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
@@ -55,7 +53,8 @@ protected noncomputable def linear_order [linear_order β] (U : is_ultrafilter �
   .. germ.partial_order }
 
 @[simp, norm_cast] lemma const_div [division_ring β] (U : is_ultrafilter φ) (x y : β) :
-  (↑(x / y) : β*) = @has_div.div _ (@division_ring_has_div _ (germ.division_ring U)) ↑x ↑y :=
+  (↑(x / y) : β*) = @has_div.div _ (@div_inv_monoid.to_has_div _
+    (@division_ring.to_div_inv_monoid _ (germ.division_ring U))) ↑x ↑y :=
 rfl
 
 lemma coe_lt [preorder β] (U : is_ultrafilter φ) {f g : α → β} :

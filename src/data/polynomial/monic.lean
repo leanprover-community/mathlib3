@@ -238,6 +238,16 @@ begin
   exact le_trans degree_C_le nat.with_bot.coe_nonneg,
 end
 
+lemma monic_sub_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :
+  monic (p - q) :=
+by { rw sub_eq_add_neg, apply monic_add_of_left hp, rwa degree_neg }
+
+lemma monic_sub_of_right {p q : polynomial R}
+  (hq : q.leading_coeff = -1) (hpq : degree p < degree q) : monic (p - q) :=
+have (-q).coeff (-q).nat_degree = 1 :=
+by rw [nat_degree_neg, coeff_neg, show q.coeff q.nat_degree = -1, from hq, neg_neg],
+by { rw sub_eq_add_neg, apply monic_add_of_right this, rwa degree_neg }
+
 section injective
 open function
 variables [semiring S] {f : R →+* S} (hf : injective f)

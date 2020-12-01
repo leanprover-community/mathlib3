@@ -574,17 +574,17 @@ theorem is_o.add_is_O_with (h₁ : is_o f₁ g l) (h₂ : is_O_with c₁ f₂ g 
 
 theorem is_O_with.sub (h₁ : is_O_with c₁ f₁ g l) (h₂ : is_O_with c₂ f₂ g l) :
   is_O_with (c₁ + c₂) (λ x, f₁ x - f₂ x) g l :=
-h₁.add h₂.neg_left
+by simpa only [sub_eq_add_neg] using h₁.add h₂.neg_left
 
 theorem is_O_with.sub_is_o (h₁ : is_O_with c₁ f₁ g l) (h₂ : is_o f₂ g l) (hc : c₁ < c₂) :
   is_O_with c₂ (λ x, f₁ x - f₂ x) g l :=
-h₁.add_is_o h₂.neg_left hc
+by simpa only [sub_eq_add_neg] using h₁.add_is_o h₂.neg_left hc
 
 theorem is_O.sub (h₁ : is_O f₁ g l) (h₂ : is_O f₂ g l) : is_O (λ x, f₁ x - f₂ x) g l :=
-h₁.add h₂.neg_left
+by simpa only [sub_eq_add_neg] using h₁.add h₂.neg_left
 
 theorem is_o.sub (h₁ : is_o f₁ g l) (h₂ : is_o f₂ g l) : is_o (λ x, f₁ x - f₂ x) g l :=
-h₁.add h₂.neg_left
+by simpa only [sub_eq_add_neg] using h₁.add h₂.neg_left
 
 end add_sub
 

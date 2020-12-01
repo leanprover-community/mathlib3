@@ -262,7 +262,7 @@ is_integral_of_mem_closure hx hx (is_add_subgroup.neg_mem
 
 theorem is_integral_sub {x y : A}
   (hx : is_integral R x) (hy : is_integral R y) : is_integral R (x - y) :=
-is_integral_add hx (is_integral_neg hy)
+by simpa only [sub_eq_add_neg] using is_integral_add hx (is_integral_neg hy)
 
 theorem is_integral_mul {x y : A}
   (hx : is_integral R x) (hy : is_integral R y) :

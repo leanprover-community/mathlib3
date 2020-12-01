@@ -1684,12 +1684,12 @@ section sub
 theorem has_strict_fderiv_at.sub
   (hf : has_strict_fderiv_at f f' x) (hg : has_strict_fderiv_at g g' x) :
   has_strict_fderiv_at (λ x, f x - g x) (f' - g') x :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 theorem has_fderiv_at_filter.sub
   (hf : has_fderiv_at_filter f f' x L) (hg : has_fderiv_at_filter g g' x L) :
   has_fderiv_at_filter (λ x, f x - g x) (f' - g') x L :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 theorem has_fderiv_within_at.sub
   (hf : has_fderiv_within_at f f' s x) (hg : has_fderiv_within_at g g' s x) :
@@ -1734,12 +1734,12 @@ lemma fderiv_sub
 theorem has_strict_fderiv_at.sub_const
   (hf : has_strict_fderiv_at f f' x) (c : F) :
   has_strict_fderiv_at (λ x, f x - c) f' x :=
-hf.add_const (-c)
+by simpa only [sub_eq_add_neg] using hf.add_const (-c)
 
 theorem has_fderiv_at_filter.sub_const
   (hf : has_fderiv_at_filter f f' x L) (c : F) :
   has_fderiv_at_filter (λ x, f x - c) f' x L :=
-hf.add_const (-c)
+by simpa only [sub_eq_add_neg] using hf.add_const (-c)
 
 theorem has_fderiv_within_at.sub_const
   (hf : has_fderiv_within_at f f' s x) (c : F) :
@@ -1784,12 +1784,12 @@ lemma fderiv_sub_const
 theorem has_strict_fderiv_at.const_sub
   (hf : has_strict_fderiv_at f f' x) (c : F) :
   has_strict_fderiv_at (λ x, c - f x) (-f') x :=
-hf.neg.const_add c
+by simpa only [sub_eq_add_neg] using hf.neg.const_add c
 
 theorem has_fderiv_at_filter.const_sub
   (hf : has_fderiv_at_filter f f' x L) (c : F) :
   has_fderiv_at_filter (λ x, c - f x) (-f') x L :=
-hf.neg.const_add c
+by simpa only [sub_eq_add_neg] using hf.neg.const_add c
 
 theorem has_fderiv_within_at.const_sub
   (hf : has_fderiv_within_at f f' s x) (c : F) :

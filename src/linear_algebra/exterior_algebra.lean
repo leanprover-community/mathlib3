@@ -171,6 +171,10 @@ lemma ι_add_mul_swap (x y : M) : ι R x * ι R y + ι R y * ι R x = 0 :=
 calc _ = ι R (x + y) * ι R (x + y) : by simp [mul_add, add_mul]
    ... = _ : ι_square_zero _
 
+@[to_additive]
+lemma eq_one_iff_eq_one_of_mul_eq_one {α : Type*} [monoid α] {a b : α} (h : a * b = 1) : a = 1 ↔ b = 1 :=
+by split; { rintro rfl, simpa using h }
+
 lemma ι_mul_prod_list {n : ℕ} (f : fin n → M) (i : fin n) :
   (ι R $ f i) * (list.of_fn $ λ i, ι R $ f i).prod = 0 :=
 begin
@@ -182,8 +186,7 @@ begin
     { replace hn := congr_arg ((*) $ ι R $ f 0) (hn (λ i, f $ fin.succ i) (i.pred h)),
       simp only at hn,
       rw [fin.succ_pred, ←mul_assoc, mul_zero] at hn,
-      rw ← zero_add (_ * _),
-      conv_lhs {rw ← hn},
+      refine (eq_zero_iff_eq_zero_of_add_eq_zero _).mp hn,
       rw [← add_mul, ι_add_mul_swap, zero_mul], } }
 end
 

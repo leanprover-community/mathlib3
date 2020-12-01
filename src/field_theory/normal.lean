@@ -52,3 +52,20 @@ begin
   rw [is_root.def, eval_map, ← aeval_def, alg_hom.map_prod],
   exact finset.prod_eq_zero x.2 (minimal_polynomial.aeval _)
 end
+
+section normal_tower
+
+variables (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_tower F K E]
+
+lemma normal.tower_top_of_normal (h : normal F E) : normal K E :=
+begin
+  intros x,
+  cases h x with hx hhx,
+  rw is_scalar_tower.algebra_map_eq F K E at hhx,
+  exact ⟨is_integral_of_is_scalar_tower x hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
+    (polynomial.map_ne_zero (minimal_polynomial.ne_zero hx))
+    ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx)
+    (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩,
+end
+
+end normal_tower

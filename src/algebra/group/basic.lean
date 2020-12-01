@@ -8,6 +8,52 @@ import logic.function.basic
 
 universe u
 
+section associative
+variables {α : Type u} (f : α → α → α) [is_associative α f] (x y : α)
+
+/--
+Composing two associative operations of `f : α → α → α` on the left
+is equal to an associative operation on the left.
+-/
+lemma comp_assoc_left : (f x) ∘ (f y) = (f (f x y)) :=
+by { ext z, rw [function.comp_apply, @is_associative.assoc _ f] }
+
+/--
+Composing two associative operations of `f : α → α → α` on the right
+is equal to an associative operation on the right.
+-/
+lemma comp_assoc_right : (λ z, f z x) ∘ (λ z, f z y) = (λ z, f z (f y x)) :=
+by { ext z, rw [function.comp_apply, @is_associative.assoc _ f] }
+
+end associative
+
+section semigroup
+variables {α : Type*}
+
+/--
+Composing two multiplications on the left by `y` then `x`
+is equal to a multiplication on the left by `x * y`.
+-/
+@[simp, to_additive
+"Composing two additions on the left by `y` then `x`
+is equal to a addition on the left by `x + y`."]
+lemma comp_mul_left [semigroup α] (x y : α) :
+  ((*) x) ∘ ((*) y) = ((*) (x * y)) :=
+comp_assoc_left _ _ _
+
+/--
+Composing two multiplications on the right by `y` and `x`
+is equal to a multiplication on the right by `y * x`.
+-/
+@[simp, to_additive
+"Composing two additions on the right by `y` and `x`
+is equal to a addition on the right by `y + x`."]
+lemma comp_mul_right [semigroup α] (x y : α) :
+  (* x) ∘ (* y) = (* (y * x)) :=
+comp_assoc_right _ _ _
+
+end semigroup
+
 section monoid
 variables {M : Type u} [monoid M]
 

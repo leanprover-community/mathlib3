@@ -548,7 +548,7 @@ begin
 end
 
 /--
-If a family of arrows `R` on `X` has a subsieve `S` such that:
+If a presieve `R` on `X` has a subsieve `S` such that:
 
 * `P` is a sheaf for `S`.
 * For every `f` in `R`, `P` is separated for the pullback of `S` along `f`,
@@ -601,7 +601,7 @@ If the given topology is given by a pretopology, `is_sheaf_for_pretopology` show
 check the sheaf condition at presieves in the pretopology.
 -/
 def is_sheaf (P : Cᵒᵖ ⥤ Type v) : Prop :=
-∀ {X} (S : sieve X), S ∈ J X → is_sheaf_for P S
+∀ ⦃X⦄ (S : sieve X), S ∈ J X → is_sheaf_for P S
 
 lemma is_sheaf_for_coarser_topology (P : Cᵒᵖ ⥤ Type v) {J₁ J₂ : grothendieck_topology C} :
   J₁ ≤ J₂ → is_sheaf J₂ P → is_sheaf J₁ P :=

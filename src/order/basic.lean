@@ -192,6 +192,20 @@ end order_dual
 
 namespace strict_mono_incr_on
 
+section dual
+
+variables [preorder α] [preorder β] {f : α → β} {s : set α}
+
+protected lemma dual (H : strict_mono_incr_on f s) :
+  @strict_mono_incr_on (order_dual α) (order_dual β) _ _ f s :=
+λ x hx y hy, H hy hx
+
+protected lemma dual_right (H : strict_mono_incr_on f s) :
+  @strict_mono_decr_on α (order_dual β) _ _ f s :=
+H
+
+end dual
+
 variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α}
 
 lemma le_iff_le (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
@@ -214,20 +228,33 @@ end strict_mono_incr_on
 
 namespace strict_mono_decr_on
 
+section dual
+
+variables [preorder α] [preorder β] {f : α → β} {s : set α}
+
+protected lemma dual (H : strict_mono_decr_on f s) :
+  @strict_mono_decr_on (order_dual α) (order_dual β) _ _ f s :=
+λ x hx y hy, H hy hx
+
+protected lemma dual_right (H : strict_mono_decr_on f s) :
+  @strict_mono_incr_on α (order_dual β) _ _ f s :=
+H
+
+end dual
+
 variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α}
 
 lemma le_iff_le (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x ≤ f y ↔ y ≤ x :=
-@strict_mono_incr_on.le_iff_le α (order_dual β) _ _ _ _ _ _ H hy hx
+H.dual_right.le_iff_le hy hx
 
 lemma lt_iff_lt (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x < f y ↔ y < x :=
-@strict_mono_incr_on.lt_iff_lt α (order_dual β) _ _ _ _ _ _ H hy hx
+H.dual_right.lt_iff_lt hy hx
 
 protected theorem compares (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) {o : ordering} :
   ordering.compares o (f x) (f y) ↔ ordering.compares o y x :=
-order_dual.dual_compares.trans $
-  @strict_mono_incr_on.compares α (order_dual β) _ _ _ _ _ _ H hy hx _
+order_dual.dual_compares.trans $ H.dual_right.compares hy hx
 
 end strict_mono_decr_on
 
@@ -249,7 +276,8 @@ protected theorem iterate [has_lt α] {f : α → α} (hf : strict_mono f) (n : 
 nat.rec_on n strict_mono_id (λ n ihn, ihn.comp hf)
 
 lemma id_le {φ : ℕ → ℕ} (h : strict_mono φ) : ∀ n, n ≤ φ n :=
-λ n, nat.rec_on n (nat.zero_le _) (λ n hn, nat.succ_le_of_lt (lt_of_le_of_lt hn $ h $ nat.lt_succ_self n))
+λ n, nat.rec_on n (nat.zero_le _)
+  (λ n hn, nat.succ_le_of_lt (lt_of_le_of_lt hn $ h $ nat.lt_succ_self n))
 
 section
 variables [linear_order α] [preorder β] {f : α → β}
@@ -288,7 +316,8 @@ end strict_mono
 section
 open function
 
-lemma injective_of_lt_imp_ne [linear_order α] {f : α → β} (h : ∀ x y, x < y → f x ≠ f y) : injective f :=
+lemma injective_of_lt_imp_ne [linear_order α] {f : α → β} (h : ∀ x y, x < y → f x ≠ f y) :
+  injective f :=
 begin
   intros x y k,
   contrapose k,

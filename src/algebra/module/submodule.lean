@@ -87,6 +87,8 @@ variables {p q : submodule R M}
 variables {r : R} {x y : M}
 
 variables (p)
+@[simp] lemma mem_carrier : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
+
 @[simp] theorem mem_coe : x ∈ (p : set M) ↔ x ∈ p := iff.rfl
 
 @[simp] lemma zero_mem : (0 : M) ∈ p := p.zero_mem'

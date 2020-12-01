@@ -5,7 +5,7 @@ Author:  Aaron Anderson, Jalex Stark.
 -/
 import linear_algebra.matrix
 import data.rel
-import combinatorics.simple_graph
+import combinatorics.simple_graph.basic
 
 /-!
 # Adjacency Matrices

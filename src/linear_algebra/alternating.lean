@@ -1,12 +1,11 @@
 /-
 Copyright (c) 2020 Zhangir Azerbayev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Zhangir Azerbayev.
+Author: Eric Wieser, Zhangir Azerbayev
 -/
 
 import linear_algebra.multilinear
 import group_theory.perm.sign
-import data.equiv.fin
 
 /-!
 # Alternating Maps
@@ -16,46 +15,16 @@ arguments of the same type.
 
 ## Main definitions
 * `alternating_map R M N ι` is the space of `R`-linear alternating maps from `ι → M` to `N`.
-* `f.map_eq_args` expresses that `f` is zero when two inputs are equal.
+* `f.map_eq_zero_of_eq` expresses that `f` is zero when two inputs are equal.
 * `f.map_swap` expresses that `f` is negated when two inputs are swapped.
 * `f.map_perm` expresses how `f` varies by a sign change under a permutation of its inputs.
-* A `add_comm_monoid` or `add_comm_group` structure over `alternating_map`s that matches
-  the definitions over `multilinear_map`s.
+* An `add_comm_monoid`, `add_comm_group`, and `semimodule` structure over `alternating_map`s that
+  matches the definitions over `multilinear_map`s.
 
 ## Implementation notes
-`alternating_map` is defined in terms of `map_eq_args`, as this is easier to work with than
+`alternating_map` is defined in terms of `map_eq_zero_of_eq`, as this is easier to work with than
 using `map_swap` as a definition, and does not require `has_neg N`.
 -/
-
-section to_move
-
--- gh-5091
-lemma comp_swap_eq_update {α β : Type*} [decidable_eq α] (i j : α) (f : α → β) :
-  f ∘ equiv.swap i j = function.update (function.update f j (f i)) i (f j) :=
-funext $ λ x,
-  if hi : x = i then
-    by rw [function.comp_app, hi, equiv.swap_apply_left, function.update_same]
-  else if hj : x = j then
-    by rw [function.comp_app, hj, equiv.swap_apply_right, function.update_comm (hj ▸ hi : j ≠ i),
-      function.update_same]
-  else
-    by rw [function.comp_app, equiv.swap_apply_of_ne_of_ne hi hj, function.update_noteq hi,
-      function.update_noteq hj]
-
-
--- gh-5100
-@[simp] lemma coe_one {α : Type*} : ⇑(1 : equiv.perm α) = id := rfl
-
--- gh-5101
-@[simp] lemma units_mul_self (u : units ℤ) : u * u = 1 :=
-(int.units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
-
--- gh-5101
--- `units.coe_mul` is a "wrong turn" for the simplifier, this undoes it and simplifies further
-@[simp] lemma units_coe_mul_self (u : units ℤ) : (u * u : ℤ) = 1 :=
-by rw [←units.coe_mul, units_mul_self, units.coe_one]
-
-end to_move
 
 -- semiring / add_comm_monoid
 variables {R : Type*} [semiring R]
@@ -80,8 +49,11 @@ variables (R M N ι)
 An alternating map is a multilinear map that vanishes when two of its arguments are equal.
 -/
 structure alternating_map extends multilinear_map R (λ i : ι, M) N :=
-(map_eq_args' : ∀ (v : ι → M) (i j : ι) (h : v i = v j) (hij : i ≠ j), to_fun v = 0)
+(map_eq_zero_of_eq' : ∀ (v : ι → M) (i j : ι) (h : v i = v j) (hij : i ≠ j), to_fun v = 0)
 end
+
+/-- The multilinear map associated to an alternating map -/
+add_decl_doc alternating_map.to_multilinear_map
 
 namespace alternating_map
 
@@ -90,7 +62,7 @@ variables (g' : alternating_map R' M' N' ι)
 variables (v : ι → M) (v' : ι → M')
 open function
 
-/-! Basic coercion simp lemmas, largely copied from ring_hom -/
+/-! Basic coercion simp lemmas, largely copied from `ring_hom` and `multilinear_map` -/
 section coercions
 
 instance : has_coe_to_fun (alternating_map R M N ι) := ⟨_, λ x, x.to_fun⟩
@@ -101,6 +73,21 @@ initialize_simps_projections alternating_map (to_fun → apply)
 
 @[simp] lemma coe_mk (f : (ι → M) → N) (h₁ h₂ h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ :
   alternating_map R M N ι) = f := rfl
+
+theorem congr_fun {f g : alternating_map R M N ι} (h : f = g) (x : ι → M) : f x = g x :=
+congr_arg (λ h : alternating_map R M N ι, h x) h
+
+theorem congr_arg (f : alternating_map R M N ι) {x y : ι → M} (h : x = y) : f x = f y :=
+congr_arg (λ x : ι → M, f x) h
+
+theorem coe_inj ⦃f g : alternating_map R M N ι⦄ (h : ⇑f = g) : f = g :=
+by { cases f, cases g, cases h, refl }
+
+@[ext] theorem ext {f f' : alternating_map R M N ι} (H : ∀ x, f x = f' x) : f = f' :=
+coe_inj (funext H)
+
+theorem ext_iff {f g : alternating_map R M N ι} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 instance : has_coe (alternating_map R M N ι) (multilinear_map R (λ i : ι, M) N) :=
 ⟨λ x, x.to_multilinear_map⟩
@@ -113,11 +100,13 @@ instance : has_coe (alternating_map R M N ι) (multilinear_map R (λ i : ι, M) 
   ((⟨f, h₁, h₂, h₃⟩ : alternating_map R M N ι) :  multilinear_map R (λ i : ι, M) N) = ⟨f, h₁, h₂⟩ :=
 rfl
 
-@[ext] theorem ext {f f' : alternating_map R M N ι} (H : ∀ x, f x = f' x) : f = f' :=
-by cases f; cases f'; congr'; exact funext H
-
 end coercions
 
+/-!
+### Simp-normal forms of the structure fields
+
+These are expressed in terms of `⇑f` instead of `f.to_fun`.
+-/
 @[simp] lemma map_add (i : ι) (x y : M) :
   f (update v i (x + y)) = f (update v i x) + f (update v i y) :=
 f.to_multilinear_map.map_add' v i x y
@@ -130,22 +119,27 @@ g'.to_multilinear_map.map_sub v' i x y
   f (update v i (r • x)) = r • f (update v i x) :=
 f.to_multilinear_map.map_smul' v i r x
 
-@[simp] lemma map_eq_args (v : ι → M) {i j : ι} (h : v i = v j) (hij : i ≠ j) :
+@[simp] lemma map_eq_zero_of_eq (v : ι → M) {i j : ι} (h : v i = v j) (hij : i ≠ j) :
   f v = 0 :=
-f.map_eq_args' v i j h hij
+f.map_eq_zero_of_eq' v i j h hij
 
-/-! `alternating_map` carries the same `add_comm_monoid` / `add_comm_group` structure as
-`multilinear_map` -/
+/-!
+### Algebraic structure inherited from `multilinear_map`
+
+`alternating_map` carries the same `add_comm_monoid`, `add_comm_group`, and `semimodule` structure
+as `multilinear_map`
+-/
 
 instance : has_add (alternating_map R M N ι) :=
 ⟨λ a b,
-  { map_eq_args' := λ v i j h hij, by simp [a.map_eq_args v h hij, b.map_eq_args v h hij],
+  { map_eq_zero_of_eq' :=
+      λ v i j h hij, by simp [a.map_eq_zero_of_eq v h hij, b.map_eq_zero_of_eq v h hij],
     ..(a + b : multilinear_map R (λ i : ι, M) N)}⟩
 
 @[simp] lemma add_apply : (f + f') v = f v + f' v := rfl
 
 instance : has_zero (alternating_map R M N ι) :=
-⟨{map_eq_args' := λ v i j h hij, by simp,
+⟨{map_eq_zero_of_eq' := λ v i j h hij, by simp,
   ..(0 : multilinear_map R (λ i : ι, M) N)}⟩
 
 @[simp] lemma zero_apply : (0 : alternating_map R M N ι) v = 0 := rfl
@@ -157,9 +151,9 @@ by refine {zero := 0, add := (+), ..};
    intros; ext; simp [add_comm, add_left_comm]
 
 instance : has_neg (alternating_map R' M' N' ι) :=
-⟨λ f, {
-  map_eq_args' := λ v i j h hij, by simp [f.map_eq_args v h hij],
-  ..(-(f : multilinear_map R' (λ i : ι, M') N')) }⟩
+⟨λ f,
+  { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+    ..(-(f : multilinear_map R' (λ i : ι, M') N')) }⟩
 
 @[simp] lemma neg_apply (m : ι → M') : (-g') m = - (g' m) := rfl
 
@@ -167,28 +161,56 @@ instance : add_comm_group (alternating_map R' M' N' ι) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..alternating_map.add_comm_monoid, ..};
    intros; ext; simp [add_comm, add_left_comm]
 
-/-! Various properties of reordered and repeated inputs -/
+section semimodule
+
+variables {S : Type*} [comm_semiring S] [algebra S R] [semimodule S N]
+  [is_scalar_tower S R N]
+
+instance : has_scalar S (alternating_map R M N ι) :=
+⟨λ c f,
+  { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+    ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
+
+@[simp] lemma smul_apply (f : alternating_map R M N ι) (c : S) (m : ι → M) :
+  (c • f) m = c • f m := rfl
+
+/-- The space of multilinear maps over an algebra over `S` is a module over `S`, for the pointwise
+addition and scalar multiplication. -/
+instance : semimodule S (alternating_map R M N ι) :=
+{ one_smul := λ f, ext $ λ x, one_smul _ _,
+  mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul _ _ _,
+  smul_zero := λ r, ext $ λ x, smul_zero _,
+  smul_add := λ r f₁ f₂, ext $ λ x, smul_add _ _ _,
+  add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
+  zero_smul := λ f, ext $ λ x, zero_smul _ _ }
+
+end semimodule
+
+/-!
+### Theorems specific to alternating maps
+
+Various properties of reordered and repeated inputs which follow from
+`alternating_map.map_eq_zero_of_eq`.
+-/
 
 lemma map_update_self {i j : ι} (hij : i ≠ j) :
   f (function.update v i (v j)) = 0 :=
-f.map_eq_args _ (by rw [function.update_same, function.update_noteq hij.symm]) hij
+f.map_eq_zero_of_eq _ (by rw [function.update_same, function.update_noteq hij.symm]) hij
 
 lemma map_update_update {i j : ι} (hij : i ≠ j) (m : M) :
   f (function.update (function.update v i m) j m) = 0 :=
-f.map_eq_args _
+f.map_eq_zero_of_eq _
   (by rw [function.update_same, function.update_noteq hij, function.update_same]) hij
 
 lemma map_swap_add {i j : ι} (hij : i ≠ j) :
   f (v ∘ equiv.swap i j) + f v = 0 :=
 begin
-  rw comp_swap_eq_update,
+  rw equiv.comp_swap_eq_update,
   convert f.map_update_update v hij (v i + v j),
-  simp [
-    f.map_update_self _ hij,
-    f.map_update_self _ hij.symm,
-    function.update_comm hij (v i + v j) (v _) v,
-    function.update_comm hij.symm (v i) (v i) v
-  ],
+  simp [f.map_update_self _ hij,
+        f.map_update_self _ hij.symm,
+        function.update_comm hij (v i + v j) (v _) v,
+        function.update_comm hij.symm (v i) (v i) v],
 end
 
 lemma map_add_swap {i j : ι} (hij : i ≠ j) :

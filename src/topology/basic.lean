@@ -101,6 +101,10 @@ topological_space.is_open_sUnion t s h
 
 end
 
+lemma topological_space_eq_iff {t t' : topological_space α} :
+  t = t' ↔ ∀ s, @is_open α t s ↔ @is_open α t' s :=
+⟨λ h s, h ▸ iff.rfl, λ h, by { ext, exact h _ }⟩
+
 lemma is_open_fold {s : set α} {t : topological_space α} : t.is_open s = @is_open α t s :=
 rfl
 

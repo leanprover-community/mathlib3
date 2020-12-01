@@ -119,11 +119,10 @@ begin
   apply multiplicity.pow_dvd_of_le_multiplicity,
   have aux : (multiplicity p ((p ^ n).choose (j + 1))).dom,
   { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
-    exact ⟨ne_of_gt hp.one_lt, nat.choose_pos hj⟩, },
+    exact ⟨hp.ne_one, nat.choose_pos hj⟩, },
   rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add,
       ← enat.coe_le_coe, enat.coe_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
-  apply le_of_eq,
-  apply (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos).symm,
+  exact (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos).ge,
 end
 
 /-- A key numerical identity needed for the proof of `witt_vector.map_frobenius_poly`. -/
@@ -159,8 +158,7 @@ begin
     rw [frobenius_poly, ring_hom.map_add, ring_hom.map_mul, ring_hom.map_pow,
         map_C, map_X, ring_hom.eq_int_cast, int.cast_coe_nat] },
   -- step 2
-  apply nat.strong_induction_on n, clear n,
-  intros n IH,
+  induction n using nat.strong_induction_on with n IH,
   rw [X_in_terms_of_W_eq],
 
   -- we move the `bind₁` into the sum, so that we can isolate `X n ^ p` in the right hand side

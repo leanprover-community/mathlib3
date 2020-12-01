@@ -52,7 +52,8 @@ structure alternating_map extends multilinear_map R (λ i : ι, M) N :=
 (map_eq_args' : ∀ (v : ι → M) (i j : ι) (h : v i = v j) (hij : i ≠ j), to_fun v = 0)
 end
 
-attribute [nolint doc_blame] alternating_map.to_multilinear_map
+/-- The multilinear map associated to an alternating map -/
+add_decl_doc alternating_map.to_multilinear_map
 
 namespace alternating_map
 

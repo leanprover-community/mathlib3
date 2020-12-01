@@ -1515,6 +1515,24 @@ le_antisymm
     by simp only [this, subset.refl]⟩)
   le_comap_map
 
+lemma mem_comap_iff {f : filter β} {m : α → β} (inj : function.injective m)
+  (large : set.range m ∈ f) (S : set α) :
+  S ∈ comap m f ↔ m '' S ∈ f :=
+begin
+  refine ⟨image_mem_sets large, _⟩,
+  intro h,
+  suffices : S = m ⁻¹' (m '' S),
+  { rw this,
+    change _ ∈ map m (comap m f),
+    rw map_comap large,
+    assumption },
+  ext x,
+  refine ⟨λ h1, ⟨x, h1, rfl⟩, λ h1, _⟩,
+  rcases h1 with ⟨z,hz,h1⟩,
+  rw ← inj h1,
+  assumption,
+end
+
 lemma le_of_map_le_map_inj' {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀x∈s, ∀y∈s, m x = m y → x = y)
   (h : map m f ≤ map m g) : f ≤ g :=

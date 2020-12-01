@@ -25,34 +25,25 @@ variable (m : ℕ)
 
 /--
 liouville constant is
-∞
----      1
-\      ______
-/        m!
----
-i=0
+$$
+\sum_{i=0}^\infty\frac{1}{m^{i!}}
+$$
 where `2 < m`
 -/
 def liouville_constant := ∑' (i : ℕ), 1 / (m : ℝ) ^ i!
 /--
 `liouville_constant_first_k_terms` is the first `k` terms of the liouville constant, i.e
- k
----      1
-\      ______
-/        m!
----
-i=0
+$$
+\sum_{i=0}^k\frac{1}{m^{i!}}
+$$
 where `2 < m`
 -/
 def liouville_constant_first_k_terms (k : ℕ) := ∑ i in range (k+1), 1 / (m : ℝ) ^ i!
 /--
 `liouville_constant_terms_after_k` is all the terms start from `k+1` of the liouville constant, i.e
- ∞
------    1
-\      ______
-/        m!
------
-i=k+1
+$$
+\sum_{i=k+1}^\infty\frac{1}{m^{i!}}
+$$
 where `2 < m`
 -/
 def liouville_constant_terms_after_k (k : ℕ) :=  ∑' i, 1 / (m : ℝ) ^ (i + (k+1))!

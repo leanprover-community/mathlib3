@@ -66,25 +66,19 @@ instance : group (dihedral n) :=
   one_mul :=
   begin
     rintros (a | a),
-    { change r _ = r _,
-      rw zero_add },
-    { change sr _ = sr _,
-      rw sub_zero }
+    exact congr_arg r (zero_add a),
+    exact congr_arg sr (sub_zero a),
   end,
   mul_one := begin
     rintros (a | a),
-    { change r _ = r _,
-      rw add_zero },
-    { change sr _ = sr _,
-      rw add_zero }
+    exact congr_arg r (add_zero a),
+    exact congr_arg sr (add_zero a),
   end,
   inv := inv,
   mul_left_inv := begin
     rintros (a | a),
-    { change r ((-a) + a) = r 0,
-      rw neg_add_self },
-    { change r (a - a) = r 0,
-      rw sub_self }
+    exact congr_arg r (neg_add_self a),
+    exact congr_arg r (sub_self a),
   end }
 
 lemma r_mul_r (i j : zmod n) : r i * r j = r (i + j) := rfl
@@ -147,7 +141,8 @@ If `0 < n`, then `sr i` has order 2.
 -/
 lemma order_of_sr (i : zmod n.succ) : order_of (sr i) = 2 :=
 begin
-  rw @order_of_eq_prime _ _ _ _ _ _ nat.prime_two,
+  rw order_of_eq_prime _ _,
+  { exact nat.prime_two },
   rw [pow_two, sr_mul_self],
   dec_trivial,
 end

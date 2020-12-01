@@ -50,7 +50,7 @@ begin
         verschiebung_coeff_succ, h, one_pow], }
 end
 
-/-- The “product formula” for Frobenius and Verschiebung. -/
+/-- The “projection formula” for Frobenius and Verschiebung. -/
 lemma verschiebung_mul_frobenius (x y : 𝕎 R) :
   verschiebung (x * frobenius y) = verschiebung x * y :=
 begin

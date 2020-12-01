@@ -36,9 +36,12 @@ begin
   exact nat.prime.pos _inst_1,
 end
 
-lemma exists_root (hp : is_unit (a : ℤ_[p]) ) (hp' : p ≠ 2) :  ∃! ( ω : roots_of_unity (nat.to_pnat (nat.totient p) (totient_positive)) ℤ_[p] ), 1 ≤ padic_int.valuation ((a - ω) : ℤ_[p]) :=
+lemma exists_root (hp : is_unit (a : ℤ_[p]) ) (hp' : p ≠ 2) :  ∃! ( ω : roots_of_unity
+(nat.to_pnat (nat.totient p) (totient_positive)) ℤ_[p] ), 1 ≤ padic_int.valuation ((a - ω) : ℤ_[p]) :=
 begin
 sorry
 end
+
+
 
 end dir_character

@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.eval
 import data.polynomial.field_division
+import ring_theory.derivation
 
 /-!
 # Theory of univariate polynomials
@@ -30,13 +31,23 @@ variables [semiring R]
 attribute [reducible] polynomial
 
 /-- `derivative p` is the formal derivative of the polynomial `p` -/
-def derivative : (polynomial R) →[R] polynomial R := -- λ p, p.sum (λn a, C (a * n) * X^(n - 1))
-finsupp.total ℕ (polynomial R) R (λ n, C ↑n)
+def derivative : (polynomial R) →ₗ[R] polynomial R := -- λ p, p.sum (λn a, C (a * n) * X^(n - 1))
+finsupp.total ℕ (polynomial R) R (λ n, C ↑n * X^(n - 1))
+
+@[simp]
+lemma derivative_apply (p : polynomial R) :
+  derivative p = p.sum (λn a, C (a * n) * X^(n - 1)) :=
+begin
+  rw [derivative, total_apply],
+  apply congr rfl,
+  ext,
+  simp [mul_assoc, coeff_C_mul],
+end
 
 lemma coeff_derivative (p : polynomial R) (n : ℕ) :
   coeff (derivative p) n = coeff p (n + 1) * (n + 1) :=
 begin
-  rw [derivative],
+  rw [derivative_apply],
   simp only [coeff_X_pow, coeff_sum, coeff_C_mul],
   rw [finsupp.sum, finset.sum_eq_single (n + 1)],
   simp only [nat.add_succ_sub_one, add_zero, mul_one, if_true, eq_self_iff_true], norm_cast,
@@ -47,17 +58,17 @@ begin
     { intros _ H, rw [nat.succ_sub_one b, if_neg (mt (congr_arg nat.succ) H.symm), mul_zero] } }
 end
 
-@[simp] lemma derivative_zero : derivative (0 : polynomial R) = 0 :=
-finsupp.sum_zero_index
+lemma derivative_zero : derivative (0 : polynomial R) = 0 :=
+by simp
 
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
-(sum_single_index $ by simp).trans (C_mul_X_pow_eq_monomial _ _)
+(derivative_apply _).trans ((sum_single_index $ by simp).trans (C_mul_X_pow_eq_monomial _ _))
 
 lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 
-@[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
-(derivative_monomial a 0).trans $ by simp
+lemma derivative_C {a : R} : derivative (C a) = 0 :=
+by simp
 
 @[simp] lemma derivative_X : derivative (X : polynomial R) = 1 :=
 (derivative_monomial _ _).trans $ by simp
@@ -67,29 +78,19 @@ derivative_C
 
 @[simp] lemma derivative_add {f g : polynomial R} :
   derivative (f + g) = derivative f + derivative g :=
-by refine finsupp.sum_add_index _ _; intros;
-simp only [add_mul, zero_mul, C_0, C_add, C_mul]
-
-/-- The formal derivative of polynomials, as additive homomorphism. -/
-def derivative_hom (R : Type*) [semiring R] : polynomial R →+ polynomial R :=
-{ to_fun := derivative,
-  map_zero' := derivative_zero,
-  map_add' := λ p q, derivative_add }
+derivative.map_add f g
 
 @[simp] lemma derivative_neg {R : Type*} [ring R] (f : polynomial R) :
-  derivative (-f) = -derivative f :=
-(derivative_hom R).map_neg f
+  derivative (-f) = - derivative f :=
+linear_map.map_neg derivative f
 
 @[simp] lemma derivative_sub {R : Type*} [ring R] (f g : polynomial R) :
   derivative (f - g) = derivative f - derivative g :=
-(derivative_hom R).map_sub f g
-
-instance : is_add_monoid_hom (derivative : polynomial R → polynomial R) :=
-(derivative_hom R).is_add_monoid_hom
+linear_map.map_sub derivative f g
 
 @[simp] lemma derivative_sum {s : finset ι} {f : ι → polynomial R} :
   derivative (∑ b in s, f b) = ∑ b in s, derivative (f b) :=
-(derivative_hom R).map_sum f s
+linear_map.map_sum derivative
 
 @[simp] lemma derivative_smul (r : R) (p : polynomial R) : derivative (r • p) = r • derivative p :=
 by { ext, simp only [coeff_derivative, mul_assoc, coeff_smul], }
@@ -122,8 +123,7 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
       conv { to_rhs, congr,
         { rw [← sum_C_mul_X_eq g] },
         { rw [← sum_C_mul_X_eq f] } },
-      unfold derivative finsupp.sum,
-      simp only [sum_add_distrib, finset.mul_sum, finset.sum_mul]
+      simp only [finsupp.sum, sum_add_distrib, finset.mul_sum, finset.sum_mul, derivative_apply]
     end
 
 theorem derivative_pow_succ (p : polynomial R) (n : ℕ) :

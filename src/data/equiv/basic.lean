@@ -14,7 +14,7 @@ In this file we define two types:
   not equality!) to express that various `Type`s or `Sort`s are equivalent.
 
 * `equiv.perm α`: the group of permutations `α ≃ α`. More lemmas about `equiv.perm` can be found in
-  `data/equiv/perm`.
+  `group_theory/perm`.
 
 Then we define
 

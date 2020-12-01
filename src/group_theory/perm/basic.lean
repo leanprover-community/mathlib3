@@ -9,8 +9,6 @@ import algebra.group.basic
 # The group of permutations (self-equivalences) of a type `α`
 
 This file defines the `group` structure on `equiv.perm α`.
-
-More lemmas about permutations can be found in `group_theory/perm`.
 -/
 universes u v
 

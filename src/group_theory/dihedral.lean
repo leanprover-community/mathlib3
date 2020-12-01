@@ -9,10 +9,17 @@ import group_theory.order_of_element
 /-!
 # Dihedral Groups
 
-We define dihedral groups, with elements `r i` and `sr i` for `i : zmod n`.
+We define the dihedral groups `dihedral n`, with elements `r i` and `sr i` for `i : zmod n`.
 
 For `n ≠ 0`, `dihedral n` represents the symmetry group of the regular `n`-gon. `r i` represents
 the rotations of the `n`-gon by `2πi/n`, and `sr i` represents the reflections of the `n`-gon.
+`dihedral 0` correspongs to the infinite dihedral group.
+-/
+
+/--
+For `n ≠ 0`, `dihedral n` represents the symmetry group of the regular `n`-gon. `r i` represents
+the rotations of the `n`-gon by `2πi/n`, and `sr i` represents the reflections of the `n`-gon.
+`dihedral 0` correspongs to the infinite dihedral group.
 -/
 @[derive decidable_eq]
 inductive dihedral (n : ℕ) : Type

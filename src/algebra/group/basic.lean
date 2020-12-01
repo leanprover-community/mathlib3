@@ -354,11 +354,17 @@ by simp [h.symm]
 lemma add_eq_of_eq_sub (h : a = c - b) : a + b = c :=
 by simp [h]
 
+@[simp] lemma sub_right_injective (a : G) : function.injective (λ b, a - b) :=
+(add_right_injective _).comp neg_injective
+
 @[simp] lemma sub_right_inj : a - b = a - c ↔ b = c :=
-(add_right_inj _).trans neg_inj
+(sub_right_injective _).eq_iff
+
+@[simp] lemma sub_left_injective (b : G) : function.injective (λ a, a - b) :=
+add_left_injective _
 
 @[simp] lemma sub_left_inj : b - a = c - a ↔ b = c :=
-add_left_inj _
+(sub_left_injective _).eq_iff
 
 lemma sub_add_sub_cancel (a b c : G) : (a - b) + (b - c) = a - c :=
 by rw [← add_sub_assoc, sub_add_cancel]

@@ -285,6 +285,9 @@ def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ dist y x ≤ ε := iff.rfl
 
+theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ dist x y ≤ ε :=
+by { rw dist_comm, refl }
+
 lemma nonempty_closed_ball (h : 0 ≤ ε) : (closed_ball x ε).nonempty :=
 ⟨x, by simp [h]⟩
 
@@ -561,6 +564,14 @@ nhds_basis_uniformity uniformity_basis_dist
 
 theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s :=
 nhds_basis_ball.mem_iff
+
+theorem eventually_nhds_iff {p : α → Prop} :
+  (∀ᶠ y in 𝓝 x, p y) ↔ ∃ε>0, ∀ ⦃y⦄, dist y x < ε → p y :=
+mem_nhds_iff
+
+lemma eventually_nhds_iff_ball {p : α → Prop} :
+  (∀ᶠ y in 𝓝 x, p y) ↔ ∃ ε>0, ∀ y ∈ ball x ε, p y :=
+mem_nhds_iff
 
 theorem nhds_basis_closed_ball : (𝓝 x).has_basis (λ ε:ℝ, 0 < ε) (closed_ball x) :=
 nhds_basis_uniformity uniformity_basis_dist_le
@@ -1060,7 +1071,7 @@ uniform_continuous_dist.continuous
 
 theorem continuous.dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
-continuous_dist.comp (hf.prod_mk hg)
+continuous_dist.comp (hf.prod_mk hg : _)
 
 theorem filter.tendsto.dist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
@@ -1088,7 +1099,7 @@ uniform_continuous_nndist.continuous
 
 lemma continuous.nndist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, nndist (f b) (g b)) :=
-continuous_nndist.comp (hf.prod_mk hg)
+continuous_nndist.comp (hf.prod_mk hg : _)
 
 theorem filter.tendsto.nndist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
@@ -1464,7 +1475,7 @@ begin
     intros x y x_in y_in,
     exact this (x, y) (mk_mem_prod x_in y_in) },
   intros p p_in,
-  have := mem_closure continuous_dist p_in h,
+  have := map_mem_closure continuous_dist p_in h,
   rwa (is_closed_le' C).closure_eq at this
 end
 

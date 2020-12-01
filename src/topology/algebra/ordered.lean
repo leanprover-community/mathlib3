@@ -141,7 +141,7 @@ lemma is_closed_Ici {a : α} : is_closed (Ici a) :=
 is_closed_ge' a
 
 instance : order_closed_topology (order_dual α) :=
-⟨continuous_swap _ (@order_closed_topology.is_closed_le' α _ _ _)⟩
+⟨(@order_closed_topology.is_closed_le' α _ _ _).preimage continuous_swap⟩
 
 lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
 is_closed_inter is_closed_Ici is_closed_Iic

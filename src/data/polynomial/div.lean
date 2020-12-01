@@ -100,7 +100,7 @@ calc (div_X p).degree < (div_X p * X + C (p.coeff 0)).degree :
               (by rw [zero_le_degree_iff, ne.def, div_X_eq_zero_iff];
                 exact λ h0, h (h0.symm ▸ degree_C_le))
               (le_refl _),
-    by rw [add_comm, degree_add_eq_of_degree_lt this];
+    by rw [degree_add_eq_left_of_degree_lt this];
       exact degree_lt_degree_mul_X hXp0
 ... = p.degree : by rw div_X_mul_X_add
 
@@ -177,9 +177,6 @@ have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one h;
   have hpnr0 : leading_coeff (p ^ (nat_degree q + 1)) * leading_coeff r ≠ 0,
     by simp only [leading_coeff_pow' hpn0', leading_coeff_eq_zero, hpn1,
       one_pow, one_mul, ne.def, hr0]; simp,
-  have hpn0 : p ^ (nat_degree q + 1) ≠ 0,
-    from mt leading_coeff_eq_zero.2 $
-      by rw [leading_coeff_pow' hpn0', show _ = _, from hmp, one_pow]; exact zn0.symm,
   have hnp : 0 < nat_degree p,
     by rw [← with_bot.coe_lt_coe, ← degree_eq_nat_degree hp0];
     exact hp,
@@ -364,7 +361,7 @@ have hmod : degree (p %ₘ q) < degree (q * (p /ₘ q)) :=
       degree_eq_nat_degree hdiv0, ← with_bot.coe_add, with_bot.coe_le_coe];
     exact nat.le_add_right _ _,
 calc degree q + degree (p /ₘ q) = degree (q * (p /ₘ q)) : eq.symm (degree_mul' hlc)
-... = degree (p %ₘ q + q * (p /ₘ q)) : (degree_add_eq_of_degree_lt hmod).symm
+... = degree (p %ₘ q + q * (p /ₘ q)) : (degree_add_eq_right_of_degree_lt hmod).symm
 ... = _ : congr_arg _ (mod_by_monic_add_div _ hq)
 
 lemma degree_div_by_monic_le (p q : polynomial R) : degree (p /ₘ q) ≤ degree p :=
@@ -537,6 +534,11 @@ lemma dvd_iff_is_root : (X - C a) ∣ p ↔ is_root p a :=
 
 lemma mod_by_monic_X (p : polynomial R) : p %ₘ X = C (p.eval 0) :=
 by rw [← mod_by_monic_X_sub_C_eq_C_eval, C_0, sub_zero]
+
+lemma eval₂_mod_by_monic_eq_self_of_root [comm_ring S] {f : R →+* S}
+  {p q : polynomial R} (hq : q.monic) {x : S} (hx : q.eval₂ f x = 0) :
+  (p %ₘ q).eval₂ f x = p.eval₂ f x :=
+by rw [mod_by_monic_eq_sub_mul_div p hq, eval₂_sub, eval₂_mul, hx, zero_mul, sub_zero]
 
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.

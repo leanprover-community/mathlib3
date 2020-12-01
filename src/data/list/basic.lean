@@ -1390,9 +1390,35 @@ begin
     cases x, simpa using hxy, simp at hxy, simp [y_ih hxy.2, h hxy.1] }
 end
 
+/--
+A single `list.map` of a composition of functions is equal to
+composing a `list.map` with another `list.map`, fully applied.
+This is the reverse direction of `list.map_map`.
+-/
+lemma comp_map (h : β → γ) (g : α → β) (l : list α) :
+  map (h ∘ g) l = map h (map g l) := (map_map _ _ _).symm
+
+/--
+Composing a `list.map` with another `list.map` is equal to
+a single `list.map` of composed functions.
+-/
+@[simp] lemma map_comp_map (g : β → γ) (f : α → β) :
+  map g ∘ map f = map (g ∘ f) :=
+by { ext l, rw comp_map }
+
 theorem map_filter_eq_foldr (f : α → β) (p : α → Prop) [decidable_pred p] (as : list α) :
   map f (filter p as) = foldr (λ a bs, if p a then f a :: bs else bs) [] as :=
 by { induction as, { refl }, { simp! [*, apply_ite (map f)] } }
+
+lemma last_map (f : α → β) {l : list α} (hl : l ≠ []) :
+  (l.map f).last (mt eq_nil_of_map_eq_nil hl) = f (l.last hl) :=
+begin
+  induction l with l_ih l_tl l_ih,
+  { apply (hl rfl).elim },
+  { cases l_tl,
+    { simp },
+    { simpa using l_ih } }
+end
 
 /-! ### map₂ -/
 
@@ -2507,6 +2533,10 @@ theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
   (l H) : map g (pmap f l H) = pmap (λ a h, g (f a h)) l H :=
 by induction l; [refl, simp only [*, pmap, map]]; split; refl
 
+theorem pmap_map {p : β → Prop} (g : ∀ b, p b → γ) (f : α → β)
+  (l H) : pmap g (map f l) H = pmap (λ a h, g (f a) h) l (λ a h, H _ (mem_map_of_mem _ h)) :=
+by induction l; [refl, simp only [*, pmap, map]]; split; refl
+
 theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
   (l H) : pmap f l H = l.attach.map (λ x, f x.1 (H _ x.2)) :=
 by rw [attach, map_pmap]; exact pmap_congr l (λ a h₁ h₂, rfl)
@@ -2533,6 +2563,17 @@ by induction l; [refl, simp only [*, pmap, length]]
 by rw [← length_eq_zero, length_pmap, length_eq_zero]
 
 @[simp] lemma attach_eq_nil (l : list α) : l.attach = [] ↔ l = [] := pmap_eq_nil
+
+lemma last_pmap {α β : Type*} (p : α → Prop) (f : Π a, p a → β)
+  (l : list α) (hl₁ : ∀ a ∈ l, p a) (hl₂ : l ≠ []) :
+  (l.pmap f hl₁).last (mt list.pmap_eq_nil.1 hl₂) = f (l.last hl₂) (hl₁ _ (list.last_mem hl₂)) :=
+begin
+  induction l with l_hd l_tl l_ih,
+  { apply (hl₂ rfl).elim },
+  { cases l_tl,
+    { simp },
+    { apply l_ih } }
+end
 
 /-! ### find -/
 

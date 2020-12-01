@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
 import algebra.ring.basic
+import data.equiv.basic
 
 universes u v
 variable {α : Type u}
@@ -79,36 +80,40 @@ instance [comm_semigroup α] : comm_monoid (with_one α) :=
 { mul_comm := (option.lift_or_get_comm _).1,
   ..with_one.monoid }
 
+/-- `coe` as a bundled morphism -/
+@[simps apply, to_additive "`coe` as a bundled morphism"]
+def coe_mul_hom [has_mul α] : mul_hom α (with_one α) :=
+{ to_fun := coe, map_mul' := λ x y, rfl }
+
 section lift
 
 variables [semigroup α] {β : Type v} [monoid β]
 
-/-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism.
-We have no bundled semigroup homomorphisms, so this function
-takes `∀ x y, f (x * y) = f x * f y` as an explicit argument. -/
-@[to_additive "Lift an add_semigroup homomorphism `f` to a bundled add_monoid homorphism.
-  We have no bundled add_semigroup homomorphisms, so this function
-  takes `∀ x y, f (x + y) = f x + f y` as an explicit argument."]
-def lift (f : α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
-  (with_one α) →* β :=
-{ to_fun := λ x, option.cases_on x 1 f,
-  map_one' := rfl,
-  map_mul' := λ x y,
-    with_one.cases_on x (by { rw one_mul, exact (one_mul _).symm }) $ λ x,
-    with_one.cases_on y (by { rw mul_one, exact (mul_one _).symm }) $ λ y,
-    hf x y }
+/-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism. -/
+@[to_additive "Lift an add_semigroup homomorphism `f` to a bundled add_monoid homorphism."]
+def lift : mul_hom α β ≃ (with_one α →* β) :=
+{ to_fun := λ f,
+  { to_fun := λ x, option.cases_on x 1 f,
+    map_one' := rfl,
+    map_mul' := λ x y,
+      with_one.cases_on x (by { rw one_mul, exact (one_mul _).symm }) $ λ x,
+      with_one.cases_on y (by { rw mul_one, exact (mul_one _).symm }) $ λ y,
+      f.map_mul x y },
+  inv_fun := λ F, F.to_mul_hom.comp coe_mul_hom,
+  left_inv := λ f, mul_hom.ext $ λ x, rfl,
+  right_inv := λ F, monoid_hom.ext $ λ x, with_one.cases_on x F.map_one.symm $ λ x, rfl }
 
-variables (f : α → β) (hf : ∀ x y, f (x * y) = f x * f y)
-
-@[simp, to_additive]
-lemma lift_coe (x : α) : lift f hf x = f x := rfl
+variables (f : mul_hom α β)
 
 @[simp, to_additive]
-lemma lift_one : lift f hf 1 = 1 := rfl
+lemma lift_coe (x : α) : lift f x = f x := rfl
+
+@[simp, to_additive]
+lemma lift_one : lift f 1 = 1 := rfl
 
 @[to_additive]
-theorem lift_unique (f : with_one α →* β) : f = lift (f ∘ coe) (λ x y, f.map_mul x y) :=
-monoid_hom.ext $ λ x, with_one.cases_on x f.map_one $ λ x, rfl
+theorem lift_unique (f : with_one α →* β) : f = lift (f.to_mul_hom.comp coe_mul_hom) :=
+(lift.apply_symm_apply f).symm
 
 end lift
 
@@ -120,9 +125,8 @@ variables {β : Type v} [semigroup α] [semigroup β]
   from `with_one α` to `with_one β` -/
 @[to_additive "Given an additive map from `α → β` returns an add_monoid homomorphism
   from `with_zero α` to `with_zero β`"]
-def map (f : α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
-  with_one α →* with_one β :=
-lift (coe ∘ f) (λ x y, coe_inj.2 $ hf x y)
+def map (f : mul_hom α β) : with_one α →* with_one β :=
+lift (coe_mul_hom.comp f)
 
 end map
 

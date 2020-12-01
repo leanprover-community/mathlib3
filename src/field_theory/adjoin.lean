@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning and Patrick Lutz
 -/
 
-import field_theory.tower
 import field_theory.intermediate_field
+import field_theory.splitting_field
+import field_theory.fixed
 
 /-!
 # Adjoining Elements to Fields
@@ -16,7 +17,7 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 
 ## Main results
 
-- `adjoin_adjoin_left`: adjoining S and then T is the same as adjoining S ∪ T.
+- `adjoin_adjoin_left`: adjoining S and then T is the same as adjoining `S ∪ T`.
 - `bot_eq_top_of_dim_adjoin_eq_one`: if `F⟮x⟯` has dimension `1` over `F` for every `x`
   in `E` then `F = E`
 
@@ -24,6 +25,9 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 
  - `F⟮α⟯`: adjoin a single element `α` to `F`.
 -/
+
+open finite_dimensional
+open_locale classical
 
 namespace intermediate_field
 
@@ -75,6 +79,31 @@ by { ext, rw [mem_to_subalgebra, algebra.mem_bot, mem_bot] }
 
 @[simp] lemma top_to_subalgebra : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
 by { ext, rw [mem_to_subalgebra, iff_true_right algebra.mem_top], exact mem_top }
+
+/--  Construct an algebra isomorphism from an equality of subalgebras -/
+def subalgebra.equiv_of_eq {X Y : subalgebra F E} (h : X = Y) : X ≃ₐ[F] Y :=
+by refine { to_fun := λ x, ⟨x, _⟩, inv_fun := λ x, ⟨x, _⟩, .. }; tidy
+
+/-- The bottom intermediate_field is isomorphic to the field. -/
+noncomputable def bot_equiv : (⊥ : intermediate_field F E) ≃ₐ[F] F :=
+(subalgebra.equiv_of_eq bot_to_subalgebra).trans (algebra.bot_equiv F E)
+
+@[simp] lemma bot_equiv_def (x : F) :
+  bot_equiv (algebra_map F (⊥ : intermediate_field F E) x) = x :=
+alg_equiv.commutes bot_equiv x
+
+/-- The top intermediate_field is isomorphic to the field. -/
+noncomputable def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
+(subalgebra.equiv_of_eq top_to_subalgebra).trans algebra.top_equiv
+
+@[simp] lemma top_equiv_def (x : (⊤ : intermediate_field F E)) : top_equiv x = ↑x :=
+begin
+  suffices : algebra.to_top (top_equiv x) = algebra.to_top (x : E),
+  { rwa subtype.ext_iff at this },
+  exact alg_equiv.apply_symm_apply (alg_equiv.of_bijective algebra.to_top
+    ⟨λ _ _, subtype.mk.inj, λ x, ⟨x.val, by { ext, refl }⟩⟩ : E ≃ₐ[F] (⊤ : subalgebra F E))
+    (subalgebra.equiv_of_eq top_to_subalgebra x),
+end
 
 @[simp] lemma coe_bot_eq_self (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
 by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
@@ -248,10 +277,34 @@ adjoin_adjoin_left _ _ _
 lemma adjoin_simple_comm (β : E) : ↑F⟮α⟯⟮β⟯ = (↑F⟮β⟯⟮α⟯ : intermediate_field F E) :=
 adjoin_adjoin_comm _ _ _
 
+-- TODO: develop the API for `subalgebra.is_field_of_algebraic` so it can be used here
+lemma adjoin_simple_to_subalgebra_of_integral (hα : is_integral F α) :
+  (F⟮α⟯).to_subalgebra = algebra.adjoin F {α} :=
+begin
+  apply adjoin_eq_algebra_adjoin,
+  intros x hx,
+  by_cases x = 0,
+  { rw [h, inv_zero], exact subalgebra.zero_mem (algebra.adjoin F {α}) },
+
+  let ϕ := alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial F α hα,
+  let inv := (@adjoin_root.field F _ _ (minimal_polynomial.irreducible hα)).inv,
+  suffices : ϕ ⟨x, hx⟩ * inv (ϕ ⟨x, hx⟩) = 1,
+  { convert subtype.mem (ϕ.symm (inv (ϕ ⟨x, hx⟩))),
+    refine (eq_inv_of_mul_right_eq_one _).symm,
+    apply_fun ϕ.symm at this,
+    rw [alg_equiv.map_one, alg_equiv.map_mul, alg_equiv.symm_apply_apply] at this,
+    rw [←subsemiring.coe_one, ←this, subsemiring.coe_mul, subtype.coe_mk] },
+
+  rw field.mul_inv_cancel (mt (λ key, _) h),
+  rw ← ϕ.map_zero at key,
+  change ↑(⟨x, hx⟩ : algebra.adjoin F {α}) = _,
+  rw [ϕ.injective key, submodule.coe_zero]
+end
+
 end adjoin_simple
 end adjoin_def
 
-section adjoin_subalgebra_lattice
+section adjoin_intermediate_field_lattice
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E] {α : E} {S : set E}
 
 @[simp] lemma adjoin_eq_bot_iff : adjoin F S = ⊥ ↔ S ⊆ (⊥ : intermediate_field F E) :=
@@ -324,9 +377,6 @@ lemma subsingleton_of_findim_adjoin_eq_one (h : ∀ x : E, findim F F⟮x⟯ = 1
   subsingleton (intermediate_field F E) :=
 subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_eq_one h)
 
-instance [finite_dimensional F E] (K : intermediate_field F E) : finite_dimensional F K :=
-  finite_dimensional.finite_dimensional_submodule (K.to_subalgebra.to_submodule)
-
 /-- If `F⟮x⟯` has dimension `≤1` over `F` for every `x ∈ E` then `F = E`. -/
 lemma bot_eq_top_of_findim_adjoin_le_one [finite_dimensional F E]
   (h : ∀ x : E, findim F F⟮x⟯ ≤ 1) : (⊥ : intermediate_field F E) = ⊤ :=
@@ -340,7 +390,83 @@ lemma subsingleton_of_findim_adjoin_le_one [finite_dimensional F E]
 subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_le_one h)
 
 end adjoin_dim
-end adjoin_subalgebra_lattice
+end adjoin_intermediate_field_lattice
+
+section adjoin_integral_element
+
+variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] {α : E}
+variables {K : Type*} [field K] [algebra F K]
+
+lemma aeval_gen_minimal_polynomial (h : is_integral F α) :
+  polynomial.aeval (adjoin_simple.gen F α) (minimal_polynomial h)  = 0 :=
+begin
+  ext,
+  convert minimal_polynomial.aeval h,
+  conv in (polynomial.aeval α) { rw [← adjoin_simple.algebra_map_gen F α] },
+  exact is_scalar_tower.algebra_map_aeval F F⟮α⟯ E _ _
+end
+
+/-- algebra isomorphism between `adjoin_root` and `F⟮α⟯` -/
+noncomputable def adjoin_root_equiv_adjoin (h : is_integral F α) :
+  adjoin_root (minimal_polynomial h) ≃ₐ[F] F⟮α⟯ :=
+alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
+  (adjoin_simple.gen F α) (aeval_gen_minimal_polynomial F h)) (ring_hom.map_one _)
+  (λ x y, ring_hom.map_mul _ x y) (ring_hom.map_zero _) (λ x y, ring_hom.map_add _ x y)
+  (by { exact λ _, adjoin_root.lift_of })) (begin
+    set f := adjoin_root.lift _ _ (aeval_gen_minimal_polynomial F h),
+    haveI := minimal_polynomial.irreducible h,
+    split,
+    { exact ring_hom.injective f },
+    { suffices : F⟮α⟯.to_subfield ≤ ring_hom.field_range ((F⟮α⟯.to_subfield.subtype).comp f),
+      { exact λ x, Exists.cases_on (this (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy.2⟩) },
+      exact subfield.closure_le.mpr (set.union_subset (λ x hx, Exists.cases_on hx (λ y hy, ⟨y,
+        ⟨subfield.mem_top y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩⟩))
+        (set.singleton_subset_iff.mpr ⟨adjoin_root.root (minimal_polynomial h),
+        ⟨subfield.mem_top (adjoin_root.root (minimal_polynomial h)),
+        by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩⟩)) } end)
+
+lemma adjoin_root_equiv_adjoin_apply_root (h : is_integral F α) :
+  adjoin_root_equiv_adjoin F h (adjoin_root.root (minimal_polynomial h)) =
+    adjoin_simple.gen F α :=
+begin
+  refine adjoin_root.lift_root,
+  { exact minimal_polynomial h },
+  { exact aeval_gen_minimal_polynomial F h }
+end
+
+/-- Algebra homomorphism `F⟮α⟯ →ₐ[F] K` are in bijection with the set of roots
+of `minimal_polynomial α` in `K`. -/
+noncomputable def alg_hom_adjoin_integral_equiv (h : is_integral F α) :
+  (F⟮α⟯ →ₐ[F] K) ≃ {x // x ∈ ((minimal_polynomial h).map (algebra_map F K)).roots} :=
+let ϕ := adjoin_root_equiv_adjoin F h,
+  swap1 : (F⟮α⟯ →ₐ[F] K) ≃ (adjoin_root (minimal_polynomial h) →ₐ[F] K) :=
+  { to_fun := λ f, f.comp ϕ.to_alg_hom,
+    inv_fun := λ f, f.comp ϕ.symm.to_alg_hom,
+    left_inv := λ _, by { ext, simp only [alg_equiv.coe_alg_hom,
+      alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply]},
+    right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
+      alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
+  swap2 := adjoin_root.equiv F K (minimal_polynomial h) (minimal_polynomial.ne_zero h) in
+swap1.trans swap2
+
+/-- Fintype of algebra homomorphism `F⟮α⟯ →ₐ[F] K` -/
+noncomputable def fintype_of_alg_hom_adjoin_integral (h : is_integral F α) :
+  fintype (F⟮α⟯ →ₐ[F] K) :=
+fintype.of_equiv _ (alg_hom_adjoin_integral_equiv F h).symm
+
+lemma card_alg_hom_adjoin_integral (h : is_integral F α) (h_sep : (minimal_polynomial h).separable)
+  (h_splits : (minimal_polynomial h).splits (algebra_map F K)) :
+  @fintype.card (F⟮α⟯ →ₐ[F] K) (fintype_of_alg_hom_adjoin_integral F h) =
+    (minimal_polynomial h).nat_degree :=
+begin
+  let s := ((minimal_polynomial h).map (algebra_map F K)).roots.to_finset,
+  have H := λ x, multiset.mem_to_finset,
+  rw [fintype.card_congr (alg_hom_adjoin_integral_equiv F h), fintype.card_of_subtype s H,
+      polynomial.nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
+  exact polynomial.nodup_roots ((polynomial.separable_map (algebra_map F K)).mpr h_sep),
+end
+
+end adjoin_integral_element
 
 section induction
 

@@ -8,6 +8,7 @@ import data.fintype.card
 import group_theory.perm.sign
 import algebra.algebra.basic
 import tactic.ring
+import linear_algebra.multilinear
 
 universes u v w z
 open equiv equiv.perm finset function
@@ -121,18 +122,19 @@ end
 
 /-- The determinant of a permutation matrix equals its sign. -/
 @[simp] lemma det_permutation (σ : perm n) :
-  matrix.det (σ.to_pequiv.to_matrix : matrix n n R) = σ.sign := begin
+  matrix.det (σ.to_pequiv.to_matrix : matrix n n R) = σ.sign :=
+begin
   suffices : matrix.det (σ.to_pequiv.to_matrix) = ↑σ.sign * det (1 : matrix n n R), { simp [this] },
   unfold det,
   rw mul_sum,
   apply sum_bij (λ τ _, σ * τ),
   { intros τ _, apply mem_univ },
   { intros τ _,
-    conv_lhs { rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)] },
-    conv_rhs { rw [←mul_assoc, coe_coe, sign_mul, units.coe_mul, int.cast_mul, ←mul_assoc] },
+    rw [←mul_assoc, sign_mul, coe_coe, ←int.cast_mul, ←units.coe_mul, ←mul_assoc,
+        int.units_mul_self, one_mul],
     congr,
-    { simp [pow_two] },
-    { ext i, apply pequiv.equiv_to_pequiv_to_matrix } },
+    ext i,
+    apply pequiv.equiv_to_pequiv_to_matrix },
   { intros τ τ' _ _, exact (mul_right_inj σ).mp },
   { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }
 end
@@ -271,6 +273,13 @@ begin
   rw [← det_transpose, ← update_column_transpose, det_update_column_smul],
   simp [update_column_transpose, det_transpose]
 end
+
+/-- `det` is a multilinear map over the rows of the matrix -/
+@[simps apply]
+def det_row_multilinear : multilinear_map R (λ (i : n), n → R) R :=
+{ to_fun := det,
+  map_add' := det_update_row_add,
+  map_smul' := det_update_row_smul }
 
 @[simp] lemma det_block_diagonal {o : Type*} [fintype o] [decidable_eq o] (M : o → matrix n n R) :
   (block_diagonal M).det = ∏ k, (M k).det :=

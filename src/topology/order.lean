@@ -203,7 +203,7 @@ class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
 
 lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α]
   [topological_space β] {f : α → β} : continuous f :=
-λs hs, is_open_discrete _
+continuous_def.2 $ λs hs, is_open_discrete _
 
 lemma nhds_bot (α : Type*) : (@nhds α ⊥) = pure :=
 begin
@@ -281,11 +281,19 @@ iff.rfl
 
 variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}
 
-lemma coinduced_le_iff_le_induced {f : α → β } {tα : topological_space α} {tβ : topological_space β} :
+lemma continuous.coinduced_le (h : @continuous α β t t' f) :
+  t.coinduced f ≤ t' :=
+λ s hs, (continuous_def.1 h s hs : _)
+
+lemma coinduced_le_iff_le_induced {f : α → β} {tα : topological_space α} {tβ : topological_space β} :
   tα.coinduced f ≤ tβ ↔ tα ≤ tβ.induced f :=
 iff.intro
   (assume h s ⟨t, ht, hst⟩, hst ▸ h _ ht)
   (assume h s hs, show tα.is_open (f ⁻¹' s), from h _ ⟨s, hs, rfl⟩)
+
+lemma continuous.le_induced (h : @continuous α β t t' f) :
+  t ≤ t'.induced f :=
+coinduced_le_iff_le_induced.1 h.coinduced_le
 
 lemma gc_coinduced_induced (f : α → β) :
   galois_connection (topological_space.coinduced f) (topological_space.induced f) :=
@@ -417,7 +425,8 @@ open topological_space
 variables {γ : Type*} {f : α → β} {ι : Sort*}
 
 lemma continuous_iff_coinduced_le {t₁ : tspace α} {t₂ : tspace β} :
-  cont t₁ t₂ f ↔ coinduced f t₁ ≤ t₂ := iff.rfl
+  cont t₁ t₂ f ↔ coinduced f t₁ ≤ t₂ :=
+continuous_def.trans iff.rfl
 
 lemma continuous_iff_le_induced {t₁ : tspace α} {t₂ : tspace β} :
   cont t₁ t₂ f ↔ t₁ ≤ induced f t₂ :=
@@ -428,11 +437,15 @@ theorem continuous_generated_from {t : tspace α} {b : set (set β)}
 continuous_iff_coinduced_le.2 $ le_generate_from h
 
 lemma continuous_induced_dom {t : tspace β} : cont (induced f t) t f :=
-assume s h, ⟨_, h, rfl⟩
+by { rw continuous_def, assume s h, exact ⟨_, h, rfl⟩ }
 
 lemma continuous_induced_rng {g : γ → α} {t₂ : tspace β} {t₁ : tspace γ}
   (h : cont t₁ t₂ (f ∘ g)) : cont t₁ (induced f t₂) g :=
-assume s ⟨t, ht, s_eq⟩, s_eq ▸ h t ht
+begin
+  rw continuous_def,
+  rintros s ⟨t, ht, s_eq⟩,
+  simpa [← s_eq] using continuous_def.1 h t ht,
+end
 
 lemma continuous_induced_rng' [topological_space α] [topological_space β] [topological_space γ]
   {g : γ → α} (f : α → β) (H : ‹topological_space α› = ‹topological_space β›.induced f)
@@ -440,23 +453,39 @@ lemma continuous_induced_rng' [topological_space α] [topological_space β] [top
 H.symm ▸ continuous_induced_rng h
 
 lemma continuous_coinduced_rng {t : tspace α} : cont t (coinduced f t) f :=
-assume s h, h
+by { rw continuous_def, assume s h, exact h }
 
 lemma continuous_coinduced_dom {g : β → γ} {t₁ : tspace α} {t₂ : tspace γ}
   (h : cont t₁ t₂ (g ∘ f)) : cont (coinduced f t₁) t₂ g :=
-assume s hs, h s hs
+begin
+  rw continuous_def at h ⊢,
+  assume s hs,
+  exact h _ hs
+end
 
 lemma continuous_le_dom {t₁ t₂ : tspace α} {t₃ : tspace β}
   (h₁ : t₂ ≤ t₁) (h₂ : cont t₁ t₃ f) : cont t₂ t₃ f :=
-assume s h, h₁ _ (h₂ s h)
+begin
+  rw continuous_def at h₂ ⊢,
+  assume s h,
+  exact h₁ _ (h₂ s h)
+end
 
 lemma continuous_le_rng {t₁ : tspace α} {t₂ t₃ : tspace β}
   (h₁ : t₂ ≤ t₃) (h₂ : cont t₁ t₂ f) : cont t₁ t₃ f :=
-assume s h, h₂ s (h₁ s h)
+begin
+  rw continuous_def at h₂ ⊢,
+  assume s h,
+  exact h₂ s (h₁ s h)
+end
 
 lemma continuous_sup_dom {t₁ t₂ : tspace α} {t₃ : tspace β}
   (h₁ : cont t₁ t₃ f) (h₂ : cont t₂ t₃ f) : cont (t₁ ⊔ t₂) t₃ f :=
-assume s h, ⟨h₁ s h, h₂ s h⟩
+begin
+  rw continuous_def at h₁ h₂ ⊢,
+  assume s h,
+  exact ⟨h₁ s h, h₂ s h⟩
+end
 
 lemma continuous_sup_rng_left {t₁ : tspace α} {t₃ t₂ : tspace β} :
   cont t₁ t₂ f → cont t₁ (t₂ ⊔ t₃) f :=
@@ -593,7 +622,7 @@ topological_space.generate_open.basic _ (by simp)
 lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
 ⟨assume h : continuous p,
   have is_open (p ⁻¹' {true}),
-    from h _ is_open_singleton_true,
+    from is_open_singleton_true.preimage h,
   by simp [preimage, eq_true] at this; assumption,
   assume h : is_open {x | p x},
   continuous_generated_from $ assume s (hs : s ∈ {{true}}),

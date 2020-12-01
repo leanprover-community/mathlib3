@@ -17,7 +17,7 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 
 ## Main results
 
-- `adjoin_adjoin_left`: adjoining S and then T is the same as adjoining S ∪ T.
+- `adjoin_adjoin_left`: adjoining S and then T is the same as adjoining `S ∪ T`.
 - `bot_eq_top_of_dim_adjoin_eq_one`: if `F⟮x⟯` has dimension `1` over `F` for every `x`
   in `E` then `F = E`
 
@@ -79,6 +79,31 @@ by { ext, rw [mem_to_subalgebra, algebra.mem_bot, mem_bot] }
 
 @[simp] lemma top_to_subalgebra : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
 by { ext, rw [mem_to_subalgebra, iff_true_right algebra.mem_top], exact mem_top }
+
+/--  Construct an algebra isomorphism from an equality of subalgebras -/
+def subalgebra.equiv_of_eq {X Y : subalgebra F E} (h : X = Y) : X ≃ₐ[F] Y :=
+by refine { to_fun := λ x, ⟨x, _⟩, inv_fun := λ x, ⟨x, _⟩, .. }; tidy
+
+/-- The bottom intermediate_field is isomorphic to the field. -/
+noncomputable def bot_equiv : (⊥ : intermediate_field F E) ≃ₐ[F] F :=
+(subalgebra.equiv_of_eq bot_to_subalgebra).trans (algebra.bot_equiv F E)
+
+@[simp] lemma bot_equiv_def (x : F) :
+  bot_equiv (algebra_map F (⊥ : intermediate_field F E) x) = x :=
+alg_equiv.commutes bot_equiv x
+
+/-- The top intermediate_field is isomorphic to the field. -/
+noncomputable def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
+(subalgebra.equiv_of_eq top_to_subalgebra).trans algebra.top_equiv
+
+@[simp] lemma top_equiv_def (x : (⊤ : intermediate_field F E)) : top_equiv x = ↑x :=
+begin
+  suffices : algebra.to_top (top_equiv x) = algebra.to_top (x : E),
+  { rwa subtype.ext_iff at this },
+  exact alg_equiv.apply_symm_apply (alg_equiv.of_bijective algebra.to_top
+    ⟨λ _ _, subtype.mk.inj, λ x, ⟨x.val, by { ext, refl }⟩⟩ : E ≃ₐ[F] (⊤ : subalgebra F E))
+    (subalgebra.equiv_of_eq top_to_subalgebra x),
+end
 
 @[simp] lemma coe_bot_eq_self (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
 by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }

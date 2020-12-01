@@ -271,7 +271,7 @@ end
 theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
 
-@[simp] theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
+theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
 
 @[simp] lemma inv_apply_self {α : Type u} (f : perm α) (x) :
   f⁻¹ (f x) = x := equiv.symm_apply_apply _ _
@@ -286,6 +286,8 @@ lemma mul_def {α : Type u} (f g : perm α) : f * g = g.trans f := rfl
 lemma inv_def {α : Type u} (f : perm α) : f⁻¹ = f.symm := rfl
 
 @[simp] lemma coe_mul {α : Type u} (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
+
+@[simp] lemma coe_one {α : Type u} : ⇑(1 : perm α) = id := rfl
 
 end perm
 
@@ -626,9 +628,12 @@ def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
   left_inv := λ o, subtype.eq $ option.some_get _,
   right_inv := λ x, option.get_some _ _ }
 
-/-- `α ⊕ β` is equivalent to a `sigma`-type over `bool`. -/
-def sum_equiv_sigma_bool (α β : Sort*) : α ⊕ β ≃ (Σ b: bool, cond b α β) :=
-⟨λ s, match s with inl a := ⟨tt, a⟩ | inr b := ⟨ff, b⟩ end,
+/-- `α ⊕ β` is equivalent to a `sigma`-type over `bool`. Note that this definition assumes `α` and
+`β` to be types from the same universe, so it cannot by used directly to transfer theorems about
+sigma types to theorems about sum types. In many cases one can use `ulift` to work around this
+difficulty. -/
+def sum_equiv_sigma_bool (α β : Type u) : α ⊕ β ≃ (Σ b: bool, cond b α β) :=
+⟨λ s, s.elim (λ x, ⟨tt, x⟩) (λ x, ⟨ff, x⟩),
  λ s, match s with ⟨tt, a⟩ := inl a | ⟨ff, b⟩ := inr b end,
  λ s, by cases s; refl,
  λ s, by rcases s with ⟨_|_, _⟩; refl⟩
@@ -1515,6 +1520,14 @@ theorem swap_comp_apply {a b x : α} (π : perm α) :
   π.trans (swap a b) x = if π x = a then b else if π x = b then a else π x :=
 by { cases π, refl }
 
+lemma swap_eq_update (i j : α) :
+  ⇑(equiv.swap i j) = update (update id j i) i j :=
+funext $ λ x, by rw [update_apply _ i j, update_apply _ j i, equiv.swap_apply_def, id.def]
+
+lemma comp_swap_eq_update {β : Type*} (i j : α) (f : α → β) :
+  f ∘ equiv.swap i j = update (update f j (f i)) i (f j) :=
+by rw [swap_eq_update, comp_update, comp_update, comp.right_id]
+
 @[simp] lemma swap_inv {α : Type*} [decidable_eq α] (x y : α) :
   (swap x y)⁻¹ = swap x y := rfl
 
@@ -1759,20 +1772,11 @@ protected def congr_right {r r' : setoid α}
 quot.congr_right eq
 end quotient
 
-/-- If a function is a bijection between `univ` and a set `s` in the target type, it induces an
-equivalence between the original type and the type `↑s`. -/
-noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set β} (f : α → β)
-  (h : set.bij_on f set.univ s) : α ≃ s :=
-begin
-  have : function.bijective (λ (x : α), (⟨f x, begin exact h.maps_to (set.mem_univ x) end⟩ : s)),
-  { split,
-    { assume x y hxy,
-      apply h.inj_on (set.mem_univ x) (set.mem_univ y) (subtype.mk.inj hxy) },
-    { assume x,
-      rcases h.surj_on x.2 with ⟨y, hy⟩,
-      exact ⟨y, subtype.eq hy.2⟩ } },
-  exact equiv.of_bijective _ this
-end
+/-- If a function is a bijection between two sets `s` and `t`, then it induces an
+equivalence between the the types `↥s` and ``↥t`. -/
+noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set α} {t : set β} (f : α → β)
+  (h : set.bij_on f s t) : s ≃ t :=
+equiv.of_bijective _ h.bijective
 
 /-- The composition of an updated function with an equiv on a subset can be expressed as an
 updated function. -/

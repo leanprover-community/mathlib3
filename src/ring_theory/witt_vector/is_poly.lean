@@ -624,15 +624,18 @@ In Lean, subtraction in a ring is by definition equal to `x + -y`.
 For Witt vectors, this means that subtraction is not defined in terms of
 the polynomials `witt_sub p`.
 
-As a demonstration of the techniques developed in this file,
+As a demonstration of some of the techniques developed in this file,
 we show by a computation that evaluating `witt_sub p` on the coefficients of `x` and `y`
 gives the coefficients of `x - y`.
+
+For a more powerful demonstration, see `ring_theory/witt_vector/identities.lean`.
 -/
 
 lemma sub_eq (x y : 𝕎 R) :
   x - y = eval (witt_sub p) ![x, y] :=
 begin
-  apply is_poly₂.ext ((add_is_poly₂).comp_right (neg_is_poly)) ⟨witt_sub p, by intros; refl⟩ _ _ x y,
+  apply is_poly₂.ext ((add_is_poly₂).comp_right
+    (neg_is_poly)) ⟨witt_sub p, by intros; refl⟩ _ _ x y,
   unfreezingI { clear_dependent R }, introsI R _Rcr x y n,
   simp only [←sub_eq_add_neg, ring_hom.map_sub],
   symmetry,

@@ -11,6 +11,24 @@ import tactic.equiv_rw
 
 # Truncated Witt vectors
 
+The ring of truncated Witt vectors (of length `n`) is a quotient of the ring of Witt vectors.
+It retains the first `n` coefficients of each Witt vector.
+In this file, we setup the basic quotient API for this ring.
+
+The ring of Witt vectors is the projective limit of all the rings of truncated Witt vectors.
+
+## Main declarations
+
+- `truncated_witt_vector`: the underlying type of the ring of truncated Witt vectors
+- `truncated_witt_vector.comm_ring`: the ring structure on truncated Witt vectors
+- `witt_vector.truncate`: the quotient homomorphism that truncates a Witt vector,
+  to obtain a truncated Witt vector
+- `truncated_witt_vector.truncate`: the homomorphism that truncates
+  a truncated Witt vector of length `n` to one of length `m` (for some `m ≤ n`)
+- `witt_vector.lift`: the unique ring homomorphism into the ring of Witt vectors
+  that is compatible with a family of ring homomorphisms to the truncated Witt vectors:
+  this realizes the ring of Witt vectors as projective limit of the rings of truncated Witt vectors
+
 -/
 
 open function (injective surjective)
@@ -22,8 +40,9 @@ variables {p : ℕ} [hp : fact p.prime] (n : ℕ) (R : Type*)
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
 /--
-A truncated Witt vector over `R` is a vector of elements of `R`, i.e., the first `n` elements of a
-Witt vector. We will define operations on this type that are compatible with the (untruncated) Witt
+A truncated Witt vector over `R` is a vector of elements of `R`,
+i.e., the first `n` coefficients of a Witt vector.
+We will define operations on this type that are compatible with the (untruncated) Witt
 vector operations.
 
 `truncated_witt_vector p n R` takes a parameter `p : ℕ` that is not used in the definition.
@@ -68,8 +87,8 @@ by { ext i, rw [coeff_mk] }
 variable [comm_ring R]
 
 /--
-We can turn a truncated Witt vector `x` into a Witt vector by setting all coefficients after `x`
-to be 0.
+We can turn a truncated Witt vector `x` into a Witt vector
+by setting all coefficients after `x` to be 0.
 -/
 def out (x : truncated_witt_vector p n R) : 𝕎 R :=
 witt_vector.mk p $ λ i, if h : i < n then x.coeff ⟨i, h⟩ else 0
@@ -266,6 +285,7 @@ begin
   ext i,
   rw [coeff_truncate, coeff_mk, truncated_witt_vector.coeff_mk],
 end
+
 end witt_vector
 
 namespace truncated_witt_vector

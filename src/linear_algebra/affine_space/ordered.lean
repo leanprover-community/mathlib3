@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury G. Kudryashov
 -/
-import linear_algebra.affine_space.affine_map
+import linear_algebra.affine_space.midpoint
 import algebra.module.ordered
 
 /-!
@@ -202,14 +202,26 @@ end
 lemma left_le_line_map_iff_le (h : 0 < r) : a ≤ line_map a b r ↔ a ≤ b :=
 iff.trans (by rw line_map_apply_zero) (line_map_le_line_map_iff_of_lt h)
 
+@[simp] lemma left_le_midpoint : a ≤ midpoint k a b ↔ a ≤ b :=
+left_le_line_map_iff_le $ inv_pos.2 zero_lt_two
+
 lemma line_map_le_left_iff_le (h : 0 < r) : line_map a b r ≤ a ↔ b ≤ a :=
 @left_le_line_map_iff_le k (order_dual E) _ _ _ _ _ _ _ h
+
+@[simp] lemma midpoint_le_left : midpoint k a b ≤ a ↔ b ≤ a :=
+line_map_le_left_iff_le $ inv_pos.2 zero_lt_two
 
 lemma line_map_le_right_iff_le (h : r < 1) : line_map a b r ≤ b ↔ a ≤ b :=
 iff.trans (by rw line_map_apply_one) (line_map_le_line_map_iff_of_lt h)
 
+@[simp] lemma midpoint_le_right : midpoint k a b ≤ b ↔ a ≤ b :=
+line_map_le_right_iff_le $ inv_lt_one one_lt_two
+
 lemma right_le_line_map_iff_le (h : r < 1) : b ≤ line_map a b r ↔ b ≤ a :=
 @line_map_le_right_iff_le k (order_dual E) _ _ _ _ _ _ _ h
+
+@[simp] lemma right_le_midpoint : b ≤ midpoint k a b ↔ b ≤ a :=
+right_le_line_map_iff_le $ inv_lt_one one_lt_two
 
 end
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import topology.instances.real
+import topology.algebra.ordered.proj_Icc
 
 /-!
 # Path connectedness
@@ -48,8 +49,8 @@ For locally path connected spaces, we have
 ## Implementation notes
 
 By default, all paths have `I` as their source and `X` as their target, but there is an
-operation `I_extend` that will extend any continuous map `γ : I → X` into a continuous map
-`I_extend γ : ℝ → X` that is constant before `0` and after `1`.
+operation `set.Icc_extend` that will extend any continuous map `γ : I → X` into a continuous map
+`Icc_extend zero_le_one γ : ℝ → X` that is constant before `0` and after `1`.
 
 This is used to define `path.extend` that turns `γ : path x y` into a continuous map
 `γ.extend : ℝ → X` whose restriction to `I` is the original `γ`, and is equal to `x`
@@ -95,67 +96,6 @@ subtype.ext $ by simp [I_symm]
 lemma continuous_I_symm : continuous σ :=
 by continuity!
 
-/-- Projection of `ℝ` onto its unit interval. -/
-def proj_I : ℝ → I :=
-λ t, if h : t ≤ 0 then ⟨0, left_mem_Icc.mpr zero_le_one⟩ else
-     if h' : t ≤ 1 then ⟨t, ⟨le_of_lt $ not_le.mp h, h'⟩⟩ else ⟨1, right_mem_Icc.mpr zero_le_one⟩
-
-lemma proj_I_I {t : ℝ} (h : t ∈ I) : proj_I t = ⟨t, h⟩ :=
-begin
-  unfold proj_I,
-  rw mem_Icc at h,
-  split_ifs,
-  { simp [show t = 0, by linarith] },
-  { refl },
-  { exfalso, linarith }
-end
-
-lemma proj_I_zero : proj_I 0 = 0 := proj_I_I (⟨le_refl 0, zero_le_one⟩)
-
-lemma proj_I_one : proj_I 1 = 1 := proj_I_I (⟨zero_le_one, le_refl 1⟩)
-
-lemma surjective_proj_I : surjective proj_I :=
-λ ⟨t, t_in⟩, ⟨t, proj_I_I t_in⟩
-
-lemma range_proj_I : range proj_I = univ :=
-surjective_proj_I.range_eq
-
-@[continuity]
-lemma continuous_proj_I : continuous proj_I :=
-begin
-  refine continuous_induced_rng' (coe : I → ℝ) rfl _,
-  have : continuous (λ t : ℝ, if t ≤ 0 then 0 else if t ≤ 1 then t else 1),
-  { refine continuous_if _ continuous_const (continuous_if _ continuous_id continuous_const) ;
-    simp [Iic_def, zero_le_one] },
-  convert this,
-  ext,
-  dsimp [proj_I],
-  split_ifs ; refl
-end
-
-variables {β : Type*}
-
-/-- Extension of a function defined on the unit interval to `ℝ`, by precomposing with
-the projection. -/
-def I_extend {β : Type*} (f : I → β) : ℝ → β :=
-f ∘ proj_I
-
-@[continuity]
-lemma continuous.I_extend {f : I → X} (hf : continuous f) : continuous (I_extend f) :=
-hf.comp continuous_proj_I
-
-lemma I_extend_extends (f : I → β) {t : ℝ} (ht : t ∈ I) : I_extend f t = f ⟨t, ht⟩ :=
-by simp [I_extend, proj_I_I, ht]
-
-@[simp] lemma I_extend_zero (f : I → β) : I_extend f 0 = f 0 :=
-I_extend_extends _ _
-
-@[simp] lemma I_extend_one (f : I → β) : I_extend f 1 = f 1 :=
-I_extend_extends _ _
-
-@[simp] lemma I_extend_range (f : I → β) : range (I_extend f) = range f :=
-surjective_proj_I.range_comp f
-
 instance : connected_space I :=
 subtype.connected_space ⟨nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩
 
@@ -179,6 +119,8 @@ instance : has_coe_to_fun (path x y) := ⟨_, path.to_fun⟩
 | ⟨x, h11, h12, h13⟩ ⟨.(x), h21, h22, h23⟩ rfl := rfl
 
 namespace path
+
+@[simp] lemma coe_mk (f : I → X) (h₁ h₂ h₃) : ⇑(mk f h₁ h₂ h₃ : path x y) = f := rfl
 
 variable (γ : path x y)
 
@@ -230,45 +172,36 @@ begin
 end
 
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
-def extend : ℝ → X := I_extend γ
+def extend : ℝ → X := Icc_extend zero_le_one γ
 
 lemma continuous_extend : continuous γ.extend :=
-γ.continuous.I_extend
+γ.continuous.Icc_extend
 
 @[simp] lemma extend_zero : γ.extend 0 = x :=
-by simp [extend]
+(Icc_extend_left _ _).trans γ.source
 
 @[simp] lemma extend_one : γ.extend 1 = y :=
-by simp [extend]
+(Icc_extend_right _ _).trans γ.target
 
 @[simp] lemma extend_extends {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) {t : ℝ} (ht : t ∈ (Icc 0 1 : set ℝ)) : γ.extend t = γ ⟨t, ht⟩ :=
-I_extend_extends γ.to_fun ht
+Icc_extend_of_mem _ γ ht
 
 @[simp] lemma extend_extends' {X : Type*} [topological_space X] {a b : X}
-  (γ : path a b) (t : (Icc 0 1 : set ℝ)) : γ.extend ↑t = γ t :=
-by { convert γ.extend_extends t.2, rw subtype.ext_iff_val }
+  (γ : path a b) (t : (Icc 0 1 : set ℝ)) : γ.extend t = γ t :=
+Icc_extend_coe _ γ t
 
 @[simp] lemma extend_range {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) : range γ.extend = range γ :=
-I_extend_range γ.to_fun
+Icc_extend_range _ γ
 
-lemma extend_le_zero {X : Type*} [topological_space X] {a b : X}
+lemma extend_of_le_zero {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) {t : ℝ} (ht : t ≤ 0) : γ.extend t = a :=
-begin
-  have := γ.source,
-  simpa [path.extend, I_extend, proj_I, ht]
-end
+(Icc_extend_of_le_left _ _ ht).trans γ.source
 
-lemma extend_one_le {X : Type*} [topological_space X] {a b : X}
+lemma extend_of_one_le {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) {t : ℝ} (ht : 1 ≤ t) : γ.extend t = b :=
-begin
-  simp only [path.extend, I_extend, proj_I, comp_app],
-  split_ifs,
-  { exfalso, linarith },
-  { convert γ.target, linarith },
-  { exact γ.target }
-end
+(Icc_extend_of_right_le _ _ ht).trans γ.target
 
 @[simp] lemma refl_extend {X : Type*} [topological_space X] {a : X} :
   (path.refl a).extend = λ _, a := rfl
@@ -295,9 +228,8 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
     apply (continuous_if _ _ _).comp continuous_subtype_coe,
     { norm_num },
     -- TODO: the following are provable by `continuity` but it is too slow
-    { exact ((path.continuous γ).comp continuous_proj_I).comp (continuous_const.mul continuous_id')},
-    { exact ((path.continuous γ').comp continuous_proj_I).comp
-      ((continuous_const.mul continuous_id').sub continuous_const) }
+    { exact γ.continuous_extend.comp (continuous_const.mul continuous_id) },
+    { exact γ'.continuous_extend.comp ((continuous_const.mul continuous_id).sub continuous_const) }
   end,
   source' := by norm_num,
   target' := by norm_num }
@@ -392,7 +324,7 @@ h.comp (continuous_id.prod_map continuous_I_symm)
 lemma continuous_uncurry_extend_of_continuous_family {X ι : Type*} [topological_space X]
   [topological_space ι] {a b : ι → X}  (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).extend) :=
-h.comp (continuous_id.prod_map continuous_proj_I)
+h.comp (continuous_id.prod_map continuous_proj_Icc)
 
 lemma trans_continuous_family {X ι : Type*} [topological_space X] [topological_space ι]
   {a b c : ι → X}
@@ -430,10 +362,10 @@ def truncate {X : Type*} [topological_space X] {a b : X}
     unfold min max,
     norm_cast,
     split_ifs with h₁ h₂ h₃ h₄,
-    { simp [γ.extend_le_zero h₁] },
+    { simp [γ.extend_of_le_zero h₁] },
     { congr, linarith },
     { have h₄ : t₁ ≤ 0 := le_of_lt (by simpa using h₂),
-      simp [γ.extend_le_zero h₄, γ.extend_le_zero h₁] },
+      simp [γ.extend_of_le_zero h₄, γ.extend_of_le_zero h₁] },
     all_goals { refl }
   end,
   target' :=
@@ -441,10 +373,10 @@ def truncate {X : Type*} [topological_space X] {a b : X}
     unfold min max,
     norm_cast,
     split_ifs with h₁ h₂ h₃,
-    { simp [γ.extend_one_le h₂] },
+    { simp [γ.extend_of_one_le h₂] },
     { refl },
     { have h₄ : 1 ≤ t₀ := le_of_lt (by simpa using h₁),
-      simp [γ.extend_one_le h₄, γ.extend_one_le (h₄.trans h₃)] },
+      simp [γ.extend_of_one_le h₄, γ.extend_of_one_le (h₄.trans h₃)] },
     { refl }
   end }
 
@@ -467,7 +399,7 @@ end
   mean the uncurried function which maps `(t₀, t₁, s)` to `γ.truncate t₀ t₁ s` is continuous. -/
 lemma truncate_continuous_family {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) : continuous (λ x, γ.truncate x.1 x.2.1 x.2.2 : ℝ × ℝ × I → X) :=
-(γ.continuous.comp continuous_proj_I).comp
+γ.continuous_extend.comp
   (((continuous_subtype_coe.comp (continuous_snd.comp continuous_snd)).max continuous_fst).min
     (continuous_fst.comp continuous_snd))
 /- TODO : When `continuity` gets quicker, change the proof back to :
@@ -506,10 +438,8 @@ by convert γ.truncate_self 1; exact γ.extend_one.symm
 begin
   ext x,
   rw cast_coe,
-  simp only [truncate, has_coe_to_fun.coe, coe_fn, refl, min, max, extend, I_extend, comp_app],
-  congr,
   have : ↑x ∈ (Icc 0 1 : set ℝ) := x.2,
-  simp [this.1, this.2, proj_I_I this]
+  rw [truncate, coe_mk, max_eq_left this.1, min_eq_left this.2, extend_extends']
 end
 
 end path

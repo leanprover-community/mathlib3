@@ -70,8 +70,19 @@ class complete_lattice (α : Type*) extends bounded_lattice α, has_Sup α, has_
 
 /-- Create a `complete_lattice` from a `partial_order` and `Inf` function
 that returns the greatest lower bound of a set. Usually this constructor provides
-poor definitional equalities, so it should be used with
-`.. complete_lattice_of_Inf α _`. -/
+poor definitional equalities.  If other fields are known explicitly, they should be
+provided; for example, if `inf` is known explicitly, construct the `complete_lattice`
+instance as
+```
+instance : complete_lattice my_T :=
+{ inf := better_inf,
+  le_inf := ...,
+  inf_le_right := ...,
+  inf_le_left := ...
+  -- don't care to fix sup, Sup, bot, top
+  ..complete_lattice_of_Inf my_T _ }
+```
+-/
 def complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
   [H2 : has_Inf α] (is_glb_Inf : ∀ s : set α, is_glb s (Inf s)) :
   complete_lattice α :=
@@ -96,8 +107,19 @@ def complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
 
 /-- Create a `complete_lattice` from a `partial_order` and `Sup` function
 that returns the least upper bound of a set. Usually this constructor provides
-poor definitional equalities, so it should be used with
-`.. complete_lattice_of_Sup α _`. -/
+poor definitional equalities.  If other fields are known explicitly, they should be
+provided; for example, if `inf` is known explicitly, construct the `complete_lattice`
+instance as
+```
+instance : complete_lattice my_T :=
+{ inf := better_inf,
+  le_inf := ...,
+  inf_le_right := ...,
+  inf_le_left := ...
+  -- don't care to fix sup, Inf, bot, top
+  ..complete_lattice_of_Sup my_T _ }
+```
+-/
 def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
   [H2 : has_Sup α] (is_lub_Sup : ∀ s : set α, is_lub s (Sup s)) :
   complete_lattice α :=

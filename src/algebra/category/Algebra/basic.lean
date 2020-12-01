@@ -82,17 +82,12 @@ def free : Type* ⥤ Algebra R :=
   map := λ S T f, free_algebra.lift _ $ (free_algebra.ι _) ∘ f }
 
 /-- The free/forget ajunction for `R`-algebras. -/
-@[simps]
 def adj : free R ⊣ forget (Algebra R) :=
-{ hom_equiv := λ X A,
-  { to_fun := λ f, f ∘ (free_algebra.ι _),
-    inv_fun := λ f, free_algebra.lift _ f,
-    left_inv := by tidy,
-    right_inv := by tidy },
-  unit := { app := λ S, free_algebra.ι _ },
-  counit :=
-  { app := λ S, free_algebra.lift _ $ id,
-    naturality' := by {intros, ext, simp} } } -- tidy times out :(
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X A, (free_algebra.lift _).symm,
+  -- Relying on `obviously` to fill out these proofs is very slow :(
+  hom_equiv_naturality_left_symm' := by {intros, ext, simp},
+  hom_equiv_naturality_right' := by {intros, ext, simp} }
 
 end Algebra
 

@@ -161,6 +161,10 @@ def quotient_map {α : Type*} {β : Type*} [tα : topological_space α] [tβ : t
   (f : α → β) : Prop :=
 function.surjective f ∧ tβ = tα.coinduced f
 
+lemma quotient_map_iff {α β : Type*} [topological_space α] [topological_space β] {f : α → β} :
+  quotient_map f ↔ function.surjective f ∧ ∀ s : set β, is_open s ↔ is_open (f ⁻¹' s) :=
+and_congr iff.rfl topological_space_eq_iff
+
 namespace quotient_map
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
@@ -218,9 +222,12 @@ le_map $ λ s, hf.image_mem_nhds
 lemma of_inverse {f : α → β} {f' : β → α}
   (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
   is_open_map f :=
-assume s hs,
-have f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
-this ▸ h s hs
+begin
+  assume s hs,
+  have : f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
+  rw ← this,
+  exact hs.preimage h
+end
 
 lemma to_quotient_map {f : α → β}
   (open_map : is_open_map f) (cont : continuous f) (surj : function.surjective f) :
@@ -230,7 +237,7 @@ lemma to_quotient_map {f : α → β}
     ext s,
     show is_open s ↔ is_open (f ⁻¹' s),
     split,
-    { exact cont s },
+    { exact continuous_def.1 cont s },
     { assume h,
       rw ← @image_preimage_eq _ _ _ s surj,
       exact open_map _ h }
@@ -292,7 +299,7 @@ lemma open_embedding.open_iff_image_open {f : α → β} (hf : open_embedding f)
   {s : set α} : is_open s ↔ is_open (f '' s) :=
 ⟨embedding_open hf.to_embedding hf.open_range,
  λ h, begin
-   convert ←hf.to_embedding.continuous _ h,
+   convert ← h.preimage hf.to_embedding.continuous,
    apply preimage_image_eq _ hf.inj
  end⟩
 

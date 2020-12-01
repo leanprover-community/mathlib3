@@ -323,6 +323,13 @@ lemma pow_lt_pow_of_lt_one  {a : R} (h : 0 < a) (ha : a < 1)
 let ⟨k, hk⟩ := nat.exists_eq_add_of_lt hij in
 by rw hk; exact pow_lt_pow_of_lt_one_aux h ha _ _
 
+lemma pow_lt_pow_iff_of_lt_one {a : R} {n m : ℕ} (hpos : 0 < a) (h : a < 1) :
+  a ^ m < a ^ n ↔ n < m :=
+begin
+  have : strict_mono (λ (n : order_dual ℕ), a ^ (id n : ℕ)) := λ m n, pow_lt_pow_of_lt_one hpos h,
+  exact this.lt_iff_lt
+end
+
 lemma pow_le_pow_of_le_one  {a : R} (h : 0 ≤ a) (ha : a ≤ 1)
   {i j : ℕ} (hij : i ≤ j) : a ^ j ≤ a ^ i :=
 let ⟨k, hk⟩ := nat.exists_eq_add_of_le hij in
@@ -364,7 +371,7 @@ by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 namespace int
 
 lemma units_pow_two (u : units ℤ) : u ^ 2 = 1 :=
-(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+(pow_two u).symm ▸ units_mul_self u
 
 lemma units_pow_eq_pow_mod_two (u : units ℤ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
 by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_pow_two, one_pow, mul_one]

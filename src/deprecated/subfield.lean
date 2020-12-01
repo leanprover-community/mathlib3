@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow
 -/
 import deprecated.subring
-import algebra.group_with_zero_power
+import algebra.group_with_zero.power
 
 variables {F : Type*} [field F] (S : set F)
 

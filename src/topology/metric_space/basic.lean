@@ -187,6 +187,17 @@ by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg, ennreal.of
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=
 by { rw [edist_dist, nndist, ennreal.of_real_eq_coe_nnreal] }
 
+@[simp, norm_cast] lemma ennreal_coe_nndist (x y : α) : ↑(nndist x y) = edist x y :=
+(edist_nndist x y).symm
+
+@[simp, norm_cast] lemma edist_lt_coe {x y : α} {c : nnreal} :
+  edist x y < c ↔ nndist x y < c :=
+by rw [edist_nndist, ennreal.coe_lt_coe]
+
+@[simp, norm_cast] lemma edist_le_coe {x y : α} {c : nnreal} :
+  edist x y ≤ c ↔ nndist x y ≤ c :=
+by rw [edist_nndist, ennreal.coe_le_coe]
+
 /--In a metric space, the extended distance is always finite-/
 lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ :=
 by rw [edist_dist x y]; apply ennreal.coe_ne_top
@@ -200,6 +211,17 @@ ennreal.lt_top_iff_ne_top.2 (edist_ne_top x y)
 
 /--Express `dist` in terms of `nndist`-/
 lemma dist_nndist (x y : α) : dist x y = ↑(nndist x y) := rfl
+
+@[simp, norm_cast] lemma coe_nndist (x y : α) : ↑(nndist x y) = dist x y :=
+(dist_nndist x y).symm
+
+@[simp, norm_cast] lemma dist_lt_coe {x y : α} {c : nnreal} :
+  dist x y < c ↔ nndist x y < c :=
+iff.rfl
+
+@[simp, norm_cast] lemma dist_le_coe {x y : α} {c : nnreal} :
+  dist x y ≤ c ↔ nndist x y ≤ c :=
+iff.rfl
 
 /--Express `nndist` in terms of `dist`-/
 lemma nndist_dist (x y : α) : nndist x y = nnreal.of_real (dist x y) :=
@@ -262,6 +284,9 @@ def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
 def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ dist y x ≤ ε := iff.rfl
+
+theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ dist x y ≤ ε :=
+by { rw dist_comm, refl }
 
 lemma nonempty_closed_ball (h : 0 ≤ ε) : (closed_ball x ε).nonempty :=
 ⟨x, by simp [h]⟩
@@ -540,6 +565,14 @@ nhds_basis_uniformity uniformity_basis_dist
 theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s :=
 nhds_basis_ball.mem_iff
 
+theorem eventually_nhds_iff {p : α → Prop} :
+  (∀ᶠ y in 𝓝 x, p y) ↔ ∃ε>0, ∀ ⦃y⦄, dist y x < ε → p y :=
+mem_nhds_iff
+
+lemma eventually_nhds_iff_ball {p : α → Prop} :
+  (∀ᶠ y in 𝓝 x, p y) ↔ ∃ ε>0, ∀ y ∈ ball x ε, p y :=
+mem_nhds_iff
+
 theorem nhds_basis_closed_ball : (𝓝 x).has_basis (λ ε:ℝ, 0 < ε) (closed_ball x) :=
 nhds_basis_uniformity uniformity_basis_dist_le
 
@@ -813,7 +846,7 @@ by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
 /-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the
 general case. -/
 lemma squeeze_zero' {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀ᶠ t in t₀, 0 ≤ f t)
-  (hft : ∀ᶠ t in t₀, f t ≤ g t) (g0 : tendsto g t₀ (nhds 0)) : tendsto f t₀ (nhds 0) :=
+  (hft : ∀ᶠ t in t₀, f t ≤ g t) (g0 : tendsto g t₀ (nhds 0)) : tendsto f t₀ (𝓝 0) :=
 tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds g0 hf hft
 
 /-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le`
@@ -1038,7 +1071,7 @@ uniform_continuous_dist.continuous
 
 theorem continuous.dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
-continuous_dist.comp (hf.prod_mk hg)
+continuous_dist.comp (hf.prod_mk hg : _)
 
 theorem filter.tendsto.dist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
@@ -1066,7 +1099,7 @@ uniform_continuous_nndist.continuous
 
 lemma continuous.nndist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, nndist (f b) (g b)) :=
-continuous_nndist.comp (hf.prod_mk hg)
+continuous_nndist.comp (hf.prod_mk hg : _)
 
 theorem filter.tendsto.nndist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
@@ -1134,20 +1167,16 @@ begin
   { assume x y,
     rw ← lt_top_iff_ne_top,
     have : (⊥ : ennreal) < ⊤ := ennreal.coe_lt_top,
-    simp [edist, this],
-    assume b,
-    rw lt_top_iff_ne_top,
-    exact edist_ne_top (x b) (y b) },
+    simp [edist_pi_def, finset.sup_lt_iff this, edist_lt_top] },
   show ∀ (x y : Π (b : β), π b), ↑(sup univ (λ (b : β), nndist (x b) (y b))) =
     ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
   { assume x y,
-    have : sup univ (λ (b : β), edist (x b) (y b)) = ↑(sup univ (λ (b : β), nndist (x b) (y b))),
-    { simp [edist_nndist],
-      refine eq.symm (comp_sup_eq_sup_comp_of_is_total _ _ _),
-      exact (assume x y h, ennreal.coe_le_coe.2 h), refl },
-    rw this,
-    refl }
+    simp only [edist_nndist],
+    norm_cast }
 end
+
+lemma nndist_pi_def (f g : Πb, π b) : nndist f g = sup univ (λb, nndist (f b) (g b)) :=
+subtype.eta _ _
 
 lemma dist_pi_def (f g : Πb, π b) :
   dist f g = (sup univ (λb, nndist (f b) (g b)) : nnreal) := rfl
@@ -1155,20 +1184,22 @@ lemma dist_pi_def (f g : Πb, π b) :
 lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
   dist f g < r ↔ ∀b, dist (f b) (g b) < r :=
 begin
-  lift r to nnreal using le_of_lt hr,
-  rw_mod_cast [dist_pi_def, finset.sup_lt_iff],
-  { simp [nndist], refl },
-  { exact hr }
+  lift r to nnreal using hr.le,
+  simp [dist_pi_def, finset.sup_lt_iff (show ⊥ < r, from hr)],
 end
 
 lemma dist_pi_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
   dist f g ≤ r ↔ ∀b, dist (f b) (g b) ≤ r :=
 begin
   lift r to nnreal using hr,
-  rw_mod_cast [dist_pi_def, finset.sup_le_iff],
-  simp [nndist],
-  refl
+  simp [nndist_pi_def]
 end
+
+lemma nndist_le_pi_nndist (f g : Πb, π b) (b : β) : nndist (f b) (g b) ≤ nndist f g :=
+by { rw [nndist_pi_def], exact finset.le_sup (finset.mem_univ b) }
+
+lemma dist_le_pi_dist (f g : Πb, π b) (b : β) : dist (f b) (g b) ≤ dist f g :=
+by simp only [dist_nndist, nnreal.coe_le_coe, nndist_le_pi_nndist f g b]
 
 /-- An open ball in a product space is a product of open balls. The assumption `0 < r`
 is necessary for the case of the empty product. -/
@@ -1444,7 +1475,7 @@ begin
     intros x y x_in y_in,
     exact this (x, y) (mk_mem_prod x_in y_in) },
   intros p p_in,
-  have := mem_closure continuous_dist p_in h,
+  have := map_mem_closure continuous_dist p_in h,
   rwa (is_closed_le' C).closure_eq at this
 end
 

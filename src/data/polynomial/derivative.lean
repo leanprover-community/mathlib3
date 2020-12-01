@@ -34,7 +34,6 @@ attribute [reducible] polynomial
 def derivative : (polynomial R) →ₗ[R] polynomial R := -- λ p, p.sum (λn a, C (a * n) * X^(n - 1))
 finsupp.total ℕ (polynomial R) R (λ n, C ↑n * X^(n - 1))
 
-@[simp]
 lemma derivative_apply (p : polynomial R) :
   derivative p = p.sum (λn a, C (a * n) * X^(n - 1)) :=
 begin
@@ -67,8 +66,8 @@ lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomi
 lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 
-lemma derivative_C {a : R} : derivative (C a) = 0 :=
-by simp
+@[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
+by simp [derivative_apply]
 
 @[simp] lemma derivative_X : derivative (X : polynomial R) = 1 :=
 (derivative_monomial _ _).trans $ by simp
@@ -99,6 +98,10 @@ end semiring
 
 section comm_semiring
 variables [comm_semiring R]
+
+lemma derivative_eval (p : polynomial R) (x : R) :
+  p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
+by simp only [derivative_apply, eval_sum, eval_pow, eval_C, eval_X, eval_nat_cast, eval_mul]
 
 @[simp] lemma derivative_mul {f g : polynomial R} :
   derivative (f * g) = derivative f * g + f * derivative g :=

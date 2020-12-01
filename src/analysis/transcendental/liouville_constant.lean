@@ -194,7 +194,8 @@ begin
   exact hm
 end
 
-lemma is_transcendental_of_liouville_constant (hm : 2 < m) : is_transcendental ℤ (liouville_constant m) :=
+lemma is_transcendental_of_liouville_constant (hm : 2 < m) :
+  is_transcendental ℤ (liouville_constant m) :=
   real.is_liouville.transcendental_of_is_liouville (is_liouville_of_liouville_constant _ hm)
 
 end is_liouville

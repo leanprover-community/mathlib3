@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.set.function
-import algebra.group.basic
 
 /-!
 # Equivalence between types
@@ -14,7 +13,8 @@ In this file we define two types:
 * `equiv α β` a.k.a. `α ≃ β`: a bijective map `α → β` bundled with its inverse map; we use this (and
   not equality!) to express that various `Type`s or `Sort`s are equivalent.
 
-* `equiv.perm α`: the group of permutations `α ≃ α`.
+* `equiv.perm α`: the group of permutations `α ≃ α`. More lemmas about `equiv.perm` can be found in
+  `group_theory/perm`.
 
 Then we define
 
@@ -47,9 +47,6 @@ Then we define
 
   More definitions of this kind can be found in other files. E.g., `data/equiv/transfer_instance`
   does it for many algebraic type classes like `group`, `module`, etc.
-
-* group structure on `equiv.perm α`. More lemmas about `equiv.perm` can be found in
-  `data/equiv/perm`.
 
 ## Tags
 
@@ -254,42 +251,6 @@ by { rw [← set.image_comp], simp }
 protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
   f '' sᶜ = (f '' s)ᶜ :=
 set.image_compl_eq f.bijective
-
-/-!
-### The group of permutations (self-equivalences) of a type `α`
--/
-
-namespace perm
-
-instance perm_group {α : Type u} : group (perm α) :=
-begin
-  refine { mul := λ f g, equiv.trans g f, one := equiv.refl α, inv:= equiv.symm, ..};
-  intros; apply equiv.ext; try { apply trans_apply },
-  apply symm_apply_apply
-end
-
-theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
-equiv.trans_apply _ _ _
-
-theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
-
-@[simp] lemma inv_apply_self {α : Type u} (f : perm α) (x) :
-  f⁻¹ (f x) = x := equiv.symm_apply_apply _ _
-
-@[simp] lemma apply_inv_self {α : Type u} (f : perm α) (x) :
-  f (f⁻¹ x) = x := equiv.apply_symm_apply _ _
-
-lemma one_def {α : Type u} : (1 : perm α) = equiv.refl α := rfl
-
-lemma mul_def {α : Type u} (f g : perm α) : f * g = g.trans f := rfl
-
-lemma inv_def {α : Type u} (f : perm α) : f⁻¹ = f.symm := rfl
-
-@[simp] lemma coe_mul {α : Type u} (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
-
-@[simp] lemma coe_one {α : Type u} : ⇑(1 : perm α) = id := rfl
-
-end perm
 
 /-- If `α` is an empty type, then it is equivalent to the `empty` type. -/
 def equiv_empty (h : α → false) : α ≃ empty :=
@@ -854,7 +815,7 @@ variables {α₁ β₁ β₂ : Type*} [decidable_eq α₁] (a : α₁) (e : perm
 `(a, e b)` and keeping the other `(a', b)` fixed. -/
 def prod_extend_right : perm (α₁ × β₁) :=
 { to_fun := λ ab, if ab.fst = a then (a, e ab.snd) else ab,
-  inv_fun := λ ab, if ab.fst = a then (a, e⁻¹ ab.snd) else ab,
+  inv_fun := λ ab, if ab.fst = a then (a, e.symm ab.snd) else ab,
   left_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] },
   right_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] } }
 
@@ -1528,9 +1489,6 @@ lemma comp_swap_eq_update {β : Type*} (i j : α) (f : α → β) :
   f ∘ equiv.swap i j = update (update f j (f i)) i (f j) :=
 by rw [swap_eq_update, comp_update, comp_update, comp.right_id]
 
-@[simp] lemma swap_inv {α : Type*} [decidable_eq α] (x y : α) :
-  (swap x y)⁻¹ = swap x y := rfl
-
 @[simp] lemma symm_trans_swap_trans [decidable_eq β] (a b : α)
   (e : α ≃ β) : (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
 equiv.ext (λ x, begin
@@ -1540,12 +1498,9 @@ equiv.ext (λ x, begin
   split_ifs; simp
 end)
 
-@[simp] lemma swap_mul_self {α : Type*} [decidable_eq α] (i j : α) : swap i j * swap i j = 1 :=
-equiv.swap_swap i j
-
 @[simp] lemma swap_apply_self {α : Type*} [decidable_eq α] (i j a : α) :
   swap i j (swap i j a) = a :=
-by rw [← perm.mul_apply, swap_mul_self, perm.one_apply]
+by rw [← equiv.trans_apply, equiv.swap_swap, equiv.refl_apply]
 
 /-- Augment an equivalence with a prescribed mapping `f a = b` -/
 def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=

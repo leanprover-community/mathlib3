@@ -1409,12 +1409,12 @@ meta def eval : expr → ring_exp_m (ex sum)
   qs' ← in_exponent $ eval qs,
   psqs ← pow ps' qs',
   psqs_pf ← psqs.proof_term,
-  ((do has_pow_pf ← match hp_instance with
+  (do has_pow_pf ← match hp_instance with
   | `(monoid.has_pow) := lift $ mk_eq_refl e
   | _ := lift $ fail "has_pow instance must be nat.has_pow or monoid.has_pow"
   end,
   pf ← lift $ mk_eq_trans has_pow_pf psqs_pf,
-  pure $ psqs.set_info e pf) <|> eval_base e)
+  pure $ psqs.set_info e pf) <|> eval_base e
 | ps := eval_base ps
 
 /--

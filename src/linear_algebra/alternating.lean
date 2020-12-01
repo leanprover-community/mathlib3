@@ -150,9 +150,9 @@ by refine {zero := 0, add := (+), ..};
    intros; ext; simp [add_comm, add_left_comm]
 
 instance : has_neg (alternating_map R' M' N' ι) :=
-⟨λ f, {
-  map_eq_args' := λ v i j h hij, by simp [f.map_eq_args v h hij],
-  ..(-(f : multilinear_map R' (λ i : ι, M') N')) }⟩
+⟨λ f,
+  { map_eq_args' := λ v i j h hij, by simp [f.map_eq_args v h hij],
+    ..(-(f : multilinear_map R' (λ i : ι, M') N')) }⟩
 
 @[simp] lemma neg_apply (m : ι → M') : (-g') m = - (g' m) := rfl
 
@@ -166,9 +166,9 @@ variables {S : Type*} [comm_semiring S] [algebra S R] [semimodule S N]
   [is_scalar_tower S R N]
 
 instance : has_scalar S (alternating_map R M N ι) :=
-⟨λ c f, {
-  map_eq_args' := λ v i j h hij, by simp [f.map_eq_args v h hij],
-  ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
+⟨λ c f,
+  { map_eq_args' := λ v i j h hij, by simp [f.map_eq_args v h hij],
+    ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
 
 @[simp] lemma smul_apply (f : alternating_map R M N ι) (c : S) (m : ι → M) :
   (c • f) m = c • f m := rfl
@@ -206,12 +206,10 @@ lemma map_swap_add {i j : ι} (hij : i ≠ j) :
 begin
   rw equiv.comp_swap_eq_update,
   convert f.map_update_update v hij (v i + v j),
-  simp [
-    f.map_update_self _ hij,
-    f.map_update_self _ hij.symm,
-    function.update_comm hij (v i + v j) (v _) v,
-    function.update_comm hij.symm (v i) (v i) v
-  ],
+  simp [f.map_update_self _ hij,
+        f.map_update_self _ hij.symm,
+        function.update_comm hij (v i + v j) (v _) v,
+        function.update_comm hij.symm (v i) (v i) v],
 end
 
 lemma map_add_swap {i j : ι} (hij : i ≠ j) :

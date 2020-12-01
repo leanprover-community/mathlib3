@@ -509,6 +509,17 @@ begin
   exact ih (adjoin F ↑t) a h
 end
 
+lemma induction_on_adjoin' (F : Type*) [field F] [algebra F E] (S : finset E)
+  (P : intermediate_field F E → Prop) (base : P ⊥)
+  (ih : ∀ (K : intermediate_field F E) (x ∈ S), P K → P ↑K⟮x⟯) : P (adjoin F ↑S) :=
+begin
+  apply finset.induction_on' S,
+  { exact base },
+  { intros a s h1 _ _ h4,
+    rw [finset.coe_insert, set.insert_eq, set.union_comm, ←adjoin_adjoin_left],
+    exact ih (adjoin F s) a h1 h4 }
+end
+
 end induction
 
 end intermediate_field

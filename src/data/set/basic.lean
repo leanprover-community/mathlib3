@@ -1506,8 +1506,23 @@ theorem is_compl_range_inl_range_inr : is_compl (range $ @sum.inl α β) (range 
 ⟨by { rintro y ⟨⟨x₁, rfl⟩, ⟨x₂, _⟩⟩, cc },
   by { rintro (x|y) -; [left, right]; exact mem_range_self _ }⟩
 
-theorem range_inl_union_range_inr : range (@sum.inl α β) ∪ range sum.inr = univ :=
+@[simp] theorem range_inl_union_range_inr : range (sum.inl : α → α ⊕ β) ∪ range sum.inr = univ :=
 is_compl_range_inl_range_inr.sup_eq_top
+
+@[simp] theorem range_inl_inter_range_inr : range (sum.inl : α → α ⊕ β) ∩ range sum.inr = ∅ :=
+is_compl_range_inl_range_inr.inf_eq_bot
+
+@[simp] theorem range_inr_union_range_inl : range (sum.inr : β → α ⊕ β) ∪ range sum.inl = univ :=
+is_compl_range_inl_range_inr.symm.sup_eq_top
+
+@[simp] theorem range_inr_inter_range_inl : range (sum.inr : β → α ⊕ β) ∩ range sum.inl = ∅ :=
+is_compl_range_inl_range_inr.symm.inf_eq_bot
+
+@[simp] theorem preimage_inl_range_inr : sum.inl ⁻¹' range (sum.inr : β → α ⊕ β) = ∅ :=
+by { ext, simp }
+
+@[simp] theorem preimage_inr_range_inl : sum.inr ⁻¹' range (sum.inl : α → α ⊕ β) = ∅ :=
+by { ext, simp }
 
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 (surjective_quot_mk r).range_eq
@@ -2143,6 +2158,16 @@ by { cases x, refl }
 lemma inclusion_injective {s t : set α} (h : s ⊆ t) :
   function.injective (inclusion h)
 | ⟨_, _⟩ ⟨_, _⟩ := subtype.ext_iff_val.2 ∘ subtype.ext_iff_val.1
+
+lemma eq_of_inclusion_surjective {s t : set α} {h : s ⊆ t}
+  (h_surj : function.surjective (inclusion h)) : s = t :=
+begin
+  apply set.subset.antisymm h,
+  intros x hx,
+  cases h_surj ⟨x, hx⟩ with y key,
+  rw [←subtype.coe_mk x hx, ←key, coe_inclusion],
+  exact subtype.mem y,
+end
 
 lemma range_inclusion {s t : set α} (h : s ⊆ t) : range (inclusion h) = {x : t | (x:α) ∈ s} :=
 by { ext ⟨x, hx⟩, simp [inclusion] }

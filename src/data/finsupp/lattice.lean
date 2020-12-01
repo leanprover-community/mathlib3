@@ -99,7 +99,7 @@ end ⟩
 
 @[simp] lemma order_iso_multiset_symm_apply {s : multiset α} :
   order_iso_multiset.symm s = s.to_finsupp :=
-by { conv_rhs { rw ← (rel_iso.apply_symm_apply order_iso_multiset) s}, simp }
+by { conv_rhs { rw ← order_iso_multiset.apply_symm_apply s}, simp }
 
 variable [partial_order β]
 

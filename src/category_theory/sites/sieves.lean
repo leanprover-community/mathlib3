@@ -192,7 +192,10 @@ lemma mem_generate (R : presieve X) (f : Z ⟶ X) :
   generate R f ↔ ∃ (Y : C) (h : Z ⟶ Y) (g : Y ⟶ X), R g ∧ h ≫ g = f :=
 iff.rfl
 
-/-- Given a collection of arrows with fixed codomain,  -/
+/--
+Given a presieve on `X`, and a sieve on each domain of an arrow in the presieve, we can bind to
+produce a sieve on `X`.
+-/
 def bind (S : presieve X) (R : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, S f → sieve Y) : sieve X :=
 { arrows := S.bind (λ Y f h, R h),
   downward_closed' :=

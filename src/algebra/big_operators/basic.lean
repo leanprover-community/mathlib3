@@ -953,6 +953,11 @@ lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α →
   ↑(∑ x in s, f x : ℕ) = (∑ x in s, (f x : β)) :=
 (nat.cast_add_monoid_hom β).map_sum f s
 
+@[norm_cast]
+lemma sum_int_cast [add_comm_group β] [has_one β] (s : finset α) (f : α → ℤ) :
+  ↑(∑ x in s, f x : ℤ) = (∑ x in s, (f x : β)) :=
+(int.cast_add_hom β).map_sum f s
+
 lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
   ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card •ℕ (f b) :=
 @prod_comp _ (multiplicative β) _ _ _ _ _ _

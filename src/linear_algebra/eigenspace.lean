@@ -177,7 +177,7 @@ begin
   { simp only [←not_imp, (is_unit.mem_submonoid_iff _).symm],
     apply not_forall.1 (λ h, h_eval_p_not_unit
       (ring_hom_mem_submonoid_of_factors_subset_of_units_subset
-      (eval₂_ring_hom' (algebra_map _ _) algebra.commutes f)
+      (eval₂_ring_hom' (algebra_map _ _) f _)
       (is_unit.submonoid (End K V)) p h_mon.ne_zero h _)),
     simp only [is_unit.mem_submonoid_iff, linear_map.is_unit_iff],
     apply ker_aeval_ring_hom'_unit_polynomial },

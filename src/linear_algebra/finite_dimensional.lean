@@ -830,7 +830,7 @@ have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
 
 end alg_hom
 
-/-- Biijection between algebra equivalences and algebra homomorphisms -/
+/-- Bijection between algebra equivalences and algebra homomorphisms -/
 noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [field E]
   [algebra F E] [finite_dimensional F E] : (E ≃ₐ[F] E) ≃ (E →ₐ[F] E) :=
 { to_fun := λ ϕ, ϕ.to_alg_hom,

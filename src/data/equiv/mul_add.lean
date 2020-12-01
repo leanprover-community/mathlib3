@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 import algebra.group.hom
 import algebra.group.type_tags
 import algebra.group.units_hom
-import data.equiv.basic
+import group_theory.perm.basic
 
 /-!
 # Multiplicative and additive equivs

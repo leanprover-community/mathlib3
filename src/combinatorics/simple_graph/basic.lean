@@ -10,50 +10,37 @@ import tactic
 
 /-!
 # Simple graphs
-
 This module defines simple graphs as irreflexive symmetric relations.
 Since graphs are terms rather than types, the usual mathlib techniques
 for dealing with objects and subobjects in a uniform way is
 implemented a bit differently.
-
 A simple graph is a term of type `simple_graph`.  This bundles
 together a vertex type `V` and a `simple_graph_on V` structure.  Types
 whose terms have an interpretation as a simple graph should define an
 instance of `has_coe_to_simple_graph`.  This modules provides the `↟`
 coercion arrow to coerce terms to `simple_graph`.
-
 Proofs that apply to graphs in general should use `G : simple_graph`
 directly.  One should use the accessor functions in the
 `accessor_functions` section.  For types with
 `has_coe_to_simple_graph` instances, then one may give `simp` lemmas
 to put these accessors into specialized forms.
-
 There is a basic API for locally finite graphs and for graphs with
 finitely many vertices.  We take the convention that a graph is finite at
 a given vertex `v` if `[fintype (neighbor_set v)]`, and it has finitely many
 vertices if `[fintype (V G)]`.
-
 ## Main definitions
-
 * `simple_graph_on V` is the type for simple graphs on a given vertex type.
   It forms a bounded lattice.
-
 * `simple_graph` is a bundled `simple_graph_on`.
-
 * `subgraph G` is a type of subgraphs of a given graph `G`.  It forms a bounded lattice
-
 * `neighbor_set` is the `set` of vertices adjacent to a given vertex
-
 * `neighbor_finset` is the `finset` of vertices adjacent to a given vertex,
    if `neighbor_set` is finite
-
 ## Implementation notes
-
 * A locally finite graph is one with instances `∀ (v : V G), fintype (neighbor_set v)`.
-
 * Given instances `decidable_rel (adj G)` and `fintype (V G)`, then the graph
 is locally finite, too.
-
+TODO: subdivide edges
 TODO: This should eventually fit into a more complete combinatorics
 hierarchy which includes multigraphs and directed graphs.  We begin
 with simple graphs in order to start learning what the combinatorics
@@ -68,7 +55,6 @@ Basic constructor for a simple graph, using a symmetric irreflexive relation.
 The relation describes which pairs of vertices are adjacent.
 There is exactly one edge for every pair of adjacent edges;
 see `simple_graph.edge_set` for the corresponding edge set.
-
 When proving statements about simple graphs in general, one should use the
 `simple_graph` type.
 -/
@@ -106,14 +92,12 @@ instance (V : Type u) : has_coe_to_simple_graph (simple_graph_on V) :=
 section accessor_functions
 /-!
 ## Accessor functions
-
 The way one talks about an arbitrary simple graph is by
 ```
 variables {α : Type*} [simple_graphs α] (G : α)
 ```
 That is, `α` is declared to be some "universe" of simple graph objects,
 and then `G` is a simple graph from it.
-
 To make the API simple to use, rather than needing to explicitly use
 `to_simple_graph`, we define some accessor functions that obtain the
 fields of the corresponding `simple_graph_on` object.  All definitions
@@ -134,9 +118,9 @@ have this abbreviation for `adj` with implicit `G`.
 -/
 abbreviation adj' {G : simple_graph} : V G → V G → Prop := G.adj
 
-abbreviation symm (G : simple_graph) : symmetric (@adj' G) := G.graph.symm'
+lemma symm (G : simple_graph) : symmetric (@adj' G) := G.graph.symm'
 
-abbreviation loopless (G : simple_graph) : irreflexive (@adj' G) := G.graph.loopless'
+lemma loopless (G : simple_graph) : irreflexive (@adj' G) := G.graph.loopless'
 
 infix ` ~g ` : 40 := adj'
 
@@ -193,7 +177,10 @@ by refl
 lemma adj_iff_exists_edge {v w : V G} :
   v ~g w ↔ v ≠ w ∧ ∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e :=
 begin
-  split, { intro, use [ne_of_adj a, ⟦(v,w)⟧], simpa },
+  split,
+  { intro h,
+    use [ne_of_adj h,
+    ⟦(v,w)⟧], simpa },
   { rintro ⟨hne, e, he, hv⟩,
     rw sym2.elems_iff_eq hne at hv,
     subst e,
@@ -247,9 +234,12 @@ begin
   ext e',
   simp only [incident_set, set.mem_sep_eq, set.mem_inter_eq, set.mem_singleton_iff],
   split,
-  { intro h', rw ←sym2.mem_other_spec h,
+  { intro h',
+    rw ←sym2.mem_other_spec h,
     exact (sym2.elems_iff_eq (edge_other_ne he h).symm).mp ⟨h'.1.2, h'.2.2⟩, },
-  { rintro rfl, use [he, h, he], apply sym2.mem_other_mem, },
+  { rintro rfl,
+    use [he, h, he],
+    apply sym2.mem_other_mem, },
 end
 
 section incidence
@@ -284,11 +274,9 @@ section finite_at
 
 /-!
 ## Finiteness at a vertex
-
 This section contains definitions and lemmas concerning vertices that
 have finitely many adjacent vertices.  We denote this condition by
 `fintype (G.neighbor_set v)`.
-
 We define `G.neighbor_finset v` to be the `finset` version of `G.neighbor_set v`.
 Use `neighbor_finset_eq_filter` to rewrite this definition as a `filter`.
 -/
@@ -404,7 +392,7 @@ lemma simple_graph_from_rel_adj' {α : Type u} (r : α → α → Prop) (v w : �
 by refl
 
 /--
-A path graph on n+1 vertices, which has n edges.
+A path graph on `n+1` vertices, which has `n` edges.
 -/
 def path_graph (n : ℕ) : simple_graph_on (fin (n + 1)) :=
 { adj := λ i j, j.1 = i.1 + 1 ∨ i.1 = j.1 + 1,
@@ -431,6 +419,11 @@ def cycle_graph (n : ℕ) (three_le : 3 ≤ n) : simple_graph_on (zmod n) :=
                     rw nat.mod_eq_of_lt at h'',
                     cc, linarith, } }
 
+/--
+A graph is a complete partite graph if its vertex set is a union of
+independent sets such that each vertex in an independent set is
+adjacent to every vertex in every other independent set
+-/
 def complete_partite_graph {ι : Type u} (f : ι → Type v) : simple_graph_on (Σ i : ι, f i) :=
 { adj := λ v w, v.1 ≠ w.1 }
 
@@ -439,8 +432,15 @@ end examples
 
 section graph_operations
 
+/--
+Quotient of a type by a pair of elements
+-/
 def two_pt_quo {β : Type*} (v w : β) := @quot β (λ i j, i = j ∨ (i = v ∧ j = w) ∨ (i = w ∧ j = v))
 
+/--
+The edge contraction operation on an edge of a simple graph combines its endpoints
+into one vertex and removes the resulting loop
+-/
 def contract_edge (G : simple_graph) {v w : V G} (h : v ~g w) : simple_graph_on (two_pt_quo v w) :=
 { adj := λ i j, quot.out i ~g quot.out j,
   symm' :=
@@ -456,6 +456,9 @@ def contract_edge (G : simple_graph) {v w : V G} (h : v ~g w) : simple_graph_on 
     end,
 }
 
+/--
+The edge deletion operation on an edge of a simple graph removes it
+-/
 def delete_edge (G : simple_graph) {v w : V G} (h : v ~g w) : simple_graph_on (G.V) :=
 { adj := λ i j, (¬ ((i = v ∧ j = w) ∨ (i = w ∧ j = v)) ∧ i ~g j),
   symm' :=
@@ -469,14 +472,14 @@ def delete_edge (G : simple_graph) {v w : V G} (h : v ~g w) : simple_graph_on (G
       intro hvy,
       simp,
       by_contra,
-      specialize h2 a,
+      specialize h2 h,
       apply h2,
       exact hvy,
 
       intro hyw,
       simp,
       by_contra,
-      specialize h1 a,
+      specialize h1 h,
       apply h1,
       exact hyw,
 
@@ -491,22 +494,6 @@ def delete_edge (G : simple_graph) {v w : V G} (h : v ~g w) : simple_graph_on (G
 
       exact G.loopless x,
     end }
-
--- TODO
-
--- open sum
-
--- def subdivide_adj (G : α) [simple_graph G] {e : sym2 (V G)} (h : e ∈ edge_set G) : (V G ⊕ punit) → (V G ⊕ punit) → Prop
--- | (inl a) (inl b) := (erase_edge G h).adj a b
--- | (inl a) _ := a ∈ e
--- | _ (inl a) := a ∈ e
--- | _ _ := false
-
--- /-- Subdivides an edge by turning it into two edges, with a new vertex in between -/
--- def subdivide (G : simple_graph V) (e : G.E) : simple_graph (V ⊕ punit) :=
--- { adj := G.subdivide_adj e,
---   sym := λ v w h, by { cases v; cases w; unfold simple_graph.subdivide_adj at *,
---     {apply (G.erase_edge e).sym h}, repeat { assumption }, }, }
 
 end graph_operations
 
@@ -539,3 +526,4 @@ end complete_graphs
 
 
 end simple_graph
+#lint

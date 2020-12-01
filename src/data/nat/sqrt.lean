@@ -191,7 +191,7 @@ theorem exists_mul_self (x : ℕ) :
   (∃ n, n * n = x) ↔ sqrt x * sqrt x = x :=
 ⟨λ ⟨n, hn⟩, by rw [← hn, sqrt_eq], λ h, ⟨sqrt x, h⟩⟩
 
-theorem sqrt_lt_succ (n : ℕ) : sqrt n * sqrt n < n + 1 :=
+theorem sqrt_mul_sqrt_lt_succ (n : ℕ) : sqrt n * sqrt n < n + 1 :=
 lt_succ_iff.mpr (sqrt_le _)
 
 theorem succ_le_succ_sqrt (n : ℕ) : n + 1 ≤ (sqrt n + 1) * (sqrt n + 1) :=

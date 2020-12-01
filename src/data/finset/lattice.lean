@@ -5,6 +5,7 @@ Author: Mario Carneiro
 -/
 import data.finset.fold
 import data.multiset.lattice
+import order.order_dual
 
 /-!
 # Lattice operations on finsets
@@ -13,7 +14,7 @@ import data.multiset.lattice
 variables {α β γ : Type*}
 
 namespace finset
-open multiset
+open multiset order_dual
 
 /-! ### sup -/
 section sup
@@ -194,7 +195,7 @@ lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf 
 
 /-! ### max and min of finite sets -/
 section max_min
-variables [decidable_linear_order α]
+variables [linear_order α]
 
 /-- Let `s` be a finset in a linear order. Then `s.max` is the maximum of `s` if `s` is not empty,
 and `none` otherwise. It belongs to `option α`. If you want to get an element of `α`, see
@@ -357,6 +358,28 @@ begin
   refine ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s t Ht) (le_trans a (min'_le s t Ht))⟩,
 end
 
+lemma max'_eq_of_dual_min' {s : finset α} (hs : s.nonempty) :
+  max' s hs = of_dual (min' (image to_dual s) (nonempty.image hs to_dual)) :=
+begin
+  rw [of_dual, to_dual, equiv.coe_fn_mk, equiv.coe_fn_symm_mk, id.def],
+  simp_rw (@image_id (order_dual α) (s : finset (order_dual α))),
+  refl,
+end
+
+lemma min'_eq_of_dual_max' {s : finset α} (hs : s.nonempty) :
+  min' s hs = of_dual (max' (image to_dual s) (nonempty.image hs to_dual)) :=
+begin
+  rw [of_dual, to_dual, equiv.coe_fn_mk, equiv.coe_fn_symm_mk, id.def],
+  simp_rw (@image_id (order_dual α) (s : finset (order_dual α))),
+  refl,
+end
+
+@[simp] lemma of_dual_max_eq_min_of_dual {a b : α} :
+  of_dual (max a b) = min (of_dual a) (of_dual b) := rfl
+
+@[simp] lemma of_dual_min_eq_max_of_dual {a b : α} :
+  of_dual (min a b) = max (of_dual a) (of_dual b) := rfl
+
 end max_min
 
 section exists_max_min
@@ -365,7 +388,6 @@ variables [linear_order α]
 lemma exists_max_image (s : finset β) (f : β → α) (h : s.nonempty) :
   ∃ x ∈ s, ∀ x' ∈ s, f x' ≤ f x :=
 begin
-  letI := classical.DLO α,
   cases max_of_nonempty (h.image f) with y hy,
   rcases mem_image.mp (mem_of_max hy) with ⟨x, hx, rfl⟩,
   exact ⟨x, hx, λ x' hx', le_max_of_mem (mem_image_of_mem f hx') hy⟩,

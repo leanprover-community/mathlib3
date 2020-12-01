@@ -171,6 +171,11 @@ by rw [swap_mul_eq_mul_swap, inv_apply_self, inv_apply_self]
 lemma swap_mul_self_mul (i j : α) (σ : perm α) : equiv.swap i j * (equiv.swap i j * σ) = σ :=
 by rw [←mul_assoc (swap i j) (swap i j) σ, equiv.swap_mul_self, one_mul]
 
+/-- A stronger version of `mul_right_injective` -/
+@[simp]
+lemma swap_mul_involutive (i j : α) : function.involutive ((*) (equiv.swap i j)) :=
+swap_mul_self_mul i j
+
 lemma swap_mul_eq_iff {i j : α} {σ : perm α} : swap i j * σ = σ ↔ i = j :=
 ⟨(assume h, have swap_id : swap i j = 1 := mul_right_cancel (trans h (one_mul σ).symm),
   by {rw [←swap_apply_right i j, swap_id], refl}),
@@ -235,7 +240,7 @@ else let m := swap_factors_aux l (swap x (f x) * f)
 /-- `swap_factors` represents a permutation as a product of a list of transpositions.
 The representation is non unique and depends on the linear order structure.
 For types without linear order `trunc_swap_factors` can be used -/
-def swap_factors [fintype α] [decidable_linear_order α] (f : perm α) :
+def swap_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
 swap_factors_aux ((@univ α _).sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 
@@ -247,6 +252,8 @@ quotient.rec_on_subsingleton (@univ α _).1
 (λ l h, trunc.mk (swap_factors_aux l f h))
 (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
 
+/-- An induction principle for permutations. If `P` holds for the identity permutation, and
+is preserved under composition with a non-trivial swap, then `P` holds for all permutations. -/
 @[elab_as_eliminator] lemma swap_induction_on [fintype α] {P : perm α → Prop} (f : perm α) :
   P 1 → (∀ f x y, x ≠ y → P f → P (swap x y * f)) → P f :=
 begin
@@ -258,6 +265,14 @@ begin
     rw [← hl.1, list.prod_cons, hxy.2],
     exact hmul_swap _ _ _ hxy.1 (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
 end
+
+/-- Like `swap_induction_on`, but with the composition on the right of `f`.
+
+An induction principle for permutations. If `P` holds for the identity permutation, and
+is preserved under composition with a non-trivial swap, then `P` holds for all permutations. -/
+@[elab_as_eliminator] lemma swap_induction_on' [fintype α] {P : perm α → Prop} (f : perm α) :
+  P 1 → (∀ f x y, x ≠ y → P f → P (f * swap x y)) → P f :=
+λ h1 IH, inv_inv f ▸ swap_induction_on f⁻¹ h1 (λ f, IH f⁻¹)
 
 lemma swap_mul_swap_mul_swap {x y z : α} (hwz: x ≠ y) (hxz : x ≠ z) :
   swap y z * swap x y * swap y z = swap z x :=
@@ -781,6 +796,11 @@ begin
   rintro ⟨b, α⟩,
   refl
 end
+
+@[simp] lemma sign_perm_congr {m n : Type*} [fintype m] [fintype n]
+  (e : m ≃ n) (p : equiv.perm m) :
+  (e.perm_congr p).sign = p.sign :=
+equiv.perm.sign_eq_sign_of_equiv _ _ e.symm (by simp)
 
 end
 

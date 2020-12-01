@@ -224,7 +224,7 @@ instance : normed_comm_ring ℤ_[p] :=
 
 instance : norm_one_class ℤ_[p] := ⟨norm_def.trans norm_one⟩
 
-instance : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
+instance is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := λ ⟨_, _⟩, by simp [norm_eq_zero],
   abv_add := λ ⟨_,_⟩ ⟨_, _⟩, norm_add_le _ _,

@@ -53,6 +53,7 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 open function set premetric
+open_locale uniformity
 
 namespace metric
 section approx_gluing
@@ -285,7 +286,7 @@ lemma sum.one_dist_le' {x : α} {y : β} : 1 ≤ sum.dist (inr y) (inl x) :=
 by rw sum.dist_comm; exact sum.one_dist_le
 
 private lemma sum.mem_uniformity (s : set ((α ⊕ β) × (α ⊕ β))) :
-  s ∈ (@uniformity (α ⊕ β) _).sets ↔ ∃ ε > 0, ∀ a b, sum.dist a b < ε → (a, b) ∈ s :=
+  s ∈ 𝓤 (α ⊕ β) ↔ ∃ ε > 0, ∀ a b, sum.dist a b < ε → (a, b) ∈ s :=
 begin
   split,
   { rintro ⟨hsα, hsβ⟩,
@@ -298,13 +299,13 @@ begin
     { cases not_le_of_lt (lt_of_lt_of_le h (min_le_right _ _)) sum.one_dist_le' },
     { exact hβ (lt_of_lt_of_le h (le_trans (min_le_left _ _) (min_le_right _ _))) } },
   { rintro ⟨ε, ε0, H⟩,
-    split; rw [filter.mem_map, mem_uniformity_dist];
+    split; rw [filter.mem_sets, filter.mem_map, mem_uniformity_dist];
       exact ⟨ε, ε0, λ x y h, H _ _ (by exact h)⟩ }
 end
 
-/-- The distance on the disjoint union indeed defines a metric space. All the distance properties follow from our
-choice of the distance. The harder work is to show that the uniform structure defined by the distance coincides
-with the disjoint union uniform structure. -/
+/-- The distance on the disjoint union indeed defines a metric space. All the distance properties
+follow from our choice of the distance. The harder work is to show that the uniform structure
+defined by the distance coincides with the disjoint union uniform structure. -/
 def metric_space_sum : metric_space (α ⊕ β) :=
 { dist               := sum.dist,
   dist_self          := λx, by cases x; simp only [sum.dist, dist_self],

@@ -432,11 +432,11 @@ end
   {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
-lemma pow_abs [decidable_linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
+lemma pow_abs [linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
 by induction n with n ih; [exact (abs_one).symm,
   rw [pow_succ, pow_succ, ih, abs_mul]]
 
-lemma abs_neg_one_pow [decidable_linear_ordered_comm_ring R] (n : ℕ) : abs ((-1 : R)^n) = 1 :=
+lemma abs_neg_one_pow [linear_ordered_comm_ring R] (n : ℕ) : abs ((-1 : R)^n) = 1 :=
 by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
 section add_monoid
@@ -511,7 +511,7 @@ namespace canonically_ordered_semiring
 variable [canonically_ordered_comm_semiring R]
 
 theorem pow_pos {a : R} (H : 0 < a) : ∀ n : ℕ, 0 < a ^ n
-| 0     := canonically_ordered_semiring.zero_lt_one
+| 0     := by { nontriviality, exact canonically_ordered_semiring.zero_lt_one }
 | (n+1) := canonically_ordered_semiring.mul_pos.2 ⟨H, pow_pos n⟩
 
 lemma pow_le_pow_of_le_left {a b : R} (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
@@ -530,7 +530,7 @@ section linear_ordered_semiring
 variable [linear_ordered_semiring R]
 
 @[simp] theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
-| 0     := zero_lt_one
+| 0     := by { nontriviality, exact zero_lt_one }
 | (n+1) := mul_pos H (pow_pos _)
 
 @[simp] theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
@@ -578,6 +578,9 @@ begin
   exact mul_lt_mul h (pow_le_pow h' (nat.le_of_lt_succ h2)) (pow_pos h'' _) (le_of_lt h'')
 end
 
+lemma pow_lt_pow_iff {a : R} {n m : ℕ} (h : 1 < a) : a ^ n < a ^ m ↔ n < m :=
+strict_mono.lt_iff_lt $ λ m n, pow_lt_pow h
+
 lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
 | 0     := by simp
 | (k+1) := mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab)
@@ -585,13 +588,19 @@ lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : �
 lemma lt_of_pow_lt_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (h : a ^ n < b ^ n) : a < b :=
 lt_of_not_ge $ λ hn, not_lt_of_ge (pow_le_pow_of_le_left hb hn _) h
 
+lemma le_of_pow_le_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (hn : 0 < n) (h : a ^ n ≤ b ^ n) : a ≤ b :=
+le_of_not_lt $ λ h1, not_le_of_lt (pow_lt_pow_of_lt_left h1 hb hn) h
+
 end linear_ordered_semiring
 
 theorem pow_two_nonneg [linear_ordered_ring R] (a : R) : 0 ≤ a ^ 2 :=
 by { rw pow_two, exact mul_self_nonneg _ }
 
 theorem pow_two_pos_of_ne_zero [linear_ordered_ring R] (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
-lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
+begin
+  nontriviality,
+  exact lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
+end
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]

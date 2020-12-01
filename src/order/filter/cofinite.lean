@@ -62,6 +62,9 @@ lemma set.infinite_iff_frequently_cofinite {s : set α} :
   set.infinite s ↔ (∃ᶠ x in cofinite, x ∈ s) :=
 frequently_cofinite_iff_infinite.symm
 
+lemma filter.eventually_cofinite_ne (x : α) : ∀ᶠ a in cofinite, a ≠ x :=
+(set.finite_singleton x).eventually_cofinite_nmem
+
 /-- For natural numbers the filters `cofinite` and `at_top` coincide. -/
 lemma nat.cofinite_eq_at_top : @cofinite ℕ = at_top :=
 begin

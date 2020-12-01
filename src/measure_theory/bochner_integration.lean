@@ -127,7 +127,7 @@ open_locale classical topological_space big_operators
 
 namespace measure_theory
 
-variables {α E : Type*} [measurable_space α] [decidable_linear_order E] [has_zero E]
+variables {α E : Type*} [measurable_space α] [linear_order E] [has_zero E]
 
 local infixr ` →ₛ `:25 := simple_func
 
@@ -261,7 +261,7 @@ begin
   simp only [← map_apply g f, lintegral_eq_lintegral],
   rw [map_integral f _ hf, map_lintegral, ennreal.to_real_sum],
   { refine finset.sum_congr rfl (λb hb, _),
-    rw [smul_eq_mul, to_real_mul_to_real, mul_comm] },
+    rw [smul_eq_mul, to_real_mul, mul_comm] },
   { assume a ha,
     by_cases a0 : a = 0,
     { rw [a0, hg0, zero_mul], exact with_top.zero_lt_top },
@@ -1436,7 +1436,7 @@ begin
   refine tendsto_nhds_unique _ (tendsto_const_nhds.smul (tendsto_integral_approx_on_univ hfi)),
   convert tendsto_integral_approx_on_univ (hfi.smul_measure hc),
   simp only [simple_func.integral, measure.smul_apply, finset.smul_sum, smul_smul,
-    ennreal.to_real_mul_to_real]
+    ennreal.to_real_mul]
 end
 
 lemma integral_map {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)

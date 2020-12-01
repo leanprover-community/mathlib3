@@ -74,6 +74,27 @@ end fintype
 
 open finset
 
+section
+
+variables {M : Type*} [fintype α] [decidable_eq α] [comm_monoid M]
+
+@[to_additive]
+lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → M) :
+  (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
+(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+
+@[to_additive]
+lemma finset.prod_mul_prod_compl (s : finset α) (f : α → M) :
+  (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
+is_compl_compl.prod_mul_prod f
+
+@[to_additive]
+lemma finset.prod_compl_mul_prod (s : finset α) (f : α → M) :
+  (∏ i in sᶜ, f i) * (∏ i in s, f i) = ∏ i, f i :=
+is_compl_compl.symm.prod_mul_prod f
+
+end
+
 @[to_additive]
 theorem fin.prod_univ_def [comm_monoid β] {n : ℕ} (f : fin n → β) :
   ∏ i, f i = ((list.fin_range n).map f).prod :=

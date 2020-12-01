@@ -8,6 +8,52 @@ import logic.function.basic
 
 universe u
 
+section associative
+variables {α : Type u} (f : α → α → α) [is_associative α f] (x y : α)
+
+/--
+Composing two associative operations of `f : α → α → α` on the left
+is equal to an associative operation on the left.
+-/
+lemma comp_assoc_left : (f x) ∘ (f y) = (f (f x y)) :=
+by { ext z, rw [function.comp_apply, @is_associative.assoc _ f] }
+
+/--
+Composing two associative operations of `f : α → α → α` on the right
+is equal to an associative operation on the right.
+-/
+lemma comp_assoc_right : (λ z, f z x) ∘ (λ z, f z y) = (λ z, f z (f y x)) :=
+by { ext z, rw [function.comp_apply, @is_associative.assoc _ f] }
+
+end associative
+
+section semigroup
+variables {α : Type*}
+
+/--
+Composing two multiplications on the left by `y` then `x`
+is equal to a multiplication on the left by `x * y`.
+-/
+@[simp, to_additive
+"Composing two additions on the left by `y` then `x`
+is equal to a addition on the left by `x + y`."]
+lemma comp_mul_left [semigroup α] (x y : α) :
+  ((*) x) ∘ ((*) y) = ((*) (x * y)) :=
+comp_assoc_left _ _ _
+
+/--
+Composing two multiplications on the right by `y` and `x`
+is equal to a multiplication on the right by `y * x`.
+-/
+@[simp, to_additive
+"Composing two additions on the right by `y` and `x`
+is equal to a addition on the right by `y + x`."]
+lemma comp_mul_right [semigroup α] (x y : α) :
+  (* x) ∘ (* y) = (* (y * x)) :=
+comp_assoc_right _ _ _
+
+end semigroup
+
 section monoid
 variables {M : Type u} [monoid M]
 
@@ -95,7 +141,7 @@ theorem left_inverse_inv (G) [group G] :
   function.left_inverse (λ a : G, a⁻¹) (λ a, a⁻¹) :=
 inv_inv
 
-@[to_additive]
+@[simp, to_additive]
 lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
 
 @[to_additive]
@@ -168,6 +214,10 @@ by have := @mul_right_inj _ _ a a 1; rwa mul_one at this
 @[simp, to_additive]
 theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 :=
 by rw [← @inv_inj _ _ a 1, one_inv]
+
+@[simp, to_additive]
+theorem one_eq_inv : 1 = a⁻¹ ↔ a = 1 :=
+by rw [eq_comm, inv_eq_one]
 
 @[to_additive]
 theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 :=

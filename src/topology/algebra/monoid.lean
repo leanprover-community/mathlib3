@@ -46,7 +46,7 @@ has_continuous_mul.continuous_mul
 lemma continuous.mul [topological_space α] {f : α → M} {g : α → M}
   (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=
-continuous_mul.comp (hf.prod_mk hg)
+continuous_mul.comp (hf.prod_mk hg : _)
 
 attribute [continuity] continuous.add
 
@@ -73,6 +73,16 @@ lemma filter.tendsto.mul {f : α → M} {g : α → M} {x : filter α} {a b : M}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
   tendsto (λx, f x * g x) x (𝓝 (a * b)) :=
 tendsto_mul.comp (hf.prod_mk_nhds hg)
+
+@[to_additive]
+lemma tendsto.const_mul (b : M) {c : M} {f : α → M} {l : filter α}
+  (h : tendsto (λ (k:α), f k) l (𝓝 c)) : tendsto (λ (k:α), b * f k) l (𝓝 (b * c)) :=
+tendsto_const_nhds.mul h
+
+@[to_additive]
+lemma tendsto.mul_const (b : M) {c : M} {f : α → M} {l : filter α}
+  (h : tendsto (λ (k:α), f k) l (𝓝 c)) : tendsto (λ (k:α), f k * b) l (𝓝 (c * b)) :=
+h.mul tendsto_const_nhds
 
 @[to_additive]
 lemma continuous_at.mul [topological_space α] {f : α → M} {g : α → M} {x : α}

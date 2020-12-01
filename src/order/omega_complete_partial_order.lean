@@ -234,8 +234,8 @@ lemma ωSup_le_iff (c : chain α) (x : α) : ωSup c ≤ x ↔ (∀ i, c i ≤ x
 begin
   split; intros,
   { transitivity ωSup c,
-    apply le_ωSup _ _, exact a },
-  apply ωSup_le _ _ a,
+    exact le_ωSup _ _, assumption },
+  exact ωSup_le _ _ ‹_›,
 end
 
 /-- A subset `p : α → Prop` of the type closed under `ωSup` induces an
@@ -559,7 +559,7 @@ protected def ωSup (c : chain (α →ₘ β)) : α →ₘ β :=
   monotone' := λ x y h, ωSup_le_ωSup_of_le (chain.map_le_map _ $ λ a, a.monotone h) }
 
 @[simps ωSup_to_fun {rhs_md := semireducible, simp_rhs := tt}]
-instance : omega_complete_partial_order (α →ₘ β) :=
+instance omega_complete_partial_order : omega_complete_partial_order (α →ₘ β) :=
 omega_complete_partial_order.lift preorder_hom.to_fun_hom preorder_hom.ωSup
   (λ x y h, h) (λ c, rfl)
 

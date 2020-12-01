@@ -156,10 +156,10 @@ lemma norm_sum_le_of_le {β} (s : finset β) {f : β → α} {n : β → ℝ} (h
   ∥∑ b in s, f b∥ ≤ ∑ b in s, n b :=
 le_trans (norm_sum_le s f) (finset.sum_le_sum h)
 
-lemma norm_pos_iff {g : α} : 0 < ∥ g ∥ ↔ g ≠ 0 :=
+@[simp] lemma norm_pos_iff {g : α} : 0 < ∥ g ∥ ↔ g ≠ 0 :=
 dist_zero_right g ▸ dist_pos
 
-lemma norm_le_zero_iff {g : α} : ∥g∥ ≤ 0 ↔ g = 0 :=
+@[simp] lemma norm_le_zero_iff {g : α} : ∥g∥ ≤ 0 ↔ g = 0 :=
 by { rw[←dist_zero_right], exact dist_le_zero }
 
 lemma norm_sub_le (g h : α) : ∥g - h∥ ≤ ∥g∥ + ∥h∥ :=
@@ -193,6 +193,22 @@ calc ∥v∥ = ∥u - (u - v)∥ : by abel
 
 lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
+
+lemma mem_ball_iff_norm {g h : α} {r : ℝ} :
+  h ∈ ball g r ↔ ∥h - g∥ < r :=
+by rw [mem_ball, dist_eq_norm]
+
+lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
+  h ∈ ball g r ↔ ∥g - h∥ < r :=
+by rw [mem_ball', dist_eq_norm]
+
+lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
+  h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
+by rw [mem_closed_ball, dist_eq_norm]
+
+lemma mem_closed_ball_iff_norm' {g h : α} {r : ℝ} :
+  h ∈ closed_ball g r ↔ ∥g - h∥ ≤ r :=
+by rw [mem_closed_ball', dist_eq_norm]
 
 lemma norm_le_of_mem_closed_ball {g h : α} {r : ℝ} (H : h ∈ closed_ball g r) :
   ∥h∥ ≤ ∥g∥ + r :=
@@ -438,15 +454,7 @@ end
 continuous. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
-begin
-  refine ⟨metric.uniform_continuous_iff.2 $ assume ε hε, ⟨ε / 2, half_pos hε, assume a b h, _⟩⟩,
-  rw [prod.dist_eq, max_lt_iff, dist_eq_norm, dist_eq_norm] at h,
-  calc dist (a.1 - a.2) (b.1 - b.2) = ∥(a.1 - b.1) - (a.2 - b.2)∥ :
-      by simp [dist_eq_norm, sub_eq_add_neg]; abel
-    ... ≤ ∥a.1 - b.1∥ + ∥a.2 - b.2∥ : norm_sub_le _ _
-    ... < ε / 2 + ε / 2 : add_lt_add h.1 h.2
-    ... = ε : add_halves _
-end
+⟨(lipschitz_with.prod_fst.sub lipschitz_with.prod_snd).uniform_continuous⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_monoid : has_continuous_add α := by apply_instance -- short-circuit type class inference
@@ -638,30 +646,31 @@ instance to_norm_one_class : norm_one_class α :=
   by rw [← norm_mul, mul_one, mul_one]⟩
 
 /-- `norm` as a `monoid_hom`. -/
-@[simps] def norm_hom : α →* ℝ := ⟨norm, norm_one, norm_mul⟩
+@[simps] def norm_hom : monoid_with_zero_hom α ℝ := ⟨norm, norm_zero, norm_one, norm_mul⟩
 
 @[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
-norm_hom.map_pow a
+norm_hom.to_monoid_hom.map_pow a
 
 @[simp] lemma norm_prod (s : finset β) (f : β → α) :
   ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=
-(norm_hom : α →* ℝ).map_prod f s
+(norm_hom.to_monoid_hom : α →* ℝ).map_prod f s
 
 @[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ :=
-(norm_hom : α →* ℝ).map_div norm_zero a b
+(norm_hom : monoid_with_zero_hom α ℝ).map_div a b
 
 @[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
-(norm_hom : α →* ℝ).map_inv' norm_zero a
+(norm_hom : monoid_with_zero_hom α ℝ).map_inv' a
 
 @[simp] lemma nnnorm_inv (a : α) : nnnorm (a⁻¹) = (nnnorm a)⁻¹ :=
 nnreal.eq $ by simp
 
 @[simp] lemma norm_fpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n :=
-(norm_hom : α →* ℝ).map_fpow norm_zero
+(norm_hom : monoid_with_zero_hom α ℝ).map_fpow
 
-lemma tendsto_inv {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
+@[priority 100] -- see Note [lower instance priority]
+instance : has_continuous_inv' α :=
 begin
-  refine (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).2 (λε εpos, _),
+  refine ⟨λ r r0, (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).2 (λε εpos, _)⟩,
   let δ := min (ε/2 * ∥r∥^2) (∥r∥/2),
   have norm_r_pos : 0 < ∥r∥ := norm_pos_iff.mpr r0,
   have A : 0 < ε / 2 * ∥r∥ ^ 2 := mul_pos (half_pos εpos) (pow_pos norm_r_pos 2),
@@ -695,13 +704,6 @@ begin
   end
   ... = ε * (∥r∥ * ∥r∥⁻¹)^2 : by { generalize : ∥r∥⁻¹ = u, ring }
   ... = ε : by { rw [mul_inv_cancel (ne.symm (ne_of_lt norm_r_pos))], simp }
-end
-
-lemma continuous_on_inv : continuous_on (λ(x:α), x⁻¹) {x | x ≠ 0} :=
-begin
-  assume x hx,
-  apply continuous_at.continuous_within_at,
-  exact (tendsto_inv hx)
 end
 
 end normed_field
@@ -758,65 +760,6 @@ instance : normed_field ℝ :=
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
-/-- If a function converges to a nonzero value, its inverse converges to the inverse of this value.
-We use the name `tendsto.inv'` as `tendsto.inv` is already used in multiplicative topological
-groups. -/
-lemma filter.tendsto.inv' [normed_field α] {l : filter β} {f : β → α} {y : α}
-  (hy : y ≠ 0) (h : tendsto f l (𝓝 y)) :
-  tendsto (λx, (f x)⁻¹) l (𝓝 y⁻¹) :=
-(normed_field.tendsto_inv hy).comp h
-
-lemma continuous_at.inv' [topological_space α] [normed_field β] {f : α → β} {x : α}
-  (hf : continuous_at f x) (hx : f x ≠ 0) :
-  continuous_at (λ x, (f x)⁻¹) x :=
-hf.inv' hx
-
-lemma continuous_within_at.inv' [topological_space α] [normed_field β] {f : α → β} {x : α}
-  {s : set α} (hf : continuous_within_at f s x) (hx : f x ≠ 0) :
-  continuous_within_at (λ x, (f x)⁻¹) s x :=
-hf.inv' hx
-
-lemma continuous.inv' [topological_space α] [normed_field β] {f : α → β} (hf : continuous f)
-  (h0 : ∀ x, f x ≠ 0) : continuous (λ x, (f x)⁻¹) :=
-continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).inv' (h0 x)
-
-lemma continuous_on.inv' [topological_space α] [normed_field β] {f : α → β} {s : set α}
-  (hf : continuous_on f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
-  continuous_on (λ x, (f x)⁻¹) s :=
-λ x hx, (hf x hx).inv' (h0 x hx)
-
-lemma filter.tendsto.div_const [normed_field α] {l : filter β} {f : β → α} {x y : α}
-  (hf : tendsto f l (𝓝 x)) : tendsto (λa, f a / y) l (𝓝 (x / y)) :=
-hf.mul tendsto_const_nhds
-
-lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x y : α}
-  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) (hy : y ≠ 0) :
-  tendsto (λa, f a / g a) l (𝓝 (x / y)) :=
-hf.mul (hg.inv' hy)
-
-lemma continuous_within_at.div [topological_space α] [normed_field β] {f : α → β} {g : α → β}
-  {s : set α} {x : α} (hf : continuous_within_at f s x) (hg : continuous_within_at g s x)
-  (hnz : g x ≠ 0) :
-  continuous_within_at (λ x, f x / g x) s x :=
-hf.div hg hnz
-
-lemma continuous_on.div [topological_space α] [normed_field β] {f : α → β} {g : α → β}
-  {s : set α} (hf : continuous_on f s) (hg : continuous_on g s) (hnz : ∀ x ∈ s, g x ≠ 0) :
-  continuous_on (λ x, f x / g x) s :=
-λ x hx, (hf x hx).div (hg x hx) (hnz x hx)
-
-/-- Continuity at a point of the result of dividing two functions
-continuous at that point, where the denominator is nonzero. -/
-lemma continuous_at.div [topological_space α] [normed_field β] {f : α → β} {g : α → β} {x : α}
-    (hf : continuous_at f x) (hg : continuous_at g x) (hnz : g x ≠ 0) :
-  continuous_at (λ x, f x / g x) x :=
-hf.div hg hnz
-
-lemma continuous.div [topological_space α] [normed_field β] {f : α → β} {g : α → β}
-  (hf : continuous f) (hg : continuous g) (h0 : ∀ x, g x ≠ 0) :
-  continuous (λ x, f x / g x) :=
-continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).div (hg.tendsto x) (h0 x)
-
 namespace real
 
 lemma norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
@@ -828,7 +771,7 @@ abs_of_nonneg hx
 
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : nnnorm (n : ℝ) = n := nnreal.eq $ by simp
 
-@[simp] lemma norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@zero_lt_two ℝ _)
+@[simp] lemma norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@zero_lt_two ℝ _ _)
 
 @[simp] lemma nnnorm_two : nnnorm (2:ℝ) = 2 := nnreal.eq $ by simp
 
@@ -957,7 +900,7 @@ begin
     ((continuous_id.smul continuous_const).add continuous_const).continuous_within_at,
   convert this.mem_closure _ _,
   { rw [one_smul, sub_add_cancel] },
-  { simp [closure_Ico (@zero_lt_one ℝ _), zero_le_one] },
+  { simp [closure_Ico (@zero_lt_one ℝ _ _), zero_le_one] },
   { rintros c ⟨hc0, hc1⟩,
     rw [set.mem_preimage, mem_ball, dist_eq_norm, add_sub_cancel, norm_smul, real.norm_eq_abs,
       abs_of_nonneg hc0, mul_comm, ← mul_one r],
@@ -1028,7 +971,7 @@ open normed_field
 any shell of width `∥c∥`. Also recap information on the norm of the rescaling element that shows
 up in applications. -/
 lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
-  ∃d:α, d ≠ 0 ∧ ∥d • x∥ ≤ ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
+  ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
 begin
   have xεpos : 0 < ∥x∥/ε := div_pos (norm_pos_iff.2 hx) εpos,
   rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,
@@ -1037,9 +980,9 @@ begin
   refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
   show (c ^ (n + 1))⁻¹  ≠ 0,
     by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
-  show ∥(c ^ (n + 1))⁻¹ • x∥ ≤ ε,
-  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_le_iff cnpos, mul_comm, norm_fpow],
-    exact (div_le_iff εpos).1 (le_of_lt (hn.2)) },
+  show ∥(c ^ (n + 1))⁻¹ • x∥ < ε,
+  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_fpow],
+    exact (div_lt_iff εpos).1 (hn.2) },
   show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
   { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
         fpow_one, mul_inv_rev', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
@@ -1127,27 +1070,30 @@ section restrict_scalars
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 (E : Type*) [normed_group E] [normed_space 𝕜' E]
 
-/-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
+/-- Warning: This declaration should be used judiciously.
+Please consider using `is_scalar_tower` instead.
+
+`𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
 
 The type synonym `semimodule.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
 -/
-def normed_space.restrict_scalars' : normed_space 𝕜 E :=
+def normed_space.restrict_scalars : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin
     change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul]
   end,
-  ..semimodule.restrict_scalars' 𝕜 𝕜' E }
+  ..restrict_scalars.semimodule 𝕜 𝕜' E }
 
 instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
-  normed_group (semimodule.restrict_scalars 𝕜 𝕜' E) := I
+  normed_group (restrict_scalars 𝕜 𝕜' E) := I
 
 instance semimodule.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
   [normed_field 𝕜'] [normed_group E] [I : normed_space 𝕜' E] :
-  normed_space 𝕜' (semimodule.restrict_scalars 𝕜 𝕜' E) := I
+  normed_space 𝕜' (restrict_scalars 𝕜 𝕜' E) := I
 
-instance : normed_space 𝕜 (semimodule.restrict_scalars 𝕜 𝕜' E) :=
-(normed_space.restrict_scalars' 𝕜 𝕜' E : normed_space 𝕜 E)
+instance : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E) :=
+(normed_space.restrict_scalars 𝕜 𝕜' E : normed_space 𝕜 E)
 
 end restrict_scalars
 

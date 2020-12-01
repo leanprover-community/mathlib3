@@ -66,7 +66,7 @@ end clifford_algebra
 /--
 The Clifford algebra of an `R`-module `M` equipped with a quadratic_form `Q`.
 -/
-@[derive [inhabited, semiring, algebra R]]
+@[derive [inhabited, ring, algebra R]]
 def clifford_algebra := ring_quot (clifford_algebra.rel Q)
 
 namespace clifford_algebra
@@ -85,71 +85,81 @@ begin
   refl,
 end
 
-variables {A : Type*} [semiring A] [algebra R A]
-
-/--
-Given a linear map `f : M →ₗ[R] A` into an `R`-algebra `A`, which satisfies the condition:
-`cond : ∀ m : M, f m * f m = Q(m)`, this is the canonical lift of `f` to a morphism of `R`-algebras
-from `clifford_algebra Q` to `A`.
--/
-def lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) :
-  clifford_algebra Q →ₐ[R] A :=
-ring_quot.lift_alg_hom R (tensor_algebra.lift R f)
-  (λ x y h, by {
-    induction h,
-    rw [alg_hom.commutes, alg_hom.map_mul, tensor_algebra.lift_ι_apply, cond], })
-
-variables {Q}
-
-@[simp]
-theorem ι_comp_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) :
-  (lift Q f cond).to_linear_map.comp (ι Q) = f :=
-by { ext, simp [lift, ι] }
-
-@[simp]
-theorem lift_ι_apply (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) (x) :
-  lift Q f cond (ι Q x) = f x :=
-by simp [lift, ι]
-
-@[simp]
-theorem lift_unique (f : M →ₗ[R] A) (cond : ∀ m : M, f m * f m = algebra_map _ _ (Q m))
-  (g : clifford_algebra Q →ₐ[R] A) :
-  g.to_linear_map.comp (ι Q) = f ↔ g = lift Q f cond :=
-begin
-  refine ⟨_, λ hyp, by rw [hyp, ι_comp_lift]⟩,
-  rintro rfl,
-  ext,
-  simp [lift],
-  refl,
-end
-
-attribute [irreducible] clifford_algebra ι lift
+variables {Q} {A : Type*} [semiring A] [algebra R A]
 
 @[simp]
 theorem comp_ι_square_scalar (g : clifford_algebra Q →ₐ[R] A) (m : M) :
   g (ι Q m) * g (ι Q m) = algebra_map _ _ (Q m) :=
 by rw [←alg_hom.map_mul, ι_square_scalar, alg_hom.commutes]
 
+variables (Q)
+
+/--
+Given a linear map `f : M →ₗ[R] A` into an `R`-algebra `A`, which satisfies the condition:
+`cond : ∀ m : M, f m * f m = Q(m)`, this is the canonical lift of `f` to a morphism of `R`-algebras
+from `clifford_algebra Q` to `A`.
+-/
+@[simps symm_apply]
+def lift :
+  {f : M →ₗ[R] A // ∀ m, f m * f m = algebra_map _ _ (Q m)} ≃ (clifford_algebra Q →ₐ[R] A) :=
+{ to_fun := λ f,
+  ring_quot.lift_alg_hom R ⟨tensor_algebra.lift R (f : M →ₗ[R] A),
+    (λ x y (h : rel Q x y), by {
+      induction h,
+      rw [alg_hom.commutes, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop], })⟩,
+  inv_fun := λ F, ⟨F.to_linear_map.comp (ι Q), λ m, by rw [
+    linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_square_scalar]⟩,
+  left_inv := λ f, by { ext, simp [ι] },
+  right_inv := λ F, by { ext, simp [ι] } }
+
+variables {Q}
+
+@[simp]
+theorem ι_comp_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) :
+  (lift Q ⟨f, cond⟩).to_linear_map.comp (ι Q) = f :=
+(subtype.mk_eq_mk.mp $ (lift Q).symm_apply_apply ⟨f, cond⟩)
+
+@[simp]
+theorem lift_ι_apply (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) (x) :
+  lift Q ⟨f, cond⟩ (ι Q x) = f x :=
+(linear_map.ext_iff.mp $ ι_comp_lift f cond) x
+
+@[simp]
+theorem lift_unique (f : M →ₗ[R] A) (cond : ∀ m : M, f m * f m = algebra_map _ _ (Q m))
+  (g : clifford_algebra Q →ₐ[R] A) :
+  g.to_linear_map.comp (ι Q) = f ↔ g = lift Q ⟨f, cond⟩ :=
+begin
+  convert (lift Q).symm_apply_eq,
+  rw lift_symm_apply,
+  simp only,
+end
+
+attribute [irreducible] clifford_algebra ι lift
+
 @[simp]
 theorem lift_comp_ι (g : clifford_algebra Q →ₐ[R] A) :
-  lift Q (g.to_linear_map.comp (ι Q)) (comp_ι_square_scalar _) = g :=
-by { symmetry, rw ←lift_unique }
+  lift Q ⟨g.to_linear_map.comp (ι Q), comp_ι_square_scalar _⟩ = g :=
+begin
+  convert (lift Q).apply_symm_apply g,
+  rw lift_symm_apply,
+  refl,
+end
 
 @[ext]
 theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : clifford_algebra Q →ₐ[R] A} :
   f.to_linear_map.comp (ι Q) = g.to_linear_map.comp (ι Q) → f = g :=
 begin
-  intro hyp,
-  let h := g.to_linear_map.comp (ι Q),
-  have : g = lift Q h (comp_ι_square_scalar _), by rw ←lift_unique,
-  rw [this, ←lift_unique, hyp],
+  intro h,
+  apply (lift Q).symm.injective,
+  rw [lift_symm_apply, lift_symm_apply],
+  simp only [h],
 end
 
 /-- A Clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/
 def as_exterior : clifford_algebra (0 : quadratic_form R M) ≃ₐ[R] exterior_algebra R M :=
 alg_equiv.of_alg_hom
-  (clifford_algebra.lift 0 (exterior_algebra.ι R) $ λ m, by simp)
-  (exterior_algebra.lift R (ι 0) $ λ m, by simp)
+  (clifford_algebra.lift 0 ⟨(exterior_algebra.ι R), by simp⟩)
+  (exterior_algebra.lift R ⟨(ι (0 : quadratic_form R M)), by simp⟩)
   (by { ext, simp, })
   (by { ext, simp, })
 

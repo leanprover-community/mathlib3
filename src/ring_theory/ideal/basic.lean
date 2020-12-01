@@ -178,6 +178,13 @@ begin
   exact or.cases_on (hI.mem_or_mem H) id ih
 end
 
+lemma not_is_prime_iff {I : ideal α} : ¬ I.is_prime ↔ I = ⊤ ∨ ∃ (x ∉ I) (y ∉ I), x * y ∈ I :=
+begin
+  simp_rw [ideal.is_prime, not_and_distrib, ne.def, not_not, not_forall, not_or_distrib],
+  exact or_congr iff.rfl
+    ⟨λ ⟨x, y, hxy, hx, hy⟩, ⟨x, hx, y, hy, hxy⟩, λ ⟨x, hx, y, hy, hxy⟩, ⟨x, y, hxy, hx, hy⟩⟩
+end
+
 theorem zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
 λ hz, I.ne_top_iff_one.1 h $ hz ▸ I.zero_mem
 

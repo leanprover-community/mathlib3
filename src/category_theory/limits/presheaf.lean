@@ -308,7 +308,16 @@ def unique_extension_along_yoneda (L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) (hL : yo
   L ≅ extend_along_yoneda A :=
 nat_iso_of_nat_iso_on_representables _ _ (hL ≪≫ (is_extension_along_yoneda _).symm)
 
--- TODO: This needs some lemmas describing the produced adjoint.
+/--
+If `L` preserves colimits and `ℰ` has them, then it is a left adjoint. This is a special case of
+`is_left_adjoint_of_preserves_colimits` used to prove that.
+-/
+def is_left_adjoint_of_preserves_colimits_aux (L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) [preserves_colimits L] :
+  is_left_adjoint L :=
+{ right := restricted_yoneda (yoneda ⋙ L),
+  adj := (yoneda_adjunction _).of_nat_iso_left
+            ((unique_extension_along_yoneda _ L (iso.refl _)).symm) }
+
 /--
 If `L` preserves colimits and `ℰ` has them, then it is a left adjoint. Note this is a (partial)
 converse to `left_adjoint_preserves_colimits`.
@@ -316,15 +325,8 @@ converse to `left_adjoint_preserves_colimits`.
 def is_left_adjoint_of_preserves_colimits (L : (C ⥤ Type u₁) ⥤ ℰ) [preserves_colimits L] :
   is_left_adjoint L :=
 begin
-  let L' : (Cᵒᵖᵒᵖ ⥤ Type u₁) ⥤ ℰ := (op_op_equivalence C).congr_left.functor ⋙ L,
-  letI : preserves_colimits L',
-  { refine ⟨λ J 𝒥₁, _⟩,
-    constructor,
-    refine λ K, by apply_instance },
-  letI : is_left_adjoint L',
-  { refine ⟨restricted_yoneda (yoneda ⋙ L'), (yoneda_adjunction _).of_nat_iso_left _⟩,
-    apply (unique_extension_along_yoneda _ L' (iso.refl _)).symm },
-  apply adjunction.left_adjoint_of_nat_iso ((op_op_equivalence C).congr_left.inv_fun_id_assoc L),
+  let := is_left_adjoint_of_preserves_colimits_aux ((op_op_equivalence C).congr_left.functor ⋙ L : _),
+  exactI adjunction.left_adjoint_of_nat_iso ((op_op_equivalence C).congr_left.inv_fun_id_assoc _),
 end
 
 end category_theory

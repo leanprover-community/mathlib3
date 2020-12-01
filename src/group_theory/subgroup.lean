@@ -350,7 +350,7 @@ begin
     exact ⟨h x, by { rintros rfl, exact H.one_mem }⟩ },
 end
 
-@[to_additive] lemma subgroup.eq_top_of_card_eq [fintype G] (h : fintype.card H = fintype.card G) : H = ⊤ :=
+@[to_additive] lemma eq_top_of_card_eq [fintype G] (h : fintype.card H = fintype.card G) : H = ⊤ :=
 begin
   change fintype.card H.carrier = _ at h,
   cases H with S hS1 hS2 hS3,

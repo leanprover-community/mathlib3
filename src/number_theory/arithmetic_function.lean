@@ -187,47 +187,53 @@ variables {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
 lemma mul_smul' (f g : arithmetic_function R) (h : arithmetic_function M) :
   (f * g) • h = f • g • h :=
 begin
-    ext n,
-    simp only [mul_apply, smul_apply],
-    have := @finset.sum_sigma (ℕ × ℕ) M _ _ (divisors_antidiagonal n)
-      (λ p, (divisors_antidiagonal p.1)) (λ x, f x.2.1 • g x.2.2 • h x.1.2),
-    convert this.symm using 1; clear this,
-    { apply finset.sum_congr rfl,
-      intros p hp,
-      simp only [sum_smul, mul_smul], },
-    have := @finset.sum_sigma (ℕ × ℕ) M _ _ (divisors_antidiagonal n)
-      (λ p, (divisors_antidiagonal p.2)) (λ x, f x.1.1 • (g x.2.1 • h x.2.2)),
-    convert this.symm using 1; clear this,
-    { apply finset.sum_congr rfl, intros p hp, rw smul_sum },
-    apply finset.sum_bij,
-    swap 5,
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l*j), (l, j)⟩ },
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
-      simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish },
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
-    { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
-      simp only [finset.mem_sigma, mem_divisors_antidiagonal,
-        and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
-      finish },
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩;
-    { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish } }
+  ext n,
+  simp only [mul_apply, smul_apply, sum_smul, mul_smul, smul_sum],
+  apply eq.trans (@finset.sum_sigma (ℕ × ℕ) M _ _ (divisors_antidiagonal n)
+    (λ p, (divisors_antidiagonal p.1)) (λ x, f x.2.1 • g x.2.2 • h x.1.2)).symm,
+  apply eq.trans _ (@finset.sum_sigma (ℕ × ℕ) M _ _ (divisors_antidiagonal n)
+    (λ p, (divisors_antidiagonal p.2)) (λ x, f x.1.1 • (g x.2.1 • h x.2.2))),
+  apply finset.sum_bij,
+  swap 5,
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l*j), (l, j)⟩ },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
+    simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢,
+    rcases H with ⟨⟨rfl, n0⟩, rfl, i0⟩,
+    refine ⟨⟨(mul_assoc _ _ _).symm, n0⟩, rfl, _⟩,
+    rw mul_ne_zero_iff at *,
+    exact ⟨i0.2, n0.2⟩, },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
+  { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
+    simp only [finset.mem_sigma, mem_divisors_antidiagonal,
+      and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
+    rintros rfl h2 rfl rfl,
+    exact ⟨⟨eq.trans H₁.2.1.symm H₂.2.1, rfl⟩, rfl, rfl⟩ },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩,
+  { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢,
+    rcases H with ⟨⟨rfl, n0⟩, rfl, j0⟩,
+    refine ⟨⟨mul_assoc _ _ _, n0⟩, rfl, _⟩,
+    rw mul_ne_zero_iff at *,
+    exact ⟨n0.1, j0.1⟩ },
+  { simp only [true_and, mem_divisors_antidiagonal, and_true, prod.mk.inj_iff, eq_self_iff_true,
+      ne.def, mem_sigma, heq_iff_eq] at H ⊢,
+    rw H.2.1 } }
 end
 
 lemma one_smul' (b : arithmetic_function M) :
   (1 : arithmetic_function R) • b = b :=
 begin
-    ext,
-    rw smul_apply,
-    by_cases x0 : x = 0, {simp [x0]},
-    have h : {(1,x)} ⊆ divisors_antidiagonal x := by simp [x0],
-    rw ← sum_subset h, {simp},
-    intros y ymem ynmem,
-    have y1ne : y.fst ≠ 1,
-    { intro con,
-      simp only [con, mem_divisors_antidiagonal, one_mul, ne.def] at ymem,
-      simp only [mem_singleton, prod.ext_iff] at ynmem,
-      tauto },
-    simp [y1ne],
+  ext,
+  rw smul_apply,
+  by_cases x0 : x = 0, {simp [x0]},
+  have h : {(1,x)} ⊆ divisors_antidiagonal x := by simp [x0],
+  rw ← sum_subset h, {simp},
+  intros y ymem ynmem,
+  have y1ne : y.fst ≠ 1,
+  { intro con,
+    simp only [con, mem_divisors_antidiagonal, one_mul, ne.def] at ymem,
+    simp only [mem_singleton, prod.ext_iff] at ynmem,
+    tauto },
+  simp [y1ne],
 end
 
 end module

@@ -45,11 +45,6 @@ The exterior algebra of `M` is constructed as a quotient of the tensor algebra, 
 
 -/
 
--- gh-5121
-@[simp] lemma fin.pred_lt_pred_iff {n : ℕ} {x y : fin n.succ} {hx hy} :
-  x.pred hx < y.pred hy ↔ x < y :=
-by rw [←fin.succ_lt_succ_iff, fin.succ_pred, fin.succ_pred]
-
 variables (R : Type*) [comm_semiring R]
 variables (M : Type*) [add_comm_monoid M] [semimodule R M]
 
@@ -171,10 +166,6 @@ lemma ι_add_mul_swap (x y : M) : ι R x * ι R y + ι R y * ι R x = 0 :=
 calc _ = ι R (x + y) * ι R (x + y) : by simp [mul_add, add_mul]
    ... = _ : ι_square_zero _
 
-@[to_additive]
-lemma eq_one_iff_eq_one_of_mul_eq_one {α : Type*} [monoid α] {a b : α} (h : a * b = 1) : a = 1 ↔ b = 1 :=
-by split; { rintro rfl, simpa using h }
-
 lemma ι_mul_prod_list {n : ℕ} (f : fin n → M) (i : fin n) :
   (ι R $ f i) * (list.of_fn $ λ i, ι R $ f i).prod = 0 :=
 begin
@@ -186,7 +177,8 @@ begin
     { replace hn := congr_arg ((*) $ ι R $ f 0) (hn (λ i, f $ fin.succ i) (i.pred h)),
       simp only at hn,
       rw [fin.succ_pred, ←mul_assoc, mul_zero] at hn,
-      refine (eq_zero_iff_eq_zero_of_add_eq_zero _).mp hn,
+      rw ← zero_add (_ * _),
+      conv_lhs {rw ← hn},
       rw [← add_mul, ι_add_mul_swap, zero_mul], } }
 end
 

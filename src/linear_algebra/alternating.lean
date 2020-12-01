@@ -6,6 +6,7 @@ Author: Eric Wieser, Zhangir Azerbayev
 
 import linear_algebra.multilinear
 import group_theory.perm.sign
+import data.equiv.fin
 
 /-!
 # Alternating Maps
@@ -236,55 +237,24 @@ lemma map_congr_perm [fintype ι] (σ : equiv.perm ι) :
   g v = (equiv.perm.sign σ : ℤ) • g (v ∘ σ) :=
 by { rw [g.map_perm, smul_smul], simp }
 
--- def fin_split {n m} (f : fin (n + m)) : fin n ⊕ fin m :=
--- if h : ↑f < n then sum.inl ⟨f, h⟩ else sum.inr (f.sub_nat n (le_of_not_lt h)))
+end alternating_map
 
-@[simp] lemma pprod_mk_eta {α β : Sort*} {p : pprod α β} : pprod.mk p.1 p.2 = p :=
-pprod.cases_on p (λ a b, rfl)
 section
 
-open sum
-
-@[simp] lemma elim_comp_inl {α β γ : Sort*} (f : α → γ) (g : β → γ) :
-  sum.elim f g ∘ inl = f := rfl
-
-@[simp] lemma elim_comp_inr {α β γ : Sort*} (f : α → γ) (g : β → γ) :
-  sum.elim f g ∘ inr = g := rfl
-
-@[simp] lemma elim_inl_inr {α β : Sort*} :
-  @sum.elim α β _ inl inr = id :=
-funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
-
-lemma comp_elim {α β γ δ : Sort*} (f : γ → δ) (g : α → γ) (h : β → γ):
-  f ∘ sum.elim g h = sum.elim (f ∘ g) (f ∘ h) :=
-funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
-
-@[simp] lemma elim_comp_inl_inr {α β γ : Sort*} (f : α ⊕ β → γ) :
-  sum.elim (f ∘ inl) (f ∘ inr) = f :=
-funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
-
-end
-
-#print prod.mk.eta
+-- def fin_split {n m} (f : fin (n + m)) : fin n ⊕ fin m :=
+-- if h : ↑f < n then sum.inl ⟨f, h⟩ else sum.inr (f.sub_nat n (le_of_not_lt h)))
 
 def sum_split_func {α β γ : Type*} : (α ⊕ β → γ) ≃ (α → γ) × (β → γ) :=
 { to_fun := λ f, ⟨f ∘ sum.inl, f ∘ sum.inr⟩,
   inv_fun := λ F h, h.elim F.1 F.2,
-  left_inv := elim_comp_inl_inr,
+  left_inv := sum.elim_comp_inl_inr,
   right_inv := λ f, by simp }
 
 def finvec_split {n m} {α : Sort*} (f : fin (n + m) → α) : pprod (fin n → α) (fin m → α) := sorry
 
-#check group_with_zero
+namespace function
 
-end alternating_map
-
-#check sum.lex
-
-
-#print function.update_comp
-
-def function.update_comp_equiv {α β γ : Sort*} [decidable_eq α] [decidable_eq γ]
+def update_comp_equiv {α β γ : Sort*} [decidable_eq α] [decidable_eq γ]
   (f : α → β) (σ : γ ≃ α) (i : α) (v : β) :
   function.update f i v ∘ σ = function.update (f ∘ σ) (σ.symm i) v :=
 begin
@@ -293,15 +263,28 @@ begin
   exact σ.injective,
 end
 
-/-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
-lemma function.update_apply {α β : Sort*} [decidable_eq α] (f : α → β) (a' : α) (b : β) (a : α) :
-  function.update f a' b a = if a = a' then b else f a :=
-begin
-  dunfold function.update,
-  congr,
-  funext,
-  rw eq_rec_constant,
-end
+lemma update_apply_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable_eq α]
+  (f : α → β) (g : α' ≃ α) (a : α) (v : β) (a' : α') :
+  update f a v (g a') = update (f ∘ g) (g.symm a) v a' :=
+congr_fun (update_comp_equiv f g a v) a'
+
+end function
+
+namespace multilinear
+
+/-- Apply a permutation to the order of the arguments, obtaining another multilinear map.
+The naming is derived from `finsupp.dom_congr`, noting that here the permutation applies to the
+domain of the domain. -/
+@[simps apply]
+def dom_dom_congr {M₂ M₃ : Type*}
+  [add_comm_monoid M₂] [add_comm_monoid M₃] [semimodule R M₂] [semimodule R M₃]
+  (m : multilinear_map R (λ i : ι, M₂) M₃) (σ : equiv.perm ι) :
+  multilinear_map R (λ i : ι, M₂) M₃ :=
+{ to_fun := λ v, m (λ i, v (σ i)),
+  map_add' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_add, },
+  map_smul' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_smul, }, }
+
+end multilinear
 
 /-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
 lemma function.update_def {α β : Sort*} [decidable_eq α] (f : α → β) (a' : α) (b : β) :
@@ -311,7 +294,8 @@ begin
   apply function.update_apply,
 end
 
-def is_shuffle {m n} (p : fin m ⊕ fin n ≃ fin (m + n)) : Prop := monotone (p ∘ sum.inl) ∧ monotone (p ∘ sum.inr)
+def is_shuffle {m n} (p : fin m ⊕ fin n ≃ fin (m + n)) : Prop :=
+monotone (p ∘ sum.inl) ∧ monotone (p ∘ sum.inr)
 
 instance {m n : ℕ} : decidable_pred (@is_shuffle m n) :=
 λ p, by {unfold is_shuffle monotone, apply_instance}
@@ -323,9 +307,12 @@ namespace shuffle
 
 variables {m n : ℕ}
 
+lemma coe_eq_val (s : shuffle m n) : ⇑s = s.val := rfl
+
 def to_perm (s : shuffle m n) : (equiv.perm $ fin (m + n)) := sum_fin_sum_equiv.symm.trans s.val
 
 instance : has_coe_t (shuffle m n) (equiv.perm $ fin (m + n)) := ⟨to_perm⟩
+
 
 instance : fintype (shuffle m n) := subtype.fintype _
 
@@ -333,28 +320,94 @@ end shuffle
 
 open_locale big_operators
 
-def mul_fin {n m} [monoid N] [semimodule ℤ N] (a : alternating_map R M N (fin m)) (b : alternating_map R M N (fin n)) :
+#check sum.noc
+
+namespace nat
+
+instance {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M] : smul_comm_class ℕ R M :=
+{ smul_comm := λ n r m, begin
+    simp only [nat.smul_def],
+    induction n with n ih,
+    { simp },
+    { simp [succ_nsmul, ←ih, smul_add] },
+  end }
+
+end nat
+
+namespace int
+
+instance {R M : Type*} [semiring R] [add_comm_group M] [semimodule R M] : smul_comm_class ℤ R M :=
+{ smul_comm := λ z r l, by cases z; simp [←gsmul_eq_smul, ←nat.smul_def, smul_comm] }
+
+end int
+
+example {α β : Type*} (val : α) :
+  (sum.inl val : α ⊕ β) ∉ set.range (@sum.inr α β) := by simp
+
+def mul_fin {n m} {R : Type*} {M N : Type*}
+  [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
+  (a : alternating_map R M N (fin m)) (b : alternating_map R M N (fin n)) :
   alternating_map R M N (fin (m + n)) :=
 { to_fun := λ (v : fin (m + n) → M),
   ∑ σ : shuffle m n,
     (σ.to_perm.sign : ℤ) • (a (v ∘ σ ∘ sum.inl) * b (v ∘ σ ∘ sum.inr)),
-  map_add' := sorry,
-  map_smul' := sorry,
-  map_eq_args' := sorry }
+  map_add' := λ v i p q, begin
+    dsimp only at v,
+    simp_rw [←finset.sum_add_distrib, ←smul_add],
+    congr,
+    ext σ,
+    congr,
+    iterate 3 {rw [←function.comp.assoc _ _ sum.inr, ←function.comp.assoc _ _ sum.inl]},
+    rw shuffle.coe_eq_val,
+    repeat {rw function.update_comp_equiv v σ.val i},
+    rw ←shuffle.coe_eq_val,
+    cases h : σ.val.symm i,
+    {
+      have : ∀ {α β : Type*} (a : α),
+        (sum.inl a : α ⊕ β) ∉ set.range (@sum.inr α β) := by simp,
+      iterate 3 {
+        rw [function.update_comp_eq_of_injective _ sum.injective_inl,
+            function.update_comp_eq_of_not_mem_range _ _ (this val)],},
+      rw [a.map_add, add_mul],
+    },
+    {
+      have : ∀ {α β : Type*} (b : β),
+        (sum.inr b : α ⊕ β) ∉ set.range (@sum.inl α β) := by simp,
+      iterate 3 {
+        rw [function.update_comp_eq_of_injective _ sum.injective_inr,
+            function.update_comp_eq_of_not_mem_range _ _ (this val)]},
+      rw [b.map_add, mul_add],
+    }
+  end,
+  map_smul' := λ v i c p, begin
+    dsimp only at v,
+    simp_rw [finset.smul_sum],
+    congr,
+    ext σ,
+    rw ←smul_comm,
+    congr,
+    iterate 2 {rw [←function.comp.assoc _ _ sum.inr, ←function.comp.assoc _ _ sum.inl]},
+    rw shuffle.coe_eq_val,
+    repeat {rw function.update_comp_equiv v σ.val i},
+    rw ←shuffle.coe_eq_val,
+    cases h : σ.val.symm i,
+    {
+      have : ∀ {α β : Type*} (a : α),
+        (sum.inl a : α ⊕ β) ∉ set.range (@sum.inr α β) := by simp,
+      iterate 2 {
+        rw [function.update_comp_eq_of_injective _ sum.injective_inl,
+            function.update_comp_eq_of_not_mem_range _ _ (this val)],},
+      rw [a.map_smul, algebra.smul_mul_assoc],
+    },
+    {
+      have : ∀ {α β : Type*} (b : β),
+        (sum.inr b : α ⊕ β) ∉ set.range (@sum.inl α β) := by simp,
+      iterate 2 {
+        rw [function.update_comp_eq_of_injective _ sum.injective_inr,
+            function.update_comp_eq_of_not_mem_range _ _ (this val)]},
+      rw [b.map_smul, algebra.mul_smul_comm],
+    },
+  end,
+  map_eq_zero_of_eq' := sorry }
 
-
--- begin
---     intros v i ai bi,
---     rw ← finset.sum_add_distrib,
---     congr,
---     ext1 σ,
---     rw ←smul_add,
---     congr,
---     simp,
---     repeat {rw [←function.comp.assoc _ _ sum.inr, ←function.comp.assoc _ _ sum.inl]},
---     repeat {rw function.update_comp_equiv},
---     simp [function.update_def],
---     simp,
---     sorry,
---     -- simp,
---   end
+end

@@ -172,7 +172,7 @@ begin
     bind₁_C_right, bind₁_X_right, function.comp_app, witt_polynomial_eq_sum_C_mul_X_pow],
   rw [sum_range_succ, sum_range_succ, nat.sub_self, pow_zero,
       mul_comm _ (C (⅟ ↑p ^ n)), mul_sub, mul_add, ← mul_assoc, ← C_mul, mul_add, ← mul_assoc,
-       ← C_mul, pow_add, ← mul_assoc, pow_one, pow_one,
+      ← C_mul, pow_add, ← mul_assoc, pow_one, pow_one,
       ← mul_pow, inv_of_mul_self, one_pow, one_mul, C_1, one_mul,
       add_comm n, nat.add_sub_cancel, pow_one, add_comm _ n,
       add_left_comm, ← add_sub, ← add_sub, ← mul_sub, ← sum_sub_distrib], },
@@ -289,7 +289,7 @@ begin
     = p ^ i * (p ^ j * p) * ((p ^ (n - i)).choose (j + 1)) * p ^ (n - i - v p ⟨j + 1, j.succ_pos⟩),
   { have aux : ∀ k : ℕ, (p ^ k : ℚ) ≠ 0,
     { intro, apply pow_ne_zero, exact_mod_cast hp.ne_zero },
-    field_simp [aux], exact this },
+    simpa [aux, -one_div] with field_simps },
   rw [mul_assoc, mul_assoc, ← pow_add, map_frobenius_poly.key₂ p n i j hi hj],
   ring_exp,
 end

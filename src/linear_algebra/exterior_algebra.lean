@@ -45,11 +45,6 @@ The exterior algebra of `M` is constructed as a quotient of the tensor algebra, 
 
 -/
 
--- gh-5121
-@[simp] lemma fin.pred_lt_pred_iff {n : ℕ} {x y : fin n.succ} {hx hy} :
-  x.pred hx < y.pred hy ↔ x < y :=
-by rw [←fin.succ_lt_succ_iff, fin.succ_pred, fin.succ_pred]
-
 variables (R : Type*) [comm_semiring R]
 variables (M : Type*) [add_comm_monoid M] [semimodule R M]
 

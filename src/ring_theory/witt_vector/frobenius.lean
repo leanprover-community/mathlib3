@@ -188,12 +188,14 @@ begin
   simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow', int.cast_coe_nat, nat.cast_mul],
   rw [rat.coe_nat_div _ _ (map_frobenius_poly.key₁ p (n - i) j hj)],
   simp only [nat.cast_pow, pow_add, pow_one],
-  suffices : (p : ℚ) * (((p ^ (n - i)).choose (j + 1)) * p ^ (j - v p ⟨j + 1, j.succ_pos⟩)) * p ^ n
-    = p ^ i * (p ^ j * p) * ((p ^ (n - i)).choose (j + 1)) * p ^ (n - i - v p ⟨j + 1, j.succ_pos⟩),
+  suffices : (p ^ j : ℚ) * p * ((p ^ (n - i)).choose (j + 1) * p ^ i) *
+                p ^ (n - i - v p ⟨j + 1, j.succ_pos⟩)
+              = (p ^ (n - i)).choose (j + 1) * p ^ (j - v p ⟨j + 1, j.succ_pos⟩) * p * p ^ n,
   { have aux : ∀ k : ℕ, (p ^ k : ℚ) ≠ 0,
     { intro, apply pow_ne_zero, exact_mod_cast hp.ne_zero },
-    field_simp [aux], convert this.symm using 1; ring },
-  rw [mul_assoc, mul_assoc, ← pow_add, map_frobenius_poly.key₂ p n i j hi hj],
+    simpa [aux, -one_div] with field_simps },
+  rw [eq_comm, mul_comm _ (p : ℚ), mul_assoc, mul_assoc, ← pow_add,
+      map_frobenius_poly.key₂ p n i j hi hj],
   ring_exp,
 end
 

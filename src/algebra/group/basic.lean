@@ -62,6 +62,10 @@ lemma ite_mul_one {P : Prop} [decidable P] {a b : M} :
   ite P (a * b) 1 = ite P a 1 * ite P b 1 :=
 by { by_cases h : P; simp [h], }
 
+@[to_additive]
+lemma eq_one_iff_eq_one_of_mul_eq_one {a b : M} (h : a * b = 1) : a = 1 ↔ b = 1 :=
+by split; { rintro rfl, simpa using h }
+
 end monoid
 
 section comm_semigroup

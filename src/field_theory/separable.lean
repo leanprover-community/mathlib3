@@ -573,7 +573,7 @@ begin
   exact hs,
 end
 
-lemma is_separable_of_alg_hom_is_separable {E' : Type*} [field E'] [algebra F E']
+lemma is_separable.of_alg_hom {E' : Type*} [field E'] [algebra F E']
   (f : E →ₐ[F] E') (h : is_separable F E') : is_separable F E :=
 begin
   letI : algebra E E' := ring_hom.to_algebra f.to_ring_hom,

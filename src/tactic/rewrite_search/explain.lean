@@ -63,7 +63,7 @@ private meta def how.to_rewrite (rs : list (expr × bool)) : how → option (exp
 
 /-- Explain a single rewrite using `nth_rewrite`. -/
 private meta def explain_using_location (rs : list (expr × bool)) (s : side) :
-how → tactic (option string)
+  how → tactic (option string)
 | h := do
   rule ← pp_rule $ nth_rule rs h.rule_index,
   return $ some ("nth_rewrite_" ++ s.to_xhs ++ " " ++ to_string h.location ++ " " ++ rule)
@@ -102,12 +102,12 @@ inductive splice_result
 open splice_result
 
 private meta def pack_splice_result (s : expr_lens.dir) :
-splice_result → dir_pair (option app_addr) → splice_result
+  splice_result → dir_pair (option app_addr) → splice_result
 | (new addr) c := new $ app_addr.node $ c.set s (some addr)
 | sr _ := sr
 
 private meta def splice_in_aux (new_rws : list ℕ) :
-option app_addr → list expr_lens.dir → splice_result
+  option app_addr → list expr_lens.dir → splice_result
 | (some $ node _) [] := contained
 | (some $ node c) (s :: rest) := pack_splice_result s (splice_in_aux (c.get s) rest) c
 | (some $ rw _) (_ :: _) := obstructed

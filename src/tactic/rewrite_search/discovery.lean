@@ -27,7 +27,7 @@ includes a flag for direction, so this simply includes each expression twice,
 once in each direction.
 -/
 private meta def rules_from_exprs (l : list expr) : list (expr × bool) :=
-  l.map (λ e, (e, ff)) ++ l.map (λ e, (e, tt))
+l.map (λ e, (e, ff)) ++ l.map (λ e, (e, tt))
 
 /-- Returns true if expression is an equation or iff. -/
 private meta def is_acceptable_rewrite : expr → bool
@@ -38,11 +38,11 @@ private meta def is_acceptable_rewrite : expr → bool
 
 /-- Returns true if the expression is an equation or iff and has no metavariables. -/
 private meta def is_acceptable_hyp (r : expr) : tactic bool :=
-  do t ← infer_type r >>= whnf, return $ is_acceptable_rewrite t ∧ ¬t.has_meta_var
+do t ← infer_type r >>= whnf, return $ is_acceptable_rewrite t ∧ ¬t.has_meta_var
 
 /-- Collect all hypotheses in the local context that are usable as rewrite rules. -/
-private meta def rules_from_hyps : tactic (list (expr × bool)) := do
-  hyps ← local_context,
+private meta def rules_from_hyps : tactic (list (expr × bool)) :=
+do hyps ← local_context,
   rules_from_exprs <$> hyps.mfilter is_acceptable_hyp
 
 /-- Use this attribute to make `rewrite_search` use this definition during search. -/

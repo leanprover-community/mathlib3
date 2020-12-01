@@ -76,6 +76,10 @@ meta structure graph :=
 
 /--
 Construct a graph to search for a proof of a given equation.
+
+This graph initially contains only two disconnected vertices corresponding to the two
+sides of the equation. When `find_proof` is called, we will run a search and add
+new vertices and edges.
 -/
 meta def mk_graph (conf : config) (rules : list (expr × bool)) (eq : expr) : tactic graph :=
 do (lhs, rhs) ← split_equation eq,

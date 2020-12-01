@@ -409,8 +409,9 @@ def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {hv : is_basis R v} {hv' : 
 
 variables {e : ι → M} (he : is_basis R e)
 
-/-- The determinant of a family of vectors with respect to some basis, as a multilinear map. -/
-def is_basis.det : multilinear_map R (λ i : ι, M) R :=
+/-- The determinant of a family of vectors with respect to some basis, as an alternating
+multilinear map. -/
+def is_basis.det : alternating_map R M R ι :=
 { to_fun := λ v, det (he.to_matrix v),
   map_add' := begin
     intros v i x y,
@@ -421,7 +422,16 @@ def is_basis.det : multilinear_map R (λ i : ι, M) R :=
     intros u i c x,
     simp only [he.to_matrix_update, algebra.id.smul_eq_mul, map_smul_of_tower],
     apply det_update_column_smul
+  end,
+  map_eq_zero_of_eq' := begin
+    intros v i j h hij,
+    rw [←function.update_eq_self i v, h, ←det_transpose, he.to_matrix_update, ←update_row_transpose],
+    have : (he.to_matrix v)ᵀ j = he.repr (v j) := funext (λ _, rfl),
+    rw ←this,
+    apply det_zero_of_row_eq hij,
+    rw [update_row_ne hij.symm, update_row_self],
   end }
+
 
 lemma is_basis.det_apply (v : ι → M) : he.det v = det (he.to_matrix v) := rfl
 

@@ -383,7 +383,8 @@ section lift
 variable [comm_ring R]
 variables {S : Type*} [comm_ring S]
 variable (f : Π k : ℕ, S →+* truncated_witt_vector p k R)
-variable f_compat : ∀ (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂), (truncated_witt_vector.truncate hk).comp (f k₂) = f k₁
+variable f_compat : ∀ (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂),
+           (truncated_witt_vector.truncate hk).comp (f k₂) = f k₁
 variables {p R}
 variable (n)
 

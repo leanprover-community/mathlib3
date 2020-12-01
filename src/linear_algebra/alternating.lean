@@ -15,14 +15,14 @@ arguments of the same type.
 
 ## Main definitions
 * `alternating_map R M N ι` is the space of `R`-linear alternating maps from `ι → M` to `N`.
-* `f.map_eq_args` expresses that `f` is zero when two inputs are equal.
+* `f.map_eq_zero_of_eq` expresses that `f` is zero when two inputs are equal.
 * `f.map_swap` expresses that `f` is negated when two inputs are swapped.
 * `f.map_perm` expresses how `f` varies by a sign change under a permutation of its inputs.
 * An `add_comm_monoid`, `add_comm_group`, and `semimodule` structure over `alternating_map`s that
   matches the definitions over `multilinear_map`s.
 
 ## Implementation notes
-`alternating_map` is defined in terms of `map_eq_args`, as this is easier to work with than
+`alternating_map` is defined in terms of `map_eq_zero_of_eq`, as this is easier to work with than
 using `map_swap` as a definition, and does not require `has_neg N`.
 -/
 
@@ -49,7 +49,7 @@ variables (R M N ι)
 An alternating map is a multilinear map that vanishes when two of its arguments are equal.
 -/
 structure alternating_map extends multilinear_map R (λ i : ι, M) N :=
-(map_eq_args' : ∀ (v : ι → M) (i j : ι) (h : v i = v j) (hij : i ≠ j), to_fun v = 0)
+(map_eq_zero_of_eq' : ∀ (v : ι → M) (i j : ι) (h : v i = v j) (hij : i ≠ j), to_fun v = 0)
 end
 
 /-- The multilinear map associated to an alternating map -/
@@ -119,9 +119,9 @@ g'.to_multilinear_map.map_sub v' i x y
   f (update v i (r • x)) = r • f (update v i x) :=
 f.to_multilinear_map.map_smul' v i r x
 
-@[simp] lemma map_eq_args (v : ι → M) {i j : ι} (h : v i = v j) (hij : i ≠ j) :
+@[simp] lemma map_eq_zero_of_eq (v : ι → M) {i j : ι} (h : v i = v j) (hij : i ≠ j) :
   f v = 0 :=
-f.map_eq_args' v i j h hij
+f.map_eq_zero_of_eq' v i j h hij
 
 /-!
 ### Algebraic structure inherited from `multilinear_map`
@@ -132,13 +132,14 @@ as `multilinear_map`
 
 instance : has_add (alternating_map R M N ι) :=
 ⟨λ a b,
-  { map_eq_args' := λ v i j h hij, by simp [a.map_eq_args v h hij, b.map_eq_args v h hij],
+  { map_eq_zero_of_eq' :=
+      λ v i j h hij, by simp [a.map_eq_zero_of_eq v h hij, b.map_eq_zero_of_eq v h hij],
     ..(a + b : multilinear_map R (λ i : ι, M) N)}⟩
 
 @[simp] lemma add_apply : (f + f') v = f v + f' v := rfl
 
 instance : has_zero (alternating_map R M N ι) :=
-⟨{map_eq_args' := λ v i j h hij, by simp,
+⟨{map_eq_zero_of_eq' := λ v i j h hij, by simp,
   ..(0 : multilinear_map R (λ i : ι, M) N)}⟩
 
 @[simp] lemma zero_apply : (0 : alternating_map R M N ι) v = 0 := rfl
@@ -151,7 +152,7 @@ by refine {zero := 0, add := (+), ..};
 
 instance : has_neg (alternating_map R' M' N' ι) :=
 ⟨λ f,
-  { map_eq_args' := λ v i j h hij, by simp [f.map_eq_args v h hij],
+  { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
     ..(-(f : multilinear_map R' (λ i : ι, M') N')) }⟩
 
 @[simp] lemma neg_apply (m : ι → M') : (-g') m = - (g' m) := rfl
@@ -167,7 +168,7 @@ variables {S : Type*} [comm_semiring S] [algebra S R] [semimodule S N]
 
 instance : has_scalar S (alternating_map R M N ι) :=
 ⟨λ c f,
-  { map_eq_args' := λ v i j h hij, by simp [f.map_eq_args v h hij],
+  { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
     ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
 
 @[simp] lemma smul_apply (f : alternating_map R M N ι) (c : S) (m : ι → M) :
@@ -189,16 +190,16 @@ end semimodule
 ### Theorems specific to alternating maps
 
 Various properties of reordered and repeated inputs which follow from
-`alternating_map.map_eq_args`.
+`alternating_map.map_eq_zero_of_eq`.
 -/
 
 lemma map_update_self {i j : ι} (hij : i ≠ j) :
   f (function.update v i (v j)) = 0 :=
-f.map_eq_args _ (by rw [function.update_same, function.update_noteq hij.symm]) hij
+f.map_eq_zero_of_eq _ (by rw [function.update_same, function.update_noteq hij.symm]) hij
 
 lemma map_update_update {i j : ι} (hij : i ≠ j) (m : M) :
   f (function.update (function.update v i m) j m) = 0 :=
-f.map_eq_args _
+f.map_eq_zero_of_eq _
   (by rw [function.update_same, function.update_noteq hij, function.update_same]) hij
 
 lemma map_swap_add {i j : ι} (hij : i ≠ j) :

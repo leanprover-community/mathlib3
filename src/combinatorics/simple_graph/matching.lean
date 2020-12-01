@@ -45,20 +45,22 @@ structure is_matching (M : set (sym2 V)) : Prop :=
 def matching : Type u := {M : set (sym2 V) // G.is_matching M}
 
 instance : inhabited (matching G) :=
-  ⟨⟨∅, ⟨set.empty_subset _, λ _ _ hx, false.elim (set.not_mem_empty _ hx)⟩⟩⟩
+  ⟨⟨∅, set.empty_subset _, λ _ _ hx, false.elim (set.not_mem_empty _ hx)⟩⟩
+
+variables {G}
 
 /--
-`matching_verts` is the set of vertices of `G` that are
+`verts` is the set of vertices of `G` that are
 contained in some edge of matching `M`
 -/
-def matching_verts (M : G.matching) : set V :=
+def matching.verts (M : G.matching) : set V :=
 {v : V | ∃ x ∈ M.val, v ∈ x}
 
 /--
 A perfect matching `M` on graph `G` is a matching such that
   every vertex is contained in an edge of `M`.
 -/
-def perfect_matching (M : matching G) : Prop :=
-G.matching_verts M = set.univ
+def matching.is_perfect (M : matching G) : Prop :=
+M.verts = set.univ
 
 end simple_graph

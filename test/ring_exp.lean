@@ -1,4 +1,5 @@
 import tactic.ring_exp
+import tactic.zify
 import algebra.group_with_zero.power
 
 universes u
@@ -138,6 +139,13 @@ begin
   ring_exp
 end
 end complicated
+
+-- Test that `nat.succ d` gets handled as `d + 1`.
+example (d : ℕ) : 2 * (2 ^ d - 1) + 1 = 2 ^ d.succ - 1 :=
+begin
+  zify [nat.one_le_pow'],
+  ring_exp,
+end
 
 section conv
 /-!

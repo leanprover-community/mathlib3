@@ -280,6 +280,17 @@ def nat_semimodule : semimodule ℕ M :=
   zero_smul := zero_nsmul,
   smul_zero := nsmul_zero }
 
+local attribute [instance] nat_semimodule
+
+instance nat_is_scalar_tower [semiring S] [semimodule S M] :
+  is_scalar_tower ℕ S M :=
+{ smul_assoc := begin
+    intros n x y,
+    induction n with n ih,
+    { simp only [zero_smul] },
+    { simp only [nat.succ_eq_add_one, add_smul, one_smul, ih] }
+  end }
+
 end add_comm_monoid
 
 namespace add_comm_group
@@ -324,6 +335,18 @@ begin
   { rw [int.of_nat_eq_coe, nat_smul], },
   { rw [int.neg_succ_of_nat_coe, neg_smul, neg_smul, nat_smul], }
 end
+
+local attribute [instance] int_module add_comm_monoid.nat_semimodule
+
+instance int_is_scalar_tower [ring S] [module S M] :
+  is_scalar_tower ℤ S M :=
+{ smul_assoc := begin
+    intros n x y,
+    cases n,
+    { show (n • x) • y = n • x • y, apply smul_assoc },
+    { simp only [int.neg_succ_of_nat_eq, neg_smul],
+      convert congr_arg has_neg.neg (smul_assoc n.succ x y) },
+  end }
 
 end add_comm_group
 

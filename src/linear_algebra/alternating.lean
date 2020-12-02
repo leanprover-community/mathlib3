@@ -255,31 +255,13 @@ def sum_split_func {α β γ : Type*} : (α ⊕ β → γ) ≃ (α → γ) × (�
 
 def finvec_split {n m} {α : Sort*} (f : fin (n + m) → α) : pprod (fin n → α) (fin m → α) := sorry
 
-namespace function
-
-def update_comp_equiv {α β γ : Sort*} [decidable_eq α] [decidable_eq γ]
-  (f : α → β) (σ : γ ≃ α) (i : α) (v : β) :
-  function.update f i v ∘ σ = function.update (f ∘ σ) (σ.symm i) v :=
-begin
-  conv_lhs {rw ← σ.apply_symm_apply i},
-  rw function.update_comp,
-  exact σ.injective,
-end
-
-lemma update_apply_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable_eq α]
-  (f : α → β) (g : α' ≃ α) (a : α) (v : β) (a' : α') :
-  update f a v (g a') = update (f ∘ g) (g.symm a) v a' :=
-congr_fun (update_comp_equiv f g a v) a'
-
-end function
-
 namespace multilinear_map
 
 variables {M₂ M₃ : Type*} [add_comm_monoid M₂] [semimodule R M₂]
 variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂] [add_comm_monoid M₃] [semimodule R M₃]
 
 @[simps apply]
-def dom_dom_congr
+def dom_dom_congr'
   (σ : ι₁ ≃ ι₂) (m : multilinear_map R (λ i : ι₁, M₂) M₃) : multilinear_map R (λ i : ι₂, M₂) M₃ :=
 { to_fun := λ v, m (λ i, v (σ i)),
   map_add' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_add, },
@@ -292,8 +274,8 @@ domain of the domain. -/
 @[simps]
 def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
   multilinear_map R (λ i : ι₁, M₂) M₃ ≃+ multilinear_map R (λ i : ι₂, M₂) M₃ :=
-{ to_fun := dom_dom_congr σ,
-  inv_fun := dom_dom_congr σ.symm,
+{ to_fun := dom_dom_congr' σ,
+  inv_fun := dom_dom_congr' σ.symm,
   left_inv := λ m, by {ext, simp},
   right_inv := λ m, by {ext, simp},
   map_add' := λ a b, by {ext, simp} }
@@ -301,13 +283,13 @@ variables {R}
 
 end multilinear_map
 
-/-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
-lemma function.update_def {α β : Sort*} [decidable_eq α] (f : α → β) (a' : α) (b : β) :
-  function.update f a' b = λ a, if a = a' then b else f a :=
-begin
-  ext,
-  apply function.update_apply,
-end
+-- /-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
+-- lemma function.update_def {α β : Sort*} [decidable_eq α] (f : α → β) (a' : α) (b : β) :
+--   function.update f a' b = λ a, if a = a' then b else f a :=
+-- begin
+--   ext,
+--   apply function.update_apply,
+-- end
 
 def is_shuffle {m n} (p : fin m ⊕ fin n ≃ fin (m + n)) : Prop :=
 monotone (p ∘ sum.inl) ∧ monotone (p ∘ sum.inr)
@@ -354,97 +336,23 @@ instance {R M : Type*} [semiring R] [add_comm_group M] [semimodule R M] : smul_c
 
 end int
 
-example {α β : Type*} (val : α) :
-  (sum.inl val : α ⊕ β) ∉ set.range (@sum.inr α β) := by simp
-
 open_locale tensor_product
-
-instance sum_elim.add_comm_monoid {ι₁ ι₂ : Type}
-  {M : ι₁ → Type*} [∀ i, add_comm_monoid (M i)]
-  {N : ι₂ → Type*} [∀ i, add_comm_monoid (N i)]
-  (i : ι₁ ⊕ ι₂)
-  : add_comm_monoid (i.elim M N) := by cases i; dsimp; apply_instance
-
-instance sum_elim.semimodule {ι₁ ι₂ : Type} [decidable_eq ι₁] [decidable_eq ι₂]
-  (R : Type*) [semiring R]
-  {M : ι₁ → Type*} [∀ i, add_comm_monoid (M i)] [∀ i, semimodule R (M i)]
-  {N : ι₂ → Type*} [∀ i, add_comm_monoid (N i)] [∀ i, semimodule R (N i)]
-  (i : ι₁ ⊕ ι₂)
-  : semimodule R (i.elim M N) := by cases i; dsimp; apply_instance
-
-lemma sum.elim_const {α β γ : Sort*} (a : γ) : sum.elim (λ _ : α, a) (λ _ : β, a) = λ i, a :=
-funext $ λ x, by cases x; refl
 
 def mul_fin {n m} {R : Type*} {M N : Type*}
   [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
   (a : alternating_map R M N (fin m)) (b : alternating_map R M N (fin n)) :
   alternating_map R M N (fin (m + n)) :=
 { to_fun :=
-  let ab := ((algebra.lmul' R).comp_multilinear_map (multilinear_map.of_tmul R
-      (tensor_product.tmul R a.to_multilinear_map b.to_multilinear_map))),
-      ab' : multilinear_map R (λ (i : fin m ⊕ fin n), M) N := by {
-        simp_rw sum.elim_const at ab,
-      } in
-  λ (v : fin (m + n) → M),
-  ∑ σ : shuffle m n,
-    (σ.to_perm.sign : ℤ) • (ab.dom_dom_congr σ.val : multilinear_map R (λ i, M) N) v,
-  map_add' := λ v i p q, begin
-    dsimp only at v,
-    simp_rw [←finset.sum_add_distrib, ←smul_add],
-    congr,
-    ext σ,
-    congr,
-    iterate 3 {rw [←function.comp.assoc _ _ sum.inr, ←function.comp.assoc _ _ sum.inl]},
-    rw shuffle.coe_eq_val,
-    repeat {rw function.update_comp_equiv v σ.val i},
-    rw ←shuffle.coe_eq_val,
-    cases h : σ.val.symm i,
-    {
-      have : ∀ {α β : Type*} (a : α),
-        (sum.inl a : α ⊕ β) ∉ set.range (@sum.inr α β) := by simp,
-      iterate 3 {
-        rw [function.update_comp_eq_of_injective _ sum.injective_inl,
-            function.update_comp_eq_of_not_mem_range _ _ (this val)],},
-      rw [a.map_add, add_mul],
-    },
-    {
-      have : ∀ {α β : Type*} (b : β),
-        (sum.inr b : α ⊕ β) ∉ set.range (@sum.inl α β) := by simp,
-      iterate 3 {
-        rw [function.update_comp_eq_of_injective _ sum.injective_inr,
-            function.update_comp_eq_of_not_mem_range _ _ (this val)]},
-      rw [b.map_add, mul_add],
-    }
-  end,
-  map_smul' := λ v i c p, begin
-    dsimp only at v,
-    simp_rw [finset.smul_sum],
-    congr,
-    ext σ,
-    rw ←smul_comm,
-    congr,
-    iterate 2 {rw [←function.comp.assoc _ _ sum.inr, ←function.comp.assoc _ _ sum.inl]},
-    rw shuffle.coe_eq_val,
-    repeat {rw function.update_comp_equiv v σ.val i},
-    rw ←shuffle.coe_eq_val,
-    cases h : σ.val.symm i,
-    {
-      have : ∀ {α β : Type*} (a : α),
-        (sum.inl a : α ⊕ β) ∉ set.range (@sum.inr α β) := by simp,
-      iterate 2 {
-        rw [function.update_comp_eq_of_injective _ sum.injective_inl,
-            function.update_comp_eq_of_not_mem_range _ _ (this val)],},
-      rw [a.map_smul, algebra.smul_mul_assoc],
-    },
-    {
-      have : ∀ {α β : Type*} (b : β),
-        (sum.inr b : α ⊕ β) ∉ set.range (@sum.inl α β) := by simp,
-      iterate 2 {
-        rw [function.update_comp_eq_of_injective _ sum.injective_inr,
-            function.update_comp_eq_of_not_mem_range _ _ (this val)]},
-      rw [b.map_smul, algebra.mul_smul_comm],
-    },
-  end,
-  map_eq_zero_of_eq' := sorry }
+    let ab := (algebra.lmul' R).comp_multilinear_map
+      $ multilinear_map.of_tmul R
+      $ tensor_product.tmul R a.to_multilinear_map b.to_multilinear_map in
+    λ (v : fin (m + n) → M),
+    ∑ σ : shuffle m n,
+      (σ.to_perm.sign : ℤ) • (ab.dom_dom_congr' σ.val : multilinear_map R (λ i, M) N) v,
+  map_add' := λ v i p q, by simp_rw [←finset.sum_add_distrib, ←smul_add, multilinear_map.map_add],
+  map_smul' := λ v i c p, by simp_rw [finset.smul_sum, ←smul_comm, multilinear_map.map_smul],
+  map_eq_zero_of_eq' := λ v i j h hij, begin
+    sorry
+  end }
 
 end

@@ -9,7 +9,7 @@ Some definitions for optics on products.
 -/
 
 universes u v
-variables {A B S T X Y : Type}
+variables {A B C D S T X Y : Type}
 
 /-- `square A := A × A` -/
 def prod.square (A : Type u) := A × A
@@ -39,5 +39,11 @@ def zip_with2 : grate A B S T → (A → A → B) → S → S → T
 
 def both : traversal A B (A × A) (B × B) :=
 @control.optic.traversal.traversed prod.square prod.square.is_trav A B
+
+def fst : lens A B (A × C) (B × C) :=
+begin intros P pf st x, unfreezingI {apply strong.first, apply x}  end
+
+def snd : lens A B (C × A) (C × B) :=
+begin intros P pf st x, unfreezingI {apply strong.second, apply x}  end
 
 end control.optic

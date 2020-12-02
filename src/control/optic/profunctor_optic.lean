@@ -14,6 +14,7 @@ Definitions of profunctor optics.
 ### References:
 - https://hackage.haskell.org/package/profunctor-optics-0.0.2/docs/index.html
 - https://dl.acm.org/doi/pdf/10.1145/3236779
+- https://golem.ph.utexas.edu/category/2020/01/profunctor_optics_the_categori.html
 -/
 
 def prod.elim {A B C} : (A → B → C) → A × B → C
@@ -64,7 +65,7 @@ section defs
   def fold        := ∀ ⦃P⦄ [affine P] [traversing P] [coerce_r P], optic' P A S
 end defs
 
-variables {S T A B C : Type}
+variables {S T A B C D X Y : Type}
 variables {P : Type → Type → Type}
 
 namespace iso
@@ -112,6 +113,10 @@ namespace prism
 
   def mk (g : S → T ⊕ A) (s : B → T) ⦃P⦄ [profunctor P] [choice P]: optic P A B S T
   | f := dimap g (sum.elim id s) $ right _ $ f
+
+  def the : prism A B (option A) (option B) :=
+  mk (λ s, option.cases_on s (sum.inl none) (sum.inr)) (some)
+
 end prism
 
 namespace traversal
@@ -156,6 +161,50 @@ namespace grate
   def endomorphed : grate' A (A → A)
   | P _ c p := @closed.close P c _ _ A p
 end grate
+
+-- idea1: get the elaborator to do it.
+class has_lens_comp (l3 : out_param $ Type 1) (l1 l2 : Type 1) :=
+(comp : l1 → l2 → l3)
+
+namespace coe
+
+instance iso_lens : has_coe (iso A B C D) (lens A B C D)             :=
+begin refine {..}, intros x,  repeat {intro}, unfreezingI {apply x}, assumption end
+instance iso_prism: has_coe (iso A B C D) (prism A B C D)            :=
+begin refine {..}, intros x,  repeat {intro}, unfreezingI {apply x}, assumption end
+instance lens_t0  : has_coe (lens A B C D) (traversal0 A B C D)      :=
+begin refine {..}, intros x,  repeat {intro}, unfreezingI {apply x}, assumption end
+instance prism_t0 : has_coe (prism A B C D) (traversal0 A B C D)     :=
+begin refine {..}, intros x,  repeat {intro}, unfreezingI {apply x}, assumption end
+instance t0_t     : has_coe (traversal0 A B C D) (traversal A B C D) :=
+begin refine {..}, intros x,  repeat {intro}, unfreezingI {apply x}, assumption end
+instance t_setter : has_coe (traversal A B C D) (setter A B C D)     :=
+begin refine {..}, intros x,  repeat {intro}, unfreezingI {apply x}, assumption end
+instance iso_grate: has_coe (iso A B C D) (grate A B C D)            :=
+begin refine {..}, intros x,  repeat {intro}, unfreezingI {apply x}, assumption end
+
+end coe
+-- def tlp (p: prism C D X Y) (l : lens A B C D) ⦃P⦄ [affine P] : optic P A B X Y
+-- | x := p $ l $ x
+
+-- instance tlpi : has_lens_comp (traversal0 A B X Y) (lens A B C D) (prism C D X Y) :=
+-- {comp := λ x y, tlp y x }
+
+/-
+thorem : Lens composition is really hard :=
+
+
+
+
+/-
+len
+
+ -/
+
+
+ -/
+
+
 
 end optic
 end control

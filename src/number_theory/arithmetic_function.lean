@@ -34,6 +34,7 @@ to form the Dirichlet ring.
  * `sum_eq_iff_sum_mul_moebius_eq` for functions to a `comm_ring`
  * `sum_eq_iff_sum_smul_moebius_eq` for functions to an `add_comm_group`
  * `prod_eq_iff_prod_pow_moebius_eq` for functions to a `comm_group`
+ * `prod_eq_iff_prod_pow_moebius_eq_of_nonzero` for functions to a `comm_group_with_zero`
 
 ## Notation
 The arithmetic functions `ζ` and `σ` have Greek letter names, which are localized notation in

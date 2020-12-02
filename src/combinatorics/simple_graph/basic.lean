@@ -250,7 +250,8 @@ Given an edge incident to a particular vertex, get the other vertex on the edge.
 -/
 def incident_set_other {v : V G} {e : sym2 (V G)} (h : e ∈ incident_set v) : V G := h.2.other'
 
-lemma incident_other_prop {v : V G} {e : sym2 (V G)} (h : e ∈ incident_set v) : incident_set_other h ∈ neighbor_set v :=
+lemma incident_other_prop {v : V G} {e : sym2 (V G)} (h : e ∈ incident_set v) :
+  incident_set_other h ∈ neighbor_set v :=
 by { cases h, rwa [←sym2.mem_other_spec' h_right, mem_edge_set] at h_left }
 
 @[simp]
@@ -375,6 +376,8 @@ The graph with no edges on a given vertex type.
 def empty_graph (V : Type u) : simple_graph_on V :=
 { adj := λ i j, false }
 
+instance : inhabited simple_graph := ⟨⟨empty, empty_graph empty⟩⟩
+
 /--
 The complete graph on a type `α` is the simple graph with all pairs of distinct vertices adjacent.
 -/
@@ -382,14 +385,14 @@ def complete_graph (V : Type u) : simple_graph_on V :=
 { adj := ne }
 
 @[simp]
-lemma simple_graph_from_rel_adj {α : Type u} (r : α → α → Prop) (v w : V ↟(simple_graph_from_rel r)) :
+lemma simple_graph_from_rel_adj
+  {α : Type u} (r : α → α → Prop) (v w : V ↟(simple_graph_from_rel r)) :
   v ~g w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
 by refl
 
-@[simp]
 lemma simple_graph_from_rel_adj' {α : Type u} (r : α → α → Prop) (v w : α) :
   @simple_graph.adj' ↟(simple_graph_from_rel r) v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
-by refl
+by simp
 
 /--
 A path graph on `n+1` vertices, which has `n` edges.
@@ -437,11 +440,13 @@ Quotient of a type by a pair of elements
 -/
 def two_pt_quo {β : Type*} (v w : β) := @quot β (λ i j, i = j ∨ (i = v ∧ j = w) ∨ (i = w ∧ j = v))
 
+instance {β : Type*} {v w : β} : inhabited (two_pt_quo v w) := ⟨quot.mk _ v⟩
+
 /--
 The edge contraction operation on an edge of a simple graph combines its endpoints
 into one vertex and removes the resulting loop
 -/
-def contract_edge (G : simple_graph) {v w : V G} (h : v ~g w) : simple_graph_on (two_pt_quo v w) :=
+def contract (G : simple_graph) (v w : V G) : simple_graph_on (two_pt_quo v w) :=
 { adj := λ i j, quot.out i ~g quot.out j,
   symm' :=
     begin
@@ -457,9 +462,9 @@ def contract_edge (G : simple_graph) {v w : V G} (h : v ~g w) : simple_graph_on 
 }
 
 /--
-The edge deletion operation on an edge of a simple graph removes it
+The edge deletion operation disconnects two vertices if they were connected.
 -/
-def delete_edge (G : simple_graph) {v w : V G} (h : v ~g w) : simple_graph_on (G.V) :=
+def delete_edge (G : simple_graph) (v w : V G) : simple_graph_on (G.V) :=
 { adj := λ i j, (¬ ((i = v ∧ j = w) ∨ (i = w ∧ j = v)) ∧ i ~g j),
   symm' :=
     begin
@@ -526,4 +531,3 @@ end complete_graphs
 
 
 end simple_graph
-#lint

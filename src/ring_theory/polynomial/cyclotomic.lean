@@ -430,8 +430,8 @@ begin
   exact monic.ne_zero prod_monic (degree_eq_bot.1 h)
 end
 
-/-- If `m` is a proper divisor of `n`, then `X ^ m - 1` divides ∏ i in nat.proper_divisors n,
-cyclotomic i R. -/
+/-- If `m` is a proper divisor of `n`, then `X ^ m - 1` divides
+`∏ i in nat.proper_divisors n, cyclotomic i R`. -/
 lemma X_pow_sub_one_dvd_prod_cyclotomic (R : Type*) [comm_ring R] {n m : ℕ} (hpos : 0 < n)
   (hm : m ∣ n) (hdiff : m ≠ n) : X ^ m - 1 ∣ ∏ i in nat.proper_divisors n, cyclotomic i R :=
 begin

@@ -773,6 +773,15 @@ ext $ λ x, show e₁.to_linear_map x = e₂.to_linear_map x, by rw H
 @[simp] lemma trans_to_linear_map (f : A₁ ≃ₐ[R] A₂) (g : A₂ ≃ₐ[R] A₃) :
   (f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
+instance aut : group (A₁ ≃ₐ[R] A₁) :=
+{ mul := λ ϕ ψ, ψ.trans ϕ,
+  mul_assoc := λ ϕ ψ χ, rfl,
+  one := 1,
+  one_mul := λ ϕ, by { ext, refl },
+  mul_one := λ ϕ, by { ext, refl },
+  inv := symm,
+  mul_left_inv := λ ϕ, by { ext, exact symm_apply_apply ϕ a } }
+
 end semiring
 
 section comm_semiring

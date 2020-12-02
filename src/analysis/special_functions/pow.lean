@@ -1422,8 +1422,7 @@ begin
         nnreal.one_le_rpow_of_pos_of_le_one_of_nonpos hx1 hx2 (le_of_lt hz)],
 end
 
-lemma to_real_rpow (x : ennreal) (z : ℝ) :
-  (x.to_real) ^ z = (x ^ z).to_real :=
+lemma to_nnreal_rpow (x : ennreal) (z : ℝ) : (x.to_nnreal) ^ z = (x ^ z).to_nnreal :=
 begin
   rcases lt_trichotomy z 0 with H|H|H,
   { cases x, { simp [H, ne_of_lt] },
@@ -1434,6 +1433,9 @@ begin
   { cases x, { simp [H, ne_of_gt] },
     simp [coe_rpow_of_nonneg _ (le_of_lt H)] }
 end
+
+lemma to_real_rpow (x : ennreal) (z : ℝ) : (x.to_real) ^ z = (x ^ z).to_real :=
+by rw [ennreal.to_real, ennreal.to_real, ←nnreal.coe_rpow, ennreal.to_nnreal_rpow]
 
 end ennreal
 

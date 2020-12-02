@@ -303,13 +303,13 @@ have (𝓝 a ×ᶠ 𝓝 b) ⊓ 𝓟 (set.prod s t) = (𝓝 a ⊓ 𝓟 s) ×ᶠ (
   by rw [←prod_inf_prod, prod_principal_principal],
 by simp [closure_eq_cluster_pts, cluster_pt, nhds_prod_eq, this]; exact prod_ne_bot
 
-lemma mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
+lemma map_mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
   (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)
   (hu : ∀a b, a ∈ s → b ∈ t → f a b ∈ u) :
   f a b ∈ closure u :=
 have (a, b) ∈ closure (set.prod s t), by rw [closure_prod_eq]; from ⟨ha, hb⟩,
 show (λp:α×β, f p.1 p.2) (a, b) ∈ closure u, from
-  mem_closure hf this $ assume ⟨a, b⟩ ⟨ha, hb⟩, hu a b ha hb
+  map_mem_closure hf this $ assume ⟨a, b⟩ ⟨ha, hb⟩, hu a b ha hb
 
 lemma is_closed.prod {s₁ : set α} {s₂ : set β} (h₁ : is_closed s₁) (h₂ : is_closed s₂) :
   is_closed (set.prod s₁ s₂) :=
@@ -425,20 +425,18 @@ lemma embedding_inr : embedding (@inr α β) :=
   end,
   inj := λ _ _, inr.inj_iff.mp }
 
+lemma is_open_range_inl : is_open (range (inl : α → α ⊕ β)) :=
+is_open_sum_iff.2 $ by simp
+
+lemma is_open_range_inr : is_open (range (inr : β → α ⊕ β)) :=
+is_open_sum_iff.2 $ by simp
+
 lemma open_embedding_inl : open_embedding (inl : α → α ⊕ β) :=
-{ open_range := begin
-    rw is_open_sum_iff,
-    convert and.intro is_open_univ is_open_empty;
-    { ext, simp }
-  end,
+{ open_range := is_open_range_inl,
   .. embedding_inl }
 
 lemma open_embedding_inr : open_embedding (inr : β → α ⊕ β) :=
-{ open_range := begin
-    rw is_open_sum_iff,
-    convert and.intro is_open_empty is_open_univ;
-    { ext, simp }
-  end,
+{ open_range := is_open_range_inr,
   .. embedding_inr }
 
 end sum

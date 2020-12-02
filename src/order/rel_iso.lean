@@ -517,6 +517,32 @@ e.to_equiv.apply_symm_apply x
 @[simp] lemma symm_apply_apply (e : α ≃o β) (x : α) : e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply x
 
+open set
+
+@[simp] lemma preimage_Iic (e : α ≃o β) (b : β) : e ⁻¹' (Iic b) = Iic (e.symm b) :=
+by { ext x, simp [← e.apply_le_apply] }
+
+@[simp] lemma preimage_Ici (e : α ≃o β) (b : β) : e ⁻¹' (Ici b) = Ici (e.symm b) :=
+by { ext x, simp [← e.apply_le_apply] }
+
+@[simp] lemma preimage_Iio (e : α ≃o β) (b : β) : e ⁻¹' (Iio b) = Iio (e.symm b) :=
+by { ext x, simp [← e.apply_lt_apply] }
+
+@[simp] lemma preimage_Ioi (e : α ≃o β) (b : β) : e ⁻¹' (Ioi b) = Ioi (e.symm b) :=
+by { ext x, simp [← e.apply_lt_apply] }
+
+@[simp] lemma preimage_Icc (e : α ≃o β) (a b : β) : e ⁻¹' (Icc a b) = Icc (e.symm a) (e.symm b) :=
+by simp [← Ici_inter_Iic]
+
+@[simp] lemma preimage_Ico (e : α ≃o β) (a b : β) : e ⁻¹' (Ico a b) = Ico (e.symm a) (e.symm b) :=
+by simp [← Ici_inter_Iio]
+
+@[simp] lemma preimage_Ioc (e : α ≃o β) (a b : β) : e ⁻¹' (Ioc a b) = Ioc (e.symm a) (e.symm b) :=
+by simp [← Ioi_inter_Iic]
+
+@[simp] lemma preimage_Ioo (e : α ≃o β) (a b : β) : e ⁻¹' (Ioo a b) = Ioo (e.symm a) (e.symm b) :=
+by simp [← Ioi_inter_Iio]
+
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
     it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
 def of_cmp_eq_cmp {α β} [linear_order α] [linear_order β] (f : α → β) (g : β → α)

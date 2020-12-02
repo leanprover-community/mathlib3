@@ -1682,6 +1682,22 @@ begin
   { exact λ h, ⟨default ι, h.symm⟩ }
 end
 
+@[simp] lemma range_inter_compl_image_comlp_eq_image {f : α → β} (H : injective f) (s : set α) :
+  range f ∩ (f '' sᶜ)ᶜ = f '' s :=
+begin
+  ext x,
+  split,
+  { rintros ⟨⟨x, rfl⟩, h⟩,
+    refine ⟨x, _, rfl⟩,
+    by_contra c,
+    exact h ⟨x, c, rfl⟩ },
+  { rintro ⟨x, hx, rfl⟩,
+    refine ⟨⟨x, rfl⟩, _⟩,
+    rintro ⟨y, hy, h⟩,
+    rw H h at *,
+    contradiction },
+end
+
 end range
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/

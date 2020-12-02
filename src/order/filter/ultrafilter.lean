@@ -261,40 +261,32 @@ instance ultrafilter.inhabited [inhabited α] : inhabited (ultrafilter α) := �
 
 instance {F : ultrafilter α} : ne_bot F.1 := F.2.1
 
+/--
+The pullback of an ultrafilter along an injection whose image is large
+with respect to the given ultrafilter. -/
 def ultrafilter.comap {m : α → β} (u : ultrafilter β) (inj : function.injective m)
   (large : set.range m ∈ u.1) : ultrafilter α :=
 { val := filter.comap m u.1,
   property := begin
     rw ultrafilter_iff_compl_mem_iff_not_mem',
     intros S,
+    simp_rw filter.mem_comap_iff inj large,
     split,
     { intros h c,
-      rw filter.mem_comap_iff inj large at *,
       have : m '' Sᶜ ⊆ (m '' S)ᶜ,
-      { rintro _ ⟨_,_,rfl⟩ ⟨z,hz,h⟩,
+      { rintro _ ⟨_, _, rfl⟩ ⟨z, hz, h⟩,
         rw inj h at *,
         contradiction },
       replace c := u.1.sets_of_superset c this,
       erw ultrafilter_iff_compl_mem_iff_not_mem.mp u.2 at c,
       contradiction },
     { intros h,
-      rw filter.mem_comap_iff inj large at *,
       suffices : m '' S = set.range m ∩ (m '' Sᶜ)ᶜ,
       { rw this,
         refine u.1.inter_sets large _,
         erw ultrafilter_iff_compl_mem_iff_not_mem.mp u.2,
         assumption },
-      ext x,
-      split,
-      { rintro ⟨y,hy,rfl⟩,
-        refine ⟨⟨y,rfl⟩,_⟩,
-        rintro ⟨w,hw,h⟩,
-        rw inj h at hw,
-        contradiction },
-      { rintro ⟨⟨y,hy,rfl⟩,h1⟩,
-        refine ⟨y,_,rfl⟩,
-        by_contra c,
-        exact h1 ⟨y,c,rfl⟩ } },
+      simp, }
   end }
 
 /-- The ultra-filter extending the cofinite filter. -/

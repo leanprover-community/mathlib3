@@ -546,7 +546,7 @@ def dom_dom_congr (σ : ι₁ ≃ ι₂) (m : multilinear_map R (λ i : ι₁, M
 /-- `multilinear_map.dom_dom_congr` as an equivalence.
 
 This is declared separately because it does not work with dot notation. -/
-@[simps]
+@[simps apply symm_apply]
 def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
   multilinear_map R (λ i : ι₁, M₂) M₃ ≃+ multilinear_map R (λ i : ι₂, M₂) M₃ :=
 { to_fun := dom_dom_congr σ,

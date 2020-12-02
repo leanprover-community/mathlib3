@@ -22,53 +22,53 @@ variables {α : Type u} [dec : decidable_eq α]
 
 /-- This is the definition of regular expressions. The names used here is to mirror the definition
   of a Kleene algebra (https://en.wikipedia.org/wiki/Kleene_algebra).
-  `RZero` matches nothing
-  `RNull` matches only the empty string
-  `RChar a` matches only the string 'a'
-  `RStar M` matches any finite concatenation of strings which match `M`
-  `RPlus M N` matches anything which match `M` or `N`
-  `RComp M N` matches `x ++ y` if `x` matches `M` and `y` matches `N` -/
+  `zero` matches nothing
+  `epsilon` matches only the empty string
+  `char a` matches only the string 'a'
+  `star M` matches any finite concatenation of strings which match `M`
+  `plus M N` matches anything which match `M` or `N`
+  `comp M N` matches `x ++ y` if `x` matches `M` and `y` matches `N` -/
 inductive regular_expression (α : Type u) : Type (u+1)
-| RZero : regular_expression
-| RNull : regular_expression
-| RChar : α → regular_expression
-| RStar : regular_expression → regular_expression
-| RPlus : regular_expression → regular_expression → regular_expression
-| RComp : regular_expression → regular_expression → regular_expression
+| zero : regular_expression
+| epsilon : regular_expression
+| char : α → regular_expression
+| star : regular_expression → regular_expression
+| plus : regular_expression → regular_expression → regular_expression
+| comp : regular_expression → regular_expression → regular_expression
 
 namespace regular_expression
 
-instance regular_expression_inhabited : inhabited (regular_expression α) := ⟨ RZero ⟩
+instance regular_expression_inhabited : inhabited (regular_expression α) := ⟨zero⟩
 
-instance : has_add (regular_expression α) := ⟨RPlus⟩
-instance : has_mul (regular_expression α) := ⟨RComp⟩
-instance : has_one (regular_expression α) := ⟨RNull⟩
-instance : has_zero (regular_expression α) := ⟨RZero⟩
+instance : has_add (regular_expression α) := ⟨plus⟩
+instance : has_mul (regular_expression α) := ⟨comp⟩
+instance : has_one (regular_expression α) := ⟨epsilon⟩
+instance : has_zero (regular_expression α) := ⟨zero⟩
 
-/-- `match_null M` is true if and only if `M` matches the empty string -/
-def match_null : regular_expression α → bool
-| RZero := ff
-| RNull := tt
-| (RChar _) := ff
-| (RStar M) := tt
-| (RPlus M N) := M.match_null || N.match_null
-| (RComp M N) := M.match_null && N.match_null
+/-- `match_epsilon M` is true if and only if `M` matches the empty string -/
+def match_epsilon : regular_expression α → bool
+| zero := ff
+| epsilon := tt
+| (char _) := ff
+| (star M) := tt
+| (plus M N) := M.match_epsilon || N.match_epsilon
+| (comp M N) := M.match_epsilon && N.match_epsilon
 
 include dec
 
 /-- `M.feed a` matches `x` if `M` matches `"a" ++ x` -/
 def feed : regular_expression α → α → regular_expression α
-| RZero _ := RZero
-| RNull _ := RZero
-| (RChar a₁) a₂ := if a₁ = a₂ then RNull else RZero
-| (RStar M) a := RComp (feed M a) (RStar M)
-| (RPlus M N) a := RPlus (feed M a) (feed N a)
-| (RComp M N) a :=
-  ite M.match_null (RPlus (RComp (feed M a) N) (feed N a)) (RComp (feed M a) N)
+| zero _ := zero
+| epsilon _ := zero
+| (char a₁) a₂ := if a₁ = a₂ then epsilon else zero
+| (star M) a := comp (feed M a) (star M)
+| (plus M N) a := plus (feed M a) (feed N a)
+| (comp M N) a :=
+  ite M.match_epsilon (plus (comp (feed M a) N) (feed N a)) (comp (feed M a) N)
 
 /-- `M.rmatch x` is true if and only if `M` matches `x` -/
 def rmatch : regular_expression α → list α → bool
-| M [] := match_null M
+| M [] := match_epsilon M
 | M (a::as) := rmatch (M.feed a) as
 
 /-- Two regular expressions are equivalent if they match exactly the same strings -/
@@ -84,26 +84,26 @@ local infix ` ≈ ` := equiv
 @[simp] lemma equiv_def (P Q : regular_expression α) : P ≈ Q ↔ ∀ x, P.rmatch x ↔ Q.rmatch x :=
   by refl
 
-lemma RZero_rmatch (x : list α) : rmatch RZero x = ff :=
+lemma zero_rmatch' (x : list α) : rmatch zero x = ff :=
 begin
   induction x,
-    rw [rmatch, match_null],
+    rw [rmatch, match_epsilon],
   rwa [rmatch, feed],
 end
 
-@[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff := RZero_rmatch x
+@[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff := zero_rmatch' x
 
-lemma RNull_rmatch_iff (x : list α) : rmatch RNull x ↔ x = [] :=
+lemma epsilon_rmatch_iff (x : list α) : rmatch epsilon x ↔ x = [] :=
 begin
   cases x,
     dec_trivial,
-  rw [rmatch, feed, RZero_rmatch],
+  rw [rmatch, feed, zero_rmatch'],
   dec_trivial
 end
 
-@[simp] lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] := RNull_rmatch_iff x
+@[simp] lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] := epsilon_rmatch_iff x
 
-lemma RChar_rmatch_iff (a : α) (x : list α) : rmatch (RChar a) x ↔ x = [a] :=
+lemma char_rmatch_iff (a : α) (x : list α) : rmatch (char a) x ↔ x = [a] :=
 begin
   cases x with _ x,
     dec_trivial,
@@ -113,18 +113,18 @@ begin
     tauto,
   rw [rmatch, feed],
   split_ifs,
-    rw RNull_rmatch_iff,
+    rw epsilon_rmatch_iff,
     tauto,
-  rw RZero_rmatch,
+  rw zero_rmatch',
   tauto
 end
 
-lemma RPlus_rmatch_iff (P Q : regular_expression α) (x : list α) :
-  (RPlus P Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x :=
+lemma plus_rmatch_iff (P Q : regular_expression α) (x : list α) :
+  (plus P Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x :=
 begin
   induction x with _ _ ih generalizing P Q,
   { repeat {rw rmatch},
-    rw match_null,
+    rw match_epsilon,
     finish },
   { repeat {rw rmatch},
     rw feed,
@@ -132,13 +132,13 @@ begin
 end
 
 @[simp] lemma add_rmatch_iff (P Q : regular_expression α) (x : list α) :
-  (P + Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x := RPlus_rmatch_iff P Q x
+  (P + Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x := plus_rmatch_iff P Q x
 
-lemma RComp_rmatch_iff (P Q : regular_expression α) (x : list α) :
-  (RComp P Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
+lemma comp_rmatch_iff (P Q : regular_expression α) (x : list α) :
+  (comp P Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
 begin
   induction x with a x ih generalizing P Q,
-  { rw [rmatch, match_null],
+  { rw [rmatch, match_epsilon],
     split,
     { intro h,
       refine ⟨ [], [], rfl, _ ⟩,
@@ -151,12 +151,12 @@ begin
       repeat {rw rmatch at h₂},
       finish } },
   { rw [rmatch, feed],
-    split_ifs with hnull,
-    { rw [RPlus_rmatch_iff, ih],
+    split_ifs with hepsilon,
+    { rw [plus_rmatch_iff, ih],
       split,
       { rintro (⟨ t, u, _ ⟩ | h),
         { exact ⟨ a :: t, u, by tauto ⟩ },
-        { exact ⟨ [], a :: x, rfl, hnull, h ⟩ } },
+        { exact ⟨ [], a :: x, rfl, hepsilon, h ⟩ } },
       { rintro ⟨ t, u, h, hP, hQ ⟩,
         cases t with b t,
         { right,
@@ -181,21 +181,21 @@ begin
 end
 
 @[simp] lemma mul_rmatch_iff (P Q : regular_expression α) (x : list α) :
-  (P * Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u := RComp_rmatch_iff P Q x
+  (P * Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u := comp_rmatch_iff P Q x
 
-lemma RStar_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
-  (RStar P).rmatch x ↔ ∃ S : list (list α), x = S.join ∧ ∀ t ∈ S, ¬(list.empty t) ∧ P.rmatch t
+lemma star_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
+  (star P).rmatch x ↔ ∃ S : list (list α), x = S.join ∧ ∀ t ∈ S, ¬(list.empty t) ∧ P.rmatch t
 | x :=
 begin
-  have IH := λ t (h : list.length t < list.length x), RStar_rmatch_iff t,
-  clear RStar_rmatch_iff,
+  have IH := λ t (h : list.length t < list.length x), star_rmatch_iff t,
+  clear star_rmatch_iff,
   split,
   { cases x with a x,
     { intro,
       fconstructor,
       exact [],
       tauto },
-    { rw [rmatch, feed, RComp_rmatch_iff],
+    { rw [rmatch, feed, comp_rmatch_iff],
       rintro ⟨ t, u, hs, ht, hu ⟩,
       have hwf : u.length < (list.cons a x).length,
       { rw [hs, list.length_cons, list.length_append],
@@ -213,7 +213,7 @@ begin
   { rintro ⟨ S, hsum, helem ⟩,
     cases x with a x,
     { dec_trivial },
-    { rw [rmatch, feed, RComp_rmatch_iff],
+    { rw [rmatch, feed, comp_rmatch_iff],
       cases S with t' U,
       { exact ⟨ [], [], by tauto ⟩ },
       { cases t' with b t,

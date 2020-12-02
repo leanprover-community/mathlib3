@@ -368,71 +368,6 @@ finset.max' (univ.image (λ (v : V G), degree v)) (nonempty.image univ_nonempty 
 
 end finite
 
-section examples
-
-/--
-The graph with no edges on a given vertex type.
--/
-def empty_graph (V : Type u) : simple_graph_on V :=
-{ adj := λ i j, false }
-
-instance : inhabited simple_graph := ⟨⟨empty, empty_graph empty⟩⟩
-
-/--
-The complete graph on a type `α` is the simple graph with all pairs of distinct vertices adjacent.
--/
-def complete_graph (V : Type u) : simple_graph_on V :=
-{ adj := ne }
-
-@[simp]
-lemma simple_graph_from_rel_adj
-  {α : Type u} (r : α → α → Prop) (v w : V ↟(simple_graph_from_rel r)) :
-  v ~g w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
-by refl
-
-lemma simple_graph_from_rel_adj' {α : Type u} (r : α → α → Prop) (v w : α) :
-  @simple_graph.adj' ↟(simple_graph_from_rel r) v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
-by simp
-
-/--
-A path graph on `n+1` vertices, which has `n` edges.
--/
-def path_graph (n : ℕ) : simple_graph_on (fin (n + 1)) :=
-{ adj := λ i j, j.1 = i.1 + 1 ∨ i.1 = j.1 + 1,
-  symm' := λ x y h, or.elim h or.inr or.inl,
-  loopless' := by { intros x h, cases h; linarith } }
-
-lemma path_graph_adj (n : ℕ) (a b : fin (n + 1)) :
-  @adj' ↟(path_graph n) a b ↔ b.1 = a.1 + 1 ∨ a.1 = b.1 + 1 :=
-by refl
-
-/--
-A graph on `n` vertices with `n` edges in a cycle
--/
-def cycle_graph (n : ℕ) (three_le : 3 ≤ n) : simple_graph_on (zmod n) :=
-{ adj := λ i j, i = j + (1 : ℕ) ∨ j = i + (1 : ℕ),
-  symm' := λ x y h, or.elim h or.inr or.inl,
-  loopless' := by { intros x h, rw or_self at h,
-                    have h' := congr_arg (λ y, y - x) h,
-                    simp only [add_sub_cancel', sub_self] at h',
-                    have h'' := congr_arg zmod.val h',
-                    change ((0 : ℕ) : zmod n).val = _ at h'',
-                    repeat { rw zmod.val_cast_nat at h'' },
-                    rw nat.zero_mod at h'',
-                    rw nat.mod_eq_of_lt at h'',
-                    cc, linarith, } }
-
-/--
-A graph is a complete partite graph if its vertex set is a union of
-independent sets such that each vertex in an independent set is
-adjacent to every vertex in every other independent set
--/
-def complete_partite_graph {ι : Type u} (f : ι → Type v) : simple_graph_on (Σ i : ι, f i) :=
-{ adj := λ v w, v.1 ≠ w.1 }
-
-end examples
-
-
 section graph_operations
 
 /--
@@ -501,33 +436,5 @@ def delete_edge (G : simple_graph) (v w : V G) : simple_graph_on (G.V) :=
     end }
 
 end graph_operations
-
-section complete_graphs
-
-instance from_rel_inhabited (α : Type u) : inhabited (simple_graph_on α) :=
-⟨complete_graph α⟩
-
-variables (α : Type u) [decidable_eq α]
-
-instance complete_graph_adj_decidable :
-  decidable_rel (adj ↟(complete_graph α)) :=
-by { dsimp [complete_graph], apply_instance }
-
-variables [fintype α]
-
-@[simp]
-lemma complete_graph_degree (v : V ↟(complete_graph α)) :
-  degree v = fintype.card α - 1 :=
-begin
-  convert univ.card.pred_eq_sub_one,
-  erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
-end
-
-lemma complete_graph_is_regular :
-  is_regular_of_degree ↟(complete_graph α) (fintype.card α - 1) :=
-by { intro v, simp }
-
-end complete_graphs
-
 
 end simple_graph

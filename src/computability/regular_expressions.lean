@@ -20,6 +20,28 @@ universe u
 
 variables {α : Type u} [dec : decidable_eq α]
 
+/-- We first define a language as a set of strings over an alphabet. -/
+@[derive has_union, derive has_emptyc, derive has_mem (list α), derive has_singleton (list α)]
+def language (α) := set (list α)
+
+namespace language
+
+instance : inhabited (language α) := ⟨∅⟩
+
+instance : has_zero (language α) := ⟨∅⟩
+instance : has_one (language α) := ⟨{[]}⟩
+
+instance : has_add (language α) := ⟨set.union⟩
+instance : has_mul (language α) := ⟨λ A B, (A.prod B).image (λ p, p.1 ++ p.2)⟩
+
+/-- The star of a language `L` is the set of all strings which can be written by concatenating
+  strings from `L`. -/
+def star (l : language α) : language α :=
+{ x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, ¬(list.empty y) ∧ y ∈ l}
+
+end language
+
+
 /-- This is the definition of regular expressions. The names used here is to mirror the definition
   of a Kleene algebra (https://en.wikipedia.org/wiki/Kleene_algebra).
   `zero` matches nothing
@@ -44,6 +66,8 @@ instance : has_add (regular_expression α) := ⟨plus⟩
 instance : has_mul (regular_expression α) := ⟨comp⟩
 instance : has_one (regular_expression α) := ⟨epsilon⟩
 instance : has_zero (regular_expression α) := ⟨zero⟩
+
+@[simp] lemma zero_def : (zero : regular_expression α) = 0 := rfl
 
 /-- `match_epsilon M` is true if and only if `M` matches the empty string -/
 def match_epsilon : regular_expression α → bool
@@ -88,7 +112,6 @@ local infix ` ≈ ` := equiv
 @[simp] lemma equiv_def (P Q : regular_expression α) : P ≈ Q ↔ ∀ x, P.rmatch x ↔ Q.rmatch x :=
 by refl
 
-@[simp] lemma zero_def : (zero : regular_expression α) = 0 := rfl
 
 @[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff :=
 begin

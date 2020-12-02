@@ -78,9 +78,8 @@ do t ← tactic.target,
 meta def pick_default : tactic unit := `[exact tactic.rewrite_search.default_config]
 
 /-- Search for a chain of rewrites to prove an equation or iff statement. -/
-meta def rewrite_search (try_harder : parse $ optional (tk "!"))
-  (cfg : config . pick_default) : tactic string :=
-rewrite_search_target cfg []
+meta def rewrite_search (cfg : config . pick_default) : tactic string :=
+rewrite_search_target {} []
 
 add_tactic_doc
 { name        := "rewrite_search",
@@ -92,8 +91,8 @@ add_tactic_doc
 Search for a chain of rewrites to prove an equation or iff statement.
 Includes the rewrite rules specified in the same way as the `rw` tactic accepts.
 -/
-meta def rewrite_search_with (try_harder : parse $ optional (tk "!")) (rs : parse rw_rules)
-  (cfg : config . pick_default) : tactic string :=
+meta def rewrite_search_with (rs : parse rw_rules) (cfg : config . pick_default) :
+  tactic string :=
 rewrite_search_target cfg rs.rules
 
 add_tactic_doc

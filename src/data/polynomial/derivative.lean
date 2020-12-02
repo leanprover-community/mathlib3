@@ -35,7 +35,7 @@ variables [semiring R]
 attribute [reducible] polynomial
 
 /-- `derivative p` is the formal derivative of the polynomial `p` -/
-def derivative : (polynomial R) →ₗ[R] polynomial R := -- λ p, p.sum (λn a, C (a * n) * X^(n - 1))
+def derivative : (polynomial R) →ₗ[R] polynomial R :=
 finsupp.total ℕ (polynomial R) R (λ n, C ↑n * X^(n - 1))
 
 lemma derivative_apply (p : polynomial R) :
@@ -62,7 +62,7 @@ begin
 end
 
 lemma derivative_zero : derivative (0 : polynomial R) = 0 :=
-by simp
+derivative.map_zero
 
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
 (derivative_apply _).trans ((sum_single_index $ by simp).trans (C_mul_X_pow_eq_monomial _ _))
@@ -93,10 +93,10 @@ linear_map.map_sub derivative f g
 
 @[simp] lemma derivative_sum {s : finset ι} {f : ι → polynomial R} :
   derivative (∑ b in s, f b) = ∑ b in s, derivative (f b) :=
-linear_map.map_sum derivative
+derivative.map_sum
 
 @[simp] lemma derivative_smul (r : R) (p : polynomial R) : derivative (r • p) = r • derivative p :=
-by { ext, simp only [coeff_derivative, mul_assoc, coeff_smul], }
+derivative.map_smul _ _
 
 end semiring
 

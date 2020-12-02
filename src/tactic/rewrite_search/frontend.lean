@@ -74,12 +74,9 @@ do t ← tactic.target,
   tactic.exact proof,
   explain_search_result cfg rules proof steps
 
-/-- A tactic to pick the default config. -/
-meta def pick_default : tactic unit := `[exact tactic.rewrite_search.default_config]
-
 /-- Search for a chain of rewrites to prove an equation or iff statement. -/
-meta def rewrite_search (cfg : config . pick_default) : tactic string :=
-rewrite_search_target {} []
+meta def rewrite_search (cfg : config := {}) : tactic string :=
+rewrite_search_target cfg []
 
 add_tactic_doc
 { name        := "rewrite_search",
@@ -91,7 +88,7 @@ add_tactic_doc
 Search for a chain of rewrites to prove an equation or iff statement.
 Includes the rewrite rules specified in the same way as the `rw` tactic accepts.
 -/
-meta def rewrite_search_with (rs : parse rw_rules) (cfg : config . pick_default) :
+meta def rewrite_search_with (rs : parse rw_rules) (cfg : config := {}) :
   tactic string :=
 rewrite_search_target cfg rs.rules
 

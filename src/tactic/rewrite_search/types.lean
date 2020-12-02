@@ -70,9 +70,6 @@ meta structure config extends tactic.nth_rewrite.cfg :=
 (explain            : bool := ff)
 (explain_using_conv : bool := tt)
 
-/-- The default config. -/
-meta def default_config : config := {}
-
 /--
 Split an equation (or an iff) into its left and right parts.
 -/

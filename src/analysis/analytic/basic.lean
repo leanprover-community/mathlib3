@@ -283,16 +283,16 @@ let ⟨pf, hpf⟩ := hf in hpf.neg.analytic_at
 lemma has_fpower_series_on_ball.sub
   (hf : has_fpower_series_on_ball f pf x r) (hg : has_fpower_series_on_ball g pg x r) :
   has_fpower_series_on_ball (f - g) (pf - pg) x r :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma has_fpower_series_at.sub
   (hf : has_fpower_series_at f pf x) (hg : has_fpower_series_at g pg x) :
   has_fpower_series_at (f - g) (pf - pg) x :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma analytic_at.sub (hf : analytic_at 𝕜 f x) (hg : analytic_at 𝕜 g x) :
   analytic_at 𝕜 (f - g) x :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma has_fpower_series_on_ball.coeff_zero (hf : has_fpower_series_on_ball f pf x r)
   (v : fin 0 → E) : pf 0 v = f x :=

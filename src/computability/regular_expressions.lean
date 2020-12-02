@@ -88,20 +88,21 @@ local infix ` ≈ ` := equiv
 @[simp] lemma equiv_def (P Q : regular_expression α) : P ≈ Q ↔ ∀ x, P.rmatch x ↔ Q.rmatch x :=
 by refl
 
-lemma zero_rmatch' (x : list α) : rmatch zero x = ff :=
+@[simp] lemma zero_def : (zero : regular_expression α) = 0 := rfl
+
+@[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff :=
 begin
+  rw ←zero_def,
   induction x,
     rw [rmatch, match_epsilon],
   rwa [rmatch, deriv],
 end
 
-@[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff := zero_rmatch' x
-
 lemma epsilon_rmatch_iff (x : list α) : rmatch epsilon x ↔ x = [] :=
 begin
   cases x,
     dec_trivial,
-  rw [rmatch, deriv, zero_rmatch'],
+  rw [rmatch, deriv, zero_def, zero_rmatch],
   dec_trivial
 end
 
@@ -119,7 +120,7 @@ begin
   split_ifs,
     rw epsilon_rmatch_iff,
     tauto,
-  rw zero_rmatch',
+  rw [zero_def, zero_rmatch],
   tauto
 end
 

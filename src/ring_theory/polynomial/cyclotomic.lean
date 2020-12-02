@@ -558,8 +558,8 @@ section order
 
 /-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, where `p` is a prime that does not divide
 `n`, then the multiplicative order of `a` modulo `p` divides `n`. -/
-lemma order_of_root_cyclotomic_dvd {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact p.prime] {a : ℕ}
-  (hn : ¬ p ∣ n) (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
+lemma order_of_root_cyclotomic_dvd {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact p.prime]
+  {a : ℕ} (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
   order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) ∣ n :=
 begin
   have hord : (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) ^ n = 1,
@@ -592,7 +592,7 @@ begin
     ∏ i in nat.proper_divisors n, cyclotomic i (zmod p),
   { suffices hdivm : map (int.cast_ring_hom (zmod p)) (X - a) ∣ X ^ m - 1,
     { exact dvd_trans hdivm (X_pow_sub_one_dvd_prod_cyclotomic (zmod p) hpos
-        (order_of_root_cyclotomic_dvd hpos hn hroot) hdiff) },
+        (order_of_root_cyclotomic_dvd hpos hroot) hdiff) },
     rw [map_sub, map_X, map_nat_cast, ← C_eq_nat_cast, dvd_iff_is_root, is_root.def, eval_sub,
       eval_pow, eval_one, eval_X, sub_eq_zero, ← zmod.cast_unit_of_coprime a ha, ← units.coe_pow,
       units.coe_eq_one],

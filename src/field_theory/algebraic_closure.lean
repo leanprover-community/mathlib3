@@ -295,4 +295,3 @@ instance : is_alg_closure k (algebraic_closure k) :=
 ⟨algebraic_closure.is_alg_closed k, is_algebraic k⟩
 
 end algebraic_closure
-#lint

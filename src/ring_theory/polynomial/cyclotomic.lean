@@ -430,6 +430,20 @@ begin
   exact monic.ne_zero prod_monic (degree_eq_bot.1 h)
 end
 
+/-- If `m` is a proper divisor of `n`, then `X ^ m - 1` divides ∏ i in nat.proper_divisors n,
+cyclotomic i R. -/
+lemma X_pow_sub_one_dvd_prod_cyclotomic (R : Type*) [comm_ring R] {n m : ℕ} (hpos : 0 < n)
+  (hm : m ∣ n) (hdiff : m ≠ n) : X ^ m - 1 ∣ ∏ i in nat.proper_divisors n, cyclotomic i R :=
+begin
+  replace hm := nat.mem_proper_divisors.2 ⟨hm, lt_of_le_of_ne (nat.divisor_le (nat.mem_divisors.2
+    ⟨hm, (ne_of_lt hpos).symm⟩)) hdiff⟩,
+  rw [← finset.sdiff_union_of_subset (nat.divisors_subset_proper_divisors (ne_of_lt hpos).symm
+    (nat.mem_proper_divisors.1 hm).1 (ne_of_lt (nat.mem_proper_divisors.1 hm).2)),
+    finset.prod_union finset.sdiff_disjoint, prod_cyclotomic_eq_X_pow_sub_one
+    (nat.pos_of_mem_proper_divisors hm)],
+  exact ⟨(∏ (x : ℕ) in n.proper_divisors \ m.divisors, cyclotomic x R), by rw mul_comm⟩
+end
+
 /-- If there is a primitive `n`-th root of unity in `K`, then
 `cyclotomic n K = ∏ μ in primitive_roots n R, (X - C μ)`. In particular,
 `cyclotomic n K = cyclotomic' n K` -/
@@ -567,6 +581,7 @@ lemma order_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact
   (hn : ¬ p ∣ n) (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
   order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) = n :=
 begin
+  set m := order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)),
   have ha := coprime_of_root_cyclotomic hpos hroot,
   have hdivcycl : map (int.cast_ring_hom (zmod p)) (X - a) ∣ (cyclotomic n (zmod p)),
   { replace hrootdiv := dvd_iff_is_root.2 hroot,
@@ -575,14 +590,12 @@ begin
   by_contra hdiff,
   have hdiv : map (int.cast_ring_hom (zmod p)) (X - a) ∣
     ∏ i in nat.proper_divisors n, cyclotomic i (zmod p),
-  { rw [← finset.sdiff_union_of_subset (nat.divisors_subset_proper_divisors (ne_of_lt hpos).symm
-    (order_of_root_cyclotomic_dvd hpos hn hroot) hdiff), finset.prod_union finset.sdiff_disjoint],
-    suffices hdivm : map (int.cast_ring_hom (zmod p)) (X - a) ∣
-    ∏ i in nat.divisors _, cyclotomic i (zmod p),
-    { exact dvd_mul_of_dvd_right hdivm _ },
-    rw [prod_cyclotomic_eq_X_pow_sub_one (order_of_pos _) (zmod p), map_sub, map_X, map_nat_cast,
-      ← C_eq_nat_cast, dvd_iff_is_root, is_root.def, eval_sub, eval_pow, eval_one, eval_X,
-      sub_eq_zero, ← zmod.cast_unit_of_coprime a ha, ← units.coe_pow, units.coe_eq_one],
+  { suffices hdivm : map (int.cast_ring_hom (zmod p)) (X - a) ∣ X ^ m - 1,
+    { exact dvd_trans hdivm (X_pow_sub_one_dvd_prod_cyclotomic (zmod p) hpos
+        (order_of_root_cyclotomic_dvd hpos hn hroot) hdiff) },
+    rw [map_sub, map_X, map_nat_cast, ← C_eq_nat_cast, dvd_iff_is_root, is_root.def, eval_sub,
+      eval_pow, eval_one, eval_X, sub_eq_zero, ← zmod.cast_unit_of_coprime a ha, ← units.coe_pow,
+      units.coe_eq_one],
     exact pow_order_of_eq_one (zmod.unit_of_coprime a ha) },
   have habs : (map (int.cast_ring_hom (zmod p)) (X - a)) ^ 2 ∣ X ^ n - 1,
   { obtain ⟨P, hP⟩ := hdivcycl,

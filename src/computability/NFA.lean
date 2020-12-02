@@ -9,9 +9,9 @@ import computability.DFA
 
 /-!
 # Nondeterministic Finite Automata
-This file contains the definition of a Nondeterministic Finite Automata (NFA), a state machine which
-determines whether a string (implemented as a list over an arbitrary alphabet) is in a regular set
-by evaluating  the string over every possible path.
+This file contains the definition of a Nondeterministic Finite Automata (NFA), a state machine
+which determines whether a string (implemented as a list over an arbitrary alphabet) is in a
+regular set by evaluating  the string over every possible path.
 We show that DFA's are equivalent to NFA's however the construction from NFA to DFA uses an
 exponential number of states.
 -/

@@ -5,8 +5,11 @@ Author: Eric Wieser, Zhangir Azerbayev
 -/
 
 import linear_algebra.multilinear
+import linear_algebra.multilinear_tensor
 import group_theory.perm.sign
 import data.equiv.fin
+import linear_algebra.tensor_product
+import ring_theory.algebra_tower
 
 /-!
 # Alternating Maps
@@ -270,21 +273,33 @@ congr_fun (update_comp_equiv f g a v) a'
 
 end function
 
-namespace multilinear
+namespace multilinear_map
 
-/-- Apply a permutation to the order of the arguments, obtaining another multilinear map.
-The naming is derived from `finsupp.dom_congr`, noting that here the permutation applies to the
-domain of the domain. -/
+variables {M₂ M₃ : Type*} [add_comm_monoid M₂] [semimodule R M₂]
+variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂] [add_comm_monoid M₃] [semimodule R M₃]
+
 @[simps apply]
-def dom_dom_congr {M₂ M₃ : Type*}
-  [add_comm_monoid M₂] [add_comm_monoid M₃] [semimodule R M₂] [semimodule R M₃]
-  (m : multilinear_map R (λ i : ι, M₂) M₃) (σ : equiv.perm ι) :
-  multilinear_map R (λ i : ι, M₂) M₃ :=
+def dom_dom_congr
+  (σ : ι₁ ≃ ι₂) (m : multilinear_map R (λ i : ι₁, M₂) M₃) : multilinear_map R (λ i : ι₂, M₂) M₃ :=
 { to_fun := λ v, m (λ i, v (σ i)),
   map_add' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_add, },
   map_smul' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_smul, }, }
 
-end multilinear
+variables (R)
+/-- Transfer the equivalence between argument indices to an equivalence between maps
+The naming is derived from `finsupp.dom_congr`, noting that here the permutation applies to the
+domain of the domain. -/
+@[simps]
+def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
+  multilinear_map R (λ i : ι₁, M₂) M₃ ≃+ multilinear_map R (λ i : ι₂, M₂) M₃ :=
+{ to_fun := dom_dom_congr σ,
+  inv_fun := dom_dom_congr σ.symm,
+  left_inv := λ m, by {ext, simp},
+  right_inv := λ m, by {ext, simp},
+  map_add' := λ a b, by {ext, simp} }
+variables {R}
+
+end multilinear_map
 
 /-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
 lemma function.update_def {α β : Sort*} [decidable_eq α] (f : α → β) (a' : α) (b : β) :
@@ -320,8 +335,6 @@ end shuffle
 
 open_locale big_operators
 
-#check sum.noc
-
 namespace nat
 
 instance {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M] : smul_comm_class ℕ R M :=
@@ -344,13 +357,37 @@ end int
 example {α β : Type*} (val : α) :
   (sum.inl val : α ⊕ β) ∉ set.range (@sum.inr α β) := by simp
 
+open_locale tensor_product
+
+instance sum_elim.add_comm_monoid {ι₁ ι₂ : Type}
+  {M : ι₁ → Type*} [∀ i, add_comm_monoid (M i)]
+  {N : ι₂ → Type*} [∀ i, add_comm_monoid (N i)]
+  (i : ι₁ ⊕ ι₂)
+  : add_comm_monoid (i.elim M N) := by cases i; dsimp; apply_instance
+
+instance sum_elim.semimodule {ι₁ ι₂ : Type} [decidable_eq ι₁] [decidable_eq ι₂]
+  (R : Type*) [semiring R]
+  {M : ι₁ → Type*} [∀ i, add_comm_monoid (M i)] [∀ i, semimodule R (M i)]
+  {N : ι₂ → Type*} [∀ i, add_comm_monoid (N i)] [∀ i, semimodule R (N i)]
+  (i : ι₁ ⊕ ι₂)
+  : semimodule R (i.elim M N) := by cases i; dsimp; apply_instance
+
+lemma sum.elim_const {α β γ : Sort*} (a : γ) : sum.elim (λ _ : α, a) (λ _ : β, a) = λ i, a :=
+funext $ λ x, by cases x; refl
+
 def mul_fin {n m} {R : Type*} {M N : Type*}
   [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
   (a : alternating_map R M N (fin m)) (b : alternating_map R M N (fin n)) :
   alternating_map R M N (fin (m + n)) :=
-{ to_fun := λ (v : fin (m + n) → M),
+{ to_fun :=
+  let ab := ((algebra.lmul' R).comp_multilinear_map (multilinear_map.of_tmul R
+      (tensor_product.tmul R a.to_multilinear_map b.to_multilinear_map))),
+      ab' : multilinear_map R (λ (i : fin m ⊕ fin n), M) N := by {
+        simp_rw sum.elim_const at ab,
+      } in
+  λ (v : fin (m + n) → M),
   ∑ σ : shuffle m n,
-    (σ.to_perm.sign : ℤ) • (a (v ∘ σ ∘ sum.inl) * b (v ∘ σ ∘ sum.inr)),
+    (σ.to_perm.sign : ℤ) • (ab.dom_dom_congr σ.val : multilinear_map R (λ i, M) N) v,
   map_add' := λ v i p q, begin
     dsimp only at v,
     simp_rw [←finset.sum_add_distrib, ←smul_add],

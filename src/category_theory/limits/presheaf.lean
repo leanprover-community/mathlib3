@@ -324,9 +324,8 @@ converse to `left_adjoint_preserves_colimits`.
 -/
 def is_left_adjoint_of_preserves_colimits (L : (C ⥤ Type u₁) ⥤ ℰ) [preserves_colimits L] :
   is_left_adjoint L :=
-begin
-  let := is_left_adjoint_of_preserves_colimits_aux ((op_op_equivalence C).congr_left.functor ⋙ L : _),
-  exactI adjunction.left_adjoint_of_nat_iso ((op_op_equivalence C).congr_left.inv_fun_id_assoc _),
-end
+let e : (_ ⥤ Type u₁) ≌ (_ ⥤ Type u₁) := (op_op_equivalence C).congr_left,
+    t := is_left_adjoint_of_preserves_colimits_aux (e.functor ⋙ L : _)
+in by exactI adjunction.left_adjoint_of_nat_iso (e.inv_fun_id_assoc _)
 
 end category_theory

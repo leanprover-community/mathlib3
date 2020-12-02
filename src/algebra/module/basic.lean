@@ -289,7 +289,7 @@ instance nat_is_scalar_tower [semiring S] [semimodule S M] :
     induction n with n ih,
     { simp only [zero_smul] },
     { simp only [nat.succ_eq_add_one, add_smul, one_smul, ih] }
-  end}
+  end }
 
 end add_comm_monoid
 

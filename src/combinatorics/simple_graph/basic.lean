@@ -161,10 +161,10 @@ fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 by tauto
 
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
-by { dsimp [incidence_set], simp }
+by { by simp [incidence_set] }
 
-lemma neighbor_set_edge_prop {v w : V} (h : w ∈ G.neighbor_set v) : ⟦(v, w)⟧ ∈ G.incidence_set v :=
-by { rw mem_neighbor_set at h, simpa }
+lemma mem_incidence_iff_neighbor {v w : V} : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ w ∈ G.neighbor_set v :=
+by simp only [mem_incidence_set, mem_neighbor_set]
 
 lemma adj_incidence_set_inter {v : V} {e : sym2 V} (he : e ∈ G.edge_set) (h : v ∈ e) :
   G.incidence_set v ∩ G.incidence_set h.other = {e} :=
@@ -191,8 +191,8 @@ by { cases h, rwa [←sym2.mem_other_spec' h_right, mem_edge_set] at h_left }
 
 @[simp]
 lemma incidence_other_neighbor_edge {v w : V} (h : w ∈ G.neighbor_set v) :
-  G.incidence_set_other (G.neighbor_set_edge_prop h) = w :=
-sym2.congr_right.mp (sym2.mem_other_spec' (G.neighbor_set_edge_prop h).right)
+  G.incidence_set_other (G.mem_incidence_iff_neighbor.mpr h) = w :=
+sym2.congr_right.mp (sym2.mem_other_spec' (G.mem_incidence_iff_neighbor.mpr h).right)
 
 /--
 There is an equivalence between the set of edges incident to a given
@@ -200,9 +200,9 @@ vertex and the set of vertices adjacent to the vertex.
 -/
 @[simps] def incidence_set_equiv_neighbor_set (v : V) : G.incidence_set v ≃ G.neighbor_set v :=
 { to_fun := λ e, ⟨G.incidence_set_other e.2, G.incidence_other_prop e.2⟩,
-  inv_fun := λ w, ⟨⟦(v, w.1)⟧, G.neighbor_set_edge_prop w.2⟩,
-  left_inv := by { intro x, dsimp [incidence_set_other], simp },
-  right_inv := by { intro x, rcases x with ⟨w, hw⟩, simp, } }
+  inv_fun := λ w, ⟨⟦(v, w.1)⟧, G.mem_incidence_iff_neighbor.mpr w.2⟩,
+  left_inv := λ x, by simp [incidence_set_other],
+  right_inv := λ ⟨w, hw⟩, by simp }
 
 end incidence
 

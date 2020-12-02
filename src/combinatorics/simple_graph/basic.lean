@@ -149,8 +149,8 @@ set.to_finset G.edge_set
   e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
 by { dunfold edge_finset, simp }
 
-@[simp] lemma edge_set_univ_card [decidable_eq V] [fintype V]
-[decidable_rel G.adj] : (univ : finset G.edge_set).card = G.edge_finset.card :=
+@[simp] lemma edge_set_univ_card [decidable_eq V] [fintype V] [decidable_rel G.adj] :
+  (univ : finset G.edge_set).card = G.edge_finset.card :=
 fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v

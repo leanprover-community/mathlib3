@@ -1521,16 +1521,9 @@ lemma mem_comap_iff {f : filter β} {m : α → β} (inj : function.injective m)
 begin
   refine ⟨image_mem_sets large, _⟩,
   intro h,
-  suffices : S = m ⁻¹' (m '' S),
-  { rw this,
-    change _ ∈ map m (comap m f),
-    rw map_comap large,
-    assumption },
-  ext x,
-  refine ⟨λ h1, ⟨x, h1, rfl⟩, λ h1, _⟩,
-  rcases h1 with ⟨z,hz,h1⟩,
-  rw ← inj h1,
-  assumption,
+  rw ← preimage_image_eq S inj,
+  change _ ∈ map m (comap m f),
+  rwa map_comap large,
 end
 
 lemma le_of_map_le_map_inj' {f g : filter α} {m : α → β} {s : set α}

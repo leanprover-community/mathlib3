@@ -1682,7 +1682,7 @@ begin
   { exact λ h, ⟨default ι, h.symm⟩ }
 end
 
-lemma range_inter_compl_image_comlp_eq_image {f : α → β} (H : injective f) (s : set α) :
+lemma range_inter_compl_image_compl_eq_image {f : α → β} (H : injective f) (s : set α) :
   range f ∩ (f '' sᶜ)ᶜ = f '' s :=
 begin
   ext x,

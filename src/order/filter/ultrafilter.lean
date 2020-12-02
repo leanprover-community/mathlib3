@@ -273,20 +273,14 @@ def ultrafilter.comap {m : α → β} (u : ultrafilter β) (inj : function.injec
     simp_rw filter.mem_comap_iff inj large,
     split,
     { intros h c,
-      have : m '' Sᶜ ⊆ (m '' S)ᶜ,
-      { rintro _ ⟨_, _, rfl⟩ ⟨z, hz, h⟩,
-        rw inj h at *,
-        contradiction },
-      replace c := u.1.sets_of_superset c this,
+      replace c := u.1.sets_of_superset c (image_compl_subset inj),
       erw ultrafilter_iff_compl_mem_iff_not_mem.mp u.2 at c,
       contradiction },
     { intros h,
-      suffices : m '' S = set.range m ∩ (m '' Sᶜ)ᶜ,
-      { rw this,
-        refine u.1.inter_sets large _,
-        erw ultrafilter_iff_compl_mem_iff_not_mem.mp u.2,
-        assumption },
-      rw set.range_inter_compl_image_comlp_eq_image inj }
+      rw ← range_inter_compl_image_compl_eq_image inj,
+      refine u.1.inter_sets large _,
+      erw ultrafilter_iff_compl_mem_iff_not_mem.mp u.2,
+      assumption },
   end }
 
 /-- The ultra-filter extending the cofinite filter. -/

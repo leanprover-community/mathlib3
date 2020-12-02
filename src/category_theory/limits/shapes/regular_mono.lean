@@ -9,16 +9,14 @@ import category_theory.limits.shapes.strong_epi
 import category_theory.limits.shapes.pullbacks
 
 /-!
-# Definitions and basic properties of regular and normal monomorphisms and epimorphisms.
+# Definitions and basic properties of regular monomorphisms and epimorphisms.
 
 A regular monomorphism is a morphism that is the equalizer of some parallel pair.
-A normal monomorphism is a morphism that is the kernel of some other morphism.
 
 We give the constructions
-* `split_mono → regular_mono`
-* `normal_mono → regular_mono`, and
+* `split_mono → regular_mono` and
 * `regular_mono → mono`
-as well as the dual constructions for regular and normal epimorphisms. Additionally, we give the
+as well as the dual constructions for regular epimorphisms. Additionally, we give the
 construction
 * `regular_epi ⟶ strong_epi`.
 

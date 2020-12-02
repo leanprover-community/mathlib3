@@ -110,7 +110,7 @@ finsupp.has_coe_to_fun
 
 local attribute [instance] coeff_coe_to_fun
 
-/-- `monomial s a` is the monomial `a * X^s` -/
+/-- `monomial s a` is the monomial with coefficient `a` and exponents given by `s`  -/
 def monomial (s : σ →₀ ℕ) (a : R) : mv_polynomial σ R := single s a
 
 lemma single_eq_monomial (s : σ →₀ ℕ) (a : R) : single s a = monomial s a := rfl

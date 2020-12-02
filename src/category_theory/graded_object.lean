@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.shift
 import category_theory.concrete_category
 import category_theory.pi.basic
+import algebra.group.basic
 
 /-!
 # The category of graded objects

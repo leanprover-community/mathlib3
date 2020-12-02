@@ -62,7 +62,7 @@ open_locale classical
 open nat multiplicity padic_norm cau_seq cau_seq.completion metric
 
 /-- The type of Cauchy sequences of rationals with respect to the p-adic norm. -/
-@[reducible] def padic_seq (p : ℕ) [fact p.prime] := cau_seq _ (padic_norm p)
+@[reducible] def padic_seq (p : ℕ) := cau_seq _ (padic_norm p)
 
 namespace padic_seq
 
@@ -265,10 +265,10 @@ include hp
 lemma norm_mul (f g : padic_seq p) : (f * g).norm = f.norm * g.norm :=
 if hf : f ≈ 0 then
   have hg : f * g ≈ 0, from mul_equiv_zero' _ hf,
-  by simp [hf, hg, norm]
+  by simp only [hf, hg, norm, dif_pos, zero_mul]
 else if hg : g ≈ 0 then
   have hf : f * g ≈ 0, from mul_equiv_zero _ hg,
-  by simp [hf, hg, norm]
+  by simp only [hf, hg, norm, dif_pos, mul_zero]
 else
   have hfg : ¬ f * g ≈ 0, by apply mul_not_equiv_zero; assumption,
   begin
@@ -357,11 +357,11 @@ end
 theorem norm_nonarchimedean (f g : padic_seq p) : (f + g).norm ≤ max (f.norm) (g.norm) :=
 if hfg : f + g ≈ 0 then
   have 0 ≤ max (f.norm) (g.norm), from le_max_left_of_le (norm_nonneg _),
-  by simpa [hfg, norm]
+  by simpa only [hfg, norm, ne.def, le_max_iff, cau_seq.add_apply, not_true, dif_pos]
 else if hf : f ≈ 0 then
   have hfg' : f + g ≈ g,
   { change lim_zero (f - 0) at hf,
-    show lim_zero (f + g - g), by simpa using hf },
+    show lim_zero (f + g - g), by simpa only [sub_zero, add_sub_cancel] using hf },
   have hcfg : (f + g).norm = g.norm, from norm_equiv hfg',
   have hcl : f.norm = 0, from (norm_zero_iff f).2 hf,
   have max (f.norm) (g.norm) = g.norm,
@@ -370,7 +370,7 @@ else if hf : f ≈ 0 then
 else if hg : g ≈ 0 then
   have hfg' : f + g ≈ f,
   { change lim_zero (g - 0) at hg,
-    show lim_zero (f + g - f), by  simpa [add_sub_cancel'] using hg },
+    show lim_zero (f + g - f), by simpa only [add_sub_cancel', sub_zero] using hg },
   have hcfg : (f + g).norm = f.norm, from norm_equiv hfg',
   have hcl : g.norm = 0, from (norm_zero_iff g).2 hg,
   have max (f.norm) (g.norm) = f.norm,
@@ -382,11 +382,12 @@ lemma norm_eq {f g : padic_seq p} (h : ∀ k, padic_norm p (f k) = padic_norm p 
   f.norm = g.norm :=
 if hf : f ≈ 0 then
   have hg : g ≈ 0, from equiv_zero_of_val_eq_of_equiv_zero h hf,
-  by simp [hf, hg, norm]
+  by simp only [hf, hg, norm, dif_pos]
 else
-  have hg : ¬ g ≈ 0, from λ hg, hf $ equiv_zero_of_val_eq_of_equiv_zero (by simp [h]) hg,
+  have hg : ¬ g ≈ 0, from λ hg, hf $ equiv_zero_of_val_eq_of_equiv_zero
+    (by simp only [h, forall_const, eq_self_iff_true]) hg,
   begin
-    simp [hg, hf, norm],
+    simp only [hg, hf, norm, dif_neg, not_false_iff],
     let i := max (stationary_point hf) (stationary_point hg),
     have hpf : padic_norm p (f (stationary_point hf)) = padic_norm p (f i),
     { apply stationary_point_spec, apply le_max_left, apply le_refl },
@@ -400,22 +401,22 @@ norm_eq $ by simp
 
 lemma norm_eq_of_add_equiv_zero {f g : padic_seq p} (h : f + g ≈ 0) : f.norm = g.norm :=
 have lim_zero (f + g - 0), from h,
-have f ≈ -g, from show lim_zero (f - (-g)), by simpa,
+have f ≈ -g, from show lim_zero (f - (-g)), by simpa only [sub_zero, sub_neg_eq_add],
 have f.norm = (-g).norm, from norm_equiv this,
-by simpa [norm_neg] using this
+by simpa only [norm_neg] using this
 
 lemma add_eq_max_of_ne {f g : padic_seq p} (hfgne : f.norm ≠ g.norm) :
   (f + g).norm = max f.norm g.norm :=
 have hfg : ¬f + g ≈ 0, from mt norm_eq_of_add_equiv_zero hfgne,
 if hf : f ≈ 0 then
   have lim_zero (f - 0), from hf,
-  have f + g ≈ g, from show lim_zero ((f + g) - g), by simpa,
+  have f + g ≈ g, from show lim_zero ((f + g) - g), by simpa only [sub_zero, add_sub_cancel],
   have h1 : (f+g).norm = g.norm, from norm_equiv this,
   have h2 : f.norm = 0, from (norm_zero_iff _).2 hf,
   by rw [h1, h2]; rw max_eq_right (norm_nonneg _)
 else if hg : g ≈ 0 then
   have lim_zero (g - 0), from hg,
-  have f + g ≈ f, from show lim_zero ((f + g) - f), by rw [add_sub_cancel']; simpa,
+  have f + g ≈ f, from show lim_zero ((f + g) - f), by rw [add_sub_cancel']; simpa only [sub_zero],
   have h1 : (f+g).norm = f.norm, from norm_equiv this,
   have h2 : g.norm = 0, from (norm_zero_iff _).2 hg,
   by rw [h1, h2]; rw max_eq_left (norm_nonneg _)
@@ -423,8 +424,7 @@ else
 begin
   unfold norm at ⊢ hfgne, split_ifs at ⊢ hfgne,
   padic_index_simp [hfg, hf, hg] at ⊢ hfgne,
-  apply padic_norm.add_eq_max_of_ne,
-  simpa [hf, hg, norm] using hfgne
+  exact padic_norm.add_eq_max_of_ne p hfgne
 end
 
 end embedding
@@ -547,7 +547,7 @@ begin
   by_contradiction h,
   cases cauchy₂ f hε with N hN,
   have : ∀ N, ∃ i ≥ N, ε ≤ (f - const _ (f i)).norm,
-    by simpa [not_forall] using h,
+    by simpa only [not_forall, not_exists, not_lt] using h,
   rcases this N with ⟨i, hi, hge⟩,
   have hne : ¬ (f - const (padic_norm p) (f i)) ≈ 0,
   { intro h, unfold padic_seq.norm at hge; split_ifs at hge, exact not_lt_of_ge hge hε },
@@ -650,7 +650,8 @@ quotient.induction_on q $ λ q',
         have := stationary_point_spec hne',
         cases decidable.em (stationary_point hne' ≤ N) with hle hle,
         { have := eq.symm (this (le_refl _) hle),
-          simp at this, simpa [this] },
+          simp only [const_apply, sub_apply, padic_norm.zero, sub_self] at this,
+          simpa only [this] },
         { apply hN,
           apply le_of_lt, apply lt_of_not_ge, apply hle, apply le_refl }}
     end⟩
@@ -661,6 +662,8 @@ open classical
 private lemma div_nat_pos (n : ℕ) : 0 < (1 / ((n + 1): ℚ)) :=
 div_pos zero_lt_one (by exact_mod_cast succ_pos _)
 
+/-- `lim_seq f`, for `f` a Cauchy sequence of `p`-adic numbers,
+is a sequence of rationals with the same limit point as `f`. -/
 def lim_seq : ℕ → ℚ := λ n, classical.some (rat_dense' (f n) (div_nat_pos n))
 
 lemma exi_rat_seq_conv {ε : ℚ} (hε : 0 < ε) :
@@ -683,7 +686,8 @@ let ⟨N, hN⟩ := exi_rat_seq_conv f hε3,
 begin
   existsi max N N2,
   intros j hj,
-  suffices : padic_norm_e ((↑(lim_seq f j) - f (max N N2)) + (f (max N N2) - lim_seq f (max N N2))) < ε,
+  suffices :
+    padic_norm_e ((↑(lim_seq f j) - f (max N N2)) + (f (max N N2) - lim_seq f (max N N2))) < ε,
   { ring at this ⊢,
     rw [← padic_norm_e.eq_padic_norm', ← padic.cast_eq_of_rat],
     exact_mod_cast this },
@@ -691,11 +695,11 @@ begin
     { apply padic_norm_e.add },
     { have : (3 : ℚ) ≠ 0, by norm_num,
       have : ε = ε / 3 + ε / 3 + ε / 3,
-      { field_simp [this], simp [bit0, bit1, mul_add] },
+      { field_simp [this], simp only [bit0, bit1, mul_add, mul_one] },
       rw this,
       apply add_lt_add,
       { suffices : padic_norm_e ((↑(lim_seq f j) - f j) + (f j - f (max N N2))) < ε / 3 + ε / 3,
-          by simpa [sub_add_sub_cancel],
+          by simpa only [sub_add_sub_cancel],
         apply lt_of_le_of_lt,
         { apply padic_norm_e.add },
         { apply add_lt_add,
@@ -763,7 +767,7 @@ instance : normed_field ℚ_[p] :=
 { dist_eq := λ _ _, rfl,
   norm_mul' := by simp [has_norm.norm, padic_norm_e.mul'] }
 
-instance : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
+instance is_absolute_value : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := λ _, norm_eq_zero,
   abv_add := norm_add_le,
@@ -773,7 +777,7 @@ theorem rat_dense {p : ℕ} {hp : fact p.prime} (q : ℚ_[p]) {ε : ℝ} (hε : 
         ∃ r : ℚ, ∥q - r∥ < ε :=
 let ⟨ε', hε'l, hε'r⟩ := exists_rat_btwn hε,
     ⟨r, hr⟩ := rat_dense' q (by simpa using hε'l)  in
-⟨r, lt.trans (by simpa [has_norm.norm] using hr) hε'r⟩
+⟨r, lt_trans (by simpa [has_norm.norm] using hr) hε'r⟩
 
 end normed_space
 end padic
@@ -851,6 +855,9 @@ protected lemma is_rat (q : ℚ_[p]) : ∃ q' : ℚ, ∥q∥ = ↑q' :=
 if h : q = 0 then ⟨0, by simp [h]⟩
 else let ⟨n, hn⟩ := padic_norm_e.image h in ⟨_, hn⟩
 
+/--`rat_norm q`, for a `p`-adic number `q` is the `p`-adic norm of `q`, as rational number.
+
+The lemma `padic_norm_e.eq_rat_norm` asserts `∥q∥ = rat_norm q`. -/
 def rat_norm (q : ℚ_[p]) : ℚ := classical.some (padic_norm_e.is_rat q)
 
 lemma eq_rat_norm (q : ℚ_[p]) : ∥q∥ = rat_norm q := classical.some_spec (padic_norm_e.is_rat q)
@@ -956,7 +963,7 @@ begin
   intros i hi, let h := hN i hi,
   unfold norm,
   rw_mod_cast [cau_seq.sub_apply, padic_norm_e.sub_rev],
-  refine lt.trans _ hε'.2,
+  refine lt_trans _ hε'.2,
   exact_mod_cast hN i hi
 end
 

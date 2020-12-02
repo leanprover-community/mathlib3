@@ -3,7 +3,10 @@ Copyright (c) 2020 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.equiv.mul_add logic.function.basic group_theory.subgroup
+import data.equiv.mul_add
+import logic.function.basic
+import group_theory.subgroup
+
 /-!
 # Semidirect product
 

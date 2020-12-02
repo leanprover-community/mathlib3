@@ -70,6 +70,34 @@ def le_supr {ι : Type*} (U : ι → opens X) (i : ι) : U i ⟶ supr U :=
 hom_of_le (le_supr U i)
 
 /--
+The inclusion `⊥ ⟶ U` as a morphism in the category of open sets.
+-/
+def bot_le (U : opens X) : ⊥ ⟶ U :=
+hom_of_le bot_le
+
+/--
+The inclusion `U ⟶ ⊤` as a morphism in the category of open sets.
+-/
+def le_top (U : opens X) : U ⟶ ⊤ :=
+hom_of_le le_top
+
+-- We do not mark this as a simp lemma because it breaks open `x`.
+-- Nevertheless, it is useful in `sheaf_of_functions`.
+lemma inf_le_left_apply (U V : opens X) (x) :
+  (inf_le_left U V) x = ⟨x.1, (@_root_.inf_le_left _ _ U V : _ ≤ _) x.2⟩ :=
+rfl
+
+@[simp]
+lemma inf_le_left_apply_mk (U V : opens X) (x) (m) :
+  (inf_le_left U V) ⟨x, m⟩ = ⟨x, (@_root_.inf_le_left _ _ U V : _ ≤ _) m⟩ :=
+rfl
+
+@[simp]
+lemma le_supr_apply_mk {ι : Type*} (U : ι → opens X) (i : ι) (x) (m) :
+  (le_supr U i) ⟨x, m⟩ = ⟨x, (_root_.le_supr U i : _) m⟩ :=
+rfl
+
+/--
 The functor from open sets in `X` to `Top`,
 realising each open set as a topological space itself.
 -/
@@ -97,11 +125,11 @@ is_open.open_embedding_subtype_coe U.2
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
 def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
-{ obj := λ U, ⟨ f ⁻¹' U.val, f.continuous _ U.property ⟩,
+{ obj := λ U, ⟨ f ⁻¹' U.val, U.property.preimage f.continuous ⟩,
   map := λ U V i, ⟨ ⟨ λ a b, (le_of_hom i) b ⟩ ⟩ }.
 
-@[simp] lemma map_obj (f : X ⟶ Y) (U) (p) : (map f).obj ⟨U, p⟩ = ⟨f ⁻¹' U, f.continuous _ p⟩ :=
-rfl
+@[simp] lemma map_obj (f : X ⟶ Y) (U) (p) :
+  (map f).obj ⟨U, p⟩ = ⟨f ⁻¹' U, p.preimage f.continuous⟩ := rfl
 
 @[simp] lemma map_id_obj (U : opens X) : (map (𝟙 X)).obj U = U :=
 by { ext, refl } -- not quite `rfl`, since we don't have eta for records
@@ -112,6 +140,32 @@ rfl
 @[simp] lemma map_id_obj_unop (U : (opens X)ᵒᵖ) : (map (𝟙 X)).obj (unop U) = unop U :=
 by simp
 @[simp] lemma op_map_id_obj (U : (opens X)ᵒᵖ) : (map (𝟙 X)).op.obj U = U :=
+by simp
+
+/--
+The inclusion `U ⟶ (map f).obj ⊤` as a morphism in the category of open sets.
+-/
+def le_map_top (f : X ⟶ Y) (U : opens X) : U ⟶ (map f).obj ⊤ :=
+hom_of_le $ λ _ _, trivial
+
+@[simp] lemma map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map (f ≫ g)).obj U = (map f).obj ((map g).obj U) :=
+by { ext, refl } -- not quite `rfl`, since we don't have eta for records
+
+@[simp] lemma map_comp_obj' (f : X ⟶ Y) (g : Y ⟶ Z) (U) (p) :
+  (map (f ≫ g)).obj ⟨U, p⟩ = (map f).obj ((map g).obj ⟨U, p⟩) :=
+rfl
+
+@[simp] lemma map_comp_map (f : X ⟶ Y) (g : Y ⟶ Z) {U V} (i : U ⟶ V) :
+  (map (f ≫ g)).map i = (map f).map ((map g).map i) :=
+rfl
+
+@[simp] lemma map_comp_obj_unop (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map (f ≫ g)).obj (unop U) = (map f).obj ((map g).obj (unop U)) :=
+map_comp_obj f g (unop U)
+
+@[simp] lemma op_map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map (f ≫ g)).op.obj U = (map f).op.obj ((map g).op.obj U) :=
 by simp
 
 section
@@ -128,21 +182,6 @@ def map_id : map (𝟙 X) ≅ 𝟭 (opens X) :=
 
 end
 
-@[simp] lemma map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (map (f ≫ g)).obj U = (map f).obj ((map g).obj U) :=
-by { ext, refl } -- not quite `rfl`, since we don't have eta for records
-
-@[simp] lemma map_comp_obj' (f : X ⟶ Y) (g : Y ⟶ Z) (U) (p) :
-  (map (f ≫ g)).obj ⟨U, p⟩ = (map f).obj ((map g).obj ⟨U, p⟩) :=
-rfl
-
-@[simp] lemma map_comp_obj_unop (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (map (f ≫ g)).obj (unop U) = (map f).obj ((map g).obj (unop U)) :=
-by simp
-@[simp] lemma op_map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (map (f ≫ g)).op.obj U = (map f).op.obj ((map g).op.obj U) :=
-by simp
-
 /--
 The natural isomorphism between taking preimages under `f ≫ g`, and the composite
 of taking preimages under `g`, then preimages under `f`.
@@ -152,6 +191,10 @@ def map_comp (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
 { hom := { app := λ U, eq_to_hom (map_comp_obj f g U) },
   inv := { app := λ U, eq_to_hom (map_comp_obj f g U).symm } }
 
+/--
+If two continuous maps `f g : X ⟶ Y` are equal,
+then the functors `opens Y ⥤ opens X` they induce are isomorphic.
+-/
 -- We could make `f g` implicit here, but it's nice to be able to see when
 -- they are the identity (often!)
 def map_iso (f g : X ⟶ Y) (h : f = g) : map f ≅ map g :=
@@ -179,3 +222,12 @@ def is_open_map.functor {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) :
   opens X ⥤ opens Y :=
 { obj := λ U, ⟨f '' U, hf U U.2⟩,
   map := λ U V h, ⟨⟨set.image_subset _ h.down.down⟩⟩ }
+
+/--
+An open map `f : X ⟶ Y` induces an adjunction between `opens X` and `opens Y`.
+-/
+def is_open_map.adjunction {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) :
+  adjunction hf.functor (topological_space.opens.map f) :=
+adjunction.mk_of_unit_counit
+{ unit := { app := λ U, hom_of_le $ λ x hxU, ⟨x, hxU, rfl⟩ },
+  counit := { app := λ V, hom_of_le $ λ y ⟨x, hfxV, hxy⟩, hxy ▸ hfxV } }

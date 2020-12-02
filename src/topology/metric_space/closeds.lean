@@ -167,7 +167,7 @@ begin
   -- Deduce from the above inequalities that the distance between `s n` and `t0` is at most `2 B n`.
   have main : ∀n:ℕ, edist (s n) t ≤ 2 * B n := λn, Hausdorff_edist_le_of_mem_edist (I1 n) (I2 n),
   -- from this, the convergence of `s n` to `t0` follows.
-  refine (tendsto_at_top _).2 (λε εpos, _),
+  refine tendsto_at_top.2 (λε εpos, _),
   have : tendsto (λn, 2 * B n) at_top (𝓝 (2 * 0)),
     from ennreal.tendsto.const_mul
       (ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 $ by simp [ennreal.one_lt_two])
@@ -186,7 +186,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     start from a set `s` which is ε-dense in α. Then the subsets of `s`
     are finitely many, and ε-dense for the Hausdorff distance. -/
   refine compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _)) is_closed_univ,
-  rcases dense εpos with ⟨δ, δpos, δlt⟩,
+  rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
   rcases emetric.totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos
     with ⟨s, fs, hs⟩,
   -- s : set α,  fs : finite s,  hs : univ ⊆ ⋃ (y : α) (H : y ∈ s), eball y δ
@@ -304,8 +304,7 @@ begin
     by total boundedness, any compact set `t` can be covered by finitely many small balls, and
     approximations in `s` of the centers of these balls give the required finite approximation
     of `t`. -/
-    have : separable_space α := by apply_instance,
-    rcases this.exists_countable_closure_eq_univ with ⟨s, cs, s_dense⟩,
+    rcases exists_countable_dense α with ⟨s, cs, s_dense⟩,
     let v0 := {t : set α | finite t ∧ t ⊆ s},
     let v : set (nonempty_compacts α) := {t : nonempty_compacts α | t.val ∈ v0},
     refine  ⟨⟨v, ⟨_, _⟩⟩⟩,
@@ -316,14 +315,13 @@ begin
         exact hy },
       apply countable_of_injective_of_countable_image _ this,
       apply subtype.val_injective.inj_on },
-    { refine subset.antisymm (subset_univ _) (λt ht, mem_closure_iff.2 (λε εpos, _)),
+    { refine λt, mem_closure_iff.2 (λε εpos, _),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
-      rcases dense εpos with ⟨δ, δpos, δlt⟩,
+      rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
       -- construct a map F associating to a point in α an approximating point in s, up to δ/2.
       have Exy : ∀x, ∃y, y ∈ s ∧ edist x y < δ/2,
       { assume x,
-        have : x ∈ closure s := by rw s_dense; exact mem_univ _,
-        rcases mem_closure_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, hy⟩,
+        rcases mem_closure_iff.1 (s_dense x) (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, hy⟩,
         exact ⟨y, ⟨ys, hy⟩⟩ },
       let F := λx, some (Exy x),
       have Fspec : ∀x, F x ∈ s ∧ edist x (F x) < δ/2 := λx, some_spec (Exy x),

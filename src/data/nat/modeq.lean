@@ -39,6 +39,8 @@ variables {n m a b c d : ℕ}
 
 @[trans] protected theorem trans : a ≡ b [MOD n] → b ≡ c [MOD n] → a ≡ c [MOD n] := eq.trans
 
+protected theorem comm : a ≡ b [MOD n] ↔ b ≡ a [MOD n] := ⟨nat.modeq.symm, nat.modeq.symm⟩
+
 theorem modeq_zero_iff : a ≡ 0 [MOD n] ↔ n ∣ a :=
 by rw [modeq, zero_mod, dvd_iff_mod_eq_zero]
 
@@ -73,6 +75,13 @@ by rw [mul_comm a, mul_comm b]; exact modeq_mul_left c h
 theorem modeq_mul (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a * c ≡ b * d [MOD n] :=
 (modeq_mul_left _ h₂).trans (modeq_mul_right _ h₁)
 
+theorem modeq_pow (m : ℕ) (h : a ≡ b [MOD n]) : a ^ m ≡ b ^ m [MOD n] :=
+begin
+  induction m with d hd, {refl},
+  rw [pow_succ, pow_succ],
+  exact modeq_mul h hd,
+end
+
 theorem modeq_add (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a + c ≡ b + d [MOD n] :=
 modeq_of_dvd begin
   convert dvd_add (dvd_of_modeq h₁) (dvd_of_modeq h₂) using 1,
@@ -95,6 +104,8 @@ by rw [modeq_iff_dvd] at *; exact dvd.trans (dvd_mul_left (n : ℤ) (m : ℤ)) h
 
 theorem modeq_of_modeq_mul_right (m : ℕ) : a ≡ b [MOD n * m] → a ≡ b [MOD n] :=
 mul_comm m n ▸ modeq_of_modeq_mul_left _
+
+local attribute [semireducible] int.nonneg
 
 /-- The natural number less than `n*m` congruent to `a` mod `n` and `b` mod `m` -/
 def chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
@@ -131,7 +142,7 @@ lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
 λ h, ⟨nat.modeq.modeq_of_modeq_mul_right _ h, nat.modeq.modeq_of_modeq_mul_left _ h⟩⟩
 
 lemma coprime_of_mul_modeq_one (b : ℕ) {a n : ℕ} (h : a * b ≡ 1 [MOD n]) : coprime a n :=
-nat.coprime_of_dvd' (λ k ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
+nat.coprime_of_dvd' (λ k kp ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
   rw [hka, hkb, modeq_iff_dvd] at h,
   cases h with z hz,
   rw [sub_eq_iff_eq_add] at hz,
@@ -258,7 +269,6 @@ have h₃ : m < list.length (l ++ [a]), by simpa using hml,
       add_assoc m n 1 ▸ nat.modeq.modeq_add
         (hml'.trans (nat.mod_eq_of_lt (nat.lt_succ_self _)).symm) rfl
     ... = 0 : by simp,
-  have h₂ : l.length < (l ++ [a]).length, by simp [nat.lt_succ_self],
   by rw [list.length, list.rotate_cons_succ, nth_rotate h₃, list.length_append,
     list.length_cons, list.length, zero_add, hml', h₁, list.nth_concat_length]; refl)
 

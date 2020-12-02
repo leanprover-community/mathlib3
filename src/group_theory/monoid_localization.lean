@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 import group_theory.congruence
+import group_theory.submonoid
 import algebra.group.units
 import algebra.punit_instances
 
@@ -869,7 +870,7 @@ def of_mul_equiv_of_localizations (k : N ≃* P) : localization_map S P :=
 (k.to_monoid_hom.comp f.to_map).to_localization_map (λ y, is_unit_comp f k.to_monoid_hom y)
 (λ v, let ⟨z, hz⟩ := k.to_equiv.surjective v in
   let ⟨x, hx⟩ := f.surj z in ⟨x, show v * k _ = k _, by rw [←hx, k.map_mul, ←hz]; refl⟩)
-(λ x y, (k.to_equiv.apply_eq_iff_eq _ _).trans $ f.eq_iff_exists)
+(λ x y, k.apply_eq_iff_eq.trans f.eq_iff_exists)
 
 @[to_additive, simp] lemma of_mul_equiv_of_localizations_apply {k : N ≃* P} (x) :
   (f.of_mul_equiv_of_localizations k).to_map x = k (f.to_map x) := rfl

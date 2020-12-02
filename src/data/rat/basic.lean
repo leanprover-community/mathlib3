@@ -5,6 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.encodable.basic
 import algebra.euclidean_domain
+import data.nat.gcd
+import data.int.cast
 
 /-!
 # Basics for the Rational Numbers
@@ -596,6 +598,9 @@ by rw coe_int_eq_of_int; refl
 lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
 by { conv_rhs { rw [←(@num_denom q), hq] }, rw [coe_int_eq_mk], refl }
 
+lemma denom_eq_one_iff (r : ℚ) : r.denom = 1 ↔ ↑r.num = r :=
+⟨rat.coe_int_num_of_denom_eq_one, λ h, h ▸ rat.coe_int_denom r.num⟩
+
 instance : can_lift ℚ ℤ :=
 ⟨coe, λ q, q.denom = 1, λ q hq, ⟨q.num, coe_int_num_of_denom_eq_one hq⟩⟩
 
@@ -609,7 +614,7 @@ by rw [← int.cast_coe_nat, coe_int_num]
 by rw [← int.cast_coe_nat, coe_int_denom]
 
 -- Will be subsumed by `int.coe_inj` after we have defined
--- `discrete_linear_ordered_field ℚ` (which implies characteristic zero).
+-- `linear_ordered_field ℚ` (which implies characteristic zero).
 lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n :=
 ⟨λ h, by simpa using congr_arg num h, congr_arg _⟩
 
@@ -665,5 +670,35 @@ begin
   { rw [← (num_div_eq_of_coprime hb0 h1), h, num_div_eq_of_coprime hd0 h2] },
   { rw [← (denom_div_eq_of_coprime hb0 h1), h, denom_div_eq_of_coprime hd0 h2] }
 end
+
+@[norm_cast] lemma coe_int_div_self (n : ℤ) : ((n / n : ℤ) : ℚ) = n / n :=
+begin
+  by_cases hn : n = 0,
+  { subst hn, simp only [int.cast_zero, euclidean_domain.zero_div] },
+  { have : (n : ℚ) ≠ 0, { rwa ← coe_int_inj at hn },
+    simp only [int.div_self hn, int.cast_one, ne.def, not_false_iff, div_self this] }
+end
+
+@[norm_cast] lemma coe_nat_div_self (n : ℕ) : ((n / n : ℕ) : ℚ) = n / n :=
+coe_int_div_self n
+
+lemma coe_int_div (a b : ℤ) (h : b ∣ a) : ((a / b : ℤ) : ℚ) = a / b :=
+begin
+  rcases h with ⟨c, rfl⟩,
+  simp only [mul_comm b, int.mul_div_assoc c (dvd_refl b), int.cast_mul, mul_div_assoc, coe_int_div_self]
+end
+
+lemma coe_nat_div (a b : ℕ) (h : b ∣ a) : ((a / b : ℕ) : ℚ) = a / b :=
+begin
+  rcases h with ⟨c, rfl⟩,
+  simp only [mul_comm b, nat.mul_div_assoc c (dvd_refl b), nat.cast_mul, mul_div_assoc, coe_nat_div_self]
+end
+
+protected lemma «forall» {p : ℚ → Prop} : (∀ r, p r) ↔ ∀ a b : ℤ, p (a / b) :=
+⟨λ h _ _, h _,
+  λ h q, (show q = q.num / q.denom, from by simp [rat.div_num_denom]).symm ▸ (h q.1 q.2)⟩
+
+protected lemma «exists» {p : ℚ → Prop} : (∃ r, p r) ↔ ∃ a b : ℤ, p (a / b) :=
+⟨λ ⟨r, hr⟩, ⟨r.num, r.denom, by rwa [← mk_eq_div, num_denom]⟩, λ ⟨a, b, h⟩, ⟨_, h⟩⟩
 
 end rat

@@ -168,7 +168,7 @@ calc ∥q.comp_along_composition_multilinear p c v∥ = ∥q c.length (p.apply_c
         ∏ i (j : fin (c.blocks_fun i)), ∥(v ∘ (c.embedding i)) j∥ :
   by rw [finset.prod_mul_distrib, mul_assoc]
 ... = ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :
-  by { rw [← finset.prod_equiv c.blocks_fin_equiv, ← finset.univ_sigma_univ, finset.prod_sigma],
+  by { rw [← c.blocks_fin_equiv.prod_comp, ← finset.univ_sigma_univ, finset.prod_sigma],
        congr }
 
 /-- Given two formal multilinear series `q` and `p` and a composition `c` of `n`, one may
@@ -1073,7 +1073,7 @@ begin
     exact A },
   /- Now, we use `composition.sigma_equiv_sigma_pi n` to change
   variables in the second sum, and check that we get exactly the same sums. -/
-  rw ← finset.sum_equiv (sigma_equiv_sigma_pi n),
+  rw ← (sigma_equiv_sigma_pi n).sum_comp,
   /- To check that we have the same terms, we should check that we apply the same component of
   `r`, and the same component of `q`, and the same component of `p`, to the same coordinate of
   `v`. This is true by definition, but at each step one needs to convince Lean that the types

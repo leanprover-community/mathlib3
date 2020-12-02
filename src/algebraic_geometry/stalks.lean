@@ -13,6 +13,8 @@ This file lifts constructions of stalks and pushforwards of stalks to work with
 the category of presheafed spaces.
 -/
 
+noncomputable theory
+
 universes v u v' u'
 
 open category_theory

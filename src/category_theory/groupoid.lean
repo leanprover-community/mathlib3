@@ -9,21 +9,26 @@ namespace category_theory
 
 universes v v₂ u u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `groupoid` is a category such that all morphisms are isomorphisms. -/
 class groupoid (obj : Type u) extends category.{v} obj : Type (max u (v+1)) :=
 (inv       : Π {X Y : obj}, (X ⟶ Y) → (Y ⟶ X))
 (inv_comp' : ∀ {X Y : obj} (f : X ⟶ Y), comp (inv f) f = id Y . obviously)
 (comp_inv' : ∀ {X Y : obj} (f : X ⟶ Y), comp f (inv f) = id X . obviously)
-end prio
 
 restate_axiom groupoid.inv_comp'
 restate_axiom groupoid.comp_inv'
 
 attribute [simp] groupoid.inv_comp groupoid.comp_inv
 
+/--
+A `large_groupoid` is a groupoid
+where the objects live in `Type (u+1)` while the morphisms live in `Type u`.
+-/
 abbreviation large_groupoid (C : Type (u+1)) : Type (u+1) := groupoid.{u} C
+/--
+A `small_groupoid` is a groupoid
+where the objects and morphisms live in the same universe.
+-/
 abbreviation small_groupoid (C : Type u) : Type (u+1) := groupoid.{u} C
 
 section

@@ -35,15 +35,15 @@ quot.induction_on s $ λ l, coe_fold_l _ _ _
 @[simp] theorem fold_zero (b : α) : (0 : multiset α).fold op b = b := rfl
 
 @[simp] theorem fold_cons_left : ∀ (b a : α) (s : multiset α),
-  (a :: s).fold op b = a * s.fold op b := foldr_cons _ _
+  (a ::ₘ s).fold op b = a * s.fold op b := foldr_cons _ _
 
-theorem fold_cons_right (b a : α) (s : multiset α) : (a :: s).fold op b = s.fold op b * a :=
+theorem fold_cons_right (b a : α) (s : multiset α) : (a ::ₘ s).fold op b = s.fold op b * a :=
 by simp [hc.comm]
 
-theorem fold_cons'_right (b a : α) (s : multiset α) : (a :: s).fold op b = s.fold op (b * a) :=
+theorem fold_cons'_right (b a : α) (s : multiset α) : (a ::ₘ s).fold op b = s.fold op (b * a) :=
 by rw [fold_eq_foldl, foldl_cons, ← fold_eq_foldl]
 
-theorem fold_cons'_left (b a : α) (s : multiset α) : (a :: s).fold op b = s.fold op (a * b) :=
+theorem fold_cons'_left (b a : α) (s : multiset α) : (a ::ₘ s).fold op b = s.fold op (a * b) :=
 by rw [fold_cons'_right, hc.comm]
 
 theorem fold_add (b₁ b₂ : α) (s₁ s₂ : multiset α) : (s₁ + s₂).fold op (b₁ * b₂) = s₁.fold op b₁ * s₂.fold op b₂ :=
@@ -51,7 +51,7 @@ multiset.induction_on s₂
   (by rw [add_zero, fold_zero, ← fold_cons'_right, ← fold_cons_right op])
   (by simp {contextual := tt}; cc)
 
-theorem fold_singleton (b a : α) : (a::0 : multiset α).fold op b = a * b := by simp
+theorem fold_singleton (b a : α) : (a ::ₘ 0 : multiset α).fold op b = a * b := by simp
 
 theorem fold_distrib {f g : β → α} (u₁ u₂ : α) (s : multiset β) :
   (s.map (λx, f x * g x)).fold op (u₁ * u₂) = (s.map f).fold op u₁ * (s.map g).fold op u₂ :=
@@ -83,7 +83,7 @@ theorem le_smul_erase_dup [decidable_eq α] (s : multiset α) :
 ⟨(s.map (λ a, count a s)).fold max 0, le_iff_count.2 $ λ a, begin
   rw count_smul, by_cases a ∈ s,
   { refine le_trans _ (mul_le_mul_left _ $ count_pos.2 $ mem_erase_dup.2 h),
-    have : count a s ≤ fold max 0 (map (λ a, count a s) (a :: erase s a));
+    have : count a s ≤ fold max 0 (map (λ a, count a s) (a ::ₘ erase s a));
     [simp [le_max_left], simpa [cons_erase h]] },
   { simp [count_eq_zero.2 h, nat.zero_le] }
 end⟩

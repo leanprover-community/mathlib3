@@ -11,6 +11,7 @@ namespace rel_embedding
 
 variables {α : Type*} {r : α → α → Prop}
 
+/-- If `f` is a strictly `r`-increasing sequence, then this returns `f` as an order embedding. -/
 def nat_lt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f n) (f (n+1))) :
   ((<) : ℕ → ℕ → Prop) ↪r r :=
 of_monotone f $ λ a b h, begin
@@ -20,6 +21,7 @@ of_monotone f $ λ a b h, begin
   { subst b, apply H }
 end
 
+/-- If `f` is a strictly `r`-decreasing sequence, then this returns `f` as an order embedding. -/
 def nat_gt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f (n+1)) (f n)) :
   ((>) : ℕ → ℕ → Prop) ↪r r :=
 by haveI := is_strict_order.swap r; exact rel_embedding.swap (nat_lt f H)

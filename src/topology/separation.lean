@@ -84,6 +84,12 @@ mem_nhds_sets is_closed_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
   closure ({a} : set α) = {a} :=
 is_closed_singleton.closure_eq
 
+lemma is_closed_map_const {α β} [topological_space α] [topological_space β] [t1_space β] {y : β} :
+  is_closed_map (function.const α y) :=
+begin
+  apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
+end
+
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
@@ -182,12 +188,35 @@ are useful without a `nonempty α` instance.
 
 lemma Lim_eq {a : α} [ne_bot f] (h : f ≤ 𝓝 a) :
   @Lim _ _ ⟨a⟩ f = a :=
-tendsto_nhds_unique (Lim_spec ⟨a, h⟩) h
+tendsto_nhds_unique (le_nhds_Lim ⟨a, h⟩) h
 
-lemma filter.tendsto.lim_eq {a : α} {f : filter β} {g : β → α} (h : tendsto g f (𝓝 a))
-  [ne_bot f] :
+lemma Lim_eq_iff [ne_bot f] (h : ∃ (a : α), f ≤ nhds a) {a} : @Lim _ _ ⟨a⟩ f = a ↔ f ≤ 𝓝 a :=
+⟨λ c, c ▸ le_nhds_Lim h, Lim_eq⟩
+
+lemma is_ultrafilter.Lim_eq_iff_le_nhds [compact_space α] (x : α) (F : ultrafilter α) :
+  @Lim _ _ ⟨x⟩ F.1 = x ↔ F.1 ≤ 𝓝 x :=
+⟨λ h, h ▸ is_ultrafilter.le_nhds_Lim _, Lim_eq⟩
+
+lemma is_open_iff_ultrafilter' [compact_space α] (U : set α) :
+  is_open U ↔ (∀ F : ultrafilter α, F.Lim ∈ U → U ∈ F.1) :=
+begin
+  rw is_open_iff_ultrafilter,
+  refine ⟨λ h F hF, h _ hF _ F.2 (is_ultrafilter.le_nhds_Lim _), _⟩,
+  intros cond x hx f hf h,
+  let F : ultrafilter α := ⟨f, hf⟩,
+  change F.1 ≤ _ at h,
+  rw ←is_ultrafilter.Lim_eq_iff_le_nhds at h,
+  rw ←h at *,
+  exact cond _ hx
+end
+
+lemma filter.tendsto.lim_eq {a : α} {f : filter β} [ne_bot f] {g : β → α} (h : tendsto g f (𝓝 a)) :
   @lim _ _ _ ⟨a⟩ f g = a :=
 Lim_eq h
+
+lemma filter.lim_eq_iff {f : filter β} [ne_bot f] {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) {a} :
+  @lim _ _ _ ⟨a⟩ f g = a ↔ tendsto g f (𝓝 a) :=
+⟨λ c, c ▸ tendsto_nhds_lim h, filter.tendsto.lim_eq⟩
 
 lemma continuous.lim_eq [topological_space β] {f : β → α} (h : continuous f) (a : β) :
   @lim _ _ _ ⟨f a⟩ (𝓝 a) f = f a :=
@@ -210,42 +239,104 @@ Lim_nhds_within h
 
 end lim
 
+/-!
+### Instances of `t2_space` typeclass
+
+We use two lemmas to prove that various standard constructions generate Hausdorff spaces from
+Hausdorff spaces:
+
+* `separated_by_continuous` says that two points `x y : α` can be separated by open neighborhoods
+  provided that there exists a continuous map `f`: α → β` with a Hausdorff codomain such that
+  `f x ≠ f y`. We use this lemma to prove that topological spaces defined using `induced` are
+  Hausdorff spaces.
+
+* `separated_by_open_embedding` says that for an open embedding `f : α → β` of a Hausdorff space
+  `α`, the images of two distinct points `x y : α`, `x ≠ y` can be separated by open neighborhoods.
+  We use this lemma to prove that topological spaces defined using `coinduced` are Hausdorff spaces.
+-/
+
 @[priority 100] -- see Note [lower instance priority]
 instance t2_space_discrete {α : Type*} [topological_space α] [discrete_topology α] : t2_space α :=
 { t2 := assume x y hxy, ⟨{x}, {y}, is_open_discrete _, is_open_discrete _, rfl, rfl,
   eq_empty_iff_forall_not_mem.2 $ by intros z hz;
     cases eq_of_mem_singleton hz.1; cases eq_of_mem_singleton hz.2; cc⟩ }
 
-private lemma separated_by_f {α : Type*} {β : Type*}
-  [tα : topological_space α] [tβ : topological_space β] [t2_space β]
-  (f : α → β) (hf : tα ≤ tβ.induced f) {x y : α} (h : f x ≠ f y) :
+lemma separated_by_continuous {α : Type*} {β : Type*}
+  [topological_space α] [topological_space β] [t2_space β]
+  {f : α → β} (hf : continuous f) {x y : α} (h : f x ≠ f y) :
   ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
 let ⟨u, v, uo, vo, xu, yv, uv⟩ := t2_separation h in
-⟨f ⁻¹' u, f ⁻¹' v, hf _ ⟨u, uo, rfl⟩, hf _ ⟨v, vo, rfl⟩, xu, yv,
+⟨f ⁻¹' u, f ⁻¹' v, uo.preimage hf, vo.preimage hf, xu, yv,
   by rw [←preimage_inter, uv, preimage_empty]⟩
 
+lemma separated_by_open_embedding {α β : Type*} [topological_space α] [topological_space β]
+  [t2_space α] {f : α → β} (hf : open_embedding f) {x y : α} (h : x ≠ y) :
+  ∃ u v : set β, is_open u ∧ is_open v ∧ f x ∈ u ∧ f y ∈ v ∧ u ∩ v = ∅ :=
+let ⟨u, v, uo, vo, xu, yv, uv⟩ := t2_separation h in
+⟨f '' u, f '' v, hf.is_open_map _ uo, hf.is_open_map _ vo,
+  mem_image_of_mem _ xu, mem_image_of_mem _ yv, by rw [image_inter hf.inj, uv, image_empty]⟩
+
 instance {α : Type*} {p : α → Prop} [t : topological_space α] [t2_space α] : t2_space (subtype p) :=
-⟨assume x y h,
-  separated_by_f subtype.val (le_refl _) (mt subtype.eq h)⟩
+⟨assume x y h, separated_by_continuous continuous_subtype_val (mt subtype.eq h)⟩
 
 instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
   [t₂ : topological_space β] [t2_space β] : t2_space (α × β) :=
 ⟨assume ⟨x₁,x₂⟩ ⟨y₁,y₂⟩ h,
   or.elim (not_and_distrib.mp (mt prod.ext_iff.mpr h))
-    (λ h₁, separated_by_f prod.fst inf_le_left h₁)
-    (λ h₂, separated_by_f prod.snd inf_le_right h₂)⟩
+    (λ h₁, separated_by_continuous continuous_fst h₁)
+    (λ h₂, separated_by_continuous continuous_snd h₂)⟩
 
-instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_space (β a)] [Πa, t2_space (β a)] :
+instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
+  [t₂ : topological_space β] [t2_space β] : t2_space (α ⊕ β) :=
+begin
+  constructor,
+  rintros (x|x) (y|y) h,
+  { replace h : x ≠ y := λ c, (c.subst h) rfl,
+    exact separated_by_open_embedding open_embedding_inl h },
+  { exact ⟨_, _, is_open_range_inl, is_open_range_inr, ⟨x, rfl⟩, ⟨y, rfl⟩,
+      range_inl_inter_range_inr⟩ },
+  { exact ⟨_, _, is_open_range_inr, is_open_range_inl, ⟨x, rfl⟩, ⟨y, rfl⟩,
+      range_inr_inter_range_inl⟩ },
+  { replace h : x ≠ y := λ c, (c.subst h) rfl,
+    exact separated_by_open_embedding open_embedding_inr h }
+end
+
+instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_space (β a)]
+  [∀a, t2_space (β a)] :
   t2_space (Πa, β a) :=
 ⟨assume x y h,
   let ⟨i, hi⟩ := not_forall.mp (mt funext h) in
-  separated_by_f (λz, z i) (infi_le _ i) hi⟩
+  separated_by_continuous (continuous_apply i) hi⟩
+
+instance sigma.t2_space {ι : Type*} {α : ι → Type*} [Πi, topological_space (α i)]
+  [∀a, t2_space (α a)] :
+  t2_space (Σi, α i) :=
+begin
+  constructor,
+  rintros ⟨i, x⟩ ⟨j, y⟩ neq,
+  rcases em (i = j) with (rfl|h),
+  { replace neq : x ≠ y := λ c, (c.subst neq) rfl,
+    exact separated_by_open_embedding open_embedding_sigma_mk neq },
+  { exact ⟨_, _, is_open_range_sigma_mk, is_open_range_sigma_mk, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩ }
+end
 
 variables [topological_space β]
 
 lemma is_closed_eq [t2_space α] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
 continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
+
+/-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. -/
+lemma set.eq_on.closure [t2_space α] {s : set β} {f g : β → α} (h : eq_on f g s)
+  (hf : continuous f) (hg : continuous g) :
+  eq_on f g (closure s) :=
+closure_minimal h (is_closed_eq hf hg)
+
+/-- If two continuous functions are equal on a dense set, then they are equal. -/
+lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → α}
+  (hf : continuous f) (hg : continuous g) (h : eq_on f g s) :
+  f = g :=
+funext $ λ x, h.closure hf hg (hs x)
 
 lemma diagonal_eq_range_diagonal_map {α : Type*} : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
 ext $ assume p, iff.intro
@@ -263,6 +354,7 @@ lemma compact_compact_separated [t2_space α] {s t : set α}
 by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
    exact generalized_tube_lemma hs ht is_closed_diagonal hst
 
+/-- In a `t2_space`, every compact set is closed. -/
 lemma is_compact.is_closed [t2_space α] {s : set α} (hs : is_compact s) : is_closed s :=
 is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   let ⟨u, v, uo, vo, su, xv, uv⟩ :=
@@ -369,14 +461,11 @@ end separation
 
 section regularity
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A T₃ space, also known as a regular space (although this condition sometimes
   omits T₂), is one in which for every closed `C` and `x ∉ C`, there exist
   disjoint open sets containing `x` and `C` respectively. -/
 class regular_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
 (regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
-end prio
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
   ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
@@ -432,15 +521,12 @@ end regularity
 
 section normality
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A T₄ space, also known as a normal space (although this condition sometimes
   omits T₂), is one in which for every pair of disjoint closed sets `C` and `D`,
   there exist disjoint open sets containing `C` and `D` respectively. -/
 class normal_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
 (normal : ∀ s t : set α, is_closed s → is_closed t → disjoint s t →
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v)
-end prio
 
 theorem normal_separation [normal_space α] (s t : set α)
   (H1 : is_closed s) (H2 : is_closed t) (H3 : disjoint s t) :

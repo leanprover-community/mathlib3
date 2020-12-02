@@ -14,7 +14,13 @@ for the given data for a pullback (resp. pushout) diagram. Convenience methods `
 and `span f g` construct functors from the walking (co)span, hitting the given morphisms.
 
 We define `pullback f g` and `pushout f g` as limits and colimits of such functors.
+
+## References
+* [Stacks: Fibre products](https://stacks.math.columbia.edu/tag/001U)
+* [Stacks: Pushouts](https://stacks.math.columbia.edu/tag/0025)
 -/
+
+noncomputable theory
 
 open category_theory
 
@@ -244,6 +250,26 @@ begin
   { rwa (is_limit.lift' t _ _ _).2.1 },
   { rwa (is_limit.lift' t _ _ _).2.2 },
 end
+
+/--
+The pullback cone `(𝟙 X, 𝟙 X)` for the pair `(f, f)` is a limit if `f` is a mono. The converse is
+shown in `mono_of_pullback_is_id`.
+-/
+def is_limit_mk_id_id (f : X ⟶ Y) [mono f] :
+  is_limit (mk (𝟙 X) (𝟙 X) rfl : pullback_cone f f) :=
+is_limit.mk _ _ _
+  (λ s, s.fst)
+  (λ s, category.comp_id _)
+  (λ s, by rw [←cancel_mono f, category.comp_id, s.condition])
+  (λ s m m₁ m₂, by simpa using m₁)
+
+/--
+`f` is a mono if the pullback cone `(𝟙 X, 𝟙 X)` is a limit for the pair `(f, f)`. The converse is
+given in `pullback_cone.is_id_of_mono`.
+-/
+lemma mono_of_is_limit_mk_id_id (f : X ⟶ Y) (t : is_limit (mk (𝟙 X) (𝟙 X) rfl : pullback_cone f f)) :
+  mono f :=
+⟨λ Z g h eq, by { rcases pullback_cone.is_limit.lift' t _ _ eq with ⟨_, rfl, rfl⟩, refl } ⟩
 
 end pullback_cone
 
@@ -530,20 +556,24 @@ instance pushout.inr_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout
 
 variables (C)
 
-/-- `has_pullbacks` represents a choice of pullback for every pair of morphisms -/
+/--
+`has_pullbacks` represents a choice of pullback for every pair of morphisms
+
+See https://stacks.math.columbia.edu/tag/001W.
+-/
 abbreviation has_pullbacks := has_limits_of_shape walking_cospan C
 
 /-- `has_pushouts` represents a choice of pushout for every pair of morphisms -/
 abbreviation has_pushouts := has_colimits_of_shape walking_span C
 
 /-- If `C` has all limits of diagrams `cospan f g`, then it has all pullbacks -/
-def has_pullbacks_of_has_limit_cospan
+lemma has_pullbacks_of_has_limit_cospan
   [Π {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z}, has_limit (cospan f g)] :
   has_pullbacks C :=
 { has_limit := λ F, has_limit_of_iso (diagram_iso_cospan F).symm }
 
 /-- If `C` has all colimits of diagrams `span f g`, then it has all pushouts -/
-def has_pushouts_of_has_colimit_span
+lemma has_pushouts_of_has_colimit_span
   [Π {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z}, has_colimit (span f g)] :
   has_pushouts C :=
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) }

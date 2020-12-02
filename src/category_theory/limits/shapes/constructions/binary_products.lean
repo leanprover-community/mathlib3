@@ -21,10 +21,10 @@ open category_theory category_theory.category category_theory.limits
 
 /-- Any category with pullbacks and terminal object has binary products. -/
 -- This is not an instance, as it is not always how one wants to construct binary products!
-def has_binary_products_of_terminal_and_pullbacks
+lemma has_binary_products_of_terminal_and_pullbacks
   (C : Type u) [𝒞 : category.{v} C] [has_terminal C] [has_pullbacks C] :
   has_binary_products C :=
-{ has_limit := λ F,
+{ has_limit := λ F, has_limit.mk
   { cone :=
     { X := pullback (terminal.from (F.obj walking_pair.left))
                     (terminal.from (F.obj walking_pair.right)),

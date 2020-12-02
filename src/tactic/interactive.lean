@@ -1,10 +1,10 @@
-
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 -/
 import tactic.lint
+import tactic.dependencies
 
 open lean
 open lean.parser
@@ -56,6 +56,11 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.unfold_coes],
   tags       := ["simplification"] }
+
+
+/-- Unfold `has_well_founded.r`, `sizeof` and other such definitions. -/
+meta def unfold_wf :=
+propagate_tags (well_founded_tactics.unfold_wf_rel; well_founded_tactics.unfold_sizeof)
 
 /-- Unfold auxiliary definitions associated with the current declaration. -/
 meta def unfold_aux : tactic unit :=
@@ -418,7 +423,6 @@ do
   t,
   g ← instantiate_mvars g,
   unify e g
-
 
 /-- `success_if_fail_with_msg { tac } msg` succeeds if the interactive tactic `tac` fails with
 error message `msg` (for test writing purposes). -/
@@ -1060,7 +1064,8 @@ add_tactic_doc
 /-- `revert_deps n₁ n₂ ...` reverts all the hypotheses that depend on one of `n₁, n₂, ...`
 It does not revert `n₁, n₂, ...` themselves (unless they depend on another `nᵢ`). -/
 meta def revert_deps (ns : parse ident*) : tactic unit :=
-propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.revert_deps
+propagate_tags $
+  ns.mmap get_local >>= revert_reverse_dependencies_of_hyps >> skip
 
 add_tactic_doc
 { name       := "revert_deps",

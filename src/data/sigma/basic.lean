@@ -88,6 +88,19 @@ f ⟨x,y⟩
 def sigma.uncurry {γ : Π a, β a → Type*} (f : Π x (y : β x), γ x y) (x : sigma β) : γ x.1 x.2 :=
 f x.1 x.2
 
+/-- Convert a product type to a Σ-type. -/
+@[simp]
+def prod.to_sigma {α β} : α × β → Σ _ : α, β
+| ⟨x,y⟩ := ⟨x,y⟩
+
+@[simp]
+lemma prod.fst_to_sigma {α β} (x : α × β) : (prod.to_sigma x).fst = x.fst :=
+by cases x; refl
+
+@[simp]
+lemma prod.snd_to_sigma {α β} (x : α × β) : (prod.to_sigma x).snd = x.snd :=
+by cases x; refl
+
 end sigma
 
 section psigma

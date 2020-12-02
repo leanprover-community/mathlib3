@@ -7,7 +7,6 @@ import algebra.ring.basic
 import algebra.group_with_zero
 open set
 
-set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
 
 universe u
@@ -23,6 +22,7 @@ class division_ring (α : Type u) extends ring α, has_inv α, nontrivial α :=
 section division_ring
 variables [division_ring α] {a b : α}
 
+@[priority 100] -- see Note [lower instance priority]
 instance division_ring_has_div : has_div α :=
 ⟨λ a b, a * b⁻¹⟩
 
@@ -32,6 +32,14 @@ instance division_ring.to_group_with_zero :
   group_with_zero α :=
 { .. ‹division_ring α›,
   .. (infer_instance : semiring α) }
+
+lemma inverse_eq_has_inv : (ring.inverse : α → α) = has_inv.inv :=
+begin
+  ext x,
+  by_cases hx : x = 0,
+  { simp [hx] },
+  { exact ring.inverse_unit (units.mk0 x hx) }
+end
 
 @[field_simps] lemma inv_eq_one_div (a : α) : a⁻¹ = 1 / a := by simp
 
@@ -103,6 +111,7 @@ by rw [(mul_sub_left_distrib (1 / a)), (one_div_mul_cancel ha), mul_sub_right_di
 lemma add_div_eq_mul_add_div (a b : α) {c : α} (hc : c ≠ 0) : a + b / c = (a * c + b) / c :=
 (eq_div_iff_mul_eq hc).2 $ by rw [right_distrib, (div_mul_cancel _ hc)]
 
+@[priority 100] -- see Note [lower instance priority]
 instance division_ring.to_domain : domain α :=
 { ..‹division_ring α›, ..(by apply_instance : semiring α),
   ..(by apply_instance : no_zero_divisors α) }
@@ -119,11 +128,13 @@ section field
 
 variable [field α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance field.to_division_ring : division_ring α :=
 { inv_mul_cancel := λ _ h, by rw [mul_comm, field.mul_inv_cancel h]
   ..show field α, by apply_instance }
 
 /-- Every field is a `comm_group_with_zero`. -/
+@[priority 100] -- see Note [lower instance priority]
 instance field.to_comm_group_with_zero :
   comm_group_with_zero α :=
 { .. (_ : group_with_zero α), .. ‹field α› }
@@ -236,15 +247,15 @@ section
 variables {β γ : Type*} [division_ring α] [semiring β] [nontrivial β] [division_ring γ]
   (f : α →+* β) (g : α →+* γ) {x y : α}
 
-lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (f : α →* β).map_ne_zero f.map_zero
+lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := f.to_monoid_with_zero_hom.map_ne_zero
 
-lemma map_eq_zero : f x = 0 ↔ x = 0 := (f : α →* β).map_eq_zero f.map_zero
+lemma map_eq_zero : f x = 0 ↔ x = 0 := f.to_monoid_with_zero_hom.map_eq_zero
 
 variables (x y)
 
-lemma map_inv : g x⁻¹ = (g x)⁻¹ := (g : α →* γ).map_inv' g.map_zero x
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv' x
 
-lemma map_div : g (x / y) = g x / g y := (g : α →* γ).map_div g.map_zero x y
+lemma map_div : g (x / y) = g x / g y := g.to_monoid_with_zero_hom.map_div x y
 
 protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
 

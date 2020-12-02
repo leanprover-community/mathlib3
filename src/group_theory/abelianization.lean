@@ -37,7 +37,7 @@ instance : comm_group (abelianization G) :=
     use b⁻¹, use a⁻¹,
     group,
   end,
-.. quotient_group.group _ }
+.. quotient_group.quotient.group _ }
 
 instance : inhabited (abelianization G) := ⟨1⟩
 
@@ -59,12 +59,12 @@ variables {A : Type v} [comm_group A] (f : G →* A)
 lemma commutator_subset_ker : commutator G ≤ f.ker :=
 begin
   apply subgroup.normal_closure_le_normal,
- -- FIXME why is the apply_instance needed?
-  { apply_instance },
-  { rintros x ⟨p, q, rfl⟩,
-    simp [monoid_hom.mem_ker, mul_right_comm (f p) (f q)] }
+  rintros x ⟨p, q, rfl⟩,
+  simp [monoid_hom.mem_ker, mul_right_comm (f p) (f q)],
 end
 
+/-- If `f : G → A` is a group homomorphism to an abelian group, then `lift f` is the unique map from
+  the abelianization of a `G` to `A` that factors through `f`. -/
 def lift : abelianization G →* A :=
 quotient_group.lift _ f (λ x h, f.mem_ker.2 $ commutator_subset_ker _ h)
 

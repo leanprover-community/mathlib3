@@ -1,66 +1,393 @@
+import tactic.slim_check
+import .mk_slim_check_test
 
-import system.random.basic
-import data.nat.prime
-import data.zmod.basic
+example : true :=
+begin
+  have : ∀ i j : ℕ, i < j → j < i,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+  "
+===================
+Found problems!
 
-/-- fermat's primality test -/
-def primality_test (p : ℕ) (h : fact (0 < p)) : rand bool :=
-if h : 2 ≤ p-1 then do
-  n ← rand.random_r 2 (p-1) h,
-  return $ (n : zmod p)^(p-1) = 1 -- we do arithmetic with `zmod n` so that modulo and multiplication are interleaved
-else return (p = 2)
+i := 0
+j := 1
+guard: 0 < 1 (by construction)
+issue: 1 < 0 does not hold
+(0 shrinks)
+-------------------
+",
+  admit,
+  trivial
+end
 
-/-- `iterated_primality_test_aux p h n` generating `n` candidate witnesses that `p` is a
-composite number and concludes that `p` is prime if none of them is a valid witness  -/
-def iterated_primality_test_aux (p : ℕ) (h : fact (0 < p)) : ℕ → rand bool
-| 0 := pure tt
-| (n+1) := do
-  b ← primality_test p h,
-  if b
-    then iterated_primality_test_aux n
-    else pure ff
+example : true :=
+begin
+  have : (∀ x : ℕ, 2 ∣ x → x < 100),
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+  "
+===================
+Found problems!
 
-def iterated_primality_test (p : ℕ) : rand bool :=
-if h : 0 < p
-  then iterated_primality_test_aux p h 10
-  else pure ff
+x := 104
+issue: 104 < 100 does not hold
+(2 shrinks)
+-------------------
+",
+  admit,
+  trivial
+end
 
-/-- `find_prime_aux p h n` generates a candidate prime number, tests
-it as well as the 19 odd numbers following it. If none of them is
-(probably) prime, try again `n-1` times. -/
-def find_prime_aux (p : ℕ) (h : 1 ≤ p / 2) : ℕ → rand (option ℕ)
-| 0 := pure none
-| (n+1) := do
-  k ← rand.random_r 1 (p / 2) h,
-  let xs := (list.range' k 20).map (λ i, 2*i+1),
-  some r ← option_t.run $ xs.mfirst (λ n, option_t.mk $ mcond (iterated_primality_test n) (pure (some n)) (pure none))
-    | find_prime_aux n,
-  pure r
+example (xs : list ℕ) (w : ∃ x ∈ xs, x < 3) : true :=
+begin
+  have : ∀ y ∈ xs, y < 5,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
 
-def find_prime (p : ℕ) : rand (option ℕ) :=
-if h : 1 ≤ p / 2 then
-  find_prime_aux p h 20
-else pure none
+xs := [5, 5, 0, 1]
+x := 0
+y := 5
+issue: 5 < 5 does not hold
+(5 shrinks)
+-------------------
+",
+  admit,
+  trivial
+end
 
-open tactic
+example (x : ℕ) (h : 2 ∣ x) : true :=
+begin
+  have : x < 100,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
 
-/- `ps` should be `[97, 101, 103, 107, 109, 113]` but
-it uses a pseudo primality test and some composite numbers
-also sneak in -/
-run_cmd do
-  let xs := list.range' 90 30,
-  ps ← tactic.run_rand (xs.mfilter iterated_primality_test),
-  when (ps ≠ [97, 101, 103, 107, 109, 113])
-    (trace!"The random primality test also included some composite numbers: {ps}")
+x := 104
+issue: 104 < 100 does not hold
+(2 shrinks)
+-------------------
+",
+  admit,
+  trivial
+end
 
-/- `ps` should be `[97, 101, 103, 107, 109, 113]`. This
-test is deterministic because we pick the random seed -/
-run_cmd do
-  let xs := list.range' 90 30,
-  let ps : list ℕ := (xs.mfilter iterated_primality_test).eval ⟨ mk_std_gen 10 ⟩,
-  guard (ps = [97, 101, 103, 107, 109, 113]) <|> fail "wrong list of prime numbers"
+example (α : Type) (xs ys : list α) : true :=
+begin
+  have : xs ++ ys = ys ++ xs,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
 
-/- this finds a random probably-prime number -/
-run_cmd do
-  some p ← tactic.run_rand (find_prime 100000) | trace "no prime found, gave up",
-  when (¬ nat.prime p) (trace!"The number {p} fooled Fermat's test")
+α := ℤ
+xs := [0]
+ys := [1]
+issue: [0, 1] = [1, 0] does not hold
+(4 shrinks)
+-------------------
+",
+  admit,
+  trivial
+end
+
+example : true :=
+begin
+  have : ∀ x ∈ [1,2,3], x < 4,
+  slim_check { random_seed := some 257, quiet := tt },
+    -- success
+  trivial,
+end
+
+open function slim_check
+
+example (f : ℤ → ℤ) (h : injective f) : true :=
+begin
+  have : monotone (f ∘ small.mk),
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+f := [2 ↦ 3, 3 ↦ 9, 4 ↦ 6, 5 ↦ 4, 6 ↦ 2, 8 ↦ 5, 9 ↦ 8, x ↦ x]
+x := 3
+y := 4
+guard: 3 ≤ 4 (by construction)
+issue: 9 ≤ 6 does not hold
+(5 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (f : ℤ → ℤ) (h : injective f) (g : ℤ → ℤ) (h : injective g) (i) : true :=
+begin
+  have : f i = g i,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+f := [x ↦ x]
+g := [1 ↦ 2, 2 ↦ 1, x ↦ x]
+i := 1
+issue: 1 = 2 does not hold
+(5 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (f : ℤ → ℤ) (h : injective f) : true :=
+begin
+  have : monotone f,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+f := [2 ↦ 3, 3 ↦ 9, 4 ↦ 6, 5 ↦ 4, 6 ↦ 2, 8 ↦ 5, 9 ↦ 8, x ↦ x]
+x := 3
+y := 4
+guard: 3 ≤ 4 (by construction)
+issue: 9 ≤ 6 does not hold
+(5 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (f : ℤ → ℤ) : true :=
+begin
+  have : injective f,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+f := [_ ↦ 0]
+x := 0
+y := -1
+guard: 0 = 0
+issue: 0 = -1 does not hold
+(0 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (f : ℤ → ℤ) : true :=
+begin
+  have : monotone f,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+f := [-6 ↦ 97, 0 ↦ 0, _ ↦ 4]
+x := -6
+y := -2
+guard: -6 ≤ -2 (by construction)
+issue: 97 ≤ 4 does not hold
+(5 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+example (xs ys : list ℤ) (h : xs ~ ys) : true :=
+begin
+  have : list.qsort (λ x y, x ≠ y) xs = list.qsort (λ x y, x ≠ y) ys,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+xs := [0, 1]
+ys := [1, 0]
+guard: [0, 1] ~ [1, 0] (by construction)
+issue: [0, 1] = [1, 0] does not hold
+(4 shrinks)
+-------------------
+",
+  admit,
+  trivial
+end
+
+example (x y : ℕ) : true :=
+begin
+  have : y ≤ x → x + y < 100,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+x := 59
+y := 41
+guard: 41 ≤ 59 (by construction)
+issue: 100 < 100 does not hold
+(8 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (x : ℤ) : true :=
+begin
+  have : x ≤ 3 → 3 ≤ x,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+x := 2
+guard: 2 ≤ 3 (by construction)
+issue: 3 ≤ 2 does not hold
+(1 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (x y : ℤ) : true :=
+begin
+  have : y ≤ x → x + y < 100,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+x := 52
+y := 52
+guard: 52 ≤ 52 (by construction)
+issue: 104 < 100 does not hold
+(4 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (x y : Prop) : true :=
+begin
+  have : x ∨ y → y ∧ x,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+x := tt
+y := ff
+guard: (true ∨ false)
+issue: false does not hold
+(0 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (x y : Prop) : true :=
+begin
+  have : (¬x ↔ y) → y ∧ x,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+x := tt
+y := ff
+guard: (¬ true ↔ false)
+issue: false does not hold
+(0 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (x y : Prop) : true :=
+begin
+  -- deterministic
+  have : (x ↔ y) → y ∨ x,
+  success_if_fail_with_msg
+  { slim_check }
+"
+===================
+Found problems!
+
+x := ff
+y := ff
+guard: (false ↔ false)
+issue: false does not hold
+issue: false does not hold
+(0 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (x y : Prop) : true :=
+begin
+  -- deterministic
+  have : y ∨ x,
+  success_if_fail_with_msg
+  { slim_check }
+"
+===================
+Found problems!
+
+x := ff
+y := ff
+issue: false does not hold
+issue: false does not hold
+(0 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (x y : Prop) : true :=
+begin
+  have : x ↔ y,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+x := tt
+y := ff
+issue: false does not hold
+issue: ¬ true does not hold
+(0 shrinks)
+-------------------
+",
+  admit,
+  trivial,
+end

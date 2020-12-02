@@ -13,14 +13,11 @@ import data.fintype.basic
 import data.list.min_max
 open nat
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A denumerable type is one which is (constructively) bijective with ℕ.
   Although we already have a name for this property, namely `α ≃ ℕ`,
   we are here interested in using it as a typeclass. -/
 class denumerable (α : Type*) extends encodable α :=
 (decode_inv : ∀ n, ∃ a ∈ decode n, encode a = n)
-end prio
 
 namespace denumerable
 

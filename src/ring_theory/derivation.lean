@@ -31,7 +31,7 @@ equality.
 TODO: update this when bimodules are defined. -/
 @[protect_proj]
 structure derivation (R : Type*) (A : Type*) [comm_semiring R] [comm_semiring A]
-  [algebra R A] (M : Type*) [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
+  [algebra R A] (M : Type*) [add_comm_monoid M] [semimodule A M] [semimodule R M]
   [is_scalar_tower R A M]
   extends A →ₗ[R] M :=
 (leibniz' (a b : A) : to_fun (a * b) = a • to_fun b + b • to_fun a)
@@ -42,7 +42,7 @@ section
 
 variables {R : Type*} [comm_semiring R]
 variables {A : Type*} [comm_semiring A] [algebra R A]
-variables {M : Type*} [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
+variables {M : Type*} [add_comm_monoid M] [semimodule A M] [semimodule R M]
 variables [is_scalar_tower R A M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
@@ -67,6 +67,16 @@ coe_injective $ funext H
 @[simp] lemma map_zero : D 0 = 0 := is_add_monoid_hom.map_zero D
 @[simp] lemma map_smul : D (r • a) = r • D a := linear_map.map_smul D r a
 @[simp] lemma leibniz : D (a * b) = a • D b + b • D a := D.leibniz' _ _
+
+end
+
+section
+
+variables {R : Type*} [comm_semiring R]
+variables {A : Type*} [comm_semiring A] [algebra R A]
+variables {M : Type*} [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
+variables [is_scalar_tower R A M]
+variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 @[simp] lemma map_one_eq_zero : D 1 = 0 :=
 begin

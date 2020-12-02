@@ -8,8 +8,12 @@ import data.polynomial.field_division
 import ring_theory.derivation
 
 /-!
-# Theory of univariate polynomials
+# The derivative map on polynomials
 
+## Main definitions
+ * `polynomial.derivative`: The formal derivative of polynomials, expressed as a linear map.
+ * `polynomial.derivative_derivation`:
+  The formal derivative of polynomials, expressed as a derivation.
 
 -/
 
@@ -178,11 +182,13 @@ with_bot.some_lt_some.1 $ by { rw [nat_degree, option.get_or_else_of_ne_none $ m
 theorem degree_derivative_le {p : polynomial R} : p.derivative.degree ≤ p.degree :=
 if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else le_of_lt $ degree_derivative_lt H
 
-/-- The formal derivative of polynomials, as linear homomorphism. -/
-def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomial R :=
-{ to_fun    := derivative,
-  map_add'  := λ p q, derivative_add,
-  map_smul' := λ r p, derivative_smul r p }
+/-- The polynomial derivative as a derivation. -/
+def derivative_derivation : derivation R (polynomial R) (polynomial R) :=
+{ to_linear_map := derivative,
+  leibniz' := λ a b, eq.trans derivative_mul $ by { rw [mul_comm, add_comm], refl } }
+
+@[simp]
+lemma derivative_derivation_apply (p : polynomial R) : derivative_derivation p = p.derivative := rfl
 
 end comm_semiring
 

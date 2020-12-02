@@ -99,7 +99,7 @@ end
 
 /-- If `L/K` is a ring extension, and `x` is an element of `L` in the image of `K`,
 then the minimal polynomial of `x` is `X - C x`. -/
-lemma algebra_map_inj [nontrivial α] (a : α) (hf : function.injective (algebra_map α β))
+lemma eq_X_sub_C_of_algebra_map_inj [nontrivial α] (a : α) (hf : function.injective (algebra_map α β))
   : minimal_polynomial (@is_integral_algebra_map α β _ _ _ a) = X - C a :=
 begin
   have hdegle : (minimal_polynomial (@is_integral_algebra_map α β _ _ _ a)).nat_degree ≤ 1,
@@ -274,33 +274,27 @@ begin
   { exact monic_map _ (monic hx) }
 end
 
-/--If L/K is a field extension, and x is an element of L in the image of K,
-then the minimal polynomial of x is X - C x.-/
-@[simp] protected lemma algebra_map (a : α) (ha : is_integral α (algebra_map α β a)) :
-  minimal_polynomial ha = X - C a :=
-eq.symm $ unique' ha (irreducible_X_sub_C a)
-  (by rw [alg_hom.map_sub, aeval_X, aeval_C, sub_self]) (monic_X_sub_C a)
-
 variable (β)
 /--If L/K is a field extension, and x is an element of L in the image of K,
 then the minimal polynomial of x is X - C x.-/
-lemma algebra_map' (a : α) :
+lemma eq_X_sub_C (a : α) :
   minimal_polynomial (@is_integral_algebra_map α β _ _ _ a) =
   X - C a :=
-minimal_polynomial.algebra_map _ _
+eq.symm $ unique' (@is_integral_algebra_map α β _ _ _ a) (irreducible_X_sub_C a)
+  (by rw [alg_hom.map_sub, aeval_X, aeval_C, sub_self]) (monic_X_sub_C a)
 variable {β}
 
 /--The minimal polynomial of 0 is X.-/
 @[simp] lemma zero {h₀ : is_integral α (0:β)} :
   minimal_polynomial h₀ = X :=
 by simpa only [add_zero, C_0, sub_eq_add_neg, neg_zero, ring_hom.map_zero]
-  using algebra_map' β (0:α)
+  using eq_X_sub_C β (0:α)
 
 /--The minimal polynomial of 1 is X - 1.-/
 @[simp] lemma one {h₁ : is_integral α (1:β)} :
   minimal_polynomial h₁ = X - 1 :=
 by simpa only [ring_hom.map_one, C_1, sub_eq_add_neg]
-  using algebra_map' β (1:α)
+  using eq_X_sub_C β (1:α)
 
 end ring
 

@@ -34,7 +34,7 @@ variables [decidable_eq σ] [decidable_eq σ₁] [decidable_eq σ₂] [decidable
 
 instance NFA_inhabited : inhabited (NFA α σ') := ⟨ NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
-/-- `M.step_set S a` is the union of `M.step s a` for all `s ∈ S` -/
+/-- `M.step_set S a` is the union of `M.step s a` for all `s ∈ S`. -/
 def step_set : finset σ → α → finset σ :=
 λ Ss a, finset.bind Ss (λ S, (M.step S a))
 

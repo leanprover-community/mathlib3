@@ -71,7 +71,7 @@ instance : setoid (Σ σ [decidable_eq σ], NFA α σ) :=
   λ M N, @equiv_symm _ _ _ M.2.1 N.2.1 M.2.2 N.2.2,
   λ M N P, @equiv_trans _ _ _ _ M.2.1 N.2.1 P.2.1 M.2.2 N.2.2 P.2.2 ⟩
 
-instance : has_coe (DFA α σ) (Σ σ, DFA α σ) := ⟨λ M, ⟨σ, M⟩⟩
+instance : has_coe (DFA α σ') (Σ σ, DFA α σ) := ⟨λ M, ⟨σ', M⟩⟩
 
 @[simp] lemma equiv_def (M : NFA α σ₁) (N : NFA α σ₂) : M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
 by refl

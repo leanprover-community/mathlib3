@@ -198,7 +198,7 @@ sym2.congr_right.mp (sym2.mem_other_spec' (G.neighbor_set_edge_prop h).right)
 There is an equivalence between the set of edges incidence to a given
 vertex and the set of vertices adjacent to the vertex.
 -/
-def incidence_set_equiv_neighbor_set (v : V) : G.incidence_set v ≃ G.neighbor_set v :=
+@[simps] def incidence_set_equiv_neighbor_set (v : V) : G.incidence_set v ≃ G.neighbor_set v :=
 { to_fun := λ e, ⟨G.incidence_set_other e.2, G.incidence_other_prop e.2⟩,
   inv_fun := λ w, ⟨⟦(v, w.1)⟧, G.neighbor_set_edge_prop w.2⟩,
   left_inv := by { intro x, dsimp [incidence_set_other], simp },

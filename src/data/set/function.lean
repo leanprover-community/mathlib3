@@ -721,7 +721,7 @@ end
 
 end semiconj
 
-lemma function.update_comp_eq_of_not_mem_range' {α β : Sort*} {γ : β → Sort*} [decidable_eq β]
+lemma update_comp_eq_of_not_mem_range' {α β : Sort*} {γ : β → Sort*} [decidable_eq β]
   (g : Π b, γ b) {f : α → β} {i : β} (a : γ i) (h : i ∉ set.range f) :
   (λ j, (function.update g i a) (f j)) = (λ j, g (f j)) :=
 begin

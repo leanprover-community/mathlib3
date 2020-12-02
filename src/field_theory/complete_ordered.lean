@@ -119,8 +119,8 @@ end ordered_ring_equiv
 
 /-- A field which is both linearly ordered and conditionally complete with respect to the order,
     this provides a model of the reals. -/
-class conditionally_complete_linear_ordered_field (F : Type*) extends discrete_linear_ordered_field F,
-  conditionally_complete_linear_order F
+class conditionally_complete_linear_ordered_field (F : Type*)
+  extends discrete_linear_ordered_field F, conditionally_complete_linear_order F
 
 -- TODO conditionally_complete_lattice or conditioanlly_complete_linear order?
 
@@ -152,7 +152,8 @@ begin
   { rw ← real.sqrt_lt hq2 hy, rw real.sqrt_sqr hq, exact hqy },
 end
 
-theorem exists_rat_sqr_btwn_rat {x y : ℚ} (h : x < y) (hx : 0 ≤ x) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ q^2 < y :=
+theorem exists_rat_sqr_btwn_rat {x y : ℚ} (h : x < y) (hx : 0 ≤ x) :
+  ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ q^2 < y :=
 begin
   have := exists_rat_sqr_btwn_rat_aux x y,
   norm_cast at this,

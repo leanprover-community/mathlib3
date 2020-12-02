@@ -845,9 +845,10 @@ def ring_hom.mk_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α) (h : ∀
   ..f }
 
 @[simp]
-lemma ring_hom.mk_mul_self_of_two_ne_zero_to_fun [comm_ring β] (f : β →+ α) (h : ∀ x, f (x * x) = f x * f x)
-  (h2 : (2 : α) ≠ 0) (h_one : f 1 = 1) : (ring_hom.mk_mul_self_of_two_ne_zero f h h2 h_one).to_fun =
-  f := rfl
+lemma ring_hom.mk_mul_self_of_two_ne_zero_to_fun [comm_ring β] (f : β →+ α)
+  (h : ∀ x, f (x * x) = f x * f x) (h2 : (2 : α) ≠ 0) (h_one : f 1 = 1) :
+  (ring_hom.mk_mul_self_of_two_ne_zero f h h2 h_one).to_fun = f :=
+rfl
 
 -- lemma (R S : Type*) [comm_ring R] [integral_domain S]
 --   (f : R →+ S)  (x y : R) : f (x * y) = f x * f y :=

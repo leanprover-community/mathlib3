@@ -265,4 +265,22 @@ calc  fintype.card G
 ... ≤ findim F (F →ₗ[fixed_points G F] F) : findim_alg_hom (fixed_points G F) F
 ... = findim (fixed_points G F) F : findim_linear_map' _ _ _
 
+theorem to_alg_hom_bijective (G : Type u) (F : Type v) [group G] [field F]
+  [fintype G] [faithful_mul_semiring_action G F] :
+  function.bijective (to_alg_hom G F) :=
+begin
+  rw fintype.bijective_iff_injective_and_card,
+  split,
+  { exact (to_alg_hom G F).injective },
+  { apply le_antisymm,
+    { exact fintype.card_le_of_injective _ (to_alg_hom G F).injective },
+    { rw ← findim_eq_card G F,
+      exact has_le.le.trans_eq (findim_alg_hom _ F) (findim_linear_map' _ _ _) } },
+end
+
+/-- Bijection between G and algebra homomorphisms that fix the fixed points -/
+def to_alg_hom_equiv (G : Type u) (F : Type v) [group G] [field F]
+  [fintype G] [faithful_mul_semiring_action G F] : G ≃ (F →ₐ[fixed_points G F] F) :=
+function.embedding.equiv_of_surjective (to_alg_hom G F) (to_alg_hom_bijective G F).2
+
 end fixed_points

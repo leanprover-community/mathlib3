@@ -308,8 +308,8 @@ Single Variable Real Analysis:
     limits: 'filter.tendsto'
     intermediate value theorem: 'intermediate_value_Icc'
     image of a segment: 'real.image_Icc'
-    continuity of monotonic functions: 'continuous_of_strict_mono_surjective'
-    continuity of inverse functions: 'homeomorph_of_strict_mono_continuous'
+    continuity of monotonic functions: 'order_iso.continuous'
+    continuity of inverse functions: 'order_iso.to_homeomorph'
   Differentiability:
     derivative at a point: 'has_deriv_at'
     differentiable functions: 'has_deriv_at'

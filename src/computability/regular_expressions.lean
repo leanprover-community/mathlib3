@@ -79,10 +79,10 @@ local infix ` ≈ ` := equiv
 @[refl] lemma equiv_refl (P : regular_expression α) : P ≈ P := λ x, by refl
 @[symm] lemma equiv_symm (P Q : regular_expression α) : P ≈ Q → Q ≈ P := λ h x, (h x).symm
 @[trans] lemma equiv_trans (P Q R : regular_expression α) : P ≈ Q → Q ≈ R → P ≈ R :=
-  λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
+λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
 
 @[simp] lemma equiv_def (P Q : regular_expression α) : P ≈ Q ↔ ∀ x, P.rmatch x ↔ Q.rmatch x :=
-  by refl
+by refl
 
 lemma zero_rmatch' (x : list α) : rmatch zero x = ff :=
 begin
@@ -238,14 +238,11 @@ using_well_founded {
   rel_tac := λ _ _, `[exact ⟨(λ L₁ L₂ : list _, L₁.length < L₂.length), inv_image.wf _ nat.lt_wf⟩]
 }
 
-lemma add_assoc (P Q R : regular_expression α) :
-  (P + Q) + R ≈ P + (Q + R) := by finish
+lemma add_assoc (P Q R : regular_expression α) : (P + Q) + R ≈ P + (Q + R) := by finish
 
-lemma add_comm (P Q : regular_expression α) :
-  P + Q ≈ Q + P := by finish
+lemma add_comm (P Q : regular_expression α) : P + Q ≈ Q + P := by finish
 
-lemma mul_add (P Q R : regular_expression α) :
-  P * (Q + R) ≈ (P * Q) + (P * R) :=
+lemma mul_add (P Q R : regular_expression α) : P * (Q + R) ≈ (P * Q) + (P * R) :=
 begin
   intro x,
   simp only [mul_rmatch_iff, add_rmatch_iff],
@@ -267,6 +264,7 @@ lemma add_zero (P : regular_expression α) : P + 0 ≈ P := by finish
 lemma zero_add (P : regular_expression α) : 0 + P ≈ P := by finish
 lemma mul_zero (P : regular_expression α) : P * 0 ≈ 0 := by finish
 lemma zero_mul (P : regular_expression α) : 0 * P ≈ 0 := by finish
+
 lemma mul_one (P : regular_expression α) : P * 1 ≈ P :=
 begin
   intro x,
@@ -278,6 +276,7 @@ begin
     use [x, []],
     finish }
 end
+
 lemma one_mul (P : regular_expression α) : 1 * P ≈ P :=
 begin
   intro x,

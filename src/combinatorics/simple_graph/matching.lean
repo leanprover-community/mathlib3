@@ -57,7 +57,7 @@ variables {G}
 `verts` is the set of vertices of `G` that are
 contained in some edge of matching `M`
 -/
-def matching.verts (M : G.matching) : set V :=
+def matching.support (M : G.matching) : set V :=
 {v : V | ∃ x ∈ M.val, v ∈ x}
 
 /--
@@ -65,6 +65,6 @@ A perfect matching `M` on graph `G` is a matching such that
   every vertex is contained in an edge of `M`.
 -/
 def matching.is_perfect (M : G.matching) : Prop :=
-M.verts = set.univ
+M.support = set.univ
 
 end simple_graph

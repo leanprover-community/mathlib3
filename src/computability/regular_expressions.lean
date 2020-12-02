@@ -56,20 +56,24 @@ def match_epsilon : regular_expression α → bool
 
 include dec
 
-/-- `M.feed a` matches `x` if `M` matches `"a" ++ x` -/
-def feed : regular_expression α → α → regular_expression α
+/-- `M.deriv a` matches `x` if `M` matches `a :: x`, the Brzozowski derivative of `M` with respect
+  to `a` -/
+def deriv : regular_expression α → α → regular_expression α
 | zero _ := zero
 | epsilon _ := zero
 | (char a₁) a₂ := if a₁ = a₂ then epsilon else zero
-| (star M) a := comp (feed M a) (star M)
-| (plus M N) a := plus (feed M a) (feed N a)
+| (star M) a := comp (deriv M a) (star M)
+| (plus M N) a := plus (deriv M a) (deriv N a)
 | (comp M N) a :=
-  ite M.match_epsilon (plus (comp (feed M a) N) (feed N a)) (comp (feed M a) N)
+  if M.match_epsilon then
+    (plus (comp (deriv M a) N) (deriv N a))
+  else
+    (comp (deriv M a) N)
 
 /-- `M.rmatch x` is true if and only if `M` matches `x` -/
 def rmatch : regular_expression α → list α → bool
 | M [] := match_epsilon M
-| M (a::as) := rmatch (M.feed a) as
+| M (a::as) := rmatch (M.deriv a) as
 
 /-- Two regular expressions are equivalent if they match exactly the same strings -/
 def equiv (P Q : regular_expression α) : Prop := ∀ x, P.rmatch x ↔ Q.rmatch x
@@ -88,7 +92,7 @@ lemma zero_rmatch' (x : list α) : rmatch zero x = ff :=
 begin
   induction x,
     rw [rmatch, match_epsilon],
-  rwa [rmatch, feed],
+  rwa [rmatch, deriv],
 end
 
 @[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff := zero_rmatch' x
@@ -97,7 +101,7 @@ lemma epsilon_rmatch_iff (x : list α) : rmatch epsilon x ↔ x = [] :=
 begin
   cases x,
     dec_trivial,
-  rw [rmatch, feed, zero_rmatch'],
+  rw [rmatch, deriv, zero_rmatch'],
   dec_trivial
 end
 
@@ -108,10 +112,10 @@ begin
   cases x with _ x,
     dec_trivial,
   cases x,
-    rw [rmatch, feed],
+    rw [rmatch, deriv],
     split_ifs;
     tauto,
-  rw [rmatch, feed],
+  rw [rmatch, deriv],
   split_ifs,
     rw epsilon_rmatch_iff,
     tauto,
@@ -127,7 +131,7 @@ begin
     rw match_epsilon,
     finish },
   { repeat {rw rmatch},
-    rw feed,
+    rw deriv,
     exact ih _ _ }
 end
 
@@ -150,7 +154,7 @@ begin
       subst hu,
       repeat {rw rmatch at h₂},
       finish } },
-  { rw [rmatch, feed],
+  { rw [rmatch, deriv],
     split_ifs with hepsilon,
     { rw [plus_rmatch_iff, ih],
       split,
@@ -195,7 +199,7 @@ begin
       fconstructor,
       exact [],
       tauto },
-    { rw [rmatch, feed, comp_rmatch_iff],
+    { rw [rmatch, deriv, comp_rmatch_iff],
       rintro ⟨ t, u, hs, ht, hu ⟩,
       have hwf : u.length < (list.cons a x).length,
       { rw [hs, list.length_cons, list.length_append],
@@ -213,7 +217,7 @@ begin
   { rintro ⟨ S, hsum, helem ⟩,
     cases x with a x,
     { dec_trivial },
-    { rw [rmatch, feed, comp_rmatch_iff],
+    { rw [rmatch, deriv, comp_rmatch_iff],
       cases S with t' U,
       { exact ⟨ [], [], by tauto ⟩ },
       { cases t' with b t,

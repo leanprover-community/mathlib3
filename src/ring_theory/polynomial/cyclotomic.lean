@@ -543,13 +543,12 @@ end cyclotomic
 section order
 
 /-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, where `p` is a prime that does not divide
-`n`, then the multiplicative order of `a` modulo `p` is exactly `n`. -/
-lemma order_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact p.prime] {a : ℕ}
+`n`, then the multiplicative order of `a` modulo `p` divides `n`. -/
+lemma order_of_root_cyclotomic_dvd {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact p.prime] {a : ℕ}
   (hn : ¬ p ∣ n) (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
-  order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) = n :=
+  order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) ∣ n :=
 begin
-  have ha := coprime_of_root_cyclotomic hpos hroot,
-  have hord : (zmod.unit_of_coprime a ha) ^ n = 1,
+  have hord : (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) ^ n = 1,
   { suffices hpow : eval (nat.cast_ring_hom (zmod p) a) (X ^ n - 1 : polynomial (zmod p)) = 0,
     { simp only [eval_X, eval_one, eval_pow, eval_sub, ring_hom.eq_nat_cast] at hpow,
       apply units.coe_eq_one.1,
@@ -559,16 +558,25 @@ begin
       finset.prod_insert nat.proper_divisors.not_self_mem, eval_mul],
     rw [is_root.def] at hroot,
     rw [hroot, zero_mul] },
-  replace hord := order_of_dvd_of_pow_eq_one hord,
+  exact order_of_dvd_of_pow_eq_one hord
+end
+
+/-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, where `p` is a prime that does not divide
+`n`, then the multiplicative order of `a` modulo `p` is exactly `n`. -/
+lemma order_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact p.prime] {a : ℕ}
+  (hn : ¬ p ∣ n) (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
+  order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) = n :=
+begin
+  have ha := coprime_of_root_cyclotomic hpos hroot,
   have hdivcycl : map (int.cast_ring_hom (zmod p)) (X - a) ∣ (cyclotomic n (zmod p)),
-  { replace hroot := dvd_iff_is_root.2 hroot,
-    simp only [C_eq_nat_cast, ring_hom.eq_nat_cast] at hroot,
-    simp only [hroot, map_nat_cast, map_X, map_sub] },
+  { replace hrootdiv := dvd_iff_is_root.2 hroot,
+    simp only [C_eq_nat_cast, ring_hom.eq_nat_cast] at hrootdiv,
+    simp only [hrootdiv, map_nat_cast, map_X, map_sub] },
   by_contra hdiff,
   have hdiv : map (int.cast_ring_hom (zmod p)) (X - a) ∣
     ∏ i in nat.proper_divisors n, cyclotomic i (zmod p),
   { rw [← finset.sdiff_union_of_subset (nat.divisors_subset_proper_divisors (ne_of_lt hpos).symm
-    hord hdiff), finset.prod_union finset.sdiff_disjoint],
+    (order_of_root_cyclotomic_dvd hpos hn hroot) hdiff), finset.prod_union finset.sdiff_disjoint],
     suffices hdivm : map (int.cast_ring_hom (zmod p)) (X - a) ∣
     ∏ i in nat.divisors _, cyclotomic i (zmod p),
     { exact dvd_mul_of_dvd_right hdivm _ },
@@ -579,11 +587,9 @@ begin
   have habs : (map (int.cast_ring_hom (zmod p)) (X - a)) ^ 2 ∣ X ^ n - 1,
   { obtain ⟨P, hP⟩ := hdivcycl,
     obtain ⟨Q, hQ⟩ := hdiv,
-    rw [← prod_cyclotomic_eq_X_pow_sub_one hpos,
-      nat.divisors_eq_proper_divisors_insert_self_of_pos hpos, finset.prod_insert
-      nat.proper_divisors.not_self_mem, hP, hQ],
-    use P * Q,
-    ring },
+    rw [← prod_cyclotomic_eq_X_pow_sub_one hpos, nat.divisors_eq_proper_divisors_insert_self_of_pos
+      hpos, finset.prod_insert nat.proper_divisors.not_self_mem, hP, hQ],
+    exact ⟨P * Q, by ring⟩ },
   have hnzero : ↑n ≠ (0 : (zmod p)),
   { intro ha,
     exact hn (int.coe_nat_dvd.1 ((zmod.int_coe_zmod_eq_zero_iff_dvd n p).1 ha)) },

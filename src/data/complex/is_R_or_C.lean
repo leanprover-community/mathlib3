@@ -545,7 +545,8 @@ end
 
 /-- The real part in a `is_R_or_C` field, as a continuous linear map. -/
 noncomputable def re_clm : K →L[ℝ] ℝ :=
-re_lm.mk_continuous 1 $ by { simp only [norm_eq_abs, re_lm_coe, one_mul], exact abs_re_le_abs }
+linear_map.mk_continuous re_lm 1 $
+  by { simp only [norm_eq_abs, re_lm_coe, one_mul], exact abs_re_le_abs }
 
 @[simp] lemma norm_re_clm : ∥(re_clm : K →L[ℝ] ℝ)∥ = 1 :=
 begin

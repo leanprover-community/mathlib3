@@ -43,7 +43,7 @@ lemma mem_step_set (s : σ) (S : finset σ) (a : α) :
 by rw [step_set, finset.mem_bind]
 
 /-- `M.eval_from S x` computes all possible paths though `M` with input `x` starting at an element
-  of `S` -/
+  of `S`. -/
 def eval_from (start : finset σ) : list α → finset σ :=
 list.foldl M.step_set start
 

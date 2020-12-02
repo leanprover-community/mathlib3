@@ -94,7 +94,7 @@ section accessor_functions
 ## Accessor functions
 The way one talks about an arbitrary simple graph is by
 ```
-variables {α : Type*} [simple_graphs α] (G : α)
+variables {α : Type*} [simple_graph α] (G : α)
 ```
 That is, `α` is declared to be some "universe" of simple graph objects,
 and then `G` is a simple graph from it.

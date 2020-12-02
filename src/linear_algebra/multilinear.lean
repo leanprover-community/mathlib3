@@ -49,6 +49,37 @@ advantage of avoiding subtype inclusion issues. This is the definition we use, b
 `function.update` that allows to change the value of `m` at `i`.
 -/
 
+-- gh-5178
+namespace function
+
+/-- Dependent version of update_comp_eq_of_injective -/
+lemma update_comp_eq_of_injective' {α β : Sort*} {γ : β → Sort*} [decidable_eq α] [decidable_eq β]
+  (g : Π b, γ b) {f : α → β} (hf : function.injective f) (i : α) (a : γ (f i)) :
+  (λ j, function.update g (f i) a (f j)) = function.update (λ i, g (f i)) i a :=
+begin
+  ext j,
+  by_cases h : j = i,
+  { rw h, simp },
+  { have : f j ≠ f i := hf.ne h,
+    simp [h, this] }
+end
+
+/-- Dependent version of update_comp_eq_of_not_mem_range -/
+lemma update_comp_eq_of_not_mem_range' {α β : Type*} {γ : β → Type*} [decidable_eq β]
+  (g : Π b, γ b) {f : α → β} {i : β} (a : γ i) (h : i ∉ set.range f) :
+  (λ j, (function.update g i a) (f j)) = (λ j, g (f j)) :=
+begin
+  ext p,
+  have : f p ≠ i,
+  { by_contradiction H,
+    push_neg at H,
+    rw ← H at h,
+    exact h (set.mem_range_self _) },
+  simp [this],
+end
+
+end function
+
 open function fin set
 open_locale big_operators
 
@@ -527,6 +558,70 @@ instance : semimodule R' (multilinear_map A M₁ M₂) :=
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
 end semimodule
+
+
+section coprod
+
+open_locale tensor_product
+
+variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
+variables {N₁ : Type*} [add_comm_monoid N₁] [semimodule R N₁]
+variables {N₂ : Type*} [add_comm_monoid N₂] [semimodule R N₂]
+variables {N : Type*} [add_comm_monoid N] [semimodule R N]
+
+/-- Given two multilinear maps `(ι₁ → N) → N₁` and `(ι₂ → N) → N₂`, this produces the map
+`(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂` by taking the tensor product of each function applied to its respective
+inputs indexed by `ι₁ ⊕ ι₂`.
+
+While this can be generalized to work for dependent `Π i : ι₁, N'₁ i` instead of `ι₁ → N`, doing so
+introduces `sum.elim N'₁ N'₂` types in the result which are difficult to work with and not defeq
+to the simple case defined here. See [this zulip thread](
+https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there.20code.20for.20X.3F/topic/Instances.20on.20.60sum.2Eelim.20A.20B.20i.60/near/218484619).
+-/
+@[simps apply]
+def coprod
+  (a : multilinear_map R (λ _ : ι₁, N) N₁) (b : multilinear_map R (λ _ : ι₂, N) N₂) :
+  multilinear_map R (λ _ : ι₁ ⊕ ι₂, N) (N₁ ⊗[R] N₂) :=
+have inl_disjoint : ∀ {α β : Type*} (a : α),
+  (sum.inl a : α ⊕ β) ∉ set.range (@sum.inr α β) := by simp,
+have inr_disjoint : ∀ {α β : Type*} (b : β),
+  (sum.inr b : α ⊕ β) ∉ set.range (@sum.inl α β) := by simp,
+{ to_fun := λ v, a (λ i, v (sum.inl i)) ⊗ₜ b (λ i, v (sum.inr i)),
+  map_add' := λ v i p q, begin
+    cases i,
+    { iterate 3 {
+        rw [function.update_comp_eq_of_injective' _ sum.injective_inl,
+            function.update_comp_eq_of_not_mem_range' _ _ (inl_disjoint i)],},
+      rw [a.map_add, tensor_product.add_tmul], },
+    { iterate 3 {
+        rw [function.update_comp_eq_of_injective' _ sum.injective_inr,
+            function.update_comp_eq_of_not_mem_range' _ _ (inr_disjoint i)],},
+      rw [b.map_add, tensor_product.tmul_add], }
+  end,
+  map_smul' := λ v i c p, begin
+    cases i,
+    { iterate 2 {
+        rw [function.update_comp_eq_of_injective' _ sum.injective_inl,
+            function.update_comp_eq_of_not_mem_range' _ _ (inl_disjoint i)],},
+      rw [a.map_smul, tensor_product.smul_tmul'], },
+    { iterate 2 {
+        rw [function.update_comp_eq_of_injective' _ sum.injective_inr,
+            function.update_comp_eq_of_not_mem_range' _ _ (inr_disjoint i)]},
+      rw [b.map_smul, tensor_product.tmul_smul], },
+  end }
+
+/-- A more bundled version of `multilinear_mmap.coprod` that maps
+`((ι₁ → N) → N₁) ⊗ ((ι₂ → N) → N₂)` to `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ ℕ₂`. -/
+def coprod' :
+  multilinear_map R (λ _ : ι₁, N) N₁ ⊗[R] multilinear_map R (λ _ : ι₂, N) N₂ →ₗ[R]
+  multilinear_map R (λ _ : ι₁ ⊕ ι₂, N) (N₁ ⊗[R] N₂) :=
+tensor_product.lift $ linear_map.mk₂ R (coprod)
+  (λ m₁ m₂ n, by { ext, simp only [coprod_apply, tensor_product.add_tmul, add_apply] })
+  (λ c m n,   by { ext, simp only [coprod_apply, tensor_product.smul_tmul', smul_apply] })
+  (λ m n₁ n₂, by { ext, simp only [coprod_apply, tensor_product.tmul_add, add_apply] })
+  (λ c m n,   by { ext, simp only [coprod_apply, tensor_product.tmul_smul, smul_apply] })
+
+end coprod
 
 section
 

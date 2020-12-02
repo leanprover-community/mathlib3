@@ -102,7 +102,7 @@ The edges of G consist of the unordered pairs of vertices related by
 def edge_set : set (sym2 V) := sym2.from_rel G.sym
 
 /--
-The `incidence_set` is the set of edges incidence to a given vertex.
+The `incidence_set` is the set of edges incident to a given vertex.
 -/
 def incidence_set (v : V) : set (sym2 V) := {e ∈ G.edge_set | v ∈ e}
 
@@ -118,7 +118,7 @@ Two vertices are adjacent iff there is an edge between them.  The
 condition `v ≠ w` ensures they are different endpoints of the edge,
 which is necessary since when `v = w` the existential
 `∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e` is satisfied by every edge
-incidence to `v`.
+incident to `v`.
 -/
 lemma adj_iff_exists_edge {v w : V} :
   G.adj v w ↔ v ≠ w ∧ ∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e :=
@@ -181,7 +181,7 @@ section incidence
 variable [decidable_eq V]
 
 /--
-Given an edge incidence to a particular vertex, get the other vertex on the edge.
+Given an edge incident to a particular vertex, get the other vertex on the edge.
 -/
 def incidence_set_other {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
 
@@ -195,7 +195,7 @@ lemma incidence_other_neighbor_edge {v w : V} (h : w ∈ G.neighbor_set v) :
 sym2.congr_right.mp (sym2.mem_other_spec' (G.neighbor_set_edge_prop h).right)
 
 /--
-There is an equivalence between the set of edges incidence to a given
+There is an equivalence between the set of edges incident to a given
 vertex and the set of vertices adjacent to the vertex.
 -/
 def incidence_set_equiv_neighbor_set (v : V) : G.incidence_set v ≃ G.neighbor_set v :=

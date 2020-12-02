@@ -7,6 +7,7 @@ import algebra.group.type_tags
 import algebra.group.units_hom
 import algebra.ring.basic
 import data.equiv.mul_add
+import algebra.group_power.basic
 
 /-!
 # Unbundled monoid and group homomorphisms (deprecated)
@@ -184,6 +185,16 @@ instance is_add_monoid_hom_mul_right {γ : Type*} [semiring γ] (x : γ) :
   is_add_monoid_hom (λ y : γ, y * x) :=
 { map_zero := zero_mul x, map_add := λ y z, add_mul y z x }
 
+theorem is_monoid_hom.map_pow {M N : Type*} [monoid M] [monoid N] (f : M → N)
+  [is_monoid_hom f] (a : M) :
+  ∀(n : ℕ), f (a ^ n) = (f a) ^ n :=
+(monoid_hom.of f).map_pow a
+
+theorem is_add_monoid_hom.map_nsmul {A B : Type*} [add_monoid A] [add_monoid B] (f : A → B)
+  [is_add_monoid_hom f] (a : A) (n : ℕ) :
+  f (n •ℕ a) = n •ℕ f a :=
+(add_monoid_hom.of f).map_nsmul a n
+
 end is_add_monoid_hom
 
 /-- Predicate for additive group homomorphism (deprecated -- use bundled `monoid_hom`). -/
@@ -290,7 +301,7 @@ end
 end ring_hom
 
 /-- Inversion is a group homomorphism if the group is commutative. -/
-@[instance, to_additive neg.is_add_group_hom 
+@[instance, to_additive neg.is_add_group_hom
 "Negation is an `add_group` homomorphism if the `add_group` is commutative."]
 lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=
 { map_mul := mul_inv }
@@ -364,3 +375,17 @@ lemma additive.is_add_group_hom [group α] [group β] (f : α → β) [is_group_
 lemma multiplicative.is_group_hom [add_group α] [add_group β] (f : α → β) [is_add_group_hom f] :
   @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
 { map_mul := @is_add_hom.map_add α β _ _ f _ }
+
+instance pow.is_monoid_hom {M : Type*} [comm_monoid M] (n : ℕ) : is_monoid_hom ((^ n) : M → M) :=
+{ map_mul := λ _ _, mul_pow _ _ _, map_one := one_pow _ }
+
+instance nsmul.is_add_monoid_hom {A : Type*} [add_comm_monoid A] (n : ℕ) :
+  is_add_monoid_hom (nsmul n : A → A) :=
+{ map_add := λ _ _, nsmul_add _ _ _, map_zero := nsmul_zero _ }
+
+instance gpow.is_group_hom {G : Type*} [comm_group G] (n : ℤ) : is_group_hom ((^ n) : G → G) :=
+{ map_mul := λ _ _, mul_gpow _ _ n }
+
+instance gsmul.is_add_group_hom {A : Type*} [add_comm_group A] (n : ℤ) :
+  is_add_group_hom (gsmul n : A → A) :=
+{ map_add := λ _ _, gsmul_add _ _ n }

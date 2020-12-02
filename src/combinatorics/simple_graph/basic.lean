@@ -303,15 +303,15 @@ lemma complete_graph_is_regular [decidable_eq V] :
 by { intro v, simp }
 
 /--
-The minimal degree of all vertices
+The minimum degree of all vertices
 -/
-def min_deg (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
+def min_degree (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
 finset.min' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
 
 /--
-The maximal degree of all vertices
+The maximum degree of all vertices
 -/
-def max_deg (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
+def max_degree (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
 finset.max' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
 
 

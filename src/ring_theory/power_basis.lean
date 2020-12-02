@@ -127,6 +127,9 @@ by { rw [← pb.is_basis.total_repr 1, finsupp.total_apply, finsupp.sum_fintype]
        cases x_lt },
      { simp } }
 
+lemma dim_pos [nontrivial S] (pb : power_basis R S) : 0 < pb.dim :=
+nat.pos_of_ne_zero pb.dim_ne_zero
+
 lemma exists_eq_aeval [nontrivial S] (pb : power_basis R S) (y : S) :
   ∃ f : polynomial R, f.nat_degree < pb.dim ∧ y = aeval pb.gen f :=
 (mem_span_pow pb.dim_ne_zero).mp (pb.is_basis.mem_span y)
@@ -162,6 +165,21 @@ begin
   rw [degree_neg, degree_X_pow],
   exact degree_sum_fin_lt _
 end
+
+lemma minpoly_gen_ne_zero (pb : power_basis A S) : minpoly_gen pb ≠ 0 :=
+pb.minpoly_gen_monic.ne_zero
+
+@[simp]
+lemma degree_minpoly_gen (pb : power_basis A S) : degree (minpoly_gen pb) = pb.dim :=
+by rw [degree_eq_nat_degree pb.minpoly_gen_ne_zero, nat_degree_minpoly_gen, with_bot.coe_eq_coe]
+
+lemma degree_minpoly_gen_pos [nontrivial S] (pb : power_basis A S) :
+  0 < degree (minpoly_gen pb) :=
+by { rw [degree_minpoly_gen, ← with_bot.coe_zero, with_bot.coe_lt_coe], exact pb.dim_pos }
+
+lemma nat_degree_minpoly_gen_pos [nontrivial S] (pb : power_basis A S) :
+  0 < nat_degree (minpoly_gen pb) :=
+by { rw nat_degree_minpoly_gen, exact pb.dim_pos }
 
 @[simp]
 lemma aeval_minpoly_gen (pb : power_basis A S) : aeval pb.gen (minpoly_gen pb) = 0 :=
@@ -199,16 +217,37 @@ begin
         zero_smul] }
 end
 
+lemma dim_le_degree_of_root (h : power_basis A S) {p : polynomial A}
+  (ne_zero : p ≠ 0) (root : aeval h.gen p = 0) :
+  ↑h.dim ≤ p.degree :=
+begin
+  have := dim_le_nat_degree_of_root h ne_zero root,
+  rwa [← with_bot.coe_le_coe, ← degree_eq_nat_degree ne_zero] at this,
+end
+
+@[simp]
+lemma degree_minimal_polynomial (pb : power_basis A S) :
+  (minimal_polynomial pb.is_integral_gen).degree = pb.dim :=
+begin
+  refine le_antisymm _
+    (dim_le_degree_of_root pb (minimal_polynomial.ne_zero _) (minimal_polynomial.aeval _)),
+  rw [← nat_degree_minpoly_gen, ← degree_eq_nat_degree (minpoly_gen_monic pb).ne_zero],
+  exact minimal_polynomial.min _ (minpoly_gen_monic pb) (aeval_minpoly_gen pb)
+end
+
 @[simp]
 lemma nat_degree_minimal_polynomial (pb : power_basis A S) :
   (minimal_polynomial pb.is_integral_gen).nat_degree = pb.dim :=
+by rw [← with_bot.coe_eq_coe, ← degree_minimal_polynomial pb,
+       degree_eq_nat_degree (minimal_polynomial.ne_zero pb.is_integral_gen)]
+
+lemma minpoly_gen_eq [algebra K S] (pb : power_basis K S) :
+  pb.minpoly_gen = minimal_polynomial pb.is_integral_gen :=
 begin
-  refine le_antisymm _
-    (dim_le_nat_degree_of_root pb (minimal_polynomial.ne_zero _) (minimal_polynomial.aeval _)),
-  rw ← nat_degree_minpoly_gen,
-  apply nat_degree_le_of_degree_le,
-  rw ← degree_eq_nat_degree (minpoly_gen_monic pb).ne_zero,
-  exact minimal_polynomial.min _ (minpoly_gen_monic pb) (aeval_minpoly_gen pb)
+  apply minimal_polynomial.unique _ pb.minpoly_gen_monic pb.aeval_minpoly_gen,
+  intros q q_monic aeval_q,
+  rw [degree_minpoly_gen pb, ← degree_minimal_polynomial pb],
+  exact minimal_polynomial.min _ q_monic aeval_q
 end
 
 end minpoly

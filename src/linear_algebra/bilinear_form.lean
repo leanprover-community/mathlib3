@@ -264,6 +264,10 @@ lemma comp_comp {M'' : Type*} [add_comm_monoid M''] [semimodule R M'']
 @[simp] lemma comp_apply (B : bilin_form R M') (l r : M →ₗ[R] M') (v w) :
   B.comp l r v w = B (l v) (r w) := rfl
 
+@[simp] lemma comp_id_id (B : bilin_form R M') :
+  B.comp linear_map.id linear_map.id = B :=
+by { ext, simp }
+
 @[simp] lemma comp_left_apply (B : bilin_form R M) (f : M →ₗ[R] M) (v w) :
   B.comp_left f v w = B (f v) w := rfl
 
@@ -707,6 +711,29 @@ lemma matrix.to_bilin_comp (M : matrix n n R₃) (P Q : matrix n o R₃) :
   (by simp only [bilin_form.to_matrix_comp hb hc, bilin_form.to_matrix_to_bilin, to_matrix_to_lin])
 
 end to_matrix
+
+section is_basis_to_matrix
+
+variables {ι ι' : Type*} [fintype ι] [fintype ι']
+variables {b : ι → M₃} {b' : ι' → M₃}
+variables (hb : is_basis R₃ b) (hb' : is_basis R₃ b')
+
+lemma matrix.inv_eq [decidable_eq ι] {A B : matrix ι ι R₃}
+  (hA : is_unit A.det) (hBA : B ⬝ A = 1) :
+  A⁻¹ = B :=
+calc A⁻¹ = (B ⬝ A) ⬝ A⁻¹ : by rw [hBA, matrix.one_mul]
+     ... = B ⬝ (A ⬝ A⁻¹) : matrix.mul_assoc _ _ _
+     ... = B : by rw [matrix.mul_nonsing_inv _ hA, matrix.mul_one]
+
+@[simp] lemma bilin_form.to_matrix_basis_change
+  [decidable_eq ι] [decidable_eq ι'] (B : bilin_form R₃ M₃) :
+  (hb'.to_matrix b)ᵀ ⬝ bilin_form.to_matrix hb' B ⬝ hb'.to_matrix b = bilin_form.to_matrix hb B :=
+(matrix.to_bilin hb).injective
+  (by rw [matrix.to_bilin_to_matrix, bilin_form.mul_to_matrix_mul hb' hb,
+          matrix.to_bilin_to_matrix, transpose_transpose, hb'.to_lin_to_matrix,
+          bilin_form.comp_id_id])
+
+end is_basis_to_matrix
 
 end matrix
 

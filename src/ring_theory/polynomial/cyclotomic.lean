@@ -556,8 +556,8 @@ end cyclotomic
 
 section order
 
-/-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, where `p` is a prime that does not divide
-`n`, then the multiplicative order of `a` modulo `p` divides `n`. -/
+/-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, then the multiplicative order of `a` modulo
+`p` divides `n`. -/
 lemma order_of_root_cyclotomic_dvd {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact p.prime]
   {a : ℕ} (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
   order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) ∣ n :=

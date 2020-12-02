@@ -846,7 +846,7 @@ theorem prod_eq_iff_prod_pow_moebius_eq [comm_group R] {f g : ℕ → R} :
     ∀ (n : ℕ), 0 < n → ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
 @sum_eq_iff_sum_smul_moebius_eq (additive R) _ _ _
 
-/-- Möbius inversion for functions to a `comm_group`. -/
+/-- Möbius inversion for functions to a `comm_group_with_zero`. -/
 theorem prod_eq_iff_prod_pow_moebius_eq_of_nonzero [comm_group_with_zero R] {f g : ℕ → R}
   (hf : ∀ (n : ℕ), 0 < n → f n ≠ 0) (hg : ∀ (n : ℕ), 0 < n → g n ≠ 0) :
   (∀ (n : ℕ), 0 < n → ∏ i in (n.divisors), f i = g n) ↔

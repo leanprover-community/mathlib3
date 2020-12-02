@@ -5,7 +5,7 @@ Author: Chris Hughes
 -/
 
 import data.int.modeq
-import algebra.char_p
+import algebra.char_p.basic
 import data.nat.totient
 import ring_theory.ideal.operations
 

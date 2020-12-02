@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.limits.shapes.equalizers
+import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.strong_epi
 
 /-!
@@ -212,16 +213,7 @@ hF.lift_fac _
 -- (uniqueness of the lift comes for free).
 
 instance lift_mono (F' : mono_factorisation f) : mono (image.lift F') :=
-begin
-  split, intros Z a b w,
-  have w' : a ≫ image.ι f = b ≫ image.ι f :=
-  calc a ≫ image.ι f = a ≫ (image.lift F' ≫ F'.m) : by simp
-                 ... = (a ≫ image.lift F') ≫ F'.m : by rw [category.assoc]
-                 ... = (b ≫ image.lift F') ≫ F'.m : by rw w
-                 ... = b ≫ (image.lift F' ≫ F'.m) : by rw [←category.assoc]
-                 ... = b ≫ image.ι f : by simp,
-  exact (cancel_mono (image.ι f)).1 w',
-end
+by { apply mono_of_mono _ F'.m, simpa using mono_factorisation.m_mono _ }
 
 lemma has_image.uniq
   (F' : mono_factorisation f) (l : image f ⟶ F'.I) (w : l ≫ F'.m = image.ι f) :
@@ -637,6 +629,22 @@ instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images C] :
 { has_image_map := λ f g st, has_image_map.mk
   { map := arrow.lift $ arrow.hom_mk' $ show (st.left ≫ factor_thru_image g.hom) ≫ image.ι g.hom =
       factor_thru_image f.hom ≫ (image.ι f.hom ≫ st.right), by simp } }
+
+/-- If a category has images, equalizers and pullbacks, then images are automatically strong epi
+    images. -/
+@[priority 100]
+instance has_strong_epi_images_of_has_pullbacks_of_has_equalizers [has_pullbacks C]
+  [has_equalizers C] : has_strong_epi_images C :=
+{ strong_factor_thru_image := λ X Y f,
+  { epi := by apply_instance,
+    has_lift := λ A B x y h h_mono w, arrow.has_lift.mk
+    { lift := image.lift
+      { I := pullback h y,
+        m := pullback.snd ≫ image.ι f,
+        m_mono := by exactI mono_comp _ _,
+        e := pullback.lift _ _ w } ≫ pullback.fst,
+      fac_left := by simp,
+      fac_right := by tidy } } }
 
 end has_strong_epi_images
 

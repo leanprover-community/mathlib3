@@ -71,6 +71,10 @@ variables {α}
 def of (x : α) : free_comm_ring α :=
 free_abelian_group.of ([x] : multiset α)
 
+lemma of_injective : function.injective (of : α → free_comm_ring α) :=
+free_abelian_group.of_injective.comp (λ x y,
+  (multiset.coe_eq_coe.trans list.singleton_perm_singleton).mp)
+
 @[elab_as_eliminator] protected lemma induction_on
   {C : free_comm_ring α → Prop} (z : free_comm_ring α)
   (hn1 : C (-1)) (hb : ∀ b, C (of b))

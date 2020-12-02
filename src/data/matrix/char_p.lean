@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import data.matrix.basic
-import algebra.char_p
+import algebra.char_p.basic
 /-!
 # Matrices in prime characteristic
 -/

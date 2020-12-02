@@ -107,7 +107,7 @@ The `incidence_set` is the set of edges incident to a given vertex.
 def incidence_set (v : V) : set (sym2 V) := {e ∈ G.edge_set | v ∈ e}
 
 lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set :=
-by tidy
+λ _ h, h.1
 
 @[simp]
 lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=

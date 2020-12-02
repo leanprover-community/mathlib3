@@ -2813,9 +2813,6 @@ lemma continuous_at_iff_continuous_left'_right' [topological_space α] [linear_o
 by rw [continuous_within_at_Ioi_iff_Ici, continuous_within_at_Iio_iff_Iic,
   continuous_at_iff_continuous_left_right]
 
-section homeomorphisms
-variables [topological_space α] [topological_space β]
-
 namespace order_iso
 
 variables [partial_order α] [partial_order β] [topological_space α] [topological_space β]
@@ -2842,8 +2839,10 @@ def to_homeomorph (e : α ≃o β) : α ≃ₜ β :=
 end order_iso
 
 section conditionally_complete_linear_order
-variables [conditionally_complete_linear_order α] [densely_ordered α] [order_topology α]
-variables [conditionally_complete_linear_order β] [order_topology β]
+variables
+  [conditionally_complete_linear_order α] [densely_ordered α] [topological_space α]
+  [order_topology α] [conditionally_complete_linear_order β] [topological_space β]
+  [order_topology β]
 
 /-- If `f : α → β` is strictly monotone and continuous, and tendsto `at_top` `at_top` and to
 `at_bot` `at_bot`, then it is a homeomorphism. -/
@@ -2874,10 +2873,10 @@ noncomputable def homeomorph_of_strict_mono_continuous_Ioo
   (h_top : tendsto f (𝓝[Iio b] b) at_top)
   (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
   homeomorph (Ioo a b) β :=
-@homeomorph_of_strict_mono_continuous _ _ _ _
+@homeomorph_of_strict_mono_continuous _ _
 (@ord_connected_subset_conditionally_complete_linear_order α (Ioo a b) _
   ⟨classical.choice (nonempty_Ioo_subtype h)⟩ _)
-_ _ _ _
+_ _ _ _ _ _
 (restrict f (Ioo a b))
 (λ x y, h_mono x.2.1 y.2.2)
 (continuous_on_iff_continuous_restrict.mp h_cont)
@@ -2901,5 +2900,3 @@ end
 rfl
 
 end conditionally_complete_linear_order
-
-end homeomorphisms

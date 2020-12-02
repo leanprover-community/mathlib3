@@ -28,7 +28,7 @@ variables {α : Type u} [dec : decidable_eq α]
   `star M` matches any finite concatenation of strings which match `M`
   `plus M N` matches anything which match `M` or `N`
   `comp M N` matches `x ++ y` if `x` matches `M` and `y` matches `N` -/
-inductive regular_expression (α : Type u) : Type (u+1)
+inductive regular_expression (α : Type u) : Type u
 | zero : regular_expression
 | epsilon : regular_expression
 | char : α → regular_expression

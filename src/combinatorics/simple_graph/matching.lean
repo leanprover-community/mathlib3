@@ -23,6 +23,10 @@ TODO:
     the cardinality of `V` is even (assuming it's finite)
   - Hall's Marriage Theorem
   - Tutte's Theorem
+  - consider coercions instead of type definition for `matching`:
+    https://github.com/leanprover-community/mathlib/pull/5156#discussion_r532935457
+  - consider expressing `matching_verts` as union:
+    https://github.com/leanprover-community/mathlib/pull/5156#discussion_r532906131
 
 TODO: Tutte and Hall require a definition of subgraphs.
 -/
@@ -30,7 +34,7 @@ open finset
 universe u
 
 namespace simple_graph
-variables {V : Type u} (G : simple_graph V) (M : set (sym2 V)) (h : M ⊆ edge_set G)
+variables {V : Type u} (G : simple_graph V)
 
 /--
 A matching on `G` is a subset of its edges such that no two edges share a vertex.

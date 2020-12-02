@@ -40,17 +40,14 @@ def eval := M.eval_from M.start
 def accepts (x : list α) : Prop :=
 M.eval x ∈ M.accept
 
-/-- Two DFA's are equivalent if they accept exactly the same strings. -/
-def equiv (M : DFA α σ₁) (N : DFA α σ₂) : Prop := ∀ x, M.accepts x ↔ N.accepts x
+instance : setoid (Σ σ, DFA α σ) :=
+⟨ λ M N, ∀ x, M.2.accepts x ↔ N.2.accepts x,
+  λ _ _, by refl, λ _ _ h x, (h x).symm, λ _ _ _ h₁ h₂ x, iff.trans (h₁ x) (h₂ x) ⟩
 
-local infix ` ≈ ` := equiv
+instance : has_coe (DFA α σ) (Σ σ, DFA α σ) := ⟨λ M, ⟨σ, M⟩⟩
 
-@[refl] lemma equiv_refl (M : DFA α σ) : M ≈ M := λ x, by refl
-@[symm] lemma equiv_symm (M : DFA α σ₁) (N : DFA α σ₂) : M ≈ N → N ≈ M := λ h x, (h x).symm
-@[trans] lemma equiv_trans (M : DFA α σ₁) (N : DFA α σ₂) (P : DFA α σ₃) : M ≈ N → N ≈ P → M ≈ P :=
-λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
-
-@[simp] lemma equiv_def (M : DFA α σ₁) (N : DFA α σ₂) : M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
+@[simp] lemma equiv_def (M : DFA α σ₁) (N : DFA α σ₂) :
+  (⟨σ₁, M⟩ : (Σ σ, DFA α σ)) ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
 by refl
 
 end DFA

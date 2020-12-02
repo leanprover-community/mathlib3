@@ -38,7 +38,7 @@ inductive regular_expression (α : Type u) : Type (u+1)
 
 namespace regular_expression
 
-instance regular_expression_inhabited : inhabited (regular_expression α) := ⟨zero⟩
+instance : inhabited (regular_expression α) := ⟨zero⟩
 
 instance : has_add (regular_expression α) := ⟨plus⟩
 instance : has_mul (regular_expression α) := ⟨comp⟩

@@ -403,6 +403,29 @@ mk_of_hom_equiv
 
 end construct_right
 
+/--
+If the unit and counit of a given adjunction are (pointwise) isomorphisms, then we can upgrade the
+adjunction to an equivalence.
+-/
+@[simps]
+def to_equivalence (adj : F ⊣ G) [∀ X, is_iso (adj.unit.app X)] [∀ Y, is_iso (adj.counit.app Y)] :
+  C ≌ D :=
+{ functor := F,
+  inverse := G,
+  unit_iso := nat_iso.of_components (λ X, as_iso (adj.unit.app X)) (by simp),
+  counit_iso := nat_iso.of_components (λ Y, as_iso (adj.counit.app Y)) (by simp) }
+
+/--
+If the unit and counit for the adjunction corresponding to a right adjoint functor are (pointwise)
+isomorphisms, then the functor is an equivalence of categories.
+-/
+@[simps {rhs_md := semireducible}]
+def is_right_adjoint_to_is_equivalence [is_right_adjoint G]
+  [∀ X, is_iso ((adjunction.of_right_adjoint G).unit.app X)]
+  [∀ Y, is_iso ((adjunction.of_right_adjoint G).counit.app Y)] :
+  is_equivalence G :=
+is_equivalence.of_equivalence_inverse (adjunction.of_right_adjoint G).to_equivalence
+
 end adjunction
 
 open adjunction

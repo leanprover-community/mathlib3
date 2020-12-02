@@ -1767,16 +1767,36 @@ begin
     exact is_separable.minimal_polynomial_separable K pb.gen }
 end
 
+lemma det_transpose_mul_mul_self {n m : Type*} [fintype m] [fintype n]
+  [decidable_eq m] [decidable_eq n]
+  {A : matrix n n K} {B : matrix n m K} {C : matrix m n K} (hBC : B ⬝ C = 1) (hCB : C ⬝ B = 1) :
+  det (Bᵀ ⬝ A ⬝ B) = det (B ⬝ Bᵀ) * det A :=
+begin
+  rw ← det_conjugate_aux hBC hCB,
+  calc (B ⬝ (Bᵀ ⬝ A ⬝ B) ⬝ C).det = ((B ⬝ Bᵀ) ⬝ (A ⬝ (B ⬝ C))).det : by simp only [matrix.mul_assoc]
+                           ... = ((B ⬝ Bᵀ) ⬝ A).det : by rw [hBC, matrix.mul_one]
+                           ... = det (B ⬝ Bᵀ) * det A : matrix.det_mul _ _
+end
+
 lemma det_trace_form_ne_zero [is_separable K L] {b : ι → L} (hb : is_basis K b) :
   det (bilin_form.to_matrix hb (trace_form K L)) ≠ 0 :=
 begin
   haveI : finite_dimensional K L := finite_dimensional.of_fintype_basis hb,
   let pb : power_basis K L := power_basis_of_is_simple_extension K
     (λ x, is_separable.is_algebraic K x),
-  rw [← bilin_form.to_matrix_basis_change hb pb.is_basis],
-  have : ι ≃ fin pb.dim,
-  { sorry },
-  
+  have hph : pb.is_basis.to_matrix b ⬝ hb.to_matrix (λ i : fin pb.dim, pb.gen ^ (i : ℕ)) = 1,
+  { apply (matrix.to_lin pb.is_basis pb.is_basis).injective,
+    rw [matrix.to_lin_mul pb.is_basis hb pb.is_basis, is_basis.to_lin_to_matrix, is_basis.to_lin_to_matrix,
+        id_comp, to_lin_one] },
+  have hhp : hb.to_matrix (λ i : fin pb.dim, pb.gen ^ (i : ℕ)) ⬝ pb.is_basis.to_matrix b = 1,
+  { apply (matrix.to_lin hb hb).injective,
+    rw [matrix.to_lin_mul hb pb.is_basis hb, is_basis.to_lin_to_matrix, is_basis.to_lin_to_matrix,
+        id_comp, to_lin_one] },
+  rw [← bilin_form.to_matrix_basis_change hb pb.is_basis, det_transpose_mul_mul_self hph hhp],
+  apply mul_ne_zero (is_unit.ne_zero _) (det_trace_form_ne_zero' pb),
+  apply is_unit_det_of_left_inverse _ (_ᵀ ⬝ _),
+  rw [matrix.mul_assoc, ← matrix.mul_assoc _ (pb.is_basis.to_matrix b), hhp, matrix.one_mul,
+      ← matrix.transpose_mul, hph, matrix.transpose_one],
 end
 
 end conjugates

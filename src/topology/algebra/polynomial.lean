@@ -2,12 +2,21 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
-
-Analytic facts about polynomials.
 -/
 import data.polynomial.algebra_map
 import data.polynomial.div
 import topology.metric_space.cau_seq_filter
+
+/-!
+# Polynomials and limits
+
+In this file we prove that
+
+* `polynomial.eval₂`, `polynomial.eval`, and `polynomial.aeval` define continuous functions;
+* `λ x, ∥polynomial.eval (z x) p∥` tends to infinity provided that `λ x, ∥z x∥` tends to infinity
+  and `0 < degree p`;
+* a few versions of the previous statement for `is_absolute_value abv` instead of norm.
+-/
 
 open is_absolute_value filter
 
@@ -15,15 +24,20 @@ namespace polynomial
 
 section topological_semiring
 
-variables {R : Type*} [semiring R] [topological_space R] [topological_semiring R]
+variables {R S : Type*} [semiring R] [topological_space R] [topological_semiring R]
   (p : polynomial R)
 
 @[continuity]
-protected lemma continuous : continuous (λ x, p.eval x) :=
+protected lemma continuous_eval₂ [semiring S] (p : polynomial S) (f : S →+* R) :
+  continuous (λ x, p.eval₂ f x) :=
 begin
-  dsimp only [eval_eq_sum, finsupp.sum],
+  dsimp only [eval₂_eq_sum, finsupp.sum],
   exact continuous_finset_sum _ (λ c hc, continuous_const.mul (continuous_pow _))
 end
+
+@[continuity]
+protected lemma continuous : continuous (λ x, p.eval x) := 
+p.continuous_eval₂ _
 
 protected lemma continuous_at {a : R} : continuous_at (λ x, p.eval x) a :=
 p.continuous.continuous_at
@@ -42,12 +56,10 @@ variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   [topological_space A] [topological_semiring A]
   (p : polynomial R)
 
+
 @[continuity]
 protected lemma continuous_aeval : continuous (λ x : A, aeval x p) :=
-begin
-  dsimp only [aeval_def, eval₂_eq_sum, finsupp.sum],
-  exact continuous_finset_sum _ (λ c hc, continuous_const.mul (continuous_pow _))
-end
+p.continuous_eval₂ _
 
 protected lemma continuous_at_aeval {a : A} : continuous_at (λ x : A, aeval x p) a :=
 p.continuous_aeval.continuous_at
@@ -60,37 +72,49 @@ p.continuous_aeval.continuous_on
 
 end topological_algebra
 
-lemma abv_tendsto_at_top {R k : Type*} [comm_ring R] [linear_ordered_field k]
-  (abv : R → k) [is_absolute_value abv] (p : polynomial R) (h : 0 < degree p) :
-  tendsto (λ z, abv (p.eval z)) (comap abv at_top) at_top :=
+lemma tendsto_abv_eval₂_at_top {R S k α : Type*} [semiring R] [ring S] [linear_ordered_field k]
+  (f : R →+* S) (abv : S → k) [is_absolute_value abv] (p : polynomial R) (hd : 0 < degree p)
+  (hf : f p.leading_coeff ≠ 0) {l : filter α} {z : α → S} (hz : tendsto (abv ∘ z) l at_top) :
+  tendsto (λ x, abv (p.eval₂ f (z x))) l at_top :=
 begin
-  have : tendsto abv (comap abv at_top) at_top := map_comap_le,
-  apply degree_pos_induction_on p h; clear h p,
-  { intros c hc,
-    simpa [abv_mul abv] using tendsto_at_top_mul_left' ((abv_pos abv).2 hc) this },
-  { intros p hpd ihp,
-    simpa [abv_mul abv] using tendsto_at_top_mul_at_top ihp this },
-  { intros p a hp ihp,
-    refine tendsto_at_top_of_add_const_right (abv (-a)) _,
+  revert hf, refine degree_pos_induction_on p hd _ _ _; clear hd p,
+  { rintros c - hc,
+    rw [leading_coeff_C_mul_X] at hc,
+    simpa [abv_mul abv] using tendsto_at_top_mul_left' ((abv_pos abv).2 hc) hz },
+  { intros p hpd ihp hf,
+    rw [leading_coeff_mul_X] at hf,
+    simpa [abv_mul abv] using tendsto_at_top_mul_at_top (ihp hf) hz },
+  { intros p a hd ihp hf,
+    rw [add_comm, leading_coeff_add_of_degree_lt (degree_C_le.trans_lt hd)] at hf,
+    refine tendsto_at_top_of_add_const_right (abv (-f a)) _,
     refine tendsto_at_top_mono (λ _, abv_add abv _ _) _,
-    simpa }
+    simpa using ihp hf }
 end
 
--- Lean fails to unify `normed_comm_ring → comm_ring → ring` with
---  `normed_comm_ring → normed_ring → ring`
-local attribute [instance, priority 200] comm_ring.to_ring normed_comm_ring.to_comm_ring
+lemma tendsto_abv_at_top {R k α : Type*} [ring R] [linear_ordered_field k]
+  (abv : R → k) [is_absolute_value abv] (p : polynomial R) (h : 0 < degree p)
+  {l : filter α} {z : α → R} (hz : tendsto (abv ∘ z) l at_top) :
+  tendsto (λ x, abv (p.eval (z x))) l at_top :=
+tendsto_abv_eval₂_at_top _ _ _ h (mt leading_coeff_eq_zero.1 $ ne_zero_of_degree_gt h) hz
 
-variables {R : Type*} [normed_comm_ring R] [is_absolute_value (norm : R → ℝ)]
+lemma tendsto_abv_aeval_at_top {R A k α : Type*} [comm_semiring R] [ring A] [algebra R A]
+  [linear_ordered_field k] (abv : A → k) [is_absolute_value abv] (p : polynomial R)
+  (hd : 0 < degree p) (h₀ : algebra_map R A p.leading_coeff ≠ 0)
+  {l : filter α} {z : α → A} (hz : tendsto (abv ∘ z) l at_top) :
+  tendsto (λ x, abv (aeval (z x) p)) l at_top :=
+tendsto_abv_eval₂_at_top _ abv p hd h₀ hz
 
-lemma norm_tendsto_at_top (p : polynomial R) (h : 0 < degree p) :
-  tendsto (λ z, ∥p.eval z∥) (comap norm at_top) at_top :=
-p.abv_tendsto_at_top norm h
+variables {α R : Type*} [normed_ring R] [is_absolute_value (norm : R → ℝ)]
+
+lemma tendsto_norm_at_top (p : polynomial R) (h : 0 < degree p) {l : filter α} {z : α → R}
+  (hz : tendsto (λ x, ∥z x∥) l at_top) :
+  tendsto (λ x, ∥p.eval (z x)∥) l at_top :=
+p.tendsto_abv_at_top norm h hz
 
 lemma exists_forall_norm_le [proper_space R] (p : polynomial R) :
   ∃ x, ∀ y, ∥p.eval x∥ ≤ ∥p.eval y∥ :=
 if hp0 : 0 < degree p
-then p.continuous.norm.exists_forall_le $ (p.norm_tendsto_at_top hp0).mono_left $
-  tendsto_norm_cocompact_at_top.le_comap
+then p.continuous.norm.exists_forall_le $ p.tendsto_norm_at_top hp0 tendsto_norm_cocompact_at_top
 else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩
 
 end polynomial

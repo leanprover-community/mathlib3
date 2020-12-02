@@ -27,7 +27,7 @@ namespace DFA
 variables {α : Type u} {σ σ₁ σ₂ σ₃ : Type v} (M : DFA α σ)
 
 instance DFA_inhabited [inhabited σ] : inhabited (DFA α σ) :=
-  ⟨ DFA.mk (λ _ _, default σ) (default σ) ∅ ⟩
+⟨DFA.mk (λ _ _, default σ) (default σ) ∅⟩
 
 /-- `M.eval_from s x` evaluates `M` with input `x` starting from the state `s`. -/
 def eval_from (start : σ) : list α → σ :=

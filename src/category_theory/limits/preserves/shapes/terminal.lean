@@ -20,21 +20,20 @@ universes v u₁ u₂
 
 noncomputable theory
 
-namespace category_theory
 open category limits
 
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
 
-namespace preserves_terminal
+namespace category_theory.limits
 
 variables (X : C)
 
 /--
 The map of an empty cone is a limit iff the empty cone consisting of the mapped object is a limit.
 -/
-def terminal_map_cone_limit :
+def is_limit_map_cone_fork_equiv :
   is_limit (G.map_cone (as_empty_cone X)) ≃ is_terminal (G.obj X) :=
 (is_limit.postcompose_hom_equiv (functor.empty_ext _ _) _).symm.trans
   (is_limit.equiv_iso_limit (cones.ext (iso.refl _) (by tidy)))
@@ -110,9 +109,10 @@ rfl
 
 instance : is_iso (terminal_comparison G) :=
 begin
-  rw ← iso_hom,
+  rw ← preserves_terminal.iso_hom,
   apply_instance,
 end
 
-end preserves_terminal
+end category_theory.limits
+
 end category_theory

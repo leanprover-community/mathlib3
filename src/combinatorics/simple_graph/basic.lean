@@ -23,6 +23,11 @@ finitely many vertices.
 * `neighbor_finset` is the `finset` of vertices adjacent to a given vertex,
    if `neighbor_set` is finite
 
+* `incidence_set` is the `set` of edges containing a given vertex
+
+* `incidence_finset` is the `finset` of edges containing a given vertex,
+   if `incidence_set` is finite
+
 ## Implementation notes
 
 * A locally finite graph is one with instances `∀ v, fintype (G.neighbor_set v)`.
@@ -55,6 +60,20 @@ structure simple_graph (V : Type u) :=
 (loopless : irreflexive adj . obviously)
 
 /--
+Construct the simple graph induced by the given relation.  It
+symmetrizes the relation and makes it irreflexive.
+-/
+def simple_graph_from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :=
+{ adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
+  sym := by finish,
+  loopless := by finish }
+
+@[simp]
+lemma simple_graph_from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
+  (simple_graph_from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
+by refl
+
+/--
 The complete graph on a type `V` is the simple graph with all pairs of distinct vertices adjacent.
 -/
 def complete_graph (V : Type u) : simple_graph V :=
@@ -82,6 +101,14 @@ The edges of G consist of the unordered pairs of vertices related by
 -/
 def edge_set : set (sym2 V) := sym2.from_rel G.sym
 
+/--
+The `incidence_set` is the set of edges incidence to a given vertex.
+-/
+def incidence_set (v : V) : set (sym2 V) := {e ∈ G.edge_set | v ∈ e}
+
+lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set :=
+by tidy
+
 @[simp]
 lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=
 by refl
@@ -91,7 +118,7 @@ Two vertices are adjacent iff there is an edge between them.  The
 condition `v ≠ w` ensures they are different endpoints of the edge,
 which is necessary since when `v = w` the existential
 `∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e` is satisfied by every edge
-incident to `v`.
+incidence to `v`.
 -/
 lemma adj_iff_exists_edge {v w : V} :
   G.adj v w ↔ v ≠ w ∧ ∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e :=
@@ -122,12 +149,62 @@ set.to_finset G.edge_set
   e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
 by { dunfold edge_finset, simp }
 
+@[simp] lemma edge_set_univ_card [decidable_eq V] [fintype V]
+[decidable_rel G.adj] : (univ : finset G.edge_set).card = G.edge_finset.card :=
+fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
+
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
 @[symm] lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 by tauto
+
+@[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
+by { dsimp [incidence_set], simp }
+
+lemma neighbor_set_edge_prop {v w : V} (h : w ∈ G.neighbor_set v) : ⟦(v, w)⟧ ∈ G.incidence_set v :=
+by { rw mem_neighbor_set at h, simpa }
+
+lemma adj_incidence_set_inter {v : V} {e : sym2 V} (he : e ∈ G.edge_set) (h : v ∈ e) :
+  G.incidence_set v ∩ G.incidence_set h.other = {e} :=
+begin
+  ext e',
+  simp only [incidence_set, set.mem_sep_eq, set.mem_inter_eq, set.mem_singleton_iff],
+  split,
+  { intro h', rw ←sym2.mem_other_spec h,
+    exact (sym2.elems_iff_eq (edge_other_ne G he h).symm).mp ⟨h'.1.2, h'.2.2⟩, },
+  { rintro rfl, use [he, h, he], apply sym2.mem_other_mem, },
+end
+
+section incidence
+variable [decidable_eq V]
+
+/--
+Given an edge incidence to a particular vertex, get the other vertex on the edge.
+-/
+def incidence_set_other {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
+
+lemma incidence_other_prop {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
+G.incidence_set_other h ∈ G.neighbor_set v :=
+by { cases h, rwa [←sym2.mem_other_spec' h_right, mem_edge_set] at h_left }
+
+@[simp]
+lemma incidence_other_neighbor_edge {v w : V} (h : w ∈ G.neighbor_set v) :
+  G.incidence_set_other (G.neighbor_set_edge_prop h) = w :=
+sym2.congr_right.mp (sym2.mem_other_spec' (G.neighbor_set_edge_prop h).right)
+
+/--
+There is an equivalence between the set of edges incidence to a given
+vertex and the set of vertices adjacent to the vertex.
+-/
+def incidence_set_equiv_neighbor_set (v : V) : G.incidence_set v ≃ G.neighbor_set v :=
+{ to_fun := λ e, ⟨G.incidence_set_other e.2, G.incidence_other_prop e.2⟩,
+  inv_fun := λ w, ⟨⟦(v, w.1)⟧, G.neighbor_set_edge_prop w.2⟩,
+  left_inv := by { intro x, dsimp [incidence_set_other], simp },
+  right_inv := by { intro x, rcases x with ⟨w, hw⟩, simp, } }
+
+end incidence
 
 section finite_at
 
@@ -161,6 +238,27 @@ def degree : ℕ := (G.neighbor_finset v).card
 @[simp]
 lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v :=
 by simp [degree, neighbor_finset]
+
+lemma degree_pos_iff_exists_adj : 0 < G.degree v ↔ ∃ w, G.adj v w :=
+by { simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset] }
+
+instance incidence_set_fintype [decidable_eq V] : fintype (G.incidence_set v) :=
+fintype.of_equiv (G.neighbor_set v) (G.incidence_set_equiv_neighbor_set v).symm
+
+/--
+This is the `finset` version of `incidence_set`.
+-/
+def incidence_finset [decidable_eq V] : finset (sym2 V) := (G.incidence_set v).to_finset
+
+@[simp]
+lemma card_incidence_set_eq_degree [decidable_eq V] :
+  fintype.card (G.incidence_set v) = G.degree v :=
+by { rw fintype.card_congr (G.incidence_set_equiv_neighbor_set v), simp }
+
+@[simp]
+lemma mem_incidence_finset [decidable_eq V] (e : sym2 V) :
+  e ∈ G.incidence_finset v ↔ e ∈ G.incidence_set v :=
+by { dunfold incidence_finset, simp }
 
 end finite_at
 
@@ -203,6 +301,19 @@ end
 lemma complete_graph_is_regular [decidable_eq V] :
   (complete_graph V).is_regular_of_degree (fintype.card V - 1) :=
 by { intro v, simp }
+
+/--
+The minimal degree of all vertices
+-/
+def min_deg (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
+finset.min' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
+
+/--
+The maximal degree of all vertices
+-/
+def max_deg (G : simple_graph V) [h : nonempty V] [decidable_rel G.adj]: ℕ :=
+finset.max' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
+
 
 end finite
 

@@ -40,7 +40,7 @@ def eval := M.eval_from M.start
 def accepts (x : list α) : Prop :=
 M.eval x ∈ M.accept
 
-/-- Two DFA's are equivalent if the accept exactly the same strings -/
+/-- Two DFA's are equivalent if they accept exactly the same strings. -/
 def equiv (M : DFA α σ₁) (N : DFA α σ₂) : Prop := ∀ x, M.accepts x ↔ N.accepts x
 
 local infix ` ≈ ` := equiv

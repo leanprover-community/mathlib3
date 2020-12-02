@@ -9,9 +9,9 @@ import computability.DFA
 
 /-!
 # Nondeterministic Finite Automata
-This file contains the definition of a Nondeterministic Finite Automata (NFA), a state machine
-which determines whether a string (implemented as a list over an arbitrary alphabet) is in a
-regular set by evaluating  the string over every possible path.
+This file contains the definition of a Nondeterministic Finite Automaton (NFA), a state machine
+which determines whether a string (implemented as a list over an arbitrary alphabet) is in a regular
+set by evaluating the string over every possible path.
 We show that DFA's are equivalent to NFA's however the construction from NFA to DFA uses an
 exponential number of states.
 -/
@@ -34,7 +34,7 @@ variables [decidable_eq σ] [decidable_eq σ₁] [decidable_eq σ₂] [decidable
 
 instance NFA_inhabited : inhabited (NFA α σ') := ⟨ NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
-/-- `M.step_set S a` is the union of `M.step s a` for all `s ∈ S` -/
+/-- `M.step_set S a` is the union of `M.step s a` for all `s ∈ S`. -/
 def step_set : finset σ → α → finset σ :=
 λ Ss a, finset.bind Ss (λ S, (M.step S a))
 
@@ -43,12 +43,12 @@ lemma mem_step_set (s : σ) (S : finset σ) (a : α) :
 by rw [step_set, finset.mem_bind]
 
 /-- `M.eval_from S x` computes all possible paths though `M` with input `x` starting at an element
-  of `S` -/
+  of `S`. -/
 def eval_from (start : finset σ) : list α → finset σ :=
 list.foldl M.step_set start
 
 /-- `M.eval x` computes all possible paths though `M` with input `x` starting at an element of
-  `M.start` -/
+  `M.start`. -/
 def eval := M.eval_from M.start
 
 /-- `M.accepts x` says that there is an accept state in `M.eval x`. -/

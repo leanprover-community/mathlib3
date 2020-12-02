@@ -27,7 +27,7 @@ namespace DFA
 variables {α : Type u} {σ σ₁ σ₂ σ₃ : Type v} (M : DFA α σ)
 
 instance DFA_inhabited [inhabited σ] : inhabited (DFA α σ) :=
-  ⟨ DFA.mk (λ _ _, default σ) (default σ) ∅ ⟩
+⟨DFA.mk (λ _ _, default σ) (default σ) ∅⟩
 
 /-- `M.eval_from s x` evaluates `M` with input `x` starting from the state `s`. -/
 def eval_from (start : σ) : list α → σ :=
@@ -40,7 +40,7 @@ def eval := M.eval_from M.start
 def accepts (x : list α) : Prop :=
 M.eval x ∈ M.accept
 
-/-- Two DFA's are equivalent if the accept exactly the same strings -/
+/-- Two DFA's are equivalent if they accept exactly the same strings. -/
 def equiv (M : DFA α σ₁) (N : DFA α σ₂) : Prop := ∀ x, M.accepts x ↔ N.accepts x
 
 local infix ` ≈ ` := equiv
@@ -48,9 +48,9 @@ local infix ` ≈ ` := equiv
 @[refl] lemma equiv_refl (M : DFA α σ) : M ≈ M := λ x, by refl
 @[symm] lemma equiv_symm (M : DFA α σ₁) (N : DFA α σ₂) : M ≈ N → N ≈ M := λ h x, (h x).symm
 @[trans] lemma equiv_trans (M : DFA α σ₁) (N : DFA α σ₂) (P : DFA α σ₃) : M ≈ N → N ≈ P → M ≈ P :=
-  λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
+λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
 
 @[simp] lemma equiv_def (M : DFA α σ₁) (N : DFA α σ₂) : M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
-  by refl
+by refl
 
 end DFA

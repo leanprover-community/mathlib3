@@ -48,7 +48,7 @@ def eval_from (start : finset σ) : list α → finset σ :=
 list.foldl M.step_set start
 
 /-- `M.eval x` computes all possible paths though `M` with input `x` starting at an element of
-  `M.start` -/
+  `M.start`. -/
 def eval := M.eval_from M.start
 
 /-- `M.accepts x` says that there is an accept state in `M.eval x`. -/

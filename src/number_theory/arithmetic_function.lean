@@ -263,10 +263,10 @@ instance : monoid (arithmetic_function R) :=
   .. arithmetic_function.has_mul }
 
 instance : semiring (arithmetic_function R) :=
-{ zero_mul := λ f, by { ext, simp, },
-  mul_zero := λ f, by { ext, simp, },
-  left_distrib := λ a b c, by { ext, simp [← sum_add_distrib, mul_add] },
-  right_distrib := λ a b c, by { ext, simp [← sum_add_distrib, add_mul] },
+{ zero_mul := λ f, by { ext, simp only [mul_apply, zero_mul, sum_const_zero, zero_apply] },
+  mul_zero := λ f, by { ext, simp only [mul_apply, sum_const_zero, mul_zero, zero_apply] },
+  left_distrib := λ a b c, by { ext, simp only [←sum_add_distrib, mul_add, mul_apply, add_apply] },
+  right_distrib := λ a b c, by { ext, simp only [←sum_add_distrib, add_mul, mul_apply, add_apply] },
   .. arithmetic_function.has_zero R,
   .. arithmetic_function.has_mul,
   .. arithmetic_function.has_add,
@@ -289,10 +289,10 @@ instance {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M] :
   semimodule (arithmetic_function R) (arithmetic_function M) :=
 { one_smul := one_smul',
   mul_smul := mul_smul',
-  smul_add := λ r x y, by { ext, simp [sum_add_distrib] },
-  smul_zero := λ r, by { ext, simp },
-  add_smul := λ r s x, by { ext, simp [add_smul, sum_add_distrib] },
-  zero_smul := λ r, by { ext, simp }, }
+  smul_add := λ r x y, by { ext, simp only [sum_add_distrib, smul_add, smul_apply, add_apply] },
+  smul_zero := λ r, by { ext, simp only [smul_apply, sum_const_zero, smul_zero, zero_apply] },
+  add_smul := λ r s x, by { ext, simp only [add_smul, sum_add_distrib, smul_apply, add_apply] },
+  zero_smul := λ r, by { ext, simp only [smul_apply, sum_const_zero, zero_smul, zero_apply] }, }
 
 section zeta
 

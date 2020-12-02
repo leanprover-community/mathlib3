@@ -51,6 +51,6 @@ local infix ` ≈ ` := equiv
 λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
 
 @[simp] lemma equiv_def (M : DFA α σ₁) (N : DFA α σ₂) : M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
-  by refl
+by refl
 
 end DFA

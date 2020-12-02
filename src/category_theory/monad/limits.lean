@@ -140,7 +140,6 @@ def new_cocone : cocone ((D ⋙ forget T) ⋙ T) :=
 { X := c.X,
   ι := γ ≫ c.ι }
 
--- variable [preserves_colimits_of_shape J T]
 variables [preserves_colimit (D ⋙ forget T) T] [preserves_colimit ((D ⋙ forget T) ⋙ T) T]
 
 /--

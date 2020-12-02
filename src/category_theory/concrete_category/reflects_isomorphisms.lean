@@ -39,5 +39,5 @@ instance [has_forget₂ C D] [reflects_isomorphisms (forget C)] :
       rw ←this,
       exact i',
     end,
-    apply is_iso_of_reflects_iso f (forget C),
+    apply is_iso_of_reflects_iso (forget C) f,
   end }

@@ -11,9 +11,9 @@ import category_theory.limits.shapes.kernels
 
 A normal monomorphism is a morphism that is the kernel of some other morphism.
 
-We give the construction `normal_mono → regular_mono` (`category_theory.normal_mono.regular_mono`) 
-as well as the dual construction for normal epimorphisms. We show equivalences reflect normal 
-monomorphisms (`category_theory.equivalence_reflects_normal_mono`), and that the pullback of a 
+We give the construction `normal_mono → regular_mono` (`category_theory.normal_mono.regular_mono`)
+as well as the dual construction for normal epimorphisms. We show equivalences reflect normal
+monomorphisms (`category_theory.equivalence_reflects_normal_mono`), and that the pullback of a
 normal monomorphism is normal (`category_theory.normal_of_is_pullback_snd_of_normal`).
 -/
 

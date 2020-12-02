@@ -286,7 +286,7 @@ def ultrafilter.comap {m : α → β} (u : ultrafilter β) (inj : function.injec
         refine u.1.inter_sets large _,
         erw ultrafilter_iff_compl_mem_iff_not_mem.mp u.2,
         assumption },
-      simp, }
+      rw range_inter_compl_image_comlp_eq_image inj }
   end }
 
 /-- The ultra-filter extending the cofinite filter. -/

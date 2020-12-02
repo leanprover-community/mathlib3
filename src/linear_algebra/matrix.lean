@@ -442,7 +442,6 @@ def is_basis.det : alternating_map R M R ι :=
     rw [update_row_ne hij.symm, update_row_self],
   end }
 
-
 lemma is_basis.det_apply (v : ι → M) : he.det v = det (he.to_matrix v) := rfl
 
 lemma is_basis.det_self : he.det e = 1 :=

@@ -311,7 +311,7 @@ finset.min' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty 
 /--
 The maximal degree of all vertices
 -/
-def max_deg (G : simple_graph V) [h : nonempty V] [decidable_rel G.adj]: ℕ :=
+def max_deg (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
 finset.max' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
 
 

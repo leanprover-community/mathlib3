@@ -5,8 +5,7 @@ Authors: Markus Himmel
 -/
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.kernels
-import category_theory.limits.shapes.pullbacks
-import category_theory.limits.shapes.regular_mono
+import category_theory.limits.shapes.normal_mono
 import category_theory.preadditive
 
 /-!

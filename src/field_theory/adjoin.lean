@@ -494,8 +494,14 @@ begin
 end
 
 lemma fg_of_noetherian (S : intermediate_field F E)
-  [is_noetherian F E] : S.fg :=
-S.fg_of_fg_to_subalgebra S.to_subalgebra.fg_of_noetherian
+  [is_noetherian F S] : S.fg :=
+begin
+  apply fg_of_fg_to_subalgebra,
+  apply subalgebra.fg_of_fg_to_submodule,
+end
+--S.fg_of_fg_to_subalgebra S.to_subalgebra.fg_of_noetherian
+
+#check subalgebra.fg_of_noetherian
 
 lemma induction_on_adjoin_finset (S : finset E) (P : intermediate_field F E → Prop) (base : P ⊥)
   (ih : ∀ (K : intermediate_field F E) (x ∈ S), P K → P ↑K⟮x⟯) : P (adjoin F ↑S) :=
@@ -507,13 +513,18 @@ begin
     exact ih (adjoin F s) a h1 h4 }
 end
 
+lemma induction_on_adjoin_fg (P : intermediate_field F E → Prop)
+  (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
+  (K : intermediate_field F E) (hK : K.fg) : P K :=
+begin
+  obtain ⟨S, rfl⟩ := hK,
+  exact induction_on_adjoin_finset S P base (λ K x _ hK, ih K x hK),
+end
+
 lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field F E → Prop)
   (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
   (K : intermediate_field F E) : P K :=
-begin
-  obtain ⟨S, rfl⟩ := fg_of_noetherian K,
-  exact induction_on_adjoin_finset S P base (λ K x _ hK, ih K x hK),
-end
+induction_on_adjoin_fg P base ih K K.fg_of_noetherian
 
 end induction
 

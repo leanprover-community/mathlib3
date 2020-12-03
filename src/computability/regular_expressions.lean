@@ -105,16 +105,16 @@ include dec
 /-- `M.deriv a` matches `x` if `M` matches `a :: x`, the Brzozowski derivative of `M` with respect
   to `a` -/
 def deriv : regular_expression α → α → regular_expression α
-| zero _ := zero
-| epsilon _ := zero
-| (char a₁) a₂ := if a₁ = a₂ then epsilon else zero
-| (star M) a := comp (deriv M a) (star M)
-| (plus M N) a := plus (deriv M a) (deriv N a)
+| zero _ := 0
+| epsilon _ := 0
+| (char a₁) a₂ := if a₁ = a₂ then 1 else 0
+| (star M) a := deriv M a * star M
+| (plus M N) a := deriv M a + deriv N a
 | (comp M N) a :=
   if M.match_epsilon then
-    (plus (comp (deriv M a) N) (deriv N a))
+    deriv M a * N + deriv N a
   else
-    (comp (deriv M a) N)
+    deriv M a * N
 
 /-- `M.rmatch x` is true if and only if `M` matches `x`. This is a computable definition equivalent
   to `matches` -/
@@ -135,7 +135,7 @@ begin
   rw ←one_def,
   cases x,
     dec_trivial,
-  rw [rmatch, deriv, zero_def, zero_rmatch],
+  rw [rmatch, deriv, zero_rmatch],
   dec_trivial
 end
 
@@ -149,9 +149,9 @@ begin
     tauto,
   rw [rmatch, deriv],
   split_ifs,
-    rw [one_def, one_rmatch_iff],
+    rw one_rmatch_iff,
     tauto,
-  rw [zero_def, zero_rmatch],
+  rw zero_rmatch,
   tauto
 end
 
@@ -168,15 +168,11 @@ begin
     exact ih _ _ }
 end
 
--- lemma comp_rmatch_iff (P Q : regular_expression α) (x : list α) :
---   (comp P Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
-
 @[simp] lemma mul_rmatch_iff (P Q : regular_expression α) (x : list α) :
   (P * Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
 begin
-  rw ←comp_def,
   induction x with a x ih generalizing P Q,
-  { rw [rmatch, match_epsilon],
+  { rw [←comp_def, rmatch, match_epsilon],
     split,
     { intro h,
       refine ⟨ [], [], rfl, _ ⟩,
@@ -188,9 +184,9 @@ begin
       subst hu,
       repeat {rw rmatch at h₂},
       finish } },
-  { rw [rmatch, deriv],
+  { rw [←comp_def, rmatch, deriv],
     split_ifs with hepsilon,
-    { rw [plus_def, add_rmatch_iff, ih],
+    { rw [add_rmatch_iff, ih],
       split,
       { rintro (⟨ t, u, _ ⟩ | h),
         { exact ⟨ a :: t, u, by tauto ⟩ },
@@ -230,7 +226,7 @@ begin
       fconstructor,
       exact [],
       tauto },
-    { rw [rmatch, deriv, comp_def, mul_rmatch_iff],
+    { rw [rmatch, deriv, mul_rmatch_iff],
       rintro ⟨ t, u, hs, ht, hu ⟩,
       have hwf : u.length < (list.cons a x).length,
       { rw [hs, list.length_cons, list.length_append],
@@ -248,7 +244,7 @@ begin
   { rintro ⟨ S, hsum, helem ⟩,
     cases x with a x,
     { dec_trivial },
-    { rw [rmatch, deriv, comp_def, mul_rmatch_iff],
+    { rw [rmatch, deriv, mul_rmatch_iff],
       cases S with t' U,
       { exact ⟨ [], [], by tauto ⟩ },
       { cases t' with b t,

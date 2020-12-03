@@ -30,7 +30,8 @@ with coefficients in any ring `R`.
 comes from a polynomial with integer coefficients.
 * `deg_of_cyclotomic` : The degree of `cyclotomic n` is `totient n`.
 * `prod_cyclotomic_eq_X_pow_sub_one` : `X ^ n - 1 = ∏ (cyclotomic i)`, where `i` divides `n`.
-* `cyclotomic_eq_prod_X_pow_sub_one_pow_moebius` : The Möbius inversion formula for `cyclotomic n R`
+* `cyclotomic_eq_prod_X_pow_sub_one_pow_moebius` : The Möbius inversion formula for
+  `cyclotomic n R` over an abstract fraction field for `polynomial R`.
 
 ## Implementation details
 
@@ -413,7 +414,8 @@ section arithmetic_function
 open nat.arithmetic_function
 open_locale arithmetic_function
 
-/-- `cyclotomic n R` can be expressed as a product using Möbius inversion. -/
+/-- `cyclotomic n R` can be expressed as a product in a fraction field of `polynomial R`
+  using Möbius inversion. -/
 lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (hpos : 0 < n) (R : Type*) [comm_ring R]
   [nontrivial R] {K : Type*} [field K] (f : fraction_map (polynomial R) K) :
   f.to_map (cyclotomic n R) =

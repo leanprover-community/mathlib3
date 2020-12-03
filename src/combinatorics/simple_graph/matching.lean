@@ -60,6 +60,12 @@ contained in some edge of matching `M`
 def matching.support (M : G.matching) : set V :=
 {v : V | ∃ x ∈ M.val, v ∈ x}
 
+def matching.saturated_vertex (M : G.matching) (v : V) : Prop :=
+v ∈ M.support
+
+def matching.saturated_set (M : G.matching) (S : set V) : Prop :=
+∀ v ∈ S, v ∈ M.support
+
 /--
 A perfect matching `M` on graph `G` is a matching such that
   every vertex is contained in an edge of `M`.
@@ -70,5 +76,7 @@ M.support = set.univ
 lemma matching.is_perfect_iff (M : G.matching) :
 M.is_perfect ↔ ∀ (v : V), ∃ e ∈ M.val, v ∈ e :=
 set.eq_univ_iff_forall
+
+
 
 end simple_graph

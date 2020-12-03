@@ -112,7 +112,7 @@ lemma liouville_constant_eq_first_k_terms_add_rest (hm : 2 < m) (k : ℕ):
   liouville_constant_terms_after_k m k :=
 (sum_add_tsum_nat_add _ (summable_inv_pow_fact m hm)).symm
 
-theorem is_liouville_of_liouville_constant (hm : 2 < m) : is_liouville (liouville_constant m) :=
+theorem is_liouville_liouville_constant (hm : 2 < m) : is_liouville (liouville_constant m) :=
 begin
   intro n,
   have h_truncation_wd := liouville_constant_eq_first_k_terms_add_rest m hm n,
@@ -185,8 +185,8 @@ begin
   exact hm
 end
 
-lemma is_transcendental_of_liouville_constant (hm : 2 < m) :
+lemma is_transcendental_liouville_constant (hm : 2 < m) :
   is_transcendental ℤ (liouville_constant m) :=
-  real.is_liouville.transcendental_of_is_liouville (is_liouville_of_liouville_constant _ hm)
+  real.is_liouville.transcendental_of_is_liouville (is_liouville_liouville_constant _ hm)
 
 end is_liouville

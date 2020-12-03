@@ -19,28 +19,26 @@ This file contains the some lemmas about real polynomials and their derivatives
 open polynomial real set
 
 
-lemma exists_forall_ge_of_polynomial_deriv (α : ℝ) (f : polynomial ℝ)
+lemma exists_forall_ge_of_polynomial_eval (α : ℝ) (f : polynomial ℝ)
   (h_f_deg : 0 < f.nat_degree) :
-  ∃ M : ℝ, 0 < M ∧ ∀ (y : ℝ), abs (y - α) ≤ 1 → abs (eval y f.derivative) ≤ M :=
+  ∃ M : ℝ, 0 < M ∧ ∀ (y : ℝ), abs (y - α) ≤ 1 → abs (eval y f) ≤ M :=
 begin
   have h_f_nonzero : f ≠ 0 := ne_zero_of_nat_degree_gt h_f_deg,
   obtain ⟨x_max, ⟨h_x_max_range, hM⟩⟩ := is_compact.exists_forall_ge (@compact_Icc (α-1) (α+1))
     begin rw set.nonempty, use α, rw set.mem_Icc, split; linarith end
-    (continuous_abs.comp f.derivative.continuous_eval).continuous_on,
+    (continuous_abs.comp f.continuous_eval).continuous_on,
   replace hM : ∀ (y : ℝ), y ∈ Icc (α - 1) (α + 1) →
-    abs (eval y f.derivative) ≤ abs (eval x_max f.derivative),
+    abs (eval y f) ≤ abs (eval x_max f),
     { simpa only [function.comp_app abs] },
-  set M := abs (f.derivative.eval x_max),
+  set M := abs (f.eval x_max),
   use M,
   split,
   { apply lt_of_le_of_ne (abs_nonneg _),
     intro hM0, change 0 = M at hM0, rw hM0.symm at hM,
-    replace hM := nat_degree_eq_zero_of_derivative_eq_zero
-      (f.derivative.eq_zero_of_infinite_is_root
-        (infinite_mono (λ y hy, _)
-        (Icc.infinite (show α - 1 < α + 1, by linarith)))),
-    { linarith only [h_f_deg, hM] },
-    { simp only [mem_set_of_eq, is_root.def, abs_nonpos_iff.1 (hM y hy)] }},
+    { refine h_f_nonzero (f.eq_zero_of_infinite_is_root _),
+      refine infinite_mono (λ y hy, _) (Icc.infinite (show α - 1 < α + 1, by linarith)),
+      simp only [mem_set_of_eq, is_root.def],
+      exact abs_nonpos_iff.1 (hM y hy) }},
   intros y hy,
   have hy' : y ∈ Icc (α - 1) (α + 1),
   { apply mem_Icc.mpr,

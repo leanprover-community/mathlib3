@@ -95,7 +95,7 @@ begin
       ext m, rw polynomial.ext_iff at h, specialize h m, exact h
     end,
   obtain ⟨M, ⟨h_m_pos, h_max⟩⟩ :=
-    exists_forall_ge_of_polynomial_deriv α fR (nat.lt_of_succ_lt h_fR_deg),
+    exists_forall_ge_of_polynomial_eval α fR.derivative _,
   obtain ⟨B, ⟨hB_pos, hB_M, hB_one, hB_root⟩⟩ :=
     non_root_small_interval_of_polynomial α fR h_f_nonzero M h_m_pos,
   -- Then `B/2` satisfies all the requirement.
@@ -146,7 +146,13 @@ begin
         rw [gt_iff_lt, div_lt_div_right],
         { exact half_lt_self hB_pos },
         { apply pow_pos, norm_cast, exact h_b_pos },
-      end
+      end,
+  { have h_deg := degree_derivative_eq fR (by linarith [h_fR_deg]),
+    rw @degree_eq_nat_degree _ _ fR.derivative _ at h_deg,
+    norm_cast at h_deg,
+    rw h_deg, exact nat.sub_pos_of_lt h_fR_deg,
+    intro absurd,
+    linarith [nat_degree_eq_zero_of_derivative_eq_zero absurd] }
 end
 
 lemma irrational_of_is_liouville {x : ℝ} (h : is_liouville x) : irrational x :=

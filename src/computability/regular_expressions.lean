@@ -32,12 +32,21 @@ instance : has_zero (language α) := ⟨∅⟩
 instance : has_one (language α) := ⟨{[]}⟩
 
 instance : has_add (language α) := ⟨set.union⟩
-instance : has_mul (language α) := ⟨λ A B, (A.prod B).image (λ p, p.1 ++ p.2)⟩
+instance : has_mul (language α) := ⟨λ l m, (l.prod m).image (λ p, p.1 ++ p.2)⟩
+
+@[simp] lemma zero_def : (0 : language α) = ∅ := rfl
+@[simp] lemma one_def : (1 : language α) = {[]} := rfl
+
+@[simp] lemma add_def (l m : language α) : l + m = l ∪ m := rfl
+@[simp] lemma mul_def (l m : language α) : l * m = (l.prod m).image (λ p, p.1 ++ p.2) := rfl
 
 /-- The star of a language `L` is the set of all strings which can be written by concatenating
   strings from `L`. -/
 def star (l : language α) : language α :=
 { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, ¬(list.empty y) ∧ y ∈ l}
+
+@[simp] lemma star_def (l : language α) :
+  l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, ¬(list.empty y) ∧ y ∈ l} := rfl
 
 end language
 
@@ -68,6 +77,19 @@ instance : has_one (regular_expression α) := ⟨epsilon⟩
 instance : has_zero (regular_expression α) := ⟨zero⟩
 
 @[simp] lemma zero_def : (zero : regular_expression α) = 0 := rfl
+@[simp] lemma one_def : (epsilon : regular_expression α) = 1 := rfl
+
+@[simp] lemma plus_def (P Q : regular_expression α) : plus P Q = P + Q := rfl
+@[simp] lemma comp_def (P Q : regular_expression α) : comp P Q = P * Q := rfl
+
+/-- `matches M` provides a language which contains all strings that `M` matches -/
+def matches : regular_expression α → language α
+| zero := 0
+| epsilon := 1
+| (char a) := {[a]}
+| (plus M N) := M.matches + N.matches
+| (comp M N) := M.matches * N.matches
+| (star M) := M.matches.star
 
 /-- `match_epsilon M` is true if and only if `M` matches the empty string -/
 def match_epsilon : regular_expression α → bool
@@ -94,24 +116,11 @@ def deriv : regular_expression α → α → regular_expression α
   else
     (comp (deriv M a) N)
 
-/-- `M.rmatch x` is true if and only if `M` matches `x` -/
+/-- `M.rmatch x` is true if and only if `M` matches `x`. This is a computable definition equivalent
+  to `matches` -/
 def rmatch : regular_expression α → list α → bool
 | M [] := match_epsilon M
 | M (a::as) := rmatch (M.deriv a) as
-
-/-- Two regular expressions are equivalent if they match exactly the same strings -/
-def equiv (P Q : regular_expression α) : Prop := ∀ x, P.rmatch x ↔ Q.rmatch x
-
-local infix ` ≈ ` := equiv
-
-@[refl] lemma equiv_refl (P : regular_expression α) : P ≈ P := λ x, by refl
-@[symm] lemma equiv_symm (P Q : regular_expression α) : P ≈ Q → Q ≈ P := λ h x, (h x).symm
-@[trans] lemma equiv_trans (P Q R : regular_expression α) : P ≈ Q → Q ≈ R → P ≈ R :=
-λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
-
-@[simp] lemma equiv_def (P Q : regular_expression α) : P ≈ Q ↔ ∀ x, P.rmatch x ↔ Q.rmatch x :=
-by refl
-
 
 @[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff :=
 begin
@@ -121,17 +130,16 @@ begin
   rwa [rmatch, deriv],
 end
 
-lemma epsilon_rmatch_iff (x : list α) : rmatch epsilon x ↔ x = [] :=
+@[simp] lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] :=
 begin
+  rw ←one_def,
   cases x,
     dec_trivial,
   rw [rmatch, deriv, zero_def, zero_rmatch],
   dec_trivial
 end
 
-@[simp] lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] := epsilon_rmatch_iff x
-
-lemma char_rmatch_iff (a : α) (x : list α) : rmatch (char a) x ↔ x = [a] :=
+@[simp] lemma char_rmatch_iff (a : α) (x : list α) : rmatch (char a) x ↔ x = [a] :=
 begin
   cases x with _ x,
     dec_trivial,
@@ -141,15 +149,16 @@ begin
     tauto,
   rw [rmatch, deriv],
   split_ifs,
-    rw epsilon_rmatch_iff,
+    rw [one_def, one_rmatch_iff],
     tauto,
   rw [zero_def, zero_rmatch],
   tauto
 end
 
-lemma plus_rmatch_iff (P Q : regular_expression α) (x : list α) :
-  (plus P Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x :=
+@[simp] lemma add_rmatch_iff (P Q : regular_expression α) (x : list α) :
+  (P + Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x :=
 begin
+  rw ←plus_def,
   induction x with _ _ ih generalizing P Q,
   { repeat {rw rmatch},
     rw match_epsilon,
@@ -159,12 +168,13 @@ begin
     exact ih _ _ }
 end
 
-@[simp] lemma add_rmatch_iff (P Q : regular_expression α) (x : list α) :
-  (P + Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x := plus_rmatch_iff P Q x
+-- lemma comp_rmatch_iff (P Q : regular_expression α) (x : list α) :
+--   (comp P Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
 
-lemma comp_rmatch_iff (P Q : regular_expression α) (x : list α) :
-  (comp P Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
+@[simp] lemma mul_rmatch_iff (P Q : regular_expression α) (x : list α) :
+  (P * Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
 begin
+  rw ←comp_def,
   induction x with a x ih generalizing P Q,
   { rw [rmatch, match_epsilon],
     split,
@@ -180,7 +190,7 @@ begin
       finish } },
   { rw [rmatch, deriv],
     split_ifs with hepsilon,
-    { rw [plus_rmatch_iff, ih],
+    { rw [plus_def, add_rmatch_iff, ih],
       split,
       { rintro (⟨ t, u, _ ⟩ | h),
         { exact ⟨ a :: t, u, by tauto ⟩ },
@@ -208,10 +218,7 @@ begin
           finish } } } }
 end
 
-@[simp] lemma mul_rmatch_iff (P Q : regular_expression α) (x : list α) :
-  (P * Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u := comp_rmatch_iff P Q x
-
-lemma star_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
+@[simp] lemma star_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
   (star P).rmatch x ↔ ∃ S : list (list α), x = S.join ∧ ∀ t ∈ S, ¬(list.empty t) ∧ P.rmatch t
 | x :=
 begin
@@ -223,7 +230,7 @@ begin
       fconstructor,
       exact [],
       tauto },
-    { rw [rmatch, deriv, comp_rmatch_iff],
+    { rw [rmatch, deriv, comp_def, mul_rmatch_iff],
       rintro ⟨ t, u, hs, ht, hu ⟩,
       have hwf : u.length < (list.cons a x).length,
       { rw [hs, list.length_cons, list.length_append],
@@ -241,7 +248,7 @@ begin
   { rintro ⟨ S, hsum, helem ⟩,
     cases x with a x,
     { dec_trivial },
-    { rw [rmatch, deriv, comp_rmatch_iff],
+    { rw [rmatch, deriv, comp_def, mul_rmatch_iff],
       cases S with t' U,
       { exact ⟨ [], [], by tauto ⟩ },
       { cases t' with b t,
@@ -266,14 +273,42 @@ using_well_founded {
   rel_tac := λ _ _, `[exact ⟨(λ L₁ L₂ : list _, L₁.length < L₂.length), inv_image.wf _ nat.lt_wf⟩]
 }
 
-lemma add_assoc (P Q R : regular_expression α) : (P + Q) + R ≈ P + (Q + R) := by finish
-
-lemma add_comm (P Q : regular_expression α) : P + Q ≈ Q + P := by finish
-
-lemma mul_add (P Q R : regular_expression α) : P * (Q + R) ≈ (P * Q) + (P * R) :=
+@[simp] lemma matches_iff_rmatch (P : regular_expression α) :
+  ∀ x : list α, x ∈ P.matches ↔ P.rmatch x :=
 begin
   intro x,
-  simp only [mul_rmatch_iff, add_rmatch_iff],
+  induction P with _ _ _ _ _ _ _ _ _ ih₁ ih₂ generalizing x;
+  rw matches,
+  { simp },
+  { simp },
+  { simp },
+  { finish },
+  { finish },
+  { simp,
+    split,
+    { rintro ⟨ x, hmatch₁, y, hmatch₂, hsum ⟩,
+      rw ih₁ at hmatch₁,
+      rw ih₂ at hmatch₂,
+      exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ },
+    { rintro ⟨ x, y, hsum, hmatch₁, hmatch₂ ⟩,
+      rw ←ih₁ at hmatch₁,
+      rw ←ih₂ at hmatch₂,
+      exact ⟨ x, hmatch₁, y, hmatch₂, hsum.symm ⟩ } },
+end
+
+omit dec
+
+lemma add_assoc (P Q R : regular_expression α) : ((P + Q) + R).matches = (P + (Q + R)).matches :=
+by {classical, ext, finish}
+lemma add_comm (P Q : regular_expression α) : (P + Q).matches = (Q + P).matches :=
+by {classical, ext, finish}
+
+lemma mul_add (P Q R : regular_expression α) :
+  (P * (Q + R)).matches = ((P * Q) + (P * R)).matches :=
+begin
+  classical,
+  ext x,
+  simp only [mul_rmatch_iff, matches_iff_rmatch, add_rmatch_iff],
   split,
   { rintro ⟨ s, t, hsum, hP, (hQ | hR) ⟩,
     left,
@@ -288,15 +323,21 @@ begin
     tauto }
 end
 
-lemma add_zero (P : regular_expression α) : P + 0 ≈ P := by finish
-lemma zero_add (P : regular_expression α) : 0 + P ≈ P := by finish
-lemma mul_zero (P : regular_expression α) : P * 0 ≈ 0 := by finish
-lemma zero_mul (P : regular_expression α) : 0 * P ≈ 0 := by finish
+lemma add_zero (P : regular_expression α) : (P + 0).matches = P.matches :=
+by {classical, ext, finish}
+lemma zero_add (P : regular_expression α) : (0 + P).matches = P.matches :=
+by {classical, ext, finish}
 
-lemma mul_one (P : regular_expression α) : P * 1 ≈ P :=
+lemma mul_zero (P : regular_expression α) : (P * 0).matches = (0 : regular_expression α).matches :=
+by {classical, ext, finish}
+lemma zero_mul (P : regular_expression α) : (0 * P).matches = (0 : regular_expression α).matches :=
+by {classical, ext, finish}
+
+lemma mul_one (P : regular_expression α) : (P * 1).matches = P.matches :=
 begin
-  intro x,
-  simp only [mul_rmatch_iff, one_rmatch_iff],
+  classical,
+  ext x,
+  simp only [mul_rmatch_iff, matches_iff_rmatch, one_rmatch_iff],
   split,
   { rintro ⟨ t, u, hx, hp, hu ⟩,
     finish },
@@ -305,10 +346,11 @@ begin
     finish }
 end
 
-lemma one_mul (P : regular_expression α) : 1 * P ≈ P :=
+lemma one_mul (P : regular_expression α) : (1 * P).matches = P.matches :=
 begin
-  intro x,
-  simp only [mul_rmatch_iff, one_rmatch_iff],
+  classical,
+  ext x,
+  simp only [mul_rmatch_iff, matches_iff_rmatch, one_rmatch_iff],
   split,
   { rintro ⟨ t, u, hx, hp, hu ⟩,
     finish },
@@ -317,6 +359,7 @@ begin
     finish }
 end
 
-lemma add_self (P : regular_expression α) : P + P ≈ P := by finish
+lemma add_self (P : regular_expression α) : (P + P).matches = P.matches :=
+by {classical, ext, finish}
 
 end regular_expression

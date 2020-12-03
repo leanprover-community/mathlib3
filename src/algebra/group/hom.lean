@@ -667,7 +667,7 @@ def eval [monoid M] [comm_monoid N] : M →* (M →* N) →* N := (monoid_hom.id
 @[simp, to_additive]
 lemma eval_apply [monoid M] [comm_monoid N] (x : M) (f : M →* N) : eval x f = f x := rfl
 
-/-- Composition of monoid morphisms as a monoid morphism. -/
+/-- Composition of monoid morphisms (`monoid_hom.comp`) as a monoid morphism. -/
 @[simps, to_additive]
 def comp_hom [monoid M] [comm_monoid N] [comm_monoid P] :
   (N →* P) →* (M →* N) →* (M →* P) :=

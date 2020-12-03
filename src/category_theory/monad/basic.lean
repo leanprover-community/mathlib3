@@ -29,7 +29,7 @@ class monad (T : C ⥤ C) :=
 restate_axiom monad.assoc'
 restate_axiom monad.left_unit'
 restate_axiom monad.right_unit'
-attribute [simp] monad.left_unit monad.right_unit
+attribute [simp, reassoc] monad.left_unit monad.right_unit
 
 notation `η_` := monad.η
 notation `μ_` := monad.μ
@@ -51,7 +51,7 @@ class comonad (G : C ⥤ C) :=
 restate_axiom comonad.coassoc'
 restate_axiom comonad.left_counit'
 restate_axiom comonad.right_counit'
-attribute [simp] comonad.left_counit comonad.right_counit
+attribute [simp, reassoc] comonad.left_counit comonad.right_counit
 
 notation `ε_` := comonad.ε
 notation `δ_` := comonad.δ

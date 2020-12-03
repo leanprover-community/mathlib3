@@ -154,41 +154,25 @@ begin
   exact (λ hnot, hj $ ((cast_succ_eq_iff_eq_mk h).2 hnot).symm),
 end
 
+variables {m n o : ℕ} (f : fin m → α) (g : fin n → α)
 
-def append {m : ℕ} (f : fin m → α) : Π {n : ℕ} (g : fin n → α), fin (m + n) → α
-| 0 g := f
-| (n + 1) g := fin.snoc (append (fin.init g)) (g n)
+lemma append_apply_fst (ho : o = m + n) (k : fin o) (h : (k : ℕ) < m) :
+  append ho f g k = f (k.cast_lt h) :=
+dif_pos h
 
-variables {m n : ℕ} (f : fin m → α) (g : fin n → α)
-
-lemma append_apply_fst (k : fin (m + n)) (h : (k : ℕ) < m) :
-  append f g k = f ⟨k, h⟩ :=
+lemma append_apply_fst' (ho : o = m + n) (k : fin m) :
+  append ho f g ((k.cast_add n).cast ho.symm) = f k :=
 begin
-  induction n with n hn,
-  unfold append,
-  rw fin.eta,
-  unfold append,
-  have := snoc_mk_apply' (append f (λ (x : fin n), g ↑x)) (g ↑n) ⟨k, by linarith⟩,
-  rw hn (λ i, g i) ⟨k, by linarith⟩ h at this,
-  simp only [coe_mk] at this,
-  rw ←this,
-  congr, ext, rw coe_eq_cast_succ, refl,
+  rw append_apply_fst _ _ ho ((k.cast_add n).cast ho.symm) k.2,
+  congr,
   ext,
-  simp only [coe_cast_succ, coe_mk, coe_eq_cast_succ],
+  refl,
 end
 
-lemma append_apply_fst' (k : fin m) :
-  append f g ⟨k, by cases k; linarith⟩ = f k :=
-begin
-  rw append_apply_fst,
-  simp only [coe_mk, fin.eta],
-  cases k,
-  linarith,
-end
-
-lemma append_apply_snd (k : fin (m + n)) (h : m ≤ (k : ℕ)) :
-  append f g k = g ⟨k - m, (nat.sub_lt_left_iff_lt_add h).2 k.2⟩ :=
-begin
+lemma append_apply_snd (ho : o = m + n) (k : fin o) (h : ¬(k : ℕ) < m) :
+  append ho f g k = g ⟨(k : ℕ) - m, (nat.sub_lt_left_iff_lt_add $ le_of_not_lt h).2 (ho ▸ k.2)⟩ :=
+dif_neg h
+/-begin
   induction n with n hn,
   exfalso, cases k, linarith,
   unfold append,
@@ -212,23 +196,36 @@ begin
   rw nat.mod_eq_of_lt (nat.lt_succ_self _),
   rw coe_mk, rw hnk,
   rw nat.add_sub_cancel_left,
-end
+end-/
 
-lemma append_apply_snd' (k : fin n) :
-  append f g ⟨k + m, by cases k; linarith⟩ = g k :=
+lemma append_apply_snd' (ho : o = m + n) (k : fin n) :
+  append ho f g ((k.nat_add m).cast ho.symm) = g k :=
 begin
-  rw append_apply_snd, congr,
-  simp only [coe_mk, nat.add_sub_cancel, fin.eta],
-  simp only [add_zero, coe_mk, int.coe_nat_add, ge_iff_le, zero_le, zero_add, le_add_iff_nonneg_left, neg_zero],
-  exact nat.zero_le _,
+  rw append_apply_snd,
+  congr,
+  ext,
+  exact nat.add_sub_cancel_left _ _,
+  rw not_lt,
+  exact le_add_right (le_refl _),
 end
 
-lemma append_default : append f (default (fin 0 → α)) = f :=
-rfl
+lemma append_default (d : fin 0 → α) (ho : o = m) (x : fin o) :
+  append (show o = m + 0, from ho) f d x = f (x.cast ho) :=
+begin
+  rw append_apply_fst _ _ (show o = m + 0, from ho) x (ho ▸ x.2),
+  congr,
+end
 
-lemma append_default_apply (i : fin m) :
-  append f (default (fin 0 → α)) i = f i :=
-rfl
+lemma append_default' (d :  fin 0 → α) :
+  append rfl f d = f :=
+begin
+  ext,
+  rw append_default,
+  congr,
+  ext,
+  refl,
+end
+
 
 lemma init_apply {n : ℕ} (f : fin n.succ → α) (i : fin n.succ)
   (h : (i : ℕ) < n) : init f ⟨i, h⟩ = f i :=
@@ -238,25 +235,27 @@ begin
   convert cast_succ_cast_lt i h,
 end
 
-lemma default_append (i : fin m) :
-  append (default (fin 0 → α)) f ⟨i, by cases i; linarith⟩ = f i :=
+lemma default_append (d : fin 0 → α) (ho : o = m) (i : fin o) :
+  append (show o = 0 + m, by rwa zero_add) d f i = f (i.cast ho) :=
 begin
-  convert append_apply_snd' _ _ _,
+  rw append_apply_snd _ _ _ _ (nat.not_lt_zero _),
+  congr,
 end
 
-lemma default_append' (i : fin (0 + m)) :
-  append (default (fin 0 → α)) f i = f ⟨i, by cases i; linarith⟩ :=
+lemma default_append' (d : fin 0 → α) (i : fin m) :
+  append (zero_add _) d f i = f i :=
 begin
-  convert append_apply_snd' (default (fin 0 → α)) _ _,
-  ext, refl,
+  rw append_apply_snd _ _ _ _ (nat.not_lt_zero _),
+  congr,
 end
 
 lemma append_one {x : α} :
-  append f (λ i : fin 1, x) = fin.snoc f x := rfl
+  append rfl f (λ i : fin 1, x) = fin.snoc f x := rfl
 
-lemma append_add {m n : ℕ} (f : fin m → M) (g : fin n → M) (i : fin n) (x y : M) :
-  append f (function.update g i (x + y)) ⟨i + m, have (i : ℕ) < n := i.2, by linarith⟩ = append f (function.update g i x) ⟨i + m, have (i : ℕ) < n := i.2, by linarith⟩ +
-    append f (function.update g i y) ⟨i + m, have (i : ℕ) < n := i.2, by linarith⟩ :=
+lemma append_add (ho : o = m + n) (f : fin m → M) (g : fin n → M) (i : fin n) (x y : M) :
+  append ho f (function.update g i (x + y)) ((i.nat_add m).cast ho.symm) =
+    append ho f (function.update g i x) ((i.nat_add m).cast ho.symm) +
+      append ho f (function.update g i y) ((i.nat_add m).cast ho.symm) :=
 begin
   induction n with k hk,
   { exact i.elim0 },
@@ -267,98 +266,98 @@ begin
     }
 end
 
-lemma append_update {m n : ℕ} (f : fin m → M) (g : fin n → M) (i : fin n) (x : M) :
-  append f (function.update g i x) = function.update (append f g) ⟨m + i, have (i : ℕ) < n := i.2, by linarith⟩ x :=
+lemma append_update (ho : o = m + n) (i : fin n) (x : α) :
+  append ho f (function.update g i x) =
+    function.update (append ho f g) ((i.nat_add m).cast ho.symm) x :=
 begin
   ext y,
   cases classical.em ((y : ℕ) < m),
-  rw append_apply_fst f _ y h,
-  rw function.update_noteq _ _ _,
-  rw append_apply_fst,
-  intro hy,
-  rw fin.ext_iff at hy,
-  linarith,
+  { rw append_apply_fst _ _ ho y h,
+    rw function.update_noteq _ _ _,
+    rw append_apply_fst,
+    contrapose! h,
+    rw h,
+    exact nat.le_add_right _ _ },
   rw append_apply_snd,
-  cases classical.em ((y : ℕ) = m + i) with hi hi,
-  have : (⟨m + (i : ℕ), by cases i; linarith⟩ : fin (m + n)) = y :=
-  by {ext, exact hi.symm,},
-  rw this,
-  rw function.update_same,
+  cases classical.em (y = (i.nat_add m).cast ho.symm) with hi hi,
+  { have hy : (⟨(y : ℕ) - m, (nat.sub_lt_left_iff_lt_add $ le_of_not_lt h).2 (ho ▸ y.2)⟩ : fin n) = i :=
+    fin.ext (by rw [coe_mk, hi]; exact nat.add_sub_cancel_left _ _),
+    rw hy,
+    rw function.update_same,
+    rw hi, rw function.update_same },
+  rw function.update_noteq hi,
+  rw function.update_noteq,
+  rw append_apply_snd _ _ ho _ h,
+  contrapose! hi,
+  rw ←hi,
+  ext,
+  exact (nat.add_sub_of_le (not_lt.1 h)).symm,
+end
+
+lemma update_append (ho : o = m + n) (i : fin m) (x : α) :
+  append ho (function.update f i x) g =
+    function.update (append ho f g) (cast_lt i $ ho.symm ▸ nat.lt_add_right i m n i.2) x :=
+begin
+  ext y,
+  cases classical.em ((y : ℕ) < m),
+  rw append_apply_fst _ _ ho _ h,
+  rcases classical.em (y = (cast_add n i).cast ho.symm) with ⟨rfl, hi⟩,
+  erw function.update_same,
   convert function.update_same _ _ _,
   refl,
-  ext,
-  rw coe_mk, rw hi, rw [nat.add_sub_cancel_left],
-  exact not_lt.1 h,
+  ext, refl,
   rw function.update_noteq,
   rw function.update_noteq,
-  rw append_apply_snd,
-  intro hn, apply hi,
-  exact (fin.ext_iff _ _).1 hn,
-  intro hn,
-  apply hi,
-  rw ←(fin.ext_iff _ _).1 hn,
-  rw coe_mk,
-  rw nat.add_sub_cancel' (not_lt.1 h),
+  rw append_apply_fst _ _ ho _ h,
+  contrapose! h_1, rw h_1, ext, refl,
+  contrapose! h_1, rw ←h_1, ext, refl,
+  rw append_apply_snd _ _ ho _ h,
+  rw function.update_noteq,
+  rw append_apply_snd _ _ ho _ h,
+  contrapose! h, exact h.symm ▸ i.2,
 end
 
-lemma update_append {m n : ℕ} (f : fin m → M) (g : fin n → M) (i : fin m) (x : M) :
-  append (function.update f i x) g = function.update (append f g) ⟨i, by cases i; linarith⟩ x :=
+lemma append_assoc {k p r s : ℕ} (h : fin k → α) (ho : o = m + n)
+  (hp : p = o + k) (hr : r = n + k) (hs : s = m + r) (x) :
+  append hp (append ho f g) h x = append hs f (append hr g h) (cast (by rw [hp, hs, hr, ho, add_assoc]) x) :=
 begin
-  ext y,
-  cases classical.em ((y : ℕ) < m),
-  rw append_apply_fst _ _ _ h,
-  cases classical.em ((y : ℕ) = i) with hy hy,
-  have : (⟨y, h⟩ : fin m) = i := fin.ext hy,
-  rw this,
-  rw function.update_same,
-  convert (function.update_same _ _ _).symm,
-  refl, refl,
-  ext, rw hy, refl,
-  rw function.update_noteq,
-  rw function.update_noteq,
-  rw append_apply_fst,
-  repeat {intro hn, apply hy, exact (fin.ext_iff _ _).1 hn},
-  rw function.update_noteq,
-  rw append_apply_snd, rw append_apply_snd,
-  exact not_lt.1 h,
-  intro hn, cases i with i hi,
-  apply h,
-  rw hn,
-  exact hi,
-end
-
-lemma append_assoc {m n k : ℕ} (f : fin m → M) (g : fin n → M) (h : fin k → M) (x) :
-  append (append f g) h x = append f (append g h) ⟨x, by cases x; linarith⟩ :=
-begin
-  cases classical.em ((x : ℕ) < m + n) with hx hx,
-  rw append_apply_fst _ _ _ hx,
+  cases classical.em ((x : ℕ) < o) with hx hx,
+  rw append_apply_fst _ _ hp _ hx,
   cases classical.em ((x : ℕ) < m) with hmx hmx,
-  rw append_apply_fst f (append g h) ⟨x, by cases x; linarith⟩ hmx,
-  rw append_apply_fst f g ⟨x, by cases x; linarith⟩ hmx,
-  refl,
-  rw append_apply_snd f g ⟨x, hx⟩ (not_lt.1 hmx),
-  rw append_apply_snd f (append g h) ⟨x, by cases x; linarith⟩ (not_lt.1 hmx),
-  rw append_apply_fst g h, refl,
-  rw append_apply_snd, rw append_apply_snd,
-  rw append_apply_snd,
-  congr' 2,
+  rw append_apply_fst _ _ hs,
+  rw append_apply_fst _ _ ho,
+  congr,
+  exact hmx,
+  rw append_apply_snd _ _ ho,
+  rw append_apply_snd _ _ hs,
+  rw append_apply_fst _ _ hr,
+  congr,
+  exact hmx,
+  exact hmx,
+  rw append_apply_snd _ _ hp,
+  rw append_apply_snd _ _ hs,
+  rw append_apply_snd _ _ hr,
+  congr' 1,
+  ext,
   rw coe_mk,
-  rw nat.sub_sub, refl,
+  rw coe_mk, rw coe_mk,
+  rw nat.sub_sub,
+  exact congr_arg _ ho,
   rw coe_mk,
-  rw coe_mk,
-  rw not_lt at hx,
-  omega,
-  linarith,
-  exact not_lt.1 hx,
+  contrapose! hx,
+  rw ho,
+  exact nat.lt_add_of_sub_lt_left hx,
+  contrapose! hx,
+  rw ho,
+  change (x : ℕ) < m at hx,
+  exact lt_of_lt_of_le hx (le_add_right $ le_refl _),
+  exact hx,
 end
 
-lemma append_assoc' {m n k : ℕ} (f : fin m → M) (g : fin n → M) (h : fin k → M) (x) :
-  append f (append g h) x = append (append f g) h ⟨x, by cases x; linarith⟩ :=
-begin
-  convert (append_assoc f g h ⟨x, by cases x; linarith⟩).symm,
-  ext,
-  refl,
-end
+lemma append_assoc'  {k p r s : ℕ} (h : fin k → α) (ho : o = m + n)
+  (hp : p = o + k) (hr : r = n + k) (hs : s = m + r) (x) :
+  append hs f (append hr g h) x = append hp (append ho f g) h (cast (by rw [hp, hs, hr, ho, add_assoc]) x) :=
+(append_assoc f g h ho hp hr hs (cast (by rw [hp, hs, hr, ho, add_assoc]) x)).symm
 
 lemma init_tail {n : ℕ} (f : fin n.succ.succ → α) :
   init (tail f) = tail (init f) :=
@@ -371,8 +370,7 @@ begin
   simp only [coe_cast_succ, coe_succ],
 end
 
-
-theorem list.of_fn_succ' {n : ℕ} (f : fin n.succ → α) :
+/-theorem list.of_fn_succ' {n : ℕ} (f : fin n.succ → α) :
   list.of_fn f = list.concat (list.of_fn (fin.init f)) (f n) :=
 begin
   induction n with n hn,
@@ -394,67 +392,62 @@ begin
   rw coe_nat_fin_succ,
   rw coe_succ,
   rw coe_nat_fin_succ,
-end
+end-/
 
 variables (x : α)
 
-lemma snoc_append {m n : ℕ} {f : fin m → α} {g : fin n → α} (x : α) :
-  append f (snoc g x) = snoc (append f g) x :=
+lemma cons_append {p : ℕ} (ho : o = m.succ + n) (hp : p = m + n) (x : α) (i : fin o):
+  (append ho (cons x f : fin m.succ → α) g) i = (cons x (append hp f g) : fin p.succ → α) (i.cast (by rw [ho, nat.succ_add, ←hp])) :=
 begin
-  ext i,
-  cases classical.em ((i : ℕ) < m),
-  rw append_apply_fst _ _ _ h,
-  rw snoc_mk_apply'' (append f g) x i (by linarith),
+  cases classical.em ((i : ℕ) < m.succ),
+  rw append_apply_fst _ _ ho _ h,
+  cases classical.em (i.cast (by rw [ho, nat.succ_add, ←hp]) = 0) with hi hi,
+  rw hi,
+  rw cons_zero,
+  convert cons_zero _ _,
+  refl,
+  ext,
+  convert (ext_iff _ _).1 hi,
+  rw ←succ_pred _ hi,
+  rw cons_succ,
+  rw ←succ_pred (i.cast_lt h),
+  rw cons_succ,
   rw append_apply_fst,
   congr,
-  rw append_apply_snd,
-  rcases classical.em ((i : ℕ) = m + n) with hi | hi,
-  have := snoc_mk_apply (append f g) x,
-  have Hi : i = ⟨m + n, nat.lt_succ_self _⟩ := fin.ext hi,
-  have hffs : (⟨(i : ℕ) - m, by {rw nat.sub_lt_left_iff_lt_add, exact i.2, exact not_lt.1 h}⟩ :
-    fin n.succ) = (n : fin n.succ) :=
-    by {ext, rw coe_mk, rw coe_nat_fin_succ, rw hi, rw nat.add_sub_cancel_left,},
-  rw hffs,
-  rw snoc_mk_apply g,
-  convert (snoc_mk_apply (append f g) x).symm, rw Hi,
+  contrapose! hi,
   ext,
-  simp only [coe_mk, coe_nat_fin_succ],
-  rw snoc_mk_apply'',
-  rw snoc_mk_apply'',
+  convert (ext_iff _ _).1 hi,
   rw append_apply_snd,
-  congr,
-  exact not_lt.1 h,
-  exact nat.lt_of_le_and_ne (nat.le_of_lt_succ i.2) hi,
-  exact not_lt.1 h,
+  rw ←succ_pred (i.cast (by rw [ho, nat.succ_add, ←hp]))
+    (by {contrapose! h, convert nat.succ_pos _, exact (fin.ext_iff _ _).1 h}),
+  rw cons_succ,
+  rw append_apply_snd,
+  congr' 1,
+  ext,
+  simp only [coe_pred, coe_cast, coe_mk],
+  rw nat.succ_eq_add_one, rw add_comm, rw nat.sub_sub,
+  intro hnot, apply h,
+  convert nat.succ_lt_succ hnot,
+  convert (nat.succ_pred_eq_of_pos _).symm,
+  exact lt_of_lt_of_le (nat.succ_pos m) (not_lt.1 h),
+  exact h,
 end
 
-lemma of_fn_append {m n : ℕ} (f : fin m → α) (g : fin n → α) :
-  list.of_fn (append f g) = list.of_fn f ++ list.of_fn g :=
+lemma append_comp {β : Type*} (ho : o = m + n)
+  (F : α → β) : append ho (F ∘ f) (F ∘ g) = F ∘ append ho f g :=
 begin
-  induction n with n hn,
-  erw list.append_nil,
-  erw append_default,
-  unfold append,
-  rw list.of_fn_succ',
-  rw init_snoc,
-  rw hn (init g),
-  simp only [list.append_assoc, list.concat_eq_append],
-  congr,
-  rw ←list.concat_eq_append,
-  rw list.of_fn_succ',
-  congr,
-  rw snoc_mk_apply,
+  ext,
+  cases classical.em ((x : ℕ) < m),
+  rw append_apply_fst _ _ ho _ h,
+  simp only [function.comp_app],
+  rw append_apply_fst _ _ ho _ h,
+  rw append_apply_snd _ _ ho _ h,
+  simp only [function.comp_app],
+  rw append_apply_snd _ _ ho _ h,
 end
 
-lemma append_comp {β : Type*} {m n : ℕ} (f : fin m → α) (g : fin n → α)
-  (F : α → β) : append (F ∘ f) (F ∘ g) = F ∘ append f g :=
-begin
-  induction n with n hn,
-    simp only [append],
-  unfold append,
-  rw ←comp_init,
-  rw comp_snoc,
-  rw hn (init g),
-end
+lemma of_fn_append (ho : o = m + n) :
+  list.of_fn (append ho f g) = list.of_fn f ++ list.of_fn g :=
+sorry
 
 end fin

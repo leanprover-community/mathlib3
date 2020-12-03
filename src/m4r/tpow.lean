@@ -1,14 +1,5 @@
 import linear_algebra.tensor_algebra m4r.fin
 
-namespace multilinear_map
-
-lemma ext_iff {R : Type*} {ι : Type*} {M₁ : ι → Type*} {M₂ : Type*}
-  [decidable_eq ι] [semiring R] [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
-  [Π i, semimodule R (M₁ i)] [semimodule R M₂] {f f' : multilinear_map R M₁ M₂} :
-  f = f' ↔ ∀ x, f x = f' x :=
-⟨λ h x, h ▸ rfl, multilinear_map.ext⟩
-
-end multilinear_map
 universe u
 
 def tpow_aux (R : Type u) [comm_ring R] (M : Type u) [add_comm_group M] [module R M] :
@@ -150,7 +141,9 @@ begin
   apply tensor_product.induction_on x,
   rw linear_equiv.map_zero, convert tensor_product.tmul_zero _ _,
   intros y z,
-  rw tensor_product.lid_tmul, rw map_smul_eq_smul_map,
+  rw tensor_product.lid_tmul,
+  rw tensor_product.mk_apply,
+  rw tensor_product.tmul_smul,
   erw tensor_product.smul_tmul',
   rw [algebra.id.smul_eq_mul, mul_one],
   intros y z hy hz,
@@ -165,10 +158,9 @@ begin
   rw linear_equiv.map_zero, convert tensor_product.zero_tmul _ _,
   intros y z,
   erw tensor_product.lid_tmul,
-  rw map_smul_eq_smul_map,
-  rw linear_map.smul_apply,
+  rw tensor_product.mk_apply,
   simp only [],
-  erw ←tensor_product.tmul_smul,
+  rw tensor_product.smul_tmul,
   rw algebra.id.smul_eq_mul, rw mul_one,
   intros y z hy hz,
   simp only [tensor_product.mk_apply, linear_equiv.map_add] at *,

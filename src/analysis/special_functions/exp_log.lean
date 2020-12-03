@@ -282,31 +282,61 @@ namespace real
 
 variables {x y z : ℝ}
 
-lemma exists_exp_eq_of_pos {x : ℝ} (hx : 0 < x) : ∃ y, exp y = x :=
-have ∀ {z:ℝ}, 1 ≤ z → z ∈ set.range exp,
-  from λ z hz, intermediate_value_univ 0 (z - 1) continuous_exp
-    ⟨by simpa, by simpa using add_one_le_exp_of_nonneg (sub_nonneg.2 hz)⟩,
-match le_total x 1 with
-| (or.inl hx1) := let ⟨y, hy⟩ := this (one_le_inv hx hx1) in
-  ⟨-y, by rw [exp_neg, hy, inv_inv']⟩
-| (or.inr hx1) := this hx1
+/-- The real exponential function tends to `+∞` at `+∞`. -/
+lemma tendsto_exp_at_top : tendsto exp at_top at_top :=
+begin
+  have A : tendsto (λx:ℝ, x + 1) at_top at_top :=
+    tendsto_at_top_add_const_right at_top 1 tendsto_id,
+  have B : ∀ᶠ x in at_top, x + 1 ≤ exp x :=
+    eventually_at_top.2 ⟨0, λx hx, add_one_le_exp_of_nonneg hx⟩,
+  exact tendsto_at_top_mono' at_top B A
 end
+
+/-- The real exponential function tends to `0` at `-∞` or, equivalently, `exp(-x)` tends to `0`
+at `+∞` -/
+lemma tendsto_exp_neg_at_top_nhds_0 : tendsto (λx, exp (-x)) at_top (𝓝 0) :=
+(tendsto_inv_at_top_zero.comp tendsto_exp_at_top).congr (λx, (exp_neg x).symm)
+
+/-- The real exponential function tends to `1` at `0`. -/
+lemma tendsto_exp_nhds_0_nhds_1 : tendsto exp (𝓝 0) (𝓝 1) :=
+by { convert continuous_exp.tendsto 0, simp }
+
+lemma tendsto_exp_at_bot : tendsto exp at_bot (𝓝 0) :=
+(tendsto_exp_neg_at_top_nhds_0.comp tendsto_neg_at_bot_at_top).congr $
+  λ x, congr_arg exp $ neg_neg x
+
+lemma tendsto_exp_at_bot_nhds_within : tendsto exp at_bot (𝓝[set.Ioi 0] 0) :=
+tendsto_inf.2 ⟨tendsto_exp_at_bot, tendsto_principal.2 $ eventually_of_forall exp_pos⟩
+
+lemma range_exp : set.range exp = set.Ioi 0 :=
+set.ext $ λ y, ⟨λ ⟨x, hx⟩, hx ▸ exp_pos x,
+  λ hy, mem_range_of_exists_le_of_exists_ge continuous_exp
+    (tendsto_exp_at_bot.eventually (ge_mem_nhds hy)).exists
+    (tendsto_exp_at_top.eventually (eventually_ge_at_top y)).exists⟩
+
+/-- `real.exp` as an order isomorphism between `ℝ` and `(0, +∞)`. -/
+def exp_order_iso : ℝ ≃o set.Ioi (0 : ℝ) :=
+(exp_strict_mono.order_iso _).trans $ order_iso.set_congr _ _ range_exp
+
+@[simp] lemma coe_exp_order_iso_apply (x : ℝ) : (exp_order_iso x : ℝ) = exp x := rfl
 
 /-- The real logarithm function, equal to the inverse of the exponential for `x > 0`,
 to `log |x|` for `x < 0`, and to `0` for `0`. We use this unconventional extension to
 `(-∞, 0]` as it gives the formula `log (x * y) = log x + log y` for all nonzero `x` and `y`, and
 the derivative of `log` is `1/x` away from `0`. -/
 @[pp_nodot] noncomputable def log (x : ℝ) : ℝ :=
-if hx : x ≠ 0 then classical.some (exists_exp_eq_of_pos (abs_pos.mpr hx)) else 0
+if hx : x = 0 then 0 else exp_order_iso.symm ⟨abs x, abs_pos.2 hx⟩
+
+lemma log_of_ne_zero (hx : x ≠ 0) : log x = exp_order_iso.symm ⟨abs x, abs_pos.2 hx⟩ := dif_neg hx
+
+lemma log_of_pos (hx : 0 < x) : log x = exp_order_iso.symm ⟨x, hx⟩ :=
+by { rw [log_of_ne_zero hx.ne'], congr, exact abs_of_pos hx }
 
 lemma exp_log_eq_abs (hx : x ≠ 0) : exp (log x) = abs x :=
-by { rw [log, dif_pos hx], exact classical.some_spec (exists_exp_eq_of_pos ((abs_pos.mpr hx))) }
+by rw [log_of_ne_zero hx, ← coe_exp_order_iso_apply, order_iso.apply_symm_apply, subtype.coe_mk]
 
 lemma exp_log (hx : 0 < x) : exp (log x) = x :=
-by { rw exp_log_eq_abs (ne_of_gt hx), exact abs_of_pos hx }
-
-lemma range_exp : set.range exp = {x | 0 < x} :=
-set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_pos x }, λ hx, ⟨log x, exp_log hx⟩⟩
+by { rw exp_log_eq_abs hx.ne', exact abs_of_pos hx }
 
 lemma exp_log_of_neg (hx : x < 0) : exp (log x) = -x :=
 by { rw exp_log_eq_abs (ne_of_lt hx), exact abs_of_neg hx }
@@ -333,9 +363,7 @@ exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
 begin
   by_cases h : x = 0,
   { simp [h] },
-  { apply exp_injective,
-    rw [exp_log_eq_abs h, exp_log_eq_abs, abs_abs],
-    simp [h] }
+  { rw [← exp_eq_exp, exp_log_eq_abs h, exp_log_eq_abs (abs_pos.2 h).ne', abs_abs] }
 end
 
 @[simp] lemma log_neg_eq_log (x : ℝ) : log (-x) = log x :=
@@ -351,13 +379,11 @@ by rw [exp_log_eq_abs (mul_ne_zero hx hy), exp_add, exp_log_eq_abs hx, exp_log_e
 @[simp] lemma log_inv (x : ℝ) : log (x⁻¹) = -log x :=
 begin
   by_cases hx : x = 0, { simp [hx] },
-  apply eq_neg_of_add_eq_zero,
-  rw [← log_mul (inv_ne_zero hx) hx, inv_mul_cancel hx, log_one]
+  rw [← exp_eq_exp, exp_log_eq_abs (inv_ne_zero hx), exp_neg, exp_log_eq_abs hx, abs_inv]
 end
 
 lemma log_le_log (h : 0 < x) (h₁ : 0 < y) : real.log x ≤ real.log y ↔ x ≤ y :=
-⟨λ h₂, by rwa [←real.exp_le_exp, real.exp_log h, real.exp_log h₁] at h₂, λ h₂,
-(real.exp_le_exp).1 $ by rwa [real.exp_log h₁, real.exp_log h]⟩
+by rw [← exp_le_exp, exp_log h, exp_log h₁]
 
 lemma log_lt_log (hx : 0 < x) : x < y → log x < log y :=
 by { intro h, rwa [← exp_lt_exp, exp_log hx, exp_log (lt_trans hx h)] }
@@ -426,12 +452,17 @@ begin
     tendsto_inv_zero_at_top).comp this
 end
 
-lemma continuous_at_log (hx : x ≠ 0) : continuous_at log x :=
+lemma continuous_log' : continuous (λ x : ({(0 : ℝ)}ᶜ : set ℝ), log x) :=
 begin
-  rcases hx.lt_or_lt with (hx|hx),
-  { exact strict_mono_decr_on_log.dual_right.continuous_at (gt_mem_nhds hx) surj_on_log' },
-  { exact strict_mono_incr_on_log.continuous_at (lt_mem_nhds hx) surj_on_log }
+  conv in (log _) { rw [log_of_ne_zero (show (x : ℝ) ≠ 0, from x.2)] },
+  exact exp_order_iso.symm.continuous.comp (continuous_subtype_mk _ continuous_subtype_coe.norm)
 end
+
+lemma continuous_on_log : continuous_on log {0}ᶜ :=
+continuous_on_iff_continuous_restrict.2 continuous_log'
+
+lemma continuous_at_log (hx : x ≠ 0) : continuous_at log x :=
+(continuous_on_log x hx).continuous_at $ mem_nhds_sets is_open_compl_singleton hx
 
 @[simp] lemma continuous_at_log_iff : continuous_at log x ↔ x ≠ 0 :=
 begin
@@ -440,12 +471,6 @@ begin
   exact not_tendsto_nhds_of_tendsto_at_bot tendsto_log_nhds_within_zero _
     (h.tendsto.mono_left inf_le_left)
 end
-
-lemma continuous_on_log : continuous_on log {0}ᶜ :=
-λ x hx, (continuous_at_log hx).continuous_within_at
-
-lemma continuous_log' : continuous (λ x : {x : ℝ // 0 < x}, log x) :=
-continuous_on_iff_continuous_restrict.1 $ continuous_on_log.mono $ λ x hx, ne_of_gt hx
 
 lemma has_deriv_at_log_of_pos (hx : 0 < x) : has_deriv_at log x⁻¹ x :=
 have has_deriv_at log (exp $ log x)⁻¹ x,
@@ -459,7 +484,7 @@ begin
   { convert (has_deriv_at_log_of_pos (neg_pos.mpr hx)).comp x (has_deriv_at_neg x),
     { ext y, exact (log_neg_eq_log y).symm },
     { field_simp [hx.ne] } },
- { exact has_deriv_at_log_of_pos hx }
+  { exact has_deriv_at_log_of_pos hx }
 end
 
 lemma differentiable_at_log (hx : x ≠ 0) : differentiable_at ℝ log x :=
@@ -574,32 +599,6 @@ end fderiv
 end log_differentiable
 
 namespace real
-
-/-- The real exponential function tends to `+∞` at `+∞`. -/
-lemma tendsto_exp_at_top : tendsto exp at_top at_top :=
-begin
-  have A : tendsto (λx:ℝ, x + 1) at_top at_top :=
-    tendsto_at_top_add_const_right at_top 1 tendsto_id,
-  have B : ∀ᶠ x in at_top, x + 1 ≤ exp x :=
-    eventually_at_top.2 ⟨0, λx hx, add_one_le_exp_of_nonneg hx⟩,
-  exact tendsto_at_top_mono' at_top B A
-end
-
-/-- The real exponential function tends to `0` at `-∞` or, equivalently, `exp(-x)` tends to `0`
-at `+∞` -/
-lemma tendsto_exp_neg_at_top_nhds_0 : tendsto (λx, exp (-x)) at_top (𝓝 0) :=
-(tendsto_inv_at_top_zero.comp tendsto_exp_at_top).congr (λx, (exp_neg x).symm)
-
-/-- The real exponential function tends to `1` at `0`. -/
-lemma tendsto_exp_nhds_0_nhds_1 : tendsto exp (𝓝 0) (𝓝 1) :=
-by { convert continuous_exp.tendsto 0, simp }
-
-lemma tendsto_exp_at_bot : tendsto exp at_bot (𝓝 0) :=
-(tendsto_exp_neg_at_top_nhds_0.comp tendsto_neg_at_bot_at_top).congr $
-  λ x, congr_arg exp $ neg_neg x
-
-lemma tendsto_exp_at_bot_nhds_within : tendsto exp at_bot (𝓝[set.Ioi 0] 0) :=
-tendsto_inf.2 ⟨tendsto_exp_at_bot, tendsto_principal.2 $ eventually_of_forall exp_pos⟩
 
 /-- The function `exp(x)/x^n` tends to `+∞` at `+∞`, for any natural number `n` -/
 lemma tendsto_exp_div_pow_at_top (n : ℕ) : tendsto (λx, exp x / x^n) at_top at_top :=

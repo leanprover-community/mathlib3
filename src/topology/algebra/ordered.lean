@@ -319,6 +319,12 @@ lemma intermediate_value_univ {γ : Type*} [topological_space γ] [preconnected_
   Icc (f a) (f b) ⊆ range f :=
 λ x hx, intermediate_value_univ₂ hf continuous_const hx.1 hx.2
 
+/-- Intermediate Value Theorem for continuous functions on connected spaces. -/
+lemma mem_range_of_exists_le_of_exists_ge {γ : Type*} [topological_space γ] [preconnected_space γ]
+  {c : α} {f : γ → α} (hf : continuous f) (h₁ : ∃ a, f a ≤ c) (h₂ : ∃ b, c ≤ f b) :
+  c ∈ range f :=
+let ⟨a, ha⟩ := h₁, ⟨b, hb⟩ := h₂ in intermediate_value_univ a b hf ⟨ha, hb⟩
+
 /-- If a preconnected set contains endpoints of an interval, then it includes the whole interval. -/
 lemma is_preconnected.Icc_subset {s : set α} (hs : is_preconnected s)
   {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
@@ -2850,8 +2856,7 @@ noncomputable def homeomorph_of_strict_mono_continuous
   (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
   (h_bot : tendsto f at_bot at_bot) :
   homeomorph α β :=
-(order_iso.of_strict_mono_surjective f h_mono
-  (surjective_of_continuous h_cont h_top h_bot)).to_homeomorph
+(h_mono.order_iso_of_surjective f (surjective_of_continuous h_cont h_top h_bot)).to_homeomorph
 
 @[simp] lemma coe_homeomorph_of_strict_mono_continuous
   (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)

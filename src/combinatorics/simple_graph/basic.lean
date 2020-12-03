@@ -258,7 +258,7 @@ by { rw fintype.card_congr (G.incidence_set_equiv_neighbor_set v), simp }
 @[simp]
 lemma mem_incidence_finset [decidable_eq V] (e : sym2 V) :
   e ∈ G.incidence_finset v ↔ e ∈ G.incidence_set v :=
-by { dunfold incidence_finset, simp }
+set.mem_to_finset
 
 end finite_at
 

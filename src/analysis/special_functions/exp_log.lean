@@ -523,6 +523,18 @@ end real
 section log_differentiable
 open real
 
+section continuity
+
+variables {α : Type*}
+
+lemma filter.tendsto.log {f : α → ℝ} {l : filter α} {x : ℝ} (h : tendsto f l (𝓝 x)) (hx : x ≠ 0) :
+  tendsto (λ x, log (f x)) l (𝓝 (log x)) :=
+(continuous_at_log hx).tendsto.comp h
+
+variables [topological_space α] {f : α → ℝ} {s : set α}
+
+end continuity
+
 section deriv
 
 variables {f : ℝ → ℝ} {x f' : ℝ} {s : set ℝ}
@@ -534,8 +546,8 @@ measurable_log.comp hf
 lemma has_deriv_within_at.log (hf : has_deriv_within_at f f' s x) (hx : f x ≠ 0) :
   has_deriv_within_at (λ y, log (f y)) (f' / (f x)) s x :=
 begin
-  convert (has_deriv_at_log hx).comp_has_deriv_within_at x hf,
-  exact div_eq_inv_mul
+  rw div_eq_inv_mul,
+  exact (has_deriv_at_log hx).comp_has_deriv_within_at x hf
 end
 
 lemma has_deriv_at.log (hf : has_deriv_at f f' x) (hx : f x ≠ 0) :

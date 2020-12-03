@@ -2025,7 +2025,6 @@ lemma map_infi_of_continuous_at_of_monotone {ι : Sort*} {f : α → β} {g : ι
 
 end complete_linear_order
 
-
 section conditionally_complete_linear_order
 
 variables [conditionally_complete_linear_order α] [topological_space α] [order_topology α]
@@ -2202,6 +2201,7 @@ begin
   exact is_closed.mem_of_ge_of_forall_exists_gt this ha hy.1
     (λ x hx, hgt x ⟨hx.1, Ico_subset_Ico_right hy.2 hx.2⟩ y hx.2.2)
 end
+
 section densely_ordered
 
 variables [densely_ordered α] {a b : α}
@@ -2284,37 +2284,31 @@ begin
     is_preconnected_Iic, is_preconnected_univ, is_preconnected_empty],
 end
 
+variables {δ : Type*} [linear_order δ] [topological_space δ] [order_closed_topology δ]
+
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
-lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
+lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f a) (f b) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf
 
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
-lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
+lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f b) (f a) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
 
 /-- A continuous function which tendsto `at_top` `at_top` and to `at_bot` `at_bot` is surjective. -/
-lemma surjective_of_continuous {f : α → β} (hf : continuous f) (h_top : tendsto f at_top at_top)
+lemma surjective_of_continuous {f : α → δ} (hf : continuous f) (h_top : tendsto f at_top at_top)
   (h_bot : tendsto f at_bot at_bot) :
   function.surjective f :=
-begin
-  intros p,
-  obtain ⟨b, hb⟩ : ∃ b, p ≤ f b,
-    { rcases (tendsto_at_top_at_top.mp h_top) p with ⟨b, hb⟩,
-      exact ⟨b, hb b rfl.ge⟩ },
-  obtain ⟨a, hab, ha⟩ : ∃ a, a ≤ b ∧ f a ≤ p,
-  { rcases (tendsto_at_bot_at_bot.mp h_bot) p with ⟨x, hx⟩,
-    exact ⟨min x b, min_le_right x b, hx (min x b) (min_le_left x b)⟩ },
-  rcases intermediate_value_Icc hab hf.continuous_on ⟨ha, hb⟩ with ⟨x, _, hx⟩,
-  exact ⟨x, hx⟩
-end
+λ p, mem_range_of_exists_le_of_exists_ge hf
+  (h_bot.eventually (eventually_le_at_bot p)).exists
+  (h_top.eventually (eventually_ge_at_top p)).exists
 
 /-- A continuous function which tendsto `at_bot` `at_top` and to `at_top` `at_bot` is surjective. -/
-lemma surjective_of_continuous' {f : α → β} (hf : continuous f) (h_top : tendsto f at_bot at_top)
+lemma surjective_of_continuous' {f : α → δ} (hf : continuous f) (h_top : tendsto f at_bot at_top)
   (h_bot : tendsto f at_top at_bot) :
   function.surjective f :=
-@surjective_of_continuous (order_dual α) β _ _ _ _ _ _ _ _ hf h_top h_bot
+@surjective_of_continuous (order_dual α) _ _ _ _ _ _ _ _ _ hf h_top h_bot
 
 end densely_ordered
 

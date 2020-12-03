@@ -21,7 +21,7 @@ universe u
 variables {α : Type u} [dec : decidable_eq α]
 
 /-- We first define a language as a set of strings over an alphabet. -/
-@[derive has_union, derive has_emptyc, derive has_mem (list α), derive has_singleton (list α)]
+@[derive [has_union, has_emptyc, has_mem (list α), has_singleton (list α)]]
 def language (α) := set (list α)
 
 namespace language

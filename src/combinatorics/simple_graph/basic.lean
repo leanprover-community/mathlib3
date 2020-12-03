@@ -183,15 +183,15 @@ variable [decidable_eq V]
 /--
 Given an edge incident to a particular vertex, get the other vertex on the edge.
 -/
-def incidence_set_other {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
+def other_vertex_of_incident {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
 
 lemma incidence_other_prop {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
-G.incidence_set_other h ∈ G.neighbor_set v :=
+G.other_vertex_of_incident h ∈ G.neighbor_set v :=
 by { cases h, rwa [←sym2.mem_other_spec' h_right, mem_edge_set] at h_left }
 
 @[simp]
 lemma incidence_other_neighbor_edge {v w : V} (h : w ∈ G.neighbor_set v) :
-  G.incidence_set_other (G.mem_incidence_iff_neighbor.mpr h) = w :=
+  G.other_vertex_of_incident (G.mem_incidence_iff_neighbor.mpr h) = w :=
 sym2.congr_right.mp (sym2.mem_other_spec' (G.mem_incidence_iff_neighbor.mpr h).right)
 
 /--
@@ -199,9 +199,9 @@ There is an equivalence between the set of edges incident to a given
 vertex and the set of vertices adjacent to the vertex.
 -/
 @[simps] def incidence_set_equiv_neighbor_set (v : V) : G.incidence_set v ≃ G.neighbor_set v :=
-{ to_fun := λ e, ⟨G.incidence_set_other e.2, G.incidence_other_prop e.2⟩,
+{ to_fun := λ e, ⟨G.other_vertex_of_incident e.2, G.incidence_other_prop e.2⟩,
   inv_fun := λ w, ⟨⟦(v, w.1)⟧, G.mem_incidence_iff_neighbor.mpr w.2⟩,
-  left_inv := λ x, by simp [incidence_set_other],
+  left_inv := λ x, by simp [other_vertex_of_incident],
   right_inv := λ ⟨w, hw⟩, by simp }
 
 end incidence

@@ -272,18 +272,6 @@ is_open_lt continuous_const continuous_id
 lemma is_open_Ioo : is_open (Ioo a b) :=
 is_open_inter is_open_Ioi is_open_Iio
 
-lemma lt_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 b, a < x :=
-mem_nhds_sets is_open_Ioi h
-
-lemma le_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 b, a ≤ x :=
-(𝓝 b).sets_of_superset (lt_mem_nhds h) $ assume b hb, le_of_lt hb
-
-lemma gt_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 a, x < b :=
-mem_nhds_sets is_open_Iio h
-
-lemma ge_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 a, x ≤ b :=
-(𝓝 a).sets_of_superset (gt_mem_nhds h) $ assume b hb, le_of_lt hb
-
 @[simp] lemma interior_Ioi : interior (Ioi a) = Ioi a :=
 is_open_Ioi.interior_eq
 
@@ -598,11 +586,23 @@ lemma is_open_iff_generate_intervals {s : set α} :
   is_open s ↔ generate_open {s | ∃a, s = Ioi a ∨ s = Iio a} s :=
 by rw [t.topology_eq_generate_intervals]; refl
 
-lemma is_open_Ioi' (a : α) : is_open (Ioi a) :=
+lemma is_open_lt' (a : α) : is_open {b:α | a < b} :=
 by rw [@is_open_iff_generate_intervals α _ _ t]; exact generate_open.basic _ ⟨a, or.inl rfl⟩
 
-lemma is_open_Iio' (a : α) : is_open (Iio a) :=
+lemma is_open_gt' (a : α) : is_open {b:α | b < a} :=
 by rw [@is_open_iff_generate_intervals α _ _ t]; exact generate_open.basic _ ⟨a, or.inr rfl⟩
+
+lemma lt_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 b, a < x :=
+mem_nhds_sets (is_open_lt' _) h
+
+lemma le_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 b, a ≤ x :=
+(𝓝 b).sets_of_superset (lt_mem_nhds h) $ assume b hb, le_of_lt hb
+
+lemma gt_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 a, x < b :=
+mem_nhds_sets (is_open_gt' _) h
+
+lemma ge_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 a, x ≤ b :=
+(𝓝 a).sets_of_superset (gt_mem_nhds h) $ assume b hb, le_of_lt hb
 
 lemma nhds_eq_order (a : α) :
   𝓝 a = (⨅b ∈ Iio a, 𝓟 (Ioi b)) ⊓ (⨅b ∈ Ioi a, 𝓟 (Iio b)) :=
@@ -2814,8 +2814,8 @@ by rw [continuous_within_at_Ioi_iff_Ici, continuous_within_at_Iio_iff_Iic,
   continuous_at_iff_continuous_left_right]
 
 section linear_order
-variables [linear_order α] [order_topology α]
-variables [linear_order β] [order_topology β]
+variables [linear_order α] [topological_space α] [order_topology α]
+variables [linear_order β] [topological_space β] [order_topology β]
 
 /-- If a function `f` is a strictly monotonically increasing function on a set `s ∈ 𝓝[Ici a] a` and
 the image of this set under `f` meets every interval `(f a, b]`, `b > f a`, then `f` is continuous
@@ -3049,8 +3049,8 @@ continuous_iff_continuous_at.mpr $ λ a,
   continuous_at_of_mono_incr_on_of_closure_image_mem_nhds (λ x hx y hy hxy, h_mono hxy)
     univ_mem_sets $ by simp only [image_univ, h_dense.closure_eq, univ_mem_sets]
 
-lemma monotone.continuous_of_surjective [densely_ordered β] {f : α → β}
-  (h_mono : monotone f) (h_surj : function.surjective f) :
+lemma monotone.continuous_of_surjective [densely_ordered β] {f : α → β} (h_mono : monotone f)
+  (h_surj : function.surjective f) :
   continuous f :=
 h_mono.continuous_of_dense_range h_surj.dense_range
 
@@ -3065,8 +3065,9 @@ protected lemma continuous (e : α ≃o β) : continuous e :=
 begin
   rw [‹order_topology β›.topology_eq_generate_intervals],
   refine continuous_generated_from (λ s hs, _),
-  rcases hs with ⟨a, rfl|rfl⟩;
-    simp only [e.preimage_Iio, e.preimage_Ioi, is_open_Iio', is_open_Ioi']
+  rcases hs with ⟨a, rfl|rfl⟩,
+  { rw e.preimage_Ioi, apply is_open_lt' },
+  { rw e.preimage_Iio, apply is_open_gt' }
 end
 
 /-- An order isomorphism between two linear order `order_topology` spaces is a homeomorphism. -/

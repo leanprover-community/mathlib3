@@ -27,10 +27,10 @@ structure NFA (alphabet : Type u) (state : Type v) :=
 (start : finset state)
 (accept : finset state)
 
-namespace NFA
-
 variables {α : Type u} {σ σ' σ₁ σ₂ σ₃ : Type v} (M : NFA α σ)
 variables [decidable_eq σ] [decidable_eq σ₁] [decidable_eq σ₂] [decidable_eq σ₃]
+
+namespace NFA
 
 instance NFA_inhabited : inhabited (NFA α σ') := ⟨ NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
@@ -76,32 +76,52 @@ instance : has_coe (DFA α σ') (Σ σ, DFA α σ) := ⟨λ M, ⟨σ', M⟩⟩
 @[simp] lemma equiv_def (M : NFA α σ₁) (N : NFA α σ₂) : M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
 by refl
 
-/-- `NFA_of_DFA M` is an `NFA` constructed from a `DFA` `M` by using the same start and accept
+/-- `M.to_DFA` is an `DFA` constructed from a `NFA` `M` using the subset construction. The
+  states is the type of `finset`s of `M.state` and the step function is `M.step_set`. -/
+def to_DFA [fintype σ] : DFA α (finset σ) :=
+{ step := M.step_set,
+  start := M.start,
+  accept := finset.univ.filter (λ S, ∃ s ∈ S, s ∈ M.accept) }
+
+lemma to_DFA_correct [fintype σ] (x : list α) :
+  M.accepts x ↔ M.to_DFA.accepts x :=
+begin
+  rw [accepts, DFA.accepts, eval, DFA.eval],
+  change _ ↔ list.foldl _ _ _ ∈ finset.univ.filter _,
+  rw finset.mem_filter,
+  finish
+end
+
+end NFA
+
+namespace DFA
+
+/-- `M.to_NFA` is an `NFA` constructed from a `DFA` `M` by using the same start and accept
   states and a transition function which sends `s` with input `a` to the singleton `M.step s a`. -/
-def NFA_of_DFA (M : DFA α σ') : NFA α σ' :=
+def to_NFA (M : DFA α σ') : NFA α σ' :=
 { step := λ s a, {M.step s a},
   start := {M.start},
   accept := M.accept }
 
-lemma NFA_of_DFA_eval_from_match (M : DFA α σ) (start : σ) (s : list α) :
-  {M.eval_from start s} = (NFA_of_DFA M).eval_from {start} s :=
+lemma to_NFA_eval_from_match (M : DFA α σ) (start : σ) (s : list α) :
+  {M.eval_from start s} = M.to_NFA.eval_from {start} s :=
 begin
-  change {list.foldl M.step start s} = list.foldl (NFA_of_DFA M).step_set {start} s,
+  change {list.foldl M.step start s} = list.foldl M.to_NFA.step_set {start} s,
   induction s with a s ih generalizing start,
   { tauto },
   { rw [list.foldl, list.foldl],
-    have h : (NFA_of_DFA M).step_set {start} a = {M.step start a},
-    { rw step_set,
+    have h : M.to_NFA.step_set {start} a = {M.step start a},
+    { rw NFA.step_set,
       finish },
     rw h,
     tauto }
 end
 
-lemma NFA_of_DFA_correct (M : DFA α σ) (x : list α) :
-  M.accepts x ↔ (NFA_of_DFA M).accepts x :=
+lemma to_NFA_correct (M : DFA α σ) (x : list α) :
+  M.accepts x ↔ M.to_NFA.accepts x :=
 begin
-  change _ ↔ ∃ S H, S ∈ (NFA_of_DFA M).eval_from {M.start} x,
-  rw ←NFA_of_DFA_eval_from_match,
+  change _ ↔ ∃ S H, S ∈ M.to_NFA.eval_from {M.start} x,
+  rw ←to_NFA_eval_from_match,
   split,
   { intro h,
     use M.eval x,
@@ -112,20 +132,4 @@ begin
     assumption }
 end
 
-/-- `DFA_of_NFA M` is an `DFA` constructed from a `NFA` `M` using the subset construction. The
-  states is the type of `finset`s of `M.state` and the step function is `M.step_set`. -/
-def DFA_of_NFA [fintype σ] : DFA α (finset σ) :=
-{ step := M.step_set,
-  start := M.start,
-  accept := finset.univ.filter (λ S, ∃ s ∈ S, s ∈ M.accept) }
-
-lemma DFA_of_NFA_correct [fintype σ] (x : list α) :
-  M.accepts x ↔ M.DFA_of_NFA.accepts x :=
-begin
-  rw [accepts, DFA.accepts, eval, DFA.eval],
-  change _ ↔ list.foldl _ _ _ ∈ finset.univ.filter _,
-  rw finset.mem_filter,
-  finish
-end
-
-end NFA
+end DFA

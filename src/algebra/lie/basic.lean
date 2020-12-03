@@ -845,7 +845,7 @@ instance : add_comm_monoid (lie_submodule R L M) :=
 section inclusion_maps
 
 /-- The inclusion of a Lie submodule into its ambient space is a morphism of Lie modules. -/
-def incl : N →ₗ⁅R, L⁆ M :=
+def incl : N →ₗ⁅R,L⁆ M :=
 { map_lie := λ x m, rfl,
   ..submodule.subtype (N : submodule R M) }
 
@@ -856,7 +856,7 @@ lemma incl_eq_val : (N.incl : N → M) = subtype.val := rfl
 variables {N} {N' : lie_submodule R L M} (h : N ≤ N')
 
 /-- Given two nested Lie submodules `N ⊆ N'`, the inclusion `N ↪ N'` is a morphism of Lie modules.-/
-def of_le : N →ₗ⁅R, L⁆ N' :=
+def of_le : N →ₗ⁅R,L⁆ N' :=
 { map_lie := λ x m, rfl,
   ..submodule.of_le h }
 
@@ -1045,7 +1045,7 @@ lemma gc_map_comap (f : L →ₗ⁅R⁆ L') : galois_connection (map f) (comap f
 
 /-- Regarding an ideal `I` as a subalgebra, the inclusion map into its ambient space is a morphism
 of Lie algebras. -/
-def incl (I : lie_ideal R L) : (I : lie_subalgebra R L) →ₗ⁅R⁆ L := (I : lie_subalgebra R L).incl
+def incl (I : lie_ideal R L) : I →ₗ⁅R⁆ L := (I : lie_subalgebra R L).incl
 
 @[simp] lemma incl_apply (I : lie_ideal R L) (x : I) : I.incl x = x := rfl
 

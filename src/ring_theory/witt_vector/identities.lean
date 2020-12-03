@@ -13,7 +13,7 @@ import ring_theory.witt_vector.mul_p
 
 In this file we show deduce common identities between the Frobenius and Verschiebung operators.
 
-### Main declarations
+## Main declarations
 
 * `frobenius_verschiebung`: the composition of Frobenius and Verschiebung is multiplication by `p`
 * `verschiebung_mul_frobenius`: the “projection formula”: `V(x * F y) = V x * y`

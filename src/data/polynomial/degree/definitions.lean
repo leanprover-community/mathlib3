@@ -495,37 +495,32 @@ lemma degree_pow_le (p : polynomial R) : ∀ n, degree (p ^ n) ≤ n •ℕ (deg
     by rw pow_succ; exact degree_mul_le _ _
   ... ≤ _ : by rw succ_nsmul; exact add_le_add (le_refl _) (degree_pow_le _)
 
-@[simp] lemma leading_coeff_monomial (a : R) (n : ℕ) : leading_coeff (C a * X ^ n) = a :=
+@[simp] lemma leading_coeff_monomial (a : R) (n : ℕ) : leading_coeff (monomial n a) = a :=
 begin
   by_cases ha : a = 0,
-  { simp only [ha, C_0, zero_mul, leading_coeff_zero] },
-  { rw [leading_coeff, nat_degree_C_mul_X_pow _ _ ha, C_mul_X_pow_eq_monomial],
+  { simp only [ha, (monomial n).map_zero, leading_coeff_zero] },
+  { rw [leading_coeff, nat_degree_monomial _ _ ha],
     exact @finsupp.single_eq_same _ _ _ n a }
 end
 
-@[simp] lemma leading_coeff_monomial' (a : R) (n : ℕ) : leading_coeff (monomial n a) = a :=
-by rw [← C_mul_X_pow_eq_monomial, leading_coeff_monomial]
+lemma leading_coeff_C_mul_X_pow (a : R) (n : ℕ) : leading_coeff (C a * X ^ n) = a :=
+by rw [C_mul_X_pow_eq_monomial, leading_coeff_monomial]
 
 @[simp] lemma leading_coeff_C (a : R) : leading_coeff (C a) = a :=
-suffices leading_coeff (C a * X^0) = a, by rwa [pow_zero, mul_one] at this,
 leading_coeff_monomial a 0
 
-@[simp] lemma leading_coeff_C_mul_X (a : R) : leading_coeff (C a * X) = a :=
-by simpa only [pow_one] using leading_coeff_monomial a 1
-
 @[simp] lemma leading_coeff_X_pow (n : ℕ) : leading_coeff ((X : polynomial R) ^ n) = 1 :=
-by simpa only [C_1, one_mul] using leading_coeff_monomial (1 : R) n
+by simpa only [C_1, one_mul] using leading_coeff_C_mul_X_pow (1 : R) n
 
 @[simp] lemma leading_coeff_X : leading_coeff (X : polynomial R) = 1 :=
-by simpa only [C_1, one_mul] using leading_coeff_C_mul_X (1 : R)
+by simpa only [pow_one] using @leading_coeff_X_pow R _ 1
 
 @[simp] lemma monic_X_pow (n : ℕ) : monic (X ^ n : polynomial R) := leading_coeff_X_pow n
 
 @[simp] lemma monic_X : monic (X : polynomial R) := leading_coeff_X
 
 @[simp] lemma leading_coeff_one : leading_coeff (1 : polynomial R) = 1 :=
-suffices leading_coeff (C (1:R) * X^0) = 1, by rwa [C_1, pow_zero, mul_one] at this,
-leading_coeff_monomial 1 0
+leading_coeff_C 1
 
 @[simp] lemma monic_one : monic (1 : polynomial R) := leading_coeff_C _
 
@@ -539,7 +534,6 @@ by { nontriviality R, exact hp.ne_zero }
 
 lemma monic.ne_zero_of_polynomial_ne {r} (hp : monic p) (hne : q ≠ r) : p ≠ 0 :=
 by { haveI := nontrivial.of_polynomial_ne hne, exact hp.ne_zero }
-
 
 lemma leading_coeff_add_of_degree_lt (h : degree p < degree q) :
   leading_coeff (p + q) = leading_coeff q :=
@@ -589,15 +583,16 @@ begin
   rwa coeff_mul_degree_add_degree
 end
 
+lemma degree_mul_monic (hq : monic q) : degree (p * q) = degree p + degree q :=
+if hp : p = 0 then by simp [hp]
+else degree_mul' $ by rwa [hq.leading_coeff, mul_one, ne.def, leading_coeff_eq_zero]
+
 lemma nat_degree_mul' (h : leading_coeff p * leading_coeff q ≠ 0) :
   nat_degree (p * q) = nat_degree p + nat_degree q :=
 have hp : p ≠ 0 := mt leading_coeff_eq_zero.2 (λ h₁, h $ by rw [h₁, zero_mul]),
 have hq : q ≠ 0 := mt leading_coeff_eq_zero.2 (λ h₁, h $ by rw [h₁, mul_zero]),
-have hpq : p * q ≠ 0 := λ hpq, by rw [← coeff_mul_degree_add_degree, hpq, coeff_zero] at h;
-  exact h rfl,
-option.some_inj.1 (show (nat_degree (p * q) : with_bot ℕ) = nat_degree p + nat_degree q,
-  by rw [← degree_eq_nat_degree hpq, degree_mul' h, degree_eq_nat_degree hp,
-    degree_eq_nat_degree hq])
+nat_degree_eq_of_degree_eq_some $
+  by rw [degree_mul' h, with_bot.coe_add, degree_eq_nat_degree hp, degree_eq_nat_degree hq]
 
 lemma leading_coeff_mul' (h : leading_coeff p * leading_coeff q ≠ 0) :
   leading_coeff (p * q) = leading_coeff p * leading_coeff q :=
@@ -728,6 +723,11 @@ by rw [X_pow_eq_monomial, degree_monomial _ (@one_ne_zero R _ _)]
 
 theorem not_is_unit_X : ¬ is_unit (X : polynomial R) :=
 λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by { rw [← coeff_one_zero, ← hgf], simp }
+
+@[simp] lemma degree_mul_X : degree (p * X) = degree p + 1 := by simp [degree_mul_monic monic_X]
+
+@[simp] lemma degree_mul_X_pow : degree (p * X ^ n) = degree p + n :=
+by simp [degree_mul_monic (monic_X_pow n)]
 
 end nonzero_semiring
 

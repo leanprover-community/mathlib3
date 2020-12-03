@@ -820,6 +820,7 @@ rfl
 
 variables (R M)
 
+local attribute [irreducible] tensor_algebra ι tensor_algebra.lift
 def to_talg : tensor_algebra R M →ₐ[R] talg R M :=
 tensor_algebra.lift R (ι R M) --fucking great
 

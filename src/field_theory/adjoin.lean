@@ -511,10 +511,8 @@ lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field 
   (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
   (K : intermediate_field F E) : P K :=
 begin
-  haveI := classical.prop_decidable,
   obtain ⟨S, rfl⟩ := fg_of_noetherian K,
-  apply induction_on_adjoin_finset S P base,
-  exact λ K x _ hK, ih K x hK,
+  exact induction_on_adjoin_finset S P base (λ K x _ hK, ih K x hK),
 end
 
 end induction

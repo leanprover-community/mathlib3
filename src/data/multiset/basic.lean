@@ -848,6 +848,13 @@ quotient.induction_on s $ λ l,
 lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
 
+lemma prod_dvd_prod [comm_monoid α] {s t : multiset α} (h : s ≤ t) :
+  s.prod ∣ t.prod :=
+begin
+  rcases multiset.le_iff_exists_add.1 h with ⟨z, rfl⟩,
+  simp,
+end
+
 theorem prod_eq_zero_iff [comm_cancel_monoid_with_zero α] [nontrivial α]
   {s : multiset α} :
   s.prod = 0 ↔ (0 : α) ∈ s :=
@@ -885,7 +892,7 @@ multiset.induction_on s (le_of_eq h_zero) $
   assume a s ih, by rw [sum_cons, map_cons, sum_cons];
     from le_trans (h_add a s.sum) (add_le_add_left ih _)
 
-lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {s : multiset α} :
+lemma abs_sum_le_sum_abs [linear_ordered_field α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=
 le_sum_of_subadditive _ abs_zero abs_add s
 
@@ -1425,38 +1432,41 @@ end
 
 /- filter -/
 section
-variables {p : α → Prop} [decidable_pred p]
+variables (p : α → Prop) [decidable_pred p]
 
 /-- `filter p s` returns the elements in `s` (with the same multiplicities)
   which satisfy `p`, and removes the rest. -/
-def filter (p : α → Prop) [h : decidable_pred p] (s : multiset α) : multiset α :=
+def filter (s : multiset α) : multiset α :=
 quot.lift_on s (λ l, (filter p l : multiset α))
   (λ l₁ l₂ h, quot.sound $ h.filter p)
 
-@[simp] theorem coe_filter (p : α → Prop) [h : decidable_pred p]
-  (l : list α) : filter p (↑l) = l.filter p := rfl
+@[simp] theorem coe_filter (l : list α) : filter p (↑l) = l.filter p := rfl
 
-@[simp] theorem filter_zero (p : α → Prop) [h : decidable_pred p] : filter p 0 = 0 := rfl
-
-@[simp] theorem filter_cons_of_pos {a : α} (s) : p a → filter p (a ::ₘ s) = a ::ₘ filter p s :=
-quot.induction_on s $ λ l h, congr_arg coe $ filter_cons_of_pos l h
-
-@[simp] theorem filter_cons_of_neg {a : α} (s) : ¬ p a → filter p (a ::ₘ s) = filter p s :=
-quot.induction_on s $ λ l h, @congr_arg _ _ _ _ coe $ filter_cons_of_neg l h
+@[simp] theorem filter_zero : filter p 0 = 0 := rfl
 
 lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
   {s : multiset α} : (∀ x ∈ s, p x ↔ q x) → filter p s = filter q s :=
 quot.induction_on s $ λ l h, congr_arg coe $ filter_congr h
 
-@[simp] theorem filter_add (s t : multiset α) :
-  filter p (s + t) = filter p s + filter p t :=
+@[simp] theorem filter_add (s t : multiset α) : filter p (s + t) = filter p s + filter p t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ filter_append _ _
 
 @[simp] theorem filter_le (s : multiset α) : filter p s ≤ s :=
 quot.induction_on s $ λ l, (filter_sublist _).subperm
 
 @[simp] theorem filter_subset (s : multiset α) : filter p s ⊆ s :=
-subset_of_le $ filter_le _
+subset_of_le $ filter_le _ _
+
+theorem filter_le_filter {s t} (h : s ≤ t) : filter p s ≤ filter p t :=
+le_induction_on h $ λ l₁ l₂ h, (filter_sublist_filter p h).subperm
+
+variable {p}
+
+@[simp] theorem filter_cons_of_pos {a : α} (s) : p a → filter p (a ::ₘ s) = a ::ₘ filter p s :=
+quot.induction_on s $ λ l h, congr_arg coe $ filter_cons_of_pos l h
+
+@[simp] theorem filter_cons_of_neg {a : α} (s) : ¬ p a → filter p (a ::ₘ s) = filter p s :=
+quot.induction_on s $ λ l h, @congr_arg _ _ _ _ coe $ filter_cons_of_neg l h
 
 @[simp] theorem mem_filter {a : α} {s} : a ∈ filter p s ↔ a ∈ s ∧ p a :=
 quot.induction_on s $ λ l, mem_filter
@@ -1480,12 +1490,11 @@ quot.induction_on s $ λ l, iff.trans ⟨λ h,
   eq_nil_of_length_eq_zero (@congr_arg _ _ _ _ card h),
   congr_arg coe⟩ filter_eq_nil
 
-theorem filter_le_filter {s t} (h : s ≤ t) : filter p s ≤ filter p t :=
-le_induction_on h $ λ l₁ l₂ h, (filter_sublist_filter h).subperm
-
 theorem le_filter {s t} : s ≤ filter p t ↔ s ≤ t ∧ ∀ a ∈ s, p a :=
-⟨λ h, ⟨le_trans h (filter_le _), λ a m, of_mem_filter (mem_of_le h m)⟩,
- λ ⟨h, al⟩, filter_eq_self.2 al ▸ filter_le_filter h⟩
+⟨λ h, ⟨le_trans h (filter_le _ _), λ a m, of_mem_filter (mem_of_le h m)⟩,
+ λ ⟨h, al⟩, filter_eq_self.2 al ▸ filter_le_filter p h⟩
+
+variable (p)
 
 @[simp] theorem filter_sub [decidable_eq α] (s t : multiset α) :
   filter p (s - t) = filter p s - filter p t :=
@@ -1512,16 +1521,16 @@ by simp [(∪), union]
 @[simp] theorem filter_inter [decidable_eq α] (s t : multiset α) :
   filter p (s ∩ t) = filter p s ∩ filter p t :=
 le_antisymm (le_inter
-    (filter_le_filter $ inter_le_left _ _)
-    (filter_le_filter $ inter_le_right _ _)) $ le_filter.2
-⟨inf_le_inf (filter_le _) (filter_le _),
+    (filter_le_filter _ $ inter_le_left _ _)
+    (filter_le_filter _ $ inter_le_right _ _)) $ le_filter.2
+⟨inf_le_inf (filter_le _ _) (filter_le _ _),
   λ a h, of_mem_filter (mem_of_le (inter_le_left _ _) h)⟩
 
-@[simp] theorem filter_filter {q} [decidable_pred q] (s : multiset α) :
+@[simp] theorem filter_filter (q) [decidable_pred q] (s : multiset α) :
   filter p (filter q s) = filter (λ a, p a ∧ q a) s :=
-quot.induction_on s $ λ l, congr_arg coe $ filter_filter l
+quot.induction_on s $ λ l, congr_arg coe $ filter_filter p q l
 
-theorem filter_add_filter {q} [decidable_pred q] (s : multiset α) :
+theorem filter_add_filter (q) [decidable_pred q] (s : multiset α) :
   filter p s + filter q s = filter (λ a, p a ∨ q a) s + filter (λ a, p a ∧ q a) s :=
 multiset.induction_on s rfl $ λ a s IH,
 by by_cases p a; by_cases q a; simp *
@@ -1558,8 +1567,7 @@ theorem filter_map_eq_map (f : α → β) : filter_map (some ∘ f) = map f :=
 funext $ λ s, quot.induction_on s $ λ l,
 @congr_arg _ _ _ _ coe $ congr_fun (filter_map_eq_map f) l
 
-theorem filter_map_eq_filter (p : α → Prop) [decidable_pred p] :
-  filter_map (option.guard p) = filter p :=
+theorem filter_map_eq_filter : filter_map (option.guard p) = filter p :=
 funext $ λ s, quot.induction_on s $ λ l,
 @congr_arg _ _ _ _ coe $ congr_fun (filter_map_eq_filter p) l
 
@@ -1579,7 +1587,7 @@ theorem filter_filter_map (f : α → option β) (p : β → Prop) [decidable_pr
   filter p (filter_map f s) = filter_map (λ x, (f x).filter p) s :=
 quot.induction_on s $ λ l, congr_arg coe $ filter_filter_map f p l
 
-theorem filter_map_filter (p : α → Prop) [decidable_pred p] (f : α → option β) (s : multiset α) :
+theorem filter_map_filter (f : α → option β) (s : multiset α) :
   filter_map f (filter p s) = filter_map (λ x, if p x then f x else none) s :=
 quot.induction_on s $ λ l, congr_arg coe $ filter_map_filter p f l
 
@@ -1603,44 +1611,50 @@ le_induction_on h $ λ l₁ l₂ h, (h.filter_map _).subperm
 
 /-- `countp p s` counts the number of elements of `s` (with multiplicity) that
   satisfy `p`. -/
-def countp (p : α → Prop) [decidable_pred p] (s : multiset α) : ℕ :=
+def countp (s : multiset α) : ℕ :=
 quot.lift_on s (countp p) (λ l₁ l₂, perm.countp_eq p)
 
 @[simp] theorem coe_countp (l : list α) : countp p l = l.countp p := rfl
 
-@[simp] theorem countp_zero (p : α → Prop) [decidable_pred p] : countp p 0 = 0 := rfl
+@[simp] theorem countp_zero : countp p 0 = 0 := rfl
+
+variable {p}
 
 @[simp] theorem countp_cons_of_pos {a : α} (s) : p a → countp p (a ::ₘ s) = countp p s + 1 :=
-quot.induction_on s countp_cons_of_pos
+quot.induction_on s $ countp_cons_of_pos p
 
 @[simp] theorem countp_cons_of_neg {a : α} (s) : ¬ p a → countp p (a ::ₘ s) = countp p s :=
-quot.induction_on s countp_cons_of_neg
+quot.induction_on s $ countp_cons_of_neg p
+
+variable (p)
 
 theorem countp_eq_card_filter (s) : countp p s = card (filter p s) :=
-quot.induction_on s $ λ l, countp_eq_length_filter _
+quot.induction_on s $ λ l, countp_eq_length_filter _ _
 
 @[simp] theorem countp_add (s t) : countp p (s + t) = countp p s + countp p t :=
 by simp [countp_eq_card_filter]
 
 instance countp.is_add_monoid_hom : is_add_monoid_hom (countp p : multiset α → ℕ) :=
-{ map_add := countp_add, map_zero := countp_zero _ }
-
-theorem countp_pos {s} : 0 < countp p s ↔ ∃ a ∈ s, p a :=
-by simp [countp_eq_card_filter, card_pos_iff_exists_mem]
+{ map_add := countp_add _, map_zero := countp_zero _ }
 
 @[simp] theorem countp_sub [decidable_eq α] {s t : multiset α} (h : t ≤ s) :
   countp p (s - t) = countp p s - countp p t :=
 by simp [countp_eq_card_filter, h, filter_le_filter]
 
-theorem countp_pos_of_mem {s a} (h : a ∈ s) (pa : p a) : 0 < countp p s :=
-countp_pos.2 ⟨_, h, pa⟩
-
 theorem countp_le_of_le {s t} (h : s ≤ t) : countp p s ≤ countp p t :=
-by simpa [countp_eq_card_filter] using card_le_of_le (filter_le_filter h)
+by simpa [countp_eq_card_filter] using card_le_of_le (filter_le_filter p h)
 
-@[simp] theorem countp_filter {q} [decidable_pred q] (s : multiset α) :
+@[simp] theorem countp_filter (q) [decidable_pred q] (s : multiset α) :
   countp p (filter q s) = countp (λ a, p a ∧ q a) s :=
 by simp [countp_eq_card_filter]
+
+variable {p}
+
+theorem countp_pos {s} : 0 < countp p s ↔ ∃ a ∈ s, p a :=
+by simp [countp_eq_card_filter, card_pos_iff_exists_mem]
+
+theorem countp_pos_of_mem {s a} (h : a ∈ s) (pa : p a) : 0 < countp p s :=
+countp_pos.2 ⟨_, h, pa⟩
 
 end
 
@@ -1652,7 +1666,7 @@ variable [decidable_eq α]
 /-- `count a s` is the multiplicity of `a` in `s`. -/
 def count (a : α) : multiset α → ℕ := countp (eq a)
 
-@[simp] theorem coe_count (a : α) (l : list α) : count a (↑l) = l.count a := coe_countp _
+@[simp] theorem coe_count (a : α) (l : list α) : count a (↑l) = l.count a := coe_countp _ _
 
 @[simp] theorem count_zero (a : α) : count a 0 = 0 := rfl
 
@@ -1664,7 +1678,7 @@ theorem count_cons_of_ne {a b : α} (h : a ≠ b) (s : multiset α) : count a (b
 countp_cons_of_neg _ h
 
 theorem count_le_of_le (a : α) {s t} : s ≤ t → count a s ≤ count a t :=
-countp_le_of_le
+countp_le_of_le _
 
 theorem count_le_count_cons (a b : α) (s : multiset α) : count a s ≤ count a (b ::ₘ s) :=
 count_le_of_le _ (le_cons_self _ _)
@@ -1677,10 +1691,10 @@ theorem count_singleton (a : α) : count a (a ::ₘ 0) = 1 :=
 by simp
 
 @[simp] theorem count_add (a : α) : ∀ s t, count a (s + t) = count a s + count a t :=
-countp_add
+countp_add _
 
 instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
-countp.is_add_monoid_hom
+countp.is_add_monoid_hom _
 
 @[simp] theorem count_smul (a : α) (n s) : count a (n •ℕ s) = n * count a s :=
 by induction n; simp [*, succ_nsmul', succ_mul]
@@ -1790,17 +1804,26 @@ instance : semilattice_sup_bot (multiset α) :=
 
 end
 
+@[simp]
+lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
+  a ∈ n •ℕ s ↔ a ∈ s :=
+begin
+  classical,
+  cases n,
+  { exfalso, apply h0 rfl },
+  rw [← not_iff_not, ← count_eq_zero, ← count_eq_zero],
+  simp [h0],
+end
+
 /- relator -/
 
 section rel
 
 /-- `rel r s t` -- lift the relation `r` between two elements to a relation between `s` and `t`,
 s.t. there is a one-to-one mapping betweem elements in `s` and `t` following `r`. -/
-inductive rel (r : α → β → Prop) : multiset α → multiset β → Prop
+@[mk_iff] inductive rel (r : α → β → Prop) : multiset α → multiset β → Prop
 | zero : rel 0 0
 | cons {a b as bs} : r a b → rel as bs → rel (a ::ₘ as) (b ::ₘ bs)
-
-mk_iff_of_inductive_prop multiset.rel multiset.rel_iff
 
 variables {δ : Type*} {r : α → β → Prop} {p : γ → δ → Prop}
 
@@ -2035,12 +2058,7 @@ by simp [disjoint, or_imp_distrib, forall_and_distrib]
 
 lemma disjoint_map_map {f : α → γ} {g : β → γ} {s : multiset α} {t : multiset β} :
   disjoint (s.map f) (t.map g) ↔ (∀a∈s, ∀b∈t, f a ≠ g b) :=
-begin
-  simp [disjoint],
-  split,
-  from assume h a ha b hb eq, h _ ha rfl _ hb eq.symm,
-  from assume h c a ha eq₁ b hb eq₂, h _ ha _ hb (eq₂.symm ▸ eq₁)
-end
+by { simp [disjoint, @eq_comm _ (f _) (g _)], refl }
 
 /-- `pairwise r m` states that there exists a list of the elements s.t. `r` holds pairwise on this list. -/
 def pairwise (r : α → α → Prop) (m : multiset α) : Prop :=

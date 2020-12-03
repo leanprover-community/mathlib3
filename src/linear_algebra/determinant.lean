@@ -8,6 +8,7 @@ import data.fintype.card
 import group_theory.perm.sign
 import algebra.algebra.basic
 import tactic.ring
+import linear_algebra.alternating
 
 universes u v w z
 open equiv equiv.perm finset function
@@ -77,7 +78,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
     fintype.pi_finset_univ]; rw [finset.sum_comm]
 ... = ∑ p in (@univ (n → n) _).filter bijective, ∑ σ : perm n,
     ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
-  eq.symm $ sum_subset (filter_subset _)
+  eq.symm $ sum_subset (filter_subset _ _)
     (λ f _ hbij, det_mul_aux $ by simpa using hbij)
 ... = ∑ τ : perm n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (τ i) * N (τ i) i) :
   sum_bij (λ p h, equiv.of_bijective p (mem_filter.1 h).2) (λ _ _, mem_univ _)
@@ -121,18 +122,19 @@ end
 
 /-- The determinant of a permutation matrix equals its sign. -/
 @[simp] lemma det_permutation (σ : perm n) :
-  matrix.det (σ.to_pequiv.to_matrix : matrix n n R) = σ.sign := begin
+  matrix.det (σ.to_pequiv.to_matrix : matrix n n R) = σ.sign :=
+begin
   suffices : matrix.det (σ.to_pequiv.to_matrix) = ↑σ.sign * det (1 : matrix n n R), { simp [this] },
   unfold det,
   rw mul_sum,
   apply sum_bij (λ τ _, σ * τ),
   { intros τ _, apply mem_univ },
   { intros τ _,
-    conv_lhs { rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)] },
-    conv_rhs { rw [←mul_assoc, coe_coe, sign_mul, units.coe_mul, int.cast_mul, ←mul_assoc] },
+    rw [←mul_assoc, sign_mul, coe_coe, ←int.cast_mul, ←units.coe_mul, ←mul_assoc,
+        int.units_mul_self, one_mul],
     congr,
-    { simp [pow_two] },
-    { ext i, apply pequiv.equiv_to_pequiv_to_matrix } },
+    ext i,
+    apply pequiv.equiv_to_pequiv_to_matrix },
   { intros τ τ' _ _, exact (mul_right_inj σ).mp },
   { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }
 end
@@ -168,7 +170,7 @@ section det_zero
 Prove that a matrix with a repeated column has determinant equal to zero.
 -/
 
-lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A i j = 0) : det A = 0 :=
+lemma det_eq_zero_of_row_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A i j = 0) : det A = 0 :=
 begin
   rw [←det_transpose, det],
   convert @sum_const_zero _ _ (univ : finset (perm n)) _,
@@ -178,6 +180,9 @@ begin
   rw [transpose_apply],
   apply h
 end
+
+lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (j : n) (h : ∀ i, A i j = 0) : det A = 0 :=
+by { rw ← det_transpose, exact det_eq_zero_of_row_eq_zero j h, }
 
 /--
   `mod_swap i j` contains permutations up to swapping `i` and `j`.
@@ -195,8 +200,8 @@ instance (i j : n) : decidable_rel (mod_swap i j).r := λ σ τ, or.decidable
 
 variables {M : matrix n n R} {i j : n}
 
-/-- If a matrix has a repeated column, the determinant will be zero. -/
-theorem det_zero_of_column_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
+/-- If a matrix has a repeated row, the determinant will be zero. -/
+theorem det_zero_of_row_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
 begin
   have swap_invariant : ∀ k, M (swap i j k) = M k,
   { intros k,
@@ -268,6 +273,16 @@ begin
   rw [← det_transpose, ← update_column_transpose, det_update_column_smul],
   simp [update_column_transpose, det_transpose]
 end
+
+/-- `det` is an alternating multilinear map over the rows of the matrix.
+
+See also `is_basis.det`. -/
+@[simps apply]
+def det_row_multilinear : alternating_map R (n → R) R n:=
+{ to_fun := det,
+  map_add' := det_update_row_add,
+  map_smul' := det_update_row_smul,
+  map_eq_zero_of_eq' := λ M i j h hij, det_zero_of_row_eq hij h }
 
 @[simp] lemma det_block_diagonal {o : Type*} [fintype o] [decidable_eq o] (M : o → matrix n n R) :
   (block_diagonal M).det = ∏ k, (M k).det :=

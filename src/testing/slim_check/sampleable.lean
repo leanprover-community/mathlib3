@@ -170,7 +170,7 @@ open sampleable_ext
 
 set_option default_priority 50
 
-instance {α} [sampleable α] [has_repr α] : sampleable_ext α :=
+instance sampleable_ext.of_sampleable {α} [sampleable α] [has_repr α] : sampleable_ext α :=
 { proxy_repr := α,
   sample := sampleable.sample α,
   shrink := shrink }
@@ -677,15 +677,15 @@ instance nat_gt.sampleable {x} : slim_check.sampleable { y : ℕ // x < y } :=
               pure ⟨x+y+1, by linarith⟩ },
   shrink := λ x, shrink _ }
 
-/-! ### Subtypes of any `decidable_linear_ordered_add_comm_group` -/
+/-! ### Subtypes of any `linear_ordered_add_comm_group` -/
 
-instance le.sampleable {y : α} [sampleable α] [decidable_linear_ordered_add_comm_group α] : slim_check.sampleable { x : α // x ≤ y } :=
+instance le.sampleable {y : α} [sampleable α] [linear_ordered_add_comm_group α] : slim_check.sampleable { x : α // x ≤ y } :=
 { sample :=
          do { x ← sample α,
               pure ⟨y - abs x, sub_le_self _ (abs_nonneg _) ⟩ },
   shrink := λ _, lazy_list.nil }
 
-instance ge.sampleable {x : α}  [sampleable α] [decidable_linear_ordered_add_comm_group α] : slim_check.sampleable { y : α // x ≤ y } :=
+instance ge.sampleable {x : α}  [sampleable α] [linear_ordered_add_comm_group α] : slim_check.sampleable { y : α // x ≤ y } :=
 { sample :=
          do { y ← sample α,
               pure ⟨x + abs y, by norm_num [abs_nonneg]⟩ },

@@ -151,6 +151,15 @@ suffices (∃b, ¬b ≤ a) → (∃b, a < b),
 assume ⟨b, hb⟩,
 ⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
 
+/-- If `f` is a monotonically increasing sequence, `g` is a monotonically decreasing
+sequence, and `f n ≤ g n` for all `n`, then for all `m`, `n` we have `f m ≤ g n`. -/
+theorem forall_le_of_monotone_of_mono_decr {β : Type*} [preorder β]
+  {f g : α → β} (hf : monotone f) (hg : ∀ ⦃m n⦄, m ≤ n → g n ≤ g m)
+  (h : ∀ n, f n ≤ g n) (m n : α) : f m ≤ g n :=
+calc f m ≤ f (m ⊔ n) : hf le_sup_left
+     ... ≤ g (m ⊔ n) : h _
+     ... ≤ g n       : hg le_sup_right
+
 theorem semilattice_sup.ext_sup {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
   (x y : α) : (by haveI := A; exact (x ⊔ y)) = x ⊔ y :=
@@ -391,7 +400,7 @@ end distrib_lattice
 -/
 
 @[priority 100] -- see Note [lower instance priority]
-instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] :
+instance lattice_of_linear_order {α : Type u} [o : linear_order α] :
   lattice α :=
 { sup          := max,
   le_sup_left  := le_max_left,
@@ -404,18 +413,18 @@ instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_o
   le_inf       := assume a b c, le_min,
   ..o }
 
-theorem sup_eq_max [decidable_linear_order α] {x y : α} : x ⊔ y = max x y := rfl
-theorem inf_eq_min [decidable_linear_order α] {x y : α} : x ⊓ y = min x y := rfl
+theorem sup_eq_max [linear_order α] {x y : α} : x ⊔ y = max x y := rfl
+theorem inf_eq_min [linear_order α] {x y : α} : x ⊓ y = min x y := rfl
 
 @[priority 100] -- see Note [lower instance priority]
-instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] :
+instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
   distrib_lattice α :=
 { le_sup_inf := assume a b c,
     match le_total b c with
     | or.inl h := inf_le_left_of_le $ sup_le_sup_left (le_inf (le_refl b) h) _
     | or.inr h := inf_le_right_of_le $ sup_le_sup_left (le_inf h (le_refl c)) _
     end,
-  ..lattice_of_decidable_linear_order }
+  ..lattice_of_linear_order }
 
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance

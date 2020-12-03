@@ -5,6 +5,8 @@ Authors: Kenny Lau
 -/
 import data.opposite
 import algebra.field
+import group_theory.group_action.defs
+import data.equiv.mul_add
 
 /-!
 # Algebraic operations on `αᵒᵖ`
@@ -143,6 +145,20 @@ instance [field α] : field (opposite α) :=
   inv_zero := unop_injective inv_zero,
   .. opposite.comm_ring α, .. opposite.has_inv α, .. opposite.nontrivial α }
 
+instance (R : Type*) [has_scalar R α] : has_scalar R (opposite α) :=
+{ smul := λ c x, op (c • unop x) }
+
+instance (R : Type*) [monoid R] [mul_action R α] : mul_action R (opposite α) :=
+{ one_smul := λ x, unop_injective $ one_smul R (unop x),
+  mul_smul := λ r₁ r₂ x, unop_injective $ mul_smul r₁ r₂ (unop x),
+  ..opposite.has_scalar α R  }
+
+instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
+  distrib_mul_action R (opposite α) :=
+{ smul_add := λ r x₁ x₂, unop_injective $ smul_add r (unop x₁) (unop x₂),
+  smul_zero := λ r, unop_injective $ smul_zero r,
+  ..opposite.mul_action α R }
+
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl
 
@@ -166,13 +182,33 @@ variable {α}
 @[simp] lemma op_sub [add_group α] (x y : α) : op (x - y) = op x - op y := rfl
 @[simp] lemma unop_sub [add_group α] (x y : αᵒᵖ) : unop (x - y) = unop x - unop y := rfl
 
-/-- The function `op` is a homomorphism of additive commutative monoids. -/
-def op_add_hom [add_comm_monoid α] : α →+ αᵒᵖ := ⟨op, op_zero α, op_add⟩
+@[simp] lemma op_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : op (c • a) = c • op a := rfl
+@[simp] lemma unop_smul {R : Type*} [has_scalar R α] (c : R) (a : αᵒᵖ) :
+  unop (c • a) = c • unop a := rfl
 
-/-- The function `unop` is a homomorphism of additive commutative monoids. -/
-def unop_add_hom [add_comm_monoid α] : αᵒᵖ →+ α := ⟨unop, unop_zero α, unop_add⟩
+/-- The function `op` is an additive equivalence. -/
+def op_add_equiv [has_add α] : α ≃+ αᵒᵖ :=
+{ map_add' := λ a b, rfl, .. equiv_to_opposite }
 
-@[simp] lemma coe_op_add_hom [add_comm_monoid α] : (op_add_hom : α → αᵒᵖ) = op := rfl
-@[simp] lemma coe_unop_add_hom [add_comm_monoid α] : (unop_add_hom : αᵒᵖ → α) = unop := rfl
+@[simp] lemma coe_op_add_equiv [has_add α] : (op_add_equiv : α → αᵒᵖ) = op := rfl
+@[simp] lemma coe_op_add_equiv_symm [has_add α] :
+  (op_add_equiv.symm : αᵒᵖ → α) = unop := rfl
+
+@[simp] lemma op_add_equiv_to_equiv [has_add α] :
+  (op_add_equiv : α ≃+ αᵒᵖ).to_equiv = equiv_to_opposite :=
+rfl
 
 end opposite
+
+open opposite
+
+/-- A ring homomorphism `f : R →+* S` such that `f x` commutes with `f y` for all `x, y` defines
+a ring homomorphism to `Sᵒᵖ`. -/
+def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
+  (hf : ∀ x y, commute (f x) (f y)) : R →+* Sᵒᵖ :=
+{ map_one' := congr_arg op f.map_one,
+  map_mul' := λ x y, by simp [(hf x y).eq],
+  .. (opposite.op_add_equiv : S ≃+ Sᵒᵖ).to_add_monoid_hom.comp ↑f }
+
+@[simp] lemma ring_hom.coe_to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
+  (hf : ∀ x y, commute (f x) (f y)) : ⇑(f.to_opposite hf) = op ∘ f := rfl

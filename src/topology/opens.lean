@@ -136,7 +136,7 @@ lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
   open_range :=
   begin
     rw set.range_inclusion i,
-    exact continuous_subtype_val U.val U.property
+    exact U.property.preimage continuous_subtype_val
   end, }
 
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
@@ -192,7 +192,7 @@ end
 
 /-- The preimage of an open set, as an open set. -/
 def comap {f : α → β} (hf : continuous f) (V : opens β) : opens α :=
-⟨f ⁻¹' V.1, hf V.1 V.2⟩
+⟨f ⁻¹' V.1, V.2.preimage hf⟩
 
 @[simp] lemma comap_id (U : opens α) : U.comap continuous_id = U := by { ext, refl }
 

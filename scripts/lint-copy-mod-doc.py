@@ -8,6 +8,7 @@ ERR_COP = 0 # copyright header
 ERR_IMP = 1 # import statements
 ERR_MOD = 2 # module docstring
 ERR_LIN = 3 # line length
+ERR_SAV = 4 # ᾰ
 
 exceptions = []
 
@@ -22,8 +23,13 @@ with open("scripts/copy-mod-doc-exceptions.txt") as f:
             exceptions += [(ERR_MOD, fn)]
         if errno == "ERR_LIN":
             exceptions += [(ERR_LIN, fn)]
+        if errno == "ERR_SAV":
+            exceptions += [(ERR_SAV, fn)]
 
 new_exceptions = False
+
+def small_alpha_vrachy_check(lines, fn):
+    return [ (ERR_SAV, line_nr, fn) for line_nr, line in enumerate(lines) if 'ᾰ' in line ]
 
 def long_lines_check(lines, fn):
     errors = []
@@ -113,6 +119,8 @@ def format_errors(errors):
             print("{} : line {} : ERR_MOD : Module docstring missing, or too late".format(fn, line_nr))
         if errno == ERR_LIN:
             print("{} : line {} : ERR_LIN : Line has more than 100 characters".format(fn, line_nr))
+        if errno == ERR_SAV:
+            print("{} : line {} : ERR_SAV : File contains the character ᾰ".format(fn, line_nr))
 
 def lint(fn):
     with open(fn) as f:

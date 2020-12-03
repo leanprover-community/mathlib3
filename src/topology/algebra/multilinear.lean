@@ -199,6 +199,23 @@ f.to_multilinear_map.map_sum _
 
 end apply_sum
 
+section restrict_scalar
+
+variables (R) {A : Type*} [semiring A] [has_scalar R A] [Π (i : ι), semimodule A (M₁ i)]
+  [semimodule A M₂] [∀ i, is_scalar_tower R A (M₁ i)] [is_scalar_tower R A M₂]
+
+/-- Reinterpret an `A`-multilinear map as an `R`-multilinear map, if `A` is an algebra over `R`
+and their actions on all involved semimodules agree with the action of `R` on `A`. -/
+def restrict_scalars (f : continuous_multilinear_map A M₁ M₂) :
+  continuous_multilinear_map R M₁ M₂ :=
+{ to_multilinear_map := f.to_multilinear_map.restrict_scalars R,
+  cont := f.cont }
+
+@[simp] lemma coe_restrict_scalars (f : continuous_multilinear_map A M₁ M₂) :
+  ⇑(f.restrict_scalars R) = f := rfl
+
+end restrict_scalar
+
 end semiring
 
 section ring
@@ -229,9 +246,9 @@ end topological_add_group
 
 end ring
 
-section comm_ring
+section comm_semiring
 
-variables [comm_ring R]
+variables [comm_semiring R]
 [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
 [∀i, semimodule R (M₁ i)] [semimodule R M₂]
 [∀i, topological_space (M₁ i)] [topological_space M₂]
@@ -247,39 +264,44 @@ lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
   f (λ i, c i • m i) = (∏ i, c i) • f m :=
 f.to_multilinear_map.map_smul_univ _ _
 
-variables [topological_space R] [topological_semimodule R M₂]
+variables {R' A : Type*} [comm_semiring R'] [semiring A] [algebra R' A]
+  [Π i, semimodule A (M₁ i)] [semimodule R' M₂] [semimodule A M₂] [is_scalar_tower R' A M₂]
+  [topological_space R'] [topological_semimodule R' M₂]
 
-instance : has_scalar R (continuous_multilinear_map R M₁ M₂) :=
-⟨λ c f, { cont := continuous.smul continuous_const f.cont, .. c • f.to_multilinear_map }⟩
+instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c f, { cont := continuous_const.smul f.cont, .. c • f.to_multilinear_map }⟩
 
-@[simp] lemma smul_apply (c : R) (m : Πi, M₁ i) : (c • f) m = c • f m := rfl
+@[simp] lemma smul_apply (f : continuous_multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
+  (c • f) m = c • f m := rfl
 
-end comm_ring
+instance {R''} [comm_semiring R''] [has_scalar R' R''] [algebra R'' A]
+  [semimodule R'' M₂] [is_scalar_tower R'' A M₂] [is_scalar_tower R' R'' M₂]
+  [topological_space R''] [topological_semimodule R'' M₂]:
+  is_scalar_tower R' R'' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c₁ c₂ f, ext $ λ x, smul_assoc _ _ _⟩
 
-section comm_ring
+variable [has_continuous_add M₂]
 
-variables [comm_ring R]
-[∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
-[∀i, semimodule R (M₁ i)] [semimodule R M₂]
-[∀i, topological_space (M₁ i)] [topological_space M₂] [topological_add_group M₂]
-[topological_space R] [topological_semimodule R M₂]
-(f : continuous_multilinear_map R M₁ M₂)
+/-- The space of continuous multilinear maps over an algebra over `R` is a module over `R`, for the
+pointwise addition and scalar multiplication. -/
+instance : semimodule R' (continuous_multilinear_map A M₁ M₂) :=
+{ one_smul := λ f, ext $ λ x, one_smul _ _,
+  mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul _ _ _,
+  smul_zero := λ r, ext $ λ x, smul_zero _,
+  smul_add := λ r f₁ f₂, ext $ λ x, smul_add _ _ _,
+  add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
+  zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
-/-- The space of continuous multilinear maps is a module over `R`, for the pointwise addition and
-scalar multiplication. -/
-instance : semimodule R (continuous_multilinear_map R M₁ M₂) :=
-semimodule.of_core $ by refine { smul := (•), .. };
-  intros; ext; simp [smul_add, add_smul, smul_smul]
 
 /-- Linear map version of the map `to_multilinear_map` associating to a continuous multilinear map
 the corresponding multilinear map. -/
 def to_multilinear_map_linear :
-  (continuous_multilinear_map R M₁ M₂) →ₗ[R] (multilinear_map R M₁ M₂) :=
+  (continuous_multilinear_map A M₁ M₂) →ₗ[R'] (multilinear_map A M₁ M₂) :=
 { to_fun    := λ f, f.to_multilinear_map,
   map_add'  := λ f g, rfl,
   map_smul' := λ c f, rfl }
 
-end comm_ring
+end comm_semiring
 
 end continuous_multilinear_map
 
@@ -295,7 +317,8 @@ def comp_continuous_multilinear_map (g : M₂ →L[R] M₃) (f : continuous_mult
 { cont := g.cont.comp f.cont,
   .. g.to_linear_map.comp_multilinear_map f.to_multilinear_map }
 
-@[simp] lemma comp_continuous_multilinear_map_coe (g : M₂ →L[R] M₃) (f : continuous_multilinear_map R M₁ M₂) :
+@[simp] lemma comp_continuous_multilinear_map_coe (g : M₂ →L[R] M₃)
+  (f : continuous_multilinear_map R M₁ M₂) :
   ((g.comp_continuous_multilinear_map f) : (Πi, M₁ i) → M₃) =
   (g : M₂ → M₃) ∘ (f : (Πi, M₁ i) → M₂) :=
 by { ext m, refl }

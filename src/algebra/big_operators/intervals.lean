@@ -20,7 +20,8 @@ open_locale big_operators nat
 
 namespace finset
 
-variables {α : Type u} {β : Type v} {γ : Type w} {s₂ s₁ s : finset α} {a : α} {g f : α → β} [comm_monoid β]
+variables {α : Type u} {β : Type v} {γ : Type w} {s₂ s₁ s : finset α} {a : α} {g f : α → β}
+  [comm_monoid β]
 
 lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
   (∑ l in Ico m n, f (k + l)) = (∑ l in Ico (m + k) (n + k), f l) :=

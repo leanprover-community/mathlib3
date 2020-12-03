@@ -441,12 +441,15 @@ embedded machine reaches the halt state. -/
 theorem step_normal_then (c) (k k' : cont) (v) :
   step_normal c (k.then k') v = (step_normal c k v).then k' :=
 begin
-  induction c generalizing k v;
+  induction c with generalizing k v;
     simp only [cont.then, step_normal, cfg.then, *] {constructor_eq := ff},
-  { rw [← c_ih_a, cont.then] },
-  { rw [← c_ih_a_1, cont.then] },
+  case turing.to_partrec.code.cons : c c' ih ih'
+  { rw [← ih, cont.then] },
+  case turing.to_partrec.code.comp : c c' ih ih'
+  { rw [← ih', cont.then] },
   { cases v.head; simp only [nat.elim] },
-  { rw [← c_ih, cont.then] },
+  case turing.to_partrec.code.fix : c ih
+  { rw [← ih, cont.then] },
 end
 
 /-- The `step_ret` function respects the `then k'` homomorphism. Note that this is an exact
@@ -1160,7 +1163,7 @@ theorem succ_ok {q s n} {c d : list Γ'} :
     ⟨some q, none, K'.elim (tr_list [n.succ]) [] c d⟩ :=
 begin
   simp [tr_nat, num.add_one],
-  cases (n:num),
+  cases (n:num) with a,
   { refine trans_gen.head rfl _, simp,
     rw if_neg, swap, rintro ⟨⟩, rw if_pos, swap, refl,
     convert unrev_ok, simp, refl },
@@ -1192,7 +1195,7 @@ begin
   { refine ⟨none, trans_gen.single _⟩, simp, refl },
   { refine ⟨some Γ'.cons, trans_gen.single _⟩, simp, refl },
   refine ⟨none, _⟩, simp [tr_nat, num.add_one, num.succ, tr_num],
-  cases (n:num),
+  cases (n:num) with a,
   { simp [tr_pos_num, tr_num, show num.zero.succ' = pos_num.one, from rfl],
     refine trans_gen.head rfl _, convert unrev_ok, simp, refl },
   simp [tr_num, num.succ'],

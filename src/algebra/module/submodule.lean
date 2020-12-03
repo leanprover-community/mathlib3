@@ -3,7 +3,7 @@ Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.module.basic
+import algebra.module.linear_map
 /-!
 
 # Submodules of a module
@@ -87,6 +87,8 @@ variables {p q : submodule R M}
 variables {r : R} {x y : M}
 
 variables (p)
+@[simp] lemma mem_carrier : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
+
 @[simp] theorem mem_coe : x ∈ (p : set M) ↔ x ∈ p := iff.rfl
 
 @[simp] lemma zero_mem : (0 : M) ∈ p := p.zero_mem'

@@ -3,6 +3,8 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import data.pi
+import data.prod
 import logic.unique
 import logic.function.basic
 
@@ -80,35 +82,8 @@ by { rw [← not_nontrivial_iff_subsingleton, or_comm], exact classical.em _ }
 lemma false_of_nontrivial_of_subsingleton (α : Type*) [nontrivial α] [subsingleton α] : false :=
 let ⟨x, y, h⟩ := exists_pair_ne α in h $ subsingleton.elim x y
 
-instance nontrivial_prod_left [nontrivial α] [nonempty β] : nontrivial (α × β) :=
-begin
-  inhabit β,
-  rcases exists_pair_ne α with ⟨x, y, h⟩,
-  use [(x, default β), (y, default β)],
-  contrapose! h,
-  exact congr_arg prod.fst h
-end
-
-instance nontrivial_prod_right [nontrivial α] [nonempty β] : nontrivial (β × α) :=
-begin
-  inhabit β,
-  rcases exists_pair_ne α with ⟨x, y, h⟩,
-  use [(default β, x), (default β, y)],
-  contrapose! h,
-  exact congr_arg prod.snd h
-end
-
 instance option.nontrivial [nonempty α] : nontrivial (option α) :=
 by { inhabit α, use [none, some (default α)] }
-
-instance function.nontrivial [nonempty α] [nontrivial β] : nontrivial (α → β) :=
-begin
-  rcases exists_pair_ne β with ⟨x, y, h⟩,
-  use [λ _, x, λ _, y],
-  contrapose! h,
-  inhabit α,
-  exact congr_fun h (default α)
-end
 
 /-- Pushforward a `nontrivial` instance along an injective function. -/
 protected lemma function.injective.nontrivial [nontrivial α]
@@ -136,6 +111,36 @@ begin
   { exact ⟨x₁, (hf.ne_iff' h).2 hx⟩ },
   { exact ⟨x₂, h⟩ }
 end
+
+instance nontrivial_prod_right [nonempty α] [nontrivial β] : nontrivial (α × β) :=
+prod.snd_surjective.nontrivial
+
+instance nontrivial_prod_left [nontrivial α] [nonempty β] : nontrivial (α × β) :=
+prod.fst_surjective.nontrivial
+
+namespace pi
+
+variables {I : Type*} {f : I → Type*}
+
+/-- A pi type is nontrivial if it's nonempty everywhere and nontrivial somewhere. -/
+lemma nontrivial_at (i' : I) [inst : Π i, nonempty (f i)] [nontrivial (f i')] :
+  nontrivial (Π i : I, f i) :=
+by classical; exact
+(function.update_injective (λ i, classical.choice (inst i)) i').nontrivial
+
+/--
+As a convenience, provide an instance automatically if `(f (default I))` is nontrivial.
+
+If a different index has the non-trivial type, then use `haveI := nontrivial_at that_index`.
+-/
+instance nontrivial [inhabited I] [inst : Π i, nonempty (f i)] [nontrivial (f (default I))] :
+  nontrivial (Π i : I, f i) :=
+nontrivial_at (default I)
+
+end pi
+
+instance function.nontrivial [h : nonempty α] [nontrivial β] : nontrivial (α → β) :=
+h.elim $ λ a, pi.nontrivial_at a
 
 mk_simp_attribute nontriviality "Simp lemmas for `nontriviality` tactic"
 

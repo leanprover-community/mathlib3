@@ -68,8 +68,8 @@ of_fintype_basis $ hb.smul hc
 
 lemma right [hf : finite_dimensional F A] : finite_dimensional K A :=
 let ⟨b, hb⟩ := iff_fg.1 hf in
-iff_fg.2 ⟨b, @submodule.restrict_scalars'_injective F _ _ _ _ _ _ _ _ _ _ _ $
-by { rw [submodule.restrict_scalars'_top, eq_top_iff, ← hb, submodule.span_le],
+iff_fg.2 ⟨b, submodule.restrict_scalars_injective F _ _ $
+by { rw [submodule.restrict_scalars_top, eq_top_iff, ← hb, submodule.span_le],
   exact submodule.subset_span }⟩
 
 /-- Tower law: if `A` is a `K`-algebra and `K` is a field extension of `F` then

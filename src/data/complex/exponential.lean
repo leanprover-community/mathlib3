@@ -35,7 +35,7 @@ end
 
 section
 variables {α : Type*} {β : Type*} [ring β]
-  [discrete_linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
 
 lemma is_cau_of_decreasing_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : ∀ n ≥ m, abs (f n) ≤ a)
   (hnm : ∀ n ≥ m, f n.succ ≤ f n) : is_cau_seq abs f :=
@@ -83,7 +83,7 @@ end
 
 section no_archimedean
 variables {α : Type*} {β : Type*} [ring β]
-  [discrete_linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
 
 lemma is_cau_series_of_abv_le_cau {f : ℕ → β} {g : ℕ → α} (n : ℕ) :
   (∀ m, n ≤ m → abv (f m) ≤ g m) →
@@ -122,7 +122,7 @@ end no_archimedean
 
 section
 variables {α : Type*} {β : Type*} [ring β]
-  [discrete_linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
 
 lemma is_cau_geo_series {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
    (x : β) (hx1 : abv x < 1) : is_cau_seq abv (λ n, ∑ m in range n, x ^ m) :=
@@ -228,7 +228,7 @@ end
 
 section no_archimedean
 variables {α : Type*} {β : Type*} [ring β]
-  [discrete_linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
 
 lemma abv_sum_le_sum_abv {γ : Type*} (f : γ → β) (s : finset γ) :
   abv (∑ k in s, f k) ≤ ∑ k in s, abv (f k) :=
@@ -952,14 +952,10 @@ lemma cos_sq_le_one : cos x ^ 2 ≤ 1 :=
 by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_left (pow_two_nonneg _)
 
 lemma abs_sin_le_one : abs' (sin x) ≤ 1 :=
-(mul_self_le_mul_self_iff (_root_.abs_nonneg (sin x)) (by exact zero_le_one)).2 $
-by rw [← _root_.abs_mul, abs_mul_self, mul_one, ← pow_two];
-   apply sin_sq_le_one
+abs_le_one_iff_mul_self_le_one.2 $ by simp only [← pow_two, sin_sq_le_one]
 
 lemma abs_cos_le_one : abs' (cos x) ≤ 1 :=
-(mul_self_le_mul_self_iff (_root_.abs_nonneg (cos x)) (by exact zero_le_one)).2 $
-by rw [← _root_.abs_mul, abs_mul_self, mul_one, ← pow_two];
-   apply cos_sq_le_one
+abs_le_one_iff_mul_self_le_one.2 $ by simp only [← pow_two, cos_sq_le_one]
 
 lemma sin_le_one : sin x ≤ 1 :=
 (abs_le.1 (abs_sin_le_one _)).2
@@ -1130,7 +1126,7 @@ end real
 
 namespace complex
 
-lemma sum_div_factorial_le {α : Type*} [discrete_linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
+lemma sum_div_factorial_le {α : Type*} [linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
   ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α) ≤ n.succ * (n! * n)⁻¹ :=
 calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
     = ∑ m in range (j - n), 1 / (m + n)! :

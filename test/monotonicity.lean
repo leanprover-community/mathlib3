@@ -405,7 +405,7 @@ begin
   exact 3
 end
 
-example {α} [decidable_linear_order α]
+example {α} [linear_order α]
   (a b c d e : α) :
   max a b ≤ e → b ≤ e :=
 by { mono, apply le_max_right }

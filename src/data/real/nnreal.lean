@@ -172,12 +172,12 @@ to_real_hom.to_add_monoid_hom.map_nsmul _ _
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
 to_real_hom.map_nat_cast n
 
-instance : decidable_linear_order ℝ≥0 :=
-decidable_linear_order.lift (coe : ℝ≥0 → ℝ) nnreal.injective_coe
+instance : linear_order ℝ≥0 :=
+linear_order.lift (coe : ℝ≥0 → ℝ) nnreal.injective_coe
 
-@[norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
-@[norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
-protected lemma coe_pos {r : ℝ≥0} : (0 : ℝ) < r ↔ 0 < r := iff.rfl
+@[simp, norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
+@[simp, norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
+@[simp, norm_cast] protected lemma coe_pos {r : ℝ≥0} : (0 : ℝ) < r ↔ 0 < r := iff.rfl
 
 protected lemma coe_mono : monotone (coe : ℝ≥0 → ℝ) := λ _ _, nnreal.coe_le_coe.2
 
@@ -193,7 +193,7 @@ galois_insertion.monotone_intro nnreal.coe_mono nnreal.of_real_mono
   le_coe_of_real (λ _, of_real_coe)
 
 instance : order_bot ℝ≥0 :=
-{ bot := ⊥, bot_le := assume ⟨a, h⟩, h, .. nnreal.decidable_linear_order }
+{ bot := ⊥, bot_le := assume ⟨a, h⟩, h, .. nnreal.linear_order }
 
 instance : canonically_ordered_add_monoid ℝ≥0 :=
 { add_le_add_left       := assume a b h c, @add_le_add_left ℝ _ a b h c,
@@ -206,7 +206,7 @@ instance : canonically_ordered_add_monoid ℝ≥0 :=
       (assume ⟨⟨c, hc⟩, eq⟩, eq.symm ▸ show a ≤ a + c, from (le_add_iff_nonneg_right a).2 hc),
   ..nnreal.comm_semiring,
   ..nnreal.order_bot,
-  ..nnreal.decidable_linear_order }
+  ..nnreal.linear_order }
 
 instance : distrib_lattice ℝ≥0 := by apply_instance
 
@@ -226,7 +226,7 @@ instance : linear_ordered_semiring ℝ≥0 :=
   mul_lt_mul_of_pos_right    := assume a b c, @mul_lt_mul_of_pos_right ℝ _ a b c,
   zero_le_one                := @zero_le_one ℝ _,
   exists_pair_ne             := ⟨0, 1, ne_of_lt (@zero_lt_one ℝ _ _)⟩,
-  .. nnreal.decidable_linear_order,
+  .. nnreal.linear_order,
   .. nnreal.canonically_ordered_add_monoid,
   .. nnreal.comm_semiring, }
 
@@ -291,7 +291,7 @@ instance : conditionally_complete_linear_order_bot ℝ≥0 :=
     le_cInf (by simp [hs]) $ assume r ⟨b, hb, eq⟩, eq ▸ h hb,
   cSup_empty := nnreal.eq $ by simp [coe_Sup, real.Sup_empty]; refl,
   decidable_le := begin assume x y, apply classical.dec end,
-  .. nnreal.linear_ordered_semiring, .. lattice_of_decidable_linear_order,
+  .. nnreal.linear_ordered_semiring, .. lattice_of_linear_order,
   .. nnreal.order_bot }
 
 instance : archimedean nnreal :=

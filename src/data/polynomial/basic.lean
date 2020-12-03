@@ -35,19 +35,21 @@ variables [semiring R] {p q : polynomial R}
 
 instance : inhabited (polynomial R) := add_monoid_algebra.inhabited _ _
 instance : semiring (polynomial R) := add_monoid_algebra.semiring
-instance : has_scalar R (polynomial R) := add_monoid_algebra.has_scalar
-instance : semimodule R (polynomial R) := add_monoid_algebra.semimodule
+instance {S} [semiring S] [semimodule S R] : semimodule S (polynomial R) :=
+add_monoid_algebra.semimodule
 
 instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
 
 @[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl
 
 /-- `monomial s a` is the monomial `a * X^s` -/
-def monomial (n : ℕ) (a : R) : polynomial R := finsupp.single n a
+def monomial (n : ℕ) : R →ₗ[R] polynomial R := finsupp.lsingle n
 
-@[simp] lemma monomial_zero_right (n : ℕ) :
+lemma monomial_zero_right (n : ℕ) :
   monomial n (0 : R) = 0 :=
 finsupp.single_zero
+
+lemma monomial_def (n : ℕ) (a : R) : monomial n a = finsupp.single n a := rfl
 
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
@@ -57,6 +59,9 @@ lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
   monomial n r * monomial m s = monomial (n + m) (r * s) :=
 add_monoid_algebra.single_mul_single
 
+lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :
+  a • monomial n b = monomial n (a • b) :=
+finsupp.smul_single _ _ _
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
@@ -96,11 +101,29 @@ by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }
 
 lemma coeff_X : coeff (X : polynomial R) n = if 1 = n then 1 else 0 := coeff_monomial
 
+lemma coeff_X_of_ne_one {n : ℕ} (hn : n ≠ 1) : coeff (X : polynomial R) n = 0 :=
+by rw [coeff_X, if_neg hn.symm]
+
 theorem ext_iff {p q : polynomial R} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 finsupp.ext_iff
 
 @[ext] lemma ext {p q : polynomial R} : (∀ n, coeff p n = coeff q n) → p = q :=
 finsupp.ext
+
+@[ext] lemma add_hom_ext' {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
+  (h : ∀ n, f.comp (monomial n).to_add_monoid_hom = g.comp (monomial n).to_add_monoid_hom) :
+  f = g :=
+finsupp.add_hom_ext' h
+
+lemma add_hom_ext {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
+  (h : ∀ n a, f (monomial n a) = g (monomial n a)) :
+  f = g :=
+finsupp.add_hom_ext h
+
+@[ext] lemma lhom_ext' {M : Type*} [add_comm_monoid M] [semimodule R M] {f g : polynomial R →ₗ[R] M}
+  (h : ∀ n, f.comp (monomial n) = g.comp (monomial n)) :
+  f = g :=
+finsupp.lhom_ext' h
 
 -- this has the same content as the subsingleton
 lemma eq_zero_of_eq_zero (h : (0 : R) = (1 : R)) (p : polynomial R) : p = 0 :=
@@ -116,8 +139,7 @@ lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1:R) :=
 begin
   induction n with n hn,
   { refl, },
-  { conv_rhs {rw nat.succ_eq_add_one, congr, skip, rw ← mul_one (1:R)},
-    rw [← monomial_mul_monomial, ← hn, pow_succ, X_mul, X], },
+  { rw [pow_succ', hn, X, monomial_mul_monomial, one_mul] },
 end
 
 lemma support_X_pow (H : ¬ (1:R) = 0) (n : ℕ) : (X^n : polynomial R).support = singleton n :=

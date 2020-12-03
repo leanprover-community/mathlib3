@@ -9,7 +9,7 @@ import order.lattice
 /-!
 # `max` and `min`
 
-This file proves basic properties about maxima and minima on a `decidable_linear_order`.
+This file proves basic properties about maxima and minima on a `linear_order`.
 
 ## Tags
 
@@ -22,7 +22,7 @@ variables {α : Type u} {β : Type v}
 attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
 
 section
-variables [decidable_linear_order α] [decidable_linear_order β] {f : α → β} {a b c d : α}
+variables [linear_order α] [linear_order β] {f : α → β} {a b c d : α}
 
 -- translate from lattices to linear orders (sup → max, inf → min)
 @[simp] lemma le_min_iff : c ≤ min a b ↔ c ≤ a ∧ c ≤ b := le_inf_iff

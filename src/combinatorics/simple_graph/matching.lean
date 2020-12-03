@@ -64,7 +64,7 @@ def matching.saturated_vertex (M : G.matching) (v : V) : Prop :=
 v ∈ M.support
 
 def matching.saturated_set (M : G.matching) (S : set V) : Prop :=
-∀ v ∈ S, v ∈ M.support
+M.support = S
 
 /--
 A perfect matching `M` on graph `G` is a matching such that

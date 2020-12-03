@@ -581,32 +581,19 @@ end normed_ring
 @[priority 100] -- see Note [lower instance priority]
 instance normed_ring_top_monoid [normed_ring α] : has_continuous_mul α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
-    have ∀ e : α × α, e.fst * e.snd - x.fst * x.snd =
-      e.fst * e.snd - e.fst * x.snd + (e.fst * x.snd - x.fst * x.snd), by intro; rw sub_add_sub_cancel,
     begin
-      apply squeeze_zero,
-      { intro, apply norm_nonneg },
-      { simp only [this], intro, apply norm_add_le },
-      { rw ←zero_add (0 : ℝ), apply tendsto.add,
-        { apply squeeze_zero,
-          { intro, apply norm_nonneg },
-          { intro t, show ∥t.fst * t.snd - t.fst * x.snd∥ ≤ ∥t.fst∥ * ∥t.snd - x.snd∥,
-            rw ←mul_sub, apply norm_mul_le },
-          { rw ←mul_zero (∥x.fst∥), apply tendsto.mul,
-            { apply continuous_iff_continuous_at.1,
-              apply continuous_norm.comp continuous_fst },
-            { apply tendsto_iff_norm_tendsto_zero.1,
-              apply continuous_iff_continuous_at.1,
-              apply continuous_snd }}},
-        { apply squeeze_zero,
-          { intro, apply norm_nonneg },
-          { intro t, show ∥t.fst * x.snd - x.fst * x.snd∥ ≤ ∥t.fst - x.fst∥ * ∥x.snd∥,
-            rw ←sub_mul, apply norm_mul_le },
-          { rw ←zero_mul (∥x.snd∥), apply tendsto.mul,
-            { apply tendsto_iff_norm_tendsto_zero.1,
-              apply continuous_iff_continuous_at.1,
-              apply continuous_fst },
-            { apply tendsto_const_nhds }}}}
+      have : ∀ e : α × α, ∥e.1 * e.2 - x.1 * x.2∥ ≤ ∥e.1∥ * ∥e.2 - x.2∥ + ∥e.1 - x.1∥ * ∥x.2∥,
+      { intro e,
+        calc ∥e.1 * e.2 - x.1 * x.2∥ ≤ ∥e.1 * (e.2 - x.2) + (e.1 - x.1) * x.2∥ :
+          by rw [mul_sub, sub_mul, sub_add_sub_cancel]
+        ... ≤ ∥e.1∥ * ∥e.2 - x.2∥ + ∥e.1 - x.1∥ * ∥x.2∥ :
+          norm_add_le_of_le (norm_mul_le _ _) (norm_mul_le _ _) },
+      refine squeeze_zero (λ e, norm_nonneg _) this _,
+      convert ((continuous_fst.tendsto x).norm.mul ((continuous_snd.tendsto x).sub
+        tendsto_const_nhds).norm).add
+        (((continuous_fst.tendsto x).sub tendsto_const_nhds).norm.mul _),
+      show tendsto _ _ _, from tendsto_const_nhds,
+      simp
     end ⟩
 
 /-- A normed ring is a topological ring. -/
@@ -670,40 +657,21 @@ nnreal.eq $ by simp
 @[priority 100] -- see Note [lower instance priority]
 instance : has_continuous_inv' α :=
 begin
-  refine ⟨λ r r0, (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).2 (λε εpos, _)⟩,
-  let δ := min (ε/2 * ∥r∥^2) (∥r∥/2),
-  have norm_r_pos : 0 < ∥r∥ := norm_pos_iff.mpr r0,
-  have A : 0 < ε / 2 * ∥r∥ ^ 2 := mul_pos (half_pos εpos) (pow_pos norm_r_pos 2),
-  have δpos : 0 < δ, by simp [half_pos norm_r_pos, A],
-  refine ⟨δ, δpos, λ x hx, _⟩,
-  have rx : ∥r∥/2 ≤ ∥x∥ := calc
-    ∥r∥/2 = ∥r∥ - ∥r∥/2 : by ring
-    ... ≤ ∥r∥ - ∥r - x∥ :
-    begin
-      apply sub_le_sub (le_refl _),
-      rw [← dist_eq_norm, dist_comm],
-      exact le_trans hx (min_le_right _ _)
-    end
-    ... ≤ ∥r - (r - x)∥ : norm_sub_norm_le r (r - x)
-    ... = ∥x∥ : by simp [sub_sub_cancel],
-  have norm_x_pos : 0 < ∥x∥ := lt_of_lt_of_le (half_pos norm_r_pos) rx,
-  have : x⁻¹ - r⁻¹ = (r - x) * x⁻¹ * r⁻¹,
-    by rw [sub_mul, sub_mul, mul_inv_cancel (norm_pos_iff.mp norm_x_pos), one_mul, mul_comm,
-           ← mul_assoc, inv_mul_cancel r0, one_mul],
-  calc dist x⁻¹ r⁻¹ = ∥x⁻¹ - r⁻¹∥ : dist_eq_norm _ _
-  ... ≤ ∥r-x∥ * ∥x∥⁻¹ * ∥r∥⁻¹ : by rw [this, norm_mul, norm_mul, norm_inv, norm_inv]
-  ... ≤ (ε/2 * ∥r∥^2) * (2 * ∥r∥⁻¹) * (∥r∥⁻¹) : begin
-    apply_rules [mul_le_mul, inv_nonneg.2, le_of_lt A, norm_nonneg, mul_nonneg,
-                 (inv_le_inv norm_x_pos norm_r_pos).2, le_refl],
-    show ∥r - x∥ ≤ ε / 2 * ∥r∥ ^ 2,
-      by { rw [← dist_eq_norm, dist_comm], exact le_trans hx (min_le_left _ _) },
-    show ∥x∥⁻¹ ≤ 2 * ∥r∥⁻¹,
-    { convert (inv_le_inv norm_x_pos (half_pos norm_r_pos)).2 rx,
-      rw [inv_div, div_eq_inv_mul, mul_comm] },
-    show (0 : ℝ) ≤ 2, by norm_num
-  end
-  ... = ε * (∥r∥ * ∥r∥⁻¹)^2 : by { generalize : ∥r∥⁻¹ = u, ring }
-  ... = ε : by { rw [mul_inv_cancel (ne.symm (ne_of_lt norm_r_pos))], simp }
+  refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
+  have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
+  rcases exists_between r0' with ⟨ε, ε0, εr⟩,
+  have : ∀ᶠ e in 𝓝 r, ∥e⁻¹ - r⁻¹∥ ≤ ∥r - e∥ / (∥r∥ * ε),
+  { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr],
+    intros e he,
+    have e0 : e ≠ 0 := norm_pos_iff.1 (ε0.trans he),
+    calc ∥e⁻¹ - r⁻¹∥ = ∥r - e∥ / (∥r∥ * ∥e∥) :
+      by simp only [← norm_div, ← norm_mul, sub_div, div_mul_right _ r0, div_mul_left e0, one_div]
+    ... ≤ ∥r - e∥ / (∥r∥ * ε) :
+      div_le_div_of_le_left (norm_nonneg _) (mul_pos r0' ε0)
+        (mul_le_mul_of_nonneg_left he.le r0'.le) },
+  refine squeeze_zero' (eventually_of_forall $ λ _, norm_nonneg _) this _,
+  rw [← zero_div (∥r∥ * ε), ← @norm_zero α, ← sub_self r],
+  exact tendsto.mul (tendsto_const_nhds.sub tendsto_id).norm tendsto_const_nhds
 end
 
 end normed_field

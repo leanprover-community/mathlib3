@@ -46,7 +46,7 @@ assume Peq, list.no_confusion Peq (assume Pheq Pteq, Pteq)
 assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 
 theorem cons_inj (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
-⟨λ e, cons_injective e, congr_arg _⟩
+cons_injective.eq_iff
 
 theorem exists_cons_of_ne_nil {l : list α} (h : l ≠ nil) : ∃ b L, l = b :: L :=
 by { induction l with c l',  contradiction,  use [c,l'], }
@@ -408,11 +408,17 @@ append_inj_right h rfl
 theorem append_right_cancel {s₁ s₂ t : list α} (h : s₁ ++ t = s₂ ++ t) : s₁ = s₂ :=
 append_inj_left' h rfl
 
+theorem append_right_injective (s : list α) : function.injective (λ t, s ++ t) :=
+λ t₁ t₂, append_left_cancel
+
 theorem append_right_inj {t₁ t₂ : list α} (s) : s ++ t₁ = s ++ t₂ ↔ t₁ = t₂ :=
-⟨append_left_cancel, congr_arg _⟩
+(append_right_injective s).eq_iff
+
+theorem append_left_injective (t : list α) : function.injective (λ s, s ++ t) :=
+λ s₁ s₂, append_right_cancel
 
 theorem append_left_inj {s₁ s₂ : list α} (t) : s₁ ++ t = s₂ ++ t ↔ s₁ = s₂ :=
-⟨append_right_cancel, congr_arg _⟩
+(append_left_injective t).eq_iff
 
 theorem map_eq_append_split {f : α → β} {l : list α} {s₁ s₂ : list β}
   (h : map f l = s₁ ++ s₂) : ∃ l₁ l₂, l = l₁ ++ l₂ ∧ map f l₁ = s₁ ∧ map f l₂ = s₂ :=

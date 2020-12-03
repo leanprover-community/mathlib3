@@ -379,7 +379,7 @@ lemma add_eq_of_eq_sub (h : a = c - b) : a + b = c :=
 by simp [h]
 
 @[simp] lemma sub_right_inj : a - b = a - c ↔ b = c :=
-by { rw [sub_eq_add_neg, sub_eq_add_neg], exact (add_right_inj _).trans neg_inj }
+sub_right_injective.eq_iff
 
 @[simp] lemma sub_left_inj : b - a = c - a ↔ b = c :=
 by { rw [sub_eq_add_neg, sub_eq_add_neg], exact add_left_inj _ }

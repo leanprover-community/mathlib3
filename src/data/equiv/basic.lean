@@ -1733,9 +1733,23 @@ noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set α} {t : s
   (h : set.bij_on f s t) : s ≃ t :=
 equiv.of_bijective _ h.bijective
 
+namespace function
+
+lemma update_comp_equiv {α β α' : Sort*} [decidable_eq α'] [decidable_eq α] (f : α → β) (g : α' ≃ α)
+  (a : α) (v : β) :
+  update f a v ∘ g = update (f ∘ g) (g.symm a) v :=
+by rw [←update_comp _ g.injective, g.apply_symm_apply]
+
+lemma update_apply_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable_eq α]
+  (f : α → β) (g : α' ≃ α) (a : α) (v : β) (a' : α') :
+  update f a v (g a') = update (f ∘ g) (g.symm a) v a' :=
+congr_fun (update_comp_equiv f g a v) a'
+
+end function
+
 /-- The composition of an updated function with an equiv on a subset can be expressed as an
 updated function. -/
-lemma dite_comp_equiv_update {α : Type*} {β : Type*} {γ : Type*} {s : set α} (e : β ≃ s)
+lemma dite_comp_equiv_update {α : Type*} {β : Sort*} {γ : Sort*} {s : set α} (e : β ≃ s)
   (v : β → γ) (w : α → γ) (j : β) (x : γ) [decidable_eq β] [decidable_eq α]
   [∀ j, decidable (j ∈ s)] :
   (λ (i : α), if h : i ∈ s then (function.update v j x) (e.symm ⟨i, h⟩) else w i) =
@@ -1743,13 +1757,13 @@ lemma dite_comp_equiv_update {α : Type*} {β : Type*} {γ : Type*} {s : set α}
 begin
   ext i,
   by_cases h : i ∈ s,
-  { simp only [h, dif_pos],
-    have A : e.symm ⟨i, h⟩ = j ↔ i = e j,
-      by { rw equiv.symm_apply_eq, exact subtype.ext_iff_val },
-    by_cases h' : i = e j,
-    { rw [A.2 h', h'], simp },
-    { have : ¬ e.symm ⟨i, h⟩ = j, by simpa [← A] using h',
-      simp [h, h', this] } },
+  { rw [dif_pos h,
+        function.update_apply_equiv_apply, equiv.symm_symm, function.comp,
+        function.update_apply, function.update_apply,
+        dif_pos h],
+    have h_coe : (⟨i, h⟩ : s) = e j ↔ i = e j := subtype.ext_iff.trans (by rw subtype.coe_mk),
+    simp_rw h_coe,
+    congr, },
   { have : i ≠ e j,
       by { contrapose! h, have : (e j : α) ∈ s := (e j).2, rwa ← h at this },
     simp [h, this] }

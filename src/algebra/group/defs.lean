@@ -137,7 +137,7 @@ theorem mul_right_injective (a : G) : function.injective ((*) a) :=
 
 @[simp, to_additive]
 theorem mul_right_inj (a : G) {b c : G} : a * b = a * c ↔ b = c :=
-⟨mul_left_cancel, congr_arg _⟩
+(mul_right_injective a).eq_iff
 
 end left_cancel_semigroup
 
@@ -170,7 +170,7 @@ theorem mul_left_injective (a : G) : function.injective (λ x, x * a) :=
 
 @[simp, to_additive]
 theorem mul_left_inj (a : G) {b c : G} : b * a = c * a ↔ b = c :=
-⟨mul_right_cancel, congr_arg _⟩
+(mul_left_injective a).eq_iff
 
 end right_cancel_semigroup
 

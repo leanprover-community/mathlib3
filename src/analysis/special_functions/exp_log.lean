@@ -452,14 +452,15 @@ begin
     tendsto_inv_zero_at_top).comp this
 end
 
-lemma continuous_log' : continuous (λ x : ({(0 : ℝ)}ᶜ : set ℝ), log x) :=
+lemma continuous_on_log : continuous_on log {0}ᶜ :=
 begin
+  rw [continuous_on_iff_continuous_restrict, set.restrict],
   conv in (log _) { rw [log_of_ne_zero (show (x : ℝ) ≠ 0, from x.2)] },
   exact exp_order_iso.symm.continuous.comp (continuous_subtype_mk _ continuous_subtype_coe.norm)
 end
 
-lemma continuous_on_log : continuous_on log {0}ᶜ :=
-continuous_on_iff_continuous_restrict.2 continuous_log'
+lemma continuous_log' : continuous (λ x : {x : ℝ // 0 < x}, log x) :=
+continuous_on_iff_continuous_restrict.1 $ continuous_on_log.mono $ λ x hx, ne_of_gt hx
 
 lemma continuous_at_log (hx : x ≠ 0) : continuous_at log x :=
 (continuous_on_log x hx).continuous_at $ mem_nhds_sets is_open_compl_singleton hx

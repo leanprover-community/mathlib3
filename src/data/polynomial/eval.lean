@@ -429,7 +429,11 @@ instance map.is_semiring_hom : is_semiring_hom (map f) :=
 
 /-- `polynomial.map` as a `ring_hom` -/
 def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
-ring_hom.of (map f)
+{ to_fun := polynomial.map f,
+  map_add' := λ _ _, eval₂_add _ _,
+  map_zero' := eval₂_zero _ _,
+  map_mul' := λ _ _, map_mul f,
+  map_one' := eval₂_one _ _ }
 
 @[simp] lemma coe_map_ring_hom (f : R →+* S) : ⇑(map_ring_hom f) = map f := rfl
 

@@ -41,10 +41,10 @@ up bigger and bigger sets. This sum operation is invariant under reordering. In 
 the function `ℕ → ℝ` sending `n` to `(-1)^n / (n+1)` does not have a
 sum for this definition, but a series which is absolutely convergent will have the correct sum.
 
-This is based on Mario Carneiro's 
+This is based on Mario Carneiro's
 [infinite sum `df-sum` in Metamath](http://us.metamath.org/mpeuni/df-sum.html).
 
-For the definition or many statements, α does not need to be a topological monoid. We only add
+For the definition or many statements, `α` does not need to be a topological monoid. We only add
 this assumption later, for the lemmas where it is relevant.
 -/
 def has_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, ∑ b in s, f b) at_top (𝓝 a)

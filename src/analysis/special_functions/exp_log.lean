@@ -532,7 +532,22 @@ lemma filter.tendsto.log {f : α → ℝ} {l : filter α} {x : ℝ} (h : tendsto
   tendsto (λ x, log (f x)) l (𝓝 (log x)) :=
 (continuous_at_log hx).tendsto.comp h
 
-variables [topological_space α] {f : α → ℝ} {s : set α}
+variables [topological_space α] {f : α → ℝ} {s : set α} {a : α}
+
+lemma continuous.log (hf : continuous f) (h₀ : ∀ x, f x ≠ 0) : continuous (λ x, log (f x)) :=
+continuous_on_log.comp_continuous hf h₀
+
+lemma continuous_at.log (hf : continuous_at f a) (h₀ : f a ≠ 0) :
+  continuous_at (λ x, log (f x)) a :=
+hf.log h₀
+
+lemma continuous_within_at.log (hf : continuous_within_at f s a) (h₀ : f a ≠ 0) :
+  continuous_within_at (λ x, log (f x)) s a :=
+hf.log h₀
+
+lemma continuous_on.log (hf : continuous_on f s) (h₀ : ∀ x ∈ s, f x ≠ 0) :
+  continuous_on (λ x, log (f x)) s :=
+λ x hx, (hf x hx).log (h₀ x hx)
 
 end continuity
 

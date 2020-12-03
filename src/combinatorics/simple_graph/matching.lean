@@ -69,6 +69,6 @@ M.support = set.univ
 
 lemma matching.is_perfect_iff (M : G.matching) :
 M.is_perfect ↔ ∀ (v : V), ∃ e ∈ M.val, v ∈ e :=
-by { dsimp [matching.is_perfect, matching.support], exact set.eq_univ_iff_forall }
+set.eq_univ_iff_forall
 
 end simple_graph

@@ -48,7 +48,7 @@ local infix ` ≈ ` := equiv
 @[refl] lemma equiv_refl (M : DFA α σ) : M ≈ M := λ x, by refl
 @[symm] lemma equiv_symm (M : DFA α σ₁) (N : DFA α σ₂) : M ≈ N → N ≈ M := λ h x, (h x).symm
 @[trans] lemma equiv_trans (M : DFA α σ₁) (N : DFA α σ₂) (P : DFA α σ₃) : M ≈ N → N ≈ P → M ≈ P :=
-  λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
+λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
 
 instance : setoid (Σ σ, DFA α σ) :=
 ⟨ λ M N, M.2 ≈ N.2,

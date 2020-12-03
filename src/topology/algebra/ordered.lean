@@ -609,10 +609,8 @@ lemma nhds_eq_order (a : α) :
 by rw [t.topology_eq_generate_intervals, nhds_generate_from];
 from le_antisymm
   (le_inf
-    (le_infi $ assume b, le_infi $ assume hb,
-      infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
-    (le_infi $ assume b, le_infi $ assume hb,
-      infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
+    (le_binfi $ assume b hb, infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
+    (le_binfi $ assume b hb, infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
   (le_infi $ assume s, le_infi $ assume ⟨ha, b, hs⟩,
     match s, ha, hs with
     | _, h, (or.inl rfl) := inf_le_left_of_le $ infi_le_of_le b $ infi_le _ h
@@ -1362,48 +1360,6 @@ begin
   { rintros ⟨l, la, as⟩,
     exact ⟨l, la, subset.trans Ioc_subset_Icc_self as⟩ }
 end
-
-section functions
-variables [topological_space β] [linear_order β] [order_topology β]
-
-/-- If `f : α → β` is strictly monotone and surjective, it is everywhere right-continuous. Superseded
-later in this file by `continuous_of_strict_mono_surjective` (same assumptions). -/
-lemma continuous_right_of_strict_mono_surjective
-  {f : α → β} (h_mono : strict_mono f) (h_surj : function.surjective f) (a : α) :
-  continuous_within_at f (Ici a) a :=
-begin
-  have ha : a ∈ Ici a := left_mem_Ici,
-  intros s hs,
-  by_cases hfa_top : ∃ p, f a < p,
-  { obtain ⟨q, hq, hqs⟩ : ∃ q ∈ Ioi (f a), Ico (f a) q ⊆ s :=
-      exists_Ico_subset_of_mem_nhds hs hfa_top,
-    refine mem_sets_of_superset (mem_map.2 _) hqs,
-    have h_surj_on := surj_on_Ici_of_monotone_surjective h_mono.monotone h_surj a,
-    rcases h_surj_on (Ioi_subset_Ici_self hq) with ⟨x, hx, rfl⟩,
-    rcases eq_or_lt_of_le hx with rfl|hax, { exact (lt_irrefl _ hq).elim },
-    refine mem_sets_of_superset (Ico_mem_nhds_within_Ici (left_mem_Ico.2 hax)) _,
-    intros z hz,
-    exact ⟨h_mono.monotone hz.1, h_mono hz.2⟩ },
-  { push_neg at hfa_top,
-    have ha_top : ∀ x : α, x ≤ a := strict_mono.top_preimage_top h_mono hfa_top,
-    rw [Ici_singleton_of_top ha_top, nhds_within_eq_map_subtype_coe (mem_singleton a),
-      nhds_discrete {x : α // x ∈ {a}}],
-    { exact mem_pure_sets.mpr (mem_of_nhds hs) },
-    { apply_instance } }
-end
-
-/-- If `f : α → β` is strictly monotone and surjective, it is everywhere left-continuous. Superseded
-later in this file by `continuous_of_strict_mono_surjective` (same assumptions). -/
-lemma continuous_left_of_strict_mono_surjective
-  {f : α → β} (h_mono : strict_mono f) (h_surj : function.surjective f) (a : α) :
-  continuous_within_at f (Iic a) a :=
-begin
-  apply @continuous_right_of_strict_mono_surjective (order_dual α) (order_dual β),
-  { exact λ x y hxy, h_mono hxy },
-  { simpa only [dual_Icc] }
-end
-
-end functions
 
 end linear_order
 
@@ -2775,8 +2731,7 @@ by simp only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_left_su
 lemma continuous_on_Icc_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [regular_space β] {f : α → β} {a b : α}
   {la lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
-  (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la))
-  (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
+  (ha : tendsto f (𝓝[Ioi a] a) (𝓝 la)) (hb : tendsto f (𝓝[Iio b] b) (𝓝 lb)) :
   continuous_on (extend_from (Ioo a b) f) (Icc a b) :=
 begin
   apply continuous_on_extend_from,
@@ -2792,7 +2747,7 @@ end
 
 lemma eq_lim_at_left_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [t2_space β] {f : α → β} {a b : α}
-  {la : β} (hab : a < b) (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la)) :
+  {la : β} (hab : a < b) (ha : tendsto f (𝓝[Ioi a] a) (𝓝 la)) :
   extend_from (Ioo a b) f a = la :=
 begin
   apply extend_from_eq,
@@ -2803,7 +2758,7 @@ end
 
 lemma eq_lim_at_right_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [t2_space β] {f : α → β} {a b : α}
-  {lb : β} (hab : a < b) (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
+  {lb : β} (hab : a < b) (hb : tendsto f (𝓝[Iio b] b) (𝓝 lb)) :
   extend_from (Ioo a b) f b = lb :=
 begin
   apply extend_from_eq,
@@ -2815,7 +2770,7 @@ end
 lemma continuous_on_Ico_extend_from_Ioo [topological_space α]
   [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
   [regular_space β] {f : α → β} {a b : α} {la : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
-  (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la)) :
+  (ha : tendsto f (𝓝[Ioi a] a) (𝓝 la)) :
   continuous_on (extend_from (Ioo a b) f) (Ico a b) :=
 begin
   apply continuous_on_extend_from,
@@ -2858,59 +2813,36 @@ lemma continuous_at_iff_continuous_left'_right' [topological_space α] [linear_o
 by rw [continuous_within_at_Ioi_iff_Ici, continuous_within_at_Iio_iff_Iic,
   continuous_at_iff_continuous_left_right]
 
-section homeomorphisms
-variables [topological_space α] [topological_space β]
+namespace order_iso
 
-section linear_order
-variables [linear_order α] [order_topology α]
-variables [linear_order β] [order_topology β]
+variables [partial_order α] [partial_order β] [topological_space α] [topological_space β]
+  [order_topology α] [order_topology β]
 
-/-- If `f : α → β` is strictly monotone and surjective, it is everywhere continuous. -/
-lemma continuous_at_of_strict_mono_surjective
-  {f : α → β} (h_mono : strict_mono f) (h_surj : function.surjective f) (a : α) :
-  continuous_at f a :=
-continuous_at_iff_continuous_left_right.mpr
-  ⟨continuous_left_of_strict_mono_surjective h_mono h_surj a,
-  continuous_right_of_strict_mono_surjective h_mono h_surj a⟩
-
-/-- If `f : α → β` is strictly monotone and surjective, it is continuous. -/
-lemma continuous_of_strict_mono_surjective
-  {f : α → β} (h_mono : strict_mono f) (h_surj : function.surjective f) :
-  continuous f :=
-continuous_iff_continuous_at.mpr (continuous_at_of_strict_mono_surjective h_mono h_surj)
-
-/-- If `f : α ≃ β` is strictly monotone, its inverse is continuous. -/
-lemma continuous_inv_of_strict_mono_equiv (e : α ≃ β) (h_mono : strict_mono e.to_fun) :
-  continuous e.inv_fun :=
+protected lemma continuous (e : α ≃o β) : continuous e :=
 begin
-  have hinv_mono : strict_mono e.inv_fun,
-  { intros x y hxy,
-    rw [← h_mono.lt_iff_lt, e.right_inv, e.right_inv],
-    exact hxy },
-  have hinv_surj : function.surjective e.inv_fun,
-  { intros x,
-    exact ⟨e.to_fun x, e.left_inv x⟩ },
-  exact continuous_of_strict_mono_surjective hinv_mono hinv_surj
+  rw [‹order_topology β›.topology_eq_generate_intervals],
+  refine continuous_generated_from (λ s hs, _),
+  rcases hs with ⟨a, rfl|rfl⟩,
+  { rw e.preimage_Ioi, apply is_open_lt' },
+  { rw e.preimage_Iio, apply is_open_gt' }
 end
 
-/-- If `f : α → β` is strictly monotone and surjective, it is a homeomorphism. -/
-noncomputable def homeomorph_of_strict_mono_surjective
-  (f : α → β) (h_mono : strict_mono f) (h_surj : function.surjective f) :
-  homeomorph α β :=
-{ to_equiv := equiv.of_bijective f ⟨strict_mono.injective h_mono, h_surj⟩,
-  continuous_to_fun := continuous_of_strict_mono_surjective h_mono h_surj,
-  continuous_inv_fun := continuous_inv_of_strict_mono_equiv
-    (equiv.of_bijective f ⟨strict_mono.injective h_mono, h_surj⟩) h_mono }
+/-- An order isomorphism between two linear order `order_topology` spaces is a homeomorphism. -/
+def to_homeomorph (e : α ≃o β) : α ≃ₜ β :=
+{ continuous_to_fun := e.continuous,
+  continuous_inv_fun := e.symm.continuous,
+  .. e }
 
-@[simp] lemma coe_homeomorph_of_strict_mono_surjective
-  (f : α → β) (h_mono : strict_mono f) (h_surj : function.surjective f) :
-  (homeomorph_of_strict_mono_surjective f h_mono h_surj : α → β) = f := rfl
+@[simp] lemma coe_to_homeomorph (e : α ≃o β) : ⇑e.to_homeomorph = e := rfl
+@[simp] lemma coe_to_homeomorph_symm (e : α ≃o β) : ⇑e.to_homeomorph.symm = e.symm := rfl
 
-end linear_order
+end order_iso
 
 section conditionally_complete_linear_order
-variables [conditionally_complete_linear_order α] [densely_ordered α] [order_topology α]
-variables [conditionally_complete_linear_order β] [order_topology β]
+variables
+  [conditionally_complete_linear_order α] [densely_ordered α] [topological_space α]
+  [order_topology α] [conditionally_complete_linear_order β] [topological_space β]
+  [order_topology β]
 
 /-- If `f : α → β` is strictly monotone and continuous, and tendsto `at_top` `at_top` and to
 `at_bot` `at_bot`, then it is a homeomorphism. -/
@@ -2918,7 +2850,8 @@ noncomputable def homeomorph_of_strict_mono_continuous
   (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
   (h_bot : tendsto f at_bot at_bot) :
   homeomorph α β :=
-homeomorph_of_strict_mono_surjective f h_mono (surjective_of_continuous h_cont h_top h_bot)
+(order_iso.of_strict_mono_surjective f h_mono
+  (surjective_of_continuous h_cont h_top h_bot)).to_homeomorph
 
 @[simp] lemma coe_homeomorph_of_strict_mono_continuous
   (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
@@ -2940,10 +2873,10 @@ noncomputable def homeomorph_of_strict_mono_continuous_Ioo
   (h_top : tendsto f (𝓝[Iio b] b) at_top)
   (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
   homeomorph (Ioo a b) β :=
-@homeomorph_of_strict_mono_continuous _ _ _ _
+@homeomorph_of_strict_mono_continuous _ _
 (@ord_connected_subset_conditionally_complete_linear_order α (Ioo a b) _
   ⟨classical.choice (nonempty_Ioo_subtype h)⟩ _)
-_ _ _ _
+_ _ _ _ _ _
 (restrict f (Ioo a b))
 (λ x y, h_mono x.2.1 y.2.2)
 (continuous_on_iff_continuous_restrict.mp h_cont)
@@ -2967,5 +2900,3 @@ end
 rfl
 
 end conditionally_complete_linear_order
-
-end homeomorphisms

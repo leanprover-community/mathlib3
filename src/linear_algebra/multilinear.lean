@@ -530,17 +530,30 @@ end semimodule
 
 section
 
-/-- Apply a permutation to the order of the arguments, obtaining another multilinear map.
+variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂] [add_comm_monoid M₃] [semimodule R M₃]
+
+/-- Transfer the arguments to a map along an equivalence between argument indices.
 
 The naming is derived from `finsupp.dom_congr`, noting that here the permutation applies to the
 domain of the domain. -/
 @[simps apply]
-def dom_dom_congr [add_comm_monoid M₃] [semimodule R M₃]
-  (m : multilinear_map R (λ i : ι, M₂) M₃) (σ : equiv.perm ι) :
-  multilinear_map R (λ i : ι, M₂) M₃ :=
+def dom_dom_congr (σ : ι₁ ≃ ι₂) (m : multilinear_map R (λ i : ι₁, M₂) M₃) :
+  multilinear_map R (λ i : ι₂, M₂) M₃ :=
 { to_fun := λ v, m (λ i, v (σ i)),
   map_add' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_add, },
   map_smul' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_smul, }, }
+
+/-- `multilinear_map.dom_dom_congr` as an equivalence.
+
+This is declared separately because it does not work with dot notation. -/
+@[simps apply symm_apply]
+def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
+  multilinear_map R (λ i : ι₁, M₂) M₃ ≃+ multilinear_map R (λ i : ι₂, M₂) M₃ :=
+{ to_fun := dom_dom_congr σ,
+  inv_fun := dom_dom_congr σ.symm,
+  left_inv := λ m, by {ext, simp},
+  right_inv := λ m, by {ext, simp},
+  map_add' := λ a b, by {ext, simp} }
 
 end
 

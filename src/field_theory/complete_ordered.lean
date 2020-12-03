@@ -62,7 +62,6 @@ def cut_map (F K : Type*) [division_ring F] [char_zero F] [division_ring K] [cha
 
 --local attribute [instance] pointwise_one pointwise_mul pointwise_add
 
-#check set.has_add
 /- No longer used -/
 lemma bdd_above_add {F : Type*} [ordered_add_comm_monoid F] {A B : set F} :
   bdd_above A → bdd_above B → bdd_above (A + B) :=

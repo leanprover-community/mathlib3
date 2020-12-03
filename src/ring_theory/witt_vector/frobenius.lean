@@ -79,8 +79,7 @@ local notation `v` := pnat_multiplicity
 `(frobenius_poly_aux p n - X n ^ p) / p = frobenius_poly p n`.
 This makes it easy to show that `frobenius_poly p n` is congruent to `X n ^ p`
 modulo `p`. -/
-noncomputable
-def frobenius_poly_aux : ℕ → mv_polynomial ℕ ℤ
+noncomputable def frobenius_poly_aux : ℕ → mv_polynomial ℕ ℤ
 | n := X (n + 1) - ∑ i : fin n, have _ := i.is_lt,
   ∑ j in range (p ^ (n - i)),
     (X i ^ p) ^ (p ^ (n - i) - (j + 1)) *

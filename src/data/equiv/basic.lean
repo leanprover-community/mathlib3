@@ -1503,7 +1503,7 @@ end)
 by rw [← equiv.trans_apply, equiv.swap_swap, equiv.refl_apply]
 
 /-- A function is invariant to a swap if it is equal at both elements -/
-lemma swap_invariant {v : α → β} {i j : α} (hv : v i = v j) (k : α) : v (swap i j k) = v k :=
+lemma apply_swap_eq_self {v : α → β} {i j : α} (hv : v i = v j) (k : α) : v (swap i j k) = v k :=
 begin
   by_cases hi : k = i, { rw [hi, swap_apply_left, hv] },
   by_cases hj : k = j, { rw [hj, swap_apply_right, hv] },

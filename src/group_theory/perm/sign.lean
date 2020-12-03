@@ -34,10 +34,10 @@ We use this to partition permutations in `matrix.det_zero_of_row_eq`, such that 
 sums up to `0`.
 -/
 def mod_swap [decidable_eq α] (i j : α) : setoid (perm α) :=
-⟨ λ σ τ, σ = τ ∨ σ = swap i j * τ,
-  λ σ, or.inl (refl σ),
-  λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
-  λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish⟩
+⟨λ σ τ, σ = τ ∨ σ = swap i j * τ,
+ λ σ, or.inl (refl σ),
+ λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
+ λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish⟩
 
 instance {α : Type*} [fintype α] [decidable_eq α] (i j : α) : decidable_rel (mod_swap i j).r :=
 λ σ τ, or.decidable

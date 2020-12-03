@@ -202,7 +202,7 @@ begin
   rw [neg_mul_eq_neg_mul],
   congr,
   { rw [sign_mul, sign_swap i_ne_j], norm_num },
-  ext j, rw [perm.mul_apply, swap_invariant hij]
+  ext j, rw [perm.mul_apply, apply_swap_eq_self hij]
 end
 
 end det_zero

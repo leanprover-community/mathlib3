@@ -42,7 +42,7 @@ structure Profinite :=
 (to_Top : Top)
 [is_compact : compact_space to_Top]
 [is_t2 : t2_space to_Top]
-[is_td : totally_disconnected_space to_Top]
+[is_totally_disconnected : totally_disconnected_space to_Top]
 
 namespace Profinite
 

@@ -494,14 +494,8 @@ begin
 end
 
 lemma fg_of_noetherian (S : intermediate_field F E)
-  [is_noetherian F S] : S.fg :=
-begin
-  apply fg_of_fg_to_subalgebra,
-  apply subalgebra.fg_of_fg_to_submodule,
-end
---S.fg_of_fg_to_subalgebra S.to_subalgebra.fg_of_noetherian
-
-#check subalgebra.fg_of_noetherian
+  [is_noetherian F E] : S.fg :=
+S.fg_of_fg_to_subalgebra S.to_subalgebra.fg_of_noetherian
 
 lemma induction_on_adjoin_finset (S : finset E) (P : intermediate_field F E → Prop) (base : P ⊥)
   (ih : ∀ (K : intermediate_field F E) (x ∈ S), P K → P ↑K⟮x⟯) : P (adjoin F ↑S) :=

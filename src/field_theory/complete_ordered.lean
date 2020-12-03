@@ -460,6 +460,7 @@ def induced_add_map (F K : Type*) [linear_ordered_field F] [archimedean F]
   map_zero' := by exact_mod_cast induced_map_rat F K 0,
   map_add' := induced_map_add F K}
 
+/-- induced_map as a ring_hom -/
 def induced_add_mul_map (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] :
   F →+* K := ring_hom.mk_mul_self_of_two_ne_zero (induced_add_map F K)

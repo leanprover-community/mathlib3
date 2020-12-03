@@ -2827,7 +2827,11 @@ variables [linear_order β] [topological_space β] [order_topology β]
 
 /-- If `f` is a function strictly monotonically increasing on a right neighborhood of `a` and the
 image of this neighborhood under `f` meets every interval `(f a, b]`, `b > f a`, then `f` is
-continuous at `a` from the right. -/
+continuous at `a` from the right.
+
+The assumption `hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b` is required because otherwise the
+function `f : ℝ → ℝ` given by `f x = if x ≤ 0 then x else x + 1` would be a counter-example at
+`a = 0`. -/
 lemma strict_mono_incr_on.continuous_at_right_of_exists_between {f : α → β} {s : set α} {a : α}
   (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a)
   (hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b) :
@@ -2848,7 +2852,11 @@ end
 
 /-- If `f` is a function monotonically increasing function on a right neighborhood of `a` and the
 image of this neighborhood under `f` meets every interval `(f a, b)`, `b > f a`, then `f` is
-continuous at `a` from the right. -/
+continuous at `a` from the right.
+
+The assumption `hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioo (f a) b` cannot be replaced by the weaker
+assumption `hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b` we use for strictly monotone functions
+because otherwise the function `ceil : ℝ → ℤ` would be a counter-example at `a = 0`. -/
 lemma continuous_at_right_of_mono_incr_on_of_exists_between {f : α → β} {s : set α} {a : α}
   (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝[Ici a] a)
   (hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioo (f a) b) :
@@ -2924,7 +2932,11 @@ h_mono.continuous_at_right_of_exists_between hs $ λ b hb, let ⟨c, hcs, hcb⟩
 
 /-- If `f` is a function strictly monotonically increasing on a left neighborhood of `a` and the
 image of this neighborhood under `f` meets every interval `[b, f a)`, `b < f a`, then `f` is
-continuous at `a` from the left. -/
+continuous at `a` from the left.
+
+The assumption `hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)` is required because otherwise the
+function `f : ℝ → ℝ` given by `f x = if x < 0 then x else x + 1` would be a counter-example at
+`a = 0`. -/
 lemma strict_mono_incr_on.continuous_at_left_of_exists_between {f : α → β} {s : set α} {a : α}
   (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a)
   (hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)) :
@@ -2934,7 +2946,11 @@ h_mono.dual.continuous_at_right_of_exists_between hs $
 
 /-- If `f` is a function monotonically increasing function on a left neighborhood of `a` and the
 image of this neighborhood under `f` meets every interval `(b, f a)`, `b < f a`, then `f` is
-continuous at `a` from the left. -/
+continuous at `a` from the left.
+
+The assumption `hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ioo b (f a)` cannot be replaced by the weaker
+assumption `hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)` we use for strictly monotone functions
+because otherwise the function `floor : ℝ → ℤ` would be a counter-example at `a = 0`. -/
 lemma continuous_at_left_of_mono_incr_on_of_exists_between {f : α → β} {s : set α} {a : α}
   (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝[Iic a] a)
   (hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ioo b (f a)) :

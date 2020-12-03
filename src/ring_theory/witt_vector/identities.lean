@@ -38,9 +38,7 @@ by { ghost_calc x, ghost_simp [mul_comm] }
 
 lemma verschiebung_zmod (x : 𝕎 (zmod p)) :
   verschiebung x = x * p :=
-begin
-  rw [← frobenius_verschiebung, frobenius_zmodp],
-end
+by rw [← frobenius_verschiebung, frobenius_zmodp]
 
 lemma coeff_p_pow [char_p R p] (i : ℕ) : (p ^ i : 𝕎 R).coeff i = 1 :=
 begin

@@ -16,7 +16,7 @@ In this file we show deduce common identities between the Frobenius and Verschie
 ### Main declarations
 
 * `frobenius_verschiebung`: the composition of Frobenius and Verschiebung is multiplication by `p`
-* `verschiebung_mul_frobenius`: the “product formula”: `V(x * F y) = V x * y`
+* `verschiebung_mul_frobenius`: the “projection formula”: `V(x * F y) = V x * y`
 -/
 
 namespace witt_vector

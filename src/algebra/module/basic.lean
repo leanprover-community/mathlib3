@@ -384,8 +384,6 @@ instance smul_comm_class : smul_comm_class ℕ R M :=
     { simp [succ_nsmul, ←ih, smul_add] },
   end }
 
-instance smul_comm_class' : smul_comm_class R ℕ M := smul_comm_class.symm _ _ _
-
 end nat
 
 end
@@ -416,8 +414,6 @@ variables [semiring R] [add_comm_group M] [semimodule R M]
 
 instance smul_comm_class : smul_comm_class ℤ R M :=
 { smul_comm := λ z r l, by cases z; simp [←gsmul_eq_smul, ←nat.smul_def, smul_comm] }
-
-instance smul_comm_class' : smul_comm_class R ℤ M := smul_comm_class.symm _ _ _
 
 end int
 

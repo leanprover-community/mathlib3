@@ -54,7 +54,7 @@ instance : inhabited (matching G) :=
 variables {G}
 
 /--
-`verts` is the set of vertices of `G` that are
+`M.support` is the set of vertices of `G` that are
 contained in some edge of matching `M`
 -/
 def matching.support (M : G.matching) : set V :=

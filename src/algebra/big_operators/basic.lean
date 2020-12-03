@@ -688,12 +688,12 @@ reduces to the ratio of the last and first factors.-/
 @[to_additive]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f (i+1) * (f i)⁻¹) = f n * (f 0)⁻¹ :=
-by apply @sum_range_sub (additive M)
+by simpa only [← div_eq_mul_inv] using @sum_range_sub (additive M) _ f n
 
 @[to_additive]
 lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f i * (f (i+1))⁻¹) = (f 0) * (f n)⁻¹ :=
-by apply @sum_range_sub' (additive M)
+by simpa only [← div_eq_mul_inv] using @sum_range_sub' (additive M) _ f n
 
 /--
 A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function

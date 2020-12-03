@@ -120,13 +120,13 @@ end ordered_ring_equiv
 /-- A field which is both linearly ordered and conditionally complete with respect to the order,
     this provides a model of the reals. -/
 class conditionally_complete_linear_ordered_field (F : Type*)
-  extends discrete_linear_ordered_field F, conditionally_complete_linear_order F
+  extends linear_ordered_field F, conditionally_complete_linear_order F
 
 -- TODO conditionally_complete_lattice or conditioanlly_complete_linear order?
 
 /-- The reals are a conditionally complete linearly ordered field. -/
 instance : conditionally_complete_linear_ordered_field ℝ := {
-  ..real.discrete_linear_ordered_field,
+  ..real.linear_ordered_field,
   ..real.conditionally_complete_linear_order }
 
 lemma exists_rat_sqr_btwn_rat_aux (x y : ℝ) (h : x < y) (hx : 0 ≤ x) :
@@ -585,10 +585,9 @@ def ordered_ring_equiv (F K : Type*)
     refine ⟨induced_map_le _ _, _⟩,
     intro h,
     replace h := induced_map_le K F h,
-    dsimp at h,
-    simp [ring_hom.mk_mul_self_of_two_ne_zero_to_fun] at h,
-    rw [ induced_map_inv_self, induced_map_inv_self] at h,
-    exact h,
+    change induced_map K F ((induced_add_mul_map F K) x) ≤
+      induced_map K F ((induced_add_mul_map F K) y) at h,
+    simpa [induced_add_mul_map, ring_hom.mk_mul_self_of_two_ne_zero, induced_add_map] using h,
   end,
   ..induced_add_mul_map F K }
 

@@ -542,6 +542,10 @@ variables {N : Type*} [add_comm_monoid N] [semimodule R N]
 `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂` by taking the tensor product of each function applied to its respective
 inputs indexed by `ι₁ ⊕ ι₂`.
 
+This can be thought of as combining `equiv.sum_arrow_equiv_prod_arrow.symm` with
+`tensor_product.map`, noting that the two operations can't be separated as the intermediate result
+is not a `multilinear_map`.
+
 While this can be generalized to work for dependent `Π i : ι₁, N'₁ i` instead of `ι₁ → N`, doing so
 introduces `sum.elim N'₁ N'₂` types in the result which are difficult to work with and not defeq
 to the simple case defined here. See [this zulip thread](

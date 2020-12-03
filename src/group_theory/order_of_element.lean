@@ -303,9 +303,11 @@ lemma is_cyclic_of_order_of_eq_card [group α] [decidable_eq α] [fintype α]
   (set.subset_univ _)
   (by {rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers], refl})⟩⟩
 
-lemma is_cyclic_of_prime_card [group α] [fintype α] (p : ℕ) (hp : nat.prime p) (h : fintype.card α = p) : is_cyclic α :=
+lemma is_cyclic_of_prime_card [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
+  (h : fintype.card α = p) : is_cyclic α :=
 ⟨begin
-  obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1 := fintype.exists_ne_of_one_lt_card (by { rw h, exact nat.prime.one_lt hp }) 1,
+  obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1,
+  from fintype.exists_ne_of_one_lt_card (by { rw h, exact nat.prime.one_lt hp }) 1,
   have : fintype.card (subgroup.gpowers g) ∣ p,
   { rw ←h,
     apply card_subgroup_dvd_card },

@@ -79,7 +79,7 @@ lemma tendsto_abv_eval₂_at_top {R S k α : Type*} [semiring R] [ring S] [linea
 begin
   revert hf, refine degree_pos_induction_on p hd _ _ _; clear hd p,
   { rintros c - hc,
-    rw [leading_coeff_C_mul_X] at hc,
+    rw [leading_coeff_mul_X, leading_coeff_C] at hc,
     simpa [abv_mul abv] using tendsto_at_top_mul_left' ((abv_pos abv).2 hc) hz },
   { intros p hpd ihp hf,
     rw [leading_coeff_mul_X] at hf,

@@ -67,7 +67,7 @@ A perfect matching `M` on graph `G` is a matching such that
 def matching.is_perfect (M : G.matching) : Prop :=
 M.support = set.univ
 
-lemma matching.is_perfect_iff_vertex_mem (M : G.matching) :
+lemma matching.is_perfect_iff (M : G.matching) :
 M.is_perfect ↔ ∀ (v : V), ∃ e ∈ M.val, v ∈ e :=
 by { dsimp [matching.is_perfect, matching.support], exact set.eq_univ_iff_forall }
 

@@ -862,7 +862,7 @@ def hom_of_le : N →ₗ⁅R,L⁆ N' :=
 
 @[simp] lemma coe_hom_of_le (m : N) : (hom_of_le h m : M) = m := rfl
 
-lemma of_le_apply (m : N) : hom_of_le h m = ⟨m.1, h m.2⟩ := rfl
+lemma hom_of_le_apply (m : N) : hom_of_le h m = ⟨m.1, h m.2⟩ := rfl
 
 end inclusion_maps
 

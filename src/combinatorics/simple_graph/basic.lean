@@ -183,7 +183,7 @@ variable [decidable_eq V]
 /--
 Given an edge incident to a particular vertex, get the other vertex on the edge.
 -/
-def incidence_set_other {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
+def other_vertex_of_incident {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
 
 lemma incidence_other_prop {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
 G.incidence_set_other h ∈ G.neighbor_set v :=

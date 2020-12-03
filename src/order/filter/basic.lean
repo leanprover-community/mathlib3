@@ -1516,8 +1516,7 @@ le_antisymm
   le_comap_map
 
 lemma mem_comap_iff {f : filter β} {m : α → β} (inj : function.injective m)
-  (large : set.range m ∈ f) (S : set α) :
-  S ∈ comap m f ↔ m '' S ∈ f :=
+  (large : set.range m ∈ f) (S : set α) : S ∈ comap m f ↔ m '' S ∈ f :=
 begin
   refine ⟨image_mem_sets large, _⟩,
   intro h,

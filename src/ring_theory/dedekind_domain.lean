@@ -805,28 +805,30 @@ begin
   sorry
 end
 
+/-
 instance subalgebra.algebra_left {R A B : Type*} [comm_semiring R] [comm_semiring A]
   [semiring B] [algebra R A] [algebra A B] (S : subalgebra A B) : algebra R S := sorry
 
 instance intermediate_field.algebra_left {R A B : Type*} [comm_semiring R] [field A]
   [field B] [algebra R A] [algebra A B] (S : intermediate_field A B) : algebra R S := sorry
+  -/
 
 open_locale big_operators
 
 variables {K}
 
-lemma integral_closure_le_adjoin [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
+lemma integral_closure_le_span [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
   [is_separable (localization_map.codomain f) L]
   {ι : Type*} [fintype ι] {b : ι → L} (hb : is_basis f.codomain b)
   (hb_int : ∀ i, is_integral R (b i)) (int_cl : integral_closure R f.codomain = ⊥) :
-  integral_closure R L ≤ algebra.adjoin R (finset.image (dual_basis hb) finset.univ) :=
+  (integral_closure R L : submodule R L) ≤ submodule.span R (set.range (dual_basis hb)) :=
 begin
   rintros x (hx : is_integral R x),
   suffices : ∃ (c : ι → R), x = ∑ i, c i • dual_basis hb i,
   { obtain ⟨c, rfl⟩ := this,
-    refine subalgebra.sum_mem _ (λ i _, subalgebra.smul_mem _ (algebra.subset_adjoin _) _),
-    rw [finset.mem_coe, finset.mem_image],
-    exact ⟨i, finset.mem_univ i, rfl⟩ },
+    refine submodule.sum_mem _ (λ i _, submodule.smul_mem _ _ (submodule.subset_span _)),
+    rw set.mem_range,
+    exact ⟨i, rfl⟩ },
   suffices : ∃ (c : ι → f.codomain), ((∀ i, is_integral R (c i)) ∧ x = ∑ i, c i • dual_basis hb i),
   { obtain ⟨c, hc, hx⟩ := this,
     have hc' := λ i, (integrally_closed_iff_integral_implies_integer.mp int_cl (c i) (hc i)),
@@ -846,9 +848,10 @@ lemma is_noetherian_of_le [algebra R L] {s t : submodule R L}
   is_noetherian R s :=
 is_noetherian_submodule.mpr (λ s' hs', is_noetherian_submodule.mp ht _ (le_trans hs' h))
 
-lemma is_noetherian_adjoin [algebra R L] (s : set L) (hs : s.finite) :
-  is_noetherian R (algebra.adjoin R s) :=
-sorry -- by library_search
+lemma is_noetherian_adjoin_finset [is_noetherian_ring R] [algebra R L] (s : finset L)
+  (hs : ∀ x ∈ s, is_integral R x) :
+  is_noetherian R (algebra.adjoin R (↑s : set L)) :=
+is_noetherian_of_fg_of_noetherian _ (fg_adjoin_of_finite s.finite_to_set hs)
 
 /-- Send a set of `x`'es in a finite extension `L` of the fraction field of `R` to `(y : R) • x ∈ integral_closure R L`. -/
 lemma exists_integral_multiples (f : fraction_map R K)
@@ -862,23 +865,27 @@ begin
   { rintros x s hx ⟨y, hy, hs⟩,
     obtain ⟨x', y', hy', hx'⟩ := exists_integral_multiple
       (f.is_algebraic_iff.mp (algebra.is_algebraic_of_finite x))
-      sorry,
+      _,
     use [y * y', mul_ne_zero hy hy'],
     intros x'' hx'',
     rcases finset.mem_insert.mp hx'' with (rfl | hx''),
     { rw [mul_smul, hx', algebra.smul_def],
       exact is_integral_mul is_integral_algebra_map x'.2 },
     { rw [mul_comm, mul_smul, algebra.smul_def],
-      exact is_integral_mul is_integral_algebra_map (hs _ hx'') } }
+      exact is_integral_mul is_integral_algebra_map (hs _ hx'') },
+    { rw is_scalar_tower.algebra_map_eq R f.codomain L,
+      apply (algebra_map f.codomain L).injective.comp,
+      rw f.algebra_map_eq,
+      exact f.injective } }
 end
 
-def lsmul_equiv {x : R} (hx : x ≠ 0) [algebra R L] : L ≃ₗ[R] L :=
+def lsmul_equiv [algebra R L] {x : R} (hx : algebra_map R L x ≠ 0) : L ≃ₗ[R] L :=
 { inv_fun := λ y, (algebra_map R L x)⁻¹ * y,
-  left_inv := λ y, sorry,
-  right_inv := λ y, sorry,
+  left_inv := λ y, by simp only [linear_map.to_fun_eq_coe, algebra.lmul_apply, ← mul_assoc, inv_mul_cancel hx, one_mul],
+  right_inv := λ y, by simp only [linear_map.to_fun_eq_coe, algebra.lmul_apply, ← mul_assoc, mul_inv_cancel hx, one_mul],
   .. algebra.lmul R L (algebra_map R L x) }
 
-@[simp] lemma lsmul_equiv_apply {x : R} (hx : x ≠ 0) [algebra R L] (y : L) :
+@[simp] lemma lsmul_equiv_apply [algebra R L] {x : R} (hx : algebra_map R L x ≠ 0)  (y : L) :
   lsmul_equiv hx y = x • y := (algebra.smul_def x y).symm
 
 section
@@ -888,25 +895,37 @@ variables {K} (f L)
 lemma exists_is_basis_integral
   [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
   [finite_dimensional f.codomain L] :
-  ∃ (s : finset L),
-    is_basis f.codomain (coe : (↑s : set L) → L) ∧
-    (∀ x ∈ s, is_integral R x) :=
-let ⟨s', hs'⟩ := finite_dimensional.exists_is_basis_finset f.codomain L,
-    ⟨y, hy, hs'⟩ := exists_integral_multiples f s' in
-⟨s'.image (lsmul_equiv hy),
- sorry,
- λ x hx, by { obtain ⟨x', hx', rfl⟩ := finset.mem_image.mp hx, rw lsmul_equiv_apply, exact hs' x' hx' }⟩
+  ∃ (s : finset L) (b : (↑s : set L) → L),
+    is_basis f.codomain b ∧
+    (∀ x, is_integral R (b x)) :=
+let ⟨s', hbs'⟩ := finite_dimensional.exists_is_basis_finset f.codomain L,
+    ⟨y, hy, his'⟩ := exists_integral_multiples f s' in
+have hy' : algebra_map f.codomain L (algebra_map R f.codomain y) ≠ 0 :=
+  by {
+    apply mt (λ h, _) hy,
+    apply f.to_map.injective_iff.mp f.injective,
+    apply (algebra_map f.codomain L).injective_iff.mp (algebra_map f.codomain L).injective,
+    exact h },
+⟨s',
+  _,
+  (lsmul_equiv hy').is_basis hbs',
+ by { rintros ⟨x', hx'⟩, simp only [function.comp, lsmul_equiv_apply, is_scalar_tower.algebra_map_smul],
+      exact his' x' hx' }⟩
 
 end
 
-lemma integral_closure.is_noetherian
+lemma integral_closure.is_noetherian_ring [is_noetherian_ring R]
   [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
   [finite_dimensional f.codomain L] [is_separable (localization_map.codomain f) L]
   (int_cl : integral_closure R f.codomain = ⊥) :
-  is_noetherian R (integral_closure R L) :=
-let ⟨b, hb, hb_int⟩ := exists_is_basis_integral L f in
-have _ := integral_closure_le_adjoin hb (λ x, hb_int _ x.2) int_cl,
-is_noetherian_of_le (is_noetherian_adjoin _ (finset.finite_to_set _)) this
+  is_noetherian_ring (integral_closure R L) :=
+let ⟨s, b, hb, hb_int⟩ := exists_is_basis_integral L f in
+is_noetherian_of_is_scalar_tower _ (is_noetherian_of_le
+  (is_noetherian_span_of_finite _ (set.finite_range _))
+  (integral_closure_le_span hb (λ x, hb_int x) int_cl))
+
+instance [h : is_dedekind_domain R] : is_noetherian_ring R :=
+h.2
 
 /- If L is a finite extension of R's fraction field, the integral closure of R in L is a Dedekind domain. -/
 def closure_in_field_extension [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
@@ -915,8 +934,7 @@ def closure_in_field_extension [algebra f.codomain L] [algebra R L] [is_scalar_t
   is_dedekind_domain (integral_closure R L) :=
 (is_dedekind_domain_iff _ _ (integral_closure.fraction_map_of_finite_extension L f)).mpr
 ⟨sorry,
- is_noetherian_ring_of_is_noetherian_coe_submodule _ _ (integral_closure.is_noetherian
-   ((is_dedekind_domain_iff _ _ f).mp h).2.2.2),
+ integral_closure.is_noetherian_ring ((is_dedekind_domain_iff _ _ f).mp h).2.2.2,
  h.dimension_le_one.integral_closure _ _,
  integral_closure_idem⟩
 

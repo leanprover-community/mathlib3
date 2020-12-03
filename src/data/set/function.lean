@@ -721,9 +721,9 @@ end
 
 end semiconj
 
-lemma update_comp_eq_of_not_mem_range [decidable_eq β]
-  (g : β → γ) {f : α → β} {i : β} (a : γ) (h : i ∉ set.range f) :
-  (function.update g i a) ∘ f = g ∘ f :=
+lemma update_comp_eq_of_not_mem_range' {α β : Sort*} {γ : β → Sort*} [decidable_eq β]
+  (g : Π b, γ b) {f : α → β} {i : β} (a : γ i) (h : i ∉ set.range f) :
+  (λ j, (function.update g i a) (f j)) = (λ j, g (f j)) :=
 begin
   ext p,
   have : f p ≠ i,
@@ -734,9 +734,15 @@ begin
   simp [this],
 end
 
-lemma update_comp_eq_of_injective [decidable_eq α] [decidable_eq β]
-  (g : β → γ) {f : α → β} (hf : function.injective f) (i : α) (a : γ) :
-  (function.update g (f i) a) ∘ f = function.update (g ∘ f) i a :=
+/-- Non-dependent version of `function.update_comp_eq_of_not_mem_range'` -/
+lemma update_comp_eq_of_not_mem_range {α β γ : Sort*} [decidable_eq β]
+  (g : β → γ) {f : α → β} {i : β} (a : γ) (h : i ∉ set.range f) :
+  (function.update g i a) ∘ f = g ∘ f :=
+update_comp_eq_of_not_mem_range' g a h
+
+lemma update_comp_eq_of_injective' {α β : Sort*} {γ : β → Sort*} [decidable_eq α] [decidable_eq β]
+  (g : Π b, γ b) {f : α → β} (hf : function.injective f) (i : α) (a : γ (f i)) :
+  (λ j, function.update g (f i) a (f j)) = function.update (λ i, g (f i)) i a :=
 begin
   ext j,
   by_cases h : j = i,
@@ -744,5 +750,11 @@ begin
   { have : f j ≠ f i := hf.ne h,
     simp [h, this] }
 end
+
+/-- Non-dependent version of `function.update_comp_eq_of_injective'` -/
+lemma update_comp_eq_of_injective {α β γ : Sort*} [decidable_eq α] [decidable_eq β]
+  (g : β → γ) {f : α → β} (hf : function.injective f) (i : α) (a : γ) :
+  (function.update g (f i) a) ∘ f = function.update (g ∘ f) i a :=
+update_comp_eq_of_injective' g hf i a
 
 end function

@@ -36,7 +36,7 @@ begin
 end
 
 @[continuity]
-protected lemma continuous : continuous (λ x, p.eval x) := 
+protected lemma continuous : continuous (λ x, p.eval x) :=
 p.continuous_eval₂ _
 
 protected lemma continuous_at {a : R} : continuous_at (λ x, p.eval x) a :=

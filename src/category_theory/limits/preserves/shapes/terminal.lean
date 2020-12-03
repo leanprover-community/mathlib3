@@ -64,7 +64,7 @@ Note this property is somewhat unique to (co)limits of the empty diagram: for ge
 has limits of shape `J` and `G` preserves them, then `D` does not necessarily have limits of shape
 `J`.
 -/
-def has_terminal_of_has_terminal_of_preserves_limit [preserves_limit (functor.empty C) G] :
+lemma has_terminal_of_has_terminal_of_preserves_limit [preserves_limit (functor.empty C) G] :
   has_terminal D :=
 ⟨λ F,
 begin

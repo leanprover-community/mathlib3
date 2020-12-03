@@ -372,6 +372,20 @@ lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
   n • x = n •ℕ x :=
 rfl
 
+namespace nat
+
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
+instance smul_comm_class : smul_comm_class ℕ R M :=
+{ smul_comm := λ n r m, begin
+    simp only [nat.smul_def],
+    induction n with n ih,
+    { simp },
+    { simp [succ_nsmul, ←ih, smul_add] },
+  end }
+
+end nat
+
 end
 
 section
@@ -393,6 +407,15 @@ end
 lemma module.gsmul_eq_smul {M : Type*} [add_comm_group M] [module ℤ M]
   (n : ℤ) (b : M) : gsmul n b = n • b :=
 by rw [module.gsmul_eq_smul_cast ℤ, int.cast_id]
+
+namespace int
+
+variables [semiring R] [add_comm_group M] [semimodule R M]
+
+instance smul_comm_class : smul_comm_class ℤ R M :=
+{ smul_comm := λ z r l, by cases z; simp [←gsmul_eq_smul, ←nat.smul_def, smul_comm] }
+
+end int
 
 end
 

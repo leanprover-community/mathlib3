@@ -856,13 +856,13 @@ lemma incl_eq_val : (N.incl : N → M) = subtype.val := rfl
 variables {N} {N' : lie_submodule R L M} (h : N ≤ N')
 
 /-- Given two nested Lie submodules `N ⊆ N'`, the inclusion `N ↪ N'` is a morphism of Lie modules.-/
-def of_le : N →ₗ⁅R,L⁆ N' :=
+def hom_of_le : N →ₗ⁅R,L⁆ N' :=
 { map_lie := λ x m, rfl,
   ..submodule.of_le h }
 
-@[simp] lemma coe_of_le (m : N) : (of_le h m : M) = m := rfl
+@[simp] lemma coe_hom_of_le (m : N) : (hom_of_le h m : M) = m := rfl
 
-lemma of_le_apply (m : N) : of_le h m = ⟨m.1, h m.2⟩ := rfl
+lemma of_le_apply (m : N) : hom_of_le h m = ⟨m.1, h m.2⟩ := rfl
 
 end inclusion_maps
 

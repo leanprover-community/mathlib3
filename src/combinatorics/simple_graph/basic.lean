@@ -63,14 +63,14 @@ structure simple_graph (V : Type u) :=
 Construct the simple graph induced by the given relation.  It
 symmetrizes the relation and makes it irreflexive.
 -/
-def simple_graph_from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :=
+def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :=
 { adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
   sym := λ a b ⟨hn, hr⟩, ⟨ne.symm hn, or.symm hr⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
 
 @[simp]
-lemma simple_graph_from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
-  (simple_graph_from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
+lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
+  (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
 by refl
 
 /--
@@ -186,7 +186,7 @@ Given an edge incident to a particular vertex, get the other vertex on the edge.
 def other_vertex_of_incident {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
 
 lemma incidence_other_prop {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
-G.other_vertex_of_incident h ∈ G.neighbor_set v :=
+  G.other_vertex_of_incident h ∈ G.neighbor_set v :=
 by { cases h, rwa [←sym2.mem_other_spec' h_right, mem_edge_set] at h_left }
 
 @[simp]

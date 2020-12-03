@@ -10,8 +10,6 @@ import data.polynomial.eval
 
 ## Main definitions
  * `polynomial.derivative`: The formal derivative of polynomials, expressed as a linear map.
- * `polynomial.derivative_derivation`:
-  The formal derivative of polynomials, expressed as a derivation.
 
 -/
 
@@ -31,7 +29,7 @@ section semiring
 variables [semiring R]
 
 /-- `derivative p` is the formal derivative of the polynomial `p` -/
-def derivative : (polynomial R) →ₗ[R] polynomial R :=
+def derivative : polynomial R →ₗ[R] polynomial R :=
 finsupp.total ℕ (polynomial R) R (λ n, C ↑n * X^(n - 1))
 
 lemma derivative_apply (p : polynomial R) :

@@ -68,7 +68,7 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
   right := v,
   w' := w }
 
-@[reassoc] lemma w {f g : arrow T} (sq : f ⟶ g) : sq.left ≫ g.hom = f.hom ≫ sq.right := sq.w
+@[simp, reassoc] lemma w {f g : arrow T} (sq : f ⟶ g) : sq.left ≫ g.hom = f.hom ≫ sq.right := sq.w
 
 /-- A lift of a commutative square is a diagonal morphism making the two triangles commute. -/
 @[ext] structure lift_struct {f g : arrow T} (sq : f ⟶ g) :=

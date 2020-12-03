@@ -80,8 +80,27 @@ variables [semiring R]
 
 instance : has_coe_to_fun (multilinear_map R M₁ M₂) := ⟨_, to_fun⟩
 
+initialize_simps_projections multilinear_map (to_fun → apply)
+
+@[simp] lemma to_fun_eq_coe : f.to_fun = f := rfl
+
+@[simp] lemma coe_mk (f : (Π i, M₁ i) → M₂) (h₁ h₂ ) :
+  ⇑(⟨f, h₁, h₂⟩ : multilinear_map R M₁ M₂) = f := rfl
+
+theorem congr_fun {f g : multilinear_map R M₁ M₂} (h : f = g) (x : Π i, M₁ i) : f x = g x :=
+congr_arg (λ h : multilinear_map R M₁ M₂, h x) h
+
+theorem congr_arg (f : multilinear_map R M₁ M₂) {x y : Π i, M₁ i} (h : x = y) : f x = f y :=
+congr_arg (λ x : Π i, M₁ i, f x) h
+
+theorem coe_inj ⦃f g : multilinear_map R M₁ M₂⦄ (h : ⇑f = g) : f = g :=
+by cases f; cases g; cases h; refl
+
 @[ext] theorem ext {f f' : multilinear_map R M₁ M₂} (H : ∀ x, f x = f' x) : f = f' :=
-by cases f; cases f'; congr'; exact funext H
+coe_inj (funext H)
+
+theorem ext_iff {f g : multilinear_map R M₁ M₂} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 @[simp] lemma map_add (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
@@ -508,6 +527,35 @@ instance : semimodule R' (multilinear_map A M₁ M₂) :=
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
 end semimodule
+
+section
+
+variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂] [add_comm_monoid M₃] [semimodule R M₃]
+
+/-- Transfer the arguments to a map along an equivalence between argument indices.
+
+The naming is derived from `finsupp.dom_congr`, noting that here the permutation applies to the
+domain of the domain. -/
+@[simps apply]
+def dom_dom_congr (σ : ι₁ ≃ ι₂) (m : multilinear_map R (λ i : ι₁, M₂) M₃) :
+  multilinear_map R (λ i : ι₂, M₂) M₃ :=
+{ to_fun := λ v, m (λ i, v (σ i)),
+  map_add' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_add, },
+  map_smul' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_smul, }, }
+
+/-- `multilinear_map.dom_dom_congr` as an equivalence.
+
+This is declared separately because it does not work with dot notation. -/
+@[simps apply symm_apply]
+def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
+  multilinear_map R (λ i : ι₁, M₂) M₃ ≃+ multilinear_map R (λ i : ι₂, M₂) M₃ :=
+{ to_fun := dom_dom_congr σ,
+  inv_fun := dom_dom_congr σ.symm,
+  left_inv := λ m, by {ext, simp},
+  right_inv := λ m, by {ext, simp},
+  map_add' := λ a b, by {ext, simp} }
+
+end
 
 section
 

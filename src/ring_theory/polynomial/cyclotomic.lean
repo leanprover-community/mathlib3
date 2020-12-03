@@ -451,6 +451,72 @@ begin
   cyclotomic'_eq_X_pow_sub_one_div hpos hz, finset.prod_congr (refl k.proper_divisors) h]
 end
 
+lemma eq_cyclotomic_iff {R : Type*} [comm_ring R] [nontrivial R] {n : ℕ} (hpos: 0 < n)
+  (P : polynomial R) :
+  P = cyclotomic n R ↔ P * (∏ i in nat.proper_divisors n, polynomial.cyclotomic i R) = X ^ n - 1 :=
+begin
+  split,
+  { intro hcycl,
+    rw [hcycl, ← finset.prod_insert (@nat.proper_divisors.not_self_mem n),
+      ← nat.divisors_eq_proper_divisors_insert_self_of_pos hpos],
+    exact prod_cyclotomic_eq_X_pow_sub_one hpos R },
+  { intro hP,
+    have prod_monic : (∏ i in nat.proper_divisors n, cyclotomic i R).monic,
+    { apply monic_prod_of_monic,
+      intros i hi,
+      exact cyclotomic.monic i R },
+    rw [@cyclotomic_eq_X_pow_sub_one_div R _ _ _ hpos,
+      (div_mod_by_monic_unique P 0 prod_monic _).1],
+    split,
+    { rwa [zero_add, mul_comm] },
+    rw [degree_zero, bot_lt_iff_ne_bot],
+    intro h,
+    exact monic.ne_zero prod_monic (degree_eq_bot.1 h) },
+end
+
+/-- If `p` is prime, then `cyclotomic p R = geom_series X p`. -/
+lemma cyclotomic_eq_geom_series {R : Type*} [comm_ring R] [nontrivial R] {p : ℕ}
+  (hp : nat.prime p) : cyclotomic p R = geom_series X p :=
+begin
+  symmetry,
+  refine (eq_cyclotomic_iff hp.pos _).mpr _,
+  simp only [nat.prime.proper_divisors hp, geom_sum_mul, finset.prod_singleton, cyclotomic_one],
+end
+
+/-- The constant term of `cyclotomic n R` is `1` if `2 ≤ n`. -/
+lemma cyclotomic_coeff_zero {R : Type*} [comm_ring R] (n : ℕ) (hn : 2 ≤ n) :
+  (cyclotomic n R).coeff 0 = 1 :=
+begin
+  induction n using nat.strong_induction_on with n hi,
+  have hprod : (∏ i in nat.proper_divisors n, (polynomial.cyclotomic i R).coeff 0) = -1,
+  { rw [←finset.insert_erase (nat.one_mem_proper_divisors_iff_one_lt.2
+      (lt_of_lt_of_le one_lt_two hn)), finset.prod_insert (finset.not_mem_erase 1 _),
+      cyclotomic_one R],
+    have hleq : ∀ j ∈ n.proper_divisors.erase 1, 2 ≤ j,
+    { intros j hj,
+      apply nat.succ_le_of_lt,
+      exact (ne.le_iff_lt ((finset.mem_erase.1 hj).1).symm).mp (nat.succ_le_of_lt
+      (nat.pos_of_mem_proper_divisors (finset.mem_erase.1 hj).2)) },
+    have hcongr : ∀ j ∈ n.proper_divisors.erase 1, (cyclotomic j R).coeff 0 = 1,
+    { intros j hj,
+      exact hi j (nat.mem_proper_divisors.1 (finset.mem_erase.1 hj).2).2 (hleq j hj) },
+    have hrw : ∏ (x : ℕ) in n.proper_divisors.erase 1, (cyclotomic x R).coeff 0 = 1,
+    { rw finset.prod_congr (refl (n.proper_divisors.erase 1)) hcongr,
+      simp only [finset.prod_const_one] },
+    simp only [hrw, mul_one, zero_sub, coeff_one_zero, coeff_X_zero, coeff_sub] },
+  have heq : (X ^ n - 1).coeff 0 = -(cyclotomic n R).coeff 0,
+  { rw [←prod_cyclotomic_eq_X_pow_sub_one (lt_of_lt_of_le zero_lt_two hn),
+      nat.divisors_eq_proper_divisors_insert_self_of_pos (lt_of_lt_of_le zero_lt_two hn),
+      finset.prod_insert nat.proper_divisors.not_self_mem, mul_coeff_zero, coeff_zero_prod, hprod,
+      mul_neg_eq_neg_mul_symm, mul_one] },
+  have hzero : (X ^ n - 1).coeff 0 = (-1 : R),
+  { rw coeff_zero_eq_eval_zero _,
+    simp only [zero_pow (lt_of_lt_of_le zero_lt_two hn), eval_X, eval_one, zero_sub, eval_pow,
+      eval_sub] },
+  rw hzero at heq,
+  exact neg_inj.mp (eq.symm heq)
+end
+
 end cyclotomic
 
 end polynomial

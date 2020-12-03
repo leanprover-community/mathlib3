@@ -836,6 +836,29 @@ instance : add_comm_monoid (lie_submodule R L M) :=
 
 @[simp] lemma add_eq_sup (N N' : lie_submodule R L M) : N + N' = N ⊔ N' := rfl
 
+section lie_span
+
+variables (R L) (s : set M)
+/-- The `lie_span` of a set `s ⊆ M` is the smallest Lie submodule of `M` that contains `s`. -/
+def lie_span : lie_submodule R L M := Inf {N | s ⊆ N}
+
+variables {R L s}
+
+lemma mem_lie_span {x : M} : x ∈ lie_span R L s ↔ ∀ N : lie_submodule R L M, s ⊆ N → x ∈ N :=
+by { change x ∈ (lie_span R L s : set M) ↔ _, erw Inf_coe, exact mem_bInter_iff, }
+
+lemma subset_lie_span : s ⊆ lie_span R L s :=
+by { intros m hm, erw mem_lie_span, intros N hN, exact hN hm, }
+
+lemma lie_span_le {N} : lie_span R L s ≤ N ↔ s ⊆ N :=
+begin
+  split,
+  { exact subset.trans subset_lie_span, },
+  { intros hs m hm, rw mem_lie_span at hm, exact hm _ hs, },
+end
+
+end lie_span
+
 end lattice_structure
 
 /-- The quotient of a Lie module by a Lie submodule. It is a Lie module. -/
@@ -932,6 +955,67 @@ instance lie_quotient_lie_algebra : lie_algebra R (quotient I) :=
 end quotient
 
 end lie_submodule
+
+section lie_submodule_map_and_comap
+
+variables {R : Type u} {L : Type v} {L' : Type w₂} {M : Type w} {M' : Type w₁}
+variables [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
+variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables [add_comm_group M'] [module R M'] [lie_ring_module L M'] [lie_module R L M']
+
+namespace lie_submodule
+
+/-- A morphism of Lie modules `f : M → M'` pushes forward Lie submodules of `M` to Lie submodules
+of `M'`. -/
+def map (f : M →ₗ⁅R,L⁆ M') (N : lie_submodule R L M) : lie_submodule R L M' :=
+{ lie_mem := λ x m' h, by
+  { rcases h with ⟨m, hm, hfm⟩, use ⁅x, m⁆, split,
+    { apply N.lie_mem hm, },
+    { norm_cast at hfm, simp [hfm], }, },
+  ..(N : submodule R M).map (f : M →ₗ[R] M') }
+
+/-- A morphism of Lie modules `f : M → M'` pulls back Lie submodules of `M'` to Lie submodules of
+`M`. -/
+def comap (f : M →ₗ⁅R,L⁆ M') (N : lie_submodule R L M') : lie_submodule R L M :=
+{ lie_mem := λ x m h, by { suffices : ⁅x, f m⁆ ∈ N, { simpa [this], }, apply N.lie_mem h, },
+  ..(N : submodule R M').comap (f : M →ₗ[R] M') }
+
+lemma map_le_iff_le_comap {f : M →ₗ⁅R,L⁆ M'} {N : lie_submodule R L M} {N' : lie_submodule R L M'} :
+  map f N ≤ N' ↔ N ≤ comap f N' := set.image_subset_iff
+
+lemma gc_map_comap (f : M →ₗ⁅R,L⁆ M') : galois_connection (map f) (comap f) :=
+λ N N', map_le_iff_le_comap
+
+end lie_submodule
+
+namespace lie_ideal
+
+/-- A morphism of Lie algebras `f : L → L'` pushes forward Lie ideals of `L` to Lie ideals of `L'`.
+
+Note that unlike `lie_submodule.map`, we must take the `lie_span` of the image. Mathematically
+this is because although `f` makes `L'` into a Lie module over `L`, in general the `L` submodules of
+`L'` are not the same as the ideals of `L'`. -/
+def map (f : L →ₗ⁅R⁆ L') (I : lie_ideal R L) : lie_ideal R L' :=
+lie_submodule.lie_span R L' (f '' I)
+
+/-- A morphism of Lie algebras `f : L → L'` pulls back Lie ideals of `L'` to Lie ideals of `L`.
+
+Note that `f` makes `L'` into a Lie module over `L` (turning `f` into a morphism of Lie modules)
+and so this is a special case of `lie_submodule.comap` but we do not exploit this fact. -/
+def comap (f : L →ₗ⁅R⁆ L') (I : lie_ideal R L') : lie_ideal R L :=
+{ lie_mem := λ x y h, by { suffices : ⁅f x, f y⁆ ∈ I, { simpa [this], }, apply I.lie_mem h, },
+  ..(I : submodule R L').comap (f : L →ₗ[R] L') }
+
+lemma map_le_iff_le_comap {f : L →ₗ⁅R⁆ L'} {I : lie_ideal R L} {I' : lie_ideal R L'} :
+  map f I ≤ I' ↔ I ≤ comap f I' :=
+by { erw lie_submodule.lie_span_le, exact set.image_subset_iff, }
+
+lemma gc_map_comap (f : L →ₗ⁅R⁆ L') : galois_connection (map f) (comap f) :=
+λ I I', map_le_iff_le_comap
+
+end lie_ideal
+
+end lie_submodule_map_and_comap
 
 section lie_algebra_properties
 

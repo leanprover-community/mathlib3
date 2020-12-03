@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.set.function
-import algebra.group.basic
 
 /-!
 # Equivalence between types
@@ -14,7 +13,8 @@ In this file we define two types:
 * `equiv α β` a.k.a. `α ≃ β`: a bijective map `α → β` bundled with its inverse map; we use this (and
   not equality!) to express that various `Type`s or `Sort`s are equivalent.
 
-* `equiv.perm α`: the group of permutations `α ≃ α`.
+* `equiv.perm α`: the group of permutations `α ≃ α`. More lemmas about `equiv.perm` can be found in
+  `group_theory/perm`.
 
 Then we define
 
@@ -47,9 +47,6 @@ Then we define
 
   More definitions of this kind can be found in other files. E.g., `data/equiv/transfer_instance`
   does it for many algebraic type classes like `group`, `module`, etc.
-
-* group structure on `equiv.perm α`. More lemmas about `equiv.perm` can be found in
-  `data/equiv/perm`.
 
 ## Tags
 
@@ -254,40 +251,6 @@ by { rw [← set.image_comp], simp }
 protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
   f '' sᶜ = (f '' s)ᶜ :=
 set.image_compl_eq f.bijective
-
-/-!
-### The group of permutations (self-equivalences) of a type `α`
--/
-
-namespace perm
-
-instance perm_group {α : Type u} : group (perm α) :=
-begin
-  refine { mul := λ f g, equiv.trans g f, one := equiv.refl α, inv:= equiv.symm, ..};
-  intros; apply equiv.ext; try { apply trans_apply },
-  apply symm_apply_apply
-end
-
-theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
-equiv.trans_apply _ _ _
-
-@[simp] theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
-
-@[simp] lemma inv_apply_self {α : Type u} (f : perm α) (x) :
-  f⁻¹ (f x) = x := equiv.symm_apply_apply _ _
-
-@[simp] lemma apply_inv_self {α : Type u} (f : perm α) (x) :
-  f (f⁻¹ x) = x := equiv.apply_symm_apply _ _
-
-lemma one_def {α : Type u} : (1 : perm α) = equiv.refl α := rfl
-
-lemma mul_def {α : Type u} (f g : perm α) : f * g = g.trans f := rfl
-
-lemma inv_def {α : Type u} (f : perm α) : f⁻¹ = f.symm := rfl
-
-@[simp] lemma coe_mul {α : Type u} (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
-
-end perm
 
 /-- If `α` is an empty type, then it is equivalent to the `empty` type. -/
 def equiv_empty (h : α → false) : α ≃ empty :=
@@ -626,9 +589,12 @@ def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
   left_inv := λ o, subtype.eq $ option.some_get _,
   right_inv := λ x, option.get_some _ _ }
 
-/-- `α ⊕ β` is equivalent to a `sigma`-type over `bool`. -/
-def sum_equiv_sigma_bool (α β : Sort*) : α ⊕ β ≃ (Σ b: bool, cond b α β) :=
-⟨λ s, match s with inl a := ⟨tt, a⟩ | inr b := ⟨ff, b⟩ end,
+/-- `α ⊕ β` is equivalent to a `sigma`-type over `bool`. Note that this definition assumes `α` and
+`β` to be types from the same universe, so it cannot by used directly to transfer theorems about
+sigma types to theorems about sum types. In many cases one can use `ulift` to work around this
+difficulty. -/
+def sum_equiv_sigma_bool (α β : Type u) : α ⊕ β ≃ (Σ b: bool, cond b α β) :=
+⟨λ s, s.elim (λ x, ⟨tt, x⟩) (λ x, ⟨ff, x⟩),
  λ s, match s with ⟨tt, a⟩ := inl a | ⟨ff, b⟩ := inr b end,
  λ s, by cases s; refl,
  λ s, by rcases s with ⟨_|_, _⟩; refl⟩
@@ -849,7 +815,7 @@ variables {α₁ β₁ β₂ : Type*} [decidable_eq α₁] (a : α₁) (e : perm
 `(a, e b)` and keeping the other `(a', b)` fixed. -/
 def prod_extend_right : perm (α₁ × β₁) :=
 { to_fun := λ ab, if ab.fst = a then (a, e ab.snd) else ab,
-  inv_fun := λ ab, if ab.fst = a then (a, e⁻¹ ab.snd) else ab,
+  inv_fun := λ ab, if ab.fst = a then (a, e.symm ab.snd) else ab,
   left_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] },
   right_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] } }
 
@@ -1515,8 +1481,13 @@ theorem swap_comp_apply {a b x : α} (π : perm α) :
   π.trans (swap a b) x = if π x = a then b else if π x = b then a else π x :=
 by { cases π, refl }
 
-@[simp] lemma swap_inv {α : Type*} [decidable_eq α] (x y : α) :
-  (swap x y)⁻¹ = swap x y := rfl
+lemma swap_eq_update (i j : α) :
+  ⇑(equiv.swap i j) = update (update id j i) i j :=
+funext $ λ x, by rw [update_apply _ i j, update_apply _ j i, equiv.swap_apply_def, id.def]
+
+lemma comp_swap_eq_update {β : Type*} (i j : α) (f : α → β) :
+  f ∘ equiv.swap i j = update (update f j (f i)) i (f j) :=
+by rw [swap_eq_update, comp_update, comp_update, comp.right_id]
 
 @[simp] lemma symm_trans_swap_trans [decidable_eq β] (a b : α)
   (e : α ≃ β) : (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
@@ -1527,12 +1498,9 @@ equiv.ext (λ x, begin
   split_ifs; simp
 end)
 
-@[simp] lemma swap_mul_self {α : Type*} [decidable_eq α] (i j : α) : swap i j * swap i j = 1 :=
-equiv.swap_swap i j
-
 @[simp] lemma swap_apply_self {α : Type*} [decidable_eq α] (i j a : α) :
   swap i j (swap i j a) = a :=
-by rw [← perm.mul_apply, swap_mul_self, perm.one_apply]
+by rw [← equiv.trans_apply, equiv.swap_swap, equiv.refl_apply]
 
 /-- Augment an equivalence with a prescribed mapping `f a = b` -/
 def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
@@ -1759,24 +1727,29 @@ protected def congr_right {r r' : setoid α}
 quot.congr_right eq
 end quotient
 
-/-- If a function is a bijection between `univ` and a set `s` in the target type, it induces an
-equivalence between the original type and the type `↑s`. -/
-noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set β} (f : α → β)
-  (h : set.bij_on f set.univ s) : α ≃ s :=
-begin
-  have : function.bijective (λ (x : α), (⟨f x, begin exact h.maps_to (set.mem_univ x) end⟩ : s)),
-  { split,
-    { assume x y hxy,
-      apply h.inj_on (set.mem_univ x) (set.mem_univ y) (subtype.mk.inj hxy) },
-    { assume x,
-      rcases h.surj_on x.2 with ⟨y, hy⟩,
-      exact ⟨y, subtype.eq hy.2⟩ } },
-  exact equiv.of_bijective _ this
-end
+/-- If a function is a bijection between two sets `s` and `t`, then it induces an
+equivalence between the the types `↥s` and ``↥t`. -/
+noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set α} {t : set β} (f : α → β)
+  (h : set.bij_on f s t) : s ≃ t :=
+equiv.of_bijective _ h.bijective
+
+namespace function
+
+lemma update_comp_equiv {α β α' : Sort*} [decidable_eq α'] [decidable_eq α] (f : α → β) (g : α' ≃ α)
+  (a : α) (v : β) :
+  update f a v ∘ g = update (f ∘ g) (g.symm a) v :=
+by rw [←update_comp _ g.injective, g.apply_symm_apply]
+
+lemma update_apply_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable_eq α]
+  (f : α → β) (g : α' ≃ α) (a : α) (v : β) (a' : α') :
+  update f a v (g a') = update (f ∘ g) (g.symm a) v a' :=
+congr_fun (update_comp_equiv f g a v) a'
+
+end function
 
 /-- The composition of an updated function with an equiv on a subset can be expressed as an
 updated function. -/
-lemma dite_comp_equiv_update {α : Type*} {β : Type*} {γ : Type*} {s : set α} (e : β ≃ s)
+lemma dite_comp_equiv_update {α : Type*} {β : Sort*} {γ : Sort*} {s : set α} (e : β ≃ s)
   (v : β → γ) (w : α → γ) (j : β) (x : γ) [decidable_eq β] [decidable_eq α]
   [∀ j, decidable (j ∈ s)] :
   (λ (i : α), if h : i ∈ s then (function.update v j x) (e.symm ⟨i, h⟩) else w i) =
@@ -1784,13 +1757,13 @@ lemma dite_comp_equiv_update {α : Type*} {β : Type*} {γ : Type*} {s : set α}
 begin
   ext i,
   by_cases h : i ∈ s,
-  { simp only [h, dif_pos],
-    have A : e.symm ⟨i, h⟩ = j ↔ i = e j,
-      by { rw equiv.symm_apply_eq, exact subtype.ext_iff_val },
-    by_cases h' : i = e j,
-    { rw [A.2 h', h'], simp },
-    { have : ¬ e.symm ⟨i, h⟩ = j, by simpa [← A] using h',
-      simp [h, h', this] } },
+  { rw [dif_pos h,
+        function.update_apply_equiv_apply, equiv.symm_symm, function.comp,
+        function.update_apply, function.update_apply,
+        dif_pos h],
+    have h_coe : (⟨i, h⟩ : s) = e j ↔ i = e j := subtype.ext_iff.trans (by rw subtype.coe_mk),
+    simp_rw h_coe,
+    congr, },
   { have : i ≠ e j,
       by { contrapose! h, have : (e j : α) ∈ s := (e j).2, rwa ← h at this },
     simp [h, this] }

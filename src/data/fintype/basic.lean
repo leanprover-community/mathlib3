@@ -231,6 +231,9 @@ if hα : nonempty α then by letI := classical.inhabited_of_nonempty hα;
   exact of_surjective (inv_fun f) (inv_fun_surjective H)
 else ⟨∅, λ x, (hα ⟨x⟩).elim⟩
 
+noncomputable instance subtype_of_fintype [fintype α] (p : α → Prop) : fintype (subtype p) :=
+fintype.of_injective coe subtype.coe_injective
+
 /-- If `f : α ≃ β` and `α` is a fintype, then `β` is also a fintype. -/
 def of_equiv (α : Type*) [fintype α] (f : α ≃ β) : fintype β := of_bijective _ f.bijective
 

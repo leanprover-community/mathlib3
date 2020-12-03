@@ -667,8 +667,11 @@ section comparison
 
 variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
 
--- TODO: show this is an iso iff `G` preserves the equalizer of `f,g`.
-/-- The comparison morphism for the equalizer of `f,g`. -/
+/--
+The comparison morphism for the equalizer of `f,g`.
+This is an isomorphism iff `G` preserves the equalizer of `f,g`; see
+`category_theory/limits/preserves/shapes/equalizers.lean`
+-/
 def equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f) (G.map g)] :
   G.obj (equalizer f g) ⟶ equalizer (G.map f) (G.map g) :=
 equalizer.lift (G.map (equalizer.ι _ _)) (by simp only [←G.map_comp, equalizer.condition])

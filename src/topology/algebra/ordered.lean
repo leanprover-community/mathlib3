@@ -609,10 +609,8 @@ lemma nhds_eq_order (a : α) :
 by rw [t.topology_eq_generate_intervals, nhds_generate_from];
 from le_antisymm
   (le_inf
-    (le_infi $ assume b, le_infi $ assume hb,
-      infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
-    (le_infi $ assume b, le_infi $ assume hb,
-      infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
+    (le_binfi $ assume b hb, infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
+    (le_binfi $ assume b hb, infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
   (le_infi $ assume s, le_infi $ assume ⟨ha, b, hs⟩,
     match s, ha, hs with
     | _, h, (or.inl rfl) := inf_le_left_of_le $ infi_le_of_le b $ infi_le _ h
@@ -1362,64 +1360,6 @@ begin
   { rintros ⟨l, la, as⟩,
     exact ⟨l, la, subset.trans Ioc_subset_Icc_self as⟩ }
 end
-
-section functions
-variables [topological_space β] [linear_order β] [order_topology β]
-
-lemma strict_mono_incr_on.continuous_at_right'' {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a)
-  (hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b) :
-  continuous_within_at f (Ici a) a :=
-begin
-  have ha : a ∈ Ici a := left_mem_Ici,
-  have has : a ∈ s := mem_of_mem_nhds_within ha hs,
-  refine tendsto_order.2 ⟨λ b hb, _, λ b hb, _⟩,
-  { filter_upwards [hs, self_mem_nhds_within],
-    intros x hxs hxa,
-    exact hb.trans_le ((h_mono.le_iff_le has hxs).2 hxa) },
-  { rcases hfs b hb with ⟨c, hcs, hac, hcb⟩,
-    rw [h_mono.lt_iff_lt has hcs] at hac,
-    filter_upwards [hs, Ico_mem_nhds_within_Ici (left_mem_Ico.2 hac)],
-    rintros x hx ⟨hax, hxc⟩,
-    exact ((h_mono.lt_iff_lt hx hcs).2 hxc).trans_le hcb }
-end
-
-lemma strict_mono_incr_on.continuous_at_right' [densely_ordered β] {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a) (hfs : f '' s ∈ 𝓝[Ici (f a)] (f a)) :
-  continuous_within_at f (Ici a) a :=
-begin
-  refine h_mono.continuous_at_right'' hs (λ b hb, _),
-  rcases (mem_nhds_within_Ici_iff_exists_mem_Ioc_Ico_subset hb).1 hfs with ⟨b', ⟨hab', hbb'⟩, hb'⟩,
-  rcases exists_between hab' with ⟨c', hac', hc'b'⟩,
-  rcases hb' ⟨hac'.le, hc'b'⟩ with ⟨c, hcs, rfl⟩,
-  exact ⟨c, hcs, hac', hc'b'.le.trans hbb'⟩
-end
-
-lemma strict_mono_incr_on.continuous_at_right {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a) (hfs : surj_on f s (Ioi (f a))) :
-  continuous_within_at f (Ici a) a :=
-h_mono.continuous_at_right'' hs $ λ b hb, let ⟨c, hcs, hcb⟩ := hfs hb in
-⟨c, hcs, hcb.symm ▸ hb, hcb.le⟩
-
-lemma strict_mono_incr_on.continuous_at_left'' {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a)
-  (hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)) :
-  continuous_within_at f (Iic a) a :=
-h_mono.dual.continuous_at_right'' hs $
-  λ b hb, let ⟨c, hcs, hcb, hca⟩ := hfs b hb in ⟨c, hcs, hca, hcb⟩
-
-lemma strict_mono_incr_on.continuous_at_left' [densely_ordered β] {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a) (hfs : f '' s ∈ 𝓝[Iic (f a)] (f a)) :
-  continuous_within_at f (Iic a) a :=
-h_mono.dual.continuous_at_right' hs hfs
-
-lemma strict_mono_incr_on.continuous_at_left {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a) (hfs : surj_on f s (Iio (f a))) :
-  continuous_within_at f (Iic a) a :=
-@strict_mono_incr_on.continuous_at_right (order_dual α) (order_dual β) _ _ _ _ _ _
-  f s a (λ x hx y hy, h_mono hy hx) hs hfs
-
-end functions
 
 end linear_order
 
@@ -2873,62 +2813,36 @@ lemma continuous_at_iff_continuous_left'_right' [topological_space α] [linear_o
 by rw [continuous_within_at_Ioi_iff_Ici, continuous_within_at_Iio_iff_Iic,
   continuous_at_iff_continuous_left_right]
 
-section homeomorphisms
-variables [topological_space α] [topological_space β]
+namespace order_iso
 
-section linear_order
-variables [linear_order α] [order_topology α]
-variables [linear_order β] [order_topology β]
+variables [partial_order α] [partial_order β] [topological_space α] [topological_space β]
+  [order_topology α] [order_topology β]
 
-lemma strict_mono_incr_on.continuous_at'' {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝 a)
-  (hfs_l : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)) (hfs_r : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b) :
-  continuous_at f a :=
-continuous_at_iff_continuous_left_right.2
-  ⟨h_mono.continuous_at_left'' (mem_nhds_within_of_mem_nhds hs) hfs_l,
-   h_mono.continuous_at_right'' (mem_nhds_within_of_mem_nhds hs) hfs_r⟩
-
-lemma strict_mono_incr_on.continuous_at' [densely_ordered β] {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝 a) (hfs : f '' s ∈ 𝓝 (f a)) :
-  continuous_at f a :=
-continuous_at_iff_continuous_left_right.2
-  ⟨h_mono.continuous_at_left' (mem_nhds_within_of_mem_nhds hs) (mem_nhds_within_of_mem_nhds hfs),
-   h_mono.continuous_at_right' (mem_nhds_within_of_mem_nhds hs) (mem_nhds_within_of_mem_nhds hfs)⟩
-
-lemma strict_mono_incr_on.continuous_at {f : α → β} {s : set α} {a : α}
-  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝 a) (hfs : surj_on f s univ) :
-  continuous_at f a :=
-continuous_at_iff_continuous_left_right.2
-  ⟨h_mono.continuous_at_left (mem_nhds_within_of_mem_nhds hs)
-    (hfs.mono (subset.refl _) (subset_univ _)),
-   h_mono.continuous_at_right (mem_nhds_within_of_mem_nhds hs)
-    (hfs.mono (subset.refl _) (subset_univ _))⟩
-
-/-- If `f : α → β` is strictly monotone and surjective, it is everywhere continuous. -/
-lemma continuous_at_of_strict_mono_surjective
-  {f : α → β} (h_mono : strict_mono f) (h_surj : function.surjective f) (a : α) :
-  continuous_at f a :=
-(h_mono.strict_mono_incr_on univ).continuous_at univ_mem_sets (h_surj.surj_on univ)
-
-/-- If `f : α → β` is strictly monotone and surjective, it is continuous. -/
-lemma continuous_of_strict_mono_surjective
-  {f : α → β} (h_mono : strict_mono f) (h_surj : function.surjective f) :
-  continuous f :=
-continuous_iff_continuous_at.mpr (continuous_at_of_strict_mono_surjective h_mono h_surj)
+protected lemma continuous (e : α ≃o β) : continuous e :=
+begin
+  rw [‹order_topology β›.topology_eq_generate_intervals],
+  refine continuous_generated_from (λ s hs, _),
+  rcases hs with ⟨a, rfl|rfl⟩,
+  { rw e.preimage_Ioi, apply is_open_lt' },
+  { rw e.preimage_Iio, apply is_open_gt' }
+end
 
 /-- An order isomorphism between two linear order `order_topology` spaces is a homeomorphism. -/
-def order_iso.to_homeomorph (e : α ≃o β) : α ≃ₜ β :=
-{ continuous_to_fun := continuous_of_strict_mono_surjective e.strict_mono e.surjective,
-  continuous_inv_fun := continuous_of_strict_mono_surjective e.symm.strict_mono e.symm.surjective,
+def to_homeomorph (e : α ≃o β) : α ≃ₜ β :=
+{ continuous_to_fun := e.continuous,
+  continuous_inv_fun := e.symm.continuous,
   .. e }
 
-@[simp] lemma order_iso.coe_to_homeomorph (e : α ≃o β) : ⇑e.to_homeomorph = e := rfl
+@[simp] lemma coe_to_homeomorph (e : α ≃o β) : ⇑e.to_homeomorph = e := rfl
+@[simp] lemma coe_to_homeomorph_symm (e : α ≃o β) : ⇑e.to_homeomorph.symm = e.symm := rfl
 
-end linear_order
+end order_iso
 
 section conditionally_complete_linear_order
-variables [conditionally_complete_linear_order α] [densely_ordered α] [order_topology α]
-variables [conditionally_complete_linear_order β] [order_topology β]
+variables
+  [conditionally_complete_linear_order α] [densely_ordered α] [topological_space α]
+  [order_topology α] [conditionally_complete_linear_order β] [topological_space β]
+  [order_topology β]
 
 /-- If `f : α → β` is strictly monotone and continuous, and tendsto `at_top` `at_top` and to
 `at_bot` `at_bot`, then it is a homeomorphism. -/
@@ -2959,10 +2873,10 @@ noncomputable def homeomorph_of_strict_mono_continuous_Ioo
   (h_top : tendsto f (𝓝[Iio b] b) at_top)
   (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
   homeomorph (Ioo a b) β :=
-@homeomorph_of_strict_mono_continuous _ _ _ _
+@homeomorph_of_strict_mono_continuous _ _
 (@ord_connected_subset_conditionally_complete_linear_order α (Ioo a b) _
   ⟨classical.choice (nonempty_Ioo_subtype h)⟩ _)
-_ _ _ _
+_ _ _ _ _ _
 (restrict f (Ioo a b))
 (λ x y, h_mono x.2.1 y.2.2)
 (continuous_on_iff_continuous_restrict.mp h_cont)
@@ -2986,5 +2900,3 @@ end
 rfl
 
 end conditionally_complete_linear_order
-
-end homeomorphisms

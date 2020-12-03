@@ -186,7 +186,7 @@ Given an edge incident to a particular vertex, get the other vertex on the edge.
 def other_vertex_of_incident {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
 
 lemma incidence_other_prop {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
-G.other_vertex_of_incident h ∈ G.neighbor_set v :=
+  G.other_vertex_of_incident h ∈ G.neighbor_set v :=
 by { cases h, rwa [←sym2.mem_other_spec' h_right, mem_edge_set] at h_left }
 
 @[simp]

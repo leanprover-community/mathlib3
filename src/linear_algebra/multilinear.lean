@@ -452,7 +452,7 @@ end restrict_scalar
 
 section
 
-variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂] [add_comm_monoid M₃] [semimodule R M₃]
+variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
 
 /-- Transfer the arguments to a map along an equivalence between argument indices.
 

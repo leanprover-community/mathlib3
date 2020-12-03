@@ -1683,9 +1683,9 @@ begin
 end
 
 lemma range_inter_compl_image_compl_eq_image {f : α → β} (H : injective f) (s : set α) :
-  range f ∩ (f '' sᶜ)ᶜ = f '' s := ext $ λ x, iff.intro
-  (λ ⟨⟨y, h1⟩, h2⟩, ⟨y, by_contra $ λ h, h2 ⟨y, h, h1⟩, h1⟩)
-  (λ ⟨y, h1, h2⟩, ⟨⟨y, h2⟩, λ ⟨z, c1, c2⟩, c1 $ (H $ eq.trans h2 c2.symm).subst h1 ⟩)
+  range f ∩ (f '' sᶜ)ᶜ = f '' s :=
+ext $ λ x, iff.intro (λ ⟨⟨y, h1⟩, h2⟩, ⟨y, by_contra $ λ h, h2 ⟨y, h, h1⟩, h1⟩)
+  (λ ⟨y, h1, h2⟩, ⟨⟨y, h2⟩, λ ⟨z, c1, c2⟩, c1 $ (H $ eq.trans h2 c2.symm).subst h1⟩)
 
 end range
 

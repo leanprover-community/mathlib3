@@ -123,13 +123,13 @@ begin
 end
 
 instance : semiring (language α) :=
-{ add := λ l m, l + m,
+{ add := (+),
   add_assoc := by simp [set.union_assoc],
   zero := 0,
   zero_add := by simp,
   add_zero := by simp,
   add_comm := by simp [set.union_comm],
-  mul := λ l m, l * m,
+  mul := (*),
   mul_assoc := mul_assoc,
   zero_mul := by simp,
   mul_zero := by simp,

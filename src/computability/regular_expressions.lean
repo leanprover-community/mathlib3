@@ -112,7 +112,7 @@ instance : semiring (language α) :=
   left_distrib := left_distrib,
   right_distrib := right_distrib }
 
-lemma add_self (l : language α) : l + l = l := by finish
+@[simp] lemma add_self (l : language α) : l + l = l := by finish
 
 end language
 

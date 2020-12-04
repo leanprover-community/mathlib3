@@ -8,7 +8,7 @@ import logic.relator
 /-!
 # Quotient types
 
-This module extensd the core library's treatment of quotient types (`init.data.quot`).
+This module extends the core library's treatment of quotient types (`init.data.quot`).
 
 ## Tags
 

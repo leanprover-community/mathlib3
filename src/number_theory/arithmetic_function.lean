@@ -34,6 +34,7 @@ to form the Dirichlet ring.
  * `sum_eq_iff_sum_mul_moebius_eq` for functions to a `comm_ring`
  * `sum_eq_iff_sum_smul_moebius_eq` for functions to an `add_comm_group`
  * `prod_eq_iff_prod_pow_moebius_eq` for functions to a `comm_group`
+ * `prod_eq_iff_prod_pow_moebius_eq_of_nonzero` for functions to a `comm_group_with_zero`
 
 ## Notation
 The arithmetic functions `ζ` and `σ` have Greek letter names, which are localized notation in
@@ -844,6 +845,29 @@ theorem prod_eq_iff_prod_pow_moebius_eq [comm_group R] {f g : ℕ → R} :
   (∀ (n : ℕ), 0 < n → ∏ i in (n.divisors), f i = g n) ↔
     ∀ (n : ℕ), 0 < n → ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
 @sum_eq_iff_sum_smul_moebius_eq (additive R) _ _ _
+
+/-- Möbius inversion for functions to a `comm_group_with_zero`. -/
+theorem prod_eq_iff_prod_pow_moebius_eq_of_nonzero [comm_group_with_zero R] {f g : ℕ → R}
+  (hf : ∀ (n : ℕ), 0 < n → f n ≠ 0) (hg : ∀ (n : ℕ), 0 < n → g n ≠ 0) :
+  (∀ (n : ℕ), 0 < n → ∏ i in (n.divisors), f i = g n) ↔
+    ∀ (n : ℕ), 0 < n → ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
+begin
+  refine iff.trans (iff.trans (forall_congr (λ n, _)) (@prod_eq_iff_prod_pow_moebius_eq (units R) _
+    (λ n, if h : 0 < n then units.mk0 (f n) (hf n h) else 1)
+    (λ n, if h : 0 < n then units.mk0 (g n) (hg n h) else 1))) (forall_congr (λ n, _));
+  refine imp_congr_right (λ hn, _),
+  { dsimp,
+    rw [dif_pos hn, ← units.eq_iff, ← units.coe_hom_apply, monoid_hom.map_prod, units.coe_mk0,
+      prod_congr rfl _],
+    intros x hx,
+    rw [dif_pos (nat.pos_of_mem_divisors hx), units.coe_hom_apply, units.coe_mk0] },
+  { dsimp,
+    rw [dif_pos hn, ← units.eq_iff, ← units.coe_hom_apply, monoid_hom.map_prod, units.coe_mk0,
+      prod_congr rfl _],
+    intros x hx,
+    rw [dif_pos (nat.pos_of_mem_divisors (nat.snd_mem_divisors_of_mem_antidiagonal hx)),
+      units.coe_hom_apply, units.coe_gpow', units.coe_mk0] }
+end
 
 end special_functions
 end arithmetic_function

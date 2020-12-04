@@ -150,10 +150,10 @@ instance : has_zero (regular_expression α) := ⟨zero⟩
 
 /-- `matches P` provides a language which contains all strings that `P` matches -/
 def matches : regular_expression α → language α
-| zero := 0
-| epsilon := 1
+| 0 := 0
+| 1 := 1
 | (char a) := {[a]}
-| (plus P Q) := P.matches + Q.matches
+| (P + Q) := P.matches + Q.matches
 | (comp P Q) := P.matches * Q.matches
 | (star P) := P.matches.star
 
@@ -167,10 +167,10 @@ def matches : regular_expression α → language α
 
 /-- `match_epsilon P` is true if and only if `P` matches the empty string -/
 def match_epsilon : regular_expression α → bool
-| zero := ff
-| epsilon := tt
+| 0 := ff
+| 1 := tt
 | (char _) := ff
-| (plus P Q) := P.match_epsilon || Q.match_epsilon
+| (P + Q) := P.match_epsilon || Q.match_epsilon
 | (comp P Q) := P.match_epsilon && Q.match_epsilon
 | (star P) := tt
 
@@ -179,10 +179,10 @@ include dec
 /-- `P.deriv a` matches `x` if `P` matches `a :: x`, the Brzozowski derivative of `P` with respect
   to `a` -/
 def deriv : regular_expression α → α → regular_expression α
-| zero _ := 0
-| epsilon _ := 0
+| 0 _ := 0
+| 1 _ := 0
 | (char a₁) a₂ := if a₁ = a₂ then 1 else 0
-| (plus P Q) a := deriv P a + deriv Q a
+| (P + Q) a := deriv P a + deriv Q a
 | (comp P Q) a :=
   if P.match_epsilon then
     deriv P a * Q + deriv Q a
@@ -198,7 +198,6 @@ def rmatch : regular_expression α → list α → bool
 
 @[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff :=
 begin
-  rw ←zero_def,
   induction x,
     rw [rmatch, match_epsilon],
   rwa [rmatch, deriv],
@@ -206,7 +205,6 @@ end
 
 @[simp] lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] :=
 begin
-  rw ←one_def,
   cases x,
     dec_trivial,
   rw [rmatch, deriv, zero_rmatch],
@@ -232,7 +230,6 @@ end
 @[simp] lemma add_rmatch_iff (P Q : regular_expression α) (x : list α) :
   (P + Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x :=
 begin
-  rw ←plus_def,
   induction x with _ _ ih generalizing P Q,
   { repeat {rw rmatch},
     rw match_epsilon,
@@ -347,8 +344,12 @@ using_well_founded {
   ∀ x : list α, x ∈ P.matches ↔ P.rmatch x :=
 begin
   intro x,
-  induction P with _ _ _ _ _ _ _ ih₁ ih₂ generalizing x;
-  rw matches,
+  induction P with _ _ _ _ _ _ _ ih₁ ih₂ generalizing x,
+  all_goals
+  { try {rw zero_def},
+    try {rw one_def},
+    try {rw plus_def},
+    rw matches },
   { simp },
   { simp },
   { simp },

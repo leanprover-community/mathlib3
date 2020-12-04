@@ -497,17 +497,28 @@ lemma fg_of_noetherian (S : intermediate_field F E)
   [is_noetherian F E] : S.fg :=
 S.fg_of_fg_to_subalgebra S.to_subalgebra.fg_of_noetherian
 
+lemma induction_on_adjoin_finset (S : finset E) (P : intermediate_field F E → Prop) (base : P ⊥)
+  (ih : ∀ (K : intermediate_field F E) (x ∈ S), P K → P ↑K⟮x⟯) : P (adjoin F ↑S) :=
+begin
+  apply finset.induction_on' S,
+  { exact base },
+  { intros a s h1 _ _ h4,
+    rw [finset.coe_insert, set.insert_eq, set.union_comm, ←adjoin_adjoin_left],
+    exact ih (adjoin F s) a h1 h4 }
+end
+
+lemma induction_on_adjoin_fg (P : intermediate_field F E → Prop)
+  (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
+  (K : intermediate_field F E) (hK : K.fg) : P K :=
+begin
+  obtain ⟨S, rfl⟩ := hK,
+  exact induction_on_adjoin_finset S P base (λ K x _ hK, ih K x hK),
+end
+
 lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field F E → Prop)
   (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
   (K : intermediate_field F E) : P K :=
-begin
-  haveI := classical.prop_decidable,
-  obtain ⟨s, rfl⟩ := fg_of_noetherian K,
-  apply @finset.induction_on E (λ s, P (adjoin F ↑s)) _ s base,
-  intros a t _ h,
-  rw [finset.coe_insert, ←set.union_singleton, ←adjoin_adjoin_left],
-  exact ih (adjoin F ↑t) a h
-end
+induction_on_adjoin_fg P base ih K K.fg_of_noetherian
 
 end induction
 

@@ -802,21 +802,25 @@ lemma mul_prod_diff_singleton [decidable_eq α] {s : finset α} {i : α} (h : i 
   (f : α → β) : f i * (∏ x in s \ {i}, f x) = ∏ x in s, f x :=
 by { convert s.prod_inter_mul_prod_diff {i} f, simp [h] }
 
-/-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
-@[to_additive]
-lemma prod_cancels_of_partition_cancels (R : setoid α) [decidable_rel R.r]
-  (h : ∀ x ∈ s, (∏ a in s.filter (λy, y ≈ x), f a) = 1) : (∏ x in s, f x) = 1 :=
+/-- A product can be partitioned into a product of products, each equivalent under a setoid. -/
+@[to_additive "A sum can be partitioned into a sum of sums, each equivalent under a setoid."]
+lemma prod_partition (R : setoid α) [decidable_rel R.r] :
+  (∏ x in s, f x) = ∏ xbar in s.image quotient.mk, ∏ y in s.filter (λ y, ⟦y⟧ = xbar), f y :=
 begin
-  suffices : ∏ xbar in s.image quotient.mk, ∏ y in s.filter (λ y, ⟦y⟧ = xbar),
-    f y = (∏ x in s, f x),
-  { rw [←this, ←finset.prod_eq_one],
-    intros xbar xbar_in_s,
-    rcases (mem_image).mp xbar_in_s with ⟨x, x_in_s, xbar_eq_x⟩,
-    rw [←xbar_eq_x, filter_congr (λ y _, @quotient.eq _ R y x)],
-    apply h x x_in_s },
-  apply finset.prod_image' f,
-  intros,
-  refl
+  refine (finset.prod_image' f (λ x hx, _)).symm,
+  refl,
+end
+
+/-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
+@[to_additive "If we can partition a sum into subsets that cancel out, then the whole sum cancels."]
+lemma prod_cancels_of_partition_cancels (R : setoid α) [decidable_rel R.r]
+  (h : ∀ x ∈ s, (∏ a in s.filter (λ y, y ≈ x), f a) = 1) : (∏ x in s, f x) = 1 :=
+begin
+  rw [prod_partition R, ←finset.prod_eq_one],
+  intros xbar xbar_in_s,
+  obtain ⟨x, x_in_s, xbar_eq_x⟩ := mem_image.mp xbar_in_s,
+  rw [←xbar_eq_x, filter_congr (λ y _, @quotient.eq _ R y x)],
+  apply h x x_in_s,
 end
 
 @[to_additive]

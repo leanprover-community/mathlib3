@@ -420,7 +420,7 @@ dif_pos rfl
 @[simp] lemma add_val_one : add_val R 1 = 0 :=
 add_val_def 1 1 (classical.some_spec $ exists_irreducible R) 0 (by simp)
 
-@[simp] lemma add_val_uniformiser {ϖ : R} (hϖ : irreducible ϖ) : add_val R ϖ = 1 :=
+@[simp] lemma add_val_uniformizer {ϖ : R} (hϖ : irreducible ϖ) : add_val R ϖ = 1 :=
 add_val_def ϖ 1 hϖ 1 (by simp)
 
 @[simp] lemma add_val_mul {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) :

@@ -67,7 +67,7 @@ v ∈ M.support
 /--
 A set of vertices `S` is saturated by a matching `M` if `S ⊆ M.support`
 -/
-def matching.saturated_set (M : G.matching) (S : set V) : Prop :=
+def matching.saturates_set (M : G.matching) (S : set V) : Prop :=
 S ⊆ M.support
 
 /--
@@ -87,10 +87,13 @@ def bipartite (G : simple_graph V) : Prop :=
 section bipartite
 variables [bipartite G] (f : G.coloring (fin 2)) (a b : fin 2)
 
-theorem hall_marriage_theorem (a b : fin 2) (h1 : a ≠ b)
+/-theorem hall_marriage_theorem (a b : fin 2) (h1 : a ≠ b)
 [fintype (color_class f a)] [fintype (color_class f b)]
 (h2 : (fin_color_class f a).card ≤ (fin_color_class f b).card) :
---∃ (M : G.matching), M.is_perfect ↔ ∀ S ⊆ (set.preimage f.1 _ _),
+∃ (M : G.matching), M.saturates_set (fin_color_class f a) ↔
+∀ S ⊆ (fin_color_class f a), (fin_color_class f a).card ≤
+  (set_neighbor_finset G (fin_color_class f a)).card
+--∃ (M : G.matching), M.is_perfect ↔ ∀ S ⊆ (set.preimage f.1 _ _),-/
 
 end bipartite
 

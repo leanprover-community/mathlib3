@@ -5,6 +5,7 @@ Author: Aaron Anderson, Jalex Stark, Kyle Miller.
 -/
 import data.fintype.basic
 import data.sym2
+import algebra.big_operators
 /-!
 # Simple graphs
 
@@ -72,6 +73,9 @@ variables {V : Type u} (G : simple_graph V)
 
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
+
+/-- `G.neighbor_set v` is the union of neighbor_sets of `S ⊆ V` in `G`. -/
+def set_neighbor_set (S : set V) : set V := {w : V | ∃ v ∈ S, w ∈ G.neighbor_set v}
 
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
@@ -143,11 +147,18 @@ Use `neighbor_finset_eq_filter` to rewrite this definition as a `filter`.
 -/
 
 variables (v : V) [fintype (G.neighbor_set v)]
+variables (S : set V) [fintype (G.set_neighbor_set S)]
 /--
 `G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
 locally finite at `v`.
 -/
 def neighbor_finset : finset V := (G.neighbor_set v).to_finset
+
+/--
+`G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
+locally finite at `v`.
+-/
+def set_neighbor_finset : finset V := (G.set_neighbor_set S).to_finset
 
 @[simp] lemma mem_neighbor_finset (w : V) :
   w ∈ G.neighbor_finset v ↔ G.adj v w :=

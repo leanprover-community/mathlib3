@@ -197,19 +197,10 @@ def rmatch : regular_expression α → list α → bool
 | P (a::as) := rmatch (P.deriv a) as
 
 @[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff :=
-begin
-  induction x,
-    rw [rmatch, match_epsilon],
-  rwa [rmatch, deriv],
-end
+by induction x; simp [rmatch, match_epsilon, deriv, *]
 
 lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] :=
-begin
-  cases x,
-    dec_trivial,
-  rw [rmatch, deriv, zero_rmatch],
-  dec_trivial
-end
+by induction x; simp [rmatch, match_epsilon, deriv, *]
 
 lemma char_rmatch_iff (a : α) (x : list α) : rmatch (char a) x ↔ x = [a] :=
 begin

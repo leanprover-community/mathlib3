@@ -8,6 +8,8 @@ import data.real.ereal
 noncomputable theory
 open_locale big_operators
 
+open nat
+
 instance : has_mul ereal :=
 {
   mul := begin
@@ -150,5 +152,7 @@ begin
   have f' := @tsum_eq_zero_iff _ _ _ _ _ g,
   sorry
 end
+
+end nat
 
 end bernoulli_polynomial

@@ -126,7 +126,7 @@ def is_colimit_cofork_map_of_is_colimit [preserves_colimit (parallel_pair f g) G
   is_colimit (cofork.of_π (G.map h) (by simp only [←G.map_comp, w]) : cofork (G.map f) (G.map g)) :=
 is_colimit_map_cocone_cofork_equiv G w (preserves_colimit.preserves l)
 
-/-- The property of reflecting equalizers expressed in terms of forks. -/
+/-- The property of reflecting coequalizers expressed in terms of coforks. -/
 def is_colimit_of_is_colimit_cofork_map [reflects_colimit (parallel_pair f g) G]
   (l : is_colimit (cofork.of_π (G.map h) (by simp only [←G.map_comp, w])
                   : cofork (G.map f) (G.map g))) :
@@ -136,8 +136,8 @@ reflects_colimit.reflects ((is_colimit_map_cocone_cofork_equiv G w).symm l)
 variables (f g) [has_coequalizer f g]
 
 /--
-If `G` preserves equalizers and `C` has them, then the fork constructed of the mapped morphisms of
-a fork is a limit.
+If `G` preserves coequalizers and `C` has them, then the cofork constructed of the mapped morphisms
+of a cofork is a colimit.
 -/
 def is_limit_of_has_coequalizer_of_preserves_limit
   [preserves_colimit (parallel_pair f g) G] :
@@ -147,8 +147,8 @@ is_colimit_cofork_map_of_is_colimit G _ (coequalizer_is_coequalizer f g)
 variables [has_coequalizer (G.map f) (G.map g)]
 
 /--
-If the equalizer comparison map for `G` at `(f,g)` is an isomorphism, then `G` preserves the
-equalizer of `(f,g)`.
+If the coequalizer comparison map for `G` at `(f,g)` is an isomorphism, then `G` preserves the
+coequalizer of `(f,g)`.
 -/
 def of_iso_comparison [i : is_iso (coequalizer_comparison f g G)] :
   preserves_colimit (parallel_pair f g) G :=
@@ -161,8 +161,8 @@ end
 
 variables [preserves_colimit (parallel_pair f g) G]
 /--
-If `G` preserves the equalizer of `(f,g)`, then the equalizer comparison map for `G` at `(f,g)` is
-an isomorphism.
+If `G` preserves the coequalizer of `(f,g)`, then the coequalizer comparison map for `G` at `(f,g)`
+is an isomorphism.
 -/
 def preserves_coequalizer.iso :
   coequalizer (G.map f) (G.map g) ≅ G.obj (coequalizer f g) :=

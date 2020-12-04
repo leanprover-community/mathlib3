@@ -6,6 +6,8 @@ Author: Alena Gusakov.
 import data.fintype.basic
 import data.sym2
 import combinatorics.simple_graph.basic
+import combinatorics.simple_graph.coloring
+import data.fin
 /-!
 # Matchings
 
@@ -66,5 +68,18 @@ M.support = set.univ
 lemma matching.is_perfect_iff (M : G.matching) :
 M.is_perfect ↔ ∀ (v : V), ∃ e ∈ M.edges, v ∈ e :=
 set.eq_univ_iff_forall
+
+def bipartite (G : simple_graph V) : Prop :=
+  colorable G (fin 2)
+
+section bipartite
+variables [bipartite G] (f : G.coloring (fin 2)) (a b : fin 2)
+
+theorem hall_marriage_theorem (a b : fin 2) (h1 : a ≠ b)
+[fintype (color_class f a)] [fintype (color_class f b)]
+(h2 : (fin_color_class f a).card ≤ (fin_color_class f b).card) :
+--∃ (M : G.matching), M.is_perfect ↔ ∀ S ⊆ (set.preimage f.1 _ _),
+
+end bipartite
 
 end simple_graph

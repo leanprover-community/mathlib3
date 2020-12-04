@@ -177,8 +177,7 @@ begin
     { replace hn := congr_arg ((*) $ ι R $ f 0) (hn (λ i, f $ fin.succ i) (i.pred h)),
       simp only at hn,
       rw [fin.succ_pred, ←mul_assoc, mul_zero] at hn,
-      rw ← zero_add (_ * _),
-      conv_lhs {rw ← hn},
+      refine (eq_zero_iff_eq_zero_of_add_eq_zero _).mp hn,
       rw [← add_mul, ι_add_mul_swap, zero_mul], } }
 end
 

@@ -7,7 +7,7 @@ Author: Riccardo Brasca
 import field_theory.splitting_field
 import ring_theory.roots_of_unity
 import algebra.polynomial.big_operators
-import number_theory.divisors
+import number_theory.arithmetic_function
 import data.polynomial.lifts
 import analysis.complex.roots_of_unity
 
@@ -29,7 +29,9 @@ with coefficients in any ring `R`.
 * `int_coeff_of_cycl` : If there is a primitive `n`-th root of unity in `K`, then `cyclotomic' n K`
 comes from a polynomial with integer coefficients.
 * `deg_of_cyclotomic` : The degree of `cyclotomic n` is `totient n`.
-* `X_pow_sub_one_eq_prod_cycl` : `X ^ n - 1 = ∏ (cyclotomic i)`, where `i` divides `n`.
+* `prod_cyclotomic_eq_X_pow_sub_one` : `X ^ n - 1 = ∏ (cyclotomic i)`, where `i` divides `n`.
+* `cyclotomic_eq_prod_X_pow_sub_one_pow_moebius` : The Möbius inversion formula for
+  `cyclotomic n R` over an abstract fraction field for `polynomial R`.
 
 ## Implementation details
 
@@ -407,6 +409,30 @@ begin
   rw [finset.prod_congr (refl n.divisors) h, coerc, ←map_prod (int.cast_ring_hom R)
   (λ i, cyclotomic i ℤ), integer]
 end
+
+section arithmetic_function
+open nat.arithmetic_function
+open_locale arithmetic_function
+
+/-- `cyclotomic n R` can be expressed as a product in a fraction field of `polynomial R`
+  using Möbius inversion. -/
+lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (hpos : 0 < n) (R : Type*) [comm_ring R]
+  [nontrivial R] {K : Type*} [field K] (f : fraction_map (polynomial R) K) :
+  f.to_map (cyclotomic n R) =
+    ∏ i in n.divisors_antidiagonal, (f.to_map (X ^ i.snd - 1)) ^ μ i.fst :=
+begin
+  have h : ∀ (n : ℕ), 0 < n →
+    ∏ i in nat.divisors n, f.to_map (cyclotomic i R) = f.to_map (X ^ n - 1),
+  { intros n hn,
+    rw [← prod_cyclotomic_eq_X_pow_sub_one hn R, ring_hom.map_prod] },
+  rw (prod_eq_iff_prod_pow_moebius_eq_of_nonzero (λ n hn, _) (λ n hn, _)).1 h n hpos;
+  rw [ne.def, fraction_map.to_map_eq_zero_iff],
+  { apply cyclotomic_ne_zero },
+  { apply monic.ne_zero,
+    apply monic_X_pow_sub_C _ (ne_of_gt hn) }
+end
+
+end arithmetic_function
 
 /-- We have
 `cyclotomic n R = (X ^ k - 1) /ₘ (∏ i in nat.proper_divisors k, cyclotomic i K)`. -/

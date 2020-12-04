@@ -12,8 +12,9 @@ We define what it means for a triple of morphisms `f g : X ⟶ Y`, `π : Y ⟶ Z
 coequalizer: there is a section `s` of `π` and a section `t` of `g`, which additionally satisfy
 `t ≫ f = π ≫ s`.
 
-In addition, we show that every split coequalizer is a coequalizer and absolute.
-
+In addition, we show that every split coequalizer is a coequalizer
+(`category_theory.is_split_coequalizer.is_coequalizer`) and absolute
+(`category_theory.is_split_coequalizer.map`)
 
 A pair `f g : X ⟶ Y` is split if there is a `Z` and `π : Y ⟶ Z` making `f,g,π` a split coequalizer.
 A pair `f g : X ⟶ Y` is `G`-split if `G f, G g` is split.
@@ -45,7 +46,7 @@ satisfying `f ≫ π = g ≫ π` together with morphisms
 satisfying `s ≫ π = 𝟙 Z`, `t ≫ g = 𝟙 Y` and `t ≫ f = π ≫ s`.
 
 The name "coequalizer" is appropriate, since any split coequalizer is a coequalizer, see
-`is_split_coequalizer.is_coequalizer`.
+`category_theory.is_split_coequalizer.is_coequalizer`.
 Split coequalizers are also absolute, since a functor preserves all the structure above.
 -/
 def is_split_coequalizer {Z : C} (π : Y ⟶ Z) : Prop :=

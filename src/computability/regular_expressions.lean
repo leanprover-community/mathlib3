@@ -49,40 +49,13 @@ def star (l : language α) : language α :=
   l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, ¬(list.empty y) ∧ y ∈ l} := rfl
 
 private lemma mul_assoc (l m n : language α) : (l * m) * n = l * (m * n) :=
-begin
-  ext x,
-  simp only [mul_def, exists_and_distrib_left, set.mem_image2, set.image_prod],
-  split,
-  { rintro ⟨ a, ⟨ b, hb, c, hc, ha⟩, d, hd, hx ⟩,
-    refine ⟨ b, hb, c ++ d, ⟨ c, hc, d, hd, rfl ⟩, _ ⟩,
-    rw [←list.append_assoc, ha, hx] },
-  { rintro ⟨ a, ha, b, ⟨ c, hc, d, hd, hb ⟩, hx ⟩,
-    refine ⟨ a ++ c, ⟨ a, ha, c, hc, rfl ⟩, d, hd, _ ⟩,
-    rw [list.append_assoc, hb, hx] }
-end
+by ext x; simp; tauto {closer := `[subst_vars, simp *]}
 
 private lemma one_mul (l : language α) : 1 * l = l :=
-begin
-  ext x,
-  simp only [mul_def, set.mem_image, prod.mk.inj_iff, one_def, set.singleton_prod, prod.exists],
-  split,
-  { rintro ⟨ a, b, ⟨ c, hc, hnil, hx ⟩, _ ⟩,
-    finish },
-  { intro hx,
-    exact ⟨ [], x, ⟨ x, hx, rfl, rfl ⟩, rfl ⟩ }
-end
+by ext x; simp; tauto {closer := `[subst_vars, simp *]}
 
 private lemma mul_one (l : language α) : l * 1 = l :=
-begin
-  ext x,
-  simp only [mul_def, set.mem_image, prod.mk.inj_iff, one_def, set.prod_singleton, prod.exists],
-  split,
-  { rintro ⟨ a, b, ⟨ c, hc, ha, hnil ⟩, hx ⟩,
-    rw [←hnil, ←ha, list.append_nil] at hx,
-    rwa ←hx },
-  { intro hx,
-    exact ⟨ x, [], ⟨ x, hx, rfl, rfl ⟩, x.append_nil ⟩ }
-end
+by ext x; simp; tauto {closer := `[subst_vars, simp *]}
 
 private lemma left_distrib (l m n : language α) : l * (m + n) = (l * m) + (l * n) :=
 begin

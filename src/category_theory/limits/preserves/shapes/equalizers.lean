@@ -139,7 +139,7 @@ variables (f g) [has_coequalizer f g]
 If `G` preserves coequalizers and `C` has them, then the cofork constructed of the mapped morphisms
 of a cofork is a colimit.
 -/
-def is_limit_of_has_coequalizer_of_preserves_limit
+def is_colimit_of_has_coequalizer_of_preserves_colimit
   [preserves_colimit (parallel_pair f g) G] :
   is_colimit (cofork.of_π (G.map (coequalizer.π f g)) _) :=
 is_colimit_cofork_map_of_is_colimit G _ (coequalizer_is_coequalizer f g)

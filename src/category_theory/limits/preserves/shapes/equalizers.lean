@@ -166,7 +166,7 @@ def preserves_coequalizer.iso :
   coequalizer (G.map f) (G.map g) ≅ G.obj (coequalizer f g) :=
 is_colimit.cocone_point_unique_up_to_iso
   (colimit.is_colimit _)
-  (is_limit_of_has_coequalizer_of_preserves_limit G f g)
+  (is_colimit_of_has_coequalizer_of_preserves_colimit G f g)
 
 @[simp]
 lemma preserves_coequalizer.iso_hom :

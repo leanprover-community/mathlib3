@@ -41,12 +41,12 @@ meta instance edge.has_to_format : has_to_format edge := ⟨edge.to_string⟩
 /--
 A vertex represents an expression that is equivalent to either the left or right side
 of our initial equation.
-`id` is a numerical id used to refer to this vertex in the context of a single graph.
-`exp` is the expression this vertex represents.
-`pp` is the string format of the expression; we store this in the vertex to avoid
+* `id` is a numerical id used to refer to this vertex in the context of a single graph.
+* `exp` is the expression this vertex represents.
+* `pp` is the string format of the expression; we store this in the vertex to avoid
 recalculating it.
-`side` is whether this vertex descends from the left or right side of the equation.
-`parent` is the edge that originally added this vertex to the graph.
+* `side` is whether this vertex descends from the left or right side of the equation.
+* `parent` is the edge that originally added this vertex to the graph.
 -/
 meta structure vertex :=
 (id     : ℕ)
@@ -58,14 +58,14 @@ meta structure vertex :=
 /--
 The graph represents two trees, one descending from each of the left and right sides
 of our initial equation.
-`conf` and `rules` determine what rewrites are used to generate new graph vertices.
-Here, the format of a rewrite rule is an expression for rewriting, plus a flag for the
-direction to apply it in.
-`vertices` maps vertex.id to vertex.
-`vmap` maps vertex.pp to vertex.id, so we can quickly find collisions.
-`solving_edge` represents a solution that will prove our target equation.
-It is an edge that would connect the two trees, so `solving_edge.fr` and `solving_edge.to`
-are vertices in different trees.
+* `conf` and `rules` determine what rewrites are used to generate new graph vertices.
+  Here, the format of a rewrite rule is an expression for rewriting, plus a flag for the
+  direction to apply it in.
+* `vertices` maps vertex.id to vertex.
+* `vmap` maps vertex.pp to vertex.id, so we can quickly find collisions.
+* `solving_edge` represents a solution that will prove our target equation.
+  It is an edge that would connect the two trees, so `solving_edge.fr` and `solving_edge.to`
+  are vertices in different trees.
 -/
 meta structure graph :=
 (conf         : config)

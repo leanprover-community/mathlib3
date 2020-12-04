@@ -54,8 +54,7 @@ meta def rewrite_search_attr : user_attribute :=
 /-- Gather rewrite rules from lemmas explicitly tagged with `rewrite. -/
 private meta def rules_from_rewrite_attr : tactic (list (expr × bool)) :=
 do names ← attribute.get_instances `rewrite,
-  exprs ← names.mmap mk_const,
-  return $ rules_from_exprs exprs
+  rules_from_exprs <$> names.mmap mk_const
 
 /--
 Collect rewrite rules to use, either provided explicitly in the parser's format, or

@@ -42,7 +42,9 @@ can be reversed.
 
 One drawback of this algorithm to note is that it uses `pp` of an expression to determine
 equality. So the `rewrite_search` tactic is likely to fail when there are two different
-expressions with the same `pp`.
+expressions with the same `pp`. This is currently a lot faster than comparing expressions,
+but it would be nice to revisit this with Lean 4 to see if it is possible to be both fast
+and accurate.
 
 ## File structure
 
@@ -63,7 +65,7 @@ Collects rewrite rules, runs a graph search to find a chain of rewrites to prove
 current target, and generates a string explanation for it.
 -/
 private meta def rewrite_search_target (cfg : config) (rws : list rw_rule) :
-  tactic string :=
+  tactic unit :=
 do t ← tactic.target,
   if t.has_meta_var then
     tactic.fail "rewrite_search is not suitable for goals containing metavariables"
@@ -72,10 +74,10 @@ do t ← tactic.target,
   g ← mk_graph cfg rules t,
   (_, proof, steps) ← g.find_proof,
   tactic.exact proof,
-  explain_search_result cfg rules proof steps
+  if cfg.explain then explain_search_result cfg rules proof steps else skip
 
 /-- Search for a chain of rewrites to prove an equation or iff statement. -/
-meta def rewrite_search (cfg : config := {}) : tactic string :=
+meta def rewrite_search (cfg : config := {}) : tactic unit :=
 rewrite_search_target cfg []
 
 add_tactic_doc
@@ -89,7 +91,7 @@ Search for a chain of rewrites to prove an equation or iff statement.
 Includes the rewrite rules specified in the same way as the `rw` tactic accepts.
 -/
 meta def rewrite_search_with (rs : parse rw_rules) (cfg : config := {}) :
-  tactic string :=
+  tactic unit :=
 rewrite_search_target cfg rs.rules
 
 add_tactic_doc

@@ -63,7 +63,6 @@ Configuration options for a rewrite search.
 `max_iterations` controls how many vertices are expanded in the graph search.
 `explain` generates Lean code to replace the call to `rewrite_search`.
 `explain_using_conv` changes the nature of the explanation.
-`inflate_rws` makes rewrite search consider more rewrites.
 -/
 meta structure config extends tactic.nth_rewrite.cfg :=
 (max_iterations     : ℕ := 5000)

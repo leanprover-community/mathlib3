@@ -112,13 +112,46 @@ end is_galois
 
 end
 
+section is_galois_tower
+
+variables {F E : Type*} (K : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
+  [algebra K E] [is_scalar_tower F K E]
+
+instance is_galois.tower_top_of_is_galois (h : is_galois F E) : is_galois K E :=
+⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩
+
+instance is_galois.tower_top_intermediate_field (K : intermediate_field F E) [h : is_galois F E] :
+  is_galois K E :=
+⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩
+
+lemma is_galois_iff_is_galois_bot : is_galois (⊥ : intermediate_field F E) E ↔ is_galois F E :=
+begin
+  split,
+  { intro h,
+    letI : algebra (⊥ : intermediate_field F E) F :=
+      ring_hom.to_algebra intermediate_field.bot_equiv.to_alg_hom.to_ring_hom,
+    haveI key : is_scalar_tower (⊥ : intermediate_field F E) F E :=
+      is_scalar_tower.of_algebra_map_eq begin
+        intro x,
+        let ϕ := algebra.of_id F (⊥ : subalgebra F E),
+        let ψ := alg_equiv.of_bijective ϕ ((algebra.bot_equiv F E).symm.bijective),
+        change (↑x : E) = ↑(ψ (ψ.symm ⟨x, _⟩)),
+        rw alg_equiv.apply_symm_apply ψ ⟨x, _⟩,
+        refl
+      end,
+    exact is_galois.tower_top_of_is_galois F h },
+  { intro h,
+    exactI is_galois.tower_top_intermediate_field ⊥ },
+end
+
+/- More to be added later: Galois is preserved by alg_equiv, is_galois_iff_galois_top -/
+
+end is_galois_tower
+
 section galois_correspondence
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 variables (H : subgroup (E ≃ₐ[F] E)) (K : intermediate_field F E)
-
-instance is_galois.tower_top [h : is_galois F E] : is_galois K E :=
-⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩
 
 namespace intermediate_field
 

@@ -6,8 +6,10 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 import data.polynomial.eval
 
 /-!
-# Theory of univariate polynomials
+# The derivative map on polynomials
 
+## Main definitions
+ * `polynomial.derivative`: The formal derivative of polynomials, expressed as a linear map.
 
 -/
 
@@ -27,12 +29,22 @@ section semiring
 variables [semiring R]
 
 /-- `derivative p` is the formal derivative of the polynomial `p` -/
-def derivative (p : polynomial R) : polynomial R := p.sum (λn a, C (a * n) * X^(n - 1))
+def derivative : polynomial R →ₗ[R] polynomial R :=
+finsupp.total ℕ (polynomial R) R (λ n, C ↑n * X^(n - 1))
+
+lemma derivative_apply (p : polynomial R) :
+  derivative p = p.sum (λn a, C (a * n) * X^(n - 1)) :=
+begin
+  rw [derivative, total_apply],
+  apply congr rfl,
+  ext,
+  simp [mul_assoc, coeff_C_mul],
+end
 
 lemma coeff_derivative (p : polynomial R) (n : ℕ) :
   coeff (derivative p) n = coeff p (n + 1) * (n + 1) :=
 begin
-  rw [derivative],
+  rw [derivative_apply],
   simp only [coeff_X_pow, coeff_sum, coeff_C_mul],
   rw [finsupp.sum, finset.sum_eq_single (n + 1)],
   simp only [nat.add_succ_sub_one, add_zero, mul_one, if_true, eq_self_iff_true], norm_cast,
@@ -43,17 +55,17 @@ begin
     { intros _ H, rw [nat.succ_sub_one b, if_neg (mt (congr_arg nat.succ) H.symm), mul_zero] } }
 end
 
-@[simp] lemma derivative_zero : derivative (0 : polynomial R) = 0 :=
-finsupp.sum_zero_index
+lemma derivative_zero : derivative (0 : polynomial R) = 0 :=
+derivative.map_zero
 
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
-(sum_single_index $ by simp).trans (C_mul_X_pow_eq_monomial _ _)
+(derivative_apply _).trans ((sum_single_index $ by simp).trans (C_mul_X_pow_eq_monomial _ _))
 
 lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 
 @[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
-(derivative_monomial a 0).trans $ by simp
+by simp [derivative_apply]
 
 @[simp] lemma derivative_X : derivative (X : polynomial R) = 1 :=
 (derivative_monomial _ _).trans $ by simp
@@ -63,37 +75,31 @@ derivative_C
 
 @[simp] lemma derivative_add {f g : polynomial R} :
   derivative (f + g) = derivative f + derivative g :=
-by refine finsupp.sum_add_index _ _; intros;
-simp only [add_mul, zero_mul, C_0, C_add, C_mul]
-
-/-- The formal derivative of polynomials, as additive homomorphism. -/
-def derivative_hom (R : Type*) [semiring R] : polynomial R →+ polynomial R :=
-{ to_fun := derivative,
-  map_zero' := derivative_zero,
-  map_add' := λ p q, derivative_add }
+derivative.map_add f g
 
 @[simp] lemma derivative_neg {R : Type*} [ring R] (f : polynomial R) :
-  derivative (-f) = -derivative f :=
-(derivative_hom R).map_neg f
+  derivative (-f) = - derivative f :=
+linear_map.map_neg derivative f
 
 @[simp] lemma derivative_sub {R : Type*} [ring R] (f g : polynomial R) :
   derivative (f - g) = derivative f - derivative g :=
-(derivative_hom R).map_sub f g
-
-instance : is_add_monoid_hom (derivative : polynomial R → polynomial R) :=
-(derivative_hom R).is_add_monoid_hom
+linear_map.map_sub derivative f g
 
 @[simp] lemma derivative_sum {s : finset ι} {f : ι → polynomial R} :
   derivative (∑ b in s, f b) = ∑ b in s, derivative (f b) :=
-(derivative_hom R).map_sum f s
+derivative.map_sum
 
 @[simp] lemma derivative_smul (r : R) (p : polynomial R) : derivative (r • p) = r • derivative p :=
-by { ext, simp only [coeff_derivative, mul_assoc, coeff_smul], }
+derivative.map_smul _ _
 
 end semiring
 
 section comm_semiring
 variables [comm_semiring R]
+
+lemma derivative_eval (p : polynomial R) (x : R) :
+  p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
+by simp only [derivative_apply, eval_sum, eval_pow, eval_C, eval_X, eval_nat_cast, eval_mul]
 
 @[simp] lemma derivative_mul {f g : polynomial R} :
   derivative (f * g) = derivative f * g + f * derivative g :=
@@ -118,8 +124,7 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
       conv { to_rhs, congr,
         { rw [← sum_C_mul_X_eq g] },
         { rw [← sum_C_mul_X_eq f] } },
-      unfold derivative finsupp.sum,
-      simp only [sum_add_distrib, finset.mul_sum, finset.sum_mul]
+      simp only [finsupp.sum, sum_add_distrib, finset.mul_sum, finset.sum_mul, derivative_apply]
     end
 
 theorem derivative_pow_succ (p : polynomial R) (n : ℕ) :
@@ -171,12 +176,6 @@ with_bot.some_lt_some.1 $ by { rw [nat_degree, option.get_or_else_of_ne_none $ m
 theorem degree_derivative_le {p : polynomial R} : p.derivative.degree ≤ p.degree :=
 if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else le_of_lt $ degree_derivative_lt H
 
-/-- The formal derivative of polynomials, as linear homomorphism. -/
-def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomial R :=
-{ to_fun    := derivative,
-  map_add'  := λ p q, derivative_add,
-  map_smul' := λ r p, derivative_smul r p }
-
 end comm_semiring
 
 section domain
@@ -190,23 +189,23 @@ by { rw [nat.cast_eq_zero], simp only [nat.succ_ne_zero, or_false] }
 
 @[simp] lemma degree_derivative_eq [char_zero R] (p : polynomial R) (hp : 0 < nat_degree p) :
   degree (derivative p) = (nat_degree p - 1 : ℕ) :=
-le_antisymm
-  (le_trans (degree_sum_le _ _) $ sup_le $ assume n hn,
-    have n ≤ nat_degree p, begin
-      rw [← with_bot.coe_le_coe, ← degree_eq_nat_degree],
-      { refine le_degree_of_ne_zero _, simpa only [mem_support_iff] using hn },
-      { assume h, simpa only [h, support_zero] using hn }
-    end,
-    le_trans (degree_C_mul_X_pow_le _ _) $ with_bot.coe_le_coe.2 $ nat.sub_le_sub_right this _)
-  begin
-    refine le_sup _,
+begin
+  have h0 : p ≠ 0,
+  { contrapose! hp,
+    simp [hp] },
+  apply le_antisymm,
+  { rw derivative_apply,
+    apply le_trans (degree_sum_le _ _) (sup_le (λ n hn, _)),
+    apply le_trans (degree_C_mul_X_pow_le _ _) (with_bot.coe_le_coe.2 (nat.sub_le_sub_right _ _)),
+    apply le_nat_degree_of_mem_supp _ hn },
+  { refine le_sup _,
     rw [mem_support_derivative, nat.sub_add_cancel, mem_support_iff],
     { show ¬ leading_coeff p = 0,
       rw [leading_coeff_eq_zero],
       assume h, rw [h, nat_degree_zero] at hp,
       exact lt_irrefl 0 (lt_of_le_of_lt (zero_le _) hp), },
-    exact hp
-  end
+    exact hp }
+end
 
 theorem nat_degree_eq_zero_of_derivative_eq_zero [char_zero R] {f : polynomial R} (h : f.derivative = 0) :
   f.nat_degree = 0 :=

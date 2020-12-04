@@ -9,22 +9,22 @@ import tactic.basic
 
 /-!
 
-Tuples of types, and their categorical structure.
+# Tuples of types, and their categorical structure.
 
-Features:
+## Features
 
-`typevec n`   : n-tuples of types
-`α ⟹ β`      : n-tuples of maps
-`f ⊚ g`       : composition
+* `typevec n` - n-tuples of types
+* `α ⟹ β`    - n-tuples of maps
+* `f ⊚ g`     - composition
 
 Also, support functions for operating with n-tuples of types, such as:
 
-`append1 α β`    : append type `β` to n-tuple `α` to obtain an (n+1)-tuple
-`drop α`         : drops the last element of an (n+1)-tuple
-`last α`         : returns the last element of an (n+1)-tuple
-`append_fun f g` : appends a function g to an n-tuple of functions
-`drop_fun f`     : drops the last function from an n+1-tuple
-`last_fun f`     : returns the last function of a tuple.
+* `append1 α β`    - append type `β` to n-tuple `α` to obtain an (n+1)-tuple
+* `drop α`         - drops the last element of an (n+1)-tuple
+* `last α`         - returns the last element of an (n+1)-tuple
+* `append_fun f g` - appends a function g to an n-tuple of functions
+* `drop_fun f`     - drops the last function from an n+1-tuple
+* `last_fun f`     - returns the last function of a tuple.
 
 Since e.g. `append1 α.drop α.last` is propositionally equal to `α` but not definitionally equal
 to it, we need support functions and lemmas to mediate between constructions.

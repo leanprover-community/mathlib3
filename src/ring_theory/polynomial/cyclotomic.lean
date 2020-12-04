@@ -562,17 +562,15 @@ lemma order_of_root_cyclotomic_dvd {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : 
   {a : ℕ} (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
   order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) ∣ n :=
 begin
-  have hord : (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) ^ n = 1,
-  { suffices hpow : eval (nat.cast_ring_hom (zmod p) a) (X ^ n - 1 : polynomial (zmod p)) = 0,
-    { simp only [eval_X, eval_one, eval_pow, eval_sub, ring_hom.eq_nat_cast] at hpow,
-      apply units.coe_eq_one.1,
-      simp only [sub_eq_zero.mp hpow, zmod.cast_unit_of_coprime, units.coe_pow] },
-    rw [← prod_cyclotomic_eq_X_pow_sub_one hpos (zmod p),
-      nat.divisors_eq_proper_divisors_insert_self_of_pos hpos,
-      finset.prod_insert nat.proper_divisors.not_self_mem, eval_mul],
-    rw [is_root.def] at hroot,
-    rw [hroot, zero_mul] },
-  exact order_of_dvd_of_pow_eq_one hord
+  apply order_of_dvd_of_pow_eq_one,
+  suffices hpow : eval (nat.cast_ring_hom (zmod p) a) (X ^ n - 1 : polynomial (zmod p)) = 0,
+  { simp only [eval_X, eval_one, eval_pow, eval_sub, ring_hom.eq_nat_cast] at hpow,
+    apply units.coe_eq_one.1,
+    simp only [sub_eq_zero.mp hpow, zmod.cast_unit_of_coprime, units.coe_pow] },
+  rw [is_root.def] at hroot,
+  rw [← prod_cyclotomic_eq_X_pow_sub_one hpos (zmod p),
+    nat.divisors_eq_proper_divisors_insert_self_of_pos hpos,
+    finset.prod_insert nat.proper_divisors.not_self_mem, eval_mul, hroot, zero_mul]
 end
 
 /-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, where `p` is a prime that does not divide

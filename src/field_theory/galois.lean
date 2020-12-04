@@ -120,6 +120,7 @@ variables {F E : Type*} (K : Type*) [field F] [field K] [field E] [algebra F K] 
 lemma is_galois.tower_top_of_is_galois (h : is_galois F E) : is_galois K E :=
 ⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_galois.tower_top_intermediate_field (K : intermediate_field F E) [h : is_galois F E] :
   is_galois K E :=
 ⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩

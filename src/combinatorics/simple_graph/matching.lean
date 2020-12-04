@@ -42,7 +42,7 @@ A matching on `G` is a subset of its edges such that no two edges share a vertex
 structure matching :=
 (edges : set (sym2 V))
 (sub_edges : edges ⊆ G.edge_set)
-(disjoint : ∀ (x y ∈ edges ) (v : V), v ∈ x ∧ v ∈ y → x = y)
+(disjoint : ∀ (x y ∈ edges) (v : V), v ∈ x ∧ v ∈ y → x = y)
 
 instance : inhabited (matching G) :=
 ⟨⟨∅, set.empty_subset _, λ _ _ hx, false.elim (set.not_mem_empty _ hx)⟩⟩
@@ -66,6 +66,5 @@ M.support = set.univ
 lemma matching.is_perfect_iff (M : G.matching) :
 M.is_perfect ↔ ∀ (v : V), ∃ e ∈ M.edges, v ∈ e :=
 set.eq_univ_iff_forall
-
 
 end simple_graph

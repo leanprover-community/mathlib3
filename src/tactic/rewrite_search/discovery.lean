@@ -15,13 +15,6 @@ namespace tactic.rewrite_search
 open tactic tactic.interactive tactic.rewrite_search
 
 /--
-Convert the (pexpr × bool) format provided by the parser to the (expr × bool) format
-used by rewrite_search.
--/
-private meta def rules_from_pexprs (rws : list (pexpr × bool)) : tactic (list (expr × bool)) :=
-rws.mmap (λ r, do e ← to_expr' r.1, pure (e, r.2))
-
-/--
 Convert a list of expressions into a list of rules. The difference is that a rule
 includes a flag for direction, so this simply includes each expression twice,
 once in each direction.
@@ -57,14 +50,12 @@ do names ← attribute.get_instances `rewrite,
   rules_from_exprs <$> names.mmap mk_const
 
 /--
-Collect rewrite rules to use, either provided explicitly in the parser's format, or
-gathered from the environment.
+Collect rewrite rules to use from the environment.
 -/
-meta def collect_rules (rws : list (pexpr × bool)) : tactic (list (expr × bool)) :=
+meta def collect_rules : tactic (list (expr × bool)) :=
 do from_attr    ← rules_from_rewrite_attr,
   from_hyps     ← rules_from_hyps,
-  from_rw_rules ← rules_from_pexprs rws,
-  return $ from_attr ++ from_hyps ++ from_rw_rules
+  return $ from_attr ++ from_hyps
 
 open tactic.nth_rewrite tactic.nth_rewrite.congr
 

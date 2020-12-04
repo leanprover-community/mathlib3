@@ -19,7 +19,7 @@ private axiom bar' : [[5], [5]] = [[6], [6]]
 example : [[7], [6]] = [[5], [5]] :=
 begin
   success_if_fail { rewrite_search },
-  rewrite_search_with [foo', bar']
+  rewrite_search [foo', bar']
 end
 
 @[rewrite] private axiom foo : [0] = [1]
@@ -68,6 +68,6 @@ lemma test_linear_path : h 0 = h 4 := by rewrite_search
 constants a b c d e : ℚ
 
 lemma test_algebra : (a * (b + c)) * d = a * (b * d) + a * (c * d) :=
-by rewrite_search_with [add_comm, add_assoc, mul_assoc, mul_comm, left_distrib, right_distrib]
+by rewrite_search [add_comm, add_assoc, mul_assoc, mul_comm, left_distrib, right_distrib]
 
 end tactic.rewrite_search.testing

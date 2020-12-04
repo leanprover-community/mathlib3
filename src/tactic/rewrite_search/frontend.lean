@@ -61,51 +61,40 @@ namespace tactic.interactive
 open lean.parser interactive interactive.types tactic.rewrite_search
 
 /--
+Parse a specification for a single rewrite rule.
+The name of a lemma indicates using it as a rewrite. Prepending a "←" reverses the direction.
+-/
+private meta def rws_parser : lean.parser (expr × bool) :=
+do flipped ← optional $ tk "←",
+   pexp ← lean.parser.pexpr 0,
+   exp ← to_expr' pexp,
+   return (exp, flipped.is_some)
+
+/--
+Search for a chain of rewrites to prove an equation or iff statement.
+
 Collects rewrite rules, runs a graph search to find a chain of rewrites to prove the
 current target, and generates a string explanation for it.
+
+Takes an optional list of rewrite rules specified in the same way as the `rw` tactic accepts.
 -/
-private meta def rewrite_search_target (cfg : config) (rws : list (pexpr × bool)) :
+meta def rewrite_search (rs : parse (optional (list_of rws_parser))) (cfg : config := {}) :
   tactic unit :=
 do t ← tactic.target,
   if t.has_meta_var then
     tactic.fail "rewrite_search is not suitable for goals containing metavariables"
   else tactic.skip,
-  rules ← collect_rules rws,
-  g ← mk_graph cfg rules t,
+  rules ← collect_rules,
+  g ← mk_graph cfg (rules ++ (rs.get_or_else [])) t,
   (_, proof, steps) ← g.find_proof,
   tactic.exact proof,
   if cfg.explain then explain_search_result cfg rules proof steps else skip
 
-/--
-Parse a specification for a single rewrite rule.
--/
-private meta def rw_search_parser : lean.parser (pexpr × bool) :=
-do flipped ← optional $ tk "←",
-   e ← lean.parser.pexpr 0,
-   return (e, flipped.is_some)
-
-/-- Search for a chain of rewrites to prove an equation or iff statement. -/
-meta def rewrite_search (cfg : config := {}) : tactic unit :=
-rewrite_search_target cfg []
 
 add_tactic_doc
 { name        := "rewrite_search",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.rewrite_search],
-  tags        := ["rewrite", "automation"] }
-
-/--
-Search for a chain of rewrites to prove an equation or iff statement.
-Includes the rewrite rules specified in the same way as the `rw` tactic accepts.
--/
-meta def rewrite_search_with (rs : parse (list_of rw_search_parser)) (cfg : config := {}) :
-  tactic unit :=
-rewrite_search_target cfg rs
-
-add_tactic_doc
-{ name        := "rewrite_search_with",
-  category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.rewrite_search_with],
   tags        := ["rewrite", "automation"] }
 
 end tactic.interactive

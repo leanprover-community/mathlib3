@@ -103,9 +103,7 @@ begin
 end
 
 end equalizers
--- end preserves_equalizer
 
--- namespace preserves_coequalizer
 section coequalizers
 
 variables {X Y Z : C} {f g : X ⟶ Y} {h : Y ⟶ Z} (w : f ≫ h = g ≫ h)

@@ -15,19 +15,109 @@ between its original variable and `a`. -/
 def segment_parametrized_integral (f : (fin 2 → ℝ) → ℝ) (x : fin 2 → ℝ) (i : fin 2) (a : ℝ) : ℝ :=
 ∫ t in (x i)..a, f (update x i t)
 
-variables {u : (fin 2 → ℝ) → ℝ} (hu : continuous u)
-
-include hu
+variables (u : (fin 2 → ℝ) → ℝ)
 
 /-- Given a rectangle (defined by two points, the bottom-left corner `a` and the top-right corner
 `b`), and a fixed continuous function `u` on the plane, and an index `i` in `fin 2`, the function
 that sends a rectangle to the integral of `u` in opposite directions along the two sides parallel to
 the `i`-axis. -/
-def box_line_integral (i : fin 2) (a b : fin 2 → ℝ) : ℝ :=
-(segment_parametrized_integral u a i (b i) - segment_parametrized_integral u b i (a i))
+def box_line_integral  (i : fin 2) (a b : fin 2 → ℝ) : ℝ :=
+(segment_parametrized_integral u a i (b i) + segment_parametrized_integral u b i (a i))
+---- IS THIS DEF CORRECT???? OR OFF BY A SIGN??
+
+
+lemma box_line_integral_const (cU : ℝ ) (i : fin 2) (a b : fin 2 → ℝ)
+:
+ box_line_integral (λ x, cU ) i a b  = 0
+ :=
+begin
+  -- ALEX TO DO
+  sorry,
+end
+
+def ex  (i : fin 2 ): (ℝ ):= if i = 0 then 1  else 0
+
+def ey (i : fin 2 ): (ℝ ):= if i = 0 then 0  else 1
+
+def oppI : fin 2 → fin 2 := λ i, if i=0 then 1 else 0
+
+def oppE : fin 2 → (fin 2→ ℝ ) := λ i, if i=0 then ey else ex
+
+lemma box_line_integral_linear (u: (fin 2→ ℝ ) →L[ℝ] ℝ ) (i : fin 2) (a b : fin 2 → ℝ)
+:
+ box_line_integral u i a b  = (b 0 - a 0)*(u (oppE i))*(b 1 - a 1)
+ :=
+begin
+  rw box_line_integral,
+  rw segment_parametrized_integral,
+  rw segment_parametrized_integral,
+  have :
+  ∫ (t : ℝ) in b 0..a 0, u (update b 0 t)
+  =
+   - ∫ (t : ℝ) in a 0..b 0, u (update b 0 t),
+  apply   interval_integral.integral_symm,
+  rw this,
+  ring,
+  clear this,
+  rw ←  interval_integral.integral_sub,
+  {
+    /-
+    have : ∀ x,
+    u (update a 0 x) - u (update b 0 x)
+    =
+    u (update a 0 x - (update b 0 x)),
+    {
+      simp,
+    },
+    -/
+    have :
+    (λ x, u (update a 0 x) - u (update b 0 x))
+    =
+    (λ x,     u (update a 0 x - (update b 0 x))),
+    {
+      simp,
+    },
+    rw this,
+    clear this,
+    have : (λ x,
+    u (update a 0 x - update b 0 x))
+    =
+    (λ x ,
+     (a 1 - b 1) * u ( ey ))
+    ,
+    {
+      --- ALEX TO DO
+      sorry,
+    },
+    rw this,
+    clear this,
+    --- ALEX
+    sorry,
+  },
+
+
+  --- HEATHER
+
+  sorry,
+
+  sorry,
+end
+
+lemma box_integral_const (cU : ℝ )  (a b : fin 2 → ℝ)
+:
+ box_integral (λ x, cU ) a b  = 0
+ :=
+begin
+  -- ALEX TO DO
+  sorry,
+end
+
+
+variables {u}
 
 /-- The function `box_line_integral` is additive over rectangles. -/
-lemma is_box_additive_line_integral (i : fin 2) : box_additive_on (box_line_integral hu i) univ :=
+lemma is_box_additive_line_integral (i : fin 2) (hu : continuous u)
+: box_additive_on (box_line_integral u i) univ :=
 begin
   rw box_additive_on,
   intros,
@@ -43,7 +133,7 @@ begin
 
   sorry,
 end
-omit hu
+
 
 end
 
@@ -146,7 +236,8 @@ end
 
 lemma is_disjoint (n : ℕ) (s : set (fin n → ℝ)) ⦃I : s.subinterval⦄
   ⦃a : fin n → ℝ⦄ (i : fin n)
-  (ha : a ∈ s) :
+  --(ha : a ∈ s) :
+  (ha : I.left i < a i ∧ a i ≤ I.right i) :
   disjoint (Ioc I.left (update I.right i (a i)))
     (Ioc (update I.left i (a i)) I.right) :=
 begin
@@ -162,7 +253,12 @@ begin
 --  {
   --have h211i := h.2.1.1 i,
   --simp at h211i,
+  have h2 := h.2,
+  have h22 := h.2.2,
+  have h21 := h.2.1,
+
   have h212 := h.2.1.2,
+  have h211 := h.2.1.1,
   have claim : ∀ (i_1 : fin n), x i_1 ≤ update I.left i (a i) i_1 ,
   {
     intros j,
@@ -189,6 +285,8 @@ begin
 end
 
 end box_partition
+
+section measure_stuff_foo
 
 open measure_theory
 variables (u : (fin 2 → ℝ) → ℝ)
@@ -248,13 +346,116 @@ begin
   { rw [← rectangle_eq, ← rectangle_eq],
     apply disjoint.preimage,
     apply is_disjoint,
-    simp },
+    --simp
+    sorry,
+    },
   { exact is_measurable_rectangle _ _ },
   { exact is_measurable_rectangle _ _ },
   { exact integrable_restrict _ _ _ _ hu },
   { exact integrable_restrict' _ _ _ _ hu }
 end
 
+end measure_stuff_foo
+
+----------------------------------------------------------------
+
+section Green
+
+open measure_theory
+variables (P Q  : (fin 2 → ℝ) →  ℝ) (hP : continuous P) (hQ : continuous Q)
+
+--include hP
+
+
+/-
+
+∫_∂R P dx + Q dy
+
+=
+
+∫_R (P_y - Q_x ) dx dy
+
+U=(P,Q)
+
+-/
+
+def ex  (i : fin 2 ): (ℝ ):= if i = 0 then 1  else 0
+
+def ey (i : fin 2 ): (ℝ ):= if i = 0 then 0  else 1
+
+def divergence : (fin 2 → ℝ ) → ℝ := fderiv ℝ P ex - fderiv ℝ Q ey
+
+def div_diff (a b : fin 2 → ℝ ) : ℝ :=
+box_integral (divergence P Q) a b
+-
+(
+box_line_integral P 0 a b
++
+box_line_integral Q 1 a b
+)
+
+lemma const_div_diff_cancels (a b : fin 2 → ℝ ) (cP cQ :ℝ )
+:
+div_diff (λ x, cP ) (λ x, cQ ) a b =0
+:=
+begin
+  rw div_diff,
+
+end
+
+lemma linear_div_diff_cancels (a b : fin 2 → ℝ ) (P: (fin 2→ℝ ) →L[ℝ] (ℝ ) ) (Q: (fin 2→ℝ ) →L[ℝ] ℝ  )
+:
+div_diff P Q a b =0
+:=
+begin
+  sorry,
+end
+
+open box_subadditive_on
+
+lemma greens_thm
+(I : subinterval (univ : set (fin 2 → ℝ )))
+(hP : differentiable ℝ  P)
+(hQ : differentiable ℝ  Q)
+:
+div_diff P Q I.left I.right = 0
+--box_integral (divergence P Q) a b
+--box_line_integral  (i : fin 2) (a b : fin 2 → ℝ)
+--∫ x in rectangle a b, u ((foo' ℝ ℝ).symm x) ∂(volume.prod volume)
+:=
+begin
+  refine eq_zero_of_forall_is_o_prod _ _ _ ,
+  {
+
+    sorry,
+  },
+  {
+    intros,
+--    rw asymptotics.is_o,
+--    intros,
+--
+    have Pdiff := differentiable_at.has_fderiv_at (hP.differentiable_at ),
+
+    have hpP := has_fderiv_at_iff_is_o_nhds_zero.1 Pdiff,
+
+
+    /-
+
+    b0 fixed , b near b0
+      P(b) = P(b0) + P'(b0)(b-b0) +  o (b-b0)
+
+need lemma: if f=o(m) then div_diff = o
+
+    -/
+
+    sorry,
+
+  },
+
+end
+
+
+end Green
 
 --- next steps: Lean definition of Divergence, prove additive by invoking these
 -- prove that integral over perimeter - integral interior of divergence = o(volume)

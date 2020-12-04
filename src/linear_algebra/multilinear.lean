@@ -583,7 +583,7 @@ have inr_disjoint : ∀ {α β : Type*} (b : β),
       rw [b.map_smul, tensor_product.tmul_smul], },
   end }
 
-/-- A more bundled version of `multilinear_mmap.coprod` that maps
+/-- A more bundled version of `multilinear_map.coprod` that maps
 `((ι₁ → N) → N₁) ⊗ ((ι₂ → N) → N₂)` to `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂`. -/
 def coprod' :
   multilinear_map R (λ _ : ι₁, N) N₁ ⊗[R] multilinear_map R (λ _ : ι₂, N) N₂ →ₗ[R]

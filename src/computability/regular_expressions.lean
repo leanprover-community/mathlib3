@@ -48,7 +48,7 @@ def star (l : language α) : language α :=
 @[simp] lemma star_def (l : language α) :
   l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, ¬(list.empty y) ∧ y ∈ l} := rfl
 
-lemma mul_assoc (l m n : language α) : (l * m) * n = l * (m * n) :=
+private lemma mul_assoc (l m n : language α) : (l * m) * n = l * (m * n) :=
 begin
   ext x,
   simp only [mul_def, exists_and_distrib_left, set.mem_image2, set.image_prod],
@@ -61,7 +61,7 @@ begin
     rw [list.append_assoc, hb, hx] }
 end
 
-lemma one_mul (l : language α) : 1 * l = l :=
+private lemma one_mul (l : language α) : 1 * l = l :=
 begin
   ext x,
   simp only [mul_def, set.mem_image, prod.mk.inj_iff, one_def, set.singleton_prod, prod.exists],
@@ -72,7 +72,7 @@ begin
     exact ⟨ [], x, ⟨ x, hx, rfl, rfl ⟩, rfl ⟩ }
 end
 
-lemma mul_one (l : language α) : l * 1 = l :=
+private lemma mul_one (l : language α) : l * 1 = l :=
 begin
   ext x,
   simp only [mul_def, set.mem_image, prod.mk.inj_iff, one_def, set.prod_singleton, prod.exists],
@@ -84,7 +84,7 @@ begin
     exact ⟨ x, [], ⟨ x, hx, rfl, rfl ⟩, x.append_nil ⟩ }
 end
 
-lemma left_distrib (l m n : language α) : l * (m + n) = (l * m) + (l * n) :=
+private lemma left_distrib (l m n : language α) : l * (m + n) = (l * m) + (l * n) :=
 begin
   ext x,
   simp only [mul_def, set.mem_image, add_def, set.mem_prod, exists_and_distrib_left, set.mem_image2,
@@ -103,7 +103,7 @@ begin
       exact ⟨ hy, hz ⟩ } }
 end
 
-lemma right_distrib (l m n : language α) : (l + m) * n = (l * n) + (m * n) :=
+private lemma right_distrib (l m n : language α) : (l + m) * n = (l * n) + (m * n) :=
 begin
   ext x,
   simp only [mul_def, set.mem_image, add_def, set.mem_prod, exists_and_distrib_left, set.mem_image2,

@@ -1380,7 +1380,7 @@ end subtype_domain
 section multiset
 
 /-- Given `f : α →₀ ℕ`, `f.to_multiset` is the multiset with multiplicities given by the values of
-`f` on the elements of `α`. -/
+`f` on the elements of `α`. We define this function as an `add_equiv`. -/
 def to_multiset : (α →₀ ℕ) ≃+ multiset α :=
 { to_fun := λ f, f.sum (λa n, n •ℕ {a}),
   inv_fun := λ s, ⟨s.to_finset, λ a, s.count a, λ a, by simp⟩,

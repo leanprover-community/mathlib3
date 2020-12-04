@@ -203,7 +203,7 @@ begin
   rwa [rmatch, deriv],
 end
 
-@[simp] lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] :=
+lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] :=
 begin
   cases x,
     dec_trivial,
@@ -211,7 +211,7 @@ begin
   dec_trivial
 end
 
-@[simp] lemma char_rmatch_iff (a : α) (x : list α) : rmatch (char a) x ↔ x = [a] :=
+lemma char_rmatch_iff (a : α) (x : list α) : rmatch (char a) x ↔ x = [a] :=
 begin
   cases x with _ x,
     dec_trivial,
@@ -227,7 +227,7 @@ begin
   tauto
 end
 
-@[simp] lemma add_rmatch_iff (P Q : regular_expression α) (x : list α) :
+lemma add_rmatch_iff (P Q : regular_expression α) (x : list α) :
   (P + Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x :=
 begin
   induction x with _ _ ih generalizing P Q,
@@ -239,7 +239,7 @@ begin
     exact ih _ _ }
 end
 
-@[simp] lemma mul_rmatch_iff (P Q : regular_expression α) (x : list α) :
+lemma mul_rmatch_iff (P Q : regular_expression α) (x : list α) :
   (P * Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
 begin
   induction x with a x ih generalizing P Q,
@@ -285,7 +285,7 @@ begin
           finish } } } }
 end
 
-@[simp] lemma star_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
+lemma star_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
   (star P).rmatch x ↔ ∃ S : list (list α), x = S.join ∧ ∀ t ∈ S, ¬(list.empty t) ∧ P.rmatch t
 | x :=
 begin
@@ -340,32 +340,37 @@ using_well_founded {
   rel_tac := λ _ _, `[exact ⟨(λ L₁ L₂ : list _, L₁.length < L₂.length), inv_image.wf _ nat.lt_wf⟩]
 }
 
-@[simp] lemma matches_iff_rmatch (P : regular_expression α) :
-  ∀ x : list α, x ∈ P.matches ↔ P.rmatch x :=
+@[simp] lemma rmatch_iff_matches (P : regular_expression α) :
+  ∀ x : list α, P.rmatch x ↔ x ∈ P.matches :=
 begin
   intro x,
-  induction P with _ _ _ _ _ _ _ ih₁ ih₂ generalizing x,
+  induction P with _ _ _ ih₁ ih₂ _ _ ih₁ ih₂ _ ih generalizing x,
   all_goals
   { try {rw zero_def},
     try {rw one_def},
     try {rw plus_def},
     rw matches },
-  { simp },
-  { simp },
-  { simp },
-  { finish },
+  { rw zero_rmatch,
+    tauto },
+  { rw one_rmatch_iff,
+    refl },
+  { rw char_rmatch_iff,
+    refl },
+  { rw [add_rmatch_iff, ih₁, ih₂],
+    refl },
   { simp only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
                set.image_prod],
     split,
-    { rintro ⟨ x, hmatch₁, y, hmatch₂, hsum ⟩,
+    { rintro ⟨ x, y, hsum, hmatch₁, hmatch₂ ⟩,
       rw ih₁ at hmatch₁,
       rw ih₂ at hmatch₂,
-      exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ },
-    { rintro ⟨ x, y, hsum, hmatch₁, hmatch₂ ⟩,
+      exact ⟨ x, hmatch₁, y, hmatch₂, hsum.symm ⟩ },
+    { rintro ⟨ x, hmatch₁, y, hmatch₂, hsum ⟩,
       rw ←ih₁ at hmatch₁,
       rw ←ih₂ at hmatch₂,
-      exact ⟨ x, hmatch₁, y, hmatch₂, hsum.symm ⟩ } },
-  { finish }
+      exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ } },
+  { rw star_rmatch_iff,
+    finish }
 end
 
 omit dec

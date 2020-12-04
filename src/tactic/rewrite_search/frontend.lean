@@ -78,8 +78,8 @@ current target, and generates a string explanation for it.
 
 Takes an optional list of rewrite rules specified in the same way as the `rw` tactic accepts.
 -/
-meta def rewrite_search (rs : parse (optional (list_of rws_parser))) (cfg : config := {}) :
-  tactic unit :=
+meta def rewrite_search (explain : parse $ optional (tk "?"))
+  (rs : parse $ optional (list_of rws_parser)) (cfg : config := {}) : tactic unit :=
 do t ← tactic.target,
   if t.has_meta_var then
     tactic.fail "rewrite_search is not suitable for goals containing metavariables"
@@ -88,7 +88,7 @@ do t ← tactic.target,
   g ← mk_graph cfg (rules ++ (rs.get_or_else [])) t,
   (_, proof, steps) ← g.find_proof,
   tactic.exact proof,
-  if cfg.explain then explain_search_result cfg rules proof steps else skip
+  if explain.is_some then explain_search_result cfg rules proof steps else skip
 
 
 add_tactic_doc

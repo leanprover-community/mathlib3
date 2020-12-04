@@ -318,6 +318,20 @@ end
 instance [nontrivial R] : nontrivial (free_algebra R X) :=
 equiv_monoid_algebra_free_monoid.to_equiv.nontrivial
 
+section
+open_locale classical
+
+-- this proof is copied from the approach in `free_abelian_group.of_injective`
+lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebra R X) :=
+λ x y hoxy, classical.by_contradiction $ assume hxy : x ≠ y,
+  let f : free_algebra R X →ₐ[R] R := lift R (λ z, if x = z then (1 : R) else 0) in
+  have hfx1 : f (ι R x) = 1, from (lift_ι_apply _ _).trans $ if_pos rfl,
+  have hfy1 : f (ι R y) = 1, from hoxy ▸ hfx1,
+  have hfy0 : f (ι R y) = 0, from (lift_ι_apply _ _).trans $ if_neg hxy,
+  one_ne_zero $ hfy1.symm.trans hfy0
+
+end
+
 end free_algebra
 
 -- There is something weird in the above namespace that breaks the typeclass resolution of `has_coe_to_sort` below.

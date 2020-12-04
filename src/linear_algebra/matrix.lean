@@ -99,8 +99,7 @@ def linear_map.to_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n
   left_inv := λ f, begin
     apply (pi.is_basis_fun R n).ext,
     intro j, ext i,
-    simp only [matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply],
-    congr
+    simp only [matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply]
   end,
   map_add' := λ f g, by { ext i j, simp only [pi.add_apply, linear_map.add_apply] },
   map_smul' := λ c f, by { ext i j, simp only [pi.smul_apply, linear_map.smul_apply] } }
@@ -211,9 +210,17 @@ begin
     contradiction }
 end
 
+lemma linear_map.to_matrix_transpose_apply (f : M₁ →ₗ[R] M₂) (j : n) :
+  (linear_map.to_matrix hv₁ hv₂ f)ᵀ j = hv₂.equiv_fun (f (v₁ j)) :=
+funext $ λ i, f.to_matrix_apply _ _ i j
+
 lemma linear_map.to_matrix_apply' (f : M₁ →ₗ[R] M₂) (i : m) (j : n) :
   linear_map.to_matrix hv₁ hv₂ f i j = hv₂.repr (f (v₁ j)) i :=
 linear_map.to_matrix_apply hv₁ hv₂ f i j
+
+lemma linear_map.to_matrix_transpose_apply' (f : M₁ →ₗ[R] M₂) (j : n) :
+  (linear_map.to_matrix hv₁ hv₂ f)ᵀ j = hv₂.repr (f (v₁ j)) :=
+linear_map.to_matrix_transpose_apply hv₁ hv₂ f j
 
 lemma matrix.to_lin_apply (M : matrix m n R) (v : M₁) :
   matrix.to_lin hv₁ hv₂ M v = ∑ j, M.mul_vec (hv₁.equiv_fun v) j • v₂ j :=
@@ -286,6 +293,9 @@ namespace is_basis
 
 lemma to_matrix_apply : he.to_matrix v i j = he.equiv_fun (v j) i :=
 rfl
+
+lemma to_matrix_transpose_apply : (he.to_matrix v)ᵀ j = he.repr (v j) :=
+funext $ (λ _, rfl)
 
 lemma to_matrix_eq_to_matrix_constr [decidable_eq ι] (v : ι → M) :
   he.to_matrix v = linear_map.to_matrix he he (he.constr v) :=
@@ -410,8 +420,9 @@ def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {hv : is_basis R v} {hv' : 
 
 variables {e : ι → M} (he : is_basis R e)
 
-/-- The determinant of a family of vectors with respect to some basis, as a multilinear map. -/
-def is_basis.det : multilinear_map R (λ i : ι, M) R :=
+/-- The determinant of a family of vectors with respect to some basis, as an alternating
+multilinear map. -/
+def is_basis.det : alternating_map R M R ι :=
 { to_fun := λ v, det (he.to_matrix v),
   map_add' := begin
     intros v i x y,
@@ -422,6 +433,13 @@ def is_basis.det : multilinear_map R (λ i : ι, M) R :=
     intros u i c x,
     simp only [he.to_matrix_update, algebra.id.smul_eq_mul, map_smul_of_tower],
     apply det_update_column_smul
+  end,
+  map_eq_zero_of_eq' := begin
+    intros v i j h hij,
+    rw [←function.update_eq_self i v, h, ←det_transpose, he.to_matrix_update,
+        ←update_row_transpose, ←he.to_matrix_transpose_apply],
+    apply det_zero_of_row_eq hij,
+    rw [update_row_ne hij.symm, update_row_self],
   end }
 
 lemma is_basis.det_apply (v : ι → M) : he.det v = det (he.to_matrix v) := rfl

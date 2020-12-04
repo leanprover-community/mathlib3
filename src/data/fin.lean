@@ -6,6 +6,8 @@ Authors: Robert Y. Lewis, Keeley Hoek
 import data.nat.cast
 import tactic.localized
 import logic.embedding
+import data.set.intervals.basic
+
 /-!
 # The finite type with `n` elements
 
@@ -263,8 +265,6 @@ lemma succ_pos (a : fin n) : (0 : fin (n + 1)) < a.succ := by simp [lt_iff_coe_l
 protected theorem succ.inj (p : fin.succ a = fin.succ b) : a = b :=
 by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
 
-@[simp] lemma succ_inj {a b : fin n} : a.succ = b.succ ↔ a = b :=
-⟨λh, succ.inj h, λh, by rw h⟩
 
 @[simp] lemma succ_le_succ_iff : a.succ ≤ b.succ ↔ a ≤ b :=
 by { simp only [le_iff_coe_le_coe, coe_succ], exact ⟨le_of_succ_le_succ, succ_le_succ⟩ }
@@ -274,6 +274,9 @@ by { simp only [lt_iff_coe_lt_coe, coe_succ], exact ⟨lt_of_succ_lt_succ, succ_
 
 lemma succ_injective (n : ℕ) : injective (@fin.succ n) :=
 λa b, succ.inj
+
+@[simp] lemma succ_inj {a b : fin n} : a.succ = b.succ ↔ a = b :=
+(succ_injective n).eq_iff
 
 lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
 | ⟨k, hk⟩ heq := nat.succ_ne_zero k $ (ext_iff _ _).1 heq
@@ -301,6 +304,14 @@ by { cases i, refl }
 @[simp] lemma pred_mk_succ (i : ℕ) (h : i < n + 1) :
   fin.pred ⟨i + 1, add_lt_add_right h 1⟩ (ne_of_vne (ne_of_gt (mk_succ_pos i h))) = ⟨i, h⟩ :=
 by simp only [ext_iff, coe_pred, coe_mk, nat.add_sub_cancel]
+
+@[simp] lemma pred_le_pred_iff {n : ℕ} {a b : fin n.succ} {ha : a ≠ 0} {hb : b ≠ 0} :
+  a.pred ha ≤ b.pred hb ↔ a ≤ b :=
+by rw [←succ_le_succ_iff, succ_pred, succ_pred]
+
+@[simp] lemma pred_lt_pred_iff {n : ℕ} {a b : fin n.succ} {ha : a ≠ 0} {hb : b ≠ 0} :
+  a.pred ha < b.pred hb ↔ a < b :=
+by rw [←succ_lt_succ_iff, succ_pred, succ_pred]
 
 @[simp] lemma pred_inj :
   ∀ {a b : fin (n + 1)} {ha : a ≠ 0} {hb : b ≠ 0}, a.pred ha = b.pred hb ↔ a = b
@@ -381,8 +392,11 @@ rfl
 @[simp] lemma coe_add_nat (i : fin (n + m)) : (i.add_nat m : ℕ) = i + m :=
 rfl
 
+lemma cast_succ_injective (n : ℕ) : injective (@fin.cast_succ n) :=
+λ x y h, coe_injective $ coe_cast_succ x ▸ coe_cast_succ y ▸ coe_injective.eq_iff.mpr h
+
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
-by simp [eq_iff_veq]
+(cast_succ_injective n).eq_iff
 
 lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.mpr a.is_lt
 
@@ -470,9 +484,6 @@ nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
 lemma cast_le_injective {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : injective (fin.cast_le h)
 | ⟨i₁, h₁⟩ ⟨i₂, h₂⟩ eq := fin.eq_of_veq $ show i₁ = i₂, from fin.veq_of_eq eq
 
-lemma cast_succ_injective (n : ℕ) : injective (@fin.cast_succ n) :=
-cast_le_injective (le_add_right n 1)
-
 /-- Embedding `i : fin n` into `fin (n + 1)` with a hole around `p : fin (n + 1)`
 embeds `i` by `cast_succ` when the resulting `i.cast_succ < p` -/
 lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : i.cast_succ < p) :
@@ -551,11 +562,8 @@ begin
 end
 
 /-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
-lemma succ_above_right_inj {x : fin (n + 1)} :
-  x.succ_above a = x.succ_above b ↔ a = b :=
-begin
-  refine iff.intro _ (λ h, by rw h),
-  intro h,
+lemma succ_above_right_injective {x : fin (n + 1)} : injective (succ_above x) :=
+λ a b h, begin
   cases succ_above_lt_ge x a with ha ha;
   cases succ_above_lt_ge x b with hb hb,
   { simpa only [succ_above_below, ha, hb, cast_succ_inj] using h },
@@ -569,8 +577,9 @@ begin
 end
 
 /-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
-lemma succ_above_right_injective {x : fin (n + 1)} : injective (succ_above x) :=
-λ _ _, succ_above_right_inj.mp
+lemma succ_above_right_inj {x : fin (n + 1)} :
+  x.succ_above a = x.succ_above b ↔ a = b :=
+succ_above_right_injective.eq_iff
 
 /-- Embedding a `fin (n + 1)` into `fin n` and embedding it back around the same hole
 gives the starting `fin (n + 1)` -/
@@ -603,10 +612,8 @@ lemma forall_iff_succ_above {p : fin (n + 1) → Prop} (i : fin (n + 1)) :
   λ h j, if hj : j = i then (hj.symm ▸ h.1) else (i.succ_above_pred_above j hj ▸ h.2 _)⟩
 
 /-- `succ_above` is injective at the pivot -/
-lemma succ_above_left_inj {x y : fin (n + 1)} :
-  x.succ_above = y.succ_above ↔ x = y :=
-begin
-  refine iff.intro _ (λ h, by rw h),
+lemma succ_above_left_injective : injective (@succ_above n) :=
+λ x y, begin
   contrapose!,
   intros H h,
   have key := congr_fun h (y.pred_above x H),
@@ -615,8 +622,9 @@ begin
 end
 
 /-- `succ_above` is injective at the pivot -/
-lemma succ_above_left_injective : injective (@succ_above n) :=
-λ _ _, succ_above_left_inj.mp
+lemma succ_above_left_inj {x y : fin (n + 1)} :
+  x.succ_above = y.succ_above ↔ x = y :=
+succ_above_left_injective.eq_iff
 
 /-- A function `f` on `fin n` is strictly monotone if and only if `f i < f (i+1)` for all `i`. -/
 lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin n → α} :
@@ -1070,6 +1078,34 @@ end
 @[simp] lemma insert_nth_last' (x : β) (p : fin n → β) :
   @insert_nth _ (λ _, β) (last n) x p = snoc p x :=
 by simp [insert_nth_last]
+
+variables [Π i, preorder (α i)]
+
+lemma insert_nth_le_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
+  i.insert_nth x p ≤ q ↔ x ≤ q i ∧ p ≤ (λ j, q (i.succ_above j)) :=
+by simp [pi.le_def, forall_iff_succ_above i]
+
+lemma le_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
+  q ≤ i.insert_nth x p ↔ q i ≤ x ∧ (λ j, q (i.succ_above j)) ≤ p :=
+by simp [pi.le_def, forall_iff_succ_above i]
+
+open set
+
+lemma insert_nth_mem_Icc {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)}
+  {q₁ q₂ : Π j, α j} :
+  i.insert_nth x p ∈ Icc q₁ q₂ ↔
+    x ∈ Icc (q₁ i) (q₂ i) ∧ p ∈ Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
+by simp only [mem_Icc, insert_nth_le_iff, le_insert_nth_iff, and.assoc, and.left_comm]
+
+lemma preimage_insert_nth_Icc_of_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
+  (hx : x ∈ Icc (q₁ i) (q₂ i)) :
+  i.insert_nth x ⁻¹' (Icc q₁ q₂) = Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
+set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, true_and]
+
+lemma preimage_insert_nth_Icc_of_not_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
+  (hx : x ∉ Icc (q₁ i) (q₂ i)) :
+  i.insert_nth x ⁻¹' (Icc q₁ q₂) = ∅ :=
+set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_eq]
 
 end insert_nth
 

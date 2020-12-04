@@ -808,6 +808,10 @@ by simp [@eq_comm _ _ (f _)]
   (∀ b, ∀ a, b = f a → p b) ↔ (∀ a, p (f a)) :=
 by { rw forall_swap, simp }
 
+@[simp] theorem forall_apply_eq_imp_iff₂ {f : α → β} {p : α → Prop} {q : β → Prop} :
+  (∀ b, ∀ a, p a → f a = b → q b) ↔ ∀ a, p a → q (f a) :=
+⟨λ h a ha, h (f a) a ha rfl, λ h b a ha hb, hb ▸ h a ha⟩
+
 @[simp] theorem exists_eq_left' {a' : α} : (∃ a, a' = a ∧ p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 

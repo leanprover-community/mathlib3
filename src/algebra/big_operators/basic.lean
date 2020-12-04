@@ -503,6 +503,11 @@ prod_dite_eq s a (λ x _, b x)
   (∏ x in s, (ite (x = a) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
 prod_dite_eq' s a (λ x _, b x)
 
+@[to_additive]
+lemma prod_ite_index (p : Prop) [decidable p] (s t : finset α) (f : α → β) :
+  (∏ x in if p then s else t, f x) = if p then ∏ x in s, f x else ∏ x in t, f x :=
+apply_ite (λ s, ∏ x in s, f x) _ _ _
+
 /--
   Reorder a product.
 
@@ -1132,7 +1137,7 @@ lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
   count a (∑ x in s, f x) = ∑ x in s, count a (f x) :=
 by { dunfold finset.sum, rw count_sum }
 
-lemma to_finset_sum_count_smul_eq (s : multiset α) :
+@[simp] lemma to_finset_sum_count_smul_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a •ℕ (a ::ₘ 0)) = s :=
 begin
   apply ext', intro b,

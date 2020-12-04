@@ -328,6 +328,9 @@ iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
 ⟨λ h ha, by simp [ha] at h; exact h, and_congr_right⟩
 
+lemma and.congr_left_iff : (a ∧ c ↔ b ∧ c) ↔ c → (a ↔ b) :=
+by simp only [and.comm, ← and.congr_right_iff]
+
 @[simp] lemma and_self_left : a ∧ a ∧ b ↔ a ∧ b :=
 ⟨λ h, ⟨h.1, h.2.2⟩, λ h, ⟨h.1, h.1, h.2⟩⟩
 

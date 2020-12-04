@@ -802,8 +802,8 @@ lemma mul_prod_diff_singleton [decidable_eq α] {s : finset α} {i : α} (h : i 
   (f : α → β) : f i * (∏ x in s \ {i}, f x) = ∏ x in s, f x :=
 by { convert s.prod_inter_mul_prod_diff {i} f, simp [h] }
 
-/-- Partition a product by a setoid. -/
-@[to_additive "Partition a sum by a setoid"]
+/-- A product can be partitioned into a product of products, each equivalent under a setoid. -/
+@[to_additive "A sum can be partitioned into a sum of sums, each equivalent under a setoid."]
 lemma prod_partition (R : setoid α) [decidable_rel R.r] :
   (∏ x in s, f x) = ∏ xbar in s.image quotient.mk, ∏ y in s.filter (λ y, ⟦y⟧ = xbar), f y :=
 begin

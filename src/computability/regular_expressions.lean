@@ -48,6 +48,99 @@ def star (l : language α) : language α :=
 @[simp] lemma star_def (l : language α) :
   l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, ¬(list.empty y) ∧ y ∈ l} := rfl
 
+lemma mul_assoc (l m n : language α) : (l * m) * n = l * (m * n) :=
+begin
+  ext x,
+  simp only [mul_def, exists_and_distrib_left, set.mem_image2, set.image_prod],
+  split,
+  { rintro ⟨ a, ⟨ b, hb, c, hc, ha⟩, d, hd, hx ⟩,
+    refine ⟨ b, hb, c ++ d, ⟨ c, hc, d, hd, rfl ⟩, _ ⟩,
+    rw [←list.append_assoc, ha, hx] },
+  { rintro ⟨ a, ha, b, ⟨ c, hc, d, hd, hb ⟩, hx ⟩,
+    refine ⟨ a ++ c, ⟨ a, ha, c, hc, rfl ⟩, d, hd, _ ⟩,
+    rw [list.append_assoc, hb, hx] }
+end
+
+lemma one_mul (l : language α) : 1 * l = l :=
+begin
+  ext x,
+  simp only [mul_def, set.mem_image, prod.mk.inj_iff, one_def, set.singleton_prod, prod.exists],
+  split,
+  { rintro ⟨ a, b, ⟨ c, hc, hnil, hx ⟩, _ ⟩,
+    finish },
+  { intro hx,
+    exact ⟨ [], x, ⟨ x, hx, rfl, rfl ⟩, rfl ⟩ }
+end
+
+lemma mul_one (l : language α) : l * 1 = l :=
+begin
+  ext x,
+  simp only [mul_def, set.mem_image, prod.mk.inj_iff, one_def, set.prod_singleton, prod.exists],
+  split,
+  { rintro ⟨ a, b, ⟨ c, hc, ha, hnil ⟩, hx ⟩,
+    rw [←hnil, ←ha, list.append_nil] at hx,
+    rwa ←hx },
+  { intro hx,
+    exact ⟨ x, [], ⟨ x, hx, rfl, rfl ⟩, x.append_nil ⟩ }
+end
+
+lemma left_distrib (l m n : language α) : l * (m + n) = (l * m) + (l * n) :=
+begin
+  ext x,
+  simp only [mul_def, set.mem_image, add_def, set.mem_prod, exists_and_distrib_left, set.mem_image2,
+    set.image_prod, set.mem_union_eq, set.prod_union, prod.exists],
+  split,
+  { rintro ⟨ y, z, (⟨ hy, hz ⟩ | ⟨ hy, hz ⟩), hx ⟩,
+    { left,
+      exact ⟨ y, hy, z, hz, hx ⟩ },
+    { right,
+      exact ⟨ y, hy, z, hz, hx ⟩ } },
+  { rintro (⟨ y, hy, z, hz, hx ⟩ | ⟨ y, hy, z, hz, hx ⟩);
+    refine ⟨ y, z, _, hx ⟩,
+    { left,
+      exact ⟨ hy, hz ⟩ },
+    { right,
+      exact ⟨ hy, hz ⟩ } }
+end
+
+lemma right_distrib (l m n : language α) : (l + m) * n = (l * n) + (m * n) :=
+begin
+  ext x,
+  simp only [mul_def, set.mem_image, add_def, set.mem_prod, exists_and_distrib_left, set.mem_image2,
+    set.image_prod, set.mem_union_eq, set.prod_union, prod.exists],
+  split,
+  { rintro ⟨ y, (hy | hy), z, hz, hx ⟩,
+    { left,
+      exact ⟨ y, hy, z, hz, hx ⟩ },
+    { right,
+      exact ⟨ y, hy, z, hz, hx ⟩ } },
+  { rintro (⟨ y, hy, z, hz, hx ⟩ | ⟨ y, hy, z, hz, hx ⟩);
+    refine ⟨ y, _, z, hz, hx ⟩,
+    { left,
+      exact hy },
+    { right,
+      exact hy } }
+end
+
+instance : semiring (language α) :=
+{ add := λ l m, l + m,
+  add_assoc := by simp [set.union_assoc],
+  zero := 0,
+  zero_add := by simp,
+  add_zero := by simp,
+  add_comm := by simp [set.union_comm],
+  mul := λ l m, l * m,
+  mul_assoc := mul_assoc,
+  zero_mul := by simp,
+  mul_zero := by simp,
+  one := 1,
+  one_mul := one_mul,
+  mul_one := mul_one,
+  left_distrib := left_distrib,
+  right_distrib := right_distrib }
+
+lemma add_self (l : language α) : l + l = l := by finish
+
 end language
 
 
@@ -304,67 +397,33 @@ end
 omit dec
 
 lemma add_assoc (P Q R : regular_expression α) : ((P + Q) + R).matches = (P + (Q + R)).matches :=
-by {classical, ext, finish}
+by solve_by_elim [matches_add_def, add_assoc]
 lemma add_comm (P Q : regular_expression α) : (P + Q).matches = (Q + P).matches :=
-by {classical, ext, finish}
+by solve_by_elim [matches_add_def, add_comm]
 
-lemma mul_add (P Q R : regular_expression α) :
+lemma left_disrib (P Q R : regular_expression α) :
   (P * (Q + R)).matches = ((P * Q) + (P * R)).matches :=
-begin
-  classical,
-  ext x,
-  simp only [mul_rmatch_iff, matches_iff_rmatch, add_rmatch_iff],
-  split,
-  { rintro ⟨ s, t, hsum, hP, (hQ | hR) ⟩,
-    left,
-    rotate,
-    right,
-    all_goals
-    { use [s, t],
-      tauto } },
-  { rintro (h | h);
-    rcases h with ⟨ s, t, hsum, hP, h ⟩;
-    use [s, t];
-    tauto }
-end
+by solve_by_elim [matches_add_def, matches_mul_def, left_distrib]
+lemma right_disrib (P Q R : regular_expression α) :
+  ((P + Q) * R).matches = ((P * R) + (Q * R)).matches :=
+by solve_by_elim [matches_add_def, matches_mul_def, right_distrib]
 
 lemma add_zero (P : regular_expression α) : (P + 0).matches = P.matches :=
-by {classical, ext, finish}
+by solve_by_elim [matches_add_def, add_zero]
 lemma zero_add (P : regular_expression α) : (0 + P).matches = P.matches :=
-by {classical, ext, finish}
+by solve_by_elim [matches_add_def, zero_add]
 
 lemma mul_zero (P : regular_expression α) : (P * 0).matches = (0 : regular_expression α).matches :=
-by {classical, ext, finish}
+by solve_by_elim [matches_mul_def, mul_zero]
 lemma zero_mul (P : regular_expression α) : (0 * P).matches = (0 : regular_expression α).matches :=
-by {classical, ext, finish}
+by solve_by_elim [matches_mul_def, zero_mul]
 
 lemma mul_one (P : regular_expression α) : (P * 1).matches = P.matches :=
-begin
-  classical,
-  ext x,
-  simp only [mul_rmatch_iff, matches_iff_rmatch, one_rmatch_iff],
-  split,
-  { rintro ⟨ t, u, hx, hp, hu ⟩,
-    finish },
-  { intro h,
-    use [x, []],
-    finish }
-end
-
+by solve_by_elim [matches_mul_def, mul_one]
 lemma one_mul (P : regular_expression α) : (1 * P).matches = P.matches :=
-begin
-  classical,
-  ext x,
-  simp only [mul_rmatch_iff, matches_iff_rmatch, one_rmatch_iff],
-  split,
-  { rintro ⟨ t, u, hx, hp, hu ⟩,
-    finish },
-  { intro h,
-    use [[], x],
-    finish }
-end
+by solve_by_elim [matches_mul_def, one_mul]
 
 lemma add_self (P : regular_expression α) : (P + P).matches = P.matches :=
-by {classical, ext, finish}
+by solve_by_elim [matches_add_def, language.add_self]
 
 end regular_expression

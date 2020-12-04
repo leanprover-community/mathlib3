@@ -449,6 +449,36 @@ def restrict_scalars (f : multilinear_map A M₁ M₂) : multilinear_map R M₁ 
 
 end restrict_scalar
 
+
+section
+
+variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
+
+/-- Transfer the arguments to a map along an equivalence between argument indices.
+
+The naming is derived from `finsupp.dom_congr`, noting that here the permutation applies to the
+domain of the domain. -/
+@[simps apply]
+def dom_dom_congr (σ : ι₁ ≃ ι₂) (m : multilinear_map R (λ i : ι₁, M₂) M₃) :
+  multilinear_map R (λ i : ι₂, M₂) M₃ :=
+{ to_fun := λ v, m (λ i, v (σ i)),
+  map_add' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_add, },
+  map_smul' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_smul, }, }
+
+/-- `multilinear_map.dom_dom_congr` as an equivalence.
+
+This is declared separately because it does not work with dot notation. -/
+@[simps apply symm_apply]
+def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
+  multilinear_map R (λ i : ι₁, M₂) M₃ ≃+ multilinear_map R (λ i : ι₂, M₂) M₃ :=
+{ to_fun := dom_dom_congr σ,
+  inv_fun := dom_dom_congr σ.symm,
+  left_inv := λ m, by {ext, simp},
+  right_inv := λ m, by {ext, simp},
+  map_add' := λ a b, by {ext, simp} }
+
+end
+
 end semiring
 
 end multilinear_map
@@ -527,35 +557,6 @@ instance : semimodule R' (multilinear_map A M₁ M₂) :=
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
 end semimodule
-
-section
-
-variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂] [add_comm_monoid M₃] [semimodule R M₃]
-
-/-- Transfer the arguments to a map along an equivalence between argument indices.
-
-The naming is derived from `finsupp.dom_congr`, noting that here the permutation applies to the
-domain of the domain. -/
-@[simps apply]
-def dom_dom_congr (σ : ι₁ ≃ ι₂) (m : multilinear_map R (λ i : ι₁, M₂) M₃) :
-  multilinear_map R (λ i : ι₂, M₂) M₃ :=
-{ to_fun := λ v, m (λ i, v (σ i)),
-  map_add' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_add, },
-  map_smul' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_smul, }, }
-
-/-- `multilinear_map.dom_dom_congr` as an equivalence.
-
-This is declared separately because it does not work with dot notation. -/
-@[simps apply symm_apply]
-def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
-  multilinear_map R (λ i : ι₁, M₂) M₃ ≃+ multilinear_map R (λ i : ι₂, M₂) M₃ :=
-{ to_fun := dom_dom_congr σ,
-  inv_fun := dom_dom_congr σ.symm,
-  left_inv := λ m, by {ext, simp},
-  right_inv := λ m, by {ext, simp},
-  map_add' := λ a b, by {ext, simp} }
-
-end
 
 section
 

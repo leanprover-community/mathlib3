@@ -149,7 +149,7 @@ continuous.prod_mk continuous_snd continuous_fst
 
 lemma is_open.prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (set.prod s t) :=
-is_open_inter (continuous_fst s hs) (continuous_snd t ht)
+is_open_inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
 
 lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
@@ -303,13 +303,13 @@ have (𝓝 a ×ᶠ 𝓝 b) ⊓ 𝓟 (set.prod s t) = (𝓝 a ⊓ 𝓟 s) ×ᶠ (
   by rw [←prod_inf_prod, prod_principal_principal],
 by simp [closure_eq_cluster_pts, cluster_pt, nhds_prod_eq, this]; exact prod_ne_bot
 
-lemma mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
+lemma map_mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
   (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)
   (hu : ∀a b, a ∈ s → b ∈ t → f a b ∈ u) :
   f a b ∈ closure u :=
 have (a, b) ∈ closure (set.prod s t), by rw [closure_prod_eq]; from ⟨ha, hb⟩,
 show (λp:α×β, f p.1 p.2) (a, b) ∈ closure u, from
-  mem_closure hf this $ assume ⟨a, b⟩ ⟨ha, hb⟩, hu a b ha hb
+  map_mem_closure hf this $ assume ⟨a, b⟩ ⟨ha, hb⟩, hu a b ha hb
 
 lemma is_closed.prod {s₁ : set α} {s₂ : set β} (h₁ : is_closed s₁) (h₂ : is_closed s₂) :
   is_closed (set.prod s₁ s₂) :=
@@ -366,7 +366,11 @@ continuous_sup_rng_right continuous_coinduced_rng
 
 @[continuity] lemma continuous_sum_rec {f : α → γ} {g : β → γ}
   (hf : continuous f) (hg : continuous g) : @continuous (α ⊕ β) γ _ _ (@sum.rec α β (λ_, γ) f g) :=
-continuous_sup_dom hf hg
+begin
+  apply continuous_sup_dom;
+  rw continuous_def at hf hg ⊢;
+  assumption
+end
 
 lemma is_open_sum_iff {s : set (α ⊕ β)} :
   is_open s ↔ is_open (inl ⁻¹' s) ∧ is_open (inr ⁻¹' s) :=
@@ -421,20 +425,18 @@ lemma embedding_inr : embedding (@inr α β) :=
   end,
   inj := λ _ _, inr.inj_iff.mp }
 
+lemma is_open_range_inl : is_open (range (inl : α → α ⊕ β)) :=
+is_open_sum_iff.2 $ by simp
+
+lemma is_open_range_inr : is_open (range (inr : β → α ⊕ β)) :=
+is_open_sum_iff.2 $ by simp
+
 lemma open_embedding_inl : open_embedding (inl : α → α ⊕ β) :=
-{ open_range := begin
-    rw is_open_sum_iff,
-    convert and.intro is_open_univ is_open_empty;
-    { ext, simp }
-  end,
+{ open_range := is_open_range_inl,
   .. embedding_inl }
 
 lemma open_embedding_inr : open_embedding (inr : β → α ⊕ β) :=
-{ open_range := begin
-    rw is_open_sum_iff,
-    convert and.intro is_open_empty is_open_univ;
-    { ext, simp }
-  end,
+{ open_range := is_open_range_inr,
   .. embedding_inr }
 
 end sum
@@ -602,7 +604,12 @@ by simp [nhds_pi, filter.tendsto_comap_iff]
 
 lemma is_open_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
   (hi : finite i) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=
-by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, continuous_apply a _ $ hs a ha)
+by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (continuous_apply _))
+
+lemma set_pi_mem_nhds [Π a, topological_space (π a)] {i : set ι} {s : Π a, set (π a)}
+  {x : Π a, π a} (hi : finite i) (hs : ∀ a ∈ i, s a ∈ 𝓝 (x a)) :
+  pi i s ∈ 𝓝 x :=
+by { rw [pi_def], exact Inter_mem_sets hi (λ a ha, (continuous_apply a).continuous_at (hs a ha)) }
 
 lemma pi_eq_generate_from [∀a, topological_space (π a)] :
   Pi.topological_space =

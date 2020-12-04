@@ -628,8 +628,8 @@ begin
     simp [abs_of_nonpos, abs_of_nonneg, *]
 end
 
-/-- `abs` as a `monoid_hom`. -/
-def abs_hom : α →* α := ⟨abs, abs_one, abs_mul⟩
+/-- `abs` as a `monoid_with_zero_hom`. -/
+def abs_hom : monoid_with_zero_hom α α := ⟨abs, abs_zero, abs_one, abs_mul⟩
 
 lemma abs_mul_abs_self (a : α) : abs a * abs a = a * a :=
 abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
@@ -790,6 +790,9 @@ begin
   rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
   exact mul_self_le_mul_self_iff (abs_nonneg a) (abs_nonneg b)
 end
+
+lemma abs_le_one_iff_mul_self_le_one : abs a ≤ 1 ↔ a * a ≤ 1 :=
+by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
 
 end linear_ordered_ring
 

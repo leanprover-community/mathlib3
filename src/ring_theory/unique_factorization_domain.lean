@@ -42,35 +42,6 @@ instance is_noetherian_ring.wf_dvd_monoid [integral_domain α] [is_noetherian_ri
       ext,
       exact ideal.span_singleton_lt_span_singleton.symm }⟩
 
-instance polynomial.wf_dvd_monoid [integral_domain α] [wf_dvd_monoid α] : wf_dvd_monoid (polynomial α) :=
-{ well_founded_dvd_not_unit := begin
-    classical,
-    refine rel_hom.well_founded
-      ⟨λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff), _⟩
-      (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
-        _inst_2.well_founded_dvd_not_unit),
-    rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,
-    rw [polynomial.degree_mul, if_neg ane0],
-    split_ifs with hac,
-    { rw [hac, polynomial.leading_coeff_zero],
-      apply prod.lex.left,
-      exact lt_of_le_of_ne le_top with_top.coe_ne_top },
-    have cne0 : c ≠ 0 := right_ne_zero_of_mul hac,
-    simp only [cne0, ane0, polynomial.leading_coeff_mul],
-    by_cases hdeg : c.degree = 0,
-    { simp only [hdeg, add_zero],
-      refine prod.lex.right _ ⟨_, ⟨c.leading_coeff, (λ unit_c, not_unit_c _), rfl⟩⟩,
-      { rwa [ne, polynomial.leading_coeff_eq_zero] },
-      rw [polynomial.is_unit_iff, polynomial.eq_C_of_degree_eq_zero hdeg],
-      use [c.leading_coeff, unit_c],
-      rw [polynomial.leading_coeff, polynomial.nat_degree_eq_of_degree_eq_some hdeg] },
-    { apply prod.lex.left,
-      rw polynomial.degree_eq_nat_degree cne0 at *,
-      rw [with_top.coe_lt_coe, polynomial.degree_eq_nat_degree ane0,
-          ← with_bot.coe_add, with_bot.coe_lt_coe],
-      exact lt_add_of_pos_right _ (nat.pos_of_ne_zero (λ h, hdeg (h.symm ▸ with_bot.coe_zero))) },
-  end }
-
 namespace wf_dvd_monoid
 
 variables [comm_monoid_with_zero α]
@@ -455,6 +426,8 @@ have multiset.rel associated (p ::ₘ factors b) (factors a),
           (associated.symm (factors_prod hb0))),
 multiset.exists_mem_of_rel_of_mem this (by simp)
 
+@[simp] lemma factors_zero : factors (0 : α) = 0 := dif_pos rfl
+
 @[simp] lemma factors_one : factors (1 : α) = 0 :=
 begin
   rw ← multiset.rel_zero_right,
@@ -486,6 +459,26 @@ begin
   { rw multiset.prod_add,
     exact associated.trans (associated_mul_mul (factors_prod hx) (factors_prod hy))
       (factors_prod (mul_ne_zero hx hy)).symm, }
+end
+
+@[simp] lemma factors_pow {x : α} (n : ℕ) :
+  factors (x ^ n) = n •ℕ factors x :=
+begin
+  induction n with n ih,
+  { simp },
+  by_cases h0 : x = 0,
+  { simp [h0, zero_pow n.succ_pos, smul_zero] },
+  rw [pow_succ, succ_nsmul, factors_mul h0 (pow_ne_zero _ h0), ih],
+end
+
+lemma dvd_iff_factors_le_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
+  x ∣ y ↔ factors x ≤ factors y :=
+begin
+  split,
+  { rintro ⟨c, rfl⟩,
+    simp [hx, right_ne_zero_of_mul hy] },
+  { rw [← dvd_iff_dvd_of_rel_left (factors_prod hx), ← dvd_iff_dvd_of_rel_right (factors_prod hy)],
+    apply multiset.prod_dvd_prod }
 end
 
 end unique_factorization_monoid
@@ -599,6 +592,44 @@ lemma exists_reduced_factors' (a b : R) (hb : b ≠ 0) :
   ∃ a' b' c', (∀ {d}, d ∣ a' → d ∣ b' → is_unit d) ∧ c' * a' = a ∧ c' * b' = b :=
 let ⟨b', a', c', no_factor, hb, ha⟩ := exists_reduced_factors b hb a
 in ⟨a', b', c', λ _ hpb hpa, no_factor hpa hpb, ha, hb⟩
+
+section multiplicity
+variables [nontrivial R] [normalization_monoid R] [decidable_eq R]
+variables [decidable_rel (has_dvd.dvd : R → R → Prop)]
+open multiplicity multiset
+
+lemma le_multiplicity_iff_repeat_le_factors {a b : R} {n : ℕ} (ha : irreducible a) (hb : b ≠ 0) :
+  ↑n ≤ multiplicity a b ↔ repeat (normalize a) n ≤ factors b :=
+begin
+  rw ← pow_dvd_iff_le_multiplicity,
+  revert b,
+  induction n with n ih, { simp },
+  intros b hb,
+  split,
+  { rintro ⟨c, rfl⟩,
+    rw [ne.def, pow_succ, mul_assoc, mul_eq_zero, decidable.not_or_iff_and_not] at hb,
+    rw [pow_succ, mul_assoc, factors_mul hb.1 hb.2, repeat_succ, factors_irreducible ha,
+      cons_add, cons_le_cons_iff, zero_add, ← ih hb.2],
+    apply dvd.intro _ rfl },
+  { rw [multiset.le_iff_exists_add],
+    rintro ⟨u, hu⟩,
+    rw [← dvd_iff_dvd_of_rel_right (factors_prod hb), hu, prod_add, prod_repeat],
+    apply dvd.trans (dvd_of_associated (associated_pow_pow _)) (dvd.intro u.prod rfl),
+    apply associated_normalize }
+end
+
+lemma multiplicity_eq_count_factors {a b : R} (ha : irreducible a) (hb : b ≠ 0) :
+  multiplicity a b = (factors b).count (normalize a) :=
+begin
+  apply le_antisymm,
+  { apply enat.le_of_lt_add_one,
+    rw [← enat.coe_one, ← enat.coe_add, lt_iff_not_ge, ge_iff_le,
+      le_multiplicity_iff_repeat_le_factors ha hb, ← le_count_iff_repeat_le],
+    simp },
+  rw [le_multiplicity_iff_repeat_le_factors ha hb, ← le_count_iff_repeat_le],
+end
+
+end multiplicity
 
 end unique_factorization_monoid
 
@@ -1123,7 +1154,7 @@ lemma count_pow {a : associates α} (ha : a ≠ 0) {p : associates α} (hp : irr
 begin
   induction k with n h,
   { rw [pow_zero, factors_one, zero_mul, count_zero hp] },
-  { rw [pow_succ, count_mul ha (pow_ne_zero' _ ha) hp, h, nat.succ_eq_add_one], ring }
+  { rw [pow_succ, count_mul ha (pow_ne_zero _ ha) hp, h, nat.succ_eq_add_one], ring }
 end
 
 theorem dvd_count_pow {a : associates α} (ha : a ≠ 0) {p : associates α} (hp : irreducible p)

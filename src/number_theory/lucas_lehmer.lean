@@ -321,9 +321,9 @@ Here and below, we introduce `p' = p - 2`, in order to avoid using subtraction i
 
 /-- If `1 < p`, then `q p`, the smallest prime factor of `mersenne p`, is more than 2. -/
 lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
-  by_contradiction,
-  simp at a,
-  interval_cases q (p'+2); clear a,
+  by_contradiction H,
+  simp at H,
+  interval_cases q (p'+2); clear H,
   { -- If q = 1, we get a contradiction from 2^p = 2
     dsimp [q] at h, injection h with h', clear h,
     simp [mersenne] at h',

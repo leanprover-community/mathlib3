@@ -76,8 +76,11 @@ attribute [instance] is_uniform_space is_complete_space is_separated
 def to_UniformSpace (X : CpltSepUniformSpace) : UniformSpace :=
 UniformSpace.of X
 
-instance (X : CpltSepUniformSpace) : complete_space ((to_UniformSpace X).α) := CpltSepUniformSpace.is_complete_space X
-instance (X : CpltSepUniformSpace) : separated_space ((to_UniformSpace X).α) := CpltSepUniformSpace.is_separated X
+instance complete_space (X : CpltSepUniformSpace) : complete_space ((to_UniformSpace X).α) :=
+CpltSepUniformSpace.is_complete_space X
+
+instance separated_space (X : CpltSepUniformSpace) : separated_space ((to_UniformSpace X).α) :=
+CpltSepUniformSpace.is_separated X
 
 /-- Construct a bundled `UniformSpace` from the underlying type and the appropriate typeclasses. -/
 def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] : CpltSepUniformSpace := ⟨X⟩

@@ -231,6 +231,9 @@ if hα : nonempty α then by letI := classical.inhabited_of_nonempty hα;
   exact of_surjective (inv_fun f) (inv_fun_surjective H)
 else ⟨∅, λ x, (hα ⟨x⟩).elim⟩
 
+noncomputable instance subtype_of_fintype [fintype α] (p : α → Prop) : fintype (subtype p) :=
+fintype.of_injective coe subtype.coe_injective
+
 /-- If `f : α ≃ β` and `α` is a fintype, then `β` is also a fintype. -/
 def of_equiv (α : Type*) [fintype α] (f : α ≃ β) : fintype β := of_bijective _ f.bijective
 
@@ -318,6 +321,9 @@ list.length_fin_range n
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
 
+lemma fin.equiv_iff_eq {m n : ℕ} : nonempty (fin m ≃ fin n) ↔ m = n :=
+  ⟨λ ⟨h⟩, by simpa using fintype.card_congr h, λ h, ⟨equiv.cast $ h ▸ rfl ⟩ ⟩
+
 /-- Embed `fin n` into `fin (n + 1)` by prepending zero to the `univ` -/
 lemma fin.univ_succ (n : ℕ) :
   (univ : finset (fin (n + 1))) = insert 0 (univ.image fin.succ) :=
@@ -352,7 +358,7 @@ begin
     refine or_iff_not_imp_left.mpr _,
     { intro h,
       use p.pred_above m h,
-      simp only [eq_self_iff_true, fin.succ_above_descend, and_self] } },
+      simp only [eq_self_iff_true, fin.succ_above_pred_above, and_self] } },
   { rw fin.succ_above_last,
     exact fin.univ_cast_succ n }
 end
@@ -795,7 +801,7 @@ if h : ∃ a, β a then ⟨{⟨h.fst, h.snd⟩}, λ ⟨_, _⟩, by simp⟩ else 
 instance set.fintype [fintype α] : fintype (set α) :=
 ⟨(@finset.univ α _).powerset.map ⟨coe, coe_injective⟩, λ s, begin
   classical, refine mem_map.2 ⟨finset.univ.filter s, mem_powerset.2 (subset_univ _), _⟩,
-  apply (coe_filter _).trans, rw [coe_univ, set.sep_univ], refl
+  apply (coe_filter _ _).trans, rw [coe_univ, set.sep_univ], refl
 end⟩
 
 instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)

@@ -1225,192 +1225,96 @@ meta def eval_nat_int_ext : expr → tactic (expr × expr)
   return (e', th.mk_app [a, b, c, e', p₁, p₂])
 | _ := failed
 
-lemma not_prime_helper (a b n : ℕ)
-  (h : a * b = n) (h₁ : 1 < a) (h₂ : 1 < b) : ¬ nat.prime n :=
-by rw ← h; exact nat.not_prime_mul h₁ h₂
-
-lemma is_prime_helper (n : ℕ)
-  (h₁ : 1 < n) (h₂ : nat.min_fac n = n) : nat.prime n :=
-nat.prime_def_min_fac.2 ⟨h₁, h₂⟩
-
-lemma min_fac_bit0 (n : ℕ) : nat.min_fac (bit0 n) = 2 :=
-by simp [nat.min_fac_eq, show 2 ∣ bit0 n, by simp [bit0_eq_two_mul n]]
-
-/-- A predicate representing partial progress in a proof of `min_fac`. -/
-def min_fac_helper (n k : ℕ) : Prop :=
-0 < k ∧ bit1 k ≤ nat.min_fac (bit1 n)
-
-theorem min_fac_helper.n_pos {n k : ℕ} (h : min_fac_helper n k) : 0 < n :=
-nat.pos_iff_ne_zero.2 $ λ e,
-by rw e at h; exact not_le_of_lt (nat.bit1_lt h.1) h.2
-
-lemma min_fac_ne_bit0 {n k : ℕ} : nat.min_fac (bit1 n) ≠ bit0 k :=
-by rw bit0_eq_two_mul; exact λ e, absurd
-  ((nat.dvd_add_iff_right (by simp [bit0_eq_two_mul n])).2
-    (dvd_trans ⟨_, e⟩ (nat.min_fac_dvd _)))
-  dec_trivial
-
-lemma min_fac_helper_0 (n : ℕ) (h : 0 < n) : min_fac_helper n 1 :=
-begin
-  refine ⟨zero_lt_one, lt_of_le_of_ne _ min_fac_ne_bit0.symm⟩,
-  refine @lt_of_le_of_ne ℕ _ _ _ (nat.min_fac_pos _) _,
-  intro e,
-  have := nat.min_fac_prime _,
-  { rw ← e at this, exact nat.not_prime_one this },
-  { exact ne_of_gt (nat.bit1_lt h) }
-end
-
-lemma min_fac_helper_1 {n k k' : ℕ} (e : k + 1 = k')
-  (np : nat.min_fac (bit1 n) ≠ bit1 k)
-  (h : min_fac_helper n k) : min_fac_helper n k' :=
-begin
-  rw ← e,
-  refine ⟨nat.succ_pos _,
-    (lt_of_le_of_ne (lt_of_le_of_ne _ _ : k+1+k < _)
-      min_fac_ne_bit0.symm : bit0 (k+1) < _)⟩,
-  { rw add_right_comm, exact h.2 },
-  { rw add_right_comm, exact np.symm }
-end
-
-lemma min_fac_helper_2 (n k k' : ℕ) (e : k + 1 = k')
-  (np : ¬ nat.prime (bit1 k)) (h : min_fac_helper n k) : min_fac_helper n k' :=
-begin
-  refine min_fac_helper_1 e _ h,
-  intro e₁, rw ← e₁ at np,
-  exact np (nat.min_fac_prime $ ne_of_gt $ nat.bit1_lt h.n_pos)
-end
-
-lemma min_fac_helper_3 (n k k' c : ℕ) (e : k + 1 = k')
-  (nc : bit1 n % bit1 k = c) (c0 : 0 < c)
-  (h : min_fac_helper n k) : min_fac_helper n k' :=
-begin
-  refine min_fac_helper_1 e _ h,
-  refine mt _ (ne_of_gt c0), intro e₁,
-  rw [← nc, ← nat.dvd_iff_mod_eq_zero, ← e₁],
-  apply nat.min_fac_dvd
-end
-
-lemma min_fac_helper_4 (n k : ℕ) (hd : bit1 n % bit1 k = 0)
-  (h : min_fac_helper n k) : nat.min_fac (bit1 n) = bit1 k :=
-by rw ← nat.dvd_iff_mod_eq_zero at hd; exact
-le_antisymm (nat.min_fac_le_of_dvd (nat.bit1_lt h.1) hd) h.2
-
-lemma min_fac_helper_5 (n k k' : ℕ) (e : bit1 k * bit1 k = k')
-  (hd : bit1 n < k') (h : min_fac_helper n k) : nat.min_fac (bit1 n) = bit1 n :=
-begin
-  refine (nat.prime_def_min_fac.1 (nat.prime_def_le_sqrt.2
-    ⟨nat.bit1_lt h.n_pos, _⟩)).2,
-  rw ← e at hd,
-  intros m m2 hm md,
-  have := le_trans h.2 (le_trans (nat.min_fac_le_of_dvd m2 md) hm),
-  rw nat.le_sqrt at this,
-  exact not_le_of_lt hd this
-end
-
-/-- Given `e` a natural numeral and `d : nat` a factor of it, return `⊢ ¬ prime e`. -/
-meta def prove_non_prime (e : expr) (n d₁ : ℕ) : tactic expr :=
-do let e₁ := reflect d₁,
-  c ← mk_instance_cache `(nat),
-  (c, p₁) ← prove_lt_nat c `(1) e₁,
-  let d₂ := n / d₁, let e₂ := reflect d₂,
-  (c, e', p) ← prove_mul_nat c e₁ e₂,
-  guard (e' =ₐ e),
-  (c, p₂) ← prove_lt_nat c `(1) e₂,
-  return $ `(not_prime_helper).mk_app [e₁, e₂, e, p, p₁, p₂]
-
-/-- Given `a`,`a1 := bit1 a`, `n1` the value of `a1`, `b` and `p : min_fac_helper a b`,
-  returns `(c, ⊢ min_fac a1 = c)`. -/
-meta def prove_min_fac_aux (a a1 : expr) (n1 : ℕ) :
-  instance_cache → expr → expr → tactic (instance_cache × expr × expr)
-| ic b p := do
-  k ← b.to_nat,
-  let k1 := bit1 k,
-  let b1 := `(bit1:ℕ→ℕ).mk_app [b],
-  if n1 < k1*k1 then do
-    (ic, e', p₁) ← prove_mul_nat ic b1 b1,
-    (ic, p₂) ← prove_lt_nat ic a1 e',
-    return (ic, a1, `(min_fac_helper_5).mk_app [a, b, e', p₁, p₂, p])
-  else let d := k1.min_fac in
-  if to_bool (d < k1) then do
-    let k' := k+1, let e' := reflect k',
-    (ic, p₁) ← prove_succ ic b e',
-    p₂ ← prove_non_prime b1 k1 d,
-    prove_min_fac_aux ic e' $ `(min_fac_helper_2).mk_app [a, b, e', p₁, p₂, p]
-  else do
-    let nc := n1 % k1,
-    (ic, c, pc) ← prove_div_mod ic a1 b1 tt,
-    if nc = 0 then
-      return (ic, b1, `(min_fac_helper_4).mk_app [a, b, pc, p])
-    else do
-      (ic, p₀) ← prove_pos ic c,
-      let k' := k+1, let e' := reflect k',
-      (ic, p₁) ← prove_succ ic b e',
-      prove_min_fac_aux ic e' $ `(min_fac_helper_3).mk_app [a, b, e', c, p₁, pc, p₀, p]
-
-/-- Given `a` a natural numeral, returns `(b, ⊢ min_fac a = b)`. -/
-meta def prove_min_fac (ic : instance_cache) (e : expr) : tactic (instance_cache × expr × expr) :=
-match match_numeral e with
-| match_numeral_result.zero := return (ic, `(2:ℕ), `(nat.min_fac_zero))
-| match_numeral_result.one := return (ic, `(1:ℕ), `(nat.min_fac_one))
-| match_numeral_result.bit0 e := return (ic, `(2), `(min_fac_bit0).mk_app [e])
-| match_numeral_result.bit1 e := do
-  n ← e.to_nat,
-  c ← mk_instance_cache `(nat),
-  (c, p) ← prove_pos c e,
-  let a1 := `(bit1:ℕ→ℕ).mk_app [e],
-  prove_min_fac_aux e a1 (bit1 n) c `(1) (`(min_fac_helper_0).mk_app [e, p])
-| _ := failed
-end
-
-/-- Evaluates the `prime` and `min_fac` functions. -/
-meta def eval_prime : expr → tactic (expr × expr)
-| `(nat.prime %%e) := do
-  n ← e.to_nat,
-  match n with
-  | 0 := false_intro `(nat.not_prime_zero)
-  | 1 := false_intro `(nat.not_prime_one)
-  | _ := let d₁ := n.min_fac in
-    if d₁ < n then prove_non_prime e n d₁ >>= false_intro
-    else do
-      let e₁ := reflect d₁,
-      c ← mk_instance_cache `(nat),
-      (c, p₁) ← prove_lt_nat c `(1) e₁,
-      (c, e₁, p) ← prove_min_fac c e,
-      true_intro $ `(is_prime_helper).mk_app [e, p₁, p]
-  end
-| `(nat.min_fac %%e) := do
-  ic ← mk_instance_cache `(ℕ),
-  prod.snd <$> prove_min_fac ic e
-| _ := failed
-
 /-- This version of `derive` does not fail when the input is already a numeral -/
-meta def derive' (e : expr) : tactic (expr × expr) :=
-eval_field e <|> eval_nat_int_ext e <|>
-eval_pow e <|> eval_ineq e <|> eval_prime e
+meta def derive.step (e : expr) : tactic (expr × expr) :=
+eval_field e <|> eval_nat_int_ext e <|> eval_pow e <|> eval_ineq e
 
-meta def derive : expr → tactic (expr × expr) | e :=
+/-- An attribute for adding additional extensions to `norm_num`. To use this attribute, put
+`@[norm_num]` on a tactic of type `expr → tactic (expr × expr)`; the tactic will be called on
+subterms by `norm_num`, and it is responsible for identifying that the expression is a numerical
+function applied to numerals, for example `nat.fib 17`, and should return the reduced numerical
+expression (which must be in `norm_num`-normal form: a natural or rational numeral, i.e. `37`,
+`12 / 7` or `-(2 / 3)`, although this can be an expression in any type), and the proof that the
+original expression is equal to the rewritten expression.
+
+Failure is used to indicate that this tactic does not apply to the term. For performance reasons,
+it is best to detect non-applicability as soon as possible so that the next tactic can have a go,
+so generally it will start with a pattern match and then checking that the arguments to the term
+are numerals or of the appropriate form, followed by proof construction, which should not fail.
+
+Propositions are treated like any other term. The normal form for propositions is `true` or
+`false`, so it should produce a proof of the form `p = true` or `p = false`. `eq_true_intro` can be
+used to help here.
+-/
+@[user_attribute]
+protected meta def attr : user_attribute (expr → tactic (expr × expr)) unit :=
+{ name      := `norm_num,
+  descr     := "Add norm_num derivers",
+  cache_cfg :=
+  { mk_cache := λ ns, do {
+      t ← ns.mfoldl
+        (λ (t : expr → tactic (expr × expr)) n, do
+          t' ← eval_expr (expr → tactic (expr × expr)) (expr.const n []),
+          pure (λ e, t' e <|> t e))
+        (λ _, failed),
+      pure (λ e, derive.step e <|> t e) },
+    dependencies := [] } }
+
+add_tactic_doc
+{ name := "norm_num",
+  category := doc_category.attr,
+  decl_names := [`norm_num.attr],
+  tags := ["arithmetic", "decision_procedure"] }
+
+/-- Look up the `norm_num` extensions in the cache and return a tactic extending `derive.step` with
+additional reduction procedures. -/
+meta def get_step : tactic (expr → tactic (expr × expr)) := norm_num.attr.get_cache
+
+/-- Simplify an expression bottom-up using `step` to simplify the subexpressions. -/
+meta def derive' (step : expr → tactic (expr × expr))
+  : expr → tactic (expr × expr) | e :=
 do e ← instantiate_mvars e,
    (_, e', pr) ←
     ext_simplify_core () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
       (λ _ _ _ _ e,
-        do (new_e, pr) ← derive' e,
+        do (new_e, pr) ← step e,
            guard (¬ new_e =ₐ e),
            return ((), new_e, some pr, tt))
       `eq e,
     return (e', pr)
 
+/-- Simplify an expression bottom-up using the default `norm_num` set to simplify the
+subexpressions. -/
+meta def derive (e : expr) : tactic (expr × expr) := do f ← get_step, derive' f e
+
 end norm_num
+
+/-- Basic version of `norm_num` that does not call `simp`. It uses the provided `step` tactic
+to simplify the expression; use `get_step` to get the default `norm_num` set and `derive.step` for
+the basic builtin set of simplifications. -/
+meta def tactic.norm_num1 (step : expr → tactic (expr × expr))
+  (loc : interactive.loc) : tactic unit :=
+do ns ← loc.get_locals,
+   tt ← tactic.replace_at (norm_num.derive' step) ns loc.include_goal
+      | fail "norm_num failed to simplify",
+   when loc.include_goal $ try tactic.triv,
+   when (¬ ns.empty) $ try tactic.contradiction
+
+/-- Normalize numerical expressions. It uses the provided `step` tactic to simplify the expression;
+use `get_step` to get the default `norm_num` set and `derive.step` for the basic builtin set of
+simplifications. -/
+meta def tactic.norm_num (step : expr → tactic (expr × expr))
+  (hs : list simp_arg_type) (l : interactive.loc) : tactic unit :=
+repeat1 $ orelse' (tactic.norm_num1 step l) $
+interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
+  ff (simp_arg_type.except ``one_div :: hs) [] l
 
 namespace tactic.interactive
 open norm_num interactive interactive.types
 
 /-- Basic version of `norm_num` that does not call `simp`. -/
 meta def norm_num1 (loc : parse location) : tactic unit :=
-do ns ← loc.get_locals,
-   tt ← tactic.replace_at derive ns loc.include_goal
-      | fail "norm_num failed to simplify",
-   when loc.include_goal $ try tactic.triv,
-   when (¬ ns.empty) $ try tactic.contradiction
+do f ← get_step, tactic.norm_num1 f loc
 
 /-- Normalize numerical expressions. Supports the operations
 `+` `-` `*` `/` `^` and `%` over numerical types such as
@@ -1419,8 +1323,7 @@ and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`,
 where `A` and `B` are numerical expressions.
 It also has a relatively simple primality prover. -/
 meta def norm_num (hs : parse simp_arg_list) (l : parse location) : tactic unit :=
-repeat1 $ orelse' (norm_num1 l) $
-simp_core {} (norm_num1 (loc.ns [none])) ff (simp_arg_type.except ``one_div :: hs) [] l
+do f ← get_step, tactic.norm_num f hs l
 
 add_hint_tactic "norm_num"
 

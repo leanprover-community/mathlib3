@@ -20,7 +20,6 @@ dot product in `ℝ^n` and provides the means of defining the length of a vector
 two vectors. In particular vectors `x` and `y` are orthogonal if their inner product equals zero.
 We define both the real and complex cases at the same time using the `is_R_or_C` typeclass.
 
-
 ## Main results
 
 - We define the class `inner_product_space 𝕜 E` extending `normed_space 𝕜 E` with a number of basic
@@ -67,7 +66,6 @@ open is_R_or_C real
 open_locale big_operators classical
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
-local notation `𝓚` := @is_R_or_C.of_real 𝕜 _
 
 /-- Syntactic typeclass for types endowed with an inner product -/
 class has_inner (𝕜 E : Type*) := (inner : E → E → 𝕜)
@@ -132,7 +130,7 @@ structure inner_product_space.core
 (inner     : F → F → 𝕜)
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
 (nonneg_im : ∀ x, im (inner x x) = 0)
-(nonneg_re : ∀ x, re (inner x x) ≥ 0)
+(nonneg_re : ∀ x, 0 ≤ re (inner x x))
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = (conj r) * inner x y)
@@ -148,9 +146,9 @@ variables [add_comm_group F] [semimodule 𝕜 F] [c : inner_product_space.core �
 include c
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 F _ x y
-local notation `𝓚` := @is_R_or_C.of_real 𝕜 _
 local notation `norm_sqK` := @is_R_or_C.norm_sq 𝕜 _
 local notation `reK` := @is_R_or_C.re 𝕜 _
+local notation `absK` := @is_R_or_C.abs 𝕜 _
 local notation `ext_iff` := @is_R_or_C.ext_iff 𝕜 _
 local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
 
@@ -177,7 +175,7 @@ c.add_left _ _ _
 lemma inner_add_right {x y z : F} : ⟪x, y + z⟫ = ⟪x, y⟫ + ⟪x, z⟫ :=
 by rw [←inner_conj_sym, inner_add_left, ring_hom.map_add]; simp only [inner_conj_sym]
 
-lemma inner_norm_sq_eq_inner_self (x : F) : 𝓚 (norm_sqF x) = ⟪x, x⟫ :=
+lemma inner_norm_sq_eq_inner_self (x : F) : (norm_sqF x : 𝕜) = ⟪x, x⟫ :=
 begin
   rw ext_iff,
   exact ⟨by simp only [of_real_re]; refl, by simp only [inner_self_nonneg_im, of_real_im]⟩
@@ -204,7 +202,7 @@ by rw [←inner_conj_sym, inner_zero_left]; simp only [ring_hom.map_zero]
 lemma inner_self_eq_zero {x : F} : ⟪x, x⟫ = 0 ↔ x = 0 :=
 iff.intro (c.definite _) (by { rintro rfl, exact inner_zero_left })
 
-lemma inner_self_re_to_K {x : F} : 𝓚 (re ⟪x, x⟫) = ⟪x, x⟫ :=
+lemma inner_self_re_to_K {x : F} : (re ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
 by norm_num [ext_iff, inner_self_nonneg_im]
 
 lemma inner_abs_conj_sym {x y : F} : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
@@ -252,7 +250,7 @@ begin
       have : ⟪y, y⟫ / (⟪y, y⟫ * ⟪y, y⟫) = 1 / ⟪y, y⟫ :=
         by rw [div_mul_eq_div_mul_one_div, div_self hy', one_mul],
       rw [this, div_eq_mul_inv, one_mul, ←div_eq_mul_inv] },
-    have h₄ : ⟪y, y⟫ = 𝓚 (re ⟪y, y⟫) := by simp only [inner_self_re_to_K],
+    have h₄ : ⟪y, y⟫ = re ⟪y, y⟫ := by simp only [inner_self_re_to_K],
     have h₅ : re ⟪y, y⟫ > 0,
     { refine lt_of_le_of_ne inner_self_nonneg _,
       intro H,
@@ -271,7 +269,7 @@ begin
                   : by field_simp [-mul_re, inner_conj_sym, hT, conj_div, h₁, h₃]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw [div_mul_eq_mul_div_comm, ←mul_div_assoc]
-      ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / 𝓚 (re ⟪y, y⟫))
+      ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
                   : by conv_lhs { rw [h₄] }
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫) / re ⟪y, y⟫
                   : by rw [div_re_of_real]
@@ -378,6 +376,7 @@ variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 local notation `IK` := @is_R_or_C.I 𝕜 _
 local notation `absR` := _root_.abs
+local notation `absK` := @is_R_or_C.abs 𝕜 _
 local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
 local postfix `⋆`:90 := complex.conj
 
@@ -414,12 +413,18 @@ lemma inner_smul_left {x y : E} {r : 𝕜} : ⟪r • x, y⟫ = r† * ⟪x, y�
 inner_product_space.smul_left _ _ _
 lemma real_inner_smul_left {x y : F} {r : ℝ} : ⟪r • x, y⟫_ℝ = r * ⟪x, y⟫_ℝ := inner_smul_left
 
+lemma inner_smul_real_left {x y : E} {r : ℝ} : ⟪(r : 𝕜) • x, y⟫ = r • ⟪x, y⟫ :=
+by { rw [inner_smul_left, conj_of_real, algebra.smul_def], refl }
+
 lemma inner_smul_right {x y : E} {r : 𝕜} : ⟪x, r • y⟫ = r * ⟪x, y⟫ :=
 by rw [←inner_conj_sym, inner_smul_left, ring_hom.map_mul, conj_conj, inner_conj_sym]
 lemma real_inner_smul_right {x y : F} {r : ℝ} : ⟪x, r • y⟫_ℝ = r * ⟪x, y⟫_ℝ := inner_smul_right
 
+lemma inner_smul_real_right {x y : E} {r : ℝ} : ⟪x, (r : 𝕜) • y⟫ = r • ⟪x, y⟫ :=
+by { rw [inner_smul_right, algebra.smul_def], refl }
+
 /-- The inner product as a sesquilinear form. -/
-def sesq_form_of_inner : sesq_form 𝕜 E conj_to_ring_equiv :=
+def sesq_form_of_inner : sesq_form 𝕜 E (conj_to_ring_equiv 𝕜) :=
 { sesq := λ x y, ⟪y, x⟫,    -- Note that sesquilinear forms are linear in the first argument
   sesq_add_left := λ x y z, inner_add_right,
   sesq_add_right := λ x y z, inner_add_left,
@@ -488,21 +493,21 @@ end
 lemma real_inner_self_nonpos {x : F} : ⟪x, x⟫_ℝ ≤ 0 ↔ x = 0 :=
 by { have h := @inner_self_nonpos ℝ F _ _ x, simpa using h }
 
-@[simp] lemma inner_self_re_to_K {x : E} : 𝓚 (re ⟪x, x⟫) = ⟪x, x⟫ :=
+@[simp] lemma inner_self_re_to_K {x : E} : (re ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
 by rw is_R_or_C.ext_iff; exact ⟨by simp, by simp [inner_self_nonneg_im]⟩
 
 lemma inner_self_re_abs {x : E} : re ⟪x, x⟫ = abs ⟪x, x⟫ :=
 begin
-  have H : ⟪x, x⟫ = 𝓚 (re ⟪x, x⟫) + 𝓚 (im ⟪x, x⟫) * I,
+  have H : ⟪x, x⟫ = (re ⟪x, x⟫ : 𝕜) + im ⟪x, x⟫ * I,
   { rw re_add_im, },
-  rw [H, is_add_hom.map_add re (𝓚 (re ⟪x, x⟫)) ((𝓚 (im ⟪x, x⟫)) * I)],
+  rw [H, is_add_hom.map_add re ((re ⟪x, x⟫) : 𝕜) (((im ⟪x, x⟫) : 𝕜) * I)],
   rw [mul_re, I_re, mul_zero, I_im, zero_sub, tactic.ring.add_neg_eq_sub],
   rw [of_real_re, of_real_im, sub_zero, inner_self_nonneg_im],
   simp only [abs_of_real, add_zero, of_real_zero, zero_mul],
   exact (_root_.abs_of_nonneg inner_self_nonneg).symm,
 end
 
-lemma inner_self_abs_to_K {x : E} : 𝓚 (abs ⟪x, x⟫) = ⟪x, x⟫ :=
+lemma inner_self_abs_to_K {x : E} : (absK ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
 by { rw[←inner_self_re_abs], exact inner_self_re_to_K }
 
 lemma real_inner_self_abs {x : F} : absR ⟪x, x⟫_ℝ = ⟪x, x⟫_ℝ :=
@@ -575,7 +580,7 @@ begin
       have : ⟪y, y⟫ / (⟪y, y⟫ * ⟪y, y⟫) = 1 / ⟪y, y⟫ :=
         by rw [div_mul_eq_div_mul_one_div, div_self hy', one_mul],
       rw [this, div_eq_mul_inv, one_mul, ←div_eq_mul_inv] },
-    have h₄ : ⟪y, y⟫ = 𝓚 (re ⟪y, y⟫) := by simp,
+    have h₄ : ⟪y, y⟫ = re ⟪y, y⟫ := by simp,
     have h₅ : re ⟪y, y⟫ > 0,
     { refine lt_of_le_of_ne inner_self_nonneg _,
       intro H,
@@ -594,7 +599,7 @@ begin
                   : by field_simp [-mul_re, hT, conj_div, h₁, h₃, inner_conj_sym]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw [div_mul_eq_mul_div_comm, ←mul_div_assoc]
-      ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / 𝓚 (re ⟪y, y⟫))
+      ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
                   : by conv_lhs { rw [h₄] }
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫) / re ⟪y, y⟫
                   : by rw [div_re_of_real]
@@ -868,7 +873,7 @@ end
 norms, has absolute value 1 if and only if they are nonzero and one is
 a multiple of the other. One form of equality case for Cauchy-Schwarz. -/
 lemma abs_inner_div_norm_mul_norm_eq_one_iff (x y : E) :
-  abs (⟪x, y⟫ / 𝓚 (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : 𝕜), r ≠ 0 ∧ y = r • x) :=
+  abs (⟪x, y⟫ / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : 𝕜), r ≠ 0 ∧ y = r • x) :=
 begin
   split,
   { intro h,
@@ -878,18 +883,22 @@ begin
       norm_num at h,
       exact h },
     refine and.intro hx0 _,
-    set r := ⟪x, y⟫ / 𝓚 (∥x∥ * ∥x∥) with hr,
+    set r := ⟪x, y⟫ / (∥x∥ * ∥x∥) with hr,
     use r,
     set t := y - r • x with ht,
     have ht0 : ⟪x, t⟫ = 0,
-    { rw [ht, inner_sub_right, inner_smul_right, hr, ←inner_self_eq_norm_square, inner_self_re_to_K,
+    { rw [ht, inner_sub_right, inner_smul_right, hr],
+      norm_cast,
+      rw [←inner_self_eq_norm_square, inner_self_re_to_K,
           div_mul_cancel _ (λ h, hx0 (inner_self_eq_zero.1 h)), sub_self] },
     replace h : ∥r • x∥ / ∥t + r • x∥ = 1,
-    { rwa [←sub_add_cancel y (r • x), ←ht, inner_add_right, ht0, zero_add, inner_smul_right,
+    { rw [←sub_add_cancel y (r • x), ←ht, inner_add_right, ht0, zero_add, inner_smul_right,
         is_R_or_C.abs_div, is_R_or_C.abs_mul, ←inner_self_re_abs,
-        inner_self_eq_norm_square, of_real_mul, is_R_or_C.abs_mul, abs_of_real, abs_of_real,
-        abs_norm_eq_norm, abs_norm_eq_norm, ←mul_assoc, mul_comm,
-        mul_div_mul_left _ _ (λ h, hx0 (norm_eq_zero.1 h)), ←is_R_or_C.norm_eq_abs, ←norm_smul] at h },
+        inner_self_eq_norm_square] at h,
+      norm_cast at h,
+      rwa [_root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm, ←mul_assoc, mul_comm,
+        mul_div_mul_left _ _ (λ h, hx0 (norm_eq_zero.1 h)), ←is_R_or_C.norm_eq_abs,
+        ←norm_smul] at h },
     have hr0 : r ≠ 0,
     { intro hr0,
       rw [hr0, zero_smul, norm_zero, zero_div] at h,
@@ -899,7 +908,7 @@ begin
     { rw [eq_of_div_eq_one h] },
     replace h2 : ⟪r • x, r • x⟫ = ⟪t, t⟫ + ⟪t, r • x⟫ + ⟪r • x, t⟫ + ⟪r • x, r • x⟫,
     { rw [pow_two, pow_two, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square ] at h2,
-      have h2' := congr_arg (λ z, 𝓚 z) h2,
+      have h2' := congr_arg (λ z : ℝ, (z : 𝕜)) h2,
       simp_rw [inner_self_re_to_K, inner_add_add_self] at h2',
       exact h2' },
     conv at h2 in ⟪r • x, t⟫ { rw [inner_smul_left, ht0, mul_zero] },
@@ -910,8 +919,9 @@ begin
     exact eq_of_sub_eq_zero ht.symm },
   { intro h,
     rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
-    rw hy,
-    rw [is_R_or_C.abs_div, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm],
+    rw [hy, is_R_or_C.abs_div],
+    norm_cast,
+    rw [_root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm],
     exact abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul hx hr }
 end
 
@@ -920,7 +930,10 @@ norms, has absolute value 1 if and only if they are nonzero and one is
 a multiple of the other. One form of equality case for Cauchy-Schwarz. -/
 lemma abs_real_inner_div_norm_mul_norm_eq_one_iff (x y : F) :
   absR (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r ≠ 0 ∧ y = r • x) :=
-by { simpa using abs_inner_div_norm_mul_norm_eq_one_iff x y, assumption }
+begin
+  have := @abs_inner_div_norm_mul_norm_eq_one_iff ℝ F _ _ x y,
+  simpa [coe_real_eq_id] using this,
+end
 
 /--
 If the inner product of two vectors is equal to the product of their norms, then the two vectors
@@ -932,12 +945,14 @@ begin
   have hx0' : ∥x∥ ≠ 0 := by simp [norm_eq_zero, hx0],
   have hy0' : ∥y∥ ≠ 0 := by simp [norm_eq_zero, hy0],
   have hxy0 : ∥x∥ * ∥y∥ ≠ 0 := by simp [hx0', hy0'],
-  have h₁ : abs ⟪x, y⟫ = ∥x∥ * ∥y∥ ↔ abs (⟪x, y⟫ / 𝓚 (∥x∥ * ∥y∥)) = 1,
+  have h₁ : abs ⟪x, y⟫ = ∥x∥ * ∥y∥ ↔ abs (⟪x, y⟫ / (∥x∥ * ∥y∥)) = 1,
   { refine ⟨_ ,_⟩,
     { intro h,
+      norm_cast,
       rw [is_R_or_C.abs_div, h, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm],
       exact div_self hxy0 },
     { intro h,
+      norm_cast at h,
       rwa [is_R_or_C.abs_div, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm,
           div_eq_one_iff_eq hxy0] at h } },
   rw [h₁, abs_inner_div_norm_mul_norm_eq_one_iff x y],
@@ -1073,8 +1088,8 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
   add_left := λ x y z, by simp [inner, add_mul],
   smul_left := λ x y z, by simp [inner, mul_assoc] }
 
-/-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional space
-use `euclidean_space 𝕜 (fin n)`.  -/
+/-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional
+space use `euclidean_space 𝕜 (fin n)`. -/
 @[reducible, nolint unused_arguments]
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
@@ -1083,16 +1098,13 @@ section is_R_or_C_to_real
 
 variables {G : Type*}
 
-variables (𝕜)
+variables (𝕜 E)
 include 𝕜
 
 /-- A general inner product implies a real inner product. This is not registered as an instance
 since it creates problems with the case `𝕜 = ℝ`. -/
 def has_inner.is_R_or_C_to_real : has_inner ℝ E :=
 { inner := λ x y, re ⟪x, y⟫ }
-
-lemma real_inner_eq_re_inner (x y : E) :
-  @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜) x y = re ⟪x, y⟫ := rfl
 
 /-- A general inner product space structure implies a real inner product structure. This is not
 registered as an instance since it creates problems with the case `𝕜 = ℝ`, but in can be used in a
@@ -1102,24 +1114,97 @@ def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
 { norm_sq_eq_inner := norm_sq_eq_inner,
   conj_sym := λ x y, inner_re_symm,
   nonneg_im := λ x, rfl,
-  add_left := λ x y z, by { change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫, simp [inner_add_left] },
-  smul_left :=
-  begin
-    intros x y r,
-    change re ⟪(algebra_map ℝ 𝕜 r) • x, y⟫ = r * re ⟪x, y⟫,
-    have : algebra_map ℝ 𝕜 r = r • (1 : 𝕜) := by simp [algebra_map, algebra.smul_def'],
-    simp [this, inner_smul_left, smul_coe_mul_ax],
-  end,
-  ..has_inner.is_R_or_C_to_real 𝕜,
+  add_left := λ x y z, by {
+    change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
+    simp [inner_add_left] },
+  smul_left := λ x y r, by {
+    change re ⟪(r : 𝕜) • x, y⟫ = r * re ⟪x, y⟫,
+    simp [inner_smul_left] },
+  ..has_inner.is_R_or_C_to_real 𝕜 E,
   ..normed_space.restrict_scalars ℝ 𝕜 E }
+
+variable {E}
+
+lemma real_inner_eq_re_inner (x y : E) :
+  @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜 E) x y = re ⟪x, y⟫ := rfl
 
 omit 𝕜
 
 /-- A complex inner product implies a real inner product -/
 instance inner_product_space.complex_to_real [inner_product_space ℂ G] : inner_product_space ℝ G :=
-inner_product_space.is_R_or_C_to_real ℂ
+inner_product_space.is_R_or_C_to_real ℂ G
 
 end is_R_or_C_to_real
+
+section deriv
+
+variables [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
+
+lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
+{ add_left := λ _ _ _, inner_add_left,
+  smul_left := λ r x y,
+    by simp only [← algebra_map_smul 𝕜 r x, algebra_map_eq_of_real, inner_smul_real_left],
+  add_right := λ _ _ _, inner_add_right,
+  smul_right := λ r x y,
+    by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
+  bound := ⟨1, zero_lt_one, λ x y,
+    by { rw [one_mul, is_R_or_C.norm_eq_abs], exact abs_inner_le_norm x y, }⟩ }
+
+lemma times_cont_diff_inner {n} : times_cont_diff ℝ n (λ p : E × E, ⟪p.1, p.2⟫) :=
+is_bounded_bilinear_map_inner.times_cont_diff
+
+lemma times_cont_diff_at_inner {p : E × E} {n} :
+  times_cont_diff_at ℝ n (λ p : E × E, ⟪p.1, p.2⟫) p :=
+times_cont_diff_inner.times_cont_diff_at
+
+lemma differentiable_inner : differentiable ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
+times_cont_diff_inner.differentiable le_rfl
+
+lemma continuous_inner : continuous (λ p : E × E, ⟪p.1, p.2⟫) :=
+differentiable_inner.continuous
+
+variables {G : Type*} [normed_group G] [normed_space ℝ G]
+  {f g : G → E} {f' g' : G →L[ℝ] E} {s : set G} {x : G} {n : with_top ℕ}
+
+include 𝕜
+
+lemma times_cont_diff_within_at.inner (hf : times_cont_diff_within_at ℝ n f s x)
+  (hg : times_cont_diff_within_at ℝ n g s x) :
+  times_cont_diff_within_at ℝ n (λ x, ⟪f x, g x⟫) s x :=
+times_cont_diff_at_inner.comp_times_cont_diff_within_at x (hf.prod hg)
+
+lemma times_cont_diff_at.inner (hf : times_cont_diff_at ℝ n f x)
+  (hg : times_cont_diff_at ℝ n g x) :
+  times_cont_diff_at ℝ n (λ x, ⟪f x, g x⟫) x :=
+hf.inner hg
+
+lemma times_cont_diff_on.inner (hf : times_cont_diff_on ℝ n f s) (hg : times_cont_diff_on ℝ n g s) :
+  times_cont_diff_on ℝ n (λ x, ⟪f x, g x⟫) s :=
+λ x hx, (hf x hx).inner (hg x hx)
+
+lemma times_cont_diff.inner (hf : times_cont_diff ℝ n f) (hg : times_cont_diff ℝ n g) :
+  times_cont_diff ℝ n (λ x, ⟪f x, g x⟫) :=
+times_cont_diff_inner.comp (hf.prod hg)
+
+lemma differentiable_within_at.inner (hf : differentiable_within_at ℝ f s x)
+  (hg : differentiable_within_at ℝ g s x) :
+  differentiable_within_at ℝ (λ x, ⟪f x, g x⟫) s x :=
+((differentiable_inner _).has_fderiv_at.comp_has_fderiv_within_at x
+  (hf.prod hg).has_fderiv_within_at).differentiable_within_at
+
+lemma differentiable_at.inner (hf : differentiable_at ℝ f x) (hg : differentiable_at ℝ g x) :
+  differentiable_at ℝ (λ x, ⟪f x, g x⟫) x :=
+(differentiable_inner _).comp x (hf.prod hg)
+
+lemma differentiable_on.inner (hf : differentiable_on ℝ f s) (hg : differentiable_on ℝ g s) :
+  differentiable_on ℝ (λ x, ⟪f x, g x⟫) s :=
+λ x hx, (hf x hx).inner (hg x hx)
+
+lemma differentiable.inner (hf : differentiable ℝ f) (hg : differentiable ℝ g) :
+  differentiable ℝ (λ x, ⟪f x, g x⟫) :=
+λ x, (hf x).inner (hg x)
+
+end deriv
 
 section pi_Lp
 local attribute [reducible] pi_Lp
@@ -1352,7 +1437,7 @@ This point `v` is usually called the orthogonal projection of `u` onto `K`.
 theorem exists_norm_eq_infi_of_complete_subspace (K : subspace 𝕜 E)
   (h : is_complete (↑K : set E)) : ∀ u : E, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (K : set E), ∥u - w∥ :=
 begin
-  letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜,
+  letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
   letI : module ℝ E := restrict_scalars.semimodule ℝ 𝕜 E,
   letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   let K' : subspace ℝ E := submodule.restrict_scalars ℝ K,
@@ -1411,7 +1496,7 @@ for all `w ∈ K`, `⟪u - v, w⟫ = 0` (i.e., `u - v` is orthogonal to the subs
 theorem norm_eq_infi_iff_inner_eq_zero (K : subspace 𝕜 E) {u : E} {v : E}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set E), ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫ = 0 :=
 begin
-  letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜,
+  letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
   letI : module ℝ E := restrict_scalars.semimodule ℝ 𝕜 E,
   letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   let K' : subspace ℝ E := K.restrict_scalars ℝ,

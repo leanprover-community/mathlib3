@@ -5,7 +5,10 @@ Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 -/
 import algebra.big_operators.pi
 import algebra.module.pi
+import algebra.module.linear_map
 import algebra.big_operators.ring
+import algebra.star.basic
+import data.equiv.ring
 import data.fintype.card
 
 /-!
@@ -43,6 +46,11 @@ def map (M : matrix m n α) {β : Type w} (f : α → β) : matrix m n β := λ 
 @[simp]
 lemma map_apply {M : matrix m n α} {β : Type w} {f : α → β} {i : m} {j : n} :
   M.map f i j = f (M i j) := rfl
+
+@[simp]
+lemma map_map {M : matrix m n α} {β γ : Type*} {f : α → β} {g : β → γ} :
+  (M.map f).map g = M.map (g ∘ f) :=
+by { ext, simp, }
 
 /-- The transpose of a matrix. -/
 def transpose (M : matrix m n α) : matrix n m α
@@ -348,10 +356,66 @@ theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
   diagonal d₁ * diagonal d₂ = diagonal (λ i, d₁ i * d₂ i) :=
 diagonal_mul_diagonal _ _
 
+@[simp]
 lemma map_mul {L : matrix m n α} {M : matrix n o α}
   {β : Type w} [semiring β] {f : α →+* β} :
-(L ⬝ M).map f = L.map f ⬝ M.map f :=
+  (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
+
+-- TODO: there should be a way to avoid restating these for each `foo_hom`. 
+/-- A version of `one_map` where `f` is a ring hom. -/
+@[simp] lemma ring_hom_map_one [decidable_eq n]
+  {β : Type w} [semiring β] (f : α →+* β) :
+  (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `one_map` where `f` is a `ring_equiv`. -/
+@[simp] lemma ring_equiv_map_one [decidable_eq n]
+  {β : Type w} [semiring β] (f : α ≃+* β) :
+  (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `map_zero` where `f` is a `zero_hom`. -/
+@[simp] lemma zero_hom_map_zero
+  {β : Type w} [has_zero β] (f : zero_hom α β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `add_monoid_hom`. -/
+@[simp] lemma add_monoid_hom_map_zero
+  {β : Type w} [add_monoid β] (f : α →+ β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `add_equiv`. -/
+@[simp] lemma add_equiv_map_zero
+  {β : Type w} [add_monoid β] (f : α ≃+ β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `linear_map`. -/
+@[simp] lemma linear_map_map_zero {R : Type*} [semiring R]
+  {β : Type w} [add_comm_monoid β] [semimodule R α] [semimodule R β] (f : α →ₗ[R] β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `linear_equiv`. -/
+@[simp] lemma linear_equiv_map_zero {R : Type*} [semiring R]
+  {β : Type w} [add_comm_monoid β] [semimodule R α] [semimodule R β] (f : α ≃ₗ[R] β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `ring_hom`. -/
+@[simp] lemma ring_hom_map_zero
+  {β : Type w} [semiring β] (f : α →+* β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `ring_equiv`. -/
+@[simp] lemma ring_equiv_map_zero
+  {β : Type w} [semiring β] (f : α ≃+* β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
 
 lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
   is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=
@@ -600,10 +664,10 @@ begin
   rw ← finset.sum_subset, swap 4, exact {i},
   { norm_num [std_basis_matrix] },
   { simp },
-  intros, norm_num at a, norm_num,
+  intros y _ hyi, norm_num,
   convert finset.sum_const_zero,
   ext, norm_num [std_basis_matrix],
-  rw if_neg, tauto!,
+  rw if_neg, contrapose! hyi, simp [hyi]
 end
 
 -- TODO: tie this up with the `basis` machinery of linear algebra
@@ -722,6 +786,23 @@ lemma transpose_map {β : Type w} {f : α → β} {M : matrix m n α} : Mᵀ.map
 by { ext, refl }
 
 end transpose
+
+section star_ring
+variables [decidable_eq n] {R : Type*} [semiring R] [star_ring R]
+
+/--
+When `R` is a *-(semi)ring, `matrix n n R` becomes a *-(semi)ring with
+the star operation given by taking the conjugate, and the star of each entry.
+-/
+instance : star_ring (matrix n n R) :=
+{ star := λ M, M.transpose.map star,
+  star_involutive := λ M, by { ext, simp, },
+  star_add := λ M N, by { ext, simp, },
+  star_mul := λ M N, by { ext, simp [mul_apply], }, }
+
+@[simp] lemma star_apply (M : matrix n n R) (i j) : star M i j = star (M j i) := rfl
+
+end star_ring
 
 /-- `M.minor row col` is the matrix obtained by reindexing the rows and the lines of
     `M`, such that `M.minor row col i j = M (row i) (col j)`. Note that the total number

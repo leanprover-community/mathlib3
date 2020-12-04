@@ -70,6 +70,8 @@ example (g v V c h : ℚ) (h1 : h = 0) (h2 : v = V) (h3 : V > 0) (h4 : g > 0)
   v ≤ V :=
 by linarith
 
+constant nat.prime : ℕ → Prop
+
 example (x y z : ℚ) (h1 : 2*x + ((-3)*y) < 0) (h2 : (-4)*x + 2*z < 0)
        (h3 : 12*y + (-4)* z < 0) (h4 : nat.prime 7) : false :=
 by linarith

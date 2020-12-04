@@ -344,3 +344,30 @@ def linear_order_of_compares [preorder α] (cmp : α → α → ordering)
   decidable_lt := λ a b, decidable_of_iff _ (h a b).eq_lt,
   decidable_eq := λ a b, decidable_of_iff _ (h a b).eq_eq,
   .. ‹preorder α› }
+
+variables [linear_order α] (x y : α)
+
+@[simp] lemma cmp_eq_lt_iff : cmp x y = ordering.lt ↔ x < y :=
+ordering.compares.eq_lt (cmp_compares x y)
+
+@[simp] lemma cmp_eq_eq_iff : cmp x y = ordering.eq ↔ x = y :=
+ordering.compares.eq_eq (cmp_compares x y)
+
+@[simp] lemma cmp_eq_gt_iff : cmp x y = ordering.gt ↔ y < x :=
+ordering.compares.eq_gt (cmp_compares x y)
+
+@[simp] lemma cmp_self_eq_eq : cmp x x = ordering.eq :=
+by rw cmp_eq_eq_iff
+
+variables {x y} {β : Type*} [linear_order β] {x' y' : β}
+
+lemma cmp_eq_cmp_symm : cmp x y = cmp x' y' ↔ cmp y x = cmp y' x' :=
+by { split, rw [←cmp_swap _ y, ←cmp_swap _ y'], cc,
+  rw [←cmp_swap _ x, ←cmp_swap _ x'], cc, }
+
+lemma lt_iff_lt_of_cmp_eq_cmp (h : cmp x y = cmp x' y') : x < y ↔ x' < y' :=
+by rw [←cmp_eq_lt_iff, ←cmp_eq_lt_iff, h]
+
+lemma le_iff_le_of_cmp_eq_cmp (h : cmp x y = cmp x' y') : x ≤ y ↔ x' ≤ y' :=
+by { rw [←not_lt, ←not_lt, not_iff_not],
+  apply lt_iff_lt_of_cmp_eq_cmp, rwa cmp_eq_cmp_symm }

@@ -356,6 +356,32 @@ lemma line_map_apply_one_sub (p₀ p₁ : P1) (c : k) :
   line_map p₀ p₁ (1 - c) = line_map p₁ p₀ c :=
 by { rw [line_map_symm p₀, comp_apply], congr, simp [line_map_apply] }
 
+@[simp] lemma line_map_vsub_left (p₀ p₁ : P1) (c : k) :
+  line_map p₀ p₁ c -ᵥ p₀ = c • (p₁ -ᵥ p₀) :=
+vadd_vsub _ _
+
+@[simp] lemma left_vsub_line_map (p₀ p₁ : P1) (c : k) :
+  p₀ -ᵥ line_map p₀ p₁ c = c • (p₀ -ᵥ p₁) :=
+by rw [← neg_vsub_eq_vsub_rev, line_map_vsub_left, ← smul_neg, neg_vsub_eq_vsub_rev]
+
+@[simp] lemma line_map_vsub_right (p₀ p₁ : P1) (c : k) :
+  line_map p₀ p₁ c -ᵥ p₁ = (1 - c) • (p₀ -ᵥ p₁) :=
+by rw [← line_map_apply_one_sub, line_map_vsub_left]
+
+@[simp] lemma right_vsub_line_map (p₀ p₁ : P1) (c : k) :
+  p₁ -ᵥ line_map p₀ p₁ c = (1 - c) • (p₁ -ᵥ p₀) :=
+by rw [← line_map_apply_one_sub, left_vsub_line_map]
+
+lemma line_map_vadd_line_map (v₁ v₂ : V1) (p₁ p₂ : P1) (c : k) :
+  line_map v₁ v₂ c +ᵥ line_map p₁ p₂ c = line_map (v₁ +ᵥ p₁) (v₂ +ᵥ p₂) c :=
+((fst : V1 × P1 →ᵃ[k] V1) +ᵥ snd).apply_line_map  (v₁, p₁) (v₂, p₂) c
+
+lemma line_map_vsub_line_map (p₁ p₂ p₃ p₄ : P1) (c : k) :
+  line_map p₁ p₂ c -ᵥ line_map p₃ p₄ c = line_map (p₁ -ᵥ p₃) (p₂ -ᵥ p₄) c :=
+-- Why Lean fails to find this instance without a hint?
+by letI : affine_space (V1 × V1) (P1 × P1) := prod.add_torsor; exact
+((fst : P1 × P1 →ᵃ[k] P1) -ᵥ (snd : P1 × P1 →ᵃ[k] P1)).apply_line_map (_, _) (_, _) c
+
 /-- Decomposition of an affine map in the special case when the point space and vector space
 are the same. -/
 lemma decomp (f : V1 →ᵃ[k] V2) : (f : V1 → V2) = f.linear + (λ z, f 0) :=
@@ -384,6 +410,30 @@ begin
     simp only [vsub_eq_sub, add_zero, mul_one, vadd_eq_add, sub_zero, smul_eq_mul] },
   rw [this, set.image_comp],
   simp only [set.image_add_const_interval, set.image_mul_const_interval]
+end
+
+section
+
+variables {ι : Type*} {V : Π i : ι, Type*} {P : Π i : ι, Type*} [Π i, add_comm_group (V i)]
+  [Π i, semimodule k (V i)] [Π i, add_torsor (V i) (P i)]
+
+include V
+
+/-- Evaluation at a point as an affine map. -/
+def proj (i : ι) : (Π i : ι, P i) →ᵃ[k] P i :=
+{ to_fun := λ f, f i,
+  linear := @linear_map.proj k ι _ V _ _ i,
+  map_vadd' := λ p v, rfl }
+
+@[simp] lemma proj_apply (i : ι) (f : Π i, P i) : @proj k _ ι V P _ _ _ i f = f i := rfl
+
+@[simp] lemma proj_linear (i : ι) :
+   (@proj k _ ι V P _ _ _ i).linear = @linear_map.proj k ι _ V _ _ i := rfl
+
+lemma pi_line_map_apply (f g : Π i, P i) (c : k) (i : ι) :
+  line_map f g c i = line_map (f i) (g i) c :=
+(proj i : (Π i, P i) →ᵃ[k] P i).apply_line_map f g c
+
 end
 
 end affine_map
@@ -416,6 +466,8 @@ lemma homothety_def (c : P1) (r : k) :
 rfl
 
 lemma homothety_apply (c : P1) (r : k) (p : P1) : homothety c r p = r • (p -ᵥ c : V1) +ᵥ c := rfl
+
+lemma homothety_eq_line_map (c : P1) (r : k) (p : P1) : homothety c r p = line_map c p r := rfl
 
 @[simp] lemma homothety_one (c : P1) : homothety c (1:k) = id k P1 :=
 by { ext p, simp [homothety_apply] }

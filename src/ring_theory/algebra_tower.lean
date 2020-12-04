@@ -114,9 +114,6 @@ def restrict_base (f : A →ₐ[S] B) : A →ₐ[R] B :=
 instance right : is_scalar_tower R S S :=
 of_algebra_map_eq $ λ x, rfl
 
-instance nat : is_scalar_tower ℕ S A :=
-of_algebra_map_eq $ λ x, ((algebra_map S A).map_nat_cast x).symm
-
 instance comap {R S A : Type*} [comm_semiring R] [comm_semiring S] [semiring A]
   [algebra R S] [algebra S A] : is_scalar_tower R S (algebra.comap R S A) :=
 of_algebra_map_eq $ λ x, rfl
@@ -192,15 +189,6 @@ instance linear_map (R : Type u) (A : Type v) (V : Type w)
 
 end comm_semiring
 
-section comm_ring
-variables [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] [algebra R A]
-variables [is_scalar_tower R S A]
-
-instance int : is_scalar_tower ℤ S A :=
-of_algebra_map_eq $ λ x, ((algebra_map S A).map_int_cast x).symm
-
-end comm_ring
-
 section division_ring
 variables [field R] [division_ring S] [algebra R S] [char_zero R] [char_zero S]
 
@@ -232,6 +220,8 @@ namespace subalgebra
 
 open is_scalar_tower
 
+section semiring
+
 variables (R) {S A} [comm_semiring R] [comm_semiring S] [semiring A]
 variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 
@@ -254,6 +244,19 @@ def of_under {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
   [algebra S B] [is_scalar_tower R S B] (f : U →ₐ[S] B) : S.under U →ₐ[R] B :=
 { commutes' := λ r, (f.commutes (algebra_map R S r)).trans (algebra_map_apply R S B r).symm,
   .. f }
+
+end semiring
+
+section comm_semiring
+
+variables (R) {S A} [comm_semiring R] [comm_semiring S] [comm_semiring A]
+variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
+
+@[simp] lemma aeval_coe {S : subalgebra R A} {x : S} {p : polynomial R} :
+  polynomial.aeval (x : A) p = polynomial.aeval x p :=
+(algebra_map_aeval R S A x p).symm
+
+end comm_semiring
 
 end subalgebra
 

@@ -5,7 +5,8 @@ Authors: Anne Baanen
 -/
 
 import field_theory.subfield
-import ring_theory.algebra_tower
+import field_theory.tower
+import ring_theory.algebraic
 
 /-!
 # Intermediate fields
@@ -32,16 +33,11 @@ i.e. it is a `subfield L` and a `subalgebra K L`.
 Intermediate fields are defined with a structure extending `subfield` and `subalgebra`.
 A `subalgebra` is closed under all operations except `⁻¹`,
 
-## TODO
-
- * `field.adjoin` currently returns a `subalgebra`, this should become an
-   `intermediate_field`. The lattice structure on `intermediate_field` will
-   follow from the adjunction given by `field.adjoin`.
-
 ## Tags
 intermediate field, field extension
 -/
 
+open finite_dimensional
 open_locale big_operators
 
 variables (K L : Type*) [field K] [field L] [algebra K L]
@@ -184,6 +180,17 @@ def subalgebra.to_intermediate_field (S : subalgebra K L) (inv_mem : ∀ x ∈ S
   inv_mem' := inv_mem,
   .. S }
 
+@[simp] lemma to_subalgebra_to_intermediate_field
+  (S : subalgebra K L) (inv_mem : ∀ x ∈ S, x⁻¹ ∈ S) :
+  (S.to_intermediate_field inv_mem).to_subalgebra = S :=
+by { ext, refl }
+
+@[simp] lemma to_intermediate_field_to_subalgebra
+  (S : intermediate_field K L) (inv_mem : ∀ x ∈ S.to_subalgebra, x⁻¹ ∈ S) :
+  S.to_subalgebra.to_intermediate_field inv_mem = S :=
+by { ext, refl }
+
+
 /-- Turn a subfield of `L` containing the image of `K` into an intermediate field -/
 def subfield.to_intermediate_field (S : subfield L)
   (algebra_map_mem : ∀ x, algebra_map K L x ∈ S) :
@@ -286,4 +293,58 @@ instance has_lift2 {F : intermediate_field K L} :
 
 end tower
 
+section finite_dimensional
+
+instance finite_dimensional_left [finite_dimensional K L] (F : intermediate_field K L) :
+  finite_dimensional K F :=
+finite_dimensional.finite_dimensional_submodule F.to_subalgebra.to_submodule
+
+instance finite_dimensional_right [finite_dimensional K L] (F : intermediate_field K L) :
+  finite_dimensional F L :=
+right K F L
+
+lemma eq_of_le_of_findim_le [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
+  (h_findim : findim K E ≤ findim K F) : F = E :=
+intermediate_field.ext'_iff.mpr (submodule.ext'_iff.mp (eq_of_le_of_findim_le
+  (show F.to_subalgebra.to_submodule ≤ E.to_subalgebra.to_submodule, by exact h_le) h_findim))
+
+lemma eq_of_le_of_findim_eq [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
+  (h_findim : findim K F = findim K E) : F = E :=
+eq_of_le_of_findim_le h_le h_findim.ge
+
+lemma eq_of_le_of_findim_le' [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
+  (h_findim : findim F L ≤ findim E L) : F = E :=
+begin
+  apply eq_of_le_of_findim_le h_le,
+  have h1 := findim_mul_findim K F L,
+  have h2 := findim_mul_findim K E L,
+  have h3 : 0 < findim E L := findim_pos,
+  nlinarith,
+end
+
+lemma eq_of_le_of_findim_eq' [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
+  (h_findim : findim F L = findim E L) : F = E :=
+eq_of_le_of_findim_le' h_le h_findim.le
+
+end finite_dimensional
+
 end intermediate_field
+
+/-- If `L/K` is algebraic, the `K`-subalgebras of `L` are all fields.  -/
+def subalgebra_equiv_intermediate_field (alg : algebra.is_algebraic K L) :
+  subalgebra K L ≃o intermediate_field K L :=
+{ to_fun := λ S, S.to_intermediate_field (λ x hx, S.inv_mem_of_algebraic (alg (⟨x, hx⟩ : S))),
+  inv_fun := λ S, S.to_subalgebra,
+  left_inv := λ S, to_subalgebra_to_intermediate_field _ _,
+  right_inv := λ S, to_intermediate_field_to_subalgebra _ _,
+  map_rel_iff' := λ S S', iff.rfl }
+
+@[simp] lemma mem_subalgebra_equiv_intermediate_field (alg : algebra.is_algebraic K L)
+  {S : subalgebra K L} {x : L} :
+  x ∈ subalgebra_equiv_intermediate_field alg S ↔ x ∈ S :=
+iff.rfl
+
+@[simp] lemma mem_subalgebra_equiv_intermediate_field_symm (alg : algebra.is_algebraic K L)
+  {S : intermediate_field K L} {x : L} :
+  x ∈ (subalgebra_equiv_intermediate_field alg).symm S ↔ x ∈ S :=
+iff.rfl

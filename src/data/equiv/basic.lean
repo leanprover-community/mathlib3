@@ -719,6 +719,19 @@ def sigma_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ �
  λ ⟨a, b⟩, congr_arg (sigma.mk a) $ symm_apply_apply (F a) b,
  λ ⟨a, b⟩, congr_arg (sigma.mk a) $ apply_symm_apply (F a) b⟩
 
+@[simp] lemma sigma_congr_right_trans {α} {β₁ β₂ β₃ : α → Sort*}
+  (F : Π a, β₁ a ≃ β₂ a) (G : Π a, β₂ a ≃ β₃ a) :
+  (sigma_congr_right F).trans (sigma_congr_right G) = sigma_congr_right (λ a, (F a).trans (G a)) :=
+by { ext1 x, cases x, simp}
+
+@[simp] lemma sigma_congr_right_symm {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) :
+  (sigma_congr_right F).symm = sigma_congr_right (λ a, (F a).symm) :=
+by { ext1 x, cases x, simp}
+
+@[simp] lemma sigma_congr_right_refl {α} {β : α → Sort*}:
+  (sigma_congr_right (λ a, equiv.refl (β a))) = equiv.refl (Σ a, β a) :=
+by { ext1 x, cases x, simp}
+
 /-- An equivalence `f : α₁ ≃ α₂` generates an equivalence between `Σ a, β (f a)` and `Σ a, β a`. -/
 @[simps apply]
 def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} (e : α₁ ≃ α₂) : (Σ a:α₁, β (e a)) ≃ (Σ a:α₂, β a) :=

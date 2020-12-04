@@ -91,6 +91,14 @@ def matches : regular_expression α → language α
 | (comp M N) := M.matches * N.matches
 | (star M) := M.matches.star
 
+@[simp] lemma matches_zero_def : (0 : regular_expression α).matches = 0 := rfl
+@[simp] lemma matches_epsilon_def : (1 : regular_expression α).matches = 1 := rfl
+@[simp] lemma matches_add_def (P Q : regular_expression α) :
+  (P + Q).matches = P.matches + Q.matches := rfl
+@[simp] lemma matches_mul_def (P Q : regular_expression α) :
+  (P * Q).matches = P.matches * Q.matches := rfl
+@[simp] lemma matches_star_def (P : regular_expression α) : P.star.matches = P.matches.star := rfl
+
 /-- `match_epsilon M` is true if and only if `M` matches the empty string -/
 def match_epsilon : regular_expression α → bool
 | zero := ff

@@ -56,16 +56,16 @@ end language
   `zero` matches nothing
   `epsilon` matches only the empty string
   `char a` matches only the string 'a'
-  `star M` matches any finite concatenation of strings which match `M`
-  `plus M N` matches anything which match `M` or `N`
-  `comp M N` matches `x ++ y` if `x` matches `M` and `y` matches `N` -/
+  `star P` matches any finite concatenation of strings which match `P`
+  `plus P Q` matches anything which match `P` or `Q`
+  `comp P Q` matches `x ++ y` if `x` matches `P` and `y` matches `Q` -/
 inductive regular_expression (α : Type u) : Type u
 | zero : regular_expression
 | epsilon : regular_expression
 | char : α → regular_expression
-| star : regular_expression → regular_expression
 | plus : regular_expression → regular_expression → regular_expression
 | comp : regular_expression → regular_expression → regular_expression
+| star : regular_expression → regular_expression
 
 namespace regular_expression
 
@@ -82,14 +82,14 @@ instance : has_zero (regular_expression α) := ⟨zero⟩
 @[simp] lemma plus_def (P Q : regular_expression α) : plus P Q = P + Q := rfl
 @[simp] lemma comp_def (P Q : regular_expression α) : comp P Q = P * Q := rfl
 
-/-- `matches M` provides a language which contains all strings that `M` matches -/
+/-- `matches P` provides a language which contains all strings that `P` matches -/
 def matches : regular_expression α → language α
 | zero := 0
 | epsilon := 1
 | (char a) := {[a]}
-| (plus M N) := M.matches + N.matches
-| (comp M N) := M.matches * N.matches
-| (star M) := M.matches.star
+| (plus P Q) := P.matches + Q.matches
+| (comp P Q) := P.matches * Q.matches
+| (star P) := P.matches.star
 
 @[simp] lemma matches_zero_def : (0 : regular_expression α).matches = 0 := rfl
 @[simp] lemma matches_epsilon_def : (1 : regular_expression α).matches = 1 := rfl
@@ -99,36 +99,36 @@ def matches : regular_expression α → language α
   (P * Q).matches = P.matches * Q.matches := rfl
 @[simp] lemma matches_star_def (P : regular_expression α) : P.star.matches = P.matches.star := rfl
 
-/-- `match_epsilon M` is true if and only if `M` matches the empty string -/
+/-- `match_epsilon P` is true if and only if `P` matches the empty string -/
 def match_epsilon : regular_expression α → bool
 | zero := ff
 | epsilon := tt
 | (char _) := ff
-| (star M) := tt
-| (plus M N) := M.match_epsilon || N.match_epsilon
-| (comp M N) := M.match_epsilon && N.match_epsilon
+| (plus P Q) := P.match_epsilon || Q.match_epsilon
+| (comp P Q) := P.match_epsilon && Q.match_epsilon
+| (star P) := tt
 
 include dec
 
-/-- `M.deriv a` matches `x` if `M` matches `a :: x`, the Brzozowski derivative of `M` with respect
+/-- `P.deriv a` matches `x` if `P` matches `a :: x`, the Brzozowski derivative of `P` with respect
   to `a` -/
 def deriv : regular_expression α → α → regular_expression α
 | zero _ := 0
 | epsilon _ := 0
 | (char a₁) a₂ := if a₁ = a₂ then 1 else 0
-| (star M) a := deriv M a * star M
-| (plus M N) a := deriv M a + deriv N a
-| (comp M N) a :=
-  if M.match_epsilon then
-    deriv M a * N + deriv N a
+| (plus P Q) a := deriv P a + deriv Q a
+| (comp P Q) a :=
+  if P.match_epsilon then
+    deriv P a * Q + deriv Q a
   else
-    deriv M a * N
+    deriv P a * Q
+| (star P) a := deriv P a * star P
 
-/-- `M.rmatch x` is true if and only if `M` matches `x`. This is a computable definition equivalent
+/-- `P.rmatch x` is true if and only if `P` matches `x`. This is a computable definition equivalent
   to `matches` -/
 def rmatch : regular_expression α → list α → bool
-| M [] := match_epsilon M
-| M (a::as) := rmatch (M.deriv a) as
+| P [] := match_epsilon P
+| P (a::as) := rmatch (P.deriv a) as
 
 @[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff :=
 begin
@@ -281,14 +281,14 @@ using_well_founded {
   ∀ x : list α, x ∈ P.matches ↔ P.rmatch x :=
 begin
   intro x,
-  induction P with _ _ _ _ _ _ _ _ _ ih₁ ih₂ generalizing x;
+  induction P with _ _ _ _ _ _ _ ih₁ ih₂ generalizing x;
   rw matches,
   { simp },
   { simp },
   { simp },
   { finish },
-  { finish },
-  { simp,
+  { simp only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
+               set.image_prod],
     split,
     { rintro ⟨ x, hmatch₁, y, hmatch₂, hsum ⟩,
       rw ih₁ at hmatch₁,
@@ -298,6 +298,7 @@ begin
       rw ←ih₁ at hmatch₁,
       rw ←ih₂ at hmatch₂,
       exact ⟨ x, hmatch₁, y, hmatch₂, hsum.symm ⟩ } },
+  { finish }
 end
 
 omit dec

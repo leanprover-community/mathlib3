@@ -737,7 +737,7 @@ by { ext1 x, cases x, refl }
   (sigma_congr_right F).symm = sigma_congr_right (λ a, (F a).symm) :=
 by { ext1 x, cases x, refl }
 
-@[simp] lemma sigma_congr_right_refl {α} {β : α → Sort*}:
+@[simp] lemma sigma_congr_right_refl {α} {β : α → Sort*} :
   (sigma_congr_right (λ a, equiv.refl (β a))) = equiv.refl (Σ a, β a) :=
 by { ext1 x, cases x, refl }
 

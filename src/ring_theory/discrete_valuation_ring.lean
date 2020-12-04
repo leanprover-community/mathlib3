@@ -30,7 +30,8 @@ Let R be an integral domain, assumed to be a principal ideal ring and a local ri
 
 * `add_val R : R → ℕ` : the additive valuation on a DVR (sending 0 to 0 rather than the
      mathematically correct +∞).
-TODO -- the multiplicative valuation, taking values in something like `with_zero (multiplicative ℤ)`?
+TODO -- the multiplicative valuation, taking values in something
+  like `with_zero (multiplicative ℤ)`?
 
 ## Implementation notes
 

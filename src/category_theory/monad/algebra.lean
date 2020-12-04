@@ -110,7 +110,9 @@ instance [inhabited C] : inhabited (algebra T) :=
 
 /-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for a monad.
     cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
-@[simps {rhs_md := semireducible}]
+-- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
+-- those are added too
+@[simps unit counit {rhs_md := semireducible}]
 def adj : free T ⊣ forget T :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
@@ -225,7 +227,9 @@ variables (G : C ⥤ C) [comonad G]
 The adjunction between the cofree and forgetful constructions for Eilenberg-Moore coalgebras
 for a comonad.
 -/
-@[simps {rhs_md := semireducible}]
+-- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
+-- those are added too
+@[simps unit counit {rhs_md := semireducible}]
 def adj : forget G ⊣ cofree G :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,

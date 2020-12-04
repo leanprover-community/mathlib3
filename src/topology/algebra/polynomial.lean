@@ -10,12 +10,24 @@ import topology.metric_space.cau_seq_filter
 /-!
 # Polynomials and limits
 
-In this file we prove that
+In this file we prove the following lemmas.
 
-* `polynomial.eval₂`, `polynomial.eval`, and `polynomial.aeval` define continuous functions;
-* `λ x, ∥polynomial.eval (z x) p∥` tends to infinity provided that `λ x, ∥z x∥` tends to infinity
-  and `0 < degree p`;
-* a few versions of the previous statement for `is_absolute_value abv` instead of norm.
+* `polynomial.continuous_eval₂: `polynomial.eval₂` defines a continuous function.
+* `polynomial.continuous_aeval: `polynomial.aeval` defines a continuous function;
+  we also prove convenience lemmas `polynomial.continuous_at_aeval`,
+  `polynomial.continuous_within_at_aeval`, `polynomial.continuous_on_aeval`.
+* `polynomial.continuous`:  `polynomial.eval` defines a continuous functions;
+  we also prove convenience lemmas `polynomial.continuous_at`, `polynomial.continuous_within_at`,
+  `polynomial.continuous_on`.
+* `polynomial.tendsto_norm_at_top`: `λ x, ∥polynomial.eval (z x) p∥` tends to infinity provided that
+  `λ x, ∥z x∥` tends to infinity and `0 < degree p`;
+* `polynomial.tendsto_abv_eval₂_at_top`, `polynomial.tendsto_abv_at_top`,
+  `polynomial.tendsto_abv_aeval_at_top`: a few versions of the previous statement for
+  `is_absolute_value abv` instead of norm.
+
+## Tags
+
+polynomial, continuity
 -/
 
 open is_absolute_value filter

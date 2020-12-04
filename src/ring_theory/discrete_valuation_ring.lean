@@ -437,7 +437,7 @@ lemma add_val_pow (a : R) (n : ℕ) : add_val R (a ^ n) = n * add_val R a :=
 begin
   by_cases ha : a = 0,
   { cases nat.eq_zero_or_pos n with hn hn,
-    {simp [ha, hn] },
+    { simp [ha, hn] },
     { simp [ha, zero_pow hn] } },
   induction n with d hd,
   { simp [ha] },

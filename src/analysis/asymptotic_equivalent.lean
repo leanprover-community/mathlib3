@@ -178,53 +178,11 @@ begin
   { exact is_equivalent_of_tendsto_one (hz.mono $ λ x hnvz hz, (hnvz hz).elim) }
 end
 
-lemma is_equivalent.mul (htu : t ~[l] u) (hvw : v ~[l] w) : t * v ~[l] u * w :=
-begin
-  rw is_equivalent_iff_exists_eq_mul at *,
-  rcases htu with ⟨φ₁, hφ₁, h₁⟩,
-  rcases hvw with ⟨φ₂, hφ₂, h₂⟩,
-  rw ← one_mul (1 : β),
-  refine ⟨φ₁ * φ₂, hφ₁.mul hφ₂, _⟩,
-  convert h₁.mul h₂ using 1,
-  ext,
-  simp only [pi.mul_apply],
-  ac_refl
-end
-
-lemma is_equivalent.inv (huv : u ~[l] v) : (λ x, (u x)⁻¹) ~[l] (λ x, (v x)⁻¹) :=
-begin
-  rw is_equivalent_iff_exists_eq_mul at *,
-  rcases huv with ⟨φ, hφ, h⟩,
-  rw ← inv_one,
-  refine ⟨λ x, (φ x)⁻¹, tendsto.inv' hφ (by norm_num) , _⟩,
-  convert h.inv,
-  ext,
-  simp [mul_inv']
-end
-
-lemma is_equivalent.div (htu : t ~[l] u) (hvw : v ~[l] w) :
-  (λ x, t x / v x) ~[l] (λ x, u x / w x) :=
-htu.mul hvw.inv
-
 end normed_field
-
-section normed_linear_ordered_field
-
-variables {α β : Type*} [normed_linear_ordered_field β] {u v : α → β} {l : filter α}
-
-lemma is_equivalent.tendsto_at_top [order_topology β] (huv : u ~[l] v) (hu : tendsto u l at_top) :
-  tendsto v l at_top :=
-let ⟨φ, hφ, h⟩ := huv.symm.exists_eq_mul in
-tendsto.congr' h.symm ((mul_comm u φ) ▸ (tendsto_mul_at_top zero_lt_one hu hφ))
-
-lemma is_equivalent.tendsto_at_top_iff [order_topology β] (huv : u ~[l] v) :
-  tendsto u l at_top ↔ tendsto v l at_top := ⟨huv.tendsto_at_top, huv.symm.tendsto_at_top⟩
-
-end normed_linear_ordered_field
 
 section smul
 
-lemma is_equivalent.smul {α E 𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_group E]
+lemma is_equivalent.smul {α E 𝕜 : Type*} [normed_field 𝕜] [normed_group E]
   [normed_space 𝕜 E] {a b : α → 𝕜} {u v : α → E} {l : filter α} (hab : a ~[l] b) (huv : u ~[l] v) :
   (λ x, a x • u x) ~[l] (λ x, b x • v x) :=
 begin
@@ -261,5 +219,43 @@ begin
 end
 
 end smul
+
+section mul_inv
+
+variables {α β : Type*} [normed_field β] {t u v w : α → β} {l : filter α}
+
+lemma is_equivalent.mul (htu : t ~[l] u) (hvw : v ~[l] w) : t * v ~[l] u * w :=
+htu.smul hvw
+
+lemma is_equivalent.inv (huv : u ~[l] v) : (λ x, (u x)⁻¹) ~[l] (λ x, (v x)⁻¹) :=
+begin
+  rw is_equivalent_iff_exists_eq_mul at *,
+  rcases huv with ⟨φ, hφ, h⟩,
+  rw ← inv_one,
+  refine ⟨λ x, (φ x)⁻¹, tendsto.inv' hφ (by norm_num) , _⟩,
+  convert h.inv,
+  ext,
+  simp [mul_inv']
+end
+
+lemma is_equivalent.div (htu : t ~[l] u) (hvw : v ~[l] w) :
+  (λ x, t x / v x) ~[l] (λ x, u x / w x) :=
+htu.mul hvw.inv
+
+end mul_inv
+
+section normed_linear_ordered_field
+
+variables {α β : Type*} [normed_linear_ordered_field β] {u v : α → β} {l : filter α}
+
+lemma is_equivalent.tendsto_at_top [order_topology β] (huv : u ~[l] v) (hu : tendsto u l at_top) :
+  tendsto v l at_top :=
+let ⟨φ, hφ, h⟩ := huv.symm.exists_eq_mul in
+tendsto.congr' h.symm ((mul_comm u φ) ▸ (tendsto_mul_at_top zero_lt_one hu hφ))
+
+lemma is_equivalent.tendsto_at_top_iff [order_topology β] (huv : u ~[l] v) :
+  tendsto u l at_top ↔ tendsto v l at_top := ⟨huv.tendsto_at_top, huv.symm.tendsto_at_top⟩
+
+end normed_linear_ordered_field
 
 end asymptotics

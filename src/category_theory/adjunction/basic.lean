@@ -419,6 +419,7 @@ def to_equivalence (adj : F ⊣ G) [∀ X, is_iso (adj.unit.app X)] [∀ Y, is_i
 If the unit and counit for the adjunction corresponding to a right adjoint functor are (pointwise)
 isomorphisms, then the functor is an equivalence of categories.
 -/
+@[simps {rhs_md := semireducible}]
 def is_right_adjoint_to_is_equivalence [is_right_adjoint G]
   [∀ X, is_iso ((adjunction.of_right_adjoint G).unit.app X)]
   [∀ Y, is_iso ((adjunction.of_right_adjoint G).counit.app Y)] :

@@ -350,6 +350,19 @@ begin
     exact ⟨h x, by { rintros rfl, exact H.one_mem }⟩ },
 end
 
+@[to_additive] lemma eq_top_of_card_eq [fintype G] (h : fintype.card H = fintype.card G) : H = ⊤ :=
+begin
+  change fintype.card H.carrier = _ at h,
+  cases H with S hS1 hS2 hS3,
+  have : S = set.univ,
+  { suffices : S.to_finset = finset.univ,
+    { rwa [←set.to_finset_univ, set.to_finset_inj] at this, },
+    apply finset.eq_univ_of_card,
+    rwa set.to_finset_card },
+  change (⟨_, _, _, _⟩ : subgroup G) = ⟨_, _, _, _⟩,
+  congr',
+end
+
 @[to_additive] lemma nontrivial_iff_exists_ne_one (H : subgroup G) : nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=
 begin
   split,

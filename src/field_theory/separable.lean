@@ -573,4 +573,12 @@ begin
   exact hs,
 end
 
+lemma is_separable.of_alg_hom {E' : Type*} [field E'] [algebra F E']
+  (f : E →ₐ[F] E') (h : is_separable F E') : is_separable F E :=
+begin
+  letI : algebra E E' := ring_hom.to_algebra f.to_ring_hom,
+  haveI : is_scalar_tower F E E' := is_scalar_tower.of_algebra_map_eq (λ x, (f.commutes x).symm),
+  exact is_separable_tower_bot_of_is_separable E h,
+end
+
 end is_separable_tower

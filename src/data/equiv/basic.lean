@@ -1485,7 +1485,7 @@ lemma swap_eq_update (i j : α) :
   ⇑(equiv.swap i j) = update (update id j i) i j :=
 funext $ λ x, by rw [update_apply _ i j, update_apply _ j i, equiv.swap_apply_def, id.def]
 
-lemma comp_swap_eq_update {β : Type*} (i j : α) (f : α → β) :
+lemma comp_swap_eq_update (i j : α) (f : α → β) :
   f ∘ equiv.swap i j = update (update f j (f i)) i (f j) :=
 by rw [swap_eq_update, comp_update, comp_update, comp.right_id]
 
@@ -1498,9 +1498,17 @@ equiv.ext (λ x, begin
   split_ifs; simp
 end)
 
-@[simp] lemma swap_apply_self {α : Type*} [decidable_eq α] (i j a : α) :
+@[simp] lemma swap_apply_self (i j a : α) :
   swap i j (swap i j a) = a :=
 by rw [← equiv.trans_apply, equiv.swap_swap, equiv.refl_apply]
+
+/-- A function is invariant to a swap if it is equal at both elements -/
+lemma apply_swap_eq_self {v : α → β} {i j : α} (hv : v i = v j) (k : α) : v (swap i j k) = v k :=
+begin
+  by_cases hi : k = i, { rw [hi, swap_apply_left, hv] },
+  by_cases hj : k = j, { rw [hj, swap_apply_right, hv] },
+  rw swap_apply_of_ne_of_ne hi hj,
+end
 
 /-- Augment an equivalence with a prescribed mapping `f a = b` -/
 def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=

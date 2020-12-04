@@ -354,11 +354,19 @@ lemma bdd_below_singleton : bdd_below ({a} : set α) := is_glb_singleton.bdd_bel
 
 lemma bdd_above_Icc : bdd_above (Icc a b) := ⟨b, λ _, and.right⟩
 
+lemma bdd_below_Icc : bdd_below (Icc a b) := ⟨a, λ _, and.left⟩
+
 lemma bdd_above_Ico : bdd_above (Ico a b) := bdd_above_Icc.mono Ico_subset_Icc_self
+
+lemma bdd_below_Ico : bdd_below (Ico a b) := bdd_below_Icc.mono Ico_subset_Icc_self
 
 lemma bdd_above_Ioc : bdd_above (Ioc a b) := bdd_above_Icc.mono Ioc_subset_Icc_self
 
+lemma bdd_below_Ioc : bdd_below (Ioc a b) := bdd_below_Icc.mono Ioc_subset_Icc_self
+
 lemma bdd_above_Ioo : bdd_above (Ioo a b) := bdd_above_Icc.mono Ioo_subset_Icc_self
+
+lemma bdd_below_Ioo : bdd_below (Ioo a b) := bdd_below_Icc.mono Ioo_subset_Icc_self
 
 lemma is_greatest_Icc (h : a ≤ b) : is_greatest (Icc a b) b :=
 ⟨right_mem_Icc.2 h, λ x, and.right⟩

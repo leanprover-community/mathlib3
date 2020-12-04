@@ -67,5 +67,4 @@ lemma matching.is_perfect_iff (M : G.matching) :
 M.is_perfect ↔ ∀ (v : V), ∃ e ∈ M.edges, v ∈ e :=
 set.eq_univ_iff_forall
 
-
 end simple_graph

@@ -320,6 +320,34 @@ def exp_order_iso : ℝ ≃o set.Ioi (0 : ℝ) :=
 
 @[simp] lemma coe_exp_order_iso_apply (x : ℝ) : (exp_order_iso x : ℝ) = exp x := rfl
 
+@[simp] lemma coe_comp_exp_order_iso : coe ∘ exp_order_iso = exp := rfl
+
+@[simp] lemma map_exp_at_top : map exp at_top = at_top :=
+by rw [← coe_comp_exp_order_iso, ← filter.map_map, order_iso.map_at_top,
+  map_coe_Ioi_at_top]
+
+@[simp] lemma comap_exp_at_top : comap exp at_top = at_top :=
+by rw [← map_exp_at_top, comap_map exp_injective, map_exp_at_top]
+
+@[simp] lemma tendsto_exp_comp_at_top {α : Type*} {l : filter α} {f : α → ℝ} :
+  tendsto (λ x, exp (f x)) l at_top ↔ tendsto f l at_top :=
+by rw [← tendsto_comap_iff, comap_exp_at_top]
+
+lemma tendsto_comp_exp_at_top {α : Type*} {l : filter α} {f : ℝ → α} :
+  tendsto (λ x, f (exp x)) at_top l ↔ tendsto f at_top l :=
+by rw [← tendsto_map'_iff, map_exp_at_top]
+
+@[simp] lemma map_exp_at_bot : map exp at_bot = 𝓝[set.Ioi 0] 0 :=
+by rw [← coe_comp_exp_order_iso, ← filter.map_map, order_iso.map_at_bot,
+  ← map_coe_Ioi_at_bot]
+
+lemma comap_exp_nhds_within_Ioi_zero : comap exp (𝓝[set.Ioi 0] 0) = at_bot :=
+by rw [← map_exp_at_bot, comap_map exp_injective]
+
+lemma tendsto_comp_exp_at_bot {α : Type*} {l : filter α} {f : ℝ → α} :
+  tendsto (λ x, f (exp x)) at_bot l ↔ tendsto f (𝓝[set.Ioi 0] 0) l :=
+by rw [← map_exp_at_bot, tendsto_map'_iff]
+
 /-- The real logarithm function, equal to the inverse of the exponential for `x > 0`,
 to `log |x|` for `x < 0`, and to `0` for `0`. We use this unconventional extension to
 `(-∞, 0]` as it gives the formula `log (x * y) = log x + log y` for all nonzero `x` and `y`, and
@@ -434,14 +462,7 @@ end
 
 /-- The real logarithm function tends to `+∞` at `+∞`. -/
 lemma tendsto_log_at_top : tendsto log at_top at_top :=
-begin
-  rw tendsto_at_top_at_top,
-  intro b,
-  use exp b,
-  intros a hab,
-  rw [← exp_le_exp, exp_log_eq_abs (ne_of_gt $ lt_of_lt_of_le (exp_pos b) hab)],
-  exact le_trans hab (le_abs_self a)
-end
+tendsto_comp_exp_at_top.1 $ by simpa only [log_exp] using tendsto_id
 
 lemma tendsto_log_nhds_within_zero : tendsto log (𝓝[{0}ᶜ] 0) at_bot :=
 begin

@@ -292,6 +292,20 @@ theorem young_inequality (a b : ℝ≥0) {p q : ℝ≥0} (hp : 1 < p) (hpq : 1 /
   a * b ≤ a^(p:ℝ) / p + b^(q:ℝ) / q :=
 real.young_inequality_of_nonneg a.coe_nonneg b.coe_nonneg ⟨hp, nnreal.coe_eq.2 hpq⟩
 
+/-- Young's inequality, `ℝ≥0` version with real conjugate exponents.  -/
+theorem young_inequality_real (a b : ℝ≥0) {p q : ℝ} (hpq :p.is_conjugate_exponent q) :
+  a * b ≤ a^(p:ℝ) / nnreal.of_real p + b^(q:ℝ) / nnreal.of_real q :=
+begin
+  have hp : 1 < nnreal.of_real p,
+  { rw [←of_real_one, of_real_lt_of_real_iff hpq.pos], exact hpq.one_lt, },
+  have hpq_nnreal : 1 / nnreal.of_real p + 1 / nnreal.of_real q = 1,
+  { rw [←of_real_one, ←of_real_div' hpq.nonneg, ←of_real_div' hpq.symm.nonneg,
+      ←of_real_add hpq.one_div_nonneg hpq.symm.one_div_nonneg, hpq.inv_add_inv_conj], },
+  nth_rewrite 0 ←coe_of_real p hpq.nonneg,
+  nth_rewrite 0 ←coe_of_real q hpq.symm.nonneg,
+  exact young_inequality a b hp hpq_nnreal,
+end
+
 /-- Hölder inequality: the scalar product of two functions is bounded by the product of their
 `L^p` and `L^q` norms when `p` and `q` are conjugate exponents. Version for sums over finite sets,
 with `ℝ≥0`-valued functions. -/
@@ -443,6 +457,22 @@ by convert Lp_add_le s f g hp using 2 ; [skip, congr' 1, congr' 1];
 end real
 
 namespace ennreal
+
+/- Young inequality, ennreal version with real conjugate exponents -/
+theorem young_inequality (a b : ennreal) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
+  a * b ≤ a ^ p / ennreal.of_real p + b ^ q / ennreal.of_real q :=
+begin
+  by_cases h : a = ⊤ ∨ b = ⊤,
+  { refine le_trans le_top (le_of_eq _),
+    repeat {rw ennreal.div_def},
+    cases h; rw h; simp [h, hpq.pos, hpq.symm.pos], },
+  push_neg at h, -- if a ≠ ⊤ and b ≠ ⊤, use the nnreal version: nnreal.young_inequality_real
+  rw [←coe_to_nnreal h.left, ←coe_to_nnreal h.right, ←coe_mul,
+    coe_rpow_of_nonneg _ hpq.nonneg, coe_rpow_of_nonneg _ hpq.symm.nonneg, ennreal.of_real,
+    ennreal.of_real, ←@coe_div (nnreal.of_real p) _ (by simp [hpq.pos]),
+    ←@coe_div (nnreal.of_real q) _ (by simp [hpq.symm.pos]), ←coe_add, coe_le_coe],
+  exact nnreal.young_inequality_real a.to_nnreal b.to_nnreal hpq,
+end
 
 variables (f g : ι → ennreal)  {p q : ℝ}
 

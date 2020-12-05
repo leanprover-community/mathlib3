@@ -458,7 +458,7 @@ end real
 
 namespace ennreal
 
-/- Young inequality, ennreal version with real conjugate exponents -/
+/-- Young's inequality, `ennreal` version with real conjugate exponents. -/
 theorem young_inequality (a b : ennreal) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
   a * b ≤ a ^ p / ennreal.of_real p + b ^ q / ennreal.of_real q :=
 begin

@@ -114,16 +114,17 @@ end
 
 section is_galois_tower
 
-variables {F E : Type*} (K : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
+variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
   [algebra K E] [is_scalar_tower F K E]
 
 lemma is_galois.tower_top_of_is_galois [h : is_galois F E] : is_galois K E :=
 ⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩
 
+variables {F E}
+
 @[priority 100] -- see Note [lower instance priority]
 instance is_galois.tower_top_intermediate_field (K : intermediate_field F E) [h : is_galois F E] :
-  is_galois K E :=
-⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩
+  is_galois K E := is_galois.tower_top_of_is_galois F K E
 
 lemma is_galois_iff_is_galois_bot : is_galois (⊥ : intermediate_field F E) E ↔ is_galois F E :=
 begin
@@ -140,7 +141,7 @@ begin
         rw alg_equiv.apply_symm_apply ψ ⟨x, _⟩,
         refl
       end,
-    exact @is_galois.tower_top_of_is_galois _ _ _ _ _ _ _ _ _ key _ },
+    exact is_galois.tower_top_of_is_galois (⊥ : intermediate_field F E) F E },
   { intro h,
     exactI is_galois.tower_top_intermediate_field ⊥ },
 end

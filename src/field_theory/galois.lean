@@ -114,8 +114,8 @@ end
 
 section is_galois_tower
 
-variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
-  [algebra K E] [is_scalar_tower F K E]
+variables (F K E : Type*) [field F] [field K] [field E]
+variables [algebra F K] [algebra F E] [algebra K E] [is_scalar_tower F K E]
 
 lemma is_galois.tower_top_of_is_galois [h : is_galois F E] : is_galois K E :=
 ⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩

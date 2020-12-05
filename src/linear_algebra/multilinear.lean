@@ -559,7 +559,7 @@ instance : semimodule R' (multilinear_map A M₁ M₂) :=
 end semimodule
 
 
-section coprod
+section dom_coprod
 
 open_locale tensor_product
 
@@ -569,8 +569,12 @@ variables {N₂ : Type*} [add_comm_monoid N₂] [semimodule R N₂]
 variables {N : Type*} [add_comm_monoid N] [semimodule R N]
 
 /-- Given two multilinear maps `(ι₁ → N) → N₁` and `(ι₂ → N) → N₂`, this produces the map
-`(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂` by taking the tensor product of each function applied to its respective
-inputs indexed by `ι₁ ⊕ ι₂`.
+`(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂` by taking the coproduct of the domain and the tensor product
+of the codomain.
+
+This can be thought of as combining `equiv.sum_arrow_equiv_prod_arrow.symm` with
+`tensor_product.map`, noting that the two operations can't be separated as the intermediate result
+is not a `multilinear_map`.
 
 While this can be generalized to work for dependent `Π i : ι₁, N'₁ i` instead of `ι₁ → N`, doing so
 introduces `sum.elim N'₁ N'₂` types in the result which are difficult to work with and not defeq
@@ -578,7 +582,7 @@ to the simple case defined here. See [this zulip thread](
 https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there.20code.20for.20X.3F/topic/Instances.20on.20.60sum.2Eelim.20A.20B.20i.60/near/218484619).
 -/
 @[simps apply]
-def coprod
+def dom_coprod
   (a : multilinear_map R (λ _ : ι₁, N) N₁) (b : multilinear_map R (λ _ : ι₂, N) N₂) :
   multilinear_map R (λ _ : ι₁ ⊕ ι₂, N) (N₁ ⊗[R] N₂) :=
 have inl_disjoint : ∀ {α β : Type*} (a : α),
@@ -609,18 +613,18 @@ have inr_disjoint : ∀ {α β : Type*} (b : β),
       rw [b.map_smul, tensor_product.tmul_smul], },
   end }
 
-/-- A more bundled version of `multilinear_mmap.coprod` that maps
-`((ι₁ → N) → N₁) ⊗ ((ι₂ → N) → N₂)` to `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ ℕ₂`. -/
-def coprod' :
+/-- A more bundled version of `multilinear_map.dom_coprod` that maps
+`((ι₁ → N) → N₁) ⊗ ((ι₂ → N) → N₂)` to `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂`. -/
+def dom_coprod' :
   multilinear_map R (λ _ : ι₁, N) N₁ ⊗[R] multilinear_map R (λ _ : ι₂, N) N₂ →ₗ[R]
   multilinear_map R (λ _ : ι₁ ⊕ ι₂, N) (N₁ ⊗[R] N₂) :=
-tensor_product.lift $ linear_map.mk₂ R (coprod)
-  (λ m₁ m₂ n, by { ext, simp only [coprod_apply, tensor_product.add_tmul, add_apply] })
-  (λ c m n,   by { ext, simp only [coprod_apply, tensor_product.smul_tmul', smul_apply] })
-  (λ m n₁ n₂, by { ext, simp only [coprod_apply, tensor_product.tmul_add, add_apply] })
-  (λ c m n,   by { ext, simp only [coprod_apply, tensor_product.tmul_smul, smul_apply] })
+tensor_product.lift $ linear_map.mk₂ R (dom_coprod)
+  (λ m₁ m₂ n, by { ext, simp only [dom_coprod_apply, tensor_product.add_tmul, add_apply] })
+  (λ c m n,   by { ext, simp only [dom_coprod_apply, tensor_product.smul_tmul', smul_apply] })
+  (λ m n₁ n₂, by { ext, simp only [dom_coprod_apply, tensor_product.tmul_add, add_apply] })
+  (λ c m n,   by { ext, simp only [dom_coprod_apply, tensor_product.tmul_smul, smul_apply] })
 
-end coprod
+end dom_coprod
 
 section
 

@@ -18,34 +18,42 @@ structure coloring (β : Type v) :=
 /--
 A graph G is β-colorable if there is a β-coloring.
 -/
-def colorable (β : Type v) : Prop := nonempty (coloring G β)
+def colorable (β : Type v) : Prop := nonempty (G.coloring β)
 
-section coloring
-variables {G} {β : Type v} (f : coloring G β) (a : β)
+namespace coloring
+variables {G} {β : Type v} (f : G.coloring β)
 
-def color_class (f : coloring G β) (a : β) : set V := set.preimage f.1 {a}
+noncomputable
+def some_coloring (h : G.colorable β) : G.coloring β := classical.choice h
+
+def color_set (c : β) : set V := f.color ⁻¹' {c}
+
+def color_finset (c : β) [fintype (f.color_set c)] : finset V := (f.color_set c).to_finset
 
 @[simp]
-lemma color_class_vert (v : V) (h : v ∈ (color_class f a)) : f.1 v = a :=
-begin
-  exact h,
-end
+lemma mem_color_set_iff (c : β) (v : V) : v ∈ f.color_set c ↔ f.color v = c :=
+by refl
 
-variables [fintype (color_class f a)]
-
-def fin_color_class : finset V := (color_class f a).to_finset
+/-- If `V` is a `fintype` with `decidable_eq`, then this gives that `color_class f c` is a `fintype`. -/
+instance color_class.decidable_pred (c : β) [decidable_eq β] : decidable_pred (f.color_set c) :=
+by { intro v, change decidable (f.color v = c), apply_instance }
 
 end coloring
 
-def bipartite (G : simple_graph V) : Prop :=
-  colorable G (fin 2)
+/-- A `colorable G α` graph is an `α`-partite graph, so we define bipartite as `colorable G (fin 2)`. -/
+def is_bipartite (G : simple_graph V) : Prop := G.colorable (fin 2)
+
+abbreviation bipartition (G : simple_graph V) := G.coloring (fin 2)
 
 section bipartite
-variables [bipartite G] (f : G.coloring (fin 2))
+variables (h : is_bipartite G) (f : G.coloring (fin 2))
 
-lemma endpoints {v w : V} (hadj : G.adj v w) (hv : v ∈ (color_class f (0 : fin 2))) :
-  w ∈ (color_class f (1 : fin 2)) :=
+/- I'm not sure this theorem is necessary -/
+/-
+lemma endpoints {v w : V} (hadj : G.adj v w) (hv : v ∈ color_class f 0) :
+  w ∈ color_class f 1 :=
 begin
+
   rw color_class,
   simp,
   rw color_class at hv,
@@ -63,7 +71,7 @@ begin
   --fin_cases a,
   sorry,
 end
-
+-/
 
 
 end bipartite

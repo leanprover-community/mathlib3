@@ -5,7 +5,6 @@ Author: Aaron Anderson, Jalex Stark, Kyle Miller.
 -/
 import data.fintype.basic
 import data.sym2
-import algebra.big_operators
 /-!
 # Simple graphs
 
@@ -74,8 +73,8 @@ variables {V : Type u} (G : simple_graph V)
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
-/-- `G.neighbor_set v` is the union of neighbor_sets of `S ⊆ V` in `G`. -/
-def set_neighbor_set (S : set V) : set V := {w : V | ∃ v ∈ S, w ∈ G.neighbor_set v}
+/-- `G.set_neighbor_set v` is the union of neighbor_sets of `S ⊆ V` in `G`. -/
+def set_neighbor_set (S : set V) : set V := ⋃v∈S, G.neighbor_set v
 
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
@@ -89,6 +88,9 @@ def edge_set : set (sym2 V) := sym2.from_rel G.sym
 @[simp]
 lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=
 by refl
+
+lemma edge_not_loop {v w : V} (h : ⟦(v, w)⟧ ∈ G.edge_set) : v ≠ w :=
+by { rintro rfl, exact G.loopless _ (G.mem_edge_set.mp h) }
 
 /--
 Two vertices are adjacent iff there is an edge between them.  The
@@ -133,6 +135,22 @@ by { dunfold edge_finset, simp }
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 by tauto
 
+@[simp]
+lemma mem_set_neighbor_set (S : set V) (v : V) :
+  v ∈ G.set_neighbor_set S ↔ ∃ (w ∈ S), v ∈ G.neighbor_set w :=
+by { simp only [set_neighbor_set, set.mem_Union] }
+
+instance neighbor_set.decidable_pred [h : decidable_rel G.adj] (v : V) :
+  decidable_pred (G.neighbor_set v) :=
+h v
+
+instance set_neighbor_set.decidable_pred [h : decidable_rel G.adj] [fintype V]
+  (S : set V) [hs : decidable_pred S] : decidable_pred (G.set_neighbor_set S) :=
+begin
+  intro w, change decidable (w ∈ G.set_neighbor_set S),
+  simp only [exists_prop, mem_set_neighbor_set, mem_neighbor_set], apply_instance,
+end
+
 section finite_at
 
 /-!
@@ -147,22 +165,19 @@ Use `neighbor_finset_eq_filter` to rewrite this definition as a `filter`.
 -/
 
 variables (v : V) [fintype (G.neighbor_set v)]
-variables (S : set V) [fintype (G.set_neighbor_set S)]
+
 /--
 `G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
 locally finite at `v`.
 -/
 def neighbor_finset : finset V := (G.neighbor_set v).to_finset
 
-/--
-`G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
-locally finite at `v`.
--/
-def set_neighbor_finset : finset V := (G.set_neighbor_set S).to_finset
-
 @[simp] lemma mem_neighbor_finset (w : V) :
   w ∈ G.neighbor_finset v ↔ G.adj v w :=
 by simp [neighbor_finset]
+
+@[simp] lemma coe_neighbor_finset_eq : (G.neighbor_finset v : set V) = G.neighbor_set v :=
+by { ext, simp only [mem_coe, mem_neighbor_set, mem_neighbor_finset] }
 
 /--
 `G.degree v` is the number of vertices adjacent to `v`.
@@ -216,5 +231,33 @@ lemma complete_graph_is_regular [decidable_eq V] :
 by { intro v, simp }
 
 end finite
+
+-- Let's see if we really need this.  fintype.card (G.set_neighbor_set S) works well enough
+
+-- section set_neighbor_finset
+--
+-- variables (S : finset V) [fintype (G.set_neighbor_set S)]
+--
+-- /--
+-- `G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
+-- locally finite at `v`.
+-- -/
+-- def set_neighbor_finset : finset V := (G.set_neighbor_set S).to_finset
+--
+-- @[simp] lemma mem_set_neighbor_finset_eq (w : V) :
+--   w ∈ G.set_neighbor_finset S ↔ w ∈ G.set_neighbor_set S :=
+-- by { simp only [set_neighbor_finset, set.mem_to_finset] }
+--
+-- @[simp] lemma coe_set_neighbor_finset_eq :
+--   (G.set_neighbor_finset S : set V) = G.set_neighbor_set S :=
+-- by { ext, simp only [set_neighbor_finset, set.coe_to_finset] }
+--
+-- /- unnecessary. just here temporarily for my information --kmill
+-- instance set_neighbor_set_fintype [decidable_rel G.adj] (S : set V) [decidable_pred S] :
+--   fintype (G.set_neighbor_set S) :=
+-- by apply_instance
+-- -/
+--
+-- end set_neighbor_finset
 
 end simple_graph

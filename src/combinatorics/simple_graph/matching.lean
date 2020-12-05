@@ -8,6 +8,7 @@ import data.sym2
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.coloring
 import data.fin
+import data.set.finite
 /-!
 # Matchings
 
@@ -44,66 +45,185 @@ A matching on `G` is a subset of its edges such that no two edges share a vertex
 structure matching :=
 (edges : set (sym2 V))
 (sub_edges : edges ⊆ G.edge_set)
-(disjoint : ∀ (x y ∈ edges) (v : V), v ∈ x ∧ v ∈ y → x = y)
+(disjoint : ∀ (x y ∈ edges) (v : V), v ∈ x → v ∈ y → x = y)
 
 instance : inhabited (matching G) :=
 ⟨⟨∅, set.empty_subset _, λ _ _ hx, false.elim (set.not_mem_empty _ hx)⟩⟩
 
+namespace matching
 variables {G}
 
 /--
 `M.support` is the set of vertices of `G` that are
 contained in some edge of matching `M`
 -/
-def matching.support (M : G.matching) : set V :=
-{v : V | ∃ x ∈ M.edges, v ∈ x}
+def support (M : G.matching) : set V :=
+{v : V | ∃ x, x ∈ M.edges ∧ v ∈ x}
 
+@[simp] lemma mem_support (M : G.matching) (v : V) :
+  v ∈ M.support ↔ ∃ x, x ∈ M.edges ∧ v ∈ x :=
+by refl
+
+/- probably don't need this since v ∈ M.support is ok? (trying to avoid extra lemmas)
 /--
 A vertex `v` is saturated by a matching `M` if `v ∈ M.support`
 -/
-def matching.saturated_vertex (M : G.matching) (v : V) : Prop :=
+def saturated_vertex (M : G.matching) (v : V) : Prop :=
 v ∈ M.support
+-/
 
 /--
 A set of vertices `S` is saturated by a matching `M` if `S ⊆ M.support`
 -/
-def matching.saturates_set (M : G.matching) (S : set V) : Prop :=
+def saturates (M : G.matching) (S : set V) : Prop :=
 S ⊆ M.support
+
+lemma subset_saturates (M : G.matching) {S S' : set V} (hsub : S ⊆ S') (h : M.saturates S') :
+  M.saturates S :=
+λ v hv, h (hsub hv)
 
 /--
 A perfect matching `M` on graph `G` is a matching such that
   every vertex is contained in an edge of `M`.
 -/
-def matching.is_perfect (M : G.matching) : Prop :=
+def is_perfect (M : G.matching) : Prop :=
 M.support = set.univ
 
-lemma matching.is_perfect_iff (M : G.matching) :
-M.is_perfect ↔ ∀ (v : V), ∃ e ∈ M.edges, v ∈ e :=
+lemma is_perfect_iff (M : G.matching) :
+  M.is_perfect ↔ ∀ (v : V), ∃ e, e ∈ M.edges ∧ v ∈ e :=
 set.eq_univ_iff_forall
+
+/--
+A matching defines a partion involutive function on the vertex set.
+-/
+noncomputable
+def opposite (M : G.matching) (v : V) (h : v ∈ M.support) : V :=
+(classical.some_spec ((M.mem_support v).mp h)).2.other
+
+lemma opposite_spec (M : G.matching) (v : V) (h : v ∈ M.support) :
+  ⟦(v, M.opposite v h)⟧ ∈ M.edges :=
+begin
+  erw sym2.mem_other_spec, exact (classical.some_spec ((M.mem_support v).mp h)).1,
+end
+
+lemma opposite_mem_support (M : G.matching) (v : V) (h : v ∈ M.support) :
+  M.opposite v h ∈ M.support :=
+⟨⟦(v, M.opposite v h)⟧, M.opposite_spec v h, sym2.mk_has_mem_right _ _⟩
+
+lemma opposite_invol (M : G.matching) (v : V) (h : v ∈ M.support) :
+  M.opposite (M.opposite v h) (M.opposite_mem_support v h) = v :=
+begin
+  have h1 := M.opposite_spec v h,
+  have h2 := M.opposite_spec (M.opposite v h) (M.opposite_mem_support v h),
+  have hh := M.disjoint _ _ h1 h2 (M.opposite v h) (sym2.mk_has_mem_right _ _) (sym2.mk_has_mem _ _),
+  rw sym2.eq_swap at hh, rw sym2.congr_right at hh,
+  exact hh.symm,
+end
+
+@[simp]
+lemma opposite_bij (M : G.matching) (v w : V) (hv : v ∈ M.support) (hw : w ∈ M.support) :
+  M.opposite v hv = M.opposite w hw ↔ v = w :=
+begin
+  split,
+  { intro h,
+    have h1 := M.opposite_spec v hv,
+    have h2 := M.opposite_spec w hw,
+    rw h at h1,
+    have hh := M.disjoint _ _ h1 h2 (M.opposite w hw) (sym2.mk_has_mem_right _ _) (sym2.mk_has_mem_right _ _),
+    exact sym2.congr_left.mp hh },
+  { rintro rfl, refl },
+end
+
+lemma opposite_ne (M : G.matching) (v : V) (h : v ∈ M.support) :
+  M.opposite v h ≠ v :=
+(G.edge_not_loop (M.sub_edges (M.opposite_spec v h))).symm
+
+/--
+Given a set saturated by a matching, get the set of vertices opposite that set.
+-/
+def opposite_set (M : G.matching) (S : set V) (h : M.saturates S) : set V :=
+{v | ∃ (w : V) (wel : w ∈ S), M.opposite w (h wel) = v}
+
+lemma opposite_set_subset_set_neighbor_set (M : G.matching) (S : set V) (h : M.saturates S) :
+  M.opposite_set S h ⊆ G.set_neighbor_set S :=
+begin
+  rintros v ⟨w, wel, hw⟩,
+  rw mem_set_neighbor_set,
+  use [w, wel],
+  have hh := M.sub_edges (M.opposite_spec w (h wel)),
+  simpa [hw] using hh,
+end
+
+lemma mem_iff_mem_opposite_set (M : G.matching)
+  (S : set V) (hS : M.saturates S) (v : V) (hv : v ∈ M.support) :
+  v ∈ S ↔ M.opposite v hv ∈ M.opposite_set S hS :=
+by simp [opposite_set]
+
+lemma opposite_set_saturated (M : G.matching) (S : set V) (h : M.saturates S) :
+  M.saturates (M.opposite_set S h) :=
+begin
+  rintros v ⟨w, H, hv⟩,
+  use ⟦(w, v)⟧,
+  refine ⟨_, sym2.mk_has_mem_right _ _⟩,
+  convert M.opposite_spec w (h H),
+  rw hv,
+end
+
+set_option pp.proofs true
+noncomputable
+def opposite_set_equiv (M : G.matching) (S : set V) (h : M.saturates S) :
+  M.opposite_set S h ≃ S :=
+{ to_fun := λ vv, ⟨classical.some vv.2, begin
+    rcases classical.some_spec vv.2 with ⟨hw, _⟩,
+    exact hw
+  end⟩,
+  inv_fun := λ vv, ⟨M.opposite vv.1 (h vv.2), (M.mem_iff_mem_opposite_set S h _ (h vv.2)).mp vv.2⟩,
+  left_inv := λ ⟨v, hv⟩, begin
+    rcases classical.some_spec hv with ⟨he, hop⟩,
+    simp [hop],
+  end,
+  right_inv := λ ⟨v, hv⟩, begin
+    dsimp only, congr,
+    rcases classical.some_spec ((M.mem_iff_mem_opposite_set S h v (h hv)).mp hv) with ⟨w, hw⟩,
+    rwa M.opposite_bij at hw,
+  end }
+
+noncomputable
+instance opposite_set.fintype
+  (M : G.matching) {S : set V} [fintype S] (h : M.saturates S) :
+  fintype (M.opposite_set S h) :=
+fintype.of_equiv _ ((M.opposite_set_equiv S h).symm)
+
+lemma opposites_card_eq (M : G.matching) {S : set V} [fintype S] (h : M.saturates S) :
+  fintype.card (M.opposite_set S h) = fintype.card S :=
+begin
+--  rw ←fintype.card_coe,
+  exact fintype.card_congr (M.opposite_set_equiv S h),
+end
+
+end matching
 
 open finset
 variables (M : G.matching) [fintype M.support]
 
---lemma matching.support_card_even : (card (M.support).to_finset)
+--lemma support_card_even : (card (M.support).to_finset)
 
 
 section bipartite
-variables [bipartite G] (f : G.coloring (fin 2)) (a b : fin 2)
-variables [fintype (color_class f a)] [fintype (color_class f b)]
-variables [fintype (G.set_neighbor_set(fin_color_class f a))]
+variables [fintype V] (f : G.bipartition)
 
-theorem hall_marriage_theorem (h1 : a ≠ b)
-(h2 : (fin_color_class f a).card ≤ (fin_color_class f b).card) :
-(∃ (M : G.matching), M.saturates_set (fin_color_class f a)) ↔
-(∀ S ⊆ fin_color_class f a, (fin_color_class f a).card ≤
-  (set_neighbor_finset G (fin_color_class f a)).card) :=
+theorem hall_marriage_theorem
+  (h2 : fintype.card (f.color_set 0) ≤ fintype.card (f.color_set 1)) :
+  (∃ (M : G.matching), M.saturates (f.color_set 0)) ↔
+  (∀ (S ⊆ f.color_set 0),
+    fintype.card S ≤ fintype.card (G.set_neighbor_set S)) :=
 begin
   split,
-  { intros hM,
-    cases hM with M hM,
-    intros S hS,
-    unfold matching.saturates_set at hM,
-    sorry },
+  { rintros ⟨M, hM⟩ S hs,
+    have Ssat := (M.subset_saturates hs hM),
+    rw ←M.opposites_card_eq Ssat,
+    have Sopp := M.opposites_card_eq Ssat,
+    exact set.card_le_of_subset (M.opposite_set_subset_set_neighbor_set S Ssat) },
   {
     sorry },
 end

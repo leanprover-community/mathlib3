@@ -11,7 +11,7 @@ import ring_theory.witt_vector.mul_p
 /-!
 ## Identities between operations on the ring of Witt vectors
 
-In this file we show deduce common identities between the Frobenius and Verschiebung operators.
+In this file we derive common identities between the Frobenius and Verschiebung operators.
 
 ## Main declarations
 

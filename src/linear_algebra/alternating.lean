@@ -255,33 +255,11 @@ def sum_split_func {α β γ : Type*} : (α ⊕ β → γ) ≃ (α → γ) × (�
 
 def finvec_split {n m} {α : Sort*} (f : fin (n + m) → α) : pprod (fin n → α) (fin m → α) := sorry
 
-namespace multilinear_map
+namespace alternating_map
 
 variables {M₂ M₃ : Type*} [add_comm_monoid M₂] [semimodule R M₂]
 variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂] [add_comm_monoid M₃] [semimodule R M₃]
 
-@[simps apply]
-def dom_dom_congr'
-  (σ : ι₁ ≃ ι₂) (m : multilinear_map R (λ i : ι₁, M₂) M₃) : multilinear_map R (λ i : ι₂, M₂) M₃ :=
-{ to_fun := λ v, m (λ i, v (σ i)),
-  map_add' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_add, },
-  map_smul' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_smul, }, }
-
-variables (R)
-/-- Transfer the equivalence between argument indices to an equivalence between maps
-The naming is derived from `finsupp.dom_congr`, noting that here the permutation applies to the
-domain of the domain. -/
-@[simps]
-def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
-  multilinear_map R (λ i : ι₁, M₂) M₃ ≃+ multilinear_map R (λ i : ι₂, M₂) M₃ :=
-{ to_fun := dom_dom_congr' σ,
-  inv_fun := dom_dom_congr' σ.symm,
-  left_inv := λ m, by {ext, simp},
-  right_inv := λ m, by {ext, simp},
-  map_add' := λ a b, by {ext, simp} }
-variables {R}
-
-end multilinear_map
 
 -- /-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
 -- lemma function.update_def {α β : Sort*} [decidable_eq α] (f : α → β) (a' : α) (b : β) :
@@ -317,25 +295,6 @@ end shuffle
 
 open_locale big_operators
 
-namespace nat
-
-instance {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M] : smul_comm_class ℕ R M :=
-{ smul_comm := λ n r m, begin
-    simp only [nat.smul_def],
-    induction n with n ih,
-    { simp },
-    { simp [succ_nsmul, ←ih, smul_add] },
-  end }
-
-end nat
-
-namespace int
-
-instance {R M : Type*} [semiring R] [add_comm_group M] [semimodule R M] : smul_comm_class ℤ R M :=
-{ smul_comm := λ z r l, by cases z; simp [←gsmul_eq_smul, ←nat.smul_def, smul_comm] }
-
-end int
-
 open_locale tensor_product
 
 def mul_fin {n m} {R : Type*} {M N : Type*}
@@ -344,15 +303,15 @@ def mul_fin {n m} {R : Type*} {M N : Type*}
   alternating_map R M N (fin (m + n)) :=
 { to_fun :=
     let ab := (algebra.lmul' R).comp_multilinear_map
-      $ multilinear_map.of_tmul R
-      $ tensor_product.tmul R a.to_multilinear_map b.to_multilinear_map in
+      $ multilinear_map.dom_coprod a.to_multilinear_map b.to_multilinear_map in
     λ (v : fin (m + n) → M),
-    ∑ σ : shuffle m n,
-      (σ.to_perm.sign : ℤ) • (ab.dom_dom_congr' σ.val : multilinear_map R (λ i, M) N) v,
+    ∑ σ : shuffle m n, (σ.to_perm.sign : ℤ) • (ab.dom_dom_congr σ.val) v,
   map_add' := λ v i p q, by simp_rw [←finset.sum_add_distrib, ←smul_add, multilinear_map.map_add],
   map_smul' := λ v i c p, by simp_rw [finset.smul_sum, ←smul_comm, multilinear_map.map_smul],
   map_eq_zero_of_eq' := λ v i j h hij, begin
     sorry
   end }
+
+end alternating_map
 
 end

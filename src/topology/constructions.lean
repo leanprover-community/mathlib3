@@ -425,20 +425,18 @@ lemma embedding_inr : embedding (@inr α β) :=
   end,
   inj := λ _ _, inr.inj_iff.mp }
 
+lemma is_open_range_inl : is_open (range (inl : α → α ⊕ β)) :=
+is_open_sum_iff.2 $ by simp
+
+lemma is_open_range_inr : is_open (range (inr : β → α ⊕ β)) :=
+is_open_sum_iff.2 $ by simp
+
 lemma open_embedding_inl : open_embedding (inl : α → α ⊕ β) :=
-{ open_range := begin
-    rw is_open_sum_iff,
-    convert and.intro is_open_univ is_open_empty;
-    { ext, simp }
-  end,
+{ open_range := is_open_range_inl,
   .. embedding_inl }
 
 lemma open_embedding_inr : open_embedding (inr : β → α ⊕ β) :=
-{ open_range := begin
-    rw is_open_sum_iff,
-    convert and.intro is_open_empty is_open_univ;
-    { ext, simp }
-  end,
+{ open_range := is_open_range_inr,
   .. embedding_inr }
 
 end sum

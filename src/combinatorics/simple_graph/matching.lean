@@ -57,7 +57,7 @@ def matching.support (M : G.matching) : set V :=
 {v : V | ∃ x ∈ M.edges, v ∈ x}
 
 /--
-A vertex `v` is saturated by a matching `M` if `v ∈ M.support`
+A vertex `v` is saturated by a matching `M` if `v ∈ M.support`.
 -/
 def matching.saturated_vertex (M : G.matching) (v : V) : Prop :=
 v ∈ M.support

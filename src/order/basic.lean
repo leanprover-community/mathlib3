@@ -293,8 +293,8 @@ begin
     { simpa [hx, hy] using hg h} }
 end
 
-protected lemma ite [preorder α] [preorder β] {f g : α → β} (hf : strict_mono f) (hg : strict_mono g)
-  {p : α → Prop} [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
+protected lemma ite [preorder α] [preorder β] {f g : α → β} (hf : strict_mono f)
+  (hg : strict_mono g) {p : α → Prop} [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
   (hfg : ∀ x, f x ≤ g x) :
   strict_mono (λ x, if p x then f x else g x) :=
 hf.ite' hg hp $ λ x y hx hy h, (hf h).trans_le (hfg y)

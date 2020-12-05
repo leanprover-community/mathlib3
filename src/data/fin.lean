@@ -506,8 +506,8 @@ def clamp (n m : ℕ) : fin (m + 1) := of_nat $ min n m
 @[simp] lemma coe_clamp (n m : ℕ) : (clamp n m : ℕ) = min n m :=
 nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
 
-lemma cast_le_injective {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : injective (fin.cast_le h)
-| ⟨i₁, h₁⟩ ⟨i₂, h₂⟩ eq := fin.eq_of_veq $ show i₁ = i₂, from fin.veq_of_eq eq
+lemma cast_le_injective {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : injective (fin.cast_le h) :=
+(cast_le h).injective
 
 /-- Embedding `i : fin n` into `fin (n + 1)` with a hole around `p : fin (n + 1)`
 embeds `i` by `cast_succ` when the resulting `i.cast_succ < p` -/
@@ -591,18 +591,7 @@ end
 
 /-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
 lemma succ_above_right_injective {x : fin (n + 1)} : injective (succ_above x) :=
-λ a b h, begin
-  cases succ_above_lt_ge x a with ha ha;
-  cases succ_above_lt_ge x b with hb hb,
-  { simpa only [succ_above_below, ha, hb, cast_succ_inj] using h },
-  { simp only [succ_above_below, succ_above_above, ha, hb] at h,
-    rw h at ha,
-    exact absurd (lt_of_le_of_lt hb (cast_succ_lt_succ _)) (asymm ha) },
-  { simp only [succ_above_below, succ_above_above, ha, hb] at h,
-    rw ←h at hb,
-    exact absurd (lt_of_le_of_lt ha (cast_succ_lt_succ _)) (asymm hb) },
-  { simpa only [succ_above_above, ha, hb, succ_inj] using h },
-end
+(succ_above x).injective
 
 /-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
 lemma succ_above_right_inj {x : fin (n + 1)} :

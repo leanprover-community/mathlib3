@@ -96,11 +96,8 @@ incident to `v`.
 lemma adj_iff_exists_edge {v w : V} :
   G.adj v w ↔ v ≠ w ∧ ∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e :=
 begin
-  split,
-  { intro,
-    split,
-    { exact G.ne_of_adj ‹_› },
-    { use ⟦(v,w)⟧, simpa } },
+  refine ⟨λ _, ⟨G.ne_of_adj ‹_›, ⟦(v,w)⟧, _⟩, _⟩,
+  { simpa },
   { rintro ⟨hne, e, he, hv⟩,
     rw sym2.elems_iff_eq hne at hv,
     subst e,

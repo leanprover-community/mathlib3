@@ -35,27 +35,21 @@ instance (X : Type v₁) : is_left_adjoint (types.binary_product_functor.obj X) 
   { unit := { app := λ Z (z : Z) x, ⟨x, z⟩ },
     counit := { app := λ Z xf, xf.2 xf.1 } } }
 
-local attribute [instance] has_finite_products_of_has_products
-
--- -- Why isn't this automatically inferred? I can't seem to make
--- -- `has_finite_products_of_has_products` an instance, not sure why.
--- instance : has_finite_products (Type v₁) := has_finite_products_of_has_products _
+instance : has_finite_products (Type v₁) := has_finite_products_of_has_products _
 
 instance : cartesian_closed (Type v₁) :=
 { closed := λ X,
   { is_adj := adjunction.left_adjoint_of_nat_iso (types.binary_product_iso_prod.app X) } }
 
--- -- As above
--- instance {C : Type v₁} [category C] : has_finite_products (C ⥤ Type v₁) :=
--- has_finite_products_of_has_products _
+instance {C : Type u₁} [category.{v₁} C] : has_finite_products (C ⥤ Type u₁) :=
+has_finite_products_of_has_products _
 
 instance {C : Type v₁} [small_category C] : cartesian_closed (C ⥤ Type v₁) :=
 { closed := λ F,
   { is_adj :=
     begin
-      apply is_left_adjoint_of_preserves_colimits (prod.functor.obj _),
-      apply_instance,
-      apply functor_category.prod_preserves_colimits,
+      letI := functor_category.prod_preserves_colimits F,
+      apply is_left_adjoint_of_preserves_colimits (prod.functor.obj F),
     end } }
 
 end cartesian_closed

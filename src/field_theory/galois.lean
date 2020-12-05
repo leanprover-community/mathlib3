@@ -140,7 +140,7 @@ begin
         rw alg_equiv.apply_symm_apply ψ ⟨x, _⟩,
         refl
       end,
-    exact is_galois.tower_top_of_is_galois F h },
+    exact @is_galois.tower_top_of_is_galois _ _ _ _ _ _ _ _ _ key _ },
   { intro h,
     exactI is_galois.tower_top_intermediate_field ⊥ },
 end

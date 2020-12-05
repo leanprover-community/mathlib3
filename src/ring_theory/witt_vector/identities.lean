@@ -31,6 +31,7 @@ lemma frobenius_verschiebung (x : 𝕎 R) :
   frobenius (verschiebung x) = x * p :=
 by { ghost_calc x, ghost_simp [mul_comm] }
 
+/-- Verschiebung is the same as multiplication by `p` on the ring of Witt vectors of `zmod p`. -/
 lemma verschiebung_zmod (x : 𝕎 (zmod p)) :
   verschiebung x = x * p :=
 by rw [← frobenius_verschiebung, frobenius_zmodp]

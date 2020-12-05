@@ -1829,8 +1829,8 @@ lemma to_finsupp_add (s t : multiset α) :
   to_finsupp (s + t) = to_finsupp s + to_finsupp t :=
 to_finsupp.map_add s t
 
-@[simp] lemma to_finsupp_singleton (a : α) : to_finsupp {a} = finsupp.single a 1 :=
-finsupp.to_multiset.symm_apply_eq.2 $ by rw [finsupp.to_multiset_single, one_nsmul]
+@[simp] lemma to_finsupp_singleton (a : α) : to_finsupp (a ::ₘ 0) = finsupp.single a 1 :=
+finsupp.to_multiset.symm_apply_eq.2 $ by simp
 
 @[simp] lemma to_finsupp_to_multiset (s : multiset α) :
   s.to_finsupp.to_multiset = s :=

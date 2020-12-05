@@ -42,7 +42,7 @@ the function `ℕ → ℝ` sending `n` to `(-1)^n / (n+1)` does not have a
 sum for this definition, but a series which is absolutely convergent will have the correct sum.
 
 This is based on Mario Carneiro's
-[infinite sum `df-sum` in Metamath](http://us.metamath.org/mpeuni/df-sum.html).
+[infinite sum `df-tsums` in Metamath](http://us.metamath.org/mpeuni/df-tsms.html).
 
 For the definition or many statements, `α` does not need to be a topological monoid. We only add
 this assumption later, for the lemmas where it is relevant.

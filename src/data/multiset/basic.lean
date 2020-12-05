@@ -62,7 +62,7 @@ instance : inhabited (multiset α)  := ⟨0⟩
 theorem coe_eq_zero (l : list α) : (l : multiset α) = 0 ↔ l = [] :=
 iff.trans coe_eq_coe perm_nil
 
-/- ### `multiset.cons` -/
+/-! ### `multiset.cons` -/
 
 /-- `cons a s` is the multiset which contains `s` plus one more
   instance of `a`. -/
@@ -215,7 +215,7 @@ end
 
 end mem
 
-/- ### `multiset.subset` -/
+/-! ### `multiset.subset` -/
 section subset
 
 /-- `s ⊆ t` is the lift of the list subset relation. It means that any
@@ -268,7 +268,7 @@ by rw [←multiset.mem_coe, multiset.coe_to_list]
 
 end to_list
 
-/- ### Partial order on `multiset`s -/
+/-! ### Partial order on `multiset`s -/
 
 /-- `s ≤ t` means that `s` is a sublist of `t` (up to permutation).
   Equivalently, `s ≤ t` means that `count a s ≤ count a t` for all `a`. -/
@@ -373,7 +373,6 @@ instance : ordered_cancel_add_comm_monoid (multiset α) :=
   le_of_add_le_add_left := λ s₁ s₂ s₃, (multiset.add_le_add_left _).1,
   ..@multiset.partial_order α }
 
-
 theorem le_add_right (s t : multiset α) : s ≤ s + t :=
 by simpa using add_le_add_left (zero_le t) s
 
@@ -466,7 +465,7 @@ multiset.strong_induction_on s $ assume s,
 multiset.induction_on s (λ _, h₀) $ λ a s _ ih, h₁ _ _ $
 λ t h, ih _ $ lt_of_le_of_lt h $ lt_cons_self _ _
 
-/- ### Singleton -/
+/-! ### Singleton -/
 instance : has_singleton α (multiset α) := ⟨λ a, a ::ₘ 0⟩
 
 instance : is_lawful_singleton α (multiset α) := ⟨λ a, rfl⟩
@@ -491,7 +490,7 @@ theorem card_eq_one {s : multiset α} : card s = 1 ↔ ∃ a, s = a ::ₘ 0 :=
   (list.length_eq_one.1 h).imp $ λ a, congr_arg coe,
  λ ⟨a, e⟩, e.symm ▸ rfl⟩
 
-/- ### `multiset.repeat` -/
+/-! ### `multiset.repeat` -/
 
 /-- `repeat a n` is the multiset containing only `a` with multiplicity `n`. -/
 def repeat (a : α) (n : ℕ) : multiset α := repeat a n
@@ -522,7 +521,7 @@ theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ a ::ₘ 0 := re
 theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.repeat a n <+ l :=
 ⟨λ ⟨l', p, s⟩, (perm_repeat.1 p) ▸ s, sublist.subperm⟩
 
-/- ### Erasing one copy of an element -/
+/-! ### Erasing one copy of an element -/
 section erase
 variables [decidable_eq α] {s t : multiset α} {a b : α}
 
@@ -614,7 +613,7 @@ end erase
 @[simp] theorem coe_reverse (l : list α) : (reverse l : multiset α) = l :=
 quot.sound $ reverse_perm _
 
-/- ### `multiset.map` -/
+/-! ### `multiset.map` -/
 
 /-- `map f s` is the lift of the list `map` operation. The multiplicity
   of `b` in `map f s` is the number of `a ∈ s` (counting multiplicity)
@@ -692,7 +691,7 @@ le_induction_on h $ λ l₁ l₂ h, (h.map f).subperm
 @[simp] theorem map_subset_map {f : α → β} {s t : multiset α} (H : s ⊆ t) : map f s ⊆ map f t :=
 λ b m, let ⟨a, h, e⟩ := mem_map.1 m in mem_map.2 ⟨a, H h, e⟩
 
-/- ### `multiset.fold` -/
+/-! ### `multiset.fold` -/
 
 /-- `foldl f H b s` is the lift of the list operation `foldl f b l`,
   which folds `f` over the multiset. It is well defined when `f` is right-commutative,
@@ -934,7 +933,7 @@ multiset.induction_on S (by simp) $
 @[simp] theorem card_join (S) : card (@join α S) = sum (map card S) :=
 multiset.induction_on S (by simp) (by simp)
 
-/- ### `multiset.bind` -/
+/-! ### `multiset.bind` -/
 
 /-- `bind s f` is the monad bind operation, defined as `join (map f s)`.
   It is the union of `f a` as `a` ranges over `s`. -/
@@ -1003,7 +1002,7 @@ lemma prod_bind [comm_monoid β] (s : multiset α) (t : α → multiset β) :
   prod (bind s t) = prod (s.map $ λa, prod (t a)) :=
 multiset.induction_on s (by simp) (assume a s ih, by simp [ih, cons_bind])
 
-/- ### Product of two `multiset`s -/
+/-! ### Product of two `multiset`s -/
 
 /-- The multiplicity of `(a, b)` in `product s t` is
   the product of the multiplicity of `a` in `s` and `b` in `t`. -/
@@ -1037,7 +1036,7 @@ multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
 @[simp] theorem card_product (s : multiset α) (t : multiset β) : card (product s t) = card s * card t :=
 by simp [product, repeat, (∘), mul_comm]
 
-/- ### Sigma multiset -/
+/-! ### Sigma multiset -/
 section
 variable {σ : α → Type*}
 
@@ -1078,7 +1077,7 @@ by simp [multiset.sigma, (∘)]
 
 end
 
-/- ### Map for partial functions -/
+/-! ### Map for partial functions -/
 
 /-- Lift of the list `pmap` operation. Map a partial function `f` over a multiset
   `s` whose elements are all in the domain of `f`. -/
@@ -1184,7 +1183,7 @@ decidable_of_decidable_of_iff
 
 end decidable_pi_exists
 
-/- ### Subtraction -/
+/-! ### Subtraction -/
 section
 variables [decidable_eq α] {s t u : multiset α} {a b : α}
 
@@ -1261,7 +1260,7 @@ sub_le_iff_le_add.2 (le_add_right _ _)
 @[simp] theorem card_sub {s t : multiset α} (h : t ≤ s) : card (s - t) = card s - card t :=
 (nat.sub_eq_of_eq_add $ by rw [add_comm, ← card_add, sub_add_cancel h]).symm
 
-/- ### Union -/
+/-! ### Union -/
 
 /-- `s ∪ t` is the lattice join operation with respect to the
   multiset `≤`. The multiplicity of `a` in `s ∪ t` is the maximum
@@ -1293,7 +1292,7 @@ by rw ← eq_union_left h₂; exact union_le_union_right h₁ t
 quotient.induction_on₂ s t $ λ l₁ l₂,
 congr_arg coe (by rw [list.map_append f, list.map_diff finj])
 
-/- ### Intersection -/
+/-! ### Intersection -/
 
 /-- `s ∩ t` is the lattice meet operation with respect to the
   multiset `≤`. The multiplicity of `a` in `s ∩ t` is the minimum
@@ -1431,7 +1430,7 @@ by rw [sub_add_inter s t, sub_add_cancel (inter_le_left _ _)]
 
 end
 
-/- ### `multiset.filter` -/
+/-! ### `multiset.filter` -/
 section
 variables (p : α → Prop) [decidable_pred p]
 
@@ -1540,7 +1539,7 @@ theorem filter_add_not (s : multiset α) :
   filter p s + filter (λ a, ¬ p a) s = s :=
 by rw [filter_add_filter, filter_eq_self.2, filter_eq_nil.2]; simp [decidable.em]
 
-/- ### Simultaneously filter and map elements of a multiset -/
+/-! ### Simultaneously filter and map elements of a multiset -/
 
 /-- `filter_map f s` is a combination filter/map operation on `s`.
   The function `f : α → option β` is applied to each element of `s`;
@@ -1659,7 +1658,7 @@ countp_pos.2 ⟨_, h, pa⟩
 
 end
 
-/- ### Multiplicity of an element -/
+/-! ### Multiplicity of an element -/
 
 section
 variable [decidable_eq α]
@@ -1816,7 +1815,7 @@ begin
   simp [h0],
 end
 
-/- ### Lift a relation to `multiset`s -/
+/-! ### Lift a relation to `multiset`s -/
 
 section rel
 
@@ -1986,7 +1985,7 @@ match s, exists_multiset_eq_map_quot_mk s with _, ⟨t, rfl⟩ := assume h, h _ 
 
 end quot
 
-/- ### Disjoint multisets -/
+/-! ### Disjoint multisets -/
 
 /-- `disjoint s t` means that `s` and `t` have no elements in common. -/
 def disjoint (s t : multiset α) : Prop := ∀ ⦃a⦄, a ∈ s → a ∈ t → false

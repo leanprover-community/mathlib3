@@ -292,9 +292,9 @@ theorem young_inequality (a b : ℝ≥0) {p q : ℝ≥0} (hp : 1 < p) (hpq : 1 /
   a * b ≤ a^(p:ℝ) / p + b^(q:ℝ) / q :=
 real.young_inequality_of_nonneg a.coe_nonneg b.coe_nonneg ⟨hp, nnreal.coe_eq.2 hpq⟩
 
-/-- Young's inequality, `ℝ≥0` version with real conjugate exponents.  -/
-theorem young_inequality_real (a b : ℝ≥0) {p q : ℝ} (hpq :p.is_conjugate_exponent q) :
-  a * b ≤ a^(p:ℝ) / nnreal.of_real p + b^(q:ℝ) / nnreal.of_real q :=
+/-- Young's inequality, `ℝ≥0` version with real conjugate exponents. -/
+theorem young_inequality_real (a b : ℝ≥0) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
+  a * b ≤ a ^ p / nnreal.of_real p + b ^ q / nnreal.of_real q :=
 begin
   have hp : 1 < nnreal.of_real p,
   { rw [←of_real_one, of_real_lt_of_real_iff hpq.pos], exact hpq.one_lt, },

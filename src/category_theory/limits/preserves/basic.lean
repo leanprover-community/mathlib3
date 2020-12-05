@@ -423,7 +423,7 @@ def reflects_limit_of_reflects_isomorphisms (F : J ⥤ C) (G : C ⥤ D)
     apply is_limit.of_point_iso (limit.is_limit F),
     change is_iso ((cones.forget _).map ((limit.is_limit F).lift_cone_morphism c)),
     apply (cones.forget F).map_is_iso _,
-    apply is_iso_of_reflects_iso _ (cones.functoriality F G),
+    apply is_iso_of_reflects_iso (cones.functoriality F G) _,
     refine t.hom_is_iso (is_limit_of_preserves G (limit.is_limit F)) _,
   end }
 
@@ -497,7 +497,7 @@ def reflects_colimit_of_reflects_isomorphisms (F : J ⥤ C) (G : C ⥤ D)
     apply is_colimit.of_point_iso (colimit.is_colimit F),
     change is_iso ((cocones.forget _).map ((colimit.is_colimit F).desc_cocone_morphism c)),
     apply (cocones.forget F).map_is_iso _,
-    apply is_iso_of_reflects_iso _ (cocones.functoriality F G),
+    apply is_iso_of_reflects_iso (cocones.functoriality F G) _,
     refine (is_colimit_of_preserves G (colimit.is_colimit F)).hom_is_iso t _,
   end }
 

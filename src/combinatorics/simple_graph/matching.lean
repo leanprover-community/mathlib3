@@ -335,6 +335,14 @@ begin
   rw ←not_iff_not, push_neg, rw ←set.subset, refl,
 end
 
+/--
+`alternating_path b u v` is a path starting at u and ending at v, where the edges alternating between being in M and being outside M.
+-/
+inductive alternating_path (M : G.matching) : bool → V → V → Type u
+| start (u : V) : alternating_path tt u u
+| consM {u v w : V} (p : alternating_path tt u v) (h : ⟦(v,w)⟧ ∈ M.edges) : alternating_path ff u w
+| consNot {u v w : V} (p : alternating_path ff u v) (h : ⟦(v,w)⟧ ∈ G.edge_set \ M.edges) : alternating_path tt u w
+
 theorem hall_marriage_theorem
   (h2 : fintype.card (f.color_set 0) ≤ fintype.card (f.color_set 1)) :
   (∃ (M : G.matching), M.saturates (f.color_set 0)) ↔

@@ -81,19 +81,32 @@ lemma matching.is_perfect_iff (M : G.matching) :
 M.is_perfect ↔ ∀ (v : V), ∃ e ∈ M.edges, v ∈ e :=
 set.eq_univ_iff_forall
 
-def bipartite (G : simple_graph V) : Prop :=
-  colorable G (fin 2)
+open finset
+variables (M : G.matching) [fintype M.support]
+
+--lemma matching.support_card_even : (card (M.support).to_finset)
+
 
 section bipartite
 variables [bipartite G] (f : G.coloring (fin 2)) (a b : fin 2)
+variables [fintype (color_class f a)] [fintype (color_class f b)]
+variables [fintype (G.set_neighbor_set(fin_color_class f a))]
 
-/-theorem hall_marriage_theorem (a b : fin 2) (h1 : a ≠ b)
-[fintype (color_class f a)] [fintype (color_class f b)]
+theorem hall_marriage_theorem (h1 : a ≠ b)
 (h2 : (fin_color_class f a).card ≤ (fin_color_class f b).card) :
-∃ (M : G.matching), M.saturates_set (fin_color_class f a) ↔
-∀ S ⊆ (fin_color_class f a), (fin_color_class f a).card ≤
-  (set_neighbor_finset G (fin_color_class f a)).card
---∃ (M : G.matching), M.is_perfect ↔ ∀ S ⊆ (set.preimage f.1 _ _),-/
+(∃ (M : G.matching), M.saturates_set (fin_color_class f a)) ↔
+(∀ S ⊆ fin_color_class f a, (fin_color_class f a).card ≤
+  (set_neighbor_finset G (fin_color_class f a)).card) :=
+begin
+  split,
+  { intros hM,
+    cases hM with M hM,
+    intros S hS,
+    unfold matching.saturates_set at hM,
+    sorry },
+  {
+    sorry },
+end
 
 end bipartite
 

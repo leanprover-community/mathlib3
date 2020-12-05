@@ -618,7 +618,15 @@ lemma summable.smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
 lemma tsum_smul [t2_space α] {r : R} (hf : summable f) : (∑' z, r • f z) = r • (∑' z, f z) :=
 hf.has_sum.smul.tsum_eq
 
-variables [topological_space γ] [add_comm_monoid γ] [semimodule R γ]
+end topological_semimodule
+
+section continuous_linear_map
+variables {R : Type*}
+[semiring R]
+[topological_space α] [add_comm_monoid α]
+[semimodule R α]
+[topological_space γ] [add_comm_monoid γ] [semimodule R γ]
+{f : β → α}
 
 lemma has_sum.map_linear {a : α} (hf : has_sum f a) (g : α →L[R] γ) : has_sum (g ∘ f) (g a) :=
 has_sum.map hf g.to_linear_map.to_add_monoid_hom g.continuous
@@ -630,7 +638,7 @@ lemma continuous_linear_map.map_tsum [t2_space γ] (g : α →L[R] γ) (hf : sum
   g (∑' z, f z) = ∑' z, g (f z) :=
 (hf.has_sum.map_linear g).tsum_eq.symm
 
-end topological_semimodule
+end continuous_linear_map
 
 section division_ring
 

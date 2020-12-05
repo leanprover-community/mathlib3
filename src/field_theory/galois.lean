@@ -130,18 +130,7 @@ lemma is_galois_iff_is_galois_bot : is_galois (⊥ : intermediate_field F E) E �
 begin
   split,
   { intro h,
-    letI : algebra (⊥ : intermediate_field F E) F :=
-      ring_hom.to_algebra intermediate_field.bot_equiv.to_alg_hom.to_ring_hom,
-    haveI key : is_scalar_tower (⊥ : intermediate_field F E) F E :=
-      is_scalar_tower.of_algebra_map_eq begin
-        intro x,
-        let ϕ := algebra.of_id F (⊥ : subalgebra F E),
-        let ψ := alg_equiv.of_bijective ϕ ((algebra.bot_equiv F E).symm.bijective),
-        change (↑x : E) = ↑(ψ (ψ.symm ⟨x, _⟩)),
-        rw alg_equiv.apply_symm_apply ψ ⟨x, _⟩,
-        refl
-      end,
-    exact is_galois.tower_top_of_is_galois (⊥ : intermediate_field F E) F E },
+    exactI is_galois.tower_top_of_is_galois (⊥ : intermediate_field F E) F E },
   { intro h,
     exactI is_galois.tower_top_intermediate_field ⊥ },
 end

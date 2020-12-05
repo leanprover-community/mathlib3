@@ -129,10 +129,9 @@ instance is_galois.tower_top_intermediate_field (K : intermediate_field F E) [h 
 lemma is_galois_iff_is_galois_bot : is_galois (⊥ : intermediate_field F E) E ↔ is_galois F E :=
 begin
   split,
-  { intro h,
-    exactI is_galois.tower_top_of_is_galois (⊥ : intermediate_field F E) F E },
-  { intro h,
-    exactI is_galois.tower_top_intermediate_field ⊥ },
+  { introI h,
+    exact is_galois.tower_top_of_is_galois (⊥ : intermediate_field F E) F E },
+  { introI h, apply_instance },
 end
 
 /- More to be added later: Galois is preserved by alg_equiv, is_galois_iff_galois_top -/

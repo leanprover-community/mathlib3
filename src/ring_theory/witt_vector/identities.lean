@@ -21,15 +21,10 @@ In this file we show deduce common identities between the Frobenius and Verschie
 
 namespace witt_vector
 
-variables {p : ℕ} {R : Type*} [hp : fact p.prime] [comm_ring R]
+variables {p : ℕ} {R : Type*} [fact p.prime] [comm_ring R]
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
-local attribute [semireducible] witt_vector
-
-open mv_polynomial
 noncomputable theory
-
-include hp
 
 /-- The composition of Frobenius and Verschiebung is multiplication by `p`. -/
 lemma frobenius_verschiebung (x : 𝕎 R) :
@@ -51,9 +46,6 @@ end
 /-- The “projection formula” for Frobenius and Verschiebung. -/
 lemma verschiebung_mul_frobenius (x y : 𝕎 R) :
   verschiebung (x * frobenius y) = verschiebung x * y :=
-begin
-  ghost_calc x y,
-  rintro ⟨⟩; ghost_simp [mul_assoc]
-end
+by { ghost_calc x y, rintro ⟨⟩; ghost_simp [mul_assoc] }
 
 end witt_vector

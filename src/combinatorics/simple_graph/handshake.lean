@@ -5,6 +5,7 @@ Author: Kyle Miller.
 -/
 import combinatorics.simple_graph.basic
 import algebra.big_operators.basic
+import data.nat.parity
 import tactic.omega
 /-!
 # Degree-sum formula and handshaking lemma
@@ -180,16 +181,12 @@ G.dart_card_eq_sum_degrees.symm.trans G.dart_card_eq_twice_card_edges
 
 end degree_sum
 
-/- TODO nat.odd and nat.even used to be decidable predicates -- where did those go? -/
-instance odd_decidable (n : ℕ) : decidable (odd n) :=
-begin
-  sorry
-end
-
-theorem card_odd_degree_vertices_is_even [fintype V] : even (univ.filter (λ v, odd (G.degree v))).card :=
+theorem card_odd_degree_vertices_is_even [fintype V] :
+  even (univ.filter (λ v, odd (G.degree v))).card :=
 begin
   classical,
-  have h := G.sum_degrees_eq_twice_card_edges,
+  have h := congr_arg (% 2) G.sum_degrees_eq_twice_card_edges,
+  simp at h,
   sorry
 end
 

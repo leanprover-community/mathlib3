@@ -290,11 +290,7 @@ begin
   haveI : (⊥ : ideal (I.comap ϕ'.to_map).quotient).is_prime := bot_prime,
   have hcomm: φ'.comp ϕ.to_map = ϕ'.to_map.comp φ := ϕ.map_comp _,
   let f := quotient_map (I.comap ϕ'.to_map) φ le_rfl,
-  let f' := quotient_map I φ' le_rfl,
   let g := quotient_map I ϕ'.to_map le_rfl,
-  let g' : ((I.comap ϕ'.to_map).comap φ).quotient →+* (I.comap φ').quotient :=
-    quotient_map (I.comap φ') ϕ.to_map
-    (le_of_eq (trans (comap_comap φ ϕ'.to_map) (hcomm ▸ (comap_comap ϕ.to_map φ').symm))),
   have := ((is_maximal_iff_is_maximal_disjoint ϕ _).1
     (is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ' I hI)).left,
   have : ((I.comap ϕ'.to_map).comap φ).is_maximal,

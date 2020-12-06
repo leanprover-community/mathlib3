@@ -187,7 +187,7 @@ def other_vertex_of_incident {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) 
 
 lemma incidence_other_prop {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
   G.other_vertex_of_incident h ∈ G.neighbor_set v :=
-by { cases h, rwa [←sym2.mem_other_spec' h_right, mem_edge_set] at h_left }
+by { cases h with he hv, rwa [←sym2.mem_other_spec' hv, mem_edge_set] at he }
 
 @[simp]
 lemma incidence_other_neighbor_edge {v w : V} (h : w ∈ G.neighbor_set v) :

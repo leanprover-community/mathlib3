@@ -65,7 +65,7 @@ symmetrizes the relation and makes it irreflexive.
 -/
 def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :=
 { adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
-  sym := λ a b ⟨hn, hr⟩, ⟨ne.symm hn, or.symm hr⟩,
+  sym := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
 
 @[simp]
@@ -168,7 +168,7 @@ fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 by tauto
 
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
-by { simp [incidence_set] }
+by simp [incidence_set]
 
 lemma mem_incidence_iff_neighbor {v w : V} : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ w ∈ G.neighbor_set v :=
 by simp only [mem_incidence_set, mem_neighbor_set]
@@ -198,7 +198,7 @@ by { use h.1, simp [other_vertex_of_incident, sym2.mem_other_mem'] }
 
 lemma incidence_other_prop {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
   G.other_vertex_of_incident h ∈ G.neighbor_set v :=
-by { cases h, rwa [←sym2.mem_other_spec' h_right, mem_edge_set] at h_left }
+by { cases h with he hv, rwa [←sym2.mem_other_spec' hv, mem_edge_set] at he }
 
 @[simp]
 lemma incidence_other_neighbor_edge {v w : V} (h : w ∈ G.neighbor_set v) :
@@ -251,7 +251,7 @@ lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v
 by simp [degree, neighbor_finset]
 
 lemma degree_pos_iff_exists_adj : 0 < G.degree v ↔ ∃ w, G.adj v w :=
-by { simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset] }
+by simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset]
 
 instance incidence_set_fintype [decidable_eq V] : fintype (G.incidence_set v) :=
 fintype.of_equiv (G.neighbor_set v) (G.incidence_set_equiv_neighbor_set v).symm

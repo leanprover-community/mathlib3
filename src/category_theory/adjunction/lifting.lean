@@ -7,6 +7,7 @@ import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.reflexive
 import category_theory.adjunction
 import category_theory.monad.adjunction
+import category_theory.monad.coequalizer
 
 /-!
 # Adjoint lifting
@@ -164,55 +165,55 @@ noncomputable def adjoint_triangle_lift {U : B ⥤ C} {F : C ⥤ B} (R : A ⥤ B
 { left := lift_adjoint.construct_left_adjoint R _ adj₁ (adjunction.of_right_adjoint _) hU,
   adj := adjunction.adjunction_of_equiv_left _ _ }
 
-/-!
-Show that any algebra is a coequalizer of free algebras.
--/
-namespace cofork_free
-variables (T : B ⥤ B) [monad T] (X : monad.algebra T)
+-- /-!
+-- Show that any algebra is a coequalizer of free algebras.
+-- -/
+-- namespace cofork_free
+-- variables (T : B ⥤ B) [monad T] (X : monad.algebra T)
 
-/-- The top map in the coequalizer diagram we will construct. -/
-@[simps {rhs_md := semireducible}]
-def top_map : (monad.free T).obj (T.obj X.A) ⟶ (monad.free T).obj X.A :=
-(monad.free T).map X.a
-/-- The bottom map in the coequalizer diagram we will construct. -/
-@[simps]
-def bottom_map : (monad.free T).obj (T.obj X.A) ⟶ (monad.free T).obj X.A :=
-{ f := (μ_ T).app X.A,
-  h' := monad.assoc X.A }
-/-- The cofork map in the coequalizer diagram we will construct. -/
-@[simps]
-def coequalizer_map : (monad.free T).obj X.A ⟶ X :=
-{ f := X.a,
-  h' := X.assoc.symm }
+-- /-- The top map in the coequalizer diagram we will construct. -/
+-- @[simps {rhs_md := semireducible}]
+-- def top_map : (monad.free T).obj (T.obj X.A) ⟶ (monad.free T).obj X.A :=
+-- (monad.free T).map X.a
+-- /-- The bottom map in the coequalizer diagram we will construct. -/
+-- @[simps]
+-- def bottom_map : (monad.free T).obj (T.obj X.A) ⟶ (monad.free T).obj X.A :=
+-- { f := (μ_ T).app X.A,
+--   h' := monad.assoc X.A }
+-- /-- The cofork map in the coequalizer diagram we will construct. -/
+-- @[simps]
+-- def coequalizer_map : (monad.free T).obj X.A ⟶ X :=
+-- { f := X.a,
+--   h' := X.assoc.symm }
 
-lemma comm : top_map T X ≫ coequalizer_map T X = bottom_map T X ≫ coequalizer_map T X :=
-monad.algebra.hom.ext _ _ X.assoc.symm
+-- lemma comm : top_map T X ≫ coequalizer_map T X = bottom_map T X ≫ coequalizer_map T X :=
+-- monad.algebra.hom.ext _ _ X.assoc.symm
 
-/--
-The cofork constructed is a colimit. This shows that any algebra is a coequalizer of free algebras.
--/
-def is_colimit : is_colimit (cofork.of_π _ (comm T X)) :=
-cofork.is_colimit.mk' _ $ λ s,
-begin
-  have h₁ : T.map X.a ≫ s.π.f = (μ_ T).app X.A ≫ s.π.f := congr_arg monad.algebra.hom.f s.condition,
-  have h₂ : T.map s.π.f ≫ s.X.a = (μ_ T).app X.A ≫ s.π.f := s.π.h,
-  refine ⟨⟨(η_ T).app _ ≫ s.π.f, _⟩, _, _⟩,
-  { dsimp,
-    rw [T.map_comp, assoc, h₂, monad.right_unit_assoc,
-        (show X.a ≫ _ ≫ _ = _, from (η_ T).naturality_assoc _ _), h₁, monad.left_unit_assoc] },
-  { ext1,
-    dsimp,
-    rw [(show X.a ≫ _ ≫ _ = _, from (η_ T).naturality_assoc _ _), h₁, monad.left_unit_assoc] },
-  { intros m hm,
-    ext1,
-    dsimp,
-    rw ← hm,
-    dsimp,
-    rw X.unit_assoc }
-end
-@[simp] lemma is_colimit_X : (cofork.of_π _ (comm T X)).X = X := rfl
+-- /--
+-- The cofork constructed is a colimit. This shows that any algebra is a coequalizer of free algebras.
+-- -/
+-- def is_colimit : is_colimit (cofork.of_π _ (comm T X)) :=
+-- cofork.is_colimit.mk' _ $ λ s,
+-- begin
+--   have h₁ : T.map X.a ≫ s.π.f = (μ_ T).app X.A ≫ s.π.f := congr_arg monad.algebra.hom.f s.condition,
+--   have h₂ : T.map s.π.f ≫ s.X.a = (μ_ T).app X.A ≫ s.π.f := s.π.h,
+--   refine ⟨⟨(η_ T).app _ ≫ s.π.f, _⟩, _, _⟩,
+--   { dsimp,
+--     rw [T.map_comp, assoc, h₂, monad.right_unit_assoc,
+--         (show X.a ≫ _ ≫ _ = _, from (η_ T).naturality_assoc _ _), h₁, monad.left_unit_assoc] },
+--   { ext1,
+--     dsimp,
+--     rw [(show X.a ≫ _ ≫ _ = _, from (η_ T).naturality_assoc _ _), h₁, monad.left_unit_assoc] },
+--   { intros m hm,
+--     ext1,
+--     dsimp,
+--     rw ← hm,
+--     dsimp,
+--     rw X.unit_assoc }
+-- end
+-- @[simp] lemma is_colimit_X : (cofork.of_π _ (comm T X)).X = X := rfl
 
-end cofork_free
+-- end cofork_free
 
 /--
 If `R ⋙ monad.forget T` has a left adjoint, and the domain of `R` has reflexive coequalizers,
@@ -229,14 +230,14 @@ begin
   have : (monad.forget T).map ((monad.adj T).counit.app A) = A.a,
   { dsimp [monad.adj, adjunction.mk_of_hom_equiv],
     rw [T.map_id, id_comp] },
-  have : (monad.adj T).counit.app A = cofork_free.coequalizer_map T A,
+  have : (monad.adj T).counit.app A = monad.coequalizer.π A,
   { ext1,
     apply this },
-  have : (monad.adj T).counit.app ((monad.free T).obj _) = cofork_free.bottom_map T A,
+  have : (monad.adj T).counit.app ((monad.free T).obj _) = monad.coequalizer.bottom_map A,
   { ext1,
     dsimp [monad.adj, adjunction.mk_of_hom_equiv],
     rw [T.map_id, id_comp] },
-  convert cofork_free.is_colimit T A,
+  convert beck_algebra_coequalizer A,
 end
 
 /--

@@ -120,6 +120,7 @@ noncomputable def L_obj (Y : B) : A :=
 coequalizer (F'.map (U.map (adj₁.counit.app Y))) (other_map _ _ adj₁ adj₂ Y)
 
 /-- The homset equivalence which helps show that `R` is a right adjoint. -/
+@[simps {rhs_md := semireducible}]
 noncomputable
 def L_equiv [∀ (X : B), regular_epi (adj₁.counit.app X)] (Y : A) (X : B) :
   (L_obj _ _ adj₁ adj₂ X ⟶ Y) ≃ (X ⟶ R.obj Y) :=
@@ -156,13 +157,13 @@ noncomputable def construct_left_adjoint [∀ (X : B), regular_epi (adj₁.couni
 begin
   refine adjunction.left_adjoint_of_equiv (λ X Y, L_equiv R F' adj₁ adj₂ Y X) _,
   intros X Y Y' g h,
-  dsimp [L_equiv, -cofork.is_colimit.hom_iso_symm_apply],
-  rw equiv.symm_apply_eq,
-  ext,
-  rw [cofork.is_colimit.hom_iso_natural, equiv.apply_symm_apply],
-  dsimp,
-  rw [← adj₁.hom_equiv_naturality_right_symm, ← functor.comp_map R U,
-      ← adj₂.hom_equiv_naturality_right, assoc],
+  rw [L_equiv_apply, L_equiv_apply, function.comp_app, function.comp_app, equiv.trans_apply,
+      equiv.trans_apply, equiv.trans_apply, equiv.trans_apply, equiv.symm_apply_eq, subtype.ext_iff,
+      cofork.is_colimit.hom_iso_natural, equiv.apply_symm_apply, equiv.subtype_congr_apply,
+      equiv.subtype_congr_apply, equiv.subtype_congr_apply, equiv.subtype_congr_apply,
+      subtype.coe_mk, subtype.coe_mk, subtype.coe_mk, subtype.coe_mk,
+      ← adj₁.hom_equiv_naturality_right_symm, cofork.is_colimit.hom_iso_natural,
+      adj₂.hom_equiv_naturality_right, functor.comp_map],
 end
 
 end lift_adjoint

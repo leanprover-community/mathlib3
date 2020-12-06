@@ -362,7 +362,7 @@ tendsto_at_top_mono f.le_map_of_map_zero $ tendsto_at_top_add_const_left _ _ $
 
 lemma continuous_iff_surjective : continuous f ↔ function.surjective f :=
 ⟨λ h, surjective_of_continuous h f.tendsto_at_top f.tendsto_at_bot,
-  continuous_of_monotone_surjective f.monotone⟩
+  f.monotone.continuous_of_surjective⟩
 
 /-!
 ### Estimates on `(f^n) x`

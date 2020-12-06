@@ -35,13 +35,16 @@ section has_sum
 variables [add_comm_monoid α] [topological_space α]
 
 /-- Infinite sum on a topological monoid
-The `at_top` filter on `finset α` is the limit of all finite sets towards the entire type. So we sum
-up bigger and bigger sets. This sum operation is still invariant under reordering, and a absolute
-sum operator.
 
-This is based on Mario Carneiro's infinite sum in Metamath.
+The `at_top` filter on `finset β` is the limit of all finite sets towards the entire type. So we sum
+up bigger and bigger sets. This sum operation is invariant under reordering. In particular,
+the function `ℕ → ℝ` sending `n` to `(-1)^n / (n+1)` does not have a
+sum for this definition, but a series which is absolutely convergent will have the correct sum.
 
-For the definition or many statements, α does not need to be a topological monoid. We only add
+This is based on Mario Carneiro's
+[infinite sum `df-tsms` in Metamath](http://us.metamath.org/mpeuni/df-tsms.html).
+
+For the definition or many statements, `α` does not need to be a topological monoid. We only add
 this assumption later, for the lemmas where it is relevant.
 -/
 def has_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, ∑ b in s, f b) at_top (𝓝 a)

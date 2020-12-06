@@ -1682,10 +1682,14 @@ begin
   { exact λ h, ⟨default ι, h.symm⟩ }
 end
 
-lemma range_inter_compl_image_compl_eq_image {f : α → β} (H : injective f) (s : set α) :
-  range f ∩ (f '' sᶜ)ᶜ = f '' s :=
-ext $ λ x, iff.intro (λ ⟨⟨y, h1⟩, h2⟩, ⟨y, by_contra $ λ h, h2 ⟨y, h, h1⟩, h1⟩)
-  (λ ⟨y, h1, h2⟩, ⟨⟨y, h2⟩, λ ⟨z, c1, c2⟩, c1 $ (H $ eq.trans h2 c2.symm).subst h1⟩)
+lemma range_diff_image_subset {f : α → β} (H : injective f) (s : set α) :
+  range f \ f '' s ⊆ f '' sᶜ :=
+λ y ⟨⟨x, h₁⟩, h₂⟩, ⟨x, λ h, h₂ ⟨x, h, h₁⟩, h₁⟩
+
+lemma range_diff_image {f : α → β} (H : injective f) (s : set α) :
+  range f \ f '' s = f '' sᶜ :=
+subset.antisymm (range_diff_image_subset H s) $ λ y ⟨x, hx, hy⟩, hy ▸
+  ⟨mem_range_self _, λ ⟨x', hx', eq⟩, hx $ H eq ▸ hx'⟩
 
 end range
 

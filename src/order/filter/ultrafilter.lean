@@ -266,22 +266,9 @@ The pullback of an ultrafilter along an injection whose image is large
 with respect to the given ultrafilter. -/
 def ultrafilter.comap {m : α → β} (u : ultrafilter β) (inj : function.injective m)
   (large : set.range m ∈ u.1) : ultrafilter α :=
-{ val := filter.comap m u.1,
-  property := begin
-    rw ultrafilter_iff_compl_mem_iff_not_mem',
-    intros S,
-    simp_rw filter.mem_comap_iff inj large,
-    split,
-    { intros h c,
-      replace c := u.1.sets_of_superset c (image_compl_subset inj),
-      erw ultrafilter_iff_compl_mem_iff_not_mem.mp u.2 at c,
-      contradiction },
-    { intros h,
-      rw ← range_inter_compl_image_compl_eq_image inj,
-      refine u.1.inter_sets large _,
-      erw ultrafilter_iff_compl_mem_iff_not_mem.mp u.2,
-      assumption },
-  end }
+⟨comap m u.1, u.2.1.comap_of_range_mem large, λ g hg hgu s hs,
+  (mem_comap_iff inj large).2 $ u.2.2 (g.map m) (hg.map m) (map_le_iff_le_comap.2 hgu)
+    (image_mem_map hs)⟩
 
 /-- The ultra-filter extending the cofinite filter. -/
 noncomputable def hyperfilter : filter α := ultrafilter_of cofinite

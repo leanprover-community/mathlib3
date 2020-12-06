@@ -5,6 +5,7 @@ Author: Kyle Miller.
 -/
 import combinatorics.simple_graph.basic
 import algebra.big_operators.basic
+import tactic.omega
 /-!
 # Degree-sum formula and handshaking lemma
 
@@ -187,6 +188,8 @@ end
 
 theorem card_odd_degree_vertices_is_even [fintype V] : even (univ.filter (λ v, odd (G.degree v))).card :=
 begin
+  classical,
+  have h := G.sum_degrees_eq_twice_card_edges,
   sorry
 end
 
@@ -194,15 +197,32 @@ lemma card_odd_degree_vertices_ne_is_odd [fintype V] [decidable_eq V]
   (v : V) (h : odd (G.degree v)) :
   odd (univ.filter (λ w, w ≠ v ∧ odd (G.degree w))).card :=
 begin
-  sorry
+  rcases G.card_odd_degree_vertices_is_even with ⟨k, hg⟩,
+  have hk : 0 < k,
+  { have hh : (filter (λ (v : V), odd (G.degree v)) univ).nonempty,
+    { use v, simp only [true_and, mem_filter, mem_univ], use h, },
+    rw ←card_pos at hh, rw hg at hh, clear hg, linarith, },
+  have hc : (λ (w : V), w ≠ v ∧ odd (G.degree w)) = (λ (w : V), odd (G.degree w) ∧ w ≠ v),
+  { ext w, rw and_comm, },
+  simp only [hc, filter_congr_decidable],
+  rw [←filter_filter, filter_ne'],
+  rw card_erase_of_mem,
+  use k - 1, rw nat.pred_eq_succ_iff, rw hg, clear hc hg, rw nat.mul_sub_left_distrib, omega,
+  simp only [true_and, mem_filter, mem_univ],
+  exact h,
 end
 
 lemma exists_ne_odd_degree_if_exists_odd [fintype V]
   (v : V) (h : odd (G.degree v)) :
   ∃ (w : V), w ≠ v ∧ odd (G.degree w) :=
 begin
-  sorry
+  haveI : decidable_eq V := by { classical, apply_instance },
+  rcases G.card_odd_degree_vertices_ne_is_odd v h with ⟨k, hg⟩,
+  have hg' : (filter (λ (w : V), w ≠ v ∧ odd (G.degree w)) univ).card > 0,
+  { rw hg, apply nat.succ_pos, },
+  rcases card_pos.mp hg' with ⟨w, hw⟩,
+  simp only [true_and, mem_filter, mem_univ, ne.def] at hw,
+  exact ⟨w, hw⟩,
 end
 
 end simple_graph
-

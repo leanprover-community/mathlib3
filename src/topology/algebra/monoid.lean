@@ -101,6 +101,11 @@ instance [topological_space N] [has_mul N] [has_continuous_mul N] : has_continuo
 ⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
  ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
 
+@[to_additive, priority 100]
+instance has_continuous_mul_of_discrete_topology [topological_space N]
+  [has_mul N] [discrete_topology N] : has_continuous_mul N :=
+⟨continuous_of_discrete_topology⟩
+
 end has_continuous_mul
 
 section has_continuous_mul

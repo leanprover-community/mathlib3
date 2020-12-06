@@ -973,11 +973,11 @@ e.map_at_top.le
 lemma tendsto_at_bot (e : α ≃o β) : tendsto e at_bot at_bot :=
 e.map_at_bot.le
 
-lemma tendsto_at_top_iff {l : filter γ} {f : γ → α} (e : α ≃o β) :
+@[simp] lemma tendsto_at_top_iff {l : filter γ} {f : γ → α} (e : α ≃o β) :
   tendsto (λ x, e (f x)) l at_top ↔ tendsto f l at_top :=
 by rw [← e.comap_at_top, tendsto_comap_iff]
 
-lemma tendsto_at_bot_iff {l : filter γ} {f : γ → α} (e : α ≃o β) :
+@[simp] lemma tendsto_at_bot_iff {l : filter γ} {f : γ → α} (e : α ≃o β) :
   tendsto (λ x, e (f x)) l at_bot ↔ tendsto f l at_bot :=
 e.dual.tendsto_at_top_iff
 

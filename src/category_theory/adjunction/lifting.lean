@@ -15,9 +15,8 @@ import category_theory.monad.coequalizer
 This file gives two constructions for building left adjoints: the adjoint triangle theorem and the
 adjoint lifting theorem.
 The adjoint triangle theorem says that given a functor `U : B ⥤ C` with a left adjoint `F` such
-that `ε_X : FUX ⟶ X` is a coequalizer for the pair `(FUε_X, ε_FUX)` for every `X` (where `ε` is the
-counit of the adjunction `F ⊣ U`). Then for any category `A` with coequalizers of reflexive pairs,
-a functor `R : A ⥤ B` has a left adjoint if the composite `R ⋙ U` does.
+that `ε_X : FUX ⟶ X` is a regular epi. Then for any category `A` with coequalizers of reflexive
+pairs, a functor `R : A ⥤ B` has a left adjoint if (and only if) the composite `R ⋙ U` does.
 Note that the condition on `U` regarding `ε_X` is automatically satisfied in the case when `U` is
 a monadic functor, giving the corollary: `monadic_adjoint_triangle_lift`, i.e. if `U` is monadic,
 `A` has reflexive coequalizers then `R : A ⥤ B` has a left adjoint provided `R ⋙ U` does.
@@ -59,7 +58,27 @@ namespace lift_adjoint
 variables {U : B ⥤ C} {F : C ⥤ B} (R : A ⥤ B) (F' : C ⥤ A)
 variables (adj₁ : F ⊣ U) (adj₂ : F' ⊣ R ⋙ U)
 
-variables (hU : Π (X : B), is_colimit (cofork.of_π (adj₁.counit.app X) (adj₁.counit_naturality _)))
+-- variables (hU : Π (X : B), is_colimit (cofork.of_π (adj₁.counit.app X) (adj₁.counit_naturality _)))
+
+/--
+To show that `ε_X` is a coequalizer for `(FUε_X, ε_FUX)`, it suffices to assume it's always a
+coequalizer of something (i.e. a regular epi).
+-/
+def counit_coequalises [∀ (X : B), regular_epi (adj₁.counit.app X)] (X : B) :
+  is_colimit (cofork.of_π (adj₁.counit.app X) (adj₁.counit_naturality _)) :=
+cofork.is_colimit.mk' _ $ λ s,
+begin
+  refine ⟨(regular_epi.desc' (adj₁.counit.app X) s.π _).1, _, _⟩,
+  { rw ← cancel_epi (adj₁.counit.app (regular_epi.W (adj₁.counit.app X))),
+    rw ← adj₁.counit_naturality_assoc,
+    dsimp only [functor.comp_obj],
+    rw [← s.condition, ← F.map_comp_assoc, ← U.map_comp, regular_epi.w, U.map_comp,
+        F.map_comp_assoc, s.condition, ← adj₁.counit_naturality_assoc] },
+  { apply (regular_epi.desc' (adj₁.counit.app X) s.π _).2 },
+  { intros m hm,
+    rw ← cancel_epi (adj₁.counit.app X),
+    apply hm.trans (regular_epi.desc' (adj₁.counit.app X) s.π _).2.symm }
+end
 
 include adj₁ adj₂
 
@@ -75,26 +94,6 @@ We will show that this coequalizer exists and that it forms the object map for a
 -/
 def other_map (X) : F'.obj (U.obj (F.obj (U.obj X))) ⟶ F'.obj (U.obj X) :=
 F'.map (U.map (F.map (adj₂.unit.app _) ≫ adj₁.counit.app _)) ≫ adj₂.counit.app _
-
-/--
-To show that `ε_X` is a coequalizer like we want it suffices to assume it's always a coequalizer
-of something.
--/
-def thing [∀ (X : B), regular_epi (adj₁.counit.app X)] (X : B) :
-  is_colimit (cofork.of_π (adj₁.counit.app X) (adj₁.counit_naturality _)) :=
-cofork.is_colimit.mk' _ $ λ s,
-begin
-  refine ⟨(regular_epi.desc' (adj₁.counit.app X) s.π _).1, _, _⟩,
-  { rw ← cancel_epi (adj₁.counit.app (regular_epi.W (adj₁.counit.app X))),
-    rw ← adj₁.counit_naturality_assoc,
-    dsimp only [functor.comp_obj],
-    rw [← s.condition, ← F.map_comp_assoc, ← U.map_comp, regular_epi.w, U.map_comp,
-        F.map_comp_assoc, s.condition, ← adj₁.counit_naturality_assoc] },
-  { apply (regular_epi.desc' (adj₁.counit.app X) s.π _).2 },
-  { intros m hm,
-    rw ← cancel_epi (adj₁.counit.app X),
-    apply hm.trans (regular_epi.desc' (adj₁.counit.app X) s.π _).2.symm }
-end
 
 /--
 `(F'Uε_X, other_map X)` is a reflexive pair: in particular if `A` has reflexive coequalizers then
@@ -120,11 +119,10 @@ Construct the object part of the desired left adjoint as the coequalizer of `F'U
 noncomputable def L_obj (Y : B) : A :=
 coequalizer (F'.map (U.map (adj₁.counit.app Y))) (other_map _ _ adj₁ adj₂ Y)
 
-include hU
-
 /-- The homset equivalence which helps show that `R` is a right adjoint. -/
 noncomputable
-def L_equiv (Y : A) (X : B) : (L_obj _ _ adj₁ adj₂ X ⟶ Y) ≃ (X ⟶ R.obj Y) :=
+def L_equiv [∀ (X : B), regular_epi (adj₁.counit.app X)] (Y : A) (X : B) :
+  (L_obj _ _ adj₁ adj₂ X ⟶ Y) ≃ (X ⟶ R.obj Y) :=
 calc (L_obj _ _ adj₁ adj₂ X ⟶ Y)
         ≃ {f : F'.obj (U.obj X) ⟶ Y //
               F'.map (U.map (adj₁.counit.app X)) ≫ f = other_map _ _ adj₁ adj₂ _ ≫ f} :
@@ -151,12 +149,12 @@ calc (L_obj _ _ adj₁ adj₂ X ⟶ Y)
                   F.map_comp, assoc, adj₁.counit_naturality, adj₁.counit_naturality_assoc],
               apply eq_comm,
             end
-  ... ≃ (X ⟶ R.obj Y) : (cofork.is_colimit.hom_iso (hU X) _).symm
+  ... ≃ (X ⟶ R.obj Y) : (cofork.is_colimit.hom_iso (counit_coequalises adj₁ X) _).symm
 
 /-- Construct the left adjoint to `R`, with object map `L_obj`. -/
-noncomputable def construct_left_adjoint : B ⥤ A :=
+noncomputable def construct_left_adjoint [∀ (X : B), regular_epi (adj₁.counit.app X)] : B ⥤ A :=
 begin
-  refine adjunction.left_adjoint_of_equiv (λ X Y, L_equiv R F' adj₁ adj₂ hU Y X) _,
+  refine adjunction.left_adjoint_of_equiv (λ X Y, L_equiv R F' adj₁ adj₂ Y X) _,
   intros X Y Y' g h,
   dsimp [L_equiv, -cofork.is_colimit.hom_iso_symm_apply],
   rw equiv.symm_apply_eq,
@@ -170,36 +168,19 @@ end
 end lift_adjoint
 
 /--
-The adjoint triangle theorem: Suppose `U : B ⥤ C` has a left adjoint `F` such that `ε_X : FUX ⟶ X`
-is a coequalizer for the pair `(FUε_X, ε_FUX)` for every `X` (where `ε` is the counit of the
-adjunction `F ⊣ U`). Then if a category `A` has coequalizers of reflexive pairs, then a functor
-`R : A ⥤ B` has a left adjoint if the composite `R ⋙ U` does.
+The adjoint triangle theorem: Suppose `U : B ⥤ C` has a left adjoint `F` such that each counit
+`ε_X : FUX ⟶ X` is a regular epimorphism. Then if a category `A` has coequalizers of reflexive
+pairs, then a functor `R : A ⥤ B` has a left adjoint if the composite `R ⋙ U` does.
 
 Note the converse is true (with weaker assumptions), by `adjunction.comp`.
 See https://ncatlab.org/nlab/show/adjoint+triangle+theorem
 -/
 noncomputable def adjoint_triangle_lift {U : B ⥤ C} {F : C ⥤ B} (R : A ⥤ B) (adj₁ : F ⊣ U)
-  (hU : Π (X : B), is_colimit (cofork.of_π (adj₁.counit.app X) (adj₁.counit_naturality _)))
+  [Π (X : B), regular_epi (adj₁.counit.app X)]
   [has_reflexive_coequalizers A]
   [is_right_adjoint (R ⋙ U)] : is_right_adjoint R :=
-{ left := lift_adjoint.construct_left_adjoint R _ adj₁ (adjunction.of_right_adjoint _) hU,
+{ left := lift_adjoint.construct_left_adjoint R _ adj₁ (adjunction.of_right_adjoint _),
   adj := adjunction.adjunction_of_equiv_left _ _ }
-
-/--
-If `R ⋙ monad.forget T` has a left adjoint, and the domain of `R` has reflexive coequalizers,
-then `R` has a left adjoint. Note that this is a special case of `monadic_adjoint_triangle_lift`,
-but is helpful for proving that.
--/
-noncomputable def monad_forget_adjoint_triangle_lift (T : B ⥤ B) [monad T]
-  (R : A ⥤ monad.algebra T) [has_reflexive_coequalizers A]
-  [is_right_adjoint (R ⋙ monad.forget T)] :
-  is_right_adjoint R :=
-begin
-  apply adjoint_triangle_lift R (monad.adj T) _,
-  intro A,
-  convert monad.beck_algebra_coequalizer A;
-  tidy,
-end
 
 /--
 If `R ⋙ U` has a left adjoint, the domain of `R` has reflexive coequalizers and `U` is a monadic
@@ -221,14 +202,20 @@ begin
       exactI adjunction.right_adjoint_of_nat_iso this } },
   letI : is_right_adjoint (R' ⋙ monad.forget (left_adjoint U ⋙ U)) :=
     adjunction.right_adjoint_of_nat_iso (iso_whisker_left R (monad.comparison_forget U).symm : _),
-  apply monad_forget_adjoint_triangle_lift _ R',
+  letI : Π X, regular_epi ((monad.adj (left_adjoint U ⋙ U)).counit.app X),
+  { intro X,
+    dsimp only [monad.adj_counit, functor.comp_map, monad.forget_obj, functor.id_obj,
+                functor.comp_obj, monad.free_obj_A],
+    simp only [functor.map_id, id_comp],
+    exact ⟨_, _, _, _, monad.beck_algebra_coequalizer X⟩ },
+  exact adjoint_triangle_lift R' (monad.adj (left_adjoint U ⋙ U)),
 end
 
 variables {D : Type u₄}
 variables [category.{v₄} D]
 
 /--
-Given a commutative square of functors
+Suppose we have a commutative square of functors
 
       Q
     A → B
@@ -236,15 +223,41 @@ Given a commutative square of functors
     C → D
       R
 
-where `U` has a left adjoint, `V` is monadic and `A` has reflexive coequalizers, then if `R` has a
-left adjoint then `Q` has a left adjoint.
+where `U` has a left adjoint, `A` has reflexive coequalizers and `V` has a left adjoint such that
+each component of the counit is a regular epi.
+Then `Q` has a left adjoint if `R` has a left adjoint.
 
 See https://ncatlab.org/nlab/show/adjoint+lifting+theorem
 -/
 noncomputable def adjoint_square_lift (Q : A ⥤ B) (V : B ⥤ D) (U : A ⥤ C) (R : C ⥤ D)
   (comm : U ⋙ R ≅ Q ⋙ V)
-  [is_right_adjoint U] [monadic_right_adjoint V]
-  [has_reflexive_coequalizers A] [is_right_adjoint R] :
+  [is_right_adjoint U] [is_right_adjoint V] [is_right_adjoint R]
+  [∀ X, regular_epi ((adjunction.of_right_adjoint V).counit.app X)]
+  [has_reflexive_coequalizers A] :
+  is_right_adjoint Q :=
+begin
+  let := adjunction.right_adjoint_of_nat_iso comm,
+  exactI adjoint_triangle_lift Q (adjunction.of_right_adjoint V),
+end
+
+/--
+Suppose we have a commutative square of functors
+
+      Q
+    A → B
+  U ↓   ↓ V
+    C → D
+      R
+
+where `U` has a left adjoint, `A` has reflexive coequalizers and `V` is monadic.
+Then `Q` has a left adjoint if `R` has a left adjoint.
+
+See https://ncatlab.org/nlab/show/adjoint+lifting+theorem
+-/
+noncomputable def monadic_adjoint_square_lift (Q : A ⥤ B) (V : B ⥤ D) (U : A ⥤ C) (R : C ⥤ D)
+  (comm : U ⋙ R ≅ Q ⋙ V)
+  [is_right_adjoint U] [monadic_right_adjoint V] [is_right_adjoint R]
+  [has_reflexive_coequalizers A] :
   is_right_adjoint Q :=
 begin
   let := adjunction.right_adjoint_of_nat_iso comm,

@@ -240,7 +240,7 @@ lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v
 by simp [degree, neighbor_finset]
 
 lemma degree_pos_iff_exists_adj : 0 < G.degree v ↔ ∃ w, G.adj v w :=
-by { simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset] }
+by simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset]
 
 instance incidence_set_fintype [decidable_eq V] : fintype (G.incidence_set v) :=
 fintype.of_equiv (G.neighbor_set v) (G.incidence_set_equiv_neighbor_set v).symm

@@ -26,6 +26,8 @@ Naming conventions are essential to work with vector bundles this way.
 
 -/
 
+noncomputable theory
+
 variables {B : Type*}
 
 /--
@@ -44,6 +46,7 @@ open bundle
 
 variables (R : Type*) (E : B → Type*) (F : Type*)
 [comm_semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, semimodule R (E x)]
+[∀ x, topological_space (E x)]
 
 /-- `bundle.dual R E` is the dual bundle. -/
 @[reducible] def bundle.dual := (λ x, module.dual R (E x))
@@ -69,19 +72,61 @@ instance : has_coe (vector_bundle_trivialization R E F) (bundle_trivialization F
 instance : has_coe_to_fun (vector_bundle_trivialization R E F) :=
 ⟨_, λ e, e.to_bundle_trivialization⟩
 
+@[simp] lemma coe_eq_coe_coe {e : vector_bundle_trivialization R E F} :
+  (⇑e : (total_space E) → B × F) = ((e : bundle_trivialization F (proj E)) : (total_space E) → B × F) :=
+rfl
+
+section
+
+def vector_bundle_trivialization.at (e : vector_bundle_trivialization R E F) (b : B)
+  (hb : b ∈ e.base_set):
+  continuous_linear_equiv R (E b) F :=
+{
+  to_fun := λ y, (e.to_fun y).2,
+  inv_fun := λ z, begin let g := (e.to_local_homeomorph.symm ⟨b, z⟩).2,
+    have h : ((e.to_bundle_trivialization.to_local_homeomorph.symm) (b, z)).fst = b := sorry,
+    rw h at g,
+    exact g,
+  end,
+  left_inv := begin
+    intro x,
+    dsimp at *, simp at *,
+    unfold eq.mp,
+  end,
+}
+
+end
+
 variables {I : Type*} (F' : I → Type*) [∀ i, topological_space (F' i)]
 [∀ i, add_comm_monoid (F' i)] [∀ i, semimodule R (F' i)]
 
 /-- Topological vector bundle with varying fiber. `nc` stands for non constant. -/
-class nc_topological_vector_bundle :=
-(fiber_index_at [] : B → I)
-(trivialization_at [] : ∀ b : B, (vector_bundle_trivialization R E (F' (fiber_index_at b))))
-(mem_trivialization_source [] : ∀ x : total_space E, x ∈ (trivialization_at x.1).source)
+class nc_topological_vector_bundle : Prop :=
+(inducing [] : ∀ b : B, inducing (λ x : (E b), (x : total_space E)))
+(locally_trivial [] :
+  ∀ b : B, ∃ i : I, ∃ e : vector_bundle_trivialization R E (F' i), b ∈ e.base_set)
+
+namespace nc_topological_vector_bundle
+
+variable [nc_topological_vector_bundle R E F']
+
+def fiber_index_at : B → I := λ b, classical.some (locally_trivial R E F' b)
+
+def trivialization_at : Π b : B, vector_bundle_trivialization R E (F' (fiber_index_at R E F' b)) :=
+λ b, classical.some (classical.some_spec (locally_trivial R E F' b))
+
+lemma mem_trivialization_base_set : ∀ b : B, b ∈ (trivialization_at R E F' b).base_set :=
+λ b, classical.some_spec (classical.some_spec (locally_trivial R E F' b))
+
+lemma mem_trivialization_source : ∀ z : total_space E, z ∈ (trivialization_at R E F' z.1).source :=
+λ z, begin  end
+
+end nc_topological_vector_bundle
 
 /-- Topological vector bundle of fiber `F`. -/
-class topological_vector_bundle :=
-(trivialization_at [] : B → (vector_bundle_trivialization R E F))
-(mem_trivialization_source [] : ∀ x : total_space E, x ∈ (trivialization_at x.1).source)
+class topological_vector_bundle : Prop :=
+(inducing [] : ∀ b : B, inducing (λ x : (E b), (x : total_space E)))
+(locally_trivial [] : ∀ b : B, ∃ e : vector_bundle_trivialization R E F, b ∈ e.base_set)
 
 instance topological_vector_bundle.nc_topological_vector_bundle [topological_vector_bundle R E F] :
   nc_topological_vector_bundle R E (λ u : unit, F) :=

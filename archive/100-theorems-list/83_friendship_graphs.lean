@@ -3,7 +3,7 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author:  Aaron Anderson, Jalex Stark, Kyle Miller.
 -/
-import combinatorics.adj_matrix
+import combinatorics.simple_graph.adj_matrix
 import linear_algebra.char_poly.coeff
 import data.int.modeq
 import data.zmod.basic

@@ -532,7 +532,7 @@ measurable_of_measurable_on_compl_singleton 0 $ continuous.measurable $
 
 lemma times_cont_diff_on_log {n : with_top ℕ} : times_cont_diff_on ℝ n log {0}ᶜ :=
 begin
-  suffices : times_cont_diff_on ℝ ⊤ log {0}ᶜ, from this.of_le le_top, clear n,
+  suffices : times_cont_diff_on ℝ ⊤ log {0}ᶜ, from this.of_le le_top,
   refine (times_cont_diff_on_top_iff_deriv_of_open is_open_compl_singleton).2 _,
   simp [differentiable_on_log, times_cont_diff_on_inv]
 end

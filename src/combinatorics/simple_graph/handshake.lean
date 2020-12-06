@@ -139,16 +139,22 @@ begin
   simp [G.dart_vert_fiber_card_eq_degree],
 end
 
+lemma dart_edge_fiber (d : G.dart) :
+  (univ.filter (λ (d' : G.dart), G.dart_edge d' = G.dart_edge d)) = {d, G.dart_rev d} :=
+begin
+  ext d',
+  simp only [true_and, mem_filter, mem_insert, mem_univ, mem_singleton],
+  exact G.dart_edge_eq_iff d' d,
+end
+
 lemma dart_edge_fiber_card_eq_2 (e : sym2 V) (h : e ∈ G.edge_set) :
-  (filter (λ (d : G.dart), G.dart_edge d = e) univ).card = 2 :=
+  (univ.filter (λ (d : G.dart), G.dart_edge d = e)).card = 2 :=
 begin
   refine quotient.ind (λ p h, _) e h, cases p with v w,
   let d : G.dart := ⟨v, ⟦(v, w)⟧, h, sym2.mk_has_mem _ _⟩,
   convert_to _ = finset.card {d, G.dart_rev d},
   { rw [card_insert_of_not_mem, card_singleton], simp [G.dart_rev_no_fixedpoints d], },
-  congr, ext d',
-  simp only [true_and, mem_filter, mem_insert, mem_univ, mem_singleton],
-  exact G.dart_edge_eq_iff d' d,
+  congr, apply G.dart_edge_fiber d,
 end
 
 lemma dart_card_eq_twice_card_edges : fintype.card G.dart = 2 * G.edge_finset.card :=

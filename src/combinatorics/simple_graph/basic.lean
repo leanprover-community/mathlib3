@@ -65,7 +65,7 @@ symmetrizes the relation and makes it irreflexive.
 -/
 def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :=
 { adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
-  sym := λ a b ⟨hn, hr⟩, ⟨ne.symm hn, or.symm hr⟩,
+  sym := λ a b ⟨hn, hr⟩, ⟨hn.symm hn, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
 
 @[simp]

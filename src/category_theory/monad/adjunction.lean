@@ -96,6 +96,7 @@ end
 instance [reflective R] (X : monad.algebra ((left_adjoint R) ⋙ R)) :
   is_iso ((is_right_adjoint.adj : _ ⊣ R).unit.app X.A) :=
 let L := left_adjoint R in
+let h : L ⊣ R := (is_right_adjoint.adj) in
 { inv := X.a,
   hom_inv_id' := X.unit,
   inv_hom_id' :=

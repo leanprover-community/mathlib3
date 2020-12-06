@@ -296,14 +296,9 @@ real.young_inequality_of_nonneg a.coe_nonneg b.coe_nonneg ⟨hp, nnreal.coe_eq.2
 theorem young_inequality_real (a b : ℝ≥0) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
   a * b ≤ a ^ p / nnreal.of_real p + b ^ q / nnreal.of_real q :=
 begin
-  have hp : 1 < nnreal.of_real p,
-  { rw [←of_real_one, of_real_lt_of_real_iff hpq.pos], exact hpq.one_lt, },
-  have hpq_nnreal : 1 / nnreal.of_real p + 1 / nnreal.of_real q = 1,
-  { rw [←of_real_one, ←of_real_div' hpq.nonneg, ←of_real_div' hpq.symm.nonneg,
-      ←of_real_add hpq.one_div_nonneg hpq.symm.one_div_nonneg, hpq.inv_add_inv_conj], },
   nth_rewrite 0 ←coe_of_real p hpq.nonneg,
   nth_rewrite 0 ←coe_of_real q hpq.symm.nonneg,
-  exact young_inequality a b hp hpq_nnreal,
+  exact young_inequality a b hpq.one_lt_nnreal hpq.inv_add_inv_conj_nnreal,
 end
 
 /-- Hölder inequality: the scalar product of two functions is bounded by the product of their

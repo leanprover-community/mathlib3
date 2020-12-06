@@ -644,6 +644,10 @@ begin
     exact PK (pullback_arrows f R) (K.pullbacks f R hR) }
 end
 
+/-- Any presheaf is a sheaf for the bottom (trivial) grothendieck topology. -/
+lemma is_sheaf_bot : is_sheaf (⊥ : grothendieck_topology C) P :=
+λ X, by simp [is_sheaf_for_top_sieve]
+
 end presieve
 
 namespace equalizer
@@ -846,18 +850,27 @@ variables (J : grothendieck_topology C)
 def Sheaf (J : grothendieck_topology C) : Type (max u (v+1)) :=
 {P : Cᵒᵖ ⥤ Type v // presieve.is_sheaf J P}
 
-instance : inhabited (Sheaf (⊥ : grothendieck_topology C)) :=
-⟨⟨(functor.const _).obj punit,
-  λ X S hS,
-  begin
-    simp only [grothendieck_topology.bot_covering] at hS,
-    subst hS,
-    apply presieve.is_sheaf_for_top_sieve,
-  end⟩⟩
-
 /-- The inclusion functor from sheaves to presheaves. -/
 @[simps {rhs_md := semireducible}, derive [full, faithful]]
 def Sheaf_to_presheaf : Sheaf J ⥤ (Cᵒᵖ ⥤ Type v) :=
 full_subcategory_inclusion (presieve.is_sheaf J)
+
+/--
+The category of sheaves on the bottom (trivial) grothendieck topology is equivalent to the category
+of presheaves.
+-/
+@[simps]
+def Sheaf_bot_equiv : Sheaf (⊥ : grothendieck_topology C) ≌ (Cᵒᵖ ⥤ Type v) :=
+{ functor := Sheaf_to_presheaf _,
+  inverse :=
+  { obj := λ P, ⟨P, presieve.is_sheaf_bot⟩,
+    map := λ P₁ P₂ f, (Sheaf_to_presheaf _).preimage f },
+  unit_iso :=
+  { hom := { app := λ _, 𝟙 _ },
+    inv := { app := λ _, 𝟙 _ } },
+  counit_iso := iso.refl _ }
+
+instance : inhabited (Sheaf (⊥ : grothendieck_topology C)) :=
+⟨Sheaf_bot_equiv.inverse.obj ((functor.const _).obj punit)⟩
 
 end category_theory

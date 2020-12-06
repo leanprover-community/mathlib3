@@ -673,6 +673,9 @@ lemma cluster_pt.of_inf_right {x : α} {f g : filter α} (H : cluster_pt x $ f �
   cluster_pt x g :=
 H.mono inf_le_right
 
+lemma ultrafilter.cluster_pt_iff {x : α} {f : ultrafilter α} : cluster_pt x f ↔ ↑f ≤ 𝓝 x :=
+⟨f.le_of_inf_ne_bot', λ h, cluster_pt.of_le_nhds h⟩
+
 /-- A point `x` is a cluster point of a sequence `u` along a filter `F` if it is a cluster point
 of `map u F`. -/
 def map_cluster_pt {ι :Type*} (x : α) (F : filter ι) (u : ι → α) : Prop := cluster_pt x (map u F)
@@ -726,8 +729,8 @@ lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ ∀a∈s, s ∈ 𝓝 a :
 is_open_iff_nhds.trans $ forall_congr $ λ _, imp_congr_right $ λ _, le_principal_iff
 
 theorem is_open_iff_ultrafilter {s : set α} :
-  is_open s ↔ (∀ (x ∈ s) (l : filter α), is_ultrafilter l → l ≤ 𝓝 x → s ∈ l) :=
-by simp_rw [is_open_iff_mem_nhds, @mem_iff_ultrafilter _ (𝓝 _)]
+  is_open s ↔ (∀ (x ∈ s) (l : ultrafilter α), ↑l ≤ 𝓝 x → s ∈ l) :=
+by simp_rw [is_open_iff_mem_nhds, ← mem_iff_ultrafilter]
 
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
@@ -773,12 +776,8 @@ mem_closure_iff_nhds.trans
 /-- `x` belongs to the closure of `s` if and only if some ultrafilter
   supported on `s` converges to `x`. -/
 lemma mem_closure_iff_ultrafilter {s : set α} {x : α} :
-  x ∈ closure s ↔ ∃ (u : ultrafilter α), s ∈ u.val ∧ u.val ≤ 𝓝 x :=
-begin
-  rw closure_eq_cluster_pts, change cluster_pt x (𝓟 s) ↔ _, symmetry,
-  convert exists_ultrafilter_iff _, ext u,
-  rw [←le_principal_iff, inf_comm, le_inf_iff]
-end
+  x ∈ closure s ↔ ∃ (u : ultrafilter α), s ∈ u ∧ ↑u ≤ 𝓝 x :=
+by simp [closure_eq_cluster_pts, cluster_pt, ← exists_ultrafilter_iff, and.comm]
 
 lemma is_closed_iff_cluster_pt {s : set α} : is_closed s ↔ ∀a, cluster_pt a (𝓟 s) → a ∈ s :=
 calc is_closed s ↔ closure s ⊆ s : closure_subset_iff_is_closed.symm
@@ -862,12 +861,11 @@ If `f` is a filter satisfying `ne_bot f`, then `Lim' f` is a limit of the filter
 -/
 def Lim' (f : filter α) [ne_bot f] : α := @Lim _ _ (nonempty_of_ne_bot f) f
 
--- Note: `ultrafilter` is inside the `filter` namespace.
 /--
 If `F` is an ultrafilter, then `filter.ultrafilter.Lim F` is a limit of the filter, if it exists.
 Note that dot notation `F.Lim` can be used for `F : ultrafilter α`.
 -/
-def filter.ultrafilter.Lim : ultrafilter α → α := λ F, Lim' F.1
+def ultrafilter.Lim : ultrafilter α → α := λ F, Lim' F
 
 /-- If `f` is a filter in `β` and `g : β → α` is a function, then `lim f` is a limit of `g` at `f`,
 if it exists. -/
@@ -1041,12 +1039,12 @@ lemma is_closed.preimage {f : α → β} (hf : continuous f) {s : set β} (h : i
   is_closed (f ⁻¹' s) :=
 continuous_iff_is_closed.mp hf s h
 
-lemma continuous_at_iff_ultrafilter {f : α → β} (x) : continuous_at f x ↔
-  ∀ g, is_ultrafilter g → g ≤ 𝓝 x → g.map f ≤ 𝓝 (f x) :=
+lemma continuous_at_iff_ultrafilter {f : α → β} {x} : continuous_at f x ↔
+  ∀ g : ultrafilter α, ↑g ≤ 𝓝 x → tendsto f g (𝓝 (f x)) :=
 tendsto_iff_ultrafilter f (𝓝 x) (𝓝 (f x))
 
 lemma continuous_iff_ultrafilter {f : α → β} :
-  continuous f ↔ ∀ x g, is_ultrafilter g → g ≤ 𝓝 x → g.map f ≤ 𝓝 (f x) :=
+  continuous f ↔ ∀ x (g : ultrafilter α), ↑g ≤ 𝓝 x → tendsto f g (𝓝 (f x)) :=
 by simp only [continuous_iff_continuous_at, continuous_at_iff_ultrafilter]
 
 /-- A piecewise defined function `if p then f else g` is continuous, if both `f` and `g`
@@ -1086,7 +1084,7 @@ by rw [this]; exact is_closed_union
   (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hg s hs)
 
 
-/- Continuity and partial functions -/
+/-! ### Continuity and partial functions -/
 
 /-- Continuity of a partial function -/
 def pcontinuous (f : α →. β) := ∀ s, is_open s → is_open (f.preimage s)

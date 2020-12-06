@@ -14,7 +14,7 @@ In this file we define
 * `ultrafilter.of`: an ultrafilter that is less than or equal to a given filter;
 * `ultrafilter`: subtype of ultrafilters;
 * `ultrafilter.pure`: `pure x` as an `ultrafiler`;
-* `ultrafilter.map`, `ultrafilter.bind` : operations on ultrafilters;
+* `ultrafilter.map`, `ultrafilter.bind`, `ultrafilter.comap` : operations on ultrafilters;
 * `hyperfilter`: the ultra-filter extending the cofinite filter.
 -/
 
@@ -104,8 +104,8 @@ lemma eventually_imp : (∀ᶠ x in f, p x → q x) ↔ (∀ᶠ x in f, p x) →
 by simp only [imp_iff_not_or, eventually_or, eventually_not]
 
 lemma finite_sUnion_mem_iff {s : set (set α)} (hs : finite s) : ⋃₀ s ∈ f ↔ ∃t∈s, t ∈ f :=
-finite.induction_on hs (by simpa using empty_nmem_sets (f : filter α)) $
-  λ a s ha hs his, by simp [union_mem_iff, his, or_and_distrib_right, exists_or_distrib]
+finite.induction_on hs (by simp) $ λ a s ha hs his,
+  by simp [union_mem_iff, his, or_and_distrib_right, exists_or_distrib]
 
 lemma finite_bUnion_mem_iff {is : set β} {s : β → set α} (his : finite is) :
   (⋃i∈is, s i) ∈ f ↔ ∃i∈is, s i ∈ f :=
@@ -125,6 +125,8 @@ of_compl_not_mem_iff (map m f) $ λ s, @compl_not_mem_iff _ f (m ⁻¹' s)
 instance : has_pure ultrafilter :=
 ⟨λ α a, of_compl_not_mem_iff (pure a) $ λ s, by simp⟩
 
+@[simp] lemma mem_pure_sets {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
+
 instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
 
 /-- Monadic bind for ultra-filters, coming from the one on filters
@@ -143,7 +145,7 @@ local attribute [instance] filter.monad filter.is_lawful_monad
 
 instance ultrafilter.is_lawful_monad : is_lawful_monad ultrafilter :=
 { id_map := assume α f, coe_injective (id_map f.1),
-  pure_bind := assume α β a f, coe_injective (pure_bind a (subtype.val ∘ f)),
+  pure_bind := assume α β a f, coe_injective (pure_bind a (coe ∘ f)),
   bind_assoc := assume α β γ f m₁ m₂, coe_injective (filter_eq rfl),
   bind_pure_comp_eq_map := assume α β f x, coe_injective (bind_pure_comp_eq_map f x.1) }
 
@@ -235,6 +237,14 @@ by simpa only [tendsto_iff_comap] using le_iff_ultrafilter
 
 lemma exists_ultrafilter_iff {f : filter α} : (∃ (u : ultrafilter α), ↑u ≤ f) ↔ ne_bot f :=
 ⟨λ ⟨u, uf⟩, ne_bot_of_le uf, λ h, @exists_ultrafilter_le _ _ h⟩
+
+lemma forall_ne_bot_le_iff {g : filter α} {p : filter α → Prop} (hp : monotone p) :
+  (∀ f : filter α, ne_bot f → f ≤ g → p f) ↔ ∀ f : ultrafilter α, ↑f ≤ g → p f :=
+begin
+  refine ⟨λ H f hf, H f f.ne_bot hf, _⟩,
+  introsI H f hf hfg,
+  exact hp (of_le f) (H _ ((of_le f).trans hfg))
+end
 
 section hyperfilter
 

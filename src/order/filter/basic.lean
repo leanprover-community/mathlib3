@@ -506,8 +506,14 @@ lemma ne_bot.nonempty_of_mem {f : filter α} (hf : ne_bot f) {s : set α} (hs : 
   s.nonempty :=
 @nonempty_of_mem_sets α f hf s hs
 
+@[simp] lemma empty_nmem_sets (f : filter α) [ne_bot f] : ¬(∅ ∈ f) :=
+λ h, (nonempty_of_mem_sets h).ne_empty rfl
+
 lemma nonempty_of_ne_bot (f : filter α) [ne_bot f] : nonempty α :=
 nonempty_of_exists $ nonempty_of_mem_sets (univ_mem_sets : univ ∈ f)
+
+lemma compl_not_mem_sets {f : filter α} {s : set α} [ne_bot f] (h : s ∈ f) : sᶜ ∉ f :=
+λ hsc, (nonempty_of_mem_sets (inter_mem_sets h hsc)).ne_empty $ inter_compl_self s
 
 lemma filter_eq_bot_of_not_nonempty (f : filter α) (ne : ¬ nonempty α) : f = ⊥ :=
 empty_in_sets_eq_bot.mp $ univ_mem_sets' $ assume x, false.elim (ne ⟨x⟩)
@@ -925,12 +931,7 @@ notation `∃ᶠ` binders ` in ` f `, ` r:(scoped p, filter.frequently p f) := r
 
 lemma eventually.frequently {f : filter α} [ne_bot f] {p : α → Prop} (h : ∀ᶠ x in f, p x) :
   ∃ᶠ x in f, p x :=
-begin
-  assume h',
-  have := h.and h',
-  simp only [and_not_self, eventually_false_iff_eq_bot] at this,
-  contradiction
-end
+compl_not_mem_sets h
 
 lemma frequently_of_forall {f : filter α} [ne_bot f] {p : α → Prop} (h : ∀ x, p x) :
   ∃ᶠ x in f, p x :=
@@ -1600,11 +1601,17 @@ end
 lemma comap_ne_bot {f : filter β} {m : α → β} (hm : ∀t∈ f, ∃a, m a ∈ t) : ne_bot (comap m f) :=
 comap_ne_bot_iff.mpr hm
 
+lemma comap_ne_bot_iff_frequently {f : filter β} {m : α → β} :
+  ne_bot (comap m f) ↔ ∃ᶠ y in f, y ∈ range m :=
+by simp [comap_ne_bot_iff, frequently_iff, ← exists_and_distrib_left, and.comm]
+
+lemma comap_ne_bot_iff_compl_range {f : filter β} {m : α → β} :
+  ne_bot (comap m f) ↔ (range m)ᶜ ∉ f :=
+comap_ne_bot_iff_frequently
+
 lemma ne_bot.comap_of_range_mem {f : filter β} {m : α → β}
   (hf : ne_bot f) (hm : range m ∈ f) : ne_bot (comap m f) :=
-comap_ne_bot $ assume t ht,
-  let ⟨_, ha, a, rfl⟩ := hf.nonempty_of_mem (inter_mem_sets ht hm)
-  in ⟨a, ha⟩
+comap_ne_bot_iff_frequently.2 $ eventually.frequently hm
 
 lemma comap_inf_principal_ne_bot_of_image_mem {f : filter β} {m : α → β}
   (hf : ne_bot f) {s : set α} (hs : m '' s ∈ f) :

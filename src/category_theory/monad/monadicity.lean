@@ -227,7 +227,7 @@ begin
   let : Π (X : algebra (left_adjoint G ⋙ G)),
     is_iso ((adjunction.of_right_adjoint (comparison G)).unit.app X),
   { intro X,
-    apply is_iso_of_reflects_iso _ (monad.forget (F ⋙ G)),
+    apply is_iso_of_reflects_iso (monad.forget (F ⋙ G)) _,
     { change is_iso (comparison_adjunction.unit.app X).f,
       rw comparison_adjunction_unit_f,
       change
@@ -315,7 +315,7 @@ begin
   let : Π (X : algebra (left_adjoint G ⋙ G)),
     is_iso ((adjunction.of_right_adjoint (comparison G)).unit.app X),
   { intro X,
-    apply is_iso_of_reflects_iso _ (monad.forget (F ⋙ G)),
+    apply is_iso_of_reflects_iso (monad.forget (F ⋙ G)) _,
     { change is_iso (comparison_adjunction.unit.app X).f,
       rw comparison_adjunction_unit_f,
       change

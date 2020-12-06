@@ -236,6 +236,10 @@ begin
     simpa [g.map_swap (v ∘ s) hxy, equiv.perm.sign_swap hxy] using hI, }
 end
 
+lemma map_perm' [fintype ι] (v : ι → M) (σ : equiv.perm ι) :
+  g (λ i, v (σ i)) = (equiv.perm.sign σ : ℤ) • g v :=
+g.map_perm v σ
+
 lemma map_congr_perm [fintype ι] (σ : equiv.perm ι) :
   g v = (equiv.perm.sign σ : ℤ) • g (v ∘ σ) :=
 by { rw [g.map_perm, smul_smul], simp }
@@ -254,6 +258,45 @@ def sum_split_func {α β γ : Type*} : (α ⊕ β → γ) ≃ (α → γ) × (�
   right_inv := λ f, by simp }
 
 def finvec_split {n m} {α : Sort*} (f : fin (n + m) → α) : pprod (fin n → α) (fin m → α) := sorry
+
+
+namespace equiv
+
+@[simp] lemma sum_congr_swap_left {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : α) :
+  equiv.sum_congr (equiv.swap i j) (1 : equiv.perm β) = equiv.swap (sum.inl i) (sum.inl j) :=
+begin
+  by_cases h : i = j,
+  { simp [h, swap_self _], erw [sum_congr_refl], },
+  ext,
+  simp [sum_congr_apply],
+  cases x,
+  { simp,
+    rw swap_eq_update,
+    rw swap_eq_update,
+    rw function.update_comm (ne.symm h),
+    revert x,
+    rw ←function.funext_iff,
+    rw function.update_comp_eq_of_injective' _ (sum.injective_inl),
+    rw function.update_comp_eq_of_injective' _ (sum.injective_inl),
+    simp,
+    sorry, apply_instance, apply_instance },
+  { simp,
+    rw swap_eq_update,
+    revert x,
+    rw ←function.funext_iff,
+    rw function.update_comp_eq_of_not_mem_range',
+    rw function.update_comp_eq_of_not_mem_range',
+    { refl },
+    { simp },
+    { simp }, },
+end
+
+
+@[simp] lemma sum_congr_swap_right {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : β) :
+  equiv.sum_congr (1 : equiv.perm α) (equiv.swap i j) = equiv.swap (sum.inr i) (sum.inr j) :=
+begin
+  sorry
+end
 
 namespace alternating_map
 
@@ -308,6 +351,83 @@ def mul_fin {n m} {R : Type*} {M N : Type*}
     ∑ σ : shuffle m n, (σ.to_perm.sign : ℤ) • (ab.dom_dom_congr σ.val) v,
   map_add' := λ v i p q, by simp_rw [←finset.sum_add_distrib, ←smul_add, multilinear_map.map_add],
   map_smul' := λ v i c p, by simp_rw [finset.smul_sum, ←smul_comm, multilinear_map.map_smul],
+  map_eq_zero_of_eq' := λ v i j h hij, begin
+    sorry
+  end }
+
+
+def mod_sum_congr (α β : Type*) : setoid (equiv.perm (α ⊕ β)) :=
+{ r := λ σ₁ σ₂, ∃ (sl : equiv.perm α) (sr : equiv.perm β), σ₁ = σ₂ * (equiv.sum_congr sl sr : equiv.perm (α ⊕ β)),
+  iseqv := ⟨
+    λ σ, ⟨1, 1, by simp [equiv.perm.mul_def, equiv.perm.one_def]⟩,
+    λ σ₁ σ₂ ⟨sl, sr, h⟩, ⟨sl⁻¹, sr⁻¹, by {
+      rw [h, mul_assoc],
+      simp [equiv.perm.mul_def, equiv.perm.inv_def]}⟩,
+    λ σ₁ σ₂ σ₃ ⟨sl₁₂, sr₁₂, h₁₂⟩ ⟨sl₂₃, sr₂₃, h₂₃⟩, ⟨sl₂₃ * sl₁₂, sr₂₃ * sr₁₂, by {
+      rw [h₁₂, h₂₃, mul_assoc],
+      simp [equiv.perm.mul_def, equiv.perm.inv_def]}⟩
+⟩}
+
+instance {α β : Type*} [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
+  decidable_rel (mod_sum_congr α β).r :=
+λ σ₁ σ₂, fintype.decidable_exists_fintype
+
+
+@[simp] lemma sign_sum_congr {α β : Type*} [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] (σa : equiv.perm α) (σb : equiv.perm β) :
+  equiv.perm.sign (equiv.sum_congr σa σb) = σa.sign * σb.sign :=
+begin
+  suffices : equiv.perm.sign (equiv.sum_congr σa 1) = σa.sign ∧
+             equiv.perm.sign (equiv.sum_congr 1 σb) = σb.sign,
+  { rw [←this.1, ←this.2, ←equiv.perm.sign_mul],
+    simp only [equiv.perm.mul_def, equiv.perm.one_def],
+    rw [equiv.sum_congr_trans],
+    congr, },
+  split,
+  { apply σa.swap_induction_on _ (λ σa' a₁ a₂ ha ih, _),
+    { erw [equiv.sum_congr_refl], simp },
+    { erw [←one_mul (1 : equiv.perm β), ←equiv.sum_congr_trans, equiv.perm.sign_mul,
+           equiv.perm.sign_mul, ih],
+      congr,
+      rw perm.sign_swap ha,
+      erw equiv.sum_congr_swap_left,
+      exact perm.sign_swap (sum.injective_inl.ne_iff.mpr ha), }, },
+  { apply σb.swap_induction_on _ (λ σb' b₁ b₂ hb ih, _),
+    { erw [equiv.sum_congr_refl], simp },
+    { erw [←one_mul (1 : equiv.perm α), ←equiv.sum_congr_trans, equiv.perm.sign_mul,
+           equiv.perm.sign_mul, ih],
+      congr,
+      rw perm.sign_swap hb,
+      erw equiv.sum_congr_swap_right,
+      exact perm.sign_swap (sum.injective_inr.ne_iff.mpr hb), }, }
+end
+
+
+def mul_general {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
+  {R : Type*} {M N : Type*}
+  [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
+  (a : alternating_map R M N ιa) (b : alternating_map R M N ιb) :
+  alternating_map R M N (ιa ⊕ ιb) :=
+{ to_fun :=
+    let ab := (algebra.lmul' R).comp_multilinear_map
+      $ multilinear_map.dom_coprod a.to_multilinear_map b.to_multilinear_map in
+    λ (v),
+    ∑ σ : quotient (mod_sum_congr ιa ιb),
+      σ.lift_on' (λ σ, (σ.sign : ℤ) • (ab.dom_dom_congr σ) v) (λ σ₁ σ₂ h, begin
+        dsimp only [ab],
+        dsimp [mod_sum_congr] at h,
+        obtain ⟨sl, sr, rfl⟩ := h,
+        simp only [algebra.lmul'_apply, linear_map.coe_comp_multilinear_map, coe_multilinear_map, function.comp_app,
+  multilinear_map.dom_dom_congr_apply, to_multilinear_map_eq_coe, equiv.perm.sign_mul, multilinear_map.dom_coprod_apply,
+  units.coe_mul],
+        rw mul_smul,
+        congr' 1,
+        rw sign_sum_congr,
+        rw [units.coe_mul, mul_smul, ←algebra.mul_smul_comm, ←algebra.smul_mul_assoc],
+        erw [a.map_perm' (λ i, v (σ₂ (sum.inl i))), b.map_perm' (λ i, v (σ₂ (sum.inr i)))],
+        simp only [smul_smul, int.units_coe_mul_self, one_smul],
+      end),
+  map_add' := λ v i p q, by sorry,
+  map_smul' := λ v i c p, by sorry,
   map_eq_zero_of_eq' := λ v i j h hij, begin
     sorry
   end }

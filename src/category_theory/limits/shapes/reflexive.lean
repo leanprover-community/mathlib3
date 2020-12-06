@@ -10,7 +10,7 @@ import category_theory.limits.shapes.kernel_pair
 /-!
 # Reflexive coequalizers
 
-We define reflexive pairs as a pair of morphisms which as a common section. We say a category has
+We define reflexive pairs as a pair of morphisms which have a common section. We say a category has
 reflexive coequalizers if it has coequalizers of all reflexive pairs.
 Reflexive coequalizers often enjoy nicer properties than general coequalizers, and feature heavily
 in some versions of the monadicity theorem.
@@ -146,11 +146,13 @@ begin
 end
 
 /-- If `C` has coequalizers, then it has reflexive coequalizers. -/
+@[priority 100]
 instance has_reflexive_coequalizers_of_has_coequalizers [has_coequalizers C] :
   has_reflexive_coequalizers C :=
 { has_coeq := λ A B f g i, by apply_instance }
 
 /-- If `C` has equalizers, then it has coreflexive equalizers. -/
+@[priority 100]
 instance has_coreflexive_equalizers_of_has_equalizers [has_equalizers C] :
   has_coreflexive_equalizers C :=
 { has_eq := λ A B f g i, by apply_instance }

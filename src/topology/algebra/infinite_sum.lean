@@ -610,7 +610,7 @@ variables {R : Type*}
 {f : β → α}
 
 lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
-has_sum.map hf ⟨λ y, r • y, smul_zero _, smul_add _⟩ (continuous.smul continuous_const continuous_id)
+has_sum.map hf (const_smul_hom r) (continuous_const.smul continuous_id)
 
 lemma summable.smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
 (hf.has_sum.smul).summable

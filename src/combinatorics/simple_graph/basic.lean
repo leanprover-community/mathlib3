@@ -161,7 +161,7 @@ fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 by tauto
 
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
-by { simp [incidence_set] }
+by simp [incidence_set]
 
 lemma mem_incidence_iff_neighbor {v w : V} : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ w ∈ G.neighbor_set v :=
 by simp only [mem_incidence_set, mem_neighbor_set]

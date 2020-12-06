@@ -500,13 +500,38 @@ def sum_congr {α₁ β₁ α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β�
   (equiv.sum_congr e f).trans (equiv.sum_congr g h) = (equiv.sum_congr (e.trans g) (f.trans h)) :=
 by { ext i, cases i; refl }
 
-@[simp] lemma sum_congr_symm {α β γ δ : Type u} (e : α ≃ β) (f : γ ≃ δ) :
+@[simp] lemma sum_congr_symm {α β γ δ : Sort*} (e : α ≃ β) (f : γ ≃ δ) :
   (equiv.sum_congr e f).symm = (equiv.sum_congr (e.symm) (f.symm)) :=
 rfl
 
 @[simp] lemma sum_congr_refl {α β : Sort*} :
   equiv.sum_congr (equiv.refl α) (equiv.refl β) = equiv.refl (α ⊕ β) :=
 by { ext i, cases i; refl }
+
+namespace perm
+
+/-- Combine a permutation of `α` and of `β` into a permutation of `α ⊕ β`. -/
+@[reducible]
+def sum_congr {α β : Type*} (ea : equiv.perm α) (eb : equiv.perm β) : equiv.perm (α ⊕ β) :=
+equiv.sum_congr ea eb
+
+@[simp] lemma sum_congr_apply {α β : Type*} (ea : equiv.perm α) (eb : equiv.perm β) (x : α ⊕ β) :
+  sum_congr ea eb x = sum.map ⇑ea ⇑eb x := equiv.sum_congr_apply ea eb x
+
+@[simp] lemma sum_congr_trans {α β : Sort*}
+  (e : equiv.perm α) (f : equiv.perm β) (g : equiv.perm α) (h : equiv.perm β) :
+  (sum_congr e f).trans (sum_congr g h) = sum_congr (e.trans g) (f.trans h) :=
+equiv.sum_congr_trans e f g h
+
+@[simp] lemma sum_congr_symm {α β : Sort*} (e : equiv.perm α) (f : equiv.perm β) :
+  (sum_congr e f).symm = sum_congr (e.symm) (f.symm) :=
+equiv.sum_congr_symm e f
+
+@[simp] lemma sum_congr_refl {α β : Sort*} :
+  sum_congr (equiv.refl α) (equiv.refl β) = equiv.refl (α ⊕ β) :=
+equiv.sum_congr_refl
+
+end perm
 
 /-- `bool` is equivalent the sum of two `punit`s. -/
 def bool_equiv_punit_sum_punit : bool ≃ punit.{u+1} ⊕ punit.{v+1} :=
@@ -740,6 +765,28 @@ by { ext1 x, cases x, refl }
 @[simp] lemma sigma_congr_right_refl {α} {β : α → Sort*} :
   (sigma_congr_right (λ a, equiv.refl (β a))) = equiv.refl (Σ a, β a) :=
 by { ext1 x, cases x, refl }
+
+namespace perm
+
+/-- A family of permutations `Π a, perm (β a)` generates a permuation `perm (Σ a, β₁ a)`. -/
+@[reducible]
+def sigma_congr_right {α} {β : α → Sort*} (F : Π a, perm (β a)) : perm (Σ a, β a) :=
+equiv.sigma_congr_right F
+
+@[simp] lemma sigma_congr_right_trans {α} {β : α → Sort*}
+  (F : Π a, perm (β a)) (G : Π a, perm (β a)) :
+  (sigma_congr_right F).trans (sigma_congr_right G) = sigma_congr_right (λ a, (F a).trans (G a)) :=
+equiv.sigma_congr_right_trans F G
+
+@[simp] lemma sigma_congr_right_symm {α} {β : α → Sort*} (F : Π a, perm (β a)) :
+  (sigma_congr_right F).symm = sigma_congr_right (λ a, (F a).symm) :=
+equiv.sigma_congr_right_symm F
+
+@[simp] lemma sigma_congr_right_refl {α} {β : α → Sort*} :
+  (sigma_congr_right (λ a, equiv.refl (β a))) = equiv.refl (Σ a, β a) :=
+equiv.sigma_congr_right_refl
+
+end perm
 
 /-- An equivalence `f : α₁ ≃ α₂` generates an equivalence between `Σ a, β (f a)` and `Σ a, β a`. -/
 @[simps apply]

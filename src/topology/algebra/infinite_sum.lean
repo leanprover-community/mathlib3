@@ -613,7 +613,7 @@ lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f 
 has_sum.map hf (const_smul_hom α r) (continuous_const.smul continuous_id)
 
 lemma summable.smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
-(hf.has_sum.smul).summable
+hf.has_sum.smul.summable
 
 lemma tsum_smul [t2_space α] {r : R} (hf : summable f) : (∑' z, r • f z) = r • (∑' z, f z) :=
 hf.has_sum.smul.tsum_eq

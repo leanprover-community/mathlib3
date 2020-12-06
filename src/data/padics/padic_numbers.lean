@@ -158,7 +158,6 @@ else by simp [norm, hf, padic_norm.nonneg]
 lemma lift_index_left_left {f : padic_seq p} (hf : ¬ f ≈ 0) (v2 v3 : ℕ) :
   padic_norm p (f (stationary_point hf)) =
     padic_norm p (f (max (stationary_point hf) (max v2 v3))) :=
-let i := max (stationary_point hf) (max v2 v3) in
 begin
   apply stationary_point_spec hf,
   { apply le_max_left },
@@ -169,7 +168,6 @@ end
 lemma lift_index_left {f : padic_seq p} (hf : ¬ f ≈ 0) (v1 v3 : ℕ) :
   padic_norm p (f (stationary_point hf)) =
     padic_norm p (f (max v1 (max (stationary_point hf) v3))) :=
-let i := max v1 (max (stationary_point hf) v3) in
 begin
   apply stationary_point_spec hf,
   { apply le_trans,
@@ -182,7 +180,6 @@ end
 lemma lift_index_right {f : padic_seq p} (hf : ¬ f ≈ 0) (v1 v2 : ℕ) :
   padic_norm p (f (stationary_point hf)) =
     padic_norm p (f (max v1 (max v2 (stationary_point hf)))) :=
-let i := max v1 (max v2 (stationary_point hf)) in
 begin
   apply stationary_point_spec hf,
   { apply le_trans,

@@ -127,9 +127,7 @@ ext $ assume b, rfl
 
 /-- Restrict domain and codomain of an endomorphism. -/
 def restrict (f : M →ₗ[R] M) {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) : p →ₗ[R] p :=
-{ to_fun := λ x, ⟨f x, hf x.1 x.2⟩,
-  map_add' := begin intros, apply set_coe.ext, simp end,
-  map_smul' := begin intros, apply set_coe.ext, simp end }
+(f.dom_restrict p).cod_restrict p $ submodule.forall.2 hf
 
 lemma restrict_apply
   {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) (x : p) :

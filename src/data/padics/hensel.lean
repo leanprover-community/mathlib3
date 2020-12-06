@@ -49,7 +49,7 @@ open filter metric
 private lemma comp_tendsto_lim {p : ℕ} [fact p.prime] {F : polynomial ℤ_[p]}
   (ncs : cau_seq ℤ_[p] norm) :
   tendsto (λ i, F.eval (ncs i)) at_top (𝓝 (F.eval ncs.lim)) :=
-(F.continuous_eval.tendsto _).comp ncs.tendsto_limit
+F.continuous_at.tendsto.comp ncs.tendsto_limit
 
 section
 parameters {p : ℕ} [fact p.prime] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]} {a : ℤ_[p]}

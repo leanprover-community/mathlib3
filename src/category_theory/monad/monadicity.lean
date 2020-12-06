@@ -228,6 +228,7 @@ begin
     is_iso ((adjunction.of_right_adjoint (comparison G)).unit.app X),
   { intro X,
     apply is_iso_of_reflects_iso (monad.forget (F ⋙ G)) _,
+    { apply_instance } ,
     { change is_iso (comparison_adjunction.unit.app X).f,
       rw comparison_adjunction_unit_f,
       change
@@ -235,8 +236,7 @@ begin
           (is_colimit.cocone_point_unique_up_to_iso
             (cofork_free.beck_coequalizer (F ⋙ G) X)
             (unit_colimit_of_preserves_coequalizer X)).hom,
-      refine is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) },
-    { apply_instance } },
+      refine is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) } },
   let : Π (Y : D),
     is_iso ((adjunction.of_right_adjoint (comparison G)).counit.app Y),
   { intro Y,
@@ -316,6 +316,7 @@ begin
     is_iso ((adjunction.of_right_adjoint (comparison G)).unit.app X),
   { intro X,
     apply is_iso_of_reflects_iso (monad.forget (F ⋙ G)) _,
+    { apply_instance },
     { change is_iso (comparison_adjunction.unit.app X).f,
       rw comparison_adjunction_unit_f,
       change
@@ -323,8 +324,7 @@ begin
           (is_colimit.cocone_point_unique_up_to_iso
             (cofork_free.beck_coequalizer (F ⋙ G) X)
             (unit_colimit_of_preserves_coequalizer X)).hom,
-      apply is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) },
-    { apply_instance } },
+      apply is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) } },
   let : Π (Y : D),
     is_iso ((adjunction.of_right_adjoint (comparison G)).counit.app Y),
   { intro Y,

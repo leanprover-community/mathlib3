@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
+import category_theory.sites.canonical
 import category_theory.sites.sheaf
 
 /-!
 # Grothendieck Topology and Sheaves on the Category of Types
 
-In this file we define the grothendieck topology on the category of types,
+In this file we define a grothendieck topology on the category of types,
 and construct the canonical function that sends a type to a sheaf over
 the category of types.
 -/
@@ -18,14 +19,15 @@ universe u
 
 namespace category_theory
 
-/-- The Grothendieck topology associated to the category of all types. -/
+/-- A Grothendieck topology associated to the category of all types.
+A sieve is a covering iff it is jointly surjective. -/
 def types_grothendieck_topology : grothendieck_topology (Type u) :=
 { sieves := λ α S, ∀ x : α, S (λ _ : punit, x),
   top_mem' := λ α x, trivial,
   pullback_stable' := λ α β S f hs x, hs (f x),
   transitive' := λ α S hs R hr x, hr (hs x) punit.star }
 
-/-- The discrete sieve on a type. -/
+/-- The discrete sieve on a type, which only includes arrows whose image is a subsingleton. -/
 def discrete_sieve (α : Type u) : sieve α :=
 { arrows := λ β f, ∃ x, ∀ y, f y = x,
   downward_closed' := λ β γ f ⟨x, hx⟩ g, ⟨x, λ y, hx $ g y⟩ }
@@ -33,7 +35,7 @@ def discrete_sieve (α : Type u) : sieve α :=
 lemma discrete_sieve_mem (α : Type u) : discrete_sieve α ∈ types_grothendieck_topology α :=
 λ x, ⟨x, λ y, rfl⟩
 
-/-- The discrete presieve on a type. -/
+/-- The discrete presieve on a type, which only includes arrows whose domain is a singleton. -/
 def discrete_presieve (α : Type u) : presieve α :=
 λ β f, ∃ x : β, ∀ y : β, y = x
 
@@ -62,10 +64,10 @@ P.map (has_hom.hom.op (λ _, x : punit ⟶ α)) s
 noncomputable def types_glue (P : (Type u)ᵒᵖ ⥤ Type u)
   (hp : is_sheaf types_grothendieck_topology P)
   (α : Type u) (f : α → P.obj (op punit)) : P.obj (op α) :=
-((@hp).is_sheaf_for _ _ (generate_discrete_presieve_mem α)).amalgamate
+(hp.is_sheaf_for _ _ (generate_discrete_presieve_mem α)).amalgamate
   (λ β g hg, P.map (has_hom.hom.op $ λ x, punit.star) $ f $ g $ classical.some hg)
   (λ β γ δ g₁ g₂ f₁ f₂ hf₁ hf₂ h,
-    ((@hp).is_sheaf_for _ _ (generate_discrete_presieve_mem δ)).is_separated_for.ext $
+    (hp.is_sheaf_for _ _ (generate_discrete_presieve_mem δ)).is_separated_for.ext $
     λ ε g ⟨x, hx⟩, have f₁ (classical.some hf₁) = f₂ (classical.some hf₂),
       from classical.some_spec hf₁ (g₁ $ g x) ▸ classical.some_spec hf₂ (g₂ $ g x) ▸ congr_fun h _,
       by { dsimp only, simp_rw [← functor_to_types.map_comp_apply, this, ← op_comp], refl })
@@ -76,7 +78,7 @@ funext $ λ x, (is_sheaf_for.valid_glue _ _ _ $
 by { convert functor_to_types.map_id_apply _ _, rw ← op_id, congr }
 
 lemma types_glue_eval {P hp α} (s) : types_glue.{u} P hp α (eval P α s) = s :=
-((@hp).is_sheaf_for _ _ (generate_discrete_presieve_mem α)).is_separated_for.ext $ λ β f hf,
+(hp.is_sheaf_for _ _ (generate_discrete_presieve_mem α)).is_separated_for.ext $ λ β f hf,
 (is_sheaf_for.valid_glue _ _ _ hf).trans $ (functor_to_types.map_comp_apply _ _ _ _).symm.trans $
 by { rw ← op_comp, congr' 2, exact funext (λ x, congr_arg f (classical.some_spec hf x).symm) }
 
@@ -85,10 +87,14 @@ noncomputable def eval_equiv (P : (Type u)ᵒᵖ ⥤ Type u)
   (hp : is_sheaf types_grothendieck_topology P)
   (α : Type u) : P.obj (op α) ≃ (α → P.obj (op punit)) :=
 { to_fun := eval P α,
-  inv_fun := types_glue P @hp α,
+  inv_fun := types_glue P hp α,
   left_inv := types_glue_eval,
   right_inv := eval_types_glue }
 
 end presieve
+
+lemma subcanonical_types_grothendieck_topology :
+  sheaf.subcanonical types_grothendieck_topology.{u} :=
+sheaf.le_finest_topology _ _ $ λ P ⟨α, hα⟩, hα ▸ presieve.is_sheaf_yoneda'
 
 end category_theory

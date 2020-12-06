@@ -815,6 +815,10 @@ protected lemma continuous_linear_map.summable {f : ι → M} (φ : M →L[R] M�
 
 alias continuous_linear_map.summable ← summable.mapL
 
+protected lemma continuous_linear_map.map_tsum [t2_space M₂] {f : ι → M}
+  (φ : M →L[R] M₂) (hf : summable f) : φ (∑' z, f z) = ∑' z, φ (f z) :=
+(hf.has_sum.mapL φ).tsum_eq.symm
+
 /-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
 protected lemma continuous_linear_equiv.has_sum {f : ι → M} (e : M ≃L[R] M₂) {y : M₂} :
   has_sum (λ (b:ι), e (f b)) y ↔ has_sum f (e.symm y) :=

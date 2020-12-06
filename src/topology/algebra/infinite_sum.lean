@@ -620,26 +620,6 @@ hf.has_sum.smul.tsum_eq
 
 end topological_semimodule
 
-section continuous_linear_map
-variables {R : Type*}
-[semiring R]
-[topological_space α] [add_comm_monoid α]
-[semimodule R α]
-[topological_space γ] [add_comm_monoid γ] [semimodule R γ]
-{f : β → α}
-
-lemma has_sum.map_linear {a : α} (hf : has_sum f a) (g : α →L[R] γ) : has_sum (g ∘ f) (g a) :=
-has_sum.map hf g.to_linear_map.to_add_monoid_hom g.continuous
-
-lemma summable.map_linear (hf : summable f) (g : α →L[R] γ) : summable (g ∘ f) :=
-(hf.has_sum.map_linear g).summable
-
-lemma continuous_linear_map.map_tsum [t2_space γ] (g : α →L[R] γ) (hf : summable f) :
-  g (∑' z, f z) = ∑' z, g (f z) :=
-(hf.has_sum.map_linear g).tsum_eq.symm
-
-end continuous_linear_map
-
 section division_ring
 
 variables [division_ring α] [topological_space α] [topological_semiring α]

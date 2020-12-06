@@ -640,7 +640,7 @@ begin
   norm_cast,
   refine map_lt_of_translation_number_lt_int _ _ _,
   push_cast,
-  apply lt_floor_add_one
+  exact lt_floor_add_one _
 end
 
 lemma map_lt_add_translation_number_add_one (x : ℝ) : f x < x + τ f + 1 :=

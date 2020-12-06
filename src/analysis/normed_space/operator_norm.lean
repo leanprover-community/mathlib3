@@ -829,6 +829,21 @@ protected lemma continuous_linear_equiv.summable {f : ι → M} (e : M ≃L[R] M
   summable (λ b:ι, e (f b)) ↔ summable f :=
 ⟨λ hf, (e.has_sum.1 hf.has_sum).summable, (e : M →L[R] M₂).summable⟩
 
+lemma continuous_linear_equiv.tsum_eq_iff [t2_space M] [t2_space M₂] {f : ι → M}
+  (e : M ≃L[R] M₂) {y : M₂} : (∑' z, e (f z)) = y ↔ (∑' z, f z) = e.symm y :=
+begin
+  by_cases hf : summable f,
+  { exact ⟨λ h, (e.has_sum.mp ((e.summable.mpr hf).has_sum_iff.mpr h)).tsum_eq,
+      λ h, (e.has_sum.mpr (hf.has_sum_iff.mpr h)).tsum_eq⟩ },
+  { have hf' : ¬summable (λ z, e (f z)) := λ h, hf (e.summable.mp h),
+    rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable hf'],
+    exact ⟨by { rintro rfl, simp }, λ H, by simpa using (congr_arg (λ z, e z) H)⟩ }
+end
+
+protected lemma continuous_linear_equiv.map_tsum [t2_space M] [t2_space M₂] {f : ι → M}
+  (e : M ≃L[R] M₂) : e (∑' z, f z) = ∑' z, e (f z) :=
+by { refine symm (e.tsum_eq_iff.mpr _), rw e.symm_apply_apply _ }
+
 end has_sum
 
 namespace continuous_linear_equiv

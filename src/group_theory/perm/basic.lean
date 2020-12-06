@@ -50,7 +50,7 @@ lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.sym
 
 /-! Lemmas about `equiv.perm.sum_congr` re-expressed via the group structure. -/
 
-@[simp] lemma sum_congr_mul {α β : Type*}(e : perm α) (f : perm β) (g : perm α) (h : perm β) :
+@[simp] lemma sum_congr_mul {α β : Type*} (e : perm α) (f : perm β) (g : perm α) (h : perm β) :
   sum_congr e f * sum_congr g h = sum_congr (e * g) (f * h) :=
 sum_congr_trans g h e f
 

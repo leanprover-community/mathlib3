@@ -456,7 +456,6 @@ end polynomial
 protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] :
   is_noetherian_ring (polynomial R) :=
 ⟨assume I : ideal (polynomial R),
-let L := I.leading_coeff in
 let M := well_founded.min (is_noetherian_iff_well_founded.1 (by apply_instance))
   (set.range I.leading_coeff_nth) ⟨_, ⟨0, rfl⟩⟩ in
 have hm : M ∈ set.range I.leading_coeff_nth := well_founded.min_mem _ _ _,

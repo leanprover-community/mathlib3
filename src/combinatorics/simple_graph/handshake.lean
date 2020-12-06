@@ -69,6 +69,7 @@ lemma dart.ext_iff (d₁ d₂ : G.dart) :
   d₁ = d₂ ↔ G.dart_vert d₁ = G.dart_vert d₂ ∧ G.dart_edge d₁ = G.dart_edge d₂ :=
 by { split, rintro rfl, tauto, rintro ⟨hv, he⟩, apply dart.ext G hv he }
 
+/-- Reverses the orientation of a dart. -/
 def dart_rev [decidable_eq V] (d : G.dart) : G.dart :=
 ⟨sym2.mem.other' (G.dart_vert_mem d), G.dart_edge d, G.edge_mem_other_incident_set d.snd.property⟩
 
@@ -112,11 +113,13 @@ begin
   { intro h, cases h; subst d₁, refl, },
 end
 
+/-- For a given vertex `v`, the injective map from the incidence set at `v` to the darts there. --/
 def dart_from_incidence_set (v : V) : G.incidence_set v → G.dart := λ ee, ⟨v, ee⟩
 
 lemma dart_from_incidence_set_inj (v : V) : function.injective (G.dart_from_incidence_set v) :=
 by { dsimp only [dart_from_incidence_set], exact sigma_mk_injective }
 
+section degree_sum
 variables [fintype V] [decidable_eq V] [decidable_rel G.adj]
 
 lemma dart_vert_fiber_card_eq_degree (v : V) :
@@ -174,27 +177,32 @@ end
 theorem sum_degrees_eq_twice_card_edges : ∑ v, G.degree v = 2 * G.edge_finset.card :=
 G.dart_card_eq_sum_degrees.symm.trans G.dart_card_eq_twice_card_edges
 
+end degree_sum
+
 /- TODO nat.odd and nat.even used to be decidable predicates -- where did those go? -/
 instance odd_decidable (n : ℕ) : decidable (odd n) :=
 begin
   sorry
 end
 
-theorem card_odd_degree_vertices_is_even : even (univ.filter (λ v, odd (G.degree v))).card :=
+theorem card_odd_degree_vertices_is_even [fintype V] : even (univ.filter (λ v, odd (G.degree v))).card :=
 begin
   sorry
 end
 
-theorem card_odd_degree_vertices_ne_is_odd (v : V) (h : odd (G.degree v)) :
+lemma card_odd_degree_vertices_ne_is_odd [fintype V] [decidable_eq V]
+  (v : V) (h : odd (G.degree v)) :
   odd (univ.filter (λ w, w ≠ v ∧ odd (G.degree w))).card :=
 begin
   sorry
 end
 
-theorem exists_ne_odd_degree_if_exists_odd (v : V) (h : odd (G.degree v)) :
+lemma exists_ne_odd_degree_if_exists_odd [fintype V]
+  (v : V) (h : odd (G.degree v)) :
   ∃ (w : V), w ≠ v ∧ odd (G.degree w) :=
 begin
   sorry
 end
 
 end simple_graph
+

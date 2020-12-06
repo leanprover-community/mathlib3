@@ -140,7 +140,7 @@ end
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.edge_set := by { dunfold edge_set, exact subtype.fintype _ }
 
-instance mem_edges_decidable [decidable_eq V] [decidable_rel G.adj] (e : sym2 V) :
+instance mem_edges_decidable [decidable_rel G.adj] (e : sym2 V) :
   decidable (e ∈ G.edge_set) := by { dunfold edge_set, apply_instance }
 
 instance mem_incidence_set_decidable [decidable_eq V] [decidable_rel G.adj] (v : V) (e : sym2 V) :

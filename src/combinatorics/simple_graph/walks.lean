@@ -307,7 +307,7 @@ variables {G}
 /-! This may or may not be useful -/
 
 def walk.deq {u v u' v' : V} (w : G.walk u v) (w' : G.walk u' v') : Prop :=
-walk.mk u v w = walk.mk u' v' w'
+walk'.mk u v w = walk'.mk u' v' w'
 
 local infix ` === `:50 := walk.deq
 

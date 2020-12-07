@@ -51,8 +51,8 @@ We prove the following properties of `circle_deg1_lift.translation_number`.
   are semiconjugate by a `circle_deg1_lift` map, then `τ f = τ g`.
 
 * `circle_deg1_lift.translation_number_units_inv`: if `f` is an invertible `circle_deg1_lift` map
-  (equivalently, `f` is a a lift of an orientation-preserving circle homeomorphism), then
-  the the translation number of `f⁻¹` is the negative translation number of `f`.
+  (equivalently, `f` is a lift of an orientation-preserving circle homeomorphism), then
+  the translation number of `f⁻¹` is the negative of the translation number of `f`.
 
 * `circle_deg1_lift.translation_number_mul_of_commute`: if `f` and `g` commute, then
   `τ (f * g) = τ f + τ g`.

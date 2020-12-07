@@ -82,7 +82,8 @@ begin
   simp only [dart.rev_edge_eq],
 end
 
-@[simp] lemma dart_rev_involutive [decidable_eq V] : function.involutive (dart.rev : G.dart → G.dart) :=
+@[simp] lemma dart_rev_involutive [decidable_eq V] :
+  function.involutive (dart.rev : G.dart → G.dart) :=
 dart.rev_rev_eq
 
 lemma dart.neq_rev [decidable_eq V] (d : G.dart) : d ≠ d.rev :=

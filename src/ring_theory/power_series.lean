@@ -1156,7 +1156,6 @@ lemma eq_zero_or_eq_zero_of_mul_eq_zero (φ ψ : power_series R) (h : φ * ψ = 
 begin
     rw or_iff_not_imp_left, intro H,
     have ex : ∃ m, coeff R m φ ≠ 0, { contrapose! H, exact ext H },
-    let P : ℕ → Prop := λ k, coeff R k φ ≠ 0,
     let m := nat.find ex,
     have hm₁ : coeff R m φ ≠ 0 := nat.find_spec ex,
     have hm₂ : ∀ k < m, ¬coeff R k φ ≠ 0 := λ k, nat.find_min ex,

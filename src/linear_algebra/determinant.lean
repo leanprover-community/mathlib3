@@ -184,33 +184,11 @@ end
 lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (j : n) (h : ∀ i, A i j = 0) : det A = 0 :=
 by { rw ← det_transpose, exact det_eq_zero_of_row_eq_zero j h, }
 
-/--
-  `mod_swap i j` contains permutations up to swapping `i` and `j`.
-
-  We use this to partition permutations in the expression for the determinant,
-  such that each partitions sums up to `0`.
--/
-def mod_swap {n : Type u} [decidable_eq n] (i j : n) : setoid (perm n) :=
-⟨ λ σ τ, σ = τ ∨ σ = swap i j * τ,
-  λ σ, or.inl (refl σ),
-  λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
-  λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish⟩
-
-instance (i j : n) : decidable_rel (mod_swap i j).r := λ σ τ, or.decidable
-
 variables {M : matrix n n R} {i j : n}
 
 /-- If a matrix has a repeated row, the determinant will be zero. -/
 theorem det_zero_of_row_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
 begin
-  have swap_invariant : ∀ k, M (swap i j k) = M k,
-  { intros k,
-    rw [swap_apply_def],
-    by_cases k = i, { rw [if_pos h, h, ←hij] },
-    rw [if_neg h],
-    by_cases k = j, { rw [if_pos h, h, hij] },
-    rw [if_neg h] },
-
   have : ∀ σ, _root_.disjoint {σ} {swap i j * σ},
   { intros σ,
     rw [disjoint_singleton, mem_singleton],
@@ -224,7 +202,7 @@ begin
   rw [neg_mul_eq_neg_mul],
   congr,
   { rw [sign_mul, sign_swap i_ne_j], norm_num },
-  ext j, rw [perm.mul_apply, swap_invariant]
+  ext j, rw [perm.mul_apply, apply_swap_eq_self hij]
 end
 
 end det_zero

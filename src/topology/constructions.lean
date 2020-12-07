@@ -147,6 +147,18 @@ lemma filter.eventually.prod_mk_nhds {pa : α → Prop} {a} (ha : ∀ᶠ x in �
 lemma continuous_swap : continuous (prod.swap : α × β → β × α) :=
 continuous.prod_mk continuous_snd continuous_fst
 
+lemma continuous_uncurry_left {f : α → β → γ} (a : α)
+  (h : continuous (function.uncurry f)) : continuous (f a) :=
+show continuous (function.uncurry f ∘ (λ b, (a, b))), from h.comp (by continuity)
+
+lemma continuous_uncurry_right {f : α → β → γ} (b : β)
+  (h : continuous (function.uncurry f)) : continuous (λ a, f a b) :=
+show continuous (function.uncurry f ∘ (λ a, (a, b))), from h.comp (by continuity)
+
+lemma continuous_curry {g : α × β → γ} (a : α)
+  (h : continuous g) : continuous (function.curry g a) :=
+show continuous (g ∘ (λ b, (a, b))), from h.comp (by continuity)
+
 lemma is_open.prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (set.prod s t) :=
 is_open_inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
@@ -244,6 +256,12 @@ begin
     ((nhds_basis_opens _).prod_nhds (nhds_basis_opens _)).mem_iff, prod.exists, exists_prop],
   simp only [and_assoc, and.left_comm]
 end
+
+lemma continuous_uncurry_of_discrete_topology_left [discrete_topology α]
+  {f : α → β → γ} (h : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
+continuous_iff_continuous_at.2 $ λ ⟨a, b⟩,
+  by simp only [continuous_at, nhds_prod_eq, nhds_discrete α, pure_prod, tendsto_map'_iff, (∘),
+    function.uncurry, (h a).tendsto]
 
 /-- Given a neighborhood `s` of `(x, x)`, then `(x, x)` has a square open neighborhood
   that is a subset of `s`. -/
@@ -638,7 +656,6 @@ end
 lemma pi_generate_from_eq_fintype {g : Πa, set (set (π a))} [fintype ι] (hg : ∀a, ⋃₀ g a = univ) :
   @Pi.topological_space ι π (λa, generate_from (g a)) =
   generate_from {t | ∃(s:Πa, set (π a)), (∀a, s a ∈ g a) ∧ t = pi univ s} :=
-let G := {t | ∃(s:Πa, set (π a)), (∀a, s a ∈ g a) ∧ t = pi univ s} in
 begin
   rw [pi_generate_from_eq],
   refine le_antisymm (generate_from_mono _) (le_generate_from _),

@@ -36,10 +36,11 @@ structure algebra (T : C ⥤ C) [monad T] : Type (max u₁ v₁) :=
 (A : C)
 (a : T.obj A ⟶ A)
 (unit' : (η_ T).app A ≫ a = 𝟙 A . obviously)
-(assoc' : ((μ_ T).app A ≫ a) = (T.map a ≫ a) . obviously)
+(assoc' : (μ_ T).app A ≫ a = T.map a ≫ a . obviously)
 
 restate_axiom algebra.unit'
 restate_axiom algebra.assoc'
+attribute [reassoc] algebra.unit algebra.assoc
 
 namespace algebra
 variables {T : C ⥤ C} [monad T]
@@ -50,29 +51,40 @@ variables {T : C ⥤ C} [monad T]
 (h' : T.map f ≫ B.a = A.a ≫ f . obviously)
 
 restate_axiom hom.h'
-attribute [simp] hom.h
+attribute [simp, reassoc] hom.h
 
 namespace hom
 
 /-- The identity homomorphism for an Eilenberg–Moore algebra. -/
-@[simps] def id (A : algebra T) : hom A A :=
+def id (A : algebra T) : hom A A :=
 { f := 𝟙 A.A }
 
 instance (A : algebra T) : inhabited (hom A A) := ⟨{ f := 𝟙 _ }⟩
 
 /-- Composition of Eilenberg–Moore algebra homomorphisms. -/
-@[simps] def comp {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : hom P R :=
+def comp {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : hom P R :=
 { f := f.f ≫ g.f,
-  h' := by rw [functor.map_comp, category.assoc, g.h, ←category.assoc, f.h, category.assoc] }
+  h' := by rw [functor.map_comp, category.assoc, g.h, f.h_assoc] }
 
 end hom
 
-/-- The category of Eilenberg-Moore algebras for a monad.
-    cf Definition 5.2.4 in [Riehl][riehl2017]. -/
-@[simps] instance EilenbergMoore : category (algebra T) :=
+instance : category_struct (algebra T) :=
 { hom := hom,
   id := hom.id,
   comp := @hom.comp _ _ _ _ }
+
+@[simp] lemma comp_eq_comp {A A' A'' : algebra T} (f : A ⟶ A') (g : A' ⟶ A'') :
+  algebra.hom.comp f g = f ≫ g := rfl
+@[simp] lemma id_eq_id (A : algebra T) :
+  algebra.hom.id A = 𝟙 A := rfl
+
+@[simp] lemma id_f (A : algebra T) : (𝟙 A : A ⟶ A).f = 𝟙 A.A := rfl
+@[simp] lemma comp_f {A A' A'' : algebra T} (f : A ⟶ A') (g : A' ⟶ A'') :
+  (f ≫ g).f = f.f ≫ g.f := rfl
+
+/-- The category of Eilenberg-Moore algebras for a monad.
+    cf Definition 5.2.4 in [Riehl][riehl2017]. -/
+instance EilenbergMoore : category (algebra T) := {}.
 
 end algebra
 
@@ -91,13 +103,16 @@ variables (T : C ⥤ C) [monad T]
     assoc' := (monad.assoc _).symm },
   map := λ X Y f,
   { f := T.map f,
-    h' := by erw (μ_ T).naturality } }
+    h' := (μ_ T).naturality _ } }
 
 instance [inhabited C] : inhabited (algebra T) :=
 ⟨(free T).obj (default C)⟩
 
 /-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for a monad.
     cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
+-- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
+-- those are added too
+@[simps unit counit {rhs_md := semireducible}]
 def adj : free T ⊣ forget T :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
@@ -106,34 +121,22 @@ adjunction.mk_of_hom_equiv
     { f := T.map f ≫ Y.a,
       h' :=
       begin
-        simp,
-        conv { to_rhs, rw [←category.assoc, ←(μ_ T).naturality, category.assoc], erw algebra.assoc },
-        refl,
+        rw [free_obj_a, functor.map_comp, category.assoc, ←Y.assoc, ←(μ_ T).naturality_assoc],
+        refl
       end },
-    left_inv := λ f,
-    begin
-      ext1,
-      simp only [free_obj_a, functor.map_comp, algebra.hom.h, category.assoc],
-      erw [←category.assoc, monad.right_unit, id_comp],
-    end,
+    left_inv := λ f, by { ext, simp },
     right_inv := λ f,
     begin
-      dsimp,
-      erw [←category.assoc, ←(η_ T).naturality, functor.id_map,
-            category.assoc, Y.unit, comp_id],
+      dsimp only [forget_obj],
+      rw [←(η_ T).naturality_assoc, Y.unit],
+      apply category.comp_id,
     end }}
 
 /-- Given an algebra morphism whose carrier part is an isomorphism, we get an algebra isomorphism. -/
 def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [i : is_iso f.f] : is_iso f :=
 { inv :=
   { f := i.inv,
-    h' :=
-    begin
-      erw (as_iso f.f).eq_comp_inv,
-      slice_lhs 2 3 {erw ← f.h},
-      slice_lhs 1 2 {rw ← T.map_comp},
-      rw [is_iso.inv_hom_id, T.map_id, category.id_comp]
-    end } }
+    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], simp } } }
 
 instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
 { reflects := λ A B, algebra_iso_of_iso T }
@@ -150,10 +153,11 @@ structure coalgebra (G : C ⥤ C) [comonad G] : Type (max u₁ v₁) :=
 (A : C)
 (a : A ⟶ G.obj A)
 (counit' : a ≫ (ε_ G).app A = 𝟙 A . obviously)
-(coassoc' : (a ≫ (δ_ G).app A) = (a ≫ G.map a) . obviously)
+(coassoc' : a ≫ (δ_ G).app A = a ≫ G.map a . obviously)
 
 restate_axiom coalgebra.counit'
 restate_axiom coalgebra.coassoc'
+attribute [reassoc] coalgebra.counit coalgebra.coassoc
 
 namespace coalgebra
 variables {G : C ⥤ C} [comonad G]
@@ -164,23 +168,38 @@ variables {G : C ⥤ C} [comonad G]
 (h' : A.a ≫ G.map f = f ≫ B.a . obviously)
 
 restate_axiom hom.h'
-attribute [simp] hom.h
+attribute [simp, reassoc] hom.h
 
 namespace hom
 
 /-- The identity homomorphism for an Eilenberg–Moore coalgebra. -/
-@[simps] def id (A : coalgebra G) : hom A A :=
+def id (A : coalgebra G) : hom A A :=
 { f := 𝟙 A.A }
 
 /-- Composition of Eilenberg–Moore coalgebra homomorphisms. -/
-@[simps] def comp {P Q R : coalgebra G} (f : hom P Q) (g : hom Q R) : hom P R :=
+def comp {P Q R : coalgebra G} (f : hom P Q) (g : hom Q R) : hom P R :=
 { f := f.f ≫ g.f,
-  h' := by rw [functor.map_comp, ← category.assoc, f.h, category.assoc, g.h, category.assoc] }
+  h' := by rw [functor.map_comp, f.h_assoc, g.h, category.assoc] }
 
 end hom
 
 /-- The category of Eilenberg-Moore coalgebras for a comonad. -/
-@[simps] instance EilenbergMoore : category (coalgebra G) :=
+instance : category_struct (coalgebra G) :=
+{ hom := hom,
+  id := hom.id,
+  comp := @hom.comp _ _ _ _ }
+
+@[simp] lemma comp_eq_comp {A A' A'' : coalgebra G} (f : A ⟶ A') (g : A' ⟶ A'') :
+  coalgebra.hom.comp f g = f ≫ g := rfl
+@[simp] lemma id_eq_id (A : coalgebra G) :
+  coalgebra.hom.id A = 𝟙 A := rfl
+
+@[simp] lemma id_f (A : coalgebra G) : (𝟙 A : A ⟶ A).f = 𝟙 A.A := rfl
+@[simp] lemma comp_f {A A' A'' : coalgebra G} (f : A ⟶ A') (g : A' ⟶ A'') :
+  (f ≫ g).f = f.f ≫ g.f := rfl
+
+/-- The category of Eilenberg-Moore coalgebras for a comonad. -/
+instance EilenbergMoore : category (coalgebra G) :=
 { hom := hom,
   id := hom.id,
   comp := @hom.comp _ _ _ _ }
@@ -202,34 +221,30 @@ variables (G : C ⥤ C) [comonad G]
     coassoc' := (comonad.coassoc _).symm },
   map := λ X Y f,
   { f := G.map f,
-    h' := by erw (δ_ G).naturality; refl} }
+    h' := ((δ_ G).naturality _).symm } }
 
 /--
 The adjunction between the cofree and forgetful constructions for Eilenberg-Moore coalgebras
 for a comonad.
 -/
+-- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
+-- those are added too
+@[simps unit counit {rhs_md := semireducible}]
 def adj : forget G ⊣ cofree G :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
   { to_fun := λ f,
     { f := X.a ≫ G.map f,
-      h' := by { rw [functor.map_comp, ← category.assoc, ← coalgebra.coassoc], simp } },
+      h' := by { rw [functor.map_comp, ← coalgebra.coassoc_assoc], simp } },
     inv_fun := λ g, g.f ≫ (ε_ G).app Y,
     left_inv := λ f,
-    begin
-      dsimp,
-      rw [category.assoc, (ε_ G).naturality,
-          functor.id_map, ← category.assoc, X.counit, id_comp],
-    end,
+      by { dsimp, rw [category.assoc, (ε_ G).naturality, functor.id_map, X.counit_assoc] },
     right_inv := λ g,
     begin
       ext1, dsimp,
-      rw [functor.map_comp, ← category.assoc, coalgebra.hom.h, assoc,
-          cofree_obj_a, comonad.right_counit],
-      -- See note [dsimp, simp].
-      dsimp, simp
-    end
-    }}
+      rw [functor.map_comp, g.h_assoc, cofree_obj_a, comonad.right_counit],
+      apply comp_id,
+    end }}
 
 instance forget_faithful : faithful (forget G) := {}
 

@@ -752,7 +752,7 @@ We can think of the type `Π(i : fin n), α i` as `n`-tuples of elements of poss
 `α i`. A particular case is `fin n → α` of elements with all the same type. Here are some relevant
 operations, first about adding or removing elements at the beginning of a tuple.
 
-For homogeneous tuples ("vectors") based on `fin n`, see `data.finvec`.
+For homogeneous tuples ("vectors") based on `fin n`, see `data.tuple`.
 -/
 
 /-- There is exactly one tuple of size zero. -/

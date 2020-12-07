@@ -86,8 +86,8 @@ by simp [uniform_continuous, hf.comap_uniformity.symm, tendsto_comap]
 
 lemma uniform_inducing.uniform_continuous_iff {f : α → β} {g : β → γ} (hg : uniform_inducing g) :
   uniform_continuous f ↔ uniform_continuous (g ∘ f) :=
-by dsimp only [uniform_continuous, tendsto];
-  rw [← hg.comap_uniformity, ← map_le_iff_le_comap, filter.map_map]
+by { dsimp only [uniform_continuous, tendsto],
+  rw [← hg.comap_uniformity, ← map_le_iff_le_comap, filter.map_map] }
 
 lemma uniform_inducing.inducing {f : α → β} (h : uniform_inducing f) : inducing f :=
 begin

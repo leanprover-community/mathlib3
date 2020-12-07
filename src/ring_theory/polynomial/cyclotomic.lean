@@ -389,6 +389,11 @@ begin
   exact hdeg
 end
 
+/-- The degree of `cyclotomic n R` is positive. -/
+lemma degree_cyclotomic_pos (n : ℕ) (R : Type*) (hpos : 0 < n) [ring R] [nontrivial R] :
+  0 < (cyclotomic n R).degree := by
+{ rw degree_cyclotomic n R; exact_mod_cast (nat.totient_pos hpos) }
+
 /-- `∏ i in nat.divisors n, cyclotomic i R = X ^ n - 1`. -/
 lemma prod_cyclotomic_eq_X_pow_sub_one {n : ℕ} (hpos : 0 < n) (R : Type*) [comm_ring R] :
   ∏ i in nat.divisors n, cyclotomic i R = X ^ n - 1 :=

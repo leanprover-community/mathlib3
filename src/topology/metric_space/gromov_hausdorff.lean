@@ -185,8 +185,6 @@ begin
   separable in general. We restrict to the union of the images of `α` and `β` in `γ`, which is
   separable and therefore embeddable in `ℓ^∞(ℝ)`. -/
   rcases exists_mem_of_nonempty α with ⟨xα, _⟩,
-  letI : inhabited α := ⟨xα⟩,
-  letI : inhabited β := classical.inhabited_of_nonempty (by assumption),
   let s : set γ := (range Φ) ∪ (range Ψ),
   let Φ' : α → subtype s := λy, ⟨Φ y, mem_union_left _ (mem_range_self _)⟩,
   let Ψ' : β → subtype s := λy, ⟨Ψ y, mem_union_right _ (mem_range_self _)⟩,

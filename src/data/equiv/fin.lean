@@ -61,7 +61,8 @@ lemma fin_succ_above_equiv_zero {n : ℕ} :
   fin_succ_above_equiv 0 = fin_succ_equiv n :=
 begin
   ext1 x,
-  simp [fin_succ_above_equiv, fin_succ_equiv],
+  simp only [fin_succ_above_equiv, fin_succ_equiv, equiv.coe_fn_mk,
+             fin.pred_above_zero, fin.succ_above_zero],
   split_ifs,
   { rw h, refl},
   { conv_rhs {rw ←x.succ_pred h,},

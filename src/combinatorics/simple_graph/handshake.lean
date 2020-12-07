@@ -66,9 +66,6 @@ instance dart.inhabited [inhabited V] [inhabited (G.incidence_set (default _))] 
 
 variables {G}
 
-lemma dart.edge_mem_incidence_set (d : G.dart) : d.edge ∈ G.incidence_set d.vert :=
-⟨d.edge_mem, d.vert_mem⟩
-
 /-- Reverses the orientation of a dart. -/
 def dart.rev [decidable_eq V] (d : G.dart) : G.dart :=
 { vert := sym2.mem.other' d.vert_mem,
@@ -130,7 +127,7 @@ begin
   ext d,
   simp only [mem_image, true_and, mem_filter, set_coe.exists, mem_univ, exists_prop_of_true],
   split,
-  { rintro rfl, use d.edge, use d.edge_mem_incidence_set,
+  { rintro rfl, use [d.edge, ⟨d.edge_mem, d.vert_mem⟩],
     apply dart.ext; simp [dart_from_incidence_set, dart.vert, dart.edge], },
   { rintro ⟨e, he, rfl⟩, simp [dart_from_incidence_set, dart.vert] },
 end

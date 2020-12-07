@@ -121,6 +121,15 @@ of_compl_not_mem_iff (map m f) $ λ s, @compl_not_mem_iff _ f (m ⁻¹' s)
 @[simp] lemma mem_map {m : α → β} {f : ultrafilter α} {s : set β} :
   s ∈ map m f ↔ m ⁻¹' s ∈ f := iff.rfl
 
+/-- The pullback of an ultrafilter along an injection whose range is large with respect to the given
+ultrafilter. -/
+def comap {m : α → β} (u : ultrafilter β) (inj : injective m)
+  (large : set.range m ∈ u) : ultrafilter α :=
+{ to_filter := comap m u,
+  ne_bot' := u.ne_bot'.comap_of_range_mem large,
+  le_of_le := λ g hg hgu, by { resetI,
+    simp only [← u.unique (map_le_iff_le_comap.2 hgu), comap_map inj, le_rfl] } }
+
 /-- The principal ultra-filter associated to a point `x`. -/
 instance : has_pure ultrafilter :=
 ⟨λ α a, of_compl_not_mem_iff (pure a) $ λ s, by simp⟩
@@ -249,15 +258,6 @@ end
 section hyperfilter
 
 variables (α) [infinite α]
-
-/--
-The pullback of an ultrafilter along an injection whose image is large
-with respect to the given ultrafilter. -/
-def ultrafilter.comap {m : α → β} (u : ultrafilter β) (inj : function.injective m)
-  (large : set.range m ∈ u.1) : ultrafilter α :=
-⟨comap m u.1, u.2.1.comap_of_range_mem large, λ g hg hgu s hs,
-  (mem_comap_iff inj large).2 $ u.2.2 (g.map m) (hg.map m) (map_le_iff_le_comap.2 hgu)
-    (image_mem_map hs)⟩
 
 /-- The ultra-filter extending the cofinite filter. -/
 noncomputable def hyperfilter : ultrafilter α := ultrafilter.of cofinite

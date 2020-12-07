@@ -16,8 +16,9 @@ In addition, we show that every split coequalizer is a coequalizer
 (`category_theory.is_split_coequalizer.is_coequalizer`) and absolute
 (`category_theory.is_split_coequalizer.map`)
 
-A pair `f g : X ⟶ Y` is split if there is a `Z` and `π : Y ⟶ Z` making `f,g,π` a split coequalizer.
-A pair `f g : X ⟶ Y` is `G`-split if `G f, G g` is split.
+A pair `f g : X ⟶ Y` has a split coequalizer if there is a `Z` and `π : Y ⟶ Z` making `f,g,π` a
+split coequalizer.
+A pair `f g : X ⟶ Y` has a `G`-split coequalizer if `G f, G g` has a split coequalizer.
 
 These definitions and constructions are useful in particular for the monadicity theorems.
 
@@ -129,39 +130,41 @@ variables (f g)
 The pair `f,g` is a split pair if there is a `h : Y ⟶ Z` so that `f, g, h` forms a split coequalizer
 in `C`.
 -/
-class is_split_pair : Prop :=
+class has_split_coequalizer : Prop :=
 (splittable [] : ∃ {Z : C} (h : Y ⟶ Z), is_split_coequalizer f g h)
 
 /--
 The pair `f,g` is a `G`-split pair if there is a `h : G Y ⟶ Z` so that `G f, G g, h` forms a split
 coequalizer in `D`.
 -/
-abbreviation functor.is_split_pair : Prop := is_split_pair (G.map f) (G.map g)
+abbreviation functor.is_split_pair : Prop := has_split_coequalizer (G.map f) (G.map g)
 
 /-- Get the coequalizer object from the typeclass `is_split_pair`. -/
-noncomputable def is_split_pair.coequalizer_of_split [is_split_pair f g] : C :=
-(is_split_pair.splittable f g).some
+noncomputable def has_split_coequalizer.coequalizer_of_split [has_split_coequalizer f g] : C :=
+(has_split_coequalizer.splittable f g).some
 
 /-- Get the coequalizer morphism from the typeclass `is_split_pair`. -/
-noncomputable def is_split_pair.coequalizer_π [is_split_pair f g] :
-  Y ⟶ is_split_pair.coequalizer_of_split f g :=
-(is_split_pair.splittable f g).some_spec.some
+noncomputable def has_split_coequalizer.coequalizer_π [has_split_coequalizer f g] :
+  Y ⟶ has_split_coequalizer.coequalizer_of_split f g :=
+(has_split_coequalizer.splittable f g).some_spec.some
 
 /-- The coequalizer morphism `coequalizer_ι` gives a split coequalizer on `f,g`. -/
-lemma is_split_pair.is_split_coequalizer [is_split_pair f g] :
-  is_split_coequalizer f g (is_split_pair.coequalizer_π f g) :=
-(is_split_pair.splittable f g).some_spec.some_spec
+lemma has_split_coequalizer.is_split_coequalizer [has_split_coequalizer f g] :
+  is_split_coequalizer f g (has_split_coequalizer.coequalizer_π f g) :=
+(has_split_coequalizer.splittable f g).some_spec.some_spec
 
 /-- If `f, g` is split, then `G f, G g` is split. -/
-instance map_is_split_pair [is_split_pair f g] : is_split_pair (G.map f) (G.map g) :=
-{ splittable := ⟨_, _, is_split_coequalizer.map (is_split_pair.is_split_coequalizer f g) _⟩ }
+instance map_is_split_pair [has_split_coequalizer f g] :
+  has_split_coequalizer (G.map f) (G.map g) :=
+{ splittable :=
+  ⟨_, _, is_split_coequalizer.map (has_split_coequalizer.is_split_coequalizer f g) _⟩ }
 
 namespace limits
 
 /-- If a pair is split, it has a coequalizer. -/
 @[priority 1]
-instance has_coequalizer_of_is_split_pair [is_split_pair f g] : has_coequalizer f g :=
-has_colimit.mk ⟨_, (is_split_pair.is_split_coequalizer f g).is_coequalizer⟩
+instance has_coequalizer_of_is_split_pair [has_split_coequalizer f g] : has_coequalizer f g :=
+has_colimit.mk ⟨_, (has_split_coequalizer.is_split_coequalizer f g).is_coequalizer⟩
 
 end limits
 

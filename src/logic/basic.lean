@@ -302,10 +302,10 @@ theorem and.imp_right (h : a → b) : c ∧ a → c ∧ b :=
 and.imp id h
 
 lemma and.right_comm : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ b :=
-by simp [and.left_comm, and.comm]
+by simp only [and.left_comm, and.comm]
 
 lemma and.rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a :=
-by simp [and.left_comm, and.comm]
+by simp only [and.left_comm, and.comm]
 
 theorem and_not_self_iff (a : Prop) : a ∧ ¬ a ↔ false :=
 iff.intro (assume h, (h.right) (h.left)) (assume h, h.elim)
@@ -325,8 +325,11 @@ iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 @[simp] theorem and_iff_right_iff_imp {a b : Prop} : ((a ∧ b) ↔ b) ↔ (b → a) :=
 ⟨λ h ha, (h.2 ha).1, and_iff_right_of_imp⟩
 
-lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
+@[simp] lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
 ⟨λ h ha, by simp [ha] at h; exact h, and_congr_right⟩
+
+@[simp] lemma and.congr_left_iff : (a ∧ c ↔ b ∧ c) ↔ c → (a ↔ b) :=
+by simp only [and.comm, ← and.congr_right_iff]
 
 @[simp] lemma and_self_left : a ∧ a ∧ b ↔ a ∧ b :=
 ⟨λ h, ⟨h.1, h.2.2⟩, λ h, ⟨h.1, h.1, h.2⟩⟩

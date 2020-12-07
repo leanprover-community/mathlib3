@@ -20,6 +20,10 @@ A pair `f g : X ⟶ Y` is split if there is a `Z` and `π : Y ⟶ Z` making `f,g
 A pair `f g : X ⟶ Y` is `G`-split if `G f, G g` is split.
 
 These definitions and constructions are useful in particular for the monadicity theorems.
+
+## TODO
+
+Dualise to split equalizers.
 -/
 
 namespace category_theory

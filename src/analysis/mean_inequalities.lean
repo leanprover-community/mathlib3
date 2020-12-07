@@ -656,7 +656,7 @@ begin
   simp [hq0, hg_nonzero],
 end
 
-/-- Hölder inequality for functions α → ennreal. -/
+/-- Hölder's inequality for functions α → ennreal. -/
 lemma lintegral_mul_le (μ : measure α) {p q : ℝ} (hpq : p.is_conjugate_exponent q)
   {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
   ∫⁻ a, (f * g) a ∂μ ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) * (∫⁻ a, (g a)^q ∂μ) ^ (1/q) :=

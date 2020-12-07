@@ -247,76 +247,12 @@ end alternating_map
 
 section
 
--- def fin_split {n m} (f : fin (n + m)) : fin n ⊕ fin m :=
--- if h : ↑f < n then sum.inl ⟨f, h⟩ else sum.inr (f.sub_nat n (le_of_not_lt h)))
-
-def sum_split_func {α β γ : Type*} : (α ⊕ β → γ) ≃ (α → γ) × (β → γ) :=
-{ to_fun := λ f, ⟨f ∘ sum.inl, f ∘ sum.inr⟩,
-  inv_fun := λ F h, h.elim F.1 F.2,
-  left_inv := sum.elim_comp_inl_inr,
-  right_inv := λ f, by simp }
-
-def finvec_split {n m} {α : Sort*} (f : fin (n + m) → α) : pprod (fin n → α) (fin m → α) := sorry
-
-
 namespace alternating_map
 
-variables {M₂ M₃ : Type*} [add_comm_monoid M₂] [semimodule R M₂]
-variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂] [add_comm_monoid M₃] [semimodule R M₃]
-
-
--- /-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
--- lemma function.update_def {α β : Sort*} [decidable_eq α] (f : α → β) (a' : α) (b : β) :
---   function.update f a' b = λ a, if a = a' then b else f a :=
--- begin
---   ext,
---   apply function.update_apply,
--- end
-
-def is_shuffle {m n} (p : fin m ⊕ fin n ≃ fin (m + n)) : Prop :=
-monotone (p ∘ sum.inl) ∧ monotone (p ∘ sum.inr)
-
-instance {m n : ℕ} : decidable_pred (@is_shuffle m n) :=
-λ p, by {unfold is_shuffle monotone, apply_instance}
-
-@[derive has_coe_to_fun]
-def shuffle (m n) : Type* := {p : fin m ⊕ fin n ≃ fin (m + n) // is_shuffle p }
-
-namespace shuffle
-
-variables {m n : ℕ}
-
-lemma coe_eq_val (s : shuffle m n) : ⇑s = s.val := rfl
-
-def to_perm (s : shuffle m n) : (equiv.perm $ fin (m + n)) := sum_fin_sum_equiv.symm.trans s.val
-
-instance : has_coe_t (shuffle m n) (equiv.perm $ fin (m + n)) := ⟨to_perm⟩
-
-
-instance : fintype (shuffle m n) := subtype.fintype _
-
-end shuffle
-
 open_locale big_operators
-
 open_locale tensor_product
 
-def mul_fin {n m} {R : Type*} {M N : Type*}
-  [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
-  (a : alternating_map R M N (fin m)) (b : alternating_map R M N (fin n)) :
-  alternating_map R M N (fin (m + n)) :=
-{ to_fun :=
-    let ab := (algebra.lmul' R).comp_multilinear_map
-      $ multilinear_map.dom_coprod a.to_multilinear_map b.to_multilinear_map in
-    λ (v : fin (m + n) → M),
-    ∑ σ : shuffle m n, (σ.to_perm.sign : ℤ) • (ab.dom_dom_congr σ.val) v,
-  map_add' := λ v i p q, by simp_rw [←finset.sum_add_distrib, ←smul_add, multilinear_map.map_add],
-  map_smul' := λ v i c p, by simp_rw [finset.smul_sum, ←smul_comm, multilinear_map.map_smul],
-  map_eq_zero_of_eq' := λ v i j h hij, begin
-    sorry
-  end }
-
-
+/-- A setoid between equivalences which do not swap `sum.inl` with `sum.inr`. -/
 def mod_sum_congr (α β : Type*) : setoid (equiv.perm (α ⊕ β)) :=
 { r := λ σ₁ σ₂, ∃ (sl : equiv.perm α) (sr : equiv.perm β), σ₁ = σ₂ * (equiv.sum_congr sl sr : equiv.perm (α ⊕ β)),
   iseqv := ⟨
@@ -333,7 +269,11 @@ instance {α β : Type*} [decidable_eq α] [decidable_eq β] [fintype α] [finty
   decidable_rel (mod_sum_congr α β).r :=
 λ σ₁ σ₂, fintype.decidable_exists_fintype
 
-def mul_general_aux {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
+section coprod
+
+variables {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
+
+private def dom_coprod_aux
   {R : Type*} {M N : Type*}
   [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
   (a : alternating_map R M N ιa) (b : alternating_map R M N ιb)
@@ -364,37 +304,41 @@ let ab := (algebra.lmul' R).comp_multilinear_map
              function.comp_app, equiv.perm.coe_mul, algebra.smul_mul_assoc],
 end)
 
-private lemma mul_general_aux_eq_zero_if_eq {ιa : Type*} {ιb : Type*} {R : Type*} {M : Type*} {N : Type*}
-  [decidable_eq ιa]
-  [decidable_eq ιb]
-  [fintype ιa]
-  [fintype ιb]
-  [comm_semiring R]
-  [ring N]
-  [algebra R N]
-  [add_comm_monoid M]
-  [semimodule R M]
-  (a : alternating_map R M N ιa)
-  (b : alternating_map R M N ιb)
-  (v : ιa ⊕ ιb → M)
-  (i j : ιa ⊕ ιb)
-  (h : v i = v j)
-  (hij : i ≠ j) :
-  a.mul_general_aux b v = 0 :=
+private lemma dom_coprod_aux_eq_zero_if_eq
+  {R : Type*} {M N : Type*}
+  [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
+  (a : alternating_map R M N ιa) (b : alternating_map R M N ιb)
+  (v : ιa ⊕ ιb → M) (i j : ιa ⊕ ιb) (h : v i = v j) (hij : i ≠ j) :
+  dom_coprod_aux a b v = 0 :=
 begin
-  unfold mul_general_aux,
+  unfold dom_coprod_aux,
   dsimp only,
+  /-
+  ⊢ ∑ (σ : quotient (mod_sum_congr ιa ιb)),
+        σ.lift_on'
+          (λ (σ : equiv.perm (ιa ⊕ ιb)),
+            ↑(⇑equiv.perm.sign σ) •
+              ⇑(multilinear_map.dom_dom_congr σ
+                    ((algebra.lmul' R).comp_multilinear_map (a.to_multilinear_map.dom_coprod b.to_multilinear_map)))
+                v)
+          _ =
+      0
+  -/
+  -- TODO: express this as part of a larger sum over the full space of `equiv.perm (ιa ⊕ ιb)`
   sorry,
 end
 
-def mul_general {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
+/-- Like `multilinear_map.dom_coprod`, but ensures the result is also alternating.
+
+Note this is the same as `(multilinear_map.dom_coprod a b).alternize / (card ιa)! / (card ιb)!`.-/
+def dom_coprod
   {R : Type*} {M N : Type*}
   [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
   (a : alternating_map R M N ιa) (b : alternating_map R M N ιb) :
   alternating_map R M N (ιa ⊕ ιb) :=
-{ to_fun := mul_general_aux a b,
+{ to_fun := dom_coprod_aux a b,
   map_add' := λ v i p q, begin
-    unfold mul_general_aux,
+    unfold dom_coprod_aux,
     dsimp only,
     simp_rw [←finset.sum_add_distrib, multilinear_map.map_add, smul_add],
     -- the lack of instance on the setoid makes this painful
@@ -405,7 +349,7 @@ def mul_general {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype
       rw [quotient.lift_on', @quotient.lift_on_beta _ _ (mod_sum_congr ιa ιb) _ _ σ] },
   end,
   map_smul' := λ v i c p, begin
-    unfold mul_general_aux,
+    unfold dom_coprod_aux,
     dsimp only,
     simp_rw [finset.smul_sum, multilinear_map.map_smul, smul_comm],
     -- the lack of instance on the setoid makes this painful
@@ -415,7 +359,26 @@ def mul_general {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype
     iterate 2 {
       rw [quotient.lift_on', @quotient.lift_on_beta _ _ (mod_sum_congr ιa ιb) _ _ σ] },
   end,
-  map_eq_zero_of_eq' := mul_general_aux_eq_zero_if_eq a b }
+  map_eq_zero_of_eq' := dom_coprod_aux_eq_zero_if_eq a b }
+
+-- ### Old version, before generalizing to arbitrary index types
+--
+-- def mul_fin {n m} {R : Type*} {M N : Type*}
+--   [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
+--   (a : alternating_map R M N (fin m)) (b : alternating_map R M N (fin n)) :
+--   alternating_map R M N (fin (m + n)) :=
+-- { to_fun :=
+--     let ab := (algebra.lmul' R).comp_multilinear_map
+--       $ multilinear_map.dom_coprod a.to_multilinear_map b.to_multilinear_map in
+--     λ (v : fin (m + n) → M),
+--     ∑ σ : shuffle m n, (σ.to_perm.sign : ℤ) • (ab.dom_dom_congr σ.val) v,
+--   map_add' := λ v i p q, by simp_rw [←finset.sum_add_distrib, ←smul_add, multilinear_map.map_add],
+--   map_smul' := λ v i c p, by simp_rw [finset.smul_sum, ←smul_comm, multilinear_map.map_smul],
+--   map_eq_zero_of_eq' := λ v i j h hij, begin
+--     sorry
+--   end }
+
+end coprod
 
 end alternating_map
 

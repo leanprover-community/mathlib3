@@ -1,4 +1,5 @@
 import group_theory.perm.sign
+import data.equiv.fin
 
 variables {ι : Type*} (α : ι → Type*)
 
@@ -29,6 +30,31 @@ def mod_sum_congr {α β : Type*} : setoid (equiv.perm (α ⊕ β)) :=
       rw [h₁₂, h₂₃, mul_assoc],
       simp [equiv.perm.mul_def, equiv.perm.inv_def]}⟩
 ⟩}
+
+
+def is_shuffle {m n} (p : fin m ⊕ fin n ≃ fin (m + n)) : Prop :=
+monotone (p ∘ sum.inl) ∧ monotone (p ∘ sum.inr)
+
+instance {m n : ℕ} : decidable_pred (@is_shuffle m n) :=
+λ p, by {unfold is_shuffle monotone, apply_instance}
+
+@[derive has_coe_to_fun]
+def shuffle (m n) : Type* := {p : fin m ⊕ fin n ≃ fin (m + n) // is_shuffle p }
+
+namespace shuffle
+
+variables {m n : ℕ}
+
+lemma coe_eq_val (s : shuffle m n) : ⇑s = s.val := rfl
+
+def to_perm (s : shuffle m n) : (equiv.perm $ fin (m + n)) := sum_fin_sum_equiv.symm.trans s.val
+
+instance : has_coe_t (shuffle m n) (equiv.perm $ fin (m + n)) := ⟨to_perm⟩
+
+
+instance : fintype (shuffle m n) := subtype.fintype _
+
+end shuffle
 
 -- instance [∀ i, decidable_eq (α i)] [∀ i, fintype (α i)] : decidable_rel (mod_perm_within α).r :=
 -- λ σ₁ σ₂, begin

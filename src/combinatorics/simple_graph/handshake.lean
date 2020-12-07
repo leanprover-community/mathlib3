@@ -85,10 +85,10 @@ dart.ext _ _ rfl rfl
 @[simp] lemma dart_rev_involutive : function.involutive (dart.rev : G.dart → G.dart) :=
 dart.rev_rev
 
-lemma dart.neq_rev (d : G.dart) : d ≠ d.rev :=
+lemma dart.rev_ne (d : G.dart) : d.rev ≠ d :=
 begin
   cases d with f s h,
-  simp [dart.rev],
+  simp only [dart.rev, not_and, ne.def],
   rintro rfl,
   exact false.elim (G.loopless _ h),
 end
@@ -150,7 +150,8 @@ begin
   let d : G.dart := ⟨v, w, h⟩,
   convert_to _ = finset.card {d, d.rev},
   { rw [card_insert_of_not_mem, card_singleton],
-    simp [d.neq_rev], },
+    rw [mem_singleton],
+    exact d.rev_ne.symm, },
   congr,
   apply G.dart_edge_fiber d,
 end
@@ -186,7 +187,7 @@ begin
   trivial,
 end
 
-lemma zmod_neq_zero_iff_odd (n : ℕ) : (n : zmod 2) ≠ 0 ↔ odd n :=
+lemma zmod_ne_zero_iff_odd (n : ℕ) : (n : zmod 2) ≠ 0 ↔ odd n :=
 by split; { contrapose, simp [zmod_eq_zero_iff_even], }
 
 end TODO_move
@@ -205,7 +206,7 @@ begin
     rw ←zmod_eq_zero_iff_even,
     convert h,
     ext v,
-    rw ←zmod_neq_zero_iff_odd,
+    rw ←zmod_ne_zero_iff_odd,
     congr' },
   { intros v,
     simp only [true_and, mem_filter, mem_univ, ne.def],

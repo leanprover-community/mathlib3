@@ -15,7 +15,7 @@ In this file we define
 * `ultrafilter`: subtype of ultrafilters;
 * `ultrafilter.pure`: `pure x` as an `ultrafiler`;
 * `ultrafilter.map`, `ultrafilter.bind`, `ultrafilter.comap` : operations on ultrafilters;
-* `hyperfilter`: the ultra-filter extending the cofinite filter.
+* `hyperfilter`: the ultrafilter extending the cofinite filter.
 -/
 
 universes u v
@@ -111,7 +111,7 @@ lemma finite_bUnion_mem_iff {is : set β} {s : β → set α} (his : finite is) 
   (⋃i∈is, s i) ∈ f ↔ ∃i∈is, s i ∈ f :=
 by simp only [← sUnion_image, finite_sUnion_mem_iff (his.image s), bex_image_iff]
 
-/-- Push-forward for ultra-filters. -/
+/-- Pushforward for ultrafilters. -/
 def map (m : α → β) (f : ultrafilter α) : ultrafilter β :=
 of_compl_not_mem_iff (map m f) $ λ s, @compl_not_mem_iff _ f (m ⁻¹' s)
 
@@ -130,7 +130,7 @@ def comap {m : α → β} (u : ultrafilter β) (inj : injective m)
   le_of_le := λ g hg hgu, by { resetI,
     simp only [← u.unique (map_le_iff_le_comap.2 hgu), comap_map inj, le_rfl] } }
 
-/-- The principal ultra-filter associated to a point `x`. -/
+/-- The principal ultrafilter associated to a point `x`. -/
 instance : has_pure ultrafilter :=
 ⟨λ α a, of_compl_not_mem_iff (pure a) $ λ s, by simp⟩
 
@@ -138,7 +138,7 @@ instance : has_pure ultrafilter :=
 
 instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
 
-/-- Monadic bind for ultra-filters, coming from the one on filters
+/-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/
 def bind (f : ultrafilter α) (m : α → ultrafilter β) : ultrafilter β :=
 of_compl_not_mem_iff (bind ↑f (λ x, ↑(m x))) $ λ s,
@@ -259,7 +259,7 @@ section hyperfilter
 
 variables (α) [infinite α]
 
-/-- The ultra-filter extending the cofinite filter. -/
+/-- The ultrafilter extending the cofinite filter. -/
 noncomputable def hyperfilter : ultrafilter α := ultrafilter.of cofinite
 
 variable {α}

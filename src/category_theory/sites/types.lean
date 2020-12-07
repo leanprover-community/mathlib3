@@ -93,8 +93,7 @@ by { rw ← op_comp, congr' 2, exact funext (λ x, congr_arg f (classical.some_s
   left_inv := types_glue_eval,
   right_inv := eval_types_glue }
 
-lemma eval_map (S : (Type u)ᵒᵖ ⥤ Type u)
-  (hs : is_sheaf types_grothendieck_topology S) (α β) (f : β ⟶ α) (s x) :
+lemma eval_map (S : (Type u)ᵒᵖ ⥤ Type u) (α β) (f : β ⟶ α) (s x) :
   eval S β (S.map f.op s) x = eval S α s (f x) :=
 by { simp_rw [eval, ← functor_to_types.map_comp_apply, ← op_comp], refl }
 
@@ -103,7 +102,7 @@ by { simp_rw [eval, ← functor_to_types.map_comp_apply, ← op_comp], refl }
   (hs : is_sheaf types_grothendieck_topology S) :
   S ≅ yoneda.obj (S.obj (op punit)) :=
 nat_iso.of_components (λ α, equiv.to_iso $ eval_equiv S hs $ unop α) $ λ α β f,
-funext $ λ s, funext $ λ x, eval_map S hs (unop α) (unop β) f.unop _ _
+funext $ λ s, funext $ λ x, eval_map S (unop α) (unop β) f.unop _ _
 
 lemma subcanonical_types_grothendieck_topology :
   sheaf.subcanonical types_grothendieck_topology.{u} :=

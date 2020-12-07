@@ -34,7 +34,7 @@ that the map from darts to edges is 2-to-1.
 
 ## Tags
 
-simple graphs, sums
+simple graphs, sums, degree-sum formula, handshaking lemma
 -/
 open finset
 
@@ -45,14 +45,19 @@ universes u v
 variables {V : Type u} (G : simple_graph V)
 
 /-- A `dart` is a directed edge, consisting of a vertex and an edge incident to it -/
-@[reducible]
 def dart := Σ (v : V), G.incidence_set v
+
+instance dart.fintype [fintype V] [decidable_eq V] [decidable_rel G.adj] : fintype (dart G) :=
+by { dunfold dart, apply_instance }
+
+instance dart.inhabited [inhabited V] [inhabited (G.incidence_set (default _))] :
+  inhabited G.dart := ⟨⟨default _, default _⟩⟩
 
 /-- Gets the vertex at the start of the dart. -/
 def dart_vert : G.dart → V := sigma.fst
 
 /-- Gets the edge that the dart runs through. -/
-def dart_edge : G.dart → sym2 V := λ d, d.snd
+def dart_edge : G.dart → sym2 V := λ d, (d.snd : sym2 V)
 
 lemma dart_vert_mem (d : G.dart) : G.dart_vert d ∈ G.dart_edge d :=
 by { rcases d with ⟨v,e,he,hv⟩, simp [dart_vert, dart_edge, hv] }
@@ -63,6 +68,7 @@ by { rcases d with ⟨v,e,he,hv⟩, exact he }
 lemma dart_edge_mem_incidence_set (d : G.dart) : G.dart_edge d ∈ G.incidence_set (G.dart_vert d) :=
 d.snd.property
 
+@[ext]
 lemma dart.ext {d₁ d₂ : G.dart}
   (hv : G.dart_vert d₁ = G.dart_vert d₂) (he : G.dart_edge d₁ = G.dart_edge d₂) :
   d₁ = d₂ :=
@@ -155,7 +161,7 @@ begin
   exact G.dart_edge_eq_iff d' d,
 end
 
-lemma dart_edge_fiber_card_eq_2 (e : sym2 V) (h : e ∈ G.edge_set) :
+lemma dart_edge_fiber_card (e : sym2 V) (h : e ∈ G.edge_set) :
   (univ.filter (λ (d : G.dart), G.dart_edge d = e)).card = 2 :=
 begin
   refine quotient.ind (λ p h, _) e h, cases p with v w,
@@ -174,10 +180,11 @@ begin
     (λ e, (univ.filter (λ (x : G.dart), G.dart_edge x = e)).card) (λ e, 2) _ rfl,
   simp [mul_comm],
   intros e h, rw mem_edge_finset at h,
-  exact G.dart_edge_fiber_card_eq_2 e h,
+  exact G.dart_edge_fiber_card e h,
 end
 
-/-- The degree-sum formula. -/
+/-- The degree-sum formula.  This is also known as the handshaking lemma, which might
+more specifically refer to `simple_graph.card_odd_degree_vertices_is_even`. -/
 theorem sum_degrees_eq_twice_card_edges : ∑ v, G.degree v = 2 * G.edge_finset.card :=
 G.dart_card_eq_sum_degrees.symm.trans G.dart_card_eq_twice_card_edges
 
@@ -189,16 +196,14 @@ section TODO_move
 lemma zmod_eq_zero_iff_even (n : ℕ) : (n : zmod 2) = 0 ↔ even n :=
 begin
   change (n : zmod 2) = ((0 : ℕ) : zmod 2) ↔ _,
-  rw zmod.eq_iff_modeq_nat,
-  rw nat.even_iff,
+  rw [zmod.eq_iff_modeq_nat, nat.even_iff],
   trivial,
 end
 
 lemma zmod_eq_one_iff_odd (n : ℕ) : (n : zmod 2) = 1 ↔ odd n :=
 begin
   change (n : zmod 2) = ((1 : ℕ) : zmod 2) ↔ _,
-  rw zmod.eq_iff_modeq_nat,
-  rw nat.odd_iff,
+  rw [zmod.eq_iff_modeq_nat, nat.odd_iff],
   trivial,
 end
 
@@ -207,6 +212,7 @@ by split; { contrapose, simp [zmod_eq_zero_iff_even], }
 
 end TODO_move
 
+/-- The handshaking lemma.  See also `simple_graph.sum_degrees_eq_twice_card_edges`. -/
 theorem card_odd_degree_vertices_is_even [fintype V] :
   even (univ.filter (λ v, odd (G.degree v))).card :=
 begin

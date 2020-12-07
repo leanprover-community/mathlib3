@@ -183,29 +183,29 @@ G.dart_card_eq_sum_degrees.symm.trans G.dart_card_eq_twice_card_edges
 
 end degree_sum
 
-lemma zmod_cast_mod (a b : ℕ) : a % 2 = b % 2 ↔ (a : zmod 2) = (b : zmod 2) :=
-begin
-  sorry
-end
+
+section TODO_move
 
 lemma zmod_eq_zero_iff_even (n : ℕ) : (n : zmod 2) = 0 ↔ even n :=
 begin
+  change (n : zmod 2) = ((0 : ℕ) : zmod 2) ↔ _,
+  rw zmod.eq_iff_modeq_nat,
   rw nat.even_iff,
-  change _ ↔ n % 2 = 0 % 2,
-  rw zmod_cast_mod,
-  norm_num,
+  trivial,
 end
 
 lemma zmod_eq_one_iff_odd (n : ℕ) : (n : zmod 2) = 1 ↔ odd n :=
 begin
+  change (n : zmod 2) = ((1 : ℕ) : zmod 2) ↔ _,
+  rw zmod.eq_iff_modeq_nat,
   rw nat.odd_iff,
-  change _ ↔ n % 2 = 1 % 2,
-  rw zmod_cast_mod,
-  norm_num,
+  trivial,
 end
 
 lemma zmod_neq_zero_iff_odd (n : ℕ) : (n : zmod 2) ≠ 0 ↔ odd n :=
 by split; { contrapose, simp [zmod_eq_zero_iff_even], }
+
+end TODO_move
 
 theorem card_odd_degree_vertices_is_even [fintype V] :
   even (univ.filter (λ v, odd (G.degree v))).card :=
@@ -220,7 +220,7 @@ begin
   rw ←zmod_eq_zero_iff_even,
   convert h,
   ext v, rw ←zmod_neq_zero_iff_odd, split, intro h, convert h, intro h, convert h,
-  intros v, simp,
+  intros v, simp only [true_and, mem_filter, mem_univ, ne.def],
   rw [zmod_eq_zero_iff_even, zmod_eq_one_iff_odd, nat.odd_iff_not_even, imp_self], trivial,
 end
 

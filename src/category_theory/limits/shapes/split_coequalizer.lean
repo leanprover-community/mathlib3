@@ -54,52 +54,30 @@ The name "coequalizer" is appropriate, since any split coequalizer is a coequali
 `category_theory.is_split_coequalizer.is_coequalizer`.
 Split coequalizers are also absolute, since a functor preserves all the structure above.
 -/
-def is_split_coequalizer {Z : C} (π : Y ⟶ Z) : Prop :=
-f ≫ π = g ≫ π ∧ ∃ (s : Z ⟶ Y) (t : Y ⟶ X), s ≫ π = 𝟙 Z ∧ t ≫ g = 𝟙 Y ∧ t ≫ f = π ≫ s
+structure is_split_coequalizer {Z : C} (π : Y ⟶ Z) :=
+(right_section : Z ⟶ Y)
+(left_section : Y ⟶ X)
+(condition : f ≫ π = g ≫ π)
+(right_section_π : right_section ≫ π = 𝟙 Z)
+(left_section_bottom : left_section ≫ g = 𝟙 Y)
+(left_section_top : left_section ≫ f = π ≫ right_section)
+
+open is_split_coequalizer
+attribute [reassoc] condition
+attribute [simp, reassoc] right_section_π left_section_bottom left_section_top
 
 variables {f g}
-@[simp, reassoc]
-lemma is_split_coequalizer.condition {Z : C} {π : Y ⟶ Z} (q : is_split_coequalizer f g π) :
-  f ≫ π = g ≫ π := q.1
-
-/-- Given the split coequalizer `f,g,π` extract the section of `π`. -/
-noncomputable def is_split_coequalizer.right_section
-  {Z : C} {π : Y ⟶ Z} (q : is_split_coequalizer f g π) : Z ⟶ Y :=
-q.2.some
-
-/-- Given the split coequalizer `f,g,π` extract the section of `g`. -/
-noncomputable def is_split_coequalizer.left_section
-  {Z : C} {π : Y ⟶ Z} (q : is_split_coequalizer f g π) : Y ⟶ X :=
-q.2.some_spec.some
-
-@[simp, reassoc]
-lemma is_split_coequalizer.right_section_π
-  {Z : C} {π : Y ⟶ Z} (q : is_split_coequalizer f g π) :
-  q.right_section ≫ π = 𝟙 _ :=
-q.2.some_spec.some_spec.1
-
-@[simp, reassoc]
-lemma is_split_coequalizer.left_section_bottom
-  {Z : C} {π : Y ⟶ Z} (q : is_split_coequalizer f g π) :
-  q.left_section ≫ g = 𝟙 _ :=
-q.2.some_spec.some_spec.2.1
-
-@[simp, reassoc]
-lemma is_split_coequalizer.left_section_top
-  {Z : C} {π : Y ⟶ Z} (q : is_split_coequalizer f g π) :
-  q.left_section ≫ f = π ≫ q.right_section :=
-q.2.some_spec.some_spec.2.2
 
 /-- Split coequalizers are absolute: they are preserved by any functor. -/
-lemma is_split_coequalizer.map {Z : C} {π : Y ⟶ Z} (q : is_split_coequalizer f g π) (F : C ⥤ D) :
+@[simps]
+def is_split_coequalizer.map {Z : C} {π : Y ⟶ Z} (q : is_split_coequalizer f g π) (F : C ⥤ D) :
   is_split_coequalizer (F.map f) (F.map g) (F.map π) :=
-begin
-  refine ⟨_, F.map q.right_section, F.map q.left_section, _, _, _⟩,
-  { rw [←F.map_comp, q.condition, F.map_comp] },
-  { rw [←F.map_comp, q.right_section_π, F.map_id] },
-  { rw [←F.map_comp, q.left_section_bottom, F.map_id] },
-  { rw [←F.map_comp, q.left_section_top, F.map_comp] }
-end
+{ right_section := F.map q.right_section,
+  left_section := F.map q.left_section,
+  condition := by rw [←F.map_comp, q.condition, F.map_comp],
+  right_section_π := by rw [←F.map_comp, q.right_section_π, F.map_id],
+  left_section_bottom := by rw [←F.map_comp, q.left_section_bottom, F.map_id],
+  left_section_top := by rw [←F.map_comp, q.left_section_top, F.map_comp] }
 
 section
 
@@ -115,7 +93,7 @@ cofork.of_π h t.condition
 The cofork induced by a split coequalizer is a coequalizer, justifying the name. In some cases it
 is more convenient to show a given cofork is a coequalizer by showing it is split.
 -/
-noncomputable def is_split_coequalizer.is_coequalizer
+def is_split_coequalizer.is_coequalizer
   {Z : C} {h : Y ⟶ Z} (t : is_split_coequalizer f g h) :
   is_colimit t.as_cofork :=
 cofork.is_colimit.mk' _ $ λ s,
@@ -131,7 +109,7 @@ The pair `f,g` is a split pair if there is a `h : Y ⟶ Z` so that `f, g, h` for
 in `C`.
 -/
 class has_split_coequalizer : Prop :=
-(splittable [] : ∃ {Z : C} (h : Y ⟶ Z), is_split_coequalizer f g h)
+(splittable [] : ∃ {Z : C} (h : Y ⟶ Z), nonempty (is_split_coequalizer f g h))
 
 /--
 The pair `f,g` is a `G`-split pair if there is a `h : G Y ⟶ Z` so that `G f, G g, h` forms a split
@@ -149,21 +127,22 @@ noncomputable def has_split_coequalizer.coequalizer_π [has_split_coequalizer f 
 (has_split_coequalizer.splittable f g).some_spec.some
 
 /-- The coequalizer morphism `coequalizer_ι` gives a split coequalizer on `f,g`. -/
-lemma has_split_coequalizer.is_split_coequalizer [has_split_coequalizer f g] :
+noncomputable def has_split_coequalizer.is_split_coequalizer [has_split_coequalizer f g] :
   is_split_coequalizer f g (has_split_coequalizer.coequalizer_π f g) :=
-(has_split_coequalizer.splittable f g).some_spec.some_spec
+classical.choice (has_split_coequalizer.splittable f g).some_spec.some_spec
 
 /-- If `f, g` is split, then `G f, G g` is split. -/
 instance map_is_split_pair [has_split_coequalizer f g] :
   has_split_coequalizer (G.map f) (G.map g) :=
 { splittable :=
-  ⟨_, _, is_split_coequalizer.map (has_split_coequalizer.is_split_coequalizer f g) _⟩ }
+  ⟨_, _, ⟨is_split_coequalizer.map (has_split_coequalizer.is_split_coequalizer f g) _⟩⟩ }
 
 namespace limits
 
-/-- If a pair is split, it has a coequalizer. -/
+/-- If a pair has a split coequalizer, it has a coequalizer. -/
 @[priority 1]
-instance has_coequalizer_of_is_split_pair [has_split_coequalizer f g] : has_coequalizer f g :=
+instance has_coequalizer_of_has_split_coequalizer [has_split_coequalizer f g] :
+  has_coequalizer f g :=
 has_colimit.mk ⟨_, (has_split_coequalizer.is_split_coequalizer f g).is_coequalizer⟩
 
 end limits

@@ -183,11 +183,7 @@ end degree_sum
 section TODO_move
 
 lemma zmod_eq_zero_iff_even (n : ℕ) : (n : zmod 2) = 0 ↔ even n :=
-begin
-  change (n : zmod 2) = ((0 : ℕ) : zmod 2) ↔ _,
-  rw [zmod.eq_iff_modeq_nat, nat.even_iff],
-  trivial,
-end
+(char_p.cast_eq_zero_iff (zmod 2) 2 n).trans even_iff_two_dvd.symm
 
 lemma zmod_eq_one_iff_odd (n : ℕ) : (n : zmod 2) = 1 ↔ odd n :=
 begin

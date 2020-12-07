@@ -8,7 +8,6 @@ import algebra.big_operators.basic
 import data.nat.parity
 import data.zmod.basic
 import tactic.omega
-import tactic.fin_cases
 /-!
 # Degree-sum formula and handshaking lemma
 
@@ -45,95 +44,84 @@ universes u v
 variables {V : Type u} (G : simple_graph V)
 
 /-- A `dart` is a directed edge, consisting of a vertex and an edge incident to it -/
-def dart := Σ (v : V), G.incidence_set v
+@[ext, derive decidable_eq]
+structure dart :=
+(vert : V)
+(edge : sym2 V)
+(edge_mem : edge ∈ G.edge_set)
+(vert_mem : vert ∈ edge)
+
+def dart_equiv_sigma : G.dart ≃ Σ v, G.incidence_set v :=
+{ to_fun := λ d, ⟨d.vert, d.edge, d.edge_mem, d.vert_mem⟩,
+  inv_fun := λ s, ⟨s.fst, s.snd, s.snd.property.1, s.snd.property.2⟩,
+  left_inv := λ d, by { ext, simp only, simp only [subtype.coe_mk], },
+  right_inv := λ s, by { ext, simp only, simp only [subtype.coe_eta], } }
 
 instance dart.fintype [fintype V] [decidable_eq V] [decidable_rel G.adj] : fintype (dart G) :=
-by { dunfold dart, apply_instance }
+fintype.of_equiv _ G.dart_equiv_sigma.symm
 
 instance dart.inhabited [inhabited V] [inhabited (G.incidence_set (default _))] :
-  inhabited G.dart := ⟨⟨default _, default _⟩⟩
+  inhabited G.dart := ⟨G.dart_equiv_sigma.symm ⟨default _, default _⟩⟩
 
-/-- Gets the vertex at the start of the dart. -/
-def dart_vert : G.dart → V := sigma.fst
+variables {G}
 
-/-- Gets the edge that the dart runs through. -/
-def dart_edge : G.dart → sym2 V := λ d, (d.snd : sym2 V)
-
-lemma dart_vert_mem (d : G.dart) : G.dart_vert d ∈ G.dart_edge d :=
-by { rcases d with ⟨v,e,he,hv⟩, simp [dart_vert, dart_edge, hv] }
-
-lemma dart_edge_mem (d : G.dart) : G.dart_edge d ∈ G.edge_set :=
-by { rcases d with ⟨v,e,he,hv⟩, exact he }
-
-lemma dart_edge_mem_incidence_set (d : G.dart) : G.dart_edge d ∈ G.incidence_set (G.dart_vert d) :=
-d.snd.property
-
-@[ext]
-lemma dart.ext {d₁ d₂ : G.dart}
-  (hv : G.dart_vert d₁ = G.dart_vert d₂) (he : G.dart_edge d₁ = G.dart_edge d₂) :
-  d₁ = d₂ :=
-by { rcases d₁ with ⟨v₁, e₁, he₁, hv₁⟩, rcases d₂ with ⟨v₂, e₂, he₂, hv₂⟩,
-     dsimp only [dart_vert, dart_edge, subtype.coe_mk] at hv he, subst v₂, subst e₂, }
-
-lemma dart.ext_iff (d₁ d₂ : G.dart) :
-  d₁ = d₂ ↔ G.dart_vert d₁ = G.dart_vert d₂ ∧ G.dart_edge d₁ = G.dart_edge d₂ :=
-by { split, rintro rfl, tauto, rintro ⟨hv, he⟩, apply dart.ext G hv he }
+lemma dart.edge_mem_incidence_set (d : G.dart) : d.edge ∈ G.incidence_set d.vert :=
+⟨d.edge_mem, d.vert_mem⟩
 
 /-- Reverses the orientation of a dart. -/
-def dart_rev [decidable_eq V] (d : G.dart) : G.dart :=
-⟨sym2.mem.other' (G.dart_vert_mem d), G.dart_edge d, G.edge_mem_other_incident_set d.snd.property⟩
+def dart.rev [decidable_eq V] (d : G.dart) : G.dart :=
+{ vert := sym2.mem.other' d.vert_mem,
+  edge := d.edge,
+  edge_mem := d.edge_mem,
+  vert_mem := sym2.mem_other_mem' d.vert_mem }
 
-@[simp]
-lemma dart_edge_of_dart_rev [decidable_eq V] (d : G.dart) :
-  G.dart_edge (G.dart_rev d) = G.dart_edge d := rfl
+@[simp] lemma dart_edge_of_dart_rev [decidable_eq V] (d : G.dart) : d.rev.edge = d.edge := rfl
 
-lemma dart_rev_invol [decidable_eq V] (d : G.dart) : G.dart_rev (G.dart_rev d) = d :=
+lemma dart_rev_invol [decidable_eq V] (d : G.dart) : d.rev.rev = d :=
 begin
   apply dart.ext,
   apply sym2.other_invol',
-  rcases d with ⟨v, e, he, hv⟩,
-  simp [dart_edge, dart_rev],
+  simp only [dart_edge_of_dart_rev],
 end
 
-lemma dart_rev_no_fixedpoints [decidable_eq V] (d : G.dart) : d ≠ G.dart_rev d :=
+lemma dart_rev_no_fixedpoints [decidable_eq V] (d : G.dart) : d ≠ d.rev :=
 begin
   intro h, rw dart.ext_iff at h,
-  dsimp [dart_vert, dart_rev] at h,
-  apply G.edge_other_ne (G.dart_edge_mem d) (G.dart_vert_mem d),
+  dsimp [dart.vert, dart.rev] at h,
+  apply G.edge_other_ne d.edge_mem d.vert_mem,
   convert h.1.symm, rw sym2.other_eq_other',
 end
 
 lemma dart_edge_eq_iff [decidable_eq V] (d₁ d₂ : G.dart) :
-  G.dart_edge d₁ = G.dart_edge d₂ ↔ d₁ = d₂ ∨ d₁ = G.dart_rev d₂ :=
+  d₁.edge = d₂.edge ↔ d₁ = d₂ ∨ d₁ = d₂.rev :=
 begin
+  have h₁ : d₁.edge = ⟦(d₁.vert, d₁.rev.vert)⟧ := (sym2.mem_other_spec' d₁.vert_mem).symm,
+  have h₂ : d₂.edge = ⟦(d₂.vert, d₂.rev.vert)⟧ := (sym2.mem_other_spec' d₂.vert_mem).symm,
   split,
-  { rw [dart.ext_iff, dart.ext_iff],
-    rcases d₁ with ⟨v₁, e₁, he₁, hv₁⟩,
-    rcases d₂ with ⟨v₂, e₂, he₂, hv₂⟩,
-    dsimp [dart_edge, dart_vert, dart_rev],
-    rintro rfl, simp only [and_true, eq_self_iff_true],
-    by_cases hveq : v₁ = v₂,
-    { left, subst hveq, },
-    { right,
-      have he : e₁ = ⟦(v₁, v₂)⟧ := (sym2.elems_iff_eq hveq).mp ⟨hv₁, hv₂⟩,
-      subst e₁,
-      have h' := sym2.mem_other_spec' hv₂,
-      rw [sym2.eq_swap, sym2.congr_left] at h',
-      convert h'.symm, }, },
+  { rw [dart.ext_iff, dart.ext_iff, dart_edge_of_dart_rev],
+    intro h, simp only [h, and_true, eq_self_iff_true],
+    rw [h₁, h₂, sym2.eq_iff] at h,
+    cases h,
+    { exact or.inl h.1 },
+    { exact or.inr h.1 }, },
   { intro h, cases h; subst d₁, refl, },
 end
 
+variables (G)
+
 /-- For a given vertex `v`, the injective map from the incidence set at `v` to the darts there. --/
-def dart_from_incidence_set (v : V) : G.incidence_set v → G.dart := λ ee, ⟨v, ee⟩
+def dart_from_incidence_set (v : V) : G.incidence_set v → G.dart :=
+λ ee, ⟨v, ee, ee.property.1, ee.property.2⟩
 
 lemma dart_from_incidence_set_inj (v : V) : function.injective (G.dart_from_incidence_set v) :=
-by { dsimp only [dart_from_incidence_set], exact sigma_mk_injective }
+by { intros e₁ e₂, dsimp only [dart_from_incidence_set, dart_equiv_sigma],
+     simp only [true_and, equiv.coe_fn_symm_mk, eq_self_iff_true], exact subtype.ext,  }
 
 section degree_sum
 variables [fintype V] [decidable_eq V] [decidable_rel G.adj]
 
 lemma dart_vert_fiber_card_eq_degree (v : V) :
-  (univ.filter (λ d, G.dart_vert d = v)).card = G.degree v :=
+  (univ.filter (λ d : G.dart, d.vert = v)).card = G.degree v :=
 begin
   have hh := card_image_of_injective univ (G.dart_from_incidence_set_inj v),
   rw [finset.card_univ, card_incidence_set_eq_degree] at hh,
@@ -141,43 +129,43 @@ begin
   ext d,
   simp only [mem_image, true_and, mem_filter, set_coe.exists, mem_univ, exists_prop_of_true],
   split,
-  { rintro rfl, use G.dart_edge d, use G.dart_edge_mem_incidence_set d,
-    apply dart.ext; simp [dart_from_incidence_set, dart_vert, dart_edge], },
-  { rintro ⟨e, he, rfl⟩, simp [dart_from_incidence_set, dart_vert] },
+  { rintro rfl, use d.edge, use d.edge_mem_incidence_set,
+    apply dart.ext; simp [dart_from_incidence_set, dart.vert, dart.edge], },
+  { rintro ⟨e, he, rfl⟩, simp [dart_from_incidence_set, dart.vert] },
 end
 
-lemma dart_card_eq_sum_degrees : fintype.card G.dart = ∑ v, G.degree v :=
+lemma dart_card_eq_sum_degrees [hd : decidable_eq V] : fintype.card G.dart = ∑ v, G.degree v :=
 begin
   convert_to (univ : finset G.dart).card = _,
-  rw @card_eq_sum_card_fiberwise _ _ _ G.dart_vert _ univ (λ d h, mem_univ _),
+  rw @card_eq_sum_card_fiberwise _ _ hd dart.vert _ univ (λ d h, mem_univ _),
   simp [G.dart_vert_fiber_card_eq_degree],
 end
 
 lemma dart_edge_fiber (d : G.dart) :
-  (univ.filter (λ (d' : G.dart), G.dart_edge d' = G.dart_edge d)) = {d, G.dart_rev d} :=
+  (univ.filter (λ (d' : G.dart), d'.edge = d.edge)) = {d, d.rev} :=
 begin
   ext d',
   simp only [true_and, mem_filter, mem_insert, mem_univ, mem_singleton],
-  exact G.dart_edge_eq_iff d' d,
+  exact dart_edge_eq_iff d' d,
 end
 
 lemma dart_edge_fiber_card (e : sym2 V) (h : e ∈ G.edge_set) :
-  (univ.filter (λ (d : G.dart), G.dart_edge d = e)).card = 2 :=
+  (univ.filter (λ (d : G.dart), d.edge = e)).card = 2 :=
 begin
   refine quotient.ind (λ p h, _) e h, cases p with v w,
   let d : G.dart := ⟨v, ⟦(v, w)⟧, h, sym2.mk_has_mem _ _⟩,
-  convert_to _ = finset.card {d, G.dart_rev d},
-  { rw [card_insert_of_not_mem, card_singleton], simp [G.dart_rev_no_fixedpoints d], },
+  convert_to _ = finset.card {d, d.rev},
+  { rw [card_insert_of_not_mem, card_singleton], simp [dart_rev_no_fixedpoints d], },
   congr, apply G.dart_edge_fiber d,
 end
 
 lemma dart_card_eq_twice_card_edges : fintype.card G.dart = 2 * G.edge_finset.card :=
 begin
   convert_to (univ : finset G.dart).card = _,
-  rw @card_eq_sum_card_fiberwise _ _ _ G.dart_edge _ G.edge_finset
-    (λ d h, by { rw mem_edge_finset, apply G.dart_edge_mem }),
+  rw @card_eq_sum_card_fiberwise _ _ _ dart.edge _ G.edge_finset
+    (λ d h, by { rw mem_edge_finset, apply dart.edge_mem }),
   rw @sum_congr _ _ G.edge_finset G.edge_finset
-    (λ e, (univ.filter (λ (x : G.dart), G.dart_edge x = e)).card) (λ e, 2) _ rfl,
+    (λ e, (univ.filter (λ (x : G.dart), dart.edge x = e)).card) (λ e, 2) _ rfl,
   simp [mul_comm],
   intros e h, rw mem_edge_finset at h,
   exact G.dart_edge_fiber_card e h,

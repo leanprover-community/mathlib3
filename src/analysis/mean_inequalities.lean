@@ -224,6 +224,17 @@ theorem rpow_arith_mean_le_arith_mean_rpow (w z : ι → ℝ≥0) (hw' : ∑ i i
 by exact_mod_cast real.rpow_arith_mean_le_arith_mean_rpow s _ _ (λ i _, (w i).coe_nonneg)
   (by exact_mod_cast hw') (λ i _, (z i).coe_nonneg) hp
 
+/-- Weighted generalized mean inequality, version for two elements of `ℝ≥0` and real exponents. -/
+theorem rpow_arith_mean_le_arith_mean2_rpow (w₁ w₂ z₁ z₂ : ℝ≥0) (hw' : w₁ + w₂ = 1) {p : ℝ}
+  (hp : 1 ≤ p) :
+  (w₁ * z₁ + w₂ * z₂) ^ p ≤ w₁ * z₁ ^ p + w₂ * z₂ ^ p :=
+begin
+  have h := rpow_arith_mean_le_arith_mean_rpow (univ : finset (fin 2))
+    (fin.cons w₁ $ fin.cons w₂ fin_zero_elim) (fin.cons z₁ $ fin.cons z₂ $ fin_zero_elim) _ hp,
+  { simpa [fin.sum_univ_succ, fin.sum_univ_zero, fin.cons_succ, fin.cons_zero] using h, },
+  { simp [hw', fin.sum_univ_succ, fin.sum_univ_zero, fin.cons_succ, fin.cons_zero], },
+end
+
 /-- Weighted generalized mean inequality, version for sums over finite sets, with `ℝ≥0`-valued
 functions and real exponents. -/
 theorem arith_mean_le_rpow_mean (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) {p : ℝ}
@@ -280,6 +291,15 @@ witnesses of `0 ≤ p` and `0 ≤ q` for the denominators.  -/
 theorem young_inequality (a b : ℝ≥0) {p q : ℝ≥0} (hp : 1 < p) (hpq : 1 / p + 1 / q = 1) :
   a * b ≤ a^(p:ℝ) / p + b^(q:ℝ) / q :=
 real.young_inequality_of_nonneg a.coe_nonneg b.coe_nonneg ⟨hp, nnreal.coe_eq.2 hpq⟩
+
+/-- Young's inequality, `ℝ≥0` version with real conjugate exponents. -/
+theorem young_inequality_real (a b : ℝ≥0) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
+  a * b ≤ a ^ p / nnreal.of_real p + b ^ q / nnreal.of_real q :=
+begin
+  nth_rewrite 0 ←coe_of_real p hpq.nonneg,
+  nth_rewrite 0 ←coe_of_real q hpq.symm.nonneg,
+  exact young_inequality a b hpq.one_lt_nnreal hpq.inv_add_inv_conj_nnreal,
+end
 
 /-- Hölder inequality: the scalar product of two functions is bounded by the product of their
 `L^p` and `L^q` norms when `p` and `q` are conjugate exponents. Version for sums over finite sets,
@@ -432,6 +452,22 @@ by convert Lp_add_le s f g hp using 2 ; [skip, congr' 1, congr' 1];
 end real
 
 namespace ennreal
+
+/-- Young's inequality, `ennreal` version with real conjugate exponents. -/
+theorem young_inequality (a b : ennreal) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
+  a * b ≤ a ^ p / ennreal.of_real p + b ^ q / ennreal.of_real q :=
+begin
+  by_cases h : a = ⊤ ∨ b = ⊤,
+  { refine le_trans le_top (le_of_eq _),
+    repeat {rw ennreal.div_def},
+    cases h; rw h; simp [h, hpq.pos, hpq.symm.pos], },
+  push_neg at h, -- if a ≠ ⊤ and b ≠ ⊤, use the nnreal version: nnreal.young_inequality_real
+  rw [←coe_to_nnreal h.left, ←coe_to_nnreal h.right, ←coe_mul,
+    coe_rpow_of_nonneg _ hpq.nonneg, coe_rpow_of_nonneg _ hpq.symm.nonneg, ennreal.of_real,
+    ennreal.of_real, ←@coe_div (nnreal.of_real p) _ (by simp [hpq.pos]),
+    ←@coe_div (nnreal.of_real q) _ (by simp [hpq.symm.pos]), ←coe_add, coe_le_coe],
+  exact nnreal.young_inequality_real a.to_nnreal b.to_nnreal hpq,
+end
 
 variables (f g : ι → ennreal)  {p q : ℝ}
 

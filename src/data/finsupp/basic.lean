@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Scott Morrison
 import algebra.group.pi
 import algebra.big_operators.order
 import algebra.module.basic
+import group_theory.submonoid.basic
 import data.fintype.card
 import data.finset.preimage
 import data.multiset.antidiagonal
@@ -199,11 +200,27 @@ begin
   { rw [single_eq_of_ne h, zero_apply] }
 end
 
+lemma single_of_single_apply (a a' : α) (b : M) :
+  single a ((single a' b) a) = single a' (single a' b) a :=
+begin
+  rw [single_apply, single_apply],
+  ext,
+  split_ifs,
+  { rw h, },
+  { rw [zero_apply, single_apply, if_t_t], },
+end
+
 lemma support_single_ne_zero (hb : b ≠ 0) : (single a b).support = {a} :=
 if_neg hb
 
 lemma support_single_subset : (single a b).support ⊆ {a} :=
 show ite _ _ _ ⊆ _, by split_ifs; [exact empty_subset _, exact subset.refl _]
+
+lemma single_apply_mem (x) : single a b x ∈ ({0, b} : set M) :=
+by rcases em (a = x) with (rfl|hx); [simp, simp [single_eq_of_ne hx]]
+
+lemma range_single_subset : set.range (single a b) ⊆ {0, b} :=
+set.range_subset_iff.2 single_apply_mem
 
 lemma single_injective (a : α) : function.injective (single a : M → α →₀ M) :=
 assume b₁ b₂ eq,
@@ -1599,6 +1616,11 @@ instance [semiring R] [add_comm_monoid M] [semimodule R M] : has_scalar R (α �
 
 variables (α M)
 
+/-!
+Throughout this section, some `semiring` arguments are specified with `{}` instead of `[]`.
+See note [implicit instance arguments].
+-/
+
 @[simp] lemma smul_apply' {_:semiring R} [add_comm_monoid M] [semimodule R M]
   {a : α} {b : R} {v : α →₀ M} : (b • v) a = b • (v a) :=
 rfl
@@ -1645,9 +1667,7 @@ end
 
 @[simp] lemma smul_single {_ : semiring R} [add_comm_monoid M] [semimodule R M]
   (c : R) (a : α) (b : M) : c • finsupp.single a b = finsupp.single a (c • b) :=
-ext $ λ a', by by_cases a = a';
-  [{ subst h, simp only [smul_apply', single_eq_same] },
-   simp only [h, smul_apply', ne.def, not_false_iff, single_eq_of_ne, smul_zero]]
+map_range_single
 
 @[simp] lemma smul_single' {_ : semiring R}
   (c : R) (a : α) (b : R) : c • finsupp.single a b = finsupp.single a (c * b) :=

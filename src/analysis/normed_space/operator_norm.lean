@@ -154,40 +154,52 @@ end
 
 end normed_field
 
+section add_monoid_hom
+
+lemma add_monoid_hom.isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+begin
+  intros x y,
+  simp_rw [edist_dist],
+  congr',
+  simp_rw [dist_eq_norm, ←add_monoid_hom.map_sub],
+  exact hf (x - y),
+end
+
+end add_monoid_hom
+
 variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_space 𝕜 G]
 (c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
 include 𝕜
 
-/-- A continuous linear map between normed spaces is bounded when the field is nondiscrete.
-The continuity ensures boundedness on a ball of some radius `δ`. The nondiscreteness is then
-used to rescale any element into an element of norm in `[δ/C, δ]`, whose image has a controlled norm.
-The norm control for the original element follows by rescaling. -/
+lemma linear_map.bound_of_shell (f : E →ₗ[𝕜] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
+  (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) (x : E) :
+  ∥f x∥ ≤ C * ∥x∥ :=
+begin
+  by_cases hx : x = 0, { simp [hx] },
+  rcases rescale_to_shell hc ε_pos hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
+  simpa only [f.map_smul, norm_smul, mul_left_comm C, mul_le_mul_left (norm_pos_iff.2 hδ)]
+    using hf (δ • x) leδx δxle
+end
+
+/-- A continuous linear map between normed spaces is bounded when the field is nondiscrete. The
+continuity ensures boundedness on a ball of some radius `ε`. The nondiscreteness is then used to
+rescale any element into an element of norm in `[ε/C, ε]`, whose image has a controlled norm. The
+norm control for the original element follows by rescaling. -/
 lemma linear_map.bound_of_continuous (f : E →ₗ[𝕜] F) (hf : continuous f) :
   ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
 begin
   have : continuous_at f 0 := continuous_iff_continuous_at.1 hf _,
-  rcases metric.tendsto_nhds_nhds.1 this 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
-  let δ := ε/2,
-  have δ_pos : δ > 0 := half_pos ε_pos,
-  have H : ∀{a}, ∥a∥ ≤ δ → ∥f a∥ ≤ 1,
-  { assume a ha,
-    have : dist (f a) (f 0) ≤ 1,
-    { apply le_of_lt (hε _),
-      rw [dist_eq_norm, sub_zero],
-      exact lt_of_le_of_lt ha (half_lt_self ε_pos) },
-    simpa using this },
+  rcases (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).1 this 1 zero_lt_one
+    with ⟨ε, ε_pos, hε⟩,
+  simp only [mem_closed_ball, dist_zero_right, f.map_zero] at hε,
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨δ⁻¹ * ∥c∥, mul_pos (inv_pos.2 δ_pos) (lt_trans zero_lt_one hc), (λx, _)⟩,
-  by_cases h : x = 0,
-  { simp only [h, norm_zero, mul_zero, linear_map.map_zero] },
-  { rcases rescale_to_shell hc δ_pos h with ⟨d, hd, dxle, ledx, dinv⟩,
-    calc ∥f x∥
-      = ∥f ((d⁻¹ * d) • x)∥ : by rwa [inv_mul_cancel, one_smul]
-      ... = ∥d∥⁻¹ * ∥f (d • x)∥ :
-        by rw [mul_smul, linear_map.map_smul, norm_smul, normed_field.norm_inv]
-      ... ≤ ∥d∥⁻¹ * 1 :
-        mul_le_mul_of_nonneg_left (H dxle) (by { rw ← normed_field.norm_inv, exact norm_nonneg _ })
-      ... ≤ δ⁻¹ * ∥c∥ * ∥x∥ : by { rw mul_one, exact dinv } }
+  refine ⟨ε⁻¹ * ∥c∥, mul_pos (inv_pos.2 ε_pos) (lt_trans zero_lt_one hc), _⟩,
+  suffices : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
+    from f.bound_of_shell ε_pos hc this,
+  intros x hle hlt,
+  refine (hε _ hlt.le).trans _,
+  rwa [mul_assoc, ← div_le_iff' (inv_pos.2 ε_pos), div_eq_mul_inv, inv_inv', one_mul,
+    ← div_le_iff' (zero_lt_one.trans hc)]
 end
 
 namespace continuous_linear_map
@@ -263,6 +275,9 @@ classical.by_cases
 theorem le_op_norm_of_le {c : ℝ} {x} (h : ∥x∥ ≤ c) : ∥f x∥ ≤ ∥f∥ * c :=
 le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
 
+theorem le_of_op_norm_le {c : ℝ} (h : ∥f∥ ≤ c) (x : E) : ∥f x∥ ≤ c * ∥x∥ :=
+(f.le_op_norm x).trans (mul_le_mul_of_nonneg_right h (norm_nonneg x))
+
 /-- continuous linear maps are Lipschitz continuous. -/
 theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
 lipschitz_with.of_dist_le_mul $ λ x y,
@@ -284,22 +299,31 @@ theorem op_norm_le_of_lipschitz {f : E →L[𝕜] F} {K : nnreal} (hf : lipschit
   ∥f∥ ≤ K :=
 f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le_mul x 0
 
+lemma op_norm_le_of_shell {f : E →L[𝕜] F} {ε C : ℝ} (ε_pos : 0 < ε) (hC : 0 ≤ C)
+  {c : 𝕜} (hc : 1 < ∥c∥) (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) :
+  ∥f∥ ≤ C :=
+f.op_norm_le_bound hC $ (f : E →ₗ[𝕜] F).bound_of_shell ε_pos hc hf
+
 lemma op_norm_le_of_ball {f : E →L[𝕜] F} {ε : ℝ} {C : ℝ} (ε_pos : 0 < ε) (hC : 0 ≤ C)
   (hf : ∀ x ∈ ball (0 : E) ε, ∥f x∥ ≤ C * ∥x∥) : ∥f∥ ≤ C :=
 begin
-  apply f.op_norm_le_bound hC,
-  intros x,
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  by_cases hx : x = 0, { simp [hx] },
-  rcases rescale_to_shell hc (half_pos ε_pos) hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
-  have δx_in : δ • x ∈ ball (0 : E) ε,
-  { rw [mem_ball, dist_eq_norm, sub_zero],
-    linarith },
-  calc ∥f x∥ = ∥f ((1/δ) • δ • x)∥ : by simp [hδ, smul_smul]
-  ... = ∥1/δ∥ * ∥f (δ • x)∥ : by simp [norm_smul]
-  ... ≤ ∥1/δ∥ * (C*∥δ • x∥) : mul_le_mul_of_nonneg_left _ (norm_nonneg _)
-  ... = C * ∥x∥ : by { rw norm_smul, field_simp [hδ], ring },
-  exact hf _ δx_in
+  refine op_norm_le_of_shell ε_pos hC hc (λ x _ hx, hf x _),
+  rwa ball_0_eq
+end
+
+lemma op_norm_le_of_shell' {f : E →L[𝕜] F} {ε C : ℝ} (ε_pos : 0 < ε) (hC : 0 ≤ C)
+  {c : 𝕜} (hc : ∥c∥ < 1) (hf : ∀ x, ε * ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) :
+  ∥f∥ ≤ C :=
+begin
+  by_cases h0 : c = 0,
+  { refine op_norm_le_of_ball ε_pos hC (λ x hx, hf x _ _),
+    { simp [h0] },
+    { rwa ball_0_eq at hx } },
+  { rw [← inv_inv' c, normed_field.norm_inv,
+      inv_lt_one_iff_of_pos (norm_pos_iff.2 $ inv_ne_zero h0)] at hc,
+    refine op_norm_le_of_shell ε_pos hC hc _,
+    rwa [normed_field.norm_inv, div_eq_mul_inv, inv_inv'] }
 end
 
 lemma op_norm_eq_of_bounds {φ : E →L[𝕜] F} {M : ℝ} (M_nonneg : 0 ≤ M)
@@ -427,17 +451,16 @@ by a positive factor.-/
 theorem antilipschitz_of_uniform_embedding (hf : uniform_embedding f) :
   ∃ K, antilipschitz_with K f :=
 begin
-  obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ {x y : E}, dist (f x) (f y) < ε → dist x y < 1, from
-    (uniform_embedding_iff.1 hf).2.2 1 zero_lt_one,
+  obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ {x y : E}, dist (f x) (f y) < ε → dist x y < 1,
+    from (uniform_embedding_iff.1 hf).2.2 1 zero_lt_one,
   let δ := ε/2,
   have δ_pos : δ > 0 := half_pos εpos,
   have H : ∀{x}, ∥f x∥ ≤ δ → ∥x∥ ≤ 1,
   { assume x hx,
     have : dist x 0 ≤ 1,
-    { apply le_of_lt,
-      apply hε,
-      simp [dist_eq_norm],
-      exact lt_of_le_of_lt hx (half_lt_self εpos) },
+    { refine (hε _).le,
+      rw [f.map_zero, dist_zero_right],
+      exact hx.trans_lt (half_lt_self εpos) },
     simpa using this },
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨⟨δ⁻¹, _⟩ * nnnorm c, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
@@ -446,9 +469,9 @@ begin
   { have : f x = f 0, by { simp [hx] },
     have : x = 0 := (uniform_embedding_iff.1 hf).1 this,
     simp [this] },
-  { rcases rescale_to_shell hc δ_pos hx with ⟨d, hd, dxle, ledx, dinv⟩,
-    have : ∥f (d • x)∥ ≤ δ, by simpa,
-    have : ∥d • x∥ ≤ 1 := H this,
+  { rcases rescale_to_shell hc δ_pos hx with ⟨d, hd, dxlt, ledx, dinv⟩,
+    rw [← f.map_smul d] at dxlt,
+    have : ∥d • x∥ ≤ 1 := H dxlt.le,
     calc ∥x∥ = ∥d∥⁻¹ * ∥d • x∥ :
       by rwa [← normed_field.norm_inv, ← norm_smul, ← mul_smul, inv_mul_cancel, one_smul]
     ... ≤ ∥d∥⁻¹ * 1 :

@@ -1254,12 +1254,15 @@ iff.rfl
 lemma image_mem_map (hs : s ∈ f) : m '' s ∈ map m f :=
 f.sets_of_superset hs $ subset_preimage_image m s
 
+lemma image_mem_map_iff (hf : function.injective m) : m '' s ∈ map m f ↔ s ∈ f :=
+⟨λ h, by rwa [← preimage_image_eq s hf], image_mem_map⟩
+
 lemma range_mem_map : range m ∈ map m f :=
 by rw ←image_univ; exact image_mem_map univ_mem_sets
 
 lemma mem_map_sets_iff : t ∈ map m f ↔ (∃s∈f, m '' s ⊆ t) :=
 iff.intro
-  (assume ht, ⟨set.preimage m t, ht, image_preimage_subset _ _⟩)
+  (assume ht, ⟨m ⁻¹' t, ht, image_preimage_subset _ _⟩)
   (assume ⟨s, hs, ht⟩, mem_sets_of_superset (image_mem_map hs) ht)
 
 @[simp] lemma map_id : filter.map id f = f :=
@@ -1506,14 +1509,14 @@ image_mem_sets (by simp [h]) W_in
 
 lemma comap_map {f : filter α} {m : α → β} (h : function.injective m) :
   comap m (map m f) = f :=
-have ∀s, preimage m (image m s) = s,
-  from assume s, preimage_image_eq s h,
 le_antisymm
-  (assume s hs, ⟨
-    image m s,
-    f.sets_of_superset hs $ by simp only [this, subset.refl],
-    by simp only [this, subset.refl]⟩)
+  (assume s hs, mem_sets_of_superset (preimage_mem_comap $ image_mem_map hs) $
+    by simp only [preimage_image_eq s h])
   le_comap_map
+
+lemma mem_comap_iff {f : filter β} {m : α → β} (inj : function.injective m)
+  (large : set.range m ∈ f) {S : set α} : S ∈ comap m f ↔ m '' S ∈ f :=
+by rw [← image_mem_map_iff inj, map_comap large]
 
 lemma le_of_map_le_map_inj' {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀x∈s, ∀y∈s, m x = m y → x = y)
@@ -2286,8 +2289,14 @@ by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, inf_left_comm]
   (𝓟 s) ×ᶠ (𝓟 t) = 𝓟 (set.prod s t) :=
 by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal, inf_principal]; refl
 
-@[simp] lemma prod_pure_pure {a : α} {b : β} : (pure a) ×ᶠ (pure b) = pure (a, b) :=
-by simp only [← principal_singleton, prod_principal_principal, singleton_prod_singleton]
+@[simp] lemma pure_prod {a : α} {f : filter β} : pure a ×ᶠ f = map (prod.mk a) f :=
+by rw [prod_eq, map_pure, pure_seq_eq_map]
+
+@[simp] lemma prod_pure {f : filter α} {b : β} : f ×ᶠ pure b = map (λ a, (a, b)) f :=
+by rw [prod_eq, seq_pure, map_map]
+
+lemma prod_pure_pure {a : α} {b : β} : (pure a) ×ᶠ (pure b) = pure (a, b) :=
+by simp
 
 lemma prod_eq_bot {f : filter α} {g : filter β} : f ×ᶠ g = ⊥ ↔ (f = ⊥ ∨ g = ⊥) :=
 begin

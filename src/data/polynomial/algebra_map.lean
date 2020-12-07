@@ -15,6 +15,7 @@ We promote `eval₂` to an algebra hom in `aeval`.
 
 noncomputable theory
 open finset
+open_locale big_operators
 
 namespace polynomial
 universes u v w z
@@ -102,7 +103,7 @@ variables (x : A)
 the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
 def aeval : polynomial R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _,
-  ..eval₂_ring_hom' (algebra_map R A) algebra.commutes x }
+  ..eval₂_ring_hom' (algebra_map R A) x (λ a, algebra.commutes _ _) }
 
 variables {R A}
 
@@ -151,7 +152,7 @@ begin
     rw [φ.map_add, ih1, ih2, eval₂_add] },
   { intros n r ih,
     rw [pow_succ', ← mul_assoc, φ.map_mul,
-        eval₂_mul_noncomm (algebra_map R A) _ algebra.commutes, eval₂_X, ih] }
+        eval₂_mul_noncomm (algebra_map R A) _ (λ k, algebra.commutes _ _), eval₂_X, ih] }
 end
 
 theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval (f x) = f.comp (aeval x) :=
@@ -206,6 +207,14 @@ end
 lemma dvd_term_of_is_root_of_dvd_terms {r p : S} {f : polynomial S} (i : ℕ)
   (hr : f.is_root r) (h : ∀ (j ≠ i), p ∣ f.coeff j * r ^ j) : p ∣ f.coeff i * r ^ i :=
 dvd_term_of_dvd_eval_of_dvd_terms i (eq.symm hr ▸ dvd_zero p) h
+
+lemma aeval_eq_sum_range [algebra R S] {p : polynomial R} (x : S) :
+  aeval x p = ∑ i in finset.range (p.nat_degree + 1), p.coeff i • x ^ i :=
+by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range (algebra_map R S) x }
+
+lemma aeval_eq_sum_range' [algebra R S] {p : polynomial R} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
+  aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
+by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
 
 end aeval
 

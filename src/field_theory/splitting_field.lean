@@ -362,31 +362,27 @@ end
 
 /-- A polynomial `p` that has as much roots as its degree
 can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
-lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α} (hzero : p ≠ 0)
+lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α}
   (hroots : p.roots.card = p.nat_degree) :
   (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod = p :=
 begin
-  have hcoeff : p.leading_coeff ≠ 0,
-  { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
-  have sameroots : p.roots = (normalize p).roots,
-  { rw [normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero,
-        roots_C_mul _ (inv_ne_zero hcoeff)] },
-  have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
-  { rw [← sameroots, normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero],
-    have hCzero : C (p.leading_coeff)⁻¹ ≠ 0,
-    { rw [ne.def, C_eq_zero], exact (inv_ne_zero hcoeff) },
-    simp only [nat_degree_C, zero_add, nat_degree_mul hCzero hzero],
-    exact hroots },
-  have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero) hrootsnorm,
-  rw [← sameroots, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
-  calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
-      = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
-  ... = p * C 1 : by field_simp [hcoeff]
-  ... = p : by simp only [mul_one, ring_hom.map_one]
+  by_cases hzero : p = 0,
+  { rw [hzero, leading_coeff_zero, ring_hom.map_zero, zero_mul], },
+  { have hcoeff : p.leading_coeff ≠ 0,
+    { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
+    have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
+    { rw [roots_normalize, normalize_apply, nat_degree_mul hzero (units.ne_zero _), hroots, coe_norm_unit,
+        nat_degree_C, add_zero], },
+    have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero) hrootsnorm,
+    rw [roots_normalize, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
+    calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
+        = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
+    ... = p * C 1 : by field_simp [hcoeff]
+    ... = p : by simp only [mul_one, ring_hom.map_one], },
 end
 
 /-- A polynomial splits if and only if it has as much roots as its degree. -/
-lemma splits_iff_card_roots {p : polynomial α} (hzero : p ≠ 0) :
+lemma splits_iff_card_roots {p : polynomial α} :
   splits (ring_hom.id α) p ↔ p.roots.card = p.nat_degree :=
 begin
   split,
@@ -395,7 +391,7 @@ begin
     apply (splits_iff_exists_multiset (ring_hom.id α)).2,
     use p.roots,
     simp only [ring_hom.id_apply, map_id],
-    exact (C_leading_coeff_mul_prod_multiset_X_sub_C hzero hroots).symm },
+    exact (C_leading_coeff_mul_prod_multiset_X_sub_C hroots).symm },
 end
 
 end splits
@@ -413,7 +409,7 @@ def alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial
   algebra.adjoin F ({x} : set R) ≃ₐ[F] adjoin_root (minimal_polynomial hx) :=
 alg_equiv.symm $ alg_equiv.of_bijective
   (alg_hom.cod_restrict
-    (adjoin_root.alg_hom _ x $ minimal_polynomial.aeval hx) _
+    (adjoin_root.lift_hom _ x $ minimal_polynomial.aeval hx) _
     (λ p, adjoin_root.induction_on _ p $ λ p,
       (algebra.adjoin_singleton_eq_range F x).symm ▸ (polynomial.aeval _).mem_range.mpr ⟨p, rfl⟩))
   ⟨(alg_hom.injective_cod_restrict _ _ _).2 $ (alg_hom.injective_iff _).2 $ λ p,
@@ -452,8 +448,9 @@ begin
       (minimal_polynomial.dvd _ _),
     { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
     { rw [← is_scalar_tower.aeval_apply, minimal_polynomial.aeval H1] } },
-  obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (minimal_polynomial.degree_ne_zero H5),
-  exact ⟨subalgebra.of_under _ _ $ (adjoin_root.alg_hom (minimal_polynomial H5) y hy).comp $
+  obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6
+  (ne_of_lt (minimal_polynomial.degree_pos H5)).symm,
+  exact ⟨subalgebra.of_under _ _ $ (adjoin_root.lift_hom (minimal_polynomial H5) y hy).comp $
     alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial _ _ H5⟩
 end
 

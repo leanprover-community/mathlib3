@@ -46,7 +46,7 @@ has_continuous_mul.continuous_mul
 lemma continuous.mul [topological_space α] {f : α → M} {g : α → M}
   (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=
-continuous_mul.comp (hf.prod_mk hg)
+continuous_mul.comp (hf.prod_mk hg : _)
 
 attribute [continuity] continuous.add
 
@@ -100,6 +100,11 @@ hf.mul hg
 instance [topological_space N] [has_mul N] [has_continuous_mul N] : has_continuous_mul (M × N) :=
 ⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
  ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
+
+@[to_additive, priority 100]
+instance has_continuous_mul_of_discrete_topology [topological_space N]
+  [has_mul N] [discrete_topology N] : has_continuous_mul N :=
+⟨continuous_of_discrete_topology⟩
 
 end has_continuous_mul
 

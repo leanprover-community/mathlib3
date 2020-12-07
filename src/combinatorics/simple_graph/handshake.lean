@@ -75,12 +75,15 @@ def dart.rev [decidable_eq V] (d : G.dart) : G.dart :=
 
 @[simp] lemma dart_edge_of_dart_rev [decidable_eq V] (d : G.dart) : d.rev.edge = d.edge := rfl
 
-lemma dart_rev_invol [decidable_eq V] (d : G.dart) : d.rev.rev = d :=
+@[simp] lemma dart_rev_invol [decidable_eq V] (d : G.dart) : d.rev.rev = d :=
 begin
   apply dart.ext,
   apply sym2.other_invol',
   simp only [dart_edge_of_dart_rev],
 end
+
+@[simp] lemma dart_rev_involutive [decidable_eq V] : function.involutive (dart.rev : G.dart → G.dart) :=
+dart_rev_invol 
 
 lemma dart_rev_no_fixedpoints [decidable_eq V] (d : G.dart) : d ≠ d.rev :=
 begin

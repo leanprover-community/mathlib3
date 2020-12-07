@@ -40,7 +40,7 @@ open finset
 open_locale big_operators
 
 namespace simple_graph
-universes u v
+universes u
 variables {V : Type u} (G : simple_graph V)
 
 /-- A `dart` is a directed edge, consisting of a vertex and an edge incident to it -/

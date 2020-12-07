@@ -200,6 +200,16 @@ begin
   { rw [single_eq_of_ne h, zero_apply] }
 end
 
+lemma single_of_single_apply (a a' : α) (b : M) :
+  single a ((single a' b) a) = single a' (single a' b) a :=
+begin
+  rw [single_apply, single_apply],
+  ext,
+  split_ifs,
+  { rw h, },
+  { rw [zero_apply, single_apply, if_t_t], },
+end
+
 lemma support_single_ne_zero (hb : b ≠ 0) : (single a b).support = {a} :=
 if_neg hb
 

@@ -1003,6 +1003,13 @@ begin
   { exact ((continuous_subtype_val.comp continuous_fst).prod_mk continuous_snd).continuous_at }
 end
 
+lemma of_real_rpow_of_nonneg {x y : ℝ} (hx : 0 ≤ x) :
+  nnreal.of_real (x ^ y) = (nnreal.of_real x) ^ y :=
+begin
+  nth_rewrite 0 ← nnreal.coe_of_real x hx,
+  rw [←nnreal.coe_rpow, nnreal.of_real_coe],
+end
+
 end nnreal
 
 section measurability_nnreal

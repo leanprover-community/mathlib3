@@ -32,16 +32,82 @@ not formalized yet). This function is strictly monotone, continuous, and satisfi
 `F (x + 1) = F x + 1`. The number `⟦τ F⟧ : ℝ / ℤ` is called the *rotation number* of `f`.
 It does not depend on the choice of `a`.
 
-We chose to define translation number for a wider class of maps `f : ℝ → ℝ` for two reasons:
+## Main definitions
+
+* `circle_deg1_lift`: a monotone map `f : ℝ → ℝ` such that `f (x + 1) = f x + 1` for all `x`;
+  the type `circle_deg1_lift` is equipped with `lattice` and `monoid` structures; the
+  multiplication is given by composition: `(f * g) x = f (g x)`.
+* `circle_deg1_lift.translation_number`: translation number of `f : circle_deg1_lift`.
+
+## Main statements
+
+We prove the following properties of `circle_deg1_lift.translation_number`.
+
+* `circle_deg1_lift.translation_number_eq_of_dist_bounded`: if the distance between `(f^n) 0`
+  and `(g^n) 0` is bounded from above uniformly in `n : ℕ`, then `f` and `g` have equal
+  translation numbers.
+
+* `circle_deg1_lift.translation_number_eq_of_semiconj_by`: if two `circle_deg1_lift` maps `f`, `g`
+  are semiconjugate by a `circle_deg1_lift` map, then `τ f = τ g`.
+
+* `circle_deg1_lift.translation_number_units_inv`: if `f` is an invertible `circle_deg1_lift` map
+  (equivalently, `f` is a a lift of an orientation-preserving circle homeomorphism), then
+  the the translation number of `f⁻¹` is the negative translation number of `f`.
+
+* `circle_deg1_lift.translation_number_mul_of_commute`: if `f` and `g` commute, then
+  `τ (f * g) = τ f + τ g`.
+
+* `circle_deg1_lift.translation_number_eq_rat_iff`: the translation number of `f` is equal to
+  a rational number `m / n` if and only if `(f^n) x = x + m` for some `x`.
+
+* `circle_deg1_lift.semiconj_of_bijective_of_translation_number_eq`: if `f` and `g` are two
+  bijective `circle_deg1_lift` maps and their translation numbers are equal, then these
+  maps are semiconjugate to each other.
+
+* `circle_deg1_lift.semiconj_of_group_action_of_forall_translation_number_eq`: let `f₁` and `f₂` be
+  two actions of a group `G` on the circle by degree 1 maps (formally, `f₁` and `f₂` are two
+  homomorphisms from `G →* circle_deg1_lift`). If the translation numbers of `f₁ g` and `f₂ g` are
+  equal to each other for all `g : G`, then these two actions are semiconjugate by some `F :
+  circle_deg1_lift`. This is a version of Proposition 5.4 from [Étienne Ghys, Groupes
+  d'homeomorphismes du cercle et cohomologie bornee][ghys87:groupes].
+
+## Notation
+
+We use a local notation `τ` for the translation number of `f : circle_deg1_lift`.
+
+## Implementation notes
+
+We define the translation number of `f : circle_deg1_lift` to be the limit of the sequence
+`(f ^ (2 ^ n)) 0 / (2 ^ n)`, then prove that `((f ^ n) x - x) / n` tends to this number for any `x`.
+This way it is much easier to prove that the limit exists and basic properties of the limit.
+
+We define translation number for a wider class of maps `f : ℝ → ℝ` instead of lifts of orientation
+preserving circle homeomorphisms for two reasons:
 
 * non-strictly monotone circle self-maps with discontinuities naturally appear as Poincaré maps
   for some flows on the two-torus (e.g., one can take a constant flow and glue in a few Cherry
   cells);
 * definition and some basic properties still work for this class.
 
-## Notation
+## References
 
-We use a local notation `τ` for the translation number of `f : circle_deg1_lift`.
+* [Étienne Ghys, Groupes d'homeomorphismes du cercle et cohomologie bornee][ghys87:groupes]
+
+## TODO
+
+Here are some short-term goals.
+
+* Introduce a structure or a typeclass for lifts of circle homeomorphisms. We use `units
+  circle_deg1_lift` for now, but it's better to have a dedicated type (or a typeclass?).
+
+* Prove that the `semiconj_by` relation on circle homeomorphisms is an equivalence relation.
+
+* Introduce `conditionally_complete_lattice` structure, use it in the proof of
+  `circle_deg1_lift.semiconj_of_group_action_of_forall_translation_number_eq`.
+
+* Prove that the orbits of the irrational rotation are dense in the circle. Deduce that a
+  homeomorphism with an irrational rotation is semiconjugate to the corresponding irrational
+  translation by a continuous `circle_deg1_lift`.
 
 ## Tags
 
@@ -140,13 +206,15 @@ def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
   ⇑(to_order_iso f)⁻¹ = (f⁻¹ : units circle_deg1_lift) := rfl
 
 lemma is_unit_iff_bijective {f : circle_deg1_lift} : is_unit f ↔ bijective f :=
-⟨λ ⟨u, h⟩, h ▸ (to_order_iso u).bijective,
-  λ h, ⟨⟨f, ⟨(equiv.of_bijective f h).symm,
-    λ x y hxy, (f.strict_mono_iff_injective.2 h.1).le_iff_le.1
-      (by simp only [equiv.of_bijective_apply_symm_apply f h, hxy]),
-    λ x, h.1 $ by simp only [equiv.of_bijective_apply_symm_apply f, f.map_add_one]⟩,
-    ext $ equiv.of_bijective_apply_symm_apply f h, ext $ equiv.of_bijective_symm_apply_apply f h⟩,
-    rfl⟩⟩
+⟨λ ⟨u, h⟩, h ▸ (to_order_iso u).bijective, λ h, is_unit_unit
+  { val := f,
+    inv := { to_fun := (equiv.of_bijective f h).symm,
+             monotone' := λ x y hxy, (f.strict_mono_iff_injective.2 h.1).le_iff_le.1
+               (by simp only [equiv.of_bijective_apply_symm_apply f h, hxy]),
+             map_add_one' := λ x, h.1 $
+               by simp only [equiv.of_bijective_apply_symm_apply f, f.map_add_one] },
+    val_inv := ext $ equiv.of_bijective_apply_symm_apply f h,
+    inv_val := ext $ equiv.of_bijective_symm_apply_apply f h }⟩
 
 lemma coe_pow : ∀ n : ℕ, ⇑(f^n) = (f^[n])
 | 0 := rfl
@@ -733,12 +801,12 @@ end
 
 /-- Consider two actions `f₁ f₂ : G →* circle_deg1_lift` of a group on the real line by lifts of
 orientation preserving circle homeomorphisms. Suppose that for each `g : G` the homeomorphisms
-`f₁ g` and `f₂ g` have equal rotation numbers. Then there exists a lift of a circle homeomorphism
-`F` such that `F ∘ f₁ g = f₂ g ∘ F` for all `g : G`.
+`f₁ g` and `f₂ g` have equal rotation numbers. Then there exists `F : circle_deg1_lift`  such that
+`F * f₁ g = f₂ g * F` for all `g : G`.
 
 This is a version of Proposition 5.4 from [Étienne Ghys, Groupes d'homeomorphismes du cercle et
 cohomologie bornee][ghys87:groupes]. -/
-lemma semiconj_by_of_group_action_of_forall_translation_number_eq
+lemma semiconj_of_group_action_of_forall_translation_number_eq
   {G : Type*} [group G] (f₁ f₂ : G →* circle_deg1_lift)
   (h : ∀ g, τ (f₁ g) = τ (f₂ g)) :
   ∃ F : circle_deg1_lift, ∀ g, semiconj F (f₁ g) (f₂ g) :=
@@ -786,7 +854,7 @@ begin
   have : ∀ n : multiplicative ℤ, τ ((units.coe_hom _).comp (gpowers_hom _ f₁) n) =
     τ ((units.coe_hom _).comp (gpowers_hom _ f₂) n),
   { intro n, simp [h] },
-  exact (semiconj_by_of_group_action_of_forall_translation_number_eq _ _ this).imp
+  exact (semiconj_of_group_action_of_forall_translation_number_eq _ _ this).imp
     (λ F hF, hF (multiplicative.of_add 1))
 end
 

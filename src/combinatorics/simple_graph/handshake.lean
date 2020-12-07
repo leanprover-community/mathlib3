@@ -51,6 +51,7 @@ structure dart :=
 (edge_mem : edge ∈ G.edge_set)
 (vert_mem : vert ∈ edge)
 
+/-- There is an equivalence between darts and pairs of a vertex and an incident edge. -/
 def dart_equiv_sigma : G.dart ≃ Σ v, G.incidence_set v :=
 { to_fun := λ d, ⟨d.vert, d.edge, d.edge_mem, d.vert_mem⟩,
   inv_fun := λ s, ⟨s.fst, s.snd, s.snd.property.1, s.snd.property.2⟩,
@@ -134,10 +135,10 @@ begin
   { rintro ⟨e, he, rfl⟩, simp [dart_from_incidence_set, dart.vert] },
 end
 
-lemma dart_card_eq_sum_degrees [hd : decidable_eq V] : fintype.card G.dart = ∑ v, G.degree v :=
+lemma dart_card_eq_sum_degrees : fintype.card G.dart = ∑ v, G.degree v :=
 begin
   convert_to (univ : finset G.dart).card = _,
-  rw @card_eq_sum_card_fiberwise _ _ hd dart.vert _ univ (λ d h, mem_univ _),
+  rw @card_eq_sum_card_fiberwise _ _ (by assumption) dart.vert _ univ (λ d h, mem_univ _),
   simp [G.dart_vert_fiber_card_eq_degree],
 end
 

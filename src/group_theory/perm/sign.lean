@@ -793,25 +793,21 @@ equiv.perm.sign_eq_sign_of_equiv _ _ e.symm (by simp)
 end
 
 @[simp] lemma sign_sum_congr {α β : Type*} [decidable_eq α] [decidable_eq β]
-  [fintype α] [fintype β] (σa : equiv.perm α) (σb : equiv.perm β) :
+  [fintype α] [fintype β] (σa : perm α) (σb : perm β) :
   (sum_congr σa σb).sign = σa.sign * σb.sign :=
 begin
-  suffices : (sum_congr σa 1).sign = σa.sign ∧ (sum_congr 1 σb).sign = σb.sign,
-  { rw [←this.1, ←this.2, ←sign_mul, sum_congr_mul],
-    congr, },
+  suffices : (sum_congr σa (1 : perm β)).sign = σa.sign ∧
+             (sum_congr (1 : perm α) σb).sign = σb.sign,
+  { rw [←this.1, ←this.2, ←sign_mul, sum_congr_mul, one_mul, mul_one], },
   split,
   { apply σa.swap_induction_on _ (λ σa' a₁ a₂ ha ih, _),
     { simp },
-    { rw [←one_mul (1 : equiv.perm β), ←sum_congr_mul, sign_mul, sign_mul, ih],
-      congr,
-      rw [perm.sign_swap ha, sum_congr_swap_one],
-      exact sign_swap (sum.injective_inl.ne_iff.mpr ha), }, },
+    { rw [←one_mul (1 : perm β), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_swap_one,
+          sign_swap ha, sign_swap (sum.injective_inl.ne_iff.mpr ha)], }, },
   { apply σb.swap_induction_on _ (λ σb' b₁ b₂ hb ih, _),
     { simp },
-    { rw [←one_mul (1 : equiv.perm α), ←sum_congr_mul, sign_mul, sign_mul, ih],
-      congr,
-      rw [perm.sign_swap hb, sum_congr_one_swap],
-      exact sign_swap (sum.injective_inr.ne_iff.mpr hb), }, }
+    { rw [←one_mul (1 : perm α), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_one_swap,
+          sign_swap hb, sign_swap (sum.injective_inr.ne_iff.mpr hb)], }, }
 end
 
 end sign

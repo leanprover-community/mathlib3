@@ -5,7 +5,6 @@ Author: Eric Wieser, Zhangir Azerbayev
 -/
 
 import linear_algebra.multilinear
-import linear_algebra.multilinear_tensor
 import group_theory.perm.sign
 import data.equiv.fin
 import linear_algebra.tensor_product
@@ -371,36 +370,6 @@ def mod_sum_congr (α β : Type*) : setoid (equiv.perm (α ⊕ β)) :=
 instance {α β : Type*} [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
   decidable_rel (mod_sum_congr α β).r :=
 λ σ₁ σ₂, fintype.decidable_exists_fintype
-
-
-@[simp] lemma sign_sum_congr {α β : Type*} [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] (σa : equiv.perm α) (σb : equiv.perm β) :
-  equiv.perm.sign (equiv.sum_congr σa σb) = σa.sign * σb.sign :=
-begin
-  suffices : equiv.perm.sign (equiv.sum_congr σa 1) = σa.sign ∧
-             equiv.perm.sign (equiv.sum_congr 1 σb) = σb.sign,
-  { rw [←this.1, ←this.2, ←equiv.perm.sign_mul],
-    simp only [equiv.perm.mul_def, equiv.perm.one_def],
-    rw [equiv.sum_congr_trans],
-    congr, },
-  split,
-  { apply σa.swap_induction_on _ (λ σa' a₁ a₂ ha ih, _),
-    { erw [equiv.sum_congr_refl], simp },
-    { erw [←one_mul (1 : equiv.perm β), ←equiv.sum_congr_trans, equiv.perm.sign_mul,
-           equiv.perm.sign_mul, ih],
-      congr,
-      rw perm.sign_swap ha,
-      erw equiv.sum_congr_swap_left,
-      exact perm.sign_swap (sum.injective_inl.ne_iff.mpr ha), }, },
-  { apply σb.swap_induction_on _ (λ σb' b₁ b₂ hb ih, _),
-    { erw [equiv.sum_congr_refl], simp },
-    { erw [←one_mul (1 : equiv.perm α), ←equiv.sum_congr_trans, equiv.perm.sign_mul,
-           equiv.perm.sign_mul, ih],
-      congr,
-      rw perm.sign_swap hb,
-      erw equiv.sum_congr_swap_right,
-      exact perm.sign_swap (sum.injective_inr.ne_iff.mpr hb), }, }
-end
-
 
 def mul_general {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
   {R : Type*} {M N : Type*}

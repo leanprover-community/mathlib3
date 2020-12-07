@@ -338,26 +338,20 @@ def dom_coprod
   alternating_map R M N (ιa ⊕ ιb) :=
 { to_fun := dom_coprod_aux a b,
   map_add' := λ v i p q, begin
-    unfold dom_coprod_aux,
-    dsimp only,
+    dsimp only [dom_coprod_aux],
     simp_rw [←finset.sum_add_distrib, multilinear_map.map_add, smul_add],
-    -- the lack of instance on the setoid makes this painful
     congr' 1,
     ext σ',
-    obtain ⟨σ, rfl⟩ := @quotient.exists_rep _ (mod_sum_congr ιa ιb) σ',
-    iterate 3 {
-      rw [quotient.lift_on', @quotient.lift_on_beta _ _ (mod_sum_congr ιa ιb) _ _ σ] },
+    obtain ⟨σ, rfl⟩ := quot.exists_rep σ',
+    refl,
   end,
   map_smul' := λ v i c p, begin
-    unfold dom_coprod_aux,
-    dsimp only,
+    dsimp only [dom_coprod_aux],
     simp_rw [finset.smul_sum, multilinear_map.map_smul, smul_comm],
-    -- the lack of instance on the setoid makes this painful
     congr' 1,
     ext σ',
-    obtain ⟨σ, rfl⟩ := @quotient.exists_rep _ (mod_sum_congr ιa ιb) σ',
-    iterate 2 {
-      rw [quotient.lift_on', @quotient.lift_on_beta _ _ (mod_sum_congr ιa ιb) _ _ σ] },
+    obtain ⟨σ, rfl⟩ := quot.exists_rep σ',
+    refl,
   end,
   map_eq_zero_of_eq' := dom_coprod_aux_eq_zero_if_eq a b }
 

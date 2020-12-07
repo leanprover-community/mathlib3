@@ -58,8 +58,6 @@ namespace lift_adjoint
 variables {U : B ⥤ C} {F : C ⥤ B} (R : A ⥤ B) (F' : C ⥤ A)
 variables (adj₁ : F ⊣ U) (adj₂ : F' ⊣ R ⋙ U)
 
--- variables (hU : Π (X : B), is_colimit (cofork.of_π (adj₁.counit.app X) (adj₁.counit_naturality _)))
-
 /--
 To show that `ε_X` is a coequalizer for `(FUε_X, ε_FUX)`, it suffices to assume it's always a
 coequalizer of something (i.e. a regular epi).

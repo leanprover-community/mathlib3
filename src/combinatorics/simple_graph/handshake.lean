@@ -188,7 +188,7 @@ begin
   sorry
 end
 
-lemma zmod_even (n : ℕ) : (n : zmod 2) = 0 ↔ even n :=
+lemma zmod_eq_zero_iff_even (n : ℕ) : (n : zmod 2) = 0 ↔ even n :=
 begin
   rw nat.even_iff,
   change _ ↔ n % 2 = 0 % 2,
@@ -196,7 +196,7 @@ begin
   norm_num,
 end
 
-lemma zmod_odd (n : ℕ) : (n : zmod 2) = 1 ↔ odd n :=
+lemma zmod_eq_one_iff_odd (n : ℕ) : (n : zmod 2) = 1 ↔ odd n :=
 begin
   rw nat.odd_iff,
   change _ ↔ n % 2 = 1 % 2,
@@ -204,13 +204,8 @@ begin
   norm_num,
 end
 
-lemma zmod_odd' (n : ℕ) : (n : zmod 2) ≠ 0 ↔ odd n :=
-begin
-  rw ←zmod_odd,
-  generalize h : (n : zmod 2) = m,
-  fin_cases m, simp, split, intro, refl, intros h,
-  let z : zmod 2 := ⟨0, _⟩, convert_to ¬_ = z, norm_num,
-end
+lemma zmod_neq_zero_iff_odd (n : ℕ) : (n : zmod 2) ≠ 0 ↔ odd n :=
+by split; { contrapose, simp [zmod_eq_zero_iff_even], }
 
 theorem card_odd_degree_vertices_is_even [fintype V] :
   even (univ.filter (λ v, odd (G.degree v))).card :=
@@ -222,11 +217,11 @@ begin
   rw ←sum_filter_ne_zero at h,
   rw @sum_congr _ (zmod 2) _ _ (λ v, (G.degree v : zmod 2)) (λ v, (1 : zmod 2)) _ rfl at h,
   simp only [filter_congr_decidable, mul_one, nsmul_eq_mul, sum_const, ne.def] at h,
-  rw ←zmod_even,
+  rw ←zmod_eq_zero_iff_even,
   convert h,
-  ext v, rw ←zmod_odd', split, intro h, convert h, intro h, convert h,
+  ext v, rw ←zmod_neq_zero_iff_odd, split, intro h, convert h, intro h, convert h,
   intros v, simp,
-  rw [zmod_even, zmod_odd, nat.odd_iff_not_even, imp_self], trivial,
+  rw [zmod_eq_zero_iff_even, zmod_eq_one_iff_odd, nat.odd_iff_not_even, imp_self], trivial,
 end
 
 lemma card_odd_degree_vertices_ne_is_odd [fintype V] [decidable_eq V]

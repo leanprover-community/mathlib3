@@ -2,13 +2,25 @@
 Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
-
-Insertion sort and merge sort.
 -/
 import data.list.perm
+import data.list.chain
+
+/-!
+# Sort algorithms on lists
+
+In this file we define `list.sorted r l` to be an alias for `pairwise r l`. This alias is preferred
+in the case that `r` is a `<` or `≤`-like relation. Then we define two sort algorithms:
+`list.insertion_sort` and `list.merge_sort`, and prove their correctness.
+-/
+
 open list.perm
 
 namespace list
+
+/-!
+### The predicate `list.sorted`
+-/
 
 section sorted
 universe variable uu
@@ -38,7 +50,7 @@ rel_of_pairwise_cons
   sorted r (a :: l) ↔ (∀ b ∈ l, r a b) ∧ sorted r l :=
 pairwise_cons
 
-theorem eq_of_sorted_of_perm [is_antisymm α r]
+theorem eq_of_perm_of_sorted [is_antisymm α r]
   {l₁ l₂ : list α} (p : l₁ ~ l₂) (s₁ : sorted r l₁) (s₂ : sorted r l₂) : l₁ = l₂ :=
 begin
   induction s₁ with a l₁ h₁ s₁ IH generalizing l₂,
@@ -69,16 +81,12 @@ end
 
 end sorted
 
-/-
-  sorting procedures
--/
-
 section sort
 universe variable uu
-parameters {α : Type uu} (r : α → α → Prop) [decidable_rel r]
+variables {α : Type uu} (r : α → α → Prop) [decidable_rel r]
 local infix ` ≼ ` : 50 := r
 
-/- insertion sort -/
+/-! ### Insertion sort -/
 
 section insertion_sort
 
@@ -91,7 +99,7 @@ section insertion_sort
 /-- `insertion_sort l` returns `l` sorted using the insertion sort algorithm. -/
 @[simp] def insertion_sort : list α → list α
 | []       := []
-| (b :: l) := ordered_insert b (insertion_sort l)
+| (b :: l) := ordered_insert r b (insertion_sort l)
 
 @[simp] lemma ordered_insert_nil (a : α) : [].ordered_insert r a = [a] := rfl
 
@@ -99,10 +107,21 @@ theorem ordered_insert_length : Π (L : list α) (a : α), (L.ordered_insert r a
 | [] a := rfl
 | (hd :: tl) a := by { dsimp [ordered_insert], split_ifs; simp [ordered_insert_length], }
 
+/-- An alternative definition of `ordered_insert` using `take_while` and `drop_while`. -/
+lemma ordered_insert_eq_take_drop (a : α) : ∀ l : list α,
+  l.ordered_insert r a = l.take_while (λ b, ¬(a ≼ b)) ++ (a :: l.drop_while (λ b, ¬(a ≼ b)))
+| [] := rfl
+| (b :: l) := by { dsimp only [ordered_insert], split_ifs; simp [take_while, drop_while, *] }
+
+lemma insertion_sort_cons_eq_take_drop (a : α) (l : list α) :
+  insertion_sort r (a :: l) = (insertion_sort r l).take_while (λ b, ¬(a ≼ b)) ++
+    (a :: (insertion_sort r l).drop_while (λ b, ¬(a ≼ b))) :=
+ordered_insert_eq_take_drop r a _
+
 section correctness
 open perm
 
-theorem perm_ordered_insert (a) : ∀ l : list α, ordered_insert a l ~ a :: l
+theorem perm_ordered_insert (a) : ∀ l : list α, ordered_insert r a l ~ a :: l
 | []       := perm.refl _
 | (b :: l) := by by_cases a ≼ b; [simp [ordered_insert, h],
   simpa [ordered_insert, h] using
@@ -115,15 +134,26 @@ begin
   split_ifs; simp only [nat.succ_eq_add_one, add_zero],
 end
 
-theorem perm_insertion_sort : ∀ l : list α, insertion_sort l ~ l
+theorem perm_insertion_sort : ∀ l : list α, insertion_sort r l ~ l
 | []       := perm.nil
 | (b :: l) := by simpa [insertion_sort] using
   (perm_ordered_insert _ _ _).trans ((perm_insertion_sort l).cons b)
 
+/-- If `l` is already `list.sorted` with respect to `r`, then `insertion_sort` does not change
+it. -/
+lemma sorted.insertion_sort_eq : ∀ {l : list α} (h : sorted r l), insertion_sort r l = l
+| [] _ := rfl
+| [a] _ := rfl
+| (a :: b :: l) h :=
+  begin
+    rw [insertion_sort, sorted.insertion_sort_eq, ordered_insert, if_pos],
+    exacts [rel_of_sorted_cons h _ (or.inl rfl), h.tail]
+  end
+
 section total_and_transitive
 variables [is_total α r] [is_trans α r]
 
-theorem sorted_ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered_insert a l)
+theorem sorted_ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered_insert r a l)
 | []       h := sorted_singleton a
 | (b :: l) h := begin
   by_cases h' : a ≼ b,
@@ -137,15 +167,16 @@ theorem sorted_ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered
     { exact rel_of_sorted_cons h _ bm } }
 end
 
-theorem sorted_insertion_sort : ∀ l, sorted r (insertion_sort l)
+/-- The list `list.insertion_sort r l` is `list.sorted` with respect to `r`. -/
+theorem sorted_insertion_sort : ∀ l, sorted r (insertion_sort r l)
 | []       := sorted_nil
-| (a :: l) := sorted_ordered_insert a _ (sorted_insertion_sort l)
+| (a :: l) := sorted_ordered_insert r a _ (sorted_insertion_sort l)
 
 end total_and_transitive
 end correctness
 end insertion_sort
 
-/- merge sort -/
+/-! ### Merge sort -/
 
 section merge_sort
 
@@ -214,7 +245,7 @@ using_well_founded {
 
 theorem merge_sort_cons_cons {a b} {l l₁ l₂ : list α}
   (h : split (a::b::l) = (l₁, l₂)) :
-  merge_sort (a::b::l) = merge (merge_sort l₁) (merge_sort l₂) :=
+  merge_sort r (a::b::l) = merge r (merge_sort r l₁) (merge_sort r l₂) :=
 begin
   suffices : ∀ (L : list α) h1, @@and.rec
     (λ a a (_ : length l₁ < length l + 1 + 1 ∧
@@ -225,7 +256,7 @@ end
 
 section correctness
 
-theorem perm_merge : ∀ (l l' : list α), merge l l' ~ l ++ l'
+theorem perm_merge : ∀ (l l' : list α), merge r l l' ~ l ++ l'
 | []       []        := perm.nil
 | []       (b :: l') := by simp [merge]
 | (a :: l) []        := by simp [merge]
@@ -236,7 +267,7 @@ theorem perm_merge : ∀ (l l' : list α), merge l l' ~ l ++ l'
     exact ((perm_merge _ _).cons _).trans ((swap _ _ _).trans (perm_middle.symm.cons _)) }
 end
 
-theorem perm_merge_sort : ∀ l : list α, merge_sort l ~ l
+theorem perm_merge_sort : ∀ l : list α, merge_sort r l ~ l
 | []        := perm.refl _
 | [a]       := perm.refl _
 | (a::b::l) := begin
@@ -250,13 +281,13 @@ using_well_founded {
   rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
   dec_tac := tactic.assumption }
 
-@[simp] lemma length_merge_sort (l : list α) : (merge_sort l).length = l.length :=
-(perm_merge_sort _).length_eq
+@[simp] lemma length_merge_sort (l : list α) : (merge_sort r l).length = l.length :=
+(perm_merge_sort r _).length_eq
 
 section total_and_transitive
 variables [is_total α r] [is_trans α r]
 
-theorem sorted_merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sorted r (merge l l')
+theorem sorted_merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sorted r (merge r l l')
 | []       []        h₁ h₂ := sorted_nil
 | []       (b :: l') h₁ h₂ := by simpa [merge] using h₂
 | (a :: l) []        h₁ h₂ := by simpa [merge] using h₁
@@ -281,7 +312,7 @@ theorem sorted_merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sort
     { exact rel_of_sorted_cons h₂ _ bl' } }
 end
 
-theorem sorted_merge_sort : ∀ l : list α, sorted r (merge_sort l)
+theorem sorted_merge_sort : ∀ l : list α, sorted r (merge_sort r l)
 | []        := sorted_nil
 | [a]       := sorted_singleton _
 | (a::b::l) := begin
@@ -294,8 +325,13 @@ using_well_founded {
   rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
   dec_tac := tactic.assumption }
 
-theorem merge_sort_eq_self [is_antisymm α r] {l : list α} : sorted r l → merge_sort l = l :=
-eq_of_sorted_of_perm (perm_merge_sort _) (sorted_merge_sort _)
+theorem merge_sort_eq_self [is_antisymm α r] {l : list α} : sorted r l → merge_sort r l = l :=
+eq_of_perm_of_sorted (perm_merge_sort _ _) (sorted_merge_sort _ _)
+
+theorem merge_sort_eq_insertion_sort [is_antisymm α r] (l : list α) :
+  merge_sort r l = insertion_sort r l :=
+eq_of_perm_of_sorted ((perm_merge_sort r l).trans (perm_insertion_sort r l).symm)
+  (sorted_merge_sort r l) (sorted_insertion_sort r l)
 
 end total_and_transitive
 end correctness

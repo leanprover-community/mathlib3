@@ -341,6 +341,4 @@ end reflexive_monadicity
 
 end monad
 
-#lint
-
 end category_theory

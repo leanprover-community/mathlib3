@@ -259,44 +259,6 @@ def sum_split_func {α β γ : Type*} : (α ⊕ β → γ) ≃ (α → γ) × (�
 def finvec_split {n m} {α : Sort*} (f : fin (n + m) → α) : pprod (fin n → α) (fin m → α) := sorry
 
 
-namespace equiv
-
-@[simp] lemma sum_congr_swap_left {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : α) :
-  equiv.sum_congr (equiv.swap i j) (1 : equiv.perm β) = equiv.swap (sum.inl i) (sum.inl j) :=
-begin
-  by_cases h : i = j,
-  { simp [h, swap_self _], erw [sum_congr_refl], },
-  ext,
-  simp [sum_congr_apply],
-  cases x,
-  { simp,
-    rw swap_eq_update,
-    rw swap_eq_update,
-    rw function.update_comm (ne.symm h),
-    revert x,
-    rw ←function.funext_iff,
-    rw function.update_comp_eq_of_injective' _ (sum.injective_inl),
-    rw function.update_comp_eq_of_injective' _ (sum.injective_inl),
-    simp,
-    sorry, apply_instance, apply_instance },
-  { simp,
-    rw swap_eq_update,
-    revert x,
-    rw ←function.funext_iff,
-    rw function.update_comp_eq_of_not_mem_range',
-    rw function.update_comp_eq_of_not_mem_range',
-    { refl },
-    { simp },
-    { simp }, },
-end
-
-
-@[simp] lemma sum_congr_swap_right {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : β) :
-  equiv.sum_congr (1 : equiv.perm α) (equiv.swap i j) = equiv.swap (sum.inr i) (sum.inr j) :=
-begin
-  sorry
-end
-
 namespace alternating_map
 
 variables {M₂ M₃ : Type*} [add_comm_monoid M₂] [semimodule R M₂]
@@ -371,35 +333,89 @@ instance {α β : Type*} [decidable_eq α] [decidable_eq β] [fintype α] [finty
   decidable_rel (mod_sum_congr α β).r :=
 λ σ₁ σ₂, fintype.decidable_exists_fintype
 
+def mul_general_aux {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
+  {R : Type*} {M N : Type*}
+  [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
+  (a : alternating_map R M N ιa) (b : alternating_map R M N ιb)
+  (v : ιa ⊕ ιb → M) : N :=
+let ab := (algebra.lmul' R).comp_multilinear_map
+  $ multilinear_map.dom_coprod a.to_multilinear_map b.to_multilinear_map in
+∑ σ : quotient (mod_sum_congr ιa ιb), σ.lift_on' (λ σ, (σ.sign : ℤ) • (ab.dom_dom_congr σ) v)
+(λ σ₁ σ₂ h, begin
+  dsimp only [ab],
+  simp only [linear_map.comp_multilinear_map_dom_dom_congr,
+              linear_map.comp_multilinear_map_apply,
+              multilinear_map.dom_dom_congr_apply,
+              multilinear_map.dom_coprod_apply,
+              algebra.lmul'_apply,
+              to_multilinear_map_eq_coe,
+              coe_multilinear_map],
+  obtain ⟨sl, sr, rfl⟩ := h,
+  have : ((sl.sign : ℤ) • a (λ i, v $ σ₂ $ sum.inl $ sl i)) *
+          ((sr.sign : ℤ) • b (λ i, v $ σ₂ $ sum.inr $ sr i)) = a (λ i, v $ σ₂ $ sum.inl i)
+                                                            * b (λ i, v $ σ₂ $ sum.inr i) := by {
+    rw [a.map_perm' (λ i, v (σ₂ (sum.inl i))), b.map_perm' (λ i, v (σ₂ (sum.inr i)))],
+    simp only [smul_smul, int.units_coe_mul_self, one_smul],
+  },
+  rw ←this,
+  have : ((σ₂ * equiv.sum_congr sl sr).sign : ℤ) = σ₂.sign * (sl.sign * sr.sign) := by simp,
+  rw [this, mul_smul, mul_smul],
+  simp only [sum.map_inr, equiv.perm.sum_congr_apply, sum.map_inl, algebra.mul_smul_comm,
+             function.comp_app, equiv.perm.coe_mul, algebra.smul_mul_assoc],
+end)
+
+private lemma mul_general_aux_eq_zero_if_eq {ιa : Type*} {ιb : Type*} {R : Type*} {M : Type*} {N : Type*}
+  [decidable_eq ιa]
+  [decidable_eq ιb]
+  [fintype ιa]
+  [fintype ιb]
+  [comm_semiring R]
+  [ring N]
+  [algebra R N]
+  [add_comm_monoid M]
+  [semimodule R M]
+  (a : alternating_map R M N ιa)
+  (b : alternating_map R M N ιb)
+  (v : ιa ⊕ ιb → M)
+  (i j : ιa ⊕ ιb)
+  (h : v i = v j)
+  (hij : i ≠ j) :
+  a.mul_general_aux b v = 0 :=
+begin
+  unfold mul_general_aux,
+  dsimp only,
+  sorry,
+end
+
 def mul_general {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
   {R : Type*} {M N : Type*}
   [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
   (a : alternating_map R M N ιa) (b : alternating_map R M N ιb) :
   alternating_map R M N (ιa ⊕ ιb) :=
-{ to_fun :=
-    let ab := (algebra.lmul' R).comp_multilinear_map
-      $ multilinear_map.dom_coprod a.to_multilinear_map b.to_multilinear_map in
-    λ (v),
-    ∑ σ : quotient (mod_sum_congr ιa ιb),
-      σ.lift_on' (λ σ, (σ.sign : ℤ) • (ab.dom_dom_congr σ) v) (λ σ₁ σ₂ h, begin
-        dsimp only [ab],
-        dsimp [mod_sum_congr] at h,
-        obtain ⟨sl, sr, rfl⟩ := h,
-        simp only [algebra.lmul'_apply, linear_map.coe_comp_multilinear_map, coe_multilinear_map, function.comp_app,
-  multilinear_map.dom_dom_congr_apply, to_multilinear_map_eq_coe, equiv.perm.sign_mul, multilinear_map.dom_coprod_apply,
-  units.coe_mul],
-        rw mul_smul,
-        congr' 1,
-        rw sign_sum_congr,
-        rw [units.coe_mul, mul_smul, ←algebra.mul_smul_comm, ←algebra.smul_mul_assoc],
-        erw [a.map_perm' (λ i, v (σ₂ (sum.inl i))), b.map_perm' (λ i, v (σ₂ (sum.inr i)))],
-        simp only [smul_smul, int.units_coe_mul_self, one_smul],
-      end),
-  map_add' := λ v i p q, by sorry,
-  map_smul' := λ v i c p, by sorry,
-  map_eq_zero_of_eq' := λ v i j h hij, begin
-    sorry
-  end }
+{ to_fun := mul_general_aux a b,
+  map_add' := λ v i p q, begin
+    unfold mul_general_aux,
+    dsimp only,
+    simp_rw [←finset.sum_add_distrib, multilinear_map.map_add, smul_add],
+    -- the lack of instance on the setoid makes this painful
+    congr' 1,
+    ext σ',
+    obtain ⟨σ, rfl⟩ := @quotient.exists_rep _ (mod_sum_congr ιa ιb) σ',
+    iterate 3 {
+      rw [quotient.lift_on', @quotient.lift_on_beta _ _ (mod_sum_congr ιa ιb) _ _ σ] },
+  end,
+  map_smul' := λ v i c p, begin
+    unfold mul_general_aux,
+    dsimp only,
+    simp_rw [finset.smul_sum, multilinear_map.map_smul, smul_comm],
+    -- the lack of instance on the setoid makes this painful
+    congr' 1,
+    ext σ',
+    obtain ⟨σ, rfl⟩ := @quotient.exists_rep _ (mod_sum_congr ιa ιb) σ',
+    iterate 2 {
+      rw [quotient.lift_on', @quotient.lift_on_beta _ _ (mod_sum_congr ιa ιb) _ _ σ] },
+  end,
+  map_eq_zero_of_eq' := mul_general_aux_eq_zero_if_eq a b }
 
 end alternating_map
 

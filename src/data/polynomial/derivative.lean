@@ -64,6 +64,10 @@ lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomi
 lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 
+@[simp] lemma derivative_X_pow (n : ℕ) :
+  derivative (X ^ n : polynomial R) = (n : polynomial R) * X ^ (n - 1) :=
+by convert derivative_C_mul_X_pow (1 : R) n; simp
+
 @[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
 by simp [derivative_apply]
 
@@ -72,6 +76,12 @@ by simp [derivative_apply]
 
 @[simp] lemma derivative_one : derivative (1 : polynomial R) = 0 :=
 derivative_C
+
+@[simp] lemma derivative_bit0 {a : polynomial R} : derivative (bit0 a) = bit0 (derivative a) :=
+by simp [bit0]
+
+@[simp] lemma derivative_bit1 {a : polynomial R} : derivative (bit1 a) = bit0 (derivative a) :=
+by simp [bit1]
 
 @[simp] lemma derivative_add {f g : polynomial R} :
   derivative (f + g) = derivative f + derivative g :=

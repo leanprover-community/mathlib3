@@ -656,7 +656,6 @@ end
 lemma pi_generate_from_eq_fintype {g : Πa, set (set (π a))} [fintype ι] (hg : ∀a, ⋃₀ g a = univ) :
   @Pi.topological_space ι π (λa, generate_from (g a)) =
   generate_from {t | ∃(s:Πa, set (π a)), (∀a, s a ∈ g a) ∧ t = pi univ s} :=
-let G := {t | ∃(s:Πa, set (π a)), (∀a, s a ∈ g a) ∧ t = pi univ s} in
 begin
   rw [pi_generate_from_eq],
   refine le_antisymm (generate_from_mono _) (le_generate_from _),

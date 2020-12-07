@@ -37,12 +37,36 @@ def fin_two_equiv : fin 2 ≃ bool :=
   end,
   assume b, match b with tt := rfl | ff := rfl end⟩
 
-/-- Equivalence between `fin n.succ` and `option (fin n)` -/
+/-- Equivalence between `fin n.succ` and `option (fin n)`.
+This is a version of `fin.pred` that produces `option (fin n)` instead of
+requiring a proof that the input is not `0`. -/
 def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
 ⟨λ x, fin.cases none some x, λ x, option.rec_on x 0 fin.succ,
   λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
     0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x,
   by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _]⟩
+
+/-- An equivalence that removes `i` and maps it to `none`.
+This is a version of `fin.pred_above` that produces `option (fin n)` instead of
+requiring a proof that the input is not `i`. -/
+def fin_succ_above_equiv {n : ℕ} (i : fin n.succ) :
+  fin n.succ ≃ option (fin n) :=
+{ to_fun := λ x, if h : x = i then none else some (i.pred_above x h),
+  inv_fun := λ x, x.cases_on' i (fin.succ_above i),
+  left_inv := λ x, if h : x = i then by simp [h] else by simp [h, fin.succ_above_ne],
+  right_inv := λ x, by { cases x, simp, simp [fin.succ_above_ne], }}
+
+/-- The equiv version of `fin.succ_above_zero`. -/
+lemma fin_succ_above_equiv_zero {n : ℕ} :
+  fin_succ_above_equiv 0 = fin_succ_equiv n :=
+begin
+  ext1 x,
+  simp [fin_succ_above_equiv, fin_succ_equiv],
+  split_ifs,
+  { rw h, refl},
+  { conv_rhs {rw ←x.succ_pred h,},
+    rw fin.cases_succ, }
+end
 
 /-- Equivalence between `fin m ⊕ fin n` and `fin (m + n)` -/
 def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=

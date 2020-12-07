@@ -6,7 +6,9 @@ Author: Kyle Miller.
 import combinatorics.simple_graph.basic
 import algebra.big_operators.basic
 import data.nat.parity
+import data.zmod.basic
 import tactic.omega
+import tactic.fin_cases
 /-!
 # Degree-sum formula and handshaking lemma
 
@@ -181,13 +183,50 @@ G.dart_card_eq_sum_degrees.symm.trans G.dart_card_eq_twice_card_edges
 
 end degree_sum
 
+lemma zmod_cast_mod (a b : ℕ) : a % 2 = b % 2 ↔ (a : zmod 2) = (b : zmod 2) :=
+begin
+  sorry
+end
+
+lemma zmod_even (n : ℕ) : (n : zmod 2) = 0 ↔ even n :=
+begin
+  rw nat.even_iff,
+  change _ ↔ n % 2 = 0 % 2,
+  rw zmod_cast_mod,
+  norm_num,
+end
+
+lemma zmod_odd (n : ℕ) : (n : zmod 2) = 1 ↔ odd n :=
+begin
+  rw nat.odd_iff,
+  change _ ↔ n % 2 = 1 % 2,
+  rw zmod_cast_mod,
+  norm_num,
+end
+
+lemma zmod_odd' (n : ℕ) : (n : zmod 2) ≠ 0 ↔ odd n :=
+begin
+  rw ←zmod_odd,
+  generalize h : (n : zmod 2) = m,
+  fin_cases m, simp, split, intro, refl, intros h,
+  let z : zmod 2 := ⟨0, _⟩, convert_to ¬_ = z, norm_num,
+end
+
 theorem card_odd_degree_vertices_is_even [fintype V] :
   even (univ.filter (λ v, odd (G.degree v))).card :=
 begin
   classical,
-  have h := congr_arg (% 2) G.sum_degrees_eq_twice_card_edges,
-  simp at h,
-  sorry
+  have h := congr_arg ((λ n, ↑n) : ℕ → zmod 2) G.sum_degrees_eq_twice_card_edges,
+  simp only [zmod.cast_self, zero_mul, nat.cast_mul] at h,
+  rw sum_nat_cast at h,
+  rw ←sum_filter_ne_zero at h,
+  rw @sum_congr _ (zmod 2) _ _ (λ v, (G.degree v : zmod 2)) (λ v, (1 : zmod 2)) _ rfl at h,
+  simp only [filter_congr_decidable, mul_one, nsmul_eq_mul, sum_const, ne.def] at h,
+  rw ←zmod_even,
+  convert h,
+  ext v, rw ←zmod_odd', split, intro h, convert h, intro h, convert h,
+  intros v, simp,
+  rw [zmod_even, zmod_odd, nat.odd_iff_not_even, imp_self], trivial,
 end
 
 lemma card_odd_degree_vertices_ne_is_odd [fintype V] [decidable_eq V]

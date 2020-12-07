@@ -73,19 +73,19 @@ def dart.rev [decidable_eq V] (d : G.dart) : G.dart :=
   edge_mem := d.edge_mem,
   vert_mem := sym2.mem_other_mem' d.vert_mem }
 
-@[simp] lemma dart_edge_of_dart_rev [decidable_eq V] (d : G.dart) : d.rev.edge = d.edge := rfl
+@[simp] lemma dart.rev_edge_eq [decidable_eq V] (d : G.dart) : d.rev.edge = d.edge := rfl
 
-@[simp] lemma dart_rev_invol [decidable_eq V] (d : G.dart) : d.rev.rev = d :=
+@[simp] lemma dart.rev_rev_eq [decidable_eq V] (d : G.dart) : d.rev.rev = d :=
 begin
   apply dart.ext,
   apply sym2.other_invol',
-  simp only [dart_edge_of_dart_rev],
+  simp only [dart.rev_edge_eq],
 end
 
 @[simp] lemma dart_rev_involutive [decidable_eq V] : function.involutive (dart.rev : G.dart → G.dart) :=
-dart_rev_invol 
+dart.rev_rev_eq
 
-lemma dart_rev_no_fixedpoints [decidable_eq V] (d : G.dart) : d ≠ d.rev :=
+lemma dart.neq_rev [decidable_eq V] (d : G.dart) : d ≠ d.rev :=
 begin
   intro h, rw dart.ext_iff at h,
   dsimp [dart.vert, dart.rev] at h,
@@ -99,7 +99,7 @@ begin
   have h₁ : d₁.edge = ⟦(d₁.vert, d₁.rev.vert)⟧ := (sym2.mem_other_spec' d₁.vert_mem).symm,
   have h₂ : d₂.edge = ⟦(d₂.vert, d₂.rev.vert)⟧ := (sym2.mem_other_spec' d₂.vert_mem).symm,
   split,
-  { rw [dart.ext_iff, dart.ext_iff, dart_edge_of_dart_rev],
+  { rw [dart.ext_iff, dart.ext_iff, dart.rev_edge_eq],
     intro h, simp only [h, and_true, eq_self_iff_true],
     rw [h₁, h₂, sym2.eq_iff] at h,
     cases h,
@@ -156,7 +156,7 @@ begin
   refine quotient.ind (λ p h, _) e h, cases p with v w,
   let d : G.dart := ⟨v, ⟦(v, w)⟧, h, sym2.mk_has_mem _ _⟩,
   convert_to _ = finset.card {d, d.rev},
-  { rw [card_insert_of_not_mem, card_singleton], simp [dart_rev_no_fixedpoints d], },
+  { rw [card_insert_of_not_mem, card_singleton], simp [d.neq_rev], },
   congr, apply G.dart_edge_fiber d,
 end
 

@@ -265,6 +265,17 @@ def mod_sum_congr (α β : Type*) : setoid (equiv.perm (α ⊕ β)) :=
       simp [equiv.perm.mul_def, equiv.perm.inv_def]}⟩
 ⟩}
 
+def sum_congr_subgroup (α β : Type*) : subgroup (equiv.perm (α ⊕ β)) :=
+{ carrier := λ σ, ∃ (sl : equiv.perm α) (sr : equiv.perm β), σ = equiv.perm.sum_congr sl sr,
+  one_mem' := ⟨1, 1, equiv.perm.sum_congr_one.symm⟩,
+  mul_mem' := λ σ₁ σ₂ ⟨sl₁₂, sr₁₂, h₁₂⟩ ⟨sl₂₃, sr₂₃, h₂₃⟩,
+    ⟨sl₁₂ * sl₂₃, sr₁₂ * sr₂₃, h₂₃.symm ▸ h₁₂.symm ▸ equiv.perm.sum_congr_mul _ _ _ _⟩,
+  inv_mem' := λ σ₁ ⟨sl, sr, h⟩, ⟨sl⁻¹, sr⁻¹, h.symm ▸ equiv.perm.sum_congr_inv _ _⟩
+
+#check quotient_group.quotient
+
+def mod_sum_congr' (α β : Type*) := quotient_group.quotient $ sum_congr_subgroup α β
+
 instance {α β : Type*} [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
   decidable_rel (mod_sum_congr α β).r :=
 λ σ₁ σ₂, fintype.decidable_exists_fintype
@@ -304,6 +315,50 @@ let ab := (algebra.lmul' R).comp_multilinear_map
              function.comp_app, equiv.perm.coe_mul, algebra.smul_mul_assoc],
 end)
 
+
+#check 1
+
+
+instance asasd {α β : Type*} [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
+  decidable_rel $ (quotient_group.left_rel (sum_congr_subgroup α β)).r :=
+λ σ₁ σ₂, fintype.decidable_exists_fintype
+
+instance : fintype (mod_sum_congr' ιa ιb) := quotient.fintype _
+
+private def dom_coprod_aux
+  {R : Type*} {M N : Type*}
+  [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
+  (a : alternating_map R M N ιa) (b : alternating_map R M N ιb)
+  (v : ιa ⊕ ιb → M) : N :=
+let ab := (algebra.lmul' R).comp_multilinear_map
+  $ multilinear_map.dom_coprod a.to_multilinear_map b.to_multilinear_map in
+∑ σ : mod_sum_congr' ιa ιb, σ.lift_on' (λ σ, (σ.sign : ℤ) • (ab.dom_dom_congr σ) v)
+(λ σ₁ σ₂ h, begin
+  dsimp only [ab],
+  simp only [linear_map.comp_multilinear_map_dom_dom_congr,
+              linear_map.comp_multilinear_map_apply,
+              multilinear_map.dom_dom_congr_apply,
+              multilinear_map.dom_coprod_apply,
+              algebra.lmul'_apply,
+              to_multilinear_map_eq_coe,
+              coe_multilinear_map],
+  dunfold quotient_group.left_rel setoid.r at h,
+  obtain ⟨sl, sr, h⟩ := h,
+  rw inv_mul_eq_iff_eq_mul at h,
+  rw h,
+  have : ((sl.sign : ℤ) • a (λ i, v $ σ₁ $ sum.inl $ sl i)) *
+          ((sr.sign : ℤ) • b (λ i, v $ σ₁ $ sum.inr $ sr i)) = a (λ i, v $ σ₁ $ sum.inl i)
+                                                            * b (λ i, v $ σ₁ $ sum.inr i) := by {
+    rw [a.map_perm' (λ i, v (σ₁ (sum.inl i))), b.map_perm' (λ i, v (σ₁ (sum.inr i)))],
+    simp only [smul_smul, int.units_coe_mul_self, one_smul],
+  },
+  rw ←this,
+  have : ((σ₁ * equiv.sum_congr sl sr).sign : ℤ) = σ₁.sign * (sl.sign * sr.sign) := by simp,
+  rw [this, mul_smul, mul_smul],
+  simp only [sum.map_inr, equiv.perm.sum_congr_apply, sum.map_inl, algebra.mul_smul_comm,
+             function.comp_app, equiv.perm.coe_mul, algebra.smul_mul_assoc],
+end)
+
 private lemma dom_coprod_aux_eq_zero_if_eq
   {R : Type*} {M N : Type*}
   [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
@@ -313,6 +368,8 @@ private lemma dom_coprod_aux_eq_zero_if_eq
 begin
   unfold dom_coprod_aux,
   dsimp only,
+  apply finset.sum_cancels_of_partition_cancels _,
+  intros σ _,
   /-
   ⊢ ∑ (σ : quotient (mod_sum_congr ιa ιb)),
         σ.lift_on'

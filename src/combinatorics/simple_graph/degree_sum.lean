@@ -179,24 +179,6 @@ G.dart_card_eq_sum_degrees.symm.trans G.dart_card_eq_twice_card_edges
 
 end degree_sum
 
-
-section TODO_move
-
-lemma zmod_eq_zero_iff_even {n : ℕ} : (n : zmod 2) = 0 ↔ even n :=
-(char_p.cast_eq_zero_iff (zmod 2) 2 n).trans even_iff_two_dvd.symm
-
-lemma zmod_eq_one_iff_odd {n : ℕ} : (n : zmod 2) = 1 ↔ odd n :=
-begin
-  change (n : zmod 2) = ((1 : ℕ) : zmod 2) ↔ _,
-  rw [zmod.eq_iff_modeq_nat, nat.odd_iff],
-  trivial,
-end
-
-lemma zmod_ne_zero_iff_odd {n : ℕ} : (n : zmod 2) ≠ 0 ↔ odd n :=
-by split; { contrapose, simp [zmod_eq_zero_iff_even], }
-
-end TODO_move
-
 /-- The handshaking lemma.  See also `simple_graph.sum_degrees_eq_twice_card_edges`. -/
 theorem even_card_odd_degree_vertices [fintype V] :
   even (univ.filter (λ v, odd (G.degree v))).card :=
@@ -208,14 +190,14 @@ begin
   rw ←sum_filter_ne_zero at h,
   rw @sum_congr _ (zmod 2) _ _ (λ v, (G.degree v : zmod 2)) (λ v, (1 : zmod 2)) _ rfl at h,
   { simp only [filter_congr_decidable, mul_one, nsmul_eq_mul, sum_const, ne.def] at h,
-    rw ←zmod_eq_zero_iff_even,
+    rw ←zmod.eq_zero_iff_even,
     convert h,
     ext v,
-    rw ←zmod_ne_zero_iff_odd,
+    rw ←zmod.ne_zero_iff_odd,
     congr' },
   { intros v,
     simp only [true_and, mem_filter, mem_univ, ne.def],
-    rw [zmod_eq_zero_iff_even, zmod_eq_one_iff_odd, nat.odd_iff_not_even, imp_self],
+    rw [zmod.eq_zero_iff_even, zmod.eq_one_iff_odd, nat.odd_iff_not_even, imp_self],
     trivial }
 end
 

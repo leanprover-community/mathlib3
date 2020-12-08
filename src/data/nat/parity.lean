@@ -6,6 +6,7 @@ Authors: Jeremy Avigad
 The `even` and `odd` predicates on the natural numbers.
 -/
 import data.nat.modeq
+import data.zmod.basic
 
 namespace nat
 
@@ -130,3 +131,20 @@ example : ¬ even 25394535 :=
 by simp
 
 end nat
+
+namespace zmod
+
+lemma eq_zero_iff_even {n : ℕ} : (n : zmod 2) = 0 ↔ even n :=
+(char_p.cast_eq_zero_iff (zmod 2) 2 n).trans even_iff_two_dvd.symm
+
+lemma eq_one_iff_odd {n : ℕ} : (n : zmod 2) = 1 ↔ odd n :=
+begin
+  change (n : zmod 2) = ((1 : ℕ) : zmod 2) ↔ _,
+  rw [zmod.eq_iff_modeq_nat, nat.odd_iff],
+  trivial,
+end
+
+lemma ne_zero_iff_odd {n : ℕ} : (n : zmod 2) ≠ 0 ↔ odd n :=
+by split; { contrapose, simp [eq_zero_iff_even], }
+
+end zmod

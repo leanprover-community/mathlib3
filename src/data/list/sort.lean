@@ -7,10 +7,10 @@ import data.list.perm
 import data.list.chain
 
 /-!
-# Sort algorithms on lists
+# Sorting algorithms on lists
 
 In this file we define `list.sorted r l` to be an alias for `pairwise r l`. This alias is preferred
-in the case that `r` is a `<` or `≤`-like relation. Then we define two sort algorithms:
+in the case that `r` is a `<` or `≤`-like relation. Then we define two sorting algorithms:
 `list.insertion_sort` and `list.merge_sort`, and prove their correctness.
 -/
 
@@ -153,7 +153,7 @@ lemma sorted.insertion_sort_eq : ∀ {l : list α} (h : sorted r l), insertion_s
 section total_and_transitive
 variables [is_total α r] [is_trans α r]
 
-theorem sorted_ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered_insert r a l)
+theorem sorted.ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered_insert r a l)
 | []       h := sorted_singleton a
 | (b :: l) h := begin
   by_cases h' : a ≼ b,
@@ -287,7 +287,7 @@ using_well_founded {
 section total_and_transitive
 variables [is_total α r] [is_trans α r]
 
-theorem sorted_merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sorted r (merge r l l')
+theorem sorted.merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sorted r (merge r l l')
 | []       []        h₁ h₂ := sorted_nil
 | []       (b :: l') h₁ h₂ := by simpa [merge] using h₂
 | (a :: l) []        h₁ h₂ := by simpa [merge] using h₁

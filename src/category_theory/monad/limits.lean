@@ -140,7 +140,7 @@ def new_cocone : cocone ((D ⋙ forget T) ⋙ T) :=
 { X := c.X,
   ι := γ ≫ c.ι }
 
-variables [preserves_colimit (D ⋙ forget T) T] [preserves_colimit ((D ⋙ forget T) ⋙ T) T]
+variables [preserves_colimit (D ⋙ forget T) T]
 
 /--
 (Impl)
@@ -156,6 +156,8 @@ def lambda : (functor.map_cocone T c).X ⟶ c.X :=
 lemma commuting (j : J) :
 T.map (c.ι.app j) ≫ lambda c t = (D.obj j).a ≫ c.ι.app j :=
 is_colimit.fac (preserves_colimit.preserves t) (new_cocone c) j
+
+variables [preserves_colimit ((D ⋙ forget T) ⋙ T) T]
 
 /--
 (Impl)
@@ -217,7 +219,6 @@ end forget_creates_colimits
 open forget_creates_colimits
 
 -- TODO: the converse of this is true as well
--- TODO: generalise to monadic functors, as for creating limits
 /--
 The forgetful functor from the Eilenberg-Moore category for a monad creates any colimit
 which the monad itself preserves.

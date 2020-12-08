@@ -83,3 +83,7 @@ begin
     change n < N,
     exact lt_of_not_ge (λ hn', hn $ hN n hn') }
 end
+
+lemma nat.frequently_at_top_iff_infinite {p : ℕ → Prop} :
+  (∃ᶠ n in at_top, p n) ↔ set.infinite {n | p n} :=
+by simp only [← nat.cofinite_eq_at_top, frequently_cofinite_iff_infinite]

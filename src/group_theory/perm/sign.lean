@@ -810,6 +810,21 @@ begin
           sign_swap hb, sign_swap (sum.injective_inr.ne_iff.mpr hb)], }, }
 end
 
+
+@[simp] lemma sign_sigma_congr_right {α : Type*} {β : α → Type*}
+  [decidable_eq α] [∀ a, decidable_eq (β a)]
+  [fintype α] [∀ a, fintype (β a)] (σ : Π a, perm (β a)) :
+  (sigma_congr_right σ).sign = ∏ a, (σ a).sign :=
+begin
+  suffices : ∀ a', (sigma_congr_right $ function.update (λ a, 1) a' (σ a)).sign = (σ a).sign ,
+  { rw [←this], sorry },
+  intro a',
+  { apply σa.swap_induction_on _ (λ σa' a₁ a₂ ha ih, _),
+    { simp },
+    { rw [←one_mul (1 : perm β), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_swap_one,
+          sign_swap ha, sign_swap (sum.injective_inl.ne_iff.mpr ha)], }, },
+end
+
 end sign
 
 end equiv.perm

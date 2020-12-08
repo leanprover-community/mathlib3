@@ -87,6 +87,34 @@ sigma_congr_right_refl
 
 end perm
 
+@[simp] lemma sigma_congr_right_update_refl_swap {α} {β : α → Type*}
+  [decidable_eq α] {a' : α} [decidable_eq (β a')] [decidable_eq (Σ a, β a)]
+  (i j : β a') :
+  sigma_congr_right (function.update (λ a, equiv.refl _) a' (equiv.swap i j))
+    = equiv.swap ⟨a', i⟩ ⟨a', j⟩  :=
+begin
+  ext x,
+  cases x,
+  by_cases h : a' = x_fst,
+  { subst h,
+    rw [sigma_congr_right_apply, function.update_same],
+    simp only [swap_apply_def, true_and, eq_self_iff_true, heq_iff_eq],
+    split_ifs; apply and.intro rfl (heq.refl _)},
+  { replace h := ne.symm h,
+    rw swap_apply_of_ne_of_ne (λ h', h (sigma.mk.inj h').1) (λ h', h (sigma.mk.inj h').1),
+    simp [function.update_noteq h], },
+end
+
+namespace perm
+
+@[simp] lemma sigma_congr_right_update_one_swap {α} {β : α → Type*}
+  [decidable_eq α] {a' : α} [decidable_eq (β a')] [decidable_eq (Σ a, β a)]
+  (i j : β a') :
+  sigma_congr_right (function.update (λ a, 1) a' (equiv.swap i j)) = equiv.swap ⟨a', i⟩ ⟨a', j⟩  :=
+sigma_congr_right_update_refl_swap i j
+
+end perm
+
 section swap
 variables [decidable_eq α]
 

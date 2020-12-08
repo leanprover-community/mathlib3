@@ -6,7 +6,7 @@ Authors: Scott Morrison, Bhavik Mehta
 import category_theory.const
 import category_theory.discrete_category
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
@@ -30,7 +30,7 @@ lemma punit_ext' (F G : C ⥤ discrete punit) : F = G :=
 functor.ext (λ _, dec_trivial) (λ _ _ _, dec_trivial)
 
 /-- The functor from `discrete punit` sending everything to the given object. -/
-abbreviation from_punit (X : C) : discrete punit.{v+1} ⥤ C :=
+abbreviation from_punit (X : C) : discrete punit.{w+1} ⥤ C :=
 (functor.const _).obj X
 
 /-- Functors from `discrete punit` are equivalent to the category itself. -/

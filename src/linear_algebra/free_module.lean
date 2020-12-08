@@ -370,12 +370,86 @@ begin
     exact λ x hx, hs x hx }
 end
 
+open_locale matrix
+
+lemma linear_independent.eq_zero_of_smul_eq_zero (hb : linear_independent R b) {c : R} {i}
+  (h : c • b i = 0) : c = 0 :=
+have finsupp.single i c = 0 := linear_independent_iff.mp hb _ (by rw [finsupp.total_single, h]),
+calc c = finsupp.single i c i : by simp
+... = 0 : by rw [this, finsupp.zero_apply]
+
+lemma linear_independent.mem_span_iff (hb' : linear_independent R b)
+  {s : set ι} {i : ι} :
+  (∃ (c : R), c ≠ 0 ∧ c • b i ∈ submodule.span R (b '' s)) ↔ i ∈ s :=
+begin
+  split,
+  { rintro ⟨c, c_ne, hc⟩,
+    suffices : ¬ disjoint {i} s,
+    { simpa using this },
+    intro h,
+    refine c_ne (hb'.eq_zero_of_smul_eq_zero (show c • b i = 0, from _)),
+    rw [← submodule.mem_bot R, ← disjoint_iff.mp (hb'.disjoint_span_image h), submodule.mem_inf,
+        set.image_singleton],
+    exact ⟨submodule.mem_span_singleton.mpr ⟨_, rfl⟩, hc⟩ },
+  { intro mem_s,
+    use [1, one_ne_zero],
+    rw one_smul,
+    exact submodule.subset_span ⟨i, mem_s, rfl⟩ }
+end
+
 lemma is_basis.card_le_card_of_linear_independent
   {ι : Type*} [fintype ι] {b : ι → M} (hb : is_basis R b)
   {ι' : Type*} [fintype ι'] {b' : ι' → M} (hb' : linear_independent R b') :
   fintype.card ι' ≤ fintype.card ι :=
 begin
-  sorry
+  haveI := classical.dec_eq ι,
+  haveI := classical.dec_eq ι',
+  haveI := classical.dec_eq R,
+  have : ∀ s : finset ι', s = finset.univ ∨ ∃ i : ι,
+    (∀ (c : R) (y ∈ submodule.span R (b' '' (↑s : set ι'))), c • b i + y = (0 : M) → c = 0),
+  { intros s,
+    rw or_iff_not_imp_right,
+    intro not_indep,
+    simp only [not_exists, not_forall] at not_indep,
+    rw finset.eq_univ_iff_forall,
+    intros i',
+    by_contra hi',
+    have : ∀ (c : R), c ≠ 0 → c • b' i' ∉ submodule.span R (b' '' s),
+    { intros c,
+      rw [← finset.mem_coe, ← hb'.mem_span_iff, not_exists] at hi',
+      specialize hi' c,
+      rwa not_and at hi' },
+    apply this (∏ i, classical.some (not_indep i)),
+    { rw finset.prod_ne_zero_iff,
+      intros i _,
+      exact (classical.some_spec (classical.some_spec (classical.some_spec (classical.some_spec
+        (not_indep i))))) },
+    have : ∀ i, (∏ (i : ι), classical.some (not_indep i)) • b i ∈ submodule.span R (b' '' s),
+    { intro i,
+      rw [← finset.insert_erase (finset.mem_univ i), finset.prod_insert (finset.not_mem_erase i _)],
+      rw [mul_comm, mul_smul],
+      apply submodule.smul_mem _ _ _,
+      have := classical.some (classical.some_spec (classical.some_spec (not_indep i))),
+      apply (submodule.add_mem_iff_left _ this).mp _,
+      convert submodule.zero_mem _,
+      exact classical.some (classical.some_spec (classical.some_spec (classical.some_spec (not_indep i)))) },
+    rw [← hb.total_repr (b' i'), ← linear_map.map_smul, finsupp.total_apply, finsupp.sum_fintype],
+    refine submodule.sum_mem _ (λ j _, _),
+    rw [finsupp.smul_apply, smul_eq_mul, mul_comm, mul_smul],
+    apply submodule.smul_mem _ _ _,
+    exact this j,
+    simp },
+  have : ∀ s : finset ι', ∃ f : (↑s : set ι') → ι, function.injective f,
+  { intro s,
+    refine s.induction_on _ _,
+    { rw finset.coe_empty,
+      refine ⟨λ i, false.elim i.2, λ i, false.elim i.2⟩ },
+    { rintros a s ha ⟨f, hf⟩,
+      obtain ⟨i, hi⟩ := (this s).resolve_left _,
+      refine ⟨λ j, (finset.mem_insert.mp j.2).cases_on (λ _, i) (λ h, f ⟨j, h⟩), _⟩,
+      } },
+  rw ← finset.card_univ,
+  
 end
 
 lemma induction_on_rank [fintype ι] (hb : is_basis R b) (P : submodule R M → Sort*)

@@ -92,6 +92,20 @@ noncomputable def bot_equiv : (⊥ : intermediate_field F E) ≃ₐ[F] F :=
   bot_equiv (algebra_map F (⊥ : intermediate_field F E) x) = x :=
 alg_equiv.commutes bot_equiv x
 
+noncomputable instance algebra_over_bot : algebra (⊥ : intermediate_field F E) F :=
+  ring_hom.to_algebra intermediate_field.bot_equiv.to_alg_hom.to_ring_hom
+
+instance is_scalar_tower_over_bot : is_scalar_tower (⊥ : intermediate_field F E) F E :=
+is_scalar_tower.of_algebra_map_eq
+begin
+  intro x,
+  let ϕ := algebra.of_id F (⊥ : subalgebra F E),
+  let ψ := alg_equiv.of_bijective ϕ ((algebra.bot_equiv F E).symm.bijective),
+  change (↑x : E) = ↑(ψ (ψ.symm ⟨x, _⟩)),
+  rw alg_equiv.apply_symm_apply ψ ⟨x, _⟩,
+  refl
+end
+
 /-- The top intermediate_field is isomorphic to the field. -/
 noncomputable def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
 (subalgebra.equiv_of_eq top_to_subalgebra).trans algebra.top_equiv

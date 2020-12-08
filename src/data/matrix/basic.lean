@@ -656,18 +656,15 @@ begin
   split_ifs with h; simp [h],
 end
 
-
 lemma matrix_eq_sum_std_basis (x : matrix n m α) :
-x = ∑ (i : n) (j : m), std_basis_matrix i j (x i j) :=
+  x = ∑ (i : n) (j : m), std_basis_matrix i j (x i j) :=
 begin
-  ext, iterate 2 {rw finset.sum_apply},
-  rw ← finset.sum_subset, swap 4, exact {i},
-  { norm_num [std_basis_matrix] },
-  { simp },
-  intros y _ hyi, norm_num,
-  convert finset.sum_const_zero,
-  ext, norm_num [std_basis_matrix],
-  rw if_neg, contrapose! hyi, simp [hyi]
+  ext, symmetry,
+  iterate 2 { rw finset.sum_apply },
+  convert fintype.sum_eq_single i _,
+  { simp [std_basis_matrix] },
+  { intros j hj,
+    simp [std_basis_matrix, hj.symm] }
 end
 
 -- TODO: tie this up with the `basis` machinery of linear algebra

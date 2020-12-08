@@ -27,13 +27,14 @@ variable (C)
 @[derive category]
 def ind := {P : Cᵒᵖ ⥤ Type v // is_inductive P}
 
-@[derive [full, faithful]]
+@[derive [full, faithful], simps {rhs_md := semireducible}]
 def to_Presheaf : ind C ⥤ Cᵒᵖ ⥤ Type v := full_subcategory_inclusion _
 
 instance : is_filtered (discrete punit) :=
 { cocone_objs := λ X Y, ⟨punit.star, eq_to_hom (by simp), eq_to_hom (by simp), ⟨⟩⟩,
   cocone_maps := λ X Y f g, ⟨punit.star, eq_to_hom (by simp), by simp⟩ }
 
+@[simps]
 def embed : C ⥤ ind C :=
 { obj := λ X,
   begin
@@ -56,6 +57,15 @@ def embed : C ⥤ ind C :=
     apply (to_Presheaf C).preimage,
     apply yoneda.map f,
   end }
+
+lemma embed_to_presheaf : embed C ⋙ to_Presheaf C = yoneda := rfl
+
+instance : faithful (embed C) :=
+faithful.of_comp_eq (embed_to_presheaf C)
+
+-- Surely this pattern belongs in mathlib
+instance : full (embed C) :=
+{ preimage := λ X Y f, yoneda.preimage ((to_Presheaf C).map f) }
 
 def thing : ind Fintype.{u} ≌ Type u :=
 sorry

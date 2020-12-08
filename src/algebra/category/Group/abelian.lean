@@ -7,7 +7,7 @@ import algebra.category.Group.Z_Module_equivalence
 import algebra.category.Group.limits
 import algebra.category.Group.colimits
 import algebra.category.Module.abelian
-import category_theory.abelian.basicn
+import category_theory.abelian.basic
 
 /-!
 # The category of abelian groups is abelian

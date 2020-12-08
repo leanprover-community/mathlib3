@@ -159,7 +159,7 @@ theorem sorted.ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered
   by_cases h' : a ≼ b,
   { simpa [ordered_insert, h', h] using λ b' bm, trans h' (rel_of_sorted_cons h _ bm) },
   { suffices : ∀ (b' : α), b' ∈ ordered_insert r a l → r b b',
-    { simpa [ordered_insert, h', sorted_ordered_insert l (sorted_of_sorted_cons h)] },
+    { simpa [ordered_insert, h', (sorted_of_sorted_cons h).ordered_insert l] },
     intros b' bm,
     cases (show b' = a ∨ b' ∈ l, by simpa using
       (perm_ordered_insert _ _ _).subset bm) with be bm,
@@ -170,7 +170,7 @@ end
 /-- The list `list.insertion_sort r l` is `list.sorted` with respect to `r`. -/
 theorem sorted_insertion_sort : ∀ l, sorted r (insertion_sort r l)
 | []       := sorted_nil
-| (a :: l) := sorted_ordered_insert r a _ (sorted_insertion_sort l)
+| (a :: l) := (sorted_insertion_sort l).ordered_insert r a _
 
 end total_and_transitive
 end correctness
@@ -294,7 +294,7 @@ theorem sorted.merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sort
 | (a :: l) (b :: l') h₁ h₂ := begin
   by_cases a ≼ b,
   { suffices : ∀ (b' : α) (_ : b' ∈ merge r l (b :: l')), r a b',
-    { simpa [merge, h, sorted_merge (sorted_of_sorted_cons h₁) h₂] },
+    { simpa [merge, h, (sorted_of_sorted_cons h₁).merge h₂] },
     intros b' bm,
     rcases (show b' = b ∨ b' ∈ l ∨ b' ∈ l', by simpa [or.left_comm] using
       (perm_merge _ _ _).subset bm) with be | bl | bl',
@@ -302,7 +302,7 @@ theorem sorted.merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sort
     { exact rel_of_sorted_cons h₁ _ bl },
     { exact trans h (rel_of_sorted_cons h₂ _ bl') } },
   { suffices : ∀ (b' : α) (_ : b' ∈ merge r (a :: l) l'), r b b',
-    { simpa [merge, h, sorted_merge h₁ (sorted_of_sorted_cons h₂)] },
+    { simpa [merge, h, h₁.merge (sorted_of_sorted_cons h₂)] },
     intros b' bm,
     have ba : b ≼ a := (total_of r _ _).resolve_left h,
     rcases (show b' = a ∨ b' ∈ l ∨ b' ∈ l', by simpa using
@@ -319,7 +319,7 @@ theorem sorted_merge_sort : ∀ l : list α, sorted r (merge_sort r l)
   cases e : split (a::b::l) with l₁ l₂,
   cases length_split_lt e with h₁ h₂,
   rw [merge_sort_cons_cons r e],
-  exact sorted_merge r (sorted_merge_sort l₁) (sorted_merge_sort l₂)
+  exact r.merge (sorted_merge_sort l₁) (sorted_merge_sort l₂)
 end
 using_well_founded {
   rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],

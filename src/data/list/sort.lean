@@ -26,9 +26,8 @@ list.decidable_pairwise _
 theorem sorted_of_sorted_cons {a : α} {l : list α} : sorted r (a :: l) → sorted r l :=
 pairwise_of_pairwise_cons
 
-theorem sorted.tail {r : α → α → Prop} : Π {l : list α}, sorted r l → sorted r l.tail
-| [] h := h
-| (hd :: tl) h := sorted_of_sorted_cons h
+theorem sorted.tail {r : α → α → Prop} {l : list α} (h : sorted r l) : sorted r l.tail :=
+h.tail
 
 theorem rel_of_sorted_cons {a : α} {l : list α} : sorted r (a :: l) →
   ∀ b ∈ l, r a b :=

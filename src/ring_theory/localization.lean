@@ -1201,7 +1201,7 @@ end
 end localization
 end at_prime
 
-/-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements -/
+/-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
 lemma localization_map_bijective_of_field {R Rₘ : Type*} [integral_domain R] [comm_ring Rₘ]
   {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   (f : localization_map M Rₘ) : function.bijective f.to_map :=
@@ -1465,7 +1465,7 @@ lemma algebra_map_mk' (r : R) (m : M) :
     g.mk' (algebra_map R S r) ⟨algebra_map R S m, algebra.mem_algebra_map_submonoid_of_mem m⟩ :=
 localization_map.map_mk' f _ r m
 
-/-- Injectivity of a map descends to the map induced on localizations -/
+/-- Injectivity of a map descends to the map induced on localizations. -/
 lemma map_injective_of_injective {R S : Type*} [comm_ring R] [comm_ring S]
   (ϕ : R →+* S) (hϕ : function.injective ϕ) (M : submonoid R)
   (f : localization_map M Rₘ) (g : localization_map (M.map ϕ : submonoid S) Sₘ)
@@ -1481,7 +1481,7 @@ begin
   convert g.injective hM hxy; simp,
 end
 
-/-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization -/
+/-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization. -/
 lemma localization_algebra_injective (hRS : function.injective (algebra_map R S))
   (hM : algebra.algebra_map_submonoid S M ≤ non_zero_divisors S) :
   function.injective (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) :=

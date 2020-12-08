@@ -330,7 +330,7 @@ begin
   exact hx,
 end
 
-/-- `polynomial R` is never a field unless `R` is the trivial ring -/
+/-- `polynomial R` is never a field unless `R` is the trivial ring. -/
 lemma polynomial_not_is_field [nontrivial R] : ¬ is_field (polynomial R) :=
 begin
   by_contradiction hR,
@@ -344,7 +344,7 @@ begin
     exact hp0 this }
 end
 
-/-- The only constant in a maximal ideal over a field is `0` -/
+/-- The only constant in a maximal ideal over a field is `0`. -/
 lemma eq_zero_of_constant_mem_of_maximal (hR : is_field R)
   (I : ideal (polynomial R)) [hI : I.is_maximal] (x : R) (hx : C x ∈ I) : x = 0 :=
 begin

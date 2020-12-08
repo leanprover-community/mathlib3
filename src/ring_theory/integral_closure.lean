@@ -458,7 +458,7 @@ lemma ring_hom.is_integral_tower_top_of_is_integral (h : (g.comp f).is_integral)
 λ x, ring_hom.is_integral_elem_of_is_integral_elem_comp f g (h x)
 
 /-- If `R → A → B` is an algebra tower,
-then if the entire tower is an integral extension so is `A → B` -/
+then if the entire tower is an integral extension so is `A → B`. -/
 lemma is_integral_tower_top_of_is_integral {x : B} (h : is_integral R x) : is_integral A x :=
 begin
   rcases h with ⟨p, ⟨hp, hp'⟩⟩,
@@ -491,7 +491,7 @@ begin
   exact ring_hom.is_integral_of_surjective g ideal.quotient.mk_surjective,
 end
 
-/-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field -/
+/-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field. -/
 lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [integral_domain S]
   [algebra R S] (H : is_integral R S) (hRS : function.injective (algebra_map R S))
   (hS : is_field S) : is_field R :=

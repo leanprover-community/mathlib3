@@ -629,10 +629,10 @@ by { ext, simp only [map_one, coe_comp, function.comp_app, one_apply] }
 
 @[to_additive] lemma mul_comp [monoid M] [comm_monoid N] [comm_monoid P]
   (g₁ g₂ : N →* P) (f : M →* N) :
-  (g₁ * g₂).comp f = (g₁.comp f) * (g₂.comp f) := rfl
+  (g₁ * g₂).comp f = g₁.comp f * g₂.comp f := rfl
 @[to_additive] lemma comp_mul [monoid M] [comm_monoid N] [comm_monoid P]
   (g : N →* P) (f₁ f₂ : M →* N) :
-  g.comp (f₁ * f₂) = (g.comp f₁) * (g.comp f₂) :=
+  g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
 by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 
 /-- (M →* N) is a comm_monoid if N is commutative. -/

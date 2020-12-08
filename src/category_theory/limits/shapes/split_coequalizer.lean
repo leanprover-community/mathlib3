@@ -150,6 +150,4 @@ has_colimit.mk ⟨_, (has_split_coequalizer.is_split_coequalizer f g).is_coequal
 
 end limits
 
-#lint
-
 end category_theory

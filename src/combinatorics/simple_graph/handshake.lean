@@ -20,10 +20,10 @@ a corollary, which is that the number of odd-degree vertices is even.
 - A `dart` is a directed edge, consisting of an ordered pair of adjacent vertices,
   thought of as being a directed edge.
 - `simple_graph.sum_degrees_eq_twice_card_edges` is the degree-sum formula.
-- `simple_graph.card_odd_degree_vertices_is_even` is the handshaking lemma.
-- `simple_graph.card_odd_degree_vertices_ne_is_odd` is that the number of odd-degree
+- `simple_graph.even_card_odd_degree_vertices` is the handshaking lemma.
+- `simple_graph.odd_card_odd_degree_vertices_ne` is that the number of odd-degree
   vertices different from a given odd-degree vertex is odd.
-- `simple_graph.exists_ne_odd_degree_if_exists_odd` is that the existence of an
+- `simple_graph.exists_ne_odd_degree_of_exists_odd_degree` is that the existence of an
   odd-degree vertex implies the existence of another one.
 
 ## Implementation notes
@@ -105,17 +105,17 @@ end
 variables (G)
 
 /-- For a given vertex `v`, the injective map from the incidence set at `v` to the darts there. --/
-def dart_from_neighbor_set (v : V) : G.neighbor_set v → G.dart :=
-λ w, ⟨v, w, w.property⟩
+def dart_of_neighbor_set (v : V) (w : G.neighbor_set v) : G.dart :=
+⟨v, w, w.property⟩
 
-lemma dart_from_neighbor_set_inj (v : V) : function.injective (G.dart_from_neighbor_set v) :=
+lemma dart_of_neighbor_set_injective (v : V) : function.injective (G.dart_of_neighbor_set v) :=
 λ e₁ e₂ h, by { injection h with h₁ h₂, exact subtype.ext h₂ }
 
 section degree_sum
 variables [fintype V] [decidable_rel G.adj]
 
 lemma dart_fst_fiber [decidable_eq V] (v : V) :
-  univ.filter (λ d : G.dart, d.fst = v) = univ.image (G.dart_from_neighbor_set v) :=
+  univ.filter (λ d : G.dart, d.fst = v) = univ.image (G.dart_of_neighbor_set v) :=
 begin
   ext d,
   simp only [mem_image, true_and, mem_filter, set_coe.exists, mem_univ, exists_prop_of_true],
@@ -129,7 +129,7 @@ end
 lemma dart_fst_fiber_card_eq_degree [decidable_eq V] (v : V) :
   (univ.filter (λ d : G.dart, d.fst = v)).card = G.degree v :=
 begin
-  have hh := card_image_of_injective univ (G.dart_from_neighbor_set_inj v),
+  have hh := card_image_of_injective univ (G.dart_of_neighbor_set_injective v),
   rw [finset.card_univ, card_neighbor_set_eq_degree] at hh,
   rwa dart_fst_fiber,
 end
@@ -173,7 +173,7 @@ begin
 end
 
 /-- The degree-sum formula.  This is also known as the handshaking lemma, which might
-more specifically refer to `simple_graph.card_odd_degree_vertices_is_even`. -/
+more specifically refer to `simple_graph.even_card_odd_degree_vertices`. -/
 theorem sum_degrees_eq_twice_card_edges : ∑ v, G.degree v = 2 * G.edge_finset.card :=
 G.dart_card_eq_sum_degrees.symm.trans G.dart_card_eq_twice_card_edges
 
@@ -182,23 +182,23 @@ end degree_sum
 
 section TODO_move
 
-lemma zmod_eq_zero_iff_even (n : ℕ) : (n : zmod 2) = 0 ↔ even n :=
+lemma zmod_eq_zero_iff_even {n : ℕ} : (n : zmod 2) = 0 ↔ even n :=
 (char_p.cast_eq_zero_iff (zmod 2) 2 n).trans even_iff_two_dvd.symm
 
-lemma zmod_eq_one_iff_odd (n : ℕ) : (n : zmod 2) = 1 ↔ odd n :=
+lemma zmod_eq_one_iff_odd {n : ℕ} : (n : zmod 2) = 1 ↔ odd n :=
 begin
   change (n : zmod 2) = ((1 : ℕ) : zmod 2) ↔ _,
   rw [zmod.eq_iff_modeq_nat, nat.odd_iff],
   trivial,
 end
 
-lemma zmod_ne_zero_iff_odd (n : ℕ) : (n : zmod 2) ≠ 0 ↔ odd n :=
+lemma zmod_ne_zero_iff_odd {n : ℕ} : (n : zmod 2) ≠ 0 ↔ odd n :=
 by split; { contrapose, simp [zmod_eq_zero_iff_even], }
 
 end TODO_move
 
 /-- The handshaking lemma.  See also `simple_graph.sum_degrees_eq_twice_card_edges`. -/
-theorem card_odd_degree_vertices_is_even [fintype V] :
+theorem even_card_odd_degree_vertices [fintype V] :
   even (univ.filter (λ v, odd (G.degree v))).card :=
 begin
   classical,
@@ -219,11 +219,11 @@ begin
     trivial }
 end
 
-lemma card_odd_degree_vertices_ne_is_odd [fintype V] [decidable_eq V]
+lemma odd_card_odd_degree_vertices_ne [fintype V] [decidable_eq V]
   (v : V) (h : odd (G.degree v)) :
   odd (univ.filter (λ w, w ≠ v ∧ odd (G.degree w))).card :=
 begin
-  rcases G.card_odd_degree_vertices_is_even with ⟨k, hg⟩,
+  rcases G.even_card_odd_degree_vertices with ⟨k, hg⟩,
   have hk : 0 < k,
   { have hh : (filter (λ (v : V), odd (G.degree v)) univ).nonempty,
     { use v,
@@ -245,12 +245,12 @@ begin
   { simpa only [true_and, mem_filter, mem_univ] },
 end
 
-lemma exists_ne_odd_degree_if_exists_odd [fintype V]
+lemma exists_ne_odd_degree_of_exists_odd_degree [fintype V]
   (v : V) (h : odd (G.degree v)) :
   ∃ (w : V), w ≠ v ∧ odd (G.degree w) :=
 begin
   haveI : decidable_eq V := by { classical, apply_instance },
-  rcases G.card_odd_degree_vertices_ne_is_odd v h with ⟨k, hg⟩,
+  rcases G.odd_card_odd_degree_vertices_ne v h with ⟨k, hg⟩,
   have hg' : (filter (λ (w : V), w ≠ v ∧ odd (G.degree w)) univ).card > 0,
   { rw hg,
     apply nat.succ_pos, },

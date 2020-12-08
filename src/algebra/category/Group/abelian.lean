@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import algebra.category.Group.Z_Module_equivalence
+import algebra.category.Group.limits
 import algebra.category.Group.colimits
 import algebra.category.Module.abelian
+import category_theory.abelian.basicn
 
 /-!
 # The category of abelian groups is abelian

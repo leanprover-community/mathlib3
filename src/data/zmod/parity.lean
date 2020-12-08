@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Kyle Miller
 -/
 import data.nat.parity
+import data.zmod.basic
 /-!
 # Relating parity to natural numbers mod 2
 

@@ -954,8 +954,10 @@ by rw [disjoint, disjoint, inf_comm]
 @[symm] theorem disjoint.symm ⦃a b : α⦄ : disjoint a b → disjoint b a :=
 disjoint.comm.1
 
-@[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := disjoint_iff.2 bot_inf_eq
-@[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := disjoint_iff.2 inf_bot_eq
+@[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := inf_le_left
+@[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := inf_le_right
+@[simp] theorem disjoint_top {a : α} : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
+@[simp] theorem top_disjoint {a : α} : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
 
 theorem disjoint.mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
   disjoint b d → disjoint a c := le_trans (inf_le_inf h₁ h₂)

@@ -68,9 +68,9 @@ begin
     (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩,
 end
 
-variables (E' : Type*) [field E'] [algebra F E']
+variables {F} {E} {E' : Type*} [field E'] [algebra F E']
 
-lemma normal.of_alg_equiv (f : E ≃ₐ[F] E') (h : normal F E) : normal F E' :=
+lemma normal.of_alg_equiv (h : normal F E) (f : E ≃ₐ[F] E') : normal F E' :=
 begin
   intro x,
   cases h (f.symm x) with hx hhx,

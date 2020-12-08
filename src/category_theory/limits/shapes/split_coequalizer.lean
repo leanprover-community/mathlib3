@@ -62,6 +62,9 @@ structure is_split_coequalizer {Z : C} (π : Y ⟶ Z) :=
 (left_section_bottom : left_section ≫ g = 𝟙 Y)
 (left_section_top : left_section ≫ f = π ≫ right_section)
 
+instance {X : C} : inhabited (is_split_coequalizer (𝟙 X) (𝟙 X) (𝟙 X)) :=
+⟨⟨𝟙 _, 𝟙 _, rfl, category.id_comp _, category.id_comp _, rfl⟩⟩
+
 open is_split_coequalizer
 attribute [reassoc] condition
 attribute [simp, reassoc] right_section_π left_section_bottom left_section_top
@@ -146,5 +149,7 @@ instance has_coequalizer_of_has_split_coequalizer [has_split_coequalizer f g] :
 has_colimit.mk ⟨_, (has_split_coequalizer.is_split_coequalizer f g).is_coequalizer⟩
 
 end limits
+
+#lint
 
 end category_theory

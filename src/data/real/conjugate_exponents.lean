@@ -3,7 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
-import data.real.nnreal
+import data.real.ennreal
 
 /-!
 # Real conjugate exponents
@@ -90,6 +90,11 @@ end
 lemma inv_add_inv_conj_nnreal : 1 / nnreal.of_real p + 1 / nnreal.of_real q = 1 :=
 by rw [←nnreal.of_real_one, ←nnreal.of_real_div' h.nonneg, ←nnreal.of_real_div' h.symm.nonneg,
   ←nnreal.of_real_add h.one_div_nonneg h.symm.one_div_nonneg, h.inv_add_inv_conj]
+
+lemma inv_add_inv_conj_ennreal : 1 / ennreal.of_real p + 1 / ennreal.of_real q = 1 :=
+by rw [←ennreal.of_real_one, ←ennreal.of_real_div_of_pos h.pos,
+  ←ennreal.of_real_div_of_pos h.symm.pos,
+  ←ennreal.of_real_add h.one_div_nonneg h.symm.one_div_nonneg, h.inv_add_inv_conj]
 
 end is_conjugate_exponent
 

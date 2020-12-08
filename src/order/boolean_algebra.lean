@@ -67,9 +67,6 @@ is_compl_bot_top.compl_eq
 @[simp] theorem compl_compl' : xᶜᶜ = x :=
 is_compl_compl.symm.compl_eq
 
-@[simp] theorem disjoint_top : disjoint x ⊤ ↔ x = ⊥ := by simp [disjoint_iff]
-@[simp] theorem top_disjoint : disjoint ⊤ x ↔ x = ⊥ := by simp [disjoint_iff]
-
 theorem compl_injective : function.injective (compl : α → α) :=
 function.involutive.injective $ λ x, compl_compl'
 

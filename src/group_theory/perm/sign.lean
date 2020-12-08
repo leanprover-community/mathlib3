@@ -817,7 +817,7 @@ end
   (sigma_congr_right σ).sign = ∏ a, (σ a).sign :=
 begin
   suffices : ∀ a', (sigma_congr_right $ function.update (λ a, 1) a' (σ a)).sign = (σ a).sign ,
-  { rw [←this], sorry },
+  { rw [←this, sign.map_prod, ], sorry },
   intro a',
   { apply σa.swap_induction_on _ (λ σa' a₁ a₂ ha ih, _),
     { simp },

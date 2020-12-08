@@ -139,6 +139,8 @@ theorem perm_insertion_sort : ∀ l : list α, insertion_sort r l ~ l
 | (b :: l) := by simpa [insertion_sort] using
   (perm_ordered_insert _ _ _).trans ((perm_insertion_sort l).cons b)
 
+variable {r}
+
 /-- If `l` is already `list.sorted` with respect to `r`, then `insertion_sort` does not change
 it. -/
 lemma sorted.insertion_sort_eq : ∀ {l : list α} (h : sorted r l), insertion_sort r l = l
@@ -167,10 +169,12 @@ theorem sorted.ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered
     { exact rel_of_sorted_cons h _ bm } }
 end
 
+variable (r)
+
 /-- The list `list.insertion_sort r l` is `list.sorted` with respect to `r`. -/
 theorem sorted_insertion_sort : ∀ l, sorted r (insertion_sort r l)
 | []       := sorted_nil
-| (a :: l) := (sorted_insertion_sort l).ordered_insert r a _
+| (a :: l) := (sorted_insertion_sort l).ordered_insert a _
 
 end total_and_transitive
 end correctness
@@ -285,7 +289,7 @@ using_well_founded {
 (perm_merge_sort r _).length_eq
 
 section total_and_transitive
-variables [is_total α r] [is_trans α r]
+variables {r} [is_total α r] [is_trans α r]
 
 theorem sorted.merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sorted r (merge r l l')
 | []       []        h₁ h₂ := sorted_nil
@@ -312,6 +316,8 @@ theorem sorted.merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sort
     { exact rel_of_sorted_cons h₂ _ bl' } }
 end
 
+variable (r)
+
 theorem sorted_merge_sort : ∀ l : list α, sorted r (merge_sort r l)
 | []        := sorted_nil
 | [a]       := sorted_singleton _
@@ -319,7 +325,7 @@ theorem sorted_merge_sort : ∀ l : list α, sorted r (merge_sort r l)
   cases e : split (a::b::l) with l₁ l₂,
   cases length_split_lt e with h₁ h₂,
   rw [merge_sort_cons_cons r e],
-  exact r.merge (sorted_merge_sort l₁) (sorted_merge_sort l₂)
+  exact (sorted_merge_sort l₁).merge (sorted_merge_sort l₂)
 end
 using_well_founded {
   rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],

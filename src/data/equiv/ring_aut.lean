@@ -7,14 +7,14 @@ import data.equiv.ring
 import data.equiv.mul_add_aut
 
 /-!
-# Group structure of ring equiv automorphisms
+# Ring automorphisms
 
-This file introduces the groups of automorphism `ring_aut`  corresponding to `ring_equiv`.
+This file defines the automorphism group structure on `ring_aut R := ring_equiv R R`.
 
 ## Implementation notes
 
-Definition of multiplication in the groups of automorphisms agrees with function composition,
-multiplication in `equiv.perm`, and multiplication in `category_theory.End`, not with
+The definition of multiplication in the automorphism group agrees with function composition,
+multiplication in `equiv.perm`, and multiplication in `category_theory.End`, but not with
 `category_theory.comp`.
 
 This file is kept separate from `data/equiv/ring` so that `group_theory.perm` is free to use
@@ -25,17 +25,16 @@ equivalences (and other files that use them) before the group structure is defin
 ring_aut
 -/
 
-namespace ring_aut
-
 /-- The group of ring automorphisms. -/
 @[reducible] def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
 
+namespace ring_aut
 variables (R : Type*) [has_mul R] [has_add R]
 
 /--
 The group operation on automorphisms of a ring is defined by
-λ g h, ring_equiv.trans h g.
-This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
+`λ g h, ring_equiv.trans h g`.
+This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
 -/
 instance : group (ring_aut R) :=
 by refine_struct

@@ -7,15 +7,15 @@ import data.equiv.mul_add
 import group_theory.perm.basic
 
 /-!
-# Group structure of multiplicative and additive equiv automorphisms
+# Multiplicative and additive group automorphisms
 
-This file introduces the groups of automorphisms `add_aut` and `mul_aut` corresponding to
-`add_equiv` and `mul_equiv`.
+This file defines the automorphism group structure on `add_aut R := add_equiv R R` and
+`mul_aut R := mul_equiv R R`.
 
 ## Implementation notes
 
-Definition of multiplication in the groups of automorphisms agrees with function composition,
-multiplication in `equiv.perm`, and multiplication in `category_theory.End`, not with
+The definition of multiplication in the automorphism groups agrees with function composition,
+multiplication in `equiv.perm`, and multiplication in `category_theory.End`, but not with
 `category_theory.comp`.
 
 This file is kept separate from `data/equiv/mul_add` so that `group_theory.perm` is free to use
@@ -94,7 +94,7 @@ variables (A) [has_add A]
 
 /--
 The group operation on additive automorphisms is defined by
-`λ g h, mul_equiv.trans h g`.
+`λ g h, add_equiv.trans h g`.
 This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
 -/
 instance group : group (add_aut A) :=

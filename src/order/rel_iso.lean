@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 import logic.embedding
 import order.rel_classes
-import data.fin
+import data.set.intervals.basic
 
 open function
 
@@ -280,8 +280,14 @@ def lt_embedding : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop) :=
 
 theorem map_le_iff : ∀ {a b}, a ≤ b ↔ (f a) ≤ (f b) := f.map_rel_iff'
 
+@[simp] lemma apply_le_apply {a b} : f a ≤ f b ↔ a ≤ b := f.map_le_iff.symm
+
 theorem map_lt_iff : ∀ {a b}, a < b ↔ (f a) < (f b) :=
 f.lt_embedding.map_rel_iff'
+
+@[simp] lemma apply_lt_apply {a b} : f a < f b ↔ a < b := f.map_lt_iff.symm
+
+@[simp] lemma apply_eq_apply {a b} : f a = f b ↔ a = b := f.injective.eq_iff
 
 protected theorem monotone : monotone f := λ x y, f.map_le_iff.1
 
@@ -308,19 +314,10 @@ def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
   inj' := strict_mono.injective h,
   map_rel_iff' := λ a b, h.le_iff_le.symm }
 
+@[simp] lemma coe_of_strict_mono {α β} [linear_order α] [preorder β] {f : α → β}
+  (h : strict_mono f) : ⇑(of_strict_mono f h) = f := rfl
+
 end order_embedding
-
-/-- The inclusion map `fin n → ℕ` is a relation embedding. -/
-def fin.val.rel_embedding (n) : (fin n) ↪o ℕ :=
-⟨⟨coe, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
-
-/-- The inclusion map `fin m → fin n` is an order embedding. -/
-def fin_fin.rel_embedding {m n} (h : m ≤ n) : (fin m) ↪o (fin n) :=
-⟨⟨fin.cast_le h, fin.cast_le_injective h⟩, by rintros ⟨a, ha⟩ ⟨b, hb⟩; refl⟩
-
-/-- The ordering on `fin n` is a well order. -/
-instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
-(fin.val.rel_embedding n).is_well_order
 
 /-- A relation isomorphism is an equivalence that is also a relation embedding. -/
 structure rel_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=

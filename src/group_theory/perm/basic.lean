@@ -50,7 +50,7 @@ lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.sym
 
 /-! Lemmas about `equiv.perm.sum_congr` re-expressed via the group structure. -/
 
-@[simp] lemma sum_congr_mul {α β : Type*}(e : perm α) (f : perm β) (g : perm α) (h : perm β) :
+@[simp] lemma sum_congr_mul {α β : Type*} (e : perm α) (f : perm β) (g : perm α) (h : perm β) :
   sum_congr e f * sum_congr g h = sum_congr (e * g) (f * h) :=
 sum_congr_trans g h e f
 
@@ -63,11 +63,11 @@ sum_congr_symm e f
 sum_congr_refl
 
 @[simp] lemma sum_congr_swap_one {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : α) :
-  equiv.perm.sum_congr (equiv.swap i j) (1 : perm β) = equiv.swap (sum.inl i) (sum.inl j) :=
+  sum_congr (equiv.swap i j) (1 : perm β) = equiv.swap (sum.inl i) (sum.inl j) :=
 sum_congr_swap_refl i j
 
 @[simp] lemma sum_congr_one_swap {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : β) :
-  equiv.perm.sum_congr (1 : perm α) (equiv.swap i j) = equiv.swap (sum.inr i) (sum.inr j) :=
+  sum_congr (1 : perm α) (equiv.swap i j) = equiv.swap (sum.inr i) (sum.inr j) :=
 sum_congr_refl_swap i j
 
 /-! Lemmas about `equiv.perm.sigma_congr_right` re-expressed via the group structure. -/

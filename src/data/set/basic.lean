@@ -1682,6 +1682,15 @@ begin
   { exact λ h, ⟨default ι, h.symm⟩ }
 end
 
+lemma range_diff_image_subset (f : α → β) (s : set α) :
+  range f \ f '' s ⊆ f '' sᶜ :=
+λ y ⟨⟨x, h₁⟩, h₂⟩, ⟨x, λ h, h₂ ⟨x, h, h₁⟩, h₁⟩
+
+lemma range_diff_image {f : α → β} (H : injective f) (s : set α) :
+  range f \ f '' s = f '' sᶜ :=
+subset.antisymm (range_diff_image_subset f s) $ λ y ⟨x, hx, hy⟩, hy ▸
+  ⟨mem_range_self _, λ ⟨x', hx', eq⟩, hx $ H eq ▸ hx'⟩
+
 end range
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/

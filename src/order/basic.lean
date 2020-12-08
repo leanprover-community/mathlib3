@@ -279,6 +279,26 @@ lemma id_le {φ : ℕ → ℕ} (h : strict_mono φ) : ∀ n, n ≤ φ n :=
 λ n, nat.rec_on n (nat.zero_le _)
   (λ n hn, nat.succ_le_of_lt (lt_of_le_of_lt hn $ h $ nat.lt_succ_self n))
 
+protected lemma ite' [preorder α] [has_lt β] {f g : α → β} (hf : strict_mono f) (hg : strict_mono g)
+  {p : α → Prop} [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
+  (hfg : ∀ ⦃x y⦄, p x → ¬p y → x < y → f x < g y) :
+  strict_mono (λ x, if p x then f x else g x) :=
+begin
+  intros x y h,
+  by_cases hy : p y,
+  { have hx : p x := hp h hy,
+    simpa [hx, hy] using hf h },
+  { by_cases hx : p x,
+    { simpa [hx, hy] using hfg hx hy h },
+    { simpa [hx, hy] using hg h} }
+end
+
+protected lemma ite [preorder α] [preorder β] {f g : α → β} (hf : strict_mono f)
+  (hg : strict_mono g) {p : α → Prop} [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
+  (hfg : ∀ x, f x ≤ g x) :
+  strict_mono (λ x, if p x then f x else g x) :=
+hf.ite' hg hp $ λ x y hx hy h, (hf h).trans_le (hfg y)
+
 section
 variables [linear_order α] [preorder β] {f : α → β}
 
@@ -335,6 +355,10 @@ begin
   rw lt_iff_le_and_ne at ⊢ h,
   exact ⟨h₁ h.1, λ e, h.2 (h₂ e)⟩
 end
+
+lemma monotone.strict_mono_iff_injective [linear_order α] [partial_order β] {f : α → β}
+  (h : monotone f) : strict_mono f ↔ injective f :=
+⟨λ h, h.injective, strict_mono_of_monotone_of_injective h⟩
 
 lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
   (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=

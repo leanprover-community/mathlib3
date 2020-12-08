@@ -114,12 +114,9 @@ lemma dart_from_neighbor_set_inj (v : V) : function.injective (G.dart_from_neigh
 section degree_sum
 variables [fintype V] [decidable_rel G.adj]
 
-lemma dart_vert_fiber_card_eq_degree [decidable_eq V] (v : V) :
-  (univ.filter (λ d : G.dart, d.fst = v)).card = G.degree v :=
+lemma dart_vert_fiber [decidable_eq V] (v : V) :
+  univ.filter (λ d : G.dart, d.fst = v) = univ.image (G.dart_from_neighbor_set v) :=
 begin
-  have hh := card_image_of_injective univ (G.dart_from_neighbor_set_inj v),
-  rw [finset.card_univ, card_neighbor_set_eq_degree] at hh,
-  convert hh,
   ext d,
   simp only [mem_image, true_and, mem_filter, set_coe.exists, mem_univ, exists_prop_of_true],
   split,
@@ -127,6 +124,14 @@ begin
     exact ⟨_, d.is_adj, dart.ext _ _ rfl rfl⟩, },
   { rintro ⟨e, he, rfl⟩,
     refl, },
+end
+
+lemma dart_vert_fiber_card_eq_degree [decidable_eq V] (v : V) :
+  (univ.filter (λ d : G.dart, d.fst = v)).card = G.degree v :=
+begin
+  have hh := card_image_of_injective univ (G.dart_from_neighbor_set_inj v),
+  rw [finset.card_univ, card_neighbor_set_eq_degree] at hh,
+  rwa dart_vert_fiber,
 end
 
 lemma dart_card_eq_sum_degrees : fintype.card G.dart = ∑ v, G.degree v :=

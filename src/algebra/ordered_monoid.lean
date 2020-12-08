@@ -885,12 +885,6 @@ by simpa [add_comm] using @with_bot.add_lt_add_iff_left _ _ a b c
 
 end ordered_cancel_add_comm_monoid
 
-/-- A decidable linearly ordered cancellative additive commutative monoid
-is an additive commutative monoid with a decidable linear order
-in which addition is cancellative and strictly monotone. -/
-@[protect_proj] class linear_ordered_cancel_add_comm_monoid (α : Type u)
-  extends ordered_cancel_add_comm_monoid α, linear_order α
-
 /-! Some lemmas about types that have an ordering and a binary operation, with no
   rules relating them. -/
 @[to_additive]
@@ -903,50 +897,76 @@ lemma min_mul_max [linear_order α] [comm_semigroup α] (n m : α) :
   min n m * max n m = n * m :=
 fn_min_mul_fn_max id n m
 
-section linear_ordered_cancel_add_comm_monoid
-variables [linear_ordered_cancel_add_comm_monoid α]
+/-- A decidable linearly ordered cancellative commutative monoid
+is a commutative monoid with a linear order
+in which multiplication is cancellative and strictly monotone. -/
+@[protect_proj] class linear_ordered_cancel_comm_monoid (α : Type u)
+  extends ordered_cancel_comm_monoid α, linear_order α
 
-lemma min_add_add_left (a b c : α) : min (a + b) (a + c) = a + min b c :=
-(monotone_id.const_add a).map_min.symm
+/-- A decidable linearly ordered cancellative additive commutative monoid
+is an additive commutative monoid with a decidable linear order
+in which addition is cancellative and strictly monotone. -/
+@[protect_proj] class linear_ordered_cancel_add_comm_monoid (α : Type u)
+  extends ordered_cancel_add_comm_monoid α, linear_order α
 
-lemma min_add_add_right (a b c : α) : min (a + c) (b + c) = min a b + c :=
-(monotone_id.add_const c).map_min.symm
+attribute [to_additive] linear_ordered_cancel_comm_monoid
+  linear_ordered_cancel_comm_monoid.to_ordered_cancel_comm_monoid
 
-lemma max_add_add_left (a b c : α) : max (a + b) (a + c) = a + max b c :=
-(monotone_id.const_add a).map_max.symm
+section linear_ordered_cancel_comm_monoid
 
-lemma max_add_add_right (a b c : α) : max (a + c) (b + c) = max a b + c :=
-(monotone_id.add_const c).map_max.symm
+variables [linear_ordered_cancel_comm_monoid α]
 
-lemma min_le_add_of_nonneg_right {a b : α} (hb : 0 ≤ b) : min a b ≤ a + b :=
-min_le_iff.2 $ or.inl $ le_add_of_nonneg_right hb
+@[to_additive] lemma min_mul_mul_left (a b c : α) : min (a * b) (a * c) = a * min b c :=
+(monotone_id.const_mul' a).map_min.symm
 
-lemma min_le_add_of_nonneg_left {a b : α} (ha : 0 ≤ a) : min a b ≤ a + b :=
-min_le_iff.2 $ or.inr $ le_add_of_nonneg_left ha
+@[to_additive]
+lemma min_mul_mul_right (a b c : α) : min (a * c) (b * c) = min a b * c :=
+(monotone_id.mul_const' c).map_min.symm
 
-lemma max_le_add_of_nonneg {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) : max a b ≤ a + b :=
-max_le_iff.2 ⟨le_add_of_nonneg_right hb, le_add_of_nonneg_left ha⟩
+@[to_additive]
+lemma max_mul_mul_left (a b c : α) : max (a * b) (a * c) = a * max b c :=
+(monotone_id.const_mul' a).map_max.symm
 
-end linear_ordered_cancel_add_comm_monoid
+@[to_additive]
+lemma max_mul_mul_right (a b c : α) : max (a * c) (b * c) = max a b * c :=
+(monotone_id.mul_const' c).map_max.symm
+
+@[to_additive]
+lemma min_le_mul_of_one_le_right {a b : α} (hb : 1 ≤ b) : min a b ≤ a * b :=
+min_le_iff.2 $ or.inl $ le_mul_of_one_le_right' hb
+
+@[to_additive]
+lemma min_le_mul_of_one_le_left {a b : α} (ha : 1 ≤ a) : min a b ≤ a * b :=
+min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' ha
+
+@[to_additive]
+lemma max_le_mul_of_one_le {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : max a b ≤ a * b :=
+max_le_iff.2 ⟨le_mul_of_one_le_right' hb, le_mul_of_one_le_left' ha⟩
+
+end linear_ordered_cancel_comm_monoid
 
 namespace order_dual
 
-instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (order_dual α) :=
-{ add_le_add_left := λ a b h c, @add_le_add_left α _ b a h _,
-  lt_of_add_lt_add_left := λ a b c h, @lt_of_add_lt_add_left α _ a c b h,
+@[to_additive]
+instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
+{ mul_le_mul_left := λ a b h c, @mul_le_mul_left' α _ b a h _,
+  lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α _ a c b h,
   ..order_dual.partial_order α,
-  ..show add_comm_monoid α, by apply_instance }
+  ..show comm_monoid α, by apply_instance }
 
-instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_add_comm_monoid (order_dual α) :=
-{ le_of_add_le_add_left := λ a b c : α, le_of_add_le_add_left,
-  add_left_cancel := @add_left_cancel α _,
-  add_right_cancel := @add_right_cancel α _,
-  ..order_dual.ordered_add_comm_monoid }
 
-instance [linear_ordered_cancel_add_comm_monoid α] :
-  linear_ordered_cancel_add_comm_monoid (order_dual α) :=
+@[to_additive]
+instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=
+{ le_of_mul_le_mul_left := λ a b c : α, le_of_mul_le_mul_left',
+  mul_left_cancel := @mul_left_cancel α _,
+  mul_right_cancel := @mul_right_cancel α _,
+  ..order_dual.ordered_comm_monoid }
+
+@[to_additive]
+instance [linear_ordered_cancel_comm_monoid α] :
+  linear_ordered_cancel_comm_monoid (order_dual α) :=
 { .. order_dual.linear_order α,
-  .. order_dual.ordered_cancel_add_comm_monoid }
+  .. order_dual.ordered_cancel_comm_monoid }
 
 end order_dual
 

@@ -719,18 +719,17 @@ addition is strictly monotone. -/
   extends add_comm_group α, linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
-@[priority 100] -- see Note [lower instance priority]
+attribute [to_additive] linear_ordered_comm_group
+
+@[to_additive, priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_group.to_ordered_comm_group (α : Type u)
   [s : linear_ordered_comm_group α] : ordered_comm_group α :=
-{ mul := s.mul, ..s }
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_add_comm_group.to_ordered_add_comm_group (α : Type u)
-  [s : linear_ordered_add_comm_group α] : ordered_add_comm_group α :=
---{ add := s.add, ..s }
 { ..s }
 
+#check linear_ordered_cancel_add_comm_monoid
+
 section linear_ordered_add_comm_group
+
 variables [linear_ordered_add_comm_group α] {a b c : α}
 
 @[priority 100] -- see Note [lower instance priority]

@@ -80,7 +80,7 @@ There are at least two short proofs of this inequality. In one proof we prenorma
 then apply Young's inequality to each $a_ib_i$. We use a different proof deducing this inequality
 from the generalized mean inequality for well-chosen vectors and weights.
 
-Hölder's inequality for the Lebesgue integral of ennreal and nnreal functions: xe prove
+Hölder's inequality for the Lebesgue integral of ennreal and nnreal functions: we prove
 `∫ (f * g) ∂μ ≤ (∫ f^p ∂μ) ^ (1/p) * (∫ g^q ∂μ) ^ (1/q)` for `p`, `q` conjugate real exponents
 and `α→(e)nnreal` functions in two cases,
 * `ennreal.lintegral_mul_le_Lp_mul_Lq` : ennreal functions,

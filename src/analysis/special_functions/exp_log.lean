@@ -466,11 +466,11 @@ tendsto_comp_exp_at_top.1 $ by simpa only [log_exp] using tendsto_id
 
 lemma tendsto_log_nhds_within_zero : tendsto log (𝓝[{0}ᶜ] 0) at_bot :=
 begin
-  have : tendsto abs (𝓝[{0}ᶜ] (0:ℝ)) (𝓝[set.Ioi 0] (abs 0)) :=
-    (continuous_abs.tendsto 0).inf (tendsto_principal_principal.2 $ λ a, abs_pos.2),
-  rw [abs_zero] at this,
-  simpa [(∘)] using (tendsto_neg_at_top_at_bot.comp $ tendsto_log_at_top.comp
-    tendsto_inv_zero_at_top).comp this
+  rw [← (show _ = log, from funext log_abs)],
+  refine tendsto.comp (_ : tendsto log (𝓝[set.Ioi 0] (abs 0)) at_bot)
+    ((continuous_abs.tendsto 0).inf (tendsto_principal_principal.2 $ λ a, abs_pos.2)),
+  rw [abs_zero, ← tendsto_comp_exp_at_bot],
+  simpa using tendsto_id
 end
 
 lemma continuous_on_log : continuous_on log {0}ᶜ :=

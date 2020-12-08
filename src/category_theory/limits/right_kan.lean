@@ -161,24 +161,61 @@ def is_terminal (p : C ⥤ C') (X : C) [full p] [faithful p] : is_terminal (comm
     simp,
   end }
 
-def reflective [has_colimits D] (p : C ⥤ C') [full p] [faithful p] (A : C ⥤ D) :
-  p ⋙ (left_kan p).obj A ≅ A :=
+def reflective [has_colimits D] (p : C ⥤ C') [full p] [faithful p] :
+  left_kan p ⋙ (whiskering_left _ _ _).obj p ≅ 𝟭 (C ⥤ D) :=
 begin
   refine nat_iso.of_components _ _,
-  intro X,
-  apply (colimit.is_colimit _).cocone_point_unique_up_to_iso
-            (colimit_of_diagram_terminal (is_terminal p _) _),
-  intros X Y f,
-  ext1,
-  change colimit.ι (comma.map_right p _ ⋙ comma.fst p _ ⋙ A) _ ≫ colimit.pre _ _ ≫ _ = _,
-  rw colimit.ι_pre_assoc,
-  simp only [cocone_of_diagram_terminal_ι_app, colimit.comp_cocone_point_unique_up_to_iso_hom,
-             functor.comp_map, colimit.comp_cocone_point_unique_up_to_iso_hom_assoc, comma.fst_map],
-  rw ← A.map_comp,
-  cases j,
-  congr' 1,
-  dsimp [comma.map_right, is_terminal, is_terminal.from],
-  simp,
+  intro A,
+  { refine nat_iso.of_components _ _,
+    { intro X,
+      apply (colimit.is_colimit _).cocone_point_unique_up_to_iso
+                (colimit_of_diagram_terminal (is_terminal p _) _) },
+    { intros X Y f,
+      ext1,
+      change colimit.ι (comma.map_right p _ ⋙ comma.fst p _ ⋙ A) _ ≫ colimit.pre _ _ ≫ _ = _,
+      rw colimit.ι_pre_assoc,
+      simp only [cocone_of_diagram_terminal_ι_app, colimit.comp_cocone_point_unique_up_to_iso_hom,
+                functor.comp_map, colimit.comp_cocone_point_unique_up_to_iso_hom_assoc,
+                comma.fst_map],
+      dsimp only [functor.id_obj],
+      rw ← A.map_comp,
+      cases j,
+      congr' 1,
+      dsimp [comma.map_right, is_terminal, is_terminal.from],
+      simp } },
+  { intros A A' α,
+    ext,
+    dsimp [left_kan, adjunction.left_adjoint_of_equiv, left_kan_equiv],
+    rw colimit.ι_desc_assoc,
+    dsimp,
+    rw assoc,
+    rw comp_id,
+    rw assoc,
+
+    -- change α.app _ ≫ colimit.ι (comma.map_right p _ ⋙ (comma.fst p (functor.from_punit (p.obj x)) ⋙ A')) _ ≫ colimit.pre (comma.fst p (functor.from_punit (p.obj x)) ⋙ A') (comma.map_right p ((functor.const (discrete punit)).map j.hom)) ≫ _ = _,
+
+  }
+
 end
+
+-- def reflective [has_colimits D] (p : C ⥤ C') [full p] [faithful p] (A : C ⥤ D) :
+--   p ⋙ (left_kan p).obj A ≅ A :=
+-- begin
+--   refine nat_iso.of_components _ _,
+--   intro X,
+--   apply (colimit.is_colimit _).cocone_point_unique_up_to_iso
+--             (colimit_of_diagram_terminal (is_terminal p _) _),
+--   intros X Y f,
+--   ext1,
+--   change colimit.ι (comma.map_right p _ ⋙ comma.fst p _ ⋙ A) _ ≫ colimit.pre _ _ ≫ _ = _,
+--   rw colimit.ι_pre_assoc,
+--   simp only [cocone_of_diagram_terminal_ι_app, colimit.comp_cocone_point_unique_up_to_iso_hom,
+--              functor.comp_map, colimit.comp_cocone_point_unique_up_to_iso_hom_assoc, comma.fst_map],
+--   rw ← A.map_comp,
+--   cases j,
+--   congr' 1,
+--   dsimp [comma.map_right, is_terminal, is_terminal.from],
+--   simp,
+-- end
 
 end category_theory

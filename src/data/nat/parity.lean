@@ -6,7 +6,6 @@ Authors: Jeremy Avigad
 The `even` and `odd` predicates on the natural numbers.
 -/
 import data.nat.modeq
-import data.zmod.basic
 
 namespace nat
 

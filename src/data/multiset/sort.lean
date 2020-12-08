@@ -23,7 +23,7 @@ variables (r : α → α → Prop) [decidable_rel r]
   (Uses merge sort algorithm.) -/
 def sort (s : multiset α) : list α :=
 quot.lift_on s (merge_sort r) $ λ a b h,
-eq_of_sorted_of_perm
+eq_of_perm_of_sorted
   ((perm_merge_sort _ _).trans $ h.trans (perm_merge_sort _ _).symm)
   (sorted_merge_sort r _)
   (sorted_merge_sort r _)

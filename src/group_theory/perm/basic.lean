@@ -5,6 +5,8 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.equiv.basic
 import algebra.group.basic
+import algebra.group.hom
+import algebra.group.pi
 /-!
 # The group of permutations (self-equivalences) of a type `α`
 
@@ -62,6 +64,13 @@ sum_congr_symm e f
   sum_congr (1 : perm α) (1 : perm β) = 1 :=
 sum_congr_refl
 
+-- /-- `equiv.perm.sum_congr` as a `monoid_hom`. -/
+-- def sum_congr_hom {α β : Type*} :
+--   perm α × perm β →* perm (α ⊕ β) :=
+-- { to_fun := λ a, sum_congr a.1 a.2,
+--   map_one' := sum_congr_one,
+--   map_mul' := λ a b, sum_congr_mul _ _ _ _ }
+
 @[simp] lemma sum_congr_swap_one {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : α) :
   equiv.perm.sum_congr (equiv.swap i j) (1 : perm β) = equiv.swap (sum.inl i) (sum.inl j) :=
 sum_congr_swap_refl i j
@@ -74,16 +83,23 @@ sum_congr_refl_swap i j
 
 @[simp] lemma sigma_congr_right_mul {α} {β : α → Type*}
   (F : Π a, perm (β a)) (G : Π a, perm (β a)) :
-  sigma_congr_right F * sigma_congr_right G = sigma_congr_right (λ a, F a * G a) :=
+  sigma_congr_right F * sigma_congr_right G = sigma_congr_right (F * G) :=
 sigma_congr_right_trans G F
 
-@[simp] lemma sigma_congr_right_inv {α} {β : α → Type*} (F : Π a, perm (β a)) :
+@[simp] lemma sigma_congr_right_inv {α : Type*} {β : α → Type*} (F : Π a, perm (β a)) :
   (sigma_congr_right F)⁻¹ = sigma_congr_right (λ a, (F a)⁻¹) :=
 sigma_congr_right_symm F
 
-@[simp] lemma sigma_congr_right_one {α} {β : α → Type*} :
-  (sigma_congr_right (λ a, (1 : equiv.perm $ β a))) = 1 :=
+@[simp] lemma sigma_congr_right_one {α : Type*} {β : α → Type*} :
+  (sigma_congr_right (1 : Π a, equiv.perm $ β a)) = 1 :=
 sigma_congr_right_refl
+
+/-- `equiv.perm.sigma_congr_right` as a `monoid_hom`. -/
+def sigma_congr_right_hom {α : Type*} {β : α → Type*} :
+  (Π a, perm (β a)) →* perm (Σ a, β a) :=
+{ to_fun := sigma_congr_right,
+  map_one' := sigma_congr_right_one,
+  map_mul' := sigma_congr_right_mul }
 
 end perm
 
@@ -110,7 +126,7 @@ namespace perm
 @[simp] lemma sigma_congr_right_update_one_swap {α} {β : α → Type*}
   [decidable_eq α] {a' : α} [decidable_eq (β a')] [decidable_eq (Σ a, β a)]
   (i j : β a') :
-  sigma_congr_right (function.update (λ a, 1) a' (equiv.swap i j)) = equiv.swap ⟨a', i⟩ ⟨a', j⟩  :=
+  sigma_congr_right (function.update 1 a' (equiv.swap i j)) = equiv.swap ⟨a', i⟩ ⟨a', j⟩  :=
 sigma_congr_right_update_refl_swap i j
 
 end perm

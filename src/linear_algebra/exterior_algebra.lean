@@ -6,6 +6,7 @@ Authors: Zhangir Azerbayev, Adam Topaz, Eric Wieser.
 
 import algebra.ring_quot
 import linear_algebra.tensor_algebra
+import linear_algebra.alternating
 import group_theory.perm.sign
 
 /-!
@@ -30,6 +31,10 @@ The main theorems proved ensure that `exterior_algebra R M` satisfies the univer
 of the exterior algebra.
 1. `ι_comp_lift` is  fact that the composition of `ι R` with `lift R f cond` agrees with `f`.
 2. `lift_unique` ensures the uniqueness of `lift R f cond` with respect to 1.
+
+## Definitions
+
+* `ι_multi` is the `alternating_map` corresponding to the wedge product of `ι R m` terms.
 
 ## Implementation details
 
@@ -155,5 +160,59 @@ begin
   rw [lift_symm_apply, lift_symm_apply],
   simp only [h],
 end
+
+@[simp]
+lemma ι_add_mul_swap (x y : M) : ι R x * ι R y + ι R y * ι R x = 0 :=
+calc _ = ι R (x + y) * ι R (x + y) : by simp [mul_add, add_mul]
+   ... = _ : ι_square_zero _
+
+lemma ι_mul_prod_list {n : ℕ} (f : fin n → M) (i : fin n) :
+  (ι R $ f i) * (list.of_fn $ λ i, ι R $ f i).prod = 0 :=
+begin
+  induction n with n hn,
+  { exact i.elim0, },
+  { rw [list.of_fn_succ, list.prod_cons, ←mul_assoc],
+    by_cases h : i = 0,
+    { rw [h, ι_square_zero, zero_mul], },
+    { replace hn := congr_arg ((*) $ ι R $ f 0) (hn (λ i, f $ fin.succ i) (i.pred h)),
+      simp only at hn,
+      rw [fin.succ_pred, ←mul_assoc, mul_zero] at hn,
+      refine (eq_zero_iff_eq_zero_of_add_eq_zero _).mp hn,
+      rw [← add_mul, ι_add_mul_swap, zero_mul], } }
+end
+
+variables (R)
+/-- The product of `n` terms of the form `ι R m` is an alternating map.
+
+This is a special case of `multilinear_map.mk_pi_algebra_fin` -/
+def ι_multi (n : ℕ) :
+  alternating_map R M (exterior_algebra R M) (fin n) :=
+let F := (multilinear_map.mk_pi_algebra_fin R n (exterior_algebra R M)).comp_linear_map (λ i, ι R)
+in
+{ map_eq_zero_of_eq' := λ f x y hfxy hxy, begin
+    rw [multilinear_map.comp_linear_map_apply, multilinear_map.mk_pi_algebra_fin_apply],
+    wlog h : x < y := lt_or_gt_of_ne hxy using x y,
+    clear hxy,
+    induction n with n hn generalizing x y,
+    { exact x.elim0, },
+    { rw [list.of_fn_succ, list.prod_cons],
+      by_cases hx : x = 0,
+      -- one of the repeated terms is on the left
+      { rw hx at hfxy h,
+        rw [hfxy, ←fin.succ_pred y (ne_of_lt h).symm],
+        exact ι_mul_prod_list (f ∘ fin.succ) _, },
+      -- ignore the left-most term and induct on the remaining ones, decrementing indices
+      { convert mul_zero _,
+        refine hn (λ i, f $ fin.succ i)
+          (x.pred hx) (y.pred (ne_of_lt $ lt_of_le_of_lt x.zero_le h).symm)
+          (fin.pred_lt_pred_iff.mpr h) _,
+        simp only [fin.succ_pred],
+        exact hfxy, } }
+  end,
+  to_fun := F, ..F}
+variables {R}
+
+lemma ι_multi_apply {n : ℕ} (v : fin n → M) :
+  ι_multi R n v = (list.of_fn $ λ i, ι R (v i)).prod := rfl
 
 end exterior_algebra

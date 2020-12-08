@@ -62,3 +62,24 @@ example : differentiable ℂ (λ x, (sin x) / (exp x)) :=
 by simp [exp_ne_zero]
 
 end complex
+
+namespace polynomial
+
+variables {R : Type*} [comm_semiring R]
+
+example : (2 : polynomial R).derivative = 0 :=
+by conv_lhs { simp }
+
+example : (3 + X : polynomial R).derivative = 1 :=
+by conv_lhs { simp }
+
+example : (2 * X ^ 2 : polynomial R).derivative = 4 * X :=
+by conv_lhs { simp, ring, }
+
+example : (X ^ 2 : polynomial R).derivative = 2 * X :=
+by conv_lhs { simp }
+
+example : ((C 2 * X ^ 3).derivative : polynomial R) = 6 * X ^ 2 :=
+by conv_lhs { simp, ring, }
+
+end polynomial

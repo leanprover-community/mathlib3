@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 import logic.embedding
 import order.rel_classes
-import data.fin
+import data.set.intervals.basic
 
 open function
 
@@ -280,8 +280,14 @@ def lt_embedding : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop) :=
 
 theorem map_le_iff : ∀ {a b}, a ≤ b ↔ (f a) ≤ (f b) := f.map_rel_iff'
 
+@[simp] lemma apply_le_apply {a b} : f a ≤ f b ↔ a ≤ b := f.map_le_iff.symm
+
 theorem map_lt_iff : ∀ {a b}, a < b ↔ (f a) < (f b) :=
 f.lt_embedding.map_rel_iff'
+
+@[simp] lemma apply_lt_apply {a b} : f a < f b ↔ a < b := f.map_lt_iff.symm
+
+@[simp] lemma apply_eq_apply {a b} : f a = f b ↔ a = b := f.injective.eq_iff
 
 protected theorem monotone : monotone f := λ x y, f.map_le_iff.1
 
@@ -308,19 +314,10 @@ def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
   inj' := strict_mono.injective h,
   map_rel_iff' := λ a b, h.le_iff_le.symm }
 
+@[simp] lemma coe_of_strict_mono {α β} [linear_order α] [preorder β] {f : α → β}
+  (h : strict_mono f) : ⇑(of_strict_mono f h) = f := rfl
+
 end order_embedding
-
-/-- The inclusion map `fin n → ℕ` is a relation embedding. -/
-def fin.val.rel_embedding (n) : (fin n) ↪o ℕ :=
-⟨⟨coe, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
-
-/-- The inclusion map `fin m → fin n` is an order embedding. -/
-def fin_fin.rel_embedding {m n} (h : m ≤ n) : (fin m) ↪o (fin n) :=
-⟨⟨fin.cast_le h, fin.cast_le_injective h⟩, by rintros ⟨a, ha⟩ ⟨b, hb⟩; refl⟩
-
-/-- The ordering on `fin n` is a well order. -/
-instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
-(fin.val.rel_embedding n).is_well_order
 
 /-- A relation isomorphism is an equivalence that is also a relation embedding. -/
 structure rel_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=
@@ -517,6 +514,32 @@ e.to_equiv.apply_symm_apply x
 @[simp] lemma symm_apply_apply (e : α ≃o β) (x : α) : e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply x
 
+open set
+
+@[simp] lemma preimage_Iic (e : α ≃o β) (b : β) : e ⁻¹' (Iic b) = Iic (e.symm b) :=
+by { ext x, simp [← e.apply_le_apply] }
+
+@[simp] lemma preimage_Ici (e : α ≃o β) (b : β) : e ⁻¹' (Ici b) = Ici (e.symm b) :=
+by { ext x, simp [← e.apply_le_apply] }
+
+@[simp] lemma preimage_Iio (e : α ≃o β) (b : β) : e ⁻¹' (Iio b) = Iio (e.symm b) :=
+by { ext x, simp [← e.apply_lt_apply] }
+
+@[simp] lemma preimage_Ioi (e : α ≃o β) (b : β) : e ⁻¹' (Ioi b) = Ioi (e.symm b) :=
+by { ext x, simp [← e.apply_lt_apply] }
+
+@[simp] lemma preimage_Icc (e : α ≃o β) (a b : β) : e ⁻¹' (Icc a b) = Icc (e.symm a) (e.symm b) :=
+by simp [← Ici_inter_Iic]
+
+@[simp] lemma preimage_Ico (e : α ≃o β) (a b : β) : e ⁻¹' (Ico a b) = Ico (e.symm a) (e.symm b) :=
+by simp [← Ici_inter_Iio]
+
+@[simp] lemma preimage_Ioc (e : α ≃o β) (a b : β) : e ⁻¹' (Ioc a b) = Ioc (e.symm a) (e.symm b) :=
+by simp [← Ioi_inter_Iic]
+
+@[simp] lemma preimage_Ioo (e : α ≃o β) (a b : β) : e ⁻¹' (Ioo a b) = Ioo (e.symm a) (e.symm b) :=
+by simp [← Ioi_inter_Iio]
+
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
     it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
 def of_cmp_eq_cmp {α β} [linear_order α] [linear_order β] (f : α → β) (g : β → α)
@@ -528,11 +551,15 @@ have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_
   right_inv := by { intro, rw [←cmp_eq_eq_iff, ←h, cmp_self_eq_eq] },
   map_rel_iff' := by { intros, apply le_iff_le_of_cmp_eq_cmp, convert h _ _, apply gf } }
 
-/-- A strictly monotone surjective function from a linear order is an order isomorphism. -/
-noncomputable def of_strict_mono_surjective {α β} [linear_order α] [preorder β] (f : α → β)
-  (h_mono : strict_mono f) (h_surj : surjective f) : α ≃o β :=
-{ to_equiv := equiv.of_bijective f ⟨h_mono.injective, h_surj⟩,
-  .. order_embedding.of_strict_mono f h_mono }
+/-- Order isomorphism between two equal sets. -/
+def set_congr (s t : set α) (h : s = t) : s ≃o t :=
+{ to_equiv := equiv.set_congr h,
+  map_rel_iff' := λ x y, iff.rfl }
+
+/-- Order isomorphism between `univ : set α` and `α`. -/
+def set.univ : (set.univ : set α) ≃o α :=
+{ to_equiv := equiv.set.univ α,
+  map_rel_iff' := λ x y, iff.rfl }
 
 /-- Order isomorphism between two equal sets. -/
 def set_congr (s t : set α) (h : s = t) : s ≃o t :=
@@ -548,11 +575,23 @@ end order_iso
 
 /-- If a function `f` is strictly monotone on a set `s`, then it defines an order isomorphism
 between `s` and its image. -/
-noncomputable def strict_mono_incr_on.order_iso {α β} [linear_order α] [preorder β]
+protected noncomputable def strict_mono_incr_on.order_iso {α β} [linear_order α] [preorder β]
   (f : α → β) (s : set α) (hf : strict_mono_incr_on f s) :
   s ≃o f '' s :=
 { to_equiv := hf.inj_on.bij_on_image.equiv _,
   map_rel_iff' := λ x y, iff.symm $ hf.le_iff_le x.2 y.2 }
+
+/-- A strictly monotone function from a linear order is an order isomorphism between its domain and
+its range. -/
+protected noncomputable def strict_mono.order_iso {α β} [linear_order α] [preorder β] (f : α → β)
+  (h_mono : strict_mono f) : α ≃o set.range f :=
+{ to_equiv := equiv.set.range f h_mono.injective,
+  map_rel_iff' := λ a b, h_mono.le_iff_le.symm }
+
+/-- A strictly monotone surjective function from a linear order is an order isomorphism. -/
+noncomputable def strict_mono.order_iso_of_surjective {α β} [linear_order α] [preorder β]
+  (f : α → β) (h_mono : strict_mono f) (h_surj : surjective f) : α ≃o β :=
+(h_mono.order_iso f).trans $ (order_iso.set_congr _ _ h_surj.range_eq).trans order_iso.set.univ
 
 /-- A subset `p : set α` embeds into `α` -/
 def set_coe_embedding {α : Type*} (p : set α) : p ↪ α := ⟨subtype.val, @subtype.eq _ _⟩

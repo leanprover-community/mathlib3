@@ -261,6 +261,15 @@ instance ultrafilter.inhabited [inhabited α] : inhabited (ultrafilter α) := �
 
 instance {F : ultrafilter α} : ne_bot F.1 := F.2.1
 
+/--
+The pullback of an ultrafilter along an injection whose image is large
+with respect to the given ultrafilter. -/
+def ultrafilter.comap {m : α → β} (u : ultrafilter β) (inj : function.injective m)
+  (large : set.range m ∈ u.1) : ultrafilter α :=
+⟨comap m u.1, u.2.1.comap_of_range_mem large, λ g hg hgu s hs,
+  (mem_comap_iff inj large).2 $ u.2.2 (g.map m) (hg.map m) (map_le_iff_le_comap.2 hgu)
+    (image_mem_map hs)⟩
+
 /-- The ultra-filter extending the cofinite filter. -/
 noncomputable def hyperfilter : filter α := ultrafilter_of cofinite
 

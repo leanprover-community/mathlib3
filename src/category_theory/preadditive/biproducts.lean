@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import tactic.abel
 import category_theory.limits.shapes.biproducts
+import category_theory.preadditive
 
 /-!
 # Basic facts about morphisms between biproducts in preadditive categories.

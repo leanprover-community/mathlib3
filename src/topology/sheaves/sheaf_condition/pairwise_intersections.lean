@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 
 import topology.sheaves.sheaf
+import category_theory.limits.preserves.basic
 import category_theory.category.pairwise
 
 /-!

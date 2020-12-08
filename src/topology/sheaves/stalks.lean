@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import topology.category.Top.open_nhds
 import topology.sheaves.presheaf
+import category_theory.limits.limits
 import category_theory.limits.types
 
 noncomputable theory

@@ -1433,6 +1433,14 @@ end set
 noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α ≃ β :=
 (equiv.set.range f hf.1).trans $ (set_congr hf.2.range_eq).trans $ equiv.set.univ β
 
+lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (x : β) :
+  f ((of_bijective f hf).symm x) = x :=
+(of_bijective f hf).apply_symm_apply x
+
+@[simp] lemma of_bijective_symm_apply_apply {α β} (f : α → β) (hf : bijective f) (x : α) :
+  (of_bijective f hf).symm (f x) = x :=
+(of_bijective f hf).symm_apply_apply x
+
 /-- If `f` is an injective function, then its domain is equivalent to its range. -/
 @[simps apply {rhs_md := semireducible, simp_rhs := tt}]
 noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=

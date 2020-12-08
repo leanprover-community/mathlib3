@@ -185,8 +185,8 @@ theorem pairwise_filter_of_pairwise (p : α → Prop) [decidable_pred p] {l : li
 pairwise_of_sublist (filter_sublist _)
 
 theorem pairwise_pmap {p : β → Prop} {f : Π b, p b → α} {l : list β} (h : ∀ x ∈ l, p x) :
-    pairwise R (l.pmap f h) ↔
-      pairwise (λ b₁ b₂, ∀ (h₁ : p b₁) (h₂ : p b₂), R (f b₁ h₁) (f b₂ h₂)) l :=
+  pairwise R (l.pmap f h) ↔
+    pairwise (λ b₁ b₂, ∀ (h₁ : p b₁) (h₂ : p b₂), R (f b₁ h₁) (f b₂ h₂)) l :=
 begin
   induction l with a l ihl, { simp },
   obtain ⟨ha, hl⟩ : p a ∧ ∀ b, b ∈ l → p b, by simpa using h,

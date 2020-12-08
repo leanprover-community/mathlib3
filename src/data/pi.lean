@@ -9,7 +9,7 @@ import algebra.group.to_additive
 /-!
 # Instances and theorems on pi types
 
-This file provides basic definitions and notation instances for pi types
+This file provides basic definitions and notation instances for Pi types.
 
 Instances of more sophisticated classes are defined in `pi.lean` files elsewhere.
 -/

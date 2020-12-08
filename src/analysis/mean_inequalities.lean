@@ -80,6 +80,12 @@ There are at least two short proofs of this inequality. In one proof we prenorma
 then apply Young's inequality to each $a_ib_i$. We use a different proof deducing this inequality
 from the generalized mean inequality for well-chosen vectors and weights.
 
+Hölder's inequality for the Lebesgue integral of ennreal and nnreal functions: xe prove
+`∫ (f * g) ∂μ ≤ (∫ f^p ∂μ) ^ (1/p) * (∫ g^q ∂μ) ^ (1/q)` for `p`, `q` conjugate real exponents
+and `α→(e)nnreal` functions in two cases,
+* `ennreal.lintegral_mul_le_Lp_mul_Lq` : ennreal functions,
+* `nnreal.lintegral_mul_le_Lp_mul_Lq`  : nnreal functions.
+
 ### Minkowski's inequality
 
 The inequality says that for `p ≥ 1` the function
@@ -533,10 +539,10 @@ conjugate real exponents and `α→(e)nnreal` functions in several cases, the fi
 only to prove the more general results:
 * `ennreal.lintegral_mul_le_one_of_lintegral_rpow_eq_one` : ennreal functions for which the
     integrals on the right are equal to 1,
-* `ennreal.lintegral_mul_le_of_ne_zero_of_ne_top` : ennreal functions for which the integrals on the
-    right are neither ⊤ nor 0,
-* `ennreal.lintegral_mul_le` : ennreal functions,
-* `nnreal.lintegral_mul_le`  : nnreal functions.
+* `ennreal.lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_ne_top` : ennreal functions for which the
+    integrals on the right are neither ⊤ nor 0,
+* `ennreal.lintegral_mul_le_Lp_mul_Lq` : ennreal functions,
+* `nnreal.lintegral_mul_le_Lp_mul_Lq`  : nnreal functions.
 -/
 
 open measure_theory
@@ -591,7 +597,7 @@ begin
 end
 
 /-- Hölder's inequality in case of finite non-zero integrals -/
-lemma lintegral_mul_le_of_ne_zero_of_ne_top {p q : ℝ} (hpq : p.is_conjugate_exponent q)
+lemma lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_ne_top {p q : ℝ} (hpq : p.is_conjugate_exponent q)
   {f g : α → ennreal} (hf : measurable f) (hg : measurable g)
   (hf_nontop : ∫⁻ a, (f a)^p ∂μ ≠ ⊤) (hg_nontop : ∫⁻ a, (g a)^q ∂μ ≠ ⊤)
   (hf_nonzero : ∫⁻ a, (f a)^p ∂μ ≠ 0) (hg_nonzero : ∫⁻ a, (g a)^q ∂μ ≠ 0) :
@@ -646,7 +652,7 @@ begin
   exact filter.eventually_eq.mul hf_eq_zero (ae_eq_refl g),
 end
 
-lemma lintegral_mul_le_of_ne_zero_of_eq_top {p q : ℝ} (hp0_lt : 0 < p) (hq0 : 0 ≤ q)
+lemma lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_eq_top {p q : ℝ} (hp0_lt : 0 < p) (hq0 : 0 ≤ q)
   {f g : α → ennreal} (hf_top : ∫⁻ a, (f a)^p ∂μ = ⊤) (hg_nonzero : ∫⁻ a, (g a)^q ∂μ ≠ 0) :
   ∫⁻ a, (f * g) a ∂μ ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) * (∫⁻ a, (g a)^q ∂μ) ^ (1/q) :=
 begin
@@ -656,8 +662,10 @@ begin
   simp [hq0, hg_nonzero],
 end
 
-/-- Hölder's inequality for functions `α → ennreal`. -/
-lemma lintegral_mul_le (μ : measure α) {p q : ℝ} (hpq : p.is_conjugate_exponent q)
+/-- Hölder's inequality for functions `α → ennreal`. The integral of the product of two functions
+is bounded by the product of their `ℒp` and `ℒq` seminorms when `p` and `q` are conjugate
+exponents. -/
+lemma lintegral_mul_le_Lp_mul_Lq (μ : measure α) {p q : ℝ} (hpq : p.is_conjugate_exponent q)
   {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
   ∫⁻ a, (f * g) a ∂μ ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) * (∫⁻ a, (g a)^q ∂μ) ^ (1/q) :=
 begin
@@ -669,23 +677,26 @@ begin
     rw mul_comm,
     exact lintegral_mul_eq_zero_of_lintegral_rpow_eq_zero hpq.symm.pos hg hg_zero, },
   by_cases hf_top : ∫⁻ a, (f a) ^ p ∂μ = ⊤,
-  { exact lintegral_mul_le_of_ne_zero_of_eq_top hpq.pos hpq.symm.nonneg hf_top hg_zero, },
+  { exact lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_eq_top hpq.pos hpq.symm.nonneg hf_top hg_zero, },
   by_cases hg_top : ∫⁻ a, (g a) ^ q ∂μ = ⊤,
   { rw [mul_comm, mul_comm ((∫⁻ (a : α), (f a) ^ p ∂μ) ^ (1 / p))],
-    exact lintegral_mul_le_of_ne_zero_of_eq_top hpq.symm.pos hpq.nonneg hg_top hf_zero, },
+    exact lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_eq_top hpq.symm.pos hpq.nonneg hg_top hf_zero, },
   -- non-⊤ non-zero case
-  exact ennreal.lintegral_mul_le_of_ne_zero_of_ne_top hpq hf hg hf_top hg_top hf_zero hg_zero,
+  exact ennreal.lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_ne_top hpq hf hg hf_top hg_top hf_zero
+    hg_zero,
 end
 
 end ennreal
 
-/-- Hölder's inequality for functions `α → nnreal`. -/
-lemma nnreal.lintegral_mul_le {p q : ℝ} (hpq : p.is_conjugate_exponent q)
+/-- Hölder's inequality for functions `α → nnreal`. The integral of the product of two functions
+is bounded by the product of their `ℒp` and `ℒq` seminorms when `p` and `q` are conjugate
+exponents. -/
+lemma nnreal.lintegral_mul_le_Lp_mul_Lq {p q : ℝ} (hpq : p.is_conjugate_exponent q)
   {f g : α → nnreal} (hf : measurable f) (hg : measurable g) :
   ∫⁻ a, (f * g) a ∂μ ≤ (∫⁻ a, (f a)^p ∂μ)^(1/p) * (∫⁻ a, (g a)^q ∂μ)^(1/q) :=
 begin
   simp_rw [pi.mul_apply, ennreal.coe_mul],
-  exact ennreal.lintegral_mul_le μ hpq hf.ennreal_coe hg.ennreal_coe,
+  exact ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf.ennreal_coe hg.ennreal_coe,
 end
 
 end lintegral

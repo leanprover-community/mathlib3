@@ -7,9 +7,11 @@ import tactic.split_ifs
 import tactic.simpa
 import algebra.group.to_additive
 /-!
-# Theorems on pi types
+# Instances and theorems on pi types
 
-This file defines basic structures on Pi Types
+This file provides basic definitions and notation instances for Pi types.
+
+Instances of more sophisticated classes are defined in `pi.lean` files elsewhere.
 -/
 
 universes u v w
@@ -19,7 +21,7 @@ variables (x y : Π i, f i) (i : I)
 
 namespace pi
 
-/-- `1`, `0`, `+`, `*`, `-`, `⁻¹`, and `/` are defined pointwise. -/
+/-! `1`, `0`, `+`, `*`, `-`, `⁻¹`, and `/` are defined pointwise. -/
 
 @[to_additive] instance has_one [∀ i, has_one $ f i] : has_one (Π i : I, f i) := ⟨λ _, 1⟩
 @[simp, to_additive] lemma one_apply [∀ i, has_one $ f i] : (1 : Π i, f i) i = 1 := rfl

@@ -561,16 +561,6 @@ def set.univ : (set.univ : set α) ≃o α :=
 { to_equiv := equiv.set.univ α,
   map_rel_iff' := λ x y, iff.rfl }
 
-/-- Order isomorphism between two equal sets. -/
-def set_congr (s t : set α) (h : s = t) : s ≃o t :=
-{ to_equiv := equiv.set_congr h,
-  map_rel_iff' := λ x y, iff.rfl }
-
-/-- Order isomorphism between `univ : set α` and `α`. -/
-def set.univ : (set.univ : set α) ≃o α :=
-{ to_equiv := equiv.set.univ α,
-  map_rel_iff' := λ x y, iff.rfl }
-
 end order_iso
 
 /-- If a function `f` is strictly monotone on a set `s`, then it defines an order isomorphism

@@ -974,6 +974,15 @@ by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
 
 end semilattice_inf_bot
 
+section bounded_lattice
+
+variables [bounded_lattice α] {a : α}
+
+@[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
+@[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
+
+end bounded_lattice
+
 section bounded_distrib_lattice
 
 variables [bounded_distrib_lattice α] {a b c : α}

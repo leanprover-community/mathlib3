@@ -20,78 +20,72 @@ def left_kan_obj (p : C ⥤ C') (F : C ⥤ D) [has_colimits D] :
   C' ⥤ D :=
 { obj := λ c', colimit (comma.fst p (functor.from_punit c') ⋙ F),
   map := λ X Y f,
-    colimit.pre (comma.fst p (functor.from_punit Y) ⋙ F) (comma.map_right _ ((functor.const _).map f)),
+    colimit.pre
+      (comma.fst p (functor.from_punit Y) ⋙ F)
+      (comma.map_right _ ((functor.const _).map f)),
   map_id' := λ X,
   begin
-    ext j,
-    rw colimit.ι_pre,
-    erw comp_id,
-    congr' 1,
-    cases j,
-    simp [comma.map_right],
+    rw functor.map_id,
+    symmetry,
+    refine (colimit.is_colimit (comma.map_right p _ ⋙ comma.fst p _ ⋙ F)).uniq
+                (cocone.whisker _ _) _ _,
+    rintro ⟨Y, ⟨⟩, g⟩,
+    dsimp only [cocone.whisker_ι, whisker_left_app, colimit.cocone_ι, comma.map_right],
+    convert comp_id _,
+    apply comp_id,
   end,
   map_comp' := λ X Y Z f g,
   begin
     ext j,
     rw colimit.ι_pre,
-    change _ = colimit.ι (comma.map_right p ((functor.const (discrete punit)).map f) ⋙ comma.fst p (functor.from_punit Y) ⋙ F) j ≫ _ ≫ _,
+    change _ = colimit.ι (comma.map_right p ((functor.const (discrete punit)).map f) ⋙
+                            comma.fst p (functor.from_punit Y) ⋙ F) j ≫ _ ≫ _,
     rw colimit.ι_pre_assoc,
-    -- change _ = colimit.ι _
-    change _ = colimit.ι (comma.fst p (functor.from_punit Y) ⋙ F) ((comma.map_right p ((functor.const (discrete punit)).map f)).obj j) ≫ _,
-    change _ = colimit.ι ((comma.map_right p ((functor.const (discrete punit)).map g)) ⋙ comma.fst p (functor.from_punit Z) ⋙ F) ((comma.map_right p ((functor.const (discrete punit)).map f)).obj j) ≫ _,
-    rw colimit.ι_pre,
-    congr' 1,
-    cases j,
-    dsimp [comma.map_right],
-    congr' 1,
-    simp,
+    change _ = colimit.ι (comma.map_right p ((functor.const (discrete punit)).map g) ⋙
+                            comma.fst p (functor.from_punit Z) ⋙ F)
+                         ((comma.map_right p ((functor.const (discrete punit)).map f)).obj j) ≫ _,
+    rw [colimit.ι_pre, functor.map_comp],
+    dsimp only [comma.map_right, functor.const.map_app, nat_trans.comp_app],
+    rw assoc,
   end }
 
 def left_kan_equiv [has_colimits D] (p : C ⥤ C') (F : C ⥤ D) (G : C' ⥤ D) :
   (left_kan_obj p F ⟶ G) ≃ (F ⟶ ((whiskering_left _ _ _).obj p).obj G) :=
 { to_fun := λ f,
   { app := λ X,
-    begin
-      apply _ ≫ f.app _,
-      apply colimit.ι (comma.fst p (functor.from_punit (p.obj X)) ⋙ F) ⟨X, ⟨⟩, 𝟙 _⟩,
-    end,
+      by apply colimit.ι (comma.fst p (functor.from_punit (p.obj X)) ⋙ F) ⟨X, ⟨⟩, 𝟙 _⟩ ≫ f.app _,
     naturality' := λ X Y g,
     begin
-      dsimp,
-      rw [assoc],
-      rw ← f.naturality (p.map g),
-      dsimp,
-      have := colimit.ι_pre (comma.fst p (functor.from_punit (p.obj Y)) ⋙ F) (comma.map_right p ((functor.const (discrete punit)).map (p.map g))) ⟨X, punit.star, 𝟙 _⟩,
-      dsimp at this,
+      dsimp only [whiskering_left_obj_obj, functor.comp_map],
+      rw [assoc, ← f.naturality (p.map g), left_kan_obj_map],
+      have := colimit.ι_pre
+                (comma.fst p (functor.from_punit (p.obj Y)) ⋙ F)
+                (comma.map_right p ((functor.const (discrete punit)).map (p.map g)))
+                ⟨X, punit.star, 𝟙 _⟩,
       erw reassoc_of this,
+      clear this,
       rw ← assoc,
       congr' 1,
-      have q := colimit.w (comma.fst p (functor.from_punit (p.obj Y)) ⋙ F),
-      dsimp at q,
-      specialize q (⟨g, _, _⟩ : comma_morphism ⟨_, _, _⟩ ⟨_, _, _⟩),
-      dsimp at q,
-      apply q,
-      obviously,
+      apply colimit.w (comma.fst p (functor.from_punit (p.obj Y)) ⋙ F)
+              (⟨g, _, _⟩ : comma_morphism ⟨_, _, _⟩ ⟨_, _, _⟩),
+      { apply 𝟙 _ },
+      apply_auto_param,
     end },
   inv_fun := λ f,
   { app := λ j,
     begin
       apply colimit.desc _ ⟨_, _⟩,
       apply whisker_left _ f ≫ _,
-      refine ⟨_, _⟩,
-      intro X,
-      apply G.map X.hom,
+      refine ⟨λ X, G.map X.hom, _⟩,
       intros X Y g,
+      dsimp only [whiskering_left_obj_obj, functor.comp_map, functor.const.obj_map, comma.fst_map],
+      rw [← G.map_comp, g.w],
       dsimp,
-      rw ← G.map_comp,
-      rw g.w,
-      rw comp_id,
-      dsimp,
-      rw comp_id,
+      simp,
     end,
     naturality' := λ j₁ j₂ α,
     begin
-      dsimp,
+      dsimp only [left_kan_obj_map],
       rw colimit.pre_desc,
       ext k,
       rw colimit.ι_desc,
@@ -102,15 +96,16 @@ def left_kan_equiv [has_colimits D] (p : C ⥤ C') (F : C ⥤ D) (G : C' ⥤ D) 
   left_inv := λ f,
   begin
     ext,
-    dsimp,
+    dsimp only,
     rw colimit.ι_desc,
-    dsimp,
+    dsimp only [nat_trans.comp_app, whisker_left_app, comma.fst_obj, comma.fst_map],
     rw [assoc],
     rw ← f.naturality j.hom,
     rw ← assoc,
     congr' 1,
-    dsimp,
-    change colimit.ι (comma.map_right p ((functor.const (discrete punit)).map j.hom) ⋙ comma.fst p (functor.from_punit x) ⋙ F) _ ≫ _ = _,
+    dsimp only [left_kan_obj_map, functor.const.obj_obj],
+    change colimit.ι (comma.map_right p ((functor.const (discrete punit)).map j.hom) ⋙
+                      comma.fst p (functor.from_punit x) ⋙ F) _ ≫ _ = _,
     rw colimit.ι_pre,
     congr' 1,
     cases j,
@@ -120,7 +115,7 @@ def left_kan_equiv [has_colimits D] (p : C ⥤ C') (F : C ⥤ D) (G : C' ⥤ D) 
   right_inv := λ f,
   begin
     ext,
-    dsimp,
+    dsimp only [],
     rw colimit.ι_desc,
     dsimp,
     simp,
@@ -139,6 +134,7 @@ def left_kan_adjunction [has_colimits D] (p : C ⥤ C') :
   left_kan p ⊣ (whiskering_left _ _ D).obj p :=
 adjunction.adjunction_of_equiv_left _ _
 
+@[simps]
 def comma.terminal (p : C ⥤ C') (X : _) : comma p (functor.from_punit (p.obj X)) :=
 ⟨_, punit.star, 𝟙 _⟩
 
@@ -150,7 +146,6 @@ def is_terminal (p : C ⥤ C') (X : C) [full p] [faithful p] : is_terminal (comm
   begin
     refine ⟨p.preimage s.X.hom, eq_to_hom (by simp), _⟩,
     dsimp,
-    dsimp [comma.terminal],
     simp,
   end,
   uniq' := λ s m w,
@@ -166,13 +161,24 @@ def is_terminal (p : C ⥤ C') (X : C) [full p] [faithful p] : is_terminal (comm
     simp,
   end }
 
-def reflective [has_colimits D] (p : C ⥤ C') (A : C ⥤ D) :
+def reflective [has_colimits D] (p : C ⥤ C') [full p] [faithful p] (A : C ⥤ D) :
   p ⋙ (left_kan p).obj A ≅ A :=
 begin
   refine nat_iso.of_components _ _,
   intro X,
-  dsimp [left_kan, adjunction.left_adjoint_of_equiv],
-
+  apply (colimit.is_colimit _).cocone_point_unique_up_to_iso
+            (colimit_of_diagram_terminal (is_terminal p _) _),
+  intros X Y f,
+  ext1,
+  change colimit.ι (comma.map_right p _ ⋙ comma.fst p _ ⋙ A) _ ≫ colimit.pre _ _ ≫ _ = _,
+  rw colimit.ι_pre_assoc,
+  simp only [cocone_of_diagram_terminal_ι_app, colimit.comp_cocone_point_unique_up_to_iso_hom,
+             functor.comp_map, colimit.comp_cocone_point_unique_up_to_iso_hom_assoc, comma.fst_map],
+  rw ← A.map_comp,
+  cases j,
+  congr' 1,
+  dsimp [comma.map_right, is_terminal, is_terminal.from],
+  simp,
 end
 
 end category_theory

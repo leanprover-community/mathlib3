@@ -188,7 +188,7 @@ end
 end truncated_witt_vector
 
 /-- A macro tactic used to prove that `truncate_fun` respects ring operations. -/
-meta def tactic.interactive.truncate_fun_tac : tactic unit :=
+meta def tactic.interactive.witt_truncate_fun_tac : tactic unit :=
 `[show _ = truncate_fun n _,
   apply truncated_witt_vector.out_injective,
   iterate { rw [out_truncate_fun] },
@@ -216,16 +216,16 @@ variables {p R}
 @[simp]
 lemma truncate_fun_add (x y : 𝕎 R) :
   truncate_fun n (x + y) = truncate_fun n x + truncate_fun n y :=
-by truncate_fun_tac
+by witt_truncate_fun_tac
 
 @[simp]
 lemma truncate_fun_mul (x y : 𝕎 R) :
   truncate_fun n (x * y) = truncate_fun n x * truncate_fun n y :=
-by truncate_fun_tac
+by witt_truncate_fun_tac
 
 lemma truncate_fun_neg (x : 𝕎 R) :
   truncate_fun n (-x) = -truncate_fun n x :=
-by truncate_fun_tac
+by witt_truncate_fun_tac
 
 end witt_vector
 

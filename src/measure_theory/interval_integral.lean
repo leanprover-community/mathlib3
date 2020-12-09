@@ -461,8 +461,7 @@ lemma integral_eq_integral_of_support_subset {f : α → E} {a b} (h : function.
 begin
   by_cases hfm : measurable f,
   { cases le_total a b with hab hab,
-    { rw [integral_of_le hab, ← integral_indicator hfm is_measurable_Ioc,
-        indicator_of_support_subset h] },
+    { rw [integral_of_le hab, ← integral_indicator hfm is_measurable_Ioc, indicator_eq_self.2 h] },
     { rw [Ioc_eq_empty hab, subset_empty_iff, function.support_eq_empty_iff] at h,
       simp [h] } },
   { rw [integral_non_measurable hfm, measure_theory.integral_non_measurable hfm] },

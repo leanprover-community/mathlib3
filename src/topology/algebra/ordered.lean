@@ -2354,9 +2354,8 @@ lemma surj_on_Ioo_of_continuous_on {f : α → β} {a b : α} (hab : a < b)
   (hf : continuous_on f (Ioo a b)) (h_top : tendsto f (𝓝[Iio b] b) at_top)
   (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
   surj_on f (Ioo a b) univ :=
-surj_on_iff_surjective.2 $ @surjective_of_continuous _ _
-  (@ord_connected_subset_conditionally_complete_linear_order α (Ioo a b) _
-    ⟨classical.choice (nonempty_Ioo_subtype hab)⟩ _) _ _ _ _ _ _ _
+by haveI := inhabited_of_nonempty (nonempty_Ioo_subtype hab); exact
+surj_on_iff_surjective.2 $ surjective_of_continuous
   (continuous_on_iff_continuous_restrict.1 hf)
   (by simpa only [Ioo_at_top_eq_nhds_within hab] using h_top.comp tendsto_comap)
   (by simpa only [Ioo_at_bot_eq_nhds_within hab] using h_bot.comp tendsto_comap)

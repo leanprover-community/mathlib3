@@ -1173,7 +1173,7 @@ begin
   ext x,
   split; simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff]; intro hx,
   { exact λ h, (localization_map.is_prime_of_is_prime_disjoint f P hP
-      (set.disjoint_compl_left P.carrier)).1 (ideal.eq_top_of_is_unit_mem _ hx h) },
+      disjoint_compl_left).1 (ideal.eq_top_of_is_unit_mem _ hx h) },
   { obtain ⟨⟨a, b⟩, hab⟩ := localization_map.surj f x,
     contrapose! hx,
     rw is_unit_iff_exists_inv,
@@ -1469,33 +1469,34 @@ end
 
 open polynomial
 
-/-- Given a particular witness to an element being algebraic over an algebra `R → S`,
-We can localize to a submonoid containing the leading coefficient to make it integral.
-Explicitly, the map between the localizations will be an integral ring morphism -/
-theorem is_integral_localization_at_leading_coeff {x : S} (p : polynomial R)
-  (hp : aeval x p = 0) (hM' : p.leading_coeff ∈ M) :
-  (f.map (@algebra.mem_algebra_map_submonoid_of_mem R S _ _ _ _) g).is_integral_elem (g.to_map x) :=
+lemma ring_hom.is_integral_elem_localization_at_leading_coeff
+  {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
+  (x : S) (p : polynomial R) (hf : p.eval₂ f x = 0) (M : submonoid R)
+  (hM : p.leading_coeff ∈ M) {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
+  (ϕ : localization_map M Rₘ) (ϕ' : localization_map (M.map ↑f : submonoid S) Sₘ) :
+  (ϕ.map (M.mem_map_of_mem (f : R →* S)) ϕ').is_integral_elem (ϕ'.to_map x) :=
 begin
   by_cases triv : (1 : Rₘ) = 0,
   { exact ⟨0, ⟨trans leading_coeff_zero triv.symm, eval₂_zero _ _⟩⟩ },
   haveI : nontrivial Rₘ := nontrivial_of_ne 1 0 triv,
   obtain ⟨b, hb⟩ := is_unit_iff_exists_inv.mp
-    (localization_map.map_units f ⟨p.leading_coeff, hM'⟩),
-  refine ⟨(p.map f.to_map) * C b, ⟨_, _⟩⟩,
+    (localization_map.map_units ϕ ⟨p.leading_coeff, hM⟩),
+  refine ⟨(p.map ϕ.to_map) * C b, ⟨_, _⟩⟩,
   { refine monic_mul_C_of_leading_coeff_mul_eq_one _,
-    rwa leading_coeff_map_of_leading_coeff_ne_zero f.to_map,
+    rwa leading_coeff_map_of_leading_coeff_ne_zero ϕ.to_map,
     refine λ hfp, zero_ne_one (trans (zero_mul b).symm (hfp ▸ hb) : (0 : Rₘ) = 1) },
   { refine eval₂_mul_eq_zero_of_left _ _ _ _,
-    erw [eval₂_map, localization_map.map_comp, ← hom_eval₂ _ (algebra_map R S) g.to_map x],
-    exact trans (congr_arg g.to_map hp) g.to_map.map_zero }
+    erw [eval₂_map, localization_map.map_comp, ← hom_eval₂ _ f ϕ'.to_map x],
+    exact trans (congr_arg ϕ'.to_map hf) ϕ'.to_map.map_zero }
 end
 
-theorem is_integral_elem_localization_at_leading_coeff' {R S : Type*} [comm_ring R] [comm_ring S]
-  (x : S) (p : polynomial R) (f : R →+* S) (hf : p.eval₂ f x = 0) (M : submonoid R)
-  (hM : p.leading_coeff ∈ M) {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
-  (ϕ : localization_map M Rₘ) (ϕ' : localization_map (M.map ↑f : submonoid S) Sₘ) :
-  (ϕ.map (M.mem_map_of_mem (f : R →* S)) ϕ').is_integral_elem (ϕ'.to_map x) :=
-@is_integral_localization_at_leading_coeff R _ M S _ Rₘ Sₘ _ _  f.to_algebra ϕ ϕ' x p hf hM
+/-- Given a particular witness to an element being algebraic over an algebra `R → S`,
+We can localize to a submonoid containing the leading coefficient to make it integral.
+Explicitly, the map between the localizations will be an integral ring morphism -/
+theorem is_integral_localization_at_leading_coeff {x : S} (p : polynomial R)
+  (hp : aeval x p = 0) (hM : p.leading_coeff ∈ M) :
+  (f.map (@algebra.mem_algebra_map_submonoid_of_mem R S _ _ _ _) g).is_integral_elem (g.to_map x) :=
+(algebra_map R S).is_integral_elem_localization_at_leading_coeff x p hp M hM f g
 
 /-- If `R → S` is an integral extension, `M` is a submonoid of `R`,
 `Rₘ` is the localization of `R` at `M`,

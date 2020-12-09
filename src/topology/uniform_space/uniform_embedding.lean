@@ -75,10 +75,10 @@ theorem uniform_embedding_def' {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
     ∀ s, s ∈ 𝓤 α →
       ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s :=
-by simp [uniform_embedding_def, uniform_continuous_def]; exact
+by simp only [uniform_embedding_def, uniform_continuous_def]; exact
 ⟨λ ⟨I, H⟩, ⟨I, λ s su, (H _).2 ⟨s, su, λ x y, id⟩, λ s, (H s).1⟩,
  λ ⟨I, H₁, H₂⟩, ⟨I, λ s, ⟨H₂ s,
-   λ ⟨t, tu, h⟩, sets_of_superset _ (H₁ t tu) (λ ⟨a, b⟩, h a b)⟩⟩⟩
+   λ ⟨t, tu, h⟩, mem_sets_of_superset (H₁ t tu) (λ ⟨a, b⟩, h a b)⟩⟩⟩
 
 lemma uniform_inducing.uniform_continuous {f : α → β}
   (hf : uniform_inducing f) : uniform_continuous f :=
@@ -86,7 +86,8 @@ by simp [uniform_continuous, hf.comap_uniformity.symm, tendsto_comap]
 
 lemma uniform_inducing.uniform_continuous_iff {f : α → β} {g : β → γ} (hg : uniform_inducing g) :
   uniform_continuous f ↔ uniform_continuous (g ∘ f) :=
-by simp [uniform_continuous, tendsto]; rw [← hg.comap_uniformity, ← map_le_iff_le_comap, filter.map_map]
+by { dsimp only [uniform_continuous, tendsto],
+  rw [← hg.comap_uniformity, ← map_le_iff_le_comap, filter.map_map] }
 
 lemma uniform_inducing.inducing {f : α → β} (h : uniform_inducing f) : inducing f :=
 begin

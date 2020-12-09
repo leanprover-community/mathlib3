@@ -791,6 +791,9 @@ begin
   exact mul_self_le_mul_self_iff (abs_nonneg a) (abs_nonneg b)
 end
 
+lemma abs_le_one_iff_mul_self_le_one : abs a ≤ 1 ↔ a * a ≤ 1 :=
+by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
+
 end linear_ordered_ring
 
 /-- A `linear_ordered_comm_ring α` is a commutative ring `α` with a linear order

@@ -103,7 +103,7 @@ variables (x : A)
 the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
 def aeval : polynomial R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _,
-  ..eval₂_ring_hom' (algebra_map R A) algebra.commutes x }
+  ..eval₂_ring_hom' (algebra_map R A) x (λ a, algebra.commutes _ _) }
 
 variables {R A}
 
@@ -152,7 +152,7 @@ begin
     rw [φ.map_add, ih1, ih2, eval₂_add] },
   { intros n r ih,
     rw [pow_succ', ← mul_assoc, φ.map_mul,
-        eval₂_mul_noncomm (algebra_map R A) _ algebra.commutes, eval₂_X, ih] }
+        eval₂_mul_noncomm (algebra_map R A) _ (λ k, algebra.commutes _ _), eval₂_X, ih] }
 end
 
 theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval (f x) = f.comp (aeval x) :=

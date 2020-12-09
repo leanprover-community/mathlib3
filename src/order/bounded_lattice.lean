@@ -954,8 +954,8 @@ by rw [disjoint, disjoint, inf_comm]
 @[symm] theorem disjoint.symm ⦃a b : α⦄ : disjoint a b → disjoint b a :=
 disjoint.comm.1
 
-@[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := disjoint_iff.2 bot_inf_eq
-@[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := disjoint_iff.2 inf_bot_eq
+@[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := inf_le_left
+@[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := inf_le_right
 
 theorem disjoint.mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
   disjoint b d → disjoint a c := le_trans (inf_le_inf h₁ h₂)
@@ -973,6 +973,15 @@ lemma disjoint.ne {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
 
 end semilattice_inf_bot
+
+section bounded_lattice
+
+variables [bounded_lattice α] {a : α}
+
+@[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
+@[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
+
+end bounded_lattice
 
 section bounded_distrib_lattice
 

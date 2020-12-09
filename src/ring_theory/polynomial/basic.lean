@@ -15,7 +15,7 @@ Authors: Kenny Lau
 * `polynomial.unique_factorization_monoid`:
   If an integral domain is a `unique_factorization_monoid`, then so is its polynomial ring.
 -/
-import algebra.char_p
+import algebra.char_p.basic
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
 import data.polynomial.field_division
@@ -456,7 +456,6 @@ end polynomial
 protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] :
   is_noetherian_ring (polynomial R) :=
 ⟨assume I : ideal (polynomial R),
-let L := I.leading_coeff in
 let M := well_founded.min (is_noetherian_iff_well_founded.1 (by apply_instance))
   (set.range I.leading_coeff_nth) ⟨_, ⟨0, rfl⟩⟩ in
 have hm : M ∈ set.range I.leading_coeff_nth := well_founded.min_mem _ _ _,

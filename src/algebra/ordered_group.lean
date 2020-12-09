@@ -703,6 +703,7 @@ def ordered_comm_group.mk' {α : Type u} [comm_group α] [partial_order α]
 /-!
 
 ## linearly ordered commutative groups and add_groups.
+
 -/
 
 /-- A linearly ordered commutative group is an

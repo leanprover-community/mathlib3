@@ -299,8 +299,8 @@ end
 /-- Intermediate value theorem for two functions: if `f` and `g` are two functions continuous
 on a preconnected set `s` and for some `a b ∈ s` we have `f a ≤ g a` and `g b ≤ f b`,
 then for some `x ∈ s` we have `f x = g x`. -/
-lemma is_preconnected.intermediate_value₂ {s : set γ}
-  (hs : is_preconnected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f g : γ → α}
+lemma is_preconnected.intermediate_value₂ {s : set γ} (hs : is_preconnected s)
+  {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f g : γ → α}
   (hf : continuous_on f s) (hg : continuous_on g s) (ha' : f a ≤ g a) (hb' : g b ≤ f b) :
   ∃ x ∈ s, f x = g x :=
 let ⟨x, hx⟩ := @intermediate_value_univ₂ α s _ _ _ _ (subtype.preconnected_space hs) ⟨a, ha⟩ ⟨b, hb⟩
@@ -309,21 +309,19 @@ let ⟨x, hx⟩ := @intermediate_value_univ₂ α s _ _ _ _ (subtype.preconnecte
 in ⟨x, x.2, hx⟩
 
 /-- Intermediate Value Theorem for continuous functions on connected sets. -/
-lemma is_preconnected.intermediate_value {γ : Type*} [topological_space γ] {s : set γ}
-  (hs : is_preconnected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α}
-  (hf : continuous_on f s) :
+lemma is_preconnected.intermediate_value {s : set γ} (hs : is_preconnected s)
+  {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α} (hf : continuous_on f s) :
   Icc (f a) (f b) ⊆ f '' s :=
 λ x hx, mem_image_iff_bex.2 $ hs.intermediate_value₂ ha hb hf continuous_on_const hx.1 hx.2
 
 /-- Intermediate Value Theorem for continuous functions on connected spaces. -/
-lemma intermediate_value_univ {γ : Type*} [topological_space γ] [preconnected_space γ]
-  (a b : γ) {f : γ → α} (hf : continuous f) :
+lemma intermediate_value_univ [preconnected_space γ] (a b : γ) {f : γ → α} (hf : continuous f) :
   Icc (f a) (f b) ⊆ range f :=
 λ x hx, intermediate_value_univ₂ hf continuous_const hx.1 hx.2
 
 /-- Intermediate Value Theorem for continuous functions on connected spaces. -/
-lemma mem_range_of_exists_le_of_exists_ge {γ : Type*} [topological_space γ] [preconnected_space γ]
-  {c : α} {f : γ → α} (hf : continuous f) (h₁ : ∃ a, f a ≤ c) (h₂ : ∃ b, c ≤ f b) :
+lemma mem_range_of_exists_le_of_exists_ge [preconnected_space γ] {c : α} {f : γ → α}
+  (hf : continuous f) (h₁ : ∃ a, f a ≤ c) (h₂ : ∃ b, c ≤ f b) :
   c ∈ range f :=
 let ⟨a, ha⟩ := h₁, ⟨b, hb⟩ := h₂ in intermediate_value_univ a b hf ⟨ha, hb⟩
 

@@ -43,30 +43,20 @@ variables [Π i, has_zero (f i)]
 
 /-- The function supported at `i`, with value `x` there. -/
 def single (i : I) (x : f i) : Π i, f i :=
-λ i', if h : i' = i then (by { subst h, exact x }) else 0
+function.update 0 i x
 
 @[simp]
 lemma single_eq_same (i : I) (x : f i) : single i x i = x :=
-begin
-  dsimp [single],
-  split_ifs,
-  { refl, },
-  { exfalso, exact h rfl, }
-end
+function.update_same i x _
 
 @[simp]
 lemma single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : single i x i' = 0 :=
-begin
-  dsimp [single],
-  split_ifs with h',
-  { exfalso, exact h h', },
-  { refl, }
-end
+function.update_noteq h x _
 
 variables (f)
 
 lemma single_injective (i : I) : function.injective (single i : f i → Π i, f i) :=
-λ x y h, by simpa only [single, dif_pos] using congr_fun h i
+function.update_injective _ i
 
 end
 end pi

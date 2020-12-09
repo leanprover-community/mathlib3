@@ -212,19 +212,19 @@ lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set �
 omit t
 
 lemma nhds_within_Ici_ne_bot {a b : α} (H₂ : a ≤ b) :
-  𝓝[Ici a] b ≠ ⊥ :=
+  ne_bot (𝓝[Ici a] b) :=
 nhds_within_ne_bot_of_mem H₂
 
-lemma nhds_within_Ici_self_ne_bot (a : α) :
-  𝓝[Ici a] a ≠ ⊥ :=
+@[instance] lemma nhds_within_Ici_self_ne_bot (a : α) :
+  ne_bot (𝓝[Ici a] a) :=
 nhds_within_Ici_ne_bot (le_refl a)
 
 lemma nhds_within_Iic_ne_bot {a b : α} (H : a ≤ b) :
-  𝓝[Iic b] a ≠ ⊥ :=
+  ne_bot (𝓝[Iic b] a) :=
 nhds_within_ne_bot_of_mem H
 
-lemma nhds_within_Iic_self_ne_bot (a : α) :
-  𝓝[Iic a] a ≠ ⊥ :=
+@[instance] lemma nhds_within_Iic_self_ne_bot (a : α) :
+  ne_bot (𝓝[Iic a] a) :=
 nhds_within_Iic_ne_bot (le_refl a)
 
 end preorder
@@ -281,10 +281,12 @@ is_open_Iio.interior_eq
 @[simp] lemma interior_Ioo : interior (Ioo a b) = Ioo a b :=
 is_open_Ioo.interior_eq
 
+variables [topological_space γ]
+
 /-- Intermediate value theorem for two functions: if `f` and `g` are two continuous functions
 on a preconnected space and `f a ≤ g a` and `g b ≤ f b`, then for some `x` we have `f x = g x`. -/
-lemma intermediate_value_univ₂ {γ : Type*} [topological_space γ] [preconnected_space γ] {a b : γ}
-  {f g : γ → α} (hf : continuous f) (hg : continuous g) (ha : f a ≤ g a) (hb : g b ≤ f b) :
+lemma intermediate_value_univ₂ [preconnected_space γ] {a b : γ} {f g : γ → α} (hf : continuous f)
+  (hg : continuous g) (ha : f a ≤ g a) (hb : g b ≤ f b) :
   ∃ x, f x = g x :=
 begin
   obtain ⟨x, h, hfg, hgf⟩ : (univ ∩ {x | f x ≤ g x ∧ g x ≤ f x}).nonempty,
@@ -297,31 +299,29 @@ end
 /-- Intermediate value theorem for two functions: if `f` and `g` are two functions continuous
 on a preconnected set `s` and for some `a b ∈ s` we have `f a ≤ g a` and `g b ≤ f b`,
 then for some `x ∈ s` we have `f x = g x`. -/
-lemma is_preconnected.intermediate_value₂ {γ : Type*} [topological_space γ] {s : set γ}
-  (hs : is_preconnected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f g : γ → α}
+lemma is_preconnected.intermediate_value₂ {s : set γ} (hs : is_preconnected s)
+  {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f g : γ → α}
   (hf : continuous_on f s) (hg : continuous_on g s) (ha' : f a ≤ g a) (hb' : g b ≤ f b) :
   ∃ x ∈ s, f x = g x :=
-let ⟨x, hx⟩ := @intermediate_value_univ₂ α _ _ _ s _ (subtype.preconnected_space hs) ⟨a, ha⟩ ⟨b, hb⟩
+let ⟨x, hx⟩ := @intermediate_value_univ₂ α s _ _ _ _ (subtype.preconnected_space hs) ⟨a, ha⟩ ⟨b, hb⟩
   _ _ (continuous_on_iff_continuous_restrict.1 hf) (continuous_on_iff_continuous_restrict.1 hg)
   ha' hb'
 in ⟨x, x.2, hx⟩
 
 /-- Intermediate Value Theorem for continuous functions on connected sets. -/
-lemma is_preconnected.intermediate_value {γ : Type*} [topological_space γ] {s : set γ}
-  (hs : is_preconnected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α}
-  (hf : continuous_on f s) :
+lemma is_preconnected.intermediate_value {s : set γ} (hs : is_preconnected s)
+  {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α} (hf : continuous_on f s) :
   Icc (f a) (f b) ⊆ f '' s :=
 λ x hx, mem_image_iff_bex.2 $ hs.intermediate_value₂ ha hb hf continuous_on_const hx.1 hx.2
 
 /-- Intermediate Value Theorem for continuous functions on connected spaces. -/
-lemma intermediate_value_univ {γ : Type*} [topological_space γ] [preconnected_space γ]
-  (a b : γ) {f : γ → α} (hf : continuous f) :
+lemma intermediate_value_univ [preconnected_space γ] (a b : γ) {f : γ → α} (hf : continuous f) :
   Icc (f a) (f b) ⊆ range f :=
 λ x hx, intermediate_value_univ₂ hf continuous_const hx.1 hx.2
 
 /-- Intermediate Value Theorem for continuous functions on connected spaces. -/
-lemma mem_range_of_exists_le_of_exists_ge {γ : Type*} [topological_space γ] [preconnected_space γ]
-  {c : α} {f : γ → α} (hf : continuous f) (h₁ : ∃ a, f a ≤ c) (h₂ : ∃ b, c ≤ f b) :
+lemma mem_range_of_exists_le_of_exists_ge [preconnected_space γ] {c : α} {f : γ → α}
+  (hf : continuous f) (h₁ : ∃ a, f a ≤ c) (h₂ : ∃ b, c ≤ f b) :
   c ∈ range f :=
 let ⟨a, ha⟩ := h₁, ⟨b, hb⟩ := h₂ in intermediate_value_univ a b hf ⟨ha, hb⟩
 
@@ -3173,8 +3173,7 @@ noncomputable def homeomorph_of_strict_mono_continuous
   (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
   (h_bot : tendsto f at_bot at_bot) :
   homeomorph α β :=
-(order_iso.of_strict_mono_surjective f h_mono
-  (surjective_of_continuous h_cont h_top h_bot)).to_homeomorph
+(h_mono.order_iso_of_surjective f (surjective_of_continuous h_cont h_top h_bot)).to_homeomorph
 
 @[simp] lemma coe_homeomorph_of_strict_mono_continuous
   (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
@@ -3196,10 +3195,8 @@ noncomputable def homeomorph_of_strict_mono_continuous_Ioo
   (h_top : tendsto f (𝓝[Iio b] b) at_top)
   (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
   homeomorph (Ioo a b) β :=
-@homeomorph_of_strict_mono_continuous _ _
-(@ord_connected_subset_conditionally_complete_linear_order α (Ioo a b) _
-  ⟨classical.choice (nonempty_Ioo_subtype h)⟩ _)
-_ _ _ _ _ _
+by haveI : inhabited (Ioo a b) := inhabited_of_nonempty (nonempty_Ioo_subtype h); exact
+homeomorph_of_strict_mono_continuous
 (restrict f (Ioo a b))
 (λ x y, h_mono x.2.1 y.2.2)
 (continuous_on_iff_continuous_restrict.mp h_cont)

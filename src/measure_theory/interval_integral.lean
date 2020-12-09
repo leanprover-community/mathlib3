@@ -189,18 +189,31 @@ lemma sub [second_countable_topology E] (hf : interval_integrable f μ a b)
   (hg : interval_integrable g μ a b) : interval_integrable (f - g) μ a b :=
 ⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
 
-/-- A continuous function on `ℝ` is `interval_integrable` with respect to any locally finite measure
-`ν` on ℝ. -/
-lemma continuous.interval_integrable {ν : measure ℝ} [locally_finite_measure ν] {u : ℝ → E}
-  (hu : continuous u) (a b : ℝ) :
+end interval_integrable
+
+section
+
+variables [borel_space E] {ν : measure ℝ} [locally_finite_measure ν]
+
+lemma continuous_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : continuous_on u (interval a b))
+  (hum : measurable u) :
   interval_integrable u ν a b :=
 begin
-  split;
+  split,
+  all_goals
   { refine measure_theory.integrable_on.mono_set _ Ioc_subset_Icc_self,
-    exact hu.integrable_on_compact compact_Icc },
+    refine continuous_on.integrable_on_compact compact_Icc hum (hu.mono _) },
+  { exact Icc_subset_interval },
+  { exact Icc_subset_interval' }
 end
 
-end interval_integrable
+/-- A continuous function on `ℝ` is `interval_integrable` with respect to any locally finite measure
+`ν` on ℝ. -/
+lemma continuous.interval_integrable {u : ℝ → E} (hu : continuous u) (a b : ℝ) :
+  interval_integrable u ν a b :=
+hu.continuous_on.interval_integrable hu.measurable
+
+end
 
 /-- Let `l'` be a measurably generated filter; let `l` be a of filter such that each `s ∈ l'`
 eventually includes `Ioc u v` as both `u` and `v` tend to `l`. Let `μ` be a measure finite at `l'`.

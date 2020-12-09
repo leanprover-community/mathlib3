@@ -83,7 +83,7 @@ sides of the equation. When `find_proof` is called, we will run a search and add
 new vertices and edges.
 -/
 meta def mk_graph (conf : config) (rules : list (expr × bool)) (eq : expr) : tactic graph :=
-do (lhs, rhs) ← split_equation eq,
+do (lhs, rhs) ← tactic.match_eq eq <|> tactic.match_iff eq,
   lhs_pp ← to_string <$> tactic.pp lhs,
   rhs_pp ← to_string <$> tactic.pp rhs,
   let lhs_vertex : vertex := ⟨0, lhs, lhs_pp, side.L, none⟩,

@@ -73,13 +73,5 @@ meta structure config extends tactic.nth_rewrite.cfg :=
 (max_iterations     : ℕ := 5000)
 (explain_using_conv : bool := tt)
 
-/--
-Split an equation (or an iff) into its left and right parts.
--/
-meta def split_equation : expr → tactic (expr × expr)
-| `(%%lhs = %%rhs) := return (lhs, rhs)
-| `(%%lhs ↔ %%rhs) := return (lhs, rhs)
-| _                := tactic.fail "target is not an equation or iff"
-
 end tactic.rewrite_search
 

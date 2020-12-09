@@ -1221,11 +1221,11 @@ theorem eq_of_right_deriv_eq
   (hi : f a = g a) :
   ∀ y ∈ Icc a b, f y = g y :=
 begin
-  have H : ∀ x ∈ Ico a b, has_deriv_within_at (f - g) 0 (Ioi x) x := sorry,
-  --have hderiv := derivf.sub derivg, simp [sub_self] at hderiv,
-  --have hsorry : (has_deriv_within_at (f-g) 0 (Ici x) x) ↔ (has_deriv_within_at (f-g) 0 (Ioi x) x),
-    --sorry,
-  --rw hsorry at hderiv,
+  have H : ∀ y ∈ Ico a b, has_deriv_within_at (f - g) 0 (Ioi y) y,
+  { intros y hy,
+    convert (derivf y hy).sub (derivg y hy),
+    { rw sub_self },
+    { sorry } }, -- Missing piece: `Ioi y = Ici y`
   simpa only [zero_mul, sub_eq_zero.mpr hi, norm_le_zero_iff, sub_eq_zero] using
     λ y hy, norm_image_sub_le_of_norm_deriv_right_le_segment
       (fcont.sub gcont) H (λ z hz, by rw norm_le_zero_iff) y hy,
@@ -1243,21 +1243,23 @@ begin
       by simpa only [differentiable_on] using fdiff y (mem_Icc_of_Ico hy),
     have hg : differentiable_within_at ℝ g (Icc a b) y :=
       by simpa only [differentiable_on] using gdiff y (mem_Icc_of_Ico hy),
-    simpa only [derivf y hy, deriv_within.neg (hu _ _ (mem_Icc_of_Ico hy)) hg, derivg y hy,
-      add_zero, neg_zero, norm_le_zero_iff] using deriv_within_add (hu _ _ (mem_Icc_of_Ico hy)) hf
-        (by simpa only [differentiable_on] using (gdiff y (mem_Icc_of_Ico hy)).neg) },
+    have h := deriv_within_add (hu _ _ (mem_Icc_of_Ico hy)) hf
+      (by simpa only [differentiable_on] using (gdiff y (mem_Icc_of_Ico hy)).neg),
+    rw [deriv_within.neg (hu _ _ (mem_Icc_of_Ico hy)) hg, tactic.ring.add_neg_eq_sub] at h,
+    simpa only [← sub_eq_zero, ← norm_le_zero_iff, ← h] using hderiv y hy },
   simpa only [zero_mul, sub_eq_zero.mpr hi, norm_le_zero_iff, sub_eq_zero] using
     λ y hy, norm_image_sub_le_of_norm_deriv_le_segment (fdiff.sub gdiff) H y hy,
 end
 
 theorem has_deriv_within_at_right_integrable {x} (hx : x ∈ Ico a b)
-  (contf : continuous_on f (Icc a b)) (derivf : has_deriv_within_at f (f' x) (Ici x) x)
+  (contf : continuous_on f (Icc a b)) (derivf : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   (contf' : continuous_within_at f' (Ioi x) x) (intgf' : interval_integrable f' volume a x) :
   ∫ y in a..x, f' y = f x - f a :=
 by rw [eq_of_right_deriv_eq derivf
         ((integral_has_deriv_within_at_right intgf' contf').const_add (f a))
           contf sorry (by simp) x (mem_Icc_of_Ico hx), add_sub_cancel']
 -- Missing piece: `continuous_on (f a + ∫ x in a..u, f' x) (Icc a b)`
+-- Breaks due to adding `∀ x ∈ Ico a b, ` to `derivg` in `eq_of_right_deriv_eq`
 
 
 end interval_integral

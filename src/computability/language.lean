@@ -48,13 +48,13 @@ lemma star_def (l : language α) :
   l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, ¬(list.empty y) ∧ y ∈ l} := rfl
 
 private lemma mul_assoc (l m n : language α) : (l * m) * n = l * (m * n) :=
-by ext x; simp [mul_def]; tauto {closer := `[subst_vars, simp *]}
+by { ext x, simp [mul_def], tauto {closer := `[subst_vars, simp *] } }
 
 private lemma one_mul (l : language α) : 1 * l = l :=
-by ext x; simp [mul_def]; tauto {closer := `[subst_vars, simp *]}
+by { ext x, simp [mul_def], tauto {closer := `[subst_vars, simp *] } }
 
 private lemma mul_one (l : language α) : l * 1 = l :=
-by ext x; simp [mul_def]; tauto {closer := `[subst_vars, simp *]}
+by { ext x, simp [mul_def], tauto {closer := `[subst_vars, simp *] } }
 
 private lemma left_distrib (l m n : language α) : l * (m + n) = (l * m) + (l * n) :=
 begin

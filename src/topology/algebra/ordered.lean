@@ -319,6 +319,12 @@ lemma intermediate_value_univ {γ : Type*} [topological_space γ] [preconnected_
   Icc (f a) (f b) ⊆ range f :=
 λ x hx, intermediate_value_univ₂ hf continuous_const hx.1 hx.2
 
+/-- Intermediate Value Theorem for continuous functions on connected spaces. -/
+lemma mem_range_of_exists_le_of_exists_ge {γ : Type*} [topological_space γ] [preconnected_space γ]
+  {c : α} {f : γ → α} (hf : continuous f) (h₁ : ∃ a, f a ≤ c) (h₂ : ∃ b, c ≤ f b) :
+  c ∈ range f :=
+let ⟨a, ha⟩ := h₁, ⟨b, hb⟩ := h₂ in intermediate_value_univ a b hf ⟨ha, hb⟩
+
 /-- If a preconnected set contains endpoints of an interval, then it includes the whole interval. -/
 lemma is_preconnected.Icc_subset {s : set α} (hs : is_preconnected s)
   {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
@@ -1882,47 +1888,87 @@ section linear_order
 
 variables [topological_space α] [linear_order α] [order_topology α] [densely_ordered α]
 
+lemma comap_coe_nhds_within_Iio_of_Ioo_subset {a b : α} (h : a < b) {s : set α} (hb : s ⊆ Iio b)
+  (hs : Ioo a b ⊆ s) :
+  comap (coe : s → α) (𝓝[Iio b] b) = at_top :=
+begin
+  haveI : nonempty s := ((nonempty_Ioo.2 h).mono hs).to_subtype,
+  ext u, split,
+  { rintros ⟨t, ht, hts⟩,
+    obtain ⟨x, ⟨hxa : a ≤ x, hxb : x < b⟩, hxt : Ioo x b ⊆ t⟩ :=
+      (mem_nhds_within_Iio_iff_exists_mem_Ico_Ioo_subset h).mp ht,
+    obtain ⟨y, hxy, hyb⟩ := exists_between hxb,
+    refine mem_sets_of_superset (mem_at_top ⟨y, hs ⟨hxa.trans_lt hxy, hyb⟩⟩) _,
+    rintros ⟨z, hzs⟩ (hyz : y ≤ z),
+    refine hts (hxt ⟨hxy.trans_le _, hb _⟩); assumption },
+  { intros hu,
+    obtain ⟨x : s, hx : ∀ z, x ≤ z → z ∈ u⟩ := mem_at_top_sets.1 hu,
+    exact ⟨Ioo x b, Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 $ hb x.2), λ z hz, hx _ hz.1.le⟩ }
+end
+
+lemma comap_coe_nhds_within_Ioi_of_Ioo_subset {a b : α} (h : a < b) {s : set α} (hb : s ⊆ Ioi a)
+  (hs : Ioo a b ⊆ s) :
+  comap (coe : s → α) (𝓝[Ioi a] a) = at_bot :=
+begin
+  refine @comap_coe_nhds_within_Iio_of_Ioo_subset (order_dual α) _ _ _ _ b a h s hb _,
+  rwa dual_Ioo
+end
+
+lemma map_coe_at_top_of_Ioo_subset {a b : α} (h : a < b) {s : set α} (hb : s ⊆ Iio b)
+  (hs : Ioo a b ⊆ s) :
+  map (coe : s → α) at_top = (𝓝[Iio b] b) :=
+begin
+  rw [← comap_coe_nhds_within_Iio_of_Ioo_subset h hb hs, map_comap],
+  rw subtype.range_coe,
+  exact mem_sets_of_superset (Ioo_mem_nhds_within_Iio $ right_mem_Ioc.2 h) hs
+end
+
+lemma map_coe_at_bot_of_Ioo_subset {a b : α} (h : a < b) {s : set α} (hb : s ⊆ Ioi a)
+  (hs : Ioo a b ⊆ s) :
+  map (coe : s → α) at_bot = (𝓝[Ioi a] a) :=
+begin
+  rw [← comap_coe_nhds_within_Ioi_of_Ioo_subset h hb hs, map_comap],
+  rw subtype.range_coe,
+  exact mem_sets_of_superset (Ioo_mem_nhds_within_Ioi $ left_mem_Ico.2 h) hs
+end
+
 /-- The `at_top` filter for an open interval `Ioo a b` comes from the left-neighbourhoods filter at
 the right endpoint in the ambient order. -/
-lemma Ioo_at_top_eq_nhds_within {a b : α} (h : a < b) :
-  (at_top : filter (Ioo a b)) = comap (coe : Ioo a b → α) (𝓝[Iio b] b) :=
-begin
-  haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
-  ext,
-  split,
-  { intros hs,
-    obtain ⟨x, hx⟩ : ∃ x : (Ioo a b), ∀ z : (Ioo a b), z ≥ x → z ∈ s := mem_at_top_sets.mp hs,
-    refine ⟨Ioo x b, Ioo_mem_nhds_within_Iio (right_mem_Ioc.mpr x.2.2), _⟩,
-    intros z hz,
-    simpa using hx z (le_of_lt hz.1) },
-  { rintros ⟨t, ht, hts⟩,
-    obtain ⟨x, hx, hxt⟩ : ∃ x ∈ Iio b, Ioo x b ⊆ t := (mem_nhds_within_Iio_iff_exists_Ioo_subset' h).mp ht,
-    obtain ⟨y, hay, hyb⟩ : ∃ y, max a x < y ∧ y < b := exists_between (max_lt_iff.mpr ⟨h, hx⟩),
-    refine mem_at_top_sets.mpr ⟨⟨y, (max_lt_iff.mp hay).1, hyb⟩, _⟩,
-    intros z hz,
-    exact hts (hxt ⟨lt_of_lt_of_le (lt_of_le_of_lt (le_max_right a x) hay) hz, z.2.2⟩) }
-end
+lemma comap_coe_Ioo_nhds_within_Ioi {a b : α} (h : a < b) :
+  comap (coe : Ioo a b → α) (𝓝[Iio b] b) = at_top :=
+comap_coe_nhds_within_Iio_of_Ioo_subset h Ioo_subset_Iio_self (subset.refl _)
 
 /-- The `at_bot` filter for an open interval `Ioo a b` comes from the right-neighbourhoods filter at
 the left endpoint in the ambient order. -/
-lemma Ioo_at_bot_eq_nhds_within {a b : α} (h : a < b) :
-  (at_bot : filter (Ioo a b)) = comap (coe : Ioo a b → α) (𝓝[Ioi a] a) :=
-begin
-  haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
-  ext,
-  split,
-  { intros hs,
-    obtain ⟨x, hx⟩ : ∃ x : (Ioo a b), ∀ z : (Ioo a b), z ≤ x → z ∈ s := mem_at_bot_sets.mp hs,
-    refine ⟨Ioo a x, Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr x.2.1), _⟩,
-    intros z hz,
-    simpa using hx z (le_of_lt hz.2) },
-  { rintros ⟨t, ht, hts⟩,
-    obtain ⟨x, hx, hxt⟩ : ∃ x ∈ Ioi a, Ioo a x ⊆ t := (mem_nhds_within_Ioi_iff_exists_Ioo_subset' h).mp ht,
-    obtain ⟨y, hay, hyb⟩ : ∃ y, a < y ∧ y < min b x := exists_between (lt_min_iff.mpr ⟨h, hx⟩),
-    refine mem_at_bot_sets.mpr ⟨⟨y, hay, (lt_min_iff.mp hyb).1⟩, _⟩,
-    intros z hz,
-    exact hts (hxt ⟨z.2.1, lt_of_le_of_lt hz (lt_of_lt_of_le hyb (min_le_right b x))⟩) }
-end
+lemma comap_coe_Ioo_nhds_within_Iio {a b : α} (h : a < b) :
+  comap (coe : Ioo a b → α) (𝓝[Ioi a] a) = at_bot :=
+comap_coe_nhds_within_Ioi_of_Ioo_subset h Ioo_subset_Ioi_self (subset.refl _)
+
+lemma comap_coe_Ioi_nhds_within_Ioi [no_top_order α] (a : α) :
+  comap (coe : Ioi a → α) (𝓝[Ioi a] a) = at_bot :=
+let ⟨b, hb⟩ := no_top a in
+comap_coe_nhds_within_Ioi_of_Ioo_subset hb (subset.refl _) Ioo_subset_Ioi_self
+
+lemma comap_coe_Iio_nhds_within_Iio [no_bot_order α] (a : α) :
+  comap (coe : Iio a → α) (𝓝[Iio a] a) = at_top :=
+@comap_coe_Ioi_nhds_within_Ioi (order_dual α) _ _ _ _ _ a
+
+@[simp] lemma map_coe_Ioo_at_top {a b : α} (h : a < b) :
+  map (coe : Ioo a b → α) at_top = 𝓝[Iio b] b :=
+map_coe_at_top_of_Ioo_subset h Ioo_subset_Iio_self (subset.refl _)
+
+@[simp] lemma map_coe_Ioo_at_bot {a b : α} (h : a < b) :
+  map (coe : Ioo a b → α) at_bot = 𝓝[Ioi a] a :=
+map_coe_at_bot_of_Ioo_subset h Ioo_subset_Ioi_self (subset.refl _)
+
+@[simp] lemma map_coe_Ioi_at_bot [no_top_order α] (a : α) :
+  map (coe : Ioi a → α) at_bot = 𝓝[Ioi a] a :=
+let ⟨b, hb⟩ := no_top a in
+map_coe_at_bot_of_Ioo_subset hb (subset.refl _) Ioo_subset_Ioi_self
+
+@[simp] lemma map_coe_Iio_at_top [no_bot_order α] (a : α) :
+  map (coe : Iio a → α) at_top = 𝓝[Iio a] a :=
+@map_coe_Ioi_at_bot (order_dual α) _ _ _ _ _ a
 
 end linear_order
 
@@ -2018,7 +2064,6 @@ lemma map_infi_of_continuous_at_of_monotone {ι : Sort*} {f : α → β} {g : ι
   Mf.order_dual ftop
 
 end complete_linear_order
-
 
 section conditionally_complete_linear_order
 
@@ -2196,6 +2241,7 @@ begin
   exact is_closed.mem_of_ge_of_forall_exists_gt this ha hy.1
     (λ x hx, hgt x ⟨hx.1, Ico_subset_Ico_right hy.2 hx.2⟩ y hx.2.2)
 end
+
 section densely_ordered
 
 variables [densely_ordered α] {a b : α}
@@ -2278,37 +2324,31 @@ begin
     is_preconnected_Iic, is_preconnected_univ, is_preconnected_empty],
 end
 
+variables {δ : Type*} [linear_order δ] [topological_space δ] [order_closed_topology δ]
+
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
-lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
+lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f a) (f b) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf
 
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
-lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
+lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f b) (f a) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
 
 /-- A continuous function which tendsto `at_top` `at_top` and to `at_bot` `at_bot` is surjective. -/
-lemma surjective_of_continuous {f : α → β} (hf : continuous f) (h_top : tendsto f at_top at_top)
+lemma surjective_of_continuous {f : α → δ} (hf : continuous f) (h_top : tendsto f at_top at_top)
   (h_bot : tendsto f at_bot at_bot) :
   function.surjective f :=
-begin
-  intros p,
-  obtain ⟨b, hb⟩ : ∃ b, p ≤ f b,
-    { rcases (tendsto_at_top_at_top.mp h_top) p with ⟨b, hb⟩,
-      exact ⟨b, hb b rfl.ge⟩ },
-  obtain ⟨a, hab, ha⟩ : ∃ a, a ≤ b ∧ f a ≤ p,
-  { rcases (tendsto_at_bot_at_bot.mp h_bot) p with ⟨x, hx⟩,
-    exact ⟨min x b, min_le_right x b, hx (min x b) (min_le_left x b)⟩ },
-  rcases intermediate_value_Icc hab hf.continuous_on ⟨ha, hb⟩ with ⟨x, _, hx⟩,
-  exact ⟨x, hx⟩
-end
+λ p, mem_range_of_exists_le_of_exists_ge hf
+  (h_bot.eventually (eventually_le_at_bot p)).exists
+  (h_top.eventually (eventually_ge_at_top p)).exists
 
 /-- A continuous function which tendsto `at_bot` `at_top` and to `at_top` `at_bot` is surjective. -/
-lemma surjective_of_continuous' {f : α → β} (hf : continuous f) (h_top : tendsto f at_bot at_top)
+lemma surjective_of_continuous' {f : α → δ} (hf : continuous f) (h_top : tendsto f at_bot at_top)
   (h_bot : tendsto f at_top at_bot) :
   function.surjective f :=
-@surjective_of_continuous (order_dual α) β _ _ _ _ _ _ _ _ hf h_top h_bot
+@surjective_of_continuous (order_dual α) _ _ _ _ _ _ _ _ _ hf h_top h_bot
 
 end densely_ordered
 
@@ -3163,14 +3203,8 @@ _ _ _ _ _ _
 (restrict f (Ioo a b))
 (λ x y, h_mono x.2.1 y.2.2)
 (continuous_on_iff_continuous_restrict.mp h_cont)
-begin
-  rw [restrict_eq f (Ioo a b), Ioo_at_top_eq_nhds_within h],
-  exact h_top.comp tendsto_comap
-end
-begin
-  rw [restrict_eq f (Ioo a b), Ioo_at_bot_eq_nhds_within h],
-  exact h_bot.comp tendsto_comap
-end
+(by rwa [restrict_eq f (Ioo a b), ← tendsto_map'_iff, map_coe_Ioo_at_top h])
+(by rwa [restrict_eq f (Ioo a b), ← tendsto_map'_iff, map_coe_Ioo_at_bot h])
 
 @[simp] lemma coe_homeomorph_of_strict_mono_continuous_Ioo
   (f : α → β) (h : a < b)

@@ -111,8 +111,8 @@ def restrict_base (f : A →ₐ[S] B) : A →ₐ[R] B :=
 
 @[simp] lemma restrict_base_apply (f : A →ₐ[S] B) (x : A) : restrict_base R f x = f x := rfl
 
-instance right : is_scalar_tower R S S :=
-of_algebra_map_eq $ λ x, rfl
+instance right : is_scalar_tower R A A :=
+⟨λ x y z, by simp only [algebra.smul_def, smul_eq_mul, mul_assoc]⟩
 
 instance comap {R S A : Type*} [comm_semiring R] [comm_semiring S] [semiring A]
   [algebra R S] [algebra S A] : is_scalar_tower R S (algebra.comap R S A) :=

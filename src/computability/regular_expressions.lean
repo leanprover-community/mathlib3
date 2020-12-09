@@ -193,7 +193,7 @@ def deriv : regular_expression α → α → regular_expression α
 | (star P) a := deriv P a * star P
 
 /-- `P.rmatch x` is true if and only if `P` matches `x`. This is a computable definition equivalent
-  to `matches` -/
+  to `matches`. -/
 def rmatch : regular_expression α → list α → bool
 | P [] := match_epsilon P
 | P (a::as) := rmatch (P.deriv a) as
@@ -364,6 +364,14 @@ begin
       exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ } },
   { rw star_rmatch_iff,
     finish }
+end
+
+instance (P : regular_expression α) : decidable_pred P.matches :=
+begin
+  intro x,
+  change decidable (x ∈ P.matches),
+  rw ←rmatch_iff_matches,
+  exact eq.decidable _ _
 end
 
 end regular_expression

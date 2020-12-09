@@ -117,14 +117,16 @@ instance : semiring (language α) :=
 end language
 
 
-/-- This is the definition of regular expressions. The names used here is to mirror the definition
-  of a Kleene algebra (https://en.wikipedia.org/wiki/Kleene_algebra).
-  `zero` matches nothing
-  `epsilon` matches only the empty string
-  `char a` matches only the string 'a'
-  `star P` matches any finite concatenation of strings which match `P`
-  `plus P Q` matches anything which match `P` or `Q`
-  `comp P Q` matches `x ++ y` if `x` matches `P` and `y` matches `Q` -/
+/-- 
+This is the definition of regular expressions. The names used here is to mirror the definition
+of a Kleene algebra (https://en.wikipedia.org/wiki/Kleene_algebra).
+* `0` (`zero`) matches nothing
+* `1` (`epsilon`) matches only the empty string
+* `char a` matches only the string 'a'
+* `star P` matches any finite concatenation of strings which match `P`
+* `P + Q` (`plus P Q`) matches anything which match `P` or `Q`
+* `P * Q` (`comp P Q`) matches `x ++ y` if `x` matches `P` and `y` matches `Q` 
+-/
 inductive regular_expression (α : Type u) : Type u
 | zero : regular_expression
 | epsilon : regular_expression

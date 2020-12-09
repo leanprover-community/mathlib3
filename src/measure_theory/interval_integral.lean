@@ -189,11 +189,10 @@ lemma sub [second_countable_topology E] (hf : interval_integrable f μ a b)
   (hg : interval_integrable g μ a b) : interval_integrable (f - g) μ a b :=
 ⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
 
-variables {ν : measure_theory.measure ℝ} [measure_theory.locally_finite_measure ν]
-
 /-- A continuous function on `ℝ` is `interval_integrable` with respect to any locally finite measure
 `ν` on ℝ. -/
-lemma continuous.interval_integrable {u : ℝ → E} (hu : continuous u) (a b : ℝ) :
+lemma continuous.interval_integrable {ν : measure ℝ} [locally_finite_measure ν] {u : ℝ → E}
+  (hu : continuous u) (a b : ℝ) :
   interval_integrable u ν a b :=
 begin
   split;

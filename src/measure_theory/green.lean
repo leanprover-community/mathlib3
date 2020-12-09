@@ -1,6 +1,7 @@
 import measure_theory.prod
 import analysis.normed_space.box_subadditive
 import measure_theory.interval_integral
+import logic.basic
 
 noncomputable theory
 
@@ -85,13 +86,23 @@ def oppI : fin 2 → fin 2 := λ i, if i=0 then 1 else 0
 
 def oppE : fin 2 → (fin 2→ ℝ ) := λ i, if i=0 then ey else ex
 
+def exy : fin 2 → (fin 2→ ℝ ) := λ i, if i=0 then ex else ey
+
+
+lemma iZeroOne (i: fin 2) : i=0 ∨ i=1:=
+begin
+  --simp,
+  sorry,
+end
+
+
 lemma box_line_integral_linear (u: (fin 2→ ℝ ) →L[ℝ] ℝ ) (i : fin 2) (a b : fin 2 → ℝ) :
-  box_line_integral u i a b  = (b 0 - a 0) * (u (oppE i)) * (b 1 - a 1) :=
+  box_line_integral u i a b  = (b 0 - a 0) * (a 1 - b 1) * (u (oppE i))  :=
 begin
   rw box_line_integral,
   rw segment_parametrized_integral,
   rw segment_parametrized_integral,
-  have : ∫ (t : ℝ) in b 0..a 0, u (update b 0 t) = - ∫ (t : ℝ) in a 0..b 0, u (update b 0 t),
+  have : ∫ (t : ℝ) in b i..a i, u (update b i t) = - ∫ (t : ℝ) in a i..b i, u (update b i t),
   { apply interval_integral.integral_symm },
   rw this,
   ring,
@@ -107,35 +118,197 @@ begin
       simp,
     },
     -/
-    have :
-    (λ x, u (update a 0 x) - u (update b 0 x))
+    have uLinear : ∀ i,
+    (λ x, u (update a i x) - u (update b i x))
     =
-    (λ x,     u (update a 0 x - (update b 0 x))),
+    (λ x,     u (update a i x - (update b i x))),
     {
+      intros,
       simp,
     },
-    rw this,
-    clear this,
+    rw uLinear,
+
     have : (λ x,
-    u (update a 0 x - update b 0 x))
+    u (update a i x - update b i x))
     =
     (λ x ,
-     (a 1 - b 1) * u ( ey ))
+     (a (oppI i) - b (oppI i)) * u ( oppE i ))
     ,
     {
+      rw funext_iff,
+      intros x,
+      simp,
+      have uLinPwise : ∀ i,
+      ( u (update a i x) - u (update b i x))
+      =
+      (     u (update a i x - (update b i x))),
+      {
+        intros,
+        simp,
+      },
+      rw uLinPwise,
+      --clear this,
+      have : i=0∨ i=1,
+      {
+        exact iZeroOne i,
+      },
+      cases this,
+      {
+        rw this,
+        rw oppI,
+        rw oppE,
+
+        simp,
+
+        rw uLinPwise 0,
+
+        have rw1 : (update a 0 x - update b 0 x)
+        =
+        (a 1 - b 1) • ey,
+        {
+          sorry,
+        },
+        simp [rw1],
+      },
+      {
+        rw this,
+        rw oppI,
+        rw oppE,
+
+        simp,
+        rw uLinPwise,
+
+        have rw1 : (update a 1 x - update b 1 x)
+        =
+        (a 0 - b 0) • ex,
+        {
+          sorry,
+        },
+        simp [rw1],
+      },
       --- ALEX TO DO
-      sorry,
     },
     rw this,
     clear this,
     --- ALEX
-    sorry,
+    rw interval_integral.integral_const,
+    have : i=0∨ i=1,
+    {
+      exact iZeroOne i,
+    },
+    cases this,
+    {
+      rw this,
+      rw oppI,
+
+      ring,
+      have rw1 : (ite (0 = 0) 1 0) = 1,
+      {
+        simp,
+      },
+      -- rw rw1,
+      have rw2:  a (ite (0 = 0) 1 0) = a 1,
+      {
+        simp [rw1],
+      },
+--      rw rw2,
+      have rw3:  b (ite (0 = 0) 1 0) = b 1,
+      {
+        simp [rw1],
+      },
+--      rw rw3,
+      have rw4:  a (ite (0 = 0) 1 0) -  b (ite (0 = 0) 1 0) = a 1 - b 1,
+      {
+        simp [rw2, rw3],
+      },
+--      rw rw4,
+      have rw5 :
+      (b 0 - a 0) • ((a (ite (0 = 0) 1 0) - b (ite (0 = 0) 1 0)) * u (oppE 0))
+      =
+      (b 0 - a 0) • ((a 1 - b 1) * u (oppE 0)),
+      {
+        simp [rw4],
+      },
+--      rw rw5,
+      have rw6 :
+      (b 0 - a 0) • ((a (ite (0 = 0) 1 0) - b (ite (0 = 0) 1 0)) * u (oppE 0))
+      =
+      (b 0 - a 0) * (a 1 - b 1)  * u (oppE 0),
+      {
+        simp [rw5],
+        rw mul_assoc,
+--        ring,
+      },
+      exact rw6,
+      --rw rw2,
+--      refl,
+--      rw ite_eq_iff refl,  --ite_eq_left_iff,
+--      simp,
+  --    ring,
+    },
+    {
+      rw this,
+      rw oppI,
+      ring,
+      have rw1 : (ite (1 = 0) 1 0) = 0,
+      {
+        simp,
+      },
+      -- rw rw1,
+      have rw2:  a (ite (1 = 0) 1 0) = a 0,
+      {
+        simp [rw1],
+      },
+--      rw rw2,
+      have rw3:  b (ite (1 = 0) 1 0) = b 0,
+      {
+        simp [rw1],
+      },
+--      rw rw3,
+      have rw4:  a (ite (1 = 0) 1 0) -  b (ite (1 = 0) 1 0) = a 0 - b 0,
+      {
+        simp [rw2, rw3],
+      },
+--      rw rw4,
+      have rw5 :
+      (b 1 - a 1) • ((a (ite (1 = 0) 1 0) - b (ite (1 = 0) 1 0)) * u (oppE 1))
+      =
+      (b 1 - a 1) • ((a 0 - b 0) * u (oppE 1)),
+      {
+        simp [rw4],
+      },
+--      rw rw5,
+      have rw6 :
+      (b 1 - a 1) • ((a (ite (1 = 0) 1 0) - b (ite (1 = 0) 1 0)) * u (oppE 1))
+      =
+      (b 0 - a 0) * (a 1 - b 1) * u (oppE 1),
+      {
+        simp [rw5],
+        rw ←  mul_assoc,
+        have :
+        (b 1 - a 1) * (a 0 - b 0)
+        =
+        (b 0 - a 0) * (a 1 - b 1),
+        {
+          ring,
+        },
+        rw this,
+        --ring,
+      },
+      exact rw6,
+    },
   },
   --- HEATHER
   { apply continuous.interval_integrable,
     exact (continuous_linear_map.continuous u).comp continuous_update },
   { apply continuous.interval_integrable,
     exact (continuous_linear_map.continuous u).comp continuous_update },
+end
+
+lemma junk (x y :ℝ ) (f: ℝ → ℝ ): x=y→ f x =  f y:=
+begin
+  exact congr_arg (λ (x : ℝ), f x),
+--  library_search,
 end
 
 lemma box_integral_const (cU : ℝ )  (a b : fin 2 → ℝ) :

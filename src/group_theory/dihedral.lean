@@ -13,13 +13,13 @@ We define the dihedral groups `dihedral n`, with elements `r i` and `sr i` for `
 
 For `n ≠ 0`, `dihedral n` represents the symmetry group of the regular `n`-gon. `r i` represents
 the rotations of the `n`-gon by `2πi/n`, and `sr i` represents the reflections of the `n`-gon.
-`dihedral 0` correspongs to the infinite dihedral group.
+`dihedral 0` corresponds to the infinite dihedral group.
 -/
 
 /--
 For `n ≠ 0`, `dihedral n` represents the symmetry group of the regular `n`-gon. `r i` represents
 the rotations of the `n`-gon by `2πi/n`, and `sr i` represents the reflections of the `n`-gon.
-`dihedral 0` correspongs to the infinite dihedral group.
+`dihedral 0` corresponds to the infinite dihedral group.
 -/
 @[derive decidable_eq]
 inductive dihedral (n : ℕ) : Type
@@ -31,7 +31,7 @@ namespace dihedral
 variables {n : ℕ}
 
 /--
-Multiplication of the dihedral group
+Multiplication of the dihedral group.
 -/
 def mul : dihedral n → dihedral n → dihedral n
 | (r i) (r j) := r (i + j)
@@ -40,9 +40,11 @@ def mul : dihedral n → dihedral n → dihedral n
 | (sr i) (sr j) := r (j - i)
 
 /--
-The identity `1` is the rotation by `0`
+The identity `1` is the rotation by `0`.
 -/
 def one : dihedral n := r 0
+
+instance : inhabited (dihedral n) := ⟨one⟩
 
 /--
 The inverse of a an element of the dihedral group.
@@ -52,7 +54,7 @@ def inv : dihedral n → dihedral n
 | (sr i) := sr i
 
 /--
-The group structure on `dihedral n`
+The group structure on `dihedral n`.
 -/
 instance : group (dihedral n) :=
 { mul := mul,
@@ -101,9 +103,11 @@ private def fintype_helper : (zmod n ⊕ zmod n) ≃ dihedral n :=
   right_inv := by rintro (x | x); refl }
 
 /--
-If `0 < n`, then `dihedral n` is a finite group
+If `0 < n`, then `dihedral n` is a finite group.
 -/
 instance [fact (0 < n)] : fintype (dihedral n) := fintype.of_equiv _ fintype_helper
+
+instance : nontrivial (dihedral n) := ⟨⟨r 0, sr 0, dec_trivial⟩⟩
 
 /--
 If `0 < n`, then `dihedral n` has `2n` elements.
@@ -131,7 +135,7 @@ begin
   { rw pow_zero },
   { rw [r_one_pow, one_def],
     congr' 1,
-    simp }
+    exact zmod.cast_self _, }
 end
 
 lemma sr_mul_self (i : zmod n) : sr i * sr i = 1 := by rw [sr_mul_sr, sub_self, one_def]
@@ -148,7 +152,7 @@ begin
 end
 
 /--
-If `0 < n`, then `(r 1)` has order `n`.
+If `0 < n`, then `r 1` has order `n`.
 -/
 lemma order_of_r_one [hnpos : fact (0 < n)] : order_of (r 1 : dihedral n) = n :=
 begin
@@ -158,14 +162,12 @@ begin
     rw r_one_pow at h1,
     injection h1 with h2,
     rw [←zmod.val_eq_zero, zmod.val_cast_nat, nat.mod_eq_of_lt h] at h2,
-    have := order_of_pos (r 1 : dihedral n),
-    rw h2 at this,
-    cases this },
+    exact absurd h2.symm (ne_of_lt (order_of_pos _)) },
   { exact h }
 end
 
 /--
-If `0 < n`, and `i : zmod n` has order `n / gcd n i`
+If `0 < n`, then `i : zmod n` has order `n / gcd n i`
 -/
 lemma order_of_r [fact (0 < n)] (i : zmod n) : order_of (r i) = n / nat.gcd n i.val :=
 begin

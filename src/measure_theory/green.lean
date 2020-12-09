@@ -13,6 +13,7 @@ variables {E : Type*} [measurable_space E] [normed_group E] [borel_space E]
 variables {μ : measure_theory.measure ℝ} [measure_theory.locally_finite_measure μ]
 /-! Miscellaneous lemmas, find homes elsewhere. -/
 
+/-- A continuous function is `interval_integrable`. -/
 lemma continuous.interval_integrable {u : ℝ → E} (hu : continuous u) (a b : ℝ) :
   interval_integrable u μ a b :=
 begin
@@ -20,6 +21,25 @@ begin
   { refine measure_theory.integrable_on.mono_set _ Ioc_subset_Icc_self,
     exact hu.integrable_on_compact compact_Icc },
 end
+
+/-- A variable in `fin 2` is either `0` or `1`. -/
+lemma split_fin2 (i : fin 2) : i = 0 ∨ i = 1 :=
+begin
+  refine or.imp _ _ (em (i.val ≤ 0)),
+  all_goals
+  { intros hi,
+    ext },
+  { have : 0 ≤ i.val := zero_le i.val,
+    have : i.val = 0 := by linarith,
+    exact this },
+  { have : i.val < 2 := i.2,
+    have : i.val = 1 := by linarith,
+    exact this },
+end
+
+/-- A nonzero variable in `fin 2` is `1`. -/
+lemma eq_one_of_ne_zero {i : fin 2} (hi : i ≠ 0) : i = 1 :=
+(split_fin2 i).elim (λ h, false.rec (i = 1) (hi h)) id
 
 end misc_lemmas
 
@@ -144,18 +164,6 @@ end
 section prod_eq_pi
 
 /-! Lemmas relating `fin 2 → ℝ` and `ℝ × ℝ`. -/
-
-lemma eq_one_of_ne_zero {i : fin 2} (hi : i ≠ 0) : i = 1 :=
-begin
-  suffices hi' : i.val = 1,
-  { exact fin.eq_of_veq hi' },
-  have : 1 ≤ i.val,
-  { rw nat.succ_le_iff,
-    apply nat.pos_of_ne_zero,
-    exact fin.vne_of_ne hi },
-  have : i.val ≤ 1 := nat.lt_succ_iff.mp i.2,
-  linarith
-end
 
 def foo'' {α : Type} : equiv ((fin 2) → α) (α × α) :=
 { to_fun := λ f, ⟨f 0, f 1⟩,
@@ -306,24 +314,9 @@ begin
   { intros h,
     exact ⟨h 0, h 1⟩ },
   intros h i,
-  by_cases hi : 0 < i,
-  { have : i = 1,
-    { ext,
-      have := i.2,
-      have : 0 < i.val := hi,
-      have : i.val = 1 := by linarith,
-      exact this },
-    rw this,
-    exact h.2 },
-  { have : i = 0,
-    { ext,
-      push_neg at hi,
-      have : 0 ≤ i.val := zero_le i.val,
-      have : i.val ≤ 0 := hi,
-      have : i.val = 0 := by linarith,
-      exact this },
-    rw this,
-    exact h.1 }
+  cases split_fin2 i with hi hi,
+  { simpa [hi] using h.1 },
+  { simpa [hi] using h.2 }
 end
 
 lemma is_measurable_rectangle (a b : fin 2 → ℝ) : is_measurable (rectangle a b) :=
@@ -333,22 +326,6 @@ begin
   left,
   split;
   exact is_measurable_Ioc,
-end
-
-lemma integrable_restrict (v : ℝ × ℝ → ℝ) (a b : fin 2 → ℝ)
-  ⦃m : ℝ⦄ (i : fin 2)
-  (hu : integrable v volume) :
-  integrable_on v (rectangle a (update b i m)) volume :=
-begin
-  sorry
-end
-
-lemma integrable_restrict' (v : ℝ × ℝ → ℝ) (a b : fin 2 → ℝ)
-  ⦃m : ℝ⦄ (i : fin 2)
-  (hu : integrable v volume) :
-  integrable_on v (rectangle (update a i m) b) volume :=
-begin
-  sorry
 end
 
 def box_integral (a b : fin 2 → ℝ) : ℝ :=
@@ -373,8 +350,8 @@ begin
     apply is_disjoint },
   { exact is_measurable_rectangle _ _ },
   { exact is_measurable_rectangle _ _ },
-  { exact integrable_restrict _ _ _ _ hu },
-  { exact integrable_restrict' _ _ _ _ hu }
+  { exact hu.integrable_on },
+  { exact hu.integrable_on }
 end
 
 end measure_stuff_foo

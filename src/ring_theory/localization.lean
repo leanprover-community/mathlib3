@@ -1173,7 +1173,7 @@ begin
   ext x,
   split; simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff]; intro hx,
   { exact λ h, (localization_map.is_prime_of_is_prime_disjoint f P hP
-      (set.disjoint_compl_left P.carrier)).1 (ideal.eq_top_of_is_unit_mem _ hx h) },
+      disjoint_compl_left).1 (ideal.eq_top_of_is_unit_mem _ hx h) },
   { obtain ⟨⟨a, b⟩, hab⟩ := localization_map.surj f x,
     contrapose! hx,
     rw is_unit_iff_exists_inv,

@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov, Sébastien Gouëzel
+Authors: Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import analysis.convex.specific_functions
 import analysis.special_functions.pow
 import data.real.conjugate_exponents
 import tactic.nth_rewrite
+import measure_theory.integration
 
 /-!
 # Mean value inequalities
@@ -78,6 +79,12 @@ We give versions of this result in `real`, `nnreal` and `ennreal`.
 There are at least two short proofs of this inequality. In one proof we prenormalize both vectors,
 then apply Young's inequality to each $a_ib_i$. We use a different proof deducing this inequality
 from the generalized mean inequality for well-chosen vectors and weights.
+
+Hölder's inequality for the Lebesgue integral of ennreal and nnreal functions: we prove
+`∫ (f * g) ∂μ ≤ (∫ f^p ∂μ) ^ (1/p) * (∫ g^q ∂μ) ^ (1/q)` for `p`, `q` conjugate real exponents
+and `α→(e)nnreal` functions in two cases,
+* `ennreal.lintegral_mul_le_Lp_mul_Lq` : ennreal functions,
+* `nnreal.lintegral_mul_le_Lp_mul_Lq`  : nnreal functions.
 
 ### Minkowski's inequality
 
@@ -292,6 +299,15 @@ theorem young_inequality (a b : ℝ≥0) {p q : ℝ≥0} (hp : 1 < p) (hpq : 1 /
   a * b ≤ a^(p:ℝ) / p + b^(q:ℝ) / q :=
 real.young_inequality_of_nonneg a.coe_nonneg b.coe_nonneg ⟨hp, nnreal.coe_eq.2 hpq⟩
 
+/-- Young's inequality, `ℝ≥0` version with real conjugate exponents. -/
+theorem young_inequality_real (a b : ℝ≥0) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
+  a * b ≤ a ^ p / nnreal.of_real p + b ^ q / nnreal.of_real q :=
+begin
+  nth_rewrite 0 ←coe_of_real p hpq.nonneg,
+  nth_rewrite 0 ←coe_of_real q hpq.symm.nonneg,
+  exact young_inequality a b hpq.one_lt_nnreal hpq.inv_add_inv_conj_nnreal,
+end
+
 /-- Hölder inequality: the scalar product of two functions is bounded by the product of their
 `L^p` and `L^q` norms when `p` and `q` are conjugate exponents. Version for sums over finite sets,
 with `ℝ≥0`-valued functions. -/
@@ -444,6 +460,22 @@ end real
 
 namespace ennreal
 
+/-- Young's inequality, `ennreal` version with real conjugate exponents. -/
+theorem young_inequality (a b : ennreal) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
+  a * b ≤ a ^ p / ennreal.of_real p + b ^ q / ennreal.of_real q :=
+begin
+  by_cases h : a = ⊤ ∨ b = ⊤,
+  { refine le_trans le_top (le_of_eq _),
+    repeat {rw ennreal.div_def},
+    cases h; rw h; simp [h, hpq.pos, hpq.symm.pos], },
+  push_neg at h, -- if a ≠ ⊤ and b ≠ ⊤, use the nnreal version: nnreal.young_inequality_real
+  rw [←coe_to_nnreal h.left, ←coe_to_nnreal h.right, ←coe_mul,
+    coe_rpow_of_nonneg _ hpq.nonneg, coe_rpow_of_nonneg _ hpq.symm.nonneg, ennreal.of_real,
+    ennreal.of_real, ←@coe_div (nnreal.of_real p) _ (by simp [hpq.pos]),
+    ←@coe_div (nnreal.of_real q) _ (by simp [hpq.symm.pos]), ←coe_add, coe_le_coe],
+  exact nnreal.young_inequality_real a.to_nnreal b.to_nnreal hpq,
+end
+
 variables (f g : ι → ennreal)  {p q : ℝ}
 
 /-- Hölder inequality: the scalar product of two functions is bounded by the product of their
@@ -497,3 +529,174 @@ begin
 end
 
 end ennreal
+
+section lintegral
+/-!
+### Hölder's inequality for the Lebesgue integral of ennreal and nnreal functions
+
+We prove `∫ (f * g) ∂μ ≤ (∫ f^p ∂μ) ^ (1/p) * (∫ g^q ∂μ) ^ (1/q)` for `p`, `q`
+conjugate real exponents and `α→(e)nnreal` functions in several cases, the first two being useful
+only to prove the more general results:
+* `ennreal.lintegral_mul_le_one_of_lintegral_rpow_eq_one` : ennreal functions for which the
+    integrals on the right are equal to 1,
+* `ennreal.lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_ne_top` : ennreal functions for which the
+    integrals on the right are neither ⊤ nor 0,
+* `ennreal.lintegral_mul_le_Lp_mul_Lq` : ennreal functions,
+* `nnreal.lintegral_mul_le_Lp_mul_Lq`  : nnreal functions.
+-/
+
+open measure_theory
+variables {α : Type*} [measurable_space α] {μ : measure α}
+
+namespace ennreal
+
+lemma lintegral_mul_le_one_of_lintegral_rpow_eq_one {p q : ℝ} (hpq : p.is_conjugate_exponent q)
+  {f g : α → ennreal} (hf : measurable f) (hg : measurable g)
+  (hf_norm : ∫⁻ a, (f a)^p ∂μ = 1) (hg_norm : ∫⁻ a, (g a)^q ∂μ = 1) :
+  ∫⁻ a, (f * g) a ∂μ ≤ 1 :=
+begin
+  calc ∫⁻ (a : α), ((f * g) a) ∂μ
+      ≤ ∫⁻ (a : α), ((f a)^p / ennreal.of_real p + (g a)^q / ennreal.of_real q) ∂μ :
+    lintegral_mono (λ a, young_inequality (f a) (g a) hpq)
+  ... = 1 :
+  begin
+    simp_rw [div_def],
+    rw lintegral_add,
+    { rw [lintegral_mul_const _ hf.ennreal_rpow_const, lintegral_mul_const _ hg.ennreal_rpow_const,
+        hf_norm, hg_norm, ←ennreal.div_def, ←ennreal.div_def, hpq.inv_add_inv_conj_ennreal], },
+    { exact hf.ennreal_rpow_const.ennreal_mul measurable_const, },
+    { exact hg.ennreal_rpow_const.ennreal_mul measurable_const, },
+  end
+end
+
+/-- Function multiplied by the inverse of its p-seminorm `(∫⁻ f^p ∂μ) ^ 1/p`-/
+def fun_mul_inv_snorm (f : α → ennreal) (p : ℝ) (μ : measure α) : α → ennreal :=
+λ a, (f a) * ((∫⁻ c, (f c) ^ p ∂μ) ^ (1 / p))⁻¹
+
+lemma fun_eq_fun_mul_inv_snorm_mul_snorm {p : ℝ} (f : α → ennreal)
+  (hf_nonzero : ∫⁻ a, (f a) ^ p ∂μ ≠ 0) (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) {a : α} :
+  f a = (fun_mul_inv_snorm f p μ a) * (∫⁻ c, (f c)^p ∂μ)^(1/p) :=
+by simp [fun_mul_inv_snorm, mul_assoc, inv_mul_cancel, hf_nonzero, hf_top]
+
+lemma fun_mul_inv_snorm_rpow {p : ℝ} (hp0 : 0 < p) {f : α → ennreal} {a : α} :
+  (fun_mul_inv_snorm f p μ a) ^ p = (f a)^p * (∫⁻ c, (f c) ^ p ∂μ)⁻¹ :=
+begin
+  rw [fun_mul_inv_snorm, mul_rpow_of_nonneg _ _ (le_of_lt hp0)],
+  suffices h_inv_rpow : ((∫⁻ (c : α), f c ^ p ∂μ) ^ (1 / p))⁻¹ ^ p = (∫⁻ (c : α), f c ^ p ∂μ)⁻¹,
+  by rw h_inv_rpow,
+  rw [inv_rpow_of_pos hp0, ←rpow_mul, div_eq_mul_inv, one_mul,
+    _root_.inv_mul_cancel (ne_of_lt hp0).symm, rpow_one],
+end
+
+lemma lintegral_rpow_fun_mul_inv_snorm_eq_one {p : ℝ} (hp0_lt : 0 < p) {f : α → ennreal}
+  (hf : measurable f) (hf_nonzero : ∫⁻ a, (f a)^p ∂μ ≠ 0) (hf_top : ∫⁻ a, (f a)^p ∂μ ≠ ⊤) :
+  ∫⁻ c, (fun_mul_inv_snorm f p μ c)^p ∂μ = 1 :=
+begin
+  simp_rw fun_mul_inv_snorm_rpow hp0_lt,
+  rw [lintegral_mul_const _ hf.ennreal_rpow_const, mul_inv_cancel hf_nonzero hf_top],
+end
+
+/-- Hölder's inequality in case of finite non-zero integrals -/
+lemma lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_ne_top {p q : ℝ} (hpq : p.is_conjugate_exponent q)
+  {f g : α → ennreal} (hf : measurable f) (hg : measurable g)
+  (hf_nontop : ∫⁻ a, (f a)^p ∂μ ≠ ⊤) (hg_nontop : ∫⁻ a, (g a)^q ∂μ ≠ ⊤)
+  (hf_nonzero : ∫⁻ a, (f a)^p ∂μ ≠ 0) (hg_nonzero : ∫⁻ a, (g a)^q ∂μ ≠ 0) :
+  ∫⁻ a, (f * g) a ∂μ ≤ (∫⁻ a, (f a)^p ∂μ)^(1/p) * (∫⁻ a, (g a)^q ∂μ)^(1/q) :=
+begin
+  let npf := (∫⁻ (c : α), (f c) ^ p ∂μ) ^ (1/p),
+  let nqg := (∫⁻ (c : α), (g c) ^ q ∂μ) ^ (1/q),
+  calc ∫⁻ (a : α), (f * g) a ∂μ
+    = ∫⁻ (a : α), ((fun_mul_inv_snorm f p μ * fun_mul_inv_snorm g q μ) a)
+      * (npf * nqg) ∂μ :
+  begin
+    refine lintegral_congr (λ a, _),
+    rw [pi.mul_apply, fun_eq_fun_mul_inv_snorm_mul_snorm f hf_nonzero hf_nontop,
+      fun_eq_fun_mul_inv_snorm_mul_snorm g hg_nonzero hg_nontop, pi.mul_apply],
+    ring,
+  end
+  ... ≤ npf * nqg :
+  begin
+    rw lintegral_mul_const' (npf * nqg) _ (by simp [hf_nontop, hg_nontop, hf_nonzero, hg_nonzero]),
+    nth_rewrite 1 ←one_mul (npf * nqg),
+    refine mul_le_mul _ (le_refl (npf * nqg)),
+    have hf1 := lintegral_rpow_fun_mul_inv_snorm_eq_one hpq.pos hf hf_nonzero hf_nontop,
+    have hg1 := lintegral_rpow_fun_mul_inv_snorm_eq_one hpq.symm.pos hg hg_nonzero hg_nontop,
+    exact lintegral_mul_le_one_of_lintegral_rpow_eq_one hpq (hf.ennreal_mul measurable_const)
+      (hg.ennreal_mul measurable_const) hf1 hg1,
+  end
+end
+
+lemma ae_eq_zero_of_lintegral_rpow_eq_zero {p : ℝ} (hp0_lt : 0 < p) {f : α → ennreal}
+  (hf : measurable f) (hf_zero : ∫⁻ a, (f a)^p ∂μ = 0) :
+  f =ᵐ[μ] 0 :=
+begin
+  rw lintegral_eq_zero_iff hf.ennreal_rpow_const at hf_zero,
+  refine filter.eventually.mp hf_zero (filter.eventually_of_forall (λ x, _)),
+  dsimp only,
+  rw [pi.zero_apply, rpow_eq_zero_iff],
+  intro hx,
+  cases hx,
+  { exact hx.left, },
+  { exfalso,
+    linarith, },
+end
+
+lemma lintegral_mul_eq_zero_of_lintegral_rpow_eq_zero {p : ℝ} (hp0_lt : 0 < p)
+  {f g : α → ennreal} (hf : measurable f) (hf_zero : ∫⁻ a, (f a)^p ∂μ = 0) :
+  ∫⁻ a, (f * g) a ∂μ = 0 :=
+begin
+  rw ←@lintegral_zero_fun α _ μ,
+  refine lintegral_congr_ae _,
+  suffices h_mul_zero : f * g =ᵐ[μ] 0 * g , by rwa zero_mul at h_mul_zero,
+  have hf_eq_zero : f =ᵐ[μ] 0, from ae_eq_zero_of_lintegral_rpow_eq_zero hp0_lt hf hf_zero,
+  exact filter.eventually_eq.mul hf_eq_zero (ae_eq_refl g),
+end
+
+lemma lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_eq_top {p q : ℝ} (hp0_lt : 0 < p) (hq0 : 0 ≤ q)
+  {f g : α → ennreal} (hf_top : ∫⁻ a, (f a)^p ∂μ = ⊤) (hg_nonzero : ∫⁻ a, (g a)^q ∂μ ≠ 0) :
+  ∫⁻ a, (f * g) a ∂μ ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) * (∫⁻ a, (g a)^q ∂μ) ^ (1/q) :=
+begin
+  refine le_trans le_top (le_of_eq _),
+  have hp0_inv_lt : 0 < 1/p, by simp [hp0_lt],
+  rw [hf_top, ennreal.top_rpow_of_pos hp0_inv_lt],
+  simp [hq0, hg_nonzero],
+end
+
+/-- Hölder's inequality for functions `α → ennreal`. The integral of the product of two functions
+is bounded by the product of their `ℒp` and `ℒq` seminorms when `p` and `q` are conjugate
+exponents. -/
+theorem lintegral_mul_le_Lp_mul_Lq (μ : measure α) {p q : ℝ} (hpq : p.is_conjugate_exponent q)
+  {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
+  ∫⁻ a, (f * g) a ∂μ ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) * (∫⁻ a, (g a)^q ∂μ) ^ (1/q) :=
+begin
+  by_cases hf_zero : ∫⁻ a, (f a) ^ p ∂μ = 0,
+  { refine le_trans (le_of_eq _) (zero_le _),
+    exact lintegral_mul_eq_zero_of_lintegral_rpow_eq_zero hpq.pos hf hf_zero, },
+  by_cases hg_zero : ∫⁻ a, (g a) ^ q ∂μ = 0,
+  { refine le_trans (le_of_eq _) (zero_le _),
+    rw mul_comm,
+    exact lintegral_mul_eq_zero_of_lintegral_rpow_eq_zero hpq.symm.pos hg hg_zero, },
+  by_cases hf_top : ∫⁻ a, (f a) ^ p ∂μ = ⊤,
+  { exact lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_eq_top hpq.pos hpq.symm.nonneg hf_top hg_zero, },
+  by_cases hg_top : ∫⁻ a, (g a) ^ q ∂μ = ⊤,
+  { rw [mul_comm, mul_comm ((∫⁻ (a : α), (f a) ^ p ∂μ) ^ (1 / p))],
+    exact lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_eq_top hpq.symm.pos hpq.nonneg hg_top hf_zero, },
+  -- non-⊤ non-zero case
+  exact ennreal.lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_ne_top hpq hf hg hf_top hg_top hf_zero
+    hg_zero,
+end
+
+end ennreal
+
+/-- Hölder's inequality for functions `α → nnreal`. The integral of the product of two functions
+is bounded by the product of their `ℒp` and `ℒq` seminorms when `p` and `q` are conjugate
+exponents. -/
+theorem nnreal.lintegral_mul_le_Lp_mul_Lq {p q : ℝ} (hpq : p.is_conjugate_exponent q)
+  {f g : α → nnreal} (hf : measurable f) (hg : measurable g) :
+  ∫⁻ a, (f * g) a ∂μ ≤ (∫⁻ a, (f a)^p ∂μ)^(1/p) * (∫⁻ a, (g a)^q ∂μ)^(1/q) :=
+begin
+  simp_rw [pi.mul_apply, ennreal.coe_mul],
+  exact ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf.ennreal_coe hg.ennreal_coe,
+end
+
+end lintegral

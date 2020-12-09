@@ -18,23 +18,25 @@ universe u
 variables {α : Type u} [dec : decidable_eq α]
 
 /-- A language is a set of strings over an alphabet. -/
-@[derive [has_union, has_emptyc, has_mem (list α), has_singleton (list α)]]
+@[derive [has_mem (list α), has_singleton (list α), has_insert (list α)]]
 def language (α) := set (list α)
 
 namespace language
 
-instance : inhabited (language α) := ⟨∅⟩
+local attribute [reducible] language
 
-instance : has_zero (language α) := ⟨∅⟩
+instance : has_zero (language α) := ⟨(∅ : set _)⟩
 instance : has_one (language α) := ⟨{[]}⟩
+
+instance : inhabited (language α) := ⟨0⟩
 
 instance : has_add (language α) := ⟨set.union⟩
 instance : has_mul (language α) := ⟨λ l m, (l.prod m).image (λ p, p.1 ++ p.2)⟩
 
-@[simp] lemma zero_def : (0 : language α) = ∅ := rfl
+@[simp] lemma zero_def : (0 : language α) = (∅ : set _) := rfl
 @[simp] lemma one_def : (1 : language α) = {[]} := rfl
 
-@[simp] lemma add_def (l m : language α) : l + m = l ∪ m := rfl
+lemma add_def (l m : language α) : l + m = l ∪ m := rfl
 lemma mul_def (l m : language α) : l * m = (l.prod m).image (λ p, p.1 ++ p.2) := rfl
 
 /-- The star of a language `L` is the set of all strings which can be written by concatenating
@@ -57,8 +59,8 @@ by ext x; simp [mul_def]; tauto {closer := `[subst_vars, simp *]}
 private lemma left_distrib (l m n : language α) : l * (m + n) = (l * m) + (l * n) :=
 begin
   ext x,
-  simp only [mul_def, set.mem_image, add_def, set.mem_prod, exists_and_distrib_left, set.mem_image2,
-    set.image_prod, set.mem_union_eq, set.prod_union, prod.exists],
+  simp only [mul_def, add_def, exists_and_distrib_left, set.mem_image2, set.image_prod,
+  set.mem_image, set.mem_prod, set.mem_union_eq, set.prod_union, prod.exists],
   split,
   { rintro ⟨ y, z, (⟨ hy, hz ⟩ | ⟨ hy, hz ⟩), hx ⟩,
     { left,
@@ -94,11 +96,11 @@ end
 
 instance : semiring (language α) :=
 { add := (+),
-  add_assoc := by simp [set.union_assoc],
+  add_assoc := by simp [add_def, set.union_assoc],
   zero := 0,
-  zero_add := by simp,
-  add_zero := by simp,
-  add_comm := by simp [set.union_comm],
+  zero_add := by simp [add_def],
+  add_zero := by simp [add_def],
+  add_comm := by simp [add_def, set.union_comm],
   mul := (*),
   mul_assoc := mul_assoc,
   zero_mul := by simp [mul_def],
@@ -109,6 +111,6 @@ instance : semiring (language α) :=
   left_distrib := left_distrib,
   right_distrib := right_distrib }
 
-@[simp] lemma add_self (l : language α) : l + l = l := by finish
+@[simp] lemma add_self (l : language α) : l + l = l := by finish [add_def]
 
 end language

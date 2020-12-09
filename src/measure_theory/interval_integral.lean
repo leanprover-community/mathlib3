@@ -193,11 +193,11 @@ end interval_integrable
 
 section
 
-variables [borel_space E] {ν : measure ℝ} [locally_finite_measure ν]
+variables {μ : measure ℝ} [locally_finite_measure μ]
 
 lemma continuous_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : continuous_on u (interval a b))
   (hum : measurable u) :
-  interval_integrable u ν a b :=
+  interval_integrable u μ a b :=
 begin
   split,
   all_goals
@@ -209,8 +209,8 @@ end
 
 /-- A continuous function on `ℝ` is `interval_integrable` with respect to any locally finite measure
 `ν` on ℝ. -/
-lemma continuous.interval_integrable {u : ℝ → E} (hu : continuous u) (a b : ℝ) :
-  interval_integrable u ν a b :=
+lemma continuous.interval_integrable [borel_space E] {u : ℝ → E} (hu : continuous u) (a b : ℝ) :
+  interval_integrable u μ a b :=
 hu.continuous_on.interval_integrable hu.measurable
 
 end

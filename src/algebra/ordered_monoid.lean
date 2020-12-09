@@ -902,12 +902,15 @@ is an additive commutative monoid with a decidable linear order
 in which addition is cancellative and strictly monotone. -/
 @[protect_proj] class linear_ordered_cancel_add_comm_monoid (α : Type u)
   extends ordered_cancel_add_comm_monoid α, linear_order α
-  
+
 /-- A decidable linearly ordered cancellative commutative monoid
 is a commutative monoid with a linear order
 in which multiplication is cancellative and strictly monotone. -/
 @[protect_proj, to_additive] class linear_ordered_cancel_comm_monoid (α : Type u)
   extends ordered_cancel_comm_monoid α, linear_order α
+
+-- I think this might be needed because of the `protect_proj`.
+attribute [to_additive] linear_ordered_cancel_comm_monoid.to_ordered_cancel_comm_monoid
 
 section linear_ordered_cancel_comm_monoid
 

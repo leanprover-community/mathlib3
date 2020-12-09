@@ -646,6 +646,11 @@ lemma strict_mono.comp_strict_mono_incr_on [preorder α] [preorder β] [preorder
   strict_mono_incr_on (g ∘ f) s :=
 λ x hx y hy hxy, hg $ hf hx hy hxy
 
+lemma strict_mono.cod_restrict [preorder α] [preorder β] {f : α → β} (hf : strict_mono f)
+  {s : set β} (hs : ∀ x, f x ∈ s) :
+  strict_mono (set.cod_restrict f s hs) :=
+hf
+
 namespace function
 
 open set

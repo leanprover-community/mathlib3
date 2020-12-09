@@ -105,10 +105,10 @@ def to_NFA (M : DFA α σ') : NFA α σ' :=
   start := {M.start},
   accept := M.accept }
 
-lemma to_NFA_eval_from_match (M : DFA α σ) (start : σ) (s : list α) :
-  {M.eval_from start s} = M.to_NFA.eval_from {start} s :=
+@[simp] lemma to_NFA_eval_from_match (M : DFA α σ) (start : σ) (s : list α) :
+  M.to_NFA.eval_from {start} s = {M.eval_from start s} :=
 begin
-  change {list.foldl M.step start s} = list.foldl M.to_NFA.step_set {start} s,
+  change list.foldl M.to_NFA.step_set {start} s = {list.foldl M.step start s},
   induction s with a s ih generalizing start,
   { tauto },
   { rw [list.foldl, list.foldl],
@@ -123,7 +123,7 @@ lemma to_NFA_correct (M : DFA α σ) (x : list α) :
   M.accepts x ↔ M.to_NFA.accepts x :=
 begin
   change _ ↔ ∃ S H, S ∈ M.to_NFA.eval_from {M.start} x,
-  rw ←to_NFA_eval_from_match,
+  rw to_NFA_eval_from_match,
   split,
   { intro h,
     use M.eval x,

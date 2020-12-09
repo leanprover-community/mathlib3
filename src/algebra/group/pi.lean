@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import data.pi
-import algebra.ordered_group
-import algebra.group_with_zero
 import tactic.pi_instances
+import algebra.group.defs
+import algebra.group.hom
 /-!
 # Pi instances for groups and monoids
 
-This file defines instances for group, monoid, semigroup and related structures on Pi Types
+This file defines instances for group, monoid, semigroup and related structures on Pi types.
 -/
 
 universes u v w
@@ -19,19 +19,6 @@ variable {f : I → Type v} -- The family of types already equipped with instanc
 variables (x y : Π i, f i) (i : I)
 
 namespace pi
-
-@[to_additive] instance has_one [∀ i, has_one $ f i] : has_one (Π i : I, f i) := ⟨λ _, 1⟩
-@[simp, to_additive] lemma one_apply [∀ i, has_one $ f i] : (1 : Π i, f i) i = 1 := rfl
-
-@[to_additive]
-instance has_mul [∀ i, has_mul $ f i] : has_mul (Π i : I, f i) := ⟨λ f g i, f i * g i⟩
-@[simp, to_additive] lemma mul_apply [∀ i, has_mul $ f i] : (x * y) i = x i * y i := rfl
-
-@[to_additive] instance has_inv [∀ i, has_inv $ f i] : has_inv (Π i : I, f i) := ⟨λ f i, (f i)⁻¹⟩
-@[simp, to_additive] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
-
-instance has_div [Π i, has_div $ f i] : has_div (Π i : I, f i) := ⟨λ f g i, f i / g i⟩
-@[simp] lemma div_apply [Π i, has_div $ f i] : (x / y) i = x i / y i := rfl
 
 @[to_additive]
 instance semigroup [∀ i, semigroup $ f i] : semigroup (Π i : I, f i) :=
@@ -70,19 +57,6 @@ by refine_struct { mul := (*) }; tactic.pi_instance_derive_field
 instance right_cancel_semigroup [∀ i, right_cancel_semigroup $ f i] :
   right_cancel_semigroup (Π i : I, f i) :=
 by refine_struct { mul := (*) }; tactic.pi_instance_derive_field
-
-@[to_additive]
-instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] :
-  ordered_cancel_comm_monoid (Π i : I, f i) :=
-by refine_struct { mul := (*), one := (1 : Π i, f i), le := (≤), lt := (<), .. pi.partial_order };
-  tactic.pi_instance_derive_field
-
-@[to_additive]
-instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
-  ordered_comm_group (Π i : I, f i) :=
-{ mul_le_mul_left := λ x y hxy c i, mul_le_mul_left' (hxy i) _,
-  ..pi.comm_group,
-  ..pi.partial_order }
 
 instance mul_zero_class [∀ i, mul_zero_class $ f i] :
   mul_zero_class (Π i : I, f i) :=

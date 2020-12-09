@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import algebra.big_operators.intervals
 import topology.instances.real
+import topology.algebra.module
 import data.indicator_function
 import data.equiv.encodable.lattice
 import order.filter.at_top_bot
@@ -603,6 +604,24 @@ lemma tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b, f b) * a
 end tsum
 
 end topological_semiring
+
+section topological_semimodule
+variables {R : Type*}
+[semiring R] [topological_space R]
+[topological_space α] [add_comm_monoid α]
+[semimodule R α] [topological_semimodule R α]
+{f : β → α}
+
+lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
+hf.map (const_smul_hom α r) (continuous_const.smul continuous_id)
+
+lemma summable.smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
+hf.has_sum.smul.summable
+
+lemma tsum_smul [t2_space α] {r : R} (hf : summable f) : (∑' z, r • f z) = r • (∑' z, f z) :=
+hf.has_sum.smul.tsum_eq
+
+end topological_semimodule
 
 section division_ring
 

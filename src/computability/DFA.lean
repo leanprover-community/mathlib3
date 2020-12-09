@@ -17,10 +17,10 @@ universes u v
 
 /-- A DFA is a set of states (`state`), a transition function from state to state labelled by the
   alphabet (`step`), a starting state (`start`) and a set of acceptance states (`accept`). -/
-structure DFA (alphabet : Type u) (state : Type v) :=
-(step : state → alphabet → state)
-(start : state)
-(accept : finset state)
+structure DFA (α : Type u) (σ : Type v) :=
+(step : σ → α → σ)
+(start : σ)
+(accept : finset σ)
 
 namespace DFA
 

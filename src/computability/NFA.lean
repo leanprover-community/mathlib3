@@ -22,10 +22,10 @@ universes u v
   alphabet (`step`), a starting state (`start`) and a set of acceptance states (`accept`).
   Note the transition function sends a state to a `finset` of states. These are the states that it
   may be sent to. -/
-structure NFA (alphabet : Type u) (state : Type v) :=
-(step : state → alphabet → finset state)
-(start : finset state)
-(accept : finset state)
+structure NFA (α : Type u) (σ : Type v) :=
+(step : σ → α → finset σ)
+(start : finset σ)
+(accept : finset σ)
 
 variables {α : Type u} {σ σ' σ₁ σ₂ σ₃ : Type v} (M : NFA α σ)
 variables [decidable_eq σ] [decidable_eq σ₁] [decidable_eq σ₂] [decidable_eq σ₃]

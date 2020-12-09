@@ -952,14 +952,10 @@ lemma cos_sq_le_one : cos x ^ 2 ≤ 1 :=
 by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_left (pow_two_nonneg _)
 
 lemma abs_sin_le_one : abs' (sin x) ≤ 1 :=
-(mul_self_le_mul_self_iff (_root_.abs_nonneg (sin x)) (by exact zero_le_one)).2 $
-by rw [← _root_.abs_mul, abs_mul_self, mul_one, ← pow_two];
-   apply sin_sq_le_one
+abs_le_one_iff_mul_self_le_one.2 $ by simp only [← pow_two, sin_sq_le_one]
 
 lemma abs_cos_le_one : abs' (cos x) ≤ 1 :=
-(mul_self_le_mul_self_iff (_root_.abs_nonneg (cos x)) (by exact zero_le_one)).2 $
-by rw [← _root_.abs_mul, abs_mul_self, mul_one, ← pow_two];
-   apply cos_sq_le_one
+abs_le_one_iff_mul_self_le_one.2 $ by simp only [← pow_two, cos_sq_le_one]
 
 lemma sin_le_one : sin x ≤ 1 :=
 (abs_le.1 (abs_sin_le_one _)).2
@@ -1101,11 +1097,13 @@ lemma exp_strict_mono : strict_mono exp :=
 
 @[mono] lemma exp_monotone : ∀ {x y : ℝ}, x ≤ y → exp x ≤ exp y := exp_strict_mono.monotone
 
-lemma exp_lt_exp {x y : ℝ} : exp x < exp y ↔ x < y := exp_strict_mono.lt_iff_lt
+@[simp] lemma exp_lt_exp {x y : ℝ} : exp x < exp y ↔ x < y := exp_strict_mono.lt_iff_lt
 
-lemma exp_le_exp {x y : ℝ} : exp x ≤ exp y ↔ x ≤ y := exp_strict_mono.le_iff_le
+@[simp] lemma exp_le_exp {x y : ℝ} : exp x ≤ exp y ↔ x ≤ y := exp_strict_mono.le_iff_le
 
 lemma exp_injective : function.injective exp := exp_strict_mono.injective
+
+@[simp] lemma exp_eq_exp {x y : ℝ} : exp x = exp y ↔ x = y := exp_injective.eq_iff
 
 @[simp] lemma exp_eq_one_iff : exp x = 1 ↔ x = 0 :=
 by rw [← exp_zero, exp_injective.eq_iff]

@@ -127,9 +127,7 @@ ext $ assume b, rfl
 
 /-- Restrict domain and codomain of an endomorphism. -/
 def restrict (f : M →ₗ[R] M) {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) : p →ₗ[R] p :=
-{ to_fun := λ x, ⟨f x, hf x.1 x.2⟩,
-  map_add' := begin intros, apply set_coe.ext, simp end,
-  map_smul' := begin intros, apply set_coe.ext, simp end }
+(f.dom_restrict p).cod_restrict p $ submodule.forall.2 hf
 
 lemma restrict_apply
   {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) (x : p) :
@@ -2519,8 +2517,8 @@ lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
   disjoint (⨆i∈I, range (std_basis R φ i)) (⨆i∈J, range (std_basis R φ i)) :=
 begin
   refine disjoint.mono
-    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl_right I)
-    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl_right J) _,
+    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right)
+    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right) _,
   simp only [disjoint, submodule.le_def', mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
     funext_iff],
   rintros b ⟨hI, hJ⟩ i,

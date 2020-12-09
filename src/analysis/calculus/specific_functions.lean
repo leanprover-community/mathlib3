@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.extend_deriv
 import analysis.calculus.iterated_deriv
 import analysis.special_functions.exp_log
+import topology.algebra.polynomial
 
 /-!
 # Smoothness of specific functions

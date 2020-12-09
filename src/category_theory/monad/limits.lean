@@ -140,7 +140,7 @@ def new_cocone : cocone ((D ⋙ forget T) ⋙ T) :=
 { X := c.X,
   ι := γ ≫ c.ι }
 
-variable [preserves_colimits_of_shape J T]
+variables [preserves_colimit (D ⋙ forget T) T]
 
 /--
 (Impl)
@@ -156,6 +156,8 @@ def lambda : (functor.map_cocone T c).X ⟶ c.X :=
 lemma commuting (j : J) :
 T.map (c.ι.app j) ≫ lambda c t = (D.obj j).a ≫ c.ι.app j :=
 is_colimit.fac (preserves_colimit.preserves t) (new_cocone c) j
+
+variables [preserves_colimit ((D ⋙ forget T) ⋙ T) T]
 
 /--
 (Impl)
@@ -217,21 +219,31 @@ end forget_creates_colimits
 open forget_creates_colimits
 
 -- TODO: the converse of this is true as well
--- TODO: generalise to monadic functors, as for creating limits
 /--
 The forgetful functor from the Eilenberg-Moore category for a monad creates any colimit
 which the monad itself preserves.
 -/
-instance forget_creates_colimits [preserves_colimits_of_shape J T] : creates_colimits_of_shape J (forget T) :=
-{ creates_colimit := λ D,
-  creates_colimit_of_reflects_iso $ λ c t,
-  { lifted_cocone :=
-    { X := cocone_point c t,
-      ι :=
-      { app := λ j, { f := c.ι.app j, h' := commuting _ _ _ },
-        naturality' := λ A B f, by { ext1, dsimp, erw [comp_id, c.w] } } },
-    valid_lift := cocones.ext (iso.refl _) (by tidy),
-    makes_colimit := lifted_cocone_is_colimit _ _ } }
+instance forget_creates_colimit (D : J ⥤ algebra T)
+  [preserves_colimit (D ⋙ forget T) T] [preserves_colimit ((D ⋙ forget T) ⋙ T) T] :
+  creates_colimit D (forget T) :=
+creates_colimit_of_reflects_iso $ λ c t,
+{ lifted_cocone :=
+  { X := cocone_point c t,
+    ι :=
+    { app := λ j, { f := c.ι.app j, h' := commuting _ _ _ },
+      naturality' := λ A B f, by { ext1, dsimp, erw [comp_id, c.w] } } },
+  valid_lift := cocones.ext (iso.refl _) (by tidy),
+  makes_colimit := lifted_cocone_is_colimit _ _ }
+
+instance forget_creates_colimits_of_shape
+  [preserves_colimits_of_shape J T] :
+  creates_colimits_of_shape J (forget T) :=
+{ creates_colimit := λ K, by apply_instance }
+
+instance forget_creates_colimits
+  [preserves_colimits T] :
+  creates_colimits (forget T) :=
+{ creates_colimits_of_shape := λ J 𝒥₁, by apply_instance }
 
 /--
 For `D : J ⥤ algebra T`, `D ⋙ forget T` has a colimit, then `D` has a colimit provided colimits
@@ -242,10 +254,9 @@ lemma forget_creates_colimits_of_monad_preserves
 has_colimit D :=
 has_colimit_of_created D (forget T)
 
-
 end monad
 
-variables {C : Type u₁} [category.{v₁} C] {D : Type u₁} [category.{v₁} D]
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D]
 variables {J : Type v₁} [small_category J]
 
 instance comp_comparison_forget_has_limit
@@ -262,6 +273,26 @@ monad.has_limit_of_comp_forget_has_limit (F ⋙ monad.comparison R)
 def monadic_creates_limits (R : D ⥤ C) [monadic_right_adjoint R] :
   creates_limits R :=
 creates_limits_of_nat_iso (monad.comparison_forget R)
+
+/--
+The forgetful functor from the Eilenberg-Moore category for a monad creates any colimit
+which the monad itself preserves.
+-/
+def monadic_creates_colimit_of_preserves_colimit (R : D ⥤ C) (K : J ⥤ D)
+  [monadic_right_adjoint R]
+  [preserves_colimit (K ⋙ R) (left_adjoint R ⋙ R)]
+  [preserves_colimit ((K ⋙ R) ⋙ left_adjoint R ⋙ R) (left_adjoint R ⋙ R)] :
+  creates_colimit K R :=
+begin
+  apply creates_colimit_of_nat_iso (monad.comparison_forget R),
+  apply category_theory.comp_creates_colimit _ _,
+  apply_instance,
+  let i : ((K ⋙ monad.comparison R) ⋙ monad.forget (left_adjoint R ⋙ R)) ≅ K ⋙ R,
+    apply functor.associator _ _ _ ≪≫ iso_whisker_left K (monad.comparison_forget R),
+  apply category_theory.monad.forget_creates_colimit _,
+  refine preserves_colimit_of_iso_diagram _ i.symm,
+  refine preserves_colimit_of_iso_diagram _ (iso_whisker_right i (left_adjoint R ⋙ R)).symm,
+end
 
 /-- A monadic functor creates any colimits of shapes it preserves. -/
 def monadic_creates_colimits_of_shape_of_preserves_colimits_of_shape (R : D ⥤ C)

@@ -48,6 +48,35 @@ lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_
 
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.symm_apply_eq
 
+/-! Lemmas about `equiv.perm.sum_congr` re-expressed via the group structure. -/
+
+@[simp] lemma sum_congr_mul {α β : Type*} (e : perm α) (f : perm β) (g : perm α) (h : perm β) :
+  sum_congr e f * sum_congr g h = sum_congr (e * g) (f * h) :=
+sum_congr_trans g h e f
+
+@[simp] lemma sum_congr_inv {α β : Type*} (e : perm α) (f : perm β) :
+  (sum_congr e f)⁻¹ = sum_congr e⁻¹ f⁻¹ :=
+sum_congr_symm e f
+
+@[simp] lemma sum_congr_one {α β : Type*} :
+  sum_congr (1 : perm α) (1 : perm β) = 1 :=
+sum_congr_refl
+
+/-! Lemmas about `equiv.perm.sigma_congr_right` re-expressed via the group structure. -/
+
+@[simp] lemma sigma_congr_right_mul {α} {β : α → Type*}
+  (F : Π a, perm (β a)) (G : Π a, perm (β a)) :
+  sigma_congr_right F * sigma_congr_right G = sigma_congr_right (λ a, F a * G a) :=
+sigma_congr_right_trans G F
+
+@[simp] lemma sigma_congr_right_inv {α} {β : α → Type*} (F : Π a, perm (β a)) :
+  (sigma_congr_right F)⁻¹ = sigma_congr_right (λ a, (F a)⁻¹) :=
+sigma_congr_right_symm F
+
+@[simp] lemma sigma_congr_right_one {α} {β : α → Type*} :
+  (sigma_congr_right (λ a, (1 : equiv.perm $ β a))) = 1 :=
+sigma_congr_right_refl
+
 end perm
 
 section swap

@@ -465,7 +465,7 @@ l :: permutations_aux l []
 
 end permutations
 
-/-- `erase p l` removes all elements of `l` satisfying the predicate `p` -/
+/-- `erasep p l` removes the first element of `l` satisfying the predicate `p`. -/
 def erasep (p : α → Prop) [decidable_pred p] : list α → list α
 | []     := []
 | (a::l) := if p a then l else a :: erasep l

@@ -23,42 +23,36 @@ namespace control
 open control
 open control.profunctor
 
--- def optic (P : Type → Type → Type) (A : Type) (B : Type) (S : Type) (T : Type) :=
--- P A B → P S T
-
--- @[reducible]
--- def optic' (P : Type → Type → Type) (A S : Type) : Type := optic P A A S S
-
+/-- A 'profunctor class'. For example `strong`, `affine` -/
 def Pclass := (Type → Type → Type) → Type 1
 
+/-- A general profunctor optic. -/
 def optic (π : Pclass) (A B S T : Type) := ∀ ⦃P⦄ [c : π P], P A B → P S T
 
 namespace optic
 
-section defs
+def iso                := optic profunctor
 
-  def iso         := optic profunctor
+def lens               := optic strong
+def lens' (A B)        := lens A A B B
 
-  def lens        := optic strong
-  -- def lens'       := lens A A B B
+def colens             := optic costrong
 
-  def colens      := optic costrong
+def prism              := optic choice
+def prism' (A B)       := prism A A B B
 
-  def prism       := optic choice
-  -- def prism'      := prism A A B B
+/-- Also known as an affine traversal or a traversal0. -/
+def affinal            := optic affine
+def affinal' (A B)     := affinal A A B B
 
-  def affinal     := optic affine
-  -- def traversal0' := traversal0 A A B B
-  def traversal   := optic traversing
+def traversal          := optic traversing
+def traversal' (A B)   := traversal A A B B
 
-  def setter      := optic mapping
-  -- def setter'     := setter A A B B
+def setter             := optic mapping
+def setter' (A B)      := setter A A B B
 
-  def grate       := optic closed
-  def grate' (A B):= grate A A B B
-
-  -- def fold        := ∀ ⦃P⦄ [affine P] [traversing P] [coerce_r P], optic' P A S
-end defs
+def grate              := optic closed
+def grate' (A B)       := grate A A B B
 
 variables {S T A B C D X Y : Type}
 variables {P : Type → Type → Type}
@@ -191,6 +185,8 @@ class meet_triple (π ρ σ : Pclass) :=
 def compose {π ρ σ : Pclass} [t : meet_triple π ρ σ] :  optic ρ C D X Y → optic π A B C D → optic σ A B X Y
 | o2 o1 P c p := @o2 P (meet_triple.snd π c) $ @o1 P (meet_triple.fst ρ c) $ p
 
+infixl `□`: 100 := compose
+
 instance mt_self {π} : meet_triple π π π := ⟨λ P, id,λ P, id⟩
 
 instance mt_lp : meet_triple strong choice affine :=
@@ -215,10 +211,19 @@ def the : prism A B (option A) (option B) :=
 prism.mk (λ s, option.cases_on s (sum.inl none) (sum.inr)) (some)
 
 def does_it_compose : affinal A B (C × option A) (C × option B) :=
-compose snd the
+snd □ the
 
 def does_it_compose2 : lens A B (C × D × A) (C × D × B) :=
-compose snd snd
+snd □ snd
+
+def never : prism empty empty A A := prism.mk (sum.inl) (λ x, by cases x)
+
+def inl : prism A B (A ⊕ C) (B ⊕ C) :=
+begin intros P st x, unfreezingI {apply left, apply x} end
+def inr : prism A B (C ⊕ A) (C ⊕ B) :=
+begin intros P st x, unfreezingI {apply right, apply x} end
+
+
 
 end optic
 end control

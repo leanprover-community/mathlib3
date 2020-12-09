@@ -9,15 +9,16 @@ open_locale big_operators
 
 section misc_lemmas
 
+variables {E : Type*} [measurable_space E] [normed_group E] [borel_space E]
+variables {μ : measure_theory.measure ℝ} [measure_theory.locally_finite_measure μ]
 /-! Miscellaneous lemmas, find homes elsewhere. -/
 
-lemma continuous.interval_integrable {u : ℝ → ℝ} (hu : continuous u) (a b : ℝ) :
-  interval_integrable u measure_theory.measure_space.volume a b :=
+lemma continuous.interval_integrable {u : ℝ → E} (hu : continuous u) (a b : ℝ) :
+  interval_integrable u μ a b :=
 begin
   split;
   { refine measure_theory.integrable_on.mono_set _ Ioc_subset_Icc_self,
-    apply hu.integrable_on_compact compact_Icc,
-    exact real.locally_finite_volume },
+    exact hu.integrable_on_compact compact_Icc },
 end
 
 end misc_lemmas
@@ -156,7 +157,7 @@ begin
   linarith
 end
 
-def foo'' (α : Type) : equiv ((fin 2) → α) (α × α) :=
+def foo'' {α : Type} : equiv ((fin 2) → α) (α × α) :=
 { to_fun := λ f, ⟨f 0, f 1⟩,
   inv_fun := λ p i, if i = 0 then p.fst else p.snd,
   left_inv := begin
@@ -171,7 +172,7 @@ def foo'' (α : Type) : equiv ((fin 2) → α) (α × α) :=
 
 def foo' (𝕜 : Type) [ring 𝕜] (α : Type) [add_comm_group α] [module 𝕜 α] :
   linear_equiv 𝕜 ((fin 2) → α) (α × α) :=
-(foo'' α).to_linear_equiv (begin
+foo''.to_linear_equiv (begin
   split,
   { intros x y,
     simp [foo''] },
@@ -183,14 +184,15 @@ end prod_eq_pi
 
 section box_partition
 
+def rectangle' {n : ℕ} (a b : fin n → ℝ) : set (fin n → ℝ) := λ x, ∀ i, x i ∈ Ioc (a i) (b i)
+
 /-! A hyperplane divides a box in `fin n → ℝ` into smaller boxes. -/
 
-lemma covers (n : ℕ) (s : set (fin n → ℝ)) ⦃I : s.subinterval⦄
-  ⦃a : fin n → ℝ⦄ (i : fin n)
-  (ha : a ∈ s) :
-  Ioc I.left I.right =
-    Ioc I.left (update I.right i (a i)) ∪
-      Ioc (update I.left i (a i)) I.right :=
+lemma covers (n : ℕ)  (i : fin n)
+  (p q a : fin n → ℝ) :
+  rectangle' p q =
+    rectangle' p (update q i (a i)) ∪
+      rectangle' (update p i (a i)) q :=
 begin
 --  rw Ioc,
   ext,
@@ -198,14 +200,16 @@ begin
   split,
   {
     intros h,
-    rw Ioc at h,
+    -- rw Ioc at h,
     -- either x i < a i or a i <= x i
-    by_cases ineq : x i <= a i,
+    by_cases ineq : x i ≤ a i,
     { -- case bottom half
       left,
-      split,
-      exact h.1,
+      simp only [rectangle'],
       intros j,
+      split,
+      { exact (h j).1 },
+      -- intros j,
       by_cases ji : j = i,
       { -- case j=i
         convert ineq,
@@ -214,7 +218,7 @@ begin
         simp,
       },
       { -- case j!= i
-        convert h.2 j,
+        convert (h j).2,
         convert dif_neg ji,
       },
     },
@@ -237,20 +241,18 @@ begin
   },
 end
 
-lemma is_disjoint (n : ℕ) (s : set (fin n → ℝ)) ⦃I : s.subinterval⦄
-  ⦃a : fin n → ℝ⦄ (i : fin n)
-  --(ha : a ∈ s) :
-  (ha : I.left i < a i ∧ a i ≤ I.right i) :
-  disjoint (Ioc I.left (update I.right i (a i)))
-    (Ioc (update I.left i (a i)) I.right) :=
+lemma is_disjoint (n : ℕ) (i : fin n)
+  (p q a : fin n → ℝ) :
+  disjoint (rectangle' p (update q i (a i)))
+    (rectangle' (update p i (a i)) q) :=
 begin
   rw disjoint,
   intros x h,
   simp,
   have xiLai : x i ≤  a i,
   {
-    convert h.1.2 i,
-    simp,
+    have h := h.1,
+    simpa using (h i).2,
   },
 --  have xiGai : a i <  x i,
 --  {
@@ -297,9 +299,31 @@ variables (u : (fin 2 → ℝ) → ℝ)
 def rectangle (a b : fin 2 → ℝ) : set (ℝ × ℝ) := (Ioc (a 0) (b 0)).prod (Ioc (a 1) (b 1))
 
 lemma rectangle_eq (a b : fin 2 → ℝ)  :
-  (foo' ℝ ℝ).symm ⁻¹' (Ioc a b) = rectangle a b :=
+  (foo' ℝ ℝ).symm ⁻¹' (rectangle' a b) = rectangle a b :=
 begin
-  sorry
+  ext,
+  split,
+  { intros h,
+    exact ⟨h 0, h 1⟩ },
+  intros h i,
+  by_cases hi : 0 < i,
+  { have : i = 1,
+    { ext,
+      have := i.2,
+      have : 0 < i.val := hi,
+      have : i.val = 1 := by linarith,
+      exact this },
+    rw this,
+    exact h.2 },
+  { have : i = 0,
+    { ext,
+      push_neg at hi,
+      have : 0 ≤ i.val := zero_le i.val,
+      have : i.val ≤ 0 := hi,
+      have : i.val = 0 := by linarith,
+      exact this },
+    rw this,
+    exact h.1 }
 end
 
 lemma is_measurable_rectangle (a b : fin 2 → ℝ) : is_measurable (rectangle a b) :=
@@ -342,16 +366,11 @@ begin
             rectangle (update I.left i (a i)) I.right),
     { rw [← rectangle_eq, ← rectangle_eq, ← rectangle_eq],
       rw ← preimage_union,
-      congr,
-      apply covers 2 univ,
-      simp },
+      rw covers },
     rw this },
   { rw [← rectangle_eq, ← rectangle_eq],
     apply disjoint.preimage,
-    apply is_disjoint,
-    --simp
-    sorry,
-    },
+    apply is_disjoint },
   { exact is_measurable_rectangle _ _ },
   { exact is_measurable_rectangle _ _ },
   { exact integrable_restrict _ _ _ _ hu },
@@ -381,10 +400,6 @@ variables (P Q  : (fin 2 → ℝ) →  ℝ) (hP : continuous P) (hQ : continuous
 U=(P,Q)
 
 -/
-
-def ex  (i : fin 2 ): (ℝ ):= if i = 0 then 1  else 0
-
-def ey (i : fin 2 ): (ℝ ):= if i = 0 then 0  else 1
 
 def divergence : (fin 2 → ℝ ) → ℝ := fderiv ℝ P ex - fderiv ℝ Q ey
 

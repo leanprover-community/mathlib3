@@ -68,7 +68,7 @@ variables [has_binary_product (G.obj X) (G.obj Y)]
 If the product comparison map for `G` at `(X,Y)` is an isomorphism, then `G` preserves the
 pair of `(X,Y)`.
 -/
-def of_iso_comparison [i : is_iso (prod_comparison G X Y)] :
+def preserves_pair.of_iso_comparison [i : is_iso (prod_comparison G X Y)] :
   preserves_limit (pair X Y) G :=
 begin
   apply preserves_limit_of_preserves_limit_cone (prod_is_prod X Y),

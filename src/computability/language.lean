@@ -9,6 +9,8 @@ import data.finset.basic
 # Languages
 This file contains the definition and operations on formal languages over an alphabet. Note strings
 are implemented as lists over the alphabet.
+The operations in this file define a Kleene algebra (https://en.wikipedia.org/wiki/Kleene_algebra)
+over the languages.
 -/
 
 universe u

@@ -470,7 +470,7 @@ lemma continuous.integrable_of_compact_closure_support
   (hfc : is_compact (closure $ support f)) :
   integrable f μ :=
 begin
-  rw [← indicator_of_support_subset (@subset_closure _ _ (support f)),
+  rw [← indicator_eq_self.2 (@subset_closure _ _ (support f)),
     integrable_indicator_iff hf.measurable is_closed_closure.is_measurable],
   exact hf.integrable_on_compact hfc
 end

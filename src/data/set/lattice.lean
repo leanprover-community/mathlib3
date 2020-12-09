@@ -388,6 +388,10 @@ theorem bUnion_inter (s : set α) (t : α → set β) (u : set β) :
   (⋃ i ∈ s, t i) ∩ u = (⋃ i ∈ s, t i ∩ u) :=
 by simp [@inter_comm _ _ u, inter_bUnion]
 
+lemma compl_singleton_eq_bUnion_singleton {α : Type*} (x : α) :
+  ({x} : set α)ᶜ = ⋃ (y : α) (hy : y ≠ x), {y} :=
+by { ext y, simp only [exists_prop, mem_Union, mem_singleton_iff, exists_eq_right', mem_compl_eq]}
+
 /-- Intersection of a set of sets. -/
 @[reducible] def sInter (S : set (set α)) : set α := Inf S
 

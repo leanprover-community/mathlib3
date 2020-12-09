@@ -61,9 +61,6 @@ def dart_equiv_sigma : G.dart ≃ Σ v, G.neighbor_set v :=
 instance dart.fintype [fintype V] [decidable_rel G.adj] : fintype G.dart :=
 fintype.of_equiv _ G.dart_equiv_sigma.symm
 
-instance dart.inhabited [inhabited V] [inhabited (G.neighbor_set (default _))] :
-  inhabited G.dart := ⟨G.dart_equiv_sigma.symm ⟨default _, default _⟩⟩
-
 variables {G}
 
 /-- The edge associated to the dart. -/
@@ -82,7 +79,7 @@ sym2.eq_swap
 @[simp] lemma dart.rev_rev (d : G.dart) : d.rev.rev = d :=
 dart.ext _ _ rfl rfl
 
-@[simp] lemma dart_rev_involutive : function.involutive (dart.rev : G.dart → G.dart) :=
+@[simp] lemma dart.rev_involutive : function.involutive (dart.rev : G.dart → G.dart) :=
 dart.rev_rev
 
 lemma dart.rev_ne (d : G.dart) : d.rev ≠ d :=
@@ -110,6 +107,9 @@ def dart_of_neighbor_set (v : V) (w : G.neighbor_set v) : G.dart :=
 
 lemma dart_of_neighbor_set_injective (v : V) : function.injective (G.dart_of_neighbor_set v) :=
 λ e₁ e₂ h, by { injection h with h₁ h₂, exact subtype.ext h₂ }
+
+instance dart.inhabited [inhabited V] [inhabited (G.neighbor_set (default _))] :
+  inhabited G.dart := G.dart_of_neighbor_set (default _) (default _)
 
 section degree_sum
 variables [fintype V] [decidable_rel G.adj]

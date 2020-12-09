@@ -20,7 +20,7 @@ supplied for true NFA's.
 
 universes u v
 
-/-- An NFA is a set of states (`state`), a transition function from state to state labelled by the
+/-- An NFA is a set of states (`σ`), a transition function from state to state labelled by the
   alphabet (`step`), a starting state (`start`) and a set of acceptance states (`accept`).
   Note the transition function sends a state to a `set` of states. These are the states that it
   may be sent to. -/

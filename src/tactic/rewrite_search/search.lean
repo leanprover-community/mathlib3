@@ -95,7 +95,7 @@ variables (g : graph)
 namespace graph
 
 /--
-A convenience wrapper around `g.vertices` that returns none if the index is out of bounds.
+A convenience wrapper around `g.vertices` that fails if the index is out of bounds.
 -/
 meta def get_vertex (i : ℕ) : tactic vertex :=
 if h : i < g.vertices.size then return $ g.vertices.read (fin.mk i h)

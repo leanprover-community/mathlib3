@@ -65,7 +65,16 @@ lemma box_line_integral_const (cU : ℝ ) (i : fin 2) (a b : fin 2 → ℝ) :
   box_line_integral (λ x, cU ) i a b  = 0 :=
 begin
   -- ALEX TO DO
-  sorry,
+  rw box_line_integral,
+  rw segment_parametrized_integral,
+  rw segment_parametrized_integral,
+  have :
+  ∫ (t : ℝ) in b i..a i, cU
+  =
+  -∫ (t : ℝ) in a i..b i, cU,
+  apply interval_integral.integral_symm,
+  rw this,
+  simp,
 end
 
 def ex  (i : fin 2 ): (ℝ ):= if i = 0 then 1  else 0

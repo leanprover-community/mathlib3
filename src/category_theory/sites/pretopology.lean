@@ -63,8 +63,7 @@ begin
     cases hk with W g hg,
     change (sieve.generate R).pullback f (h ≫ pullback.snd),
     rw [sieve.mem_pullback, assoc, ← pullback.condition, ← assoc],
-    apply sieve.downward_closed,
-    apply sieve.le_generate _ _ hg },
+    exact sieve.downward_closed _ (sieve.le_generate R W hg) (h ≫ pullback.fst)},
   { rintro ⟨W, h, k, hk, comm⟩,
     exact ⟨_, _, _, pullback_arrows.mk _ _ hk, pullback.lift_snd _ _ comm⟩ },
 end
@@ -75,10 +74,9 @@ begin
   ext W h,
   split,
   { rintro ⟨W, _, _, _⟩,
-    apply singleton.mk },
+    exact singleton.mk },
   { rintro ⟨_⟩,
-    apply pullback_arrows.mk,
-    apply singleton.mk }
+    exact pullback_arrows.mk Z g singleton.mk }
 end
 
 variables (C)
@@ -215,8 +213,12 @@ def trivial : pretopology C :=
   begin
     rintro ⟨Z, g, i, rfl⟩,
     refine ⟨pullback g f, pullback.snd, _, _⟩,
-    sorry,
-    apply pullback_singleton,
+    { exactI { is_iso . inv := pullback.lift (f ≫ inv g) (𝟙 _) (by simp), hom_inv_id' := _ },
+      apply pullback.hom_ext,
+      { rw [assoc, pullback.lift_fst, ←pullback.condition_assoc],
+        simp },
+      { simp } },
+    { apply pullback_singleton },
   end,
   transitive :=
   begin
@@ -231,9 +233,9 @@ def trivial : pretopology C :=
       cases hh,
       apply singleton.mk },
     { rintro ⟨_⟩,
-      apply bind_comp,
+      refine bind_comp g presieve.singleton.mk _,
       rw hTi,
-      apply singleton.mk }
+      apply presieve.singleton.mk }
   end }
 
 instance : order_bot (pretopology C) :=

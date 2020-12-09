@@ -42,10 +42,10 @@ lemma mul_def (l m : language α) : l * m = (l.prod m).image (λ p, p.1 ++ p.2) 
 /-- The star of a language `L` is the set of all strings which can be written by concatenating
   strings from `L`. -/
 def star (l : language α) : language α :=
-{ x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, ¬(list.empty y) ∧ y ∈ l}
+{ x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l}
 
 lemma star_def (l : language α) :
-  l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, ¬(list.empty y) ∧ y ∈ l} := rfl
+  l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l} := rfl
 
 private lemma mul_assoc (l m n : language α) : (l * m) * n = l * (m * n) :=
 by { ext x, simp [mul_def], tauto {closer := `[subst_vars, simp *] } }

@@ -7,6 +7,7 @@ import data.equiv.basic
 import algebra.group.basic
 import algebra.group.hom
 import algebra.group.pi
+import algebra.group.prod
 /-!
 # The group of permutations (self-equivalences) of a type `α`
 
@@ -64,12 +65,12 @@ sum_congr_symm e f
   sum_congr (1 : perm α) (1 : perm β) = 1 :=
 sum_congr_refl
 
--- /-- `equiv.perm.sum_congr` as a `monoid_hom`. -/
--- def sum_congr_hom {α β : Type*} :
---   perm α × perm β →* perm (α ⊕ β) :=
--- { to_fun := λ a, sum_congr a.1 a.2,
---   map_one' := sum_congr_one,
---   map_mul' := λ a b, sum_congr_mul _ _ _ _ }
+/-- `equiv.perm.sum_congr` as a `monoid_hom`. -/
+def sum_congr_hom {α β : Type*} :
+  perm α × perm β →* perm (α ⊕ β) :=
+{ to_fun := λ a, sum_congr a.1 a.2,
+  map_one' := sum_congr_one,
+  map_mul' := λ a b, (sum_congr_mul _ _ _ _).symm}
 
 @[simp] lemma sum_congr_swap_one {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : α) :
   equiv.perm.sum_congr (equiv.swap i j) (1 : perm β) = equiv.swap (sum.inl i) (sum.inl j) :=
@@ -81,7 +82,7 @@ sum_congr_refl_swap i j
 
 /-! Lemmas about `equiv.perm.sigma_congr_right` re-expressed via the group structure. -/
 
-@[simp] lemma sigma_congr_right_mul {α} {β : α → Type*}
+@[simp] lemma sigma_congr_right_mul {α : Type*} {β : α → Type*}
   (F : Π a, perm (β a)) (G : Π a, perm (β a)) :
   sigma_congr_right F * sigma_congr_right G = sigma_congr_right (F * G) :=
 sigma_congr_right_trans G F
@@ -99,7 +100,7 @@ def sigma_congr_right_hom {α : Type*} {β : α → Type*} :
   (Π a, perm (β a)) →* perm (Σ a, β a) :=
 { to_fun := sigma_congr_right,
   map_one' := sigma_congr_right_one,
-  map_mul' := sigma_congr_right_mul }
+  map_mul' := λ a b, (sigma_congr_right_mul _ _).symm }
 
 end perm
 

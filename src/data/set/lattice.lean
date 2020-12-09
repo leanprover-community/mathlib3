@@ -925,6 +925,27 @@ assume a b h, prod_mono (hf h) (hg h)
 
 alias monotone_prod ← monotone.set_prod
 
+lemma prod_Union {ι} {s : set α} {t : ι → set β} : s.prod (⋃ i, t i) = ⋃ i, s.prod (t i) :=
+by { ext, simp }
+
+lemma prod_bUnion {ι} {u : set ι} {s : set α} {t : ι → set β} :
+  s.prod (⋃ i ∈ u, t i) = ⋃ i ∈ u, s.prod (t i) :=
+by simp_rw [prod_Union]
+
+lemma prod_sUnion {s : set α} {C : set (set β)} : s.prod (⋃₀ C) = ⋃₀ ((λ t, s.prod t) '' C) :=
+by { simp only [sUnion_eq_bUnion, prod_bUnion, bUnion_image] }
+
+lemma Union_prod {ι} {s : ι → set α} {t : set β} : (⋃ i, s i).prod t = ⋃ i, (s i).prod t :=
+by { ext, simp }
+
+lemma bUnion_prod {ι} {u : set ι} {s : ι → set α} {t : set β} :
+  (⋃ i ∈ u, s i).prod t = ⋃ i ∈ u, (s i).prod t :=
+by simp_rw [Union_prod]
+
+lemma sUnion_prod {C : set (set α)} {t : set β} :
+  (⋃₀ C).prod t = ⋃₀ ((λ s : set α, s.prod t) '' C) :=
+by { simp only [sUnion_eq_bUnion, bUnion_prod, bUnion_image] }
+
 lemma Union_prod_of_monotone [semilattice_sup α] {s : α → set β} {t : α → set γ}
   (hs : monotone s) (ht : monotone t) : (⋃ x, (s x).prod (t x)) = (⋃ x, (s x)).prod (⋃ x, (t x)) :=
 begin
@@ -1095,15 +1116,15 @@ disjoint_sup_right
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
 
-theorem disjoint_compl_left (s : set α) : disjoint sᶜ s := assume a ⟨h₁, h₂⟩, h₁ h₂
+@[simp] theorem disjoint_empty (s : set α) : disjoint s ∅ := disjoint_bot_right
 
-theorem disjoint_compl_right (s : set α) : disjoint s sᶜ := assume a ⟨h₁, h₂⟩, h₂ h₁
+@[simp] theorem empty_disjoint (s : set α) : disjoint ∅ s := disjoint_bot_left
 
 @[simp] lemma univ_disjoint {s : set α}: disjoint univ s ↔ s = ∅ :=
-by simp [set.disjoint_iff_inter_eq_empty]
+top_disjoint
 
 @[simp] lemma disjoint_univ {s : set α} : disjoint s univ ↔ s = ∅ :=
-by simp [set.disjoint_iff_inter_eq_empty]
+disjoint_top
 
 @[simp] theorem disjoint_singleton_left {a : α} {s : set α} : disjoint {a} s ↔ a ∉ s :=
 by simp [set.disjoint_iff, subset_def]; exact iff.rfl

@@ -56,6 +56,11 @@ lemma prod_congr (f g : α → M) (h : ∀ a, f a = g a) :
 finset.prod_congr rfl $ λ a ha, h a
 
 @[to_additive]
+lemma prod_eq_single {f : α → M} (a : α) (h : ∀ x ≠ a, f x = 1) :
+  (∏ x, f x) = f a :=
+finset.prod_eq_single a (λ x _ hx, h x hx) $ λ ha, (ha (finset.mem_univ a)).elim
+
+@[to_additive]
 lemma prod_unique [unique β] (f : β → M) :
   (∏ x, f x) = f (default β) :=
 by simp only [finset.prod_singleton, univ_unique]
@@ -73,6 +78,27 @@ end
 end fintype
 
 open finset
+
+section
+
+variables {M : Type*} [fintype α] [decidable_eq α] [comm_monoid M]
+
+@[to_additive]
+lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → M) :
+  (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
+(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+
+@[to_additive]
+lemma finset.prod_mul_prod_compl (s : finset α) (f : α → M) :
+  (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
+is_compl_compl.prod_mul_prod f
+
+@[to_additive]
+lemma finset.prod_compl_mul_prod (s : finset α) (f : α → M) :
+  (∏ i in sᶜ, f i) * (∏ i in s, f i) = ∏ i, f i :=
+is_compl_compl.symm.prod_mul_prod f
+
+end
 
 @[to_additive]
 theorem fin.prod_univ_def [comm_monoid β] {n : ℕ} (f : fin n → β) :

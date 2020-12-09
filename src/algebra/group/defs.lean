@@ -137,7 +137,7 @@ theorem mul_right_injective (a : G) : function.injective ((*) a) :=
 
 @[simp, to_additive]
 theorem mul_right_inj (a : G) {b c : G} : a * b = a * c ↔ b = c :=
-⟨mul_left_cancel, congr_arg _⟩
+(mul_right_injective a).eq_iff
 
 end left_cancel_semigroup
 
@@ -170,7 +170,7 @@ theorem mul_left_injective (a : G) : function.injective (λ x, x * a) :=
 
 @[simp, to_additive]
 theorem mul_left_inj (a : G) {b c : G} : b * a = c * a ↔ b = c :=
-⟨mul_right_cancel, congr_arg _⟩
+(mul_left_injective a).eq_iff
 
 end right_cancel_semigroup
 
@@ -333,19 +333,10 @@ lemma mul_inv_cancel_right (a b : G) : a * b * b⁻¹ = a :=
 by rw [mul_assoc, mul_right_inv, mul_one]
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
-instance group.to_left_cancel_semigroup : left_cancel_semigroup G :=
-{ mul_left_cancel := λ a b c h, by rw [← inv_mul_cancel_left a b, h, inv_mul_cancel_left],
-  ..‹group G› }
-
-@[priority 100, to_additive]    -- see Note [lower instance priority]
-instance group.to_right_cancel_semigroup : right_cancel_semigroup G :=
-{ mul_right_cancel := λ a b c h, by rw [← mul_inv_cancel_right a b, h, mul_inv_cancel_right],
-  ..‹group G› }
-
-@[priority 100, to_additive]    -- see Note [lower instance priority]
 instance group.to_cancel_monoid : cancel_monoid G :=
-{ ..‹group G›, .. group.to_left_cancel_semigroup,
-  ..group.to_right_cancel_semigroup }
+{ mul_right_cancel := λ a b c h, by rw [← mul_inv_cancel_right a b, h, mul_inv_cancel_right],
+  mul_left_cancel := λ a b c h, by rw [← inv_mul_cancel_left a b, h, inv_mul_cancel_left],
+  ..‹group G› }
 
 end group
 
@@ -382,7 +373,6 @@ variables {G : Type u} [comm_group G]
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance comm_group.to_cancel_comm_monoid : cancel_comm_monoid G :=
 { ..‹comm_group G›,
-  ..group.to_left_cancel_semigroup,
-  ..group.to_right_cancel_semigroup }
+  ..group.to_cancel_monoid }
 
 end comm_group

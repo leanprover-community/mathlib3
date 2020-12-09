@@ -129,7 +129,7 @@ open measure_theory set classical filter
 
 open_locale classical topological_space filter
 
-variables {α β 𝕜 E F : Type*} [decidable_linear_order α] [measurable_space α]
+variables {α β 𝕜 E F : Type*} [linear_order α] [measurable_space α]
   [measurable_space E] [normed_group E]
 
 /-!
@@ -743,7 +743,7 @@ begin
   have B' : ∀ᶠ t in lt, interval_integrable f μ b (ub t) :=
     hb_lim.eventually_interval_integrable_ae hab.measurable (FTC_filter.finite_at_inner lb)
       (tendsto_const_pure.mono_right FTC_filter.pure_le) hub,
-  filter_upwards [A, A', B, B'], simp only [mem_set_of_eq],
+  filter_upwards [A, A', B, B'],
   intros t ua_va a_ua ub_vb b_ub,
   rw [← integral_interval_sub_interval_comm'],
   { dsimp only [], abel },

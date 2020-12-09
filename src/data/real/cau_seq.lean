@@ -30,7 +30,7 @@ open_locale big_operators
 
 /-- A function `f` is an absolute value if it is nonnegative, zero only at 0, additive, and
 multiplicative. -/
-class is_absolute_value {α} [discrete_linear_ordered_field α]
+class is_absolute_value {α} [linear_ordered_field α]
   {β} [ring β] (f : β → α) : Prop :=
 (abv_nonneg [] : ∀ x, 0 ≤ f x)
 (abv_eq_zero [] : ∀ {x}, f x = 0 ↔ x = 0)
@@ -38,7 +38,7 @@ class is_absolute_value {α} [discrete_linear_ordered_field α]
 (abv_mul [] : ∀ x y, f (x * y) = f x * f y)
 
 namespace is_absolute_value
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv]
 
 theorem abv_zero : abv 0 = 0 := (abv_eq_zero abv).2 rfl
@@ -91,7 +91,7 @@ by induction n; simp [abv_mul abv, pow_succ, abv_one abv, *]
 
 end is_absolute_value
 
-instance abs_is_absolute_value {α} [discrete_linear_ordered_field α] :
+instance abs_is_absolute_value {α} [linear_ordered_field α] :
   is_absolute_value (abs : α → α) :=
 { abv_nonneg  := abs_nonneg,
   abv_eq_zero := λ _, abs_eq_zero,
@@ -107,7 +107,7 @@ theorem exists_forall_ge_and {α} [linear_order α] {P Q : α → Prop} :
   ⟨c, λ j hj, ⟨h₁ _ (le_trans ac hj), h₂ _ (le_trans bc hj)⟩⟩
 
 section
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv]
 
 theorem rat_add_continuous_lemma
@@ -156,12 +156,12 @@ end
 end
 
 /-- A sequence is Cauchy if the distance between its entries tends to zero. -/
-def is_cau_seq {α : Type*} [discrete_linear_ordered_field α]
+def is_cau_seq {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) (f : ℕ → β) : Prop :=
 ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j - f i) < ε
 
 namespace is_cau_seq
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv] {f : ℕ → β}
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -182,12 +182,12 @@ end is_cau_seq
 
 /-- `cau_seq β abv` is the type of `β`-valued Cauchy sequences, with respect to the absolute value
 function `abv`. -/
-def cau_seq {α : Type*} [discrete_linear_ordered_field α]
+def cau_seq {α : Type*} [linear_ordered_field α]
   (β : Type*) [ring β] (abv : β → α) : Type* :=
 {f : ℕ → β // is_cau_seq abv f}
 
 namespace cau_seq
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
 
 section ring
 variables {β : Type*} [ring β] {abv : β → α}

@@ -125,6 +125,8 @@ instance : has_coe_to_fun (α ≃ᵢ β) := ⟨λ_, α → β, λe, e.to_equiv�
 
 lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
 
+@[simp] lemma coe_to_equiv (h : α ≃ᵢ β) : ⇑h.to_equiv = h := rfl
+
 protected lemma isometry (h : α ≃ᵢ β) : isometry h := h.isometry_to_fun
 
 protected lemma edist_eq (h : α ≃ᵢ β) (x y : α) : edist (h x) (h y) = edist x y :=
@@ -208,6 +210,8 @@ protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
   .. h }
 
 @[simp] lemma coe_to_homeomorph (h : α ≃ᵢ β) : ⇑(h.to_homeomorph) = h := rfl
+
+@[simp] lemma coe_to_homeomorph_symm (h : α ≃ᵢ β) : ⇑(h.to_homeomorph.symm) = h.symm := rfl
 
 @[simp] lemma to_homeomorph_to_equiv (h : α ≃ᵢ β) :
   h.to_homeomorph.to_equiv = h.to_equiv :=

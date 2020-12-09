@@ -175,8 +175,8 @@ lemma degree_add_div (hq0 : q ≠ 0) (hpq : degree q ≤ degree p) :
 have degree (p % q) < degree (q * (p / q)) :=
   calc degree (p % q) < degree q : euclidean_domain.mod_lt _ hq0
   ... ≤ _ : degree_le_mul_left _ (mt (div_eq_zero_iff hq0).1 (not_lt_of_ge hpq)),
-by conv {to_rhs, rw [← euclidean_domain.div_add_mod p q, add_comm,
-    degree_add_eq_of_degree_lt this, degree_mul]}
+by conv_rhs { rw [← euclidean_domain.div_add_mod p q,
+    degree_add_eq_left_of_degree_lt this, degree_mul] }
 
 lemma degree_div_le (p q : polynomial R) : degree (p / q) ≤ degree p :=
 if hq : q = 0 then by simp [hq]
@@ -199,7 +199,7 @@ nat_degree_eq_of_degree_eq (degree_map _ f)
 
 @[simp] lemma leading_coeff_map [field k] (f : R →+* k) :
   leading_coeff (p.map f) = f (leading_coeff p) :=
-by simp [leading_coeff, coeff_map f]
+by simp only [← coeff_nat_degree, coeff_map f, nat_degree_map]
 
 theorem monic_map_iff [field k] {f : R →+* k} {p : polynomial R} :
   (p.map f).monic ↔ p.monic :=
@@ -214,7 +214,7 @@ lemma map_div [field k] (f : R →+* k) :
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-  simp [f.map_inv, leading_coeff, coeff_map f]
+  simp [f.map_inv, coeff_map f]
 
 lemma map_mod [field k] (f : R →+* k) :
   (p % q).map f = p.map f % q.map f :=
@@ -261,11 +261,11 @@ theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
 by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]
 
-@[simp] lemma map_eq_zero [field k] (f : R →+* k) :
+@[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
   p.map f = 0 ↔ p = 0 :=
-by simp [polynomial.ext_iff, f.map_eq_zero, coeff_map]
+by simp only [polynomial.ext_iff, f.map_eq_zero, coeff_map, coeff_zero]
 
-lemma map_ne_zero [field k] {f : R →+* k} (hp : p ≠ 0) : p.map f ≠ 0 :=
+lemma map_ne_zero [semiring S] [nontrivial S] {f : R →+* S} (hp : p ≠ 0) : p.map f ≠ 0 :=
 mt (map_eq_zero f).1 hp
 
 lemma mem_roots_map [field k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
@@ -312,7 +312,7 @@ theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f �
 if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
 else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R),
     normalize_apply, normalize_apply,
-    coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero _).1 H),
+    coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero f).1 H),
     leading_coeff_map, ← f.map_inv, ← map_C, ← map_mul,
     map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
 
@@ -398,6 +398,16 @@ begin
   have mulzero : root_multiplicity b (C a) = 0,
   { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
   simp only [mulzero, zero_add]
+end
+
+lemma roots_normalize : (normalize p).roots = p.roots :=
+begin
+  by_cases hzero : p = 0,
+  { rw [hzero, normalize_zero], },
+  { have hcoeff : p.leading_coeff ≠ 0,
+    { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
+    rw [normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero,
+      roots_C_mul _ (inv_ne_zero hcoeff)], },
 end
 
 end field

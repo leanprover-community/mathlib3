@@ -654,11 +654,48 @@ with_desc "('?' expr (: n)?) | ((h :)? expr (with patt)?)" $ do
     pure $ rcases_args.hint p depth
   end
 
-/-- Syntax for a `rintro` pattern: `('?' (: n)?) | patt*`. -/
+/--
+`rintro_patt_parse_hi` and `rintro_patt_parse` are like `rcases_patt_parse`, but is used for
+parsing top level `rintro` patterns, which allow sequences like `(x y : t)` in addition to simple
+`rcases` patterns.
+
+* `rintro_patt_parse_hi` will parse a high precedence `rcases` pattern, `rintro_patt_hi` below.
+  This means only tuples and identifiers are allowed; alternations and type ascriptions
+  require `(...)` instead, which switches to `patt`.
+* `rintro_patt_parse tt` will parse a low precedence `rcases` pattern, `rintro_patt` below.
+  This consists of either a sequence of patterns `p1 p2 p3` or an alternation list `p1 | p2 | p3`
+  treated as a single pattern, optionally followed by a `: ty` type ascription, which applies to
+  every pattern in the list.
+* `rintro_patt_parse ff` parses `rintro_patt_low`, which is the same as `rintro_patt_parse tt` but
+  it does not permit an unparenthesized alternation list, it must have the form `p1 p2 p3 (: ty)?`.
+
+```lean
+rintro_patt ::= (rintro_patt_hi+ | patt_med) (":" expr)?
+rintro_patt_low ::= rintro_patt_hi* (":" expr)?
+rintro_patt_hi ::= patt_hi | "(" rintro_patt ")"
+```
+-/
+meta mutual def rintro_patt_parse_hi, rintro_patt_parse
+with rintro_patt_parse_hi : parser (listΠ rcases_patt)
+| x := (with_desc "rintro_patt_hi" $
+  brackets "(" ")" (rintro_patt_parse tt) <|>
+  (do p ← rcases_patt_parse tt, pure [p])) x
+with rintro_patt_parse : bool → parser (listΠ rcases_patt)
+| med := with_desc "rintro_patt" $ do
+  ll ← rintro_patt_parse_hi*,
+  pats ← match med, ll.join with
+  | tt, [] := failure
+  | tt, [pat] := do l ← rcases_patt_parse_list_rest pat, pure [rcases_patt.alts' l]
+  | _, pats := pure pats
+  end,
+  (do tk ":", e ← texpr, pure (pats.map (λ p, rcases_patt.typed p e))) <|>
+  pure pats
+
+/-- Syntax for a `rintro` pattern: `('?' (: n)?) | rintro_patt`. -/
 meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
 with_desc "('?' (: n)?) | patt*" $
 (tk "?" >> sum.inr <$> rcases_parse_depth) <|>
-sum.inl <$> (rcases_patt_parse tt)*
+sum.inl <$> rintro_patt_parse ff
 
 namespace interactive
 open interactive interactive.types expr
@@ -735,6 +772,9 @@ allow for destructuring patterns while introducing variables. See `rcases` for
 a description of supported patterns. For example, `rintro (a | ⟨b, c⟩) ⟨d, e⟩`
 will introduce two variables, and then do case splits on both of them producing
 two subgoals, one with variables `a d e` and the other with `b c d e`.
+
+`rintro`, unlike `rcases`, also supports the form `(x y : ty)` for introducing
+and type-ascripting multiple variables at once, similar to binders.
 
 `rintro?` will introduce and case split on variables in the same way as
 `rintro`, but will also print the `rintro` invocation that would have the same

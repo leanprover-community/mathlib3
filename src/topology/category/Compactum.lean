@@ -204,14 +204,14 @@ begin
   -- All sets in C0 are nonempty.
   have claim2 : ∀ B ∈ C0, set.nonempty B,
   { rintros B ⟨Q,hQ,rfl⟩,
-    obtain ⟨q⟩ := nonempty_of_mem_ultrafilter _ F.2 hQ,
+    obtain ⟨q⟩ := nonempty_of_mem_ultrafilter F.2 hQ,
     use X.incl q,
     simpa, },
   -- The intersection of AA with every set in C0 is nonempty.
   have claim3 : ∀ B ∈ C0, (AA ∩ B).nonempty,
   { rintros B ⟨Q,hQ,rfl⟩,
     have : (Q ∩ cl A).nonempty,
-    { apply nonempty_of_mem_ultrafilter _ F.2,
+    { apply nonempty_of_mem_ultrafilter F.2,
       exact F.1.inter_sets hQ hF },
     rcases this with ⟨q,hq1,P,hq2,hq3⟩,
     refine ⟨P,hq2,_⟩,
@@ -275,9 +275,9 @@ begin
   -- If F contains a closed set A, then x is contained in A.
   have claim1 : ∀ (A : set X), is_closed A → A ∈ F.1 → x ∈ A,
   { intros A hA h,
-    by_contradiction,
+    by_contradiction H,
     rw le_nhds_iff at cond,
-    specialize cond Aᶜ a hA,
+    specialize cond Aᶜ H hA,
     rw ultrafilter_iff_compl_mem_iff_not_mem.mp F.2 at cond,
     contradiction },
   -- If A ∈ F, then x ∈ cl A.
@@ -446,10 +446,11 @@ noncomputable def iso_of_topological_space {D : CompHaus} :
   Compactum_to_CompHaus.obj (Compactum.of_topological_space D) ≅ D :=
 { hom :=
   { to_fun := id,
-    continuous_to_fun := λ _ h, by {rw is_open_iff_ultrafilter' at h, exact h} },
+    continuous_to_fun := continuous_def.2 $ λ _ h, by {rw is_open_iff_ultrafilter' at h, exact h} },
   inv :=
   { to_fun := id,
-    continuous_to_fun := λ _ h1, by {rw is_open_iff_ultrafilter', intros _ h2, exact h1 _ h2} } }
+    continuous_to_fun := continuous_def.2 $
+      λ _ h1, by {rw is_open_iff_ultrafilter', intros _ h2, exact h1 _ h2} } }
 
 /-- The functor Compactum_to_CompHaus is essentially surjective. -/
 noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=

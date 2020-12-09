@@ -689,13 +689,14 @@ lemma times_cont_mdiff_within_at.comp {t : set M'} {g : M' → M''} (x : M)
   (st : s ⊆ f ⁻¹' t) : times_cont_mdiff_within_at I I'' n (g ∘ f) s x :=
 begin
   apply times_cont_mdiff_within_at_iff_nat.2 (λ m hm, _),
-  rcases times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.1 (hg.of_le hm) with ⟨v, v_nhds, hv⟩,
-  rcases times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.1 (hf.of_le hm) with ⟨u, u_nhds, hu⟩,
+  rcases times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.1 (hg.of_le hm)
+    with ⟨v, v_nhds, hv⟩,
+  rcases times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.1 (hf.of_le hm)
+    with ⟨u, u_nhds, hu⟩,
   apply times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.2 ⟨_, _, hv.comp' hu⟩,
   apply filter.inter_mem_sets u_nhds,
   suffices h : v ∈ 𝓝[f '' s] (f x),
-  { convert mem_nhds_within_insert (hf.continuous_within_at.preimage_mem_nhds_within' h),
-    rw insert_eq_of_mem,
+  { refine mem_nhds_within_insert.2 ⟨_, hf.continuous_within_at.preimage_mem_nhds_within' h⟩,
     apply mem_of_mem_nhds_within (mem_insert (f x) t) v_nhds },
   apply nhds_within_mono _ _ v_nhds,
   rw image_subset_iff,
@@ -1031,7 +1032,7 @@ begin
   suffices h : times_cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s) s'_lift,
   { refine ⟨(tangent_bundle.proj I M)⁻¹' (o ∩ l.source), _, _, _⟩,
     show is_open ((tangent_bundle.proj I M)⁻¹' (o ∩ l.source)), from
-      tangent_bundle_proj_continuous _ _ _ (is_open_inter o_open l.open_source),
+      (is_open_inter o_open l.open_source).preimage (tangent_bundle_proj_continuous _ _) ,
     show p ∈ tangent_bundle.proj I M ⁻¹' (o ∩ l.source),
     { simp [tangent_bundle.proj] at ⊢,
       have : p.1 ∈ f ⁻¹' r.source ∩ s, by simp [hp],
@@ -1254,7 +1255,7 @@ Z.times_cont_mdiff_within_at_proj
 
 /-- If an element of `E'` is invariant under all coordinate changes, then one can define a
 corresponding section of the fiber bundle, which is smooth. This applies in particular to the
-zero section of a vector bundle. Another example (not yet defined) would be the identity 
+zero section of a vector bundle. Another example (not yet defined) would be the identity
 section of the endomorphism bundle of a vector bundle. -/
 lemma smooth_const_section (v : E')
   (h : ∀ (i j : atlas H M), ∀ x ∈ i.1.source ∩ j.1.source, Z.coord_change i j (i.1 x) v = v) :
@@ -1339,13 +1340,13 @@ end
 
 /-- The derivative of the zero section of the tangent bundle maps `⟨x, v⟩` to `⟨⟨x, 0⟩, ⟨v, 0⟩⟩`.
 
-Note that, as currently framed, this is a statement in coordinates, thus reliant on the choice 
+Note that, as currently framed, this is a statement in coordinates, thus reliant on the choice
 of the coordinate system we use on the tangent bundle.
 
 However, the result itself is coordinate-dependent only to the extent that the coordinates
 determine a splitting of the tangent bundle.  Moreover, there is a canonical splitting at each
-point of the zero section (since there is a canonical horizontal space there, the tangent space 
-to the zero section, in addition to the canonical vertical space which is the kernel of the 
+point of the zero section (since there is a canonical horizontal space there, the tangent space
+to the zero section, in addition to the canonical vertical space which is the kernel of the
 derivative of the projection), and this canonical splitting is also the one that comes from the
 coordinates on the tangent bundle in our definitions. So this statement is not as crazy as it
 may seem.
@@ -1357,7 +1358,7 @@ begin
   rcases p with ⟨x, v⟩,
   have N : I.symm ⁻¹' (chart_at H x).target ∈ 𝓝 (I ((chart_at H x) x)),
   { apply mem_nhds_sets,
-    apply I.continuous_inv_fun _ (local_homeomorph.open_target _),
+    apply (local_homeomorph.open_target _).preimage I.continuous_inv_fun,
     simp only with mfld_simps },
   have A : mdifferentiable_at I I.tangent (λ (x : M), (⟨x, 0⟩ : tangent_bundle I M)) x :=
     tangent_bundle.smooth_zero_section.mdifferentiable_at,

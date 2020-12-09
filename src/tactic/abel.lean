@@ -136,7 +136,7 @@ meta def eval_add (c : cache) : normal_expr → normal_expr → tactic (normal_e
     (a', h) ← eval_add he₁ a₂,
     return (term' c n₂ x₂ a', c.iapp ``const_add_term [e₁, n₂.1, x₂, a₂, a', h])
   else do
-    (n', h₁) ← mk_app ``has_add.add [n₁.1, n₂.1] >>= norm_num.derive',
+    (n', h₁) ← mk_app ``has_add.add [n₁.1, n₂.1] >>= norm_num.eval_field,
     (a', h₂) ← eval_add a₁ a₂,
     let k := n₁.2 + n₂.2,
     let p₁ := c.iapp ``term_add_term [n₁.1, x₁, a₁, n₂.1, a₂, n', a', h₁, h₂],
@@ -155,7 +155,7 @@ meta def eval_neg (c : cache) : normal_expr → tactic (normal_expr × expr)
   p ← c.mk_app ``neg_zero ``add_group [],
   return (zero' c, p)
 | (nterm e n x a) := do
-  (n', h₁) ← mk_app ``has_neg.neg [n.1] >>= norm_num.derive',
+  (n', h₁) ← mk_app ``has_neg.neg [n.1] >>= norm_num.eval_field,
   (a', h₂) ← eval_neg a,
   return (term' c (n', -n.2) x a',
     c.app ``term_neg c.inst [n.1, x, a, n', a', h₁, h₂])
@@ -183,7 +183,7 @@ meta def eval_smul (c : cache) (k : expr × ℤ) :
   normal_expr → tactic (normal_expr × expr)
 | (zero _) := return (zero' c, c.iapp ``zero_smul [k.1])
 | (nterm e n x a) := do
-  (n', h₁) ← mk_app ``has_mul.mul [k.1, n.1] >>= norm_num.derive',
+  (n', h₁) ← mk_app ``has_mul.mul [k.1, n.1] >>= norm_num.eval_field,
   (a', h₂) ← eval_smul a,
   return (term' c (n', k.2 * n.2) x a',
     c.iapp ``term_smul [k.1, n.1, x, a, n', a', h₁, h₂])

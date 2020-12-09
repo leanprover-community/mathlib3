@@ -481,6 +481,9 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
     simp [set.ext_iff, εpos]
   end }
 
+lemma edist_pi_def [Π b, emetric_space (π b)] (f g : Π b, π b) :
+  edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
+
 end pi
 
 namespace emetric
@@ -589,7 +592,7 @@ theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, edist (u x) a < ε :=
 nhds_basis_eball.tendsto_right_iff
 
-theorem tendsto_at_top [nonempty β] [semilattice_sup β] (u : β → α) {a : α} :
+theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : α} :
   tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, edist (u n) a < ε :=
 (at_top_basis.tendsto_iff nhds_basis_eball).trans $
   by simp only [exists_prop, true_and, mem_Ici, mem_ball]

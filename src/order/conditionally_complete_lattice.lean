@@ -80,7 +80,7 @@ complete linear orders, we prefix Inf and Sup by a c everywhere. The same statem
 hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
 class conditionally_complete_linear_order (α : Type*)
-  extends conditionally_complete_lattice α, decidable_linear_order α
+  extends conditionally_complete_lattice α, linear_order α
 
 /-- A conditionally complete linear order with `bot` is a linear order with least element, in which
 every nonempty subset which is bounded above has a supremum, and every nonempty subset (necessarily
@@ -334,8 +334,48 @@ by rw [infi, range_const, cInf_singleton]
 @[simp] theorem csupr_const [hι : nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
 by rw [supr, range_const, cSup_singleton]
 
+/-- Nested intervals lemma: if `f` is a monotonically increasing sequence, `g` is a monotonically
+decreasing sequence, and `f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals
+`[f n, g n]`. -/
+lemma csupr_mem_Inter_Icc_of_mono_incr_of_mono_decr [nonempty β] [semilattice_sup β]
+  {f g : β → α} (hf : monotone f) (hg : ∀ ⦃m n⦄, m ≤ n → g n ≤ g m) (h : ∀ n, f n ≤ g n) :
+  (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
+begin
+  inhabit β,
+  refine mem_Inter.2 (λ n, ⟨le_csupr ⟨g $ default β, forall_range_iff.2 $ λ m, _⟩ _,
+    csupr_le $ λ m, _⟩); exact forall_le_of_monotone_of_mono_decr hf hg h _ _
+end
+
+/-- Nested intervals lemma: if `[f n, g n]` is a monotonically decreasing sequence of nonempty
+closed intervals, then `⨆ n, f n` belongs to all the intervals `[f n, g n]`. -/
+lemma csupr_mem_Inter_Icc_of_mono_decr_Icc [nonempty β] [semilattice_sup β]
+  {f g : β → α} (h : ∀ ⦃m n⦄, m ≤ n → Icc (f n) (g n) ⊆ Icc (f m) (g m)) (h' : ∀ n, f n ≤ g n) :
+  (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
+csupr_mem_Inter_Icc_of_mono_incr_of_mono_decr (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).1)
+  (λ m n hmn, ((Icc_subset_Icc_iff (h' n)).1 (h hmn)).2) h'
+
+/-- Nested intervals lemma: if `[f n, g n]` is a monotonically decreasing sequence of nonempty
+closed intervals, then `⨆ n, f n` belongs to all the intervals `[f n, g n]`. -/
+lemma csupr_mem_Inter_Icc_of_mono_decr_Icc_nat
+  {f g : ℕ → α} (h : ∀ n, Icc (f (n + 1)) (g (n + 1)) ⊆ Icc (f n) (g n)) (h' : ∀ n, f n ≤ g n) :
+  (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
+csupr_mem_Inter_Icc_of_mono_decr_Icc
+  (@monotone_of_monotone_nat (order_dual $ set α) _ (λ n, Icc (f n) (g n)) h) h'
+
 end conditionally_complete_lattice
 
+instance pi.conditionally_complete_lattice {ι : Type*} {α : Π i : ι, Type*}
+  [Π i, conditionally_complete_lattice (α i)] :
+  conditionally_complete_lattice (Π i, α i) :=
+{ le_cSup := λ s f ⟨g, hg⟩ hf i, le_cSup ⟨g i, set.forall_range_iff.2 $ λ ⟨f', hf'⟩, hg hf' i⟩
+    ⟨⟨f, hf⟩, rfl⟩,
+  cSup_le := λ s f hs hf i, cSup_le (by haveI := hs.to_subtype; apply range_nonempty) $
+    λ b ⟨⟨g, hg⟩, hb⟩, hb ▸ hf hg i,
+  cInf_le := λ s f ⟨g, hg⟩ hf i, cInf_le ⟨g i, set.forall_range_iff.2 $ λ ⟨f', hf'⟩, hg hf' i⟩
+    ⟨⟨f, hf⟩, rfl⟩,
+  le_cInf := λ s f hs hf i, le_cInf (by haveI := hs.to_subtype; apply range_nonempty) $
+    λ b ⟨⟨g, hg⟩, hb⟩, hb ▸ hf hg i,
+  .. pi.lattice, .. pi.has_Sup, .. pi.has_Inf }
 
 section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α] {s t : set α} {a b : α}
@@ -431,7 +471,7 @@ by { rw [nat.Inf_def ⟨m, hm⟩], exact nat.find_min' ⟨m, hm⟩ hm }
 
 /-- This instance is necessary, otherwise the lattice operations would be derived via
 conditionally_complete_linear_order_bot and marked as noncomputable. -/
-instance : lattice ℕ := lattice_of_decidable_linear_order
+instance : lattice ℕ := lattice_of_linear_order
 
 noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
 { Sup := Sup, Inf := Inf,
@@ -446,8 +486,8 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
     apply bot_unique (nat.find_min' _ _),
     trivial
   end,
-  .. (infer_instance : order_bot ℕ), .. (lattice_of_decidable_linear_order : lattice ℕ),
-  .. (infer_instance : decidable_linear_order ℕ) }
+  .. (infer_instance : order_bot ℕ), .. (lattice_of_linear_order : lattice ℕ),
+  .. (infer_instance : linear_order ℕ) }
 
 end nat
 
@@ -553,7 +593,7 @@ begin
   cases s.eq_empty_or_nonempty with hs hs,
   { rw [hs, cSup_empty], simp only [set.mem_empty_eq, supr_bot, supr_false], refl },
   apply le_antisymm,
-  { refine ((coe_le_iff _ _).2 $ assume b hb, cSup_le hs $ assume a has, coe_le_coe.1 $ hb ▸ _),
+  { refine (coe_le_iff.2 $ assume b hb, cSup_le hs $ assume a has, coe_le_coe.1 $ hb ▸ _),
     exact (le_supr_of_le a $ le_supr_of_le has $ _root_.le_refl _) },
   { exact (supr_le $ assume a, supr_le $ assume ha, coe_le_coe.2 $ le_cSup hb ha) }
 end
@@ -561,7 +601,7 @@ end
 lemma coe_Inf {s : set α} (hs : s.nonempty) : (↑(Inf s) : with_top α) = (⨅a∈s, ↑a) :=
 let ⟨x, hx⟩ := hs in
 have (⨅a∈s, ↑a : with_top α) ≤ x, from infi_le_of_le x $ infi_le_of_le hx $ _root_.le_refl _,
-let ⟨r, r_eq, hr⟩ := (le_coe_iff _ _).1 this in
+let ⟨r, r_eq, hr⟩ := le_coe_iff.1 this in
 le_antisymm
   (le_infi $ assume a, le_infi $ assume ha, coe_le_coe.2 $ cInf_le (order_bot.bdd_below s) ha)
   begin
@@ -598,7 +638,7 @@ noncomputable instance : complete_linear_order enat :=
     apply h1,
     assumption
   end,
-  ..enat.decidable_linear_order,
+  ..enat.linear_order,
   ..enat.bounded_lattice }
 
 end enat
@@ -618,7 +658,7 @@ instance (α : Type*) [conditionally_complete_lattice α] :
 instance (α : Type*) [conditionally_complete_linear_order α] :
   conditionally_complete_linear_order (order_dual α) :=
 { ..order_dual.conditionally_complete_lattice α,
-  ..order_dual.decidable_linear_order α }
+  ..order_dual.linear_order α }
 
 end order_dual
 
@@ -808,28 +848,28 @@ noncomputable def subset_conditionally_complete_linear_order [inhabited s]
     rintros t c h_bdd hct,
     -- The following would be a more natural way to finish, but gives a "deep recursion" error:
     -- simpa [subset_Sup_of_within (h_Sup t)] using (strict_mono_coe s).monotone.le_cSup_image hct h_bdd,
-    have := (strict_mono_coe s).monotone.le_cSup_image hct h_bdd,
+    have := (subtype.mono_coe s).le_cSup_image hct h_bdd,
     rwa subset_Sup_of_within s (h_Sup ⟨c, hct⟩ h_bdd) at this,
   end,
   cSup_le := begin
     rintros t B ht hB,
-    have := (strict_mono_coe s).monotone.cSup_image_le ht hB,
+    have := (subtype.mono_coe s).cSup_image_le ht hB,
     rwa subset_Sup_of_within s (h_Sup ht ⟨B, hB⟩) at this,
   end,
   le_cInf := begin
     intros t B ht hB,
-    have := (strict_mono_coe s).monotone.le_cInf_image ht hB,
+    have := (subtype.mono_coe s).le_cInf_image ht hB,
     rwa subset_Inf_of_within s (h_Inf ht ⟨B, hB⟩) at this,
   end,
   cInf_le := begin
     rintros t c h_bdd hct,
-    have := (strict_mono_coe s).monotone.cInf_image_le hct h_bdd,
+    have := (subtype.mono_coe s).cInf_image_le hct h_bdd,
     rwa subset_Inf_of_within s (h_Inf ⟨c, hct⟩ h_bdd) at this,
   end,
   ..subset_has_Sup s,
   ..subset_has_Inf s,
   ..distrib_lattice.to_lattice s,
-  ..classical.DLO s }
+  ..(infer_instance : linear_order s) }
 
 section ord_connected
 
@@ -842,8 +882,8 @@ begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
   obtain ⟨B, hB⟩ : ∃ B, B ∈ upper_bounds t := h_bdd,
   refine hs c.2 B.2 ⟨_, _⟩,
-  { exact (strict_mono_coe s).monotone.le_cSup_image hct ⟨B, hB⟩ },
-  { exact (strict_mono_coe s).monotone.cSup_image_le ⟨c, hct⟩ hB },
+  { exact (subtype.mono_coe s).le_cSup_image hct ⟨B, hB⟩ },
+  { exact (subtype.mono_coe s).cSup_image_le ⟨c, hct⟩ hB },
 end
 
 /-- The `Inf` function on a nonempty `ord_connected` set `s` in a conditionally complete linear
@@ -855,8 +895,8 @@ begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
   obtain ⟨B, hB⟩ : ∃ B, B ∈ lower_bounds t := h_bdd,
   refine hs B.2 c.2 ⟨_, _⟩,
-  { exact (strict_mono_coe s).monotone.le_cInf_image ⟨c, hct⟩ hB },
-  { exact (strict_mono_coe s).monotone.cInf_image_le hct ⟨B, hB⟩ },
+  { exact (subtype.mono_coe s).le_cInf_image ⟨c, hct⟩ hB },
+  { exact (subtype.mono_coe s).cInf_image_le hct ⟨B, hB⟩ },
 end
 
 /-- A nonempty `ord_connected` set in a conditionally complete linear order is naturally a

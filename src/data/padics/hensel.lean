@@ -49,7 +49,7 @@ open filter metric
 private lemma comp_tendsto_lim {p : ℕ} [fact p.prime] {F : polynomial ℤ_[p]}
   (ncs : cau_seq ℤ_[p] norm) :
   tendsto (λ i, F.eval (ncs i)) at_top (𝓝 (F.eval ncs.lim)) :=
-(F.continuous_eval.tendsto _).comp ncs.tendsto_limit
+F.continuous_at.tendsto.comp ncs.tendsto_limit
 
 section
 parameters {p : ℕ} [fact p.prime] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]} {a : ℤ_[p]}
@@ -424,7 +424,7 @@ include hnorm
 private lemma a_is_soln (ha : F.eval a = 0) :
   F.eval a = 0 ∧ ∥a - a∥ < ∥F.derivative.eval a∥ ∧ ∥F.derivative.eval a∥ = ∥F.derivative.eval a∥ ∧
   ∀ z', F.eval z' = 0 → ∥z' - a∥ < ∥F.derivative.eval a∥ → z' = a :=
-⟨ha, by simp; apply deriv_norm_pos; apply hnorm, rfl, a_soln_is_unique ha⟩
+⟨ha, by simp [deriv_ne_zero hnorm], rfl, a_soln_is_unique ha⟩
 
 lemma hensels_lemma : ∃ z : ℤ_[p], F.eval z = 0 ∧ ∥z - a∥ < ∥F.derivative.eval a∥ ∧
   ∥F.derivative.eval z∥ = ∥F.derivative.eval a∥ ∧

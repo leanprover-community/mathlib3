@@ -167,7 +167,7 @@ begin
   -- Deduce from the above inequalities that the distance between `s n` and `t0` is at most `2 B n`.
   have main : ∀n:ℕ, edist (s n) t ≤ 2 * B n := λn, Hausdorff_edist_le_of_mem_edist (I1 n) (I2 n),
   -- from this, the convergence of `s n` to `t0` follows.
-  refine (tendsto_at_top _).2 (λε εpos, _),
+  refine tendsto_at_top.2 (λε εpos, _),
   have : tendsto (λn, 2 * B n) at_top (𝓝 (2 * 0)),
     from ennreal.tendsto.const_mul
       (ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 $ by simp [ennreal.one_lt_two])

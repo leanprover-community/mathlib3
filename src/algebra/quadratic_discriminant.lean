@@ -18,7 +18,7 @@ This file defines the discriminant of a quadratic and gives the solution to a qu
 ## Main statements
 
 - `quadratic_eq_zero_iff`: roots of a quadratic can be written as
-  `(-b + s) / (2 * a)` or `(-b - s) / (2 * a)`, where `s` is the square root of the discriminant.
+  `(-b + s) / (2 * a)` or `(-b - s) / (2 * a)`, where `s` is a square root of the discriminant.
 - `quadratic_ne_zero_of_discrim_ne_square`: if the discriminant has no square root,
   then the corresponding quadratic has no root.
 - `discrim_le_zero`: if a quadratic is always non-negative, then its discriminant is non-positive.
@@ -113,7 +113,6 @@ variables {K : Type*} [linear_ordered_field K] {a b c : K}
 
 /-- If a polynomial of degree 2 is always nonnegative, then its discriminant is nonpositive -/
 lemma discrim_le_zero (h : ∀ x : K, 0 ≤ a * x * x + b * x + c) : discrim a b c ≤ 0 :=
-have hc : 0 ≤ c, by { have := h 0, linarith },
 begin
   rw [discrim, pow_two],
   obtain ha|rfl|ha : a < 0 ∨ a = 0 ∨ 0 < a := lt_trichotomy a 0,

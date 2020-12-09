@@ -328,6 +328,14 @@ lemma Ici_inter_Iio : Ici a ∩ Iio b = Ico a b := rfl
 lemma Ioi_inter_Iic : Ioi a ∩ Iic b = Ioc a b := rfl
 lemma Ioi_inter_Iio : Ioi a ∩ Iio b = Ioo a b := rfl
 
+lemma mem_Icc_of_Ioo (h : x ∈ Ioo a b) : x ∈ Icc a b := Ioo_subset_Icc_self h
+lemma mem_Ico_of_Ioo (h : x ∈ Ioo a b) : x ∈ Ico a b := Ioo_subset_Ico_self h
+lemma mem_Ioc_of_Ioo (h : x ∈ Ioo a b) : x ∈ Ioc a b := Ioo_subset_Ioc_self h
+lemma mem_Icc_of_Ico (h : x ∈ Ico a b) : x ∈ Icc a b := Ico_subset_Icc_self h
+lemma mem_Icc_of_Ioc (h : x ∈ Ioc a b) : x ∈ Icc a b := Ioc_subset_Icc_self h
+lemma mem_Ici_of_Ioi (h : x ∈ Ioi a) : x ∈ Ici a := Ioi_subset_Ici_self h
+lemma mem_Iic_of_Iio (h : x ∈ Iio a) : x ∈ Iic a := Iio_subset_Iic_self h
+
 end intervals
 
 section partial_order
@@ -833,8 +841,8 @@ end both
 
 end lattice
 
-section decidable_linear_order
-variables {α : Type u} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
+section linear_order
+variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
 
 lemma Ioc_inter_Ioo_of_left_lt (h : b₁ < b₂) : Ioc a₁ b₁ ∩ Ioo a₂ b₂ = Ioc (max a₁ a₂) b₁ :=
 ext $ λ x, by simp [and_assoc, @and.left_comm (x ≤ _),
@@ -884,11 +892,11 @@ begin
     le_max_right_of_le, le_refl] { max_depth := 5 }}
 end
 
-end decidable_linear_order
+end linear_order
 
-section decidable_linear_ordered_add_comm_group
+section linear_ordered_add_comm_group
 
-variables {α : Type u} [decidable_linear_ordered_add_comm_group α]
+variables {α : Type u} [linear_ordered_add_comm_group α]
 
 /-- If we remove a smaller interval from a larger, the result is nonempty -/
 lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :
@@ -899,6 +907,6 @@ begin
   { use max x (x + dy), simp [*, le_refl] }
 end
 
-end decidable_linear_ordered_add_comm_group
+end linear_ordered_add_comm_group
 
 end set

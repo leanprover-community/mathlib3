@@ -233,9 +233,9 @@ instance topological_group_quotient [N.normal] : topological_group (quotient N) 
     exact (quotient_map.continuous_iff quot).2 cont,
   end,
   continuous_inv := begin
-    apply continuous_quotient_lift,
-    change continuous ((coe : G → quotient N) ∘ (λ (a : G), a⁻¹)),
-    exact continuous_quot_mk.comp continuous_inv
+    have : continuous ((coe : G → quotient N) ∘ (λ (a : G), a⁻¹)) :=
+      continuous_quot_mk.comp continuous_inv,
+    convert continuous_quotient_lift _ this,
   end }
 
 attribute [instance] topological_add_group_quotient
@@ -268,7 +268,7 @@ variables [topological_space α] {f g : α → G} {s : set α} {x : α}
 
 @[continuity] lemma continuous.sub (hf : continuous f) (hg : continuous g) :
   continuous (λ x, f x - g x) :=
-continuous_sub.comp $ hf.prod_mk hg
+continuous_sub.comp (hf.prod_mk hg : _)
 
 lemma continuous_within_at.sub (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
   continuous_within_at (λ x, f x - g x) s x :=
@@ -402,7 +402,7 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
  -- a ∈ -s implies f (a, 1) ∈ -s, and so (a, 1) ∈ f⁻¹' (-s);
  -- and so can find t₁ t₂ open such that a ∈ t₁ × t₂ ⊆ f⁻¹' (-s)
  let ⟨t₁, t₂, ht₁, ht₂, a_mem_t₁, one_mem_t₂, t_subset⟩ :=
-   is_open_prod_iff.1 (hf _ (is_open_compl_iff.2 hs)) a (1:G) (by simpa [f]) in
+   is_open_prod_iff.1 ((is_open_compl_iff.2 hs).preimage hf) a (1:G) (by simpa [f]) in
  begin
    use [s * t₂, ht₂.mul_left, λ x hx, ⟨x, 1, hx, one_mem_t₂, mul_one _⟩],
    apply inf_principal_eq_bot,
@@ -434,11 +434,11 @@ lemma compact_open_separated_mul {K U : set G} (hK : is_compact K) (hU : is_open
   ∃ V : set G, is_open V ∧ (1 : G) ∈ V ∧ K * V ⊆ U :=
 begin
   let W : G → set G := λ x, (λ y, x * y) ⁻¹' U,
-  have h1W : ∀ x, is_open (W x) := λ x, continuous_mul_left x U hU,
+  have h1W : ∀ x, is_open (W x) := λ x, hU.preimage (continuous_mul_left x),
   have h2W : ∀ x ∈ K, (1 : G) ∈ W x := λ x hx, by simp only [mem_preimage, mul_one, hKU hx],
   choose V hV using λ x : K, exists_open_nhds_one_mul_subset (mem_nhds_sets (h1W x) (h2W x.1 x.2)),
   let X : K → set G := λ x, (λ y, (x : G)⁻¹ * y) ⁻¹' (V x),
-  cases hK.elim_finite_subcover X (λ x, continuous_mul_left x⁻¹ (V x) (hV x).1) _ with t ht, swap,
+  cases hK.elim_finite_subcover X (λ x, (hV x).1.preimage (continuous_mul_left x⁻¹)) _ with t ht, swap,
   { intros x hx, rw [mem_Union], use ⟨x, hx⟩, rw [mem_preimage], convert (hV _).2.1,
     simp only [mul_left_inv, subtype.coe_mk] },
   refine ⟨⋂ x ∈ t, V x, is_open_bInter (finite_mem_finset _) (λ x hx, (hV x).1), _, _⟩,

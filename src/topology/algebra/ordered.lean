@@ -12,6 +12,7 @@ import order.liminf_limsup
 import data.set.intervals.image_preimage
 import data.set.intervals.ord_connected
 import data.set.intervals.surj_on
+import data.set.intervals.pi
 import topology.algebra.group
 import topology.extend_from_subset
 import order.filter.interval
@@ -140,7 +141,7 @@ lemma is_closed_Ici {a : α} : is_closed (Ici a) :=
 is_closed_ge' a
 
 instance : order_closed_topology (order_dual α) :=
-⟨continuous_swap _ (@order_closed_topology.is_closed_le' α _ _ _)⟩
+⟨(@order_closed_topology.is_closed_le' α _ _ _).preimage continuous_swap⟩
 
 lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
 is_closed_inter is_closed_Ici is_closed_Iic
@@ -317,6 +318,12 @@ lemma intermediate_value_univ {γ : Type*} [topological_space γ] [preconnected_
   (a b : γ) {f : γ → α} (hf : continuous f) :
   Icc (f a) (f b) ⊆ range f :=
 λ x hx, intermediate_value_univ₂ hf continuous_const hx.1 hx.2
+
+/-- Intermediate Value Theorem for continuous functions on connected spaces. -/
+lemma mem_range_of_exists_le_of_exists_ge {γ : Type*} [topological_space γ] [preconnected_space γ]
+  {c : α} {f : γ → α} (hf : continuous f) (h₁ : ∃ a, f a ≤ c) (h₂ : ∃ b, c ≤ f b) :
+  c ∈ range f :=
+let ⟨a, ha⟩ := h₁, ⟨b, hb⟩ := h₂ in intermediate_value_univ a b hf ⟨ha, hb⟩
 
 /-- If a preconnected set contains endpoints of an interval, then it includes the whole interval. -/
 lemma is_preconnected.Icc_subset {s : set α} (hs : is_preconnected s)
@@ -509,14 +516,14 @@ by simp only [continuous_within_at, nhds_within_Ioc_eq_nhds_within_Iic h]
 
 end linear_order
 
-section decidable_linear_order
-variables [topological_space α] [decidable_linear_order α] [order_closed_topology α] {f g : β → α}
+section linear_order
+variables [topological_space α] [linear_order α] [order_closed_topology α] {f g : β → α}
 
 section
-variables [topological_space β] (hf : continuous f) (hg : continuous g)
-include hf hg
+variables [topological_space β]
 
-lemma frontier_le_subset_eq : frontier {b | f b ≤ g b} ⊆ {b | f b = g b} :=
+lemma frontier_le_subset_eq (hf : continuous f) (hg : continuous g) :
+  frontier {b | f b ≤ g b} ⊆ {b | f b = g b} :=
 begin
   rw [frontier_eq_closure_inter_closure, closure_le_eq hf hg],
   rintros b ⟨hb₁, hb₂⟩,
@@ -524,40 +531,35 @@ begin
   convert hb₂ using 2, simp only [not_le.symm], refl
 end
 
-lemma frontier_lt_subset_eq : frontier {b | f b < g b} ⊆ {b | f b = g b} :=
+lemma frontier_lt_subset_eq (hf : continuous f) (hg : continuous g) :
+  frontier {b | f b < g b} ⊆ {b | f b = g b} :=
 by rw ← frontier_compl;
    convert frontier_le_subset_eq hg hf; simp [ext_iff, eq_comm]
 
-@[continuity] lemma continuous.min : continuous (λb, min (f b) (g b)) :=
+@[continuity] lemma continuous.min (hf : continuous f) (hg : continuous g) :
+  continuous (λb, min (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, f b = g b, from assume b hb, frontier_le_subset_eq hf hg hb,
 continuous_if this hf hg
 
-@[continuity] lemma continuous.max : continuous (λb, max (f b) (g b)) :=
+@[continuity] lemma continuous.max (hf : continuous f) (hg : continuous g) :
+  continuous (λb, max (f b) (g b)) :=
 @continuous.min (order_dual α) _ _ _ _ _ _ _ hf hg
 
 end
 
+lemma continuous_min : continuous (λ p : α × α, min p.1 p.2) := continuous_fst.min continuous_snd
+
+lemma continuous_max : continuous (λ p : α × α, max p.1 p.2) := continuous_fst.max continuous_snd
+
 lemma tendsto.max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
   tendsto (λb, max (f b) (g b)) b (𝓝 (max a₁ a₂)) :=
-show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (max a₁ a₂)),
-  from tendsto.comp
-    begin
-      rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous_fst.max continuous_snd) _
-    end
-    (hf.prod_mk hg)
+(continuous_max.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
 lemma tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
   tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
-show tendsto ((λp:α×α, min p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (min a₁ a₂)),
-  from tendsto.comp
-    begin
-      rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous_fst.min continuous_snd) _
-    end
-    (hf.prod_mk hg)
+(continuous_min.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
-end decidable_linear_order
+end linear_order
 
 end order_closed_topology
 
@@ -613,10 +615,8 @@ lemma nhds_eq_order (a : α) :
 by rw [t.topology_eq_generate_intervals, nhds_generate_from];
 from le_antisymm
   (le_inf
-    (le_infi $ assume b, le_infi $ assume hb,
-      infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
-    (le_infi $ assume b, le_infi $ assume hb,
-      infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
+    (le_binfi $ assume b hb, infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
+    (le_binfi $ assume b hb, infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
   (le_infi $ assume s, le_infi $ assume ⟨ha, b, hs⟩,
     match s, ha, hs with
     | _, h, (or.inl rfl) := inf_le_left_of_le $ infi_le_of_le b $ infi_le _ h
@@ -735,7 +735,7 @@ induced_order_topology' f @hf
 /-- On an `ord_connected` subset of a linear order, the order topology for the restriction of the
 order is the same as the restriction to the subset of the order topology. -/
 instance order_topology_of_ord_connected {α : Type u}
-  [ta : topological_space α] [decidable_linear_order α] [order_topology α]
+  [ta : topological_space α] [linear_order α] [order_topology α]
   {t : set α} [ht : ord_connected t] :
   order_topology t :=
 begin
@@ -789,6 +789,31 @@ lemma nhds_bot_order [topological_space α] [order_bot α] [order_topology α] :
   𝓝 (⊥:α) = (⨅l (h₂ : ⊥ < l), 𝓟 (Iio l)) :=
 by simp [nhds_eq_order (⊥:α)]
 
+lemma tendsto_nhds_top_mono [topological_space β] [order_top β] [order_topology β] {l : filter α}
+  {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :
+  tendsto g l (𝓝 ⊤) :=
+begin
+  simp only [nhds_top_order, tendsto_infi, tendsto_principal] at hf ⊢,
+  intros x hx,
+  filter_upwards [hf x hx, hg],
+  exact λ x, lt_of_lt_of_le
+end
+
+lemma tendsto_nhds_bot_mono [topological_space β] [order_bot β] [order_topology β] {l : filter α}
+  {f g : α → β} (hf : tendsto f l (𝓝 ⊥)) (hg : g ≤ᶠ[l] f) :
+  tendsto g l (𝓝 ⊥) :=
+@tendsto_nhds_top_mono α (order_dual β) _ _ _ _ _ _ hf hg
+
+lemma tendsto_nhds_top_mono' [topological_space β] [order_top β] [order_topology β] {l : filter α}
+  {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ g) :
+  tendsto g l (𝓝 ⊤) :=
+tendsto_nhds_top_mono hf (eventually_of_forall hg)
+
+lemma tendsto_nhds_bot_mono' [topological_space β] [order_bot β] [order_topology β] {l : filter α}
+  {f g : α → β} (hf : tendsto f l (𝓝 ⊥)) (hg : g ≤ f) :
+  tendsto g l (𝓝 ⊥) :=
+tendsto_nhds_bot_mono hf (eventually_of_forall hg)
+
 section linear_order
 
 variables [topological_space α] [linear_order α] [order_topology α]
@@ -807,7 +832,6 @@ begin
     from this.imp (λ l', Exists.imp $ λ hl' hl x hx, B ⟨hl hx.1, hx.2⟩) },
   clear hts ht₂ t₂,
   -- Now we find `l` such that `(l', ∞) ⊆ t₁`
-  letI := classical.DLO α,
   rw [mem_binfi] at ht₁,
   { rcases ht₁ with ⟨b, hb, hb'⟩,
     exact ⟨max b l, ⟨le_max_right _ _, max_lt hb hl⟩,
@@ -845,7 +869,6 @@ iff.intro
       intro p, rcases p with ⟨⟨l, hl⟩, ⟨u, hu⟩⟩,
       simp [set.subset_def],
       intros s₁ s₂ hs₁ l' hl' u' hu' hs₂,
-      letI := classical.DLO α,
       refine ⟨max l l', _, min u u', _⟩;
       simp [*, lt_min_iff, max_lt_iff] {contextual := tt}
     end
@@ -955,15 +978,111 @@ mem_nhds_sets is_open_Iio h
 lemma Ioi_mem_nhds {a b : α} (h : a < b) : Ioi a ∈ 𝓝 b :=
 mem_nhds_sets is_open_Ioi h
 
+lemma Iic_mem_nhds {a b : α} (h : a < b) : Iic b ∈ 𝓝 a :=
+mem_sets_of_superset (Iio_mem_nhds h) Iio_subset_Iic_self
+
+lemma Ici_mem_nhds {a b : α} (h : a < b) : Ici a ∈ 𝓝 b :=
+mem_sets_of_superset (Ioi_mem_nhds h) Ioi_subset_Ici_self
+
 lemma Ioo_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioo a b ∈ 𝓝 x :=
 mem_nhds_sets is_open_Ioo ⟨ha, hb⟩
+
+lemma Ioc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioc a b ∈ 𝓝 x :=
+mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ioc_self
+
+lemma Ico_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ico a b ∈ 𝓝 x :=
+mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ico_self
+
+lemma Icc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Icc a b ∈ 𝓝 x :=
+mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Icc_self
+
+section pi
+
+/-!
+### Intervals in `Π i, π i` belong to `𝓝 x`
+
+For each leamma `pi_Ixx_mem_nhds` we add a non-dependent version `pi_Ixx_mem_nhds'` because
+sometimes Lean fails to unify different instances while trying to apply the dependent version to,
+e.g., `ι → ℝ`.
+-/
+
+variables {ι : Type*} {π : ι → Type*} [fintype ι] [Π i, linear_order (π i)]
+  [Π i, topological_space (π i)] [∀ i, order_topology (π i)] {a b x : Π i, π i} {a' b' x' : ι → α}
+
+lemma pi_Iic_mem_nhds (ha : ∀ i, x i < a i) : Iic a ∈ 𝓝 x :=
+pi_univ_Iic a ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Iic_mem_nhds (ha _))
+
+lemma pi_Iic_mem_nhds' (ha : ∀ i, x' i < a' i) : Iic a' ∈ 𝓝 x' :=
+pi_Iic_mem_nhds ha
+
+lemma pi_Ici_mem_nhds (ha : ∀ i, a i < x i) : Ici a ∈ 𝓝 x :=
+pi_univ_Ici a ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Ici_mem_nhds (ha _))
+
+lemma pi_Ici_mem_nhds' (ha : ∀ i, a' i < x' i) : Ici a' ∈ 𝓝 x' :=
+pi_Ici_mem_nhds ha
+
+lemma pi_Icc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Icc a b ∈ 𝓝 x :=
+pi_univ_Icc a b ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Icc_mem_nhds (ha _) (hb _))
+
+lemma pi_Icc_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Icc a' b' ∈ 𝓝 x' :=
+pi_Icc_mem_nhds ha hb
+
+variables [nonempty ι]
+
+lemma pi_Iio_mem_nhds (ha : ∀ i, x i < a i) : Iio a ∈ 𝓝 x :=
+begin
+  refine mem_sets_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+    (pi_univ_Iio_subset a),
+  exact Iio_mem_nhds (ha i)
+end
+
+lemma pi_Iio_mem_nhds' (ha : ∀ i, x' i < a' i) : Iio a' ∈ 𝓝 x' :=
+pi_Iio_mem_nhds ha
+
+lemma pi_Ioi_mem_nhds (ha : ∀ i, a i < x i) : Ioi a ∈ 𝓝 x :=
+@pi_Iio_mem_nhds ι (λ i, order_dual (π i)) _ _ _ _ _ _ _ ha
+
+lemma pi_Ioi_mem_nhds' (ha : ∀ i, a' i < x' i) : Ioi a' ∈ 𝓝 x' :=
+pi_Ioi_mem_nhds ha
+
+lemma pi_Ioc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ioc a b ∈ 𝓝 x :=
+begin
+  refine mem_sets_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+    (pi_univ_Ioc_subset a b),
+  exact Ioc_mem_nhds (ha i) (hb i)
+end
+
+lemma pi_Ioc_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Ioc a' b' ∈ 𝓝 x' :=
+pi_Ioc_mem_nhds ha hb
+
+lemma pi_Ico_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ico a b ∈ 𝓝 x :=
+begin
+  refine mem_sets_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+    (pi_univ_Ico_subset a b),
+  exact Ico_mem_nhds (ha i) (hb i)
+end
+
+lemma pi_Ico_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Ico a' b' ∈ 𝓝 x' :=
+pi_Ico_mem_nhds ha hb
+
+lemma pi_Ioo_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ioo a b ∈ 𝓝 x :=
+begin
+  refine mem_sets_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+    (pi_univ_Ioo_subset a b),
+  exact Ioo_mem_nhds (ha i) (hb i)
+end
+
+lemma pi_Ioo_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Ioo a' b' ∈ 𝓝 x' :=
+pi_Ioo_mem_nhds ha hb
+
+end pi
 
 lemma disjoint_nhds_at_top [no_top_order α] (x : α) :
   disjoint (𝓝 x) at_top :=
 begin
   rw filter.disjoint_iff,
   cases no_top x with a ha,
-  use [Iio a, Ici a, Iio_mem_nhds ha, mem_at_top a],
+  use [Iio a, Iio_mem_nhds ha, Ici a, mem_at_top a],
   rw [inter_comm, Ici_inter_Iio, Ico_self]
 end
 
@@ -1248,48 +1367,6 @@ begin
     exact ⟨l, la, subset.trans Ioc_subset_Icc_self as⟩ }
 end
 
-section functions
-variables [topological_space β] [linear_order β] [order_topology β]
-
-/-- If `f : α → β` is strictly monotone and surjective, it is everywhere right-continuous. Superseded
-later in this file by `continuous_of_strict_mono_surjective` (same assumptions). -/
-lemma continuous_right_of_strict_mono_surjective
-  {f : α → β} (h_mono : strict_mono f) (h_surj : function.surjective f) (a : α) :
-  continuous_within_at f (Ici a) a :=
-begin
-  have ha : a ∈ Ici a := left_mem_Ici,
-  intros s hs,
-  by_cases hfa_top : ∃ p, f a < p,
-  { obtain ⟨q, hq, hqs⟩ : ∃ q ∈ Ioi (f a), Ico (f a) q ⊆ s :=
-      exists_Ico_subset_of_mem_nhds hs hfa_top,
-    refine mem_sets_of_superset (mem_map.2 _) hqs,
-    have h_surj_on := surj_on_Ici_of_monotone_surjective h_mono.monotone h_surj a,
-    rcases h_surj_on (Ioi_subset_Ici_self hq) with ⟨x, hx, rfl⟩,
-    rcases eq_or_lt_of_le hx with rfl|hax, { exact (lt_irrefl _ hq).elim },
-    refine mem_sets_of_superset (Ico_mem_nhds_within_Ici (left_mem_Ico.2 hax)) _,
-    intros z hz,
-    exact ⟨h_mono.monotone hz.1, h_mono hz.2⟩ },
-  { push_neg at hfa_top,
-    have ha_top : ∀ x : α, x ≤ a := strict_mono.top_preimage_top h_mono hfa_top,
-    rw [Ici_singleton_of_top ha_top, nhds_within_eq_map_subtype_coe (mem_singleton a),
-      nhds_discrete {x : α // x ∈ {a}}],
-    { exact mem_pure_sets.mpr (mem_of_nhds hs) },
-    { apply_instance } }
-end
-
-/-- If `f : α → β` is strictly monotone and surjective, it is everywhere left-continuous. Superseded
-later in this file by `continuous_of_strict_mono_surjective` (same assumptions). -/
-lemma continuous_left_of_strict_mono_surjective
-  {f : α → β} (h_mono : strict_mono f) (h_surj : function.surjective f) (a : α) :
-  continuous_within_at f (Iic a) a :=
-begin
-  apply @continuous_right_of_strict_mono_surjective (order_dual α) (order_dual β),
-  { exact λ x y hxy, h_mono hxy },
-  { simpa only [dual_Icc] }
-end
-
-end functions
-
 end linear_order
 
 section linear_ordered_ring
@@ -1348,8 +1425,21 @@ end
 
 end linear_ordered_ring
 
-section decidable_linear_ordered_semiring
-variables [decidable_linear_ordered_semiring α] [archimedean α]
+section linear_ordered_semiring
+variables [linear_ordered_semiring α]
+
+/-- The function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
+A version for positive real powers exists as `tendsto_rpow_at_top`. -/
+lemma tendsto_pow_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ n) at_top at_top :=
+begin
+  rw tendsto_at_top_at_top,
+  intro b,
+  use max b 1,
+  intros x hx,
+  exact le_trans (le_of_max_le_left (by rwa pow_one x)) (pow_le_pow (le_of_max_le_right hx) hn),
+end
+
+variables [archimedean α]
 variables {l : filter β} {f : β → α}
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
@@ -1359,10 +1449,10 @@ given in `tendsto_at_top_mul_left'`). -/
 lemma tendsto_at_top_mul_left  {r : α} (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, r * f x) l at_top :=
 begin
-  apply (tendsto_at_top _ _).2 (λb, _),
+  apply tendsto_at_top.2 (λb, _),
   obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ r * n, by rwa nsmul_eq_mul' at hn,
-  filter_upwards [(tendsto_at_top _ _).1 hf (n * max b 0)],
+  filter_upwards [tendsto_at_top.1 hf (n * max b 0)],
   assume x hx,
   calc b ≤ 1 * max b 0 : by { rw [one_mul], exact le_max_left _ _ }
   ... ≤ (r * n) * max b 0 : mul_le_mul_of_nonneg_right hn' (le_max_right _ _)
@@ -1377,10 +1467,10 @@ given in `tendsto_at_top_mul_right'`). -/
 lemma tendsto_at_top_mul_right {r : α} (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, f x * r) l at_top :=
 begin
-  apply (tendsto_at_top _ _).2 (λb, _),
+  apply tendsto_at_top.2 (λb, _),
   obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ (n : α) * r, by rwa nsmul_eq_mul at hn,
-  filter_upwards [(tendsto_at_top _ _).1 hf (max b 0 * n)],
+  filter_upwards [tendsto_at_top.1 hf (max b 0 * n)],
   assume x hx,
   calc b ≤ max b 0 * 1 : by { rw [mul_one], exact le_max_left _ _ }
   ... ≤ max b 0 * (n * r) : mul_le_mul_of_nonneg_left hn' (le_max_right _ _)
@@ -1388,7 +1478,7 @@ begin
   ... ≤ f x * r : mul_le_mul_of_nonneg_right hx (le_of_lt hr)
 end
 
-end decidable_linear_ordered_semiring
+end linear_ordered_semiring
 
 section linear_ordered_field
 variables [linear_ordered_field α]
@@ -1400,8 +1490,8 @@ constant (on the left) also tends to infinity. For a version working in `ℕ` or
 lemma tendsto_at_top_mul_left' {r : α} (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, r * f x) l at_top :=
 begin
-  apply (tendsto_at_top _ _).2 (λb, _),
-  filter_upwards [(tendsto_at_top _ _).1 hf (b/r)],
+  apply tendsto_at_top.2 (λb, _),
+  filter_upwards [tendsto_at_top.1 hf (b/r)],
   assume x hx,
   simpa [div_le_iff' hr] using hx
 end
@@ -1426,12 +1516,10 @@ a positive constant `C` then `f * g` tends to `at_top`. -/
 lemma tendsto_mul_at_top {C : α} (hC : 0 < C) (hf : tendsto f l at_top) (hg : tendsto g l (𝓝 C)) :
   tendsto (λ x, (f x * g x)) l at_top :=
 begin
-  rw tendsto_at_top at hf ⊢,
-  rw tendsto_order at hg,
-  intro b,
-  refine (hf (b/(C/2))).mp ((hg.1 (C/2) (half_lt_self hC)).mp ((hf 1).mp (eventually_of_forall _))),
-  intros x hx hltg hlef,
-  nlinarith [(div_le_iff' (half_pos hC)).mp hlef],
+  refine tendsto_at_top_mono' _ _ (tendsto_at_top_mul_right' (half_pos hC) hf),
+  filter_upwards [hg (lt_mem_nhds (half_lt_self hC)), hf (eventually_ge_at_top 0)],
+  dsimp,
+  exact λ x hg hf, mul_le_mul_of_nonneg_left hg.le hf
 end
 
 /-- In a linearly ordered field with the order topology, if `f` tends to `at_top` and `g` tends to
@@ -1450,13 +1538,13 @@ end
 
 end linear_ordered_field
 
-section discrete_linear_ordered_field
-variables [discrete_linear_ordered_field α] [topological_space α] [order_topology α]
+section linear_ordered_field
+variables [linear_ordered_field α] [topological_space α] [order_topology α]
 
 /-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
 lemma tendsto_inv_zero_at_top : tendsto (λx:α, x⁻¹) (𝓝[set.Ioi (0:α)] 0) at_top :=
 begin
-  apply (tendsto_at_top _ _).2 (λb, _),
+  apply tendsto_at_top.2 (λb, _),
   refine mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨(max b 1)⁻¹, by simp [zero_lt_one], λx hx, _⟩,
   calc b ≤ max b 1 : le_max_left _ _
   ... ≤ x⁻¹ : begin
@@ -1488,7 +1576,13 @@ tendsto_inv_at_top_zero.comp h
 lemma tendsto.inv_tendsto_zero (h : tendsto f l (𝓝[set.Ioi 0] 0)) : tendsto (f⁻¹) l at_top :=
 tendsto_inv_zero_at_top.comp h
 
-end discrete_linear_ordered_field
+/-- The function `x^(-n)` tends to `0` at `+∞` for any positive natural `n`.
+A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
+lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
+tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (fpow_neg x n).symm))
+  (tendsto.inv_tendsto_at_top (tendsto_pow_at_top hn))
+
+end linear_ordered_field
 
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
@@ -1622,7 +1716,6 @@ lemma is_compact.bdd_below {α : Type u} [topological_space α] [linear_order α
   [order_closed_topology α] [nonempty α] {s : set α} (hs : is_compact s) : bdd_below s :=
 begin
   by_contra H,
-  letI := classical.DLO α,
   rcases hs.elim_finite_subcover_image (λ x (_ : x ∈ s), @is_open_Ioi _ _ _ _ x) _
     with ⟨t, st, ft, ht⟩,
   { refine H (ft.bdd_below.imp $ λ C hC y hy, _),
@@ -1791,53 +1884,93 @@ nhds_within_Iio_ne_bot (le_refl a)
 
 end linear_order
 
-section decidable_linear_order
+section linear_order
 
-variables [topological_space α] [decidable_linear_order α] [order_topology α] [densely_ordered α]
+variables [topological_space α] [linear_order α] [order_topology α] [densely_ordered α]
+
+lemma comap_coe_nhds_within_Iio_of_Ioo_subset {a b : α} (h : a < b) {s : set α} (hb : s ⊆ Iio b)
+  (hs : Ioo a b ⊆ s) :
+  comap (coe : s → α) (𝓝[Iio b] b) = at_top :=
+begin
+  haveI : nonempty s := ((nonempty_Ioo.2 h).mono hs).to_subtype,
+  ext u, split,
+  { rintros ⟨t, ht, hts⟩,
+    obtain ⟨x, ⟨hxa : a ≤ x, hxb : x < b⟩, hxt : Ioo x b ⊆ t⟩ :=
+      (mem_nhds_within_Iio_iff_exists_mem_Ico_Ioo_subset h).mp ht,
+    obtain ⟨y, hxy, hyb⟩ := exists_between hxb,
+    refine mem_sets_of_superset (mem_at_top ⟨y, hs ⟨hxa.trans_lt hxy, hyb⟩⟩) _,
+    rintros ⟨z, hzs⟩ (hyz : y ≤ z),
+    refine hts (hxt ⟨hxy.trans_le _, hb _⟩); assumption },
+  { intros hu,
+    obtain ⟨x : s, hx : ∀ z, x ≤ z → z ∈ u⟩ := mem_at_top_sets.1 hu,
+    exact ⟨Ioo x b, Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 $ hb x.2), λ z hz, hx _ hz.1.le⟩ }
+end
+
+lemma comap_coe_nhds_within_Ioi_of_Ioo_subset {a b : α} (h : a < b) {s : set α} (hb : s ⊆ Ioi a)
+  (hs : Ioo a b ⊆ s) :
+  comap (coe : s → α) (𝓝[Ioi a] a) = at_bot :=
+begin
+  refine @comap_coe_nhds_within_Iio_of_Ioo_subset (order_dual α) _ _ _ _ b a h s hb _,
+  rwa dual_Ioo
+end
+
+lemma map_coe_at_top_of_Ioo_subset {a b : α} (h : a < b) {s : set α} (hb : s ⊆ Iio b)
+  (hs : Ioo a b ⊆ s) :
+  map (coe : s → α) at_top = (𝓝[Iio b] b) :=
+begin
+  rw [← comap_coe_nhds_within_Iio_of_Ioo_subset h hb hs, map_comap],
+  rw subtype.range_coe,
+  exact mem_sets_of_superset (Ioo_mem_nhds_within_Iio $ right_mem_Ioc.2 h) hs
+end
+
+lemma map_coe_at_bot_of_Ioo_subset {a b : α} (h : a < b) {s : set α} (hb : s ⊆ Ioi a)
+  (hs : Ioo a b ⊆ s) :
+  map (coe : s → α) at_bot = (𝓝[Ioi a] a) :=
+begin
+  rw [← comap_coe_nhds_within_Ioi_of_Ioo_subset h hb hs, map_comap],
+  rw subtype.range_coe,
+  exact mem_sets_of_superset (Ioo_mem_nhds_within_Ioi $ left_mem_Ico.2 h) hs
+end
 
 /-- The `at_top` filter for an open interval `Ioo a b` comes from the left-neighbourhoods filter at
 the right endpoint in the ambient order. -/
-lemma Ioo_at_top_eq_nhds_within {a b : α} (h : a < b) :
-  (at_top : filter (Ioo a b)) = comap (coe : Ioo a b → α) (𝓝[Iio b] b) :=
-begin
-  haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
-  ext,
-  split,
-  { intros hs,
-    obtain ⟨x, hx⟩ : ∃ x : (Ioo a b), ∀ z : (Ioo a b), z ≥ x → z ∈ s := mem_at_top_sets.mp hs,
-    refine ⟨Ioo x b, Ioo_mem_nhds_within_Iio (right_mem_Ioc.mpr x.2.2), _⟩,
-    intros z hz,
-    simpa using hx z (le_of_lt hz.1) },
-  { rintros ⟨t, ht, hts⟩,
-    obtain ⟨x, hx, hxt⟩ : ∃ x ∈ Iio b, Ioo x b ⊆ t := (mem_nhds_within_Iio_iff_exists_Ioo_subset' h).mp ht,
-    obtain ⟨y, hay, hyb⟩ : ∃ y, max a x < y ∧ y < b := exists_between (max_lt_iff.mpr ⟨h, hx⟩),
-    refine mem_at_top_sets.mpr ⟨⟨y, (max_lt_iff.mp hay).1, hyb⟩, _⟩,
-    intros z hz,
-    exact hts (hxt ⟨lt_of_lt_of_le (lt_of_le_of_lt (le_max_right a x) hay) hz, z.2.2⟩) }
-end
+lemma comap_coe_Ioo_nhds_within_Ioi {a b : α} (h : a < b) :
+  comap (coe : Ioo a b → α) (𝓝[Iio b] b) = at_top :=
+comap_coe_nhds_within_Iio_of_Ioo_subset h Ioo_subset_Iio_self (subset.refl _)
 
 /-- The `at_bot` filter for an open interval `Ioo a b` comes from the right-neighbourhoods filter at
 the left endpoint in the ambient order. -/
-lemma Ioo_at_bot_eq_nhds_within {a b : α} (h : a < b) :
-  (at_bot : filter (Ioo a b)) = comap (coe : Ioo a b → α) (𝓝[Ioi a] a) :=
-begin
-  haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
-  ext,
-  split,
-  { intros hs,
-    obtain ⟨x, hx⟩ : ∃ x : (Ioo a b), ∀ z : (Ioo a b), z ≤ x → z ∈ s := mem_at_bot_sets.mp hs,
-    refine ⟨Ioo a x, Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr x.2.1), _⟩,
-    intros z hz,
-    simpa using hx z (le_of_lt hz.2) },
-  { rintros ⟨t, ht, hts⟩,
-    obtain ⟨x, hx, hxt⟩ : ∃ x ∈ Ioi a, Ioo a x ⊆ t := (mem_nhds_within_Ioi_iff_exists_Ioo_subset' h).mp ht,
-    obtain ⟨y, hay, hyb⟩ : ∃ y, a < y ∧ y < min b x := exists_between (lt_min_iff.mpr ⟨h, hx⟩),
-    refine mem_at_bot_sets.mpr ⟨⟨y, hay, (lt_min_iff.mp hyb).1⟩, _⟩,
-    intros z hz,
-    exact hts (hxt ⟨z.2.1, lt_of_le_of_lt hz (lt_of_lt_of_le hyb (min_le_right b x))⟩) }
-end
+lemma comap_coe_Ioo_nhds_within_Iio {a b : α} (h : a < b) :
+  comap (coe : Ioo a b → α) (𝓝[Ioi a] a) = at_bot :=
+comap_coe_nhds_within_Ioi_of_Ioo_subset h Ioo_subset_Ioi_self (subset.refl _)
 
-end decidable_linear_order
+lemma comap_coe_Ioi_nhds_within_Ioi [no_top_order α] (a : α) :
+  comap (coe : Ioi a → α) (𝓝[Ioi a] a) = at_bot :=
+let ⟨b, hb⟩ := no_top a in
+comap_coe_nhds_within_Ioi_of_Ioo_subset hb (subset.refl _) Ioo_subset_Ioi_self
+
+lemma comap_coe_Iio_nhds_within_Iio [no_bot_order α] (a : α) :
+  comap (coe : Iio a → α) (𝓝[Iio a] a) = at_top :=
+@comap_coe_Ioi_nhds_within_Ioi (order_dual α) _ _ _ _ _ a
+
+@[simp] lemma map_coe_Ioo_at_top {a b : α} (h : a < b) :
+  map (coe : Ioo a b → α) at_top = 𝓝[Iio b] b :=
+map_coe_at_top_of_Ioo_subset h Ioo_subset_Iio_self (subset.refl _)
+
+@[simp] lemma map_coe_Ioo_at_bot {a b : α} (h : a < b) :
+  map (coe : Ioo a b → α) at_bot = 𝓝[Ioi a] a :=
+map_coe_at_bot_of_Ioo_subset h Ioo_subset_Ioi_self (subset.refl _)
+
+@[simp] lemma map_coe_Ioi_at_bot [no_top_order α] (a : α) :
+  map (coe : Ioi a → α) at_bot = 𝓝[Ioi a] a :=
+let ⟨b, hb⟩ := no_top a in
+map_coe_at_bot_of_Ioo_subset hb (subset.refl _) Ioo_subset_Ioi_self
+
+@[simp] lemma map_coe_Iio_at_top [no_bot_order α] (a : α) :
+  map (coe : Iio a → α) at_top = 𝓝[Iio a] a :=
+@map_coe_Ioi_at_bot (order_dual α) _ _ _ _ _ a
+
+end linear_order
 
 section complete_linear_order
 
@@ -1931,7 +2064,6 @@ lemma map_infi_of_continuous_at_of_monotone {ι : Sort*} {f : α → β} {g : ι
   Mf.order_dual ftop
 
 end complete_linear_order
-
 
 section conditionally_complete_linear_order
 
@@ -2109,6 +2241,7 @@ begin
   exact is_closed.mem_of_ge_of_forall_exists_gt this ha hy.1
     (λ x hx, hgt x ⟨hx.1, Ico_subset_Ico_right hy.2 hx.2⟩ y hx.2.2)
 end
+
 section densely_ordered
 
 variables [densely_ordered α] {a b : α}
@@ -2191,37 +2324,31 @@ begin
     is_preconnected_Iic, is_preconnected_univ, is_preconnected_empty],
 end
 
+variables {δ : Type*} [linear_order δ] [topological_space δ] [order_closed_topology δ]
+
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
-lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
+lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f a) (f b) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf
 
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
-lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
+lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f b) (f a) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
 
 /-- A continuous function which tendsto `at_top` `at_top` and to `at_bot` `at_bot` is surjective. -/
-lemma surjective_of_continuous {f : α → β} (hf : continuous f) (h_top : tendsto f at_top at_top)
+lemma surjective_of_continuous {f : α → δ} (hf : continuous f) (h_top : tendsto f at_top at_top)
   (h_bot : tendsto f at_bot at_bot) :
   function.surjective f :=
-begin
-  intros p,
-  obtain ⟨b, hb⟩ : ∃ b, p ≤ f b,
-    { rcases ((tendsto_at_top_at_top _).mp h_top) p with ⟨b, hb⟩,
-      exact ⟨b, hb b rfl.ge⟩ },
-  obtain ⟨a, hab, ha⟩ : ∃ a, a ≤ b ∧ f a ≤ p,
-  { rcases ((tendsto_at_bot_at_bot _).mp h_bot) p with ⟨x, hx⟩,
-    exact ⟨min x b, min_le_right x b, hx (min x b) (min_le_left x b)⟩ },
-  rcases intermediate_value_Icc hab hf.continuous_on ⟨ha, hb⟩ with ⟨x, _, hx⟩,
-  exact ⟨x, hx⟩
-end
+λ p, mem_range_of_exists_le_of_exists_ge hf
+  (h_bot.eventually (eventually_le_at_bot p)).exists
+  (h_top.eventually (eventually_ge_at_top p)).exists
 
 /-- A continuous function which tendsto `at_bot` `at_top` and to `at_top` `at_bot` is surjective. -/
-lemma surjective_of_continuous' {f : α → β} (hf : continuous f) (h_top : tendsto f at_bot at_top)
+lemma surjective_of_continuous' {f : α → δ} (hf : continuous f) (h_top : tendsto f at_bot at_top)
   (h_bot : tendsto f at_top at_bot) :
   function.surjective f :=
-@surjective_of_continuous (order_dual α) β _ _ _ _ _ _ _ _ hf h_top h_bot
+@surjective_of_continuous (order_dual α) _ _ _ _ _ _ _ _ _ hf h_top h_bot
 
 end densely_ordered
 
@@ -2456,7 +2583,7 @@ end liminf_limsup
 end order_topology
 
 lemma order_topology_of_nhds_abs
-  {α : Type*} [decidable_linear_ordered_add_comm_group α] [topological_space α]
+  {α : Type*} [linear_ordered_add_comm_group α] [topological_space α]
   (h_nhds : ∀a:α, 𝓝 a = (⨅r>0, 𝓟 {b | abs (a - b) < r})) : order_topology α :=
 order_topology.mk $ eq_of_nhds_eq_nhds $ assume a:α, le_antisymm_iff.mpr
 begin
@@ -2487,14 +2614,14 @@ begin
 end
 
 /-- $\lim_{x\to+\infty}|x|=+\infty$ -/
-lemma tendsto_abs_at_top_at_top [decidable_linear_ordered_add_comm_group α] :
+lemma tendsto_abs_at_top_at_top [linear_ordered_add_comm_group α] :
   tendsto (abs : α → α) at_top at_top :=
 tendsto_at_top_mono (λ n, le_abs_self _) tendsto_id
 
 local notation `|` x `|` := abs x
 
-lemma decidable_linear_ordered_add_comm_group.tendsto_nhds
-  [decidable_linear_ordered_add_comm_group α] [topological_space α] [order_topology α] {β : Type*}
+lemma linear_ordered_add_comm_group.tendsto_nhds
+  [linear_ordered_add_comm_group α] [topological_space α] [order_topology α] {β : Type*}
   (f : β → α) (x : filter β) (a : α) :
   filter.tendsto f x (nhds a) ↔ ∀ ε > (0 : α), ∀ᶠ b in x, |f b - a| < ε :=
 begin
@@ -2625,15 +2752,15 @@ by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ici _ _ _ _ (a⁻¹)
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iic _ _ _ _ (a⁻¹)
 
 lemma nhds_left_sup_nhds_right (a : α) [topological_space α] [linear_order α] :
-  nhds_within a (Iic a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
+  𝓝[Iic a] a ⊔ 𝓝[Ici a] a = 𝓝 a :=
 by rw [← nhds_within_union, Iic_union_Ici, nhds_within_univ]
 
 lemma nhds_left'_sup_nhds_right (a : α) [topological_space α] [linear_order α] :
-  nhds_within a (Iio a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
+  𝓝[Iio a] a ⊔ 𝓝[Ici a] a = 𝓝 a :=
 by rw [← nhds_within_union, Iio_union_Ici, nhds_within_univ]
 
 lemma nhds_left_sup_nhds_right' (a : α) [topological_space α] [linear_order α] :
-  nhds_within a (Iic a) ⊔ nhds_within a (Ioi a) = 𝓝 a :=
+  𝓝[Iic a] a ⊔ 𝓝[Ioi a] a = 𝓝 a :=
 by rw [← nhds_within_union, Iic_union_Ioi, nhds_within_univ]
 
 lemma continuous_at_iff_continuous_left_right [topological_space α] [linear_order α]
@@ -2644,8 +2771,7 @@ by simp only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_left_su
 lemma continuous_on_Icc_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [regular_space β] {f : α → β} {a b : α}
   {la lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
-  (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la))
-  (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
+  (ha : tendsto f (𝓝[Ioi a] a) (𝓝 la)) (hb : tendsto f (𝓝[Iio b] b) (𝓝 lb)) :
   continuous_on (extend_from (Ioo a b) f) (Icc a b) :=
 begin
   apply continuous_on_extend_from,
@@ -2661,7 +2787,7 @@ end
 
 lemma eq_lim_at_left_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [t2_space β] {f : α → β} {a b : α}
-  {la : β} (hab : a < b) (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la)) :
+  {la : β} (hab : a < b) (ha : tendsto f (𝓝[Ioi a] a) (𝓝 la)) :
   extend_from (Ioo a b) f a = la :=
 begin
   apply extend_from_eq,
@@ -2672,7 +2798,7 @@ end
 
 lemma eq_lim_at_right_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [t2_space β] {f : α → β} {a b : α}
-  {lb : β} (hab : a < b) (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
+  {lb : β} (hab : a < b) (hb : tendsto f (𝓝[Iio b] b) (𝓝 lb)) :
   extend_from (Ioo a b) f b = lb :=
 begin
   apply extend_from_eq,
@@ -2684,7 +2810,7 @@ end
 lemma continuous_on_Ico_extend_from_Ioo [topological_space α]
   [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
   [regular_space β] {f : α → β} {a b : α} {la : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
-  (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la)) :
+  (ha : tendsto f (𝓝[Ioi a] a) (𝓝 la)) :
   continuous_on (extend_from (Ioo a b) f) (Ico a b) :=
 begin
   apply continuous_on_extend_from,
@@ -2699,7 +2825,7 @@ end
 lemma continuous_on_Ioc_extend_from_Ioo [topological_space α]
   [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
   [regular_space β] {f : α → β} {a b : α} {lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
-  (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
+  (hb : tendsto f (𝓝[Iio b] b) (𝓝 lb)) :
   continuous_on (extend_from (Ioo a b) f) (Ioc a b) :=
 begin
   have := @continuous_on_Ico_extend_from_Ioo (order_dual α) _ _ _ _ _ _ _ f _ _ _ hab,
@@ -2727,59 +2853,319 @@ lemma continuous_at_iff_continuous_left'_right' [topological_space α] [linear_o
 by rw [continuous_within_at_Ioi_iff_Ici, continuous_within_at_Iio_iff_Iic,
   continuous_at_iff_continuous_left_right]
 
-section homeomorphisms
-variables [topological_space α] [topological_space β]
+/-!
+### Continuity of monotone functions
+
+In this section we prove the following fact: if `f` is a monotone function on a neighborhood of `a`
+and the image of this neighborhood is a neighborhood of `f a`, then `f` is continuous at `a`, see
+`continuous_at_of_mono_incr_on_of_image_mem_nhds`, as well as several similar facts.
+-/
 
 section linear_order
-variables [linear_order α] [order_topology α]
-variables [linear_order β] [order_topology β]
+variables [linear_order α] [topological_space α] [order_topology α]
+variables [linear_order β] [topological_space β] [order_topology β]
 
-/-- If `f : α → β` is strictly monotone and surjective, it is everywhere continuous. -/
-lemma continuous_at_of_strict_mono_surjective
-  {f : α → β} (h_mono : strict_mono f) (h_surj : function.surjective f) (a : α) :
-  continuous_at f a :=
-continuous_at_iff_continuous_left_right.mpr
-  ⟨continuous_left_of_strict_mono_surjective h_mono h_surj a,
-  continuous_right_of_strict_mono_surjective h_mono h_surj a⟩
+/-- If `f` is a function strictly monotonically increasing on a right neighborhood of `a` and the
+image of this neighborhood under `f` meets every interval `(f a, b]`, `b > f a`, then `f` is
+continuous at `a` from the right.
 
-/-- If `f : α → β` is strictly monotone and surjective, it is continuous. -/
-lemma continuous_of_strict_mono_surjective
-  {f : α → β} (h_mono : strict_mono f) (h_surj : function.surjective f) :
-  continuous f :=
-continuous_iff_continuous_at.mpr (continuous_at_of_strict_mono_surjective h_mono h_surj)
-
-/-- If `f : α ≃ β` is strictly monotone, its inverse is continuous. -/
-lemma continuous_inv_of_strict_mono_equiv (e : α ≃ β) (h_mono : strict_mono e.to_fun) :
-  continuous e.inv_fun :=
+The assumption `hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b` is required because otherwise the
+function `f : ℝ → ℝ` given by `f x = if x ≤ 0 then x else x + 1` would be a counter-example at
+`a = 0`. -/
+lemma strict_mono_incr_on.continuous_at_right_of_exists_between {f : α → β} {s : set α} {a : α}
+  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a)
+  (hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b) :
+  continuous_within_at f (Ici a) a :=
 begin
-  have hinv_mono : strict_mono e.inv_fun,
-  { intros x y hxy,
-    rw [← h_mono.lt_iff_lt, e.right_inv, e.right_inv],
-    exact hxy },
-  have hinv_surj : function.surjective e.inv_fun,
-  { intros x,
-    exact ⟨e.to_fun x, e.left_inv x⟩ },
-  exact continuous_of_strict_mono_surjective hinv_mono hinv_surj
+  have ha : a ∈ Ici a := left_mem_Ici,
+  have has : a ∈ s := mem_of_mem_nhds_within ha hs,
+  refine tendsto_order.2 ⟨λ b hb, _, λ b hb, _⟩,
+  { filter_upwards [hs, self_mem_nhds_within],
+    intros x hxs hxa,
+    exact hb.trans_le ((h_mono.le_iff_le has hxs).2 hxa) },
+  { rcases hfs b hb with ⟨c, hcs, hac, hcb⟩,
+    rw [h_mono.lt_iff_lt has hcs] at hac,
+    filter_upwards [hs, Ico_mem_nhds_within_Ici (left_mem_Ico.2 hac)],
+    rintros x hx ⟨hax, hxc⟩,
+    exact ((h_mono.lt_iff_lt hx hcs).2 hxc).trans_le hcb }
 end
 
-/-- If `f : α → β` is strictly monotone and surjective, it is a homeomorphism. -/
-noncomputable def homeomorph_of_strict_mono_surjective
-  (f : α → β) (h_mono : strict_mono f) (h_surj : function.surjective f) :
-  homeomorph α β :=
-{ to_equiv := equiv.of_bijective f ⟨strict_mono.injective h_mono, h_surj⟩,
-  continuous_to_fun := continuous_of_strict_mono_surjective h_mono h_surj,
-  continuous_inv_fun := continuous_inv_of_strict_mono_equiv
-    (equiv.of_bijective f ⟨strict_mono.injective h_mono, h_surj⟩) h_mono }
+/-- If `f` is a function monotonically increasing function on a right neighborhood of `a` and the
+image of this neighborhood under `f` meets every interval `(f a, b)`, `b > f a`, then `f` is
+continuous at `a` from the right.
 
-@[simp] lemma coe_homeomorph_of_strict_mono_surjective
-  (f : α → β) (h_mono : strict_mono f) (h_surj : function.surjective f) :
-  (homeomorph_of_strict_mono_surjective f h_mono h_surj : α → β) = f := rfl
+The assumption `hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioo (f a) b` cannot be replaced by the weaker
+assumption `hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b` we use for strictly monotone functions
+because otherwise the function `ceil : ℝ → ℤ` would be a counter-example at `a = 0`. -/
+lemma continuous_at_right_of_mono_incr_on_of_exists_between {f : α → β} {s : set α} {a : α}
+  (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝[Ici a] a)
+  (hfs : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioo (f a) b) :
+  continuous_within_at f (Ici a) a :=
+begin
+  have ha : a ∈ Ici a := left_mem_Ici,
+  have has : a ∈ s := mem_of_mem_nhds_within ha hs,
+  refine tendsto_order.2 ⟨λ b hb, _, λ b hb, _⟩,
+  { filter_upwards [hs, self_mem_nhds_within],
+    intros x hxs hxa,
+    exact hb.trans_le (h_mono _ has _ hxs hxa) },
+  { rcases hfs b hb with ⟨c, hcs, hac, hcb⟩,
+    have : a < c, from not_le.1 (λ h, hac.not_le $ h_mono _ hcs _ has h),
+    filter_upwards [hs, Ico_mem_nhds_within_Ici (left_mem_Ico.2 this)],
+    rintros x hx ⟨hax, hxc⟩,
+    exact (h_mono _ hx _ hcs hxc.le).trans_lt hcb }
+end
+
+/-- If a function `f` with a densely ordered codomain is monotonically increasing on a right
+neighborhood of `a` and the closure of the image of this neighborhood under `f` is a right
+neighborhood of `f a`, then `f` is continuous at `a` from the right. -/
+lemma continuous_at_right_of_mono_incr_on_of_closure_image_mem_nhds_within [densely_ordered β]
+  {f : α → β} {s : set α} {a : α} (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y)
+  (hs : s ∈ 𝓝[Ici a] a) (hfs : closure (f '' s) ∈ 𝓝[Ici (f a)] (f a)) :
+  continuous_within_at f (Ici a) a :=
+begin
+  refine continuous_at_right_of_mono_incr_on_of_exists_between h_mono hs (λ b hb, _),
+  rcases (mem_nhds_within_Ici_iff_exists_mem_Ioc_Ico_subset hb).1 hfs with ⟨b', ⟨hab', hbb'⟩, hb'⟩,
+  rcases exists_between hab' with ⟨c', hc'⟩,
+  rcases mem_closure_iff.1 (hb' ⟨hc'.1.le, hc'.2⟩) (Ioo (f a) b') is_open_Ioo hc'
+    with ⟨_, hc, ⟨c, hcs, rfl⟩⟩,
+  exact ⟨c, hcs, hc.1, hc.2.trans_le hbb'⟩
+end
+
+/-- If a function `f` with a densely ordered codomain is monotonically increasing on a right
+neighborhood of `a` and the image of this neighborhood under `f` is a right neighborhood of `f a`,
+then `f` is continuous at `a` from the right. -/
+lemma continuous_at_right_of_mono_incr_on_of_image_mem_nhds_within [densely_ordered β] {f : α → β}
+  {s : set α} {a : α} (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝[Ici a] a)
+  (hfs : f '' s ∈ 𝓝[Ici (f a)] (f a)) :
+  continuous_within_at f (Ici a) a :=
+continuous_at_right_of_mono_incr_on_of_closure_image_mem_nhds_within h_mono hs $
+  mem_sets_of_superset hfs subset_closure
+
+/-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
+right neighborhood of `a` and the closure of the image of this neighborhood under `f` is a right
+neighborhood of `f a`, then `f` is continuous at `a` from the right. -/
+lemma strict_mono_incr_on.continuous_at_right_of_closure_image_mem_nhds_within [densely_ordered β]
+  {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a)
+  (hfs : closure (f '' s) ∈ 𝓝[Ici (f a)] (f a)) :
+  continuous_within_at f (Ici a) a :=
+continuous_at_right_of_mono_incr_on_of_closure_image_mem_nhds_within
+  (λ x hx y hy, (h_mono.le_iff_le hx hy).2) hs hfs
+
+/-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
+right neighborhood of `a` and the image of this neighborhood under `f` is a right neighborhood of
+`f a`, then `f` is continuous at `a` from the right. -/
+lemma strict_mono_incr_on.continuous_at_right_of_image_mem_nhds_within [densely_ordered β]
+  {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a)
+  (hfs : f '' s ∈ 𝓝[Ici (f a)] (f a)) :
+  continuous_within_at f (Ici a) a :=
+h_mono.continuous_at_right_of_closure_image_mem_nhds_within hs
+  (mem_sets_of_superset hfs subset_closure)
+
+/-- If a function `f` is strictly monotonically increasing on a right neighborhood of `a` and the
+image of this neighborhood under `f` includes `Ioi (f a)`, then `f` is continuous at `a` from the
+right. -/
+lemma strict_mono_incr_on.continuous_at_right_of_surj_on {f : α → β} {s : set α} {a : α}
+  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Ici a] a) (hfs : surj_on f s (Ioi (f a))) :
+  continuous_within_at f (Ici a) a :=
+h_mono.continuous_at_right_of_exists_between hs $ λ b hb, let ⟨c, hcs, hcb⟩ := hfs hb in
+⟨c, hcs, hcb.symm ▸ hb, hcb.le⟩
+
+/-- If `f` is a function strictly monotonically increasing on a left neighborhood of `a` and the
+image of this neighborhood under `f` meets every interval `[b, f a)`, `b < f a`, then `f` is
+continuous at `a` from the left.
+
+The assumption `hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)` is required because otherwise the
+function `f : ℝ → ℝ` given by `f x = if x < 0 then x else x + 1` would be a counter-example at
+`a = 0`. -/
+lemma strict_mono_incr_on.continuous_at_left_of_exists_between {f : α → β} {s : set α} {a : α}
+  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a)
+  (hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)) :
+  continuous_within_at f (Iic a) a :=
+h_mono.dual.continuous_at_right_of_exists_between hs $
+  λ b hb, let ⟨c, hcs, hcb, hca⟩ := hfs b hb in ⟨c, hcs, hca, hcb⟩
+
+/-- If `f` is a function monotonically increasing function on a left neighborhood of `a` and the
+image of this neighborhood under `f` meets every interval `(b, f a)`, `b < f a`, then `f` is
+continuous at `a` from the left.
+
+The assumption `hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ioo b (f a)` cannot be replaced by the weaker
+assumption `hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)` we use for strictly monotone functions
+because otherwise the function `floor : ℝ → ℤ` would be a counter-example at `a = 0`. -/
+lemma continuous_at_left_of_mono_incr_on_of_exists_between {f : α → β} {s : set α} {a : α}
+  (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝[Iic a] a)
+  (hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ioo b (f a)) :
+  continuous_within_at f (Iic a) a :=
+@continuous_at_right_of_mono_incr_on_of_exists_between (order_dual α) (order_dual β) _ _ _ _ _ _
+  f s a (λ x hx y hy, h_mono y hy x hx) hs $
+  λ b hb, let ⟨c, hcs, hcb, hca⟩ := hfs b hb in ⟨c, hcs, hca, hcb⟩
+
+/-- If a function `f` with a densely ordered codomain is monotonically increasing on a left
+neighborhood of `a` and the closure of the image of this neighborhood under `f` is a left
+neighborhood of `f a`, then `f` is continuous at `a` from the left -/
+lemma continuous_at_left_of_mono_incr_on_of_closure_image_mem_nhds_within [densely_ordered β]
+  {f : α → β} {s : set α} {a : α} (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y)
+  (hs : s ∈ 𝓝[Iic a] a) (hfs : closure (f '' s) ∈ 𝓝[Iic (f a)] (f a)) :
+  continuous_within_at f (Iic a) a :=
+@continuous_at_right_of_mono_incr_on_of_closure_image_mem_nhds_within (order_dual α) (order_dual β)
+  _ _ _ _ _ _ _ f s a (λ x hx y hy, h_mono y hy x hx) hs hfs
+
+/-- If a function `f` with a densely ordered codomain is monotonically increasing on a left
+neighborhood of `a` and the image of this neighborhood under `f` is a left neighborhood of `f a`,
+then `f` is continuous at `a` from the left. -/
+lemma continuous_at_left_of_mono_incr_on_of_image_mem_nhds_within [densely_ordered β]
+  {f : α → β} {s : set α} {a : α} (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y)
+  (hs : s ∈ 𝓝[Iic a] a) (hfs : f '' s ∈ 𝓝[Iic (f a)] (f a)) :
+  continuous_within_at f (Iic a) a :=
+continuous_at_left_of_mono_incr_on_of_closure_image_mem_nhds_within h_mono hs
+  (mem_sets_of_superset hfs subset_closure)
+
+/-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
+left neighborhood of `a` and the closure of the image of this neighborhood under `f` is a left
+neighborhood of `f a`, then `f` is continuous at `a` from the left. -/
+lemma strict_mono_incr_on.continuous_at_left_of_closure_image_mem_nhds_within [densely_ordered β]
+  {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a)
+  (hfs : closure (f '' s) ∈ 𝓝[Iic (f a)] (f a)) :
+  continuous_within_at f (Iic a) a :=
+h_mono.dual.continuous_at_right_of_closure_image_mem_nhds_within hs hfs
+
+/-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
+left neighborhood of `a` and the image of this neighborhood under `f` is a left neighborhood of
+`f a`, then `f` is continuous at `a` from the left. -/
+lemma strict_mono_incr_on.continuous_at_left_of_image_mem_nhds_within [densely_ordered β]
+  {f : α → β} {s : set α} {a : α} (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a)
+  (hfs : f '' s ∈ 𝓝[Iic (f a)] (f a)) :
+  continuous_within_at f (Iic a) a :=
+h_mono.dual.continuous_at_right_of_image_mem_nhds_within hs hfs
+
+/-- If a function `f` is strictly monotonically increasing on a left neighborhood of `a` and the
+image of this neighborhood under `f` includes `Iio (f a)`, then `f` is continuous at `a` from the
+left. -/
+lemma strict_mono_incr_on.continuous_at_left_of_surj_on {f : α → β} {s : set α} {a : α}
+  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝[Iic a] a) (hfs : surj_on f s (Iio (f a))) :
+  continuous_within_at f (Iic a) a :=
+h_mono.dual.continuous_at_right_of_surj_on hs hfs
+
+/-- If a function `f` is strictly monotonically increasing on a neighborhood of `a` and the image of
+this neighborhood under `f` meets every interval `[b, f a)`, `b < f a`, and every interval
+`(f a, b]`, `b > f a`, then `f` is continuous at `a`. -/
+lemma strict_mono_incr_on.continuous_at_of_exists_between {f : α → β} {s : set α} {a : α}
+  (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝 a)
+  (hfs_l : ∀ b < f a, ∃ c ∈ s, f c ∈ Ico b (f a)) (hfs_r : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioc (f a) b) :
+  continuous_at f a :=
+continuous_at_iff_continuous_left_right.2
+  ⟨h_mono.continuous_at_left_of_exists_between (mem_nhds_within_of_mem_nhds hs) hfs_l,
+   h_mono.continuous_at_right_of_exists_between (mem_nhds_within_of_mem_nhds hs) hfs_r⟩
+
+/-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
+neighborhood of `a` and the closure of the image of this neighborhood under `f` is a neighborhood of
+`f a`, then `f` is continuous at `a`. -/
+lemma strict_mono_incr_on.continuous_at_of_closure_image_mem_nhds [densely_ordered β] {f : α → β}
+  {s : set α} {a : α} (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝 a)
+  (hfs : closure (f '' s) ∈ 𝓝 (f a)) :
+  continuous_at f a :=
+continuous_at_iff_continuous_left_right.2
+  ⟨h_mono.continuous_at_left_of_closure_image_mem_nhds_within (mem_nhds_within_of_mem_nhds hs)
+     (mem_nhds_within_of_mem_nhds hfs),
+   h_mono.continuous_at_right_of_closure_image_mem_nhds_within (mem_nhds_within_of_mem_nhds hs)
+     (mem_nhds_within_of_mem_nhds hfs)⟩
+
+/-- If a function `f` with a densely ordered codomain is strictly monotonically increasing on a
+neighborhood of `a` and the image of this set under `f` is a neighborhood of `f a`, then `f` is
+continuous at `a`. -/
+lemma strict_mono_incr_on.continuous_at_of_image_mem_nhds [densely_ordered β] {f : α → β}
+  {s : set α} {a : α} (h_mono : strict_mono_incr_on f s) (hs : s ∈ 𝓝 a) (hfs : f '' s ∈ 𝓝 (f a)) :
+  continuous_at f a :=
+h_mono.continuous_at_of_closure_image_mem_nhds hs (mem_sets_of_superset hfs subset_closure)
+
+/-- If `f` is a function monotonically increasing function on a neighborhood of `a` and the image of
+this neighborhood under `f` meets every interval `(b, f a)`, `b < f a`, and every interval `(f a,
+b)`, `b > f a`, then `f` is continuous at `a`. -/
+lemma continuous_at_of_mono_incr_on_of_exists_between {f : α → β} {s : set α} {a : α}
+  (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝 a)
+  (hfs_l : ∀ b < f a, ∃ c ∈ s, f c ∈ Ioo b (f a)) (hfs_r : ∀ b > f a, ∃ c ∈ s, f c ∈ Ioo (f a) b) :
+  continuous_at f a :=
+continuous_at_iff_continuous_left_right.2
+  ⟨continuous_at_left_of_mono_incr_on_of_exists_between h_mono
+     (mem_nhds_within_of_mem_nhds hs) hfs_l,
+   continuous_at_right_of_mono_incr_on_of_exists_between h_mono
+     (mem_nhds_within_of_mem_nhds hs) hfs_r⟩
+
+/-- If a function `f` with a densely ordered codomain is monotonically increasing on a neighborhood
+of `a` and the closure of the image of this neighborhood under `f` is a neighborhood of `f a`, then
+`f` is continuous at `a`. -/
+lemma continuous_at_of_mono_incr_on_of_closure_image_mem_nhds [densely_ordered β] {f : α → β}
+  {s : set α} {a : α} (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝 a)
+  (hfs : closure (f '' s) ∈ 𝓝 (f a)) :
+  continuous_at f a :=
+continuous_at_iff_continuous_left_right.2
+  ⟨continuous_at_left_of_mono_incr_on_of_closure_image_mem_nhds_within h_mono
+     (mem_nhds_within_of_mem_nhds hs) (mem_nhds_within_of_mem_nhds hfs),
+   continuous_at_right_of_mono_incr_on_of_closure_image_mem_nhds_within h_mono
+     (mem_nhds_within_of_mem_nhds hs) (mem_nhds_within_of_mem_nhds hfs)⟩
+
+/-- If a function `f` with a densely ordered codomain is monotonically increasing on a neighborhood
+of `a` and the image of this neighborhood under `f` is a neighborhood of `f a`, then `f` is
+continuous at `a`. -/
+lemma continuous_at_of_mono_incr_on_of_image_mem_nhds [densely_ordered β] {f : α → β}
+  {s : set α} {a : α} (h_mono : ∀ (x ∈ s) (y ∈ s), x ≤ y → f x ≤ f y) (hs : s ∈ 𝓝 a)
+  (hfs : f '' s ∈ 𝓝 (f a)) :
+  continuous_at f a :=
+continuous_at_of_mono_incr_on_of_closure_image_mem_nhds h_mono hs
+  (mem_sets_of_superset hfs subset_closure)
+
+/-- A monotone function with densely ordered codomain and a dense range is continuous. -/
+lemma monotone.continuous_of_dense_range [densely_ordered β] {f : α → β}
+  (h_mono : monotone f) (h_dense : dense_range f) :
+  continuous f :=
+continuous_iff_continuous_at.mpr $ λ a,
+  continuous_at_of_mono_incr_on_of_closure_image_mem_nhds (λ x hx y hy hxy, h_mono hxy)
+    univ_mem_sets $ by simp only [image_univ, h_dense.closure_eq, univ_mem_sets]
+
+/-- A monotone surjective function with a densely ordered codomain is surjective. -/
+lemma monotone.continuous_of_surjective [densely_ordered β] {f : α → β} (h_mono : monotone f)
+  (h_surj : function.surjective f) :
+  continuous f :=
+h_mono.continuous_of_dense_range h_surj.dense_range
 
 end linear_order
 
+/-!
+### Continuity of order isomorphisms
+
+In this section we prove that an `order_iso` is continuous, hence it is a `homeomorph`. We prove
+this for an `order_iso` between to partial orders with order topology.
+-/
+
+namespace order_iso
+
+variables [partial_order α] [partial_order β] [topological_space α] [topological_space β]
+  [order_topology α] [order_topology β]
+
+protected lemma continuous (e : α ≃o β) : continuous e :=
+begin
+  rw [‹order_topology β›.topology_eq_generate_intervals],
+  refine continuous_generated_from (λ s hs, _),
+  rcases hs with ⟨a, rfl|rfl⟩,
+  { rw e.preimage_Ioi, apply is_open_lt' },
+  { rw e.preimage_Iio, apply is_open_gt' }
+end
+
+/-- An order isomorphism between two linear order `order_topology` spaces is a homeomorphism. -/
+def to_homeomorph (e : α ≃o β) : α ≃ₜ β :=
+{ continuous_to_fun := e.continuous,
+  continuous_inv_fun := e.symm.continuous,
+  .. e }
+
+@[simp] lemma coe_to_homeomorph (e : α ≃o β) : ⇑e.to_homeomorph = e := rfl
+@[simp] lemma coe_to_homeomorph_symm (e : α ≃o β) : ⇑e.to_homeomorph.symm = e.symm := rfl
+
+end order_iso
+
 section conditionally_complete_linear_order
-variables [conditionally_complete_linear_order α] [densely_ordered α] [order_topology α]
-variables [conditionally_complete_linear_order β] [order_topology β]
+variables
+  [conditionally_complete_linear_order α] [densely_ordered α] [topological_space α]
+  [order_topology α] [conditionally_complete_linear_order β] [topological_space β]
+  [order_topology β]
 
 /-- If `f : α → β` is strictly monotone and continuous, and tendsto `at_top` `at_top` and to
 `at_bot` `at_bot`, then it is a homeomorphism. -/
@@ -2787,7 +3173,8 @@ noncomputable def homeomorph_of_strict_mono_continuous
   (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
   (h_bot : tendsto f at_bot at_bot) :
   homeomorph α β :=
-homeomorph_of_strict_mono_surjective f h_mono (surjective_of_continuous h_cont h_top h_bot)
+(order_iso.of_strict_mono_surjective f h_mono
+  (surjective_of_continuous h_cont h_top h_bot)).to_homeomorph
 
 @[simp] lemma coe_homeomorph_of_strict_mono_continuous
   (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
@@ -2809,21 +3196,15 @@ noncomputable def homeomorph_of_strict_mono_continuous_Ioo
   (h_top : tendsto f (𝓝[Iio b] b) at_top)
   (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
   homeomorph (Ioo a b) β :=
-@homeomorph_of_strict_mono_continuous _ _ _ _
+@homeomorph_of_strict_mono_continuous _ _
 (@ord_connected_subset_conditionally_complete_linear_order α (Ioo a b) _
   ⟨classical.choice (nonempty_Ioo_subtype h)⟩ _)
-_ _ _ _
+_ _ _ _ _ _
 (restrict f (Ioo a b))
 (λ x y, h_mono x.2.1 y.2.2)
 (continuous_on_iff_continuous_restrict.mp h_cont)
-begin
-  rw [restrict_eq f (Ioo a b), Ioo_at_top_eq_nhds_within h],
-  exact h_top.comp tendsto_comap
-end
-begin
-  rw [restrict_eq f (Ioo a b), Ioo_at_bot_eq_nhds_within h],
-  exact h_bot.comp tendsto_comap
-end
+(by rwa [restrict_eq f (Ioo a b), ← tendsto_map'_iff, map_coe_Ioo_at_top h])
+(by rwa [restrict_eq f (Ioo a b), ← tendsto_map'_iff, map_coe_Ioo_at_bot h])
 
 @[simp] lemma coe_homeomorph_of_strict_mono_continuous_Ioo
   (f : α → β) (h : a < b)
@@ -2836,5 +3217,3 @@ end
 rfl
 
 end conditionally_complete_linear_order
-
-end homeomorphisms

@@ -210,29 +210,18 @@ section polynomial
 open polynomial
 variables (x : ℝ) (p : polynomial ℤ)
 
-lemma nat_degree_gt_one_of_irrational_root (hx : irrational x) (p_nonzero : p ≠ 0)
-  (x_is_root : (p.map (algebra_map ℤ ℝ)).is_root x) : 1 < p.nat_degree :=
+lemma one_lt_nat_degree_of_irrational_root (hx : irrational x) (p_nonzero : p ≠ 0)
+  (x_is_root : aeval x p = 0) : 1 < p.nat_degree :=
 begin
-  have degree_eq : p.nat_degree = (p.map (algebra_map ℤ ℝ)).nat_degree,
-  { rw nat_degree_map', exact int.cast_injective },
   by_contra rid,
-  push_neg at rid,
-  interval_cases p.nat_degree with h_degree,
-  { have hp := eq_C_of_nat_degree_eq_zero h_degree,
-    have hpx := x_is_root,
-    rw [hp, is_root.def, eval_map, eval₂_C, ring_hom.eq_int_cast, int.cast_eq_zero] at hpx,
-    rw [hpx, C_0] at hp,
-    exact p_nonzero hp },
-  { rw irrational_iff_ne_rational at hx,
-    apply hx (-(p.coeff 0)) (p.coeff 1),
-    rw [as_sum_range p] at x_is_root,
-    simp only [is_root.def, h_degree, eval_map, finset.sum_range_succ, finset.sum_range_one,
-      eval₂_mul, eval₂_add, eval₂_X, eval₂_C, eval₂_one, pow_one, pow_zero, mul_one] at x_is_root,
-    simp only [ring_hom.eq_int_cast, add_eq_zero_iff_eq_neg] at x_is_root,
-    suffices : (p.coeff 1 : ℝ) ≠ 0,
-    { rw [eq_div_iff this, mul_comm, x_is_root, int.cast_neg] },
-    norm_cast,
-    rwa [← h_degree, ← leading_coeff, leading_coeff_eq_zero] }
+  rcases exists_eq_X_add_C_of_nat_degree_le_one (not_lt.1 rid) with ⟨a, b, rfl⟩, clear rid,
+  have : (a : ℝ) * x = -b, by simpa [eq_neg_iff_add_eq_zero] using x_is_root,
+  rcases em (a = 0) with (rfl|ha),
+  { obtain rfl : b = 0, by simpa,
+    simpa using p_nonzero },
+  { rw [mul_comm, ← eq_div_iff_mul_eq, eq_comm] at this,
+    refine hx ⟨-b / a, _⟩,
+    assumption_mod_cast, assumption_mod_cast }
 end
 
 end polynomial

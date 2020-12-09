@@ -28,8 +28,8 @@ by Leonardo de Moura at Microsoft Research, and his collaborators
 and using Lean's user maintained mathematics library
 (https://github.com/leanprover-community/mathlib).
 
-The project was developed at https://github.com/leanprover-community/lean-sensitivity
-and is now archived at https://github.com/leanprover-community/mathlib/blob/master/archive/sensitivity.lean
+The project was developed at https://github.com/leanprover-community/lean-sensitivity and is now
+archived at https://github.com/leanprover-community/mathlib/blob/master/archive/sensitivity.lean
 -/
 
 /-! The next two lines assert we do not want to give a constructive proof,
@@ -177,7 +177,8 @@ noncomputable def e : Π {n}, Q n → V n
 /-- The dual basis to `e`, defined inductively. -/
 noncomputable def ε : Π {n : ℕ} (p : Q n), V n →ₗ[ℝ] ℝ
 | 0 _ := linear_map.id
-| (n+1) p := cond (p 0) ((ε $ π p).comp $ linear_map.fst _ _ _) ((ε $ π p).comp $ linear_map.snd _ _ _)
+| (n+1) p := cond (p 0) ((ε $ π p).comp $ linear_map.fst _ _ _)
+               ((ε $ π p).comp $ linear_map.snd _ _ _)
 
 variable {n : ℕ}
 
@@ -211,7 +212,8 @@ begin
       let q : Q (n+1) := λ i, if h : i = 0 then ff else p (i.pred h)],
     all_goals {
       specialize h q,
-      rw [ε, show q 0 = tt, from rfl, cond_tt] at h <|> rw [ε, show q 0 = ff, from rfl, cond_ff] at h,
+      rw [ε, show q 0 = tt, from rfl, cond_tt] at h <|>
+        rw [ε, show q 0 = ff, from rfl, cond_ff] at h,
       rwa show p = π q, by { ext, simp [q, fin.succ_ne_zero, π] } } }
 end
 

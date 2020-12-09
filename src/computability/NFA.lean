@@ -14,6 +14,8 @@ which determines whether a string (implemented as a list over an arbitrary alpha
 set by evaluating the string over every possible path.
 We show that DFA's are equivalent to NFA's however the construction from NFA to DFA uses an
 exponential number of states.
+Note that this definition allows for Automaton with infinite states, a `fintype` instance must be
+supplied for true NFA's.
 -/
 
 universes u v

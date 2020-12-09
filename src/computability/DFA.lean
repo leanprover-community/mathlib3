@@ -11,6 +11,8 @@ import data.fintype.basic
 This file contains the definition of a Deterministic Finite Automaton (DFA), a state machine which
 determines whether a string (implemented as a list over an arbitrary alphabet) is in a regular set
 in linear time.
+Note that this definition allows for Automaton with infinite states, a `fintype` instance must be
+supplied for true DFA's.
 -/
 
 universes u v

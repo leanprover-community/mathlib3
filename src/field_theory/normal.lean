@@ -83,7 +83,10 @@ begin
   { apply minimal_polynomial.dvd H,
     rw ← add_equiv.map_eq_zero_iff f.symm.to_add_equiv,
     exact eq.trans (polynomial.aeval_alg_hom_apply f.symm.to_alg_hom x
-        (minimal_polynomial hx)).symm (minimal_polynomial.aeval hx) },
+      (minimal_polynomial hx)).symm (minimal_polynomial.aeval hx) },
 end
+
+lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
+⟨λ h, h.of_alg_equiv f, λ h, h.of_alg_equiv f.symm⟩
 
 end normal_tower

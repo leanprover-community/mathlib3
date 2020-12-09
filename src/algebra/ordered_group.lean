@@ -709,8 +709,6 @@ instance linear_ordered_comm_group.to_ordered_comm_group (α : Type u)
   [s : linear_ordered_comm_group α] : ordered_comm_group α :=
 { ..s }
 
-#check linear_ordered_cancel_add_comm_monoid
-
 section linear_ordered_add_comm_group
 
 variables [linear_ordered_add_comm_group α] {a b c : α}

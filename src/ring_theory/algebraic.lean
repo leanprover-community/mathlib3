@@ -117,7 +117,6 @@ lemma exists_integral_multiple [algebra R S] {z : S} (hz : is_algebraic R z)
     z * y = x :=
 begin
   rcases hz with ⟨p, p_ne_zero, px⟩,
-  set n := p.nat_degree with n_def,
   set a := p.leading_coeff with a_def,
   have a_ne_zero : a ≠ 0 := mt polynomial.leading_coeff_eq_zero.mp p_ne_zero,
   have y_integral : is_integral R (algebra_map R S a) := is_integral_algebra_map,

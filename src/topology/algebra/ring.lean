@@ -52,10 +52,10 @@ def ideal.closure (S : ideal α) : ideal α :=
 { carrier := closure S,
   zero_mem' := subset_closure S.zero_mem,
   add_mem'  := assume x y hx hy,
-    mem_closure2 continuous_add hx hy $ assume a b, S.add_mem,
+    map_mem_closure2 continuous_add hx hy $ assume a b, S.add_mem,
   smul_mem'  := assume c x hx,
     have continuous (λx:α, c * x) := continuous_const.mul continuous_id,
-    mem_closure this hx $ assume a, S.mul_mem_left }
+    map_mem_closure this hx $ assume a, S.mul_mem_left }
 
 @[simp] lemma ideal.coe_closure (S : ideal α) :
   (S.closure : set α) = closure S := rfl

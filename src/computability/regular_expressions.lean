@@ -117,7 +117,7 @@ instance : semiring (language α) :=
 end language
 
 
-/-- 
+/--
 This is the definition of regular expressions. The names used here is to mirror the definition
 of a Kleene algebra (https://en.wikipedia.org/wiki/Kleene_algebra).
 * `0` (`zero`) matches nothing
@@ -125,7 +125,7 @@ of a Kleene algebra (https://en.wikipedia.org/wiki/Kleene_algebra).
 * `char a` matches only the string 'a'
 * `star P` matches any finite concatenation of strings which match `P`
 * `P + Q` (`plus P Q`) matches anything which match `P` or `Q`
-* `P * Q` (`comp P Q`) matches `x ++ y` if `x` matches `P` and `y` matches `Q` 
+* `P * Q` (`comp P Q`) matches `x ++ y` if `x` matches `P` and `y` matches `Q`
 -/
 inductive regular_expression (α : Type u) : Type u
 | zero : regular_expression
@@ -365,37 +365,5 @@ begin
   { rw star_rmatch_iff,
     finish }
 end
-
-omit dec
-
-lemma add_assoc (P Q R : regular_expression α) : ((P + Q) + R).matches = (P + (Q + R)).matches :=
-by solve_by_elim [matches_add_def, add_assoc]
-lemma add_comm (P Q : regular_expression α) : (P + Q).matches = (Q + P).matches :=
-by solve_by_elim [matches_add_def, add_comm]
-
-lemma left_disrib (P Q R : regular_expression α) :
-  (P * (Q + R)).matches = ((P * Q) + (P * R)).matches :=
-by solve_by_elim [matches_add_def, matches_mul_def, left_distrib]
-lemma right_disrib (P Q R : regular_expression α) :
-  ((P + Q) * R).matches = ((P * R) + (Q * R)).matches :=
-by solve_by_elim [matches_add_def, matches_mul_def, right_distrib]
-
-lemma add_zero (P : regular_expression α) : (P + 0).matches = P.matches :=
-by solve_by_elim [matches_add_def, add_zero]
-lemma zero_add (P : regular_expression α) : (0 + P).matches = P.matches :=
-by solve_by_elim [matches_add_def, zero_add]
-
-lemma mul_zero (P : regular_expression α) : (P * 0).matches = (0 : regular_expression α).matches :=
-by solve_by_elim [matches_mul_def, mul_zero]
-lemma zero_mul (P : regular_expression α) : (0 * P).matches = (0 : regular_expression α).matches :=
-by solve_by_elim [matches_mul_def, zero_mul]
-
-lemma mul_one (P : regular_expression α) : (P * 1).matches = P.matches :=
-by solve_by_elim [matches_mul_def, mul_one]
-lemma one_mul (P : regular_expression α) : (1 * P).matches = P.matches :=
-by solve_by_elim [matches_mul_def, one_mul]
-
-lemma add_self (P : regular_expression α) : (P + P).matches = P.matches :=
-by solve_by_elim [matches_add_def, language.add_self]
 
 end regular_expression

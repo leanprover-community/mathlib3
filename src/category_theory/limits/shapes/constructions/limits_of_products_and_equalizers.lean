@@ -60,7 +60,7 @@ variable {i}
 (Implementation) Show the cone constructed in `build_limit` is limiting, provided the cones used in
 its construction are.
 -/
-def built_is_limit (t₁ : is_limit c₁) (t₂ : is_limit c₂) (hi : is_limit i) :
+def build_is_limit (t₁ : is_limit c₁) (t₂ : is_limit c₂) (hi : is_limit i) :
   is_limit (build_limit s t hs ht i) :=
 { lift := λ q,
   begin
@@ -88,7 +88,7 @@ lemma has_limit_of_equalizer_and_product (F : J ⥤ C)
 has_limit.mk
 { cone := _,
   is_limit :=
-    built_is_limit
+    build_is_limit
       (pi.lift (λ f, limit.π _ _ ≫ F.map f.2))
       (pi.lift (λ f, limit.π _ f.1.2))
       (by simp)
@@ -111,7 +111,6 @@ lemma limits_from_equalizers_and_products
 Any category with finite products and equalizers has all finite limits.
 
 See https://stacks.math.columbia.edu/tag/002O.
-(We do not prove equivalence with the third conditionin this file.)
 -/
 lemma finite_limits_from_equalizers_and_finite_products
   [has_finite_products C] [has_equalizers C] : has_finite_limits C :=
@@ -142,11 +141,11 @@ def preserves_limit_of_preserves_equalizers_and_product :
     let I := equalizer s t,
     let i : I ⟶ P := equalizer.ι s t,
     apply preserves_limit_of_preserves_limit_cone
-      (built_is_limit s t (by simp) (by simp)
+      (build_is_limit s t (by simp) (by simp)
         (limit.is_limit _)
         (limit.is_limit _)
         (limit.is_limit _)),
-    refine is_limit.of_iso_limit (built_is_limit _ _ _ _ _ _ _) _,
+    refine is_limit.of_iso_limit (build_is_limit _ _ _ _ _ _ _) _,
     { exact fan.mk _ (λ j, G.map (pi.π _ j)) },
     { exact fan.mk (G.obj Q) (λ f, G.map (pi.π _ f)) },
     { apply G.map s },

@@ -137,11 +137,11 @@ end
 lemma is_galois.of_alg_equiv (h : is_galois F E) (f : E ≃ₐ[F] E') : is_galois F E' :=
 ⟨h.1.of_alg_hom f.symm, h.2.of_alg_equiv f⟩
 
-lemma is_galois_iff_is_galois_alg_equiv (f : E ≃ₐ[F] E') : is_galois F E ↔ is_galois F E' :=
+lemma alg_equiv.transfer_galois (f : E ≃ₐ[F] E') : is_galois F E ↔ is_galois F E' :=
 ⟨λ h, h.of_alg_equiv f, λ h, h.of_alg_equiv f.symm⟩
 
 lemma is_galois_iff_is_galois_top : is_galois F (⊤ : intermediate_field F E) ↔ is_galois F E :=
-is_galois_iff_is_galois_alg_equiv (intermediate_field.top_equiv)
+(intermediate_field.top_equiv).transfer_galois
 
 end is_galois_tower
 

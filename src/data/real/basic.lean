@@ -625,21 +625,6 @@ by rw [mul_comm, sqrt_mul' _ hx, mul_comm]
 @[simp] theorem sqrt_div (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv]; refl
 
-lemma abs_div_sqrt_one_add_lt (x : ℝ) : abs (x / sqrt (1 + x ^ 2)) < 1 :=
-have h₁ : 0 < 1 + x ^ 2, from add_pos_of_pos_of_nonneg zero_lt_one (pow_two_nonneg _),
-have h₂ : 0 < sqrt (1 + x ^ 2), from sqrt_pos.2 h₁,
-by rw [abs_div, div_lt_iff (abs_pos_of_pos h₂), one_mul,
-    mul_self_lt_mul_self_iff (abs_nonneg x) (abs_nonneg _),
-    ← abs_mul, ← abs_mul, mul_self_sqrt (add_nonneg zero_le_one (pow_two_nonneg _)),
-    abs_of_nonneg (mul_self_nonneg x), abs_of_nonneg (le_of_lt h₁), pow_two, add_comm];
-  exact lt_add_one _
-
-lemma div_sqrt_one_add_lt_one (x : ℝ) : x / sqrt (1 + x ^ 2) < 1 :=
-(abs_lt.1 (abs_div_sqrt_one_add_lt _)).2
-
-lemma neg_one_lt_div_sqrt_one_add (x : ℝ) : -1 < x / sqrt (1 + x ^ 2) :=
-(abs_lt.1 (abs_div_sqrt_one_add_lt _)).1
-
 attribute [irreducible] real.le
 
 end real

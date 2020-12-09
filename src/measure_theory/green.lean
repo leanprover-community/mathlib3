@@ -7,6 +7,21 @@ noncomputable theory
 open fin set function
 open_locale big_operators
 
+section misc_lemmas
+
+/-! Miscellaneous lemmas, find homes elsewhere. -/
+
+lemma continuous.interval_integrable {u : ℝ → ℝ} (hu : continuous u) (a b : ℝ) :
+  interval_integrable u measure_theory.measure_space.volume a b :=
+begin
+  split;
+  { refine measure_theory.integrable_on.mono_set _ Ioc_subset_Icc_self,
+    apply hu.integrable_on_compact compact_Icc,
+    exact real.locally_finite_volume },
+end
+
+end misc_lemmas
+
 section
 
 /-- Given a point `x` in the plane, an index `i`, and a real number `a`, we introduce a definition
@@ -25,11 +40,8 @@ def box_line_integral  (i : fin 2) (a b : fin 2 → ℝ) : ℝ :=
 (segment_parametrized_integral u a i (b i) + segment_parametrized_integral u b i (a i))
 ---- IS THIS DEF CORRECT???? OR OFF BY A SIGN??
 
-
-lemma box_line_integral_const (cU : ℝ ) (i : fin 2) (a b : fin 2 → ℝ)
-:
- box_line_integral (λ x, cU ) i a b  = 0
- :=
+lemma box_line_integral_const (cU : ℝ ) (i : fin 2) (a b : fin 2 → ℝ) :
+  box_line_integral (λ x, cU ) i a b  = 0 :=
 begin
   -- ALEX TO DO
   sorry,
@@ -43,19 +55,14 @@ def oppI : fin 2 → fin 2 := λ i, if i=0 then 1 else 0
 
 def oppE : fin 2 → (fin 2→ ℝ ) := λ i, if i=0 then ey else ex
 
-lemma box_line_integral_linear (u: (fin 2→ ℝ ) →L[ℝ] ℝ ) (i : fin 2) (a b : fin 2 → ℝ)
-:
- box_line_integral u i a b  = (b 0 - a 0)*(u (oppE i))*(b 1 - a 1)
- :=
+lemma box_line_integral_linear (u: (fin 2→ ℝ ) →L[ℝ] ℝ ) (i : fin 2) (a b : fin 2 → ℝ) :
+  box_line_integral u i a b  = (b 0 - a 0) * (u (oppE i)) * (b 1 - a 1) :=
 begin
   rw box_line_integral,
   rw segment_parametrized_integral,
   rw segment_parametrized_integral,
-  have :
-  ∫ (t : ℝ) in b 0..a 0, u (update b 0 t)
-  =
-   - ∫ (t : ℝ) in a 0..b 0, u (update b 0 t),
-  apply   interval_integral.integral_symm,
+  have : ∫ (t : ℝ) in b 0..a 0, u (update b 0 t) = - ∫ (t : ℝ) in a 0..b 0, u (update b 0 t),
+  { apply interval_integral.integral_symm },
   rw this,
   ring,
   clear this,
@@ -94,19 +101,15 @@ begin
     --- ALEX
     sorry,
   },
-
-
   --- HEATHER
-
-  sorry,
-
-  sorry,
+  { apply continuous.interval_integrable,
+    exact (continuous_linear_map.continuous u).comp continuous_update },
+  { apply continuous.interval_integrable,
+    exact (continuous_linear_map.continuous u).comp continuous_update },
 end
 
-lemma box_integral_const (cU : ℝ )  (a b : fin 2 → ℝ)
-:
- box_integral (λ x, cU ) a b  = 0
- :=
+lemma box_integral_const (cU : ℝ )  (a b : fin 2 → ℝ) :
+  box_integral (λ x, cU ) a b  = 0 :=
 begin
   -- ALEX TO DO
   sorry,

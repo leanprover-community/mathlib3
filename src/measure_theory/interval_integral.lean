@@ -189,6 +189,18 @@ lemma sub [second_countable_topology E] (hf : interval_integrable f μ a b)
   (hg : interval_integrable g μ a b) : interval_integrable (f - g) μ a b :=
 ⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
 
+variables {ν : measure_theory.measure ℝ} [measure_theory.locally_finite_measure ν]
+
+/-- A continuous function on `ℝ` is `interval_integrable` with respect to any locally finite measure
+`ν` on ℝ. -/
+lemma continuous.interval_integrable {u : ℝ → E} (hu : continuous u) (a b : ℝ) :
+  interval_integrable u ν a b :=
+begin
+  split;
+  { refine measure_theory.integrable_on.mono_set _ Ioc_subset_Icc_self,
+    exact hu.integrable_on_compact compact_Icc },
+end
+
 end interval_integrable
 
 /-- Let `l'` be a measurably generated filter; let `l` be a of filter such that each `s ∈ l'`
@@ -478,7 +490,7 @@ begin
   { rw [Ioc_eq_empty hab, empty_union] at hf,
     simp [integral_of_ge hab, Ioc_eq_empty hab, integral_nonneg_of_ae hf] }
 end
-  
+
 lemma integral_pos_iff_support_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ}
   (hf : 0 ≤ᵐ[volume] f) (hfi : interval_integrable f volume a b) :
   0 < ∫ x in a..b, f x ↔ a < b ∧ 0 < volume (function.support f ∩ Ioc a b) :=

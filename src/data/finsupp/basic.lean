@@ -233,8 +233,8 @@ assume b₁ b₂ eq,
 have (single a b₁ : α →₀ M) a = (single a b₂ : α →₀ M) a, by rw eq,
 by rwa [single_eq_same, single_eq_same] at this
 
-lemma single_apply_eq_zero {a x : α} {b : M} : single a b x = 0 ↔ x ≠ a ∨ b = 0 :=
-by simp [single_eq_indicator, or_comm]
+lemma single_apply_eq_zero {a x : α} {b : M} : single a b x = 0 ↔ (x = a → b = 0) :=
+by simp [single_eq_indicator]
 
 lemma mem_support_single (a a' : α) (b : M) :
   a ∈ (single a' b).support ↔ a = a' ∧ b ≠ 0 :=
@@ -1246,7 +1246,7 @@ injective_coe_fn $ by simp [filter_eq_indicator, set.subset_def, mem_support_sin
 
 @[simp] lemma filter_single_of_neg
   {a : α} {b : M} (h : ¬ p a) : (single a b).filter p = 0 :=
-ext $ by simp [filter_eq_indicator, or_iff_not_imp_left, single_apply_eq_zero, h]
+ext $ by simp [filter_eq_indicator, single_apply_eq_zero, @imp.swap (p _), h]
 
 end has_zero
 

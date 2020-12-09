@@ -580,6 +580,10 @@ by simp [piecewise, hi]
 lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
 by simp [piecewise, hi]
 
+lemma piecewise_singleton (x : α) [Π y, decidable (y ∈ ({x} : set α))] [decidable_eq α]
+  (f g : α → β) : piecewise {x} f g = function.update g x (f x) :=
+by { ext y, by_cases hy : y = x, { subst y, simp }, { simp [hy] } }
+
 lemma piecewise_eq_on (f g : α → β) : eq_on (s.piecewise f g) f s :=
 λ _, piecewise_eq_of_mem _ _ _
 

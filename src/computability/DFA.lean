@@ -22,7 +22,7 @@ universes u v
 structure DFA (α : Type u) (σ : Type v) :=
 (step : σ → α → σ)
 (start : σ)
-(accept : finset σ)
+(accept : set σ)
 
 namespace DFA
 

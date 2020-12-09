@@ -45,6 +45,12 @@ forall_congr $ λ x, by classical; exact not_imp_comm
   support f = ∅ ↔ f = 0 :=
 by { simp_rw [← subset_empty_iff, support_subset_iff', funext_iff], simp }
 
+@[simp] lemma support_zero' [has_zero A] : support (0 : α → A) = ∅ :=
+support_eq_empty_iff.2 rfl
+
+@[simp] lemma support_zero [has_zero A] : support (λ x : α, (0 : A)) = ∅ :=
+support_zero'
+
 lemma support_binop_subset [has_zero A] (op : A → A → A) (op0 : op 0 0 = 0) (f g : α → A) :
   support (λ x, op (f x) (g x)) ⊆ support f ∪ support g :=
 λ x hx, classical.by_cases

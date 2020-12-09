@@ -40,12 +40,6 @@ a much better algorithm. We can only use this specific algorithm for rewrite-typ
 though, not general sequences of tactics, because it relies on the fact that any rewrite
 can be reversed.
 
-One drawback of this algorithm to note is that it uses `pp` of an expression to determine
-equality. So the `rewrite_search` tactic is likely to fail when there are two different
-expressions with the same `pp`. This is currently a lot faster than comparing expressions,
-but it would be nice to revisit this with Lean 4 to see if it is possible to be both fast
-and accurate.
-
 ## File structure
 
 * `discovery.lean` contains the logic for figuring out which rewrite rules to consider.

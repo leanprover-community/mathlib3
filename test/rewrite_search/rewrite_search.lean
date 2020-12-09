@@ -5,6 +5,7 @@ Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 import tactic.rewrite_search
 import data.rat.basic
+import data.real.basic
 
 /-
 These tests ensure that `rewrite_search` works on some relatively simple examples.
@@ -69,5 +70,20 @@ constants a b c d e : ℚ
 
 lemma test_algebra : (a * (b + c)) * d = a * (b * d) + a * (c * d) :=
 by rewrite_search [add_comm, add_assoc, mul_assoc, mul_comm, left_distrib, right_distrib]
+
+lemma test_simpler_algebra : a + (b + c) = (a + b) + c :=
+by rewrite_search [add_assoc]
+
+def idf : ℝ → ℝ := id
+
+/-
+These problems test `rewrite_search`'s ability to carry on in the presence of multiple
+expressions that `pp` to the same thing but are not actually equal.
+-/
+lemma test_pp_1 : idf (0 : ℕ) = idf (0 : ℚ) :=
+by rewrite_search [rat.cast_zero, nat.cast_zero, add_comm]
+
+lemma test_pp_2 : idf (0 : ℕ) + 1 = 1 + idf (0 : ℚ) :=
+by rewrite_search [rat.cast_zero, nat.cast_zero, add_comm]
 
 end tactic.rewrite_search.testing

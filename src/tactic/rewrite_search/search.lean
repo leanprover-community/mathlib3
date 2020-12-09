@@ -62,7 +62,7 @@ of our initial equation.
   Here, the format of a rewrite rule is an expression for rewriting, plus a flag for the
   direction to apply it in.
 * `vertices` maps vertex.id to vertex.
-* `vmap` maps vertex.pp to vertex.id, so we can quickly find collisions.
+* `vmap` maps vertex.pp to a list of vertex.id with that pp, so we can quickly find collisions.
 * `solving_edge` represents a solution that will prove our target equation.
   It is an edge that would connect the two trees, so `solving_edge.fr` and `solving_edge.to`
   are vertices in different trees.
@@ -71,7 +71,7 @@ meta structure graph :=
 (conf         : config)
 (rules        : list (expr × bool))
 (vertices     : buffer vertex)
-(vmap         : native.rb_map string ℕ)
+(vmap         : native.rb_map string (list ℕ))
 (solving_edge : option edge)
 
 /--
@@ -88,14 +88,14 @@ do (lhs, rhs) ← split_equation eq,
   let lhs_vertex : vertex := ⟨0, lhs, lhs_pp, side.L, none⟩,
   let rhs_vertex : vertex := ⟨1, rhs, rhs_pp, side.R, none⟩,
   return ⟨conf, rules, [lhs_vertex, rhs_vertex].to_buffer,
-          native.rb_map.of_list [(lhs_pp, 0), (rhs_pp, 1)], none⟩
+          native.rb_map.of_list [(lhs_pp, [0]), (rhs_pp, [1])], none⟩
 
 variables (g : graph)
 
 namespace graph
 
 /--
-A convenience wrapper around `g.vertices` that fails if the index is out of bounds.
+A convenience wrapper around `g.vertices` that returns none if the index is out of bounds.
 -/
 meta def get_vertex (i : ℕ) : tactic vertex :=
 if h : i < g.vertices.size then return $ g.vertices.read (fin.mk i h)
@@ -128,6 +128,16 @@ do e ← g.solving_edge,
   end
 
 /--
+Finds the id of a vertex in a list whose expression is defeq to the provided expression.
+Returns none if there is none.
+-/
+private meta def find_defeq : expr → list ℕ → tactic (option ℕ)
+| exp [] := return none
+| exp (id :: rest) := do
+  v ← g.get_vertex id,
+  ((do tactic.is_def_eq v.exp exp, return (some id)) <|> (find_defeq exp rest))
+
+/--
 Add the new vertex and edge to the graph, that can be proved in one step starting
 at a given vertex, with a given rewrite expression.
 For efficiency, it's important that this is the only way the graph is mutated,
@@ -135,7 +145,8 @@ and it only appends to the end of the `vertices` buffer.
 -/
 private meta def add_rewrite (v : vertex) (rw : rewrite) : tactic graph :=
 do pp ← to_string <$> tactic.pp rw.exp,
-  let maybe_id := g.vmap.find pp,
+  let existing_ids := match g.vmap.find pp with | some ids := ids | none := [] end,
+  maybe_id ← find_defeq g rw.exp existing_ids,
   match maybe_id with
   | (some id) := do
     existing_vertex ← g.get_vertex id,
@@ -147,7 +158,7 @@ do pp ← to_string <$> tactic.pp rw.exp,
     let new_vertex : vertex := ⟨new_vertex_id, rw.exp, pp, v.side, (some new_edge)⟩,
     trace_if_enabled `rewrite_search format!"new edge: {v.pp} → {new_vertex.pp}",
     return { g with vertices := g.vertices.push_back new_vertex,
-                    vmap := g.vmap.insert pp new_vertex_id }
+                    vmap := g.vmap.insert pp (new_vertex_id :: existing_ids) }
 end
 
 /--

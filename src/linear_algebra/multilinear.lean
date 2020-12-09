@@ -625,17 +625,6 @@ begin
   refl
 end
 
-/-- The space of multilinear maps is a module over `R`, for the pointwise addition and scalar
-multiplication. -/
-instance semimodule : semimodule R (multilinear_map R M₁ M₂) :=
-{ smul := (•),
-  one_smul := one_smul _,
-  mul_smul := mul_smul,
-  smul_add := λ r x y, by {ext z, simp [smul_add]},
-  smul_zero := λ r, by ext; simp [smul_zero],
-  add_smul := λ r s x, by ext; simp [add_smul],
-  zero_smul := λ r, by ext; simp [zero_smul] }
-
 end comm_semiring
 
 section ring
@@ -678,18 +667,6 @@ protected def pi_ring_equiv [fintype ι]  : M₂ ≃ₗ[R] (multilinear_map R (�
 end comm_semiring
 
 end multilinear_map
-
-namespace linear_map
-variables [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [add_comm_monoid M₃]
-[∀i, semimodule R (M₁ i)] [semimodule R M₂] [semimodule R M₃]
-
-/-- Composing a multilinear map with a linear map gives again a multilinear map. -/
-def comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) : multilinear_map R M₁ M₃ :=
-{ to_fun    := λ m, g (f m),
-  map_add'  := λ m i x y, by simp,
-  map_smul' := λ m i c x, by simp }
-
-end linear_map
 
 section currying
 /-!

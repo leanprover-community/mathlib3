@@ -209,3 +209,11 @@ lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
 (const_smul_hom β r).map_sum f s
 
 end
+
+section
+variables [semiring α] [mul_action α β]
+instance units_action : mul_action (units α) β :=
+{ smul := λ a b, (a : α) • b,
+  one_smul := by simp,
+  mul_smul := λ u v b, by {erw mul_smul, refl} }
+end

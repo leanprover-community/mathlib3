@@ -81,11 +81,6 @@ protected def quot : tensor_algebra R M →ₐ[R] exterior_algebra R M :=
 
 variables {M}
 
--- typeclass resolution times out here, so we give it a hand
-instance {S : Type*} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
-let i : ring (tensor_algebra S M) := infer_instance in
-@ring_quot.ring (tensor_algebra S M) i (exterior_algebra.rel S M)
-
 /--
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.
 -/

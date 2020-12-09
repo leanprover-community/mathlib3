@@ -243,14 +243,36 @@ begin
 end
 
 lemma default_append' (d : fin 0 → α) (i : fin m) :
-  append (zero_add _) d f i = f i :=
+  append (zero_add _).symm d f i = f i :=
 begin
   rw append_apply_snd _ _ _ _ (nat.not_lt_zero _),
   congr,
+  ext,
+  refl,
 end
 
 lemma append_one {x : α} :
   append rfl f (λ i : fin 1, x) = fin.snoc f x := rfl
+
+lemma one_append {x : α} (i : fin (1 + m)) :
+  append rfl (λ i : fin 1, x) f i = (fin.cons x f : fin m.succ → α) (i.cast $ add_comm 1 m):=
+begin
+  cases classical.em (i.cast (add_comm _ _) = 0) with hy hy,
+    rw hy,
+    rw cons_zero,
+    rw append_apply_fst,
+    rw ext_iff at hy,
+    erw hy,
+    rw coe_zero, linarith,
+  rw ←fin.succ_pred (i.cast (add_comm _ _)) hy,
+  rw cons_succ,
+  rw append_apply_snd,
+    congr,
+  contrapose! hy,
+  ext,
+  show (i : ℕ) = 0,
+  linarith,
+end
 
 lemma append_add (ho : o = m + n) (f : fin m → M) (g : fin n → M) (i : fin n) (x y : M) :
   append ho f (function.update g i (x + y)) ((i.nat_add m).cast ho.symm) =
@@ -446,8 +468,48 @@ begin
   rw append_apply_snd _ _ ho _ h,
 end
 
+lemma list.of_fn_congr (h : n = m) :
+  list.of_fn f = list.of_fn (f ∘ cast h) :=
+begin
+  congr,
+  rw h,
+  rw fin.heq_fun_iff h.symm,
+  intro i,
+  congr,
+  ext,
+  refl,
+end
+
 lemma of_fn_append (ho : o = m + n) :
   list.of_fn (append ho f g) = list.of_fn f ++ list.of_fn g :=
-sorry
+begin
+  revert o f g ho,
+  induction m with j hj,
+  intros o f g ho,
+  rw zero_add at ho,
+  rw list.of_fn_zero,
+  rw list.nil_append,
+  congr, exact ho,
+  rw fin.heq_fun_iff ho, intro i,
+  exact fin.default_append _ _ ho _,
+  intros o f g ho,
+  have hjn : o.pred = j + n := by rw [ho, nat.succ_add_eq_succ_add]; refl,
+  rw list.of_fn_succ,
+  rw list.cons_append,
+  erw ←hj (fin.tail f) g hjn,
+  rw list.of_fn_congr _ ((nat.succ_add_eq_succ_add _ _).symm.trans ho.symm),
+  rw list.of_fn_succ,
+  congr,
+  rw hjn,
+  rw fin.heq_fun_iff hjn.symm,
+  intro i,
+  rw function.comp_app,
+  conv_lhs {rw ←fin.cons_self_tail f},
+  rw cons_append _ _ ho hjn,
+  convert cons_succ _ _ _,
+  refl,
+  ext,
+  simp only [coe_cast, coe_mk, coe_succ],
+end
 
 end fin

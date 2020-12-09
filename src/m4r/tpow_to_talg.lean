@@ -365,7 +365,7 @@ begin
   refl,
 end
 
-lemma zero_eq_mk : talg_mk R M (λ i : fin 1, 0) = 0 :=
+@[simp] lemma zero_eq_mk : talg_mk R M (λ i : fin 1, 0) = 0 :=
 begin
   unfold talg_mk,
   unfold tpow.mk',
@@ -375,7 +375,7 @@ begin
   rw linear_map.map_zero,
 end
 
-lemma one_eq_mk : talg_mk R M (default (fin 0 → M)) = 1 :=
+@[simp] lemma one_eq_mk : talg_mk R M (default (fin 0 → M)) = 1 :=
 rfl
 
 lemma talg.mul_zero (x : talg R M) : x * 0 = 0 :=
@@ -394,7 +394,7 @@ lemma talg.mul_sum (s : multiset (talg R M)) (x : talg R M) :
   x * s.sum = (s.map (mul _ _ x)).sum :=
 map_sum' _ _ _
 
-lemma linear_map.map_sum₂ {P : Type*} [add_comm_group P] [module R P]
+@[simp] lemma linear_map.map_sum₂ {P : Type*} [add_comm_group P] [module R P]
   (f : M →ₗ[R] N →ₗ[R] P) (s : multiset M) :
   f s.sum = (s.map f).sum :=
 map_sum' _ _ _
@@ -448,9 +448,13 @@ lemma alg_hom.map_prod' {A : Type*} {B : Type*} [ring A] [ring B]
   f S.prod = (S.map f).prod :=
 (S.prod_hom f.to_ring_hom.to_monoid_hom).symm
 
+lemma talg.smul_assoc (r : R) (x y : talg R M) :
+  (r • x) * y = r • (x * y) :=
+linear_map.map_smul₂ _ _ _ _
+
 lemma aux (x : talg R M) (k : ℕ) (s : multiset (R × (fin k → M)))
-(X : R × (fin k → M)) (i j : ℕ) (t : multiset (R × (fin j → M)))
-(Y : R × (fin j → M)) (l : ℕ) :
+(X : R × (fin k → M)) (j : ℕ) (t : multiset (R × (fin j → M)))
+(Y : R × (fin j → M)) :
  x * (lof R ℕ (tpow R M) j (mk' R M j Y.snd)) *
       (lof R ℕ (tpow R M) k (mk R M k X.2)) =
     x * (talg_mk R M (fin.append rfl Y.2 X.2)) :=
@@ -476,6 +480,31 @@ begin
   exact fin.append_assoc _ _ _ rfl rfl rfl rfl _,
   intros a b ha hb,
   simp only [talg.add_mul, ha, hb],
+end
+
+lemma aux2 {x : talg R M}
+  {k : ℕ} (s : multiset (R × (fin k → M))) (X : R × (fin k → M))
+  {j : ℕ} (t : multiset (R × (fin j → M))) :
+(λ (f : talg R M →ₗ[R] talg R M),
+            f ((lof R ℕ (tpow R M) k) (mk R M k X.snd)))
+∘ ((mul R M) ∘ (mul R M x)) ∘
+  (λ (i : R × (fin j → M)),
+     i.fst • (lof R ℕ (tpow R M) j) (mk R M j i.snd))
+      =
+  (mul R M x) ∘
+         (λ (y : talg R M), y * (lof R ℕ (tpow R M) k) (mk R M k X.snd)) ∘
+           λ (i : R × (fin j → M)),
+             i.fst • (lof R ℕ (tpow R M) j) (mk R M j i.snd) :=
+begin
+  ext Y l,
+  simp only [linear_map.smul_apply, function.comp_app, dfinsupp.smul_apply, linear_map.map_smul],
+  rw talg.smul_assoc,
+  rw linear_map.map_smul,
+  rw dfinsupp.smul_apply,
+  congr' 2,
+  erw mul_apply,
+  simp only [mul_def],
+  erw aux R M _ _ s _ j t _,
 end
 
 lemma talg.mul_assoc (x y z : talg R M) : x * y * z = x * (y * z) :=
@@ -506,16 +535,7 @@ begin
   rw talg.sum_mul, rw talg.mul_sum,
   simp only [linear_map.smul_apply, function.comp_app, multiset.map_map, linear_map.map_smul],
   refine congr_arg _ _,
-  sorry,
-  --IM GOING TO LOSE MY MIND
-   -- congr,
-    --ext Y l,
-    --simp only [linear_map.smul_apply, function.comp_app, dfinsupp.smul_apply],
-    --congr' 2,
-  --  simp only [mul_def],
-  --  erw mul_apply,
-  --  erw aux R M _ _ s _ i j t _ l,
-  --simp,
+  erw aux2 R M s X t,
   intros a b ha hb,
   rw talg.mul_add,
   rw linear_map.map_add,
@@ -532,10 +552,6 @@ begin
   rw hb,
   rw talg.mul_add,
 end
-
-lemma talg.smul_assoc (r : R) (x y : talg R M) :
-  (r • x) * y = r • (x * y) :=
-linear_map.map_smul₂ _ _ _ _
 
 lemma talg.mul_one (x : talg R M) : x * 1 = x :=
 begin
@@ -629,10 +645,11 @@ begin
   cases i,
   convert mul_one r,
   rw tpow.mk'_apply,
+  rw ←linear_map.map_smul,
+  simp only [dfinsupp.smul_apply],
+  unfold tpow.mk,
+  rw algebra.id.smul_eq_mul,
   rw mul_one,
-  sorry, --the fuck is going on???
-  erw dfinsupp.single_eq_of_ne,
-  sorry, sorry,
 end
 
 instance : algebra R (talg R M) :=
@@ -768,7 +785,7 @@ def talg.lift {A : Type*} [ring A] [algebra R A]
       rw multiset.map_map,
       congr' 1,
       ext z,
-      simp only [function.comp_app, algebra.smul_mul_assoc],
+      simp only [function.comp_app, linear_map.map_smul, algebra.smul_mul_assoc],
       congr,
       erw tpow.lift_mk_apply,
       erw multiset.mul_sum,
@@ -779,7 +796,7 @@ def talg.lift {A : Type*} [ring A] [algebra R A]
       rw multiset.map_map,
       congr' 1,
       ext w,
-      simp only [algebra.mul_smul_comm, function.comp_app],
+      simp only [algebra.mul_smul_comm, function.comp_app, linear_map.map_smul],
       congr,
       erw tpow.lift_mk_apply,
       erw mul_apply,
@@ -820,13 +837,13 @@ rfl
 
 variables (R M)
 
-local attribute [irreducible] tensor_algebra ι tensor_algebra.lift
+--local attribute [irreducible] tensor_algebra ι tensor_algebra.lift
 def to_talg : tensor_algebra R M →ₐ[R] talg R M :=
-tensor_algebra.lift R (ι R M) --fucking great
+tensor_algebra.lift R (ι R M)
 
-#exit
 theorem talg.right_inverse (x : talg R M) :
-  to_talg R M (talg.lift R M (tensor_algebra.ι R) x) = x :=
+  to_talg R M (@talg.lift R _ M _ _ _ _ (tensor_algebra.inst R M)
+    (tensor_algebra.ι R) x) = x :=
 begin
   refine direct_sum.linduction_on R x _ _ _,
   rw alg_hom.map_zero,
@@ -834,7 +851,7 @@ begin
   intros i y,
   rcases exists_sum_of_tpow R M y with ⟨s, rfl⟩,
   rw map_sum,
-  simp only [map_smul_eq_smul_map],
+  simp only [linear_map.map_smul],
   rw alg_hom.map_sum',
   rw multiset.map_map,
   rw alg_hom.map_sum',
@@ -855,20 +872,21 @@ begin
   induction i with i hi,
   show _ = talg_mk R M (default (fin 0 → M)),
   simp only [list.of_fn_zero, list.prod_nil, one_eq_mk],
-  rw fin.list.of_fn_succ',
-  have := hi (fin.init y2),
-  rw fin.comp_init at this,
-  rw fin.comp_init at this,
-  rw list.concat_eq_append,
-  rw list.prod_append,
-  rw this,
+  rw list.of_fn_succ,
+  have := hi (fin.tail y2),
+  rw fin.comp_tail at this,
+  rw fin.comp_tail at this,
+  rw list.prod_cons,
+  erw this,
   rw function.comp_app, rw function.comp_app,
   rw tensor_algebra.lift_ι_apply,
-  rw list.prod_singleton,
   rw ι_eq_mk,
   erw mul_apply,
-  unfold fin.append,
-  erw fin.snoc_succ,
+  congr, rw add_comm,
+  rw fin.heq_fun_iff (add_comm _ _),
+  intro j,
+  rw fin.one_append _ j,
+  rw fin.cons_self_tail y2,
   refl,
   intros y z hy hz,
   simp only [alg_hom.map_add, hy, hz],
@@ -921,7 +939,8 @@ end
 variables (R M)
 
 theorem talg.left_inverse (x : tensor_algebra R M) :
-  talg.lift R M (tensor_algebra.ι R) (to_talg R M x) = x :=
+  @talg.lift R _ M _ _ _ _ (tensor_algebra.inst R M)
+    (tensor_algebra.ι R) (to_talg R M x) = x :=
 begin
   refine tensor_algebra.induction_on _ _ _ _ x,
   intros n f,

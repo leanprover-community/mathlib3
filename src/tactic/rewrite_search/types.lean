@@ -34,7 +34,12 @@ def side.to_xhs : side → string
 
 meta instance side.has_to_format : has_to_format side := ⟨side.to_string⟩
 
-/-- `how` contains information needed by the explainer to generate code for a rewrite. -/
+/--
+A `how` contains information needed by the explainer to generate code for a rewrite.
+`rule_index` denotes which rule in the static list of rules is used.
+`location` describes which match of that rule was used, to work with `nth_rewrite`.
+`addr` is a list of "left" and "right" describing which subexpression is rewritten.
+-/
 meta structure how := (rule_index : ℕ) (location : ℕ) (addr : option (list expr_lens.dir))
 
 /-- Convert a `how` to a human-readable string. -/

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
+import data.buffer.basic
 import meta.rb_map
 import tactic.rewrite_search.discovery
 import tactic.rewrite_search.types
@@ -28,13 +29,13 @@ can prove the vertex `to`.
 proof.
 -/
 meta structure edge :=
-(fr to : ℕ)
+(from_id to_id : ℕ)
 (proof : tactic expr)
 (how   : how)
 
 /-- Converting an edge to a human-readable string. -/
 meta def edge.to_string : edge → format
-| e := format!"{e.fr} → {e.to}"
+| e := format!"{e.from_id} → {e.to_id}"
 
 meta instance edge.has_to_format : has_to_format edge := ⟨edge.to_string⟩
 
@@ -95,13 +96,6 @@ variables (g : graph)
 namespace graph
 
 /--
-A convenience wrapper around `g.vertices` that fails if the index is out of bounds.
--/
-meta def get_vertex (i : ℕ) : tactic vertex :=
-if h : i < g.vertices.size then return $ g.vertices.read (fin.mk i h)
-else fail "invalid vertex access"
-
-/--
 Find a list of edges that connect the given edge to the root of its tree.
 The edges are returned in leaf-to-root order, while they are in root-to-leaf direction,
 so if you want them in the logical order you must reverse the returned list.
@@ -109,7 +103,7 @@ so if you want them in the logical order you must reverse the returned list.
 private meta def walk_up_parents : option edge → tactic (list edge)
 | none     := return []
 | (some e) := do
-  v ← g.get_vertex e.fr,
+  v ← g.vertices.read_t e.from_id,
   edges ← walk_up_parents v.parent,
   return (e :: edges)
 
@@ -119,7 +113,7 @@ interior vertex, the second is a path from the RHS to that interior vertex.
 -/
 private meta def solution_paths : tactic (list edge × list edge) :=
 do e ← g.solving_edge,
-  v ← g.get_vertex e.to,
+  v ← g.vertices.read_t e.to_id,
   path1 ← walk_up_parents g e,
   path2 ← walk_up_parents g v.parent,
   match v.side with
@@ -134,7 +128,7 @@ Returns none if there is none.
 private meta def find_defeq : expr → list ℕ → tactic (option ℕ)
 | exp [] := return none
 | exp (id :: rest) := do
-  v ← g.get_vertex id,
+  v ← g.vertices.read_t id,
   ((do tactic.is_def_eq v.exp exp, return (some id)) <|> (find_defeq exp rest))
 
 /--
@@ -149,7 +143,7 @@ do pp ← to_string <$> tactic.pp rw.exp,
   maybe_id ← find_defeq g rw.exp existing_ids,
   match maybe_id with
   | (some id) := do
-    existing_vertex ← g.get_vertex id,
+    existing_vertex ← g.vertices.read_t id,
     if v.side = existing_vertex.side then return g
     else return { g with solving_edge := some ⟨v.id, existing_vertex.id, rw.proof, rw.how⟩ }
   | none := do

@@ -94,7 +94,7 @@ def apply_composition
 
 lemma apply_composition_ones (p : formal_multilinear_series 𝕜 E F) (n : ℕ) :
   apply_composition p (composition.ones n) =
-    λ v i, p 1 (λ _, v (i.cast_le (composition.length_le _))) :=
+    λ v i, p 1 (λ _, v (fin.cast_le (composition.length_le _) i)) :=
 begin
   funext v i,
   apply p.congr (composition.ones_blocks_fun _ _),
@@ -126,7 +126,7 @@ begin
       by rw B,
     suffices C : (function.update v (r j') z) ∘ r = function.update (v ∘ r) j' z,
       by { convert C, exact (c.embedding_comp_inv j).symm },
-    exact function.update_comp_eq_of_injective _ (c.embedding_injective _) _ _ },
+    exact function.update_comp_eq_of_injective _ (c.embedding _).injective _ _ },
   { simp only [h, function.update_eq_self, function.update_noteq, ne.def, not_false_iff],
     let r : fin (c.blocks_fun k) → fin n := c.embedding k,
     change p (c.blocks_fun k) ((function.update v j z) ∘ r) = p (c.blocks_fun k) (v ∘ r),
@@ -329,9 +329,8 @@ begin
     { ext v,
       rw [comp_along_composition_apply, id_apply_one' _ _ (composition.single_length n_pos)],
       dsimp [apply_composition],
-      apply p.congr rfl,
-      intros,
-      rw [function.comp_app, composition.single_embedding] },
+      refine p.congr rfl (λ i him hin, congr_arg v $ _),
+      ext, simp },
     show ∀ (b : composition n),
       b ∈ finset.univ → b ≠ composition.single n n_pos → comp_along_composition (id 𝕜 F) p b = 0,
     { assume b _ hb,

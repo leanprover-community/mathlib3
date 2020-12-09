@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébastien Gouëzel
+Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébastien Gouëzel,
+  Rémy Degenne
 -/
 import analysis.special_functions.trigonometric
 import analysis.calculus.extend_deriv
@@ -623,17 +624,7 @@ begin
     change measurable ((λ x : ℝ, ite (x = 0) (1:ℝ) (0:ℝ))
       ∘ (λ a : {p : ℝ × ℝ | p.fst = 0}, (a:ℝ×ℝ).snd)),
     refine measurable.comp _ (measurable_snd.comp measurable_subtype_coe),
-    { refine measurable_of_measurable_on_compl_singleton 0 _,
-      have h_const : set.restrict (λ (x : ℝ), ite (x = 0) (1:ℝ) (0:ℝ)) {x : ℝ | x ≠ 0}
-        = λ x : {x : ℝ | x ≠ 0}, (0:ℝ),
-      { ext1 x,
-        rw set.restrict_eq,
-        change ite (x.val = 0) (1:ℝ) (0:ℝ) = (0:ℝ),
-        split_ifs,
-        { exfalso, exact x.prop h, },
-        refl, },
-      rw h_const,
-      exact measurable_const, }, },
+    exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const, },
   { refine continuous.measurable _,
     rw continuous_iff_continuous_at,
     intro x,
@@ -1012,6 +1003,13 @@ begin
   { exact ((continuous_subtype_val.comp continuous_fst).prod_mk continuous_snd).continuous_at }
 end
 
+lemma of_real_rpow_of_nonneg {x y : ℝ} (hx : 0 ≤ x) :
+  nnreal.of_real (x ^ y) = (nnreal.of_real x) ^ y :=
+begin
+  nth_rewrite 0 ← nnreal.coe_of_real x hx,
+  rw [←nnreal.coe_rpow, nnreal.of_real_coe],
+end
+
 end nnreal
 
 section measurability_nnreal
@@ -1136,6 +1134,9 @@ begin
     { simp [hx, zero_rpow_of_pos H, nnreal.zero_rpow (ne_of_gt H)] } },
   { exact coe_rpow_of_ne_zero hx _ }
 end
+
+lemma coe_rpow_def (x : ℝ≥0) (y : ℝ) :
+  (x : ennreal) ^ y = if x = 0 ∧ y < 0 then ⊤ else (x ^ y : ℝ≥0) := rfl
 
 @[simp] lemma rpow_one (x : ennreal) : x ^ (1 : ℝ) = x :=
 by cases x; dsimp only [(^), rpow]; simp [zero_lt_one, not_lt_of_le zero_le_one]
@@ -1302,6 +1303,21 @@ begin
   exact mul_rpow_of_ne_zero h.1 h.2 z
 end
 
+lemma inv_rpow_of_pos {x : ennreal} {y : ℝ} (hy : 0 < y) : (x⁻¹) ^ y = (x ^ y)⁻¹ :=
+begin
+  by_cases h0 : x = 0,
+  { rw [h0, zero_rpow_of_pos hy, inv_zero, top_rpow_of_pos hy], },
+  by_cases h_top : x = ⊤,
+  { rw [h_top, top_rpow_of_pos hy, inv_top, zero_rpow_of_pos hy], },
+  rw ←coe_to_nnreal h_top,
+  have h : x.to_nnreal ≠ 0,
+  { rw [ne.def, to_nnreal_eq_zero_iff],
+    simp [h0, h_top], },
+  rw [←coe_inv h, coe_rpow_of_nonneg _ (le_of_lt hy), coe_rpow_of_nonneg _ (le_of_lt hy), ←coe_inv],
+  { rw coe_eq_coe,
+    exact nnreal.inv_rpow x.to_nnreal y, },
+  { simp [h], },
+end
 
 lemma rpow_le_rpow {x y : ennreal} {z : ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
 begin
@@ -1428,8 +1444,7 @@ begin
         nnreal.one_le_rpow_of_pos_of_le_one_of_nonpos hx1 hx2 (le_of_lt hz)],
 end
 
-lemma to_real_rpow (x : ennreal) (z : ℝ) :
-  (x.to_real) ^ z = (x ^ z).to_real :=
+lemma to_nnreal_rpow (x : ennreal) (z : ℝ) : (x.to_nnreal) ^ z = (x ^ z).to_nnreal :=
 begin
   rcases lt_trichotomy z 0 with H|H|H,
   { cases x, { simp [H, ne_of_lt] },
@@ -1441,4 +1456,44 @@ begin
     simp [coe_rpow_of_nonneg _ (le_of_lt H)] }
 end
 
+lemma to_real_rpow (x : ennreal) (z : ℝ) : (x.to_real) ^ z = (x ^ z).to_real :=
+by rw [ennreal.to_real, ennreal.to_real, ←nnreal.coe_rpow, ennreal.to_nnreal_rpow]
+
 end ennreal
+
+section measurability_ennreal
+
+lemma ennreal.measurable_rpow : measurable (λ p : ennreal × ℝ, p.1 ^ p.2) :=
+begin
+  refine ennreal.measurable_of_measurable_nnreal_prod _ _,
+  { simp_rw ennreal.coe_rpow_def,
+    refine measurable.ite _ measurable_const nnreal.measurable_rpow.ennreal_coe,
+    exact is_measurable.inter (measurable_fst (is_measurable_singleton 0))
+      (measurable_snd is_measurable_Iio), },
+  { simp_rw ennreal.top_rpow_def,
+    refine measurable.ite is_measurable_Ioi measurable_const _,
+    exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const, },
+end
+
+lemma measurable.ennreal_rpow {α} [measurable_space α] {f : α → ennreal} (hf : measurable f)
+  {g : α → ℝ} (hg : measurable g) :
+  measurable (λ a : α, (f a) ^ (g a)) :=
+begin
+  change measurable ((λ p : ennreal × ℝ, p.1 ^ p.2) ∘ (λ a, (f a, g a))),
+  exact ennreal.measurable_rpow.comp (measurable.prod hf hg),
+end
+
+lemma ennreal.measurable_rpow_const {y : ℝ} : measurable (λ a : ennreal, a ^ y) :=
+begin
+  change measurable ((λ p : ennreal × ℝ, p.1 ^ p.2) ∘ (λ a, (a, y))),
+  refine ennreal.measurable_rpow.comp (measurable.prod measurable_id _),
+  dsimp only,
+  exact measurable_const,
+end
+
+lemma measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ennreal} (hf : measurable f)
+  {y : ℝ} :
+  measurable (λ a : α, (f a) ^ y) :=
+hf.ennreal_rpow measurable_const
+
+end measurability_ennreal

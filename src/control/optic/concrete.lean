@@ -57,9 +57,15 @@ namespace prism
   }
 end prism
 
-structure traversal0 (A B S T : Type) :=
-(get    : S → T ⊕ A)
-(review : S → B → T)
+def fun_opt (A B T : Type) := T ⊕ (A × (B → T))
+
+namespace fun_opt
+  instance : functor (fun_opt A B) :=
+  begin refine {..}, intros X Y xy t, refine sum.map xy (prod.map id (λ (bx : B → X) b, xy (bx b))) t end
+  def zero (t : T) : fun_opt A B T := sum.inl t
+  def one (a : A) (f : B → T) : fun_opt A B T := sum.inr (a, f)
+  -- it's _not_ applicative!
+end fun_opt
 
 /-- The representation functor for `traversal`. -/
 structure fun_list (A B T : Type) :=
@@ -93,7 +99,11 @@ namespace fun_list
       , λ bs, prod.cases_on (vector.split bs) $ λ b1 b2, bxy b1 $ bx b2
       ⟩
   }
+  def zero (t : T) : fun_list A B T := ⟨0, vector.nil, λ _, t⟩
+  def one (a : A) (f : B → T) : fun_list A B T := ⟨1, vector.cons a $ vector.nil, λ b, f b.head⟩
 end fun_list
+
+def affinal (A B S T : Type) := star (fun_opt A B) S T
 
 /-- A concrete definition of a traversal. -/
 def traversal (A B S T : Type) := star (fun_list A B) S T
@@ -105,8 +115,22 @@ namespace traversal
   instance : representable (traversal A B) := star.is_representable
   instance : traversing (traversal A B) := {}
   protected def id : traversal A B A B :=
-  λ a, fun_list.mk 1 (vector.cons a $ vector.nil) (vector.head)
+  λ a, fun_list.one a id
 end traversal
+namespace traversal0
+  instance : profunctor (affinal A B) := star.is_profunctor
+  instance : strong (affinal A B) := star.is_strong
+  instance : choice (affinal A B) :=
+  { to_profunctor := star.is_profunctor
+  , left := begin intros X Y Z t xz, cases xz, refine sum.inl <$> t xz, refine fun_opt.zero (sum.inr xz), end
+  , right := begin intros X Y Z t xz, cases xz, refine fun_opt.zero (sum.inl xz), refine sum.inr <$> t xz, end
+  }
+  instance : affine (affinal A B) := {}
+  instance : representable (affinal A B) := star.is_representable
+  -- instance : traversing (affinal A B) := {}
+  protected def id : affinal A B A B :=
+  λ a, fun_opt.one a id
+end traversal0
 
 def setter (A B S T : Type) :=
 (A → B) → (S → T)
@@ -137,11 +161,11 @@ namespace grate
   protected def id : grate A B A B
   | sab := sab _root_.id
 
-  instance : closed (grate A B) :=
-  {close := λ X Y S g f s, g $ λ i, f $ λ j, i $ j s }
-
   instance : profunctor (grate A B) :=
   {dimap := λ X Y S T yx st g yab, st $ g $ λ xa, yab $ xa ∘ yx}
+
+  instance : closed (grate A B) :=
+  {close := λ X Y S g f s, g $ λ i, f $ λ j, i $ j s }
 end grate
 
 end control.optic.concrete

@@ -3,13 +3,27 @@ Copyright (c) 2020 E.W.Ayers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: E.W.Ayers
 -/
-import control.optic.profunctor_optic
+import control.traversable
+
 /-!
 Some definitions for optics on products.
 -/
 
 universes u v
 variables {A B C D S T X Y : Type}
+
+def prod.elim {A B C} : (A → B → C) → A × B → C
+| f (a,b) := f a b
+
+def prod.intro {A B C} : (C → A) → (C → B) → C → (A × B)
+| f g c := (f c, g c)
+
+def prod.delta {A} : A → A × A
+| a := (a,a)
+
+def sum.codelta {A} : A ⊕ A → A
+| (sum.inl a) := a
+| (sum.inr a) := a
 
 /-- `square A := A × A` -/
 def prod.square (A : Type u) := A × A
@@ -29,21 +43,3 @@ instance is_trav : traversable square :=
 { traverse := @traverse }
 
 end prod.square
-
-namespace control.optic
-
-open control.profunctor
-
-def zip_with2 : grate A B S T → (A → A → B) → S → S → T
-| g p s₁ s₂ := @g (costar prod.square) _ _ (λ ⟨a₁, a₂⟩, p a₁ a₂) (s₁, s₂)
-
-def both : traversal A B (A × A) (B × B) :=
-@control.optic.traversal.traversed prod.square prod.square.is_trav A B
-
-def fst : lens A B (A × C) (B × C) :=
-begin intros P pf st x, unfreezingI {apply strong.first, apply x}  end
-
-def snd : lens A B (C × A) (C × B) :=
-begin intros P pf st x, unfreezingI {apply strong.second, apply x}  end
-
-end control.optic

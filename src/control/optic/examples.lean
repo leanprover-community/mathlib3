@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: E.W.Ayers
 -/
 import .profunctor_optic
+import .prod
 
 /-!
 Examples of optics.
@@ -23,7 +24,7 @@ instance [has_repr A] : has_repr (vector A n) := ⟨λ x, repr $ x.to_list⟩
 
 def vector.iota (n : ℕ) : vector ℕ n := @vector.of_fn nat n $ λ i, i.val
 
--- #eval zip_with_of_2 vector.grate (+) (vector.iota 100) (vector.iota _)
+#eval zip_with2 vector.grate (+) (vector.iota 100) (vector.iota _)
 
 namespace widget
 open control

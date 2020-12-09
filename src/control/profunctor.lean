@@ -26,30 +26,37 @@ class lawful_profunctor (P : Type → Type → Type) extends profunctor P :=
 
 namespace profunctor
 
-class strong (P : Type → Type → Type) :=
+class strong_core (P : Type → Type → Type) :=
 (first  {A B} (C) : P A B → P (A × C) (B × C))
 (second {A B} (C) : P A B → P (C × A) (C × B))
 
-@[reducible] def first := @strong.first
-@[reducible] def second := @strong.second
+@[reducible] def first := @strong_core.first
+@[reducible] def second := @strong_core.second
 
-class costrong (P : Type → Type → Type) :=
+class costrong_core (P : Type → Type → Type) :=
 (unfirst  {A B} (C : Type) : P (A × C) (B × C) → P A B)
 (unsecond {A B} (C : Type) : P (C × A) (C × B) → P A B)
 
-class choice (P : Type → Type → Type) :=
+@[reducible] def unfirst := @costrong_core.unfirst
+@[reducible] def unsecond := @costrong_core.unsecond
+
+class choice_core (P : Type → Type → Type) :=
 (left  {A B} (C) : P A B → P (A ⊕ C) (B ⊕ C))
 (right {A B} (C) : P A B → P (C ⊕ A) (C ⊕ B))
 
-@[reducible] def left := @choice.left
-@[reducible] def right := @choice.right
+@[reducible] def left := @choice_core.left
+@[reducible] def right := @choice_core.right
 
-class closed (P : Type → Type → Type) :=
+class closed_core (P : Type → Type → Type) :=
 (close {A B : Type} : ∀ (X : Type), P A B → P (X → A) (X → B))
 
 /-- A profunctor is __affine__ when it is strong and choice.
 That is, it plays well with `⊕` and `×`. -/
-class affine (P : Type → Type → Type) extends profunctor P, strong P, choice P
+class affine (P : Type → Type → Type) extends profunctor P, strong_core P, choice_core P
+class strong (P : Type → Type → Type) extends profunctor P, strong_core P
+class costrong (P : Type → Type → Type) extends profunctor P, costrong_core P
+class choice (P : Type → Type → Type) extends profunctor P, choice_core P
+class closed (P : Type → Type → Type) extends profunctor P, closed_core P
 
 class monoidal (P : Type → Type → Type) :=
 (par {A B C D} : P A B → P C D → P (A × C) (B × D))
@@ -172,13 +179,16 @@ mapping.d
 instance applicative_rep_of_mapping  [mapping P] : applicative (Rep P) :=
 mapping.to_traversing.a
 
-instance star.is_closed {F} [distributive F] : closed (star F) :=
+instance star.is_closed {F} [functor F] [distributive F] : closed (star F) :=
 { close := λ A B C pab ca, function.dist_reader $ λ c, pab $ ca c}
 
 open representable
 
+instance profunctor_of_traversing [traversing P] : profunctor P :=
+{ dimap := λ A B C D ba cd, star_lift $ dimap ba cd }
+
 instance closed_of_mapping [mapping P] : closed P :=
-{ close := λ A B C, star_lift $ closed.close _}
+{ close := λ A B C, star_lift $ closed_core.close _}
 
 instance strong_of_traversing [traversing P] : strong P :=
 { first  := λ A B C, star_lift $ first  C
@@ -190,12 +200,12 @@ instance choice_of_traversing [traversing P] : choice P :=
 , right := λ A B C, star_lift $ right C
 }
 
-instance profunctor_of_traversing [traversing P] : profunctor P :=
-{ dimap := λ A B C D ba cd, star_lift $ dimap ba cd }
-
 instance affine_of_traversing [traversing P] : affine P := {}
 
 instance affine_of_mapping [mapping P] : affine P := {}
+
+instance strong_of_affine [affine P] : strong P := {}
+instance choice_of_affine [affine P] : choice P := {}
 
 end profunctor
 

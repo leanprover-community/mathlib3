@@ -96,6 +96,7 @@ begin
     apply (X.unit_assoc _).symm }
 end
 
+/-- The Beck cofork is a split coequalizer. -/
 def beck_split_coequalizer : is_split_coequalizer (T.map X.a) ((μ_ T).app _) X.a :=
 ⟨(η_ T).app _, (η_ T).app _, X.assoc.symm, X.unit, monad.left_unit _, ((η_ T).naturality _).symm⟩
 

@@ -135,12 +135,12 @@ section div_inv_monoid
 variables {G : Type u} [group G]
 
 @[to_additive]
-lemma inv_eq_one_div (x : G) :
+lemma group.inv_eq_one_div (x : G) :
   x⁻¹ = 1 / x :=
 by rw [group.div_eq_mul_inv, one_mul]
 
 @[to_additive]
-lemma mul_one_div (x y : G) :
+lemma group.mul_one_div (x y : G) :
   x * (1 / y) = x / y :=
 by rw [group.div_eq_mul_inv, one_mul, group.div_eq_mul_inv]
 

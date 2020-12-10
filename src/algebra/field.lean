@@ -43,6 +43,9 @@ end
 
 @[field_simps] lemma inv_eq_one_div (a : α) : a⁻¹ = 1 / a := by simp
 
+lemma mul_one_div (a b : α) : a * (1 / b) = a / b :=
+by rw [← inv_eq_one_div, div_eq_mul_inv]
+
 local attribute [simp]
   division_def mul_comm mul_assoc
   mul_left_comm mul_inv_cancel inv_mul_cancel

@@ -165,7 +165,7 @@ lemma mul_mem_cancel_left (h : a ∈ s) : a * b ∈ s ↔ b ∈ s :=
 
 end is_subgroup
 
-theorem is_add_subgroup.sub_mem {A} [add_group A] (s : set A) [is_add_subgroup s] (a b : A)
+theorem is_add_subgroup.sub_mem {A} [add_group A] {s : set A} [is_add_subgroup s] {a b : A}
   (ha : a ∈ s) (hb : b ∈ s) : a - b ∈ s :=
 is_add_submonoid.add_mem ha (is_add_subgroup.neg_mem hb)
 

@@ -8,7 +8,7 @@ import group_theory.congruence
 import linear_algebra.basic
 
 /-!
-# Tensor products of several semimodules over commutative semirings
+# Tensor product of an indexed family of semimodules over commutative semirings
 
 ## Notations
 
@@ -87,6 +87,9 @@ by { rw add_con.coe_add, exact Cp C1 ih }
 
 lemma zero_tprod (f : Π i, s i) (i : ι) (hf: f i = 0) : ⨂ₜ[R] i, f i = 0 :=
 quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero _ i hf
+
+@[simp] lemma zero_tprod' (f : Π i, s i) (i : ι) : tprod R (update f i 0) = 0 :=
+zero_tprod _ i (update_same i 0 f)
 
 lemma add_tprod (f : Π i, s i) (i : ι) (m₁ m₂ : s i) :
   (⨂ₜ[R] j, (update f i m₁) j) + (⨂ₜ[R] j, (update f i m₂) j) = ⨂ₜ[R] j, (update f i (m₁ + m₂)) j :=
@@ -169,6 +172,19 @@ let j : ι := classical.choice (by apply_instance) in
       { intros x y ihx ihy,
         rw [pi_tensor_product.smul_add, ihx, ihy, add_zero] },
     end }
+
+section sum
+open_locale big_operators
+
+lemma tprod_map_sum {α : Type*} (t : finset α) (i : ι) (m : α → s i) (f : Π i, s i):
+  tprod R (update f i (∑ a in t, m a)) = ∑ a in t, tprod R (update f i (m a)) :=
+begin
+  induction t using finset.induction with a t has ih h,
+  { simp },
+  { simp [finset.sum_insert has, ←add_tprod, ih] }
+end
+
+end sum
 
 end module
 

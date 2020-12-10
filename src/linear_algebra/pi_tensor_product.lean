@@ -53,7 +53,7 @@ open function
 
 section semiring
 
-variables {ι : Type*} {R : Type*} [comm_semiring R] [nonempty ι]
+variables {ι : Type*} {R : Type*} [comm_semiring R] [inhabited ι]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
 variables {E : Type*} [add_comm_monoid E] [semimodule R E]
 
@@ -135,12 +135,12 @@ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
 
 /-- Auxiliary function for defining scalar multiplication on the tensor product. -/
 def smul.aux (r : R) : free_add_monoid (Π i, s i) →+ ⨂[R] i, s i :=
-let j : ι := classical.choice (by apply_instance) in
+let j : ι := default ι in
   free_add_monoid.lift $ λ (f : Π i, s i), ⨂ₜ[R] k, (update f j (r • f j)) k
 
 theorem smul.aux_of (r : R) (f : Π i, s i) (i : ι) :
   smul.aux r (free_add_monoid.of f) = ⨂ₜ[R] k, (update f i (r • f i)) k :=
-smul_tprod f (classical.choice (by apply_instance)) i r
+smul_tprod f (default ι) i r
 
 instance : has_scalar R (⨂[R] i, s i) :=
 ⟨λ r, (add_con_gen (pi_tensor_product.eqv R s)).lift (smul.aux r) $ add_con.add_con_gen_le $
@@ -165,7 +165,7 @@ add_monoid_hom.map_add _ _ _
 
 theorem smul_tprod' (r : R) (f : Π i, s i) (i : ι) :
   r • (tprod R f) = tprod R (update f i (r • f i)) :=
-smul_tprod f (classical.choice (by apply_instance)) i r
+smul_tprod f (default ι) i r
 
 instance : semimodule R (⨂[R] i, s i) :=
 let j : ι := classical.choice (by apply_instance) in

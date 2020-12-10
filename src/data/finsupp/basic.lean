@@ -117,7 +117,7 @@ instance : inhabited (α →₀ M) := ⟨0⟩
 f.mem_support_to_fun
 
 @[simp] lemma fun_support_eq (f : α →₀ M) : function.support f = f.support :=
-set.ext $ λ x,  mem_support_iff.symm
+set.ext $ λ x, mem_support_iff.symm
 
 lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
@@ -1223,7 +1223,7 @@ variables [has_zero M] (p : α → Prop) (f : α →₀ M)
 def filter (p : α → Prop) (f : α →₀ M) : α →₀ M :=
 { to_fun := λ a, if p a then f a else 0,
   support := f.support.filter (λ a, p a),
-  mem_support_to_fun := λ a, by split_ifs; simp only [h, mem_filter, mem_support_iff]; tauto }
+  mem_support_to_fun := λ a, by split_ifs; { simp only [h, mem_filter, mem_support_iff], tauto } }
 
 lemma filter_apply (a : α) : f.filter p a = if p a then f a else 0 := rfl
 

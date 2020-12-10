@@ -234,9 +234,9 @@ section multilinear
 open multilinear_map
 variables {s}
 
-/-- Auxiliary function to constructing a linear map `(⨂[R] i, s i) → E` given a `multilinear map R s E`
-with the property that its composition with the canonical `multilinear_map R s (⨂[R] i, s i)` is
-the given multilinear map. -/
+/-- Auxiliary function to constructing a linear map `(⨂[R] i, s i) → E` given a
+`multilinear map R s E` with the property that its composition with the canonical
+`multilinear_map R s (⨂[R] i, s i)` is the given multilinear map. -/
 def lift_aux (φ : multilinear_map R s E) : (⨂[R] i, s i) →+ E :=
 (add_con_gen (pi_tensor_product.eqv R s)).lift (free_add_monoid.lift $ λ (p : Π i, s i), φ p) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with

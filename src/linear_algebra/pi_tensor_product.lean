@@ -6,6 +6,7 @@ Authors: Frédéric Dupuis
 
 import group_theory.congruence
 import linear_algebra.basic
+import linear_algebra.multilinear
 
 /-!
 # Tensor product of an indexed family of semimodules over commutative semirings
@@ -25,6 +26,7 @@ section semiring
 
 variables {ι : Type*} {R : Type*} [comm_semiring R] [nonempty ι]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
+variables {E : Type*} [add_comm_monoid E] [semimodule R E]
 
 namespace pi_tensor_product
 include R
@@ -101,8 +103,8 @@ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
 
 /-- Auxiliary function for defining scalar multiplication on the tensor product. -/
 def smul.aux (r : R) : free_add_monoid (Π i, s i) →+ ⨂[R] i, s i :=
-let i : ι := classical.choice (by apply_instance) in
-  free_add_monoid.lift $ λ (f : Π i, s i), ⨂ₜ[R] k, (update f i (r • f i)) k
+let j : ι := classical.choice (by apply_instance) in
+  free_add_monoid.lift $ λ (f : Π i, s i), ⨂ₜ[R] k, (update f j (r • f j)) k
 
 theorem smul.aux_of (r : R) (f : Π i, s i) (i : ι) :
   smul.aux r (free_add_monoid.of f) = ⨂ₜ[R] k, (update f i (r • f i)) k :=
@@ -173,6 +175,16 @@ let j : ι := classical.choice (by apply_instance) in
         rw [pi_tensor_product.smul_add, ihx, ihy, add_zero] },
     end }
 
+variables (R) (s)
+/-- The canonical `multilinear_map R s (⨂[R] i, s i)`. -/
+def mk : multilinear_map R s (⨂[R] i, s i) :=
+{ to_fun := tprod R,
+  map_add' := λ f i x y, by rw add_tprod,
+  map_smul' := λ f i r x, by simp [smul_tprod' _ _ i] }
+variables {R} {s}
+
+@[simp] lemma mk_apply (f : Π i, s i) : mk R s f = tprod R f := rfl
+
 section sum
 open_locale big_operators
 
@@ -187,6 +199,68 @@ end
 end sum
 
 end module
+
+section multilinear
+open multilinear_map
+variables {s}
+
+/-- Auxiliary function to constructing a linear map `(⨂[R] i, s i) → E` given a `multilinear map R s E`
+with the property that its composition with the canonical `multilinear_map R s (⨂[R] i, s i)` is
+the given multilinear map. -/
+def lift_aux (φ : multilinear_map R s E) : (⨂[R] i, s i) →+ E :=
+(add_con_gen (pi_tensor_product.eqv R s)).lift (free_add_monoid.lift $ λ (p : Π i, s i), φ p) $
+add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
+| _, _, (eqv.of_zero f i hf)       := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_zero, free_add_monoid.lift_eval_of, map_coord_zero φ i hf]
+| _, _, (eqv.of_add f i m₁ m₂)  := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_add, free_add_monoid.lift_eval_of, φ.map_add]
+| _, _, (eqv.of_smul f i j r')        := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_add, free_add_monoid.lift_eval_of, map_smul, update_eq_self]
+| _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_add, add_comm]
+end
+
+lemma lift_aux_tprod (φ : multilinear_map R s E) (f : Π i, s i) : lift_aux φ (tprod R f) = φ f :=
+zero_add _
+
+lemma lift_aux.smul {φ : multilinear_map R s E} (r : R) (x : ⨂[R] i, s i) :
+  lift_aux φ (r • x) = r • lift_aux φ x :=
+let j : ι := classical.choice (by apply_instance) in
+begin
+  refine pi_tensor_product.induction_on x _ _ _,
+  { exact (smul_zero r).symm },
+  { intros f,
+    rw [smul_tprod' _ _ j, lift_aux_tprod, lift_aux_tprod, map_smul, update_eq_self] },
+  { intros z y ihz ihy,
+    rw [smul_add, (lift_aux φ).map_add, ihz, ihy, (lift_aux φ).map_add, smul_add] }
+end
+
+/-- Constructing a linear map `(⨂[R] i, s i) → E` given a `multilinear_map R s E` with the
+property that its composition with the canonical `multilinear_map R s E` is
+the given multilinear map `φ`. -/
+def lift (φ : multilinear_map R s E) : (⨂[R] i, s i) →ₗ[R] E :=
+{ map_smul' := lift_aux.smul,
+  .. lift_aux φ }
+
+variables {φ : multilinear_map R s E}
+
+@[simp] lemma lift.tprod (f : Π i, s i) : lift φ (tprod R f) = φ f := zero_add _
+
+@[simp] lemma lift.tprod' (f : Π i, s i) : (lift φ).1 (tprod R f) = φ f := lift.tprod _
+
+@[ext]
+theorem ext {φ₁ φ₂ : (⨂[R] i, s i) →ₗ[R] E} (H : ∀ f, φ₁ (tprod R f) = φ₂ (tprod R f)) : φ₁ = φ₂ :=
+linear_map.ext $ λ z, pi_tensor_product.induction_on z (by simp_rw linear_map.map_zero) H $
+λ x y ihx ihy, by rw [φ₁.map_add, φ₂.map_add, ihx, ihy]
+
+theorem lift.unique {φ' : (⨂[R] i, s i) →ₗ[R] E} (H : ∀ f, φ' (tprod R f) = φ f) :
+  φ' = lift φ :=
+ext $ λ f, by rw [H, lift.tprod]
+
+theorem lift_mk {f : Π i, s i} : lift (mk R s) = linear_map.id :=
+eq.symm $ lift.unique $ λ _, rfl
+
+end multilinear
 
 end pi_tensor_product
 

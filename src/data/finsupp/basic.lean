@@ -122,7 +122,7 @@ set.ext $ λ x, mem_support_iff.symm
 lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
-lemma injective_coe_fn : function.injective (λ (f : α →₀ M) (x : α), f x)
+lemma coe_fn_injective : function.injective (λ (f : α →₀ M) (x : α), f x)
 | ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
   begin
     change f = g at h, subst h,
@@ -130,7 +130,7 @@ lemma injective_coe_fn : function.injective (λ (f : α →₀ M) (x : α), f x)
     subst this
   end
 
-@[ext] lemma ext {f g : α →₀ M} (h : ∀a, f a = g a) : f = g := injective_coe_fn (funext h)
+@[ext] lemma ext {f g : α →₀ M} (h : ∀a, f a = g a) : f = g := coe_fn_injective (funext h)
 
 lemma ext_iff {f g : α →₀ M} : f = g ↔ (∀a:α, f a = g a) :=
 ⟨by rintros rfl a; refl, ext⟩
@@ -203,7 +203,7 @@ lemma single_eq_update : ⇑(single a b) = function.update 0 a b :=
 by rw [single_eq_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
 
 @[simp] lemma single_zero : (single a 0 : α →₀ M) = 0 :=
-injective_coe_fn $ by simpa only [single_eq_update, coe_zero]
+coe_fn_injective $ by simpa only [single_eq_update, coe_zero]
   using function.update_eq_self a (0 : α → M)
 
 lemma single_of_single_apply (a a' : α) (b : M) :
@@ -1242,7 +1242,7 @@ by rw [← support_eq_empty, support_filter, support_zero, finset.filter_empty]
 
 @[simp] lemma filter_single_of_pos
   {a : α} {b : M} (h : p a) : (single a b).filter p = single a b :=
-injective_coe_fn $ by simp [filter_eq_indicator, set.subset_def, mem_support_single, h]
+coe_fn_injective $ by simp [filter_eq_indicator, set.subset_def, mem_support_single, h]
 
 @[simp] lemma filter_single_of_neg
   {a : α} {b : M} (h : ¬ p a) : (single a b).filter p = 0 :=
@@ -1252,7 +1252,7 @@ end has_zero
 
 lemma filter_pos_add_filter_neg [add_monoid M] (f : α →₀ M) (p : α → Prop) :
   f.filter p + f.filter (λa, ¬ p a) = f :=
-injective_coe_fn $ set.indicator_self_add_compl {x | p x} f
+coe_fn_injective $ set.indicator_self_add_compl {x | p x} f
 
 end filter
 
@@ -1340,7 +1340,7 @@ instance subtype_domain.is_add_monoid_hom :
 def filter_add_hom (p : α → Prop) : (α →₀ M) →+ (α →₀ M) :=
 { to_fun := filter p,
   map_zero' := filter_zero p,
-  map_add' := λ f g, injective_coe_fn $ set.indicator_add {x | p x} f g }
+  map_add' := λ f g, coe_fn_injective $ set.indicator_add {x | p x} f g }
 
 @[simp] lemma filter_add {v v' : α →₀ M} : (v + v').filter p = v.filter p + v'.filter p :=
 (filter_add_hom p).map_add v v'
@@ -1648,7 +1648,7 @@ variables {p : α → Prop}
 
 @[simp] lemma filter_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M]
   {b : R} {v : α →₀ M} : (b • v).filter p = b • v.filter p :=
-injective_coe_fn $ set.indicator_smul {x | p x} b v
+coe_fn_injective $ set.indicator_smul {x | p x} b v
 
 end
 

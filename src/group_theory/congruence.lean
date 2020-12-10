@@ -856,10 +856,7 @@ variables {M} [group M] [group N] [group P] (c : con M)
 /-- Multiplicative congruence relations preserve inversion. -/
 @[to_additive "Additive congruence relations preserve negation."]
 protected lemma inv : ∀ {w x}, c w x → c w⁻¹ x⁻¹ :=
-λ x y h, begin
-  have := c.symm (c.mul (c.mul (c.refl x⁻¹) h) (c.refl y⁻¹)),
-  rwa [mul_left_inv, one_mul, mul_inv_cancel_right] at this,
-end
+λ x y h, by simpa using c.symm (c.mul (c.mul (c.refl x⁻¹) h) (c.refl y⁻¹))
 
 /-- The inversion induced on the quotient by a congruence relation on a type with a
     inversion. -/

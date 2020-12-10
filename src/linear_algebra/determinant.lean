@@ -61,9 +61,9 @@ begin
   exact sum_involution
     (λ σ _, σ * swap i j)
     (λ σ _,
-      have ∀ a, p (swap i j a) = p a := λ a, by simp only [swap_apply_def]; split_ifs; cc,
       have ∏ x, M (σ x) (p x) = ∏ x, M ((σ * swap i j) x) (p x),
-        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _) (by simp [this])
+        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _)
+          (by simp [apply_swap_eq_self hpij])
           (λ _ _ _ _ h, (swap i j).injective h)
           (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
       by simp [sign_mul, this, sign_swap hij, prod_mul_distrib])

@@ -549,7 +549,7 @@ associative operator and if the operator is commutative
 meta def ac_mono_aux (cfg : mono_cfg := { mono_cfg . }) :
   tactic unit :=
 hide_meta_vars $ λ asms,
-do try `[dunfold has_sub.sub algebra.sub int.sub],
+do try `[simp only [sub_eq_add_neg]],
    tgt ← target >>= instantiate_mvars,
    (l,r,id_rs,g) ← ac_monotonicity_goal cfg tgt
              <|> fail "monotonic context not found",

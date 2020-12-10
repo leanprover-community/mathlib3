@@ -96,6 +96,9 @@ instance : has_one ℤ_[p] :=
 @[simp, norm_cast] lemma coe_add : ∀ (z1 z2 : ℤ_[p]), ((z1 + z2 : ℤ_[p]) : ℚ_[p]) = z1 + z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
+@[simp, norm_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), ((z1 - z2 : ℤ_[p]) : ℚ_[p]) = z1 - z2
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
 @[simp, norm_cast] lemma coe_mul : ∀ (z1 z2 : ℤ_[p]), ((z1 * z2 : ℤ_[p]) : ℚ_[p]) = z1 * z2
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 

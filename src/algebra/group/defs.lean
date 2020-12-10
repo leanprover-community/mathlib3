@@ -340,23 +340,6 @@ instance group.to_cancel_monoid : cancel_monoid G :=
 
 end group
 
-section add_group
-
-variables {G : Type u} [add_group G]
-
-/-- The subtraction operation on an `add_group` -/
-@[reducible] protected def algebra.sub (a b : G) : G :=
-a + -b
-
-@[priority 100]    -- see Note [lower instance priority]
-instance add_group_has_sub : has_sub G :=
-⟨algebra.sub⟩
-
-lemma sub_eq_add_neg (a b : G) : a - b = a + -b :=
-rfl
-
-end add_group
-
 /-- A commutative group is a group with commutative `(*)`. -/
 @[protect_proj, ancestor group comm_monoid]
 class comm_group (G : Type u) extends group G, comm_monoid G

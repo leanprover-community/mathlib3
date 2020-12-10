@@ -308,4 +308,4 @@ add_tactic_doc
 end to_additive
 
 /- map operations -/
-attribute [to_additive] has_mul has_one has_inv
+attribute [to_additive] has_mul has_one has_inv has_div

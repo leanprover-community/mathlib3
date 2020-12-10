@@ -83,7 +83,7 @@ def box_line_integral  (i : fin 2) (a b : fin 2 → ℝ) : ℝ :=
 ---- IS THIS DEF CORRECT???? OR OFF BY A SIGN??
 
 lemma box_line_integral_const (cU : ℝ ) (i : fin 2) (a b : fin 2 → ℝ) :
-  box_line_integral (λ x, cU ) i a b  = 0 :=
+  box_line_integral (λ x, cU) i a b = 0 :=
 begin
   -- ALEX TO DO
   rw box_line_integral,
@@ -600,7 +600,7 @@ variables (u : (fin 2 → ℝ) → ℝ)
 
 def rectangle (a b : fin 2 → ℝ) : set (ℝ × ℝ) := (Ioc (a 0) (b 0)).prod (Ioc (a 1) (b 1))
 
-lemma rectangle_eq (a b : fin 2 → ℝ)  :
+lemma rectangle_eq (a b : fin 2 → ℝ) :
   (foo' ℝ ℝ).symm ⁻¹' (rectangle' a b) = rectangle a b :=
 begin
   ext,
@@ -626,7 +626,7 @@ def box_integral (a b : fin 2 → ℝ) : ℝ :=
 ∫ x in rectangle a b, u ((foo' ℝ ℝ).symm x) ∂(volume.prod volume)
 
 
-lemma box_integral_const (cU : ℝ )  (a b : fin 2 → ℝ) :
+lemma box_integral_const (cU : ℝ)  (a b : fin 2 → ℝ) :
   box_integral (λ x, cU ) a b  = 0 :=
 begin
   -- ALEX TO DO
@@ -668,7 +668,7 @@ end measure_stuff_foo
 section Green
 
 open measure_theory
-variables (P Q  : (fin 2 → ℝ) →  ℝ)
+variables (P Q : (fin 2 → ℝ) → ℝ)
 
 --include hP
 
@@ -685,9 +685,9 @@ U=(P,Q)
 
 -/
 
-def divergence : (fin 2 → ℝ ) → ℝ := fderiv ℝ P ex - fderiv ℝ Q ey
+def divergence : (fin 2 → ℝ) → ℝ := fderiv ℝ P ex - fderiv ℝ Q ey
 
-def div_diff (a b : fin 2 → ℝ ) : ℝ :=
+def div_diff (a b : fin 2 → ℝ) : ℝ :=
 box_integral (divergence P Q) a b
 -
 (
@@ -696,19 +696,15 @@ box_line_integral P 0 a b
 box_line_integral Q 1 a b
 )
 
-lemma const_div_diff_cancels (a b : fin 2 → ℝ ) (cP cQ :ℝ )
-:
-div_diff (λ x, cP ) (λ x, cQ ) a b =0
-:=
+lemma const_div_diff_cancels (a b : fin 2 → ℝ) (cP cQ : ℝ) :
+  div_diff (λ x, cP) (λ x, cQ) a b = 0 :=
 begin
   rw div_diff,
 
 end
 
-lemma linear_div_diff_cancels (a b : fin 2 → ℝ ) (P: (fin 2→ℝ ) →L[ℝ] (ℝ ) ) (Q: (fin 2→ℝ ) →L[ℝ] ℝ  )
-:
-div_diff P Q a b =0
-:=
+lemma linear_div_diff_cancels (a b : fin 2 → ℝ) (P: (fin 2 → ℝ) →L[ℝ] ℝ) (Q: (fin 2 → ℝ) →L[ℝ] ℝ) :
+  div_diff P Q a b =0 :=
 begin
   sorry,
 end
@@ -730,16 +726,11 @@ end
 open box_additive_on
 open box_subadditive_on
 
-lemma greens_thm
-(I : subinterval (univ : set (fin 2 → ℝ )))
-(hP : differentiable ℝ  P)
-(hQ : differentiable ℝ  Q)
-:
-div_diff P Q I.left I.right = 0
+lemma greens_thm (I : subinterval (univ : set (fin 2 → ℝ ))) :
 --box_integral (divergence P Q) a b
 --box_line_integral  (i : fin 2) (a b : fin 2 → ℝ)
 --∫ x in rectangle a b, u ((foo' ℝ ℝ).symm x) ∂(volume.prod volume)
-:=
+  div_diff P Q I.left I.right = 0 :=
 begin
   refine eq_zero_of_forall_is_o_prod _ _ _ ,
   { exact norm_subadditive_on (box_additive_div_diff hP hQ hdiv) },

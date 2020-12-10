@@ -161,9 +161,9 @@ lemma append_apply_fst (ho : o = m + n) (k : fin o) (h : (k : ℕ) < m) :
 dif_pos h
 
 lemma append_apply_fst' (ho : o = m + n) (k : fin m) :
-  append ho f g ((k.cast_add n).cast ho.symm) = f k :=
+  append ho f g (cast ho.symm (cast_add n k)) = f k :=
 begin
-  rw append_apply_fst _ _ ho ((k.cast_add n).cast ho.symm) k.2,
+  rw append_apply_fst _ _ ho (cast ho.symm (cast_add n k)) k.2,
   congr,
   ext,
   refl,
@@ -199,7 +199,7 @@ dif_neg h
 end-/
 
 lemma append_apply_snd' (ho : o = m + n) (k : fin n) :
-  append ho f g ((k.nat_add m).cast ho.symm) = g k :=
+  append ho f g (cast ho.symm (nat_add m k)) = g k :=
 begin
   rw append_apply_snd,
   congr,
@@ -210,7 +210,7 @@ begin
 end
 
 lemma append_default (d : fin 0 → α) (ho : o = m) (x : fin o) :
-  append (show o = m + 0, from ho) f d x = f (x.cast ho) :=
+  append (show o = m + 0, from ho) f d x = f (cast ho x) :=
 begin
   rw append_apply_fst _ _ (show o = m + 0, from ho) x (ho ▸ x.2),
   congr,
@@ -236,7 +236,7 @@ begin
 end
 
 lemma default_append (d : fin 0 → α) (ho : o = m) (i : fin o) :
-  append (show o = 0 + m, by rwa zero_add) d f i = f (i.cast ho) :=
+  append (show o = 0 + m, by rwa zero_add) d f i = f (cast ho i) :=
 begin
   rw append_apply_snd _ _ _ _ (nat.not_lt_zero _),
   congr,
@@ -255,16 +255,16 @@ lemma append_one {x : α} :
   append rfl f (λ i : fin 1, x) = fin.snoc f x := rfl
 
 lemma one_append {x : α} (i : fin (1 + m)) :
-  append rfl (λ i : fin 1, x) f i = (fin.cons x f : fin m.succ → α) (i.cast $ add_comm 1 m):=
+  append rfl (λ i : fin 1, x) f i = (fin.cons x f : fin m.succ → α) (cast (add_comm 1 m) i):=
 begin
-  cases classical.em (i.cast (add_comm _ _) = 0) with hy hy,
+  cases classical.em (cast (add_comm _ _) i = 0) with hy hy,
     rw hy,
     rw cons_zero,
     rw append_apply_fst,
     rw ext_iff at hy,
     erw hy,
     rw coe_zero, linarith,
-  rw ←fin.succ_pred (i.cast (add_comm _ _)) hy,
+  rw ←fin.succ_pred (cast (add_comm _ _) i) hy,
   rw cons_succ,
   rw append_apply_snd,
     congr,
@@ -275,9 +275,9 @@ begin
 end
 
 lemma append_add (ho : o = m + n) (f : fin m → M) (g : fin n → M) (i : fin n) (x y : M) :
-  append ho f (function.update g i (x + y)) ((i.nat_add m).cast ho.symm) =
-    append ho f (function.update g i x) ((i.nat_add m).cast ho.symm) +
-      append ho f (function.update g i y) ((i.nat_add m).cast ho.symm) :=
+  append ho f (function.update g i (x + y)) (cast ho.symm (nat_add m i)) =
+    append ho f (function.update g i x) (cast ho.symm (nat_add m i)) +
+      append ho f (function.update g i y) (cast ho.symm (nat_add m i)) :=
 begin
   induction n with k hk,
   { exact i.elim0 },
@@ -290,7 +290,7 @@ end
 
 lemma append_update (ho : o = m + n) (i : fin n) (x : α) :
   append ho f (function.update g i x) =
-    function.update (append ho f g) ((i.nat_add m).cast ho.symm) x :=
+    function.update (append ho f g) (cast ho.symm (nat_add m i)) x :=
 begin
   ext y,
   cases classical.em ((y : ℕ) < m),
@@ -301,7 +301,7 @@ begin
     rw h,
     exact nat.le_add_right _ _ },
   rw append_apply_snd,
-  cases classical.em (y = (i.nat_add m).cast ho.symm) with hi hi,
+  cases classical.em (y = (cast ho.symm (nat_add m i))) with hi hi,
   { have hy : (⟨(y : ℕ) - m, (nat.sub_lt_left_iff_lt_add $ le_of_not_lt h).2 (ho ▸ y.2)⟩ : fin n) = i :=
     fin.ext (by rw [coe_mk, hi]; exact nat.add_sub_cancel_left _ _),
     rw hy,
@@ -323,7 +323,7 @@ begin
   ext y,
   cases classical.em ((y : ℕ) < m),
   rw append_apply_fst _ _ ho _ h,
-  rcases classical.em (y = (cast_add n i).cast ho.symm) with ⟨rfl, hi⟩,
+  rcases classical.em (y = cast ho.symm (cast_add n i)) with ⟨rfl, hi⟩,
   erw function.update_same,
   convert function.update_same _ _ _,
   refl,
@@ -392,7 +392,7 @@ begin
   simp only [coe_cast_succ, coe_succ],
 end
 
-/-theorem list.of_fn_succ' {n : ℕ} (f : fin n.succ → α) :
+theorem list.of_fn_succ' {n : ℕ} (f : fin n.succ → α) :
   list.of_fn f = list.concat (list.of_fn (fin.init f)) (f n) :=
 begin
   induction n with n hn,
@@ -414,16 +414,16 @@ begin
   rw coe_nat_fin_succ,
   rw coe_succ,
   rw coe_nat_fin_succ,
-end-/
+end
 
 variables (x : α)
 
 lemma cons_append {p : ℕ} (ho : o = m.succ + n) (hp : p = m + n) (x : α) (i : fin o):
-  (append ho (cons x f : fin m.succ → α) g) i = (cons x (append hp f g) : fin p.succ → α) (i.cast (by rw [ho, nat.succ_add, ←hp])) :=
+  (append ho (cons x f : fin m.succ → α) g) i = (cons x (append hp f g) : fin p.succ → α) (cast (by rw [ho, nat.succ_add, ←hp]) i) :=
 begin
   cases classical.em ((i : ℕ) < m.succ),
   rw append_apply_fst _ _ ho _ h,
-  cases classical.em (i.cast (by rw [ho, nat.succ_add, ←hp]) = 0) with hi hi,
+  cases classical.em (cast (by rw [ho, nat.succ_add, ←hp]) i = 0) with hi hi,
   rw hi,
   rw cons_zero,
   convert cons_zero _ _,
@@ -440,7 +440,7 @@ begin
   ext,
   convert (ext_iff _ _).1 hi,
   rw append_apply_snd,
-  rw ←succ_pred (i.cast (by rw [ho, nat.succ_add, ←hp]))
+  rw ←succ_pred (cast (by rw [ho, nat.succ_add, ←hp]) i)
     (by {contrapose! h, convert nat.succ_pos _, exact (fin.ext_iff _ _).1 h}),
   rw cons_succ,
   rw append_apply_snd,

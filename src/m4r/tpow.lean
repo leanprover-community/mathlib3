@@ -151,6 +151,10 @@ begin
   rw tensor_product.tmul_add, rw hy, rw hz,
 end
 
+lemma mk_one_lid_symm (x : M) :
+  (tensor_product.lid R M).symm x = mk' R M 1 (λ i, x) :=
+rfl
+
 lemma mk_one_rid (x : tensor_product R M R) :
   tensor_product.mk R M R (tensor_product.rid R M x) 1 = x :=
 begin
@@ -231,6 +235,7 @@ lemma lift_mk_apply {M : Type u} [add_comm_group M] [module R M] (n : ℕ)
   (f : @multilinear_map R (fin n) (λ _, M) P _ _ _ _ _ _) (x) :
 lift R n P f (mk' R M n x) = f x :=
 multilinear_map.ext_iff.1 (lift_mk n f) _
+
 
 lemma lift_unique {M : Type u} [add_comm_group M] [module R M] (n : ℕ) :
   ∀ {P : Type u} [add_comm_group P], by exactI ∀ [module R P],

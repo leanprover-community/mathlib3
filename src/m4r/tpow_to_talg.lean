@@ -349,6 +349,9 @@ lemma mul_def {x y : talg R M} : mul R M x y = x * y := rfl
 def talg_mk {n : ℕ} (f : fin n → M) : talg R M :=
 direct_sum.lof R ℕ (tpow R M) n (tpow.mk' _ _ n f)
 
+lemma talg_mk_def {n : ℕ} (f : fin n → M) :
+  talg_mk R M f = direct_sum.lof R ℕ (tpow R M) n (tpow.mk' _ _ n f) := rfl
+
 instance : has_one (talg R M) :=
 ⟨direct_sum.lof R _ _ 0 1⟩
 
@@ -622,7 +625,8 @@ def talg.of_scalar : R →+* (talg R M) :=
       rw ←mul_one (x * y),
       conv_rhs {rw ←mul_one x, rw ←mul_one y},
       erw [linear_map.map_smul, linear_map.map_smul, linear_map.map_smul],
-      show _ = mul R M (x • talg_mk R M (default (fin 0 → M))) (y • talg_mk R M (default (fin 0 → M))),
+      show _ = mul R M (x • talg_mk R M (default (fin 0 → M)))
+        (y • talg_mk R M (default (fin 0 → M))),
       rw linear_map.map_smul,
       rw linear_map.map_smul₂,
       rw mul_def,
@@ -751,7 +755,6 @@ def alg_prod {A : Type*} [ring A] [algebra R A] (f : M →ₗ[R] A) (n : ℕ) :
     end
      }
 
-
 lemma alg_prod_apply {A : Type*} [ring A] [algebra R A] (f : M →ₗ[R] A) (n : ℕ)
   (g : fin n → M) : alg_prod f n g = (list.of_fn (f ∘ g)).prod := rfl
 
@@ -760,7 +763,7 @@ def talg.lift {A : Type*} [ring A] [algebra R A]
   (f : M →ₗ[R] A) : talg R M →ₐ[R] A :=
 { to_fun := direct_sum.to_module R ℕ A $ λ n, @tpow.lift R _ M _ _ n A _ _ (alg_prod f n),
   map_one' := by {rw ←one_eq_mk, erw to_module_lof, rw tpow.lift_mk_apply,
-    convert list.prod_nil,},
+  convert list.prod_nil,},
   map_mul' := λ x y,
     begin
       refine direct_sum.linduction_on R x _ _ _,
@@ -837,9 +840,61 @@ rfl
 
 variables (R M)
 
---local attribute [irreducible] tensor_algebra ι tensor_algebra.lift
+lemma talg_mk_prod {i : fin n → M} :
+  talg_mk R M i = alg_prod (ι R M) n i :=
+begin
+  induction n with n hn,
+    erw one_eq_mk,
+    rw alg_prod_apply,
+    convert list.prod_nil.symm,
+  rw alg_prod_apply,
+  rw fin.list.of_fn_succ',
+  rw list.concat_eq_append,
+  rw list.prod_append,
+  rw list.prod_singleton,
+  have := @hn (fin.init i),
+  conv_rhs {rw ←fin.comp_init},
+  rw ←alg_prod_apply,
+  rw ←@hn (fin.init i),
+  rw function.comp_app,
+  rw ι_eq_mk,
+  rw mul_apply,
+  congr,
+  rw fin.append_one,
+  convert (fin.snoc_init_self i).symm,
+  ext,
+  simp only [fin.coe_last, fin.coe_nat_fin_succ],
+end
+
+lemma talg.lift_ι_apply {A : Type*} [ring A] [algebra R A]
+  (f : M →ₗ[R] A) {x : M} :
+  talg.lift R M f (ι R M x) = f x :=
+begin
+  erw to_module_lof,
+  erw tpow.mk_one_lid_symm,
+  rw tpow.lift_mk_apply,
+  rw alg_prod_apply,
+  exact list.prod_singleton,
+end
+
 def to_talg : tensor_algebra R M →ₐ[R] talg R M :=
 tensor_algebra.lift R (ι R M)
+
+lemma to_talg_mk {i : fin n → M} :
+  to_talg R M (tensor_algebra.mk R M i) = talg_mk R M i :=
+begin
+  show to_talg R M (list.prod (list.map _ _)) = _,
+  rw alg_hom.map_prod',
+  rw list.map_map,
+  unfold to_talg,
+  rw function.comp,
+  have : (λ x : fin n, tensor_algebra.lift R (ι R M) (tensor_algebra.ι R (i x))) = ι R M ∘ i :=
+  by {funext, exact tensor_algebra.lift_ι_apply (ι R M) (i x)},
+  rw this,
+  rw talg_mk_prod,
+  congr,
+  exact list.of_fn_eq_map.symm,
+end
 
 theorem talg.right_inverse (x : talg R M) :
   to_talg R M (@talg.lift R _ M _ _ _ _ (tensor_algebra.inst R M)
@@ -944,7 +999,7 @@ theorem talg.left_inverse (x : tensor_algebra R M) :
 begin
   refine tensor_algebra.induction_on _ _ _ _ x,
   intros n f,
-  unfold to_talg,
+   unfold to_talg,
   erw alg_hom.map_prod',
   rw list.map_map,
   erw alg_hom.map_prod',

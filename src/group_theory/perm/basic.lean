@@ -62,6 +62,14 @@ sum_congr_symm e f
   sum_congr (1 : perm α) (1 : perm β) = 1 :=
 sum_congr_refl
 
+@[simp] lemma sum_congr_swap_one {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : α) :
+  sum_congr (equiv.swap i j) (1 : perm β) = equiv.swap (sum.inl i) (sum.inl j) :=
+sum_congr_swap_refl i j
+
+@[simp] lemma sum_congr_one_swap {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : β) :
+  sum_congr (1 : perm α) (equiv.swap i j) = equiv.swap (sum.inr i) (sum.inr j) :=
+sum_congr_refl_swap i j
+
 /-! Lemmas about `equiv.perm.sigma_congr_right` re-expressed via the group structure. -/
 
 @[simp] lemma sigma_congr_right_mul {α} {β : α → Type*}

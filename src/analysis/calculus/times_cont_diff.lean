@@ -217,7 +217,7 @@ series for the function itself. -/
 def unshift (q : formal_multilinear_series 𝕜 E (E →L[𝕜] F)) (z : F) :
   formal_multilinear_series 𝕜 E F
 | 0       := (continuous_multilinear_curry_fin0 𝕜 E F).symm z
-| (n + 1) := (continuous_multilinear_curry_right_equiv 𝕜 (λ (i : fin (n + 1)), E) F) (q n)
+| (n + 1) := continuous_multilinear_curry_right_equiv' 𝕜 n E F (q n)
 
 /-- Convenience congruence lemma stating in a dependent setting that, if the arguments to a formal
 multilinear series are equal, then the values are also equal. -/
@@ -227,7 +227,6 @@ lemma congr (p : formal_multilinear_series 𝕜 E F) {m n : ℕ} {v : fin m → 
 by { cases h1, congr' with ⟨i, hi⟩, exact h2 i hi hi }
 
 end formal_multilinear_series
-
 
 /-! ### Functions with a Taylor series on a domain -/
 
@@ -385,7 +384,7 @@ begin
       have A : (m.succ : with_top ℕ) < n.succ,
         by { rw with_top.coe_lt_coe at ⊢ hm, exact nat.lt_succ_iff.mpr hm },
       change has_fderiv_within_at
-        ((continuous_multilinear_curry_right_equiv 𝕜 (λ i : fin m.succ, E) F).symm
+        ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
            ∘ (λ (y : E), p y m.succ))
         (p x m.succ.succ).curry_right.curry_left s x,
       rw continuous_linear_equiv.comp_has_fderiv_within_at_iff',
@@ -397,7 +396,7 @@ begin
     { assume m (hm : (m : with_top ℕ) ≤ n),
       have A : (m.succ : with_top ℕ) ≤ n.succ,
         by { rw with_top.coe_le_coe at ⊢ hm, exact nat.pred_le_iff.mp hm },
-      have : continuous_on ((continuous_multilinear_curry_right_equiv 𝕜 (λ i : fin m.succ, E) F).symm
+      have : continuous_on ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
            ∘ (λ (y : E), p y m.succ)) s,
       { rw continuous_linear_equiv.comp_continuous_on_iff,
         exact H.cont _ A },
@@ -410,9 +409,9 @@ begin
       { exact Hfderiv_zero x hx },
       { have A : (m : with_top ℕ) < n,
           by { rw with_top.coe_lt_coe at hm ⊢, exact nat.lt_of_succ_lt_succ hm },
-        have : has_fderiv_within_at ((continuous_multilinear_curry_right_equiv 𝕜 (λ i : fin m.succ, E) F).symm
+        have : has_fderiv_within_at ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
            ∘ (λ (y : E), p y m.succ)) ((p x).shift m.succ).curry_left s x :=
-        Htaylor.fderiv_within _ A x hx,
+          Htaylor.fderiv_within _ A x hx,
         rw continuous_linear_equiv.comp_has_fderiv_within_at_iff' at this,
         convert this,
         ext y v,
@@ -426,7 +425,7 @@ begin
         exact this.continuous_on },
       { have A : (m : with_top ℕ) ≤ n,
           by { rw with_top.coe_le_coe at hm ⊢, exact nat.lt_succ_iff.mp hm },
-        have : continuous_on ((continuous_multilinear_curry_right_equiv 𝕜 (λ i : fin m.succ, E) F).symm
+        have : continuous_on ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
            ∘ (λ (y : E), p y m.succ)) s :=
         Htaylor.cont _ A,
         rwa continuous_linear_equiv.comp_continuous_on_iff at this } } }
@@ -760,7 +759,7 @@ begin
         iterated_fderiv_within_zero_apply,
         function.comp_apply, continuous_linear_equiv.comp_fderiv_within _ (hs x hx)],
     refl },
-  { let I := (continuous_multilinear_curry_right_equiv 𝕜 (λ (i : fin (n + 1)), E) F),
+  { let I := continuous_multilinear_curry_right_equiv' 𝕜 n E F,
     have A : ∀ y ∈ s, iterated_fderiv_within 𝕜 n.succ f s y
         = (I ∘ (iterated_fderiv_within 𝕜 n (λy, fderiv_within 𝕜 f s y) s)) y,
       by { assume y hy, ext m, rw @IH m y hy, refl },
@@ -785,7 +784,7 @@ end
 and the `n`-th derivative of the derivative. -/
 lemma iterated_fderiv_within_succ_eq_comp_right {n : ℕ} (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
   iterated_fderiv_within 𝕜 (n + 1) f s x =
-  ((continuous_multilinear_curry_right_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
+  ((continuous_multilinear_curry_right_equiv' 𝕜 n E F)
     ∘ (iterated_fderiv_within 𝕜 n (λy, fderiv_within 𝕜 f s y) s)) x :=
 by { ext m, rw iterated_fderiv_within_succ_apply_right hs hx, refl }
 
@@ -1419,7 +1418,7 @@ end
 and the `n`-th derivative of the derivative. -/
 lemma iterated_fderiv_succ_eq_comp_right {n : ℕ} :
   iterated_fderiv 𝕜 (n + 1) f x =
-  ((continuous_multilinear_curry_right_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
+  ((continuous_multilinear_curry_right_equiv' 𝕜 n E F)
     ∘ (iterated_fderiv 𝕜 n (λy, fderiv 𝕜 f y))) x :=
 by { ext m, rw iterated_fderiv_succ_apply_right, refl }
 

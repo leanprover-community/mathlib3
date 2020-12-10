@@ -180,13 +180,13 @@ end
 
 /-- Any functor preserves coequalizers of split pairs. -/
 @[priority 1]
-instance preserves_split_coequalizers (f g : X ⟶ Y) [is_split_pair f g] :
+instance preserves_split_coequalizers (f g : X ⟶ Y) [has_split_coequalizer f g] :
   preserves_colimit (parallel_pair f g) G :=
 begin
   apply preserves_colimit_of_preserves_colimit_cocone
-            ((is_split_pair.is_split_coequalizer f g).is_coequalizer),
+            ((has_split_coequalizer.is_split_coequalizer f g).is_coequalizer),
   apply (is_colimit_map_cocone_cofork_equiv G _).symm
-            ((is_split_pair.is_split_coequalizer f g).map G).is_coequalizer,
+            ((has_split_coequalizer.is_split_coequalizer f g).map G).is_coequalizer,
 end
 end coequalizers
 

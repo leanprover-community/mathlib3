@@ -189,20 +189,17 @@ variables {M : matrix n n R} {i j : n}
 /-- If a matrix has a repeated row, the determinant will be zero. -/
 theorem det_zero_of_row_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
 begin
-  have : ∀ σ, _root_.disjoint {σ} {swap i j * σ},
-  { intros σ,
-    rw [disjoint_singleton, mem_singleton],
-    exact (not_congr swap_mul_eq_iff).mpr i_ne_j },
-
-  apply finset.sum_cancels_of_partition_cancels (mod_swap i j),
-  intros σ _,
-  erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
-    sum_union (this σ), sum_singleton, sum_singleton],
+  apply finset.sum_involution
+    (λ σ _, swap i j * σ)
+    (λ σ _, _)
+    (λ σ _ _, (not_congr swap_mul_eq_iff).mpr i_ne_j)
+    (λ σ _, finset.mem_univ _)
+    (λ σ _, swap_mul_involutive i j σ),
   convert add_right_neg (↑↑(sign σ) * ∏ i, M (σ i) i),
-  rw [neg_mul_eq_neg_mul],
+  rw neg_mul_eq_neg_mul,
   congr,
   { rw [sign_mul, sign_swap i_ne_j], norm_num },
-  ext j, rw [perm.mul_apply, apply_swap_eq_self hij]
+  { ext j, rw [perm.mul_apply, apply_swap_eq_self hij], }
 end
 
 end det_zero

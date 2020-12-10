@@ -250,25 +250,19 @@ private lemma alternization_map_eq_zero_of_eq_aux
   (m : multilinear_map R (λ i : ι, M) L)
   (v : ι → M) (i j : ι) (i_ne_j : i ≠ j) (hv : v i = v j) :
   ∑ (σ : equiv.perm ι), (equiv.perm.sign σ : ℤ) • m.dom_dom_congr σ v = 0 :=
-begin
-  have : ∀ σ, _root_.disjoint {σ} {swap i j * σ},
-  { intros σ,
-    rw [disjoint_singleton, mem_singleton],
-    exact (not_congr swap_mul_eq_iff).mpr i_ne_j },
-
-  apply finset.sum_cancels_of_partition_cancels (perm.mod_swap i j),
-  intros σ _,
-  erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
-    sum_union (this σ), sum_singleton, sum_singleton],
-
-  convert add_right_neg (↑(equiv.perm.sign σ) • m.dom_dom_congr σ v),
-  rw [equiv.perm.sign_mul, equiv.perm.sign_swap i_ne_j, ←neg_smul],
-  rw multilinear_map.dom_dom_congr_apply,
-  rw multilinear_map.dom_dom_congr_apply,
-  congr' 2,
-  { simp },
-  ext, simp [apply_swap_eq_self hv],
-end
+finset.sum_involution
+  (λ σ _, swap i j * σ)
+  (λ σ _, begin
+    convert add_right_neg (↑(equiv.perm.sign σ) • m.dom_dom_congr σ v),
+    rw [equiv.perm.sign_mul, equiv.perm.sign_swap i_ne_j, ←neg_smul,
+      multilinear_map.dom_dom_congr_apply, multilinear_map.dom_dom_congr_apply],
+    congr' 2,
+    { simp },
+    { ext, simp [apply_swap_eq_self hv] },
+  end)
+  (λ σ _ _, (not_congr swap_mul_eq_iff).mpr i_ne_j)
+  (λ σ _, finset.mem_univ _)
+  (λ σ _, swap_mul_involutive i j σ)
 
 /-- Produce an `alternating_map` out of a `multilinear_map`, by summing over all argument
 permutations. -/
@@ -304,9 +298,8 @@ lemma to_multilinear_map_alternization [fintype ι] (a : alternating_map R M L �
   a.to_multilinear_map.alternatization = nat.factorial (fintype.card ι) • a :=
 begin
   ext,
-  simp only [
-    multilinear_map.alternatization_apply, map_perm, smul_smul, ←nat.smul_def, coe_mk, smul_apply,
-    add_monoid_hom.coe_mk, finset.sum_const, coe_multilinear_map, one_smul,
+  simp only [multilinear_map.alternatization_apply, map_perm, smul_smul, ←nat.smul_def, coe_mk,
+    smul_apply, add_monoid_hom.coe_mk, finset.sum_const, coe_multilinear_map, one_smul,
     multilinear_map.dom_dom_congr_apply, int.units_coe_mul_self, to_multilinear_map_eq_coe,
     finset.card_univ, fintype.card_perm],
 end

@@ -385,6 +385,10 @@ calc ((roots ((X : polynomial R) ^ n - C a)).card : with_bot ℕ)
       ≤ degree ((X : polynomial R) ^ n - C a) : card_roots (X_pow_sub_C_ne_zero hn a)
   ... = n : degree_X_pow_sub_C hn a
 
+lemma polynomial.eval_zero_eq_roots {f : polynomial R} (hf : f ≠ 0) :
+  (λ (a : R), polynomial.eval a f = 0) = (λ (a : R), a ∈ f.roots.to_finset) :=
+by { ext, simp only [multiset.mem_to_finset, polynomial.mem_roots hf, polynomial.is_root.def] }
+
 section nth_roots
 
 /-- `nth_roots n a` noncomputably returns the solutions to `x ^ n = a`-/

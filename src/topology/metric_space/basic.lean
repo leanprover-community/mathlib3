@@ -668,6 +668,10 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
 (at_top_basis.tendsto_iff nhds_basis_ball).trans $
   by { simp only [exists_prop, true_and], refl }
 
+lemma metric.is_open_singleton_iff {X : Type*} [metric_space X] {x : X} :
+  is_open ({x} : set X) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
+by simp [is_open_iff, subset_singleton_iff, mem_ball]
+
 end metric
 
 open metric
@@ -676,6 +680,13 @@ open metric
 instance metric_space.to_separated : separated_space α :=
 separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
+
+lemma metric.discrete_of_fintype {X : Type*} [metric_space X] [fintype X] : discrete_topology X :=
+discrete_of_t1_of_finite
+
+lemma metric.discrete_of_finite {X : Type*} [metric_space X] {s : finset X} :
+  discrete_topology {a : X // a ∈ s} :=
+discrete_of_t1_of_finite
 
 /-Instantiate a metric space as an emetric space. Before we can state the instance,
 we need to show that the uniform structure coming from the edistance and the

@@ -328,8 +328,6 @@ end cancel_monoid_with_zero
 section group_with_zero
 variables [group_with_zero G₀]
 
-lemma div_eq_mul_inv {a b : G₀} : a / b = a * b⁻¹ := rfl
-
 alias div_eq_mul_inv ← division_def
 
 /-- Pullback a `group_with_zero` class along an injective function. -/

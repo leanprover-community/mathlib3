@@ -137,12 +137,12 @@ variables {G : Type u} [group G]
 @[to_additive]
 lemma inv_eq_one_div (x : G) :
   x⁻¹ = 1 / x :=
-by rw [div_eq_mul_inv, one_mul]
+by rw [group.div_eq_mul_inv, one_mul]
 
 @[to_additive]
 lemma mul_one_div (x y : G) :
   x * (1 / y) = x / y :=
-by rw [div_eq_mul_inv, one_mul, div_eq_mul_inv]
+by rw [group.div_eq_mul_inv, one_mul, group.div_eq_mul_inv]
 
 end div_inv_monoid
 
@@ -302,11 +302,11 @@ lemma mul_right_eq_self : a * b = a ↔ b = 1 :=
 
 @[to_additive]
 lemma div_left_injective : function.injective (λ a, a / b) :=
-by simpa only [div_eq_mul_inv] using λ a a' h, mul_left_injective (b⁻¹) h
+by simpa only [group.div_eq_mul_inv] using λ a a' h, mul_left_injective (b⁻¹) h
 
 @[to_additive]
 lemma div_right_injective : function.injective (λ a, b / a) :=
-by simpa only [div_eq_mul_inv] using λ a a' h, inv_injective (mul_right_injective b h)
+by simpa only [group.div_eq_mul_inv] using λ a a' h, inv_injective (mul_right_injective b h)
 
 end group
 

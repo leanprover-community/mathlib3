@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
 import category_theory.simple
+import category_theory.preadditive
 
 /-!
 # Schur's lemma

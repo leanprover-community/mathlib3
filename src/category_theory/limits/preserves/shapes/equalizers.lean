@@ -103,6 +103,7 @@ begin
 end
 
 end equalizers
+
 section coequalizers
 
 variables {X Y Z : C} {f g : X ⟶ Y} {h : Y ⟶ Z} (w : f ≫ h = g ≫ h)

@@ -70,7 +70,7 @@ end
 
 variables {F} {E} {E' : Type*} [field E'] [algebra F E']
 
-lemma normal.of_alg_equiv (h : normal F E) (f : E ≃ₐ[F] E') : normal F E' :=
+lemma normal.of_alg_equiv [h : normal F E] (f : E ≃ₐ[F] E') : normal F E' :=
 begin
   intro x,
   cases h (f.symm x) with hx hhx,
@@ -87,6 +87,6 @@ begin
 end
 
 lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
-⟨λ h, h.of_alg_equiv f, λ h, h.of_alg_equiv f.symm⟩
+⟨λ h, by exactI normal.of_alg_equiv f, λ h, by exactI normal.of_alg_equiv f.symm⟩
 
 end normal_tower

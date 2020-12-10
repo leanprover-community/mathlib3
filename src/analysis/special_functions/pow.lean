@@ -1003,6 +1003,13 @@ begin
   { exact ((continuous_subtype_val.comp continuous_fst).prod_mk continuous_snd).continuous_at }
 end
 
+lemma of_real_rpow_of_nonneg {x y : ℝ} (hx : 0 ≤ x) :
+  nnreal.of_real (x ^ y) = (nnreal.of_real x) ^ y :=
+begin
+  nth_rewrite 0 ← nnreal.coe_of_real x hx,
+  rw [←nnreal.coe_rpow, nnreal.of_real_coe],
+end
+
 end nnreal
 
 section measurability_nnreal
@@ -1296,6 +1303,21 @@ begin
   exact mul_rpow_of_ne_zero h.1 h.2 z
 end
 
+lemma inv_rpow_of_pos {x : ennreal} {y : ℝ} (hy : 0 < y) : (x⁻¹) ^ y = (x ^ y)⁻¹ :=
+begin
+  by_cases h0 : x = 0,
+  { rw [h0, zero_rpow_of_pos hy, inv_zero, top_rpow_of_pos hy], },
+  by_cases h_top : x = ⊤,
+  { rw [h_top, top_rpow_of_pos hy, inv_top, zero_rpow_of_pos hy], },
+  rw ←coe_to_nnreal h_top,
+  have h : x.to_nnreal ≠ 0,
+  { rw [ne.def, to_nnreal_eq_zero_iff],
+    simp [h0, h_top], },
+  rw [←coe_inv h, coe_rpow_of_nonneg _ (le_of_lt hy), coe_rpow_of_nonneg _ (le_of_lt hy), ←coe_inv],
+  { rw coe_eq_coe,
+    exact nnreal.inv_rpow x.to_nnreal y, },
+  { simp [h], },
+end
 
 lemma rpow_le_rpow {x y : ennreal} {z : ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
 begin

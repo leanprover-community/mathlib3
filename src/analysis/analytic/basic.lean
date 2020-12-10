@@ -537,7 +537,6 @@ lemma change_origin_summable_aux2 (h : (nnnorm x + r : ennreal) < p.radius) :
   @summable ℝ _ _ _ ((λ ⟨k, n, s, hs⟩, ∥(p n).restr s hs x∥ * ↑r ^ k) :
     (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :=
 begin
-  let γ : ℕ → Type* := λ k, (Σ (n : ℕ), {s : finset (fin n) // s.card = k}),
   let Bnorm : (Σ (n : ℕ), finset (fin n)) → ℝ := λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card,
   have SBnorm : summable Bnorm := p.change_origin_summable_aux1 h,
   let Anorm : (Σ (n : ℕ), finset (fin n)) → ℝ := λ ⟨n, s⟩, ∥(p n).restr s rfl x∥ * r ^ s.card,

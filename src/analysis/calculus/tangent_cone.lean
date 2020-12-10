@@ -217,7 +217,6 @@ segment belongs to the tangent cone at its endpoints. -/
 lemma mem_tangent_cone_of_segment_subset {s : set G} {x y : G} (h : segment x y ⊆ s) :
   y - x ∈ tangent_cone_at ℝ s x :=
 begin
-  let w : ℝ := 2,
   let c := λn:ℕ, (2:ℝ)^n,
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
   refine ⟨c, d, filter.univ_mem_sets' (λn, h _), _, _⟩,

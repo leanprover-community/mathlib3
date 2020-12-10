@@ -241,8 +241,6 @@ theorem reduce_special : ∀ (u : xgcd_type), u.is_special → u.reduce.is_speci
     (λ h hs, by { rw [reduce_a h], exact u.finish_is_special hs })
     (λ h hs, have sizeof u.step < sizeof u, from u.step_wf h,
      by { rw [reduce_b h],
-          let u' := u.step.reduce,
-          have : u'.is_special := reduce_special u.step (u.step_is_special hs),
           exact (flip_is_special _).mpr (reduce_special _ (u.step_is_special hs)) })
 
 theorem reduce_special' (u : xgcd_type) (hs : u.is_special) : u.reduce.is_special' :=

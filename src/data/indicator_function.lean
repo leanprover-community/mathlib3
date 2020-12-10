@@ -63,20 +63,23 @@ lemma eq_on_indicator : eq_on (indicator s f) f s := λ x hx, indicator_of_mem h
 lemma support_indicator : function.support (s.indicator f) ⊆ s :=
 λ x hx, hx.imp_symm (λ h, indicator_of_not_mem h f)
 
-lemma indicator_of_support_subset (h : support f ⊆ s) : s.indicator f = f :=
-begin
-  ext x,
-  by_cases hx : f x = 0,
-  { rw hx,
-    by_contradiction H,
-    have := mem_of_indicator_ne_zero H,
-    rw [indicator_of_mem this f, hx] at H,
-    exact H rfl },
-  { exact indicator_of_mem (h hx) f }
-end
+@[simp] lemma indicator_apply_eq_self : s.indicator f a = f a ↔ (a ∉ s → f a = 0) :=
+ite_eq_left_iff.trans $ by rw [@eq_comm _ (f a)]
+
+@[simp] lemma indicator_eq_self : s.indicator f = f ↔ support f ⊆ s :=
+by simp only [funext_iff, subset_def, mem_support, indicator_apply_eq_self, not_imp_comm]
 
 @[simp] lemma indicator_support : (support f).indicator f = f :=
-indicator_of_support_subset $ subset.refl _
+indicator_eq_self.2 $ subset.refl _
+
+@[simp] lemma indicator_apply_eq_zero : indicator s f a = 0 ↔ (a ∈ s → f a = 0) :=
+ite_eq_right_iff
+
+@[simp] lemma indicator_eq_zero : indicator s f = (λ x, 0) ↔ disjoint (support f) s :=
+by simp only [funext_iff, indicator_apply_eq_zero, set.disjoint_left, mem_support, not_imp_not]
+
+@[simp] lemma indicator_eq_zero' : indicator s f = 0 ↔ disjoint (support f) s :=
+indicator_eq_zero
 
 @[simp] lemma indicator_range_comp {ι : Sort*} (f : ι → α) (g : α → β) :
   indicator (range f) g ∘ f = g ∘ f :=
@@ -86,22 +89,23 @@ lemma indicator_congr (h : ∀ a ∈ s, f a = g a) : indicator s f = indicator s
 funext $ λx, by { simp only [indicator], split_ifs, { exact h _ h_1 }, refl }
 
 @[simp] lemma indicator_univ (f : α → β) : indicator (univ : set α) f = f :=
-funext $ λx, indicator_of_mem (mem_univ _) f
+indicator_eq_self.2 $ subset_univ _
 
 @[simp] lemma indicator_empty (f : α → β) : indicator (∅ : set α) f = λa, 0 :=
-funext $ λx, indicator_of_not_mem (not_mem_empty _) f
+indicator_eq_zero.2 $ disjoint_empty _
 
 variable (β)
 
 @[simp] lemma indicator_zero (s : set α) : indicator s (λx, (0:β)) = λx, (0:β) :=
-funext $ λx, by { simp only [indicator], split_ifs, refl, refl }
+indicator_eq_zero.2 $ by simp only [support_zero, empty_disjoint]
 
 @[simp] lemma indicator_zero' {s : set α} : s.indicator (0 : α → β) = 0 :=
 indicator_zero β s
 
 variable {β}
 
-lemma indicator_indicator (s t : set α) (f : α → β) : indicator s (indicator t f) = indicator (s ∩ t) f :=
+lemma indicator_indicator (s t : set α) (f : α → β) :
+  indicator s (indicator t f) = indicator (s ∩ t) f :=
 funext $ λx, by { simp only [indicator], split_ifs, repeat {simp * at * {contextual := tt}} }
 
 lemma comp_indicator (h : β → γ) (f : α → β) {s : set α} {x : α} :

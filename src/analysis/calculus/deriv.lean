@@ -1512,18 +1512,6 @@ begin
   exact p.deriv
 end
 
-protected lemma continuous : continuous (λx, p.eval x) :=
-p.differentiable.continuous
-
-protected lemma continuous_on : continuous_on (λx, p.eval x) s :=
-p.continuous.continuous_on
-
-protected lemma continuous_at : continuous_at (λx, p.eval x) x :=
-p.continuous.continuous_at
-
-protected lemma continuous_within_at : continuous_within_at (λx, p.eval x) s x :=
-p.continuous_at.continuous_within_at
-
 protected lemma has_fderiv_at (x : 𝕜) :
   has_fderiv_at (λx, p.eval x) (smul_right 1 (p.derivative.eval x) : 𝕜 →L[𝕜] 𝕜) x :=
 by simpa [has_deriv_at_iff_has_fderiv_at] using p.has_deriv_at x

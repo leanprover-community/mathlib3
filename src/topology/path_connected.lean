@@ -209,7 +209,7 @@ lemma extend_of_one_le {X : Type*} [topological_space X] {a b : X}
 /-- The path obtained from a map defined on `ℝ` by restriction to the unit interval. -/
 def of_line {f : ℝ → X} (hf : continuous_on f I) (h₀ : f 0 = x) (h₁ : f 1 = y) : path x y :=
 { to_fun := f ∘ coe,
-  continuous' := hf.comp_continuous continuous_subtype_coe (by rw subtype.range_coe),
+  continuous' := hf.comp_continuous continuous_subtype_coe subtype.prop,
   source' := h₀,
   target' := h₁ }
 

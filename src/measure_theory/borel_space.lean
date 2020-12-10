@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.measure_space
+import analysis.complex.basic
 import analysis.normed_space.finite_dimension
 import topology.G_delta
 
@@ -831,12 +832,10 @@ begin
       refine @is_measurable.inter _ g _ _ _ (hg _),
       refine @is_measurable.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
       exact @is_measurable.compl _ _ g (hg _) },
-    { simp [Ioo, Iio],
-      refine and_congr _ iff.rfl,
-      exact ⟨λ h,
-        let ⟨c, ac, cx⟩ := exists_rat_btwn h in
-        ⟨c, rat.cast_lt.1 ac, le_of_lt cx⟩,
-       λ ⟨c, ac, cx⟩, lt_of_lt_of_le (rat.cast_lt.2 ac) cx⟩ } },
+    { suffices : x < ↑b → (↑a < x ↔ ∃ (i : ℚ), a < i ∧ ↑i ≤ x), by simpa,
+      refine λ _, ⟨λ h, _, λ ⟨i, hai, hix⟩, (rat.cast_lt.2 hai).trans_le hix⟩,
+      rcases exists_rat_btwn h with ⟨c, ac, cx⟩,
+      exact ⟨c, rat.cast_lt.1 ac, cx.le⟩ } },
   { simp, rintro r rfl, exact is_open_Iio.is_measurable }
 end
 

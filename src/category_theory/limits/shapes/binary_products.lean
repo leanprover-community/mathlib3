@@ -84,36 +84,32 @@ section
 variables {F G : discrete walking_pair.{v} ⥤ C} (f : F.obj left ⟶ G.obj left) (g : F.obj right ⟶ G.obj right)
 
 /-- The natural transformation between two functors out of the walking pair, specified by its components. -/
-def map_pair : F ⟶ G :=
-{ app := λ j, match j with
-  | left := f
-  | right := g
-  end }
+def map_pair : F ⟶ G := { app := λ j, walking_pair.cases_on j f g }
 
 @[simp] lemma map_pair_left : (map_pair f g).app left = f := rfl
 @[simp] lemma map_pair_right : (map_pair f g).app right = g := rfl
 
 /-- The natural isomorphism between two functors out of the walking pair, specified by its components. -/
-@[simps]
+@[simps {rhs_md := semireducible}]
 def map_pair_iso (f : F.obj left ≅ G.obj left) (g : F.obj right ≅ G.obj right) : F ≅ G :=
-{ hom := map_pair f.hom g.hom,
-  inv := map_pair f.inv g.inv,
-  hom_inv_id' := by { ext ⟨⟩; simp, },
-  inv_hom_id' := by { ext ⟨⟩; simp, } }
+nat_iso.of_components (λ j, walking_pair.cases_on j f g) (by tidy)
+
 end
+
+/-- Every functor out of the walking pair is naturally isomorphic (actually, equal) to a `pair` -/
+@[simps {rhs_md := semireducible}]
+def diagram_iso_pair (F : discrete walking_pair ⥤ C) :
+  F ≅ pair (F.obj walking_pair.left) (F.obj walking_pair.right) :=
+map_pair_iso (iso.refl _) (iso.refl _)
 
 section
 variables {D : Type u} [category.{v} D]
 
 /-- The natural isomorphism between `pair X Y ⋙ F` and `pair (F.obj X) (F.obj Y)`. -/
 def pair_comp (X Y : C) (F : C ⥤ D) : pair X Y ⋙ F ≅ pair (F.obj X) (F.obj Y) :=
-map_pair_iso (eq_to_iso rfl) (eq_to_iso rfl)
-end
+diagram_iso_pair _
 
-/-- Every functor out of the walking pair is naturally isomorphic (actually, equal) to a `pair` -/
-def diagram_iso_pair (F : discrete walking_pair ⥤ C) :
-  F ≅ pair (F.obj walking_pair.left) (F.obj walking_pair.right) :=
-map_pair_iso (eq_to_iso rfl) (eq_to_iso rfl)
+end
 
 /-- A binary fan is just a cone on a diagram indexing a product. -/
 abbreviation binary_fan (X Y : C) := cone (pair X Y)
@@ -221,6 +217,16 @@ colimit.ι (pair X Y) walking_pair.left
 /-- The inclusion map from the second component of the coproduct. -/
 abbreviation coprod.inr {X Y : C} [has_binary_coproduct X Y] : Y ⟶ X ⨿ Y :=
 colimit.ι (pair X Y) walking_pair.right
+
+/-- The binary fan constructed from the projection maps is a limit. -/
+def prod_is_prod (X Y : C) [has_binary_product X Y] :
+  is_limit (binary_fan.mk (prod.fst : X ⨯ Y ⟶ X) prod.snd) :=
+(limit.is_limit _).of_iso_limit (cones.ext (iso.refl _) (by { rintro (_ | _), tidy }))
+
+/-- The binary cofan constructed from the coprojection maps is a colimit. -/
+def coprod_is_coprod {X Y : C} [has_binary_coproduct X Y] :
+  is_colimit (binary_cofan.mk (coprod.inl : X ⟶ X ⨿ Y) coprod.inr) :=
+(colimit.is_colimit _).of_iso_colimit (cocones.ext (iso.refl _) (by { rintro (_ | _), tidy }))
 
 @[ext] lemma prod.hom_ext {W X Y : C} [has_binary_product X Y] {f g : W ⟶ X ⨯ Y}
   (h₁ : f ≫ prod.fst = g ≫ prod.fst) (h₂ : f ≫ prod.snd = g ≫ prod.snd) : f = g :=
@@ -702,17 +708,18 @@ nat_iso.of_components (prod.associator _ _) (by tidy)
 end prod_functor
 
 section prod_comparison
-variables {C} [has_binary_products C]
 
-variables {D : Type u₂} [category.{v} D]
+variables {C} {D : Type u₂} [category.{v} D]
 variables (F : C ⥤ D) {A A' B B' : C}
+variables [has_binary_product A B] [has_binary_product A' B']
 variables [has_binary_product (F.obj A) (F.obj B)] [has_binary_product (F.obj A') (F.obj B')]
 /--
 The product comparison morphism.
 
 In `category_theory/limits/preserves` we show this is always an iso iff F preserves binary products.
 -/
-def prod_comparison (F : C ⥤ D) (A B : C) [has_binary_product (F.obj A) (F.obj B)] :
+def prod_comparison (F : C ⥤ D) (A B : C)
+  [has_binary_product A B] [has_binary_product (F.obj A) (F.obj B)] :
   F.obj (A ⨯ B) ⟶ F.obj A ⨯ F.obj B :=
 prod.lift (F.map prod.fst) (F.map prod.snd)
 

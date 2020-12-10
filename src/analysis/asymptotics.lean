@@ -1056,10 +1056,32 @@ have eq₃ : is_O f (λ x, f x / g x * g x) l,
   end,
 eq₃.trans_is_o eq₂
 
+private theorem is_o_of_tendsto' {f g : α → 𝕜} {l : filter α}
+    (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) (h : tendsto (λ x, f x / (g x)) l (𝓝 0)) :
+  is_o f g l :=
+let ⟨u, hu, himp⟩ := hgf.exists_mem in
+have key : u.indicator f =ᶠ[l] f,
+  from eventually_eq_of_mem hu eq_on_indicator,
+have himp : ∀ x, g x = 0 → (u.indicator f) x = 0,
+  from λ x hgx,
+    begin
+      by_cases h : x ∈ u,
+      { exact (indicator_of_mem h f).symm ▸ himp x h hgx },
+      { exact indicator_of_not_mem h f }
+    end,
+suffices h : is_o (u.indicator f) g l,
+  from is_o.congr' key (by refl) h,
+is_o_of_tendsto himp (h.congr' (key.symm.div (by refl)))
+
 theorem is_o_iff_tendsto {f g : α → 𝕜} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) :
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 iff.intro is_o.tendsto_0 (is_o_of_tendsto hgf)
+
+theorem is_o_iff_tendsto' {f g : α → 𝕜} {l : filter α}
+    (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) :
+  is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
+iff.intro is_o.tendsto_0 (is_o_of_tendsto' hgf)
 
 /-!
 ### Eventually (u / v) * v = u

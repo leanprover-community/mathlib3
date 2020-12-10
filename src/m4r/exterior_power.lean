@@ -58,7 +58,7 @@ linear_equiv.of_linear (linear_map.coprod (p.liftq
 
 -- can't find in mathlib rn
 def submodule.pi {ι : Type*} (M : ι → Type*) [Π i, add_comm_group (M i)]
-  [Π i, module R (M i)] (p : Π₀ i, submodule R (M i)) :
+  [Π i, module R (M i)] (p : Π i, submodule R (M i)) :
   submodule R (direct_sum ι M) :=
 { carrier := { f | ∀ i, f i ∈ p i},
   zero_mem' := λ i, (p i).zero_mem,
@@ -71,7 +71,7 @@ variables {ι : Type*} [decidable_eq ι] (F : ι → Type*) [Π i, add_comm_grou
   [Π i, module R (F i)] (p : Π₀ i, submodule R (F i))
 
 def quot_pi_equiv {ι : Type*} [decidable_eq ι] (M : ι → Type*) [Π i, add_comm_group (M i)]
-  [Π i, module R (M i)] (p : Π₀ i, submodule R (M i)) :
+  [Π i, module R (M i)] (p : Π i, submodule R (M i)) :
   direct_sum ι (λ i, (p i).quotient) ≃ₗ[R] (submodule.pi R M p).quotient :=
 linear_equiv.of_linear (direct_sum.to_module R ι _ (λ i, (p i).liftq
   ((submodule.pi R M p).mkq.comp (direct_sum.lof R ι M i)) $
@@ -86,7 +86,7 @@ linear_equiv.of_linear (direct_sum.to_module R ι _ (λ i, (p i).liftq
     (λ i, (direct_sum.lof R ι _ i).comp (p i).mkq)) sorry) sorry sorry
 
 lemma quot_pi_equiv_apply {ι : Type*} [decidable_eq ι] (M : ι → Type*) [Π i, add_comm_group (M i)]
-  [Π i, module R (M i)] (p : Π₀ i, submodule R (M i)) (i : ι) (x : M i) :
+  [Π i, module R (M i)] (p : Π i, submodule R (M i)) (i : ι) (x : M i) :
   quot_pi_equiv R M p (direct_sum.lof R ι _ i ((p i).mkq x)) =
     (submodule.pi R M p).mkq (direct_sum.lof R ι _ i x) :=
 begin
@@ -96,7 +96,7 @@ begin
 end
 
 lemma quot_pi_equiv_symm_apply {ι : Type*} [decidable_eq ι] (M : ι → Type*) [Π i, add_comm_group (M i)]
-  [Π i, module R (M i)] (p : Π₀ i, submodule R (M i)) (i : ι) (x : M i) :
+  [Π i, module R (M i)] (p : Π i, submodule R (M i)) (i : ι) (x : M i) :
   (quot_pi_equiv R M p).symm ((submodule.pi R M p).mkq (direct_sum.lof R ι _ i x)) =
     (direct_sum.lof R ι _ i ((p i).mkq x)) :=
 begin
@@ -121,7 +121,15 @@ tpow.lift_mk_apply n f.to_multilinear_map v
 
 @[reducible] def ealg := direct_sum ℕ (epow' R M)
 
-#exit
+def ealg_ker : submodule R (talg R M) :=
+submodule.pi R (tpow R M) (epow_ker R M)
+
+def ealg_mul : (ealg_ker R M).quotient →ₗ[R] (ealg_ker R M).quotient →ₗ[R] (ealg_ker R M).quotient :=
+(ealg_ker R M).liftq
+({ to_fun := λ x, (ealg_ker R M).liftq ((ealg_ker R M).mkq.comp $ mul R M x) sorry,
+  map_add' := sorry,
+  map_smul' := sorry }) sorry
+/-
 def epow_map (n : ℕ) : tpow R M n →ₗ[R] exterior_algebra R M :=
 (((exterior_algebra.quot R M).comp (talg_equiv R M).to_alg_hom)).to_linear_map.comp
   $ (direct_sum.lof R ℕ (tpow R M) n : tpow R M n →ₗ[R] talg R M)
@@ -134,4 +142,4 @@ linear_map.comp_multilinear_map (submodule.mkq (epow_map R M n).ker) (tpow.mk' R
 variables (R M N n)
 
 def epow.incl (n : ℕ) : epow R M n →ₗ[R] exterior_algebra R M :=
-submodule.liftq (epow_map R M n).ker (epow_map R M n) (le_refl _)
+submodule.liftq (epow_map R M n).ker (epow_map R M n) (le_refl _)-/

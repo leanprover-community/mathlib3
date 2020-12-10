@@ -1337,7 +1337,7 @@ instance subtype_domain.is_add_monoid_hom :
 { map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 
 /-- `finsupp.filter` as an `add_monoid_hom`. -/
-def filter_add_hom [add_monoid M] (p : α → Prop) : (α →₀ M) →+ (α →₀ M) :=
+def filter_add_hom (p : α → Prop) : (α →₀ M) →+ (α →₀ M) :=
 { to_fun := filter p,
   map_zero' := filter_zero p,
   map_add' := λ f g, injective_coe_fn $ set.indicator_add {x | p x} f g }

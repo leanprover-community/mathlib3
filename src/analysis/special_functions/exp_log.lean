@@ -308,19 +308,18 @@ lemma tendsto_exp_at_bot : tendsto exp at_bot (𝓝 0) :=
 lemma tendsto_exp_at_bot_nhds_within : tendsto exp at_bot (𝓝[set.Ioi 0] 0) :=
 tendsto_inf.2 ⟨tendsto_exp_at_bot, tendsto_principal.2 $ eventually_of_forall exp_pos⟩
 
-lemma range_exp : set.range exp = set.Ioi 0 :=
-set.ext $ λ y, ⟨λ ⟨x, hx⟩, hx ▸ exp_pos x,
-  λ hy, mem_range_of_exists_le_of_exists_ge continuous_exp
-    (tendsto_exp_at_bot.eventually (ge_mem_nhds hy)).exists
-    (tendsto_exp_at_top.eventually (eventually_ge_at_top y)).exists⟩
-
 /-- `real.exp` as an order isomorphism between `ℝ` and `(0, +∞)`. -/
 def exp_order_iso : ℝ ≃o set.Ioi (0 : ℝ) :=
-(exp_strict_mono.order_iso _).trans $ order_iso.set_congr _ _ range_exp
+strict_mono.order_iso_of_surjective _ (exp_strict_mono.cod_restrict exp_pos) $
+  surjective_of_continuous (continuous_subtype_mk _ continuous_exp)
+    (by simp [tendsto_exp_at_top]) (by simp [tendsto_exp_at_bot_nhds_within])
 
 @[simp] lemma coe_exp_order_iso_apply (x : ℝ) : (exp_order_iso x : ℝ) = exp x := rfl
 
 @[simp] lemma coe_comp_exp_order_iso : coe ∘ exp_order_iso = exp := rfl
+
+@[simp] lemma range_exp : set.range exp = set.Ioi 0 :=
+by rw [← coe_comp_exp_order_iso, set.range_comp, set.image_univ, subtype.range_coe]
 
 @[simp] lemma map_exp_at_top : map exp at_top = at_top :=
 by rw [← coe_comp_exp_order_iso, ← filter.map_map, order_iso.map_at_top,

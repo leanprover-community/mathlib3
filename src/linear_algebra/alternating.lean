@@ -242,19 +242,19 @@ open_locale big_operators
 
 namespace multilinear_map
 
-open equiv finset
+open equiv
 
 variables [fintype ι]
 
 private lemma alternization_map_eq_zero_of_eq_aux
   (m : multilinear_map R (λ i : ι, M) L)
   (v : ι → M) (i j : ι) (i_ne_j : i ≠ j) (hv : v i = v j) :
-  ∑ (σ : equiv.perm ι), (equiv.perm.sign σ : ℤ) • m.dom_dom_congr σ v = 0 :=
+  ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v = 0 :=
 finset.sum_involution
   (λ σ _, swap i j * σ)
   (λ σ _, begin
-    convert add_right_neg (↑(equiv.perm.sign σ) • m.dom_dom_congr σ v),
-    rw [equiv.perm.sign_mul, equiv.perm.sign_swap i_ne_j, ←neg_smul,
+    convert add_right_neg (↑σ.sign • m.dom_dom_congr σ v),
+    rw [perm.sign_mul, perm.sign_swap i_ne_j, ←neg_smul,
       multilinear_map.dom_dom_congr_apply, multilinear_map.dom_dom_congr_apply],
     congr' 2,
     { simp },
@@ -268,25 +268,25 @@ finset.sum_involution
 permutations. -/
 def alternatization : multilinear_map R (λ i : ι, M) L →+ alternating_map R M L ι :=
 { to_fun := λ m,
-  { to_fun := λ v, ∑ (σ : equiv.perm ι), (equiv.perm.sign σ : ℤ) • m.dom_dom_congr σ v,
+  { to_fun := λ v, ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v,
     map_add' := λ v i a b, by simp_rw [←finset.sum_add_distrib, multilinear_map.map_add, smul_add],
     map_smul' := λ v i c a, by simp_rw [finset.smul_sum, multilinear_map.map_smul, smul_comm],
     map_eq_zero_of_eq' := λ v i j hvij hij, alternization_map_eq_zero_of_eq_aux m v i j hij hvij },
   map_add' := λ a b, begin
     ext,
     simp only [
-      sum_add_distrib, smul_add, add_apply, dom_dom_congr_apply, alternating_map.add_apply,
+      finset.sum_add_distrib, smul_add, add_apply, dom_dom_congr_apply, alternating_map.add_apply,
       alternating_map.coe_mk],
   end,
   map_zero' := begin
     ext,
     simp only [
-      dom_dom_congr_apply, alternating_map.zero_apply, sum_const_zero, smul_zero,
+      dom_dom_congr_apply, alternating_map.zero_apply, finset.sum_const_zero, smul_zero,
       alternating_map.coe_mk, zero_apply]
   end }
 
 lemma alternatization_apply (m : multilinear_map R (λ i : ι, M) L) (v : ι → M) :
-  alternatization m v = ∑ (σ : equiv.perm ι), (equiv.perm.sign σ : ℤ) • m.dom_dom_congr σ v := rfl
+  alternatization m v = ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v := rfl
 
 end multilinear_map
 

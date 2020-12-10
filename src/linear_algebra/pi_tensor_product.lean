@@ -5,13 +5,40 @@ Authors: Frédéric Dupuis
 -/
 
 import group_theory.congruence
-import linear_algebra.basic
 import linear_algebra.multilinear
 
 /-!
 # Tensor product of an indexed family of semimodules over commutative semirings
 
+We define the tensor product of an indexed family `s : ι → Type*` of semimodules over commutative
+semirings. We denote this space by `⨂[R] i, s i` and define it as `free_add_monoid (Π i, s i)`
+quotiented by the appropriate equivalence relation. The treatment follows very closely that of the
+binary tensor product in `linear_algebra/tensor_product.lean`.
+
+## Main definitions
+
+* `pi_tensor_product R s` with `R` a commutative semiring and `s : ι → Type*` is the tensor product
+  of all the `s i`'s. This is denoted by `⨂[R] i, s i`.
+* `tprod R f` with `f : Π i, s i` is the tensor product of the vectors `f i` over all `i : ι`.
+* `mk R s` is the canonical multilinear map from `Π i, s i` to `⨂[R] i, s i`.
+* `lift φ` with `φ : multilinear_map R s E` is the corresponding linear map
+  `(⨂[R] i, s i) →ₗ[R] E`.
+
 ## Notations
+
+* `⨂[R] i, s i` is defined as localized notation in locale `tensor_product`
+* `⨂ₜ[R] i, f i` with `f : Π i, f i` is defined globally as the tensor product of all the `f i`'s.
+
+## Implementation notes
+
+We have not restricted the index type `ι` to be a `fintype`, as nothing we do here strictly requires
+it. However, problems may arise in the case where `ι` is infinite; use at your own caution.
+
+## TODO
+
+* Define tensor powers, symmetric subspace, etc.
+* API for the various ways `ι` can be split into subsets; connect this with the binary
+  tensor product.
 
 ## Tags
 
@@ -48,6 +75,8 @@ end pi_tensor_product
 
 variables (R) (s)
 
+/-- `pi_tensor_product R s` with `R` a commutative semiring and `s : ι → Type*` is the tensor
+  product of all the `s i`'s. This is denoted by `⨂[R] i, s i`. -/
 def pi_tensor_product : Type* :=
 (add_con_gen (pi_tensor_product.eqv R s)).quotient
 
@@ -72,6 +101,7 @@ instance : inhabited (⨂[R] i, s i) := ⟨0⟩
 
 variables (R) {s}
 
+/-- `tprod R f` with `f : Π i, s i` is the tensor product of the vectors `f i` over all `i : ι`. -/
 def tprod (f : Π i, s i) : ⨂[R] i, s i := add_con.mk' _ $ free_add_monoid.of f
 variables {R}
 
@@ -257,7 +287,7 @@ theorem lift.unique {φ' : (⨂[R] i, s i) →ₗ[R] E} (H : ∀ f, φ' (tprod R
   φ' = lift φ :=
 ext $ λ f, by rw [H, lift.tprod]
 
-theorem lift_mk {f : Π i, s i} : lift (mk R s) = linear_map.id :=
+theorem lift_mk : lift (mk R s) = linear_map.id :=
 eq.symm $ lift.unique $ λ _, rfl
 
 end multilinear

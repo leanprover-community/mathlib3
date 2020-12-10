@@ -91,8 +91,9 @@ def exy : fin 2 → (fin 2→ ℝ ) := λ i, if i=0 then ex else ey
 
 lemma iZeroOne (i: fin 2) : i=0 ∨ i=1:=
 begin
+  exact split_fin2 i,
   --simp,
-  sorry,
+--  sorry,
 end
 
 
@@ -166,7 +167,26 @@ begin
         =
         (a 1 - b 1) • ey,
         {
-          sorry,
+          rw funext_iff,
+          intros i,
+          have : i=0∨ i=1,
+          {
+            exact iZeroOne i,
+          },
+          cases this,
+          {
+            rw this_1,
+            simp,
+            right,
+            rw ey,
+            simp,
+          },
+          {
+            rw this_1,
+            simp,
+            rw ey,
+            simp,
+          },
         },
         simp [rw1],
       },
@@ -182,7 +202,25 @@ begin
         =
         (a 0 - b 0) • ex,
         {
-          sorry,
+          rw funext_iff,
+          intros i,
+          have : i=0∨ i=1,
+          {
+            exact iZeroOne i,
+          },
+          cases this,
+          {
+            rw this_1,
+            simp,
+            rw ex,
+            simp,
+          },
+          {
+            rw this_1,
+            simp,
+            rw ex,
+            simp,
+          },
         },
         simp [rw1],
       },
@@ -311,12 +349,6 @@ begin
 --  library_search,
 end
 
-lemma box_integral_const (cU : ℝ )  (a b : fin 2 → ℝ) :
-  box_integral (λ x, cU ) a b  = 0 :=
-begin
-  -- ALEX TO DO
-  sorry,
-end
 
 
 variables {u}
@@ -414,7 +446,25 @@ begin
     },
     { -- case top half
     --- ALEX
-      sorry,
+      right,
+      simp only [rectangle'],
+      intros j,
+      split,
+      {
+        by_cases ji : j = i,
+        {
+          rw ji,
+          simp,
+          linarith,
+        },
+        {
+          convert (h j).1,
+          convert dif_neg ji,
+        },
+      },
+      {
+        convert (h j).2,
+      },
     },
   },
   {
@@ -422,7 +472,19 @@ begin
     cases h,
     {
     --- ALEX
-      sorry,
+      simp only [rectangle'],
+      intros j,
+      rw rectangle' at h,
+      by_cases ji : j = i,
+      {
+        let hj := h j,
+        rw ji at hj,
+        simp at hj,
+        sorry,
+      },
+      {
+        sorry,
+      },
     },
     {
     --- ALEX
@@ -512,6 +574,19 @@ end
 
 def box_integral (a b : fin 2 → ℝ) : ℝ :=
 ∫ x in rectangle a b, u ((foo' ℝ ℝ).symm x) ∂(volume.prod volume)
+
+
+lemma box_integral_const (cU : ℝ )  (a b : fin 2 → ℝ) :
+  box_integral (λ x, cU ) a b  = 0 :=
+begin
+  -- ALEX TO DO
+  rw box_integral,
+  rw rectangle,
+--  rw interval_integral.integral_const_of_cdf,
+  sorry,
+end
+
+
 
 lemma is_box_additive_integral (hu : integrable (u ∘ (foo' ℝ ℝ).symm)) :
   box_additive_on (box_integral u) univ :=

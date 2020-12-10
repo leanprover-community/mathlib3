@@ -36,10 +36,8 @@ local notation `β*` := germ (φ : filter α) β
 instance [division_ring β] : division_ring β* :=
 { mul_inv_cancel := λ f, induction_on f $ λ f hf, coe_eq.2 $ (φ.em (λ y, f y = 0)).elim
     (λ H, (hf $ coe_eq.2 H).elim) (λ H, H.mono $ λ x, mul_inv_cancel),
-  inv_mul_cancel := λ f, induction_on f $ λ f hf, coe_eq.2 $ (φ.em (λ y, f y = 0)).elim
-    (λ H, (hf $ coe_eq.2 H).elim) (λ H, H.mono $ λ x, inv_mul_cancel),
   inv_zero := coe_eq.2 $ by simp only [(∘), inv_zero],
-  .. germ.ring, .. germ.has_inv, .. germ.nontrivial }
+  .. germ.ring, .. germ.div_inv_monoid, .. germ.nontrivial }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a field. -/
 instance [field β] : field β* :=

@@ -221,7 +221,8 @@ have hequiv : H ≃ (subgroup.comap ((normalizer H).subtype : normalizer H →* 
   ⟨λ a, ⟨⟨a.1, le_normalizer a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
 -- begin proof of ∃ H : subgroup G, fintype.card H = p ^ n
-⟨subgroup.map ((normalizer H).subtype) (subgroup.comap (quotient_group.mk' _) (gpowers x)),
+⟨subgroup.map ((normalizer H).subtype) (subgroup.comap
+  (quotient_group.mk' (comap H.normalizer.subtype H)) (gpowers x)),
 begin
   show card ↥(map H.normalizer.subtype
     (comap (mk' (comap H.normalizer.subtype H)) (subgroup.gpowers x))) = p ^ (n + 1),
@@ -229,7 +230,8 @@ begin
     (gpowers x)) : set (↥(H.normalizer)))) = p^(n+1),
   { convert this },
   rw [set.card_image_of_injective
-       (subgroup.comap (mk' _) (gpowers x) : set (H.normalizer)) subtype.val_injective,
+        (subgroup.comap (mk' (comap H.normalizer.subtype H)) (gpowers x) : set (H.normalizer))
+        subtype.val_injective,
       pow_succ', ← hH2, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
       ← fintype.card_prod],
   exact @fintype.card_congr _ _ (id _) (id _) (preimage_mk_equiv_subgroup_times_set _ _)

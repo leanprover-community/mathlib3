@@ -39,6 +39,8 @@ it. However, problems may arise in the case where `ι` is infinite; use at your 
 * Define tensor powers, symmetric subspace, etc.
 * API for the various ways `ι` can be split into subsets; connect this with the binary
   tensor product.
+* Include connection with holors.
+* Port more of the API from the binary tensor product over to this case.
 
 ## Tags
 

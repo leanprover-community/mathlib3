@@ -764,6 +764,28 @@ ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
 end add_monoid
 
+end finsupp
+
+@[to_additive]
+lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
+  (h : N ≃* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+h.map_prod _ _
+
+@[to_additive]
+lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
+  (h : N →* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+h.map_prod _ _
+
+lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
+  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
+h.map_sum _ _
+
+lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
+  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+h.map_prod _ _
+
+namespace finsupp
+
 section nat_sub
 instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
 
@@ -1368,32 +1390,31 @@ end subtype_domain
 section multiset
 
 /-- Given `f : α →₀ ℕ`, `f.to_multiset` is the multiset with multiplicities given by the values of
-`f` on the elements of `α`. -/
-def to_multiset (f : α →₀ ℕ) : multiset α :=
-f.sum (λa n, n •ℕ {a})
+`f` on the elements of `α`. We define this function as an `add_equiv`. -/
+def to_multiset : (α →₀ ℕ) ≃+ multiset α :=
+{ to_fun := λ f, f.sum (λa n, n •ℕ {a}),
+  inv_fun := λ s, ⟨s.to_finset, λ a, s.count a, λ a, by simp⟩,
+  left_inv := λ f, ext $ λ a,
+    suffices (if f a = 0 then 0 else f a) = f a,
+    by simpa [finsupp.sum, multiset.count_sum', multiset.count_cons],
+    by split_ifs with h; [rw h, refl],
+  right_inv := λ s, by simp [finsupp.sum],
+  map_add' := λ f g, sum_add_index (λ a, zero_nsmul _) (λ a, add_nsmul _) }
 
 lemma to_multiset_zero : (0 : α →₀ ℕ).to_multiset = 0 :=
 rfl
 
 lemma to_multiset_add (m n : α →₀ ℕ) :
   (m + n).to_multiset = m.to_multiset + n.to_multiset :=
-sum_add_index (assume a, zero_nsmul _) (assume a b₁ b₂, add_nsmul _ _ _)
+to_multiset.map_add m n
 
-lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = n •ℕ {a} :=
-by rw [to_multiset, sum_single_index]; apply zero_nsmul
+lemma to_multiset_apply (f : α →₀ ℕ) : f.to_multiset = f.sum (λ a n, n •ℕ {a}) := rfl
 
-instance is_add_monoid_hom.to_multiset : is_add_monoid_hom (to_multiset : _ → multiset α) :=
-{ map_zero := to_multiset_zero, map_add := to_multiset_add }
+@[simp] lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = n •ℕ {a} :=
+by rw [to_multiset_apply, sum_single_index]; apply zero_nsmul
 
 lemma card_to_multiset (f : α →₀ ℕ) : f.to_multiset.card = f.sum (λa, id) :=
-begin
-  refine f.induction _ _,
-  { rw [to_multiset_zero, multiset.card_zero, sum_zero_index] },
-  { assume a n f _ _ ih,
-    rw [to_multiset_add, multiset.card_add, ih, sum_add_index, to_multiset_single,
-      sum_single_index, multiset.card_smul, multiset.singleton_eq_singleton,
-      multiset.card_singleton, mul_one]; intros; refl }
-end
+by simp [to_multiset_apply, add_monoid_hom.map_finsupp_sum, function.id_def]
 
 lemma to_multiset_map (f : α →₀ ℕ) (g : α → β) :
   f.to_multiset.map g = (f.map_domain g).to_multiset :=
@@ -1407,7 +1428,7 @@ begin
     refl }
 end
 
-lemma prod_to_multiset [comm_monoid M] (f : M →₀ ℕ) :
+@[simp] lemma prod_to_multiset [comm_monoid M] (f : M →₀ ℕ) :
   f.to_multiset.prod = f.prod (λa n, a ^ n) :=
 begin
   refine f.induction _ _,
@@ -1421,7 +1442,7 @@ begin
     { exact pow_add  } }
 end
 
-lemma to_finset_to_multiset (f : α →₀ ℕ) : f.to_multiset.to_finset = f.support :=
+@[simp] lemma to_finset_to_multiset (f : α →₀ ℕ) : f.to_multiset.to_finset = f.support :=
 begin
   refine f.induction _ _,
   { rw [to_multiset_zero, multiset.to_finset_zero, support_zero] },
@@ -1444,23 +1465,6 @@ calc f.to_multiset.count a = f.sum (λx n, (n •ℕ {x} : multiset α).count a)
     (λ a' _ H, by simp only [multiset.count_cons_of_ne (ne.symm H), multiset.count_zero, mul_zero])
     (λ H, by simp only [not_mem_support_iff.1 H, zero_mul])
   ... = f a : by simp only [multiset.count_singleton, mul_one]
-
-/-- Given `m : multiset α`, `of_multiset m` is the finitely supported function from `α` to `ℕ`
-given by the multiplicities of the elements of `α` in `m`. -/
-def of_multiset (m : multiset α) : α →₀ ℕ :=
-on_finset m.to_finset (λa, m.count a) $ λ a H, multiset.mem_to_finset.2 $
-by_contradiction (mt multiset.count_eq_zero.2 H)
-
-@[simp] lemma of_multiset_apply (m : multiset α) (a : α) :
-  of_multiset m a = m.count a :=
-rfl
-
-/-- `equiv_multiset` defines an `equiv` between finitely supported functions
-from `α` to `ℕ` and multisets on `α`. -/
-def equiv_multiset : (α →₀ ℕ) ≃ (multiset α) :=
-⟨ to_multiset, of_multiset,
-assume f, finsupp.ext $ λ a, by rw [of_multiset_apply, count_to_multiset],
-assume m, multiset.ext.2 $ λ a, by rw [count_to_multiset, of_multiset_apply] ⟩
 
 lemma mem_support_multiset_sum [add_comm_monoid M]
   {s : multiset (α →₀ M)} (a : α) :
@@ -1754,24 +1758,6 @@ protected def dom_congr [add_comm_monoid M] (e : α ≃ β) : (α →₀ M) ≃+
 
 end finsupp
 
-@[to_additive]
-lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
-  (h : N ≃* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
-
-@[to_additive]
-lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
-  (h : N →* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
-
-lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
-  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
-h.map_sum _ _
-
-lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
-  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
-
 namespace finsupp
 
 /-! ### Declarations about sigma types -/
@@ -1837,56 +1823,37 @@ namespace multiset
 
 /-- Given a multiset `s`, `s.to_finsupp` returns the finitely supported function on `ℕ` given by
 the multiplicities of the elements of `s`. -/
-def to_finsupp (s : multiset α) : α →₀ ℕ :=
-{ support := s.to_finset,
-  to_fun := λ a, s.count a,
-  mem_support_to_fun := λ a,
-  begin
-    rw mem_to_finset,
-    convert not_iff_not_of_iff (count_eq_zero.symm),
-    rw not_not
-  end }
+def to_finsupp : multiset α ≃+ (α →₀ ℕ) := finsupp.to_multiset.symm
 
 @[simp] lemma to_finsupp_support (s : multiset α) :
   s.to_finsupp.support = s.to_finset :=
 rfl
 
 @[simp] lemma to_finsupp_apply (s : multiset α) (a : α) :
-  s.to_finsupp a = s.count a :=
+  to_finsupp s a = s.count a :=
 rfl
 
-@[simp] lemma to_finsupp_zero :
-  to_finsupp (0 : multiset α) = 0 :=
-finsupp.ext $ λ a, count_zero a
+lemma to_finsupp_zero : to_finsupp (0 : multiset α) = 0 := add_equiv.map_zero _
 
-@[simp] lemma to_finsupp_add (s t : multiset α) :
+lemma to_finsupp_add (s t : multiset α) :
   to_finsupp (s + t) = to_finsupp s + to_finsupp t :=
-finsupp.ext $ λ a, count_add a s t
+to_finsupp.map_add s t
 
-lemma to_finsupp_singleton (a : α) :
-  to_finsupp {a} = finsupp.single a 1 :=
-finsupp.ext $ λ b,
-if h : a = b then by rw [to_finsupp_apply, finsupp.single_apply, h, if_pos rfl,
-  singleton_eq_singleton, count_singleton] else
-begin
-  rw [to_finsupp_apply, finsupp.single_apply, if_neg h, count_eq_zero,
-      singleton_eq_singleton, mem_singleton],
-  rintro rfl, exact h rfl
-end
-
-namespace to_finsupp
-
-instance : is_add_monoid_hom (to_finsupp : multiset α → α →₀ ℕ) :=
-{ map_zero := to_finsupp_zero,
-  map_add  := to_finsupp_add }
-
-end to_finsupp
+@[simp] lemma to_finsupp_singleton (a : α) : to_finsupp (a ::ₘ 0) = finsupp.single a 1 :=
+finsupp.to_multiset.symm_apply_eq.2 $ by simp
 
 @[simp] lemma to_finsupp_to_multiset (s : multiset α) :
   s.to_finsupp.to_multiset = s :=
-ext.2 $ λ a, by rw [finsupp.count_to_multiset, to_finsupp_apply]
+finsupp.to_multiset.apply_symm_apply s
+
+lemma to_finsupp_eq_iff {s : multiset α} {f : α →₀ ℕ} : s.to_finsupp = f ↔ s = f.to_multiset :=
+finsupp.to_multiset.symm_apply_eq
 
 end multiset
+
+@[simp] lemma finsupp.to_multiset_to_finsupp (f : α →₀ ℕ) :
+  f.to_multiset.to_finsupp = f :=
+finsupp.to_multiset.symm_apply_apply f
 
 /-! ### Declarations about order(ed) instances on `finsupp` -/
 
@@ -1917,6 +1884,8 @@ instance [ordered_cancel_add_comm_monoid M] : ordered_cancel_add_comm_monoid (α
   .. finsupp.add_comm_monoid, .. finsupp.partial_order,
   .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
 
+lemma le_def [preorder M] [has_zero M] {f g : α →₀ M} : f ≤ g ↔ ∀ x, f x ≤ g x := iff.rfl
+
 lemma le_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
 ⟨λ h s hs, h s,
@@ -1924,34 +1893,20 @@ lemma le_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
 
 @[simp] lemma add_eq_zero_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
   f + g = 0 ↔ f = 0 ∧ g = 0 :=
-begin
-  split,
-  { assume h,
-    split,
-    all_goals
-    { ext s,
-      suffices H : f s + g s = 0,
-      { rw add_eq_zero_iff at H, cases H, assumption },
-      show (f + g) s = 0,
-      rw h, refl } },
-  { rintro ⟨rfl, rfl⟩, rw add_zero }
-end
+by simp [ext_iff, forall_and_distrib]
 
-attribute [simp] to_multiset_zero to_multiset_add
+/-- `finsupp.to_multiset` as an order isomorphism. -/
+def order_iso_multiset : (α →₀ ℕ) ≃o multiset α :=
+{ to_equiv := to_multiset.to_equiv,
+  map_rel_iff' := λ f g, by simp [multiset.le_iff_count, le_def] }
 
-@[simp] lemma to_multiset_to_finsupp (f : α →₀ ℕ) :
-  f.to_multiset.to_finsupp = f :=
-ext $ λ s, by rw [multiset.to_finsupp_apply, count_to_multiset]
+@[simp] lemma coe_order_iso_multiset : ⇑(@order_iso_multiset α) = to_multiset := rfl
+
+@[simp] lemma coe_order_iso_multiset_symm :
+  ⇑(@order_iso_multiset α).symm = multiset.to_finsupp := rfl
 
 lemma to_multiset_strict_mono : strict_mono (@to_multiset α) :=
-λ m n h,
-begin
-  rw lt_iff_le_and_ne at h ⊢, cases h with h₁ h₂,
-  split,
-  { rw multiset.le_iff_count, intro s, erw [count_to_multiset m s, count_to_multiset], exact h₁ s },
-  { intro H, apply h₂, replace H := congr_arg multiset.to_finsupp H,
-    simpa only [to_multiset_to_finsupp] using H }
-end
+order_iso_multiset.strict_mono
 
 lemma sum_id_lt_of_lt (m n : α →₀ ℕ) (h : m < n) :
   m.sum (λ _, id) < n.sum (λ _, id) :=
@@ -1978,20 +1933,11 @@ The finitely supported function `antidiagonal s` is equal to the multiplicities 
 def antidiagonal (f : α →₀ ℕ) : ((α →₀ ℕ) × (α →₀ ℕ)) →₀ ℕ :=
 (f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp
 
-lemma mem_antidiagonal_support {f : α →₀ ℕ} {p : (α →₀ ℕ) × (α →₀ ℕ)} :
+@[simp] lemma mem_antidiagonal_support {f : α →₀ ℕ} {p : (α →₀ ℕ) × (α →₀ ℕ)} :
   p ∈ (antidiagonal f).support ↔ p.1 + p.2 = f :=
 begin
-  erw [multiset.mem_to_finset, multiset.mem_map],
-  split,
-  { rintros ⟨⟨a, b⟩, h, rfl⟩,
-    rw multiset.mem_antidiagonal at h,
-    simpa only [to_multiset_to_finsupp, multiset.to_finsupp_add]
-      using congr_arg multiset.to_finsupp h},
-  { intro h,
-    refine ⟨⟨p.1.to_multiset, p.2.to_multiset⟩, _, _⟩,
-    { simpa only [multiset.mem_antidiagonal, to_multiset_add]
-        using congr_arg to_multiset h},
-    { rw [prod.map, to_multiset_to_finsupp, to_multiset_to_finsupp, prod.mk.eta] } }
+  rcases p with ⟨p₁, p₂⟩,
+  simp [antidiagonal, ← and.assoc, ← finsupp.to_multiset.apply_eq_iff_eq]
 end
 
 @[simp] lemma antidiagonal_zero : antidiagonal (0 : α →₀ ℕ) = single (0,0) 1 :=
@@ -2036,3 +1982,10 @@ lemma finite_lt_nat (n : α →₀ ℕ) : set.finite {m | m < n} :=
 (finite_le_nat n).subset $ λ m, le_of_lt
 
 end finsupp
+
+namespace multiset
+
+lemma to_finsuppstrict_mono : strict_mono (@to_finsupp α) :=
+finsupp.order_iso_multiset.symm.strict_mono
+
+end multiset

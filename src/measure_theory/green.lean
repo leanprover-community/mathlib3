@@ -42,6 +42,26 @@ end
 lemma eq_one_of_ne_zero {i : fin 2} (hi : i ≠ 0) : i = 1 :=
 (split_fin2 i).elim (λ h, false.rec (i = 1) (hi h)) id
 
+/-- A non-one variable in `fin 2` is `0`. -/
+lemma eq_zero_of_ne_one {i : fin 2} (hi : i ≠ 1) : i = 0 :=
+(split_fin2 i).elim id (λ h, false.rec (i = 0) (hi h))
+
+/-- In `fin 2`, if `i ≠ j` and `i ≠ k` then `j = k`. -/
+lemma eq_of_both_neq {i j k : fin 2} (hj : j ≠ i) (hk : k ≠ i) : j = k :=
+begin
+  cases split_fin2 i,
+  { rw h at hj hk,
+    transitivity (1 : fin 2),
+    { exact eq_one_of_ne_zero hj },
+    { symmetry,
+      exact eq_one_of_ne_zero hk } },
+  { rw h at hj hk,
+    transitivity (0 : fin 2),
+    { exact eq_zero_of_ne_one hj },
+    { symmetry,
+      exact eq_zero_of_ne_one hk } }
+end
+
 end misc_lemmas
 
 section
@@ -354,22 +374,52 @@ end
 variables {u}
 
 /-- The function `box_line_integral` is additive over rectangles. -/
-lemma is_box_additive_line_integral (i : fin 2) (hu : continuous u)
-: box_additive_on (box_line_integral u i) univ :=
+lemma is_box_additive_line_integral (i : fin 2) (hu : continuous u) :
+  box_additive_on (box_line_integral u i) univ :=
 begin
-  rw box_additive_on,
-  intros,
-  rw box_line_integral,
-  rw box_line_integral,
-  rw box_line_integral,
-  rw segment_parametrized_integral,
-  rw segment_parametrized_integral,
-  rw segment_parametrized_integral,
-  rw segment_parametrized_integral,
-  rw segment_parametrized_integral,
-  rw segment_parametrized_integral,
-
-  sorry,
+  intros I m hm j,
+  by_cases hij : j = i,
+  { rw hij,
+    simp [box_line_integral, segment_parametrized_integral],
+    -- let f := λ t : ℝ, u (update I.left i t),
+    have : ∀ f : ℝ → ℝ, (∫ (t : ℝ) in I.left i..I.right i, f t =
+      (∫ (t : ℝ) in I.left i..m i, f t) + ∫ (t : ℝ) in m i..I.right i, f t),
+    { intros f,
+      symmetry,
+      apply interval_integral.integral_add_adjacent_intervals,
+      sorry,
+      sorry },
+    rw this,
+    have : ∀ f : ℝ → ℝ, (∫ (t : ℝ) in I.right i..I.left i, f t =
+      (∫ (t : ℝ) in I.right i..m i, f t) + ∫ (t : ℝ) in m i..I.left i, f t),
+    { sorry },
+    rw this,
+    abel },
+  { simp [box_line_integral, segment_parametrized_integral],
+    have h_right : update I.right j (m j) i = I.right i := update_noteq (ne.symm hij) _ _,
+    have h_left : update I.left j (m j) i = I.left i := update_noteq (ne.symm hij) _ _,
+    simp [h_left, h_right],
+    have him : (λ t, u (update (update I.right j (m j)) i t)) = λ t, u (update (update I.left j (m j)) i t),
+    { ext t,
+      congr' 1,
+      ext k,
+      by_cases hk : k = i,
+      { rw hk,
+        simp },
+      have hk' : k = j := eq_of_both_neq hk hij,
+      rw hk',
+      have h_right' : update (update I.right j (m j)) i t j = m j,
+      { rw update_noteq hij t (update I.right j (m j)),
+        simp },
+      have h_left' : update (update I.left j (m j)) i t j = m j,
+      { rw update_noteq hij t (update I.left j (m j)),
+        simp },
+      rw [h_right', h_left'] },
+    rw him,
+    have : ∀ f : ℝ → ℝ, (∫ t in I.right i.. I.left i, f t = - ∫ t in I.left i.. I.right i, f t),
+    { exact λ f, interval_integral.integral_symm _ _, },
+    rw this,
+    ring }
 end
 
 
@@ -618,7 +668,7 @@ end measure_stuff_foo
 section Green
 
 open measure_theory
-variables (P Q  : (fin 2 → ℝ) →  ℝ) (hP : continuous P) (hQ : continuous Q)
+variables (P Q  : (fin 2 → ℝ) →  ℝ)
 
 --include hP
 
@@ -663,6 +713,21 @@ begin
   sorry,
 end
 
+variables {P Q} (hP : differentiable ℝ P) (hQ : differentiable ℝ Q)
+variables (hdiv : integrable ((divergence P Q) ∘ (foo' ℝ ℝ).symm) volume)
+
+include hP hQ hdiv
+
+/-- The `div_diff` function (difference between the LHS and RHS of Green's theorem) is
+`box_additive`. -/
+lemma box_additive_div_diff : box_additive_on (div_diff P Q) univ :=
+begin
+  apply (is_box_additive_integral _ hdiv).sub,
+  apply (is_box_additive_line_integral 0 hP.continuous).add,
+  exact is_box_additive_line_integral 1 hQ.continuous
+end
+
+open box_additive_on
 open box_subadditive_on
 
 lemma greens_thm
@@ -677,10 +742,7 @@ div_diff P Q I.left I.right = 0
 :=
 begin
   refine eq_zero_of_forall_is_o_prod _ _ _ ,
-  {
-
-    sorry,
-  },
+  { exact norm_subadditive_on (box_additive_div_diff hP hQ hdiv) },
   {
     intros,
 --    rw asymptotics.is_o,

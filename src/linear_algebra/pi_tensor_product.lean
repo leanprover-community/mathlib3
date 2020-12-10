@@ -88,11 +88,13 @@ by { rw add_con.coe_add, exact Cp C1 ih }
 lemma zero_tprod (f : Π i, s i) (hf : ∃ i, f i = 0) : ⨂ₜ[R] i, f i = 0 :=
 quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero _ hf
 
-lemma add_tprod (f : Π i, s i) (i : ι) (m₁ m₂ : s i) : true :=
-begin
-  let g := update f i m₁,
-end
---  ⨂ₜ[R] i, (update f i m₁) i + ⨂ₜ[R] i, (update f i m₂) i = ⨂ₜ[R] i, (update f i (m₁ + m₂)) i := sorry
+lemma add_tprod (f : Π i, s i) (i : ι) (m₁ m₂ : s i) :
+  (⨂ₜ[R] j, (update f i m₁) j) + (⨂ₜ[R] j, (update f i m₂) j) = ⨂ₜ[R] j, (update f i (m₁ + m₂)) j :=
+quotient.sound' $ add_con_gen.rel.of _ _ (eqv.of_add f i m₁ m₂)
+
+lemma smul_tprod (f : Π i, s i) (i j : ι) (r : R) :
+  ⨂ₜ[R] k, (update f i (r • f i) k) = ⨂ₜ[R] k, (update f j (r • f j)) k :=
+quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
 
 end module
 

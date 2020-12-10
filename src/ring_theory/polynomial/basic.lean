@@ -348,7 +348,7 @@ begin
     exact let ⟨x, y, hxy⟩ := hR.exists_pair_ne in hxy (polynomial.ext (λ n, hR' _ _)) }
 end
 
-/-- The only constant in a maximal ideal over a field is `0` -/
+/-- The only constant in a maximal ideal over a field is `0`. -/
 lemma eq_zero_of_constant_mem_of_maximal (hR : is_field R)
   (I : ideal (polynomial R)) [hI : I.is_maximal] (x : R) (hx : C x ∈ I) : x = 0 :=
 begin

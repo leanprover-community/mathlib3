@@ -2386,10 +2386,10 @@ lemma cos_arctan_pos (x : ℝ) : 0 < cos (arctan x) :=
 cos_pos_of_mem_Ioo $ arctan_mem_Ioo x
 
 lemma sin_arctan (x : ℝ) : sin (arctan x) = x / sqrt (1 + x ^ 2) :=
-by rw [sin_of_tan_of_cos_pos (cos_arctan_pos x), tan_arctan]
+by rw [← tan_div_sqrt_one_add_tan_sq (cos_arctan_pos x), tan_arctan]
 
 lemma cos_arctan (x : ℝ) : cos (arctan x) = 1 / sqrt (1 + x ^ 2) :=
-by rw [cos_of_tan_of_cos_pos (cos_arctan_pos x), tan_arctan]
+by rw [one_div, ← inv_sqrt_one_add_tan_sq (cos_arctan_pos x), tan_arctan]
 
 lemma arctan_lt_pi_div_two (x : ℝ) : arctan x < π / 2 :=
 (arctan_mem_Ioo x).2

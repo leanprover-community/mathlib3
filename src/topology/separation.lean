@@ -98,7 +98,7 @@ lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [f
 begin
   apply singletons_open_iff_discrete.mp,
   intros x,
-  rw [← is_closed_compl_iff, compl_singleton_eq_bUnion_singleton x],
+  rw [← is_closed_compl_iff, ← bUnion_of_singleton ({x} : set X)ᶜ],
   exact is_closed_bUnion (finite.of_fintype _) (λ y _, is_closed_singleton)
 end
 

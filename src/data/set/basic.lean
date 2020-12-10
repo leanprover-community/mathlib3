@@ -768,9 +768,8 @@ by finish [ext_iff]
 @[simp] lemma sep_univ {α} {p : α → Prop} : {a ∈ (univ : set α) | p a} = {a | p a} :=
 by { ext, simp }
 
-lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
-⟨λ h y hy, mem_singleton_iff.mp (h hy),
-  λ h y hy, mem_singleton_iff.mpr (h y hy)⟩
+@[simp] lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
+iff.rfl
 
 /-! ### Lemmas about complement -/
 

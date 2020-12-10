@@ -760,21 +760,21 @@ lemma at_bot_Iic_eq [semilattice_inf α] (a : α) :
   at_bot = comap (coe : Iic a → α) at_bot :=
 @at_top_Ici_eq (order_dual α) _ _
 
-@[simp] lemma tendsto_Ioi_at_top [semilattice_sup α] {a : α} {f : β → Ioi a}
+lemma tendsto_Ioi_at_top [semilattice_sup α] {a : α} {f : β → Ioi a}
   {l : filter β} :
   tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l at_top :=
 by rw [at_top_Ioi_eq, tendsto_comap_iff]
 
-@[simp] lemma tendsto_Iio_at_bot [semilattice_inf α] {a : α} {f : β → Iio a}
+lemma tendsto_Iio_at_bot [semilattice_inf α] {a : α} {f : β → Iio a}
   {l : filter β} :
   tendsto f l at_bot ↔ tendsto (λ x, (f x : α)) l at_bot :=
 by rw [at_bot_Iio_eq, tendsto_comap_iff]
 
-@[simp] lemma tendsto_Ici_at_top [semilattice_sup α] {a : α} {f : β → Ici a} {l : filter β} :
+lemma tendsto_Ici_at_top [semilattice_sup α] {a : α} {f : β → Ici a} {l : filter β} :
   tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l at_top :=
 by rw [at_top_Ici_eq, tendsto_comap_iff]
 
-@[simp] lemma tendsto_Iic_at_bot [semilattice_inf α] {a : α} {f : β → Iic a} {l : filter β} :
+lemma tendsto_Iic_at_bot [semilattice_inf α] {a : α} {f : β → Iic a} {l : filter β} :
   tendsto f l at_bot ↔ tendsto (λ x, (f x : α)) l at_bot :=
 by rw [at_bot_Iic_eq, tendsto_comap_iff]
 

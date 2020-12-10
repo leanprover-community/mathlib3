@@ -907,7 +907,7 @@ meta def prove_inv : instance_cache → expr → ℚ → tactic (instance_cache 
 
 theorem div_eq {α} [division_ring α] (a b b' c : α)
   (hb : b⁻¹ = b') (h : a * b' = c) : a / b = c :=
-by rwa [← hb, ← div_eq_mul_inv] at h
+by rwa [ ← hb, ← div_eq_mul_inv] at h
 
 /-- Given `a`,`b` rational numerals, returns `(c, ⊢ a / b = c)`. -/
 meta def prove_div (ic : instance_cache) (a b : expr) (na nb : ℚ) :
@@ -973,8 +973,10 @@ do na ← a.to_nat, nb ← b.to_nat,
     return (`(0 : ℕ), `(sub_nat_neg).mk_app [a, b, c, p])
 
 /-- This is needed because when `a` and `b` are numerals lean is more likely to unfold them
-than unfold the instances in order to prove that `add_group_has_sub = int.has_sub`. -/
-theorem int_sub_hack (a b c : ℤ) (h : @has_sub.sub ℤ add_group_has_sub a b = c) : a - b = c := h
+than unfold the instances in order to prove that `sub_neg_monoid.to_has_sub = int.has_sub`. -/
+-- TODO: can this be removed now?
+theorem int_sub_hack (a b c : ℤ) (h : @has_sub.sub ℤ (sub_neg_monoid.to_has_sub ℤ) a b = c) :
+  a - b = c := h
 
 /-- Given `a : ℤ`, `b : ℤ` integral numerals, returns `(c, ⊢ a - b = c)`. -/
 meta def prove_sub_int (ic : instance_cache) (a b : expr) : tactic (expr × expr) :=
@@ -1005,6 +1007,11 @@ meta def eval_field : expr → tactic (expr × expr)
   if α = `(nat) then prove_sub_nat c a b
   else if inst = `(int.has_sub) then prove_sub_int c a b
   else prod.snd <$> prove_sub c a b
+-- TODO: why do we get field.inv here?
+| `(field.inv %%e) := do
+  n ← e.to_rat,
+  c ← infer_type e >>= mk_instance_cache,
+  prod.snd <$> prove_inv c e n
 | `(has_inv.inv %%e) := do
   n ← e.to_rat,
   c ← infer_type e >>= mk_instance_cache,

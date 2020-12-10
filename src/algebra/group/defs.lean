@@ -290,15 +290,68 @@ class cancel_comm_monoid (M : Type u) extends left_cancel_comm_monoid M, right_c
 
 end cancel_monoid
 
-/-- A `group` is a `monoid` with an operation `⁻¹` satisfying `a⁻¹ * a = 1`. -/
-@[protect_proj, ancestor monoid has_inv]
-class group (α : Type u) extends monoid α, has_inv α :=
-(mul_left_inv : ∀ a : α, a⁻¹ * a = 1)
-/-- An `add_group` is an `add_monoid` with a unary `-` satisfying `-a + a = 0`. -/
-@[protect_proj, ancestor add_monoid has_neg]
-class add_group (α : Type u) extends add_monoid α, has_neg α :=
-(add_left_neg : ∀ a : α, -a + a = 0)
+/-- `div_sub_tac` proves `∀ a b, a / b = a * b⁻¹` or `∀ a b, a - b = a + -b`
+if it holds by definition. -/
+meta def div_sub_tac : tactic unit := `[intros; refl]
+
+/-- A `div_inv_monoid` is a `monoid` with operations `/` and `⁻¹` satisfying
+`div_eq_mul_inv : ∀ a b, a / b = a * b⁻¹`.
+
+This is the immediate common ancestor of `group` and `group_with_zero`,
+in order to deduplicate the name `div_eq_mul_inv`.
+The default for `div` is such that `a / b = a * b⁻¹` holds by definition.
+-/
+@[protect_proj, ancestor monoid has_inv has_div]
+class div_inv_monoid (G : Type u) extends monoid G, has_inv G, has_div G :=
+(div := λ a b, a * b⁻¹)
+(div_eq_mul_inv : ∀ a b : G, a / b = a * b⁻¹ . div_sub_tac)
+
+/-- A `sub_neg_monoid` is an `add_monoid` with unary `-` and binary `-` operations
+satisfying `sub_eq_add_neg : ∀ a b, a - b = a + -b`.
+
+The default for `sub` is such that `a - b = a + -b` holds by definition.
+-/
+@[protect_proj, ancestor add_monoid has_neg has_sub]
+class sub_neg_monoid (G : Type u) extends add_monoid G, has_neg G, has_sub G :=
+(sub := λ a b, a + -b)
+(sub_eq_add_neg : ∀ a b : G, a - b = a + -b . div_sub_tac)
+
+attribute [to_additive sub_neg_monoid] div_inv_monoid
+
+@[to_additive]
+lemma div_eq_mul_inv {G : Type u} [div_inv_monoid G] :
+  ∀ a b : G, a / b = a * b⁻¹ :=
+div_inv_monoid.div_eq_mul_inv
+
+/-- A `group` is a `monoid` with an operation `⁻¹` satisfying `a⁻¹ * a = 1`.
+
+There is also a division operation `/` such that `a / b = a * b⁻¹`,
+with a default so that `a / b = a * b⁻¹` holds by definition.
+-/
+@[protect_proj, ancestor div_inv_monoid]
+class group (G : Type u) extends div_inv_monoid G :=
+(mul_left_inv : ∀ a : G, a⁻¹ * a = 1)
+
+attribute [to_additive group.to_sub_neg_monoid] group.to_div_inv_monoid
+
+/-- An `add_group` is an `add_monoid` with a unary `-` satisfying `-a + a = 0`.
+
+There is also a binary operation `-` such that `a - b = a + -b`,
+with a default so that `a - b = a + -b` holds by definition.
+-/
+@[protect_proj, ancestor sub_neg_monoid]
+class add_group (A : Type u) extends sub_neg_monoid A :=
+(add_left_neg : ∀ a : A, -a + a = 0)
+
 attribute [to_additive] group
+
+/-- Abbreviation for `@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)`.
+
+Useful because it corresponds to the fact that `Grp` is a subcategory of `Mon`.
+Not an instance since it duplicates `@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)`.
+-/
+@[to_additive] def group.to_monoid (G : Type u) [group G] : monoid G :=
+@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)
 
 section group
 variables {G : Type u} [group G] {a b c : G}
@@ -339,25 +392,6 @@ instance group.to_cancel_monoid : cancel_monoid G :=
   ..‹group G› }
 
 end group
-
--- TODO: in a later PR, this section will be deleted because it is bundled as part of `group`
-section has_div
-
-variables {G : Type u} [group G]
-
-@[priority 100, to_additive]    -- see Note [lower instance priority]
-instance group_has_div : has_div G :=
-⟨λ a b, a * b⁻¹⟩
-
--- TODO: in a later PR, this will be part of the `group` structure
-@[to_additive]
-lemma group.div_eq_mul_inv (a b : G) : a / b = a * b⁻¹ :=
-rfl
-
-lemma sub_eq_add_neg {G : Type u} [add_group G] (a b : G) : a - b = a + -b :=
-add_group.sub_eq_add_neg a b
-
-end has_div
 
 /-- A commutative group is a group with commutative `(*)`. -/
 @[protect_proj, ancestor group comm_monoid]

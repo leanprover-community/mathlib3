@@ -281,14 +281,18 @@ instance [has_neg β] : has_neg (α →ₛ β) := ⟨λf, f.map (has_neg.neg)⟩
 
 @[simp, norm_cast] lemma coe_neg [has_neg β] (f : α →ₛ β) : ⇑(-f) = -f := rfl
 
-instance [add_group β] : add_group (α →ₛ β) :=
-function.injective.add_group (λ f, show α → β, from f) coe_injective coe_zero coe_add coe_neg
+instance [has_sub β] : has_sub (α →ₛ β) := ⟨λf g, (f.map (has_sub.sub)).seq g⟩
 
-@[simp, norm_cast] lemma coe_sub [add_group β] (f g : α →ₛ β) : ⇑(f - g) = f - g := rfl
+@[simp, norm_cast] lemma coe_sub [add_group β] (f g : α →ₛ β) : ⇑(f - g) = f - g :=
+rfl
+
+instance [add_group β] : add_group (α →ₛ β) :=
+function.injective.add_group_sub (λ f, show α → β, from f) coe_injective
+  coe_zero coe_add coe_neg coe_sub
 
 instance [add_comm_group β] : add_comm_group (α →ₛ β) :=
-function.injective.add_comm_group (λ f, show α → β, from f) coe_injective
-  coe_zero coe_add coe_neg
+function.injective.add_comm_group_sub (λ f, show α → β, from f) coe_injective
+  coe_zero coe_add coe_neg coe_sub
 
 variables {K : Type*}
 

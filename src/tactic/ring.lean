@@ -477,7 +477,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
     return (const e' n, p)) <|> eval_atom e
 | e@`(@has_div.div _ %%inst %%e₁ %%e₂) := mcond
   (succeeds (do
-    inst' ← ic_lift $ λ ic, ic.mk_app ``division_ring_has_div [],
+    inst' ← ic_lift $ λ ic, ic.mk_app ``div_inv_monoid.to_has_div [],
     lift $ is_def_eq inst inst'))
   (do
     e₂' ← ic_lift $ λ ic, ic.mk_app ``has_inv.inv [e₂],

@@ -432,6 +432,13 @@ instance : has_neg (α →ᵇ β) :=
 ⟨λf, of_normed_group (-f) f.2.1.neg ∥f∥ $ λ x,
   trans_rel_right _ (norm_neg _) (f.norm_coe_le_norm x)⟩
 
+/-- The pointwise difference of two bounded continuous functions is again bounded continuous. -/
+instance : has_sub (α →ᵇ β) :=
+⟨λf g, of_normed_group (f - g) (f.2.1.sub g.2.1) (∥f∥ + ∥g∥) $ λ x,
+  by { simp only [sub_eq_add_neg],
+       exact le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) $
+         trans_rel_right _ (norm_neg _) (g.norm_coe_le_norm x)) }⟩
+
 @[simp] lemma coe_add : ⇑(f + g) = λ x, f x + g x := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp] lemma coe_neg : ⇑(-f) = λ x, - f x := rfl
@@ -441,13 +448,15 @@ lemma forall_coe_zero_iff_zero : (∀x, f x = 0) ↔ f = 0 :=
 (@ext_iff _ _ _ _ f 0).symm
 
 instance : add_comm_group (α →ᵇ β) :=
-{ add_assoc    := assume f g h, by ext; simp [add_assoc],
-  zero_add     := assume f, by ext; simp,
-  add_zero     := assume f, by ext; simp,
-  add_left_neg := assume f, by ext; simp,
-  add_comm     := assume f g, by ext; simp [add_comm],
+{ add_assoc      := assume f g h, by ext; simp [add_assoc],
+  zero_add       := assume f, by ext; simp,
+  add_zero       := assume f, by ext; simp,
+  add_left_neg   := assume f, by ext; simp,
+  add_comm       := assume f g, by ext; simp [add_comm],
+  sub_eq_add_neg := assume f g, by { ext, apply sub_eq_add_neg },
   ..bounded_continuous_function.has_add,
   ..bounded_continuous_function.has_neg,
+  ..bounded_continuous_function.has_sub,
   ..bounded_continuous_function.has_zero }
 
 @[simp] lemma coe_sub : ⇑(f - g) = λ x, f x - g x := rfl

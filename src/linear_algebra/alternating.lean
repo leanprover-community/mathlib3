@@ -503,9 +503,9 @@ quot.map (λ σ, σ * equiv.swap (@sum.inl _ β i) (sum.inl j)) (λ σ₁ σ₂ 
   exact ⟨_, _, rfl⟩
 end)
 
-def does_swap_left {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) (i : α):
+def moves_from_left {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) (i : α ⊕ β):
   Prop :=
-quot.lift_on σ (λ σ, ∃ i', σ (sum.inl i') = sum.inl i) (λ a b h, begin
+quot.lift_on σ (λ σ, ∃ i', σ (sum.inl i') = i) (λ a b h, begin
   ext,
   obtain ⟨sl, sr, h⟩ := h,
   rw inv_mul_eq_iff_eq_mul at h,
@@ -519,26 +519,58 @@ quot.lift_on σ (λ σ, ∃ i', σ (sum.inl i') = sum.inl i) (λ a b h, begin
     simp [←hi],},
 end)
 
-def does_swap_right {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) (i : β):
-  Prop :=
-quot.lift_on σ (λ σ, ∃ i', σ (sum.inr i') = sum.inr i) (λ a b h, begin
-  ext,
-  obtain ⟨sl, sr, h⟩ := h,
-  rw inv_mul_eq_iff_eq_mul at h,
-  simp only [h, equiv.perm.sum_congr_apply, sum.map_inr, function.comp_app, equiv.perm.coe_mul],
-  split,
-  { rintro ⟨i', hi⟩,
-    refine ⟨sr⁻¹ i', _⟩,
-    simp [←hi], },
-  { rintro ⟨i', hi⟩,
-    refine ⟨sr i', _⟩,
-    simp [←hi],},
-end)
+-- def moves_from_right {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) (i : α ⊕ β):
+--   Prop :=
+-- quot.lift_on σ (λ σ, ∃ i', σ (sum.inr i') = i) (λ a b h, begin
+--   ext,
+--   obtain ⟨sl, sr, h⟩ := h,
+--   rw inv_mul_eq_iff_eq_mul at h,
+--   simp only [h, equiv.perm.sum_congr_apply, sum.map_inr, function.comp_app, equiv.perm.coe_mul],
+--   split,
+--   { rintro ⟨i', hi⟩,
+--     refine ⟨sr⁻¹ i', _⟩,
+--     simp [←hi], },
+--   { rintro ⟨i', hi⟩,
+--     refine ⟨sr i', _⟩,
+--     simp [←hi],},
+-- end)
 
-def does_swap {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) :
-  α ⊕ β → Prop
-| (sum.inr i) := does_swap_right σ i
-| (sum.inl i) := does_swap_left σ i
+-- def does_swap_left {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) (i : α):
+--   Prop :=
+-- quot.lift_on σ (λ σ, ∃ i', σ (sum.inl i') = sum.inl i) (λ a b h, begin
+--   ext,
+--   obtain ⟨sl, sr, h⟩ := h,
+--   rw inv_mul_eq_iff_eq_mul at h,
+--   simp only [h, equiv.perm.sum_congr_apply, sum.map_inl, function.comp_app, equiv.perm.coe_mul],
+--   split,
+--   { rintro ⟨i', hi⟩,
+--     refine ⟨sl⁻¹ i', _⟩,
+--     simp [←hi], },
+--   { rintro ⟨i', hi⟩,
+--     refine ⟨sl i', _⟩,
+--     simp [←hi],},
+-- end)
+
+-- def does_swap_right {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) (i : β):
+--   Prop :=
+-- quot.lift_on σ (λ σ, ∃ i', σ (sum.inr i') = sum.inr i) (λ a b h, begin
+--   ext,
+--   obtain ⟨sl, sr, h⟩ := h,
+--   rw inv_mul_eq_iff_eq_mul at h,
+--   simp only [h, equiv.perm.sum_congr_apply, sum.map_inr, function.comp_app, equiv.perm.coe_mul],
+--   split,
+--   { rintro ⟨i', hi⟩,
+--     refine ⟨sr⁻¹ i', _⟩,
+--     simp [←hi], },
+--   { rintro ⟨i', hi⟩,
+--     refine ⟨sr i', _⟩,
+--     simp [←hi],},
+-- end)
+
+-- def does_swap {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) :
+--   α ⊕ β → Prop
+-- | (sum.inr i) := does_swap_right σ i
+-- | (sum.inl i) := does_swap_left σ i
 
 #check equiv.swap_mul_eq_iff
 
@@ -575,6 +607,17 @@ begin
   -- convert equiv.swap_mul_eq_iff,
 end
 
+/--
+Cases on each summand:
+
+* `⇑σ (sum.inl i') = i ∧ ⇑σ (sum.inl j') = j`,
+      `⇑a (λ (i : ιa), v (⇑σ (sum.inl i))) = 0`
+* `⇑σ (sum.inr i') = i ∧ ⇑σ (sum.inr j') = j`,
+      `⇑b (λ (i : ιa), v (⇑σ (sum.inr i))) = 0`
+* `⇑σ (sum.inr i') = i ∧ ⇑σ (sum.inl j') = j`,
+  `⇑σ (sum.inl i') = i ∧ ⇑σ (sum.inr j') = j`
+    ab (σ) + ab (σ ∘ swap) = 0
+-/
 private lemma dom_coprod_aux_eq_zero_if_eq
   {R : Type*} {M N : Type*}
   [comm_ring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
@@ -593,7 +636,7 @@ begin
               coe_multilinear_map],
   classical,
   conv in (quotient.lift_on' _ _ _) {
-    rw ← if_t_t (does_swap x i ↔ does_swap x j) (quotient.lift_on' _ _ _),
+    rw ← if_t_t (moves_from_left x i ↔ moves_from_left x j) (quotient.lift_on' _ _ _),
   },
   rw finset.sum_ite,
   simp,
@@ -605,9 +648,11 @@ begin
     rintros ⟨σ⟩ hx,
     dunfold quotient.lift_on' quotient.lift_on quot.lift_on quot.lift,
     simp at hx,
-    rw quot.lift_beta,
+    rw quot.lift_beta _ _ σ,
     convert smul_zero _,
-    cases i; cases j; dsimp [does_swap] at hx,
+    dsimp [moves_from_left] at hx,
+    dunfold quotient.lift_on' quotient.lift_on quot.lift_on quot.lift at hx,
+    rw [quot.lift_beta, quot.lift_beta] at hx,
     sorry,
   },
   sorry,

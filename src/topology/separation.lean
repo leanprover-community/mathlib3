@@ -555,7 +555,8 @@ end
 
 end normality
 
-theorem is_clopen_inter_of_partition_clopen {Z a b : set α} (h : is_clopen Z)
+/-- The intersection of a disjoint covering by two open sets of a clopen set will be clopen -/
+theorem is_clopen_inter_of_disjoint_cover_clopen {Z a b : set α} (h : is_clopen Z)
   (cover : Z ⊆ a ∪ b) (ha : is_open a) (hb : is_open b) (hab : a ∩ b = ∅) : is_clopen (Z ∩ a) :=
 begin
   split,
@@ -584,7 +585,7 @@ begin
   exact is_open_inter h.1 hb,
 end
 
-lemma subset_refined_of_subset_partition {α : Type*} {Z a b u v : set α} (hZ : Z ⊆ u)
+lemma subset_refined_of_subset_disjoint_cover {α : Type*} {Z a b u v : set α} (hZ : Z ⊆ u)
   (hbv : b ⊆ v) (Zab : Z ⊆ a ∪ b) (huv : u ∩ v = ∅) : Z ⊆ a :=
 begin
   rw [←set.compl_compl u, set.subset_compl_iff_disjoint] at hZ,
@@ -599,31 +600,8 @@ begin
   exact set.subset.trans H1 (set.inter_subset_left a bᶜ),
 end
 
-lemma inter_compl_nonempty_iff_left {α : Type*} {s t : set α} : (tᶜ ∩ s).nonempty ↔ ¬ s ⊆ t :=
-begin
-  split,
-  { rintros ⟨x ,xs, xt⟩ sub,
-    exact xs (sub xt) },
-  { intros h,
-    rcases set.not_subset.mp h with ⟨x, xs, xt⟩,
-    exact ⟨x, xt, xs⟩ }
-end
-
-lemma sub_refined_of_sub_partition {α : Type*} {Z a b u v : set α} (hZ : Z ⊆ u)
-  (hbv : b ⊆ v) (Zab : Z ⊆ a ∪ b) (huv : u ∩ v = ∅) : Z ⊆ a :=
-begin
-  rw [←set.compl_compl u, set.subset_compl_iff_disjoint] at hZ,
-  have H : Z ∩ b = ∅,
-  { rw [set.inter_comm, ←set.subset_compl_iff_disjoint] at huv,
-    apply set.eq_empty_of_subset_empty,
-    rw ←hZ,
-    exact set.inter_subset_inter (set.subset.refl Z) (set.subset.trans hbv huv) },
-  rw ←set.subset_compl_iff_disjoint at H,
-  have H1 := set.subset_inter Zab H,
-  rw [set.inter_distrib_right, set.inter_compl_self, set.union_empty] at H1,
-  exact set.subset.trans H1 (set.inter_subset_left a bᶜ),
-end
-
+/-- In a compact t2 space, the connected component of a point equals the intersection of all
+the clopen neighbourhoods -/
 lemma connected_component_eq_clopen_Inter [t2_space α] [compact_space α] :
   ∀ x : α, connected_component x = ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
 begin
@@ -642,14 +620,14 @@ begin
       suffices : ∃ (Z : set α), is_clopen Z ∧ x ∈ Z ∧ Z ⊆ u ∪ v,
       { cases this with Z H,
         rw [set.disjoint_iff_inter_eq_empty] at huv,
-        have H1 := is_clopen_inter_of_partition_clopen H.1 H.2.2 hu hv huv,
+        have H1 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hu hv huv,
         rw [set.union_comm] at H,
         rw [set.inter_comm] at huv,
-        have H2 := is_clopen_inter_of_partition_clopen H.1 H.2.2 hv hu huv,
+        have H2 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hv hu huv,
         by_cases (x ∈ u),
         { left,
           suffices : (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) ⊆ u,
-          { rw set.inter_comm at huv, exact sub_refined_of_sub_partition this hbv hab huv },
+          { rw set.inter_comm at huv, exact subset_refined_of_subset_disjoint_cover this hbv hab huv },
           { apply set.subset.trans _ (set.inter_subset_right Z u),
             apply set.Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
             ⟨Z ∩ u, by {split, exact H1, apply set.mem_inter H.2.1 h}⟩  } },
@@ -662,7 +640,7 @@ begin
         suffices : (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) ⊆ v,
         { rw set.union_comm at hab,
           rw set.inter_comm at ab_empty,
-          exact sub_refined_of_sub_partition this hau hab huv },
+          exact subset_refined_of_subset_disjoint_cover this hau hab huv },
         { apply set.subset.trans _ (set.inter_subset_right Z v),
           apply set.Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
           ⟨Z ∩ v, by {split, exact H2, apply set.mem_inter H.2.1 h1}⟩ } },
@@ -678,7 +656,8 @@ begin
         { apply @is_clopen_bInter _ _ _ _ _ _, exact (λ Z hZ, Z.2.1) },
         { split,
           { exact set.mem_bInter_iff.2 (λ Z hZ, Z.2.2) },
-          { rw [inter_compl_nonempty_iff_left, not_not] at H2, exact H2 } },
+          { rw [not_nonempty_iff_eq_empty, set.inter_comm, ←subset_compl_iff_disjoint] at H2,
+            rw [compl_compl] at H2, exact H2 } },
       exact λ Z, Z.2.1.2  },
   exact set.mem_Inter.2 (λ Z, Z.2.2)  },
 end

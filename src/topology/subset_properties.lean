@@ -1259,12 +1259,13 @@ begin
     { simpa using hs } }
 end
 
+/-- If a preconnected set intersects a clopen set, then it must be contained in the clopen set -/
 theorem subset_clopen_of_preconnected {s t : set α} (h : is_clopen s) (h1 : is_preconnected t) :
   (s ∩ t).nonempty → t ⊆ s :=
 begin
   intro h2,
   let v := sᶜ,
-  apply apply (@set.inter_eq_self_of_subset_iff _ t s).2,
+  apply (@set.inter_eq_self_of_subset_iff _ t s).2,
   let u := (coe : (t → α)) ⁻¹' s,
   have hu : is_clopen u,
   { rw [←(set.inter_univ u), set.inter_comm],
@@ -1284,6 +1285,9 @@ begin
       exact h1  },
 end
 
+/-- A set `s` is preconnected if and only if
+for every cover by two closed sets that are disjoint on `s`,
+it is contained in one of the two covering sets -/
 theorem is_preconnected_iff_subset_of_disjoint_closed {α : Type*} {s : set α} [topological_space α] :
   is_preconnected s ↔
   ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
@@ -1312,6 +1316,9 @@ begin
     { rcases hsu with ⟨x, hxs, hxu⟩, exact ⟨x, hxs, ⟨hxu, h hxs⟩⟩ } }
 end
 
+/-- A closed set `s` is preconnected if and only if
+for every cover by two closed sets that are disjoint,
+it is contained in one of the two covering sets -/
 theorem is_preconnected_iff_subset_of_fully_disjoint_closed {s : set α} (hs : is_closed s) :
   is_preconnected s ↔
   ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hss : s ⊆ u ∪ v) (huv : u ∩ v = ∅),

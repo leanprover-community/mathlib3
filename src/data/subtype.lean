@@ -90,6 +90,14 @@ theorem coind_injective {α β} {f : α → β} {p : β → Prop} (h : ∀a, p (
   (hf : injective f) : injective (coind f h) :=
 λ x y hxy, hf $ by apply congr_arg subtype.val hxy
 
+theorem coind_surjective {α β} {f : α → β} {p : β → Prop} (h : ∀a, p (f a))
+  (hf : surjective f) : surjective (coind f h) :=
+λ x, let ⟨a, ha⟩ := hf x in ⟨a, coe_injective ha⟩
+
+theorem coind_bijective {α β} {f : α → β} {p : β → Prop} (h : ∀a, p (f a))
+  (hf : bijective f) : bijective (coind f h) :=
+⟨coind_injective h hf.1, coind_surjective h hf.2⟩
+
 /-- Restriction of a function to a function on subtypes. -/
 @[simps] def map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀a, p a → q (f a)) :
   subtype p → subtype q :=

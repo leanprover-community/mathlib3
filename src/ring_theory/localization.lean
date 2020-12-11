@@ -762,6 +762,7 @@ local_of_nonunits_ideal
     simp only [mul_one, one_mul, submonoid.coe_mul, subtype.coe_mk] at ht,
     rw [←sub_eq_zero, ←sub_mul] at ht,
     have hr := (hp.mem_or_mem_of_mul_eq_zero ht).resolve_right t.2,
+    rw sub_eq_add_neg at hr,
     have := I.neg_mem_iff.1 ((ideal.add_mem_iff_right _ _).1 hr),
     { exact not_or (mt hp.mem_or_mem (not_or sx.2 sy.2)) sz.2 (hp.mem_or_mem this)},
     { exact I.mul_mem_right (I.add_mem (I.mul_mem_right (this hx)) (I.mul_mem_right (this hy)))}

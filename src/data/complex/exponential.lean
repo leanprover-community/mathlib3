@@ -111,6 +111,7 @@ begin
   { dsimp at *,
     simp only [nat.succ_add, sum_range_succ, sub_eq_add_neg, add_assoc],
     refine le_trans (abv_add _ _ _) _,
+    simp only [sub_eq_add_neg] at hi,
     exact add_le_add (hm _ (le_add_of_nonneg_of_le (nat.zero_le _) (le_max_left _ _))) hi },
 end
 
@@ -1215,6 +1216,7 @@ lemma exp_bound {x : ℂ} (hx : abs x ≤ 1) {n : ℕ} (hn : 0 < n) :
 begin
   rw [← lim_const (∑ m in range n, _), exp, sub_eq_add_neg, ← lim_neg, lim_add, ← lim_abs],
   refine lim_le (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
+  simp_rw ← sub_eq_add_neg,
   show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!)
     ≤ abs x ^ n * (n.succ * (n! * n)⁻¹),
   rw sum_range_sub_sum_range hj,

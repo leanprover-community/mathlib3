@@ -383,12 +383,12 @@ begin
   rw [fin.sum_univ_succ], simp,
 end
 | (g :: h :: L) :=
-calc g - h + L.alternating_sum
-    = g - h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2 :
+calc g + -h + L.alternating_sum
+    = g + -h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2 :
       congr_arg _ (alternating_sum_eq_finset_sum _)
 ... = ∑ i : fin (L.length + 2), (-1 : ℤ) ^ (i : ℕ) •ℤ list.nth_le (g :: h :: L) i _ :
 begin
-  rw [fin.sum_univ_succ, fin.sum_univ_succ, sub_eq_add_neg, add_assoc],
+  rw [fin.sum_univ_succ, fin.sum_univ_succ, add_assoc],
   unfold_coes,
   simp [nat.succ_eq_add_one, pow_add],
   refl,

@@ -79,6 +79,14 @@ lemma is_open_map_mul_right (a : G) : is_open_map (λ x, x * a) :=
 lemma is_closed_map_mul_right (a : G) : is_closed_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_closed_map
 
+@[to_additive]
+lemma is_open_map_div_right (a : G) : is_open_map (λ x, x / a) :=
+by simpa only [div_eq_mul_inv] using is_open_map_mul_right (a⁻¹)
+
+@[to_additive]
+lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
+by simpa only [div_eq_mul_inv] using is_closed_map_mul_right (a⁻¹)
+
 end continuous_mul_group
 
 section topological_group
@@ -176,10 +184,11 @@ variable {G}
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :
-  ∃ V ∈ 𝓝 (1 : G), ∀ (v ∈ V) (w ∈ V), v * w⁻¹ ∈ s :=
+  ∃ V ∈ 𝓝 (1 : G), ∀ (v ∈ V) (w ∈ V), v / w ∈ s :=
 have ((λp : G × G, p.1 * p.2⁻¹) ⁻¹' s) ∈ 𝓝 ((1, 1) : G × G),
   from continuous_at_fst.mul continuous_at_snd.inv (by simpa),
-by simpa only [nhds_prod_eq, mem_prod_self_iff, prod_subset_iff, mem_preimage] using this
+by simpa only [div_eq_mul_inv, nhds_prod_eq, mem_prod_self_iff, prod_subset_iff, mem_preimage]
+  using this
 
 @[to_additive]
 lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) = 𝓝 x :=
@@ -251,7 +260,7 @@ class has_continuous_sub (G : Type*) [topological_space G] [has_sub G] : Prop :=
 instance topological_add_group.to_has_continuous_sub [topological_space G] [add_group G]
   [topological_add_group G] :
   has_continuous_sub G :=
-⟨continuous_fst.add continuous_snd.neg⟩
+⟨by { simp only [sub_eq_add_neg], exact continuous_fst.add continuous_snd.neg }⟩
 
 export has_continuous_sub (continuous_sub)
 
@@ -282,7 +291,7 @@ end has_continuous_sub
 
 lemma nhds_translation [topological_space G] [add_group G] [topological_add_group G] (x : G) :
   comap (λy:G, y - x) (𝓝 0) = 𝓝 x :=
-nhds_translation_add_neg x
+by simpa only [sub_eq_add_neg] using nhds_translation_add_neg x
 
 /-- additive group with a neighbourhood around 0.
 Only used to construct a topology and uniform space.

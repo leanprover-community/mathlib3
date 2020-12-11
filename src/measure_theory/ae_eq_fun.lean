@@ -352,10 +352,11 @@ variables [topological_space γ] [borel_space γ] [add_group γ] [topological_ad
 
 @[simp] lemma mk_sub (f g : α → γ) (hf hg) :
   mk (f - g) (measurable.sub hf hg) = (mk f hf : α →ₘ[μ] γ) - (mk g hg) :=
-rfl
+by simp [sub_eq_add_neg]
 
 lemma coe_fn_sub (f g : α →ₘ[μ] γ) : ⇑(f - g) =ᵐ[μ] f - g :=
-(coe_fn_add f (-g)).trans $ (coe_fn_neg g).mono $ λ x hx, congr_arg ((+) (f x)) hx
+by { simp only [sub_eq_add_neg],
+     exact ((coe_fn_add f (-g)).trans $ (coe_fn_neg g).mono $ λ x hx, congr_arg ((+) (f x)) hx) }
 
 end add_group
 

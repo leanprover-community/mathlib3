@@ -526,8 +526,8 @@ by simpa only [one_pow] using pow_le_pow_of_le_left H n
 
 end canonically_ordered_semiring
 
-section linear_ordered_semiring
-variable [linear_ordered_semiring R]
+section ordered_semiring
+variable [ordered_semiring R]
 
 @[simp] theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
 | 0     := by { nontriviality, exact zero_lt_one }
@@ -547,6 +547,9 @@ begin
     apply mul_lt_mul ih (le_of_lt Hxy) h (le_of_lt (pow_pos (lt_trans h Hxy) _)) },
   { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
 end
+
+theorem strict_mono_incr_on_pow {n : ℕ} (hn : 0 < n) :
+  strict_mono_incr_on (λ x, x ^ n) (set.Ici 0)
 
 theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n)
   (Hxyn : x ^ n = y ^ n) : x = y :=

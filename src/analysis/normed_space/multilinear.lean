@@ -1054,6 +1054,15 @@ variables {n 𝕜 G E E₂}
   (v : Π (i : fin n), E i.cast_succ) (x : E (last n)) :
   (continuous_multilinear_curry_right_equiv 𝕜 E E₂).symm f v x = f (snoc v x) := rfl
 
+@[simp] lemma continuous_multilinear_curry_right_equiv_apply'
+  (f : (continuous_multilinear_map 𝕜 (λ(i : fin n), G) (G →L[𝕜] E₂)))
+  (v : Π (i : fin n.succ), G) :
+  (continuous_multilinear_curry_right_equiv' 𝕜 n G E₂) f v = f (init v) (v (last n)) := rfl
+
+@[simp] lemma continuous_multilinear_curry_right_equiv_symm_apply'
+  (f : continuous_multilinear_map 𝕜 (λ(i : fin n.succ), G) E₂)
+  (v : Π (i : fin n), G) (x : G) :
+  (continuous_multilinear_curry_right_equiv' 𝕜 n G E₂).symm f v x = f (snoc v x) := rfl
 
 /-!
 #### Currying with `0` variables

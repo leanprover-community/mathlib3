@@ -555,22 +555,18 @@ end
 
 end normality
 
-lemma disjoint.left_sup {α : Type*} [bounded_distrib_lattice α] {a b c : α} (h : a ≤ b ⊔ c) (hd : disjoint a c):
+lemma disjoint.left_le_of_le_sup_right {α : Type*} [bounded_distrib_lattice α] {a b c : α} (h : a ≤ b ⊔ c) (hd : disjoint a c):
   a ≤ b :=
 (λ x, le_of_inf_le_sup_le x (sup_le h le_sup_right)) ((disjoint_iff.mp hd).symm ▸ bot_le)
 
-lemma subset_refined_of_subset_disjoint_cover {α : Type*} [bounded_distrib_lattice α] {a b c u v : α}
-  (ha : a ≤ u) (hbu : c ≤ v) (habc : a ≤ b ⊔ c) (huv : disjoint u v) (hbc : u ⊓ v = ⊥) : a ≤ b :=
-disjoint.left_sup habc (huv.mono ha hbu)
-
+lemma disjoint.left_le_of_le_sup_left {α : Type*} [bounded_distrib_lattice α] {a b c : α} (h : a ≤ c ⊔ b) (hd : disjoint a c):
+  a ≤ b :=
+@le_of_inf_le_sup_le _ _ a b c ((disjoint_iff.mp hd).symm ▸ bot_le) ((@sup_comm _ _ c b) ▸ (sup_le h le_sup_left))
 /-- In a compact t2 space, the connected component of a point equals the intersection of all
 the clopen neighbourhoods -/
 lemma connected_component_eq_clopen_Inter [t2_space α] [compact_space α] :
   ∀ x : α, connected_component x = ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
 begin
-  -- lemma needed for proof
-
-
   intro x,
   apply set.eq_of_subset_of_subset,
   { exact (set.subset_Inter (λ Z, subset_clopen_of_preconnected Z.2.1
@@ -593,10 +589,13 @@ begin
         by_cases (x ∈ u),
         { left,
           suffices : (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) ⊆ u,
-          { rw set.inter_comm at huv, exact subset_refined_of_subset_disjoint_cover this hbv hab huv },
+          { rw [set.inter_comm, ←set.disjoint_iff_inter_eq_empty] at huv,
+            replace hab : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ a ∪ b := hab,
+            replace this : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ u := this,
+            exact disjoint.left_le_of_le_sup_right hab (huv.mono this hbv) },
           { apply set.subset.trans _ (set.inter_subset_right Z u),
             apply set.Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
-            ⟨Z ∩ u, by {split, exact H1, apply set.mem_inter H.2.1 h}⟩  } },
+            ⟨Z ∩ u, by {split, exact H1, apply set.mem_inter H.2.1 h}⟩ } },
         have h1 : x ∈ v,
         { cases (set.mem_union x u v).1 (set.mem_of_subset_of_mem (set.subset.trans hab
             (set.union_subset_union hau hbv)) (set.mem_Inter.2 (λ i, i.2.2))) with h1 h1,
@@ -604,9 +603,10 @@ begin
           { exact h1} },
         right,
         suffices : (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) ⊆ v,
-        { rw set.union_comm at hab,
-          rw set.inter_comm at ab_empty,
-          exact subset_refined_of_subset_disjoint_cover this hau hab huv },
+        { rw [←set.disjoint_iff_inter_eq_empty] at huv,
+          replace hab : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ a ∪ b := hab,
+          replace this : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ v := this,
+          exact disjoint.left_le_of_le_sup_left hab (huv.mono this hau) },
         { apply set.subset.trans _ (set.inter_subset_right Z v),
           apply set.Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
           ⟨Z ∩ v, by {split, exact H2, apply set.mem_inter H.2.1 h1}⟩ } },

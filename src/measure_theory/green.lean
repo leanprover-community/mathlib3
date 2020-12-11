@@ -62,6 +62,33 @@ begin
       exact eq_zero_of_ne_one hk } }
 end
 
+def opp_c {i : fin 2} : subtype ({i} : set (fin 2))ᶜ :=
+⟨ if i = 0 then (1 : fin 2) else (0 : fin 2),
+  begin
+    have : ¬ (1 : fin 2) = 0 := sorry,
+    cases split_fin2 i,
+    { rw h,
+      exact this },
+    { rw h,
+      simp [this],
+      exact ne.symm this },
+  end ⟩
+
+def fill (i : fin 2) (t : ℝ) (c : ℝ) : fin 2 → ℝ :=
+λ j, if j = i then t else c
+
+lemma continuous_fill (i : fin 2) (t : ℝ) : continuous (fill i t) :=
+begin
+  refine continuous_pi _,
+  intros j,
+  by_cases h : j = i,
+  { simp [fill, h],
+    exact continuous_const },
+  { convert continuous_id,
+    ext s,
+    simp [fill, h] },
+end
+
 end misc_lemmas
 
 section
@@ -83,7 +110,7 @@ def box_line_integral  (i : fin 2) (a b : fin 2 → ℝ) : ℝ :=
 ---- IS THIS DEF CORRECT???? OR OFF BY A SIGN??
 
 lemma box_line_integral_const (cU : ℝ ) (i : fin 2) (a b : fin 2 → ℝ) :
-  box_line_integral (λ x, cU) i a b = 0 :=
+  box_line_integral (λ x, cU ) i a b  = 0 :=
 begin
   -- ALEX TO DO
   rw box_line_integral,
@@ -108,6 +135,15 @@ def oppE : fin 2 → (fin 2→ ℝ ) := λ i, if i=0 then ey else ex
 
 def exy : fin 2 → (fin 2→ ℝ ) := λ i, if i=0 then ex else ey
 
+lemma ne_oppI (i : fin 2) : oppI i ≠ i :=
+begin
+  cases split_fin2 i;
+  { rw h,
+    simp [oppI] }
+end
+
+lemma eq_oppI_oppI (i : fin 2) : oppI (oppI i) = i :=
+eq_of_both_neq (ne_oppI _) (ne_oppI _).symm
 
 lemma iZeroOne (i: fin 2) : i=0 ∨ i=1:=
 begin
@@ -370,56 +406,70 @@ begin
 end
 
 
+include u
+def opp_diff_feeder (i : fin 2) (a : ℝ) (x : ({i} : set (fin 2))ᶜ → ℝ)
+  (y : ({i} : set (fin 2))ᶜ → ℝ) : ℝ :=
+∫ t in (x opp_c)..(y opp_c), u (fill i a t)
+
+/-- Put `box_line_integral` into a general framework of functions constructed from functions one
+dimension down. -/
+lemma eq_opp_diff (i : fin 2) :
+  box_line_integral u (oppI i) = opp_diff (opp_diff_feeder u i) :=
+begin
+  ext x y,
+  simp [opp_diff, opp_diff_feeder, box_line_integral, segment_parametrized_integral, fill],
+  congr' 1,
+  { congr,
+    ext t,
+    congr,
+    ext j,
+    split_ifs,
+    { rw h,
+      exact update_noteq (ne_oppI i).symm _ _ },
+    rw eq_of_both_neq h (ne_oppI i),
+    simp },
+  { rw ← interval_integral.integral_symm,
+    congr,
+    ext t,
+    congr,
+    ext j,
+    split_ifs,
+    { rw h,
+      exact update_noteq (ne_oppI i).symm _ _ },
+    rw eq_of_both_neq h (ne_oppI i),
+    simp }
+end
+
+lemma eq_opp_diff' (i : fin 2) :
+  box_line_integral u i = opp_diff (opp_diff_feeder u (oppI i)) :=
+begin
+  rw ← eq_opp_diff u (oppI i),
+  congr,
+  rwa eq_oppI_oppI
+end
 
 variables {u}
 
+open measure_theory
+
 /-- The function `box_line_integral` is additive over rectangles. -/
-lemma is_box_additive_line_integral (i : fin 2) (hu : continuous u) :
+lemma is_box_additive_down_dim (i : fin 2) (hu : continuous u) :
   box_additive_on (box_line_integral u i) univ :=
 begin
-  intros I m hm j,
-  by_cases hij : j = i,
-  { rw hij,
-    simp [box_line_integral, segment_parametrized_integral],
-    -- let f := λ t : ℝ, u (update I.left i t),
-    have : ∀ f : ℝ → ℝ, (∫ (t : ℝ) in I.left i..I.right i, f t =
-      (∫ (t : ℝ) in I.left i..m i, f t) + ∫ (t : ℝ) in m i..I.right i, f t),
-    { intros f,
-      symmetry,
-      apply interval_integral.integral_add_adjacent_intervals,
-      sorry,
-      sorry },
+  rw eq_opp_diff',
+  apply box_additive_on_opp_diff,
+  intros a I m hm j,
+  simp only [opp_diff_feeder],
+  let f : ℝ → ℝ := λ t, u (fill (oppI i) a t),
+  have : ∀ {r s}, interval_integrable f volume r s,
+  { exact (hu.comp (continuous_fill (oppI i) a)).interval_integrable },
+  rw ← @interval_integral.integral_add_adjacent_intervals _ _ _ _ _ _ _ _ _ _ (I.left opp_c) _ (I.right opp_c) f _ _ _ _ this this,
+  apply congr_arg2,
+  { congr },
+  { congr' 1,
+    have : opp_c = j := subtype.ext (eq_of_both_neq opp_c.2 j.2),
     rw this,
-    have : ∀ f : ℝ → ℝ, (∫ (t : ℝ) in I.right i..I.left i, f t =
-      (∫ (t : ℝ) in I.right i..m i, f t) + ∫ (t : ℝ) in m i..I.left i, f t),
-    { sorry },
-    rw this,
-    abel },
-  { simp [box_line_integral, segment_parametrized_integral],
-    have h_right : update I.right j (m j) i = I.right i := update_noteq (ne.symm hij) _ _,
-    have h_left : update I.left j (m j) i = I.left i := update_noteq (ne.symm hij) _ _,
-    simp [h_left, h_right],
-    have him : (λ t, u (update (update I.right j (m j)) i t)) = λ t, u (update (update I.left j (m j)) i t),
-    { ext t,
-      congr' 1,
-      ext k,
-      by_cases hk : k = i,
-      { rw hk,
-        simp },
-      have hk' : k = j := eq_of_both_neq hk hij,
-      rw hk',
-      have h_right' : update (update I.right j (m j)) i t j = m j,
-      { rw update_noteq hij t (update I.right j (m j)),
-        simp },
-      have h_left' : update (update I.left j (m j)) i t j = m j,
-      { rw update_noteq hij t (update I.left j (m j)),
-        simp },
-      rw [h_right', h_left'] },
-    rw him,
-    have : ∀ f : ℝ → ℝ, (∫ t in I.right i.. I.left i, f t = - ∫ t in I.left i.. I.right i, f t),
-    { exact λ f, interval_integral.integral_symm _ _, },
-    rw this,
-    ring }
+    simp }
 end
 
 

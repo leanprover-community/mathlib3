@@ -254,6 +254,60 @@ lemma box_additive_on_prod_edist [decidable_eq ι] [fintype ι] (s : set (ι →
 by simpa only [edist_nndist, ← ennreal.coe_finset_prod, box_additive_on.coe_ennreal]
   using box_additive_on_prod_nndist s
 
+variables {G : Type*} [linear_ordered_add_comm_group G]
+
+def opp_diff [decidable_eq ι] {i : ι} (f : ℝ → (({i} : set ι)ᶜ → ℝ) → (({i} : set ι)ᶜ → ℝ) → G)
+  (x : ι → ℝ) (y : ι → ℝ) :
+  G :=
+f (x i) (x ∘ coe) (y ∘ coe) - f (y i) (x ∘ coe) (y ∘ coe)
+
+lemma box_additive_on_opp_diff [decidable_eq ι] (i : ι)
+  {f : ℝ → (({i} : set ι)ᶜ → ℝ) → (({i} : set ι)ᶜ → ℝ) → G}
+  (hf : ∀ t : ℝ, box_additive_on (f t) univ) :
+  box_additive_on (opp_diff f) univ :=
+begin
+  intros I m hm j,
+  by_cases hij : j = i,
+  { rw hij,
+    let c : ({i} : set ι)ᶜ → ι := coe,
+    have h_left : update I.right i (m i) ∘ c = I.right ∘ c,
+    { ext k,
+      have hik : (k : ι) ≠ i := by simpa using k.2,
+      convert update_noteq hik (m i) _, },
+    have h_right : update I.left i (m i) ∘ c = I.left ∘ c,
+    { ext k,
+      have hik : (k : ι) ≠ i := by simpa using k.2,
+      convert update_noteq hik (m i) _, },
+    simp [h_left, h_right, opp_diff, c],
+    abel },
+  { have h_left : update I.left j (m j) i = I.left i := update_noteq (ne.symm hij) _ _,
+    have h_right : update I.right j (m j) i = I.right i := update_noteq (ne.symm hij) _ _,
+    simp [opp_diff, h_left, h_right],
+    let J : subinterval (univ : set (({i}ᶜ : set ι) → ℝ)):=
+    { left := I.left ∘ coe,
+      right := I.right ∘ coe,
+      nontrivial := λ j, I.nontrivial j,
+      Icc_subset := by simp },
+    have hJ_l : J.left = I.left ∘ coe := rfl,
+    have hJ_r : J.right = I.right ∘ coe := rfl,
+    rw [← hJ_l, ← hJ_r],
+    have hm' : m ∘ coe ∈ J,
+    { refine ⟨λ i, _, λ i, _⟩,
+      { apply hm.1 },
+      { apply hm.2 } },
+    rw ← hf (I.left i) hm' ⟨j, hij⟩,
+    rw ← hf (I.right i) hm' ⟨j, hij⟩,
+    simp [hJ_l, hJ_r],
+    let c : ({i} : set ι)ᶜ → ι := coe,
+    have : update I.right j (m j) ∘ c = update (I.right ∘ c) ⟨j, hij⟩ (m j),
+    { exact update_comp I.right subtype.coe_injective ⟨j, hij⟩ _ },
+    rw this,
+    have : update I.left j (m j) ∘ c = update (I.left ∘ c) ⟨j, hij⟩ (m j),
+    { exact update_comp I.left subtype.coe_injective ⟨j, hij⟩ _ },
+    rw this,
+    abel }
+end
+
 end
 
 namespace box_subadditive_on
@@ -337,7 +391,7 @@ lemma seq_mul_lt (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I 
     f (seq hf hg I hI n : subinterval s).left (seq hf hg I hI n : subinterval s).right :=
 (seq hf hg I hI n).2
 
-lemma tendsto_size_seq (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) 
+lemma tendsto_size_seq (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
   (I : subinterval s) (hI : c * g I.left I.right < f I.left I.right) :
   tendsto (λ n, (seq hf hg I hI n : subinterval s).size) at_top (𝓝 0) :=
 begin

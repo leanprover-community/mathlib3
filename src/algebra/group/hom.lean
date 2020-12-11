@@ -763,7 +763,7 @@ end monoid_hom
 
 namespace add_monoid_hom
 
-variables [add_group G] [add_group H]
+variables {A B : Type*} [add_monoid A] [add_comm_group B] [add_group G] [add_group H]
 
 /-- Additive group homomorphisms preserve subtraction. -/
 @[simp] theorem map_sub (f : G →+ H) (g h : G) : f (g - h) = (f g) - (f h) := f.map_add_neg g h
@@ -774,6 +774,10 @@ of_map_add_neg f hf
 
 @[simp] lemma coe_of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) :
   ⇑(of_map_sub f hf) = f :=
+rfl
+
+@[simp] lemma sub_apply (f g : A →+ B) (a : A) :
+  (f - g) a = f a - g a :=
 rfl
 
 end add_monoid_hom

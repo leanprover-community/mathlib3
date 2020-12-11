@@ -93,6 +93,15 @@ begin
   apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
 end
 
+lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [fintype X] :
+  discrete_topology X :=
+begin
+  apply singletons_open_iff_discrete.mp,
+  intros x,
+  rw [← is_closed_compl_iff, ← bUnion_of_singleton ({x} : set X)ᶜ],
+  exact is_closed_bUnion (finite.of_fintype _) (λ y _, is_closed_singleton)
+end
+
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/

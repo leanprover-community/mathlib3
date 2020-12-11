@@ -2728,6 +2728,13 @@ lemma times_cont_diff_on.continuous_on_deriv_of_open {n : with_top ℕ}
   continuous_on (deriv f₂) s₂ :=
 ((times_cont_diff_on_succ_iff_deriv_of_open hs).1 (h.of_le hn)).2.continuous_on
 
+/-- A function is `C^∞` if and only if it is differentiable, and its derivative (formulated with
+`deriv`) is `C^∞`. -/
+theorem times_cont_diff_top_iff_deriv :
+  times_cont_diff 𝕜 ∞ f₂ ↔ differentiable 𝕜 f₂ ∧ times_cont_diff 𝕜 ∞ (deriv f₂) :=
+by { rw [← times_cont_diff_on_univ, ← times_cont_diff_on_univ, ← differentiable_on_univ],
+  exact times_cont_diff_on_top_iff_deriv_of_open is_open_univ }
+
 /-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if it is
 differentiable there, and its derivative is `C^n`. -/
 theorem times_cont_diff_succ_iff_deriv {n : ℕ} :

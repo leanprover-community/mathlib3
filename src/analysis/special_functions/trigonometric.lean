@@ -34,7 +34,7 @@ log, sin, cos, tan, arcsin, arccos, arctan, angle, argument
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical topological_space
 open set
 
 namespace complex
@@ -103,7 +103,8 @@ lemma continuous_on_cos {s : set ℂ} : continuous_on cos s := continuous_cos.co
 
 lemma measurable_cos : measurable cos := continuous_cos.measurable
 
-/-- The complex hyperbolic sine function is everywhere differentiable, with the derivative `cosh x`. -/
+/-- The complex hyperbolic sine function is everywhere differentiable, with the derivative
+`cosh x`. -/
 lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
 begin
   simp only [cosh, div_eq_mul_inv],
@@ -1476,6 +1477,7 @@ end
 
 end angle
 
+/-- `real.sin` as an `order_iso` between `(-(π / 2), π / 2)` and `(-1, 1)`. -/
 def sin_order_iso : Icc (-(π / 2)) (π / 2) ≃o Icc (-1:ℝ) 1 :=
 (strict_mono_incr_on_sin.order_iso _ _).trans $ order_iso.set_congr _ _ bij_on_sin.image_eq
 
@@ -1485,7 +1487,7 @@ def sin_order_iso : Icc (-(π / 2)) (π / 2) ≃o Icc (-1:ℝ) 1 :=
 /-- Inverse of the `sin` function, returns values in the range `-π / 2 ≤ arcsin x ≤ π / 2`.
 It defaults to `-π / 2` on `(-∞, -1)` and to `π / 2` to `(1, ∞)`. -/
 @[pp_nodot] noncomputable def arcsin : ℝ → ℝ :=
-coe ∘ Icc_extend (neg_le_self zero_le_one) sin_order_iso.to_homeomorph.symm
+coe ∘ Icc_extend (neg_le_self zero_le_one) sin_order_iso.symm
 
 lemma arcsin_mem_Icc (x : ℝ) : arcsin x ∈ Icc (-(π / 2)) (π / 2) := subtype.coe_prop _
 
@@ -1522,6 +1524,12 @@ lemma inj_on_arcsin : inj_on arcsin (Icc (-1) 1) := strict_mono_incr_on_arcsin.i
 lemma arcsin_inj {x y : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) (hy₁ : -1 ≤ y) (hy₂ : y ≤ 1) :
   arcsin x = arcsin y ↔ x = y :=
 inj_on_arcsin.eq_iff ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩
+
+lemma continuous_arcsin : continuous arcsin :=
+continuous_subtype_coe.comp sin_order_iso.symm.continuous.Icc_extend
+
+lemma continuous_at_arcsin {x : ℝ} : continuous_at arcsin x :=
+continuous_arcsin.continuous_at
 
 lemma arcsin_eq_of_sin_eq {x y : ℝ} (h₁ : sin x = y) (h₂ : x ∈ Icc (-(π / 2)) (π / 2)) :
   arcsin y = x :=
@@ -1597,6 +1605,118 @@ lt_iff_lt_of_le_iff_le arcsin_nonpos
 lemma arcsin_lt_zero {x : ℝ} : arcsin x < 0 ↔ x < 0 :=
 lt_iff_lt_of_le_iff_le arcsin_nonneg
 
+lemma cos_arcsin_nonneg (x : ℝ) : 0 ≤ cos (arcsin x) :=
+cos_nonneg_of_mem_Icc ⟨neg_pi_div_two_le_arcsin _, arcsin_le_pi_div_two _⟩
+
+lemma cos_arcsin {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : cos (arcsin x) = sqrt (1 - x ^ 2) :=
+have sin (arcsin x) ^ 2 + cos (arcsin x) ^ 2 = 1 := sin_sq_add_cos_sq (arcsin x),
+begin
+  rw [← eq_sub_iff_add_eq', ← sqrt_inj (pow_two_nonneg _) (sub_nonneg.2 (sin_sq_le_one (arcsin x))),
+    pow_two, sqrt_mul_self (cos_arcsin_nonneg _)] at this,
+  rw [this, sin_arcsin hx₁ hx₂],
+end
+
+lemma has_deriv_at_arcsin {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
+  has_deriv_at arcsin (1 / sqrt (1 - x ^ 2)) x :=
+begin
+  cases h₁.lt_or_lt with h₁ h₁,
+  { have : 1 - x ^ 2 < 0, by nlinarith [h₁],
+    rw [sqrt_eq_zero'.2 this.le, div_zero],
+    refine (has_deriv_at_const x (-(π / 2))).congr_of_eventually_eq ((gt_mem_nhds h₁).mono _),
+    exact λ y hy, arcsin_of_le_neg_one hy.le },
+  cases h₂.lt_or_lt with h₂ h₂,
+  { have : 0 < 1 - x ^ 2 := by nlinarith [h₁, h₂],
+    convert (has_deriv_at_sin (arcsin x)).of_local_left_inverse continuous_at_arcsin _ _,
+    { simp [cos_arcsin h₁.le h₂.le] },
+    { simp [cos_arcsin h₁.le h₂.le, (sqrt_pos.2 this).ne'] },
+    { filter_upwards [Ioo_mem_nhds h₁ h₂],
+      exact λ x hx, sin_arcsin hx.1.le hx.2.le } },
+  { have : 1 - x ^ 2 < 0, by nlinarith [h₂],
+    rw [sqrt_eq_zero'.2 this.le, div_zero],
+    refine (has_deriv_at_const x (π / 2)).congr_of_eventually_eq ((lt_mem_nhds h₂).mono _),
+    exact λ y hy, arcsin_of_one_le hy.le }
+end
+
+lemma has_deriv_within_at_arcsin_Ici {x : ℝ} (h : x ≠ -1) :
+  has_deriv_within_at arcsin (1 / sqrt (1 - x ^ 2)) (Ici x) x :=
+begin
+  rcases em (x = 1) with (rfl|h'),
+  { convert (has_deriv_within_at_const _ _ (π / 2)).congr _ _;
+      simp [arcsin_of_one_le] { contextual := tt } },
+  { exact (has_deriv_at_arcsin h h').has_deriv_within_at }
+end
+
+lemma has_deriv_within_at_arcsin_Iic {x : ℝ} (h : x ≠ 1) :
+  has_deriv_within_at arcsin (1 / sqrt (1 - x ^ 2)) (Iic x) x :=
+begin
+  rcases em (x = -1) with (rfl|h'),
+  { convert (has_deriv_within_at_const _ _ (-(π / 2))).congr _ _;
+      simp [arcsin_of_le_neg_one] { contextual := tt } },
+  { exact (has_deriv_at_arcsin h' h).has_deriv_within_at }
+end
+
+lemma differentiable_within_at_arcsin_Ici {x : ℝ} :
+  differentiable_within_at ℝ arcsin (Ici x) x ↔ x ≠ -1 :=
+begin
+  refine ⟨_, λ h, (has_deriv_within_at_arcsin_Ici h).differentiable_within_at⟩,
+  rintro h rfl,
+  have h₁ := h.has_deriv_within_at.sin,
+  rw [arcsin_neg_one, cos_neg, cos_pi_div_two, zero_mul] at h₁,
+  have h₂ : ∀ᶠ x in 𝓝[Ici (-1:ℝ)] (-1), x = sin (arcsin x),
+  { filter_upwards [Icc_mem_nhds_within_Ici ⟨le_rfl, neg_lt_self (@zero_lt_one ℝ _ _)⟩],
+    exact λ x hx, (sin_arcsin hx.1 hx.2).symm },
+  have := h₁.congr_of_eventually_eq h₂ (by simp),
+  have := (unique_diff_on_Ici _ _ left_mem_Ici).eq_deriv _ this (has_deriv_within_at_id _ _),
+  exact zero_ne_one this
+end
+
+lemma differentiable_within_at_arcsin_Iic {x : ℝ} :
+  differentiable_within_at ℝ arcsin (Iic x) x ↔ x ≠ 1 :=
+begin
+  refine ⟨λ h, _, λ h, (has_deriv_within_at_arcsin_Iic h).differentiable_within_at⟩,
+  rw [← neg_neg x, ← image_neg_Ici] at h,
+  have := (h.comp (-x) differentiable_within_at_id.neg (maps_to_image _ _)).neg,
+  simpa [(∘), differentiable_within_at_arcsin_Ici] using this
+end
+
+lemma differentiable_at_arcsin {x : ℝ} :
+  differentiable_at ℝ arcsin x ↔ x ≠ -1 ∧ x ≠ 1 :=
+⟨λ h, ⟨differentiable_within_at_arcsin_Ici.1 h.differentiable_within_at,
+  differentiable_within_at_arcsin_Iic.1 h.differentiable_within_at⟩,
+  λ h, (has_deriv_at_arcsin h.1 h.2).differentiable_at⟩
+
+@[simp] lemma deriv_arcsin : deriv arcsin = λ x, 1 / sqrt (1 - x ^ 2) :=
+begin
+  funext x,
+  by_cases h : x ≠ -1 ∧ x ≠ 1,
+  { exact (has_deriv_at_arcsin h.1 h.2).deriv },
+  { rw [deriv_zero_of_not_differentiable_at (mt differentiable_at_arcsin.1 h)],
+    simp only [not_and_distrib, ne.def, not_not] at h,
+    rcases h with (rfl|rfl); simp }
+end
+
+lemma differentiable_on_arcsin : differentiable_on ℝ arcsin {-1, 1}ᶜ :=
+λ x hx, (differentiable_at_arcsin.2
+  ⟨λ h, hx (or.inl h), λ h, hx (or.inr h)⟩).differentiable_within_at
+
+lemma times_cont_diff_on_arcsin' {n : with_top ℕ} :
+  times_cont_diff_on ℝ n arcsin {-1, 1}ᶜ :=
+begin
+  refine ((times_cont_diff_on_top_iff_deriv_of_open _).2 ⟨_, _⟩).of_le le_top,
+  { exact is_closed_union is_closed_singleton is_closed_singleton },
+  { exact differentiable_on_arcsin },
+  { rw [deriv_arcsin], }
+end
+
+lemma times_cont_diff_at_arcsin_iff {x : ℝ} {n : with_top ℕ} :
+  times_cont_diff_at ℝ n arcsin x ↔ n = 0 ∨ (x ≠ -1 ∧ x ≠ 1) :=
+⟨λ h, or_iff_not_imp_left.2 $ λ hn, differentiable_at_arcsin.1 $ h.differentiable_at $
+  with_top.one_le_iff_pos.2 (zero_lt_iff_ne_zero.2 hn),
+  λ h, h.elim (λ hn, hn.symm ▸ (times_cont_diff_zero.2 continuous_arcsin).times_cont_diff_at) $
+    λ hx, (times_cont_diff_top_iff_deriv.2 _⟩
+
+lemma measurable_arcsin : measurable arcsin := continuous_arcsin.measurable
+
 /-- Inverse of the `cos` function, returns values in the range `0 ≤ arccos x` and `arccos x ≤ π`.
   If the argument is not between `-1` and `1` it defaults to `π / 2` -/
 @[pp_nodot] noncomputable def arccos (x : ℝ) : ℝ :=
@@ -1605,7 +1725,9 @@ lt_iff_lt_of_le_iff_le arcsin_nonneg
 lemma arccos_eq_pi_div_two_sub_arcsin (x : ℝ) : arccos x = π / 2 - arcsin x := rfl
 
 lemma arcsin_eq_pi_div_two_sub_arccos (x : ℝ) : arcsin x = π / 2 - arccos x :=
-by simp [sub_eq_add_neg, arccos]
+by simp [arccos]
+
+lemma 
 
 lemma arccos_le_pi (x : ℝ) : arccos x ≤ π :=
 by unfold arccos; linarith [neg_pi_div_two_le_arcsin x]
@@ -1631,17 +1753,6 @@ add_left_cancel_iff.trans $ neg_inj.trans $ arcsin_inj hx₁ hx₂ hy₁ hy₂
 
 lemma arccos_neg (x : ℝ) : arccos (-x) = π - arccos x :=
 by rw [← add_halves π, arccos, arcsin_neg, arccos, add_sub_assoc, sub_sub_self]; simp
-
-lemma cos_arcsin_nonneg (x : ℝ) : 0 ≤ cos (arcsin x) :=
-cos_nonneg_of_mem_Icc ⟨neg_pi_div_two_le_arcsin _, arcsin_le_pi_div_two _⟩
-
-lemma cos_arcsin {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : cos (arcsin x) = sqrt (1 - x ^ 2) :=
-have sin (arcsin x) ^ 2 + cos (arcsin x) ^ 2 = 1 := sin_sq_add_cos_sq (arcsin x),
-begin
-  rw [← eq_sub_iff_add_eq', ← sqrt_inj (pow_two_nonneg _) (sub_nonneg.2 (sin_sq_le_one (arcsin x))),
-    pow_two, sqrt_mul_self (cos_arcsin_nonneg _)] at this,
-  rw [this, sin_arcsin hx₁ hx₂],
-end
 
 lemma sin_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : sin (arccos x) = sqrt (1 - x ^ 2) :=
 by rw [arccos_eq_pi_div_two_sub_arcsin, sin_pi_div_two_sub, cos_arcsin hx₁ hx₂]
@@ -2342,7 +2453,7 @@ begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
   { convert continuous_cos.continuous_within_at, simp },
   { filter_upwards [Ioo_mem_nhds_within_Ioi (set.left_mem_Ico.mpr (norm_num.lt_neg_pos
-      _ _ pi_div_two_pos pi_div_two_pos))] λ x hx, cos_pos_of_mem_Ioo hx.1 hx.2 },
+      _ _ pi_div_two_pos pi_div_two_pos))] λ x hx, cos_pos_of_mem_Ioo hx },
 end
 
 lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[Ioi (-(π/2))] (-(π/2))) at_bot :=
@@ -2355,8 +2466,9 @@ begin
 end
 
 lemma surj_on_tan : surj_on tan (Ioo (-(π / 2)) (π / 2)) univ :=
-surj_on_Ioo_of_continuous_on (neg_lt_self pi_div_two_pos) continuous_on_tan_Ioo
-  tendsto_tan_pi_div_two tendsto_tan_neg_pi_div_two
+have _ := neg_lt_self pi_div_two_pos,
+continuous_on_tan_Ioo.surj_on_of_tendsto (nonempty_Ioo.2 this) 
+  (by simp [tendsto_tan_neg_pi_div_two, this]) (by simp [tendsto_tan_pi_div_two, this])
 
 lemma tan_surjective : function.surjective tan :=
 λ x, surj_on_tan.subset_range trivial
@@ -2364,6 +2476,7 @@ lemma tan_surjective : function.surjective tan :=
 lemma image_tan_Ioo : tan '' (Ioo (-(π / 2)) (π / 2)) = univ :=
 univ_subset_iff.1 surj_on_tan
 
+/-- `real.tan` as an `order_iso` between `(-(π / 2), π / 2)` and `ℝ`. -/
 def tan_order_iso : Ioo (-(π / 2)) (π / 2) ≃o ℝ :=
 (strict_mono_incr_on_tan.order_iso _ _).trans $ (order_iso.set_congr _ _ image_tan_Ioo).trans
   order_iso.set.univ
@@ -2416,14 +2529,12 @@ by simp [arctan_eq_arcsin, neg_div]
 lemma continuous_arctan : continuous arctan :=
 continuous_subtype_coe.comp tan_order_iso.to_homeomorph.continuous_inv_fun
 
+lemma continuous_at_arctan {x : ℝ} : continuous_at arctan x := continuous_arctan.continuous_at
+
 lemma has_deriv_at_arctan (x : ℝ) : has_deriv_at arctan (1 / (1 + x^2)) x :=
-begin
-  have h1 : 0 < 1 + x^2 := by nlinarith,
-  have h2 : cos (arctan x) ≠ 0 := (cos_arctan_pos x).ne',
-  simpa [cos_arctan x, sqr_sqrt h1.le] using has_deriv_at.of_local_left_inverse
-    continuous_arctan.continuous_at (has_deriv_at_tan (cos_ne_zero_iff.mp h2))
-      (one_div_ne_zero (pow_ne_zero 2 h2)) (eventually_of_forall tan_arctan)
-end
+have h : 0 < 1 + x^2 := by nlinarith,
+by convert (has_deriv_at_tan_of_mem_Ioo (arctan_mem_Ioo x)).of_local_left_inverse
+  continuous_at_arctan _ _; simp [cos_arctan, h.le, h.ne']
 
 lemma differentiable_at_arctan (x : ℝ) : differentiable_at ℝ arctan x :=
 (has_deriv_at_arctan x).differentiable_at
@@ -2433,44 +2544,106 @@ lemma differentiable_arctan : differentiable ℝ arctan := differentiable_at_arc
 @[simp] lemma deriv_arctan : deriv arctan = (λ x, 1 / (1 + x^2)) :=
 funext $ λ x, (has_deriv_at_arctan x).deriv
 
+lemma times_cont_diff_arctan {n : with_top ℕ} : times_cont_diff ℝ n arctan :=
+begin
+  refine (times_cont_diff_top_iff_deriv.2 ⟨differentiable_arctan, _⟩).of_le le_top,
+  rw [deriv_arctan],
+  exact times_cont_diff_const.div (times_cont_diff_const.add (times_cont_diff_id.pow _))
+    (λ x, by nlinarith)
+end
+
+lemma measurable_arctan : measurable arctan := continuous_arctan.measurable
+
 end real
 
 section
-/-! Register lemmas for the derivatives of the composition of `real.arctan` with a differentiable
-function, for standalone use and use with `simp`. -/
+/-!
+### Lemmas for derivatives of the composition of `real.arctan` with a differentiable function
+
+In this section we register lemmas for the derivatives of the composition of `real.arctan` with a
+differentiable function, for standalone use and use with `simp`. -/
+
+open real
+
+lemma measurable.arctan {α : Type*} [measurable_space α] {f : α → ℝ} (hf : measurable f) :
+  measurable (λ x, arctan (f x)) :=
+measurable_arctan.comp hf
+
+section deriv
 
 variables {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
 
 lemma has_deriv_at.arctan (hf : has_deriv_at f f' x) :
-  has_deriv_at (λ x, real.arctan (f x)) ((1 / (1 + (f x)^2)) * f') x :=
+  has_deriv_at (λ x, arctan (f x)) ((1 / (1 + (f x)^2)) * f') x :=
 (real.has_deriv_at_arctan (f x)).comp x hf
 
 lemma has_deriv_within_at.arctan (hf : has_deriv_within_at f f' s x) :
-  has_deriv_within_at (λ x, real.arctan (f x)) ((1 / (1 + (f x)^2)) * f') s x :=
+  has_deriv_within_at (λ x, arctan (f x)) ((1 / (1 + (f x)^2)) * f') s x :=
 (real.has_deriv_at_arctan (f x)).comp_has_deriv_within_at x hf
 
-lemma differentiable_within_at.arctan (hf : differentiable_within_at ℝ f s x) :
-  differentiable_within_at ℝ (λ x, real.arctan (f x)) s x :=
-hf.has_deriv_within_at.arctan.differentiable_within_at
-
-@[simp] lemma differentiable_at.arctan (hc : differentiable_at ℝ f x) :
-  differentiable_at ℝ (λ x, real.arctan (f x)) x :=
-hc.has_deriv_at.arctan.differentiable_at
-
-lemma differentiable_on.arctan (hc : differentiable_on ℝ f s) :
-  differentiable_on ℝ (λ x, real.arctan (f x)) s :=
-λ x h, (hc x h).arctan
-
-@[simp] lemma differentiable.arctan (hc : differentiable ℝ f) :
-  differentiable ℝ (λ x, real.arctan (f x)) :=
-λ x, (hc x).arctan
-
 lemma deriv_within_arctan (hf : differentiable_within_at ℝ f s x) (hxs : unique_diff_within_at ℝ s x) :
-  deriv_within (λ x, real.arctan (f x)) s x = (1 / (1 + (f x)^2)) * (deriv_within f s x) :=
+  deriv_within (λ x, arctan (f x)) s x = (1 / (1 + (f x)^2)) * (deriv_within f s x) :=
 hf.has_deriv_within_at.arctan.deriv_within hxs
 
 @[simp] lemma deriv_arctan (hc : differentiable_at ℝ f x) :
-  deriv (λ x, real.arctan (f x)) x = (1 / (1 + (f x)^2)) * (deriv f x) :=
+  deriv (λ x, arctan (f x)) x = (1 / (1 + (f x)^2)) * (deriv f x) :=
 hc.has_deriv_at.arctan.deriv
 
+end deriv
+
+section fderiv
+
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ} {x : E}
+  {s : set E} {n : with_top ℕ}
+
+lemma has_fderiv_at.arctan (hf : has_fderiv_at f f' x) :
+  has_fderiv_at (λ x, arctan (f x)) ((1 / (1 + (f x)^2)) • f') x :=
+(has_deriv_at_arctan (f x)).comp_has_fderiv_at x hf
+
+lemma has_fderiv_within_at.arctan (hf : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at (λ x, arctan (f x)) ((1 / (1 + (f x)^2)) • f') s x :=
+(has_deriv_at_arctan (f x)).comp_has_fderiv_within_at x hf
+
+lemma fderiv_within_arctan (hf : differentiable_within_at ℝ f s x)
+  (hxs : unique_diff_within_at ℝ s x) :
+  fderiv_within ℝ (λ x, arctan (f x)) s x = (1 / (1 + (f x)^2)) • (fderiv_within ℝ f s x) :=
+hf.has_fderiv_within_at.arctan.fderiv_within hxs
+
+@[simp] lemma fderiv_arctan (hc : differentiable_at ℝ f x) :
+  fderiv ℝ (λ x, arctan (f x)) x = (1 / (1 + (f x)^2)) • (fderiv ℝ f x) :=
+hc.has_fderiv_at.arctan.fderiv
+
+lemma differentiable_within_at.arctan (hf : differentiable_within_at ℝ f s x) :
+  differentiable_within_at ℝ (λ x, real.arctan (f x)) s x :=
+hf.has_fderiv_within_at.arctan.differentiable_within_at
+
+@[simp] lemma differentiable_at.arctan (hc : differentiable_at ℝ f x) :
+  differentiable_at ℝ (λ x, arctan (f x)) x :=
+hc.has_fderiv_at.arctan.differentiable_at
+
+lemma differentiable_on.arctan (hc : differentiable_on ℝ f s) :
+  differentiable_on ℝ (λ x, arctan (f x)) s :=
+λ x h, (hc x h).arctan
+
+@[simp] lemma differentiable.arctan (hc : differentiable ℝ f) :
+  differentiable ℝ (λ x, arctan (f x)) :=
+λ x, (hc x).arctan
+
+lemma times_cont_diff_at.arctan (h : times_cont_diff_at ℝ n f x) :
+  times_cont_diff_at ℝ n (λ x, arctan (f x)) x :=
+times_cont_diff_arctan.times_cont_diff_at.comp x h
+
+lemma times_cont_diff.arctan (h : times_cont_diff ℝ n f) :
+  times_cont_diff ℝ n (λ x, arctan (f x)) :=
+times_cont_diff_arctan.comp h
+
+lemma times_cont_diff_within_at.arctan (h : times_cont_diff_within_at ℝ n f s x) :
+  times_cont_diff_within_at ℝ n (λ x, arctan (f x)) s x :=
+times_cont_diff_arctan.comp_times_cont_diff_within_at h
+
+lemma times_cont_diff_on.arctan (h : times_cont_diff_on ℝ n f s) :
+  times_cont_diff_on ℝ n (λ x, arctan (f x)) s :=
+times_cont_diff_arctan.comp_times_cont_diff_on h
+
+end fderiv
 end

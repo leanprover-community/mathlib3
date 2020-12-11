@@ -113,4 +113,42 @@ instance : semiring (language α) :=
 
 @[simp] lemma add_self (l : language α) : l + l = l := by finish [add_def]
 
+lemma star_def_nonempty (l : language α) :
+  l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l ∧ y ≠ []} :=
+begin
+  ext x,
+  rw star_def,
+  split,
+  { rintro ⟨ S, hx, h ⟩,
+    refine ⟨ S.filter (λ l, ¬list.empty l), _, _ ⟩,
+    { rw hx,
+      induction S with y S ih generalizing x,
+      { refl },
+      { rw list.filter,
+        cases y with a y,
+        { apply ih,
+          { intros y hy,
+            apply h,
+            rw list.mem_cons_iff,
+            right,
+            assumption },
+          { refl } },
+        { simp only [true_and, list.join, eq_ff_eq_not_eq_tt, if_true, list.cons_append,
+            list.empty, eq_self_iff_true],
+          rw list.append_right_inj,
+          simp only [eq_ff_eq_not_eq_tt, forall_eq] at ih,
+          apply ih,
+          intros y hy,
+          apply h,
+          rw list.mem_cons_iff,
+          right,
+          assumption } } },
+    { intros y hy,
+      simp only [eq_ff_eq_not_eq_tt, list.mem_filter] at hy,
+      finish } },
+  { rintro ⟨ S, hx, h ⟩,
+    refine ⟨ S, hx, _ ⟩,
+    finish }
+end
+
 end language

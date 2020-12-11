@@ -354,6 +354,31 @@ by rw [←gsmul_eq_smul, module.gsmul_eq_smul_cast R, ←gsmul_eq_smul, module.g
 
 end tensor_product
 
+-- TODO: move
+namespace equiv
+
+variables {α : Type*} [decidable_eq α]
+
+/-- Right-multiplying a permutation with `swap i j` twice gives the original permutation.
+
+  This specialization of `swap_mul_self` is useful when using cosets of permutations.
+-/
+@[simp]
+lemma mul_swap_mul_self (i j : α) (σ : perm α) : (σ * equiv.swap i j) * equiv.swap i j = σ :=
+by rw [mul_assoc, swap_mul_self, mul_one]
+
+/-- A stronger version of `mul_left_injective` -/
+@[simp]
+lemma mul_swap_involutive (i j : α) : function.involutive (* (equiv.swap i j)) :=
+mul_swap_mul_self i j
+
+lemma mul_swap_eq_iff {i j : α} {σ : perm α} : σ * swap i j = σ ↔ i = j :=
+⟨(assume h, have swap_id : swap i j = 1 := mul_left_cancel (trans h (one_mul σ).symm),
+  by {rw [←swap_apply_right i j, swap_id], refl}),
+(assume h, by erw [h, swap_self, mul_one])⟩
+
+end equiv
+
 section
 
 namespace alternating_map
@@ -405,7 +430,7 @@ instance sum_congr_subgroup.left_rel_decidable
 
 #check quotient_group.quotient.group
 
--- where is my group instance?
+/-- Elements which are considered equivalent if they differ only by swaps within α or β  -/
 def mod_sum_congr (α β : Type*) := quotient_group.quotient $ sum_congr_subgroup α β
 
 namespace mod_sum_congr
@@ -415,21 +440,21 @@ def swap {α β : Type*} [decidable_eq α] [decidable_eq β] (i : α) (j : β) :
   mod_sum_congr α β :=
 quot.mk _ (equiv.swap (sum.inl i) (sum.inr j))
 
-/--
-`mod_swap i j` contains permutations up to swapping `i` and `j`.
+-- /--
+-- `mod_swap i j` contains permutations up to swapping `i` and `j`.
 
-We use this to partition permutations in `matrix.det_zero_of_row_eq`, such that each partition
-sums up to `0`.
--/
-def mod_swap {α β : Type*} [decidable_eq α] [decidable_eq β] (i : α) (j : β) :
-  setoid (mod_sum_congr α β) :=
-⟨λ σ τ, σ = τ ∨ σ = swap i j * τ,
- λ σ, or.inl (refl σ),
- λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
- λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish⟩
+-- We use this to partition permutations in `matrix.det_zero_of_row_eq`, such that each partition
+-- sums up to `0`.
+-- -/
+-- def mod_swap {α β : Type*} [decidable_eq α] [decidable_eq β] (i : α) (j : β) :
+--   setoid (mod_sum_congr α β) :=
+-- ⟨λ σ τ, σ = τ ∨ σ = swap i j * τ,
+--  λ σ, or.inl (refl σ),
+--  λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
+--  λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish⟩
 
-instance {α : Type*} [fintype α] [decidable_eq α] (i j : α) : decidable_rel (mod_swap i j).r :=
-λ σ τ, or.decidable
+-- instance {α : Type*} [fintype α] [decidable_eq α] (i j : α) : decidable_rel (mod_swap i j).r :=
+-- λ σ τ, or.decidable
 
 end mod_sum_congr
 
@@ -466,17 +491,54 @@ end)
 #check 1
 
 
+
 /-- `swap`, embedded in `mod_sum_congr` -/
 def apply_swapl {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : α) :
   mod_sum_congr α β → mod_sum_congr α β :=
 quot.map (λ σ, σ * equiv.swap (@sum.inl _ β i) (sum.inl j)) (λ σ₁ σ₂ h, begin
   dunfold setoid.r quotient_group.left_rel at ⊢ h,
   obtain ⟨sl, sr, h⟩ := h,
-  -- simp,
   rw [mul_inv_rev, mul_assoc, ←mul_assoc _ σ₂, h, equiv.swap_inv,
     ←equiv.perm.sum_congr_swap_one, equiv.perm.sum_congr_mul, equiv.perm.sum_congr_mul],
   exact ⟨_, _, rfl⟩
 end)
+
+def does_swap_left {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) (i : α):
+  Prop :=
+quot.lift_on σ (λ σ, ∃ i', σ (sum.inl i') = sum.inl i) (λ a b h, begin
+  ext,
+  obtain ⟨sl, sr, h⟩ := h,
+  rw inv_mul_eq_iff_eq_mul at h,
+  simp only [h, equiv.perm.sum_congr_apply, sum.map_inl, function.comp_app, equiv.perm.coe_mul],
+  split,
+  { rintro ⟨i', hi⟩,
+    refine ⟨sl⁻¹ i', _⟩,
+    simp [←hi], },
+  { rintro ⟨i', hi⟩,
+    refine ⟨sl i', _⟩,
+    simp [←hi],},
+end)
+
+def does_swap_right {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) (i : β):
+  Prop :=
+quot.lift_on σ (λ σ, ∃ i', σ (sum.inr i') = sum.inr i) (λ a b h, begin
+  ext,
+  obtain ⟨sl, sr, h⟩ := h,
+  rw inv_mul_eq_iff_eq_mul at h,
+  simp only [h, equiv.perm.sum_congr_apply, sum.map_inr, function.comp_app, equiv.perm.coe_mul],
+  split,
+  { rintro ⟨i', hi⟩,
+    refine ⟨sr⁻¹ i', _⟩,
+    simp [←hi], },
+  { rintro ⟨i', hi⟩,
+    refine ⟨sr i', _⟩,
+    simp [←hi],},
+end)
+
+def does_swap {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) :
+  α ⊕ β → Prop
+| (sum.inr i) := does_swap_right σ i
+| (sum.inl i) := does_swap_left σ i
 
 #check equiv.swap_mul_eq_iff
 
@@ -486,13 +548,18 @@ begin
   unfold apply_swapl,
   refine ⟨λ h, _, λ h, _⟩,
   obtain ⟨σ', rfl⟩:= quot.exists_rep σ,
-  apply sum.injective_inl,
+  unfold quot.map at h,
   have := quot.exact _ h,
-  dunfold setoid.r quotient_group.left_rel at this,
-  simp only at this,
-  exact (match this with
-  | (eqv_gen.refl x) := sorry
-  end),
+  apply sum.injective_inl,
+  apply equiv.mul_swap_eq_iff.mp,
+  swap,
+  exact σ',
+  -- have := quot.exact _ h,
+  -- dunfold setoid.r quotient_group.left_rel at this,
+  -- simp only at this,
+  -- exact (match this with
+  -- | (eqv_gen.refl x) := sorry
+  -- end),
   -- symmetry,
   -- apply equiv.swap_mul_eq_iff.mp,
   -- apply inv_injective,
@@ -524,44 +591,78 @@ begin
               algebra.lmul'_apply,
               to_multilinear_map_eq_coe,
               coe_multilinear_map],
-  have : @finset.univ (mod_sum_congr ιa ιb) _ = (@finset.univ _ _).image (quot.mk _) := rfl,
-  simp_rw this,
-  -- apply finset.sum_involution
-  -- (λ σ _, swap i j * σ)
-  -- (λ σ _, begin
-  --   convert add_right_neg (↑σ.sign • m.dom_dom_congr σ v),
-  --   rw [perm.sign_mul, perm.sign_swap i_ne_j, ←neg_smul,
-  --     multilinear_map.dom_dom_congr_apply, multilinear_map.dom_dom_congr_apply],
-  --   congr' 2,
-  --   { simp },
-  --   { ext, simp [apply_swap_eq_self hv] },
-  -- end)
-  -- (λ σ _ _, (not_congr swap_mul_eq_iff).mpr i_ne_j)
-  -- (λ σ _, finset.mem_univ _)
-  -- (λ σ _, swap_mul_involutive i j σ)
-  -- rw ←@mul_left_inj' N _ _ _ _ (fintype.card ιa).factorial_ne_zero,
-  cases i; cases j,
-  { apply finset.sum_involution (λ σ _, apply_swapl i j σ) (λ σ _, _) (λ σ _ _, _)
-      (λ σ _, finset.mem_univ _) (λ σ _, _),
-    apply_instance,
-    all_goals { try {simp only }},
+  classical,
+  conv in (quotient.lift_on' _ _ _) {
+    rw ← if_t_t (does_swap x i ↔ does_swap x j) (quotient.lift_on' _ _ _),
+  },
+  rw finset.sum_ite,
+  simp,
+  -- have : @finset.univ (mod_sum_congr ιa ιb) _ = (@finset.univ _ _).image (quot.mk _) := rfl,
+  -- simp_rw this,
+  convert zero_add (0: N ⊗ N),
+  {
+    rw finset.sum_eq_zero,
+    rintros ⟨σ⟩ hx,
+    dunfold quotient.lift_on' quotient.lift_on quot.lift_on quot.lift,
+    simp at hx,
+    rw quot.lift_beta,
+    convert smul_zero _,
+    cases i; cases j; dsimp [does_swap] at hx,
     sorry,
-    sorry,
-    sorry, },
-  { apply finset.sum_cancels_of_partition_cancels _,
-    intros σ _,
-    sorry,
-    sorry,
-    sorry, },
-  { apply finset.sum_cancels_of_partition_cancels _,
-    intros σ _,
-    sorry,
-    sorry,
-    sorry, },
-  { apply finset.sum_eq_zero,
-    intros x _,
-    -- simp,
-    sorry, },
+  },
+  sorry,
+  -- sorry,
+  -- have : @finset.univ (mod_sum_congr ιa ιb) _ = (@finset.univ _ _).image (quot.mk _) := rfl,
+  -- simp_rw this,
+  -- -- apply finset.sum_involution
+  -- -- (λ σ _, swap i j * σ)
+  -- -- (λ σ _, begin
+  -- --   convert add_right_neg (↑σ.sign • m.dom_dom_congr σ v),
+  -- --   rw [perm.sign_mul, perm.sign_swap i_ne_j, ←neg_smul,
+  -- --     multilinear_map.dom_dom_congr_apply, multilinear_map.dom_dom_congr_apply],
+  -- --   congr' 2,
+  -- --   { simp },
+  -- --   { ext, simp [apply_swap_eq_self hv] },
+  -- -- end)
+  -- -- (λ σ _ _, (not_congr swap_mul_eq_iff).mpr i_ne_j)
+  -- -- (λ σ _, finset.mem_univ _)
+  -- -- (λ σ _, swap_mul_involutive i j σ)
+  -- -- rw ←@mul_left_inj' N _ _ _ _ (fintype.card ιa).factorial_ne_zero,
+  -- cases i; cases j,
+  -- {
+  --   apply finset.sum_involution (λ σ _, apply_swapl i j σ) (λ σ _, _) (λ σ _ _, _)
+  --     (λ σ _, finset.mem_univ _) (λ σ _, _),
+  --   apply_instance,
+  --   all_goals { try {simp only }},
+  --   obtain ⟨σ', rfl⟩:= quot.exists_rep σ,
+  --   unfold quotient.lift_on' quotient.lift_on quot.lift_on apply_swapl quot.map,
+  --   rw equiv.perm.sign_mul,
+  --   rw equiv.perm.sign_swap hij,
+  --   convert add_right_neg _,
+  --   simp,
+  --   congr' 1,
+  --   { sorry, },
+  --   { congr, sorry, },
+  --   -- apply finset.sum_eq_zero (λ σ _, _),
+  --   -- obtain ⟨σ', rfl⟩:= quot.exists_rep σ,
+  --   -- unfold quotient.lift_on' quotient.lift_on quot.lift_on,
+  --   sorry,
+  --   sorry,
+  --   sorry, },
+  -- { apply finset.sum_cancels_of_partition_cancels _,
+  --   intros σ _,
+  --   sorry,
+  --   sorry,
+  --   sorry, },
+  -- { apply finset.sum_cancels_of_partition_cancels _,
+  --   intros σ _,
+  --   sorry,
+  --   sorry,
+  --   sorry, },
+  -- { apply finset.sum_eq_zero,
+  --   intros x _,
+  --   -- simp,
+  --   sorry, },
   /-
   ⊢ ∑ (σ : quotient (mod_sum_congr ιa ιb)),
         σ.lift_on'
@@ -575,6 +676,8 @@ begin
   -/
   -- TODO: express this as part of a larger sum over the full space of `equiv.perm (ιa ⊕ ιb)`
 end
+
+#print quot
 
 /-- Like `multilinear_map.dom_coprod`, but ensures the result is also alternating.
 

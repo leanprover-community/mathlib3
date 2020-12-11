@@ -186,6 +186,13 @@ lemma smul_tprod (r : R) (f : Π i, s i) (i : ι) :
   r • (tprod R f) = tprod R (update f i (r • f i)) :=
 by simp [tprod, smul_tprod_coef' r 1 f, smul_tprod_coef]
 
+lemma tprod_coef_eq_smul_tprod (z : R) (f : Π i, s i) : tprod_coef R z f = z • tprod R f :=
+begin
+  have : z = z • (1 : R) := by rw [smul_eq_mul, mul_one],
+  conv_lhs { rw [this] },
+  rw [←smul_tprod_coef', ←tprod],
+end
+
 protected theorem smul_zero (r : R) : (r • 0 : ⨂[R] i, s i) = 0 :=
 add_monoid_hom.map_zero _
 
@@ -268,7 +275,7 @@ variables (R) (s)
 def mk : multilinear_map R s (⨂[R] i, s i) :=
 { to_fun := tprod R,
   map_add' := λ f i x y, by rw add_tprod,
-  map_smul' := λ f i r x, by simp [smul_tprod' _ _ i] }
+  map_smul' := λ f i r x, by simp [smul_tprod _ _ i] }
 variables {R} {s}
 
 @[simp] lemma mk_apply (f : Π i, s i) : mk R s f = tprod R f := rfl
@@ -276,7 +283,7 @@ variables {R} {s}
 section sum
 open_locale big_operators
 
-lemma tprod_map_sum {α : Type*} (t : finset α) (i : ι) (m : α → s i) (f : Π i, s i):
+lemma tprod.map_sum {α : Type*} (t : finset α) (i : ι) (m : α → s i) (f : Π i, s i):
   tprod R (update f i (∑ a in t, m a)) = ∑ a in t, tprod R (update f i (m a)) :=
 begin
   induction t using finset.induction with a t has ih h,
@@ -296,29 +303,39 @@ variables {s}
 `multilinear map R s E` with the property that its composition with the canonical
 `multilinear_map R s (⨂[R] i, s i)` is the given multilinear map. -/
 def lift_aux (φ : multilinear_map R s E) : (⨂[R] i, s i) →+ E :=
-(add_con_gen (pi_tensor_product.eqv R s)).lift (free_add_monoid.lift $ λ (p : Π i, s i), φ p) $
-add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
-| _, _, (eqv.of_zero f i hf)       := (add_con.ker_rel _).2 $
-    by simp_rw [add_monoid_hom.map_zero, free_add_monoid.lift_eval_of, map_coord_zero φ i hf]
-| _, _, (eqv.of_add f i m₁ m₂)  := (add_con.ker_rel _).2 $
-    by simp_rw [add_monoid_hom.map_add, free_add_monoid.lift_eval_of, φ.map_add]
-| _, _, (eqv.of_smul f i j r')        := (add_con.ker_rel _).2 $
-    by simp_rw [add_monoid_hom.map_add, free_add_monoid.lift_eval_of, map_smul, update_eq_self]
+(add_con_gen (pi_tensor_product.eqv R s)).lift
+  (free_add_monoid.lift $ λ (p : R × Π i, s i), p.1 • (φ p.2)) $
+  add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
+| _, _, (eqv.of_zero z f i hf)       := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_zero, free_add_monoid.lift_eval_of,
+                map_coord_zero φ i hf, smul_zero]
+| _, _, (eqv.of_zero_scalar f)       := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_zero, free_add_monoid.lift_eval_of, zero_smul]
+| _, _, (eqv.of_add z f i m₁ m₂)  := (add_con.ker_rel _).2 $
+    by { simp_rw [add_monoid_hom.map_add, free_add_monoid.lift_eval_of, ←smul_add],
+         congr,
+         simp_rw [φ.map_add] }
+| _, _, (eqv.of_add_scalar z₁ z₂ f)  := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_add, free_add_monoid.lift_eval_of, ←add_smul]
+| _, _, (eqv.of_smul z f i r)        := (add_con.ker_rel _).2 $
+    by simp [free_add_monoid.lift_eval_of, φ.map_smul, smul_smul, mul_comm]
 | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end
 
 lemma lift_aux_tprod (φ : multilinear_map R s E) (f : Π i, s i) : lift_aux φ (tprod R f) = φ f :=
-zero_add _
+by simp only [lift_aux, tprod, tprod_coef, free_add_monoid.lift_eval_of, one_smul, add_con.lift_mk']
+
+lemma lift_aux_tprod_coef (φ : multilinear_map R s E) (z : R) (f : Π i, s i) :
+  lift_aux φ (tprod_coef R z f) = z • φ f :=
+by simp [lift_aux, tprod_coef, free_add_monoid.lift_eval_of]
 
 lemma lift_aux.smul {φ : multilinear_map R s E} (r : R) (x : ⨂[R] i, s i) :
   lift_aux φ (r • x) = r • lift_aux φ x :=
-let j : ι := classical.choice (by apply_instance) in
 begin
-  refine pi_tensor_product.induction_on x _ _ _,
-  { exact (smul_zero r).symm },
-  { intros f,
-    rw [smul_tprod' _ _ j, lift_aux_tprod, lift_aux_tprod, map_smul, update_eq_self] },
+  refine pi_tensor_product.induction_on' x _ _,
+  { intros z f,
+    simp [smul_tprod_coef' r z f, lift_aux_tprod_coef, lift_aux_tprod_coef, smul_smul] },
   { intros z y ihz ihy,
     rw [smul_add, (lift_aux φ).map_add, ihz, ihy, (lift_aux φ).map_add, smul_add] }
 end
@@ -332,14 +349,21 @@ def lift (φ : multilinear_map R s E) : (⨂[R] i, s i) →ₗ[R] E :=
 
 variables {φ : multilinear_map R s E}
 
-@[simp] lemma lift.tprod (f : Π i, s i) : lift φ (tprod R f) = φ f := zero_add _
+@[simp] lemma lift.tprod (f : Π i, s i) : lift φ (tprod R f) = φ f := lift_aux_tprod φ f
 
 @[simp] lemma lift.tprod' (f : Π i, s i) : (lift φ).1 (tprod R f) = φ f := lift.tprod _
 
 @[ext]
 theorem ext {φ₁ φ₂ : (⨂[R] i, s i) →ₗ[R] E} (H : ∀ f, φ₁ (tprod R f) = φ₂ (tprod R f)) : φ₁ = φ₂ :=
-linear_map.ext $ λ z, pi_tensor_product.induction_on z (by simp_rw linear_map.map_zero) H $
-λ x y ihx ihy, by rw [φ₁.map_add, φ₂.map_add, ihx, ihy]
+begin
+  refine linear_map.ext _,
+  refine λ z,
+    (pi_tensor_product.induction_on' z _ (λ x y hx hy, by rw [φ₁.map_add, φ₂.map_add, hx, hy])),
+  { intros r f,
+    rw [tprod_coef_eq_smul_tprod, φ₁.map_smul, φ₂.map_smul],
+    apply _root_.congr_arg,
+    exact H f }
+end
 
 theorem lift.unique {φ' : (⨂[R] i, s i) →ₗ[R] E} (H : ∀ f, φ' (tprod R f) = φ f) :
   φ' = lift φ :=

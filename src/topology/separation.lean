@@ -629,7 +629,7 @@ lemma connected_component_eq_clopen_Inter [t2_space α] [compact_space α] :
 begin
   intro x,
   apply set.eq_of_subset_of_subset,
-  { exact (set.subset_Inter (λ Z, preconnected_subset_clopen Z.2.1
+  { exact (set.subset_Inter (λ Z, subset_clopen_of_preconnected Z.2.1
     (is_connected_connected_component).2 (set.nonempty_of_mem
     (set.mem_inter Z.2.2 (mem_connected_component))))) },
   { have hs : @is_closed _ _inst_1 (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z),

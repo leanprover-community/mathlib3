@@ -1259,15 +1259,12 @@ begin
     { simpa using hs } }
 end
 
-theorem subset_of_inter_eq_self_left {s t : set α} (h : s ∩ t = s) : s ⊆ t :=
-λ x h1, set.mem_of_mem_inter_right (by {rw h, exact h1})
-
-theorem preconnected_subset_clopen {s t : set α} (h : is_clopen s) (h1 : is_preconnected t) :
+theorem subset_clopen_of_preconnected {s t : set α} (h : is_clopen s) (h1 : is_preconnected t) :
   (s ∩ t).nonempty → t ⊆ s :=
 begin
   intro h2,
   let v := sᶜ,
-  apply subset_of_inter_eq_self_left,
+  apply apply (@set.inter_eq_self_of_subset_iff _ t s).2,
   let u := (coe : (t → α)) ⁻¹' s,
   have hu : is_clopen u,
   { rw [←(set.inter_univ u), set.inter_comm],

@@ -554,3 +554,127 @@ begin
 end
 
 end normality
+
+theorem is_clopen_inter_of_partition_clopen {Z a b : set α} (h : is_clopen Z)
+  (cover : Z ⊆ a ∪ b) (ha : is_open a) (hb : is_open b) (hab : a ∩ b = ∅) : is_clopen (Z ∩ a) :=
+begin
+  split,
+    exact is_open_inter h.1 ha,
+  rw ←(@subtype.range_coe _ Z),
+  apply (closed_embedding.closed_iff_preimage_closed
+    (is_closed.closed_embedding_subtype_coe h.2) (set.inter_subset_left _ a)).2,
+  apply is_open_compl_iff.1,
+  have H2 :  ((coe : Z → α) ⁻¹' (set.range (coe : Z → α) ∩ a))ᶜ = ((coe : Z → α) ⁻¹' (set.range (coe : Z → α) ∩ b)),
+  {
+    apply set.eq_of_subset_of_subset,
+    {
+      rw [set.compl_subset_iff_union],
+      simp only [set.preimage_inter],
+      ext1, cases x,
+      simp only [set.mem_preimage, set.univ_inter, set.mem_univ, subtype.coe_preimage_self,
+        subtype.range_coe_subtype, iff_true, set.mem_union_eq, subtype.coe_mk, set.set_of_mem_eq],
+      solve_by_elim,
+    },
+    rw [set.subset_compl_iff_disjoint],
+    simp only [set.univ_inter, subtype.coe_preimage_self, subtype.range_coe_subtype, set.preimage_inter, set.set_of_mem_eq],
+    rw [←set.preimage_inter, set.inter_comm],
+    apply set.preimage_eq_empty,
+    rw hab,
+    exact set.empty_disjoint _,
+  },
+  rw H2,
+  apply continuous.is_open_preimage continuous_subtype_coe,
+  rw subtype.range_coe,
+  exact is_open_inter h.1 hb,
+end
+
+lemma sub_refined_of_sub_partition {α : Type*} {Z a b u v : set α} (hZ : Z ⊆ u)
+  (hbv : b ⊆ v) (Zab : Z ⊆ a ∪ b) (huv : u ∩ v = ∅) : Z ⊆ a :=
+begin
+  rw [←set.compl_compl u, set.subset_compl_iff_disjoint] at hZ,
+  have H : Z ∩ b = ∅,
+  {
+    rw [set.inter_comm, ←set.subset_compl_iff_disjoint] at huv,
+    apply set.eq_empty_of_subset_empty,
+    rw ←hZ,
+    exact set.inter_subset_inter (set.subset.refl Z) (set.subset.trans hbv huv),
+  },
+  rw ←set.subset_compl_iff_disjoint at H,
+  have H1 := set.subset_inter Zab H,
+  rw [set.inter_distrib_right, set.inter_compl_self, set.union_empty] at H1,
+  exact set.subset.trans H1 (set.inter_subset_left a bᶜ),
+end
+
+lemma inter_compl_nonempty_iff_left {α : Type*} {s t : set α} : (tᶜ ∩ s).nonempty ↔ ¬ s ⊆ t :=
+begin
+  split,
+  { rintros ⟨x ,xs, xt⟩ sub,
+    exact xs (sub xt) },
+  { intros h,
+    rcases set.not_subset.mp h with ⟨x, xs, xt⟩,
+    exact ⟨x, xt, xs⟩ }
+end
+
+lemma connected_component_Inter [t2_space α] [compact_space α] :
+  ∀ x : α, connected_component x = ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
+begin
+  intro x,
+  apply set.eq_of_subset_of_subset,
+  { exact (set.subset_Inter (λ Z, preconnected_subset_clopen Z.2.1
+    (is_connected_connected_component).2 (set.nonempty_of_mem
+    (set.mem_inter Z.2.2 (mem_connected_component))))) },
+  {
+    have hs : @is_closed _ _inst_1 (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z),
+    { exact is_closed_Inter (λ Z, Z.2.1.2) },
+    apply subset_connected_component, {
+      apply (is_preconnected_iff_subset_of_fully_disjoint_closed hs).2,
+      intros a b ha hb hab ab_empty,
+      haveI := @normal_of_compact_t2 α _ _ _,
+      rcases normal_separation a b ha hb (disjoint_iff.2 ab_empty) with ⟨u, v, hu, hv, hau, hbv, huv⟩,
+      suffices : ∃ (Z : set α), is_clopen Z ∧ x ∈ Z ∧ Z ⊆ u ∪ v, {
+        cases this with Z H,
+        rw [set.disjoint_iff_inter_eq_empty] at huv,
+        have H1 := is_clopen_inter_of_partition_clopen H.1 H.2.2 hu hv huv,
+        rw [set.union_comm] at H,
+        rw [set.inter_comm] at huv,
+        have H2 := is_clopen_inter_of_partition_clopen H.1 H.2.2 hv hu huv,
+        by_cases (x ∈ u), {
+          left,
+          suffices : (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) ⊆ u, {
+            rw set.inter_comm at huv,
+            exact sub_refined_of_sub_partition this hbv hab huv },
+          {
+            apply set.subset.trans _ (set.inter_subset_right Z u),
+            apply set.Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
+            ⟨Z ∩ u, by {split, exact H1, apply set.mem_inter H.2.1 h}⟩ } },
+        have h1 : x ∈ v,
+        {
+          cases (set.mem_union x u v).1 (set.mem_of_subset_of_mem (set.subset.trans hab
+            (set.union_subset_union hau hbv)) (set.mem_Inter.2 (λ i, i.2.2))) with h1 h1,
+          { exfalso, apply h, exact h1},
+          { exact h1} },
+        right,
+        suffices : (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) ⊆ v, {
+            rw set.union_comm at hab,
+            rw set.inter_comm at ab_empty,
+            exact sub_refined_of_sub_partition this hau hab huv },
+          {
+            apply set.subset.trans _ (set.inter_subset_right Z v),
+            apply set.Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
+            ⟨Z ∩ v, by {split, exact H2, apply set.mem_inter H.2.1 h1}⟩ } },
+      have H1 := (is_compact.inter_Inter_nonempty (is_closed.compact (is_closed_compl_iff.2 (is_open_union hu hv)))
+          (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) _),
+      rw [←not_imp_not, not_forall, set.not_nonempty_iff_eq_empty, set.inter_comm] at H1,
+      have huv_union := set.subset.trans hab (set.union_subset_union hau hbv),
+      rw [←set.compl_compl (u ∪ v), set.subset_compl_iff_disjoint] at huv_union,
+      replace H1 := H1 huv_union,
+      cases H1 with Zi H2,
+      existsi (⋂ (U ∈ Zi), subtype.val U),
+      split,
+        { apply @is_clopen_bInter _ _ _ _ _ _, exact (λ Z hZ, Z.2.1) },
+        { split,
+          { exact set.mem_bInter_iff.2 (λ Z hZ, Z.2.2) },
+          { rw [inter_compl_nonempty_iff_left, not_not] at H2, exact H2 } },
+      exact λ Z, Z.2.1.2 },
+  exact set.mem_Inter.2 (λ Z, Z.2.2) },
+end

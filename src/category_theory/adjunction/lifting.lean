@@ -39,9 +39,16 @@ than just a functor known to be a right adjoint. In docstrings, we write `(η, �
 and counit of the adjunction `adj₁ : F ⊣ U` and `(ι, δ)` for the unit and counit of the adjunction
 `adj₂ : F' ⊣ R ⋙ U`.
 
+## TODO
+
+Dualise to lift right adjoints through comonads (by reversing 1-cells) and dualise to lift right
+adjoints through monads (by reversing 2-cells), and the combination.
+
 ## References
 * https://ncatlab.org/nlab/show/adjoint+triangle+theorem
 * https://ncatlab.org/nlab/show/adjoint+lifting+theorem
+* Adjoint Lifting Theorems for Categories of Algebras (PT Johnstone, 1975)
+* A unified approach to the lifting of adjoints (AJ Power, 1988)
 -/
 
 namespace category_theory
@@ -53,6 +60,7 @@ universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 variables {A : Type u₁} {B : Type u₂} {C : Type u₃}
 variables [category.{v₁} A] [category.{v₂} B] [category.{v₃} C]
 
+-- Hide implementation details in this namespace
 namespace lift_adjoint
 
 variables {U : B ⥤ C} {F : C ⥤ B} (R : A ⥤ B) (F' : C ⥤ A)
@@ -199,7 +207,7 @@ begin
     { let : R' ⋙ (monad.comparison U).inv ≅ R :=
         (iso_whisker_left R (monad.comparison U).fun_inv_id : _) ≪≫ R.right_unitor,
       exactI adjunction.right_adjoint_of_nat_iso this } },
-  letI : is_right_adjoint (R' ⋙ monad.forget (left_adjoint U ⋙ U)) :=
+  let : is_right_adjoint (R' ⋙ monad.forget (left_adjoint U ⋙ U)) :=
     adjunction.right_adjoint_of_nat_iso (iso_whisker_left R (monad.comparison_forget U).symm : _),
   letI : Π X, regular_epi ((monad.adj (left_adjoint U ⋙ U)).counit.app X),
   { intro X,

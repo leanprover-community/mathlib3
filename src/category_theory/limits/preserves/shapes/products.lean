@@ -20,8 +20,7 @@ noncomputable theory
 
 universes v u₁ u₂
 
-namespace category_theory
-open category limits
+open category_theory category_theory.category category_theory.limits
 
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]

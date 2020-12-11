@@ -10,6 +10,7 @@ import category_theory.pi.basic
 
 /-!
 # Disjoint union of categories
+
 We define the category structure on a sigma-type (disjoint union) of categories.
 -/
 
@@ -102,9 +103,11 @@ def desc_map : ∀ (X Y : Σ i, C i), (X ⟶ Y) → ((F X.1).obj X.2 ⟶ (F Y.1)
 
 /--
 Given a collection of functors `F i : C i ⥤ D`, we can produce a functor `(Σ i, C i) ⥤ D`.
+
 The produced functor `desc F` satisfies: `incl i ⋙ desc F ≅ F i`, i.e. restricted to just the
 subcategory `C i`, `desc F` agrees with `F i`, and it is unique (up to natural isomorphism) with
 this property.
+
 This witnesses that the sigma-type is the coproduct in Cat.
 -/
 @[simps obj]

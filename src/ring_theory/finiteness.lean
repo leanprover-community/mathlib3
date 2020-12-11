@@ -136,7 +136,7 @@ lemma trans [algebra A B] [is_scalar_tower R A B] (hRA : finite_type R A) (hAB :
   finite_type R B :=
 fg_trans' hRA hAB
 
-/-- An algebra if finitely generated if and only if it is a quotient of a polynomial ring over a
+/-- An algebra is finitely generated if and only if it is a quotient of a polynomial ring over a
 finset. -/
 lemma iff_quotient_mv_polynomial : (finite_type R A) ↔ ∃ (s : finset A)
   (f : (mv_polynomial {x // x ∈ s} R) →ₐ[R] A), (surjective f) :=
@@ -152,7 +152,7 @@ begin
     exact finite_type.of_surjective (finite_type.mv_polynomial R {x // x ∈ s}) f hsur }
 end
 
-/-- An algebra if finitely generated if and only if it is a quotient of a polynomial ring over a
+/-- An algebra is finitely generated if and only if it is a quotient of a polynomial ring over a
 fintype. -/
 lemma iff_quotient_mv_polynomial' : (finite_type R A) ↔ ∃ (ι : Type u_2) [fintype ι]
   (f : (mv_polynomial ι R) →ₐ[R] A), (surjective f) :=
@@ -166,7 +166,7 @@ begin
     exact finite_type.of_surjective (finite_type.mv_polynomial R ι) f hsur }
 end
 
-/-- An algebra if finitely generated if and only if it is a quotient of a polynomial ring in `n`
+/-- An algebra is finitely generated if and only if it is a quotient of a polynomial ring in `n`
 variables. -/
 lemma iff_quotient_mv_polynomial'' : (finite_type R A) ↔ ∃ (n : ℕ)
   (f : (mv_polynomial (fin n) R) →ₐ[R] A), (surjective f) :=

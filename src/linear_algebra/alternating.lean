@@ -314,18 +314,58 @@ end
 
 end alternating_map
 
+-- TODO: move
+namespace tensor_product
+
+open_locale tensor_product
+
+lemma smul_tmul_nat {R : Type*} {M : Type*} {N : Type*}
+  [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [semimodule R M] [semimodule R N]
+  (r : ℕ) (m : M) (n : N) : ((r • m) ⊗ₜ[R] n) = m ⊗ₜ[R] r • n :=
+begin
+  induction r,
+  { simp, },
+  { rw [nat.smul_def, nat.smul_def, succ_nsmul, succ_nsmul, ←nat.smul_def, ←nat.smul_def],
+    rw [add_tmul, tmul_add, r_ih], },
+end
+
+-- note: can be comm_semiring R after #5315
+lemma smul_tmul_int {R : Type*} {M : Type*} {N : Type*}
+  [comm_ring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
+  (r : ℤ) (m : M) (n : N) : ((r • m) ⊗ₜ[R] n) = m ⊗ₜ[R] r • n :=
+by rw [←gsmul_eq_smul, module.gsmul_eq_smul_cast R, ←gsmul_eq_smul, module.gsmul_eq_smul_cast R,
+  smul_tmul]
+
+theorem smul_tmul'_int {R : Type*} {M : Type*} {N : Type*}
+  [comm_ring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
+  (r : ℤ) (m : M) (n : N) :
+  r • (m ⊗ₜ n : M ⊗[R] N) = (r • m) ⊗ₜ n :=
+by rw [←gsmul_eq_smul, module.gsmul_eq_smul_cast R, ←gsmul_eq_smul, module.gsmul_eq_smul_cast R,
+  smul_tmul']
+
+theorem tmul_smul_int {R : Type*} {M : Type*} {N : Type*}
+  [comm_ring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
+  (r : ℤ) (m : M) (n : N) :
+  m ⊗ₜ (r • n) = r • (m ⊗ₜ n : M ⊗[R] N) :=
+by rw [←gsmul_eq_smul, module.gsmul_eq_smul_cast R, ←gsmul_eq_smul, module.gsmul_eq_smul_cast R,
+  tmul_smul]
+
+#check tmul_smul
+
+end tensor_product
+
 section
 
 namespace alternating_map
 
 open_locale big_operators
 open_locale tensor_product
-/--
-`mod_swap i j` contains permutations up to swapping `i` and `j`.
+-- /--
+-- `mod_swap i j` contains permutations up to swapping `i` and `j`.
 
-We use this to partition permutations in `matrix.det_zero_of_row_eq`, such that each partition
-sums up to `0`.
--/
+-- We use this to partition permutations in `matrix.det_zero_of_row_eq`, such that each partition
+-- sums up to `0`.
+-- -/
 -- def mod_swap_sum {α β : Type*) [decidable_eq α] [decidable_eq β] (i : α) (j : β) :
 --   setoid (sum_congr_subgroup α β) :=
 -- ⟨λ σ τ, σ = τ ∨ σ = swap (sum.inl i) j * τ,
@@ -395,6 +435,7 @@ end mod_sum_congr
 
 instance : fintype (mod_sum_congr ιa ιb) := quotient.fintype _
 
+
 private def dom_coprod_aux
   {R : Type*} {M N₁ N₂ : Type*}
   [comm_ring R]
@@ -403,39 +444,49 @@ private def dom_coprod_aux
   [add_comm_monoid M] [semimodule R M]
   (a : alternating_map R M N₁ ιa) (b : alternating_map R M N₂ ιb)
   (v : ιa ⊕ ιb → M) : N₁ ⊗ N₂ :=
-let ab := multilinear_map.dom_coprod a.to_multilinear_map b.to_multilinear_map in
-∑ σ : mod_sum_congr ιa ιb, σ.lift_on' (λ σ, (σ.sign : ℤ) • (ab.dom_dom_congr σ) v)
+∑ σ : mod_sum_congr ιa ιb, σ.lift_on' (λ σ,
+  (σ.sign : ℤ) •
+    (multilinear_map.dom_coprod a.to_multilinear_map b.to_multilinear_map).dom_dom_congr σ v)
 (λ σ₁ σ₂ h, begin
-  dsimp only [ab],
   simp only [multilinear_map.dom_dom_congr_apply,
              multilinear_map.dom_coprod_apply,
              algebra.lmul'_apply,
              to_multilinear_map_eq_coe,
              coe_multilinear_map],
-  dunfold quotient_group.left_rel setoid.r at h,
   obtain ⟨sl, sr, h⟩ := h,
   rw inv_mul_eq_iff_eq_mul at h,
-  rw h,
-  have : (((sl.sign : ℤ) • a (λ i, v $ σ₁ $ sum.inl $ sl i)) ⊗ₜ[R]
-          ((sr.sign : ℤ) • b (λ i, v $ σ₁ $ sum.inr $ sr i))) = a (λ i, v $ σ₁ $ sum.inl i)
-                                                            ⊗ₜ[R] b (λ i, v $ σ₁ $ sum.inr i) := by {
-    rw [a.map_perm' (λ i, v (σ₁ (sum.inl i))), b.map_perm' (λ i, v (σ₁ (sum.inr i)))],
-    simp only [smul_smul, int.units_coe_mul_self, one_smul],
-  },
-  rw ←this,
   have : ((σ₁ * equiv.sum_congr sl sr).sign : ℤ) = σ₁.sign * (sl.sign * sr.sign) := by simp,
-  rw [this, mul_smul, mul_smul, units.smul_left_cancel],
+  rw [h, this, mul_smul, mul_smul, units.smul_left_cancel, ←tensor_product.tmul_smul_int,
+    tensor_product.smul_tmul'_int],
   simp only [sum.map_inr, equiv.perm.sum_congr_apply, sum.map_inl, function.comp_app,
              equiv.perm.coe_mul],
-  rw tensor_product.tmul_smul,
+  rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))],
 end)
 
-#check nat.factorial_ne
+#check 1
 
+
+/-- `swap`, embedded in `mod_sum_congr` -/
+def apply_swap {α β : Type*} [decidable_eq α] [decidable_eq β] (i : α) (j : β) :
+  mod_sum_congr α β → mod_sum_congr α β :=
+let sw := equiv.swap (sum.inl i) (sum.inr j) in
+quot.map (λ σ, σ * sw) (λ σ₁ σ₂ h, begin
+  obtain ⟨sl, sr, h⟩ := h,
+  simp,
+  dunfold setoid.r quotient_group.left_rel sw,
+  rw [mul_inv_rev, mul_assoc, ←mul_assoc _ σ₂, h],
+  simp,
+  existsi _,
+  existsi _,
+end)
+
+#check sum_congr_swap_one
+
+#exit
 
 private lemma dom_coprod_aux_eq_zero_if_eq
   {R : Type*} {M N : Type*}
-  [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
+  [comm_ring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
   (a : alternating_map R M N ιa) (b : alternating_map R M N ιb)
   (v : ιa ⊕ ιb → M) (i j : ιa ⊕ ιb) (h : v i = v j) (hij : i ≠ j) :
   dom_coprod_aux a b v = 0 :=
@@ -449,23 +500,25 @@ begin
               algebra.lmul'_apply,
               to_multilinear_map_eq_coe,
               coe_multilinear_map],
-  rw ←@mul_left_inj' N _ _ _ _ (fintype.card ιa).factorial_ne_zero,
-  cases i; cases j,
-  { sorry, },
-  { apply finset.sum_cancels_of_partition_cancels _,
-    intros σ _,
-    sorry,
-    sorry,
-    sorry, },
-  { apply finset.sum_cancels_of_partition_cancels _,
-    intros σ _,
-    sorry,
-    sorry,
-    sorry, },
-  { apply finset.sum_eq_zero,
-    intros x _,
-    -- simp,
-    sorry, },
+  have : @finset.univ (mod_sum_congr ιa ιb) _ = (@finset.univ _ _).image (quot.mk _) := rfl,
+  simp_rw this,
+  -- rw ←@mul_left_inj' N _ _ _ _ (fintype.card ιa).factorial_ne_zero,
+  -- cases i; cases j,
+  -- { sorry, },
+  -- { apply finset.sum_cancels_of_partition_cancels _,
+  --   intros σ _,
+  --   sorry,
+  --   sorry,
+  --   sorry, },
+  -- { apply finset.sum_cancels_of_partition_cancels _,
+  --   intros σ _,
+  --   sorry,
+  --   sorry,
+  --   sorry, },
+  -- { apply finset.sum_eq_zero,
+  --   intros x _,
+  --   -- simp,
+  --   sorry, },
   /-
   ⊢ ∑ (σ : quotient (mod_sum_congr ιa ιb)),
         σ.lift_on'

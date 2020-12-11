@@ -145,7 +145,7 @@ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
 lemma tprod_aux_eq_tprod (f : Π i, s i) :
   tprod_aux R 1 f = tprod R f := rfl
 
-lemma smul_tprod (f : Π i, s i) (i j : ι) (r : R) :
+lemma smul_tprod_index (f : Π i, s i) (i j : ι) (r : R) :
   tprod R (update f i (r • f i)) = tprod R (update f j (r • f j)) :=
 by simp_rw [←tprod_aux_eq_tprod, smul_tprod_aux]
 
@@ -178,6 +178,13 @@ instance : has_scalar R (⨂[R] i, s i) :=
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end⟩
 
+lemma smul_tprod_aux' (r z : R) (f : Π i, s i) :
+  r • (tprod_aux R z f) = tprod_aux R (r • z) f := rfl
+
+lemma smul_tprod (r : R) (f : Π i, s i) (i : ι) :
+  r • (tprod R f) = tprod R (update f i (r • f i)) :=
+by simp [←tprod_aux_eq_tprod, smul_tprod_aux' r 1 f, smul_tprod_aux]
+
 protected theorem smul_zero (r : R) : (r • 0 : ⨂[R] i, s i) = 0 :=
 add_monoid_hom.map_zero _
 
@@ -189,37 +196,57 @@ add_monoid_hom.map_add _ _ _
 protected theorem induction_on
   {C : (⨂[R] i, s i) → Prop}
   (z : ⨂[R] i, s i)
-  (C0 : C 0)
-  (C1 : ∀ {f : Π i, s i}, C (⨂ₜ[R] i : ι, f i))
+  (C1 : ∀ {r : R} {f : Π i, s i}, C (r • (tprod R f)))
   (Cp : ∀ {x y}, C x → C y → C (x + y)) : C z :=
-add_con.induction_on z $ λ x, free_add_monoid.rec_on x C0 $ λ f y ih,
-by { rw add_con.coe_add, exact Cp C1 ih }
+begin
+  have C0 : C 0,
+  { have h₁ := @C1 0 0,
+    rwa [←tprod_aux_eq_tprod, smul_tprod_aux', zero_smul, zero_tprod_aux] at h₁ },
+  refine add_con.induction_on z (λ x, free_add_monoid.rec_on x C0 _),
+  simp_rw add_con.coe_add,
+  refine λ f y ih, Cp _ ih,
+  simp_rw [←tprod_aux_eq_tprod, smul_tprod_aux', smul_eq_mul, mul_one] at C1,
+  convert @C1 f.1 f.2,
+  simp only [prod.mk.eta],
+end
 
+@[elab_as_eliminator]
+protected theorem induction_on'
+  {C : (⨂[R] i, s i) → Prop}
+  (z : ⨂[R] i, s i)
+  (C1 : ∀ {r : R} {f : Π i, s i}, C (tprod_aux R r f))
+  (Cp : ∀ {x y}, C x → C y → C (x + y)) : C z :=
+begin
+  have C0 : C 0,
+  { have h₁ := @C1 0 0,
+    rwa [zero_tprod_aux] at h₁ },
+  refine add_con.induction_on z (λ x, free_add_monoid.rec_on x C0 _),
+  simp_rw add_con.coe_add,
+  refine λ f y ih, Cp _ ih,
+  convert @C1 f.1 f.2,
+  simp only [prod.mk.eta],
+end
 
 instance : semimodule R (⨂[R] i, s i) :=
-let j : ι := classical.choice (by apply_instance) in
 { smul := (•),
   smul_add := λ r x y, pi_tensor_product.smul_add r x y,
   mul_smul := λ r r' x,
     begin
-      refine pi_tensor_product.induction_on x _ _ _,
-      { simp_rw pi_tensor_product.smul_zero },
-      { intros f,
-        simp [smul_tprod' _ _ j, mul_smul] },
+      refine pi_tensor_product.induction_on' x _ _,
+      { intros r'' f,
+        simp [smul_tprod_aux', mul_assoc] },
       { intros x y ihx ihy,
         simp_rw [pi_tensor_product.smul_add],
         rw [ihx, ihy] }
     end,
-  one_smul := λ x, pi_tensor_product.induction_on x
-    (by rw pi_tensor_product.smul_zero)
-    (λ f, by simp [smul_tprod' _ _ j])
+  one_smul := λ x, pi_tensor_product.induction_on' x
+    (λ f, by simp [smul_tprod_aux' _ _])
     (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy]),
   add_smul := λ r r' x,
     begin
-      refine pi_tensor_product.induction_on x _ _ _,
-      { simp_rw [pi_tensor_product.smul_zero, add_zero] },
-      { intro f,
-        simp_rw [smul_tprod' _ _ j, add_smul, add_tprod] },
+      refine pi_tensor_product.induction_on' x _ _,
+      { intros r f,
+        simp_rw [smul_tprod_aux' _ _, add_smul, add_tprod_aux'] },
       { intros x y ihx ihy,
         simp_rw pi_tensor_product.smul_add,
         rw [ihx, ihy, add_add_add_comm] }
@@ -227,11 +254,10 @@ let j : ι := classical.choice (by apply_instance) in
   smul_zero := λ r, pi_tensor_product.smul_zero r,
   zero_smul := λ x,
     begin
-      refine pi_tensor_product.induction_on x _ _ _,
-      { rw pi_tensor_product.smul_zero },
-      { intro f,
-        rw [smul_tprod' _ _ j, zero_smul],
-        exact zero_tprod (update f j 0) j (update_same j 0 f) },
+      refine pi_tensor_product.induction_on' x _ _,
+      { intros r f,
+        rw [smul_tprod_aux' _ _, zero_smul],
+        exact zero_tprod_aux _ },
       { intros x y ihx ihy,
         rw [pi_tensor_product.smul_add, ihx, ihy, add_zero] },
     end }

@@ -420,9 +420,9 @@ else
   have h₂ : degree (r - f %ₘ g) = degree (g * (q - f /ₘ g)),
     by simp [h₁],
   have h₄ : degree (r - f %ₘ g) < degree g,
-    from calc degree (r - f %ₘ g) ≤ max (degree r) (degree (-(f %ₘ g))) :
-      degree_add_le _ _
-    ... < degree g : max_lt_iff.2 ⟨h.2, by rw degree_neg; exact degree_mod_by_monic_lt _ hg hg0⟩,
+    from calc degree (r - f %ₘ g) ≤ max (degree r) (degree (f %ₘ g)) :
+      degree_sub_le _ _
+    ... < degree g : max_lt_iff.2 ⟨h.2, degree_mod_by_monic_lt _ hg hg0⟩,
   have h₅ : q - (f /ₘ g) = 0,
     from by_contradiction
       (λ hqf, not_le_of_gt h₄ $

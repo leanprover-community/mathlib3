@@ -68,7 +68,7 @@ eq_mul_inv_iff_mul_eq.2 $ by rw [mul_comm]; exact prod_range_mul_prod_Ico f h
 
 lemma sum_Ico_eq_sub {δ : Type*} [add_comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :
   (∑ k in Ico m n, f k) = (∑ k in range n, f k) - (∑ k in range m, f k) :=
-sum_Ico_eq_add_neg f h
+by simpa only [sub_eq_add_neg] using sum_Ico_eq_add_neg f h
 
 @[to_additive]
 lemma prod_Ico_eq_prod_range (f : ℕ → β) (m n : ℕ) :

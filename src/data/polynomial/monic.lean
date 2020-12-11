@@ -225,10 +225,10 @@ section ring
 variables [ring R] {p : polynomial R}
 
 theorem monic_X_sub_C (x : R) : monic (X - C x) :=
-by simpa only [C_neg] using monic_X_add_C (-x)
+by simpa only [sub_eq_add_neg, C_neg] using monic_X_add_C (-x)
 
 theorem monic_X_pow_sub {n : ℕ} (H : degree p ≤ n) : monic (X ^ (n+1) - p) :=
-monic_X_pow_add ((degree_neg p).symm ▸ H)
+by simpa [sub_eq_add_neg] using monic_X_pow_add (show degree (-p) ≤ n, by rwa ←degree_neg p at H)
 
 /-- `X ^ n - a` is monic. -/
 lemma monic_X_pow_sub_C {R : Type u} [ring R] (a : R) {n : ℕ} (h : n ≠ 0) : (X ^ n - C a).monic :=
@@ -237,6 +237,16 @@ begin
   convert monic_X_pow_sub _,
   exact le_trans degree_C_le nat.with_bot.coe_nonneg,
 end
+
+lemma monic_sub_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :
+  monic (p - q) :=
+by { rw sub_eq_add_neg, apply monic_add_of_left hp, rwa degree_neg }
+
+lemma monic_sub_of_right {p q : polynomial R}
+  (hq : q.leading_coeff = -1) (hpq : degree p < degree q) : monic (p - q) :=
+have (-q).coeff (-q).nat_degree = 1 :=
+by rw [nat_degree_neg, coeff_neg, show q.coeff q.nat_degree = -1, from hq, neg_neg],
+by { rw sub_eq_add_neg, apply monic_add_of_right this, rwa degree_neg }
 
 section injective
 open function

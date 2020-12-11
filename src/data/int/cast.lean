@@ -66,7 +66,7 @@ end
 
 @[simp, norm_cast] theorem cast_add [add_group α] [has_one α] : ∀ m n, ((m + n : ℤ) : α) = m + n
 | (m : ℕ) (n : ℕ) := nat.cast_add _ _
-| (m : ℕ) -[1+ n] := cast_sub_nat_nat _ _
+| (m : ℕ) -[1+ n] := by simpa only [sub_eq_add_neg] using cast_sub_nat_nat _ _
 | -[1+ m] (n : ℕ) := (cast_sub_nat_nat _ _).trans $ sub_eq_of_eq_add $
   show (n:α) = -(m+1) + n + (m+1),
   by rw [add_assoc, ← cast_succ, ← nat.cast_add, add_comm,

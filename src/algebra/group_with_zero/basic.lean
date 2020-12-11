@@ -328,8 +328,6 @@ end cancel_monoid_with_zero
 section group_with_zero
 variables [group_with_zero G₀]
 
-lemma div_eq_mul_inv {a b : G₀} : a / b = a * b⁻¹ := rfl
-
 alias div_eq_mul_inv ← division_def
 
 /-- Pullback a `group_with_zero` class along an injective function. -/
@@ -430,12 +428,12 @@ end
 /-- Multiplying `a` by itself and then dividing by itself results in
 `a` (whether or not `a` is zero). -/
 @[simp] lemma mul_self_div_self (a : G₀) : a * a / a = a :=
-mul_self_mul_inv a
+by rw [div_eq_mul_inv, mul_self_mul_inv a]
 
 /-- Dividing `a` by itself and then multiplying by itself results in
 `a` (whether or not `a` is zero). -/
 @[simp] lemma div_self_mul_self (a : G₀) : a / a * a = a :=
-mul_inv_mul_self a
+by rw [div_eq_mul_inv, mul_inv_mul_self a]
 
 lemma inv_involutive' : function.involutive (has_inv.inv : G₀ → G₀) :=
 inv_inv'
@@ -528,31 +526,35 @@ begin
   simp [mul_assoc, hx, hy]
 end
 
-@[simp] lemma div_self {a : G₀} (h : a ≠ 0) : a / a = 1 := mul_inv_cancel h
+@[simp] lemma div_self {a : G₀} (h : a ≠ 0) : a / a = 1 :=
+by rw [div_eq_mul_inv, mul_inv_cancel h]
 
-@[simp] lemma div_one (a : G₀) : a / 1 = a := by simp [div_eq_mul_inv]
+@[simp] lemma div_one (a : G₀) : a / 1 = a :=
+by simp [div_eq_mul_inv a 1]
 
-@[simp] lemma one_div (a : G₀) : 1 / a = a⁻¹ := one_mul _
+@[simp] lemma one_div (a : G₀) : 1 / a = a⁻¹ :=
+by rw [div_eq_mul_inv, one_mul]
 
-@[simp] lemma zero_div (a : G₀) : 0 / a = 0 := zero_mul _
+@[simp] lemma zero_div (a : G₀) : 0 / a = 0 :=
+by rw [div_eq_mul_inv, zero_mul]
 
 @[simp] lemma div_zero (a : G₀) : a / 0 = 0 :=
-show a * 0⁻¹ = 0, by rw [inv_zero, mul_zero]
+by rw [div_eq_mul_inv, inv_zero, mul_zero]
 
 @[simp] lemma div_mul_cancel (a : G₀) {b : G₀} (h : b ≠ 0) : a / b * b = a :=
-inv_mul_cancel_right' h a
+by rw [div_eq_mul_inv, inv_mul_cancel_right' h a]
 
 lemma div_mul_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a / b * b = a :=
 classical.by_cases (λ hb : b = 0, by simp [*]) (div_mul_cancel a)
 
 @[simp] lemma mul_div_cancel (a : G₀) {b : G₀} (h : b ≠ 0) : a * b / b = a :=
-mul_inv_cancel_right' h a
+by rw [div_eq_mul_inv, mul_inv_cancel_right' h a]
 
 lemma mul_div_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a * b / b = a :=
 classical.by_cases (λ hb : b = 0, by simp [*]) (mul_div_cancel a)
 
 lemma mul_div_assoc {a b c : G₀} : a * b / c = a * (b / c) :=
-mul_assoc _ _ _
+by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc _ _ _]
 
 local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
 
@@ -598,20 +600,20 @@ lemma one_div_mul_one_div_rev (a b : G₀) : (1 / a) * (1 / b) =  1 / (b * a) :=
 by simp only [div_eq_mul_inv, one_mul, mul_inv_rev']
 
 theorem divp_eq_div (a : G₀) (u : units G₀) : a /ₚ u = a / u :=
-congr_arg _ $ u.coe_inv'
+by simpa only [div_eq_mul_inv] using congr_arg ((*) a) u.coe_inv'
 
 @[simp] theorem divp_mk0 (a : G₀) {b : G₀} (hb : b ≠ 0) :
   a /ₚ units.mk0 b hb = a / b :=
 divp_eq_div _ _
 
 lemma inv_div : (a / b)⁻¹ = b / a :=
-(mul_inv_rev' _ _).trans (by rw inv_inv'; refl)
+by rw [div_eq_mul_inv, mul_inv_rev', div_eq_mul_inv, inv_inv']
 
 lemma inv_div_left : a⁻¹ / b = (b * a)⁻¹ :=
-(mul_inv_rev' _ _).symm
+by rw [mul_inv_rev', div_eq_mul_inv]
 
 lemma div_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a / b ≠ 0 :=
-mul_ne_zero ha (inv_ne_zero hb)
+by { rw div_eq_mul_inv, exact mul_ne_zero ha (inv_ne_zero hb) }
 
 @[simp] lemma div_eq_zero_iff : a / b = 0 ↔ a = 0 ∨ b = 0:=
 by simp [div_eq_mul_inv]
@@ -764,10 +766,11 @@ end comm_group_with_zero
 section comm_group_with_zero
 variables [comm_group_with_zero G₀] {a b c d : G₀}
 
-lemma div_eq_inv_mul : a / b = b⁻¹ * a := mul_comm _ _
+lemma div_eq_inv_mul : a / b = b⁻¹ * a :=
+by rw [div_eq_mul_inv, mul_comm]
 
 lemma mul_div_right_comm (a b c : G₀) : (a * b) / c = (a / c) * b :=
-by rw [div_eq_mul_inv, mul_assoc, mul_comm b, ← mul_assoc]; refl
+by rw [div_eq_mul_inv, mul_assoc, mul_comm b, ← mul_assoc, div_eq_mul_inv]
 
 lemma mul_comm_div' (a b c : G₀) : (a / b) * c = a * (c / b) :=
 by rw [← mul_div_assoc, mul_div_right_comm]
@@ -842,7 +845,7 @@ end
 
 lemma div_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
   semiconj_by a (x / x') (y / y') :=
-h.mul_right h'.inv_right'
+by { rw [div_eq_mul_inv, div_eq_mul_inv], exact h.mul_right h'.inv_right' }
 
 end semiconj_by
 
@@ -871,7 +874,7 @@ hab.div_right hac
 
 @[simp] theorem div_left (hac : commute a c) (hbc : commute b c) :
   commute (a / b) c :=
-hac.mul_left hbc.inv_left'
+by { rw div_eq_mul_inv, exact hac.mul_left hbc.inv_left' }
 
 end commute
 
@@ -904,7 +907,7 @@ begin
 end
 
 lemma map_div : f (a / b) = f a / f b :=
-(f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv' b
+by simpa only [div_eq_mul_inv] using ((f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv' b)
 
 end group_with_zero
 

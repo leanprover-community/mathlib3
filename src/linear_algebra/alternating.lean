@@ -519,6 +519,28 @@ quot.lift_on σ (λ σ, ∃ i', σ (sum.inl i') = i) (λ a b h, begin
     simp [←hi],},
 end)
 
+#check 1
+
+lemma is_inr_of_not_is_inl {α β : Type*} [decidable_eq α] [decidable_eq β]
+  (i : α ⊕ β)
+  (h : ¬∃ i', sum.inl i' = i) : ∃ i', sum.inr i' = i :=
+begin
+  rw [not_exists] at h,
+  cases i,
+  exact (h i rfl).elim,
+  exact ⟨i, rfl⟩
+end
+
+lemma not_moves_from_left {α β : Type*} [decidable_eq α] [decidable_eq β] {σ : equiv.perm (α ⊕ β)}
+  {i : α ⊕ β}
+  (h : ¬∃ i', σ (sum.inl i') = i) : ∃ i', σ (sum.inr i') = i :=
+begin
+  rw [not_exists] at h,
+  cases h' : σ⁻¹ i,
+  { exfalso, apply h val, rw ←h', simp, },
+  { use val, rw ←h', simp, }
+end
+
 -- def moves_from_right {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) (i : α ⊕ β):
 --   Prop :=
 -- quot.lift_on σ (λ σ, ∃ i', σ (sum.inr i') = i) (λ a b h, begin
@@ -607,6 +629,10 @@ begin
   -- convert equiv.swap_mul_eq_iff,
 end
 
+
+@[simp] lemma quotient.lift_on'_beta {α β : Type*} {s : setoid α} (f : α → β) (h) (x : α) :
+  (@quotient.mk' _ s x).lift_on' f h = f x := rfl
+
 /--
 Cases on each summand:
 
@@ -645,15 +671,31 @@ begin
   convert zero_add (0: N ⊗ N),
   {
     rw finset.sum_eq_zero,
-    rintros ⟨σ⟩ hx,
-    dunfold quotient.lift_on' quotient.lift_on quot.lift_on quot.lift,
+    rintros σ,
+    apply σ.induction_on' (λ σ, _),
+    intro hx,
+    dsimp only [quotient.lift_on'_beta],
     simp at hx,
-    rw quot.lift_beta _ _ σ,
     convert smul_zero _,
-    dsimp [moves_from_left] at hx,
-    dunfold quotient.lift_on' quotient.lift_on quot.lift_on quot.lift at hx,
-    rw [quot.lift_beta, quot.lift_beta] at hx,
-    sorry,
+    dsimp [moves_from_left, quotient.lift_on'_beta] at hx,
+    obtain (⟨⟨i', hi'⟩, ⟨j', hj'⟩⟩ | ⟨hi', hj'⟩) := iff_iff_and_or_not_and_not.mp hx;
+    [ convert tensor_product.zero_tmul _ _, convert tensor_product.tmul_zero _ _];
+    clear _inst; resetI,
+    {
+      rw [←hi', ←hj'] at h,
+      refine a.map_eq_zero_of_eq _ h _,
+      intro hij',
+      apply hij,
+      rw [←hi', ←hj', hij'],},
+    {
+      obtain ⟨i', hi'⟩ := not_moves_from_left hi',
+      obtain ⟨j', hj'⟩ := not_moves_from_left hj',
+      rw [←hi', ←hj'] at h,
+      refine b.map_eq_zero_of_eq _ h _,
+      intro hij',
+      apply hij,
+      rw [←hi', ←hj', hij'],
+    },
   },
   sorry,
   -- sorry,
@@ -773,3 +815,5 @@ end coprod
 end alternating_map
 
 end
+
+∀

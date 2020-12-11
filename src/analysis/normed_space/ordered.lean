@@ -56,7 +56,7 @@ begin
   exact @tendsto_pow_neg_at_top α _ _ (by apply_instance) _ this,
 end
 
-lemma is_o_pow_pow_at_top_of_lt {α : Type} [normed_linear_ordered_field α]
+lemma is_o_pow_pow_at_top_of_lt {α : Type*} [normed_linear_ordered_field α]
   [order_topology α] {p q : ℕ} (hpq : p < q) :
   is_o (λ (x : α), x^p) (λ (x : α), x^q) at_top :=
 begin

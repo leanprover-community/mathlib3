@@ -11,6 +11,7 @@ import ring_theory.integral_domain
 import number_theory.divisors
 import data.zmod.basic
 import tactic.zify
+import field_theory.separable
 
 /-!
 # Roots of unity and primitive roots of unity
@@ -714,5 +715,80 @@ lemma nth_roots_one_eq_bind_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
 @nth_roots_one_eq_bind_primitive_roots' _ _ _ ⟨n, hpos⟩ h
 
 end integral_domain
+
+section minimal_polynomial
+
+open minimal_polynomial
+
+variables {n : ℕ} {K : Type*} [field K] {μ : K} (h : is_primitive_root μ n) (hpos : 0 < n)
+
+include n μ h hpos
+
+/--`μ` is integral over `ℤ`. -/
+lemma is_integral : is_integral ℤ μ :=
+begin
+  use (X ^ n - 1),
+  split,
+  { exact (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm) },
+  simp only [((is_primitive_root.iff_def μ n).mp h).left, eval₂_one, eval₂_X_pow, eval₂_sub,
+  sub_self],
+end
+
+/--The minimal polynomial of `μ` is monic. -/
+lemma is_monic_minimal_polynomial : (minimal_polynomial (is_integral h hpos)).monic :=
+(minimal_polynomial.monic (is_integral h hpos))
+
+/--The minimal polynomial of `μ` is primitive. -/
+lemma is_primitive_minimal_polynomial : is_primitive
+(minimal_polynomial (is_integral h hpos)) := monic.is_primitive
+(is_monic_minimal_polynomial h hpos)
+
+variables [char_zero K]
+
+/--`μ ` is integral over `ℚ`. -/
+lemma is_algebraic : _root_.is_integral ℚ μ :=
+@is_integral_of_is_scalar_tower ℤ ℚ K _ _ _ (algebra_int ℚ) _ _ add_comm_group.int_is_scalar_tower
+  μ (is_integral h hpos)
+
+/--The minimal polynomial of `μ` over `ℚ` is the same as the minimal polynomial over `ℤ`. -/
+lemma min_poly_rational_eq_min_poly_integer : minimal_polynomial (is_algebraic h hpos)
+   = map (int.cast_ring_hom ℚ) (minimal_polynomial (is_integral h hpos)) :=
+begin
+  refine (unique' (is_algebraic h hpos) _ _ _).symm,
+  { exact (is_primitive.int.irreducible_iff_irreducible_map_cast (is_primitive_minimal_polynomial h
+  hpos)).1 (irreducible (is_integral h hpos)) },
+  { have htower := is_scalar_tower.aeval_apply ℤ ℚ K μ (minimal_polynomial
+    (is_integral h hpos)),
+    rw [minimal_polynomial.aeval] at htower,
+    exact htower.symm },
+  { exact monic_map _ (is_monic_minimal_polynomial h hpos) }
+end
+
+/--If `P : polynomial ℤ` is primitive and has `μ` as root, then the minimal polynomial of `μ`
+over `ℤ` divides `P`. -/
+lemma minimal_polynomial_dvd {P : polynomial ℤ} (hprim : is_primitive P)
+  (hroot : aeval μ P = 0) : minimal_polynomial (is_integral h hpos) ∣ P :=
+begin
+  apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (minimal_polynomial
+  (is_integral h hpos)) P _ hprim).2,
+  { rw [←min_poly_rational_eq_min_poly_integer h hpos],
+    apply minimal_polynomial.dvd,
+    have htower := is_scalar_tower.aeval_apply ℤ ℚ K μ P,
+    rw [hroot] at htower,
+    exact htower.symm },
+  { exact is_primitive_minimal_polynomial h hpos }
+end
+
+/--The minimal polynomial of `μ` divides `X ^ n - 1`. -/
+lemma minimal_polynomial_dvd_X_pow_sub_one :
+  minimal_polynomial (is_integral h hpos) ∣ X ^ n - 1 :=
+begin
+  apply minimal_polynomial_dvd h hpos (polynomial.monic.is_primitive
+  (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)),
+  simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, ring_hom.eq_int_cast,
+  int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
+end
+
+end minimal_polynomial
 
 end is_primitive_root

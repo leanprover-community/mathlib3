@@ -67,7 +67,7 @@ begin
           (λ _ _ _ _ h, (swap i j).injective h)
           (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
       by simp [sign_mul, this, sign_swap hij, prod_mul_distrib])
-    (λ σ _ _ h, hij (σ.injective $ by conv {to_lhs, rw ← h}; simp))
+    (λ σ _ _, (not_congr mul_swap_eq_iff).mpr hij)
     (λ _ _, mem_univ _)
     (λ σ _, mul_swap_involutive i j σ)
 end

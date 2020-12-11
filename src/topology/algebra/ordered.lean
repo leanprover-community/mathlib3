@@ -1887,12 +1887,15 @@ end linear_order
 section linear_order
 
 variables [topological_space α] [linear_order α] [order_topology α] [densely_ordered α]
+  {a b : α} {s : set α}
 
-lemma comap_coe_nhds_within_Iio_of_Ioo_subset {a b : α} (h : a < b) {s : set α} (hb : s ⊆ Iio b)
-  (hs : Ioo a b ⊆ s) :
+lemma comap_coe_nhds_within_Iio_of_Ioo_subset (hb : s ⊆ Iio b)
+  (hs : s.nonempty → ∃ a < b, Ioo a b ⊆ s) :
   comap (coe : s → α) (𝓝[Iio b] b) = at_top :=
 begin
-  haveI : nonempty s := ((nonempty_Ioo.2 h).mono hs).to_subtype,
+  nontriviality,
+  haveI : nonempty s := nontrivial_iff_nonempty.1 ‹_›,
+  rcases hs (nonempty_subtype.1 ‹_›) with ⟨a, h, hs⟩,
   ext u, split,
   { rintros ⟨t, ht, hts⟩,
     obtain ⟨x, ⟨hxa : a ≤ x, hxb : x < b⟩, hxt : Ioo x b ⊆ t⟩ :=
@@ -1906,69 +1909,109 @@ begin
     exact ⟨Ioo x b, Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 $ hb x.2), λ z hz, hx _ hz.1.le⟩ }
 end
 
-lemma comap_coe_nhds_within_Ioi_of_Ioo_subset {a b : α} (h : a < b) {s : set α} (hb : s ⊆ Ioi a)
-  (hs : Ioo a b ⊆ s) :
+lemma comap_coe_nhds_within_Ioi_of_Ioo_subset (ha : s ⊆ Ioi a)
+  (hs : s.nonempty → ∃ b > a, Ioo a b ⊆ s) :
   comap (coe : s → α) (𝓝[Ioi a] a) = at_bot :=
 begin
-  refine @comap_coe_nhds_within_Iio_of_Ioo_subset (order_dual α) _ _ _ _ b a h s hb _,
+  refine @comap_coe_nhds_within_Iio_of_Ioo_subset (order_dual α) _ _ _ _ _ _ ha (λ h, _),
+  rcases hs h with ⟨b, hab, h⟩,
+  use [b, hab],
   rwa dual_Ioo
 end
 
-lemma map_coe_at_top_of_Ioo_subset {a b : α} (h : a < b) {s : set α} (hb : s ⊆ Iio b)
-  (hs : Ioo a b ⊆ s) :
-  map (coe : s → α) at_top = (𝓝[Iio b] b) :=
+lemma map_coe_at_top_of_Ioo_subset (hb : s ⊆ Iio b)
+  (hs : ∀ a' < b, ∃ a < b, Ioo a b ⊆ s) :
+  map (coe : s → α) at_top = 𝓝[Iio b] b :=
 begin
-  rw [← comap_coe_nhds_within_Iio_of_Ioo_subset h hb hs, map_comap],
-  rw subtype.range_coe,
-  exact mem_sets_of_superset (Ioo_mem_nhds_within_Iio $ right_mem_Ioc.2 h) hs
+  rcases eq_empty_or_nonempty (Iio b) with (hb'|⟨a, ha⟩),
+  { rw [filter_eq_bot_of_not_nonempty at_top, map_bot, hb', nhds_within_empty],
+    exact λ ⟨⟨x, hx⟩⟩, not_nonempty_iff_eq_empty.2 hb' ⟨x, hb hx⟩ },
+  { rw [← comap_coe_nhds_within_Iio_of_Ioo_subset hb (λ _, hs a ha), map_comap],
+    rw subtype.range_coe,
+    exact (mem_nhds_within_Iio_iff_exists_Ioo_subset' ha).2 (hs a ha) },
 end
 
-lemma map_coe_at_bot_of_Ioo_subset {a b : α} (h : a < b) {s : set α} (hb : s ⊆ Ioi a)
-  (hs : Ioo a b ⊆ s) :
+lemma map_coe_at_bot_of_Ioo_subset (ha : s ⊆ Ioi a)
+  (hs : ∀ b' > a, ∃ b > a, Ioo a b ⊆ s) :
   map (coe : s → α) at_bot = (𝓝[Ioi a] a) :=
 begin
-  rw [← comap_coe_nhds_within_Ioi_of_Ioo_subset h hb hs, map_comap],
-  rw subtype.range_coe,
-  exact mem_sets_of_superset (Ioo_mem_nhds_within_Ioi $ left_mem_Ico.2 h) hs
+  refine @map_coe_at_top_of_Ioo_subset (order_dual α) _ _ _ _ a s ha (λ b' hb', _),
+  rcases hs b' hb' with ⟨b, hab, hbs⟩,
+  use [b, hab],
+  rwa dual_Ioo
 end
 
 /-- The `at_top` filter for an open interval `Ioo a b` comes from the left-neighbourhoods filter at
 the right endpoint in the ambient order. -/
-lemma comap_coe_Ioo_nhds_within_Ioi {a b : α} (h : a < b) :
+lemma comap_coe_Ioo_nhds_within_Iio (a b : α) :
   comap (coe : Ioo a b → α) (𝓝[Iio b] b) = at_top :=
-comap_coe_nhds_within_Iio_of_Ioo_subset h Ioo_subset_Iio_self (subset.refl _)
+comap_coe_nhds_within_Iio_of_Ioo_subset Ioo_subset_Iio_self $
+  λ h, ⟨a, nonempty_Ioo.1 h, subset.refl _⟩
 
 /-- The `at_bot` filter for an open interval `Ioo a b` comes from the right-neighbourhoods filter at
 the left endpoint in the ambient order. -/
-lemma comap_coe_Ioo_nhds_within_Iio {a b : α} (h : a < b) :
+lemma comap_coe_Ioo_nhds_within_Ioi (a b : α) :
   comap (coe : Ioo a b → α) (𝓝[Ioi a] a) = at_bot :=
-comap_coe_nhds_within_Ioi_of_Ioo_subset h Ioo_subset_Ioi_self (subset.refl _)
+comap_coe_nhds_within_Ioi_of_Ioo_subset Ioo_subset_Ioi_self $
+  λ h, ⟨b, nonempty_Ioo.1 h, subset.refl _⟩
 
-lemma comap_coe_Ioi_nhds_within_Ioi [no_top_order α] (a : α) :
-  comap (coe : Ioi a → α) (𝓝[Ioi a] a) = at_bot :=
-let ⟨b, hb⟩ := no_top a in
-comap_coe_nhds_within_Ioi_of_Ioo_subset hb (subset.refl _) Ioo_subset_Ioi_self
+lemma comap_coe_Ioi_nhds_within_Ioi (a : α) : comap (coe : Ioi a → α) (𝓝[Ioi a] a) = at_bot :=
+comap_coe_nhds_within_Ioi_of_Ioo_subset (subset.refl _) $
+  λ ⟨x, hx⟩, ⟨x, hx, Ioo_subset_Ioi_self⟩
 
-lemma comap_coe_Iio_nhds_within_Iio [no_bot_order α] (a : α) :
+lemma comap_coe_Iio_nhds_within_Iio (a : α) :
   comap (coe : Iio a → α) (𝓝[Iio a] a) = at_top :=
-@comap_coe_Ioi_nhds_within_Ioi (order_dual α) _ _ _ _ _ a
+@comap_coe_Ioi_nhds_within_Ioi (order_dual α) _ _ _ _ a
 
 @[simp] lemma map_coe_Ioo_at_top {a b : α} (h : a < b) :
   map (coe : Ioo a b → α) at_top = 𝓝[Iio b] b :=
-map_coe_at_top_of_Ioo_subset h Ioo_subset_Iio_self (subset.refl _)
+map_coe_at_top_of_Ioo_subset Ioo_subset_Iio_self $ λ _ _, ⟨_, h, subset.refl _⟩
 
 @[simp] lemma map_coe_Ioo_at_bot {a b : α} (h : a < b) :
   map (coe : Ioo a b → α) at_bot = 𝓝[Ioi a] a :=
-map_coe_at_bot_of_Ioo_subset h Ioo_subset_Ioi_self (subset.refl _)
+map_coe_at_bot_of_Ioo_subset Ioo_subset_Ioi_self $ λ _ _, ⟨_, h, subset.refl _⟩
 
-@[simp] lemma map_coe_Ioi_at_bot [no_top_order α] (a : α) :
+@[simp] lemma map_coe_Ioi_at_bot (a : α) :
   map (coe : Ioi a → α) at_bot = 𝓝[Ioi a] a :=
-let ⟨b, hb⟩ := no_top a in
-map_coe_at_bot_of_Ioo_subset hb (subset.refl _) Ioo_subset_Ioi_self
+map_coe_at_bot_of_Ioo_subset (subset.refl _) $ λ b hb, ⟨b, hb, Ioo_subset_Ioi_self⟩
 
-@[simp] lemma map_coe_Iio_at_top [no_bot_order α] (a : α) :
+@[simp] lemma map_coe_Iio_at_top (a : α) :
   map (coe : Iio a → α) at_top = 𝓝[Iio a] a :=
-@map_coe_Ioi_at_bot (order_dual α) _ _ _ _ _ a
+@map_coe_Ioi_at_bot (order_dual α) _ _ _ _ _
+
+variables {l : filter β} {f : α → β}
+
+@[simp] lemma tendsto_comp_coe_Ioo_at_top (h : a < b) :
+  tendsto (λ x : Ioo a b, f x) at_top l ↔ tendsto f (𝓝[Iio b] b) l :=
+by rw [← map_coe_Ioo_at_top h, tendsto_map'_iff]
+
+@[simp] lemma tendsto_comp_coe_Ioo_at_bot (h : a < b) :
+  tendsto (λ x : Ioo a b, f x) at_bot l ↔ tendsto f (𝓝[Ioi a] a) l :=
+by rw [← map_coe_Ioo_at_bot h, tendsto_map'_iff]
+
+@[simp] lemma tendsto_comp_coe_Ioi_at_bot :
+  tendsto (λ x : Ioi a, f x) at_bot l ↔ tendsto f (𝓝[Ioi a] a) l :=
+by rw [← map_coe_Ioi_at_bot, tendsto_map'_iff]
+
+@[simp] lemma tendsto_comp_coe_Iio_at_top :
+  tendsto (λ x : Iio a, f x) at_top l ↔ tendsto f (𝓝[Iio a] a) l :=
+by rw [← map_coe_Iio_at_top, tendsto_map'_iff]
+
+@[simp] lemma tendsto_Ioo_at_top {f : β → Ioo a b} :
+  tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l (𝓝[Iio b] b) :=
+by rw [← comap_coe_Ioo_nhds_within_Iio, tendsto_comap_iff]
+
+@[simp] lemma tendsto_Ioo_at_bot {f : β → Ioo a b} :
+  tendsto f l at_bot ↔ tendsto (λ x, (f x : α)) l (𝓝[Ioi a] a) :=
+by rw [← comap_coe_Ioo_nhds_within_Ioi, tendsto_comap_iff]
+
+@[simp] lemma tendsto_Ioi_at_bot {f : β → Ioi a} :
+  tendsto f l at_bot ↔ tendsto (λ x, (f x : α)) l (𝓝[Ioi a] a) :=
+by rw [← comap_coe_Ioi_nhds_within_Ioi, tendsto_comap_iff]
+
+@[simp] lemma tendsto_Iio_at_top {f : β → Iio a} :
+  tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l (𝓝[Iio a] a) :=
+by rw [← comap_coe_Iio_nhds_within_Iio, tendsto_comap_iff]
 
 end linear_order
 

@@ -767,8 +767,8 @@ finset.strong_induction_on s
       then ih' ▸ eq.symm (prod_subset hmem
         (λ y hy hy₁,
           have y = x ∨ y = g x hx, by simp [hy] at hy₁; tauto,
-          this.elim (λ h, h.symm ▸ hx1)
-            (λ h, h x hx ▸ h ▸ hx1.symm ▸ (one_mul _).symm)))
+          this.elim (λ hy, hy.symm ▸ hx1)
+            (λ hy, h x hx ▸ hy ▸ hx1.symm ▸ (one_mul _).symm)))
       else by rw [← insert_erase hx, prod_insert (not_mem_erase _ _),
         ← insert_erase (mem_erase.2 ⟨g_ne x hx hx1, g_mem x hx⟩),
         prod_insert (not_mem_erase _ _), ih', mul_one, h x hx]))

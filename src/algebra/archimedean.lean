@@ -211,7 +211,7 @@ variables [linear_ordered_field α]
 
 theorem archimedean_iff_nat_lt :
   archimedean α ↔ ∀ x : α, ∃ n : ℕ, x < n :=
-⟨@exists_nat_gt α _, λ H, ⟨λ x y y0,
+⟨@exists_nat_gt α _ _, λ H, ⟨λ x y y0,
   (H (x / y)).imp $ λ n h, le_of_lt $
   by rwa [div_lt_iff y0, ← nsmul_eq_mul] at h⟩⟩
 
@@ -250,8 +250,8 @@ begin
   cases exists_nat_gt (y - x)⁻¹ with n nh,
   cases exists_floor (x * n) with z zh,
   refine ⟨(z + 1 : ℤ) / n, _⟩,
-  have n0 := nat.cast_pos.1 (lt_trans (inv_pos.2 (sub_pos.2 h)) nh),
-  have n0' := (@nat.cast_pos α _ _).2 n0,
+  have n0' := (inv_pos.2 (sub_pos.2 h)).trans nh,
+  have n0 := nat.cast_pos.1 n0',
   rw [rat.cast_div_of_ne_zero, rat.cast_coe_nat, rat.cast_coe_int, div_lt_iff n0'],
   refine ⟨(lt_div_iff n0').2 $
     (lt_iff_lt_of_le_iff_le (zh _)).1 (lt_add_one _), _⟩,

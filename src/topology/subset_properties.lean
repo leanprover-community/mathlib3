@@ -662,6 +662,36 @@ lemma continuous_on.preimage_clopen_of_clopen {β: Type*} [topological_space β]
   (ht : is_clopen t) : is_clopen (s ∩ f⁻¹' t) :=
 ⟨continuous_on.preimage_open_of_open hf hs.1 ht.1, continuous_on.preimage_closed_of_closed hf hs.2 ht.2⟩
 
+/-- The intersection of a disjoint covering by two open sets of a clopen set will be clopen -/
+theorem is_clopen_inter_of_disjoint_cover_clopen {Z a b : set α} (h : is_clopen Z)
+  (cover : Z ⊆ a ∪ b) (ha : is_open a) (hb : is_open b) (hab : a ∩ b = ∅) : is_clopen (Z ∩ a) :=
+begin
+  split,
+    exact is_open_inter h.1 ha,
+  rw ←(@subtype.range_coe _ Z),
+  apply (closed_embedding.closed_iff_preimage_closed
+    (is_closed.closed_embedding_subtype_coe h.2) (set.inter_subset_left _ a)).2,
+  apply is_open_compl_iff.1,
+  have H2 :  ((coe : Z → α) ⁻¹' (set.range (coe : Z → α) ∩ a))ᶜ = ((coe : Z → α) ⁻¹' (set.range (coe : Z → α) ∩ b)),
+  { apply set.eq_of_subset_of_subset,
+    { rw [set.compl_subset_iff_union],
+      simp only [set.preimage_inter],
+      ext1, cases x,
+      simp only [set.mem_preimage, set.univ_inter, set.mem_univ, subtype.coe_preimage_self,
+        subtype.range_coe_subtype, iff_true, set.mem_union_eq, subtype.coe_mk, set.set_of_mem_eq],
+      solve_by_elim },
+    rw [set.subset_compl_iff_disjoint],
+    simp only [set.univ_inter, subtype.coe_preimage_self, subtype.range_coe_subtype, set.preimage_inter, set.set_of_mem_eq],
+    rw [←set.preimage_inter, set.inter_comm],
+    apply set.preimage_eq_empty,
+    rw hab,
+    exact set.empty_disjoint _  },
+  rw H2,
+  apply continuous.is_open_preimage continuous_subtype_coe,
+  rw subtype.range_coe,
+  exact is_open_inter h.1 hb,
+end
+
 end clopen
 
 section preirreducible

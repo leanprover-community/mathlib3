@@ -33,8 +33,8 @@ instance : inhabited (language α) := ⟨0⟩
 instance : has_add (language α) := ⟨set.union⟩
 instance : has_mul (language α) := ⟨λ l m, (l.prod m).image (λ p, p.1 ++ p.2)⟩
 
-@[simp] lemma zero_def : (0 : language α) = (∅ : set _) := rfl
-@[simp] lemma one_def : (1 : language α) = {[]} := rfl
+lemma zero_def : (0 : language α) = (∅ : set _) := rfl
+lemma one_def : (1 : language α) = {[]} := rfl
 
 lemma add_def (l m : language α) : l + m = l ∪ m := rfl
 lemma mul_def (l m : language α) : l * m = (l.prod m).image (λ p, p.1 ++ p.2) := rfl
@@ -51,10 +51,10 @@ private lemma mul_assoc (l m n : language α) : (l * m) * n = l * (m * n) :=
 by { ext x, simp [mul_def], tauto {closer := `[subst_vars, simp *] } }
 
 private lemma one_mul (l : language α) : 1 * l = l :=
-by { ext x, simp [mul_def], tauto {closer := `[subst_vars, simp *] } }
+by { ext x, simp [mul_def, one_def], tauto {closer := `[subst_vars, simp [*]] } }
 
 private lemma mul_one (l : language α) : l * 1 = l :=
-by { ext x, simp [mul_def], tauto {closer := `[subst_vars, simp *] } }
+by { ext x, simp [mul_def, one_def], tauto {closer := `[subst_vars, simp *] } }
 
 private lemma left_distrib (l m n : language α) : l * (m + n) = (l * m) + (l * n) :=
 begin
@@ -98,13 +98,13 @@ instance : semiring (language α) :=
 { add := (+),
   add_assoc := by simp [add_def, set.union_assoc],
   zero := 0,
-  zero_add := by simp [add_def],
-  add_zero := by simp [add_def],
+  zero_add := by simp [zero_def, add_def],
+  add_zero := by simp [zero_def, add_def],
   add_comm := by simp [add_def, set.union_comm],
   mul := (*),
   mul_assoc := mul_assoc,
-  zero_mul := by simp [mul_def],
-  mul_zero := by simp [mul_def],
+  zero_mul := by simp [zero_def, mul_def],
+  mul_zero := by simp [zero_def, mul_def],
   one := 1,
   one_mul := one_mul,
   mul_one := mul_one,

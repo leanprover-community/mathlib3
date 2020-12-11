@@ -127,6 +127,24 @@ end
 lemma is_equivalent.tendsto_nhds_iff {c : β} (huv : u ~[l] v) :
   tendsto u l (𝓝 c) ↔ tendsto v l (𝓝 c) := ⟨huv.tendsto_nhds, huv.symm.tendsto_nhds⟩
 
+lemma is_equivalent.add_is_o (huv : u ~[l] v) (hwv : is_o w v l) : (w + u) ~[l] v :=
+begin
+  rw is_equivalent at *,
+  convert hwv.add huv,
+  ext,
+  simp [add_sub],
+end
+
+lemma is_o.is_equivalent (huv : is_o (u - v) v l) : u ~[l] v := huv
+
+lemma is_equivalent.neg (huv : u ~[l] v) : (λ x, - u x) ~[l] (λ x, - v x) :=
+begin
+  rw is_equivalent,
+  convert huv.is_o.neg_left.neg_right,
+  ext,
+  simp,
+end
+
 end normed_group
 
 open_locale asymptotics
@@ -255,6 +273,17 @@ tendsto.congr' h.symm ((mul_comm u φ) ▸ (tendsto_mul_at_top zero_lt_one hu h�
 
 lemma is_equivalent.tendsto_at_top_iff [order_topology β] (huv : u ~[l] v) :
   tendsto u l at_top ↔ tendsto v l at_top := ⟨huv.tendsto_at_top, huv.symm.tendsto_at_top⟩
+
+lemma is_equivalent.tendsto_at_bot [order_topology β] (huv : u ~[l] v) (hu : tendsto u l at_bot) :
+  tendsto v l at_bot :=
+begin
+  convert tendsto_neg_at_top_at_bot.comp (huv.neg.tendsto_at_top $ tendsto_neg_at_bot_at_top.comp hu),
+  ext,
+  simp
+end
+
+lemma is_equivalent.tendsto_at_bot_iff [order_topology β] (huv : u ~[l] v) :
+  tendsto u l at_bot ↔ tendsto v l at_bot := ⟨huv.tendsto_at_bot, huv.symm.tendsto_at_bot⟩
 
 end normed_linear_ordered_field
 

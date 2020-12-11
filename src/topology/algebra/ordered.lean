@@ -1496,12 +1496,25 @@ begin
   simpa [div_le_iff' hr] using hx
 end
 
+lemma tendsto_at_bot_mul_left' {r : α} (hr : r < 0) (hf : tendsto f l at_top) :
+  tendsto (λx, r * f x) l at_bot :=
+begin
+  apply tendsto_at_bot.2 (λb, _),
+  filter_upwards [tendsto_at_top.1 hf (b/r)],
+  assume x hx,
+  simpa [div_le_iff_of_neg' hr] using hx
+end
+
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
 constant (on the right) also tends to infinity. For a version working in `ℕ` or `ℤ`, use
 `tendsto_at_top_mul_right` instead. -/
 lemma tendsto_at_top_mul_right' {r : α} (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, f x * r) l at_top :=
 by simpa [mul_comm] using tendsto_at_top_mul_left' hr hf
+
+lemma tendsto_at_bot_mul_right' {r : α} (hr : r < 0) (hf : tendsto f l at_top) :
+  tendsto (λx, f x * r) l at_bot :=
+by simpa [mul_comm] using tendsto_at_bot_mul_left' hr hf
 
 /-- If a function tends to infinity along a filter, then this function divided by a positive
 constant also tends to infinity. -/
@@ -2617,6 +2630,15 @@ end
 lemma tendsto_abs_at_top_at_top [linear_ordered_add_comm_group α] :
   tendsto (abs : α → α) at_top at_top :=
 tendsto_at_top_mono (λ n, le_abs_self _) tendsto_id
+
+lemma tendsto_abs_at_bot_at_top [linear_ordered_add_comm_group α] :
+  tendsto (abs : α → α) at_bot at_top :=
+begin
+  convert show tendsto (abs ∘ has_neg.neg : α → α) at_bot at_top,
+    from tendsto_abs_at_top_at_top.comp tendsto_neg_at_bot_at_top,
+  ext,
+  simp
+end
 
 local notation `|` x `|` := abs x
 

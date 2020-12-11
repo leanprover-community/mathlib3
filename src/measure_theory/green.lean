@@ -152,10 +152,19 @@ begin
 --  sorry,
 end
 
+def box_volume (a b : fin 2 → ℝ) := ∏ (i : fin 2), (b i - a i)
+
+lemma box_volume_eq (a b : fin 2 → ℝ) :
+  box_volume a b = (b 0 - a 0)*(b 1 - a 1)
+:=
+begin
+  sorry,
+end
 
 lemma box_line_integral_linear (u: (fin 2→ ℝ ) →L[ℝ] ℝ ) (i : fin 2) (a b : fin 2 → ℝ) :
-  box_line_integral u i a b  = (b 0 - a 0) * (a 1 - b 1) * (u (oppE i))  :=
+  box_line_integral u i a b  = (box_volume a b) * (u (oppE i))  :=
 begin
+  rw box_volume_eq,
   rw box_line_integral,
   rw segment_parametrized_integral,
   rw segment_parametrized_integral,
@@ -333,7 +342,7 @@ begin
         rw mul_assoc,
 --        ring,
       },
-      exact rw6,
+      simp [rw6],
       --rw rw2,
 --      refl,
 --      rw ite_eq_iff refl,  --ite_eq_left_iff,
@@ -569,6 +578,11 @@ begin
   },
   {
     intros h,
+
+    -- split here by cases x i ≤ a i etc
+
+    sorry,
+
     cases h,
     {
     --- ALEX
@@ -675,10 +689,10 @@ end
 def box_integral (a b : fin 2 → ℝ) : ℝ :=
 ∫ x in rectangle a b, u ((foo' ℝ ℝ).symm x) ∂(volume.prod volume)
 
-
 lemma box_integral_const (cU : ℝ)  (a b : fin 2 → ℝ) :
-  box_integral (λ x, cU ) a b  = 0 :=
+  box_integral (λ x, cU ) a b  = cU * box_volume a b :=
 begin
+
   -- ALEX TO DO
   rw box_integral,
   rw rectangle,
@@ -686,7 +700,23 @@ begin
   sorry,
 end
 
+-- need Tonelli over sets !
+/-
+def mid_point (a b : fin 2 → ℝ) := (a + b)/2
 
+lemma box_integral_linear (u : (fin 2 → ℝ) →L[ℝ] ℝ)  (a b : fin 2 → ℝ) :
+  box_integral u a b  = * u (mid_point a b)
+  :=
+begin
+  -- ALEX TO DO
+  rw box_integral,
+  rw rectangle,
+
+--  rw lintegral_prod,
+--  rw interval_integral.integral_const_of_cdf,
+  sorry,
+end
+-/
 
 lemma is_box_additive_integral (hu : integrable (u ∘ (foo' ℝ ℝ).symm)) :
   box_additive_on (box_integral u) univ :=
@@ -735,14 +765,14 @@ U=(P,Q)
 
 -/
 
-def divergence : (fin 2 → ℝ) → ℝ := fderiv ℝ P ex - fderiv ℝ Q ey
+def divergence : (fin 2 → ℝ) → ℝ := (λ x, fderiv ℝ P x ey - fderiv ℝ Q x ex)
 
 def div_diff (a b : fin 2 → ℝ) : ℝ :=
 box_integral (divergence P Q) a b
 -
 (
 box_line_integral P 0 a b
-+
+-
 box_line_integral Q 1 a b
 )
 
@@ -750,17 +780,39 @@ lemma const_div_diff_cancels (a b : fin 2 → ℝ) (cP cQ : ℝ) :
   div_diff (λ x, cP) (λ x, cQ) a b = 0 :=
 begin
   rw div_diff,
-
+  rw divergence,
+  simp [box_line_integral_const],
+  rw box_integral,
+  simp,
 end
 
-lemma linear_div_diff_cancels (a b : fin 2 → ℝ) (P: (fin 2 → ℝ) →L[ℝ] ℝ) (Q: (fin 2 → ℝ) →L[ℝ] ℝ) :
-  div_diff P Q a b =0 :=
+lemma linear_divergence (P Q : (fin 2 → ℝ) →L[ℝ] ℝ) :
+divergence P Q = (λ x, P ey - Q ex)
+:=
 begin
-  sorry,
+  rw divergence,
+  ext,
+  rw continuous_linear_map.fderiv,
+  rw continuous_linear_map.fderiv,
+end
+
+lemma linear_div_diff_cancels (a b : fin 2 → ℝ) (P Q : (fin 2 → ℝ) →L[ℝ] ℝ) :
+  div_diff P Q a b = 0 :=
+begin
+  rw div_diff,
+
+  rw linear_divergence,
+  rw box_integral_const,
+
+  simp [box_line_integral_linear, oppE],
+  simp,
+  ring,
 end
 
 variables {P Q} (hP : differentiable ℝ P) (hQ : differentiable ℝ Q)
 variables (hdiv : integrable ((divergence P Q) ∘ (foo' ℝ ℝ).symm) volume)
+
+def box_volume' (p : (fin 2 → ℝ) × (fin 2 → ℝ)) : ℝ := box_volume p.fst p.snd
 
 include hP hQ hdiv
 
@@ -769,13 +821,37 @@ include hP hQ hdiv
 lemma box_additive_div_diff : box_additive_on (div_diff P Q) univ :=
 begin
   apply (is_box_additive_integral _ hdiv).sub,
-  apply (is_box_additive_line_integral 0 hP.continuous).add,
+  apply (is_box_additive_line_integral 0 hP.continuous).sub,
   exact is_box_additive_line_integral 1 hQ.continuous
 end
 
 open box_additive_on
 open box_subadditive_on
 
+
+def box_integral' (P : (fin 2 → ℝ) → ℝ) (p : (fin 2 → ℝ) × (fin 2 → ℝ))
+: ℝ := uncurry (box_integral P) p
+--ERROR!!!
+
+
+-- add lemma that the average over smaller and smaller boxes is the value at a point
+lemma averaging (P : (fin 2 → ℝ) → ℝ)
+  (pcont: continuous P)
+  (b : fin 2 → ℝ)
+:
+  asymptotics.is_o (uncurry (box_integral P) -
+  (λ p,
+   (box_volume' p) * P b))
+    --(λ p --(p : (fin 2 → ℝ) × (fin 2 → ℝ)),
+       --∏ (i : fin 2), (p.fst i - p.snd i))
+       box_volume' -- p.fst p.snd)
+    (nhds_within (b, b) ((Iic b).prod (Ici b))) :=
+begin
+
+  sorry,
+end
+
+-- add hypothesis of continuity of divergence
 lemma greens_thm (I : subinterval (univ : set (fin 2 → ℝ ))) :
 --box_integral (divergence P Q) a b
 --box_line_integral  (i : fin 2) (a b : fin 2 → ℝ)
@@ -793,6 +869,7 @@ begin
 
     have hpP := has_fderiv_at_iff_is_o_nhds_zero.1 Pdiff,
 
+    extract_goal,
 
     /-
 

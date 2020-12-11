@@ -11,9 +11,9 @@ import tactic.omega
 /-!
 # Degree-sum formula and handshaking lemma
 
-The degree-sum formula is that the sum of the degrees of a finite
-graph is equal to twice the number of edges.  The handshaking lemma is
-a corollary, which is that the number of odd-degree vertices is even.
+The degree-sum formula is that the sum of the degrees of the vertices in
+a finite graph is equal to twice the number of edges.  The handshaking lemma,
+a corollary, is that the number of odd-degree vertices is even.
 
 ## Main definitions
 
@@ -28,9 +28,9 @@ a corollary, which is that the number of odd-degree vertices is even.
 
 ## Implementation notes
 
-We give a combinatorial proof by using the fact that the map from
-darts to vertices has fibers whose cardinalities are the degrees and
-that the map from darts to edges is 2-to-1.
+We give a combinatorial proof by using the facts that (1) the map from
+darts to vertices is such that each fiber has cardinality the degree
+of the corresponding vertex and that (2) the map from darts to edges is 2-to-1.
 
 ## Tags
 
@@ -50,16 +50,12 @@ structure dart :=
 (fst snd : V)
 (is_adj : G.adj fst snd)
 
-/-- There is an equivalence between darts and pairs of a vertex and an incident edge. -/
-@[simps]
-def dart_equiv_sigma : G.dart ≃ Σ v, G.neighbor_set v :=
-{ to_fun := λ d, ⟨d.fst, d.snd, d.is_adj⟩,
-  inv_fun := λ s, ⟨s.fst, s.snd, s.snd.property⟩,
-  left_inv := λ d, by ext; simp,
-  right_inv := λ s, by ext; simp }
-
 instance dart.fintype [fintype V] [decidable_rel G.adj] : fintype G.dart :=
-fintype.of_equiv _ G.dart_equiv_sigma.symm
+fintype.of_equiv (Σ v, G.neighbor_set v)
+{ to_fun := λ s, ⟨s.fst, s.snd, s.snd.property⟩,
+  inv_fun := λ d, ⟨d.fst, d.snd, d.is_adj⟩,
+  left_inv := λ s, by ext; simp,
+  right_inv := λ d, by ext; simp }
 
 variables {G}
 
@@ -69,7 +65,7 @@ def dart.edge (d : G.dart) : sym2 V := ⟦(d.fst, d.snd)⟧
 @[simp] lemma dart.edge_mem (d : G.dart) : d.edge ∈ G.edge_set :=
 d.is_adj
 
-/-- Reverses the orientation of a dart. -/
+/-- The dart with reversed orientation from a given dart. -/
 def dart.rev (d : G.dart) : G.dart :=
 ⟨d.snd, d.fst, G.sym d.is_adj⟩
 
@@ -101,7 +97,8 @@ end
 
 variables (G)
 
-/-- For a given vertex `v`, the injective map from the incidence set at `v` to the darts there. --/
+/-- For a given vertex `v`, this is the bijective map from the neighbor set at `v`
+to the darts `d` with `d.fst = v`. --/
 def dart_of_neighbor_set (v : V) (w : G.neighbor_set v) : G.dart :=
 ⟨v, w, w.property⟩
 
@@ -141,11 +138,13 @@ begin
   exact card_eq_sum_card_fiberwise (by simp),
 end
 
-variables [decidable_eq V]
+variables {G} [decidable_eq V]
 
-lemma dart_edge_fiber (d : G.dart) :
+lemma dart.edge_fiber (d : G.dart) :
   (univ.filter (λ (d' : G.dart), d'.edge = d.edge)) = {d, d.rev} :=
 finset.ext (λ d', by simpa using dart_edge_eq_iff d' d)
+
+variables (G)
 
 lemma dart_edge_fiber_card (e : sym2 V) (h : e ∈ G.edge_set) :
   (univ.filter (λ (d : G.dart), d.edge = e)).card = 2 :=
@@ -153,12 +152,10 @@ begin
   refine quotient.ind (λ p h, _) e h,
   cases p with v w,
   let d : G.dart := ⟨v, w, h⟩,
-  convert_to _ = finset.card {d, d.rev},
-  { rw [card_insert_of_not_mem, card_singleton],
-    rw [mem_singleton],
-    exact d.rev_ne.symm, },
-  congr,
-  apply G.dart_edge_fiber d,
+  convert congr_arg card d.edge_fiber,
+  rw [card_insert_of_not_mem, card_singleton],
+  rw [mem_singleton],
+  exact d.rev_ne.symm,
 end
 
 lemma dart_card_eq_twice_card_edges : fintype.card G.dart = 2 * G.edge_finset.card :=
@@ -186,8 +183,7 @@ begin
   classical,
   have h := congr_arg ((λ n, ↑n) : ℕ → zmod 2) G.sum_degrees_eq_twice_card_edges,
   simp only [zmod.cast_self, zero_mul, nat.cast_mul] at h,
-  rw sum_nat_cast at h,
-  rw ←sum_filter_ne_zero at h,
+  rw [sum_nat_cast, ←sum_filter_ne_zero] at h,
   rw @sum_congr _ (zmod 2) _ _ (λ v, (G.degree v : zmod 2)) (λ v, (1 : zmod 2)) _ rfl at h,
   { simp only [filter_congr_decidable, mul_one, nsmul_eq_mul, sum_const, ne.def] at h,
     rw ←zmod.eq_zero_iff_even,
@@ -211,18 +207,15 @@ begin
     { use v,
       simp only [true_and, mem_filter, mem_univ],
       use h, },
-    rw [←card_pos, hg] at hh,
-    clear hg,
-    linarith, },
+    rwa [←card_pos, hg, zero_lt_mul_left] at hh,
+    exact zero_lt_two, },
   have hc : (λ (w : V), w ≠ v ∧ odd (G.degree w)) = (λ (w : V), odd (G.degree w) ∧ w ≠ v),
   { ext w,
     rw and_comm, },
   simp only [hc, filter_congr_decidable],
   rw [←filter_filter, filter_ne', card_erase_of_mem],
   { use k - 1,
-    rw [nat.pred_eq_succ_iff, hg],
-    clear hc hg,
-    rw nat.mul_sub_left_distrib,
+    rw [nat.pred_eq_succ_iff, hg, nat.mul_sub_left_distrib],
     omega, },
   { simpa only [true_and, mem_filter, mem_univ] },
 end

@@ -13,7 +13,7 @@ import tactic.equiv_rw
 
 The ring of truncated Witt vectors (of length `n`) is a quotient of the ring of Witt vectors.
 It retains the first `n` coefficients of each Witt vector.
-In this file, we setup the basic quotient API for this ring.
+In this file, we set up the basic quotient API for this ring.
 
 The ring of Witt vectors is the projective limit of all the rings of truncated Witt vectors.
 We prove this in future work.
@@ -75,7 +75,7 @@ def coeff (i : fin n) (x : truncated_witt_vector p n R) : R := x i
 
 @[ext]
 lemma ext {x y : truncated_witt_vector p n R} (h : ∀ i, x.coeff i = y.coeff i) : x = y :=
-funext $ λ n, h n
+funext h
 
 lemma ext_iff {x y : truncated_witt_vector p n R} : x = y ↔ ∀ i, x.coeff i = y.coeff i :=
 ⟨λ h i, by rw h, ext⟩
@@ -140,7 +140,7 @@ variable [comm_ring R]
 begin
   ext i,
   dsimp [truncated_witt_vector.out, init, select],
-  split_ifs with hi, swap, refl,
+  split_ifs with hi, swap, { refl },
   rw [coeff_truncate_fun, fin.coe_mk],
 end
 
@@ -154,12 +154,8 @@ variable [comm_ring R]
   x.out.truncate_fun n = x :=
 by simp only [witt_vector.truncate_fun, coeff_out, mk_coeff]
 
-end truncated_witt_vector
-
-namespace truncated_witt_vector
 open witt_vector
 variables (p n R)
-variable [comm_ring R]
 
 include hp
 

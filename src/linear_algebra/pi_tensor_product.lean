@@ -53,7 +53,7 @@ open function
 
 section semiring
 
-variables {ι : Type*} {R : Type*} [comm_semiring R] [inhabited ι]
+variables {ι : Type*} {R : Type*} [comm_semiring R] --[inhabited ι]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
 variables {E : Type*} [add_comm_monoid E] [semimodule R E]
 
@@ -61,16 +61,20 @@ namespace pi_tensor_product
 include R
 variables (R) (s)
 
-/-- The relation on `free_add_monoid (Π i, s i)` that generates a congruence whose quotient is
+/-- The relation on `free_add_monoid (R × Π i, s i)` that generates a congruence whose quotient is
 the tensor product. -/
-inductive eqv : free_add_monoid (Π i, s i) → free_add_monoid (Π i, s i) → Prop
-| of_zero : ∀ (f : Π i, s i) (i : ι) (hf : f i = 0), eqv (free_add_monoid.of f) 0
-| of_add : ∀ (f : Π i, s i) (i : ι) (m₁ m₂ : s i), eqv
-    (free_add_monoid.of (update f i m₁) + free_add_monoid.of (update f i m₂))
-    (free_add_monoid.of (update f i (m₁ + m₂)))
-| of_smul : ∀ (f : Π i, s i) (i j : ι) (r : R), eqv
-    (free_add_monoid.of (update f i (r • (f i))))
-    (free_add_monoid.of (update f j (r • (f j))))
+inductive eqv : free_add_monoid (R × Π i, s i) → free_add_monoid (R × Π i, s i) → Prop
+| of_zero : ∀ (r : R) (f : Π i, s i) (i : ι) (hf : f i = 0), eqv (free_add_monoid.of (r, f)) 0
+| of_zero_scalar : ∀ (f : Π i, s i), eqv (free_add_monoid.of (0, f)) 0
+| of_add : ∀ (r : R) (f : Π i, s i) (i : ι) (m₁ m₂ : s i), eqv
+    (free_add_monoid.of (r, update f i m₁) + free_add_monoid.of (r, update f i m₂))
+    (free_add_monoid.of (r, update f i (m₁ + m₂)))
+| of_add_scalar : ∀ (r r' : R) (f : Π i, s i), eqv
+    (free_add_monoid.of (r, f) + free_add_monoid.of (r', f))
+    (free_add_monoid.of (r + r', f))
+| of_smul : ∀ (r : R) (f : Π i, s i) (i : ι) (r' : R), eqv
+    (free_add_monoid.of (r, update f i (r' • (f i))))
+    (free_add_monoid.of (r' * r, f))
 | add_comm : ∀ x y, eqv (x + y) (y + x)
 
 end pi_tensor_product
@@ -104,54 +108,72 @@ instance : inhabited (⨂[R] i, s i) := ⟨0⟩
 variables (R) {s}
 
 /-- `tprod R f` with `f : Π i, s i` is the tensor product of the vectors `f i` over all `i : ι`. -/
-def tprod (f : Π i, s i) : ⨂[R] i, s i := add_con.mk' _ $ free_add_monoid.of f
+def tprod (f : Π i, s i) : ⨂[R] i, s i := add_con.mk' _ $ free_add_monoid.of (1, f)
+def tprod_aux (r : R) (f : Π i, s i) : ⨂[R] i, s i := add_con.mk' _ $ free_add_monoid.of (r, f)
 variables {R}
 
 notation `⨂ₜ[`:100 R`] ` binders `, ` r:(scoped:67 f, tprod R f) := r
 
-@[elab_as_eliminator]
-protected theorem induction_on
-  {C : (⨂[R] i, s i) → Prop}
-  (z : ⨂[R] i, s i)
-  (C0 : C 0)
-  (C1 : ∀ {f : Π i, s i}, C (⨂ₜ[R] i : ι, f i))
-  (Cp : ∀ {x y}, C x → C y → C (x + y)) : C z :=
-add_con.induction_on z $ λ x, free_add_monoid.rec_on x C0 $ λ f y ih,
-by { rw add_con.coe_add, exact Cp C1 ih }
-
 lemma zero_tprod (f : Π i, s i) (i : ι) (hf: f i = 0) : ⨂ₜ[R] i, f i = 0 :=
-quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero _ i hf
+quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero _ _ i hf
+
+lemma zero_tprod_aux (f : Π i, s i) : tprod_aux R 0 f = 0 :=
+quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero_scalar _
+
+lemma zero_tprod_aux' (z : R) (f : Π i, s i) (i : ι) (hf: f i = 0) : tprod_aux R z f = 0 :=
+quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero _ _ i hf
 
 @[simp] lemma zero_tprod' (f : Π i, s i) (i : ι) : tprod R (update f i 0) = 0 :=
 zero_tprod _ i (update_same i 0 f)
 
 lemma add_tprod (f : Π i, s i) (i : ι) (m₁ m₂ : s i) :
   (⨂ₜ[R] j, (update f i m₁) j) + (⨂ₜ[R] j, (update f i m₂) j) = ⨂ₜ[R] j, (update f i (m₁ + m₂)) j :=
-quotient.sound' $ add_con_gen.rel.of _ _ (eqv.of_add f i m₁ m₂)
+quotient.sound' $ add_con_gen.rel.of _ _ (eqv.of_add _ f i m₁ m₂)
 
-lemma smul_tprod (f : Π i, s i) (i j : ι) (r : R) :
-  ⨂ₜ[R] k, (update f i (r • f i) k) = ⨂ₜ[R] k, (update f j (r • f j)) k :=
+lemma add_tprod_aux (z : R) (f : Π i, s i) (i : ι) (m₁ m₂ : s i) :
+  tprod_aux R z (update f i m₁) + tprod_aux R z (update f i m₂) = tprod_aux R z (update f i (m₁ + m₂)) :=
+quotient.sound' $ add_con_gen.rel.of _ _ (eqv.of_add z f i m₁ m₂)
+
+lemma add_tprod_aux' (z₁ z₂ : R) (f : Π i, s i) :
+  tprod_aux R z₁ f + tprod_aux R z₂ f = tprod_aux R (z₁ + z₂) f :=
+quotient.sound' $ add_con_gen.rel.of _ _ (eqv.of_add_scalar z₁ z₂ f)
+
+lemma smul_tprod_aux (z : R) (f : Π i, s i) (i : ι) (r : R) :
+  tprod_aux R z (update f i (r • f i)) = tprod_aux R (r * z) f :=
 quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
 
-/-- Auxiliary function for defining scalar multiplication on the tensor product. -/
-def smul.aux (r : R) : free_add_monoid (Π i, s i) →+ ⨂[R] i, s i :=
-let j : ι := default ι in
-  free_add_monoid.lift $ λ (f : Π i, s i), ⨂ₜ[R] k, (update f j (r • f j)) k
+lemma tprod_aux_eq_tprod (f : Π i, s i) :
+  tprod_aux R 1 f = tprod R f := rfl
 
-theorem smul.aux_of (r : R) (f : Π i, s i) (i : ι) :
-  smul.aux r (free_add_monoid.of f) = ⨂ₜ[R] k, (update f i (r • f i)) k :=
-smul_tprod f (default ι) i r
+lemma smul_tprod (f : Π i, s i) (i j : ι) (r : R) :
+  tprod R (update f i (r • f i)) = tprod R (update f j (r • f j)) :=
+by simp_rw [←tprod_aux_eq_tprod, smul_tprod_aux]
+
+--theorem smul_tprod' (r : R) (f : Π i, s i) (i : ι) :
+--  r • (tprod R f) = tprod R (update f i (r • f i)) :=
+--smul_tprod f (default ι) i r
+
+/-- Auxiliary function for defining scalar multiplication on the tensor product. -/
+def smul.aux (r : R) : free_add_monoid (R × Π i, s i) →+ ⨂[R] i, s i :=
+free_add_monoid.lift $ λ (f : R × Π i, s i), tprod_aux R (r * f.1) f.2
+
+theorem smul.aux_of (r : R) (f : R × Π i, s i) :
+  smul.aux r (free_add_monoid.of f) = tprod_aux R (r * f.1) f.2 := rfl
 
 instance : has_scalar R (⨂[R] i, s i) :=
 ⟨λ r, (add_con_gen (pi_tensor_product.eqv R s)).lift (smul.aux r) $ add_con.add_con_gen_le $
 λ x y hxy, match x, y, hxy with
-| _, _, (eqv.of_zero f i hf)        := (add_con.ker_rel _).2 $
-    by rw [add_monoid_hom.map_zero, smul.aux_of _ _ i, hf, smul_zero,
-          zero_tprod _ i (update_same i 0 f)]
-| _, _, (eqv.of_add f i m₁ m₂)      := (add_con.ker_rel _).2 $
-    by simp [smul.aux_of _ _ i, smul_add, add_tprod]
-| _, _, (eqv.of_smul f i j r')     := (add_con.ker_rel _).2 $
-    by simp [smul.aux_of _ _ j, smul_tprod _ j i r, smul_smul, smul_tprod f i j _]
+| _, _, (eqv.of_zero r' f i hf)        := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_zero, smul.aux_of, zero_tprod_aux' _ _ _ hf]
+| _, _, (eqv.of_zero_scalar f)        := (add_con.ker_rel _).2 $
+    by simp_rw [add_monoid_hom.map_zero, smul.aux_of, mul_zero, zero_tprod_aux]
+| _, _, (eqv.of_add z f i m₁ m₂)      := (add_con.ker_rel _).2 $
+    by simp [smul.aux_of, add_tprod_aux]
+| _, _, (eqv.of_add_scalar z₁ z₂ f)      := (add_con.ker_rel _).2 $
+    by simp [smul.aux_of, add_tprod_aux', mul_add]
+| _, _, (eqv.of_smul z f i r')     := (add_con.ker_rel _).2 $
+    by { have : r' * (r * z) = r * (r' * z) := by ring,
+         simp [smul.aux_of, smul_tprod_aux, this] }
 | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end⟩
@@ -163,9 +185,16 @@ protected theorem smul_add (r : R) (x y : ⨂[R] i, s i) :
   r • (x + y) = r • x + r • y :=
 add_monoid_hom.map_add _ _ _
 
-theorem smul_tprod' (r : R) (f : Π i, s i) (i : ι) :
-  r • (tprod R f) = tprod R (update f i (r • f i)) :=
-smul_tprod f (default ι) i r
+@[elab_as_eliminator]
+protected theorem induction_on
+  {C : (⨂[R] i, s i) → Prop}
+  (z : ⨂[R] i, s i)
+  (C0 : C 0)
+  (C1 : ∀ {f : Π i, s i}, C (⨂ₜ[R] i : ι, f i))
+  (Cp : ∀ {x y}, C x → C y → C (x + y)) : C z :=
+add_con.induction_on z $ λ x, free_add_monoid.rec_on x C0 $ λ f y ih,
+by { rw add_con.coe_add, exact Cp C1 ih }
+
 
 instance : semimodule R (⨂[R] i, s i) :=
 let j : ι := classical.choice (by apply_instance) in

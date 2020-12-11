@@ -286,7 +286,7 @@ theorem is_integral_neg {x : A}
 
 lemma ring_hom.is_integral_sub {x y : S}
   (hx : f.is_integral_elem x) (hy : f.is_integral_elem y) : f.is_integral_elem (x - y) :=
-f.is_integral_add hx (f.is_integral_neg hy)
+by simpa only [sub_eq_add_neg] using f.is_integral_add hx (f.is_integral_neg hy)
 
 theorem is_integral_sub {x y : A}
   (hx : is_integral R x) (hy : is_integral R y) : is_integral R (x - y) :=

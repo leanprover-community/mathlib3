@@ -522,7 +522,7 @@ lemma measurable_inv_iff [group α] [topological_group α] {f : δ → α} :
 lemma measurable.sub [add_group α] [topological_add_group α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ x, f x - g x) :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma measurable_comp_iff_of_closed_embedding {f : δ → β} (g : β → γ) (hg : closed_embedding g) :
   measurable (g ∘ f) ↔ measurable f :=

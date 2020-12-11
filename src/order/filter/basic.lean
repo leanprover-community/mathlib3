@@ -522,6 +522,12 @@ lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ ne_bot f :=
 ⟨λ h hf, empty_not_nonempty (h ∅ $ hf.symm ▸ mem_bot_sets), @nonempty_of_mem_sets _ _⟩
 
+lemma nontrivial_iff_nonempty : nontrivial (filter α) ↔ nonempty α :=
+⟨λ ⟨⟨f, g, hfg⟩⟩, by_contra $
+  λ h, hfg $ (filter_eq_bot_of_not_nonempty f h).trans (filter_eq_bot_of_not_nonempty g h).symm,
+  λ ⟨x⟩, ⟨⟨⊤, ⊥, forall_sets_nonempty_iff_ne_bot.1 $ λ s hs,
+    by rwa [mem_top_sets.1 hs, ← nonempty_iff_univ_nonempty]⟩⟩⟩
+
 lemma mem_sets_of_eq_bot {f : filter α} {s : set α} (h : f ⊓ 𝓟 sᶜ = ⊥) : s ∈ f :=
 have ∅ ∈ f ⊓ 𝓟 sᶜ, from h.symm ▸ mem_bot_sets,
 let ⟨s₁, hs₁, s₂, (hs₂ : sᶜ ⊆ s₂), (hs : s₁ ∩ s₂ ⊆ ∅)⟩ := this in
@@ -1134,12 +1140,12 @@ h.fun_comp has_inv.inv
 lemma eventually_eq.div [group_with_zero β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
-h.mul h'.inv
+by simpa only [div_eq_mul_inv] using h.mul h'.inv
 
 lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
-h.add h'.neg
+by simpa only [sub_eq_add_neg] using h.add h'.neg
 
 lemma eventually_eq.inter {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
   (s ∩ s' : set α) =ᶠ[l] (t ∩ t' : set α) :=

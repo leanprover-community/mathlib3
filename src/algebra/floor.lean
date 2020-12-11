@@ -90,7 +90,7 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
   ← sub_le_iff_le_add, ← sub_le_iff_le_add, le_floor, int.cast_sub]
 
 theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
-eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
+eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (floor_add_int _ _)
 
 lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α]
   [floor_ring α] {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=
@@ -218,7 +218,7 @@ ceil_le.2 (le_trans h (le_ceil _))
 by rw [ceil, neg_add', floor_sub_int, neg_sub, sub_eq_neg_add]; refl
 
 theorem ceil_sub_int (x : α) (z : ℤ) : ⌈x - z⌉ = ⌈x⌉ - z :=
-eq.trans (by rw [int.cast_neg]; refl) (ceil_add_int _ _)
+eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)
 
 theorem ceil_lt_add_one (x : α) : (⌈x⌉ : α) < x + 1 :=
 by rw [← lt_ceil, ← int.cast_one, ceil_add_int]; apply lt_add_one

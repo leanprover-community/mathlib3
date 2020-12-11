@@ -1270,29 +1270,21 @@ begin
   apply subset_of_inter_eq_self_left,
   let u := (coe : (t → α)) ⁻¹' s,
   have hu : is_clopen u,
-  {
-    rw [←(set.inter_univ u), set.inter_comm],
+  { rw [←(set.inter_univ u), set.inter_comm],
     apply (continuous_on.preimage_clopen_of_clopen
-          (continuous_iff_continuous_on_univ.1 continuous_subtype_coe) is_clopen_univ h),
-  },
+          (continuous_iff_continuous_on_univ.1 continuous_subtype_coe) is_clopen_univ h)  },
   cases (@is_clopen_iff _ _ (is_preconnected_iff_preconnected_space.1 h1) _).1 hu with h1 h1,
-    {
-      exfalso,
+    { exfalso,
       apply set.nonempty.ne_empty h2,
       suffices : (coe : (t → α)) ⁻¹' (s ∩ t) = ∅,
-      {
-        rw [←set.preimage_eq_empty_iff, subtype.range_coe, set.disjoint_iff_inter_eq_empty] at this,
+      { rw [←set.preimage_eq_empty_iff, subtype.range_coe, set.disjoint_iff_inter_eq_empty] at this,
         rw [set.inter_assoc, set.inter_self t] at this,
-        exact this,
-      },
+        exact this  },
       rw [set.preimage_inter, subtype.coe_preimage_self, set.inter_univ],
-      exact h1,
-    },
-    {
-      rw [←subtype.coe_preimage_self t, subtype.preimage_coe_eq_preimage_coe_iff, set.inter_self t] at h1,
+      exact h1  },
+    { rw [←subtype.coe_preimage_self t, subtype.preimage_coe_eq_preimage_coe_iff, set.inter_self t] at h1,
       rw set.inter_comm,
-      exact h1,
-    },
+      exact h1  },
 end
 
 theorem is_preconnected_iff_subset_of_disjoint_closed {α : Type*} {s : set α} [topological_space α] :
@@ -1329,12 +1321,10 @@ theorem is_preconnected_iff_subset_of_fully_disjoint_closed {s : set α} (hs : i
   s ⊆ u ∨ s ⊆ v :=
 begin
   split,
-  {
-    intros,
+  { intros,
     apply is_preconnected_iff_subset_of_disjoint_closed.1 ᾰ u v hu hv hss,
     rw huv,
-    exact set.inter_empty s,
-  },
+    exact set.inter_empty s },
   intro H,
   rw is_preconnected_iff_subset_of_disjoint_closed,
   intros u v hu hv hss huv,
@@ -1342,21 +1332,17 @@ begin
   rw [(@set.subset_inter_iff _ u s s), (@set.subset_inter_iff _ v s s)] at H1,
   simp only [set.subset.refl, and_true] at H1,
   apply H1 (is_closed_inter hu hs) (is_closed_inter hv hs),
-  {
-    rw ←set.inter_distrib_right,
+  { rw ←set.inter_distrib_right,
     apply set.subset_inter_iff.2,
     split,
       exact hss,
-    exact set.subset.refl s,
-  },
-  {
-  conv in (v ∩ s) {rw set.inter_comm},
-  rw set.inter_assoc,
-  conv in (s ∩ (s ∩ v)) {rw [←set.inter_assoc, set.inter_self s]},
-  rw [set.inter_comm, set.inter_assoc],
-  conv in (v ∩ u) {rw set.inter_comm},
-  exact huv,
-  }
+    exact set.subset.refl s },
+  { conv in (v ∩ s) {rw set.inter_comm},
+    rw set.inter_assoc,
+    conv in (s ∩ (s ∩ v)) {rw [←set.inter_assoc, set.inter_self s]},
+    rw [set.inter_comm, set.inter_assoc],
+    conv in (v ∩ u) {rw set.inter_comm},
+    exact huv }
 end
 
 end preconnected

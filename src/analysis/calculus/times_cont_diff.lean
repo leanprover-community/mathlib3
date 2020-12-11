@@ -396,11 +396,10 @@ begin
     { assume m (hm : (m : with_top ℕ) ≤ n),
       have A : (m.succ : with_top ℕ) ≤ n.succ,
         by { rw with_top.coe_le_coe at ⊢ hm, exact nat.pred_le_iff.mp hm },
-      have : continuous_on ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
+      change continuous_on ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
            ∘ (λ (y : E), p y m.succ)) s,
-      { rw continuous_linear_equiv.comp_continuous_on_iff,
-        exact H.cont _ A },
-      convert this } },
+      rw continuous_linear_equiv.comp_continuous_on_iff,
+      exact H.cont _ A } },
   { rintros ⟨Hzero_eq, Hfderiv_zero, Htaylor⟩,
     split,
     { exact Hzero_eq },

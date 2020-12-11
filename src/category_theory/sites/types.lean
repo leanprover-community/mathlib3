@@ -30,7 +30,7 @@ def types_grothendieck_topology : grothendieck_topology (Type u) :=
   transitive' := λ α S hs R hr x, hr (hs x) punit.star }
 
 /-- The discrete sieve on a type, which only includes arrows whose image is a subsingleton. -/
-def discrete_sieve (α : Type u) : sieve α :=
+@[simps] def discrete_sieve (α : Type u) : sieve α :=
 { arrows := λ β f, ∃ x, ∀ y, f y = x,
   downward_closed' := λ β γ f ⟨x, hx⟩ g, ⟨x, λ y, hx $ g y⟩ }
 
@@ -55,9 +55,11 @@ theorem is_sheaf_yoneda' {α : Type u} : is_sheaf types_grothendieck_topology (y
 λ f hf, funext $ λ y, by convert congr_fun (hf _ (hs y)) punit.star⟩
 
 /-- The yoneda functor that sends a type to a sheaf over the category of types -/
-def yoneda' : Type u ⥤ Sheaf types_grothendieck_topology :=
+@[simps] def yoneda' : Type u ⥤ Sheaf types_grothendieck_topology :=
 { obj := λ α, ⟨yoneda.obj α, is_sheaf_yoneda'⟩,
   map := λ α β f, yoneda.map f }
+
+@[simp] lemma yoneda'_comp : yoneda'.{u} ⋙ induced_functor _ = yoneda := rfl
 
 open opposite
 
@@ -110,7 +112,7 @@ nat_iso.of_components (λ α, equiv.to_iso $ eval_equiv S hs $ unop α) $ λ α 
 funext $ λ s, funext $ λ x, eval_map S (unop α) (unop β) f.unop _ _
 
 /-- Given a sheaf `S`, construct an isomorphism `S ≅ [-, S(*)]`. -/
-@[simps {rhs_md := semireducible}] noncomputable def equiv_yoneda'
+@[simps] noncomputable def equiv_yoneda'
   (S : Sheaf types_grothendieck_topology) :
   S ≅ yoneda'.obj (S.1.obj (op punit)) :=
 { hom := (equiv_yoneda S.1 S.2).hom,

@@ -824,7 +824,7 @@ end
 
 @[simp] lemma restrict_add_restrict_compl {s : set α} (hs : is_measurable s) :
   μ.restrict s + μ.restrict sᶜ = μ :=
-by rw [← restrict_union (disjoint_compl_right _) hs hs.compl, union_compl_self, restrict_univ]
+by rw [← restrict_union disjoint_compl_right hs hs.compl, union_compl_self, restrict_univ]
 
 @[simp] lemma restrict_compl_add_restrict {s : set α} (hs : is_measurable s) :
   μ.restrict sᶜ + μ.restrict s = μ :=

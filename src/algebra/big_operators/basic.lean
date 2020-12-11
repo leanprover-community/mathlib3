@@ -688,12 +688,12 @@ reduces to the ratio of the last and first factors.-/
 @[to_additive]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f (i+1) * (f i)⁻¹) = f n * (f 0)⁻¹ :=
-by apply @sum_range_sub (additive M)
+by simpa only [← div_eq_mul_inv] using @sum_range_sub (additive M) _ f n
 
 @[to_additive]
 lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f i * (f (i+1))⁻¹) = (f 0) * (f n)⁻¹ :=
-by apply @sum_range_sub' (additive M)
+by simpa only [← div_eq_mul_inv] using @sum_range_sub' (additive M) _ f n
 
 /--
 A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function
@@ -1038,7 +1038,7 @@ lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] :
   ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=
-sum_add_distrib.trans $ congr_arg _ sum_neg_distrib
+by simpa only [sub_eq_add_neg] using sum_add_distrib.trans (congr_arg _ sum_neg_distrib)
 
 section prod_eq_zero
 variables [comm_monoid_with_zero β]
@@ -1136,7 +1136,7 @@ lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
   count a (∑ x in s, f x) = ∑ x in s, count a (f x) :=
 by { dunfold finset.sum, rw count_sum }
 
-lemma to_finset_sum_count_smul_eq (s : multiset α) :
+@[simp] lemma to_finset_sum_count_smul_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a •ℕ (a ::ₘ 0)) = s :=
 begin
   apply ext', intro b,

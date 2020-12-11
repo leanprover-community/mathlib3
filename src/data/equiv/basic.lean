@@ -495,9 +495,43 @@ def psum_equiv_sum (α β : Type*) : psum α β ≃ α ⊕ β :=
 def sum_congr {α₁ β₁ α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : α₁ ⊕ β₁ ≃ α₂ ⊕ β₂ :=
 ⟨sum.map ea eb, sum.map ea.symm eb.symm, λ x, by simp, λ x, by simp⟩
 
-@[simp] lemma sum_congr_symm {α β γ δ : Type u} (e : α ≃ β) (f : γ ≃ δ) :
+@[simp] lemma sum_congr_trans {α₁ α₂ β₁ β₂ γ₁ γ₂ : Sort*}
+  (e : α₁ ≃ β₁) (f : α₂ ≃ β₂) (g : β₁ ≃ γ₁) (h : β₂ ≃ γ₂) :
+  (equiv.sum_congr e f).trans (equiv.sum_congr g h) = (equiv.sum_congr (e.trans g) (f.trans h)) :=
+by { ext i, cases i; refl }
+
+@[simp] lemma sum_congr_symm {α β γ δ : Sort*} (e : α ≃ β) (f : γ ≃ δ) :
   (equiv.sum_congr e f).symm = (equiv.sum_congr (e.symm) (f.symm)) :=
 rfl
+
+@[simp] lemma sum_congr_refl {α β : Sort*} :
+  equiv.sum_congr (equiv.refl α) (equiv.refl β) = equiv.refl (α ⊕ β) :=
+by { ext i, cases i; refl }
+
+namespace perm
+
+/-- Combine a permutation of `α` and of `β` into a permutation of `α ⊕ β`. -/
+@[reducible]
+def sum_congr {α β : Type*} (ea : equiv.perm α) (eb : equiv.perm β) : equiv.perm (α ⊕ β) :=
+equiv.sum_congr ea eb
+
+@[simp] lemma sum_congr_apply {α β : Type*} (ea : equiv.perm α) (eb : equiv.perm β) (x : α ⊕ β) :
+  sum_congr ea eb x = sum.map ⇑ea ⇑eb x := equiv.sum_congr_apply ea eb x
+
+@[simp] lemma sum_congr_trans {α β : Sort*}
+  (e : equiv.perm α) (f : equiv.perm β) (g : equiv.perm α) (h : equiv.perm β) :
+  (sum_congr e f).trans (sum_congr g h) = sum_congr (e.trans g) (f.trans h) :=
+equiv.sum_congr_trans e f g h
+
+@[simp] lemma sum_congr_symm {α β : Sort*} (e : equiv.perm α) (f : equiv.perm β) :
+  (sum_congr e f).symm = sum_congr (e.symm) (f.symm) :=
+equiv.sum_congr_symm e f
+
+@[simp] lemma sum_congr_refl {α β : Sort*} :
+  sum_congr (equiv.refl α) (equiv.refl β) = equiv.refl (α ⊕ β) :=
+equiv.sum_congr_refl
+
+end perm
 
 /-- `bool` is equivalent the sum of two `punit`s. -/
 def bool_equiv_punit_sum_punit : bool ≃ punit.{u+1} ⊕ punit.{v+1} :=
@@ -713,11 +747,46 @@ section
 
 /-- A family of equivalences `Π a, β₁ a ≃ β₂ a` generates an equivalence between `Σ a, β₁ a` and
 `Σ a, β₂ a`. -/
-@[simps apply symm_apply]
+@[simps apply]
 def sigma_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) : (Σ a, β₁ a) ≃ Σ a, β₂ a :=
 ⟨λ a, ⟨a.1, F a.1 a.2⟩, λ a, ⟨a.1, (F a.1).symm a.2⟩,
  λ ⟨a, b⟩, congr_arg (sigma.mk a) $ symm_apply_apply (F a) b,
  λ ⟨a, b⟩, congr_arg (sigma.mk a) $ apply_symm_apply (F a) b⟩
+
+@[simp] lemma sigma_congr_right_trans {α} {β₁ β₂ β₃ : α → Sort*}
+  (F : Π a, β₁ a ≃ β₂ a) (G : Π a, β₂ a ≃ β₃ a) :
+  (sigma_congr_right F).trans (sigma_congr_right G) = sigma_congr_right (λ a, (F a).trans (G a)) :=
+by { ext1 x, cases x, refl }
+
+@[simp] lemma sigma_congr_right_symm {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) :
+  (sigma_congr_right F).symm = sigma_congr_right (λ a, (F a).symm) :=
+by { ext1 x, cases x, refl }
+
+@[simp] lemma sigma_congr_right_refl {α} {β : α → Sort*} :
+  (sigma_congr_right (λ a, equiv.refl (β a))) = equiv.refl (Σ a, β a) :=
+by { ext1 x, cases x, refl }
+
+namespace perm
+
+/-- A family of permutations `Π a, perm (β a)` generates a permuation `perm (Σ a, β₁ a)`. -/
+@[reducible]
+def sigma_congr_right {α} {β : α → Sort*} (F : Π a, perm (β a)) : perm (Σ a, β a) :=
+equiv.sigma_congr_right F
+
+@[simp] lemma sigma_congr_right_trans {α} {β : α → Sort*}
+  (F : Π a, perm (β a)) (G : Π a, perm (β a)) :
+  (sigma_congr_right F).trans (sigma_congr_right G) = sigma_congr_right (λ a, (F a).trans (G a)) :=
+equiv.sigma_congr_right_trans F G
+
+@[simp] lemma sigma_congr_right_symm {α} {β : α → Sort*} (F : Π a, perm (β a)) :
+  (sigma_congr_right F).symm = sigma_congr_right (λ a, (F a).symm) :=
+equiv.sigma_congr_right_symm F
+
+@[simp] lemma sigma_congr_right_refl {α} {β : α → Sort*} :
+  (sigma_congr_right (λ a, equiv.refl (β a))) = equiv.refl (Σ a, β a) :=
+equiv.sigma_congr_right_refl
+
+end perm
 
 /-- An equivalence `f : α₁ ≃ α₂` generates an equivalence between `Σ a, β (f a)` and `Σ a, β a`. -/
 @[simps apply]
@@ -1411,6 +1480,14 @@ end set
 noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α ≃ β :=
 (equiv.set.range f hf.1).trans $ (set_congr hf.2.range_eq).trans $ equiv.set.univ β
 
+lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (x : β) :
+  f ((of_bijective f hf).symm x) = x :=
+(of_bijective f hf).apply_symm_apply x
+
+@[simp] lemma of_bijective_symm_apply_apply {α β} (f : α → β) (hf : bijective f) (x : α) :
+  (of_bijective f hf).symm (f x) = x :=
+(of_bijective f hf).symm_apply_apply x
+
 /-- If `f` is an injective function, then its domain is equivalent to its range. -/
 @[simps apply {rhs_md := semireducible, simp_rhs := tt}]
 noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=
@@ -1509,6 +1586,30 @@ begin
   by_cases hj : k = j, { rw [hj, swap_apply_right, hv] },
   rw swap_apply_of_ne_of_ne hi hj,
 end
+
+namespace perm
+
+@[simp] lemma sum_congr_swap_refl {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : α) :
+  equiv.perm.sum_congr (equiv.swap i j) (equiv.refl β) = equiv.swap (sum.inl i) (sum.inl j) :=
+begin
+  ext x,
+  cases x,
+  { simp [sum.map, swap_apply_def],
+    split_ifs; refl},
+  { simp [sum.map, swap_apply_of_ne_of_ne] },
+end
+
+@[simp] lemma sum_congr_refl_swap {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : β) :
+  equiv.perm.sum_congr (equiv.refl α) (equiv.swap i j) = equiv.swap (sum.inr i) (sum.inr j) :=
+begin
+  ext x,
+  cases x,
+  { simp [sum.map, swap_apply_of_ne_of_ne] },
+  { simp [sum.map, swap_apply_def],
+    split_ifs; refl},
+end
+
+end perm
 
 /-- Augment an equivalence with a prescribed mapping `f a = b` -/
 def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=

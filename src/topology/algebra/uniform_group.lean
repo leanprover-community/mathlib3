@@ -36,7 +36,8 @@ class uniform_add_group (α : Type*) [uniform_space α] [add_group α] : Prop :=
 theorem uniform_add_group.mk' {α} [uniform_space α] [add_group α]
   (h₁ : uniform_continuous (λp:α×α, p.1 + p.2))
   (h₂ : uniform_continuous (λp:α, -p)) : uniform_add_group α :=
-⟨h₁.comp (uniform_continuous_fst.prod_mk (h₂.comp uniform_continuous_snd))⟩
+⟨by simpa only [sub_eq_add_neg] using
+  h₁.comp (uniform_continuous_fst.prod_mk (h₂.comp uniform_continuous_snd))⟩
 
 variables [uniform_space α] [add_group α] [uniform_add_group α]
 

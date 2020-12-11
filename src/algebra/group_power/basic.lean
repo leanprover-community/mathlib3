@@ -179,11 +179,11 @@ commute.pow_pow_self a m n
 theorem nsmul_add_comm : ∀ (a : A) (m n : ℕ), m •ℕ a + n •ℕ a = n •ℕ a + m •ℕ a :=
 @pow_mul_comm (multiplicative A) _
 
-theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
+@[simp] theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
 | 0     := f.map_one
 | (n+1) := by rw [pow_succ, pow_succ, f.map_mul, monoid_hom.map_pow]
 
-theorem add_monoid_hom.map_nsmul (f : A →+ B) (a : A) (n : ℕ) : f (n •ℕ a) = n •ℕ f a :=
+@[simp] theorem add_monoid_hom.map_nsmul (f : A →+ B) (a : A) (n : ℕ) : f (n •ℕ a) = n •ℕ f a :=
 f.to_multiplicative.map_pow a n
 
 theorem is_monoid_hom.map_pow (f : M → N) [is_monoid_hom f] (a : M) :
@@ -289,7 +289,7 @@ have h2 : a^(m - n) * a^n = a^m, by rw [←pow_add, h1],
 eq_mul_inv_of_mul_eq h2
 
 theorem nsmul_sub : ∀ (a : A) {m n : ℕ}, n ≤ m → (m - n) •ℕ a = m •ℕ a - n •ℕ a :=
-@pow_sub (multiplicative A) _
+by simpa only [sub_eq_add_neg] using @pow_sub (multiplicative A) _
 
 theorem pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
 (commute.refl a).inv_left.pow_pow m n

@@ -11,8 +11,8 @@ import category_theory.sites.sheaf
 # Grothendieck Topology and Sheaves on the Category of Types
 
 In this file we define a Grothendieck topology on the category of types,
-and construct the canonical function that sends a type to a sheaf over
-the category of types.
+and construct the canonical functor that sends a type to a sheaf over
+the category of types, and make this an equivalence of categories.
 
 Then we prove that the topology defined is the canonical topology.
 -/
@@ -53,6 +53,11 @@ theorem is_sheaf_yoneda' {α : Type u} : is_sheaf types_grothendieck_topology (y
   have _ := congr_fun (hx (𝟙 _) (λ _, z) (hs $ f z) h rfl) punit.star,
   by { convert this, exact rfl },
 λ f hf, funext $ λ y, by convert congr_fun (hf _ (hs y)) punit.star⟩
+
+/-- The yoneda functor that sends a type to a sheaf over the category of types -/
+def yoneda' : Type u ⥤ Sheaf types_grothendieck_topology :=
+{ obj := λ α, ⟨yoneda.obj α, is_sheaf_yoneda'⟩,
+  map := λ α β f, yoneda.map f }
 
 open opposite
 
@@ -103,6 +108,39 @@ by { simp_rw [eval, ← functor_to_types.map_comp_apply, ← op_comp], refl }
   S ≅ yoneda.obj (S.obj (op punit)) :=
 nat_iso.of_components (λ α, equiv.to_iso $ eval_equiv S hs $ unop α) $ λ α β f,
 funext $ λ s, funext $ λ x, eval_map S (unop α) (unop β) f.unop _ _
+
+/-- Given a sheaf `S`, construct an isomorphism `S ≅ [-, S(*)]`. -/
+@[simps {rhs_md := semireducible}] noncomputable def equiv_yoneda'
+  (S : Sheaf types_grothendieck_topology) :
+  S ≅ yoneda'.obj (S.1.obj (op punit)) :=
+{ hom := (equiv_yoneda S.1 S.2).hom,
+  inv := (equiv_yoneda S.1 S.2).inv,
+  hom_inv_id' := (equiv_yoneda S.1 S.2).hom_inv_id,
+  inv_hom_id' := (equiv_yoneda S.1 S.2).inv_hom_id }
+
+lemma eval_app (S₁ S₂ : Sheaf.{u} types_grothendieck_topology)
+  (f : S₁ ⟶ S₂) (α : Type u) (s : S₁.1.obj (op α)) (x : α) :
+  eval S₂.1 α (f.app (op α) s) x = f.app (op punit) (eval S₁.1 α s x) :=
+(congr_fun (f.2 (↾λ _ : punit, x).op) s).symm
+
+/-- `yoneda'` induces an equivalence of category between `Type u` and
+`Sheaf types_grothendieck_topology`. -/
+@[simps {rhs_md := semireducible}] noncomputable def type_equiv :
+  Type u ≌ Sheaf types_grothendieck_topology :=
+equivalence.mk
+  yoneda'
+  (induced_functor _ ⋙ (evaluation _ _).obj (op punit))
+  (nat_iso.of_components
+    (λ α, /- α ≅ punit ⟶ α -/
+      { hom := λ x _, x,
+        inv := λ f, f punit.star,
+        hom_inv_id' := funext $ λ x, rfl,
+        inv_hom_id' := funext $ λ f, funext $ λ y, punit.cases_on y rfl })
+    (λ α β f, rfl))
+  (iso.symm $ nat_iso.of_components
+    (λ S, equiv_yoneda' S)
+    (λ S₁ S₂ f, nat_trans.ext _ _ $ funext $ λ α, funext $ λ s, funext $ λ x,
+      eval_app S₁ S₂ f (unop α) s x))
 
 lemma subcanonical_types_grothendieck_topology :
   sheaf.subcanonical types_grothendieck_topology.{u} :=

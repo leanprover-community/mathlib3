@@ -766,11 +766,12 @@ namespace add_monoid_hom
 variables {A B : Type*} [add_monoid A] [add_comm_group B] [add_group G] [add_group H]
 
 /-- Additive group homomorphisms preserve subtraction. -/
-@[simp] theorem map_sub (f : G →+ H) (g h : G) : f (g - h) = (f g) - (f h) := f.map_add_neg g h
+@[simp] theorem map_sub (f : G →+ H) (g h : G) : f (g - h) = (f g) - (f h) :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, f.map_add_neg g h]
 
 /-- Define a morphism of additive groups given a map which respects difference. -/
 def of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) : G →+ H :=
-of_map_add_neg f hf
+of_map_add_neg f (by simpa only [sub_eq_add_neg] using hf)
 
 @[simp] lemma coe_of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) :
   ⇑(of_map_sub f hf) = f :=

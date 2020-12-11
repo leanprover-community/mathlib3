@@ -512,16 +512,12 @@ theorem neg_eq_neg_one_mul (a : α) : -a = -1 * a :=
 by simp
 
 lemma mul_sub_left_distrib (a b c : α) : a * (b - c) = a * b - a * c :=
-calc
-   a * (b - c) = a * b + a * -c : left_distrib a b (-c)
-           ... = a * b - a * c  : by simp [sub_eq_add_neg]
+by simpa only [sub_eq_add_neg, neg_mul_eq_mul_neg] using mul_add a b (-c)
 
 alias mul_sub_left_distrib ← mul_sub
 
 lemma mul_sub_right_distrib (a b c : α) : (a - b) * c = a * c - b * c :=
-calc
-  (a - b) * c = a * c  + -b * c : right_distrib a (-b) c
-          ... = a * c - b * c   : by simp [sub_eq_add_neg]
+by simpa only [sub_eq_add_neg, neg_mul_eq_neg_mul] using add_mul a (-b) c
 
 alias mul_sub_right_distrib ← sub_mul
 
@@ -667,7 +663,7 @@ theorem neg_dvd_iff_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
 ⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
 
 theorem dvd_sub (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b - c :=
-dvd_add h₁ (dvd_neg_of_dvd h₂)
+by { rw sub_eq_add_neg, exact dvd_add h₁ (dvd_neg_of_dvd h₂) }
 
 theorem dvd_add_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b + c :=
 ⟨λh₂, dvd_add h₂ h, λH, by have t := dvd_sub H h; rwa add_sub_cancel at t⟩
@@ -750,7 +746,7 @@ lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 λ h, one_ne_zero ((add_right_inj a).mp (by simp [h]))
 
 lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
-λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by { convert h, simp })))
+λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
@@ -903,11 +899,11 @@ by simp only [semiconj_by, h.eq, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_sym
 
 @[simp] lemma sub_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
   semiconj_by a (x - x') (y - y') :=
-h.add_right h'.neg_right
+by simpa only [sub_eq_add_neg] using h.add_right h'.neg_right
 
 @[simp] lemma sub_left (ha : semiconj_by a x y) (hb : semiconj_by b x y) :
   semiconj_by (a - b) x y :=
-ha.add_left hb.neg_left
+by simpa only [sub_eq_add_neg] using ha.add_left hb.neg_left
 
 end semiconj_by
 

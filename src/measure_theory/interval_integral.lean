@@ -338,7 +338,7 @@ by { simp only [interval_integral, integral_neg], abel }
 
 lemma integral_sub (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
   ∫ x in a..b, f x - g x ∂μ = ∫ x in a..b, f x ∂μ - ∫ x in a..b, g x ∂μ :=
-(integral_add hf hg.neg).trans $ congr_arg _ integral_neg
+by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _ integral_neg)
 
 lemma integral_smul (r : ℝ) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, integral_smul, smul_sub]

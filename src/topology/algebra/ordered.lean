@@ -2594,13 +2594,15 @@ begin
     { refine infi_le_of_le (a - b)
         (infi_le_of_le (lt_sub_left_of_add_lt $ by simpa using ha) $
           principal_mono.mpr $ assume c (hc : abs (a - c) < a - b), _),
-      have : a - c < a - b := lt_of_le_of_lt (le_abs_self _) hc,
+      have : a + -c < a + -b :=
+        by simpa only [sub_eq_add_neg] using lt_of_le_of_lt (le_abs_self _) hc,
       exact lt_of_neg_lt_neg (lt_of_add_lt_add_left this) },
     { refine infi_le_of_le (b - a)
         (infi_le_of_le (lt_sub_left_of_add_lt $ by simpa using ha) $
           principal_mono.mpr $ assume c (hc : abs (a - c) < b - a), _),
       have : abs (c - a) < b - a, {rw abs_sub; simpa using hc},
-      have : c - a < b - a := lt_of_le_of_lt (le_abs_self _) this,
+      have : c + -a < b + -a :=
+        by simpa only [sub_eq_add_neg] using lt_of_le_of_lt (le_abs_self _) this,
       exact lt_of_add_lt_add_right this } },
   { have h : {b | abs (a - b) < r} = {b | a - r < b} ∩ {b | b < a + r},
       from set.ext (assume b,

@@ -2227,7 +2227,8 @@ lemma alternating_prod_cons_cons (g h : G) (l : list G) :
   alternating_prod (g :: h :: l) = g * h⁻¹ * alternating_prod l := rfl
 
 lemma alternating_sum_cons_cons {G : Type*} [add_comm_group G] (g h : G) (l : list G) :
-  alternating_sum (g :: h :: l) = g - h + alternating_sum l := rfl
+  alternating_sum (g :: h :: l) = g - h + alternating_sum l :=
+by rw [sub_eq_add_neg, alternating_sum]
 
 end
 

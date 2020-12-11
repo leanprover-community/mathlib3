@@ -154,6 +154,8 @@ end
 
 def box_volume (a b : fin 2 → ℝ) := ∏ (i : fin 2), (b i - a i)
 
+def box_volume' : (fin 2 → ℝ) × (fin 2 → ℝ) → ℝ := uncurry box_volume
+
 lemma box_volume_eq (a b : fin 2 → ℝ) :
   box_volume a b = (b 0 - a 0)*(b 1 - a 1)
 :=
@@ -689,6 +691,10 @@ end
 def box_integral (a b : fin 2 → ℝ) : ℝ :=
 ∫ x in rectangle a b, u ((foo' ℝ ℝ).symm x) ∂(volume.prod volume)
 
+def box_integral' (P : (fin 2 → ℝ) → ℝ) (p : (fin 2 → ℝ) × (fin 2 → ℝ))
+: ℝ := uncurry (box_integral P) p
+--ERROR!!!
+
 lemma box_integral_const (cU : ℝ)  (a b : fin 2 → ℝ) :
   box_integral (λ x, cU ) a b  = cU * box_volume a b :=
 begin
@@ -812,7 +818,14 @@ end
 variables {P Q} (hP : differentiable ℝ P) (hQ : differentiable ℝ Q)
 variables (hdiv : integrable ((divergence P Q) ∘ (foo' ℝ ℝ).symm) volume)
 
-def box_volume' (p : (fin 2 → ℝ) × (fin 2 → ℝ)) : ℝ := box_volume p.fst p.snd
+
+-- add lemma that the average over smaller and smaller boxes is the value at a point
+lemma averaging (P : (fin 2 → ℝ) → ℝ) (pcont: continuous P) (b : fin 2 → ℝ) :
+  asymptotics.is_o (box_integral' P - (λ p, (box_volume' p) * P b)) box_volume'
+    (nhds_within (b, b) ((Iic b).prod (Ici b))) :=
+begin
+  sorry,
+end
 
 include hP hQ hdiv
 
@@ -829,27 +842,8 @@ open box_additive_on
 open box_subadditive_on
 
 
-def box_integral' (P : (fin 2 → ℝ) → ℝ) (p : (fin 2 → ℝ) × (fin 2 → ℝ))
-: ℝ := uncurry (box_integral P) p
---ERROR!!!
 
 
--- add lemma that the average over smaller and smaller boxes is the value at a point
-lemma averaging (P : (fin 2 → ℝ) → ℝ)
-  (pcont: continuous P)
-  (b : fin 2 → ℝ)
-:
-  asymptotics.is_o (uncurry (box_integral P) -
-  (λ p,
-   (box_volume' p) * P b))
-    --(λ p --(p : (fin 2 → ℝ) × (fin 2 → ℝ)),
-       --∏ (i : fin 2), (p.fst i - p.snd i))
-       box_volume' -- p.fst p.snd)
-    (nhds_within (b, b) ((Iic b).prod (Ici b))) :=
-begin
-
-  sorry,
-end
 
 -- add hypothesis of continuity of divergence
 lemma greens_thm (I : subinterval (univ : set (fin 2 → ℝ ))) :

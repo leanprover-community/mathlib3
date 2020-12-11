@@ -244,7 +244,6 @@ open truncated_witt_vector
 
 variables (n)
 variable [comm_ring R]
-
 include hp
 
 /-- `truncate n` is a ring homomorphism that truncates `x` to its first `n` entries
@@ -257,12 +256,17 @@ def truncate : 𝕎 R →+* truncated_witt_vector p n R :=
   map_mul' := truncate_fun_mul n }
 
 variables (p n R)
+
 lemma truncate_surjective : surjective (truncate n : 𝕎 R → truncated_witt_vector p n R) :=
 truncate_fun_surjective p n R
+
+variables {p n R}
 
 @[simp] lemma coeff_truncate (x : 𝕎 R) (i : fin n) :
   (truncate n x).coeff i = x.coeff i :=
 coeff_truncate_fun _ _
+
+variables (n)
 
 lemma mem_ker_truncate (x : 𝕎 R) :
   x ∈ (@truncate p _ n R _).ker ↔ ∀ i < n, x.coeff i = 0 :=
@@ -273,10 +277,9 @@ begin
   refl,
 end
 
-local attribute [semireducible] witt_vector
+variables (p)
 
-@[simp]
-lemma truncate_mk (f : ℕ → R) :
+@[simp] lemma truncate_mk (f : ℕ → R) :
   truncate n (mk p f) = truncated_witt_vector.mk _ (λ k, f k) :=
 begin
   ext i,
@@ -306,18 +309,15 @@ ring_hom.lift_of_surjective
     exact h i (lt_of_lt_of_le hi hm)
   end
 
-@[simp]
-lemma truncate_comp_witt_vector_truncate {m : ℕ} (hm : n ≤ m) :
+@[simp] lemma truncate_comp_witt_vector_truncate {m : ℕ} (hm : n ≤ m) :
   (@truncate p _ n R _ m hm).comp (witt_vector.truncate m) = witt_vector.truncate n :=
 ring_hom.lift_of_surjective_comp _ _ _ _
 
-@[simp]
-lemma truncate_witt_vector_truncate {m : ℕ} (hm : n ≤ m) (x : 𝕎 R) :
+@[simp] lemma truncate_witt_vector_truncate {m : ℕ} (hm : n ≤ m) (x : 𝕎 R) :
   truncate hm (witt_vector.truncate m x) = witt_vector.truncate n x :=
 ring_hom.lift_of_surjective_comp_apply _ _ _ _ _
 
-@[simp]
-lemma truncate_truncate {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n₃)
+@[simp] lemma truncate_truncate {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n₃)
   (x : truncated_witt_vector p n₃ R) :
   (truncate h1) (truncate h2 x) = truncate (h1.trans h2) x :=
 begin
@@ -325,8 +325,7 @@ begin
   simp only [truncate_witt_vector_truncate],
 end
 
-@[simp]
-lemma truncate_comp {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n₃) :
+@[simp] lemma truncate_comp {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n₃) :
   (@truncate p _ _ R _ _ h1).comp (truncate h2) = truncate (h1.trans h2) :=
 begin
   ext1 x, simp only [truncate_truncate, function.comp_app, ring_hom.coe_comp]
@@ -348,8 +347,10 @@ end
 
 section fintype
 omit hp
-instance {R : Type*} [fintype R] : fintype (truncated_witt_vector p n R) :=
-pi.fintype
+
+instance {R : Type*} [fintype R] : fintype (truncated_witt_vector p n R) := pi.fintype
+
+variables (p n R)
 
 lemma card {R : Type*} [fintype R] :
   fintype.card (truncated_witt_vector p n R) = fintype.card R ^ n :=
@@ -357,9 +358,7 @@ by simp only [truncated_witt_vector, fintype.card_fin, fintype.card_fun]
 
 end fintype
 
-section ideals
-
-lemma ideal_inter : (⨅ i : ℕ, (@witt_vector.truncate p _ i R _).ker) = ⊥ :=
+lemma infi_ker_truncate : (⨅ i : ℕ, (@witt_vector.truncate p _ i R _).ker) = ⊥ :=
 begin
   rw [submodule.eq_bot_iff],
   intros x hx,
@@ -367,8 +366,6 @@ begin
   simp only [witt_vector.mem_ker_truncate, ideal.mem_infi, witt_vector.zero_coeff] at hx ⊢,
   exact hx _ _ (nat.lt_succ_self _)
 end
-
-end ideals
 
 end truncated_witt_vector
 
@@ -393,14 +390,9 @@ def lift_fun (s : S) : 𝕎 R :=
 witt_vector.mk p $ λ k, truncated_witt_vector.coeff (fin.last k) (f (k+1) s)
 
 variables {f}
-
-lemma lift_fun_zero : lift_fun f 0 = 0 :=
-by simp [lift_fun, witt_vector.ext_iff]
-
 include f_compat
 
-@[simp]
-private lemma truncate_lift_fun (s : S) :
+@[simp] lemma truncate_lift_fun (s : S) :
   witt_vector.truncate n (lift_fun f s) = f n s :=
 begin
   ext i,
@@ -411,28 +403,18 @@ begin
   simp only [fin.coe_last, fin.coe_cast_le],
 end
 
-lemma lift_fun_one : lift_fun f 1 = 1 :=
-begin
-  rw [← sub_eq_zero, ← ideal.mem_bot, ← ideal_inter, ideal.mem_infi],
-  intro i,
-  simp [ring_hom.mem_ker, f_compat],
-end
-
-lemma lift_fun_add (x y) : lift_fun f (x + y) = lift_fun f x + lift_fun f y :=
-begin
-  rw [← sub_eq_zero, ← ideal.mem_bot, ← ideal_inter, ideal.mem_infi],
-  intro i,
-  simp [ring_hom.mem_ker, f_compat],
-end
-
-lemma lift_fun_mul (x y) : lift_fun f (x * y) = lift_fun f x * lift_fun f y :=
-begin
-  rw [← sub_eq_zero, ← ideal.mem_bot, ← ideal_inter, ideal.mem_infi],
-  intro i,
-  simp [ring_hom.mem_ker, f_compat],
-end
-
 variable (f)
+
+section tac
+omit f_compat
+
+meta def lift_fun_tac : tactic unit :=
+`[intros,
+  rw [← sub_eq_zero, ← ideal.mem_bot, ← infi_ker_truncate, ideal.mem_infi],
+  intro i,
+  simp [ring_hom.mem_ker, f_compat] ]
+
+end tac
 
 /--
 Given compatible ring homs from `S` into `truncated_witt_vector n` for each `n`, we can lift these
@@ -442,12 +424,13 @@ to a ring hom `S → 𝕎 R`.
 -/
 def lift : S →+* 𝕎 R :=
 { to_fun := lift_fun f,
-  map_one' := lift_fun_one f_compat,
-  map_mul' := lift_fun_mul f_compat,
-  map_zero' := lift_fun_zero,
-  map_add' := lift_fun_add f_compat }
+  map_zero' := by lift_fun_tac,
+  map_one' := by lift_fun_tac,
+  map_mul' := by lift_fun_tac,
+  map_add' := by lift_fun_tac }
 
 variable {f}
+
 @[simp] lemma truncate_lift (s : S) :
   witt_vector.truncate n (lift _ f_compat s) = f n s :=
 truncate_lift_fun _ f_compat s
@@ -463,14 +446,13 @@ lemma lift_unique (g : S →+* 𝕎 R) (g_compat : ∀ k, (witt_vector.truncate 
   lift _ f_compat = g :=
 begin
   ext1 x,
-  rw [← sub_eq_zero, ← ideal.mem_bot, ← ideal_inter, ideal.mem_infi],
+  rw [← sub_eq_zero, ← ideal.mem_bot, ← infi_ker_truncate, ideal.mem_infi],
   intro i,
   simp only [ring_hom.mem_ker, g_compat, ←ring_hom.comp_apply,
     truncate_comp_lift, ring_hom.map_sub, sub_self],
 end
 
 omit f_compat
-
 include hp
 
 lemma hom_ext (g₁ g₂ : S →+* 𝕎 R)

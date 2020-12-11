@@ -28,11 +28,15 @@ Let R be an integral domain, assumed to be a principal ideal ring and a local ri
 
 ### Definitions
 
+* `add_val R : R → ℕ` : the additive valuation on a DVR (sending 0 to 0 rather than the
+     mathematically correct +∞).
+TODO -- the multiplicative valuation, taking values in something
+  like `with_zero (multiplicative ℤ)`?
+
 ## Implementation notes
 
 It's a theorem that an element of a DVR is a uniformizer if and only if it's irreducible.
 We do not hence define `uniformizer` at all, because we can use `irreducible` instead.
-
 
 ## Tags
 
@@ -326,6 +330,15 @@ begin
   assumption
 end
 
+lemma eq_unit_mul_pow_irreducible {x : R} (hx : x ≠ 0) {ϖ : R} (hirr : irreducible ϖ) :
+  ∃ (n : ℕ) (u : units R), x = u * ϖ ^ n :=
+begin
+  obtain ⟨n, hn⟩ := associated_pow_irreducible hx hirr,
+  obtain ⟨u, rfl⟩ := hn.symm,
+  use [n, u],
+  apply mul_comm,
+end
+
 open submodule.is_principal
 
 lemma ideal_eq_span_pow_irreducible {s : ideal R} (hs : s ≠ ⊥) {ϖ : R} (hirr : irreducible ϖ) :
@@ -366,6 +379,96 @@ begin
   cases h,
   { rw sub_eq_zero at h, exact_mod_cast h },
   { apply (hirr.ne_zero (pow_eq_zero h)).elim, }
+end
+
+/-!
+## The additive valuation on a DVR
+-/
+
+/-- The `ℕ`-valued additive valuation on a DVR (returns junk at `0` rather than `+∞`) -/
+noncomputable def add_val (R : Type u) [integral_domain R] [discrete_valuation_ring R] : R → ℕ :=
+λ r, if hr : r = 0 then 0 else
+  classical.some (associated_pow_irreducible hr (classical.some_spec $ exists_irreducible R))
+
+theorem add_val_spec {r : R} (hr : r ≠ 0) :
+  let ϖ := classical.some (exists_irreducible R) in
+  let n := classical.some
+    (associated_pow_irreducible hr (classical.some_spec (exists_irreducible R))) in
+  associated r (ϖ ^ n) :=
+classical.some_spec (associated_pow_irreducible hr (classical.some_spec $ exists_irreducible R))
+
+lemma add_val_def (r : R) (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) (hr : r = u * ϖ ^ n) :
+  add_val R r = n :=
+begin
+  subst hr,
+  let ϖ₀ := classical.some (exists_irreducible R),
+  have hϖ₀ : irreducible ϖ₀ := classical.some_spec (exists_irreducible R),
+  have h0 : (u : R) * ϖ ^ n ≠ 0,
+  { simp only [units.mul_right_eq_zero, ne.def, pow_ne_zero n hϖ.ne_zero, not_false_iff] },
+  unfold add_val,
+  rw dif_neg h0,
+  obtain ⟨v, hv⟩ := (add_val_spec h0).symm,
+  rw mul_comm at hv,
+  refine unit_mul_pow_congr_pow hϖ₀ hϖ _ u _ _ hv,
+end
+
+lemma add_val_def' (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) :
+  add_val R ((u : R) * ϖ ^ n) = n :=
+add_val_def _ u hϖ n rfl
+
+@[simp] lemma add_val_zero : add_val R 0 = 0 :=
+dif_pos rfl
+
+@[simp] lemma add_val_one : add_val R 1 = 0 :=
+add_val_def 1 1 (classical.some_spec $ exists_irreducible R) 0 (by simp)
+
+@[simp] lemma add_val_uniformizer {ϖ : R} (hϖ : irreducible ϖ) : add_val R ϖ = 1 :=
+add_val_def ϖ 1 hϖ 1 (by simp)
+
+@[simp] lemma add_val_mul {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) :
+  add_val R (a * b) = add_val R a + add_val R b :=
+begin
+  obtain ⟨ϖ, hϖ⟩ := exists_irreducible R,
+  obtain ⟨m, u, rfl⟩ := eq_unit_mul_pow_irreducible ha hϖ,
+  obtain ⟨n, v, rfl⟩ := eq_unit_mul_pow_irreducible hb hϖ,
+  rw mul_mul_mul_comm,
+  simp only [hϖ, add_val_def', ← pow_add, ← units.coe_mul],
+end
+
+lemma add_val_pow (a : R) (n : ℕ) : add_val R (a ^ n) = n * add_val R a :=
+begin
+  by_cases ha : a = 0,
+  { cases nat.eq_zero_or_pos n with hn hn,
+    { simp [ha, hn] },
+    { simp [ha, zero_pow hn] } },
+  induction n with d hd,
+  { simp [ha] },
+  { rw [pow_succ, add_val_mul ha (pow_ne_zero _ ha), hd], ring}
+end
+
+lemma add_val_le_iff_dvd {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) : add_val R a ≤ add_val R b ↔ a ∣ b :=
+begin
+  split,
+  { obtain ⟨ϖ, hϖ⟩ := exists_irreducible R,
+    obtain ⟨m, u, rfl⟩ := eq_unit_mul_pow_irreducible ha hϖ,
+    obtain ⟨n, v, rfl⟩ := eq_unit_mul_pow_irreducible hb hϖ,
+    rw [add_val_def' _ hϖ, add_val_def' _ hϖ, le_iff_exists_add],
+    rintro ⟨q, rfl⟩,
+    use ((v * u⁻¹ : units R) : R) * ϖ ^ q,
+    rw [mul_mul_mul_comm, pow_add, units.coe_mul, mul_left_comm ↑u, units.mul_inv, mul_one] },
+  { rintro ⟨c, rfl⟩,
+    rw add_val_mul ha (right_ne_zero_of_mul hb),
+    simp only [zero_le, le_add_iff_nonneg_right] }
+end
+
+lemma add_val_add {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) (hab : a + b ≠ 0) :
+  min (add_val R a) (add_val R b) ≤ add_val R (a + b) :=
+begin
+  -- wlog is slow but I'm grateful it works.
+  wlog h : add_val R a ≤ add_val R b := le_total (add_val R a) (add_val R b) using [a b, b a],
+  rw [min_eq_left h, add_val_le_iff_dvd ha hab],
+  rw add_val_le_iff_dvd ha hb at h,
+  exact dvd_add_self_left.mpr h,
 end
 
 end

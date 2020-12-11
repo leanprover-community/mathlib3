@@ -317,7 +317,6 @@ apply_nolint tactic.mllist.take doc_blame unused_arguments
 apply_nolint tactic.mllist.uncons doc_blame unused_arguments
 
 -- data/multiset/basic.lean
-apply_nolint multiset.choose doc_blame
 apply_nolint multiset.decidable_exists_multiset doc_blame
 apply_nolint multiset.decidable_forall_multiset doc_blame
 apply_nolint multiset.rec_on doc_blame

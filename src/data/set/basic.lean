@@ -768,6 +768,9 @@ by finish [ext_iff]
 @[simp] lemma sep_univ {α} {p : α → Prop} : {a ∈ (univ : set α) | p a} = {a | p a} :=
 by { ext, simp }
 
+@[simp] lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
+iff.rfl
+
 /-! ### Lemmas about complement -/
 
 theorem mem_compl {s : set α} {x : α} (h : x ∉ s) : x ∈ sᶜ := h
@@ -1682,6 +1685,15 @@ begin
   { exact λ h, ⟨default ι, h.symm⟩ }
 end
 
+lemma range_diff_image_subset (f : α → β) (s : set α) :
+  range f \ f '' s ⊆ f '' sᶜ :=
+λ y ⟨⟨x, h₁⟩, h₂⟩, ⟨x, λ h, h₂ ⟨x, h, h₁⟩, h₁⟩
+
+lemma range_diff_image {f : α → β} (H : injective f) (s : set α) :
+  range f \ f '' s = f '' sᶜ :=
+subset.antisymm (range_diff_image_subset f s) $ λ y ⟨x, hx, hy⟩, hy ▸
+  ⟨mem_range_self _, λ ⟨x', hx', eq⟩, hx $ H eq ▸ hx'⟩
+
 end range
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/
@@ -1822,6 +1834,15 @@ end
 
 lemma preimage_coe_nonempty {s t : set α} : ((coe : s → α) ⁻¹' t).nonempty ↔ (s ∩ t).nonempty :=
 by rw [inter_comm, ← image_preimage_coe, nonempty_image_iff]
+
+lemma preimage_coe_eq_empty {s t : set α} : (coe : s → α) ⁻¹' t = ∅ ↔ s ∩ t = ∅ :=
+by simp only [← not_nonempty_iff_eq_empty, preimage_coe_nonempty]
+
+@[simp] lemma preimage_coe_compl (s : set α) : (coe : s → α) ⁻¹' sᶜ = ∅ :=
+preimage_coe_eq_empty.2 (inter_compl_self s)
+
+@[simp] lemma preimage_coe_compl' (s : set α) : (coe : sᶜ → α) ⁻¹' s = ∅ :=
+preimage_coe_eq_empty.2 (compl_inter_self s)
 
 end subtype
 

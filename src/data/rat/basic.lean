@@ -586,6 +586,14 @@ begin
   simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
 end
 
+lemma exists_eq_mul_div_num_and_eq_mul_div_denom {n d : ℤ} (n_ne_zero : n ≠ 0)
+  (d_ne_zero : d ≠ 0) :
+  ∃ (c : ℤ), n = c * ((n : ℚ) / d).num ∧ (d : ℤ) = c * ((n : ℚ) / d).denom :=
+begin
+  have : ((n : ℚ) / d) = rat.mk n d, by rw [←rat.mk_eq_div],
+  exact rat.num_denom_mk n_ne_zero d_ne_zero this
+end
+
 theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
 (coe_int_eq_mk z).trans (of_int_eq_mk z).symm
 

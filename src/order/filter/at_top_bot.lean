@@ -951,6 +951,38 @@ end filter
 
 open filter finset
 
+namespace order_iso
+
+variables [preorder α] [preorder β]
+
+@[simp] lemma comap_at_top (e : α ≃o β) : comap e at_top = at_top :=
+by simp [at_top, ← e.surjective.infi_comp]
+
+@[simp] lemma comap_at_bot (e : α ≃o β) : comap e at_bot = at_bot :=
+e.dual.comap_at_top
+
+@[simp] lemma map_at_top (e : α ≃o β) : map ⇑e at_top = at_top :=
+by rw [← e.comap_at_top, map_comap_of_surjective e.surjective]
+
+@[simp] lemma map_at_bot (e : α ≃o β) : map ⇑e at_bot = at_bot :=
+e.dual.map_at_top
+
+lemma tendsto_at_top (e : α ≃o β) : tendsto e at_top at_top :=
+e.map_at_top.le
+
+lemma tendsto_at_bot (e : α ≃o β) : tendsto e at_bot at_bot :=
+e.map_at_bot.le
+
+@[simp] lemma tendsto_at_top_iff {l : filter γ} {f : γ → α} (e : α ≃o β) :
+  tendsto (λ x, e (f x)) l at_top ↔ tendsto f l at_top :=
+by rw [← e.comap_at_top, tendsto_comap_iff]
+
+@[simp] lemma tendsto_at_bot_iff {l : filter γ} {f : γ → α} (e : α ≃o β) :
+  tendsto (λ x, e (f x)) l at_bot ↔ tendsto f l at_bot :=
+e.dual.tendsto_at_top_iff
+
+end order_iso
+
 /-- Let `g : γ → β` be an injective function and `f : β → α` be a function from the codomain of `g`
 to a commutative monoid. Suppose that `f x = 1` outside of the range of `g`. Then the filters
 `at_top.map (λ s, ∏ i in s, f (g i))` and `at_top.map (λ s, ∏ i in s, f i)` coincide.

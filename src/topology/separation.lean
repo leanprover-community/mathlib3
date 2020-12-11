@@ -555,13 +555,6 @@ end
 
 end normality
 
-lemma disjoint.left_le_of_le_sup_right {α : Type*} [bounded_distrib_lattice α] {a b c : α} (h : a ≤ b ⊔ c) (hd : disjoint a c):
-  a ≤ b :=
-(λ x, le_of_inf_le_sup_le x (sup_le h le_sup_right)) ((disjoint_iff.mp hd).symm ▸ bot_le)
-
-lemma disjoint.left_le_of_le_sup_left {α : Type*} [bounded_distrib_lattice α] {a b c : α} (h : a ≤ c ⊔ b) (hd : disjoint a c):
-  a ≤ b :=
-@le_of_inf_le_sup_le _ _ a b c ((disjoint_iff.mp hd).symm ▸ bot_le) ((@sup_comm _ _ c b) ▸ (sup_le h le_sup_left))
 /-- In a compact t2 space, the connected component of a point equals the intersection of all
 the clopen neighbourhoods -/
 lemma connected_component_eq_clopen_Inter [t2_space α] [compact_space α] :

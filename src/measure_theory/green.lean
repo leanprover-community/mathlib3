@@ -453,7 +453,7 @@ variables {u}
 open measure_theory
 
 /-- The function `box_line_integral` is additive over rectangles. -/
-lemma is_box_additive_down_dim (i : fin 2) (hu : continuous u) :
+lemma is_box_additive_line_integral (i : fin 2) (hu : continuous u) :
   box_additive_on (box_line_integral u i) univ :=
 begin
   rw eq_opp_diff',

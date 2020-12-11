@@ -115,6 +115,10 @@ lemma map_injective {p : α → Prop} {q : β → Prop} {f : α → β} (h : ∀
   (hf : injective f) : injective (map f h) :=
 coind_injective _ $ hf.comp coe_injective
 
+lemma map_involutive {p : α → Prop} {f : α → α} (h : ∀a, p a → p (f a))
+  (hf : involutive f) : involutive (map f h) :=
+λ x, subtype.ext (hf x)
+
 instance [has_equiv α] (p : α → Prop) : has_equiv (subtype p) :=
 ⟨λ s t, (s : α) ≈ (t : α)⟩
 

@@ -81,7 +81,7 @@ is an equivalence.
 -/
 instance main_pair_G_split (A : algebra (F ⋙ G)) :
   G.is_split_pair (F.map A.a) (adj.counit.app (F.obj A.A)) :=
-{ splittable := ⟨_, _, ⟨cofork_free.beck_split_coequalizer (F ⋙ G) A⟩⟩ }
+{ splittable := ⟨_, _, ⟨beck_split_coequalizer A⟩⟩ }
 
 /-- The object function for the left adjoint to the comparison functor. -/
 def comparison_left_adjoint_obj
@@ -165,14 +165,13 @@ lemma comparison_adjunction_unit_f
   [∀ (A : algebra (F ⋙ G)), has_coequalizer (F.map A.a) (adj.counit.app (F.obj A.A))]
   (A : algebra (F ⋙ G)) :
   (comparison_adjunction.unit.app A).f =
-    (cofork_free.beck_coequalizer (F ⋙ G) A).desc (unit_cofork A) :=
+    (beck_coequalizer A).desc (unit_cofork A) :=
 begin
-  apply limits.cofork.is_colimit.hom_ext (cofork_free.beck_coequalizer (F ⋙ G) A),
+  apply limits.cofork.is_colimit.hom_ext (beck_coequalizer A),
   rw is_colimit.fac,
-  dsimp only [cofork.π_eq_app_one, cofork_free.beck_cofork_ι_app, unit_cofork_ι_app],
-  rw comparison_adjunction_unit_f_aux,
-  rw [← adj.hom_equiv_naturality_left A.a, coequalizer.condition, adj.hom_equiv_naturality_right,
-      adj.hom_equiv_unit, category.assoc],
+  dsimp only [cofork.π_eq_app_one, beck_cofork_ι_app, unit_cofork_ι_app],
+  rw [comparison_adjunction_unit_f_aux, ← adj.hom_equiv_naturality_left A.a, coequalizer.condition,
+      adj.hom_equiv_naturality_right, adj.hom_equiv_unit, category.assoc],
   apply adj.right_triangle_components_assoc,
 end
 
@@ -198,8 +197,7 @@ def counit_coequalizer_of_reflects_coequalizer (B : D)
                           (F.map (G.map (adj.counit.app B)))
                           (adj.counit.app (F.obj (G.obj B)))) G] :
   is_colimit (counit_cofork B) :=
-is_colimit_of_is_colimit_cofork_map G _
-  (cofork_free.beck_coequalizer (F ⋙ G) ((comparison G).obj B))
+is_colimit_of_is_colimit_cofork_map G _ (beck_coequalizer ((comparison G).obj B))
 
 lemma comparison_adjunction_counit_app
   [∀ (A : algebra (F ⋙ G)), has_coequalizer (F.map A.a) (adj.counit.app (F.obj A.A))] (B : D) :
@@ -263,7 +261,7 @@ begin
       change
         is_iso
           (is_colimit.cocone_point_unique_up_to_iso
-            (cofork_free.beck_coequalizer (F ⋙ G) X)
+            (beck_coequalizer X)
             (unit_colimit_of_preserves_coequalizer X)).hom,
       refine is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) },
     { apply_instance } },
@@ -351,7 +349,7 @@ begin
       change
         is_iso
           (is_colimit.cocone_point_unique_up_to_iso
-            (cofork_free.beck_coequalizer (F ⋙ G) X)
+            (beck_coequalizer X)
             (unit_colimit_of_preserves_coequalizer X)).hom,
       apply is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) },
     { apply_instance } },

@@ -1265,20 +1265,12 @@ class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
 
 instance pi.totally_disconnected_space {α : Type*} {β : α → Type*} [t₂ : Πa, topological_space (β a)]
    [∀a, totally_disconnected_space (β a)] : totally_disconnected_space (Π (a : α), β a) :=
-begin
-  constructor,
-  intros t h1 h2,
-  constructor,
-  intros a b, ext,
-  have H1 : subsingleton ((λ c : (Π (a : α), β a), c x )'' t),
-    { exact (totally_disconnected_space.is_totally_disconnected_univ
-          ( (λ (c : Π (a : α), β a), c x) '' t) (set.subset_univ _)
-          (is_preconnected.image h2 _ (continuous.continuous_on (continuous_apply _)))) },
-  cases H1,
-  have H2 := H1 ⟨(a.1 x), by {simp, use a, split, simp}⟩,
-  have H3 := H2 ⟨(b.1 x), by {simp, use b, split, simp}⟩,
-  simp at H3, exact H3,
-end
+⟨λ t h1 h2, ⟨λ a b, subtype.ext $ funext $ λ x, subtype.mk_eq_mk.1 $
+  (totally_disconnected_space.is_totally_disconnected_univ
+    ((λ (c : Π (a : α), β a), c x) '' t) (set.subset_univ _)
+    (is_preconnected.image h2 _ (continuous.continuous_on (continuous_apply _)))).cases_on
+  (λ h3, h3 ⟨(a.1 x), by {simp only [set.mem_image, subtype.val_eq_coe], use a, split, simp only [subtype.coe_prop]}⟩
+            ⟨(b.1 x), by {simp only [set.mem_image, subtype.val_eq_coe], use b, split, simp only [subtype.coe_prop]}⟩)⟩⟩
 
 instance subtype.totally_disconnected_space {α : Type*} {p : α → Prop} [topological_space α] [totally_disconnected_space α] : totally_disconnected_space (subtype p) :=
   ⟨λ s h1 h2,

@@ -1471,15 +1471,10 @@ begin
 end
 
 /-- `s` is a subsingleton, if its image of an injective function is. -/
-lemma subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.injective f)
+theorem subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.injective f)
   (s : set α) (hs : subsingleton (f '' s)) : subsingleton s :=
-begin
-  apply subsingleton.intro,
-  rintros ⟨a, ha⟩ ⟨b, hb⟩,
-  ext,
-  apply hf,
-  simpa using @subsingleton.elim _ hs ⟨f a, ⟨a, ha, rfl⟩⟩ ⟨f b, ⟨b, hb, rfl⟩⟩,
-end
+subsingleton.intro $ λ ⟨a, ha⟩ ⟨b, hb⟩, subtype.ext $ hf
+  (by {simpa using @subsingleton.elim _ hs ⟨f a, ⟨a, ha, rfl⟩⟩ ⟨f b, ⟨b, hb, rfl⟩⟩})
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)

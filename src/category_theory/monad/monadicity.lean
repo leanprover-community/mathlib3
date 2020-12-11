@@ -12,13 +12,29 @@ import category_theory.monad.coequalizer
 /-!
 # Monadicity theorems
 
-We prove two monadicity theorems which can establish a given functor is monadic. In particular, we
-show that:
+We prove monadicity theorems which can establish a given functor is monadic. In particular, we
+show three versions of Beck's monadicity theorem, and the reflexive (crude) monadicity theorem:
 
-* If `G : D ⥤ C` is a right adjoint and creates coequalizers of `G`-split pairs, then it is
-  monadic.
-* If `D` has reflexive coequalizers and `G` preserves them, and `G` reflects isomorphisms and is a
-  right adjoint, then it is monadic.
+`G` is a monadic right adjoint if it has a right adjoint, and:
+
+* `D` has, `G` preserves and reflects `G`-split coequalizers, see
+  `category_theory.monad.monadic_of_has_preserves_reflects_G_split_coequalizers`
+* `G` creates `G`-split coequalizers, see
+  `category_theory.monad.monadic_of_creates_G_split_coequalizers`
+  (The converse of this is also shown, see
+   `category_theory.monad.creates_G_split_coequalizers_of_monadic`)
+* `D` has and `G` preserves `G`-split coequalizers, and `G` reflects isomorphisms, see
+  `category_theory.monad.monadic_of_has_preserves_G_split_coequalizers_of_reflects_isomorphisms`
+* `D` has and `G` preserves reflexive coequalizers, and `G` reflects isomorphisms, see
+  `category_theory.monad.monadic_of_has_preserves_reflexive_coequalizers_of_reflects_isomorphisms`
+
+## Tags
+
+Beck, monadicity, descent
+
+## TODO
+
+Dualise to show comonadicity theorems.
 -/
 universes v₁ v₂ u₁ u₂
 
@@ -27,6 +43,7 @@ namespace monad
 open limits
 
 noncomputable theory
+-- Hide the implementation details in this namespace.
 namespace monadicity_internal
 
 section
@@ -42,20 +59,29 @@ abbreviation F : C ⥤ D := left_adjoint G
 /-- An internal convenience abbreviation to make lemma statements clearer. -/
 abbreviation adj : F ⊣ G := adjunction.of_right_adjoint G
 
+/--
+The "main pair" for an algebra `(A, α)` is the pair of morphisms `(F α, ε_FA)`. It is always a
+reflexive pair, and will be used to construct the left adjoint to the comparison functor and show it
+is an equivalence.
+-/
 instance main_pair_reflexive (A : algebra (F ⋙ G)) :
   is_reflexive_pair (F.map A.a) (adj.counit.app (F.obj A.A)) :=
 begin
   apply is_reflexive_pair.mk' (F.map (adj.unit.app _)) _ _,
-  { rw ← F.map_comp,
-    erw A.unit,
-    erw F.map_id },
+  { rw [← F.map_comp, ← F.map_id],
+    exact congr_arg (λ _, F.map _) A.unit },
   { rw adj.left_triangle_components,
     refl },
 end
 
+/--
+The "main pair" for an algebra `(A, α)` is the pair of morphisms `(F α, ε_FA)`. It is always a
+`G`-split pair, and will be used to construct the left adjoint to the comparison functor and show it
+is an equivalence.
+-/
 instance main_pair_G_split (A : algebra (F ⋙ G)) :
   G.is_split_pair (F.map A.a) (adj.counit.app (F.obj A.A)) :=
-{ splittable := ⟨_, _, cofork_free.beck_split_coequalizer (F ⋙ G) A⟩ }
+{ splittable := ⟨_, _, ⟨cofork_free.beck_split_coequalizer (F ⋙ G) A⟩⟩ }
 
 /-- The object function for the left adjoint to the comparison functor. -/
 def comparison_left_adjoint_obj
@@ -123,7 +149,8 @@ lemma comparison_adjunction_unit_f_aux
 congr_arg (adj.hom_equiv _ _) (category.comp_id _)
 
 /--
-This is a cofork which is key in understanding the unit of the adjunction.
+This is a cofork which is helpful for establishing monadicity: the morphism from the Beck
+coequalizer to this cofork is the unit for the adjunction on the comparison functor.
 -/
 @[simps {rhs_md := semireducible}]
 def unit_cofork (A : algebra (F ⋙ G)) [has_coequalizer (F.map A.a) (adj.counit.app (F.obj A.A))] :
@@ -149,7 +176,10 @@ begin
   apply adj.right_triangle_components_assoc,
 end
 
-/-- The cofork which describes the counit of the adjunction. -/
+/--
+The cofork which describes the counit of the adjunction: the morphism from the coequalizer of
+this pair to this morphism is the counit.
+-/
 @[simps {rhs_md := semireducible}]
 def counit_cofork (B : D) :
   cofork (F.map (G.map (adj.counit.app B))) (adj.counit.app (F.obj (G.obj B))) :=
@@ -227,8 +257,7 @@ begin
   let : Π (X : algebra (left_adjoint G ⋙ G)),
     is_iso ((adjunction.of_right_adjoint (comparison G)).unit.app X),
   { intro X,
-    apply is_iso_of_reflects_iso (monad.forget (F ⋙ G)) _,
-    { apply_instance } ,
+    apply is_iso_of_reflects_iso _ (monad.forget (F ⋙ G)),
     { change is_iso (comparison_adjunction.unit.app X).f,
       rw comparison_adjunction_unit_f,
       change
@@ -236,7 +265,8 @@ begin
           (is_colimit.cocone_point_unique_up_to_iso
             (cofork_free.beck_coequalizer (F ⋙ G) X)
             (unit_colimit_of_preserves_coequalizer X)).hom,
-      refine is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) } },
+      refine is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) },
+    { apply_instance } },
   let : Π (Y : D),
     is_iso ((adjunction.of_right_adjoint (comparison G)).counit.app Y),
   { intro Y,
@@ -315,8 +345,7 @@ begin
   let : Π (X : algebra (left_adjoint G ⋙ G)),
     is_iso ((adjunction.of_right_adjoint (comparison G)).unit.app X),
   { intro X,
-    apply is_iso_of_reflects_iso (monad.forget (F ⋙ G)) _,
-    { apply_instance },
+    apply is_iso_of_reflects_iso _ (monad.forget (F ⋙ G)),
     { change is_iso (comparison_adjunction.unit.app X).f,
       rw comparison_adjunction_unit_f,
       change
@@ -324,7 +353,8 @@ begin
           (is_colimit.cocone_point_unique_up_to_iso
             (cofork_free.beck_coequalizer (F ⋙ G) X)
             (unit_colimit_of_preserves_coequalizer X)).hom,
-      apply is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) } },
+      apply is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) },
+    { apply_instance } },
   let : Π (Y : D),
     is_iso ((adjunction.of_right_adjoint (comparison G)).counit.app Y),
   { intro Y,

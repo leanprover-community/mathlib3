@@ -1587,6 +1587,30 @@ begin
   rw swap_apply_of_ne_of_ne hi hj,
 end
 
+namespace perm
+
+@[simp] lemma sum_congr_swap_refl {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : α) :
+  equiv.perm.sum_congr (equiv.swap i j) (equiv.refl β) = equiv.swap (sum.inl i) (sum.inl j) :=
+begin
+  ext x,
+  cases x,
+  { simp [sum.map, swap_apply_def],
+    split_ifs; refl},
+  { simp [sum.map, swap_apply_of_ne_of_ne] },
+end
+
+@[simp] lemma sum_congr_refl_swap {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : β) :
+  equiv.perm.sum_congr (equiv.refl α) (equiv.swap i j) = equiv.swap (sum.inr i) (sum.inr j) :=
+begin
+  ext x,
+  cases x,
+  { simp [sum.map, swap_apply_of_ne_of_ne] },
+  { simp [sum.map, swap_apply_def],
+    split_ifs; refl},
+end
+
+end perm
+
 /-- Augment an equivalence with a prescribed mapping `f a = b` -/
 def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 (swap a (f.symm b)).trans f

@@ -96,16 +96,17 @@ begin
     apply (X.unit_assoc _).symm }
 end
 
-lemma beck_split_coequalizer : is_split_coequalizer (T.map X.a) ((μ_ T).app _) X.a :=
-⟨X.assoc.symm, (η_ T).app _, (η_ T).app _, X.unit, monad.left_unit _, ((η_ T).naturality _).symm⟩
+/-- The Beck cofork is a split coequalizer. -/
+def beck_split_coequalizer : is_split_coequalizer (T.map X.a) ((μ_ T).app _) X.a :=
+⟨(η_ T).app _, (η_ T).app _, X.assoc.symm, X.unit, monad.left_unit _, ((η_ T).naturality _).symm⟩
 
 /-- This is the Beck cofork. It is a split coequalizer, in particular a coequalizer. -/
 @[simps {rhs_md := semireducible}]
-def beck_cofork : cofork (T.map X.a) ((μ_ T).app _)  :=
+def beck_cofork : cofork (T.map X.a) ((μ_ T).app _) :=
 (beck_split_coequalizer X).as_cofork
 
 /-- The Beck cofork is a coequalizer. -/
-noncomputable def beck_coequalizer : is_colimit (beck_cofork X) :=
+def beck_coequalizer : is_colimit (beck_cofork X) :=
 (beck_split_coequalizer X).is_coequalizer
 
 end monad

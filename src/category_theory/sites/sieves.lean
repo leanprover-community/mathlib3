@@ -56,19 +56,19 @@ bind S R (g ≫ f) :=
 
 /-- The singleton presieve.  -/
 -- Note we can't make this into `has_singleton` because of the out-param.
-def singleton : presieve X :=
-λ Z g, ∃ (H : Z = Y), eq_to_hom H ≫ f = g
+inductive singleton : presieve X
+| mk : singleton f
 
 @[simp] lemma singleton_eq_iff_domain (f g : Y ⟶ X) : singleton f g ↔ f = g :=
 begin
   split,
-  { rintro ⟨_, rfl⟩,
-    apply (category.id_comp _).symm },
+  { rintro ⟨a, rfl⟩,
+    refl },
   { rintro rfl,
-    exact ⟨rfl, category.id_comp _⟩ },
+    apply singleton.mk, }
 end
 
-lemma singleton_self : singleton f f := (singleton_eq_iff_domain _ _).2 rfl
+lemma singleton_self : singleton f f := singleton.mk
 
 end presieve
 

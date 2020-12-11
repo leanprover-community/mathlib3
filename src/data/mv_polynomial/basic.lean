@@ -73,7 +73,6 @@ the polynomial being represented.
 
 polynomial, multivariate polynomial, multivariable polynomial
 
-S₁ S₂ S₃
 -/
 
 noncomputable theory

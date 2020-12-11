@@ -277,7 +277,8 @@ lemma is_equivalent.tendsto_at_top_iff [order_topology β] (huv : u ~[l] v) :
 lemma is_equivalent.tendsto_at_bot [order_topology β] (huv : u ~[l] v) (hu : tendsto u l at_bot) :
   tendsto v l at_bot :=
 begin
-  convert tendsto_neg_at_top_at_bot.comp (huv.neg.tendsto_at_top $ tendsto_neg_at_bot_at_top.comp hu),
+  convert tendsto_neg_at_top_at_bot.comp
+    (huv.neg.tendsto_at_top $ tendsto_neg_at_bot_at_top.comp hu),
   ext,
   simp
 end

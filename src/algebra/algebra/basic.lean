@@ -5,6 +5,7 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import tactic.nth_rewrite
 import data.matrix.basic
+import data.equiv.ring_aut
 import linear_algebra.tensor_product
 import ring_theory.subring
 import deprecated.subring

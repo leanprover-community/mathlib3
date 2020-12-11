@@ -65,8 +65,11 @@ class t1_space (α : Type u) [topological_space α] : Prop :=
 lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
+lemma is_open_compl_singleton [t1_space α] {x : α} : is_open ({x}ᶜ : set α) :=
+is_closed_singleton
+
 lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
-compl_singleton_eq x ▸ is_open_compl_iff.2 (t1_space.t1 x)
+is_open_compl_singleton
 
 instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p : α → Prop} :
   t1_space (subtype p) :=
@@ -88,6 +91,15 @@ lemma is_closed_map_const {α β} [topological_space α] [topological_space β] 
   is_closed_map (function.const α y) :=
 begin
   apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
+end
+
+lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [fintype X] :
+  discrete_topology X :=
+begin
+  apply singletons_open_iff_discrete.mp,
+  intros x,
+  rw [← is_closed_compl_iff, ← bUnion_of_singleton ({x} : set X)ᶜ],
+  exact is_closed_bUnion (finite.of_fintype _) (λ y _, is_closed_singleton)
 end
 
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
@@ -121,12 +133,8 @@ lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, ne_bot (𝓝 x ⊓ 𝓝 y) �
    ⟨u, v, uo, vo, hu, hv, disjoint.eq_bot $ disjoint.mono uu' vv' u'v'⟩⟩⟩
 
 lemma t2_iff_ultrafilter :
-  t2_space α ↔ ∀ f {x y : α}, is_ultrafilter f → f ≤ 𝓝 x → f ≤ 𝓝 y → x = y :=
-t2_iff_nhds.trans
-  ⟨assume h f x y u fx fy, h $ u.1.mono (le_inf fx fy),
-   assume h x y xy,
-     let ⟨f, hf, uf⟩ := @@exists_ultrafilter _ xy in
-     h f uf (le_trans hf inf_le_left) (le_trans hf inf_le_right)⟩
+  t2_space α ↔ ∀ {x y : α} (f : ultrafilter α), ↑f ≤ 𝓝 x → ↑f ≤ 𝓝 y → x = y :=
+t2_iff_nhds.trans $ by simp only [←exists_ultrafilter_iff, and_imp, le_inf_iff, exists_imp_distrib]
 
 lemma is_closed_diagonal [t2_space α] : is_closed (diagonal α) :=
 is_closed_iff_cluster_pt.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_ne_bot $ assume : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h $
@@ -193,20 +201,17 @@ tendsto_nhds_unique (le_nhds_Lim ⟨a, h⟩) h
 lemma Lim_eq_iff [ne_bot f] (h : ∃ (a : α), f ≤ nhds a) {a} : @Lim _ _ ⟨a⟩ f = a ↔ f ≤ 𝓝 a :=
 ⟨λ c, c ▸ le_nhds_Lim h, Lim_eq⟩
 
-lemma is_ultrafilter.Lim_eq_iff_le_nhds [compact_space α] (x : α) (F : ultrafilter α) :
-  @Lim _ _ ⟨x⟩ F.1 = x ↔ F.1 ≤ 𝓝 x :=
-⟨λ h, h ▸ is_ultrafilter.le_nhds_Lim _, Lim_eq⟩
+lemma ultrafilter.Lim_eq_iff_le_nhds [compact_space α] {x : α} {F : ultrafilter α} :
+  F.Lim = x ↔ ↑F ≤ 𝓝 x :=
+⟨λ h, h ▸ F.le_nhds_Lim, Lim_eq⟩
 
 lemma is_open_iff_ultrafilter' [compact_space α] (U : set α) :
   is_open U ↔ (∀ F : ultrafilter α, F.Lim ∈ U → U ∈ F.1) :=
 begin
   rw is_open_iff_ultrafilter,
-  refine ⟨λ h F hF, h _ hF _ F.2 (is_ultrafilter.le_nhds_Lim _), _⟩,
-  intros cond x hx f hf h,
-  let F : ultrafilter α := ⟨f, hf⟩,
-  change F.1 ≤ _ at h,
-  rw ←is_ultrafilter.Lim_eq_iff_le_nhds at h,
-  rw ←h at *,
+  refine ⟨λ h F hF, h F.Lim hF F F.le_nhds_Lim, _⟩,
+  intros cond x hx f h,
+  rw [← (ultrafilter.Lim_eq_iff_le_nhds.2 h)] at hx,
   exact cond _ hx
 end
 

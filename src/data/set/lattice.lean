@@ -1116,15 +1116,15 @@ disjoint_sup_right
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
 
-theorem disjoint_compl_left (s : set α) : disjoint sᶜ s := assume a ⟨h₁, h₂⟩, h₁ h₂
+@[simp] theorem disjoint_empty (s : set α) : disjoint s ∅ := disjoint_bot_right
 
-theorem disjoint_compl_right (s : set α) : disjoint s sᶜ := assume a ⟨h₁, h₂⟩, h₂ h₁
+@[simp] theorem empty_disjoint (s : set α) : disjoint ∅ s := disjoint_bot_left
 
 @[simp] lemma univ_disjoint {s : set α}: disjoint univ s ↔ s = ∅ :=
-by simp [set.disjoint_iff_inter_eq_empty]
+top_disjoint
 
 @[simp] lemma disjoint_univ {s : set α} : disjoint s univ ↔ s = ∅ :=
-by simp [set.disjoint_iff_inter_eq_empty]
+disjoint_top
 
 @[simp] theorem disjoint_singleton_left {a : α} {s : set α} : disjoint {a} s ↔ a ∉ s :=
 by simp [set.disjoint_iff, subset_def]; exact iff.rfl

@@ -13,7 +13,7 @@ import tactic.equiv_rw
 
 The ring of truncated Witt vectors (of length `n`) is a quotient of the ring of Witt vectors.
 It retains the first `n` coefficients of each Witt vector.
-In this file, we setup the basic quotient API for this ring.
+In this file, we set up the basic quotient API for this ring.
 
 The ring of Witt vectors is the projective limit of all the rings of truncated Witt vectors.
 
@@ -46,9 +46,10 @@ We will define operations on this type that are compatible with the (untruncated
 vector operations.
 
 `truncated_witt_vector p n R` takes a parameter `p : ℕ` that is not used in the definition.
-This `p` is used to define the ring operations, and so it is needed to infer the proper ring
-structure. (`truncated_witt_vector p₁ n R` and `truncated_witt_vector p₂ n R` are definitionally
-equal but will have different ring operations.)
+In practice, this number `p` is assumed to be a prime number,
+and under this assumption we construct a ring structure on `truncated_witt_vector p n R`.
+(`truncated_witt_vector p₁ n R` and `truncated_witt_vector p₂ n R` are definitionally
+equal as types but will have different ring operations.)
 -/
 @[nolint unused_arguments]
 def truncated_witt_vector (p : ℕ) (n : ℕ) (R : Type*) := fin n → R
@@ -72,7 +73,7 @@ def coeff (i : fin n) (x : truncated_witt_vector p n R) : R := x i
 
 @[ext]
 lemma ext {x y : truncated_witt_vector p n R} (h : ∀ i, x.coeff i = y.coeff i) : x = y :=
-funext $ λ n, h n
+funext h
 
 lemma ext_iff {x y : truncated_witt_vector p n R} : x = y ↔ ∀ i, x.coeff i = y.coeff i :=
 ⟨λ h i, by rw h, ext⟩
@@ -137,7 +138,7 @@ variable [comm_ring R]
 begin
   ext i,
   dsimp [truncated_witt_vector.out, init, select],
-  split_ifs with hi, swap, refl,
+  split_ifs with hi, swap, { refl },
   rw [coeff_truncate_fun, fin.coe_mk],
 end
 
@@ -151,12 +152,8 @@ variable [comm_ring R]
   x.out.truncate_fun n = x :=
 by simp only [witt_vector.truncate_fun, coeff_out, mk_coeff]
 
-end truncated_witt_vector
-
-namespace truncated_witt_vector
 open witt_vector
 variables (p n R)
-variable [comm_ring R]
 
 include hp
 
@@ -185,7 +182,7 @@ end
 end truncated_witt_vector
 
 /-- A macro tactic used to prove that `truncate_fun` respects ring operations. -/
-meta def tactic.interactive.truncate_fun_tac : tactic unit :=
+meta def tactic.interactive.witt_truncate_fun_tac : tactic unit :=
 `[show _ = truncate_fun n _,
   apply truncated_witt_vector.out_injective,
   iterate { rw [out_truncate_fun] },
@@ -213,16 +210,16 @@ variables {p R}
 @[simp]
 lemma truncate_fun_add (x y : 𝕎 R) :
   truncate_fun n (x + y) = truncate_fun n x + truncate_fun n y :=
-by truncate_fun_tac
+by witt_truncate_fun_tac
 
 @[simp]
 lemma truncate_fun_mul (x y : 𝕎 R) :
   truncate_fun n (x * y) = truncate_fun n x * truncate_fun n y :=
-by truncate_fun_tac
+by witt_truncate_fun_tac
 
 lemma truncate_fun_neg (x : 𝕎 R) :
   truncate_fun n (-x) = -truncate_fun n x :=
-by truncate_fun_tac
+by witt_truncate_fun_tac
 
 end witt_vector
 

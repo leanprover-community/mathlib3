@@ -153,11 +153,10 @@ begin
   rw [coeff_mul, finset.sum_eq_single ((0 : σ →₀ ℕ), n)];
   simp [mem_antidiagonal_support, coeff_one],
   show ∀ (i j : σ →₀ ℕ), i + j = n → (i = 0 → j ≠ n) →
-    (if i = 0 then coeff R j φ else 0) = 0,
-  intros i j hij h,
-  rw [if_neg],
-  contrapose! h,
-  simpa [h] using hij,
+    i = 0 → coeff R j φ = 0,
+  rintros i j hij h rfl,
+  rw zero_add at hij,
+  exact (h rfl hij).elim
 end
 
 protected lemma mul_one : φ * 1 = φ :=

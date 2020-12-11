@@ -668,6 +668,10 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
 (at_top_basis.tendsto_iff nhds_basis_ball).trans $
   by { simp only [exists_prop, true_and], refl }
 
+lemma is_open_singleton_iff {X : Type*} [metric_space X] {x : X} :
+  is_open ({x} : set X) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
+by simp [is_open_iff, subset_singleton_iff, mem_ball]
+
 end metric
 
 open metric

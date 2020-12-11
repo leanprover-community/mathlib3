@@ -69,7 +69,7 @@ begin
       by simp [sign_mul, this, sign_swap hij, prod_mul_distrib])
     (λ σ _ _ h, hij (σ.injective $ by conv {to_lhs, rw ← h}; simp))
     (λ _ _, mem_univ _)
-    (λ _ _, equiv.ext $ by simp)
+    (λ σ _, mul_swap_involutive i j σ)
 end
 
 @[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=

@@ -708,10 +708,6 @@ end
 
 end nested_non_fully_applied
 
-
-/- fail if you add an attribute with a parameter. -/
-run_cmd success_if_fail $ simps_tac `foo.rfl { attrs := [`higher_order] }
-
 -- test that type classes which are props work
 class prop_class (n : ℕ) : Prop :=
 (has_true : true)
@@ -744,3 +740,17 @@ instance (A B : Type*) : has_coe_to_fun (ring_hom A B) := ⟨_, λ f, f.to_fun�
 { to_fun := id }
 
 example (x : bool) : my_ring_hom x = id x := by simp only [my_ring_hom_to_fun]
+
+/- check interaction with the `@[to_additive]` attribute -/
+
+@[to_additive, simps]
+instance {M N} [has_mul M] [has_mul N] : has_mul (M × N) := ⟨λ p q, ⟨p.1 * q.1, p.2 * q.2⟩⟩
+
+run_cmd do
+  e ← get_env,
+  e.get `prod.has_mul_mul,
+  e.get `prod.has_add_add,
+  has_attribute `to_additive `prod.has_mul,
+  has_attribute `to_additive `prod.has_mul_mul,
+  has_attribute `simp `prod.has_mul_mul,
+  has_attribute `simp `prod.has_add_add

@@ -491,17 +491,37 @@ end)
 #check 1
 
 
+#check quotient.map
+
 
 /-- `swap`, embedded in `mod_sum_congr` -/
 def apply_swapl {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : α) :
   mod_sum_congr α β → mod_sum_congr α β :=
-quot.map (λ σ, σ * equiv.swap (@sum.inl _ β i) (sum.inl j)) (λ σ₁ σ₂ h, begin
+quotient.map' (λ σ, σ * equiv.swap (@sum.inl _ β i) (sum.inl j)) (λ σ₁ σ₂ h, begin
+  dunfold has_equiv.equiv,
   dunfold setoid.r quotient_group.left_rel at ⊢ h,
   obtain ⟨sl, sr, h⟩ := h,
   rw [mul_inv_rev, mul_assoc, ←mul_assoc _ σ₂, h, equiv.swap_inv,
     ←equiv.perm.sum_congr_swap_one, equiv.perm.sum_congr_mul, equiv.perm.sum_congr_mul],
   exact ⟨_, _, rfl⟩
 end)
+
+/-- `swap`, embedded in `mod_sum_congr` -/
+def mod_sum_congr.swap_mul {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : α ⊕ β) :
+  mod_sum_congr α β → mod_sum_congr α β :=
+quotient.map' (λ σ, equiv.swap i j * σ) (λ σ₁ σ₂ h, begin
+  dunfold has_equiv.equiv setoid.r quotient_group.left_rel,
+  rw [mul_inv_rev, mul_assoc, ←mul_assoc _ _ σ₂, inv_mul_self, one_mul],
+  exact h
+end)
+
+lemma mod_sum_congr.swap_mul_involutive  {α β : Type*} [decidable_eq α] [decidable_eq β]
+  (i j : α ⊕ β) : function.involutive (mod_sum_congr.swap_mul i j) :=
+begin
+  rintros ⟨σ⟩,
+  exact _root_.congr_arg (quot.mk _) (equiv.swap_mul_involutive i j σ),
+end
+
 
 def moves_from_left {α β : Type*} [decidable_eq α] [decidable_eq β] (σ : mod_sum_congr α β) (i : α ⊕ β):
   Prop :=
@@ -522,7 +542,7 @@ end)
 #check 1
 
 lemma is_inr_of_not_is_inl {α β : Type*} [decidable_eq α] [decidable_eq β]
-  (i : α ⊕ β)
+  {i : α ⊕ β}
   (h : ¬∃ i', sum.inl i' = i) : ∃ i', sum.inr i' = i :=
 begin
   rw [not_exists] at h,
@@ -764,7 +784,81 @@ begin
   -- TODO: express this as part of a larger sum over the full space of `equiv.perm (ιa ⊕ ιb)`
 end
 
+private lemma dom_coprod_aux_eq_zero_if_eq'
+  {R : Type*} {M N : Type*}
+  [comm_ring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
+  (a : alternating_map R M N ιa) (b : alternating_map R M N ιb)
+  (v : ιa ⊕ ιb → M) (i j : ιa ⊕ ιb) (h : v i = v j) (hij : i ≠ j) :
+  dom_coprod_aux a b v = 0 :=
+begin
+  unfold dom_coprod_aux,
+  dsimp only,
+  simp only [linear_map.comp_multilinear_map_dom_dom_congr,
+              linear_map.comp_multilinear_map_apply,
+              multilinear_map.dom_dom_congr_apply,
+              multilinear_map.dom_coprod_apply,
+              algebra.lmul'_apply,
+              to_multilinear_map_eq_coe,
+              coe_multilinear_map],
+  apply finset.sum_involution
+    (λ σ _, mod_sum_congr.swap_mul i j σ)
+    (λ σ, _)
+    (λ σ, _)
+    (λ σ _, finset.mem_univ _)
+    (λ σ _, mod_sum_congr.swap_mul_involutive i j σ),
+  { apply σ.induction_on' (λ σ, _),
+    intro _,
+    dsimp only [quotient.lift_on'_beta, mod_sum_congr.swap_mul, quotient.map'_mk'],
+    rw [equiv.perm.sign_mul, equiv.perm.sign_swap hij],
+    simp only [one_mul, units.neg_mul, function.comp_app, neg_smul, equiv.perm.coe_mul, units.coe_neg],
+    convert add_right_neg _;
+    { ext k, rw equiv.apply_swap_eq_self h },
+    },
+  { apply σ.induction_on' (λ σ, _),
+    intro _,
+    dsimp only [quotient.lift_on'_beta, mod_sum_congr.swap_mul, quotient.map'_mk'],
+    intro hnz,
+    by_cases hsw : (∃ il, σ (sum.inl il) = i) ↔ (∃ jl, σ (sum.inl jl) = j),
+    { exfalso,
+      apply hnz,
+      convert smul_zero _,
+      obtain (⟨⟨i', hi'⟩, ⟨j', hj'⟩⟩ | ⟨hi', hj'⟩) := iff_iff_and_or_not_and_not.mp hsw;
+      [ convert tensor_product.zero_tmul _ _, convert tensor_product.tmul_zero _ _],
+      { rw [←hi', ←hj'] at h,
+        refine a.map_eq_zero_of_eq _ h _,
+        intro hij',
+        apply hij,
+        rw [←hi', ←hj', hij'],},
+      { obtain ⟨i', hi'⟩ := not_moves_from_left hi',
+        obtain ⟨j', hj'⟩ := not_moves_from_left hj',
+        rw [←hi', ←hj'] at h,
+        refine b.map_eq_zero_of_eq _ h _,
+        intro hij',
+        apply hij,
+        rw [←hi', ←hj', hij'], },
+      },
+    { intro h,
+      obtain ⟨sl, sr, h⟩ := quotient.eq'.mp h,
+      obtain (⟨hi', ⟨j', hj'⟩⟩ | ⟨hi', hj'⟩) := iff_iff_and_or_not_and_not.mp (not_iff.mp hsw),
+      work_on_goal 0 {
+        obtain ⟨i', hi'⟩ := not_moves_from_left hi', },
+      work_on_goal 1 {
+        obtain ⟨i', hi'⟩ := not_not.mp hi',
+        obtain ⟨j', hj'⟩ := not_moves_from_left hj', },
+      all_goals {
+        rw [←hi', ←hj', ←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv,
+          inv_mul_cancel_right] at h,
+         },
+      { replace h := _root_.congr_arg (λ e : equiv.perm (ιa ⊕ ιb), e (sum.inr i')) h,
+        simpa using h, },
+      { replace h := _root_.congr_arg (λ e : equiv.perm (ιa ⊕ ιb), e (sum.inl i')) h,
+        simpa using h, }, }
+    },
+end
+
 #print quot
+
+#print congr_fun
 
 /-- Like `multilinear_map.dom_coprod`, but ensures the result is also alternating.
 

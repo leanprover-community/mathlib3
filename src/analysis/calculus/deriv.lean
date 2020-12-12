@@ -1483,7 +1483,7 @@ begin
   have := (hf.comp a hg.has_deriv_within_at hst).congr_of_eventually_eq_of_mem hfg.symm ha,
   simpa using hsu.eq_deriv _ this (has_deriv_within_at_id _ _)
 end
-  
+
 theorem not_differentiable_at_of_local_left_inverse_has_deriv_at_zero
   {f g : 𝕜 → 𝕜} {a : 𝕜} (hf : has_deriv_at f 0 (g a)) (hfg : f ∘ g =ᶠ[𝓝 a] id) :
   ¬differentiable_at 𝕜 g a :=

@@ -31,7 +31,7 @@ groups.
 topological space, group, topological group
 -/
 
-open classical set filter topological_space
+open classical set filter topological_space function
 open_locale classical topological_space filter
 
 universes u v w x
@@ -207,6 +207,82 @@ lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
   (h : @nhds G t 1 = @nhds G t' 1) : t = t' :=
 eq_of_nhds_eq_nhds $ λ x, by
   rw [← @nhds_translation_mul_inv G t _ _ x , ← @nhds_translation_mul_inv G t' _ _ x , ← h]
+
+@[to_additive]
+lemma topological_group.of_nhds_aux {G : Type*} [group G] [topological_space G]
+  (hinv : tendsto (λ (x : G), x⁻¹) (𝓝 1) (𝓝 1))
+  (hleft : ∀ (x₀ : G), 𝓝 x₀ = map (λ (x : G), x₀ * x) (𝓝 1))
+  (hconj : ∀ (x₀ : G), map (λ (x : G), x₀ * x * x₀⁻¹) (𝓝 1) ≤ 𝓝 1) : continuous (λ x : G, x⁻¹) :=
+begin
+  rw continuous_iff_continuous_at,
+  rintros x₀,
+  have key : (λ x, (x₀*x)⁻¹) = (λ x, x₀⁻¹*x) ∘ (λ x, x₀*x*x₀⁻¹) ∘ (λ x, x⁻¹),
+    by {ext ; simp[mul_assoc] },
+  calc map (λ x, x⁻¹) (𝓝 x₀)
+      = map (λ x, x⁻¹) (map (λ x, x₀*x) $ 𝓝 1) : by rw hleft
+  ... = map (λ x, (x₀*x)⁻¹) (𝓝 1) : by rw filter.map_map
+  ... = map (((λ x, x₀⁻¹*x) ∘ (λ x, x₀*x*x₀⁻¹)) ∘ (λ x, x⁻¹)) (𝓝 1) : by rw key
+  ... = map ((λ x, x₀⁻¹*x) ∘ (λ x, x₀*x*x₀⁻¹)) _ : by rw ← filter.map_map
+  ... ≤ map ((λ x, x₀⁻¹ * x) ∘ λ x, x₀ * x * x₀⁻¹) (𝓝 1) : map_mono hinv
+  ... = map (λ x, x₀⁻¹ * x) (map (λ x, x₀ * x * x₀⁻¹) (𝓝 1)) : filter.map_map
+  ... ≤ map (λ x, x₀⁻¹ * x) (𝓝 1) : map_mono (hconj x₀)
+  ... = 𝓝 x₀⁻¹ : (hleft _).symm
+end
+
+@[to_additive]
+lemma topological_group.of_nhds_one' {G : Type*} [group G] [topological_space G]
+  (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
+  (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
+  (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1))
+  (hright : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x*x₀) (𝓝 1)) : topological_group G :=
+begin
+  refine { continuous_mul := (has_continuous_mul.of_nhds_one hmul hleft hright).continuous_mul,
+           continuous_inv := topological_group.of_nhds_aux hinv hleft _ },
+  intros x₀,
+  suffices : map (λ (x : G), x₀ * x * x₀⁻¹) (𝓝 1) = 𝓝 1, by simp [this, le_refl],
+  rw [show (λ x, x₀ * x * x₀⁻¹) = (λ x, x₀ * x) ∘ λ x, x*x₀⁻¹, by {ext, simp [mul_assoc] },
+      ← filter.map_map, ← hright, hleft x₀⁻¹, filter.map_map],
+  convert map_id,
+  ext,
+  simp
+end
+
+@[to_additive]
+lemma topological_group.of_nhds_one {G : Type*} [group G] [topological_space G]
+  (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
+  (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
+  (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1))
+  (hconj : ∀ x₀ : G, tendsto (λ x, x₀*x*x₀⁻¹) (𝓝 1) (𝓝 1)) : topological_group G :=
+ { continuous_mul := begin
+    rw continuous_iff_continuous_at,
+    rintros ⟨x₀, y₀⟩,
+    have key : (λ (p : G × G), x₀ * p.1 * (y₀ * p.2)) =
+      ((λ x, x₀*y₀*x) ∘ (uncurry (*)) ∘ (prod.map (λ x, y₀⁻¹*x*y₀) id)),
+      by { ext, simp [uncurry, prod.map, mul_assoc] },
+    specialize hconj y₀⁻¹, rw inv_inv at hconj,
+    calc map (λ (p : G × G), p.1 * p.2) (𝓝 (x₀, y₀))
+        = map (λ (p : G × G), p.1 * p.2) ((𝓝 x₀) ×ᶠ 𝓝 y₀)
+            : by rw nhds_prod_eq
+    ... = map (λ (p : G × G), x₀ * p.1 * (y₀ * p.2)) ((𝓝 1) ×ᶠ (𝓝 1))
+            : by rw [hleft x₀, hleft y₀, prod_map_map_eq, filter.map_map]
+    ... = map (((λ x, x₀*y₀*x) ∘ (uncurry (*))) ∘ (prod.map (λ x, y₀⁻¹*x*y₀) id))((𝓝 1) ×ᶠ (𝓝 1))
+            : by rw key
+    ... = map ((λ x, x₀*y₀*x) ∘ (uncurry (*))) ((map  (λ x, y₀⁻¹*x*y₀) $ 𝓝 1) ×ᶠ (𝓝 1))
+            : by rw [← filter.map_map, ← prod_map_map_eq', map_id]
+    ... ≤ map ((λ x, x₀*y₀*x) ∘ (uncurry (*))) ((𝓝 1) ×ᶠ (𝓝 1))
+            : map_mono (filter.prod_mono hconj $ le_refl _)
+    ... = map (λ x, x₀*y₀*x) (map (uncurry (*)) ((𝓝 1) ×ᶠ (𝓝 1)))   : by rw filter.map_map
+    ... ≤ map (λ x, x₀*y₀*x) (𝓝 1)   : map_mono hmul
+    ... = 𝓝 (x₀*y₀)   : (hleft _).symm
+  end,
+  continuous_inv := topological_group.of_nhds_aux hinv hleft hconj}
+
+@[to_additive]
+lemma topological_group.of_comm_of_nhds_one {G : Type*} [comm_group G] [topological_space G]
+  (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
+  (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
+  (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1)) : topological_group G :=
+topological_group.of_nhds_one hmul hinv hleft (by simpa using tendsto_id)
 
 end topological_group
 

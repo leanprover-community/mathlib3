@@ -111,6 +111,7 @@ begin
   { dsimp at *,
     simp only [nat.succ_add, sum_range_succ, sub_eq_add_neg, add_assoc],
     refine le_trans (abv_add _ _ _) _,
+    simp only [sub_eq_add_neg] at hi,
     exact add_le_add (hm _ (le_add_of_nonneg_of_le (nat.zero_le _) (le_max_left _ _))) hi },
 end
 
@@ -762,6 +763,9 @@ lemma cos_of_real_re (x : ℝ) : (cos x).re = real.cos x := rfl
 
 lemma tan_eq_sin_div_cos : tan x = sin x / cos x := rfl
 
+lemma tan_mul_cos {x : ℂ} (hx : cos x ≠ 0) : tan x * cos x = sin x :=
+by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
+
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
 lemma tan_conj : tan (conj x) = conj (tan x) :=
@@ -784,10 +788,13 @@ by rw [← cosh_add_sinh, sinh_mul_I, cosh_mul_I]
 lemma cos_sub_sin_I : cos x - sin x * I = exp (-x * I) :=
 by rw [← neg_mul_eq_neg_mul, ← cosh_sub_sinh, sinh_mul_I, cosh_mul_I]
 
-lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
+@[simp] lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
 eq.trans
   (by rw [cosh_mul_I, sinh_mul_I, mul_pow, I_sq, mul_neg_one, sub_neg_eq_add, add_comm])
   (cosh_sq_sub_sinh_sq (x * I))
+
+@[simp] lemma cos_sq_add_sin_sq : cos x ^ 2 + sin x ^ 2 = 1 :=
+by rw [add_comm, sin_sq_add_cos_sq]
 
 lemma cos_two_mul' : cos (2 * x) = cos x ^ 2 - sin x ^ 2 :=
 by rw [two_mul, cos_add, ← pow_two, ← pow_two]
@@ -803,10 +810,18 @@ lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
 by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero', -one_div]
 
 lemma cos_square' : cos x ^ 2 = 1 - sin x ^ 2 :=
-by { rw [←sin_sq_add_cos_sq x], simp }
+by rw [←sin_sq_add_cos_sq x, add_sub_cancel']
 
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
-by { rw [←sin_sq_add_cos_sq x], simp }
+by rw [←sin_sq_add_cos_sq x, add_sub_cancel]
+
+lemma inv_one_add_tan_sq {x : ℂ} (hx : cos x ≠ 0) : (1 + tan x ^ 2)⁻¹ = cos x ^ 2 :=
+have cos x ^ 2 ≠ 0, from pow_ne_zero 2 hx,
+by { rw [tan_eq_sin_div_cos, div_pow], field_simp [this] }
+
+lemma tan_sq_div_one_add_tan_sq {x : ℂ} (hx : cos x ≠ 0) :
+  tan x ^ 2 / (1 + tan x ^ 2) = sin x ^ 2 :=
+by simp only [← tan_mul_cos hx, mul_pow, ← inv_one_add_tan_sq hx, div_eq_mul_inv, one_mul]
 
 lemma cos_three_mul : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
 begin
@@ -938,12 +953,18 @@ else
   by rw [sin, cos, tan, complex.tan, ← of_real_inj, div_eq_mul_inv, mul_re];
   simp [norm_sq, (div_div_eq_div_mul _ _ _).symm, div_self h]; refl
 
+lemma tan_mul_cos {x : ℝ} (hx : cos x ≠ 0) : tan x * cos x = sin x :=
+by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
+
 @[simp] lemma tan_zero : tan 0 = 0 := by simp [tan]
 
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
-lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
-of_real_inj.1 $ by simpa using sin_sq_add_cos_sq x
+@[simp] lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
+of_real_inj.1 $ by simp
+
+@[simp] lemma cos_sq_add_sin_sq : cos x ^ 2 + sin x ^ 2 = 1 :=
+by rw [add_comm, sin_sq_add_cos_sq]
 
 lemma sin_sq_le_one : sin x ^ 2 ≤ 1 :=
 by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_right (pow_two_nonneg _)
@@ -982,10 +1003,26 @@ lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
 of_real_inj.1 $ by simpa using cos_square x
 
 lemma cos_square' : cos x ^ 2 = 1 - sin x ^ 2 :=
-by { rw [←sin_sq_add_cos_sq x], simp }
+by rw [←sin_sq_add_cos_sq x, add_sub_cancel']
 
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
+
+lemma inv_one_add_tan_sq {x : ℝ} (hx : cos x ≠ 0) : (1 + tan x ^ 2)⁻¹ = cos x ^ 2  :=
+have complex.cos x ≠ 0, from mt (congr_arg re) hx,
+of_real_inj.1 $ by simpa using complex.inv_one_add_tan_sq this
+
+lemma tan_sq_div_one_add_tan_sq {x : ℝ} (hx : cos x ≠ 0) :
+  tan x ^ 2 / (1 + tan x ^ 2) = sin x ^ 2 :=
+by simp only [← tan_mul_cos hx, mul_pow, ← inv_one_add_tan_sq hx, div_eq_mul_inv, one_mul]
+
+lemma inv_sqrt_one_add_tan_sq {x : ℝ} (hx : 0 < cos x) :
+  (sqrt (1 + tan x ^ 2))⁻¹ = cos x :=
+by rw [← sqrt_sqr hx.le, ← sqrt_inv, inv_one_add_tan_sq hx.ne']
+
+lemma tan_div_sqrt_one_add_tan_sq {x : ℝ} (hx : 0 < cos x) :
+  tan x / sqrt (1 + tan x ^ 2) = sin x :=
+by rw [← tan_mul_cos hx.ne', ← inv_sqrt_one_add_tan_sq hx, div_eq_mul_inv]
 
 lemma cos_three_mul : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
 by rw ← of_real_inj; simp [cos_three_mul]
@@ -1097,11 +1134,13 @@ lemma exp_strict_mono : strict_mono exp :=
 
 @[mono] lemma exp_monotone : ∀ {x y : ℝ}, x ≤ y → exp x ≤ exp y := exp_strict_mono.monotone
 
-lemma exp_lt_exp {x y : ℝ} : exp x < exp y ↔ x < y := exp_strict_mono.lt_iff_lt
+@[simp] lemma exp_lt_exp {x y : ℝ} : exp x < exp y ↔ x < y := exp_strict_mono.lt_iff_lt
 
-lemma exp_le_exp {x y : ℝ} : exp x ≤ exp y ↔ x ≤ y := exp_strict_mono.le_iff_le
+@[simp] lemma exp_le_exp {x y : ℝ} : exp x ≤ exp y ↔ x ≤ y := exp_strict_mono.le_iff_le
 
 lemma exp_injective : function.injective exp := exp_strict_mono.injective
+
+@[simp] lemma exp_eq_exp {x y : ℝ} : exp x = exp y ↔ x = y := exp_injective.eq_iff
 
 @[simp] lemma exp_eq_one_iff : exp x = 1 ↔ x = 0 :=
 by rw [← exp_zero, exp_injective.eq_iff]
@@ -1177,6 +1216,7 @@ lemma exp_bound {x : ℂ} (hx : abs x ≤ 1) {n : ℕ} (hn : 0 < n) :
 begin
   rw [← lim_const (∑ m in range n, _), exp, sub_eq_add_neg, ← lim_neg, lim_add, ← lim_abs],
   refine lim_le (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
+  simp_rw ← sub_eq_add_neg,
   show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!)
     ≤ abs x ^ n * (n.succ * (n! * n)⁻¹),
   rw sum_range_sub_sum_range hj,

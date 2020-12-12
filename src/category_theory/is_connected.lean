@@ -291,7 +291,7 @@ begin
   apply is_connected.of_induct,
   intros p d k j,
   obtain ⟨l, zags, lst⟩ := h j (classical.arbitrary J),
-  apply list.chain.induction p l zags lst _ d,
+  apply list.chain.induction_head p l zags lst _ d,
   rintros _ _ (⟨⟨xy⟩⟩ | ⟨⟨yx⟩⟩),
   { exact (k xy).2 },
   { exact (k yx).1 }

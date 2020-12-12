@@ -49,6 +49,9 @@ is_compl.of_eq inf_compl_eq_bot sup_compl_eq_top
 theorem is_compl.compl_eq (h : is_compl x y) : xᶜ = y :=
 (h.right_unique is_compl_compl).symm
 
+theorem disjoint_compl_right : disjoint x xᶜ := is_compl_compl.disjoint
+theorem disjoint_compl_left : disjoint xᶜ x := disjoint_compl_right.symm
+
 theorem sdiff_eq : x \ y = x ⊓ yᶜ :=
 boolean_algebra.sdiff_eq x y
 

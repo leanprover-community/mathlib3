@@ -1413,7 +1413,9 @@ instance angle.has_coe : has_coe ℝ angle :=
 @[simp] lemma coe_zero : ↑(0 : ℝ) = (0 : angle) := rfl
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
-@[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
+@[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, coe_add, coe_neg]
+
 @[simp, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
   ↑((n : ℝ) * x) = n •ℕ (↑x : angle) :=
 by simpa using add_monoid_hom.map_nsmul ⟨coe, coe_zero, coe_add⟩ _ _
@@ -1457,7 +1459,7 @@ begin
   split,
   { intro Hsin, rw [← cos_pi_div_two_sub, ← cos_pi_div_two_sub] at Hsin,
     cases cos_eq_iff_eq_or_eq_neg.mp Hsin with h h,
-    { left, rw coe_sub at h, exact sub_right_inj.1 h },
+    { left, rw [coe_sub, coe_sub] at h, exact sub_right_inj.1 h },
       right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
       sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
     exact h.symm },

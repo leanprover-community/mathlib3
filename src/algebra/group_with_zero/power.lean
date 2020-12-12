@@ -43,7 +43,7 @@ by induction n with n ih; [exact inv_one.symm,
 theorem pow_sub' (a : G₀) {m n : ℕ} (ha : a ≠ 0) (h : n ≤ m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 have h1 : m - n + n = m, from nat.sub_add_cancel h,
 have h2 : a ^ (m - n) * a ^ n = a ^ m, by rw [←pow_add, h1],
-eq_div_of_mul_eq (pow_ne_zero _ ha) h2
+by simpa only [div_eq_mul_inv] using eq_div_of_mul_eq (pow_ne_zero _ ha) h2
 
 theorem pow_inv_comm' (a : G₀) (m n : ℕ) : (a⁻¹) ^ m * a ^ n = a ^ n * (a⁻¹) ^ m :=
 (commute.refl a).inv_left'.pow_pow m n
@@ -189,7 +189,7 @@ lemma fpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z �
 | -[1+n]     := inv_ne_zero $ pow_ne_zero _ ha
 
 lemma fpow_sub {a : G₀} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 - z2) = a ^ z1 / a ^ z2 :=
-by rw [sub_eq_add_neg, fpow_add ha, fpow_neg]; refl
+by rw [sub_eq_add_neg, fpow_add ha, fpow_neg, div_eq_mul_inv]
 
 lemma commute.mul_fpow {a b : G₀} (h : commute a b) :
   ∀ (i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)

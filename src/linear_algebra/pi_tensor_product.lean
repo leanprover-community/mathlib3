@@ -131,7 +131,8 @@ zero_tprod_coef' 1 f i hf
 zero_tprod _ i (update_same i 0 f)
 
 lemma add_tprod_coef (z : R) (f : Π i, s i) (i : ι) (m₁ m₂ : s i) :
-  tprod_coef R z (update f i m₁) + tprod_coef R z (update f i m₂) = tprod_coef R z (update f i (m₁ + m₂)) :=
+  tprod_coef R z (update f i m₁) + tprod_coef R z (update f i m₂) =
+    tprod_coef R z (update f i (m₁ + m₂)) :=
 quotient.sound' $ add_con_gen.rel.of _ _ (eqv.of_add z f i m₁ m₂)
 
 lemma add_tprod_coef' (z₁ z₂ : R) (f : Π i, s i) :

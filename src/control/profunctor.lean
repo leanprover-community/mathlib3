@@ -147,6 +147,29 @@ namespace costar
   { close := λ A B X fab fxa x, fab $ (λ (f : X → A), f x) <$> fxa }
 end costar
 
+/-- Todo sort out universes -/
+def yoneda (P : Type → Type → Type) (A B : Type) : Type 1 :=
+Π {X Y : Type}, (X → A) → (B → Y) → P X Y
+
+def coyoneda (P : Type → Type → Type) (A B : Type) : Type 1 :=
+Σ {X Y : Type}, (A → X) × (Y → B) × P X Y
+
+namespace yoneda
+variables {A B : Type}
+def extract : yoneda P A B → P A B
+| y := y id id
+
+def coextract : P A B → coyoneda P A B
+| p := ⟨_,_,id,id, p⟩
+
+-- [todo] universes
+-- def duplicate : yoneda P A B → yoneda (yoneda P A B) A B
+
+-- instance : profunctor (yoneda P) := {dimap := λ A B X Y ba xy p U V ub yv, p _ _ _}
+
+
+end yoneda
+
 namespace function
   instance is_lawful : lawful_profunctor (→) :=
   { dimap := λ A B C D f g h, g ∘ h ∘ f

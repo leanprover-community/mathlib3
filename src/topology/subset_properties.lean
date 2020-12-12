@@ -1379,6 +1379,14 @@ begin
     exact huv }
 end
 
+/-- The connected component of a point is always a subset of the intersection of all its clopen
+neighbourhoods -/
+lemma connected_component_subset_Inter_clopen :
+  ∀ x : α, connected_component x ⊆ ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
+λ x, set.subset_Inter $ λ Z,  subset_clopen_of_preconnected
+  Z.2.1 (is_connected_connected_component).2
+  $ set.nonempty_of_mem $ set.mem_inter Z.2.2 $ mem_connected_component
+
 end preconnected
 
 section totally_disconnected

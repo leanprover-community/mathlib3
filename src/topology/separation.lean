@@ -556,15 +556,13 @@ end
 end normality
 
 /-- In a compact t2 space, the connected component of a point equals the intersection of all
-the clopen neighbourhoods -/
-lemma connected_component_eq_clopen_Inter [t2_space α] [compact_space α] :
+its clopen neighbourhoods -/
+lemma connected_component_eq_Inter_clopen [t2_space α] [compact_space α] :
   ∀ x : α, connected_component x = ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
 begin
   intro x,
   apply set.eq_of_subset_of_subset,
-  { exact (set.subset_Inter (λ Z, subset_clopen_of_preconnected Z.2.1
-    (is_connected_connected_component).2 (set.nonempty_of_mem
-    (set.mem_inter Z.2.2 (mem_connected_component))))) },
+  { exact connected_component_subset_Inter_clopen x },
   { have hs : @is_closed _ _inst_1 (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z),
     { exact is_closed_Inter (λ Z, Z.2.1.2) },
     apply subset_connected_component,

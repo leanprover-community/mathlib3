@@ -501,18 +501,17 @@ begin
     (λ σ, _)
     (λ σ, _)
     (λ σ _, finset.mem_univ _)
-    (λ σ _, _),
-  { apply σ.induction_on' (λ σ, _),
-    intro _,
-    dsimp only [quotient.lift_on'_beta, quotient.map'_mk', mul_action.quotient.smul_mk'],
+    (λ σ, _),
+  all_goals {
+    apply σ.induction_on' (λ σ, _),
+    rintro _, },
+  { dsimp only [quotient.lift_on'_beta, quotient.map'_mk', mul_action.quotient.smul_mk'],
     rw [equiv.perm.sign_mul, equiv.perm.sign_swap hij],
     simp only [one_mul, units.neg_mul, function.comp_app, neg_smul, equiv.perm.coe_mul,
       units.coe_neg],
     convert add_right_neg _;
     { ext k, rw equiv.apply_swap_eq_self h }, },
-  { apply σ.induction_on' (λ σ, _),
-    intro _,
-    dsimp only [quotient.lift_on'_beta, quotient.map'_mk'],
+  { dsimp only [quotient.lift_on'_beta, quotient.map'_mk'],
     intro hnz,
     by_cases hsw : (∃ il, σ (sum.inl il) = i) ↔ (∃ jl, σ (sum.inl jl) = j),
     { exfalso,
@@ -544,9 +543,7 @@ begin
         simpa using h, },
       { replace h := _root_.congr_arg (λ e : equiv.perm (ιa ⊕ ιb), e (sum.inl i')) h,
         simpa using h, }, }, },
-  { dsimp only,
-    refine σ.induction_on' (λ σ, _),
-    exact _root_.congr_arg (quot.mk _) (equiv.swap_mul_involutive i j σ), }
+  { exact _root_.congr_arg (quot.mk _) (equiv.swap_mul_involutive i j σ), }
 end
 
 /-- Like `multilinear_map.dom_coprod`, but ensures the result is also alternating.

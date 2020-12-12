@@ -9,6 +9,7 @@ ERR_IMP = 1 # import statements
 ERR_MOD = 2 # module docstring
 ERR_LIN = 3 # line length
 ERR_SAV = 4 # ᾰ
+ERR_RNT = 5 # reserved notation
 
 exceptions = []
 
@@ -25,11 +26,19 @@ with open("scripts/copy-mod-doc-exceptions.txt") as f:
             exceptions += [(ERR_LIN, fn)]
         if errno == "ERR_SAV":
             exceptions += [(ERR_SAV, fn)]
+        if errno == "ERR_RNT":
+            exceptions += [(ERR_RNT, fn)]
 
 new_exceptions = False
 
 def small_alpha_vrachy_check(lines, fn):
     return [ (ERR_SAV, line_nr, fn) for line_nr, line in enumerate(lines) if 'ᾰ' in line ]
+
+def reserved_notation_check(lines, fn):
+    if fn == 'src/tactic/core.lean':
+        return []
+    return [ (ERR_RNT, line_nr, fn) for line_nr, line in enumerate(lines)
+        if line.startswith('reserve') or line.startswith('precedence') ]
 
 def long_lines_check(lines, fn):
     errors = []
@@ -121,6 +130,8 @@ def format_errors(errors):
             print("{} : line {} : ERR_LIN : Line has more than 100 characters".format(fn, line_nr))
         if errno == ERR_SAV:
             print("{} : line {} : ERR_SAV : File contains the character ᾰ".format(fn, line_nr))
+        if errno == ERR_RNT:
+            print("{} : line {} : ERR_RNT : Reserved notation outside tactic.core".format(fn, line_nr))
 
 def lint(fn):
     with open(fn) as f:
@@ -132,6 +143,10 @@ def lint(fn):
             format_errors(errs)
             return
         errs = regular_check(lines, fn)
+        format_errors(errs)
+        errs = small_alpha_vrachy_check(lines, fn)
+        format_errors(errs)
+        errs = reserved_notation_check(lines, fn)
         format_errors(errs)
 
 for fn in fns:

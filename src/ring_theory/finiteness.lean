@@ -136,8 +136,8 @@ lemma trans [algebra A B] [is_scalar_tower R A B] (hRA : finite_type R A) (hAB :
   finite_type R B :=
 fg_trans' hRA hAB
 
-/-- An algebra is finitely generated if and only if it is a quotient of a polynomial ring over a
-finset. -/
+/-- An algebra is finitely generated if and only if it is a quotient
+of a polynomial ring whose variables are indexed by a finset. -/
 lemma iff_quotient_mv_polynomial : (finite_type R A) ↔ ∃ (s : finset A)
   (f : (mv_polynomial {x // x ∈ s} R) →ₐ[R] A), (surjective f) :=
 begin

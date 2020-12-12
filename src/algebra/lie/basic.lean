@@ -934,23 +934,26 @@ of submodules of `M`. -/
 instance : has_bracket (lie_ideal R L) (lie_submodule R L M) :=
 ⟨λ I N, lie_submodule.lie_span R L { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m }⟩
 
-lemma lie_apply :
+lemma lie_ideal_oper_eq_span :
   ⁅I, N⁆ = lie_submodule.lie_span R L { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m } := rfl
 
 lemma lie_mem_lie (x : I) (m : N) : ⁅(x : L), (m : M)⁆ ∈ ⁅I, N⁆ :=
-by { rw lie_apply, apply subset_lie_span, use [x, m], }
+by { rw lie_ideal_oper_eq_span, apply subset_lie_span, use [x, m], }
 
 lemma lie_comm : ⁅I, J⁆ = ⁅J, I⁆ :=
 begin
   suffices : ∀ (I J : lie_ideal R L), ⁅I, J⁆ ≤ ⁅J, I⁆, { exact le_antisymm (this I J) (this J I), },
   clear I J, intros I J,
-  rw [lie_apply, lie_span_le], rintros x ⟨y, z, h⟩, rw ← h,
+  rw [lie_ideal_oper_eq_span, lie_span_le], rintros x ⟨y, z, h⟩, rw ← h,
   rw [← lie_skew, ← lie_neg, ← submodule.coe_neg],
   apply lie_mem_lie,
 end
 
 lemma lie_le_right : ⁅I, N⁆ ≤ N :=
-by { rw [lie_apply, lie_span_le], rintros m ⟨x, n, hn⟩, rw ← hn, exact N.lie_mem n.property, }
+begin
+  rw [lie_ideal_oper_eq_span, lie_span_le], rintros m ⟨x, n, hn⟩, rw ← hn,
+  exact N.lie_mem n.property,
+end
 
 lemma lie_le_left : ⁅I, J⁆ ≤ I :=
 by { rw lie_comm, exact lie_le_right I J, }
@@ -968,13 +971,14 @@ by { rw eq_bot_iff, apply lie_le_right, }
 @[simp] lemma bot_lie : ⁅(⊥ : lie_ideal R L), N⁆ = ⊥ :=
 begin
   suffices : ⁅(⊥ : lie_ideal R L), N⁆ ≤ ⊥, { exact le_bot_iff.mp this, },
-  rw [lie_apply, lie_span_le], rintros m ⟨⟨x, hx⟩, n, hn⟩, rw ← hn,
+  rw [lie_ideal_oper_eq_span, lie_span_le], rintros m ⟨⟨x, hx⟩, n, hn⟩, rw ← hn,
   change x ∈ (⊥ : lie_ideal R L) at hx, rw mem_bot at hx, simp [hx],
 end
 
 lemma mono_lie (h₁ : I ≤ J) (h₂ : N ≤ N') : ⁅I, N⁆ ≤ ⁅J, N'⁆ :=
 begin
-  intros m h, rw [lie_apply, mem_lie_span] at h, rw [lie_apply, mem_lie_span],
+  intros m h,
+  rw [lie_ideal_oper_eq_span, mem_lie_span] at h, rw [lie_ideal_oper_eq_span, mem_lie_span],
   intros N hN, apply h, rintros m' ⟨⟨x, hx⟩, ⟨n, hn⟩, hm⟩, rw ← hm, apply hN,
   use [⟨x, h₁ hx⟩, ⟨n, h₂ hn⟩], refl,
 end
@@ -988,7 +992,7 @@ begin
   have h : ⁅I, N⁆ ⊔ ⁅I, N'⁆ ≤ ⁅I, N ⊔ N'⁆,
   { rw sup_le_iff, split; apply mono_lie_right; [exact le_sup_left, exact le_sup_right], },
   suffices : ⁅I, N ⊔ N'⁆ ≤ ⁅I, N⁆ ⊔ ⁅I, N'⁆, { exact le_antisymm this h, }, clear h,
-  rw [lie_apply, lie_span_le], rintros m ⟨x, ⟨n, hn⟩, h⟩, erw lie_submodule.mem_sup,
+  rw [lie_ideal_oper_eq_span, lie_span_le], rintros m ⟨x, ⟨n, hn⟩, h⟩, erw lie_submodule.mem_sup,
   erw lie_submodule.mem_sup at hn, rcases hn with ⟨n₁, hn₁, n₂, hn₂, hn'⟩,
   use ⁅(x : L), (⟨n₁, hn₁⟩ : N)⁆, split, { apply lie_mem_lie, },
   use ⁅(x : L), (⟨n₂, hn₂⟩ : N')⁆, split, { apply lie_mem_lie, },
@@ -1000,7 +1004,7 @@ begin
   have h : ⁅I, N⁆ ⊔ ⁅J, N⁆ ≤ ⁅I ⊔ J, N⁆,
   { rw sup_le_iff, split; apply mono_lie_left; [exact le_sup_left, exact le_sup_right], },
   suffices : ⁅I ⊔ J, N⁆ ≤ ⁅I, N⁆ ⊔ ⁅J, N⁆, { exact le_antisymm this h, }, clear h,
-  rw [lie_apply, lie_span_le], rintros m ⟨⟨x, hx⟩, n, h⟩, erw lie_submodule.mem_sup,
+  rw [lie_ideal_oper_eq_span, lie_span_le], rintros m ⟨⟨x, hx⟩, n, h⟩, erw lie_submodule.mem_sup,
   erw lie_submodule.mem_sup at hx, rcases hx with ⟨x₁, hx₁, x₂, hx₂, hx'⟩,
   use ⁅((⟨x₁, hx₁⟩ : I) : L), (n : N)⁆, split, { apply lie_mem_lie, },
   use ⁅((⟨x₂, hx₂⟩ : J) : L), (n : N)⁆, split, { apply lie_mem_lie, },

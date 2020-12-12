@@ -287,7 +287,6 @@ def pushforward (f : Y ⟶ X) (R : sieve Y) : sieve X :=
 { arrows := λ Z gf, ∃ g, g ≫ f = gf ∧ R g,
   downward_closed' := λ Z₁ Z₂ g ⟨j, k, z⟩ h, ⟨h ≫ j, by simp [k], by simp [z]⟩ }
 
-@[simp]
 lemma pushforward_apply_comp {R : sieve Y} {Z : C} {g : Z ⟶ Y} (hg : R g) (f : Y ⟶ X) :
   R.pushforward f (g ≫ f) :=
 ⟨g, rfl, hg⟩

@@ -696,8 +696,8 @@ multiplication is monotone. -/
 (mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 
 /-- A linearly ordered additive commutative group is an
-additive commutative group with a decidable linear order in which
-addition is strictly monotone. -/
+additive commutative group with a linear order in which
+addition is monotone. -/
 @[protect_proj] class linear_ordered_add_comm_group (α : Type u)
   extends add_comm_group α, linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)

@@ -216,10 +216,10 @@ begin
     refine ⟨univ, ∅, is_open_univ, is_open_empty, λ _ _, mem_univ _, λ a h, by cases h, _⟩,
     exact univ_disjoint.mpr rfl },
   { intros x S xS hi sxS,
-    obtain ⟨U, V, oU, oV, xU, yV, UV⟩ := hi
-      (finset.disjoint_of_subset_right (finset.subset_insert x S) sxS),
-    obtain ⟨Ui, Vi, oUi, oVi, xUi, aVi, UiVi⟩ := not_mem_finset_opens_of_t2 s x
-      (finset.disjoint_insert_right.mp sxS).1,
+    obtain ⟨U, V, oU, oV, xU, yV, UV⟩ :=
+      hi (finset.disjoint_of_subset_right (finset.subset_insert x S) sxS),
+    obtain ⟨Ui, Vi, oUi, oVi, xUi, aVi, UiVi⟩ :=
+    not_mem_finset_opens_of_t2 s x (finset.disjoint_insert_right.mp sxS).1,
     refine ⟨U ∩ Ui, V ∪ Vi, is_open_inter oU oUi, is_open_union oV oVi, _, _, _⟩,
     { exact λ a as, ⟨xU a as, xUi a as⟩ },
     { intros f fi,

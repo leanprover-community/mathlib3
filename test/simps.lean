@@ -754,3 +754,6 @@ run_cmd do
   has_attribute `to_additive `prod.has_mul_mul,
   has_attribute `simp `prod.has_mul_mul,
   has_attribute `simp `prod.has_add_add
+
+example {M N} [has_mul M] [has_mul N] (p q : M × N) : p * q = ⟨p.1 * q.1, p.2 * q.2⟩ := by simp
+example {M N} [has_add M] [has_add N] (p q : M × N) : p + q = ⟨p.1 + q.1, p.2 + q.2⟩ := by simp

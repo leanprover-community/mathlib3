@@ -184,6 +184,53 @@ lemma tendsto_nhds_unique' [t2_space α] {f : β → α} {l : filter β} {a b : 
   (hl : ne_bot l) (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
 eq_of_nhds_ne_bot $ ne_bot_of_le $ le_inf ha hb
 
+lemma not_mem_finset_opens_of_t2 [t2_space α] (s : finset α) : ∀ (x : α), x ∉ s →
+    ∃ U V : (set α), (is_open U) ∧ is_open V ∧ (∀ a : α, a ∈ s → a ∈ U) ∧ x ∈ V ∧ disjoint U V :=
+begin
+  generalize' hd : s.card = d,
+  refine finset.induction_on s _ _,
+  { refine λ _ _, ⟨∅, univ, is_open_empty, is_open_univ, λ x h, by cases h, mem_univ _, _⟩,
+    exact disjoint_univ.mpr rfl },
+  rintros a t ta hi x xt,
+  obtain ⟨U, V, oU, oV, xU, aV, UV⟩ := @t2_separation _ _ _ x a _,
+  { obtain ⟨Ui, Vi, oUi, oVi, xUi, aVi, UVi⟩ := hi x (λ hy, xt (finset.mem_insert_of_mem hy)),
+    refine ⟨V ∪ Ui, U ∩ Vi, is_open_union oV oUi, is_open_inter oU oVi, _, ⟨xU, aVi⟩, _⟩,
+    { intros f fi,
+      by_cases fa : f = a,
+      { rw fa, exact mem_union_left _ aV },
+      { exact mem_union_right V (xUi f (finset.mem_of_mem_insert_of_ne fi fa)) } },
+    { apply disjoint.union_left _ (disjoint_of_subset_right (inter_subset_right U Vi) UVi),
+      apply disjoint_of_subset_right (inter_subset_left U Vi) _,
+      rw set.inter_comm at UV,
+      exact set.disjoint_iff_inter_eq_empty.mpr UV } },
+  { exact (ne_of_mem_of_not_mem (finset.mem_insert_self a t) xt).symm },
+end
+
+lemma disjoint_finsets_opens_of_t2 [t2_space α] (s t : finset α) : disjoint s t →
+  ∃ U V : (set α), (is_open U) ∧ is_open V ∧ (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V)
+  ∧ disjoint U V :=
+begin
+  generalize' hd : t.card = d,
+  refine finset.induction_on t _ _,
+  { intros f,
+    refine ⟨univ, ∅, is_open_univ, is_open_empty, λ _ _, mem_univ _, λ a h, by cases h, _⟩,
+    exact univ_disjoint.mpr rfl },
+  { intros x S xS hi sxS,
+    obtain ⟨U, V, oU, oV, xU, yV, UV⟩ := hi
+      (finset.disjoint_of_subset_right (finset.subset_insert x S) sxS),
+    obtain ⟨Ui, Vi, oUi, oVi, xUi, aVi, UiVi⟩ := not_mem_finset_opens_of_t2 s x
+      (finset.disjoint_insert_right.mp sxS).1,
+    refine ⟨U ∩ Ui, V ∪ Vi, is_open_inter oU oUi, is_open_union oV oVi, _, _, _⟩,
+    { exact λ a as, ⟨xU a as, xUi a as⟩ },
+    { intros f fi,
+      by_cases fx : f = x,
+      { subst fx, exact mem_union_right _ aVi },
+      { exact mem_union_left Vi (yV f (finset.mem_of_mem_insert_of_ne fi fx)) } },
+    { apply disjoint.union_right,
+      { exact disjoint_of_subset_left (inter_subset_left U Ui) UV },
+      { exact disjoint_of_subset_left (inter_subset_right U Ui) UiVi } } },
+end
+
 section lim
 variables [t2_space α] {f : filter α}
 

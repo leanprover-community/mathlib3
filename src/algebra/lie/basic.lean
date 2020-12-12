@@ -783,7 +783,7 @@ instance : partial_order (lie_submodule R L M) :=
 
 lemma le_def : N ≤ N' ↔ (N : set M) ⊆ N' := iff.rfl
 
-lemma le_def_submodule : N ≤ N' ↔ (N : submodule R M) ≤ N' := iff.rfl
+@[simp] lemma coe_le_coe_submodule : (N : submodule R M) ≤ N' ↔ N ≤ N' := iff.rfl
 
 instance : has_bot (lie_submodule R L M) := ⟨0⟩
 
@@ -868,7 +868,8 @@ begin
         use [⁅x, y⁆, N.lie_mem hy, ⁅x, z⁆, N'.lie_mem hz],
       end,
       ..(N : submodule R M) ⊔ (N' : submodule R M) } : lie_submodule R L M),
-  use NN, simp [le_def_submodule],
+  use NN, simp only [←coe_le_coe_submodule, mem_set_of_eq, eq_self_iff_true, and_self, le_sup_left,
+    le_sup_right, mk_coe_submodule],
 end
 
 lemma mem_sup (x : M) : x ∈ N ⊔ N' ↔ ∃ (y ∈ N) (z ∈ N'), y + z = x :=
@@ -939,10 +940,30 @@ lemma lie_apply :
 lemma lie_mem_lie (x : I) (m : N) : ⁅(x : L), (m : M)⁆ ∈ ⁅I, N⁆ :=
 by { rw lie_apply, apply subset_lie_span, use [x, m], }
 
-lemma lie_le : ⁅I, N⁆ ≤ N :=
+lemma lie_comm : ⁅I, J⁆ = ⁅J, I⁆ :=
+begin
+  suffices : ∀ (I J : lie_ideal R L), ⁅I, J⁆ ≤ ⁅J, I⁆, { exact le_antisymm (this I J) (this J I), },
+  clear I J, intros I J,
+  rw [lie_apply, lie_span_le], rintros x ⟨y, z, h⟩, rw ← h,
+  rw [← lie_skew, ← lie_neg, ← submodule.coe_neg],
+  apply lie_mem_lie,
+end
+
+lemma lie_le_right : ⁅I, N⁆ ≤ N :=
 by { rw [lie_apply, lie_span_le], rintros m ⟨x, n, hn⟩, rw ← hn, exact N.lie_mem n.property, }
 
-@[simp] lemma lie_bot : ⁅I, (⊥ : lie_submodule R L M)⁆ = ⊥ := by { rw eq_bot_iff, apply lie_le, }
+lemma lie_le_left : ⁅I, J⁆ ≤ I :=
+by { rw lie_comm, exact lie_le_right I J, }
+
+lemma lie_le_inf : ⁅I, J⁆ ≤ I ⊓ J :=
+begin
+  rw le_inf_iff, split,
+  { rw lie_comm, apply lie_le_right, },
+  { apply lie_le_right, },
+end
+
+@[simp] lemma lie_bot : ⁅I, (⊥ : lie_submodule R L M)⁆ = ⊥ :=
+by { rw eq_bot_iff, apply lie_le_right, }
 
 @[simp] lemma bot_lie : ⁅(⊥ : lie_ideal R L), N⁆ = ⊥ :=
 begin
@@ -984,22 +1005,6 @@ begin
   use ⁅((⟨x₁, hx₁⟩ : I) : L), (n : N)⁆, split, { apply lie_mem_lie, },
   use ⁅((⟨x₂, hx₂⟩ : J) : L), (n : N)⁆, split, { apply lie_mem_lie, },
   simp [← h, ← hx'],
-end
-
-lemma lie_comm : ⁅I, J⁆ = ⁅J, I⁆ :=
-begin
-  suffices : ∀ (I J : lie_ideal R L), ⁅I, J⁆ ≤ ⁅J, I⁆, { exact le_antisymm (this I J) (this J I), },
-  clear I J, intros I J,
-  rw [lie_apply, lie_span_le], rintros x ⟨y, z, h⟩, rw ← h,
-  rw [← lie_skew, ← lie_neg, ← submodule.coe_neg],
-  apply lie_mem_lie,
-end
-
-lemma lie_le_inf : ⁅I, J⁆ ≤ I ⊓ J :=
-begin
-  rw le_inf_iff, split,
-  { rw lie_comm, apply lie_le, },
-  { apply lie_le, },
 end
 
 end lie_ideal_operations

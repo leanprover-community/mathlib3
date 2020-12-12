@@ -122,15 +122,15 @@ variables [has_reflexive_coequalizers A]
 Construct the object part of the desired left adjoint as the coequalizer of `F'Uε_Y` with
 `other_map`.
 -/
-noncomputable def L_obj (Y : B) : A :=
+noncomputable def construct_left_adjoint_obj (Y : B) : A :=
 coequalizer (F'.map (U.map (adj₁.counit.app Y))) (other_map _ _ adj₁ adj₂ Y)
 
 /-- The homset equivalence which helps show that `R` is a right adjoint. -/
 @[simps {rhs_md := semireducible}]
 noncomputable
-def L_equiv [∀ (X : B), regular_epi (adj₁.counit.app X)] (Y : A) (X : B) :
-  (L_obj _ _ adj₁ adj₂ X ⟶ Y) ≃ (X ⟶ R.obj Y) :=
-calc (L_obj _ _ adj₁ adj₂ X ⟶ Y)
+def construct_left_adjoint_equiv [∀ (X : B), regular_epi (adj₁.counit.app X)] (Y : A) (X : B) :
+  (construct_left_adjoint_obj _ _ adj₁ adj₂ X ⟶ Y) ≃ (X ⟶ R.obj Y) :=
+calc (construct_left_adjoint_obj _ _ adj₁ adj₂ X ⟶ Y)
         ≃ {f : F'.obj (U.obj X) ⟶ Y //
               F'.map (U.map (adj₁.counit.app X)) ≫ f = other_map _ _ adj₁ adj₂ _ ≫ f} :
                 cofork.is_colimit.hom_iso (colimit.is_colimit _) _
@@ -158,18 +158,18 @@ calc (L_obj _ _ adj₁ adj₂ X ⟶ Y)
             end
   ... ≃ (X ⟶ R.obj Y) : (cofork.is_colimit.hom_iso (counit_coequalises adj₁ X) _).symm
 
-/-- Construct the left adjoint to `R`, with object map `L_obj`. -/
+/-- Construct the left adjoint to `R`, with object map `construct_left_adjoint_obj`. -/
 noncomputable def construct_left_adjoint [∀ (X : B), regular_epi (adj₁.counit.app X)] : B ⥤ A :=
 begin
-  refine adjunction.left_adjoint_of_equiv (λ X Y, L_equiv R F' adj₁ adj₂ Y X) _,
+  refine adjunction.left_adjoint_of_equiv (λ X Y, construct_left_adjoint_equiv R F' adj₁ adj₂ Y X) _,
   intros X Y Y' g h,
-  rw [L_equiv_apply, L_equiv_apply, function.comp_app, function.comp_app, equiv.trans_apply,
-      equiv.trans_apply, equiv.trans_apply, equiv.trans_apply, equiv.symm_apply_eq, subtype.ext_iff,
-      cofork.is_colimit.hom_iso_natural, equiv.apply_symm_apply, equiv.subtype_congr_apply,
-      equiv.subtype_congr_apply, equiv.subtype_congr_apply, equiv.subtype_congr_apply,
-      subtype.coe_mk, subtype.coe_mk, subtype.coe_mk, subtype.coe_mk,
-      ← adj₁.hom_equiv_naturality_right_symm, cofork.is_colimit.hom_iso_natural,
-      adj₂.hom_equiv_naturality_right, functor.comp_map],
+  rw [construct_left_adjoint_equiv_apply, construct_left_adjoint_equiv_apply, function.comp_app,
+      function.comp_app, equiv.trans_apply, equiv.trans_apply, equiv.trans_apply, equiv.trans_apply,
+      equiv.symm_apply_eq, subtype.ext_iff, cofork.is_colimit.hom_iso_natural,
+      equiv.apply_symm_apply, equiv.subtype_congr_apply, equiv.subtype_congr_apply,
+      equiv.subtype_congr_apply, equiv.subtype_congr_apply, subtype.coe_mk, subtype.coe_mk,
+      subtype.coe_mk, subtype.coe_mk, ← adj₁.hom_equiv_naturality_right_symm,
+      cofork.is_colimit.hom_iso_natural, adj₂.hom_equiv_naturality_right, functor.comp_map],
 end
 
 end lift_adjoint

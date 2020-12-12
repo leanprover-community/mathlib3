@@ -751,8 +751,8 @@ lemma is_algebraic : _root_.is_integral ℚ μ :=
   μ (is_integral h hpos)
 
 /--The minimal polynomial of `μ` over `ℚ` is the same as the minimal polynomial over `ℤ`. -/
-lemma min_poly_rational_eq_min_poly_integer : minimal_polynomial (is_algebraic h hpos)
-   = map (int.cast_ring_hom ℚ) (minimal_polynomial (is_integral h hpos)) :=
+lemma min_poly_rational_eq_min_poly_integer : minimal_polynomial (is_algebraic h hpos) =
+   map (int.cast_ring_hom ℚ) (minimal_polynomial (is_integral h hpos)) :=
 begin
   refine (unique' (is_algebraic h hpos) _ _ _).symm,
   { exact (is_primitive.int.irreducible_iff_irreducible_map_cast (is_primitive_minimal_polynomial h

@@ -70,7 +70,7 @@ end
 
 variables {F} {E} {E' : Type*} [field E'] [algebra F E']
 
-lemma normal.of_alg_equiv (h : normal F E) (f : E ≃ₐ[F] E') : normal F E' :=
+lemma normal.of_alg_equiv [h : normal F E] (f : E ≃ₐ[F] E') : normal F E' :=
 begin
   intro x,
   cases h (f.symm x) with hx hhx,
@@ -83,7 +83,10 @@ begin
   { apply minimal_polynomial.dvd H,
     rw ← add_equiv.map_eq_zero_iff f.symm.to_add_equiv,
     exact eq.trans (polynomial.aeval_alg_hom_apply f.symm.to_alg_hom x
-        (minimal_polynomial hx)).symm (minimal_polynomial.aeval hx) },
+      (minimal_polynomial hx)).symm (minimal_polynomial.aeval hx) },
 end
+
+lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
+⟨λ h, by exactI normal.of_alg_equiv f, λ h, by exactI normal.of_alg_equiv f.symm⟩
 
 end normal_tower

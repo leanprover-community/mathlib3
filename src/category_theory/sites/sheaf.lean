@@ -604,6 +604,10 @@ check the sheaf condition at presieves in the pretopology.
 def is_sheaf (P : Cᵒᵖ ⥤ Type v) : Prop :=
 ∀ ⦃X⦄ (S : sieve X), S ∈ J X → is_sheaf_for P S
 
+lemma is_sheaf.is_sheaf_for {P : Cᵒᵖ ⥤ Type v} (hp : is_sheaf J P)
+  (R : presieve X) (hr : generate R ∈ J X) : is_sheaf_for P R :=
+is_sheaf_for_iff_generate.2 $ hp _ hr
+
 lemma is_sheaf_for_coarser_topology (P : Cᵒᵖ ⥤ Type v) {J₁ J₂ : grothendieck_topology C} :
   J₁ ≤ J₂ → is_sheaf J₂ P → is_sheaf J₁ P :=
 λ h t X S hS, t S (h _ hS)

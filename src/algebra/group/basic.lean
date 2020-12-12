@@ -113,6 +113,9 @@ variables {M : Type u} [left_cancel_monoid M] {a b : M}
 calc a * b = a ↔ a * b = a * 1 : by rw mul_one
            ... ↔ b = 1         : mul_left_cancel_iff
 
+@[simp, to_additive] lemma left_eq_mul_iff : a = a * b ↔ b = 1 :=
+eq_comm.trans mul_eq_left_iff
+
 end left_cancel_monoid
 
 section right_cancel_monoid
@@ -122,6 +125,9 @@ variables {M : Type u} [right_cancel_monoid M] {a b : M}
 @[simp, to_additive] lemma mul_eq_right_iff : a * b = b ↔ a = 1 :=
 calc a * b = b ↔ a * b = 1 * b : by rw one_mul
            ... ↔ a = 1         : mul_right_cancel_iff
+
+@[simp, to_additive] lemma right_eq_mul_iff : b = a * b ↔ a = 1 :=
+eq_comm.trans mul_eq_right_iff
 
 end right_cancel_monoid
 

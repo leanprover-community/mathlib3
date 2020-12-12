@@ -207,8 +207,8 @@ begin
 end
 
 lemma disjoint_finsets_opens_of_t2 [t2_space α] (s t : finset α) : disjoint s t →
-  ∃ U V : (set α), (is_open U) ∧ is_open V ∧ (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V)
-  ∧ disjoint U V :=
+  ∃ U V : set α, (is_open U) ∧ is_open V ∧ (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V) ∧
+    disjoint U V :=
 begin
   generalize' hd : t.card = d,
   refine finset.induction_on t _ _,

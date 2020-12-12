@@ -598,7 +598,7 @@ instance with_top.canonically_ordered_add_monoid : canonically_ordered_add_monoi
 end canonically_ordered_add_monoid
 
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
-    whose ordering is a decidable linear order. -/
+    whose ordering is a linear order. -/
 @[protect_proj]
 class canonically_linear_ordered_add_monoid (α : Type*)
       extends canonically_ordered_add_monoid α, linear_order α
@@ -614,7 +614,7 @@ end canonically_linear_ordered_add_monoid
 
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,
-in which addition is cancellative and strictly monotone. -/
+in which addition is cancellative and monotone. -/
 @[protect_proj, ancestor add_comm_monoid add_left_cancel_semigroup
   add_right_cancel_semigroup partial_order]
 class ordered_cancel_add_comm_monoid (α : Type u)
@@ -625,7 +625,7 @@ class ordered_cancel_add_comm_monoid (α : Type u)
 
 /-- An ordered cancellative commutative monoid
 is a commutative monoid with a partial order,
-in which multiplication is cancellative and strictly monotone. -/
+in which multiplication is cancellative and monotone. -/
 @[protect_proj, ancestor comm_monoid left_cancel_semigroup right_cancel_semigroup partial_order]
 class ordered_cancel_comm_monoid (α : Type u)
       extends comm_monoid α, left_cancel_semigroup α,

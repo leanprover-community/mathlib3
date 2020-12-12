@@ -540,8 +540,7 @@ tendsto_at_top_mul_at_top tendsto_id tendsto_id
 
 /-- The function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_at_top`. -/
-lemma tendsto_pow_at_top [ordered_semiring α] {n : ℕ} (hn : 1 ≤ n) :
-  tendsto (λ x : α, x ^ n) at_top at_top :=
+lemma tendsto_pow_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ n) at_top at_top :=
 begin
   refine tendsto_at_top_mono' _ ((eventually_ge_at_top 1).mono $ λ x hx, _) tendsto_id,
   simpa only [pow_one] using pow_le_pow hx hn

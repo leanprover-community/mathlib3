@@ -10,6 +10,7 @@ ERR_MOD = 2 # module docstring
 ERR_LIN = 3 # line length
 ERR_SAV = 4 # ᾰ
 ERR_RNT = 5 # reserved notation
+ERR_OPT = 6 # set_option
 
 exceptions = []
 
@@ -28,18 +29,14 @@ with open("scripts/copy-mod-doc-exceptions.txt") as f:
             exceptions += [(ERR_SAV, fn)]
         if errno == "ERR_RNT":
             exceptions += [(ERR_RNT, fn)]
+        if errno == "ERR_OPT":
+            exceptions += [(ERR_OPT, fn)]
 
 new_exceptions = False
 
-def small_alpha_vrachy_check(lines, fn):
-    return [ (ERR_SAV, line_nr, fn) for line_nr, line in enumerate(lines, 1) if 'ᾰ' in line ]
-
-def reserved_notation_check(lines, fn):
-    if fn == 'src/tactic/core.lean':
-        return []
-    errors = []
+def skip_comments(enumerate_lines):
     in_comment = False
-    for line_nr, line in enumerate(lines, 1):
+    for line_nr, line in enumerate_lines:
         if "/-" in line:
             in_comment = True
         if "-/" in line:
@@ -47,12 +44,62 @@ def reserved_notation_check(lines, fn):
             continue
         if line == "\n" or in_comment:
             continue
+        yield line_nr, line
+
+def skip_string(enumerate_lines):
+    in_string = False
+    in_comment = False
+    for line_nr, line in enumerate_lines:
+        # ignore comment markers inside string literals
+        if not in_string:
+            if "/-" in line:
+                in_comment = True
+            if "-/" in line:
+                in_comment = False
+        # ignore quotes inside comments
+        if not in_comment:
+            # crude heuristic: if the number of non-escaped quote signs is odd,
+            # we're starting / ending a string literal
+            if line.count("\"") - line.count("\\\"") % 2 == 1:
+                in_string = not in_string
+            # if there are quote signs in this line,
+            # a string literal probably begins and / or ends here,
+            # so we skip this line
+            if line.count("\"") > 0:
+                continue
+            if in_string:
+                continue
+        yield line_nr, line
+
+def small_alpha_vrachy_check(lines, fn):
+    errors = []
+    for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
+        if 'ᾰ' in line:
+            errors += [(ERR_SAV, line_nr, fn)]
+    return errors
+
+def reserved_notation_check(lines, fn):
+    if fn == 'src/tactic/core.lean':
+        return []
+    errors = []
+    for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
         if line.startswith('reserve') or line.startswith('precedence'):
             errors += [(ERR_RNT, line_nr, fn)]
     return errors
 
+def set_option_check(lines, fn):
+    errors = []
+    for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
+        if line.startswith('set_option'):
+            next_two_chars = line.split(' ')[1][:2]
+            # forbidden options: pp, profiler, trace
+            if next_two_chars == 'pp' or next_two_chars == 'pr' or next_two_chars == 'tr':
+                errors += [(ERR_OPT, line_nr, fn)]
+    return errors
+
 def long_lines_check(lines, fn):
     errors = []
+    # TODO: some string literals (in e.g. tactic output messages) can be excepted from this rule
     for line_nr, line in enumerate(lines, 1):
         if "http" in line:
             continue
@@ -63,15 +110,7 @@ def long_lines_check(lines, fn):
 def import_only_check(lines, fn):
     import_only_file = True
     errors = []
-    in_comment = False
-    for line_nr, line in enumerate(lines, 1):
-        if "/-" in line:
-            in_comment = True
-        if "-/" in line:
-            in_comment = False
-            continue
-        if line == "\n" or in_comment:
-            continue
+    for line_nr, line in skip_comments(enumerate(lines, 1)):
         imports = line.split()
         if imports[0] == "--":
             continue
@@ -143,6 +182,8 @@ def format_errors(errors):
             print("{} : line {} : ERR_SAV : File contains the character ᾰ".format(fn, line_nr))
         if errno == ERR_RNT:
             print("{} : line {} : ERR_RNT : Reserved notation outside tactic.core".format(fn, line_nr))
+        if errno == ERR_OPT:
+            print("{} : line {} : ERR_OPT : Forbidden set_option command".format(fn, line_nr))
 
 def lint(fn):
     with open(fn) as f:
@@ -158,6 +199,8 @@ def lint(fn):
         errs = small_alpha_vrachy_check(lines, fn)
         format_errors(errs)
         errs = reserved_notation_check(lines, fn)
+        format_errors(errs)
+        errs = set_option_check(lines, fn)
         format_errors(errs)
 
 for fn in fns:

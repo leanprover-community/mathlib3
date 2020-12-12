@@ -69,7 +69,7 @@ by rw [eigenspace, linear_map.mem_ker, linear_map.sub_apply, algebra_map_End_app
 lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :
   eigenspace f (a / b) = (b • f - algebra_map K (End K V) a).ker :=
 calc
-  eigenspace f (a / b) = eigenspace f (b⁻¹ * a) : by { dsimp [(/)], rw mul_comm }
+  eigenspace f (a / b) = eigenspace f (b⁻¹ * a) : by { rw [div_eq_mul_inv, mul_comm] }
   ... = (f - (b⁻¹ * a) • linear_map.id).ker : rfl
   ... = (f - b⁻¹ • a • linear_map.id).ker : by rw smul_smul
   ... = (f - b⁻¹ • algebra_map K (End K V) a).ker : rfl

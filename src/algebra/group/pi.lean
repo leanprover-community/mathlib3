@@ -41,7 +41,10 @@ instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, .. };
   tactic.pi_instance_derive_field
 
-@[simp] lemma sub_apply [∀ i, add_group $ f i] : (x - y) i = x i - y i := rfl
+-- TODO: derive this from `@[to_additive] pi.div_apply`,
+-- when the `add_group -> has_sub` diamond is fixed
+@[simp] lemma sub_apply [∀ i, add_group $ f i] (x y : Π i : I, f i) (i : I) :
+  (x - y) i = x i - y i := rfl
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=

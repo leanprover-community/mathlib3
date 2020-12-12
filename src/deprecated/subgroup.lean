@@ -90,7 +90,8 @@ have inv_mem : ∀a, a ∈ s → a⁻¹ ∈ s, from
 theorem is_add_subgroup.of_sub (s : set A)
   (zero_mem : (0:A) ∈ s) (sub_mem : ∀{a b:A}, a ∈ s → b ∈ s → a - b ∈ s) :
   is_add_subgroup s :=
-is_add_subgroup.of_add_neg s zero_mem (λ x y hx hy, sub_mem hx hy)
+is_add_subgroup.of_add_neg s zero_mem
+  (λ x y hx hy, by simpa only [sub_eq_add_neg] using sub_mem hx hy)
 
 @[to_additive]
 instance is_subgroup.inter (s₁ s₂ : set G) [is_subgroup s₁] [is_subgroup s₂] :
@@ -164,7 +165,7 @@ lemma mul_mem_cancel_left (h : a ∈ s) : a * b ∈ s ↔ b ∈ s :=
 
 end is_subgroup
 
-theorem is_add_subgroup.sub_mem {A} [add_group A] (s : set A) [is_add_subgroup s] (a b : A)
+theorem is_add_subgroup.sub_mem {A} [add_group A] {s : set A} [is_add_subgroup s] {a b : A}
   (ha : a ∈ s) (hb : b ∈ s) : a - b ∈ s :=
 is_add_submonoid.add_mem ha (is_add_subgroup.neg_mem hb)
 

@@ -289,7 +289,7 @@ have h2 : a^(m - n) * a^n = a^m, by rw [←pow_add, h1],
 eq_mul_inv_of_mul_eq h2
 
 theorem nsmul_sub : ∀ (a : A) {m n : ℕ}, n ≤ m → (m - n) •ℕ a = m •ℕ a - n •ℕ a :=
-@pow_sub (multiplicative A) _
+by simpa only [sub_eq_add_neg] using @pow_sub (multiplicative A) _
 
 theorem pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
 (commute.refl a).inv_left.pow_pow m n
@@ -526,8 +526,8 @@ by simpa only [one_pow] using pow_le_pow_of_le_left H n
 
 end canonically_ordered_semiring
 
-section linear_ordered_semiring
-variable [linear_ordered_semiring R]
+section ordered_semiring
+variable [ordered_semiring R]
 
 @[simp] theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
 | 0     := by { nontriviality, exact zero_lt_one }
@@ -548,42 +548,44 @@ begin
   { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
 end
 
-theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n)
-  (Hxyn : x ^ n = y ^ n) : x = y :=
-begin
-  rcases lt_trichotomy x y with hxy | rfl | hyx,
-  { exact absurd Hxyn (ne_of_lt (pow_lt_pow_of_lt_left hxy Hxpos Hnpos)) },
-  { refl },
-  { exact absurd Hxyn (ne_of_gt (pow_lt_pow_of_lt_left hyx Hypos Hnpos)) },
-end
+theorem strict_mono_incr_on_pow {n : ℕ} (hn : 0 < n) :
+  strict_mono_incr_on (λ x : R, x ^ n) (set.Ici 0) :=
+λ x hx y hy h, pow_lt_pow_of_lt_left h hx hn
 
 theorem one_le_pow_of_one_le {a : R} (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
 | 0     := le_refl _
 | (n+1) := by simpa only [mul_one] using mul_le_mul H (one_le_pow_of_one_le n)
     zero_le_one (le_trans zero_le_one H)
 
+lemma pow_mono {a : R} (h : 1 ≤ a) : monotone (λ n : ℕ, a ^ n) :=
+monotone_of_monotone_nat $ λ n, le_mul_of_one_le_left (pow_nonneg (zero_le_one.trans h) _) h
+
 theorem pow_le_pow {a : R} {n m : ℕ} (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
-let ⟨k, hk⟩ := nat.le.dest h in
-calc a ^ n = a ^ n * 1 : (mul_one _).symm
-  ... ≤ a ^ n * a ^ k : mul_le_mul_of_nonneg_left
-    (one_le_pow_of_one_le ha _)
-    (pow_nonneg (le_trans zero_le_one ha) _)
-  ... = a ^ m : by rw [←hk, pow_add]
+pow_mono ha h
+
+lemma strict_mono_pow {a : R} (h : 1 < a) : strict_mono (λ n : ℕ, a ^ n) :=
+have 0 < a := zero_le_one.trans_lt h,
+strict_mono.nat $ λ n, by simpa only [one_mul, pow_succ]
+  using mul_lt_mul h (le_refl (a ^ n)) (pow_pos this _) this.le
 
 lemma pow_lt_pow {a : R} {n m : ℕ} (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=
-begin
-  have h' : 1 ≤ a := le_of_lt h,
-  have h'' : 0 < a := lt_trans zero_lt_one h,
-  cases m, cases h2, rw [pow_succ, ←one_mul (a ^ n)],
-  exact mul_lt_mul h (pow_le_pow h' (nat.le_of_lt_succ h2)) (pow_pos h'' _) (le_of_lt h'')
-end
+strict_mono_pow h h2
 
 lemma pow_lt_pow_iff {a : R} {n m : ℕ} (h : 1 < a) : a ^ n < a ^ m ↔ n < m :=
-strict_mono.lt_iff_lt $ λ m n, pow_lt_pow h
+(strict_mono_pow h).lt_iff_lt
 
 lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
 | 0     := by simp
 | (k+1) := mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab)
+
+end ordered_semiring
+
+section linear_ordered_semiring
+variable [linear_ordered_semiring R]
+
+theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n)
+  (Hxyn : x ^ n = y ^ n) : x = y :=
+(@strict_mono_incr_on_pow R _ _ Hnpos).inj_on Hxpos Hypos Hxyn
 
 lemma lt_of_pow_lt_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (h : a ^ n < b ^ n) : a < b :=
 lt_of_not_ge $ λ hn, not_lt_of_ge (pow_le_pow_of_le_left hb hn _) h
@@ -597,10 +599,7 @@ theorem pow_two_nonneg [linear_ordered_ring R] (a : R) : 0 ≤ a ^ 2 :=
 by { rw pow_two, exact mul_self_nonneg _ }
 
 theorem pow_two_pos_of_ne_zero [linear_ordered_ring R] (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
-begin
-  nontriviality,
-  exact lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
-end
+lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]

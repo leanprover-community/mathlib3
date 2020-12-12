@@ -340,22 +340,24 @@ instance group.to_cancel_monoid : cancel_monoid G :=
 
 end group
 
-section add_group
+-- TODO: in a later PR, this section will be deleted because it is bundled as part of `group`
+section has_div
 
-variables {G : Type u} [add_group G]
+variables {G : Type u} [group G]
 
-/-- The subtraction operation on an `add_group` -/
-@[reducible] protected def algebra.sub (a b : G) : G :=
-a + -b
+@[priority 100, to_additive]    -- see Note [lower instance priority]
+instance group_has_div : has_div G :=
+⟨λ a b, a * b⁻¹⟩
 
-@[priority 100]    -- see Note [lower instance priority]
-instance add_group_has_sub : has_sub G :=
-⟨algebra.sub⟩
-
-lemma sub_eq_add_neg (a b : G) : a - b = a + -b :=
+-- TODO: in a later PR, this will be part of the `group` structure
+@[to_additive]
+lemma group.div_eq_mul_inv (a b : G) : a / b = a * b⁻¹ :=
 rfl
 
-end add_group
+lemma sub_eq_add_neg {G : Type u} [add_group G] (a b : G) : a - b = a + -b :=
+add_group.sub_eq_add_neg a b
+
+end has_div
 
 /-- A commutative group is a group with commutative `(*)`. -/
 @[protect_proj, ancestor group comm_monoid]

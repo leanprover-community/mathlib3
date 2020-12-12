@@ -515,7 +515,7 @@ if hr : r.num = 0 then
   have hr' : r = 0, from zero_of_num_zero hr,
   by simp *
 else
-  calc q / r = q * r⁻¹ : div_eq_mul_inv
+  calc q / r = q * r⁻¹ : div_eq_mul_inv q r
          ... = (q.num /. q.denom) * (r.num /. r.denom)⁻¹ : by simp
          ... = (q.num /. q.denom) * (r.denom /. r.num) : by rw inv_def
          ... = (q.num * r.denom) /. (q.denom * r.num) : mul_def (by simpa using denom_ne_zero q) hr

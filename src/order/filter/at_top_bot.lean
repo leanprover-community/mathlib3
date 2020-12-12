@@ -722,9 +722,13 @@ end
 
 /-- The `at_top` filter for an open interval `Ioi a` comes from the `at_top` filter in the ambient
 order. -/
-lemma at_top_Ioi_eq [semilattice_sup α] [no_top_order α] (a : α) :
+lemma at_top_Ioi_eq [semilattice_sup α] (a : α) :
   at_top = comap (coe : Ioi a → α) at_top :=
-by rw [← map_coe_Ioi_at_top a, comap_map subtype.coe_injective]
+begin
+  nontriviality,
+  rcases nontrivial_iff_nonempty.1 ‹_› with ⟨b, hb⟩,
+  rw [← map_coe_at_top_of_Ici_subset (Ici_subset_Ioi.2 hb), comap_map subtype.coe_injective]
+end
 
 /-- The `at_top` filter for an open interval `Ici a` comes from the `at_top` filter in the ambient
 order. -/
@@ -740,9 +744,9 @@ order. -/
 
 /-- The `at_bot` filter for an open interval `Iio a` comes from the `at_bot` filter in the ambient
 order. -/
-lemma at_bot_Iio_eq [semilattice_inf α] [no_bot_order α] (a : α) :
+lemma at_bot_Iio_eq [semilattice_inf α] (a : α) :
   at_bot = comap (coe : Iio a → α) at_bot :=
-@at_top_Ioi_eq (order_dual α) _ _ _
+@at_top_Ioi_eq (order_dual α) _ _
 
 /-- The `at_bot` filter for an open interval `Iic a` comes from the `at_bot` filter in the ambient
 order. -/
@@ -755,6 +759,44 @@ order. -/
 lemma at_bot_Iic_eq [semilattice_inf α] (a : α) :
   at_bot = comap (coe : Iic a → α) at_bot :=
 @at_top_Ici_eq (order_dual α) _ _
+
+lemma tendsto_Ioi_at_top [semilattice_sup α] {a : α} {f : β → Ioi a}
+  {l : filter β} :
+  tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l at_top :=
+by rw [at_top_Ioi_eq, tendsto_comap_iff]
+
+lemma tendsto_Iio_at_bot [semilattice_inf α] {a : α} {f : β → Iio a}
+  {l : filter β} :
+  tendsto f l at_bot ↔ tendsto (λ x, (f x : α)) l at_bot :=
+by rw [at_bot_Iio_eq, tendsto_comap_iff]
+
+lemma tendsto_Ici_at_top [semilattice_sup α] {a : α} {f : β → Ici a} {l : filter β} :
+  tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l at_top :=
+by rw [at_top_Ici_eq, tendsto_comap_iff]
+
+lemma tendsto_Iic_at_bot [semilattice_inf α] {a : α} {f : β → Iic a} {l : filter β} :
+  tendsto f l at_bot ↔ tendsto (λ x, (f x : α)) l at_bot :=
+by rw [at_bot_Iic_eq, tendsto_comap_iff]
+
+@[simp] lemma tendsto_comp_coe_Ioi_at_top [semilattice_sup α] [no_top_order α] {a : α}
+  {f : α → β} {l : filter β} :
+  tendsto (λ x : Ioi a, f x) at_top l ↔ tendsto f at_top l :=
+by rw [← map_coe_Ioi_at_top a, tendsto_map'_iff]
+
+@[simp] lemma tendsto_comp_coe_Ici_at_top [semilattice_sup α] {a : α}
+  {f : α → β} {l : filter β} :
+  tendsto (λ x : Ici a, f x) at_top l ↔ tendsto f at_top l :=
+by rw [← map_coe_Ici_at_top a, tendsto_map'_iff]
+
+@[simp] lemma tendsto_comp_coe_Iio_at_bot [semilattice_inf α] [no_bot_order α] {a : α}
+  {f : α → β} {l : filter β} :
+  tendsto (λ x : Iio a, f x) at_bot l ↔ tendsto f at_bot l :=
+by rw [← map_coe_Iio_at_bot a, tendsto_map'_iff]
+
+@[simp] lemma tendsto_comp_coe_Iic_at_bot [semilattice_inf α] {a : α}
+  {f : α → β} {l : filter β} :
+  tendsto (λ x : Iic a, f x) at_bot l ↔ tendsto f at_bot l :=
+by rw [← map_coe_Iic_at_bot a, tendsto_map'_iff]
 
 lemma map_add_at_top_eq_nat (k : ℕ) : map (λa, a + k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a - k) k

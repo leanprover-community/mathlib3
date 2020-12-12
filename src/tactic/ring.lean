@@ -432,10 +432,12 @@ lemma subst_into_pow {α} [monoid α] (l r tl tr t)
 by rw [prl, prr, prt]
 
 lemma unfold_sub {α} [add_group α] (a b c : α)
-  (h : a + -b = c) : a - b = c := h
+  (h : a + -b = c) : a - b = c :=
+by rw [sub_eq_add_neg, h]
 
 lemma unfold_div {α} [division_ring α] (a b c : α)
-  (h : a * b⁻¹ = c) : a / b = c := h
+  (h : a * b⁻¹ = c) : a / b = c :=
+by rw [div_eq_mul_inv, h]
 
 /-- Evaluate a ring expression `e` recursively to normal form, together with a proof of
 equality. -/
@@ -516,7 +518,7 @@ by simp [pow_add]
 theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) : b * a ^ m * a ^ n = b * a ^ (m + n) :=
 by simp [pow_add, mul_assoc]
 
-theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := rfl
+theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := (sub_eq_add_neg a b).symm
 
 /-- If `ring` fails to close the goal, it falls back on normalizing the expression to a "pretty"
 form so that you can see why it failed. This setting adjusts the resulting form:

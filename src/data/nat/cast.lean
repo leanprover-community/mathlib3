@@ -83,7 +83,7 @@ def cast_add_monoid_hom (α : Type*) [add_monoid α] [has_one α] : ℕ →+ α 
   ((bit1 n : ℕ) : α) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 
-lemma cast_two {α : Type*} [semiring α] : ((2 : ℕ) : α) = 2 := by simp
+lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 := by simp
 
 @[simp, norm_cast] theorem cast_pred [add_group α] [has_one α] :
   ∀ {n}, 0 < n → ((n - 1 : ℕ) : α) = n - 1

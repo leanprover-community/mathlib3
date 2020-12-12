@@ -134,7 +134,7 @@ begin
   { introI h, apply_instance },
 end
 
-lemma is_galois.of_alg_equiv (h : is_galois F E) (f : E ≃ₐ[F] E') : is_galois F E' :=
+lemma is_galois.of_alg_equiv [h : is_galois F E] (f : E ≃ₐ[F] E') : is_galois F E' :=
 ⟨h.1.of_alg_hom f.symm, h.2.of_alg_equiv f⟩
 
 lemma alg_equiv.transfer_galois (f : E ≃ₐ[F] E') : is_galois F E ↔ is_galois F E' :=

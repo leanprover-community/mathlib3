@@ -959,11 +959,7 @@ lemma lie_le_left : ⁅I, J⁆ ≤ I :=
 by { rw lie_comm, exact lie_le_right I J, }
 
 lemma lie_le_inf : ⁅I, J⁆ ≤ I ⊓ J :=
-begin
-  rw le_inf_iff, split,
-  { rw lie_comm, apply lie_le_right, },
-  { apply lie_le_right, },
-end
+by { rw le_inf_iff, exact ⟨lie_le_left I J, lie_le_right J I⟩, }
 
 @[simp] lemma lie_bot : ⁅I, (⊥ : lie_submodule R L M)⁆ = ⊥ :=
 by { rw eq_bot_iff, apply lie_le_right, }

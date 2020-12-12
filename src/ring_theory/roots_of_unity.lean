@@ -769,8 +769,8 @@ over `ℤ` divides `P`. -/
 lemma minimal_polynomial_dvd {P : polynomial ℤ} (hprim : is_primitive P)
   (hroot : aeval μ P = 0) : minimal_polynomial (is_integral h hpos) ∣ P :=
 begin
-  apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (minimal_polynomial
-  (is_integral h hpos)) P _ hprim).2,
+  apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast
+    (minimal_polynomial (is_integral h hpos)) P _ hprim).2,
   { rw [←min_poly_rational_eq_min_poly_integer h hpos],
     apply minimal_polynomial.dvd,
     have htower := is_scalar_tower.aeval_apply ℤ ℚ K μ P,

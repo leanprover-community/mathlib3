@@ -955,8 +955,8 @@ def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 @[simp] lemma limit.cone_X {F : J ⥤ C} [has_limit F] :
   (limit.cone F).X = limit F := rfl
 
-@[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) :
-  (limit.cone F).π.app j = limit.π _ j := rfl
+@[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] :
+  (limit.cone F).π.app = limit.π _ := rfl
 
 @[simp, reassoc] lemma limit.w (F : J ⥤ C) [has_limit F] {j j' : J} (f : j ⟶ j') :
   limit.π F j ≫ F.map f = limit.π F j' := (limit.cone F).w f

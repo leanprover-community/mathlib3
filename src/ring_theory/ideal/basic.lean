@@ -228,7 +228,7 @@ theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
 ⟨H.1, λ x y hxy, or_iff_not_imp_left.2 $ λ hx, begin
   cases H.exists_inv hx with z hz,
   have := I.mul_mem_left hz,
-  rw [mul_sub, mul_one, mul_comm, mul_assoc] at this,
+  rw [mul_sub, mul_one, mul_comm, mul_assoc, sub_eq_add_neg] at this,
   exact I.neg_mem_iff.1 ((I.add_mem_iff_right $ I.mul_mem_left hxy).1 this)
 end⟩
 

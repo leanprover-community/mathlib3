@@ -418,10 +418,11 @@ instance semimodule' [semiring R] [add_comm_monoid M] [semimodule R M] :
 end module
 
 instance [has_le β] : has_le (germ l β) :=
-⟨λ f g, quotient.lift_on₂' f g l.eventually_le $
-  λ f f' g g' h h', propext $ eventually_le_congr h h'⟩
+⟨lift_rel (≤)⟩
 
 @[simp] lemma coe_le [has_le β] : (f : germ l β) ≤ g ↔ (f ≤ᶠ[l] g) := iff.rfl
+
+lemma le_def [has_le β] : ((≤) : germ l β → germ l β → Prop) = lift_rel (≤) := rfl
 
 lemma const_le [has_le β] {x y : β} (h : x ≤ y) : (↑x : germ l β) ≤ ↑y :=
 lift_rel_const h

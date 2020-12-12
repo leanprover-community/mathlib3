@@ -799,7 +799,7 @@ section sub
 theorem has_deriv_at_filter.sub
   (hf : has_deriv_at_filter f f' x L) (hg : has_deriv_at_filter g g' x L) :
   has_deriv_at_filter (λ x, f x - g x) (f' - g') x L :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 theorem has_deriv_within_at.sub
   (hf : has_deriv_within_at f f' s x) (hg : has_deriv_within_at g g' s x) :
@@ -814,7 +814,7 @@ hf.sub hg
 theorem has_strict_deriv_at.sub
   (hf : has_strict_deriv_at f f' x) (hg : has_strict_deriv_at g g' x) :
   has_strict_deriv_at (λ x, f x - g x) (f' - g') x :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma deriv_within_sub (hxs : unique_diff_within_at 𝕜 s x)
   (hf : differentiable_within_at 𝕜 f s x) (hg : differentiable_within_at 𝕜 g s x) :
@@ -833,7 +833,7 @@ has_fderiv_at_filter.is_O_sub h
 theorem has_deriv_at_filter.sub_const
   (hf : has_deriv_at_filter f f' x L) (c : F) :
   has_deriv_at_filter (λ x, f x - c) f' x L :=
-hf.add_const (-c)
+by simpa only [sub_eq_add_neg] using hf.add_const (-c)
 
 theorem has_deriv_within_at.sub_const
   (hf : has_deriv_within_at f f' s x) (c : F) :
@@ -856,7 +856,7 @@ lemma deriv_sub_const (c : F) (hf : differentiable_at 𝕜 f x) :
 
 theorem has_deriv_at_filter.const_sub (c : F) (hf : has_deriv_at_filter f f' x L) :
   has_deriv_at_filter (λ x, c - f x) (-f') x L :=
-hf.neg.const_add c
+by simpa only [sub_eq_add_neg] using hf.neg.const_add c
 
 theorem has_deriv_within_at.const_sub (c : F) (hf : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, c - f x) (-f') s x :=

@@ -118,9 +118,9 @@ variables (R)
 def semimodule.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [semimodule R M] :
   add_comm_group M :=
 { neg          := λ a, (-1 : R) • a,
-  add_left_neg := λ a, by {
+  add_left_neg := λ a, show (-1 : R) • a + a = 0, by {
     nth_rewrite 1 ← one_smul _ a,
-    rw [← add_smul, add_left_neg, zero_smul], },
+    rw [← add_smul, add_left_neg, zero_smul] },
   ..(infer_instance : add_comm_monoid M), }
 
 variables {R}
@@ -419,25 +419,27 @@ end int
 
 end
 
+namespace add_monoid_hom
+
 -- We prove this without using the `add_comm_group.int_module` instance, so the `•`s here
 -- come from whatever the local `module ℤ` structure actually is.
-lemma add_monoid_hom.map_int_module_smul
+lemma map_int_module_smul
   [add_comm_group M] [add_comm_group M₂]
   [module ℤ M] [module ℤ M₂] (f : M →+ M₂) (x : ℤ) (a : M) : f (x • a) = x • f a :=
 by simp only [← module.gsmul_eq_smul, f.map_gsmul]
 
-lemma add_monoid_hom.map_int_cast_smul
+lemma map_int_cast_smul
   [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
   (f : M →+ M₂) (x : ℤ) (a : M) : f ((x : R) • a) = (x : R) • f a :=
 by simp only [← module.gsmul_eq_smul_cast, f.map_gsmul]
 
-lemma add_monoid_hom.map_nat_cast_smul
+lemma map_nat_cast_smul
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
   [semimodule R M] [semimodule R M₂] (f : M →+ M₂) (x : ℕ) (a : M) :
   f ((x : R) • a) = (x : R) • f a :=
 by simp only [← semimodule.nsmul_eq_smul, f.map_nsmul]
 
-lemma add_monoid_hom.map_rat_cast_smul {R : Type*} [division_ring R] [char_zero R]
+lemma map_rat_cast_smul {R : Type*} [division_ring R] [char_zero R]
   {E : Type*} [add_comm_group E] [module R E] {F : Type*} [add_comm_group F] [module R F]
   (f : E →+ F) (c : ℚ) (x : E) :
   f ((c : R) • x) = (c : R) • f x :=
@@ -453,10 +455,34 @@ begin
     rat.cast_coe_int, f.map_int_cast_smul, this _ n hn]
 end
 
-lemma add_monoid_hom.map_rat_module_smul {E : Type*} [add_comm_group E] [vector_space ℚ E]
+lemma map_rat_module_smul {E : Type*} [add_comm_group E] [vector_space ℚ E]
   {F : Type*} [add_comm_group F] [module ℚ F] (f : E →+ F) (c : ℚ) (x : E) :
   f (c • x) = c • f x :=
 rat.cast_id c ▸ f.map_rat_cast_smul c x
+
+@[simp] lemma nat_smul_apply [add_monoid M] [add_comm_monoid M₂]
+  [semimodule ℕ (M →+ M₂)] [semimodule ℕ M₂]
+  (n : ℕ) (f : M →+ M₂) (a : M) :
+  (n • f) a = n • (f a) :=
+begin
+  induction n with n IH,
+  { simp only [zero_smul, zero_apply] },
+  { simp only [nat.succ_eq_add_one, add_smul, IH, one_smul, add_apply] }
+end
+
+@[simp] lemma int_smul_apply [add_monoid M] [add_comm_group M₂]
+  [module ℤ (M →+ M₂)] [module ℤ M₂]
+  (n : ℤ) (f : M →+ M₂) (a : M) :
+  (n • f) a = n • (f a) :=
+begin
+  apply int.induction_on' n 0,
+  { simp only [zero_smul, zero_apply] },
+  all_goals
+  { intros k hk IH,
+    simp only [add_smul, sub_smul, IH, one_smul, add_apply, sub_apply] }
+end
+
+end add_monoid_hom
 
 -- We finally turn on these instances globally:
 attribute [instance] add_comm_monoid.nat_semimodule add_comm_group.int_module

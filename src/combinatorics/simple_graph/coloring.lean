@@ -1,4 +1,6 @@
 import combinatorics.simple_graph.basic
+import combinatorics.simple_graph.subgraph
+import combinatorics.simple_graph.hom
 import tactic.fin_cases
 
 namespace simple_graph
@@ -39,6 +41,34 @@ instance color_class.decidable_pred (c : β) [decidable_eq β] : decidable_pred 
 by { intro v, change decidable (f.color v = c), apply_instance }
 
 end coloring
+
+/--
+Given a coloring and a larger set of colors, one can extend the coloring set.
+-/
+def extend_coloring {β β' : Type*} (f : β ↪ β') : coloring G β ↪ coloring G β' :=
+{ to_fun := λ F, { color := λ v, f (F.color v),
+                   valid := begin
+                     intros v w h hc, apply F.valid h, apply function.embedding.injective f, assumption,
+                   end},
+  inj' := begin intros F F' h, ext, apply function.embedding.injective f, simp at h, exact congr_fun h x, end
+}
+
+/--
+Given a coloring and an embedding of a graph, one may restrict the coloring of the graph.
+-/
+def restrict_coloring {G : simple_graph V} {G' : simple_graph V} (f : G →g G') [hom.mono f] {β : Type*} : coloring G' β → coloring G β :=
+λ F, { color := λ v, F.color (f v),
+       valid := begin
+         rintros v w h hF,
+         apply F.valid (f.map_adj h) hF,
+       end }
+
+/--
+Given a coloring of a graph, one may restrict the coloring to a subgraph.
+-/
+def restrict_coloring_subgraph {β : Type*} (G' : subgraph G) : coloring G β → coloring G'.to_simple_graph β :=
+restrict_coloring G'.map_top
+
 
 /-- A `colorable G α` graph is an `α`-partite graph, so we define bipartite as `colorable G (fin 2)`. -/
 def is_bipartite (G : simple_graph V) : Prop := G.colorable (fin 2)

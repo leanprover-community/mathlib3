@@ -232,6 +232,12 @@ by { intro v, simp }
 
 end finite
 
+/--
+The graph with no edges on a given vertex type.
+-/
+def empty_graph (V : Type u) : simple_graph V :=
+{ adj := λ i j, false }
+
 -- Let's see if we really need this.  fintype.card (G.set_neighbor_set S) works well enough
 
 -- section set_neighbor_finset

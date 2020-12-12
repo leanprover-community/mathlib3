@@ -7,6 +7,7 @@ import data.fintype.basic
 import data.sym2
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.coloring
+import combinatorics.simple_graph.subgraph
 import data.fin
 import data.set.finite
 /-!

@@ -739,9 +739,9 @@ lemma is_monic_minimal_polynomial : (minimal_polynomial (is_integral h hpos)).mo
 (minimal_polynomial.monic (is_integral h hpos))
 
 /--The minimal polynomial of `μ` is primitive. -/
-lemma is_primitive_minimal_polynomial : is_primitive
-(minimal_polynomial (is_integral h hpos)) := monic.is_primitive
-(is_monic_minimal_polynomial h hpos)
+lemma is_primitive_minimal_polynomial :
+  is_primitive (minimal_polynomial (is_integral h hpos)) :=
+monic.is_primitive (is_monic_minimal_polynomial h hpos)
 
 variables [char_zero K]
 

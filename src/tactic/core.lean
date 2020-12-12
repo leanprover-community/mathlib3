@@ -2340,5 +2340,5 @@ precedence `?`:max
 reserve infixl ` ⊓ `:70
 reserve infixl ` ⊔ `:65
 
--- used in `linear_algebra/basic.lean`
+-- used in `algebra/module/linear_map.lean`
 reserve infix ` ≃ₗ `:25

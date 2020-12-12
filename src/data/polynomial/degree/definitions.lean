@@ -735,7 +735,7 @@ section ring
 variables [ring R] {p q : polynomial R}
 
 lemma degree_sub_le (p q : polynomial R) : degree (p - q) ≤ max (degree p) (degree q) :=
-degree_neg q ▸ degree_add_le p (-q)
+by simpa only [sub_eq_add_neg, degree_neg q] using degree_add_le p (-q)
 
 lemma degree_sub_lt (hd : degree p = degree q)
   (hp0 : p ≠ 0) (hlc : leading_coeff p = leading_coeff q) :

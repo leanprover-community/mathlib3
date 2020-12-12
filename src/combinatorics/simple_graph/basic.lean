@@ -140,6 +140,12 @@ end
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.edge_set := by { dunfold edge_set, exact subtype.fintype _ }
 
+instance mem_edge_set_decidable [decidable_rel G.adj] (e : sym2 V) :
+  decidable (e ∈ G.edge_set) := by { dunfold edge_set, apply_instance }
+
+instance mem_incidence_set_decidable [decidable_eq V] [decidable_rel G.adj] (v : V) (e : sym2 V) :
+  decidable (e ∈ G.incidence_set v) := by { dsimp [incidence_set], apply_instance }
+
 /--
 The `edge_set` of the graph as a `finset`.
 -/
@@ -185,6 +191,10 @@ variable [decidable_eq V]
 Given an edge incident to a particular vertex, get the other vertex on the edge.
 -/
 def other_vertex_of_incident {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
+
+lemma edge_mem_other_incident_set {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
+  e ∈ G.incidence_set (G.other_vertex_of_incident h) :=
+by { use h.1, simp [other_vertex_of_incident, sym2.mem_other_mem'] }
 
 lemma incidence_other_prop {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
   G.other_vertex_of_incident h ∈ G.neighbor_set v :=

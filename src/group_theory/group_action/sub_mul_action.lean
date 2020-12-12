@@ -117,13 +117,29 @@ variables {r : R} {x : M}
 @[simp] lemma smul_mem_iff' (u : units R) : (u : R) • x ∈ p ↔ x ∈ p :=
 ⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
 
-/- If the scalar product forms a mul_action, then the subset inherits this action -/
+/-- If the scalar product forms a `mul_action`, then the subset inherits this action -/
 instance : mul_action R p :=
 { smul := (•),
   one_smul := λ x, subtype.ext $ one_smul _ x,
   mul_smul := λ c₁ c₂ x, subtype.ext $ mul_smul c₁ c₂ x }
 
 end mul_action
+
+section semimodule
+
+variables [semiring R] [add_comm_monoid M]
+variables [semimodule R M]
+variables (p : sub_mul_action R M)
+
+lemma zero_mem (h : (p : set M).nonempty) : (0 : M) ∈ p :=
+let ⟨x, hx⟩ := h in zero_smul R (x : M) ▸ p.smul_mem 0 hx
+
+/-- If the scalar product forms a `semimodule`, and the `sub_mul_action` is not `⊥`, then the
+subset inherits the zero. -/
+instance [n_empty : nonempty p] : has_zero p :=
+{ zero := ⟨0, n_empty.elim $ λ x, p.zero_mem ⟨x, x.prop⟩⟩ }
+
+end semimodule
 
 section add_comm_group
 

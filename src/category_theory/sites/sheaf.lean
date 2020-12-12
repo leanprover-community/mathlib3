@@ -6,6 +6,7 @@ Authors: Bhavik Mehta
 
 import category_theory.sites.pretopology
 import category_theory.limits.shapes.types
+import category_theory.full_subcategory
 
 /-!
 # Sheaves on a Grothendieck topology
@@ -836,4 +837,27 @@ end
 
 end presieve
 end equalizer
+
+variables {C : Type u} [category.{v} C]
+variables (J : grothendieck_topology C)
+
+/-- The category of sheaves on a grothendieck topology. -/
+@[derive category]
+def Sheaf (J : grothendieck_topology C) : Type (max u (v+1)) :=
+{P : Cᵒᵖ ⥤ Type v // presieve.is_sheaf J P}
+
+instance : inhabited (Sheaf (⊥ : grothendieck_topology C)) :=
+⟨⟨(functor.const _).obj punit,
+  λ X S hS,
+  begin
+    simp only [grothendieck_topology.bot_covering] at hS,
+    subst hS,
+    apply presieve.is_sheaf_for_top_sieve,
+  end⟩⟩
+
+/-- The inclusion functor from sheaves to presheaves. -/
+@[simps {rhs_md := semireducible}, derive [full, faithful]]
+def Sheaf_to_presheaf : Sheaf J ⥤ (Cᵒᵖ ⥤ Type v) :=
+full_subcategory_inclusion (presieve.is_sheaf J)
+
 end category_theory

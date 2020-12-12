@@ -330,6 +330,34 @@ begin
   exact hx,
 end
 
+/-- `polynomial R` is never a field for any ring `R`. -/
+lemma polynomial_not_is_field : ¬ is_field (polynomial R) :=
+begin
+  by_contradiction hR,
+  by_cases hR' : ∃ (x y : R), x ≠ y,
+  { haveI : nontrivial R := let ⟨x, y, hxy⟩ := hR' in nontrivial_of_ne x y hxy,
+    obtain ⟨p, hp⟩ := hR.mul_inv_cancel X_ne_zero,
+    by_cases hp0 : p = 0,
+    { replace hp := congr_arg degree hp,
+      rw [hp0, mul_zero, degree_zero, degree_one] at hp,
+      contradiction },
+    { have : p.degree < (X * p).degree := (mul_comm p X) ▸ degree_lt_degree_mul_X hp0,
+      rw [congr_arg degree hp, degree_one, nat.with_bot.lt_zero_iff, degree_eq_bot] at this,
+      exact hp0 this } },
+  { push_neg at hR',
+    exact let ⟨x, y, hxy⟩ := hR.exists_pair_ne in hxy (polynomial.ext (λ n, hR' _ _)) }
+end
+
+/-- The only constant in a maximal ideal over a field is `0`. -/
+lemma eq_zero_of_constant_mem_of_maximal (hR : is_field R)
+  (I : ideal (polynomial R)) [hI : I.is_maximal] (x : R) (hx : C x ∈ I) : x = 0 :=
+begin
+  refine classical.by_contradiction (λ hx0, hI.1 ((eq_top_iff_one I).2 _)),
+  obtain ⟨y, hy⟩ := hR.mul_inv_cancel hx0,
+  convert I.smul_mem (C y) hx,
+  rw [smul_eq_mul, ← C.map_mul, mul_comm y x, hy, ring_hom.map_one],
+end
+
 /-- Transport an ideal of `R[X]` to an `R`-submodule of `R[X]`. -/
 def of_polynomial (I : ideal (polynomial R)) : submodule R (polynomial R) :=
 { carrier := I.carrier,

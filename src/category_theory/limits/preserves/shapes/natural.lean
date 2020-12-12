@@ -5,9 +5,12 @@ Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes
 import category_theory.is_connected
+import category_theory.connected_components
 import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.products
 import category_theory.limits.preserves.shapes.terminal
+import category_theory.conj
+import category_theory.adjunction.opposites
 
 /-!
 # Preserving limits from naturality
@@ -121,7 +124,7 @@ def fixed (k : K) (X : C) {T : C} (hT : is_terminal T) :
     { cases h,
       simp },
     { simp only [h, if_true, eq_self_iff_true, if_false, dif_neg, not_false_iff],
-      rw [← assoc, ← assoc, ← is_iso.comp_is_iso_eq],
+      rw [← assoc, ← assoc, ← is_iso.eq_comp_inv],
       apply hT.hom_ext }
   end }
 
@@ -133,13 +136,13 @@ def preserves_pair_of_natural_isomorphism {X Y : C} (s : Π (f : K → C), G.obj
   preserves_limit (discrete.functor f) G :=
 begin
   refine preserves_limit_of_preserves_limit_cone (product_is_product _) _,
-  apply (preserves_pi.fan_map_cone_limit _ _ _).symm _,
+  apply (is_limit_map_cone_fan_mk_equiv _ _ _).symm _,
   -- This isomorphism is the main idea of the proof: we use an isomorphism which is (in general)
   -- not the identity isomorphism, but it gives nice naturality
   let s_ : Π (k : K), G.obj (f k) ≅ G.obj (f k),
   { intro k,
     apply G.map_iso (fixed k (f k) terminal_is_terminal).symm ≪≫ s _ ≪≫ _,
-    apply _ ≪≫ fixed k (G.obj (f k)) (preserves_terminal.is_limit_of_has_terminal_of_preserves_limit G),
+    apply _ ≪≫ fixed k (G.obj (f k)) (is_limit_of_has_terminal_of_preserves_limit G),
     apply pi.map_iso,
     intro k',
     apply eq_to_iso (apply_ite G.obj _ _ _) },
@@ -156,7 +159,7 @@ begin
     have := w α =≫ pi.π _ k,
     simp only [discrete.nat_trans_app, lim_map_π, assoc] at this,
     conv at this {to_lhs, congr, skip, congr, skip, rw [q, eq_to_hom_map] },
-    rw [← assoc, ← is_iso.comp_is_iso_eq] at this,
+    rw [← assoc, ← is_iso.eq_comp_inv] at this,
     rw this,
     clear this,
     rw [assoc, assoc],
@@ -217,17 +220,17 @@ def preserves_pair_of_natural_isomorphism {X Y : C} (s : Π X Y, G.obj (X ⨯ Y)
   preserves_limit (pair X Y) G :=
 begin
   refine preserves_limit_of_preserves_limit_cone (prod_is_prod _ _) _,
-  apply (binary_fan_map_cone_limit _ _ _).symm _,
+  apply (is_limit_map_cone_binary_fan_equiv _ _ _).symm _,
   -- This isomorphism is the main idea of the proof: we use an isomorphism which is (in general)
   -- not the identity isomorphism, but it gives nice naturality
   let s₁ : G.obj X ≅ G.obj X,
   { apply _ ≪≫ s X (⊤_ C) ≪≫ _,
     { apply G.map_iso (right_unit _ terminal_is_terminal).symm },
-    { apply right_unit _ (preserves_terminal.is_limit_of_has_terminal_of_preserves_limit G) } },
+    { apply right_unit _ (is_limit_of_has_terminal_of_preserves_limit G) } },
   let s₂ : G.obj Y ≅ G.obj Y,
   { apply _ ≪≫ s (⊤_ C) Y ≪≫ _,
     { apply G.map_iso (left_unit _ terminal_is_terminal).symm },
-    { apply left_unit _ (preserves_terminal.is_limit_of_has_terminal_of_preserves_limit G) } },
+    { apply left_unit _ (is_limit_of_has_terminal_of_preserves_limit G) } },
   have hs₁ : (s X Y).hom ≫ limits.prod.fst = G.map limits.prod.fst ≫ s₁.hom,
   { have := w (𝟙 X) (terminal.from Y) =≫ limits.prod.fst,
     simp only [functor.map_id, assoc, comp_id, limits.prod.map_fst] at this,
@@ -271,7 +274,7 @@ variables (K : decomposed J ⥤ C)
 
 @[simps]
 def assemble_cone
-  (γ : Π (j : connected_components J), cone (inclusion J j ⋙ K : component J j ⥤ C))
+  (γ : Π (j : connected_components J), cone (inclusion j ⋙ K : component j ⥤ C))
   (c : fan (λ j, (γ j).X)) :
   cone K :=
 { X := c.X,
@@ -292,7 +295,7 @@ def assemble_cone
 -- Prop 4.2 of the paper
 -- I used a different proof since this one seemed more direct to do: it proves the exact same thing.
 def assemble_limit
-  (γ : Π (j : connected_components J), cone (inclusion J j ⋙ K : component J j ⥤ C))
+  (γ : Π (j : connected_components J), cone (inclusion j ⋙ K : component j ⥤ C))
   (hγ : Π (j : connected_components J), is_limit (γ j))
   (c : fan (λ j, (γ j).X))
   (hc : is_limit c) :
@@ -328,12 +331,12 @@ def assemble_limit
 
 open_locale classical
 
-def right (j) : (decomposed J ⥤ C) ⥤ component J j ⥤ C :=
-(whiskering_left _ _ _).obj (inclusion _ _)
+def right (j) : (decomposed J ⥤ C) ⥤ component j ⥤ C :=
+(whiskering_left _ _ _).obj (inclusion _)
 
 def plus_obj' {T : C} (hT : is_terminal T) (j : connected_components J) :
-  (component J j ⥤ C) → decomposed J ⥤ C :=
-λ H, desc (λ k,
+  (component j ⥤ C) → decomposed J ⥤ C :=
+λ H, sigma.desc (λ k,
 { obj := λ X,
   begin
     refine dite (j = k) _ _,
@@ -369,13 +372,13 @@ def plus_obj' {T : C} (hT : is_terminal T) (j : connected_components J) :
   end })
 
 def plus_hom_equiv {T : C} (hT : is_terminal T) (j : connected_components J)
-  (G : decomposed J ⥤ C) (H : component J j ⥤ C) :
+  (G : decomposed J ⥤ C) (H : component j ⥤ C) :
   ((right j).obj G ⟶ H) ≃ (G ⟶ (plus_obj' hT j) H) :=
 begin
-  apply equiv.trans _ (thingy J G _).symm.to_equiv,
+  apply equiv.trans _ (thingy G _).symm.to_equiv,
   refine ⟨_, _, _, _⟩,
   { intros f i,
-    apply _ ≫ (incl_desc _ _).inv,
+    apply _ ≫ (sigma.incl_desc _ _).inv,
     refine dite (j = i) _ _,
     { intro h,
       subst h,
@@ -397,7 +400,7 @@ begin
         congr' 1,
         apply hT.hom_ext } } },
   { intro f,
-    apply f j ≫ (incl_desc _ _).hom ≫ _,
+    apply f j ≫ (sigma.incl_desc _ _).hom ≫ _,
     refine ⟨_, _⟩,
     { intro X,
       apply eq_to_hom _,
@@ -406,33 +409,34 @@ begin
       simp } },
   { intros f,
     ext i,
-    dsimp,
     simp },
   { intro f,
     ext i X,
     by_cases (j = i),
     { subst h,
-      simp },
+      rw dif_pos rfl,
+      dsimp,
+      simp,
+      apply comp_id },
     { rw dif_neg h,
       change (_ ≫ _) ≫ _ = _,
-      rw ← is_iso.comp_is_iso_eq,
-      rw ← is_iso.comp_is_iso_eq,
+      rw ← is_iso.eq_comp_inv,
+      rw ← is_iso.eq_comp_inv,
       apply hT.hom_ext } }
 end.
 
 lemma plus_symm_natural {T : C} (hT : is_terminal T) (j : connected_components J)
-  (G G' : decomposed J ⥤ C) (H : component J j ⥤ C)
+  (G G' : decomposed J ⥤ C) (H : component j ⥤ C)
   (f : G' ⟶ G) (g : G ⟶ (plus_obj' hT j) H) :
   (right j).map f ≫ (plus_hom_equiv hT j _ _).symm g = (plus_hom_equiv hT j _ _).symm (f ≫ g) :=
 begin
   ext X,
-  change _ ≫ _ ≫ _ ≫ _ = (_ ≫ _) ≫ _ ≫ _,
-  rw assoc,
-  refl,
+  symmetry,
+  apply assoc,
 end
 
 def plus' {T : C} (hT : is_terminal T) (j : connected_components J) :
-  (component J j ⥤ C) ⥤ decomposed J ⥤ C :=
+  (component j ⥤ C) ⥤ decomposed J ⥤ C :=
 begin
   refine adjunction.right_adjoint_of_equiv (plus_hom_equiv hT j) _,
   intros G' G H f g,
@@ -441,6 +445,69 @@ begin
   rw ← plus_symm_natural,
   simp,
 end
+
+def plus_adjunction {T : C} (hT : is_terminal T) (j : connected_components J) :
+  right j ⊣ plus' hT j :=
+adjunction.adjunction_of_equiv_right _ _
+
+/--
+The isomorphism of cones between H and H+.
+This shows that if `C` has limits of shape `J` and a terminal object, it has limits of shape of
+any connected component of `J`.
+-/
+def plus_cones {T : C} (hT : is_terminal T) (j : connected_components J) (H : component j ⥤ C) :
+  H.cones ≅ ((plus' hT j).obj H).cones :=
+begin
+  apply nat_iso.of_components _ _,
+  { intro X,
+    refine equiv.to_iso _,
+    refine equiv.trans _ ((plus_adjunction hT j).hom_equiv _ _),
+    exact equiv.refl _ },
+  { intros X Y f,
+    ext Z W,
+    sorry }
+end
+
+-- def extra_plus_adjunction
+def extra_plus_cones [preserves_limit (functor.empty C) G] {T : C} (hT : is_terminal T)
+  (j : connected_components J) (H : component j ⥤ C) :
+  (H ⋙ G).cones ≅ ((plus' hT j).obj H ⋙ G).cones :=
+begin
+  have i : (plus' hT j).obj H ⋙ G ≅ (plus' (is_terminal_obj_of_is_terminal G T hT) _).obj (H ⋙ G),
+  { apply sigma.nat_iso,
+    intro k,
+    apply _ ≪≫ (sigma.incl_desc _ _).symm,
+    apply (functor.associator _ _ _).symm ≪≫ _,
+    refine (iso_whisker_right (sigma.incl_desc _ _) _) ≪≫ _,
+    apply nat_iso.of_components _ _,
+    { intro X,
+      apply eq_to_iso,
+      dsimp,
+      rw apply_dite G.obj },
+    { intros X Y f,
+      dsimp,
+      split_ifs,
+      { subst h,
+        simpa },
+      { simp } } },
+  refine nat_iso.of_components _ _,
+  intro X,
+  apply equiv.to_iso,
+  change (_ ⟶ _) ≃ (_ ⟶ _),
+  apply equiv.trans _ (iso.hom_congr (iso.refl _) i.symm),
+
+end
+
+def diag : (discrete (connected_components J) ⥤ C) ⥤ (decomposed J ⥤ C) :=
+{ obj := λ F, sigma.desc $ λ j, (functor.const _).obj (F.obj j),
+  map := λ F₁ F₂ α,
+  { app := λ X, α.app X.1,
+    naturality' :=
+    begin
+      rintro _ _ ⟨i, X, Y, f⟩,
+      dsimp,
+      simp,
+    end } }
 
 end general
 

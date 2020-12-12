@@ -322,9 +322,6 @@ lemma nat_trans_from_is_connected [is_preconnected J] {X Y : C}
   (λ j, α.app j)
   (λ _ _ f, (by { have := α.naturality f, erw [id_comp, comp_id] at this, exact this.symm }))
 
-instance [nonempty J] : faithful (functor.const J : C ⥤ _) :=
-{ map_injective' := λ X Y f g e, nat_trans.congr_app e (classical.arbitrary J) }
-
 instance [is_connected J] : full (functor.const J : C ⥤ _) :=
 { preimage := λ X Y f, f.app (classical.arbitrary J),
   witness' := λ X Y f,
@@ -332,118 +329,5 @@ instance [is_connected J] : full (functor.const J : C ⥤ _) :=
     ext j,
     apply nat_trans_from_is_connected f (classical.arbitrary J) j,
   end }
-
-variable (J)
-
-def connected_components : Type u₁ := quotient (zigzag.setoid J)
-
-@[derive category]
-def component (j : connected_components J) : Type u₁ := {k : J // quotient.mk' k = j}
-
-@[derive [full, faithful]]
-def include_component (j) : component J j ⥤ J :=
-full_subcategory_inclusion _
-
-instance (j) : nonempty (component J j) :=
-begin
-  apply quotient.induction_on' j,
-  intro k,
-  refine ⟨⟨k, rfl⟩⟩,
-end
-
-instance (j) : is_connected (component J j) :=
-begin
-  apply zigzag_is_connected,
-  rintro ⟨j₁, hj₁⟩ ⟨j₂, rfl⟩,
-  have h₁₂ : zigzag j₁ j₂ := quotient.exact' hj₁,
-  rcases list.exists_chain_of_relation_refl_trans_gen h₁₂ with ⟨l, hl₁, hl₂⟩,
-  let f : Π x, zigzag x j₂ → component J (quotient.mk' j₂) :=
-    λ x h, subtype.mk x (quotient.sound' h),
-  have hf : ∀ (a : J), a ∈ l → zigzag a j₂,
-  { intros i hi,
-    apply list.chain.induction (λ t, zigzag t j₂) _ hl₁ hl₂ _ _ _ (or.inr hi),
-    { intros j k, apply relation.refl_trans_gen.head },
-    { apply relation.refl_trans_gen.refl } },
-  let l' : list (component J (quotient.mk' j₂)),
-  { exact l.pmap f hf, },
-  have : list.chain zigzag (⟨j₁, hj₁⟩ : component J _) l',
-  { induction l generalizing hl₁ hl₂ j₁ hf,
-    { apply list.chain.nil },
-    { have hl₃ := list.chain_cons.1 hl₁,
-      apply list.chain.cons,
-      { apply relation.refl_trans_gen.single,
-        refine zag_of_zag_obj (include_component J _) _,
-        apply hl₃.1 },
-      { refine l_ih _ _ _ hl₃.2 _ _,
-        { apply relation.refl_trans_gen.head (zag_symmetric hl₃.1) h₁₂ },
-        { rwa list.last_cons_cons at hl₂ } } } },
-  apply list.chain.induction_head (λ t, zigzag t (⟨j₂, rfl⟩ : component J _)) _ this _ _ _,
-  { refine ⟨_, rfl⟩ },
-  { have h : ∀ (a : J), a ∈ j₁ :: l → zigzag a j₂,
-    { simpa [h₁₂] using hf },
-    change (list.pmap f (j₁ :: l) h).last _ = _,
-    erw list.last_pmap _ _ _ _ (list.cons_ne_nil _ _),
-    apply subtype.ext,
-    apply hl₂ },
-  { intros _ _, apply relation.refl_trans_gen.trans },
-  { apply relation.refl_trans_gen.refl },
-end
-
-@[derive category]
-def decomposed := Σ j, component J j
-
-def inclusion (j) : component J j ⥤ decomposed J := incl _
-
-def forward : decomposed J ⥤ J :=
-desc (λ i, include_component _ _)
-
-instance : full (forward J) :=
-{ preimage :=
-  begin
-    rintro ⟨j', X, hX⟩ ⟨k', Y, hY⟩ f,
-    dsimp [forward] at f,
-    have : j' = k',
-      rw [← hX, ← hY, quotient.eq'],
-      exact relation.refl_trans_gen.single (or.inl ⟨f⟩),
-    subst this,
-    refine sigma_hom.matched _ _ _ f,
-  end,
-  witness' :=
-  begin
-    rintro ⟨j', X, hX⟩ ⟨_, Y, rfl⟩ f,
-    have : quotient.mk' Y = j',
-    { rw [← hX, quotient.eq'],
-      exact relation.refl_trans_gen.single (or.inr ⟨f⟩) },
-    subst this,
-    refl,
-  end }
-
-instance : faithful (forward J) :=
-{ map_injective' :=
-  begin
-    rintro ⟨_, j, rfl⟩ ⟨_, k, hY⟩ ⟨_, _, _, f⟩ ⟨_, _, _, g⟩ e,
-    change f = g at e,
-    subst e,
-  end }
-
-instance : ess_surj (forward J) :=
-{ obj_preimage := λ j, ⟨_, j, rfl⟩,
-  iso' := λ j, iso.refl _ }
-
--- This gives that any category is equivalent to a disjoint union of connected categories.
-instance : is_equivalence (forward J) := equivalence.equivalence_of_fully_faithfully_ess_surj _
-
-@[simps]
-def thingy (H F : decomposed J ⥤ C) :
-  (H ⟶ F) ≅ Π j, (incl j ⋙ H ⟶ incl j ⋙ F) :=
-{ hom := λ α j, whisker_left _ α,
-  inv := joining _ _ }
-
-def thingy_natural {H H' F F' : decomposed J ⥤ C} (α : H' ⟶ H) (β : F ⟶ F') (γ : H ⟶ F) :
-  (thingy J H' F').hom (α ≫ γ ≫ β) = (λ j, whisker_left _ α ≫ (thingy J H F).hom γ j ≫ whisker_left _ β) :=
-begin
-  ext j X,
-  refl,
-end
 
 end category_theory

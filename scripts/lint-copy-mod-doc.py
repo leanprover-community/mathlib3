@@ -32,13 +32,24 @@ with open("scripts/copy-mod-doc-exceptions.txt") as f:
 new_exceptions = False
 
 def small_alpha_vrachy_check(lines, fn):
-    return [ (ERR_SAV, line_nr, fn) for line_nr, line in enumerate(lines) if 'ᾰ' in line ]
+    return [ (ERR_SAV, line_nr, fn) for line_nr, line in enumerate(lines, 1) if 'ᾰ' in line ]
 
 def reserved_notation_check(lines, fn):
     if fn == 'src/tactic/core.lean':
         return []
-    return [ (ERR_RNT, line_nr, fn) for line_nr, line in enumerate(lines)
-        if line.startswith('reserve') or line.startswith('precedence') ]
+    errors = []
+    in_comment = False
+    for line_nr, line in enumerate(lines, 1):
+        if "/-" in line:
+            in_comment = True
+        if "-/" in line:
+            in_comment = False
+            continue
+        if line == "\n" or in_comment:
+            continue
+        if line.startswith('reserve') or line.startswith('precedence'):
+            errors += [(ERR_RNT, line_nr, fn)]
+    return errors
 
 def long_lines_check(lines, fn):
     errors = []

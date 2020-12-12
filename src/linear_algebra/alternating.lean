@@ -6,6 +6,7 @@ Author: Eric Wieser, Zhangir Azerbayev
 
 import linear_algebra.multilinear
 import group_theory.perm.sign
+import group_theory.perm.subgroup
 import data.equiv.fin
 import linear_algebra.tensor_product
 import ring_theory.algebra_tower
@@ -350,34 +351,7 @@ theorem tmul_smul_int {R : Type*} {M : Type*} {N : Type*}
 by rw [←gsmul_eq_smul, module.gsmul_eq_smul_cast R, ←gsmul_eq_smul, module.gsmul_eq_smul_cast R,
   tmul_smul]
 
-#check tmul_smul
-
 end tensor_product
-
--- TODO: move
-namespace equiv
-
-variables {α : Type*} [decidable_eq α]
-
-/-- Right-multiplying a permutation with `swap i j` twice gives the original permutation.
-
-  This specialization of `swap_mul_self` is useful when using cosets of permutations.
--/
-@[simp]
-lemma mul_swap_mul_self (i j : α) (σ : perm α) : (σ * equiv.swap i j) * equiv.swap i j = σ :=
-by rw [mul_assoc, swap_mul_self, mul_one]
-
-/-- A stronger version of `mul_left_injective` -/
-@[simp]
-lemma mul_swap_involutive (i j : α) : function.involutive (* (equiv.swap i j)) :=
-mul_swap_mul_self i j
-
-lemma mul_swap_eq_iff {i j : α} {σ : perm α} : σ * swap i j = σ ↔ i = j :=
-⟨(assume h, have swap_id : swap i j = 1 := mul_left_cancel (trans h (one_mul σ).symm),
-  by {rw [←swap_apply_right i j, swap_id], refl}),
-(assume h, by erw [h, swap_self, mul_one])⟩
-
-end equiv
 
 section
 
@@ -390,24 +364,13 @@ section coprod
 
 variables {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
 
-/-- The subgroup of permutations that do not exchange elements of α with elements of β. -/
-def sum_congr_subgroup (α β : Type*) : subgroup (equiv.perm (α ⊕ β)) :=
-{ carrier := λ σ, ∃ (sl : equiv.perm α) (sr : equiv.perm β), σ = equiv.perm.sum_congr sl sr,
-  one_mem' := ⟨1, 1, equiv.perm.sum_congr_one.symm⟩,
-  mul_mem' := λ σ₁ σ₂ ⟨sl₁₂, sr₁₂, h₁₂⟩ ⟨sl₂₃, sr₂₃, h₂₃⟩,
-    ⟨sl₁₂ * sl₂₃, sr₁₂ * sr₂₃, h₂₃.symm ▸ h₁₂.symm ▸ equiv.perm.sum_congr_mul _ _ _ _⟩,
-  inv_mem' := λ σ₁ ⟨sl, sr, h⟩, ⟨sl⁻¹, sr⁻¹, h.symm ▸ equiv.perm.sum_congr_inv _ _⟩ }
-
-instance sum_congr_subgroup.left_rel_decidable
-  {α β : Type*} [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
-  decidable_rel $ (quotient_group.left_rel (sum_congr_subgroup α β)).r :=
-λ σ₁ σ₂, fintype.decidable_exists_fintype
-
 /-- Elements which are considered equivalent if they differ only by swaps within α or β  -/
-abbreviation mod_sum_congr (α β : Type*) := quotient_group.quotient $ sum_congr_subgroup α β
+abbreviation mod_sum_congr (α β : Type*) :=
+quotient_group.quotient $ equiv.perm.sum_congr_subgroup α β
 
 namespace mod_sum_congr
 
+-- the default instance is non-computable, so we provide an alternative computable one
 instance {α β : Type*} [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
   fintype (mod_sum_congr α β) := quotient.fintype _
 
@@ -423,13 +386,11 @@ private def dom_coprod_aux
   (v : ιa ⊕ ιb → M) : N₁ ⊗[R] N₂ :=
 ∑ σ : mod_sum_congr ιa ιb, σ.lift_on' (λ σ,
   (σ.sign : ℤ) •
-    (multilinear_map.dom_coprod a.to_multilinear_map b.to_multilinear_map).dom_dom_congr σ v)
+    (multilinear_map.dom_coprod a b : multilinear_map R (λ (_ : ιa ⊕ ιb), M) (N₁ ⊗ N₂))
+      .dom_dom_congr σ v)
 (λ σ₁ σ₂ h, begin
-  simp only [multilinear_map.dom_dom_congr_apply,
-             multilinear_map.dom_coprod_apply,
-             algebra.lmul'_apply,
-             to_multilinear_map_eq_coe,
-             coe_multilinear_map],
+  simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
+    coe_multilinear_map],
   obtain ⟨sl, sr, h⟩ := h,
   rw inv_mul_eq_iff_eq_mul at h,
   have : ((σ₁ * equiv.sum_congr sl sr).sign : ℤ) = σ₁.sign * (sl.sign * sr.sign) := by simp,
@@ -440,23 +401,12 @@ private def dom_coprod_aux
   rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))],
 end)
 
-lemma is_inr_of_not_is_inl {α β : Type*} [decidable_eq α] [decidable_eq β]
-  {i : α ⊕ β}
-  (h : ¬∃ i', sum.inl i' = i) : ∃ i', sum.inr i' = i :=
-begin
-  rw [not_exists] at h,
-  cases i,
-  exact (h i rfl).elim,
-  exact ⟨i, rfl⟩
-end
-
 lemma not_moves_from_left {α β : Type*} [decidable_eq α] [decidable_eq β] {σ : equiv.perm (α ⊕ β)}
   {i : α ⊕ β}
   (h : ¬∃ i', σ (sum.inl i') = i) : ∃ i', σ (sum.inr i') = i :=
 begin
-  rw [not_exists] at h,
   cases h' : σ⁻¹ i,
-  { exfalso, apply h val, rw ←h', simp, },
+  { exfalso, apply not_exists.mp h val, rw ←h', simp, },
   { use val, rw ←h', simp, }
 end
 
@@ -466,17 +416,6 @@ end
 @[simp] lemma mul_action.quotient.smul_mk' {G : Type*} [group G] {s : subgroup G} (a x : G) :
   (a • quotient.mk' x : quotient_group.quotient s) = quotient.mk' (a * x) := rfl
 
-/--
-Cases on each summand:
-
-* `⇑σ (sum.inl i') = i ∧ ⇑σ (sum.inl j') = j`,
-      `⇑a (λ (i : ιa), v (⇑σ (sum.inl i))) = 0`
-* `⇑σ (sum.inr i') = i ∧ ⇑σ (sum.inr j') = j`,
-      `⇑b (λ (i : ιa), v (⇑σ (sum.inr i))) = 0`
-* `⇑σ (sum.inr i') = i ∧ ⇑σ (sum.inl j') = j`,
-  `⇑σ (sum.inl i') = i ∧ ⇑σ (sum.inr j') = j`
-    ab (σ) + ab (σ ∘ swap) = 0
--/
 private lemma dom_coprod_aux_eq_zero_if_eq
   {R : Type*} {M N₁ N₂ : Type*}
   [comm_ring R]
@@ -489,12 +428,7 @@ private lemma dom_coprod_aux_eq_zero_if_eq
 begin
   unfold dom_coprod_aux,
   dsimp only,
-  simp only [linear_map.comp_multilinear_map_dom_dom_congr,
-    linear_map.comp_multilinear_map_apply,
-    multilinear_map.dom_dom_congr_apply,
-    multilinear_map.dom_coprod_apply,
-    algebra.lmul'_apply,
-    to_multilinear_map_eq_coe,
+  simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
     coe_multilinear_map],
   apply finset.sum_involution
     (λ σ _, (equiv.swap i j • σ : mod_sum_congr ιa ιb))
@@ -514,7 +448,8 @@ begin
   { dsimp only [quotient.lift_on'_beta, quotient.map'_mk'],
     intro hnz,
     by_cases hsw : (∃ il, σ (sum.inl il) = i) ↔ (∃ jl, σ (sum.inl jl) = j),
-    { exfalso,
+    { -- the term does not pair but is zero
+      exfalso,
       apply hnz,
       convert smul_zero _,
       obtain (⟨⟨i', hi'⟩, ⟨j', hj'⟩⟩ | ⟨hi', hj'⟩) := iff_iff_and_or_not_and_not.mp hsw,
@@ -528,7 +463,8 @@ begin
         rw [←hi', ←hj'] at h,
         refine alternating_map.map_eq_zero_of_eq _ _ h (λ hij', hij _),
         rw [←hi', ←hj', hij'], }, },
-    { intro h,
+    { -- the term pair with and cancels another term
+      intro h,
       obtain ⟨sl, sr, h⟩ := quotient.eq'.mp h,
       obtain (⟨hi', ⟨j', hj'⟩⟩ | ⟨hi', hj'⟩) := iff_iff_and_or_not_and_not.mp (not_iff.mp hsw),
       work_on_goal 0 {

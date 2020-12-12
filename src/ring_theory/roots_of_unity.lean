@@ -756,7 +756,7 @@ lemma min_poly_rational_eq_min_poly_integer : minimal_polynomial (is_algebraic h
 begin
   refine (unique' (is_algebraic h hpos) _ _ _).symm,
   { exact (is_primitive.int.irreducible_iff_irreducible_map_cast (is_primitive_minimal_polynomial h
-  hpos)).1 (irreducible (is_integral h hpos)) },
+    hpos)).1 (irreducible (is_integral h hpos)) },
   { have htower := is_scalar_tower.aeval_apply ℤ ℚ K μ (minimal_polynomial
     (is_integral h hpos)),
     rw [minimal_polynomial.aeval] at htower,

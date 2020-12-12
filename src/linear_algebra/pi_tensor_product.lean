@@ -53,7 +53,7 @@ open function
 
 section semiring
 
-variables {ι : Type*} {R : Type*} [comm_semiring R] --[inhabited ι]
+variables {ι : Type*} {R : Type*} [comm_semiring R]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
 variables {E : Type*} [add_comm_monoid E] [semimodule R E]
 
@@ -151,10 +151,6 @@ lemma smul_tprod_index (f : Π i, s i) (i j : ι) (r : R) :
   tprod R (update f i (r • f i)) = tprod R (update f j (r • f j)) :=
 by simp_rw [tprod, smul_tprod_coef]
 
---theorem smul_tprod' (r : R) (f : Π i, s i) (i : ι) :
---  r • (tprod R f) = tprod R (update f i (r • f i)) :=
---smul_tprod f (default ι) i r
-
 /-- Auxiliary function for defining scalar multiplication on the tensor product. -/
 def smul.aux (r : R) : free_add_monoid (R × Π i, s i) →+ ⨂[R] i, s i :=
 free_add_monoid.lift $ λ (f : R × Π i, s i), tprod_coef R (r * f.1) f.2
@@ -186,6 +182,15 @@ lemma smul_tprod_coef' (r z : R) (f : Π i, s i) :
 lemma smul_tprod (r : R) (f : Π i, s i) (i : ι) :
   r • (tprod R f) = tprod R (update f i (r • f i)) :=
 by simp [tprod, smul_tprod_coef' r 1 f, smul_tprod_coef]
+
+lemma smul_tprod' (r : R) (f : Π i, s i) (i : ι) (m : s i) :
+  r • tprod R (update f i m) = tprod R (update f i (r • m)) :=
+begin
+  set g := update f i m with hg,
+  have h₁ : update f i (r • m) = update g i (r • m) := by simp_rw [hg, update_idem],
+  have h₂ : g i = m := by simp [hg],
+  rw [h₁, smul_tprod r _ i, h₂],
+end
 
 lemma tprod_coef_eq_smul_tprod (z : R) (f : Π i, s i) : tprod_coef R z f = z • tprod R f :=
 begin
@@ -378,3 +383,32 @@ end multilinear
 end pi_tensor_product
 
 end semiring
+
+section ring
+namespace pi_tensor_product
+
+open pi_tensor_product
+open_locale tensor_product
+
+variables {ι : Type*} {R : Type*} [comm_ring R]
+variables {s : ι → Type*} [∀ i, add_comm_group (s i)] [∀ i, module R (s i)]
+variables {E : Type*} [add_comm_group E] [semimodule R E]
+
+instance : add_comm_group (⨂[R] i, s i) := semimodule.add_comm_monoid_to_add_comm_group R
+
+lemma neg_tprod_coef (z : R) (f : Π i, s i) : tprod_coef R (-z) f = -tprod_coef R z f :=
+by rw [←neg_one_smul R, ←smul_tprod_coef', neg_one_smul R]
+
+lemma neg_tprod (f : Π i, s i) (i : ι) : tprod R (update f i (-(f i))) = -tprod R f :=
+by rw [←neg_one_smul R, ←smul_tprod, neg_one_smul R]
+
+lemma neg_tprod' (f : Π i, s i) (i : ι) (m : s i) :
+  tprod R (update f i (-m)) = -tprod R (update f i m) :=
+by rw [←neg_one_smul R, ←smul_tprod', neg_one_smul R]
+
+lemma sub_tprod (f : Π i, s i) (i : ι) (m₁ m₂ : s i) :
+   tprod R (update f i m₁) - tprod R (update f i m₂) = tprod R (update f i (m₁ - m₂)) :=
+by rw [sub_eq_add_neg, ←neg_tprod' f i _, add_tprod f i m₁ (-m₂), sub_eq_add_neg]
+
+end pi_tensor_product
+end ring

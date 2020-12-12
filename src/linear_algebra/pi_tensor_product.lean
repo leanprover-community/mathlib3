@@ -394,6 +394,8 @@ variables {ι : Type*} {R : Type*} [comm_ring R]
 variables {s : ι → Type*} [∀ i, add_comm_group (s i)] [∀ i, module R (s i)]
 variables {E : Type*} [add_comm_group E] [semimodule R E]
 
+/- Unlike for the binary tensor product, we require `R` to be a `comm_ring` here, otherwise
+this is false in the case where `ι` is empty. -/
 instance : add_comm_group (⨂[R] i, s i) := semimodule.add_comm_monoid_to_add_comm_group R
 
 lemma neg_tprod_coef (z : R) (f : Π i, s i) : tprod_coef R (-z) f = -tprod_coef R z f :=

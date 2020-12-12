@@ -81,6 +81,10 @@ instance : has_coe_to_fun (grothendieck_topology C) :=
 variables {C} {X Y : C} {S R : sieve X}
 variables (J : grothendieck_topology C)
 
+def simps.sieves (X : C) (S : sieve X) : Prop := S ∈ J X
+
+initialize_simps_projections grothendieck_topology (sieves → mem)
+
 /--
 An extensionality lemma in terms of the coercion to a pi-type.
 We prove this explicitly rather than deriving it so that it is in terms of the coercion rather than
@@ -194,6 +198,8 @@ also known as the indiscrete, coarse, or chaotic topology.
 See [MM92] Chapter III, Section 2, example (a), or
 https://en.wikipedia.org/wiki/Grothendieck_topology#The_discrete_and_indiscrete_topologies
 -/
+-- This isn't marked [simps] because it's intended to be used as `⊥` instead, which is given a simp
+-- lemma below.
 def trivial : grothendieck_topology C :=
 { sieves := λ X, {⊤},
   top_mem' := λ X, rfl,
@@ -213,6 +219,8 @@ The discrete Grothendieck topology, in which every sieve is covering.
 
 See https://en.wikipedia.org/wiki/Grothendieck_topology#The_discrete_and_indiscrete_topologies.
 -/
+-- This isn't marked [simps] because it's intended to be used as `⊤` instead, which is given a simp
+-- lemma below.
 def discrete : grothendieck_topology C :=
 { sieves := λ X, set.univ,
   top_mem' := by simp,
@@ -290,12 +298,12 @@ instance : inhabited (grothendieck_topology C) := ⟨⊤⟩
 @[simp] lemma trivial_eq_bot : trivial C = ⊥ := rfl
 @[simp] lemma discrete_eq_top : discrete C = ⊤ := rfl
 
-@[simp] lemma bot_covering : S ∈ (⊥ : grothendieck_topology C) X ↔ S = ⊤ := trivial_covering
-@[simp] lemma top_covering : S ∈ (⊤ : grothendieck_topology C) X := ⟨⟩
+@[simp] lemma bot_apply : (⊥ : grothendieck_topology C) X = {⊤} := rfl
+@[simp] lemma top_apply : (⊤ : grothendieck_topology C) X = set.univ := rfl
 
 lemma bot_covers (S : sieve X) (f : Y ⟶ X) :
   (⊥ : grothendieck_topology C).covers S f ↔ S f :=
-by rw [covers_iff, bot_covering, ← sieve.pullback_eq_top_iff_mem]
+by rw [covers_iff, bot_apply, set.mem_singleton_iff, ← sieve.pullback_eq_top_iff_mem]
 
 @[simp] lemma top_covers (S : sieve X) (f : Y ⟶ X) : (⊤ : grothendieck_topology C).covers S f :=
 by simp [covers_iff]
@@ -305,6 +313,7 @@ The dense Grothendieck topology.
 
 See https://ncatlab.org/nlab/show/dense+topology, or [MM92] Chapter III, Section 2, example (e).
 -/
+@[simps]
 def dense : grothendieck_topology C :=
 { sieves := λ X S, ∀ {Y : C} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S (g ≫ f),
   top_mem' := λ X Y f, ⟨Y, 𝟙 Y, ⟨⟩⟩,
@@ -321,9 +330,6 @@ def dense : grothendieck_topology C :=
     rcases H₂ H₃ (𝟙 Z) with ⟨W, h, H₄⟩,
     exact ⟨W, (h ≫ g), by simpa using H₄⟩,
   end }
-
-lemma dense_covering : S ∈ dense X ↔ ∀ {Y} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S (g ≫ f) :=
-iff.rfl
 
 /--
 A category satisfies the right Ore condition if any span can be completed to a commutative square.
@@ -342,6 +348,7 @@ For the pullback stability condition, we need the right Ore condition to hold.
 
 See https://ncatlab.org/nlab/show/atomic+site, or [MM92] Chapter III, Section 2, example (f).
 -/
+@[simps]
 def atomic (hro : right_ore_condition C) : grothendieck_topology C :=
 { sieves := λ X S, ∃ Y (f : Y ⟶ X), S f,
   top_mem' := λ X, ⟨_, 𝟙 _, ⟨⟩⟩,

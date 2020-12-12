@@ -130,6 +130,7 @@ A pretopology `K` can be completed to a Grothendieck topology `J` by declaring a
 
 See https://stacks.math.columbia.edu/tag/00ZC, or [MM92] Chapter III, Section 2, Equation (2).
 -/
+@[simps]
 def to_grothendieck (K : pretopology C) : grothendieck_topology C :=
 { sieves := λ X S, ∃ R ∈ K X, R ≤ (S : presieve _),
   top_mem' := λ X, ⟨presieve.singleton (𝟙 _), K.has_isos _, λ _ _ _, ⟨⟩⟩,
@@ -149,6 +150,8 @@ def to_grothendieck (K : pretopology C) : grothendieck_topology C :=
     rintro Y _ ⟨Z, g, f, hg, hf, rfl⟩,
     apply t₃ (RS _ hg) _ hf,
   end }
+
+#check to_grothendieck_mem
 
 lemma mem_to_grothendieck (K : pretopology C) (X S) :
   S ∈ to_grothendieck C K X ↔ ∃ R ∈ K X, R ≤ (S : presieve X) :=

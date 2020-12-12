@@ -2393,7 +2393,7 @@ invertible derivative `f'` at `f.symm a`, then `f.symm` has the derivative `f'�
 
 This is one of the easy parts of the inverse function theorem: it assumes that we already have
 an inverse function. -/
-lemma has_fderiv_at.of_local_homeomorph {f : local_homeomorph E F} {f' : E ≃L[𝕜] F} {a : F}
+lemma has_fderiv_at.of_local_homeomorph (f : local_homeomorph E F) {f' : E ≃L[𝕜] F} {a : F}
   (ha : a ∈ f.target) (htff' : has_fderiv_at f (f' : E →L[𝕜] F) (f.symm a)) :
   has_fderiv_at f.symm (f'.symm : F →L[𝕜] E) a :=
 htff'.of_local_left_inverse (f.symm.continuous_at ha) (f.eventually_right_inverse ha)

@@ -2512,7 +2512,7 @@ equivalence, then `f.symm` is `n` times continuously differentiable at the point
 This is one of the easy parts of the inverse function theorem: it assumes that we already have
 an inverse function. -/
 theorem times_cont_diff_at.of_local_homeomorph [complete_space E] {n : with_top ℕ}
-  {f : local_homeomorph E F} {f₀' : E ≃L[𝕜] F} {a : F} (ha : a ∈ f.target)
+  (f : local_homeomorph E F) {f₀' : E ≃L[𝕜] F} {a : F} (ha : a ∈ f.target)
   (hf₀' : has_fderiv_at f (f₀' : E →L[𝕜] F) (f.symm a)) (hf : times_cont_diff_at 𝕜 n f (f.symm a)) :
   times_cont_diff_at 𝕜 n f.symm a :=
 begin
@@ -2543,7 +2543,7 @@ begin
       have h_deriv : has_fderiv_at f ↑e ((f.symm) x),
       { rw he,
         exact hff' (f.symm x) hxu },
-      convert h_deriv.of_local_homeomorph hx.1,
+      convert h_deriv.of_local_homeomorph _ hx.1,
       simp [← he] },
     { -- Then we check that the formula, being a composition of `times_cont_diff` pieces, is
       -- itself `times_cont_diff`
@@ -2726,13 +2726,6 @@ lemma times_cont_diff_on.continuous_on_deriv_of_open {n : with_top ℕ}
   (h : times_cont_diff_on 𝕜 n f₂ s₂) (hs : is_open s₂) (hn : 1 ≤ n) :
   continuous_on (deriv f₂) s₂ :=
 ((times_cont_diff_on_succ_iff_deriv_of_open hs).1 (h.of_le hn)).2.continuous_on
-
-/-- A function is `C^∞` if and only if it is differentiable, and its derivative (formulated with
-`deriv`) is `C^∞`. -/
-theorem times_cont_diff_top_iff_deriv :
-  times_cont_diff 𝕜 ∞ f₂ ↔ differentiable 𝕜 f₂ ∧ times_cont_diff 𝕜 ∞ (deriv f₂) :=
-by { rw [← times_cont_diff_on_univ, ← times_cont_diff_on_univ, ← differentiable_on_univ],
-  exact times_cont_diff_on_top_iff_deriv_of_open is_open_univ }
 
 /-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if it is
 differentiable there, and its derivative is `C^n`. -/

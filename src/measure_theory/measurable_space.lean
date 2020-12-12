@@ -45,6 +45,11 @@ member of `m`, it suffices to check that `C` holds on the members of `s` and
 that `C` is preserved by complementation and *disjoint* countable
 unions.
 
+## Notation
+
+* We write `α ≃ᵐ β` for measurable equivalences between the measurable spaces `α` and `β`.
+  This should not be confused with `≃ₘ` which is used for diffeomorphisms between manifolds.
+
 ## Implementation notes
 
 Measurability of a function `f : α → β` between measurable spaces is
@@ -58,7 +63,8 @@ defined in terms of the Galois connection induced by f.
 
 ## Tags
 
-measurable space, measurable function, dynkin system
+measurable space, σ-algebra, measurable function, measurable equivalence, dynkin system,
+π-λ theorem, π-system
 -/
 
 open set encodable function

@@ -897,20 +897,19 @@ lemma min_mul_max [linear_order α] [comm_semigroup α] (n m : α) :
   min n m * max n m = n * m :=
 fn_min_mul_fn_max id n m
 
-/-- A decidable linearly ordered cancellative additive commutative monoid
+/-- A linearly ordered cancellative additive commutative monoid
 is an additive commutative monoid with a decidable linear order
-in which addition is cancellative and strictly monotone. -/
-@[protect_proj] class linear_ordered_cancel_add_comm_monoid (α : Type u)
+in which addition is cancellative and monotone. -/
+@[protect_proj, ancestor ordered_cancel_add_comm_monoid linear_order]
+class linear_ordered_cancel_add_comm_monoid (α : Type u)
   extends ordered_cancel_add_comm_monoid α, linear_order α
 
-/-- A decidable linearly ordered cancellative commutative monoid
+/-- A linearly ordered cancellative commutative monoid
 is a commutative monoid with a linear order
-in which multiplication is cancellative and strictly monotone. -/
-@[protect_proj, to_additive] class linear_ordered_cancel_comm_monoid (α : Type u)
+in which multiplication is cancellative and monotone. -/
+@[protect_proj, ancestor ordered_cancel_comm_monoid linear_order, to_additive]
+class linear_ordered_cancel_comm_monoid (α : Type u)
   extends ordered_cancel_comm_monoid α, linear_order α
-
--- I think this might be needed because of the `protect_proj`.
-attribute [to_additive] linear_ordered_cancel_comm_monoid.to_ordered_cancel_comm_monoid
 
 section linear_ordered_cancel_comm_monoid
 

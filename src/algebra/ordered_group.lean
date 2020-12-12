@@ -688,13 +688,6 @@ end ordered_add_comm_group
 
 -/
 
-/-- A linearly ordered commutative group is an
-commutative group with a linear order in which
-multiplication is monotone. -/
-@[protect_proj] class linear_ordered_comm_group (α : Type u)
-  extends comm_group α, linear_order α :=
-(mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
-
 /-- A linearly ordered additive commutative group is an
 additive commutative group with a linear order in which
 addition is monotone. -/
@@ -702,7 +695,12 @@ addition is monotone. -/
   extends add_comm_group α, linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
-attribute [to_additive] linear_ordered_comm_group
+/-- A linearly ordered commutative group is an
+commutative group with a linear order in which
+multiplication is monotone. -/
+@[protect_proj, to_additive] class linear_ordered_comm_group (α : Type u)
+  extends comm_group α, linear_order α :=
+(mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 
 @[to_additive, priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_group.to_ordered_comm_group (α : Type u)

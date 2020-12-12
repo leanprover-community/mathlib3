@@ -133,7 +133,7 @@ src/algebra/monoid_algebra.lean : line 850 : ERR_LIN : Line has more than 100 ch
 src/algebra/ordered_group.lean : line 369 : ERR_LIN : Line has more than 100 characters
 src/algebra/ordered_group.lean : line 371 : ERR_LIN : Line has more than 100 characters
 src/algebra/ordered_group.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/algebra/ordered_ring.lean : line 8 : ERR_MOD : Module docstring missing, or too late
+src/algebra/ordered_ring.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/algebra/polynomial/big_operators.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/algebra/punit_instances.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/algebra/quandle.lean : line 462 : ERR_LIN : Line has more than 100 characters
@@ -1117,15 +1117,6 @@ src/group_theory/subgroup.lean : line 803 : ERR_LIN : Line has more than 100 cha
 src/group_theory/subgroup.lean : line 838 : ERR_LIN : Line has more than 100 characters
 src/group_theory/submonoid/operations.lean : line 560 : ERR_LIN : Line has more than 100 characters
 src/group_theory/sylow.lean : line 13 : ERR_MOD : Module docstring missing, or too late
-src/linear_algebra/basic.lean : line 1520 : ERR_LIN : Line has more than 100 characters
-src/linear_algebra/basic.lean : line 1552 : ERR_LIN : Line has more than 100 characters
-src/linear_algebra/basic.lean : line 1928 : ERR_LIN : Line has more than 100 characters
-src/linear_algebra/basic.lean : line 2038 : ERR_LIN : Line has more than 100 characters
-src/linear_algebra/basic.lean : line 2044 : ERR_LIN : Line has more than 100 characters
-src/linear_algebra/basic.lean : line 2045 : ERR_LIN : Line has more than 100 characters
-src/linear_algebra/basic.lean : line 2052 : ERR_LIN : Line has more than 100 characters
-src/linear_algebra/basic.lean : line 2110 : ERR_LIN : Line has more than 100 characters
-src/linear_algebra/basic.lean : line 2178 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/basis.lean : line 93 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/char_poly/coeff.lean : line 190 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/char_poly/coeff.lean : line 24 : ERR_LIN : Line has more than 100 characters
@@ -1164,10 +1155,11 @@ src/logic/function/basic.lean : line 324 : ERR_LIN : Line has more than 100 char
 src/logic/function/basic.lean : line 498 : ERR_LIN : Line has more than 100 characters
 src/logic/function/basic.lean : line 538 : ERR_LIN : Line has more than 100 characters
 src/logic/relation.lean : line 10 : ERR_MOD : Module docstring missing, or too late
+src/logic/relator.lean : line 12 : ERR_RNT : Reserved notation outside tactic.core
 src/logic/relator.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/measure_theory/category/Meas.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/measure_theory/decomposition.lean : line 14 : ERR_MOD : Module docstring missing, or too late
-src/measure_theory/measure_space.lean : line 1721 : ERR_LIN : Line has more than 100 characters
+src/measure_theory/measure_space.lean : line 1720 : ERR_LIN : Line has more than 100 characters
 src/measure_theory/measure_space.lean : line 65 : ERR_LIN : Line has more than 100 characters
 src/meta/coinductive_predicates.lean : line 115 : ERR_LIN : Line has more than 100 characters
 src/meta/coinductive_predicates.lean : line 12 : ERR_LIN : Line has more than 100 characters
@@ -1180,6 +1172,15 @@ src/meta/coinductive_predicates.lean : line 488 : ERR_LIN : Line has more than 1
 src/meta/coinductive_predicates.lean : line 76 : ERR_LIN : Line has more than 100 characters
 src/meta/coinductive_predicates.lean : line 77 : ERR_LIN : Line has more than 100 characters
 src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
+src/meta/expr.lean : line 165 : ERR_SAV : File contains the character ᾰ
+src/meta/expr.lean : line 168 : ERR_SAV : File contains the character ᾰ
+src/meta/expr.lean : line 171 : ERR_SAV : File contains the character ᾰ
+src/meta/expr.lean : line 179 : ERR_SAV : File contains the character ᾰ
+src/meta/expr.lean : line 185 : ERR_SAV : File contains the character ᾰ
+src/meta/expr.lean : line 191 : ERR_SAV : File contains the character ᾰ
+src/meta/expr.lean : line 195 : ERR_SAV : File contains the character ᾰ
+src/meta/expr.lean : line 197 : ERR_SAV : File contains the character ᾰ
+src/meta/expr.lean : line 204 : ERR_SAV : File contains the character ᾰ
 src/meta/expr.lean : line 460 : ERR_LIN : Line has more than 100 characters
 src/meta/expr.lean : line 715 : ERR_LIN : Line has more than 100 characters
 src/meta/expr.lean : line 750 : ERR_LIN : Line has more than 100 characters
@@ -1261,7 +1262,7 @@ src/order/filter/basic.lean : line 1497 : ERR_LIN : Line has more than 100 chara
 src/order/filter/basic.lean : line 1783 : ERR_LIN : Line has more than 100 characters
 src/order/filter/basic.lean : line 1935 : ERR_LIN : Line has more than 100 characters
 src/order/filter/basic.lean : line 2063 : ERR_LIN : Line has more than 100 characters
-src/order/filter/basic.lean : line 2303 : ERR_LIN : Line has more than 100 characters
+src/order/filter/basic.lean : line 2308 : ERR_LIN : Line has more than 100 characters
 src/order/filter/basic.lean : line 669 : ERR_LIN : Line has more than 100 characters
 src/order/filter/basic.lean : line 679 : ERR_LIN : Line has more than 100 characters
 src/order/filter/extr.lean : line 301 : ERR_LIN : Line has more than 100 characters
@@ -1289,7 +1290,6 @@ src/order/galois_connection.lean : line 514 : ERR_LIN : Line has more than 100 c
 src/order/galois_connection.lean : line 524 : ERR_LIN : Line has more than 100 characters
 src/order/galois_connection.lean : line 534 : ERR_LIN : Line has more than 100 characters
 src/order/lattice.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/order/lattice.lean : line 370 : ERR_LIN : Line has more than 100 characters
 src/order/lexicographic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/order/lexicographic.lean : line 169 : ERR_LIN : Line has more than 100 characters
 src/order/lexicographic.lean : line 172 : ERR_LIN : Line has more than 100 characters
@@ -1540,7 +1540,6 @@ src/tactic/interval_cases.lean : line 241 : ERR_LIN : Line has more than 100 cha
 src/tactic/interval_cases.lean : line 32 : ERR_MOD : Module docstring missing, or too late
 src/tactic/lean_core_docs.lean : line 733 : ERR_LIN : Line has more than 100 characters
 src/tactic/lean_core_docs.lean : line 766 : ERR_LIN : Line has more than 100 characters
-src/tactic/lift.lean : line 176 : ERR_LIN : Line has more than 100 characters
 src/tactic/lift.lean : line 78 : ERR_LIN : Line has more than 100 characters
 src/tactic/linarith/datatypes.lean : line 118 : ERR_LIN : Line has more than 100 characters
 src/tactic/linarith/datatypes.lean : line 233 : ERR_LIN : Line has more than 100 characters
@@ -1574,10 +1573,7 @@ src/tactic/lint/default.lean : line 42 : ERR_LIN : Line has more than 100 charac
 src/tactic/lint/default.lean : line 44 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/default.lean : line 45 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/default.lean : line 46 : ERR_LIN : Line has more than 100 characters
-src/tactic/lint/frontend.lean : line 157 : ERR_LIN : Line has more than 100 characters
-src/tactic/lint/frontend.lean : line 228 : ERR_LIN : Line has more than 100 characters
-src/tactic/lint/frontend.lean : line 232 : ERR_LIN : Line has more than 100 characters
-src/tactic/lint/frontend.lean : line 79 : ERR_LIN : Line has more than 100 characters
+src/tactic/lint/frontend.lean : line 153 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/misc.lean : line 78 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/simp.lean : line 116 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/simp.lean : line 122 : ERR_LIN : Line has more than 100 characters
@@ -1632,7 +1628,6 @@ src/tactic/push_neg.lean : line 180 : ERR_LIN : Line has more than 100 character
 src/tactic/push_neg.lean : line 181 : ERR_LIN : Line has more than 100 characters
 src/tactic/push_neg.lean : line 183 : ERR_LIN : Line has more than 100 characters
 src/tactic/push_neg.lean : line 184 : ERR_LIN : Line has more than 100 characters
-src/tactic/rcases.lean : line 741 : ERR_LIN : Line has more than 100 characters
 src/tactic/restate_axiom.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/rewrite.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/rewrite_all/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -1646,9 +1641,8 @@ src/tactic/simp_result.lean : line 94 : ERR_LIN : Line has more than 100 charact
 src/tactic/simp_rw.lean : line 44 : ERR_LIN : Line has more than 100 characters
 src/tactic/simpa.lean : line 38 : ERR_LIN : Line has more than 100 characters
 src/tactic/simpa.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/tactic/simps.lean : line 401 : ERR_LIN : Line has more than 100 characters
-src/tactic/simps.lean : line 432 : ERR_LIN : Line has more than 100 characters
-src/tactic/simps.lean : line 440 : ERR_LIN : Line has more than 100 characters
+src/tactic/simps.lean : line 400 : ERR_LIN : Line has more than 100 characters
+src/tactic/simps.lean : line 431 : ERR_LIN : Line has more than 100 characters
 src/tactic/slice.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/slim_check.lean : line 186 : ERR_LIN : Line has more than 100 characters
 src/tactic/slim_check.lean : line 188 : ERR_LIN : Line has more than 100 characters
@@ -1691,10 +1685,6 @@ src/tactic/transform_decl.lean : line 43 : ERR_LIN : Line has more than 100 char
 src/tactic/transform_decl.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/transport.lean : line 44 : ERR_LIN : Line has more than 100 characters
 src/tactic/trunc_cases.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/tactic/where.lean : line 40 : ERR_LIN : Line has more than 100 characters
-src/tactic/where.lean : line 47 : ERR_LIN : Line has more than 100 characters
-src/tactic/where.lean : line 54 : ERR_LIN : Line has more than 100 characters
-src/tactic/where.lean : line 58 : ERR_LIN : Line has more than 100 characters
 src/tactic/wlog.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/wlog.lean : line 181 : ERR_LIN : Line has more than 100 characters
 src/tactic/wlog.lean : line 198 : ERR_LIN : Line has more than 100 characters
@@ -1762,9 +1752,9 @@ src/topology/algebra/continuous_functions.lean : line 87 : ERR_LIN : Line has mo
 src/topology/algebra/floor_ring.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/floor_ring.lean : line 183 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/floor_ring.lean : line 187 : ERR_LIN : Line has more than 100 characters
-src/topology/algebra/group.lean : line 440 : ERR_LIN : Line has more than 100 characters
-src/topology/algebra/group.lean : line 450 : ERR_LIN : Line has more than 100 characters
-src/topology/algebra/group.lean : line 469 : ERR_LIN : Line has more than 100 characters
+src/topology/algebra/group.lean : line 516 : ERR_LIN : Line has more than 100 characters
+src/topology/algebra/group.lean : line 526 : ERR_LIN : Line has more than 100 characters
+src/topology/algebra/group.lean : line 545 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/group_completion.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/group_completion.lean : line 53 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/group_completion.lean : line 55 : ERR_LIN : Line has more than 100 characters

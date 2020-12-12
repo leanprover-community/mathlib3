@@ -639,19 +639,22 @@ def dom_coprod
 { to_fun := dom_coprod_aux a b,
   map_add' := λ v i p q, begin
     dsimp only [dom_coprod_aux],
-    simp_rw [←finset.sum_add_distrib, multilinear_map.map_add, smul_add],
+    rw ←finset.sum_add_distrib,
     congr' 1,
-    ext σ',
-    obtain ⟨σ, rfl⟩ := quot.exists_rep σ',
-    refl,
+    ext σ,
+    apply σ.induction_on' (λ σ, _),
+    dsimp only [quotient.lift_on'_beta],
+    rw [multilinear_map.map_add _ v i p q, smul_add],
   end,
-  map_smul' := λ v i c p, begin
+  map_smul' :=
+  λ v i c p, begin
     dsimp only [dom_coprod_aux],
-    simp_rw [finset.smul_sum, multilinear_map.map_smul, smul_comm],
+    rw finset.smul_sum,
     congr' 1,
-    ext σ',
-    obtain ⟨σ, rfl⟩ := quot.exists_rep σ',
-    refl,
+    ext σ,
+    apply σ.induction_on' (λ σ, _),
+    dsimp only [quotient.lift_on'_beta],
+    rw [multilinear_map.map_smul _ v i c p, smul_comm],
   end,
   map_eq_zero_of_eq' := dom_coprod_aux_eq_zero_if_eq a b }
 
@@ -677,5 +680,3 @@ end coprod
 end alternating_map
 
 end
-
-∀

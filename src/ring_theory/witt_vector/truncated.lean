@@ -408,6 +408,7 @@ variable (f)
 section tac
 omit f_compat
 
+/-- A tactic macro for proving that `lift_fun` is a ring homomorphism. -/
 meta def lift_fun_tac : tactic unit :=
 `[intros,
   rw [← sub_eq_zero, ← ideal.mem_bot, ← infi_ker_truncate, ideal.mem_infi],

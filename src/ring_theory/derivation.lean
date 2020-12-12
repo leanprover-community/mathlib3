@@ -71,8 +71,7 @@ coe_injective $ funext H
 @[simp] lemma map_one_eq_zero : D 1 = 0 :=
 begin
   have h : D 1 = D (1 * 1) := by rw mul_one,
-  rw [leibniz D 1 1, one_smul] at h,
-  exact eq_zero_of_left_cancel_add_self h,
+  rwa [leibniz D 1 1, one_smul, left_eq_add_iff] at h,
 end
 
 @[simp] lemma map_algebra_map : D (algebra_map R A r) = 0 :=

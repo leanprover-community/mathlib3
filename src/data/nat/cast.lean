@@ -83,7 +83,7 @@ def cast_add_monoid_hom (α : Type*) [add_monoid α] [has_one α] : ℕ →+ α 
   ((bit1 n : ℕ) : α) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 
-lemma cast_two {α : Type*} [semiring α] : ((2 : ℕ) : α) = 2 := by simp
+lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 := by simp
 
 @[simp, norm_cast] theorem cast_pred [add_group α] [has_one α] :
   ∀ {n}, 0 < n → ((n - 1 : ℕ) : α) = n - 1
@@ -121,37 +121,49 @@ nat.rec_on n (commute.zero_left x) $ λ n ihn, ihn.add_left $ commute.one_left x
 lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 
-@[simp] theorem cast_nonneg [linear_ordered_semiring α] : ∀ n : ℕ, 0 ≤ (n : α)
+section
+
+variables [ordered_semiring α]
+
+@[simp] theorem cast_nonneg : ∀ n : ℕ, 0 ≤ (n : α)
 | 0     := le_refl _
 | (n+1) := add_nonneg (cast_nonneg n) zero_le_one
 
-theorem strict_mono_cast [linear_ordered_semiring α] : strict_mono (coe : ℕ → α) :=
+theorem mono_cast : monotone (coe : ℕ → α) :=
+λ m n h, let ⟨k, hk⟩ := le_iff_exists_add.1 h in by simp [hk]
+
+variable [nontrivial α]
+
+theorem strict_mono_cast : strict_mono (coe : ℕ → α) :=
 λ m n h, nat.le_induction (lt_add_of_pos_right _ zero_lt_one)
   (λ n _ h, lt_add_of_lt_of_pos h zero_lt_one) _ h
 
-@[simp, norm_cast] theorem cast_le [linear_ordered_semiring α] {m n : ℕ} : (m : α) ≤ n ↔ m ≤ n :=
+@[simp, norm_cast] theorem cast_le {m n : ℕ} :
+  (m : α) ≤ n ↔ m ≤ n :=
 strict_mono_cast.le_iff_le
 
-@[simp, norm_cast] theorem cast_lt [linear_ordered_semiring α] {m n : ℕ} : (m : α) < n ↔ m < n :=
+@[simp, norm_cast] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
 strict_mono_cast.lt_iff_lt
 
-@[simp] theorem cast_pos [linear_ordered_semiring α] {n : ℕ} : (0 : α) < n ↔ 0 < n :=
+@[simp] theorem cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n :=
 by rw [← cast_zero, cast_lt]
 
-lemma cast_add_one_pos [linear_ordered_semiring α] (n : ℕ) : 0 < (n : α) + 1 :=
+lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
   add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
-@[simp, norm_cast] theorem one_lt_cast [linear_ordered_semiring α] {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
+@[simp, norm_cast] theorem one_lt_cast {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
 by rw [← cast_one, cast_lt]
 
-@[simp, norm_cast] theorem one_le_cast [linear_ordered_semiring α] {n : ℕ} : 1 ≤ (n : α) ↔ 1 ≤ n :=
+@[simp, norm_cast] theorem one_le_cast {n : ℕ} : 1 ≤ (n : α) ↔ 1 ≤ n :=
 by rw [← cast_one, cast_le]
 
-@[simp, norm_cast] theorem cast_lt_one [linear_ordered_semiring α] {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
+@[simp, norm_cast] theorem cast_lt_one {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
 by rw [← cast_one, cast_lt, lt_succ_iff, le_zero_iff]
 
-@[simp, norm_cast] theorem cast_le_one [linear_ordered_semiring α] {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
+@[simp, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
 by rw [← cast_one, cast_le]
+
+end
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
@@ -161,7 +173,7 @@ by by_cases a ≤ b; simp [h, min]
   (↑(max a b) : α) = max a b :=
 by by_cases a ≤ b; simp [h, max]
 
-@[simp, norm_cast] theorem abs_cast [linear_ordered_comm_ring α] (a : ℕ) :
+@[simp, norm_cast] theorem abs_cast [linear_ordered_ring α] (a : ℕ) :
   abs (a : α) = a :=
 abs_of_nonneg (cast_nonneg a)
 

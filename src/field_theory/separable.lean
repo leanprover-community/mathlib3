@@ -209,7 +209,7 @@ section comm_ring
 variables {R : Type u} [comm_ring R]
 
 lemma separable_X_sub_C {x : R} : separable (X - C x) :=
-by simpa only [C_neg] using separable_X_add_C (-x)
+by simpa only [sub_eq_add_neg, C_neg] using separable_X_add_C (-x)
 
 lemma separable.mul {f g : polynomial R} (hf : f.separable) (hg : g.separable)
   (h : is_coprime f g) : (f * g).separable :=

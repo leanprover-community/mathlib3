@@ -310,7 +310,8 @@ tendsto_inf.2 ⟨tendsto_exp_at_bot, tendsto_principal.2 $ eventually_of_forall 
 def exp_order_iso : ℝ ≃o Ioi (0 : ℝ) :=
 strict_mono.order_iso_of_surjective _ (exp_strict_mono.cod_restrict exp_pos) $
   surjective_of_continuous (continuous_subtype_mk _ continuous_exp)
-    (by simp [tendsto_exp_at_top]) (by simp [tendsto_exp_at_bot_nhds_within])
+    (by simp only [tendsto_Ioi_at_top, coe_cod_restrict_apply, tendsto_exp_at_top])
+    (by simp [tendsto_exp_at_bot_nhds_within])
 
 @[simp] lemma coe_exp_order_iso_apply (x : ℝ) : (exp_order_iso x : ℝ) = exp x := rfl
 
@@ -672,8 +673,8 @@ begin
   have B : ∀ᶠ x in at_top, exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n :=
     mem_at_top_sets.2 ⟨1, λx hx, A _ (lt_of_lt_of_le zero_lt_one hx)⟩,
   have C : tendsto (λx, exp (x / (n+1)) / (n+1)^n) at_top at_top :=
-    tendsto_at_top_div (pow_pos n_pos n)
-      (tendsto_exp_at_top.comp (tendsto_at_top_div (nat.cast_add_one_pos n) tendsto_id)),
+    (tendsto_exp_at_top.comp (tendsto_id.at_top_div_const
+      (nat.cast_add_one_pos n))).at_top_div_const (pow_pos n_pos n),
   exact tendsto_at_top_mono' at_top B C
 end
 
@@ -688,7 +689,7 @@ lemma tendsto_mul_exp_add_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) (hn 
   tendsto (λ x, (b * (exp x) + c) / (x^n)) at_top at_top :=
 begin
   refine tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) _)
-    (tendsto_at_top_add_tendsto_right (tendsto_at_top_mul_left hb (tendsto_exp_div_pow_at_top n))
+    (tendsto_at_top_add_tendsto_right ( (tendsto_exp_div_pow_at_top n).const_mul_at_top hb)
       ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
   intros x hx,
   simp only [fpow_neg x n],

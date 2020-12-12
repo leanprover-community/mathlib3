@@ -525,8 +525,8 @@ lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
 lemma nontrivial_iff_nonempty : nontrivial (filter α) ↔ nonempty α :=
 ⟨λ ⟨⟨f, g, hfg⟩⟩, by_contra $
   λ h, hfg $ (filter_eq_bot_of_not_nonempty f h).trans (filter_eq_bot_of_not_nonempty g h).symm,
- λ ⟨x⟩, ⟨⟨⊤, ⊥, forall_sets_nonempty_iff_ne_bot.1 $ λ s hs,
-   by rwa [mem_top_sets.1 hs, ← nonempty_iff_univ_nonempty]⟩⟩⟩
+  λ ⟨x⟩, ⟨⟨⊤, ⊥, forall_sets_nonempty_iff_ne_bot.1 $ λ s hs,
+    by rwa [mem_top_sets.1 hs, ← nonempty_iff_univ_nonempty]⟩⟩⟩
 
 lemma mem_sets_of_eq_bot {f : filter α} {s : set α} (h : f ⊓ 𝓟 sᶜ = ⊥) : s ∈ f :=
 have ∅ ∈ f ⊓ 𝓟 sᶜ, from h.symm ▸ mem_bot_sets,
@@ -1140,12 +1140,12 @@ h.fun_comp has_inv.inv
 lemma eventually_eq.div [group_with_zero β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
-h.mul h'.inv
+by simpa only [div_eq_mul_inv] using h.mul h'.inv
 
 lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
-h.add h'.neg
+by simpa only [sub_eq_add_neg] using h.add h'.neg
 
 lemma eventually_eq.inter {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
   (s ∩ s' : set α) =ᶠ[l] (t ∩ t' : set α) :=
@@ -2269,6 +2269,11 @@ le_antisymm
           set.prod_image_image_eq
         ... ⊆ _ : by rwa [image_subset_iff])
   ((tendsto.comp (le_refl _) tendsto_fst).prod_mk (tendsto.comp (le_refl _) tendsto_snd))
+
+lemma prod_map_map_eq' {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : Type*}
+  (f : α₁ → α₂) (g : β₁ → β₂) (F : filter α₁) (G : filter β₁) :
+  (map f F) ×ᶠ (map g G) = map (prod.map f g) (F ×ᶠ G) :=
+by { rw filter.prod_map_map_eq, refl }
 
 lemma tendsto.prod_map {δ : Type*} {f : α → γ} {g : β → δ} {a : filter α} {b : filter β}
   {c : filter γ} {d : filter δ} (hf : tendsto f a c) (hg : tendsto g b d) :

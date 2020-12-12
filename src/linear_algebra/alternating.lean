@@ -237,3 +237,71 @@ lemma map_congr_perm [fintype ι] (σ : equiv.perm ι) :
 by { rw [g.map_perm, smul_smul], simp }
 
 end alternating_map
+
+open_locale big_operators
+
+namespace multilinear_map
+
+open equiv
+
+variables [fintype ι]
+
+private lemma alternization_map_eq_zero_of_eq_aux
+  (m : multilinear_map R (λ i : ι, M) L)
+  (v : ι → M) (i j : ι) (i_ne_j : i ≠ j) (hv : v i = v j) :
+  ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v = 0 :=
+finset.sum_involution
+  (λ σ _, swap i j * σ)
+  (λ σ _, begin
+    convert add_right_neg (↑σ.sign • m.dom_dom_congr σ v),
+    rw [perm.sign_mul, perm.sign_swap i_ne_j, ←neg_smul,
+      multilinear_map.dom_dom_congr_apply, multilinear_map.dom_dom_congr_apply],
+    congr' 2,
+    { simp },
+    { ext, simp [apply_swap_eq_self hv] },
+  end)
+  (λ σ _ _, (not_congr swap_mul_eq_iff).mpr i_ne_j)
+  (λ σ _, finset.mem_univ _)
+  (λ σ _, swap_mul_involutive i j σ)
+
+/-- Produce an `alternating_map` out of a `multilinear_map`, by summing over all argument
+permutations. -/
+def alternatization : multilinear_map R (λ i : ι, M) L →+ alternating_map R M L ι :=
+{ to_fun := λ m,
+  { to_fun := λ v, ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v,
+    map_add' := λ v i a b, by simp_rw [←finset.sum_add_distrib, multilinear_map.map_add, smul_add],
+    map_smul' := λ v i c a, by simp_rw [finset.smul_sum, multilinear_map.map_smul, smul_comm],
+    map_eq_zero_of_eq' := λ v i j hvij hij, alternization_map_eq_zero_of_eq_aux m v i j hij hvij },
+  map_add' := λ a b, begin
+    ext,
+    simp only [
+      finset.sum_add_distrib, smul_add, add_apply, dom_dom_congr_apply, alternating_map.add_apply,
+      alternating_map.coe_mk],
+  end,
+  map_zero' := begin
+    ext,
+    simp only [
+      dom_dom_congr_apply, alternating_map.zero_apply, finset.sum_const_zero, smul_zero,
+      alternating_map.coe_mk, zero_apply]
+  end }
+
+lemma alternatization_apply (m : multilinear_map R (λ i : ι, M) L) (v : ι → M) :
+  alternatization m v = ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v := rfl
+
+end multilinear_map
+
+namespace alternating_map
+
+/-- Alternatizing a multilinear map that is already alternating results in a scale factor of `n!`,
+where `n` is the number of inputs. -/
+lemma to_multilinear_map_alternization [fintype ι] (a : alternating_map R M L ι) :
+  a.to_multilinear_map.alternatization = nat.factorial (fintype.card ι) • a :=
+begin
+  ext,
+  simp only [multilinear_map.alternatization_apply, map_perm, smul_smul, ←nat.smul_def, coe_mk,
+    smul_apply, add_monoid_hom.coe_mk, finset.sum_const, coe_multilinear_map, one_smul,
+    multilinear_map.dom_dom_congr_apply, int.units_coe_mul_self, to_multilinear_map_eq_coe,
+    finset.card_univ, fintype.card_perm],
+end
+
+end alternating_map

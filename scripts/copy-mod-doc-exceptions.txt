@@ -62,7 +62,6 @@ src/algebra/category/Mon/limits.lean : line 163 : ERR_LIN : Line has more than 1
 src/algebra/category/Mon/limits.lean : line 175 : ERR_LIN : Line has more than 100 characters
 src/algebra/category/Mon/limits.lean : line 183 : ERR_LIN : Line has more than 100 characters
 src/algebra/char_zero.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/algebra/char_zero.lean : line 68 : ERR_LIN : Line has more than 100 characters
 src/algebra/continued_fractions/computation/approximations.lean : line 21 : ERR_LIN : Line has more than 100 characters
 src/algebra/continued_fractions/computation/approximations.lean : line 23 : ERR_LIN : Line has more than 100 characters
 src/algebra/continued_fractions/computation/approximations.lean : line 25 : ERR_LIN : Line has more than 100 characters
@@ -133,7 +132,7 @@ src/algebra/monoid_algebra.lean : line 850 : ERR_LIN : Line has more than 100 ch
 src/algebra/ordered_group.lean : line 369 : ERR_LIN : Line has more than 100 characters
 src/algebra/ordered_group.lean : line 371 : ERR_LIN : Line has more than 100 characters
 src/algebra/ordered_group.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/algebra/ordered_ring.lean : line 8 : ERR_MOD : Module docstring missing, or too late
+src/algebra/ordered_ring.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/algebra/polynomial/big_operators.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/algebra/punit_instances.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/algebra/quandle.lean : line 462 : ERR_LIN : Line has more than 100 characters
@@ -785,8 +784,9 @@ src/data/mv_polynomial/basic.lean : line 814 : ERR_LIN : Line has more than 100 
 src/data/mv_polynomial/comm_ring.lean : line 113 : ERR_LIN : Line has more than 100 characters
 src/data/mv_polynomial/counit.lean : line 19 : ERR_LIN : Line has more than 100 characters
 src/data/mv_polynomial/equiv.lean : line 104 : ERR_LIN : Line has more than 100 characters
-src/data/mv_polynomial/equiv.lean : line 106 : ERR_LIN : Line has more than 100 characters
-src/data/mv_polynomial/equiv.lean : line 240 : ERR_LIN : Line has more than 100 characters
+src/data/mv_polynomial/equiv.lean : line 114 : ERR_LIN : Line has more than 100 characters
+src/data/mv_polynomial/equiv.lean : line 116 : ERR_LIN : Line has more than 100 characters
+src/data/mv_polynomial/equiv.lean : line 250 : ERR_LIN : Line has more than 100 characters
 src/data/mv_polynomial/equiv.lean : line 94 : ERR_LIN : Line has more than 100 characters
 src/data/mv_polynomial/invertible.lean : line 13 : ERR_LIN : Line has more than 100 characters
 src/data/mv_polynomial/invertible.lean : line 23 : ERR_LIN : Line has more than 100 characters
@@ -1167,7 +1167,7 @@ src/logic/relation.lean : line 10 : ERR_MOD : Module docstring missing, or too l
 src/logic/relator.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/measure_theory/category/Meas.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/measure_theory/decomposition.lean : line 14 : ERR_MOD : Module docstring missing, or too late
-src/measure_theory/measure_space.lean : line 1721 : ERR_LIN : Line has more than 100 characters
+src/measure_theory/measure_space.lean : line 1720 : ERR_LIN : Line has more than 100 characters
 src/measure_theory/measure_space.lean : line 65 : ERR_LIN : Line has more than 100 characters
 src/meta/coinductive_predicates.lean : line 115 : ERR_LIN : Line has more than 100 characters
 src/meta/coinductive_predicates.lean : line 12 : ERR_LIN : Line has more than 100 characters
@@ -1261,7 +1261,7 @@ src/order/filter/basic.lean : line 1497 : ERR_LIN : Line has more than 100 chara
 src/order/filter/basic.lean : line 1783 : ERR_LIN : Line has more than 100 characters
 src/order/filter/basic.lean : line 1935 : ERR_LIN : Line has more than 100 characters
 src/order/filter/basic.lean : line 2063 : ERR_LIN : Line has more than 100 characters
-src/order/filter/basic.lean : line 2303 : ERR_LIN : Line has more than 100 characters
+src/order/filter/basic.lean : line 2308 : ERR_LIN : Line has more than 100 characters
 src/order/filter/basic.lean : line 669 : ERR_LIN : Line has more than 100 characters
 src/order/filter/basic.lean : line 679 : ERR_LIN : Line has more than 100 characters
 src/order/filter/extr.lean : line 301 : ERR_LIN : Line has more than 100 characters
@@ -1332,7 +1332,7 @@ src/ring_theory/dedekind_domain.lean : line 21 : ERR_LIN : Line has more than 10
 src/ring_theory/dedekind_domain.lean : line 23 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/dedekind_domain.lean : line 25 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/dedekind_domain.lean : line 84 : ERR_LIN : Line has more than 100 characters
-src/ring_theory/derivation.lean : line 205 : ERR_LIN : Line has more than 100 characters
+src/ring_theory/derivation.lean : line 204 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/free_comm_ring.lean : line 109 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/free_comm_ring.lean : line 112 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/free_comm_ring.lean : line 187 : ERR_LIN : Line has more than 100 characters
@@ -1345,7 +1345,7 @@ src/ring_theory/free_comm_ring.lean : line 263 : ERR_LIN : Line has more than 10
 src/ring_theory/free_ring.lean : line 83 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/free_ring.lean : line 86 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/ideal/basic.lean : line 58 : ERR_LIN : Line has more than 100 characters
-src/ring_theory/ideal/operations.lean : line 1255 : ERR_LIN : Line has more than 100 characters
+src/ring_theory/ideal/operations.lean : line 1264 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/ideal/operations.lean : line 138 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/ideal/operations.lean : line 142 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/ideal/operations.lean : line 143 : ERR_LIN : Line has more than 100 characters
@@ -1367,7 +1367,7 @@ src/ring_theory/integral_closure.lean : line 118 : ERR_LIN : Line has more than 
 src/ring_theory/integral_closure.lean : line 123 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/integral_closure.lean : line 199 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/integral_closure.lean : line 444 : ERR_LIN : Line has more than 100 characters
-src/ring_theory/integral_closure.lean : line 535 : ERR_LIN : Line has more than 100 characters
+src/ring_theory/integral_closure.lean : line 553 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/integral_domain.lean : line 104 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/integral_domain.lean : line 124 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/integral_domain.lean : line 129 : ERR_LIN : Line has more than 100 characters
@@ -1386,8 +1386,9 @@ src/ring_theory/jacobson_ideal.lean : line 67 : ERR_LIN : Line has more than 100
 src/ring_theory/jacobson_ideal.lean : line 87 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/jacobson_ideal.lean : line 97 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/localization.lean : line 1189 : ERR_LIN : Line has more than 100 characters
-src/ring_theory/localization.lean : line 1351 : ERR_LIN : Line has more than 100 characters
-src/ring_theory/localization.lean : line 1530 : ERR_LIN : Line has more than 100 characters
+src/ring_theory/localization.lean : line 1213 : ERR_LIN : Line has more than 100 characters
+src/ring_theory/localization.lean : line 1362 : ERR_LIN : Line has more than 100 characters
+src/ring_theory/localization.lean : line 1550 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/localization.lean : line 871 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/multiplicity.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/ring_theory/multiplicity.lean : line 142 : ERR_LIN : Line has more than 100 characters
@@ -1403,11 +1404,11 @@ src/ring_theory/polynomial/basic.lean : line 135 : ERR_LIN : Line has more than 
 src/ring_theory/polynomial/basic.lean : line 137 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/polynomial/basic.lean : line 147 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/polynomial/basic.lean : line 25 : ERR_MOD : Module docstring missing, or too late
-src/ring_theory/polynomial/basic.lean : line 357 : ERR_LIN : Line has more than 100 characters
-src/ring_theory/polynomial/basic.lean : line 472 : ERR_LIN : Line has more than 100 characters
+src/ring_theory/polynomial/basic.lean : line 385 : ERR_LIN : Line has more than 100 characters
+src/ring_theory/polynomial/basic.lean : line 500 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/polynomial/basic.lean : line 56 : ERR_LIN : Line has more than 100 characters
-src/ring_theory/polynomial/basic.lean : line 673 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/polynomial/basic.lean : line 69 : ERR_LIN : Line has more than 100 characters
+src/ring_theory/polynomial/basic.lean : line 701 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/polynomial/scale_roots.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/ring_theory/polynomial/scale_roots.lean : line 89 : ERR_LIN : Line has more than 100 characters
 src/ring_theory/polynomial/scale_roots.lean : line 92 : ERR_LIN : Line has more than 100 characters
@@ -1762,9 +1763,9 @@ src/topology/algebra/continuous_functions.lean : line 87 : ERR_LIN : Line has mo
 src/topology/algebra/floor_ring.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/floor_ring.lean : line 183 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/floor_ring.lean : line 187 : ERR_LIN : Line has more than 100 characters
-src/topology/algebra/group.lean : line 440 : ERR_LIN : Line has more than 100 characters
-src/topology/algebra/group.lean : line 450 : ERR_LIN : Line has more than 100 characters
-src/topology/algebra/group.lean : line 469 : ERR_LIN : Line has more than 100 characters
+src/topology/algebra/group.lean : line 516 : ERR_LIN : Line has more than 100 characters
+src/topology/algebra/group.lean : line 526 : ERR_LIN : Line has more than 100 characters
+src/topology/algebra/group.lean : line 545 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/group_completion.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/group_completion.lean : line 53 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/group_completion.lean : line 55 : ERR_LIN : Line has more than 100 characters

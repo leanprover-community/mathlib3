@@ -728,7 +728,7 @@ by { ext, simp }
   alg_hom.comp ↑e.symm (e : A₁ →ₐ[R] A₂) = alg_hom.id R A₁ :=
 by { ext, simp }
 
-/-- An alg_equiv induces and equiv of alg_hom types -/
+/-- An `alg_equiv` induces an equiv of `alg_hom` types -/
 def alg_hom_equiv_alg_hom_left (ϕ : A₁ ≃ₐ[R] A₂) : (A₁ →ₐ[R] A₃) ≃ (A₂ →ₐ[R] A₃) :=
 { to_fun := λ f, f.comp ϕ.symm.to_alg_hom,
   inv_fun := λ f, f.comp ϕ.to_alg_hom,

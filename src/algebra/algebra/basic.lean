@@ -737,7 +737,7 @@ def alg_hom_equiv_alg_hom_left (ϕ : A₁ ≃ₐ[R] A₂) : (A₁ →ₐ[R] A₃
   right_inv := λ f,
     by { simp only [alg_hom.comp_assoc, to_alg_hom_eq_coe, comp_symm, alg_hom.comp_id] } }
 
-/-- An alg_equiv induces and equiv of alg_hom types -/
+/-- An `alg_equiv` induces an equiv of `alg_hom` types -/
 def alg_hom_equiv_alg_hom_right (ϕ : A₁ ≃ₐ[R] A₂) : (A₃ →ₐ[R] A₁) ≃ (A₃ →ₐ[R] A₂) :=
 { to_fun := λ f, ϕ.to_alg_hom.comp f,
   inv_fun := λ f, ϕ.symm.to_alg_hom.comp f,

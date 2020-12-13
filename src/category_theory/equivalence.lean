@@ -5,6 +5,7 @@ Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.fully_faithful
 import category_theory.whiskering
+import category_theory.essential_image
 import tactic.slice
 
 /-!
@@ -488,29 +489,6 @@ equivalence.functor_unit_comp E.as_equivalence Y
 eq_of_inv_eq_inv (functor_unit_comp _ _)
 
 end is_equivalence
-
-/--
-A functor `F : C ⥤ D` is essentially surjective if for every `d : D`, there is some `c : C`
-so `F.obj c ≅ D`.
-
-See https://stacks.math.columbia.edu/tag/001C.
--/
-class ess_surj (F : C ⥤ D) : Prop :=
-(obj_preimage [] (d : D) : ∃ c, nonempty (F.obj c ≅ d))
-
-namespace functor
-/-- Given an essentially surjective functor, we can find a preimage for every object `d` in the
-    codomain. Applying the functor to this preimage will yield an object isomorphic to `d`, see
-    `fun_obj_preimage_iso`. -/
-noncomputable def obj_preimage (F : C ⥤ D) [sF : ess_surj F] (d : D) : C :=
-classical.some (ess_surj.obj_preimage F d)
-/-- Applying an essentially surjective functor to a preimage of `d` yields an object that is
-    isomorphic to `d`. -/
-noncomputable def fun_obj_preimage_iso (F : C ⥤ D) [sF : ess_surj F] (d : D) :
-  F.obj (F.obj_preimage d) ≅ d :=
-classical.choice (classical.some_spec (ess_surj.obj_preimage F d))
-
-end functor
 
 namespace equivalence
 

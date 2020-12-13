@@ -495,22 +495,20 @@ so `F.obj c ≅ D`.
 
 See https://stacks.math.columbia.edu/tag/001C.
 -/
--- TODO should we make this a `Prop` that merely asserts the existence of a preimage,
--- rather than choosing one?
-class ess_surj (F : C ⥤ D) :=
-(obj_preimage (d : D) : ∃ c, nonempty (F.obj c ≅ d))
+class ess_surj (F : C ⥤ D) : Prop :=
+(obj_preimage [] (d : D) : ∃ c, nonempty (F.obj c ≅ d))
 
 namespace functor
 /-- Given an essentially surjective functor, we can find a preimage for every object `d` in the
     codomain. Applying the functor to this preimage will yield an object isomorphic to `d`, see
     `fun_obj_preimage_iso`. -/
 noncomputable def obj_preimage (F : C ⥤ D) [sF : ess_surj F] (d : D) : C :=
-classical.some (@ess_surj.obj_preimage _ _ _ _ F sF d)
+classical.some (ess_surj.obj_preimage F d)
 /-- Applying an essentially surjective functor to a preimage of `d` yields an object that is
     isomorphic to `d`. -/
 noncomputable def fun_obj_preimage_iso (F : C ⥤ D) [sF : ess_surj F] (d : D) :
   F.obj (F.obj_preimage d) ≅ d :=
-classical.choice (classical.some_spec (@ess_surj.obj_preimage _ _ _ _ F sF d))
+classical.choice (classical.some_spec (ess_surj.obj_preimage F d))
 
 end functor
 

@@ -3,9 +3,8 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.times_cont_diff
-import tactic.omega
-import analysis.special_functions.pow
+import analysis.calculus.formal_multilinear_series
+import analysis.specific_limits
 
 /-!
 # Analytic functions
@@ -69,7 +68,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
-open_locale topological_space classical big_operators
+open_locale topological_space classical big_operators nnreal
 open filter
 
 /-! ### The radius of a formal multilinear series -/
@@ -79,101 +78,47 @@ namespace formal_multilinear_series
 /-- The radius of a formal multilinear series is the largest `r` such that the sum `Σ pₙ yⁿ`
 converges for all `∥y∥ < r`. -/
 def radius (p : formal_multilinear_series 𝕜 E F) : ennreal :=
-liminf at_top (λ n, 1/((nnnorm (p n)) ^ (1 / (n : ℝ)) : nnreal))
+⨆ (r : ℝ≥0) (hr : ∃ C, ∀ n, nnnorm (p n) * r ^ n ≤ C), (r : ennreal)
 
 /--If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
 lemma le_radius_of_bound (p : formal_multilinear_series 𝕜 E F) (C : nnreal) {r : nnreal}
   (h : ∀ (n : ℕ), nnnorm (p n) * r^n ≤ C) : (r : ennreal) ≤ p.radius :=
-begin
-  have L : tendsto (λ n : ℕ, (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : nnreal))
-    at_top (𝓝 ((r : ennreal) / ((C + 1)^(0 : ℝ) : nnreal))),
-  { apply ennreal.tendsto.div tendsto_const_nhds,
-    { simp },
-    { rw ennreal.tendsto_coe,
-      apply tendsto_const_nhds.nnrpow (tendsto_const_div_at_top_nhds_0_nat 1),
-      simp },
-    { simp } },
-  have A : ∀ n : ℕ , 0 < n →
-    (r : ennreal) ≤ ((C + 1)^(1/(n : ℝ)) : nnreal) * (1 / (nnnorm (p n) ^ (1/(n:ℝ)) : nnreal)),
-  { assume n npos,
-    simp only [one_div, mul_assoc, mul_one, eq.symm ennreal.mul_div_assoc],
-    rw [ennreal.le_div_iff_mul_le _ _, ← nnreal.pow_nat_rpow_nat_inv r npos, ← ennreal.coe_mul,
-        ennreal.coe_le_coe, ← nnreal.mul_rpow, mul_comm],
-    { exact nnreal.rpow_le_rpow (le_trans (h n) (le_add_right (le_refl _))) (by simp) },
-    { simp },
-    { simp } },
-  have B : ∀ᶠ (n : ℕ) in at_top,
-    (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : nnreal) ≤ 1 / (nnnorm (p n) ^ (1/(n:ℝ)) : nnreal),
-  { apply eventually_at_top.2 ⟨1, λ n hn, _⟩,
-    rw [ennreal.div_le_iff_le_mul, mul_comm],
-    { apply A n hn },
-    { simp },
-    { simp } },
-  have D : liminf at_top (λ n : ℕ, (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : nnreal)) ≤ p.radius :=
-    liminf_le_liminf B,
-  rw L.liminf_eq at D,
-  simpa using D
-end
-
-/-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` is bounded. -/
-lemma bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : nnreal}
-  (h : (r : ennreal) < p.radius) : ∃ (C : nnreal), ∀ n, nnnorm (p n) * r^n ≤ C :=
-begin
-  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ n, n ≥ N → (r : ennreal) < 1 / ↑(nnnorm (p n) ^ (1 / (n : ℝ))) :=
-    eventually.exists_forall_of_at_top (eventually_lt_of_lt_liminf h),
-  obtain ⟨D, hD⟩ : ∃D, ∀ x ∈ (↑((finset.range N.succ).image (λ i, nnnorm (p i) * r^i))), x ≤ D :=
-    finset.bdd_above _,
-  refine ⟨max D 1, λ n, _⟩,
-  cases le_or_lt n N with hn hn,
-  { refine le_trans _ (le_max_left D 1),
-    apply hD,
-    have : n ∈ finset.range N.succ := list.mem_range.mpr (nat.lt_succ_iff.mpr hn),
-    exact finset.mem_image_of_mem _ this },
-  { by_cases hpn : nnnorm (p n) = 0, { simp [hpn] },
-    have A : nnnorm (p n) ^ (1 / (n : ℝ)) ≠ 0, by simp [nnreal.rpow_eq_zero_iff, hpn],
-    have B : r < (nnnorm (p n) ^ (1 / (n : ℝ)))⁻¹,
-    { have := hN n (le_of_lt hn),
-      rwa [ennreal.div_def, ← ennreal.coe_inv A, one_mul, ennreal.coe_lt_coe] at this },
-    rw [nnreal.lt_inv_iff_mul_lt A, mul_comm] at B,
-    have : (nnnorm (p n) ^ (1 / (n : ℝ)) * r) ^ n ≤ 1 :=
-      pow_le_one n (zero_le (nnnorm (p n) ^ (1 / ↑n) * r)) (le_of_lt B),
-    rw [mul_pow, one_div, nnreal.rpow_nat_inv_pow_nat _ (lt_of_le_of_lt (zero_le _) hn)]
-      at this,
-    exact le_trans this (le_max_right _ _) },
-end
+le_supr_of_le r (le_supr (λ _, (r : ennreal)) $ Exists.intro C h)
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially. -/
 lemma geometric_bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : nnreal}
   (h : (r : ennreal) < p.radius) : ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * r^n ≤ C * a^n :=
 begin
-  obtain ⟨t, rt, tp⟩ : ∃ (t : nnreal), (r : ennreal) < t ∧ (t : ennreal) < p.radius :=
-    ennreal.lt_iff_exists_nnreal_btwn.1 h,
+  simp only [radius, lt_supr_iff] at h,
+  rcases h with ⟨t, ⟨C, hC⟩, rt⟩,
   rw ennreal.coe_lt_coe at rt,
-  have tpos : t ≠ 0 := ne_of_gt (lt_of_le_of_lt (zero_le _) rt),
-  obtain ⟨C, hC⟩ : ∃ (C : nnreal), ∀ n, nnnorm (p n) * t^n ≤ C := p.bound_of_lt_radius tp,
   refine ⟨r / t, C, nnreal.div_lt_one_of_lt rt, λ n, _⟩,
-  calc nnnorm (p n) * r ^ n
-    = (nnnorm (p n) * t ^ n) * (r / t) ^ n : by { field_simp [tpos], ac_refl }
-    ... ≤ C * (r / t) ^ n : mul_le_mul_of_nonneg_right (hC n) (zero_le _)
+  have tpos : t ≠ 0 := ne_of_gt (lt_of_le_of_lt (zero_le _) rt),
+  calc nnnorm (p n) * r ^ n = (nnnorm (p n) * t ^ n) * (r / t) ^ n :
+    by field_simp [tpos, mul_right_comm]
+  ... ≤ C * (r / t) ^ n : mul_le_mul_of_nonneg_right (hC n) (zero_le _)
 end
+
+/-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` is bounded. -/
+lemma bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : nnreal}
+  (h : (r : ennreal) < p.radius) : ∃ (C : nnreal), ∀ n, nnnorm (p n) * r^n ≤ C :=
+let ⟨a, C, ha, h⟩ := p.geometric_bound_of_lt_radius h
+in ⟨C, λ n, (h n).trans $ mul_le_of_le_one_right (zero_le _) (pow_le_one _ (zero_le _) ha.le)⟩
 
 /-- The radius of the sum of two formal series is at least the minimum of their two radii. -/
 lemma min_radius_le_radius_add (p q : formal_multilinear_series 𝕜 E F) :
   min p.radius q.radius ≤ (p + q).radius :=
 begin
   refine le_of_forall_ge_of_dense (λ r hr, _),
-  cases r, { simpa using hr },
+  lift r to ℝ≥0 using (ne_top_of_lt hr),
   obtain ⟨Cp, hCp⟩ : ∃ (C : nnreal), ∀ n, nnnorm (p n) * r^n ≤ C :=
     p.bound_of_lt_radius (lt_of_lt_of_le hr (min_le_left _ _)),
   obtain ⟨Cq, hCq⟩ : ∃ (C : nnreal), ∀ n, nnnorm (q n) * r^n ≤ C :=
     q.bound_of_lt_radius (lt_of_lt_of_le hr (min_le_right _ _)),
-  have : ∀ n, nnnorm ((p + q) n) * r^n ≤ Cp + Cq,
-  { assume n,
-    calc nnnorm (p n + q n) * r ^ n
-    ≤ (nnnorm (p n) + nnnorm (q n)) * r ^ n :
-      mul_le_mul_of_nonneg_right (norm_add_le (p n) (q n)) (zero_le (r ^ n))
-    ... ≤ Cp + Cq : by { rw add_mul, exact add_le_add (hCp n) (hCq n) } },
-  exact (p + q).le_radius_of_bound _ this
+  refine (p + q).le_radius_of_bound (Cp + Cq) (λ n, _),
+  calc nnnorm (p n + q n) * r ^ n ≤ (nnnorm (p n) + nnnorm (q n)) * r ^ n :
+    mul_le_mul_of_nonneg_right (nnnorm_add_le (p n) (q n)) (zero_le (r ^ n))
+  ... ≤ Cp + Cq : by { rw add_mul, exact add_le_add (hCp n) (hCq n) }
 end
 
 lemma radius_neg (p : formal_multilinear_series 𝕜 E F) : (-p).radius = p.radius :=
@@ -181,8 +126,7 @@ by simp [formal_multilinear_series.radius, nnnorm_neg]
 
 /-- Given a formal multilinear series `p` and a vector `x`, then `p.sum x` is the sum `Σ pₙ xⁿ`. A
 priori, it only behaves well when `∥x∥ < p.radius`. -/
-protected def sum (p : formal_multilinear_series 𝕜 E F) (x : E) : F :=
-tsum (λn:ℕ, p n (λ(i : fin n), x))
+protected def sum (p : formal_multilinear_series 𝕜 E F) (x : E) : F := ∑' n : ℕ , p n (λ i, x)
 
 /-- Given a formal multilinear series `p` and a vector `x`, then `p.partial_sum n x` is the sum
 `Σ pₖ xᵏ` for `k ∈ {0,..., n-1}`. -/
@@ -326,14 +270,13 @@ begin
   have : y ∈ emetric.ball (0 : E) r,
   { rw [emetric.mem_ball, edist_eq_coe_nnnorm],
     apply lt_trans _ h,
-    rw [ennreal.coe_lt_coe, ← nnreal.coe_lt_coe],
-    exact yr' },
-  simp only [nnreal.coe_sub (le_of_lt ha), nnreal.coe_sub, nnreal.coe_div, nnreal.coe_one],
-  rw [← dist_eq_norm, dist_comm, dist_eq_norm, ← mul_div_right_comm],
+    exact_mod_cast yr' },
+  push_cast [ha.le],
+  rw [norm_sub_rev, ← mul_div_right_comm],
   apply norm_sub_le_of_geometric_bound_of_has_sum ha _ (hf.has_sum this),
   assume n,
-  calc ∥(p n) (λ (i : fin n), y)∥
-    ≤ ∥p n∥ * (∏ i : fin n, ∥y∥) : continuous_multilinear_map.le_op_norm _ _
+  calc ∥(p n) (λ (i : fin n), y)∥ ≤ ∥p n∥ * (∏ i : fin n, ∥y∥) :
+      continuous_multilinear_map.le_op_norm _ _
     ... = nnnorm (p n) * (nnnorm y)^n : by simp
     ... ≤ nnnorm (p n) * r' ^ n :
       mul_le_mul_of_nonneg_left (pow_le_pow_of_le_left (nnreal.coe_nonneg _) (le_of_lt yr') _)
@@ -346,17 +289,17 @@ partial sums of this power series on strict subdisks of the disk of convergence,
 is the uniform limit of `p.partial_sum n y` there. -/
 lemma has_fpower_series_on_ball.tendsto_uniformly_on {r' : nnreal}
   (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
-  tendsto_uniformly_on (λ n y, p.partial_sum n y) (λ y, f (x + y)) at_top (metric.ball (0 : E) r') :=
+  tendsto_uniformly_on (λ n y, p.partial_sum n y)
+    (λ y, f (x + y)) at_top (metric.ball (0 : E) r') :=
 begin
   rcases hf.uniform_geometric_approx h with ⟨a, C, ha, hC⟩,
   refine metric.tendsto_uniformly_on_iff.2 (λ ε εpos, _),
   have L : tendsto (λ n, (C : ℝ) * a^n) at_top (𝓝 ((C : ℝ) * 0)) :=
-    tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 (a.2) ha),
+    tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 a.2 ha),
   rw mul_zero at L,
-  apply ((tendsto_order.1 L).2 ε εpos).mono (λ n hn, _),
-  assume y hy,
+  refine (L.eventually (gt_mem_nhds εpos)).mono (λ n hn y hy, _),
   rw dist_eq_norm,
-  exact lt_of_le_of_lt (hC y hy n) hn
+  exact (hC y hy n).trans_lt hn
 end
 
 /-- If a function admits a power series expansion at `x`, then it is the locally uniform limit of
@@ -365,7 +308,7 @@ is the locally uniform limit of `p.partial_sum n y` there. -/
 lemma has_fpower_series_on_ball.tendsto_locally_uniformly_on
   (hf : has_fpower_series_on_ball f p x r) :
   tendsto_locally_uniformly_on (λ n y, p.partial_sum n y) (λ y, f (x + y))
-  at_top (emetric.ball (0 : E) r) :=
+    at_top (emetric.ball (0 : E) r) :=
 begin
   assume u hu x hx,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hx with ⟨r', xr', hr'⟩,
@@ -487,10 +430,8 @@ as this leads to a bad definition with auxiliary `_match` statements,
 but we will try to use pattern matching in lambdas as much as possible in the proofs below
 to increase readability.
 -/
-def change_origin (x : E) :
-  formal_multilinear_series 𝕜 E F :=
-λ k, tsum (λi, (p i.1).restr i.2.1 i.2.2 x :
-  (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → (E [×k]→L[𝕜] F))
+def change_origin (x : E) : formal_multilinear_series 𝕜 E F :=
+λ k, ∑' i : Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}, (p i.1).restr i.2 i.2.2 x
 
 /-- Auxiliary lemma controlling the summability of the sequence appearing in the definition of
 `p.change_origin`, first version. -/

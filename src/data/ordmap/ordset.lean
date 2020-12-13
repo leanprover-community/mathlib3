@@ -1430,4 +1430,3 @@ def insert' [is_total α (≤)] [@decidable_rel α (≤)] (x : α) (s : ordset �
 ⟨insert' x s.1, insert'.valid _ s.2⟩
 
 end ordset
-#lint

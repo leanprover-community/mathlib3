@@ -328,6 +328,7 @@ end
 
 variables {F} {E} {p : polynomial F}
 
+/- Has been moved to alg_equiv section -/
 def alg_hom.equiv_of_alg_equiv {C : Type*} [field C] [algebra F C] (ϕ : E ≃ₐ[F] C)
   (D : Type*) [field D] [algebra F D] : (E →ₐ[F] D) ≃ (C →ₐ[F] D) :=
 { to_fun := λ f, f.comp ϕ.symm.to_alg_hom,

@@ -191,15 +191,14 @@ the index occurrences of the constructor arguments of `C`.
 Input:
 
 - `num_params:` the number of parameters of `I`.
-- `e`: the return type of `C`. `e` must be of the form `I x₁ ... xₙ`.
+- `ret_type`: the return type of `C`. `e` must be of the form `I x₁ ... xₙ`.
 
 Output: A map associating each local constant `c` that appears in any of the `xᵢ`
 with the set of indexes `j` such that `c` appears in `xⱼ` and `xⱼ`'s type
 matches that of `c` according to `tactic.index_occurrence_type_match`.
 -/
-meta def get_index_occurrences (num_params : ℕ) :
-  expr → tactic (rb_lmap expr ℕ) :=
-λ ret_type, do
+meta def get_index_occurrences (num_params : ℕ) (ret_type : expr) :
+  tactic (rb_lmap expr ℕ) := do
   ret_args ← get_app_args_whnf ret_type,
   ret_args.mfoldl_with_index
     (λ i occ_map ret_arg, do
@@ -463,7 +462,6 @@ Input:
 
 - `generate_induction_hyps`: whether we generate induction hypotheses (i.e.
   whether `eliminate_hyp` is in `induction` or `cases` mode).
-- `iinfo`: information about the inductive type.
 - `cinfo`: information about the constructor.
 
 Output:
@@ -674,7 +672,13 @@ meta def generalize_hyps (major_premise : expr) (gm : generalization_mode) :
 /-!
 ## Complex Index Generalisation
 
-We define how complex index arguments of the major premise are generalised.
+A *complex* expression is any expression that is not merely a local constant.
+When such a complex expression appears as an argument of the major premise, and
+when that argument is an index of the inductive type, we must generalise the
+complex expression. E.g. when we operate on the major premise `fin (2 + n)`
+(assuming that `fin` is encoded as an inductive type), the `2 + n` is a complex
+index argument. To generalise it, we replace it with a new hypothesis
+`index : ℕ` and add an equation `induction_eq : index = 2 + n`.
 -/
 
 /--
@@ -1005,7 +1009,7 @@ more significant differences:
   complex index if any of the `jᵢ` are complex. In this situation, standard
   `induction` effectively forgets the exact values of the complex indices,
   which often leads to unprovable goals. `eliminate_hyp` 'remembers' them by
-  adding propositional equalities. As a  result, you may find equalities named
+  adding propositional equalities. As a result, you may find equalities named
   `induction_eq` in your goal, and the induction hypotheses may also quantify
   over additional equalities.
 - `eliminate_hyp` generalises induction hypotheses as much as possible by
@@ -1078,7 +1082,7 @@ focus1 $ do
   -- dependent recursor (if available).
 
   -- Construct a pexpr `@rec _ ... _ major_premise`. Why not
-  -- ``(%%rec %%major_premise)? Because for whatever reason, `false.rec_on`
+  -- ```(%%rec %%major_premise)?` Because for whatever reason, `false.rec_on`
   -- takes the motive not as an implicit argument, like any other recursor, but
   -- as an explicit one. Why not something based on `mk_app` or `mk_mapp`?
   -- Because we need the special elaborator support for `elab_as_eliminator`

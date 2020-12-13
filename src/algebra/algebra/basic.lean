@@ -728,6 +728,22 @@ by { ext, simp }
   alg_hom.comp ↑e.symm (e : A₁ →ₐ[R] A₂) = alg_hom.id R A₁ :=
 by { ext, simp }
 
+def alg_hom_equiv_alg_hom_left (ϕ : A₁ ≃ₐ[R] A₂) : (A₁ →ₐ[R] A₃) ≃ (A₂ →ₐ[R] A₃) :=
+{ to_fun := λ f, f.comp ϕ.symm.to_alg_hom,
+  inv_fun := λ f, f.comp ϕ.to_alg_hom,
+  left_inv := λ f,
+    by { simp only [alg_hom.comp_assoc, to_alg_hom_eq_coe, symm_comp, alg_hom.comp_id] },
+  right_inv := λ f,
+    by { simp only [alg_hom.comp_assoc, to_alg_hom_eq_coe, comp_symm, alg_hom.comp_id] } }
+
+def alg_hom_equiv_alg_hom_right (ϕ : A₁ ≃ₐ[R] A₂) : (A₃ →ₐ[R] A₁) ≃ (A₃ →ₐ[R] A₂) :=
+{ to_fun := λ f, ϕ.to_alg_hom.comp f,
+  inv_fun := λ f, ϕ.symm.to_alg_hom.comp f,
+  left_inv := λ f,
+    by { simp only [←alg_hom.comp_assoc, to_alg_hom_eq_coe, symm_comp, alg_hom.id_comp] },
+  right_inv := λ f,
+    by { simp only [←alg_hom.comp_assoc, to_alg_hom_eq_coe, comp_symm, alg_hom.id_comp] } }
+
 /-- If an algebra morphism has an inverse, it is a algebra isomorphism. -/
 def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.comp g = alg_hom.id R A₂)
   (h₂ : g.comp f = alg_hom.id R A₁) : A₁ ≃ₐ[R] A₂ :=

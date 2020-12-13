@@ -39,12 +39,15 @@ by simpa [mul_assoc] using nat.mul_le_mul_right a (dec_trivial : 1 ≤ delta * d
 
 /- size and empty -/
 
+/-- O(n). Computes the actual number of elements in the set, ignoring the cached `size` field. -/
 def real_size : ordnode α → ℕ
 | nil := 0
 | (node _ l _ r) := real_size l + real_size r + 1
 
 /- sized -/
 
+/-- The `sized` property asserts that all the `size` fields in nodes match the actual size of the
+respective subtrees. -/
 def sized : ordnode α → Prop
 | nil := true
 | (node s l _ r) := s = size l + size r + 1 ∧ sized l ∧ sized r
@@ -89,11 +92,16 @@ by cases t; refl
 
 /- balanced -/
 
+/-- The `balanced_sz l r` asserts that a hypothetical tree with children of sizes `l` and `r` is
+balanced: either `l ≤ δ * r` and `r ≤ δ * r`, or the tree is trivial with a singleton on one side
+and nothing on the other. -/
 def balanced_sz (l r : ℕ) : Prop :=
 l + r ≤ 1 ∨ (l ≤ delta * r ∧ r ≤ delta * l)
 
 instance balanced_sz.dec : decidable_rel balanced_sz := λ l r, or.decidable
 
+/-- The `balanced t` asserts that the tree `t` satisfies the balance invariants
+(at every level). -/
 def balanced : ordnode α → Prop
 | nil := true
 | (node _ l _ r) := balanced_sz (size l) (size r) ∧ balanced l ∧ balanced r
@@ -135,71 +143,59 @@ theorem balanced.dual : ∀ {t : ordnode α}, balanced t → balanced (dual t)
 
 /- rotate and balance -/
 
+/-- Build a tree from three nodes, left associated (ignores the invariants). -/
 def node3_l (l : ordnode α) (x : α) (m : ordnode α) (y : α) (r : ordnode α) : ordnode α :=
 node' (node' l x m) y r
 
+/-- Build a tree from three nodes, right associated (ignores the invariants). -/
 def node3_r (l : ordnode α) (x : α) (m : ordnode α) (y : α) (r : ordnode α) : ordnode α :=
 node' l x (node' m y r)
 
+/-- Build a tree from three nodes, with `a () b -> (a ()) b` and `a (b c) d -> ((a b) (c d))`. -/
 def node4_l : ordnode α → α → ordnode α → α → ordnode α → ordnode α
 | l x (node _ ml y mr) z r := node' (node' l x ml) y (node' mr z r)
 | l x nil z r := node3_l l x nil z r -- should not happen
 
+/-- Build a tree from three nodes, with `a () b -> a (() b)` and `a (b c) d -> ((a b) (c d))`. -/
 def node4_r : ordnode α → α → ordnode α → α → ordnode α → ordnode α
 | l x (node _ ml y mr) z r := node' (node' l x ml) y (node' mr z r)
 | l x nil z r := node3_r l x nil z r -- should not happen
 
+/-- Concatenate two nodes, performing a left rotation `x (y z) -> ((x y) z)`
+if balance is upset. -/
 def rotate_l : ordnode α → α → ordnode α → ordnode α
 | l x (node _ m y r) :=
   if size m < ratio * size r then node3_l l x m y r else node4_l l x m y r
 | l x nil := node' l x nil -- should not happen
 
+/-- Concatenate two nodes, performing a right rotation `(x y) z -> (x (y z))`
+if balance is upset. -/
 def rotate_r : ordnode α → α → ordnode α → ordnode α
 | (node _ l x m) y r :=
   if size m < ratio * size l then node3_r l x m y r else node4_r l x m y r
 | nil y r :=  node' nil y r -- should not happen
 
+/-- A left balance operation. This will rebalance a concatenation, assuming the original nodes are
+not too far from balanced. -/
 def balance_l' (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 if size l + size r ≤ 1 then node' l x r else
 if size l > delta * size r then rotate_r l x r else
 node' l x r
 
+/-- A right balance operation. This will rebalance a concatenation, assuming the original nodes are
+not too far from balanced. -/
 def balance_r' (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 if size l + size r ≤ 1 then node' l x r else
 if size r > delta * size l then rotate_l l x r else
 node' l x r
 
+/-- The full balance operation. This is the same as `balance`, but with less manual inlining.
+It is somewhat easier to work with this version in proofs. -/
 def balance' (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 if size l + size r ≤ 1 then node' l x r else
 if size r > delta * size l then rotate_l l x r else
 if size l > delta * size r then rotate_r l x r else
 node' l x r
-
--- def repr {α} [has_repr α] : ordnode α → string
--- | nil := "∅"
--- | (node _ l x r) := "(" ++ repr l ++ " " ++ _root_.repr x ++ " " ++ repr r ++ ")"
-
--- instance {α} [has_repr α] : has_repr (ordnode α) := ⟨repr⟩
-
--- def left : ordnode α → ordnode α
--- | (node _ l _ _) := l
--- | nil := nil
--- def right : ordnode α → ordnode α
--- | (node _ _ _ r) := r
--- | nil := nil
-
--- #eval let
---   t11 := ordnode.of_list (list.range' 0 (5)),
---   -- t121 := ordnode.of_list (list.range' 51 (15)),
---   -- t122 := ordnode.of_list (list.range' 51 (5)),
---   t12 := ordnode.of_list (list.range' 51 (13)),
---   -- t12 := node' t121 50 t122,
---   t1 := node' t11 0 t12,
---   -- t1 := ordnode.of_list (list.range' 51 (12)),
---   t2 := ordnode.of_list (list.range' 101 (5)),
---   t := rotate_r t1 0 t2 in
---   ((t1.size, t2.size, to_bool $ balanced_sz (t1.size) (t2.size)),
---   (t.left.size, t.right.size, to_bool (balanced t))
 
 theorem dual_node' (l : ordnode α) (x : α) (r : ordnode α) :
   dual (node' l x r) = node' (dual r) x (dual l) := by simp [node', add_comm]
@@ -622,6 +618,7 @@ begin
       simp [balance_l, balance, H2]; split_ifs; simp [add_comm] } }
 end
 
+/-- `raised n m` means `m` is either equal or one up from `n`. -/
 def raised (n m : ℕ) : Prop := m = n ∨ m = n + 1
 
 theorem raised_iff {n m} : raised n m ↔ n ≤ m ∧ m ≤ n + 1 :=
@@ -741,6 +738,9 @@ by rw [balance_r_eq_balance' hl hr sl sr H, all_balance']
 section
 variable [preorder α]
 
+/-- `bounded t lo hi` says that every element `x ∈ t` is in the range `lo < x < hi`, and also this
+property holds recursively in subtrees, making the full tree a BST. The bounds can be set to
+`lo = ⊥` and `hi = ⊤` if we care only about the internal ordering constraints. -/
 def bounded : ordnode α → with_bot α → with_top α → Prop
 | nil (some a) (some b) := a < b
 | nil _ _ := true
@@ -829,11 +829,17 @@ end
 section
 variable [preorder α]
 
-structure valid' (o₁ : with_bot α) (t : ordnode α) (o₂ : with_top α) : Prop :=
-(ord : t.bounded o₁ o₂)
+/-- The validity predicate for an `ordnode` subtree. This asserts that the `size` fields are
+correct, the tree is balanced, and the elements of the tree are organized according to the
+ordering. This version of `valid` also puts all elements in the tree in the interval `(lo, hi)`. -/
+structure valid' (lo : with_bot α) (t : ordnode α) (hi : with_top α) : Prop :=
+(ord : t.bounded lo hi)
 (sz : t.sized)
 (bal : t.balanced)
 
+/-- The validity predicate for an `ordnode` subtree. This asserts that the `size` fields are
+correct, the tree is balanced, and the elements of the tree are organized according to the
+ordering. -/
 def valid (t : ordnode α) : Prop := valid' ⊥ t ⊤
 
 theorem valid'.mono_left {x y : α} (xy : x ≤ y)
@@ -935,15 +941,11 @@ theorem valid'.node4_l_lemma₁ {a b c d : ℕ}
   (mr₂ : b + c + 1 ≤ 3 * d)
   (mm₁ : b ≤ 3 * c) : b < 3 * a + 1 := by linarith
 
-theorem valid'.node4_l_lemma₂ {a b c d : ℕ}
-  (lr₁ : 3 * a ≤ b + c + 1 + d)
-  (mr₂ : b + c + 1 ≤ 3 * d)
-  (mm₂ : c ≤ 3 * b) : c ≤ 3 * d := by linarith
+theorem valid'.node4_l_lemma₂ {b c d : ℕ} (mr₂ : b + c + 1 ≤ 3 * d) : c ≤ 3 * d := by linarith
 
 theorem valid'.node4_l_lemma₃ {b c d : ℕ}
   (mr₁ : 2 * d ≤ b + c + 1)
-  (mm₁ : b ≤ 3 * c)
-  (mr0 : 1 ≤ c) : d ≤ 3 * c := by linarith
+  (mm₁ : b ≤ 3 * c) : d ≤ 3 * c := by linarith
 
 theorem valid'.node4_l_lemma₄ {a b c d : ℕ}
   (lr₁ : 3 * a ≤ b + c + 1 + d)
@@ -957,9 +959,9 @@ theorem valid'.node4_l_lemma₅ {a b c d : ℕ}
 
 theorem valid'.node4_l {l x m y r o₁ o₂}
   (hl : valid' o₁ l ↑x) (hm : valid' ↑x m ↑y) (hr : valid' ↑y r o₂)
-  (Hm : size m > 0)
+  (Hm : 0 < size m)
   (H : (size l = 0 ∧ size m = 1 ∧ size r ≤ 1) ∨
-    (size l > 0 ∧ ratio * size r ≤ size m ∧
+    (0 < size l ∧ ratio * size r ≤ size m ∧
       delta * size l ≤ size m + size r ∧
       3 * (size m + size r) ≤ 16 * size l + 9 ∧
       size m ≤ delta * size r)) :
@@ -1008,8 +1010,8 @@ begin
       refine add_lt_add_of_lt_of_le _ mm₂,
       simpa using (mul_lt_mul_right ml0).2 (dec_trivial:1<3) },
     { exact nat.le_of_lt_succ (valid'.node4_l_lemma₁ lr₂ mr₂ mm₁) },
-    { exact valid'.node4_l_lemma₂ lr₁ mr₂ mm₂ },
-    { exact valid'.node4_l_lemma₃ mr₁ mm₁ mr0 },
+    { exact valid'.node4_l_lemma₂ mr₂ },
+    { exact valid'.node4_l_lemma₃ mr₁ mm₁ },
     { exact valid'.node4_l_lemma₄ lr₁ mr₂ mm₁ },
     { exact valid'.node4_l_lemma₅ lr₂ mr₁ mm₂ } }
 end
@@ -1126,7 +1128,7 @@ begin
   { exact hl.node' hr (or.inr ⟨not_lt.1 h_2, not_lt.1 h_1⟩) }
 end
 
-theorem valid'.balance'_lemma {l l' r r'}
+theorem valid'.balance'_lemma {α l l' r r'}
   (H1 : balanced_sz l' r')
   (H2 : nat.dist (@size α l) l' ≤ 1 ∧ size r = r' ∨
         nat.dist (size r) r' ≤ 1 ∧ size l = l') :
@@ -1360,7 +1362,7 @@ theorem insert_with.valid [is_total α (≤)] [@decidable_rel α (≤)]
   {t} (h : valid t) : valid (insert_with f x t) :=
 (insert_with.valid_aux _ _ hf h ⟨⟩ ⟨⟩).1
 
-theorem insert_eq_insert_with [is_total α (≤)] [@decidable_rel α (≤)]
+theorem insert_eq_insert_with [@decidable_rel α (≤)]
   (x : α) : ∀ t, insert x t = insert_with (λ _, x) x t
 | nil := rfl
 | (node _ l y r) := by unfold insert insert_with;
@@ -1371,7 +1373,7 @@ theorem insert.valid [is_total α (≤)] [@decidable_rel α (≤)]
 by rw insert_eq_insert_with; exact
 insert_with.valid _ _ (λ _ _, ⟨le_refl _, le_refl _⟩) h
 
-theorem insert'_eq_insert_with [is_total α (≤)] [@decidable_rel α (≤)]
+theorem insert'_eq_insert_with [@decidable_rel α (≤)]
   (x : α) : ∀ t, insert' x t = insert_with id x t
 | nil := rfl
 | (node _ l y r) := by unfold insert' insert_with;
@@ -1385,20 +1387,29 @@ end
 
 end ordnode
 
+/-- An `ordset α` is a finite set of values, represented as a tree. The operations on this type
+maintain that the tree is balanced and correctly stores subtree sizes at each level. The
+correctness property of the tree is baked into the type, so all operations on this type are correct
+by construction. -/
 def ordset (α : Type*) [preorder α] := {t : ordnode α // t.valid}
 
 namespace ordset
 open ordnode
 variable [preorder α]
 
+/-- O(1). The empty set. -/
 def nil : ordset α := ⟨nil, ⟨⟩, ⟨⟩, ⟨⟩⟩
 
+/-- O(1). Get the size of the set. -/
 def size (s : ordset α) : ℕ := s.1.size
 
-def singleton (x : α) : ordset α := ⟨singleton x, valid_singleton⟩
+/-- O(1). Construct a singleton set containing value `a`. -/
+def singleton (a : α) : ordset α := ⟨singleton a, valid_singleton⟩
 
 instance : has_emptyc (ordset α) := ⟨nil⟩
+instance : inhabited (ordset α) := ⟨nil⟩
 
+/-- O(1). Is the set empty? -/
 def empty (s : ordset α) : Prop := s = ∅
 
 theorem empty_iff {s : ordset α} : s = ∅ ↔ s.1.empty :=
@@ -1408,10 +1419,15 @@ theorem empty_iff {s : ordset α} : s = ∅ ↔ s.1.empty :=
 instance : decidable_pred (@empty α _) :=
 λ s, decidable_of_iff' _ empty_iff
 
+/-- O(log n). Insert an element into the set, preserving balance and the BST property.
+  If an equivalent element is already in the set, this replaces it. -/
 def insert [is_total α (≤)] [@decidable_rel α (≤)] (x : α) (s : ordset α) : ordset α :=
 ⟨insert x s.1, insert.valid _ s.2⟩
 
+/-- O(log n). Insert an element into the set, preserving balance and the BST property.
+  If an equivalent element is already in the set, the set is returned as is. -/
 def insert' [is_total α (≤)] [@decidable_rel α (≤)] (x : α) (s : ordset α) : ordset α :=
 ⟨insert' x s.1, insert'.valid _ s.2⟩
 
 end ordset
+#lint

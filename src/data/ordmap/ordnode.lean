@@ -23,11 +23,6 @@ Ported from Haskell's `Data.Set`.
 
 universes u
 
-def cmp_le {α} [has_le α] [@decidable_rel α (≤)] (x y : α) : ordering :=
-if x ≤ y then
-  if y ≤ x then ordering.eq else ordering.lt
-else ordering.gt
-
 /-- An `ordnode α` is a finite set of values, represented as a tree.
   The operations on this type maintain that the tree is balanced
   and correctly stores subtree sizes at each level. -/
@@ -39,6 +34,7 @@ namespace ordnode
 variable {α : Type u}
 
 instance : has_emptyc (ordnode α) := ⟨nil⟩
+instance : inhabited (ordnode α) := ⟨nil⟩
 
 /-- The maximal relative difference between the sizes of
   two trees, it corresponds with the `w` in Adams' paper.
@@ -79,6 +75,12 @@ instance : has_emptyc (ordnode α) := ⟨nil⟩
   Internal use only. -/
 @[inline, reducible] def node' (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 node (size l + size r + 1) l x r
+
+def repr {α} [has_repr α] : ordnode α → string
+| nil := "∅"
+| (node _ l x r) := "(" ++ repr l ++ " " ++ _root_.repr x ++ " " ++ repr r ++ ")"
+
+instance {α} [has_repr α] : has_repr (ordnode α) := ⟨repr⟩
 
 /-- O(1). Rebalance a tree which was previously balanced but has had its left
   side grow by 1, or its right side shrink by 1. -/
@@ -422,6 +424,8 @@ def remove_nth : ordnode α → ℕ → ordnode α
   | some (j + 1) := balance_l l x (remove_nth r j)
   end
 
+/-- Auxiliary definition for `take`. (Can also be used in lieu of `take` if you know the
+index is within the range of the data structure.) -/
 def take_aux : ordnode α → ℕ → ordnode α
 | nil i := nil
 | (node _ l x r) i :=
@@ -436,6 +440,8 @@ def take_aux : ordnode α → ℕ → ordnode α
 def take (i : ℕ) (t : ordnode α) : ordnode α :=
 if size t ≤ i then t else take_aux t i
 
+/-- Auxiliary definition for `drop`. (Can also be used in lieu of `drop` if you know the
+index is within the range of the data structure.) -/
 def drop_aux : ordnode α → ℕ → ordnode α
 | nil i := nil
 | t@(node _ l x r) i :=
@@ -450,6 +456,8 @@ def drop_aux : ordnode α → ℕ → ordnode α
 def drop (i : ℕ) (t : ordnode α) : ordnode α :=
 if size t ≤ i then nil else drop_aux t i
 
+/-- Auxiliary definition for `split_at`. (Can also be used in lieu of `split_at` if you know the
+index is within the range of the data structure.) -/
 def split_at_aux : ordnode α → ℕ → ordnode α × ordnode α
 | nil i := (nil, nil)
 | t@(node _ l x r) i :=
@@ -484,6 +492,7 @@ def span (p : α → Prop) [decidable_pred p] : ordnode α → ordnode α × ord
   if p x then let (r₁, r₂) := span r in (link l x r₁, r₂)
   else        let (l₁, l₂) := span l in (l₁, link l₂ x r)
 
+/-- Auxiliary definition for `of_asc_list`. -/
 def of_asc_list_aux₁ : ∀ l : list α, ℕ → ordnode α × {l' : list α // l'.length ≤ l.length}
 | [] := λ s, (nil, ⟨[], le_refl _⟩)
 | (x :: xs) := λ s,
@@ -500,6 +509,7 @@ using_well_founded
 { rel_tac := λ _ _, `[exact ⟨_, measure_wf list.length⟩],
   dec_tac := `[assumption] }
 
+/-- Auxiliary definition for `of_asc_list`. -/
 def of_asc_list_aux₂ : list α → ordnode α → ℕ → ordnode α
 | [] := λ t s, t
 | (x :: xs) := λ l s,
@@ -656,6 +666,7 @@ def erase (x : α) : ordnode α → ordnode α
   | ordering.gt := balance_l l y (erase r)
   end
 
+/-- Auxiliary definition for `find_lt`. -/
 def find_lt_aux (x : α) : ordnode α → α → α
 | nil best := best
 | (node _ l y r) best :=
@@ -667,6 +678,7 @@ def find_lt (x : α) : ordnode α → option α
 | (node _ l y r) :=
   if x ≤ y then find_lt l else some (find_lt_aux x r y)
 
+/-- Auxiliary definition for `find_gt`. -/
 def find_gt_aux (x : α) : ordnode α → α → α
 | nil best := best
 | (node _ l y r) best :=
@@ -678,6 +690,7 @@ def find_gt (x : α) : ordnode α → option α
 | (node _ l y r) :=
   if y ≤ x then find_gt r else some (find_gt_aux x l y)
 
+/-- Auxiliary definition for `find_le`. -/
 def find_le_aux (x : α) : ordnode α → α → α
 | nil best := best
 | (node _ l y r) best :=
@@ -697,6 +710,7 @@ def find_le (x : α) : ordnode α → option α
   | ordering.gt := some (find_le_aux x r y)
   end
 
+/-- Auxiliary definition for `find_ge`. -/
 def find_ge_aux (x : α) : ordnode α → α → α
 | nil best := best
 | (node _ l y r) best :=
@@ -716,6 +730,7 @@ def find_ge (x : α) : ordnode α → option α
   | ordering.gt := find_ge r
   end
 
+/-- Auxiliary definition for `find_index`. -/
 def find_index_aux (x : α) : ordnode α → ℕ → option ℕ
 | nil i := none
 | (node _ l y r) i :=
@@ -729,6 +744,7 @@ def find_index_aux (x : α) : ordnode α → ℕ → option ℕ
   of an element equivalent to `x` if it exists. -/
 def find_index (x : α) (t : ordnode α) : option ℕ := find_index_aux x t 0
 
+/-- Auxiliary definition for `is_subset`. -/
 def is_subset_aux : ordnode α → ordnode α → bool
 | nil _ := tt
 | _ nil := ff
@@ -793,7 +809,7 @@ def of_list' : list α → ordnode α
 /-- O(n * log n). Map a function on a set. Unlike `map` this has no requirements on
   `f`, and the resulting set may be smaller than the input if `f` is noninjective.
   Equivalent elements are selected with a preference for smaller source elements. -/
-def image {β} [has_le β] [@decidable_rel β (≤)]
+def image {α β} [has_le β] [@decidable_rel β (≤)]
   (f : α → β) (t : ordnode α) : ordnode β :=
 of_list (t.to_list.map f)
 

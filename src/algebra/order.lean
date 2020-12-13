@@ -236,6 +236,13 @@ lemma le_iff_le_iff_lt_iff_lt {β} [linear_order α] [linear_order β]
 
 end decidable
 
+/-- Like `cmp`, but uses a `≤` on the type instead of `<`. Given two elements
+`x` and `y`, returns a three-way comparison result `ordering`. -/
+def cmp_le {α} [has_le α] [@decidable_rel α (≤)] (x y : α) : ordering :=
+if x ≤ y then
+  if y ≤ x then ordering.eq else ordering.lt
+else ordering.gt
+
 namespace ordering
 
 /-- `compares o a b` means that `a` and `b` have the ordering relation

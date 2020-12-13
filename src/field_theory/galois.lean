@@ -328,16 +328,6 @@ end
 
 variables {F} {E} {p : polynomial F}
 
-/- Has been moved to alg_equiv section -/
-def alg_hom.equiv_of_alg_equiv {C : Type*} [field C] [algebra F C] (ϕ : E ≃ₐ[F] C)
-  (D : Type*) [field D] [algebra F D] : (E →ₐ[F] D) ≃ (C →ₐ[F] D) :=
-{ to_fun := λ f, f.comp ϕ.symm.to_alg_hom,
-  inv_fun := λ f, f.comp ϕ.to_alg_hom,
-  left_inv := λ f,
-    by { simp only [alg_hom.comp_assoc, to_alg_hom_eq_coe, symm_comp, alg_hom.comp_id] },
-  right_inv := λ f,
-    by { simp only [alg_hom.comp_assoc, to_alg_hom_eq_coe, comp_symm, alg_hom.comp_id] } }
-
 section the_tricky_stuff
 
 variables {A B C D : Type*} [comm_semiring A] [comm_semiring B] [comm_semiring C] [comm_semiring D]
@@ -387,7 +377,7 @@ fintype.card ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) = fintype.card
 begin
   have key_equiv : ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) ≃
     Σ (f : K →ₐ[F] E), @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f) :=
-  equiv.trans (alg_hom.equiv_of_alg_equiv (intermediate_field.lift2_alg_equiv K⟮x⟯) E)
+  equiv.trans (intermediate_field.lift2_alg_equiv K⟮x⟯).alg_hom_equiv_alg_hom_left
     (alg_hom_equiv_sigma_subalgebra),
   haveI : Π (f : K →ₐ[F] E), fintype (@alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f)) := by
   { intro f,
@@ -433,7 +423,7 @@ begin
     rw ← eq.trans this (linear_equiv.findim_eq intermediate_field.top_equiv.to_linear_equiv),
     apply fintype.card_congr,
     apply equiv.trans (alg_equiv_equiv_alg_hom F E),
-    exact alg_hom.equiv_of_alg_equiv intermediate_field.top_equiv.symm E },
+    exact intermediate_field.top_equiv.symm.alg_hom_equiv_alg_hom_left },
   have base : P ⊥,
   { have h : is_integral F (0 : E) := is_integral_zero,
     have key := intermediate_field.card_alg_hom_adjoin_integral F h,

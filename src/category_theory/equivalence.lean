@@ -526,7 +526,7 @@ instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
 
 @[simps] private noncomputable def equivalence_inverse (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : D ⥤ C :=
 { obj  := λ X, F.obj_preimage X,
-  map := λ X Y f, F.preimage ((F.fun_obj_preimage_iso X).hom ≫ f ≫ (F.fun_obj_preimage_iso Y).inv),
+  map := λ X Y f, F.preimage ((F.obj_obj_preimage_iso X).hom ≫ f ≫ (F.obj_obj_preimage_iso Y).inv),
   map_id' := λ X, begin apply F.map_injective, tidy end,
   map_comp' := λ X Y Z f g, by apply F.map_injective; simp }
 
@@ -539,14 +539,16 @@ noncomputable def equivalence_of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components
-    (λ X, (preimage_iso $ F.fun_obj_preimage_iso $ F.obj X).symm)
+    (λ X, (preimage_iso $ F.obj_obj_preimage_iso $ F.obj X).symm)
     (λ X Y f, by { apply F.map_injective, obviously }))
-  (nat_iso.of_components F.fun_obj_preimage_iso (by tidy))
+  (nat_iso.of_components F.obj_obj_preimage_iso (by tidy))
 
-@[simp] lemma functor_map_inj_iff (e : C ≌ D) {X Y : C} (f g : X ⟶ Y) : e.functor.map f = e.functor.map g ↔ f = g :=
+@[simp] lemma functor_map_inj_iff (e : C ≌ D) {X Y : C} (f g : X ⟶ Y) :
+  e.functor.map f = e.functor.map g ↔ f = g :=
 ⟨λ h, e.functor.map_injective h, λ h, h ▸ rfl⟩
 
-@[simp] lemma inverse_map_inj_iff (e : C ≌ D) {X Y : D} (f g : X ⟶ Y) : e.inverse.map f = e.inverse.map g ↔ f = g :=
+@[simp] lemma inverse_map_inj_iff (e : C ≌ D) {X Y : D} (f g : X ⟶ Y) :
+  e.inverse.map f = e.inverse.map g ↔ f = g :=
 functor_map_inj_iff e.symm f g
 
 end equivalence

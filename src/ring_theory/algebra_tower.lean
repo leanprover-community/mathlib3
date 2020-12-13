@@ -486,7 +486,7 @@ def alg_hom_compose (f : B →ₐ[A] D) (g : @alg_hom B C D _ _ _ _ (ring_hom.to
     exact key,
   end }
 
-def alg_hom_equiv_sigma_subalgebra :
+def alg_hom_equiv_sigma :
   (C →ₐ[A] D) ≃ Σ (f : B →ₐ[A] D), @alg_hom B C D _ _ _ _ (ring_hom.to_algebra f) :=
 { to_fun := λ f, ⟨alg_hom_restrict f, alg_hom_extend_base f⟩,
   inv_fun := λ fg, alg_hom_compose fg.1 fg.2,

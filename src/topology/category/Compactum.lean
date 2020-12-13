@@ -433,7 +433,7 @@ noncomputable def iso_of_topological_space {D : CompHaus} :
 
 /-- The functor Compactum_to_CompHaus is essentially surjective. -/
 def ess_surj : ess_surj Compactum_to_CompHaus :=
-⟨λ X, ⟨Compactum.of_topological_space X, ⟨iso_of_topological_space⟩⟩⟩
+{ obj_preimage := λ X, ⟨Compactum.of_topological_space X, ⟨iso_of_topological_space⟩⟩ }
 
 /-- The functor Compactum_to_CompHaus is an equivalence of categories. -/
 noncomputable def is_equivalence : is_equivalence Compactum_to_CompHaus :=

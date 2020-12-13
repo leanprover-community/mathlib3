@@ -11,7 +11,7 @@ import linear_algebra.multilinear
 # Tensor product of an indexed family of semimodules over commutative semirings
 
 We define the tensor product of an indexed family `s : ι → Type*` of semimodules over commutative
-semirings. We denote this space by `⨂[R] i, s i` and define it as `free_add_monoid (Π i, s i)`
+semirings. We denote this space by `⨂[R] i, s i` and define it as `free_add_monoid (R × Π i, s i)`
 quotiented by the appropriate equivalence relation. The treatment follows very closely that of the
 binary tensor product in `linear_algebra/tensor_product.lean`.
 
@@ -21,6 +21,8 @@ binary tensor product in `linear_algebra/tensor_product.lean`.
   of all the `s i`'s. This is denoted by `⨂[R] i, s i`.
 * `tprod R f` with `f : Π i, s i` is the tensor product of the vectors `f i` over all `i : ι`.
 * `mk R s` is the canonical multilinear map from `Π i, s i` to `⨂[R] i, s i`.
+* `lift_add_hom` constructs an `add_monoid_hom` from `(⨂[R] i, s i)` to some space `F` from a
+function `φ : (R × Π i, s i) → F` with the appropriate properties.
 * `lift φ` with `φ : multilinear_map R s E` is the corresponding linear map
   `(⨂[R] i, s i) →ₗ[R] E`.
 
@@ -31,8 +33,11 @@ binary tensor product in `linear_algebra/tensor_product.lean`.
 
 ## Implementation notes
 
-We have not restricted the index type `ι` to be a `fintype`, as nothing we do here strictly requires
-it. However, problems may arise in the case where `ι` is infinite; use at your own caution.
+* We define it via `free_add_monoid (R × Π i, s i)` with the `R` representing a "hidden" tensor
+factor, rather than `free_add_monoid (R × Π i, s i)` to ensure that, if `ι` is an empty type,
+the space is isomorphic to the base ring `R`.
+* We have not restricted the index type `ι` to be a `fintype`, as nothing we do here strictly
+requires it. However, problems may arise in the case where `ι` is infinite; use at your own caution.
 
 ## TODO
 

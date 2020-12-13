@@ -626,14 +626,13 @@ class ordered_cancel_add_comm_monoid (α : Type u)
 /-- An ordered cancellative commutative monoid
 is a commutative monoid with a partial order,
 in which multiplication is cancellative and monotone. -/
-@[protect_proj, ancestor comm_monoid left_cancel_semigroup right_cancel_semigroup partial_order]
+@[protect_proj, ancestor comm_monoid left_cancel_semigroup right_cancel_semigroup partial_order,
+  to_additive]
 class ordered_cancel_comm_monoid (α : Type u)
       extends comm_monoid α, left_cancel_semigroup α,
               right_cancel_semigroup α, partial_order α :=
 (mul_le_mul_left       : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 (le_of_mul_le_mul_left : ∀ a b c : α, a * b ≤ a * c → b ≤ c)
-
-attribute [to_additive] ordered_cancel_comm_monoid
 
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c d : α}

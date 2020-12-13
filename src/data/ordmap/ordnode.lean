@@ -2,8 +2,13 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
+-/
+import data.list.defs data.nat.psub
 
-Data type for ordered sets, based on weight balanced trees:
+/-!
+# Data type for ordered sets
+
+Based on weight balanced trees:
 
  * Stephen Adams, "Efficient sets: a balancing act",
    Journal of Functional Programming 3(4):553-562, October 1993,
@@ -14,7 +19,6 @@ Data type for ordered sets, based on weight balanced trees:
 
 Ported from Haskell's `Data.Set`.
 -/
-import data.list.defs data.nat.basic
 
 universes u
 

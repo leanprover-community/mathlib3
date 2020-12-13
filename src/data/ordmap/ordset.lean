@@ -198,7 +198,7 @@ node' l x r
 --   (t.left.size, t.right.size, to_bool (balanced t))
 
 theorem dual_node' (l : ordnode α) (x : α) (r : ordnode α) :
-  dual (node' l x r) = node' (dual r) x (dual l) := by simp [node']
+  dual (node' l x r) = node' (dual r) x (dual l) := by simp [node', add_comm]
 
 theorem dual_node3_l (l : ordnode α) (x : α) (m : ordnode α) (y : α) (r : ordnode α) :
   dual (node3_l l x m y r) = node3_r (dual r) y (dual m) x (dual l) :=
@@ -228,7 +228,7 @@ by rw [← dual_dual (rotate_l _ _ _), dual_rotate_l, dual_dual, dual_dual]
 theorem dual_balance' (l : ordnode α) (x : α) (r : ordnode α) :
   dual (balance' l x r) = balance' (dual r) x (dual l) :=
 begin
-  simp [balance']; split_ifs; simp [dual_node', dual_rotate_l, dual_rotate_r],
+  simp [balance', add_comm], split_ifs; simp [dual_node', dual_rotate_l, dual_rotate_r],
   cases delta_lt_false h_1 h_2
 end
 
@@ -240,13 +240,13 @@ begin
   { cases l with ls ll lx lr, {refl},
     cases ll with lls lll llx llr; cases lr with lrs lrl lrx lrr;
       dsimp only [dual]; try {refl},
-    split_ifs; repeat {simp [h]} },
+    split_ifs; repeat {simp [h, add_comm]} },
   { cases l with ls ll lx lr, {refl},
     dsimp only [dual],
-    split_ifs, swap, {simp},
+    split_ifs, swap, {simp [add_comm]},
     cases ll with lls lll llx llr; cases lr with lrs lrl lrx lrr; try {refl},
     dsimp only [dual],
-    split_ifs; simp [h] },
+    split_ifs; simp [h, add_comm] },
 end
 
 theorem dual_balance_r (l : ordnode α) (x : α) (r : ordnode α) :
@@ -276,12 +276,12 @@ by dsimp [node3_r, node', size]; rw [← add_assoc, ← add_assoc]
 
 theorem node4_l_size {l x m y r} (hm : sized m) :
   size (@node4_l α l x m y r) = size l + size m + size r + 2 :=
-by cases m; simp [node4_l, node3_l, node']; [skip, simp [size, hm.1]];
-   rw [← add_assoc, ← bit0]; simp
+by cases m; simp [node4_l, node3_l, node', add_comm, add_left_comm]; [skip, simp [size, hm.1]];
+   rw [← add_assoc, ← bit0]; simp [add_comm, add_left_comm]
 
 theorem sized.dual : ∀ {t : ordnode α} (h : sized t), sized (dual t)
 | nil h := ⟨⟩
-| (node s l x r) ⟨rfl, sl, sr⟩ := ⟨by simp [size_dual], sized.dual sr, sized.dual sl⟩
+| (node s l x r) ⟨rfl, sl, sr⟩ := ⟨by simp [size_dual, add_comm], sized.dual sr, sized.dual sl⟩
 
 theorem sized.dual_iff {t : ordnode α} : sized (dual t) ↔ sized t :=
 ⟨λ h, by rw ← dual_dual t; exact h.dual, sized.dual⟩
@@ -301,8 +301,8 @@ theorem sized.rotate_l_size {l x r} (hm : sized r) :
   size (@rotate_l α l x r) = size l + size r + 1 :=
 begin
   cases r; simp [rotate_l],
-  simp [size, hm.1], rw [← add_assoc, ← bit0], simp,
-  split_ifs; simp [node3_l_size, node4_l_size hm.2.1]
+  simp [size, hm.1, add_comm, add_left_comm], rw [← add_assoc, ← bit0], simp,
+  split_ifs; simp [node3_l_size, node4_l_size hm.2.1, add_comm, add_left_comm]
 end
 
 theorem sized.rotate_r_size {l x r} (hl : sized l) :
@@ -533,8 +533,8 @@ begin
         all_goals {exact dec_trivial} },
       { symmetry, rw [zero_add, if_neg, if_pos, rotate_l],
         { split_ifs,
-          { simp [node3_l, node'] },
-          { simp [node4_l, node', sr.2.1.1] } },
+          { simp [node3_l, node', add_comm, add_left_comm] },
+          { simp [node4_l, node', sr.2.1.1, add_comm, add_left_comm] } },
         { exact dec_trivial },
         { exact not_le_of_gt (nat.succ_lt_succ
             (add_pos sr.2.1.pos sr.2.2.pos)) } } } },
@@ -563,8 +563,8 @@ begin
         all_goals {exact dec_trivial} },
       { symmetry, rw [if_neg, if_neg, if_pos, rotate_r],
         { split_ifs,
-          { simp [node3_r, node'] },
-          { simp [node4_r, node', sl.2.2.1] } },
+          { simp [node3_r, node', add_comm, add_left_comm] },
+          { simp [node4_r, node', sl.2.2.1, add_comm, add_left_comm] } },
         { exact dec_trivial },
         { exact dec_trivial },
         { exact not_le_of_gt (nat.succ_lt_succ
@@ -581,8 +581,8 @@ begin
           cases rr with rrs rrl rrx rrr,
           { exact absurd (le_trans rd (balanced_sz_zero.1 hr.1)) dec_trivial },
           dsimp [rotate_l], split_ifs,
-          { simp [node3_l, node', sr.1] },
-          { simp [node4_l, node', sr.1, sr.2.1.1] } },
+          { simp [node3_l, node', sr.1, add_comm, add_left_comm] },
+          { simp [node4_l, node', sr.1, sr.2.1.1, add_comm, add_left_comm] } },
         { have ld : delta ≤ size ll + size lr,
           { have := lt_of_le_of_lt (nat.mul_le_mul_left _ sr.pos) h_1,
             rwa [sl.1, nat.lt_succ_iff] at this },
@@ -592,8 +592,8 @@ begin
           cases lr with lrs lrl lrx lrr,
           { exact absurd (le_trans ld (balanced_sz_zero.1 hl.1)) dec_trivial },
           dsimp [rotate_r], split_ifs,
-          { simp [node3_r, node', sl.1] },
-          { simp [node4_r, node', sl.1, sl.2.2.1] } },
+          { simp [node3_r, node', sl.1, add_comm, add_left_comm] },
+          { simp [node4_r, node', sl.1, sl.2.2.1, add_comm, add_left_comm] } },
         { simp [node'] } },
       { exact not_le_of_gt (add_le_add sl.pos sr.pos : 2 ≤ ls + rs) } } }
 end
@@ -615,7 +615,7 @@ begin
       cases sr.2.2.size_eq_zero.1 this.2,
       rw sr.eq_node', refl },
     { replace H2 : ¬ rs > delta * ls := not_lt_of_le (H2 sl.pos sr.pos),
-      simp [balance_l, balance, H2]; split_ifs; simp } }
+      simp [balance_l, balance, H2]; split_ifs; simp [add_comm] } }
 end
 
 def raised (n m : ℕ) : Prop := m = n ∨ m = n + 1
@@ -869,7 +869,7 @@ theorem valid'.dual : ∀ {t : ordnode α} {o₁ o₂} (h : valid' o₁ t o₂),
   let ⟨ol', sl', bl'⟩ := valid'.dual ⟨ol, sl, bl⟩,
       ⟨or', sr', br'⟩ := valid'.dual ⟨or, sr, br⟩ in
   ⟨⟨or', ol'⟩,
-   ⟨by simp [size_dual], sr', sl'⟩,
+   ⟨by simp [size_dual, add_comm], sr', sl'⟩,
    ⟨by rw [size_dual, size_dual]; exact b.symm, br', bl'⟩⟩
 
 theorem valid'.dual_iff {t : ordnode α} {o₁ o₂} : valid' o₁ t o₂ ↔
@@ -1280,7 +1280,7 @@ begin
   refine ⟨valid'.balance_l_aux v hr.right H₁ H₂ _, _⟩,
   { rw e, exact or.inl (valid'.merge_lemma h hr₁) },
   { rw [balance_l_eq_balance v.2 hr.2.2.2 H₁ H₂, balance_eq_balance' v.3 hr.3.2.2 v.2 hr.2.2.2,
-      size_balance' v.2 hr.2.2.2, e, hl.2.1, hr.2.1], simp },
+      size_balance' v.2 hr.2.2.2, e, hl.2.1, hr.2.1], simp [add_comm, add_left_comm] },
   { rw [e, add_right_comm], rintro ⟨⟩ },
   { intros _ h₁, rw e, unfold delta at hr₂ ⊢, linarith }
 end

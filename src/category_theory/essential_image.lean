@@ -57,13 +57,6 @@ end
 
 lemma obj_mem_ess_image (i : D ⥤ C) (B : D) : i.obj B ∈ ess_image i := ⟨B, ⟨iso.refl _⟩⟩
 
--- TODO: move this and the next
-lemma hom_comp_eq_id {X Y : C} (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : g ≫ f = 𝟙 X ↔ f = inv g :=
-iso.hom_comp_eq_id (as_iso g)
-
-lemma comp_hom_eq_id {X Y : C} (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y ↔ f = inv g :=
-iso.comp_hom_eq_id (as_iso g)
-
 end functor
 
 /--

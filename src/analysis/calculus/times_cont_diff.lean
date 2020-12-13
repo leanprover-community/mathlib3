@@ -2458,8 +2458,8 @@ equivalence, then `f.symm` is `n` times continuously differentiable at the point
 
 This is one of the easy parts of the inverse function theorem: it assumes that we already have
 an inverse function. -/
-theorem times_cont_diff_at.of_local_homeomorph [complete_space E] {n : with_top ℕ}
-  {f : local_homeomorph E F} {f₀' : E ≃L[𝕜] F} {a : F} (ha : a ∈ f.target)
+theorem local_homeomorph.times_cont_diff_at_symm [complete_space E] {n : with_top ℕ}
+  (f : local_homeomorph E F) {f₀' : E ≃L[𝕜] F} {a : F} (ha : a ∈ f.target)
   (hf₀' : has_fderiv_at f (f₀' : E →L[𝕜] F) (f.symm a)) (hf : times_cont_diff_at 𝕜 n f (f.symm a)) :
   times_cont_diff_at 𝕜 n f.symm a :=
 begin
@@ -2490,7 +2490,7 @@ begin
       have h_deriv : has_fderiv_at f ↑e ((f.symm) x),
       { rw he,
         exact hff' (f.symm x) hxu },
-      convert h_deriv.of_local_homeomorph hx.1,
+      convert f.has_fderiv_at_symm hx.1 h_deriv,
       simp [← he] },
     { -- Then we check that the formula, being a composition of `times_cont_diff` pieces, is
       -- itself `times_cont_diff`

@@ -485,6 +485,7 @@ end
 /-- Like `multilinear_map.dom_coprod`, but ensures the result is also alternating.
 
 Note this is the same as `(multilinear_map.dom_coprod a b).alternize / (card ιa)! / (card ιb)!`.-/
+@[simps]
 def dom_coprod
   {R : Type*} {M N₁ N₂ : Type*}
   [comm_ring R]
@@ -515,6 +516,91 @@ def dom_coprod
   end,
   map_eq_zero_of_eq' := dom_coprod_aux_eq_zero_if_eq a b }
 
+#check 1
+
+lemma multilinear_map.dom_coprod_alternization_eq
+  {R : Type*} {M N₁ N₂ : Type*}
+  [comm_ring R]
+  [add_comm_group N₁] [semimodule R N₁]
+  [add_comm_group N₂] [semimodule R N₂]
+  [add_comm_monoid M] [semimodule R M]
+  (a : multilinear_map R (λ _ : ιa, M) N₁ ) (b : multilinear_map R (λ _ : ιb, M) N₂) :
+  (a.dom_coprod b).alternatization =
+    ((fintype.card ιa).factorial * (fintype.card ιb).factorial) •
+      a.alternatization.dom_coprod b.alternatization :=
+begin
+  ext,
+  dsimp only [smul_apply, multilinear_map.alternatization_apply, alternating_map.dom_coprod_apply,
+    dom_coprod_aux],
+  sorry
+end
+
+lemma sum_congr_subgroup_card :
+  fintype.card (equiv.perm.sum_congr_subgroup ιa ιb)
+    = fintype.card (equiv.perm ιa × equiv.perm ιb) :=
+fintype.card_eq.mpr ⟨equiv.set.range
+  (λ x : equiv.perm ιa × equiv.perm ιb, equiv.perm.sum_congr x.1 x.2) _⟩
+
+example {ιa : Type*} {ιb : Type*}
+  [decidable_eq ιa]
+  [decidable_eq ιb]
+  [fintype ιa]
+  [fintype ιb] :
+  fintype.card (set_of
+      (λ (σ : equiv.perm (ιa ⊕ ιb)),
+           ∃ (sl : equiv.perm ιa) (sr : equiv.perm ιb),
+             σ = sl.sum_congr sr)) =
+    fintype.card (equiv.perm ιa) * fintype.card (equiv.perm ιb) :=
+begin
+  sorry,
+end
+
+lemma multilinear_map.dom_coprod_alternization_eq'
+  {R : Type*} {M N₁ N₂ : Type*}
+  [comm_ring R]
+  [add_comm_group N₁] [semimodule R N₁]
+  [add_comm_group N₂] [semimodule R N₂]
+  [add_comm_monoid M] [semimodule R M]
+  (a : alternating_map R M N₁ ιa) (b : alternating_map R M N₂ ιb) :
+  (multilinear_map.dom_coprod a b : multilinear_map R (λ _ : ιa ⊕ ιb, M) (N₁ ⊗ N₂))
+    .alternatization =
+    ((fintype.card ιa).factorial * (fintype.card ιb).factorial) • a.dom_coprod b :=
+begin
+  ext,
+  simp,
+  dsimp only [smul_apply, multilinear_map.alternatization_apply, alternating_map.dom_coprod_apply,
+    dom_coprod_aux],
+  rw finset.sum_partition (quotient_group.left_rel (equiv.perm.sum_congr_subgroup ιa ιb)),
+  rw finset.smul_sum,
+  congr' 1,
+  ext σ,
+  apply σ.induction_on' (λ σ, _),
+  dsimp only [quotient.lift_on'_beta],
+  conv in (_ = quotient.mk' _) {
+    change quotient.mk' _ = quotient.mk' _,
+  },
+  rw ←gsmul_eq_smul,
+  have : ((fintype.card ιa).factorial * (fintype.card ιb).factorial) =
+    fintype.card (equiv.perm.sum_congr_subgroup ιa ιb),
+  {
+    rw ←@fintype.card_perm ιa _ _,
+    rw ←@fintype.card_perm ιb _ _,
+    unfold equiv.perm.sum_congr_subgroup,
+    unfold_coes,
+    dsimp,
+
+  },
+  rw this,
+  rw ←finset.sum_const,
+  -- rw finset.sum_filter,
+  -- simp_rw (iff.intro quotient.exact' quotient.sound'),
+  -- dunfold setoid.r quotient_group.left_rel,
+  -- simp only,
+  -- TODO: finset.sum_const
+  -- TODO: eliminate the dom_dom_congr?
+  -- TODO: card_eq_card_quotient_mul_card_subgroup
+  -- conv in
+end
 -- ### Old version, before generalizing to arbitrary index types
 --
 -- def mul_fin {n m} {R : Type*} {M N : Type*}
@@ -538,4 +624,4 @@ end alternating_map
 
 end
 
-instance {G : Type*} [group G] (s : subgroup G) : mul_action G (quotient_group.quotient s) := by show_term{apply_instance}
+#check iff.intro quotient.exact quotient.sound

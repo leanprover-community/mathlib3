@@ -331,7 +331,8 @@ variables {F} {E} {p : polynomial F}
 lemma of_separable_splitting_field_aux [hFE : finite_dimensional F E]
   (sp : p.is_splitting_field F E) (hp : p.separable) (K : intermediate_field F E) {x : E}
   (hx : x ∈ (p.map (algebra_map F E)).roots) :
-fintype.card ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) = fintype.card (K →ₐ[F] E) * findim K K⟮x⟯ :=
+fintype.card ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) =
+  fintype.card (K →ₐ[F] E) * findim K K⟮x⟯ :=
 begin
   have key_equiv : ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) ≃
     Σ (f : K →ₐ[F] E), @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f) :=

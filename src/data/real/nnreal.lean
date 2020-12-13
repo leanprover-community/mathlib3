@@ -392,8 +392,12 @@ nnreal.coe_le_coe.1 $ max_le (add_le_add (le_max_left _ _) (le_max_left _ _)) nn
 lemma of_real_le_iff_le_coe {r : ℝ} {p : nnreal} : nnreal.of_real r ≤ p ↔ r ≤ ↑p :=
 nnreal.gi.gc r p
 
-lemma le_of_real_iff_coe_le {r : nnreal} {p : ℝ} (hp : 0 ≤ p) : r ≤ nnreal.of_real p ↔ ↑r ≤ p :=
+lemma le_of_real_iff_coe_le {r : ℝ≥0} {p : ℝ} (hp : 0 ≤ p) : r ≤ nnreal.of_real p ↔ ↑r ≤ p :=
 by rw [← nnreal.coe_le_coe, nnreal.coe_of_real p hp]
+
+lemma le_of_real_iff_coe_le' {r : ℝ≥0} {p : ℝ} (hr : 0 < r) : r ≤ nnreal.of_real p ↔ ↑r ≤ p :=
+(le_or_lt 0 p).elim le_of_real_iff_coe_le $ λ hp,
+  by simp only [(hp.trans_le r.coe_nonneg).not_le, of_real_eq_zero.2 hp.le, hr.not_le]
 
 lemma of_real_lt_iff_lt_coe {r : ℝ} {p : nnreal} (ha : 0 ≤ r) : nnreal.of_real r < p ↔ r < ↑p :=
 by rw [← nnreal.coe_lt_coe, nnreal.coe_of_real r ha]

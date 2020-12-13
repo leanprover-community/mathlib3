@@ -291,6 +291,30 @@ instance has_lift2 {F : intermediate_field K L} :
 @[simp] lemma mem_lift2 {F : intermediate_field K L} {E : intermediate_field F L} {x : L} :
   x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := iff.rfl
 
+instance lift2_alg {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
+{ to_fun := (algebra_map F E).comp (algebra_map K F),
+  map_zero' := ring_hom.map_zero ((algebra_map F E).comp (algebra_map K F)),
+  map_one' := ring_hom.map_one ((algebra_map F E).comp (algebra_map K F)),
+  map_add' := ring_hom.map_add ((algebra_map F E).comp (algebra_map K F)),
+  map_mul' := ring_hom.map_mul ((algebra_map F E).comp (algebra_map K F)),
+  smul := λ a b, (((algebra_map F E).comp (algebra_map K F)) a) * b,
+  smul_def' := λ _ _, rfl,
+  commutes' := λ a b, mul_comm (((algebra_map F E).comp (algebra_map K F)) a) b }
+
+instance lift2_tower {F : intermediate_field K L} {E : intermediate_field F L} :
+  is_scalar_tower K F E :=
+⟨λ a b c, by { simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc], refl }⟩
+
+def lift2_alg_equiv {F : intermediate_field K L} (E : intermediate_field F L) :
+  (lift2 E) ≃ₐ[K] E :=
+{ to_fun := λ x, x,
+  inv_fun := λ x, x,
+  left_inv := λ x, rfl,
+  right_inv := λ x, rfl,
+  map_add' := λ x y, rfl,
+  map_mul' := λ x y, rfl,
+  commutes' := λ x, rfl }
+
 end tower
 
 section finite_dimensional

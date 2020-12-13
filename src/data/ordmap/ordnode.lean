@@ -287,7 +287,7 @@ def merge (l : ordnode α) : ordnode α → ordnode α :=
 ordnode.rec_on l (λ r, r) $ λ ls ll lx lr IHll IHlr r,
 ordnode.rec_on r (node ls ll lx lr) $ λ rs rl rx rr IHrl IHrr,
 if delta * ls < rs then
-  trace (_root_.repr ((ls, size rl), size IHrl, size rr)) $ balance_l IHrl rx rr
+  balance_l IHrl rx rr
 else if delta * rs < ls then
   balance_r ll lx (IHlr $ node rs rl rx rr)
 else glue (node ls ll lx lr) (node rs rl rx rr)

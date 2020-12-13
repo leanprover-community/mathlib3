@@ -344,14 +344,6 @@ open finite_dimensional vector_space
 
 variables {K L : intermediate_field F E}
 
-@[simp] lemma dim_intermediate_field_eq_dim_subalgebra : dim F K.to_subalgebra = dim F K := rfl
-
-@[simp] lemma findim_intermediate_field_eq_findim_subalgebra :
-  findim F K.to_subalgebra = findim F K := rfl
-
-@[simp] lemma to_subalgebra_eq_iff : K.to_subalgebra = L.to_subalgebra ↔ K = L :=
-by { rw [subalgebra.ext_iff, intermediate_field.ext'_iff, set.ext_iff], refl }
-
 @[simp] lemma dim_eq_one_iff : dim F K = 1 ↔ K = ⊥ :=
 by rw [← to_subalgebra_eq_iff, ← dim_intermediate_field_eq_dim_subalgebra,
   subalgebra.dim_eq_one_iff, bot_to_subalgebra]

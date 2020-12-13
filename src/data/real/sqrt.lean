@@ -5,6 +5,32 @@ Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 -/
 import topology.instances.nnreal
 
+/-!
+# Square root of a real number
+
+In this file we define
+
+* `nnreal.sqrt` to be the square root of a nonnegative real number.
+* `real.sqrt` to be the square root of a real number, defined to be zero on negative numbers.
+
+Then we prove some basic properties of these functions.
+
+## Implementation notes
+
+We define `nnreal.sqrt` as the noncomputable inverse to the function `x ↦ x * x`. We use general
+theory of inverses of strictly monotone functions to prove that `nnreal.sqrt x` exists. As a side
+effect, `nnreal.sqrt` is a bundled `order_iso`, so for `nnreal` numbers we get continuity as well as
+theorems like `sqrt x ≤ y ↔ x * x ≤ y` for free.
+
+Then we define `real.sqrt x` to be `nnreal.sqrt (nnreal.of_real x)`. We also define a Cauchy
+sequence `real.sqrt_aux (f : cau_seq ℚ abs)` which converges to `sqrt (mk f)` but do not prove (yet)
+that this sequence actually converges to `sqrt (mk f)`.
+
+## Tags
+
+square root
+-/
+
 open set filter
 open_locale filter nnreal topological_space
 
@@ -12,6 +38,7 @@ namespace nnreal
 
 variables {x y : ℝ≥0}
 
+/-- Square root of a nonnegative real number. -/
 @[pp_nodot] noncomputable def sqrt : ℝ≥0 ≃o ℝ≥0 :=
 order_iso.symm $ strict_mono.order_iso_of_surjective (λ x, x * x)
   (λ x y h, mul_self_lt_mul_self x.2 h) $

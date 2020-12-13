@@ -335,7 +335,7 @@ begin
   have key_equiv : ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) ≃
     Σ (f : K →ₐ[F] E), @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f) :=
   equiv.trans (intermediate_field.lift2_alg_equiv K⟮x⟯).alg_hom_equiv_alg_hom_left
-    (alg_hom_equiv_sigma_subalgebra),
+    alg_hom_equiv_sigma,
   haveI : Π (f : K →ₐ[F] E), fintype (@alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f)) := by
   { intro f,
     apply fintype.of_injective (sigma.mk f) (λ _ _ H, eq_of_heq ((sigma.mk.inj H).2)),

@@ -63,6 +63,22 @@ lemma monotone_proj_Icc : monotone (proj_Icc a b h) :=
 lemma strict_mono_incr_on_proj_Icc : strict_mono_incr_on (proj_Icc a b h) (Icc a b) :=
 λ x hx y hy hxy, by simpa only [proj_Icc_of_mem, hx, hy]
 
+lemma proj_Icc_lt_iff {y} (ha : a < y) (hb : y ≤ b) : ↑(proj_Icc a b h x) < y ↔ x < y :=
+by simp [proj_Icc, hb.not_lt, ha]
+
+lemma lt_proj_Icc_iff {y} (ha : a ≤ y) (hb : y < b) : y < proj_Icc a b h x ↔ y < x :=
+by simp [proj_Icc, ha.not_lt, hb]
+
+lemma proj_Icc_le_iff {y} (ha : a ≤ y) (hb : y < b) : ↑(proj_Icc a b h x) ≤ y ↔ x ≤ y :=
+by simpa only [not_lt] using not_congr (lt_proj_Icc_iff h ha hb)
+
+lemma le_proj_Icc_iff {y} (ha : a < y) (hb : y ≤ b) : y ≤ proj_Icc a b h x ↔ y ≤ x :=
+by simpa only [not_lt] using not_congr (proj_Icc_lt_iff h ha hb)
+
+lemma proj_Icc_neg {α} [linear_ordered_add_comm_group α] (a : α) (ha : -a ≤ a) (x : α) :
+  (proj_Icc (-a) a ha (-x) : α) = -proj_Icc (-a) a ha x :=
+by simp [proj_Icc, ← min_neg_neg, ← max_neg_neg, min_max_distrib_left, ha]
+
 /-- Extend a function `[a, b] → β` to a map `α → β`. -/
 def Icc_extend {a b : α} (h : a ≤ b) (f : Icc a b → β) : α → β :=
 f ∘ proj_Icc a b h

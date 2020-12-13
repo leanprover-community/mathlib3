@@ -1592,6 +1592,27 @@ lemma le_arcsin_iff_sin_le' {x y : ℝ} (hx : x ∈ Ioc (-(π / 2)) (π / 2)) :
 by rw [← neg_le_neg_iff, ← arcsin_neg, arcsin_le_iff_le_sin' ⟨neg_le_neg hx.2, neg_lt.2 hx.1⟩,
   sin_neg, neg_le_neg_iff]
 
+lemma arcsin_lt_iff_lt_sin {x y : ℝ} (hx : x ∈ Icc (-1 : ℝ) 1) (hy : y ∈ Icc (-(π / 2)) (π / 2)) :
+  arcsin x < y ↔ x < sin y :=
+not_le.symm.trans $ (not_congr $ le_arcsin_iff_sin_le hy hx).trans not_le
+
+lemma arcsin_lt_iff_lt_sin' {x y : ℝ} (hy : y ∈ Ioc (-(π / 2)) (π / 2)) :
+  arcsin x < y ↔ x < sin y :=
+not_le.symm.trans $ (not_congr $ le_arcsin_iff_sin_le' hy).trans not_le
+
+lemma lt_arcsin_iff_sin_lt {x y : ℝ} (hx : x ∈ Icc (-(π / 2)) (π / 2)) (hy : y ∈ Icc (-1 : ℝ) 1) :
+  x < arcsin y ↔ sin x < y :=
+not_le.symm.trans $ (not_congr $ arcsin_le_iff_le_sin hy hx).trans not_le
+
+lemma lt_arcsin_iff_sin_lt' {x y : ℝ} (hx : x ∈ Ico (-(π / 2)) (π / 2)) :
+  x < arcsin y ↔ sin x < y :=
+not_le.symm.trans $ (not_congr $ arcsin_le_iff_le_sin' hx).trans not_le
+
+lemma arcsin_eq_iff_eq_sin {x y : ℝ} (hy : y ∈ Ioo (-(π / 2)) (π / 2)) :
+  arcsin x = y ↔ x = sin y :=
+by simp only [le_antisymm_iff, arcsin_le_iff_le_sin' (mem_Ico_of_Ioo hy),
+  le_arcsin_iff_sin_le' (mem_Ioc_of_Ioo hy)]
+
 @[simp] lemma arcsin_nonneg {x : ℝ} : 0 ≤ arcsin x ↔ 0 ≤ x :=
 (le_arcsin_iff_sin_le' ⟨neg_lt_zero.2 pi_div_two_pos, pi_div_two_pos.le⟩).trans $ by rw [sin_zero]
 
@@ -1601,11 +1622,27 @@ neg_nonneg.symm.trans $ arcsin_neg x ▸ arcsin_nonneg.trans neg_nonneg
 @[simp] lemma arcsin_eq_zero_iff {x : ℝ} : arcsin x = 0 ↔ x = 0 :=
 by simp [le_antisymm_iff]
 
-lemma arcsin_pos {x : ℝ} : 0 < arcsin x ↔ 0 < x :=
+@[simp] lemma arcsin_pos {x : ℝ} : 0 < arcsin x ↔ 0 < x :=
 lt_iff_lt_of_le_iff_le arcsin_nonpos
 
-lemma arcsin_lt_zero {x : ℝ} : arcsin x < 0 ↔ x < 0 :=
+@[simp] lemma arcsin_lt_zero {x : ℝ} : arcsin x < 0 ↔ x < 0 :=
 lt_iff_lt_of_le_iff_le arcsin_nonneg
+
+@[simp] lemma arcsin_lt_pi_div_two {x : ℝ} : arcsin x < π / 2 ↔ x < 1 :=
+(arcsin_lt_iff_lt_sin' (right_mem_Ioc.2 $ neg_lt_self pi_div_two_pos)).trans $
+  by rw sin_pi_div_two
+
+@[simp] lemma neg_pi_div_two_lt_arcsin {x : ℝ} : -(π / 2) < arcsin x ↔ -1 < x :=
+(lt_arcsin_iff_sin_lt' $ left_mem_Ico.2 $ neg_lt_self pi_div_two_pos).trans $
+  by rw [sin_neg, sin_pi_div_two]
+
+def sin_local_homeomorph : local_homeomorph ℝ ℝ :=
+{ to_fun := sin,
+  inv_fun := arcsin,
+  source := Ioo (-(π / 2)) (π / 2),
+  target := Ioo (-1) 1,
+  map_source' := λ x hx, ⟨_, _⟩,
+  map_target' := _ }
 
 lemma cos_arcsin_nonneg (x : ℝ) : 0 ≤ cos (arcsin x) :=
 cos_nonneg_of_mem_Icc ⟨neg_pi_div_two_le_arcsin _, arcsin_le_pi_div_two _⟩
@@ -1701,13 +1738,14 @@ lemma differentiable_on_arcsin : differentiable_on ℝ arcsin {-1, 1}ᶜ :=
 λ x hx, (differentiable_at_arcsin.2
   ⟨λ h, hx (or.inl h), λ h, hx (or.inr h)⟩).differentiable_within_at
 
-lemma times_cont_diff_on_arcsin' {n : with_top ℕ} :
+lemma times_cont_diff_on_arcsin {n : with_top ℕ} :
   times_cont_diff_on ℝ n arcsin {-1, 1}ᶜ :=
 begin
-  refine ((times_cont_diff_on_top_iff_deriv_of_open _).2 ⟨_, _⟩).of_le le_top,
+  
+/-  refine ((times_cont_diff_on_top_iff_deriv_of_open _).2 ⟨_, _⟩).of_le le_top,
   { exact is_closed_union is_closed_singleton is_closed_singleton },
   { exact differentiable_on_arcsin },
-  { rw [deriv_arcsin], }
+  { rw [deriv_arcsin], }-/
 end
 
 lemma times_cont_diff_at_arcsin_iff {x : ℝ} {n : with_top ℕ} :

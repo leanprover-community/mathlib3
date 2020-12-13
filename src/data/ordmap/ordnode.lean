@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.list.defs data.nat.psub
+import data.list.defs
+import data.nat.psub
 
 /-!
 # Data type for ordered sets
@@ -96,7 +97,9 @@ by clean begin
         { exact if lrs < ratio * lls then
             node (ls+1) ll lx (node (lrs+1) lr x nil)
           else
-            node (ls+1) (node (lls + size lrl + 1) ll lx lrl) lrx (node (size lrr + 1) lrr x nil) } } } },
+            node (ls+1)
+              (node (lls + size lrl + 1) ll lx lrl) lrx
+              (node (size lrr + 1) lrr x nil) } } } },
   { cases id l with ls ll lx lr,
     { exact node (rs+1) nil x r },
     { refine if ls > delta * rs then _ else node (ls + rs + 1) l x r,
@@ -126,7 +129,9 @@ by clean begin
         { exact if rls < ratio * rrs then
             node (rs+1) (node (rls+1) nil x rl) rx rr
           else
-            node (rs+1) (node (size rll + 1) nil x rll) rlx (node (size rlr + rrs + 1) rlr rx rr) } } } },
+            node (rs+1)
+              (node (size rll + 1) nil x rll) rlx
+              (node (size rlr + rrs + 1) rlr rx rr) } } } },
   { cases id r with rs rl rx rr,
     { exact node (ls+1) l x nil },
     { refine if rs > delta * ls then _ else node (ls + rs + 1) l x r,
@@ -156,7 +161,9 @@ by clean begin
         { exact if rls < ratio * rrs then
             node (rs+1) (node (rls+1) nil x rl) rx rr
           else
-            node (rs+1) (node (size rll + 1) nil x rll) rlx (node (size rlr + rrs + 1) rlr rx rr) } } } },
+            node (rs+1)
+              (node (size rll + 1) nil x rll) rlx
+              (node (size rlr + rrs + 1) rlr rx rr) } } } },
   { cases id r with rs rl rx rr,
     { cases id ll with lls,
       { cases lr with _ _ lrx,
@@ -167,20 +174,29 @@ by clean begin
         { exact if lrs < ratio * lls then
             node (ls+1) ll lx (node (lrs+1) lr x nil)
           else
-            node (ls+1) (node (lls + size lrl + 1) ll lx lrl) lrx (node (size lrr + 1) lrr x nil) } } },
-    { refine if delta * ls < rs then _ else if delta * rs < ls then _ else node (ls+rs+1) l x r,
+            node (ls+1)
+              (node (lls + size lrl + 1) ll lx lrl) lrx
+              (node (size lrr + 1) lrr x nil) } } },
+    { refine
+        if delta * ls < rs then _ else
+        if delta * rs < ls then _ else
+        node (ls+rs+1) l x r,
       { cases id rl with rls rll rlx rlr, {exact nil /-should not happen-/},
         cases id rr with rrs, {exact nil /-should not happen-/},
         exact if rls < ratio * rrs then
           node (ls+rs+1) (node (ls+rls+1) l x rl) rx rr
         else
-          node (ls+rs+1) (node (ls + size rll + 1) l x rll) rlx (node (size rlr + rrs + 1) rlr rx rr) },
+          node (ls+rs+1)
+            (node (ls + size rll + 1) l x rll) rlx
+            (node (size rlr + rrs + 1) rlr rx rr) },
       { cases id ll with lls, {exact nil /-should not happen-/},
         cases id lr with lrs lrl lrx lrr, {exact nil /-should not happen-/},
         exact if lrs < ratio * lls then
           node (ls+rs+1) ll lx (node (lrs+rs+1) lr x r)
         else
-          node (ls+rs+1) (node (lls + size lrl + 1) ll lx lrl) lrx (node (size lrr + rs + 1) lrr x r) } } }
+          node (ls+rs+1)
+            (node (lls + size lrl + 1) ll lx lrl) lrx
+            (node (size lrr + rs + 1) lrr x r) } } }
 end
 
 /-- O(n). Does every element of the map satisfy property `P`? -/

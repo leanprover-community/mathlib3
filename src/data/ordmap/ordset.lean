@@ -2,11 +2,15 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Verification of the `ordnode α` datatype, with a type `ordset α` of verified
-sets.
 -/
-import data.ordmap.ordnode algebra.ordered_ring data.nat.dist tactic.linarith
+import data.ordmap.ordnode
+import algebra.ordered_ring
+import data.nat.dist
+import tactic.linarith
+
+/-!
+# Verification of the `ordnode α` datatype, with a type `ordset α` of verified sets.
+-/
 
 theorem cmp_le_flip {α} [has_le α] [@decidable_rel α (≤)] (x y : α) :
   @cmp_le (order_dual α) _ _ x y = cmp_le y x := rfl
@@ -763,12 +767,14 @@ theorem bounded.weak_right : ∀ {t : ordnode α} {o₁ o₂}, bounded t o₁ o�
 theorem bounded.weak {t : ordnode α} {o₁ o₂} (h : bounded t o₁ o₂) : bounded t ⊥ ⊤ :=
 h.weak_left.weak_right
 
-theorem bounded.mono_left {x y : α} (xy : x ≤ y) : ∀ {t : ordnode α} {o}, bounded t ↑y o → bounded t ↑x o
+theorem bounded.mono_left {x y : α} (xy : x ≤ y) :
+  ∀ {t : ordnode α} {o}, bounded t ↑y o → bounded t ↑x o
 | nil none h := ⟨⟩
 | nil (some z) h := lt_of_le_of_lt xy h
 | (node s l z r) o ⟨ol, or⟩ := ⟨ol.mono_left, or⟩
 
-theorem bounded.mono_right {x y : α} (xy : x ≤ y) : ∀ {t : ordnode α} {o}, bounded t o ↑x → bounded t o ↑y
+theorem bounded.mono_right {x y : α} (xy : x ≤ y) :
+  ∀ {t : ordnode α} {o}, bounded t o ↑x → bounded t o ↑y
 | nil none h := ⟨⟩
 | nil (some z) h := lt_of_lt_of_le h xy
 | (node s l z r) o ⟨ol, or⟩ := ⟨ol, or.mono_right⟩
@@ -782,11 +788,13 @@ theorem bounded.to_nil {t : ordnode α} : ∀ {o₁ o₂}, bounded t o₁ o₂ �
 | (some _) none h := ⟨⟩
 | (some x) (some y) h := h.to_lt
 
-theorem bounded.trans_left {t₁ t₂ : ordnode α} {x : α} : ∀ {o₁ o₂}, bounded t₁ o₁ ↑x → bounded t₂ ↑x o₂ → bounded t₂ o₁ o₂
+theorem bounded.trans_left {t₁ t₂ : ordnode α} {x : α} :
+  ∀ {o₁ o₂}, bounded t₁ o₁ ↑x → bounded t₂ ↑x o₂ → bounded t₂ o₁ o₂
 | none o₂ h₁ h₂ := h₂.weak_left
 | (some y) o₂ h₁ h₂ := h₂.mono_left (le_of_lt h₁.to_lt)
 
-theorem bounded.trans_right {t₁ t₂ : ordnode α} {x : α} : ∀ {o₁ o₂}, bounded t₁ o₁ ↑x → bounded t₂ ↑x o₂ → bounded t₁ o₁ o₂
+theorem bounded.trans_right {t₁ t₂ : ordnode α} {x : α} :
+  ∀ {o₁ o₂}, bounded t₁ o₁ ↑x → bounded t₂ ↑x o₂ → bounded t₁ o₁ o₂
 | o₁ none h₁ h₂ := h₁.weak_right
 | o₁ (some y) h₁ h₂ := h₁.mono_right (le_of_lt h₂.to_lt)
 
@@ -828,10 +836,12 @@ structure valid' (o₁ : with_bot α) (t : ordnode α) (o₂ : with_top α) : Pr
 
 def valid (t : ordnode α) : Prop := valid' ⊥ t ⊤
 
-theorem valid'.mono_left {x y : α} (xy : x ≤ y) {t : ordnode α} {o} (h : valid' ↑y t o) : valid' ↑x t o :=
+theorem valid'.mono_left {x y : α} (xy : x ≤ y)
+  {t : ordnode α} {o} (h : valid' ↑y t o) : valid' ↑x t o :=
 ⟨h.1.mono_left xy, h.2, h.3⟩
 
-theorem valid'.mono_right {x y : α} (xy : x ≤ y) {t : ordnode α} {o} (h : valid' o t ↑x) : valid' o t ↑y :=
+theorem valid'.mono_right {x y : α} (xy : x ≤ y)
+  {t : ordnode α} {o} (h : valid' o t ↑x) : valid' o t ↑y :=
 ⟨h.1.mono_right xy, h.2, h.3⟩
 
 theorem valid'.trans_left {t₁ t₂ : ordnode α} {x : α} {o₁ o₂}
@@ -1079,9 +1089,15 @@ begin
       cases nat.eq_zero_or_pos (size rr) with rr0 rr0,
       { have := hr.3.1,
         rw rr0 at this,
-        exact or.inl ⟨l0, le_antisymm (balanced_sz_zero.1 this) rl0, rr0.symm ▸ zero_le_one⟩ },
-      exact or.inl ⟨l0, le_antisymm (ablem rr0 $ by rwa add_comm) rl0, ablem rl0 H3⟩ },
-    exact or.inr ⟨l0, not_lt.1 h, H2, valid'.rotate_l_lemma₄ (H3p l0), (hr.3.1.resolve_left (hlp l0)).1⟩ }
+        exact or.inl ⟨l0,
+          le_antisymm (balanced_sz_zero.1 this) rl0,
+          rr0.symm ▸ zero_le_one⟩ },
+      exact or.inl ⟨l0,
+        le_antisymm (ablem rr0 $ by rwa add_comm) rl0,
+        ablem rl0 H3⟩ },
+    exact or.inr ⟨l0, not_lt.1 h, H2,
+      valid'.rotate_l_lemma₄ (H3p l0),
+      (hr.3.1.resolve_left (hlp l0)).1⟩ }
 end
 
 theorem valid'.rotate_r {l x r o₁ o₂} (hl : valid' o₁ l ↑x) (hr : valid' ↑x r o₂)
@@ -1258,7 +1274,8 @@ end
 
 theorem valid'.glue {l x r o₁ o₂}
   (hl : valid' o₁ l ↑(x:α)) (hr : valid' ↑x r o₂) :
-  balanced_sz (size l) (size r) → valid' o₁ (@glue α l r) o₂ ∧ size (@glue α l r) = size l + size r :=
+  balanced_sz (size l) (size r) →
+  valid' o₁ (@glue α l r) o₂ ∧ size (@glue α l r) = size l + size r :=
 valid'.glue_aux (hl.trans_right hr.1) (hr.trans_left hl.1) (hl.1.to_sep hr.1)
 
 theorem valid'.merge_lemma {a b c : ℕ}
@@ -1300,7 +1317,8 @@ begin
     exact valid'.merge_aux₁ hl hr h v e },
   { cases IHlr hl.right (hr.of_gt hl.1.2.to_nil sep.2.1) sep.2.2 with v e,
     have := valid'.merge_aux₁ hr.dual hl.dual h_1 v.dual,
-    rw [size_dual, add_comm, size_dual, ← dual_balance_r, ← valid'.dual_iff, size_dual, add_comm rs] at this,
+    rw [size_dual, add_comm, size_dual,
+      ← dual_balance_r, ← valid'.dual_iff, size_dual, add_comm rs] at this,
     exact this e },
   { refine valid'.glue_aux hl hr sep (or.inr ⟨not_lt.1 h_1, not_lt.1 h⟩) }
 end

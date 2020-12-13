@@ -393,7 +393,8 @@ begin
   apply intermediate_field.induction_on_adjoin_finset s P base,
   intros K x hx hK,
   simp only [P] at *,
-  rw [of_separable_splitting_field_aux sp hp K (multiset.mem_to_finset.mp hx), hK, findim_mul_findim],
+  rw [of_separable_splitting_field_aux sp hp K (multiset.mem_to_finset.mp hx),
+    hK, findim_mul_findim],
   exact (linear_equiv.findim_eq (intermediate_field.lift2_alg_equiv K⟮x⟯).to_linear_equiv).symm,
 end
 

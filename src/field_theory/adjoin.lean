@@ -345,11 +345,11 @@ open finite_dimensional vector_space
 variables {K L : intermediate_field F E}
 
 @[simp] lemma dim_eq_one_iff : dim F K = 1 ↔ K = ⊥ :=
-by rw [← to_subalgebra_eq_iff, ← dim_intermediate_field_eq_dim_subalgebra,
+by rw [← to_subalgebra_eq_iff, ← dim_eq_dim_subalgebra,
   subalgebra.dim_eq_one_iff, bot_to_subalgebra]
 
 @[simp] lemma findim_eq_one_iff : findim F K = 1 ↔ K = ⊥ :=
-by rw [← to_subalgebra_eq_iff, ← findim_intermediate_field_eq_findim_subalgebra,
+by rw [← to_subalgebra_eq_iff, ← findim_eq_findim_subalgebra,
   subalgebra.findim_eq_one_iff, bot_to_subalgebra]
 
 lemma dim_adjoin_eq_one_iff : dim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=

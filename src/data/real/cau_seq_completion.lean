@@ -197,7 +197,7 @@ by rw [← lim_mul_lim, lim_const]
 
 lemma lim_neg (f : cau_seq β abv) : lim (-f) = -lim f :=
 lim_eq_of_equiv_const (show lim_zero (-f - const abv (-lim f)),
-  by rw [const_neg, sub_neg_eq_add, add_comm];
+  by rw [const_neg, sub_neg_eq_add, add_comm, ← sub_eq_add_neg];
   exact setoid.symm (equiv_lim f))
 
 lemma lim_eq_zero_iff (f : cau_seq β abv) : lim f = 0 ↔ lim_zero f :=

@@ -331,7 +331,7 @@ lemma integral_univ : ∫ x in univ, f x ∂μ = ∫ x, f x ∂μ := by rw [meas
 
 lemma integral_add_compl (hs : is_measurable s) (hfi : integrable f μ) :
   ∫ x in s, f x ∂μ + ∫ x in sᶜ, f x ∂μ = ∫ x, f x ∂μ :=
-by rw [← integral_union (disjoint_compl_right s) hs hs.compl hfi.integrable_on hfi.integrable_on,
+by rw [← integral_union disjoint_compl_right hs hs.compl hfi.integrable_on hfi.integrable_on,
   union_compl_self, integral_univ]
 
 /-- For a measurable function `f` and a measurable set `s`, the integral of `indicator s f`
@@ -470,7 +470,7 @@ lemma continuous.integrable_of_compact_closure_support
   (hfc : is_compact (closure $ support f)) :
   integrable f μ :=
 begin
-  rw [← indicator_of_support_subset (@subset_closure _ _ (support f)),
+  rw [← indicator_eq_self.2 (@subset_closure _ _ (support f)),
     integrable_indicator_iff hf.measurable is_closed_closure.is_measurable],
   exact hf.integrable_on_compact hfc
 end

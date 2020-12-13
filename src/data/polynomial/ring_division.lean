@@ -40,6 +40,11 @@ lemma degree_pos_of_aeval_root [algebra R S] {p : polynomial R} (hp : p ≠ 0)
   0 < p.degree :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_aeval_root hp hz inj)
 
+lemma aeval_mod_by_monic_eq_self_of_root [algebra R S]
+  {p q : polynomial R} (hq : q.monic) {x : S} (hx : aeval x q = 0) :
+  aeval x (p %ₘ q) = aeval x p :=
+eval₂_mod_by_monic_eq_self_of_root hq hx
+
 end comm_ring
 
 section integral_domain

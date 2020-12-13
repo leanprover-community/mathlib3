@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.measure_space
+import analysis.complex.basic
 import analysis.normed_space.finite_dimension
 import topology.G_delta
 
@@ -136,7 +137,7 @@ lemma continuous.borel_measurable [topological_space α] [topological_space β]
   {f : α → β} (hf : continuous f) :
   @measurable α β (borel α) (borel β) f :=
 measurable.of_le_map $ generate_from_le $
-  λ s hs, generate_measurable.basic (f ⁻¹' s) (hf s hs)
+  λ s hs, generate_measurable.basic (f ⁻¹' s) (hs.preimage hf)
 
 /-- A space with `measurable_space` and `topological_space` structures such that
 all open sets are measurable. -/
@@ -248,7 +249,7 @@ begin
   apply generate_from_le,
   rintros _ ⟨s, i, hi, rfl⟩,
   refine is_measurable_pi i.countable_to_set (λ a ha, is_open.is_measurable _),
-  rw [hinst], 
+  rw [hinst],
   exact generate_open.basic _ (hi a ha)
 end
 
@@ -271,9 +272,9 @@ end
 section preorder
 variables [preorder α] [order_closed_topology α] {a b : α}
 
-lemma is_measurable_Ici : is_measurable (Ici a) := is_closed_Ici.is_measurable
-lemma is_measurable_Iic : is_measurable (Iic a) := is_closed_Iic.is_measurable
-lemma is_measurable_Icc : is_measurable (Icc a b) := is_closed_Icc.is_measurable
+@[simp] lemma is_measurable_Ici : is_measurable (Ici a) := is_closed_Ici.is_measurable
+@[simp] lemma is_measurable_Iic : is_measurable (Iic a) := is_closed_Iic.is_measurable
+@[simp] lemma is_measurable_Icc : is_measurable (Icc a b) := is_closed_Icc.is_measurable
 
 instance nhds_within_Ici_is_measurably_generated :
   (𝓝[Ici b] a).is_measurably_generated :=
@@ -309,11 +310,15 @@ end partial_order
 section linear_order
 variables [linear_order α] [order_closed_topology α] {a b : α}
 
-lemma is_measurable_Iio : is_measurable (Iio a) := is_open_Iio.is_measurable
-lemma is_measurable_Ioi : is_measurable (Ioi a) := is_open_Ioi.is_measurable
-lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_open_Ioo.is_measurable
-lemma is_measurable_Ioc : is_measurable (Ioc a b) := is_measurable_Ioi.inter is_measurable_Iic
-lemma is_measurable_Ico : is_measurable (Ico a b) := is_measurable_Ici.inter is_measurable_Iio
+@[simp] lemma is_measurable_Iio : is_measurable (Iio a) := is_open_Iio.is_measurable
+@[simp] lemma is_measurable_Ioi : is_measurable (Ioi a) := is_open_Ioi.is_measurable
+@[simp] lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_open_Ioo.is_measurable
+
+@[simp] lemma is_measurable_Ioc : is_measurable (Ioc a b) :=
+is_measurable_Ioi.inter is_measurable_Iic
+
+@[simp] lemma is_measurable_Ico : is_measurable (Ico a b) :=
+is_measurable_Ici.inter is_measurable_Iio
 
 instance nhds_within_Ioi_is_measurably_generated :
   (𝓝[Ioi b] a).is_measurably_generated :=
@@ -460,7 +465,7 @@ continuous_mul.measurable
 @[to_additive]
 lemma measurable.mul [has_mul α] [has_continuous_mul α] [second_countable_topology α]
   {f : δ → α} {g : δ → α} : measurable f → measurable g → measurable (λ a, f a * g a) :=
-continuous_mul.measurable2
+(@continuous_mul α _ _ _).measurable2
 
 /-- A variant of `measurable.mul` that uses `*` on functions -/
 @[to_additive]
@@ -517,7 +522,7 @@ lemma measurable_inv_iff [group α] [topological_group α] {f : δ → α} :
 lemma measurable.sub [add_group α] [topological_add_group α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ x, f x - g x) :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma measurable_comp_iff_of_closed_embedding {f : δ → β} (g : β → γ) (hg : closed_embedding g) :
   measurable (g ∘ f) ↔ measurable f :=
@@ -737,14 +742,14 @@ continuous_dist.measurable
 
 lemma measurable.dist {f g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ b, dist (f b) (g b)) :=
-continuous_dist.measurable2 hf hg
+(@continuous_dist α _).measurable2 hf hg
 
 lemma measurable_nndist : measurable (λ p : α × α, nndist p.1 p.2) :=
 continuous_nndist.measurable
 
 lemma measurable.nndist {f g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ b, nndist (f b) (g b)) :=
-continuous_nndist.measurable2 hf hg
+(@continuous_nndist α _).measurable2 hf hg
 
 end metric_space
 
@@ -778,7 +783,7 @@ continuous_edist.measurable
 
 lemma measurable.edist {f g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ b, edist (f b) (g b)) :=
-continuous_edist.measurable2 hf hg
+(@continuous_edist α _).measurable2 hf hg
 
 end emetric_space
 
@@ -827,12 +832,10 @@ begin
       refine @is_measurable.inter _ g _ _ _ (hg _),
       refine @is_measurable.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
       exact @is_measurable.compl _ _ g (hg _) },
-    { simp [Ioo, Iio],
-      refine and_congr _ iff.rfl,
-      exact ⟨λ h,
-        let ⟨c, ac, cx⟩ := exists_rat_btwn h in
-        ⟨c, rat.cast_lt.1 ac, le_of_lt cx⟩,
-       λ ⟨c, ac, cx⟩, lt_of_lt_of_le (rat.cast_lt.2 ac) cx⟩ } },
+    { suffices : x < ↑b → (↑a < x ↔ ∃ (i : ℚ), a < i ∧ ↑i ≤ x), by simpa,
+      refine λ _, ⟨λ h, _, λ ⟨i, hai, hix⟩, (rat.cast_lt.2 hai).trans_le hix⟩,
+      rcases exists_rat_btwn h with ⟨c, ac, cx⟩,
+      exact ⟨c, rat.cast_lt.1 ac, cx.le⟩ } },
   { simp, rintro r rfl, exact is_open_Iio.is_measurable }
 end
 
@@ -842,7 +845,7 @@ variable [measurable_space α]
 
 lemma measurable.sub_nnreal {f g : α → ℝ≥0} :
   measurable f → measurable g → measurable (λ a, f a - g a) :=
-continuous_sub.measurable2
+(@continuous_sub ℝ≥0 _ _ _).measurable2
 
 lemma measurable.nnreal_of_real {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, nnreal.of_real (f x)) :=
@@ -1102,7 +1105,8 @@ begin
     intro U, apply infi_congr_Prop f.is_open_preimage, intro hU,
     apply infi_congr_Prop h3f.preimage_subset_preimage_iff, intro h2U,
     rw [map_apply hf hU.is_measurable], },
-  { intros U hU, rw [map_apply hf hU.is_measurable, ← hμ.inner_regular_eq (f.continuous U hU)],
+  { intros U hU,
+    rw [map_apply hf hU.is_measurable, ← hμ.inner_regular_eq (hU.preimage f.continuous)],
     refine ge_of_eq _, apply supr_congr (preimage f) h2f,
     intro K, apply supr_congr_Prop f.compact_preimage, intro hK,
     apply supr_congr_Prop h3f.preimage_subset_preimage_iff, intro h2U,

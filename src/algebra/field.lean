@@ -43,6 +43,9 @@ end
 
 @[field_simps] lemma inv_eq_one_div (a : α) : a⁻¹ = 1 / a := by simp
 
+lemma mul_one_div (a b : α) : a * (1 / b) = a / b :=
+by rw [← inv_eq_one_div, div_eq_mul_inv]
+
 local attribute [simp]
   division_def mul_comm mul_assoc
   mul_left_comm mul_inv_cancel inv_mul_cancel
@@ -66,7 +69,7 @@ calc
   b / (- a) = b * (1 / (- a)) : by rw [← inv_eq_one_div, division_def]
         ... = b * -(1 / a)    : by rw one_div_neg_eq_neg_one_div
         ... = -(b * (1 / a))  : by rw neg_mul_eq_mul_neg
-        ... = - (b * a⁻¹)     : by rw inv_eq_one_div
+        ... = - (b / a)       : by rw mul_one_div
 
 lemma neg_div (a b : α) : (-b) / a = - (b / a) :=
 by rw [neg_eq_neg_one_mul, mul_div_assoc, ← neg_eq_neg_one_mul]
@@ -78,7 +81,7 @@ lemma neg_div_neg_eq (a b : α) : (-a) / (-b) = a / b :=
 by rw [div_neg_eq_neg_div, neg_div, neg_neg]
 
 @[field_simps] lemma div_add_div_same (a b c : α) : a / c + b / c = (a + b) / c :=
-eq.symm $ right_distrib a b (c⁻¹)
+by simpa only [div_eq_mul_inv] using (right_distrib a b (c⁻¹)).symm
 
 lemma div_sub_div_same (a b c : α) : (a / c) - (b / c) = (a - b) / c :=
 by rw [sub_eq_add_neg, ← neg_div, div_add_div_same, sub_eq_add_neg]
@@ -247,15 +250,15 @@ section
 variables {β γ : Type*} [division_ring α] [semiring β] [nontrivial β] [division_ring γ]
   (f : α →+* β) (g : α →+* γ) {x y : α}
 
-lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (f : α →* β).map_ne_zero f.map_zero
+lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := f.to_monoid_with_zero_hom.map_ne_zero
 
-lemma map_eq_zero : f x = 0 ↔ x = 0 := (f : α →* β).map_eq_zero f.map_zero
+lemma map_eq_zero : f x = 0 ↔ x = 0 := f.to_monoid_with_zero_hom.map_eq_zero
 
 variables (x y)
 
-lemma map_inv : g x⁻¹ = (g x)⁻¹ := (g : α →* γ).map_inv' g.map_zero x
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv' x
 
-lemma map_div : g (x / y) = g x / g y := (g : α →* γ).map_div g.map_zero x y
+lemma map_div : g (x / y) = g x / g y := g.to_monoid_with_zero_hom.map_div x y
 
 protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
 

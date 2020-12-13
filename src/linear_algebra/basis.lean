@@ -515,7 +515,7 @@ section module
 variables {η : Type*} {ιs : η → Type*} {Ms : η → Type*}
 variables [ring R] [∀i, add_comm_group (Ms i)] [∀i, module R (Ms i)]
 
-lemma linear_independent_std_basis
+lemma linear_independent_std_basis [decidable_eq η]
   (v : Πj, ιs j → (Ms j)) (hs : ∀i, linear_independent R (v i)) :
   linear_independent R (λ (ji : Σ j, ιs j), std_basis R Ms ji.1 (v ji.1 ji.2)) :=
 begin
@@ -546,7 +546,7 @@ end
 
 variable [fintype η]
 
-lemma is_basis_std_basis (s : Πj, ιs j → (Ms j)) (hs : ∀j, is_basis R (s j)) :
+lemma is_basis_std_basis [decidable_eq η] (s : Πj, ιs j → (Ms j)) (hs : ∀j, is_basis R (s j)) :
   is_basis R (λ (ji : Σ j, ιs j), std_basis R Ms ji.1 (s ji.1 ji.2)) :=
 begin
   split,
@@ -569,18 +569,34 @@ end
 section
 variables (R η)
 
-lemma is_basis_fun₀ : is_basis R
+lemma is_basis_fun₀ [decidable_eq η] : is_basis R
     (λ (ji : Σ (j : η), unit),
        (std_basis R (λ (i : η), R) (ji.fst)) 1) :=
-@is_basis_std_basis R η (λi:η, unit) (λi:η, R) _ _ _ _ (λ _ _, (1 : R))
+@is_basis_std_basis R η (λi:η, unit) (λi:η, R) _ _ _ _ _ (λ _ _, (1 : R))
   (assume i, @is_basis_singleton_one _ _ _ _)
 
-lemma is_basis_fun : is_basis R (λ i, std_basis R (λi:η, R) i 1) :=
+lemma is_basis_fun [decidable_eq η] : is_basis R (λ i, std_basis R (λi:η, R) i 1) :=
 begin
   apply (is_basis_fun₀ R η).comp (λ i, ⟨i, punit.star⟩),
   apply bijective_iff_has_inverse.2,
   use sigma.fst,
   simp [function.left_inverse, function.right_inverse]
+end
+
+@[simp] lemma is_basis_fun_repr [decidable_eq η] (x : η → R) (i : η) :
+  (pi.is_basis_fun R η).repr x i = x i :=
+begin
+  conv_rhs { rw ← (pi.is_basis_fun R η).total_repr x },
+  rw [finsupp.total_apply, finsupp.sum_fintype],
+  show (pi.is_basis_fun R η).repr x i =
+    (∑ j, λ i, (pi.is_basis_fun R η).repr x j • std_basis R (λ _, R) j 1 i) i,
+  rw [finset.sum_apply, finset.sum_eq_single i],
+  { simp only [pi.smul_apply, smul_eq_mul, std_basis_same, mul_one] },
+  { rintros b - hb, simp only [std_basis_ne _ _ _ _ hb.symm, smul_zero] },
+  { intro,
+    have := finset.mem_univ i,
+    contradiction },
+  { intros, apply zero_smul },
 end
 
 end

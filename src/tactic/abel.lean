@@ -199,7 +199,8 @@ do n1 ← c.int_to_expr 1,
    return (term' c (n1, 1) e (zero' c), c.iapp ``term_atom [e])
 
 lemma unfold_sub {α} [add_group α] (a b c : α)
-  (h : a + -b = c) : a - b = c := h
+  (h : a + -b = c) : a - b = c :=
+by rw [sub_eq_add_neg, h]
 
 theorem unfold_smul {α} [add_comm_monoid α] (n) (x y : α)
   (h : smul n x = y) : n •ℕ x = y := h

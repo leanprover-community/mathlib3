@@ -65,8 +65,11 @@ class t1_space (α : Type u) [topological_space α] : Prop :=
 lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
+lemma is_open_compl_singleton [t1_space α] {x : α} : is_open ({x}ᶜ : set α) :=
+is_closed_singleton
+
 lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
-compl_singleton_eq x ▸ is_open_compl_iff.2 (t1_space.t1 x)
+is_open_compl_singleton
 
 instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p : α → Prop} :
   t1_space (subtype p) :=
@@ -88,6 +91,15 @@ lemma is_closed_map_const {α β} [topological_space α] [topological_space β] 
   is_closed_map (function.const α y) :=
 begin
   apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
+end
+
+lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [fintype X] :
+  discrete_topology X :=
+begin
+  apply singletons_open_iff_discrete.mp,
+  intros x,
+  rw [← is_closed_compl_iff, ← bUnion_of_singleton ({x} : set X)ᶜ],
+  exact is_closed_bUnion (finite.of_fintype _) (λ y _, is_closed_singleton)
 end
 
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
@@ -121,12 +133,8 @@ lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, ne_bot (𝓝 x ⊓ 𝓝 y) �
    ⟨u, v, uo, vo, hu, hv, disjoint.eq_bot $ disjoint.mono uu' vv' u'v'⟩⟩⟩
 
 lemma t2_iff_ultrafilter :
-  t2_space α ↔ ∀ f {x y : α}, is_ultrafilter f → f ≤ 𝓝 x → f ≤ 𝓝 y → x = y :=
-t2_iff_nhds.trans
-  ⟨assume h f x y u fx fy, h $ u.1.mono (le_inf fx fy),
-   assume h x y xy,
-     let ⟨f, hf, uf⟩ := @@exists_ultrafilter _ xy in
-     h f uf (le_trans hf inf_le_left) (le_trans hf inf_le_right)⟩
+  t2_space α ↔ ∀ {x y : α} (f : ultrafilter α), ↑f ≤ 𝓝 x → ↑f ≤ 𝓝 y → x = y :=
+t2_iff_nhds.trans $ by simp only [←exists_ultrafilter_iff, and_imp, le_inf_iff, exists_imp_distrib]
 
 lemma is_closed_diagonal [t2_space α] : is_closed (diagonal α) :=
 is_closed_iff_cluster_pt.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_ne_bot $ assume : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h $
@@ -193,20 +201,17 @@ tendsto_nhds_unique (le_nhds_Lim ⟨a, h⟩) h
 lemma Lim_eq_iff [ne_bot f] (h : ∃ (a : α), f ≤ nhds a) {a} : @Lim _ _ ⟨a⟩ f = a ↔ f ≤ 𝓝 a :=
 ⟨λ c, c ▸ le_nhds_Lim h, Lim_eq⟩
 
-lemma is_ultrafilter.Lim_eq_iff_le_nhds [compact_space α] (x : α) (F : ultrafilter α) :
-  @Lim _ _ ⟨x⟩ F.1 = x ↔ F.1 ≤ 𝓝 x :=
-⟨λ h, h ▸ is_ultrafilter.le_nhds_Lim _, Lim_eq⟩
+lemma ultrafilter.Lim_eq_iff_le_nhds [compact_space α] {x : α} {F : ultrafilter α} :
+  F.Lim = x ↔ ↑F ≤ 𝓝 x :=
+⟨λ h, h ▸ F.le_nhds_Lim, Lim_eq⟩
 
 lemma is_open_iff_ultrafilter' [compact_space α] (U : set α) :
   is_open U ↔ (∀ F : ultrafilter α, F.Lim ∈ U → U ∈ F.1) :=
 begin
   rw is_open_iff_ultrafilter,
-  refine ⟨λ h F hF, h _ hF _ F.2 (is_ultrafilter.le_nhds_Lim _), _⟩,
-  intros cond x hx f hf h,
-  let F : ultrafilter α := ⟨f, hf⟩,
-  change F.1 ≤ _ at h,
-  rw ←is_ultrafilter.Lim_eq_iff_le_nhds at h,
-  rw ←h at *,
+  refine ⟨λ h F hF, h F.Lim hF F F.le_nhds_Lim, _⟩,
+  intros cond x hx f h,
+  rw [← (ultrafilter.Lim_eq_iff_le_nhds.2 h)] at hx,
   exact cond _ hx
 end
 
@@ -239,36 +244,86 @@ Lim_nhds_within h
 
 end lim
 
+/-!
+### Instances of `t2_space` typeclass
+
+We use two lemmas to prove that various standard constructions generate Hausdorff spaces from
+Hausdorff spaces:
+
+* `separated_by_continuous` says that two points `x y : α` can be separated by open neighborhoods
+  provided that there exists a continuous map `f`: α → β` with a Hausdorff codomain such that
+  `f x ≠ f y`. We use this lemma to prove that topological spaces defined using `induced` are
+  Hausdorff spaces.
+
+* `separated_by_open_embedding` says that for an open embedding `f : α → β` of a Hausdorff space
+  `α`, the images of two distinct points `x y : α`, `x ≠ y` can be separated by open neighborhoods.
+  We use this lemma to prove that topological spaces defined using `coinduced` are Hausdorff spaces.
+-/
+
 @[priority 100] -- see Note [lower instance priority]
 instance t2_space_discrete {α : Type*} [topological_space α] [discrete_topology α] : t2_space α :=
 { t2 := assume x y hxy, ⟨{x}, {y}, is_open_discrete _, is_open_discrete _, rfl, rfl,
   eq_empty_iff_forall_not_mem.2 $ by intros z hz;
     cases eq_of_mem_singleton hz.1; cases eq_of_mem_singleton hz.2; cc⟩ }
 
-private lemma separated_by_f {α : Type*} {β : Type*}
-  [tα : topological_space α] [tβ : topological_space β] [t2_space β]
-  (f : α → β) (hf : tα ≤ tβ.induced f) {x y : α} (h : f x ≠ f y) :
+lemma separated_by_continuous {α : Type*} {β : Type*}
+  [topological_space α] [topological_space β] [t2_space β]
+  {f : α → β} (hf : continuous f) {x y : α} (h : f x ≠ f y) :
   ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
 let ⟨u, v, uo, vo, xu, yv, uv⟩ := t2_separation h in
-⟨f ⁻¹' u, f ⁻¹' v, hf _ ⟨u, uo, rfl⟩, hf _ ⟨v, vo, rfl⟩, xu, yv,
+⟨f ⁻¹' u, f ⁻¹' v, uo.preimage hf, vo.preimage hf, xu, yv,
   by rw [←preimage_inter, uv, preimage_empty]⟩
 
+lemma separated_by_open_embedding {α β : Type*} [topological_space α] [topological_space β]
+  [t2_space α] {f : α → β} (hf : open_embedding f) {x y : α} (h : x ≠ y) :
+  ∃ u v : set β, is_open u ∧ is_open v ∧ f x ∈ u ∧ f y ∈ v ∧ u ∩ v = ∅ :=
+let ⟨u, v, uo, vo, xu, yv, uv⟩ := t2_separation h in
+⟨f '' u, f '' v, hf.is_open_map _ uo, hf.is_open_map _ vo,
+  mem_image_of_mem _ xu, mem_image_of_mem _ yv, by rw [image_inter hf.inj, uv, image_empty]⟩
+
 instance {α : Type*} {p : α → Prop} [t : topological_space α] [t2_space α] : t2_space (subtype p) :=
-⟨assume x y h,
-  separated_by_f subtype.val (le_refl _) (mt subtype.eq h)⟩
+⟨assume x y h, separated_by_continuous continuous_subtype_val (mt subtype.eq h)⟩
 
 instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
   [t₂ : topological_space β] [t2_space β] : t2_space (α × β) :=
 ⟨assume ⟨x₁,x₂⟩ ⟨y₁,y₂⟩ h,
   or.elim (not_and_distrib.mp (mt prod.ext_iff.mpr h))
-    (λ h₁, separated_by_f prod.fst inf_le_left h₁)
-    (λ h₂, separated_by_f prod.snd inf_le_right h₂)⟩
+    (λ h₁, separated_by_continuous continuous_fst h₁)
+    (λ h₂, separated_by_continuous continuous_snd h₂)⟩
 
-instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_space (β a)] [Πa, t2_space (β a)] :
+instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
+  [t₂ : topological_space β] [t2_space β] : t2_space (α ⊕ β) :=
+begin
+  constructor,
+  rintros (x|x) (y|y) h,
+  { replace h : x ≠ y := λ c, (c.subst h) rfl,
+    exact separated_by_open_embedding open_embedding_inl h },
+  { exact ⟨_, _, is_open_range_inl, is_open_range_inr, ⟨x, rfl⟩, ⟨y, rfl⟩,
+      range_inl_inter_range_inr⟩ },
+  { exact ⟨_, _, is_open_range_inr, is_open_range_inl, ⟨x, rfl⟩, ⟨y, rfl⟩,
+      range_inr_inter_range_inl⟩ },
+  { replace h : x ≠ y := λ c, (c.subst h) rfl,
+    exact separated_by_open_embedding open_embedding_inr h }
+end
+
+instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_space (β a)]
+  [∀a, t2_space (β a)] :
   t2_space (Πa, β a) :=
 ⟨assume x y h,
   let ⟨i, hi⟩ := not_forall.mp (mt funext h) in
-  separated_by_f (λz, z i) (infi_le _ i) hi⟩
+  separated_by_continuous (continuous_apply i) hi⟩
+
+instance sigma.t2_space {ι : Type*} {α : ι → Type*} [Πi, topological_space (α i)]
+  [∀a, t2_space (α a)] :
+  t2_space (Σi, α i) :=
+begin
+  constructor,
+  rintros ⟨i, x⟩ ⟨j, y⟩ neq,
+  rcases em (i = j) with (rfl|h),
+  { replace neq : x ≠ y := λ c, (c.subst neq) rfl,
+    exact separated_by_open_embedding open_embedding_sigma_mk neq },
+  { exact ⟨_, _, is_open_range_sigma_mk, is_open_range_sigma_mk, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩ }
+end
 
 variables [topological_space β]
 

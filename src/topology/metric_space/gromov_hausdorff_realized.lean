@@ -139,9 +139,9 @@ private lemma candidates_dist_bound  (fA : f ∈ candidates α β) :
 /-- Technical lemma to prove that candidates are Lipschitz -/
 private lemma candidates_lipschitz_aux (fA : f ∈ candidates α β) : f (x, y) - f (z, t) ≤ 2 * max_var α β * dist (x, y) (z, t) :=
 calc
-  f (x, y) - f(z, t) ≤ f (x, t) + f (t, y) - f (z, t) : add_le_add_right (candidates_triangle fA) _
+  f (x, y) - f(z, t) ≤ f (x, t) + f (t, y) - f (z, t) : sub_le_sub_right (candidates_triangle fA) _
   ... ≤ (f (x, z) + f (z, t) + f(t, y)) - f (z, t) :
-    add_le_add_right (add_le_add_right (candidates_triangle fA) _ ) _
+    sub_le_sub_right (add_le_add_right (candidates_triangle fA) _ ) _
   ... = f (x, z) + f (t, y) : by simp [sub_eq_add_neg, add_assoc]
   ... ≤ max_var α β * dist x z + max_var α β * dist t y :
     add_le_add (candidates_dist_bound fA) (candidates_dist_bound fA)

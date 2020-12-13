@@ -5,6 +5,7 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import tactic.nth_rewrite
 import data.matrix.basic
+import data.equiv.ring_aut
 import linear_algebra.tensor_product
 import ring_theory.subring
 import deprecated.subring
@@ -327,12 +328,11 @@ namespace opposite
 variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 
 instance : algebra R Aᵒᵖ :=
-{ smul := λ c x, op (c • unop x),
-  to_ring_hom := (algebra_map R A).to_opposite $ λ x y, algebra.commutes _ _,
-  smul_def' := λ c x, by dsimp; simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop],
-  commutes' := λ r, op_induction $ λ x, by dsimp; simp only [← op_mul, algebra.commutes] }
-
-@[simp] lemma op_smul (c : R) (a : A) : op (c • a) = c • op a := rfl
+{ to_ring_hom := (algebra_map R A).to_opposite $ λ x y, algebra.commutes _ _,
+  smul_def' := λ c x, unop_injective $
+    by { dsimp, simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop] },
+  commutes' := λ r, op_induction $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
+  ..opposite.has_scalar A R }
 
 @[simp] lemma algebra_map_apply (c : R) : algebra_map R Aᵒᵖ c = op (algebra_map R A c) := rfl
 
@@ -773,6 +773,15 @@ ext $ λ x, show e₁.to_linear_map x = e₂.to_linear_map x, by rw H
 
 @[simp] lemma trans_to_linear_map (f : A₁ ≃ₐ[R] A₂) (g : A₂ ≃ₐ[R] A₃) :
   (f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
+
+instance aut : group (A₁ ≃ₐ[R] A₁) :=
+{ mul := λ ϕ ψ, ψ.trans ϕ,
+  mul_assoc := λ ϕ ψ χ, rfl,
+  one := 1,
+  one_mul := λ ϕ, by { ext, refl },
+  mul_one := λ ϕ, by { ext, refl },
+  inv := symm,
+  mul_left_inv := λ ϕ, by { ext, exact symm_apply_apply ϕ a } }
 
 end semiring
 

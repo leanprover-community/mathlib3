@@ -21,26 +21,21 @@ section separation
 `finset`s are contained in disjoint open sets.
 -/
 def separate : finset α → finset α → Prop :=
-  λ (s t : finset α), disjoint s t → ∃ U V : (set α), (is_open U) ∧ is_open V ∧
+  λ (s t : finset α), ∃ U V : (set α), (is_open U) ∧ is_open V ∧
   (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V) ∧ disjoint U V
 
 lemma separate_symm (s t : finset α) : separate s t → separate t s :=
 begin
- intros h1 d,
- obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := h1 (disjoint.symm d),
- exact ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩
+  rintros ⟨U, V, oU, oV, aU, bV, UV⟩,
+  exact ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩
 end
 
 lemma separate_empty_right : ∀ {a : finset α}, separate a ∅ :=
-λ a d, ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
+λ a, ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
 
 lemma separate_union_of : ∀ {a b c : finset α}, separate a c → separate b c → separate (a ∪ b) c :=
 begin
-  intros a b c ac bc d,
-  obtain ⟨U, V, oU, oV, aU, bV, UV⟩ :=
-    ac (finset.disjoint_of_subset_left (finset.subset_union_left _ _) d),
-  obtain ⟨W, X, oW, oX, aW, bX, WX⟩ :=
-    bc (finset.disjoint_of_subset_left (finset.subset_union_right _ _) d),
+  rintros a b c ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
   refine ⟨U ∪ W, V ∩ X, is_open_union oU oW, is_open_inter oV oX,
     λ x xab, _, λ x xc, ⟨bV _ xc, bX _ xc⟩, _⟩,
   { cases finset.mem_union.mp xab with h h,
@@ -51,10 +46,25 @@ begin
       disjoint_of_subset_right (inter_subset_right _ _) WX⟩ },
 end
 
+lemma ne_of_separate_of_singletons {a b : α} : separate ({a} : finset α) {b} → a ≠ b :=
+begin
+  rintros ⟨U, V, oU, oV, aU, aV, UV⟩ rfl,
+  exact eq_empty_iff_forall_not_mem.mp (disjoint_iff_inter_eq_empty.mp UV) a
+    ⟨aU _ (finset.mem_singleton.mpr rfl), aV _ (finset.mem_singleton.mpr rfl)⟩,
+end
+
 lemma separate_of_singletons :
   (∀ a b, separate ({a} : finset α) {b}) → (∀ s t, separate (s : finset α) t) :=
 λ sep, finset.induction_on_union separate separate_symm (λ _, separate_empty_right)
   sep (λ _ _ _, separate_union_of)
+
+lemma separate_of_ne_singletons :
+  (∀ a b, a ≠ b → separate ({a} : finset α) {b}) → (∀ s t, separate (s : finset α) t) :=
+λ sep,
+begin
+  refine finset.induction_on_union separate separate_symm (λ _, separate_empty_right)
+  sep (λ _ _ _, separate_union_of)
+end
 
 /-- A T₀ space, also known as a Kolmogorov space, is a topological space
   where for every pair `x ≠ y`, there is an open set containing one but not the other. -/
@@ -224,13 +234,16 @@ lemma tendsto_nhds_unique' [t2_space α] {f : β → α} {l : filter β} {a b : 
   (hl : ne_bot l) (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
 eq_of_nhds_ne_bot $ ne_bot_of_le $ le_inf ha hb
 
-lemma separate_finset_of_t2 [t2_space α] : ∀ (s t : finset α), separate s t :=
+--lemma ne_of_separate_of_singletons (a b : α) : true :=
+
+lemma separate_finset_of_t2 [t2_space α] : ∀ (s t : finset α), disjoint s t → separate s t :=
 begin
+  intros s t st,
   apply separate_of_singletons,
-  intros a b d,
-  simp only [forall_eq, finset.mem_singleton, set.disjoint_iff_inter_eq_empty],
-  exact t2_separation
-    (finset.not_mem_singleton.mp (finset.disjoint_singleton.mp (disjoint.comm.mp d))),
+  intros a b,
+  have : a ≠ b,sorry,
+  obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation this,
+  refine ⟨U, V, oU, oV, by simpa, by simpa, disjoint_iff_inter_eq_empty.mpr UV⟩,
 end
 
 section lim

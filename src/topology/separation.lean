@@ -16,6 +16,46 @@ variables {α : Type u} {β : Type v} [topological_space α]
 
 section separation
 
+/--
+`separate` is a predicate on pairs of `finset`s of a topological space.  It holds if the two
+`finset`s are contained in disjoint open sets.
+-/
+def separate : finset α → finset α → Prop :=
+  λ (s t : finset α), disjoint s t → ∃ U V : (set α), (is_open U) ∧ is_open V ∧
+  (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V) ∧ disjoint U V
+
+lemma separate_symm (s t : finset α) : separate s t → separate t s :=
+begin
+ intros h1 d,
+ obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := h1 (disjoint.symm d),
+ exact ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩
+end
+
+lemma separate_empty_right : ∀ {a : finset α}, separate a ∅ :=
+λ a d, ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
+
+lemma separate_union_of : ∀ {a b c : finset α}, separate a c → separate b c → separate (a ∪ b) c :=
+begin
+  intros a b c ac bc d,
+  obtain ⟨U, V, oU, oV, aU, bV, UV⟩ :=
+    ac (finset.disjoint_of_subset_left (finset.subset_union_left _ _) d),
+  obtain ⟨W, X, oW, oX, aW, bX, WX⟩ :=
+    bc (finset.disjoint_of_subset_left (finset.subset_union_right _ _) d),
+  refine ⟨U ∪ W, V ∩ X, is_open_union oU oW, is_open_inter oV oX,
+    λ x xab, _, λ x xc, ⟨bV _ xc, bX _ xc⟩, _⟩,
+  { cases finset.mem_union.mp xab with h h,
+    { exact mem_union_left W (aU x h) },
+    { exact mem_union_right U (aW x h) } },
+  { apply set.disjoint_union_left.mpr,
+    exact ⟨disjoint_of_subset_right (inter_subset_left _ _) UV,
+      disjoint_of_subset_right (inter_subset_right _ _) WX⟩ },
+end
+
+lemma separate_of_singletons :
+  (∀ a b, separate ({a} : finset α) {b}) → (∀ s t, separate (s : finset α) t) :=
+λ sep, finset.induction_on_union separate separate_symm (λ _, separate_empty_right)
+  sep (λ _ _ _, separate_union_of)
+
 /-- A T₀ space, also known as a Kolmogorov space, is a topological space
   where for every pair `x ≠ y`, there is an open set containing one but not the other. -/
 class t0_space (α : Type u) [topological_space α] : Prop :=
@@ -184,51 +224,13 @@ lemma tendsto_nhds_unique' [t2_space α] {f : β → α} {l : filter β} {a b : 
   (hl : ne_bot l) (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
 eq_of_nhds_ne_bot $ ne_bot_of_le $ le_inf ha hb
 
-lemma not_mem_finset_opens_of_t2 [t2_space α] (s : finset α) : ∀ (x : α), x ∉ s →
-    ∃ U V : (set α), (is_open U) ∧ is_open V ∧ (∀ a : α, a ∈ s → a ∈ U) ∧ x ∈ V ∧ disjoint U V :=
+lemma separate_finset_of_t2 [t2_space α] : ∀ (s t : finset α), separate s t :=
 begin
-  generalize' hd : s.card = d,
-  refine finset.induction_on s _ _,
-  { refine λ _ _, ⟨∅, univ, is_open_empty, is_open_univ, λ x h, by cases h, mem_univ _, _⟩,
-    exact disjoint_univ.mpr rfl },
-  rintros a t ta hi x xt,
-  obtain ⟨U, V, oU, oV, xU, aV, UV⟩ := @t2_separation _ _ _ x a _,
-  { obtain ⟨Ui, Vi, oUi, oVi, xUi, aVi, UVi⟩ := hi x (λ hy, xt (finset.mem_insert_of_mem hy)),
-    refine ⟨V ∪ Ui, U ∩ Vi, is_open_union oV oUi, is_open_inter oU oVi, _, ⟨xU, aVi⟩, _⟩,
-    { intros f fi,
-      by_cases fa : f = a,
-      { rw fa, exact mem_union_left _ aV },
-      { exact mem_union_right V (xUi f (finset.mem_of_mem_insert_of_ne fi fa)) } },
-    { apply disjoint.union_left _ (disjoint_of_subset_right (inter_subset_right U Vi) UVi),
-      apply disjoint_of_subset_right (inter_subset_left U Vi) _,
-      rw set.inter_comm at UV,
-      exact set.disjoint_iff_inter_eq_empty.mpr UV } },
-  { exact (ne_of_mem_of_not_mem (finset.mem_insert_self a t) xt).symm },
-end
-
-lemma disjoint_finsets_opens_of_t2 [t2_space α] (s t : finset α) : disjoint s t →
-  ∃ U V : (set α), (is_open U) ∧ is_open V ∧ (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V)
-  ∧ disjoint U V :=
-begin
-  generalize' hd : t.card = d,
-  refine finset.induction_on t _ _,
-  { intros f,
-    refine ⟨univ, ∅, is_open_univ, is_open_empty, λ _ _, mem_univ _, λ a h, by cases h, _⟩,
-    exact univ_disjoint.mpr rfl },
-  { intros x S xS hi sxS,
-    obtain ⟨U, V, oU, oV, xU, yV, UV⟩ := hi
-      (finset.disjoint_of_subset_right (finset.subset_insert x S) sxS),
-    obtain ⟨Ui, Vi, oUi, oVi, xUi, aVi, UiVi⟩ := not_mem_finset_opens_of_t2 s x
-      (finset.disjoint_insert_right.mp sxS).1,
-    refine ⟨U ∩ Ui, V ∪ Vi, is_open_inter oU oUi, is_open_union oV oVi, _, _, _⟩,
-    { exact λ a as, ⟨xU a as, xUi a as⟩ },
-    { intros f fi,
-      by_cases fx : f = x,
-      { subst fx, exact mem_union_right _ aVi },
-      { exact mem_union_left Vi (yV f (finset.mem_of_mem_insert_of_ne fi fx)) } },
-    { apply disjoint.union_right,
-      { exact disjoint_of_subset_left (inter_subset_left U Ui) UV },
-      { exact disjoint_of_subset_left (inter_subset_right U Ui) UiVi } } },
+  apply separate_of_singletons,
+  intros a b d,
+  simp only [forall_eq, finset.mem_singleton, set.disjoint_iff_inter_eq_empty],
+  exact t2_separation
+    (finset.not_mem_singleton.mp (finset.disjoint_singleton.mp (disjoint.comm.mp d))),
 end
 
 section lim

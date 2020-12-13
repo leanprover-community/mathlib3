@@ -7,7 +7,16 @@ open set finset
 
 variables {α : Type*} [topological_space α]
 
-lemma finset.my_induction {X : Type*} (P : finset X → finset X → Prop)
+-- to data/finset/basic
+/--
+To prove a relation on pairs of `finset X`, it suffices to show that it is
+  * symmetric,
+  * it holds when one of the `finset`s is empty,
+  * it holds for pairs of singletons,
+  * if it holds for `[a, c]` and for `[b, c]`, then it holds for `[a ∪ b, c]`.
+-/
+/-
+lemma finset.induction_on_union {X : Type*} (P : finset X → finset X → Prop)
   (symm : ∀ {a b}, P a b → P b a)
   (empty_right : ∀ {a}, P a ∅)
   (singletons : ∀ {a b}, P {a} {b})
@@ -22,31 +31,31 @@ begin
   rw finset.insert_eq,
   exact union_of singletons (symm hi),
 end
+-/
 
-def dis : finset α → finset α → Prop :=
+variables {ff : Type*}
+
+-- to topology/separation
+/-
+/--
+`separate` is a predicate on pairs of `finset`s of a topological space.  It holds if the two
+`finset`s are contained in disjoint open sets.
+-/
+def separate : finset α → finset α → Prop :=
   λ (s t : finset α), disjoint s t → ∃ U V : (set α), (is_open U) ∧ is_open V ∧
   (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V) ∧ disjoint U V
 
-lemma dis_symm (s t : finset α) : dis s t → dis t s :=
+lemma separate_symm (s t : finset α) : separate s t → separate t s :=
 begin
  intros h1 d,
  obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := h1 (disjoint.symm d),
  exact ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩
 end
 
-lemma dis_empty_right : ∀ {a : finset α}, dis a ∅ :=
+lemma separate_empty_right : ∀ {a : finset α}, separate a ∅ :=
 λ a d, ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
 
-/-
-lemma dis_singletons [t2_space α] : ∀ {a b : α}, dis ({a} : finset α) {b} :=
-begin
-  intros a b d,
-  simp only [forall_eq, finset.mem_singleton, disjoint_iff_inter_eq_empty],
-  exact t2_separation (finset.not_mem_singleton.mp (finset.disjoint_singleton.mp (disjoint.comm.mp d))),
-end
--/
-
-lemma dis_union_of : ∀ {a b c : finset α}, dis a c → dis b c → dis (a ∪ b) c :=
+lemma separate_union_of : ∀ {a b c : finset α}, separate a c → separate b c → separate (a ∪ b) c :=
 begin
   intros a b c ac bc d,
   obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := ac (disjoint_of_subset_left (subset_union_left _ _) d),
@@ -61,9 +70,15 @@ begin
       disjoint_of_subset_right (inter_subset_right _ _) WX⟩ },
 end
 
-lemma disjoint_finset_t2 [t2_space α] : ∀ (s t : finset α), dis s t :=
+lemma separate_of_singletons :
+  (∀ a b, separate ({a} : finset α) {b}) → (∀ s t, separate (s : finset α) t) :=
+λ sep, finset.induction_on_union separate separate_symm (λ _, separate_empty_right)
+  sep (λ _ _ _, separate_union_of)
+-/
+
+lemma disjoint_finset_t2 [t2_space α] : ∀ (s t : finset α), separate s t :=
 begin
-  refine finset.my_induction dis dis_symm (λ _, dis_empty_right) _ (λ _ _ _, dis_union_of),
+  apply separate_of_singletons,
   intros a b d,
   simp only [forall_eq, finset.mem_singleton, set.disjoint_iff_inter_eq_empty],
   exact t2_separation

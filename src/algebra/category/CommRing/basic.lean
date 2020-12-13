@@ -38,6 +38,8 @@ instance : inhabited SemiRing := ⟨of punit⟩
 
 instance (R : SemiRing) : semiring R := R.str
 
+@[simp] lemma coe_of (R : Type u) [semiring R] : (SemiRing.of R : Type u) = R := rfl
+
 instance has_forget_to_Mon : has_forget₂ SemiRing Mon :=
 bundled_hom.mk_has_forget₂
   (λ R hR, @monoid_with_zero.to_monoid R (@semiring.to_monoid_with_zero R hR))
@@ -67,6 +69,8 @@ instance : inhabited Ring := ⟨of punit⟩
 
 instance (R : Ring) : ring R := R.str
 
+@[simp] lemma coe_of (R : Type u) [ring R] : (Ring.of R : Type u) = R := rfl
+
 instance has_forget_to_SemiRing : has_forget₂ Ring SemiRing := bundled_hom.forget₂ _ _
 instance has_forget_to_AddCommGroup : has_forget₂ Ring AddCommGroup :=
 -- can't use bundled_hom.mk_has_forget₂, since AddCommGroup is an induced category
@@ -91,6 +95,8 @@ def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
 instance : inhabited CommSemiRing := ⟨of punit⟩
 
 instance (R : CommSemiRing) : comm_semiring R := R.str
+
+@[simp] lemma coe_of (R : Type u) [comm_semiring R] : (CommSemiRing.of R : Type u) = R := rfl
 
 instance has_forget_to_SemiRing : has_forget₂ CommSemiRing SemiRing := bundled_hom.forget₂ _ _
 
@@ -117,6 +123,8 @@ def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 instance : inhabited CommRing := ⟨of punit⟩
 
 instance (R : CommRing) : comm_ring R := R.str
+
+@[simp] lemma coe_of (R : Type u) [comm_ring R] : (CommRing.of R : Type u) = R := rfl
 
 instance has_forget_to_Ring : has_forget₂ CommRing Ring := bundled_hom.forget₂ _ _
 

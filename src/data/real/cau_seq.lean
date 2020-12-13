@@ -30,7 +30,7 @@ open_locale big_operators
 
 /-- A function `f` is an absolute value if it is nonnegative, zero only at 0, additive, and
 multiplicative. -/
-class is_absolute_value {α} [discrete_linear_ordered_field α]
+class is_absolute_value {α} [linear_ordered_field α]
   {β} [ring β] (f : β → α) : Prop :=
 (abv_nonneg [] : ∀ x, 0 ≤ f x)
 (abv_eq_zero [] : ∀ {x}, f x = 0 ↔ x = 0)
@@ -38,7 +38,7 @@ class is_absolute_value {α} [discrete_linear_ordered_field α]
 (abv_mul [] : ∀ x y, f (x * y) = f x * f y)
 
 namespace is_absolute_value
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv]
 
 theorem abv_zero : abv 0 = 0 := (abv_eq_zero abv).2 rfl
@@ -91,7 +91,7 @@ by induction n; simp [abv_mul abv, pow_succ, abv_one abv, *]
 
 end is_absolute_value
 
-instance abs_is_absolute_value {α} [discrete_linear_ordered_field α] :
+instance abs_is_absolute_value {α} [linear_ordered_field α] :
   is_absolute_value (abs : α → α) :=
 { abv_nonneg  := abs_nonneg,
   abv_eq_zero := λ _, abs_eq_zero,
@@ -100,7 +100,6 @@ instance abs_is_absolute_value {α} [discrete_linear_ordered_field α] :
 
 open is_absolute_value
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem exists_forall_ge_and {α} [linear_order α] {P Q : α → Prop} :
   (∃ i, ∀ j ≥ i, P j) → (∃ i, ∀ j ≥ i, Q j) →
   ∃ i, ∀ j ≥ i, P j ∧ Q j
@@ -108,10 +107,9 @@ theorem exists_forall_ge_and {α} [linear_order α] {P Q : α → Prop} :
   ⟨c, λ j hj, ⟨h₁ _ (le_trans ac hj), h₂ _ (le_trans bc hj)⟩⟩
 
 section
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem rat_add_continuous_lemma
   {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : β},
   abv (a₁ - b₁) < δ → abv (a₂ - b₂) < δ → abv (a₁ + a₂ - (b₁ + b₂)) < ε :=
@@ -119,7 +117,6 @@ theorem rat_add_continuous_lemma
   by simpa [add_halves, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
     using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add h₁ h₂)⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem rat_mul_continuous_lemma
   {ε K₁ K₂ : α} (ε0 : 0 < ε) :
   ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : β}, abv a₁ < K₁ → abv b₂ < K₂ →
@@ -138,7 +135,6 @@ begin
     using lt_of_le_of_lt (abv_add abv _ _) this
 end
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem rat_inv_continuous_lemma
   {β : Type*} [field β] (abv : β → α) [is_absolute_value abv]
   {ε K : α} (ε0 : 0 < ε) (K0 : 0 < K) :
@@ -160,16 +156,16 @@ end
 end
 
 /-- A sequence is Cauchy if the distance between its entries tends to zero. -/
-def is_cau_seq {α : Type*} [discrete_linear_ordered_field α]
+def is_cau_seq {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) (f : ℕ → β) : Prop :=
 ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j - f i) < ε
 
 namespace is_cau_seq
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv] {f : ℕ → β}
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem cauchy₂ (hf : is_cau_seq abv f) {ε : α} (ε0 : ε > 0) :
+theorem cauchy₂ (hf : is_cau_seq abv f) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j k ≥ i, abv (f j - f k) < ε :=
 begin
   refine (hf _ (half_pos ε0)).imp (λ i hi j k ij ik, _),
@@ -178,8 +174,7 @@ begin
   rw abv_sub abv, exact hi _ ik
 end
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem cauchy₃ (hf : is_cau_seq abv f) {ε : α} (ε0 : ε > 0) :
+theorem cauchy₃ (hf : is_cau_seq abv f) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - f j) < ε :=
 let ⟨i, H⟩ := hf.cauchy₂ ε0 in ⟨i, λ j ij k jk, H _ _ (le_trans ij jk) ij⟩
 
@@ -187,12 +182,12 @@ end is_cau_seq
 
 /-- `cau_seq β abv` is the type of `β`-valued Cauchy sequences, with respect to the absolute value
 function `abv`. -/
-def cau_seq {α : Type*} [discrete_linear_ordered_field α]
+def cau_seq {α : Type*} [linear_ordered_field α]
   (β : Type*) [ring β] (abv : β → α) : Type* :=
 {f : ℕ → β // is_cau_seq abv f}
 
 namespace cau_seq
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
 
 section ring
 variables {β : Type*} [ring β] {abv : β → α}
@@ -207,9 +202,8 @@ subtype.eq (funext h)
 
 theorem is_cau (f : cau_seq β abv) : is_cau_seq abv f := f.2
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem cauchy (f : cau_seq β abv) :
-  ∀ {ε}, ε > 0 → ∃ i, ∀ j ≥ i, abv (f j - f i) < ε := f.2
+  ∀ {ε}, 0 < ε → ∃ i, ∀ j ≥ i, abv (f j - f i) < ε := f.2
 
 /-- Given a Cauchy sequence `f`, create a Cauchy sequence from a sequence `g` with
 the same values as `f`. -/
@@ -219,11 +213,10 @@ def of_eq (f : cau_seq β abv) (g : ℕ → β) (e : ∀ i, f i = g i) : cau_seq
 variable [is_absolute_value abv]
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem cauchy₂ (f : cau_seq β abv) {ε} : ε > 0 →
+theorem cauchy₂ (f : cau_seq β abv) {ε} : 0 < ε →
   ∃ i, ∀ j k ≥ i, abv (f j - f k) < ε := f.2.cauchy₂
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem cauchy₃ (f : cau_seq β abv) {ε} : ε > 0 →
+theorem cauchy₃ (f : cau_seq β abv) {ε} : 0 < ε →
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - f j) < ε := f.2.cauchy₃
 
 theorem bounded (f : cau_seq β abv) : ∃ r, ∀ i, abv (f i) < r :=
@@ -243,7 +236,6 @@ begin
     rw [add_sub, add_comm] at this, simpa }
 end
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem bounded' (f : cau_seq β abv) (x : α) : ∃ r > x, ∀ i, abv (f i) < r :=
 let ⟨r, h⟩ := f.bounded in
 ⟨max r (x+1), lt_of_lt_of_le (lt_add_one _) (le_max_right _ _),
@@ -346,7 +338,7 @@ by rw ← neg_one_mul; exact mul_lim_zero_right _ hf
 
 theorem sub_lim_zero {f g : cau_seq β abv}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f - g) :=
-add_lim_zero hf (neg_lim_zero hg)
+by simpa only [sub_eq_add_neg] using add_lim_zero hf (neg_lim_zero hg)
 
 theorem lim_zero_sub_rev {f g : cau_seq β abv} (hfg : lim_zero (f - g)) : lim_zero (g - f) :=
 by simpa using neg_lim_zero hfg
@@ -366,7 +358,23 @@ instance equiv : setoid (cau_seq β abv) :=
  λ f g h, by simpa using neg_lim_zero h,
  λ f g h fg gh, by simpa [sub_eq_add_neg, add_assoc] using add_lim_zero fg gh⟩⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma add_equiv_add {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
+  f1 + g1 ≈ f2 + g2 :=
+begin
+  change lim_zero ((f1 + g1) - _),
+  convert add_lim_zero hf hg using 1,
+  simp only [sub_eq_add_neg, add_assoc],
+  rw add_comm (-f2), simp only [add_assoc],
+  congr' 2, simp
+end
+
+lemma neg_equiv_neg {f g : cau_seq β abv} (hf : f ≈ g) : -f ≈ -g :=
+begin
+  have hf : lim_zero _ := neg_lim_zero hf,
+  show lim_zero (-f - -g),
+  convert hf using 1, simp
+end
+
 theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - g j) < ε :=
 (exists_forall_ge_and (h _ $ half_pos ε0) (f.cauchy₃ $ half_pos ε0)).imp $
@@ -378,7 +386,6 @@ theorem lim_zero_congr {f g : cau_seq β abv} (h : f ≈ g) : lim_zero f ↔ lim
 ⟨λ l, by simpa using add_lim_zero (setoid.symm h) l,
  λ l, by simpa using add_lim_zero h l⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem abv_pos_of_not_lim_zero {f : cau_seq β abv} (hf : ¬ lim_zero f) :
   ∃ K > 0, ∃ i, ∀ j ≥ i, K ≤ abv (f j) :=
 begin
@@ -424,7 +431,7 @@ have hg' : ¬ lim_zero g, by simpa using (show ¬ lim_zero (g - 0), from hg),
 begin
   rcases abv_pos_of_not_lim_zero hf' with ⟨a1, ha1, N1, hN1⟩,
   rcases abv_pos_of_not_lim_zero hg' with ⟨a2, ha2, N2, hN2⟩,
-  have : a1 * a2 > 0, from mul_pos ha1 ha2,
+  have : 0 < a1 * a2, from mul_pos ha1 ha2,
   cases hlz _ this with N hN,
   let i := max N (max N1 N2),
   have hN' := hN i (le_max_left _ _),
@@ -456,12 +463,12 @@ variables {β : Type*} [integral_domain β] (abv : β → α) [is_absolute_value
 
 lemma one_not_equiv_zero : ¬ (const abv 1) ≈ (const abv 0) :=
 assume h,
-have ∀ ε > 0, ∃ i, ∀ k, k ≥ i → abv (1 - 0) < ε, from h,
+have ∀ ε > 0, ∃ i, ∀ k, i ≤ k → abv (1 - 0) < ε, from h,
 have h1 : abv 1 ≤ 0, from le_of_not_gt $
-  assume h2 : abv 1 > 0,
+  assume h2 : 0 < abv 1,
   exists.elim (this _ h2) $ λ i hi,
     lt_irrefl (abv 1) $ by simpa using hi _ (le_refl _),
-have h2 : abv 1 ≥ 0, from is_absolute_value.abv_nonneg _ _,
+have h2 : 0 ≤ abv 1, from is_absolute_value.abv_nonneg _ _,
 have abv 1 = 0, from le_antisymm h1 h2,
 have (1 : β) = 0, from (is_absolute_value.abv_eq_zero abv).1 this,
 absurd this one_ne_zero
@@ -471,7 +478,6 @@ end integral_domain
 section field
 variables {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem inv_aux {f : cau_seq β abv} (hf : ¬ lim_zero f) :
   ∀ ε > 0, ∃ i, ∀ j ≥ i, abv ((f j)⁻¹ - (f i)⁻¹) < ε | ε ε0 :=
 let ⟨K, K0, HK⟩ := abv_pos_of_not_lim_zero hf,
@@ -560,6 +566,7 @@ instance : has_le (cau_seq α abs) := ⟨λ f g, f < g ∨ f ≈ g⟩
 
 theorem lt_of_lt_of_eq {f g h : cau_seq α abs}
   (fg : f < g) (gh : g ≈ h) : f < h :=
+show pos (h - f),
 by simpa [sub_eq_add_neg, add_comm, add_left_comm] using pos_add_lim_zero fg (neg_lim_zero gh)
 
 theorem lt_of_eq_of_lt {f g h : cau_seq α abs}
@@ -568,6 +575,7 @@ by have := pos_add_lim_zero gh (neg_lim_zero fg);
    rwa [← sub_eq_add_neg, sub_sub_sub_cancel_right] at this
 
 theorem lt_trans {f g h : cau_seq α abs} (fg : f < g) (gh : g < h) : f < h :=
+show pos (h - f),
 by simpa [sub_eq_add_neg, add_comm, add_left_comm] using add_pos fg gh
 
 theorem lt_irrefl {f : cau_seq α abs} : ¬ f < f

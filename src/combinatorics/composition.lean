@@ -10,8 +10,8 @@ import tactic.omega
 /-!
 # Compositions
 
-A composition of an integer `n` is a decomposition `n = i₀ + ... + i_{k-1}` of `n` into a sum of
-positive integers. Combinatorially, it corresponds to a decomposition of `{0, ..., n-1}` into
+A composition of a natural number `n` is a decomposition `n = i₀ + ... + i_{k-1}` of `n` into a sum
+of positive integers. Combinatorially, it corresponds to a decomposition of `{0, ..., n-1}` into
 non-empty blocks of consecutive integers, where the `iⱼ` are the lengths of the blocks.
 This notion is closely related to that of a partition of `n`, but in a composition of `n` the
 order of the `iⱼ`s matters.
@@ -196,8 +196,10 @@ monotone_sum_take _
 /-- The `i`-th boundary of a composition, i.e., the leftmost point of the `i`-th block. We include
 a virtual point at the right of the last block, to make for a nice equiv with
 `composition_as_set n`. -/
-def boundary : fin (c.length + 1) → fin (n+1) :=
-λ i, ⟨c.size_up_to i, nat.lt_succ_of_le (c.size_up_to_le i)⟩
+def boundary : fin (c.length + 1) ↪o fin (n+1) :=
+order_embedding.of_strict_mono (λ i, ⟨c.size_up_to i, nat.lt_succ_of_le (c.size_up_to_le i)⟩) $
+ fin.strict_mono_iff_lt_succ.2 $ λ i hi, c.size_up_to_strict_mono $
+   lt_of_add_lt_add_right hi
 
 @[simp] lemma boundary_zero : c.boundary 0 = 0 :=
 by simp [boundary, fin.ext_iff]
@@ -205,60 +207,48 @@ by simp [boundary, fin.ext_iff]
 @[simp] lemma boundary_last : c.boundary (fin.last c.length) = fin.last n :=
 by simp [boundary, fin.ext_iff]
 
-lemma strict_mono_boundary : strict_mono c.boundary :=
-begin
-  apply fin.strict_mono_iff_lt_succ.2 (λ i hi, _),
-  exact c.size_up_to_strict_mono ((add_lt_add_iff_right 1).mp hi)
-end
-
 /-- The boundaries of a composition, i.e., the leftmost point of all the blocks. We include
 a virtual point at the right of the last block, to make for a nice equiv with
 `composition_as_set n`. -/
 def boundaries : finset (fin (n+1)) :=
-finset.univ.image c.boundary
+finset.univ.map c.boundary.to_embedding
 
 lemma card_boundaries_eq_succ_length : c.boundaries.card = c.length + 1 :=
-begin
-  dsimp [boundaries],
-  rw finset.card_image_of_injective finset.univ c.strict_mono_boundary.injective,
-  simp
-end
+by simp [boundaries]
 
 /-- To `c : composition n`, one can associate a `composition_as_set n` by registering the leftmost
 point of each block, and adding a virtual point at the right of the last block. -/
 def to_composition_as_set : composition_as_set n :=
 { boundaries := c.boundaries,
   zero_mem := begin
-    simp only [boundaries, finset.mem_univ, exists_prop_of_true, finset.mem_image],
+    simp only [boundaries, finset.mem_univ, exists_prop_of_true, finset.mem_map],
     exact ⟨0, rfl⟩,
   end,
   last_mem := begin
-    simp only [boundaries, finset.mem_univ, exists_prop_of_true, finset.mem_image],
+    simp only [boundaries, finset.mem_univ, exists_prop_of_true, finset.mem_map],
     exact ⟨fin.last c.length, c.boundary_last⟩,
   end }
 
 /-- The canonical increasing bijection between `fin (c.length + 1)` and `c.boundaries` is
 exactly `c.boundary`. -/
 lemma mono_of_fin_boundaries :
-  c.boundary = finset.mono_of_fin c.boundaries c.card_boundaries_eq_succ_length :=
+  finset.mono_of_fin c.boundaries c.card_boundaries_eq_succ_length = c.boundary :=
 begin
-  apply finset.mono_of_fin_unique' _ _ c.strict_mono_boundary,
+  refine (finset.mono_of_fin_unique' _ _ c.boundary.strict_mono).symm,
   assume i hi,
   simp [boundaries, - set.mem_range, set.mem_range_self]
 end
 
 /-- Embedding the `i`-th block of a composition (identified with `fin (c.blocks_fun i)`) into
 `fin n` at the relevant position. -/
-def embedding (i : fin c.length) : fin (c.blocks_fun i) → fin n :=
-λ j, ⟨c.size_up_to i.1 + j.val,
-  calc c.size_up_to i.1 + j.val
-  < c.size_up_to i.1 + c.blocks.nth_le i.1 i.2 : add_lt_add_left j.2 _
-  ... = c.size_up_to (i.1 + 1) : (c.size_up_to_succ _).symm
-  ... ≤ n :
-    by { conv_rhs { rw ← c.size_up_to_length }, exact monotone_sum_take _ i.2 } ⟩
+def embedding (i : fin c.length) : fin (c.blocks_fun i) ↪o fin n :=
+(fin.nat_add $ c.size_up_to i).trans $ fin.cast_le $
+calc c.size_up_to i + c.blocks_fun i = c.size_up_to (i + 1) : (c.size_up_to_succ _).symm
+... ≤ c.size_up_to c.length : monotone_sum_take _ i.2
+... = n : c.size_up_to_length
 
-lemma embedding_injective (i : fin c.length) : function.injective (c.embedding i) :=
-λ a b hab, by simpa [embedding, fin.ext_iff] using hab
+@[simp] lemma coe_embedding (i : fin c.length) (j : fin (c.blocks_fun i)) :
+  (c.embedding i j : ℕ) = c.size_up_to i + j := rfl
 
 /--
 `index_exists` asserts there is some `i` so `j < c.size_up_to (i+1)`.
@@ -279,7 +269,7 @@ end
 def index (j : fin n) : fin c.length :=
 ⟨nat.find (c.index_exists j.2), (nat.find_spec (c.index_exists j.2)).2⟩
 
-lemma lt_size_up_to_index_succ (j : fin n) : j.val < c.size_up_to (c.index j).succ :=
+lemma lt_size_up_to_index_succ (j : fin n) : (j : ℕ) < c.size_up_to (c.index j).succ :=
 (nat.find_spec (c.index_exists j.2)).1
 
 lemma size_up_to_index_le (j : fin n) : c.size_up_to (c.index j) ≤ j :=
@@ -310,6 +300,9 @@ begin
   { exact size_up_to_index_le _ _ }
 end⟩
 
+@[simp] lemma coe_inv_embedding (j : fin n) :
+  (c.inv_embedding j : ℕ) = j - c.size_up_to (c.index j) := rfl
+
 lemma embedding_comp_inv (j : fin n) :
   c.embedding (c.index j) (c.inv_embedding j) = j :=
 begin
@@ -325,12 +318,12 @@ begin
   { assume h,
     rcases set.mem_range.2 h with ⟨k, hk⟩,
     rw fin.ext_iff at hk,
-    change c.size_up_to i + k.val = (j : ℕ) at hk,
+    change c.size_up_to i + k = (j : ℕ) at hk,
     rw ← hk,
-    simp [size_up_to_succ', k.2] },
+    simp [size_up_to_succ', k.is_lt] },
   { assume h,
     apply set.mem_range.2,
-    refine ⟨⟨j.val - c.size_up_to i, _⟩, _⟩,
+    refine ⟨⟨j - c.size_up_to i, _⟩, _⟩,
     { rw [nat.sub_lt_left_iff_lt_add, ← size_up_to_succ'],
       { exact h.2 },
       { exact h.1 } },
@@ -385,11 +378,8 @@ begin
 end
 
 lemma inv_embedding_comp (i : fin c.length) (j : fin (c.blocks_fun i)) :
-  (c.inv_embedding (c.embedding i j)).val = j.val :=
-begin
-  simp only [inv_embedding, index_embedding],
-  simp [embedding, fin.coe_eq_val, index_embedding]
-end
+  (c.inv_embedding (c.embedding i j) : ℕ) = j :=
+by simp_rw [coe_inv_embedding, index_embedding, coe_embedding, nat.add_sub_cancel_left]
 
 /-- Equivalence between the disjoint union of the blocks (each of them seen as
 `fin (c.blocks_fun i)`) with `fin n`. -/
@@ -437,8 +427,7 @@ instance {n : ℕ} : inhabited (composition n) :=
 @[simp] lemma ones_length (n : ℕ) : (ones n).length = n :=
 list.length_repeat 1 n
 
-@[simp] lemma ones_blocks (n : ℕ) : (ones n).blocks = repeat (1 : ℕ) n :=
-by simp only [blocks, ones, map_repeat]
+@[simp] lemma ones_blocks (n : ℕ) : (ones n).blocks = repeat (1 : ℕ) n := rfl
 
 @[simp] lemma ones_blocks_fun (n : ℕ) (i : fin (ones n).length) :
   (ones n).blocks_fun i = 1 :=
@@ -448,18 +437,14 @@ by simp [blocks_fun, ones, blocks, i.2]
 by simp [size_up_to, ones_blocks, take_repeat]
 
 @[simp] lemma ones_embedding (i : fin (ones n).length) (h : 0 < (ones n).blocks_fun i) :
-  (ones n).embedding i ⟨0, h⟩ = ⟨i.1, lt_of_lt_of_le i.2 (ones n).length_le⟩ :=
-begin
-  have : i.val < n, by { convert i.2, exact (ones_length n).symm },
-  simp [embedding, le_of_lt this]
-end
+  (ones n).embedding i ⟨0, h⟩ = ⟨i, lt_of_lt_of_le i.2 (ones n).length_le⟩ :=
+by { ext, simpa using i.2.le }
 
 lemma eq_ones_iff {c : composition n} :
   c = ones n ↔ ∀ i ∈ c.blocks, i = 1 :=
 begin
   split,
-  { assume H,
-    rw [H, ones_blocks],
+  { rintro rfl,
     exact λ i, eq_of_mem_repeat },
   { assume H,
     ext1,
@@ -471,9 +456,7 @@ end
 lemma ne_ones_iff {c : composition n} :
   c ≠ ones n ↔ ∃ i ∈ c.blocks, 1 < i :=
 begin
-  rw ← not_iff_not,
-  push_neg,
-  rw eq_ones_iff,
+  refine (not_congr eq_ones_iff).trans _,
   have : ∀ j ∈ c.blocks, j = 1 ↔ j ≤ 1 := λ j hj, by simp [le_antisymm_iff, c.one_le_blocks hj],
   simp [this] {contextual := tt}
 end
@@ -482,11 +465,9 @@ end
 def single (n : ℕ) (h : 0 < n) : composition n :=
 ⟨[n], by simp [h], by simp⟩
 
-@[simp] lemma single_length {n : ℕ} (h : 0 < n) : (single n h).length = 1 :=
-by simp [single, length]
+@[simp] lemma single_length {n : ℕ} (h : 0 < n) : (single n h).length = 1 := rfl
 
-@[simp] lemma single_blocks {n : ℕ} (h : 0 < n) : (single n h).blocks = [n] :=
-by simp [blocks, single]
+@[simp] lemma single_blocks {n : ℕ} (h : 0 < n) : (single n h).blocks = [n] := rfl
 
 @[simp] lemma single_blocks_fun {n : ℕ} (h : 0 < n) (i : fin (single n h).length) :
   (single n h).blocks_fun i = n :=
@@ -494,7 +475,7 @@ by simp [blocks_fun, single, blocks, i.2]
 
 @[simp] lemma single_embedding {n : ℕ} (h : 0 < n) (i : fin n) :
   (single n h).embedding ⟨0, single_length h ▸ zero_lt_one⟩ i = i :=
-by simp [embedding]
+by { ext, simp }
 
 lemma eq_single_iff {n : ℕ} {h : 0 < n} {c : composition n } :
   c = single n h ↔ c.length = 1 :=
@@ -634,10 +615,10 @@ Combinatorial viewpoints on compositions, seen as finite subsets of `fin (n+1)` 
 considering the restriction of the subset to `{1, ..., n-1}` and shifting to the left by one. -/
 def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n - 1)) :=
 { to_fun := λ c, {i : fin (n-1) |
-    (⟨1 + i.val, by { have := i.2, omega }⟩ : fin n.succ) ∈ c.boundaries}.to_finset,
+    (⟨1 + (i : ℕ), by { have := i.is_lt, omega }⟩ : fin n.succ) ∈ c.boundaries}.to_finset,
   inv_fun := λ s,
     { boundaries := {i : fin n.succ | (i = 0) ∨ (i = fin.last n)
-        ∨ (∃ (j : fin (n-1)) (hj : j ∈ s), i.val = j.val + 1)}.to_finset,
+        ∨ (∃ (j : fin (n-1)) (hj : j ∈ s), (i : ℕ) = j + 1)}.to_finset,
       zero_mem   := by simp,
       last_mem   := by simp },
   left_inv := begin
@@ -650,22 +631,22 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
       { exact c.zero_mem },
       { exact c.last_mem },
       { convert hj1, rwa fin.ext_iff } },
-    { simp only [classical.or_iff_not_imp_left],
+    { simp only [or_iff_not_imp_left],
       assume i_mem i_ne_zero i_ne_last,
       simp [fin.ext_iff] at i_ne_zero i_ne_last,
-      refine ⟨⟨i.val - 1, _⟩, _, _⟩,
-      { have : i.val < n + 1 := i.2, omega },
+      refine ⟨⟨i - 1, _⟩, _, _⟩,
+      { have : (i : ℕ) < n + 1 := i.2, omega },
       { convert i_mem, rw fin.ext_iff, simp, omega },
       { simp, omega } },
   end,
   right_inv := begin
     assume s,
     ext i,
-    have : 1 + i.val ≠ n,
-      by { apply ne_of_lt, have := i.2, omega },
-    simp only [fin.ext_iff, this, exists_prop, fin.val_zero, false_or, add_right_inj, add_comm,
-      set.mem_to_finset, true_or, add_eq_zero_iff, or_true, one_ne_zero, set.mem_set_of_eq,
-      fin.last_val, false_and],
+    have : 1 + (i : ℕ) ≠ n, by { apply ne_of_lt, have := i.is_lt, omega },
+    simp only [fin.ext_iff, exists_prop, fin.coe_zero, add_comm,
+      set.mem_to_finset, set.mem_set_of_eq, fin.coe_last],
+    erw [set.mem_set_of_eq],
+    simp only [this, false_or, add_right_inj, add_eq_zero_iff, one_ne_zero, false_and, fin.coe_mk],
     split,
     { rintros ⟨j, js, hj⟩, convert js, exact (fin.ext_iff _ _).2 hj },
     { assume h, exact ⟨i, h, rfl⟩ }
@@ -700,11 +681,11 @@ lemma card_boundaries_eq_succ_length : c.boundaries.card = c.length + 1 :=
 lemma length_lt_card_boundaries : c.length < c.boundaries.card :=
 by { rw c.card_boundaries_eq_succ_length, exact lt_add_one _ }
 
-lemma lt_length (i : fin c.length) : i.val + 1 < c.boundaries.card :=
+lemma lt_length (i : fin c.length) : (i : ℕ) + 1 < c.boundaries.card :=
 nat.add_lt_of_lt_sub_right i.2
 
-lemma lt_length' (i : fin c.length) : i.val < c.boundaries.card :=
-lt_of_le_of_lt (nat.le_succ i.val) (c.lt_length i)
+lemma lt_length' (i : fin c.length) : (i : ℕ) < c.boundaries.card :=
+lt_of_le_of_lt (nat.le_succ i) (c.lt_length i)
 
 /-- Canonical increasing bijection from `fin c.boundaries.card` to `c.boundaries`. -/
 def boundary : fin c.boundaries.card → fin (n+1) :=
@@ -712,23 +693,23 @@ finset.mono_of_fin c.boundaries rfl
 
 @[simp] lemma boundary_zero : c.boundary ⟨0, c.card_boundaries_pos⟩ = 0 :=
 begin
-  rw [boundary, finset.mono_of_fin_zero rfl c.boundaries_nonempty c.card_boundaries_pos],
-  exact le_antisymm (finset.min'_le _ _ _ c.zero_mem) (fin.zero_le _),
+  rw [boundary, finset.mono_of_fin_zero rfl c.card_boundaries_pos],
+  exact le_antisymm (finset.min'_le _ _ c.zero_mem) (fin.zero_le _),
 end
 
 @[simp] lemma boundary_length : c.boundary ⟨c.length, c.length_lt_card_boundaries⟩ = fin.last n :=
 begin
-  convert finset.mono_of_fin_last rfl c.boundaries_nonempty c.card_boundaries_pos,
-  exact le_antisymm (finset.le_max' _ _ _ c.last_mem) (fin.le_last _)
+  convert finset.mono_of_fin_last rfl c.card_boundaries_pos,
+  exact le_antisymm (finset.le_max' _ _ c.last_mem) (fin.le_last _)
 end
 
 /-- Size of the `i`-th block in a `composition_as_set`, seen as a function on `fin c.length`. -/
 def blocks_fun (i : fin c.length) : ℕ :=
-(c.boundary ⟨i.val + 1, c.lt_length i⟩).val - (c.boundary ⟨i.val, c.lt_length' i⟩).val
+(c.boundary ⟨(i : ℕ) + 1, c.lt_length i⟩) - (c.boundary ⟨i, c.lt_length' i⟩)
 
 lemma blocks_fun_pos (i : fin c.length) : 0 < c.blocks_fun i :=
 begin
-  have : (⟨i.val, c.lt_length' i⟩ : fin c.boundaries.card) < ⟨i.val + 1, c.lt_length i⟩ :=
+  have : (⟨i, c.lt_length' i⟩ : fin c.boundaries.card) < ⟨i + 1, c.lt_length i⟩ :=
     nat.lt_succ_self _,
   exact nat.lt_sub_left_of_add_lt (finset.mono_of_fin_strict_mono c.boundaries rfl this)
 end
@@ -757,7 +738,7 @@ begin
 end
 
 lemma mem_boundaries_iff_exists_blocks_sum_take_eq {j : fin (n+1)} :
-  j ∈ c.boundaries ↔ ∃ i < c.boundaries.card, (c.blocks.take i).sum = j.val :=
+  j ∈ c.boundaries ↔ ∃ i < c.boundaries.card, (c.blocks.take i).sum = j :=
 begin
   split,
   { assume hj,
@@ -767,7 +748,7 @@ begin
     refl },
   { rintros ⟨i, hi, H⟩,
     convert (c.boundaries.mono_of_fin_bij_on rfl).maps_to (set.mem_univ ⟨i, hi⟩),
-    have : c.boundary ⟨i, hi⟩ = j, by rwa [fin.ext_iff, ← fin.coe_eq_val, ← c.blocks_partial_sum hi],
+    have : c.boundary ⟨i, hi⟩ = j, by rwa [fin.ext_iff, ← c.blocks_partial_sum hi],
     exact this.symm }
 end
 
@@ -823,13 +804,11 @@ begin
   have i_lt' : i < c.boundaries.card := i_lt,
   have i_lt'' : i < c.length + 1, by rwa c.card_boundaries_eq_succ_length at i_lt',
   have A : finset.mono_of_fin d.boundaries rfl ⟨i, i_lt⟩
-    = finset.mono_of_fin c.boundaries rfl ⟨i, i_lt'⟩ := rfl,
+    = finset.mono_of_fin c.boundaries c.card_boundaries_eq_succ_length ⟨i, i_lt''⟩ := rfl,
   have B : c.size_up_to i = c.boundary ⟨i, i_lt''⟩ := rfl,
-  rw [d.blocks_partial_sum i_lt, composition_as_set.boundary, A, ← composition.size_up_to, B,
-      fin.coe_eq_val, fin.coe_eq_val, ← fin.ext_iff,
-      c.mono_of_fin_boundaries, finset.mono_of_fin_eq_mono_of_fin_iff]
+  rw [d.blocks_partial_sum i_lt, composition_as_set.boundary, ← composition.size_up_to, B,
+    A, c.mono_of_fin_boundaries],
 end
-
 
 @[simp] lemma composition_as_set.to_composition_blocks (c : composition_as_set n) :
   c.to_composition.blocks = c.blocks := rfl

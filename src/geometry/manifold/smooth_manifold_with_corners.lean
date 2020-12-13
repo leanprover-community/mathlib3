@@ -114,6 +114,7 @@ noncomputable theory
 universes u v w u' v' w'
 
 open set
+open_locale manifold
 
 localized "notation `∞` := (⊤ : with_top ℕ)" in manifold
 
@@ -150,6 +151,10 @@ def model_with_corners_self (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   unique_diff' := by { rw range_id, exact unique_diff_on_univ },
   continuous_to_fun  := continuous_id,
   continuous_inv_fun := continuous_id }
+
+localized "notation `𝓘(` 𝕜 `, ` E `)` := model_with_corners_self 𝕜 E" in manifold
+
+localized "notation `𝓘(` 𝕜 `)` := model_with_corners_self 𝕜 𝕜" in manifold
 
 section
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -226,7 +231,7 @@ end
 
 lemma model_with_corners.unique_diff_preimage {s : set H} (hs : is_open s) :
   unique_diff_on 𝕜 (I.symm ⁻¹' s ∩ range I) :=
-by { rw inter_comm, exact I.unique_diff.inter (I.continuous_inv_fun _ hs) }
+by { rw inter_comm, exact I.unique_diff.inter (hs.preimage I.continuous_inv_fun) }
 
 lemma model_with_corners.unique_diff_preimage_source {β : Type*} [topological_space β]
   {e : local_homeomorph H β} : unique_diff_on 𝕜 (I.symm ⁻¹' (e.source) ∩ range I) :=
@@ -378,7 +383,7 @@ pregroupoid.groupoid
       congr' 1,
       rw inter_comm },
     rw this at hv,
-    exact ⟨I.symm ⁻¹' v, I.continuous_symm _ v_open, by simpa, hv⟩
+    exact ⟨I.symm ⁻¹' v, v_open.preimage I.continuous_symm, by simpa, hv⟩
   end,
   congr    := λf g u hu fg hf, begin
     apply hf.congr,
@@ -488,28 +493,50 @@ end times_cont_diff_groupoid
 
 end model_with_corners
 
+section smooth_manifold_with_corners
+
 /-! ### Smooth manifolds with corners -/
+
+set_option old_structure_cmd true
 
 /-- Typeclass defining smooth manifolds with corners with respect to a model with corners, over a
 field `𝕜` and with infinite smoothness to simplify typeclass search and statements later on. -/
+@[ancestor has_groupoid]
 class smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (M : Type*) [topological_space M] [charted_space H M] extends
   has_groupoid M (times_cont_diff_groupoid ∞ I) : Prop
 
+lemma smooth_manifold_with_corners_of_times_cont_diff_on
+  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  (M : Type*) [topological_space M] [charted_space H M]
+  (h : ∀ (e e' : local_homeomorph M H), e ∈ atlas H M → e' ∈ atlas H M →
+    times_cont_diff_on 𝕜 ⊤ (I ∘ (e.symm ≫ₕ e') ∘ I.symm)
+      (I.symm ⁻¹' (e.symm ≫ₕ e').source ∩ range I)) :
+  smooth_manifold_with_corners I M :=
+{ compatible :=
+  begin
+    haveI : has_groupoid M (times_cont_diff_groupoid ∞ I) := has_groupoid_of_pregroupoid _ h,
+    apply structure_groupoid.compatible,
+  end }
+
 /-- For any model with corners, the model space is a smooth manifold -/
 instance model_space_smooth {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
   {I : model_with_corners 𝕜 E H} :
-  smooth_manifold_with_corners I H := {}
+  smooth_manifold_with_corners I H := { .. has_groupoid_model_space _ _ }
+
+end smooth_manifold_with_corners
 
 namespace smooth_manifold_with_corners
 /- We restate in the namespace `smooth_manifolds_with_corners` some lemmas that hold for general
 charted space with a structure groupoid, avoiding the need to specify the groupoid
 `times_cont_diff_groupoid ∞ I` explicitly. -/
 
-variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (M : Type*) [topological_space M] [charted_space H M]
@@ -519,11 +546,6 @@ model with corners `I`. -/
 def maximal_atlas := (times_cont_diff_groupoid ∞ I).maximal_atlas M
 
 variable {M}
-
-lemma compatible [smooth_manifold_with_corners I M]
-  {e e' : local_homeomorph M H} (he : e ∈ atlas H M) (he' : e' ∈ atlas H M) :
-  e.symm.trans e' ∈ times_cont_diff_groupoid ∞ I :=
-has_groupoid.compatible _ he he'
 
 lemma mem_maximal_atlas_of_mem_atlas [smooth_manifold_with_corners I M]
   {e : local_homeomorph M H} (he : e ∈ atlas H M) : e ∈ maximal_atlas I M :=
@@ -541,7 +563,7 @@ lemma compatible_of_mem_maximal_atlas
 structure_groupoid.compatible_of_mem_maximal_atlas he he'
 
 /-- The product of two smooth manifolds with corners is naturally a smooth manifold with corners. -/
-instance prod_smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+instance prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
   {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
@@ -625,7 +647,7 @@ begin
   rw [ext_chart_at, local_equiv.trans_target],
   simp only [function.comp_app, local_equiv.coe_trans, model_with_corners.target],
   refine inter_mem_nhds_within _
-    (mem_nhds_sets (I.continuous_symm _ (chart_at H x).open_target) _),
+    (mem_nhds_sets ((chart_at H x).open_target.preimage I.continuous_symm) _),
   simp only with mfld_simps
 end
 

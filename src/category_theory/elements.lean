@@ -76,6 +76,16 @@ def π : F.elements ⥤ C :=
 { obj := λ X, X.1,
   map := λ X Y f, f.val }
 
+/--
+A natural transformation between functors induces a functor between the categories of elements.
+-/
+@[simps]
+def map {F₁ F₂ : C ⥤ Type w} (α : F₁ ⟶ F₂) : F₁.elements ⥤ F₂.elements :=
+{ obj := λ t, ⟨t.1, α.app t.1 t.2⟩,
+  map := λ t₁ t₂ k, ⟨k.1, by simpa [←k.2] using (functor_to_types.naturality _ _ α k.1 t₁.2).symm⟩ }
+
+@[simp] lemma map_π {F₁ F₂ : C ⥤ Type w} (α : F₁ ⟶ F₂) : map α ⋙ π F₂ = π F₁ := rfl
+
 /-- The forward direction of the equivalence `F.elements ≅ (*, F)`. -/
 def to_comma : F.elements ⥤ comma (functor.from_punit punit) F :=
 { obj := λ X, { left := punit.star, right := X.1, hom := λ _, X.2 },

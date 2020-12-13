@@ -22,9 +22,9 @@ Define filters for other cardinalities of the complement.
 open set
 open_locale classical
 
-namespace filter
-
 variables {α : Type*}
+
+namespace filter
 
 /-- The cofinite filter is the filter of subsets whose complements are finite. -/
 def cofinite : filter α :=
@@ -49,9 +49,21 @@ end filter
 
 open filter
 
-lemma set.infinite_iff_frequently_cofinite {α : Type*} {s : set α} :
+lemma set.finite.compl_mem_cofinite {s : set α} (hs : s.finite) : sᶜ ∈ (@cofinite α) :=
+mem_cofinite.2 $ (compl_compl s).symm ▸ hs
+
+lemma set.finite.eventually_cofinite_nmem {s : set α} (hs : s.finite) : ∀ᶠ x in cofinite, x ∉ s :=
+hs.compl_mem_cofinite
+
+lemma finset.eventually_cofinite_nmem (s : finset α) : ∀ᶠ x in cofinite, x ∉ s :=
+s.finite_to_set.eventually_cofinite_nmem
+
+lemma set.infinite_iff_frequently_cofinite {s : set α} :
   set.infinite s ↔ (∃ᶠ x in cofinite, x ∈ s) :=
 frequently_cofinite_iff_infinite.symm
+
+lemma filter.eventually_cofinite_ne (x : α) : ∀ᶠ a in cofinite, a ≠ x :=
+(set.finite_singleton x).eventually_cofinite_nmem
 
 /-- For natural numbers the filters `cofinite` and `at_top` coincide. -/
 lemma nat.cofinite_eq_at_top : @cofinite ℕ = at_top :=
@@ -71,3 +83,7 @@ begin
     change n < N,
     exact lt_of_not_ge (λ hn', hn $ hN n hn') }
 end
+
+lemma nat.frequently_at_top_iff_infinite {p : ℕ → Prop} :
+  (∃ᶠ n in at_top, p n) ↔ set.infinite {n | p n} :=
+by simp only [← nat.cofinite_eq_at_top, frequently_cofinite_iff_infinite]

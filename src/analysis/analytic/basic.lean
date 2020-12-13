@@ -283,16 +283,16 @@ let ⟨pf, hpf⟩ := hf in hpf.neg.analytic_at
 lemma has_fpower_series_on_ball.sub
   (hf : has_fpower_series_on_ball f pf x r) (hg : has_fpower_series_on_ball g pg x r) :
   has_fpower_series_on_ball (f - g) (pf - pg) x r :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma has_fpower_series_at.sub
   (hf : has_fpower_series_at f pf x) (hg : has_fpower_series_at g pg x) :
   has_fpower_series_at (f - g) (pf - pg) x :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma analytic_at.sub (hf : analytic_at 𝕜 f x) (hg : analytic_at 𝕜 g x) :
   analytic_at 𝕜 (f - g) x :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma has_fpower_series_on_ball.coeff_zero (hf : has_fpower_series_on_ball f pf x r)
   (v : fin 0 → E) : pf 0 v = f x :=
@@ -522,7 +522,7 @@ begin
       = ∑ s : finset (fin n), nnnorm (p n) * ((nnnorm x) ^ (n - s.card) * r ^ s.card) :
         by simp [← mul_assoc]
       ... = nnnorm (p n) * (nnnorm x + r) ^ n :
-      by { rw [add_comm, ← finset.mul_sum, ← fin.sum_pow_mul_eq_add_pow], congr, ext1 s, ring }
+      by { rw [add_comm, ← finset.mul_sum, ← fin.sum_pow_mul_eq_add_pow], congr' with s : 1, ring }
     end
   ... ≤ (∑' (n : ℕ), (C * a ^ n : ennreal)) :
     tsum_le_tsum (λ n, by exact_mod_cast hC n) ennreal.summable ennreal.summable
@@ -537,7 +537,6 @@ lemma change_origin_summable_aux2 (h : (nnnorm x + r : ennreal) < p.radius) :
   @summable ℝ _ _ _ ((λ ⟨k, n, s, hs⟩, ∥(p n).restr s hs x∥ * ↑r ^ k) :
     (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :=
 begin
-  let γ : ℕ → Type* := λ k, (Σ (n : ℕ), {s : finset (fin n) // s.card = k}),
   let Bnorm : (Σ (n : ℕ), finset (fin n)) → ℝ := λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card,
   have SBnorm : summable Bnorm := p.change_origin_summable_aux1 h,
   let Anorm : (Σ (n : ℕ), finset (fin n)) → ℝ := λ ⟨n, s⟩, ∥(p n).restr s rfl x∥ * r ^ s.card,

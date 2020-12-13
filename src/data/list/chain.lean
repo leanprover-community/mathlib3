@@ -84,7 +84,7 @@ theorem chain_iff_pairwise (tr : transitive R) {a : α} {l : list α} :
   chain R a l ↔ pairwise R (a::l) :=
 ⟨λ c, begin
   induction c with b b c l r p IH, {exact pairwise_singleton _ _},
-  apply IH.cons _, simp only [mem_cons_iff, forall_mem_cons', r, true_and],
+  apply IH.cons _, simp only [mem_cons_iff, forall_eq_or_imp, r, true_and],
   show ∀ x ∈ l, R b x, from λ x m, (tr r (rel_of_pairwise_cons IH m)),
 end, chain_of_pairwise⟩
 
@@ -265,18 +265,32 @@ end
 
 /--
 Given a chain from `a` to `b`, and a predicate true at `b`, if `r x y → p y → p x` then
-the predicate is true at `a`.
+the predicate is true everywhere in the chain and at `a`.
 That is, we can propagate the predicate up the chain.
 -/
 lemma chain.induction {r : α → α → Prop} (p : α → Prop) {a b : α}
   (l : list α) (h : chain r a l)
   (hb : last (a :: l) (cons_ne_nil _ _) = b)
-  (carries : ∀ {x y : α}, r x y → p y → p x) (final : p b) : p a :=
+  (carries : ∀ ⦃x y : α⦄, r x y → p y → p x) (final : p b) : ∀ i ∈ a :: l, p i :=
 begin
   induction l generalizing a,
-  { cases hb, exact final },
+  { cases hb,
+    simp [final] },
   { rw chain_cons at h,
-    apply carries h.1 (l_ih h.2 hb) }
+    rintro _ (rfl | _),
+    apply carries h.1 (l_ih h.2 hb _ (or.inl rfl)),
+    apply l_ih h.2 hb _ H }
 end
+
+/--
+Given a chain from `a` to `b`, and a predicate true at `b`, if `r x y → p y → p x` then
+the predicate is true at `a`.
+That is, we can propagate the predicate all the way up the chain.
+-/
+lemma chain.induction_head {r : α → α → Prop} (p : α → Prop) {a b : α}
+  (l : list α) (h : chain r a l)
+  (hb : last (a :: l) (cons_ne_nil _ _) = b)
+  (carries : ∀ ⦃x y : α⦄, r x y → p y → p x) (final : p b) : p a :=
+(chain.induction p l h hb carries final) _ (mem_cons_self _ _)
 
 end list

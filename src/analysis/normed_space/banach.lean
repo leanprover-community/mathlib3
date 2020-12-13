@@ -32,7 +32,6 @@ Rescaling everything, it follows that any `y ∈ F` is arbitrarily well approach
 images of elements of norm at most `C * ∥y∥`.
 For further use, we will only need such an element whose image
 is within distance `∥y∥/2` of `y`, to apply an iterative process. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma exists_approx_preimage_norm_le (surj : surjective f) :
   ∃C ≥ 0, ∀y, ∃x, dist (f x) y ≤ 1/2 * ∥y∥ ∧ ∥x∥ ≤ C * ∥y∥ :=
 begin
@@ -53,12 +52,12 @@ begin
     exacts [inv_nonneg.2 (div_nonneg (le_of_lt εpos) (by norm_num)), n.cast_nonneg] },
   { by_cases hy : y = 0,
     { use 0, simp [hy] },
-    { rcases rescale_to_shell hc (half_pos εpos) hy with ⟨d, hd, ydle, leyd, dinv⟩,
+    { rcases rescale_to_shell hc (half_pos εpos) hy with ⟨d, hd, ydlt, leyd, dinv⟩,
       let δ := ∥d∥ * ∥y∥/4,
       have δpos : 0 < δ :=
         div_pos (mul_pos (norm_pos_iff.2 hd) (norm_pos_iff.2 hy)) (by norm_num),
       have : a + d • y ∈ ball a ε,
-        by simp [dist_eq_norm, lt_of_le_of_lt ydle (half_lt_self εpos)],
+        by simp [dist_eq_norm, lt_of_le_of_lt ydlt.le (half_lt_self εpos)],
       rcases metric.mem_closure_iff.1 (H this) _ δpos with ⟨z₁, z₁im, h₁⟩,
       rcases (mem_image _ _ _).1 z₁im with ⟨x₁, hx₁, xz₁⟩,
       rw ← xz₁ at h₁,
@@ -94,7 +93,7 @@ begin
         ... = ∥y∥/2 : by { rw [inv_mul_cancel, one_mul],  simp [norm_eq_zero, hd] }
         ... = (1/2) * ∥y∥ : by ring,
       rw ← dist_eq_norm at J,
-      have 𝕜 : ∥d⁻¹ • x∥ ≤ (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ := calc
+      have K : ∥d⁻¹ • x∥ ≤ (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ := calc
         ∥d⁻¹ • x∥ = ∥d∥⁻¹ * ∥x₁ - x₂∥ : by rw [norm_smul, normed_field.norm_inv]
         ... ≤ ((ε / 2)⁻¹ * ∥c∥ * ∥y∥) * (n + n) : begin
             refine mul_le_mul dinv _ (norm_nonneg _) _,
@@ -103,14 +102,13 @@ begin
               exact inv_nonneg.2 (le_of_lt (half_pos εpos)) }
           end
         ... = (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ : by ring,
-      exact ⟨d⁻¹ • x, J, 𝕜⟩ } },
+      exact ⟨d⁻¹ • x, J, K⟩ } },
 end
 
 variable [complete_space E]
 
 /-- The Banach open mapping theorem: if a bounded linear map between Banach spaces is onto, then
 any point has a preimage with controlled norm. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem exists_preimage_norm_le (surj : surjective f) :
   ∃C > 0, ∀y, ∃x, f x = y ∧ ∥x∥ ≤ C * ∥y∥ :=
 begin
@@ -158,7 +156,7 @@ begin
     ... = 2 * C * ∥y∥ + 0 : by rw [add_zero, mul_assoc]
     ... ≤ 2 * C * ∥y∥ + ∥y∥ : add_le_add (le_refl _) (norm_nonneg _)
     ... = (2 * C + 1) * ∥y∥ : by ring,
-  have fsumeq : ∀n:ℕ, f(∑ i in finset.range n, u i) = y - (h^[n]) y,
+  have fsumeq : ∀n:ℕ, f (∑ i in finset.range n, u i) = y - (h^[n]) y,
   { assume n,
     induction n with n IH,
     { simp [f.map_zero] },
@@ -213,6 +211,7 @@ namespace linear_equiv
 theorem continuous_symm (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   continuous e.symm :=
 begin
+  rw continuous_def,
   intros s hs,
   rw [← e.image_eq_preimage],
   rw [← e.coe_coe] at h ⊢,
@@ -227,6 +226,7 @@ def to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continu
 { continuous_to_fun := h,
   continuous_inv_fun := e.continuous_symm h,
   ..e }
+
 @[simp] lemma coe_fn_to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   ⇑(e.to_continuous_linear_equiv_of_continuous h) = e := rfl
 

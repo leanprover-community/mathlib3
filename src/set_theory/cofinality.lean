@@ -33,8 +33,8 @@ by { rw [order.cof, cardinal.le_min], exact ⟨λ H S h, H ⟨S, h⟩, λ H ⟨S
 
 end order
 
-theorem order_iso.cof.aux {α : Type u} {β : Type v} {r s}
-  [is_refl α r] [is_refl β s] (f : r ≃o s) :
+theorem rel_iso.cof.aux {α : Type u} {β : Type v} {r s}
+  [is_refl α r] [is_refl β s] (f : r ≃r s) :
   cardinal.lift.{u (max u v)} (order.cof r) ≤
   cardinal.lift.{v (max u v)} (order.cof s) :=
 begin
@@ -42,18 +42,18 @@ begin
   intro S, cases S with S H, simp [(∘)],
   refine le_trans (min_le _ _) _,
   { exact ⟨f ⁻¹' S, λ a,
-    let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, f.ord', h,
+    let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, f.map_rel_iff', h,
       -coe_fn_coe_base, -coe_fn_coe_trans, principal_seg.coe_coe_fn', initial_seg.coe_coe_fn]⟩⟩ },
   { exact lift_mk_le.{u v (max u v)}.2
     ⟨⟨λ ⟨x, h⟩, ⟨f x, h⟩, λ ⟨x, h₁⟩ ⟨y, h₂⟩ h₃,
       by congr; injection h₃ with h'; exact f.to_equiv.injective h'⟩⟩ }
 end
 
-theorem order_iso.cof {α : Type u} {β : Type v} {r s}
-  [is_refl α r] [is_refl β s] (f : r ≃o s) :
+theorem rel_iso.cof {α : Type u} {β : Type v} {r s}
+  [is_refl α r] [is_refl β s] (f : r ≃r s) :
   cardinal.lift.{u (max u v)} (order.cof r) =
   cardinal.lift.{v (max u v)} (order.cof s) :=
-le_antisymm (order_iso.cof.aux f) (order_iso.cof.aux f.symm)
+le_antisymm (rel_iso.cof.aux f) (rel_iso.cof.aux f.symm)
 
 def strict_order.cof (r : α → α → Prop) [h : is_irrefl α r] : cardinal :=
 @order.cof α (λ x y, ¬ r y x) ⟨h.1⟩
@@ -70,7 +70,7 @@ quot.lift_on o (λ ⟨α, r, _⟩, by exactI strict_order.cof r)
 begin
   rintros ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨⟨f, hf⟩⟩,
   rw ← cardinal.lift_inj,
-  apply order_iso.cof ⟨f, _⟩,
+  apply rel_iso.cof ⟨f, _⟩,
   simp [hf]
 end
 
@@ -107,7 +107,7 @@ begin
   { refine ⟨T, this,
       le_antisymm _ (cardinal.ord_le.2 $ cof_type_le T this)⟩,
     rw [← e, e'],
-    refine type_le'.2 ⟨order_embedding.of_monotone
+    refine type_le'.2 ⟨rel_embedding.of_monotone
       (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
     rcases a with ⟨a, aS, ha⟩, rcases b with ⟨b, bS, hb⟩,
     change s ⟨a, _⟩ ⟨b, _⟩,
@@ -185,7 +185,7 @@ end
   rcases cof_eq r with ⟨S, hl, e⟩, rw z at e,
   cases ne_zero_iff_nonempty.1 (by rw e; exact one_ne_zero) with a,
   refine ⟨typein r a, eq.symm $ quotient.sound
-    ⟨order_iso.of_surjective (order_embedding.of_monotone _
+    ⟨rel_iso.of_surjective (rel_embedding.of_monotone _
       (λ x y, _)) (λ x, _)⟩⟩,
   { apply sum.rec; [exact subtype.val, exact λ _, a] },
   { rcases x with x|⟨⟨⟨⟩⟩⟩; rcases y with y|⟨⟨⟨⟩⟩⟩;
@@ -228,7 +228,7 @@ induction_on a $ λ α r _, induction_on b $ λ β s _ b0, begin
         by injection h with h; congr; injection h } }
 end
 
-@[simp] theorem cof_cof (o : ordinal) : cof (cof o).ord = cof o :=
+@[simp] theorem cof_cof (o : ordinal) : cof (cof o).ord= cof o :=
 le_antisymm (le_trans (cof_le_card _) (by simp)) $
 induction_on o $ λ α r _, by exactI
 let ⟨S, hS, e₁⟩ := ord_cof_eq r,

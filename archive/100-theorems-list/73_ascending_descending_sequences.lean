@@ -104,7 +104,8 @@ begin
         refine ⟨_, _, _⟩,
         { rw mem_powerset, apply subset_univ },
         -- It ends at `j` since `i < j`.
-        { rw [max_insert, ht₁.2.1, option.lift_or_get_some_some, max_eq_left, with_top.some_eq_coe],
+        { convert max_insert,
+          rw [ht₁.2.1, option.lift_or_get_some_some, max_eq_left, with_top.some_eq_coe],
           apply le_of_lt ‹i < j› },
         -- To show it's increasing (i.e., `f` is monotone increasing on `t.insert j`), we do cases on
         -- what the possibilities could be - either in `t` or equals `j`.
@@ -116,9 +117,9 @@ begin
           apply not_le_of_lt (trans ‹i < j› ‹j < y›) (le_max_of_mem ‹y ∈ t› ‹i ∈ t.max›) },
         { apply lt_of_le_of_lt _ ‹f i < f j› <|> apply lt_of_lt_of_le ‹f j < f i› _,
           rcases lt_or_eq_of_le (le_max_of_mem ‹x ∈ t› ‹i ∈ t.max›) with _ | rfl,
-          { apply le_of_lt (ht₁.2.2 _ ‹x ∈ t› i (mem_of_max ‹i ∈ t.max›) ‹x < i›) },
+          { apply le_of_lt (ht₁.2.2 ‹x ∈ t› (mem_of_max ‹i ∈ t.max›) ‹x < i›) },
           { refl } },
-        { apply ht₁.2.2 _ ‹x ∈ t› _ ‹y ∈ t› ‹x < y› } },
+        { apply ht₁.2.2 ‹x ∈ t› ‹y ∈ t› ‹x < y› } },
       -- Finally show that this new subsequence is one longer than the old one.
       { rw [card_insert_of_not_mem, ht₂],
         intro _,

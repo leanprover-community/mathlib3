@@ -4,12 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
 import data.finset.sort
+import data.matrix.notation
 import linear_algebra.affine_space.combination
 import linear_algebra.basis
-
-noncomputable theory
-open_locale big_operators
-open_locale classical
 
 /-!
 # Affine independence
@@ -33,6 +30,9 @@ This file defines affinely independent families of points.
 
 -/
 
+noncomputable theory
+open_locale big_operators classical affine
+
 section affine_independent
 
 
@@ -46,10 +46,33 @@ nontrivial weighted subtractions (where the sum of weights is 0) are
 def affine_independent (p : ι → P) : Prop :=
 ∀ (s : finset ι) (w : ι → k), ∑ i in s, w i = 0 → s.weighted_vsub p w = (0:V) → ∀ i ∈ s, w i = 0
 
+/-- The definition of `affine_independent`. -/
+lemma affine_independent_def (p : ι → P) :
+  affine_independent k p ↔
+    ∀ (s : finset ι) (w : ι → k),
+      ∑ i in s, w i = 0 → s.weighted_vsub p w = (0 : V) → ∀ i ∈ s, w i = 0 :=
+iff.rfl
+
 /-- A family with at most one point is affinely independent. -/
 lemma affine_independent_of_subsingleton [subsingleton ι] (p : ι → P) :
   affine_independent k p :=
 λ s w h hs i hi, fintype.eq_of_subsingleton_of_sum_eq h i hi
+
+/-- A family indexed by a `fintype` is affinely independent if and
+only if no nontrivial weighted subtractions over `finset.univ` (where
+the sum of the weights is 0) are 0. -/
+lemma affine_independent_iff_of_fintype [fintype ι] (p : ι → P) :
+  affine_independent k p ↔
+    ∀ w : ι → k, ∑ i, w i = 0 → finset.univ.weighted_vsub p w = (0 : V) → ∀ i, w i = 0 :=
+begin
+  split,
+  { exact λ h w hw hs i, h finset.univ w hw hs i (finset.mem_univ _) },
+  { intros h s w hw hs i hi,
+    rw finset.weighted_vsub_indicator_subset _ _ (finset.subset_univ s) at hs,
+    rw set.sum_indicator_subset _ (finset.subset_univ s) at hw,
+    replace h := h ((↑s : set ι).indicator w) hw hs i,
+    simpa [hi] using h }
+end
 
 /-- A family is affinely independent if and only if the differences
 from a base point in that family are linearly independent. -/
@@ -102,12 +125,54 @@ begin
     exact finset.eq_zero_of_sum_eq_zero hw h2b i hi }
 end
 
+/-- A set is affinely independent if and only if the differences from
+a base point in that set are linearly independent. -/
+lemma affine_independent_set_iff_linear_independent_vsub {s : set P} {p₁ : P} (hp₁ : p₁ ∈ s) :
+  affine_independent k (λ p, p : s → P) ↔
+  linear_independent k (λ v, v : (λ p, (p -ᵥ p₁ : V)) '' (s \ {p₁}) → V) :=
+begin
+  rw affine_independent_iff_linear_independent_vsub k (λ p, p : s → P) ⟨p₁, hp₁⟩,
+  split,
+  { intro h,
+    have hv : ∀ v : (λ p, (p -ᵥ p₁ : V)) '' (s \ {p₁}), (v : V) +ᵥ p₁ ∈ s \ {p₁} :=
+      λ v, (set.mem_image_of_injective (vsub_left_injective p₁)).1
+             ((vadd_vsub (v : V) p₁).symm ▸ v.property),
+    let f : (λ p : P, (p -ᵥ p₁ : V)) '' (s \ {p₁}) → {x : s // x ≠ ⟨p₁, hp₁⟩} :=
+      λ x, ⟨⟨(x : V) +ᵥ p₁, set.mem_of_mem_diff (hv x)⟩,
+            λ hx, set.not_mem_of_mem_diff (hv x) (subtype.ext_iff.1 hx)⟩,
+    convert h.comp f
+      (λ x1 x2 hx, (subtype.ext (vadd_right_cancel p₁ (subtype.ext_iff.1 (subtype.ext_iff.1 hx))))),
+    ext v,
+    exact (vadd_vsub (v : V) p₁).symm },
+  { intro h,
+    let f : {x : s // x ≠ ⟨p₁, hp₁⟩} → (λ p : P, (p -ᵥ p₁ : V)) '' (s \ {p₁}) :=
+      λ x, ⟨((x : s) : P) -ᵥ p₁, ⟨x, ⟨⟨(x : s).property, λ hx, x.property (subtype.ext hx)⟩, rfl⟩⟩⟩,
+    convert h.comp f
+      (λ x1 x2 hx, subtype.ext (subtype.ext (vsub_left_cancel (subtype.ext_iff.1 hx)))) }
+end
+
+/-- A set of nonzero vectors is linearly independent if and only if,
+given a point `p₁`, the vectors added to `p₁` and `p₁` itself are
+affinely independent. -/
+lemma linear_independent_set_iff_affine_independent_vadd_union_singleton {s : set V}
+  (hs : ∀ v ∈ s, v ≠ (0 : V)) (p₁ : P) : linear_independent k (λ v, v : s → V) ↔
+  affine_independent k (λ p, p : {p₁} ∪ ((λ v, v +ᵥ p₁) '' s) → P) :=
+begin
+  rw affine_independent_set_iff_linear_independent_vsub k
+    (set.mem_union_left _ (set.mem_singleton p₁)),
+  have h : (λ p, (p -ᵥ p₁ : V)) '' (({p₁} ∪ (λ v, v +ᵥ p₁) '' s) \ {p₁}) = s,
+  { simp_rw [set.union_diff_left, set.image_diff (vsub_left_injective p₁), set.image_image,
+             set.image_singleton, vsub_self, vadd_vsub, set.image_id'],
+    exact set.diff_singleton_eq_self (λ h, hs 0 h rfl) },
+  rw h
+end
+
 /-- A family is affinely independent if and only if any affine
 combinations (with sum of weights 1) that evaluate to the same point
 have equal `set.indicator`. -/
 lemma affine_independent_iff_indicator_eq_of_affine_combination_eq (p : ι → P) :
   affine_independent k p ↔ ∀ (s1 s2 : finset ι) (w1 w2 : ι → k), ∑ i in s1, w1 i = 1 →
-    ∑ i in s2, w2 i = 1 → s1.affine_combination w1 p = s2.affine_combination w2 p →
+    ∑ i in s2, w2 i = 1 → s1.affine_combination p w1 = s2.affine_combination p w2 →
       set.indicator ↑s1 w1 = set.indicator ↑s2 w2 :=
 begin
   split,
@@ -129,13 +194,13 @@ begin
     let w1 : ι → k := function.update (function.const ι 0) i0 1,
     have hw1 : ∑ i in s, w1 i = 1,
     { rw [finset.sum_update_of_mem hi0, finset.sum_const_zero, add_zero] },
-    have hw1s : s.affine_combination w1 p = p i0 :=
+    have hw1s : s.affine_combination p w1 = p i0 :=
       s.affine_combination_of_eq_one_of_eq_zero w1 p hi0 (function.update_same _ _ _)
                                                 (λ _ _ hne, function.update_noteq hne _ _),
     let w2 := w + w1,
     have hw2 : ∑ i in s, w2 i = 1,
     { simp [w2, finset.sum_add_distrib, hw, hw1] },
-    have hw2s : s.affine_combination w2 p = p i0,
+    have hw2s : s.affine_combination p w2 = p i0,
     { simp [w2, ←finset.weighted_vsub_vadd_affine_combination, hs, hw1s] },
     replace ha := ha s s w2 w1 hw2 hw1 (hw1s.symm ▸ hw2s),
     have hws : w2 i0 - w1 i0 = 0,
@@ -145,6 +210,19 @@ begin
 end
 
 variables {k}
+
+/-- An affinely independent family is injective, if the underlying
+ring is nontrivial. -/
+lemma injective_of_affine_independent [nontrivial k] {p : ι → P} (ha : affine_independent k p) :
+  function.injective p :=
+begin
+  intros i j hij,
+  rw affine_independent_iff_linear_independent_vsub _ _ j at ha,
+  by_contra hij',
+  refine ha.ne_zero _,
+  { exact ⟨i, hij'⟩ },
+  { exact vsub_eq_zero_iff_eq.mpr hij },
+end
 
 /-- If a family is affinely independent, so is any subfamily given by
 composition of an embedding into index type with the original
@@ -164,7 +242,8 @@ begin
   { rw [←hw, finset.sum_map],
     simp [hw'] },
   have hs' : fs'.weighted_vsub p w' = (0:V),
-  { rw [←hs, finset.weighted_vsub_apply, finset.weighted_vsub_apply, finset.sum_map],
+  { rw [←hs, finset.weighted_vsub_map],
+    congr' with i,
     simp [hw'] },
   rw [←ha fs' w' hw's hs' (f i0) ((finset.mem_map' _).2 hi0), hw']
 end
@@ -174,6 +253,33 @@ by a subtype of the index type. -/
 lemma affine_independent_subtype_of_affine_independent {p : ι → P}
     (ha : affine_independent k p) (s : set ι) : affine_independent k (λ i : s, p i) :=
 affine_independent_embedding_of_affine_independent (function.embedding.subtype _) ha
+
+/-- If an indexed family of points is affinely independent, so is the
+corresponding set of points. -/
+lemma affine_independent_set_of_affine_independent {p : ι → P} (ha : affine_independent k p) :
+  affine_independent k (λ x, x : set.range p → P) :=
+begin
+  let f : set.range p → ι := λ x, x.property.some,
+  have hf : ∀ x, p (f x) = x := λ x, x.property.some_spec,
+  let fe : set.range p ↪ ι := ⟨f, λ x₁ x₂ he, subtype.ext (hf x₁ ▸ hf x₂ ▸ he ▸ rfl)⟩,
+  convert affine_independent_embedding_of_affine_independent fe ha,
+  ext,
+  simp [hf]
+end
+
+/-- If a set of points is affinely independent, so is any subset. -/
+lemma affine_independent_of_subset_affine_independent {s t : set P}
+  (ha : affine_independent k (λ x, x : t → P)) (hs : s ⊆ t) :
+  affine_independent k (λ x, x : s → P) :=
+affine_independent_embedding_of_affine_independent (set.embedding_of_subset s t hs) ha
+
+/-- If the range of an injective indexed family of points is affinely
+independent, so is that family. -/
+lemma affine_independent_of_affine_independent_set_of_injective {p : ι → P}
+  (ha : affine_independent k (λ x, x : set.range p → P)) (hi : function.injective p) :
+  affine_independent k p :=
+affine_independent_embedding_of_affine_independent
+  (⟨λ i, ⟨p i, set.mem_range_self _⟩, λ x y h, hi (subtype.mk_eq_mk.1 h)⟩ : ι ↪ set.range p) ha
 
 /-- If a family is affinely independent, and the spans of points
 indexed by two subsets of the index type have a point in common, those
@@ -239,6 +345,65 @@ by simp [ha]
 
 end affine_independent
 
+section field
+
+variables {k : Type*} {V : Type*} {P : Type*} [field k] [add_comm_group V] [module k V]
+variables [affine_space V P] {ι : Type*}
+include V
+
+/-- An affinely independent set of points can be extended to such a
+set that spans the whole space. -/
+lemma exists_subset_affine_independent_affine_span_eq_top {s : set P}
+  (h : affine_independent k (λ p, p : s → P)) :
+  ∃ t : set P, s ⊆ t ∧ affine_independent k (λ p, p : t → P) ∧ affine_span k t = ⊤ :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl | ⟨p₁, hp₁⟩,
+  { have p₁ : P := add_torsor.nonempty.some,
+    rcases exists_is_basis k V with ⟨sv, hsvi, hsvt⟩,
+    have h0 : ∀ v : V, v ∈ sv → v ≠ 0,
+    { intros v hv,
+      change ((⟨v, hv⟩ : sv) : V) ≠ 0,
+      exact hsvi.ne_zero },
+    rw linear_independent_set_iff_affine_independent_vadd_union_singleton k h0 p₁ at hsvi,
+    use [{p₁} ∪ (λ v, v +ᵥ p₁) '' sv, set.empty_subset _, hsvi,
+         affine_span_singleton_union_vadd_eq_top_of_span_eq_top p₁ hsvt] },
+  { rw affine_independent_set_iff_linear_independent_vsub k hp₁ at h,
+    rcases exists_subset_is_basis h with ⟨sv, hsv, hsvi, hsvt⟩,
+    have h0 : ∀ v : V, v ∈ sv → v ≠ 0,
+    { intros v hv,
+      change ((⟨v, hv⟩ : sv) : V) ≠ 0,
+      exact hsvi.ne_zero },
+    rw linear_independent_set_iff_affine_independent_vadd_union_singleton k h0 p₁ at hsvi,
+    use {p₁} ∪ (λ v, v +ᵥ p₁) '' sv,
+    split,
+    { refine set.subset.trans _ (set.union_subset_union_right _ (set.image_subset _ hsv)),
+      simp [set.image_image] },
+    { use [hsvi, affine_span_singleton_union_vadd_eq_top_of_span_eq_top p₁ hsvt] } }
+end
+
+variables (k)
+
+/-- Two different points are affinely independent. -/
+lemma affine_independent_of_ne {p₁ p₂ : P} (h : p₁ ≠ p₂) : affine_independent k ![p₁, p₂] :=
+begin
+  rw affine_independent_iff_linear_independent_vsub k ![p₁, p₂] 0,
+  let i₁ : {x // x ≠ (0 : fin 2)} := ⟨1, dec_trivial⟩,
+  have he' : ∀ i, i = i₁,
+  { rintro ⟨i, hi⟩,
+    ext,
+    fin_cases i,
+    { simpa using hi } },
+  haveI : unique {x // x ≠ (0 : fin 2)} := ⟨⟨i₁⟩, he'⟩,
+  have hz : (![p₁, p₂] ↑(default {x // x ≠ (0 : fin 2)}) -ᵥ ![p₁, p₂] 0 : V) ≠ 0,
+  { rw he' (default _),
+    intro he,
+    rw vsub_eq_zero_iff_eq at he,
+    exact h he.symm },
+  exact linear_independent_unique hz
+end
+
+end field
+
 namespace affine
 
 variables (k : Type*) {V : Type*} (P : Type*) [ring k] [add_comm_group V] [module k V]
@@ -280,8 +445,7 @@ variables {k V}
 begin
   cases s1,
   cases s2,
-  congr,
-  ext i,
+  congr' with i,
   exact h i
 end
 
@@ -308,6 +472,91 @@ rfl
   s.face (finset.card_singleton i) = mk_of_point k (s.points i) :=
 by { ext, simp [face_points] }
 
+/-- The set of points of a face. -/
+@[simp] lemma range_face_points {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))}
+  {m : ℕ} (h : fs.card = m + 1) : set.range (s.face h).points = s.points '' ↑fs :=
+begin
+  rw [face, set.range_comp],
+  simp
+end
+
 end simplex
 
+end affine
+
+namespace affine
+namespace simplex
+
+variables {k : Type*} {V : Type*} {P : Type*} [division_ring k]
+          [add_comm_group V] [module k V] [affine_space V P]
+include V
+
+/-- The centroid of a face of a simplex as the centroid of a subset of
+the points. -/
+@[simp] lemma face_centroid_eq_centroid {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))}
+  {m : ℕ} (h : fs.card = m + 1) :
+  finset.univ.centroid k (s.face h).points = fs.centroid k s.points :=
+begin
+  convert (finset.univ.centroid_map k ⟨fs.mono_of_fin h, fs.mono_of_fin_injective h⟩ s.points).symm,
+  rw [←finset.coe_inj, finset.coe_map, function.embedding.coe_fn_mk],
+  simp
+end
+
+/-- Over a characteristic-zero division ring, the centroids given by
+two subsets of the points of a simplex are equal if and only if those
+faces are given by the same subset of points. -/
+@[simp] lemma centroid_eq_iff [char_zero k] {n : ℕ} (s : simplex k P n)
+  {fs₁ fs₂ : finset (fin (n + 1))} {m₁ m₂ : ℕ} (h₁ : fs₁.card = m₁ + 1) (h₂ : fs₂.card = m₂ + 1) :
+  fs₁.centroid k s.points = fs₂.centroid k s.points ↔ fs₁ = fs₂ :=
+begin
+  split,
+  { intro h,
+    rw [finset.centroid_eq_affine_combination_fintype,
+        finset.centroid_eq_affine_combination_fintype] at h,
+    have ha := (affine_independent_iff_indicator_eq_of_affine_combination_eq k s.points).1
+      s.independent _ _ _ _ (fs₁.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₁)
+      (fs₂.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₂) h,
+    simp_rw [finset.coe_univ, set.indicator_univ, function.funext_iff,
+             finset.centroid_weights_indicator_def, finset.centroid_weights, h₁, h₂] at ha,
+    ext i,
+    replace ha := ha i,
+    split,
+    all_goals
+    { intro hi,
+      by_contradiction hni,
+      simp [hi, hni] at ha,
+      norm_cast at ha } },
+  { intro h,
+    have hm : m₁ = m₂,
+    { subst h,
+      simpa [h₁] using h₂ },
+    subst hm,
+    congr,
+    exact h }
+end
+
+/-- Over a characteristic-zero division ring, the centroids of two
+faces of a simplex are equal if and only if those faces are given by
+the same subset of points. -/
+lemma face_centroid_eq_iff [char_zero k] {n : ℕ} (s : simplex k P n)
+  {fs₁ fs₂ : finset (fin (n + 1))} {m₁ m₂ : ℕ} (h₁ : fs₁.card = m₁ + 1) (h₂ : fs₂.card = m₂ + 1) :
+  finset.univ.centroid k (s.face h₁).points = finset.univ.centroid k (s.face h₂).points ↔
+    fs₁ = fs₂ :=
+begin
+  rw [face_centroid_eq_centroid, face_centroid_eq_centroid],
+  exact s.centroid_eq_iff h₁ h₂
+end
+
+/-- Two simplices with the same points have the same centroid. -/
+lemma centroid_eq_of_range_eq {n : ℕ} {s₁ s₂ : simplex k P n}
+  (h : set.range s₁.points = set.range s₂.points) :
+  finset.univ.centroid k s₁.points = finset.univ.centroid k s₂.points :=
+begin
+  rw [←set.image_univ, ←set.image_univ, ←finset.coe_univ] at h,
+  exact finset.univ.centroid_eq_of_inj_on_of_image_eq k _
+    (λ _ _ _ _ he, injective_of_affine_independent s₁.independent he)
+    (λ _ _ _ _ he, injective_of_affine_independent s₂.independent he) h
+end
+
+end simplex
 end affine

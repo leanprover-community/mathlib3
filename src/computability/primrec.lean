@@ -103,19 +103,16 @@ theorem mul : primrec (unpaired (*)) :=
 
 theorem pow : primrec (unpaired (^)) :=
 (prec (const 1) (mul.comp (pair (right.comp right) left))).of_eq $
-λ p, by simp; induction p.unpair.2; simp [*, nat.pow_succ]
+λ p, by simp; induction p.unpair.2; simp [*, pow_succ']
 
 end primrec
 
 end nat
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `primcodable` type is an `encodable` type for which
   the encode/decode functions are primitive recursive. -/
 class primcodable (α : Type*) extends encodable α :=
 (prim [] : nat.primrec (λ n, encodable.encode (decode n)))
-end prio
 
 namespace primcodable
 open nat.primrec
@@ -1114,7 +1111,7 @@ begin
   exactI (iff.trans (by refl) subtype_val_iff).trans (of_equiv_iff _)
 end
 
-theorem fin_val {n} : primrec (@fin.val n) := fin_val_iff.2 primrec.id
+theorem fin_val {n} : primrec (coe : fin n → ℕ) := fin_val_iff.2 primrec.id
 
 theorem fin_succ {n} : primrec (@fin.succ n) :=
 fin_val_iff.1 $ by simp [succ.comp fin_val]
@@ -1191,7 +1188,7 @@ inductive primrec' : ∀ {n}, (vector ℕ n → ℕ) → Prop
   primrec' (λ a, f (of_fn (λ i, g i a)))
 | prec {n f g} : @primrec' n f → @primrec' (n+2) g →
   primrec' (λ v : vector ℕ (n+1),
-    v.head.elim (f v.tail) (λ y IH, g (y :: IH :: v.tail)))
+    v.head.elim (f v.tail) (λ y IH, g (y ::ᵥ IH ::ᵥ v.tail)))
 
 end nat
 
@@ -1237,7 +1234,7 @@ protected theorem nil {n} : @vec n 0 (λ _, nil) := λ i, i.elim0
 
 protected theorem cons {n m f g}
   (hf : @primrec' n f) (hg : @vec n m g) :
-  vec (λ v, f v :: g v) :=
+  vec (λ v, (f v ::ᵥ g v)) :=
 λ i, fin.cases (by simp *) (λ i, by simp [hg i]) i
 
 theorem idv {n} : @vec n n id := nth
@@ -1260,7 +1257,7 @@ by simpa using hf.comp' (hg.cons $ hh.cons primrec'.nil)
 theorem prec' {n f g h}
   (hf : @primrec' n f) (hg : @primrec' n g) (hh : @primrec' (n+2) h) :
   @primrec' n (λ v, (f v).elim (g v)
-    (λ (y IH : ℕ), h (y :: IH :: v))) :=
+    (λ (y IH : ℕ), h (y ::ᵥ IH ::ᵥ v))) :=
 by simpa using comp' (prec hg hh) (hf.cons idv)
 
 theorem pred : @primrec' 1 (λ v, v.head.pred) :=

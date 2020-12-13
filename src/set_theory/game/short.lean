@@ -108,7 +108,7 @@ attribute [class] list_short
 attribute [instance] list_short.nil list_short.cons
 
 instance list_short_nth_le : Π (L : list pgame.{u}) [list_short L] (i : fin (list.length L)),
-  short (list.nth_le L (i.val) i.is_lt)
+  short (list.nth_le L i i.is_lt)
 | [] _ n := begin exfalso, rcases n with ⟨_, ⟨⟩⟩, end
 | (hd :: tl) (@list_short.cons _ S _ _) ⟨0, _⟩ := S
 | (hd :: tl) (@list_short.cons _ _ _ S) ⟨n+1, h⟩ :=
@@ -116,7 +116,9 @@ instance list_short_nth_le : Π (L : list pgame.{u}) [list_short L] (i : fin (li
 
 instance short_of_lists : Π (L R : list pgame) [list_short L] [list_short R],
   short (pgame.of_lists L R)
-| L R _ _ := by { resetI, apply short.mk; { intros, apply_instance } }
+| L R _ _ := by { resetI, apply short.mk,
+  { intros, apply_instance },
+  { intros, apply pgame.list_short_nth_le /- where does the subtype.val come from? -/ } }
 
 /-- If `x` is a short game, and `y` is a relabelling of `x`, then `y` is also short. -/
 def short_of_relabelling : Π {x y : pgame.{u}} (R : relabelling x y) (S : short x), short y

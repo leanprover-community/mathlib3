@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import algebra.big_operators.order
 import group_theory.coset
 import data.nat.totient
+import data.int.gcd
 import data.set.finite
 
 open function
@@ -80,12 +81,11 @@ lemma exists_gpow_eq_one (a : α) : ∃i≠0, a ^ (i:ℤ) = 1 :=
 have ¬ injective (λi:ℤ, a ^ i),
   from not_injective_infinite_fintype _,
 let ⟨i, j, a_eq, ne⟩ := show ∃(i j : ℤ), a ^ i = a ^ j ∧ i ≠ j,
-  by rw [injective] at this; simpa [classical.not_forall] in
+  by rw [injective] at this; simpa [not_forall] in
 have a ^ (i - j) = 1,
   by simp [sub_eq_add_neg, gpow_add, gpow_neg, a_eq],
 ⟨i - j, sub_ne_zero.mpr ne, this⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma exists_pow_eq_one (a : α) : ∃i > 0, a ^ i = 1 :=
 let ⟨i, hi, eq⟩ := exists_gpow_eq_one a in
 begin
@@ -170,7 +170,7 @@ calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : 
   assume a,
   suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
   { simpa [nat.lt_succ_iff], },
-  exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, _root_.one_pow],
+  exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, one_pow],
     λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
 end))
 
@@ -216,8 +216,6 @@ have ft_s : fintype (gpowers a),
   from @fintype.fintype_prod_right _ _ _ ft_prod _,
 have ft_cosets : fintype (quotient (gpowers a)),
   from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, (gpowers a).one_mem⟩⟩,
-have ft : fintype (quotient (gpowers a) × (gpowers a)),
-  from @prod.fintype _ _ ft_cosets ft_s,
 have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
   from calc fintype.card α = @fintype.card _ ft_prod :
       @fintype.card_congr _ _ _ ft_prod group_equiv_quotient_times_subgroup
@@ -254,7 +252,7 @@ lemma order_of_pow (a : α) (n : ℕ) : order_of (a ^ n) = order_of a / gcd (ord
 dvd_antisymm
   (order_of_dvd_of_pow_eq_one
     (by rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
-      nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, _root_.one_pow]))
+      nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow]))
   (have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos a),
     have hdvd : order_of a ∣ n * order_of (a ^ n),
       from order_of_dvd_of_pow_eq_one (by rw [pow_mul, pow_order_of_eq_one]),
@@ -272,14 +270,9 @@ open_locale classical
 
 lemma pow_gcd_card_eq_one_iff {n : ℕ} {a : α} :
   a ^ n = 1 ↔ a ^ (gcd n (fintype.card α)) = 1 :=
-⟨λ h, have hn : order_of a ∣ n, from dvd_of_mod_eq_zero $
-      by_contradiction (λ ha, by rw pow_eq_mod_order_of at h;
-        exact (not_le_of_gt (nat.mod_lt n (order_of_pos a)))
-          (order_of_le_of_pow_eq_one (nat.pos_of_ne_zero ha) h)),
-    let ⟨m, hm⟩ := dvd_gcd hn order_of_dvd_card_univ in
-    by rw [hm, pow_mul, pow_order_of_eq_one, _root_.one_pow],
+⟨λ h, pow_gcd_eq_one _ h $ pow_card_eq_one _,
   λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card α) in
-    by rw [hm, pow_mul, h, _root_.one_pow]⟩
+    by rw [hm, pow_mul, h, one_pow]⟩
 
 end
 
@@ -309,6 +302,31 @@ lemma is_cyclic_of_order_of_eq_card [group α] [decidable_eq α] [fintype α]
 ⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le
   (set.subset_univ _)
   (by {rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers], refl})⟩⟩
+
+lemma is_cyclic_of_prime_card [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
+  (h : fintype.card α = p) : is_cyclic α :=
+⟨begin
+  obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1,
+  from fintype.exists_ne_of_one_lt_card (by { rw h, exact nat.prime.one_lt hp }) 1,
+  have : fintype.card (subgroup.gpowers g) ∣ p,
+  { rw ←h,
+    apply card_subgroup_dvd_card },
+  rw nat.dvd_prime hp at this,
+  cases this,
+  { rw fintype.card_eq_one_iff at this,
+    cases this with t ht,
+    suffices : g = 1,
+    { contradiction },
+    have hgt := ht ⟨g, by { change g ∈ subgroup.gpowers g, exact subgroup.mem_gpowers g }⟩,
+    rw [←ht 1] at hgt,
+    change (⟨_, _⟩ : subgroup.gpowers g) = ⟨_, _⟩ at hgt,
+    simpa using hgt },
+  { use g,
+    intro x,
+    rw [←h] at this,
+    rw subgroup.eq_top_of_card_eq _ this,
+    exact subgroup.mem_top _ }
+end⟩
 
 lemma order_of_eq_card_of_forall_mem_gpowers [group α] [decidable_eq α] [fintype α]
   {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=

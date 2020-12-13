@@ -36,7 +36,7 @@ open matrix
 
 universes u v
 
-variables {k l m n : Type u}
+variables {k l m n : Type*}
 variables [fintype k] [fintype l] [fintype m] [fintype n]
 variables {α : Type v}
 
@@ -70,11 +70,10 @@ lemma matrix_mul_apply [semiring α] [decidable_eq n] (M : matrix l m α) (f : m
 begin
   dsimp [to_matrix, matrix.mul_apply],
   cases h : f.symm j with fj,
-  { simp [h, f.eq_some_iff.symm] },
-  { conv in (_ ∈ _) { rw ← f.mem_iff_mem },
-    rw finset.sum_eq_single fj,
-    { simp [h, f.eq_some_iff.symm], },
-    { intros b H n, simp [h, f.eq_some_iff.symm, n.symm], },
+  { simp [h, ← f.eq_some_iff] },
+  { rw finset.sum_eq_single fj,
+    { simp [h, ← f.eq_some_iff], },
+    { intros b H n, simp [h, ← f.eq_some_iff, n.symm], },
     { simp, } }
 end
 
@@ -101,7 +100,7 @@ begin
   assume f g,
   refine not_imp_not.1 _,
   simp only [matrix.ext_iff.symm, to_matrix, pequiv.ext_iff,
-    classical.not_forall, exists_imp_distrib],
+    not_forall, exists_imp_distrib],
   assume i hi,
   use i,
   cases hf : f i with fi,

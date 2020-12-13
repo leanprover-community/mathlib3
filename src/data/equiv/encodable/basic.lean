@@ -7,7 +7,7 @@ Type class for encodable Types.
 Note that every encodable Type is countable.
 -/
 import data.equiv.nat
-import order.order_iso
+import order.rel_iso
 import order.directed
 
 open option list nat function
@@ -292,10 +292,10 @@ def up (a : ulower α) : α := (equiv α).symm a
 @[simp] lemma up_down {a : α} : (down a).up = a := equiv.left_inv _ _
 
 @[simp] lemma up_eq_up {a b : ulower α} : a.up = b.up ↔ a = b :=
-equiv.apply_eq_iff_eq _ _ _
+equiv.apply_eq_iff_eq _
 
 @[simp] lemma down_eq_down {a b : α} : down a = down b ↔ a = b :=
-equiv.apply_eq_iff_eq _ _ _
+equiv.apply_eq_iff_eq _
 
 @[ext] protected lemma ext {a b : ulower α} : a.up = b.up → a = b :=
 up_eq_up.1
@@ -358,11 +358,11 @@ def encode' (α) [encodable α] : α ↪ nat :=
 ⟨encodable.encode, encodable.encode_injective⟩
 
 instance {α} [encodable α] : is_trans _ (encode' α ⁻¹'o (≤)) :=
-(order_embedding.preimage _ _).is_trans
+(rel_embedding.preimage _ _).is_trans
 instance {α} [encodable α] : is_antisymm _ (encodable.encode' α ⁻¹'o (≤)) :=
-(order_embedding.preimage _ _).is_antisymm
+(rel_embedding.preimage _ _).is_antisymm
 instance {α} [encodable α] : is_total _ (encodable.encode' α ⁻¹'o (≤)) :=
-(order_embedding.preimage _ _).is_total
+(rel_embedding.preimage _ _).is_total
 
 end encodable
 

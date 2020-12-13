@@ -368,19 +368,19 @@ hf.elim (λ hf, hf.neg.is_extr) (λ hf, hf.neg.is_extr)
 
 lemma is_min_filter.sub (hf : is_min_filter f l a) (hg : is_max_filter g l a) :
   is_min_filter (λ x, f x - g x) l a :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma is_max_filter.sub (hf : is_max_filter f l a) (hg : is_min_filter g l a) :
   is_max_filter (λ x, f x - g x) l a :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma is_min_on.sub (hf : is_min_on f s a) (hg : is_max_on g s a) :
   is_min_on (λ x, f x - g x) s a :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma is_max_on.sub (hf : is_max_on f s a) (hg : is_min_on g s a) :
   is_max_on (λ x, f x - g x) s a :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 end ordered_add_comm_group
 
@@ -436,9 +436,9 @@ end semilattice_inf
 
 /-! ### Pointwise `min`/`max` -/
 
-section decidable_linear_order
+section linear_order
 
-variables [decidable_linear_order β] {f g : α → β} {a : α} {s : set α} {l : filter α}
+variables [linear_order β] {f g : α → β} {a : α} {s : set α} {l : filter α}
 
 lemma is_min_filter.min (hf : is_min_filter f l a) (hg : is_min_filter g l a) :
   is_min_filter (λ x, min (f x) (g x)) l a :=
@@ -476,7 +476,7 @@ lemma is_max_on.max (hf : is_max_on f s a) (hg : is_max_on g s a) :
   is_max_on (λ x, max (f x) (g x)) s a :=
 hf.max hg
 
-end decidable_linear_order
+end linear_order
 
 section eventually
 

@@ -35,6 +35,8 @@ def of (X : Type u) [topological_space X] : Top := ⟨X⟩
 
 instance (X : Top) : topological_space X := X.str
 
+@[simp] lemma coe_of (X : Type u) [topological_space X] : (of X : Type u) = X := rfl
+
 instance : inhabited Top := ⟨Top.of empty⟩
 
 /-- The discrete topology on any type. -/

@@ -43,6 +43,14 @@ extends linear_ordered_field α, has_norm α, metric_space α :=
 [normed_linear_ordered_field α] : normed_linear_ordered_group α :=
 ⟨normed_linear_ordered_field.dist_eq⟩
 
+noncomputable
+instance : normed_linear_ordered_field ℚ :=
+⟨dist_eq_norm, normed_field.norm_mul⟩
+
+noncomputable
+instance : normed_linear_ordered_field ℝ :=
+⟨dist_eq_norm, normed_field.norm_mul⟩
+
 lemma tendsto_pow_div_pow_at_top_of_lt {α : Type*} [normed_linear_ordered_field α]
   [order_topology α] {p q : ℕ} (hpq : p < q) :
   tendsto (λ (x : α), x^p / x^q) at_top (𝓝 0) :=
@@ -56,11 +64,23 @@ begin
   exact @tendsto_pow_neg_at_top α _ _ (by apply_instance) _ this,
 end
 
-lemma is_o_pow_pow_at_top_of_lt {α : Type*} [normed_linear_ordered_field α]
+lemma asymptotics.is_o_pow_pow_at_top_of_lt {α : Type*} [normed_linear_ordered_field α]
   [order_topology α] {p q : ℕ} (hpq : p < q) :
   is_o (λ (x : α), x^p) (λ (x : α), x^q) at_top :=
 begin
   refine (is_o_iff_tendsto' _).mpr (tendsto_pow_div_pow_at_top_of_lt hpq),
   rw eventually_iff_exists_mem,
   exact ⟨Ioi 0, Ioi_mem_at_top 0, λ x (hx : 0 < x) hxq, (pow_ne_zero q hx.ne.symm hxq).elim⟩,
+end
+
+lemma asymptotics.is_O.trans_tendsto_norm_at_top {α β : Type*} [normed_linear_ordered_field β]
+  {u v : α → β} {l : filter α} (huv : is_O u v l)
+  (hu : tendsto (λ x, ∥u x∥) l at_top) :
+  tendsto (λ x, ∥v x∥) l at_top :=
+begin
+  rcases huv.exists_pos with ⟨c, hc, hcuv⟩,
+  rw is_O_with at hcuv,
+  convert tendsto_at_top_div hc (tendsto_at_top_mono' l hcuv hu),
+  ext x,
+  rw mul_div_cancel_left _ hc.ne.symm,
 end

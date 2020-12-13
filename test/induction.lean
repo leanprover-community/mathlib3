@@ -3,6 +3,10 @@ import tactic.linarith
 
 universes u v w
 
+--------------------------------------------------------------------------------
+-- Setup: Some Inductive Types
+--------------------------------------------------------------------------------
+
 inductive le : ℕ → ℕ → Type
 | zero {n} : le 0 n
 | succ {n m} : le n m → le (n + 1) (m + 1)
@@ -46,6 +50,12 @@ inductive Two : Type | zero | one
 
 inductive ℕ' : Type
 | intro : ℕ → ℕ'
+
+
+--------------------------------------------------------------------------------
+-- Unit Tests
+--------------------------------------------------------------------------------
+
 
 example (k) : 0 + k = k :=
 begin
@@ -414,7 +424,7 @@ begin
   { exact (or.inr nota) }
 end
 
--- Cases'/induction' can add an equation witnessing the case split they
+-- Cases'/induction' can add an equation witnessing the case split it
 -- performed. Again, a highly synthetic example:
 example {α} (xs : list α)
   : xs.reverse.length = 0 ∨ ∃ m, xs.reverse.length = m + 1 :=
@@ -507,9 +517,14 @@ end
 
 end rose
 
+
 --------------------------------------------------------------------------------
--- Jasmin's original use cases
+-- Logical Verification Use Cases
 --------------------------------------------------------------------------------
+
+-- The following examples were graciously provided by Jasmin Blanchette. They
+-- are taken from his course 'Logical Verification'.
+
 
 /- Head induction for transitive closure -/
 
@@ -571,6 +586,7 @@ have accufact_eq_fact_mul : ∀m a, accufact a m = nat.factorial m * a :=
       cc }
   end,
 by simp [accufact_eq_fact_mul n 1]
+
 
 /- Substitution -/
 
@@ -641,6 +657,7 @@ begin
 end
 
 end less_than
+
 
 /- Sortedness -/
 

@@ -76,6 +76,7 @@ instance : inhabited (ordnode α) := ⟨nil⟩
 @[inline, reducible] def node' (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 node (size l + size r + 1) l x r
 
+/-- Basic pretty printing for `ordnode α` that shows the structure of the tree. -/
 def repr {α} [has_repr α] : ordnode α → string
 | nil := "∅"
 | (node _ l x r) := "(" ++ repr l ++ " " ++ _root_.repr x ++ " " ++ repr r ++ ")"

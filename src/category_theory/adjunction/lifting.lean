@@ -161,7 +161,7 @@ calc (construct_left_adjoint_obj _ _ adj₁ adj₂ X ⟶ Y)
 /-- Construct the left adjoint to `R`, with object map `construct_left_adjoint_obj`. -/
 noncomputable def construct_left_adjoint [∀ (X : B), regular_epi (adj₁.counit.app X)] : B ⥤ A :=
 begin
-  refine adjunction.left_adjoint_of_equiv (λ X Y, construct_left_adjoint_equiv R F' adj₁ adj₂ Y X) _,
+  refine adjunction.left_adjoint_of_equiv (λ X Y, construct_left_adjoint_equiv R _ adj₁ adj₂ Y X) _,
   intros X Y Y' g h,
   rw [construct_left_adjoint_equiv_apply, construct_left_adjoint_equiv_apply, function.comp_app,
       function.comp_app, equiv.trans_apply, equiv.trans_apply, equiv.trans_apply, equiv.trans_apply,

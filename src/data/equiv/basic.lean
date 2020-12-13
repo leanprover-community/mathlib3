@@ -187,7 +187,9 @@ e.left_inv x
 @[simp] lemma symm_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) :
   (f.trans g).symm a = f.symm (g.symm a) := rfl
 
-@[simp] theorem symm_symm_apply (f : α ≃ β) (b : α) : f.symm.symm b = f b := rfl
+-- The `simp` attribute is needed to make this a `dsimp` lemma.
+-- `simp` will always rewrite with `equiv.symm_symm` before this has a chance to fire.
+@[simp, nolint simp_nf] theorem symm_symm_apply (f : α ≃ β) (b : α) : f.symm.symm b = f b := rfl
 
 @[simp] theorem apply_eq_iff_eq (f : α ≃ β) {x y : α} : f x = f y ↔ x = y :=
 f.injective.eq_iff
@@ -1588,6 +1590,30 @@ begin
   by_cases hj : k = j, { rw [hj, swap_apply_right, hv] },
   rw swap_apply_of_ne_of_ne hi hj,
 end
+
+namespace perm
+
+@[simp] lemma sum_congr_swap_refl {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : α) :
+  equiv.perm.sum_congr (equiv.swap i j) (equiv.refl β) = equiv.swap (sum.inl i) (sum.inl j) :=
+begin
+  ext x,
+  cases x,
+  { simp [sum.map, swap_apply_def],
+    split_ifs; refl},
+  { simp [sum.map, swap_apply_of_ne_of_ne] },
+end
+
+@[simp] lemma sum_congr_refl_swap {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : β) :
+  equiv.perm.sum_congr (equiv.refl α) (equiv.swap i j) = equiv.swap (sum.inr i) (sum.inr j) :=
+begin
+  ext x,
+  cases x,
+  { simp [sum.map, swap_apply_of_ne_of_ne] },
+  { simp [sum.map, swap_apply_def],
+    split_ifs; refl},
+end
+
+end perm
 
 /-- Augment an equivalence with a prescribed mapping `f a = b` -/
 def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=

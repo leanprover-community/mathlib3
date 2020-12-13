@@ -413,6 +413,8 @@ protected lemma bijective (e : r ≃r s) : bijective e := e.to_equiv.bijective
 protected lemma injective (e : r ≃r s) : injective e := e.to_equiv.injective
 protected lemma surjective (e : r ≃r s) : surjective e := e.to_equiv.surjective
 
+@[simp] lemma range_eq (e : r ≃r s) : set.range e = set.univ := e.surjective.range_eq
+
 /-- Any equivalence lifts to a relation isomorphism between `s` and its preimage. -/
 protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃r s := ⟨f, λ a b, iff.rfl⟩
 
@@ -502,6 +504,8 @@ protected lemma bijective (e : α ≃o β) : bijective e := e.to_equiv.bijective
 protected lemma injective (e : α ≃o β) : injective e := e.to_equiv.injective
 protected lemma surjective (e : α ≃o β) : surjective e := e.to_equiv.surjective
 
+@[simp] lemma range_eq (e : α ≃o β) : set.range e = set.univ := e.surjective.range_eq
+
 @[simp] lemma apply_eq_iff_eq (e : α ≃o β) {x y : α} : e x = e y ↔ x = y :=
 e.to_equiv.apply_eq_iff_eq
 
@@ -551,13 +555,37 @@ have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_
   right_inv := by { intro, rw [←cmp_eq_eq_iff, ←h, cmp_self_eq_eq] },
   map_rel_iff' := by { intros, apply le_iff_le_of_cmp_eq_cmp, convert h _ _, apply gf } }
 
-/-- A strictly monotone surjective function from a linear order is an order isomorphism. -/
-noncomputable def of_strict_mono_surjective {α β} [linear_order α] [preorder β] (f : α → β)
-  (h_mono : strict_mono f) (h_surj : surjective f) : α ≃o β :=
-{ to_equiv := equiv.of_bijective f ⟨h_mono.injective, h_surj⟩,
-  .. order_embedding.of_strict_mono f h_mono }
+/-- Order isomorphism between two equal sets. -/
+def set_congr (s t : set α) (h : s = t) : s ≃o t :=
+{ to_equiv := equiv.set_congr h,
+  map_rel_iff' := λ x y, iff.rfl }
+
+/-- Order isomorphism between `univ : set α` and `α`. -/
+def set.univ : (set.univ : set α) ≃o α :=
+{ to_equiv := equiv.set.univ α,
+  map_rel_iff' := λ x y, iff.rfl }
 
 end order_iso
+
+/-- If a function `f` is strictly monotone on a set `s`, then it defines an order isomorphism
+between `s` and its image. -/
+protected noncomputable def strict_mono_incr_on.order_iso {α β} [linear_order α] [preorder β]
+  (f : α → β) (s : set α) (hf : strict_mono_incr_on f s) :
+  s ≃o f '' s :=
+{ to_equiv := hf.inj_on.bij_on_image.equiv _,
+  map_rel_iff' := λ x y, iff.symm $ hf.le_iff_le x.2 y.2 }
+
+/-- A strictly monotone function from a linear order is an order isomorphism between its domain and
+its range. -/
+protected noncomputable def strict_mono.order_iso {α β} [linear_order α] [preorder β] (f : α → β)
+  (h_mono : strict_mono f) : α ≃o set.range f :=
+{ to_equiv := equiv.set.range f h_mono.injective,
+  map_rel_iff' := λ a b, h_mono.le_iff_le.symm }
+
+/-- A strictly monotone surjective function from a linear order is an order isomorphism. -/
+noncomputable def strict_mono.order_iso_of_surjective {α β} [linear_order α] [preorder β]
+  (f : α → β) (h_mono : strict_mono f) (h_surj : surjective f) : α ≃o β :=
+(h_mono.order_iso f).trans $ (order_iso.set_congr _ _ h_surj.range_eq).trans order_iso.set.univ
 
 /-- A subset `p : set α` embeds into `α` -/
 def set_coe_embedding {α : Type*} (p : set α) : p ↪ α := ⟨subtype.val, @subtype.eq _ _⟩

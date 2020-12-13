@@ -300,8 +300,10 @@ variables [add_group α] [add_group β] (f : α → β) [is_add_group_hom f]
 
 /-- Additive group homomorphisms commute with subtraction. -/
 lemma map_sub (a b) : f (a - b) = f a - f b :=
-calc f (a + -b) = f a + f (-b) : is_add_hom.map_add f _ _
-            ... = f a + -f b   : by rw [map_neg f]
+calc f (a - b) = f (a + -b)   : congr_arg f (sub_eq_add_neg a b)
+           ... = f a + f (-b) : is_add_hom.map_add f _ _
+           ... = f a + -f b   : by rw [map_neg f]
+           ... = f a - f b    : (sub_eq_add_neg _ _).symm
 
 end is_add_group_hom
 
@@ -311,7 +313,7 @@ homomorphism if the target is commutative. -/
 lemma is_add_group_hom.sub {α β} [add_group α] [add_comm_group β]
   (f g : α → β) [is_add_group_hom f] [is_add_group_hom g] :
   is_add_group_hom (λa, f a - g a) :=
-is_add_group_hom.add f (λa, - g a)
+by { simp only [sub_eq_add_neg], exact is_add_group_hom.add f (λa, - g a) }
 
 namespace units
 

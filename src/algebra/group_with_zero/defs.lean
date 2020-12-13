@@ -96,6 +96,12 @@ class group_with_zero (G₀ : Type*) extends monoid_with_zero G₀, has_inv G₀
 section group_with_zero
 variables [group_with_zero G₀]
 
+@[priority 100]
+instance group_with_zero_has_div : has_div G₀ :=
+⟨λ a b, a * b⁻¹⟩
+
+lemma div_eq_mul_inv (a b : G₀) : a / b = a * b⁻¹ := rfl
+
 @[simp] lemma inv_zero : (0 : G₀)⁻¹ = 0 :=
 group_with_zero.inv_zero
 

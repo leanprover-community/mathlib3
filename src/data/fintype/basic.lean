@@ -11,6 +11,7 @@ import data.finset.lattice
 import data.finset.pi
 import data.array.lemmas
 import order.well_founded
+import group_theory.perm.basic
 
 open_locale nat
 

@@ -19,24 +19,25 @@ variables {α R : Type*}
 
 open filter
 
-lemma tendsto_coe_nat_at_top_iff [linear_ordered_semiring R] [archimedean R]
+lemma tendsto_coe_nat_at_top_iff [ordered_semiring R] [nontrivial R] [archimedean R]
   {f : α → ℕ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
 tendsto_at_top_embedding (assume a₁ a₂, nat.cast_le) exists_nat_ge
 
-lemma tendsto_coe_nat_at_top_at_top [linear_ordered_semiring R] [archimedean R] :
+lemma tendsto_coe_nat_at_top_at_top [ordered_semiring R] [archimedean R] :
   tendsto (coe : ℕ → R) at_top at_top :=
-tendsto_coe_nat_at_top_iff.2 tendsto_id
+nat.mono_cast.tendsto_at_top_at_top exists_nat_ge
 
-lemma tendsto_coe_int_at_top_iff [linear_ordered_ring R] [archimedean R]
+lemma tendsto_coe_int_at_top_iff [ordered_ring R] [nontrivial R] [archimedean R]
   {f : α → ℤ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
 tendsto_at_top_embedding (assume a₁ a₂, int.cast_le) $
   assume r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨(n:ℤ), hn⟩
 
-lemma tendsto_coe_int_at_top_at_top [linear_ordered_ring R] [archimedean R] :
+lemma tendsto_coe_int_at_top_at_top [ordered_ring R] [archimedean R] :
   tendsto (coe : ℤ → R) at_top at_top :=
-tendsto_coe_int_at_top_iff.2 tendsto_id
+int.cast_mono.tendsto_at_top_at_top $ λ b,
+  let ⟨n, hn⟩ := exists_nat_ge b in ⟨n, hn⟩
 
 lemma tendsto_coe_rat_at_top_iff [linear_ordered_field R] [archimedean R]
   {f : α → ℚ} {l : filter α} :

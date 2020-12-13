@@ -684,7 +684,7 @@ end ordered_add_comm_group
 
 /-!
 
-## Linearly ordered commutative groups.
+### Linearly ordered commutative groups
 
 -/
 

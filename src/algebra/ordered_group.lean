@@ -695,7 +695,7 @@ addition is monotone. -/
   extends add_comm_group α, linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
-/-- A linearly ordered commutative group is an
+/-- A linearly ordered commutative group is a
 commutative group with a linear order in which
 multiplication is monotone. -/
 @[protect_proj, to_additive] class linear_ordered_comm_group (α : Type u)

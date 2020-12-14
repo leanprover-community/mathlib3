@@ -765,7 +765,7 @@ lemma div_eq_inv_mul : a / b = b⁻¹ * a :=
 by rw [div_eq_mul_inv, mul_comm]
 
 lemma mul_div_right_comm (a b c : G₀) : (a * b) / c = (a / c) * b :=
-by { rw [div_eq_mul_inv, mul_assoc, mul_comm b, ← mul_assoc, div_eq_mul_inv] }
+by rw [div_eq_mul_inv, mul_assoc, mul_comm b, ← mul_assoc, div_eq_mul_inv]
 
 lemma mul_comm_div' (a b c : G₀) : (a / b) * c = a * (c / b) :=
 by rw [← mul_div_assoc, mul_div_right_comm]

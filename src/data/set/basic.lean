@@ -316,7 +316,7 @@ nonempty_subtype.2 h
 @[simp] lemma nonempty_insert (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
 
 @[simp] lemma nonempty_of_nonempty_subtype [nonempty s] : s.nonempty :=
-set.nonempty_def.mpr (nonempty_subtype.mp ‹_›)
+nonempty_subtype.mp ‹_›
 
 /-! ### Lemmas about the empty set -/
 

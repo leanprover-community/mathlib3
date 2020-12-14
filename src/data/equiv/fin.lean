@@ -49,19 +49,19 @@ def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
 /-- An equivalence that removes `i` and maps it to `none`.
 This is a version of `fin.pred_above` that produces `option (fin n)` instead of
 requiring a proof that the input is not `i`. -/
-def fin_succ_above_equiv {n : ℕ} (i : fin n.succ) :
+def fin_succ_equiv' {n : ℕ} (i : fin n.succ) :
   fin n.succ ≃ option (fin n) :=
 { to_fun := λ x, if h : x = i then none else some (i.pred_above x h),
   inv_fun := λ x, x.cases_on' i (fin.succ_above i),
   left_inv := λ x, if h : x = i then by simp [h] else by simp [h, fin.succ_above_ne],
   right_inv := λ x, by { cases x, simp, simp [fin.succ_above_ne], }}
 
-/-- The equiv version of `fin.succ_above_zero`. -/
-lemma fin_succ_above_equiv_zero {n : ℕ} :
-  fin_succ_above_equiv 0 = fin_succ_equiv n :=
+/-- The equiv version of `fin.pred_above_zero`. -/
+lemma fin_succ_equiv'_zero {n : ℕ} :
+  fin_succ_equiv' 0 = fin_succ_equiv' n :=
 begin
   ext1 x,
-  simp only [fin_succ_above_equiv, fin_succ_equiv, equiv.coe_fn_mk,
+  simp only [fin_succ_equiv', fin_succ_equiv, equiv.coe_fn_mk,
              fin.pred_above_zero, fin.succ_above_zero],
   split_ifs,
   { rw h, refl},

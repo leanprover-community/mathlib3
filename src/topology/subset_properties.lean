@@ -651,7 +651,7 @@ lemma is_clopen_Inter {β : Type*} [fintype β] {s : β → set α}
   (h : ∀ i, is_clopen (s i)) : is_clopen (⋂ i, s i) :=
 ⟨(is_open_Inter (forall_and_distrib.1 h).1), (is_closed_Inter (forall_and_distrib.1 h).2)⟩
 
-lemma is_clopen_bInter {β : Type*} {s : finset β}{f : β → set α} :
+lemma is_clopen_bInter {β : Type*} {s : finset β} {f : β → set α} :
   (∀i∈s, is_clopen (f i)) → is_clopen (⋂i∈s, f i) :=
 λ h, ⟨ is_open_bInter ⟨finset_coe.fintype s⟩ (λ i hi, (h i hi).1),
   by {show is_closed (⋂ (i : β) (H : i ∈ (↑s : set β)), f i), rw set.bInter_eq_Inter,

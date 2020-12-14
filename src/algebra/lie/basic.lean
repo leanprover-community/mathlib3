@@ -855,22 +855,15 @@ instance : add_comm_monoid (lie_submodule R L M) :=
 @[norm_cast] lemma coe_sup :
   (↑(N ⊔ N') : submodule R M) = (N : submodule R M) ⊔ (N' : submodule R M) :=
 begin
-  suffices : (↑(N ⊔ N') : submodule R M) ≤ (N : submodule R M) ⊔ (N' : submodule R M),
-  { apply le_antisymm this, apply Inf_le_Inf _,
-    simp only [and_imp, set_of_subset_set_of, mem_set_of_eq, exists_imp_distrib],
-    intros p N'' hN hN' hp, rw ← hp, split; assumption, },
-  apply Inf_le _,
-  let NN :=
-  ({ lie_mem := λ x m h,
-      begin
-        rw [submodule.mem_carrier, submodule.mem_coe, submodule.mem_sup] at h,
-        rcases h with ⟨y, hy, z, hz, hm⟩, rw ← hm,
-        rw [submodule.mem_carrier, submodule.mem_coe, lie_add, submodule.mem_sup],
-        use [⁅x, y⁆, N.lie_mem hy, ⁅x, z⁆, N'.lie_mem hz],
-      end,
-      ..(N : submodule R M) ⊔ (N' : submodule R M) } : lie_submodule R L M),
-  use NN, simp only [← coe_submodule_le_coe_submodule, mem_set_of_eq, eq_self_iff_true, and_self,
-    le_sup_left, le_sup_right, coe_to_submodule_mk],
+  have aux : ∀ (x : L) m, m ∈ (N ⊔ N' : submodule R M) → ⁅x,m⁆ ∈ (N ⊔ N' : submodule R M),
+  { simp only [submodule.mem_sup],
+    rintro x m ⟨y, hy, z, hz, rfl⟩,
+    refine ⟨⁅x, y⁆, N.lie_mem hy, ⁅x, z⁆, N'.lie_mem hz, (lie_add _ _ _).symm⟩ },
+  refine le_antisymm (Inf_le ⟨{ lie_mem := aux, ..(N ⊔ N' : submodule R M) }, _⟩) (Inf_le_Inf _),
+  { simp only [exists_prop, and_true, mem_set_of_eq, eq_self_iff_true, coe_to_submodule_mk,
+      ← coe_submodule_le_coe_submodule, and_self, le_sup_left, le_sup_right] },
+  { simp only [and_imp, set_of_subset_set_of, mem_set_of_eq, exists_imp_distrib],
+    intros p N'' hN hN' hp, rw ← hp, split; assumption, }
 end
 
 lemma mem_sup (x : M) : x ∈ N ⊔ N' ↔ ∃ (y ∈ N) (z ∈ N'), y + z = x :=

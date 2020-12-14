@@ -5,6 +5,9 @@ import data.complex.exponential
 import topology.algebra.infinite_sum
 import data.real.ereal
 import data.finset.basic
+import tactic.linarith
+import algebra.big_operators.intervals
+import data.set.intervals.basic
 
 noncomputable theory
 open_locale big_operators
@@ -34,12 +37,12 @@ begin
   rw delta_function, simp,
 end
 
-lemma choose_succ_div_eq : ∀ n k : ℕ, (n.choose k) / (n + 1 - k) = n.succ.choose k / (n + 1) :=
+lemma choose_succ_div_eq (n k : ℕ) (h : k ≤ n) : (n.choose k : ℚ) / (n + 1 - k) = n.succ.choose k / (n + 1) :=
 begin
   sorry
 end
 
-@[simp] lemma sum_bernoulli_neg (n : ℕ) ( h : 2 ≤ n ) :
+@[simp] lemma sum_bernoulli_neg (n : ℕ) ( h : 1 ≤ n ) :
   ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli_neg k = 0 :=
 begin
   induction n with n ih, { simp },
@@ -58,12 +61,16 @@ begin
   { contrapose! hk with H, rw sub_eq_zero at H, norm_cast at H, linarith }
 end
 
-def bernoulli_poly (n : ℕ) : ℚ → ℚ := λ X, ∑ i in finset.range (n+1), (bernoulli_neg i)*(nat.choose n i)*(X^(n-i))
+def bernoulli_poly (n : ℕ) : ℚ → ℚ := λ X, ∑ i in finset.range (n+1),
+  (bernoulli_neg i)*(nat.choose n i)*(X^(n-i))
 
 namespace bernoulli_poly
 
-lemma bernoulli_poly_def (n : ℕ) (X : ℚ) : bernoulli_poly n X = ∑ i in finset.range (n+1), (bernoulli_neg (n - i))*(nat.choose n i)*(X^i) :=
-sorry
+lemma bernoulli_poly_def (n : ℕ) (X : ℚ) : bernoulli_poly n X = ∑ i in finset.range (n+1),
+  (bernoulli_neg (n - i))*(nat.choose n i)*(X^i) :=
+begin
+sorry,
+end
 
 --lemma bernoulli_poly_def (n : ℕ) (X : ℚ) : bernoulli_poly n X = ∑ i in finset.range (n+1), (bernoulli_neg i)*(nat.choose n i)*(X^(n-i)) :=
 --by { rw [bernoulli_poly, ← fin.sum_univ_eq_sum_range] }
@@ -77,12 +84,37 @@ end
 
 @[simp] lemma bernoulli_poly_one (X : ℚ) : bernoulli_poly 1 X = X -1/2 :=
 begin
-  --rw [bernoulli_poly_def],
-  try { rw [finset.sum_range_succ] }, try { rw [nat.choose_succ_succ] }, simp, norm_num1, sorry,
+  rw [bernoulli_poly_def],
+  try { rw [finset.sum_range_succ] }, try { rw [nat.choose_succ_succ] },
+  simp, norm_num1, ring,
 end
 
-lemma choose_mul (n k s : ℕ) : (n + 1).choose k * k.choose s = (n + 1).choose s * (n + 1 - s).choose (k - s) :=
+lemma choose_mul (n k s : ℕ) (hn : k ≤ n.succ) (hs : s ≤ k) : (n.succ).choose k * k.choose s = (n.succ).choose s * (n.succ - s).choose (k - s) :=
 sorry
+
+namespace finset
+
+lemma dependent_double_sum {M : Type*} [add_comm_monoid M]
+  (a b : ℕ) (f : ℕ → ℕ → M) :
+  ∑ i in finset.Ico a b, ∑ j in finset.Ico i b, f i j =
+  ∑ j in finset.Ico a b, ∑ i in finset.Ico a (j+1), f i j :=
+begin
+  rw ← @@finset.sum_sigma _ _ (λ i, finset.Ico i b) (λ x, f x.1 x.2),
+  rw ← @@finset.sum_sigma _ _ (λ j, finset.Ico a (j+1)) (λ x, f x.2 x.1),
+  refine finset.sum_bij'
+    (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _ (λ _ _, rfl)
+    (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _
+    (by rintro ⟨⟩ _; refl) (by rintro ⟨⟩ _; refl);
+  simp only [finset.Ico.mem, sigma.forall, finset.mem_sigma];
+  rintros a b ⟨⟨h₁,h₂⟩, ⟨h₃, h₄⟩⟩; refine ⟨⟨_, _⟩, ⟨_, _⟩⟩; linarith
+end
+
+end finset
+
+/- lemma sub_add_cancel' (n : ℕ) : i in finset.range n, n - i + i = n :=
+begin
+  sorry
+end -/
 
 @[simp] theorem sum_bernoulli_poly (n : ℕ) (X : ℚ) :
   ∑ k in finset.range (n + 1), ((n + 1).choose k : ℚ) * bernoulli_poly k X = (n + 1) * X^n :=
@@ -90,17 +122,23 @@ begin
   cases n, simp,
   simp_rw [bernoulli_poly_def],
   simp_rw [finset.mul_sum],
-  suffices f : ∑ (s : ℕ) in finset.range (n.succ + 1), ((n.succ + 1).choose s : ℚ) *  X ^ s * ∑ (y : ℕ) in finset.range (n.succ + 1 - s),
-    ((n.succ + 1 - s).choose y : ℚ) * bernoulli_neg y = (n.succ + 1) * X ^ (n.succ),
+  suffices f :
+  ∑ (s : ℕ) in finset.range (n.succ + 1),
+    ((n.succ + 1).choose s : ℚ) *  X ^ s *
+      ∑ (y : ℕ) in finset.range (n.succ + 1 - s),
+        ((n.succ + 1 - s).choose y : ℚ) * bernoulli_neg y =
+          (n.succ + 1) * X ^ (n.succ),
   {
-    rw <-f,
-    rw<-sub_eq_zero_iff_eq,
-    rw <-finset.sum_sub_distrib,
-    rw [finset.sum_eq_zero],
-    rintros x hx,
-    simp_rw [finset.mul_sum],
-
-    sorry,
+    simp_rw [finset.range_eq_Ico],
+    rw <-finset.dependent_double_sum,
+    simp_rw [finset.range_eq_Ico] at f,
+    conv_lhs
+    {
+      congr,
+      skip,
+      funext,
+      find (finset.Ico i (n.succ + 1)) {rw [<-zero_add i]},
+    }
   },
   rw [finset.sum_range_succ], simp,
   rw [finset.sum_range_succ], simp,

@@ -700,6 +700,16 @@ Output:
 - The number of hypotheses which were reverted because they contain complex
   indices.
 -/
+/-
+TODO The following function currently replaces complex index arguments
+everywhere in the goal, not only in the major premise. Such replacements are
+sometimes necessary to make sure that the goal remains type-correct. However,
+the replacements can also have the opposite effect, yielding unprovable
+subgoals. The test suite contains one such case. There is probably a middle
+ground between 'replace everywhere' and 'replace only in the major premise', but
+I don't know what exactly this middle ground is. See also the discussion at
+https://github.com/leanprover-community/mathlib/pull/5027#discussion_r538902424
+-/
 meta def generalize_complex_index_args (major_premise : expr) (num_params : ℕ)
   (generate_induction_hyps : bool) : tactic (expr × ℕ × list name × ℕ) :=
 focus1 $ do

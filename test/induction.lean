@@ -489,6 +489,17 @@ begin
   -- This leaves the goal provable, but very confusing.
 end
 
+-- TODO Here's a test case (due to Floris van Doorn) where index generalisation
+-- is over-eager: it replaces the complex index `zero` everywhere in the goal,
+-- which makes the goal type-incorrect. `cases` does not exhibit this problem.
+example (x : ℕ₂) (h : plus zero x = zero) :
+  (⟨x, h⟩ : ∃ x, plus zero x = zero) = ⟨zero, rfl⟩ :=
+begin
+  success_if_fail { cases' h },
+  cases h,
+  refl
+end
+
 end ℕ₂
 
 -- For whatever reason, the eliminator for `false` has an explicit argument
@@ -548,7 +559,7 @@ end
 
 -- In this example, induction' must apply the dependent recursor for star; the
 -- nondependent one doesn't apply.
-lemma head_induction_on {P : ∀a : α, star r a b → Prop} {a} (h : star r a b)
+lemma head_induction_on {b} {P : ∀a : α, star r a b → Prop} {a} (h : star r a b)
   (refl : P b refl)
   (head : ∀{a c} (h' : r a c) (h : star r c b), P c h → P a (h.head h')) :
   P a h :=

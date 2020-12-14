@@ -851,7 +851,7 @@ instance : add_comm_monoid (lie_submodule R L M) :=
 
 @[simp] lemma add_eq_sup : N + N' = N ⊔ N' := rfl
 
-lemma sup_eq_sup_submodule :
+@[norm_cast] lemma coe_sup :
   (↑(N ⊔ N') : submodule R M) = (N : submodule R M) ⊔ (N' : submodule R M) :=
 begin
   suffices : (↑(N ⊔ N') : submodule R M) ≤ (N : submodule R M) ⊔ (N' : submodule R M),

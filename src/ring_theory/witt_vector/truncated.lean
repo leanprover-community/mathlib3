@@ -404,18 +404,6 @@ end
 
 variable (f)
 
-section tac
-omit f_compat
-
-/-- A tactic macro for proving that `lift_fun` is a ring homomorphism. -/
-meta def lift_fun_tac : tactic unit :=
-`[intros,
-  rw [← sub_eq_zero, ← ideal.mem_bot, ← infi_ker_truncate, ideal.mem_infi],
-  intro i,
-  simp [ring_hom.mem_ker, f_compat] ]
-
-end tac
-
 /--
 Given compatible ring homs from `S` into `truncated_witt_vector n` for each `n`, we can lift these
 to a ring hom `S → 𝕎 R`.
@@ -423,11 +411,11 @@ to a ring hom `S → 𝕎 R`.
 `lift` defines the universal property of `𝕎 R` as the inverse limit of `truncated_witt_vector n`.
 -/
 def lift : S →+* 𝕎 R :=
-{ to_fun := lift_fun f,
-  map_zero' := by lift_fun_tac,
-  map_one' := by lift_fun_tac,
-  map_mul' := by lift_fun_tac,
-  map_add' := by lift_fun_tac }
+by refine_struct { to_fun := lift_fun f };
+   { intros,
+     rw [← sub_eq_zero, ← ideal.mem_bot, ← infi_ker_truncate, ideal.mem_infi],
+     intro,
+     simp [ring_hom.mem_ker, f_compat] }
 
 variable {f}
 

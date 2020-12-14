@@ -500,7 +500,7 @@ coe_mono.map_min
 @[norm_cast] lemma coe_max : ((max r p:ℝ≥0):ennreal) = max r p :=
 coe_mono.map_max
 
-lemma le_of_to_nnreal_le_of_top_imp_top {a b : ennreal} (h : a = ⊤ → b = ⊤)
+lemma le_of_top_imp_top_of_to_nnreal_le {a b : ennreal} (h : a = ⊤ → b = ⊤)
   (h_nnreal : a ≠ ⊤ → b ≠ ⊤ → a.to_nnreal ≤ b.to_nnreal) :
   a ≤ b :=
 begin

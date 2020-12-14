@@ -266,7 +266,7 @@ begin
   have hp_not_neg : ¬ p < 0, by simp [hp_nonneg],
   have h_top_iff_rpow_top : ∀ (i : ι) (hi : i ∈ s), w i * z i = ⊤ ↔ w i * (z i) ^ p = ⊤,
   by simp [hp_pos, hp_nonneg, hp_not_nonpos, hp_not_neg],
-  refine le_of_to_nnreal_le_of_top_imp_top _ _,
+  refine le_of_top_imp_top_of_to_nnreal_le _ _,
   { -- first, prove `(∑ i in s, w i * z i) ^ p = ⊤ → ∑ i in s, (w i * z i ^ p) = ⊤`
     rw [rpow_eq_top_iff, sum_eq_top_iff, sum_eq_top_iff],
     intro h,

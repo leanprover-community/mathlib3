@@ -443,6 +443,8 @@ meta def simps_tac (nm : name) (cfg : simps_cfg := {}) (todo : list string := []
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),
   let todo := todo.erase_dup.map $ λ proj, "_" ++ proj,
+  b ← has_attribute' `to_additive nm,
+  let cfg := if b then { attrs := cfg.attrs ++ [`to_additive], ..cfg } else cfg,
   simps_add_projections e nm "" d.type lhs d.value [] d.univ_params tt cfg todo
 
 /-- The parser for the `@[simps]` attribute. -/
@@ -559,9 +561,7 @@ derives two simp-lemmas:
     λ n _ persistent, do
       guard persistent <|> fail "`simps` currently cannot be used as a local attribute",
       (todo, cfg) ← simps_attr.get_param n,
-      b ← has_attribute' `to_additive n,
-      let cfg' := if b then { attrs := cfg.attrs ++ [`to_additive], ..cfg } else cfg,
-      simps_tac n cfg' todo }
+      simps_tac n cfg todo }
 
 add_tactic_doc
 { name                     := "simps",

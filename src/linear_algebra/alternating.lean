@@ -162,10 +162,10 @@ instance : add_comm_group (alternating_map R M N' ι) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..alternating_map.add_comm_monoid, ..};
    intros; ext; simp [add_comm, add_left_comm]
 
-section semimodule
 
-variables {S : Type*} [comm_semiring S] [algebra S R] [semimodule S N]
-  [is_scalar_tower S R N]
+section distrib_mul_action
+
+variables {S : Type*} [monoid S] [distrib_mul_action S N] [smul_comm_class R S N]
 
 instance : has_scalar S (alternating_map R M N ι) :=
 ⟨λ c f,
@@ -175,14 +175,22 @@ instance : has_scalar S (alternating_map R M N ι) :=
 @[simp] lemma smul_apply (f : alternating_map R M N ι) (c : S) (m : ι → M) :
   (c • f) m = c • f m := rfl
 
-/-- The space of multilinear maps over an algebra over `S` is a module over `S`, for the pointwise
-addition and scalar multiplication. -/
-instance : semimodule S (alternating_map R M N ι) :=
+instance : distrib_mul_action S (alternating_map R M N ι) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,
   mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul _ _ _,
   smul_zero := λ r, ext $ λ x, smul_zero _,
-  smul_add := λ r f₁ f₂, ext $ λ x, smul_add _ _ _,
-  add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
+  smul_add := λ r f₁ f₂, ext $ λ x, smul_add _ _ _ }
+
+end distrib_mul_action
+
+section semimodule
+
+variables {S : Type*} [semiring S] [semimodule S N] [smul_comm_class R S N]
+
+/-- The space of multilinear maps over an algebra over `R` is a module over `R`, for the pointwise
+addition and scalar multiplication. -/
+instance : semimodule S (alternating_map R M N ι) :=
+{ add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
 end semimodule

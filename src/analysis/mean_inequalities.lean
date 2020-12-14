@@ -755,6 +755,50 @@ begin
     hg_zero,
 end
 
+lemma lintegral_rpow_add_lt_top_of_lintegral_rpow_lt_top {p : ℝ}
+  {f g : α → ennreal} (hf : measurable f) (hf_top : ∫⁻ a, (f a) ^ p ∂μ < ⊤)
+  (hg : measurable g) (hg_top : ∫⁻ a, (g a) ^ p ∂μ < ⊤) (hp1 : 1 ≤ p) :
+  ∫⁻ a, ((f + g) a) ^ p ∂μ < ⊤ :=
+begin
+  have hp0_lt : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
+  have hp0 : 0 ≤ p, from le_of_lt hp0_lt,
+  calc ∫⁻ (a : α), (f a + g a) ^ p ∂μ
+    ≤ ∫⁻ a, ((2:ennreal)^(p-1) * (f a) ^ p + (2:ennreal)^(p-1) * (g a) ^ p) ∂ μ :
+  begin
+    refine lintegral_mono (λ a, _),
+    dsimp only,
+    have h_zero_lt_half_rpow : (0 : ennreal) < (1 / 2) ^ p,
+    { rw [←ennreal.zero_rpow_of_pos hp0_lt],
+      exact ennreal.rpow_lt_rpow (by simp [zero_lt_one]) hp0_lt, },
+    have h_rw : (1 / 2) ^ p * (2:ennreal) ^ (p - 1) = 1 / 2,
+    { rw [sub_eq_add_neg, ennreal.rpow_add _ _ ennreal.two_ne_zero ennreal.coe_ne_top,
+        ←mul_assoc, ←ennreal.mul_rpow_of_nonneg _ _ hp0, ennreal.div_def, one_mul,
+        ennreal.inv_mul_cancel ennreal.two_ne_zero ennreal.coe_ne_top, ennreal.one_rpow,
+        one_mul, ennreal.rpow_neg_one], },
+    rw ←ennreal.mul_le_mul_left (ne_of_lt h_zero_lt_half_rpow).symm _,
+    { rw [mul_add, ← mul_assoc, ← mul_assoc, h_rw, ←ennreal.mul_rpow_of_nonneg _ _ hp0, mul_add],
+      refine ennreal.rpow_arith_mean_le_arith_mean2_rpow (1/2 : ennreal) (1/2 : ennreal)
+        (f a) (g a) _ hp1,
+      rw [ennreal.div_add_div_same, one_add_one_eq_two,
+        ennreal.div_self ennreal.two_ne_zero ennreal.coe_ne_top], },
+    { rw ←ennreal.lt_top_iff_ne_top,
+      refine ennreal.rpow_lt_top_of_nonneg hp0 _,
+      rw [ennreal.div_def, one_mul, ennreal.inv_ne_top],
+      exact ennreal.two_ne_zero, },
+  end
+  ... < ⊤ :
+  begin
+    rw [lintegral_add, lintegral_const_mul _ hf.ennreal_rpow_const,
+      lintegral_const_mul _ hg.ennreal_rpow_const, ennreal.add_lt_top],
+    { have h_two : (2 : ennreal) ^ (p - 1) < ⊤,
+      from ennreal.rpow_lt_top_of_nonneg (by simp [hp1]) ennreal.coe_ne_top,
+      repeat {rw ennreal.mul_lt_top_iff},
+      simp [hf_top, hg_top, h_two], },
+    { exact (ennreal.continuous_const_mul (by simp)).measurable.comp hf.ennreal_rpow_const, },
+    { exact (ennreal.continuous_const_mul (by simp)).measurable.comp hg.ennreal_rpow_const },
+  end
+end
+
 end ennreal
 
 /-- Hölder's inequality for functions `α → nnreal`. The integral of the product of two functions

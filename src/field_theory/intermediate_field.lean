@@ -293,10 +293,10 @@ instance has_lift2 {F : intermediate_field K L} :
 
 instance lift2_alg {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
 { to_fun := (algebra_map F E).comp (algebra_map K F),
-  map_zero' := ring_hom.map_zero ((algebra_map F E).comp (algebra_map K F)),
-  map_one' := ring_hom.map_one ((algebra_map F E).comp (algebra_map K F)),
-  map_add' := ring_hom.map_add ((algebra_map F E).comp (algebra_map K F)),
-  map_mul' := ring_hom.map_mul ((algebra_map F E).comp (algebra_map K F)),
+  map_zero' := ((algebra_map F E).comp (algebra_map K F)).map_zero,
+  map_one' := ((algebra_map F E).comp (algebra_map K F)).map_one,
+  map_add' := ((algebra_map F E).comp (algebra_map K F)).map_add,
+  map_mul' := ((algebra_map F E).comp (algebra_map K F)).map_mul,
   smul := λ a b, (((algebra_map F E).comp (algebra_map K F)) a) * b,
   smul_def' := λ _ _, rfl,
   commutes' := λ a b, mul_comm (((algebra_map F E).comp (algebra_map K F)) a) b }

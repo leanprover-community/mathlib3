@@ -307,7 +307,7 @@ instance lift2_tower {F : intermediate_field K L} {E : intermediate_field F L} :
 
 /-- lift2 is isomorphic to the original intermediate_field -/
 def lift2_alg_equiv {F : intermediate_field K L} (E : intermediate_field F L) :
-  (lift2 E) ≃ₐ[K] E :=
+  (E : intermediate_field K L) ≃ₐ[K] E :=
 { to_fun := λ x, x,
   inv_fun := λ x, x,
   left_inv := λ x, rfl,

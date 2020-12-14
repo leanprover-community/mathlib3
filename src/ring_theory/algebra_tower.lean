@@ -469,7 +469,7 @@ def alg_hom_restrict (f : C →ₐ[A] D) : B →ₐ[A] D := f.comp (is_scalar_to
 
 /-- Extend the scalars of an alg_hom -/
 def alg_hom_extend_base (f : C →ₐ[A] D) :
-  @alg_hom B C D _ _ _ _ (ring_hom.to_algebra ((alg_hom_restrict f).to_ring_hom)) :=
+  @alg_hom B C D _ _ _ _ (alg_hom_restrict f).to_ring_hom.to_algebra :=
 { commutes' := λ _, rfl .. f }
 
 /-- Combine two alg_hom's that are in a tower -/

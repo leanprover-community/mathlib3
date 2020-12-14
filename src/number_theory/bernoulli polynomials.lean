@@ -89,7 +89,7 @@ begin
   simp, norm_num1, ring,
 end
 
-lemma choose_mul (n k s : ℕ) (hn : k ≤ n.succ) (hs : s ≤ k) : (n.succ).choose k * k.choose s = (n.succ).choose s * (n.succ - s).choose (k - s) :=
+lemma choose_mul (n k s : ℕ) (hn : k ≤ n) (hs : s ≤ k) : (n.choose k : ℚ) * k.choose s = n.choose s * (n - s).choose (k - s) :=
 sorry
 
 namespace finset
@@ -110,11 +110,6 @@ begin
 end
 
 end finset
-
-/- lemma sub_add_cancel' (n : ℕ) : i in finset.range n, n - i + i = n :=
-begin
-  sorry
-end -/
 
 @[simp] theorem sum_bernoulli_poly (n : ℕ) (X : ℚ) :
   ∑ k in finset.range (n + 1), ((n + 1).choose k : ℚ) * bernoulli_poly k X = (n + 1) * X^n :=
@@ -137,19 +132,59 @@ begin
       congr,
       skip,
       funext,
-      find (finset.Ico i (n.succ + 1)) {rw [<-zero_add i]},
-    }
+      rw [finset.sum_Ico_eq_sum_range, finset.range_eq_Ico],
+    },
+    rw <-f,
+    rw <-sub_eq_zero_iff_eq,
+    rw <-finset.sum_sub_distrib,
+    rw finset.sum_eq_zero,
+    rintros x hx,
+    rw mul_comm,
+    rw finset.sum_mul,
+    rw <-finset.sum_sub_distrib,
+    rw finset.sum_eq_zero,
+    rintros y hy,
+    rw sub_eq_zero_iff_eq,
+    simp, rw mul_comm, rw mul_comm ((n.succ + 1 - x).choose y : ℚ) (bernoulli_neg y),
+    rw mul_assoc, rw mul_assoc, rw mul_assoc,
+    rw mul_eq_mul_left_iff,
+    left, rw mul_comm, rw mul_comm ((n.succ + 1 - x).choose y : ℚ) (((n.succ + 1).choose x : ℚ) * X^x),
+    rw mul_comm ((n.succ + 1).choose x : ℚ) (X^x),
+    rw mul_assoc, rw mul_assoc,
+    rw mul_eq_mul_left_iff,
+    left,
+    rw choose_mul, simp,
+    {
+      simp at hx, simp at hy,
+      have h:= nat.add_lt_add_left hy x,
+      have h' : x + (n.succ + 1 - x) = n.succ + 1,
+      rw nat.add_sub_cancel',
+      exact le_of_lt hx,
+      rw h' at h,
+      exact le_of_lt h,
+    },
+    simp,
   },
   rw [finset.sum_range_succ], simp,
   rw [finset.sum_range_succ], simp,
   have g : ↑((n.succ + 1).choose n) * X ^ n * ∑ (y : ℕ) in finset.range (n.succ + 1 - n),
     ↑((n.succ + 1 - n).choose y) * bernoulli_neg y = 0,
-  sorry,
+  {
+    simp,
+    right,
+    have h : n.succ + 1 - n = 2,
+    rw succ_add, rw succ_sub, simp, simp,
+    rw h, simp,
+  },
   rw g, simp,
   rw [finset.sum_eq_zero],
   rintros x hx,
   rw sum_bernoulli_neg, simp,
-  sorry,
+  simp at hx,
+  rw succ_add, rw succ_sub,
+  rw succ_le_succ_iff,
+  simp, simp, apply le_succ_of_le,
+  exact le_of_lt hx,
 end
 
 lemma exp_bernoulli_neg : ∀ t : ℚ, ((∑' i : ℕ, ((bernoulli i) : ℚ) * t^i / (nat.factorial i)) : ℝ) * (real.exp t - 1) = t :=

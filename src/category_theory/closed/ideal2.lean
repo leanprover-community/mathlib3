@@ -1,7 +1,4 @@
-import category_theory.limits.shapes.binary_products
-import category_theory.limits.shapes.constructions.preserve_binary_products
-import category_theory.limits.preserves.basic
-import category_theory.adjunction
+import category_theory.limits.preserves.shapes.binary_products
 import category_theory.monad.limits
 import category_theory.adjunction.fully_faithful
 import category_theory.closed.cartesian
@@ -17,54 +14,6 @@ open limits category
 section subcat
 
 variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D] {i : D ⥤ C}
-
-/--
-The essential range of a functor `i` consists of those objects in the target category which are
-isomorphic to an object in the range of the function `i.obj`. In other words, this is the closure
-under isomorphism of the function `i.obj`.
-This is the "non-evil" way of describing the range of a functor.
--/
-def ess_range (i : D ⥤ C) : set C := λ A, ∃ (B : D), nonempty (i.obj B ≅ A)
-
-/-- Get the witnessing object that `A` is in the subcategory given by `i`. -/
-def ess_range.witness {A : C} (h : A ∈ ess_range i) : D := h.some
-
-/-- Extract the isomorphism between `i.obj h.witness` and `A` itself. -/
-def ess_range.get_iso {A : C} (h : A ∈ ess_range i) : i.obj h.witness ≅ A :=
-classical.choice h.some_spec
-
-/--
-The functor `i` is essentially surjective if every object of `C` is essentially in the range of `i`.
--/
-def ess_surjective (i : D ⥤ C) : Prop := ∀ A, A ∈ ess_range i
-
-/-- Being in the subcategory is a "hygenic" property: it is preserved under isomorphism. -/
-lemma in_subcategory_of_iso {A A' : C} (h : A ≅ A') (hA : A ∈ ess_range i) :
-  A' ∈ ess_range i :=
-hA.imp (λ B, nonempty.map (≪≫ h))
-
-/-- If `A` is in the essential range of `i` then it is in the essential range of `i'`. -/
-lemma in_subcategory_of_nat_iso {i' : D ⥤ C} (h : i ≅ i') {A : C} (hA : A ∈ ess_range i) :
-  A ∈ ess_range i' :=
-hA.imp (λ B, nonempty.map (λ t, h.symm.app B ≪≫ t))
-
-/-- Isomorphic functors have equal essential ranges. -/
-lemma range_eq_of_nat_iso {i' : D ⥤ C} (h : i ≅ i') :
-  ess_range i = ess_range i' :=
-begin
-  ext A,
-  split,
-  { apply in_subcategory_of_nat_iso h },
-  { apply in_subcategory_of_nat_iso h.symm },
-end
-
-lemma inclusion_is_in (i : D ⥤ C) (B : D) : i.obj B ∈ ess_range i := ⟨B, ⟨iso.refl _⟩⟩
-
-lemma hom_comp_eq_id {X Y : C} (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : g ≫ f = 𝟙 X ↔ f = inv g :=
-iso.hom_comp_eq_id (as_iso g)
-
-lemma comp_hom_eq_id {X Y : C} (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y ↔ f = inv g :=
-iso.comp_hom_eq_id (as_iso g)
 
 /-- (Implementation) Auxiliary definition for `unit_comp_partial_bijective`. -/
 def unit_comp_partial_bijective_aux [reflective i] (A : C) (B : D) :
@@ -85,7 +34,7 @@ This establishes there is a natural bijection `(A ⟶ B) ≃ (i L A ⟶ B)`. In 
 point of view of objects in `D`, `A` and `i L A` look the same: specifically that `η.app A` is
 an isomorphism.
 -/
-def unit_comp_partial_bijective [reflective i] (A : C) {B : C} (hB : B ∈ ess_range i) :
+def unit_comp_partial_bijective [reflective i] (A : C) {B : C} (hB : B ∈ i.ess_image) :
   (A ⟶ B) ≃ (i.obj ((left_adjoint i).obj A) ⟶ B) :=
 calc (A ⟶ B) ≃ (A ⟶ i.obj hB.witness) : iso.hom_congr (iso.refl _) hB.get_iso.symm
      ...     ≃ (i.obj _ ⟶ i.obj hB.witness) : unit_comp_partial_bijective_aux _ _
@@ -93,17 +42,17 @@ calc (A ⟶ B) ≃ (A ⟶ i.obj hB.witness) : iso.hom_congr (iso.refl _) hB.get_
 
 @[simp]
 lemma unit_comp_partial_bijective_symm_apply [reflective i] (A : C) {B : C}
-  (hB : B ∈ ess_range i) (f) :
+  (hB : B ∈ i.ess_image) (f) :
   (unit_comp_partial_bijective A hB).symm f = (adjunction.of_right_adjoint i).unit.app A ≫ f :=
 by simp [unit_comp_partial_bijective, unit_comp_partial_bijective_aux_symm_apply]
 
 lemma unit_comp_partial_bijective_symm_natural [reflective i] (A : C) {B B' : C} (h : B ⟶ B')
-  (hB : B ∈ ess_range i) (hB' : B' ∈ ess_range i) (f : i.obj ((left_adjoint i).obj A) ⟶ B) :
+  (hB : B ∈ i.ess_image) (hB' : B' ∈ i.ess_image) (f : i.obj ((left_adjoint i).obj A) ⟶ B) :
   (unit_comp_partial_bijective A hB').symm (f ≫ h) = (unit_comp_partial_bijective A hB).symm f ≫ h :=
 by simp
 
 lemma unit_comp_partial_bijective_natural [reflective i] (A : C) {B B' : C} (h : B ⟶ B')
-  (hB : B ∈ ess_range i) (hB' : B' ∈ ess_range i) (f : A ⟶ B) :
+  (hB : B ∈ i.ess_image) (hB' : B' ∈ i.ess_image) (f : A ⟶ B) :
   (unit_comp_partial_bijective A hB') (f ≫ h) = unit_comp_partial_bijective A hB f ≫ h :=
 by rw [←equiv.eq_symm_apply, unit_comp_partial_bijective_symm_natural A h, equiv.symm_apply_apply]
 
@@ -114,7 +63,7 @@ reflection of `A`, with the isomorphism as `η_A`.
 
 (For any `B` in the reflective subcategory, we automatically have that `ε_B` is an iso.)
 -/
-def ess_range.unit_iso [reflective i] {A : C} (h : A ∈ ess_range i) :
+def functor.ess_image.unit_iso [reflective i] {A : C} (h : A ∈ i.ess_image) :
   is_iso ((adjunction.of_right_adjoint i).unit.app A) :=
 begin
   have : ∀ (B : D), is_iso ((adjunction.of_right_adjoint i).unit.app (i.obj B)),
@@ -139,15 +88,15 @@ end
 
 /--  If `η_A` is an isomorphism, then `A` is in the subcategory. -/
 lemma in_subcategory_of_unit_is_iso [is_right_adjoint i] (A : C)
-  [is_iso ((adjunction.of_right_adjoint i).unit.app A)] : A ∈ ess_range i :=
+  [is_iso ((adjunction.of_right_adjoint i).unit.app A)] : A ∈ i.ess_image :=
 ⟨(left_adjoint i).obj A, ⟨(as_iso ((adjunction.of_right_adjoint i).unit.app A)).symm⟩⟩
 
 /-- If `η_A` is a split monomorphism, then `A` is in the reflective subcategory. -/
 lemma in_subcategory_of_unit_split_mono [reflective i] {A : C}
-  [split_mono ((adjunction.of_right_adjoint i).unit.app A)] : A ∈ ess_range i :=
+  [split_mono ((adjunction.of_right_adjoint i).unit.app A)] : A ∈ i.ess_image :=
 begin
   let η : 𝟭 C ⟶ left_adjoint i ⋙ i := (adjunction.of_right_adjoint i).unit,
-  haveI : is_iso (η.app (i.obj ((left_adjoint i).obj A))) := (inclusion_is_in _ _).unit_iso,
+  haveI : is_iso (η.app (i.obj ((left_adjoint i).obj A))) := (i.obj_mem_ess_image _).unit_iso,
   have : epi (η.app A),
   { apply epi_of_epi (retraction (η.app A)) _,
     rw (show retraction _ ≫ η.app A = _, from η.naturality (retraction (η.app A))),
@@ -397,7 +346,8 @@ noncomputable def preserves_binary_products_of_exponential_ideal :
 { preserves_limit := λ K,
   begin
     apply limits.preserves_limit_of_iso_diagram _ (diagram_iso_pair K).symm,
-    refine preserves_binary_prod_of_prod_comparison_iso (left_adjoint i) _ _,
+
+    -- refine preserves_binary_prod_of_prod_comparison_iso (left_adjoint i) _ _,
   end }
 
 end

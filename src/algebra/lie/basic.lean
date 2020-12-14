@@ -783,7 +783,8 @@ instance : partial_order (lie_submodule R L M) :=
 
 lemma le_def : N ≤ N' ↔ (N : set M) ⊆ N' := iff.rfl
 
-@[simp, norm_cast] lemma coe_submodule_le_coe_submodule : (N : submodule R M) ≤ N' ↔ N ≤ N' := iff.rfl
+@[simp, norm_cast] lemma coe_submodule_le_coe_submodule : (N : submodule R M) ≤ N' ↔ N ≤ N' :=
+iff.rfl
 
 instance : has_bot (lie_submodule R L M) := ⟨0⟩
 
@@ -868,12 +869,12 @@ begin
         use [⁅x, y⁆, N.lie_mem hy, ⁅x, z⁆, N'.lie_mem hz],
       end,
       ..(N : submodule R M) ⊔ (N' : submodule R M) } : lie_submodule R L M),
-  use NN, simp only [←coe_le_coe_submodule, mem_set_of_eq, eq_self_iff_true, and_self, le_sup_left,
-    le_sup_right, mk_coe_submodule],
+  use NN, simp only [← coe_submodule_le_coe_submodule, mem_set_of_eq, eq_self_iff_true, and_self,
+    le_sup_left, le_sup_right, coe_to_submodule_mk],
 end
 
 lemma mem_sup (x : M) : x ∈ N ⊔ N' ↔ ∃ (y ∈ N) (z ∈ N'), y + z = x :=
-by { erw [← submodule.mem_sup, ← sup_eq_sup_submodule], refl, }
+by { erw [← submodule.mem_sup, ← coe_sup], refl, }
 
 lemma eq_bot_iff : N = ⊥ ↔ ∀ (m : M), m ∈ N → m = 0 :=
 by { rw eq_bot_iff, exact iff.rfl, }
@@ -932,10 +933,10 @@ section lie_ideal_operations
 /-- Given a Lie module `M` over a Lie algebra `L`, the set of Lie ideals of `L` acts on the set
 of submodules of `M`. -/
 instance : has_bracket (lie_ideal R L) (lie_submodule R L M) :=
-⟨λ I N, lie_submodule.lie_span R L { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m }⟩
+⟨λ I N, lie_span R L { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m }⟩
 
 lemma lie_ideal_oper_eq_span :
-  ⁅I, N⁆ = lie_submodule.lie_span R L { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m } := rfl
+  ⁅I, N⁆ = lie_span R L { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m } := rfl
 
 lemma lie_mem_lie (x : I) (m : N) : ⁅(x : L), (m : M)⁆ ∈ ⁅I, N⁆ :=
 by { rw lie_ideal_oper_eq_span, apply subset_lie_span, use [x, m], }

@@ -17,6 +17,12 @@ each vertex only once.
 * `simple_graph.walk` is the type of walks between pairs of vertices
 * `simple_graph.walk.is_path` is a predicate that determines whether a walk is a path.
 * `simple_graph.walk.to_path` constructs a path from a walk with the same endpoints.
+* `simple_graph.exists_walk` is the walk-connectivity relation.
+* `simple_graph.connected_components` is the quotient of the vertex type by walk-connectivity.
+* `simple_graph.exists_walk_eq_exists_path` and `simple_graph.exists_walk_eq_eqv_gen` give that
+  walk-connectivity, path-connectivity, and `eqv_gen G.adj` are the each the same relation.
+* `simple_graph.walk.get_vert` parameterizes the vertices of a walk by natural numbers.
+* `simple_graph.walk.is_path_iff` characterizes paths as walks for which `get_vert` is injective.
 
 ## Tags
 walks, paths
@@ -127,8 +133,8 @@ variables {G}
 
 @[simp] lemma nil_reverse {u : V} : (nil : G.walk u u).reverse = nil := rfl
 
---@[simp] lemma singleton_reverse {u v : V} (h : G.adj u v) :
---  (cons h nil).reverse = cons (G.sym h) nil := rfl
+lemma singleton_reverse {u v : V} (h : G.adj u v) :
+  (cons h nil).reverse = cons (G.sym h) nil := rfl
 
 @[simp] lemma cons_concat {u v w x : V} (h : G.adj u v) (p : G.walk v w) (q : G.walk w x) :
   (cons h p).concat q = cons h (p.concat q) := rfl
@@ -229,7 +235,8 @@ begin
   { simp },
   { induction p,
     { simp },
-    { simp [cons_reverse, concat_get_vert, p_ih, i_ih],
+    { simp only [cons_reverse, concat_get_vert, p_ih, i_ih,
+                 cons_length, reverse_length, nat.succ_sub_succ_eq_sub, cons_reverse],
       split_ifs,
       { have h' : p_p.length - i_n = (p_p.length - i_n.succ).succ := by omega,
         simp [h'], },
@@ -289,21 +296,18 @@ begin
 end
 
 /-- Given a walk and a vertex in that walk, give a sub-walk starting at that vertex. -/
-def extract : Π {u v w : V} (p : G.walk u v), w ∈ p.support → G.walk w v
-| _ _ w nil h := begin
-  rw [nil_support, finset.mem_singleton] at h,
-  subst w,
-end
+def subwalk_from : Π {u v w : V} (p : G.walk u v), w ∈ p.support → G.walk w v
+| _ _ w nil h := by { rw [nil_support, finset.mem_singleton] at h, subst w }
 | u v w (@cons _ _ _ x _ ha p) hs := begin
   rw [cons_support, finset.mem_insert] at hs,
   by_cases hw : w = u,
   { subst w, exact cons ha p },
   { have : w ∈ p.support, { cases hs, exact false.elim (hw hs), exact hs },
-    exact p.extract this, },
+    exact p.subwalk_from this, },
 end
 
-lemma extract_path_is_path {u v w : V} (p : G.walk u v) (h : p.is_path) (hs : w ∈ p.support) :
-  (p.extract hs).is_path :=
+lemma subwalk_from_path_is_path {u v w : V} (p : G.walk u v) (h : p.is_path) (hs : w ∈ p.support) :
+  (p.subwalk_from hs).is_path :=
 begin
   induction p,
   { rw [nil_support, finset.mem_singleton] at hs,
@@ -311,7 +315,7 @@ begin
     trivial },
   { rw [cons_support, finset.mem_insert] at hs,
     dsimp only [is_path] at h,
-    simp only [extract],
+    simp only [subwalk_from],
     split_ifs,
     { subst p_u,
       simp [is_path, h] },
@@ -327,12 +331,12 @@ def to_path : Π {u v : V}, G.walk u v → G.walk u v
 | u v (@cons _ _ _ x _ ha p) :=
   let p' := p.to_path
   in if hs : u ∈ p'.support
-     then p'.extract hs
+     then p'.subwalk_from hs
      else cons ha p'
 
-lemma extract_support_subset.aux (n' : ℕ) :
+lemma subwalk_from_support_subset.aux (n' : ℕ) :
   Π {u v w : V} (p : G.walk u v) (hl : p.length = n') (h : w ∈ p.support),
-    (p.extract h).support ⊆ p.support :=
+    (p.subwalk_from h).support ⊆ p.support :=
 begin
   refine nat.strong_induction_on n' (λ n ih, _),
   intros u v w p hl h,
@@ -340,21 +344,21 @@ begin
   { rw [nil_support, finset.mem_singleton] at h,
     subst w,
     trivial, },
-  { dsimp only [extract, support],
+  { dsimp only [subwalk_from, support],
     rw [cons_support, finset.mem_insert] at h,
     split_ifs,
     { subst h_1,
       simp, },
     { have h' : w ∈ p_p.support := by cc,
       refine finset.subset.trans _ (finset.subset_insert _ _),
-      convert_to (p_p.extract h').support ⊆ p_p.support,
+      convert_to (p_p.subwalk_from h').support ⊆ p_p.support,
       rw cons_length at hl,
       apply ih p_p.length (by linarith) _ rfl, }, },
 end
 
-lemma extract_support_subset {u v w : V} (p : G.walk u v) (h : w ∈ p.support) :
-  (p.extract h).support ⊆ p.support :=
-extract_support_subset.aux p.length p rfl h
+lemma subwalk_from_support_subset {u v w : V} (p : G.walk u v) (h : w ∈ p.support) :
+  (p.subwalk_from h).support ⊆ p.support :=
+subwalk_from_support_subset.aux p.length p rfl h
 
 lemma to_path_support_subset {u v : V} (p : G.walk u v) : p.to_path.support ⊆ p.support :=
 begin
@@ -363,7 +367,7 @@ begin
   { dsimp only [to_path, support],
     split_ifs,
     { refine finset.subset.trans (finset.subset.trans _ p_ih) (finset.subset_insert _ _),
-      apply extract_support_subset, },
+      apply subwalk_from_support_subset, },
     { intro x,
       simp only [cons_support, finset.mem_insert],
       intro h,
@@ -379,7 +383,7 @@ begin
   { trivial, },
   { dsimp [to_path, is_path],
     split_ifs,
-    { apply extract_path_is_path _ p_ih, },
+    { apply subwalk_from_path_is_path _ p_ih, },
     { use p_ih, }, },
 end
 
@@ -460,8 +464,8 @@ begin
           exact false.elim (hp.2 (get_vert_mem_support _ _)) } } },
     { cases p,
       { simp, },
-      { simp [is_path],
-        simp [is_path] at hp,
+      { simp only [cons_length, get_vert_cons],
+        simp only [is_path] at hp,
         intros k hi hk,
         rw [add_comm, nat.add_succ], simp [get_vert],
         intro hv,
@@ -471,18 +475,21 @@ begin
   { intro h,
     induction p,
     { simp },
-    { simp [is_path],
+    { simp only [is_path],
       split,
       { apply p_ih,
         intros i k hi hk hv,
         apply h i.succ k (nat.succ_le_succ hi) _,
         rw [add_comm, nat.add_succ, add_comm],
-        simp [get_vert, hv],
-        simp, rw [add_comm, nat.add_succ, add_comm], exact nat.succ_le_succ hk, },
+        simp only [get_vert, hv, cons_length],
+        rw [add_comm, nat.add_succ, add_comm],
+        exact nat.succ_le_succ hk, },
       { intro hs,
         rcases mem_support_exists_get_vert _ hs with ⟨i, hl, rfl⟩,
         have h' := h 0 i.succ,
-        simp at h', specialize h' (nat.succ_le_succ hl),
+        simp only [cons_length, forall_prop_of_true, get_vert_0,
+                   zero_le, zero_add, get_vert_cons] at h',
+        specialize h' (nat.succ_le_succ hl),
         exact nat.succ_ne_zero _ h', } } }
 end
 
@@ -491,7 +498,7 @@ lemma is_path_iff {u v : V} (p : G.walk u v) :
                  p.get_vert i = p.get_vert j → i = j :=
 begin
   convert walk.is_path_iff.aux p,
-  simp,
+  simp only [eq_iff_iff],
   split,
   { intros h i k hi hk hv,
     specialize h i (i+k) hi hk hv,
@@ -531,7 +538,7 @@ lemma get_vert_image {u v} (p : G.walk u v) :
   finset.image (λ i, p.get_vert i) (finset.range (p.length + 1)) = p.support :=
 begin
   ext w,
-  simp,
+  simp only [exists_prop, finset.mem_image, finset.mem_range],
   split,
   { simp only [and_imp, exists_imp_distrib],
     rintros i ih rfl,
@@ -540,7 +547,6 @@ begin
     rcases mem_support_exists_get_vert p hw with ⟨i, hi, hw'⟩,
     exact ⟨i, by linarith, hw'⟩, },
 end
-
 
 end paths
 
@@ -568,10 +574,13 @@ begin
     { exact eqv_gen.trans _ _ _ (eqv_gen.rel _ _ h_h) h_ih } },
   { intro h,
     induction h with x y h _ x y he h_ih x y z hxy hyz hxy_ih hyz_ih,
-    exact ⟨walk.cons h walk.nil⟩,
-    refl,
-    cases h_ih, exact ⟨h_ih.reverse⟩,
-    cases hxy_ih, cases hyz_ih, exact ⟨hxy_ih.concat hyz_ih⟩, }
+    { exact ⟨walk.cons h walk.nil⟩, },
+    { refl, },
+    { cases h_ih,
+      exact ⟨h_ih.reverse⟩, },
+    { cases hxy_ih,
+      cases hyz_ih,
+      exact ⟨hxy_ih.concat hyz_ih⟩, } }
 end
 
 end simple_graph

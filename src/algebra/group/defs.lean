@@ -300,6 +300,14 @@ meta def div_sub_tac : tactic unit := `[intros; refl]
 This is the immediate common ancestor of `group` and `group_with_zero`,
 in order to deduplicate the name `div_eq_mul_inv`.
 The default for `div` is such that `a / b = a * b⁻¹` holds by definition.
+
+Adding `div` as a field rather than defining `a / b := a * b⁻¹` allows us to
+avoid certain classes of unification failures, for example:
+Let `foo X` be a type with a `∀ X, has_div (foo X)` instance but no
+`∀ X, has_inv (foo X)`, e.g. when `foo X` is a `euclidean_domain`. Suppose we
+also have an instance `∀ X [cromulent X], group_with_zero (foo X)`. Then the
+`(/)` coming from `group_with_zero_has_div` cannot be definitionally equal to
+the `(/)` coming from `foo.has_div`.
 -/
 @[protect_proj, ancestor monoid has_inv has_div]
 class div_inv_monoid (G : Type u) extends monoid G, has_inv G, has_div G :=
@@ -310,6 +318,14 @@ class div_inv_monoid (G : Type u) extends monoid G, has_inv G, has_div G :=
 satisfying `sub_eq_add_neg : ∀ a b, a - b = a + -b`.
 
 The default for `sub` is such that `a - b = a + -b` holds by definition.
+
+Adding `sub` as a field rather than defining `a - b := a + -b` allows us to
+avoid certain classes of unification failures, for example:
+Let `foo X` be a type with a `∀ X, has_sub (foo X)` instance but no
+`∀ X, has_neg (foo X)`. Suppose we also have an instance
+`∀ X [cromulent X], add_group (foo X)`. Then the `(-)` coming from
+`add_group.has_sub` cannot be definitionally equal to the `(-)` coming from
+`foo.has_sub`.
 -/
 @[protect_proj, ancestor add_monoid has_neg has_sub]
 class sub_neg_monoid (G : Type u) extends add_monoid G, has_neg G, has_sub G :=

@@ -69,7 +69,7 @@ with the case `p = λ _, true`.
 -/
 
 open set filter
-open_locale filter
+open_locale filter classical
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*} {ι' : Type*}
 
@@ -287,11 +287,25 @@ lemma has_basis.frequently_iff (hl : l.has_basis p s) {q : α → Prop} :
   (∃ᶠ x in l, q x) ↔ ∀ i, p i → ∃ x ∈ s i, q x :=
 by simp [filter.frequently, hl.eventually_iff]
 
-lemma has_basis.forall_nonempty_iff_ne_bot (hl : l.has_basis p s) :
-  (∀ {i}, p i → (s i).nonempty) ↔ ne_bot l :=
-⟨λ H, forall_sets_nonempty_iff_ne_bot.1 $
-  λ s hs, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in (H hi).mono his,
-  λ H i hi, H.nonempty_of_mem (hl.mem_of_mem hi)⟩
+lemma has_basis.exists_iff (hl : l.has_basis p s) {P : set α → Prop}
+  (mono : ∀ ⦃s t⦄, s ⊆ t → P t → P s) :
+  (∃ s ∈ l, P s) ↔ ∃ (i) (hi : p i), P (s i) :=
+⟨λ ⟨s, hs, hP⟩, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in ⟨i, hi, mono his hP⟩,
+  λ ⟨i, hi, hP⟩, ⟨s i, hl.mem_of_mem hi, hP⟩⟩
+
+lemma has_basis.forall_iff (hl : l.has_basis p s) {P : set α → Prop}
+  (mono : ∀ ⦃s t⦄, s ⊆ t → P s → P t) :
+  (∀ s ∈ l, P s) ↔ ∀ i, p i → P (s i) :=
+⟨λ H i hi, H (s i) $ hl.mem_of_mem hi,
+  λ H s hs, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in mono his (H i hi)⟩
+
+lemma has_basis.ne_bot_iff (hl : l.has_basis p s) :
+  ne_bot l ↔ (∀ {i}, p i → (s i).nonempty) :=
+forall_sets_nonempty_iff_ne_bot.symm.trans $ hl.forall_iff $ λ _ _, nonempty.mono
+
+lemma has_basis.eq_bot_iff (hl : l.has_basis p s) :
+  l = ⊥ ↔ ∃ i, p i ∧ s i = ∅ :=
+not_iff_not.1 $ hl.ne_bot_iff.trans $ by simp only [not_exists, not_and, ← ne_empty_iff_nonempty]
 
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_sets_subset_iff.symm⟩
@@ -374,6 +388,62 @@ lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
 ⟨λ t, by simp only [mem_inf_principal, hl.mem_iff, subset_def, mem_set_of_eq,
   mem_inter_iff, and_imp]⟩
 
+lemma has_basis.inf_basis_ne_bot_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
+  ne_bot (l ⊓ l') ↔ ∀ ⦃i⦄ (hi : p i) ⦃i'⦄ (hi' : p' i'), (s i ∩ s' i').nonempty :=
+(hl.inf hl').ne_bot_iff.trans $ by simp [@forall_swap _ ι']
+
+lemma has_basis.inf_ne_bot_iff (hl : l.has_basis p s) :
+  ne_bot (l ⊓ l') ↔ ∀ ⦃i⦄ (hi : p i) ⦃s'⦄ (hs' : s' ∈ l'), (s i ∩ s').nonempty :=
+hl.inf_basis_ne_bot_iff l'.basis_sets
+
+lemma has_basis.inf_principal_ne_bot_iff (hl : l.has_basis p s) {t : set α} :
+  ne_bot (l ⊓ 𝓟 t) ↔ ∀ ⦃i⦄ (hi : p i), (s i ∩ t).nonempty :=
+(hl.inf_principal t).ne_bot_iff
+
+lemma inf_ne_bot_iff :
+  ne_bot (l ⊓ l') ↔ ∀ ⦃s : set α⦄ (hs : s ∈ l) ⦃s'⦄ (hs' : s' ∈ l'), (s ∩ s').nonempty :=
+l.basis_sets.inf_ne_bot_iff
+
+lemma inf_principal_ne_bot_iff {s : set α} :
+  ne_bot (l ⊓ 𝓟 s) ↔ ∀ U ∈ l, (U ∩ s).nonempty :=
+l.basis_sets.inf_principal_ne_bot_iff
+
+lemma inf_eq_bot_iff {f g : filter α} :
+  f ⊓ g = ⊥ ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
+not_iff_not.1 $ inf_ne_bot_iff.trans $ by simp [← ne_empty_iff_nonempty]
+
+protected lemma disjoint_iff {f g : filter α} :
+  disjoint f g ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
+disjoint_iff.trans inf_eq_bot_iff
+
+lemma mem_iff_inf_principal_compl {f : filter α} {s : set α} :
+  s ∈ f ↔ f ⊓ 𝓟 sᶜ = ⊥ :=
+begin
+  refine not_iff_not.1 (inf_principal_ne_bot_iff.trans _).symm,
+  exact ⟨λ h hs, by simpa [empty_not_nonempty] using h s hs,
+    λ hs t ht, inter_compl_nonempty_iff.2 $ λ hts, hs $ mem_sets_of_superset ht hts⟩,
+end
+
+lemma mem_iff_disjoint_principal_compl {f : filter α} {s : set α} :
+  s ∈ f ↔ disjoint f (𝓟 sᶜ) :=
+mem_iff_inf_principal_compl.trans disjoint_iff.symm
+
+lemma le_iff_forall_disjoint_principal_compl {f g : filter α} :
+  f ≤ g ↔ ∀ V ∈ g, disjoint f (𝓟 Vᶜ) :=
+forall_congr $ λ _, forall_congr $ λ _, mem_iff_disjoint_principal_compl
+
+lemma le_iff_forall_inf_principal_compl {f g : filter α} :
+  f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ = ⊥ :=
+forall_congr $ λ _, forall_congr $ λ _, mem_iff_inf_principal_compl
+
+lemma inf_ne_bot_iff_frequently_left {f g : filter α} :
+  ne_bot (f ⊓ g) ↔ ∀ {p : α → Prop}, (∀ᶠ x in f, p x) → ∃ᶠ x in g, p x :=
+by simpa only [inf_ne_bot_iff, frequently_iff, exists_prop, and_comm]
+
+lemma inf_ne_bot_iff_frequently_right {f g : filter α} :
+  ne_bot (f ⊓ g) ↔ ∀ {p : α → Prop}, (∀ᶠ x in g, p x) → ∃ᶠ x in f, p x :=
+by { rw inf_comm, exact inf_ne_bot_iff_frequently_left }
+
 lemma has_basis.eq_binfi (h : l.has_basis p s) :
   l = ⨅ i (_ : p i), 𝓟 (s i) :=
 eq_binfi_of_mem_sets_iff_exists_mem $ λ t, by simp only [h.mem_iff, mem_principal_sets]
@@ -450,18 +520,6 @@ end⟩
 
 lemma mem_prod_self_iff {s} : s ∈ l ×ᶠ l ↔ ∃ t ∈ l, set.prod t t ⊆ s :=
 l.basis_sets.prod_self.mem_iff
-
-lemma has_basis.exists_iff (hl : l.has_basis p s) {P : set α → Prop}
-  (mono : ∀ ⦃s t⦄, s ⊆ t → P t → P s) :
-  (∃ s ∈ l, P s) ↔ ∃ (i) (hi : p i), P (s i) :=
-⟨λ ⟨s, hs, hP⟩, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in ⟨i, hi, mono his hP⟩,
-  λ ⟨i, hi, hP⟩, ⟨s i, hl.mem_of_mem hi, hP⟩⟩
-
-lemma has_basis.forall_iff (hl : l.has_basis p s) {P : set α → Prop}
-  (mono : ∀ ⦃s t⦄, s ⊆ t → P s → P t) :
-  (∀ s ∈ l, P s) ↔ ∀ i, p i → P (s i) :=
-⟨λ H i hi, H (s i) $ hl.mem_of_mem hi,
-  λ H s hs, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in mono his (H i hi)⟩
 
 lemma has_basis.sInter_sets (h : has_basis l p s) :
   ⋂₀ l.sets = ⋂ i ∈ set_of p, s i :=

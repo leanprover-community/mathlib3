@@ -362,7 +362,7 @@ begin
   have card_pos : 0 < t.card := lt_trans (nat.succ_pos _) h,
   obtain ⟨x₀, m⟩ := (finset.card_pos.1 card_pos).bex,
   -- and apply the previous lemma to the {xᵢ - x₀}
-  let shift : V ↪ V := ⟨λ x, x - x₀, add_left_injective (-x₀)⟩,
+  let shift : V ↪ V := ⟨λ x, x - x₀, sub_left_injective⟩,
   let t' := (t.erase x₀).map shift,
   have h' : findim K V < t'.card,
   { simp only [t', card_map, finset.card_erase_of_mem m],
@@ -656,14 +656,19 @@ end linear_equiv
 
 namespace finite_dimensional
 
+lemma eq_of_le_of_findim_le {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (hle : S₁ ≤ S₂)
+  (hd : findim K S₂ ≤ findim K S₁) : S₁ = S₂ :=
+begin
+  rw ←linear_equiv.findim_eq (submodule.comap_subtype_equiv_of_le hle) at hd,
+  exact le_antisymm hle (submodule.comap_subtype_eq_top.1 (eq_top_of_findim_eq
+    (le_antisymm (comap (submodule.subtype S₂) S₁).findim_le hd))),
+end
+
 /-- If a submodule is less than or equal to a finite-dimensional
 submodule with the same dimension, they are equal. -/
 lemma eq_of_le_of_findim_eq {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (hle : S₁ ≤ S₂)
   (hd : findim K S₁ = findim K S₂) : S₁ = S₂ :=
-begin
-  rw ←linear_equiv.findim_eq (submodule.comap_subtype_equiv_of_le hle) at hd,
-  exact le_antisymm hle (submodule.comap_subtype_eq_top.1 (eq_top_of_findim_eq hd))
-end
+eq_of_le_of_findim_le hle hd.ge
 
 end finite_dimensional
 
@@ -825,7 +830,7 @@ have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
 
 end alg_hom
 
-/-- Biijection between algebra equivalences and algebra homomorphisms -/
+/-- Bijection between algebra equivalences and algebra homomorphisms -/
 noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [field E]
   [algebra F E] [finite_dimensional F E] : (E ≃ₐ[F] E) ≃ (E →ₐ[F] E) :=
 { to_fun := λ ϕ, ϕ.to_alg_hom,

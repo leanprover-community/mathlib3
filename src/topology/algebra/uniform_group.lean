@@ -36,7 +36,8 @@ class uniform_add_group (α : Type*) [uniform_space α] [add_group α] : Prop :=
 theorem uniform_add_group.mk' {α} [uniform_space α] [add_group α]
   (h₁ : uniform_continuous (λp:α×α, p.1 + p.2))
   (h₂ : uniform_continuous (λp:α, -p)) : uniform_add_group α :=
-⟨h₁.comp (uniform_continuous_fst.prod_mk (h₂.comp uniform_continuous_snd))⟩
+⟨by simpa only [sub_eq_add_neg] using
+  h₁.comp (uniform_continuous_fst.prod_mk (h₂.comp uniform_continuous_snd))⟩
 
 variables [uniform_space α] [add_group α] [uniform_add_group α]
 
@@ -324,7 +325,7 @@ begin
     change e t.2 - e t.1 = e (t.2 - t.1),
     rwa ← is_add_group_hom.map_sub e t.2 t.1 },
   have lim : tendsto (λ x : α × α, x.2-x.1) (𝓝 (x₀, x₀)) (𝓝 (e 0)),
-    { have := (continuous_sub.comp continuous_swap).tendsto (x₀, x₀),
+    { have := (continuous_sub.comp (@continuous_swap α α _ _)).tendsto (x₀, x₀),
       simpa [-sub_eq_add_neg, sub_self, eq.symm (is_add_group_hom.map_zero e)] using this },
   have := de.tendsto_comap_nhds_nhds lim comm,
   simp [-sub_eq_add_neg, this]

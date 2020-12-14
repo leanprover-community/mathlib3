@@ -35,6 +35,10 @@ lemma abs_sum_le_sum_abs [linear_ordered_field α] {f : β → α} {s : finset �
   abs (∑ x in s, f x) ≤ ∑ x in s, abs (f x) :=
 le_sum_of_subadditive _ abs_zero abs_add s f
 
+lemma abs_prod [linear_ordered_comm_ring α] {f : β → α} {s : finset β} :
+  abs (∏ x in s, f x) = ∏ x in s, abs (f x) :=
+(abs_hom.to_monoid_hom : α →* α).map_prod _ _
+
 section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]
 
@@ -338,16 +342,5 @@ begin
   simp only [← lt_top_iff_ne_top],
   exact sum_lt_top_iff
 end
-
-open opposite
-
-/-- Moving to the opposite additive commutative monoid commutes with summing. -/
-@[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
-  op (∑ x in s, f x) = ∑ x in s, op (f x) :=
-(@op_add_hom β _).map_sum _ _
-
-@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵒᵖ) :
-  unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
-(@unop_add_hom β _).map_sum _ _
 
 end with_top

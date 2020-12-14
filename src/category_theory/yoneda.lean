@@ -237,6 +237,33 @@ given by the Yoneda lemma.
 (yoneda_lemma C).app (op X, F)
 
 /--
+We have a type-level equivalence between natural transformations from the yoneda embedding
+and elements of `F.obj X`, without any universe switching.
+-/
+def yoneda_equiv {X : C} {F : Cᵒᵖ ⥤ Type v₁} : (yoneda.obj X ⟶ F) ≃ F.obj (op X) :=
+(yoneda_sections X F).to_equiv.trans equiv.ulift
+
+lemma yoneda_equiv_naturality {X Y : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) (g : Y ⟶ X) :
+  F.map g.op (yoneda_equiv f) = yoneda_equiv (yoneda.map g ≫ f) :=
+begin
+  change (f.app (op X) ≫ F.map g.op) (𝟙 X) = f.app (op Y) (𝟙 Y ≫ g),
+  rw ← f.naturality,
+  dsimp,
+  simp,
+end
+
+@[simp]
+lemma yoneda_equiv_apply {X : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) :
+  yoneda_equiv f = f.app (op X) (𝟙 X) :=
+rfl
+
+@[simp]
+lemma yoneda_equiv_symm_app_apply {X : C} {F : Cᵒᵖ ⥤ Type v₁} (x : F.obj (op X))
+  (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
+  (yoneda_equiv.symm x).app Y f = F.map f.op x :=
+rfl
+
+/--
 When `C` is a small category, we can restate the isomorphism from `yoneda_sections`
 without having to change universes.
 -/

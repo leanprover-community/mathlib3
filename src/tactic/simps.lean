@@ -99,17 +99,17 @@ attribute [notation_class* coe_fn] has_coe_to_fun
     corresponding projection
   * Otherwise, the projection of the structure is chosen.
     For example: ``simps_get_raw_projections env `prod`` gives the default projections
-    ```
-      ([u, v], [prod.fst.{u v}, prod.snd.{u v}])
-    ```
+```
+  ([u, v], [prod.fst.{u v}, prod.snd.{u v}])
+```
     while ``simps_get_raw_projections env `equiv`` gives
-    ```
-      ([u_1, u_2], [λ α β, coe_fn, λ {α β} (e : α ≃ β), ⇑(e.symm), left_inv, right_inv])
-    ```
+```
+  ([u_1, u_2], [λ α β, coe_fn, λ {α β} (e : α ≃ β), ⇑(e.symm), left_inv, right_inv])
+```
     after declaring the coercion from `equiv` to function and adding the declaration
-    ```
-      def equiv.simps.inv_fun {α β} (e : α ≃ β) : β → α := e.symm
-    ```
+```
+  def equiv.simps.inv_fun {α β} (e : α ≃ β) : β → α := e.symm
+```
 
   Optionally, this command accepts two optional arguments
   * If `trace_if_exists` the command will always generate a trace message when the structure already

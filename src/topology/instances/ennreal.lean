@@ -646,7 +646,8 @@ tsum_le_tsum_of_inj i hi (λ c hc, zero_le _) (λ b, le_refl _) (summable_comp_i
 
 open finset
 
-/-- For `f : ℕ → ℝ≥0`, then `∑' k, f (k + i)` tends to zero. -/
+/-- For `f : ℕ → ℝ≥0`, then `∑' k, f (k + i)` tends to zero. This does not require a summability
+assumption on `f`, as otherwise all sums are zero. -/
 lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0) : tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
   rw ← tendsto_coe,

@@ -69,6 +69,7 @@ sqrt.symm_apply_apply x
 lemma sqrt_mul (x y : ℝ≥0) : sqrt (x * y) = sqrt x * sqrt y :=
 by rw [sqrt_eq_iff_sqr_eq, mul_mul_mul_comm, mul_sqrt_self, mul_sqrt_self]
 
+/-- `nnreal.sqrt` as a `monoid_with_zero_hom`. -/
 noncomputable def sqrt_hom : monoid_with_zero_hom ℝ≥0 ℝ≥0 := ⟨sqrt, sqrt_zero, sqrt_one, sqrt_mul⟩
 
 lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := sqrt_hom.map_inv' x
@@ -161,7 +162,7 @@ by rw [pow_two, sqrt_mul_self_eq_abs]
 @[simp] theorem sqrt_le (hy : 0 ≤ y) : sqrt x ≤ sqrt y ↔ x ≤ y :=
 by simp [sqrt, nnreal.of_real_le_of_real_iff, *]
 
-@[simp] theorem sqrt_lt (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x < sqrt y ↔ x < y :=
+@[simp] theorem sqrt_lt (hx : 0 ≤ x) : sqrt x < sqrt y ↔ x < y :=
 lt_iff_lt_of_le_iff_le (sqrt_le hx)
 
 lemma sqrt_le_sqrt (h : x ≤ y) : sqrt x ≤ sqrt y :=

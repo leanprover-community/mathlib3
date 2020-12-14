@@ -783,7 +783,7 @@ instance : partial_order (lie_submodule R L M) :=
 
 lemma le_def : N ≤ N' ↔ (N : set M) ⊆ N' := iff.rfl
 
-@[simp] lemma coe_le_coe_submodule : (N : submodule R M) ≤ N' ↔ N ≤ N' := iff.rfl
+@[simp, norm_cast] lemma coe_submodule_le_coe_submodule : (N : submodule R M) ≤ N' ↔ N ≤ N' := iff.rfl
 
 instance : has_bot (lie_submodule R L M) := ⟨0⟩
 

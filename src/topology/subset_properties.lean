@@ -651,9 +651,9 @@ lemma is_clopen_Inter {β : Type*} [fintype β] {s : β → set α}
   (h : ∀ i, is_clopen (s i)) : is_clopen (⋂ i, s i) :=
 ⟨(is_open_Inter (forall_and_distrib.1 h).1), (is_closed_Inter (forall_and_distrib.1 h).2)⟩
 
-lemma is_clopen_bInter {β : Type*} {s : finset β}{f : β → set α} :
-  (∀i∈s, is_clopen (f i)) → is_clopen (⋂i∈s, f i) :=
-λ h, ⟨ is_open_bInter ⟨finset_coe.fintype s⟩ (λ i hi, (h i hi).1),
+lemma is_clopen_bInter {β : Type*} {s : finset β} {f : β → set α} (h : ∀i∈s, is_clopen (f i)) :
+  is_clopen (⋂i∈s, f i) :=
+⟨ is_open_bInter ⟨finset_coe.fintype s⟩ (λ i hi, (h i hi).1),
   by {show is_closed (⋂ (i : β) (H : i ∈ (↑s : set β)), f i), rw set.bInter_eq_Inter,
     apply is_closed_Inter, rintro ⟨i, hi⟩, exact (h i hi).2}⟩
 
@@ -666,30 +666,13 @@ lemma continuous_on.preimage_clopen_of_clopen {β: Type*} [topological_space β]
 theorem is_clopen_inter_of_disjoint_cover_clopen {Z a b : set α} (h : is_clopen Z)
   (cover : Z ⊆ a ∪ b) (ha : is_open a) (hb : is_open b) (hab : a ∩ b = ∅) : is_clopen (Z ∩ a) :=
 begin
-  split,
-    exact is_open_inter h.1 ha,
-  rw ←(@subtype.range_coe _ Z),
-  apply (closed_embedding.closed_iff_preimage_closed
-    (is_closed.closed_embedding_subtype_coe h.2) (set.inter_subset_left _ a)).2,
-  apply is_open_compl_iff.1,
-  have H2 :  ((coe : Z → α) ⁻¹' (set.range (coe : Z → α) ∩ a))ᶜ = ((coe : Z → α) ⁻¹' (set.range (coe : Z → α) ∩ b)),
-  { apply set.eq_of_subset_of_subset,
-    { rw [set.compl_subset_iff_union],
-      simp only [set.preimage_inter],
-      ext1, cases x,
-      simp only [set.mem_preimage, set.univ_inter, set.mem_univ, subtype.coe_preimage_self,
-        subtype.range_coe_subtype, iff_true, set.mem_union_eq, subtype.coe_mk, set.set_of_mem_eq],
-      solve_by_elim },
-    rw [set.subset_compl_iff_disjoint],
-    simp only [set.univ_inter, subtype.coe_preimage_self, subtype.range_coe_subtype, set.preimage_inter, set.set_of_mem_eq],
-    rw [←set.preimage_inter, set.inter_comm],
-    apply set.preimage_eq_empty,
-    rw hab,
-    exact set.empty_disjoint _  },
-  rw H2,
-  apply continuous.is_open_preimage continuous_subtype_coe,
-  rw subtype.range_coe,
-  exact is_open_inter h.1 hb,
+  refine ⟨is_open_inter h.1 ha, _⟩,
+  have : is_closed (Z ∩ bᶜ) := is_closed_inter h.2 (is_closed_compl_iff.2 hb),
+  convert this using 1,
+  apply subset.antisymm,
+  { exact inter_subset_inter_right Z (set.subset_compl_iff_disjoint.2 hab) },
+  { rintros x ⟨hx₁, hx₂⟩,
+    exact ⟨hx₁, by simpa [not_mem_of_mem_compl hx₂] using cover hx₁⟩ }
 end
 
 end clopen
@@ -1290,10 +1273,9 @@ begin
 end
 
 /-- If a preconnected set intersects a clopen set, then it must be contained in the clopen set -/
-theorem subset_clopen_of_preconnected {s t : set α} (h : is_clopen s) (h1 : is_preconnected t) :
-  (s ∩ t).nonempty → t ⊆ s :=
+theorem subset_clopen_of_preconnected {s t : set α} (h : is_clopen s) (h1 : is_preconnected t)
+  (h2 : (s ∩ t).nonempty) : t ⊆ s :=
 begin
-  intro h2,
   let v := sᶜ,
   apply (@set.inter_eq_self_of_subset_iff _ t s).2,
   let u := (coe : (t → α)) ⁻¹' s,
@@ -1381,9 +1363,9 @@ end
 
 /-- The connected component of a point is always a subset of the intersection of all its clopen
 neighbourhoods -/
-lemma connected_component_subset_Inter_clopen :
-  ∀ x : α, connected_component x ⊆ ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
-λ x, set.subset_Inter $ λ Z,  subset_clopen_of_preconnected
+lemma connected_component_subset_Inter_clopen {x : α} :
+  connected_component x ⊆ ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
+set.subset_Inter $ λ Z,  subset_clopen_of_preconnected
   Z.2.1 (is_connected_connected_component).2
   $ set.nonempty_of_mem $ set.mem_inter Z.2.2 $ mem_connected_component
 

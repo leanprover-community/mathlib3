@@ -289,8 +289,11 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
 /--
   Configuration options for the `@[simps]` attribute.
   * `attrs` specifies the list of attributes given to the generated lemmas. Default: ``[`simp]``.
-    If ``[`simp]`` is in the list, then ``[`_refl_lemma]`` is added automatically if appropriate.
     The attributes can be either basic attributes, or user attributes without parameters.
+    There are two attributes which `simps` might add itself:
+    * If ``[`simp]`` is in the list, then ``[`_refl_lemma]`` is added automatically if appropriate.
+    * If the definition is marked with `@[to_additive ...]` then all generated lemmas are marked
+      with `@[to_additive]`
   * `short_name` gives the generated lemmas a shorter name. This only has an effect when multiple
     projections are applied in a lemma. When this is `ff` (default) all projection names will be
     appended to the definition name to form the lemma name, and when this is `tt`, only the

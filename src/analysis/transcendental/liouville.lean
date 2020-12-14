@@ -22,7 +22,7 @@ namespace real
 
 /--
 A Liouville number `x` is a number such that for every natural number `n`, there exists `a, b ∈ ℤ`
-such that `0 < |x - a/b| < 1/bⁿ`. We can assume without loss of generality that `1 < b`.
+with `b > 1` such that `0 < |x - a/b| < 1/bⁿ`.
 -/
 def is_liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ,
   1 < b ∧ 0 < abs (x - a / b) ∧ abs (x - a / b) < 1 / b ^ n
@@ -99,9 +99,8 @@ begin
   obtain ⟨B, ⟨hB_pos, hB_M, hB_one, hB_root⟩⟩ :=
     non_root_small_interval_of_polynomial α fR h_f_nonzero M h_m_pos,
   -- Then `B/2` satisfies all the requirement.
-  use (B / 2),
   have hB₂ : 0 < B / 2 := half_pos hB_pos,
-  apply and.intro hB₂,
+  use [B / 2, hB₂],
   -- `∀ (a b : ℤ), 0 < b → B / 2 / b ^ f.nat_degree < abs (α - a/b)`
   intros a b h_b_pos, rw ← not_le, intro h_abs_lt,
   have hb : 1 ≤ b ^ f.nat_degree := pow_pos h_b_pos f.nat_degree,
@@ -197,7 +196,7 @@ begin
               { ring },
               { norm_cast, exact mul_pos h_b_pos h_q_pos }
             end
-        ... = (b : ℝ) * q / q ^ (n : ℤ) : by tidy
+        ... = (b : ℝ) * q / q ^ (n : ℤ) : rfl
         ... = (b : ℝ) / (q : ℝ) ^ (n - 1 : ℤ) :
             begin
               rw [div_eq_div_iff, mul_assoc,

@@ -104,6 +104,10 @@ begin
   simp [w j],
 end
 
+lemma limit_ext_iff (F : J ⥤ Type u) (x y : limit F) :
+  x = y ↔ (∀ j, limit.π F j x = limit.π F j y) :=
+⟨λ t _, t ▸ rfl, limit_ext _ _ _⟩
+
 -- TODO: are there other limits lemmas that should have `_apply` versions?
 -- Can we generate these like with `@[reassoc]`?
 -- PROJECT: prove these for any concrete category where the forgetful functor preserves limits?
@@ -120,8 +124,8 @@ congr_fun (limit.lift_π s j) x
 
 @[simp]
 lemma limit.map_π_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
-  limit.π G j (lim.map α x) = α.app j (limit.π F j x) :=
-congr_fun (limit.map_π α j) x
+  limit.π G j (lim_map α x) = α.app j (limit.π F j x) :=
+congr_fun (lim_map_π α j) x
 
 /--
 The relation defining the quotient type which implements the colimit of a functor `F : J ⥤ Type u`.

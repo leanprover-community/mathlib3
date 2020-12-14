@@ -90,9 +90,9 @@ variables {R M N P}
 
 theorem map_zero₂ (y) : f 0 y = 0 := (flip f y).map_zero
 
-theorem map_neg₂ {R : Type*} [comm_ring R] {M N P : Type*}
+theorem map_neg₂ {R : Type*} [comm_semiring R] {M N P : Type*}
   [add_comm_group M] [add_comm_group N] [add_comm_group P]
-  [module R M] [module R N] [module R P] (f : M →ₗ[R] N →ₗ[R] P) (x y) :
+  [semimodule R M] [semimodule R N] [semimodule R P] (f : M →ₗ[R] N →ₗ[R] P) (x y) :
   f (-x) y = -f x y :=
 (flip f y).map_neg _
 
@@ -608,27 +608,181 @@ rfl
 
 end tensor_product
 
+namespace linear_map
+
+variables {R} (M) {N P Q}
+
+/-- `ltensor M f : M ⊗ N →ₗ M ⊗ P` is the natural linear map induced by `f : N →ₗ P`. -/
+def ltensor (f : N →ₗ[R] P) : M ⊗ N →ₗ[R] M ⊗ P :=
+tensor_product.map id f
+
+/-- `rtensor f M : N₁ ⊗ M →ₗ N₂ ⊗ M` is the natural linear map induced by `f : N₁ →ₗ N₂`. -/
+def rtensor (f : N →ₗ[R] P) : N ⊗ M →ₗ[R] P ⊗ M :=
+tensor_product.map f id
+
+variables (g : P →ₗ[R] Q) (f : N →ₗ[R] P)
+
+@[simp] lemma ltensor_tmul (m : M) (n : N) : f.ltensor M (m ⊗ₜ n) = m ⊗ₜ (f n) := rfl
+
+@[simp] lemma rtensor_tmul (m : M) (n : N) : f.rtensor M (n ⊗ₜ m) = (f n) ⊗ₜ m := rfl
+
+open tensor_product
+
+/-- `ltensor_hom M` is the natural linear map that sends a linear map `f : N →ₗ P` to `M ⊗ f`. -/
+def ltensor_hom : (N →ₗ[R] P) →ₗ[R] (M ⊗[R] N →ₗ[R] M ⊗[R] P) :=
+{ to_fun := ltensor M,
+  map_add' := λ f g, by { ext x y, simp only [add_apply, ltensor_tmul, tmul_add] },
+  map_smul' := λ r f, by { ext x y, simp only [tmul_smul, smul_apply, ltensor_tmul] } }
+
+/-- `rtensor_hom M` is the natural linear map that sends a linear map `f : N →ₗ P` to `M ⊗ f`. -/
+def rtensor_hom : (N →ₗ[R] P) →ₗ[R] (N ⊗[R] M →ₗ[R] P ⊗[R] M) :=
+{ to_fun := λ f, f.rtensor M,
+  map_add' := λ f g, by { ext x y, simp only [add_apply, rtensor_tmul, add_tmul] },
+  map_smul' := λ r f, by { ext x y, simp only [smul_tmul, tmul_smul, smul_apply, rtensor_tmul] } }
+
+@[simp] lemma coe_ltensor_hom :
+  (ltensor_hom M : (N →ₗ[R] P) → (M ⊗[R] N →ₗ[R] M ⊗[R] P)) = ltensor M := rfl
+
+@[simp] lemma coe_rtensor_hom :
+  (rtensor_hom M : (N →ₗ[R] P) → (N ⊗[R] M →ₗ[R] P ⊗[R] M)) = rtensor M := rfl
+
+@[simp] lemma ltensor_add (f g : N →ₗ[R] P) : (f + g).ltensor M = f.ltensor M + g.ltensor M :=
+(ltensor_hom M).map_add f g
+
+@[simp] lemma rtensor_add (f g : N →ₗ[R] P) : (f + g).rtensor M = f.rtensor M + g.rtensor M :=
+(rtensor_hom M).map_add f g
+
+@[simp] lemma ltensor_zero : ltensor M (0 : N →ₗ[R] P) = 0 :=
+(ltensor_hom M).map_zero
+
+@[simp] lemma rtensor_zero : rtensor M (0 : N →ₗ[R] P) = 0 :=
+(rtensor_hom M).map_zero
+
+@[simp] lemma ltensor_smul (r : R) (f : N →ₗ[R] P) : (r • f).ltensor M = r • (f.ltensor M) :=
+(ltensor_hom M).map_smul r f
+
+@[simp] lemma rtensor_smul (r : R) (f : N →ₗ[R] P) : (r • f).rtensor M = r • (f.rtensor M) :=
+(rtensor_hom M).map_smul r f
+
+lemma ltensor_comp : (g.comp f).ltensor M = (g.ltensor M).comp (f.ltensor M) :=
+by { ext m n, simp only [comp_apply, ltensor_tmul] }
+
+lemma rtensor_comp : (g.comp f).rtensor M = (g.rtensor M).comp (f.rtensor M) :=
+by { ext m n, simp only [comp_apply, rtensor_tmul] }
+
+variables (N)
+
+@[simp] lemma ltensor_id : (id : N →ₗ[R] N).ltensor M = id :=
+by { ext m n, simp only [id_coe, id.def, ltensor_tmul] }
+
+@[simp] lemma rtensor_id : (id : N →ₗ[R] N).rtensor M = id :=
+by { ext m n, simp only [id_coe, id.def, rtensor_tmul] }
+
+variables {N}
+
+@[simp] lemma ltensor_comp_rtensor (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  (g.ltensor P).comp (f.rtensor N) = map f g :=
+by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
+
+@[simp] lemma rtensor_comp_ltensor (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  (f.rtensor Q).comp (g.ltensor M) = map f g :=
+by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
+
+@[simp] lemma map_comp_rtensor (f : M →ₗ[R] P) (g : N →ₗ[R] Q) (f' : S →ₗ[R] M) :
+  (map f g).comp (f'.rtensor _) = map (f.comp f') g :=
+by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
+
+@[simp] lemma map_comp_ltensor (f : M →ₗ[R] P) (g : N →ₗ[R] Q) (g' : S →ₗ[R] N) :
+  (map f g).comp (g'.ltensor _) = map f (g.comp g') :=
+by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
+
+@[simp] lemma rtensor_comp_map (f' : P →ₗ[R] S) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  (f'.rtensor _).comp (map f g) = map (f'.comp f) g :=
+by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
+
+@[simp] lemma ltensor_comp_map (g' : Q →ₗ[R] S) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  (g'.ltensor _).comp (map f g) = map f (g'.comp g) :=
+by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
+
+end linear_map
+
 end semiring
 
 section ring
 
-namespace tensor_product
-
-variables {R : Type*} [comm_ring R]
+variables {R : Type*} [comm_semiring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
 variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
   [add_comm_group S]
-variables [module R M] [module R N] [module R P] [module R Q] [module R S]
+variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
+
+namespace tensor_product
 
 open_locale tensor_product
 open linear_map
 
-instance : add_comm_group (M ⊗[R] N) := semimodule.add_comm_monoid_to_add_comm_group R
+variables (R)
 
-lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := (mk R M N).map_neg₂ _ _
+/-- Auxiliary function to defining negation multiplication on tensor product. -/
+def neg.aux : free_add_monoid (M × N) →+ M ⊗[R] N :=
+free_add_monoid.lift $ λ p : M × N, (-p.1) ⊗ₜ p.2
+
+variables {R}
+
+theorem neg.aux_of (m : M) (n : N) :
+  neg.aux R (free_add_monoid.of (m, n)) = (-m) ⊗ₜ[R] n :=
+rfl
+
+instance : has_neg (M ⊗[R] N) :=
+{ neg := (add_con_gen (tensor_product.eqv R M N)).lift (neg.aux R) $ add_con.add_con_gen_le $
+    λ x y hxy, match x, y, hxy with
+    | _, _, (eqv.of_zero_left n)       := (add_con.ker_rel _).2 $
+        by simp_rw [add_monoid_hom.map_zero, neg.aux_of, neg_zero, zero_tmul]
+    | _, _, (eqv.of_zero_right m)      := (add_con.ker_rel _).2 $
+        by simp_rw [add_monoid_hom.map_zero, neg.aux_of, tmul_zero]
+    | _, _, (eqv.of_add_left m₁ m₂ n)  := (add_con.ker_rel _).2 $
+        by simp_rw [add_monoid_hom.map_add, neg.aux_of, neg_add, add_tmul]
+    | _, _, (eqv.of_add_right m n₁ n₂) := (add_con.ker_rel _).2 $
+        by simp_rw [add_monoid_hom.map_add, neg.aux_of, tmul_add]
+    | _, _, (eqv.of_smul s m n)        := (add_con.ker_rel _).2 $
+        by simp_rw [neg.aux_of, tmul_smul s, smul_tmul', smul_neg]
+    | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
+        by simp_rw [add_monoid_hom.map_add, add_comm]
+    end }
+
+lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := rfl
+
+instance : add_comm_group (M ⊗[R] N) :=
+{ neg := has_neg.neg,
+  add_left_neg := λ x, tensor_product.induction_on x
+    (by { rw [add_zero], apply (neg.aux R).map_zero, })
+    (λ x y, by { convert (add_tmul (-x) x y).symm, rw [add_left_neg, zero_tmul], })
+    (λ x y hx hy, by {
+      unfold has_neg.neg,
+      rw add_monoid_hom.map_add,
+      ac_change (-x + x) + (-y + y) = 0,
+      rw [hx, hy, add_zero], }),
+  ..(infer_instance : add_comm_monoid (M ⊗[R] N)) }
+
 lemma tmul_neg (m : M) (n : N) : m ⊗ₜ (-n) = -(m ⊗ₜ[R] n) := (mk R M N _).map_neg _
 
 end tensor_product
+
+namespace linear_map
+
+@[simp] lemma ltensor_sub (f g : N →ₗ[R] P) : (f - g).ltensor M = f.ltensor M - g.ltensor M :=
+by simp only [← coe_ltensor_hom, map_sub]
+
+@[simp] lemma rtensor_sub (f g : N →ₗ[R] P) : (f - g).rtensor M = f.rtensor M - g.rtensor M :=
+by simp only [← coe_rtensor_hom, map_sub]
+
+@[simp] lemma ltensor_neg (f : N →ₗ[R] P) : (-f).ltensor M = -(f.ltensor M) :=
+by simp only [← coe_ltensor_hom, map_neg]
+
+@[simp] lemma rtensor_neg (f : N →ₗ[R] P) : (-f).rtensor M = -(f.rtensor M) :=
+by simp only [← coe_rtensor_hom, map_neg]
+
+end linear_map
 
 end ring

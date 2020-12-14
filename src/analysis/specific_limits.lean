@@ -16,7 +16,7 @@ import tactic.ring_exp
 noncomputable theory
 open classical function filter finset metric
 
-open_locale classical topological_space nat big_operators
+open_locale classical topological_space nat big_operators uniformity
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -86,6 +86,12 @@ by_cases
         (tendsto_pow_at_top_at_top_of_one_lt $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
     tendsto.congr' (univ_mem_sets' $ by simp *) this)
 
+lemma uniformity_basis_dist_pow_of_lt_1 {α : Type*} [metric_space α]
+  {r : ℝ} (h₀ : 0 < r) (h₁ : r < 1) :
+  (𝓤 α).has_basis (λ k : ℕ, true) (λ k, {p : α × α | dist p.1 p.2 < r ^ k}) :=
+metric.mk_uniformity_basis (λ i _, pow_pos h₀ _) $ λ ε ε0,
+  (exists_pow_lt_of_lt_one ε0 h₁).imp $ λ k hk, ⟨trivial, hk.le⟩
+
 lemma geom_lt {u : ℕ → ℝ} {k : ℝ} (hk : 0 < k) {n : ℕ} (h : ∀ m ≤ n, k*u m < u (m + 1)) :
   k^(n + 1) *u 0 < u (n + 1) :=
 begin
@@ -106,17 +112,10 @@ then it goes to +∞. -/
 lemma tendsto_at_top_of_geom_lt {v : ℕ → ℝ} {k : ℝ} (h₀ : 0 < v 0) (hk : 1 < k)
   (hu : ∀ n, k*v n < v (n+1)) : tendsto v at_top at_top :=
 begin
-  apply tendsto_at_top_mono,
-  show ∀ n, k^n*v 0 ≤ v n,
-  { intro n,
-    induction n with n ih,
-    { simp },
-    calc
-    k ^ (n + 1) * v 0 = k*(k^n*v 0) : by ring_exp
-                  ... ≤ k*v n       : mul_le_mul_of_nonneg_left ih (by linarith)
-                  ... ≤ v (n + 1)   : le_of_lt (hu n) },
-  apply tendsto_at_top_mul_right h₀,
-  exact tendsto_pow_at_top_at_top_of_one_lt hk,
+  refine tendsto_at_top_mono _ ((tendsto_pow_at_top_at_top_of_one_lt hk).at_top_mul_const h₀),
+  rintro (_|n),
+  { simp },
+  { exact (geom_lt (zero_lt_one.trans hk) (λ m hm, hu m)).le }
 end
 
 lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : nnreal} (hr : r < 1) :
@@ -151,8 +150,6 @@ section geometric
 lemma has_sum_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   has_sum (λn:ℕ, r ^ n) (1 - r)⁻¹ :=
 have r ≠ 1, from ne_of_lt h₂,
-have r + -1 ≠ 0,
-  by rw [←sub_eq_add_neg, ne, sub_eq_iff_eq_add]; simp; assumption,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (𝓝 ((0 - 1) * (r - 1)⁻¹)),
   from ((tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂).sub tendsto_const_nhds).mul tendsto_const_nhds,
 have (λ n, (∑ i in range n, r ^ i)) = (λ n, geom_series r n) := rfl,

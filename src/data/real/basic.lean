@@ -9,6 +9,7 @@ from Cauchy sequences.
 import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
+import algebra.star.basic
 
 /-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
 numbers. -/
@@ -20,7 +21,7 @@ open cau_seq cau_seq.completion
 
 variables {x y : ℝ}
 
-def comm_ring_aux : comm_ring ℝ := cau_seq.completion.comm_ring
+def comm_ring_aux : comm_ring ℝ := Cauchy.comm_ring
 
 instance : comm_ring ℝ := { ..comm_ring_aux }
 
@@ -41,6 +42,9 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : inhabited ℝ := ⟨0⟩
+
+/-- The real numbers are a *-ring, with the trivial *-structure. -/
+instance : star_ring ℝ          := star_ring_of_comm
 
 /-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
 is `cau_seq.completion.of_rat`, not `rat.cast`. -/

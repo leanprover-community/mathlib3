@@ -3,9 +3,12 @@ Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
-import group_theory.group_action
-import tactic.nth_rewrite
+import algebra.big_operators.basic
 import algebra.group.hom
+import algebra.ring.basic
+import data.rat.cast
+import group_theory.group_action.group
+import tactic.nth_rewrite
 
 /-!
 # Modules over a ring
@@ -60,6 +63,8 @@ variables (R)
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
 
+theorem two_smul' : (2 : R) • x = bit0 x := two_smul R x
+
 /-- Pullback a `semimodule` structure along an injective additive monoid homomorphism. -/
 protected def function.injective.semimodule [add_comm_monoid M₂] [has_scalar R M₂] (f : M₂ →+ M)
   (hf : injective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
@@ -113,9 +118,9 @@ variables (R)
 def semimodule.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [semimodule R M] :
   add_comm_group M :=
 { neg          := λ a, (-1 : R) • a,
-  add_left_neg := λ a, by {
+  add_left_neg := λ a, show (-1 : R) • a + a = 0, by {
     nth_rewrite 1 ← one_smul _ a,
-    rw [← add_smul, add_left_neg, zero_smul], },
+    rw [← add_smul, add_left_neg, zero_smul] },
   ..(infer_instance : add_comm_monoid M), }
 
 variables {R}
@@ -275,6 +280,17 @@ def nat_semimodule : semimodule ℕ M :=
   zero_smul := zero_nsmul,
   smul_zero := nsmul_zero }
 
+local attribute [instance] nat_semimodule
+
+instance nat_is_scalar_tower [semiring S] [semimodule S M] :
+  is_scalar_tower ℕ S M :=
+{ smul_assoc := begin
+    intros n x y,
+    induction n with n ih,
+    { simp only [zero_smul] },
+    { simp only [nat.succ_eq_add_one, add_smul, one_smul, ih] }
+  end }
+
 end add_comm_monoid
 
 namespace add_comm_group
@@ -320,6 +336,18 @@ begin
   { rw [int.neg_succ_of_nat_coe, neg_smul, neg_smul, nat_smul], }
 end
 
+local attribute [instance] int_module add_comm_monoid.nat_semimodule
+
+instance int_is_scalar_tower [ring S] [module S M] :
+  is_scalar_tower ℤ S M :=
+{ smul_assoc := begin
+    intros n x y,
+    cases n,
+    { show (n • x) • y = n • x • y, apply smul_assoc },
+    { simp only [int.neg_succ_of_nat_eq, neg_smul],
+      convert congr_arg has_neg.neg (smul_assoc n.succ x y) },
+  end }
+
 end add_comm_group
 
 section
@@ -344,6 +372,20 @@ lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
   n • x = n •ℕ x :=
 rfl
 
+namespace nat
+
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
+instance smul_comm_class : smul_comm_class ℕ R M :=
+{ smul_comm := λ n r m, begin
+    simp only [nat.smul_def],
+    induction n with n ih,
+    { simp },
+    { simp [succ_nsmul, ←ih, smul_add] },
+  end }
+
+end nat
+
 end
 
 section
@@ -366,27 +408,38 @@ lemma module.gsmul_eq_smul {M : Type*} [add_comm_group M] [module ℤ M]
   (n : ℤ) (b : M) : gsmul n b = n • b :=
 by rw [module.gsmul_eq_smul_cast ℤ, int.cast_id]
 
+namespace int
+
+variables [semiring R] [add_comm_group M] [semimodule R M]
+
+instance smul_comm_class : smul_comm_class ℤ R M :=
+{ smul_comm := λ z r l, by cases z; simp [←gsmul_eq_smul, ←nat.smul_def, smul_comm] }
+
+end int
+
 end
+
+namespace add_monoid_hom
 
 -- We prove this without using the `add_comm_group.int_module` instance, so the `•`s here
 -- come from whatever the local `module ℤ` structure actually is.
-lemma add_monoid_hom.map_int_module_smul
+lemma map_int_module_smul
   [add_comm_group M] [add_comm_group M₂]
   [module ℤ M] [module ℤ M₂] (f : M →+ M₂) (x : ℤ) (a : M) : f (x • a) = x • f a :=
 by simp only [← module.gsmul_eq_smul, f.map_gsmul]
 
-lemma add_monoid_hom.map_int_cast_smul
+lemma map_int_cast_smul
   [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
   (f : M →+ M₂) (x : ℤ) (a : M) : f ((x : R) • a) = (x : R) • f a :=
 by simp only [← module.gsmul_eq_smul_cast, f.map_gsmul]
 
-lemma add_monoid_hom.map_nat_cast_smul
+lemma map_nat_cast_smul
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
   [semimodule R M] [semimodule R M₂] (f : M →+ M₂) (x : ℕ) (a : M) :
   f ((x : R) • a) = (x : R) • f a :=
 by simp only [← semimodule.nsmul_eq_smul, f.map_nsmul]
 
-lemma add_monoid_hom.map_rat_cast_smul {R : Type*} [division_ring R] [char_zero R]
+lemma map_rat_cast_smul {R : Type*} [division_ring R] [char_zero R]
   {E : Type*} [add_comm_group E] [module R E] {F : Type*} [add_comm_group F] [module R F]
   (f : E →+ F) (c : ℚ) (x : E) :
   f ((c : R) • x) = (c : R) • f x :=
@@ -402,10 +455,34 @@ begin
     rat.cast_coe_int, f.map_int_cast_smul, this _ n hn]
 end
 
-lemma add_monoid_hom.map_rat_module_smul {E : Type*} [add_comm_group E] [vector_space ℚ E]
+lemma map_rat_module_smul {E : Type*} [add_comm_group E] [vector_space ℚ E]
   {F : Type*} [add_comm_group F] [module ℚ F] (f : E →+ F) (c : ℚ) (x : E) :
   f (c • x) = c • f x :=
 rat.cast_id c ▸ f.map_rat_cast_smul c x
+
+@[simp] lemma nat_smul_apply [add_monoid M] [add_comm_monoid M₂]
+  [semimodule ℕ (M →+ M₂)] [semimodule ℕ M₂]
+  (n : ℕ) (f : M →+ M₂) (a : M) :
+  (n • f) a = n • (f a) :=
+begin
+  induction n with n IH,
+  { simp only [zero_smul, zero_apply] },
+  { simp only [nat.succ_eq_add_one, add_smul, IH, one_smul, add_apply] }
+end
+
+@[simp] lemma int_smul_apply [add_monoid M] [add_comm_group M₂]
+  [module ℤ (M →+ M₂)] [module ℤ M₂]
+  (n : ℤ) (f : M →+ M₂) (a : M) :
+  (n • f) a = n • (f a) :=
+begin
+  apply int.induction_on' n 0,
+  { simp only [zero_smul, zero_apply] },
+  all_goals
+  { intros k hk IH,
+    simp only [add_smul, sub_smul, IH, one_smul, add_apply, sub_apply] }
+end
+
+end add_monoid_hom
 
 -- We finally turn on these instances globally:
 attribute [instance] add_comm_monoid.nat_semimodule add_comm_group.int_module

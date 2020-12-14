@@ -101,11 +101,29 @@ by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }
 
 lemma coeff_X : coeff (X : polynomial R) n = if 1 = n then 1 else 0 := coeff_monomial
 
+lemma coeff_X_of_ne_one {n : ℕ} (hn : n ≠ 1) : coeff (X : polynomial R) n = 0 :=
+by rw [coeff_X, if_neg hn.symm]
+
 theorem ext_iff {p q : polynomial R} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 finsupp.ext_iff
 
 @[ext] lemma ext {p q : polynomial R} : (∀ n, coeff p n = coeff q n) → p = q :=
 finsupp.ext
+
+@[ext] lemma add_hom_ext' {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
+  (h : ∀ n, f.comp (monomial n).to_add_monoid_hom = g.comp (monomial n).to_add_monoid_hom) :
+  f = g :=
+finsupp.add_hom_ext' h
+
+lemma add_hom_ext {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
+  (h : ∀ n a, f (monomial n a) = g (monomial n a)) :
+  f = g :=
+finsupp.add_hom_ext h
+
+@[ext] lemma lhom_ext' {M : Type*} [add_comm_monoid M] [semimodule R M] {f g : polynomial R →ₗ[R] M}
+  (h : ∀ n, f.comp (monomial n) = g.comp (monomial n)) :
+  f = g :=
+finsupp.lhom_ext' h
 
 -- this has the same content as the subsingleton
 lemma eq_zero_of_eq_zero (h : (0 : R) = (1 : R)) (p : polynomial R) : p = 0 :=

@@ -162,7 +162,7 @@ lemma mod_def (x y : ℤ[i]) : x % y = x - y * (x / y) := rfl
 
 lemma norm_mod_lt (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) : (x % y).norm < y.norm :=
 have (y : ℂ) ≠ 0, by rwa [ne.def, ← to_complex_zero, to_complex_inj],
-(@int.cast_lt ℝ _ _ _).1 $
+(@int.cast_lt ℝ _ _ _ _).1 $
   calc ↑(norm (x % y)) = (x - y * (x / y : ℤ[i]) : ℂ).norm_sq : by simp [mod_def]
   ... = (y : ℂ).norm_sq * (((x / y) - (x / y : ℤ[i])) : ℂ).norm_sq :
     by rw [← norm_sq_mul, mul_sub, mul_div_cancel' _ this]

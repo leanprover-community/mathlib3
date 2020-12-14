@@ -22,11 +22,8 @@ Two explicit examples of Grothendieck topologies are given:
 as well as the complete lattice structure on Grothendieck topologies (which gives two additional
 explicit topologies: the discrete and trivial topologies.)
 
-## Todo
-
-Define Grothendieck pretopologies, and show they generate topologies.
-Define the topology associated to a topological space.
-Define sheaves on a topology, and the topos of sheaves.
+A pretopology, or a basis for a topology is defined in `pretopology.lean`. The topology associated
+to a topological space is defined in `spaces.lean`.
 
 ## Tags
 

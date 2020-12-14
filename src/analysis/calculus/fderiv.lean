@@ -454,7 +454,7 @@ as this statement is empty. -/
 lemma has_fderiv_within_at_of_not_mem_closure (h : x ∉ closure s) :
   has_fderiv_within_at f f' s x :=
 begin
-  simp [mem_closure_iff_nhds_within_ne_bot, ne_bot] at h,
+  simp only [mem_closure_iff_nhds_within_ne_bot, ne_bot, ne.def, not_not] at h,
   simp [has_fderiv_within_at, has_fderiv_at_filter, h, is_o, is_O_with],
 end
 
@@ -561,6 +561,21 @@ lemma fderiv_within_eq_fderiv (hs : unique_diff_within_at 𝕜 s x) (h : differe
 begin
   rw ← fderiv_within_univ,
   exact fderiv_within_subset (subset_univ _) hs h.differentiable_within_at
+end
+
+lemma fderiv_mem_iff {f : E → F} {s : set (E →L[𝕜] F)} {x : E} :
+  fderiv 𝕜 f x ∈ s ↔ (differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ s) ∨
+    (0 : E →L[𝕜] F) ∈ s ∧ ¬differentiable_at 𝕜 f x :=
+begin
+  split,
+  { intro hfx,
+    by_cases hx : differentiable_at 𝕜 f x,
+    { exact or.inl ⟨hx, hfx⟩ },
+    { rw [fderiv_zero_of_not_differentiable_at hx] at hfx,
+      exact or.inr ⟨hfx, hx⟩ } },
+  { rintro (⟨hf, hf'⟩|⟨h₀, hx⟩),
+    { exact hf' },
+    { rwa [fderiv_zero_of_not_differentiable_at hx] } }
 end
 
 end fderiv_properties
@@ -1669,12 +1684,12 @@ section sub
 theorem has_strict_fderiv_at.sub
   (hf : has_strict_fderiv_at f f' x) (hg : has_strict_fderiv_at g g' x) :
   has_strict_fderiv_at (λ x, f x - g x) (f' - g') x :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 theorem has_fderiv_at_filter.sub
   (hf : has_fderiv_at_filter f f' x L) (hg : has_fderiv_at_filter g g' x L) :
   has_fderiv_at_filter (λ x, f x - g x) (f' - g') x L :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 theorem has_fderiv_within_at.sub
   (hf : has_fderiv_within_at f f' s x) (hg : has_fderiv_within_at g g' s x) :
@@ -1719,12 +1734,12 @@ lemma fderiv_sub
 theorem has_strict_fderiv_at.sub_const
   (hf : has_strict_fderiv_at f f' x) (c : F) :
   has_strict_fderiv_at (λ x, f x - c) f' x :=
-hf.add_const (-c)
+by simpa only [sub_eq_add_neg] using hf.add_const (-c)
 
 theorem has_fderiv_at_filter.sub_const
   (hf : has_fderiv_at_filter f f' x L) (c : F) :
   has_fderiv_at_filter (λ x, f x - c) f' x L :=
-hf.add_const (-c)
+by simpa only [sub_eq_add_neg] using hf.add_const (-c)
 
 theorem has_fderiv_within_at.sub_const
   (hf : has_fderiv_within_at f f' s x) (c : F) :
@@ -1769,12 +1784,12 @@ lemma fderiv_sub_const
 theorem has_strict_fderiv_at.const_sub
   (hf : has_strict_fderiv_at f f' x) (c : F) :
   has_strict_fderiv_at (λ x, c - f x) (-f') x :=
-hf.neg.const_add c
+by simpa only [sub_eq_add_neg] using hf.neg.const_add c
 
 theorem has_fderiv_at_filter.const_sub
   (hf : has_fderiv_at_filter f f' x L) (c : F) :
   has_fderiv_at_filter (λ x, c - f x) (-f') x L :=
-hf.neg.const_add c
+by simpa only [sub_eq_add_neg] using hf.neg.const_add c
 
 theorem has_fderiv_within_at.const_sub
   (hf : has_fderiv_within_at f f' s x) (c : F) :
@@ -2372,13 +2387,23 @@ begin
     simp only [(∘), hp, hfg.self_of_nhds] }
 end
 
+/-- If `f` is a local homeomorphism defined on a neighbourhood of `f.symm a`, and `f` has an
+invertible derivative `f'` in the sense of strict differentiability at `f.symm a`, then `f.symm` has
+the derivative `f'⁻¹` at `a`.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+lemma local_homeomorph.has_strict_fderiv_at_symm (f : local_homeomorph E F) {f' : E ≃L[𝕜] F} {a : F}
+  (ha : a ∈ f.target) (htff' : has_strict_fderiv_at f (f' : E →L[𝕜] F) (f.symm a)) :
+  has_strict_fderiv_at f.symm (f'.symm : F →L[𝕜] E) a :=
+htff'.of_local_left_inverse (f.symm.continuous_at ha) (f.eventually_right_inverse ha)
 
 /-- If `f` is a local homeomorphism defined on a neighbourhood of `f.symm a`, and `f` has an
 invertible derivative `f'` at `f.symm a`, then `f.symm` has the derivative `f'⁻¹` at `a`.
 
 This is one of the easy parts of the inverse function theorem: it assumes that we already have
 an inverse function. -/
-lemma has_fderiv_at.of_local_homeomorph {f : local_homeomorph E F} {f' : E ≃L[𝕜] F} {a : F}
+lemma local_homeomorph.has_fderiv_at_symm (f : local_homeomorph E F) {f' : E ≃L[𝕜] F} {a : F}
   (ha : a ∈ f.target) (htff' : has_fderiv_at f (f' : E →L[𝕜] F) (f.symm a)) :
   has_fderiv_at f.symm (f'.symm : F →L[𝕜] E) a :=
 htff'.of_local_left_inverse (f.symm.continuous_at ha) (f.eventually_right_inverse ha)

@@ -437,6 +437,17 @@ def vadd_const (p : P) : G ≃ P :=
 
 @[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const p).symm = λ p', p' -ᵥ p := rfl
 
+/-- `p' ↦ p -ᵥ p'` as an equivalence. -/
+def const_vsub (p : P) : P ≃ G :=
+{ to_fun := (-ᵥ) p,
+  inv_fun := λ v, -v +ᵥ p,
+  left_inv := λ p', by simp,
+  right_inv := λ v, by simp [vsub_vadd_eq_vsub_sub] }
+
+@[simp] lemma coe_const_vsub (p : P) : ⇑(const_vsub p) = (-ᵥ) p := rfl
+
+@[simp] lemma coe_const_vsub_symm (p : P) : ⇑(const_vsub p).symm = λ v, -v +ᵥ p := rfl
+
 variables (P)
 
 /-- The permutation given by `p ↦ v +ᵥ p`. -/
@@ -463,5 +474,39 @@ def const_vadd_hom : multiplicative G →* equiv.perm P :=
 { to_fun := λ v, const_vadd P v.to_add,
   map_one' := const_vadd_zero G P,
   map_mul' := const_vadd_add P }
+
+variable {P}
+
+open function
+
+/-- Point reflection in `x` as a permutation. -/
+def point_reflection (x : P) : perm P := (const_vsub x).trans (vadd_const x)
+
+lemma point_reflection_apply (x y : P) : point_reflection x y = x -ᵥ y +ᵥ x := rfl
+
+@[simp] lemma point_reflection_symm (x : P) : (point_reflection x).symm = point_reflection x :=
+ext $ by simp [point_reflection]
+
+@[simp] lemma point_reflection_self (x : P) : point_reflection x x = x := vsub_vadd _ _
+
+lemma point_reflection_involutive (x : P) : involutive (point_reflection x : P → P) :=
+λ y, (equiv.apply_eq_iff_eq_symm_apply _).2 $ by rw point_reflection_symm
+
+/-- `x` is the only fixed point of `point_reflection x`. This lemma requires
+`x + x = y + y ↔ x = y`. There is no typeclass to use here, so we add it as an explicit argument. -/
+lemma point_reflection_fixed_iff_of_injective_bit0 {x y : P} (h : injective (bit0 : G → G)) :
+  point_reflection x y = y ↔ y = x :=
+by rw [point_reflection_apply, eq_comm, eq_vadd_iff_vsub_eq, ← neg_vsub_eq_vsub_rev,
+  neg_eq_iff_add_eq_zero, ← bit0, ← bit0_zero, h.eq_iff, vsub_eq_zero_iff_eq, eq_comm]
+
+omit G
+
+lemma injective_point_reflection_left_of_injective_bit0 {G P : Type*} [add_comm_group G]
+  [add_torsor G P] (h : injective (bit0 : G → G)) (y : P) :
+  injective (λ x : P, point_reflection x y) :=
+λ x₁ x₂ (hy : point_reflection x₁ y = point_reflection x₂ y),
+  by rwa [point_reflection_apply, point_reflection_apply, vadd_eq_vadd_iff_sub_eq_vsub,
+    vsub_sub_vsub_cancel_right, ← neg_vsub_eq_vsub_rev, neg_eq_iff_add_eq_zero, ← bit0, ← bit0_zero,
+    h.eq_iff, vsub_eq_zero_iff_eq] at hy
 
 end equiv

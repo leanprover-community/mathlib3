@@ -50,6 +50,10 @@ begin
       I_mul_I, mul_neg_one, sub_neg_eq_add, add_comm]
 end
 
+lemma times_cont_diff_sin {n} : times_cont_diff ℂ n sin :=
+(((times_cont_diff_neg.mul times_cont_diff_const).cexp.sub
+  (times_cont_diff_id.mul times_cont_diff_const).cexp).mul times_cont_diff_const).div_const
+
 lemma differentiable_sin : differentiable ℂ sin :=
 λx, (has_deriv_at_sin x).differentiable_at
 
@@ -75,6 +79,10 @@ begin
   simp only [function.comp, id],
   ring
 end
+
+lemma times_cont_diff_cos {n} : times_cont_diff ℂ n cos :=
+((times_cont_diff_id.mul times_cont_diff_const).cexp.add
+  (times_cont_diff_neg.mul times_cont_diff_const).cexp).div_const
 
 lemma differentiable_cos : differentiable ℂ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
@@ -103,6 +111,9 @@ begin
   rw [id, mul_neg_one, neg_neg]
 end
 
+lemma times_cont_diff_sinh {n} : times_cont_diff ℂ n sinh :=
+(times_cont_diff_exp.sub times_cont_diff_neg.cexp).div_const
+
 lemma differentiable_sinh : differentiable ℂ sinh :=
 λx, (has_deriv_at_sinh x).differentiable_at
 
@@ -125,6 +136,9 @@ begin
   rw [id, mul_neg_one, sub_eq_add_neg]
 end
 
+lemma times_cont_diff_cosh {n} : times_cont_diff ℂ n cosh :=
+(times_cont_diff_exp.add times_cont_diff_neg.cexp).div_const
+
 lemma differentiable_cosh : differentiable ℂ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
 
@@ -142,15 +156,14 @@ lemma measurable_cosh : measurable cosh := continuous_cosh.measurable
 end complex
 
 section
-/-! Register lemmas for the derivatives of the composition of `complex.cos`, `complex.sin`,
-`complex.cosh` and `complex.sinh` with a differentiable function, for standalone use and use with
-`simp`. -/
+/-! ### Simp lemmas for derivatives of `λ x, complex.cos (f x)` etc., `f : ℂ → ℂ` -/
 
 variables {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
 
-/-! `complex.cos`-/
+/-! #### `complex.cos` -/
 
-lemma measurable.ccos (hf : measurable f) : measurable (λ x, complex.cos (f x)) :=
+lemma measurable.ccos {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
+  measurable (λ x, complex.cos (f x)) :=
 complex.measurable_cos.comp hf
 
 lemma has_deriv_at.ccos (hf : has_deriv_at f f' x) :
@@ -161,22 +174,6 @@ lemma has_deriv_within_at.ccos (hf : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, complex.cos (f x)) (- complex.sin (f x) * f') s x :=
 (complex.has_deriv_at_cos (f x)).comp_has_deriv_within_at x hf
 
-lemma differentiable_within_at.ccos (hf : differentiable_within_at ℂ f s x) :
-  differentiable_within_at ℂ (λ x, complex.cos (f x)) s x :=
-hf.has_deriv_within_at.ccos.differentiable_within_at
-
-@[simp] lemma differentiable_at.ccos (hc : differentiable_at ℂ f x) :
-  differentiable_at ℂ (λx, complex.cos (f x)) x :=
-hc.has_deriv_at.ccos.differentiable_at
-
-lemma differentiable_on.ccos (hc : differentiable_on ℂ f s) :
-  differentiable_on ℂ (λx, complex.cos (f x)) s :=
-λx h, (hc x h).ccos
-
-@[simp] lemma differentiable.ccos (hc : differentiable ℂ f) :
-  differentiable ℂ (λx, complex.cos (f x)) :=
-λx, (hc x).ccos
-
 lemma deriv_within_ccos (hf : differentiable_within_at ℂ f s x)
   (hxs : unique_diff_within_at ℂ s x) :
   deriv_within (λx, complex.cos (f x)) s x = - complex.sin (f x) * (deriv_within f s x) :=
@@ -186,9 +183,10 @@ hf.has_deriv_within_at.ccos.deriv_within hxs
   deriv (λx, complex.cos (f x)) x = - complex.sin (f x) * (deriv f x) :=
 hc.has_deriv_at.ccos.deriv
 
-/-! `complex.sin`-/
+/-! #### `complex.sin` -/
 
-lemma measurable.csin (hf : measurable f) : measurable (λ x, complex.sin (f x)) :=
+lemma measurable.csin {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
+  measurable (λ x, complex.sin (f x)) :=
 complex.measurable_sin.comp hf
 
 lemma has_deriv_at.csin (hf : has_deriv_at f f' x) :
@@ -199,22 +197,6 @@ lemma has_deriv_within_at.csin (hf : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, complex.sin (f x)) (complex.cos (f x) * f') s x :=
 (complex.has_deriv_at_sin (f x)).comp_has_deriv_within_at x hf
 
-lemma differentiable_within_at.csin (hf : differentiable_within_at ℂ f s x) :
-  differentiable_within_at ℂ (λ x, complex.sin (f x)) s x :=
-hf.has_deriv_within_at.csin.differentiable_within_at
-
-@[simp] lemma differentiable_at.csin (hc : differentiable_at ℂ f x) :
-  differentiable_at ℂ (λx, complex.sin (f x)) x :=
-hc.has_deriv_at.csin.differentiable_at
-
-lemma differentiable_on.csin (hc : differentiable_on ℂ f s) :
-  differentiable_on ℂ (λx, complex.sin (f x)) s :=
-λx h, (hc x h).csin
-
-@[simp] lemma differentiable.csin (hc : differentiable ℂ f) :
-  differentiable ℂ (λx, complex.sin (f x)) :=
-λx, (hc x).csin
-
 lemma deriv_within_csin (hf : differentiable_within_at ℂ f s x)
   (hxs : unique_diff_within_at ℂ s x) :
   deriv_within (λx, complex.sin (f x)) s x = complex.cos (f x) * (deriv_within f s x) :=
@@ -224,9 +206,10 @@ hf.has_deriv_within_at.csin.deriv_within hxs
   deriv (λx, complex.sin (f x)) x = complex.cos (f x) * (deriv f x) :=
 hc.has_deriv_at.csin.deriv
 
-/-! `complex.cosh`-/
+/-! #### `complex.cosh` -/
 
-lemma measurable.ccosh (hf : measurable f) : measurable (λ x, complex.cosh (f x)) :=
+lemma measurable.ccosh {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
+  measurable (λ x, complex.cosh (f x)) :=
 complex.measurable_cosh.comp hf
 
 lemma has_deriv_at.ccosh (hf : has_deriv_at f f' x) :
@@ -237,22 +220,6 @@ lemma has_deriv_within_at.ccosh (hf : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, complex.cosh (f x)) (complex.sinh (f x) * f') s x :=
 (complex.has_deriv_at_cosh (f x)).comp_has_deriv_within_at x hf
 
-lemma differentiable_within_at.ccosh (hf : differentiable_within_at ℂ f s x) :
-  differentiable_within_at ℂ (λ x, complex.cosh (f x)) s x :=
-hf.has_deriv_within_at.ccosh.differentiable_within_at
-
-@[simp] lemma differentiable_at.ccosh (hc : differentiable_at ℂ f x) :
-  differentiable_at ℂ (λx, complex.cosh (f x)) x :=
-hc.has_deriv_at.ccosh.differentiable_at
-
-lemma differentiable_on.ccosh (hc : differentiable_on ℂ f s) :
-  differentiable_on ℂ (λx, complex.cosh (f x)) s :=
-λx h, (hc x h).ccosh
-
-@[simp] lemma differentiable.ccosh (hc : differentiable ℂ f) :
-  differentiable ℂ (λx, complex.cosh (f x)) :=
-λx, (hc x).ccosh
-
 lemma deriv_within_ccosh (hf : differentiable_within_at ℂ f s x)
   (hxs : unique_diff_within_at ℂ s x) :
   deriv_within (λx, complex.cosh (f x)) s x = complex.sinh (f x) * (deriv_within f s x) :=
@@ -262,9 +229,10 @@ hf.has_deriv_within_at.ccosh.deriv_within hxs
   deriv (λx, complex.cosh (f x)) x = complex.sinh (f x) * (deriv f x) :=
 hc.has_deriv_at.ccosh.deriv
 
-/-! `complex.sinh`-/
+/-! #### `complex.sinh` -/
 
-lemma measurable.csinh (hf : measurable f) : measurable (λ x, complex.sinh (f x)) :=
+lemma measurable.csinh {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
+  measurable (λ x, complex.sinh (f x)) :=
 complex.measurable_sinh.comp hf
 
 lemma has_deriv_at.csinh (hf : has_deriv_at f f' x) :
@@ -274,22 +242,6 @@ lemma has_deriv_at.csinh (hf : has_deriv_at f f' x) :
 lemma has_deriv_within_at.csinh (hf : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, complex.sinh (f x)) (complex.cosh (f x) * f') s x :=
 (complex.has_deriv_at_sinh (f x)).comp_has_deriv_within_at x hf
-
-lemma differentiable_within_at.csinh (hf : differentiable_within_at ℂ f s x) :
-  differentiable_within_at ℂ (λ x, complex.sinh (f x)) s x :=
-hf.has_deriv_within_at.csinh.differentiable_within_at
-
-@[simp] lemma differentiable_at.csinh (hc : differentiable_at ℂ f x) :
-  differentiable_at ℂ (λx, complex.sinh (f x)) x :=
-hc.has_deriv_at.csinh.differentiable_at
-
-lemma differentiable_on.csinh (hc : differentiable_on ℂ f s) :
-  differentiable_on ℂ (λx, complex.sinh (f x)) s :=
-λx h, (hc x h).csinh
-
-@[simp] lemma differentiable.csinh (hc : differentiable ℂ f) :
-  differentiable ℂ (λx, complex.sinh (f x)) :=
-λx, (hc x).csinh
 
 lemma deriv_within_csinh (hf : differentiable_within_at ℂ f s x)
   (hxs : unique_diff_within_at ℂ s x) :
@@ -302,12 +254,227 @@ hc.has_deriv_at.csinh.deriv
 
 end
 
+section
+/-! ### Simp lemmas for derivatives of `λ x, complex.cos (f x)` etc., `f : E → ℂ` -/
+
+variables {E : Type*} [normed_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
+  {x : E} {s : set E}
+
+/-! #### `complex.cos` -/
+
+lemma has_fderiv_at.ccos (hf : has_fderiv_at f f' x) :
+  has_fderiv_at (λ x, complex.cos (f x)) (- complex.sin (f x) • f') x :=
+(complex.has_deriv_at_cos (f x)).comp_has_fderiv_at x hf
+
+lemma has_fderiv_within_at.ccos (hf : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at (λ x, complex.cos (f x)) (- complex.sin (f x) • f') s x :=
+(complex.has_deriv_at_cos (f x)).comp_has_fderiv_within_at x hf
+
+lemma differentiable_within_at.ccos (hf : differentiable_within_at ℂ f s x) :
+  differentiable_within_at ℂ (λ x, complex.cos (f x)) s x :=
+hf.has_fderiv_within_at.ccos.differentiable_within_at
+
+@[simp] lemma differentiable_at.ccos (hc : differentiable_at ℂ f x) :
+  differentiable_at ℂ (λx, complex.cos (f x)) x :=
+hc.has_fderiv_at.ccos.differentiable_at
+
+lemma differentiable_on.ccos (hc : differentiable_on ℂ f s) :
+  differentiable_on ℂ (λx, complex.cos (f x)) s :=
+λx h, (hc x h).ccos
+
+@[simp] lemma differentiable.ccos (hc : differentiable ℂ f) :
+  differentiable ℂ (λx, complex.cos (f x)) :=
+λx, (hc x).ccos
+
+lemma fderiv_within_ccos (hf : differentiable_within_at ℂ f s x)
+  (hxs : unique_diff_within_at ℂ s x) :
+  fderiv_within ℂ (λx, complex.cos (f x)) s x = - complex.sin (f x) • (fderiv_within ℂ f s x) :=
+hf.has_fderiv_within_at.ccos.fderiv_within hxs
+
+@[simp] lemma fderiv_ccos (hc : differentiable_at ℂ f x) :
+  fderiv ℂ (λx, complex.cos (f x)) x = - complex.sin (f x) • (fderiv ℂ f x) :=
+hc.has_fderiv_at.ccos.fderiv
+
+lemma times_cont_diff.ccos {n} (h : times_cont_diff ℂ n f) :
+  times_cont_diff ℂ n (λ x, complex.cos (f x)) :=
+complex.times_cont_diff_cos.comp h
+
+lemma times_cont_diff_at.ccos {n} (hf : times_cont_diff_at ℂ n f x) :
+  times_cont_diff_at ℂ n (λ x, complex.cos (f x)) x :=
+complex.times_cont_diff_cos.times_cont_diff_at.comp x hf
+
+lemma times_cont_diff_on.ccos {n} (hf : times_cont_diff_on ℂ n f s) :
+  times_cont_diff_on ℂ n (λ x, complex.cos (f x)) s :=
+complex.times_cont_diff_cos.comp_times_cont_diff_on  hf
+
+lemma times_cont_diff_within_at.ccos {n} (hf : times_cont_diff_within_at ℂ n f s x) :
+  times_cont_diff_within_at ℂ n (λ x, complex.cos (f x)) s x :=
+complex.times_cont_diff_cos.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+
+/-! #### `complex.sin` -/
+
+lemma has_fderiv_at.csin (hf : has_fderiv_at f f' x) :
+  has_fderiv_at (λ x, complex.sin (f x)) (complex.cos (f x) • f') x :=
+(complex.has_deriv_at_sin (f x)).comp_has_fderiv_at x hf
+
+lemma has_fderiv_within_at.csin (hf : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at (λ x, complex.sin (f x)) (complex.cos (f x) • f') s x :=
+(complex.has_deriv_at_sin (f x)).comp_has_fderiv_within_at x hf
+
+lemma differentiable_within_at.csin (hf : differentiable_within_at ℂ f s x) :
+  differentiable_within_at ℂ (λ x, complex.sin (f x)) s x :=
+hf.has_fderiv_within_at.csin.differentiable_within_at
+
+@[simp] lemma differentiable_at.csin (hc : differentiable_at ℂ f x) :
+  differentiable_at ℂ (λx, complex.sin (f x)) x :=
+hc.has_fderiv_at.csin.differentiable_at
+
+lemma differentiable_on.csin (hc : differentiable_on ℂ f s) :
+  differentiable_on ℂ (λx, complex.sin (f x)) s :=
+λx h, (hc x h).csin
+
+@[simp] lemma differentiable.csin (hc : differentiable ℂ f) :
+  differentiable ℂ (λx, complex.sin (f x)) :=
+λx, (hc x).csin
+
+lemma fderiv_within_csin (hf : differentiable_within_at ℂ f s x)
+  (hxs : unique_diff_within_at ℂ s x) :
+  fderiv_within ℂ (λx, complex.sin (f x)) s x = complex.cos (f x) • (fderiv_within ℂ f s x) :=
+hf.has_fderiv_within_at.csin.fderiv_within hxs
+
+@[simp] lemma fderiv_csin (hc : differentiable_at ℂ f x) :
+  fderiv ℂ (λx, complex.sin (f x)) x = complex.cos (f x) • (fderiv ℂ f x) :=
+hc.has_fderiv_at.csin.fderiv
+
+lemma times_cont_diff.csin {n} (h : times_cont_diff ℂ n f) :
+  times_cont_diff ℂ n (λ x, complex.sin (f x)) :=
+complex.times_cont_diff_sin.comp h
+
+lemma times_cont_diff_at.csin {n} (hf : times_cont_diff_at ℂ n f x) :
+  times_cont_diff_at ℂ n (λ x, complex.sin (f x)) x :=
+complex.times_cont_diff_sin.times_cont_diff_at.comp x hf
+
+lemma times_cont_diff_on.csin {n} (hf : times_cont_diff_on ℂ n f s) :
+  times_cont_diff_on ℂ n (λ x, complex.sin (f x)) s :=
+complex.times_cont_diff_sin.comp_times_cont_diff_on  hf
+
+lemma times_cont_diff_within_at.csin {n} (hf : times_cont_diff_within_at ℂ n f s x) :
+  times_cont_diff_within_at ℂ n (λ x, complex.sin (f x)) s x :=
+complex.times_cont_diff_sin.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+
+/-! #### `complex.cosh` -/
+
+lemma has_fderiv_at.ccosh (hf : has_fderiv_at f f' x) :
+  has_fderiv_at (λ x, complex.cosh (f x)) (complex.sinh (f x) • f') x :=
+(complex.has_deriv_at_cosh (f x)).comp_has_fderiv_at x hf
+
+lemma has_fderiv_within_at.ccosh (hf : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at (λ x, complex.cosh (f x)) (complex.sinh (f x) • f') s x :=
+(complex.has_deriv_at_cosh (f x)).comp_has_fderiv_within_at x hf
+
+lemma differentiable_within_at.ccosh (hf : differentiable_within_at ℂ f s x) :
+  differentiable_within_at ℂ (λ x, complex.cosh (f x)) s x :=
+hf.has_fderiv_within_at.ccosh.differentiable_within_at
+
+@[simp] lemma differentiable_at.ccosh (hc : differentiable_at ℂ f x) :
+  differentiable_at ℂ (λx, complex.cosh (f x)) x :=
+hc.has_fderiv_at.ccosh.differentiable_at
+
+lemma differentiable_on.ccosh (hc : differentiable_on ℂ f s) :
+  differentiable_on ℂ (λx, complex.cosh (f x)) s :=
+λx h, (hc x h).ccosh
+
+@[simp] lemma differentiable.ccosh (hc : differentiable ℂ f) :
+  differentiable ℂ (λx, complex.cosh (f x)) :=
+λx, (hc x).ccosh
+
+lemma fderiv_within_ccosh (hf : differentiable_within_at ℂ f s x)
+  (hxs : unique_diff_within_at ℂ s x) :
+  fderiv_within ℂ (λx, complex.cosh (f x)) s x = complex.sinh (f x) • (fderiv_within ℂ f s x) :=
+hf.has_fderiv_within_at.ccosh.fderiv_within hxs
+
+@[simp] lemma fderiv_ccosh (hc : differentiable_at ℂ f x) :
+  fderiv ℂ (λx, complex.cosh (f x)) x = complex.sinh (f x) • (fderiv ℂ f x) :=
+hc.has_fderiv_at.ccosh.fderiv
+
+lemma times_cont_diff.ccosh {n} (h : times_cont_diff ℂ n f) :
+  times_cont_diff ℂ n (λ x, complex.cosh (f x)) :=
+complex.times_cont_diff_cosh.comp h
+
+lemma times_cont_diff_at.ccosh {n} (hf : times_cont_diff_at ℂ n f x) :
+  times_cont_diff_at ℂ n (λ x, complex.cosh (f x)) x :=
+complex.times_cont_diff_cosh.times_cont_diff_at.comp x hf
+
+lemma times_cont_diff_on.ccosh {n} (hf : times_cont_diff_on ℂ n f s) :
+  times_cont_diff_on ℂ n (λ x, complex.cosh (f x)) s :=
+complex.times_cont_diff_cosh.comp_times_cont_diff_on  hf
+
+lemma times_cont_diff_within_at.ccosh {n} (hf : times_cont_diff_within_at ℂ n f s x) :
+  times_cont_diff_within_at ℂ n (λ x, complex.cosh (f x)) s x :=
+complex.times_cont_diff_cosh.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+
+/-! #### `complex.sinh` -/
+
+lemma has_fderiv_at.csinh (hf : has_fderiv_at f f' x) :
+  has_fderiv_at (λ x, complex.sinh (f x)) (complex.cosh (f x) • f') x :=
+(complex.has_deriv_at_sinh (f x)).comp_has_fderiv_at x hf
+
+lemma has_fderiv_within_at.csinh (hf : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at (λ x, complex.sinh (f x)) (complex.cosh (f x) • f') s x :=
+(complex.has_deriv_at_sinh (f x)).comp_has_fderiv_within_at x hf
+
+lemma differentiable_within_at.csinh (hf : differentiable_within_at ℂ f s x) :
+  differentiable_within_at ℂ (λ x, complex.sinh (f x)) s x :=
+hf.has_fderiv_within_at.csinh.differentiable_within_at
+
+@[simp] lemma differentiable_at.csinh (hc : differentiable_at ℂ f x) :
+  differentiable_at ℂ (λx, complex.sinh (f x)) x :=
+hc.has_fderiv_at.csinh.differentiable_at
+
+lemma differentiable_on.csinh (hc : differentiable_on ℂ f s) :
+  differentiable_on ℂ (λx, complex.sinh (f x)) s :=
+λx h, (hc x h).csinh
+
+@[simp] lemma differentiable.csinh (hc : differentiable ℂ f) :
+  differentiable ℂ (λx, complex.sinh (f x)) :=
+λx, (hc x).csinh
+
+lemma fderiv_within_csinh (hf : differentiable_within_at ℂ f s x)
+  (hxs : unique_diff_within_at ℂ s x) :
+  fderiv_within ℂ (λx, complex.sinh (f x)) s x = complex.cosh (f x) • (fderiv_within ℂ f s x) :=
+hf.has_fderiv_within_at.csinh.fderiv_within hxs
+
+@[simp] lemma fderiv_csinh (hc : differentiable_at ℂ f x) :
+  fderiv ℂ (λx, complex.sinh (f x)) x = complex.cosh (f x) • (fderiv ℂ f x) :=
+hc.has_fderiv_at.csinh.fderiv
+
+lemma times_cont_diff.csinh {n} (h : times_cont_diff ℂ n f) :
+  times_cont_diff ℂ n (λ x, complex.sinh (f x)) :=
+complex.times_cont_diff_sinh.comp h
+
+lemma times_cont_diff_at.csinh {n} (hf : times_cont_diff_at ℂ n f x) :
+  times_cont_diff_at ℂ n (λ x, complex.sinh (f x)) x :=
+complex.times_cont_diff_sinh.times_cont_diff_at.comp x hf
+
+lemma times_cont_diff_on.csinh {n} (hf : times_cont_diff_on ℂ n f s) :
+  times_cont_diff_on ℂ n (λ x, complex.sinh (f x)) s :=
+complex.times_cont_diff_sinh.comp_times_cont_diff_on  hf
+
+lemma times_cont_diff_within_at.csinh {n} (hf : times_cont_diff_within_at ℂ n f s x) :
+  times_cont_diff_within_at ℂ n (λ x, complex.sinh (f x)) s x :=
+complex.times_cont_diff_sinh.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+
+end
+
 namespace real
 
 variables {x y z : ℝ}
 
 lemma has_deriv_at_sin (x : ℝ) : has_deriv_at sin (cos x) x :=
-has_deriv_at_real_of_complex (complex.has_deriv_at_sin x)
+(complex.has_deriv_at_sin x).real_of_complex
+
+lemma times_cont_diff_sin {n} : times_cont_diff ℝ n sin :=
+complex.times_cont_diff_sin.real_of_complex
 
 lemma differentiable_sin : differentiable ℝ sin :=
 λx, (has_deriv_at_sin x).differentiable_at
@@ -324,7 +491,10 @@ differentiable_sin.continuous
 lemma measurable_sin : measurable sin := continuous_sin.measurable
 
 lemma has_deriv_at_cos (x : ℝ) : has_deriv_at cos (-sin x) x :=
-(has_deriv_at_real_of_complex (complex.has_deriv_at_cos x) : _)
+(complex.has_deriv_at_cos x).real_of_complex
+
+lemma times_cont_diff_cos {n} : times_cont_diff ℝ n cos :=
+complex.times_cont_diff_cos.real_of_complex
 
 lemma differentiable_cos : differentiable ℝ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
@@ -346,7 +516,10 @@ lemma continuous_on_cos {s} : continuous_on cos s := continuous_cos.continuous_o
 lemma measurable_cos : measurable cos := continuous_cos.measurable
 
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
-has_deriv_at_real_of_complex (complex.has_deriv_at_sinh x)
+(complex.has_deriv_at_sinh x).real_of_complex
+
+lemma times_cont_diff_sinh {n} : times_cont_diff ℝ n sinh :=
+complex.times_cont_diff_sinh.real_of_complex
 
 lemma differentiable_sinh : differentiable ℝ sinh :=
 λx, (has_deriv_at_sinh x).differentiable_at
@@ -363,7 +536,10 @@ differentiable_sinh.continuous
 lemma measurable_sinh : measurable sinh := continuous_sinh.measurable
 
 lemma has_deriv_at_cosh (x : ℝ) : has_deriv_at cosh (sinh x) x :=
-has_deriv_at_real_of_complex (complex.has_deriv_at_cosh x)
+(complex.has_deriv_at_cosh x).real_of_complex
+
+lemma times_cont_diff_cosh {n} : times_cont_diff ℝ n cosh :=
+complex.times_cont_diff_cosh.real_of_complex
 
 lemma differentiable_cosh : differentiable ℝ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
@@ -386,16 +562,14 @@ strict_mono_of_deriv_pos differentiable_sinh (by { rw [real.deriv_sinh], exact c
 end real
 
 section
-/-! Register lemmas for the derivatives of the composition of `real.exp`, `real.cos`, `real.sin`,
-`real.cosh` and `real.sinh` with a differentiable function, for standalone use and use with
-`simp`. -/
+/-! ### Simp lemmas for derivatives of `λ x, real.cos (f x)` etc., `f : ℝ → ℝ` -/
 
 variables {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
 
+/-! #### `real.cos` -/
 
-/-! `real.cos`-/
-
-lemma measurable.cos (hf : measurable f) : measurable (λ x, real.cos (f x)) :=
+lemma measurable.cos {α : Type*} [measurable_space α] {f : α → ℝ}  (hf : measurable f) :
+  measurable (λ x, real.cos (f x)) :=
 real.measurable_cos.comp hf
 
 lemma has_deriv_at.cos (hf : has_deriv_at f f' x) :
@@ -406,22 +580,6 @@ lemma has_deriv_within_at.cos (hf : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, real.cos (f x)) (- real.sin (f x) * f') s x :=
 (real.has_deriv_at_cos (f x)).comp_has_deriv_within_at x hf
 
-lemma differentiable_within_at.cos (hf : differentiable_within_at ℝ f s x) :
-  differentiable_within_at ℝ (λ x, real.cos (f x)) s x :=
-hf.has_deriv_within_at.cos.differentiable_within_at
-
-@[simp] lemma differentiable_at.cos (hc : differentiable_at ℝ f x) :
-  differentiable_at ℝ (λx, real.cos (f x)) x :=
-hc.has_deriv_at.cos.differentiable_at
-
-lemma differentiable_on.cos (hc : differentiable_on ℝ f s) :
-  differentiable_on ℝ (λx, real.cos (f x)) s :=
-λx h, (hc x h).cos
-
-@[simp] lemma differentiable.cos (hc : differentiable ℝ f) :
-  differentiable ℝ (λx, real.cos (f x)) :=
-λx, (hc x).cos
-
 lemma deriv_within_cos (hf : differentiable_within_at ℝ f s x)
   (hxs : unique_diff_within_at ℝ s x) :
   deriv_within (λx, real.cos (f x)) s x = - real.sin (f x) * (deriv_within f s x) :=
@@ -431,9 +589,10 @@ hf.has_deriv_within_at.cos.deriv_within hxs
   deriv (λx, real.cos (f x)) x = - real.sin (f x) * (deriv f x) :=
 hc.has_deriv_at.cos.deriv
 
-/-! `real.sin`-/
+/-! #### `real.sin` -/
 
-lemma measurable.sin (hf : measurable f) : measurable (λ x, real.sin (f x)) :=
+lemma measurable.sin {α : Type*} [measurable_space α] {f : α → ℝ}  (hf : measurable f) :
+  measurable (λ x, real.sin (f x)) :=
 real.measurable_sin.comp hf
 
 lemma has_deriv_at.sin (hf : has_deriv_at f f' x) :
@@ -444,22 +603,6 @@ lemma has_deriv_within_at.sin (hf : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, real.sin (f x)) (real.cos (f x) * f') s x :=
 (real.has_deriv_at_sin (f x)).comp_has_deriv_within_at x hf
 
-lemma differentiable_within_at.sin (hf : differentiable_within_at ℝ f s x) :
-  differentiable_within_at ℝ (λ x, real.sin (f x)) s x :=
-hf.has_deriv_within_at.sin.differentiable_within_at
-
-@[simp] lemma differentiable_at.sin (hc : differentiable_at ℝ f x) :
-  differentiable_at ℝ (λx, real.sin (f x)) x :=
-hc.has_deriv_at.sin.differentiable_at
-
-lemma differentiable_on.sin (hc : differentiable_on ℝ f s) :
-  differentiable_on ℝ (λx, real.sin (f x)) s :=
-λx h, (hc x h).sin
-
-@[simp] lemma differentiable.sin (hc : differentiable ℝ f) :
-  differentiable ℝ (λx, real.sin (f x)) :=
-λx, (hc x).sin
-
 lemma deriv_within_sin (hf : differentiable_within_at ℝ f s x)
   (hxs : unique_diff_within_at ℝ s x) :
   deriv_within (λx, real.sin (f x)) s x = real.cos (f x) * (deriv_within f s x) :=
@@ -469,9 +612,10 @@ hf.has_deriv_within_at.sin.deriv_within hxs
   deriv (λx, real.sin (f x)) x = real.cos (f x) * (deriv f x) :=
 hc.has_deriv_at.sin.deriv
 
-/-! `real.cosh`-/
+/-! #### `real.cosh` -/
 
-lemma measurable.cosh (hf : measurable f) : measurable (λ x, real.cosh (f x)) :=
+lemma measurable.cosh {α : Type*} [measurable_space α] {f : α → ℝ}  (hf : measurable f) :
+  measurable (λ x, real.cosh (f x)) :=
 real.measurable_cosh.comp hf
 
 lemma has_deriv_at.cosh (hf : has_deriv_at f f' x) :
@@ -482,22 +626,6 @@ lemma has_deriv_within_at.cosh (hf : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, real.cosh (f x)) (real.sinh (f x) * f') s x :=
 (real.has_deriv_at_cosh (f x)).comp_has_deriv_within_at x hf
 
-lemma differentiable_within_at.cosh (hf : differentiable_within_at ℝ f s x) :
-  differentiable_within_at ℝ (λ x, real.cosh (f x)) s x :=
-hf.has_deriv_within_at.cosh.differentiable_within_at
-
-@[simp] lemma differentiable_at.cosh (hc : differentiable_at ℝ f x) :
-  differentiable_at ℝ (λx, real.cosh (f x)) x :=
-hc.has_deriv_at.cosh.differentiable_at
-
-lemma differentiable_on.cosh (hc : differentiable_on ℝ f s) :
-  differentiable_on ℝ (λx, real.cosh (f x)) s :=
-λx h, (hc x h).cosh
-
-@[simp] lemma differentiable.cosh (hc : differentiable ℝ f) :
-  differentiable ℝ (λx, real.cosh (f x)) :=
-λx, (hc x).cosh
-
 lemma deriv_within_cosh (hf : differentiable_within_at ℝ f s x)
   (hxs : unique_diff_within_at ℝ s x) :
   deriv_within (λx, real.cosh (f x)) s x = real.sinh (f x) * (deriv_within f s x) :=
@@ -507,9 +635,10 @@ hf.has_deriv_within_at.cosh.deriv_within hxs
   deriv (λx, real.cosh (f x)) x = real.sinh (f x) * (deriv f x) :=
 hc.has_deriv_at.cosh.deriv
 
-/-! `real.sinh`-/
+/-! #### `real.sinh` -/
 
-lemma measurable.sinh (hf : measurable f) : measurable (λ x, real.sinh (f x)) :=
+lemma measurable.sinh {α : Type*} [measurable_space α] {f : α → ℝ}  (hf : measurable f) :
+  measurable (λ x, real.sinh (f x)) :=
 real.measurable_sinh.comp hf
 
 lemma has_deriv_at.sinh (hf : has_deriv_at f f' x) :
@@ -520,13 +649,194 @@ lemma has_deriv_within_at.sinh (hf : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, real.sinh (f x)) (real.cosh (f x) * f') s x :=
 (real.has_deriv_at_sinh (f x)).comp_has_deriv_within_at x hf
 
+lemma deriv_within_sinh (hf : differentiable_within_at ℝ f s x)
+  (hxs : unique_diff_within_at ℝ s x) :
+  deriv_within (λx, real.sinh (f x)) s x = real.cosh (f x) * (deriv_within f s x) :=
+hf.has_deriv_within_at.sinh.deriv_within hxs
+
+@[simp] lemma deriv_sinh (hc : differentiable_at ℝ f x) :
+  deriv (λx, real.sinh (f x)) x = real.cosh (f x) * (deriv f x) :=
+hc.has_deriv_at.sinh.deriv
+
+end
+
+section
+
+/-! ### Simp lemmas for derivatives of `λ x, real.cos (f x)` etc., `f : E → ℝ` -/
+
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
+  {x : E} {s : set E}
+
+/-! #### `real.cos` -/
+
+lemma has_fderiv_at.cos (hf : has_fderiv_at f f' x) :
+  has_fderiv_at (λ x, real.cos (f x)) (- real.sin (f x) • f') x :=
+(real.has_deriv_at_cos (f x)).comp_has_fderiv_at x hf
+
+lemma has_fderiv_within_at.cos (hf : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at (λ x, real.cos (f x)) (- real.sin (f x) • f') s x :=
+(real.has_deriv_at_cos (f x)).comp_has_fderiv_within_at x hf
+
+lemma differentiable_within_at.cos (hf : differentiable_within_at ℝ f s x) :
+  differentiable_within_at ℝ (λ x, real.cos (f x)) s x :=
+hf.has_fderiv_within_at.cos.differentiable_within_at
+
+@[simp] lemma differentiable_at.cos (hc : differentiable_at ℝ f x) :
+  differentiable_at ℝ (λx, real.cos (f x)) x :=
+hc.has_fderiv_at.cos.differentiable_at
+
+lemma differentiable_on.cos (hc : differentiable_on ℝ f s) :
+  differentiable_on ℝ (λx, real.cos (f x)) s :=
+λx h, (hc x h).cos
+
+@[simp] lemma differentiable.cos (hc : differentiable ℝ f) :
+  differentiable ℝ (λx, real.cos (f x)) :=
+λx, (hc x).cos
+
+lemma fderiv_within_cos (hf : differentiable_within_at ℝ f s x)
+  (hxs : unique_diff_within_at ℝ s x) :
+  fderiv_within ℝ (λx, real.cos (f x)) s x = - real.sin (f x) • (fderiv_within ℝ f s x) :=
+hf.has_fderiv_within_at.cos.fderiv_within hxs
+
+@[simp] lemma fderiv_cos (hc : differentiable_at ℝ f x) :
+  fderiv ℝ (λx, real.cos (f x)) x = - real.sin (f x) • (fderiv ℝ f x) :=
+hc.has_fderiv_at.cos.fderiv
+
+lemma times_cont_diff.cos {n} (h : times_cont_diff ℝ n f) :
+  times_cont_diff ℝ n (λ x, real.cos (f x)) :=
+real.times_cont_diff_cos.comp h
+
+lemma times_cont_diff_at.cos {n} (hf : times_cont_diff_at ℝ n f x) :
+  times_cont_diff_at ℝ n (λ x, real.cos (f x)) x :=
+real.times_cont_diff_cos.times_cont_diff_at.comp x hf
+
+lemma times_cont_diff_on.cos {n} (hf : times_cont_diff_on ℝ n f s) :
+  times_cont_diff_on ℝ n (λ x, real.cos (f x)) s :=
+real.times_cont_diff_cos.comp_times_cont_diff_on  hf
+
+lemma times_cont_diff_within_at.cos {n} (hf : times_cont_diff_within_at ℝ n f s x) :
+  times_cont_diff_within_at ℝ n (λ x, real.cos (f x)) s x :=
+real.times_cont_diff_cos.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+
+/-! #### `real.sin` -/
+
+lemma has_fderiv_at.sin (hf : has_fderiv_at f f' x) :
+  has_fderiv_at (λ x, real.sin (f x)) (real.cos (f x) • f') x :=
+(real.has_deriv_at_sin (f x)).comp_has_fderiv_at x hf
+
+lemma has_fderiv_within_at.sin (hf : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at (λ x, real.sin (f x)) (real.cos (f x) • f') s x :=
+(real.has_deriv_at_sin (f x)).comp_has_fderiv_within_at x hf
+
+lemma differentiable_within_at.sin (hf : differentiable_within_at ℝ f s x) :
+  differentiable_within_at ℝ (λ x, real.sin (f x)) s x :=
+hf.has_fderiv_within_at.sin.differentiable_within_at
+
+@[simp] lemma differentiable_at.sin (hc : differentiable_at ℝ f x) :
+  differentiable_at ℝ (λx, real.sin (f x)) x :=
+hc.has_fderiv_at.sin.differentiable_at
+
+lemma differentiable_on.sin (hc : differentiable_on ℝ f s) :
+  differentiable_on ℝ (λx, real.sin (f x)) s :=
+λx h, (hc x h).sin
+
+@[simp] lemma differentiable.sin (hc : differentiable ℝ f) :
+  differentiable ℝ (λx, real.sin (f x)) :=
+λx, (hc x).sin
+
+lemma fderiv_within_sin (hf : differentiable_within_at ℝ f s x)
+  (hxs : unique_diff_within_at ℝ s x) :
+  fderiv_within ℝ (λx, real.sin (f x)) s x = real.cos (f x) • (fderiv_within ℝ f s x) :=
+hf.has_fderiv_within_at.sin.fderiv_within hxs
+
+@[simp] lemma fderiv_sin (hc : differentiable_at ℝ f x) :
+  fderiv ℝ (λx, real.sin (f x)) x = real.cos (f x) • (fderiv ℝ f x) :=
+hc.has_fderiv_at.sin.fderiv
+
+lemma times_cont_diff.sin {n} (h : times_cont_diff ℝ n f) :
+  times_cont_diff ℝ n (λ x, real.sin (f x)) :=
+real.times_cont_diff_sin.comp h
+
+lemma times_cont_diff_at.sin {n} (hf : times_cont_diff_at ℝ n f x) :
+  times_cont_diff_at ℝ n (λ x, real.sin (f x)) x :=
+real.times_cont_diff_sin.times_cont_diff_at.comp x hf
+
+lemma times_cont_diff_on.sin {n} (hf : times_cont_diff_on ℝ n f s) :
+  times_cont_diff_on ℝ n (λ x, real.sin (f x)) s :=
+real.times_cont_diff_sin.comp_times_cont_diff_on  hf
+
+lemma times_cont_diff_within_at.sin {n} (hf : times_cont_diff_within_at ℝ n f s x) :
+  times_cont_diff_within_at ℝ n (λ x, real.sin (f x)) s x :=
+real.times_cont_diff_sin.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+
+/-! #### `real.cosh` -/
+
+lemma has_fderiv_at.cosh (hf : has_fderiv_at f f' x) :
+  has_fderiv_at (λ x, real.cosh (f x)) (real.sinh (f x) • f') x :=
+(real.has_deriv_at_cosh (f x)).comp_has_fderiv_at x hf
+
+lemma has_fderiv_within_at.cosh (hf : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at (λ x, real.cosh (f x)) (real.sinh (f x) • f') s x :=
+(real.has_deriv_at_cosh (f x)).comp_has_fderiv_within_at x hf
+
+lemma differentiable_within_at.cosh (hf : differentiable_within_at ℝ f s x) :
+  differentiable_within_at ℝ (λ x, real.cosh (f x)) s x :=
+hf.has_fderiv_within_at.cosh.differentiable_within_at
+
+@[simp] lemma differentiable_at.cosh (hc : differentiable_at ℝ f x) :
+  differentiable_at ℝ (λx, real.cosh (f x)) x :=
+hc.has_fderiv_at.cosh.differentiable_at
+
+lemma differentiable_on.cosh (hc : differentiable_on ℝ f s) :
+  differentiable_on ℝ (λx, real.cosh (f x)) s :=
+λx h, (hc x h).cosh
+
+@[simp] lemma differentiable.cosh (hc : differentiable ℝ f) :
+  differentiable ℝ (λx, real.cosh (f x)) :=
+λx, (hc x).cosh
+
+lemma fderiv_within_cosh (hf : differentiable_within_at ℝ f s x)
+  (hxs : unique_diff_within_at ℝ s x) :
+  fderiv_within ℝ (λx, real.cosh (f x)) s x = real.sinh (f x) • (fderiv_within ℝ f s x) :=
+hf.has_fderiv_within_at.cosh.fderiv_within hxs
+
+@[simp] lemma fderiv_cosh (hc : differentiable_at ℝ f x) :
+  fderiv ℝ (λx, real.cosh (f x)) x = real.sinh (f x) • (fderiv ℝ f x) :=
+hc.has_fderiv_at.cosh.fderiv
+
+lemma times_cont_diff.cosh {n} (h : times_cont_diff ℝ n f) :
+  times_cont_diff ℝ n (λ x, real.cosh (f x)) :=
+real.times_cont_diff_cosh.comp h
+
+lemma times_cont_diff_at.cosh {n} (hf : times_cont_diff_at ℝ n f x) :
+  times_cont_diff_at ℝ n (λ x, real.cosh (f x)) x :=
+real.times_cont_diff_cosh.times_cont_diff_at.comp x hf
+
+lemma times_cont_diff_on.cosh {n} (hf : times_cont_diff_on ℝ n f s) :
+  times_cont_diff_on ℝ n (λ x, real.cosh (f x)) s :=
+real.times_cont_diff_cosh.comp_times_cont_diff_on  hf
+
+lemma times_cont_diff_within_at.cosh {n} (hf : times_cont_diff_within_at ℝ n f s x) :
+  times_cont_diff_within_at ℝ n (λ x, real.cosh (f x)) s x :=
+real.times_cont_diff_cosh.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+
+/-! #### `real.sinh` -/
+
+lemma has_fderiv_at.sinh (hf : has_fderiv_at f f' x) :
+  has_fderiv_at (λ x, real.sinh (f x)) (real.cosh (f x) • f') x :=
+(real.has_deriv_at_sinh (f x)).comp_has_fderiv_at x hf
+
+lemma has_fderiv_within_at.sinh (hf : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at (λ x, real.sinh (f x)) (real.cosh (f x) • f') s x :=
+(real.has_deriv_at_sinh (f x)).comp_has_fderiv_within_at x hf
+
 lemma differentiable_within_at.sinh (hf : differentiable_within_at ℝ f s x) :
   differentiable_within_at ℝ (λ x, real.sinh (f x)) s x :=
-hf.has_deriv_within_at.sinh.differentiable_within_at
+hf.has_fderiv_within_at.sinh.differentiable_within_at
 
 @[simp] lemma differentiable_at.sinh (hc : differentiable_at ℝ f x) :
   differentiable_at ℝ (λx, real.sinh (f x)) x :=
-hc.has_deriv_at.sinh.differentiable_at
+hc.has_fderiv_at.sinh.differentiable_at
 
 lemma differentiable_on.sinh (hc : differentiable_on ℝ f s) :
   differentiable_on ℝ (λx, real.sinh (f x)) s :=
@@ -536,14 +846,30 @@ lemma differentiable_on.sinh (hc : differentiable_on ℝ f s) :
   differentiable ℝ (λx, real.sinh (f x)) :=
 λx, (hc x).sinh
 
-lemma deriv_within_sinh (hf : differentiable_within_at ℝ f s x)
+lemma fderiv_within_sinh (hf : differentiable_within_at ℝ f s x)
   (hxs : unique_diff_within_at ℝ s x) :
-  deriv_within (λx, real.sinh (f x)) s x = real.cosh (f x) * (deriv_within f s x) :=
-hf.has_deriv_within_at.sinh.deriv_within hxs
+  fderiv_within ℝ (λx, real.sinh (f x)) s x = real.cosh (f x) • (fderiv_within ℝ f s x) :=
+hf.has_fderiv_within_at.sinh.fderiv_within hxs
 
-@[simp] lemma deriv_sinh (hc : differentiable_at ℝ f x) :
-  deriv (λx, real.sinh (f x)) x = real.cosh (f x) * (deriv f x) :=
-hc.has_deriv_at.sinh.deriv
+@[simp] lemma fderiv_sinh (hc : differentiable_at ℝ f x) :
+  fderiv ℝ (λx, real.sinh (f x)) x = real.cosh (f x) • (fderiv ℝ f x) :=
+hc.has_fderiv_at.sinh.fderiv
+
+lemma times_cont_diff.sinh {n} (h : times_cont_diff ℝ n f) :
+  times_cont_diff ℝ n (λ x, real.sinh (f x)) :=
+real.times_cont_diff_sinh.comp h
+
+lemma times_cont_diff_at.sinh {n} (hf : times_cont_diff_at ℝ n f x) :
+  times_cont_diff_at ℝ n (λ x, real.sinh (f x)) x :=
+real.times_cont_diff_sinh.times_cont_diff_at.comp x hf
+
+lemma times_cont_diff_on.sinh {n} (hf : times_cont_diff_on ℝ n f s) :
+  times_cont_diff_on ℝ n (λ x, real.sinh (f x)) s :=
+real.times_cont_diff_sinh.comp_times_cont_diff_on  hf
+
+lemma times_cont_diff_within_at.sinh {n} (hf : times_cont_diff_within_at ℝ n f s x) :
+  times_cont_diff_within_at ℝ n (λ x, real.sinh (f x)) s x :=
+real.times_cont_diff_sinh.times_cont_diff_at.comp_times_cont_diff_within_at x hf
 
 end
 
@@ -1087,7 +1413,9 @@ instance angle.has_coe : has_coe ℝ angle :=
 @[simp] lemma coe_zero : ↑(0 : ℝ) = (0 : angle) := rfl
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
-@[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
+@[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, coe_add, coe_neg]
+
 @[simp, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
   ↑((n : ℝ) * x) = n •ℕ (↑x : angle) :=
 by simpa using add_monoid_hom.map_nsmul ⟨coe, coe_zero, coe_add⟩ _ _
@@ -1131,7 +1459,7 @@ begin
   split,
   { intro Hsin, rw [← cos_pi_div_two_sub, ← cos_pi_div_two_sub] at Hsin,
     cases cos_eq_iff_eq_or_eq_neg.mp Hsin with h h,
-    { left, rw coe_sub at h, exact sub_right_inj.1 h },
+    { left, rw [coe_sub, coe_sub] at h, exact sub_right_inj.1 h },
       right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
       sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
     exact h.symm },
@@ -1445,7 +1773,6 @@ if hx₁ : 0 ≤ x.re
 then by rw [arg, if_pos hx₁];
   exact le_trans (real.arcsin_le_pi_div_two _) (le_of_lt (half_lt_self real.pi_pos))
 else
-  have hx : x ≠ 0, from λ h, by simpa [h, lt_irrefl] using hx₁,
   if hx₂ : 0 ≤ x.im
   then by rw [arg, if_neg hx₁, if_pos hx₂];
     exact le_sub_iff_add_le.1 (by rw sub_self;
@@ -1809,13 +2136,13 @@ begin
         neg_eq_neg_one_mul (exp (-θ * I)), ← div_eq_iff (exp_ne_zero (-θ * I)), ← exp_sub],
     field_simp, ring },
   rw [cos, h, ← exp_pi_mul_I, exp_eq_exp_iff_exists_int],
-  split; simp; intros; use x,
-  { field_simp, ring at a,
+  split; simp; intros x h2; use x,
+  { field_simp, ring at h2,
     rwa [mul_right_comm 2 I θ, mul_right_comm (2*(x:ℂ)+1) I (π:ℂ), mul_left_inj' I_ne_zero,
-        mul_comm 2 θ] at a },
-  { field_simp at a, ring,
+        mul_comm 2 θ] at h2},
+  { field_simp at h2, ring,
     rw [mul_right_comm 2 I θ, mul_right_comm (2*(x:ℂ)+1) I (π:ℂ), mul_left_inj' I_ne_zero,
-        mul_comm 2 θ, a] },
+        mul_comm 2 θ, h2] },
 end
 
 theorem cos_ne_zero_iff {θ : ℂ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
@@ -1991,7 +2318,7 @@ end
 lemma has_deriv_at_tan {x : ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) :
   has_deriv_at tan (1 / (cos x)^2) x :=
 begin
-  convert has_deriv_at_real_of_complex (complex.has_deriv_at_tan (by { convert h, norm_cast } )),
+  convert (complex.has_deriv_at_tan (by { convert h, norm_cast } )).real_of_complex,
   rw ← complex.of_real_re (1/((cos x)^2)),
   simp,
 end
@@ -2046,11 +2373,9 @@ end
 
 lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[Iio (π/2)] (π/2)) at_top :=
 begin
-  convert tendsto_mul_at_top (by norm_num) (tendsto.inv_tendsto_zero tendsto_cos_pi_div_two)
+  convert (tendsto.inv_tendsto_zero tendsto_cos_pi_div_two).at_top_mul (by norm_num)
             tendsto_sin_pi_div_two,
-  ext x,
-  rw tan_eq_sin_div_cos x,
-  ring,
+  simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end
 
 lemma tendsto_sin_neg_pi_div_two : tendsto sin (𝓝[Ioi (-(π/2))] (-(π/2))) (𝓝 (-1)) :=
@@ -2066,11 +2391,9 @@ end
 
 lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[Ioi (-(π/2))] (-(π/2))) at_bot :=
 begin
-  convert tendsto_mul_at_bot (by norm_num) (tendsto.inv_tendsto_zero tendsto_cos_neg_pi_div_two)
+  convert (tendsto.inv_tendsto_zero tendsto_cos_neg_pi_div_two).at_top_mul_neg (by norm_num)
             tendsto_sin_neg_pi_div_two,
-  ext x,
-  rw tan_eq_sin_div_cos x,
-  ring,
+  simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end
 
 /-!

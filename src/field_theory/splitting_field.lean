@@ -101,6 +101,9 @@ splits_of_splits_of_dvd i one_ne_zero (splits_one _) $ is_unit_iff_dvd_one.1 hu
 theorem splits_X_sub_C {x : α} : (X - C x).splits i :=
 splits_of_degree_eq_one _ $ degree_X_sub_C x
 
+theorem splits_X : X.splits i :=
+splits_of_degree_eq_one _ $ degree_X
+
 theorem splits_id_iff_splits {f : polynomial α} :
   (f.map i).splits (ring_hom.id β) ↔ f.splits i :=
 by rw [splits_map_iff, ring_hom.id_comp]

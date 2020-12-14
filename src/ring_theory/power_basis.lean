@@ -158,8 +158,8 @@ end
 
 lemma minpoly_gen_monic (pb : power_basis A S) : monic (minpoly_gen pb) :=
 begin
-  apply monic_add_of_left (monic_pow (monic_X) _),
-  rw [degree_neg, degree_X_pow],
+  apply monic_sub_of_left (monic_pow (monic_X) _),
+  rw degree_X_pow,
   exact degree_sum_fin_lt _
 end
 

@@ -10,6 +10,7 @@ import group_theory.submonoid.basic
 import data.fintype.card
 import data.finset.preimage
 import data.multiset.antidiagonal
+import data.indicator_function
 
 /-!
 
@@ -115,10 +116,13 @@ instance : inhabited (α →₀ M) := ⟨0⟩
 @[simp] lemma mem_support_iff {f : α →₀ M} : ∀{a:α}, a ∈ f.support ↔ f a ≠ 0 :=
 f.mem_support_to_fun
 
+@[simp] lemma fun_support_eq (f : α →₀ M) : function.support f = f.support :=
+set.ext $ λ x, mem_support_iff.symm
+
 lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
-lemma injective_coe_fn : function.injective (show (α →₀ M) → α → M, from coe_fn)
+lemma coe_fn_injective : function.injective (λ (f : α →₀ M) (x : α), f x)
 | ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
   begin
     change f = g at h, subst h,
@@ -126,7 +130,7 @@ lemma injective_coe_fn : function.injective (show (α →₀ M) → α → M, fr
     subst this
   end
 
-@[ext] lemma ext {f g : α →₀ M} (h : ∀a, f a = g a) : f = g := injective_coe_fn (funext h)
+@[ext] lemma ext {f g : α →₀ M} (h : ∀a, f a = g a) : f = g := coe_fn_injective (funext h)
 
 lemma ext_iff {f g : α →₀ M} : f = g ↔ (∀a:α, f a = g a) :=
 ⟨by rintros rfl a; refl, ext⟩
@@ -183,8 +187,11 @@ def single (a : α) (b : M) : α →₀ M :=
   { exact ⟨λ H _, h H.symm, λ H, (H rfl).elim⟩ }
 end⟩
 
-lemma single_apply : (single a b : α →₀ M) a' = if a = a' then b else 0 :=
+lemma single_apply : single a b a' = if a = a' then b else 0 :=
 rfl
+
+lemma single_eq_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
+by { ext, simp [single_apply, set.indicator, @eq_comm _ a] }
 
 @[simp] lemma single_eq_same : (single a b : α →₀ M) a = b :=
 if_pos rfl
@@ -192,13 +199,12 @@ if_pos rfl
 @[simp] lemma single_eq_of_ne (h : a ≠ a') : (single a b : α →₀ M) a' = 0 :=
 if_neg h
 
+lemma single_eq_update : ⇑(single a b) = function.update 0 a b :=
+by rw [single_eq_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
+
 @[simp] lemma single_zero : (single a 0 : α →₀ M) = 0 :=
-ext $ assume a',
-begin
-  by_cases h : a = a',
-  { rw [h, single_eq_same, zero_apply] },
-  { rw [single_eq_of_ne h, zero_apply] }
-end
+coe_fn_injective $ by simpa only [single_eq_update, coe_zero]
+  using function.update_eq_self a (0 : α → M)
 
 lemma single_of_single_apply (a a' : α) (b : M) :
   single a ((single a' b) a) = single a' (single a' b) a :=
@@ -227,12 +233,12 @@ assume b₁ b₂ eq,
 have (single a b₁ : α →₀ M) a = (single a b₂ : α →₀ M) a, by rw eq,
 by rwa [single_eq_same, single_eq_same] at this
 
+lemma single_apply_eq_zero {a x : α} {b : M} : single a b x = 0 ↔ (x = a → b = 0) :=
+by simp [single_eq_indicator]
+
 lemma mem_support_single (a a' : α) (b : M) :
   a ∈ (single a' b).support ↔ a = a' ∧ b ≠ 0 :=
-⟨λ H : (a ∈ ite _ _ _), if h : b = 0
-  then by rw if_pos h at H; exact H.elim
-  else ⟨by rw if_neg h at H; exact mem_singleton.1 H, h⟩,
-λ ⟨h1, h2⟩, show a ∈ ite _ _ _, by rw [if_neg h2]; exact mem_singleton.2 h1⟩
+by simp [single_apply_eq_zero, not_or_distrib]
 
 lemma eq_single_iff {f : α →₀ M} {a b} : f = single a b ↔ f.support ⊆ {a} ∧ f a = b :=
 begin
@@ -622,8 +628,8 @@ variables [add_monoid M]
 
 instance : has_add (α →₀ M) := ⟨zip_with (+) (add_zero 0)⟩
 
-@[simp] lemma add_apply {g₁ g₂ : α →₀ M} {a : α} : (g₁ + g₂) a = g₁ a + g₂ a :=
-rfl
+@[simp] lemma coe_add (f g : α →₀ M) : ⇑(f + g) = f + g := rfl
+lemma add_apply {g₁ g₂ : α →₀ M} {a : α} : (g₁ + g₂) a = g₁ a + g₂ a := rfl
 
 lemma support_add {g₁ g₂ : α →₀ M} : (g₁ + g₂).support ⊆ g₁.support ∪ g₂.support :=
 support_zip_with
@@ -1215,8 +1221,13 @@ variables [has_zero M] (p : α → Prop) (f : α →₀ M)
 
 /-- `filter p f` is the function which is `f a` if `p a` is true and 0 otherwise. -/
 def filter (p : α → Prop) (f : α →₀ M) : α →₀ M :=
-on_finset f.support (λa, if p a then f a else 0) $ λ a H,
-mem_support_iff.2 $ λ h, by rw [h, if_t_t] at H; exact H rfl
+{ to_fun := λ a, if p a then f a else 0,
+  support := f.support.filter (λ a, p a),
+  mem_support_to_fun := λ a, by split_ifs; { simp only [h, mem_filter, mem_support_iff], tauto } }
+
+lemma filter_apply (a : α) : f.filter p a = if p a then f a else 0 := rfl
+
+lemma filter_eq_indicator : ⇑(f.filter p) = set.indicator {x | p x} f := rfl
 
 @[simp] lemma filter_apply_pos {a : α} (h : p a) : f.filter p a = f a :=
 if_pos h
@@ -1224,39 +1235,24 @@ if_pos h
 @[simp] lemma filter_apply_neg {a : α} (h : ¬ p a) : f.filter p a = 0 :=
 if_neg h
 
-@[simp] lemma support_filter : (f.filter p).support = f.support.filter p :=
-finset.ext $ assume a, if H : p a
-then by simp only [mem_support_iff, filter_apply_pos _ _ H, mem_filter, H, and_true]
-else by simp only [mem_support_iff, filter_apply_neg _ _ H, mem_filter, H, and_false, ne.def,
-  ne_self_iff_false]
+@[simp] lemma support_filter : (f.filter p).support = f.support.filter p := rfl
 
 lemma filter_zero : (0 : α →₀ M).filter p = 0 :=
 by rw [← support_eq_empty, support_filter, support_zero, finset.filter_empty]
 
 @[simp] lemma filter_single_of_pos
   {a : α} {b : M} (h : p a) : (single a b).filter p = single a b :=
-ext $ λ x, begin
-  by_cases h' : p x,
-  { simp only [h', filter_apply_pos] },
-  { simp only [h', filter_apply_neg, not_false_iff],
-    rw single_eq_of_ne, rintro rfl, exact h' h }
-end
+coe_fn_injective $ by simp [filter_eq_indicator, set.subset_def, mem_support_single, h]
 
 @[simp] lemma filter_single_of_neg
   {a : α} {b : M} (h : ¬ p a) : (single a b).filter p = 0 :=
-ext $ λ x, begin
-  by_cases h' : p x,
-  { simp only [h', filter_apply_pos, zero_apply], rw single_eq_of_ne, rintro rfl, exact h h' },
-  { simp only [h', finsupp.zero_apply, not_false_iff, filter_apply_neg] }
-end
+ext $ by simp [filter_eq_indicator, single_apply_eq_zero, @imp.swap (p _), h]
 
 end has_zero
 
 lemma filter_pos_add_filter_neg [add_monoid M] (f : α →₀ M) (p : α → Prop) :
   f.filter p + f.filter (λa, ¬ p a) = f :=
-ext $ assume a, if H : p a
-then by simp only [add_apply, filter_apply_pos, filter_apply_neg, H, not_not, add_zero]
-else by simp only [add_apply, filter_apply_pos, filter_apply_neg, H, not_false_iff, zero_add]
+coe_fn_injective $ set.indicator_self_add_compl {x | p x} f
 
 end filter
 
@@ -1340,17 +1336,14 @@ instance subtype_domain.is_add_monoid_hom :
   is_add_monoid_hom (subtype_domain p : (α →₀ M) → subtype p →₀ M) :=
 { map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 
-@[simp] lemma filter_add {v v' : α →₀ M} :
-  (v + v').filter p = v.filter p + v'.filter p :=
-ext $ λ a, begin
-  by_cases p a,
-  { simp only [h, filter_apply_pos, add_apply] },
-  { simp only [h, add_zero, add_apply, not_false_iff, filter_apply_neg] }
-end
+/-- `finsupp.filter` as an `add_monoid_hom`. -/
+def filter_add_hom (p : α → Prop) : (α →₀ M) →+ (α →₀ M) :=
+{ to_fun := filter p,
+  map_zero' := filter_zero p,
+  map_add' := λ f g, coe_fn_injective $ set.indicator_add {x | p x} f g }
 
-instance filter.is_add_monoid_hom (p : α → Prop) :
-  is_add_monoid_hom (filter p : (α →₀ M) → (α →₀ M)) :=
-{ map_zero := filter_zero p, map_add := λ x y, filter_add }
+@[simp] lemma filter_add {v v' : α →₀ M} : (v + v').filter p = v.filter p + v'.filter p :=
+(filter_add_hom p).map_add v v'
 
 end monoid
 
@@ -1367,7 +1360,12 @@ subtype_domain_sum
 
 lemma filter_sum (s : finset ι) (f : ι → α →₀ M) :
   (∑ a in s, f a).filter p = ∑ a in s, filter p (f a) :=
-(s.sum_hom (filter p)).symm
+(filter_add_hom p : (α →₀ M) →+ _).map_sum f s
+
+lemma filter_eq_sum (p : α → Prop) (f : α →₀ M) :
+  f.filter p = ∑ i in f.support.filter p, single i (f i) :=
+(f.filter p).sum_single.symm.trans $ finset.sum_congr rfl $
+  λ x hx, by rw [filter_apply_pos _ _ (mem_filter.1 hx).2]
 
 end comm_monoid
 
@@ -1650,11 +1648,7 @@ variables {p : α → Prop}
 
 @[simp] lemma filter_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M]
   {b : R} {v : α →₀ M} : (b • v).filter p = b • v.filter p :=
-ext $ λ a, begin
-  by_cases p a,
-  { simp only [h, smul_apply', filter_apply_pos] },
-  { simp only [h, smul_apply', not_false_iff, filter_apply_neg, smul_zero] }
-end
+coe_fn_injective $ set.indicator_smul {x | p x} b v
 
 end
 

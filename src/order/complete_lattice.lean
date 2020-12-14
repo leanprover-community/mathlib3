@@ -334,6 +334,10 @@ theorem le_bsupr {p : ι → Prop} {f : Π i (h : p i), α} (i : ι) (hi : p i) 
   f i hi ≤ ⨆ i hi, f i hi :=
 le_supr_of_le i $ le_supr (f i) hi
 
+theorem le_bsupr_of_le {p : ι → Prop} {f : Π i (h : p i), α} (i : ι) (hi : p i) (h : a ≤ f i hi) :
+  a ≤ ⨆ i hi, f i hi :=
+le_trans h (le_bsupr i hi)
+
 theorem supr_le (h : ∀i, s i ≤ a) : supr s ≤ a :=
 Sup_le $ assume b ⟨i, eq⟩, eq ▸ h i
 
@@ -424,6 +428,10 @@ theorem binfi_le {p : ι → Prop} {f : Π i (hi : p i), α} (i : ι) (hi : p i)
   (⨅ i hi, f i hi) ≤ f i hi :=
 infi_le_of_le i $ infi_le (f i) hi
 
+theorem binfi_le_of_le {p : ι → Prop} {f : Π i (hi : p i), α} (i : ι) (hi : p i) (h : f i hi ≤ a) :
+  (⨅ i hi, f i hi) ≤ a :=
+le_trans (binfi_le i hi) h
+
 theorem le_infi (h : ∀i, a ≤ s i) : a ≤ infi s :=
 le_Inf $ assume b ⟨i, eq⟩, eq ▸ h i
 
@@ -487,6 +495,12 @@ lemma infi_congr {α : Type*} [has_Inf α] {f : ι → α} {g : ι₂ → α} (h
 @[congr] theorem infi_congr_Prop {α : Type*} [has_Inf α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
 @supr_congr_Prop (order_dual α) _ p q f₁ f₂ pq f
+
+lemma supr_const_le {x : α} : (⨆ (h : ι), x) ≤ x :=
+supr_le (λ _, le_rfl)
+
+lemma le_infi_const {x : α} : x ≤ (⨅ (h : ι), x) :=
+le_infi (λ _, le_rfl)
 
 -- We will generalize this to conditionally complete lattices in `cinfi_const`.
 theorem infi_const [nonempty ι] {a : α} : (⨅ b:ι, a) = a :=

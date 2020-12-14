@@ -629,10 +629,10 @@ by { ext, simp only [map_one, coe_comp, function.comp_app, one_apply] }
 
 @[to_additive] lemma mul_comp [monoid M] [comm_monoid N] [comm_monoid P]
   (g₁ g₂ : N →* P) (f : M →* N) :
-  (g₁ * g₂).comp f = (g₁.comp f) * (g₂.comp f) := rfl
+  (g₁ * g₂).comp f = g₁.comp f * g₂.comp f := rfl
 @[to_additive] lemma comp_mul [monoid M] [comm_monoid N] [comm_monoid P]
   (g : N →* P) (f₁ f₂ : M →* N) :
-  g.comp (f₁ * f₂) = (g.comp f₁) * (g.comp f₂) :=
+  g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
 by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 
 /-- (M →* N) is a comm_monoid if N is commutative. -/
@@ -763,17 +763,22 @@ end monoid_hom
 
 namespace add_monoid_hom
 
-variables [add_group G] [add_group H]
+variables {A B : Type*} [add_monoid A] [add_comm_group B] [add_group G] [add_group H]
 
 /-- Additive group homomorphisms preserve subtraction. -/
-@[simp] theorem map_sub (f : G →+ H) (g h : G) : f (g - h) = (f g) - (f h) := f.map_add_neg g h
+@[simp] theorem map_sub (f : G →+ H) (g h : G) : f (g - h) = (f g) - (f h) :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, f.map_add_neg g h]
 
 /-- Define a morphism of additive groups given a map which respects difference. -/
 def of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) : G →+ H :=
-of_map_add_neg f hf
+of_map_add_neg f (by simpa only [sub_eq_add_neg] using hf)
 
 @[simp] lemma coe_of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) :
   ⇑(of_map_sub f hf) = f :=
+rfl
+
+@[simp] lemma sub_apply (f g : A →+ B) (a : A) :
+  (f - g) a = f a - g a :=
 rfl
 
 end add_monoid_hom

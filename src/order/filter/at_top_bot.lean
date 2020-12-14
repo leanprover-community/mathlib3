@@ -527,7 +527,7 @@ section ordered_semiring
 
 variables [ordered_semiring α] {l : filter β} {f g : β → α}
 
-lemma tendsto_at_top_mul_at_top (hf : tendsto f l at_top) (hg : tendsto g l at_top) :
+lemma tendsto.at_top_mul_at_top (hf : tendsto f l at_top) (hg : tendsto g l at_top) :
   tendsto (λ x, f x * g x) l at_top :=
 begin
   refine tendsto_at_top_mono' _ _ hg,
@@ -536,7 +536,7 @@ begin
 end
 
 lemma tendsto_mul_self_at_top : tendsto (λ x : α, x * x) at_top at_top :=
-tendsto_at_top_mul_at_top tendsto_id tendsto_id
+tendsto_id.at_top_mul_at_top tendsto_id
 
 /-- The function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_at_top`. -/
@@ -552,21 +552,21 @@ section ordered_ring
 
 variables [ordered_ring α] {l : filter β} {f g : β → α}
 
-lemma tendsto_at_top_mul_at_bot (hf : tendsto f l at_top) (hg : tendsto g l at_bot) :
+lemma tendsto.at_top_mul_at_bot (hf : tendsto f l at_top) (hg : tendsto g l at_bot) :
   tendsto (λ x, f x * g x) l at_bot :=
-have _ := (tendsto_at_top_mul_at_top hf $ tendsto_neg_at_bot_at_top.comp hg),
+have _ := (hf.at_top_mul_at_top $ tendsto_neg_at_bot_at_top.comp hg),
 by simpa only [(∘), neg_mul_eq_mul_neg, neg_neg] using tendsto_neg_at_top_at_bot.comp this
 
-lemma tendsto_at_bot_mul_at_top (hf : tendsto f l at_bot) (hg : tendsto g l at_top) :
+lemma tendsto.at_bot_mul_at_top (hf : tendsto f l at_bot) (hg : tendsto g l at_top) :
   tendsto (λ x, f x * g x) l at_bot :=
 have tendsto (λ x, (-f x) * g x) l at_top :=
-  (tendsto_at_top_mul_at_top (tendsto_neg_at_bot_at_top.comp hf) hg),
+  ( (tendsto_neg_at_bot_at_top.comp hf).at_top_mul_at_top hg),
 by simpa only [(∘), neg_mul_eq_neg_mul, neg_neg] using tendsto_neg_at_top_at_bot.comp this
 
-lemma tendsto_at_bot_mul_at_bot (hf : tendsto f l at_bot) (hg : tendsto g l at_bot) :
+lemma tendsto.at_bot_mul_at_bot (hf : tendsto f l at_bot) (hg : tendsto g l at_bot) :
   tendsto (λ x, f x * g x) l at_top :=
-have tendsto (λ x, (-f x) * (-g x)) l at_top := (tendsto_at_top_mul_at_top
-  (tendsto_neg_at_bot_at_top.comp hf) (tendsto_neg_at_bot_at_top.comp hg)),
+have tendsto (λ x, (-f x) * (-g x)) l at_top :=
+  (tendsto_neg_at_bot_at_top.comp hf).at_top_mul_at_top (tendsto_neg_at_bot_at_top.comp hg),
 by simpa only [neg_mul_neg] using this
 
 end ordered_ring
@@ -575,11 +575,11 @@ section linear_ordered_semiring
 
 variables [linear_ordered_semiring α] {l : filter β} {f : β → α}
 
-lemma tendsto_at_top_of_const_mul {c : α} (hc : 0 < c) (hf : tendsto (λ x, c * f x) l at_top) :
+lemma tendsto.at_top_of_const_mul {c : α} (hc : 0 < c) (hf : tendsto (λ x, c * f x) l at_top) :
   tendsto f l at_top :=
 tendsto_at_top.2 $ λ b, (tendsto_at_top.1 hf (c * b)).mono $ λ x hx, le_of_mul_le_mul_left hx hc
 
-lemma tendsto_at_top_of_mul_const {c : α} (hc : 0 < c) (hf : tendsto (λ x, f x * c) l at_top) :
+lemma tendsto.at_top_of_mul_const {c : α} (hc : 0 < c) (hf : tendsto (λ x, f x * c) l at_top) :
   tendsto f l at_top :=
 tendsto_at_top.2 $ λ b, (tendsto_at_top.1 hf (b * c)).mono $ λ x hx, le_of_mul_le_mul_right hx hc
 
@@ -594,7 +594,7 @@ constant (on the left) also tends to infinity. For a version working in `ℕ` or
 `filter.tendsto.const_mul_at_top'` instead. -/
 lemma tendsto.const_mul_at_top (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, r * f x) l at_top :=
-tendsto_at_top_of_const_mul (inv_pos.2 hr) $ by simpa only [inv_mul_cancel_left' hr.ne']
+tendsto.at_top_of_const_mul (inv_pos.2 hr) $ by simpa only [inv_mul_cancel_left' hr.ne']
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
 constant (on the right) also tends to infinity. For a version working in `ℕ` or `ℤ`, use

@@ -32,12 +32,8 @@ variables {M : Type*} [add_comm_monoid M] [semimodule R M]
 variables {N : Type*} [add_comm_monoid N] [semimodule R N]
 
 -- semiring / add_comm_group
-variables {L : Type*} [add_comm_group L] [semimodule R L]
-
--- ring / add_comm_group
-variables {R' : Type*} [ring R']
-variables {M' : Type*} [add_comm_group M'] [semimodule R' M']
-variables {N' : Type*} [add_comm_group N'] [semimodule R' N']
+variables {M' : Type*} [add_comm_group M'] [semimodule R M']
+variables {N' : Type*} [add_comm_group N'] [semimodule R N']
 
 variables {ι : Type*} [decidable_eq ι]
 
@@ -58,7 +54,8 @@ add_decl_doc alternating_map.to_multilinear_map
 namespace alternating_map
 
 variables (f f' : alternating_map R M N ι)
-variables (g' : alternating_map R' M' N' ι)
+variables (g : alternating_map R M N' ι)
+variables (g' : alternating_map R M' N' ι)
 variables (v : ι → M) (v' : ι → M')
 open function
 
@@ -115,6 +112,10 @@ f.to_multilinear_map.map_add' v i x y
   g' (update v' i (x - y)) = g' (update v' i x) - g' (update v' i y) :=
 g'.to_multilinear_map.map_sub v' i x y
 
+@[simp] lemma map_neg (i : ι) (x : M') :
+  g' (update v' i (-x)) = -g' (update v' i x) :=
+g'.to_multilinear_map.map_neg v' i x
+
 @[simp] lemma map_smul (i : ι) (r : R) (x : M) :
   f (update v i (r • x)) = r • f (update v i x) :=
 f.to_multilinear_map.map_smul' v i r x
@@ -150,21 +151,21 @@ instance : add_comm_monoid (alternating_map R M N ι) :=
 by refine {zero := 0, add := (+), ..};
    intros; ext; simp [add_comm, add_left_comm]
 
-instance : has_neg (alternating_map R' M' N' ι) :=
+instance : has_neg (alternating_map R M N' ι) :=
 ⟨λ f,
   { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
-    ..(-(f : multilinear_map R' (λ i : ι, M') N')) }⟩
+    ..(-(f : multilinear_map R (λ i : ι, M) N')) }⟩
 
-@[simp] lemma neg_apply (m : ι → M') : (-g') m = - (g' m) := rfl
+@[simp] lemma neg_apply (m : ι → M) : (-g) m = -(g m) := rfl
 
-instance : add_comm_group (alternating_map R' M' N' ι) :=
+instance : add_comm_group (alternating_map R M N' ι) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..alternating_map.add_comm_monoid, ..};
    intros; ext; simp [add_comm, add_left_comm]
 
-section semimodule
 
-variables {S : Type*} [comm_semiring S] [algebra S R] [semimodule S N]
-  [is_scalar_tower S R N]
+section distrib_mul_action
+
+variables {S : Type*} [monoid S] [distrib_mul_action S N] [smul_comm_class R S N]
 
 instance : has_scalar S (alternating_map R M N ι) :=
 ⟨λ c f,
@@ -174,14 +175,22 @@ instance : has_scalar S (alternating_map R M N ι) :=
 @[simp] lemma smul_apply (f : alternating_map R M N ι) (c : S) (m : ι → M) :
   (c • f) m = c • f m := rfl
 
-/-- The space of multilinear maps over an algebra over `S` is a module over `S`, for the pointwise
-addition and scalar multiplication. -/
-instance : semimodule S (alternating_map R M N ι) :=
+instance : distrib_mul_action S (alternating_map R M N ι) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,
   mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul _ _ _,
   smul_zero := λ r, ext $ λ x, smul_zero _,
-  smul_add := λ r f₁ f₂, ext $ λ x, smul_add _ _ _,
-  add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
+  smul_add := λ r f₁ f₂, ext $ λ x, smul_add _ _ _ }
+
+end distrib_mul_action
+
+section semimodule
+
+variables {S : Type*} [semiring S] [semimodule S N] [smul_comm_class R S N]
+
+/-- The space of multilinear maps over an algebra over `R` is a module over `R`, for the pointwise
+addition and scalar multiplication. -/
+instance : semimodule S (alternating_map R M N ι) :=
+{ add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
 end semimodule
@@ -217,8 +226,6 @@ lemma map_add_swap {i j : ι} (hij : i ≠ j) :
   f v + f (v ∘ equiv.swap i j) = 0 :=
 by { rw add_comm, exact f.map_swap_add v hij }
 
-variable (g : alternating_map R M L ι)
-
 lemma map_swap {i j : ι} (hij : i ≠ j) :
   g (v ∘ equiv.swap i j) = - g v  :=
 eq_neg_of_add_eq_zero (g.map_swap_add v hij)
@@ -247,7 +254,7 @@ open equiv
 variables [fintype ι]
 
 private lemma alternization_map_eq_zero_of_eq_aux
-  (m : multilinear_map R (λ i : ι, M) L)
+  (m : multilinear_map R (λ i : ι, M) N')
   (v : ι → M) (i j : ι) (i_ne_j : i ≠ j) (hv : v i = v j) :
   ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v = 0 :=
 finset.sum_involution
@@ -266,7 +273,7 @@ finset.sum_involution
 
 /-- Produce an `alternating_map` out of a `multilinear_map`, by summing over all argument
 permutations. -/
-def alternatization : multilinear_map R (λ i : ι, M) L →+ alternating_map R M L ι :=
+def alternatization : multilinear_map R (λ i : ι, M) N' →+ alternating_map R M N' ι :=
 { to_fun := λ m,
   { to_fun := λ v, ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v,
     map_add' := λ v i a b, by simp_rw [←finset.sum_add_distrib, multilinear_map.map_add, smul_add],
@@ -285,7 +292,7 @@ def alternatization : multilinear_map R (λ i : ι, M) L →+ alternating_map R 
       alternating_map.coe_mk, zero_apply]
   end }
 
-lemma alternatization_apply (m : multilinear_map R (λ i : ι, M) L) (v : ι → M) :
+lemma alternatization_apply (m : multilinear_map R (λ i : ι, M) N') (v : ι → M) :
   alternatization m v = ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v := rfl
 
 end multilinear_map
@@ -294,7 +301,7 @@ namespace alternating_map
 
 /-- Alternatizing a multilinear map that is already alternating results in a scale factor of `n!`,
 where `n` is the number of inputs. -/
-lemma to_multilinear_map_alternization [fintype ι] (a : alternating_map R M L ι) :
+lemma to_multilinear_map_alternization [fintype ι] (a : alternating_map R M N' ι) :
   a.to_multilinear_map.alternatization = nat.factorial (fintype.card ι) • a :=
 begin
   ext,

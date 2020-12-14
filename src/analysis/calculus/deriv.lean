@@ -393,6 +393,10 @@ lemma has_deriv_within_at.congr_of_eventually_eq (h : has_deriv_within_at f f' s
   (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
 has_deriv_at_filter.congr_of_eventually_eq h h₁ hx
 
+lemma has_deriv_within_at.congr_of_eventually_eq_of_mem (h : has_deriv_within_at f f' s x)
+  (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : x ∈ s) : has_deriv_within_at f₁ f' s x :=
+h.congr_of_eventually_eq h₁ (h₁.eq_of_nhds_within hx)
+
 lemma has_deriv_at.congr_of_eventually_eq (h : has_deriv_at f f' x)
   (h₁ : f₁ =ᶠ[𝓝 x] f) : has_deriv_at f₁ f' x :=
 has_deriv_at_filter.congr_of_eventually_eq h h₁ (mem_of_nhds h₁ : _)
@@ -1458,6 +1462,35 @@ theorem has_deriv_at.of_local_left_inverse {f g : 𝕜 → 𝕜} {f' a : 𝕜}
   (hfg : ∀ᶠ y in 𝓝 a, f (g y) = y) :
   has_deriv_at g f'⁻¹ a :=
 (hf.has_fderiv_at_equiv hf').of_local_left_inverse hg hfg
+
+/-- If `f` is a local homeomorphism defined on a neighbourhood of `f.symm a`, and `f` has an
+nonzero derivative `f'` at `f.symm a`, then `f.symm` has the derivative `f'⁻¹` at `a`.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+lemma local_homeomorph.has_deriv_at_symm (f : local_homeomorph 𝕜 𝕜) {a f' : 𝕜}
+  (ha : a ∈ f.target) (hf' : f' ≠ 0) (htff' : has_deriv_at f f' (f.symm a)) :
+  has_deriv_at f.symm f'⁻¹ a :=
+htff'.of_local_left_inverse (f.symm.continuous_at ha) hf' (f.eventually_right_inverse ha)
+
+theorem not_differentiable_within_at_of_local_left_inverse_has_deriv_within_at_zero
+  {f g : 𝕜 → 𝕜} {a : 𝕜} {s t : set 𝕜} (ha : a ∈ s) (hsu : unique_diff_within_at 𝕜 s a)
+  (hf : has_deriv_within_at f 0 t (g a)) (hst : maps_to g s t) (hfg : f ∘ g =ᶠ[𝓝[s] a] id) :
+  ¬differentiable_within_at 𝕜 g s a :=
+begin
+  intro hg,
+  have := (hf.comp a hg.has_deriv_within_at hst).congr_of_eventually_eq_of_mem hfg.symm ha,
+  simpa using hsu.eq_deriv _ this (has_deriv_within_at_id _ _)
+end
+
+theorem not_differentiable_at_of_local_left_inverse_has_deriv_at_zero
+  {f g : 𝕜 → 𝕜} {a : 𝕜} (hf : has_deriv_at f 0 (g a)) (hfg : f ∘ g =ᶠ[𝓝 a] id) :
+  ¬differentiable_at 𝕜 g a :=
+begin
+  intro hg,
+  have := (hf.comp a hg.has_deriv_at).congr_of_eventually_eq hfg.symm,
+  simpa using has_deriv_at_unique this (has_deriv_at_id a)
+end
 
 end
 

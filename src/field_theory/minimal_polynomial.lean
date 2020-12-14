@@ -259,6 +259,10 @@ eq_of_monic_of_associated hp3 (monic hx) $
 mul_one (minimal_polynomial hx) ▸ hq.symm ▸ associated_mul_mul (associated.refl _) $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit hx
 
+section gcd_domain
+
+/-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
+over the fraction field. -/
 lemma gcd_domain_eq_field_fractions {α : Type u} {β : Type v} {γ : Type w} [integral_domain α]
   [gcd_monoid α] [field β] [integral_domain γ] (f : fraction_map α β) [algebra f.codomain γ]
   [algebra α γ] [is_scalar_tower α f.codomain γ] {x : γ} (hx : is_integral α x) :
@@ -273,6 +277,55 @@ begin
     exact htower.symm },
   { exact monic_map _ (monic hx) }
 end
+
+/-- The minimal polynomial over `ℤ` is the same as the minimal polynomial over `ℚ`. -/
+--TODO use `gcd_domain_eq_field_fractions` directly when localizations are defined
+-- in terms of algebras instead of `ring_hom`s
+lemma over_int_eq_over_rat {α : Type u} [integral_domain α] {x : α} [algebra ℚ α]
+  (hx : is_integral ℤ x) :
+  minimal_polynomial (@is_integral_of_is_scalar_tower ℤ ℚ α _ _ _ _ _ _ _ x hx) =
+    map (int.cast_ring_hom ℚ) (minimal_polynomial hx) :=
+begin
+  refine (unique' (@is_integral_of_is_scalar_tower ℤ ℚ α _ _ _ _ _ _ _ x hx) _ _ _).symm,
+  { exact (is_primitive.int.irreducible_iff_irreducible_map_cast
+  (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
+  { have htower := is_scalar_tower.aeval_apply ℤ ℚ α x (minimal_polynomial hx),
+    simp only [localization_map.algebra_map_eq, aeval] at htower,
+    exact htower.symm },
+  { exact monic_map _ (monic hx) }
+end
+
+/-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
+element as root. -/
+lemma gcd_domain_dvd {α : Type u} {β : Type v} {γ : Type w}
+  [integral_domain α] [gcd_monoid α] [field β] [integral_domain γ]
+  (f : fraction_map α β) [algebra f.codomain γ] [algebra α γ] [is_scalar_tower α f.codomain γ]
+  {x : γ} (hx : is_integral α x)
+  {P : polynomial α} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
+  minimal_polynomial hx ∣ P :=
+begin
+  apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map f
+    (monic.is_primitive (monic hx)) hprim ).2,
+  rw [← gcd_domain_eq_field_fractions f hx],
+  refine dvd (is_integral_of_is_scalar_tower x hx) _,
+  rwa [← localization_map.algebra_map_eq, ← is_scalar_tower.aeval_apply]
+end
+
+/-- The minimal polynomial over `ℤ` divides any primitive polynomial that has the integral element
+as root. -/
+-- TODO use `gcd_domain_dvd` directly when localizations are defined in terms of algebras
+-- instead of `ring_hom`s
+lemma integer_dvd {α : Type u} [integral_domain α] [algebra ℚ α] {x : α} (hx : is_integral ℤ x)
+  {P : polynomial ℤ} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) : minimal_polynomial hx ∣ P :=
+begin
+  apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast _ _
+    (monic.is_primitive (monic hx)) hprim ).2,
+  rw [← over_int_eq_over_rat hx],
+  refine dvd (is_integral_of_is_scalar_tower x hx) _,
+  rwa [(int.cast_ring_hom ℚ).ext_int (algebra_map ℤ ℚ), ← is_scalar_tower.aeval_apply]
+end
+
+end gcd_domain
 
 variable (β)
 /--If L/K is a field extension, and x is an element of L in the image of K,

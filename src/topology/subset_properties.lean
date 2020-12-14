@@ -1277,7 +1277,7 @@ theorem subset_clopen_of_preconnected {s t : set α} (h : is_clopen s) (h1 : is_
   (h2 : (s ∩ t).nonempty) : t ⊆ s :=
 begin
   let v := sᶜ,
-  apply (@set.inter_eq_self_of_subset_iff _ t s).2,
+  apply (@set.subset_iff_inter_eq_self _ t s).2,
   let u := (coe : (t → α)) ⁻¹' s,
   have hu : is_clopen u,
   { rw [←(set.inter_univ u), set.inter_comm],

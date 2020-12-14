@@ -762,8 +762,6 @@ lemma lintegral_rpow_add_lt_top_of_lintegral_rpow_lt_top {p : ℝ}
 begin
   have hp0_lt : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
   have hp0 : 0 ≤ p, from le_of_lt hp0_lt,
-  have hp_sub_one_nonneg : 0 ≤ p - 1, by simp [hp1],
-  simp_rw [pi.add_apply],
   calc ∫⁻ (a : α), (f a + g a) ^ p ∂μ
     ≤ ∫⁻ a, ((2:ennreal)^(p-1) * (f a) ^ p + (2:ennreal)^(p-1) * (g a) ^ p) ∂ μ :
   begin
@@ -793,7 +791,7 @@ begin
     rw [lintegral_add, lintegral_const_mul _ hf.ennreal_rpow_const,
       lintegral_const_mul _ hg.ennreal_rpow_const, ennreal.add_lt_top],
     { have h_two : (2 : ennreal) ^ (p - 1) < ⊤,
-      from ennreal.rpow_lt_top_of_nonneg hp_sub_one_nonneg ennreal.coe_ne_top,
+      from ennreal.rpow_lt_top_of_nonneg (by simp [hp1]) ennreal.coe_ne_top,
       repeat {rw ennreal.mul_lt_top_iff},
       simp [hf_top, hg_top, h_two], },
     { exact (ennreal.continuous_const_mul (by simp)).measurable.comp hf.ennreal_rpow_const, },

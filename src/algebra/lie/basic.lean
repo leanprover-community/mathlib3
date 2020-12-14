@@ -1104,12 +1104,12 @@ variables (R : Type u) (L : Type v) (M : Type w)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
 variables [lie_ring_module L M] [lie_module R L M]
 
-namespace lie_module
+section lie_module
 
 /-- The derived Lie submodule of a Lie module. -/
 def derived_lie_submodule : lie_submodule R L M := ⁅(⊤ : lie_ideal R L), ⊤⁆
 
-lemma trivial_iff_derived_eq_bot : is_trivial L M ↔ derived_lie_submodule R L M = ⊥ :=
+lemma trivial_iff_derived_eq_bot : lie_module.is_trivial L M ↔ derived_lie_submodule R L M = ⊥ :=
 begin
   split; intros h,
   { erw [eq_bot_iff, lie_submodule.lie_span_le], rintros m ⟨x, n, hn⟩, rw [← hn, h.trivial], simp,},
@@ -1120,7 +1120,7 @@ end
 end lie_module
 
 /-- The derived Lie ideal of a Lie algebra. -/
-abbreviation lie_algebra.derived_lie_ideal : lie_ideal R L := lie_module.derived_lie_submodule R L L
+abbreviation derived_lie_ideal : lie_ideal R L := derived_lie_submodule R L L
 
 end lie_module
 

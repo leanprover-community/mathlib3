@@ -5,6 +5,7 @@ Author: Kyle Miller
 -/
 import data.finset.basic
 import combinatorics.simple_graph.basic
+import tactic.omega
 /-!
 # Walks and paths
 
@@ -27,11 +28,15 @@ namespace simple_graph
 
 variables {V : Type u} (G : simple_graph V)
 
+/-- A walk is a sequence of incident edges in a graph, represented here as a sequence of adjacent
+vertices. -/
 inductive walk : V → V → Type u
 | nil {u : V} : walk u u
 | cons {u v w : V} (h : G.adj u v) (p : walk v w) : walk u w
 
 attribute [refl] walk.nil
+
+instance walk.inhabited (v : V) : inhabited (G.walk v v) := ⟨walk.nil⟩
 
 namespace walk
 variables {G}
@@ -41,6 +46,7 @@ def length : Π {u v : V}, G.walk u v → ℕ
 | _ _ nil := 0
 | _ _ (cons _ q) := q.length.succ
 
+/-- The concatenation of two compatible walks. -/
 @[trans]
 def concat : Π {u v w : V}, G.walk u v → G.walk v w → G.walk u w
 | _ _ _ nil q := q
@@ -107,6 +113,9 @@ def connected_components := quotient (exists_walk.setoid G)
 /-- A graph is connected if every vertex is connected to every other by a walk. -/
 def is_connected : Prop := ∀ v w, exists_walk G v w
 
+instance connected_components.inhabited [inhabited V]: inhabited G.connected_components :=
+⟨@quotient.mk _ (exists_walk.setoid G) (default _)⟩
+
 namespace walk
 
 variables {G}
@@ -118,8 +127,8 @@ variables {G}
 
 @[simp] lemma nil_reverse {u : V} : (nil : G.walk u u).reverse = nil := rfl
 
-@[simp] lemma singleton_reverse {u v : V} (h : G.adj u v) :
-  (cons h nil).reverse = cons (G.sym h) nil := rfl
+--@[simp] lemma singleton_reverse {u v : V} (h : G.adj u v) :
+--  (cons h nil).reverse = cons (G.sym h) nil := rfl
 
 @[simp] lemma cons_concat {u v w x : V} (h : G.adj u v) (p : G.walk v w) (q : G.walk w x) :
   (cons h p).concat q = cons h (p.concat q) := rfl
@@ -199,7 +208,37 @@ by cases i; simp [get_vert]
 @[simp] lemma get_vert_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) (i : ℕ) :
   (cons h p).get_vert (i + 1) = p.get_vert i := rfl
 
-lemma walk_ext_aux : Π {u v : V} (n : ℕ) (p p' : G.walk u v)
+lemma concat_get_vert {u v w : V} (p : G.walk u v) (p' : G.walk v w) (i : ℕ) :
+  (p.concat p').get_vert i = if i ≤ p.length then p.get_vert i else p'.get_vert (i - p.length) :=
+begin
+  induction p generalizing i,
+  { simp only [get_vert_nil, le_zero_iff_eq, nil_length, nil_concat, nat.sub_zero],
+    split_ifs,
+    { subst i, simp, },
+    { refl } },
+  { simp only [cons_length, cons_concat],
+    cases i,
+    { simp, },
+    { simp [p_ih, nat.succ_le_succ_iff], } }
+end
+
+@[simp] lemma get_vert_reverse {u v : V} (p : G.walk u v) (i : ℕ) :
+  p.reverse.get_vert i = p.get_vert (p.length - i) :=
+begin
+  induction i generalizing u v,
+  { simp },
+  { induction p,
+    { simp },
+    { simp [cons_reverse, concat_get_vert, p_ih, i_ih],
+      split_ifs,
+      { have h' : p_p.length - i_n = (p_p.length - i_n.succ).succ := by omega,
+        simp [h'], },
+      { have h' : p_p.length - i_n = 0 := by omega,
+        have h'' : i_n.succ - p_p.length = (i_n - p_p.length).succ := by omega,
+        simp [h', h''], } } }
+end
+
+protected lemma ext_aux : Π {u v : V} (n : ℕ) (p p' : G.walk u v)
   (h₁ : p.length = n) (h₁' : p'.length = n)
   (h₂ : ∀ i, i ≤ n → p.get_vert i = p'.get_vert i), p = p'
 | _ _ 0 nil nil _ _ _ := rfl
@@ -210,7 +249,7 @@ begin
     simpa using h₂, },
   subst w',
   congr,
-  apply walk_ext_aux n q q' (nat.succ.inj h₁) (nat.succ.inj h₁'),
+  apply ext_aux n q q' (nat.succ.inj h₁) (nat.succ.inj h₁'),
   intros i h,
   exact h₂ i.succ (nat.succ_le_succ h),
 end
@@ -220,7 +259,7 @@ lemma ext {u v : V} (p p' : G.walk u v)
   (h₁ : p.length = p'.length)
   (h₂ : ∀ i, i ≤ p.length → p.get_vert i = p'.get_vert i) :
   p = p' :=
-walk_ext_aux p.length p p' rfl h₁.symm h₂
+walk.ext_aux p.length p p' rfl h₁.symm h₂
 
 lemma adj_get_vert : Π {u v : V} (p : G.walk u v) (i : ℕ) (h : i < p.length),
   G.adj (p.get_vert i) (p.get_vert (i + 1))
@@ -468,11 +507,25 @@ end
 lemma reverse_path {u v : V} (p : G.walk u v) (h : p.is_path) : p.reverse.is_path :=
 begin
   rw is_path_iff,
-  simp,
-  sorry
+  simp only [reverse_length, get_vert_reverse],
+  intros i j hi hj hp,
+  have hi' : p.length - i ≤ p.length := by omega,
+  have hj' : p.length - j ≤ p.length := by omega,
+  have h' := (is_path_iff p).mp h _ _ hi' hj' hp,
+  omega,
 end
 
-
+lemma is_path_if_concat_is_path {u v w} (p : G.walk u v) (p' : G.walk v w)
+  (h : (p.concat p').is_path) : p.is_path :=
+begin
+  rw is_path_iff at h,
+  rw is_path_iff,
+  simp only [concat_get_vert, concat_length] at h,
+  intros i j hi hj hp,
+  specialize h i j (by omega) (by omega),
+  simp only [hi, hj, if_true] at h,
+  exact h hp,
+end
 
 lemma get_vert_image {u v} (p : G.walk u v) :
   finset.image (λ i, p.get_vert i) (finset.range (p.length + 1)) = p.support :=
@@ -491,37 +544,11 @@ end
 
 end paths
 
-section dependent_equality
-variables {G}
-/-! This may or may not be useful -/
-
-def walk.deq {u v u' v' : V} (w : G.walk u v) (w' : G.walk u' v') : Prop :=
-(⟨u, v, w⟩ : Σ (u v : V), G.walk u v) = ⟨u', v', w'⟩
-
-local infix ` === `:50 := walk.deq
-
-@[refl]
-def walk.deq.refl {u v : V} {w : G.walk u v} : w === w := rfl
-
-@[symm]
-lemma walk.deq.symm {u v u' v' : V} {p : G.walk u v} {p' : G.walk u' v'} :
-  p === p' → p' === p := eq.symm
-
-@[trans]
-lemma walk.deq.trans {u v u' v' u'' v'' : V}
-  {p : G.walk u v} {p' : G.walk u' v'} {p'' : G.walk u'' v''}:
-  p === p' → p' === p'' → p === p'' := eq.trans
-
-lemma walk.deq.of_eq {u v : V} (p p' : G.walk u v) (h : p = p') : p === p' :=
-by { subst p }
-
-end dependent_equality
-
 end walk
 
-variables (G) [decidable_eq V]
+variables (G)
 
-lemma exists_walk_eq_exists_path : exists_walk G = exists_path G :=
+lemma exists_walk_eq_exists_path [decidable_eq V] : exists_walk G = exists_path G :=
 begin
   ext u v,
   dsimp [exists_walk, exists_path],
@@ -530,12 +557,21 @@ begin
   { intro p, cases p, fsplit, use p_w, },
 end
 
-
-
 lemma exists_walk_eq_eqv_gen : exists_walk G = eqv_gen G.adj :=
 begin
   ext v w,
-  sorry
+  split,
+  { intro h,
+    cases h,
+    induction h,
+    { exact eqv_gen.refl _ },
+    { exact eqv_gen.trans _ _ _ (eqv_gen.rel _ _ h_h) h_ih } },
+  { intro h,
+    induction h with x y h _ x y he h_ih x y z hxy hyz hxy_ih hyz_ih,
+    exact ⟨walk.cons h walk.nil⟩,
+    refl,
+    cases h_ih, exact ⟨h_ih.reverse⟩,
+    cases hxy_ih, cases hyz_ih, exact ⟨hxy_ih.concat hyz_ih⟩, }
 end
 
 end simple_graph

@@ -461,16 +461,19 @@ end artin_tate
 
 section alg_hom_tower
 
-variables {A} {B} {C D : Type*} [comm_semiring A] [comm_semiring B] [comm_semiring C]
-[comm_semiring D] [algebra A B] [algebra B C] [algebra A C] [algebra A D] [is_scalar_tower A B C]
+variables {A} {C D : Type*} [comm_semiring A]  [comm_semiring C] [comm_semiring D]
+  [algebra A C] [algebra A D]
+
+variables (f : C →ₐ[A] D) (B) [comm_semiring B] [algebra A B] [algebra B C] [is_scalar_tower A B C]
 
 /-- Restrict the domain of an alg_hom -/
-def alg_hom.restrict (f : C →ₐ[A] D) : B →ₐ[A] D := f.comp (is_scalar_tower.to_alg_hom A B C)
+def alg_hom.restrict : B →ₐ[A] D := f.comp (is_scalar_tower.to_alg_hom A B C)
 
 /-- Extend the scalars of an alg_hom -/
-def alg_hom_extend_base (f : C →ₐ[A] D) :
-  @alg_hom B C D _ _ _ _ (alg_hom_restrict f).to_ring_hom.to_algebra :=
+def alg_hom.extend_base : @alg_hom B C D _ _ _ _ (f.restrict B).to_ring_hom.to_algebra :=
 { commutes' := λ _, rfl .. f }
+
+variables {B}
 
 /-- Combine two alg_hom's that are in a tower -/
 def alg_hom_compose (f : B →ₐ[A] D) (g : @alg_hom B C D _ _ _ _ (ring_hom.to_algebra f)) :
@@ -492,7 +495,7 @@ def alg_hom_compose (f : B →ₐ[A] D) (g : @alg_hom B C D _ _ _ _ (ring_hom.to
 /-- alg_hom's from the top of a tower are equivalent to a pair of alg_homs -/
 def alg_hom_equiv_sigma :
   (C →ₐ[A] D) ≃ Σ (f : B →ₐ[A] D), @alg_hom B C D _ _ _ _ (ring_hom.to_algebra f) :=
-{ to_fun := λ f, ⟨alg_hom_restrict f, alg_hom_extend_base f⟩,
+{ to_fun := λ f, ⟨f.restrict B, f.extend_base B⟩,
   inv_fun := λ fg, alg_hom_compose fg.1 fg.2,
   left_inv := λ f, by {dsimp only, ext, refl},
   right_inv :=

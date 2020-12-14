@@ -244,13 +244,22 @@ begin
     simpa [g.map_swap (v ∘ s) hxy, equiv.perm.sign_swap hxy] using hI, }
 end
 
-lemma map_perm' [fintype ι] (v : ι → M) (σ : equiv.perm ι) :
-  g (λ i, v (σ i)) = (equiv.perm.sign σ : ℤ) • g v :=
-g.map_perm v σ
-
 lemma map_congr_perm [fintype ι] (σ : equiv.perm ι) :
   g v = (equiv.perm.sign σ : ℤ) • g (v ∘ σ) :=
 by { rw [g.map_perm, smul_smul], simp }
+
+set_option pp.implicit
+
+lemma coe_dom_dom_congr [fintype ι] (σ : equiv.perm ι) :
+  (g : multilinear_map R (λ _ : ι, M) N').dom_dom_congr σ
+    = (equiv.perm.sign σ : ℤ) • (g : multilinear_map R (λ _ : ι, M) N') :=
+multilinear_map.ext $ λ v, by {
+  convert g.map_perm v σ,
+  haveI : smul_comm_class R ℤ N' := smul_comm_class.symm _ _ _,
+  convert multilinear_map.smul_apply (g : multilinear_map R (λ _ : ι, M) N') ↑σ.sign v,
+  swap, apply_instance,
+  congr,
+  rw this, }
 
 end alternating_map
 
@@ -263,7 +272,7 @@ open equiv
 variables [fintype ι]
 
 private lemma alternization_map_eq_zero_of_eq_aux
-  (m : multilinear_map R (λ i : ι, M) L)
+  (m : multilinear_map R (λ i : ι, M) N')
   (v : ι → M) (i j : ι) (i_ne_j : i ≠ j) (hv : v i = v j) :
   ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v = 0 :=
 finset.sum_involution
@@ -282,7 +291,7 @@ finset.sum_involution
 
 /-- Produce an `alternating_map` out of a `multilinear_map`, by summing over all argument
 permutations. -/
-def alternatization : multilinear_map R (λ i : ι, M) L →+ alternating_map R M L ι :=
+def alternatization : multilinear_map R (λ i : ι, M) N' →+ alternating_map R M N' ι :=
 { to_fun := λ m,
   { to_fun := λ v, ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v,
     map_add' := λ v i a b, by simp_rw [←finset.sum_add_distrib, multilinear_map.map_add, smul_add],
@@ -369,11 +378,31 @@ open_locale tensor_product
 
 section coprod
 
+section
+
+open equiv
+open equiv.perm
+
+/-- `equiv.perm.sum_congr` as a `monoid_hom`. -/
+@[simps apply]
+def sum_congr_hom (α β : Type*) :
+  perm α × perm β →* perm (α ⊕ β) :=
+{ to_fun := λ a, a.1.sum_congr a.2,
+  map_one' := sum_congr_one,
+  map_mul' := λ a b, (sum_congr_mul _ _ _ _).symm}
+
+end
+
 variables {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
 
 /-- Elements which are considered equivalent if they differ only by swaps within α or β  -/
 abbreviation mod_sum_congr (α β : Type*) :=
-quotient_group.quotient $ equiv.perm.sum_congr_subgroup α β
+quotient_group.quotient $ (sum_congr_hom α β ).range
+
+instance sum_congr_subgroup.left_rel_decidable {α β : Type*}
+  [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
+  decidable_rel $ (quotient_group.left_rel (sum_congr_hom α β).range).r :=
+λ σ₁ σ₂, fintype.decidable_exists_fintype
 
 namespace mod_sum_congr
 
@@ -398,12 +427,13 @@ private def dom_coprod_aux
 (λ σ₁ σ₂ h, begin
   simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
     coe_multilinear_map],
-  obtain ⟨sl, sr, h⟩ := h,
+  obtain ⟨⟨sl, sr⟩, h⟩ := h,
+  replace h := h.symm,
   rw inv_mul_eq_iff_eq_mul at h,
-  have : ((σ₁ * equiv.sum_congr sl sr).sign : ℤ) = σ₁.sign * (sl.sign * sr.sign) := by simp,
+  have : ((σ₁ * sum_congr_hom _ _ (sl, sr)).sign : ℤ) = σ₁.sign * (sl.sign * sr.sign) := by simp,
   rw [h, this, mul_smul, mul_smul, units.smul_left_cancel, ←tensor_product.tmul_smul_int,
     tensor_product.smul_tmul'_int],
-  simp only [sum.map_inr, equiv.perm.sum_congr_apply, sum.map_inl, function.comp_app,
+  simp only [sum.map_inr, sum_congr_hom_apply, equiv.perm.sum_congr_apply, sum.map_inl, function.comp_app,
              equiv.perm.coe_mul],
   rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))],
 end)
@@ -472,7 +502,7 @@ begin
         rw [←hi', ←hj', hij'], }, },
     { -- the term pair with and cancels another term
       intro h,
-      obtain ⟨sl, sr, h⟩ := quotient.eq'.mp h,
+      obtain ⟨⟨sl, sr⟩, h⟩ := quotient.eq'.mp h,
       obtain (⟨hi', ⟨j', hj'⟩⟩ | ⟨hi', hj'⟩) := iff_iff_and_or_not_and_not.mp (not_iff.mp hsw),
       work_on_goal 0 {
         obtain ⟨i', hi'⟩ := not_moves_from_left hi', },
@@ -542,25 +572,20 @@ begin
   sorry
 end
 
+@[simp]
 lemma sum_congr_subgroup_card :
-  fintype.card (equiv.perm.sum_congr_subgroup ιa ιb)
+  fintype.card (sum_congr_hom ιa ιb).range
     = fintype.card (equiv.perm ιa × equiv.perm ιb) :=
-fintype.card_eq.mpr ⟨equiv.set.range
-  (λ x : equiv.perm ιa × equiv.perm ιb, equiv.perm.sum_congr x.1 x.2) _⟩
-
-example {ιa : Type*} {ιb : Type*}
-  [decidable_eq ιa]
-  [decidable_eq ιb]
-  [fintype ιa]
-  [fintype ιb] :
-  fintype.card (set_of
-      (λ (σ : equiv.perm (ιa ⊕ ιb)),
-           ∃ (sl : equiv.perm ιa) (sr : equiv.perm ιb),
-             σ = sl.sum_congr sr)) =
-    fintype.card (equiv.perm ιa) * fintype.card (equiv.perm ιb) :=
-begin
-  sorry,
-end
+fintype.card_eq.mpr ⟨(equiv.set.range (sum_congr_hom ιa ιb) begin
+  intros x y h,
+  cases x,
+  cases y,
+  rw  prod.mk.inj_iff,
+  replace h := λ j, _root_.congr_arg (λ e : equiv.perm _, e j) h,
+  split; ext i,
+  simpa [sum_congr_hom_apply] using h (sum.inl i),
+  simpa [sum_congr_hom_apply] using h (sum.inr i),
+end).symm⟩
 
 lemma multilinear_map.dom_coprod_alternization_eq'
   {R : Type*} {M N₁ N₂ : Type*}
@@ -577,7 +602,7 @@ begin
   simp,
   dsimp only [smul_apply, multilinear_map.alternatization_apply, alternating_map.dom_coprod_apply,
     dom_coprod_aux],
-  rw finset.sum_partition (quotient_group.left_rel (equiv.perm.sum_congr_subgroup ιa ιb)),
+  rw finset.sum_partition (quotient_group.left_rel (sum_congr_hom ιa ιb).range),
   rw finset.smul_sum,
   congr' 1,
   ext σ,
@@ -586,23 +611,32 @@ begin
   conv in (_ = quotient.mk' _) {
     change quotient.mk' _ = quotient.mk' _,
   },
-  rw ←gsmul_eq_smul,
   have : ((fintype.card ιa).factorial * (fintype.card ιb).factorial) =
-    fintype.card (equiv.perm.sum_congr_subgroup ιa ιb),
+    fintype.card (sum_congr_hom ιa ιb).range,
   {
-    rw ←@fintype.card_perm ιa _ _,
-    rw ←@fintype.card_perm ιb _ _,
-    unfold equiv.perm.sum_congr_subgroup,
-    unfold_coes,
-    dsimp,
-
+    simp [fintype.card_perm],
   },
   rw this,
+  rw nat.smul_def, -- gsmul_eq_smul
+  change _ = finset.card _ •ℕ _,
   rw ←finset.sum_const,
   -- rw finset.sum_filter,
-  -- simp_rw (iff.intro quotient.exact' quotient.sound'),
-  -- dunfold setoid.r quotient_group.left_rel,
-  -- simp only,
+  simp_rw (iff.intro quotient.exact' quotient.sound'),
+  dunfold setoid.r quotient_group.left_rel,
+  simp only,
+  have : @finset.univ (equiv.perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) := begin
+    ext, simp,
+    use σ⁻¹ * a_1,
+    simp,
+  end,
+  rw this,
+  rw finset.image_filter,
+  simp only [function.comp, mul_inv_rev, inv_mul_cancel_right, subgroup.inv_mem_iff],
+  rw finset.sum_image (λ x hx y hy, (mul_right_inj σ).mp),
+  simp_rw [equiv.perm.sign_mul, units.coe_mul, mul_smul],
+  rw multilinear_map.dom_coprod_dom_dom_congr_sum_congr,
+  sorry
+
   -- TODO: finset.sum_const
   -- TODO: eliminate the dom_dom_congr?
   -- TODO: card_eq_card_quotient_mul_card_subgroup

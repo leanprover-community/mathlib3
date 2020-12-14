@@ -4,11 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import data.polynomial.basic
-import data.polynomial.derivative
-import data.polynomial.ring_division
 import data.set.intervals.infinite
-import topology.instances.real
 import topology.algebra.polynomial
 import analysis.calculus.mean_value
 

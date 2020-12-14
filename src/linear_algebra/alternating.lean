@@ -254,7 +254,7 @@ open equiv
 variables [fintype ι]
 
 private lemma alternization_map_eq_zero_of_eq_aux
-  (m : multilinear_map R (λ i : ι, M) L)
+  (m : multilinear_map R (λ i : ι, M) N')
   (v : ι → M) (i j : ι) (i_ne_j : i ≠ j) (hv : v i = v j) :
   ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v = 0 :=
 finset.sum_involution
@@ -273,7 +273,7 @@ finset.sum_involution
 
 /-- Produce an `alternating_map` out of a `multilinear_map`, by summing over all argument
 permutations. -/
-def alternatization : multilinear_map R (λ i : ι, M) L →+ alternating_map R M L ι :=
+def alternatization : multilinear_map R (λ i : ι, M) N' →+ alternating_map R M N' ι :=
 { to_fun := λ m,
   { to_fun := λ v, ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v,
     map_add' := λ v i a b, by simp_rw [←finset.sum_add_distrib, multilinear_map.map_add, smul_add],
@@ -292,7 +292,7 @@ def alternatization : multilinear_map R (λ i : ι, M) L →+ alternating_map R 
       alternating_map.coe_mk, zero_apply]
   end }
 
-lemma alternatization_apply (m : multilinear_map R (λ i : ι, M) L) (v : ι → M) :
+lemma alternatization_apply (m : multilinear_map R (λ i : ι, M) N') (v : ι → M) :
   alternatization m v = ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v := rfl
 
 end multilinear_map
@@ -301,7 +301,7 @@ namespace alternating_map
 
 /-- Alternatizing a multilinear map that is already alternating results in a scale factor of `n!`,
 where `n` is the number of inputs. -/
-lemma to_multilinear_map_alternization [fintype ι] (a : alternating_map R M L ι) :
+lemma to_multilinear_map_alternization [fintype ι] (a : alternating_map R M N' ι) :
   a.to_multilinear_map.alternatization = nat.factorial (fintype.card ι) • a :=
 begin
   ext,

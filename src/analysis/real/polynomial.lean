@@ -22,7 +22,7 @@ begin
   have h_f_nonzero : f ≠ 0 := ne_zero_of_nat_degree_gt h_f_deg,
   obtain ⟨x_max, ⟨h_x_max_range, hM⟩⟩ := is_compact.exists_forall_ge (@compact_Icc (α - 1) (α + 1))
     ⟨α, le_of_lt $ sub_one_lt _, le_of_lt $ lt_add_one _⟩
-    (continuous_abs.comp f.continuous_eval).continuous_on,
+    (continuous_abs.comp f.continuous).continuous_on,
   use [max (abs (f.eval x_max)) 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _)],
   intros y hy,
   have hy' : y ∈ Icc (α - 1) (α + 1),
@@ -87,7 +87,7 @@ begin
   have h₀ : x ≠ α, { intro h₁, rw ← h₁ at h_α_root, rw h_α_root at h, tauto },
   rcases ne_iff_lt_or_gt.1 h₀ with h_α_gt | h_α_lt,
   { -- When `x < α`
-    have h_cont : continuous_on (λ x, f.eval x) (Icc x α) := f.continuous_eval.continuous_on,
+    have h_cont : continuous_on (λ x, f.eval x) (Icc x α) := f.continuous.continuous_on,
     have h_diff : differentiable_on ℝ (λ x, f.eval x) (Ioo x α) :=
       differentiable.differentiable_on f.differentiable,
     rcases (exists_deriv_eq_slope (λ x, f.eval x) h_α_gt h_cont h_diff) with ⟨x₀, x₀_range, hx₀⟩,
@@ -109,7 +109,7 @@ begin
       abs_of_neg (sub_lt_zero.mpr x₀_range.1)],
     split; linarith },
   { -- When `α < x`
-    have h_cont : continuous_on (λ x, f.eval x) (Icc α x) := f.continuous_eval.continuous_on,
+    have h_cont : continuous_on (λ x, f.eval x) (Icc α x) := f.continuous.continuous_on,
     have h_diff : differentiable_on ℝ (λ x, f.eval x) (Ioo α x):=
       differentiable.differentiable_on f.differentiable,
     rcases (exists_deriv_eq_slope (λ x, f.eval x) h_α_lt h_cont h_diff) with ⟨x₀, x₀_range, hx₀⟩,

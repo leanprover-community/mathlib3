@@ -334,7 +334,7 @@ fintype.card ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) =
 begin
   have key_equiv : ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) ≃
     Σ (f : K →ₐ[F] E), @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f) :=
-  equiv.trans (intermediate_field.lift2_alg_equiv K⟮x⟯).alg_hom_equiv_alg_hom_left
+  equiv.trans (alg_equiv.arrow_congr (intermediate_field.lift2_alg_equiv K⟮x⟯) (alg_equiv.refl))
     alg_hom_equiv_sigma,
   haveI : Π (f : K →ₐ[F] E), fintype (@alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f)) := by
   { intro f,
@@ -379,7 +379,7 @@ begin
     apply of_card_aut_eq_findim,
     rw ← eq.trans this (linear_equiv.findim_eq intermediate_field.top_equiv.to_linear_equiv),
     exact fintype.card_congr (equiv.trans (alg_equiv_equiv_alg_hom F E)
-      intermediate_field.top_equiv.symm.alg_hom_equiv_alg_hom_left) },
+      (alg_equiv.arrow_congr intermediate_field.top_equiv.symm alg_equiv.refl)) },
   have base : P ⊥,
   { have h : is_integral F (0 : E) := is_integral_zero,
     have key := intermediate_field.card_alg_hom_adjoin_integral F h,

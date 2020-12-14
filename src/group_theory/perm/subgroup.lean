@@ -19,19 +19,34 @@ finite.
 namespace equiv
 namespace perm
 
-/-- The subgroup of permutations which do not exchange elements between `α` and `β`;
-those which are of the form `sum_congr sl sr`. -/
-def sum_congr_subgroup (α β : Type*) : subgroup (perm (α ⊕ β)) :=
-{ carrier := λ σ, ∃ (sl : perm α) (sr : perm β), σ = sum_congr sl sr,
-  one_mem' := ⟨1, 1, sum_congr_one.symm⟩,
-  mul_mem' := λ σ₁ σ₂ ⟨sl₁₂, sr₁₂, h₁₂⟩ ⟨sl₂₃, sr₂₃, h₂₃⟩,
-    ⟨sl₁₂ * sl₂₃, sr₁₂ * sr₂₃, h₂₃.symm ▸ h₁₂.symm ▸ sum_congr_mul sl₁₂ sr₁₂ sl₂₃ sr₂₃⟩,
-  inv_mem' := λ σ₁ ⟨sl, sr, h⟩, ⟨sl⁻¹, sr⁻¹, h.symm ▸ sum_congr_inv sl sr⟩ }
+/-- `equiv.perm.sum_congr` as a `monoid_hom`. -/
+@[simps apply]
+def sum_congr_hom (α β : Type*) :
+  perm α × perm β →* perm (α ⊕ β) :=
+{ to_fun := λ a, a.1.sum_congr a.2,
+  map_one' := sum_congr_one,
+  map_mul' := λ a b, (sum_congr_mul _ _ _ _).symm}
 
-instance sum_congr_subgroup.left_rel_decidable {α β : Type*}
+instance sum_congr_hom.left_rel_range_decidable {α β : Type*}
   [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
-  decidable_rel $ (quotient_group.left_rel (sum_congr_subgroup α β)).r :=
+  decidable_rel $ (quotient_group.left_rel (sum_congr_hom α β).range).r :=
 λ σ₁ σ₂, fintype.decidable_exists_fintype
+
+@[simp]
+lemma sum_congr_hom.card_range {α β : Type*}
+  [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
+  fintype.card (equiv.perm.sum_congr_hom α β).range
+    = fintype.card (equiv.perm ιa × equiv.perm ιb) :=
+fintype.card_eq.mpr ⟨(equiv.set.range (equiv.perm.sum_congr_hom ιa ιb) begin
+  intros x y h,
+  cases x,
+  cases y,
+  rw  prod.mk.inj_iff,
+  replace h := λ j, _root_.congr_arg (λ e : equiv.perm _, e j) h,
+  split; ext i,
+  simpa [equiv.perm.sum_congr_hom_apply] using h (sum.inl i),
+  simpa [equiv.perm.sum_congr_hom_apply] using h (sum.inr i),
+end).symm⟩
 
 /-- The subgroup of permutations which do not exchange elements between fibers;
 those which are of the form `sigma_congr_right s`. -/

@@ -452,7 +452,7 @@ end restrict_scalar
 
 section
 
-variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
+variables {ι₁ ι₂ ι₃ : Type*} [decidable_eq ι₁] [decidable_eq ι₂] [decidable_eq ι₃]
 
 /-- Transfer the arguments to a map along an equivalence between argument indices.
 
@@ -464,6 +464,13 @@ def dom_dom_congr (σ : ι₁ ≃ ι₂) (m : multilinear_map R (λ i : ι₁, M
 { to_fun := λ v, m (λ i, v (σ i)),
   map_add' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_add, },
   map_smul' := λ v i a b, by { simp_rw function.update_apply_equiv_apply v, rw m.map_smul, }, }
+
+lemma dom_dom_congr_trans (σ₁ : ι₁ ≃ ι₂) (σ₂ : ι₂ ≃ ι₃) (m : multilinear_map R (λ i : ι₁, M₂) M₃) :
+  m.dom_dom_congr (σ₁.trans σ₂) = (m.dom_dom_congr σ₁).dom_dom_congr σ₂ := rfl
+
+lemma dom_dom_congr_mul (σ₁ : equiv.perm ι₁) (σ₂ : equiv.perm ι₁)
+  (m : multilinear_map R (λ i : ι₁, M₂) M₃) :
+  m.dom_dom_congr (σ₂ * σ₁) = (m.dom_dom_congr σ₁).dom_dom_congr σ₂ := rfl
 
 /-- `multilinear_map.dom_dom_congr` as an equivalence.
 

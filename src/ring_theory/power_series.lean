@@ -159,7 +159,7 @@ ext $ λ n, by simp [coeff_mul]
 
 protected lemma mul_zero : φ * 0 = 0 :=
 ext $ λ n, by simp [coeff_mul]
-  
+
 lemma coeff_monomial_mul (a : R) :
   coeff R m (monomial R n a * φ) = if n ≤ m then a * coeff R (m - n) φ else 0 :=
 begin

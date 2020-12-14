@@ -56,6 +56,11 @@ lemma prod_congr (f g : α → M) (h : ∀ a, f a = g a) :
 finset.prod_congr rfl $ λ a ha, h a
 
 @[to_additive]
+lemma prod_eq_single {f : α → M} (a : α) (h : ∀ x ≠ a, f x = 1) :
+  (∏ x, f x) = f a :=
+finset.prod_eq_single a (λ x _ hx, h x hx) $ λ ha, (ha (finset.mem_univ a)).elim
+
+@[to_additive]
 lemma prod_unique [unique β] (f : β → M) :
   (∏ x, f x) = f (default β) :=
 by simp only [finset.prod_singleton, univ_unique]
@@ -378,12 +383,12 @@ begin
   rw [fin.sum_univ_succ], simp,
 end
 | (g :: h :: L) :=
-calc g - h + L.alternating_sum
-    = g - h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2 :
+calc g + -h + L.alternating_sum
+    = g + -h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2 :
       congr_arg _ (alternating_sum_eq_finset_sum _)
 ... = ∑ i : fin (L.length + 2), (-1 : ℤ) ^ (i : ℕ) •ℤ list.nth_le (g :: h :: L) i _ :
 begin
-  rw [fin.sum_univ_succ, fin.sum_univ_succ, sub_eq_add_neg, add_assoc],
+  rw [fin.sum_univ_succ, fin.sum_univ_succ, add_assoc],
   unfold_coes,
   simp [nat.succ_eq_add_one, pow_add],
   refl,

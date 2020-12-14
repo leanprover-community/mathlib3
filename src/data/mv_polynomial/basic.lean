@@ -73,7 +73,6 @@ the polynomial being represented.
 
 polynomial, multivariate polynomial, multivariable polynomial
 
-S₁ S₂ S₃
 -/
 
 noncomputable theory
@@ -297,7 +296,7 @@ local attribute [reducible] mv_polynomial
 def coeff (m : σ →₀ ℕ) (p : mv_polynomial σ R) : R := p m
 end
 
-lemma ext (p q : mv_polynomial σ R) :
+@[ext] lemma ext (p q : mv_polynomial σ R) :
   (∀ m, coeff m p = coeff m q) → p = q := ext
 
 lemma ext_iff (p q : mv_polynomial σ R) :

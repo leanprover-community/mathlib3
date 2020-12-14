@@ -3,7 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.shapes.equalizers
+import category_theory.limits.shapes.split_coequalizer
 import category_theory.limits.preserves.basic
 
 /-!
@@ -179,6 +179,16 @@ begin
   apply_instance
 end
 
+/-- Any functor preserves coequalizers of split pairs. -/
+@[priority 1]
+instance preserves_split_coequalizers (f g : X ⟶ Y) [has_split_coequalizer f g] :
+  preserves_colimit (parallel_pair f g) G :=
+begin
+  apply preserves_colimit_of_preserves_colimit_cocone
+            ((has_split_coequalizer.is_split_coequalizer f g).is_coequalizer),
+  apply (is_colimit_map_cocone_cofork_equiv G _).symm
+            ((has_split_coequalizer.is_split_coequalizer f g).map G).is_coequalizer,
+end
 end coequalizers
 
 end category_theory.limits

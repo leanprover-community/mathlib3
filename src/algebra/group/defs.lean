@@ -332,8 +332,6 @@ with a default so that `a / b = a * b⁻¹` holds by definition.
 class group (G : Type u) extends div_inv_monoid G :=
 (mul_left_inv : ∀ a : G, a⁻¹ * a = 1)
 
-attribute [to_additive group.to_sub_neg_monoid] group.to_div_inv_monoid
-
 /-- An `add_group` is an `add_monoid` with a unary `-` satisfying `-a + a = 0`.
 
 There is also a binary operation `-` such that `a - b = a + -b`,

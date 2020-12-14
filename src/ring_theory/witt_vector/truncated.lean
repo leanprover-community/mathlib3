@@ -414,7 +414,6 @@ def lift : S →+* 𝕎 R :=
 by refine_struct { to_fun := lift_fun f };
    { intros,
      rw [← sub_eq_zero, ← ideal.mem_bot, ← infi_ker_truncate, ideal.mem_infi],
-     intro,
      simp [ring_hom.mem_ker, f_compat] }
 
 variable {f}

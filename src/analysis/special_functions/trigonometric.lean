@@ -108,7 +108,7 @@ lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
 begin
   simp only [cosh, div_eq_mul_inv],
   convert ((has_deriv_at_exp x).sub (has_deriv_at_id x).neg.cexp).mul_const (2:ℂ)⁻¹,
-  rw [id, mul_neg_one, neg_neg]
+  rw [id, mul_neg_one, sub_eq_add_neg, neg_neg]
 end
 
 lemma times_cont_diff_sinh {n} : times_cont_diff ℂ n sinh :=

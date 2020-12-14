@@ -108,6 +108,9 @@ instance : has_one ℤ_[p] :=
 @[simp, norm_cast] lemma coe_neg : ∀ (z1 : ℤ_[p]), ((-z1 : ℤ_[p]) : ℚ_[p]) = -z1
 | ⟨_, _⟩ := rfl
 
+@[simp, norm_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), ((z1 - z2 : ℤ_[p]) : ℚ_[p]) = z1 - z2
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
 @[simp, norm_cast] lemma coe_one : ((1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
 
 @[simp, norm_cast] lemma coe_coe : ∀ n : ℕ, ((n : ℤ_[p]) : ℚ_[p]) = n

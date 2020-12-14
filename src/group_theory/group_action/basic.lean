@@ -146,6 +146,9 @@ instance quotient (H : subgroup α) : mul_action α (quotient H) :=
   mul_smul := λ x y a, quotient.induction_on' a (λ a, quotient_group.eq.2
     (by simp [mul_inv_rev, subgroup.one_mem, mul_assoc])) }
 
+@[simp] lemma quotient.smul_mk (H : subgroup α) (a x : α) :
+  (a • quotient_group.mk x : quotient_group.quotient H) = quotient_group.mk (a * x) := rfl
+
 instance mul_left_cosets_comp_subtype_val (H I : subgroup α) :
   mul_action I (quotient H) :=
 mul_action.comp_hom (quotient H) (subgroup.subtype I)

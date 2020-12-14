@@ -43,7 +43,7 @@ def sigma_congr_right_subgroup {α : Type*} (β : α → Type*) : subgroup (perm
 
 instance sigma_congr_right_subgroup.decidable_mem {α : Type*} {β : α → Type*}
   [decidable_eq α] [∀ a, decidable_eq (β a)] [fintype α] [∀ a, fintype (β a)] :
-   decidable_pred (λ x, x ∈ sigma_congr_right_subgroup β) :=
+  decidable_pred (λ x, x ∈ sigma_congr_right_subgroup β) :=
 λ x, fintype.decidable_exists_fintype
 
 end perm

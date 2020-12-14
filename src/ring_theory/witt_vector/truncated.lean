@@ -273,8 +273,7 @@ lemma mem_ker_truncate (x : 𝕎 R) :
 begin
   simp only [ring_hom.mem_ker, truncate, truncate_fun, ring_hom.coe_mk,
     truncated_witt_vector.ext_iff, truncated_witt_vector.coeff_mk, coeff_zero],
-  erw [subtype.forall],
-  refl,
+  exact subtype.forall
 end
 
 variables (p)
@@ -341,7 +340,7 @@ end
 @[simp] lemma coeff_truncate {m : ℕ} (hm : n ≤ m) (i : fin n) (x : truncated_witt_vector p m R) :
   (truncate hm x).coeff i = x.coeff (fin.cast_le hm i) :=
 begin
-  rcases witt_vector.truncate_surjective p _ _ x with ⟨y, rfl⟩,
+  obtain ⟨y, rfl⟩ := witt_vector.truncate_surjective p _ _ x,
   simp only [truncate_witt_vector_truncate, witt_vector.coeff_truncate, fin.coe_cast_le],
 end
 

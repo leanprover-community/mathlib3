@@ -87,12 +87,12 @@ begin
 end
 
 /--  If `η_A` is an isomorphism, then `A` is in the subcategory. -/
-lemma in_subcategory_of_unit_is_iso [is_right_adjoint i] (A : C)
+lemma mem_ess_image_of_unit_is_iso [is_right_adjoint i] (A : C)
   [is_iso ((adjunction.of_right_adjoint i).unit.app A)] : A ∈ i.ess_image :=
 ⟨(left_adjoint i).obj A, ⟨(as_iso ((adjunction.of_right_adjoint i).unit.app A)).symm⟩⟩
 
 /-- If `η_A` is a split monomorphism, then `A` is in the reflective subcategory. -/
-lemma in_subcategory_of_unit_split_mono [reflective i] {A : C}
+lemma mem_ess_image_of_unit_split_mono [reflective i] {A : C}
   [split_mono ((adjunction.of_right_adjoint i).unit.app A)] : A ∈ i.ess_image :=
 begin
   let η : 𝟭 C ⟶ left_adjoint i ⋙ i := (adjunction.of_right_adjoint i).unit,
@@ -103,7 +103,7 @@ begin
     apply epi_comp (η.app (i.obj ((left_adjoint i).obj A))) },
   resetI,
   haveI := is_iso_of_epi_of_split_mono (η.app A),
-  exact in_subcategory_of_unit_is_iso A,
+  exact mem_ess_image_of_unit_is_iso A,
 end
 
 end subcat
@@ -133,26 +133,25 @@ The subcategory `D` of `C` expressed as an inclusion functor is an *exponential 
 `B ∈ D` implies `B^A ∈ D` for all `A`.
 -/
 class exponential_ideal : Prop :=
-(exp_closed : ∀ {B}, B ∈ ess_range i → ∀ A, (A ⟹ B) ∈ ess_range i)
+(exp_closed : ∀ {B}, B ∈ i.ess_image → ∀ A, (A ⟹ B) ∈ i.ess_image)
 
 /--
 To show `i` is an exponential ideal it suffices to show that `(iB)^A` is `in` `D` for any `A` in `C`
 and `B` in `D`.
 -/
-lemma exponential_ideal.mk' (h : ∀ (B : D) (A : C), (A ⟹ i.obj B) ∈ ess_range i) :
+lemma exponential_ideal.mk' (h : ∀ (B : D) (A : C), (A ⟹ i.obj B) ∈ i.ess_image) :
   exponential_ideal i :=
 ⟨λ B hB A,
 begin
   rcases hB with ⟨B', ⟨iB'⟩⟩,
-  apply in_subcategory_of_iso _ (h B' A),
-  apply (exp A).map_iso iB',
+  exact functor.ess_image.of_iso (h B' A) ((exp A).map_iso iB'),
 end⟩
 
 /-- The subcategory of subterminal objects is an exponential ideal. -/
 instance : exponential_ideal (subterminal_inclusion : _ ⥤ C) :=
 begin
   apply exponential_ideal.mk',
-  rintros B A,
+  intros B A,
   refine ⟨⟨B.1 ^^ A, λ Z g h, _⟩, ⟨iso.refl _⟩⟩,
   exact uncurry_injective (B.2 (cartesian_closed.uncurry g) (cartesian_closed.uncurry h))
 end
@@ -169,7 +168,7 @@ begin
   symmetry,
   apply nat_iso.of_components _ _,
   { intro X,
-    haveI := (exponential_ideal.exp_closed (inclusion_is_in i X) A).unit_iso,
+    haveI := (exponential_ideal.exp_closed (i.obj_mem_ess_image X) A).unit_iso,
     apply as_iso ((adjunction.of_right_adjoint i).unit.app (i.obj X ^^ A)) },
   { simp }
 end
@@ -226,7 +225,7 @@ begin
         ← prod.map_id_comp_assoc, ir.left_triangle_components, prod.map_id_id, id_comp],
     apply is_iso.hom_inv_id_assoc },
   haveI : split_mono (η.app (i.obj B ^^ A)) := ⟨_, this⟩,
-  apply in_subcategory_of_unit_split_mono,
+  apply mem_ess_image_of_unit_split_mono,
 end
 
 variables [exponential_ideal i]
@@ -272,7 +271,7 @@ calc _ ≃ (A ⨯ B ⟶ i.obj X) :
    ... ≃ (A ⟶ B ⟹ i.obj X) :
               (exp.adjunction _).hom_equiv _ _
    ... ≃ (i.obj ((left_adjoint i).obj A) ⟶ B ⟹ i.obj X) :
-              unit_comp_partial_bijective _ (exponential_ideal.exp_closed (inclusion_is_in i _) _)
+              unit_comp_partial_bijective _ (exponential_ideal.exp_closed (i.obj_mem_ess_image _) _)
    ... ≃ (B ⨯ i.obj ((left_adjoint i).obj A) ⟶ i.obj X) :
               ((exp.adjunction _).hom_equiv _ _).symm
    ... ≃ (i.obj ((left_adjoint i).obj A) ⨯ B ⟶ i.obj X) :
@@ -280,7 +279,7 @@ calc _ ≃ (A ⨯ B ⟶ i.obj X) :
    ... ≃ (B ⟶ i.obj ((left_adjoint i).obj A) ⟹ i.obj X) :
               (exp.adjunction _).hom_equiv _ _
    ... ≃ (i.obj ((left_adjoint i).obj B) ⟶ i.obj ((left_adjoint i).obj A) ⟹ i.obj X) :
-              unit_comp_partial_bijective _ (exponential_ideal.exp_closed (inclusion_is_in i _) _)
+              unit_comp_partial_bijective _ (exponential_ideal.exp_closed (i.obj_mem_ess_image _) _)
    ... ≃ (i.obj ((left_adjoint i).obj A) ⨯ i.obj ((left_adjoint i).obj B) ⟶ i.obj X) :
               ((exp.adjunction _).hom_equiv _ _).symm
    ... ≃ (i.obj ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B) ⟶ i.obj X) :
@@ -346,8 +345,7 @@ noncomputable def preserves_binary_products_of_exponential_ideal :
 { preserves_limit := λ K,
   begin
     apply limits.preserves_limit_of_iso_diagram _ (diagram_iso_pair K).symm,
-
-    -- refine preserves_binary_prod_of_prod_comparison_iso (left_adjoint i) _ _,
+    apply preserves_pair.of_iso_comparison,
   end }
 
 end

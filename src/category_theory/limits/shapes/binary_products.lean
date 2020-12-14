@@ -756,7 +756,7 @@ by simp [is_iso.inv_comp_eq]
 lemma prod_comparison_inv_natural (f : A ⟶ A') (g : B ⟶ B')
   [is_iso (prod_comparison F A B)] [is_iso (prod_comparison F A' B')] :
   inv (prod_comparison F A B) ≫ F.map (prod.map f g) = prod.map (F.map f) (F.map g) ≫ inv (prod_comparison F A' B') :=
-by rw [is_iso.comp_is_iso_eq, category.assoc, is_iso.inv_comp_eq, prod_comparison_natural]
+by rw [is_iso.eq_comp_inv, category.assoc, is_iso.inv_comp_eq, prod_comparison_natural]
 
 end prod_comparison
 

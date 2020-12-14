@@ -37,7 +37,7 @@ def ess_image.get_iso {Y : D} (h : Y ∈ F.ess_image) : F.obj h.witness ≅ Y :=
 classical.choice h.some_spec
 
 /-- Being in the subcategory is a "hygenic" property: it is preserved under isomorphism. -/
-lemma ess_image.of_iso {Y Y' : D} (h : Y ≅ Y') (hY : Y ∈ ess_image F) :
+lemma ess_image.of_iso {Y Y' : D} (hY : Y ∈ ess_image F) (h : Y ≅ Y') :
   Y' ∈ ess_image F :=
 hY.imp (λ B, nonempty.map (≪≫ h))
 

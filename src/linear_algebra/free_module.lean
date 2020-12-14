@@ -20,17 +20,13 @@ section comm_ring
 universes u v
 
 variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
+variables {ι : Type*} {b : ι → M} (hb : is_basis R b)
 
 lemma exists_is_basis_iff_exists_equiv {ι : Type v} :
   (∃ (b : ι → M), is_basis R b) ↔ nonempty (M ≃ₗ[R] (ι →₀ R)) :=
 ⟨λ ⟨b, hb⟩, ⟨module_equiv_finsupp hb⟩,
  λ ⟨e⟩, ⟨_, linear_equiv.is_basis finsupp.is_basis_single_one e.symm⟩⟩
 
-end comm_ring
-
-section principal_ideal_domain
-
-variables {ι : Type*} {R : Type*} {M : Type*} [integral_domain R] [is_principal_ideal_ring R] [add_comm_group M] [module R M] {b : ι → M}
 
 lemma not_nonempty_fin_zero : ¬ (nonempty (fin 0)) :=
 λ ⟨i⟩, fin_zero_elim i
@@ -231,13 +227,13 @@ lemma is_basis.repr_eq_zero (hb : is_basis R b) {x : M} :
 ⟨λ h, (hb.total_repr x).symm.trans (h.symm ▸ (finsupp.total _ _ _ _).map_zero),
  λ h, h.symm ▸ hb.repr.map_zero⟩
 
-lemma finsupp.smul_eq_zero {c : R} {f : ι →₀ R} :
+lemma finsupp.smul_eq_zero [no_zero_divisors R] {c : R} {f : ι →₀ R} :
   c • f = 0 ↔ c = 0 ∨ f = 0 :=
 finsupp.ext_iff.trans
   ⟨λ h, or_iff_not_imp_left.mpr (λ hc, finsupp.ext (λ i, (mul_eq_zero.mp (h i)).resolve_left hc)),
    λ h, by { cases h; simp [h] }⟩
 
-lemma is_basis.smul_eq_zero (hb : is_basis R b) {c : R} {x : M} :
+lemma is_basis.smul_eq_zero [no_zero_divisors R] (hb : is_basis R b) {c : R} {x : M} :
   c • x = 0 ↔ c = 0 ∨ x = 0 :=
 begin
   split,
@@ -246,12 +242,13 @@ begin
     rw [← hb.total_repr x, ← linear_map.map_smul] at hcx,
     have := linear_independent_iff.mp hb.1 (c • hb.repr x) hcx,
     rw finsupp.smul_eq_zero at this,
-    exact this.resolve_right (λ hr, hx (hb.repr_eq_zero.mp hr)) },
+    exact this.resolve_right (λ hr, hx (hb.repr_eq_zero.mp hr)),
+    assumption },
   { rintros (h | h);
     simp [h] }
 end
 
-lemma eq_bot_of_rank_eq_zero (hb : is_basis R b) (N : submodule R M)
+lemma eq_bot_of_rank_eq_zero [no_zero_divisors R] (hb : is_basis R b) (N : submodule R M)
   (rank_le : ∀ (s : finset M) (hs : ∀ x ∈ s, x ∈ N), linear_independent R (coe : (↑s : set M) → M) → s.card ≤ 0) :
   N = ⊥ :=
 begin
@@ -277,16 +274,6 @@ begin
     contradiction },
   { intros, contradiction },
 end
-
-lemma not_mem_of_ortho {x : M} {N : submodule R M}
-  (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
-  x ∉ N :=
-by { intro hx, simpa using ortho (-1) x hx }
-
-lemma ne_zero_of_ortho {x : M} {N : submodule R M}
-  (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
-  x ≠ 0 :=
-mt (λ h, show x ∈ N, from h.symm ▸ N.zero_mem) (not_mem_of_ortho ortho)
 
 lemma finset.linear_independent_of_subset {s t : finset M} (hs : s ⊆ t)
   (ht : linear_independent R (coe : (↑ t : set M) → M)) :
@@ -333,6 +320,25 @@ lemma finset.mem_span_insert [decidable_eq M] {s : finset M} {x y : M} :
   y ∈ submodule.span R (↑(insert x s) : set M) ↔
     ∃ (c : R) (y' ∈ submodule.span R (↑s : set M)), y = c • x + y' :=
 by rw [finset.coe_insert, submodule.mem_span_insert]
+
+end comm_ring
+
+section principal_ideal_domain
+
+open submodule.is_principal
+
+variables {ι : Type*} {R : Type*} {M : Type*} [integral_domain R] [is_principal_ideal_ring R] [add_comm_group M] [module R M] {b : ι → M}
+
+lemma not_mem_of_ortho {x : M} {N : submodule R M}
+  (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
+  x ∉ N :=
+by { intro hx, simpa using ortho (-1) x hx }
+
+lemma ne_zero_of_ortho {x : M} {N : submodule R M}
+  (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
+  x ≠ 0 :=
+mt (λ h, show x ∈ N, from h.symm ▸ N.zero_mem) (not_mem_of_ortho ortho)
+
 
 lemma induction_on_rank_aux (hb : is_basis R b) (P : submodule R M → Sort*)
   (ih : ∀ (N : submodule R M), (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') → P N)
@@ -446,10 +452,9 @@ begin
       refine ⟨λ i, false.elim i.2, λ i, false.elim i.2⟩ },
     { rintros a s ha ⟨f, hf⟩,
       obtain ⟨i, hi⟩ := (this s).resolve_left _,
-      refine ⟨λ j, (finset.mem_insert.mp j.2).cases_on (λ _, i) (λ h, f ⟨j, h⟩), _⟩,
-      } },
+      sorry, sorry } },
   rw ← finset.card_univ,
-  
+  sorry
 end
 
 lemma induction_on_rank [fintype ι] (hb : is_basis R b) (P : submodule R M → Sort*)
@@ -779,8 +784,7 @@ begin
     refine ⟨b, x - b • ⟨_, ay_mem_N⟩, _, _⟩,
     { rw [mem_span_bN, submodule.coe_sub, linear_map.map_sub, hb, submodule.coe_smul, linear_map.map_smul,
           submodule.coe_mk, y'_eq, smul_eq_mul, mul_comm, maximal_projection_maximal_gen, sub_self] },
-    { ext, simp only [y'_eq, add_sub_cancel'_right] },
-    assumption },
+    { ext, simp only [y'_eq, add_sub_cancel'_right] } },
   { intros c x hx hc,
     have hx' : x ∈ (maximal_projection N).ker := (inf_le_left : _ ⊓ N ≤ _) hx,
     rw linear_map.mem_ker at hx',

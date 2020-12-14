@@ -1570,7 +1570,9 @@ def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
     have y ≠ 0 := λ h, mem_non_zero_divisors_iff_ne_zero.mp nonzero (subtype.ext_iff_val.mpr h),
     show is_unit y, from ⟨⟨y, y⁻¹, mul_inv_cancel this, inv_mul_cancel this⟩, rfl⟩)
   (λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
-    ⟨⟨x, ⟨y, mem_non_zero_divisors_iff_ne_zero.mpr hy⟩⟩, hxy⟩)
+    ⟨⟨x, ⟨algebra_map _ _ y, mem_non_zero_divisors_iff_ne_zero.mpr
+      (mt (λ hy, inj y (congr_arg (coe : _ → L) hy)) hy)⟩⟩,
+     by simpa [algebra.smul_def, mul_comm, is_scalar_tower.algebra_map_eq] using hxy⟩)
   (λ x y, ⟨ λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext_iff_val.mpr h⟩,
             λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
               (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc) ⟩)

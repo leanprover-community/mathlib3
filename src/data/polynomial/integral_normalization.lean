@@ -128,8 +128,9 @@ calc eval₂ f (z * f p.leading_coeff) (integral_normalization p)
 
 lemma integral_normalization_aeval_eq_zero [algebra R S] {f : polynomial R} (hf : f ≠ 0)
   {z : S} (hz : aeval z f = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
-  aeval (z * algebra_map R S f.leading_coeff) (integral_normalization f) = 0 :=
-integral_normalization_eval₂_eq_zero hf (algebra_map R S) hz inj
+  aeval (f.leading_coeff • z) (integral_normalization f) = 0 :=
+by { rw [algebra.smul_def, mul_comm],
+     exact integral_normalization_eval₂_eq_zero hf (algebra_map R S) hz inj }
 
 end domain
 

@@ -311,5 +311,80 @@ end det
 
 section div_with_rem
 
+variables {R K L : Type*} [integral_domain R] [field K] [field L]
+variables (f : fraction_map R K)
+variables [algebra f.codomain L] [finite_dimensional f.codomain L]
+variables [algebra R L] [is_scalar_tower R f.codomain L]
+
+lemma subalgebra.smul_mk {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+  {S : subalgebra R A} (a : R) (x : A) (hx : x ∈ S) :
+  a • (⟨x, hx⟩ : S) = ⟨a • x, S.smul_mem hx a⟩ :=
+by { ext, refl }
+
+@[simp]
+lemma subalgebra.mk_eq_zero_iff {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+  {S : subalgebra R A} (x : A) (hx : x ∈ S) :
+  (⟨x, hx⟩ : S) = 0 ↔ x = 0 :=
+subtype.ext_iff
+
+#check exists_integral_multiple
+
+lemma fraction_map.map_ne_zero {x : R} (hx : x ≠ 0) : f.to_map x ≠ 0 :=
+mt (f.to_map.injective_iff.mp (fraction_map.injective f) _) hx
+
+lemma is_basis_coe {ι : Type*} {b : ι → integral_closure R L}
+  (hb : is_basis R b) : is_basis f.codomain ((coe : integral_closure R L → L) ∘ b) :=
+begin
+  haveI := classical.dec_eq ι,
+  haveI := classical.dec_eq K,
+  split,
+  { rw linear_independent_iff'',
+    intros s g hg h i,
+    obtain ⟨⟨a, a_ne⟩, ha⟩ := f.exist_integer_multiples_of_finset (s.image g),
+    set g' : ι → R := λ i,
+        if h : i ∈ s
+        then classical.some (ha (g i) (finset.mem_image.mpr ⟨i, h, rfl⟩))
+        else 0
+      with g'_eq,
+    have hg' : ∀ i, f.to_map (g' i) = (a • g i : f.codomain),
+    { intros i,
+      simp only [g'_eq],
+      split_ifs with hi,
+      { exact (classical.some_spec (ha (g i) _)) },
+      { rw [hg _ hi, smul_zero, ring_hom.map_zero] } },
+    suffices : g' i = 0,
+    { have := congr_arg f.to_map this,
+      rw [hg' i, ring_hom.map_zero, algebra.smul_def, f.algebra_map_eq, mul_eq_zero] at this,
+      exact this.resolve_left (f.to_map_ne_zero_of_mem_non_zero_divisors ⟨a, a_ne⟩) },
+    apply linear_independent_iff''.mp hb.1 s (λ i, g' i),
+    { intros i hi, exact dif_neg hi },
+    { rw [← submodule.coe_eq_zero, ← subalgebra.coe_val, alg_hom.map_sum, ← smul_zero a, ← h,
+          finset.smul_sum, finset.sum_congr rfl],
+      intros i hi,
+      simp only [subalgebra.coe_val, submodule.coe_smul, function.comp_app],
+      rw [← is_scalar_tower.algebra_map_smul f.codomain (g' i) (b i : L), f.algebra_map_eq,
+          hg', smul_assoc] } },
+  { rw eq_top_iff,
+    intros x _,
+    set g : fraction_map (integral_closure R L) L :=
+      integral_closure.fraction_map_of_finite_extension L f,
+    have : algebra.is_algebraic R L := f.comap_is_algebraic_iff.mpr algebra.is_algebraic_of_finite,
+    obtain ⟨y, z, z_ne, ha⟩ := exists_integral_multiple (this x)
+      (λ x hx, f.to_map_eq_zero_iff.mp ((algebra_map f.codomain L).map_eq_zero.mp $
+        (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx)),
+    have := hb.mem_span y,
+    refine (submodule.smul_mem_iff _ (f.map_ne_zero z_ne)).mp _,
+    rw [← f.algebra_map_eq, is_scalar_tower.algebra_map_smul f.codomain z x, ha],
+    obtain ⟨t, c, rfl⟩ := mem_span_range_iff_exists_sum.mp this,
+    show (integral_closure R L).val (∑ (i : ι) in t, c i • b i) ∈
+      submodule.span (localization_map.codomain f) (set.range ((integral_closure R L).val ∘ b)),
+    simp only [alg_hom.map_sum, alg_hom.map_smul],
+    apply submodule.sum_mem _ _,
+    intros i hi,
+    rw ← is_scalar_tower.algebra_map_smul f.codomain (c i) ((integral_closure R L).val (b i)),
+    exact submodule.smul_mem _ _ (submodule.subset_span ⟨i, rfl⟩) }
+end
+
+end div_with_rem
 
 end

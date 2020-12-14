@@ -1251,15 +1251,30 @@ begin
     λ y hy, norm_image_sub_le_of_norm_deriv_le_segment (fdiff.sub gdiff) H y hy,
 end
 
-theorem has_deriv_within_at_right_integrable {x} (hx : x ∈ Ico a b)
-  (contf : continuous_on f (Icc a b)) (derivf : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
-  (contf' : continuous_within_at f' (Ioi x) x) (intgf' : interval_integrable f' volume a x) :
-  ∫ y in a..x, f' y = f x - f a :=
-by rw [eq_of_right_deriv_eq derivf
-        ((integral_has_deriv_within_at_right intgf' contf').const_add (f a))
-          contf sorry (by simp) x (mem_Icc_of_Ico hx), add_sub_cancel']
--- Missing piece: `continuous_on (f a + ∫ x in a..u, f' x) (Icc a b)`
--- Breaks due to adding `∀ x ∈ Ico a b, ` to `derivg` in `eq_of_right_deriv_eq`
+theorem integral_of_continuous_differentiable_on {s : set ℝ}
+  (hintg : ∀ x ∈ s, interval_integrable f volume a x) (hcont : continuous f) :
+  differentiable_on ℝ (λ u, ∫ x in a..u, f x) s :=
+λ y hy, (integral_has_deriv_at_right (hintg y hy)
+          hcont.continuous_at).differentiable_at.differentiable_within_at
 
+theorem integral_of_continuous_continuous_on {s : set ℝ}
+  (hintg : ∀ x ∈ s, interval_integrable f volume a x) (hcont : continuous f) :
+  continuous_on (λ u, ∫ x in a..u, f x) s :=
+(integral_of_continuous_differentiable_on hintg hcont).continuous_on
+
+theorem has_deriv_within_at_right_integrable (hcont : continuous_on f (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
+  --(contf' : ∀ x ∈ Ico a b, continuous_within_at f' (Ioi x) x)
+  (hcont' : continuous f') -- Is this a permissible switch? Could prob use `continuous_at` instead
+  (hintg : ∀ x ∈ Icc a b, interval_integrable f' volume a x) :
+  ∀ x ∈ Ico a b, ∫ y in a..x, f' y = f x - f a :=
+begin
+  intros x hx,
+  rw [eq_of_right_deriv_eq hderiv
+        (λ y hy, (integral_has_deriv_within_at_right (hintg y (mem_Icc_of_Ico hy))
+          hcont'.continuous_within_at).const_add (f a)) hcont (continuous_on_const.add
+            (integral_of_continuous_continuous_on hintg hcont')) (by simp) x (mem_Icc_of_Ico hx),
+      add_sub_cancel'],
+end
 
 end interval_integral

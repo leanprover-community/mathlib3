@@ -476,7 +476,7 @@ def alg_hom.extend_base : @alg_hom B C D _ _ _ _ (f.restrict B).to_ring_hom.to_a
 variables {B}
 
 /-- Combine two alg_hom's that are in a tower -/
-def alg_hom_compose (f : B →ₐ[A] D) (g : @alg_hom B C D _ _ _ _ (ring_hom.to_algebra f)) :
+def alg_hom_compose (f : B →ₐ[A] D) (g : @alg_hom B C D _ _ _ _ f.to_ring_hom.to_algebra) :
   C →ₐ[A] D :=
 { to_fun := g,
   map_one' := by simp only [alg_hom.map_one],
@@ -486,7 +486,7 @@ def alg_hom_compose (f : B →ₐ[A] D) (g : @alg_hom B C D _ _ _ _ (ring_hom.to
   commutes' :=
   begin
     intros r,
-    have key := @alg_hom.commutes' B C D _ _ _ _ (ring_hom.to_algebra f) g (algebra_map A B r),
+    have key := @alg_hom.commutes' B C D _ _ _ _ f.to_ring_hom.to_algebra g (algebra_map A B r),
     rw ← is_scalar_tower.algebra_map_apply at key,
     rw ← is_scalar_tower.algebra_map_apply at key,
     exact key,
@@ -494,7 +494,7 @@ def alg_hom_compose (f : B →ₐ[A] D) (g : @alg_hom B C D _ _ _ _ (ring_hom.to
 
 /-- alg_hom's from the top of a tower are equivalent to a pair of alg_homs -/
 def alg_hom_equiv_sigma :
-  (C →ₐ[A] D) ≃ Σ (f : B →ₐ[A] D), @alg_hom B C D _ _ _ _ (ring_hom.to_algebra f) :=
+  (C →ₐ[A] D) ≃ Σ (f : B →ₐ[A] D), @alg_hom B C D _ _ _ _ f.to_ring_hom.to_algebra :=
 { to_fun := λ f, ⟨f.restrict B, f.extend_base B⟩,
   inv_fun := λ fg, alg_hom_compose fg.1 fg.2,
   left_inv := λ f, by {dsimp only, ext, refl},

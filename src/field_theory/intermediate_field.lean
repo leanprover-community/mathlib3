@@ -305,7 +305,7 @@ instance lift2_tower {F : intermediate_field K L} {E : intermediate_field F L} :
   is_scalar_tower K F E :=
 ⟨λ a b c, by { simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc], refl }⟩
 
-/-- lift2 is isomorphic to the original intermediate_field -/
+/-- `lift2` is isomorphic to the original `intermediate_field`. -/
 def lift2_alg_equiv {F : intermediate_field K L} (E : intermediate_field F L) :
   (E : intermediate_field K L) ≃ₐ[K] E :=
 { to_fun := λ x, x,

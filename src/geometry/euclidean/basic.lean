@@ -604,20 +604,20 @@ hypotheses fails, should be used instead. -/
 def orthogonal_projection_of_nonempty_of_complete {s : affine_subspace ℝ P}
   (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) : P →ᵃ[ℝ] P :=
 { to_fun := orthogonal_projection_fn hn hc,
-  linear := orthogonal_projection s.direction,
+  linear := s.direction.subtype.comp (orthogonal_projection s.direction),
   map_vadd' := λ p v, begin
-    have hs : (orthogonal_projection s.direction) v +ᵥ orthogonal_projection_fn hn hc p ∈ s :=
-      vadd_mem_of_mem_direction (orthogonal_projection_mem hc _)
+    have hs : ((orthogonal_projection s.direction) v : V) +ᵥ orthogonal_projection_fn hn hc p ∈ s :=
+      vadd_mem_of_mem_direction (orthogonal_projection s.direction v).2
                                 (orthogonal_projection_fn_mem hn hc p),
-    have ho : (orthogonal_projection s.direction) v +ᵥ orthogonal_projection_fn hn hc p ∈
+    have ho : ((orthogonal_projection s.direction) v : V) +ᵥ orthogonal_projection_fn hn hc p ∈
       mk' (v +ᵥ p) s.direction.orthogonal,
     { rw [←vsub_right_mem_direction_iff_mem (self_mem_mk' _ _) _, direction_mk',
           vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_comm, add_sub_assoc],
       refine submodule.add_mem _ (orthogonal_projection_fn_vsub_mem_direction_orthogonal hn hc p) _,
       rw submodule.mem_orthogonal',
       intros w hw,
-      rw [←neg_sub, inner_neg_left, orthogonal_projection_inner_eq_zero _ _ w hw, neg_zero] },
-    have hm : (orthogonal_projection s.direction) v +ᵥ orthogonal_projection_fn hn hc p ∈
+      rw [←neg_sub, inner_neg_left, orthogonal_projection_inner_eq_zero hc _ w hw, neg_zero], },
+    have hm : ((orthogonal_projection s.direction) v : V) +ᵥ orthogonal_projection_fn hn hc p ∈
       ({orthogonal_projection_fn hn hc (v +ᵥ p)} : set P),
     { rw ←inter_eq_singleton_orthogonal_projection_fn hn hc (v +ᵥ p),
       exact set.mem_inter hs ho },
@@ -649,13 +649,12 @@ rfl
 by { rw [orthogonal_projection_def, dif_pos (and.intro hn hc)], refl }
 
 /-- The linear map corresponding to `orthogonal_projection`. -/
-@[simp] lemma orthogonal_projection_linear {s : affine_subspace ℝ P} (hn : (s : set P).nonempty) :
-  (orthogonal_projection s).linear = _root_.orthogonal_projection s.direction :=
+@[simp] lemma orthogonal_projection_linear {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
+  (hc : is_complete (s.direction : set V)) :
+  (orthogonal_projection s).linear = s.direction.subtype.comp (_root_.orthogonal_projection s.direction) :=
 begin
-  by_cases hc : is_complete (s.direction : set V),
-  { rw [orthogonal_projection_def, dif_pos (and.intro hn hc)],
-    refl },
-  { simp [orthogonal_projection_def, _root_.orthogonal_projection_def, hn, hc] }
+ rw [orthogonal_projection_def, dif_pos (and.intro hn hc)],
+  refl,
 end
 
 @[simp] lemma orthogonal_projection_of_nonempty_of_complete_eq {s : affine_subspace ℝ P}
@@ -846,6 +845,7 @@ def reflection (s : affine_subspace ℝ P) : P ≃ᵢ P :=
     dsimp only,
     rw isometry_emetric_iff_metric,
     intros p₁ p₂,
+    let d : V := p₁ -ᵥ p₂,
     rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_eq_norm_vsub V
           ((orthogonal_projection s p₁ -ᵥ p₁) +ᵥ orthogonal_projection s p₁),
         dist_eq_norm_vsub V p₁, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square],
@@ -861,17 +861,18 @@ def reflection (s : affine_subspace ℝ P) : P ≃ᵢ P :=
          _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) +
           _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) -
           (p₁ -ᵥ p₂)⟫
-    : by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_comm, add_sub_assoc,
+    : by { rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_comm, add_sub_assoc,
              ←vsub_vadd_eq_vsub_sub, vsub_vadd_comm, vsub_vadd_eq_vsub_sub, ←add_sub_assoc,
-             ←affine_map.linear_map_vsub, orthogonal_projection_linear h.1]
-  ... = -4 * inner (p₁ -ᵥ p₂ - (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)))
+             ←affine_map.linear_map_vsub, orthogonal_projection_linear h.1 h.2], simp }
+  ... = -4 * inner (p₁ -ᵥ p₂ - (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) : V))
                    (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)) +
           ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫
     : by { simp [inner_sub_left, inner_sub_right, inner_add_left, inner_add_right,
                  real_inner_comm (p₁ -ᵥ p₂)],
            ring }
   ... = -4 * 0 + ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫
-    : by rw orthogonal_projection_inner_eq_zero s.direction _ _ (_root_.orthogonal_projection_mem h.2 _)
+    : by { have := orthogonal_projection_inner_eq_zero h.2 _ _ (_root_.orthogonal_projection s.direction _).2,
+            simp at this, rw this }
   ... = ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ : by simp },
     { simp [orthogonal_projection_def, h] }
   end }

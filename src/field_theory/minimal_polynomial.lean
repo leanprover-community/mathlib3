@@ -320,7 +320,7 @@ lemma integer_dvd {α : Type u} [integral_domain α] [algebra ℚ α] {x : α} (
 begin
   apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast _ _
     (monic.is_primitive (monic hx)) hprim ).2,
-  rw [← integer_eq_rational hx],
+  rw [← over_int_eq_over_rat hx],
   refine dvd (is_integral_of_is_scalar_tower x hx) _,
   rwa [(int.cast_ring_hom ℚ).ext_int (algebra_map ℤ ℚ), ← is_scalar_tower.aeval_apply]
 end

@@ -313,7 +313,8 @@ end
 
 /-- The minimal polynomial over `ℤ` divides any primitive polynomial that has the integral element
 as root. -/
---TODO use `gcd_domain_dvd` directly
+-- TODO use `gcd_domain_dvd` directly when localizations are defined in terms of algebras
+-- instead of `ring_hom`s
 lemma integer_dvd {α : Type u} [integral_domain α] [algebra ℚ α] {x : α} (hx : is_integral ℤ x)
   {P : polynomial ℤ} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) : minimal_polynomial hx ∣ P :=
 begin

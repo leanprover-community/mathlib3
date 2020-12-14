@@ -281,7 +281,7 @@ end
 /-- The minimal polynomial over `ℤ` is the same as the minimal polynomial over `ℚ`. -/
 --TODO use `gcd_domain_eq_field_fractions` directly when localizations are defined
 -- in terms of algebras instead of `ring_hom`s
-lemma integer_eq_rational {α : Type u} [integral_domain α] {x : α} [algebra ℚ α]
+lemma over_int_eq_over_rat {α : Type u} [integral_domain α] {x : α} [algebra ℚ α]
   (hx : is_integral ℤ x) :
   minimal_polynomial (@is_integral_of_is_scalar_tower ℤ ℚ α _ _ _ _ _ _ _ x hx) =
     map (int.cast_ring_hom ℚ) (minimal_polynomial hx) :=

@@ -413,7 +413,7 @@ namespace int
 variables [semiring R] [add_comm_group M] [semimodule R M]
 
 instance smul_comm_class : smul_comm_class ℤ R M :=
-{ smul_comm := λ z r l, by cases z; simp [←gsmul_eq_smul, ←nat.smul_def, smul_comm] }
+{ smul_comm := λ z r l, by cases z; simp [←gsmul_eq_smul, ←nat.smul_def, smul_comm (_ : ℕ)] }
 
 end int
 

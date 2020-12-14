@@ -114,38 +114,35 @@ begin
   obtain ⟨x₀, hx₀⟩ := exists_deriv_eq_slope_of_polynomial_root α fR h_α_root ((a : ℝ) / b) hab₂,
   apply lt_irrefl (B / 2 / b ^ f.nat_degree),
   calc  B / 2 / b ^ f.nat_degree
-      ≥ abs (α - ↑a / ↑b) : ge_iff_le.2 h_abs_lt
-  ... = abs (fR.eval (a / b) / fR.derivative.eval x₀) : by rw [hx₀.1, abs_neg]
-  ... = abs (fR.eval (a / b)) / abs (fR.derivative.eval x₀) : by rw abs_div
-  ... ≥ 1 / b ^ f.nat_degree / abs (fR.derivative.eval x₀) :
+      < B / b ^ f.nat_degree :
       begin
-        rw ge_iff_le,
-        exact div_le_div (abs_nonneg _)
-          (abs_eval_rat_ge_one_div_denom_pow_n f a b h_b_pos hab₂)
-          (abs_pos.mpr hx₀.2.1) (le_refl _)
+        rw div_lt_div_right,
+        { exact half_lt_self hB_pos },
+        { apply pow_pos, norm_cast, exact h_b_pos },
       end
-  ... ≥ 1 / b ^ f.nat_degree / M :
+  ... ≤ 1 / M / b ^ f.nat_degree :
       begin
-        rw ge_iff_le,
+        refine div_le_div _ hB_M _ (le_refl _),
+        { rw one_div_nonneg, exact le_of_lt h_m_pos },
+        { apply pow_pos, norm_cast, exact h_b_pos },
+      end
+  ... = 1 / b ^ f.nat_degree / M : by ring
+  ... ≤ 1 / b ^ f.nat_degree / abs (fR.derivative.eval x₀) :
+      begin
         refine div_le_div _ (le_refl _) (abs_pos.mpr hx₀.2.1) _,
         { rw one_div_nonneg, apply pow_nonneg, norm_cast, exact le_of_lt h_b_pos },
         { refine h_max x₀ _, rw abs_sub,
           apply le_trans (le_of_lt hx₀.2.2.1) (le_trans (le_of_lt hb₂) hB_one) }
       end
-  ... = 1 / M / b ^ f.nat_degree : by ring
-  ... ≥ B / b ^ f.nat_degree :
-      begin
-        rw ge_iff_le,
-        refine div_le_div _ hB_M _ (le_refl _),
-        { rw one_div_nonneg, exact le_of_lt h_m_pos },
-        { apply pow_pos, norm_cast, exact h_b_pos },
+  ... ≤ abs (fR.eval (a / b)) / abs (fR.derivative.eval x₀) :
+        begin
+        exact div_le_div (abs_nonneg _)
+          (abs_eval_rat_ge_one_div_denom_pow_n f a b h_b_pos hab₂)
+          (abs_pos.mpr hx₀.2.1) (le_refl _)
       end
-  ... > B / 2 / b ^ f.nat_degree :
-      begin
-        rw [gt_iff_lt, div_lt_div_right],
-        { exact half_lt_self hB_pos },
-        { apply pow_pos, norm_cast, exact h_b_pos },
-      end,
+  ... = abs (fR.eval (a / b) / fR.derivative.eval x₀) : by rw abs_div
+  ... ≤ abs (α - ↑a / ↑b) : by rw [hx₀.1, abs_neg]
+  ... ≤ B / 2 / b ^ f.nat_degree : h_abs_lt,
   { have h_deg := degree_derivative_eq fR (by linarith [h_fR_deg]),
     rw @degree_eq_nat_degree _ _ fR.derivative _ at h_deg,
     norm_cast at h_deg,
@@ -156,77 +153,65 @@ end
 
 lemma irrational_of_is_liouville {x : ℝ} (h : is_liouville x) : irrational x :=
 begin
-  rw irrational_iff_ne_rational,
-  suffices : ∀ (a b : ℤ), 0 < b → x ≠ ↑a / ↑b,
-  { intros a b,
-    rcases lt_trichotomy 0 b with b_gt | b_0 | b_lt,
-    { exact this a b b_gt },
-    { intro hrid, rw [←b_0, int.cast_zero, div_zero] at hrid,
-      rw hrid at h,
-      exact not_liouville_zero h },
-    { specialize this (-a) (-b) (neg_pos.mpr b_lt),
-      rw [int.cast_neg, int.cast_neg, neg_div_neg_eq] at this, exact this }},
-  { intros a b h_b_pos h_rid,
-    lift b to ℕ using le_of_lt h_b_pos,
-    rw ←coe_coe at h_rid,
-    norm_cast at h_b_pos,
-    set n := b + 1 with hn,
-    have h_b_ineq : b < 2 ^ (n-1) := nat.lt_two_pow b,
-    rcases h n with ⟨p, q, h_q_gt_1, h_abs_sub_pos, h_abs_sub_small⟩,
-    have h_q_pos : 0 < q := by linarith,
-    lift q to ℕ using le_of_lt h_q_pos,
-    rw [←coe_coe, h_rid] at *,
-    norm_cast at h_q_gt_1 h_q_pos,
-    rw [div_sub_div, abs_div] at h_abs_sub_pos h_abs_sub_small,
-    -- We need to consider separately if `aq - bp` is zero or not
-    by_cases h0 : (abs ((a:ℝ) * q - b * p) = 0),
-    { rw h0 at h_abs_sub_pos h_abs_sub_small, rw zero_div at h_abs_sub_pos, linarith },
-    { replace h0 : 0 < abs ((a:ℝ) * q - b * p) := lt_of_le_of_ne (abs_nonneg _) (ne.symm h0),
-      have h' : 1 ≤ abs ((a:ℝ) * q - b * p),
-      { norm_cast at h0 ⊢, linarith },
-      rw (show abs (b * q : ℝ) = b * q,
-        by { rw abs_of_nonneg, norm_cast, refine mul_nonneg bot_le bot_le }) at *,
-      exact lt_irrefl _
-        (calc 1
-            ≤ abs ((a:ℝ) * q - b * p) : h'
-        ... < (b : ℝ) * q / q ^ n :
-            begin
-              rw [div_lt_iff] at h_abs_sub_small,
-              convert h_abs_sub_small using 1,
-              { ring },
-              { norm_cast, exact mul_pos h_b_pos h_q_pos }
-            end
-        ... = (b : ℝ) * q / q ^ (n : ℤ) : rfl
-        ... = (b : ℝ) / (q : ℝ) ^ (n - 1 : ℤ) :
-            begin
-              rw [div_eq_div_iff, mul_assoc,
-                  show (q : ℝ) * (q : ℝ) ^ (n - 1 : ℤ) = q ^ (1 + (n - 1) : ℤ),
-                      by { rw [fpow_add, fpow_one], norm_cast, linarith },
-                  show (1 + (n - 1) : ℤ) = n, by ring],
-              repeat {apply fpow_ne_zero, norm_cast, linarith }
-            end
-        ... ≤ (b : ℝ) / 2 ^ (n - 1 : ℤ) :
-            begin
-              rw div_le_div_iff,
-              refine mul_le_mul (le_refl _) _
-                (fpow_nonneg_of_nonneg (show (0 : ℝ) ≤ 2, by linarith) _)
-                (show (0 : ℝ) ≤ b, by { norm_cast, exact bot_le }),
-              { rw [int.coe_nat_succ, add_sub_cancel, fpow_coe_nat, fpow_coe_nat],
-                apply pow_le_pow_of_le_left (show (0 : ℝ) ≤ 2, by linarith),
-                norm_cast, linarith },
-              repeat { apply fpow_pos_of_pos, norm_cast, assumption <|> linarith }
-            end
-        ... < (2 : ℝ) ^ (n - 1 : ℤ) / 2 ^ (n - 1 : ℤ) :
-            begin
-              rw [show (2 : ℝ) ^ (n - 1 : ℤ) = 2 ^ (n - 1 : ℕ),
-                  by simp only [nat.add_succ_sub_one, add_zero, int.coe_nat_succ,
-                      add_sub_cancel, fpow_coe_nat], div_lt_div_iff],
-              norm_cast,
-              refine mul_lt_mul h_b_ineq (le_refl _) _ _,
-              repeat { apply pow_pos <|> apply pow_nonneg, linarith }
-            end
-        ... = 1 : by { rw div_self, apply fpow_ne_zero_of_ne_zero, linarith } ) },
-    repeat { norm_cast, assumption <|> linarith }}
+  apply irrational_of_ne_int_div_pos_nat,
+  intros a b h_b_pos h_rid,
+  set n := b + 1 with hn,
+  have h_b_ineq : b < 2 ^ (n-1) := nat.lt_two_pow b,
+  rcases h n with ⟨p, q, h_q_gt_1, h_abs_sub_pos, h_abs_sub_small⟩,
+  have h_q_pos : 0 < q := by linarith,
+  lift q to ℕ using le_of_lt h_q_pos,
+  rw [←coe_coe, h_rid] at *,
+  norm_cast at h_q_gt_1 h_q_pos,
+  rw [div_sub_div, abs_div] at h_abs_sub_pos h_abs_sub_small,
+  -- We need to consider separately if `aq - bp` is zero or not
+  by_cases h0 : (abs ((a:ℝ) * q - b * p) = 0),
+  { rw h0 at h_abs_sub_pos h_abs_sub_small, rw zero_div at h_abs_sub_pos, linarith },
+  { replace h0 : 0 < abs ((a:ℝ) * q - b * p) := lt_of_le_of_ne (abs_nonneg _) (ne.symm h0),
+    have h' : 1 ≤ abs ((a:ℝ) * q - b * p),
+    { norm_cast at h0 ⊢, linarith },
+    rw (show abs (b * q : ℝ) = b * q,
+      by { rw abs_of_nonneg, norm_cast, refine mul_nonneg bot_le bot_le }) at *,
+    exact lt_irrefl _
+      (calc 1
+          ≤ abs ((a:ℝ) * q - b * p) : h'
+      ... < (b : ℝ) * q / q ^ n :
+          begin
+            rw [div_lt_iff] at h_abs_sub_small,
+            convert h_abs_sub_small using 1,
+            { ring },
+            { norm_cast, exact mul_pos h_b_pos h_q_pos }
+          end
+      ... = (b : ℝ) * q / q ^ (n : ℤ) : rfl
+      ... = (b : ℝ) / (q : ℝ) ^ (n - 1 : ℤ) :
+          begin
+            rw [div_eq_div_iff, mul_assoc,
+                show (q : ℝ) * (q : ℝ) ^ (n - 1 : ℤ) = q ^ (1 + (n - 1) : ℤ),
+                    by { rw [fpow_add, fpow_one], norm_cast, linarith },
+                show (1 + (n - 1) : ℤ) = n, by ring],
+            repeat {apply fpow_ne_zero, norm_cast, linarith }
+          end
+      ... ≤ (b : ℝ) / 2 ^ (n - 1 : ℤ) :
+          begin
+            rw div_le_div_iff,
+            refine mul_le_mul (le_refl _) _
+              (fpow_nonneg_of_nonneg (show (0 : ℝ) ≤ 2, by linarith) _)
+              (show (0 : ℝ) ≤ b, by { norm_cast, exact bot_le }),
+            { rw [int.coe_nat_succ, add_sub_cancel, fpow_coe_nat, fpow_coe_nat],
+              apply pow_le_pow_of_le_left (show (0 : ℝ) ≤ 2, by linarith),
+              norm_cast, linarith },
+            repeat { apply fpow_pos_of_pos, norm_cast, assumption <|> linarith }
+          end
+      ... < (2 : ℝ) ^ (n - 1 : ℤ) / 2 ^ (n - 1 : ℤ) :
+          begin
+            rw [show (2 : ℝ) ^ (n - 1 : ℤ) = 2 ^ (n - 1 : ℕ),
+                by simp only [nat.add_succ_sub_one, add_zero, int.coe_nat_succ,
+                    add_sub_cancel, fpow_coe_nat], div_lt_div_iff],
+            norm_cast,
+            refine mul_lt_mul h_b_ineq (le_refl _) _ _,
+            repeat { apply pow_pos <|> apply pow_nonneg, linarith }
+          end
+      ... = 1 : by { rw div_self, apply fpow_ne_zero_of_ne_zero, linarith } ) },
+    repeat { norm_cast, assumption <|> linarith }
 end
 
 theorem transcendental_of_is_liouville {x : ℝ} (liouville_x : is_liouville x) :

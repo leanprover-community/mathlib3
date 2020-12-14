@@ -28,6 +28,27 @@ lemma irrational_iff_ne_rational (x : ℝ) : irrational x ↔ ∀ a b : ℤ, x �
 by simp only [irrational, rat.forall, cast_mk, not_exists, set.mem_range, cast_coe_int, cast_div,
   eq_comm]
 
+lemma irrational_of_ne_int_div_pos_nat (x : ℝ):
+  (∀ a : ℤ, ∀ b : ℕ, 0 < b -> x ≠ a/b) → irrational x :=
+begin
+  intros h,
+  rw irrational_iff_ne_rational,
+  intros a b,
+  rcases lt_trichotomy 0 b with b_gt | b_0 | b_lt,
+  { lift b to ℕ, norm_cast at *, exact h a b b_gt, exact le_of_lt b_gt },
+  { intro hrid, rw [←b_0, int.cast_zero, div_zero] at hrid,
+    have h := h 0 1 (by linarith),
+    simp only [int.cast_zero, zero_div, ne.def] at h,
+    exact h hrid },
+  { specialize h (-a) b.nat_abs _,
+    norm_cast at *,
+    rw [←int.abs_eq_nat_abs b, abs_of_neg b_lt] at h,
+    rw rat.mk_eq_div at h ⊢,
+    simp only [cast_coe_int, cast_neg, int.cast_neg, cast_div, neg_div_neg_eq] at *,
+    exact h,
+    zify, rw [←int.abs_eq_nat_abs b, abs_pos], exact ne_of_lt b_lt },
+end
+
 /-!
 ### Irrationality of roots of integer and rational numbers
 -/

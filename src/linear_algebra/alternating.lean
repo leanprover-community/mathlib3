@@ -32,12 +32,8 @@ variables {M : Type*} [add_comm_monoid M] [semimodule R M]
 variables {N : Type*} [add_comm_monoid N] [semimodule R N]
 
 -- semiring / add_comm_group
-variables {L : Type*} [add_comm_group L] [semimodule R L]
-
--- ring / add_comm_group
-variables {R' : Type*} [ring R']
-variables {M' : Type*} [add_comm_group M'] [semimodule R' M']
-variables {N' : Type*} [add_comm_group N'] [semimodule R' N']
+variables {M' : Type*} [add_comm_group M'] [semimodule R M']
+variables {N' : Type*} [add_comm_group N'] [semimodule R N']
 
 variables {ι : Type*} [decidable_eq ι]
 
@@ -58,7 +54,8 @@ add_decl_doc alternating_map.to_multilinear_map
 namespace alternating_map
 
 variables (f f' : alternating_map R M N ι)
-variables (g' : alternating_map R' M' N' ι)
+variables (g : alternating_map R M N' ι)
+variables (g' : alternating_map R M' N' ι)
 variables (v : ι → M) (v' : ι → M')
 open function
 
@@ -115,6 +112,10 @@ f.to_multilinear_map.map_add' v i x y
   g' (update v' i (x - y)) = g' (update v' i x) - g' (update v' i y) :=
 g'.to_multilinear_map.map_sub v' i x y
 
+@[simp] lemma map_neg (i : ι) (x : M') :
+  g' (update v' i (-x)) = -g' (update v' i x) :=
+g'.to_multilinear_map.map_neg v' i x
+
 @[simp] lemma map_smul (i : ι) (r : R) (x : M) :
   f (update v i (r • x)) = r • f (update v i x) :=
 f.to_multilinear_map.map_smul' v i r x
@@ -150,14 +151,14 @@ instance : add_comm_monoid (alternating_map R M N ι) :=
 by refine {zero := 0, add := (+), ..};
    intros; ext; simp [add_comm, add_left_comm]
 
-instance : has_neg (alternating_map R' M' N' ι) :=
+instance : has_neg (alternating_map R M N' ι) :=
 ⟨λ f,
   { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
-    ..(-(f : multilinear_map R' (λ i : ι, M') N')) }⟩
+    ..(-(f : multilinear_map R (λ i : ι, M) N')) }⟩
 
-@[simp] lemma neg_apply (m : ι → M') : (-g') m = - (g' m) := rfl
+@[simp] lemma neg_apply (m : ι → M) : (-g) m = -(g m) := rfl
 
-instance : add_comm_group (alternating_map R' M' N' ι) :=
+instance : add_comm_group (alternating_map R M N' ι) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..alternating_map.add_comm_monoid, ..};
    intros; ext; simp [add_comm, add_left_comm]
 
@@ -216,8 +217,6 @@ end
 lemma map_add_swap {i j : ι} (hij : i ≠ j) :
   f v + f (v ∘ equiv.swap i j) = 0 :=
 by { rw add_comm, exact f.map_swap_add v hij }
-
-variable (g : alternating_map R M L ι)
 
 lemma map_swap {i j : ι} (hij : i ≠ j) :
   g (v ∘ equiv.swap i j) = - g v  :=

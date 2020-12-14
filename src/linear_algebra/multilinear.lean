@@ -728,15 +728,11 @@ end
 
 end comm_semiring
 
-section ring
+section range_add_comm_group
 
-variables [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
+variables [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_group M₂]
 [∀i, semimodule R (M₁ i)] [semimodule R M₂]
 (f : multilinear_map R M₁ M₂)
-
-@[simp] lemma map_sub (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
-  f (update m i (x - y)) = f (update m i x) - f (update m i y) :=
-by { simp only [map_add, add_left_inj, sub_eq_add_neg, (neg_one_smul R y).symm, map_smul], simp }
 
 instance : has_neg (multilinear_map R M₁ M₂) :=
 ⟨λ f, ⟨λ m, - f m, λm i x y, by simp [add_comm], λm i c x, by simp⟩⟩
@@ -747,7 +743,23 @@ instance : add_comm_group (multilinear_map R M₁ M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp [add_comm, add_left_comm]
 
-end ring
+end range_add_comm_group
+
+section add_comm_group
+
+variables [semiring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
+[∀i, semimodule R (M₁ i)] [semimodule R M₂]
+(f : multilinear_map R M₁ M₂)
+
+@[simp] lemma map_neg (m : Πi, M₁ i) (i : ι) (x : M₁ i) :
+  f (update m i (-x)) = -f (update m i x) :=
+eq_neg_of_add_eq_zero $ by rw [←map_add, add_left_neg, f.map_coord_zero i (update_same i 0 m)]
+
+@[simp] lemma map_sub (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
+  f (update m i (x - y)) = f (update m i x) - f (update m i y) :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, map_add, map_neg]
+
+end add_comm_group
 
 section comm_semiring
 

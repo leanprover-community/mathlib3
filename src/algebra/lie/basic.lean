@@ -721,7 +721,7 @@ iff.rfl
 @[simp] lemma coe_to_set_mk (S : set M) (h₁ h₂ h₃ h₄) :
   ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_submodule R L M) : set M) = S := rfl
 
-@[simp] lemma mk_coe_submodule (p : submodule R M) (h) :
+@[simp] lemma coe_to_submodule_mk (p : submodule R M) (h) :
   (({lie_mem := h, ..p} : lie_submodule R L M) : submodule R M) = p :=
 by { cases p, refl, }
 

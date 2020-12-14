@@ -48,12 +48,11 @@ lemma tendsto_pow_div_pow_at_top_of_lt {α : Type*} [normed_linear_ordered_field
   tendsto (λ (x : α), x^p / x^q) at_top (𝓝 0) :=
 begin
   suffices h : tendsto (λ (x : α), x ^ ((p : ℤ) - q)) at_top (𝓝 0),
-  { refine (tendsto_congr' ((eventually_gt_at_top (0 : α)).mono (λ x hx, _))).mp h,
-    simp [fpow_sub hx.ne.symm] },
-  rw ← neg_sub,
-  rw ← int.coe_nat_sub hpq.le,
+  { refine h.congr' ((eventually_gt_at_top (0 : α)).mono (λ x hx, _)),
+    simp [fpow_sub hx.ne'] },
+  rw [← neg_sub, ← int.coe_nat_sub hpq.le],
   have : 1 ≤ q - p := nat.sub_pos_of_lt hpq,
-  exact @tendsto_pow_neg_at_top α _ _ (by apply_instance) _ this,
+  exact tendsto_pow_neg_at_top this
 end
 
 lemma is_o_pow_pow_at_top_of_lt {α : Type} [normed_linear_ordered_field α]
@@ -61,6 +60,5 @@ lemma is_o_pow_pow_at_top_of_lt {α : Type} [normed_linear_ordered_field α]
   is_o (λ (x : α), x^p) (λ (x : α), x^q) at_top :=
 begin
   refine (is_o_iff_tendsto' _).mpr (tendsto_pow_div_pow_at_top_of_lt hpq),
-  rw eventually_iff_exists_mem,
-  exact ⟨Ioi 0, Ioi_mem_at_top 0, λ x (hx : 0 < x) hxq, (pow_ne_zero q hx.ne.symm hxq).elim⟩,
+  exact (eventually_gt_at_top 0).mono (λ x hx hxq, (pow_ne_zero q hx.ne' hxq).elim),
 end

@@ -2387,13 +2387,23 @@ begin
     simp only [(∘), hp, hfg.self_of_nhds] }
 end
 
+/-- If `f` is a local homeomorphism defined on a neighbourhood of `f.symm a`, and `f` has an
+invertible derivative `f'` in the sense of strict differentiability at `f.symm a`, then `f.symm` has
+the derivative `f'⁻¹` at `a`.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+lemma local_homeomorph.has_strict_fderiv_at_symm (f : local_homeomorph E F) {f' : E ≃L[𝕜] F} {a : F}
+  (ha : a ∈ f.target) (htff' : has_strict_fderiv_at f (f' : E →L[𝕜] F) (f.symm a)) :
+  has_strict_fderiv_at f.symm (f'.symm : F →L[𝕜] E) a :=
+htff'.of_local_left_inverse (f.symm.continuous_at ha) (f.eventually_right_inverse ha)
 
 /-- If `f` is a local homeomorphism defined on a neighbourhood of `f.symm a`, and `f` has an
 invertible derivative `f'` at `f.symm a`, then `f.symm` has the derivative `f'⁻¹` at `a`.
 
 This is one of the easy parts of the inverse function theorem: it assumes that we already have
 an inverse function. -/
-lemma has_fderiv_at.of_local_homeomorph {f : local_homeomorph E F} {f' : E ≃L[𝕜] F} {a : F}
+lemma local_homeomorph.has_fderiv_at_symm (f : local_homeomorph E F) {f' : E ≃L[𝕜] F} {a : F}
   (ha : a ∈ f.target) (htff' : has_fderiv_at f (f' : E →L[𝕜] F) (f.symm a)) :
   has_fderiv_at f.symm (f'.symm : F →L[𝕜] E) a :=
 htff'.of_local_left_inverse (f.symm.continuous_at ha) (f.eventually_right_inverse ha)

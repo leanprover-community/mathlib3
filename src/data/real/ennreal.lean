@@ -500,6 +500,20 @@ coe_mono.map_min
 @[norm_cast] lemma coe_max : ((max r p:ℝ≥0):ennreal) = max r p :=
 coe_mono.map_max
 
+lemma le_of_top_imp_top_of_to_nnreal_le {a b : ennreal} (h : a = ⊤ → b = ⊤)
+  (h_nnreal : a ≠ ⊤ → b ≠ ⊤ → a.to_nnreal ≤ b.to_nnreal) :
+  a ≤ b :=
+begin
+  by_cases ha : a = ⊤,
+  { rw h ha,
+    exact le_top, },
+  by_cases hb : b = ⊤,
+  { rw hb,
+    exact le_top, },
+  rw [←coe_to_nnreal hb, ←coe_to_nnreal ha, coe_le_coe],
+  exact h_nnreal ha hb,
+end
+
 end order
 
 section complete_lattice
@@ -1296,6 +1310,16 @@ def to_nnreal_hom : ennreal →* ℝ≥0 :=
   map_one' := to_nnreal_coe,
   map_mul' := by rintro (_|x) (_|y); simp only [← coe_mul, none_eq_top, some_eq_coe,
     to_nnreal_top_mul, to_nnreal_mul_top, top_to_nnreal, mul_zero, zero_mul, to_nnreal_coe] }
+
+lemma to_nnreal_mul {a b : ennreal}: (a * b).to_nnreal = a.to_nnreal * b.to_nnreal :=
+to_nnreal_hom.map_mul a b
+
+lemma to_nnreal_pow (a : ennreal) (n : ℕ) : (a ^ n).to_nnreal = a.to_nnreal ^ n :=
+to_nnreal_hom.map_pow a n
+
+lemma to_nnreal_prod {ι : Type*} {s : finset ι} {f : ι → ennreal} :
+  (∏ i in s, f i).to_nnreal = ∏ i in s, (f i).to_nnreal :=
+to_nnreal_hom.map_prod _ _
 
 /-- `ennreal.to_real` as a `monoid_hom`. -/
 def to_real_hom : ennreal →* ℝ :=

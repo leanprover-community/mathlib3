@@ -112,17 +112,10 @@ then it goes to +∞. -/
 lemma tendsto_at_top_of_geom_lt {v : ℕ → ℝ} {k : ℝ} (h₀ : 0 < v 0) (hk : 1 < k)
   (hu : ∀ n, k*v n < v (n+1)) : tendsto v at_top at_top :=
 begin
-  apply tendsto_at_top_mono,
-  show ∀ n, k^n*v 0 ≤ v n,
-  { intro n,
-    induction n with n ih,
-    { simp },
-    calc
-    k ^ (n + 1) * v 0 = k*(k^n*v 0) : by ring_exp
-                  ... ≤ k*v n       : mul_le_mul_of_nonneg_left ih (by linarith)
-                  ... ≤ v (n + 1)   : le_of_lt (hu n) },
-  apply tendsto_at_top_mul_right h₀,
-  exact tendsto_pow_at_top_at_top_of_one_lt hk,
+  refine tendsto_at_top_mono _ ((tendsto_pow_at_top_at_top_of_one_lt hk).at_top_mul_const h₀),
+  rintro (_|n),
+  { simp },
+  { exact (geom_lt (zero_lt_one.trans hk) (λ m hm, hu m)).le }
 end
 
 lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : nnreal} (hr : r < 1) :

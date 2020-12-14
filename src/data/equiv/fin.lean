@@ -64,8 +64,8 @@ begin
   simp only [fin_succ_equiv', fin_succ_equiv, equiv.coe_fn_mk,
              fin.pred_above_zero, fin.succ_above_zero],
   split_ifs,
-  { rw h, refl},
-  { conv_rhs {rw ←x.succ_pred h,},
+  { rw h, refl },
+  { conv_rhs { rw ←x.succ_pred h },
     rw fin.cases_succ, }
 end
 

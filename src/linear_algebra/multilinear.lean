@@ -484,8 +484,9 @@ end semiring
 end multilinear_map
 
 namespace linear_map
-variables [semiring R] [Πi, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [add_comm_monoid M₃]
-[∀i, semimodule R (M₁ i)] [semimodule R M₂] [semimodule R M₃]
+variables [semiring R]
+[Πi, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M']
+[∀i, semimodule R (M₁ i)] [semimodule R M₂] [semimodule R M₃] [semimodule R M']
 
 /-- Composing a multilinear map with a linear map gives again a multilinear map. -/
 def comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) :
@@ -499,6 +500,13 @@ def comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M
 
 lemma comp_multilinear_map_apply (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) (m : Π i, M₁ i) :
   g.comp_multilinear_map f m = g (f m) := rfl
+
+variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
+
+@[simp] lemma comp_multilinear_map_dom_dom_congr (σ : ι₁ ≃ ι₂) (g : M₂ →ₗ[R] M₃)
+  (f : multilinear_map R (λ i : ι₁, M') M₂) :
+  (g.comp_multilinear_map f).dom_dom_congr σ = g.comp_multilinear_map (f.dom_dom_congr σ) :=
+by { ext, simp }
 
 end linear_map
 
@@ -535,25 +543,34 @@ lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
   f (λi, c i • m i) = (∏ i, c i) • f m :=
 by simpa using map_piecewise_smul f c m finset.univ
 
-section semimodule
+section distrib_mul_action
 
-variables {R' A : Type*} [comm_semiring R'] [semiring A] [algebra R' A]
-  [Π i, semimodule A (M₁ i)] [semimodule R' M₂] [semimodule A M₂] [is_scalar_tower R' A M₂]
+variables {R' A : Type*} [monoid R'] [semiring A]
+  [Π i, semimodule A (M₁ i)] [distrib_mul_action R' M₂] [semimodule A M₂] [smul_comm_class A R' M₂]
 
 instance : has_scalar R' (multilinear_map A M₁ M₂) := ⟨λ c f,
-  ⟨λ m, c • f m, λm i x y, by simp [smul_add], λl i x d, by simp [smul_comm c x] ⟩⟩
+  ⟨λ m, c • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x c] ⟩⟩
 
 @[simp] lemma smul_apply (f : multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
   (c • f) m = c • f m := rfl
 
-/-- The space of multilinear maps over an algebra over `R` is a module over `R`, for the pointwise
-addition and scalar multiplication. -/
-instance : semimodule R' (multilinear_map A M₁ M₂) :=
+instance : distrib_mul_action R' (multilinear_map A M₁ M₂) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,
   mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul _ _ _,
   smul_zero := λ r, ext $ λ x, smul_zero _,
-  smul_add := λ r f₁ f₂, ext $ λ x, smul_add _ _ _,
-  add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
+  smul_add := λ r f₁ f₂, ext $ λ x, smul_add _ _ _ }
+
+end distrib_mul_action
+
+section semimodule
+
+variables {R' A : Type*} [semiring R'] [semiring A]
+  [Π i, semimodule A (M₁ i)] [semimodule R' M₂] [semimodule A M₂] [smul_comm_class A R' M₂]
+
+/-- The space of multilinear maps over an algebra over `R` is a module over `R`, for the pointwise
+addition and scalar multiplication. -/
+instance : semimodule R' (multilinear_map A M₁ M₂) :=
+{ add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
 end semimodule
@@ -720,15 +737,11 @@ end
 
 end comm_semiring
 
-section ring
+section range_add_comm_group
 
-variables [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
+variables [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_group M₂]
 [∀i, semimodule R (M₁ i)] [semimodule R M₂]
 (f : multilinear_map R M₁ M₂)
-
-@[simp] lemma map_sub (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
-  f (update m i (x - y)) = f (update m i x) - f (update m i y) :=
-by { simp only [map_add, add_left_inj, sub_eq_add_neg, (neg_one_smul R y).symm, map_smul], simp }
 
 instance : has_neg (multilinear_map R M₁ M₂) :=
 ⟨λ f, ⟨λ m, - f m, λm i x y, by simp [add_comm], λm i c x, by simp⟩⟩
@@ -739,7 +752,23 @@ instance : add_comm_group (multilinear_map R M₁ M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp [add_comm, add_left_comm]
 
-end ring
+end range_add_comm_group
+
+section add_comm_group
+
+variables [semiring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
+[∀i, semimodule R (M₁ i)] [semimodule R M₂]
+(f : multilinear_map R M₁ M₂)
+
+@[simp] lemma map_neg (m : Πi, M₁ i) (i : ι) (x : M₁ i) :
+  f (update m i (-x)) = -f (update m i x) :=
+eq_neg_of_add_eq_zero $ by rw [←map_add, add_left_neg, f.map_coord_zero i (update_same i 0 m)]
+
+@[simp] lemma map_sub (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
+  f (update m i (x - y)) = f (update m i x) - f (update m i y) :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, map_add, map_neg]
+
+end add_comm_group
 
 section comm_semiring
 

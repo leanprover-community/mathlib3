@@ -104,7 +104,7 @@ by simp only [dist_eq_norm, neg_sub_neg, norm_sub_rev]
 by simp only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
 
 @[simp] lemma dist_sub_right (g₁ g₂ h : α) : dist (g₁ - h) (g₂ - h) = dist g₁ g₂ :=
-dist_add_right _ _ _
+by simpa only [sub_eq_add_neg] using dist_add_right _ _ _
 
 /-- Triangle inequality for the norm. -/
 lemma norm_add_le (g h : α) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
@@ -125,7 +125,7 @@ le_trans (dist_add_add_le g₁ g₂ h₁ h₂) (add_le_add H₁ H₂)
 
 lemma dist_sub_sub_le (g₁ g₂ h₁ h₂ : α) :
   dist (g₁ - g₂) (h₁ - h₂) ≤ dist g₁ h₁ + dist g₂ h₂ :=
-dist_neg_neg g₂ h₂ ▸ dist_add_add_le _ _ _ _
+by simpa only [sub_eq_add_neg, dist_neg_neg] using dist_add_add_le g₁ (-g₂) h₁ (-h₂)
 
 lemma dist_sub_sub_le_of_le {g₁ g₂ h₁ h₂ : α} {d₁ d₂ : ℝ}
   (H₁ : dist g₁ h₁ ≤ d₁) (H₂ : dist g₂ h₂ ≤ d₂) :
@@ -317,7 +317,7 @@ calc edist (f x + g x) (f y + g y) ≤ edist (f x) (f y) + edist (g x) (g y) :
 lemma lipschitz_with.sub {α : Type*} [emetric_space α] {Kf : nnreal} {f : α → β}
   (hf : lipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) :
   lipschitz_with (Kf + Kg) (λ x, f x - g x) :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma antilipschitz_with.add_lipschitz_with {α : Type*} [metric_space α] {Kf : nnreal} {f : α → β}
   (hf : antilipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g)

@@ -906,7 +906,8 @@ meta def prove_inv : instance_cache → expr → ℚ → tactic (instance_cache 
   end
 
 theorem div_eq {α} [division_ring α] (a b b' c : α)
-  (hb : b⁻¹ = b') (h : a * b' = c) : a / b = c := by rwa ← hb at h
+  (hb : b⁻¹ = b') (h : a * b' = c) : a / b = c :=
+by rwa [← hb, ← div_eq_mul_inv] at h
 
 /-- Given `a`,`b` rational numerals, returns `(c, ⊢ a / b = c)`. -/
 meta def prove_div (ic : instance_cache) (a b : expr) (na nb : ℚ) :
@@ -932,7 +933,8 @@ match match_sign a with
 end
 
 theorem sub_pos {α} [add_group α] (a b b' c : α) (hb : -b = b') (h : a + b' = c) : a - b = c :=
-by rwa ← hb at h
+by rwa [← hb, ← sub_eq_add_neg] at h
+
 theorem sub_neg {α} [add_group α] (a b c : α) (h : a + b = c) : a - -b = c :=
 by rwa sub_neg_eq_add
 

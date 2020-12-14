@@ -375,23 +375,56 @@ do tgt ← target >>= whnf,
      then rintro [x] >> try_intros xs
      else pure (x :: xs)
 
+/-- Helper structure for `ext` and `ext1`. `lemmas` keeps track of extensionality lemmas
+  applied so far. -/
+meta structure ext_state : Type :=
+(patts : list rcases_patt := [])
+(lemmas : list name := [])
+(fuel : option ℕ := none)
+
+/-- Apply one extensionality lemma, and destruct the arguments using the patterns in the ext_state. -/
+meta def ext1_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
+do ⟨patts, lemmas, fuel⟩ ← get,
+   (new_patts, new_lemmas) ← state_t.lift $ focus1 $
+   do { m ← get_ext_lemmas,
+         subject ← (target >>= get_ext_subject),
+         new_lemmas ←
+           do { rule ← (m.find subject),
+                (applyc rule cfg),
+                pure (lemmas ++ [rule]) } <|>
+             do { ls ← get_ext_lemma_names,
+                  let nms := ls.map name.to_string,
+                  rule ← (ls.any_of (λ n, applyc n cfg *> pure n)),
+                  pure (lemmas ++ [rule]) } <|>
+               (fail format!"no applicable extensionality rule found for {subject}"),
+         new_patts ← try_intros patts,
+         pure (new_patts, new_lemmas) },
+    modify (λ ⟨_, _, fuel⟩, ⟨new_patts, new_lemmas, fuel⟩)
+
+/-- Apply multiple extensionality lemmas, destructing the arguments using the given patterns. -/
+meta def ext_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
+do acc@⟨_, _, fuel⟩ ← get,
+   match fuel with
+   | (some 0) := pure ()
+   | n        := do { ext1_core cfg, modify (λ ⟨patts, lemmas, _⟩, ⟨patts, lemmas, nat.pred <$> n⟩),
+                      ext_core <|> pure () }
+   end
+
 /-- Apply one extensionality lemma, and destruct the arguments using the given patterns.
   Returns the unused patterns. -/
-meta def ext1 (xs : list rcases_patt) (cfg : apply_cfg := {}) : tactic (list rcases_patt) :=
-do subject ← target >>= get_ext_subject,
-   m ← get_ext_lemmas,
-   do { rule ← m.find subject,
-        applyc rule cfg } <|>
-     do { ls ← get_ext_lemma_names,
-          ls.any_of (λ n, applyc n cfg) } <|>
-     fail format!"no applicable extensionality rule found for {subject}",
-   try_intros xs
+meta def ext1 (xs : list rcases_patt) (cfg : apply_cfg := {})
+  (trace : bool := ff) : tactic (list rcases_patt) :=
+do ⟨_, σ⟩ ← state_t.run (ext1_core cfg) {patts := xs},
+   when trace (σ.lemmas.mmap' tactic.trace),
+   pure σ.patts
 
 /-- Apply multiple extensionality lemmas, destructing the arguments using the given patterns.
   `ext ps (some n)` applies at most `n` extensionality lemmas. Returns the unused patterns. -/
-meta def ext : list rcases_patt → option ℕ → tactic (list rcases_patt)
-| xs (some 0) := return xs
-| xs n        := focus1 $ do ys ← ext1 xs, (ext ys (nat.pred <$> n) <|> return ys)
+meta def ext (xs : list rcases_patt) (fuel : option ℕ) (cfg : apply_cfg := {})
+  (trace : bool := ff): tactic (list rcases_patt) :=
+do ⟨_, σ⟩ ← state_t.run (ext_core cfg) {patts := xs, fuel := fuel},
+   when trace (σ.lemmas.mmap' tactic.trace),
+   pure σ.patts
 
 local postfix `?`:9001 := optional
 local postfix *:9001 := many
@@ -400,10 +433,10 @@ local postfix *:9001 := many
 `ext1 id` selects and apply one extensionality lemma (with attribute
 `ext`), using `id`, if provided, to name a local constant
 introduced by the lemma. If `id` is omitted, the local constant is
-named automatically, as per `intro`.
+named automatically, as per `intro`. `ext1?` will show the lemmas used.
 -/
-meta def interactive.ext1 (xs : parse (rcases_patt_parse tt)*) : tactic unit :=
-ext1 xs $> ()
+meta def interactive.ext1 (xs : parse (rcases_patt_parse tt)*) (trace : parse (tk "?")?) : tactic unit :=
+ext1 xs {} trace.is_some $> ()
 
 /--
 - `ext` applies as many extensionality lemmas as possible;
@@ -411,6 +444,7 @@ ext1 xs $> ()
   until it runs out of identifiers in `ids` to name the local constants.
 - `ext` can also be given an `rcases` pattern in place of an identifier.
   This will destruct the introduced local constant.
+- `ext?` will show the lemmas that were applied.
 
 When trying to prove:
 
@@ -455,10 +489,10 @@ by applying functional extensionality and destructing the introduced pair.
 A maximum depth can be provided with `ext x y z : 3`.
 -/
 meta def interactive.ext :
-  parse (rcases_patt_parse tt)* → parse (tk ":" *> small_nat)? → tactic unit
- | [] (some n) := iterate_range 1 n (ext1 [] $> ())
- | [] none     := repeat1 (ext1 [] $> ())
- | xs n        := tactic.ext xs n $> ()
+  parse (rcases_patt_parse tt)* → parse (tk ":" *> small_nat)? → (parse $ (tk "?")?) → tactic unit
+ | [] (some n) trace := iterate_range 1 n (ext1 [] {} trace.is_some $> ())
+ | [] none trace     := repeat1 (ext1 [] {} trace.is_some $> ())
+ | xs n trace        := ext xs n {} trace.is_some $> ()
 
 /--
 * `ext1 id` selects and apply one extensionality lemma (with
@@ -472,6 +506,7 @@ meta def interactive.ext :
   the local constants.
 * `ext` can also be given an `rcases` pattern in place of an identifier.
   This will destruct the introduced local constant.
+* `ext?` and `ext1?` will show the lemmas that were applied.
 
 When trying to prove:
 

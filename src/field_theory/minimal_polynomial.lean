@@ -283,7 +283,7 @@ end
 lemma integer_eq_rational {α : Type u} [integral_domain α] {x : α} [algebra ℚ α]
   (hx : is_integral ℤ x) :
   minimal_polynomial (@is_integral_of_is_scalar_tower ℤ ℚ α _ _ _ _ _ _ _ x hx) =
-  map (int.cast_ring_hom ℚ) (minimal_polynomial hx) :=
+    map (int.cast_ring_hom ℚ) (minimal_polynomial hx) :=
 begin
   refine (unique' (@is_integral_of_is_scalar_tower ℤ ℚ α _ _ _ _ _ _ _ x hx) _ _ _).symm,
   { exact (is_primitive.int.irreducible_iff_irreducible_map_cast

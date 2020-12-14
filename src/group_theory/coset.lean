@@ -163,8 +163,7 @@ def left_rel [group α] (s : subgroup α) : setoid α :=
   by simpa [mul_assoc] using this⟩
 
 @[to_additive]
-instance left_rel_decidable [group α] [fintype α] (s : subgroup α)
-  [d : decidable_pred (λ a, a ∈ s)] :
+instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
   decidable_rel (left_rel s).r := λ _ _, d _
 
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
@@ -188,7 +187,7 @@ namespace quotient_group
 variables [group α] {s : subgroup α}
 
 @[to_additive]
-instance fintype [group α] [fintype α] (s : subgroup α) [decidable_rel (left_rel s).r] :
+instance fintype [fintype α] (s : subgroup α) [decidable_rel (left_rel s).r] :
   fintype (quotient_group.quotient s) :=
 quotient.fintype (left_rel s)
 

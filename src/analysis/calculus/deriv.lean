@@ -1474,9 +1474,8 @@ lemma local_homeomorph.has_deriv_at_symm (f : local_homeomorph 𝕜 𝕜) {a f' 
 htff'.of_local_left_inverse (f.symm.continuous_at ha) hf' (f.eventually_right_inverse ha)
 
 theorem not_differentiable_within_at_of_local_left_inverse_has_deriv_within_at_zero
-  {f g : 𝕜 → 𝕜} {a : 𝕜} {s t : set 𝕜} (ha : a ∈ s) (hs : is_closed s)
-  (hsu : unique_diff_within_at 𝕜 s a) (hf : has_deriv_within_at f 0 t (g a))
-  (hst : maps_to g s t) (hfg : f ∘ g =ᶠ[𝓝[s] a] id) :
+  {f g : 𝕜 → 𝕜} {a : 𝕜} {s t : set 𝕜} (ha : a ∈ s) (hsu : unique_diff_within_at 𝕜 s a)
+  (hf : has_deriv_within_at f 0 t (g a)) (hst : maps_to g s t) (hfg : f ∘ g =ᶠ[𝓝[s] a] id) :
   ¬differentiable_within_at 𝕜 g s a :=
 begin
   intro hg,

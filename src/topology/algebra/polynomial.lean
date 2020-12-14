@@ -95,7 +95,7 @@ begin
     simpa [abv_mul abv] using hz.const_mul_at_top ((abv_pos abv).2 hc) },
   { intros p hpd ihp hf,
     rw [leading_coeff_mul_X] at hf,
-    simpa [abv_mul abv] using tendsto_at_top_mul_at_top (ihp hf) hz },
+    simpa [abv_mul abv] using  (ihp hf).at_top_mul_at_top hz },
   { intros p a hd ihp hf,
     rw [add_comm, leading_coeff_add_of_degree_lt (degree_C_le.trans_lt hd)] at hf,
     refine tendsto_at_top_of_add_const_right (abv (-f a)) _,

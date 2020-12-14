@@ -25,7 +25,7 @@ end
 variable {α : Type*}
 namespace ordnode
 
-/- delta and ratio -/
+/-! ### delta and ratio -/
 
 theorem not_le_delta {s} (H : 1 ≤ s) : ¬ s ≤ delta * 0 :=
 λ h, by rw mul_zero at h; exact not_lt_of_le h H
@@ -35,16 +35,16 @@ theorem delta_lt_false {a b : ℕ}
 not_le_of_lt (lt_trans ((mul_lt_mul_left dec_trivial).2 h₁) h₂) $
 by simpa [mul_assoc] using nat.mul_le_mul_right a (dec_trivial : 1 ≤ delta * delta)
 
-/- singleton -/
+/-! ### `singleton` -/
 
-/- size and empty -/
+/-! ### `size` and `empty` -/
 
 /-- O(n). Computes the actual number of elements in the set, ignoring the cached `size` field. -/
 def real_size : ordnode α → ℕ
 | nil := 0
 | (node _ l _ r) := real_size l + real_size r + 1
 
-/- sized -/
+/-! ### `sized` -/
 
 /-- The `sized` property asserts that all the `size` fields in nodes match the actual size of the
 respective subtrees. -/
@@ -81,7 +81,7 @@ by cases t; [simp, simp [ht.1]]
 theorem sized.pos {s l x r} (h : sized (@node α s l x r)) : 0 < s :=
 by rw h.1; apply nat.le_add_left
 
-/- dual -/
+/-! `dual` -/
 
 theorem dual_dual : ∀ (t : ordnode α), dual (dual t) = t
 | nil := rfl
@@ -90,7 +90,7 @@ theorem dual_dual : ∀ (t : ordnode α), dual (dual t) = t
 @[simp] theorem size_dual (t : ordnode α) : size (dual t) = size t :=
 by cases t; refl
 
-/- balanced -/
+/-! `balanced` -/
 
 /-- The `balanced_sz l r` asserts that a hypothetical tree with children of sizes `l` and `r` is
 balanced: either `l ≤ δ * r` and `r ≤ δ * r`, or the tree is trivial with a singleton on one side
@@ -141,7 +141,7 @@ theorem balanced.dual : ∀ {t : ordnode α}, balanced t → balanced (dual t)
 | (node s l x r) ⟨b, bl, br⟩ :=
   ⟨by rw [size_dual, size_dual]; exact b.symm, br.dual, bl.dual⟩
 
-/- rotate and balance -/
+/-! ### `rotate` and `balance` -/
 
 /-- Build a tree from three nodes, left associated (ignores the invariants). -/
 def node3_l (l : ordnode α) (x : α) (m : ordnode α) (y : α) (r : ordnode α) : ordnode α :=
@@ -329,7 +329,7 @@ begin
   { refl }
 end
 
-/- all, any, emem, amem -/
+/-! ## `all`, `any`, `emem`, `amem` -/
 
 theorem all.imp {P Q : α → Prop} (H : ∀ a, P a → Q a) : ∀ {t}, all P t → all Q t
 | nil h := ⟨⟩
@@ -398,7 +398,7 @@ theorem all_balance' {P l x r} :
   @all α P (balance' l x r) ↔ all P l ∧ P x ∧ all P r :=
 by rw balance'; split_ifs; simp [all_node', all_rotate_l, all_rotate_r]
 
-/- to_list -/
+/-! ### `to_list` -/
 
 theorem foldr_cons_eq_to_list : ∀ (t : ordnode α) (r : list α),
   t.foldr list.cons r = to_list t ++ r
@@ -426,7 +426,7 @@ theorem equiv_iff {t₁ t₂ : ordnode α} (h₁ : sized t₁) (h₂ : sized t�
   equiv t₁ t₂ ↔ to_list t₁ = to_list t₂ :=
 and_iff_right_of_imp $ λ h, by rw [← length_to_list h₁, h, length_to_list h₂]
 
-/- find/erase/split _ min/max -/
+/-! ### `(find/erase/split)_(min/max)` -/
 
 theorem find_min'_dual : ∀ t (x : α), find_min' (dual t) x = find_max' x t
 | nil x := rfl
@@ -473,9 +473,9 @@ theorem find_max'_all {P : α → Prop} : ∀ (x : α) t, P x → all P t → P 
 | x nil hx h := hx
 | x (node _ ll lx lr) hx ⟨h₁, h₂, h₃⟩ := find_max'_all _ _ h₂ h₃
 
-/- glue -/
+/-! ### `glue` -/
 
-/- merge -/
+/-! ### `merge` -/
 
 @[simp] theorem merge_nil_left (t : ordnode α) : merge t nil = t := by cases t; refl
 
@@ -489,7 +489,7 @@ theorem find_max'_all {P : α → Prop} : ∀ (x : α) t, P x → all P t → P 
     balance_r ll lx (merge lr (node rs rl rx rr))
   else glue (node ls ll lx lr) (node rs rl rx rr) := rfl
 
-/- insert -/
+/-! ### `insert` -/
 
 theorem dual_insert [preorder α] [is_total α (≤)] [@decidable_rel α (≤)] (x : α) :
   ∀ t : ordnode α, dual (insert x t) = @insert (order_dual α) _ _ x (dual t)
@@ -499,7 +499,7 @@ theorem dual_insert [preorder α] [is_total α (≤)] [@decidable_rel α (≤)] 
   cases cmp_le x y; simp [ordering.swap, insert, dual_balance_l, dual_balance_r, dual_insert]
 end
 
-/- balance properties -/
+/-! ### `balance` properties -/
 
 theorem balance_eq_balance' {l x r}
   (hl : balanced l) (hr : balanced r)
@@ -733,7 +733,7 @@ theorem all_balance_r {P l x r}
   all P (@balance_r α l x r) ↔ all P l ∧ P x ∧ all P r :=
 by rw [balance_r_eq_balance' hl hr sl sr H, all_balance']
 
-/- bounded -/
+/-! ### `bounded` -/
 
 section
 variable [preorder α]
@@ -824,7 +824,7 @@ h₁.mem_lt.imp $ λ y yx, h₂.mem_gt.imp $ λ z xz, lt_trans yx xz
 
 end
 
-/- valid -/
+/-! ### `valid` -/
 
 section
 variable [preorder α]

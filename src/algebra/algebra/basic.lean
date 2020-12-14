@@ -728,23 +728,38 @@ by { ext, simp }
   alg_hom.comp ↑e.symm (e : A₁ →ₐ[R] A₂) = alg_hom.id R A₁ :=
 by { ext, simp }
 
-/-- An alg_equiv induces and equiv of alg_hom types -/
-def alg_hom_equiv_alg_hom_left (ϕ : A₁ ≃ₐ[R] A₂) : (A₁ →ₐ[R] A₃) ≃ (A₂ →ₐ[R] A₃) :=
-{ to_fun := λ f, f.comp ϕ.symm.to_alg_hom,
-  inv_fun := λ f, f.comp ϕ.to_alg_hom,
-  left_inv := λ f,
-    by { simp only [alg_hom.comp_assoc, to_alg_hom_eq_coe, symm_comp, alg_hom.comp_id] },
-  right_inv := λ f,
-    by { simp only [alg_hom.comp_assoc, to_alg_hom_eq_coe, comp_symm, alg_hom.comp_id] } }
+/-- If `A₁` is equivalent to `A₁'` and `A₂` is equivalent to `A₂'`, then the type of maps
+`A₁ →ₐ[R] A₂` is equivalent to the type of maps `A₁' →ₐ[R] A₂'`. -/
+def arrow_congr {A₁' A₂' : Type*} [semiring A₁'] [semiring A₂'] [algebra R A₁'] [algebra R A₂']
+  (e₁ : A₁ ≃ₐ[R] A₁') (e₂ : A₂ ≃ₐ[R] A₂') : (A₁ →ₐ[R] A₂) ≃ (A₁' →ₐ[R] A₂') :=
+{ to_fun := λ f, (e₂.to_alg_hom.comp f).comp e₁.symm.to_alg_hom,
+  inv_fun := λ f, (e₂.symm.to_alg_hom.comp f).comp e₁.to_alg_hom,
+  left_inv := λ f, by { simp only [alg_hom.comp_assoc, to_alg_hom_eq_coe, symm_comp],
+    simp only [←alg_hom.comp_assoc, symm_comp, alg_hom.id_comp, alg_hom.comp_id] },
+  right_inv := λ f, by { simp only [alg_hom.comp_assoc, to_alg_hom_eq_coe, comp_symm],
+    simp only [←alg_hom.comp_assoc, comp_symm, alg_hom.id_comp, alg_hom.comp_id] } }
 
-/-- An alg_equiv induces and equiv of alg_hom types -/
-def alg_hom_equiv_alg_hom_right (ϕ : A₁ ≃ₐ[R] A₂) : (A₃ →ₐ[R] A₁) ≃ (A₃ →ₐ[R] A₂) :=
-{ to_fun := λ f, ϕ.to_alg_hom.comp f,
-  inv_fun := λ f, ϕ.symm.to_alg_hom.comp f,
-  left_inv := λ f,
-    by { simp only [←alg_hom.comp_assoc, to_alg_hom_eq_coe, symm_comp, alg_hom.id_comp] },
-  right_inv := λ f,
-    by { simp only [←alg_hom.comp_assoc, to_alg_hom_eq_coe, comp_symm, alg_hom.id_comp] } }
+lemma arrow_congr_comp {A₁' A₂' A₃' : Type*} [semiring A₁'] [semiring A₂'] [semiring A₃']
+  [algebra R A₁'] [algebra R A₂'] [algebra R A₃'] (e₁ : A₁ ≃ₐ[R] A₁') (e₂ : A₂ ≃ₐ[R] A₂')
+  (e₃ : A₃ ≃ₐ[R] A₃') (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₃) :
+  arrow_congr e₁ e₃ (g.comp f) = (arrow_congr e₂ e₃ g).comp (arrow_congr e₁ e₂ f) :=
+by { ext, simp only [arrow_congr, equiv.coe_fn_mk, alg_hom.comp_apply],
+  congr, exact (e₂.symm_apply_apply _).symm }
+
+@[simp] lemma arrow_congr_refl :
+  arrow_congr alg_equiv.refl alg_equiv.refl = equiv.refl (A₁ →ₐ[R] A₂) :=
+by { ext, refl }
+
+@[simp] lemma arrow_congr_trans {A₁' A₂' A₃' : Type*} [semiring A₁'] [semiring A₂'] [semiring A₃']
+  [algebra R A₁'] [algebra R A₂'] [algebra R A₃'] (e₁ : A₁ ≃ₐ[R] A₂) (e₁' : A₁' ≃ₐ[R] A₂')
+  (e₂ : A₂ ≃ₐ[R] A₃) (e₂' : A₂' ≃ₐ[R] A₃') :
+  arrow_congr (e₁.trans e₂) (e₁'.trans e₂') = (arrow_congr e₁ e₁').trans (arrow_congr e₂ e₂') :=
+by { ext, refl }
+
+@[simp] lemma arrow_congr_symm {A₁' A₂' : Type*} [semiring A₁'] [semiring A₂']
+  [algebra R A₁'] [algebra R A₂'] (e₁ : A₁ ≃ₐ[R] A₁') (e₂ : A₂ ≃ₐ[R] A₂') :
+  (arrow_congr e₁ e₂).symm = arrow_congr e₁.symm e₂.symm :=
+by { ext, refl }
 
 /-- If an algebra morphism has an inverse, it is a algebra isomorphism. -/
 def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.comp g = alg_hom.id R A₂)

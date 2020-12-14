@@ -60,8 +60,6 @@ def cut_map (F K : Type*) [division_ring F] [char_zero F] [division_ring K] [cha
   set (set.range (coe : ℚ → F)) → set (set.range (coe : ℚ → K)) :=
 λ c, (range_rat_equiv F K) '' c
 
---local attribute [instance] pointwise_one pointwise_mul pointwise_add
-
 /- No longer used -/
 lemma bdd_above_add {F : Type*} [ordered_add_comm_monoid F] {A B : set F} :
   bdd_above A → bdd_above B → bdd_above (A + B) :=
@@ -93,6 +91,27 @@ namespace ordered_ring_equiv
 
 infix ` ≃+*o `:25 := ordered_ring_equiv
 
+instance {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
+  {r : R → R → Prop} {s : S → S → Prop} : has_coe_to_fun (r ≃+*o s) := ⟨_, ordered_ring_equiv.to_fun⟩
+
+@[simp] lemma to_fun_eq_coe_fun {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
+  {r : R → R → Prop} {s : S → S → Prop} (f : r ≃+*o s) : f.to_fun = f := rfl
+
+/-- Two ordered ring isomorphisms agree if they are defined by the
+  same underlying function. -/
+@[ext] lemma ext {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S] {r : R → R → Prop}
+  {s : S → S → Prop} {f g : r ≃+*o s} (h : ∀ x, f x = g x) : f = g :=
+begin
+  -- exactly the same proof script as ring_equiv.ext
+  have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
+  cases f, cases g, congr,
+  { exact (funext h) },
+  { exact congr_arg equiv.inv_fun h₁ },
+  have := funext h,
+  simp at this,
+  ext, exact this,
+  sorry
+end
 /-- Identity map is an ordered ring isomorphism. -/
 @[refl] protected def refl {R : Type*} [has_mul R] [has_add R] (r : R → R → Prop) : r ≃+*o r :=
 { ..ring_equiv.refl _,
@@ -128,6 +147,7 @@ instance : conditionally_complete_linear_ordered_field ℝ := {
   ..real.linear_ordered_field,
   ..real.conditionally_complete_linear_order }
 
+/- TODO does this follow from intermediate_value_Icc -/
 lemma exists_rat_sqr_btwn_rat_aux (x y : ℝ) (h : x < y) (hx : 0 ≤ x) :
   ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ ↑q^2 < y :=
 begin
@@ -307,7 +327,6 @@ begin
   { rcases h with ⟨⟨q2, rfl⟩, hq⟩,
     use [q2, rfl, rat.cast_lt.mp hq], },
 end
-
 
 lemma cut_image_add (F K : Type*) [linear_ordered_field F] [archimedean F] [linear_ordered_field K]
   (x y : F) : cut_image F K (x + y) = cut_image F K x + cut_image F K y :=
@@ -544,7 +563,6 @@ begin
       exact hypos, }, }
 end two_ne_zero begin convert induced_map_rat F K 1; rw [rat.cast_one], refl, end
 
-
 @[simp]
 lemma induced_map_inv_self (F K : Type*) [conditionally_complete_linear_ordered_field F]
   [conditionally_complete_linear_ordered_field K] (x : F) :
@@ -575,7 +593,7 @@ begin
 end
 
 /-- The equivalence of ordered rings between two conditionally complete linearly ordered fields. -/
-def ordered_ring_equiv (F K : Type*)
+def cut_ordered_ring_equiv (F K : Type*)
   [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
   ((≤) : F → F → Prop) ≃+*o ((≤) : K → K → Prop) :=
 { inv_fun := induced_map K F,
@@ -590,5 +608,40 @@ def ordered_ring_equiv (F K : Type*)
     simpa [induced_add_mul_map, ring_hom.mk_mul_self_of_two_ne_zero, induced_add_map] using h,
   end,
   ..induced_add_mul_map F K }
+
+@[simp] lemma cut_ordered_equiv (F K : Type*)
+  [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
+  (cut_ordered_ring_equiv F K : F → K) = induced_map F K := rfl
+
+@[simp] lemma cut_ordered_equiv_rat (F K : Type*) (q : ℚ)
+  [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
+  (cut_ordered_ring_equiv F K) q = q :=
+  induced_map_rat F K q
+
+lemma all_ordered_ring_equiv_eq_cut_ordered_ring_equiv (F K : Type*)
+  [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K]
+  (f : ((≤) : F → F → Prop) ≃+*o ((≤) : K → K → Prop)) : f = cut_ordered_ring_equiv F K :=
+begin
+  ext,
+  suffices : ¬ (f x < cut_ordered_ring_equiv F K x) ∧ ¬ (cut_ordered_ring_equiv F K x < f x),
+  { rw le_antisymm_iff, rw [not_lt, not_lt] at this, exact this.symm, },
+  split; intro h;
+  rcases exists_rat_btwn h with ⟨q, hq, hq₂⟩;
+  rw ← cut_ordered_equiv_rat F K at hq hq₂,
+  rw ← ordered_ring_equiv.map_rel_iff' (cut_ordered_ring_equiv F K) at hq₂,
+  cases h,
+  rw lt_induced_map_iff at h,
+  simp at h,
+  obtain ⟨q,h⟩ := h,
+  cases h,
+  have : (q : F) ≤ x ↔ f q ≤ f x:= by {convert ordered_ring_equiv.map_rel_iff' f,sorry, sorry} ,
+  rw le_iff_eq_or_lt at this,
+  rw le_iff_eq_or_lt at this,
+
+
+  have : f x = x := sorry,
+  have := ring_hom.eq_rat_cast (rat.cast_hom K) x,
+  simp only [rat.coe_cast_hom] at this,
+end
 
 end conditionally_complete_linear_ordered_field

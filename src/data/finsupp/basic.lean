@@ -1889,19 +1889,13 @@ lemma le_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
   f + g = 0 ↔ f = 0 ∧ g = 0 :=
 by simp [ext_iff, forall_and_distrib]
 
-lemma le_add_left [canonically_ordered_add_monoid M] {f g h : α →₀ M} (H : f ≤ h) : f ≤ g + h :=
-λ x, le_add_left (H x)
-
-lemma le_add_right [canonically_ordered_add_monoid M] {f g h : α →₀ M} (H : f ≤ g) : f ≤ g + h :=
-λ x, le_add_right (H x)
-
 /-- `finsupp.to_multiset` as an order isomorphism. -/
-def to_multiset_order_iso : (α →₀ ℕ) ≃o multiset α :=
+def order_iso_multiset : (α →₀ ℕ) ≃o multiset α :=
 { to_equiv := to_multiset.to_equiv,
   map_rel_iff' := λ f g, by simp [multiset.le_iff_count, le_def] }
 
 lemma to_multiset_strict_mono : strict_mono (@to_multiset α) :=
-to_multiset_order_iso.strict_mono
+order_iso_multiset.strict_mono
 
 lemma sum_id_lt_of_lt (m n : α →₀ ℕ) (h : m < n) :
   m.sum (λ _, id) < n.sum (λ _, id) :=
@@ -1933,6 +1927,13 @@ ext $ λ a, nat.add_sub_of_le (h a)
 
 lemma nat_sub_add_cancel {f g : α →₀ ℕ} (h : f ≤ g) : g - f + f = g :=
 ext $ λ a, nat.sub_add_cancel (h a)
+
+instance : canonically_ordered_add_monoid (α →₀ ℕ) :=
+{ bot := 0,
+  bot_le := λ f s, zero_le (f s),
+  le_iff_exists_add := λ f g, ⟨λ H, ⟨g - f, (nat_add_sub_of_le H).symm⟩,
+    λ ⟨c, hc⟩, hc.symm ▸ λ x, by simp⟩,
+ .. (infer_instance : ordered_add_comm_monoid (α →₀ ℕ)) }
 
 /-- The `finsupp` counterpart of `multiset.antidiagonal`: the antidiagonal of
 `s : α →₀ ℕ` consists of all pairs `(t₁, t₂) : (α →₀ ℕ) × (α →₀ ℕ)` such that `t₁ + t₂ = s`.

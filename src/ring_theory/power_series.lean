@@ -346,7 +346,7 @@ lemma coeff_zero_mul_X (φ : mv_power_series σ R) (s : σ) :
   coeff R (0 : σ →₀ ℕ) (φ * X s) = 0 :=
 begin
   have : ¬single s 1 ≤ 0, from λ h, by simpa using h s,
-  simp [X, coeff_mul_monomial, if_neg this]
+  simp only [X, coeff_mul_monomial, if_neg this]
 end
 
 variables (σ) (R)
@@ -796,7 +796,15 @@ instance [comm_semiring R]   : comm_semiring   (power_series R) := by apply_inst
 instance [ring R]            : ring            (power_series R) := by apply_instance
 instance [comm_ring R]       : comm_ring       (power_series R) := by apply_instance
 instance [nontrivial R]      : nontrivial      (power_series R) := by apply_instance
-instance [semiring R]        : semimodule R    (power_series R) := by apply_instance
+
+instance {A} [semiring R] [add_comm_monoid A] [semimodule R A] :
+  semimodule R (power_series A) := by apply_instance
+
+instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [semimodule R A] [semimodule S A]
+  [has_scalar R S] [is_scalar_tower R S A] :
+  is_scalar_tower R S (power_series A) :=
+pi.is_scalar_tower
+
 instance [comm_ring R]       : algebra R       (power_series R) := by apply_instance
 
 end
@@ -949,13 +957,9 @@ rfl
 @[simp] lemma coeff_succ_mul_X (n : ℕ) (φ : power_series R) :
   coeff R (n+1) (φ * X) = coeff R n φ :=
 begin
-  rw [coeff_mul _ φ, finset.sum_eq_single (n,1)],
-  { rw [coeff_X, if_pos rfl, mul_one] },
-  { rintro ⟨i,j⟩ hij hne,
-    by_cases hj : j = 1,
-    { subst hj, simp at *, contradiction },
-    { simp [coeff_X, hj] } },
-  { intro h, exfalso, apply h, simp },
+  simp only [coeff, finsupp.single_add],
+  convert φ.coeff_add_mul_monomial (single () n) (single () 1) _,
+  rw mul_one
 end
 
 @[simp] lemma constant_coeff_C (a : R) : constant_coeff R (C R a) = a := rfl

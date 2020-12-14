@@ -273,9 +273,8 @@ lemma single_left_inj (h : b ≠ 0) :
   and_false, or_false, eq_self_iff_true, and_true] using H,
  λ H, by rw [H]⟩
 
-lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
-⟨λ h, by { rw ext_iff at h, simpa only [single_eq_same, zero_apply] using h a },
-λ h, by rw [h, single_zero]⟩
+@[simp] lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
+by simp [ext_iff, single_eq_indicator]
 
 lemma single_swap (a₁ a₂ : α) (b : M) : single a₁ b a₂ = single a₂ b a₁ :=
 by simp only [single_apply]; ac_refl
@@ -829,6 +828,8 @@ begin
   { rw [←h, single_eq_same], cases (u' a), { contradiction }, { simp }, },
   { simp [h], }
 end
+
+@[simp] lemma nat_zero_sub (f : α →₀ ℕ) : 0 - f = 0 := ext $ λ x, nat.zero_sub _
 
 end nat_sub
 
@@ -1985,33 +1986,21 @@ finset.prod_bij (λ p hp, p.swap) (λ p, swap_mem_antidiagonal_support.2) (λ p 
   (λ p₁ p₂ _ _ h, prod.swap_injective h)
   (λ p hp, ⟨p.swap, swap_mem_antidiagonal_support.2 hp, p.swap_swap.symm⟩)
 
+/-- The set `{m : α →₀ ℕ | m ≤ n}` as a `finset`. -/
+def Iic_finset (n : α →₀ ℕ) : finset (α →₀ ℕ) :=
+(antidiagonal n).support.image prod.fst
+
+@[simp] lemma mem_Iic_finset {m n : α →₀ ℕ} : m ∈ Iic_finset n ↔ m ≤ n :=
+by simp [Iic_finset, le_iff_exists_add, eq_comm]
+
+@[simp] lemma coe_Iic_finset (n : α →₀ ℕ) : ↑(Iic_finset n) = set.Iic n :=
+by { ext, simp }
+
 /-- Let `n : α →₀ ℕ` be a finitely supported function.
 The set of `m : α →₀ ℕ` that are coordinatewise less than or equal to `n`,
 is a finite set. -/
 lemma finite_le_nat (n : α →₀ ℕ) : set.finite {m | m ≤ n} :=
-begin
-  let I := {i // i ∈ n.support},
-  let k : ℕ := ∑ i in n.support, n i,
-  let f : (α →₀ ℕ) → (I → fin (k + 1)) := λ m i, m i,
-  have hf : ∀ m ≤ n, ∀ i, (f m i : ℕ) = m i,
-  { intros m hm i,
-    apply fin.coe_coe_of_lt,
-    calc m i ≤ n i   : hm i
-         ... < k + 1 : nat.lt_succ_iff.mpr (single_le_sum (λ _ _, nat.zero_le _) i.2) },
-  have f_im : set.finite (f '' {m | m ≤ n}) := set.finite.of_fintype _,
-  suffices f_inj : set.inj_on f {m | m ≤ n},
-  { exact set.finite_of_finite_image f_inj f_im },
-  intros m₁ h₁ m₂ h₂ h,
-  ext i,
-  by_cases hi : i ∈ n.support,
-  { replace h := congr_fun h ⟨i, hi⟩,
-    rwa [fin.ext_iff, hf m₁ h₁, hf m₂ h₂] at h },
-  { rw not_mem_support_iff at hi,
-    specialize h₁ i,
-    specialize h₂ i,
-    rw [hi, nat.le_zero_iff] at h₁ h₂,
-    rw [h₁, h₂] }
-end
+by simpa using (Iic_finset n).finite_to_set
 
 /-- Let `n : α →₀ ℕ` be a finitely supported function.
 The set of `m : α →₀ ℕ` that are coordinatewise less than or equal to `n`,

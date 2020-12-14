@@ -15,11 +15,9 @@ This file contains some lemmas about real polynomials and their derivatives.
 open polynomial real set
 
 
-lemma exists_forall_ge_of_polynomial_eval (α : ℝ) (f : polynomial ℝ)
-  (h_f_deg : 0 < f.nat_degree) :
+lemma exists_forall_ge_of_polynomial_eval (α : ℝ) (f : polynomial ℝ):
   ∃ M : ℝ, 0 < M ∧ ∀ (y : ℝ), abs (y - α) ≤ 1 → abs (eval y f) ≤ M :=
 begin
-  have h_f_nonzero : f ≠ 0 := ne_zero_of_nat_degree_gt h_f_deg,
   obtain ⟨x_max, ⟨h_x_max_range, hM⟩⟩ := is_compact.exists_forall_ge (@compact_Icc (α - 1) (α + 1))
     ⟨α, le_of_lt $ sub_one_lt _, le_of_lt $ lt_add_one _⟩
     (continuous_abs.comp f.continuous_eval).continuous_on,

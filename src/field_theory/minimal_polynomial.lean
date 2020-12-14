@@ -297,10 +297,12 @@ end
 
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
 element as root. -/
-lemma gcd_domain_dvd {α : Type u} {β : Type v} {γ : Type w} [integral_domain α] [gcd_monoid α]
-  [field β] [integral_domain γ] (f : fraction_map α β) [algebra f.codomain γ] [algebra α γ]
-  [is_scalar_tower α f.codomain γ] {x : γ} (hx : is_integral α x) {P : polynomial α}
-  (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) : minimal_polynomial hx ∣ P :=
+lemma gcd_domain_dvd {α : Type u} {β : Type v} {γ : Type w}
+  [integral_domain α] [gcd_monoid α] [field β] [integral_domain γ]
+  (f : fraction_map α β) [algebra f.codomain γ] [algebra α γ] [is_scalar_tower α f.codomain γ]
+  {x : γ} (hx : is_integral α x)
+  {P : polynomial α} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
+  minimal_polynomial hx ∣ P :=
 begin
   apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map f
     (monic.is_primitive (monic hx)) hprim ).2,

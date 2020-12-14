@@ -214,7 +214,13 @@ of the submonoid. -/
 a `finset` is an element of the `add_submonoid`."]
 lemma finset_prod_mem {M A} [comm_monoid M] (s : set M) [is_submonoid s] (f : A → M) :
   ∀(t : finset A), (∀b∈t, f b ∈ s) → ∏ b in t, f b ∈ s
-| ⟨m, hm⟩ hs := multiset_prod_mem s _ (by simpa)
+| ⟨m, hm⟩ hs :=
+  begin
+    refine multiset_prod_mem s _ _,
+    simp,
+    rintros a b hb rfl,
+    exact hs _ hb
+  end
 
 end is_submonoid
 

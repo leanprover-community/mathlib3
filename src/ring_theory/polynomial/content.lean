@@ -9,10 +9,10 @@ import data.polynomial.erase_lead
 import data.polynomial.cancel_leads
 
 /-!
-# GCD structures on polynomials
+# Gauss's Lemma, and GCD structures on polynomials
 
-Definitions and basic results about polynomials over GCD domains, particularly their contents
-and primitive polynomials.
+Gauss's Lemma is one of a few results pertaining to `gcd`s and irreducibility in polynomials over
+GCD domains.
 
 ## Main Definitions
 Let `p : polynomial R`.
@@ -20,10 +20,7 @@ Let `p : polynomial R`.
  - `p.is_primitive` indicates that `p.content = 1`.
 
 ## Main Results
- - `polynomial.content_mul`:
-  If `p q : polynomial R`, then `(p * q).content = p.content * q.content`.
- - `polynomial.gcd_monoid`:
-  The polynomial ring of a GCD domain is itself a GCD domain.
+ - If `p q : polynomial R`, then `(p * q).content = p.content * q.content`.
 
 -/
 
@@ -176,10 +173,6 @@ def is_primitive (p : polynomial R) : Prop := p.content = 1
 @[simp]
 lemma is_primitive_one : is_primitive (1 : polynomial R) :=
 by rw [is_primitive, ← C_1, content_C, normalize_one]
-
-lemma monic.is_primitive {p : polynomial R} (hp : p.monic) : p.is_primitive :=
-by rw [is_primitive, content_eq_gcd_leading_coeff_content_erase_lead,
-  hp.leading_coeff, gcd_one_left]
 
 lemma is_primitive.ne_zero {p : polynomial R} (hp : p.is_primitive) : p ≠ 0 :=
 begin
@@ -350,15 +343,6 @@ begin
   ring,
 end
 
-lemma is_primitive.is_primitive_of_dvd {p q : polynomial R} (hp : p.is_primitive) (hdvd : q ∣ p) :
-  q.is_primitive :=
-begin
-  rcases hdvd with ⟨r, rfl⟩,
-  rw [is_primitive, ← normalize_content, normalize_eq_one, is_unit_iff_dvd_one],
-  apply dvd.intro r.content,
-  rwa [is_primitive, content_mul] at hp,
-end
-
 lemma is_primitive.dvd_prim_part_iff_dvd {p q : polynomial R}
   (hp : p.is_primitive) (hq : q ≠ 0) :
   p ∣ q.prim_part ↔ p ∣ q :=
@@ -422,8 +406,7 @@ begin
     exact mul_dvd_mul (ring_hom.map_dvd C h.1) h.2 }
 end
 
-@[priority 100]
-instance gcd_monoid : gcd_monoid (polynomial R) :=
+instance : gcd_monoid (polynomial R) :=
 gcd_monoid_of_exists_lcm $ λ p q, begin
   rcases exists_primitive_lcm_of_is_primitive p.is_primitive_prim_part q.is_primitive_prim_part
     with ⟨r, rprim, hr⟩,

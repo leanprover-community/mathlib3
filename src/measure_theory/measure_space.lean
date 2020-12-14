@@ -618,14 +618,15 @@ variables {m : set (measure α)}
 lemma Inf_caratheodory (s : set α) (hs : is_measurable s) :
   (Inf (to_outer_measure '' m)).caratheodory.is_measurable' s :=
 begin
-  rw [outer_measure.Inf_eq_bounded_by_Inf_gen],
-  refine outer_measure.bounded_by_caratheodory (λ t, _),
-  simp only [outer_measure.Inf_gen, le_infi_iff, ball_image_iff, coe_to_outer_measure,
-    measure_eq_infi t],
-  intros μ hμ u htu hu,
+  rw [outer_measure.Inf_eq_of_function_Inf_gen],
+  refine outer_measure.of_function_caratheodory (assume t, _),
+  cases t.eq_empty_or_nonempty with ht ht, by simp [ht],
+  simp only [outer_measure.Inf_gen_nonempty1 _ _ ht, le_infi_iff, ball_image_iff,
+    coe_to_outer_measure, measure_eq_infi t],
+  assume μ hμ u htu hu,
   have hm : ∀{s t}, s ⊆ t → outer_measure.Inf_gen (to_outer_measure '' m) s ≤ μ t,
-  { intros s t hst,
-    rw [outer_measure.Inf_gen_def],
+  { assume s t hst,
+    rw [outer_measure.Inf_gen_nonempty2 _ ⟨_, mem_image_of_mem _ hμ⟩],
     refine infi_le_of_le (μ.to_outer_measure) (infi_le_of_le (mem_image_of_mem _ hμ) _),
     rw [to_outer_measure_apply],
     refine measure_mono hst },
@@ -823,7 +824,7 @@ end
 
 @[simp] lemma restrict_add_restrict_compl {s : set α} (hs : is_measurable s) :
   μ.restrict s + μ.restrict sᶜ = μ :=
-by rw [← restrict_union disjoint_compl_right hs hs.compl, union_compl_self, restrict_univ]
+by rw [← restrict_union (disjoint_compl_right _) hs hs.compl, union_compl_self, restrict_univ]
 
 @[simp] lemma restrict_compl_add_restrict {s : set α} (hs : is_measurable s) :
   μ.restrict sᶜ + μ.restrict s = μ :=
@@ -1337,13 +1338,17 @@ lemma eventually_eq_dirac' [measurable_singleton_class α] {a : α} (f : α → 
   f =ᵐ[dirac a] const α (f a) :=
 by { rw [dirac_ae_eq], show f a = f a, refl }
 
+lemma measure_diff_of_ae_le {s t : set α} (H : s ≤ᵐ[μ] t) :
+  μ (s \ t) = 0 :=
+flip measure_mono_null H $ λ x hx H, hx.2 (H hx.1)
+
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
 lemma measure_mono_ae {s t : set α} (H : s ≤ᵐ[μ] t) :
   μ s ≤ μ t :=
 calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
      ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
      ... ≤ μ t + μ (s \ t) : measure_union_le _ _
-     ... = μ t             : by rw [ae_le_set.1 H, add_zero]
+     ... = μ t             : by rw [measure_diff_of_ae_le H, add_zero]
 
 alias measure_mono_ae ← filter.eventually_le.measure_le
 

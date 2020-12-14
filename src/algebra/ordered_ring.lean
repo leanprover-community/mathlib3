@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.ordered_group
-import data.set.intervals.basic
 
 set_option old_structure_cmd true
 
@@ -113,14 +112,11 @@ lemma mul_neg_of_neg_of_pos (ha : a < 0) (hb : 0 < b) : a * b < 0 :=
 have h : a * b < 0 * b, from mul_lt_mul_of_pos_right ha hb,
 by rwa zero_mul at  h
 
-lemma mul_self_lt_mul_self (h1 : 0 ≤ a) (h2 : a < b) : a * a < b * b :=
-mul_lt_mul' h2.le h2 h1 $ h1.trans_lt h2
-
-lemma strict_mono_incr_on_mul_self : strict_mono_incr_on (λ x : α, x * x) (set.Ici 0) :=
-λ x hx y hy hxy, mul_self_lt_mul_self hx hxy
-
 lemma mul_self_le_mul_self (h1 : 0 ≤ a) (h2 : a ≤ b) : a * a ≤ b * b :=
 mul_le_mul h2 h2 h1 $ h1.trans h2
+
+lemma mul_self_lt_mul_self (h1 : 0 ≤ a) (h2 : a < b) : a * a < b * b :=
+mul_lt_mul' h2.le h2 h1 $ h1.trans_lt h2
 
 lemma mul_lt_mul'' (h1 : a < c) (h2 : b < d) (h3 : 0 ≤ a) (h4 : 0 ≤ b) : a * b < c * d :=
 (lt_or_eq_of_le h4).elim
@@ -632,8 +628,8 @@ begin
     simp [abs_of_nonpos, abs_of_nonneg, *]
 end
 
-/-- `abs` as a `monoid_with_zero_hom`. -/
-def abs_hom : monoid_with_zero_hom α α := ⟨abs, abs_zero, abs_one, abs_mul⟩
+/-- `abs` as a `monoid_hom`. -/
+def abs_hom : α →* α := ⟨abs, abs_one, abs_mul⟩
 
 lemma abs_mul_abs_self (a : α) : abs a * abs a = a * a :=
 abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
@@ -656,7 +652,9 @@ lemma mul_nonpos_iff : a * b ≤ 0 ↔ 0 ≤ a ∧ b ≤ 0 ∨ a ≤ 0 ∧ 0 ≤
 by rw [← neg_nonneg, neg_mul_eq_mul_neg, mul_nonneg_iff, neg_nonneg, neg_nonpos]
 
 lemma mul_self_nonneg (a : α) : 0 ≤ a * a :=
-abs_mul_self a ▸ abs_nonneg _
+or.elim (le_total 0 a)
+  (assume h : a ≥ 0, mul_nonneg h h)
+  (assume h : a ≤ 0, mul_nonneg_of_nonpos_of_nonpos h h)
 
 lemma gt_of_mul_lt_mul_neg_left (h : c * a < c * b) (hc : c ≤ 0) : b < a :=
 have nhc : 0 ≤ -c, from neg_nonneg_of_nonpos hc,
@@ -688,10 +686,13 @@ lemma mul_self_le_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a ≤ 
 ⟨mul_self_le_mul_self h1, nonneg_le_nonneg_of_squares_le h2⟩
 
 lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b ↔ a * a < b * b :=
-((@strict_mono_incr_on_mul_self α _).lt_iff_lt h1 h2).symm
+iff.trans (lt_iff_not_ge _ _) $ iff.trans (not_iff_not_of_iff $ mul_self_le_mul_self_iff h2 h1) $
+  iff.symm (lt_iff_not_ge _ _)
 
 lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
-(@strict_mono_incr_on_mul_self α _).inj_on.eq_iff h1 h2
+⟨λ h3, le_antisymm ((nonneg_le_nonneg_of_squares_le h2) h3.le) $
+  (nonneg_le_nonneg_of_squares_le h1) h3.symm.le,
+ λ h3, le_antisymm ((mul_self_le_mul_self h1) h3.le) $ (mul_self_le_mul_self h2) h3.symm.le⟩
 
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
 ⟨le_imp_le_of_lt_imp_lt $ λ h', mul_lt_mul_of_neg_left h' h,
@@ -716,8 +717,9 @@ by rcases lt_trichotomy a 0 with h|h|h;
 
 lemma mul_self_le_mul_self_of_le_of_neg_le {x y : α} (h₁ : x ≤ y) (h₂ : -x ≤ y) : x * x ≤ y * y :=
 begin
-  rw [← abs_mul_abs_self x],
-  exact mul_self_le_mul_self (abs_nonneg x) (abs_le.2 ⟨neg_le.2 h₂, h₁⟩)
+  cases le_total 0 x,
+  { exact mul_self_le_mul_self h h₁ },
+  { rw ← neg_mul_neg, exact mul_self_le_mul_self (neg_nonneg_of_nonpos h) h₂ }
 end
 
 lemma nonneg_of_mul_nonpos_left {a b : α} (h : a * b ≤ 0) (hb : b < 0) : 0 ≤ a :=
@@ -734,7 +736,13 @@ lt_of_not_ge (λ hb, absurd h (mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 
 /-- The sum of two squares is zero iff both elements are zero. -/
 lemma mul_self_add_mul_self_eq_zero {x y : α} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
-by rw [add_eq_zero_iff', mul_self_eq_zero, mul_self_eq_zero]; apply mul_self_nonneg
+begin
+  split; intro h, swap, { rcases h with ⟨rfl, rfl⟩, simp },
+  have : y * y ≤ 0, { rw [← h], apply le_add_of_nonneg_left (mul_self_nonneg x) },
+  have : y * y = 0 := le_antisymm this (mul_self_nonneg y),
+  have hx : x = 0, { rwa [this, add_zero, mul_self_eq_zero] at h },
+  rw mul_self_eq_zero at this, split; assumption
+end
 
 lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
 if hz : 0 ≤ a - b then
@@ -782,9 +790,6 @@ begin
   rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
   exact mul_self_le_mul_self_iff (abs_nonneg a) (abs_nonneg b)
 end
-
-lemma abs_le_one_iff_mul_self_le_one : abs a ≤ 1 ↔ a * a ≤ 1 :=
-by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
 
 end linear_ordered_ring
 

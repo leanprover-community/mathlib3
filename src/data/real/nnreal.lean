@@ -175,9 +175,9 @@ to_real_hom.map_nat_cast n
 instance : linear_order ℝ≥0 :=
 linear_order.lift (coe : ℝ≥0 → ℝ) nnreal.injective_coe
 
-@[simp, norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
-@[simp, norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
-@[simp, norm_cast] protected lemma coe_pos {r : ℝ≥0} : (0 : ℝ) < r ↔ 0 < r := iff.rfl
+@[norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
+@[norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
+protected lemma coe_pos {r : ℝ≥0} : (0 : ℝ) < r ↔ 0 < r := iff.rfl
 
 protected lemma coe_mono : monotone (coe : ℝ≥0 → ℝ) := λ _ _, nnreal.coe_le_coe.2
 
@@ -657,25 +657,6 @@ by simpa using @div_eq_div_iff a b c 1 hb one_ne_zero
 
 @[field_simps] lemma eq_div_iff {a b c : ℝ≥0} (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
 by simpa using @div_eq_div_iff c 1 a b one_ne_zero hb
-
-lemma of_real_inv {x : ℝ} :
-  nnreal.of_real x⁻¹ = (nnreal.of_real x)⁻¹ :=
-begin
-  by_cases hx : 0 ≤ x,
-  { nth_rewrite 0 ← coe_of_real x hx,
-    rw [←nnreal.coe_inv, of_real_coe], },
-  { have hx' := le_of_not_ge hx,
-    rw [of_real_eq_zero.mpr hx', inv_zero, of_real_eq_zero.mpr (inv_nonpos.mpr hx')], },
-end
-
-lemma of_real_div {x y : ℝ} (hx : 0 ≤ x) :
-  nnreal.of_real (x / y) = nnreal.of_real x / nnreal.of_real y :=
-by rw [div_def, ←of_real_inv, ←of_real_mul hx, div_eq_mul_inv]
-
-lemma of_real_div' {x y : ℝ} (hy : 0 ≤ y) :
-  nnreal.of_real (x / y) = nnreal.of_real x / nnreal.of_real y :=
-by rw [div_def, ←of_real_inv, mul_comm, ←@of_real_mul y⁻¹ _ (by simp [hy]), mul_comm,
-  div_eq_mul_inv]
 
 end inv
 

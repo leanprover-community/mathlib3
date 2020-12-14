@@ -124,15 +124,18 @@ classical.by_cases mem_sets_of_eq_bot $
   absurd A this
 
 lemma compact_iff_ultrafilter_le_nhds :
-  is_compact s ↔ (∀f : ultrafilter α, ↑f ≤ 𝓟 s → ∃a∈s, ↑f ≤ 𝓝 a) :=
-begin
-  refine (forall_ne_bot_le_iff _).trans _,
-  { rintro f g hle ⟨a, has, haf⟩,
-    exact ⟨a, has, haf.mono hle⟩ },
-  { simp only [ultrafilter.cluster_pt_iff] }
-end
+  is_compact s ↔ (∀f, is_ultrafilter f → f ≤ 𝓟 s → ∃a∈s, f ≤ 𝓝 a) :=
+⟨assume hs : is_compact s, assume f hf hfs,
+  let ⟨a, ha, h⟩ := @hs _ hf.left hfs in
+  ⟨a, ha, le_of_ultrafilter hf h⟩,
 
-alias compact_iff_ultrafilter_le_nhds ↔ is_compact.ultrafilter_le_nhds _
+  assume hs : (∀f, is_ultrafilter f → f ≤ 𝓟 s → ∃a∈s, f ≤ 𝓝 a),
+  assume f hf hfs,
+  let ⟨a, ha, (h : ultrafilter_of f ≤ 𝓝 a)⟩ :=
+    hs (ultrafilter_of f) (ultrafilter_ultrafilter_of' hf) (le_trans ultrafilter_of_le hfs) in
+  have cluster_pt a (ultrafilter_of f),
+    from cluster_pt.of_le_nhds' h (ultrafilter_ultrafilter_of' hf).left,
+  ⟨a, ha, this.mono ultrafilter_of_le⟩⟩
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma is_compact.elim_finite_subcover {ι : Type v} (hs : is_compact s)
@@ -363,7 +366,7 @@ lemma nhds_contain_boxes.symm {s : set α} {t : set β} :
 assume H n hn hp,
   let ⟨u, v, uo, vo, su, tv, p⟩ :=
     H (prod.swap ⁻¹' n)
-      (hn.preimage continuous_swap)
+      (continuous_swap n hn)
       (by rwa [←image_subset_iff, image_swap_prod]) in
   ⟨v, u, vo, uo, tv, su,
     by rwa [←image_subset_iff, image_swap_prod] at p⟩
@@ -404,8 +407,6 @@ have set.prod u v ⊆ n, from assume ⟨x',y'⟩ ⟨hx',hy'⟩,
   (h i).2.2.2.2 ⟨hi, (bInter_subset_of_mem is0 : v ⊆ (uvs i).2) hy'⟩,
 ⟨u, v, ‹is_open u›, ‹is_open v›, s0_cover, ‹t ⊆ v›, ‹set.prod u v ⊆ n›⟩
 
-/-- If `s` and `t` are compact sets and `n` is an open neighborhood of `s × t`, then there exist
-open neighborhoods `u ⊇ s` and `v ⊇ t` such that `u × v ⊆ n`. -/
 lemma generalized_tube_lemma {s : set α} (hs : is_compact s) {t : set β} (ht : is_compact t)
   {n : set (α × β)} (hn : is_open n) (hp : set.prod s t ⊆ n) :
   ∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ set.prod u v ⊆ n :=
@@ -503,12 +504,13 @@ lemma embedding.compact_iff_compact_image {f : α → β} (hf : embedding f) :
   is_compact s ↔ is_compact (f '' s) :=
 iff.intro (assume h, h.image hf.continuous) $ assume h, begin
   rw compact_iff_ultrafilter_le_nhds at ⊢ h,
-  intros u us',
-  have : ↑(u.map f) ≤ 𝓟 (f '' s), begin
-    rw [ultrafilter.coe_map, map_le_iff_le_comap, comap_principal], convert us',
+  intros u hu us',
+  let u' : filter β := map f u,
+  have : u' ≤ 𝓟 (f '' s), begin
+    rw [map_le_iff_le_comap, comap_principal], convert us',
     exact preimage_image_eq _ hf.inj
   end,
-  rcases h (u.map f) this with ⟨_, ⟨a, ha, ⟨⟩⟩, _⟩,
+  rcases h u' (ultrafilter_map hu) this with ⟨_, ⟨a, ha, ⟨⟩⟩, _⟩,
   refine ⟨a, ha, _⟩,
   rwa [hf.induced, nhds_induced, ←map_le_iff_le_comap]
 end
@@ -527,13 +529,14 @@ lemma is_compact.prod {s : set α} {t : set β} (hs : is_compact s) (ht : is_com
   is_compact (set.prod s t) :=
 begin
   rw compact_iff_ultrafilter_le_nhds at hs ht ⊢,
-  intros f hfs,
+  intros f hf hfs,
   rw le_principal_iff at hfs,
-  obtain ⟨a : α, sa : a ∈ s, ha : map prod.fst ↑f ≤ 𝓝 a⟩ :=
-    hs (f.map prod.fst) (le_principal_iff.2 $ mem_map.2 $ mem_sets_of_superset hfs (λ x, and.left)),
-  obtain ⟨b : β, tb : b ∈ t, hb : map prod.snd ↑f ≤ 𝓝 b⟩ :=
-    ht (f.map prod.snd) (le_principal_iff.2 $ mem_map.2 $
-      mem_sets_of_superset hfs (λ x, and.right)),
+  rcases hs (map prod.fst f) (ultrafilter_map hf)
+    (le_principal_iff.2 (mem_map_sets_iff.2
+      ⟨_, hfs, image_subset_iff.2 (λ s h, h.1)⟩)) with ⟨a, sa, ha⟩,
+  rcases ht (map prod.snd f) (ultrafilter_map hf)
+    (le_principal_iff.2 (mem_map_sets_iff.2
+      ⟨_, hfs, image_subset_iff.2 (λ s h, h.2)⟩)) with ⟨b, tb, hb⟩,
   rw map_le_iff_le_comap at ha hb,
   refine ⟨⟨a, b⟩, ⟨sa, tb⟩, _⟩,
   rw nhds_prod_eq, exact le_inf ha hb
@@ -561,11 +564,10 @@ variables {ι : Type*} {π : ι → Type*} [∀i, topological_space (π i)]
 lemma compact_pi_infinite {s : Πi:ι, set (π i)} :
   (∀i, is_compact (s i)) → is_compact {x : Πi:ι, π i | ∀i, x i ∈ s i} :=
 begin
-  simp only [compact_iff_ultrafilter_le_nhds, nhds_pi, exists_prop, mem_set_of_eq, le_infi_iff,
-    le_principal_iff],
-  intros h f hfs,
+  simp only [compact_iff_ultrafilter_le_nhds, nhds_pi, exists_prop, mem_set_of_eq, le_infi_iff, le_principal_iff],
+  intros h f hf hfs,
   have : ∀i:ι, ∃a, a∈s i ∧ tendsto (λx:Πi:ι, π i, x i) f (𝓝 a),
-  { refine λ i, h i (f.map _) (mem_map.2 _),
+  { refine λ i, h i _ (ultrafilter_map hf) (mem_map.2 _),
     exact mem_sets_of_superset hfs (λ x hx, hx i) },
   choose a ha,
   exact  ⟨a, assume i, (ha i).left, assume i, (ha i).right.le_comap⟩
@@ -611,10 +613,10 @@ begin
   rwa [← mem_interior_iff_mem_nhds, hU.interior_eq]
 end
 
-lemma ultrafilter.le_nhds_Lim [compact_space α] (F : ultrafilter α) :
-  ↑F ≤ 𝓝 (@Lim _ _ (F : filter α).nonempty_of_ne_bot F) :=
+lemma is_ultrafilter.le_nhds_Lim [compact_space α] (F : ultrafilter α) :
+  F.1 ≤ nhds (@Lim _ _ F.1.nonempty_of_ne_bot F.1) :=
 begin
-  rcases compact_univ.ultrafilter_le_nhds F (by simp) with ⟨x, -, h⟩,
+  rcases compact_iff_ultrafilter_le_nhds.mp compact_univ F.1 F.2 (by simp) with ⟨x, -, h⟩,
   exact le_nhds_Lim ⟨x,h⟩,
 end
 
@@ -1294,12 +1296,6 @@ class totally_separated_space (α : Type u) [topological_space α] : Prop :=
 @[priority 100] -- see Note [lower instance priority]
 instance totally_separated_space.totally_disconnected_space (α : Type u) [topological_space α]
   [totally_separated_space α] : totally_disconnected_space α :=
-⟨is_totally_disconnected_of_is_totally_separated $
-  totally_separated_space.is_totally_separated_univ α⟩
-
-@[priority 100] -- see Note [lower instance priority]
-instance totally_separated_space.of_discrete
-  (α : Type*) [topological_space α] [discrete_topology α] : totally_separated_space α :=
-⟨λ a _ b _ h, ⟨{b}ᶜ, {b}, is_open_discrete _, is_open_discrete _, by simpa⟩⟩
+⟨is_totally_disconnected_of_is_totally_separated $ totally_separated_space.is_totally_separated_univ α⟩
 
 end totally_separated

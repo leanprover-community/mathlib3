@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.module.linear_map
-import group_theory.group_action.sub_mul_action
 /-!
 
 # Submodules of a module
@@ -33,13 +32,11 @@ set_option old_structure_cmd true
   This is a sufficient condition for the subset of vectors in the submodule
   to themselves form a module. -/
 structure submodule (R : Type u) (M : Type v) [semiring R]
-  [add_comm_monoid M] [semimodule R M] extends add_submonoid M, sub_mul_action R M : Type v.
+  [add_comm_monoid M] [semimodule R M] extends add_submonoid M : Type v :=
+(smul_mem' : ∀ (c:R) {x}, x ∈ carrier → c • x ∈ carrier)
 
 /-- Reinterpret a `submodule` as an `add_submonoid`. -/
 add_decl_doc submodule.to_add_submonoid
-
-/-- Reinterpret a `submodule` as an `sub_mul_action`. -/
-add_decl_doc submodule.to_sub_mul_action
 
 namespace submodule
 
@@ -75,13 +72,6 @@ theorem to_add_submonoid_injective :
 @[simp] theorem to_add_submonoid_eq : p.to_add_submonoid = q.to_add_submonoid ↔ p = q :=
 to_add_submonoid_injective.eq_iff
 
-theorem to_sub_mul_action_injective :
-  injective (to_sub_mul_action : submodule R M → sub_mul_action R M) :=
-λ p q h, ext'_iff.2 $ sub_mul_action.ext'_iff.1 h
-
-@[simp] theorem to_sub_mul_action_eq : p.to_sub_mul_action = q.to_sub_mul_action ↔ p = q :=
-to_sub_mul_action_injective.eq_iff
-
 end submodule
 
 namespace submodule
@@ -97,8 +87,6 @@ variables {p q : submodule R M}
 variables {r : R} {x y : M}
 
 variables (p)
-@[simp] lemma mem_carrier : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
-
 @[simp] theorem mem_coe : x ∈ (p : set M) ↔ x ∈ p := iff.rfl
 
 @[simp] lemma zero_mem : (0 : M) ∈ p := p.zero_mem'
@@ -115,7 +103,7 @@ lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
 submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
 
 @[simp] lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
-p.to_sub_mul_action.smul_mem_iff' u
+⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
 
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
@@ -143,7 +131,7 @@ instance : add_comm_monoid p :=
 { add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }
 
 instance : semimodule R p :=
-by refine {smul := (•), ..p.to_sub_mul_action.mul_action, ..};
+by refine {smul := (•), ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
 
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
@@ -163,7 +151,7 @@ variables {semimodule_M : semimodule R M}
 variables (p p' : submodule R M)
 variables {r : R} {x y : M}
 
-lemma neg_mem (hx : x ∈ p) : -x ∈ p := p.to_sub_mul_action.neg_mem hx
+lemma neg_mem (hx : x ∈ p) : -x ∈ p := by rw ← neg_one_smul R; exact p.smul_mem _ hx
 
 /-- Reinterpret a submodule as an additive subgroup. -/
 def to_add_subgroup : add_subgroup M :=
@@ -198,7 +186,7 @@ variables [division_ring R] [add_comm_group M] [module R M]
 variables (p : submodule R M) {r : R} {x y : M}
 
 theorem smul_mem_iff (r0 : r ≠ 0) : r • x ∈ p ↔ x ∈ p :=
-p.to_sub_mul_action.smul_mem_iff r0
+p.smul_mem_iff' (units.mk0 r r0)
 
 end submodule
 

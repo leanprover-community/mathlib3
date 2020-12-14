@@ -137,7 +137,7 @@ theorem mul_right_injective (a : G) : function.injective ((*) a) :=
 
 @[simp, to_additive]
 theorem mul_right_inj (a : G) {b c : G} : a * b = a * c ↔ b = c :=
-(mul_right_injective a).eq_iff
+⟨mul_left_cancel, congr_arg _⟩
 
 end left_cancel_semigroup
 
@@ -170,7 +170,7 @@ theorem mul_left_injective (a : G) : function.injective (λ x, x * a) :=
 
 @[simp, to_additive]
 theorem mul_left_inj (a : G) {b c : G} : b * a = c * a ↔ b = c :=
-(mul_left_injective a).eq_iff
+⟨mul_right_cancel, congr_arg _⟩
 
 end right_cancel_semigroup
 
@@ -333,31 +333,38 @@ lemma mul_inv_cancel_right (a b : G) : a * b * b⁻¹ = a :=
 by rw [mul_assoc, mul_right_inv, mul_one]
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
-instance group.to_cancel_monoid : cancel_monoid G :=
-{ mul_right_cancel := λ a b c h, by rw [← mul_inv_cancel_right a b, h, mul_inv_cancel_right],
-  mul_left_cancel := λ a b c h, by rw [← inv_mul_cancel_left a b, h, inv_mul_cancel_left],
+instance group.to_left_cancel_semigroup : left_cancel_semigroup G :=
+{ mul_left_cancel := λ a b c h, by rw [← inv_mul_cancel_left a b, h, inv_mul_cancel_left],
   ..‹group G› }
+
+@[priority 100, to_additive]    -- see Note [lower instance priority]
+instance group.to_right_cancel_semigroup : right_cancel_semigroup G :=
+{ mul_right_cancel := λ a b c h, by rw [← mul_inv_cancel_right a b, h, mul_inv_cancel_right],
+  ..‹group G› }
+
+@[priority 100, to_additive]    -- see Note [lower instance priority]
+instance group.to_cancel_monoid : cancel_monoid G :=
+{ ..‹group G›, .. group.to_left_cancel_semigroup,
+  ..group.to_right_cancel_semigroup }
 
 end group
 
--- TODO: in a later PR, this section will be deleted because it is bundled as part of `group`
-section has_div
+section add_group
 
-variables {G : Type u} [group G]
+variables {G : Type u} [add_group G]
 
-@[priority 100, to_additive]    -- see Note [lower instance priority]
-instance group_has_div : has_div G :=
-⟨λ a b, a * b⁻¹⟩
+/-- The subtraction operation on an `add_group` -/
+@[reducible] protected def algebra.sub (a b : G) : G :=
+a + -b
 
--- TODO: in a later PR, this will be part of the `group` structure
-@[to_additive]
-lemma group.div_eq_mul_inv (a b : G) : a / b = a * b⁻¹ :=
+@[priority 100]    -- see Note [lower instance priority]
+instance add_group_has_sub : has_sub G :=
+⟨algebra.sub⟩
+
+lemma sub_eq_add_neg (a b : G) : a - b = a + -b :=
 rfl
 
-lemma sub_eq_add_neg {G : Type u} [add_group G] (a b : G) : a - b = a + -b :=
-add_group.sub_eq_add_neg a b
-
-end has_div
+end add_group
 
 /-- A commutative group is a group with commutative `(*)`. -/
 @[protect_proj, ancestor group comm_monoid]
@@ -375,6 +382,7 @@ variables {G : Type u} [comm_group G]
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance comm_group.to_cancel_comm_monoid : cancel_comm_monoid G :=
 { ..‹comm_group G›,
-  ..group.to_cancel_monoid }
+  ..group.to_left_cancel_semigroup,
+  ..group.to_right_cancel_semigroup }
 
 end comm_group

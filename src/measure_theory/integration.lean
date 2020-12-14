@@ -855,15 +855,6 @@ lemma lintegral_mono ⦃f g : α → ennreal⦄ (hfg : f ≤ g) :
   ∫⁻ a, f a ∂μ ≤ ∫⁻ a, g a ∂μ :=
 lintegral_mono' (le_refl μ) hfg
 
-lemma lintegral_mono_nnreal {f g : α → nnreal} (h : f ≤ g) :
-  ∫⁻ a, f a ∂μ ≤ ∫⁻ a, g a ∂μ :=
-begin
-  refine lintegral_mono _,
-  intro a,
-  rw ennreal.coe_le_coe,
-  exact h a,
-end
-
 lemma monotone_lintegral (μ : measure α) : monotone (lintegral μ) :=
 lintegral_mono
 
@@ -1040,8 +1031,6 @@ calc (∫⁻ a, f a + g a ∂μ) =
     by rw [lintegral_eq_supr_eapprox_lintegral hf, lintegral_eq_supr_eapprox_lintegral hg]
 
 lemma lintegral_zero : (∫⁻ a:α, 0 ∂μ) = 0 := by simp
-
-lemma lintegral_zero_fun : (∫⁻ a:α, (0 : α → ennreal) a ∂μ) = 0 := by simp
 
 @[simp] lemma lintegral_smul_measure (c : ennreal) (f : α → ennreal) :
   ∫⁻ a, f a ∂ (c • μ) = c * ∫⁻ a, f a ∂μ :=
@@ -1526,7 +1515,7 @@ of [wasserman2004]). Thus, this method shows how to one can calculate expectatio
 and other moments as a function of the probability density function.
  -/
 lemma lintegral_with_density_eq_lintegral_mul {α} [measurable_space α] (μ : measure α)
-  {f : α → ennreal} (h_mf : measurable f) : ∀ {g : α → ennreal}, measurable g →
+  {f : α → ennreal} (h_mf : measurable f) : ∀ {g : α → ennreal}, measurable g → 
   ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
 begin
   apply measurable.ennreal_induction,

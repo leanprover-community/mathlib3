@@ -31,7 +31,7 @@ groups.
 topological space, group, topological group
 -/
 
-open classical set filter topological_space function
+open classical set filter topological_space
 open_locale classical topological_space filter
 
 universes u v w x
@@ -78,14 +78,6 @@ lemma is_open_map_mul_right (a : G) : is_open_map (λ x, x * a) :=
 @[to_additive]
 lemma is_closed_map_mul_right (a : G) : is_closed_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_closed_map
-
-@[to_additive]
-lemma is_open_map_div_right (a : G) : is_open_map (λ x, x / a) :=
-by simpa only [div_eq_mul_inv] using is_open_map_mul_right (a⁻¹)
-
-@[to_additive]
-lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
-by simpa only [div_eq_mul_inv] using is_closed_map_mul_right (a⁻¹)
 
 end continuous_mul_group
 
@@ -184,11 +176,10 @@ variable {G}
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :
-  ∃ V ∈ 𝓝 (1 : G), ∀ (v ∈ V) (w ∈ V), v / w ∈ s :=
+  ∃ V ∈ 𝓝 (1 : G), ∀ (v ∈ V) (w ∈ V), v * w⁻¹ ∈ s :=
 have ((λp : G × G, p.1 * p.2⁻¹) ⁻¹' s) ∈ 𝓝 ((1, 1) : G × G),
   from continuous_at_fst.mul continuous_at_snd.inv (by simpa),
-by simpa only [div_eq_mul_inv, nhds_prod_eq, mem_prod_self_iff, prod_subset_iff, mem_preimage]
-  using this
+by simpa only [nhds_prod_eq, mem_prod_self_iff, prod_subset_iff, mem_preimage] using this
 
 @[to_additive]
 lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) = 𝓝 x :=
@@ -207,82 +198,6 @@ lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
   (h : @nhds G t 1 = @nhds G t' 1) : t = t' :=
 eq_of_nhds_eq_nhds $ λ x, by
   rw [← @nhds_translation_mul_inv G t _ _ x , ← @nhds_translation_mul_inv G t' _ _ x , ← h]
-
-@[to_additive]
-lemma topological_group.of_nhds_aux {G : Type*} [group G] [topological_space G]
-  (hinv : tendsto (λ (x : G), x⁻¹) (𝓝 1) (𝓝 1))
-  (hleft : ∀ (x₀ : G), 𝓝 x₀ = map (λ (x : G), x₀ * x) (𝓝 1))
-  (hconj : ∀ (x₀ : G), map (λ (x : G), x₀ * x * x₀⁻¹) (𝓝 1) ≤ 𝓝 1) : continuous (λ x : G, x⁻¹) :=
-begin
-  rw continuous_iff_continuous_at,
-  rintros x₀,
-  have key : (λ x, (x₀*x)⁻¹) = (λ x, x₀⁻¹*x) ∘ (λ x, x₀*x*x₀⁻¹) ∘ (λ x, x⁻¹),
-    by {ext ; simp[mul_assoc] },
-  calc map (λ x, x⁻¹) (𝓝 x₀)
-      = map (λ x, x⁻¹) (map (λ x, x₀*x) $ 𝓝 1) : by rw hleft
-  ... = map (λ x, (x₀*x)⁻¹) (𝓝 1) : by rw filter.map_map
-  ... = map (((λ x, x₀⁻¹*x) ∘ (λ x, x₀*x*x₀⁻¹)) ∘ (λ x, x⁻¹)) (𝓝 1) : by rw key
-  ... = map ((λ x, x₀⁻¹*x) ∘ (λ x, x₀*x*x₀⁻¹)) _ : by rw ← filter.map_map
-  ... ≤ map ((λ x, x₀⁻¹ * x) ∘ λ x, x₀ * x * x₀⁻¹) (𝓝 1) : map_mono hinv
-  ... = map (λ x, x₀⁻¹ * x) (map (λ x, x₀ * x * x₀⁻¹) (𝓝 1)) : filter.map_map
-  ... ≤ map (λ x, x₀⁻¹ * x) (𝓝 1) : map_mono (hconj x₀)
-  ... = 𝓝 x₀⁻¹ : (hleft _).symm
-end
-
-@[to_additive]
-lemma topological_group.of_nhds_one' {G : Type*} [group G] [topological_space G]
-  (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
-  (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
-  (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1))
-  (hright : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x*x₀) (𝓝 1)) : topological_group G :=
-begin
-  refine { continuous_mul := (has_continuous_mul.of_nhds_one hmul hleft hright).continuous_mul,
-           continuous_inv := topological_group.of_nhds_aux hinv hleft _ },
-  intros x₀,
-  suffices : map (λ (x : G), x₀ * x * x₀⁻¹) (𝓝 1) = 𝓝 1, by simp [this, le_refl],
-  rw [show (λ x, x₀ * x * x₀⁻¹) = (λ x, x₀ * x) ∘ λ x, x*x₀⁻¹, by {ext, simp [mul_assoc] },
-      ← filter.map_map, ← hright, hleft x₀⁻¹, filter.map_map],
-  convert map_id,
-  ext,
-  simp
-end
-
-@[to_additive]
-lemma topological_group.of_nhds_one {G : Type*} [group G] [topological_space G]
-  (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
-  (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
-  (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1))
-  (hconj : ∀ x₀ : G, tendsto (λ x, x₀*x*x₀⁻¹) (𝓝 1) (𝓝 1)) : topological_group G :=
- { continuous_mul := begin
-    rw continuous_iff_continuous_at,
-    rintros ⟨x₀, y₀⟩,
-    have key : (λ (p : G × G), x₀ * p.1 * (y₀ * p.2)) =
-      ((λ x, x₀*y₀*x) ∘ (uncurry (*)) ∘ (prod.map (λ x, y₀⁻¹*x*y₀) id)),
-      by { ext, simp [uncurry, prod.map, mul_assoc] },
-    specialize hconj y₀⁻¹, rw inv_inv at hconj,
-    calc map (λ (p : G × G), p.1 * p.2) (𝓝 (x₀, y₀))
-        = map (λ (p : G × G), p.1 * p.2) ((𝓝 x₀) ×ᶠ 𝓝 y₀)
-            : by rw nhds_prod_eq
-    ... = map (λ (p : G × G), x₀ * p.1 * (y₀ * p.2)) ((𝓝 1) ×ᶠ (𝓝 1))
-            : by rw [hleft x₀, hleft y₀, prod_map_map_eq, filter.map_map]
-    ... = map (((λ x, x₀*y₀*x) ∘ (uncurry (*))) ∘ (prod.map (λ x, y₀⁻¹*x*y₀) id))((𝓝 1) ×ᶠ (𝓝 1))
-            : by rw key
-    ... = map ((λ x, x₀*y₀*x) ∘ (uncurry (*))) ((map  (λ x, y₀⁻¹*x*y₀) $ 𝓝 1) ×ᶠ (𝓝 1))
-            : by rw [← filter.map_map, ← prod_map_map_eq', map_id]
-    ... ≤ map ((λ x, x₀*y₀*x) ∘ (uncurry (*))) ((𝓝 1) ×ᶠ (𝓝 1))
-            : map_mono (filter.prod_mono hconj $ le_refl _)
-    ... = map (λ x, x₀*y₀*x) (map (uncurry (*)) ((𝓝 1) ×ᶠ (𝓝 1)))   : by rw filter.map_map
-    ... ≤ map (λ x, x₀*y₀*x) (𝓝 1)   : map_mono hmul
-    ... = 𝓝 (x₀*y₀)   : (hleft _).symm
-  end,
-  continuous_inv := topological_group.of_nhds_aux hinv hleft hconj}
-
-@[to_additive]
-lemma topological_group.of_comm_of_nhds_one {G : Type*} [comm_group G] [topological_space G]
-  (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
-  (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
-  (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1)) : topological_group G :=
-topological_group.of_nhds_one hmul hinv hleft (by simpa using tendsto_id)
 
 end topological_group
 
@@ -318,9 +233,9 @@ instance topological_group_quotient [N.normal] : topological_group (quotient N) 
     exact (quotient_map.continuous_iff quot).2 cont,
   end,
   continuous_inv := begin
-    have : continuous ((coe : G → quotient N) ∘ (λ (a : G), a⁻¹)) :=
-      continuous_quot_mk.comp continuous_inv,
-    convert continuous_quotient_lift _ this,
+    apply continuous_quotient_lift,
+    change continuous ((coe : G → quotient N) ∘ (λ (a : G), a⁻¹)),
+    exact continuous_quot_mk.comp continuous_inv
   end }
 
 attribute [instance] topological_add_group_quotient
@@ -336,7 +251,7 @@ class has_continuous_sub (G : Type*) [topological_space G] [has_sub G] : Prop :=
 instance topological_add_group.to_has_continuous_sub [topological_space G] [add_group G]
   [topological_add_group G] :
   has_continuous_sub G :=
-⟨by { simp only [sub_eq_add_neg], exact continuous_fst.add continuous_snd.neg }⟩
+⟨continuous_fst.add continuous_snd.neg⟩
 
 export has_continuous_sub (continuous_sub)
 
@@ -353,7 +268,7 @@ variables [topological_space α] {f g : α → G} {s : set α} {x : α}
 
 @[continuity] lemma continuous.sub (hf : continuous f) (hg : continuous g) :
   continuous (λ x, f x - g x) :=
-continuous_sub.comp (hf.prod_mk hg : _)
+continuous_sub.comp $ hf.prod_mk hg
 
 lemma continuous_within_at.sub (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
   continuous_within_at (λ x, f x - g x) s x :=
@@ -367,7 +282,7 @@ end has_continuous_sub
 
 lemma nhds_translation [topological_space G] [add_group G] [topological_add_group G] (x : G) :
   comap (λy:G, y - x) (𝓝 0) = 𝓝 x :=
-by simpa only [sub_eq_add_neg] using nhds_translation_add_neg x
+nhds_translation_add_neg x
 
 /-- additive group with a neighbourhood around 0.
 Only used to construct a topology and uniform space.
@@ -487,7 +402,7 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
  -- a ∈ -s implies f (a, 1) ∈ -s, and so (a, 1) ∈ f⁻¹' (-s);
  -- and so can find t₁ t₂ open such that a ∈ t₁ × t₂ ⊆ f⁻¹' (-s)
  let ⟨t₁, t₂, ht₁, ht₂, a_mem_t₁, one_mem_t₂, t_subset⟩ :=
-   is_open_prod_iff.1 ((is_open_compl_iff.2 hs).preimage hf) a (1:G) (by simpa [f]) in
+   is_open_prod_iff.1 (hf _ (is_open_compl_iff.2 hs)) a (1:G) (by simpa [f]) in
  begin
    use [s * t₂, ht₂.mul_left, λ x hx, ⟨x, 1, hx, one_mem_t₂, mul_one _⟩],
    apply inf_principal_eq_bot,
@@ -519,11 +434,11 @@ lemma compact_open_separated_mul {K U : set G} (hK : is_compact K) (hU : is_open
   ∃ V : set G, is_open V ∧ (1 : G) ∈ V ∧ K * V ⊆ U :=
 begin
   let W : G → set G := λ x, (λ y, x * y) ⁻¹' U,
-  have h1W : ∀ x, is_open (W x) := λ x, hU.preimage (continuous_mul_left x),
+  have h1W : ∀ x, is_open (W x) := λ x, continuous_mul_left x U hU,
   have h2W : ∀ x ∈ K, (1 : G) ∈ W x := λ x hx, by simp only [mem_preimage, mul_one, hKU hx],
   choose V hV using λ x : K, exists_open_nhds_one_mul_subset (mem_nhds_sets (h1W x) (h2W x.1 x.2)),
   let X : K → set G := λ x, (λ y, (x : G)⁻¹ * y) ⁻¹' (V x),
-  cases hK.elim_finite_subcover X (λ x, (hV x).1.preimage (continuous_mul_left x⁻¹)) _ with t ht, swap,
+  cases hK.elim_finite_subcover X (λ x, continuous_mul_left x⁻¹ (V x) (hV x).1) _ with t ht, swap,
   { intros x hx, rw [mem_Union], use ⟨x, hx⟩, rw [mem_preimage], convert (hV _).2.1,
     simp only [mul_left_inv, subtype.coe_mk] },
   refine ⟨⋂ x ∈ t, V x, is_open_bInter (finite_mem_finset _) (λ x hx, (hV x).1), _, _⟩,

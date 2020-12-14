@@ -40,7 +40,7 @@ interpreted as a submodule of `α →₀ M`. We also define `linear_map` version
 * `finsupp.dom_lcongr`: a `linear_equiv` version of `finsupp.dom_congr`;
 
 * `finsupp.congr`: if the sets `s` and `t` are equivalent, then `supported M R s` is equivalent to
-  `supported M R t`;
+  `supported M R t`; 
 
 * `finsupp.lcongr`: a `linear_equiv`alence between `α →₀ M` and `β →₀ N` constructed using `e : α ≃
   β` and `e' : M ≃ₗ[R] N`.
@@ -81,7 +81,7 @@ lhom_ext $ λ a, linear_map.congr_fun (h a)
 
 /-- Interpret `λ (f : α →₀ M), f a` as a linear map. -/
 def lapply (a : α) : (α →₀ M) →ₗ[R] M :=
-{ map_smul' := assume a b, rfl, ..finsupp.apply_add_hom a }
+{ map_smul' := assume a b, rfl, ..finsupp.eval_add_hom a }
 
 section lsubtype_domain
 variables (s : set α)
@@ -131,8 +131,8 @@ lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
   disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) (⨆a∈t, (lsingle a).range) :=
 begin
   refine disjoint.mono
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right)
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right)
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right s)
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right t)
     (le_trans (le_infi $ assume i, _) infi_ker_lapply_le_bot),
   classical,
   by_cases his : i ∈ s,

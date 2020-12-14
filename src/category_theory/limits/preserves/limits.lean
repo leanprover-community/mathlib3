@@ -22,9 +22,7 @@ universes v u₁ u₂
 
 noncomputable theory
 
-namespace category_theory
-
-open category limits
+open category_theory category_theory.category category_theory.limits
 
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
@@ -97,5 +95,3 @@ lemma preserves_colimits_iso_inv_comp_desc (t : cocone F) :
   (preserves_colimit_iso G F).inv ≫ G.map (colimit.desc _ t) = colimit.desc _ (G.map_cocone t) :=
 by { ext, simp [← G.map_comp] }
 end
-
-end category_theory

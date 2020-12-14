@@ -54,7 +54,7 @@ inductive rel (α : Type u) : (α × α) → (α × α) → Prop
 attribute [refl] rel.refl
 
 @[symm] lemma rel.symm {x y : α × α} : rel α x y → rel α y x :=
-by rintro ⟨_, _⟩; constructor
+by { rintro ⟨_,_⟩, exact a, apply rel.swap }
 
 @[trans] lemma rel.trans {x y z : α × α} : rel α x y → rel α y z → rel α x z :=
 by { intros a b, cases_matching* rel _ _ _; apply rel.refl <|> apply rel.swap }
@@ -171,15 +171,6 @@ begin
   have hx := h x, have hy := h y, have hx' := h x', have hy' := h y',
   simp only [true_iff, true_or, eq_self_iff_true, iff_true, or_true] at hx hy hx' hy',
   cases hx; subst x; cases hy; subst y; cases hx'; try { subst x' }; cases hy'; try { subst y' }; cc,
-end
-
-instance mem.decidable [decidable_eq α] (x : α) (z : sym2 α) : decidable (x ∈ z) :=
-begin
-  refine quotient.rec_on_subsingleton z (λ w, _),
-  cases w with y₁ y₂,
-  by_cases h₁ : x = y₁, subst x, exact is_true (mk_has_mem _ _),
-  by_cases h₂ : x = y₂, subst x, exact is_true (mk_has_mem_right _ _),
-  apply is_false, intro h, rw mem_iff at h, cases h, exact h₁ h, exact h₂ h,
 end
 
 end membership

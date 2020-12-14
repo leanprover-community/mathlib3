@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 
-import algebra.module.pi
-import algebra.ordered_pi
-import algebra.module.prod
+import linear_algebra.basic
 import algebra.ordered_field
 
 /-!
@@ -21,9 +19,8 @@ In this file we define
 
 ## Implementation notes
 
-* We choose to define `ordered_semimodule` as a `Prop`-valued mixin, so that it can be
-  used for both modules and algebras
-  (the axioms for an "ordered algebra" are exactly that the algebra is ordered as a module).
+* We choose to define `ordered_semimodule` so that it extends `semimodule` only, as is done
+  for semimodules itself.
 * To get ordered modules and ordered vector spaces, it suffices to the replace the
   `order_add_comm_monoid` and the `ordered_semiring` as desired.
 
@@ -43,14 +40,13 @@ with a partial order in which the scalar multiplication is compatible with the o
 -/
 @[protect_proj, ancestor semimodule]
 class ordered_semimodule (R M : Type*)
-  [ordered_semiring R] [ordered_add_comm_monoid M] [semimodule R M] : Prop :=
+  [ordered_semiring R] [ordered_add_comm_monoid M] extends semimodule R M :=
 (smul_lt_smul_of_pos : ∀ {a b : M}, ∀ {c : R}, a < b → 0 < c → c • a < c • b)
 (lt_of_smul_lt_smul_of_pos : ∀ {a b : M}, ∀ {c : R}, c • a < c • b → 0 < c → a < b)
 
 section ordered_semimodule
 
-variables {R M : Type*}
-  [ordered_semiring R] [ordered_add_comm_monoid M] [semimodule R M] [ordered_semimodule R M]
+variables {R M : Type*} [ordered_semiring R] [ordered_add_comm_monoid M] [ordered_semimodule R M]
   {a b : M} {c : R}
 
 lemma smul_lt_smul_of_pos : a < b → 0 < c → c • a < c • b := ordered_semimodule.smul_lt_smul_of_pos
@@ -86,7 +82,7 @@ end ordered_semimodule
 `ordered_semimodule`. Moreover, it suffices to verify that `a < b` and `0 < c` imply
 `c • a ≤ c • b`. We have no semifields in `mathlib`, so we use the assumption `∀ c ≠ 0, is_unit c`
 instead. -/
-lemma ordered_semimodule.mk'' {R M : Type*} [linear_ordered_semiring R] [ordered_add_comm_monoid M]
+def ordered_semimodule.mk'' {R M : Type*} [linear_ordered_semiring R] [ordered_add_comm_monoid M]
   [semimodule R M] (hR : ∀ {c : R}, c ≠ 0 → is_unit c)
   (hlt : ∀ ⦃a b : M⦄ ⦃c : R⦄, a < b → 0 < c → c • a ≤ c • b) :
   ordered_semimodule R M :=
@@ -95,7 +91,7 @@ begin
   { refine λ a b c hab hc, (hlt hab hc).lt_of_ne _,
     rw [ne.def, (hR hc.ne').smul_left_cancel],
     exact hab.ne },
-  refine { smul_lt_smul_of_pos := hlt', .. },
+  refine { smul_lt_smul_of_pos := hlt', to_semimodule := ‹_›, .. },
   intros a b c h hc,
   rcases (hR hc.ne') with ⟨c, rfl⟩,
   rw [← c.inv_smul_smul a, ← c.inv_smul_smul b],
@@ -105,7 +101,7 @@ end
 
 /-- If `R` is a linear ordered field, then it suffices to verify only the first axiom of
 `ordered_semimodule`. -/
-lemma ordered_semimodule.mk' {k M : Type*} [linear_ordered_field k] [ordered_add_comm_monoid M]
+def ordered_semimodule.mk' {k M : Type*} [linear_ordered_field k] [ordered_add_comm_monoid M]
   [semimodule k M] (hlt : ∀ ⦃a b : M⦄ ⦃c : k⦄, a < b → 0 < c → c • a ≤ c • b) :
   ordered_semimodule k M :=
 ordered_semimodule.mk'' (λ c hc, is_unit.mk0 _ hc) hlt
@@ -117,9 +113,8 @@ instance linear_ordered_semiring.to_ordered_semimodule  {R : Type*} [linear_orde
 
 section field
 
-variables {k M N : Type*} [linear_ordered_field k]
-  [ordered_add_comm_group M] [semimodule k M] [ordered_semimodule k M]
-  [ordered_add_comm_group N] [semimodule k N] [ordered_semimodule k N]
+variables {k M N : Type*} [linear_ordered_field k] [ordered_add_comm_group M]
+  [ordered_semimodule k M] [ordered_add_comm_group N] [ordered_semimodule k N]
   {a b : M} {c : k}
 
 lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
@@ -128,10 +123,7 @@ lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
   λ h, smul_le_smul_of_nonneg h hc.le⟩
 
 lemma smul_le_smul_iff_of_neg (hc : c < 0) : c • a ≤ c • b ↔ b ≤ a :=
-begin
-  rw [← neg_neg c, neg_smul, neg_smul (-c), neg_le_neg_iff, smul_le_smul_iff_of_pos (neg_pos.2 hc)],
-  apply_instance,
-end
+by rw [← neg_neg c, neg_smul, neg_smul (-c), neg_le_neg_iff, smul_le_smul_iff_of_pos (neg_pos.2 hc)]
 
 lemma smul_lt_iff_of_pos (hc : 0 < c) : c • a < b ↔ a < c⁻¹ • b :=
 calc c • a < b ↔ c • a < c • c⁻¹ • b : by rw [smul_inv_smul' hc.ne']
@@ -148,22 +140,6 @@ calc a ≤ c • b ↔ c • c⁻¹ • a ≤ c • b : by rw [smul_inv_smul' hc
 instance prod.ordered_semimodule : ordered_semimodule k (M × N) :=
 ordered_semimodule.mk' $ λ v u c h hc,
   ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
-
-instance pi.ordered_semimodule {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
-  [Π i, semimodule k (M i)] [∀ i, ordered_semimodule k (M i)] :
-  ordered_semimodule k (Π i : ι, M i) :=
-begin
-  refine (ordered_semimodule.mk' $ λ v u c h hc i, _),
-  change c • v i ≤ c • u i,
-  exact smul_le_smul_of_nonneg (h.le i) hc.le,
-end
-
--- Sometimes Lean fails to apply the dependent version to non-dependent functions,
--- so we define another instance
-instance pi.ordered_semimodule' {ι : Type*} {M : Type*} [ordered_add_comm_group M]
-  [semimodule k M] [ordered_semimodule k M] :
-  ordered_semimodule k (ι → M) :=
-pi.ordered_semimodule
 
 end field
 
@@ -187,9 +163,9 @@ instance [semiring R] [ordered_add_comm_monoid M] [semimodule R M] : semimodule 
 { add_smul := @semimodule.add_smul R M _ _ _,
   zero_smul := @semimodule.zero_smul R M _ _ _ }
 
-instance [ordered_semiring R] [ordered_add_comm_monoid M] [semimodule R M] [ordered_semimodule R M] :
+instance [ordered_semiring R] [ordered_add_comm_monoid M] [ordered_semimodule R M] :
   ordered_semimodule R (order_dual M) :=
-{ smul_lt_smul_of_pos := λ a b, @ordered_semimodule.smul_lt_smul_of_pos R M _ _ _ _ b a,
-  lt_of_smul_lt_smul_of_pos := λ a b, @ordered_semimodule.lt_of_smul_lt_smul_of_pos R M _ _ _ _ b a }
+{ smul_lt_smul_of_pos := λ a b, @ordered_semimodule.smul_lt_smul_of_pos R M _ _ _ b a,
+  lt_of_smul_lt_smul_of_pos := λ a b, @ordered_semimodule.lt_of_smul_lt_smul_of_pos R M _ _ _ b a }
 
 end order_dual

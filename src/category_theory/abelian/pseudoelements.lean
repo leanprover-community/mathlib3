@@ -305,7 +305,8 @@ theorem pseudo_exact_of_exact {P Q R : C} {f : P ⟶ Q} {g : Q ⟶ R} [exact f g
         ... = (pullback.snd ≫ c) ≫ kernel.ι (cokernel.π f)
                 : by rw [←category.assoc, pullback.condition]
         ... = pullback.snd ≫ b.hom
-                : by { rw category.assoc, congr' }
+                : by { rw category.assoc, congr,
+                       simpa [image_ι_eq_image_ι, kernel_cokernel_eq_image_ι] using hc }
     end⟩
 
 end

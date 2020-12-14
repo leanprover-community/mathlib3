@@ -97,8 +97,7 @@ let ⟨hlg, Mg, hMgp, hMg⟩ := hg in
                ... ≤ (Mf + Mg) * ∥x∥     : by rw add_mul
 
 lemma sub (hf : is_bounded_linear_map 𝕜 f) (hg : is_bounded_linear_map 𝕜 g) :
-  is_bounded_linear_map 𝕜 (λ e, f e - g e) :=
-by simpa [sub_eq_add_neg] using add hf (neg hg)
+  is_bounded_linear_map 𝕜 (λ e, f e - g e) := add hf (neg hg)
 
 lemma comp {g : F → G}
   (hg : is_bounded_linear_map 𝕜 g) (hf : is_bounded_linear_map 𝕜 f) :
@@ -439,14 +438,3 @@ begin
 end
 
 end bilinear_map
-
-/-- A linear isometry preserves the norm. -/
-lemma linear_map.norm_apply_of_isometry (f : E →ₗ[𝕜] F) {x : E} (hf : isometry f) : ∥f x∥ = ∥x∥ :=
-by { simp_rw [←dist_zero_right, ←f.map_zero], exact isometry.dist_eq hf _ _ }
-
-/-- Construct a continuous linear equiv from a linear map that is also an isometry with full range. -/
-def continuous_linear_equiv.of_isometry (f : E →ₗ[𝕜] F) (hf : isometry f) (hfr : f.range = ⊤) :
-  E ≃L[𝕜] F :=
-continuous_linear_equiv.of_homothety 𝕜
-(linear_equiv.of_bijective f (linear_map.ker_eq_bot.mpr (isometry.injective hf)) hfr)
-1 zero_lt_one (λ _, by simp [one_mul, f.norm_apply_of_isometry hf])

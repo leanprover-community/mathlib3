@@ -155,8 +155,7 @@ by { rw neg_part, exact pos_part_map_norm _ }
 lemma pos_part_sub_neg_part (f : α →ₛ ℝ) : f.pos_part - f.neg_part = f :=
 begin
   simp only [pos_part, neg_part],
-  ext a,
-  rw coe_sub,
+  ext,
   exact max_zero_sub_eq_self (f a)
 end
 
@@ -262,7 +261,7 @@ begin
   simp only [← map_apply g f, lintegral_eq_lintegral],
   rw [map_integral f _ hf, map_lintegral, ennreal.to_real_sum],
   { refine finset.sum_congr rfl (λb hb, _),
-    rw [smul_eq_mul, to_real_mul, mul_comm] },
+    rw [smul_eq_mul, to_real_mul_to_real, mul_comm] },
   { assume a ha,
     by_cases a0 : a = 0,
     { rw [a0, hg0, zero_mul], exact with_top.zero_lt_top },
@@ -533,8 +532,7 @@ lemma of_simple_func_neg (f : α →ₛ E) (hf : integrable f μ) :
   of_simple_func (-f) hf.neg = -of_simple_func f hf := rfl
 
 lemma of_simple_func_sub (f g : α →ₛ E) (hf : integrable f μ) (hg : integrable g μ) :
-  of_simple_func (f - g) (hf.sub hg) = of_simple_func f hf - of_simple_func g hg :=
-by { simp only [sub_eq_add_neg, ← of_simple_func_neg, ← of_simple_func_add], refl }
+  of_simple_func (f - g) (hf.sub hg) = of_simple_func f hf - of_simple_func g hg := rfl
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
@@ -1012,7 +1010,7 @@ integral_neg f
 
 lemma integral_sub (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, f a - g a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
-by { simp only [sub_eq_add_neg, ← integral_neg], exact integral_add hf hg.neg }
+by { rw [sub_eq_add_neg, ← integral_neg], exact integral_add hf hg.neg }
 
 lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
@@ -1438,7 +1436,7 @@ begin
   refine tendsto_nhds_unique _ (tendsto_const_nhds.smul (tendsto_integral_approx_on_univ hfi)),
   convert tendsto_integral_approx_on_univ (hfi.smul_measure hc),
   simp only [simple_func.integral, measure.smul_apply, finset.smul_sum, smul_smul,
-    ennreal.to_real_mul]
+    ennreal.to_real_mul_to_real]
 end
 
 lemma integral_map {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)

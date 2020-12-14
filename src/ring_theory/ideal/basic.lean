@@ -178,13 +178,6 @@ begin
   exact or.cases_on (hI.mem_or_mem H) id ih
 end
 
-lemma not_is_prime_iff {I : ideal α} : ¬ I.is_prime ↔ I = ⊤ ∨ ∃ (x ∉ I) (y ∉ I), x * y ∈ I :=
-begin
-  simp_rw [ideal.is_prime, not_and_distrib, ne.def, not_not, not_forall, not_or_distrib],
-  exact or_congr iff.rfl
-    ⟨λ ⟨x, y, hxy, hx, hy⟩, ⟨x, hx, y, hy, hxy⟩, λ ⟨x, hx, y, hy, hxy⟩, ⟨x, y, hxy, hx, hy⟩⟩
-end
-
 theorem zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
 λ hz, I.ne_top_iff_one.1 h $ hz ▸ I.zero_mem
 
@@ -228,7 +221,7 @@ theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
 ⟨H.1, λ x y hxy, or_iff_not_imp_left.2 $ λ hx, begin
   cases H.exists_inv hx with z hz,
   have := I.mul_mem_left hz,
-  rw [mul_sub, mul_one, mul_comm, mul_assoc, sub_eq_add_neg] at this,
+  rw [mul_sub, mul_one, mul_comm, mul_assoc] at this,
   exact I.neg_mem_iff.1 ((I.add_mem_iff_right $ I.mul_mem_left hxy).1 this)
 end⟩
 

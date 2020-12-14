@@ -45,7 +45,7 @@ begin
   apply induction_on x,
   { refine is_closed_eq _ continuous_const,
     exact (completion.uniform_continuous_dist.continuous.comp
-             (continuous.prod_mk continuous_id continuous_id : _) : _) },
+             (continuous.prod_mk continuous_id continuous_id) : _) },
   { assume a,
     rw [completion.dist_eq, dist_self] }
 end
@@ -54,8 +54,7 @@ protected lemma completion.dist_comm (x y : completion α) : dist x y = dist y x
 begin
   apply induction_on₂ x y,
   { refine is_closed_eq completion.uniform_continuous_dist.continuous _,
-    exact completion.uniform_continuous_dist.continuous.comp
-      (@continuous_swap (completion α) (completion α) _ _) },
+    exact (completion.uniform_continuous_dist.continuous.comp continuous_swap : _) },
   { assume a b,
     rw [completion.dist_eq, completion.dist_eq, dist_comm] }
 end

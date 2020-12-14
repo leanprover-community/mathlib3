@@ -8,52 +8,6 @@ import logic.function.basic
 
 universe u
 
-section associative
-variables {α : Type u} (f : α → α → α) [is_associative α f] (x y : α)
-
-/--
-Composing two associative operations of `f : α → α → α` on the left
-is equal to an associative operation on the left.
--/
-lemma comp_assoc_left : (f x) ∘ (f y) = (f (f x y)) :=
-by { ext z, rw [function.comp_apply, @is_associative.assoc _ f] }
-
-/--
-Composing two associative operations of `f : α → α → α` on the right
-is equal to an associative operation on the right.
--/
-lemma comp_assoc_right : (λ z, f z x) ∘ (λ z, f z y) = (λ z, f z (f y x)) :=
-by { ext z, rw [function.comp_apply, @is_associative.assoc _ f] }
-
-end associative
-
-section semigroup
-variables {α : Type*}
-
-/--
-Composing two multiplications on the left by `y` then `x`
-is equal to a multiplication on the left by `x * y`.
--/
-@[simp, to_additive
-"Composing two additions on the left by `y` then `x`
-is equal to a addition on the left by `x + y`."]
-lemma comp_mul_left [semigroup α] (x y : α) :
-  ((*) x) ∘ ((*) y) = ((*) (x * y)) :=
-comp_assoc_left _ _ _
-
-/--
-Composing two multiplications on the right by `y` and `x`
-is equal to a multiplication on the right by `y * x`.
--/
-@[simp, to_additive
-"Composing two additions on the right by `y` and `x`
-is equal to a addition on the right by `y + x`."]
-lemma comp_mul_right [semigroup α] (x y : α) :
-  (* x) ∘ (* y) = (* (y * x)) :=
-comp_assoc_right _ _ _
-
-end semigroup
-
 section monoid
 variables {M : Type u} [monoid M]
 
@@ -61,10 +15,6 @@ variables {M : Type u} [monoid M]
 lemma ite_mul_one {P : Prop} [decidable P] {a b : M} :
   ite P (a * b) 1 = ite P a 1 * ite P b 1 :=
 by { by_cases h : P; simp [h], }
-
-@[to_additive]
-lemma eq_one_iff_eq_one_of_mul_eq_one {a b : M} (h : a * b = 1) : a = 1 ↔ b = 1 :=
-by split; { rintro rfl, simpa using h }
 
 end monoid
 
@@ -107,46 +57,27 @@ end comm_monoid
 
 section left_cancel_monoid
 
-variables {M : Type u} [left_cancel_monoid M] {a b : M}
+variables {M : Type u} [left_cancel_monoid M]
 
-@[simp, to_additive] lemma mul_eq_left_iff : a * b = a ↔ b = 1 :=
-calc a * b = a ↔ a * b = a * 1 : by rw mul_one
-           ... ↔ b = 1         : mul_left_cancel_iff
+@[to_additive] lemma eq_one_of_mul_self_left_cancel {a : M} (h : a * a = a) : a = 1 :=
+mul_left_cancel (show a * a = a * 1, by rwa mul_one)
 
-@[simp, to_additive] lemma left_eq_mul_iff : a = a * b ↔ b = 1 :=
-eq_comm.trans mul_eq_left_iff
+@[to_additive] lemma eq_one_of_left_cancel_mul_self {a : M} (h : a = a * a) : a = 1 :=
+mul_left_cancel (show a * a = a * 1, by rwa [mul_one, eq_comm])
 
 end left_cancel_monoid
 
 section right_cancel_monoid
 
-variables {M : Type u} [right_cancel_monoid M] {a b : M}
+variables {M : Type u} [right_cancel_monoid M]
 
-@[simp, to_additive] lemma mul_eq_right_iff : a * b = b ↔ a = 1 :=
-calc a * b = b ↔ a * b = 1 * b : by rw one_mul
-           ... ↔ a = 1         : mul_right_cancel_iff
+@[to_additive] lemma eq_one_of_mul_self_right_cancel {a : M} (h : a * a = a) : a = 1 :=
+mul_right_cancel (show a * a = 1 * a, by rwa one_mul)
 
-@[simp, to_additive] lemma right_eq_mul_iff : b = a * b ↔ a = 1 :=
-eq_comm.trans mul_eq_right_iff
+@[to_additive] lemma eq_one_of_right_cancel_mul_self {a : M} (h : a = a * a) : a = 1 :=
+mul_right_cancel (show a * a = 1 * a, by rwa [one_mul, eq_comm])
 
 end right_cancel_monoid
-
-section div_inv_monoid
-
--- TODO: in a later PR, this `group G` instance will become `div_inv_monoid`
-variables {G : Type u} [group G]
-
-@[to_additive]
-lemma group.inv_eq_one_div (x : G) :
-  x⁻¹ = 1 / x :=
-by rw [group.div_eq_mul_inv, one_mul]
-
-@[to_additive]
-lemma group.mul_one_div (x y : G) :
-  x * (1 / y) = x / y :=
-by rw [group.div_eq_mul_inv, one_mul, group.div_eq_mul_inv]
-
-end div_inv_monoid
 
 section group
 variables {G : Type u} [group G] {a b c : G}
@@ -302,27 +233,19 @@ lemma mul_left_eq_self : a * b = b ↔ a = 1 :=
 lemma mul_right_eq_self : a * b = a ↔ b = 1 :=
 ⟨λ h, @mul_left_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩
 
-@[to_additive]
-lemma div_left_injective : function.injective (λ a, a / b) :=
-by simpa only [group.div_eq_mul_inv] using λ a a' h, mul_left_injective (b⁻¹) h
-
-@[to_additive]
-lemma div_right_injective : function.injective (λ a, b / a) :=
-by simpa only [group.div_eq_mul_inv] using λ a a' h, inv_injective (mul_right_injective b h)
-
 end group
 
 section add_group
 variables {G : Type u} [add_group G] {a b c d : G}
 
 @[simp] lemma sub_self (a : G) : a - a = 0 :=
-by rw [sub_eq_add_neg, add_right_neg a]
+add_right_neg a
 
 @[simp] lemma sub_add_cancel (a b : G) : a - b + b = a :=
-by rw [sub_eq_add_neg, neg_add_cancel_right a b]
+neg_add_cancel_right a b
 
 @[simp] lemma add_sub_cancel (a b : G) : a + b - b = a :=
-by rw [sub_eq_add_neg, add_neg_cancel_right a b]
+add_neg_cancel_right a b
 
 lemma add_sub_assoc (a b c : G) : a + b - c = a + (b - c) :=
 by rw [sub_eq_add_neg, add_assoc, ←sub_eq_add_neg]
@@ -339,7 +262,7 @@ lemma sub_eq_zero_iff_eq : a - b = 0 ↔ a = b :=
 ⟨eq_of_sub_eq_zero, sub_eq_zero_of_eq⟩
 
 @[simp] lemma zero_sub (a : G) : 0 - a = -a :=
-by rw [sub_eq_add_neg, zero_add (-a)]
+zero_add (-a)
 
 @[simp] lemma sub_zero (a : G) : a - 0 = a :=
 by rw [sub_eq_add_neg, neg_zero, add_zero]
@@ -382,10 +305,10 @@ lemma add_eq_of_eq_sub (h : a = c - b) : a + b = c :=
 by simp [h]
 
 @[simp] lemma sub_right_inj : a - b = a - c ↔ b = c :=
-sub_right_injective.eq_iff
+(add_right_inj _).trans neg_inj
 
 @[simp] lemma sub_left_inj : b - a = c - a ↔ b = c :=
-by { rw [sub_eq_add_neg, sub_eq_add_neg], exact add_left_inj _ }
+add_left_inj _
 
 lemma sub_add_sub_cancel (a b c : G) : (a - b) + (b - c) = a - c :=
 by rw [← add_sub_assoc, sub_add_cancel]
@@ -403,10 +326,10 @@ theorem sub_ne_zero : a - b ≠ 0 ↔ a ≠ b :=
 not_congr sub_eq_zero
 
 theorem eq_sub_iff_add_eq : a = b - c ↔ a + c = b :=
-by rw [sub_eq_add_neg, eq_add_neg_iff_add_eq]
+eq_add_neg_iff_add_eq
 
 theorem sub_eq_iff_eq_add : a - b = c ↔ a = c + b :=
-by rw [sub_eq_add_neg, add_neg_eq_iff_eq_add]
+add_neg_eq_iff_eq_add
 
 theorem eq_iff_eq_of_sub_eq_sub (H : a - b = c - d) : a = b ↔ c = d :=
 by rw [← sub_eq_zero, H, sub_eq_zero]
@@ -486,10 +409,9 @@ by simp
 @[simp] lemma sub_sub_cancel (a b : G) : a - (a - b) = b := sub_sub_self a b
 
 lemma sub_eq_neg_add (a b : G) : a - b = -b + a :=
-by rw [sub_eq_add_neg, add_comm _ _]
+add_comm _ _
 
-theorem neg_add' (a b : G) : -(a + b) = -a - b :=
-by rw [sub_eq_add_neg, neg_add a b]
+theorem neg_add' (a b : G) : -(a + b) = -a - b := neg_add a b
 
 @[simp]
 lemma neg_sub_neg (a b : G) : -a - -b = b - a :=
@@ -512,10 +434,10 @@ by rw [← add_sub_assoc, add_sub_cancel']
 -- This lemma is in the `simp` set under the name `add_neg_cancel_comm_assoc`,
 -- defined  in `algebra/group/commute`
 lemma add_add_neg_cancel'_right (a b : G) : a + (b + -a) = b :=
-by rw [← sub_eq_add_neg, add_sub_cancel'_right a b]
+add_sub_cancel'_right a b
 
 lemma sub_right_comm (a b c : G) : a - b - c = a - c - b :=
-by { repeat { rw sub_eq_add_neg }, exact add_right_comm _ _ _ }
+add_right_comm _ _ _
 
 @[simp] lemma add_add_sub_cancel (a b c : G) : (a + c) + (b - c) = a + b :=
 by rw [add_assoc, add_sub_cancel'_right]

@@ -35,6 +35,11 @@ The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, 
 `map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
 between rings from monoid homs given only a proof that addition is preserved.
 
+Throughout the section on `ring_hom` implicit `{}` brackets are often used instead
+of type class `[]` brackets. This is done when the instances can be inferred because they are
+implicit arguments to the type `ring_hom`. When they can be inferred from the type it is faster
+to use this method than to use type class inference.
+
 ## Tags
 
 `ring_hom`, `semiring_hom`, `semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`,
@@ -200,18 +205,11 @@ lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
 
 end add_monoid_hom
 
-/-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too.
-
-This extends from both `monoid_hom` and `monoid_with_zero_hom` in order to put the fields in a
-sensible order, even though `monoid_with_zero_hom` already extends `monoid_hom`. -/
+/-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too. -/
 structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
-  extends monoid_hom α β, add_monoid_hom α β, monoid_with_zero_hom α β
+  extends monoid_hom α β, add_monoid_hom α β
 
 infixr ` →+* `:25 := ring_hom
-
-/-- Reinterpret a ring homomorphism `f : R →+* S` as a `monoid_with_zero_hom R S`.
-The `simp`-normal form is `(f : monoid_with_zero_hom R S)`. -/
-add_decl_doc ring_hom.to_monoid_with_zero_hom
 
 /-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid homomorphism `R →* S`.
 The `simp`-normal form is `(f : R →* S)`. -/
@@ -225,17 +223,11 @@ namespace ring_hom
 
 section coe
 
-/-!
-Throughout this section, some `semiring` arguments are specified with `{}` instead of `[]`.
-See note [implicit instance arguments].
--/
 variables {rα : semiring α} {rβ : semiring β}
 
 include rα rβ
 
 instance : has_coe_to_fun (α →+* β) := ⟨_, ring_hom.to_fun⟩
-
-initialize_simps_projections ring_hom (to_fun → apply)
 
 @[simp] lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
 
@@ -419,6 +411,10 @@ instance comm_semiring.to_comm_monoid_with_zero [comm_semiring α] : comm_monoid
 section comm_semiring
 variables [comm_semiring α] [comm_semiring β] {a b c : α}
 
+@[priority 100] -- see Note [lower instance priority]
+instance comm_semiring.comm_monoid_with_zero : comm_monoid_with_zero α :=
+{ .. (‹_› : comm_semiring α) }
+
 /-- Pullback a `semiring` instance along an injective function. -/
 protected def function.injective.comm_semiring [has_zero γ] [has_one γ] [has_add γ] [has_mul γ]
   (f : γ → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -512,12 +508,16 @@ theorem neg_eq_neg_one_mul (a : α) : -a = -1 * a :=
 by simp
 
 lemma mul_sub_left_distrib (a b c : α) : a * (b - c) = a * b - a * c :=
-by simpa only [sub_eq_add_neg, neg_mul_eq_mul_neg] using mul_add a b (-c)
+calc
+   a * (b - c) = a * b + a * -c : left_distrib a b (-c)
+           ... = a * b - a * c  : by simp [sub_eq_add_neg]
 
 alias mul_sub_left_distrib ← mul_sub
 
 lemma mul_sub_right_distrib (a b c : α) : (a - b) * c = a * c - b * c :=
-by simpa only [sub_eq_add_neg, neg_mul_eq_neg_mul] using add_mul a (-b) c
+calc
+  (a - b) * c = a * c  + -b * c : right_distrib a (-b) c
+          ... = a * c - b * c   : by simp [sub_eq_add_neg]
 
 alias mul_sub_right_distrib ← sub_mul
 
@@ -663,7 +663,7 @@ theorem neg_dvd_iff_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
 ⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
 
 theorem dvd_sub (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b - c :=
-by { rw sub_eq_add_neg, exact dvd_add h₁ (dvd_neg_of_dvd h₂) }
+dvd_add h₁ (dvd_neg_of_dvd h₂)
 
 theorem dvd_add_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b + c :=
 ⟨λh₂, dvd_add h₂ h, λH, by have t := dvd_sub H h; rwa add_sub_cancel at t⟩
@@ -746,7 +746,7 @@ lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 λ h, one_ne_zero ((add_right_inj a).mp (by simp [h]))
 
 lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
-λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
+λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by { convert h, simp })))
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
@@ -899,11 +899,11 @@ by simp only [semiconj_by, h.eq, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_sym
 
 @[simp] lemma sub_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
   semiconj_by a (x - x') (y - y') :=
-by simpa only [sub_eq_add_neg] using h.add_right h'.neg_right
+h.add_right h'.neg_right
 
 @[simp] lemma sub_left (ha : semiconj_by a x y) (hb : semiconj_by b x y) :
   semiconj_by (a - b) x y :=
-by simpa only [sub_eq_add_neg] using ha.add_left hb.neg_left
+ha.add_left hb.neg_left
 
 end semiconj_by
 

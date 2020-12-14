@@ -131,7 +131,7 @@ noncomputable def field : field Cauchy :=
   mul_inv_cancel   := λ x x0, by rw [mul_comm, cau_seq.completion.inv_mul_cancel x0],
   exists_pair_ne   := ⟨0, 1, zero_ne_one⟩,
   inv_zero         := inv_zero,
-  .. Cauchy.comm_ring }
+  ..cau_seq.completion.comm_ring }
 
 local attribute [instance] field
 
@@ -197,7 +197,7 @@ by rw [← lim_mul_lim, lim_const]
 
 lemma lim_neg (f : cau_seq β abv) : lim (-f) = -lim f :=
 lim_eq_of_equiv_const (show lim_zero (-f - const abv (-lim f)),
-  by rw [const_neg, sub_neg_eq_add, add_comm, ← sub_eq_add_neg];
+  by rw [const_neg, sub_neg_eq_add, add_comm];
   exact setoid.symm (equiv_lim f))
 
 lemma lim_eq_zero_iff (f : cau_seq β abv) : lim f = 0 ↔ lim_zero f :=

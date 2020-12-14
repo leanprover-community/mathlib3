@@ -5,7 +5,6 @@ Authors: Kevin Lacker
 -/
 
 import tactic.ring
-import data.nat.prime
 
 open nat
 

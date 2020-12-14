@@ -127,7 +127,9 @@ ext $ assume b, rfl
 
 /-- Restrict domain and codomain of an endomorphism. -/
 def restrict (f : M →ₗ[R] M) {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) : p →ₗ[R] p :=
-(f.dom_restrict p).cod_restrict p $ submodule.forall.2 hf
+{ to_fun := λ x, ⟨f x, hf x.1 x.2⟩,
+  map_add' := begin intros, apply set_coe.ext, simp end,
+  map_smul' := begin intros, apply set_coe.ext, simp end }
 
 lemma restrict_apply
   {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) (x : p) :
@@ -195,8 +197,6 @@ def smul_right (f : M₂ →ₗ[R] R) (x : M) : M₂ →ₗ[R] M :=
 
 instance : has_one (M →ₗ[R] M) := ⟨linear_map.id⟩
 instance : has_mul (M →ₗ[R] M) := ⟨linear_map.comp⟩
-
-lemma mul_eq_comp (f g : M →ₗ[R] M) : f * g = f.comp g := rfl
 
 @[simp] lemma one_app (x : M) : (1 : M →ₗ[R] M) x = x := rfl
 @[simp] lemma mul_app (A B : M →ₗ[R] M) (x : M) : (A * B) x = A (B x) := rfl
@@ -352,75 +352,38 @@ lemma comp_sub (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
 
 end add_comm_group
 
-section has_scalar
-variables {S : Type*} [semiring R] [monoid S]
-  [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
-  [semimodule R M] [semimodule R M₂] [semimodule R M₃]
-  [distrib_mul_action S M₂] [smul_comm_class R S M₂]
-  (f : M →ₗ[R] M₂)
-
-instance : has_scalar S (M →ₗ[R] M₂) :=
-⟨λ a f, ⟨λ b, a • f b, λ x y, by rw [f.map_add, smul_add],
-  λ c x, by simp only [f.map_smul, smul_comm c]⟩⟩
-
-@[simp] lemma smul_apply (a : S) (x : M) : (a • f) x = a • f x := rfl
-
-instance : distrib_mul_action S (M →ₗ[R] M₂) :=
-{ one_smul := λ f, ext $ λ _, one_smul _ _,
-  mul_smul := λ c c' f, ext $ λ _, mul_smul _ _ _,
-  smul_add := λ c f g, ext $ λ x, smul_add _ _ _,
-  smul_zero := λ c, ext $ λ x, smul_zero _ }
-
-theorem smul_comp (a : S) (g : M₃ →ₗ[R] M₂) (f : M →ₗ[R] M₃) : (a • g).comp f = a • (g.comp f) :=
-rfl
-
-end has_scalar
-
-section semimodule
-
-variables {S : Type*} [semiring R] [semiring S]
-  [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
-  [semimodule R M] [semimodule R M₂] [semimodule R M₃]
-  [semimodule S M₂] [semimodule S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃]
-  (f : M →ₗ[R] M₂)
-
-instance : semimodule S (M →ₗ[R] M₂) :=
-{ add_smul := λ a b f, ext $ λ x, add_smul _ _ _,
-  zero_smul := λ f, ext $ λ x, zero_smul _ _ }
-
-variable (S)
-
-/-- Applying a linear map at `v : M`, seen as `S`-linear map from `M →ₗ[R] M₂` to `M₂`.
-
- See `applyₗ` for a version where `S = R` -/
-def applyₗ' (v : M) : (M →ₗ[R] M₂) →ₗ[S] M₂ :=
-{ to_fun := λ f, f v,
-  map_add' := λ f g, f.add_apply g v,
-  map_smul' := λ x f, f.smul_apply x v }
-
-end semimodule
-
 section comm_semiring
-
 variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 variables (f g : M →ₗ[R] M₂)
 include R
 
-theorem comp_smul (g : M₂ →ₗ[R] M₃) (a : R) : g.comp (a • f) = a • (g.comp f) :=
-ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
+instance : has_scalar R (M →ₗ[R] M₂) := ⟨λ a f,
+  ⟨λ b, a • f b, by simp [smul_add], by simp [smul_smul, mul_comm]⟩⟩
+
+@[simp] lemma smul_apply (a : R) (x : M) : (a • f) x = a • f x := rfl
+
+instance : semimodule R (M →ₗ[R] M₂) :=
+by refine { smul := (•), .. }; intros; ext; simp [smul_add, add_smul, smul_smul]
 
 /-- Composition by `f : M₂ → M₃` is a linear map from the space of linear maps `M → M₂`
 to the space of linear maps `M₂ → M₃`. -/
 def comp_right (f : M₂ →ₗ[R] M₃) : (M →ₗ[R] M₂) →ₗ[R] (M →ₗ[R] M₃) :=
-⟨f.comp,
+⟨linear_map.comp f,
 λ _ _, linear_map.ext $ λ _, f.2 _ _,
 λ _ _, linear_map.ext $ λ _, f.3 _ _⟩
 
-/-- Applying a linear map at `v : M`, seen as a linear map from `M →ₗ[R] M₂` to `M₂`.
-See also `linear_map.applyₗ'` for a version that works with two different semirings. -/
+theorem smul_comp (g : M₂ →ₗ[R] M₃) (a : R) : (a • g).comp f = a • (g.comp f) :=
+rfl
+
+theorem comp_smul (g : M₂ →ₗ[R] M₃) (a : R) : g.comp (a • f) = a • (g.comp f) :=
+ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
+
+/-- Applying a linear map at `v : M`, seen as a linear map from `M →ₗ[R] M₂` to `M₂`. -/
 def applyₗ (v : M) : (M →ₗ[R] M₂) →ₗ[R] M₂ :=
-applyₗ' R v
+{ to_fun := λ f, f v,
+  map_add' := λ f g, f.add_apply g v,
+  map_smul' := λ x f, f.smul_apply x v }
 
 end comm_semiring
 
@@ -1319,7 +1282,9 @@ by simp [disjoint_def, @eq_comm M 0, @eq_comm M₂ 0] {contextual := tt}; intros
 
 theorem ker_eq_bot' {f : M →ₗ[R] M₂} :
   ker f = ⊥ ↔ (∀ m, f m = 0 → m = 0) :=
-by simpa [disjoint] using @disjoint_ker _ _ _ _ _ _ _ _ f ⊤
+have h : (∀ m ∈ (⊤ : submodule R M), f m = 0 → m = 0) ↔ (∀ m, f m = 0 → m = 0),
+  from ⟨λ h m, h m mem_top, λ h m _, h m⟩,
+by simpa [h, disjoint] using @disjoint_ker _ _ _ _ _ _ _ _ f ⊤
 
 lemma le_ker_iff_map {f : M →ₗ[R] M₂} {p : submodule R M} : p ≤ ker f ↔ map f p = ⊥ :=
 by rw [ker, eq_bot_iff, map_le_iff_le_comap]
@@ -2517,8 +2482,8 @@ lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
   disjoint (⨆i∈I, range (std_basis R φ i)) (⨆i∈J, range (std_basis R φ i)) :=
 begin
   refine disjoint.mono
-    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right)
-    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right) _,
+    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl_right I)
+    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl_right J) _,
   simp only [disjoint, submodule.le_def', mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
     funext_iff],
   rintros b ⟨hI, hJ⟩ i,

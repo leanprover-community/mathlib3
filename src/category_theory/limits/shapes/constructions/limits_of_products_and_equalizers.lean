@@ -1,12 +1,10 @@
 /-
--- Copyright (c) 2020 Bhavik Mehta. All rights reserved.
+-- Copyright (c) 2017 Scott Morrison. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Bhavik Mehta, Scott Morrison
+-- Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.finite_products
-import category_theory.limits.preserves.shapes.products
-import category_theory.limits.preserves.shapes.equalizers
 
 /-!
 # Constructing limits from products and equalizers.
@@ -14,21 +12,17 @@ import category_theory.limits.preserves.shapes.equalizers
 If a category has all products, and all equalizers, then it has all limits.
 Similarly, if it has all finite products, and all equalizers, then it has all finite limits.
 
-If a functor preserves all products and equalizers, then it preserves all limits.
-Similarly, if it preserves all finite products and equalizers, then it preserves all finite limits.
-
-# TODO
-
-Provide the dual results.
-Show the analogous results for functors which reflect or create (co)limits.
+TODO: provide the dual result.
 -/
+
+noncomputable theory
 
 open category_theory
 open opposite
 
 namespace category_theory.limits
 
-universes v u u₂
+universes v u
 variables {C : Type u} [category.{v} C]
 
 variables {J : Type v} [small_category J]
@@ -36,155 +30,110 @@ variables {J : Type v} [small_category J]
 -- We hide the "implementation details" inside a namespace
 namespace has_limit_of_has_products_of_has_equalizers
 
-variables {F : J ⥤ C}
-          {c₁ : fan F.obj}
-          {c₂ : fan (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2)}
-          (s t : c₁.X ⟶ c₂.X)
-          (hs : ∀ (f : Σ p : J × J, p.1 ⟶ p.2), s ≫ c₂.π.app f = c₁.π.app f.1.1 ≫ F.map f.2)
-          (ht : ∀ (f : Σ p : J × J, p.1 ⟶ p.2), t ≫ c₂.π.app f = c₁.π.app f.1.2)
-          (i : fork s t)
+-- We assume here only that we have exactly the products we need, so that we can prove
+-- variations of the construction (all products gives all limits, finite products gives finite limits...)
+variables (F : J ⥤ C)
+          [H₁ : has_limit (discrete.functor F.obj)]
+          [H₂ : has_limit (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2))]
+include H₁ H₂
 
-include hs ht
 /--
-(Implementation) Given the appropriate product and equalizer cones, build the cone for `F` which is
-limiting if the given cones are also.
--/
-@[simps]
-def build_limit : cone F :=
-{ X := i.X,
-  π := { app := λ j, i.ι ≫ c₁.π.app _,
-         naturality' := λ j₁ j₂ f, by { dsimp, simp [← hs ⟨⟨_, _⟩, f⟩, i.condition_assoc, ht] } } }
+Corresponding to any functor `F : J ⥤ C`, we construct a new functor from the walking parallel
+pair of morphisms to `C`, given by the diagram
+```
+         s
+∏_j F j ===> Π_{f : j ⟶ j'} F j'
+         t
+```
+where the two morphisms `s` and `t` are defined componentwise:
+* The `s_f` component is the projection `∏_j F j ⟶ F j` followed by `f`.
+* The `t_f` component is the projection `∏_j F j ⟶ F j'`.
 
-variable {i}
-/--
-(Implementation) Show the cone constructed in `build_limit` is limiting, provided the cones used in
-its construction are.
+In a moment we prove that cones over `F` are isomorphic to cones over this new diagram.
 -/
-def build_is_limit (t₁ : is_limit c₁) (t₂ : is_limit c₂) (hi : is_limit i) :
-  is_limit (build_limit s t hs ht i) :=
-{ lift := λ q,
+@[simp] def diagram : walking_parallel_pair ⥤ C :=
+let pi_obj := limits.pi_obj F.obj in
+let pi_hom := limits.pi_obj (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2) in
+let s : pi_obj ⟶ pi_hom :=
+  pi.lift (λ f : (Σ p : J × J, p.1 ⟶ p.2), pi.π F.obj f.1.1 ≫ F.map f.2) in
+let t : pi_obj ⟶ pi_hom :=
+  pi.lift (λ f : (Σ p : J × J, p.1 ⟶ p.2), pi.π F.obj f.1.2) in
+parallel_pair s t
+
+/-- The morphism from cones over the walking pair diagram `diagram F` to cones over
+the original diagram `F`. -/
+@[simp] def cones_hom : (diagram F).cones ⟶ F.cones :=
+{ app := λ X c,
+  { app := λ j, c.app walking_parallel_pair.zero ≫ pi.π _ j,
+    naturality' := λ j j' f,
+    begin
+      have L := c.naturality walking_parallel_pair_hom.left,
+      have R := c.naturality walking_parallel_pair_hom.right,
+      have t := congr_arg (λ g, g ≫ pi.π _ (⟨(j, j'), f⟩ : Σ (p : J × J), p.fst ⟶ p.snd)) (R.symm.trans L),
+      dsimp at t,
+      dsimp,
+      simpa only [limit.lift_π, fan.mk_π_app, category.assoc, category.id_comp] using t,
+    end }, }.
+
+local attribute [semireducible] op unop opposite
+
+/-- The morphism from cones over the original diagram `F` to cones over the walking pair diagram
+`diagram F`. -/
+@[simp] def cones_inv : F.cones ⟶ (diagram F).cones :=
+{ app := λ X c,
   begin
-    refine hi.lift (fork.of_ι _ _),
-    { refine t₁.lift (fan.mk _ (λ j, _)),
-      apply q.π.app j },
-    { apply t₂.hom_ext,
-      simp [hs, ht] },
+    refine (fork.of_ι _ _).π,
+    { exact pi.lift c.app },
+    { ext ⟨⟨A,B⟩,f⟩,
+      dsimp,
+      simp only [limit.lift_π, limit.lift_π_assoc, fan.mk_π_app, category.assoc],
+      rw ←(c.naturality f),
+      dsimp,
+      simp only [category.id_comp], }
   end,
-  uniq' := λ q m w, hi.hom_ext (i.equalizer_ext (t₁.hom_ext (by simpa using w))) }
+  naturality' := λ X Y f, by { ext c j, cases j; tidy, } }.
+
+/-- The natural isomorphism between cones over the
+walking pair diagram `diagram F` and cones over the original diagram `F`. -/
+def cones_iso : (diagram F).cones ≅ F.cones :=
+{ hom := cones_hom F,
+  inv := cones_inv F,
+  hom_inv_id' :=
+  begin
+    ext X c j,
+    cases j,
+    { ext, simp },
+    { ext,
+      have t := c.naturality walking_parallel_pair_hom.left,
+      conv at t { dsimp, to_lhs, simp only [category.id_comp] },
+      simp [t], }
+  end }
 
 end has_limit_of_has_products_of_has_equalizers
 
 open has_limit_of_has_products_of_has_equalizers
 
 /--
-Given the existence of the appropriate (possibly finite) products and equalizers, we know a limit of
-`F` exists.
-(This assumes the existence of all equalizers, which is technically stronger than needed.)
--/
-lemma has_limit_of_equalizer_and_product (F : J ⥤ C)
-  [has_limit (discrete.functor F.obj)]
-  [has_limit (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2))]
-  [has_equalizers C] : has_limit F :=
-has_limit.mk
-{ cone := _,
-  is_limit :=
-    build_is_limit
-      (pi.lift (λ f, limit.π _ _ ≫ F.map f.2))
-      (pi.lift (λ f, limit.π _ f.1.2))
-      (by simp)
-      (by simp)
-      (limit.is_limit _)
-      (limit.is_limit _)
-      (limit.is_limit _) }
-
-/--
 Any category with products and equalizers has all limits.
 
 See https://stacks.math.columbia.edu/tag/002N.
 -/
+-- This is not an instance, as it is not always how one wants to construct limits!
 lemma limits_from_equalizers_and_products
   [has_products C] [has_equalizers C] : has_limits C :=
-{ has_limits_of_shape := λ J 𝒥,
-  { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F } }
+{ has_limits_of_shape := λ J 𝒥, by exactI
+  { has_limit := λ F, has_limit.of_cones_iso (diagram F) F (cones_iso F) } }
 
 /--
 Any category with finite products and equalizers has all finite limits.
 
 See https://stacks.math.columbia.edu/tag/002O.
+(We do not prove equivalence with the third condition.)
 -/
+-- This is not an instance, as it is not always how one wants to construct finite limits!
 lemma finite_limits_from_equalizers_and_finite_products
   [has_finite_products C] [has_equalizers C] : has_finite_limits C :=
-λ J _ _, { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F }
-
-variables {D : Type u₂} [category.{v} D]
-noncomputable theory
-
-section
-
-variables [has_limits_of_shape (discrete J) C]
-          [has_limits_of_shape (discrete (Σ p : J × J, p.1 ⟶ p.2)) C]
-          [has_equalizers C]
-variables (G : C ⥤ D)
-          [preserves_limits_of_shape walking_parallel_pair G]
-          [preserves_limits_of_shape (discrete J) G]
-          [preserves_limits_of_shape (discrete (Σ p : J × J, p.1 ⟶ p.2)) G]
-
-/-- If a functor preserves equalizers and the appropriate products, it preserves limits. -/
-def preserves_limit_of_preserves_equalizers_and_product :
-  preserves_limits_of_shape J G :=
-{ preserves_limit := λ K,
-  begin
-    let P := ∏ K.obj,
-    let Q := ∏ (λ (f : (Σ (p : J × J), p.fst ⟶ p.snd)), K.obj f.1.2),
-    let s : P ⟶ Q := pi.lift (λ f, limit.π _ _ ≫ K.map f.2),
-    let t : P ⟶ Q := pi.lift (λ f, limit.π _ f.1.2),
-    let I := equalizer s t,
-    let i : I ⟶ P := equalizer.ι s t,
-    apply preserves_limit_of_preserves_limit_cone
-      (build_is_limit s t (by simp) (by simp)
-        (limit.is_limit _)
-        (limit.is_limit _)
-        (limit.is_limit _)),
-    refine is_limit.of_iso_limit (build_is_limit _ _ _ _ _ _ _) _,
-    { exact fan.mk _ (λ j, G.map (pi.π _ j)) },
-    { exact fan.mk (G.obj Q) (λ f, G.map (pi.π _ f)) },
-    { apply G.map s },
-    { apply G.map t },
-    { intro f,
-      dsimp,
-      simp only [←G.map_comp, limit.lift_π, fan.mk_π_app] },
-    { intro f,
-      dsimp,
-      simp only [←G.map_comp, limit.lift_π, fan.mk_π_app] },
-    { apply fork.of_ι (G.map i) _,
-      simp only [← G.map_comp, equalizer.condition] },
-    { apply is_limit_of_has_product_of_preserves_limit },
-    { apply is_limit_of_has_product_of_preserves_limit },
-    { apply is_limit_fork_map_of_is_limit,
-      apply equalizer_is_equalizer },
-    refine cones.ext (iso.refl _) _,
-    intro j,
-    dsimp,
-    simp, -- See note [dsimp, simp].
-  end }
-end
-
-/-- If G preserves equalizers and finite products, it preserves finite limits. -/
-def preserves_finite_limits_of_preserves_equalizers_and_finite_products
-  [has_equalizers C] [has_finite_products C]
-  (G : C ⥤ D) [preserves_limits_of_shape walking_parallel_pair G]
-  [∀ J [fintype J], preserves_limits_of_shape (discrete J) G]
-  (J : Type v) [small_category J] [fin_category J] :
-preserves_limits_of_shape J G :=
-preserves_limit_of_preserves_equalizers_and_product G
-
-/-- If G preserves equalizers and products, it preserves all limits. -/
-def preserves_limits_of_preserves_equalizers_and_products
-  [has_equalizers C] [has_products C]
-  (G : C ⥤ D) [preserves_limits_of_shape walking_parallel_pair G]
-  [∀ J, preserves_limits_of_shape (discrete J) G] :
-preserves_limits G :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  by exactI preserves_limit_of_preserves_equalizers_and_product G }
+λ J _ _, by exactI
+  { has_limit := λ F, has_limit.of_cones_iso (diagram F) F (cones_iso F) }
 
 end category_theory.limits

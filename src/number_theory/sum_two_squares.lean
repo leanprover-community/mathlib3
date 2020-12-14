@@ -20,11 +20,8 @@ namespace prime
 of two squares -/
 lemma sum_two_squares (p : ℕ) [hp : _root_.fact p.prime] (hp1 : p % 4 = 1) :
   ∃ a b : ℕ, a ^ 2 + b ^ 2 = p :=
-begin
-  apply sum_two_squares_of_nat_prime_of_not_irreducible p,
-  rw [principal_ideal_ring.irreducible_iff_prime, prime_iff_mod_four_eq_three_of_nat_prime p, hp1],
-  norm_num
-end
+sum_two_squares_of_nat_prime_of_not_irreducible p
+  (by rw [irreducible_iff_prime, prime_iff_mod_four_eq_three_of_nat_prime p, hp1]; norm_num)
 
 end prime
 end nat

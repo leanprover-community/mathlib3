@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Bhavik Mehta
+Authors: Scott Morrison
 -/
 import category_theory.opposites
 
@@ -76,10 +76,6 @@ variables {D : Type u₃} [category.{v₃} D]
   (const J).obj X ⋙ F ≅ (const J).obj (F.obj X) :=
 { hom := { app := λ _, 𝟙 _ },
   inv := { app := λ _, 𝟙 _ } }
-
-/-- If `J` is nonempty, then the constant functor over `J` is faithful. -/
-instance [nonempty J] : faithful (const J : C ⥤ J ⥤ C) :=
-{ map_injective' := λ X Y f g e, nat_trans.congr_app e (classical.arbitrary J) }
 
 end
 

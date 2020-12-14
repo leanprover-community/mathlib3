@@ -64,6 +64,9 @@ theorem coe_injective : injective (coe : submodule R M → set M) :=
 
 @[simp, norm_cast] theorem coe_set_eq : (p : set M) = q ↔ p = q := coe_injective.eq_iff
 
+@[simp] lemma mk_coe (S : set M) (h₁ h₂ h₃) :
+  ((⟨S, h₁, h₂, h₃⟩ : submodule R M) : set M) = S := rfl
+
 theorem ext'_iff : p = q ↔ (p : set M) = q := coe_set_eq.symm
 
 @[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := coe_injective $ set.ext h

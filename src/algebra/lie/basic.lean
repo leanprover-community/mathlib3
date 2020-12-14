@@ -859,11 +859,10 @@ begin
   { simp only [submodule.mem_sup],
     rintro x m ⟨y, hy, z, hz, rfl⟩,
     refine ⟨⁅x, y⁆, N.lie_mem hy, ⁅x, z⁆, N'.lie_mem hz, (lie_add _ _ _).symm⟩ },
-  refine le_antisymm (Inf_le ⟨{ lie_mem := aux, ..(N ⊔ N' : submodule R M) }, _⟩) (Inf_le_Inf _),
+  refine le_antisymm (Inf_le ⟨{ lie_mem := aux, ..(N ⊔ N' : submodule R M) }, _⟩) _,
   { simp only [exists_prop, and_true, mem_set_of_eq, eq_self_iff_true, coe_to_submodule_mk,
       ← coe_submodule_le_coe_submodule, and_self, le_sup_left, le_sup_right] },
-  { simp only [and_imp, set_of_subset_set_of, mem_set_of_eq, exists_imp_distrib],
-    intros p N'' hN hN' hp, rw ← hp, split; assumption, }
+  { simp, },
 end
 
 lemma mem_sup (x : M) : x ∈ N ⊔ N' ↔ ∃ (y ∈ N) (z ∈ N'), y + z = x :=

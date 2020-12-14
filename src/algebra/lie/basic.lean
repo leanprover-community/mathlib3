@@ -718,7 +718,7 @@ instance has_mem : has_mem M (lie_submodule R L M) := ⟨λ x N, x ∈ (N : set 
 @[simp] lemma mem_carrier (N : lie_submodule R L M) {x : M} : x ∈ N.carrier ↔ x ∈ (N : set M) :=
 iff.rfl
 
-@[simp] lemma mk_coe (S : set M) (h₁ h₂ h₃ h₄) :
+@[simp] lemma coe_to_set_mk (S : set M) (h₁ h₂ h₃ h₄) :
   ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_submodule R L M) : set M) = S := rfl
 
 @[simp] lemma mk_coe_submodule (p : submodule R M) (h) :

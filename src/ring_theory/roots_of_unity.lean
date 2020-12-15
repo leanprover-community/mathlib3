@@ -752,9 +752,9 @@ lemma separable_minimal_polynomial_mod {p : ℕ} [hprime : fact p.prime] (hdiv :
 begin
   have hdvd : (map (int.cast_ring_hom (zmod p))
     (minimal_polynomial (is_integral h hpos))) ∣ X ^ n - 1,
-  { have hmap := ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p))))
-    (minimal_polynomial_dvd_X_pow_sub_one h hpos),
-    simpa [map_pow, map_X, map_one, ring_hom.coe_of, map_sub] using hmap },
+  { simpa [map_pow, map_X, map_one, ring_hom.coe_of, map_sub] using
+      ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p))))
+        (minimal_polynomial_dvd_X_pow_sub_one h hpos) },
   refine separable.of_dvd (separable_X_pow_sub_C 1 _ one_ne_zero) hdvd,
   { by_contra hzero,
     exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero)) },

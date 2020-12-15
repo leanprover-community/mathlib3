@@ -64,8 +64,8 @@ lemma obj_mem_ess_image (F : D ⥤ C) (Y : D) : F.obj Y ∈ ess_image F := ⟨Y,
 end functor
 
 /--
-A functor `F : C ⥤ D` is essentially surjective if for every `Y : D`, there is some `X : C`
-with `F.obj X ≅ Y`.
+A functor `F : C ⥤ D` is essentially surjective if every object of `D` is in the essential image
+of `F`. In other words, for every `Y : D`, there is some `X : C` with `F.obj X ≅ Y`.
 
 See https://stacks.math.columbia.edu/tag/001C.
 -/

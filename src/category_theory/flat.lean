@@ -14,6 +14,13 @@ import category_theory.limits.preserves.shapes.terminal
 import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.equalizers
 
+
+/-!
+# Flat functors
+
+A typeclass for functors which are flat.
+-/
+
 universes w v₁ v₂ u₁ u₂
 
 namespace category_theory

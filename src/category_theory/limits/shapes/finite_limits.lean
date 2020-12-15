@@ -32,20 +32,20 @@ This is often called 'finitely complete'.
 -- We can't just made this an `abbreviation`
 -- because of https://github.com/leanprover-community/lean/issues/429
 def has_finite_limits : Prop :=
-Π (J : Type v) [𝒥 : category.{w} J] [@fin_category J 𝒥], @has_limits_of_shape J 𝒥 C _
+Π (J : Type v) [𝒥 : category.{v} J] [@fin_category J 𝒥], @has_limits_of_shape J 𝒥 C _
 
 attribute [class] has_finite_limits
 
 @[priority 100]
 instance has_limits_of_shape_of_has_finite_limits
-  (J : Type v) [category.{w} J] [fin_category J] [has_finite_limits C] :
+  (J : Type v) [small_category J] [fin_category J] [has_finite_limits C] :
   has_limits_of_shape J C :=
 ‹has_finite_limits C› J
 
 set_option pp.universes true
 
 /-- If `C` has all limits, it has finite limits. -/
-lemma has_finite_limits_of_has_limits [has_limits.{w} C] : has_finite_limits.{w} C :=
+lemma has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
 λ J 𝒥₁ 𝒥₂, by apply_instance
 
 /--
@@ -55,18 +55,18 @@ has a colimit.
 This is often called 'finitely cocomplete'.
 -/
 def has_finite_colimits : Prop :=
-Π (J : Type v) [𝒥 : category.{w} J] [@fin_category J 𝒥], @has_colimits_of_shape J 𝒥 C _
+Π (J : Type v) [𝒥 : category.{v} J] [@fin_category J 𝒥], @has_colimits_of_shape J 𝒥 C _
 
 attribute [class] has_finite_colimits
 
 @[priority 100]
 instance has_colimits_of_shape_of_has_finite_colimits
-  (J : Type v) [category.{w} J] [fin_category J] [has_finite_colimits C] :
+  (J : Type v) [category.{v} J] [fin_category J] [has_finite_colimits C] :
   has_colimits_of_shape J C :=
 ‹has_finite_colimits C› J
 
 /-- If `C` has all colimits, it has finite colimits. -/
-lemma has_finite_colimits_of_has_colimits [has_colimits.{w} C] : has_finite_colimits.{w} C :=
+lemma has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
 λ J 𝒥₁ 𝒥₂, by apply_instance
 
 section

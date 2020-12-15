@@ -20,6 +20,7 @@ are defined.
 reserve infixr ` ⇒ `:40
 
 -- used in `tactic/core.lean`
+precedence `setup_tactic_parser`:0
 reserve prefix `pformat! `:100
 reserve prefix `fail! `:100
 reserve prefix `trace! `:100

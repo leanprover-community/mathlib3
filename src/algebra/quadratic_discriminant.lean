@@ -121,8 +121,8 @@ begin
   obtain ha|rfl|ha : a < 0 ∨ a = 0 ∨ 0 < a := lt_trichotomy a 0,
   -- if a < 0
   { have : tendsto (λ x, (a * x + b) * x + c) at_top at_bot :=
-     tendsto_at_bot_add_const_right _ c (tendsto_at_bot_mul_at_top
-       (tendsto_at_bot_add_const_right _ b (tendsto_id.neg_const_mul_at_top ha)) tendsto_id),
+     tendsto_at_bot_add_const_right _ c ((tendsto_at_bot_add_const_right _ b
+       (tendsto_id.neg_const_mul_at_top ha)).at_bot_mul_at_top tendsto_id),
     rcases (this.eventually (eventually_lt_at_bot 0)).exists with ⟨x, hx⟩,
     exact false.elim ((h x).not_lt $ by rwa ← add_mul) },
   -- if a = 0

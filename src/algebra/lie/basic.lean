@@ -1137,6 +1137,17 @@ begin
     apply lie_submodule.subset_lie_span, use [x, m], refl, },
 end
 
+open lie_algebra
+
+lemma derived_series_le_lower_central_series (k : ℕ) :
+  derived_series R L k ≤ lower_central_series R L L k :=
+begin
+  induction k with k h,
+  { exact le_refl _, },
+  { have h' : derived_series R L k ≤ ⊤, { by simp only [le_top], },
+    exact lie_submodule.mono_lie _ _ _ _ h' h, },
+end
+
 end lie_module
 
 end lie_module
@@ -1222,7 +1233,7 @@ class lie_module.is_irreducible : Prop :=
 class lie_module.is_nilpotent : Prop :=
 (nilpotent : ∃ k, lie_module.lower_central_series R L M k = ⊥)
 
-lemma trivial_is_nilpotent [lie_module.is_trivial L M] : lie_module.is_nilpotent R L M :=
+instance trivial_is_nilpotent [lie_module.is_trivial L M] : lie_module.is_nilpotent R L M :=
 ⟨by { use 1, change ⁅⊤, ⊤⁆ = ⊥, simp, }⟩
 
 /-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint

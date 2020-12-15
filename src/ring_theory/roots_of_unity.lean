@@ -736,7 +736,7 @@ end
 
 variables [char_zero K]
 
-/--The minimal polynomial of `μ` divides `X ^ n - 1`. -/
+/--The minimal polynomial of a root of unity `μ` divides `X ^ n - 1`. -/
 lemma minimal_polynomial_dvd_X_pow_sub_one :
   minimal_polynomial (is_integral h hpos) ∣ X ^ n - 1 :=
 begin

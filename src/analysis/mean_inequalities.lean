@@ -823,7 +823,7 @@ lemma lintegral_rpow_add_le_add_snorm_mul_lintegral_rpow_add {p q : ℝ}
   (hpq : p.is_conjugate_exponent q) {f g : α → ennreal} (hf : measurable f)
   (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) (hg : measurable g) (hg_top : ∫⁻ a, (g a) ^ p ∂μ ≠ ⊤) :
   ∫⁻ a, ((f + g) a)^p ∂ μ
-    ≤ ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p) )
+    ≤ ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p))
       * (∫⁻ a, (f a + g a)^p ∂μ) ^ (1/q) :=
 begin
   calc ∫⁻ a, ((f+g) a) ^ p ∂μ ≤ ∫⁻ a, ((f + g) a) * ((f + g) a) ^ (p - 1) ∂μ :

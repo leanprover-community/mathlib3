@@ -203,4 +203,7 @@ example [has_finite_wide_pullbacks C] : has_pullbacks C := by apply_instance
 /-- Pushouts are finite colimits, so if `C` has all finite colimits, it also has all pushouts -/
 example [has_finite_wide_pushouts C] : has_pushouts C := by apply_instance
 
+/-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
+example [has_finite_limits C] : has_binary_products C := by apply_instance
+
 end category_theory.limits

@@ -8,11 +8,11 @@ import category_theory.discrete_category
 import category_theory.yoneda
 import category_theory.reflects_isomorphisms
 
-universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v' u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory
 
-variables {J : Type v} [small_category J]
+variables {J : Type v} [category.{v'} J]
 variables {C : Type u} [category.{v} C]
 
 open category_theory
@@ -143,7 +143,7 @@ def equiv (F : J ⥤ C) : cone F ≅ Σ X, F.cones.obj X :=
 rfl
 
 /-- Whisker a cone by precomposition of a functor. -/
-@[simps] def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cone F) : cone (E ⋙ F) :=
+@[simps] def whisker {K : Type v} [category.{v'} K] (E : K ⥤ J) (c : cone F) : cone (E ⋙ F) :=
 { X := c.X,
   π := whisker_left E c.π }
 
@@ -175,7 +175,7 @@ rfl
 Whisker a cocone by precomposition of a functor. See `whiskering` for a functorial
 version.
 -/
-@[simps] def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocone (E ⋙ F) :=
+@[simps] def whisker {K : Type v} [category.{v'} K] (E : K ⥤ J) (c : cocone F) : cocone (E ⋙ F) :=
 { X := c.X,
   ι := whisker_left E c.ι }
 
@@ -251,7 +251,7 @@ def postcompose_equivalence {G : J ⥤ C} (α : F ≅ G) : cone F ≌ cone G :=
 Whiskering on the left by `E : K ⥤ J` gives a functor from `cone F` to `cone (E ⋙ F)`.
 -/
 @[simps]
-def whiskering {K : Type v} [small_category K] (E : K ⥤ J) : cone F ⥤ cone (E ⋙ F) :=
+def whiskering {K : Type v} [category.{v'} K] (E : K ⥤ J) : cone F ⥤ cone (E ⋙ F) :=
 { obj := λ c, c.whisker E,
   map := λ c c' f, { hom := f.hom, } }
 
@@ -259,7 +259,7 @@ def whiskering {K : Type v} [small_category K] (E : K ⥤ J) : cone F ⥤ cone (
 Whiskering by an equivalence gives an equivalence between categories of cones.
 -/
 @[simps]
-def whiskering_equivalence {K : Type v} [small_category K] (e : K ≌ J) :
+def whiskering_equivalence {K : Type v} [category.{v'} K] (e : K ≌ J) :
   cone F ≌ cone (e.functor ⋙ F) :=
 { functor := whiskering e.functor,
   inverse := whiskering e.inverse ⋙
@@ -280,12 +280,12 @@ def whiskering_equivalence {K : Type v} [small_category K] (e : K ≌ J) :
 The categories of cones over `F` and `G` are equivalent if `F` and `G` are naturally isomorphic
 (possibly after changing the indexing category by an equivalence).
 -/
-def equivalence_of_reindexing {K : Type v} [small_category K] {G : K ⥤ C}
+def equivalence_of_reindexing {K : Type v} [category.{v'} K] {G : K ⥤ C}
   (e : K ≌ J) (α : e.functor ⋙ F ≅ G) : cone F ≌ cone G :=
 (whiskering_equivalence e).trans (postcompose_equivalence α)
 
 @[simp]
-lemma equivalence_of_reindexing_functor_obj {K : Type v} [small_category K] {G : K ⥤ C}
+lemma equivalence_of_reindexing_functor_obj {K : Type v} [category.{v'} K] {G : K ⥤ C}
   (e : K ≌ J) (α : e.functor ⋙ F ≅ G) (c : cone F) :
   (equivalence_of_reindexing e α).functor.obj c =
   (postcompose α.hom).obj (cone.whisker e.functor c) :=
@@ -419,7 +419,7 @@ def precompose_equivalence {G : J ⥤ C} (α : G ≅ F) : cocone F ≌ cocone G 
 Whiskering on the left by `E : K ⥤ J` gives a functor from `cocone F` to `cocone (E ⋙ F)`.
 -/
 @[simps]
-def whiskering {K : Type v} [small_category K] (E : K ⥤ J) : cocone F ⥤ cocone (E ⋙ F) :=
+def whiskering {K : Type v} [category.{v'} K] (E : K ⥤ J) : cocone F ⥤ cocone (E ⋙ F) :=
 { obj := λ c, c.whisker E,
   map := λ c c' f, { hom := f.hom, } }
 
@@ -427,7 +427,7 @@ def whiskering {K : Type v} [small_category K] (E : K ⥤ J) : cocone F ⥤ coco
 Whiskering by an equivalence gives an equivalence between categories of cones.
 -/
 @[simps]
-def whiskering_equivalence {K : Type v} [small_category K] (e : K ≌ J) :
+def whiskering_equivalence {K : Type v} [category.{v'} K] (e : K ≌ J) :
   cocone F ≌ cocone (e.functor ⋙ F) :=
 { functor := whiskering e.functor,
   inverse := whiskering e.inverse ⋙
@@ -447,12 +447,12 @@ def whiskering_equivalence {K : Type v} [small_category K] (e : K ≌ J) :
 The categories of cocones over `F` and `G` are equivalent if `F` and `G` are naturally isomorphic
 (possibly after changing the indexing category by an equivalence).
 -/
-def equivalence_of_reindexing {K : Type v} [small_category K] {G : K ⥤ C}
+def equivalence_of_reindexing {K : Type v} [category.{v'} K] {G : K ⥤ C}
   (e : K ≌ J) (α : e.functor ⋙ F ≅ G) : cocone F ≌ cocone G :=
 (whiskering_equivalence e).trans (precompose_equivalence α.symm)
 
 @[simp]
-lemma equivalence_of_reindexing_functor_obj {K : Type v} [small_category K] {G : K ⥤ C}
+lemma equivalence_of_reindexing_functor_obj {K : Type v} [category.{v'} K] {G : K ⥤ C}
   (e : K ≌ J) (α : e.functor ⋙ F ≅ G) (c : cocone F) :
   (equivalence_of_reindexing e α).functor.obj c =
   (precompose α.inv).obj (cocone.whisker e.functor c) :=
@@ -659,7 +659,7 @@ def map_cocone_precompose_equivalence_functor {α : F ≅ G} {c} :
     (cocones.precompose_equivalence (iso_whisker_right α H : _)).functor.obj (H.map_cocone c) :=
 cocones.ext (iso.refl _) (by tidy)
 
-variables {K : Type v} [small_category K]
+variables {K : Type v} [category.{v'} K]
 
 /--
 `map_cone` commutes with `whisker`

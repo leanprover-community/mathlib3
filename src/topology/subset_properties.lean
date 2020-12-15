@@ -1329,8 +1329,8 @@ theorem is_preconnected_iff_subset_of_fully_disjoint_closed {s : set α} (hs : i
   s ⊆ u ∨ s ⊆ v :=
 begin
   split,
-  { intros,
-    apply is_preconnected_iff_subset_of_disjoint_closed.1 ᾰ u v hu hv hss,
+  { intros h u v hu hv hss huv,
+    apply is_preconnected_iff_subset_of_disjoint_closed.1 h u v hu hv hss,
     rw huv,
     exact inter_empty s },
   intro H,

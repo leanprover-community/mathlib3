@@ -432,8 +432,7 @@ do acc@⟨_, _, fuel⟩ ← get,
 meta def ext1 (xs : list rcases_patt) (cfg : apply_cfg := {})
   (trace : bool := ff) : tactic (list rcases_patt) :=
 do ⟨_, σ⟩ ← state_t.run (ext1_core cfg) {patts := xs},
-   when trace $ tactic.trace "Try this: \n" *>
-     (σ.trace_msg.mmap' (λ x, tactic.trace format!"{x},")),
+   when trace $ tactic.trace $ "Try this: " ++  ", ".intercalate σ.trace_msg,
    pure σ.patts
 
 /-- Apply multiple extensionality lemmas, destructing the arguments using the given patterns.
@@ -441,8 +440,7 @@ do ⟨_, σ⟩ ← state_t.run (ext1_core cfg) {patts := xs},
 meta def ext (xs : list rcases_patt) (fuel : option ℕ) (cfg : apply_cfg := {})
   (trace : bool := ff): tactic (list rcases_patt) :=
 do ⟨_, σ⟩ ← state_t.run (ext_core cfg) {patts := xs, fuel := fuel},
-   when trace $ tactic.trace "Try this: \n" *>
-     (σ.trace_msg.mmap' (λ x, tactic.trace format!"{x},")),
+   when trace $ tactic.trace $ "Try this : " ++  ", ".intercalate σ.trace_msg,
    pure σ.patts
 
 local postfix `?`:9001 := optional
@@ -452,8 +450,9 @@ local postfix *:9001 := many
 `ext1 id` selects and apply one extensionality lemma (with attribute
 `ext`), using `id`, if provided, to name a local constant
 introduced by the lemma. If `id` is omitted, the local constant is
-named automatically, as per `intro`. `ext1?` will display a sequence of tactic
-applications that can replace the call to `ext`.
+named automatically, as per `intro`. Placing a `?` at the end of the `ext1`
+invocation (e.g. `ext1 i ⟨a,b⟩ : 3 ?`) will display a sequence of tactic
+applications that can replace the call to `ext1`.
 -/
 meta def interactive.ext1 (xs : parse (rcases_patt_parse tt)*)
   (trace : parse (tk "?")?) : tactic unit :=
@@ -465,8 +464,8 @@ ext1 xs {} trace.is_some $> ()
   until it runs out of identifiers in `ids` to name the local constants.
 - `ext` can also be given an `rcases` pattern in place of an identifier.
   This will destruct the introduced local constant.
-- `ext?` will display a sequence of tactic applications that can replace the call
-  to `ext`.
+- Placing a `?` at the end of the `ext` invocation (e.g. `ext i ⟨a,b⟩ : 3 ?`) will display
+  a sequence of tactic applications that can replace the call to `ext`.
 
 When trying to prove:
 
@@ -508,6 +507,12 @@ b : β
 
 by applying functional extensionality and destructing the introduced pair.
 
+In the previous example, applying `ext ⟨a,b⟩ ?` will produce the trace message:
+
+```lean
+Try this: apply funext, rintro ⟨a, b⟩
+```
+
 A maximum depth can be provided with `ext x y z : 3`.
 -/
 meta def interactive.ext :
@@ -528,8 +533,8 @@ meta def interactive.ext :
   the local constants.
 * `ext` can also be given an `rcases` pattern in place of an identifier.
   This will destruct the introduced local constant.
-* `ext?` (resp. `ext1?`) will will display a sequence of tactic applications
-  that can replace the call to `ext` (resp. `ext1`).
+- Placing a `?` at the end of the `ext`/`ext1` invocation (e.g. `ext i ⟨a,b⟩ : 3 ?`) will display
+  a sequence of tactic applications that can replace the call to `ext`/`ext1`.
 
 When trying to prove:
 
@@ -569,6 +574,12 @@ b : β
 ```
 
 by applying functional extensionality and destructing the introduced pair.
+
+In the previous example, applying `ext ⟨a,b⟩ ?` will produce the trace message:
+
+```lean
+Try this: apply funext, rintro ⟨a, b⟩
+```
 
 A maximum depth can be provided with `ext x y z : 3`.
 -/

@@ -877,8 +877,7 @@ begin
   by rwa [←mul_le_mul_left h0_rpow htop_rpow, ←mul_assoc, ←rpow_add _ _ h_add_zero h_add_top,
     ←sub_eq_add_neg, _root_.sub_self, rpow_zero, one_mul, mul_one] at h,
   have h' : ∫⁻ a, ((f+g) a) ^ p ∂ μ
-    ≤ ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p) )
-      * (∫⁻ a, ((f + g) a)^p ∂μ) ^ (1 / q),
+    ≤ ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p)) * (∫⁻ a, ((f + g) a)^p ∂μ) ^ (1/q),
   from lintegral_rpow_add_le_add_snorm_mul_lintegral_rpow_add hpq hf hf_top hg hg_top,
   have h_one_div_q : 1 / q = 1 - 1/p,
   { nth_rewrite 1 ←hpq.inv_add_inv_conj,

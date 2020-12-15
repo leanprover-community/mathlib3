@@ -144,11 +144,16 @@ instance : has_add (alternating_map R M N ι) :=
 
 @[simp] lemma add_apply : (f + f') v = f v + f' v := rfl
 
+@[norm_cast] lemma coe_add : (↑(f  + f') : multilinear_map R (λ i : ι, M) N) = f + f' := rfl
+
 instance : has_zero (alternating_map R M N ι) :=
 ⟨{map_eq_zero_of_eq' := λ v i j h hij, by simp,
   ..(0 : multilinear_map R (λ i : ι, M) N)}⟩
 
 @[simp] lemma zero_apply : (0 : alternating_map R M N ι) v = 0 := rfl
+
+@[norm_cast] lemma coe_zero :
+  ((0 : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N) = 0 := rfl
 
 instance : inhabited (alternating_map R M N ι) := ⟨0⟩
 
@@ -162,6 +167,9 @@ instance : has_neg (alternating_map R M N' ι) :=
     ..(-(f : multilinear_map R (λ i : ι, M) N')) }⟩
 
 @[simp] lemma neg_apply (m : ι → M) : (-g) m = -(g m) := rfl
+
+@[norm_cast] lemma coe_neg :
+  ((-g : alternating_map R M N' ι) : multilinear_map R (λ i : ι, M) N') = -g := rfl
 
 instance : add_comm_group (alternating_map R M N' ι) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..alternating_map.add_comm_monoid, ..};
@@ -177,8 +185,11 @@ instance : has_scalar S (alternating_map R M N ι) :=
   { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
     ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
 
-@[simp] lemma smul_apply (f : alternating_map R M N ι) (c : S) (m : ι → M) :
+@[simp] lemma smul_apply (c : S) (m : ι → M) :
   (c • f) m = c • f m := rfl
+
+@[norm_cast] lemma coe_smul (c : S):
+  ((c • f : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N) = c • f := rfl
 
 instance : distrib_mul_action S (alternating_map R M N ι) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,

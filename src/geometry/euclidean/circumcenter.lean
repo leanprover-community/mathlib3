@@ -406,13 +406,13 @@ s.orthogonal_projection_eq_circumcenter_of_exists_dist_eq ⟨r, hr⟩
 circumcenter of that face. -/
 lemma orthogonal_projection_circumcenter {n : ℕ} (s : simplex ℝ P n) {fs : finset (fin (n + 1))}
   {m : ℕ} (h : fs.card = m + 1) :
-  euclidean_geometry.orthogonal_projection (affine_span ℝ (s.points '' ↑fs)) s.circumcenter =
+  ↑(euclidean_geometry.orthogonal_projection (affine_span ℝ (set.range (s.face h).points)) s.circumcenter) =
     (s.face h).circumcenter :=
 begin
   have hr : ∃ r, ∀ i, dist ((s.face h).points i) s.circumcenter = r,
   { use s.circumradius,
     simp [face_points] },
-  rw [←range_face_points, orthogonal_projection_eq_circumcenter_of_exists_dist_eq _ hr]
+  exact orthogonal_projection_eq_circumcenter_of_exists_dist_eq _ hr
 end
 
 /-- Two simplices with the same points have the same circumcenter. -/

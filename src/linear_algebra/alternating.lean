@@ -574,26 +574,73 @@ def dom_coprod
   end,
   map_eq_zero_of_eq' := dom_coprod_aux_eq_zero_if_eq a b }
 
-/-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two
-`alternating_map`s gives a scaled version of the `alternating_map.coprod` of those maps.
--/
-lemma multilinear_map.dom_coprod_alternization_eq
+-- /-- The usual definition of multiplication of alternating maps, over integer indices. -/
+-- def mul_fin {n m} {R : Type*} {M N : Type*}
+--   [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
+--   (a : alternating_map R M N (fin m)) (b : alternating_map R M N (fin n)) :
+--   alternating_map R M N (fin (m + n)) :=
+-- (algebra.lmul' R).comp_multilinear_map $ (a.dom_coprod b).dom_dom_congr (fin_sum_fin_equiv)
+
+/-- A more bundled version of `alternating_map.dom_coprod` that maps
+`((ι₁ → N) → N₁) ⊗ ((ι₂ → N) → N₂)` to `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂`. -/
+def dom_coprod'
+  {R : Type*} {M N₁ N₂ : Type*}
+  [comm_semiring R]
+  [add_comm_group N₁] [semimodule R N₁]
+  [add_comm_group N₂] [semimodule R N₂]
+  [add_comm_monoid M] [semimodule R M] :
+  (alternating_map R M N₁ ιa ⊗[R] alternating_map R M N₂ ιb) →ₗ[R]
+    alternating_map R M (N₁ ⊗[R] N₂) (ιa ⊕ ιb) :=
+tensor_product.lift $ by
+  refine linear_map.mk₂ R (dom_coprod)
+    (λ m₁ m₂ n, _)
+    (λ c m n, _)
+    (λ m n₁ n₂, _)
+    (λ c m n, _);
+  { ext,
+    simp only [dom_coprod_apply, dom_coprod_aux, add_apply, smul_apply, ←finset.sum_add_distrib,
+      finset.smul_sum],
+    congr,
+    ext σ,
+    apply σ.induction_on' (λ σ, _),
+    simp only [quotient.lift_on'_beta, coe_add, coe_smul, ←multilinear_map.dom_coprod'_apply],
+    simp only [tensor_product.add_tmul, ←tensor_product.smul_tmul',
+      tensor_product.tmul_add, tensor_product.tmul_smul, linear_map.map_add, linear_map.map_smul],
+    rw ←smul_add <|> rw smul_comm,
+    congr }
+
+@[simp]
+lemma dom_coprod'_apply
   {R : Type*} {M N₁ N₂ : Type*}
   [comm_semiring R]
   [add_comm_group N₁] [semimodule R N₁]
   [add_comm_group N₂] [semimodule R N₂]
   [add_comm_monoid M] [semimodule R M]
   (a : alternating_map R M N₁ ιa) (b : alternating_map R M N₂ ιb) :
-  (multilinear_map.dom_coprod a b : multilinear_map R (λ _ : ιa ⊕ ιb, M) (N₁ ⊗ N₂))
-    .alternatization =
-    ((fintype.card ιa).factorial * (fintype.card ιb).factorial) • a.dom_coprod b :=
+  dom_coprod' (a ⊗ₜ[R] b) = dom_coprod a b :=
+by simp only [dom_coprod', tensor_product.lift.tmul, linear_map.mk₂_apply]
+
+/-- Computing the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` is the same
+as computing the `alternating_map.dom_coprod` of the `multilinear_map.alternatization`.
+-/
+lemma multilinear_map.dom_coprod_alternization
+  {R : Type*} {M N₁ N₂ : Type*}
+  [comm_semiring R]
+  [add_comm_group N₁] [semimodule R N₁]
+  [add_comm_group N₂] [semimodule R N₂]
+  [add_comm_monoid M] [semimodule R M]
+  (a : multilinear_map R (λ _ : ιa, M) N₁) (b : multilinear_map R (λ _ : ιb, M) N₂) :
+  (multilinear_map.dom_coprod a b).alternatization =
+      a.alternatization.dom_coprod b.alternatization :=
 begin
   ext,
   simp only [dom_coprod_apply, smul_apply],
   dsimp only [smul_apply, multilinear_map.alternatization_apply, alternating_map.dom_coprod_apply,
-    dom_coprod_aux],
+    dom_coprod_aux, multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
+    coe_multilinear_map],
+  simp_rw [tensor_product.sum_tmul, tensor_product.tmul_sum,
+    ←tensor_product.smul_tmul'_int, tensor_product.tmul_smul_int],
   rw finset.sum_partition (quotient_group.left_rel (perm.sum_congr_hom ιa ιb).range),
-  rw finset.smul_sum,
   congr' 1,
   ext σ,
   apply σ.induction_on' (λ σ, _),
@@ -622,38 +669,47 @@ begin
   change ∑ (a_1 : (perm.sum_congr_hom ιa ιb).range), _ = _,
   swap, { simp only [finset.mem_filter, finset.mem_univ, true_and] },
 
-  -- eliminate the sums
-  have : ((fintype.card ιa).factorial * (fintype.card ιb).factorial) =
-    fintype.card (perm.sum_congr_hom ιa ιb).range,
-  {
-    simp only [fintype.card_perm, fintype.card_prod, perm.sum_congr_hom.card_range],
-  },
-  rw this,
-  rw nat.smul_def,
-  convert finset.sum_const _,
-  ext ⟨σ', ⟨σa, σb⟩, rfl⟩,
-
-  -- tidy up
-  rw subtype.coe_mk,
-  rw [perm.sign_mul, units.coe_mul, mul_smul],
-  congr' 1,
-  rw [multilinear_map.dom_dom_congr_mul, perm.sum_congr_hom_apply,
-    multilinear_map.dom_coprod_dom_dom_congr_sum_congr, coe_dom_dom_congr, coe_dom_dom_congr],
-  simp only [tensor_product.tmul_smul_int, ←tensor_product.smul_tmul'_int, perm.sign_sum_congr,
-    coe_multilinear_map, multilinear_map.dom_dom_congr_apply, multilinear_map.smul_apply,
-    multilinear_map.dom_coprod_apply, units.coe_mul],
-  rw [smul_smul, smul_smul],
-  convert one_smul ℤ _,
-  ac_change (σa.sign * σa.sign * σb.sign * σb.sign : ℤ) = 1,
-  simp only [one_mul, int.units_coe_mul_self],
+  simp_rw [perm.sign_mul, units.coe_mul, mul_smul, finset.smul_sum],
+  rw [←finset.sum_product', finset.univ_product_univ],
+  symmetry,
+  apply finset.sum_bij
+    (λ a ha, (⟨perm.sum_congr_hom ιa ιb a, a, rfl⟩ : (perm.sum_congr_hom ιa ιb).range))
+    (λ a ha, finset.mem_univ _)
+    (λ a ha, _)
+    (λ a₁ a₂ ha₁ ha₂ heq, perm.sum_congr_hom_injective (subtype.ext_iff.mp heq))
+    (λ b hb, let ⟨⟨sl, sr⟩, hb⟩ := b.prop in ⟨(sl, sr), finset.mem_univ _, subtype.ext hb.symm⟩),
+  dsimp only [subtype.coe_mk],
+  obtain ⟨al, ar⟩ := a,
+  simp_rw perm.sum_congr_hom_apply ιa ιb (al, ar),
+  simp [perm.mul_apply, mul_smul],
+  congr,
 end
 
--- /-- The usual definition of multiplication of alternating maps, over integer indices. -/
--- def mul_fin {n m} {R : Type*} {M N : Type*}
---   [comm_semiring R] [ring N] [algebra R N] [add_comm_monoid M] [semimodule R M]
---   (a : alternating_map R M N (fin m)) (b : alternating_map R M N (fin n)) :
---   alternating_map R M N (fin (m + n)) :=
--- (algebra.lmul' R).comp_multilinear_map $ (a.dom_coprod b).dom_dom_congr (fin_sum_fin_equiv)
+/-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two
+`alternating_map`s gives a scaled version of the `alternating_map.coprod` of those maps.
+-/
+lemma multilinear_map.dom_coprod_alternization_eq
+  {R : Type*} {M N₁ N₂ : Type*}
+  [comm_semiring R]
+  [add_comm_group N₁] [semimodule R N₁]
+  [add_comm_group N₂] [semimodule R N₂]
+  [add_comm_monoid M] [semimodule R M]
+  (a : alternating_map R M N₁ ιa) (b : alternating_map R M N₂ ιb) :
+  (multilinear_map.dom_coprod a b : multilinear_map R (λ _ : ιa ⊕ ιb, M) (N₁ ⊗ N₂))
+    .alternatization =
+    ((fintype.card ιa).factorial * (fintype.card ιb).factorial) • a.dom_coprod b :=
+begin
+  rw [multilinear_map.dom_coprod_alternization,
+    ←to_multilinear_map_eq_coe, ←to_multilinear_map_eq_coe, to_multilinear_map_alternization,
+    to_multilinear_map_alternization, mul_smul],
+  rw [←dom_coprod'_apply, ←dom_coprod'_apply],
+  -- these sorries have nasty typeclass diamonds until we fix tensor_product.has_scalar
+  calc dom_coprod' (((fintype.card ιa).factorial • a) ⊗ₜ[R] (fintype.card ιb).factorial • b)
+      = dom_coprod' ((fintype.card ιa).factorial • (fintype.card ιb).factorial • (a ⊗ₜ[R] b)) :
+        sorry
+  ... = (fintype.card ιa).factorial • (fintype.card ιb).factorial • dom_coprod' (a ⊗ₜ[R] b) :
+        sorry
+end
 
 end coprod
 

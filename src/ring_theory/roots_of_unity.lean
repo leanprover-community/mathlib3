@@ -747,7 +747,7 @@ begin
 end
 
 /-- The reduction modulo `p` of the minimal polynomial of `μ` is separable. -/
-lemma minimal_polynomial_is_separable {p : ℕ} [hprime : fact p.prime] (hdiv : ¬p ∣ n) : separable
+lemma separable_minimal_polynomial_mod {p : ℕ} [hprime : fact p.prime] (hdiv : ¬p ∣ n) : separable
   (map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos))) :=
 begin
   have hdvd : (map (int.cast_ring_hom (zmod p)) (minimal_polynomial
@@ -761,9 +761,9 @@ begin
 end
 
 /-- The reduction modulo `p` of the minimal polynomial of `μ` is squarefree. -/
-lemma minimal_polynomial_is_squarefree {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) : squarefree
-  (map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos))) :=
-separable.squarefree (minimal_polynomial_is_separable h hpos hdiv)
+lemma squarefree_minimal_polynomial_mod {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
+  squarefree (map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos))) :=
+separable.squarefree (separable_minimal_polynomial_mod h hpos hdiv)
 
 end minimal_polynomial
 

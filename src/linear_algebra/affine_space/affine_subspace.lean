@@ -966,6 +966,10 @@ lemma affine_span_nonempty (s : set P) :
   (affine_span k s : set P).nonempty ↔ s.nonempty :=
 span_points_nonempty k s
 
+/-- The affine span of a set is nonempty if and only if that set is. -/
+instance {s : set P} [nonempty s] : nonempty (affine_span k s) :=
+set.nonempty.to_subtype ((affine_span_nonempty k s).mpr (nonempty_subtype.mp ‹_›))
+
 variables {k}
 
 /-- Suppose a set of vectors spans `V`.  Then a point `p`, together

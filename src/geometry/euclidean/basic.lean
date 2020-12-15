@@ -546,8 +546,10 @@ def orthogonal_projection_fn (s : affine_subspace ℝ P) [nonempty s] [complete_
 classical.some $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.direction.orthogonal)
-  sorry
-  -- ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete hc)
+  begin
+    convert submodule.is_compl_orthogonal_of_is_complete (complete_space_coe_iff_is_complete.mp ‹_›),
+    exact direction_mk' p s.direction.orthogonal
+  end
 
 /-- The intersection of the subspace and the orthogonal subspace
 through the given point is the `orthogonal_projection_fn` of that
@@ -560,8 +562,10 @@ lemma inter_eq_singleton_orthogonal_projection_fn {s : affine_subspace ℝ P} [n
 classical.some_spec $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.direction.orthogonal)
-  sorry
-  -- ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete hc)
+  begin
+    convert submodule.is_compl_orthogonal_of_is_complete (complete_space_coe_iff_is_complete.mp ‹_›),
+    exact direction_mk' p s.direction.orthogonal
+  end
 
 /-- The `orthogonal_projection_fn` lies in the given subspace.  This
 lemma is only intended for use in setting up the bundled version and
@@ -740,8 +744,9 @@ begin
   have h := vsub_orthogonal_projection_mem_direction_orthogonal s (v +ᵥ p),
   rw [vadd_vsub_assoc, submodule.add_mem_iff_right _ hv] at h,
   refine (eq_of_vsub_eq_zero _).symm,
+  ext,
   refine submodule.disjoint_def.1 s.direction.orthogonal_disjoint _ _ h,
-  exact vsub_mem_direction hp (orthogonal_projection_mem ⟨p, hp⟩ hc (v +ᵥ p))
+  simp
 end
 
 /-- Adding a vector to a point in the given subspace, then taking the
@@ -812,16 +817,14 @@ def reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direct
     dsimp only,
     rw isometry_emetric_iff_metric,
     intros p₁ p₂,
-    let d : V := p₁ -ᵥ p₂,
     rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_eq_norm_vsub V
           ((↑(orthogonal_projection s p₁) -ᵥ p₁) +ᵥ ↑(orthogonal_projection s p₁)),
         dist_eq_norm_vsub V p₁, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square],
-    by_cases is_complete (s.direction : set V),
-    { calc
-        ⟪(↑(orthogonal_projection s p₁) -ᵥ p₁ +ᵥ ↑(orthogonal_projection s p₁) -ᵥ
-         (↑(orthogonal_projection s p₂) -ᵥ p₂ +ᵥ orthogonal_projection s p₂)),
-        (orthogonal_projection s p₁ -ᵥ p₁ +ᵥ orthogonal_projection s p₁ -ᵥ
-         (orthogonal_projection s p₂ -ᵥ p₂ +ᵥ orthogonal_projection s p₂))⟫
+    calc
+        ⟪((orthogonal_projection s p₁ : P) -ᵥ p₁ +ᵥ (orthogonal_projection s p₁ : P) -ᵥ
+         ((orthogonal_projection s p₂ : P) -ᵥ p₂ +ᵥ orthogonal_projection s p₂)),
+        ((orthogonal_projection s p₁ : P) -ᵥ p₁ +ᵥ (orthogonal_projection s p₁ : P) -ᵥ
+         ((orthogonal_projection s p₂ : P) -ᵥ p₂ +ᵥ orthogonal_projection s p₂))⟫
       = ⟪(_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)) +
           _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) -
           (p₁ -ᵥ p₂),
@@ -829,19 +832,18 @@ def reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direct
           _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) -
           (p₁ -ᵥ p₂)⟫
     : by { rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_comm, add_sub_assoc,
-             ←vsub_vadd_eq_vsub_sub, vsub_vadd_comm, vsub_vadd_eq_vsub_sub, ←add_sub_assoc,
-             ←affine_map.linear_map_vsub, orthogonal_projection_linear h.1 h.2], simp }
+             ←vsub_vadd_eq_vsub_sub, vsub_vadd_comm, vsub_vadd_eq_vsub_sub, ←add_sub_assoc],
+          --  rw ←affine_map.linear_map_vsub,
+          --  rw orthogonal_projection_linear,
+          --  simp,
+           sorry }
   ... = -4 * inner (p₁ -ᵥ p₂ - (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) : V))
                    (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)) +
           ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫
     : by { simp [inner_sub_left, inner_sub_right, inner_add_left, inner_add_right,
                  real_inner_comm (p₁ -ᵥ p₂)],
            ring }
-  ... = -4 * 0 + ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫
-    : by { have := orthogonal_projection_inner_eq_zero h.2 _ _ (_root_.orthogonal_projection s.direction _).2,
-            simp at this, rw this }
-  ... = ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ : by simp },
-    { simp [orthogonal_projection_def, h] }
+  ... = ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ : by simp,
   end }
 
 /-- The result of reflecting. -/
@@ -918,8 +920,8 @@ lemma dist_reflection_eq_of_mem (s : affine_subspace ℝ P) [nonempty s] [comple
   dist p₁ (reflection s p₂) = dist p₁ p₂ :=
 begin
   rw ←reflection_eq_self_iff p₁ at hp₁,
-  conv_lhs { rw ←hp₁ },
-  exact (reflection s).dist_eq _ _,
+  convert (reflection s).dist_eq p₁ p₂,
+  rw hp₁
 end
 
 /-- The reflection of a point in a subspace is contained in any larger

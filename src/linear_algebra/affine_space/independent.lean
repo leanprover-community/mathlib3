@@ -437,6 +437,9 @@ instance [inhabited P] : inhabited (simplex k P 0) :=
 instance nonempty : nonempty (simplex k P 0) :=
 ⟨mk_of_point k $ add_torsor.nonempty.some⟩
 
+instance {n : ℕ} (s : simplex k P n) : nonempty (set.range s.points) :=
+set.nonempty.to_subtype (set.range_nonempty s.points)
+
 variables {k V}
 
 /-- Two simplices are equal if they have the same points. -/

@@ -450,12 +450,12 @@ local postfix *:9001 := many
 `ext1 id` selects and apply one extensionality lemma (with attribute
 `ext`), using `id`, if provided, to name a local constant
 introduced by the lemma. If `id` is omitted, the local constant is
-named automatically, as per `intro`. Placing a `?` at the end of the `ext1`
-invocation (e.g. `ext1 i ⟨a,b⟩ : 3 ?`) will display a sequence of tactic
+named automatically, as per `intro`. Placing a `?` after `ext1`
+ (e.g. `ext1? i ⟨a,b⟩ : 3`) will display a sequence of tactic
 applications that can replace the call to `ext1`.
 -/
-meta def interactive.ext1 (xs : parse (rcases_patt_parse tt)*)
-  (trace : parse (tk "?")?) : tactic unit :=
+meta def interactive.ext1 (trace : parse (tk "?")?)
+  (xs : parse (rcases_patt_parse tt)*) : tactic unit :=
 ext1 xs {} trace.is_some $> ()
 
 /--
@@ -464,7 +464,7 @@ ext1 xs {} trace.is_some $> ()
   until it runs out of identifiers in `ids` to name the local constants.
 - `ext` can also be given an `rcases` pattern in place of an identifier.
   This will destruct the introduced local constant.
-- Placing a `?` at the end of the `ext` invocation (e.g. `ext i ⟨a,b⟩ : 3 ?`) will display
+- Placing a `?` after `ext` (e.g. `ext? i ⟨a,b⟩ : 3`) will display
   a sequence of tactic applications that can replace the call to `ext`.
 
 When trying to prove:
@@ -507,7 +507,7 @@ b : β
 
 by applying functional extensionality and destructing the introduced pair.
 
-In the previous example, applying `ext ⟨a,b⟩ ?` will produce the trace message:
+In the previous example, applying `ext? ⟨a,b⟩` will produce the trace message:
 
 ```lean
 Try this: apply funext, rintro ⟨a, b⟩
@@ -516,10 +516,10 @@ Try this: apply funext, rintro ⟨a, b⟩
 A maximum depth can be provided with `ext x y z : 3`.
 -/
 meta def interactive.ext :
-  parse (rcases_patt_parse tt)* → parse (tk ":" *> small_nat)? → (parse $ (tk "?")?) → tactic unit
- | [] (some n) trace := iterate_range 1 n (ext1 [] {} trace.is_some $> ())
- | [] none trace     := repeat1 (ext1 [] {} trace.is_some $> ())
- | xs n trace        := ext xs n {} trace.is_some $> ()
+  (parse $ (tk "?")?) → parse (rcases_patt_parse tt)* → parse (tk ":" *> small_nat)? → tactic unit
+ | trace [] (some n)  := iterate_range 1 n (ext1 [] {} trace.is_some $> ())
+ | trace [] none      := repeat1 (ext1 [] {} trace.is_some $> ())
+ | trace xs n         := ext xs n {} trace.is_some $> ()
 
 /--
 * `ext1 id` selects and apply one extensionality lemma (with
@@ -533,7 +533,7 @@ meta def interactive.ext :
   the local constants.
 * `ext` can also be given an `rcases` pattern in place of an identifier.
   This will destruct the introduced local constant.
-- Placing a `?` at the end of the `ext`/`ext1` invocation (e.g. `ext i ⟨a,b⟩ : 3 ?`) will display
+- Placing a `?` after `ext`/`ext1` (e.g. `ext? i ⟨a,b⟩ : 3`) will display
   a sequence of tactic applications that can replace the call to `ext`/`ext1`.
 
 When trying to prove:
@@ -575,7 +575,7 @@ b : β
 
 by applying functional extensionality and destructing the introduced pair.
 
-In the previous example, applying `ext ⟨a,b⟩ ?` will produce the trace message:
+In the previous example, applying `ext? ⟨a,b⟩` will produce the trace message:
 
 ```lean
 Try this: apply funext, rintro ⟨a, b⟩

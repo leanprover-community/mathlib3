@@ -1358,7 +1358,7 @@ begin
 end
 
 /-- The connected component of a point is always a subset of the intersection of all its clopen
-neighbourhoods -/
+neighbourhoods. -/
 lemma connected_component_subset_Inter_clopen {x : α} :
   connected_component x ⊆ ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
 begin

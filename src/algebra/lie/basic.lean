@@ -1222,6 +1222,9 @@ class lie_module.is_irreducible : Prop :=
 class lie_module.is_nilpotent : Prop :=
 (nilpotent : ∃ k, lie_module.lower_central_series R L M k = ⊥)
 
+lemma trivial_is_nilpotent [lie_module.is_trivial L M] : lie_module.is_nilpotent R L M :=
+⟨by { use 1, change ⁅⊤, ⊤⁆ = ⊥, simp, }⟩
+
 /-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
 action, and it is non-Abelian. -/
 class lie_algebra.is_simple extends lie_module.is_irreducible R L L : Prop :=

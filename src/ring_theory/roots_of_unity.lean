@@ -760,7 +760,7 @@ begin
   exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero))
 end
 
-/-- The reduction modulo `p` of the minimal polynomial of `μ` is squarefree. -/
+/-- The reduction modulo `p` of the minimal polynomial of a root of unity `μ` is squarefree. -/
 lemma squarefree_minimal_polynomial_mod {p : ℕ} [fact p.prime] (hdiv : ¬ p ∣ n) :
   squarefree (map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos))) :=
 (separable_minimal_polynomial_mod h hpos hdiv).squarefree

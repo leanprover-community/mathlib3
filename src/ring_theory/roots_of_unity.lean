@@ -746,7 +746,7 @@ begin
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
 end
 
-/-- The reduction modulo `p` of the minimal polynomial of `μ` is separable. -/
+/-- The reduction modulo `p` of the minimal polynomial of a root of unity `μ` is separable. -/
 lemma separable_minimal_polynomial_mod {p : ℕ} [fact p.prime] (hdiv : ¬p ∣ n) :
   separable (map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos))) :=
 begin

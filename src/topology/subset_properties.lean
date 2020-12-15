@@ -1276,21 +1276,17 @@ end
 theorem subset_or_disjoint_of_clopen {α : Type*} [topological_space α] {s t : set α}
   (h : is_preconnected t) (h1 : is_clopen s) : s ∩ t = ∅ ∨ t ⊆ s :=
 begin
-  apply classical.by_contradiction,
-  intro h2,
-  have h3 : s ∩ t ≠ ∅ ∧ sᶜ ∩ t ≠ ∅,
-  { split,
-    { exact mt or.inl h2 },
-    rw [set.inter_comm, set.ne_empty_iff_nonempty],
-    apply set.inter_compl_nonempty_iff.2,
+  by_contradiction h2,
+  have h3 : (s ∩ t).nonempty := ne_empty_iff_nonempty.mp (mt or.inl h2),
+  have h4 : (t ∩ sᶜ).nonempty,
+  { apply set.inter_compl_nonempty_iff.2,
     push_neg at h2,
     exact h2.2 },
-  rw [set.inter_comm, set.ne_empty_iff_nonempty] at h3,
-  conv at h3 in (sᶜ ∩ t ≠ ∅) {rw [set.inter_comm, set.ne_empty_iff_nonempty]},
-  apply set.ne_empty_iff_nonempty.2 (h s sᶜ h1.1 (is_open_compl_iff.2 h1.2) _ h3.1 h3.2),
-  rw [set.inter_compl_self, set.inter_empty],
-  rw [set.union_compl_self],
-  exact set.subset_univ t,
+  rw [set.inter_comm] at h3,
+  apply set.ne_empty_iff_nonempty.2 (h s sᶜ h1.1 (is_open_compl_iff.2 h1.2) _ h3 h4),
+  { rw [set.inter_compl_self, set.inter_empty] },
+  { rw [set.union_compl_self],
+    exact set.subset_univ t },
 end
 
 /-- A set `s` is preconnected if and only if

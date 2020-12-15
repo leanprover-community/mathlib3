@@ -426,9 +426,7 @@ truncate_lift_fun _ f_compat s
   (witt_vector.truncate n).comp (lift _ f_compat) = f n :=
 by { ext1, rw [ring_hom.comp_apply, truncate_lift] }
 
-/--
-The uniqueness part of the universal property of `𝕎 R`.
--/
+/-- The uniqueness part of the universal property of `𝕎 R`. -/
 lemma lift_unique (g : S →+* 𝕎 R) (g_compat : ∀ k, (witt_vector.truncate k).comp g = f k) :
   lift _ f_compat = g :=
 begin
@@ -442,15 +440,18 @@ end
 omit f_compat
 include hp
 
-lemma hom_ext (g₁ g₂ : S →+* 𝕎 R)
-  (h : ∀ k, (witt_vector.truncate k).comp g₁ = (witt_vector.truncate k).comp g₂) :
+/-- The universal property of `𝕎 R` as projective limit of truncated Witt vector rings. -/
+@[simps] def lift_equiv : (S →+* 𝕎 R) ≃ {f : Π k, S →+* truncated_witt_vector p k R //
+  ∀ k₁ k₂ (hk : k₁ ≤ k₂), (truncated_witt_vector.truncate hk).comp (f k₂) = f k₁} :=
+{ to_fun := λ g, ⟨λ k, (truncate k).comp g,
+    by { intros _ _ h, simp only [←ring_hom.comp_assoc, truncate_comp_witt_vector_truncate] }⟩,
+  inv_fun := λ f, lift f.1 f.2,
+  left_inv := λ g, lift_unique _ _ $ λ _, rfl,
+  right_inv := by { rintro ⟨f, hf⟩, simp only [truncate_comp_lift] } }
+
+lemma hom_ext (g₁ g₂ : S →+* 𝕎 R) (h : ∀ k, (truncate k).comp g₁ = (truncate k).comp g₂) :
   g₁ = g₂ :=
-begin
-  rw [← lift_unique _ g₁, ← lift_unique _ g₂],
-  { intro k, apply (h k).symm },
-  { intros, rw [← ring_hom.comp_assoc], simp [truncate_comp_witt_vector_truncate] },
-  { intro, refl }
-end
+lift_equiv.injective $ subtype.ext $ funext h
 
 end lift
 

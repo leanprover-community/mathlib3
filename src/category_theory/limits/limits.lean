@@ -924,9 +924,9 @@ variables (J C)
 class has_limits_of_shape : Prop :=
 (has_limit : Π F : J ⥤ C, has_limit F)
 
-/-- `C` has all (small) limits if it has limits of every shape. -/
+/-- `C` has all (small) limits if it has limits for every small shape. -/
 class has_limits : Prop :=
-(has_limits_of_shape : Π (J : Type v) [category.{w} J], has_limits_of_shape J C)
+(has_limits_of_shape : Π (J : Type v) [small_category J], has_limits_of_shape J C)
 
 variables {J C}
 
@@ -939,7 +939,7 @@ set_option pp.universes true
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_limits_of_shape_of_has_limits
-  {J : Type v} [category.{w} J] [has_limits.{w} C] : has_limits_of_shape J C :=
+  {J : Type v} [small_category J] [has_limits C] : has_limits_of_shape J C :=
 has_limits.has_limits_of_shape J
 
 /- Interface to the `has_limit` class. -/
@@ -1329,7 +1329,7 @@ class has_colimits_of_shape : Prop :=
 
 /-- `C` has all (small) colimits if it has colimits of every shape. -/
 class has_colimits : Prop :=
-(has_colimits_of_shape : Π (J : Type v) [𝒥 : category.{w} J], has_colimits_of_shape J C)
+(has_colimits_of_shape : Π (J : Type v) [small_category J], has_colimits_of_shape J C)
 
 variables {J C}
 
@@ -1340,7 +1340,7 @@ has_colimits_of_shape.has_colimit F
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_colimits_of_shape_of_has_colimits
-  {J : Type v} [category.{w} J] [H : has_colimits.{w} C] : has_colimits_of_shape J C :=
+  {J : Type v} [category.{v} J] [H : has_colimits C] : has_colimits_of_shape J C :=
 has_colimits.has_colimits_of_shape J
 
 /- Interface to the `has_colimit` class. -/

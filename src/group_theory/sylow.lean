@@ -33,9 +33,6 @@ begin
       ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
 end
 
--- This instance causes `exact card_quotient_dvd_card _` to timeout.
-local attribute [-instance] quotient_group.quotient.fintype
-
 lemma card_modeq_card_fixed_points [fintype α] [fintype G] [fintype (fixed_points G α)]
   (p : ℕ) {n : ℕ} [hp : fact p.prime] (h : card G = p ^ n) :
   card α ≡ card (fixed_points G α) [MOD p] :=

@@ -6,6 +6,7 @@ Authors: Bhavik Mehta
 
 import category_theory.sites.pretopology
 import category_theory.limits.shapes.types
+import category_theory.full_subcategory
 
 /-!
 # Sheaves on a Grothendieck topology
@@ -603,6 +604,10 @@ check the sheaf condition at presieves in the pretopology.
 def is_sheaf (P : Cᵒᵖ ⥤ Type v) : Prop :=
 ∀ ⦃X⦄ (S : sieve X), S ∈ J X → is_sheaf_for P S
 
+lemma is_sheaf.is_sheaf_for {P : Cᵒᵖ ⥤ Type v} (hp : is_sheaf J P)
+  (R : presieve X) (hr : generate R ∈ J X) : is_sheaf_for P R :=
+is_sheaf_for_iff_generate.2 $ hp _ hr
+
 lemma is_sheaf_for_coarser_topology (P : Cᵒᵖ ⥤ Type v) {J₁ J₂ : grothendieck_topology C} :
   J₁ ≤ J₂ → is_sheaf J₂ P → is_sheaf J₁ P :=
 λ h t X S hS, t S (h _ hS)
@@ -836,4 +841,27 @@ end
 
 end presieve
 end equalizer
+
+variables {C : Type u} [category.{v} C]
+variables (J : grothendieck_topology C)
+
+/-- The category of sheaves on a grothendieck topology. -/
+@[derive category]
+def Sheaf (J : grothendieck_topology C) : Type (max u (v+1)) :=
+{P : Cᵒᵖ ⥤ Type v // presieve.is_sheaf J P}
+
+instance : inhabited (Sheaf (⊥ : grothendieck_topology C)) :=
+⟨⟨(functor.const _).obj punit,
+  λ X S hS,
+  begin
+    simp only [grothendieck_topology.bot_covering] at hS,
+    subst hS,
+    apply presieve.is_sheaf_for_top_sieve,
+  end⟩⟩
+
+/-- The inclusion functor from sheaves to presheaves. -/
+@[simps {rhs_md := semireducible}, derive [full, faithful]]
+def Sheaf_to_presheaf : Sheaf J ⥤ (Cᵒᵖ ⥤ Type v) :=
+full_subcategory_inclusion (presieve.is_sheaf J)
+
 end category_theory

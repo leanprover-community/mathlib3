@@ -76,8 +76,8 @@ begin
       ... ≤ 2*ε                         : mul_le_mul_of_nonneg_right (sum_geometric_two_le _)
                                             (le_of_lt ε_pos), },
     have B : 2^(n+1) * ϕ x ≤ ϕ (u (n + 1)),
-    { apply le_of_lt,
-      exact geom_lt (by norm_num) (λ m hm, (IH _ hm).2), },
+    { refine @geom_le (ϕ ∘ u) _ zero_le_two (n + 1) (λ m hm, _),
+      exact (IH _ $ nat.lt_add_one_iff.1 hm).2.le },
     exact hu (n+1) ⟨A, B⟩, },
   cases forall_and_distrib.mp key with key₁ key₂,
   clear hu key,
@@ -86,7 +86,7 @@ begin
   { apply cauchy_seq_of_le_geometric _ ε (by norm_num : 1/(2:ℝ) < 1),
     intro n,
     convert key₁ n,
-    simp },
+    rw [one_div, inv_pow'] },
   -- So u converges to some y
   obtain ⟨y, limy⟩ : ∃ y, tendsto u at_top (𝓝 y),
     from complete_space.complete cauchy_u,
@@ -99,8 +99,8 @@ begin
     { have : 0 ≤ ϕ (u 0) := nonneg x,
       calc 0 ≤ 2 * ϕ (u 0) : by linarith
       ... < ϕ (u (0 + 1)) : key₂ 0 },
-    apply tendsto_at_top_of_geom_lt hv₀ (by norm_num : (1 : ℝ) < 2),
-    exact λ n, key₂ (n+1) },
+    apply tendsto_at_top_of_geom_le hv₀ one_lt_two,
+    exact λ n, (key₂ (n+1)).le },
   -- But ϕ ∘ u also needs to go to ϕ(y)
   have lim : tendsto (ϕ ∘ u) at_top (𝓝 (ϕ y)),
     from tendsto.comp cont.continuous_at limy,

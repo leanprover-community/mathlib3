@@ -270,6 +270,16 @@ meta def get_app_fn_const_whnf (e : expr) (md := semireducible)
     "expected a constant (possibly applied to some arguments), but got:\n{e}"
   end
 
+/--
+`get_app_args_whnf e md unfold_ginductive` is like `expr.get_app_args e` but `e`
+is normalised as necessary (with transparency `md`). `unfold_ginductive`
+controls whether constructors of generalised inductive types are unfolded. The
+returned expressions are not necessarily in whnf.
+-/
+meta def get_app_args_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (list expr) :=
+prod.snd <$> get_app_fn_args_whnf e md unfold_ginductive
+
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
 `loc_consts` should be a list of local constants. The function will abstract these local
 constants from `f` and bind them with pi binders.

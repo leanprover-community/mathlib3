@@ -385,6 +385,17 @@ lemma tendsto_at_bot_add (hf : tendsto f l at_bot) (hg : tendsto g l at_bot) :
   tendsto (λ x, f x + g x) l at_bot :=
 @tendsto_at_top_add _ (order_dual β) _ _ _ _ hf hg
 
+lemma tendsto.nsmul_at_top (hf : tendsto f l at_top) {n : ℕ} (hn : 0 < n) :
+  tendsto (λ x, n •ℕ f x) l at_top :=
+tendsto_at_top.2 $ λ y, (tendsto_at_top.1 hf y).mp $ (tendsto_at_top.1 hf 0).mono $ λ x h₀ hy,
+calc y ≤ f x : hy
+... = 1 •ℕ f x : (one_nsmul _).symm
+... ≤  n •ℕ f x : nsmul_le_nsmul h₀ hn
+
+lemma tendsto.nsmul_at_bot (hf : tendsto f l at_bot) {n : ℕ} (hn : 0 < n) :
+  tendsto (λ x, n •ℕ f x) l at_bot :=
+@tendsto.nsmul_at_top α (order_dual β) _ l f hf n hn
+
 end ordered_add_comm_monoid
 
 section ordered_cancel_add_comm_monoid
@@ -501,21 +512,149 @@ lemma tendsto_at_bot_add_const_right (C : β) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x + C) l at_bot :=
 @tendsto_at_top_add_const_right _ (order_dual β) _ _ _ C hf
 
+lemma tendsto_neg_at_top_at_bot : tendsto (has_neg.neg : β → β) at_top at_bot :=
+begin
+  simp only [tendsto_at_bot, neg_le],
+  exact λ b, eventually_ge_at_top _
+end
+
+lemma tendsto_neg_at_bot_at_top : tendsto (has_neg.neg : β → β) at_bot at_top :=
+@tendsto_neg_at_top_at_bot (order_dual β) _
+
 end ordered_group
 
-section linear_ordered_semiring
+section ordered_semiring
 
 variables [ordered_semiring α] {l : filter β} {f g : β → α}
 
-lemma tendsto_at_top_mul_at_top (hf : tendsto f l at_top) (hg : tendsto g l at_top) :
+lemma tendsto.at_top_mul_at_top (hf : tendsto f l at_top) (hg : tendsto g l at_top) :
   tendsto (λ x, f x * g x) l at_top :=
 begin
   refine tendsto_at_top_mono' _ _ hg,
-  filter_upwards [hg (eventually_ge_at_top 0), hf (eventually_ge_at_top 1)],
+  filter_upwards [hg.eventually (eventually_ge_at_top 0), hf.eventually (eventually_ge_at_top 1)],
   exact λ x, le_mul_of_one_le_left
 end
 
+lemma tendsto_mul_self_at_top : tendsto (λ x : α, x * x) at_top at_top :=
+tendsto_id.at_top_mul_at_top tendsto_id
+
+/-- The function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
+A version for positive real powers exists as `tendsto_rpow_at_top`. -/
+lemma tendsto_pow_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ n) at_top at_top :=
+begin
+  refine tendsto_at_top_mono' _ ((eventually_ge_at_top 1).mono $ λ x hx, _) tendsto_id,
+  simpa only [pow_one] using pow_le_pow hx hn
+end
+
+end ordered_semiring
+
+section ordered_ring
+
+variables [ordered_ring α] {l : filter β} {f g : β → α}
+
+lemma tendsto.at_top_mul_at_bot (hf : tendsto f l at_top) (hg : tendsto g l at_bot) :
+  tendsto (λ x, f x * g x) l at_bot :=
+have _ := (hf.at_top_mul_at_top $ tendsto_neg_at_bot_at_top.comp hg),
+by simpa only [(∘), neg_mul_eq_mul_neg, neg_neg] using tendsto_neg_at_top_at_bot.comp this
+
+lemma tendsto.at_bot_mul_at_top (hf : tendsto f l at_bot) (hg : tendsto g l at_top) :
+  tendsto (λ x, f x * g x) l at_bot :=
+have tendsto (λ x, (-f x) * g x) l at_top :=
+  ( (tendsto_neg_at_bot_at_top.comp hf).at_top_mul_at_top hg),
+by simpa only [(∘), neg_mul_eq_neg_mul, neg_neg] using tendsto_neg_at_top_at_bot.comp this
+
+lemma tendsto.at_bot_mul_at_bot (hf : tendsto f l at_bot) (hg : tendsto g l at_bot) :
+  tendsto (λ x, f x * g x) l at_top :=
+have tendsto (λ x, (-f x) * (-g x)) l at_top :=
+  (tendsto_neg_at_bot_at_top.comp hf).at_top_mul_at_top (tendsto_neg_at_bot_at_top.comp hg),
+by simpa only [neg_mul_neg] using this
+
+end ordered_ring
+
+section linear_ordered_semiring
+
+variables [linear_ordered_semiring α] {l : filter β} {f : β → α}
+
+lemma tendsto.at_top_of_const_mul {c : α} (hc : 0 < c) (hf : tendsto (λ x, c * f x) l at_top) :
+  tendsto f l at_top :=
+tendsto_at_top.2 $ λ b, (tendsto_at_top.1 hf (c * b)).mono $ λ x hx, le_of_mul_le_mul_left hx hc
+
+lemma tendsto.at_top_of_mul_const {c : α} (hc : 0 < c) (hf : tendsto (λ x, f x * c) l at_top) :
+  tendsto f l at_top :=
+tendsto_at_top.2 $ λ b, (tendsto_at_top.1 hf (b * c)).mono $ λ x hx, le_of_mul_le_mul_right hx hc
+
 end linear_ordered_semiring
+
+section linear_ordered_field
+
+variables [linear_ordered_field α] {l : filter β} {f : β → α} {r : α}
+
+/-- If a function tends to infinity along a filter, then this function multiplied by a positive
+constant (on the left) also tends to infinity. For a version working in `ℕ` or `ℤ`, use
+`filter.tendsto.const_mul_at_top'` instead. -/
+lemma tendsto.const_mul_at_top (hr : 0 < r) (hf : tendsto f l at_top) :
+  tendsto (λx, r * f x) l at_top :=
+tendsto.at_top_of_const_mul (inv_pos.2 hr) $ by simpa only [inv_mul_cancel_left' hr.ne']
+
+/-- If a function tends to infinity along a filter, then this function multiplied by a positive
+constant (on the right) also tends to infinity. For a version working in `ℕ` or `ℤ`, use
+`filter.tendsto.at_top_mul_const'` instead. -/
+lemma tendsto.at_top_mul_const (hr : 0 < r) (hf : tendsto f l at_top) :
+  tendsto (λx, f x * r) l at_top :=
+by simpa only [mul_comm] using hf.const_mul_at_top hr
+
+/-- If a function tends to infinity along a filter, then this function divided by a positive
+constant also tends to infinity. -/
+lemma tendsto.at_top_div_const (hr : 0 < r) (hf : tendsto f l at_top) :
+  tendsto (λx, f x / r) l at_top :=
+hf.at_top_mul_const (inv_pos.2 hr)
+
+/-- If a function tends to infinity along a filter, then this function multiplied by a negative
+constant (on the left) tends to negative infinity. -/
+lemma tendsto.neg_const_mul_at_top (hr : r < 0) (hf : tendsto f l at_top) :
+  tendsto (λ x, r * f x) l at_bot :=
+by simpa only [(∘), neg_mul_eq_neg_mul, neg_neg]
+  using tendsto_neg_at_top_at_bot.comp (hf.const_mul_at_top (neg_pos.2 hr))
+
+/-- If a function tends to infinity along a filter, then this function multiplied by a negative
+constant (on the right) tends to negative infinity. -/
+lemma tendsto.at_top_mul_neg_const (hr : r < 0) (hf : tendsto f l at_top) :
+  tendsto (λ x, f x * r) l at_bot :=
+by simpa only [mul_comm] using hf.neg_const_mul_at_top hr
+
+/-- If a function tends to negative infinity along a filter, then this function multiplied by
+a positive constant (on the left) also tends to negative infinity. -/
+lemma tendsto.const_mul_at_bot (hr : 0 < r) (hf : tendsto f l at_bot) :
+  tendsto (λx, r * f x) l at_bot :=
+by simpa only [(∘), neg_mul_eq_mul_neg, neg_neg]
+  using tendsto_neg_at_top_at_bot.comp ((tendsto_neg_at_bot_at_top.comp hf).const_mul_at_top hr)
+
+/-- If a function tends to negative infinity along a filter, then this function multiplied by
+a positive constant (on the right) also tends to negative infinity. -/
+lemma tendsto.at_bot_mul_const (hr : 0 < r) (hf : tendsto f l at_bot) :
+  tendsto (λx, f x * r) l at_bot :=
+by simpa only [mul_comm] using hf.const_mul_at_bot hr
+
+/-- If a function tends to negative infinity along a filter, then this function divided by
+a positive constant also tends to negative infinity. -/
+lemma tendsto.at_bot_div_const (hr : 0 < r) (hf : tendsto f l at_bot) :
+  tendsto (λx, f x / r) l at_bot :=
+hf.at_bot_mul_const (inv_pos.2 hr)
+
+/-- If a function tends to negative infinity along a filter, then this function multiplied by
+a negative constant (on the left) tends to positive infinity. -/
+lemma tendsto.neg_const_mul_at_bot (hr : r < 0) (hf : tendsto f l at_bot) :
+  tendsto (λ x, r * f x) l at_top :=
+by simpa only [(∘), neg_mul_eq_neg_mul, neg_neg]
+  using tendsto_neg_at_bot_at_top.comp (hf.const_mul_at_bot (neg_pos.2 hr))
+
+/-- If a function tends to negative infinity along a filter, then this function multiplied by
+a negative constant (on the right) tends to positive infinity. -/
+lemma tendsto.at_bot_mul_neg_const (hr : r < 0) (hf : tendsto f l at_bot) :
+  tendsto (λ x, f x * r) l at_top :=
+by simpa only [mul_comm] using hf.neg_const_mul_at_bot hr
+
+end linear_ordered_field
 
 open_locale filter
 
@@ -722,9 +861,13 @@ end
 
 /-- The `at_top` filter for an open interval `Ioi a` comes from the `at_top` filter in the ambient
 order. -/
-lemma at_top_Ioi_eq [semilattice_sup α] [no_top_order α] (a : α) :
+lemma at_top_Ioi_eq [semilattice_sup α] (a : α) :
   at_top = comap (coe : Ioi a → α) at_top :=
-by rw [← map_coe_Ioi_at_top a, comap_map subtype.coe_injective]
+begin
+  nontriviality,
+  rcases nontrivial_iff_nonempty.1 ‹_› with ⟨b, hb⟩,
+  rw [← map_coe_at_top_of_Ici_subset (Ici_subset_Ioi.2 hb), comap_map subtype.coe_injective]
+end
 
 /-- The `at_top` filter for an open interval `Ici a` comes from the `at_top` filter in the ambient
 order. -/
@@ -740,9 +883,9 @@ order. -/
 
 /-- The `at_bot` filter for an open interval `Iio a` comes from the `at_bot` filter in the ambient
 order. -/
-lemma at_bot_Iio_eq [semilattice_inf α] [no_bot_order α] (a : α) :
+lemma at_bot_Iio_eq [semilattice_inf α] (a : α) :
   at_bot = comap (coe : Iio a → α) at_bot :=
-@at_top_Ioi_eq (order_dual α) _ _ _
+@at_top_Ioi_eq (order_dual α) _ _
 
 /-- The `at_bot` filter for an open interval `Iic a` comes from the `at_bot` filter in the ambient
 order. -/
@@ -755,6 +898,44 @@ order. -/
 lemma at_bot_Iic_eq [semilattice_inf α] (a : α) :
   at_bot = comap (coe : Iic a → α) at_bot :=
 @at_top_Ici_eq (order_dual α) _ _
+
+lemma tendsto_Ioi_at_top [semilattice_sup α] {a : α} {f : β → Ioi a}
+  {l : filter β} :
+  tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l at_top :=
+by rw [at_top_Ioi_eq, tendsto_comap_iff]
+
+lemma tendsto_Iio_at_bot [semilattice_inf α] {a : α} {f : β → Iio a}
+  {l : filter β} :
+  tendsto f l at_bot ↔ tendsto (λ x, (f x : α)) l at_bot :=
+by rw [at_bot_Iio_eq, tendsto_comap_iff]
+
+lemma tendsto_Ici_at_top [semilattice_sup α] {a : α} {f : β → Ici a} {l : filter β} :
+  tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l at_top :=
+by rw [at_top_Ici_eq, tendsto_comap_iff]
+
+lemma tendsto_Iic_at_bot [semilattice_inf α] {a : α} {f : β → Iic a} {l : filter β} :
+  tendsto f l at_bot ↔ tendsto (λ x, (f x : α)) l at_bot :=
+by rw [at_bot_Iic_eq, tendsto_comap_iff]
+
+@[simp] lemma tendsto_comp_coe_Ioi_at_top [semilattice_sup α] [no_top_order α] {a : α}
+  {f : α → β} {l : filter β} :
+  tendsto (λ x : Ioi a, f x) at_top l ↔ tendsto f at_top l :=
+by rw [← map_coe_Ioi_at_top a, tendsto_map'_iff]
+
+@[simp] lemma tendsto_comp_coe_Ici_at_top [semilattice_sup α] {a : α}
+  {f : α → β} {l : filter β} :
+  tendsto (λ x : Ici a, f x) at_top l ↔ tendsto f at_top l :=
+by rw [← map_coe_Ici_at_top a, tendsto_map'_iff]
+
+@[simp] lemma tendsto_comp_coe_Iio_at_bot [semilattice_inf α] [no_bot_order α] {a : α}
+  {f : α → β} {l : filter β} :
+  tendsto (λ x : Iio a, f x) at_bot l ↔ tendsto f at_bot l :=
+by rw [← map_coe_Iio_at_bot a, tendsto_map'_iff]
+
+@[simp] lemma tendsto_comp_coe_Iic_at_bot [semilattice_inf α] {a : α}
+  {f : α → β} {l : filter β} :
+  tendsto (λ x : Iic a, f x) at_bot l ↔ tendsto f at_bot l :=
+by rw [← map_coe_Iic_at_bot a, tendsto_map'_iff]
 
 lemma map_add_at_top_eq_nat (k : ℕ) : map (λa, a + k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a - k) k
@@ -867,17 +1048,6 @@ lemma tendsto_at_bot_of_monotone_of_subseq [preorder ι] [preorder α] {u : ι �
   tendsto u at_bot at_bot :=
 tendsto_at_bot_of_monotone_of_filter h (tendsto_map' H)
 
-lemma tendsto_neg_at_top_at_bot [ordered_add_comm_group α] :
-  tendsto (has_neg.neg : α → α) at_top at_bot :=
-begin
-  simp only [tendsto_at_bot, neg_le],
-  exact λ b, eventually_ge_at_top _
-end
-
-lemma tendsto_neg_at_bot_at_top [ordered_add_comm_group α] :
-  tendsto (has_neg.neg : α → α) at_bot at_top :=
-@tendsto_neg_at_top_at_bot (order_dual α) _
-
 /-- Let `f` and `g` be two maps to the same commutative monoid. This lemma gives a sufficient
 condition for comparison of the filter `at_top.map (λ s, ∏ b in s, f b)` with
 `at_top.map (λ s, ∏ b in s, g b)`. This is useful to compare the set of limit points of
@@ -950,6 +1120,20 @@ end is_countably_generated
 end filter
 
 open filter finset
+
+section
+
+variables {R : Type*} [linear_ordered_semiring R]
+
+lemma exists_lt_mul_self (a : R) : ∃ x ≥ 0, a < x * x :=
+let ⟨x, hxa, hx0⟩ :=((tendsto_mul_self_at_top.eventually (eventually_gt_at_top a)).and
+  (eventually_ge_at_top 0)).exists
+in ⟨x, hx0, hxa⟩
+
+lemma exists_le_mul_self (a : R) : ∃ x ≥ 0, a ≤ x * x :=
+let ⟨x, hx0, hxa⟩ := exists_lt_mul_self a in ⟨x, hx0, hxa.le⟩
+
+end
 
 namespace order_iso
 

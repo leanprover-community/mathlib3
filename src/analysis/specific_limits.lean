@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import analysis.normed_space.basic
 import algebra.geom_sum
 import order.filter.archimedean
+import order.iterate
 import topology.instances.ennreal
 import tactic.ring_exp
 
@@ -92,38 +93,22 @@ lemma uniformity_basis_dist_pow_of_lt_1 {α : Type*} [metric_space α]
 metric.mk_uniformity_basis (λ i _, pow_pos h₀ _) $ λ ε ε0,
   (exists_pow_lt_of_lt_one ε0 h₁).imp $ λ k hk, ⟨trivial, hk.le⟩
 
-lemma geom_lt {u : ℕ → ℝ} {k : ℝ} (hk : 0 < k) {n : ℕ} (h : ∀ m ≤ n, k*u m < u (m + 1)) :
-  k^(n + 1) *u 0 < u (n + 1) :=
-begin
- induction n with n ih,
- { simpa using h 0 (le_refl _) },
- have : (∀ (m : ℕ), m ≤ n → k * u m < u (m + 1)),
-   intros m hm, apply h, exact nat.le_succ_of_le hm,
- specialize ih this,
- change k ^ (n + 2) * u 0 < u (n + 2),
- replace h : k * u (n + 1) < u (n + 2) := h (n+1) (le_refl _),
- calc k ^ (n + 2) * u 0 = k*(k ^ (n + 1) * u 0) : by ring_exp
-  ... < k*(u (n + 1)) : mul_lt_mul_of_pos_left ih hk
-  ... < u (n + 2) : h,
-end
+lemma geom_lt {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) {n : ℕ} (hn : 0 < n)
+  (h : ∀ k < n, c * u k < u (k + 1)) :
+  c ^ n * u 0 < u n :=
+(monotone_mul_left_of_nonneg hc).seq_pos_lt_seq_of_le_of_lt hn (by simp)
+  (λ k hk, by simp [pow_succ, mul_assoc]) h
 
-/-- If a sequence `v` of real numbers satisfies `k*v n < v (n+1)` with `1 < k`,
+lemma geom_le {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) (n : ℕ) (h : ∀ k < n, c * u k ≤ u (k + 1)) :
+  c ^ n * u 0 ≤ u n :=
+by refine (monotone_mul_left_of_nonneg hc).seq_le_seq n _ _ h; simp [pow_succ, mul_assoc, le_refl]
+
+/-- If a sequence `v` of real numbers satisfies `k * v n ≤ v (n+1)` with `1 < k`,
 then it goes to +∞. -/
-lemma tendsto_at_top_of_geom_lt {v : ℕ → ℝ} {k : ℝ} (h₀ : 0 < v 0) (hk : 1 < k)
-  (hu : ∀ n, k*v n < v (n+1)) : tendsto v at_top at_top :=
-begin
-  apply tendsto_at_top_mono,
-  show ∀ n, k^n*v 0 ≤ v n,
-  { intro n,
-    induction n with n ih,
-    { simp },
-    calc
-    k ^ (n + 1) * v 0 = k*(k^n*v 0) : by ring_exp
-                  ... ≤ k*v n       : mul_le_mul_of_nonneg_left ih (by linarith)
-                  ... ≤ v (n + 1)   : le_of_lt (hu n) },
-  apply tendsto_at_top_mul_right h₀,
-  exact tendsto_pow_at_top_at_top_of_one_lt hk,
-end
+lemma tendsto_at_top_of_geom_le {v : ℕ → ℝ} {c : ℝ} (h₀ : 0 < v 0) (hc : 1 < c)
+  (hu : ∀ n, c * v n ≤ v (n + 1)) : tendsto v at_top at_top :=
+tendsto_at_top_mono (λ n, geom_le (zero_le_one.trans hc.le) n (λ k hk, hu k)) $
+  (tendsto_pow_at_top_at_top_of_one_lt hc).at_top_mul_const h₀
 
 lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : nnreal} (hr : r < 1) :
   tendsto (λ n:ℕ, r^n) at_top (𝓝 0) :=

@@ -859,55 +859,35 @@ begin
   end
 end
 
-/-- Minkowski's inequality for functions `α → ennreal`: the `ℒp`-seminorm of the sum of two
-functions is bounded by the sum of their `ℒp` seminorms.
-This lemma applies when both functions have finite seminorm. That hypothesis is removed in
-`lintegral_rpow_add_le_add_lintegral_rpow`. -/
-lemma lintegral_rpow_add_le_add_lintegral_rpow_of_ne_top {p : ℝ} {f g : α → ennreal}
-  (hf : measurable f) (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤)
-  (hg : measurable g) (hg_top : ∫⁻ a, (g a) ^ p ∂μ ≠ ⊤) (hp1 : 1 ≤ p) :
+lemma lintegral_rpow_add_le_add_lintegral_rpow_of_lintegral_add_ne_zero_ne_top {p q : ℝ}
+  (hpq : p.is_conjugate_exponent q) {f g : α → ennreal} (hf : measurable f)
+  (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) (hg : measurable g) (hg_top : ∫⁻ a, (g a) ^ p ∂μ ≠ ⊤)
+  (h_add_zero : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ 0) (h_add_top : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ ⊤):
   (∫⁻ a, ((f + g) a) ^ p ∂ μ) ^ (1 / p)
     ≤ (∫⁻ a, (f a) ^ p ∂μ) ^ (1 / p) + (∫⁻ a, (g a) ^ p ∂μ) ^ (1 / p) :=
 begin
-  have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
-  have hp_nonneg : 0 ≤ p, from le_of_lt hp_pos,
-  have hp_not_nonpos : ¬ p ≤ 0, by simp [hp_pos],
-  by_cases h0 : ∫⁻ a, ((f+g) a) ^ p ∂ μ = 0,
-  { rw [h0, @ennreal.zero_rpow_of_pos (1/p) (by simp [hp_pos])],
-    exact zero_le _, },
-  -- prove that the seminorm of (f+g) is neither 0 nor ⊤
-  have htop : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ ⊤,
-  { rw ←ennreal.lt_top_iff_ne_top at hf_top hg_top ⊢,
-    exact lintegral_rpow_add_lt_top_of_lintegral_rpow_lt_top hf hf_top hg hg_top hp1, },
+  have hp_not_nonpos : ¬ p ≤ 0, by simp [hpq.pos],
   have htop_rpow : (∫⁻ a, ((f+g) a) ^ p ∂μ)^(1/p) ≠ ⊤,
   { by_contra h,
     push_neg at h,
-    exact htop (@ennreal.rpow_eq_top_of_nonneg _ (1/p) (by simp [hp_nonneg]) h), },
+    exact h_add_top (@ennreal.rpow_eq_top_of_nonneg _ (1/p) (by simp [hpq.nonneg]) h), },
   have h0_rpow : (∫⁻ a, ((f+g) a) ^ p ∂ μ) ^ (1/p) ≠ 0,
   { rw [ne.def, rpow_eq_zero_iff, auto.not_or_eq, auto.not_and_eq, auto.not_and_eq],
-    simp [h0, htop, hp_nonneg, hp_not_nonpos, -pi.add_apply], },
-  -- deal with the case p=1 separately
-  by_cases h1 : p = 1,
-  { refine le_of_eq _,
-    simp_rw [h1, one_div_one, ennreal.rpow_one],
-    exact lintegral_add hf hg, },
-  -- now 1 < p
-  have hp1_lt : 1 < p, by { refine lt_of_le_of_ne hp1 _, symmetry, exact h1, },
-  have hpq := real.is_conjugate_exponent_conjugate_exponent hp1_lt,
+    simp [h_add_zero, h_add_top, hpq.nonneg, hp_not_nonpos, -pi.add_apply], },
   have h : ∫⁻ a, ((f+g) a) ^ p ∂ μ
     ≤ ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p) )
-      * (∫⁻ a, ((f + g) a)^p ∂μ) ^ (1 / p.conjugate_exponent),
+      * (∫⁻ a, ((f + g) a)^p ∂μ) ^ (1 / q),
   from lintegral_rpow_add_le_add_snorm_mul_lintegral_rpow_add hpq hf hf_top hg hg_top,
   have h' : 1 ≤ (∫⁻ (a : α), ((f+g) a) ^ p ∂μ) ^ -(1 / p)
     * ((∫⁻ (a : α), (f a) ^ p ∂μ) ^ (1 / p) + (∫⁻ (a : α), (g a) ^ p ∂μ) ^ (1 / p)),
-  { have h_one_div_q : 1 / p.conjugate_exponent = 1 - 1/p,
+  { have h_one_div_q : 1 / q = 1 - 1/p,
     { nth_rewrite 1 ←hpq.inv_add_inv_conj,
       ring, },
     simp_rw [h_one_div_q, sub_eq_add_neg 1 (1/p)] at h,
-    rw [ennreal.rpow_add _ _ h0 htop, ennreal.rpow_one, mul_comm] at h,
+    rw [ennreal.rpow_add _ _ h_add_zero h_add_top, ennreal.rpow_one, mul_comm] at h,
     nth_rewrite 0 ←mul_one (∫⁻ (a : α), ((f+g) a) ^ p ∂μ) at h,
-    rwa [mul_assoc, ennreal.mul_le_mul_left h0 htop] at h, },
-  rwa [←mul_le_mul_left h0_rpow htop_rpow, ←mul_assoc, ←rpow_add _ _ h0 htop,
+    rwa [mul_assoc, ennreal.mul_le_mul_left h_add_zero h_add_top] at h, },
+  rwa [←mul_le_mul_left h0_rpow htop_rpow, ←mul_assoc, ←rpow_add _ _ h_add_zero h_add_top,
     ←sub_eq_add_neg, _root_.sub_self, rpow_zero, one_mul, mul_one] at h',
 end
 
@@ -923,7 +903,21 @@ begin
   { simp [hf_top, hp_pos], },
   by_cases hg_top : ∫⁻ a, (g a) ^ p ∂μ = ⊤,
   { simp [hg_top, hp_pos], },
-  exact lintegral_rpow_add_le_add_lintegral_rpow_of_ne_top hf hf_top hg hg_top hp1,
+  by_cases h1 : p = 1,
+  { refine le_of_eq _,
+    simp_rw [h1, one_div_one, ennreal.rpow_one],
+    exact lintegral_add hf hg, },
+  have hp1_lt : 1 < p, by { refine lt_of_le_of_ne hp1 _, symmetry, exact h1, },
+  have hpq := real.is_conjugate_exponent_conjugate_exponent hp1_lt,
+  by_cases h0 : ∫⁻ a, ((f+g) a) ^ p ∂ μ = 0,
+  { rw [h0, @ennreal.zero_rpow_of_pos (1/p) (by simp [lt_of_lt_of_le zero_lt_one hp1])],
+    exact zero_le _, },
+  have htop : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ ⊤,
+  { rw ←ne.def at hf_top hg_top,
+    rw ←ennreal.lt_top_iff_ne_top at hf_top hg_top ⊢,
+    exact lintegral_rpow_add_lt_top_of_lintegral_rpow_lt_top hf hf_top hg hg_top hp1, },
+  exact lintegral_rpow_add_le_add_lintegral_rpow_of_lintegral_add_ne_zero_ne_top hpq hf hf_top hg
+    hg_top h0 htop,
 end
 
 end ennreal

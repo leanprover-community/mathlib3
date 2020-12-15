@@ -65,12 +65,26 @@ sum_congr_symm e f
   sum_congr (1 : perm α) (1 : perm β) = 1 :=
 sum_congr_refl
 
-/-- `equiv.perm.sum_congr` as a `monoid_hom`. -/
-def sum_congr_hom {α β : Type*} :
+/-- `equiv.perm.sum_congr` as a `monoid_hom`, with its two arguments bundled into a single `prod`.
+
+This is particularly useful for its `monoid_hom.range` projection, which is the subgroup of
+permutations which do not exchange elements between `α` and `β`. -/
+@[simps]
+def sum_congr_hom (α β : Type*) :
   perm α × perm β →* perm (α ⊕ β) :=
 { to_fun := λ a, sum_congr a.1 a.2,
   map_one' := sum_congr_one,
   map_mul' := λ a b, (sum_congr_mul _ _ _ _).symm}
+
+lemma sum_congr_hom_injective {α β : Type*} :
+  function.injective (sum_congr_hom α β) :=
+begin
+  rintros ⟨⟩ ⟨⟩ h,
+  rw prod.mk.inj_iff,
+  split; ext i,
+  { simpa [sum_congr_hom_apply] using equiv.congr_fun h (sum.inl i), },
+  { simpa [sum_congr_hom_apply] using equiv.congr_fun h (sum.inr i), },
+end
 
 @[simp] lemma sum_congr_swap_one {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : α) :
   sum_congr (equiv.swap i j) (1 : perm β) = equiv.swap (sum.inl i) (sum.inl j) :=
@@ -95,12 +109,24 @@ sigma_congr_right_symm F
   (sigma_congr_right (1 : Π a, equiv.perm $ β a)) = 1 :=
 sigma_congr_right_refl
 
-/-- `equiv.perm.sigma_congr_right` as a `monoid_hom`. -/
-def sigma_congr_right_hom {α : Type*} {β : α → Type*} :
+/-- `equiv.perm.sigma_congr_right` as a `monoid_hom`.
+
+This is particularly useful for its `monoid_hom.range` projection, which is the subgroup of
+permutations which do not exchange elements between fibers. -/
+@[simps]
+def sigma_congr_right_hom {α : Type*} (β : α → Type*) :
   (Π a, perm (β a)) →* perm (Σ a, β a) :=
 { to_fun := sigma_congr_right,
   map_one' := sigma_congr_right_one,
   map_mul' := λ a b, (sigma_congr_right_mul _ _).symm }
+
+lemma sigma_congr_right_hom_injective {α : Type*} {β : α → Type*} :
+  function.injective (sigma_congr_right_hom β) :=
+begin
+  intros x y h,
+  ext a b,
+  simpa [sigma_congr_right_hom_apply] using equiv.congr_fun h ⟨a, b⟩,
+end
 
 end perm
 

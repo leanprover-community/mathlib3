@@ -1272,29 +1272,25 @@ begin
     { simpa using hs } }
 end
 
-/-- If a preconnected set intersects a clopen set, then it must be contained in the clopen set -/
-theorem subset_clopen_of_preconnected {s t : set α} (h : is_clopen s) (h1 : is_preconnected t)
-  (h2 : (s ∩ t).nonempty) : t ⊆ s :=
+/-- preconnected sets are either contained in, or disjoint to any given clopen set -/
+theorem subset_or_disjoint_of_clopen {α : Type*} [topological_space α] {s t : set α}
+  (h : is_preconnected t) (h1 : is_clopen s) : s ∩ t = ∅ ∨ t ⊆ s :=
 begin
-  let v := sᶜ,
-  apply (@set.subset_iff_inter_eq_self _ t s).2,
-  let u := (coe : (t → α)) ⁻¹' s,
-  have hu : is_clopen u,
-  { rw [←(set.inter_univ u), set.inter_comm],
-    apply (continuous_on.preimage_clopen_of_clopen
-          (continuous_iff_continuous_on_univ.1 continuous_subtype_coe) is_clopen_univ h)  },
-  cases (@is_clopen_iff _ _ (is_preconnected_iff_preconnected_space.1 h1) _).1 hu with h1 h1,
-    { exfalso,
-      apply set.nonempty.ne_empty h2,
-      suffices : (coe : (t → α)) ⁻¹' (s ∩ t) = ∅,
-      { rw [←set.preimage_eq_empty_iff, subtype.range_coe, set.disjoint_iff_inter_eq_empty] at this,
-        rw [set.inter_assoc, set.inter_self t] at this,
-        exact this  },
-      rw [set.preimage_inter, subtype.coe_preimage_self, set.inter_univ],
-      exact h1  },
-    { rw [←subtype.coe_preimage_self t, subtype.preimage_coe_eq_preimage_coe_iff, set.inter_self t] at h1,
-      rw set.inter_comm,
-      exact h1  },
+  apply classical.by_contradiction,
+  intro h2,
+  have h3 : s ∩ t ≠ ∅ ∧ sᶜ ∩ t ≠ ∅,
+  { split,
+    { exact mt or.inl h2 },
+    rw [set.inter_comm, set.ne_empty_iff_nonempty],
+    apply set.inter_compl_nonempty_iff.2,
+    push_neg at h2,
+    exact h2.2 },
+  rw [set.inter_comm, set.ne_empty_iff_nonempty] at h3,
+  conv at h3 in (sᶜ ∩ t ≠ ∅) {rw [set.inter_comm, set.ne_empty_iff_nonempty]},
+  apply set.ne_empty_iff_nonempty.2 (h s sᶜ h1.1 (is_open_compl_iff.2 h1.2) _ h3.1 h3.2),
+  rw [set.inter_compl_self, set.inter_empty],
+  rw [set.union_compl_self],
+  exact set.subset_univ t,
 end
 
 /-- A set `s` is preconnected if and only if
@@ -1365,9 +1361,16 @@ end
 neighbourhoods -/
 lemma connected_component_subset_Inter_clopen {x : α} :
   connected_component x ⊆ ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
-set.subset_Inter $ λ Z,  subset_clopen_of_preconnected
-  Z.2.1 (is_connected_connected_component).2
-  $ set.nonempty_of_mem $ set.mem_inter Z.2.2 $ mem_connected_component
+begin
+  apply set.subset_Inter (λ Z, _),
+  cases (subset_or_disjoint_of_clopen (@is_connected_connected_component _ _ x).2 Z.2.1),
+  { exfalso,
+    apply set.nonempty.ne_empty
+      (set.nonempty_of_mem (set.mem_inter (@mem_connected_component _ _ x) Z.2.2)),
+    rw set.inter_comm,
+    exact h  },
+  exact h,
+end
 
 end preconnected
 

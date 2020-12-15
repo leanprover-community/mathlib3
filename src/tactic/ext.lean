@@ -399,7 +399,7 @@ let σ := ext_state.mk patts [] none in
 
 /-- Apply one extensionality lemma, and destruct the arguments using the patterns
   in the ext_state. -/
-private meta def ext1_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
+meta def ext1_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
 do ⟨patts, trace_msg, _⟩ ← get,
    (new_msgs) ← state_t.lift $ focus1 $
    do { m ← get_ext_lemmas,
@@ -418,7 +418,7 @@ do ⟨patts, trace_msg, _⟩ ← get,
     try_intros_core
 
 /-- Apply multiple extensionality lemmas, destructing the arguments using the given patterns. -/
-private meta def ext_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
+meta def ext_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
 do acc@⟨_, _, fuel⟩ ← get,
    match fuel with
    | (some 0) := pure ()
@@ -440,7 +440,7 @@ do ⟨_, σ⟩ ← state_t.run (ext1_core cfg) {patts := xs},
 meta def ext (xs : list rcases_patt) (fuel : option ℕ) (cfg : apply_cfg := {})
   (trace : bool := ff): tactic (list rcases_patt) :=
 do ⟨_, σ⟩ ← state_t.run (ext_core cfg) {patts := xs, fuel := fuel},
-   when trace $ tactic.trace $ "Try this : " ++  ", ".intercalate σ.trace_msg,
+   when trace $ tactic.trace $ "Try this: " ++  ", ".intercalate σ.trace_msg,
    pure σ.patts
 
 local postfix `?`:9001 := optional

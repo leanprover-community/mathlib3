@@ -1248,7 +1248,7 @@ class lie_algebra.is_solvable : Prop :=
 instance is_solvable_of_is_nilpotent [hL : lie_module.is_nilpotent R L L] : lie_algebra.is_solvable R L :=
 begin
   obtain ⟨k, h⟩ : ∃ k, lie_module.lower_central_series R L L k = ⊥ := hL,
-  use k, rw ← le_bot_iff at h, rw ← le_bot_iff,
+  use k, rw ← le_bot_iff at h ⊢,
   exact le_trans (lie_module.derived_series_le_lower_central_series R L k) h,
 end
 

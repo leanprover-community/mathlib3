@@ -28,10 +28,9 @@ def sum_congr_subgroup (α β : Type*) : subgroup (perm (α ⊕ β)) :=
     ⟨sl₁₂ * sl₂₃, sr₁₂ * sr₂₃, h₂₃.symm ▸ h₁₂.symm ▸ sum_congr_mul sl₁₂ sr₁₂ sl₂₃ sr₂₃⟩,
   inv_mem' := λ σ₁ ⟨sl, sr, h⟩, ⟨sl⁻¹, sr⁻¹, h.symm ▸ sum_congr_inv sl sr⟩ }
 
-instance sum_congr_subgroup.left_rel_decidable {α β : Type*}
+instance sum_congr_subgroup.decidable_mem {α β : Type*}
   [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
-  decidable_rel $ (quotient_group.left_rel (sum_congr_subgroup α β)).r :=
-λ σ₁ σ₂, fintype.decidable_exists_fintype
+  decidable_pred (λ x, x ∈ sum_congr_subgroup α β) := λ x, fintype.decidable_exists_fintype
 
 /-- The subgroup of permutations which do not exchange elements between fibers;
 those which are of the form `sigma_congr_right s`. -/
@@ -42,10 +41,10 @@ def sigma_congr_right_subgroup {α : Type*} (β : α → Type*) : subgroup (perm
     ⟨λ i, s₁₂ i * s₂₃ i, h₂₃.symm ▸ h₁₂.symm ▸ sigma_congr_right_mul s₁₂ s₂₃⟩,
   inv_mem' := λ σ₁ ⟨s, h⟩, ⟨λ i, (s i)⁻¹, h.symm ▸ sigma_congr_right_inv s⟩ }
 
-instance sigma_congr_right_subgroup.left_rel_decidable {α : Type*} {β : α → Type*}
+instance sigma_congr_right_subgroup.decidable_mem {α : Type*} {β : α → Type*}
   [decidable_eq α] [∀ a, decidable_eq (β a)] [fintype α] [∀ a, fintype (β a)] :
-  decidable_rel $ (quotient_group.left_rel (sigma_congr_right_subgroup β)).r :=
-λ σ₁ σ₂, fintype.decidable_exists_fintype
+  decidable_pred (λ x, x ∈ sigma_congr_right_subgroup β) :=
+λ x, fintype.decidable_exists_fintype
 
 end perm
 end equiv

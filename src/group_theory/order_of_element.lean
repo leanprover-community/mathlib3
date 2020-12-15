@@ -60,10 +60,6 @@ fintype.card_eq_one_iff.2
 
 variables [fintype α] [dec : decidable_eq α]
 
-instance quotient_group.fintype (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
-  fintype (quotient s) :=
-@quotient.fintype _ _ (left_rel s) (λ _ _, d _)
-
 lemma card_eq_card_quotient_mul_card_subgroup (s : subgroup α) [fintype s]
   [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
 by rw ← fintype.card_prod;

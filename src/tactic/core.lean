@@ -270,6 +270,16 @@ meta def get_app_fn_const_whnf (e : expr) (md := semireducible)
     "expected a constant (possibly applied to some arguments), but got:\n{e}"
   end
 
+/--
+`get_app_args_whnf e md unfold_ginductive` is like `expr.get_app_args e` but `e`
+is normalised as necessary (with transparency `md`). `unfold_ginductive`
+controls whether constructors of generalised inductive types are unfolded. The
+returned expressions are not necessarily in whnf.
+-/
+meta def get_app_args_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (list expr) :=
+prod.snd <$> get_app_fn_args_whnf e md unfold_ginductive
+
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
 `loc_consts` should be a list of local constants. The function will abstract these local
 constants from `f` and bind them with pi binders.
@@ -2277,11 +2287,9 @@ ns.mfirst (λ nm, do
   guard $ attr_nm = attr_name,
   return nm) <|> fail!"'{attr_name}' is not a user attribute."
 
-/-- A tactic to set either a basic attribute or a user attribute, as long as the user attribute has
-  no parameter.
-  If a user attribute with a parameter (that is not `unit`) is set, this function will raise an
-  error. -/
--- possible enhancement if needed: use default value for a user attribute with parameter.
+/-- A tactic to set either a basic attribute or a user attribute.
+  If the the user attribute has a parameter, the default value will be used.
+  This tactic raises an error if there is no `inhabited` instance for the parameter type. -/
 meta def set_attribute (attr_name : name) (c_name : name) (persistent := tt)
   (prio : option nat := none) : tactic unit := do
 get_decl c_name <|> fail!"unknown declaration {c_name}",
@@ -2291,8 +2299,10 @@ if msg = (format!"set_basic_attribute tactic failed, '{attr_name}' is not a basi
 then do
   user_attr_nm ← get_user_attribute_name attr_name,
   user_attr_const ← mk_const user_attr_nm,
-  tac ← eval_pexpr (tactic unit) ``(user_attribute.set %%user_attr_const %%c_name () %%persistent) <|>
-    fail!"Cannot set attribute @[{attr_name}]. The corresponding user attribute {user_attr_nm} has a parameter.",
+  tac ← eval_pexpr (tactic unit)
+    ``(user_attribute.set %%user_attr_const %%c_name (default _) %%persistent) <|>
+    fail!"Cannot set attribute @[{attr_name}]. The corresponding user attribute {user_attr_nm} has a parameter without a default value.
+Solution: provide an `inhabited` instance.",
   tac
 else fail msg
 

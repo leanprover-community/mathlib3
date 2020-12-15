@@ -251,7 +251,7 @@ variables {α β : Type*} [normed_linear_ordered_field β] {u v : α → β} {l 
 lemma is_equivalent.tendsto_at_top [order_topology β] (huv : u ~[l] v) (hu : tendsto u l at_top) :
   tendsto v l at_top :=
 let ⟨φ, hφ, h⟩ := huv.symm.exists_eq_mul in
-tendsto.congr' h.symm ((mul_comm u φ) ▸ (tendsto_mul_at_top zero_lt_one hu hφ))
+tendsto.congr' h.symm ((mul_comm u φ) ▸ (hu.at_top_mul zero_lt_one hφ))
 
 lemma is_equivalent.tendsto_at_top_iff [order_topology β] (huv : u ~[l] v) :
   tendsto u l at_top ↔ tendsto v l at_top := ⟨huv.tendsto_at_top, huv.symm.tendsto_at_top⟩

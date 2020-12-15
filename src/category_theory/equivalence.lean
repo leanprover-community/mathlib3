@@ -497,7 +497,7 @@ An equivalence is essentially surjective.
 
 See https://stacks.math.columbia.edu/tag/02C3.
 -/
-def ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
+lemma ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 ⟨λ Y, ⟨F.inv.obj Y, ⟨F.inv_fun_id.app Y⟩⟩⟩
 
 /--

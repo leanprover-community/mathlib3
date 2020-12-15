@@ -11,6 +11,7 @@ import ring_theory.integral_domain
 import number_theory.divisors
 import data.zmod.basic
 import tactic.zify
+import field_theory.separable
 
 /-!
 # Roots of unity and primitive roots of unity
@@ -714,5 +715,37 @@ lemma nth_roots_one_eq_bind_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
 @nth_roots_one_eq_bind_primitive_roots' _ _ _ ⟨n, hpos⟩ h
 
 end integral_domain
+
+section minimal_polynomial
+
+open minimal_polynomial
+
+variables {n : ℕ} {K : Type*} [field K] {μ : K} (h : is_primitive_root μ n) (hpos : 0 < n)
+
+include n μ h hpos
+
+/--`μ` is integral over `ℤ`. -/
+lemma is_integral : is_integral ℤ μ :=
+begin
+  use (X ^ n - 1),
+  split,
+  { exact (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm) },
+  { simp only [((is_primitive_root.iff_def μ n).mp h).left, eval₂_one, eval₂_X_pow, eval₂_sub,
+      sub_self] }
+end
+
+variables [char_zero K]
+
+/--The minimal polynomial of `μ` divides `X ^ n - 1`. -/
+lemma minimal_polynomial_dvd_X_pow_sub_one :
+  minimal_polynomial (is_integral h hpos) ∣ X ^ n - 1 :=
+begin
+  apply integer_dvd (is_integral h hpos) (polynomial.monic.is_primitive
+  (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)),
+  simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, ring_hom.eq_int_cast,
+  int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
+end
+
+end minimal_polynomial
 
 end is_primitive_root

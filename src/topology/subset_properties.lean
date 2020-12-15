@@ -1263,6 +1263,25 @@ from (eq_of_mem_singleton (ht hp)).symm ▸ (eq_of_mem_singleton (ht hq)).symm�
 class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_disconnected_univ : is_totally_disconnected (univ : set α))
 
+instance pi.totally_disconnected_space {α : Type*} {β : α → Type*} [t₂ : Πa, topological_space (β a)]
+  [∀a, totally_disconnected_space (β a)] : totally_disconnected_space (Π (a : α), β a) :=
+⟨λ t h1 h2, ⟨λ a b, subtype.ext $ funext $ λ x, subtype.mk_eq_mk.1 $
+  (totally_disconnected_space.is_totally_disconnected_univ
+    ((λ (c : Π (a : α), β a), c x) '' t) (set.subset_univ _)
+    (is_preconnected.image h2 _ (continuous.continuous_on (continuous_apply _)))).cases_on
+  (λ h3, h3
+    ⟨(a.1 x), by {simp only [set.mem_image, subtype.val_eq_coe], use a, split,
+      simp only [subtype.coe_prop]}⟩
+    ⟨(b.1 x), by {simp only [set.mem_image, subtype.val_eq_coe], use b, split,
+      simp only [subtype.coe_prop]}⟩)⟩⟩
+
+instance subtype.totally_disconnected_space {α : Type*} {p : α → Prop} [topological_space α]
+  [totally_disconnected_space α] : totally_disconnected_space (subtype p) :=
+⟨λ s h1 h2,
+  set.subsingleton_of_image subtype.val_injective s (
+    totally_disconnected_space.is_totally_disconnected_univ (subtype.val '' s) (set.subset_univ _)
+      ((is_preconnected.image h2 _) (continuous.continuous_on (@continuous_subtype_val _ _ p))))⟩
+
 end totally_disconnected
 
 section totally_separated

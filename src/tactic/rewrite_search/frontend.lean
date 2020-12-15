@@ -58,11 +58,11 @@ open lean.parser interactive interactive.types tactic.rewrite_search
 Parse a specification for a single rewrite rule.
 The name of a lemma indicates using it as a rewrite. Prepending a "←" reverses the direction.
 -/
-private meta def rws_parser : lean.parser (expr × bool) :=
+private meta def rws_parser : lean.parser (pexpr × bool) :=
 do flipped ← optional $ tk "←",
    pexp ← lean.parser.pexpr 0,
-   exp ← to_expr' pexp,
-   return (exp, flipped.is_some)
+  --  exp ← to_expr' pexp,
+   return (pexp, flipped.is_some)
 
 /--
 Search for a chain of rewrites to prove an equation or iff statement.
@@ -79,7 +79,8 @@ do t ← tactic.target,
     tactic.fail "rewrite_search is not suitable for goals containing metavariables"
   else tactic.skip,
   rules ← collect_rules,
-  g ← mk_graph cfg (rules ++ (rs.get_or_else [])) t,
+  rs ← (rs.get_or_else []).mmap (λ ⟨pe, dir⟩, do e ← to_expr' pe, return (e, dir)),
+  g ← mk_graph cfg (rules ++ rs) t,
   (_, proof, steps) ← g.find_proof,
   tactic.exact proof,
   if explain.is_some then explain_search_result cfg rules proof steps else skip

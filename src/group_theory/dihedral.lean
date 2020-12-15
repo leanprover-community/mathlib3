@@ -33,7 +33,7 @@ variables {n : ℕ}
 /--
 Multiplication of the dihedral group.
 -/
-def mul : dihedral n → dihedral n → dihedral n
+private def mul : dihedral n → dihedral n → dihedral n
 | (r i) (r j) := r (i + j)
 | (r i) (sr j) := sr (j - i)
 | (sr i) (r j) := sr (i + j)
@@ -42,14 +42,14 @@ def mul : dihedral n → dihedral n → dihedral n
 /--
 The identity `1` is the rotation by `0`.
 -/
-def one : dihedral n := r 0
+private def one : dihedral n := r 0
 
 instance : inhabited (dihedral n) := ⟨one⟩
 
 /--
 The inverse of a an element of the dihedral group.
 -/
-def inv : dihedral n → dihedral n
+private def inv : dihedral n → dihedral n
 | (r i) := r (-i)
 | (sr i) := sr i
 
@@ -83,10 +83,10 @@ instance : group (dihedral n) :=
     exact congr_arg r (sub_self a),
   end }
 
-lemma r_mul_r (i j : zmod n) : r i * r j = r (i + j) := rfl
-lemma r_mul_sr (i j : zmod n) : r i * sr j = sr (j - i) := rfl
-lemma sr_mul_r (i j : zmod n) : sr i * r j = sr (i + j) := rfl
-lemma sr_mul_sr (i j : zmod n) : sr i * sr j = r (j - i) := rfl
+@[simp] lemma r_mul_r (i j : zmod n) : r i * r j = r (i + j) := rfl
+@[simp] lemma r_mul_sr (i j : zmod n) : r i * sr j = sr (j - i) := rfl
+@[simp] lemma sr_mul_r (i j : zmod n) : sr i * r j = sr (i + j) := rfl
+@[simp] lemma sr_mul_sr (i j : zmod n) : sr i * sr j = r (j - i) := rfl
 
 lemma one_def : (1 : dihedral n) = r 0 := rfl
 
@@ -119,7 +119,7 @@ begin
   rw [fintype.card_sum, zmod.card, two_mul]
 end
 
-lemma r_one_pow (k : ℕ) : (r 1 : dihedral n) ^ k = r k :=
+@[simp] lemma r_one_pow (k : ℕ) : (r 1 : dihedral n) ^ k = r k :=
 begin
   induction k with k IH,
   { refl },
@@ -129,7 +129,7 @@ begin
     rw nat.one_add }
 end
 
-lemma r_one_pow_n : (r (1 : zmod n))^n = 1 :=
+@[simp] lemma r_one_pow_n : (r (1 : zmod n))^n = 1 :=
 begin
   cases n,
   { rw pow_zero },
@@ -138,12 +138,12 @@ begin
     exact zmod.cast_self _, }
 end
 
-lemma sr_mul_self (i : zmod n) : sr i * sr i = 1 := by rw [sr_mul_sr, sub_self, one_def]
+@[simp] lemma sr_mul_self (i : zmod n) : sr i * sr i = 1 := by rw [sr_mul_sr, sub_self, one_def]
 
 /--
 If `0 < n`, then `sr i` has order 2.
 -/
-lemma order_of_sr [fact (0 < n)] (i : zmod n) : order_of (sr i) = 2 :=
+@[simp] lemma order_of_sr [fact (0 < n)] (i : zmod n) : order_of (sr i) = 2 :=
 begin
   rw order_of_eq_prime _ _,
   { exact nat.prime_two },
@@ -154,7 +154,7 @@ end
 /--
 If `0 < n`, then `r 1` has order `n`.
 -/
-lemma order_of_r_one [hnpos : fact (0 < n)] : order_of (r 1 : dihedral n) = n :=
+@[simp] lemma order_of_r_one [hnpos : fact (0 < n)] : order_of (r 1 : dihedral n) = n :=
 begin
   cases lt_or_eq_of_le (nat.le_of_dvd hnpos (order_of_dvd_of_pow_eq_one (@r_one_pow_n n))) with h h,
   { have h1 : (r 1 : dihedral n)^(order_of (r 1)) = 1,
@@ -169,7 +169,7 @@ end
 /--
 If `0 < n`, then `i : zmod n` has order `n / gcd n i`
 -/
-lemma order_of_r [fact (0 < n)] (i : zmod n) : order_of (r i) = n / nat.gcd n i.val :=
+@[simp] lemma order_of_r [fact (0 < n)] (i : zmod n) : order_of (r i) = n / nat.gcd n i.val :=
 begin
   conv_lhs { rw ←zmod.cast_val i },
   rw [←r_one_pow, order_of_pow, order_of_r_one]

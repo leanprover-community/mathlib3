@@ -801,7 +801,7 @@ end
 
 private lemma minkowski_aux {p q : ℝ} (hpq : p.is_conjugate_exponent q)
   {f g : α → ennreal} (hf : measurable f) (hg : measurable g) (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) :
-  ∫⁻ a, (f a) * (g a) ^ (p - 1) ∂μ ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) * (∫⁻ a, (g a)^p ∂μ) ^ (1 / q) :=
+  ∫⁻ a, (f a) * (g a) ^ (p - 1) ∂μ ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) * (∫⁻ a, (g a)^p ∂μ) ^ (1/q) :=
 begin
   refine le_trans (ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf hg.ennreal_rpow_const) _,
   by_cases hf_zero_rpow : (∫⁻ (a : α), (f a) ^ p ∂μ) ^ (1 / p) = 0,
@@ -861,9 +861,8 @@ end
 lemma lintegral_rpow_add_le_add_lintegral_rpow_of_lintegral_add_ne_zero_ne_top {p q : ℝ}
   (hpq : p.is_conjugate_exponent q) {f g : α → ennreal} (hf : measurable f)
   (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) (hg : measurable g) (hg_top : ∫⁻ a, (g a) ^ p ∂μ ≠ ⊤)
-  (h_add_zero : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ 0) (h_add_top : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ ⊤):
-  (∫⁻ a, ((f + g) a) ^ p ∂ μ) ^ (1 / p)
-    ≤ (∫⁻ a, (f a) ^ p ∂μ) ^ (1 / p) + (∫⁻ a, (g a) ^ p ∂μ) ^ (1 / p) :=
+  (h_add_zero : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ 0) (h_add_top : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ ⊤) :
+  (∫⁻ a, ((f + g) a)^p ∂ μ) ^ (1/p) ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p) :=
 begin
   have hp_not_nonpos : ¬ p ≤ 0, by simp [hpq.pos],
   have htop_rpow : (∫⁻ a, ((f+g) a) ^ p ∂μ)^(1/p) ≠ ⊤,
@@ -892,8 +891,7 @@ end
 functions is bounded by the sum of their `ℒp` seminorms. -/
 theorem lintegral_rpow_add_le_add_lintegral_rpow {p : ℝ} {f g : α → ennreal}
   (hf : measurable f) (hg : measurable g) (hp1 : 1 ≤ p) :
-  (∫⁻ a, ((f + g) a) ^ p ∂ μ) ^ (1 / p)
-    ≤ (∫⁻ a, (f a) ^ p ∂μ) ^ (1 / p) + (∫⁻ a, (g a) ^ p ∂μ) ^ (1 / p) :=
+  (∫⁻ a, ((f + g) a)^p ∂ μ) ^ (1/p) ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p) :=
 begin
   have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
   by_cases hf_top : ∫⁻ a, (f a) ^ p ∂μ = ⊤,

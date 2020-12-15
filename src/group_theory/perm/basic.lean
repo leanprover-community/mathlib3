@@ -82,8 +82,8 @@ begin
   rintros ⟨⟩ ⟨⟩ h,
   rw prod.mk.inj_iff,
   split; ext i,
-  { simpa [sum_congr_hom_apply] using equiv.congr_fun h (sum.inl i), },
-  { simpa [sum_congr_hom_apply] using equiv.congr_fun h (sum.inr i), },
+  { simpa using equiv.congr_fun h (sum.inl i), },
+  { simpa using equiv.congr_fun h (sum.inr i), },
 end
 
 @[simp] lemma sum_congr_swap_one {α β : Type*} [decidable_eq α] [decidable_eq β] (i j : α) :
@@ -125,7 +125,7 @@ lemma sigma_congr_right_hom_injective {α : Type*} {β : α → Type*} :
 begin
   intros x y h,
   ext a b,
-  simpa [sigma_congr_right_hom_apply] using equiv.congr_fun h ⟨a, b⟩,
+  simpa using equiv.congr_fun h ⟨a, b⟩,
 end
 
 end perm

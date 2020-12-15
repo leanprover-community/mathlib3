@@ -799,6 +799,133 @@ begin
   end
 end
 
+private lemma minkowski_aux {p q : ℝ} (hpq : p.is_conjugate_exponent q)
+  {f g : α → ennreal} (hf : measurable f) (hg : measurable g) (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) :
+  ∫⁻ a, (f a) * (g a) ^ (p - 1) ∂μ ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) * (∫⁻ a, (g a)^p ∂μ) ^ (1 / q) :=
+begin
+  refine le_trans (ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf hg.ennreal_rpow_const) _,
+  by_cases hf_zero_rpow : (∫⁻ (a : α), (f a) ^ p ∂μ) ^ (1 / p) = 0,
+  { rw [hf_zero_rpow, zero_mul],
+    exact zero_le _, },
+  have hf_top_rpow : (∫⁻ (a : α), (f a) ^ p ∂μ) ^ (1 / p) ≠ ⊤,
+  { by_contra h,
+    push_neg at h,
+    refine hf_top _,
+    have hp_not_neg : ¬ p < 0, by simp [hpq.nonneg],
+    simpa [hpq.pos, hp_not_neg] using h, },
+  refine (ennreal.mul_le_mul_left hf_zero_rpow hf_top_rpow).mpr (le_of_eq _),
+  congr,
+  ext1 a,
+  rw [←ennreal.rpow_mul, hpq.sub_one_mul_conj],
+end
+
+lemma lintegral_rpow_add_le_add_snorm_mul_lintegral_rpow_add {p q : ℝ}
+  (hpq : p.is_conjugate_exponent q) {f g : α → ennreal} (hf : measurable f)
+  (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) (hg : measurable g) (hg_top : ∫⁻ a, (g a) ^ p ∂μ ≠ ⊤) :
+  ∫⁻ a, ((f + g) a)^p ∂ μ
+    ≤ ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p) )
+      * (∫⁻ a, (f a + g a)^p ∂μ) ^ (1/q) :=
+begin
+  calc ∫⁻ a, ((f+g) a) ^ p ∂μ ≤ ∫⁻ a, ((f + g) a) * ((f + g) a) ^ (p - 1) ∂μ :
+  begin
+    refine lintegral_mono (λ a, _),
+    dsimp only,
+    by_cases h_zero : (f + g) a = 0,
+    { rw [h_zero, ennreal.zero_rpow_of_pos hpq.pos],
+      exact zero_le _, },
+    by_cases h_top : (f + g) a = ⊤,
+    { rw [h_top, ennreal.top_rpow_of_pos hpq.sub_one_pos, ennreal.top_mul_top],
+      exact le_top, },
+    refine le_of_eq _,
+    nth_rewrite 1 ←ennreal.rpow_one ((f + g) a),
+    rw [←ennreal.rpow_add _ _ h_zero h_top, add_sub_cancel'_right],
+  end
+    ... = ∫⁻ (a : α), f a * (f + g) a ^ (p - 1) ∂μ + ∫⁻ (a : α), g a * (f + g) a ^ (p - 1) ∂μ :
+  begin
+    have h_add_m : measurable (λ (a : α), ((f + g) a) ^ (p-1)), from (hf.add hg).ennreal_rpow_const,
+    have h_add_apply : ∫⁻ (a : α), (f + g) a * (f + g) a ^ (p - 1) ∂μ
+      = ∫⁻ (a : α), (f a + g a) * (f + g) a ^ (p - 1) ∂μ,
+    from rfl,
+    rw h_add_apply,
+    simp_rw add_mul,
+    rw lintegral_add (hf.ennreal_mul h_add_m) (hg.ennreal_mul h_add_m),
+  end
+    ... ≤ ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p))
+      * (∫⁻ a, (f a + g a)^p ∂μ) ^ (1/q) :
+  begin
+    rw add_mul,
+    exact add_le_add (minkowski_aux hpq hf (hf.add hg) hf_top)
+      (minkowski_aux hpq hg (hf.add hg) hg_top),
+  end
+end
+
+/-- Minkowski's inequality for functions `α → ennreal`: the `ℒp`-seminorm of the sum of two
+functions is bounded by the sum of their `ℒp` seminorms.
+This lemma applies when both functions have finite seminorm. That hypothesis is removed in
+`lintegral_rpow_add_le_add_lintegral_rpow`. -/
+lemma lintegral_rpow_add_le_add_lintegral_rpow_of_ne_top {p : ℝ} {f g : α → ennreal}
+  (hf : measurable f) (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤)
+  (hg : measurable g) (hg_top : ∫⁻ a, (g a) ^ p ∂μ ≠ ⊤) (hp1 : 1 ≤ p) :
+  (∫⁻ a, ((f + g) a) ^ p ∂ μ) ^ (1 / p)
+    ≤ (∫⁻ a, (f a) ^ p ∂μ) ^ (1 / p) + (∫⁻ a, (g a) ^ p ∂μ) ^ (1 / p) :=
+begin
+  have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
+  have hp_nonneg : 0 ≤ p, from le_of_lt hp_pos,
+  have hp_not_nonpos : ¬ p ≤ 0, by simp [hp_pos],
+  by_cases h0 : ∫⁻ a, ((f+g) a) ^ p ∂ μ = 0,
+  { rw [h0, @ennreal.zero_rpow_of_pos (1/p) (by simp [hp_pos])],
+    exact zero_le _, },
+  -- prove that the seminorm of (f+g) is neither 0 nor ⊤
+  have htop : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ ⊤,
+  { rw ←ennreal.lt_top_iff_ne_top at hf_top hg_top ⊢,
+    exact lintegral_rpow_add_lt_top_of_lintegral_rpow_lt_top hf hf_top hg hg_top hp1, },
+  have htop_rpow : (∫⁻ a, ((f+g) a) ^ p ∂μ)^(1/p) ≠ ⊤,
+  { by_contra h,
+    push_neg at h,
+    exact htop (@ennreal.rpow_eq_top_of_nonneg _ (1/p) (by simp [hp_nonneg]) h), },
+  have h0_rpow : (∫⁻ a, ((f+g) a) ^ p ∂ μ) ^ (1/p) ≠ 0,
+  { rw [ne.def, rpow_eq_zero_iff, auto.not_or_eq, auto.not_and_eq, auto.not_and_eq],
+    simp [h0, htop, hp_nonneg, hp_not_nonpos, -pi.add_apply], },
+  -- deal with the case p=1 separately
+  by_cases h1 : p = 1,
+  { refine le_of_eq _,
+    simp_rw [h1, one_div_one, ennreal.rpow_one],
+    exact lintegral_add hf hg, },
+  -- now 1 < p
+  have hp1_lt : 1 < p, by { refine lt_of_le_of_ne hp1 _, symmetry, exact h1, },
+  have hpq := real.is_conjugate_exponent_conjugate_exponent hp1_lt,
+  have h : ∫⁻ a, ((f+g) a) ^ p ∂ μ
+    ≤ ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p) )
+      * (∫⁻ a, ((f + g) a)^p ∂μ) ^ (1 / p.conjugate_exponent),
+  from lintegral_rpow_add_le_add_snorm_mul_lintegral_rpow_add hpq hf hf_top hg hg_top,
+  have h' : 1 ≤ (∫⁻ (a : α), ((f+g) a) ^ p ∂μ) ^ -(1 / p)
+    * ((∫⁻ (a : α), (f a) ^ p ∂μ) ^ (1 / p) + (∫⁻ (a : α), (g a) ^ p ∂μ) ^ (1 / p)),
+  { have h_one_div_q : 1 / p.conjugate_exponent = 1 - 1/p,
+    { nth_rewrite 1 ←hpq.inv_add_inv_conj,
+      ring, },
+    simp_rw [h_one_div_q, sub_eq_add_neg 1 (1/p)] at h,
+    rw [ennreal.rpow_add _ _ h0 htop, ennreal.rpow_one, mul_comm] at h,
+    nth_rewrite 0 ←mul_one (∫⁻ (a : α), ((f+g) a) ^ p ∂μ) at h,
+    rwa [mul_assoc, ennreal.mul_le_mul_left h0 htop] at h, },
+  rwa [←mul_le_mul_left h0_rpow htop_rpow, ←mul_assoc, ←rpow_add _ _ h0 htop,
+    ←sub_eq_add_neg, _root_.sub_self, rpow_zero, one_mul, mul_one] at h',
+end
+
+/-- Minkowski's inequality for functions `α → ennreal`: the `ℒp`-seminorm of the sum of two
+functions is bounded by the sum of their `ℒp` seminorms. -/
+theorem lintegral_rpow_add_le_add_lintegral_rpow {p : ℝ} {f g : α → ennreal}
+  (hf : measurable f) (hg : measurable g) (hp1 : 1 ≤ p) :
+  (∫⁻ a, ((f + g) a) ^ p ∂ μ) ^ (1 / p)
+    ≤ (∫⁻ a, (f a) ^ p ∂μ) ^ (1 / p) + (∫⁻ a, (g a) ^ p ∂μ) ^ (1 / p) :=
+begin
+  have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
+  by_cases hf_top : ∫⁻ a, (f a) ^ p ∂μ = ⊤,
+  { simp [hf_top, hp_pos], },
+  by_cases hg_top : ∫⁻ a, (g a) ^ p ∂μ = ⊤,
+  { simp [hg_top, hp_pos], },
+  exact lintegral_rpow_add_le_add_lintegral_rpow_of_ne_top hf hf_top hg hg_top hp1,
+end
+
 end ennreal
 
 /-- Hölder's inequality for functions `α → nnreal`. The integral of the product of two functions

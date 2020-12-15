@@ -2072,8 +2072,6 @@ do (e, s) ← with_input (lean.parser.pexpr 0) s.as_string,
    pure ``(to_pfmt %%(reflect acc) ++ to_pfmt %%e ++ %%f)
 | acc (c::s) := parse_pformat (acc.str c) s
 
-reserve prefix `pformat! `:100
-
 /-- See `format!` in `init/meta/interactive_base.lean`.
 
 The main differences are that `pp` is called instead of `to_fmt` and that we can use
@@ -2100,8 +2098,6 @@ meta def pformat_macro (_ : parse $ tk "pformat!") (s : string) : parser pexpr :
 do e ← parse_pformat "" s.to_list,
    return ``(%%e : pformat)
 
-reserve prefix `fail! `:100
-
 /--
 The combination of `pformat` and `fail`.
 -/
@@ -2110,7 +2106,6 @@ meta def fail_macro (_ : parse $ tk "fail!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= fail)
 
-reserve prefix `trace! `:100
 /--
 The combination of `pformat` and `trace`.
 -/

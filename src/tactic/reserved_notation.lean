@@ -19,6 +19,11 @@ are defined.
 -- used in `logic/relator.lean`
 reserve infixr ` ⇒ `:40
 
+-- used in `tactic/core.lean`
+reserve prefix `pformat! `:100
+reserve prefix `fail! `:100
+reserve prefix `trace! `:100
+
 -- used in `tactic/localized.lean`
 reserve notation `localized`
 

@@ -872,8 +872,7 @@ begin
     push_neg at h,
     exact h_add_top (@ennreal.rpow_eq_top_of_nonneg _ (1/p) (by simp [hpq.nonneg]) h), },
   have h0_rpow : (∫⁻ a, ((f+g) a) ^ p ∂ μ) ^ (1/p) ≠ 0,
-  { rw [ne.def, rpow_eq_zero_iff, auto.not_or_eq, auto.not_and_eq, auto.not_and_eq],
-    simp [h_add_zero, h_add_top, hpq.nonneg, hp_not_nonpos, -pi.add_apply], },
+  by simp [h_add_zero, h_add_top, hpq.nonneg, hp_not_nonpos, -pi.add_apply],
   have h : ∫⁻ a, ((f+g) a) ^ p ∂ μ
     ≤ ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p) )
       * (∫⁻ a, ((f + g) a)^p ∂μ) ^ (1 / q),

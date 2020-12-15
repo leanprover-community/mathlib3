@@ -382,7 +382,8 @@ meta structure ext_state : Type :=
 (lemmas : list name := [])
 (fuel : option ℕ := none)
 
-/-- Apply one extensionality lemma, and destruct the arguments using the patterns in the ext_state. -/
+/-- Apply one extensionality lemma, and destruct the arguments using the patterns
+  in the ext_state. -/
 meta def ext1_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
 do ⟨patts, lemmas, fuel⟩ ← get,
    (new_patts, new_lemmas) ← state_t.lift $ focus1 $
@@ -406,7 +407,8 @@ meta def ext_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
 do acc@⟨_, _, fuel⟩ ← get,
    match fuel with
    | (some 0) := pure ()
-   | n        := do { ext1_core cfg, modify (λ ⟨patts, lemmas, _⟩, ⟨patts, lemmas, nat.pred <$> n⟩),
+   | n        := do { ext1_core cfg,
+                      modify (λ ⟨patts, lemmas, _⟩, ⟨patts, lemmas, nat.pred <$> n⟩),
                       ext_core <|> pure () }
    end
 
@@ -435,7 +437,8 @@ local postfix *:9001 := many
 introduced by the lemma. If `id` is omitted, the local constant is
 named automatically, as per `intro`. `ext1?` will show the lemmas used.
 -/
-meta def interactive.ext1 (xs : parse (rcases_patt_parse tt)*) (trace : parse (tk "?")?) : tactic unit :=
+meta def interactive.ext1 (xs : parse (rcases_patt_parse tt)*)
+  (trace : parse (tk "?")?) : tactic unit :=
 ext1 xs {} trace.is_some $> ()
 
 /--

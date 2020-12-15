@@ -560,16 +560,14 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
   (eventually_of_forall $ λ n, div_nonneg (by exact_mod_cast n.factorial_pos.le)
     (pow_nonneg (by exact_mod_cast n.zero_le) _))
   begin
-    rw eventually_iff_exists_mem,
-    use [set.Ioi 0, Ioi_mem_at_top 0],
-    rintros n (hn : 0 < n),
+    refine (eventually_gt_at_top 0).mono (λ n hn, _),
     rcases nat.exists_eq_succ_of_ne_zero hn.ne.symm with ⟨k, rfl⟩,
-    rw [← prod_range_add_one_eq_factorial, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div, prod_nat_cast,
-        nat.cast_succ, ← prod_inv_distrib', ← prod_mul_distrib, finset.prod_range_succ'],
+    rw [← prod_range_add_one_eq_factorial, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div,
+      prod_nat_cast, nat.cast_succ, ← prod_inv_distrib', ← prod_mul_distrib,
+      finset.prod_range_succ'],
     simp only [prod_range_succ', one_mul, nat.cast_add, zero_add, nat.cast_one],
     refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) (prod_le_one _ _);
-    intros x hx;
-    rw finset.mem_range at hx,
+      intros x hx; rw finset.mem_range at hx,
     { refine mul_nonneg _ (inv_nonneg.mpr _); norm_cast; linarith },
     { refine (div_le_one $ by exact_mod_cast hn).mpr _, norm_cast, linarith }
   end

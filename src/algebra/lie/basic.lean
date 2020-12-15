@@ -463,6 +463,10 @@ end lie_ring
 class lie_module.is_trivial (L : Type v) (M : Type w) [has_bracket L M] [has_zero M] : Prop :=
 (trivial : ∀ (x : L) (m : M), ⁅x, m⁆ = 0)
 
+@[simp] lemma trivial_lie_zero (L : Type v) (M : Type w)
+  [has_bracket L M] [has_zero M] [lie_module.is_trivial L M] (x : L) (m : M) : ⁅x, m⁆ = 0 :=
+lie_module.is_trivial.trivial x m
+
 /-- A Lie algebra is Abelian iff it is trivial as a Lie module over itself. -/
 abbreviation is_lie_abelian (L : Type v) [has_bracket L L] [has_zero L] : Prop :=
 lie_module.is_trivial L L
@@ -997,6 +1001,13 @@ begin
   use ⁅((⟨x₁, hx₁⟩ : I) : L), (n : N)⁆, split, { apply lie_mem_lie, },
   use ⁅((⟨x₂, hx₂⟩ : J) : L), (n : N)⁆, split, { apply lie_mem_lie, },
   simp [← h, ← hx'],
+end
+
+@[simp] lemma trivial_lie_oper_zero [lie_module.is_trivial L M] : ⁅I, N⁆ = ⊥ :=
+begin
+  suffices : ⁅I, N⁆ ≤ ⊥, { exact le_bot_iff.mp this, },
+  rw [lie_ideal_oper_eq_span, lie_span_le],
+  rintros m ⟨x, n, h⟩, rw trivial_lie_zero at h, simp [← h],
 end
 
 end lie_ideal_operations

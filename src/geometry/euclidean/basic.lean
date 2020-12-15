@@ -929,11 +929,8 @@ lemma reflection_mem_of_le_of_mem {s₁ s₂ : affine_subspace ℝ P} [nonempty 
   (hp : p ∈ s₂) : reflection s₁ p ∈ s₂ :=
 begin
   rw [reflection_apply],
-  by_cases h : is_complete (s₁.direction : set V),
-  { have ho : ↑(orthogonal_projection s₁ p) ∈ s₂ := hle (orthogonal_projection_mem p),
-    exact vadd_mem_of_mem_direction (vsub_mem_direction ho hp) ho },
-  { --simpa [reflection_apply, orthogonal_projection_def, h],
-    sorry }
+  have ho : ↑(orthogonal_projection s₁ p) ∈ s₂ := hle (orthogonal_projection_mem p),
+  exact vadd_mem_of_mem_direction (vsub_mem_direction ho hp) ho
 end
 
 /-- Reflecting an orthogonal vector plus a point in the subspace

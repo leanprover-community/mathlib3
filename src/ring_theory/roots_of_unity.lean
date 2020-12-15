@@ -730,8 +730,8 @@ begin
   use (X ^ n - 1),
   split,
   { exact (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm) },
-  simp only [((is_primitive_root.iff_def μ n).mp h).left, eval₂_one, eval₂_X_pow, eval₂_sub,
-  sub_self],
+  { simp only [((is_primitive_root.iff_def μ n).mp h).left, eval₂_one, eval₂_X_pow, eval₂_sub,
+      sub_self] }
 end
 
 variables [char_zero K]

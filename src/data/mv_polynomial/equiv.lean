@@ -101,6 +101,16 @@ def ring_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃+* mv_poly
   map_mul'  := (rename e).map_mul,
   map_add'  := (rename e).map_add }
 
+/-- The algebra isomorphism between multivariable polynomials induced by an equivalence of the variables.  -/
+@[simps]
+def alg_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃ₐ[R] mv_polynomial S₂ R :=
+{ to_fun    := rename e,
+  inv_fun   := rename e.symm,
+  left_inv  := λ p, by simp only [rename_rename, (∘), e.symm_apply_apply]; exact rename_id p,
+  right_inv := λ p, by simp only [rename_rename, (∘), e.apply_symm_apply]; exact rename_id p,
+  commutes' := λ p, by simp only [alg_hom.commutes],
+  .. rename e }
+
 /-- The ring isomorphism between multivariable polynomials induced by a ring isomorphism of the ground ring. -/
 @[simps]
 def ring_equiv_congr [comm_semiring S₂] (e : R ≃+* S₂) : mv_polynomial S₁ R ≃+* mv_polynomial S₁ S₂ :=

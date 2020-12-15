@@ -252,6 +252,75 @@ by exact_mod_cast real.arith_mean_le_rpow_mean s _ _ (λ i _, (w i).coe_nonneg)
 
 end nnreal
 
+namespace ennreal
+
+/-- Weighted generalized mean inequality, version for sums over finite sets, with `ennreal`-valued
+functions and real exponents. -/
+theorem rpow_arith_mean_le_arith_mean_rpow (w z : ι → ennreal) (hw' : ∑ i in s, w i = 1) {p : ℝ}
+  (hp : 1 ≤ p) :
+  (∑ i in s, w i * z i) ^ p ≤ ∑ i in s, (w i * z i ^ p) :=
+begin
+  have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp,
+  have hp_nonneg : 0 ≤ p, from le_of_lt hp_pos,
+  have hp_not_nonpos : ¬ p ≤ 0, by simp [hp_pos],
+  have hp_not_neg : ¬ p < 0, by simp [hp_nonneg],
+  have h_top_iff_rpow_top : ∀ (i : ι) (hi : i ∈ s), w i * z i = ⊤ ↔ w i * (z i) ^ p = ⊤,
+  by simp [hp_pos, hp_nonneg, hp_not_nonpos, hp_not_neg],
+  refine le_of_top_imp_top_of_to_nnreal_le _ _,
+  { -- first, prove `(∑ i in s, w i * z i) ^ p = ⊤ → ∑ i in s, (w i * z i ^ p) = ⊤`
+    rw [rpow_eq_top_iff, sum_eq_top_iff, sum_eq_top_iff],
+    intro h,
+    simp only [and_false, hp_not_neg, false_or] at h,
+    rcases h.left with ⟨a, H, ha⟩,
+    use [a, H],
+    rwa ←h_top_iff_rpow_top a H, },
+  { -- second, suppose both `(∑ i in s, w i * z i) ^ p ≠ ⊤` and `∑ i in s, (w i * z i ^ p) ≠ ⊤`,
+    -- and prove `((∑ i in s, w i * z i) ^ p).to_nnreal ≤ (∑ i in s, (w i * z i ^ p)).to_nnreal`,
+    -- by using `nnreal.rpow_arith_mean_le_arith_mean_rpow`.
+    intros h_top_rpow_sum _,
+    -- show hypotheses needed to put the `.to_nnreal` inside the sums.
+    have h_top : ∀ (a : ι), a ∈ s → w a * z a < ⊤,
+    { have h_top_sum : ∑ (i : ι) in s, w i * z i < ⊤,
+      { by_contra h,
+        rw [lt_top_iff_ne_top, not_not] at h,
+        rw [h, top_rpow_of_pos hp_pos] at h_top_rpow_sum,
+        exact h_top_rpow_sum rfl, },
+      rwa sum_lt_top_iff at h_top_sum, },
+    have h_top_rpow : ∀ (a : ι), a ∈ s → w a * z a ^ p < ⊤,
+    { intros i hi,
+      specialize h_top i hi,
+      rw lt_top_iff_ne_top at h_top ⊢,
+      rwa [ne.def, ←h_top_iff_rpow_top i hi], },
+    -- put the `.to_nnreal` inside the sums.
+    simp_rw [to_nnreal_sum h_top_rpow, ←to_nnreal_rpow, to_nnreal_sum h_top, to_nnreal_mul,
+      ←to_nnreal_rpow],
+    -- use corresponding nnreal result
+    refine nnreal.rpow_arith_mean_le_arith_mean_rpow s (λ i, (w i).to_nnreal) (λ i, (z i).to_nnreal)
+      _ hp,
+    -- verify the hypothesis `∑ i in s, (w i).to_nnreal = 1`, using `∑ i in s, w i = 1` .
+    have h_sum_nnreal : (∑ i in s, w i) = ↑(∑ i in s, (w i).to_nnreal),
+    { have hw_top : ∑ i in s, w i < ⊤, by { rw hw', exact one_lt_top, },
+      rw ←to_nnreal_sum,
+      { rw coe_to_nnreal,
+        rwa ←lt_top_iff_ne_top, },
+      { rwa sum_lt_top_iff at hw_top, }, },
+    rwa [←coe_eq_coe, ←h_sum_nnreal], },
+end
+
+/-- Weighted generalized mean inequality, version for two elements of `ennreal` and real
+exponents. -/
+theorem rpow_arith_mean_le_arith_mean2_rpow (w₁ w₂ z₁ z₂ : ennreal) (hw' : w₁ + w₂ = 1) {p : ℝ}
+  (hp : 1 ≤ p) :
+  (w₁ * z₁ + w₂ * z₂) ^ p ≤ w₁ * z₁ ^ p + w₂ * z₂ ^ p :=
+begin
+  have h := rpow_arith_mean_le_arith_mean_rpow (univ : finset (fin 2))
+    (fin.cons w₁ $ fin.cons w₂ fin_zero_elim) (fin.cons z₁ $ fin.cons z₂ $ fin_zero_elim) _ hp,
+  { simpa [fin.sum_univ_succ, fin.sum_univ_zero, fin.cons_succ, fin.cons_zero] using h, },
+  { simp [hw', fin.sum_univ_succ, fin.sum_univ_zero, fin.cons_succ, fin.cons_zero], },
+end
+
+end ennreal
+
 namespace real
 
 theorem geom_mean_le_arith_mean2_weighted {w₁ w₂ p₁ p₂ : ℝ} (hw₁ : 0 ≤ w₁) (hw₂ : 0 ≤ w₂)
@@ -684,6 +753,50 @@ begin
   -- non-⊤ non-zero case
   exact ennreal.lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_ne_top hpq hf hg hf_top hg_top hf_zero
     hg_zero,
+end
+
+lemma lintegral_rpow_add_lt_top_of_lintegral_rpow_lt_top {p : ℝ}
+  {f g : α → ennreal} (hf : measurable f) (hf_top : ∫⁻ a, (f a) ^ p ∂μ < ⊤)
+  (hg : measurable g) (hg_top : ∫⁻ a, (g a) ^ p ∂μ < ⊤) (hp1 : 1 ≤ p) :
+  ∫⁻ a, ((f + g) a) ^ p ∂μ < ⊤ :=
+begin
+  have hp0_lt : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
+  have hp0 : 0 ≤ p, from le_of_lt hp0_lt,
+  calc ∫⁻ (a : α), (f a + g a) ^ p ∂μ
+    ≤ ∫⁻ a, ((2:ennreal)^(p-1) * (f a) ^ p + (2:ennreal)^(p-1) * (g a) ^ p) ∂ μ :
+  begin
+    refine lintegral_mono (λ a, _),
+    dsimp only,
+    have h_zero_lt_half_rpow : (0 : ennreal) < (1 / 2) ^ p,
+    { rw [←ennreal.zero_rpow_of_pos hp0_lt],
+      exact ennreal.rpow_lt_rpow (by simp [zero_lt_one]) hp0_lt, },
+    have h_rw : (1 / 2) ^ p * (2:ennreal) ^ (p - 1) = 1 / 2,
+    { rw [sub_eq_add_neg, ennreal.rpow_add _ _ ennreal.two_ne_zero ennreal.coe_ne_top,
+        ←mul_assoc, ←ennreal.mul_rpow_of_nonneg _ _ hp0, ennreal.div_def, one_mul,
+        ennreal.inv_mul_cancel ennreal.two_ne_zero ennreal.coe_ne_top, ennreal.one_rpow,
+        one_mul, ennreal.rpow_neg_one], },
+    rw ←ennreal.mul_le_mul_left (ne_of_lt h_zero_lt_half_rpow).symm _,
+    { rw [mul_add, ← mul_assoc, ← mul_assoc, h_rw, ←ennreal.mul_rpow_of_nonneg _ _ hp0, mul_add],
+      refine ennreal.rpow_arith_mean_le_arith_mean2_rpow (1/2 : ennreal) (1/2 : ennreal)
+        (f a) (g a) _ hp1,
+      rw [ennreal.div_add_div_same, one_add_one_eq_two,
+        ennreal.div_self ennreal.two_ne_zero ennreal.coe_ne_top], },
+    { rw ←ennreal.lt_top_iff_ne_top,
+      refine ennreal.rpow_lt_top_of_nonneg hp0 _,
+      rw [ennreal.div_def, one_mul, ennreal.inv_ne_top],
+      exact ennreal.two_ne_zero, },
+  end
+  ... < ⊤ :
+  begin
+    rw [lintegral_add, lintegral_const_mul _ hf.ennreal_rpow_const,
+      lintegral_const_mul _ hg.ennreal_rpow_const, ennreal.add_lt_top],
+    { have h_two : (2 : ennreal) ^ (p - 1) < ⊤,
+      from ennreal.rpow_lt_top_of_nonneg (by simp [hp1]) ennreal.coe_ne_top,
+      repeat {rw ennreal.mul_lt_top_iff},
+      simp [hf_top, hg_top, h_two], },
+    { exact (ennreal.continuous_const_mul (by simp)).measurable.comp hf.ennreal_rpow_const, },
+    { exact (ennreal.continuous_const_mul (by simp)).measurable.comp hg.ennreal_rpow_const },
+  end
 end
 
 end ennreal

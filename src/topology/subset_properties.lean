@@ -662,7 +662,7 @@ lemma continuous_on.preimage_clopen_of_clopen {β: Type*} [topological_space β]
   (ht : is_clopen t) : is_clopen (s ∩ f⁻¹' t) :=
 ⟨continuous_on.preimage_open_of_open hf hs.1 ht.1, continuous_on.preimage_closed_of_closed hf hs.2 ht.2⟩
 
-/-- The intersection of a disjoint covering by two open sets of a clopen set will be clopen -/
+/-- The intersection of a disjoint covering by two open sets of a clopen set will be clopen. -/
 theorem is_clopen_inter_of_disjoint_cover_clopen {Z a b : set α} (h : is_clopen Z)
   (cover : Z ⊆ a ∪ b) (ha : is_open a) (hb : is_open b) (hab : a ∩ b = ∅) : is_clopen (Z ∩ a) :=
 begin
@@ -1272,7 +1272,7 @@ begin
     { simpa using hs } }
 end
 
-/-- preconnected sets are either contained in, or disjoint to any given clopen set -/
+/-- Preconnected sets are either contained in or disjoint to any given clopen set. -/
 theorem subset_or_disjoint_of_clopen {α : Type*} [topological_space α] {s t : set α}
   (h : is_preconnected t) (h1 : is_clopen s) : s ∩ t = ∅ ∨ t ⊆ s :=
 begin
@@ -1295,7 +1295,7 @@ end
 
 /-- A set `s` is preconnected if and only if
 for every cover by two closed sets that are disjoint on `s`,
-it is contained in one of the two covering sets -/
+it is contained in one of the two covering sets. -/
 theorem is_preconnected_iff_subset_of_disjoint_closed {α : Type*} {s : set α} [topological_space α] :
   is_preconnected s ↔
   ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
@@ -1326,7 +1326,7 @@ end
 
 /-- A closed set `s` is preconnected if and only if
 for every cover by two closed sets that are disjoint,
-it is contained in one of the two covering sets -/
+it is contained in one of the two covering sets. -/
 theorem is_preconnected_iff_subset_of_fully_disjoint_closed {s : set α} (hs : is_closed s) :
   is_preconnected s ↔
   ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hss : s ⊆ u ∪ v) (huv : u ∩ v = ∅),
@@ -1341,20 +1341,14 @@ begin
   rw is_preconnected_iff_subset_of_disjoint_closed,
   intros u v hu hv hss huv,
   have H1 := H (u ∩ s) (v ∩ s),
-  rw [(@set.subset_inter_iff _ u s s), (@set.subset_inter_iff _ v s s)] at H1,
+  rw [set.subset_inter_iff, set.subset_inter_iff] at H1,
   simp only [set.subset.refl, and_true] at H1,
   apply H1 (is_closed_inter hu hs) (is_closed_inter hv hs),
   { rw ←set.inter_distrib_right,
     apply set.subset_inter_iff.2,
-    split,
-      exact hss,
-    exact set.subset.refl s },
-  { conv in (v ∩ s) {rw set.inter_comm},
-    rw set.inter_assoc,
-    conv in (s ∩ (s ∩ v)) {rw [←set.inter_assoc, set.inter_self s]},
-    rw [set.inter_comm, set.inter_assoc],
-    conv in (v ∩ u) {rw set.inter_comm},
-    exact huv }
+    exact ⟨hss, set.subset.refl s⟩ },
+  { rw [set.inter_comm v s, set.inter_assoc, ←set.inter_assoc s, set.inter_self s,
+        set.inter_comm, set.inter_assoc, set.inter_comm v u, huv] }
 end
 
 /-- The connected component of a point is always a subset of the intersection of all its clopen

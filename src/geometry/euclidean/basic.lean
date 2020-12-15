@@ -541,8 +541,8 @@ subspace, whose direction is complete, as an unbundled function.  This
 definition is only intended for use in setting up the bundled version
 `orthogonal_projection` and should not be used once that is
 defined. -/
-def orthogonal_projection_fn {s : affine_subspace ℝ P} [nonempty s]
-    (hc : is_complete (s.direction : set V)) (p : P) : P :=
+def orthogonal_projection_fn (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction]
+  (p : P) : P :=
 classical.some $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.direction.orthogonal)
@@ -555,8 +555,8 @@ point onto the subspace.  This lemma is only intended for use in
 setting up the bundled version and should not be used once that is
 defined. -/
 lemma inter_eq_singleton_orthogonal_projection_fn {s : affine_subspace ℝ P} [nonempty s]
-  (hc : is_complete (s.direction : set V)) (p : P) :
-  (s : set P) ∩ (mk' p s.direction.orthogonal) = {orthogonal_projection_fn hc p} :=
+  [complete_space s.direction] (p : P) :
+  (s : set P) ∩ (mk' p s.direction.orthogonal) = {orthogonal_projection_fn s p} :=
 classical.some_spec $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.direction.orthogonal)
@@ -567,7 +567,7 @@ classical.some_spec $ inter_eq_singleton_of_nonempty_of_is_compl
 lemma is only intended for use in setting up the bundled version and
 should not be used once that is defined. -/
 lemma orthogonal_projection_fn_mem {s : affine_subspace ℝ P} [nonempty s]
-    (hc : is_complete (s.direction : set V)) (p : P) : orthogonal_projection_fn hc p ∈ s :=
+  [complete_space s.direction] (p : P) : orthogonal_projection_fn s p ∈ s :=
 begin
   rw [←mem_coe, ←set.singleton_subset_iff, ←inter_eq_singleton_orthogonal_projection_fn],
   exact set.inter_subset_left _ _
@@ -577,8 +577,8 @@ end
 subspace.  This lemma is only intended for use in setting up the
 bundled version and should not be used once that is defined. -/
 lemma orthogonal_projection_fn_mem_orthogonal {s : affine_subspace ℝ P} [nonempty s]
-  (hc : is_complete (s.direction : set V)) (p : P) :
-  orthogonal_projection_fn hc p ∈ mk' p s.direction.orthogonal :=
+  [complete_space s.direction] (p : P) :
+  orthogonal_projection_fn s p ∈ mk' p s.direction.orthogonal :=
 begin
   rw [←mem_coe, ←set.singleton_subset_iff, ←inter_eq_singleton_orthogonal_projection_fn],
   exact set.inter_subset_right _ _
@@ -589,83 +589,57 @@ result in the orthogonal direction.  This lemma is only intended for
 use in setting up the bundled version and should not be used once that
 is defined. -/
 lemma orthogonal_projection_fn_vsub_mem_direction_orthogonal {s : affine_subspace ℝ P} [nonempty s]
-  (hc : is_complete (s.direction : set V)) (p : P) :
-  orthogonal_projection_fn hc p -ᵥ p ∈ s.direction.orthogonal :=
+  [complete_space s.direction] (p : P) :
+  orthogonal_projection_fn s p -ᵥ p ∈ s.direction.orthogonal :=
 direction_mk' p s.direction.orthogonal ▸
-  vsub_mem_direction (orthogonal_projection_fn_mem_orthogonal hc p) (self_mem_mk' _ _)
+  vsub_mem_direction (orthogonal_projection_fn_mem_orthogonal p) (self_mem_mk' _ _)
 
 /-- The orthogonal projection of a point onto a nonempty affine
 subspace, whose direction is complete. The corresponding linear map
 (mapping a vector to the difference between the projections of two
 points whose difference is that vector) is the `orthogonal_projection`
 for real inner product spaces, onto the direction of the affine
-subspace being projected onto. For most purposes,
-`orthogonal_projection`, which removes the `nonempty` and
-`is_complete` hypotheses and is the identity map when either of those
-hypotheses fails, should be used instead. -/
-def orthogonal_projection_of_nonempty_of_complete {s : affine_subspace ℝ P} [nonempty s]
-  (hc : is_complete (s.direction : set V)) : P →ᵃ[ℝ] s :=
-{ to_fun := λ p, ⟨orthogonal_projection_fn hc p, orthogonal_projection_fn_mem hc p⟩,
+subspace being projected onto. -/
+def orthogonal_projection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] :
+  P →ᵃ[ℝ] s :=
+{ to_fun := λ p, ⟨orthogonal_projection_fn s p, orthogonal_projection_fn_mem p⟩,
   linear := (orthogonal_projection s.direction),
   map_vadd' := λ p v, begin
-    have hs : ((orthogonal_projection s.direction) v : V) +ᵥ orthogonal_projection_fn hc p ∈ s :=
+    have hs : ((orthogonal_projection s.direction) v : V) +ᵥ orthogonal_projection_fn s p ∈ s :=
       vadd_mem_of_mem_direction (orthogonal_projection s.direction v).2
-                                (orthogonal_projection_fn_mem hc p),
-    have ho : ((orthogonal_projection s.direction) v : V) +ᵥ orthogonal_projection_fn hc p ∈
+                                (orthogonal_projection_fn_mem p),
+    have ho : ((orthogonal_projection s.direction) v : V) +ᵥ orthogonal_projection_fn s p ∈
       mk' (v +ᵥ p) s.direction.orthogonal,
     { rw [←vsub_right_mem_direction_iff_mem (self_mem_mk' _ _) _, direction_mk',
           vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_comm, add_sub_assoc],
-      refine submodule.add_mem _ (orthogonal_projection_fn_vsub_mem_direction_orthogonal hc p) _,
+      refine submodule.add_mem _ (orthogonal_projection_fn_vsub_mem_direction_orthogonal p) _,
       rw submodule.mem_orthogonal',
       intros w hw,
-      rw [←neg_sub, inner_neg_left, orthogonal_projection_inner_eq_zero hc _ w hw, neg_zero], },
-    have hm : ((orthogonal_projection s.direction) v : V) +ᵥ orthogonal_projection_fn hc p ∈
-      ({orthogonal_projection_fn hc (v +ᵥ p)} : set P),
-    { rw ←inter_eq_singleton_orthogonal_projection_fn hc (v +ᵥ p),
+      rw [←neg_sub, inner_neg_left, orthogonal_projection_inner_eq_zero _ w hw, neg_zero], },
+    have hm : ((orthogonal_projection s.direction) v : V) +ᵥ orthogonal_projection_fn s p ∈
+      ({orthogonal_projection_fn s (v +ᵥ p)} : set P),
+    { rw ←inter_eq_singleton_orthogonal_projection_fn (v +ᵥ p),
       exact set.mem_inter hs ho },
     rw set.mem_singleton_iff at hm,
     ext,
     exact hm.symm
   end }
 
-/-- The orthogonal projection of a point onto an affine subspace,
-which is expected to be nonempty and complete.  The corresponding
-linear map (mapping a vector to the difference between the projections
-of two points whose difference is that vector) is the
-`orthogonal_projection` for real inner product spaces, onto the
-direction of the affine subspace being projected onto.  If the
-subspace is empty or not complete, this uses the identity map
-instead. -/
-def orthogonal_projection (s : affine_subspace ℝ P) [hs : nonempty s] : P →ᵃ[ℝ] ↥s :=
-if h : is_complete (s.direction : set V) then
-  orthogonal_projection_of_nonempty_of_complete h else affine_map.const ℝ P
-  (@default _ (classical.inhabited_of_nonempty hs))
-
-/-- The definition of `orthogonal_projection` using `if`. -/
-lemma orthogonal_projection_def (s : affine_subspace ℝ P) [hs : nonempty s] :
-  orthogonal_projection s = if h : is_complete (s.direction : set V) then
-    orthogonal_projection_of_nonempty_of_complete h else affine_map.const ℝ P
-    (@default _ (classical.inhabited_of_nonempty hs)) :=
-rfl
-
 @[simp] lemma orthogonal_projection_fn_eq {s : affine_subspace ℝ P} [nonempty s]
-  (hc : is_complete (s.direction : set V)) (p : P) :
-  orthogonal_projection_fn hc p = orthogonal_projection s p :=
-by { rw [orthogonal_projection_def, dif_pos hc], refl }
+  [complete_space s.direction] (p : P) :
+  orthogonal_projection_fn s p = orthogonal_projection s p :=
+rfl
 
 /-- The linear map corresponding to `orthogonal_projection`. -/
 @[simp] lemma orthogonal_projection_linear {s : affine_subspace ℝ P} [nonempty s]
-  (hc : is_complete (s.direction : set V)) :
+  [complete_space s.direction] :
   (orthogonal_projection s).linear = _root_.orthogonal_projection s.direction :=
-begin
- rw [orthogonal_projection_def, dif_pos hc],
-  refl,
-end
+rfl
 
 @[simp] lemma orthogonal_projection_of_nonempty_of_complete_eq {s : affine_subspace ℝ P} [nonempty s]
-  (hc : is_complete (s.direction : set V)) (p : P) :
-  orthogonal_projection_of_nonempty_of_complete hc p = orthogonal_projection s p :=
-by rw [orthogonal_projection_def, dif_pos hc]
+  [complete_space s.direction] (p : P) :
+  orthogonal_projection_of_nonempty_of_complete p = orthogonal_projection s p :=
+rfl
 
 /-- The intersection of the subspace and the orthogonal subspace
 through the given point is the `orthogonal_projection` of that point

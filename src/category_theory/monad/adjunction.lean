@@ -78,8 +78,6 @@ by { dsimp [adjunction.monad], apply_instance }
 
 attribute [instance] monadic_right_adjoint.eqv
 
--- PROJECT prove Beck's monadicity theorem, e.g. from Section 5.5 of [Riehl][riehl2017]
-
 namespace reflective
 
 lemma comparison_ess_surj_aux [reflective R] (X : monad.algebra ((left_adjoint R) ⋙ R)) :
@@ -110,8 +108,7 @@ let h : L ⊣ R := (is_right_adjoint.adj) in
 instance comparison_ess_surj [reflective R] : ess_surj (monad.comparison R) :=
 let L := left_adjoint R in
 let h : L ⊣ R := is_right_adjoint.adj in
-{ obj_preimage := λ X, L.obj X.A,
-  iso' := λ X,
+⟨λ X, ⟨L.obj X.A, ⟨
   { hom :=
     { f := (as_iso (h.unit.app X.A)).inv,
       h' :=
@@ -135,7 +132,8 @@ let h : L ⊣ R := is_right_adjoint.adj in
         erw [comp_id, id_comp],
       end },
     hom_inv_id' := by { ext, exact (as_iso (h.unit.app X.A)).inv_hom_id, },
-    inv_hom_id' := by { ext, exact (as_iso (h.unit.app X.A)).hom_inv_id, }, } }
+    inv_hom_id' := by { ext, exact (as_iso (h.unit.app X.A)).hom_inv_id, }, }
+⟩⟩⟩
 
 instance comparison_full [full R] [is_right_adjoint R] : full (monad.comparison R) :=
 { preimage := λ X Y f, R.preimage f.f }
@@ -144,10 +142,12 @@ instance comparison_faithful [faithful R] [is_right_adjoint R] : faithful (monad
 
 end reflective
 
+-- It is possible to do this computably since the construction gives the data of the inverse, not
+-- just the existence of an inverse on each object.
 /-- Any reflective inclusion has a monadic right adjoint.
     cf Prop 5.3.3 of [Riehl][riehl2017] -/
 @[priority 100] -- see Note [lower instance priority]
-instance monadic_of_reflective [reflective R] : monadic_right_adjoint R :=
+noncomputable instance monadic_of_reflective [reflective R] : monadic_right_adjoint R :=
 { eqv := equivalence.equivalence_of_fully_faithfully_ess_surj _ }
 
 end category_theory

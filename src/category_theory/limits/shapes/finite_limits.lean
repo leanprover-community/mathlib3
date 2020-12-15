@@ -15,7 +15,7 @@ import category_theory.limits.shapes.pullbacks
 A typeclass for categories with all finite (co)limits.
 -/
 
-universes v u
+universes w v u
 
 open category_theory
 
@@ -32,7 +32,7 @@ This is often called 'finitely complete'.
 -- We can't just made this an `abbreviation`
 -- because of https://github.com/leanprover-community/lean/issues/429
 def has_finite_limits : Prop :=
-Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_limits_of_shape J 𝒥 C _
+Π (J : Type v) [𝒥 : category.{v} J] [@fin_category J 𝒥], @has_limits_of_shape J 𝒥 C _
 
 attribute [class] has_finite_limits
 
@@ -41,6 +41,8 @@ instance has_limits_of_shape_of_has_finite_limits
   (J : Type v) [small_category J] [fin_category J] [has_finite_limits C] :
   has_limits_of_shape J C :=
 ‹has_finite_limits C› J
+
+set_option pp.universes true
 
 /-- If `C` has all limits, it has finite limits. -/
 lemma has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
@@ -53,13 +55,13 @@ has a colimit.
 This is often called 'finitely cocomplete'.
 -/
 def has_finite_colimits : Prop :=
-Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_colimits_of_shape J 𝒥 C _
+Π (J : Type v) [𝒥 : category.{v} J] [@fin_category J 𝒥], @has_colimits_of_shape J 𝒥 C _
 
 attribute [class] has_finite_colimits
 
 @[priority 100]
 instance has_colimits_of_shape_of_has_finite_colimits
-  (J : Type v) [small_category J] [fin_category J] [has_finite_colimits C] :
+  (J : Type v) [category.{v} J] [fin_category J] [has_finite_colimits C] :
   has_colimits_of_shape J C :=
 ‹has_finite_colimits C› J
 
@@ -89,11 +91,11 @@ end
 instance : fin_category walking_parallel_pair := { }
 
 /-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
-example [has_finite_limits C] : has_equalizers C := by apply_instance
+example [has_finite_limits.{v} C] : has_equalizers C := by apply_instance
 
 /-- Coequalizers are finite colimits, of if `C` has all finite colimits, it also has all
     coequalizers -/
-example [has_finite_colimits C] : has_coequalizers C := by apply_instance
+example [has_finite_colimits.{v} C] : has_coequalizers C := by apply_instance
 
 variables {J : Type v}
 
@@ -183,14 +185,14 @@ by { classical, exact ‹has_finite_wide_pushouts C› J }
 Finite wide pullbacks are finite limits, so if `C` has all finite limits,
 it also has finite wide pullbacks
 -/
-lemma has_finite_wide_pullbacks_of_has_finite_limits [has_finite_limits C] : has_finite_wide_pullbacks C :=
+lemma has_finite_wide_pullbacks_of_has_finite_limits [has_finite_limits.{v} C] : has_finite_wide_pullbacks C :=
 λ J _ _, by exactI limits.has_limits_of_shape_of_has_finite_limits _ _
 
 /--
 Finite wide pushouts are finite colimits, so if `C` has all finite colimits,
 it also has finite wide pushouts
 -/
-lemma has_finite_wide_pushouts_of_has_finite_limits [has_finite_colimits C] : has_finite_wide_pushouts C :=
+lemma has_finite_wide_pushouts_of_has_finite_limits [has_finite_colimits.{v} C] : has_finite_wide_pushouts C :=
 λ J _ _, by exactI limits.has_colimits_of_shape_of_has_finite_colimits _ _
 
 instance fintype_walking_pair : fintype walking_pair :=
@@ -202,5 +204,8 @@ example [has_finite_wide_pullbacks C] : has_pullbacks C := by apply_instance
 
 /-- Pushouts are finite colimits, so if `C` has all finite colimits, it also has all pushouts -/
 example [has_finite_wide_pushouts C] : has_pushouts C := by apply_instance
+
+/-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
+example [has_finite_limits.{v} C] : has_binary_products C := by apply_instance
 
 end category_theory.limits

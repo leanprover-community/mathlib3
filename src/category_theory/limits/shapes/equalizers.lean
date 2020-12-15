@@ -716,6 +716,12 @@ lemma equalizer_comparison_comp_π [has_equalizer f g] [has_equalizer (G.map f) 
   equalizer_comparison f g G ≫ equalizer.ι (G.map f) (G.map g) = G.map (equalizer.ι f g) :=
 equalizer.lift_ι _ _
 
+@[reassoc]
+lemma inv_equalizer_comparison_comp_map [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
+  [is_iso (equalizer_comparison f g G)] :
+  inv (equalizer_comparison f g G) ≫ G.map (equalizer.ι f g) = equalizer.ι (G.map f) (G.map g) :=
+by simp [is_iso.inv_comp_eq]
+
 @[simp, reassoc]
 lemma map_lift_equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
   {Z : C} {h : Z ⟶ X} (w : h ≫ f = h ≫ g) :
@@ -749,6 +755,8 @@ abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair C
 
 /-- `has_coequalizers` represents a choice of coequalizer for every pair of morphisms -/
 abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair C
+
+set_option pp.universes true
 
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
 lemma has_equalizers_of_has_limit_parallel_pair

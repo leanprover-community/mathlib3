@@ -40,7 +40,7 @@ of finsets of morphisms.
 * Forgetful functors for algebraic categories typically preserve filtered colimits.
 -/
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
@@ -203,7 +203,7 @@ lemma to_sup_commutes
   f ≫ to_sup O H mY = to_sup O H mX :=
 (sup_exists O H).some_spec.some_spec mX mY mf
 
-variables {J : Type v} [small_category J] [fin_category J]
+variables {J : Type v} [category.{w} J] [fin_category J]
 
 /--
 If we have `is_filtered C`, then for any functor `F : J ⥤ C` with `fin_category J`,

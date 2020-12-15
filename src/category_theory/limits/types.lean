@@ -7,14 +7,14 @@ import category_theory.limits.shapes.images
 import category_theory.filtered
 import tactic.equiv_rw
 
-universes u
+universes w v u
 
 open category_theory
 open category_theory.limits
 
 namespace category_theory.limits.types
 
-variables {J : Type u} [small_category J]
+variables {J : Type u} [category.{v} J]
 
 /--
 (internal implementation) the limit cone of a functor,
@@ -31,14 +31,19 @@ def limit_cone_is_limit (F : J ⥤ Type u) : is_limit (limit_cone F) :=
   uniq' := by { intros, ext x j, exact congr_fun (w j) x } }
 
 /--
-The category of types has all limits.
+The category of types has limits of every shape.
+-/
+instance : has_limits_of_shape J (Type u) :=
+{ has_limit := λ F, has_limit.mk
+  { cone := limit_cone F, is_limit := limit_cone_is_limit F } }
+
+/--
+The category of types has all small limits.
 
 See https://stacks.math.columbia.edu/tag/002U.
 -/
 instance : has_limits (Type u) :=
-{ has_limits_of_shape := λ J 𝒥, by exactI
-  { has_limit := λ F, has_limit.mk
-    { cone := limit_cone F, is_limit := limit_cone_is_limit F } } }
+{ has_limits_of_shape := λ J 𝒥, by apply_instance }
 
 /--
 The equivalence between a limiting cone of `F` in `Type u` and the "concrete" definition as the
@@ -161,7 +166,16 @@ def colimit_cocone_is_colimit (F : J ⥤ Type u) : is_colimit (colimit_cocone F)
     (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (cocone.w s f) x).symm) }
 
 /--
-The category of types has all colimits.
+The category of types has colimits of every shape.
+
+See https://stacks.math.columbia.edu/tag/002U.
+-/
+instance : has_colimits_of_shape J (Type u) :=
+{ has_colimit := λ F, has_colimit.mk
+  { cocone := colimit_cocone F, is_colimit := colimit_cocone_is_colimit F } }
+
+/--
+The category of types has all small colimits.
 
 See https://stacks.math.columbia.edu/tag/002U.
 -/

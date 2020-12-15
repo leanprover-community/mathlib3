@@ -38,12 +38,12 @@ noncomputable theory
 
 namespace category_theory.limits
 
-universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 
-variables {J : Type v} [small_category J] {K : J ⥤ C}
+variables {J : Type v} [category.{w} J] {K : J ⥤ C}
 
 /--
 A functor `F` preserves limits of `K` (written as `preserves_limit K F`)
@@ -55,16 +55,16 @@ class preserves_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 A functor `F` preserves colimits of `K` (written as `preserves_colimit K F`)
 if `F` maps any colimit cocone over `K` to a colimit cocone.
 -/
-class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
+class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) :=
 (preserves : Π {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
 /-- We say that `F` preserves limits of shape `J` if `F` preserves limits for every diagram
     `K : J ⥤ C`, i.e., `F` maps limit cones over `K` to limit cones. -/
-class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
+class preserves_limits_of_shape (J : Type v) [category.{w} J] (F : C ⥤ D) :=
 (preserves_limit : Π {K : J ⥤ C}, preserves_limit K F)
 /-- We say that `F` preserves colimits of shape `J` if `F` preserves colimits for every diagram
     `K : J ⥤ C`, i.e., `F` maps colimit cocones over `K` to colimit cocones. -/
-class preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
+class preserves_colimits_of_shape (J : Type v) [category.{w} J] (F : C ⥤ D) :=
 (preserves_colimit : Π {K : J ⥤ C}, preserves_colimit K F)
 
 /-- We say that `F` preserves limits if it sends limit cones over any diagram to limit cones. -/
@@ -276,7 +276,7 @@ whenever the image of a cone over some `K : J ⥤ C` under `F` is a limit cone i
 the cone was already a limit cone in `C`.
 Note that we do not assume a priori that `D` actually has any limits.
 -/
-class reflects_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
+class reflects_limits_of_shape (J : Type v) [category.{w} J] (F : C ⥤ D) : Type (max u₁ u₂ v w) :=
 (reflects_limit : Π {K : J ⥤ C}, reflects_limit K F)
 /--
 A functor `F : C ⥤ D` reflects colimits of shape `J` if
@@ -284,7 +284,7 @@ whenever the image of a cocone over some `K : J ⥤ C` under `F` is a colimit co
 the cocone was already a colimit cocone in `C`.
 Note that we do not assume a priori that `D` actually has any colimits.
 -/
-class reflects_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
+class reflects_colimits_of_shape (J : Type v) [category.{w} J] (F : C ⥤ D) : Type (max u₁ u₂ v w) :=
 (reflects_colimit : Π {K : J ⥤ C}, reflects_colimit K F)
 
 /--
@@ -326,10 +326,10 @@ by split; rintros ⟨a⟩ ⟨b⟩; congr
 instance reflects_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (reflects_colimit K F) :=
 by split; rintros ⟨a⟩ ⟨b⟩; congr
 
-instance reflects_limits_of_shape_subsingleton (J : Type v) [small_category J] (F : C ⥤ D) :
+instance reflects_limits_of_shape_subsingleton (J : Type v) [category.{w} J] (F : C ⥤ D) :
   subsingleton (reflects_limits_of_shape J F) :=
 by { split, intros, cases a, cases b, congr }
-instance reflects_colimits_of_shape_subsingleton (J : Type v) [small_category J] (F : C ⥤ D) :
+instance reflects_colimits_of_shape_subsingleton (J : Type v) [category.{w} J] (F : C ⥤ D) :
   subsingleton (reflects_colimits_of_shape J F) :=
 by { split, intros, cases a, cases b, congr }
 
@@ -349,11 +349,11 @@ reflects_colimits_of_shape.reflects_colimit
 
 @[priority 100] -- see Note [lower instance priority]
 instance reflects_limits_of_shape_of_reflects_limits (F : C ⥤ D)
-  [H : reflects_limits F] : reflects_limits_of_shape J F :=
+  [H : reflects_limits F] (J : Type v) [small_category J] : reflects_limits_of_shape J F :=
 reflects_limits.reflects_limits_of_shape
 @[priority 100] -- see Note [lower instance priority]
 instance reflects_colimits_of_shape_of_reflects_colimits (F : C ⥤ D)
-  [H : reflects_colimits F] : reflects_colimits_of_shape J F :=
+  [H : reflects_colimits F] (J : Type v) [small_category J] : reflects_colimits_of_shape J F :=
 reflects_colimits.reflects_colimits_of_shape
 
 instance id_reflects_limits : reflects_limits (𝟭 C) :=
@@ -469,7 +469,7 @@ If `C` has limits and `G` preserves limits, then if `G` reflects isomorphisms th
 limits.
 -/
 def reflects_limits_of_reflects_isomorphisms {G : C ⥤ D}
-  [reflects_isomorphisms G] [has_limits C] [preserves_limits G] :
+  [reflects_isomorphisms G] [has_limits.{v} C] [preserves_limits G] :
   reflects_limits G :=
 { reflects_limits_of_shape := λ J 𝒥₁,
   by exactI reflects_limits_of_shape_of_reflects_isomorphisms }
@@ -543,7 +543,7 @@ If `C` has colimits and `G` preserves colimits, then if `G` reflects isomorphism
 colimits.
 -/
 def reflects_colimits_of_reflects_isomorphisms {G : C ⥤ D}
-  [reflects_isomorphisms G] [has_colimits C] [preserves_colimits G] :
+  [reflects_isomorphisms G] [has_colimits.{v} C] [preserves_colimits G] :
   reflects_colimits G :=
 { reflects_colimits_of_shape := λ J 𝒥₁,
   by exactI reflects_colimits_of_shape_of_reflects_isomorphisms }

@@ -28,7 +28,7 @@ instance discrete_hom_fintype {α : Type*} [decidable_eq α] (X Y : discrete α)
 by { apply ulift.fintype }
 
 /-- A category with a `fintype` of objects, and a `fintype` for each morphism space. -/
-class fin_category (J : Type v) [small_category J] :=
+class fin_category (J : Type u) [category.{v} J] :=
 (decidable_eq_obj : decidable_eq J . tactic.apply_instance)
 (fintype_obj : fintype J . tactic.apply_instance)
 (decidable_eq_hom : Π (j j' : J), decidable_eq (j ⟶ j') . tactic.apply_instance)

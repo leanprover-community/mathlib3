@@ -109,6 +109,7 @@ def binary_product_functor : Type u ⥤ Type u ⥤ Type u :=
 The product functor given by the instance `has_binary_products (Type u)` is isomorphic to the
 explicit binary product functor given by the product type.
 -/
+@[simps {rhs_md := semireducible}]
 noncomputable def binary_product_iso_prod : binary_product_functor ≅ (prod.functor : Type u ⥤ _) :=
 begin
   apply nat_iso.of_components (λ X, _) _,
@@ -213,6 +214,7 @@ lemma type_equalizer_iff_unique :
 ⟨λ i, unique_of_type_equalizer _ _ (classical.choice i), λ k, ⟨type_equalizer_of_unique f w k⟩⟩
 
 /-- Show that the subtype `{x : Y // g x = h x}` is an equalizer for the pair `(g,h)`. -/
+@[simps {rhs_md := semireducible}]
 def equalizer_limit : limits.limit_cone (parallel_pair g h) :=
 { cone := fork.of_ι (subtype.val : {x : Y // g x = h x} → Y) (funext subtype.prop),
   is_limit := fork.is_limit.mk' _ $ λ s,

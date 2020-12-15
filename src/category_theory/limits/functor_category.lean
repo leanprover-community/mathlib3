@@ -9,11 +9,11 @@ open category_theory category_theory.category
 
 namespace category_theory.limits
 
-universes v v₂ u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w v v₂ u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 variables {C : Type u} [category.{v} C]
 
-variables {J K : Type v} [small_category J] [category.{v₂} K]
+variables {J K : Type v} [category.{w} J] [category.{v₂} K]
 
 @[simp, reassoc]
 lemma limit.lift_π_app (H : J ⥤ K ⥤ C) [has_limit H] (c : cone H) (j : J) (k : K) :
@@ -234,11 +234,11 @@ begin
   simpa using w j,
 end
 
-instance evaluation_preserves_limits [has_limits C] (k : K) :
+instance evaluation_preserves_limits [has_limits.{v} C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=
 { preserves_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance evaluation_preserves_colimits [has_colimits C] (k : K) :
+instance evaluation_preserves_colimits [has_colimits.{v} C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
 { preserves_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 

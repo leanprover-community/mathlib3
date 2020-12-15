@@ -79,7 +79,7 @@ def small_alpha_vrachy_check(lines, fn):
     return errors
 
 def reserved_notation_check(lines, fn):
-    if fn == 'src/tactic/core.lean':
+    if fn == 'src/tactic/reserved_notation.lean':
         return []
     errors = []
     for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):

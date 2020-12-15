@@ -2306,39 +2306,3 @@ Otherwise, it fails.
 meta def list.find_defeq (red : tactic.transparency) {v} (m : list (expr × v)) (e : expr) :
   tactic (expr × v) :=
 m.mfind $ λ ⟨e', val⟩, tactic.is_def_eq e e' red
-
-/-!
-### Reserved notation
-
-We place all `mathlib`'s reserved notation here so that users will know not to
-use them as e.g. variable names without needing to import the specific file where they
-are defined.
--/
-
--- used in `tactic/localized.lean`
-reserve notation `localized`
-
--- used in `tactic/lint/frontend.lean`
-reserve notation `#lint`
-reserve notation `#lint_mathlib`
-reserve notation `#lint_all`
-reserve notation `#list_linters`
-
--- used in `tactic/where.lean`
-reserve prefix `#where`:max
-
--- used in `tactic/simps.lean`
-reserve notation `initialize_simps_projections`
-
--- used in `tactic/lift.lean`
-reserve notation `to`
-
--- used in `tactic/rcases.lean`
-precedence `?`:max
-
--- used in `order/lattice.lean`
-reserve infixl ` ⊓ `:70
-reserve infixl ` ⊔ `:65
-
--- used in `algebra/module/linear_map.lean`
-reserve infix ` ≃ₗ `:25

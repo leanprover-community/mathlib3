@@ -662,16 +662,13 @@ tsum_le_tsum_of_inj i hi (λ c hc, zero_le _) (λ b, le_refl _) (summable_comp_i
 
 open finset
 
-/-- If `f : ℕ → ℝ≥0` and `∑' f` exists, then `∑' k, f (k + i)` tends to zero. -/
-lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0) (hf : summable f) :
-  tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
+/-- For `f : ℕ → ℝ≥0`, then `∑' k, f (k + i)` tends to zero. This does not require a summability
+assumption on `f`, as otherwise all sums are zero. -/
+lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0) : tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
-  have h₀ : (λ i, (∑' i, f i) - ∑ j in range i, f j) = λ i, ∑' (k : ℕ), f (k + i),
-  { ext1 i,
-    rw [sub_eq_iff_eq_add, sum_add_tsum_nat_add i hf, add_comm],
-    exact sum_le_tsum _ (λ _ _, zero_le _) hf },
-  have h₁ : tendsto (λ i : ℕ, ∑' i, f i) at_top (𝓝 (∑' i, f i)) := tendsto_const_nhds,
-  simpa only [h₀, sub_self] using tendsto.sub h₁ hf.has_sum.tendsto_sum_nat
+  rw ← tendsto_coe,
+  convert tendsto_sum_nat_add (λ i, (f i : ℝ)),
+  norm_cast,
 end
 
 end nnreal
@@ -687,7 +684,7 @@ begin
       (nnreal.summable_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf) _)).symm,
   simp only [λ x, (to_nnreal_apply_of_tsum_ne_top hf x).symm, ←ennreal.coe_zero,
     this, ennreal.tendsto_coe] { single_pass := tt },
-  exact nnreal.tendsto_sum_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf)
+  exact nnreal.tendsto_sum_nat_add _
 end
 
 end ennreal

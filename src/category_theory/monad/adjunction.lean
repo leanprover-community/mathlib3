@@ -78,8 +78,6 @@ by { dsimp [adjunction.monad], apply_instance }
 
 attribute [instance] monadic_right_adjoint.eqv
 
--- PROJECT prove Beck's monadicity theorem, e.g. from Section 5.5 of [Riehl][riehl2017]
-
 namespace reflective
 
 lemma comparison_ess_surj_aux [reflective R] (X : monad.algebra ((left_adjoint R) ⋙ R)) :

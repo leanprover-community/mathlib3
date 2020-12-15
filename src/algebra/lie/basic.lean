@@ -1245,6 +1245,14 @@ class lie_algebra.is_simple extends lie_module.is_irreducible R L L : Prop :=
 class lie_algebra.is_solvable : Prop :=
 (solvable : ∃ k, lie_algebra.derived_series R L k = ⊥)
 
+instance nilpotent_is_solvable [lie_module.is_nilpotent R L L] : lie_algebra.is_solvable R L :=
+begin
+  rcases (lie_module.is_nilpotent.nilpotent :
+    ∃ (k : ℕ), lie_module.lower_central_series R L L k = ⊥) with ⟨k, h⟩,
+  use k, rw ← le_bot_iff at h, rw ← le_bot_iff,
+  exact le_trans (lie_module.derived_series_le_lower_central_series R L k) h,
+end
+
 end lie_algebra_properties
 
 namespace linear_equiv

@@ -802,8 +802,9 @@ begin
   end
 end
 
-private lemma minkowski_aux {p q : ℝ} (hpq : p.is_conjugate_exponent q)
-  {f g : α → ennreal} (hf : measurable f) (hg : measurable g) (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) :
+lemma lintegral_mul_rpow_le_lintegral_rpow_mul_lintegral_rpow {p q : ℝ}
+  (hpq : p.is_conjugate_exponent q) {f g : α → ennreal} (hf : measurable f) (hg : measurable g)
+  (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) :
   ∫⁻ a, (f a) * (g a) ^ (p - 1) ∂μ ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) * (∫⁻ a, (g a)^p ∂μ) ^ (1/q) :=
 begin
   refine le_trans (ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf hg.ennreal_rpow_const) _,
@@ -856,12 +857,13 @@ begin
       * (∫⁻ a, (f a + g a)^p ∂μ) ^ (1/q) :
   begin
     rw add_mul,
-    exact add_le_add (minkowski_aux hpq hf (hf.add hg) hf_top)
-      (minkowski_aux hpq hg (hf.add hg) hg_top),
+    exact add_le_add
+      (lintegral_mul_rpow_le_lintegral_rpow_mul_lintegral_rpow hpq hf (hf.add hg) hf_top)
+      (lintegral_mul_rpow_le_lintegral_rpow_mul_lintegral_rpow hpq hg (hf.add hg) hg_top),
   end
 end
 
-lemma lintegral_rpow_add_le_add_lintegral_rpow_of_lintegral_add_ne_zero_ne_top {p q : ℝ}
+private lemma lintegral_Lp_add_le_aux {p q : ℝ}
   (hpq : p.is_conjugate_exponent q) {f g : α → ennreal} (hf : measurable f)
   (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) (hg : measurable g) (hg_top : ∫⁻ a, (g a) ^ p ∂μ ≠ ⊤)
   (h_add_zero : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ 0) (h_add_top : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ ⊤) :
@@ -890,9 +892,9 @@ begin
   rwa [←mul_assoc, ennreal.mul_le_mul_right h_add_zero h_add_top, mul_comm] at h,
 end
 
-/-- Minkowski's inequality for functions `α → ennreal`: the `ℒp`-seminorm of the sum of two
+/-- Minkowski's inequality for functions `α → ennreal`: the `ℒp` seminorm of the sum of two
 functions is bounded by the sum of their `ℒp` seminorms. -/
-theorem lintegral_rpow_add_le_add_lintegral_rpow {p : ℝ} {f g : α → ennreal}
+theorem lintegral_Lp_add_le {p : ℝ} {f g : α → ennreal}
   (hf : measurable f) (hg : measurable g) (hp1 : 1 ≤ p) :
   (∫⁻ a, ((f + g) a)^p ∂ μ) ^ (1/p) ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p) :=
 begin
@@ -914,8 +916,7 @@ begin
   { rw ←ne.def at hf_top hg_top,
     rw ←ennreal.lt_top_iff_ne_top at hf_top hg_top ⊢,
     exact lintegral_rpow_add_lt_top_of_lintegral_rpow_lt_top hf hf_top hg hg_top hp1, },
-  exact lintegral_rpow_add_le_add_lintegral_rpow_of_lintegral_add_ne_zero_ne_top hpq hf hf_top hg
-    hg_top h0 htop,
+  exact lintegral_Lp_add_le_aux hpq hf hf_top hg hg_top h0 htop,
 end
 
 end ennreal

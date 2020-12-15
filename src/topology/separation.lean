@@ -440,7 +440,7 @@ locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ t
 lemma exists_open_with_compact_closure [locally_compact_space α] [t2_space α] (x : α) :
   ∃ (U : set α), is_open U ∧ x ∈ U ∧ is_compact (closure U) :=
 begin
-  rcases locally_compact_space.local_compact_nhds x set.univ filter.univ_mem_sets with
+  rcases locally_compact_space.local_compact_nhds x univ filter.univ_mem_sets with
     ⟨K, h1K, _, h2K⟩,
   rw [mem_nhds_sets_iff] at h1K, rcases h1K with ⟨t, h1t, h2t, h3t⟩,
   exact ⟨t, h2t, h3t, compact_of_is_closed_subset h2K is_closed_closure $
@@ -541,9 +541,9 @@ normal_space.normal s t H1 H2 H3
 @[priority 100] -- see Note [lower instance priority]
 instance normal_space.regular_space [normal_space α] : regular_space α :=
 { regular := λ s x hs hxs, let ⟨u, v, hu, hv, hsu, hxv, huv⟩ := normal_separation s {x} hs is_closed_singleton
-      (λ _ ⟨hx, hy⟩, hxs $ set.mem_of_eq_of_mem (set.eq_of_mem_singleton hy).symm hx) in
+      (λ _ ⟨hx, hy⟩, hxs $ mem_of_eq_of_mem (eq_of_mem_singleton hy).symm hx) in
     ⟨u, hu, hsu, filter.empty_in_sets_eq_bot.1 $ filter.mem_inf_sets.2
-      ⟨v, mem_nhds_sets hv (set.singleton_subset_iff.1 hxv), u, filter.mem_principal_self u, set.inter_comm u v ▸ huv⟩⟩ }
+      ⟨v, mem_nhds_sets hv (singleton_subset_iff.1 hxv), u, filter.mem_principal_self u, inter_comm u v ▸ huv⟩⟩ }
 
 -- We can't make this an instance because it could cause an instance loop.
 lemma normal_of_compact_t2 [compact_space α] [t2_space α] : normal_space α :=
@@ -554,3 +554,75 @@ begin
 end
 
 end normality
+
+/-- In a compact t2 space, the connected component of a point equals the intersection of all
+its clopen neighbourhoods. -/
+lemma connected_component_eq_Inter_clopen [t2_space α] [compact_space α] {x : α} :
+  connected_component x = ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
+begin
+  apply eq_of_subset_of_subset connected_component_subset_Inter_clopen,
+  -- Reduce to showing that the clopen intersection is connected.
+  refine subset_connected_component _ (mem_Inter.2 (λ Z, Z.2.2)),
+  -- We do this by showing that any disjoint cover by two closed sets implies
+  -- that one of these closed sets must contain our whole thing. To reduce to the case
+  -- where the cover is disjoint on all of α we need that s is closed:
+  have hs : @is_closed _ _inst_1 (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z),
+  { exact is_closed_Inter (λ Z, Z.2.1.2) },
+  apply (is_preconnected_iff_subset_of_fully_disjoint_closed hs).2,
+  intros a b ha hb hab ab_empty,
+  haveI := @normal_of_compact_t2 α _ _ _,
+  -- Since our space is normal, we get two larger disjoint open sets containing the disjoint
+  -- closed sets. If we can show that our intersection is a subset of any of these we can then
+  -- "descend" this to show that it is a subset of either a or b.
+  rcases normal_separation a b ha hb (disjoint_iff.2 ab_empty) with ⟨u, v, hu, hv, hau, hbv, huv⟩,
+  -- If we can find a clopen set around x, contained in u ∪ v, we get a disjoint decomposition
+  -- Z = Z ∩ u ∪ Z ∩ v of clopen sets. The intersection of all clopen neighbourhoods will then lie
+  -- in whatever component x lies in and hence will be a subset of either u or v.
+  suffices : ∃ (Z : set α), is_clopen Z ∧ x ∈ Z ∧ Z ⊆ u ∪ v,
+  { cases this with Z H,
+    rw [disjoint_iff_inter_eq_empty] at huv,
+    have H1 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hu hv huv,
+    rw [union_comm] at H,
+    rw [inter_comm] at huv,
+    have H2 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hv hu huv,
+    by_cases (x ∈ u),
+    -- The x ∈ u case.
+    { left,
+      suffices : (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) ⊆ u,
+      { rw [inter_comm, ←set.disjoint_iff_inter_eq_empty] at huv,
+        replace hab : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ a ∪ b := hab,
+        replace this : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ u := this,
+        exact disjoint.left_le_of_le_sup_right hab (huv.mono this hbv) },
+      { apply subset.trans _ (inter_subset_right Z u),
+        apply Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
+        ⟨Z ∩ u, by {split, exact H1, apply mem_inter H.2.1 h}⟩ } },
+    -- If x ∉ u, we get x ∈ v since x ∈ u ∪ v. The rest is then like the x ∈ u case.
+    have h1 : x ∈ v,
+    { cases (mem_union x u v).1 (mem_of_subset_of_mem (subset.trans hab
+        (union_subset_union hau hbv)) (mem_Inter.2 (λ i, i.2.2))) with h1 h1,
+      { exfalso, apply h, exact h1},
+      { exact h1} },
+    right,
+    suffices : (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) ⊆ v,
+    { rw [←set.disjoint_iff_inter_eq_empty] at huv,
+      replace hab : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ a ∪ b := hab,
+      replace this : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ v := this,
+      exact disjoint.left_le_of_le_sup_left hab (huv.mono this hau) },
+    { apply subset.trans _ (inter_subset_right Z v),
+      apply Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
+      ⟨Z ∩ v, by {split, exact H2, apply mem_inter H.2.1 h1}⟩ } },
+  -- Now we find the required Z. We utilize the fact that X \ u ∪ v will be compact,
+  -- so there must be some finite intersection of clopen neighbourhoods of X disjoint to it,
+  -- but a finite intersection of clopen sets is clopen so we let this be our Z.
+  have H1 := (is_compact.inter_Inter_nonempty (is_closed.compact
+    (is_closed_compl_iff.2 (is_open_union hu hv)))
+    (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) (λ Z, Z.2.1.2)),
+  rw [←not_imp_not, not_forall, not_nonempty_iff_eq_empty, inter_comm] at H1,
+  have huv_union := subset.trans hab (union_subset_union hau hbv),
+  rw [←set.compl_compl (u ∪ v), subset_compl_iff_disjoint] at huv_union,
+  cases H1 huv_union with Zi H2,
+  refine ⟨(⋂ (U ∈ Zi), subtype.val U), _, _, _⟩,
+  { exact is_clopen_bInter (λ Z hZ, Z.2.1) },
+  { exact mem_bInter_iff.2 (λ Z hZ, Z.2.2) },
+  { rwa [not_nonempty_iff_eq_empty, inter_comm, ←subset_compl_iff_disjoint, compl_compl] at H2 }
+end

@@ -1233,6 +1233,7 @@ class lie_module.is_irreducible : Prop :=
 class lie_module.is_nilpotent : Prop :=
 (nilpotent : ∃ k, lie_module.lower_central_series R L M k = ⊥)
 
+@[priority 100]
 instance trivial_is_nilpotent [lie_module.is_trivial L M] : lie_module.is_nilpotent R L M :=
 ⟨by { use 1, change ⁅⊤, ⊤⁆ = ⊥, simp, }⟩
 
@@ -1245,9 +1246,10 @@ class lie_algebra.is_simple extends lie_module.is_irreducible R L L : Prop :=
 class lie_algebra.is_solvable : Prop :=
 (solvable : ∃ k, lie_algebra.derived_series R L k = ⊥)
 
+@[priority 100]
 instance is_solvable_of_is_nilpotent [hL : lie_module.is_nilpotent R L L] : lie_algebra.is_solvable R L :=
 begin
-  obtain ⟨k, h⟩ : ∃ k, lie_module.lower_central_series R L L k = ⊥ := hL,
+  obtain ⟨k, h⟩ : ∃ k, lie_module.lower_central_series R L L k = ⊥ := hL.nilpotent,
   use k, rw ← le_bot_iff at h ⊢,
   exact le_trans (lie_module.derived_series_le_lower_central_series R L k) h,
 end

@@ -620,13 +620,9 @@ begin
   rw [←not_imp_not, not_forall, not_nonempty_iff_eq_empty, inter_comm] at H1,
   have huv_union := subset.trans hab (union_subset_union hau hbv),
   rw [←set.compl_compl (u ∪ v), subset_compl_iff_disjoint] at huv_union,
-  replace H1 := H1 huv_union,
-  cases H1 with Zi H2,
-  existsi (⋂ (U ∈ Zi), subtype.val U),
-  split,
-    { apply @is_clopen_bInter _ _ _ _ _ _, exact (λ Z hZ, Z.2.1) },
-    { split,
-      { exact mem_bInter_iff.2 (λ Z hZ, Z.2.2) },
-      { rw [not_nonempty_iff_eq_empty, inter_comm, ←subset_compl_iff_disjoint] at H2,
-        rw [compl_compl] at H2, exact H2 } },
+  cases H1 huv_union with Zi H2,
+  refine ⟨(⋂ (U ∈ Zi), subtype.val U), _, _, _⟩,
+  { exact is_clopen_bInter (λ Z hZ, Z.2.1) },
+  { exact mem_bInter_iff.2 (λ Z hZ, Z.2.2) },
+  { rwa [not_nonempty_iff_eq_empty, inter_comm, ←subset_compl_iff_disjoint, compl_compl] at H2 }
 end

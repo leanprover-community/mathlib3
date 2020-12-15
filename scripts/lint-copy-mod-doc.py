@@ -181,7 +181,7 @@ def format_errors(errors):
         if errno == ERR_SAV:
             print("{} : line {} : ERR_SAV : File contains the character ᾰ".format(fn, line_nr))
         if errno == ERR_RNT:
-            print("{} : line {} : ERR_RNT : Reserved notation outside tactic.core".format(fn, line_nr))
+            print("{} : line {} : ERR_RNT : Reserved notation outside tactic.reserved_notation".format(fn, line_nr))
         if errno == ERR_OPT:
             print("{} : line {} : ERR_OPT : Forbidden set_option command".format(fn, line_nr))
 

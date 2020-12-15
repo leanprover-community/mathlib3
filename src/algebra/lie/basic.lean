@@ -564,8 +564,7 @@ instance lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' :=
   leibniz_lie  := by { intros, apply set_coe.ext, apply leibniz_lie, } }
 
 /-- A Lie subalgebra forms a new Lie algebra. -/
-instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
-    @lie_algebra R L' _ (lie_subalgebra_lie_ring _ _ _) :=
+instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) : lie_algebra R L' :=
 { lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
 
 @[simp] lemma lie_subalgebra.mem_coe {L' : lie_subalgebra R L} {x : L} :
@@ -1103,12 +1102,23 @@ variables (R : Type u) (L : Type v) (M : Type w)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
 variables [lie_ring_module L M] [lie_module R L M]
 
-section lie_module
+namespace lie_algebra
 
-/-- The derived Lie submodule of a Lie module. -/
-def derived_lie_submodule : lie_submodule R L M := ⁅(⊤ : lie_ideal R L), ⊤⁆
+/-- The derived series of Lie ideals of a Lie algebra. -/
+def derived_series : ℕ → lie_ideal R L
+| 0       := ⊤
+| (k + 1) := ⁅derived_series k, derived_series k⁆
 
-lemma trivial_iff_derived_eq_bot : lie_module.is_trivial L M ↔ derived_lie_submodule R L M = ⊥ :=
+end lie_algebra
+
+namespace lie_module
+
+/-- The lower central series of Lie submodules of a Lie module. -/
+def lower_central_series : ℕ → lie_submodule R L M
+| 0       := ⊤
+| (k + 1) := ⁅(⊤ : lie_ideal R L), lower_central_series k⁆
+
+lemma trivial_iff_derived_eq_bot : is_trivial L M ↔ lower_central_series R L M 1 = ⊥ :=
 begin
   split; intros h,
   { erw [eq_bot_iff, lie_submodule.lie_span_le], rintros m ⟨x, n, hn⟩, rw [← hn, h.trivial], simp,},
@@ -1117,9 +1127,6 @@ begin
 end
 
 end lie_module
-
-/-- The derived Lie ideal of a Lie algebra. -/
-abbreviation derived_lie_ideal : lie_ideal R L := derived_lie_submodule R L L
 
 end lie_module
 
@@ -1200,10 +1207,18 @@ variables [lie_ring_module L M] [lie_module R L M]
 class lie_module.is_irreducible : Prop :=
 (irreducible : ∀ (N : lie_submodule R L M), N ≠ ⊥ → N = ⊤)
 
+/-- A Lie module is nilpotent if its lower central series reaches 0 (in a finite number of steps).-/
+class lie_module.is_nilpotent : Prop :=
+(nilpotent : ∃ k, lie_module.lower_central_series R L M k = ⊥)
+
 /-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
 action, and it is non-Abelian. -/
 class lie_algebra.is_simple extends lie_module.is_irreducible R L L : Prop :=
-(non_abelian: ¬is_lie_abelian L)
+(non_abelian : ¬is_lie_abelian L)
+
+/-- A Lie algebra is solvable if its derived series reaches 0 (in a finite number of steps). -/
+class lie_algebra.is_solvable : Prop :=
+(solvable : ∃ k, lie_algebra.derived_series R L k = ⊥)
 
 end lie_algebra_properties
 

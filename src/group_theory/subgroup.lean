@@ -1014,6 +1014,11 @@ open subgroup
 def range (f : G →* N) : subgroup N :=
 subgroup.copy ((⊤ : subgroup G).map f) (set.range f) (by simp [set.ext_iff])
 
+@[to_additive]
+instance monoid_hom.decidable_mem_range (f : G →* N) [fintype G] [decidable_eq N] :
+  decidable_pred (λ x, x ∈ f.range) :=
+λ x, fintype.decidable_exists_fintype
+
 @[simp, to_additive] lemma coe_range (f : G →* N) :
   (f.range : set N) = set.range f := rfl
 

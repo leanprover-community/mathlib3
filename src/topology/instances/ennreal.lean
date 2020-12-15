@@ -640,22 +640,35 @@ begin
     exact not_tendsto_nhds_of_tendsto_at_top hnat _ (has_sum_iff_tendsto_nat.1 hr) }
 end
 
+lemma summable_iff_not_tendsto_nat_at_top {f : ℕ → ℝ≥0} :
+  summable f ↔ ¬ tendsto (λ n : ℕ, ∑ i in finset.range n, f i) at_top at_top :=
+by rw [← not_iff_not, not_not, not_summable_iff_tendsto_nat_at_top]
+
+lemma summable_of_sum_range_le {f : ℕ → ℝ≥0} {c : ℝ≥0}
+  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : summable f :=
+begin
+  apply summable_iff_not_tendsto_nat_at_top.2 (λ H, _),
+  rcases exists_lt_of_tendsto_at_top H 0 c with ⟨n, -, hn⟩,
+  exact lt_irrefl _ (hn.trans_le (h n)),
+end
+
+lemma tsum_le_of_sum_range_le {f : ℕ → ℝ≥0} {c : ℝ≥0}
+  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : (∑' n, f n) ≤ c :=
+le_of_tendsto' (has_sum_iff_tendsto_nat.1 (summable_of_sum_range_le h).has_sum) h
+
 lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ≥0} (hf : summable f)
   {i : β → α} (hi : function.injective i) : (∑' x, f (i x)) ≤ ∑' x, f x :=
 tsum_le_tsum_of_inj i hi (λ c hc, zero_le _) (λ b, le_refl _) (summable_comp_injective hf hi) hf
 
 open finset
 
-/-- If `f : ℕ → ℝ≥0` and `∑' f` exists, then `∑' k, f (k + i)` tends to zero. -/
-lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0) (hf : summable f) :
-  tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
+/-- For `f : ℕ → ℝ≥0`, then `∑' k, f (k + i)` tends to zero. This does not require a summability
+assumption on `f`, as otherwise all sums are zero. -/
+lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0) : tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
-  have h₀ : (λ i, (∑' i, f i) - ∑ j in range i, f j) = λ i, ∑' (k : ℕ), f (k + i),
-  { ext1 i,
-    rw [sub_eq_iff_eq_add, sum_add_tsum_nat_add i hf, add_comm],
-    exact sum_le_tsum _ (λ _ _, zero_le _) hf },
-  have h₁ : tendsto (λ i : ℕ, ∑' i, f i) at_top (𝓝 (∑' i, f i)) := tendsto_const_nhds,
-  simpa only [h₀, sub_self] using tendsto.sub h₁ hf.has_sum.tendsto_sum_nat
+  rw ← tendsto_coe,
+  convert tendsto_sum_nat_add (λ i, (f i : ℝ)),
+  norm_cast,
 end
 
 end nnreal
@@ -671,7 +684,7 @@ begin
       (nnreal.summable_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf) _)).symm,
   simp only [λ x, (to_nnreal_apply_of_tsum_ne_top hf x).symm, ←ennreal.coe_zero,
     this, ennreal.tendsto_coe] { single_pass := tt },
-  exact nnreal.tendsto_sum_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf)
+  exact nnreal.tendsto_sum_nat_add _
 end
 
 end ennreal
@@ -711,6 +724,23 @@ begin
   lift f to ℕ → ℝ≥0 using hf,
   exact_mod_cast nnreal.not_summable_iff_tendsto_nat_at_top
 end
+
+lemma summable_iff_not_tendsto_nat_at_top_of_nonneg {f : ℕ → ℝ} (hf : ∀ n, 0 ≤ f n) :
+  summable f ↔ ¬ tendsto (λ n : ℕ, ∑ i in finset.range n, f i) at_top at_top :=
+by rw [← not_iff_not, not_not, not_summable_iff_tendsto_nat_at_top_of_nonneg hf]
+
+lemma summable_of_sum_range_le {f : ℕ → ℝ} {c : ℝ} (hf : ∀ n, 0 ≤ f n)
+  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : summable f :=
+begin
+  apply (summable_iff_not_tendsto_nat_at_top_of_nonneg hf).2 (λ H, _),
+  rcases exists_lt_of_tendsto_at_top H 0 c with ⟨n, -, hn⟩,
+  exact lt_irrefl _ (hn.trans_le (h n)),
+end
+
+lemma tsum_le_of_sum_range_le {f : ℕ → ℝ} {c : ℝ} (hf : ∀ n, 0 ≤ f n)
+  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : (∑' n, f n) ≤ c :=
+le_of_tendsto' ((has_sum_iff_tendsto_nat_of_nonneg hf _).1
+  (summable_of_sum_range_le hf h).has_sum) h
 
 section
 variables [emetric_space β]

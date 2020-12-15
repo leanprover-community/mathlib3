@@ -546,7 +546,6 @@ If `s` is a finset of `α`, we show that the summability of `f` in the whole spa
 formula `(∑ i in range k, f i) + (∑' i, f (i + k)) = (∑' i, f i)`, in `sum_add_tsum_nat_add`.
 -/
 section subtype
-variables {s : finset β}
 
 lemma has_sum_nat_add_iff {f : ℕ → α} (k : ℕ) {a : α} :
   has_sum (λ n, f (n + k)) a ↔ has_sum f (a + ∑ i in range k, f i) :=
@@ -572,6 +571,23 @@ by simpa [add_comm] using
 lemma tsum_eq_zero_add [t2_space α] {f : ℕ → α} (hf : summable f) :
   (∑'b, f b) = f 0 + (∑'b, f (b + 1)) :=
 by simpa only [range_one, sum_singleton] using (sum_add_tsum_nat_add 1 hf).symm
+
+/-- For `f : ℕ → α`, then `∑' k, f (k + i)` tends to zero. This does not require a summability
+assumption on `f`, as otherwise all sums are zero. -/
+lemma tendsto_sum_nat_add [t2_space α] (f : ℕ → α) : tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
+begin
+  by_cases hf : summable f,
+  { have h₀ : (λ i, (∑' i, f i) - ∑ j in range i, f j) = λ i, ∑' (k : ℕ), f (k + i),
+    { ext1 i,
+      rw [sub_eq_iff_eq_add, add_comm, sum_add_tsum_nat_add i hf] },
+    have h₁ : tendsto (λ i : ℕ, ∑' i, f i) at_top (𝓝 (∑' i, f i)) := tendsto_const_nhds,
+    simpa only [h₀, sub_self] using tendsto.sub h₁ hf.has_sum.tendsto_sum_nat },
+  { convert tendsto_const_nhds,
+    ext1 i,
+    rw ← summable_nat_add_iff i at hf,
+    { exact tsum_eq_zero_of_not_summable hf },
+    { apply_instance } }
+end
 
 end subtype
 

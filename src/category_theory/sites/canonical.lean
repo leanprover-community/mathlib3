@@ -136,7 +136,7 @@ begin
     { ext Z g,
       split,
       { rintro ⟨W, k, l, hl, _, comm⟩,
-        rw [mem_pullback, ← comm],
+        rw [pullback_apply, ← comm],
         simp [hl] },
       { intro a,
         refine ⟨Z, 𝟙 Z, _, a, _⟩,

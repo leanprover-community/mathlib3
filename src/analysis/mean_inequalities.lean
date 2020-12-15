@@ -846,8 +846,7 @@ begin
     have h_add_apply : ∫⁻ (a : α), (f + g) a * (f + g) a ^ (p - 1) ∂μ
       = ∫⁻ (a : α), (f a + g a) * (f + g) a ^ (p - 1) ∂μ,
     from rfl,
-    rw h_add_apply,
-    simp_rw add_mul,
+    simp_rw [h_add_apply, add_mul],
     rw lintegral_add (hf.ennreal_mul h_add_m) (hg.ennreal_mul h_add_m),
   end
     ... ≤ ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p))

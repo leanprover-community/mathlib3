@@ -761,7 +761,7 @@ begin
 end
 
 /-- The reduction modulo `p` of the minimal polynomial of `μ` is squarefree. -/
-lemma squarefree_minimal_polynomial_mod {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
+lemma squarefree_minimal_polynomial_mod {p : ℕ} [fact p.prime] (hdiv : ¬ p ∣ n) :
   squarefree (map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos))) :=
 (separable_minimal_polynomial_mod h hpos hdiv).squarefree
 

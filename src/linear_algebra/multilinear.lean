@@ -648,6 +648,10 @@ tensor_product.lift $ linear_map.mk₂ R (dom_coprod)
   (λ m n₁ n₂, by { ext, simp only [dom_coprod_apply, tensor_product.tmul_add, add_apply] })
   (λ c m n,   by { ext, simp only [dom_coprod_apply, tensor_product.tmul_smul, smul_apply] })
 
+@[simp]
+lemma dom_coprod'_apply
+  (a : multilinear_map R (λ _ : ι₁, N) N₁) (b : multilinear_map R (λ _ : ι₂, N) N₂) :
+  dom_coprod' (a ⊗ₜ[R] b) = dom_coprod a b := rfl
 
 lemma dom_coprod_dom_dom_congr_sum_congr
   (a : multilinear_map R (λ _ : ι₁, N) N₁) (b : multilinear_map R (λ _ : ι₂, N) N₂)

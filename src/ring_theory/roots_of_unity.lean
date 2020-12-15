@@ -747,8 +747,8 @@ begin
 end
 
 /-- The reduction modulo `p` of the minimal polynomial of `μ` is separable. -/
-lemma separable_minimal_polynomial_mod {p : ℕ} [hprime : fact p.prime] (hdiv : ¬p ∣ n) : separable
-  (map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos))) :=
+lemma separable_minimal_polynomial_mod {p : ℕ} [hprime : fact p.prime] (hdiv : ¬p ∣ n) :
+  separable (map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos))) :=
 begin
   have hdvd : (map (int.cast_ring_hom (zmod p))
     (minimal_polynomial (is_integral h hpos))) ∣ X ^ n - 1,

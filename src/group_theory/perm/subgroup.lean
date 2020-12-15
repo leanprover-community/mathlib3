@@ -12,6 +12,11 @@ import group_theory.subgroup
 This file provides extra lemmas about some `subgroup`s that exist within `equiv.perm α`.
 `group_theory.subgroup` depends on `group_theory.perm.basic`, so these need to be in a separate
 file.
+
+It also provides decidable instances on membership in these subgroups, since
+`monoid_hom.decidable_mem_range` cannot be inferred without the help of a lambda.
+The presence of these instances induces a `fintype` instance on the `quotient_gruop.quotient` of
+these subgroups.
 -/
 
 namespace equiv
@@ -19,11 +24,21 @@ namespace perm
 
 universes u
 
+instance sum_congr_hom.decidable_mem_range {α β : Type*}
+  [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
+  decidable_pred (λ x, x ∈ (sum_congr_hom α β).range) :=
+λ x, infer_instance
+
 @[simp]
 lemma sum_congr_hom.card_range {α β : Type*}
   [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
   fintype.card (sum_congr_hom α β).range = fintype.card (perm α × perm β) :=
 fintype.card_eq.mpr ⟨(set.range (sum_congr_hom α β) sum_congr_hom_injective).symm⟩
+
+instance sigma_congr_right_hom.decidable_mem_range {α : Type*} {β : α → Type*}
+  [decidable_eq α] [∀ a, decidable_eq (β a)] [fintype α] [∀ a, fintype (β a)] :
+  decidable_pred (λ x, x ∈ (sigma_congr_right_hom β).range) :=
+λ x, infer_instance
 
 @[simp]
 lemma sigma_congr_right_hom.card_range {α : Type*} {β : α → Type*}

@@ -336,6 +336,7 @@ namespace tensor_product
 
 open_locale tensor_product
 
+/-- `tensor_product.smul_tmul` for `nat` -/
 lemma smul_tmul_nat {R : Type*} {M : Type*} {N : Type*}
   [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [semimodule R M] [semimodule R N]
   (r : ℕ) (m : M) (n : N) : ((r • m) ⊗ₜ[R] n) = m ⊗ₜ[R] r • n :=
@@ -346,26 +347,63 @@ begin
     rw [add_tmul, tmul_add, r_ih], },
 end
 
+/-- `tensor_product.smul_tmul'` for `nat` -/
+theorem smul_tmul'_nat {R : Type*} {M : Type*} {N : Type*}
+  [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [semimodule R M] [semimodule R N]
+  (r : ℕ) (m : M) (n : N) :
+  r • (m ⊗ₜ n : M ⊗[R] N) = (r • m) ⊗ₜ n :=
+begin
+  induction r,
+  { simp, },
+  { rw [nat.smul_def, nat.smul_def, succ_nsmul, succ_nsmul, ←nat.smul_def, ←nat.smul_def, add_tmul,
+      r_ih], },
+end
+
+/-- `tensor_product.tmul_smul` for `nat` -/
+theorem tmul_smul_nat {R : Type*} {M : Type*} {N : Type*}
+  [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [semimodule R M] [semimodule R N]
+  (r : ℕ) (m : M) (n : N) :
+  m ⊗ₜ (r • n) = r • (m ⊗ₜ n : M ⊗[R] N) :=
+begin
+  induction r,
+  { simp, },
+  { rw [nat.smul_def, nat.smul_def, succ_nsmul, succ_nsmul, ←nat.smul_def, ←nat.smul_def, tmul_add,
+      r_ih], },
+end
+
 -- note: can be comm_semiring R after #5315
 lemma smul_tmul_int {R : Type*} {M : Type*} {N : Type*}
-  [comm_ring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
+  [comm_semiring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
   (r : ℤ) (m : M) (n : N) : ((r • m) ⊗ₜ[R] n) = m ⊗ₜ[R] r • n :=
-by rw [←gsmul_eq_smul, module.gsmul_eq_smul_cast R, ←gsmul_eq_smul, module.gsmul_eq_smul_cast R,
-  smul_tmul]
+begin
+  simp only [←gsmul_eq_smul],
+  induction r,
+  simp only [gsmul_of_nat, ←nat.smul_def, smul_tmul_nat],
+  simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg, smul_tmul_nat],
+end
 
+-- note: can be comm_semiring R after #5315
 theorem smul_tmul'_int {R : Type*} {M : Type*} {N : Type*}
-  [comm_ring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
+  [comm_semiring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
   (r : ℤ) (m : M) (n : N) :
   r • (m ⊗ₜ n : M ⊗[R] N) = (r • m) ⊗ₜ n :=
-by rw [←gsmul_eq_smul, module.gsmul_eq_smul_cast R, ←gsmul_eq_smul, module.gsmul_eq_smul_cast R,
-  smul_tmul']
+begin
+  simp only [←gsmul_eq_smul],
+  induction r,
+  simp only [gsmul_of_nat, ←nat.smul_def, smul_tmul'_nat],
+  simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg, smul_tmul'_nat],
+end
 
 theorem tmul_smul_int {R : Type*} {M : Type*} {N : Type*}
-  [comm_ring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
+  [comm_semiring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
   (r : ℤ) (m : M) (n : N) :
   m ⊗ₜ (r • n) = r • (m ⊗ₜ n : M ⊗[R] N) :=
-by rw [←gsmul_eq_smul, module.gsmul_eq_smul_cast R, ←gsmul_eq_smul, module.gsmul_eq_smul_cast R,
-  tmul_smul]
+begin
+  simp only [←gsmul_eq_smul],
+  induction r,
+  simp only [gsmul_of_nat, ←nat.smul_def, tmul_smul_nat],
+  simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg, tmul_smul_nat],
+end
 
 end tensor_product
 
@@ -384,20 +422,11 @@ variables {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] 
 
 /-- Elements which are considered equivalent if they differ only by swaps within α or β  -/
 abbreviation mod_sum_congr (α β : Type*) :=
-quotient_group.quotient $ (perm.sum_congr_hom α β).range
-
-
-namespace mod_sum_congr
-
--- the default instance is non-computable, so we provide an alternative computable one
-instance {α β : Type*} [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
-  fintype (mod_sum_congr α β) := quotient.fintype _
-
-end mod_sum_congr
+quotient_group.quotient (perm.sum_congr_hom α β).range
 
 private def dom_coprod_aux
   {R : Type*} {M N₁ N₂ : Type*}
-  [comm_ring R]
+  [comm_semiring R]
   [add_comm_group N₁] [semimodule R N₁]
   [add_comm_group N₂] [semimodule R N₂]
   [add_comm_monoid M] [semimodule R M]
@@ -421,7 +450,7 @@ private def dom_coprod_aux
   rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))],
 end)
 
-lemma not_moves_from_left {α β : Type*} [decidable_eq α] [decidable_eq β] {σ : perm (α ⊕ β)}
+private lemma not_moves_from_left {α β : Type*} [decidable_eq α] [decidable_eq β] {σ : perm (α ⊕ β)}
   {i : α ⊕ β}
   (h : ¬∃ i', σ (sum.inl i') = i) : ∃ i', σ (sum.inr i') = i :=
 begin
@@ -438,7 +467,7 @@ end
 
 private lemma dom_coprod_aux_eq_zero_if_eq
   {R : Type*} {M N₁ N₂ : Type*}
-  [comm_ring R]
+  [comm_semiring R]
   [add_comm_group N₁] [semimodule R N₁]
   [add_comm_group N₂] [semimodule R N₂]
   [add_comm_monoid M] [semimodule R M]
@@ -506,7 +535,7 @@ end
 @[simps]
 def dom_coprod
   {R : Type*} {M N₁ N₂ : Type*}
-  [comm_ring R]
+  [comm_semiring R]
   [add_comm_group N₁] [semimodule R N₁]
   [add_comm_group N₂] [semimodule R N₂]
   [add_comm_monoid M] [semimodule R M]
@@ -539,7 +568,7 @@ def dom_coprod
 -/
 lemma multilinear_map.dom_coprod_alternization_eq
   {R : Type*} {M N₁ N₂ : Type*}
-  [comm_ring R]
+  [comm_semiring R]
   [add_comm_group N₁] [semimodule R N₁]
   [add_comm_group N₂] [semimodule R N₂]
   [add_comm_monoid M] [semimodule R M]
@@ -552,51 +581,63 @@ begin
   simp only [dom_coprod_apply, smul_apply],
   dsimp only [smul_apply, multilinear_map.alternatization_apply, alternating_map.dom_coprod_apply,
     dom_coprod_aux],
-  rw finset.sum_partition (quotient_group.left_rel (sum_congr_hom ιa ιb).range),
+  rw finset.sum_partition (quotient_group.left_rel (perm.sum_congr_hom ιa ιb).range),
   rw finset.smul_sum,
   congr' 1,
   ext σ,
   apply σ.induction_on' (λ σ, _),
+
+  -- unfold the quotient mess
   dsimp only [quotient.lift_on'_beta],
   conv in (_ = quotient.mk' _) {
     change quotient.mk' _ = quotient.mk' _,
   },
-  have : ((fintype.card ιa).factorial * (fintype.card ιb).factorial) =
-    fintype.card (sum_congr_hom ιa ιb).range,
-  {
-    simp only [fintype.card_perm, fintype.card_prod, sum_congr_subgroup_card],
-  },
-  rw this,
-  rw nat.smul_def,
-  change _ = finset.card _ •ℕ _,
-  rw ←finset.sum_const,
-  change _ = ∑ (x : {x : perm (ιa ⊕ ιb) // x ∈ (sum_congr_hom ιa ιb).range}), _,
   simp_rw (iff.intro quotient.exact' quotient.sound'),
   dunfold setoid.r quotient_group.left_rel,
   simp only,
+
+  -- eliminate a multiplication
   have : @finset.univ (perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) := begin
     ext, simp only [true_iff, finset.mem_univ, exists_prop_of_true, finset.mem_image],
     use σ⁻¹ * a_1,
     simp,
   end,
   rw this,
+  simp only,
   rw finset.image_filter,
   simp only [function.comp, mul_inv_rev, inv_mul_cancel_right, subgroup.inv_mem_iff],
   rw finset.sum_image (λ x hx y hy, (mul_right_inj σ).mp),
-  simp_rw [perm.sign_mul, units.coe_mul, mul_smul],
-  rw finset.sum_subtype (λ x, show x ∈ _ ↔ x ∈ (sum_congr_hom ιa ιb).range, from _ ),
+  rw finset.sum_subtype (λ x, show x ∈ _ ↔ x ∈ (perm.sum_congr_hom ιa ιb).range, from _),
+  swap, { apply_instance, },
+  swap, { simp },
+
+  -- eliminate the sums
+  have : ((fintype.card ιa).factorial * (fintype.card ιb).factorial) =
+    fintype.card (perm.sum_congr_hom ιa ιb).range,
+  {
+    simp only [fintype.card_perm, fintype.card_prod, perm.sum_congr_hom.card_range],
+  },
+  rw this,
+  rw nat.smul_def,
+  change _ = finset.card _ •ℕ _,
+  rw ←finset.sum_const,
   congr' 1,
+  { congr, },
   ext ⟨σ', ⟨σa, σb⟩, rfl⟩,
+
+  -- tidy up
   rw subtype.coe_mk,
+  rw [perm.sign_mul, units.coe_mul, mul_smul],
   congr' 1,
-  rw [multilinear_map.dom_dom_congr_mul, sum_congr_hom_apply,
+  rw [multilinear_map.dom_dom_congr_mul, perm.sum_congr_hom_apply,
     multilinear_map.dom_coprod_dom_dom_congr_sum_congr, coe_dom_dom_congr, coe_dom_dom_congr],
-  simp [tensor_product.tmul_smul_int, ←tensor_product.smul_tmul'_int],
+  simp only [tensor_product.tmul_smul_int, ←tensor_product.smul_tmul'_int, perm.sign_sum_congr,
+    coe_multilinear_map, multilinear_map.dom_dom_congr_apply, multilinear_map.smul_apply,
+    multilinear_map.dom_coprod_apply, units.coe_mul],
   rw [smul_smul, smul_smul],
   convert one_smul ℤ _,
   ac_change (σa.sign * σa.sign * σb.sign * σb.sign : ℤ) = 1,
   simp only [one_mul, int.units_coe_mul_self],
-  simp,
 end
 
 -- /-- The usual definition of multiplication of alternating maps, over integer indices. -/

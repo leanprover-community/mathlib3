@@ -441,17 +441,17 @@ omit f_compat
 include hp
 
 /-- The universal property of `𝕎 R` as projective limit of truncated Witt vector rings. -/
-@[simps] def lift_equiv : (S →+* 𝕎 R) ≃ {f : Π k, S →+* truncated_witt_vector p k R //
-  ∀ k₁ k₂ (hk : k₁ ≤ k₂), (truncated_witt_vector.truncate hk).comp (f k₂) = f k₁} :=
-{ to_fun := λ g, ⟨λ k, (truncate k).comp g,
+@[simps] def lift_equiv : {f : Π k, S →+* truncated_witt_vector p k R // ∀ k₁ k₂ (hk : k₁ ≤ k₂),
+  (truncated_witt_vector.truncate hk).comp (f k₂) = f k₁} ≃ (S →+* 𝕎 R) :=
+{ to_fun := λ f, lift f.1 f.2,
+  inv_fun := λ g, ⟨λ k, (truncate k).comp g,
     by { intros _ _ h, simp only [←ring_hom.comp_assoc, truncate_comp_witt_vector_truncate] }⟩,
-  inv_fun := λ f, lift f.1 f.2,
-  left_inv := λ g, lift_unique _ _ $ λ _, rfl,
-  right_inv := by { rintro ⟨f, hf⟩, simp only [truncate_comp_lift] } }
+  left_inv := by { rintro ⟨f, hf⟩, simp only [truncate_comp_lift] },
+  right_inv := λ g, lift_unique _ _ $ λ _, rfl }
 
 lemma hom_ext (g₁ g₂ : S →+* 𝕎 R) (h : ∀ k, (truncate k).comp g₁ = (truncate k).comp g₂) :
   g₁ = g₂ :=
-lift_equiv.injective $ subtype.ext $ funext h
+lift_equiv.symm.injective $ subtype.ext $ funext h
 
 end lift
 

@@ -453,7 +453,7 @@ local postfix *:9001 := many
 `ext`), using `id`, if provided, to name a local constant
 introduced by the lemma. If `id` is omitted, the local constant is
 named automatically, as per `intro`. `ext1?` will display a sequence of tactic
-applications that can replace the call to `ext`
+applications that can replace the call to `ext`.
 -/
 meta def interactive.ext1 (xs : parse (rcases_patt_parse tt)*)
   (trace : parse (tk "?")?) : tactic unit :=
@@ -466,7 +466,7 @@ ext1 xs {} trace.is_some $> ()
 - `ext` can also be given an `rcases` pattern in place of an identifier.
   This will destruct the introduced local constant.
 - `ext?` will display a sequence of tactic applications that can replace the call
-  to `ext`
+  to `ext`.
 
 When trying to prove:
 
@@ -529,7 +529,7 @@ meta def interactive.ext :
 * `ext` can also be given an `rcases` pattern in place of an identifier.
   This will destruct the introduced local constant.
 * `ext?` (resp. `ext1?`) will will display a sequence of tactic applications
-  that can replace the call to `ext` (resp. `ext1`)
+  that can replace the call to `ext` (resp. `ext1`).
 
 When trying to prove:
 

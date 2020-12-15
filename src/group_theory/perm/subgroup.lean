@@ -57,10 +57,10 @@ def sigma_congr_right_subgroup {α : Type*} (β : α → Type*) : subgroup (perm
     ⟨λ i, s₁₂ i * s₂₃ i, h₂₃.symm ▸ h₁₂.symm ▸ sigma_congr_right_mul s₁₂ s₂₃⟩,
   inv_mem' := λ σ₁ ⟨s, h⟩, ⟨λ i, (s i)⁻¹, h.symm ▸ sigma_congr_right_inv s⟩ }
 
-instance sigma_congr_right_subgroup.left_rel_decidable {α : Type*} {β : α → Type*}
+instance sigma_congr_right_subgroup.decidable_mem {α : Type*} {β : α → Type*}
   [decidable_eq α] [∀ a, decidable_eq (β a)] [fintype α] [∀ a, fintype (β a)] :
-  decidable_rel $ (quotient_group.left_rel (sigma_congr_right_subgroup β)).r :=
-λ σ₁ σ₂, fintype.decidable_exists_fintype
+  decidable_pred (λ x, x ∈ sigma_congr_right_subgroup β) :=
+λ x, fintype.decidable_exists_fintype
 
 end perm
 end equiv

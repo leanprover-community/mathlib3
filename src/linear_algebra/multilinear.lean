@@ -571,7 +571,7 @@ end distrib_mul_action
 
 section semimodule
 
-variables {R' A : Type*} [semiring R'] [semiring A] [semimodule R' A]
+variables {R' A : Type*} [semiring R'] [semiring A]
   [Π i, semimodule A (M₁ i)] [semimodule R' M₂] [semimodule A M₂] [smul_comm_class A R' M₂]
 
 /-- The space of multilinear maps over an algebra over `R` is a module over `R`, for the pointwise

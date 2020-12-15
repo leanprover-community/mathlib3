@@ -162,18 +162,13 @@ def left_rel [group α] (s : subgroup α) : setoid α :=
   have x⁻¹ * y * (y⁻¹ * z) ∈ s, from s.mul_mem hxy hyz,
   by simpa [mul_assoc] using this⟩
 
+@[to_additive]
+instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
+  decidable_rel (left_rel s).r := λ _ _, d _
+
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
   If `s` is a normal subgroup, `quotient s` is a group -/
 def quotient [group α] (s : subgroup α) : Type* := quotient (left_rel s)
-
-section
-
-open_locale classical
-
-noncomputable instance [group α] [fintype α] (s : subgroup α) : fintype (quotient_group.quotient s) :=
-quotient.fintype _
-
-end
 
 end quotient_group
 
@@ -189,8 +184,12 @@ attribute [to_additive quotient_add_group.quotient] quotient_group.quotient
 
 namespace quotient_group
 
-
 variables [group α] {s : subgroup α}
+
+@[to_additive]
+instance fintype [fintype α] (s : subgroup α) [decidable_rel (left_rel s).r] :
+  fintype (quotient_group.quotient s) :=
+quotient.fintype (left_rel s)
 
 /-- The canonical map from a group `α` to the quotient `α/s`. -/
 @[to_additive "The canonical map from an `add_group` `α` to the quotient `α/s`."]

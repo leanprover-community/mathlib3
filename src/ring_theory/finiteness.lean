@@ -136,6 +136,52 @@ lemma trans [algebra A B] [is_scalar_tower R A B] (hRA : finite_type R A) (hAB :
   finite_type R B :=
 fg_trans' hRA hAB
 
+/-- An algebra is finitely generated if and only if it is a quotient
+of a polynomial ring whose variables are indexed by a finset. -/
+lemma iff_quotient_mv_polynomial : (finite_type R A) ↔ ∃ (s : finset A)
+  (f : (mv_polynomial {x // x ∈ s} R) →ₐ[R] A), (surjective f) :=
+begin
+  split,
+  { rintro ⟨s, hs⟩,
+    use [s, mv_polynomial.aeval coe],
+    intro x,
+    have hrw : (↑s : set A) = (λ (x : A), x ∈ s.val) := rfl,
+    rw [← set.mem_range, ← alg_hom.coe_range, ← adjoin_eq_range, ← hrw, hs],
+    exact mem_top },
+  { rintro ⟨s, ⟨f, hsur⟩⟩,
+    exact finite_type.of_surjective (finite_type.mv_polynomial R {x // x ∈ s}) f hsur }
+end
+
+/-- An algebra is finitely generated if and only if it is a quotient
+of a polynomial ring whose variables are indexed by a fintype. -/
+lemma iff_quotient_mv_polynomial' : (finite_type R A) ↔ ∃ (ι : Type u_2) [fintype ι]
+  (f : (mv_polynomial ι R) →ₐ[R] A), (surjective f) :=
+begin
+  split,
+  { rw iff_quotient_mv_polynomial,
+    rintro ⟨s, ⟨f, hsur⟩⟩,
+    use [{x // x ∈ s}, by apply_instance, f, hsur] },
+  { rintro ⟨ι, ⟨hfintype, ⟨f, hsur⟩⟩⟩,
+    letI : fintype ι := hfintype,
+    exact finite_type.of_surjective (finite_type.mv_polynomial R ι) f hsur }
+end
+
+/-- An algebra is finitely generated if and only if it is a quotient of a polynomial ring in `n`
+variables. -/
+lemma iff_quotient_mv_polynomial'' : (finite_type R A) ↔ ∃ (n : ℕ)
+  (f : (mv_polynomial (fin n) R) →ₐ[R] A), (surjective f) :=
+begin
+  split,
+  { rw iff_quotient_mv_polynomial',
+    rintro ⟨ι, hfintype, ⟨f, hsur⟩⟩,
+    obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι hfintype,
+    replace equiv := mv_polynomial.alg_equiv_of_equiv R (nonempty.some equiv),
+    use [n, alg_hom.comp f equiv.symm, function.surjective.comp hsur
+      (alg_equiv.symm equiv).surjective] },
+  { rintro ⟨n, ⟨f, hsur⟩⟩,
+    exact finite_type.of_surjective (finite_type.mv_polynomial R (fin n)) f hsur }
+end
+
 end finite_type
 
 end algebra

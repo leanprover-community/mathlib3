@@ -385,7 +385,7 @@ meta structure ext_state : Type :=
 /-- Apply one extensionality lemma, and destruct the arguments using the patterns
   in the ext_state. -/
 meta def ext1_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
-do ⟨patts, lemmas, fuel⟩ ← get,
+do ⟨patts, lemmas, _⟩ ← get,
    (new_patts, new_lemmas) ← state_t.lift $ focus1 $
    do { m ← get_ext_lemmas,
          subject ← (target >>= get_ext_subject),

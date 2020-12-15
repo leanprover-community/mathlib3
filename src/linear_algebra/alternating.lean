@@ -608,8 +608,8 @@ begin
   simp only [function.comp, mul_inv_rev, inv_mul_cancel_right, subgroup.inv_mem_iff],
   rw finset.sum_image (λ x hx y hy, (mul_right_inj σ).mp),
   rw finset.sum_subtype (λ x, show x ∈ _ ↔ x ∈ (perm.sum_congr_hom ιa ιb).range, from _),
-  swap, { apply_instance, },
-  swap, { simp },
+  change ∑ (a_1 : (perm.sum_congr_hom ιa ιb).range), _ = _,
+  swap, { simp only [finset.mem_filter, finset.mem_univ, true_and] },
 
   -- eliminate the sums
   have : ((fintype.card ιa).factorial * (fintype.card ιb).factorial) =
@@ -619,10 +619,7 @@ begin
   },
   rw this,
   rw nat.smul_def,
-  change _ = finset.card _ •ℕ _,
-  rw ←finset.sum_const,
-  congr' 1,
-  { congr, },
+  convert finset.sum_const _,
   ext ⟨σ', ⟨σa, σb⟩, rfl⟩,
 
   -- tidy up

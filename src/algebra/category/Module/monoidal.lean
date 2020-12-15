@@ -105,7 +105,7 @@ begin
   change R at y,
   dsimp [tensor_hom, associator],
   erw [tensor_product.lid_tmul, tensor_product.rid_tmul],
-  apply (tensor_product.smul_tmul _ _ _).symm
+  exact (tensor_product.smul_tmul _ _ _).symm
 end
 
 end monoidal_category

@@ -441,7 +441,7 @@ If `C` has limits and `G` preserves limits, then if `G` reflects isomorphisms th
 limits.
 -/
 def reflects_limits_of_reflects_isomorphisms {G : C ⥤ D}
-  [reflects_isomorphisms G] [has_limits C] [preserves_limits G] :
+  [reflects_isomorphisms G] [has_limits.{v} C] [preserves_limits G] :
   reflects_limits G :=
 { reflects_limits_of_shape := λ J 𝒥₁,
   by exactI reflects_limits_of_shape_of_reflects_isomorphisms }
@@ -515,7 +515,7 @@ If `C` has colimits and `G` preserves colimits, then if `G` reflects isomorphism
 colimits.
 -/
 def reflects_colimits_of_reflects_isomorphisms {G : C ⥤ D}
-  [reflects_isomorphisms G] [has_colimits C] [preserves_colimits G] :
+  [reflects_isomorphisms G] [has_colimits.{v} C] [preserves_colimits G] :
   reflects_colimits G :=
 { reflects_colimits_of_shape := λ J 𝒥₁,
   by exactI reflects_colimits_of_shape_of_reflects_isomorphisms }

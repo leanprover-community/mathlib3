@@ -136,10 +136,10 @@ instance functor_category_has_colimits_of_shape
   { cocone := combine_cocones _ (λ k, get_colimit_cocone _),
     is_colimit := combined_is_colimit _ _ } }
 
-instance functor_category_has_limits [has_limits C] : has_limits (K ⥤ C) :=
+instance functor_category_has_limits [has_limits.{v} C] : has_limits.{v} (K ⥤ C) :=
 { has_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C) :=
+instance functor_category_has_colimits [has_colimits.{v} C] : has_colimits.{v} (K ⥤ C) :=
 { has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :
@@ -234,11 +234,11 @@ begin
   simpa using w j,
 end
 
-instance evaluation_preserves_limits [has_limits C] (k : K) :
+instance evaluation_preserves_limits [has_limits.{v} C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=
 { preserves_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance evaluation_preserves_colimits [has_colimits C] (k : K) :
+instance evaluation_preserves_colimits [has_colimits.{v} C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
 { preserves_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 

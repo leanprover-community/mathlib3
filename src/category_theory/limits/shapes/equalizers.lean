@@ -756,6 +756,8 @@ abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair C
 /-- `has_coequalizers` represents a choice of coequalizer for every pair of morphisms -/
 abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair C
 
+set_option pp.universes true
+
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
 lemma has_equalizers_of_has_limit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_limit (parallel_pair f g)] : has_equalizers C :=

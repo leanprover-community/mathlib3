@@ -66,9 +66,9 @@ open category_theory category_theory.category category_theory.functor opposite
 
 namespace category_theory.limits
 
-universes v u u' u'' w -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w v u u' u'' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {J K : Type v} [small_category J] [small_category K]
+variables {J K : Type v} [category.{w} J] [category.{w} K]
 variables {C : Type u} [category.{v} C]
 
 variables {F : J ⥤ C}
@@ -926,18 +926,20 @@ class has_limits_of_shape : Prop :=
 
 /-- `C` has all (small) limits if it has limits of every shape. -/
 class has_limits : Prop :=
-(has_limits_of_shape : Π (J : Type v) [𝒥 : small_category J], has_limits_of_shape J C)
+(has_limits_of_shape : Π (J : Type v) [category.{w} J], has_limits_of_shape J C)
 
 variables {J C}
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_limit_of_has_limits_of_shape
-  {J : Type v} [small_category J] [H : has_limits_of_shape J C] (F : J ⥤ C) : has_limit F :=
+  {J : Type v} [category.{w} J] [has_limits_of_shape J C] (F : J ⥤ C) : has_limit F :=
 has_limits_of_shape.has_limit F
+
+set_option pp.universes true
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_limits_of_shape_of_has_limits
-  {J : Type v} [small_category J] [H : has_limits C] : has_limits_of_shape J C :=
+  {J : Type v} [category.{w} J] [has_limits.{w} C] : has_limits_of_shape J C :=
 has_limits.has_limits_of_shape J
 
 /- Interface to the `has_limit` class. -/
@@ -1159,7 +1161,7 @@ by { erw is_limit.fac, refl }
   limit.lift F c ≫ limit.pre F E = limit.lift (E ⋙ F) (c.whisker E) :=
 by ext; simp
 
-variables {L : Type v} [small_category L]
+variables {L : Type v} [category.{w} L]
 variables (D : L ⥤ K) [has_limit (D ⋙ E ⋙ F)]
 
 @[simp] lemma limit.pre_pre : limit.pre F E ≫ limit.pre (E ⋙ F) D = limit.pre F (D ⋙ E) :=
@@ -1292,7 +1294,7 @@ end lim_functor
 /--
 We can transport limits of shape `J` along an equivalence `J ≌ J'`.
 -/
-lemma has_limits_of_shape_of_equivalence {J' : Type v} [small_category J']
+lemma has_limits_of_shape_of_equivalence {J' : Type v} [category.{w} J']
   (e : J ≌ J') [has_limits_of_shape J C] : has_limits_of_shape J' C :=
 by { constructor, intro F, apply has_limit_of_equivalence_comp e, apply_instance }
 
@@ -1327,18 +1329,18 @@ class has_colimits_of_shape : Prop :=
 
 /-- `C` has all (small) colimits if it has colimits of every shape. -/
 class has_colimits : Prop :=
-(has_colimits_of_shape : Π (J : Type v) [𝒥 : small_category J], has_colimits_of_shape J C)
+(has_colimits_of_shape : Π (J : Type v) [𝒥 : category.{w} J], has_colimits_of_shape J C)
 
 variables {J C}
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_colimit_of_has_colimits_of_shape
-  {J : Type v} [small_category J] [H : has_colimits_of_shape J C] (F : J ⥤ C) : has_colimit F :=
+  {J : Type v} [category.{w} J] [H : has_colimits_of_shape J C] (F : J ⥤ C) : has_colimit F :=
 has_colimits_of_shape.has_colimit F
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_colimits_of_shape_of_has_colimits
-  {J : Type v} [small_category J] [H : has_colimits C] : has_colimits_of_shape J C :=
+  {J : Type v} [category.{w} J] [H : has_colimits.{w} C] : has_colimits_of_shape J C :=
 has_colimits.has_colimits_of_shape J
 
 /- Interface to the `has_colimit` class. -/
@@ -1570,7 +1572,7 @@ by { erw is_colimit.fac, refl, }
   colimit.pre F E ≫ colimit.desc F c = colimit.desc (E ⋙ F) (c.whisker E) :=
 by ext; rw [←assoc, colimit.ι_pre]; simp
 
-variables {L : Type v} [small_category L]
+variables {L : Type v} [category.{w} L]
 variables (D : L ⥤ K) [has_colimit (D ⋙ E ⋙ F)]
 
 @[simp] lemma colimit.pre_pre : colimit.pre (E ⋙ F) D ≫ colimit.pre F E = colimit.pre F (D ⋙ E) :=
@@ -1720,7 +1722,7 @@ end colim_functor
 /--
 We can transport colimits of shape `J` along an equivalence `J ≌ J'`.
 -/
-lemma has_colimits_of_shape_of_equivalence {J' : Type v} [small_category J']
+lemma has_colimits_of_shape_of_equivalence {J' : Type v} [category.{w} J']
   (e : J ≌ J') [has_colimits_of_shape J C] : has_colimits_of_shape J' C :=
 by { constructor, intro F, apply has_colimit_of_equivalence_comp e, apply_instance }
 

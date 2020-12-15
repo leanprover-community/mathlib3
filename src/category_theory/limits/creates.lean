@@ -132,8 +132,8 @@ lemma has_limits_of_shape_of_has_limits_of_shape_creates_limits_of_shape (F : C 
 ⟨λ G, has_limit_of_created G F⟩
 
 /-- If `F` creates limits, and `D` has all limits, then `C` has all limits. -/
-lemma has_limits_of_has_limits_creates_limits (F : C ⥤ D) [has_limits D] [creates_limits F] :
-  has_limits C :=
+lemma has_limits_of_has_limits_creates_limits (F : C ⥤ D) [has_limits.{v} D] [creates_limits F] :
+  has_limits.{v} C :=
 ⟨λ J I, by exactI has_limits_of_shape_of_has_limits_of_shape_creates_limits_of_shape F⟩
 
 /- Interface to the `creates_colimit` class. -/
@@ -170,8 +170,8 @@ lemma has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape (
 ⟨λ G, has_colimit_of_created G F⟩
 
 /-- If `F` creates colimits, and `D` has all colimits, then `C` has all colimits. -/
-lemma has_colimits_of_has_colimits_creates_colimits (F : C ⥤ D) [has_colimits D]
-  [creates_colimits F] : has_colimits C :=
+lemma has_colimits_of_has_colimits_creates_colimits (F : C ⥤ D) [has_colimits.{v} D]
+  [creates_colimits F] : has_colimits.{v} C :=
 ⟨λ J I, by exactI has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape F⟩
 
 /--
@@ -269,7 +269,7 @@ instance preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_s
 
 /-- `F` preserves limits if it creates limits and `D` has limits. -/
 @[priority 100] -- see Note [lower instance priority]
-instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [creates_limits F] [has_limits D] :
+instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [creates_limits F] [has_limits.{v} D] :
   preserves_limits F :=
 { preserves_limits_of_shape := λ J 𝒥,
   by exactI category_theory.preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape F }
@@ -314,7 +314,7 @@ instance preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimit
 
 /-- `F` preserves limits if it creates limits and `D` has limits. -/
 @[priority 100] -- see Note [lower instance priority]
-instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [creates_colimits F] [has_colimits D] :
+instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [creates_colimits F] [has_colimits.{v} D] :
   preserves_colimits F :=
 { preserves_colimits_of_shape := λ J 𝒥,
   by exactI category_theory.preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape F }

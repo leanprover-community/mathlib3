@@ -40,7 +40,7 @@ namespace category_theory
 noncomputable theory
 
 open category limits
-universes u₁ u₂
+universes v u₁ u₂
 
 variables {C : Type u₁} [small_category C]
 variables {ℰ : Type u₂} [category.{u₁} ℰ]
@@ -123,7 +123,7 @@ begin
   apply (assoc _ _ _).symm,
 end
 
-variables [has_colimits ℰ]
+variables [has_colimits.{u₁} ℰ]
 
 /--
 The left adjoint to the functor `restricted_yoneda` (shown in `yoneda_adjunction`). It is also an
@@ -294,7 +294,7 @@ begin
     refl }
 end
 
-variable [has_colimits ℰ]
+variable [has_colimits.{u₁} ℰ]
 
 /--
 Show that `extend_along_yoneda` is the unique colimit-preserving functor which extends `A` to

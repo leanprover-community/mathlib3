@@ -469,7 +469,7 @@ variables (f : C →ₐ[A] D) (B) [comm_semiring B] [algebra A B] [algebra B C] 
 /-- Restrict the domain of an `alg_hom`. -/
 def alg_hom.restrict_domain : B →ₐ[A] D := f.comp (is_scalar_tower.to_alg_hom A B C)
 
-/-- Extend the scalars of an alg_hom -/
+/-- Extend the scalars of an `alg_hom`. -/
 def alg_hom.extend_scalars : @alg_hom B C D _ _ _ _ (f.restrict_domain B).to_ring_hom.to_algebra :=
 { commutes' := λ _, rfl .. f }
 

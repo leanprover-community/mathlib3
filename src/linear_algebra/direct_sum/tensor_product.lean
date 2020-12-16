@@ -21,10 +21,6 @@ variables (M₁ : ι₁ → Type*) (M₂ : ι₂ → Type*)
 variables [Π i₁, add_comm_group (M₁ i₁)] [Π i₂, add_comm_group (M₂ i₂)]
 variables [Π i₁, module R (M₁ i₁)] [Π i₂, module R (M₂ i₂)]
 
-/-- For some reason type-class resolution can't find this instance in the definitions below, unless
-    we find it for it. -/
-instance sdasd (i : ι₁) (j : ι₂) : semimodule R (M₁ i ⊗[R] M₂ j) := infer_instance
-
 /-- The linear equivalence `(⨁ i₁, M₁ i₁) ⊗ (⨁ i₂, M₂ i₂) ≃ (⨁ i₁, ⨁ i₂, M₁ i₁ ⊗ M₂ i₂)`, i.e.
 "tensor product distributes over direct sum". -/
 def direct_sum :

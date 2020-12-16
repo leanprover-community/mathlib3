@@ -253,10 +253,10 @@ begin
 end
 
 /-- Auxiliary function to defining scalar multiplication on tensor product. -/
-def smul.aux (r : R') : free_add_monoid (M × N) →+ M ⊗[R] N :=
+def smul.aux {R' : Type*} [has_scalar R' M] (r : R') : free_add_monoid (M × N) →+ M ⊗[R] N :=
 free_add_monoid.lift $ λ p : M × N, (r • p.1) ⊗ₜ p.2
 
-theorem smul.aux_of (r : R') (m : M) (n : N) :
+theorem smul.aux_of {R' : Type*} [has_scalar R' M] (r : R') (m : M) (n : N) :
   smul.aux r (free_add_monoid.of (m, n)) = (r • m) ⊗ₜ[R] n :=
 rfl
 

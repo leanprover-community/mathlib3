@@ -22,7 +22,7 @@ binary tensor product in `linear_algebra/tensor_product.lean`.
 * `tprod R f` with `f : Π i, s i` is the tensor product of the vectors `f i` over all `i : ι`.
 * `mk R s` is the canonical multilinear map from `Π i, s i` to `⨂[R] i, s i`.
 * `lift_add_hom` constructs an `add_monoid_hom` from `(⨂[R] i, s i)` to some space `F` from a
-function `φ : (R × Π i, s i) → F` with the appropriate properties.
+  function `φ : (R × Π i, s i) → F` with the appropriate properties.
 * `lift φ` with `φ : multilinear_map R s E` is the corresponding linear map
   `(⨂[R] i, s i) →ₗ[R] E`.
 

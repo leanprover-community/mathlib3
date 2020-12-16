@@ -154,7 +154,8 @@ to its perfection. -/
 @[nolint has_inhabited_instance] structure perfection_map (p : ℕ) [fact p.prime]
   (R : Type u₁) [comm_semiring R] [char_p R p]
   (P : Type u₂) [comm_semiring P] [char_p P p] [perfect_ring P p] extends P →+* R :=
-(injective : ∀ ⦃x y : P⦄, (∀ n, to_fun (pth_root P p ^[n] x) = to_fun (pth_root P p ^[n] y)) → x = y)
+(injective : ∀ ⦃x y : P⦄, (∀ n, to_fun (pth_root P p ^[n] x) = to_fun (pth_root P p ^[n] y)) →
+  x = y)
 (surjective : ∀ f : ℕ → R, (∀ n, f (n + 1) ^ p = f n) →
   ∃ x : P, ∀ n, to_fun (pth_root P p ^[n] x) = f n)
 

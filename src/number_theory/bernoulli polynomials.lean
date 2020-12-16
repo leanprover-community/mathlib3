@@ -16,6 +16,22 @@ open nat
 
 def delta_function (i j : ℕ) : ℕ := if i = j then 1 else 0
 
+lemma delta_function_zero (n : ℕ) (h : n ≠ 0) : delta_function n 0 = 0 :=
+begin
+  rw delta_function,
+  split_ifs,
+  exfalso, apply h, exact h_1,
+  refl,
+end
+
+lemma delta_function_zero' (n : ℕ) (h : n ≠ 0) : delta_function 0 n = 0 :=
+begin
+  rw delta_function,
+  split_ifs,
+  exfalso, apply h, exact eq.symm h_1,
+  refl,
+end
+
 def bernoulli_neg : ℕ → ℚ :=
 well_founded.fix nat.lt_wf
   (λ n bernoulli_neg, (delta_function n 0) - ∑ k : fin n, (n.choose k) * bernoulli_neg k k.2 / (n + 1 - k))
@@ -37,12 +53,7 @@ begin
   rw delta_function, simp,
 end
 
-lemma choose_succ_div_eq (n k : ℕ) (h : k ≤ n) : (n.choose k : ℚ) / (n + 1 - k) = n.succ.choose k / (n + 1) :=
-begin
-  sorry
-end
-
-@[simp] lemma sum_bernoulli_neg (n : ℕ) ( h : 1 ≤ n ) :
+@[simp] lemma sum_bernoulli_neg (n : ℕ) ( h : 2 ≤ n ) :
   ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli_neg k = 0 :=
 begin
   induction n with n ih, { simp },
@@ -51,13 +62,15 @@ begin
   rw [bernoulli_neg_def, mul_sub, sub_add_eq_add_sub, sub_eq_iff_eq_add],
   rw [finset.mul_sum, finset.sum_congr rfl],
   have f : delta_function n 0 = 0,
-  sorry,
+  {
+    apply delta_function_zero, rintros f, rw f at h, norm_num at *,
+  },
   rw f, simp,
   intros k hk, rw finset.mem_range at hk,
   rw [mul_div_right_comm, ← mul_assoc],
   congr' 1,
   rw [← mul_div_assoc, eq_div_iff], norm_cast,
-  simp_rw [mul_comm, choose_mul_succ_eq n k], norm_num, left, sorry,
+  simp_rw [mul_comm, choose_mul_succ_eq n k], norm_num, left, norm_cast, rw <-cast_sub, have h:= le_of_lt hk, apply le_trans h (le_succ n),
   { contrapose! hk with H, rw sub_eq_zero at H, norm_cast at H, linarith }
 end
 
@@ -69,7 +82,25 @@ namespace bernoulli_poly
 lemma bernoulli_poly_def (n : ℕ) (X : ℚ) : bernoulli_poly n X = ∑ i in finset.range (n+1),
   (bernoulli_neg (n - i))*(nat.choose n i)*(X^i) :=
 begin
-sorry,
+  rw <-finset.sum_flip,
+  rw bernoulli_poly, simp,
+  rw <-sub_eq_zero_iff_eq,
+  rw <-finset.sum_sub_distrib,
+  apply finset.sum_eq_zero,
+  rintros,
+  rw sub_eq_zero_iff_eq,
+  rw nat.sub_sub_self,
+  rw choose_symm,
+  {
+    rw finset.mem_range at H,
+    rw <-lt_succ_iff,
+    exact H,
+  },
+  {
+    rw finset.mem_range at H,
+    rw <-lt_succ_iff,
+    exact H,
+  },
 end
 
 --lemma bernoulli_poly_def (n : ℕ) (X : ℚ) : bernoulli_poly n X = ∑ i in finset.range (n+1), (bernoulli_neg i)*(nat.choose n i)*(X^(n-i)) :=
@@ -79,6 +110,16 @@ end
 
 @[simp] lemma bernoulli_poly_zero' (n : ℕ) : bernoulli_poly n 0 = bernoulli_neg n :=
 begin
+  induction n with d hd,
+  simp,
+  rw [bernoulli_poly],  simp,
+  try { rw [finset.sum_range_succ] },
+  rw nat.sub_self,
+  rw pow_zero,
+  rw choose_self,
+  rw mul_one, norm_cast, rw mul_one, apply add_eq_of_eq_sub', simp,
+  have f : ∀ x ∈ finset.range (d.succ), 0^(d.succ - x) = 0,
+  sorry,
   sorry,
 end
 
@@ -93,6 +134,30 @@ lemma choose_mul (n k s : ℕ) (hn : k ≤ n) (hs : s ≤ k) : (n.choose k : ℚ
 sorry
 
 namespace finset
+/-lemma sum_eq (a b : ℕ) (f g : ℕ → ℕ) (h : ∑ (i : ℕ) in finset.Ico a b, (f i) = ∑ (i : ℕ) in finset.Ico a b, (g i) ) :
+    ∀ x ∈ finset.Ico a b, f x = g x :=
+begin
+  simp_rw nat.sub_eq_zero_iff_le at h,
+  rw <-finset.sum_sub_distrib at h,
+  have h' : ∀ i, (f - g) i = f i - g i, simp,
+  simp only [<-h' _] at h,
+  have g' : (∑ (x : ℕ) in finset.Ico a b, (f - g) x) = 0,
+  exact h,
+
+  rw [finset.sum_eq_zero_iff] at g',
+  rintros,
+  rw <-sub_eq_zero_iff_eq,
+  change f x - g x with (f - g) x,
+  revert x H,
+  rw <- @@finset.sum_eq_zero_iff,
+  have k := finset.sum_eq_zero_iff.1 g',
+
+  rw finset.sum_sub_distrib,
+  rw finset.sum_eq_zero,
+  rw finset.sum_Ico_eq_sum_range at h,
+  rw finset.sum_Ico_eq_sum_range at h,
+
+end -/
 
 lemma dependent_double_sum {M : Type*} [add_comm_monoid M]
   (a b : ℕ) (f : ℕ → ℕ → M) :
@@ -183,12 +248,16 @@ begin
   simp at hx,
   rw succ_add, rw succ_sub,
   rw succ_le_succ_iff,
-  simp, simp, apply le_succ_of_le,
+  rw succ_sub, rw succ_le_succ_iff, simp, exact le_of_lt hx,
+  apply le_succ_of_le,
   exact le_of_lt hx,
 end
 
 lemma exp_bernoulli_neg : ∀ t : ℚ, ((∑' i : ℕ, ((bernoulli i) : ℚ) * t^i / (nat.factorial i)) : ℝ) * (real.exp t - 1) = t :=
+begin
+rintros t,
 sorry
+end
 
 lemma exp_bernoulli_poly : ∀ t : ℚ, ∀ X : ℚ, (∑' i : ℕ, (bernoulli_poly i X) * t^i / (nat.factorial i) : ℝ) * (real.exp t - 1) = t * real.exp (X * t) :=
 sorry

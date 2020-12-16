@@ -33,7 +33,7 @@ open set function filter uniform_space
 open_locale filter
 
 namespace is_absolute_value
-variables {𝕜 : Type*} [discrete_linear_ordered_field 𝕜]
+variables {𝕜 : Type*} [linear_ordered_field 𝕜]
 variables {R : Type*} [comm_ring R] (abv : R → 𝕜) [is_absolute_value abv]
 
 /-- The uniformity coming from an absolute value. -/

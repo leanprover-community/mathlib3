@@ -71,8 +71,8 @@ begin
   rw [num_denom'] at e,
   have := congr_arg (coe : ℤ → α) ((mk_eq b0' $ ne_of_gt $ int.coe_nat_pos.2 h).1 e),
   rw [int.cast_mul, int.cast_mul, int.cast_coe_nat] at this,
-  symmetry, change (a * b⁻¹ : α) = n / d,
-  rw [eq_div_iff_mul_eq d0, mul_assoc, (d.commute_cast _).eq,
+  symmetry, change (a / b : α) = n / d,
+  rw [div_eq_mul_inv, eq_div_iff_mul_eq d0, mul_assoc, (d.commute_cast _).eq,
       ← mul_assoc, this, mul_assoc, mul_inv_cancel b0, mul_one]
 end
 
@@ -92,8 +92,8 @@ end
 end
 
 @[simp, norm_cast] theorem cast_neg : ∀ n, ((-n : ℚ) : α) = -n
-| ⟨n, d, h, c⟩ := show (↑-n * d⁻¹ : α) = -(n * d⁻¹),
-  by rw [int.cast_neg, neg_mul_eq_neg_mul]
+| ⟨n, d, h, c⟩ := show (↑-n / d : α) = -(n / d),
+  by rw [div_eq_mul_inv, div_eq_mul_inv, int.cast_neg, neg_mul_eq_neg_mul]
 
 @[norm_cast] theorem cast_sub_of_ne_zero {m n : ℚ}
   (m0 : (m.denom : α) ≠ 0) (n0 : (n.denom : α) ≠ 0) : ((m - n : ℚ) : α) = m - n :=
@@ -227,15 +227,15 @@ by rw [← cast_zero, cast_lt]
 @[simp, norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
 | ⟨n, d, h, c⟩ := show (n / (d : ℤ) : ℚ) = _, by rw [num_denom', mk_eq_div]
 
-@[simp, norm_cast] theorem cast_min [discrete_linear_ordered_field α] {a b : ℚ} :
+@[simp, norm_cast] theorem cast_min [linear_ordered_field α] {a b : ℚ} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min]
 
-@[simp, norm_cast] theorem cast_max [discrete_linear_ordered_field α] {a b : ℚ} :
+@[simp, norm_cast] theorem cast_max [linear_ordered_field α] {a b : ℚ} :
   (↑(max a b) : α) = max a b :=
 by by_cases b ≤ a; simp [h, max]
 
-@[simp, norm_cast] theorem cast_abs [discrete_linear_ordered_field α] {q : ℚ} :
+@[simp, norm_cast] theorem cast_abs [linear_ordered_field α] {q : ℚ} :
   ((abs q : ℚ) : α) = abs q :=
 by simp [abs]
 

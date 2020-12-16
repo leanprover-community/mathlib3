@@ -153,11 +153,10 @@ begin
   rw [coeff_mul, finset.sum_eq_single ((0 : σ →₀ ℕ), n)];
   simp [mem_antidiagonal_support, coeff_one],
   show ∀ (i j : σ →₀ ℕ), i + j = n → (i = 0 → j ≠ n) →
-    (if i = 0 then coeff R j φ else 0) = 0,
-  intros i j hij h,
-  rw [if_neg],
-  contrapose! h,
-  simpa [h] using hij,
+    i = 0 → coeff R j φ = 0,
+  rintros i j hij h rfl,
+  rw zero_add at hij,
+  exact (h rfl hij).elim
 end
 
 protected lemma mul_one : φ * 1 = φ :=
@@ -224,11 +223,8 @@ instance : semiring (mv_power_series σ R) :=
 end semiring
 
 instance [comm_semiring R] : comm_semiring (mv_power_series σ R) :=
-{ mul_comm := λ φ ψ, ext $ λ n, finset.sum_bij (λ p hp, p.swap)
-    (λ p hp, swap_mem_antidiagonal_support hp)
-    (λ p hp, mul_comm _ _)
-    (λ p q hp hq H, by simpa using congr_arg prod.swap H)
-    (λ p hp, ⟨p.swap, swap_mem_antidiagonal_support hp, p.swap_swap.symm⟩),
+{ mul_comm := λ φ ψ, ext $ λ n, by simpa only [coeff_mul, mul_comm]
+    using sum_antidiagonal_support_swap n (λ a b, coeff R a φ * coeff R b ψ),
   .. mv_power_series.semiring }
 
 instance [ring R] : ring (mv_power_series σ R) :=
@@ -1156,7 +1152,6 @@ lemma eq_zero_or_eq_zero_of_mul_eq_zero (φ ψ : power_series R) (h : φ * ψ = 
 begin
     rw or_iff_not_imp_left, intro H,
     have ex : ∃ m, coeff R m φ ≠ 0, { contrapose! H, exact ext H },
-    let P : ℕ → Prop := λ k, coeff R k φ ≠ 0,
     let m := nat.find ex,
     have hm₁ : coeff R m φ ≠ 0 := nat.find_spec ex,
     have hm₂ : ∀ k < m, ¬coeff R k φ ≠ 0 := λ k, nat.find_min ex,

@@ -33,7 +33,7 @@ meta def find_failures (l : list (string × name)) : tactic (list (string × nam
 l.mfilter $ λ ⟨key, decl⟩, fails $ get_decl decl
 
 def databases : list (string × string) := [
-  ("undergrad.txt", "Entries in `docs/undergad.yaml` refer to declarations that don't exist. Please correct the following:"),
+  ("undergrad.txt", "Entries in `docs/undergrad.yaml` refer to declarations that don't exist. Please correct the following:"),
   ("overview.txt", "Entries in `docs/overview.yaml` refer to declarations that don't exist. Please correct the following:"),
   ("100.txt", "Entries in `docs/100.yaml` refer to declarations that don't exist. Please correct the following:")
 ]

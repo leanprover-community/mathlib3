@@ -97,7 +97,8 @@ let ⟨hlg, Mg, hMgp, hMg⟩ := hg in
                ... ≤ (Mf + Mg) * ∥x∥     : by rw add_mul
 
 lemma sub (hf : is_bounded_linear_map 𝕜 f) (hg : is_bounded_linear_map 𝕜 g) :
-  is_bounded_linear_map 𝕜 (λ e, f e - g e) := add hf (neg hg)
+  is_bounded_linear_map 𝕜 (λ e, f e - g e) :=
+by simpa [sub_eq_add_neg] using add hf (neg hg)
 
 lemma comp {g : F → G}
   (hg : is_bounded_linear_map 𝕜 g) (hf : is_bounded_linear_map 𝕜 f) :
@@ -280,8 +281,9 @@ lemma is_bounded_bilinear_map_smul :
   bound      := ⟨1, zero_lt_one, λx y, by simp [norm_smul]⟩ }
 
 lemma is_bounded_bilinear_map_smul_algebra {𝕜' : Type*} [normed_field 𝕜']
-  [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_group E] [normed_space 𝕜' E] :
-  is_bounded_bilinear_map 𝕜 (λ (p : 𝕜' × (semimodule.restrict_scalars 𝕜 𝕜' E)), p.1 • p.2) :=
+  [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
+  [is_scalar_tower 𝕜 𝕜' E] :
+  is_bounded_bilinear_map 𝕜 (λ (p : 𝕜' × E), p.1 • p.2) :=
 { add_left   := add_smul,
   smul_left  := λ c x y, by simp [smul_assoc],
   add_right  := smul_add,
@@ -437,3 +439,14 @@ begin
 end
 
 end bilinear_map
+
+/-- A linear isometry preserves the norm. -/
+lemma linear_map.norm_apply_of_isometry (f : E →ₗ[𝕜] F) {x : E} (hf : isometry f) : ∥f x∥ = ∥x∥ :=
+by { simp_rw [←dist_zero_right, ←f.map_zero], exact isometry.dist_eq hf _ _ }
+
+/-- Construct a continuous linear equiv from a linear map that is also an isometry with full range. -/
+def continuous_linear_equiv.of_isometry (f : E →ₗ[𝕜] F) (hf : isometry f) (hfr : f.range = ⊤) :
+  E ≃L[𝕜] F :=
+continuous_linear_equiv.of_homothety 𝕜
+(linear_equiv.of_bijective f (linear_map.ker_eq_bot.mpr (isometry.injective hf)) hfr)
+1 zero_lt_one (λ _, by simp [one_mul, f.norm_apply_of_isometry hf])

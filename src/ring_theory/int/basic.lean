@@ -144,6 +144,51 @@ lemma nat_abs_lcm (i j : ℤ) : nat_abs (gcd_monoid.lcm i j) = int.lcm i j := rf
 
 end gcd_monoid
 
+lemma exists_unit_of_abs (a : ℤ) : ∃ (u : ℤ) (h : is_unit u), (int.nat_abs a : ℤ) = u * a :=
+begin
+  cases (nat_abs_eq a) with h,
+  { use [1, is_unit_one], rw [← h, one_mul], },
+  { use [-1, is_unit_int.mpr rfl], rw [ ← neg_eq_iff_neg_eq.mp (eq.symm h)],
+    simp only [neg_mul_eq_neg_mul_symm, one_mul] }
+end
+
+lemma gcd_eq_one_iff_coprime {a b : ℤ} : int.gcd a b = 1 ↔ is_coprime a b :=
+begin
+  split,
+  { intro hg,
+    obtain ⟨ua, hua, ha⟩ := exists_unit_of_abs a,
+    obtain ⟨ub, hub, hb⟩ := exists_unit_of_abs b,
+    use [(nat.gcd_a (int.nat_abs a) (int.nat_abs b)) * ua,
+        (nat.gcd_b (int.nat_abs a) (int.nat_abs b)) * ub],
+    rw [mul_assoc, ← ha, mul_assoc, ← hb, mul_comm, mul_comm _ (int.nat_abs b : ℤ),
+      ← nat.gcd_eq_gcd_ab],
+    norm_cast,
+    exact hg },
+  { rintro ⟨r, s, h⟩,
+    by_contradiction hg,
+    obtain ⟨p, ⟨hp, ha, hb⟩⟩ := nat.prime.not_coprime_iff_dvd.mp hg,
+    apply nat.prime.not_dvd_one hp,
+    apply coe_nat_dvd.mp,
+    change (p : ℤ) ∣ 1,
+    rw [← h],
+    exact dvd_add (dvd_mul_of_dvd_right (coe_nat_dvd_left.mpr ha) _)
+      (dvd_mul_of_dvd_right (coe_nat_dvd_left.mpr hb) _),
+  }
+end
+
+lemma sqr_of_gcd_eq_one {a b c : ℤ} (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
+  ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) :=
+begin
+  have h' : gcd_monoid.gcd a b = 1, { rw [← coe_gcd, h], dec_trivial },
+  obtain ⟨d, ⟨u, hu⟩⟩ := exists_associated_pow_of_mul_eq_pow h' heq,
+  use d,
+  rw ← hu,
+  cases int.units_eq_one_or u with hu' hu'; { rw hu', simp }
+end
+
+lemma sqr_of_coprime {a b c : ℤ} (h : is_coprime a b) (heq : a * b = c ^ 2) :
+  ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) := sqr_of_gcd_eq_one (gcd_eq_one_iff_coprime.mpr h) heq
+
 end int
 
 theorem irreducible_iff_nat_prime : ∀(a : ℕ), irreducible a ↔ nat.prime a
@@ -211,6 +256,21 @@ begin
   exact int.prime.dvd_mul hp h
 end
 
+lemma int.prime.dvd_pow {n : ℤ} {k p : ℕ}
+  (hp : nat.prime p) (h : (p : ℤ) ∣ n ^ k) : p  ∣ n.nat_abs :=
+begin
+  apply @nat.prime.dvd_of_dvd_pow _ _ k hp,
+  rw ← int.nat_abs_pow,
+  exact int.coe_nat_dvd_left.mp h
+end
+
+lemma int.prime.dvd_pow' {n : ℤ} {k p : ℕ}
+  (hp : nat.prime p) (h : (p : ℤ) ∣ n ^ k) : (p : ℤ)  ∣ n :=
+begin
+  rw int.coe_nat_dvd_left,
+  exact int.prime.dvd_pow hp h
+end
+
 lemma prime_two_or_dvd_of_dvd_two_mul_pow_self_two {m : ℤ} {p : ℕ}
   (hp : nat.prime p) (h : (p : ℤ) ∣ 2 * m ^ 2) : p = 2 ∨ p ∣ int.nat_abs m :=
 begin
@@ -240,14 +300,21 @@ begin
     apply nat.mem_factors hx, }
 end
 
+lemma nat.factors_multiset_prod_of_irreducible
+  {s : multiset ℕ} (h : ∀ (x : ℕ), x ∈ s → irreducible x) :
+  unique_factorization_monoid.factors (s.prod) = s :=
+begin
+  rw [← multiset.rel_eq, ← associated_eq_eq],
+  apply (unique_factorization_monoid.factors_unique irreducible_of_factor h (factors_prod _)),
+  rw [ne.def, multiset.prod_eq_zero_iff],
+  intro con,
+  exact not_irreducible_zero (h 0 con),
+end
+
 namespace multiplicity
 
 lemma finite_int_iff_nat_abs_finite {a b : ℤ} : finite a b ↔ finite a.nat_abs b.nat_abs :=
-begin
-  rw [finite_def, finite_def],
-  conv in (a ^ _ ∣ b)
-    { rw [← int.nat_abs_dvd_abs_iff, int.nat_abs_pow] }
-end
+by simp only [finite_def, ← int.nat_abs_dvd_abs_iff, int.nat_abs_pow]
 
 lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) :=
 begin

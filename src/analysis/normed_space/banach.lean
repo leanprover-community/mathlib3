@@ -52,12 +52,12 @@ begin
     exacts [inv_nonneg.2 (div_nonneg (le_of_lt εpos) (by norm_num)), n.cast_nonneg] },
   { by_cases hy : y = 0,
     { use 0, simp [hy] },
-    { rcases rescale_to_shell hc (half_pos εpos) hy with ⟨d, hd, ydle, leyd, dinv⟩,
+    { rcases rescale_to_shell hc (half_pos εpos) hy with ⟨d, hd, ydlt, leyd, dinv⟩,
       let δ := ∥d∥ * ∥y∥/4,
       have δpos : 0 < δ :=
         div_pos (mul_pos (norm_pos_iff.2 hd) (norm_pos_iff.2 hy)) (by norm_num),
       have : a + d • y ∈ ball a ε,
-        by simp [dist_eq_norm, lt_of_le_of_lt ydle (half_lt_self εpos)],
+        by simp [dist_eq_norm, lt_of_le_of_lt ydlt.le (half_lt_self εpos)],
       rcases metric.mem_closure_iff.1 (H this) _ δpos with ⟨z₁, z₁im, h₁⟩,
       rcases (mem_image _ _ _).1 z₁im with ⟨x₁, hx₁, xz₁⟩,
       rw ← xz₁ at h₁,
@@ -211,6 +211,7 @@ namespace linear_equiv
 theorem continuous_symm (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   continuous e.symm :=
 begin
+  rw continuous_def,
   intros s hs,
   rw [← e.image_eq_preimage],
   rw [← e.coe_coe] at h ⊢,

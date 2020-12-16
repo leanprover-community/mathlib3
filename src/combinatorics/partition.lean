@@ -78,7 +78,7 @@ def of_sums (n : ℕ) (l : multiset ℕ) (hl : l.sum = n) : partition n :=
   parts_pos := λ i hi, nat.pos_of_ne_zero $ by apply of_mem_filter hi,
   parts_sum :=
   begin
-    have lt : l.filter (= 0) + l.filter (≠ 0) = l := filter_add_not l,
+    have lt : l.filter (= 0) + l.filter (≠ 0) = l := filter_add_not _ l,
     apply_fun multiset.sum at lt,
     have lz : (l.filter (= 0)).sum = 0,
     { rw multiset.sum_eq_zero_iff,

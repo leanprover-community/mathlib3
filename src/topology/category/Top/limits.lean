@@ -40,7 +40,7 @@ Generally you should just use `limit.is_limit F`, unless you need the actual def
 def limit_cone_is_limit (F : J ⥤ Top.{u}) : is_limit (limit_cone F) :=
 by { refine is_limit.of_faithful forget (types.limit_cone_is_limit _) (λ s, ⟨_, _⟩) (λ s, rfl),
      exact continuous_iff_coinduced_le.mpr (le_infi $ λ j,
-       coinduced_le_iff_le_induced.mp $ continuous_iff_coinduced_le.mp (s.π.app j).continuous) }
+       coinduced_le_iff_le_induced.mp $ (continuous_iff_coinduced_le.mp (s.π.app j).continuous : _) ) }
 
 instance Top_has_limits : has_limits.{u} Top.{u} :=
 { has_limits_of_shape := λ J 𝒥, by exactI
@@ -71,7 +71,7 @@ Generally you should just use `colimit.is_colimit F`, unless you need the actual
 def colimit_cocone_is_colimit (F : J ⥤ Top.{u}) : is_colimit (colimit_cocone F) :=
 by { refine is_colimit.of_faithful forget (types.colimit_cocone_is_colimit _) (λ s, ⟨_, _⟩) (λ s, rfl),
      exact continuous_iff_le_induced.mpr (supr_le $ λ j,
-       coinduced_le_iff_le_induced.mp $ continuous_iff_coinduced_le.mp (s.ι.app j).continuous) }
+       coinduced_le_iff_le_induced.mp $ (continuous_iff_coinduced_le.mp (s.ι.app j).continuous : _) ) }
 
 instance Top_has_colimits : has_colimits.{u} Top.{u} :=
 { has_colimits_of_shape := λ J 𝒥, by exactI

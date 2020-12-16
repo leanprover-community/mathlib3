@@ -30,7 +30,7 @@ open_locale big_operators
 
 /-- A function `f` is an absolute value if it is nonnegative, zero only at 0, additive, and
 multiplicative. -/
-class is_absolute_value {α} [discrete_linear_ordered_field α]
+class is_absolute_value {α} [linear_ordered_field α]
   {β} [ring β] (f : β → α) : Prop :=
 (abv_nonneg [] : ∀ x, 0 ≤ f x)
 (abv_eq_zero [] : ∀ {x}, f x = 0 ↔ x = 0)
@@ -38,7 +38,7 @@ class is_absolute_value {α} [discrete_linear_ordered_field α]
 (abv_mul [] : ∀ x y, f (x * y) = f x * f y)
 
 namespace is_absolute_value
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv]
 
 theorem abv_zero : abv 0 = 0 := (abv_eq_zero abv).2 rfl
@@ -91,7 +91,7 @@ by induction n; simp [abv_mul abv, pow_succ, abv_one abv, *]
 
 end is_absolute_value
 
-instance abs_is_absolute_value {α} [discrete_linear_ordered_field α] :
+instance abs_is_absolute_value {α} [linear_ordered_field α] :
   is_absolute_value (abs : α → α) :=
 { abv_nonneg  := abs_nonneg,
   abv_eq_zero := λ _, abs_eq_zero,
@@ -107,7 +107,7 @@ theorem exists_forall_ge_and {α} [linear_order α] {P Q : α → Prop} :
   ⟨c, λ j hj, ⟨h₁ _ (le_trans ac hj), h₂ _ (le_trans bc hj)⟩⟩
 
 section
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv]
 
 theorem rat_add_continuous_lemma
@@ -156,12 +156,12 @@ end
 end
 
 /-- A sequence is Cauchy if the distance between its entries tends to zero. -/
-def is_cau_seq {α : Type*} [discrete_linear_ordered_field α]
+def is_cau_seq {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) (f : ℕ → β) : Prop :=
 ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j - f i) < ε
 
 namespace is_cau_seq
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv] {f : ℕ → β}
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -182,12 +182,12 @@ end is_cau_seq
 
 /-- `cau_seq β abv` is the type of `β`-valued Cauchy sequences, with respect to the absolute value
 function `abv`. -/
-def cau_seq {α : Type*} [discrete_linear_ordered_field α]
+def cau_seq {α : Type*} [linear_ordered_field α]
   (β : Type*) [ring β] (abv : β → α) : Type* :=
 {f : ℕ → β // is_cau_seq abv f}
 
 namespace cau_seq
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
 
 section ring
 variables {β : Type*} [ring β] {abv : β → α}
@@ -338,7 +338,7 @@ by rw ← neg_one_mul; exact mul_lim_zero_right _ hf
 
 theorem sub_lim_zero {f g : cau_seq β abv}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f - g) :=
-add_lim_zero hf (neg_lim_zero hg)
+by simpa only [sub_eq_add_neg] using add_lim_zero hf (neg_lim_zero hg)
 
 theorem lim_zero_sub_rev {f g : cau_seq β abv} (hfg : lim_zero (f - g)) : lim_zero (g - f) :=
 by simpa using neg_lim_zero hfg
@@ -566,6 +566,7 @@ instance : has_le (cau_seq α abs) := ⟨λ f g, f < g ∨ f ≈ g⟩
 
 theorem lt_of_lt_of_eq {f g h : cau_seq α abs}
   (fg : f < g) (gh : g ≈ h) : f < h :=
+show pos (h - f),
 by simpa [sub_eq_add_neg, add_comm, add_left_comm] using pos_add_lim_zero fg (neg_lim_zero gh)
 
 theorem lt_of_eq_of_lt {f g h : cau_seq α abs}
@@ -574,6 +575,7 @@ by have := pos_add_lim_zero gh (neg_lim_zero fg);
    rwa [← sub_eq_add_neg, sub_sub_sub_cancel_right] at this
 
 theorem lt_trans {f g h : cau_seq α abs} (fg : f < g) (gh : g < h) : f < h :=
+show pos (h - f),
 by simpa [sub_eq_add_neg, add_comm, add_left_comm] using add_pos fg gh
 
 theorem lt_irrefl {f : cau_seq α abs} : ¬ f < f

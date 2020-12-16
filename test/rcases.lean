@@ -44,6 +44,13 @@ begin
   { guard_hyp c : γ, trivial }
 end
 
+example : cond ff ℕ ℤ → cond tt ℤ ℕ → (ℕ ⊕ unit) → true :=
+begin
+  rintro (x y : ℤ) (z | u),
+  { guard_hyp x : ℤ, guard_hyp y : ℤ, guard_hyp z : ℕ, trivial },
+  { guard_hyp x : ℤ, guard_hyp y : ℤ, guard_hyp u : unit, trivial }
+end
+
 example (x y : ℕ) (h : x = y) : true :=
 begin
   rcases x with _|⟨⟩|z,
@@ -175,3 +182,7 @@ begin
     (do lc ← tactic.local_context, guard lc.empty),
     trivial },
 end
+
+example : bool → false → true
+| ff := by rintro ⟨⟩
+| tt := by rintro ⟨⟩

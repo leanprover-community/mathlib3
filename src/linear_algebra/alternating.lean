@@ -27,9 +27,10 @@ arguments of the same type.
 using `map_swap` as a definition, and does not require `has_neg N`.
 
 `alternating_map`s are provided with a coercion to `multilinear_map`, along with a set of
-`norm_cast` lemmas that act on the algebric structure:
+`norm_cast` lemmas that act on the algebraic structure:
 
 * `alternating_map.coe_add`
+* `alternating_map.coe_zero`
 * `alternating_map.coe_sub`
 * `alternating_map.coe_neg`
 * `alternating_map.coe_smul`

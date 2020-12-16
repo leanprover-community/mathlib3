@@ -758,7 +758,7 @@ lemma sum_eq_top_iff {s : finset α} {f : α → ennreal} :
   (∑ x in s, f x) = ∞ ↔ (∃a∈s, f a = ∞) :=
 with_top.sum_eq_top_iff
 
-/-- seeing `ennreal` as `nnreal` does not change their sum, unless one of the `ennreal` is
+/-- seeing `ennreal` as `ℝ≥0` does not change their sum, unless one of the `ennreal` is
 infinity -/
 lemma to_nnreal_sum {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ∞) :
   ennreal.to_nnreal (∑ a in s, f a) = ∑ a in s, ennreal.to_nnreal (f a) :=

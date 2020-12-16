@@ -380,12 +380,12 @@ ext $ λ x,
 if hs : is_measurable s then by simp [hs, set.indicator_comp_of_zero hg]
 else by simp [restrict_of_not_measurable hs, hg]
 
-theorem map_coe_ennreal_restrict (f : α →ₛ nnreal) (s : set α) :
-  (f.restrict s).map (coe : nnreal → ennreal) = (f.map coe).restrict s :=
+theorem map_coe_ennreal_restrict (f : α →ₛ ℝ≥0) (s : set α) :
+  (f.restrict s).map (coe : ℝ≥0 → ennreal) = (f.map coe).restrict s :=
 map_restrict_of_zero ennreal.coe_zero _ _
 
-theorem map_coe_nnreal_restrict (f : α →ₛ nnreal) (s : set α) :
-  (f.restrict s).map (coe : nnreal → ℝ) = (f.map coe).restrict s :=
+theorem map_coe_nnreal_restrict (f : α →ₛ ℝ≥0) (s : set α) :
+  (f.restrict s).map (coe : ℝ≥0 → ℝ) = (f.map coe).restrict s :=
 map_restrict_of_zero nnreal.coe_zero _ _
 
 theorem restrict_apply (f : α →ₛ β) {s : set α} (hs : is_measurable s) (a) :
@@ -855,7 +855,7 @@ lemma lintegral_mono ⦃f g : α → ennreal⦄ (hfg : f ≤ g) :
   ∫⁻ a, f a ∂μ ≤ ∫⁻ a, g a ∂μ :=
 lintegral_mono' (le_refl μ) hfg
 
-lemma lintegral_mono_nnreal {f g : α → nnreal} (h : f ≤ g) :
+lemma lintegral_mono_nnreal {f g : α → ℝ≥0} (h : f ≤ g) :
   ∫⁻ a, f a ∂μ ≤ ∫⁻ a, g a ∂μ :=
 begin
   refine lintegral_mono _,
@@ -878,7 +878,7 @@ by rw [lintegral_const, one_mul, measure.restrict_apply_univ]
 functions `φ : α →ₛ ℝ≥0`. -/
 lemma lintegral_eq_nnreal (f : α → ennreal) (μ : measure α) :
   (∫⁻ a, f a ∂μ) = (⨆ (φ : α →ₛ ℝ≥0) (hf : ∀ x, ↑(φ x) ≤ f x),
-      (φ.map (coe : nnreal → ennreal)).lintegral μ) :=
+      (φ.map (coe : ℝ≥0 → ennreal)).lintegral μ) :=
 begin
   refine le_antisymm
     (bsupr_le $ assume φ hφ, _)
@@ -928,7 +928,7 @@ theorem lintegral_supr
   {f : ℕ → α → ennreal} (hf : ∀n, measurable (f n)) (h_mono : monotone f) :
   (∫⁻ a, ⨆n, f n a ∂μ) = (⨆n, ∫⁻ a, f n a ∂μ) :=
 begin
-  set c : nnreal → ennreal := coe,
+  set c : ℝ≥0 → ennreal := coe,
   set F := λ a:α, ⨆n, f n a,
   have hF : measurable F := measurable_supr hf,
   refine le_antisymm _ (supr_lintegral_le _),

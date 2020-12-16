@@ -48,7 +48,7 @@ begin
   { rw ← degree_nonneg_iff_ne_zero, refine trans (by exact_mod_cast zero_le_one) hdeg },
   rw degree_eq_nat_degree hP at hdeg,
   exact P.eval_is_equivalent_at_top_eval_lead.symm.tendsto_at_top
-    (tendsto_at_top_mul_left' (lt_of_le_of_ne hnng $ λ h, hP $ leading_coeff_eq_zero.mp h.symm)
+    (tendsto.const_mul_at_top (lt_of_le_of_ne hnng $ λ h, hP $ leading_coeff_eq_zero.mp h.symm)
       (tendsto_pow_at_top $ by exact_mod_cast hdeg))
 end
 
@@ -60,7 +60,7 @@ begin
   { rw ← degree_nonneg_iff_ne_zero, refine trans (by exact_mod_cast zero_le_one) hdeg },
   rw degree_eq_nat_degree hP at hdeg,
   exact P.eval_is_equivalent_at_top_eval_lead.symm.tendsto_at_bot
-    (tendsto_at_bot_mul_left' (lt_of_le_of_ne hnps $ λ h, hP $ leading_coeff_eq_zero.mp h)
+    (tendsto.neg_const_mul_at_top (lt_of_le_of_ne hnps $ λ h, hP $ leading_coeff_eq_zero.mp h)
       (tendsto_pow_at_top $ by exact_mod_cast hdeg)),
 end
 
@@ -132,7 +132,7 @@ begin
   norm_cast at hdeg,
   have one_le_nat_degree_sub : 1 ≤ P.nat_degree - Q.nat_degree :=
     (nat.le_sub_left_iff_add_le hdeg.le).mpr (nat.lt_iff_add_one_le.mp hdeg),
-  exact tendsto_at_top_mul_left' ratio_pos ((tendsto_pow_at_top one_le_nat_degree_sub).congr' $
+  exact tendsto.const_mul_at_top ratio_pos ((tendsto_pow_at_top one_le_nat_degree_sub).congr' $
     (eventually_gt_at_top 0).mono $ λ x hx, pow_sub' x hx.ne.symm hdeg.le)
 end
 
@@ -156,7 +156,7 @@ begin
   norm_cast at hdeg,
   have one_le_nat_degree_sub : 1 ≤ P.nat_degree - Q.nat_degree :=
     (nat.le_sub_left_iff_add_le hdeg.le).mpr (nat.lt_iff_add_one_le.mp hdeg),
-  exact tendsto_at_bot_mul_left' ratio_neg ((tendsto_pow_at_top one_le_nat_degree_sub).congr' $
+  exact tendsto.neg_const_mul_at_top ratio_neg ((tendsto_pow_at_top one_le_nat_degree_sub).congr' $
     (eventually_gt_at_top 0).mono $ λ x hx, pow_sub' x hx.ne.symm hdeg.le)
 end
 

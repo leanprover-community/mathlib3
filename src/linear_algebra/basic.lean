@@ -331,14 +331,12 @@ instance : has_neg (M →ₗ[R] M₂) :=
 
 @[simp] lemma comp_neg (g : M₂ →ₗ[R] M₃) : g.comp (- f) = - g.comp f := by { ext, simp }
 
-/-- The type of linear maps is an additive group. -/
-instance : add_comm_group (M →ₗ[R] M₂) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
-   intros; ext; simp [add_comm, add_left_comm]
-
-instance linear_map_apply_is_add_group_hom (a : M) :
-  is_add_group_hom (λ f : M →ₗ[R] M₂, f a) :=
-{ map_add := λ f g, linear_map.add_apply f g a }
+/-- The negation of a linear map is linear. -/
+instance : has_sub (M →ₗ[R] M₂) :=
+⟨λ f g,
+  ⟨λ b, f b - g b,
+   by { simp only [map_add, sub_eq_add_neg, neg_add], cc },
+   by { intros, simp only [map_smul, smul_sub] }⟩⟩
 
 @[simp] lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
 
@@ -347,6 +345,15 @@ lemma sub_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
 
 lemma comp_sub (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
   h.comp (g - f) = h.comp g - h.comp f := by { ext, simp }
+
+/-- The type of linear maps is an additive group. -/
+instance : add_comm_group (M →ₗ[R] M₂) :=
+by refine {zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _, ..};
+   intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
+
+instance linear_map_apply_is_add_group_hom (a : M) :
+  is_add_group_hom (λ f : M →ₗ[R] M₂, f a) :=
+{ map_add := λ f g, linear_map.add_apply f g a }
 
 end add_comm_group
 
@@ -1116,10 +1123,19 @@ instance : has_neg (quotient p) :=
 
 @[simp] theorem mk_neg : (mk (-x) : quotient p) = -mk x := rfl
 
+instance : has_sub (quotient p) :=
+⟨λ a b, quotient.lift_on₂' a b (λ a b, mk (a - b)) $
+  λ a₁ a₂ b₁ b₂ h₁ h₂, (quotient.eq p).2 $
+  by simpa [sub_eq_add_neg, add_left_comm, add_comm] using add_mem p h₁ (neg_mem p h₂)⟩
+
+@[simp] theorem mk_sub : (mk (x - y) : quotient p) = mk x - mk y := rfl
+
 instance : add_comm_group (quotient p) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
+by refine {zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _, ..};
    repeat {rintro ⟨⟩};
-   simp [-mk_zero, (mk_zero p).symm, -mk_add, (mk_add p).symm, -mk_neg, (mk_neg p).symm]; cc
+   simp [-mk_zero, ← mk_zero p, -mk_add, ← mk_add p, -mk_neg, ← mk_neg p, -mk_sub,
+         ← mk_sub p, sub_eq_add_neg];
+   cc
 
 instance : has_scalar R (quotient p) :=
 ⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $

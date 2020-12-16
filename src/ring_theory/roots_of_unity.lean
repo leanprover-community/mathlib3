@@ -262,7 +262,7 @@ end
 
 lemma pow_of_prime (h : is_primitive_root ζ k) {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ k) :
   is_primitive_root (ζ ^ p) k :=
-is_primitive_root.pow_of_coprime h p ((nat.prime.coprime_iff_not_dvd hprime).2 hdiv)
+h.pow_of_coprime p (hprime.coprime_iff_not_dvd.2 hdiv)
 
 lemma pow_iff_coprime (h : is_primitive_root ζ k) (h0 : 0 < k) (i : ℕ) :
   is_primitive_root (ζ ^ i) k ↔ i.coprime k :=

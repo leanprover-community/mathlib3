@@ -21,7 +21,7 @@ section separation
 `finset`s are contained in disjoint open sets.
 -/
 def separate : finset α → finset α → Prop :=
-  λ (s t : finset α), disjoint s t → ∃ U V : (set α), (is_open U) ∧ is_open V ∧
+  λ (s t : finset α), ∃ U V : (set α), (is_open U) ∧ is_open V ∧
   (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V) ∧ disjoint U V
 
 namespace separate
@@ -30,8 +30,7 @@ open separate
 
 @[symm] lemma symm {s t : finset α} : separate s t → separate t s :=
 begin
-  intros sep d,
-  obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := sep d.symm,
+  rintros ⟨U, V, oU, oV, aU, bV, UV⟩,
   exact ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩
 end
 
@@ -39,18 +38,14 @@ lemma comm (s t : finset α) : separate s t ↔ separate t s :=
 ⟨symm, symm⟩
 
 lemma empty_right (a : finset α) : separate a ∅ :=
-λ _, ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
+⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
 
 lemma empty_left (a : finset α) : separate ∅ a :=
 (empty_right _).symm
 
 lemma union_left {a b c : finset α} : separate a c → separate b c → separate (a ∪ b) c :=
 begin
-  intros ac bc d,
-  obtain ⟨U, V, oU, oV, aU, bV, UV⟩ :=
-    ac (finset.disjoint_of_subset_left (finset.subset_union_left _ _) d),
-  obtain ⟨W, X, oW, oX, aW, bX, WX⟩ :=
-    bc (finset.disjoint_of_subset_left (finset.subset_union_right a b) d),
+  rintros ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
   refine ⟨U ∪ W, V ∩ X, is_open_union oU oW, is_open_inter oV oX,
     λ x xab, _, λ x xc, ⟨bV _ xc, bX _ xc⟩, _⟩,
   { cases finset.mem_union.mp xab with h h,
@@ -64,10 +59,6 @@ end
 lemma union_right {a b c : finset α} (ab : separate a b) (ac : separate a c) :
   separate a (b ∪ c) :=
 (ab.symm.union_left ac.symm).symm
-
-lemma separate_of_singletons (sep : ∀ a b, separate ({a} : finset α) {b}) :
-  (∀ s t, separate (s : finset α) t) :=
-finset.induction_on_union separate (λ s t, symm) empty_right sep (λ _ _ _, union_left)
 
 end separate
 
@@ -224,6 +215,25 @@ begin
     have : ¬ (z, z) ∈ diagonal α := this (mk_mem_prod zU zV),
     exact this rfl },
 end
+
+section separate
+
+open separate finset
+
+lemma finset_disjoint_finset_opens_of_t2 [t2_space α] :
+  ∀ (s t : finset α), disjoint s t → separate s t :=
+begin
+  refine induction_on_union _ (λ a b hi d, (hi d.symm).symm) (λ a d, empty_right a) (λ a b ab, _) _,
+  { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation
+      (by { rw [ne.def, ← finset.mem_singleton], exact (disjoint_singleton.mp ab.symm) }),
+    refine ⟨U, V, oU, oV, λ f hf, _, λ f hf, _, set.disjoint_iff_inter_eq_empty.mpr UV⟩;
+    rwa [finset.mem_singleton.mp hf] },
+  { refine λ a b c ac bc d, union_left (ac _) (bc _),
+    { exact disjoint_of_subset_left (a.subset_union_left b) d },
+    { exact disjoint_of_subset_left (a.subset_union_right b) d } },
+end
+
+end separate
 
 @[simp] lemma nhds_eq_nhds_iff {a b : α} [t2_space α] : 𝓝 a = 𝓝 b ↔ a = b :=
 ⟨assume h, eq_of_nhds_ne_bot $ by rw [h, inf_idem]; exact nhds_ne_bot, assume h, h ▸ rfl⟩

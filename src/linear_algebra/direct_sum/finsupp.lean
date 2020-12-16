@@ -59,7 +59,7 @@ linear_equiv.trans
   (tensor_product.congr (finsupp_lequiv_direct_sum R M ι) (finsupp_lequiv_direct_sum R N κ)) $
 linear_equiv.trans
   (tensor_product.direct_sum R ι κ (λ _, M) (λ _, N))
-  ((finsupp_lequiv_direct_sum R (M ⊗[R] N) (ι × κ)).symm : _)  -- timeout without ( : _)
+  (finsupp_lequiv_direct_sum R (M ⊗[R] N) (ι × κ)).symm
 
 @[simp] theorem finsupp_tensor_finsupp_single (R M N ι κ : Sort*) [comm_ring R]
   [add_comm_group M] [module R M] [add_comm_group N] [module R N]

@@ -871,7 +871,8 @@ instance has_inv : has_inv c.quotient :=
 an `add_group`."]
 instance group : group c.quotient :=
 { inv := λ x, x⁻¹,
-  mul_left_inv := λ x, show x⁻¹ * x = 1, from quotient.induction_on' x $ λ _, congr_arg coe $ mul_left_inv _,
+  mul_left_inv := λ x, show x⁻¹ * x = 1,
+    from quotient.induction_on' x $ λ _, congr_arg coe $ mul_left_inv _,
   .. con.monoid c}
 
 end groups

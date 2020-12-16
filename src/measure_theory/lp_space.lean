@@ -173,7 +173,7 @@ begin
   rwa [measure_univ, ennreal.one_rpow, mul_one] at h_le_μ,
 end
 
-lemma mem_ℒp.mem_ℒp_of_le {p q : ℝ} {μ : measure α} [finite_measure μ] {f : α → E}
+lemma mem_ℒp.mem_ℒp_of_exponent_le {p q : ℝ} {μ : measure α} [finite_measure μ] {f : α → E}
   (hfq : mem_ℒp f q μ) (hp1 : 1 ≤ p) (hpq : p ≤ q) :
   mem_ℒp f p μ :=
 begin
@@ -207,7 +207,7 @@ lemma mem_ℒp.integrable (hp1 : 1 ≤ p) {f : α → E} [finite_measure μ] (hf
   integrable f μ :=
 begin
   rw ←mem_ℒp_one_iff_integrable,
-  exact hfp.mem_ℒp_of_le (le_refl 1) hp1,
+  exact hfp.mem_ℒp_of_exponent_le (le_refl 1) hp1,
 end
 
 section second_countable_topology

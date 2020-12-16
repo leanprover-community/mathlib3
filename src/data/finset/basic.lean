@@ -967,8 +967,7 @@ lemma update_eq_piecewise {β : Type*} [decidable_eq α] (f : α → β) (i : α
 (piecewise_singleton _ _ _).symm
 
 lemma update_piecewise [decidable_eq α] (i : α) (v : δ i) :
-  update (s.piecewise f g) i v =
-    s.piecewise (update f i v) (update g i v) :=
+  update (s.piecewise f g) i v = s.piecewise (update f i v) (update g i v) :=
 begin
   ext j,
   rcases em (j = i) with (rfl|hj); by_cases hs : j ∈ s; simp *
@@ -1650,7 +1649,7 @@ by rw [subtype_map, filter_true_of_mem h]
 `embedding.subtype`, all elements of the result have the property of
 the subtype. -/
 lemma property_of_mem_map_subtype {p : α → Prop} (s : finset {x // p x}) {a : α}
-    (h : a ∈ s.map (embedding.subtype _)) : p a :=
+  (h : a ∈ s.map (embedding.subtype _)) : p a :=
 begin
   rcases mem_map.1 h with ⟨x, hx, rfl⟩,
   exact x.2
@@ -1660,14 +1659,14 @@ end
 `embedding.subtype`, the result does not contain any value that does
 not satisfy the property of the subtype. -/
 lemma not_mem_map_subtype_of_not_property {p : α → Prop} (s : finset {x // p x})
-    {a : α} (h : ¬ p a) : a ∉ (s.map (embedding.subtype _)) :=
+  {a : α} (h : ¬ p a) : a ∉ (s.map (embedding.subtype _)) :=
 mt s.property_of_mem_map_subtype h
 
 /-- If a `finset` of a subtype is converted to the main type with
 `embedding.subtype`, the result is a subset of the set giving the
 subtype. -/
 lemma map_subtype_subset {t : set α} (s : finset t) :
-    ↑(s.map (embedding.subtype _)) ⊆ t :=
+  ↑(s.map (embedding.subtype _)) ⊆ t :=
 begin
   intros a ha,
   rw mem_coe at ha,

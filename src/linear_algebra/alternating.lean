@@ -470,9 +470,6 @@ begin
   { use val, rw ←h', simp, }
 end
 
-@[simp] lemma quotient.lift_on'_beta {α β : Type*} {s : setoid α} (f : α → β) (h) (x : α) :
-  (@quotient.mk' _ s x).lift_on' f h = f x := rfl
-
 @[simp] lemma mul_action.quotient.smul_mk' {G : Type*} [group G] {s : subgroup G} (a x : G) :
   (a • quotient.mk' x : quotient_group.quotient s) = quotient.mk' (a * x) := rfl
 

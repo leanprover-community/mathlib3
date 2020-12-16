@@ -1684,7 +1684,7 @@ h.has_fderiv_within_at.neg.differentiable_within_at
   differentiable_within_at 𝕜 (λy, -f y) s x ↔ differentiable_within_at 𝕜 f s x :=
 ⟨λ h, by simpa only [neg_neg] using h.neg, λ h, h.neg⟩
 
-@[simp] lemma differentiable_at.neg (h : differentiable_at 𝕜 f x) :
+lemma differentiable_at.neg (h : differentiable_at 𝕜 f x) :
   differentiable_at 𝕜 (λy, -f y) x :=
 h.has_fderiv_at.neg.differentiable_at
 
@@ -1700,7 +1700,7 @@ lemma differentiable_on.neg (h : differentiable_on 𝕜 f s) :
   differentiable_on 𝕜 (λy, -f y) s ↔ differentiable_on 𝕜 f s :=
 ⟨λ h, by simpa only [neg_neg] using h.neg, λ h, h.neg⟩
 
-@[simp] lemma differentiable.neg (h : differentiable 𝕜 f) :
+lemma differentiable.neg (h : differentiable 𝕜 f) :
   differentiable 𝕜 (λy, -f y) :=
 λx, (h x).neg
 

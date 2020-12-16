@@ -140,8 +140,8 @@ any homomorphism `R →+* S` can be extended to a homomorphism `R →+* perfecti
     map_zero' := ext $ λ n, (congr_arg f $ ring_hom.iterate_map_zero _ _).trans f.map_zero,
     map_add' := λ x y, ext $ λ n, (congr_arg f $ ring_hom.iterate_map_add _ _ _ _).trans $
       f.map_add _ _ },
-  left_inv := λ f, ring_hom.ext $ λ r, rfl,
   inv_fun := ring_hom.comp $ coeff S p 0,
+  left_inv := λ f, ring_hom.ext $ λ r, rfl,
   right_inv := λ f, ring_hom.ext $ λ r, ext $ λ n,
     show coeff S p 0 (f (_root_.pth_root R p ^[n] r)) = coeff S p n (f r),
     by rw [← coeff_iterate_frobenius _ 0 n, zero_add, ← ring_hom.map_iterate_frobenius,
@@ -167,8 +167,8 @@ variables {P : Type u₂} [comm_semiring P] [char_p P p] [perfect_ring P p]
 
 /-- Create a `perfection_map` from an isomorphism to the perfection. -/
 @[simps] def mk' (f : P →+* R) (g : P ≃+* ring.perfection R p)
-  (hfg : perfection.extend p P R f = g)
-  : perfection_map p R P :=
+  (hfg : perfection.extend p P R f = g) :
+  perfection_map p R P :=
 { injective := λ x y hxy, g.injective $ (ring_hom.ext_iff.1 hfg x).symm.trans $
     eq.symm $ (ring_hom.ext_iff.1 hfg y).symm.trans $ perfection.ext $ λ n, (hxy n).symm,
   surjective := λ y hy, let ⟨x, hx⟩ := g.surjective ⟨y, hy⟩ in

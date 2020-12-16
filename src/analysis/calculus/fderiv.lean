@@ -1495,7 +1495,7 @@ lemma differentiable_within_at.add_const
   differentiable_within_at 𝕜 (λ y, f y + c) s x :=
 (hf.has_fderiv_within_at.add_const c).differentiable_within_at
 
-@[simp] lemma differentiable_within_at_add_const (c : F) :
+@[simp] lemma differentiable_within_at_add_const_iff (c : F) :
   differentiable_within_at 𝕜 (λ y, f y + c) s x ↔ differentiable_within_at 𝕜 f s x :=
 ⟨λ h, by simpa using h.add_const (-c), λ h, h.add_const c⟩
 
@@ -1504,7 +1504,7 @@ lemma differentiable_at.add_const
   differentiable_at 𝕜 (λ y, f y + c) x :=
 (hf.has_fderiv_at.add_const c).differentiable_at
 
-@[simp] lemma differentiable_at_add_const (c : F) :
+@[simp] lemma differentiable_at_add_const_iff (c : F) :
   differentiable_at 𝕜 (λ y, f y + c) x ↔ differentiable_at 𝕜 f x :=
 ⟨λ h, by simpa using h.add_const (-c), λ h, h.add_const c⟩
 
@@ -1513,7 +1513,7 @@ lemma differentiable_on.add_const
   differentiable_on 𝕜 (λy, f y + c) s :=
 λx hx, (hf x hx).add_const c
 
-@[simp] lemma differentiable_on_add_const (c : F) :
+@[simp] lemma differentiable_on_add_const_iff (c : F) :
   differentiable_on 𝕜 (λ y, f y + c) s ↔ differentiable_on 𝕜 f s :=
 ⟨λ h, by simpa using h.add_const (-c), λ h, h.add_const c⟩
 
@@ -1522,7 +1522,7 @@ lemma differentiable.add_const
   differentiable 𝕜 (λy, f y + c) :=
 λx, (hf x).add_const c
 
-@[simp] lemma differentiable_add_const (c : F) :
+@[simp] lemma differentiable_add_const_iff (c : F) :
   differentiable 𝕜 (λ y, f y + c) ↔ differentiable 𝕜 f :=
 ⟨λ h, by simpa using h.add_const (-c), λ h, h.add_const c⟩
 
@@ -1560,7 +1560,7 @@ lemma differentiable_within_at.const_add
   differentiable_within_at 𝕜 (λ y, c + f y) s x :=
 (hf.has_fderiv_within_at.const_add c).differentiable_within_at
 
-@[simp] lemma differentiable_within_at_const_add (c : F) :
+@[simp] lemma differentiable_within_at_const_add_iff (c : F) :
   differentiable_within_at 𝕜 (λ y, c + f y) s x ↔ differentiable_within_at 𝕜 f s x :=
 ⟨λ h, by simpa using h.const_add (-c), λ h, h.const_add c⟩
 
@@ -1569,7 +1569,7 @@ lemma differentiable_at.const_add
   differentiable_at 𝕜 (λ y, c + f y) x :=
 (hf.has_fderiv_at.const_add c).differentiable_at
 
-@[simp] lemma differentiable_at_const_add (c : F) :
+@[simp] lemma differentiable_at_const_add_iff (c : F) :
   differentiable_at 𝕜 (λ y, c + f y) x ↔ differentiable_at 𝕜 f x :=
 ⟨λ h, by simpa using h.const_add (-c), λ h, h.const_add c⟩
 
@@ -1577,7 +1577,7 @@ lemma differentiable_on.const_add (hf : differentiable_on 𝕜 f s) (c : F) :
   differentiable_on 𝕜 (λy, c + f y) s :=
 λx hx, (hf x hx).const_add c
 
-@[simp] lemma differentiable_on_const_add (c : F) :
+@[simp] lemma differentiable_on_const_add_iff (c : F) :
   differentiable_on 𝕜 (λ y, c + f y) s ↔ differentiable_on 𝕜 f s :=
 ⟨λ h, by simpa using h.const_add (-c), λ h, h.const_add c⟩
 
@@ -1585,7 +1585,7 @@ lemma differentiable.const_add (hf : differentiable 𝕜 f) (c : F) :
   differentiable 𝕜 (λy, c + f y) :=
 λx, (hf x).const_add c
 
-@[simp] lemma differentiable_const_add (c : F) :
+@[simp] lemma differentiable_const_add_iff (c : F) :
   differentiable 𝕜 (λ y, c + f y) ↔ differentiable 𝕜 f :=
 ⟨λ h, by simpa using h.const_add (-c), λ h, h.const_add c⟩
 
@@ -1797,33 +1797,33 @@ lemma differentiable_within_at.sub_const
   differentiable_within_at 𝕜 (λ y, f y - c) s x :=
 (hf.has_fderiv_within_at.sub_const c).differentiable_within_at
 
-@[simp] lemma differentiable_within_at_sub_const (c : F) :
+@[simp] lemma differentiable_within_at_sub_const_iff (c : F) :
   differentiable_within_at 𝕜 (λ y, f y - c) s x ↔ differentiable_within_at 𝕜 f s x :=
-by simp only [sub_eq_add_neg, differentiable_within_at_add_const]
+by simp only [sub_eq_add_neg, differentiable_within_at_add_const_iff]
 
 lemma differentiable_at.sub_const (hf : differentiable_at 𝕜 f x) (c : F) :
   differentiable_at 𝕜 (λ y, f y - c) x :=
 (hf.has_fderiv_at.sub_const c).differentiable_at
 
-@[simp] lemma differentiable_at_sub_const (c : F) :
+@[simp] lemma differentiable_at_sub_const_iff (c : F) :
   differentiable_at 𝕜 (λ y, f y - c) x ↔ differentiable_at 𝕜 f x :=
-by simp only [sub_eq_add_neg, differentiable_at_add_const]
+by simp only [sub_eq_add_neg, differentiable_at_add_const_iff]
 
 lemma differentiable_on.sub_const (hf : differentiable_on 𝕜 f s) (c : F) :
   differentiable_on 𝕜 (λy, f y - c) s :=
 λx hx, (hf x hx).sub_const c
 
-@[simp] lemma differentiable_on_sub_const (c : F) :
+@[simp] lemma differentiable_on_sub_const_iff (c : F) :
   differentiable_on 𝕜 (λ y, f y - c) s ↔ differentiable_on 𝕜 f s :=
-by simp only [sub_eq_add_neg, differentiable_on_add_const]
+by simp only [sub_eq_add_neg, differentiable_on_add_const_iff]
 
 lemma differentiable.sub_const (hf : differentiable 𝕜 f) (c : F) :
   differentiable 𝕜 (λy, f y - c) :=
 λx, (hf x).sub_const c
 
-@[simp] lemma differentiable_sub_const (c : F) :
+@[simp] lemma differentiable_sub_const_iff (c : F) :
   differentiable 𝕜 (λ y, f y - c) ↔ differentiable 𝕜 f :=
-by simp only [sub_eq_add_neg, differentiable_add_const]
+by simp only [sub_eq_add_neg, differentiable_add_const_iff]
 
 lemma fderiv_within_sub_const (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
   fderiv_within 𝕜 (λy, f y - c) s x = fderiv_within 𝕜 f s x :=
@@ -1857,7 +1857,7 @@ lemma differentiable_within_at.const_sub
   differentiable_within_at 𝕜 (λ y, c - f y) s x :=
 (hf.has_fderiv_within_at.const_sub c).differentiable_within_at
 
-@[simp] lemma differentiable_within_at_const_sub (c : F) :
+@[simp] lemma differentiable_within_at_const_sub_iff (c : F) :
   differentiable_within_at 𝕜 (λ y, c - f y) s x ↔ differentiable_within_at 𝕜 f s x :=
 by simp [sub_eq_add_neg]
 
@@ -1866,7 +1866,7 @@ lemma differentiable_at.const_sub
   differentiable_at 𝕜 (λ y, c - f y) x :=
 (hf.has_fderiv_at.const_sub c).differentiable_at
 
-@[simp] lemma differentiable_at_const_sub (c : F) :
+@[simp] lemma differentiable_at_const_sub_iff (c : F) :
   differentiable_at 𝕜 (λ y, c - f y) x ↔ differentiable_at 𝕜 f x :=
 by simp [sub_eq_add_neg]
 
@@ -1874,7 +1874,7 @@ lemma differentiable_on.const_sub (hf : differentiable_on 𝕜 f s) (c : F) :
   differentiable_on 𝕜 (λy, c - f y) s :=
 λx hx, (hf x hx).const_sub c
 
-@[simp] lemma differentiable_on_const_sub (c : F) :
+@[simp] lemma differentiable_on_const_sub_iff (c : F) :
   differentiable_on 𝕜 (λ y, c - f y) s ↔ differentiable_on 𝕜 f s :=
 by simp [sub_eq_add_neg]
 
@@ -1882,7 +1882,7 @@ lemma differentiable.const_sub (hf : differentiable 𝕜 f) (c : F) :
   differentiable 𝕜 (λy, c - f y) :=
 λx, (hf x).const_sub c
 
-@[simp] lemma differentiablet_const_sub (c : F) :
+@[simp] lemma differentiable_const_sub_iff (c : F) :
   differentiable 𝕜 (λ y, c - f y) ↔ differentiable 𝕜 f :=
 by simp [sub_eq_add_neg]
 

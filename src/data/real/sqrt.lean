@@ -76,6 +76,8 @@ lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := sqrt_hom.map_inv
 
 lemma sqrt_div (x y : ℝ≥0) : sqrt (x / y) = sqrt x / sqrt y := sqrt_hom.map_div x y
 
+lemma continuous_sqrt : continuous sqrt := sqrt.continuous
+
 end nnreal
 
 namespace real

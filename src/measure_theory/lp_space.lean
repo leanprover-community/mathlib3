@@ -165,7 +165,7 @@ begin
   end
 end
 
-lemma snorm_le_of_exponent_le {p q : ℝ} (hp1 : 1 ≤ p) (hpq : p ≤ q) (μ : measure α)
+lemma snorm_le_snorm_of_exponent_le {p q : ℝ} (hp1 : 1 ≤ p) (hpq : p ≤ q) (μ : measure α)
   [probability_measure μ] {f : α → E} (hf : measurable f) :
   snorm f p μ ≤ snorm f q μ :=
 begin

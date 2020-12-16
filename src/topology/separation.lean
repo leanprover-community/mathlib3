@@ -33,11 +33,11 @@ end
 lemma separate.comm (s t : finset α) : separate s t ↔ separate t s :=
 ⟨separate.symm, separate.symm⟩
 
-lemma separate.empty_right : ∀ {a : finset α}, separate a ∅ :=
-λ a, ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
+lemma separate.empty_right (a : finset α) : separate a ∅ :=
+⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
 
-lemma separate.empty_left : ∀ {a : finset α}, separate ∅ a :=
-λ _, separate.empty_right.symm
+lemma separate.empty_left (a : finset α) : separate ∅ a :=
+(separate.empty_right _).symm
 
 lemma separate.union_left {a b c : finset α} : separate a c → separate b c → separate (a ∪ b) c :=
 begin
@@ -65,8 +65,8 @@ end
 
 lemma separate_of_singletons (sep : ∀ a b, separate ({a} : finset α) {b}) :
   (∀ s t, separate (s : finset α) t) :=
-finset.induction_on_union separate (λ _ _, separate.symm) (λ _, separate.empty_right)
-  sep (λ _ _ _, separate.union_left)
+finset.induction_on_union separate (λ s t, (separate.comm s t).mp) separate.empty_right sep
+  (λ _ _ _, separate.union_left)
 
 /-- A T₀ space, also known as a Kolmogorov space, is a topological space
   where for every pair `x ≠ y`, there is an open set containing one but not the other. -/

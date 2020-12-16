@@ -24,7 +24,7 @@ def separate : finset α → finset α → Prop :=
   λ (s t : finset α), ∃ U V : (set α), (is_open U) ∧ is_open V ∧
   (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V) ∧ disjoint U V
 
-lemma separate.symm {s t : finset α} : separate s t → separate t s :=
+@[symm] lemma separate.symm {s t : finset α} : separate s t → separate t s :=
 begin
   rintros ⟨U, V, oU, oV, aU, bV, UV⟩,
   exact ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩
@@ -37,7 +37,7 @@ lemma separate.empty_right : ∀ {a : finset α}, separate a ∅ :=
 λ a, ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
 
 lemma separate.empty_left : ∀ {a : finset α}, separate ∅ a :=
-λ _, separate.symm separate.empty_right
+λ _, separate.empty_right.symm
 
 lemma separate.union_left :
   ∀ {a b c : finset α}, separate a c → separate b c → separate (a ∪ b) c :=
@@ -53,9 +53,9 @@ begin
       disjoint_of_subset_right (inter_subset_right _ _) WX⟩ },
 end
 
-lemma separate.union_right :
-  ∀ {a b c : finset α}, separate a b → separate a c → separate a (b ∪ c) :=
-λ _ _ _ ab ac, separate.symm $ (separate.symm ab).union_left (separate.symm ac)
+lemma separate.union_right {a b c : finset α} (ab : separate a b) (ac : separate a c) :
+  separate a (b ∪ c) :=
+(ab.symm.union_left ac.symm).symm
 
 lemma ne_of_separate_of_singletons {a b : α} : separate ({a} : finset α) {b} → a ≠ b :=
 begin

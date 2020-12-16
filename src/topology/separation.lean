@@ -24,22 +24,26 @@ def separate : finset α → finset α → Prop :=
   λ (s t : finset α), ∃ U V : (set α), (is_open U) ∧ is_open V ∧
   (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V) ∧ disjoint U V
 
-@[symm] lemma separate.symm {s t : finset α} : separate s t → separate t s :=
+namespace separate
+
+open separate
+
+@[symm] lemma symm {s t : finset α} : separate s t → separate t s :=
 begin
   rintros ⟨U, V, oU, oV, aU, bV, UV⟩,
   exact ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩
 end
 
-lemma separate.comm (s t : finset α) : separate s t ↔ separate t s :=
-⟨separate.symm, separate.symm⟩
+lemma comm (s t : finset α) : separate s t ↔ separate t s :=
+⟨symm, symm⟩
 
-lemma separate.empty_right (a : finset α) : separate a ∅ :=
+lemma empty_right (a : finset α) : separate a ∅ :=
 ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
 
-lemma separate.empty_left (a : finset α) : separate ∅ a :=
-(separate.empty_right _).symm
+lemma empty_left (a : finset α) : separate ∅ a :=
+(empty_right _).symm
 
-lemma separate.union_left {a b c : finset α} : separate a c → separate b c → separate (a ∪ b) c :=
+lemma union_left {a b c : finset α} : separate a c → separate b c → separate (a ∪ b) c :=
 begin
   rintros ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
   refine ⟨U ∪ W, V ∩ X, is_open_union oU oW, is_open_inter oV oX,
@@ -52,7 +56,7 @@ begin
       disjoint_of_subset_right (inter_subset_right _ _) WX⟩ },
 end
 
-lemma separate.union_right {a b c : finset α} (ab : separate a b) (ac : separate a c) :
+lemma union_right {a b c : finset α} (ab : separate a b) (ac : separate a c) :
   separate a (b ∪ c) :=
 (ab.symm.union_left ac.symm).symm
 
@@ -65,8 +69,9 @@ end
 
 lemma separate_of_singletons (sep : ∀ a b, separate ({a} : finset α) {b}) :
   (∀ s t, separate (s : finset α) t) :=
-finset.induction_on_union separate (λ s t, (separate.comm s t).mp) separate.empty_right sep
-  (λ _ _ _, separate.union_left)
+finset.induction_on_union separate (λ s t, symm) empty_right sep (λ _ _ _, union_left)
+
+end separate
 
 /-- A T₀ space, also known as a Kolmogorov space, is a topological space
   where for every pair `x ≠ y`, there is an open set containing one but not the other. -/

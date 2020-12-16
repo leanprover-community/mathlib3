@@ -182,6 +182,9 @@ variables (p R P)
 instance : has_coe (perfection_map p R P) (P →+* R) :=
 ⟨to_ring_hom⟩
 
+instance : has_coe_to_fun (perfection_map p R P) :=
+⟨λ _, P → R, λ f, f⟩
+
 /-- The canonical perfection map from the perfection of a ring. -/
 @[simps {rhs_md := semireducible}] def of : perfection_map p R (ring.perfection R p) :=
 mk' (perfection.coeff R p 0) (ring_equiv.refl _) $

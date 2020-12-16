@@ -260,7 +260,10 @@ theorem smul.aux_of (r : R') (m : M) (n : N) :
   smul.aux r (free_add_monoid.of (m, n)) = (r • m) ⊗ₜ[R] n :=
 rfl
 
-instance : has_scalar R' (M ⊗[R] N) :=
+-- Most of the time we want the instance below this one, which is easier for typeclass resolution
+-- to find.
+@[priority 900]
+instance has_scalar' : has_scalar R' (M ⊗[R] N) :=
 ⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (smul.aux r : _ →+ M ⊗[R] N) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
 | _, _, (eqv.of_zero_left n)       := (add_con.ker_rel _).2 $
@@ -277,6 +280,8 @@ add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end⟩
 
+instance : has_scalar R (M ⊗[R] N) := tensor_product.has_scalar'
+
 protected theorem smul_zero (r : R') : (r • 0 : M ⊗[R] N) = 0 :=
 add_monoid_hom.map_zero _
 
@@ -288,7 +293,10 @@ theorem smul_tmul' (r : R') (m : M) (n : N) :
   r • (m ⊗ₜ n : M ⊗[R] N) = (r • m) ⊗ₜ n :=
 rfl
 
-instance : semimodule R' (M ⊗[R] N) :=
+-- Most of the time we want the instance below this one, which is easier for typeclass resolution
+-- to find.
+@[priority 900]
+instance semimodule' : semimodule R' (M ⊗[R] N) :=
 { smul := (•),
   smul_add := λ r x y, tensor_product.smul_add r x y,
   mul_smul := λ r s x, tensor_product.induction_on x
@@ -308,6 +316,8 @@ instance : semimodule R' (M ⊗[R] N) :=
     (by rw tensor_product.smul_zero)
     (λ m n, by rw [smul_tmul', zero_smul, zero_tmul])
     (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy, add_zero]) }
+
+instance : semimodule R (M ⊗[R] N) := tensor_product.semimodule'
 
 @[simp] lemma tmul_smul (r : R') (x : M) (y : N) : x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm

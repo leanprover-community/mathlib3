@@ -78,7 +78,7 @@ lemma asymptotics.is_O.trans_tendsto_norm_at_top {α β : Type*} [normed_linear_
 begin
   rcases huv.exists_pos with ⟨c, hc, hcuv⟩,
   rw is_O_with at hcuv,
-  convert tendsto_at_top_div hc (tendsto_at_top_mono' l hcuv hu),
+  convert tendsto.at_top_div_const hc (tendsto_at_top_mono' l hcuv hu),
   ext x,
   rw mul_div_cancel_left _ hc.ne.symm,
 end

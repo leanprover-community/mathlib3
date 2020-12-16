@@ -5,6 +5,7 @@ Author: Mario Carneiro
 -/
 import data.finset.lattice
 import data.multiset.sort
+import data.list.nodup_equiv_fin
 
 /-!
 # Construct a sorted list from a finset.
@@ -44,12 +45,13 @@ multiset.length_sort _
 
 end sort
 
+set_option trace.class_instances false
+
 section sort_linear_order
 
 variables [linear_order α]
 
-theorem sort_sorted_lt (s : finset α) :
-  list.sorted (<) (sort (≤) s) :=
+theorem sort_sorted_lt (s : finset α) : list.sorted (<) (sort (≤) s) :=
 (sort_sorted _ _).imp₂ (@lt_of_le_of_ne _ _) (sort_nodup _ _)
 
 lemma sorted_zero_eq_min'_aux (s : finset α) (h : 0 < (s.sort (≤)).length) (H : s.nonempty) :
@@ -104,107 +106,41 @@ lemma max'_eq_sorted_last {s : finset α} {h : s.nonempty} :
 is the increasing bijection between `fin k` and `s` as an `α`-valued map. Here, `h` is a proof that
 the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
 casting issues in further uses of this function. -/
-def mono_of_fin (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) : α :=
-have A : (i : ℕ) < (s.sort (≤)).length, by simpa [h] using i.2,
-(s.sort (≤)).nth_le i A
+def mono_of_fin (s : finset α) {k : ℕ} (h : s.card = k) : fin k ≃o (s : set α) :=
+order_iso.trans (fin.cast ((length_sort (≤)).trans h).symm) $
+  (s.sort_sorted_lt.nth_le_iso _).trans $ order_iso.set_congr _ _ $
+    set.ext $ λ x, mem_sort _
 
-lemma mono_of_fin_strict_mono (s : finset α) {k : ℕ} (h : s.card = k) :
-  strict_mono (s.mono_of_fin h) :=
-begin
-  assume i j hij,
-  exact list.pairwise_iff_nth_le.1 s.sort_sorted_lt _ _ _ hij
-end
+lemma mono_of_fin_apply (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) :
+  ↑(s.mono_of_fin h i) = (s.sort (≤)).nth_le i (by { rw [length_sort, h], exact i.2 }) :=
+rfl
 
-lemma mono_of_fin_bij_on (s : finset α) {k : ℕ} (h : s.card = k) :
-  set.bij_on (s.mono_of_fin h) set.univ ↑s :=
-begin
-  have A : ∀ j, j ∈ s ↔ j ∈ (s.sort (≤)) := λ j, by simp,
-  apply set.bij_on.mk,
-  { assume i hi,
-    simp only [mono_of_fin, set.mem_preimage, mem_coe, list.nth_le, A],
-    exact list.nth_le_mem _ _ _ },
-  { exact ((mono_of_fin_strict_mono s h).injective).inj_on _ },
-  { assume x hx,
-    simp only [mem_coe, A] at hx,
-    obtain ⟨i, il, hi⟩ : ∃ (i : ℕ) (h : i < (s.sort (≤)).length), (s.sort (≤)).nth_le i h = x :=
-      list.nth_le_of_mem hx,
-    simp [h] at il,
-    exact ⟨⟨i, il⟩, set.mem_univ _, hi⟩ }
-end
-
-lemma mono_of_fin_injective (s : finset α) {k : ℕ} (h : s.card = k) :
-  function.injective (s.mono_of_fin h) :=
-set.injective_iff_inj_on_univ.mpr (s.mono_of_fin_bij_on h).inj_on
+lemma mono_of_fin_symm_apply (s : finset α) {k : ℕ} (h : s.card = k) (x : (s : set α)) :
+  ↑((s.mono_of_fin h).symm x) = (s.sort (≤)).index_of x :=
+rfl
 
 /-- The bijection `mono_of_fin s h` sends `0` to the minimum of `s`. -/
 lemma mono_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
-  mono_of_fin s h ⟨0, hz⟩ = s.min' (card_pos.mp (h.symm ▸ hz)) :=
-begin
-  apply le_antisymm,
-  { have : min' s _ ∈ s := min'_mem s _,
-    rcases (mono_of_fin_bij_on s h).surj_on this with ⟨a, _, ha⟩,
-    rw ← ha,
-    apply (mono_of_fin_strict_mono s h).monotone,
-    exact zero_le a.val },
-  { have : mono_of_fin s h ⟨0, hz⟩ ∈ s := (mono_of_fin_bij_on s h).maps_to (set.mem_univ _),
-    exact min'_le s _ this }
-end
+  ↑(mono_of_fin s h ⟨0, hz⟩) = s.min' (card_pos.mp (h.symm ▸ hz)) :=
+by simp only [mono_of_fin_apply, subtype.coe_mk, sorted_zero_eq_min']
 
 /-- The bijection `mono_of_fin s h` sends `k-1` to the maximum of `s`. -/
 lemma mono_of_fin_last {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
-  mono_of_fin s h ⟨k-1, buffer.lt_aux_2 hz⟩ = s.max' (card_pos.mp (h.symm ▸ hz)) :=
-begin
-  have h'' : k - 1 < k := buffer.lt_aux_2 hz,
-  apply le_antisymm,
-  { have : mono_of_fin s h ⟨k-1, h''⟩ ∈ s := (mono_of_fin_bij_on s h).maps_to (set.mem_univ _),
-    exact le_max' s _ this },
-  { have : max' s _ ∈ s := max'_mem s _,
-    rcases (mono_of_fin_bij_on s h).surj_on this with ⟨a, _, ha⟩,
-    rw ← ha,
-    apply (mono_of_fin_strict_mono s h).monotone,
-    exact le_pred_of_lt a.2},
-end
+  ↑(mono_of_fin s h ⟨k-1, buffer.lt_aux_2 hz⟩) = s.max' (card_pos.mp (h.symm ▸ hz)) :=
+by simp [mono_of_fin_apply, max'_eq_sorted_last, h]
 
 /-- `mono_of_fin {a} h` sends any argument to `a`. -/
-@[simp] lemma mono_of_fin_singleton (a : α) (i : fin 1) {h} :
-  mono_of_fin {a} h i = a :=
-by rw [subsingleton.elim i ⟨0, zero_lt_one⟩,
-       mono_of_fin_zero h zero_lt_one, min'_singleton]
-
-/-- The range of `mono_of_fin`. -/
-@[simp] lemma range_mono_of_fin {s : finset α} {k : ℕ} (h : s.card = k) :
-  set.range (s.mono_of_fin h) = ↑s :=
-begin
-  rw ←set.image_univ,
-  exact (mono_of_fin_bij_on s h).image_eq
-end
+@[simp] lemma mono_of_fin_singleton (a : α) (i : fin 1) :
+  ↑(mono_of_fin {a} (card_singleton a) i) = a :=
+by rw [subsingleton.elim i ⟨0, zero_lt_one⟩, mono_of_fin_zero _ zero_lt_one, min'_singleton]
 
 /-- Any increasing bijection between `fin k` and a finset of cardinality `k` has to coincide with
 the increasing bijection `mono_of_fin s h`. For a statement assuming only that `f` maps `univ` to
 `s`, see `mono_of_fin_unique'`.-/
 lemma mono_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fin k → α}
-  (hbij : set.bij_on f set.univ ↑s) (hmono : strict_mono f) : f = s.mono_of_fin h :=
+  (hbij : set.bij_on f set.univ ↑s) (hmono : strict_mono f) : f = coe ∘ s.mono_of_fin h :=
 begin
-  ext ⟨i, hi⟩,
-  induction i using nat.strong_induction_on with i IH,
-  rcases lt_trichotomy (f ⟨i, hi⟩) (mono_of_fin s h ⟨i, hi⟩) with H|H|H,
-  { have A : f ⟨i, hi⟩ ∈ ↑s := hbij.maps_to (set.mem_univ _),
-    rcases (mono_of_fin_bij_on s h).surj_on A with ⟨j, _, hj⟩,
-    rw ← hj at H,
-    have ji : j < ⟨i, hi⟩ := (mono_of_fin_strict_mono s h).lt_iff_lt.1 H,
-    have : f j = mono_of_fin s h j,
-      by { convert IH j ji (lt_trans ji hi), rw [fin.ext_iff, fin.coe_mk] },
-    rw ← this at hj,
-    exact (ne_of_lt (hmono ji) hj).elim },
-  { exact H },
-  { have A : mono_of_fin s h ⟨i, hi⟩ ∈ ↑s := (mono_of_fin_bij_on s h).maps_to (set.mem_univ _),
-    rcases hbij.surj_on A with ⟨j, _, hj⟩,
-    rw ← hj at H,
-    have ji : j < ⟨i, hi⟩ := hmono.lt_iff_lt.1 H,
-    have : f j = mono_of_fin s h j,
-      by { convert IH j ji (lt_trans ji hi), rw [fin.ext_iff, fin.coe_mk] },
-    rw this at hj,
-    exact (ne_of_lt (mono_of_fin_strict_mono s h ji) hj).elim }
+
 end
 
 /-- Any increasing map between `fin k` and a finset of cardinality `k` has to coincide with

@@ -385,6 +385,8 @@ theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x :=
 
 instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
 
+@[simp] lemma default_def (r : α → α → Prop) : default (r ≃r r) = rel_iso.refl r := rfl
+
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
 protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=
 ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
@@ -489,7 +491,7 @@ e.to_rel_embedding
 @[simp] lemma coe_to_order_embedding [has_le α] [has_le β] (e : α ≃o β) :
   ⇑(e.to_order_embedding) = e := rfl
 
-variables [preorder α] [preorder β]
+variables [preorder α] [preorder β] [preorder γ]
 
 protected lemma monotone (e : α ≃o β) : monotone e := e.to_order_embedding.monotone
 
@@ -517,6 +519,17 @@ e.to_equiv.apply_symm_apply x
 
 @[simp] lemma symm_apply_apply (e : α ≃o β) (x : α) : e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply x
+
+@[simp] lemma symm_symm (e : α ≃o β) : e.symm.symm = e := by { ext, refl }
+
+lemma symm_injective : injective (symm : (α ≃o β) → (β ≃o α)) :=
+λ e e' h, by rw [← e.symm_symm, h, e'.symm_symm]
+
+@[trans] def trans (e : α ≃o β) (e' : β ≃o γ) : α ≃o γ := e.trans e'
+
+@[simp] lemma coe_trans (e : α ≃o β) (e' : β ≃o γ) : ⇑(e.trans e') = e' ∘ e := rfl
+
+lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e' (e x) := rfl
 
 open set
 
@@ -625,15 +638,19 @@ protected def order_iso.dual [preorder α] [preorder β] (f : α ≃o β) :
 
 section lattice_isos
 
-lemma order_iso.map_bot [order_bot α] [order_bot β]
-  (f : α ≃o β) :
-  f ⊥ = ⊥ :=
-by { rw [eq_bot_iff, ← f.apply_symm_apply ⊥, ← f.map_rel_iff], apply bot_le, }
+lemma order_iso.map_bot' [partial_order α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+  (hx : ∀ x', x ≤ x') (hy : ∀ y', y ≤ y') : f x = y :=
+by { refine le_antisymm _ (hy _), rw [← f.apply_symm_apply y, ← f.map_rel_iff], apply hx }
 
-lemma order_iso.map_top [order_top α] [order_top β]
-  (f : α ≃o β) :
-  f ⊤ = ⊤ :=
-by { rw [eq_top_iff, ← f.apply_symm_apply ⊤, ← f.map_rel_iff], apply le_top, }
+lemma order_iso.map_bot [order_bot α] [order_bot β] (f : α ≃o β) : f ⊥ = ⊥ :=
+f.map_bot' (λ _, bot_le) (λ _, bot_le)
+
+lemma order_iso.map_top' [partial_order α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+  (hx : ∀ x', x' ≤ x) (hy : ∀ y', y' ≤ y) : f x = y :=
+f.dual.map_bot' hx hy
+
+lemma order_iso.map_top [order_top α] [order_top β] (f : α ≃o β) : f ⊤ = ⊤ :=
+f.dual.map_bot
 
 lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
   (f : α ↪o β) (x y : α) :
@@ -644,9 +661,8 @@ lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β]
   (f : α ≃o β) (x y : α) :
   f (x ⊓ y) = f x ⊓ f y :=
 begin
-  apply le_antisymm,
-  { apply f.to_order_embedding.map_inf_le },
-  { simpa [← f.symm.apply_le_apply] using f.symm.to_order_embedding.map_inf_le (f x) (f y) }
+  refine (f.to_order_embedding.map_inf_le x y).antisymm _,
+  simpa [← f.symm.apply_le_apply] using f.symm.to_order_embedding.map_inf_le (f x) (f y)
 end
 
 lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]

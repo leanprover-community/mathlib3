@@ -6,6 +6,7 @@ Authors: Robert Y. Lewis, Keeley Hoek
 import data.nat.cast
 import tactic.localized
 import order.rel_iso
+import order.complete_lattice
 
 /-!
 # The finite type with `n` elements
@@ -148,6 +149,9 @@ iff.rfl
 @[norm_cast, simp] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
 iff.rfl
 
+lemma exists_eq_succ (a : fin n) : ∃ m, n = m + 1 :=
+nat.exists_eq_succ_of_ne_zero $ ((nat.zero_le _).trans_lt a.2).ne'
+
 lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
@@ -254,12 +258,33 @@ lemma lt_iff_coe_lt_coe : a < b ↔ (a : ℕ) < b := iff.rfl
 
 lemma le_iff_coe_le_coe : a ≤ b ↔ (a : ℕ) ≤ b := iff.rfl
 
+lemma mk_lt_of_lt_coe {a : ℕ} (h : a < b) : (⟨a, h.trans b.is_lt⟩ : fin n) < b := h
+
+lemma mk_le_of_le_coe {a : ℕ} (h : a ≤ b) : (⟨a, h.trans_lt b.is_lt⟩ : fin n) ≤ b := h
+
 lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 
 @[simp] lemma coe_succ (j : fin n) : (j.succ : ℕ) = j + 1 :=
 by cases j; simp [fin.succ]
 
 lemma succ_pos (a : fin n) : (0 : fin (n + 1)) < a.succ := by simp [lt_iff_coe_lt_coe]
+
+/-- The greatest value of `fin (n+1)` -/
+def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
+
+@[simp, norm_cast] lemma coe_last (n : ℕ) : (last n : ℕ) = n := rfl
+
+lemma last_val (n : ℕ) : (last n).val = n := rfl
+
+theorem le_last (i : fin (n+1)) : i ≤ last n :=
+le_of_lt_succ i.is_lt
+
+instance : bounded_lattice (fin (n + 1)) :=
+{ top := last n,
+  le_top := le_last,
+  bot := 0,
+  bot_le := zero_le,
+  .. fin.linear_order, .. lattice_of_linear_order }
 
 /-- `fin.succ` as an `order_embedding` -/
 def succ_embedding (n : ℕ) : fin n ↪o fin (n + 1) :=
@@ -331,11 +356,6 @@ def coe_embedding (n) : (fin n) ↪o ℕ :=
 /-- The ordering on `fin n` is a well order. -/
 instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
 (coe_embedding n).is_well_order
-
-/-- The greatest value of `fin (n+1)` -/
-def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
-
-@[simp, norm_cast] lemma coe_last (n : ℕ) : (last n : ℕ) = n := rfl
 
 /-- `cast_lt i h` embeds `i` into a `fin` where `h` proves it belongs into.  -/
 def cast_lt (i : fin m) (h : i.1 < n) : fin n := ⟨i.1, h⟩
@@ -409,10 +429,28 @@ order_embedding.of_strict_mono (λ i, ⟨n + (i : ℕ), add_lt_add_left i.2 _⟩
 
 @[simp] lemma coe_nat_add (n : ℕ) {m : ℕ} (i : fin m) : (nat_add n i : ℕ) = n + i := rfl
 
-theorem le_last (i : fin (n+1)) : i ≤ last n :=
-le_of_lt_succ i.is_lt
+@[simp] lemma coe_order_iso_apply (e : fin n ≃o fin m) (i : fin n) : (e i : ℕ) = i :=
+begin
+  rcases i with ⟨i, hi⟩,
+  rw [subtype.coe_mk],
+  induction i using nat.strong_induction_on with i h,
+  refine le_antisymm (forall_lt_iff_le.1 $ λ j hj, _) (forall_lt_iff_le.1 $ λ j hj, _),
+  { have := e.symm.apply_lt_apply.2 (mk_lt_of_lt_coe hj),
+    rw e.symm_apply_apply at this,
+    convert this,
+    simpa using h _ this (e.symm _).is_lt },
+  { rwa [← h j hj (hj.trans hi), ← lt_iff_coe_lt_coe, e.apply_lt_apply] }
+end
 
-lemma last_val (n : ℕ) : (last n).val = n := rfl
+instance order_iso_subsingleton {α : Type*} [preorder α] : subsingleton (fin n ≃o α) :=
+⟨λ e e', by { ext i,
+  rw [← e.symm.apply_eq_iff_eq, e.symm_apply_apply, ← e'.trans_apply, ext_iff,
+    coe_order_iso_apply] }⟩
+
+instance order_iso_subsingleton' {α : Type*} [preorder α] : subsingleton (α ≃o fin n) :=
+order_iso.symm_injective.subsingleton
+
+instance order_iso_unique : unique (fin n ≃o fin n) := unique.mk' _
 
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 

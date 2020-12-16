@@ -475,7 +475,7 @@ def alg_hom.extend_scalars : @alg_hom B C D _ _ _ _ (f.restrict_domain B).to_rin
 
 variables {B}
 
-/-- alg_hom's from the top of a tower are equivalent to a pair of alg_homs -/
+/-- `alg_hom`s from the top of a tower are equivalent to a pair of `alg_hom`s. -/
 def alg_hom_equiv_sigma :
   (C →ₐ[A] D) ≃ Σ (f : B →ₐ[A] D), @alg_hom B C D _ _ _ _ f.to_ring_hom.to_algebra :=
 { to_fun := λ f, ⟨f.restrict_domain B, f.extend_scalars B⟩,

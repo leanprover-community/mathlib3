@@ -118,44 +118,44 @@ over all `i : ι`, multiplied by the coefficient `r`. -/
 def tprod_coeff (r : R) (f : Π i, s i) : ⨂[R] i, s i := add_con.mk' _ $ free_add_monoid.of (r, f)
 
 /-- `tprod R f` with `f : Π i, s i` is the tensor product of the vectors `f i` over all `i : ι`. -/
-def tprod (f : Π i, s i) : ⨂[R] i, s i := tprod_coef R 1 f
+def tprod (f : Π i, s i) : ⨂[R] i, s i := tprod_coeff R 1 f
 
 variables {R}
 
 notation `⨂ₜ[`:100 R`] ` binders `, ` r:(scoped:67 f, tprod R f) := r
 
-lemma zero_tprod_coef (f : Π i, s i) : tprod_coef R 0 f = 0 :=
+lemma zero_tprod_coeff (f : Π i, s i) : tprod_coeff R 0 f = 0 :=
 quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero_scalar _
 
-lemma zero_tprod_coef' (z : R) (f : Π i, s i) (i : ι) (hf: f i = 0) : tprod_coef R z f = 0 :=
+lemma zero_tprod_coeff' (z : R) (f : Π i, s i) (i : ι) (hf: f i = 0) : tprod_coeff R z f = 0 :=
 quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero _ _ i hf
 
 lemma zero_tprod (f : Π i, s i) (i : ι) (hf: f i = 0) : tprod R f = 0 :=
-zero_tprod_coef' 1 f i hf
+zero_tprod_coeff' 1 f i hf
 
 @[simp] lemma zero_tprod' (f : Π i, s i) (i : ι) : tprod R (update f i 0) = 0 :=
 zero_tprod _ i (update_same i 0 f)
 
-lemma add_tprod_coef (z : R) (f : Π i, s i) (i : ι) (m₁ m₂ : s i) :
-  tprod_coef R z (update f i m₁) + tprod_coef R z (update f i m₂) =
-    tprod_coef R z (update f i (m₁ + m₂)) :=
+lemma add_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (m₁ m₂ : s i) :
+  tprod_coeff R z (update f i m₁) + tprod_coeff R z (update f i m₂) =
+    tprod_coeff R z (update f i (m₁ + m₂)) :=
 quotient.sound' $ add_con_gen.rel.of _ _ (eqv.of_add z f i m₁ m₂)
 
-lemma add_tprod_coef' (z₁ z₂ : R) (f : Π i, s i) :
-  tprod_coef R z₁ f + tprod_coef R z₂ f = tprod_coef R (z₁ + z₂) f :=
+lemma add_tprod_coeff' (z₁ z₂ : R) (f : Π i, s i) :
+  tprod_coeff R z₁ f + tprod_coeff R z₂ f = tprod_coeff R (z₁ + z₂) f :=
 quotient.sound' $ add_con_gen.rel.of _ _ (eqv.of_add_scalar z₁ z₂ f)
 
 lemma add_tprod (f : Π i, s i) (i : ι) (m₁ m₂ : s i) :
   (⨂ₜ[R] j, (update f i m₁) j) + (⨂ₜ[R] j, (update f i m₂) j) = ⨂ₜ[R] j, (update f i (m₁ + m₂)) j :=
-add_tprod_coef 1 f i m₁ m₂
+add_tprod_coeff 1 f i m₁ m₂
 
-lemma smul_tprod_coef (z : R) (f : Π i, s i) (i : ι) (r : R) :
-  tprod_coef R z (update f i (r • f i)) = tprod_coef R (r * z) f :=
+lemma smul_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (r : R) :
+  tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r * z) f :=
 quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
 
 lemma smul_tprod_index (f : Π i, s i) (i j : ι) (r : R) :
   tprod R (update f i (r • f i)) = tprod R (update f j (r • f j)) :=
-by simp_rw [tprod, smul_tprod_coef]
+by simp_rw [tprod, smul_tprod_coeff]
 
 /-- Construct an `add_monoid_hom` from `(⨂[R] i, s i)` to some space `F` from a function
 `φ : (R × Π i, s i) → F` with the appropriate properties. -/
@@ -186,19 +186,19 @@ def lift_add_hom (φ : (R × Π i, s i) → F)
 end
 
 instance : has_scalar R (⨂[R] i, s i) :=
-⟨λ r, lift_add_hom (λ f : R × Π i, s i, tprod_coef R (r * f.1) f.2)
-  (λ r' f i hf, by simp_rw [zero_tprod_coef' _ f i hf])
-  (λ f, by simp [zero_tprod_coef])
-  (λ r' f i m₁ m₂, by simp [add_tprod_coef])
-  (λ r' r'' f, by simp [add_tprod_coef', mul_add])
-  (λ z f i r', by simp [smul_tprod_coef, (show r' * (r * z) = r * (r' * z), by ring)])⟩
+⟨λ r, lift_add_hom (λ f : R × Π i, s i, tprod_coeff R (r * f.1) f.2)
+  (λ r' f i hf, by simp_rw [zero_tprod_coeff' _ f i hf])
+  (λ f, by simp [zero_tprod_coeff])
+  (λ r' f i m₁ m₂, by simp [add_tprod_coeff])
+  (λ r' r'' f, by simp [add_tprod_coeff', mul_add])
+  (λ z f i r', by simp [smul_tprod_coeff, (show r' * (r * z) = r * (r' * z), by ring)])⟩
 
-lemma smul_tprod_coef' (r z : R) (f : Π i, s i) :
-  r • (tprod_coef R z f) = tprod_coef R (r • z) f := rfl
+lemma smul_tprod_coeff' (r z : R) (f : Π i, s i) :
+  r • (tprod_coeff R z f) = tprod_coeff R (r • z) f := rfl
 
 lemma smul_tprod (r : R) (f : Π i, s i) (i : ι) :
   r • (tprod R f) = tprod R (update f i (r • f i)) :=
-by simp [tprod, smul_tprod_coef' r 1 f, smul_tprod_coef]
+by simp [tprod, smul_tprod_coeff' r 1 f, smul_tprod_coeff]
 
 lemma smul_tprod' (r : R) (f : Π i, s i) (i : ι) (m : s i) :
   r • tprod R (update f i m) = tprod R (update f i (r • m)) :=
@@ -209,11 +209,11 @@ begin
   rw [h₁, smul_tprod r _ i, h₂],
 end
 
-lemma tprod_coef_eq_smul_tprod (z : R) (f : Π i, s i) : tprod_coef R z f = z • tprod R f :=
+lemma tprod_coeff_eq_smul_tprod (z : R) (f : Π i, s i) : tprod_coeff R z f = z • tprod R f :=
 begin
   have : z = z • (1 : R) := by rw [smul_eq_mul, mul_one],
   conv_lhs { rw [this] },
-  rw [←smul_tprod_coef', ←tprod],
+  rw [←smul_tprod_coeff', ←tprod],
 end
 
 protected theorem smul_zero (r : R) : (r • 0 : ⨂[R] i, s i) = 0 :=
@@ -232,11 +232,11 @@ protected theorem induction_on
 begin
   have C0 : C 0,
   { have h₁ := @C1 0 0,
-    rwa [tprod, smul_tprod_coef', zero_smul, zero_tprod_coef] at h₁ },
+    rwa [tprod, smul_tprod_coeff', zero_smul, zero_tprod_coeff] at h₁ },
   refine add_con.induction_on z (λ x, free_add_monoid.rec_on x C0 _),
   simp_rw add_con.coe_add,
   refine λ f y ih, Cp _ ih,
-  simp_rw [tprod, smul_tprod_coef', smul_eq_mul, mul_one] at C1,
+  simp_rw [tprod, smul_tprod_coeff', smul_eq_mul, mul_one] at C1,
   convert @C1 f.1 f.2,
   simp only [prod.mk.eta],
 end
@@ -245,12 +245,12 @@ end
 protected theorem induction_on'
   {C : (⨂[R] i, s i) → Prop}
   (z : ⨂[R] i, s i)
-  (C1 : ∀ {r : R} {f : Π i, s i}, C (tprod_coef R r f))
+  (C1 : ∀ {r : R} {f : Π i, s i}, C (tprod_coeff R r f))
   (Cp : ∀ {x y}, C x → C y → C (x + y)) : C z :=
 begin
   have C0 : C 0,
   { have h₁ := @C1 0 0,
-    rwa [zero_tprod_coef] at h₁ },
+    rwa [zero_tprod_coeff] at h₁ },
   refine add_con.induction_on z (λ x, free_add_monoid.rec_on x C0 _),
   simp_rw add_con.coe_add,
   refine λ f y ih, Cp _ ih,
@@ -265,19 +265,19 @@ instance : semimodule R (⨂[R] i, s i) :=
     begin
       refine pi_tensor_product.induction_on' x _ _,
       { intros r'' f,
-        simp [smul_tprod_coef', mul_assoc] },
+        simp [smul_tprod_coeff', mul_assoc] },
       { intros x y ihx ihy,
         simp_rw [pi_tensor_product.smul_add],
         rw [ihx, ihy] }
     end,
   one_smul := λ x, pi_tensor_product.induction_on' x
-    (λ f, by simp [smul_tprod_coef' _ _])
+    (λ f, by simp [smul_tprod_coeff' _ _])
     (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy]),
   add_smul := λ r r' x,
     begin
       refine pi_tensor_product.induction_on' x _ _,
       { intros r f,
-        simp_rw [smul_tprod_coef' _ _, add_smul, add_tprod_coef'] },
+        simp_rw [smul_tprod_coeff' _ _, add_smul, add_tprod_coeff'] },
       { intros x y ihx ihy,
         simp_rw pi_tensor_product.smul_add,
         rw [ihx, ihy, add_add_add_comm] }
@@ -287,8 +287,8 @@ instance : semimodule R (⨂[R] i, s i) :=
     begin
       refine pi_tensor_product.induction_on' x _ _,
       { intros r f,
-        rw [smul_tprod_coef' _ _, zero_smul],
-        exact zero_tprod_coef _ },
+        rw [smul_tprod_coeff' _ _, zero_smul],
+        exact zero_tprod_coeff _ },
       { intros x y ihx ihy,
         rw [pi_tensor_product.smul_add, ihx, ihy, add_zero] },
     end }
@@ -334,19 +334,19 @@ def lift_aux (φ : multilinear_map R s E) : (⨂[R] i, s i) →+ E :=
     (λ z f i r, by simp [φ.map_smul, smul_smul, mul_comm])
 
 lemma lift_aux_tprod (φ : multilinear_map R s E) (f : Π i, s i) : lift_aux φ (tprod R f) = φ f :=
-by simp only [lift_aux, lift_add_hom, tprod, tprod_coef, free_add_monoid.lift_eval_of,
+by simp only [lift_aux, lift_add_hom, tprod, tprod_coeff, free_add_monoid.lift_eval_of,
               one_smul, add_con.lift_mk']
 
-lemma lift_aux_tprod_coef (φ : multilinear_map R s E) (z : R) (f : Π i, s i) :
-  lift_aux φ (tprod_coef R z f) = z • φ f :=
-by simp [lift_aux, lift_add_hom, tprod_coef, free_add_monoid.lift_eval_of]
+lemma lift_aux_tprod_coeff (φ : multilinear_map R s E) (z : R) (f : Π i, s i) :
+  lift_aux φ (tprod_coeff R z f) = z • φ f :=
+by simp [lift_aux, lift_add_hom, tprod_coeff, free_add_monoid.lift_eval_of]
 
 lemma lift_aux.smul {φ : multilinear_map R s E} (r : R) (x : ⨂[R] i, s i) :
   lift_aux φ (r • x) = r • lift_aux φ x :=
 begin
   refine pi_tensor_product.induction_on' x _ _,
   { intros z f,
-    simp [smul_tprod_coef' r z f, lift_aux_tprod_coef, lift_aux_tprod_coef, smul_smul] },
+    simp [smul_tprod_coeff' r z f, lift_aux_tprod_coeff, lift_aux_tprod_coeff, smul_smul] },
   { intros z y ihz ihy,
     rw [smul_add, (lift_aux φ).map_add, ihz, ihy, (lift_aux φ).map_add, smul_add] }
 end
@@ -371,7 +371,7 @@ begin
   refine λ z,
     (pi_tensor_product.induction_on' z _ (λ x y hx hy, by rw [φ₁.map_add, φ₂.map_add, hx, hy])),
   { intros r f,
-    rw [tprod_coef_eq_smul_tprod, φ₁.map_smul, φ₂.map_smul],
+    rw [tprod_coeff_eq_smul_tprod, φ₁.map_smul, φ₂.map_smul],
     apply _root_.congr_arg,
     exact H f }
 end
@@ -403,8 +403,8 @@ variables {E : Type*} [add_comm_group E] [semimodule R E]
 this is false in the case where `ι` is empty. -/
 instance : add_comm_group (⨂[R] i, s i) := semimodule.add_comm_monoid_to_add_comm_group R
 
-lemma neg_tprod_coef (z : R) (f : Π i, s i) : tprod_coef R (-z) f = -tprod_coef R z f :=
-by rw [←neg_one_smul R, ←smul_tprod_coef', neg_one_smul R]
+lemma neg_tprod_coeff (z : R) (f : Π i, s i) : tprod_coeff R (-z) f = -tprod_coeff R z f :=
+by rw [←neg_one_smul R, ←smul_tprod_coeff', neg_one_smul R]
 
 lemma neg_tprod (f : Π i, s i) (i : ι) : tprod R (update f i (-(f i))) = -tprod R f :=
 by rw [←neg_one_smul R, ←smul_tprod, neg_one_smul R]

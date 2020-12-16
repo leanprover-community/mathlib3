@@ -211,6 +211,7 @@ begin
   exact mem_ℒp_of_mem_ℒp_of_le hfp (le_refl 1) hp1,
 end
 
+section second_countable_topology
 variable [topological_space.second_countable_topology E]
 
 lemma mem_ℒp.add {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) (hp1 : 1 ≤ p) :
@@ -233,6 +234,25 @@ begin
   exact ennreal.lintegral_rpow_add_lt_top_of_lintegral_rpow_lt_top hf.1.nnnorm.ennreal_coe hf.2
     hg.1.nnnorm.ennreal_coe hg.2 hp1,
 end
+
+end second_countable_topology
+
+section normed_space
+
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
+
+lemma mem_ℒp.smul (f : α → E) (c : 𝕜) (hp_pos : 0 < p) (hfp : mem_ℒp f p μ) :
+  mem_ℒp (c • f) p μ :=
+begin
+  have hp0 : 0 ≤ p, from le_of_lt hp_pos,
+  split,
+  { exact measurable.const_smul hfp.1 c, },
+  simp_rw [pi.smul_apply, nnnorm_smul, ennreal.coe_mul, ennreal.mul_rpow_of_nonneg _ _ hp0],
+  rw lintegral_const_mul _ hfp.1.nnnorm.ennreal_coe.ennreal_rpow_const,
+  exact ennreal.mul_lt_top (ennreal.rpow_lt_top_of_nonneg hp0 ennreal.coe_ne_top) hfp.2,
+end
+
+end normed_space
 
 end borel_space
 

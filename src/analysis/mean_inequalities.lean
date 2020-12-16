@@ -921,11 +921,11 @@ end
 
 end ennreal
 
-/-- Hölder's inequality for functions `α → nnreal`. The integral of the product of two functions
+/-- Hölder's inequality for functions `α → ℝ≥0`. The integral of the product of two functions
 is bounded by the product of their `ℒp` and `ℒq` seminorms when `p` and `q` are conjugate
 exponents. -/
 theorem nnreal.lintegral_mul_le_Lp_mul_Lq {p q : ℝ} (hpq : p.is_conjugate_exponent q)
-  {f g : α → nnreal} (hf : measurable f) (hg : measurable g) :
+  {f g : α → ℝ≥0} (hf : measurable f) (hg : measurable g) :
   ∫⁻ a, (f * g) a ∂μ ≤ (∫⁻ a, (f a)^p ∂μ)^(1/p) * (∫⁻ a, (g a)^q ∂μ)^(1/q) :=
 begin
   simp_rw [pi.mul_apply, ennreal.coe_mul],

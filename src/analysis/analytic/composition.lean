@@ -72,7 +72,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [normed_group H] [normed_space 𝕜 H]
 
 open filter list
-open_locale topological_space big_operators classical
+open_locale topological_space big_operators classical nnreal
 
 /-! ### Composing formal multilinear series -/
 
@@ -349,17 +349,17 @@ geometric term). -/
 theorem comp_summable_nnreal
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (hq : 0 < q.radius) (hp : 0 < p.radius) :
-  ∃ (r : nnreal), 0 < r ∧ summable (λ i, nnnorm (q.comp_along_composition p i.2) * r ^ i.1 :
-    (Σ n, composition n) → nnreal) :=
+  ∃ (r : ℝ≥0), 0 < r ∧ summable (λ i, nnnorm (q.comp_along_composition p i.2) * r ^ i.1 :
+    (Σ n, composition n) → ℝ≥0) :=
 begin
   /- This follows from the fact that the growth rate of `∥qₙ∥` and `∥pₙ∥` is at most geometric,
   giving a geometric bound on each `∥q.comp_along_composition p op∥`, together with the
   fact that there are `2^(n-1)` compositions of `n`, giving at most a geometric loss. -/
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hq with ⟨rq, rq_pos, hrq⟩,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hp with ⟨rp, rp_pos, hrp⟩,
-  obtain ⟨Cq, hCq⟩ : ∃ (Cq : nnreal), ∀ n, nnnorm (q n) * rq^n ≤ Cq := q.bound_of_lt_radius hrq,
-  obtain ⟨Cp, hCp⟩ : ∃ (Cp : nnreal), ∀ n, nnnorm (p n) * rp^n ≤ Cp := p.bound_of_lt_radius hrp,
-  let r0 : nnreal := (4 * max Cp 1)⁻¹,
+  obtain ⟨Cq, hCq⟩ : ∃ (Cq : ℝ≥0), ∀ n, nnnorm (q n) * rq^n ≤ Cq := q.bound_of_lt_radius hrq,
+  obtain ⟨Cp, hCp⟩ : ∃ (Cp : ℝ≥0), ∀ n, nnnorm (p n) * rp^n ≤ Cp := p.bound_of_lt_radius hrp,
+  let r0 : ℝ≥0 := (4 * max Cp 1)⁻¹,
   set r := min rp 1 * min rq 1 * r0,
   have r_pos : 0 < r,
   { apply mul_pos (mul_pos _ _),
@@ -369,9 +369,9 @@ begin
       { exact lt_of_lt_of_le zero_lt_one (le_max_right _ _) } },
     { rw ennreal.coe_pos at rp_pos, simp [rp_pos, zero_lt_one] },
     { rw ennreal.coe_pos at rq_pos, simp [rq_pos, zero_lt_one] } },
-  let a : ennreal := ((4 : nnreal) ⁻¹ : nnreal),
+  let a : ennreal := ((4 : ℝ≥0) ⁻¹ : ℝ≥0),
   have two_a : 2 * a < 1,
-  { change ((2 : nnreal) : ennreal) * ((4 : nnreal) ⁻¹ : nnreal) < (1 : nnreal),
+  { change ((2 : ℝ≥0) : ennreal) * ((4 : ℝ≥0) ⁻¹ : ℝ≥0) < (1 : ℝ≥0),
     rw [← ennreal.coe_mul, ennreal.coe_lt_coe, ← nnreal.coe_lt_coe, nnreal.coe_mul],
     change (2 : ℝ) * (4 : ℝ)⁻¹ < 1,
     norm_num },
@@ -412,7 +412,7 @@ begin
     ... = Cq * 4⁻¹ ^ n :
       begin
         dsimp [r0],
-        have A : (4 : nnreal) ≠ 0, by norm_num,
+        have A : (4 : ℝ≥0) ≠ 0, by norm_num,
         have B : max Cp 1 ≠ 0 :=
           ne_of_gt (lt_of_lt_of_le zero_lt_one (le_max_right Cp 1)),
         field_simp [A, B],
@@ -436,7 +436,7 @@ begin
       rw composition_card,
       simp only [nat.cast_bit0, nat.cast_one, nat.cast_pow],
       apply ennreal.pow_le_pow _ (nat.sub_le n 1),
-      have : (1 : nnreal) ≤ (2 : nnreal), by norm_num,
+      have : (1 : ℝ≥0) ≤ (2 : ℝ≥0), by norm_num,
       rw ← ennreal.coe_le_coe at this,
       exact this
     end
@@ -448,9 +448,9 @@ end
 /-- Bounding below the radius of the composition of two formal multilinear series assuming
 summability over all compositions. -/
 theorem le_comp_radius_of_summable
-  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) (r : nnreal)
+  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) (r : ℝ≥0)
   (hr : summable (λ i, nnnorm (q.comp_along_composition p i.2) * r ^ i.1 :
-    (Σ n, composition n) → nnreal)) :
+    (Σ n, composition n) → ℝ≥0)) :
   (r : ennreal) ≤ (q.comp p).radius :=
 begin
   apply le_radius_of_bound _ (tsum (λ (i : Σ (n : ℕ), composition n),

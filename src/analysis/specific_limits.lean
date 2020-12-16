@@ -17,7 +17,7 @@ import tactic.ring_exp
 noncomputable theory
 open classical function filter finset metric
 
-open_locale classical topological_space nat big_operators uniformity
+open_locale classical topological_space nat big_operators uniformity nnreal
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -39,10 +39,10 @@ tendsto_inv_at_top_zero.comp tendsto_coe_nat_at_top_at_top
 lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
 by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
 
-lemma nnreal.tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : nnreal)⁻¹) at_top (𝓝 0) :=
+lemma nnreal.tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ≥0)⁻¹) at_top (𝓝 0) :=
 by { rw ← nnreal.tendsto_coe, convert tendsto_inverse_at_top_nhds_0_nat, simp }
 
-lemma nnreal.tendsto_const_div_at_top_nhds_0_nat (C : nnreal) :
+lemma nnreal.tendsto_const_div_at_top_nhds_0_nat (C : ℝ≥0) :
   tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
 by simpa using tendsto_const_nhds.mul nnreal.tendsto_inverse_at_top_nhds_0_nat
 
@@ -110,7 +110,7 @@ lemma tendsto_at_top_of_geom_le {v : ℕ → ℝ} {c : ℝ} (h₀ : 0 < v 0) (hc
 tendsto_at_top_mono (λ n, geom_le (zero_le_one.trans hc.le) n (λ k hk, hu k)) $
   (tendsto_pow_at_top_at_top_of_one_lt hc).at_top_mul_const h₀
 
-lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : nnreal} (hr : r < 1) :
+lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ≥0} (hr : r < 1) :
   tendsto (λ n:ℕ, r^n) at_top (𝓝 0) :=
 nnreal.tendsto_coe.1 $ by simp only [nnreal.coe_pow, nnreal.coe_zero,
   tendsto_pow_at_top_nhds_0_of_lt_1 r.coe_nonneg hr]
@@ -185,7 +185,7 @@ lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :
 lemma tsum_geometric_two' (a : ℝ) : (∑' n:ℕ, (a / 2) / 2^n) = a :=
 (has_sum_geometric_two' a).tsum_eq
 
-lemma nnreal.has_sum_geometric {r : nnreal} (hr : r < 1) :
+lemma nnreal.has_sum_geometric {r : ℝ≥0} (hr : r < 1) :
   has_sum (λ n : ℕ, r ^ n) (1 - r)⁻¹ :=
 begin
   apply nnreal.has_sum_coe.1,
@@ -194,10 +194,10 @@ begin
   exact has_sum_geometric_of_lt_1 r.coe_nonneg hr
 end
 
-lemma nnreal.summable_geometric {r : nnreal} (hr : r < 1) : summable (λn:ℕ, r ^ n) :=
+lemma nnreal.summable_geometric {r : ℝ≥0} (hr : r < 1) : summable (λn:ℕ, r ^ n) :=
 ⟨_, nnreal.has_sum_geometric hr⟩
 
-lemma tsum_geometric_nnreal {r : nnreal} (hr : r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+lemma tsum_geometric_nnreal {r : ℝ≥0} (hr : r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 (nnreal.has_sum_geometric hr).tsum_eq
 
 /-- The series `pow r` converges to `(1-r)⁻¹`. For `r < 1` the RHS is a finite number,
@@ -523,8 +523,8 @@ end
 
 namespace nnreal
 
-theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable ι] :
-  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
+theorem exists_pos_sum_of_encodable {ε : ℝ≥0} (hε : 0 < ε) (ι) [encodable ι] :
+  ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
 let ⟨a, a0, aε⟩ := exists_between hε in
 let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
 ⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.2 $ hε' i,
@@ -536,7 +536,7 @@ end nnreal
 namespace ennreal
 
 theorem exists_pos_sum_of_encodable {ε : ennreal} (hε : 0 < ε) (ι) [encodable ι] :
-  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ (∑' i, (ε' i : ennreal)) < ε :=
+  ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ (∑' i, (ε' i : ennreal)) < ε :=
 begin
   rcases exists_between hε with ⟨r, h0r, hrε⟩,
   rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,

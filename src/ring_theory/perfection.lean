@@ -130,9 +130,8 @@ instance comm_ring (R : Type u₁) [comm_ring R] [char_p R p] : comm_ring (ring.
 any homomorphism `R →+* S` can be extended to a homomorphism `R →+* perfection S p`. -/
 @[simps] def extend (R : Type u₁) [comm_semiring R] [char_p R p] [perfect_ring R p]
   (S : Type u₂) [comm_semiring S] [char_p S p] :
-  (R →+* ring.perfection S p) ≃ (R →+* S) :=
-{ to_fun := ring_hom.comp $ coeff S p 0,
-  inv_fun := λ f,
+  (R →+* S) ≃ (R →+* ring.perfection S p) :=
+{ to_fun := λ f,
   { to_fun := λ r, ⟨λ n, f $ _root_.pth_root R p ^[n] r,
       λ n, by rw [← f.map_pow, function.iterate_succ_apply', pth_root_pow_p]⟩,
     map_one' := ext $ λ n, (congr_arg f $ ring_hom.iterate_map_one _ _).trans f.map_one,
@@ -141,11 +140,12 @@ any homomorphism `R →+* S` can be extended to a homomorphism `R →+* perfecti
     map_zero' := ext $ λ n, (congr_arg f $ ring_hom.iterate_map_zero _ _).trans f.map_zero,
     map_add' := λ x y, ext $ λ n, (congr_arg f $ ring_hom.iterate_map_add _ _ _ _).trans $
       f.map_add _ _ },
-  left_inv := λ f, ring_hom.ext $ λ r, ext $ λ n,
+  left_inv := λ f, ring_hom.ext $ λ r, rfl,
+  inv_fun := ring_hom.comp $ coeff S p 0,
+  right_inv := λ f, ring_hom.ext $ λ r, ext $ λ n,
     show coeff S p 0 (f (_root_.pth_root R p ^[n] r)) = coeff S p n (f r),
     by rw [← coeff_iterate_frobenius _ 0 n, zero_add, ← ring_hom.map_iterate_frobenius,
-      right_inverse_pth_root_frobenius.iterate],
-  right_inv := λ f, ring_hom.ext $ λ r, rfl }
+      right_inverse_pth_root_frobenius.iterate] }
 
 end perfection
 
@@ -154,36 +154,66 @@ to its perfection. -/
 @[nolint has_inhabited_instance] structure perfection_map (p : ℕ) [fact p.prime]
   (R : Type u₁) [comm_semiring R] [char_p R p]
   (P : Type u₂) [comm_semiring P] [char_p P p] [perfect_ring P p] extends P →+* R :=
-(bijective : function.bijective ((perfection.extend p P R).symm to_ring_hom))
+(injective : ∀ ⦃x y : P⦄, (∀ n, to_fun (pth_root P p ^[n] x) = to_fun (pth_root P p ^[n] y)) → x = y)
+(surjective : ∀ f : ℕ → R, (∀ n, f (n + 1) ^ p = f n) →
+  ∃ x : P, ∀ n, to_fun (pth_root P p ^[n] x) = f n)
 
 namespace perfection_map
 
-variables (p : ℕ) [fact p.prime]
-variables (R : Type u₁) [comm_semiring R] [char_p R p]
+variables {p : ℕ} [fact p.prime]
+variables {R : Type u₁} [comm_semiring R] [char_p R p]
+variables {P : Type u₂} [comm_semiring P] [char_p P p] [perfect_ring P p]
+
+/-- Create a `perfection_map` from an isomorphism to the perfection. -/
+@[simps] def mk' (f : P →+* R) (g : P ≃+* ring.perfection R p)
+  (hfg : perfection.extend p P R f = g)
+  : perfection_map p R P :=
+{ injective := λ x y hxy, g.injective $ (ring_hom.ext_iff.1 hfg x).symm.trans $
+    eq.symm $ (ring_hom.ext_iff.1 hfg y).symm.trans $ perfection.ext $ λ n, (hxy n).symm,
+  surjective := λ y hy, let ⟨x, hx⟩ := g.surjective ⟨y, hy⟩ in
+    ⟨x, λ n, show perfection.coeff R p n (perfection.extend p P R f x) =
+        perfection.coeff R p n ⟨y, hy⟩,
+      by rw [hfg, ← coe_fn_coe_base, hx]⟩,
+  .. f }
+
+variables (p R P)
+
+instance : has_coe (perfection_map p R P) (P →+* R) :=
+⟨to_ring_hom⟩
 
 /-- The canonical perfection map from the perfection of a ring. -/
-def of : perfection_map p R (ring.perfection R p) :=
-{ bijective := show function.bijective ((perfection.extend p _ R).symm $
-      perfection.extend p _ R $ ring_hom.id _),
-    by { rw equiv.symm_apply_apply, exact function.bijective_id },
-  .. perfection.coeff R p 0 }
+@[simps {rhs_md := semireducible}] def of : perfection_map p R (ring.perfection R p) :=
+mk' (perfection.coeff R p 0) (ring_equiv.refl _) $
+(equiv.apply_eq_iff_eq_symm_apply _).2 rfl
 
 /-- For a perfect ring, it itself is the perfection. -/
 def id [perfect_ring R p] : perfection_map p R R :=
-{ bijective := ⟨λ r s hrs, congr_arg (perfection.coeff R p 0) hrs,
-    λ r, ⟨perfection.coeff R p 0 r, perfection.ext $ λ n,
-      show pth_root R p ^[n] (perfection.coeff R p 0 r) = perfection.coeff R p n r,
-      by rw [← perfection.coeff_iterate_frobenius r 0 n, zero_add,
-          ring_hom.map_iterate_frobenius, left_inverse_pth_root_frobenius.iterate]⟩⟩,
+{ injective := λ x y hxy, hxy 0,
+  surjective := λ f hf, ⟨f 0, λ n, show pth_root R p ^[n] (f 0) = f n,
+    from nat.rec_on n rfl $ λ n ih, injective_pow_p p $
+      by rw [function.iterate_succ_apply', pth_root_pow_p _, ih, hf]⟩,
   .. ring_hom.id R }
 
+variables {p R P}
+/-- A perfection map induces an isomorphism to the prefection. -/
+noncomputable def equiv (m : perfection_map p R P) : P ≃+* ring.perfection R p :=
+ring_equiv.of_bijective (perfection.extend p P R m)
+⟨λ x y hxy, m.2 $ λ n, (congr_arg (perfection.coeff R p n) hxy : _),
+λ f, let ⟨x, hx⟩ := m.3 f.1 f.2 in ⟨x, perfection.ext $ hx⟩⟩
+
+variables (p R P)
 /-- Given rings `R` and `S` of characteristic `p`, with `R` being perfect,
 any homomorphism `R →+* S` can be extended to a homomorphism `R →+* P`,
 where `P` is any perfection of `S`. -/
-noncomputable def extend [perfect_ring R p] (S : Type u₂) [comm_semiring S] [char_p S p]
+@[simps] noncomputable def extend [perfect_ring R p] (S : Type u₂) [comm_semiring S] [char_p S p]
   (P : Type u₃) [comm_semiring P] [char_p P p] [perfect_ring P p] (m : perfection_map p S P) :
-  (R →+* P) ≃ (R →+* S) :=
-_
+  (R →+* S) ≃ (R →+* P) :=
+{ to_fun := λ f, ring_hom.comp ↑m.equiv.symm $ perfection.extend p R S f,
+  inv_fun := λ f, (perfection.extend p R S).symm (ring_hom.comp ↑m.equiv f),
+  left_inv := λ f, (equiv.symm_apply_eq _).2 $ ring_hom.ext $ λ x,
+    by simp_rw [ring_hom.comp_apply, ring_equiv.coe_ring_hom, ring_equiv.apply_symm_apply],
+  right_inv := λ f, ring_hom.ext $ λ x, by simp_rw [equiv.apply_symm_apply,
+      ring_hom.comp_apply, ring_equiv.coe_ring_hom, ring_equiv.symm_apply_apply] }
 
 end perfection_map
 

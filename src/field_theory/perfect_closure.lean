@@ -90,6 +90,10 @@ theorem ring_hom.map_iterate_pth_root (x : R) (n : ℕ) :
   g (pth_root R p^[n] x) = (pth_root S p^[n] (g x)) :=
 g.to_monoid_hom.map_iterate_pth_root x n
 
+variables (p)
+lemma injective_pow_p {x y : R} (hxy : x ^ p = y ^ p) : x = y :=
+left_inverse_pth_root_frobenius.injective hxy
+
 end
 
 section

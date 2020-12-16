@@ -290,9 +290,9 @@ class cancel_comm_monoid (M : Type u) extends left_cancel_comm_monoid M, right_c
 
 end cancel_monoid
 
-/-- `div_sub_tac` proves `∀ a b, a / b = a * b⁻¹` or `∀ a b, a - b = a + -b`
-if it holds by definition. -/
-meta def div_sub_tac : tactic unit := `[intros; refl]
+/-- `try_refl_tac` solves goals of the form `∀ a b, f a b = g a b`,
+if they hold by definition. -/
+meta def try_refl_tac : tactic unit := `[intros; refl]
 
 /-- A `div_inv_monoid` is a `monoid` with operations `/` and `⁻¹` satisfying
 `div_eq_mul_inv : ∀ a b, a / b = a * b⁻¹`.
@@ -312,7 +312,7 @@ the `(/)` coming from `foo.has_div`.
 @[protect_proj, ancestor monoid has_inv has_div]
 class div_inv_monoid (G : Type u) extends monoid G, has_inv G, has_div G :=
 (div := λ a b, a * b⁻¹)
-(div_eq_mul_inv : ∀ a b : G, a / b = a * b⁻¹ . div_sub_tac)
+(div_eq_mul_inv : ∀ a b : G, a / b = a * b⁻¹ . try_refl_tac)
 
 /-- A `sub_neg_monoid` is an `add_monoid` with unary `-` and binary `-` operations
 satisfying `sub_eq_add_neg : ∀ a b, a - b = a + -b`.
@@ -330,7 +330,7 @@ Let `foo X` be a type with a `∀ X, has_sub (foo X)` instance but no
 @[protect_proj, ancestor add_monoid has_neg has_sub]
 class sub_neg_monoid (G : Type u) extends add_monoid G, has_neg G, has_sub G :=
 (sub := λ a b, a + -b)
-(sub_eq_add_neg : ∀ a b : G, a - b = a + -b . div_sub_tac)
+(sub_eq_add_neg : ∀ a b : G, a - b = a + -b . try_refl_tac)
 
 attribute [to_additive sub_neg_monoid] div_inv_monoid
 

@@ -150,7 +150,7 @@ instance quotient (H : subgroup α) : mul_action α (quotient H) :=
   (a • quotient_group.mk x : quotient_group.quotient H) = quotient_group.mk (a * x) := rfl
   
 @[simp] lemma quotient.smul_coe {α : Type*} [comm_group α] (H : subgroup α) (a x : α) :
-  (a • x : quotient_group.quotient H) = a * x := rfl
+  (a • x : quotient_group.quotient H) = ↑(a * x) := rfl
 
 instance mul_left_cosets_comp_subtype_val (H I : subgroup α) :
   mul_action I (quotient H) :=

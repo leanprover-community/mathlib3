@@ -10,8 +10,7 @@ import topology.metric_space.gluing
 import topology.metric_space.hausdorff_distance
 
 noncomputable theory
-open_locale classical
-open_locale topological_space
+open_locale classical topological_space nnreal
 universes u v w
 
 open classical set function topological_space filter metric quotient
@@ -37,7 +36,7 @@ variables (α : Type u) (β : Type v)
 @[reducible] private def prod_space_fun : Type* := ((α ⊕ β) × (α ⊕ β)) → ℝ
 @[reducible] private def Cb : Type* := bounded_continuous_function ((α ⊕ β) × (α ⊕ β)) ℝ
 
-private def max_var : nnreal :=
+private def max_var : ℝ≥0 :=
 2 * ⟨diam (univ : set α), diam_nonneg⟩ + 1 + 2 * ⟨diam (univ : set β), diam_nonneg⟩
 
 private lemma one_le_max_var : 1 ≤ max_var α β := calc

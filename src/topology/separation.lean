@@ -24,7 +24,7 @@ def separate : finset α → finset α → Prop :=
   λ (s t : finset α), ∃ U V : (set α), (is_open U) ∧ is_open V ∧
   (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V) ∧ disjoint U V
 
-lemma separate.symm {s t : finset α} : separate s t → separate t s :=
+@[symm] lemma separate.symm {s t : finset α} : separate s t → separate t s :=
 begin
   rintros ⟨U, V, oU, oV, aU, bV, UV⟩,
   exact ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩

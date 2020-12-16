@@ -9,6 +9,7 @@ import category_theory.filtered
 import category_theory.limits.shapes.finite_limits
 import category_theory.limits.shapes.types
 import category_theory.limits.presheaf
+import category_theory.limits.filtered_colimit_commutes_finite_limit
 import category_theory.limits.preserves.limits
 import category_theory.limits.preserves.shapes.terminal
 import category_theory.limits.preserves.shapes.binary_products
@@ -103,7 +104,7 @@ functor.op (category_of_elements.π F) ⋙ coyoneda
 
 @[simps]
 def alt_cocone (F : C ⥤ Type v₁) :
-  cocone (my_functor F) :=
+  cocone.{max v₁ u₁} (my_functor F) :=
 { X := F,
   ι :=
   { app := λ p,
@@ -161,7 +162,7 @@ def alt_colimit (F : C ⥤ Type v₁) :
     simp,
   end }
 
--- set_option pp.universes true
+set_option pp.universes true
 
 def preserves_finite_limits_of_set_flat [has_finite_limits.{v₁} C] (F : C ⥤ Type v₁) [is_set_flat F]
   (J : Type v₁) [small_category J] [fin_category J] :
@@ -169,7 +170,18 @@ preserves_limits_of_shape J F :=
 { preserves_limit := λ K,
   { preserves := λ c t,
     begin
-      have := alt_colimit F,
+      have := limits.types.sort.category_theory.limits.has_colimits_of_shape,
+      have : has_colimits_of_shape (F.elementsᵒᵖ) (Type v₁),
+
+      -- have : has_colimits_of_shape (F.elementsᵒᵖ) (C ⥤ Type v₁) := category_theory.limits.functor_category_has_colimits_of_shape,
+      -- have := alt_colimit F,
+      -- have := colimit (my_functor F),
+      -- have := category_theory.limits.functor_category_has_colimits_of_shape,
+
+      -- let X := limit (K ⋙ F),
+      -- let θ := functor.op (category_of_elements.π F),
+      -- have := colimit_limit_to_limit_colimit,
+
       -- let F' := (op_op_equivalence C).functor ⋙ F,
       -- have := colimit_of_representable F',
       -- have := colimit_of_representable,

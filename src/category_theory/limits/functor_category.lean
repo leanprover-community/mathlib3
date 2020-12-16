@@ -9,11 +9,11 @@ open category_theory category_theory.category
 
 namespace category_theory.limits
 
-universes v v₂ u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w v v₂ u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 variables {C : Type u} [category.{v} C]
 
-variables {J K : Type v} [small_category J] [category.{v₂} K]
+variables {J K : Type v} [category.{w} J] [category.{v₂} K]
 
 @[simp, reassoc]
 lemma limit.lift_π_app (H : J ⥤ K ⥤ C) [has_limit H] (c : cone H) (j : J) (k : K) :
@@ -136,10 +136,10 @@ instance functor_category_has_colimits_of_shape
   { cocone := combine_cocones _ (λ k, get_colimit_cocone _),
     is_colimit := combined_is_colimit _ _ } }
 
-instance functor_category_has_limits [has_limits.{v} C] : has_limits.{v} (K ⥤ C) :=
+instance functor_category_has_limits [has_limits C] : has_limits (K ⥤ C) :=
 { has_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance functor_category_has_colimits [has_colimits.{v} C] : has_colimits.{v} (K ⥤ C) :=
+instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C) :=
 { has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :

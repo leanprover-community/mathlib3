@@ -21,13 +21,15 @@ is that when `C = Type`, filtered colimits commute with finite limits.
 * [Stacks: Filtered colimits](https://stacks.math.columbia.edu/tag/002W)
 -/
 
-universes v u
+universes w v u
 
 open category_theory
 
 namespace category_theory.limits
 
-variables {J K : Type v} [small_category J] [small_category K]
+set_option pp.universes true
+
+variables {J K : Type v} [category.{w} J] [category.{w} K]
 variables {C : Type u} [category.{v} C]
 
 variables (F : J × K ⥤ C)

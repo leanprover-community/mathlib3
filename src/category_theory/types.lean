@@ -33,7 +33,7 @@ namespace category_theory
 
 universes v v' w u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-instance types : large_category (Type u) :=
+instance types : category (Type u) :=
 { hom     := λ a b, (a → b),
   id      := λ a, id,
   comp    := λ _ _ _ f g, g ∘ f }

@@ -169,9 +169,8 @@ lemma snorm_mono {p q : ℝ} (hp1 : 1 ≤ p) (hpq : p ≤ q) (μ : measure α) [
   {f : α → E} (hf : measurable f) :
   snorm f p μ ≤ snorm f q μ :=
 begin
-  have h_le_mu : snorm f p μ ≤ snorm f q μ * (μ set.univ) ^ (1/p - 1/q),
-  from snorm_le_snorm_mul_rpow_measure_univ hp1 hpq μ hf,
-  rwa [measure_univ, ennreal.one_rpow, mul_one] at h_le_mu,
+  have h_le_μ := snorm_le_snorm_mul_rpow_measure_univ hp1 hpq μ hf,
+  rwa [measure_univ, ennreal.one_rpow, mul_one] at h_le_μ,
 end
 
 lemma mem_ℒp_of_mem_ℒp_of_le {p q : ℝ} {μ : measure α} [finite_measure μ] {f : α → E}

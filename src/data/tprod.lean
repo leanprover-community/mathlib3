@@ -6,7 +6,7 @@ Authors: Floris van Doorn
 import data.list.nodup
 
 /-!
-# Finite products of Types
+# Finite Products of Types
 
 This file defines the product of types over a list. For `l : list ι` and `α : ι → Type*` we define
 `tprod α l = l.foldr (λ i β, α i × β) punit`. It is used to transfer results from binary products to

@@ -466,16 +466,16 @@ variables {A} {C D : Type*} [comm_semiring A] [comm_semiring C] [comm_semiring D
 
 variables (f : C →ₐ[A] D) (B) [comm_semiring B] [algebra A B] [algebra B C] [is_scalar_tower A B C]
 
-/-- Restrict the domain of an alg_hom -/
+/-- Restrict the domain of an `alg_hom`. -/
 def alg_hom.restrict_domain : B →ₐ[A] D := f.comp (is_scalar_tower.to_alg_hom A B C)
 
-/-- Extend the scalars of an alg_hom -/
+/-- Extend the scalars of an `alg_hom`. -/
 def alg_hom.extend_scalars : @alg_hom B C D _ _ _ _ (f.restrict_domain B).to_ring_hom.to_algebra :=
 { commutes' := λ _, rfl .. f }
 
 variables {B}
 
-/-- alg_hom's from the top of a tower are equivalent to a pair of alg_homs -/
+/-- `alg_hom`s from the top of a tower are equivalent to a pair of `alg_hom`s. -/
 def alg_hom_equiv_sigma :
   (C →ₐ[A] D) ≃ Σ (f : B →ₐ[A] D), @alg_hom B C D _ _ _ _ f.to_ring_hom.to_algebra :=
 { to_fun := λ f, ⟨f.restrict_domain B, f.extend_scalars B⟩,

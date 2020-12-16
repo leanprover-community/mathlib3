@@ -204,7 +204,7 @@ begin
   end
 end
 
-lemma integrable_of_mem_ℒp (hp1 : 1 ≤ p) {f : α → E} [finite_measure μ] (hfp : mem_ℒp f p μ) :
+lemma mem_ℒp.integrable (hp1 : 1 ≤ p) {f : α → E} [finite_measure μ] (hfp : mem_ℒp f p μ) :
   integrable f μ :=
 begin
   rw ←mem_ℒp_one_iff_integrable,

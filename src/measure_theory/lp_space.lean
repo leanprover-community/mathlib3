@@ -149,14 +149,7 @@ begin
       ←ennreal.rpow_mul],
     have h_rw1 : 1 / p2 * (1 / p) = 1/q, by rw [div_mul_div, one_mul, mul_comm, hpp2],
     have h_rw2 : 1 / q2 * (1 / p) = 1/p - 1/q,
-    { rw [div_mul_div, one_mul, div_sub_div _ _ hp0_ne (ne_of_lt hq0_lt).symm, mul_one, one_mul,
-        div_eq_iff, mul_comm p q, mul_comm q2 p, div_eq_mul_inv, hq2,
-        mul_comm ((q - p) * (q * p)⁻¹) _, ←mul_assoc, ←mul_assoc, mul_assoc, mul_assoc],
-      nth_rewrite 1 ←mul_assoc,
-      rw [inv_mul_cancel, one_mul, mul_comm p, mul_inv_cancel],
-      { simp [hp0_ne, (ne_of_lt hq0_lt).symm], },
-      { rw [ne.def, sub_eq_zero], exact (ne_of_lt hpq).symm, },
-      { simp [hp0_ne, hp2q2.symm.ne_zero], }, },
+      by field_simp [q2, real.conjugate_exponent, p2, hp0_ne, ne_of_gt hq0_lt],
     rw [h_rw1, h_rw2],
   end
 end

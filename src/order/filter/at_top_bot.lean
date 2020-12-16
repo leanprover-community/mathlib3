@@ -1121,6 +1121,20 @@ end filter
 
 open filter finset
 
+section
+
+variables {R : Type*} [linear_ordered_semiring R]
+
+lemma exists_lt_mul_self (a : R) : ∃ x ≥ 0, a < x * x :=
+let ⟨x, hxa, hx0⟩ :=((tendsto_mul_self_at_top.eventually (eventually_gt_at_top a)).and
+  (eventually_ge_at_top 0)).exists
+in ⟨x, hx0, hxa⟩
+
+lemma exists_le_mul_self (a : R) : ∃ x ≥ 0, a ≤ x * x :=
+let ⟨x, hx0, hxa⟩ := exists_lt_mul_self a in ⟨x, hx0, hxa.le⟩
+
+end
+
 namespace order_iso
 
 variables [preorder α] [preorder β]

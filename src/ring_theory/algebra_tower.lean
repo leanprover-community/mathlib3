@@ -481,7 +481,7 @@ def alg_hom_equiv_sigma :
 { to_fun := λ f, ⟨f.restrict_domain B, f.extend_scalars B⟩,
   inv_fun := λ fg, @is_scalar_tower.restrict_base A _ _ _ _ _ _ _ _ _ fg.1.to_ring_hom.to_algebra
     _ _ _ _ fg.2, /- Is there a nice way to provide the algebra instance without the `@`? -/
-  left_inv := λ f, by {dsimp only, ext, refl},
+  left_inv := λ f, by { dsimp only, ext, refl },
   right_inv :=
   begin
     rintros ⟨⟨f, _, _, _, _, _⟩, g, _, _, _, _, hg⟩,

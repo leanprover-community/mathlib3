@@ -461,7 +461,7 @@ If a function is analytic in a disk `D(x, R)`, then it is analytic in any disk c
 one. Indeed, one can write
 $$
 f (x + y + z) = \sum_{n} p_n (y + z)^n = \sum_{n, k} \binom{n}{k} p_n y^{n-k} z^k
-= \sum_{k} \left(\sum_{n} \binom{n}{k} p_n y^{n-k}\right) z^k.
+= \sum_{k} \Bigl(\sum_{n} \binom{n}{k} p_n y^{n-k}\Bigr) z^k.
 $$
 The corresponding power series has thus a `k`-th coefficient equal to
 $\sum_{n} \binom{n}{k} p_n y^{n-k}$. In the general case where `pₙ` is a multilinear map, this has

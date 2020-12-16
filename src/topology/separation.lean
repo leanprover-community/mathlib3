@@ -34,7 +34,7 @@ end
 lemma separate_empty_right : ∀ {a : finset α}, separate a ∅ :=
 λ a d, ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
 
-lemma separate_union_of : ∀ {a b c : finset α}, separate a c → separate b c → separate (a ∪ b) c :=
+lemma separate.union_left : ∀ {a b c : finset α}, separate a c → separate b c → separate (a ∪ b) c :=
 begin
   intros a b c ac bc d,
   obtain ⟨U, V, oU, oV, aU, bV, UV⟩ :=

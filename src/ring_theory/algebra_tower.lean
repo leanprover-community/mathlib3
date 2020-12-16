@@ -466,7 +466,7 @@ variables {A} {C D : Type*} [comm_semiring A] [comm_semiring C] [comm_semiring D
 
 variables (f : C →ₐ[A] D) (B) [comm_semiring B] [algebra A B] [algebra B C] [is_scalar_tower A B C]
 
-/-- Restrict the domain of an alg_hom -/
+/-- Restrict the domain of an `alg_hom`. -/
 def alg_hom.restrict_domain : B →ₐ[A] D := f.comp (is_scalar_tower.to_alg_hom A B C)
 
 /-- Extend the scalars of an alg_hom -/

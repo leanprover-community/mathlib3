@@ -126,8 +126,6 @@ begin
   let q2 := p2.conjugate_exponent,
   have hp2q2 : p2.is_conjugate_exponent q2,
   from real.is_conjugate_exponent_conjugate_exponent (by simp [lt_div_iff, hpq, hp0_lt]),
-  have hq2 : q2 = q * (q - p)⁻¹,
-    by field_simp [q2, real.conjugate_exponent, p2, ne_of_gt (sub_pos.mpr hpq), hp0_ne],
   calc (∫⁻ (a : α), ↑((f_nnreal * g_nnreal) a) ∂μ) ^ (1 / p)
     ≤ ((∫⁻ a, (f_nnreal a)^p2 ∂ μ)^(1/p2)*(∫⁻ a, (g_nnreal a)^q2 ∂ μ)^(1/q2)) ^ (1/p) :
   begin

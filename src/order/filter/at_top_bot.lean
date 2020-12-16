@@ -135,6 +135,19 @@ le_antisymm (le_pure_iff.2 $ (eventually_ge_at_top ⊤).mono $ λ b, top_unique)
 lemma order_bot.at_bot_eq (α) [order_bot α] : (at_bot : filter α) = pure ⊥ :=
 @order_top.at_top_eq (order_dual α) _
 
+@[nontriviality]
+lemma subsingleton.at_top_eq (α) [subsingleton α] [preorder α] : (at_top : filter α) = ⊤ :=
+begin
+  refine top_unique (λ s hs x, _),
+  letI : unique α := ⟨⟨x⟩, λ y, subsingleton.elim y x⟩,
+  rw [at_top, infi_unique, unique.default_eq x, mem_principal_sets] at hs,
+  exact hs left_mem_Ici
+end
+
+@[nontriviality]
+lemma subsingleton.at_bot_eq (α) [subsingleton α] [preorder α] : (at_bot : filter α) = ⊤ :=
+subsingleton.at_top_eq (order_dual α)
+
 lemma tendsto_at_top_pure [order_top α] (f : α → β) :
   tendsto f at_top (pure $ f ⊤) :=
 (order_top.at_top_eq α).symm ▸ tendsto_pure_pure _ _

@@ -3,7 +3,7 @@ Copyright (c) 2017 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Mario Carneiro
 -/
-import data.real.basic
+import data.real.sqrt
 
 open_locale big_operators
 

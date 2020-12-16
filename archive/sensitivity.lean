@@ -10,6 +10,7 @@ import tactic.apply_fun
 import linear_algebra.finite_dimensional
 import linear_algebra.dual
 import analysis.normed_space.basic
+import data.real.sqrt
 
 /-!
 # Huang's sensitivity theorem

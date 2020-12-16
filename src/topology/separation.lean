@@ -39,10 +39,9 @@ lemma separate.empty_right : ∀ {a : finset α}, separate a ∅ :=
 lemma separate.empty_left : ∀ {a : finset α}, separate ∅ a :=
 λ _, separate.empty_right.symm
 
-lemma separate.union_left :
-  ∀ {a b c : finset α}, separate a c → separate b c → separate (a ∪ b) c :=
+lemma separate.union_left {a b c : finset α} : separate a c → separate b c → separate (a ∪ b) c :=
 begin
-  rintros a b c ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
+  rintros ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
   refine ⟨U ∪ W, V ∩ X, is_open_union oU oW, is_open_inter oV oX,
     λ x xab, _, λ x xc, ⟨bV _ xc, bX _ xc⟩, _⟩,
   { cases finset.mem_union.mp xab with h h,

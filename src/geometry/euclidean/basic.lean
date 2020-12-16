@@ -746,7 +746,7 @@ begin
   refine (eq_of_vsub_eq_zero _).symm,
   ext,
   refine submodule.disjoint_def.1 s.direction.orthogonal_disjoint _ _ h,
-  simp
+  exact (_ : s.direction).2
 end
 
 /-- Adding a vector to a point in the given subspace, then taking the
@@ -821,29 +821,23 @@ def reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direct
           ((↑(orthogonal_projection s p₁) -ᵥ p₁) +ᵥ ↑(orthogonal_projection s p₁)),
         dist_eq_norm_vsub V p₁, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square],
     calc
-        ⟪((orthogonal_projection s p₁ : P) -ᵥ p₁ +ᵥ (orthogonal_projection s p₁ : P) -ᵥ
-         ((orthogonal_projection s p₂ : P) -ᵥ p₂ +ᵥ orthogonal_projection s p₂)),
-        ((orthogonal_projection s p₁ : P) -ᵥ p₁ +ᵥ (orthogonal_projection s p₁ : P) -ᵥ
-         ((orthogonal_projection s p₂ : P) -ᵥ p₂ +ᵥ orthogonal_projection s p₂))⟫
-      = ⟪(_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)) +
-          _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) -
-          (p₁ -ᵥ p₂),
-         _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) +
-          _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) -
-          (p₁ -ᵥ p₂)⟫
-    : by { rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_comm, add_sub_assoc,
-             ←vsub_vadd_eq_vsub_sub, vsub_vadd_comm, vsub_vadd_eq_vsub_sub, ←add_sub_assoc],
-          --  rw ←affine_map.linear_map_vsub,
-          --  rw orthogonal_projection_linear,
-          --  simp,
-           sorry }
-  ... = -4 * inner (p₁ -ᵥ p₂ - (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) : V))
+      ⟪((orthogonal_projection s p₁ : P) -ᵥ p₁ +ᵥ (orthogonal_projection s p₁ : P) -ᵥ
+      ((orthogonal_projection s p₂ : P) -ᵥ p₂ +ᵥ orthogonal_projection s p₂)),
+      ((orthogonal_projection s p₁ : P) -ᵥ p₁ +ᵥ (orthogonal_projection s p₁ : P) -ᵥ
+      ((orthogonal_projection s p₂ : P) -ᵥ p₂ +ᵥ orthogonal_projection s p₂))⟫
+        = ⟪(_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)) +
+          _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) - (p₁ -ᵥ p₂),
+          _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) +
+          _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) - (p₁ -ᵥ p₂)⟫
+        : by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_comm, add_sub_assoc,
+          ←vsub_vadd_eq_vsub_sub, vsub_vadd_comm, vsub_vadd_eq_vsub_sub, ←add_sub_assoc, ←rename_me,
+          ←affine_map.linear_map_vsub, orthogonal_projection_linear]
+    ... = -4 * inner (p₁ -ᵥ p₂ - (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) : V))
                    (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)) +
           ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫
-    : by { simp [inner_sub_left, inner_sub_right, inner_add_left, inner_add_right,
-                 real_inner_comm (p₁ -ᵥ p₂)],
-           ring }
-  ... = ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ : by simp,
+        : by { simp [inner_sub_left, inner_sub_right, inner_add_left, inner_add_right,
+                 real_inner_comm (p₁ -ᵥ p₂)], ring }
+    ... = ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ : by simp,
   end }
 
 /-- The result of reflecting. -/

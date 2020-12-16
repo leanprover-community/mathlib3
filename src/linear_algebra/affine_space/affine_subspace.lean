@@ -348,15 +348,6 @@ begin
   simp
 end
 
-instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.direction s :=
-{ vadd := λ a b, ⟨(a:V) +ᵥ (b:P), vadd_mem_of_mem_direction a.2 b.2⟩,
-  zero_vadd' := by simp,
-  vadd_assoc' := λ a b c, by simpa using add_torsor.vadd_assoc' (a:V) b (c:P),
-  vsub := λ a b, ⟨(a:P) -ᵥ (b:P), (vsub_left_mem_direction_iff_mem a.2 _).mpr b.2 ⟩,
-  nonempty := by apply_instance,
-  vsub_vadd' := λ a b, by { have := add_torsor.vsub_vadd' (a:P) b, simp at this, sorry },
-  vadd_vsub' := λ a b, by { have := add_torsor.vadd_vsub' (a:V) (b:P), simp at this, sorry } }
-
 /-- Two affine subspaces are equal if they have the same points. -/
 @[ext] lemma ext {s1 s2 : affine_subspace k P} (h : (s1 : set P) = s2) : s1 = s2 :=
 begin
@@ -386,6 +377,23 @@ begin
     rw hd,
     exact vsub_mem_direction hp hq2 }
 end
+
+instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.direction s :=
+{ vadd := λ a b, ⟨(a:V) +ᵥ (b:P), vadd_mem_of_mem_direction a.2 b.2⟩,
+  zero_vadd' := by simp,
+  vadd_assoc' := λ a b c, by { ext, apply add_torsor.vadd_assoc' },
+  vsub := λ a b, ⟨(a:P) -ᵥ (b:P), (vsub_left_mem_direction_iff_mem a.2 _).mpr b.2 ⟩,
+  nonempty := by apply_instance,
+  vsub_vadd' := λ a b, by { ext, apply add_torsor.vsub_vadd' },
+  vadd_vsub' := λ a b, by { ext, apply add_torsor.vadd_vsub' } }
+
+@[simp] lemma rename_me (s : affine_subspace k P) [nonempty s] (a b : s) :
+  ↑(a -ᵥ b) = (a:P) -ᵥ (b:P) :=
+rfl
+
+@[simp] lemma rename_me' (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
+  ↑(a +ᵥ b) = (a:V) +ᵥ (b:P) :=
+rfl
 
 /-- Two affine subspaces with nonempty intersection are equal if and
 only if their directions are equal. -/

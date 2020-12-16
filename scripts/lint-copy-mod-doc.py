@@ -14,7 +14,7 @@ ERR_OPT = 6 # set_option
 
 exceptions = []
 
-with open("scripts/copy-mod-doc-exceptions.txt") as f:
+with open("scripts/copy-mod-doc-exceptions.txt", encoding="utf-8") as f:
     for line in f.readlines():
         fn, _, _, _, _, errno, *_ = line.split()
         if errno == "ERR_COP":

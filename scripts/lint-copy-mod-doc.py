@@ -14,7 +14,7 @@ ERR_OPT = 6 # set_option
 
 exceptions = []
 
-with open("scripts/copy-mod-doc-exceptions.txt") as f:
+with open("scripts/copy-mod-doc-exceptions.txt", encoding="utf-8") as f:
     for line in f.readlines():
         fn, _, _, _, _, errno, *_ = line.split()
         if errno == "ERR_COP":
@@ -186,7 +186,7 @@ def format_errors(errors):
             print("{} : line {} : ERR_OPT : Forbidden set_option command".format(fn, line_nr))
 
 def lint(fn):
-    with open(fn) as f:
+    with open(fn, encoding="utf-8") as f:
         lines = f.readlines()
         errs = long_lines_check(lines, fn)
         format_errors(errs)

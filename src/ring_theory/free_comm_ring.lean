@@ -158,7 +158,7 @@ is_add_subgroup.neg_mem hxs
 
 theorem is_supported_sub (hxs : is_supported x s) (hys : is_supported y s) :
   is_supported (x - y) s :=
-is_add_subgroup.sub_mem _ _ _ hxs hys
+is_add_subgroup.sub_mem hxs hys
 
 theorem is_supported_mul (hxs : is_supported x s) (hys : is_supported y s) :
   is_supported (x * y) s :=

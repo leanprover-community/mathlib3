@@ -710,12 +710,12 @@ end semiring
 
 section ring
 
-variables {R : Type*} [comm_ring R]
+variables {R : Type*} [comm_semiring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
 variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
   [add_comm_group S]
-variables [module R M] [module R N] [module R P] [module R Q] [module R S]
+variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
 
 namespace tensor_product
 

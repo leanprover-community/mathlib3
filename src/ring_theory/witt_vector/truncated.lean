@@ -273,8 +273,7 @@ lemma mem_ker_truncate (x : 𝕎 R) :
 begin
   simp only [ring_hom.mem_ker, truncate, truncate_fun, ring_hom.coe_mk,
     truncated_witt_vector.ext_iff, truncated_witt_vector.coeff_mk, coeff_zero],
-  erw [subtype.forall],
-  refl,
+  exact subtype.forall
 end
 
 variables (p)
@@ -341,7 +340,7 @@ end
 @[simp] lemma coeff_truncate {m : ℕ} (hm : n ≤ m) (i : fin n) (x : truncated_witt_vector p m R) :
   (truncate hm x).coeff i = x.coeff (fin.cast_le hm i) :=
 begin
-  rcases witt_vector.truncate_surjective p _ _ x with ⟨y, rfl⟩,
+  obtain ⟨y, rfl⟩ := witt_vector.truncate_surjective p _ _ x,
   simp only [truncate_witt_vector_truncate, witt_vector.coeff_truncate, fin.coe_cast_le],
 end
 
@@ -375,7 +374,7 @@ open truncated_witt_vector (hiding truncate coeff)
 section lift
 
 variable [comm_ring R]
-variables {S : Type*} [comm_ring S]
+variables {S : Type*} [semiring S]
 variable (f : Π k : ℕ, S →+* truncated_witt_vector p k R)
 variable f_compat : ∀ (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂),
            (truncated_witt_vector.truncate hk).comp (f k₂) = f k₁
@@ -405,18 +404,6 @@ end
 
 variable (f)
 
-section tac
-omit f_compat
-
-/-- A tactic macro for proving that `lift_fun` is a ring homomorphism. -/
-meta def lift_fun_tac : tactic unit :=
-`[intros,
-  rw [← sub_eq_zero, ← ideal.mem_bot, ← infi_ker_truncate, ideal.mem_infi],
-  intro i,
-  simp [ring_hom.mem_ker, f_compat] ]
-
-end tac
-
 /--
 Given compatible ring homs from `S` into `truncated_witt_vector n` for each `n`, we can lift these
 to a ring hom `S → 𝕎 R`.
@@ -424,11 +411,10 @@ to a ring hom `S → 𝕎 R`.
 `lift` defines the universal property of `𝕎 R` as the inverse limit of `truncated_witt_vector n`.
 -/
 def lift : S →+* 𝕎 R :=
-{ to_fun := lift_fun f,
-  map_zero' := by lift_fun_tac,
-  map_one' := by lift_fun_tac,
-  map_mul' := by lift_fun_tac,
-  map_add' := by lift_fun_tac }
+by refine_struct { to_fun := lift_fun f };
+   { intros,
+     rw [← sub_eq_zero, ← ideal.mem_bot, ← infi_ker_truncate, ideal.mem_infi],
+     simp [ring_hom.mem_ker, f_compat] }
 
 variable {f}
 
@@ -440,9 +426,7 @@ truncate_lift_fun _ f_compat s
   (witt_vector.truncate n).comp (lift _ f_compat) = f n :=
 by { ext1, rw [ring_hom.comp_apply, truncate_lift] }
 
-/--
-The uniqueness part of the universal property of `𝕎 R`.
--/
+/-- The uniqueness part of the universal property of `𝕎 R`. -/
 lemma lift_unique (g : S →+* 𝕎 R) (g_compat : ∀ k, (witt_vector.truncate k).comp g = f k) :
   lift _ f_compat = g :=
 begin
@@ -456,15 +440,18 @@ end
 omit f_compat
 include hp
 
-lemma hom_ext (g₁ g₂ : S →+* 𝕎 R)
-  (h : ∀ k, (witt_vector.truncate k).comp g₁ = (witt_vector.truncate k).comp g₂) :
+/-- The universal property of `𝕎 R` as projective limit of truncated Witt vector rings. -/
+@[simps] def lift_equiv : {f : Π k, S →+* truncated_witt_vector p k R // ∀ k₁ k₂ (hk : k₁ ≤ k₂),
+  (truncated_witt_vector.truncate hk).comp (f k₂) = f k₁} ≃ (S →+* 𝕎 R) :=
+{ to_fun := λ f, lift f.1 f.2,
+  inv_fun := λ g, ⟨λ k, (truncate k).comp g,
+    by { intros _ _ h, simp only [←ring_hom.comp_assoc, truncate_comp_witt_vector_truncate] }⟩,
+  left_inv := by { rintro ⟨f, hf⟩, simp only [truncate_comp_lift] },
+  right_inv := λ g, lift_unique _ _ $ λ _, rfl }
+
+lemma hom_ext (g₁ g₂ : S →+* 𝕎 R) (h : ∀ k, (truncate k).comp g₁ = (truncate k).comp g₂) :
   g₁ = g₂ :=
-begin
-  rw [← lift_unique _ g₁, ← lift_unique _ g₂],
-  { intro k, apply (h k).symm },
-  { intros, rw [← ring_hom.comp_assoc], simp [truncate_comp_witt_vector_truncate] },
-  { intro, refl }
-end
+lift_equiv.symm.injective $ subtype.ext $ funext h
 
 end lift
 

@@ -1214,7 +1214,7 @@ variable (x : ℝ)
 /-- the series `sqrt_two_add_series x n` is `sqrt(2 + sqrt(2 + ... ))` with `n` square roots,
   starting with `x`. We define it here because `cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2`
 -/
-@[simp] noncomputable def sqrt_two_add_series (x : ℝ) : ℕ → ℝ
+@[simp, pp_nodot] noncomputable def sqrt_two_add_series (x : ℝ) : ℕ → ℝ
 | 0     := x
 | (n+1) := sqrt (2 + sqrt_two_add_series n)
 
@@ -1235,10 +1235,9 @@ lemma sqrt_two_add_series_lt_two : ∀(n : ℕ), sqrt_two_add_series 0 n < 2
 | (n+1) :=
   begin
     refine lt_of_lt_of_le _ (le_of_eq $ sqrt_sqr $ le_of_lt zero_lt_two),
-    rw [sqrt_two_add_series, sqrt_lt],
-    apply add_lt_of_lt_sub_left,
-    apply lt_of_lt_of_le (sqrt_two_add_series_lt_two n),
-    norm_num, apply add_nonneg, norm_num, apply sqrt_two_add_series_zero_nonneg, norm_num
+    rw [sqrt_two_add_series, sqrt_lt, ← lt_sub_iff_add_lt'],
+    { refine (sqrt_two_add_series_lt_two n).trans_le _, norm_num },
+    { exact add_nonneg zero_le_two (sqrt_two_add_series_zero_nonneg n) }
   end
 
 lemma sqrt_two_add_series_succ (x : ℝ) :
@@ -1252,7 +1251,7 @@ lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
 | (n+1) :=
   begin
     rw [sqrt_two_add_series, sqrt_two_add_series],
-    apply sqrt_le_sqrt, apply add_le_add_left, apply sqrt_two_add_series_monotone_left
+    exact sqrt_le_sqrt (add_le_add_left (sqrt_two_add_series_monotone_left _) _)
   end
 
 @[simp] lemma cos_pi_over_two_pow : ∀(n : ℕ), cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2
@@ -1413,7 +1412,9 @@ instance angle.has_coe : has_coe ℝ angle :=
 @[simp] lemma coe_zero : ↑(0 : ℝ) = (0 : angle) := rfl
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
-@[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
+@[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, coe_add, coe_neg]
+
 @[simp, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
   ↑((n : ℝ) * x) = n •ℕ (↑x : angle) :=
 by simpa using add_monoid_hom.map_nsmul ⟨coe, coe_zero, coe_add⟩ _ _
@@ -1457,7 +1458,7 @@ begin
   split,
   { intro Hsin, rw [← cos_pi_div_two_sub, ← cos_pi_div_two_sub] at Hsin,
     cases cos_eq_iff_eq_or_eq_neg.mp Hsin with h h,
-    { left, rw coe_sub at h, exact sub_right_inj.1 h },
+    { left, rw [coe_sub, coe_sub] at h, exact sub_right_inj.1 h },
       right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
       sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
     exact h.symm },
@@ -2371,11 +2372,9 @@ end
 
 lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[Iio (π/2)] (π/2)) at_top :=
 begin
-  convert tendsto_mul_at_top (by norm_num) (tendsto.inv_tendsto_zero tendsto_cos_pi_div_two)
+  convert (tendsto.inv_tendsto_zero tendsto_cos_pi_div_two).at_top_mul (by norm_num)
             tendsto_sin_pi_div_two,
-  ext x,
-  rw tan_eq_sin_div_cos x,
-  ring,
+  simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end
 
 lemma tendsto_sin_neg_pi_div_two : tendsto sin (𝓝[Ioi (-(π/2))] (-(π/2))) (𝓝 (-1)) :=
@@ -2391,11 +2390,9 @@ end
 
 lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[Ioi (-(π/2))] (-(π/2))) at_bot :=
 begin
-  convert tendsto_mul_at_bot (by norm_num) (tendsto.inv_tendsto_zero tendsto_cos_neg_pi_div_two)
+  convert (tendsto.inv_tendsto_zero tendsto_cos_neg_pi_div_two).at_top_mul_neg (by norm_num)
             tendsto_sin_neg_pi_div_two,
-  ext x,
-  rw tan_eq_sin_div_cos x,
-  ring,
+  simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end
 
 /-!

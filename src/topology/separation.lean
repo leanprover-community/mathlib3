@@ -17,38 +17,38 @@ variables {α : Type u} {β : Type v} [topological_space α]
 section separation
 
 /--
-`separate` is a predicate on pairs of `finset`s of a topological space.  It holds if the two
+`separated` is a predicate on pairs of `finset`s of a topological space.  It holds if the two
 `finset`s are contained in disjoint open sets.
 -/
-def separate : finset α → finset α → Prop :=
-  λ (s t : finset α), ∃ U V : (set α), (is_open U) ∧ is_open V ∧
+def separated : set α → set α → Prop :=
+  λ (s t : set α), ∃ U V : (set α), (is_open U) ∧ is_open V ∧
   (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V) ∧ disjoint U V
 
-namespace separate
+namespace separated
 
-open separate
+open separated
 
-@[symm] lemma symm {s t : finset α} : separate s t → separate t s :=
+@[symm] lemma symm {s t : set α} : separated s t → separated t s :=
 begin
   rintros ⟨U, V, oU, oV, aU, bV, UV⟩,
   exact ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩
 end
 
-lemma comm (s t : finset α) : separate s t ↔ separate t s :=
+lemma comm (s t : set α) : separated s t ↔ separated t s :=
 ⟨symm, symm⟩
 
-lemma empty_right (a : finset α) : separate a ∅ :=
+lemma empty_right (a : set α) : separated a ∅ :=
 ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
 
-lemma empty_left (a : finset α) : separate ∅ a :=
+lemma empty_left (a : set α) : separated ∅ a :=
 (empty_right _).symm
 
-lemma union_left {a b c : finset α} : separate a c → separate b c → separate (a ∪ b) c :=
+lemma union_left {a b c : set α} : separated a c → separated b c → separated (a ∪ b) c :=
 begin
   rintros ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
   refine ⟨U ∪ W, V ∩ X, is_open_union oU oW, is_open_inter oV oX,
     λ x xab, _, λ x xc, ⟨bV _ xc, bX _ xc⟩, _⟩,
-  { cases finset.mem_union.mp xab with h h,
+  { cases (mem_union _ _ _).mp xab with h h,
     { exact mem_union_left W (aU x h) },
     { exact mem_union_right U (aW x h) } },
   { apply set.disjoint_union_left.mpr,
@@ -56,11 +56,11 @@ begin
       disjoint_of_subset_right (inter_subset_right _ _) WX⟩ },
 end
 
-lemma union_right {a b c : finset α} (ab : separate a b) (ac : separate a c) :
-  separate a (b ∪ c) :=
+lemma union_right {a b c : set α} (ab : separated a b) (ac : separated a c) :
+  separated a (b ∪ c) :=
 (ab.symm.union_left ac.symm).symm
 
-end separate
+end separated
 
 /-- A T₀ space, also known as a Kolmogorov space, is a topological space
   where for every pair `x ≠ y`, there is an open set containing one but not the other. -/
@@ -216,24 +216,26 @@ begin
     exact this rfl },
 end
 
-section separate
+section separated
 
-open separate finset
+open separated finset
 
 lemma finset_disjoint_finset_opens_of_t2 [t2_space α] :
-  ∀ (s t : finset α), disjoint s t → separate s t :=
+  ∀ (s t : finset α), disjoint s t → separated (s : set α) t :=
 begin
   refine induction_on_union _ (λ a b hi d, (hi d.symm).symm) (λ a d, empty_right a) (λ a b ab, _) _,
   { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation
       (by { rw [ne.def, ← finset.mem_singleton], exact (disjoint_singleton.mp ab.symm) }),
     refine ⟨U, V, oU, oV, λ f hf, _, λ f hf, _, set.disjoint_iff_inter_eq_empty.mpr UV⟩;
     rwa [finset.mem_singleton.mp hf] },
-  { refine λ a b c ac bc d, union_left (ac _) (bc _),
+  { intros a b c ac bc d,
+    rw [coe_union],
+    apply union_left (ac _) (bc _),
     { exact disjoint_of_subset_left (a.subset_union_left b) d },
     { exact disjoint_of_subset_left (a.subset_union_right b) d } },
 end
 
-end separate
+end separated
 
 @[simp] lemma nhds_eq_nhds_iff {a b : α} [t2_space α] : 𝓝 a = 𝓝 b ↔ a = b :=
 ⟨assume h, eq_of_nhds_ne_bot $ by rw [h, inf_idem]; exact nhds_ne_bot, assume h, h ▸ rfl⟩

@@ -38,7 +38,6 @@ protected def mk : ∀ (l : list ι) (f : Π i, α i), tprod α l
 | []        := λ f, punit.star
 | (i :: is) := λ f, (f i, mk is f)
 
--- @[simp] lemma nil_mk : tprod.mk [] = const (Π i, α i) punit.star := rfl
 @[simp] lemma fst_mk (i : ι) (l : list ι) (f : Π i, α i) : (tprod.mk (i::l) f).1 = f i := rfl
 
 @[simp]

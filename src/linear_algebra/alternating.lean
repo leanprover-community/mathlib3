@@ -492,11 +492,12 @@ private lemma dom_coprod_aux_eq_zero_if_eq
 begin
   unfold dom_coprod_aux,
   dsimp only,
-  change ∑ σ, _ = _,
-  simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
-    coe_multilinear_map, finset.sum_apply],
+  rw multilinear_map.sum_apply,
+  -- simp_rw [multilinear_map.smul_apply],
+  -- simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
+  --   coe_multilinear_map, finset.sum_apply],
   apply finset.sum_involution
-    (λ σ _, (equiv.swap i j • σ : mod_sum_congr ιa ιb))
+    (λ σ _, (equiv.swap i j • σ : perm.mod_sum_congr ιa ιb))
     (λ σ, _)
     (λ σ, _)
     (λ σ _, finset.mem_univ _)
@@ -507,10 +508,12 @@ begin
   { dsimp only [quotient.lift_on'_beta, quotient.map'_mk', mul_action.quotient.smul_mk'],
     rw [perm.sign_mul, perm.sign_swap hij],
     simp only [one_mul, units.neg_mul, function.comp_app, neg_smul, perm.coe_mul,
-      units.coe_neg],
+      units.coe_neg, multilinear_map.smul_apply, multilinear_map.neg_apply,
+      multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply],
     convert add_right_neg _;
     { ext k, rw equiv.apply_swap_eq_self h }, },
-  { dsimp only [quotient.lift_on'_beta, quotient.map'_mk'],
+  { dsimp only [quotient.lift_on'_beta, quotient.map'_mk', multilinear_map.smul_apply,
+      multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply],
     intro hnz,
     by_cases hsw : (∃ il, σ (sum.inl il) = i) ↔ (∃ jl, σ (sum.inl jl) = j),
     { -- the term does not pair but is zero
@@ -558,26 +561,8 @@ def dom_coprod
   (a : alternating_map R M N₁ ιa) (b : alternating_map R M N₂ ιb) :
   alternating_map R M (N₁ ⊗[R] N₂) (ιa ⊕ ιb) :=
 { to_fun := dom_coprod_aux a b,
-  map_add' := λ v i p q, begin
-    dsimp only [dom_coprod_aux],
-    rw ←finset.sum_add_distrib,
-    congr' 1,
-    ext σ,
-    apply σ.induction_on' (λ σ, _),
-    dsimp only [quotient.lift_on'_beta],
-    rw [multilinear_map.map_add _ v i p q, smul_add],
-  end,
-  map_smul' :=
-  λ v i c p, begin
-    dsimp only [dom_coprod_aux],
-    rw finset.smul_sum,
-    congr' 1,
-    ext σ,
-    apply σ.induction_on' (λ σ, _),
-    dsimp only [quotient.lift_on'_beta],
-    rw [multilinear_map.map_smul _ v i c p, smul_comm],
-  end,
-  map_eq_zero_of_eq' := dom_coprod_aux_eq_zero_if_eq a b }
+  map_eq_zero_of_eq' := dom_coprod_aux_eq_zero_if_eq a b,
+  ..dom_coprod_aux a b }
 
 -- /-- The usual definition of multiplication of alternating maps, over integer indices. -/
 -- def mul_fin {n m} {R : Type*} {M N : Type*}
@@ -604,11 +589,12 @@ tensor_product.lift $ by
     (λ c m n, _);
   { ext,
     simp only [dom_coprod_apply, dom_coprod_aux, add_apply, smul_apply, ←finset.sum_add_distrib,
-      finset.smul_sum],
+      finset.smul_sum, multilinear_map.sum_apply],
     congr,
     ext σ,
     apply σ.induction_on' (λ σ, _),
-    simp only [quotient.lift_on'_beta, coe_add, coe_smul, ←multilinear_map.dom_coprod'_apply],
+    simp only [quotient.lift_on'_beta, coe_add, coe_smul, multilinear_map.smul_apply,
+      ←multilinear_map.dom_coprod'_apply],
     simp only [tensor_product.add_tmul, ←tensor_product.smul_tmul',
       tensor_product.tmul_add, tensor_product.tmul_smul, linear_map.map_add, linear_map.map_smul],
     rw ←smul_add <|> rw smul_comm,
@@ -641,10 +627,8 @@ begin
   ext,
   simp only [dom_coprod_apply, smul_apply],
   dsimp only [smul_apply, multilinear_map.alternatization_apply, alternating_map.dom_coprod_apply,
-    dom_coprod_aux, multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
-    coe_multilinear_map],
-  simp_rw [tensor_product.sum_tmul, tensor_product.tmul_sum,
-    ←tensor_product.smul_tmul'_int, tensor_product.tmul_smul_int],
+    dom_coprod_aux],
+  simp_rw multilinear_map.sum_apply,
   rw finset.sum_partition (quotient_group.left_rel (perm.sum_congr_hom ιa ιb).range),
   congr' 1,
   ext σ,
@@ -658,6 +642,11 @@ begin
   simp_rw (iff.intro quotient.exact' quotient.sound'),
   dunfold setoid.r quotient_group.left_rel,
   simp only,
+
+  dsimp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
+    coe_multilinear_map, multilinear_map.smul_apply, multilinear_map.alternatization_apply],
+  simp_rw [tensor_product.sum_tmul, tensor_product.tmul_sum,
+    ←tensor_product.smul_tmul'_int, tensor_product.tmul_smul_int],
 
   -- eliminate a multiplication
   have : @finset.univ (perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) := begin
@@ -690,6 +679,10 @@ begin
   congr,
 end
 
+#check 1
+
+-- set_option pp.implicit true
+
 /-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two
 `alternating_map`s gives a scaled version of the `alternating_map.coprod` of those maps.
 -/
@@ -708,16 +701,28 @@ begin
     ←to_multilinear_map_eq_coe, ←to_multilinear_map_eq_coe, to_multilinear_map_alternization,
     to_multilinear_map_alternization, mul_smul],
   rw [←dom_coprod'_apply, ←dom_coprod'_apply],
-  -- these sorries have nasty typeclass diamonds until we fix tensor_product.has_scalar
   calc dom_coprod' (((fintype.card ιa).factorial • a) ⊗ₜ[R] (fintype.card ιb).factorial • b)
       = dom_coprod' ((fintype.card ιa).factorial • (fintype.card ιb).factorial • (a ⊗ₜ[R] b)) :
-        sorry
+        begin
+          congr' 1,
+          rw [←tensor_product.tmul_smul_nat, tensor_product.smul_tmul'_nat],
+          congr,
+          dsimp,
+          sorry, sorry, -- the same diamond instance, twice
+        end
   ... = (fintype.card ιa).factorial • (fintype.card ιb).factorial • dom_coprod' (a ⊗ₜ[R] b) :
-        sorry
+        begin
+          rw ←mul_smul,
+          rw ←mul_smul,
+          rw ←linear_map.map_smul_of_tower dom_coprod' (_ : ℕ),
+          apply_instance,
+          apply_instance,
+          convert add_comm_monoid.nat_is_scalar_tower,
+          dsimp,
+          sorry -- diamond problem
+        end
 end
-
-end coprod
 
 end alternating_map
 
-end
+end coprod

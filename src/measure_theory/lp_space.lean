@@ -240,10 +240,9 @@ section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
-lemma mem_ℒp.smul (f : α → E) (c : 𝕜) (hp_pos : 0 < p) (hfp : mem_ℒp f p μ) :
+lemma mem_ℒp.smul (f : α → E) (c : 𝕜) (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) :
   mem_ℒp (c • f) p μ :=
 begin
-  have hp0 : 0 ≤ p, from le_of_lt hp_pos,
   split,
   { exact measurable.const_smul hfp.1 c, },
   simp_rw [pi.smul_apply, nnnorm_smul, ennreal.coe_mul, ennreal.mul_rpow_of_nonneg _ _ hp0],

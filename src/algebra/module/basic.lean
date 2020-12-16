@@ -175,12 +175,12 @@ abbreviation module (R : Type u) (M : Type v) [ring R] [add_comm_group M] :=
 semimodule R M
 
 /--
-To prove two module structures on a fixed `add_comm_group` agree,
+To prove two semimodule structures on a fixed `add_comm_monoid` agree,
 it suffices to check the scalar multiplications agree.
 -/
--- We'll later use this to show `module ℤ M` is a subsingleton.
+-- We'll later use this to show `semimodule ℕ M` and `module ℤ M` are subsingletons.
 @[ext]
-lemma module_ext {R : Type*} [ring R] {M : Type*} [add_comm_group M] (P Q : module R M)
+lemma semimodule_ext {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q : semimodule R M)
   (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
   P = Q :=
 begin
@@ -279,6 +279,24 @@ def nat_semimodule : semimodule ℕ M :=
   one_smul := one_nsmul,
   zero_smul := zero_nsmul,
   smul_zero := nsmul_zero }
+
+instance : subsingleton (semimodule ℕ M) :=
+begin
+  split,
+  intros P Q,
+  ext n,
+  -- isn't that lovely: `r • m = r • m`
+  have one_smul : by { haveI := P, exact (1 : ℕ) • m } = by { haveI := Q, exact (1 : ℕ) • m },
+    begin
+      rw [@one_smul ℕ _ _ (by { haveI := P, apply_instance, }) m],
+      rw [@one_smul ℕ _ _ (by { haveI := Q, apply_instance, }) m],
+    end,
+  induction n with n ih,
+  { erw [zero_smul, zero_smul], },
+  { rw [nat.succ_eq_add_one, add_smul, add_smul],
+    erw ih,
+    rw [one_smul], }
+end
 
 local attribute [instance] nat_semimodule
 

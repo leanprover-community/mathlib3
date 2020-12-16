@@ -127,11 +127,7 @@ begin
   have hp2q2 : p2.is_conjugate_exponent q2,
   from real.is_conjugate_exponent_conjugate_exponent (by simp [lt_div_iff, hpq, hp0_lt]),
   have hq2 : q2 = q * (q - p)⁻¹,
-  { change (q/p)/(q/p - 1) = q * (q - p)⁻¹,
-    rw [←div_self hp0_ne, ←sub_div, div_eq_mul_one_div, one_div_div, div_eq_mul_inv, div_eq_mul_inv,
-      mul_assoc],
-    nth_rewrite 1 ←mul_assoc,
-    rw [inv_mul_cancel hp0_ne, one_mul], },
+    by field_simp [q2, real.conjugate_exponent, p2, ne_of_gt (sub_pos.mpr hpq), hp0_ne],
   calc (∫⁻ (a : α), ↑((f_nnreal * g_nnreal) a) ∂μ) ^ (1 / p)
     ≤ ((∫⁻ a, (f_nnreal a)^p2 ∂ μ)^(1/p2)*(∫⁻ a, (g_nnreal a)^q2 ∂ μ)^(1/q2)) ^ (1/p) :
   begin

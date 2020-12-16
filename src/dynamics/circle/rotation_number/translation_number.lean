@@ -273,17 +273,19 @@ lemma commute_add_nat (n : ℕ) : function.commute f (λ x, x + n) :=
 by simp only [add_comm _ (n:ℝ), f.commute_nat_add n]
 
 lemma commute_sub_nat (n : ℕ) : function.commute f (λ x, x - n) :=
-(f.commute_add_nat n).inverses_right (equiv.add_right _).right_inv (equiv.add_right _).left_inv
+by simpa only [sub_eq_add_neg] using
+  (f.commute_add_nat n).inverses_right (equiv.add_right _).right_inv (equiv.add_right _).left_inv
 
 lemma commute_add_int : ∀ n : ℤ, function.commute f (λ x, x + n)
 | (n:ℕ) := f.commute_add_nat n
-| -[1+n] := f.commute_sub_nat (n + 1)
+| -[1+n] := by simpa only [sub_eq_add_neg] using f.commute_sub_nat (n + 1)
 
 lemma commute_int_add (n : ℤ) : function.commute f ((+) n) :=
 by simpa only [add_comm _ (n:ℝ)] using f.commute_add_int n
 
 lemma commute_sub_int (n : ℤ) : function.commute f (λ x, x - n) :=
-(f.commute_add_int n).inverses_right (equiv.add_right _).right_inv (equiv.add_right _).left_inv
+by simpa only [sub_eq_add_neg] using
+  (f.commute_add_int n).inverses_right (equiv.add_right _).right_inv (equiv.add_right _).left_inv
 
 @[simp] lemma map_int_add (m : ℤ) (x : ℝ) : f (m + x) = m + f x :=
 f.commute_int_add m x
@@ -395,13 +397,13 @@ calc ⌈f 0⌉ + ⌊g 0⌋ = ⌈f 0 + ⌊g 0⌋⌉ : (ceil_add_int _ _).symm
                ... ≤ ⌈f (g 0)⌉     : ceil_mono $ f.le_map_map_zero g
 
 lemma lt_map_map_zero : f 0 + g 0 - 1 < f (g 0) :=
-calc f 0 + g 0 - 1 = f 0 + (g 0 - 1) : add_assoc _ _ _
+calc f 0 + g 0 - 1 = f 0 + (g 0 - 1) : add_sub_assoc _ _ _
                ... < f 0 + ⌊g 0⌋     : add_lt_add_left (sub_one_lt_floor _) _
                ... ≤ f (g 0)         : f.le_map_map_zero g
 
 lemma dist_map_map_zero_lt : dist (f 0 + g 0) (f (g 0)) < 1 :=
 begin
-  rw [dist_comm, real.dist_eq, abs_lt, lt_sub_iff_add_lt', sub_lt_iff_lt_add'],
+  rw [dist_comm, real.dist_eq, abs_lt, lt_sub_iff_add_lt', sub_lt_iff_lt_add', ← sub_eq_add_neg],
   exact ⟨f.lt_map_map_zero g, f.map_map_zero_lt g⟩
 end
 

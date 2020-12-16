@@ -762,6 +762,7 @@ local_of_nonunits_ideal
     simp only [mul_one, one_mul, submonoid.coe_mul, subtype.coe_mk] at ht,
     rw [←sub_eq_zero, ←sub_mul] at ht,
     have hr := (hp.mem_or_mem_of_mul_eq_zero ht).resolve_right t.2,
+    rw sub_eq_add_neg at hr,
     have := I.neg_mem_iff.1 ((ideal.add_mem_iff_right _ _).1 hr),
     { exact not_or (mt hp.mem_or_mem (not_or sx.2 sy.2)) sz.2 (hp.mem_or_mem this)},
     { exact I.mul_mem_right (I.add_mem (I.mul_mem_right (this hx)) (I.mul_mem_right (this hy)))}
@@ -1201,6 +1202,17 @@ end
 end localization
 end at_prime
 
+/-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
+lemma localization_map_bijective_of_field {R Rₘ : Type*} [integral_domain R] [comm_ring Rₘ]
+  {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
+  (f : localization_map M Rₘ) : function.bijective f.to_map :=
+begin
+  refine ⟨f.injective (le_non_zero_divisors_of_domain hM), λ x, _⟩,
+  obtain ⟨r, ⟨m, hm⟩, rfl⟩ := f.mk'_surjective x,
+  obtain ⟨n, hn⟩ := hR.mul_inv_cancel (λ hm0, hM (hm0 ▸ hm) : m ≠ 0),
+  exact ⟨r * n, by erw [f.eq_mk'_iff_mul_eq, ← f.to_map.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
+end
+
 variables (R) {A : Type*} [integral_domain A]
 variables (K : Type*)
 
@@ -1454,18 +1466,27 @@ lemma algebra_map_mk' (r : R) (m : M) :
     g.mk' (algebra_map R S r) ⟨algebra_map R S m, algebra.mem_algebra_map_submonoid_of_mem m⟩ :=
 localization_map.map_mk' f _ r m
 
-/-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization -/
-lemma localization_algebra_injective (hRS : function.injective (algebra_map R S))
-  (hM : algebra.algebra_map_submonoid S M ≤ non_zero_divisors S) :
-  function.injective (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) :=
+/-- Injectivity of a map descends to the map induced on localizations. -/
+lemma map_injective_of_injective {R S : Type*} [comm_ring R] [comm_ring S]
+  (ϕ : R →+* S) (hϕ : function.injective ϕ) (M : submonoid R)
+  (f : localization_map M Rₘ) (g : localization_map (M.map ϕ : submonoid S) Sₘ)
+  (hM : (M.map ϕ : submonoid S) ≤ non_zero_divisors S) :
+  function.injective (f.map (M.mem_map_of_mem (ϕ : R →* S)) g) :=
 begin
   rintros x y hxy,
   obtain ⟨a, b, rfl⟩ := localization_map.mk'_surjective f x,
   obtain ⟨c, d, rfl⟩ := localization_map.mk'_surjective f y,
-  rw [algebra_map_mk' f g a b, algebra_map_mk' f g c d, localization_map.mk'_eq_iff_eq] at hxy,
-  refine (localization_map.mk'_eq_iff_eq f).2 (congr_arg f.to_map (hRS _)),
+  rw [localization_map.map_mk' f _ a b, localization_map.map_mk' f _ c d,
+    localization_map.mk'_eq_iff_eq] at hxy,
+  refine (localization_map.mk'_eq_iff_eq f).2 (congr_arg f.to_map (hϕ _)),
   convert g.injective hM hxy; simp,
 end
+
+/-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization. -/
+lemma localization_algebra_injective (hRS : function.injective (algebra_map R S))
+  (hM : algebra.algebra_map_submonoid S M ≤ non_zero_divisors S) :
+  function.injective (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) :=
+map_injective_of_injective (algebra_map R S) hRS M f g hM
 
 open polynomial
 

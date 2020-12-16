@@ -413,6 +413,8 @@ protected lemma bijective (e : r ≃r s) : bijective e := e.to_equiv.bijective
 protected lemma injective (e : r ≃r s) : injective e := e.to_equiv.injective
 protected lemma surjective (e : r ≃r s) : surjective e := e.to_equiv.surjective
 
+@[simp] lemma range_eq (e : r ≃r s) : set.range e = set.univ := e.surjective.range_eq
+
 /-- Any equivalence lifts to a relation isomorphism between `s` and its preimage. -/
 protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃r s := ⟨f, λ a b, iff.rfl⟩
 
@@ -501,6 +503,8 @@ e.to_order_embedding.map_lt_iff.symm
 protected lemma bijective (e : α ≃o β) : bijective e := e.to_equiv.bijective
 protected lemma injective (e : α ≃o β) : injective e := e.to_equiv.injective
 protected lemma surjective (e : α ≃o β) : surjective e := e.to_equiv.surjective
+
+@[simp] lemma range_eq (e : α ≃o β) : set.range e = set.univ := e.surjective.range_eq
 
 @[simp] lemma apply_eq_iff_eq (e : α ≃o β) {x y : α} : e x = e y ↔ x = y :=
 e.to_equiv.apply_eq_iff_eq

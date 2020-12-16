@@ -136,7 +136,7 @@ begin
     { ext Z g,
       split,
       { rintro ⟨W, k, l, hl, _, comm⟩,
-        rw [mem_pullback, ← comm],
+        rw [pullback_apply, ← comm],
         simp [hl] },
       { intro a,
         refine ⟨Z, 𝟙 Z, _, a, _⟩,
@@ -238,7 +238,7 @@ le_finest_topology _ _ (by { rintro P ⟨X, rfl⟩, apply h })
 lemma is_sheaf_of_representable {J : grothendieck_topology C} (hJ : subcanonical J)
   (P : Cᵒᵖ ⥤ Type v) [representable P] :
   presieve.is_sheaf J P :=
-presieve.is_sheaf_for_coarser_topology _ hJ (is_sheaf_of_representable P)
+presieve.is_sheaf_of_le _ hJ (is_sheaf_of_representable P)
 
 end subcanonical
 

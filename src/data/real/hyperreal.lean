@@ -617,7 +617,8 @@ lemma not_real_of_infinitesimal_ne_zero (x : ℝ*) :
 is_st_unique (hr.symm ▸ is_st_refl_real r : is_st x r) hi
 
 theorem infinitesimal_sub_is_st {x : ℝ*} {r : ℝ} (hxr : is_st x r) : infinitesimal (x - r) :=
-show is_st (x + -r) 0, by rw ←add_neg_self r; exact is_st_add hxr (is_st_refl_real (-r))
+show is_st (x - r) 0,
+by { rw [sub_eq_add_neg, ← add_neg_self r], exact is_st_add hxr (is_st_refl_real (-r)) }
 
 theorem infinitesimal_sub_st {x : ℝ*} (hx : ¬infinite x) : infinitesimal (x - st x) :=
 infinitesimal_sub_is_st $ is_st_st' hx

@@ -223,11 +223,8 @@ instance : semiring (mv_power_series σ R) :=
 end semiring
 
 instance [comm_semiring R] : comm_semiring (mv_power_series σ R) :=
-{ mul_comm := λ φ ψ, ext $ λ n, finset.sum_bij (λ p hp, p.swap)
-    (λ p hp, swap_mem_antidiagonal_support hp)
-    (λ p hp, mul_comm _ _)
-    (λ p q hp hq H, by simpa using congr_arg prod.swap H)
-    (λ p hp, ⟨p.swap, swap_mem_antidiagonal_support hp, p.swap_swap.symm⟩),
+{ mul_comm := λ φ ψ, ext $ λ n, by simpa only [coeff_mul, mul_comm]
+    using sum_antidiagonal_support_swap n (λ a b, coeff R a φ * coeff R b ψ),
   .. mv_power_series.semiring }
 
 instance [ring R] : ring (mv_power_series σ R) :=

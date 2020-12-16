@@ -6,11 +6,25 @@ Authors: Floris van Doorn
 import data.list.nodup
 
 /-!
-# Finite Products of Types
+# Finite products of types
 
 This file defines the product of types over a list. For `l : list ι` and `α : ι → Type*` we define
-`tprod α l = l.foldr (λ i β, α i × β) punit`. It is used to transfer results from binary products to
-finitary products, like for product measures.
+`list.tprod α l = l.foldr (λ i β, α i × β) punit`.
+This type should not be used if `Π i, α i` or `Π i ∈ l, α i` can be used instead
+(in the last expression, we could also replace the list `l` by a set or a finset).
+This type is used as an intermediary between binary products and finitary products.
+The application of this type is finitary product measures, but it could be used in any
+construction/theorem that is easier to define/proof on binary products than on finitary products.
+
+* Once we have the construction on binary products (like binary product measures in
+  `measure_theory.prod`), we can easily define a finitary version on the type `tprod l α`
+  by iterating. Properties can also be easily extended from the binary case to the finitary case
+  by iterating.
+* Then we can use the equivalence `list.tprod.pi_equiv_tprod` below (or enhanced versions of it,
+  like a `measurable_equiv` for product measures) to get the construction on `Π i : ι, α i`, at least
+  when assuming `[fintype ι] [encodable ι]`.
+  Using choice or in proofs, we can remove the argument `[encodable I]` using
+  `encodable.trunc_encodable_of_fintype`.
 
 ## Main definitions
 
@@ -21,7 +35,11 @@ finitary products, like for product measures.
 
 open list function
 
-variables {ι : Type*} (α : ι → Type*) {i j : ι} {l : list ι} {f : Π i, α i}
+variables {ι : Type*} {α : ι → Type*} {i j : ι} {l : list ι} {f : Π i, α i}
+
+namespace list
+
+variable (α)
 
 /-- The product of a family of types over a list. -/
 @[nolint has_inhabited_instance] def tprod (l : list ι) : Type* :=
@@ -92,6 +110,8 @@ def pi_equiv_tprod (hnd : l.nodup) (h : ∀ i, i ∈ l) : (Π i, α i) ≃ tprod
 ⟨tprod.mk l, tprod.elim' h, λ f, funext $ λ i, elim_mk l f (h i), mk_elim hnd h⟩
 
 end tprod
+
+end list
 
 namespace set
 

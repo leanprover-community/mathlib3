@@ -1049,7 +1049,7 @@ def sum_prod_sum (α β γ δ)
   (α ⊕ β) × (γ ⊕ δ) ≃ᵐ ((α × γ) ⊕ (α × δ)) ⊕ ((β × γ) ⊕ (β × δ)) :=
 (sum_prod_distrib _ _ _).trans $ sum_congr (prod_sum_distrib _ _ _) (prod_sum_distrib _ _ _)
 
-variables {π π' : δ → Type*} [∀ x, measurable_space (π x)] [∀ x, measurable_space (π' x)]
+variables {π π' : δ' → Type*} [∀ x, measurable_space (π x)] [∀ x, measurable_space (π' x)]
 
 /-- A family of measurable equivalences `Π a, β₁ a ≃ᵐ β₂ a` generates a measurable equivalence
   between  `Π a, β₁ a` and `Π a, β₂ a`. -/
@@ -1059,7 +1059,6 @@ def Pi_congr_right (e : Π a, π a ≃ᵐ π' a) : (Π a, π a) ≃ᵐ (Π a, π
     measurable_pi_lambda _ (λ i, (e i).measurable_to_fun.comp (measurable_pi_apply i)),
   measurable_inv_fun :=
     measurable_pi_lambda _ (λ i, (e i).measurable_inv_fun.comp (measurable_pi_apply i)) }
-
 
 end measurable_equiv
 

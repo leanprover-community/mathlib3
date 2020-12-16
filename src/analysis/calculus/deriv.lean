@@ -870,14 +870,12 @@ theorem has_deriv_at.const_sub (c : F) (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, c - f x) (-f') x :=
 hf.const_sub c
 
-lemma deriv_within_const_sub (hxs : unique_diff_within_at 𝕜 s x)
-  (c : F) (hf : differentiable_within_at 𝕜 f s x) :
+lemma deriv_within_const_sub (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
   deriv_within (λy, c - f y) s x = -deriv_within f s x :=
-(hf.has_deriv_within_at.const_sub c).deriv_within hxs
+by simp [deriv_within, fderiv_within_const_sub hxs]
 
-lemma deriv_const_sub (c : F) (hf : differentiable_at 𝕜 f x) :
-  deriv (λ y, c - f y) x = -deriv f x :=
-(hf.has_deriv_at.const_sub c).deriv
+lemma deriv_const_sub (c : F) : deriv (λ y, c - f y) x = -deriv f x :=
+by simp only [← deriv_within_univ, deriv_within_const_sub unique_diff_within_at_univ]
 
 end sub
 

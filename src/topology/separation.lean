@@ -216,7 +216,7 @@ begin
     exact this rfl },
 end
 
-section separated
+namespace separated
 
 open separated finset
 
@@ -230,9 +230,15 @@ begin
     rwa [finset.mem_singleton.mp hf] },
   { intros a b c ac bc d,
     rw [coe_union],
-    apply union_left (ac _) (bc _),
-    { exact disjoint_of_subset_left (a.subset_union_left b) d },
-    { exact disjoint_of_subset_left (a.subset_union_right b) d } },
+    apply union_left (ac (disjoint_of_subset_left (a.subset_union_left b) d)) (bc _),
+    exact disjoint_of_subset_left (a.subset_union_right b) d },
+end
+
+lemma point_disjoint_finset_opens_of_t2 [t2_space α] {x : α} {s : finset α} (h : x ∉ s) :
+  separated ({x} : set α) ↑s :=
+begin
+  rw ← coe_singleton x,
+  exact finset_disjoint_finset_opens_of_t2 {x} s (singleton_disjoint.mpr h),
 end
 
 end separated

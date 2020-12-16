@@ -165,8 +165,8 @@ begin
   end
 end
 
-lemma snorm_mono {p q : ℝ} (hp1 : 1 ≤ p) (hpq : p ≤ q) (μ : measure α) [probability_measure μ]
-  {f : α → E} (hf : measurable f) :
+lemma snorm_le_of_exponent_le {p q : ℝ} (hp1 : 1 ≤ p) (hpq : p ≤ q) (μ : measure α)
+  [probability_measure μ] {f : α → E} (hf : measurable f) :
   snorm f p μ ≤ snorm f q μ :=
 begin
   have h_le_μ := snorm_le_snorm_mul_rpow_measure_univ hp1 hpq μ hf,

@@ -57,7 +57,7 @@ begin
   { rintro ⟨_, h, k, hk, rfl⟩,
     cases hk with W g hg,
     change (sieve.generate R).pullback f (h ≫ pullback.snd),
-    rw [sieve.mem_pullback, assoc, ← pullback.condition, ← assoc],
+    rw [sieve.pullback_apply, assoc, ← pullback.condition, ← assoc],
     exact sieve.downward_closed _ (sieve.le_generate R W hg) (h ≫ pullback.fst)},
   { rintro ⟨W, h, k, hk, comm⟩,
     exact ⟨_, _, _, pullback_arrows.mk _ _ hk, pullback.lift_snd _ _ comm⟩ },

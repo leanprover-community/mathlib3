@@ -393,6 +393,10 @@ lemma has_deriv_within_at.congr_of_eventually_eq (h : has_deriv_within_at f f' s
   (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
 has_deriv_at_filter.congr_of_eventually_eq h h₁ hx
 
+lemma has_deriv_within_at.congr_of_eventually_eq_of_mem (h : has_deriv_within_at f f' s x)
+  (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : x ∈ s) : has_deriv_within_at f₁ f' s x :=
+h.congr_of_eventually_eq h₁ (h₁.eq_of_nhds_within hx)
+
 lemma has_deriv_at.congr_of_eventually_eq (h : has_deriv_at f f' x)
   (h₁ : f₁ =ᶠ[𝓝 x] f) : has_deriv_at f₁ f' x :=
 has_deriv_at_filter.congr_of_eventually_eq h h₁ (mem_of_nhds h₁ : _)
@@ -570,14 +574,12 @@ theorem has_deriv_at.add_const
   has_deriv_at (λ x, f x + c) f' x :=
 hf.add_const c
 
-lemma deriv_within_add_const (hxs : unique_diff_within_at 𝕜 s x)
-  (hf : differentiable_within_at 𝕜 f s x) (c : F) :
+lemma deriv_within_add_const (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
   deriv_within (λy, f y + c) s x = deriv_within f s x :=
-(hf.has_deriv_within_at.add_const c).deriv_within hxs
+by simp only [deriv_within, fderiv_within_add_const hxs]
 
-lemma deriv_add_const (hf : differentiable_at 𝕜 f x) (c : F) :
-  deriv (λy, f y + c) x = deriv f x :=
-(hf.has_deriv_at.add_const c).deriv
+lemma deriv_add_const (c : F) : deriv (λy, f y + c) x = deriv f x :=
+by simp only [deriv, fderiv_add_const]
 
 theorem has_deriv_at_filter.const_add (c : F) (hf : has_deriv_at_filter f f' x L) :
   has_deriv_at_filter (λ y, c + f y) f' x L :=
@@ -591,17 +593,14 @@ theorem has_deriv_at.const_add (c : F) (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, c + f x) f' x :=
 hf.const_add c
 
-lemma deriv_within_const_add (hxs : unique_diff_within_at 𝕜 s x)
-  (c : F) (hf : differentiable_within_at 𝕜 f s x) :
+lemma deriv_within_const_add (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
   deriv_within (λy, c + f y) s x = deriv_within f s x :=
-(hf.has_deriv_within_at.const_add c).deriv_within hxs
+by simp only [deriv_within, fderiv_within_const_add hxs]
 
-lemma deriv_const_add (c : F) (hf : differentiable_at 𝕜 f x) :
-  deriv (λy, c + f y) x = deriv f x :=
-(hf.has_deriv_at.const_add c).deriv
+lemma deriv_const_add (c : F)  : deriv (λy, c + f y) x = deriv f x :=
+by simp only [deriv, fderiv_const_add]
 
 end add
-
 
 section sum
 /-! ### Derivative of a finite sum of functions -/
@@ -737,16 +736,12 @@ theorem has_strict_deriv_at.neg (h : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, -f x) (-f') x :=
 by simpa using h.neg.has_strict_deriv_at
 
-lemma deriv_within.neg (hxs : unique_diff_within_at 𝕜 s x)
-  (h : differentiable_within_at 𝕜 f s x) :
+lemma deriv_within.neg (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λy, -f y) s x = - deriv_within f s x :=
-h.has_deriv_within_at.neg.deriv_within hxs
+by simp only [deriv_within, fderiv_within_neg hxs, continuous_linear_map.neg_apply]
 
 lemma deriv.neg : deriv (λy, -f y) x = - deriv f x :=
-if h : differentiable_at 𝕜 f x then h.has_deriv_at.neg.deriv else
-have ¬differentiable_at 𝕜 (λ y, -f y) x, from λ h', by simpa only [neg_neg] using h'.neg,
-by simp only [deriv_zero_of_not_differentiable_at h,
-  deriv_zero_of_not_differentiable_at this, neg_zero]
+by simp only [deriv, fderiv_neg, continuous_linear_map.neg_apply]
 
 @[simp] lemma deriv.neg' : deriv (λy, -f y) = (λ x, - deriv f x) :=
 funext $ λ x, deriv.neg
@@ -845,14 +840,12 @@ theorem has_deriv_at.sub_const
   has_deriv_at (λ x, f x - c) f' x :=
 hf.sub_const c
 
-lemma deriv_within_sub_const (hxs : unique_diff_within_at 𝕜 s x)
-  (hf : differentiable_within_at 𝕜 f s x) (c : F) :
+lemma deriv_within_sub_const (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
   deriv_within (λy, f y - c) s x = deriv_within f s x :=
-(hf.has_deriv_within_at.sub_const c).deriv_within hxs
+by simp only [deriv_within, fderiv_within_sub_const hxs]
 
-lemma deriv_sub_const (c : F) (hf : differentiable_at 𝕜 f x) :
-  deriv (λ y, f y - c) x = deriv f x :=
-(hf.has_deriv_at.sub_const c).deriv
+lemma deriv_sub_const (c : F) : deriv (λ y, f y - c) x = deriv f x :=
+by simp only [deriv, fderiv_sub_const]
 
 theorem has_deriv_at_filter.const_sub (c : F) (hf : has_deriv_at_filter f f' x L) :
   has_deriv_at_filter (λ x, c - f x) (-f') x L :=
@@ -866,14 +859,12 @@ theorem has_deriv_at.const_sub (c : F) (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, c - f x) (-f') x :=
 hf.const_sub c
 
-lemma deriv_within_const_sub (hxs : unique_diff_within_at 𝕜 s x)
-  (c : F) (hf : differentiable_within_at 𝕜 f s x) :
+lemma deriv_within_const_sub (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
   deriv_within (λy, c - f y) s x = -deriv_within f s x :=
-(hf.has_deriv_within_at.const_sub c).deriv_within hxs
+by simp [deriv_within, fderiv_within_const_sub hxs]
 
-lemma deriv_const_sub (c : F) (hf : differentiable_at 𝕜 f x) :
-  deriv (λ y, c - f y) x = -deriv f x :=
-(hf.has_deriv_at.const_sub c).deriv
+lemma deriv_const_sub (c : F) : deriv (λ y, c - f y) x = -deriv f x :=
+by simp only [← deriv_within_univ, deriv_within_const_sub unique_diff_within_at_univ]
 
 end sub
 
@@ -1458,6 +1449,35 @@ theorem has_deriv_at.of_local_left_inverse {f g : 𝕜 → 𝕜} {f' a : 𝕜}
   (hfg : ∀ᶠ y in 𝓝 a, f (g y) = y) :
   has_deriv_at g f'⁻¹ a :=
 (hf.has_fderiv_at_equiv hf').of_local_left_inverse hg hfg
+
+/-- If `f` is a local homeomorphism defined on a neighbourhood of `f.symm a`, and `f` has an
+nonzero derivative `f'` at `f.symm a`, then `f.symm` has the derivative `f'⁻¹` at `a`.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+lemma local_homeomorph.has_deriv_at_symm (f : local_homeomorph 𝕜 𝕜) {a f' : 𝕜}
+  (ha : a ∈ f.target) (hf' : f' ≠ 0) (htff' : has_deriv_at f f' (f.symm a)) :
+  has_deriv_at f.symm f'⁻¹ a :=
+htff'.of_local_left_inverse (f.symm.continuous_at ha) hf' (f.eventually_right_inverse ha)
+
+theorem not_differentiable_within_at_of_local_left_inverse_has_deriv_within_at_zero
+  {f g : 𝕜 → 𝕜} {a : 𝕜} {s t : set 𝕜} (ha : a ∈ s) (hsu : unique_diff_within_at 𝕜 s a)
+  (hf : has_deriv_within_at f 0 t (g a)) (hst : maps_to g s t) (hfg : f ∘ g =ᶠ[𝓝[s] a] id) :
+  ¬differentiable_within_at 𝕜 g s a :=
+begin
+  intro hg,
+  have := (hf.comp a hg.has_deriv_within_at hst).congr_of_eventually_eq_of_mem hfg.symm ha,
+  simpa using hsu.eq_deriv _ this (has_deriv_within_at_id _ _)
+end
+
+theorem not_differentiable_at_of_local_left_inverse_has_deriv_at_zero
+  {f g : 𝕜 → 𝕜} {a : 𝕜} (hf : has_deriv_at f 0 (g a)) (hfg : f ∘ g =ᶠ[𝓝 a] id) :
+  ¬differentiable_at 𝕜 g a :=
+begin
+  intro hg,
+  have := (hf.comp a hg.has_deriv_at).congr_of_eventually_eq hfg.symm,
+  simpa using has_deriv_at_unique this (has_deriv_at_id a)
+end
 
 end
 

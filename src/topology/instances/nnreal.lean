@@ -96,6 +96,12 @@ show summable ((coe ∘ f) ∘ i), from (nnreal.summable_coe.2 hf).comp_injectiv
 lemma summable_nat_add (f : ℕ → ℝ≥0) (hf : summable f) (k : ℕ) : summable (λ i, f (i + k)) :=
 summable_comp_injective hf $ add_left_injective k
 
+lemma summable_nat_add_iff {f : ℕ → ℝ≥0} (k : ℕ) : summable (λ i, f (i + k)) ↔ summable f :=
+begin
+  rw [← summable_coe, ← summable_coe],
+  exact @summable_nat_add_iff ℝ _ _ _ (λ i, (f i : ℝ)) k,
+end
+
 lemma sum_add_tsum_nat_add {f : ℕ → ℝ≥0} (k : ℕ) (hf : summable f) :
   (∑' i, f i) = (∑ i in range k, f i) + ∑' i, f (i + k) :=
 by rw [←nnreal.coe_eq, coe_tsum, nnreal.coe_add, coe_sum, coe_tsum,

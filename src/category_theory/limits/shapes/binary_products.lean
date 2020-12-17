@@ -723,6 +723,16 @@ def prod_comparison (F : C ⥤ D) (A B : C)
   F.obj (A ⨯ B) ⟶ F.obj A ⨯ F.obj B :=
 prod.lift (F.map prod.fst) (F.map prod.snd)
 
+@[simp]
+lemma prod_comparison_fst :
+  prod_comparison F A B ≫ prod.fst = F.map prod.fst :=
+prod.lift_fst _ _
+
+@[simp]
+lemma prod_comparison_snd :
+  prod_comparison F A B ≫ prod.snd = F.map prod.snd :=
+prod.lift_snd _ _
+
 /-- Naturality of the prod_comparison morphism in both arguments. -/
 @[reassoc] lemma prod_comparison_natural (f : A ⟶ A') (g : B ⟶ B') :
   F.map (prod.map f g) ≫ prod_comparison F A' B' = prod_comparison F A B ≫ prod.map (F.map f) (F.map g) :=
@@ -734,28 +744,20 @@ end
 @[reassoc]
 lemma inv_prod_comparison_map_fst [is_iso (prod_comparison F A B)] :
   inv (prod_comparison F A B) ≫ F.map prod.fst = prod.fst :=
-begin
-  erw (as_iso (prod_comparison F A B)).inv_comp_eq,
-  dsimp [as_iso_hom, prod_comparison],
-  rw prod.lift_fst,
-end
+by simp [is_iso.inv_comp_eq]
 
 @[reassoc]
 lemma inv_prod_comparison_map_snd [is_iso (prod_comparison F A B)] :
   inv (prod_comparison F A B) ≫ F.map prod.snd = prod.snd :=
-begin
-  erw (as_iso (prod_comparison F A B)).inv_comp_eq,
-  dsimp [as_iso_hom, prod_comparison],
-  rw prod.lift_snd,
-end
+by simp [is_iso.inv_comp_eq]
 
 /-- If the product comparison morphism is an iso, its inverse is natural. -/
 @[reassoc]
 lemma prod_comparison_inv_natural (f : A ⟶ A') (g : B ⟶ B')
   [is_iso (prod_comparison F A B)] [is_iso (prod_comparison F A' B')] :
-  inv (prod_comparison F A B) ≫ F.map (prod.map f g) = prod.map (F.map f) (F.map g) ≫ inv (prod_comparison F A' B') :=
-by { erw [(as_iso (prod_comparison F A' B')).eq_comp_inv, category.assoc,
-    (as_iso (prod_comparison F A B)).inv_comp_eq, prod_comparison_natural], refl }
+  inv (prod_comparison F A B) ≫ F.map (prod.map f g) =
+    prod.map (F.map f) (F.map g) ≫ inv (prod_comparison F A' B') :=
+by rw [is_iso.eq_comp_inv, category.assoc, is_iso.inv_comp_eq, prod_comparison_natural]
 
 end prod_comparison
 

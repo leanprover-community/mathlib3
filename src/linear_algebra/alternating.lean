@@ -120,6 +120,25 @@ end
 
 end tensor_product
 
+namespace tactic
+namespace interactive
+
+open lean.parser
+open interactive
+
+meta def first_n_goals : parse small_nat → itactic → tactic unit
+| n t := do
+  goals ← get_goals,
+  let current_goals := goals.take n,
+  let later_goals := goals.drop n,
+  set_goals current_goals,
+  t,
+  new_goals ← get_goals,
+  set_goals (new_goals ++ later_goals)
+
+end interactive
+end tactic
+
 end to_move
 
 -- semiring / add_comm_monoid
@@ -482,19 +501,10 @@ private def dom_coprod_aux
     by simp,
   rw [h, this, mul_smul, mul_smul, units.smul_left_cancel, ←tensor_product.tmul_smul_int,
     tensor_product.smul_tmul'_int],
-  simp only [sum.map_inr, perm.sum_congr_hom_apply, perm.sum_congr_apply, sum.map_inl, function.comp_app,
-             perm.coe_mul],
+  simp only [sum.map_inr, perm.sum_congr_hom_apply, perm.sum_congr_apply, sum.map_inl,
+             function.comp_app, perm.coe_mul],
   rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))],
 end)
-
-private lemma not_moves_from_left {α β : Type*} [decidable_eq α] [decidable_eq β] {σ : perm (α ⊕ β)}
-  {i : α ⊕ β}
-  (h : ¬∃ i', σ (sum.inl i') = i) : ∃ i', σ (sum.inr i') = i :=
-begin
-  cases h' : σ⁻¹ i,
-  { exfalso, apply not_exists.mp h val, rw ←h', simp, },
-  { use val, rw ←h', simp, }
-end
 
 -- we need this to apply `mul_action.quotient.smul_mk` below
 local attribute [reducible] quotient_group.mk
@@ -506,7 +516,7 @@ private lemma dom_coprod_aux_eq_zero_if_eq
   [add_comm_group N₂] [semimodule R N₂]
   [add_comm_monoid M] [semimodule R M]
   (a : alternating_map R M N₁ ιa) (b : alternating_map R M N₂ ιb)
-  (v : ιa ⊕ ιb → M) (i j : ιa ⊕ ιb) (h : v i = v j) (hij : i ≠ j) :
+  (v : ιa ⊕ ιb → M) (i j : ιa ⊕ ιb) (hv : v i = v j) (hij : i ≠ j) :
   dom_coprod_aux a b v = 0 :=
 begin
   unfold dom_coprod_aux,
@@ -527,40 +537,34 @@ begin
       units.coe_neg, multilinear_map.smul_apply, multilinear_map.neg_apply,
       multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply],
     convert add_right_neg _;
-    { ext k, rw equiv.apply_swap_eq_self h }, },
+    { ext k, rw equiv.apply_swap_eq_self hv }, },
   { dsimp only [quotient.lift_on'_beta, quotient.map'_mk', multilinear_map.smul_apply,
       multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply],
     apply mt,
-    by_cases hsw : (∃ il, σ (sum.inl il) = i) ↔ (∃ jl, σ (sum.inl jl) = j),
-    { -- the term does not pair but is zero
-      intro _,
-      convert smul_zero _,
-      obtain (⟨⟨i', hi'⟩, ⟨j', hj'⟩⟩ | ⟨hi', hj'⟩) := iff_iff_and_or_not_and_not.mp hsw,
-      work_on_goal 0 {
-        convert tensor_product.zero_tmul _ _, },
-      work_on_goal 1 {
-        obtain ⟨i', hi'⟩ := not_moves_from_left hi',
-        obtain ⟨j', hj'⟩ := not_moves_from_left hj',
-        convert tensor_product.tmul_zero _ _, },
+    cases hi : σ⁻¹ i with i' i';
+      cases hj : σ⁻¹ j with j' j';
+      rw perm.inv_eq_iff_eq at hi hj;
+      substs hi hj,
+    rotate,
+    first_n_goals 2 { -- the term pairs with and cancels another term
       all_goals {
-        rw [←hi', ←hj'] at h,
-        refine alternating_map.map_eq_zero_of_eq _ _ h (λ hij', hij _),
-        rw [←hi', ←hj', hij'], }, },
-    { -- the term pair with and cancels another term
-      intro h,
-      obtain ⟨⟨sl, sr⟩, h⟩ := quotient.eq'.mp h,
-      obtain (⟨hi', ⟨j', hj'⟩⟩ | ⟨hi', hj'⟩) := iff_iff_and_or_not_and_not.mp (not_iff.mp hsw),
-      work_on_goal 0 {
-        obtain ⟨i', hi'⟩ := not_moves_from_left hi',
-        replace h := equiv.congr_fun h (sum.inr i'), },
-      work_on_goal 1 {
-        obtain ⟨i', hi'⟩ := not_not.mp hi',
-        obtain ⟨j', hj'⟩ := not_moves_from_left hj',
-        replace h := equiv.congr_fun h (sum.inl i') },
+        intro h,
+        obtain ⟨⟨sl, sr⟩, h⟩ := quotient.eq'.mp h,
+      },
+      work_on_goal 0 { replace h := equiv.congr_fun h (sum.inl i'), },
+      work_on_goal 1 { replace h := equiv.congr_fun h (sum.inr i'), },
       all_goals {
-        rw [←hi', ←hj', ←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv,
-          inv_mul_cancel_right] at h,
-        simpa using h, }, }, },
+        rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at h,
+        simpa using h,
+        done, }, },
+    first_n_goals 2 { -- the term does not pair but is zero
+      all_goals {
+        intro _,
+        convert smul_zero _, },
+      work_on_goal 0 { convert tensor_product.tmul_zero _ _, },
+      work_on_goal 1 { convert tensor_product.zero_tmul _ _, },
+      all_goals { refine alternating_map.map_eq_zero_of_eq _ _ hv (λ hij', hij (hij' ▸ rfl)), },
+      }, },
   { exact _root_.congr_arg (quot.mk _) (equiv.swap_mul_involutive i j σ), }
 end
 

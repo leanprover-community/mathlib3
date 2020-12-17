@@ -376,241 +376,18 @@ end ordered_comm_group
 section ordered_add_comm_group
 variables [ordered_add_comm_group α] {a b c d : α}
 
-lemma sub_nonneg_of_le (h : b ≤ a) : 0 ≤ a - b :=
-begin
-  have h := add_le_add_right h (-b),
-  rwa [add_right_neg, ← sub_eq_add_neg] at h
-end
-
-lemma le_of_sub_nonneg (h : 0 ≤ a - b) : b ≤ a :=
-begin
-  have h := add_le_add_right h b,
-  rwa [sub_add_cancel, zero_add] at h
-end
-
-lemma sub_nonpos_of_le (h : a ≤ b) : a - b ≤ 0 :=
-begin
-  have h := add_le_add_right h (-b),
-  rwa [add_right_neg, ← sub_eq_add_neg] at h
-end
-
-lemma le_of_sub_nonpos (h : a - b ≤ 0) : a ≤ b :=
-begin
-  have h := add_le_add_right h b,
-  rwa [sub_add_cancel, zero_add] at h
-end
-
-lemma sub_pos_of_lt (h : b < a) : 0 < a - b :=
-begin
-  have h := add_lt_add_right h (-b),
-  rwa [add_right_neg, ← sub_eq_add_neg] at h
-end
-
-lemma lt_of_sub_pos (h : 0 < a - b) : b < a :=
-begin
-  have h := add_lt_add_right h b,
-  rwa [sub_add_cancel, zero_add] at h
-end
-
-lemma sub_neg_of_lt (h : a < b) : a - b < 0 :=
-begin
-  have h := add_lt_add_right h (-b),
-  rwa [add_right_neg, ← sub_eq_add_neg] at h
-end
-
-lemma lt_of_sub_neg (h : a - b < 0) : a < b :=
-begin
-  have h := add_lt_add_right h b,
-  rwa [sub_add_cancel, zero_add] at h
-end
-
-lemma add_le_of_le_sub_left (h : b ≤ c - a) : a + b ≤ c :=
-begin
-  have h := add_le_add_left h a,
-  rwa [← add_sub_assoc, add_comm a c, add_sub_cancel] at h
-end
-
-lemma le_sub_left_of_add_le (h : a + b ≤ c) : b ≤ c - a :=
-begin
-  have h := add_le_add_right h (-a),
-  rwa [add_comm a b, add_neg_cancel_right, ← sub_eq_add_neg] at h
-end
-
-lemma add_le_of_le_sub_right (h : a ≤ c - b) : a + b ≤ c :=
-begin
-  have h := add_le_add_right h b,
-  rwa sub_add_cancel at h
-end
-
-lemma le_sub_right_of_add_le (h : a + b ≤ c) : a ≤ c - b :=
-begin
-  have h := add_le_add_right h (-b),
-  rwa [add_neg_cancel_right, ← sub_eq_add_neg] at h
-end
-
-lemma le_add_of_sub_left_le (h : a - b ≤ c) : a ≤ b + c :=
-begin
-  have h := add_le_add_right h b,
-  rwa [sub_add_cancel, add_comm] at h
-end
-
-lemma sub_left_le_of_le_add (h : a ≤ b + c) : a - b ≤ c :=
-begin
-  have h := add_le_add_right h (-b),
-  rwa [add_comm b c, add_neg_cancel_right, ← sub_eq_add_neg] at h
-end
-
-lemma le_add_of_sub_right_le (h : a - c ≤ b) : a ≤ b + c :=
-begin
-  have h := add_le_add_right h c,
-  rwa sub_add_cancel at h
-end
-
-lemma sub_right_le_of_le_add (h : a ≤ b + c) : a - c ≤ b :=
-begin
-  have h := add_le_add_right h (-c),
-  rwa [add_neg_cancel_right, ← sub_eq_add_neg] at h
-end
-
-lemma le_add_of_neg_le_sub_left (h : -a ≤ b - c) : c ≤ a + b :=
-le_add_of_neg_add_le_left (add_le_of_le_sub_right h)
-
-lemma neg_le_sub_left_of_le_add (h : c ≤ a + b) : -a ≤ b - c :=
-begin
-  rw [sub_eq_add_neg, add_comm],
-  apply le_neg_add_of_add_le,
-  have h := (sub_left_le_of_le_add h),
-  rwa sub_eq_add_neg at h
-end
-
-lemma le_add_of_neg_le_sub_right (h : -b ≤ a - c) : c ≤ a + b :=
-begin
-  have h := add_le_of_le_sub_left h,
-  rw ← sub_eq_add_neg at h,
-  exact le_add_of_sub_right_le h
-end
-
-lemma neg_le_sub_right_of_le_add (h : c ≤ a + b) : -b ≤ a - c :=
-begin
-  have h := sub_right_le_of_le_add h,
-  rw sub_eq_add_neg at h,
-  exact le_sub_left_of_add_le h
-end
-
-lemma sub_le_of_sub_le (h : a - b ≤ c) : a - c ≤ b :=
-sub_left_le_of_le_add (le_add_of_sub_right_le h)
-
-lemma sub_le_sub_left (h : a ≤ b) (c : α) : c - b ≤ c - a :=
-by simpa only [sub_eq_add_neg] using add_le_add_left (neg_le_neg h) c
-
-lemma sub_le_sub_right (h : a ≤ b) (c : α) : a - c ≤ b - c :=
-by simpa only [sub_eq_add_neg] using add_le_add_right h (-c)
-
 lemma sub_le_sub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
 by simpa only [sub_eq_add_neg] using add_le_add hab (neg_le_neg hcd)
 
-lemma add_lt_of_lt_sub_left (h : b < c - a) : a + b < c :=
-begin
-  have h := add_lt_add_left h a,
-  rwa [← add_sub_assoc, add_comm a c, add_sub_cancel] at h
-end
+@[simp] lemma sub_le_self_iff (a : α) {b : α} : a - b ≤ a ↔ 0 ≤ b :=
+by simp [sub_eq_add_neg]
 
-lemma lt_sub_left_of_add_lt (h : a + b < c) : b < c - a :=
-begin
-  have h := add_lt_add_right h (-a),
-  rwa [add_comm a b, add_neg_cancel_right, ← sub_eq_add_neg] at h
-end
+alias sub_le_self_iff ↔ _ sub_le_self
 
-lemma add_lt_of_lt_sub_right (h : a < c - b) : a + b < c :=
-begin
-  have h := add_lt_add_right h b,
-  rwa sub_add_cancel at h
-end
+@[simp] lemma sub_lt_self_iff (a : α) {b : α} : a - b < a ↔ 0 < b :=
+by simp [sub_eq_add_neg]
 
-lemma lt_sub_right_of_add_lt (h : a + b < c) : a < c - b :=
-begin
-  have h := add_lt_add_right h (-b),
-  rwa [add_neg_cancel_right, ← sub_eq_add_neg] at h
-end
-
-lemma lt_add_of_sub_left_lt (h : a - b < c) : a < b + c :=
-begin
-  have h := add_lt_add_right h b,
-  rwa [sub_add_cancel, add_comm] at h
-end
-
-lemma sub_left_lt_of_lt_add (h : a < b + c) : a - b < c :=
-begin
-  have h := add_lt_add_right h (-b),
-  rwa [add_comm b c, add_neg_cancel_right, ← sub_eq_add_neg] at h
-end
-
-lemma lt_add_of_sub_right_lt (h : a - c < b) : a < b + c :=
-begin
-  have h := add_lt_add_right h c,
-  rwa sub_add_cancel at h
-end
-
-lemma sub_right_lt_of_lt_add (h : a < b + c) : a - c < b :=
-begin
-  have h := add_lt_add_right h (-c),
-  rwa [add_neg_cancel_right, ← sub_eq_add_neg] at h
-end
-
-lemma lt_add_of_neg_lt_sub_left (h : -a < b - c) : c < a + b :=
-lt_add_of_neg_add_lt_left (add_lt_of_lt_sub_right h)
-
-lemma neg_lt_sub_left_of_lt_add (h : c < a + b) : -a < b - c :=
-begin
-  have h := sub_left_lt_of_lt_add h,
-  rw sub_eq_add_neg at h,
-  have h := lt_neg_add_of_add_lt h,
-  rwa [add_comm, ← sub_eq_add_neg] at h
-end
-
-lemma lt_add_of_neg_lt_sub_right (h : -b < a - c) : c < a + b :=
-begin
-  have h := add_lt_of_lt_sub_left h,
-  rw ← sub_eq_add_neg at h,
-  exact lt_add_of_sub_right_lt h
-end
-
-lemma neg_lt_sub_right_of_lt_add (h : c < a + b) : -b < a - c :=
-begin
-  have h := sub_right_lt_of_lt_add h,
-  rw sub_eq_add_neg at h,
-  exact lt_sub_left_of_add_lt h
-end
-
-lemma sub_lt_of_sub_lt (h : a - b < c) : a - c < b :=
-sub_left_lt_of_lt_add (lt_add_of_sub_right_lt h)
-
-lemma sub_lt_sub_left (h : a < b) (c : α) : c - b < c - a :=
-by simpa only [sub_eq_add_neg] using add_lt_add_left (neg_lt_neg h) c
-
-lemma sub_lt_sub_right (h : a < b) (c : α) : a - c < b - c :=
-by simpa only [sub_eq_add_neg] using add_lt_add_right h (-c)
-
-lemma sub_lt_sub (hab : a < b) (hcd : c < d) : a - d < b - c :=
-by simpa only [sub_eq_add_neg] using add_lt_add hab (neg_lt_neg hcd)
-
-lemma sub_lt_sub_of_le_of_lt (hab : a ≤ b) (hcd : c < d) : a - d < b - c :=
-by simpa only [sub_eq_add_neg] using add_lt_add_of_le_of_lt hab (neg_lt_neg hcd)
-
-lemma sub_lt_sub_of_lt_of_le (hab : a < b) (hcd : c ≤ d) : a - d < b - c :=
-by simpa only [sub_eq_add_neg] using add_lt_add_of_lt_of_le hab (neg_le_neg hcd)
-
-lemma sub_le_self (a : α) {b : α} (h : 0 ≤ b) : a - b ≤ a :=
-calc
-  a - b = a + -b : sub_eq_add_neg _ _
-    ... ≤ a + 0  : add_le_add_left (neg_nonpos_of_nonneg h) _
-    ... = a      : by rw add_zero
-
-lemma sub_lt_self (a : α) {b : α} (h : 0 < b) : a - b < a :=
-calc
-  a - b = a + -b : sub_eq_add_neg _ _
-    ... < a + 0  : add_lt_add_left (neg_neg_of_pos h) _
-    ... = a      : by rw add_zero
+alias sub_lt_self_iff ↔ _ sub_lt_self
 
 lemma sub_le_sub_iff : a - b ≤ c - d ↔ a + d ≤ c + b :=
 by simpa only [sub_eq_add_neg] using add_neg_le_add_neg_iff
@@ -619,33 +396,49 @@ by simpa only [sub_eq_add_neg] using add_neg_le_add_neg_iff
 lemma sub_le_sub_iff_left (a : α) {b c : α} : a - b ≤ a - c ↔ c ≤ b :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, add_le_add_iff_left, neg_le_neg_iff]
 
+lemma sub_le_sub_left (h : a ≤ b) (c : α) : c - b ≤ c - a :=
+(sub_le_sub_iff_left c).2 h
+
 @[simp]
 lemma sub_le_sub_iff_right (c : α) : a - c ≤ b - c ↔ a ≤ b :=
 by simpa only [sub_eq_add_neg] using add_le_add_iff_right _
+
+lemma sub_le_sub_right (h : a ≤ b) (c : α) : a - c ≤ b - c :=
+(sub_le_sub_iff_right c).2 h
 
 @[simp]
 lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, add_lt_add_iff_left, neg_lt_neg_iff]
 
+lemma sub_lt_sub_left (h : a < b) (c : α) : c - b < c - a :=
+(sub_lt_sub_iff_left c).2 h
+
 @[simp]
 lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
 by simpa only [sub_eq_add_neg] using add_lt_add_iff_right _
 
+lemma sub_lt_sub_right (h : a < b) (c : α) : a - c < b - c :=
+(sub_lt_sub_iff_right c).2 h
+
 @[simp] lemma sub_nonneg : 0 ≤ a - b ↔ b ≤ a :=
-have a - a ≤ a - b ↔ b ≤ a, from sub_le_sub_iff_left a,
-by rwa sub_self at this
+by rw [← sub_self a, sub_le_sub_iff_left]
+
+alias sub_nonneg ↔ le_of_sub_nonneg sub_nonneg_of_le
 
 @[simp] lemma sub_nonpos : a - b ≤ 0 ↔ a ≤ b :=
-have a - b ≤ b - b ↔ a ≤ b, from sub_le_sub_iff_right b,
-by rwa sub_self at this
+by rw [← sub_self b,  sub_le_sub_iff_right]
+
+alias sub_nonpos ↔ le_of_sub_nonpos sub_nonpos_of_le
 
 @[simp] lemma sub_pos : 0 < a - b ↔ b < a :=
-have a - a < a - b ↔ b < a, from sub_lt_sub_iff_left a,
-by rwa sub_self at this
+by rw [← sub_self a, sub_lt_sub_iff_left]
+
+alias sub_pos ↔ lt_of_sub_pos sub_pos_of_lt
 
 @[simp] lemma sub_lt_zero : a - b < 0 ↔ a < b :=
-have a - b < b - b ↔ a < b, from sub_lt_sub_iff_right b,
-by rwa sub_self at this
+by rw [← sub_self b, sub_lt_sub_iff_right]
+
+alias sub_lt_zero ↔ lt_of_sub_neg sub_neg_of_lt
 
 lemma le_sub_iff_add_le' : b ≤ c - a ↔ a + b ≤ c :=
 by rw [sub_eq_add_neg, add_comm, le_neg_add_iff_add_le]
@@ -653,8 +446,12 @@ by rw [sub_eq_add_neg, add_comm, le_neg_add_iff_add_le]
 lemma le_sub_iff_add_le : a ≤ c - b ↔ a + b ≤ c :=
 by rw [le_sub_iff_add_le', add_comm]
 
+alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_of_add_le_right
+
 lemma sub_le_iff_le_add' : a - b ≤ c ↔ a ≤ b + c :=
 by rw [sub_eq_add_neg, add_comm, neg_add_le_iff_le_add]
+
+alias le_sub_iff_add_le' ↔ add_le_of_le_sub_left le_sub_of_add_le_left
 
 lemma sub_le_iff_le_add : a - c ≤ b ↔ a ≤ b + c :=
 by rw [sub_le_iff_le_add', add_comm]
@@ -674,8 +471,12 @@ le_sub_iff_add_le'.trans le_sub_iff_add_le.symm
 lemma lt_sub_iff_add_lt' : b < c - a ↔ a + b < c :=
 by rw [sub_eq_add_neg, add_comm, lt_neg_add_iff_add_lt]
 
+alias lt_sub_iff_add_lt' ↔ add_lt_of_lt_sub_left lt_sub_of_add_lt_left
+
 lemma lt_sub_iff_add_lt : a < c - b ↔ a + b < c :=
 by rw [lt_sub_iff_add_lt', add_comm]
+
+alias lt_sub_iff_add_lt ↔ add_lt_of_lt_sub_right lt_sub_of_add_lt_right
 
 lemma sub_lt_iff_lt_add' : a - b < c ↔ a < b + c :=
 by rw [sub_eq_add_neg, add_comm, neg_add_lt_iff_lt_add]
@@ -694,12 +495,6 @@ sub_lt_iff_lt_add'.trans sub_lt_iff_lt_add.symm
 
 theorem lt_sub : a < b - c ↔ c < b - a :=
 lt_sub_iff_add_lt'.trans lt_sub_iff_add_lt.symm
-
-lemma sub_le_self_iff (a : α) {b : α} : a - b ≤ a ↔ 0 ≤ b :=
-sub_le_iff_le_add'.trans (le_add_iff_nonneg_left _)
-
-lemma sub_lt_self_iff (a : α) {b : α} : a - b < a ↔ 0 < b :=
-sub_lt_iff_lt_add'.trans (lt_add_iff_pos_left _)
 
 end ordered_add_comm_group
 
@@ -821,7 +616,7 @@ lemma max_sub_min_eq_abs' (a b : α) : max a b - min a b = abs (a - b) :=
 begin
   cases le_total a b with ab ba,
   { rw [max_eq_right ab, min_eq_left ab, abs_of_nonpos, neg_sub], rwa sub_nonpos },
-  { rw [max_eq_left ba, min_eq_right ba, abs_of_nonneg], exact sub_nonneg_of_le ba }
+  { rw [max_eq_left ba, min_eq_right ba, abs_of_nonneg], rwa sub_nonneg }
 end
 
 lemma max_sub_min_eq_abs (a b : α) : max a b - min a b = abs (b - a) :=

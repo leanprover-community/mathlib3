@@ -399,7 +399,7 @@ begin
     ((lt_total _ _).resolve_left (λ h, _)).resolve_right (λ h, _)⟩,
   { rcases h with ⟨ε, ε0, i, ih⟩,
     refine not_lt_of_le (Sup_le_ub S lb (ub' _ _))
-      ((sub_lt_self_iff _).2 (half_pos ε0)),
+      (sub_lt_self _ (half_pos ε0)),
     refine ⟨_, half_pos ε0, i, λ j ij, _⟩,
     rw [sub_apply, const_apply, sub_right_comm,
       le_sub_iff_add_le, add_halves],

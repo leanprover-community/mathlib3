@@ -36,7 +36,7 @@ by rw [even_iff, mod_two_ne_zero]
 lemma not_odd_iff {n : ℤ} : ¬ odd n ↔ n % 2 = 0 :=
 by rw [odd_iff, mod_two_ne_one]
 
-@[simp] lemma even_iff_not_odd {n : ℤ} : even n ↔ ¬ odd n :=
+lemma even_iff_not_odd {n : ℤ} : even n ↔ ¬ odd n :=
 by rw [not_odd_iff, even_iff]
 
 @[simp] lemma odd_iff_not_even {n : ℤ} : odd n ↔ ¬ even n :=

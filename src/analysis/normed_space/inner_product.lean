@@ -1593,7 +1593,7 @@ rfl
 
 /-- The characterization of the orthogonal projection.  -/
 @[simp]
-lemma orthogonal_projection_inner_eq_zero {K : submodule 𝕜 E}  [complete_space K] (v : E) :
+lemma orthogonal_projection_inner_eq_zero {K : submodule 𝕜 E} [complete_space K] (v : E) :
   ∀ w ∈ K, ⟪v - orthogonal_projection K v, w⟫ = 0 :=
 orthogonal_projection_fn_inner_eq_zero v
 

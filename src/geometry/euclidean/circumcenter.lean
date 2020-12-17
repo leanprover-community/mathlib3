@@ -131,8 +131,7 @@ begin
             ←dist_eq_norm_vsub V p, dist_comm _ cc],
         field_simp [hy0],
         ring },
-      { have h' : dist p1 (⟨cc, hcc⟩ : s) = cr := hcr p1 hp1,
-        rw [dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
+      { rw [dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
                _ (hps hp1),
             orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hcc, subtype.coe_mk,
             hcr _ hp1, dist_eq_norm_vsub V cc₂ cc, vadd_vsub, norm_smul, ←dist_eq_norm_vsub V,

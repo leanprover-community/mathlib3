@@ -46,12 +46,6 @@ This file only provides purely algebraic definitions and results.
 Those depending on analysis or topology are defined elsewhere; see
 `analysis.normed_space.add_torsor` and `topology.algebra.affine`.
 
-## TODO
-
-* Coercions from an `affine_subspace` to the subtype of its points,
-  and a corresponding `affine_space` instance on that subtype in the
-  case of a nonempty subspace.
-
 ## References
 
 * https://en.wikipedia.org/wiki/Affine_space
@@ -387,11 +381,11 @@ instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.dir
   vsub_vadd' := λ a b, by { ext, apply add_torsor.vsub_vadd' },
   vadd_vsub' := λ a b, by { ext, apply add_torsor.vadd_vsub' } }
 
-@[simp] lemma coe_vsub (s : affine_subspace k P) [nonempty s] (a b : s) :
+@[simp, norm_cast] lemma coe_vsub (s : affine_subspace k P) [nonempty s] (a b : s) :
   ↑(a -ᵥ b) = (a:P) -ᵥ (b:P) :=
 rfl
 
-@[simp] lemma coe_vadd (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
+@[simp, norm_cast] lemma coe_vadd (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
   ↑(a +ᵥ b) = (a:V) +ᵥ (b:P) :=
 rfl
 

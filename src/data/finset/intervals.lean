@@ -83,7 +83,7 @@ by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
   multiset.Ico.add_consecutive hnm hml, to_finset]
 
 /-- The union of two intervals that overlap each other is also an interval -/
-lemma union_connected {n m l k : ℕ} (hlm : l ≤ m) (hnk : n ≤ k) :
+lemma union_overlapping {n m l k : ℕ} (hlm : l ≤ m) (hnk : n ≤ k) :
   Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
 begin
   ext,

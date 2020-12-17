@@ -327,7 +327,7 @@ end
 variables {F} {E} {p : polynomial F}
 
 lemma of_separable_splitting_field_aux [hFE : finite_dimensional F E]
-  (sp : p.is_splitting_field F E) (hp : p.separable) (K : intermediate_field F E) {x : E}
+  [sp : p.is_splitting_field F E] (hp : p.separable) (K : intermediate_field F E) {x : E}
   (hx : x ∈ (p.map (algebra_map F E)).roots) :
 fintype.card ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) =
   fintype.card (K →ₐ[F] E) * findim K K⟮x⟯ :=
@@ -355,7 +355,7 @@ begin
     exact sp.splits },
 end
 
-lemma of_separable_splitting_field (sp : p.is_splitting_field F E) (hp : p.separable) :
+lemma of_separable_splitting_field [sp : p.is_splitting_field F E] (hp : p.separable) :
   is_galois F E :=
 begin
   haveI hFE : finite_dimensional F E := polynomial.is_splitting_field.finite_dimensional E p,
@@ -381,7 +381,7 @@ begin
     rw intermediate_field.adjoin_zero },
   intros K x hx hK,
   simp only [P] at *,
-  rw [of_separable_splitting_field_aux sp hp K (multiset.mem_to_finset.mp hx),
+  rw [of_separable_splitting_field_aux hp K (multiset.mem_to_finset.mp hx),
     hK, findim_mul_findim],
   exact (linear_equiv.findim_eq (intermediate_field.lift2_alg_equiv K⟮x⟯).to_linear_equiv).symm,
 end

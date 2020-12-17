@@ -359,9 +359,9 @@ ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
 
 section
 universe u
-
-/-! The universe annotation is required for the following instance, possibly this is a bug in Lean.  See
-https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/strange.20error.20(universe.20issue.3F)
+/-!
+The universe annotation is required for the following instance, possibly this is a bug in Lean. See
+leanprover.zulipchat.com/#narrow/stream/113488-general/topic/strange.20error.20(universe.20issue.3F)
 -/
 
 instance {α : Type u} [decidable_eq α] (i : α) (s : finset α) :

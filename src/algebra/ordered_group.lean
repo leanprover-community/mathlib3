@@ -636,6 +636,18 @@ by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]
 lemma abs_sub_lt_iff : abs (a - b) < c ↔ a - b < c ∧ b - a < c :=
 by rw [abs_lt, neg_lt_sub_iff_lt_add, @sub_lt_iff_lt_add' _ _ b, and_comm]
 
+lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
+sub_le.1 $ (abs_sub_le_iff.1 h).2
+
+lemma sub_le_of_abs_sub_le_right (h : abs (a - b) ≤ c) : a - c ≤ b :=
+sub_le_of_abs_sub_le_left (abs_sub a b ▸ h)
+
+lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
+sub_lt.1 $ (abs_sub_lt_iff.1 h).2
+
+lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
+sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
+
 lemma abs_sub_abs_le_abs_sub (a b : α) : abs a - abs b ≤ abs (a - b) :=
 sub_le_iff_le_add.2 $
 calc abs a = abs (a - b + b)     : by rw [sub_add_cancel]
@@ -700,7 +712,7 @@ abs_sub_le_iff.2 ⟨sub_le_sub hau hbl, sub_le_sub hbu hal⟩
 lemma eq_of_abs_sub_nonpos (h : abs (a - b) ≤ 0) : a = b :=
 eq_of_abs_sub_eq_zero (le_antisymm h (abs_nonneg (a - b)))
 
-lemma exists_gt_zero [nontrivial α] : ∃ (a:α), 0 < a :=
+lemma exists_zero_lt [nontrivial α] : ∃ (a:α), 0 < a :=
 begin
   obtain ⟨y, hy⟩ := exists_ne (0 : α),
   cases hy.lt_or_lt,
@@ -712,14 +724,14 @@ end
 instance linear_ordered_add_comm_group.to_no_top_order [nontrivial α] :
   no_top_order α :=
 ⟨ begin
-    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_gt_zero,
+    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_zero_lt,
     exact λ a, ⟨a + y, lt_add_of_pos_right a hy⟩
   end ⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_add_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=
 ⟨ begin
-    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_gt_zero,
+    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_zero_lt,
     exact λ a, ⟨a - y, sub_lt_self a hy⟩
   end ⟩
 

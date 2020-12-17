@@ -994,6 +994,7 @@ namespace order_dual
 
 instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
 { add_left_neg := λ a : α, add_left_neg a,
+  sub := λ a b, (a - b : α),
   ..order_dual.ordered_add_comm_monoid,
   ..show add_comm_group α, by apply_instance }
 

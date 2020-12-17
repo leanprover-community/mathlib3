@@ -176,11 +176,6 @@ protected lemma pullback_nonzero [has_zero M₀'] [has_one M₀']
 
 end
 
-/-- The division operation on a group with zero element. -/
-@[priority 100] -- see Note [lower instance priority]
-instance group_with_zero.has_div {G₀ : Type*} [group_with_zero G₀] :
-  has_div G₀ := ⟨λ g h, g * h⁻¹⟩
-
 section monoid_with_zero
 
 /-- Pullback a `monoid_with_zero` class along an injective function. -/

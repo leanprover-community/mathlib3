@@ -15,7 +15,7 @@ its basic properties. In particular, show that this space is itself a normed spa
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical nnreal
 
 
 variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
@@ -41,7 +41,7 @@ lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x�
   lipschitz_with (nnreal.of_real C) f :=
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
-theorem linear_map.antilipschitz_of_bound {K : nnreal} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+theorem linear_map.antilipschitz_of_bound {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
   antilipschitz_with K f :=
 antilipschitz_with.of_le_mul_dist $
 λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
@@ -295,7 +295,7 @@ lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * �
   ∥f∥ ≤ M :=
 Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 
-theorem op_norm_le_of_lipschitz {f : E →L[𝕜] F} {K : nnreal} (hf : lipschitz_with K f) :
+theorem op_norm_le_of_lipschitz {f : E →L[𝕜] F} {K : ℝ≥0} (hf : lipschitz_with K f) :
   ∥f∥ ≤ K :=
 f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le_mul x 0
 
@@ -335,7 +335,7 @@ le_antisymm (φ.op_norm_le_bound M_nonneg h_above)
 
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
-show ∥f + g∥ ≤ (coe : nnreal → ℝ) (⟨_, f.op_norm_nonneg⟩ + ⟨_, g.op_norm_nonneg⟩),
+show ∥f + g∥ ≤ (coe : ℝ≥0 → ℝ) (⟨_, f.op_norm_nonneg⟩ + ⟨_, g.op_norm_nonneg⟩),
 from op_norm_le_of_lipschitz (f.lipschitz.add g.lipschitz)
 
 /-- An operator is zero iff its norm vanishes. -/
@@ -442,7 +442,7 @@ homothety_norm _ (to_span_singleton_homothety 𝕜 x)
 
 variable (f)
 
-theorem uniform_embedding_of_bound {K : nnreal} (hf : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+theorem uniform_embedding_of_bound {K : ℝ≥0} (hf : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
   uniform_embedding f :=
 (f.to_linear_map.antilipschitz_of_bound hf).uniform_embedding f.uniform_continuous
 
@@ -598,7 +598,7 @@ extend_unique _ _ _ _ _ (zero_comp _)
 end
 
 section
-variables {N : nnreal} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
+variables {N : ℝ≥0} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
 
 local notation `ψ` := f.extend e h_dense (uniform_embedding_of_bound _ h_e).to_uniform_inducing
 

@@ -203,6 +203,13 @@ copied to the additive version, then `to_additive` should come last:
 @[simp, to_additive] lemma mul_one' {G : Type*} [group G] (x : G) : x * 1 = x := mul_one x
 ```
 
+The exception to this rule is the `simps` attribute, which should come after `to_additive`:
+
+```
+@[to_additive, simps]
+instance {M N} [has_mul M] [has_mul N] : has_mul (M × N) := ⟨λ p q, ⟨p.1 * q.1, p.2 * q.2⟩⟩
+```
+
 ## Implementation notes
 
 The transport process generally works by taking all the names of

@@ -341,7 +341,7 @@ begin
     { intros _ _ _ _ _ _, exact subtype.mk.inj, },
     { intros b hbs hb,
       use b,
-      simpa only [hbs, exists_prop, dif_pos, mk_coe, and_true, if_true, finset.coe_mem,
+      simpa only [hbs, exists_prop, dif_pos, finset.mk_coe, and_true, if_true, finset.coe_mem,
         eq_self_iff_true, exists_prop_of_true, ne.def] using hb, },
     { intros a h₁, dsimp, rw [dif_pos h₁],
       intro h₂, rw [if_pos], contrapose! h₂,

@@ -387,11 +387,11 @@ instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.dir
   vsub_vadd' := λ a b, by { ext, apply add_torsor.vsub_vadd' },
   vadd_vsub' := λ a b, by { ext, apply add_torsor.vadd_vsub' } }
 
-@[simp] lemma rename_me (s : affine_subspace k P) [nonempty s] (a b : s) :
+@[simp] lemma coe_vsub (s : affine_subspace k P) [nonempty s] (a b : s) :
   ↑(a -ᵥ b) = (a:P) -ᵥ (b:P) :=
 rfl
 
-@[simp] lemma rename_me' (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
+@[simp] lemma coe_vadd (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
   ↑(a +ᵥ b) = (a:V) +ᵥ (b:P) :=
 rfl
 
@@ -974,9 +974,9 @@ lemma affine_span_nonempty (s : set P) :
   (affine_span k s : set P).nonempty ↔ s.nonempty :=
 span_points_nonempty k s
 
-/-- The affine span of a set is nonempty if and only if that set is. -/
+/-- The affine span of a nonempty set is nonempty. -/
 instance {s : set P} [nonempty s] : nonempty (affine_span k s) :=
-set.nonempty.to_subtype ((affine_span_nonempty k s).mpr (nonempty_subtype.mp ‹_›))
+((affine_span_nonempty k s).mpr (nonempty_subtype.mp ‹_›)).to_subtype
 
 variables {k}
 

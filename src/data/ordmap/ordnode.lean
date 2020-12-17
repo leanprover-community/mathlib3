@@ -7,7 +7,40 @@ import data.list.defs
 import data.nat.psub
 
 /-!
-# Data type for ordered sets
+# Ordered sets
+
+This file defines a data structure for ordered sets, supporting a
+variety of useful operations including insertion and deletion,
+logarithmic time lookup, set operations, folds,
+and conversion from lists.
+
+The `ordnode α` operations all assume that `α` has the structure of
+a total preorder, meaning a `≤` operation that is
+
+* Transitive: `x ≤ y → y ≤ z → x ≤ z`
+* Reflexive: `x ≤ x`
+* Total: `x ≤ y ∨ y ≤ x`
+
+For example, in order to use this data structure as a map type, one
+can store pairs `(k, v)` where `(k, v) ≤ (k', v')` is defined to mean
+`k ≤ k'` (assuming that the key values are linearly ordered).
+
+Two values `x,y` are equivalent if `x ≤ y` and `y ≤ x`. An `ordnode α`
+maintains the invariant that it never stores two equivalent nodes;
+the insertion operation comes with two variants depending on whether
+you want to keep the old value or the new value in case you insert a value
+that is equivalent to one in the set.
+
+The operations in this file are not verified, in the sense that they provide
+"raw operations" that work for programming purposes but the invariants
+are not explicitly in the structure. See `ordset` for a verified version
+of this data structure.
+
+## Main definitions
+
+* `ordnode α`: A set of values of type `α`
+
+## Implementation notes
 
 Based on weight balanced trees:
 
@@ -19,6 +52,11 @@ Based on weight balanced trees:
    SIAM journal of computing 2(1), March 1973.
 
 Ported from Haskell's `Data.Set`.
+
+## Tags
+
+ordered map, ordered set, data structure
+
 -/
 
 universes u
@@ -84,7 +122,7 @@ def repr {α} [has_repr α] : ordnode α → string
 instance {α} [has_repr α] : has_repr (ordnode α) := ⟨repr⟩
 
 /-- O(1). Rebalance a tree which was previously balanced but has had its left
-  side grow by 1, or its right side shrink by 1. -/
+  side grow by 1, or its right side shrink by 1. Internal use only. -/
 -- Note: The function has been written with tactics to avoid extra junk
 def balance_l (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 by clean begin
@@ -117,7 +155,7 @@ by clean begin
 end
 
 /-- O(1). Rebalance a tree which was previously balanced but has had its right
-  side grow by 1, or its left side shrink by 1. -/
+  side grow by 1, or its left side shrink by 1. Internal use only. -/
 def balance_r (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 by clean begin
   cases id l with ls,
@@ -149,7 +187,7 @@ by clean begin
 end
 
 /-- O(1). Rebalance a tree which was previously balanced but has had one side change
-  by at most 1. -/
+  by at most 1. Internal use only. -/
 def balance (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 by clean begin
   cases id l with ls ll lx lr,

@@ -9,7 +9,54 @@ import data.nat.dist
 import tactic.linarith
 
 /-!
-# Verification of the `ordnode α` datatype, with a type `ordset α` of verified sets.
+# Verification of the `ordnode α` datatype
+
+This file proves the correctness of the operations in `data.ordmap.ordnode`.
+The public facing version is the type `ordset α`, which is a wrapper around
+`ordnode α` which includes the correctness invariant of the type, and it exposes
+parallel operations like `insert` as functions on `ordset` that do the same
+thing but bundle the correctness proofs. The advantage is that it is possible
+to, for example, prove that the result of `find` on `insert` will actually find
+the element, while `ordnode` cannot guarantee this if the input tree did not
+satisfy the type invariants.
+
+## Main definitions
+
+* `ordset α`: A well formed set of values of type `α`
+
+## Implementation notes
+
+The majority of this file is actually in the `ordnode` namespace, because we first
+have to prove the correctness of all the operations (and defining what correctness
+means here is actually somewhat subtle). So all the actual `ordset` operations are
+at the very end, once we have all the theorems.
+
+An `ordnode α` is an inductive type which describes a tree which stores the `size` at
+internal nodes. The correctness invariant of an `ordnode α` is:
+
+* `ordnode.sized t`: All internal `size` fields must match the actual measured
+  size of the tree. (This is not hard to satisfy.)
+* `ordnode.balanced t`: Unless the tree has the form `()` or `((a) b)` or `(a (b))`
+  (that is, nil or a single singleton subtree), the two subtrees must satisfy
+  `size l ≤ δ * size r` and `size r ≤ δ * size l`, where `δ := 3` is a global
+  parameter of the data structure (and this property must hold recursively at subtrees).
+  This is why we say this is a "size balanced tree" data structure.
+* `ordnode.bounded lo hi t`: The members of the tree must be in strictly increasing order,
+  meaning that if `a` is in the left subtree and `b` is the root, then `a ≤ b` and
+  `¬ (b ≤ a)`. We enforce this using `ordnode.bounded` which includes also a global
+  upper and lower bound.
+
+Because the `ordnode` file was ported from Haskell, the correctness invariants of some
+of the functions have not been spelled out, and some theorems like
+`ordnode.valid'.balance_l_aux` show very intricate assumptions on the sizes,
+which may need to be revised if it turns out some operations violate these assumptions,
+because there is a decent amount of slop in the actual data structure invariants, so the
+theorem will go through with multiple choices of assumption.
+
+## Tags
+
+ordered map, ordered set, data structure, verified programming
+
 -/
 
 variable {α : Type*}

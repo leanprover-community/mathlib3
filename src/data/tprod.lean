@@ -21,8 +21,8 @@ construction/theorem that is easier to define/proof on binary products than on f
   by iterating. Properties can also be easily extended from the binary case to the finitary case
   by iterating.
 * Then we can use the equivalence `list.tprod.pi_equiv_tprod` below (or enhanced versions of it,
-  like a `measurable_equiv` for product measures) to get the construction on `Π i : ι, α i`, at least
-  when assuming `[fintype ι] [encodable ι]`.
+  like a `measurable_equiv` for product measures) to get the construction on `Π i : ι, α i`, at
+  least when assuming `[fintype ι] [encodable ι]`.
   Using choice or in proofs, we can remove the argument `[encodable I]` using
   `encodable.trunc_encodable_of_fintype`.
 

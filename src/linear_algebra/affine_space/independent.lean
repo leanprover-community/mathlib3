@@ -437,7 +437,6 @@ instance [inhabited P] : inhabited (simplex k P 0) :=
 instance nonempty : nonempty (simplex k P 0) :=
 ⟨mk_of_point k $ add_torsor.nonempty.some⟩
 
-
 variables {k V}
 
 /-- Two simplices are equal if they have the same points. -/

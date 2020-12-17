@@ -215,6 +215,17 @@ begin
   exact ennreal.mul_lt_top (ennreal.rpow_lt_top_of_nonneg hp0 ennreal.coe_ne_top) hfp.2,
 end
 
+lemma snorm_smul_le_mul_snorm [measurable_space 𝕜] [opens_measurable_space 𝕜] {q r : ℝ}
+  {f : α → E} (hfp : mem_ℒp f p μ) {φ : α → 𝕜} (hφ : measurable φ)
+  (hp1 : 1 ≤ p) (hpq : p < q) (hpqr : 1/p = 1/q + 1/r) :
+  snorm (φ • f) p μ ≤ snorm φ q μ * snorm f r μ :=
+begin
+  rw snorm,
+  simp_rw [pi.smul_apply', nnnorm_smul, ennreal.coe_mul],
+  exact ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp1 hpq hpqr μ hφ.nnnorm.ennreal_coe
+    hfp.1.nnnorm.ennreal_coe,
+end
+
 end normed_space
 
 end borel_space

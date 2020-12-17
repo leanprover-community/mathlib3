@@ -2606,7 +2606,7 @@ lemma continuous_on.abs (h : continuous_on f s) : continuous_on (λ x, |f x|) s 
 λ x hx, (h x hx).abs
 
 lemma tendsto_abs_nhds_within_zero : tendsto (abs : α → α) (𝓝[{0}ᶜ] 0) (𝓝[Ioi 0] 0) :=
-(continuous_abs.tendsto (0 : α) 0 abs_zero).inf $ tendsto_principal_principal.2 $ λ x, abs_pos.2
+(continuous_abs.tendsto' (0 : α) 0 abs_zero).inf $ tendsto_principal_principal.2 $ λ x, abs_pos.2
 
 end linear_ordered_add_comm_group
 

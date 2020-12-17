@@ -574,14 +574,12 @@ theorem has_deriv_at.add_const
   has_deriv_at (λ x, f x + c) f' x :=
 hf.add_const c
 
-lemma deriv_within_add_const (hxs : unique_diff_within_at 𝕜 s x)
-  (hf : differentiable_within_at 𝕜 f s x) (c : F) :
+lemma deriv_within_add_const (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
   deriv_within (λy, f y + c) s x = deriv_within f s x :=
-(hf.has_deriv_within_at.add_const c).deriv_within hxs
+by simp only [deriv_within, fderiv_within_add_const hxs]
 
-lemma deriv_add_const (hf : differentiable_at 𝕜 f x) (c : F) :
-  deriv (λy, f y + c) x = deriv f x :=
-(hf.has_deriv_at.add_const c).deriv
+lemma deriv_add_const (c : F) : deriv (λy, f y + c) x = deriv f x :=
+by simp only [deriv, fderiv_add_const]
 
 theorem has_deriv_at_filter.const_add (c : F) (hf : has_deriv_at_filter f f' x L) :
   has_deriv_at_filter (λ y, c + f y) f' x L :=
@@ -595,17 +593,14 @@ theorem has_deriv_at.const_add (c : F) (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, c + f x) f' x :=
 hf.const_add c
 
-lemma deriv_within_const_add (hxs : unique_diff_within_at 𝕜 s x)
-  (c : F) (hf : differentiable_within_at 𝕜 f s x) :
+lemma deriv_within_const_add (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
   deriv_within (λy, c + f y) s x = deriv_within f s x :=
-(hf.has_deriv_within_at.const_add c).deriv_within hxs
+by simp only [deriv_within, fderiv_within_const_add hxs]
 
-lemma deriv_const_add (c : F) (hf : differentiable_at 𝕜 f x) :
-  deriv (λy, c + f y) x = deriv f x :=
-(hf.has_deriv_at.const_add c).deriv
+lemma deriv_const_add (c : F)  : deriv (λy, c + f y) x = deriv f x :=
+by simp only [deriv, fderiv_const_add]
 
 end add
-
 
 section sum
 /-! ### Derivative of a finite sum of functions -/
@@ -741,16 +736,12 @@ theorem has_strict_deriv_at.neg (h : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, -f x) (-f') x :=
 by simpa using h.neg.has_strict_deriv_at
 
-lemma deriv_within.neg (hxs : unique_diff_within_at 𝕜 s x)
-  (h : differentiable_within_at 𝕜 f s x) :
+lemma deriv_within.neg (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λy, -f y) s x = - deriv_within f s x :=
-h.has_deriv_within_at.neg.deriv_within hxs
+by simp only [deriv_within, fderiv_within_neg hxs, continuous_linear_map.neg_apply]
 
 lemma deriv.neg : deriv (λy, -f y) x = - deriv f x :=
-if h : differentiable_at 𝕜 f x then h.has_deriv_at.neg.deriv else
-have ¬differentiable_at 𝕜 (λ y, -f y) x, from λ h', by simpa only [neg_neg] using h'.neg,
-by simp only [deriv_zero_of_not_differentiable_at h,
-  deriv_zero_of_not_differentiable_at this, neg_zero]
+by simp only [deriv, fderiv_neg, continuous_linear_map.neg_apply]
 
 @[simp] lemma deriv.neg' : deriv (λy, -f y) = (λ x, - deriv f x) :=
 funext $ λ x, deriv.neg
@@ -849,14 +840,12 @@ theorem has_deriv_at.sub_const
   has_deriv_at (λ x, f x - c) f' x :=
 hf.sub_const c
 
-lemma deriv_within_sub_const (hxs : unique_diff_within_at 𝕜 s x)
-  (hf : differentiable_within_at 𝕜 f s x) (c : F) :
+lemma deriv_within_sub_const (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
   deriv_within (λy, f y - c) s x = deriv_within f s x :=
-(hf.has_deriv_within_at.sub_const c).deriv_within hxs
+by simp only [deriv_within, fderiv_within_sub_const hxs]
 
-lemma deriv_sub_const (c : F) (hf : differentiable_at 𝕜 f x) :
-  deriv (λ y, f y - c) x = deriv f x :=
-(hf.has_deriv_at.sub_const c).deriv
+lemma deriv_sub_const (c : F) : deriv (λ y, f y - c) x = deriv f x :=
+by simp only [deriv, fderiv_sub_const]
 
 theorem has_deriv_at_filter.const_sub (c : F) (hf : has_deriv_at_filter f f' x L) :
   has_deriv_at_filter (λ x, c - f x) (-f') x L :=
@@ -870,14 +859,12 @@ theorem has_deriv_at.const_sub (c : F) (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, c - f x) (-f') x :=
 hf.const_sub c
 
-lemma deriv_within_const_sub (hxs : unique_diff_within_at 𝕜 s x)
-  (c : F) (hf : differentiable_within_at 𝕜 f s x) :
+lemma deriv_within_const_sub (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
   deriv_within (λy, c - f y) s x = -deriv_within f s x :=
-(hf.has_deriv_within_at.const_sub c).deriv_within hxs
+by simp [deriv_within, fderiv_within_const_sub hxs]
 
-lemma deriv_const_sub (c : F) (hf : differentiable_at 𝕜 f x) :
-  deriv (λ y, c - f y) x = -deriv f x :=
-(hf.has_deriv_at.const_sub c).deriv
+lemma deriv_const_sub (c : F) : deriv (λ y, c - f y) x = -deriv f x :=
+by simp only [← deriv_within_univ, deriv_within_const_sub unique_diff_within_at_univ]
 
 end sub
 

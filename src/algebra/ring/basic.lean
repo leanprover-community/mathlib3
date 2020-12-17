@@ -481,7 +481,7 @@ protected def function.injective.ring [has_zero β] [has_one β] [has_add β] [h
 { .. hf.add_comm_group f zero add neg, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
 /-- Pullback a `ring` instance along an injective function,
-with a subtraction (`-`) that is not necessarily defeq to `a +- b`. -/
+with a subtraction (`-`) that is not necessarily defeq to `a + -b`. -/
 protected def function.injective.ring_sub
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -499,7 +499,7 @@ protected def function.surjective.ring [has_zero β] [has_one β] [has_add β] [
 { .. hf.add_comm_group f zero add neg, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
 /-- Pullback a `ring` instance along an injective function,
-with a subtraction (`-`) that is not necessarily defeq to `a +- b`. -/
+with a subtraction (`-`) that is not necessarily defeq to `a + -b`. -/
 protected def function.surjective.ring_sub
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -651,7 +651,7 @@ protected def function.injective.comm_ring [has_zero β] [has_one β] [has_add �
 { .. hf.ring f zero one add mul neg, .. hf.comm_semigroup f mul }
 
 /-- Pullback a `comm_ring` instance along an injective function,
-with a subtraction (`-`) that is not necessarily defeq to `a +- b`. -/
+with a subtraction (`-`) that is not necessarily defeq to `a + -b`. -/
 protected def function.injective.comm_ring_sub
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -669,7 +669,7 @@ protected def function.surjective.comm_ring [has_zero β] [has_one β] [has_add 
 { .. hf.ring f zero one add mul neg, .. hf.comm_semigroup f mul }
 
 /-- Pullback a `comm_ring` instance along an injective function,
-with a subtraction (`-`) that is not necessarily defeq to `a +- b`. -/
+with a subtraction (`-`) that is not necessarily defeq to `a + -b`. -/
 protected def function.surjective.comm_ring_sub
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)

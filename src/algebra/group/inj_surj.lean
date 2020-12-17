@@ -261,8 +261,7 @@ protected def group_div [has_div M₂] [group M₁] (f : M₁ → M₂) (hf : su
   group M₂ :=
 { div_eq_mul_inv := hf.forall.2 $ λ x, hf.forall.2 $
     λ y, by erw [← div, div_eq_mul_inv, mul, inv]; refl,
-  mul_left_inv := hf.forall.2 $ λ x, by erw [← inv, ← mul, mul_left_inv, one]; refl,
-  .. hf.monoid f one mul, ..‹has_inv M₂›, ..‹has_div M₂› }
+  ..‹has_div M₂›, .. hf.group f one mul inv }
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a commutative group,
 if it admits a surjective map that preserves `1`, `*` and `⁻¹` from a commutative group. -/

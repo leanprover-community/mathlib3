@@ -250,6 +250,14 @@ begin
   cases not_or xy yx (total_of _ _ _)
 end
 
+theorem cmp_le_eq_cmp {α} [preorder α] [is_total α (≤)]
+  [@decidable_rel α (≤)] [@decidable_rel α (<)] (x y : α) : cmp_le x y = cmp x y :=
+begin
+  by_cases xy : x ≤ y; by_cases yx : y ≤ x;
+    simp [cmp_le, lt_iff_le_not_le, *, cmp, cmp_using],
+  cases not_or xy yx (total_of _ _ _)
+end
+
 namespace ordering
 
 /-- `compares o a b` means that `a` and `b` have the ordering relation

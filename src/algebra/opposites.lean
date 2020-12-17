@@ -20,6 +20,9 @@ variables (α : Type u)
 instance [has_add α] : has_add (opposite α) :=
 { add := λ x y, op (unop x + unop y) }
 
+instance [has_sub α] : has_sub (opposite α) :=
+{ sub := λ x y, op (unop x - unop y) }
+
 instance [add_semigroup α] : add_semigroup (opposite α) :=
 { add_assoc := λ x y z, unop_injective $ add_assoc (unop x) (unop y) (unop z),
   .. opposite.has_add α }
@@ -64,7 +67,8 @@ instance [has_neg α] : has_neg (opposite α) :=
 
 instance [add_group α] : add_group (opposite α) :=
 { add_left_neg := λ x, unop_injective $ add_left_neg $ unop x,
-  .. opposite.add_monoid α, .. opposite.has_neg α }
+  sub_eq_add_neg := λ x y, unop_injective $ sub_eq_add_neg (unop x) (unop y),
+  .. opposite.add_monoid α, .. opposite.has_neg α, .. opposite.has_sub α }
 
 instance [add_comm_group α] : add_comm_group (opposite α) :=
 { .. opposite.add_group α, .. opposite.add_comm_monoid α }

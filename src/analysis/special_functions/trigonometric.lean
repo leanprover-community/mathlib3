@@ -108,7 +108,7 @@ lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
 begin
   simp only [cosh, div_eq_mul_inv],
   convert ((has_deriv_at_exp x).sub (has_deriv_at_id x).neg.cexp).mul_const (2:ℂ)⁻¹,
-  rw [id, mul_neg_one, neg_neg]
+  rw [id, mul_neg_one, sub_eq_add_neg, neg_neg]
 end
 
 lemma times_cont_diff_sinh {n} : times_cont_diff ℂ n sinh :=
@@ -1181,7 +1181,7 @@ begin
     have := sin_bound this, rw [abs_le] at this,
     have := this.2, rw [sub_le_iff_le_add', hx] at this,
     apply lt_of_le_of_lt this, rw [sub_add], apply lt_of_lt_of_le _ (le_of_eq (sub_zero x)),
-    apply sub_lt_sub_left, rw sub_pos, apply mul_lt_mul',
+    apply sub_lt_sub_left, rw [sub_pos, div_eq_mul_inv (x ^ 3)], apply mul_lt_mul',
     { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
       rw mul_le_mul_right, exact h', apply pow_pos h },
     norm_num, norm_num, apply pow_pos h },
@@ -1199,7 +1199,7 @@ begin
   refine lt_of_lt_of_le _ this,
   rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left,
   apply add_lt_of_lt_sub_left,
-  rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 / 12,
+  rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 * 12⁻¹,
     by simp [div_eq_mul_inv, ← mul_sub]; norm_num),
   apply mul_lt_mul',
   { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
@@ -1214,7 +1214,7 @@ variable (x : ℝ)
 /-- the series `sqrt_two_add_series x n` is `sqrt(2 + sqrt(2 + ... ))` with `n` square roots,
   starting with `x`. We define it here because `cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2`
 -/
-@[simp] noncomputable def sqrt_two_add_series (x : ℝ) : ℕ → ℝ
+@[simp, pp_nodot] noncomputable def sqrt_two_add_series (x : ℝ) : ℕ → ℝ
 | 0     := x
 | (n+1) := sqrt (2 + sqrt_two_add_series n)
 
@@ -1235,10 +1235,9 @@ lemma sqrt_two_add_series_lt_two : ∀(n : ℕ), sqrt_two_add_series 0 n < 2
 | (n+1) :=
   begin
     refine lt_of_lt_of_le _ (le_of_eq $ sqrt_sqr $ le_of_lt zero_lt_two),
-    rw [sqrt_two_add_series, sqrt_lt],
-    apply add_lt_of_lt_sub_left,
-    apply lt_of_lt_of_le (sqrt_two_add_series_lt_two n),
-    norm_num, apply add_nonneg, norm_num, apply sqrt_two_add_series_zero_nonneg, norm_num
+    rw [sqrt_two_add_series, sqrt_lt, ← lt_sub_iff_add_lt'],
+    { refine (sqrt_two_add_series_lt_two n).trans_le _, norm_num },
+    { exact add_nonneg zero_le_two (sqrt_two_add_series_zero_nonneg n) }
   end
 
 lemma sqrt_two_add_series_succ (x : ℝ) :
@@ -1252,7 +1251,7 @@ lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
 | (n+1) :=
   begin
     rw [sqrt_two_add_series, sqrt_two_add_series],
-    apply sqrt_le_sqrt, apply add_le_add_left, apply sqrt_two_add_series_monotone_left
+    exact sqrt_le_sqrt (add_le_add_left (sqrt_two_add_series_monotone_left _) _)
   end
 
 @[simp] lemma cos_pi_over_two_pow : ∀(n : ℕ), cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2

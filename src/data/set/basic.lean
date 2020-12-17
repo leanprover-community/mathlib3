@@ -563,6 +563,9 @@ by finish [subset_def, ext_iff, iff_def]
 theorem inter_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∩ t = t :=
 by finish [subset_def, ext_iff, iff_def]
 
+theorem subset_iff_inter_eq_self {s t : set α} : s ⊆ t ↔ s ∩ t = s :=
+⟨λ h, inter_eq_self_of_subset_left h, λ h x h1, set.mem_of_mem_inter_right (by {rw h, exact h1})⟩
+
 lemma inter_compl_nonempty_iff {s t : set α} : (s ∩ tᶜ).nonempty ↔ ¬ s ⊆ t :=
 begin
   split,

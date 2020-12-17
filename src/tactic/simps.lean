@@ -35,7 +35,6 @@ structures, projections, simp, simplifier, generates declarations
 open tactic expr
 
 setup_tactic_parser
-reserve notation `initialize_simps_projections`
 declare_trace simps.verbose
 
 /--
@@ -441,7 +440,9 @@ Projection {(todo_next.head.split_on '_').tail.head} doesn't exist, because targ
 /-- `simps_tac` derives simp-lemmas for all (nested) non-Prop projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`.
   If `short_nm` is true, the generated names will only use the last projection name. -/
-meta def simps_tac (nm : name) (cfg : simps_cfg := {}) (todo : list string := []) : tactic unit := do
+meta def simps_tac (nm : name) (cfg : simps_cfg := {}) (todo : list string := []) :
+  tactic unit :=
+do
   e ← get_env,
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),

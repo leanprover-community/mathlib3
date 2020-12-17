@@ -347,13 +347,6 @@ lemma map_swap {i j : ι} (hij : i ≠ j) :
   g (v ∘ equiv.swap i j) = - g v  :=
 eq_neg_of_add_eq_zero (g.map_swap_add v hij)
 
-
--- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
-instance smul_comm_class.symm
-  { R M : Type*}
-  [semiring R] [add_comm_group M] [semimodule R M] : smul_comm_class R ℤ M := smul_comm_class.symm _ _ _
-
-
 lemma map_perm [fintype ι] (v : ι → M) (σ : equiv.perm ι) :
   g (v ∘ σ) = (equiv.perm.sign σ : ℤ) • g v :=
 begin
@@ -431,6 +424,9 @@ end multilinear_map
 
 namespace alternating_map
 
+-- upstream soon...
+instance nat_subsingleton (α : Type*) [add_comm_monoid α] : subsingleton (semimodule ℕ α) := sorry
+
 /-- Alternatizing a multilinear map that is already alternating results in a scale factor of `n!`,
 where `n` is the number of inputs. -/
 lemma coe_alternatization [fintype ι] (a : alternating_map R M N' ι) :
@@ -441,8 +437,8 @@ begin
   simp_rw [coe_dom_dom_congr, smul_smul, int.units_coe_mul_self, one_smul,
     finset.sum_const, finset.card_univ, fintype.card_perm, ←nat.smul_def],
   rw [←coe_multilinear_map, coe_smul],
-  congr,
-  sorry -- diamond!
+  rw subsingleton.elim add_comm_monoid.nat_semimodule,
+  apply_instance,
 end
 
 end alternating_map
@@ -728,9 +724,10 @@ begin
         begin
           congr' 1,
           rw [←tensor_product.tmul_smul_nat, tensor_product.smul_tmul'_nat],
-          congr,
-          dsimp,
-          sorry, sorry, -- the same diamond instance, twice
+          congr;
+          { rw subsingleton.elim add_comm_monoid.nat_semimodule alternating_map.semimodule,
+            refl,
+            apply_instance }
         end
   ... = (fintype.card ιa).factorial • (fintype.card ιb).factorial • dom_coprod' (a ⊗ₜ[R] b) :
         begin
@@ -740,8 +737,9 @@ begin
           apply_instance,
           apply_instance,
           convert add_comm_monoid.nat_is_scalar_tower,
-          dsimp,
-          sorry -- diamond problem
+          { rw subsingleton.elim add_comm_monoid.nat_semimodule alternating_map.semimodule,
+            refl,
+            apply_instance }
         end
 end
 

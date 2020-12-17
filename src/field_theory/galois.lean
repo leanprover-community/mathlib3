@@ -359,14 +359,10 @@ lemma of_separable_splitting_field (sp : p.is_splitting_field F E) (hp : p.separ
   is_galois F E :=
 begin
   haveI hFE : finite_dimensional F E := polynomial.is_splitting_field.finite_dimensional E p,
-  let p' := (p.map (algebra_map F E)),
-  let s := p'.roots.to_finset,
-  have adjoin_root : (intermediate_field.adjoin F ↑s).to_subalgebra =
-    (⊤ : intermediate_field F E).to_subalgebra,
-  { rw [intermediate_field.top_to_subalgebra, eq_top_iff, ←sp.adjoin_roots],
-    exact algebra.adjoin_le (intermediate_field.subset_adjoin F ↑s) },
-  replace adjoin_root : intermediate_field.adjoin F ↑s = (⊤ : intermediate_field F E),
-  { exact intermediate_field.ext (subalgebra.ext_iff.mp adjoin_root) },
+  let s := (p.map (algebra_map F E)).roots.to_finset,
+  have adjoin_root := intermediate_field.ext (subalgebra.ext_iff.mp (eq.trans (top_le_iff.mp
+    (eq.trans_le sp.adjoin_roots.symm (intermediate_field.algebra_adjoin_le_adjoin F ↑s)))
+    intermediate_field.top_to_subalgebra.symm)),
   let P : intermediate_field F E → Prop := λ K, fintype.card (K →ₐ[F] E) = findim F K,
   suffices : P (intermediate_field.adjoin F ↑s),
   { rw adjoin_root at this,
@@ -374,16 +370,15 @@ begin
     rw ← eq.trans this (linear_equiv.findim_eq intermediate_field.top_equiv.to_linear_equiv),
     exact fintype.card_congr (equiv.trans (alg_equiv_equiv_alg_hom F E)
       (alg_equiv.arrow_congr intermediate_field.top_equiv.symm alg_equiv.refl)) },
-  have base : P ⊥,
-  { have h : is_integral F (0 : E) := is_integral_zero,
-    have key := intermediate_field.card_alg_hom_adjoin_integral F h,
+  apply intermediate_field.induction_on_adjoin_finset s P,
+  { have key := intermediate_field.card_alg_hom_adjoin_integral F
+      (show is_integral F (0 : E), by exact is_integral_zero),
     rw [minimal_polynomial.zero, polynomial.nat_degree_X] at key,
     specialize key polynomial.separable_X (polynomial.splits_X (algebra_map F E)),
     rw [←@subalgebra.findim_bot F E _ _ _, ←intermediate_field.bot_to_subalgebra] at key,
     refine eq.trans _ key,
     apply fintype.card_congr,
     rw intermediate_field.adjoin_zero },
-  apply intermediate_field.induction_on_adjoin_finset s P base,
   intros K x hx hK,
   simp only [P] at *,
   rw [of_separable_splitting_field_aux sp hp K (multiset.mem_to_finset.mp hx),

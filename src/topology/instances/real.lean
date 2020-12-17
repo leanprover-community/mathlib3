@@ -182,8 +182,8 @@ tendsto_of_uniform_continuous_subtype
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
     (λ x, id))
   (mem_nhds_sets
-    (((is_open_gt' (abs a₁ + 1)).preimage real.continuous_abs).prod
-      ((is_open_gt' (abs a₂ + 1)).preimage real.continuous_abs ))
+    (((is_open_gt' (abs a₁ + 1)).preimage continuous_abs).prod
+      ((is_open_gt' (abs a₂ + 1)).preimage continuous_abs ))
     ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
 
 instance : topological_ring ℝ :=

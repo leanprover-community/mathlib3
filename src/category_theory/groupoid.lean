@@ -3,7 +3,7 @@ Copyright (c) 2018 Reid Barton All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison, David Wärn
 -/
-import category_theory.full_subcategory
+import category_theory.epi_mono
 
 namespace category_theory
 

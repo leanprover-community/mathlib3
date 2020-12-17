@@ -94,9 +94,10 @@ of `α` in Adam's article. -/
 /-- O(1). Construct a singleton set containing value `a`.
 
      singleton 3 = {3} -/
-@[inline] def singleton (a : α) : ordnode α := node 1 nil a nil
+@[inline] protected def singleton (a : α) : ordnode α := node 1 nil a nil
+local prefix `ι`:max := ordnode.singleton
 
-instance : has_singleton α (ordnode α) := ⟨singleton⟩
+instance : has_singleton α (ordnode α) := ⟨ordnode.singleton⟩
 
 /-- O(1). Get the size of the set.
 
@@ -143,13 +144,13 @@ def balance_l (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 by clean begin
   cases id r with rs,
   { cases id l with ls ll lx lr,
-    { exact singleton x },
+    { exact ι x },
     { cases id ll with lls,
       { cases lr with _ _ lrx,
         { exact node 2 l x nil },
-        { exact node 3 (singleton lx) lrx (singleton x) } },
+        { exact node 3 (ι lx) lrx (ι x) } },
       { cases id lr with lrs lrl lrx lrr,
-        { exact node 3 ll lx (singleton x) },
+        { exact node 3 ll lx (ι x) },
         { exact if lrs < ratio * lls then
             node (ls+1) ll lx (node (lrs+1) lr x nil)
           else
@@ -175,13 +176,13 @@ def balance_r (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 by clean begin
   cases id l with ls,
   { cases id r with rs rl rx rr,
-    { exact singleton x },
+    { exact ι x },
     { cases id rr with rrs,
       { cases rl with _ _ rlx,
         { exact node 2 nil x r },
-        { exact node 3 (singleton x) rlx (singleton rx) } },
+        { exact node 3 (ι x) rlx (ι rx) } },
       { cases id rl with rls rll rlx rlr,
-        { exact node 3 (singleton x) rx rr },
+        { exact node 3 (ι x) rx rr },
         { exact if rls < ratio * rrs then
             node (rs+1) (node (rls+1) nil x rl) rx rr
           else
@@ -207,13 +208,13 @@ def balance (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 by clean begin
   cases id l with ls ll lx lr,
   { cases id r with rs rl rx rr,
-    { exact singleton x },
+    { exact ι x },
     { cases id rl with rls rll rlx rlr,
       { cases id rr,
         { exact node 2 nil x r },
-        { exact node 3 (singleton x) rx rr } },
+        { exact node 3 (ι x) rx rr } },
       { cases id rr with rrs,
-        { exact node 3 (singleton x) rlx (singleton rx) },
+        { exact node 3 (ι x) rlx (ι rx) },
         { exact if rls < ratio * rrs then
             node (rs+1) (node (rls+1) nil x rl) rx rr
           else
@@ -224,9 +225,9 @@ by clean begin
     { cases id ll with lls,
       { cases lr with _ _ lrx,
         { exact node 2 l x nil },
-        { exact node 3 (singleton lx) lrx (singleton x) } },
+        { exact node 3 (ι lx) lrx (ι x) } },
       { cases id lr with lrs lrl lrx lrr,
-        { exact node 3 ll lx (singleton x) },
+        { exact node 3 ll lx (ι x) },
         { exact if lrs < ratio * lls then
             node (ls+1) ll lx (node (lrs+1) lr x nil)
           else
@@ -422,7 +423,7 @@ else glue (node ls ll lx lr) (node rs rl rx rr)
     insert_max {1, 2} 4 = {1, 2, 4}
     insert_max {1, 2} 0 = precondition violation -/
 def insert_max : ordnode α → α → ordnode α
-| nil x := singleton x
+| nil x := ι x
 | (node _ l y r) x := balance_r l y (insert_max r x)
 
 /-- O(log n). Insert an element below all the others, without any comparisons.
@@ -431,7 +432,7 @@ def insert_max : ordnode α → α → ordnode α
     insert_min {1, 2} 0 = {0, 1, 2}
     insert_min {1, 2} 4 = precondition violation -/
 def insert_min (x : α) : ordnode α → ordnode α
-| nil := singleton x
+| nil := ι x
 | (node _ l y r) := balance_r (insert_min l) y r
 
 /-- O(log(m+n)). Build a tree from an element between two trees, without any
@@ -532,7 +533,7 @@ instance [decidable_eq α] : decidable_rel (@equiv α) := λ t₁ t₂, and.deci
 
      powerset {1, 2, 3} = {∅, {1}, {2}, {3}, {1,2}, {1,3}, {2,3}, {1,2,3}} -/
 def powerset (t : ordnode α) : ordnode (ordnode α) :=
-insert_min nil $ foldr (λ x ts, glue (insert_min (singleton x) (map (insert_min x) ts)) ts) t nil
+insert_min nil $ foldr (λ x ts, glue (insert_min (ι x) (map (insert_min x) ts)) ts) t nil
 
 /-- O(m*n). The cartesian product of two sets: `(a, b) ∈ s.prod t` iff `a ∈ s` and `b ∈ t`.
 
@@ -686,7 +687,7 @@ def span (p : α → Prop) [decidable_pred p] : ordnode α → ordnode α × ord
 def of_asc_list_aux₁ : ∀ l : list α, ℕ → ordnode α × {l' : list α // l'.length ≤ l.length}
 | [] := λ s, (nil, ⟨[], le_refl _⟩)
 | (x :: xs) := λ s,
-  if s = 1 then (singleton x, ⟨xs, nat.le_succ _⟩) else
+  if s = 1 then (ι x, ⟨xs, nat.le_succ _⟩) else
   have _, from nat.lt_succ_self xs.length,
   match of_asc_list_aux₁ xs (s.shiftl 1) with
   | (t, ⟨[], h⟩) := (t, ⟨[], nat.zero_le _⟩)
@@ -719,7 +720,7 @@ using_well_founded
      of_asc_list [3, 2, 1] = precondition violation -/
 def of_asc_list : list α → ordnode α
 | [] := nil
-| (x :: xs) := of_asc_list_aux₂ xs (singleton x) 1
+| (x :: xs) := of_asc_list_aux₂ xs (ι x) 1
 
 section
 variables [has_le α] [@decidable_rel α (≤)]
@@ -779,7 +780,7 @@ Using a preorder on `ℕ × ℕ` that only compares the first coordinate:
     insert_with f (1, 1) {(0, 1), (1, 2)} = {(0, 1), f (1, 2)}
     insert_with f (3, 1) {(0, 1), (1, 2)} = {(0, 1), (1, 2), (3, 1)} -/
 def insert_with (f : α → α) (x : α) : ordnode α → ordnode α
-| nil := singleton x
+| nil := ι x
 | t@(node sz l y r) :=
   match cmp_le x y with
   | ordering.lt := balance_l (insert_with l) y r
@@ -836,7 +837,7 @@ Note that the element returned by `f` must be equivalent to `x`.
     alter f 1 {1, 2, 3} = {2, 3}     if f 1 = none
                         = {a, 2, 3}  if f 1 = some a -/
 def alter (f : option α → option α) (x : α) : ordnode α → ordnode α
-| nil := option.rec_on (f none) nil singleton
+| nil := option.rec_on (f none) nil ordnode.singleton
 | t@(node sz l y r) :=
   match cmp_le x y with
   | ordering.lt := balance (alter l) y r
@@ -858,8 +859,8 @@ Using a preorder on `ℕ × ℕ` that only compares the first coordinate:
 
     insert (1, 1) {(0, 1), (1, 2)} = {(0, 1), (1, 1)}
     insert (3, 1) {(0, 1), (1, 2)} = {(0, 1), (1, 2), (3, 1)} -/
-def insert (x : α) : ordnode α → ordnode α
-| nil := singleton x
+protected def insert (x : α) : ordnode α → ordnode α
+| nil := ι x
 | (node sz l y r) :=
   match cmp_le x y with
   | ordering.lt := balance_l (insert l) y r
@@ -867,7 +868,7 @@ def insert (x : α) : ordnode α → ordnode α
   | ordering.gt := balance_r l y (insert r)
   end
 
-instance : has_insert α (ordnode α) := ⟨insert⟩
+instance : has_insert α (ordnode α) := ⟨ordnode.insert⟩
 
 /-- O(log n). Insert an element into the set, preserving balance and the BST property.
 If an equivalent element is already in the set, the set is returned as is.
@@ -880,7 +881,7 @@ Using a preorder on `ℕ × ℕ` that only compares the first coordinate:
     insert' (1, 1) {(0, 1), (1, 2)} = {(0, 1), (1, 2)}
     insert' (3, 1) {(0, 1), (1, 2)} = {(0, 1), (1, 2), (3, 1)} -/
 def insert' (x : α) : ordnode α → ordnode α
-| nil := singleton x
+| nil := ι x
 | t@(node sz l y r) :=
   match cmp_le x y with
   | ordering.lt := balance_l (insert' l) y r

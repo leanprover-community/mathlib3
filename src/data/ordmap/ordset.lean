@@ -529,11 +529,12 @@ theorem find_max'_all {P : α → Prop} : ∀ (x : α) t, P x → all P t → P 
 /-! ### `insert` -/
 
 theorem dual_insert [preorder α] [is_total α (≤)] [@decidable_rel α (≤)] (x : α) :
-  ∀ t : ordnode α, dual (insert x t) = @insert (order_dual α) _ _ x (dual t)
+  ∀ t : ordnode α, dual (ordnode.insert x t) = @ordnode.insert (order_dual α) _ _ x (dual t)
 | nil := rfl
 | (node _ l y r) := begin
-  rw [insert, dual, insert, order_dual.cmp_le_flip, ← cmp_le_swap x y],
-  cases cmp_le x y; simp [ordering.swap, insert, dual_balance_l, dual_balance_r, dual_insert]
+  rw [ordnode.insert, dual, ordnode.insert, order_dual.cmp_le_flip, ← cmp_le_swap x y],
+  cases cmp_le x y;
+  simp [ordering.swap, ordnode.insert, dual_balance_l, dual_balance_r, dual_insert]
 end
 
 /-! ### `balance` properties -/
@@ -954,10 +955,10 @@ theorem valid'.node' {l x r o₁ o₂} (hl : valid' o₁ l ↑x) (hr : valid' �
 hl.node hr H rfl
 
 theorem valid'_singleton {x : α} {o₁ o₂}
-  (h₁ : bounded nil o₁ ↑x) (h₂ : bounded nil ↑x o₂) : valid' o₁ (singleton x) o₂ :=
+  (h₁ : bounded nil o₁ ↑x) (h₂ : bounded nil ↑x o₂) : valid' o₁ (singleton x : ordnode α) o₂ :=
 (valid'_nil h₁).node (valid'_nil h₂) (or.inl zero_le_one) rfl
 
-theorem valid_singleton {x : α} : valid (singleton x) := valid'_singleton ⟨⟩ ⟨⟩
+theorem valid_singleton {x : α} : valid (singleton x : ordnode α) := valid'_singleton ⟨⟩ ⟨⟩
 
 theorem valid'.node3_l {l x m y r o₁ o₂}
   (hl : valid' o₁ l ↑x) (hm : valid' ↑x m ↑y) (hr : valid' ↑y r o₂)
@@ -1400,13 +1401,13 @@ theorem insert_with.valid [is_total α (≤)] [@decidable_rel α (≤)]
 (insert_with.valid_aux _ _ hf h ⟨⟩ ⟨⟩).1
 
 theorem insert_eq_insert_with [@decidable_rel α (≤)]
-  (x : α) : ∀ t, insert x t = insert_with (λ _, x) x t
+  (x : α) : ∀ t, ordnode.insert x t = insert_with (λ _, x) x t
 | nil := rfl
-| (node _ l y r) := by unfold insert insert_with;
-  cases cmp_le x y; unfold insert insert_with; simp [insert_eq_insert_with]
+| (node _ l y r) := by unfold ordnode.insert insert_with;
+  cases cmp_le x y; unfold ordnode.insert insert_with; simp [insert_eq_insert_with]
 
 theorem insert.valid [is_total α (≤)] [@decidable_rel α (≤)]
-  (x : α) {t} (h : valid t) : valid (insert x t) :=
+  (x : α) {t} (h : valid t) : valid (ordnode.insert x t) :=
 by rw insert_eq_insert_with; exact
 insert_with.valid _ _ (λ _ _, ⟨le_refl _, le_refl _⟩) h
 
@@ -1441,10 +1442,11 @@ def nil : ordset α := ⟨nil, ⟨⟩, ⟨⟩, ⟨⟩⟩
 def size (s : ordset α) : ℕ := s.1.size
 
 /-- O(1). Construct a singleton set containing value `a`. -/
-def singleton (a : α) : ordset α := ⟨singleton a, valid_singleton⟩
+protected def singleton (a : α) : ordset α := ⟨singleton a, valid_singleton⟩
 
 instance : has_emptyc (ordset α) := ⟨nil⟩
 instance : inhabited (ordset α) := ⟨nil⟩
+instance : has_singleton α (ordset α) := ⟨ordset.singleton⟩
 
 /-- O(1). Is the set empty? -/
 def empty (s : ordset α) : Prop := s = ∅
@@ -1458,8 +1460,10 @@ instance : decidable_pred (@empty α _) :=
 
 /-- O(log n). Insert an element into the set, preserving balance and the BST property.
   If an equivalent element is already in the set, this replaces it. -/
-def insert [is_total α (≤)] [@decidable_rel α (≤)] (x : α) (s : ordset α) : ordset α :=
-⟨insert x s.1, insert.valid _ s.2⟩
+protected def insert [is_total α (≤)] [@decidable_rel α (≤)] (x : α) (s : ordset α) : ordset α :=
+⟨ordnode.insert x s.1, insert.valid _ s.2⟩
+
+instance [is_total α (≤)] [@decidable_rel α (≤)] : has_insert α (ordset α) := ⟨ordset.insert⟩
 
 /-- O(log n). Insert an element into the set, preserving balance and the BST property.
   If an equivalent element is already in the set, the set is returned as is. -/

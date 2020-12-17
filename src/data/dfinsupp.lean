@@ -462,10 +462,8 @@ end
 /-- If two additive homomorphisms from `Π₀ i, β i` are equal on each `single a b`, then
 they are equal.
 
-We formulate this using equality of `add_monoid_hom`s so that `ext` tactic can apply a type-specific
-extensionality lemma after this one.  E.g., if the fiber `M` is `ℕ` or `ℤ`, then it suffices to
-verify `f (single a 1) = g (single a 1)`. -/
-@[ext] lemma add_hom_ext' {γ : Type w} [add_monoid γ] ⦃f g : (Π₀ i, β i) →+ γ⦄
+See note [partially-applied ext lemmas]. -/
+@[ext, priority 1500] lemma add_hom_ext' {γ : Type w} [add_monoid γ] ⦃f g : (Π₀ i, β i) →+ γ⦄
   (H : ∀ x, f.comp (single_add_hom β x) = g.comp (single_add_hom β x)) :
   f = g :=
 add_hom_ext $ λ x, add_monoid_hom.congr_fun (H x)

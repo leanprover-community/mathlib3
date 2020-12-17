@@ -105,7 +105,8 @@ begin
   split; {intro h, ext, simp [←h] },
 end
 
-@[ext] lemma hom_ext {g₁ g₂ : universal_enveloping_algebra R L →ₐ[R] A}
+/-- See note [partially-applied ext lemmas]. -/
+@[ext, priority 1500] lemma hom_ext {g₁ g₂ : universal_enveloping_algebra R L →ₐ[R] A}
   (h : g₁ ∘ (ι R) = g₂ ∘ (ι R)) : g₁ = g₂ :=
 begin
   apply (lift R).symm.injective,

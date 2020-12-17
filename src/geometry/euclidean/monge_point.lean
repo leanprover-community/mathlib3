@@ -545,7 +545,8 @@ circumcenter in a side equals the circumradius, variant using a
 `finset`. -/
 lemma dist_orthocenter_reflection_circumcenter_finset (t : triangle ℝ P) {i₁ i₂ : fin 3}
   (h : i₁ ≠ i₂) :
-  dist t.orthocenter (reflection (affine_span ℝ (t.points '' ({i₁, i₂}))) t.circumcenter) =
+  dist t.orthocenter (reflection (affine_span ℝ (t.points '' ↑({i₁, i₂} : finset (fin 3))))
+                                 t.circumcenter) =
     t.circumradius :=
 dist_orthocenter_reflection_circumcenter t h
 

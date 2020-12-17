@@ -437,12 +437,6 @@ instance [inhabited P] : inhabited (simplex k P 0) :=
 instance nonempty : nonempty (simplex k P 0) :=
 ⟨mk_of_point k $ add_torsor.nonempty.some⟩
 
-instance {n : ℕ} (s : simplex k P n) : nonempty (set.range s.points) :=
-set.nonempty.to_subtype (set.range_nonempty s.points)
-
-instance {n : ℕ} (s : simplex k P n) (fs : set (fin (n + 1))) (i : fin (n + 1)) :
-  nonempty (s.points '' (insert i fs)) :=
-set.nonempty.to_subtype (set.nonempty.image s.points (set.insert_nonempty i fs))
 
 variables {k V}
 

@@ -118,7 +118,9 @@ variables (R) {s}
 over all `i : ι`, multiplied by the coefficient `r`. -/
 def tprod_coeff (r : R) (f : Π i, s i) : ⨂[R] i, s i := add_con.mk' _ $ free_add_monoid.of (r, f)
 
-/-- `tprod R f` with `f : Π i, s i` is the tensor product of the vectors `f i` over all `i : ι`. -/
+/-- `tprod R f` with `f : Π i, s i` is the tensor product of the vectors `f i` over all `i : ι`.
+
+This is bundled into a `multilinear_map` in `pi_tensor_product.mk`. -/
 def tprod (f : Π i, s i) : ⨂[R] i, s i := tprod_coeff R 1 f
 
 variables {R}

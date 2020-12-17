@@ -849,9 +849,11 @@ begin
     rw this,
     refl },
   rw h₁' at hp₁,
-  obtain rfl : orthogonal_projection span_s p₂ = p₂o,
-  { rw hp₂,
-    exact orthogonal_projection_vadd_smul_vsub_orthogonal_projection hc _ _ hp₂o },
+  obtain rfl : ↑(orthogonal_projection span_s p₂) = p₂o,
+  { have := orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hp₂o,
+    rw ← hp₂ at this,
+    rw this,
+    refl },
   rw h₂' at hp₂,
   have h : s.points 0 ∈ span_s := mem_affine_span ℝ (set.mem_range_self _),
   have hd₁ : dist p₁ s.circumcenter * dist p₁ s.circumcenter =
@@ -880,7 +882,7 @@ begin
       rw hd₁ },
     { right,
       rw [hd₁,
-          reflection_vadd_smul_vsub_orthogonal_projection hc p r₂ s.circumcenter_mem_affine_span,
+          reflection_vadd_smul_vsub_orthogonal_projection p r₂ s.circumcenter_mem_affine_span,
           neg_smul] } }
 end
 

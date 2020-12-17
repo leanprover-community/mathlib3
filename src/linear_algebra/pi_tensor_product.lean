@@ -306,6 +306,18 @@ variables {R} {s}
 
 @[simp] lemma mk_apply (f : Π i, s i) : mk R s f = tprod R f := rfl
 
+@[ext]
+theorem ext {φ₁ φ₂ : (⨂[R] i, s i) →ₗ[R] E} (H : ∀ f, φ₁ (tprod R f) = φ₂ (tprod R f)) : φ₁ = φ₂ :=
+begin
+  refine linear_map.ext _,
+  refine λ z,
+    (pi_tensor_product.induction_on' z _ (λ x y hx hy, by rw [φ₁.map_add, φ₂.map_add, hx, hy])),
+  { intros r f,
+    rw [tprod_coeff_eq_smul_tprod, φ₁.map_smul, φ₂.map_smul],
+    apply _root_.congr_arg,
+    exact H f }
+end
+
 section sum
 open_locale big_operators
 
@@ -358,29 +370,17 @@ end
 property that its composition with the canonical `multilinear_map R s E` is
 the given multilinear map `φ`. -/
 def lift : (multilinear_map R s E) ≃+ ((⨂[R] i, s i) →ₗ[R] E) :=
-{ to_fun := _, -- what you have right now
-  inv_fun := λ φ', φ'.comp_multilinear_map (mk R),
-  ... }
-{ map_smul' := lift_aux.smul,
-  .. lift_aux φ }
+{ to_fun := λ φ, { map_smul' := lift_aux.smul, .. lift_aux φ },
+  inv_fun := λ φ', φ'.comp_multilinear_map (mk R s),
+  left_inv := λ φ, by { ext, simp [lift_aux_tprod, linear_map.comp_multilinear_map] },
+  right_inv := λ φ, by { ext, simp [lift_aux_tprod] },
+  map_add' := λ φ₁ φ₂, by { ext, simp [lift_aux_tprod] } }
 
 variables {φ : multilinear_map R s E}
 
 @[simp] lemma lift.tprod (f : Π i, s i) : lift φ (tprod R f) = φ f := lift_aux_tprod φ f
 
 @[simp] lemma lift.tprod' (f : Π i, s i) : (lift φ).1 (tprod R f) = φ f := lift.tprod _
-
-@[ext]
-theorem ext {φ₁ φ₂ : (⨂[R] i, s i) →ₗ[R] E} (H : ∀ f, φ₁ (tprod R f) = φ₂ (tprod R f)) : φ₁ = φ₂ :=
-begin
-  refine linear_map.ext _,
-  refine λ z,
-    (pi_tensor_product.induction_on' z _ (λ x y hx hy, by rw [φ₁.map_add, φ₂.map_add, hx, hy])),
-  { intros r f,
-    rw [tprod_coeff_eq_smul_tprod, φ₁.map_smul, φ₂.map_smul],
-    apply _root_.congr_arg,
-    exact H f }
-end
 
 theorem lift.unique {φ' : (⨂[R] i, s i) →ₗ[R] E} (H : ∀ f, φ' (tprod R f) = φ f) :
   φ' = lift φ :=

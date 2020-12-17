@@ -807,7 +807,7 @@ end
 lemma minimal_polynomial_dvd_mod_p {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
   map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos)) ∣
   map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral
-  (pow_of_prime h hprime hdiv) hpos)) :=
+    (pow_of_prime h hprime hdiv) hpos)) :=
 (unique_factorization_monoid.dvd_pow_iff_dvd_of_squarefree (squarefree_minimal_polynomial_mod h
   hpos hdiv) (nat.prime.ne_zero hprime)).1 (minimal_polynomial_dvd_pow_mod h hpos hdiv)
 

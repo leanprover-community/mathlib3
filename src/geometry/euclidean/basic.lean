@@ -654,10 +654,7 @@ end
 /-- The `orthogonal_projection` lies in the given subspace. -/
 lemma orthogonal_projection_mem {s : affine_subspace ℝ P} [nonempty s] [complete_space s.direction]
   (p : P) : ↑(orthogonal_projection s p) ∈ s :=
-( begin
-    rw ←orthogonal_projection_fn_eq,
-    exact orthogonal_projection_fn_mem p
-  end )
+(orthogonal_projection s p).2
 
 /-- The `orthogonal_projection` lies in the orthogonal subspace. -/
 lemma orthogonal_projection_mem_orthogonal (s : affine_subspace ℝ P) [nonempty s]
@@ -703,6 +700,15 @@ begin
   ext,
   rw orthogonal_projection_eq_self_iff,
   exact orthogonal_projection_mem p,
+end
+
+lemma eq_orthogonal_projection_of_eq_subspace {s s' : affine_subspace ℝ P} [nonempty s]
+  [nonempty s'] [complete_space s.direction] [complete_space s'.direction] (h : s = s') (p : P) :
+  (orthogonal_projection s p : P) = (orthogonal_projection s' p : P) :=
+begin
+  change orthogonal_projection_fn s p = orthogonal_projection_fn s' p,
+  congr,
+  exact h
 end
 
 /-- The distance to a point's orthogonal projection is 0 iff it lies in the subspace. -/
@@ -830,7 +836,7 @@ def reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direct
           _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) +
           _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) - (p₁ -ᵥ p₂)⟫
         : by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_comm, add_sub_assoc,
-          ←vsub_vadd_eq_vsub_sub, vsub_vadd_comm, vsub_vadd_eq_vsub_sub, ←add_sub_assoc, ←rename_me,
+          ←vsub_vadd_eq_vsub_sub, vsub_vadd_comm, vsub_vadd_eq_vsub_sub, ←add_sub_assoc, ←coe_vsub,
           ←affine_map.linear_map_vsub, orthogonal_projection_linear]
     ... = -4 * inner (p₁ -ᵥ p₂ - (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) : V))
                    (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)) +

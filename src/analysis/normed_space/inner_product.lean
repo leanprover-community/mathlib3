@@ -1604,6 +1604,16 @@ lemma eq_orthogonal_projection_of_mem_of_inner_eq_zero {K : submodule 𝕜 E} [c
   v = orthogonal_projection K u :=
 eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hvm hvo
 
+/-- The orthogonal projections onto equal subspaces are coerced back to the same point in `E`. -/
+lemma eq_orthogonal_projection_of_eq_submodule {K K' : submodule 𝕜 E} [complete_space K]
+  [complete_space K'] (h : K = K') (u : E) :
+  (orthogonal_projection K u : E) = (orthogonal_projection K' u : E) :=
+begin
+  change orthogonal_projection_fn K u = orthogonal_projection_fn K' u,
+  congr,
+  exact h
+end
+
 /-- The subspace of vectors orthogonal to a given subspace. -/
 def submodule.orthogonal (K : submodule 𝕜 E) : submodule 𝕜 E :=
 { carrier := {v | ∀ u ∈ K, ⟪u, v⟫ = 0},

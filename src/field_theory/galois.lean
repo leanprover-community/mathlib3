@@ -332,32 +332,26 @@ lemma of_separable_splitting_field_aux [hFE : finite_dimensional F E]
 fintype.card ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) =
   fintype.card (K →ₐ[F] E) * findim K K⟮x⟯ :=
 begin
-  have key_equiv : ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) ≃
-    Σ (f : K →ₐ[F] E), @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f) :=
-  equiv.trans (alg_equiv.arrow_congr (intermediate_field.lift2_alg_equiv K⟮x⟯) (alg_equiv.refl))
-    alg_hom_equiv_sigma,
-  haveI : Π (f : K →ₐ[F] E), fintype (@alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f)) := by
-  { intro f,
-    apply fintype.of_injective (sigma.mk f) (λ _ _ H, eq_of_heq ((sigma.mk.inj H).2)),
-    exact fintype.of_equiv ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) key_equiv },
   have h : is_integral K x := is_integral_of_is_scalar_tower x (is_integral_of_noetherian hFE x),
-  rw [intermediate_field.adjoin.findim h, fintype.card_congr key_equiv, fintype.card_sigma],
+  have h1 : p ≠ 0 := λ hp, by rwa [hp, polynomial.map_zero, polynomial.roots_zero] at hx,
+  have h2 : (minimal_polynomial h) ∣ p.map (algebra_map F K),
+  { apply minimal_polynomial.dvd,
+    rw [polynomial.aeval_def, polynomial.eval₂_map, ←polynomial.eval_map],
+    exact (polynomial.mem_roots (polynomial.map_ne_zero h1)).mp hx },
+  have key_equiv : ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) ≃ Σ (f : K →ₐ[F] E),
+    @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f) := equiv.trans (alg_equiv.arrow_congr
+    (intermediate_field.lift2_alg_equiv K⟮x⟯) (alg_equiv.refl)) alg_hom_equiv_sigma,
+  haveI : Π (f : K →ₐ[F] E), fintype (@alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f)) := λ f, by
+  { apply fintype.of_injective (sigma.mk f) (λ _ _ H, eq_of_heq ((sigma.mk.inj H).2)),
+    exact fintype.of_equiv _ key_equiv },
+  rw [fintype.card_congr key_equiv, fintype.card_sigma, intermediate_field.adjoin.findim h],
   apply finset.sum_const_nat,
   intros f hf,
-  have p_ne_zero : p ≠ 0,
-  { intro p_eq_zero,
-    rwa [p_eq_zero, polynomial.map_zero, polynomial.roots_zero] at hx },
-  have h_dvd : (minimal_polynomial h) ∣ p.map (algebra_map F K),
-  { apply minimal_polynomial.dvd,
-    rw [polynomial.aeval_def, polynomial.eval₂_map, ←is_scalar_tower.algebra_map_eq F K E,
-        ←polynomial.eval_map, ←polynomial.is_root],
-    exact (polynomial.mem_roots (polynomial.map_ne_zero p_ne_zero)).mp hx },
-  rw ← @intermediate_field.card_alg_hom_adjoin_integral K _ E _ _ x E _ (ring_hom.to_algebra f) h
-    (polynomial.separable.of_dvd ((polynomial.separable_map (algebra_map F K)).mpr hp) h_dvd),
+  rw ← @intermediate_field.card_alg_hom_adjoin_integral K _ E _ _ x E _ (ring_hom.to_algebra f) h,
   { apply fintype.card_congr, refl },
-  { refine polynomial.splits_of_splits_of_dvd _ (polynomial.map_ne_zero p_ne_zero) _ h_dvd,
-    rw [←polynomial.splits_id_iff_splits, polynomial.map_map, ←is_scalar_tower.algebra_map_eq,
-      polynomial.splits_id_iff_splits],
+  { exact polynomial.separable.of_dvd ((polynomial.separable_map (algebra_map F K)).mpr hp) h2 },
+  { refine polynomial.splits_of_splits_of_dvd _ (polynomial.map_ne_zero h1) _ h2,
+    rw [polynomial.splits_map_iff, ←is_scalar_tower.algebra_map_eq],
     exact sp.splits },
 end
 

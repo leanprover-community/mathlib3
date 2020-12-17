@@ -484,8 +484,12 @@ alias lt_sub_iff_add_lt ↔ add_lt_of_lt_sub_right lt_sub_right_of_add_lt
 lemma sub_lt_iff_lt_add' : a - b < c ↔ a < b + c :=
 by rw [sub_eq_add_neg, add_comm, neg_add_lt_iff_lt_add]
 
+alias sub_lt_iff_lt_add' ↔ lt_add_of_sub_left_lt sub_left_lt_of_lt_add
+
 lemma sub_lt_iff_lt_add : a - c < b ↔ a < b + c :=
 by rw [sub_lt_iff_lt_add', add_comm]
+
+alias sub_lt_iff_lt_add ↔ lt_add_of_sub_right_lt sub_right_lt_of_lt_add
 
 @[simp] lemma neg_lt_sub_iff_lt_add : -b < a - c ↔ c < a + b :=
 lt_sub_iff_add_lt.trans neg_add_lt_iff_lt_add_right

@@ -152,7 +152,8 @@ begin
   refl,
 end
 
-@[ext]
+/-- See note [partially-applied ext lemmas]. -/
+@[ext, priority 1500]
 theorem hom_ext {f g : exterior_algebra R M →ₐ[R] A}
   (h : f.to_linear_map.comp (ι R) = g.to_linear_map.comp (ι R)) : f = g :=
 begin

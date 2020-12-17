@@ -52,7 +52,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 noncomputable theory
 
 open set finset function filter encodable
-open_locale classical big_operators
+open_locale classical big_operators nnreal
 
 namespace measure_theory
 
@@ -772,7 +772,7 @@ begin
 end
 
 lemma induced_outer_measure_exists_set {s : set α}
-  (hs : induced_outer_measure m P0 m0 s < ⊤) {ε : nnreal} (hε : 0 < ε) :
+  (hs : induced_outer_measure m P0 m0 s < ⊤) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ (t : set α) (ht : P t), s ⊆ t ∧
     induced_outer_measure m P0 m0 t ≤ induced_outer_measure m P0 m0 s + ε :=
 begin

@@ -755,11 +755,13 @@ lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := rfl
 
 instance : add_comm_group (M ⊗[R] N) :=
 { neg := has_neg.neg,
+  sub := _,
+  sub_eq_add_neg := λ _ _, rfl,
   add_left_neg := λ x, tensor_product.induction_on x
     (by { rw [add_zero], apply (neg.aux R).map_zero, })
     (λ x y, by { convert (add_tmul (-x) x y).symm, rw [add_left_neg, zero_tmul], })
     (λ x y hx hy, by {
-      unfold has_neg.neg,
+      unfold has_neg.neg sub_neg_monoid.neg,
       rw add_monoid_hom.map_add,
       ac_change (-x + x) + (-y + y) = 0,
       rw [hx, hy, add_zero], }),

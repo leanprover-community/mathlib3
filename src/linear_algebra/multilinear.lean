@@ -748,9 +748,19 @@ instance : has_neg (multilinear_map R M₁ M₂) :=
 
 @[simp] lemma neg_apply (m : Πi, M₁ i) : (-f) m = - (f m) := rfl
 
+instance : has_sub (multilinear_map R M₁ M₂) :=
+⟨λ f g,
+  ⟨λ m, f m - g m,
+   λ m i x y, by { simp only [map_add, sub_eq_add_neg, neg_add], cc },
+   λ m i c x, by { simp only [map_smul, smul_sub] }⟩⟩
+
+@[simp] lemma sub_apply (g : multilinear_map R M₁ M₂) (m : Πi, M₁ i) : (f - g) m = f m - g m :=
+rfl
+
 instance : add_comm_group (multilinear_map R M₁ M₂) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
-   intros; ext; simp [add_comm, add_left_comm]
+by refine { zero := 0, add := (+), neg := has_neg.neg,
+            sub := has_sub.sub, sub_eq_add_neg := _, .. };
+   intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
 
 end range_add_comm_group
 

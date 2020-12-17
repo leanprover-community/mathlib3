@@ -103,8 +103,7 @@ begin
   simp,
 end
 
-lemma inter {n m l k : ℕ} :
-  Ico n m ∩ Ico l k = Ico (max n l) (min m k) :=
+lemma inter {n m l k : ℕ} : Ico n m ∩ Ico l k = Ico (max n l) (min m k) :=
 begin
   ext,
   rw [mem_inter, Ico.mem, Ico.mem, Ico.mem, max_le_iff, lt_min_iff],

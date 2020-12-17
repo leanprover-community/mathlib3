@@ -176,13 +176,20 @@ instance : has_neg (alternating_map R M N' ι) :=
 @[norm_cast] lemma coe_neg :
   ((-g : alternating_map R M N' ι) : multilinear_map R (λ i : ι, M) N') = -g := rfl
 
-instance : add_comm_group (alternating_map R M N' ι) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, ..alternating_map.add_comm_monoid, ..};
-   intros; ext; simp [add_comm, add_left_comm]
+instance : has_sub (alternating_map R M N' ι) :=
+⟨λ f g,
+  { map_eq_zero_of_eq' :=
+      λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij, g.map_eq_zero_of_eq v h hij],
+    ..(f - g : multilinear_map R (λ i : ι, M) N')  }⟩
 
 @[simp] lemma sub_apply (m : ι → M) : (g - g₂) m = g m - g₂ m := rfl
 
 @[norm_cast] lemma coe_sub : (↑(g - g₂) : multilinear_map R (λ i : ι, M) N') = g - g₂ := rfl
+
+instance : add_comm_group (alternating_map R M N' ι) :=
+by refine {zero := 0, add := (+), neg := has_neg.neg,
+           sub := has_sub.sub, sub_eq_add_neg := _, ..};
+   intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
 
 section distrib_mul_action
 

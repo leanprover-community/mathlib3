@@ -748,8 +748,7 @@ lemma exists_circumradius_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimen
   (hd : findim ℝ V = n) (hc : cospherical ps) :
   ∃ r : ℝ, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumradius = r :=
 begin
-  -- make this a global instance??
-  haveI : nonempty (⊤ : affine_subspace ℝ P) := set.nonempty.to_subtype set.univ_nonempty,
+  haveI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
   rw [←findim_top, ←direction_top ℝ V P] at hd,
   refine exists_circumradius_eq_of_cospherical_subset _ hd hc,
   exact set.subset_univ _
@@ -805,8 +804,7 @@ lemma exists_circumcenter_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimen
   (hd : findim ℝ V = n) (hc : cospherical ps) :
   ∃ c : P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumcenter = c :=
 begin
-    -- make this a global instance??
-  haveI : nonempty (⊤ : affine_subspace ℝ P) := set.nonempty.to_subtype set.univ_nonempty,
+  haveI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
   rw [←findim_top, ←direction_top ℝ V P] at hd,
   refine exists_circumcenter_eq_of_cospherical_subset _ hd hc,
   exact set.subset_univ _

@@ -313,6 +313,8 @@ lemma nonempty_iff_univ_nonempty : nonempty α ↔ (univ : set α).nonempty :=
 lemma nonempty.to_subtype (h : s.nonempty) : nonempty s :=
 nonempty_subtype.2 h
 
+instance [nonempty α] : nonempty (set.univ : set α) := set.univ_nonempty.to_subtype
+
 @[simp] lemma nonempty_insert (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
 
 /-! ### Lemmas about the empty set -/
@@ -647,8 +649,7 @@ by { ext, simp [or.comm, or.left_comm] }
 theorem insert_nonempty (a : α) (s : set α) : (insert a s).nonempty :=
 ⟨a, mem_insert a s⟩
 
-instance (a : α) (s : set α) : nonempty (insert a s : set α) :=
-set.nonempty.to_subtype (set.insert_nonempty a s)
+instance (a : α) (s : set α) : nonempty (insert a s : set α) := (insert_nonempty a s).to_subtype
 
 lemma insert_inter (x : α) (s t : set α) : insert x (s ∩ t) = insert x s ∩ insert x t :=
 by { ext y, simp [←or_and_distrib_left] }
@@ -1562,8 +1563,7 @@ range_nonempty_iff_nonempty.2 h
 @[simp] lemma range_eq_empty {f : ι → α} : range f = ∅ ↔ ¬ nonempty ι :=
 not_nonempty_iff_eq_empty.symm.trans $ not_congr range_nonempty_iff_nonempty
 
-instance [nonempty ι] (f : ι → α) : nonempty (set.range f) :=
-set.nonempty.to_subtype (set.range_nonempty f)
+instance [nonempty ι] (f : ι → α) : nonempty (range f) := (range_nonempty f).to_subtype
 
 @[simp] lemma image_union_image_compl_eq_range (f : α → β) :
   (f '' s) ∪ (f '' sᶜ) = range f :=

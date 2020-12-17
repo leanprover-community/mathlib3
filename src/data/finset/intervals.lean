@@ -82,10 +82,33 @@ lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
 by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
   multiset.Ico.add_consecutive hnm hml, to_finset]
 
+/-- The union of two intervals that overlap each other is also an interval -/
+lemma union_connected {n m l k : ℕ} (hlm : l ≤ m) (hnk : n ≤ k) :
+  Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
+begin
+  ext,
+  rw [mem_union, Ico.mem, Ico.mem, Ico.mem, min_le_iff, lt_max_iff],
+  by_cases hl : l ≤ a; by_cases hk : a < k,
+  { tauto, },
+  { have hna : n ≤ a, from le_trans hnk (le_of_not_gt hk),
+    simp [hl, hk, hna], },
+  { have ham : a < m, from lt_of_lt_of_le (lt_of_not_ge hl) hlm,
+    simp [hl, hk, ham], },
+  { tauto, },
+end
+
 @[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = ∅ :=
 begin
   rw [← to_finset, ← to_finset, ← multiset.to_finset_inter, multiset.Ico.inter_consecutive],
   simp,
+end
+
+lemma inter {n m l k : ℕ} :
+  Ico n m ∩ Ico l k = Ico (max n l) (min m k) :=
+begin
+  ext,
+  rw [mem_inter, Ico.mem, Ico.mem, Ico.mem, max_le_iff, lt_min_iff],
+  tauto,
 end
 
 lemma disjoint_consecutive (n m l : ℕ) : disjoint (Ico n m) (Ico m l) :=

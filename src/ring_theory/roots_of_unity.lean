@@ -791,7 +791,7 @@ end
 lemma minimal_polynomial_dvd_pow_mod {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
   map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos)) ∣
   map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral
-  (pow_of_prime h hprime hdiv) hpos)) ^ p :=
+    (pow_of_prime h hprime hdiv) hpos)) ^ p :=
 begin
   set Q := minimal_polynomial (is_integral (pow_of_prime h hprime hdiv) hpos),
   have hfrob : map (int.cast_ring_hom (zmod p)) Q ^ p =

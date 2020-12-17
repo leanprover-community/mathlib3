@@ -449,12 +449,12 @@ by rw [sub_eq_add_neg, add_comm, le_neg_add_iff_add_le]
 lemma le_sub_iff_add_le : a ≤ c - b ↔ a + b ≤ c :=
 by rw [le_sub_iff_add_le', add_comm]
 
-alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_of_add_le_right
+alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_right_of_add_le
 
 lemma sub_le_iff_le_add' : a - b ≤ c ↔ a ≤ b + c :=
 by rw [sub_eq_add_neg, add_comm, neg_add_le_iff_le_add]
 
-alias le_sub_iff_add_le' ↔ add_le_of_le_sub_left le_sub_of_add_le_left
+alias le_sub_iff_add_le' ↔ add_le_of_le_sub_left le_sub_left_of_add_le
 
 lemma sub_le_iff_le_add : a - c ≤ b ↔ a ≤ b + c :=
 by rw [sub_le_iff_le_add', add_comm]
@@ -474,12 +474,12 @@ le_sub_iff_add_le'.trans le_sub_iff_add_le.symm
 lemma lt_sub_iff_add_lt' : b < c - a ↔ a + b < c :=
 by rw [sub_eq_add_neg, add_comm, lt_neg_add_iff_add_lt]
 
-alias lt_sub_iff_add_lt' ↔ add_lt_of_lt_sub_left lt_sub_of_add_lt_left
+alias lt_sub_iff_add_lt' ↔ add_lt_of_lt_sub_left lt_sub_left_of_add_lt
 
 lemma lt_sub_iff_add_lt : a < c - b ↔ a + b < c :=
 by rw [lt_sub_iff_add_lt', add_comm]
 
-alias lt_sub_iff_add_lt ↔ add_lt_of_lt_sub_right lt_sub_of_add_lt_right
+alias lt_sub_iff_add_lt ↔ add_lt_of_lt_sub_right lt_sub_right_of_add_lt
 
 lemma sub_lt_iff_lt_add' : a - b < c ↔ a < b + c :=
 by rw [sub_eq_add_neg, add_comm, neg_add_lt_iff_lt_add]

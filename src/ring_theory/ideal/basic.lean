@@ -6,6 +6,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 import algebra.associated
 import linear_algebra.basic
 import order.zorn
+import algebra.algebra.basic
 /-!
 
 # Ideals over a ring
@@ -317,6 +318,8 @@ instance (I : ideal α) : comm_ring I.quotient :=
 /-- The ring homomorphism from a ring `R` to a quotient ring `R/I`. -/
 def mk (I : ideal α) : α →+* I.quotient :=
 ⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
+
+instance : algebra α (quotient I) := ring_hom.to_algebra (quotient.mk I)
 
 instance : inhabited (quotient I) := ⟨mk I 37⟩
 

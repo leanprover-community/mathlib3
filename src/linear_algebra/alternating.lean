@@ -26,6 +26,7 @@ arguments of the same type.
 * An `add_comm_monoid`, `add_comm_group`, and `semimodule` structure over `alternating_map`s that
   matches the definitions over `multilinear_map`s.
 * `multilinear_map.alternatization`, which makes an alternating map out of a non-alternating one.
+* `alternating_map.dom_coprod`, which behaves as a product between two alternating maps.
 
 ## Implementation notes
 `alternating_map` is defined in terms of `map_eq_zero_of_eq`, as this is easier to work with than
@@ -433,6 +434,7 @@ begin
   simp_rw [coe_dom_dom_congr, smul_smul, int.units_coe_mul_self, one_smul,
     finset.sum_const, finset.card_univ, fintype.card_perm, ←nat.smul_def],
   rw [←coe_multilinear_map, coe_smul],
+  -- ((•) : ℕ → _ → _) has a diamond we have to resolve
   rw subsingleton.elim add_comm_monoid.nat_semimodule,
   apply_instance,
 end
@@ -463,8 +465,8 @@ private def dom_coprod_aux
   [add_comm_group N₁] [semimodule R N₁]
   [add_comm_group N₂] [semimodule R N₂]
   [add_comm_monoid M] [semimodule R M]
-  (a : alternating_map R M N₁ ιa) (b : alternating_map R M N₂ ιb)
-  : multilinear_map R (λ _ : ιa ⊕ ιb, M) (N₁ ⊗[R] N₂) :=
+  (a : alternating_map R M N₁ ιa) (b : alternating_map R M N₂ ιb) :
+  multilinear_map R (λ _ : ιa ⊕ ιb, M) (N₁ ⊗[R] N₂) :=
 ∑ σ : perm.mod_sum_congr ιa ιb, σ.lift_on' (λ σ,
   (σ.sign : ℤ) •
     (multilinear_map.dom_coprod a b : multilinear_map R (λ (_ : ιa ⊕ ιb), M) (N₁ ⊗ N₂))
@@ -476,7 +478,8 @@ private def dom_coprod_aux
   obtain ⟨⟨sl, sr⟩, h⟩ := h,
   replace h := h.symm,
   rw inv_mul_eq_iff_eq_mul at h,
-  have : ((σ₁ * perm.sum_congr_hom _ _ (sl, sr)).sign : ℤ) = σ₁.sign * (sl.sign * sr.sign) := by simp,
+  have : ((σ₁ * perm.sum_congr_hom _ _ (sl, sr)).sign : ℤ) = σ₁.sign * (sl.sign * sr.sign) :=
+    by simp,
   rw [h, this, mul_smul, mul_smul, units.smul_left_cancel, ←tensor_product.tmul_smul_int,
     tensor_product.smul_tmul'_int],
   simp only [sum.map_inr, perm.sum_congr_hom_apply, perm.sum_congr_apply, sum.map_inl, function.comp_app,
@@ -493,6 +496,7 @@ begin
   { use val, rw ←h', simp, }
 end
 
+-- we need this to apply `mul_action.quotient.smul_mk` below
 local attribute [reducible] quotient_group.mk
 
 private lemma dom_coprod_aux_eq_zero_if_eq
@@ -508,9 +512,6 @@ begin
   unfold dom_coprod_aux,
   dsimp only,
   rw multilinear_map.sum_apply,
-  -- simp_rw [multilinear_map.smul_apply],
-  -- simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
-  --   coe_multilinear_map, finset.sum_apply],
   apply finset.sum_involution
     (λ σ _, (equiv.swap i j • σ : perm.mod_sum_congr ιa ιb))
     (λ σ, _)
@@ -529,11 +530,10 @@ begin
     { ext k, rw equiv.apply_swap_eq_self h }, },
   { dsimp only [quotient.lift_on'_beta, quotient.map'_mk', multilinear_map.smul_apply,
       multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply],
-    intro hnz,
+    apply mt,
     by_cases hsw : (∃ il, σ (sum.inl il) = i) ↔ (∃ jl, σ (sum.inl jl) = j),
     { -- the term does not pair but is zero
-      exfalso,
-      apply hnz,
+      intro _,
       convert smul_zero _,
       obtain (⟨⟨i', hi'⟩, ⟨j', hj'⟩⟩ | ⟨hi', hj'⟩) := iff_iff_and_or_not_and_not.mp hsw,
       work_on_goal 0 {
@@ -551,21 +551,35 @@ begin
       obtain ⟨⟨sl, sr⟩, h⟩ := quotient.eq'.mp h,
       obtain (⟨hi', ⟨j', hj'⟩⟩ | ⟨hi', hj'⟩) := iff_iff_and_or_not_and_not.mp (not_iff.mp hsw),
       work_on_goal 0 {
-        obtain ⟨i', hi'⟩ := not_moves_from_left hi', },
+        obtain ⟨i', hi'⟩ := not_moves_from_left hi',
+        replace h := equiv.congr_fun h (sum.inr i'), },
       work_on_goal 1 {
         obtain ⟨i', hi'⟩ := not_not.mp hi',
-        obtain ⟨j', hj'⟩ := not_moves_from_left hj', },
+        obtain ⟨j', hj'⟩ := not_moves_from_left hj',
+        replace h := equiv.congr_fun h (sum.inl i') },
       all_goals {
         rw [←hi', ←hj', ←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv,
-          inv_mul_cancel_right] at h, },
-      { replace h := _root_.congr_arg (λ e : perm (ιa ⊕ ιb), e (sum.inr i')) h,
-        simpa using h, },
-      { replace h := _root_.congr_arg (λ e : perm (ιa ⊕ ιb), e (sum.inl i')) h,
+          inv_mul_cancel_right] at h,
         simpa using h, }, }, },
   { exact _root_.congr_arg (quot.mk _) (equiv.swap_mul_involutive i j σ), }
 end
 
-/-- Like `multilinear_map.dom_coprod`, but ensures the result is also alternating. -/
+/-- Like `multilinear_map.dom_coprod`, but ensures the result is also alternating.
+
+Note that this is usually defined over integer indices `ιa = fin n` and `ιb = fin m`, as
+$$
+(f \wedge g)(u_1, \ldots, u_{m+n}) =
+  \sum_{\operatorname{shuffle}(m, n)} \operatorname{sign}(\sigma)
+    f(u_{\sigma(1)}, \ldots, u_{\sigma(m)}) g(u_{\sigma(m+1)}, \ldots, u_{\sigma(m+n)}),
+$$
+where $\operatorname{shuffle}(m, n)$ consists of all permutations of $[1, m+n]$ such that
+$\sigma(1) < \cdots < \sigma(m)$ and $\sigma(m+1) < \cdots < \sigma(m+n)$.
+
+Here, we generalize this by replacing:
+* the product in the sum with a tensor product
+* the filtering of $[1, m+n]$ to shuffles with an isomorphic quotient
+* the additions in the subscripts of $\sigma$ with a index of type `sum`
+-/
 @[simps]
 def dom_coprod
   {R : Type*} {M N₁ N₂ : Type*}
@@ -627,7 +641,7 @@ lemma dom_coprod'_apply
 by simp only [dom_coprod', tensor_product.lift.tmul, linear_map.mk₂_apply]
 
 /-- Computing the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` is the same
-as computing the `alternating_map.dom_coprod` of the `multilinear_map.alternatization`.
+as computing the `alternating_map.dom_coprod` of the `multilinear_map.alternatization`s.
 -/
 lemma multilinear_map.dom_coprod_alternization
   {R : Type*} {M N₁ N₂ : Type*}
@@ -637,7 +651,7 @@ lemma multilinear_map.dom_coprod_alternization
   [add_comm_monoid M] [semimodule R M]
   (a : multilinear_map R (λ _ : ιa, M) N₁) (b : multilinear_map R (λ _ : ιb, M) N₂) :
   (multilinear_map.dom_coprod a b).alternatization =
-      a.alternatization.dom_coprod b.alternatization :=
+    a.alternatization.dom_coprod b.alternatization :=
 begin
   ext,
   simp only [dom_coprod_apply, smul_apply],
@@ -695,10 +709,6 @@ begin
   congr,
 end
 
-#check 1
-
--- set_option pp.implicit true
-
 /-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two
 `alternating_map`s gives a scaled version of the `alternating_map.coprod` of those maps.
 -/
@@ -715,6 +725,7 @@ lemma multilinear_map.dom_coprod_alternization_eq
 begin
   rw [multilinear_map.dom_coprod_alternization, coe_alternatization, coe_alternatization, mul_smul],
   rw [←dom_coprod'_apply, ←dom_coprod'_apply],
+  -- diamonds in `((•) : ℕ → _ → _)` make this trivial proof painful
   calc dom_coprod' (((fintype.card ιa).factorial • a) ⊗ₜ[R] (fintype.card ιb).factorial • b)
       = dom_coprod' ((fintype.card ιa).factorial • (fintype.card ιb).factorial • (a ⊗ₜ[R] b)) :
         begin

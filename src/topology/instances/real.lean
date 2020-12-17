@@ -110,8 +110,8 @@ is_topological_basis_of_open_of_nhds
         ⟨q, hlq, hqa⟩ := exists_rat_btwn hl,
         ⟨p, hap, hpu⟩ := exists_rat_btwn hu in
     ⟨Ioo q p,
-      by simp; exact ⟨q, p, rat.cast_lt.1 $ lt_trans hqa hap, rfl⟩,
-      ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h _ (lt_trans hlq hqa') (lt_trans ha'p hpu)⟩)
+      by { simp only [mem_Union], exact ⟨q, p, rat.cast_lt.1 $ hqa.trans hap, rfl⟩ },
+      ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h ⟨hlq.trans hqa', ha'p.trans hpu⟩⟩)
 
 instance : second_countable_topology ℝ :=
 ⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo a b}),

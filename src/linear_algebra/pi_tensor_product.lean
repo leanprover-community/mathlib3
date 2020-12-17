@@ -417,11 +417,11 @@ by rw [←neg_one_smul R, ←smul_tprod, neg_one_smul R]
 
 lemma neg_tprod' (f : Π i, s i) (i : ι) (m : s i) :
   tprod R (update f i (-m)) = -tprod R (update f i m) :=
-by rw [←neg_one_smul R, ←smul_tprod', neg_one_smul R]
+(mk R s).map_neg f i m
 
 lemma sub_tprod (f : Π i, s i) (i : ι) (m₁ m₂ : s i) :
    tprod R (update f i m₁) - tprod R (update f i m₂) = tprod R (update f i (m₁ - m₂)) :=
-by rw [sub_eq_add_neg, ←neg_tprod' f i _, add_tprod f i m₁ (-m₂), sub_eq_add_neg]
+((mk R s).map_sub f i m₁ m₂).symm
 
 end pi_tensor_product
 end ring

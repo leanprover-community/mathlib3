@@ -423,20 +423,54 @@ begin
   exact squeeze_zero (λ t, abs_nonneg _) (λ t, abs_norm_sub_norm_le _ _) (lim_norm x)
 end
 
-lemma filter.tendsto.norm {β : Type*} {l : filter β} {f : β → α} {a : α} (h : tendsto f l (𝓝 a)) :
-  tendsto (λ x, ∥f x∥) l (𝓝 ∥a∥) :=
-tendsto.comp continuous_norm.continuous_at h
-
-lemma continuous.norm [topological_space γ] {f : γ → α} (hf : continuous f) :
-  continuous (λ x, ∥f x∥) :=
-continuous_norm.comp hf
-
 lemma continuous_nnnorm : continuous (nnnorm : α → ℝ≥0) :=
 continuous_subtype_mk _ continuous_norm
 
-lemma filter.tendsto.nnnorm {β : Type*} {l : filter β} {f : β → α} {a : α} (h : tendsto f l (𝓝 a)) :
+lemma tendsto_norm_nhds_within_zero : tendsto (norm : α → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
+(continuous_norm.tendsto' (0 : α) 0 norm_zero).inf $ tendsto_principal_principal.2 $
+  λ x, norm_pos_iff.2
+
+section
+
+variables {l : filter γ} {f : γ → α} {a : α}
+
+lemma filter.tendsto.norm {a : α} (h : tendsto f l (𝓝 a)) : tendsto (λ x, ∥f x∥) l (𝓝 ∥a∥) :=
+tendsto.comp continuous_norm.continuous_at h
+
+lemma filter.tendsto.nnnorm (h : tendsto f l (𝓝 a)) :
   tendsto (λ x, nnnorm (f x)) l (𝓝 (nnnorm a)) :=
 tendsto.comp continuous_nnnorm.continuous_at h
+
+end
+
+section
+
+variables [topological_space γ] {f : γ → α} {s : set γ} {a : γ} {b : α}
+
+lemma continuous.norm (h : continuous f) : continuous (λ x, ∥f x∥) := continuous_norm.comp h
+
+lemma continuous.nnnorm (h : continuous f) : continuous (λ x, nnnorm (f x)) :=
+continuous_nnnorm.comp h
+
+lemma continuous_at.norm (h : continuous_at f a) : continuous_at (λ x, ∥f x∥) a := h.norm
+
+lemma continuous_at.nnnorm (h : continuous_at f a) : continuous_at (λ x, nnnorm (f x)) a := h.nnnorm
+
+lemma continuous_within_at.norm (h : continuous_within_at f s a) :
+  continuous_within_at (λ x, ∥f x∥) s a :=
+h.norm
+
+lemma continuous_within_at.nnnorm (h : continuous_within_at f s a) :
+  continuous_within_at (λ x, nnnorm (f x)) s a :=
+h.nnnorm
+
+lemma continuous_on.norm (h : continuous_on f s) : continuous_on (λ x, ∥f x∥) s :=
+λ x hx, (h x hx).norm
+
+lemma continuous_on.nnnorm (h : continuous_on f s) : continuous_on (λ x, nnnorm (f x)) s :=
+λ x hx, (h x hx).nnnorm
+
+end
 
 /-- If `∥y∥→∞`, then we can assume `y≠x` for any fixed `x`. -/
 lemma eventually_ne_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}

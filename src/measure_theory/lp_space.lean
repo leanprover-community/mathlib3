@@ -110,45 +110,31 @@ lemma snorm_le_snorm_mul_rpow_measure_univ {p q : ℝ} (hp1 : 1 ≤ p) (hpq : p 
 begin
   have hq1 : 1 ≤ q, from le_trans hp1 hpq,
   by_cases hpq_eq : p = q,
-  { rw [hpq_eq, sub_self, ennreal.rpow_zero, mul_one], exact le_refl _, },
+  { rw [hpq_eq, sub_self, ennreal.rpow_zero, mul_one],
+    exact le_refl _, },
   have hpq : p < q, from lt_of_le_of_ne hpq hpq_eq,
-  have hp0_lt : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
-  have hp0_ne : p ≠ 0, from (ne_of_lt hp0_lt).symm,
-  have hp0 : 0 ≤ p, from le_trans zero_le_one hp1,
-  have hq0_lt : 0 < q, from lt_of_lt_of_le zero_lt_one hq1,
-  let f_nnreal := λ a, (nnnorm(f a)) ^ p,
-  let g_nnreal := λ a:α, (1:nnreal),
-  have h_rw : ∫⁻ a, f_nnreal a ∂ μ = ∫⁻ a, ((f_nnreal * g_nnreal) a) ∂ μ,
+  let g := λ a : α, (1 : ennreal),
+  have h_rw : ∫⁻ a, ↑(nnnorm (f a))^p ∂ μ = ∫⁻ a, (nnnorm (f a) * (g a))^p ∂ μ,
   from lintegral_congr (λ a, by simp),
   repeat {rw snorm},
-  simp_rw [ennreal.coe_rpow_of_nonneg _ hp0, h_rw],
-  let p2 := q/p,
-  let q2 := p2.conjugate_exponent,
-  have hp2q2 : p2.is_conjugate_exponent q2,
-  from real.is_conjugate_exponent_conjugate_exponent (by simp [lt_div_iff, hpq, hp0_lt]),
-  calc (∫⁻ (a : α), ↑((f_nnreal * g_nnreal) a) ∂μ) ^ (1 / p)
-    ≤ ((∫⁻ a, (f_nnreal a)^p2 ∂ μ)^(1/p2)*(∫⁻ a, (g_nnreal a)^q2 ∂ μ)^(1/q2)) ^ (1/p) :
+  rw h_rw,
+  let r := p * q / (q - p),
+  have hpqr : 1/p = 1/q + 1/r,
+  { field_simp [(ne_of_lt (lt_of_lt_of_le zero_lt_one hp1)).symm,
+      (ne_of_lt (lt_of_lt_of_le zero_lt_one hq1)).symm],
+    ring, },
+  calc (∫⁻ (a : α), (↑(nnnorm (f a)) * g a) ^ p ∂μ) ^ (1/p)
+      ≤ (∫⁻ (a : α), ↑(nnnorm (f a)) ^ q ∂μ) ^ (1/q) * (∫⁻ (a : α), (g a) ^ r ∂μ) ^ (1/r) :
+    ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp1 hpq hpqr μ hf.nnnorm.ennreal_coe measurable_const
+  ... = (∫⁻ (a : α), ↑(nnnorm (f a)) ^ q ∂μ) ^ (1/q) * μ set.univ ^ (1/p - 1/q) :
   begin
-    refine ennreal.rpow_le_rpow _ (by simp [hp0]),
-    exact nnreal.lintegral_mul_le_Lp_mul_Lq hp2q2 hf.nnnorm.nnreal_rpow_const measurable_const,
-  end
-    ... = (∫⁻ (a : α), ↑(nnnorm (f a)) ^ q ∂μ) ^ (1 / q) * μ set.univ ^ (1 / p - 1 / q) :
-  begin
-    have hpp2 : p * p2 = q,
-    { symmetry, rw [mul_comm, ←div_eq_iff hp0_ne], },
-    have h_int_g : ∫⁻ (a : α), ↑(g_nnreal a) ^ q2 ∂μ = μ set.univ, by simp,
-    have h_int_f : ∫⁻ (a : α), ↑(f_nnreal a) ^ p2 ∂μ = ∫⁻ (a : α), ↑(nnnorm(f a)) ^ q ∂μ,
-    { refine lintegral_congr (λ a, _),
-      simp_rw [ennreal.coe_rpow_of_nonneg _ hp2q2.nonneg, ←nnreal.rpow_mul,
-        ennreal.coe_rpow_of_nonneg _ (le_of_lt hq0_lt)],
-      congr,
-      exact hpp2, },
-    rw [h_int_g, h_int_f, @ennreal.mul_rpow_of_nonneg _ _ (1/p) (by simp [hp0]), ←ennreal.rpow_mul,
-      ←ennreal.rpow_mul],
-    have h_rw1 : 1 / p2 * (1 / p) = 1/q, by rw [div_mul_div, one_mul, mul_comm, hpp2],
-    have h_rw2 : 1 / q2 * (1 / p) = 1/p - 1/q,
-      by field_simp [q2, real.conjugate_exponent, p2, hp0_ne, ne_of_gt hq0_lt],
-    rw [h_rw1, h_rw2],
+    have hg_integral : (∫⁻ (a : α), g a ^ r ∂μ) = μ set.univ,
+    { change (∫⁻ (a : α), 1 ^ r ∂μ) = μ set.univ,
+      simp_rw ennreal.one_rpow,
+      rw [lintegral_const, one_mul], },
+    rw hg_integral,
+    congr,
+    simp [hpqr],
   end
 end
 

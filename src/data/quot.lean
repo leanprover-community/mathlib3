@@ -345,12 +345,20 @@ instance argument. -/
 protected def lift_on' (q : quotient s₁) (f : α → φ)
   (h : ∀ a b, @setoid.r α s₁ a b → f a = f b) : φ := quotient.lift_on q f h
 
+@[simp]
+protected lemma lift_on'_beta (f : α → φ) (h) (x : α) :
+  quotient.lift_on' (@quotient.mk' _ s₁ x) f h = f x := rfl
+
 /-- A version of `quotient.lift_on₂` taking `{s₁ : setoid α} {s₂ : setoid β}` as implicit arguments
 instead of instance arguments. -/
 @[elab_as_eliminator, reducible]
 protected def lift_on₂' (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α → β → γ)
   (h : ∀ a₁ a₂ b₁ b₂, @setoid.r α s₁ a₁ b₁ → @setoid.r β s₂ a₂ b₂ → f a₁ a₂ = f b₁ b₂) : γ :=
 quotient.lift_on₂ q₁ q₂ f h
+
+@[simp]
+protected lemma lift_on₂'_beta (f : α → β → γ) (h) (a : α) (b : β) :
+  quotient.lift_on₂' (@quotient.mk' _ s₁ a) (@quotient.mk' _ s₂ b) f h = f a b := rfl
 
 /-- A version of `quotient.ind` taking `{s : setoid α}` as an implicit argument instead of an
 instance argument. -/

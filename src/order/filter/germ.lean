@@ -311,15 +311,24 @@ lemma coe_inv [has_inv G] (f : α → G) : ↑f⁻¹ = (f⁻¹ : germ l G) := rf
 attribute [norm_cast] coe_inv coe_neg
 
 @[to_additive]
+instance [has_div M] : has_div (germ l M) := ⟨map₂ (/)⟩
+
+@[simp, norm_cast, to_additive]
+lemma coe_div [has_div M] (f g : α → M) : ↑(f / g) = (f / g : germ l M) := rfl
+
+@[to_additive]
+instance [div_inv_monoid G] : div_inv_monoid (germ l G) :=
+{ inv := has_inv.inv,
+  div := has_div.div,
+  div_eq_mul_inv := by { rintros ⟨f⟩ ⟨g⟩, exact congr_arg (quot.mk _) (div_eq_mul_inv f g) },
+  .. germ.monoid }
+
+@[to_additive]
 instance [group G] : group (germ l G) :=
 { mul := (*),
   one := 1,
-  inv := has_inv.inv,
-  mul_left_inv := λ f, induction_on f $ λ f, by { norm_cast, rw [mul_left_inv] },
-  .. germ.monoid }
-
-@[simp, norm_cast]
-lemma coe_sub [add_group G] (f  g : α → G) : ↑(f - g) = (f - g : germ l G) := rfl
+  mul_left_inv := by { rintros ⟨f⟩, exact congr_arg (quot.mk _) (mul_left_inv f) },
+  .. germ.div_inv_monoid }
 
 @[to_additive]
 instance [comm_group G] : comm_group (germ l G) :=

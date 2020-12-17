@@ -31,6 +31,7 @@ instance : comm_ring int :=
   one            := int.one,
   one_mul        := int.one_mul,
   mul_one        := int.mul_one,
+  sub            := int.sub,
   left_distrib   := int.distrib_left,
   right_distrib  := int.distrib_right,
   mul_comm       := int.mul_comm }

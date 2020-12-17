@@ -101,9 +101,9 @@ lemma is_equivalent_const_iff_tendsto {c : β} (h : c ≠ 0) : u ~[l] const _ c 
 begin
   rw [is_equivalent, is_o_const_iff h],
   split; intro h;
-  [ { have := h.add tendsto_const_nhds, rw zero_add at this },
-    { have := h.add tendsto_const_nhds, rw ← sub_self c} ];
-  convert this; ext; simp [sub_eq_add_neg]
+  [ { have := h.sub tendsto_const_nhds, rw zero_sub (-c) at this },
+    { have := h.sub tendsto_const_nhds, rw ← sub_self c} ];
+  convert this; try { ext }; simp
 end
 
 lemma is_equivalent.tendsto_const {c : β} (hu : u ~[l] const _ c) : tendsto u l (𝓝 c) :=

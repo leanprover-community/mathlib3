@@ -662,6 +662,8 @@ finsupp.add_group
 instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 { neg := has_neg.neg,
   add_left_neg := add_left_neg,
+  sub := has_sub.sub,
+  sub_eq_add_neg := finsupp.add_group.sub_eq_add_neg,
   .. add_monoid_algebra.semiring }
 
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=

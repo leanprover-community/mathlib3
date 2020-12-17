@@ -86,7 +86,8 @@ begin
   { apply cauchy_seq_of_le_geometric _ ε (by norm_num : 1/(2:ℝ) < 1),
     intro n,
     convert key₁ n,
-    rw [one_div, inv_pow'] },
+    rw [one_div, inv_pow'],
+    congr },
   -- So u converges to some y
   obtain ⟨y, limy⟩ : ∃ y, tendsto u at_top (𝓝 y),
     from complete_space.complete cauchy_u,

@@ -140,6 +140,9 @@ variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 instance : add_comm_group (derivation R A M) :=
 { neg := λ D, ⟨-D, λ a b, by simp only [linear_map.neg_apply, smul_neg, neg_add_rev, leibniz,
     linear_map.to_fun_eq_coe, coe_fn_coe, add_comm]⟩,
+  sub := λ D1 D2, ⟨D1 - D2, λ a b, by { simp only [linear_map.to_fun_eq_coe, linear_map.sub_apply,
+    leibniz, coe_fn_coe, smul_sub], abel }⟩,
+  sub_eq_add_neg := λ D1 D2, ext (λ i, sub_eq_add_neg _ _),
   add_left_neg := λ D, ext $ λ a, add_left_neg _,
   ..derivation.add_comm_monoid }
 

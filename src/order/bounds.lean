@@ -679,7 +679,7 @@ lemma is_lub.exists_between_sub_self  (h₁ : is_lub s a) : ∃ b, b ∈ s ∧ a
 begin
   have h' : a - ε ∉ upper_bounds s,
   { set A := a - ε,
-    have : A < a := sub_lt_self a h₃,
+    have : A < a := (sub_lt_self a).2 h₃,
     intros hA,
     exact lt_irrefl a (lt_of_le_of_lt (h₁.2 hA) this) },
   obtain ⟨b, hb, hb'⟩ : ∃ (x : α), x ∈ s ∧ a - ε < x, by simpa [upper_bounds] using h',

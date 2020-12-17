@@ -2516,6 +2516,22 @@ end liminf_limsup
 
 end order_topology
 
+section linear_ordered_add_comm_group
+
+variables [linear_ordered_add_comm_group α]
+
+lemma nhds_eq_infi_abs [topological_space α] [order_topology α] (a : α) :
+  𝓝 a = (⨅r>0, 𝓟 {b | abs (b - a) < r}) :=
+begin
+  simp only [le_antisymm_iff, nhds_eq_order, le_inf_iff, le_infi_iff, le_principal_iff, mem_Ioi,
+    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ a, @sub_lt _ _ a, set_of_and],
+  refine ⟨_, _, _⟩,
+  { intros ε ε0,
+    rw inter_comm,
+    refine inter_mem_inf_sets (mem_infi_sets (a - ε) $ mem_infi_sets (by simpa) _) _,
+ }
+end
+
 lemma order_topology_of_nhds_abs
   {α : Type*} [linear_ordered_add_comm_group α] [topological_space α]
   (h_nhds : ∀a:α, 𝓝 a = (⨅r>0, 𝓟 {b | abs (a - b) < r})) : order_topology α :=

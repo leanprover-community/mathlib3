@@ -41,6 +41,8 @@ over the base ring as algebra. -/
 @[class]
 def algebra.finite_type : Prop := (⊤ : subalgebra R A).fg
 
+/-- An algebra over a commutative ring is `finitely_presented` if it is the quotient of a
+polynomial ring in `n` variables by a finitely generated ideal. -/
 @[class]
 def algebra.finitely_presented : Prop :=
 ∃ (n : ℕ) (f : mv_polynomial (fin n) R →ₐ[R] A),

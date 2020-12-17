@@ -627,7 +627,24 @@ begin
   { simp [h.symm] }
 end
 
+lemma foo₁ (s s' : subspace ℝ V) [complete_space s] [complete_space s'] (h : s = s') (p : V) :
+  (orthogonal_projection s p : V) = (orthogonal_projection s' p : V) :=
+begin
+  change (orthogonal_projection_fn s p) = (orthogonal_projection_fn s' p),
+  congr,
+  exact h,
+end
+
 include V
+
+lemma foo₂ (s s' : affine_subspace ℝ P) [nonempty s] [nonempty s'] [complete_space s.direction]
+  [complete_space s'.direction] (h : s = s') (p : P) :
+  (orthogonal_projection s p : P) = (orthogonal_projection s' p : P) :=
+begin
+  change (orthogonal_projection_fn s p) = (orthogonal_projection_fn s' p),
+  congr,
+  exact h,
+end
 
 /-- The reflection of the circumcenter of a simplex in an edge, in
 terms of `points_with_circumcenter`. -/
@@ -639,8 +656,12 @@ lemma reflection_circumcenter_eq_affine_combination_of_points_with_circumcenter 
 begin
   have hc : card ({i₁, i₂} : finset (fin (n + 1))) = 2,
   { simp [h] },
-  rw [reflection_apply, ←coe_singleton, ←coe_insert, s.orthogonal_projection_circumcenter hc,
-      circumcenter_eq_centroid, s.face_centroid_eq_centroid hc,
+  have h_faces : ↑((orthogonal_projection (affine_span ℝ (s.points '' {i₁, i₂}))) s.circumcenter)
+    = (s.face hc).circumcenter,
+  { convert s.orthogonal_projection_circumcenter hc using 1,
+    apply foo₂,
+    simp },
+  rw [reflection_apply, h_faces, circumcenter_eq_centroid, s.face_centroid_eq_centroid hc,
       centroid_eq_affine_combination_of_points_with_circumcenter,
       circumcenter_eq_affine_combination_of_points_with_circumcenter, ←@vsub_eq_zero_iff_eq V,
       affine_combination_vsub, weighted_vsub_vadd_affine_combination, affine_combination_vsub,

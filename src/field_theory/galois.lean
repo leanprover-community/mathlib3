@@ -355,7 +355,7 @@ begin
     exact sp.splits },
 end
 
-lemma of_separable_splitting_field [sp : p.is_splitting_field F E] (hp : p.separable) :
+lemma of_separable_splitting_field [p.is_splitting_field F E] (hp : p.separable) :
   is_galois F E :=
 begin
   haveI hFE : finite_dimensional F E := polynomial.is_splitting_field.finite_dimensional E p,

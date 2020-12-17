@@ -8,6 +8,7 @@ import data.finset.basic
 import tactic.linarith
 import algebra.big_operators.intervals
 import data.set.intervals.basic
+import ring_theory.power_series
 
 noncomputable theory
 open_locale big_operators
@@ -118,9 +119,21 @@ begin
   rw pow_zero,
   rw choose_self,
   rw mul_one, norm_cast, rw mul_one, apply add_eq_of_eq_sub', simp,
-  have f : ∀ x ∈ finset.range (d.succ), 0^(d.succ - x) = 0,
-  sorry,
-  sorry,
+  have f : ∀ x ∈ finset.range (d.succ), (0 : ℚ)^(d.succ - x) = 0,
+  {
+    rintros x H,
+    rw zero_pow,
+    rw finset.mem_range at H,
+    rw nat.lt_sub_right_iff_add_lt,
+    simp,
+    assumption,
+  },
+  apply finset.sum_eq_zero,
+  rintros x H,
+  rw mul_eq_zero,
+  right,
+  rw f,
+  exact H,
 end
 
 @[simp] lemma bernoulli_poly_one (X : ℚ) : bernoulli_poly 1 X = X -1/2 :=
@@ -134,30 +147,6 @@ lemma choose_mul (n k s : ℕ) (hn : k ≤ n) (hs : s ≤ k) : (n.choose k : ℚ
 sorry
 
 namespace finset
-/-lemma sum_eq (a b : ℕ) (f g : ℕ → ℕ) (h : ∑ (i : ℕ) in finset.Ico a b, (f i) = ∑ (i : ℕ) in finset.Ico a b, (g i) ) :
-    ∀ x ∈ finset.Ico a b, f x = g x :=
-begin
-  simp_rw nat.sub_eq_zero_iff_le at h,
-  rw <-finset.sum_sub_distrib at h,
-  have h' : ∀ i, (f - g) i = f i - g i, simp,
-  simp only [<-h' _] at h,
-  have g' : (∑ (x : ℕ) in finset.Ico a b, (f - g) x) = 0,
-  exact h,
-
-  rw [finset.sum_eq_zero_iff] at g',
-  rintros,
-  rw <-sub_eq_zero_iff_eq,
-  change f x - g x with (f - g) x,
-  revert x H,
-  rw <- @@finset.sum_eq_zero_iff,
-  have k := finset.sum_eq_zero_iff.1 g',
-
-  rw finset.sum_sub_distrib,
-  rw finset.sum_eq_zero,
-  rw finset.sum_Ico_eq_sum_range at h,
-  rw finset.sum_Ico_eq_sum_range at h,
-
-end -/
 
 lemma dependent_double_sum {M : Type*} [add_comm_monoid M]
   (a b : ℕ) (f : ℕ → ℕ → M) :
@@ -172,6 +161,13 @@ begin
     (by rintro ⟨⟩ _; refl) (by rintro ⟨⟩ _; refl);
   simp only [finset.Ico.mem, sigma.forall, finset.mem_sigma];
   rintros a b ⟨⟨h₁,h₂⟩, ⟨h₃, h₄⟩⟩; refine ⟨⟨_, _⟩, ⟨_, _⟩⟩; linarith
+end
+
+lemma sum_antidiagonal {M : Type*} [add_comm_monoid M]
+  (n : ℕ) (f : ℕ × ℕ → M) :
+  ∑ (p : ℕ × ℕ) in finset.nat.antidiagonal n, f p = ∑ (i : ℕ) in finset.range (n + 1), f (i,(n - i)) :=
+begin
+  sorry
 end
 
 end finset
@@ -253,14 +249,172 @@ begin
   exact le_of_lt hx,
 end
 
-lemma exp_bernoulli_neg : ∀ t : ℚ, ((∑' i : ℕ, ((bernoulli i) : ℚ) * t^i / (nat.factorial i)) : ℝ) * (real.exp t - 1) = t :=
+namespace finset
+
+lemma mem_range_le (n : ℕ) : ∀ x ∈ finset.range (n + 1), x ≤ n :=
 begin
-rintros t,
-sorry
+  rintros x hx,
+  rw finset.mem_range at hx,
+  exact lt_succ_iff.1 hx,
 end
 
-lemma exp_bernoulli_poly : ∀ t : ℚ, ∀ X : ℚ, (∑' i : ℕ, (bernoulli_poly i X) * t^i / (nat.factorial i) : ℝ) * (real.exp t - 1) = t * real.exp (X * t) :=
+lemma sub_ne_zero (n : ℕ) : ∀ x ∈ finset.range (n + 1), n - x ≠ 0 :=
+begin
+  rintros x hx,
+  rw finset.mem_range at hx, rw lt_succ_iff at hx,
+  rintros h,
+  sorry,
+end
+
+end finset
+
+namespace nat
+
+lemma le_two_eq_one_or_zero (n : ℕ) (f : n ≠ 1) (g : n ≠ 0) : 2 ≤ n :=
+begin
+  by_contradiction,
+  simp at h,
+  cases h, apply f, refl,
+  cases h_ᾰ,
+  apply g, refl,
+  simp at *, apply not_succ_le_zero n, assumption,
+end
+
+end nat
+
+open power_series
+
+theorem exp_bernoulli_neg (f : ℕ → ℚ) (hf : f = λ i : ℕ, (bernoulli_neg i / (nat.factorial i)) )
+(g : ℕ → ℚ) (hg : g = λ i : ℕ, if i = 0 then 0 else (1 / (nat.factorial (i) )) ) :
+(power_series.mk f) * (power_series.mk g) = power_series.X :=
+begin
+  rw ext_iff,
+  rintros,
+  rw coeff_X,
+  have g' : g 0 = 0,
+  {
+    rw hg, simp,
+  },
+  split_ifs,
+  {
+    rw h,
+    rw coeff_mul,
+    rw finset.nat.antidiagonal_succ,
+    simp,
+    rw hg, simp,
+    rw hf, simp,
+  },
+  rw coeff_mul,
+  by_cases n = 0,
+  { rw h, simp, right, exact g', },
+  have h' : 2 ≤ n,
+  {
+    apply nat.le_two_eq_one_or_zero, assumption, assumption,
+  },
+  simp,
+  rw [hf, hg], simp,
+  rw finset.sum_antidiagonal, simp,
+  convert_to ∑ (i : ℕ) in finset.range (n + 1), (bernoulli_neg i / ↑(i.factorial) * (↑((n - i).factorial))⁻¹) = 0,
+  rw <-sub_eq_zero_iff_eq,
+  rw <-finset.sum_sub_distrib,
+  apply finset.sum_eq_zero,
+  rintros x hx,
+  simp [finset.sub_ne_zero n x hx],
+  suffices l : (n.factorial : ℚ) * (∑ (i : ℕ) in finset.range (n + 1), 1 / ((i.factorial) * ((n - i).factorial)) * bernoulli_neg i) = 0,
+  {
+    rw mul_eq_zero at l,
+    cases l,
+    {
+      exfalso,
+      simp at l,
+      apply factorial_ne_zero n,
+      assumption,
+    },
+    rw <-l,
+    rw <-sub_eq_zero_iff_eq,
+    rw <-finset.sum_sub_distrib,
+    apply finset.sum_eq_zero,
+    rintros x hx, rw sub_eq_zero_iff_eq,
+    ring,
+    rw mul_comm (bernoulli_neg x) (_)⁻¹,
+    rw mul_eq_mul_right_iff,
+    left,
+    rw mul_inv',
+    rw mul_comm,
+  },
+  {
+    rw finset.mul_sum,
+    convert_to (∑ (x : ℕ) in finset.range (n + 1), (n.choose x : ℚ) * bernoulli_neg x) = 0,
+    {
+      {
+        rw <-sub_eq_zero_iff_eq,
+        rw <-finset.sum_sub_distrib,
+        apply finset.sum_eq_zero,
+        rintros x hx, rw sub_eq_zero_iff_eq,
+        rw <-mul_assoc,
+        rw mul_eq_mul_right_iff,
+        left,
+        rw choose_eq_factorial_div_factorial,
+        rw rat.coe_nat_div, simp,
+        rw div_eq_mul_inv,
+        {
+          apply factorial_mul_factorial_dvd_factorial,
+          apply finset.mem_range_le n x hx,
+        },
+        apply finset.mem_range_le n x hx,
+      },
+    },
+    rw sum_bernoulli_neg,
+    exact h',
+  },
+end
+
+lemma bernoulli_poly_var (X : ℚ) (n : ℕ) : bernoulli_poly n (X + 1) =
+ ∑ (i : ℕ) in finset.range n, (n.choose i : ℚ) * bernoulli_poly i X :=
+ sorry
+
+lemma exp_bernoulli_poly (t : ℕ) (f : ℕ → ℕ → ℚ) (hf : f = λ t i, (bernoulli_poly i t / (nat.factorial i)) )
+(g : ℕ → ℕ → ℚ) (hg : g = λ t i, if i = 0 then 0 else (1 / (nat.factorial (i) )) )
+(g' : ℕ → ℕ → ℚ) (hg' : g' = λ t i, (1 / (nat.factorial (i) )) ) :
+(power_series.mk (f t)) * (power_series.mk (g t)) = power_series.X * (power_series.mk (g' t))^t :=
+begin
+  induction t with d hd,
+  {
+    simp,
+    rw exp_bernoulli_neg,
+    simp_rw hf, simp,
+    simp_rw hg,
+  },
+  --set f' := λ i : ℕ, (bernoulli_poly i d / (nat.factorial i)) with hf',
+  rw pow_succ,
+  have lg' : ∀ x y, g' x = g' y,
+  {
+    rw hg',
+    simp,
+  },
+  have lg : ∀ x y, g x = g y,
+  {
+    rw hg,
+    simp,
+  },
+  rw lg' d.succ d,
+  rw mul_comm  (mk (g' d)) (mk (g' d) ^ d),
+  rw <-mul_assoc,
+  rw <-hd,
+  rw lg d.succ d,
+  rw mul_comm,
+  rw mul_comm (mk (f d)) (mk (g d)),
+  rw mul_assoc,
+  rw mul_eq_mul_left_iff,
+  left,
+  rw ext_iff,
+  rintros,
+  rw coeff_mul,
+  simp,
+  rw [hf, hg'],
+  rw finset.sum_antidiagonal, simp only [cast_succ, factorial],
 sorry
+end
 
 lemma one_sub_eq_neg : ∀ n : ℕ, ∀ X : ℚ, (bernoulli_poly n) ((1: ℚ) - X) = (-1)^n * bernoulli_poly n X :=
 begin

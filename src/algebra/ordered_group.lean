@@ -379,6 +379,9 @@ variables [ordered_add_comm_group α] {a b c d : α}
 lemma sub_le_sub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
 by simpa only [sub_eq_add_neg] using add_le_add hab (neg_le_neg hcd)
 
+lemma sub_lt_sub (hab : a < b) (hcd : c < d) : a - d < b - c :=
+by simpa only [sub_eq_add_neg] using add_lt_add hab (neg_lt_neg hcd)
+
 @[simp] lemma sub_le_self_iff (a : α) {b : α} : a - b ≤ a ↔ 0 ≤ b :=
 by simp [sub_eq_add_neg]
 

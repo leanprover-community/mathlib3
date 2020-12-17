@@ -802,12 +802,11 @@ begin
   end
 end
 
-lemma lintegral_Lp_mul_le_Lq_mul_Lr {α} [measurable_space α] {p q r : ℝ} (hp1 : 1 ≤ p)
+lemma lintegral_Lp_mul_le_Lq_mul_Lr {α} [measurable_space α] {p q r : ℝ} (hp0_lt : 0 < p)
   (hpq : p < q) (hpqr : 1/p = 1/q + 1/r) (μ : measure α) {f g : α → ennreal}
   (hf : measurable f) (hg : measurable g) :
   (∫⁻ a, ((f * g) a)^p ∂μ) ^ (1/p) ≤ (∫⁻ a, (f a)^q ∂μ) ^ (1/q) * (∫⁻ a, (g a)^r ∂μ) ^ (1/r) :=
 begin
-  have hp0_lt : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
   have hp0_ne : p ≠ 0, from (ne_of_lt hp0_lt).symm,
   have hp0 : 0 ≤ p, from le_of_lt hp0_lt,
   have hq0_lt : 0 < q, from lt_of_le_of_lt hp0 hpq,

@@ -104,11 +104,11 @@ variable [borel_space E]
 lemma mem_ℒp.neg {f : α → E} (hf : mem_ℒp f p μ) : mem_ℒp (-f) p μ :=
 ⟨measurable.neg hf.1, by simp [hf.right]⟩
 
-lemma snorm_le_snorm_mul_rpow_measure_univ {p q : ℝ} (hp1 : 1 ≤ p) (hpq : p ≤ q) (μ : measure α)
+lemma snorm_le_snorm_mul_rpow_measure_univ {p q : ℝ} (hp0_lt : 0 < p) (hpq : p ≤ q) (μ : measure α)
   {f : α → E} (hf : measurable f) :
   snorm f p μ ≤ snorm f q μ * (μ set.univ) ^ (1/p - 1/q) :=
 begin
-  have hq1 : 1 ≤ q, from le_trans hp1 hpq,
+  have hq0_lt : 0 < q, from lt_of_lt_of_le hp0_lt hpq,
   by_cases hpq_eq : p = q,
   { rw [hpq_eq, sub_self, ennreal.rpow_zero, mul_one],
     exact le_refl _, },
@@ -120,33 +120,32 @@ begin
   rw h_rw,
   let r := p * q / (q - p),
   have hpqr : 1/p = 1/q + 1/r,
-  { field_simp [(ne_of_lt (lt_of_lt_of_le zero_lt_one hp1)).symm,
-      (ne_of_lt (lt_of_lt_of_le zero_lt_one hq1)).symm],
+  { field_simp [(ne_of_lt hp0_lt).symm,
+      (ne_of_lt hq0_lt).symm],
     ring, },
   calc (∫⁻ (a : α), (↑(nnnorm (f a)) * g a) ^ p ∂μ) ^ (1/p)
       ≤ (∫⁻ (a : α), ↑(nnnorm (f a)) ^ q ∂μ) ^ (1/q) * (∫⁻ (a : α), (g a) ^ r ∂μ) ^ (1/r) :
-    ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp1 hpq hpqr μ hf.nnnorm.ennreal_coe measurable_const
+    ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp0_lt hpq hpqr μ hf.nnnorm.ennreal_coe measurable_const
   ... = (∫⁻ (a : α), ↑(nnnorm (f a)) ^ q ∂μ) ^ (1/q) * μ set.univ ^ (1/p - 1/q) :
     by simp [hpqr],
 end
 
-lemma snorm_le_snorm_of_exponent_le {p q : ℝ} (hp1 : 1 ≤ p) (hpq : p ≤ q) (μ : measure α)
+lemma snorm_le_snorm_of_exponent_le {p q : ℝ} (hp0_lt : 0 < p) (hpq : p ≤ q) (μ : measure α)
   [probability_measure μ] {f : α → E} (hf : measurable f) :
   snorm f p μ ≤ snorm f q μ :=
 begin
-  have h_le_μ := snorm_le_snorm_mul_rpow_measure_univ hp1 hpq μ hf,
+  have h_le_μ := snorm_le_snorm_mul_rpow_measure_univ hp0_lt hpq μ hf,
   rwa [measure_univ, ennreal.one_rpow, mul_one] at h_le_μ,
 end
 
 lemma mem_ℒp.mem_ℒp_of_exponent_le {p q : ℝ} {μ : measure α} [finite_measure μ] {f : α → E}
-  (hfq : mem_ℒp f q μ) (hp1 : 1 ≤ p) (hpq : p ≤ q) :
+  (hfq : mem_ℒp f q μ) (hp_pos : 0 < p) (hpq : p ≤ q) :
   mem_ℒp f p μ :=
 begin
   cases hfq with hfq_m hfq_lt_top,
   split,
   { exact hfq_m, },
-  have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
-  have hq_pos : 0 < q, from lt_of_lt_of_le zero_lt_one (le_trans hp1 hpq),
+  have hq_pos : 0 < q, from lt_of_lt_of_le  hp_pos hpq,
   suffices h_snorm : snorm f p μ < ⊤,
   { have h_top_eq : (⊤ : ennreal) = ⊤ ^ (1/p), by simp [hp_pos],
     rw [snorm, h_top_eq] at h_snorm,
@@ -156,7 +155,7 @@ begin
     simpa [(ne_of_lt hp_pos).symm] using h_snorm_pow, },
   calc snorm f p μ
       ≤ snorm f q μ * (μ set.univ) ^ (1/p - 1/q) :
-    snorm_le_snorm_mul_rpow_measure_univ hp1 hpq μ hfq_m
+    snorm_le_snorm_mul_rpow_measure_univ hp_pos hpq μ hfq_m
   ... < ⊤ :
   begin
     rw ennreal.mul_lt_top_iff,
@@ -172,7 +171,7 @@ lemma mem_ℒp.integrable (hp1 : 1 ≤ p) {f : α → E} [finite_measure μ] (hf
   integrable f μ :=
 begin
   rw ←mem_ℒp_one_iff_integrable,
-  exact hfp.mem_ℒp_of_exponent_le (le_refl 1) hp1,
+  exact hfp.mem_ℒp_of_exponent_le zero_lt_one hp1,
 end
 
 section second_countable_topology
@@ -217,12 +216,12 @@ end
 
 lemma snorm_smul_le_mul_snorm [measurable_space 𝕜] [opens_measurable_space 𝕜] {q r : ℝ}
   {f : α → E} (hf : measurable f) {φ : α → 𝕜} (hφ : measurable φ)
-  (hp1 : 1 ≤ p) (hpq : p < q) (hpqr : 1/p = 1/q + 1/r) :
+  (hp0_lt : 0 < p) (hpq : p < q) (hpqr : 1/p = 1/q + 1/r) :
   snorm (φ • f) p μ ≤ snorm φ q μ * snorm f r μ :=
 begin
   rw snorm,
   simp_rw [pi.smul_apply', nnnorm_smul, ennreal.coe_mul],
-  exact ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp1 hpq hpqr μ hφ.nnnorm.ennreal_coe
+  exact ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp0_lt hpq hpqr μ hφ.nnnorm.ennreal_coe
     hf.nnnorm.ennreal_coe,
 end
 

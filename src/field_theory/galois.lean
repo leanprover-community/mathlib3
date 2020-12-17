@@ -338,7 +338,7 @@ begin
   { apply minimal_polynomial.dvd,
     rw [polynomial.aeval_def, polynomial.eval₂_map, ←polynomial.eval_map],
     exact (polynomial.mem_roots (polynomial.map_ne_zero h1)).mp hx },
-  have key_equiv : ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) ≃ Σ (f : K →ₐ[F] E),
+  let key_equiv : ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) ≃ Σ (f : K →ₐ[F] E),
     @alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f) := equiv.trans (alg_equiv.arrow_congr
     (intermediate_field.lift2_alg_equiv K⟮x⟯) (alg_equiv.refl)) alg_hom_equiv_sigma,
   haveI : Π (f : K →ₐ[F] E), fintype (@alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f)) := λ f, by

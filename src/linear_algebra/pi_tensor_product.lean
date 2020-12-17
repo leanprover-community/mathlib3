@@ -357,7 +357,10 @@ end
 /-- Constructing a linear map `(⨂[R] i, s i) → E` given a `multilinear_map R s E` with the
 property that its composition with the canonical `multilinear_map R s E` is
 the given multilinear map `φ`. -/
-def lift (φ : multilinear_map R s E) : (⨂[R] i, s i) →ₗ[R] E :=
+def lift : (multilinear_map R s E) ≃+ ((⨂[R] i, s i) →ₗ[R] E) :=
+{ to_fun := _, -- what you have right now
+  inv_fun := λ φ', φ'.comp_multilinear_map (mk R),
+  ... }
 { map_smul' := lift_aux.smul,
   .. lift_aux φ }
 

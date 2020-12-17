@@ -119,10 +119,6 @@ end
 
 end tensor_product
 
-
-@[simp] lemma mul_action.quotient.smul_mk' {G : Type*} [group G] {s : subgroup G} (a x : G) :
-  (a • quotient.mk' x : quotient_group.quotient s) = quotient.mk' (a * x) := rfl
-
 end to_move
 
 -- semiring / add_comm_monoid
@@ -501,6 +497,8 @@ begin
   { use val, rw ←h', simp, }
 end
 
+local attribute [reducible] quotient_group.mk
+
 private lemma dom_coprod_aux_eq_zero_if_eq
   {R : Type*} {M N₁ N₂ : Type*}
   [comm_semiring R]
@@ -526,7 +524,7 @@ begin
   all_goals {
     apply σ.induction_on' (λ σ, _),
     rintro _, },
-  { dsimp only [quotient.lift_on'_beta, quotient.map'_mk', mul_action.quotient.smul_mk'],
+  { dsimp only [quotient.lift_on'_beta, quotient.map'_mk', mul_action.quotient.smul_mk],
     rw [perm.sign_mul, perm.sign_swap hij],
     simp only [one_mul, units.neg_mul, function.comp_app, neg_smul, perm.coe_mul,
       units.coe_neg, multilinear_map.smul_apply, multilinear_map.neg_apply,
@@ -718,9 +716,7 @@ lemma multilinear_map.dom_coprod_alternization_eq
     .alternatization =
     ((fintype.card ιa).factorial * (fintype.card ιb).factorial) • a.dom_coprod b :=
 begin
-  rw [multilinear_map.dom_coprod_alternization,
-    ←to_multilinear_map_eq_coe, ←to_multilinear_map_eq_coe, to_multilinear_map_alternization,
-    to_multilinear_map_alternization, mul_smul],
+  rw [multilinear_map.dom_coprod_alternization, coe_alternatization, coe_alternatization, mul_smul],
   rw [←dom_coprod'_apply, ←dom_coprod'_apply],
   calc dom_coprod' (((fintype.card ιa).factorial • a) ⊗ₜ[R] (fintype.card ιb).factorial • b)
       = dom_coprod' ((fintype.card ιa).factorial • (fintype.card ιb).factorial • (a ⊗ₜ[R] b)) :

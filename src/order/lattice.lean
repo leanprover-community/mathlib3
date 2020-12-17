@@ -23,8 +23,6 @@ section
 end
 
 /- TODO: automatic construction of dual definitions / theorems -/
-reserve infixl ` ⊓ `:70
-reserve infixl ` ⊔ `:65
 
 /-- Typeclass for the `⊔` (`\lub`) notation -/
 class has_sup (α : Type u) := (sup : α → α → α)
@@ -367,7 +365,8 @@ by simp only [sup_inf_left, λy:α, @sup_comm α _ y x, eq_self_iff_true]
 
 theorem inf_sup_left : x ⊓ (y ⊔ z) = (x ⊓ y) ⊔ (x ⊓ z) :=
 calc x ⊓ (y ⊔ z) = (x ⊓ (x ⊔ z)) ⊓ (y ⊔ z)       : by rw [inf_sup_self]
-             ... = x ⊓ ((x ⊓ y) ⊔ z)             : by simp only [inf_assoc, sup_inf_right, eq_self_iff_true]
+             ... = x ⊓ ((x ⊓ y) ⊔ z)             : by simp only [inf_assoc, sup_inf_right,
+                                                                 eq_self_iff_true]
              ... = (x ⊔ (x ⊓ y)) ⊓ ((x ⊓ y) ⊔ z) : by rw [sup_inf_self]
              ... = ((x ⊓ y) ⊔ x) ⊓ ((x ⊓ y) ⊔ z) : by rw [sup_comm]
              ... = (x ⊓ y) ⊔ (x ⊓ z)             : by rw [sup_inf_left]

@@ -114,7 +114,7 @@ end
 
 section is_galois_tower
 
-variables (F K E : Type*) [field F] [field K] [field E]
+variables (F K E : Type*) [field F] [field K] [field E] {E' : Type*} [field E'] [algebra F E']
 variables [algebra F K] [algebra F E] [algebra K E] [is_scalar_tower F K E]
 
 lemma is_galois.tower_top_of_is_galois [h : is_galois F E] : is_galois K E :=
@@ -134,7 +134,14 @@ begin
   { introI h, apply_instance },
 end
 
-/- More to be added later: Galois is preserved by alg_equiv, is_galois_iff_galois_top -/
+lemma is_galois.of_alg_equiv [h : is_galois F E] (f : E ≃ₐ[F] E') : is_galois F E' :=
+⟨h.1.of_alg_hom f.symm, normal.of_alg_equiv f⟩
+
+lemma alg_equiv.transfer_galois (f : E ≃ₐ[F] E') : is_galois F E ↔ is_galois F E' :=
+⟨λ h, by exactI is_galois.of_alg_equiv f, λ h, by exactI is_galois.of_alg_equiv f.symm⟩
+
+lemma is_galois_iff_is_galois_top : is_galois F (⊤ : intermediate_field F E) ↔ is_galois F E :=
+(intermediate_field.top_equiv).transfer_galois
 
 end is_galois_tower
 

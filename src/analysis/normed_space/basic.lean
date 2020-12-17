@@ -299,12 +299,12 @@ finset.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le
 
 end nnnorm
 
-lemma lipschitz_with.neg {α : Type*} [emetric_space α] {K : nnreal} {f : α → β}
+lemma lipschitz_with.neg {α : Type*} [emetric_space α] {K : ℝ≥0} {f : α → β}
   (hf : lipschitz_with K f) : lipschitz_with K (λ x, -f x) :=
 λ x y, by simpa only [edist_dist, dist_neg_neg] using hf x y
 
-lemma lipschitz_with.add {α : Type*} [emetric_space α] {Kf : nnreal} {f : α → β}
-  (hf : lipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) :
+lemma lipschitz_with.add {α : Type*} [emetric_space α] {Kf : ℝ≥0} {f : α → β}
+  (hf : lipschitz_with Kf f) {Kg : ℝ≥0} {g : α → β} (hg : lipschitz_with Kg g) :
   lipschitz_with (Kf + Kg) (λ x, f x + g x) :=
 λ x y,
 calc edist (f x + g x) (f y + g y) ≤ edist (f x) (f y) + edist (g x) (g y) :
@@ -314,13 +314,13 @@ calc edist (f x + g x) (f y + g y) ≤ edist (f x) (f y) + edist (g x) (g y) :
 ... = (Kf + Kg) * edist x y :
   (add_mul _ _ _).symm
 
-lemma lipschitz_with.sub {α : Type*} [emetric_space α] {Kf : nnreal} {f : α → β}
-  (hf : lipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) :
+lemma lipschitz_with.sub {α : Type*} [emetric_space α] {Kf : ℝ≥0} {f : α → β}
+  (hf : lipschitz_with Kf f) {Kg : ℝ≥0} {g : α → β} (hg : lipschitz_with Kg g) :
   lipschitz_with (Kf + Kg) (λ x, f x - g x) :=
 by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
-lemma antilipschitz_with.add_lipschitz_with {α : Type*} [metric_space α] {Kf : nnreal} {f : α → β}
-  (hf : antilipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g)
+lemma antilipschitz_with.add_lipschitz_with {α : Type*} [metric_space α] {Kf : ℝ≥0} {f : α → β}
+  (hf : antilipschitz_with Kf f) {Kg : ℝ≥0} {g : α → β} (hg : lipschitz_with Kg g)
   (hK : Kg < Kf⁻¹) :
   antilipschitz_with (Kf⁻¹ - Kg)⁻¹ (λ x, f x + g x) :=
 begin
@@ -365,7 +365,7 @@ max_le_iff
 /-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
 instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
   normed_group (Πi, π i) :=
-{ norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : nnreal) : ℝ),
+{ norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : ℝ≥0) : ℝ),
   dist_eq := assume x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
     show nndist (x a) (y a) = nnnorm (x a - y a), from nndist_eq_nnnorm _ _ }
@@ -431,7 +431,7 @@ lemma continuous.norm [topological_space γ] {f : γ → α} (hf : continuous f)
   continuous (λ x, ∥f x∥) :=
 continuous_norm.comp hf
 
-lemma continuous_nnnorm : continuous (nnnorm : α → nnreal) :=
+lemma continuous_nnnorm : continuous (nnnorm : α → ℝ≥0) :=
 continuous_subtype_mk _ continuous_norm
 
 lemma filter.tendsto.nnnorm {β : Type*} {l : filter β} {f : β → α} {a : α} (h : tendsto f l (𝓝 a)) :
@@ -1166,7 +1166,7 @@ begin
   simpa using h'
 end
 
-lemma summable_of_nnnorm_bounded {f : ι → α} (g : ι → nnreal) (hg : summable g)
+lemma summable_of_nnnorm_bounded {f : ι → α} (g : ι → ℝ≥0) (hg : summable g)
   (h : ∀i, nnnorm (f i) ≤ g i) : summable f :=
 summable_of_norm_bounded (λ i, (g i : ℝ)) (nnreal.summable_coe.2 hg) (λ i, by exact_mod_cast h i)
 

@@ -213,6 +213,17 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
+@[to_additive]
+protected lemma congr_arg {f : mul_equiv M N} : Π {x x' : M}, x = x' → f x = f x'
+| _ _ rfl := rfl
+
+@[to_additive]
+protected lemma congr_fun {f g : mul_equiv M N} (h : f = g) (x : M) : f x = g x := h ▸ rfl
+
+@[to_additive]
+lemma ext_iff {f g : mul_equiv M N} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, ext⟩
+
 @[to_additive] lemma to_monoid_hom_injective
   {M N} [monoid M] [monoid N] : function.injective (to_monoid_hom : (M ≃* N) → M →* N) :=
 λ f g h, mul_equiv.ext (monoid_hom.ext_iff.1 h)

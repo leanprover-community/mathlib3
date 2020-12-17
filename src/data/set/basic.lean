@@ -317,6 +317,9 @@ instance [nonempty α] : nonempty (set.univ : set α) := set.univ_nonempty.to_su
 
 @[simp] lemma nonempty_insert (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
 
+@[simp] lemma nonempty_of_nonempty_subtype [nonempty s] : s.nonempty :=
+nonempty_subtype.mp ‹_›
+
 /-! ### Lemmas about the empty set -/
 
 theorem empty_def : (∅ : set α) = {x | false} := rfl
@@ -561,6 +564,9 @@ by finish [subset_def, ext_iff, iff_def]
 
 theorem inter_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∩ t = t :=
 by finish [subset_def, ext_iff, iff_def]
+
+theorem subset_iff_inter_eq_self {s t : set α} : s ⊆ t ↔ s ∩ t = s :=
+⟨λ h, inter_eq_self_of_subset_left h, λ h x h1, set.mem_of_mem_inter_right (by {rw h, exact h1})⟩
 
 lemma inter_compl_nonempty_iff {s t : set α} : (s ∩ tᶜ).nonempty ↔ ¬ s ⊆ t :=
 begin
@@ -1476,6 +1482,12 @@ begin
     exact set_coe.ext_iff.2 (@subsingleton.elim s h ⟨a, ha⟩ ⟨b, hb⟩) },
   { exact λ h, subsingleton.intro (λ a b, set_coe.ext (h a.property b.property)) }
 end
+
+/-- `s` is a subsingleton, if its image of an injective function is. -/
+theorem subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.injective f)
+  (s : set α) (hs : subsingleton (f '' s)) : subsingleton s :=
+subsingleton.intro $ λ ⟨a, ha⟩ ⟨b, hb⟩, subtype.ext $ hf
+  (by {simpa using @subsingleton.elim _ hs ⟨f a, ⟨a, ha, rfl⟩⟩ ⟨f b, ⟨b, hb, rfl⟩⟩})
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)

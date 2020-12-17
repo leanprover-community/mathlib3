@@ -273,9 +273,8 @@ lemma single_left_inj (h : b ≠ 0) :
   and_false, or_false, eq_self_iff_true, and_true] using H,
  λ H, by rw [H]⟩
 
-lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
-⟨λ h, by { rw ext_iff at h, simpa only [single_eq_same, zero_apply] using h a },
-λ h, by rw [h, single_zero]⟩
+@[simp] lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
+by simp [ext_iff, single_eq_indicator]
 
 lemma single_swap (a₁ a₂ : α) (b : M) : single a₁ b a₂ = single a₂ b a₁ :=
 by simp only [single_apply]; ac_refl
@@ -624,6 +623,7 @@ end sum_prod
 -/
 
 section add_monoid
+
 variables [add_monoid M]
 
 instance : has_add (α →₀ M) := ⟨zip_with (+) (add_zero 0)⟩
@@ -830,15 +830,21 @@ begin
   { simp [h], }
 end
 
+@[simp] lemma nat_zero_sub (f : α →₀ ℕ) : 0 - f = 0 := ext $ λ x, nat.zero_sub _
+
 end nat_sub
 
 instance [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
 { add_comm := assume ⟨s, f, _⟩ ⟨t, g, _⟩, ext $ assume a, add_comm _ _,
   .. finsupp.add_monoid }
 
+instance [add_group G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
+
 instance [add_group G] : add_group (α →₀ G) :=
-{ neg          := map_range (has_neg.neg) neg_zero,
-  add_left_neg := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
+{ neg            := map_range (has_neg.neg) neg_zero,
+  sub            := has_sub.sub,
+  sub_eq_add_neg := λ x y, ext (λ i, sub_eq_add_neg _ _),
+  add_left_neg   := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
   .. finsupp.add_monoid }
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
@@ -1921,6 +1927,25 @@ instance decidable_le : decidable_rel (@has_le.le (α →₀ ℕ) _) :=
 
 variable {α}
 
+@[simp] lemma nat_add_sub_cancel (f g : α →₀ ℕ) : f + g - g = f :=
+ext $ λ a, nat.add_sub_cancel _ _
+
+@[simp] lemma nat_add_sub_cancel_left (f g : α →₀ ℕ) : f + g - f = g :=
+ext $ λ a, nat.add_sub_cancel_left _ _
+
+lemma nat_add_sub_of_le {f g : α →₀ ℕ} (h : f ≤ g) : f + (g - f) = g :=
+ext $ λ a, nat.add_sub_of_le (h a)
+
+lemma nat_sub_add_cancel {f g : α →₀ ℕ} (h : f ≤ g) : g - f + f = g :=
+ext $ λ a, nat.sub_add_cancel (h a)
+
+instance : canonically_ordered_add_monoid (α →₀ ℕ) :=
+{ bot := 0,
+  bot_le := λ f s, zero_le (f s),
+  le_iff_exists_add := λ f g, ⟨λ H, ⟨g - f, (nat_add_sub_of_le H).symm⟩,
+    λ ⟨c, hc⟩, hc.symm ▸ λ x, by simp⟩,
+ .. (infer_instance : ordered_add_comm_monoid (α →₀ ℕ)) }
+
 /-- The `finsupp` counterpart of `multiset.antidiagonal`: the antidiagonal of
 `s : α →₀ ℕ` consists of all pairs `(t₁, t₂) : (α →₀ ℕ) × (α →₀ ℕ)` such that `t₁ + t₂ = s`.
 The finitely supported function `antidiagonal s` is equal to the multiplicities of these pairs. -/
@@ -1934,40 +1959,58 @@ begin
   simp [antidiagonal, ← and.assoc, ← finsupp.to_multiset.apply_eq_iff_eq]
 end
 
+lemma swap_mem_antidiagonal_support {n : α →₀ ℕ} {f : (α →₀ ℕ) × (α →₀ ℕ)} :
+  f.swap ∈ (antidiagonal n).support ↔ f ∈ (antidiagonal n).support :=
+by simp only [mem_antidiagonal_support, add_comm, prod.swap]
+
+lemma antidiagonal_support_filter_fst_eq (f g : α →₀ ℕ) :
+  (antidiagonal f).support.filter (λ p, p.1 = g) = if g ≤ f then {(g, f - g)} else ∅ :=
+begin
+  ext ⟨a, b⟩,
+  suffices : a = g → (a + b = f ↔ g ≤ f ∧ b = f - g),
+  { simpa [apply_ite ((∈) (a, b)), ← and.assoc, @and.right_comm _ (a = _), and.congr_left_iff] },
+  rintro rfl, split,
+  { rintro rfl, exact ⟨le_add_right le_rfl, (nat_add_sub_cancel_left _ _).symm⟩ },
+  { rintro ⟨h, rfl⟩, exact nat_add_sub_of_le h }
+end
+
+lemma antidiagonal_support_filter_snd_eq (f g : α →₀ ℕ) :
+  (antidiagonal f).support.filter (λ p, p.2 = g) = if g ≤ f then {(f - g, g)} else ∅ :=
+begin
+  ext ⟨a, b⟩,
+  suffices : b = g → (a + b = f ↔ g ≤ f ∧ a = f - g),
+  { simpa [apply_ite ((∈) (a, b)), ← and.assoc, and.congr_left_iff] },
+  rintro rfl, split,
+  { rintro rfl, exact ⟨le_add_left le_rfl, (nat_add_sub_cancel _ _).symm⟩ },
+  { rintro ⟨h, rfl⟩, exact nat_sub_add_cancel h }
+end
+
 @[simp] lemma antidiagonal_zero : antidiagonal (0 : α →₀ ℕ) = single (0,0) 1 :=
 by rw [← multiset.to_finsupp_singleton]; refl
 
-lemma swap_mem_antidiagonal_support {n : α →₀ ℕ} {f} (hf : f ∈ (antidiagonal n).support) :
-  f.swap ∈ (antidiagonal n).support :=
-by simpa only [mem_antidiagonal_support, add_comm, prod.swap] using hf
+@[to_additive]
+lemma prod_antidiagonal_support_swap {M : Type*} [comm_monoid M] (n : α →₀ ℕ)
+  (f : (α →₀ ℕ) → (α →₀ ℕ) → M) :
+  ∏ p in (antidiagonal n).support, f p.1 p.2 = ∏ p in (antidiagonal n).support, f p.2 p.1 :=
+finset.prod_bij (λ p hp, p.swap) (λ p, swap_mem_antidiagonal_support.2) (λ p hp, rfl)
+  (λ p₁ p₂ _ _ h, prod.swap_injective h)
+  (λ p hp, ⟨p.swap, swap_mem_antidiagonal_support.2 hp, p.swap_swap.symm⟩)
+
+/-- The set `{m : α →₀ ℕ | m ≤ n}` as a `finset`. -/
+def Iic_finset (n : α →₀ ℕ) : finset (α →₀ ℕ) :=
+(antidiagonal n).support.image prod.fst
+
+@[simp] lemma mem_Iic_finset {m n : α →₀ ℕ} : m ∈ Iic_finset n ↔ m ≤ n :=
+by simp [Iic_finset, le_iff_exists_add, eq_comm]
+
+@[simp] lemma coe_Iic_finset (n : α →₀ ℕ) : ↑(Iic_finset n) = set.Iic n :=
+by { ext, simp }
 
 /-- Let `n : α →₀ ℕ` be a finitely supported function.
 The set of `m : α →₀ ℕ` that are coordinatewise less than or equal to `n`,
 is a finite set. -/
 lemma finite_le_nat (n : α →₀ ℕ) : set.finite {m | m ≤ n} :=
-begin
-  let I := {i // i ∈ n.support},
-  let k : ℕ := ∑ i in n.support, n i,
-  let f : (α →₀ ℕ) → (I → fin (k + 1)) := λ m i, m i,
-  have hf : ∀ m ≤ n, ∀ i, (f m i : ℕ) = m i,
-  { intros m hm i,
-    apply fin.coe_coe_of_lt,
-    calc m i ≤ n i   : hm i
-         ... < k + 1 : nat.lt_succ_iff.mpr (single_le_sum (λ _ _, nat.zero_le _) i.2) },
-  have f_im : set.finite (f '' {m | m ≤ n}) := set.finite.of_fintype _,
-  suffices f_inj : set.inj_on f {m | m ≤ n},
-  { exact set.finite_of_finite_image f_inj f_im },
-  intros m₁ h₁ m₂ h₂ h,
-  ext i,
-  by_cases hi : i ∈ n.support,
-  { replace h := congr_fun h ⟨i, hi⟩,
-    rwa [fin.ext_iff, hf m₁ h₁, hf m₂ h₂] at h },
-  { rw not_mem_support_iff at hi,
-    specialize h₁ i,
-    specialize h₂ i,
-    rw [hi, nat.le_zero_iff] at h₁ h₂,
-    rw [h₁, h₂] }
-end
+by simpa using (Iic_finset n).finite_to_set
 
 /-- Let `n : α →₀ ℕ` be a finitely supported function.
 The set of `m : α →₀ ℕ` that are coordinatewise less than or equal to `n`,

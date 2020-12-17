@@ -45,6 +45,11 @@ member of `m`, it suffices to check that `C` holds on the members of `s` and
 that `C` is preserved by complementation and *disjoint* countable
 unions.
 
+## Notation
+
+* We write `α ≃ᵐ β` for measurable equivalences between the measurable spaces `α` and `β`.
+  This should not be confused with `≃ₘ` which is used for diffeomorphisms between manifolds.
+
 ## Implementation notes
 
 Measurability of a function `f : α → β` between measurable spaces is
@@ -58,7 +63,8 @@ defined in terms of the Galois connection induced by f.
 
 ## Tags
 
-measurable space, measurable function, dynkin system
+measurable space, σ-algebra, measurable function, measurable equivalence, dynkin system,
+π-λ theorem, π-system
 -/
 
 open set encodable function
@@ -779,48 +785,50 @@ structure measurable_equiv (α β : Type*) [measurable_space α] [measurable_spa
 (measurable_to_fun : measurable to_fun)
 (measurable_inv_fun : measurable inv_fun)
 
+infix ` ≃ᵐ `:25 := measurable_equiv
+
 namespace measurable_equiv
 
 variables (α β) [measurable_space α] [measurable_space β] [measurable_space γ] [measurable_space δ]
 
-instance : has_coe_to_fun (measurable_equiv α β) :=
+instance : has_coe_to_fun (α ≃ᵐ β) :=
 ⟨λ _, α → β, λ e, e.to_equiv⟩
 
 variables {α β}
 
-lemma coe_eq (e : measurable_equiv α β) : (e : α → β) = e.to_equiv := rfl
+lemma coe_eq (e : α ≃ᵐ β) : (e : α → β) = e.to_equiv := rfl
 
-protected lemma measurable (e : measurable_equiv α β) : measurable (e : α → β) :=
+protected lemma measurable (e : α ≃ᵐ β) : measurable (e : α → β) :=
 e.measurable_to_fun
 
 /-- Any measurable space is equivalent to itself. -/
-def refl (α : Type*) [measurable_space α] : measurable_equiv α α :=
+def refl (α : Type*) [measurable_space α] : α ≃ᵐ α :=
 { to_equiv := equiv.refl α,
   measurable_to_fun := measurable_id, measurable_inv_fun := measurable_id }
 
-instance : inhabited (measurable_equiv α α) := ⟨refl α⟩
+instance : inhabited (α ≃ᵐ α) := ⟨refl α⟩
 
 /-- The composition of equivalences between measurable spaces. -/
-@[simps] def trans (ab : measurable_equiv α β) (bc : measurable_equiv β γ) :
-  measurable_equiv α γ :=
+@[simps] def trans (ab : α ≃ᵐ β) (bc : β ≃ᵐ γ) :
+  α ≃ᵐ γ :=
 { to_equiv := ab.to_equiv.trans bc.to_equiv,
   measurable_to_fun := bc.measurable_to_fun.comp ab.measurable_to_fun,
   measurable_inv_fun := ab.measurable_inv_fun.comp bc.measurable_inv_fun }
 
 /-- The inverse of an equivalence between measurable spaces. -/
-@[simps] def symm (ab : measurable_equiv α β) : measurable_equiv β α :=
+@[simps] def symm (ab : α ≃ᵐ β) : β ≃ᵐ α :=
 { to_equiv := ab.to_equiv.symm,
   measurable_to_fun := ab.measurable_inv_fun,
   measurable_inv_fun := ab.measurable_to_fun }
 
 /-- Equal measurable spaces are equivalent. -/
 protected def cast {α β} [i₁ : measurable_space α] [i₂ : measurable_space β]
-  (h : α = β) (hi : i₁ == i₂) : measurable_equiv α β :=
+  (h : α = β) (hi : i₁ == i₂) : α ≃ᵐ β :=
 { to_equiv := equiv.cast h,
   measurable_to_fun  := by { substI h, substI hi, exact measurable_id },
   measurable_inv_fun := by { substI h, substI hi, exact measurable_id }}
 
-protected lemma measurable_coe_iff {f : β → γ} (e : measurable_equiv α β) :
+protected lemma measurable_coe_iff {f : β → γ} (e : α ≃ᵐ β) :
   measurable (f ∘ e) ↔ measurable f :=
 iff.intro
   (assume hfe,
@@ -829,8 +837,7 @@ iff.intro
   (λ h, h.comp e.measurable)
 
 /-- Products of equivalent measurable spaces are equivalent. -/
-def prod_congr (ab : measurable_equiv α β) (cd : measurable_equiv γ δ) :
-  measurable_equiv (α × γ) (β × δ) :=
+def prod_congr (ab : α ≃ᵐ β) (cd : γ ≃ᵐ δ) : α × γ ≃ᵐ β × δ :=
 { to_equiv := equiv.prod_congr ab.to_equiv cd.to_equiv,
   measurable_to_fun := (ab.measurable_to_fun.comp measurable_id.fst).prod_mk
     (cd.measurable_to_fun.comp measurable_id.snd),
@@ -838,20 +845,19 @@ def prod_congr (ab : measurable_equiv α β) (cd : measurable_equiv γ δ) :
     (cd.measurable_inv_fun.comp measurable_id.snd) }
 
 /-- Products of measurable spaces are symmetric. -/
-def prod_comm : measurable_equiv (α × β) (β × α) :=
+def prod_comm : α × β ≃ᵐ β × α :=
 { to_equiv := equiv.prod_comm α β,
   measurable_to_fun  := measurable_id.snd.prod_mk measurable_id.fst,
   measurable_inv_fun := measurable_id.snd.prod_mk measurable_id.fst }
 
 /-- Products of measurable spaces are associative. -/
-def prod_assoc : measurable_equiv ((α × β) × γ) (α × (β × γ)) :=
+def prod_assoc : (α × β) × γ ≃ᵐ α × (β × γ) :=
 { to_equiv := equiv.prod_assoc α β γ,
   measurable_to_fun  := measurable_fst.fst.prod_mk $ measurable_fst.snd.prod_mk measurable_snd,
   measurable_inv_fun := (measurable_fst.prod_mk measurable_snd.fst).prod_mk measurable_snd.snd }
 
 /-- Sums of measurable spaces are symmetric. -/
-def sum_congr (ab : measurable_equiv α β) (cd : measurable_equiv γ δ) :
-  measurable_equiv (α ⊕ γ) (β ⊕ δ) :=
+def sum_congr (ab : α ≃ᵐ β) (cd : γ ≃ᵐ δ) : α ⊕ γ ≃ᵐ β ⊕ δ :=
 { to_equiv := equiv.sum_congr ab.to_equiv cd.to_equiv,
   measurable_to_fun :=
     begin
@@ -865,7 +871,7 @@ def sum_congr (ab : measurable_equiv α β) (cd : measurable_equiv γ δ) :
     end }
 
 /-- `set.prod s t ≃ (s × t)` as measurable spaces. -/
-def set.prod (s : set α) (t : set β) : measurable_equiv (s.prod t) (s × t) :=
+def set.prod (s : set α) (t : set β) : s.prod t ≃ᵐ s × t :=
 { to_equiv := equiv.set.prod s t,
   measurable_to_fun := measurable_id.subtype_coe.fst.subtype_mk.prod_mk
     measurable_id.subtype_coe.snd.subtype_mk,
@@ -873,13 +879,13 @@ def set.prod (s : set α) (t : set β) : measurable_equiv (s.prod t) (s × t) :=
     measurable_id.snd.subtype_coe }
 
 /-- `univ α ≃ α` as measurable spaces. -/
-def set.univ (α : Type*) [measurable_space α] : measurable_equiv (univ : set α) α :=
+def set.univ (α : Type*) [measurable_space α] : (univ : set α) ≃ᵐ α :=
 { to_equiv := equiv.set.univ α,
   measurable_to_fun := measurable_id.subtype_coe,
   measurable_inv_fun := measurable_id.subtype_mk }
 
 /-- `{a} ≃ unit` as measurable spaces. -/
-def set.singleton (a : α) : measurable_equiv ({a} : set α) unit :=
+def set.singleton (a : α) : ({a} : set α) ≃ᵐ unit :=
 { to_equiv := equiv.set.singleton a,
   measurable_to_fun := measurable_const,
   measurable_inv_fun := measurable_const }
@@ -887,8 +893,7 @@ def set.singleton (a : α) : measurable_equiv ({a} : set α) unit :=
 /-- A set is equivalent to its image under a function `f` as measurable spaces,
   if `f` is an injective measurable function that sends measurable sets to measurable sets. -/
 noncomputable def set.image (f : α → β) (s : set α) (hf : injective f)
-  (hfm : measurable f) (hfi : ∀ s, is_measurable s → is_measurable (f '' s)) :
-  measurable_equiv s (f '' s) :=
+  (hfm : measurable f) (hfi : ∀ s, is_measurable s → is_measurable (f '' s)) : s ≃ᵐ (f '' s) :=
 { to_equiv := equiv.set.image f s hf,
   measurable_to_fun  := (hfm.comp measurable_id.subtype_coe).subtype_mk,
   measurable_inv_fun :=
@@ -901,13 +906,13 @@ noncomputable def set.image (f : α → β) (s : set α) (hf : injective f)
   if `f` is an injective measurable function that sends measurable sets to measurable sets. -/
 noncomputable def set.range (f : α → β) (hf : injective f) (hfm : measurable f)
   (hfi : ∀ s, is_measurable s → is_measurable (f '' s)) :
-  measurable_equiv α (range f) :=
+  α ≃ᵐ (range f) :=
 (measurable_equiv.set.univ _).symm.trans $
   (measurable_equiv.set.image f univ hf hfm hfi).trans $
   measurable_equiv.cast (by rw image_univ) (by rw image_univ)
 
 /-- `α` is equivalent to its image in `α ⊕ β` as measurable spaces. -/
-def set.range_inl : measurable_equiv (range sum.inl : set (α ⊕ β)) α :=
+def set.range_inl : (range sum.inl : set (α ⊕ β)) ≃ᵐ α :=
 { to_fun    := λ ab, match ab with
     | ⟨sum.inl a, _⟩ := a
     | ⟨sum.inr b, p⟩ := have false, by { cases p, contradiction }, this.elim
@@ -924,7 +929,7 @@ def set.range_inl : measurable_equiv (range sum.inl : set (α ⊕ β)) α :=
   measurable_inv_fun := measurable.subtype_mk measurable_inl }
 
 /-- `β` is equivalent to its image in `α ⊕ β` as measurable spaces. -/
-def set.range_inr : measurable_equiv (range sum.inr : set (α ⊕ β)) β :=
+def set.range_inr : (range sum.inr : set (α ⊕ β)) ≃ᵐ β :=
 { to_fun    := λ ab, match ab with
     | ⟨sum.inr b, _⟩ := b
     | ⟨sum.inl a, p⟩ := have false, by { cases p, contradiction }, this.elim
@@ -942,7 +947,7 @@ def set.range_inr : measurable_equiv (range sum.inr : set (α ⊕ β)) β :=
 
 /-- Products distribute over sums (on the right) as measurable spaces. -/
 def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [measurable_space γ] :
-  measurable_equiv ((α ⊕ β) × γ) ((α × γ) ⊕ (β × γ)) :=
+  (α ⊕ β) × γ ≃ᵐ (α × γ) ⊕ (β × γ) :=
 { to_equiv := equiv.sum_prod_distrib α β γ,
   measurable_to_fun  :=
   begin
@@ -972,13 +977,13 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
 
 /-- Products distribute over sums (on the left) as measurable spaces. -/
 def prod_sum_distrib (α β γ) [measurable_space α] [measurable_space β] [measurable_space γ] :
-  measurable_equiv (α × (β ⊕ γ)) ((α × β) ⊕ (α × γ)) :=
+  α × (β ⊕ γ) ≃ᵐ (α × β) ⊕ (α × γ) :=
 prod_comm.trans $ (sum_prod_distrib _ _ _).trans $ sum_congr prod_comm prod_comm
 
 /-- Products distribute over sums as measurable spaces. -/
 def sum_prod_sum (α β γ δ)
   [measurable_space α] [measurable_space β] [measurable_space γ] [measurable_space δ] :
-  measurable_equiv ((α ⊕ β) × (γ ⊕ δ)) (((α × γ) ⊕ (α × δ)) ⊕ ((β × γ) ⊕ (β × δ))) :=
+  (α ⊕ β) × (γ ⊕ δ) ≃ᵐ ((α × γ) ⊕ (α × δ)) ⊕ ((β × γ) ⊕ (β × δ)) :=
 (sum_prod_distrib _ _ _).trans $ sum_congr (prod_sum_distrib _ _ _) (prod_sum_distrib _ _ _)
 
 end measurable_equiv

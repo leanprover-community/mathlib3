@@ -1001,6 +1001,10 @@ lemma continuous.tendsto {f : α → β} (hf : continuous f) (x : α)
 hy ▸ (((nhds_basis_opens x).tendsto_iff $ nhds_basis_opens $ f x).2 $
   λ t ⟨hxt, ht⟩, ⟨f ⁻¹' t, ⟨hxt, ht.preimage hf⟩, subset.refl _⟩)
 
+lemma continuous.tendsto' {f : α → β} (hf : continuous f) (x : α) (y : β) (h : f x = y) :
+  tendsto f (𝓝 x) (𝓝 (f x)) :=
+h ▸ hf.tendsto x
+
 lemma continuous.continuous_at {f : α → β} {x : α} (h : continuous f) :
   continuous_at f x :=
 h.tendsto x

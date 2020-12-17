@@ -654,17 +654,6 @@ lemma dom_coprod'_apply
   (a : multilinear_map R (λ _ : ι₁, N) N₁) (b : multilinear_map R (λ _ : ι₂, N) N₂) :
   dom_coprod' (a ⊗ₜ[R] b) = dom_coprod a b := rfl
 
-lemma dom_coprod_dom_dom_congr_sum_congr
-  (a : multilinear_map R (λ _ : ι₁, N) N₁) (b : multilinear_map R (λ _ : ι₂, N) N₂)
-  (σa : equiv.perm ι₁) (σb : equiv.perm ι₂) :
-    (a.dom_coprod b).dom_dom_congr (σa.sum_congr σb) =
-      (a.dom_dom_congr σa).dom_coprod (b.dom_dom_congr σb) := rfl
-
-@[simp]
-lemma dom_coprod'_apply
-  (a : multilinear_map R (λ _ : ι₁, N) N₁) (b : multilinear_map R (λ _ : ι₂, N) N₂) :
-  dom_coprod' (a ⊗ₜ[R] b) = dom_coprod a b := rfl
-
 /-- When passed an `equiv.sum_congr`, `multilinear_map.dom_dom_congr` distributes over
 `multilinear_map.dom_coprod`. -/
 lemma dom_coprod_dom_dom_congr_sum_congr

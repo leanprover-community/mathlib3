@@ -261,7 +261,6 @@ instance : has_neg (alternating_map R M N' ι) :=
 @[norm_cast] lemma coe_neg :
   ((-g : alternating_map R M N' ι) : multilinear_map R (λ i : ι, M) N') = -g := rfl
 
-
 instance : has_sub (alternating_map R M N' ι) :=
 ⟨λ f g,
   { map_eq_zero_of_eq' :=
@@ -423,9 +422,6 @@ rfl
 end multilinear_map
 
 namespace alternating_map
-
--- upstream soon...
-instance nat_subsingleton (α : Type*) [add_comm_monoid α] : subsingleton (semimodule ℕ α) := sorry
 
 /-- Alternatizing a multilinear map that is already alternating results in a scale factor of `n!`,
 where `n` is the number of inputs. -/

@@ -1001,7 +1001,7 @@ lemma continuous.tendsto {f : α → β} (hf : continuous f) (x) :
   λ t ⟨hxt, ht⟩, ⟨f ⁻¹' t, ⟨hxt, ht.preimage hf⟩, subset.refl _⟩
 
 lemma continuous.tendsto' {f : α → β} (hf : continuous f) (x : α) (y : β) (h : f x = y) :
-  tendsto f (𝓝 x) (𝓝 (f x)) :=
+  tendsto f (𝓝 x) (𝓝 y) :=
 h ▸ hf.tendsto x
 
 lemma continuous.continuous_at {f : α → β} {x : α} (h : continuous f) :

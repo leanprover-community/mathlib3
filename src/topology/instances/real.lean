@@ -106,12 +106,12 @@ lemma real.is_topological_basis_Ioo_rat :
 is_topological_basis_of_open_of_nhds
   (by simp [is_open_Ioo] {contextual:=tt})
   (assume a v hav hv,
-    let ⟨l, u, hl, hu, h⟩ := (mem_nhds_unbounded (no_top _) (no_bot _)).mp (mem_nhds_sets hv hav),
+    let ⟨l, u, ⟨hl, hu⟩, h⟩ := mem_nhds_iff_exists_Ioo_subset.mp (mem_nhds_sets hv hav),
         ⟨q, hlq, hqa⟩ := exists_rat_btwn hl,
         ⟨p, hap, hpu⟩ := exists_rat_btwn hu in
     ⟨Ioo q p,
-      by simp; exact ⟨q, p, rat.cast_lt.1 $ lt_trans hqa hap, rfl⟩,
-      ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h _ (lt_trans hlq hqa') (lt_trans ha'p hpu)⟩)
+      by { simp only [mem_Union], exact ⟨q, p, rat.cast_lt.1 $ hqa.trans hap, rfl⟩ },
+      ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h ⟨hlq.trans hqa', ha'p.trans hpu⟩⟩)
 
 instance : second_countable_topology ℝ :=
 ⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo a b}),

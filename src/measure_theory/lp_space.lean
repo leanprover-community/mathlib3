@@ -127,15 +127,7 @@ begin
       ≤ (∫⁻ (a : α), ↑(nnnorm (f a)) ^ q ∂μ) ^ (1/q) * (∫⁻ (a : α), (g a) ^ r ∂μ) ^ (1/r) :
     ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp1 hpq hpqr μ hf.nnnorm.ennreal_coe measurable_const
   ... = (∫⁻ (a : α), ↑(nnnorm (f a)) ^ q ∂μ) ^ (1/q) * μ set.univ ^ (1/p - 1/q) :
-  begin
-    have hg_integral : (∫⁻ (a : α), g a ^ r ∂μ) = μ set.univ,
-    { change (∫⁻ (a : α), 1 ^ r ∂μ) = μ set.univ,
-      simp_rw ennreal.one_rpow,
-      rw [lintegral_const, one_mul], },
-    rw hg_integral,
-    congr,
-    simp [hpqr],
-  end
+    by simp [hpqr],
 end
 
 lemma snorm_le_snorm_of_exponent_le {p q : ℝ} (hp1 : 1 ≤ p) (hpq : p ≤ q) (μ : measure α)

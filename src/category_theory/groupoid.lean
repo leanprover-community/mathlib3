@@ -3,7 +3,7 @@ Copyright (c) 2018 Reid Barton All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison, David Wärn
 -/
-import category_theory.epi_mono
+import category_theory.full_subcategory
 
 namespace category_theory
 
@@ -70,5 +70,12 @@ begin
 end
 
 end
+
+instance induced_category.groupoid {C : Type u} (D : Type u₂) [groupoid.{v} D] (F : C → D) :
+   groupoid.{v} (induced_category D F) :=
+{ inv       := λ X Y f, groupoid.inv f,
+  inv_comp' := λ X Y f, groupoid.inv_comp f,
+  comp_inv' := λ X Y f, groupoid.comp_inv f,
+  .. induced_category.category F }
 
 end category_theory

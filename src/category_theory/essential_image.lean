@@ -4,15 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.natural_isomorphism
+import category_theory.full_subcategory
 
 /-!
 # Essential image of a functor
 
-The essential image of a functor consists of the objects in the target category which are isomorphic
-to an object in the image of the object function.
+The essential image `ess_image` of a functor consists of the objects in the target category which
+are isomorphic to an object in the image of the object function.
 This, for instance, allows us to talk about objects belonging to a subcategory expressed as a
 functor rather than a subtype, preserving the principle of equivalence. For example this lets us
 define exponential ideals.
+
+The essential image can also be seen as a subcategory of the target category, and witnesses that
+a functor decomposes into a essentially surjective functor and a fully faithful functor.
+(TODO: show that this decomposition forms an orthogonal factorisation system).
 -/
 universes v₁ v₂ u₁ u₂
 
@@ -53,17 +58,39 @@ lemma ess_image.of_nat_iso {F' : C ⥤ D} (h : F ≅ F') {Y : D} (hY : Y ∈ ess
 hY.imp (λ X, nonempty.map (λ t, h.symm.app X ≪≫ t))
 
 /-- Isomorphic functors have equal essential images. -/
-lemma image_eq_of_nat_iso {F' : C ⥤ D} (h : F ≅ F') :
+lemma ess_image_eq_of_nat_iso {F' : C ⥤ D} (h : F ≅ F') :
   ess_image F = ess_image F' :=
-begin
-  ext A,
-  split,
-  { apply ess_image.of_nat_iso h },
-  { apply ess_image.of_nat_iso h.symm },
-end
+set.ext $ λ A, ⟨ess_image.of_nat_iso h, ess_image.of_nat_iso h.symm⟩
 
 /-- An object in the image is in the essential image. -/
 lemma obj_mem_ess_image (F : D ⥤ C) (Y : D) : F.obj Y ∈ ess_image F := ⟨Y, ⟨iso.refl _⟩⟩
+
+/-- The essential image of the functor `F` as an explicit subcategory of `D`. -/
+@[derive category]
+def essential_image (F : D ⥤ C) := {D // D ∈ F.ess_image}
+
+/-- The essential image as a subcategory has a fully faithful inclusion into the target category. -/
+@[derive [full, faithful], simps {rhs_md := semireducible}]
+def essential_image_inclusion (F : C ⥤ D) : F.essential_image ⥤ D :=
+full_subcategory_inclusion _
+
+/--
+Given a functor `F : C ⥤ D`, we have an (essentially surjective) functor from `C` to the essential
+image of `F`.
+-/
+@[simps]
+def to_essential_image (F : C ⥤ D) : C ⥤ F.essential_image :=
+{ obj := λ X, ⟨_, obj_mem_ess_image _ X⟩,
+  map := λ X Y f, (essential_image_inclusion F).preimage (F.map f) }
+
+/--
+The functor `F` factorises through its essential image, where the first functor is essentially
+surjective and the second is fully faithful.
+-/
+@[simps {rhs_md := semireducible}]
+def to_essential_image_comp_essential_image_inclusion :
+  F.to_essential_image ⋙ F.essential_image_inclusion ≅ F :=
+nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
 end functor
 
@@ -75,6 +102,9 @@ See https://stacks.math.columbia.edu/tag/001C.
 -/
 class ess_surj (F : C ⥤ D) : Prop :=
 (mem_ess_image [] (Y : D) : Y ∈ F.ess_image)
+
+instance : ess_surj F.to_essential_image :=
+{ mem_ess_image := λ ⟨Y, hY⟩, ⟨_, ⟨⟨_, _, hY.get_iso.hom_inv_id, hY.get_iso.inv_hom_id⟩⟩⟩ }
 
 variables (F) [ess_surj F]
 

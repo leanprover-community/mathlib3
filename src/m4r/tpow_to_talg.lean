@@ -262,10 +262,10 @@ begin
   rw multilinear_map.map_smul,
 end
 
-variables (f : fin m → M) (g : fin n → M) {N : Type*} [add_comm_group N] [module R N]
+variables (f : fin m → M) (g : fin n → M) {N : Type u} [add_comm_group N] [module R N]
 
-@[simp] lemma map_sum {N : Type*} [add_comm_group N] [module R N]
-  (f : M →ₗ[R] N) {ι : Type*} (t : multiset ι) (g : ι → M) :
+@[simp] lemma map_sum {N : Type u} [add_comm_group N] [module R N]
+  (f : M →ₗ[R] N) {ι : Type u} (t : multiset ι) (g : ι → M) :
   f (t.map g).sum = (t.map $ λ i, f (g i)).sum :=
 begin
   erw f.to_add_monoid_hom.map_multiset_sum,
@@ -273,7 +273,7 @@ begin
   refl,
 end
 
-lemma map_sum' {N : Type*} [add_comm_group N] [module R N]
+lemma map_sum' {N : Type u} [add_comm_group N] [module R N]
   (f : M →ₗ[R] N) {t : multiset M} :
   f t.sum = (t.map f).sum :=
 begin
@@ -397,12 +397,12 @@ lemma talg.mul_sum (s : multiset (talg R M)) (x : talg R M) :
   x * s.sum = (s.map (mul _ _ x)).sum :=
 map_sum' _ _ _
 
-@[simp] lemma linear_map.map_sum₂ {P : Type*} [add_comm_group P] [module R P]
+@[simp] lemma linear_map.map_sum₂ {P : Type u} [add_comm_group P] [module R P]
   (f : M →ₗ[R] N →ₗ[R] P) (s : multiset M) :
   f s.sum = (s.map f).sum :=
 map_sum' _ _ _
 
-variables {P : Type*} [add_comm_group P] [module R P]
+variables {P : Type u} [add_comm_group P] [module R P]
 
 lemma sum_apply' (s : multiset (M →ₗ[R] N)) (x : M) :
   s.sum x = (s.map (λ f : M →ₗ[R] N, f x)).sum :=
@@ -430,23 +430,23 @@ begin
   congr,
 end
 
-lemma lof_apply' {ι : Type*} [decidable_eq ι] {M : ι → Type*} [Π i, add_comm_group (M i)] [Π i, module R (M i)]
+lemma lof_apply' {ι : Type u} [decidable_eq ι] {M : ι → Type u} [Π i, add_comm_group (M i)] [Π i, module R (M i)]
   {i} {x} : direct_sum.lof R ι M i x = direct_sum.of M i x := rfl
 
-lemma multiset.sum_mul {R : Type*} [ring R] {S : multiset R} {x : R} :
+lemma multiset.sum_mul {R : Type u} [ring R] {S : multiset R} {x : R} :
   S.sum * x = (S.map (λ y, y * x)).sum :=
 (S.sum_hom ⟨(λ y, y * x), zero_mul _, λ _ _, add_mul _ _ x⟩).symm
 
-lemma multiset.mul_sum {R : Type*} [ring R] {S : multiset R} {x : R} :
+lemma multiset.mul_sum {R : Type u} [ring R] {S : multiset R} {x : R} :
   x * S.sum = (S.map (λ y, x * y)).sum :=
 (S.sum_hom ⟨(λ y, x * y), mul_zero _, mul_add _⟩).symm
 
-lemma alg_hom.map_sum' {A : Type*} {B : Type*} [ring A] [ring B]
+lemma alg_hom.map_sum' {A : Type u} {B : Type u} [ring A] [ring B]
   [algebra R A] [algebra R B] (f : A →ₐ[R] B) (S : multiset A) :
   f S.sum = (S.map f).sum :=
 (S.sum_hom f.to_ring_hom.to_add_monoid_hom).symm
 
-lemma alg_hom.map_prod' {A : Type*} {B : Type*} [ring A] [ring B]
+lemma alg_hom.map_prod' {A : Type u} {B : Type u} [ring A] [ring B]
   [algebra R A] [algebra R B] (f : A →ₐ[R] B) (S : list A) :
   f S.prod = (S.map f).prod :=
 (S.prod_hom f.to_ring_hom.to_monoid_hom).symm
@@ -679,7 +679,7 @@ instance : algebra R (talg R M) :=
 
 variables {R M}
 
-def alg_prod {A : Type*} [ring A] [algebra R A] (f : M →ₗ[R] A) (n : ℕ) :
+def alg_prod {A : Type u} [ring A] [algebra R A] (f : M →ₗ[R] A) (n : ℕ) :
   multilinear_map R (λ i : fin n, M) A :=
 { to_fun := λ g, (list.of_fn (f ∘ g)).prod,
   map_add' := λ g i x y,
@@ -755,11 +755,11 @@ def alg_prod {A : Type*} [ring A] [algebra R A] (f : M →ₗ[R] A) (n : ℕ) :
     end
      }
 
-lemma alg_prod_apply {A : Type*} [ring A] [algebra R A] (f : M →ₗ[R] A) (n : ℕ)
+lemma alg_prod_apply {A : Type u} [ring A] [algebra R A] (f : M →ₗ[R] A) (n : ℕ)
   (g : fin n → M) : alg_prod f n g = (list.of_fn (f ∘ g)).prod := rfl
 
 variables (R M)
-def talg.lift {A : Type*} [ring A] [algebra R A]
+def talg.lift {A : Type u} [ring A] [algebra R A]
   (f : M →ₗ[R] A) : talg R M →ₐ[R] A :=
 { to_fun := direct_sum.to_module R ℕ A $ λ n, @tpow.lift R _ M _ _ n A _ _ (alg_prod f n),
   map_one' := by {rw ←one_eq_mk, erw to_module_lof, rw tpow.lift_mk_apply,
@@ -866,7 +866,7 @@ begin
   simp only [fin.coe_last, fin.coe_nat_fin_succ],
 end
 
-lemma talg.lift_ι_apply {A : Type*} [ring A] [algebra R A]
+lemma talg.lift_ι_apply {A : Type u} [ring A] [algebra R A]
   (f : M →ₗ[R] A) {x : M} :
   talg.lift R M f (ι R M x) = f x :=
 begin
@@ -875,6 +875,31 @@ begin
   rw tpow.lift_mk_apply,
   rw alg_prod_apply,
   exact list.prod_singleton,
+end
+
+lemma hom_ext {A : Type u} [ring A] [algebra R A]
+  (f g : talg R M →ₐ[R] A) (h : f.to_linear_map.comp (ι R M) = g.to_linear_map.comp (ι R M)) :
+  f = g :=
+begin
+  ext,
+  refine direct_sum.linduction_on R x _ _ _,
+    simp only [alg_hom.map_zero],
+  intros i y,
+  rcases exists_sum_of_tpow R M y with ⟨s, rfl⟩,
+  simp only [map_sum, linear_map.map_smul, alg_hom.map_sum', multiset.map_map],
+  congr' 2,
+  ext X,
+  simp only [alg_hom.map_smul, function.comp_app],
+  congr' 1,
+  show f (talg_mk R M _) = g (talg_mk R M _),
+  erw talg_mk_prod,
+  simp only [alg_prod_apply, alg_hom.map_prod', list.of_fn_eq_map, list.map_map],
+  congr' 2,
+  ext,
+  rw linear_map.ext_iff at h,
+  exact h _,
+  { intros X Y HX HY,
+    simp only [alg_hom.map_add, HX, HY] },
 end
 
 def to_talg : tensor_algebra R M →ₐ[R] talg R M :=

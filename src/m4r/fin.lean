@@ -416,6 +416,16 @@ begin
   rw coe_nat_fin_succ,
 end
 
+lemma list.of_fn_succ_of_eq {m n : ℕ} (h : m = n.succ) (f : fin m → α) :
+  list.of_fn f = f ⟨0, h.symm ▸ nat.succ_pos n⟩ :: list.of_fn (fin.tail (λ x, f (fin.cast h.symm x))) :=
+begin
+  convert list.of_fn_succ (λ i, f (fin.cast h.symm i)),
+  rw fin.heq_fun_iff h,
+  intro i,
+  congr,
+  ext, refl,
+end
+
 variables (x : α)
 
 lemma cons_append {p : ℕ} (ho : o = m.succ + n) (hp : p = m + n) (x : α) (i : fin o):

@@ -91,9 +91,9 @@ begin
   by_cases hl : l ≤ a; by_cases hk : a < k,
   { tauto, },
   { have hna : n ≤ a, from le_trans hnk (le_of_not_gt hk),
-    simp [hl, hk, hna], },
+    tauto, },
   { have ham : a < m, from lt_of_lt_of_le (lt_of_not_ge hl) hlm,
-    simp [hl, hk, ham], },
+    tauto, },
   { tauto, },
 end
 

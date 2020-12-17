@@ -213,7 +213,7 @@ section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
-lemma mem_ℒp.smul {f : α → E} (hfp : mem_ℒp f p μ) (c : 𝕜) (hp0 : 0 ≤ p) :
+lemma mem_ℒp.const_smul {f : α → E} (hfp : mem_ℒp f p μ) (c : 𝕜) (hp0 : 0 ≤ p) :
   mem_ℒp (c • f) p μ :=
 begin
   split,

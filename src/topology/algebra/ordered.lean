@@ -1373,10 +1373,6 @@ section linear_ordered_add_comm_group
 variables [topological_space α] [linear_ordered_add_comm_group α] [order_topology α]
 variables {l : filter β} {f g : β → α}
 
-/- TODO The theorems in this section ought to be written in the context of linearly ordered
-(additive) commutative groups rather than linearly ordered rings; however, the former concept does
-not currently exist in mathlib. -/
-
 /-- In a linearly ordered additive commutative group with the order topology, if `f` tends to `C`
 and `g` tends to `at_top` then `f + g` tends to `at_top`. -/
 lemma filter.tendsto.add_at_top {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_top) :

@@ -200,6 +200,9 @@ theorem linear_order.dual_dual (α : Type*) [H : linear_order α] :
   order_dual.linear_order (order_dual α) = H :=
 linear_order.ext $ λ _ _, iff.rfl
 
+theorem cmp_le_flip {α} [has_le α] [@decidable_rel α (≤)] (x y : α) :
+  @cmp_le (order_dual α) _ _ x y = cmp_le y x := rfl
+
 end order_dual
 
 namespace strict_mono_incr_on

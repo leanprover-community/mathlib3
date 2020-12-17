@@ -12,16 +12,6 @@ import tactic.linarith
 # Verification of the `ordnode α` datatype, with a type `ordset α` of verified sets.
 -/
 
-theorem cmp_le_flip {α} [has_le α] [@decidable_rel α (≤)] (x y : α) :
-  @cmp_le (order_dual α) _ _ x y = cmp_le y x := rfl
-
-theorem cmp_le_swap {α} [has_le α] [is_total α (≤)] [@decidable_rel α (≤)] (x y : α) :
-  (cmp_le x y).swap = cmp_le y x :=
-begin
-  simp [cmp_le], split_ifs; try {refl},
-  cases not_or h h_1 (total_of _ _ _)
-end
-
 variable {α : Type*}
 namespace ordnode
 

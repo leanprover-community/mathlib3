@@ -243,6 +243,13 @@ if x ≤ y then
   if y ≤ x then ordering.eq else ordering.lt
 else ordering.gt
 
+theorem cmp_le_swap {α} [has_le α] [is_total α (≤)] [@decidable_rel α (≤)] (x y : α) :
+  (cmp_le x y).swap = cmp_le y x :=
+begin
+  by_cases xy : x ≤ y; by_cases yx : y ≤ x; simp [cmp_le, *, ordering.swap],
+  cases not_or xy yx (total_of _ _ _)
+end
+
 namespace ordering
 
 /-- `compares o a b` means that `a` and `b` have the ordering relation

@@ -25,10 +25,20 @@ arguments of the same type.
 * `f.map_perm` expresses how `f` varies by a sign change under a permutation of its inputs.
 * An `add_comm_monoid`, `add_comm_group`, and `semimodule` structure over `alternating_map`s that
   matches the definitions over `multilinear_map`s.
+* `multilinear_map.alternatization`, which makes an alternating map out of a non-alternating one.
 
 ## Implementation notes
 `alternating_map` is defined in terms of `map_eq_zero_of_eq`, as this is easier to work with than
 using `map_swap` as a definition, and does not require `has_neg N`.
+
+`alternating_map`s are provided with a coercion to `multilinear_map`, along with a set of
+`norm_cast` lemmas that act on the algebraic structure:
+
+* `alternating_map.coe_add`
+* `alternating_map.coe_zero`
+* `alternating_map.coe_sub`
+* `alternating_map.coe_neg`
+* `alternating_map.coe_smul`
 -/
 
 -- TODO: move
@@ -143,7 +153,7 @@ add_decl_doc alternating_map.to_multilinear_map
 namespace alternating_map
 
 variables (f f' : alternating_map R M N ι)
-variables (g : alternating_map R M N' ι)
+variables (g g₂ : alternating_map R M N' ι)
 variables (g' : alternating_map R M' N' ι)
 variables (v : ι → M) (v' : ι → M')
 open function
@@ -255,10 +265,21 @@ instance : has_neg (alternating_map R M N' ι) :=
 @[norm_cast] lemma coe_neg :
   ((-g : alternating_map R M N' ι) : multilinear_map R (λ i : ι, M) N') = -g := rfl
 
-instance : add_comm_group (alternating_map R M N' ι) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, ..alternating_map.add_comm_monoid, ..};
-   intros; ext; simp [add_comm, add_left_comm]
 
+instance : has_sub (alternating_map R M N' ι) :=
+⟨λ f g,
+  { map_eq_zero_of_eq' :=
+      λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij, g.map_eq_zero_of_eq v h hij],
+    ..(f - g : multilinear_map R (λ i : ι, M) N')  }⟩
+
+@[simp] lemma sub_apply (m : ι → M) : (g - g₂) m = g m - g₂ m := rfl
+
+@[norm_cast] lemma coe_sub : (↑(g - g₂) : multilinear_map R (λ i : ι, M) N') = g - g₂ := rfl
+
+instance : add_comm_group (alternating_map R M N' ι) :=
+by refine {zero := 0, add := (+), neg := has_neg.neg,
+           sub := has_sub.sub, sub_eq_add_neg := _, ..};
+   intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
 
 section distrib_mul_action
 
@@ -414,13 +435,13 @@ namespace alternating_map
 
 /-- Alternatizing a multilinear map that is already alternating results in a scale factor of `n!`,
 where `n` is the number of inputs. -/
-lemma to_multilinear_map_alternization [fintype ι] (a : alternating_map R M N' ι) :
-  a.to_multilinear_map.alternatization = nat.factorial (fintype.card ι) • a :=
+lemma coe_alternatization [fintype ι] (a : alternating_map R M N' ι) :
+  (↑a : multilinear_map R (λ ι, M) N').alternatization = nat.factorial (fintype.card ι) • a :=
 begin
   ext,
   simp only [multilinear_map.alternatization_apply, map_perm, smul_smul, ←nat.smul_def, coe_mk,
     smul_apply, add_monoid_hom.coe_mk, finset.sum_const, coe_multilinear_map, one_smul,
-    multilinear_map.dom_dom_congr_apply, int.units_coe_mul_self, to_multilinear_map_eq_coe,
+    multilinear_map.dom_dom_congr_apply, int.units_coe_mul_self,
     finset.card_univ, fintype.card_perm],
 end
 

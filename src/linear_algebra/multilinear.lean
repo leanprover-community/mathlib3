@@ -587,7 +587,8 @@ section dom_coprod
 
 open_locale tensor_product
 
-variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
+variables {ι₁ ι₂ ι₃ ι₄ : Type*}
+variables [decidable_eq ι₁] [decidable_eq ι₂][decidable_eq ι₃] [decidable_eq ι₄]
 variables {N₁ : Type*} [add_comm_monoid N₁] [semimodule R N₁]
 variables {N₂ : Type*} [add_comm_monoid N₂] [semimodule R N₂]
 variables {N : Type*} [add_comm_monoid N] [semimodule R N]
@@ -656,6 +657,19 @@ lemma dom_coprod'_apply
 lemma dom_coprod_dom_dom_congr_sum_congr
   (a : multilinear_map R (λ _ : ι₁, N) N₁) (b : multilinear_map R (λ _ : ι₂, N) N₂)
   (σa : equiv.perm ι₁) (σb : equiv.perm ι₂) :
+    (a.dom_coprod b).dom_dom_congr (σa.sum_congr σb) =
+      (a.dom_dom_congr σa).dom_coprod (b.dom_dom_congr σb) := rfl
+
+@[simp]
+lemma dom_coprod'_apply
+  (a : multilinear_map R (λ _ : ι₁, N) N₁) (b : multilinear_map R (λ _ : ι₂, N) N₂) :
+  dom_coprod' (a ⊗ₜ[R] b) = dom_coprod a b := rfl
+
+/-- When passed an `equiv.sum_congr`, `multilinear_map.dom_dom_congr` distributes over
+`multilinear_map.dom_coprod`. -/
+lemma dom_coprod_dom_dom_congr_sum_congr
+  (a : multilinear_map R (λ _ : ι₁, N) N₁) (b : multilinear_map R (λ _ : ι₂, N) N₂)
+  (σa : ι₁ ≃ ι₃) (σb : ι₂ ≃ ι₄) :
     (a.dom_coprod b).dom_dom_congr (σa.sum_congr σb) =
       (a.dom_dom_congr σa).dom_coprod (b.dom_dom_congr σb) := rfl
 
@@ -759,16 +773,25 @@ section range_add_comm_group
 
 variables [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_group M₂]
 [∀i, semimodule R (M₁ i)] [semimodule R M₂]
-(f : multilinear_map R M₁ M₂)
+(f g : multilinear_map R M₁ M₂)
 
 instance : has_neg (multilinear_map R M₁ M₂) :=
 ⟨λ f, ⟨λ m, - f m, λm i x y, by simp [add_comm], λm i c x, by simp⟩⟩
 
 @[simp] lemma neg_apply (m : Πi, M₁ i) : (-f) m = - (f m) := rfl
 
+instance : has_sub (multilinear_map R M₁ M₂) :=
+⟨λ f g,
+  ⟨λ m, f m - g m,
+   λ m i x y, by { simp only [map_add, sub_eq_add_neg, neg_add], cc },
+   λ m i c x, by { simp only [map_smul, smul_sub] }⟩⟩
+
+@[simp] lemma sub_apply (m : Πi, M₁ i) : (f - g) m = f m - g m := rfl
+
 instance : add_comm_group (multilinear_map R M₁ M₂) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
-   intros; ext; simp [add_comm, add_left_comm]
+by refine { zero := 0, add := (+), neg := has_neg.neg,
+            sub := has_sub.sub, sub_eq_add_neg := _, .. };
+   intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
 
 end range_add_comm_group
 

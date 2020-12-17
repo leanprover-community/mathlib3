@@ -1331,7 +1331,7 @@ lemma nonempty.of_image {f : α → β} {s : set α} : (f '' s).nonempty → s.n
 ⟨nonempty.of_image, λ h, h.image f⟩
 
 instance (f : α → β) (s : set α) [nonempty s] : nonempty (f '' s) :=
-set.nonempty.to_subtype (set.nonempty.image f (nonempty_subtype.mp ‹_›))
+(set.nonempty.image f (nonempty_subtype.mp ‹_›)).to_subtype
 
 /-- image and preimage are a Galois connection -/
 @[simp] theorem image_subset_iff {s : set α} {t : set β} {f : α → β} :

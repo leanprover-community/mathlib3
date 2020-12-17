@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.exp_log
+import data.int.parity
 import data.set.intervals.infinite
 import algebra.quadratic_discriminant
 import ring_theory.polynomial.chebyshev.defs
@@ -909,7 +910,7 @@ lemma pi_le_four : π ≤ 4 :=
 lemma pi_pos : 0 < π :=
 lt_of_lt_of_le (by norm_num) two_le_pi
 
-lemma pi_ne_zero : pi ≠ 0 :=
+lemma pi_ne_zero : π ≠ 0 :=
 ne_of_gt pi_pos
 
 lemma pi_div_two_pos : 0 < π / 2 :=
@@ -919,11 +920,11 @@ lemma two_pi_pos : 0 < 2 * π :=
 by linarith [pi_pos]
 
 @[simp] lemma sin_pi : sin π = 0 :=
-by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _ _), two_mul, add_div,
+by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), two_mul, add_div,
     sin_add, cos_pi_div_two]; simp
 
 @[simp] lemma cos_pi : cos π = -1 :=
-by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _ _), mul_div_assoc,
+by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), mul_div_assoc,
     cos_two_mul, cos_pi_div_two];
   simp [bit0, pow_add]
 
@@ -1051,6 +1052,9 @@ lemma sin_eq_zero_iff {x : ℝ} : sin x = 0 ↔ ∃ n : ℤ, (n : ℝ) * π = x 
   (sub_nonpos.1 $ le_of_not_gt $ λ h₃, ne_of_lt (sin_pos_of_pos_of_lt_pi h₃ (sub_floor_div_mul_lt _ pi_pos))
     (by simp [sub_eq_add_neg, sin_add, h, sin_int_mul_pi]))⟩,
   λ ⟨n, hn⟩, hn ▸ sin_int_mul_pi _⟩
+
+lemma sin_ne_zero_iff {x : ℝ} : sin x ≠ 0 ↔ ∀ n : ℤ, (n : ℝ) * π ≠ x :=
+by rw [← not_exists, not_iff_not, sin_eq_zero_iff]
 
 lemma sin_eq_zero_iff_cos_eq {x : ℝ} : sin x = 0 ↔ cos x = 1 ∨ cos x = -1 :=
 by rw [← mul_self_eq_one_iff, ← sin_sq_add_cos_sq x,
@@ -1718,6 +1722,14 @@ by rw [tan_eq_sin_div_cos, sin_arctan, cos_arctan, div_div_div_div_eq, mul_one,
     div_self (mt sqrt_eq_zero'.1 (not_le_of_gt (add_pos_of_pos_of_nonneg zero_lt_one (pow_two_nonneg x)))),
     mul_one]
 
+lemma arcsin_to_arctan {x : ℝ} (h: x ∈ set.Ioo (-(1:ℝ)) 1) :
+  arcsin x = arctan (x / sqrt (1 - x^2)) :=
+begin
+  rw [arctan, div_pow, sqr_sqrt, one_add_div, div_div_eq_div_mul, ← sqrt_mul, mul_div_cancel',
+      sub_add_cancel, sqrt_one, div_one];
+  nlinarith [h.1, h.2],
+end
+
 lemma arctan_lt_pi_div_two (x : ℝ) : arctan x < π / 2 :=
 lt_of_le_of_ne (arcsin_le_pi_div_two _)
   (λ h, ne_of_lt (div_sqrt_one_add_lt_one x) $
@@ -2165,6 +2177,39 @@ end
 theorem sin_ne_zero_iff {θ : ℂ} : sin θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ k * π :=
 by rw [← not_exists, not_iff_not, sin_eq_zero_iff]
 
+lemma tan_of_mul_pi_div_two (θ : ℂ) (h : ∃ k : ℤ, θ = (2 * k + 1) * π / 2) : tan θ = 0 :=
+by rw [tan, cos_eq_zero_iff.mpr h, div_zero]
+
+lemma tan_of_mul_pi (θ : ℂ) (h : ∃ k : ℤ, θ = k * π) : tan θ = 0 :=
+by rw [tan, sin_eq_zero_iff.mpr h, zero_div]
+
+lemma tan_ne_zero_iff {θ : ℂ} : tan θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ k * π / 2 :=
+begin
+  rw [tan, div_ne_zero_iff, sin_ne_zero_iff, cos_ne_zero_iff],
+  split,
+  { intros h k,
+    by_cases hk : odd k,
+    { cases hk with l hk,
+      convert h.2 l,
+      simp only [hk, int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one] },
+    { rw ← int.even_iff_not_odd at hk,
+      cases hk with l hk,
+      convert h.1 l,
+      simp only [hk, int.cast_bit0, int.cast_mul, int.cast_one],
+      ring } },
+  { intro h,
+    split,
+    { intro k,
+      have h' := h (2*k),
+      simp only [int.cast_bit0, int.cast_mul, int.cast_one] at h',
+      ring at h',
+      rwa mul_comm },
+    { simpa only [int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one] using λ k, h (2*k+1) } },
+end
+
+lemma tan_eq_zero_iff {θ : ℂ} : tan θ = 0 ↔ ∃ k : ℤ, θ = k * π / 2 :=
+by rw [← not_iff_not, not_exists, ← ne, tan_ne_zero_iff]
+
 lemma cos_eq_cos_iff {x y : ℂ} :
   cos x = cos y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x :=
 calc cos x = cos y ↔ cos x - cos y = 0 : sub_eq_zero.symm
@@ -2204,6 +2249,26 @@ begin
     field_simp,
     ring },
 end
+
+lemma tan_add {x y : ℂ} (hx : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2)
+  (hy : ∀ k : ℤ, y ≠ (2 * k + 1) * π / 2) :
+  tan (x + y) = (tan x + tan y) / (1 - tan x * tan y) :=
+by { rw [tan, sin_add, cos_add,
+          ← div_div_div_cancel_right (sin x * cos y + cos x * sin y)
+              (mul_ne_zero (cos_ne_zero_iff.mpr hx) (cos_ne_zero_iff.mpr hy)),
+          add_div, sub_div],
+    simp [← div_mul_div, ← tan,
+          div_self (cos_ne_zero_iff.mpr hy), div_self (cos_ne_zero_iff.mpr hx)] }
+
+lemma tan_eq' {x y : ℂ} (hx : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2)
+  (hy : ∀ k : ℤ, y * I ≠ (2 * k + 1) * π / 2) :
+  tan (x + y * I) = (tan x + tanh y * I) / (1 - tan x * tanh y * I) :=
+by rw [tan_add hx hy, tan_mul_I, mul_assoc]
+
+lemma tan_eq {z : ℂ} (hre : ∀ k : ℤ, (z.re:ℂ) ≠ (2 * k + 1) * π / 2)
+  (him : ∀ k : ℤ, (z.im:ℂ) * I ≠ (2 * k + 1) * π / 2) :
+  tan z = (tan z.re + tanh z.im * I) / (1 - tan z.re * tanh z.im * I) :=
+by { convert tan_eq' hre him, exact (re_add_im z).symm }
 
 lemma has_deriv_at_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) :
   has_deriv_at tan (1 / (cos x)^2) x :=
@@ -2287,6 +2352,15 @@ end chebyshev₁
 namespace real
 open_locale real
 
+lemma tan_add {x y : ℝ} (hx : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2)
+  (hy : ∀ k : ℤ, y ≠ (2 * k + 1) * π / 2) :
+  tan (x + y) = (tan x + tan y) / (1 - tan x * tan y) :=
+begin
+  simp only [← complex.of_real_inj, complex.of_real_sub, complex.of_real_add, complex.of_real_div,
+              complex.of_real_mul, complex.of_real_tan],
+  exact complex.tan_add (by { convert hx, norm_cast }) (by { convert hy, norm_cast }),
+end
+
 theorem cos_eq_zero_iff {θ : ℝ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
 begin
   rw [← complex.of_real_eq_zero, complex.of_real_cos θ],
@@ -2296,6 +2370,18 @@ end
 
 theorem cos_ne_zero_iff {θ : ℝ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
 by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
+
+lemma tan_ne_zero_iff {θ : ℝ} : tan θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ k * π / 2 :=
+by { rw [← complex.of_real_ne_zero, complex.of_real_tan, complex.tan_ne_zero_iff], norm_cast }
+
+lemma tan_eq_zero_iff {θ : ℝ} : tan θ = 0 ↔ ∃ k : ℤ, θ = k * π / 2 :=
+by rw [← not_iff_not, not_exists, ← ne, tan_ne_zero_iff]
+
+lemma tan_of_mul_pi_div_two (θ : ℝ) (h : ∃ k : ℤ, θ = (2 * k + 1) * π / 2) : tan θ = 0 :=
+by rw [tan_eq_sin_div_cos, cos_eq_zero_iff.mpr h, div_zero]
+
+lemma tan_of_mul_pi (θ : ℝ) (h : ∃ k : ℤ, (k : ℝ) * π = θ) : tan θ = 0 :=
+by rw [tan_eq_sin_div_cos, sin_eq_zero_iff.mpr h, zero_div]
 
 lemma cos_eq_cos_iff {x y : ℝ} :
   cos x = cos y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x :=

@@ -120,7 +120,7 @@ are nonzero. -/
 theorem mul_ne_zero_iff : a * b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
 (not_congr mul_eq_zero).trans not_or_distrib
 
-theorem mul_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 :=
+@[field_simps] theorem mul_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 :=
 mul_ne_zero_iff.2 ⟨ha, hb⟩
 
 /-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` equals zero iff so is

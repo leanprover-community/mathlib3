@@ -5,6 +5,27 @@ Authors: Yakov Pechersky
 -/
 import data.list.basic
 
+/-!
+# Parsers
+
+`parser α` is the type that describes a computation that can ingest a `char_buffer`
+and output, if successful, a term of type `α`.
+This file expands on the definitions in the core library, proving that all the core library
+parsers are `valid`. There are also lemmas on the composability of parsers.
+
+## Main definitions
+
+* 'parse_result.pos` : The position of a `char_buffer` at which a `parser α` has finished.
+* `parser.valid` : The property that a parser only moves forward within a buffer,
+  in both cases of success or failure.
+
+## Implementation details
+
+Lemmas about how parsers are valid are in the `valid` namespace. That allows using projection
+notation for shorter term proofs that are parallel to the definitions of the parsers in structure.
+
+-/
+
 open parser parse_result
 
 @[simp] def parse_result.pos {α} : parse_result α → ℕ

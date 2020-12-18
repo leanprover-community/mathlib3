@@ -60,18 +60,25 @@ end
 -- `is_connected`.
 instance (j : connected_components J) : is_connected (component j) :=
 begin
+  -- Show it's connected by constructing a zigzag (in `component j`) between any two objects
   apply zigzag_is_connected,
   rintro ⟨j₁, hj₁⟩ ⟨j₂, rfl⟩,
+  -- We know that the underlying objects j₁ j₂ have some zigzag between them in `J`
   have h₁₂ : zigzag j₁ j₂ := quotient.exact' hj₁,
+  -- Get an explicit zigzag as a list
   rcases list.exists_chain_of_relation_refl_trans_gen h₁₂ with ⟨l, hl₁, hl₂⟩,
+  -- Everything which has a zigzag to j₂ can be lifted to the same component as `j₂`.
   let f : Π x, zigzag x j₂ → component (quotient.mk' j₂) := λ x h, subtype.mk x (quotient.sound' h),
+  -- Everything in our chosen zigzag from `j₁` to `j₂` has a zigzag to `j₂`.
   have hf : ∀ (a : J), a ∈ l → zigzag a j₂,
   { intros i hi,
     apply list.chain.induction (λ t, zigzag t j₂) _ hl₁ hl₂ _ _ _ (or.inr hi),
     { intros j k,
       apply relation.refl_trans_gen.head },
     { apply relation.refl_trans_gen.refl } },
+  -- Lift the zigzag from `j₁` to `j₂` in `J` to the same thing in `component j`.
   let l' : list (component (quotient.mk' j₂)) := l.pmap f hf,
+  -- The new zigzag in `component j` is in fact a zigzag.
   have : list.chain zigzag (⟨j₁, hj₁⟩ : component _) l',
   { induction l generalizing hl₁ hl₂ j₁ hf,
     { apply list.chain.nil },
@@ -83,6 +90,7 @@ begin
       { refine l_ih _ _ _ hl₃.2 _ _,
         { apply relation.refl_trans_gen.head (zag_symmetric hl₃.1) h₁₂ },
         { rwa list.last_cons_cons at hl₂ } } } },
+  -- Convert our list zigzag to the relation zigzag to conclude.
   apply list.chain.induction_head (λ t, zigzag t (⟨j₂, rfl⟩ : component _)) _ this _ _ _,
   { refine ⟨_, rfl⟩ },
   { have h : ∀ (a : J), a ∈ j₁ :: l → zigzag a j₂,

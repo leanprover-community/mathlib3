@@ -72,6 +72,12 @@ lemma degree_eq_bot : degree p = ⊥ ↔ p = 0 :=
   exact support_eq_empty.1 (max_eq_none.1 h),
 λ h, h.symm ▸ rfl⟩
 
+@[nontriviality] lemma degree_of_subsingleton [subsingleton R] : degree p = ⊥ :=
+by rw [subsingleton.elim p 0, degree_zero]
+
+@[nontriviality] lemma nat_degree_of_subsingleton [subsingleton R] : nat_degree p = 0 :=
+by rw [subsingleton.elim p 0, nat_degree_zero]
+
 lemma degree_eq_nat_degree (hp : p ≠ 0) : degree p = (nat_degree p : with_bot ℕ) :=
 let ⟨n, hn⟩ :=
   not_forall.1 (mt option.eq_none_iff_forall_not_mem.2 (mt degree_eq_bot.1 hp)) in

@@ -71,27 +71,22 @@ protected def map (r : α → β → Prop) (f : α → γ) (g : β → δ) : γ 
 variables {r : α → α → Prop} {a b c d : α}
 
 /-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
+@[mk_iff relation.refl_trans_gen.cases_tail_iff]
 inductive refl_trans_gen (r : α → α → Prop) (a : α) : α → Prop
 | refl : refl_trans_gen a
 | tail {b c} : refl_trans_gen b → r b c → refl_trans_gen c
 
 attribute [refl] refl_trans_gen.refl
 
-mk_iff_of_inductive_prop relation.refl_trans_gen relation.refl_trans_gen.cases_tail_iff
-
 /-- `refl_gen r`: reflexive closure of `r` -/
-inductive refl_gen (r : α → α → Prop) (a : α) : α → Prop
+@[mk_iff] inductive refl_gen (r : α → α → Prop) (a : α) : α → Prop
 | refl : refl_gen a
 | single {b} : r a b → refl_gen b
 
-mk_iff_of_inductive_prop relation.refl_gen relation.refl_gen_iff
-
 /-- `trans_gen r`: transitive closure of `r` -/
-inductive trans_gen (r : α → α → Prop) (a : α) : α → Prop
+@[mk_iff] inductive trans_gen (r : α → α → Prop) (a : α) : α → Prop
 | single {b} : r a b → trans_gen b
 | tail {b c} : trans_gen b → r b c → trans_gen c
-
-mk_iff_of_inductive_prop relation.trans_gen relation.trans_gen_iff
 
 attribute [refl] refl_gen.refl
 
@@ -249,6 +244,40 @@ begin
   case trans_gen.tail : b c hab hbc IH {
     rcases IH with ⟨d, had, hdb⟩, exact ⟨_, had, hdb.tail hbc⟩ }
 end
+
+lemma trans_gen_eq_self (trans : transitive r) :
+  trans_gen r = r :=
+funext $ λ a, funext $ λ b, propext $
+⟨λ h, begin
+  induction h,
+  case trans_gen.single : c hc { exact hc },
+  case trans_gen.tail : c d hac hcd hac { exact trans hac hcd }
+end,
+trans_gen.single⟩
+
+lemma transitive_trans_gen : transitive (trans_gen r) :=
+assume a b c, trans
+
+lemma trans_gen_idem :
+  trans_gen (trans_gen r) = trans_gen r :=
+trans_gen_eq_self transitive_trans_gen
+
+lemma trans_gen_lift {p : β → β → Prop} {a b : α} (f : α → β)
+  (h : ∀a b, r a b → p (f a) (f b)) (hab : trans_gen r a b) : trans_gen p (f a) (f b) :=
+begin
+  induction hab,
+  case trans_gen.single : c hac { exact trans_gen.single (h a c hac) },
+  case trans_gen.tail : c d hac hcd hac { exact trans_gen.tail hac (h c d hcd) }
+end
+
+lemma trans_gen_lift' {p : β → β → Prop} {a b : α} (f : α → β)
+  (h : ∀ a b, r a b → trans_gen p (f a) (f b))
+  (hab : trans_gen r a b) : trans_gen p (f a) (f b) :=
+by simpa [trans_gen_idem] using trans_gen_lift f h hab
+
+lemma trans_gen_closed {p : α → α → Prop} :
+  (∀ a b, r a b → trans_gen p a b) → trans_gen r a b → trans_gen p a b :=
+trans_gen_lift' id
 
 end trans_gen
 

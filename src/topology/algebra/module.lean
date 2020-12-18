@@ -283,6 +283,7 @@ end
 
 instance : has_one (M →L[R] M) := ⟨id R M⟩
 
+lemma one_def : (1 : M →L[R] M) = id R M := rfl
 lemma id_apply : id R M x = x := rfl
 @[simp, norm_cast] lemma coe_id : (id R M : M →ₗ[R] M) = linear_map.id := rfl
 @[simp, norm_cast] lemma coe_id' : (id R M : M → M) = _root_.id := rfl
@@ -597,9 +598,11 @@ instance : has_neg (M →L[R] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 @[simp, norm_cast] lemma coe_neg : (((-f) : M →L[R] M₂) : M →ₗ[R] M₂) = -(f : M →ₗ[R] M₂) := rfl
 @[norm_cast] lemma coe_neg' : (((-f) : M →L[R] M₂) : M → M₂) = -(f : M → M₂) := rfl
 
+instance : has_sub (M →L[R] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
+
 instance : add_comm_group (M →L[R] M₂) :=
-by { refine {zero := 0, add := (+), neg := has_neg.neg, ..}; intros; ext;
-  apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm] }
+by refine {zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _, ..};
+  intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
 
 lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
 @[simp, norm_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) - g := rfl
@@ -691,8 +694,8 @@ algebra.of_semimodule' (λ c f, ext $ λ x, rfl) (λ c f, ext $ λ x, f.map_smul
 sending `f` to `λ e, c e • f`. See also `continuous_linear_map.smul_rightL`. -/
 def smul_rightₗ (c : M →L[R] R) : M₂ →ₗ[R] (M →L[R] M₂) :=
 { to_fun := c.smul_right,
-  map_add' := λ x y, by { ext e, simp [smul_add] },
-  map_smul' := λ a x, by { ext e, simp [smul_comm] } }
+  map_add' := λ x y, by { ext e, apply smul_add },
+  map_smul' := λ a x, by { ext e, apply smul_comm } }
 
 end comm_ring
 
@@ -724,6 +727,8 @@ instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨λ _, M → M₂, λ f, f⟩
 @[simp] theorem coe_def_rev (e : M ≃L[R] M₂) : e.to_continuous_linear_map = e := rfl
 
 @[simp] theorem coe_apply (e : M ≃L[R] M₂) (b : M) : (e : M →L[R] M₂) b = e b := rfl
+
+@[simp] lemma coe_to_linear_equiv (f : M ≃L[R] M₂) : ⇑f.to_linear_equiv = f := rfl
 
 @[norm_cast] lemma coe_coe (e : M ≃L[R] M₂) : ((e : M →L[R] M₂) : M → M₂) = e := rfl
 
@@ -766,14 +771,14 @@ protected lemma continuous_within_at (e : M ≃L[R] M₂) {s : set M} {x : M} :
 e.continuous.continuous_within_at
 
 lemma comp_continuous_on_iff
-  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) (s : set α) :
+  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) {f : α → M} {s : set α} :
   continuous_on (e ∘ f) s ↔ continuous_on f s :=
 e.to_homeomorph.comp_continuous_on_iff _ _
 
 lemma comp_continuous_iff
-  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) :
+  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) {f : α → M} :
   continuous (e ∘ f) ↔ continuous f :=
-e.to_homeomorph.comp_continuous_iff _
+e.to_homeomorph.comp_continuous_iff
 
 /-- An extensionality lemma for `R ≃L[R] M`. -/
 lemma ext₁ [topological_space R] {f g : R ≃L[R] M} (h : f 1 = g 1) : f = g :=

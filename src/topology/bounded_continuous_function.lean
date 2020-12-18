@@ -14,7 +14,7 @@ the uniform distance.
 -/
 
 noncomputable theory
-open_locale topological_space classical
+open_locale topological_space classical nnreal
 
 open set filter metric
 
@@ -170,7 +170,7 @@ end
 
 /-- Composition (in the target) of a bounded continuous function with a Lipschitz map again
 gives a bounded continuous function -/
-def comp (G : β → γ) {C : nnreal} (H : lipschitz_with C G)
+def comp (G : β → γ) {C : ℝ≥0} (H : lipschitz_with C G)
   (f : α →ᵇ β) : α →ᵇ γ :=
 ⟨λx, G (f x), H.continuous.comp f.2.1,
   let ⟨D, hD⟩ := f.2.2 in
@@ -180,7 +180,7 @@ def comp (G : β → γ) {C : nnreal} (H : lipschitz_with C G)
     ... ≤ max C 0 * D : mul_le_mul_of_nonneg_left (hD _ _) (le_max_right C 0)⟩⟩
 
 /-- The composition operator (in the target) with a Lipschitz map is Lipschitz -/
-lemma lipschitz_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
+lemma lipschitz_comp {G : β → γ} {C : ℝ≥0} (H : lipschitz_with C G) :
   lipschitz_with C (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
 lipschitz_with.of_dist_le_mul $ λ f g,
 (dist_le (mul_nonneg C.2 dist_nonneg)).2 $ λ x,
@@ -188,12 +188,12 @@ calc dist (G (f x)) (G (g x)) ≤ C * dist (f x) (g x) : H.dist_le_mul _ _
   ... ≤ C * dist f g : mul_le_mul_of_nonneg_left (dist_coe_le_dist _) C.2
 
 /-- The composition operator (in the target) with a Lipschitz map is uniformly continuous -/
-lemma uniform_continuous_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
+lemma uniform_continuous_comp {G : β → γ} {C : ℝ≥0} (H : lipschitz_with C G) :
   uniform_continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
 (lipschitz_comp H).uniform_continuous
 
 /-- The composition operator (in the target) with a Lipschitz map is continuous -/
-lemma continuous_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
+lemma continuous_comp {G : β → γ} {C : ℝ≥0} (H : lipschitz_with C G) :
   continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
 (lipschitz_comp H).continuous
 
@@ -432,6 +432,13 @@ instance : has_neg (α →ᵇ β) :=
 ⟨λf, of_normed_group (-f) f.2.1.neg ∥f∥ $ λ x,
   trans_rel_right _ (norm_neg _) (f.norm_coe_le_norm x)⟩
 
+/-- The pointwise difference of two bounded continuous functions is again bounded continuous. -/
+instance : has_sub (α →ᵇ β) :=
+⟨λf g, of_normed_group (f - g) (f.2.1.sub g.2.1) (∥f∥ + ∥g∥) $ λ x,
+  by { simp only [sub_eq_add_neg],
+       exact le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) $
+         trans_rel_right _ (norm_neg _) (g.norm_coe_le_norm x)) }⟩
+
 @[simp] lemma coe_add : ⇑(f + g) = λ x, f x + g x := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp] lemma coe_neg : ⇑(-f) = λ x, - f x := rfl
@@ -441,13 +448,15 @@ lemma forall_coe_zero_iff_zero : (∀x, f x = 0) ↔ f = 0 :=
 (@ext_iff _ _ _ _ f 0).symm
 
 instance : add_comm_group (α →ᵇ β) :=
-{ add_assoc    := assume f g h, by ext; simp [add_assoc],
-  zero_add     := assume f, by ext; simp,
-  add_zero     := assume f, by ext; simp,
-  add_left_neg := assume f, by ext; simp,
-  add_comm     := assume f g, by ext; simp [add_comm],
+{ add_assoc      := assume f g h, by ext; simp [add_assoc],
+  zero_add       := assume f, by ext; simp,
+  add_zero       := assume f, by ext; simp,
+  add_left_neg   := assume f, by ext; simp,
+  add_comm       := assume f g, by ext; simp [add_comm],
+  sub_eq_add_neg := assume f g, by { ext, apply sub_eq_add_neg },
   ..bounded_continuous_function.has_add,
   ..bounded_continuous_function.has_neg,
+  ..bounded_continuous_function.has_sub,
   ..bounded_continuous_function.has_zero }
 
 @[simp] lemma coe_sub : ⇑(f - g) = λ x, f x - g x := rfl

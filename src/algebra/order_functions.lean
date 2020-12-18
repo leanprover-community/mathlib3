@@ -9,7 +9,7 @@ import order.lattice
 /-!
 # `max` and `min`
 
-This file proves basic properties about maxima and minima on a `decidable_linear_order`.
+This file proves basic properties about maxima and minima on a `linear_order`.
 
 ## Tags
 
@@ -22,7 +22,7 @@ variables {α : Type u} {β : Type v}
 attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
 
 section
-variables [decidable_linear_order α] [decidable_linear_order β] {f : α → β} {a b c d : α}
+variables [linear_order α] [linear_order β] {f : α → β} {a b c d : α}
 
 -- translate from lattices to linear orders (sup → max, inf → min)
 @[simp] lemma le_min_iff : c ≤ min a b ↔ c ≤ a ∧ c ≤ b := le_inf_iff
@@ -38,6 +38,11 @@ lemma max_min_distrib_right : max (min a b) c = min (max a c) (max b c) := sup_i
 lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) := inf_sup_left
 lemma min_max_distrib_right : min (max a b) c = max (min a c) (min b c) := inf_sup_right
 lemma min_le_max : min a b ≤ max a b := le_trans (min_le_left a b) (le_max_left a b)
+
+@[simp] lemma min_eq_left_iff : min a b = a ↔ a ≤ b := inf_eq_left
+@[simp] lemma min_eq_right_iff : min a b = b ↔ b ≤ a := inf_eq_right
+@[simp] lemma max_eq_left_iff : max a b = a ↔ b ≤ a := sup_eq_left
+@[simp] lemma max_eq_right_iff : max a b = b ↔ a ≤ b := sup_eq_right
 
 /-- An instance asserting that `max a a = a` -/
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference

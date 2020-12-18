@@ -6,7 +6,8 @@ Authors: Kenny Lau, Johan Commelin, Patrick Massot
 
 import algebra.ordered_group
 import algebra.group_with_zero
-import algebra.group_with_zero_power
+import algebra.group_with_zero.power
+import tactic.abel
 
 /-!
 # Linearly ordered commutative groups with a zero element adjoined
@@ -104,6 +105,9 @@ end linear_ordered_comm_monoid
 lemma zero_le_one' : (0 : α) ≤ 1 :=
 linear_ordered_comm_group_with_zero.zero_le_one
 
+lemma zero_lt_one'' : (0 : α) < 1 :=
+lt_of_le_of_ne zero_le_one' zero_ne_one
+
 @[simp] lemma zero_le' : 0 ≤ a :=
 by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _) a
 
@@ -153,8 +157,36 @@ by { contrapose! h, simpa only [inv_inv'] using mul_inv_le_of_le_mul (inv_ne_zer
 lemma mul_lt_right' (c : α) (h : a < b) (hc : c ≠ 0) : a * c < b * c :=
 by { contrapose! h, exact le_of_le_mul_right hc h }
 
+lemma pow_lt_pow_succ {x : α} {n : ℕ} (hx : 1 < x) : x ^ n < x ^ n.succ :=
+by { rw ← one_mul (x ^ n),
+exact mul_lt_right' _ hx (pow_ne_zero _ $ ne_of_gt (lt_trans zero_lt_one'' hx)) }
+
+lemma pow_lt_pow' {x : α} {m n : ℕ} (hx : 1 < x) (hmn : m < n) : x ^ m < x ^ n :=
+by { induction hmn with n hmn ih, exacts [pow_lt_pow_succ hx, lt_trans ih (pow_lt_pow_succ hx)] }
+
 lemma inv_lt_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ < b⁻¹ ↔ b < a :=
 @inv_lt_inv_iff _ _ (units.mk0 a ha) (units.mk0 b hb)
 
 lemma inv_le_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 @inv_le_inv_iff _ _ (units.mk0 a ha) (units.mk0 b hb)
+
+namespace monoid_hom
+
+variables {R : Type*} [ring R] (f : R →* α)
+
+theorem map_neg_one : f (-1) = 1 :=
+begin
+  apply eq_one_of_pow_eq_one (nat.succ_ne_zero 1) (_ : _ ^ 2 = _),
+  rw [pow_two, ← f.map_mul, neg_one_mul, neg_neg, f.map_one],
+end
+
+@[simp] lemma map_neg (x : R) : f (-x) = f x :=
+calc f (-x) = f (-1 * x)   : by rw [neg_one_mul]
+        ... = f (-1) * f x : map_mul _ _ _
+        ... = f x          : by rw [f.map_neg_one, one_mul]
+
+lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) :=
+calc f (x - y) = f (-(y - x)) : by rw show x - y = -(y-x), by abel
+           ... = _ : map_neg _ _
+
+end monoid_hom

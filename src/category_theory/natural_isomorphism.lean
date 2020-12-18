@@ -14,12 +14,13 @@ For the most part, natural isomorphisms are just another sort of isomorphism.
 We provide some special support for extracting components:
 * if `α : F ≅ G`, then `a.app X : F.obj X ≅ G.obj X`,
 and building natural isomorphisms from components:
-* ```
-  nat_iso.of_components
-    (app : ∀ X : C, F.obj X ≅ G.obj X)
-    (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
-  F ≅ G
-  ```
+*
+```
+nat_iso.of_components
+  (app : ∀ X : C, F.obj X ≅ G.obj X)
+  (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
+F ≅ G
+```
 only needing to check naturality in one direction.
 
 ## Implementation

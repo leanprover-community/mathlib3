@@ -57,7 +57,7 @@ by { convert coeff_monomial using 2, simp [eq_comm], }
 
 @[simp] lemma coeff_C_zero : coeff (C a) 0 = a := coeff_monomial
 
-theorem nonzero.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
+theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
 ⟨⟨0, 1, λ h01 : 0 = 1, h $
     by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] ⟩⟩
 
@@ -87,5 +87,13 @@ lemma monomial_eq_smul_X {n} : monomial n (a : R) = a • X^n :=
 calc monomial n a = monomial n (a * 1) : by simp
   ... = a • monomial n 1 : (smul_single' _ _ _).symm
   ... = a • X^n  : by rw X_pow_eq_monomial
+
+lemma ring_hom_ext {S} [semiring S] {f g : polynomial R →+* S}
+  (h₁ : ∀ a, f (C a) = g (C a)) (h₂ : f X = g X) : f = g :=
+by { ext, exacts [h₁ _, h₂] }
+
+@[ext] lemma ring_hom_ext' {S} [semiring S] {f g : polynomial R →+* S}
+  (h₁ : f.comp C = g.comp C) (h₂ : f X = g X) : f = g :=
+ring_hom_ext (ring_hom.congr_fun h₁) h₂
 
 end polynomial

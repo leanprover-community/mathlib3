@@ -23,14 +23,17 @@ defines the notation `+ᵥ` for adding a group element to a point and
 
 ## Implementation notes
 
-Affine spaces are the motivating example of torsors of additive group
-actions.  It may be appropriate to refactor in terms of the general
-definition of group actions, via `to_additive`, when there is a use
-for multiplicative torsors (currently mathlib only develops the theory
-of group actions for multiplicative group actions).  The variable `G`
-is an explicit rather than implicit argument to lemmas because
-otherwise the elaborator sometimes has problems inferring appropriate
-types and type class instances.
+Affine spaces are the motivating example of torsors of additive group actions. It may be appropriate
+to refactor in terms of the general definition of group actions, via `to_additive`, when there is a
+use for multiplicative torsors (currently mathlib only develops the theory of group actions for
+multiplicative group actions).
+
+## Notations
+
+* `v +ᵥ p` is a notation for `has_vadd.vadd`, the left action of an additive monoid;
+
+* `p₁ -ᵥ p₂` is a notation for `has_vsub.vsub`, difference between two points in an additive torsor
+  as an element of the corresponding additive group;
 
 ## References
 
@@ -230,6 +233,10 @@ element. -/
 lemma eq_vadd_iff_vsub_eq (p1 : P) (g : G) (p2 : P) : p1 = g +ᵥ p2 ↔ p1 -ᵥ p2 = g :=
 ⟨λ h, h.symm ▸ vadd_vsub _ _, λ h, h ▸ (vsub_vadd _ _).symm⟩
 
+lemma vadd_eq_vadd_iff_neg_add_eq_vsub {v₁ v₂ : G} {p₁ p₂ : P} :
+  v₁ +ᵥ p₁ = v₂ +ᵥ p₂ ↔ - v₁ + v₂ = p₁ -ᵥ p₂ :=
+by rw [eq_vadd_iff_vsub_eq, vadd_vsub_assoc, ← add_right_inj (-v₁), neg_add_cancel_left, eq_comm]
+
 namespace set
 
 instance has_vsub : has_vsub (set G) (set P) := ⟨set.image2 (-ᵥ)⟩
@@ -335,9 +342,11 @@ section comm
 
 variables {G : Type*} {P : Type*} [add_comm_group G] [add_torsor G P]
 
+include G
+
 /-- Cancellation subtracting the results of two subtractions. -/
 @[simp] lemma vsub_sub_vsub_cancel_left (p1 p2 p3 : P) :
-  (p3 -ᵥ p2 : G) - (p3 -ᵥ p1) = (p1 -ᵥ p2) :=
+  (p3 -ᵥ p2) - (p3 -ᵥ p1) = (p1 -ᵥ p2) :=
 by rw [sub_eq_add_neg, neg_vsub_eq_vsub_rev, add_comm, vsub_add_vsub_cancel]
 
 @[simp] lemma vadd_vsub_vadd_cancel_left (v : G) (p1 p2 : P) :
@@ -349,6 +358,14 @@ begin
   rw [←@vsub_eq_zero_iff_eq G, vadd_vsub_assoc, vsub_vadd_eq_vsub_sub],
   simp
 end
+
+lemma vadd_eq_vadd_iff_sub_eq_vsub {v₁ v₂ : G} {p₁ p₂ : P} :
+  v₁ +ᵥ p₁ = v₂ +ᵥ p₂ ↔ v₂ - v₁ = p₁ -ᵥ p₂ :=
+by rw [vadd_eq_vadd_iff_neg_add_eq_vsub, neg_add_eq_sub]
+
+lemma vsub_sub_vsub_comm (p₁ p₂ p₃ p₄ : P) :
+  (p₁ -ᵥ p₂) - (p₃ -ᵥ p₄) = (p₁ -ᵥ p₃) - (p₂ -ᵥ p₄) :=
+by rw [← vsub_vadd_eq_vsub_sub, vsub_vadd_comm, vsub_vadd_eq_vsub_sub]
 
 end comm
 
@@ -420,6 +437,17 @@ def vadd_const (p : P) : G ≃ P :=
 
 @[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const p).symm = λ p', p' -ᵥ p := rfl
 
+/-- `p' ↦ p -ᵥ p'` as an equivalence. -/
+def const_vsub (p : P) : P ≃ G :=
+{ to_fun := (-ᵥ) p,
+  inv_fun := λ v, -v +ᵥ p,
+  left_inv := λ p', by simp,
+  right_inv := λ v, by simp [vsub_vadd_eq_vsub_sub] }
+
+@[simp] lemma coe_const_vsub (p : P) : ⇑(const_vsub p) = (-ᵥ) p := rfl
+
+@[simp] lemma coe_const_vsub_symm (p : P) : ⇑(const_vsub p).symm = λ v, -v +ᵥ p := rfl
+
 variables (P)
 
 /-- The permutation given by `p ↦ v +ᵥ p`. -/
@@ -446,5 +474,39 @@ def const_vadd_hom : multiplicative G →* equiv.perm P :=
 { to_fun := λ v, const_vadd P v.to_add,
   map_one' := const_vadd_zero G P,
   map_mul' := const_vadd_add P }
+
+variable {P}
+
+open function
+
+/-- Point reflection in `x` as a permutation. -/
+def point_reflection (x : P) : perm P := (const_vsub x).trans (vadd_const x)
+
+lemma point_reflection_apply (x y : P) : point_reflection x y = x -ᵥ y +ᵥ x := rfl
+
+@[simp] lemma point_reflection_symm (x : P) : (point_reflection x).symm = point_reflection x :=
+ext $ by simp [point_reflection]
+
+@[simp] lemma point_reflection_self (x : P) : point_reflection x x = x := vsub_vadd _ _
+
+lemma point_reflection_involutive (x : P) : involutive (point_reflection x : P → P) :=
+λ y, (equiv.apply_eq_iff_eq_symm_apply _).2 $ by rw point_reflection_symm
+
+/-- `x` is the only fixed point of `point_reflection x`. This lemma requires
+`x + x = y + y ↔ x = y`. There is no typeclass to use here, so we add it as an explicit argument. -/
+lemma point_reflection_fixed_iff_of_injective_bit0 {x y : P} (h : injective (bit0 : G → G)) :
+  point_reflection x y = y ↔ y = x :=
+by rw [point_reflection_apply, eq_comm, eq_vadd_iff_vsub_eq, ← neg_vsub_eq_vsub_rev,
+  neg_eq_iff_add_eq_zero, ← bit0, ← bit0_zero, h.eq_iff, vsub_eq_zero_iff_eq, eq_comm]
+
+omit G
+
+lemma injective_point_reflection_left_of_injective_bit0 {G P : Type*} [add_comm_group G]
+  [add_torsor G P] (h : injective (bit0 : G → G)) (y : P) :
+  injective (λ x : P, point_reflection x y) :=
+λ x₁ x₂ (hy : point_reflection x₁ y = point_reflection x₂ y),
+  by rwa [point_reflection_apply, point_reflection_apply, vadd_eq_vadd_iff_sub_eq_vsub,
+    vsub_sub_vsub_cancel_right, ← neg_vsub_eq_vsub_rev, neg_eq_iff_add_eq_zero, ← bit0, ← bit0_zero,
+    h.eq_iff, vsub_eq_zero_iff_eq] at hy
 
 end equiv

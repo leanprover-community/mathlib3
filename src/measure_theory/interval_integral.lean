@@ -129,7 +129,7 @@ open measure_theory set classical filter
 
 open_locale classical topological_space filter
 
-variables {α β 𝕜 E F : Type*} [decidable_linear_order α] [measurable_space α]
+variables {α β 𝕜 E F : Type*} [linear_order α] [measurable_space α]
   [measurable_space E] [normed_group E]
 
 /-!
@@ -190,6 +190,30 @@ lemma sub [second_countable_topology E] (hf : interval_integrable f μ a b)
 ⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
 
 end interval_integrable
+
+section
+
+variables {μ : measure ℝ} [locally_finite_measure μ]
+
+lemma continuous_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : continuous_on u (interval a b))
+  (hum : measurable u) :
+  interval_integrable u μ a b :=
+begin
+  split,
+  all_goals
+  { refine measure_theory.integrable_on.mono_set _ Ioc_subset_Icc_self,
+    refine continuous_on.integrable_on_compact compact_Icc hum (hu.mono _) },
+  { exact Icc_subset_interval },
+  { exact Icc_subset_interval' }
+end
+
+/-- A continuous function on `ℝ` is `interval_integrable` with respect to any locally finite measure
+`ν` on ℝ. -/
+lemma continuous.interval_integrable [borel_space E] {u : ℝ → E} (hu : continuous u) (a b : ℝ) :
+  interval_integrable u μ a b :=
+hu.continuous_on.interval_integrable hu.measurable
+
+end
 
 /-- Let `l'` be a measurably generated filter; let `l` be a of filter such that each `s ∈ l'`
 eventually includes `Ioc u v` as both `u` and `v` tend to `l`. Let `μ` be a measure finite at `l'`.
@@ -314,7 +338,7 @@ by { simp only [interval_integral, integral_neg], abel }
 
 lemma integral_sub (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
   ∫ x in a..b, f x - g x ∂μ = ∫ x in a..b, f x ∂μ - ∫ x in a..b, g x ∂μ :=
-(integral_add hf hg.neg).trans $ congr_arg _ integral_neg
+by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _ integral_neg)
 
 lemma integral_smul (r : ℝ) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, integral_smul, smul_sub]
@@ -437,8 +461,7 @@ lemma integral_eq_integral_of_support_subset {f : α → E} {a b} (h : function.
 begin
   by_cases hfm : measurable f,
   { cases le_total a b with hab hab,
-    { rw [integral_of_le hab, ← integral_indicator hfm is_measurable_Ioc,
-        indicator_of_support_subset h] },
+    { rw [integral_of_le hab, ← integral_indicator hfm is_measurable_Ioc, indicator_eq_self.2 h] },
     { rw [Ioc_eq_empty hab, subset_empty_iff, function.support_eq_empty_iff] at h,
       simp [h] } },
   { rw [integral_non_measurable hfm, measure_theory.integral_non_measurable hfm] },
@@ -478,7 +501,7 @@ begin
   { rw [Ioc_eq_empty hab, empty_union] at hf,
     simp [integral_of_ge hab, Ioc_eq_empty hab, integral_nonneg_of_ae hf] }
 end
-  
+
 lemma integral_pos_iff_support_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ}
   (hf : 0 ≤ᵐ[volume] f) (hfi : interval_integrable f volume a b) :
   0 < ∫ x in a..b, f x ↔ a < b ∧ 0 < volume (function.support f ∩ Ioc a b) :=

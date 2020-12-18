@@ -38,7 +38,7 @@ end
 /-- A polynomial is bounded on a compact interval. In this formulation, there is the
 flexibility of using a larger-than-optimal bound. -/
 lemma exists_forall_ge_of_polynomial_Ioo (α : ℝ) (f : polynomial ℝ) :
-  ∃ M : ℝ, ∀ N, N ≥ M → ∀ y ∈ Icc (α - 1) (α + 1), abs (eval y f) ≤ N :=
+  ∃ M : ℝ, ∀ N, M ≤ N → ∀ y ∈ Icc (α - 1) (α + 1), abs (eval y f) ≤ N :=
 begin
   obtain ⟨x, ⟨-, hy⟩⟩ := is_compact.exists_forall_ge compact_Icc ⟨α - 1, ⟨rfl.le,
     sub_le_iff_le_add.mpr (le_add_of_le_of_nonneg (le_add_of_le_of_nonneg rfl.le zero_le_one)

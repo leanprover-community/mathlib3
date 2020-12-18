@@ -302,6 +302,15 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
   ..with_zero.partial_order
 }
 
+/-
+Note 1 : the below is not an instance because it requires `zero_le`. It seems
+like a rather pathological definition because α already has a zero.
+
+Note 2 : there is no multiplicative analogue because it does not seem necessary.
+Mathematicians might be more likely to use the order-dual version, where all
+elements are ≤ 1 and then 1 is the top element.
+-/
+
 /--
 If `0` is the least element in `α`, then `with_zero α` is an `ordered_add_comm_monoid`.
 -/
@@ -511,55 +520,88 @@ by norm_cast
 end with_bot
 
 /-- A canonically ordered additive monoid is an ordered commutative additive monoid
+  in which the ordering coincides with the subtractibility relation,
+  which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
+  This is satisfied by the natural numbers, for example, but not
+  the integers or other ordered groups. -/
+@[protect_proj, ancestor ordered_add_comm_monoid order_bot]
+class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, order_bot α :=
+(le_iff_exists_add : ∀ a b : α, a ≤ b ↔ ∃ c, b = a + c)
+
+/-- A canonically ordered monoid is an ordered commutative monoid
   in which the ordering coincides with the divisibility relation,
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
   the integers or other ordered groups. -/
-@[protect_proj]
-class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, order_bot α :=
-(le_iff_exists_add : ∀a b:α, a ≤ b ↔ ∃c, b = a + c)
+@[protect_proj, ancestor ordered_comm_monoid order_bot, to_additive]
+class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, order_bot α :=
+(le_iff_exists_mul : ∀ a b : α, a ≤ b ↔ ∃ c, b = a * c)
 
-section canonically_ordered_add_monoid
-variables [canonically_ordered_add_monoid α] {a b c d : α}
+section canonically_ordered_monoid
 
-lemma le_iff_exists_add : a ≤ b ↔ ∃c, b = a + c :=
-canonically_ordered_add_monoid.le_iff_exists_add a b
+variables [canonically_ordered_monoid α] {a b c d : α}
 
-@[simp] lemma zero_le (a : α) : 0 ≤ a := le_iff_exists_add.mpr ⟨a, by simp⟩
+@[to_additive]
+lemma le_iff_exists_mul : a ≤ b ↔ ∃c, b = a * c :=
+canonically_ordered_monoid.le_iff_exists_mul a b
 
-@[simp] lemma bot_eq_zero : (⊥ : α) = 0 :=
-le_antisymm bot_le (zero_le ⊥)
+@[to_additive zero_le, simp] lemma one_le (a : α) : 1 ≤ a := le_iff_exists_mul.mpr ⟨a, by simp⟩
 
-@[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=
-add_eq_zero_iff' (zero_le _) (zero_le _)
+@[to_additive, simp] lemma bot_eq_one : (⊥ : α) = 1 :=
+le_antisymm bot_le (one_le ⊥)
 
-@[simp] lemma le_zero_iff_eq : a ≤ 0 ↔ a = 0 :=
+@[to_additive, simp] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
+mul_eq_one_iff' (one_le _) (one_le _)
+
+@[to_additive, simp] lemma le_one_iff_eq : a ≤ 1 ↔ a = 1 :=
 iff.intro
-  (assume h, le_antisymm h (zero_le a))
+  (assume h, le_antisymm h (one_le a))
   (assume h, h ▸ le_refl a)
 
-lemma zero_lt_iff_ne_zero : 0 < a ↔ a ≠ 0 :=
-iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (zero_le _) hne.symm
+@[to_additive] lemma one_lt_iff_ne_one : 1 < a ↔ a ≠ 1 :=
+iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (one_le _) hne.symm
 
-lemma exists_pos_add_of_lt (h : a < b) : ∃ c > 0, a + c = b :=
+@[to_additive] lemma exists_pos_mul_of_lt (h : a < b) : ∃ c > 1, a * c = b :=
 begin
-  obtain ⟨c, hc⟩ := le_iff_exists_add.1 h.le,
-  refine ⟨c, zero_lt_iff_ne_zero.2 _, hc.symm⟩,
+  obtain ⟨c, hc⟩ := le_iff_exists_mul.1 h.le,
+  refine ⟨c, one_lt_iff_ne_one.2 _, hc.symm⟩,
   rintro rfl,
   simpa [hc, lt_irrefl] using h
 end
 
-lemma le_add_left (h : a ≤ c) : a ≤ b + c :=
-calc a = 0 + a : by simp
-  ... ≤ b + c : add_le_add (zero_le _) h
+@[to_additive] lemma le_mul_left (h : a ≤ c) : a ≤ b * c :=
+calc a = 1 * a : by simp
+  ... ≤ b * c : mul_le_mul' (one_le _) h
 
-lemma le_add_right (h : a ≤ b) : a ≤ b + c :=
-calc a = a + 0 : by simp
-  ... ≤ b + c : add_le_add h (zero_le _)
+@[to_additive] lemma le_mul_right (h : a ≤ b) : a ≤ b * c :=
+calc a = a * 1 : by simp
+  ... ≤ b * c : mul_le_mul' h (one_le _)
 
-local attribute [semireducible] with_zero
+#check with_zero.ordered_add_comm_monoid
 
-instance with_zero.canonically_ordered_add_monoid :
+local attribute [semireducible] with_zero with_one
+
+instance with_one.canonically_ordered_monoid :
+  canonically_ordered_monoid (with_one α) :=
+{ le_iff_exists_mul := λ a b, begin
+    cases a with a,
+    { exact iff_of_true bot_le ⟨b, (zero_add b).symm⟩ },
+    cases b with b,
+    { exact iff_of_false
+        (mt (le_antisymm bot_le) (by simp))
+        (λ ⟨c, h⟩, by cases c; cases h) },
+    { simp [le_iff_exists_add, -add_comm],
+      split; intro h; rcases h with ⟨c, h⟩,
+      { exact ⟨some c, congr_arg some h⟩ },
+      { cases c; cases h,
+        { exact ⟨_, (add_zero _).symm⟩ },
+        { exact ⟨_, rfl⟩ } } }
+  end,
+  bot    := 1,
+  bot_le := assume a a' h, option.no_confusion h,
+  .. with_one.ordered_comm_monoid one_le }
+
+instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
   canonically_ordered_add_monoid (with_zero α) :=
 { le_iff_exists_add := λ a b, begin
     cases a with a,
@@ -579,7 +621,7 @@ instance with_zero.canonically_ordered_add_monoid :
   bot_le := assume a a' h, option.no_confusion h,
   .. with_zero.ordered_add_comm_monoid zero_le }
 
-instance with_top.canonically_ordered_add_monoid : canonically_ordered_add_monoid (with_top α) :=
+instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] : canonically_ordered_add_monoid (with_top α) :=
 { le_iff_exists_add := assume a b,
   match a, b with
   | a, none     := show a ≤ ⊤ ↔ ∃c, ⊤ = a + c, by simp; refine ⟨⊤, _⟩; cases a; refl

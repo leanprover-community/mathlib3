@@ -223,7 +223,7 @@ begin
       ring_hom.ker_coe_equiv (alg_equiv.to_ring_equiv e), ring_hom.ker_eq_comap_bot] }
 end
 
-/-- The ring of polynomials in finitely many variables is of finitely presentation. -/
+/-- The ring of polynomials in finitely many variables is finitely presented. -/
 lemma mv_polynomial (ι : Type u_2) [fintype ι] : finitely_presented R (mv_polynomial ι R) :=
 begin
   obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι _,

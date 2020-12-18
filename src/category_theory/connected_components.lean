@@ -12,6 +12,14 @@ import category_theory.full_subcategory
 /-!
 # Connected components of a category
 
+Defines a type `connected_components J` indexing the connected components of a category, and the
+full subcategories giving each connected component: `component j : Type u₁`.
+We show that each `component j` is in fact connected.
+
+We show every category can be expressed as a disjoint union of its connected components, in
+particular `decomposed J` is the category (definitionally) given by the sigma-type of the connected
+components of `J`, and it is shown that this is equivalent to `J`.
+
 -/
 
 universes v₁ v₂ v₃ u₁ u₂
@@ -34,7 +42,7 @@ def connected_components (J : Type u₁) [category.{v₁} J] : Type u₁ := quot
 @[derive category]
 def component (j : connected_components J) : Type u₁ := {k : J // quotient.mk' k = j}
 
-/-- The obvious inclusion functor from a connected component to the whole category. -/
+/-- The inclusion functor from a connected component to the whole category. -/
 @[derive [full, faithful]]
 def include_component (j) : component j ⥤ J :=
 full_subcategory_inclusion _
@@ -48,6 +56,8 @@ begin
 end
 
 /-- Each connected component of the category is connected. -/
+-- TODO: this proof seems longer than it should be, so I suspect there's some API missing for
+-- `is_connected`.
 instance (j : connected_components J) : is_connected (component j) :=
 begin
   apply zigzag_is_connected,
@@ -94,18 +104,28 @@ This category is equivalent to `J`.
 @[derive category]
 def decomposed (J : Type u₁) [category.{v₁} J] := Σ (j : connected_components J), component j
 
-def inclusion (j : connected_components J) : component j ⥤ decomposed J :=
+/--
+The inclusion of each component into the decomposed category. This is just `sigma.incl` but having
+this abbreviation helps guide typeclass search get the right category instance on `decomposed J`.
+-/
+abbreviation inclusion (j : connected_components J) : component j ⥤ decomposed J :=
 sigma.incl _
 
 /-- The forward direction of the equivalence between the decomposed category and the original. -/
-def forward (J : Type u₁) [category.{v₁} J] : decomposed J ⥤ J :=
+@[simps {rhs_md := semireducible}]
+def decomposed_to (J : Type u₁) [category.{v₁} J] : decomposed J ⥤ J :=
 sigma.desc include_component
 
-instance : full (forward J) :=
+@[simp]
+lemma inclusion_comp_decomposed_to (j : connected_components J) :
+  inclusion j ⋙ decomposed_to J = include_component j :=
+rfl
+
+instance : full (decomposed_to J) :=
 { preimage :=
   begin
     rintro ⟨j', X, hX⟩ ⟨k', Y, hY⟩ f,
-    dsimp [forward] at f,
+    dsimp at f,
     have : j' = k',
       rw [← hX, ← hY, quotient.eq'],
       exact relation.refl_trans_gen.single (or.inl ⟨f⟩),
@@ -122,7 +142,7 @@ instance : full (forward J) :=
     refl,
   end }
 
-instance : faithful (forward J) :=
+instance : faithful (decomposed_to J) :=
 { map_injective' :=
   begin
     rintro ⟨_, j, rfl⟩ ⟨_, k, hY⟩ ⟨_, _, _, f⟩ ⟨_, _, _, g⟩ e,
@@ -130,24 +150,15 @@ instance : faithful (forward J) :=
     subst e,
   end }
 
-instance : ess_surj (forward J) :=
-{ obj_preimage := λ j, ⟨_, j, rfl⟩,
-  iso' := λ j, iso.refl _ }
+instance : ess_surj (decomposed_to J) :=
+{ obj_preimage := λ j, ⟨⟨_, j, rfl⟩, ⟨iso.refl _⟩⟩ }
+
+instance : is_equivalence (decomposed_to J) :=
+equivalence.equivalence_of_fully_faithfully_ess_surj _
 
 /-- This gives that any category is equivalent to a disjoint union of connected categories. -/
-instance : is_equivalence (forward J) := equivalence.equivalence_of_fully_faithfully_ess_surj _
-
-@[simps]
-def thingy (H F : decomposed J ⥤ C) :
-  (H ⟶ F) ≅ Π j, (sigma.incl j ⋙ H ⟶ sigma.incl j ⋙ F) :=
-{ hom := λ α j, whisker_left _ α,
-  inv := sigma.nat_trans }
-
-lemma thingy_natural {H H' F F' : decomposed J ⥤ C} (α : H' ⟶ H) (β : F ⟶ F') (γ : H ⟶ F) :
-  (thingy H' F').hom (α ≫ γ ≫ β) = (λ j, whisker_left _ α ≫ (thingy H F).hom γ j ≫ whisker_left _ β) :=
-begin
-  ext j X,
-  refl,
-end
+@[simps functor {rhs_md := semireducible}]
+def decomposed_equiv : decomposed J ≌ J :=
+(decomposed_to J).as_equivalence
 
 end category_theory

@@ -114,7 +114,7 @@ tendsto_iff_norm_tendsto_zero.2 $
       calc ∥f e - f x∥ = ∥hf.mk' f (e - x)∥ : by rw (hf.mk' _).map_sub e x; refl
                    ... ≤ M * ∥e - x∥        : hM (e - x))
     (suffices tendsto (λ (e : E), M * ∥e - x∥) (𝓝 x) (𝓝 (M * 0)), by simpa,
-      tendsto_const_nhds.mul (lim_norm _))
+      tendsto_const_nhds.mul (tendsto_norm_sub_self _))
 
 lemma continuous (hf : is_bounded_linear_map 𝕜 f) : continuous f :=
 continuous_iff_continuous_at.2 $ λ _, hf.tendsto _

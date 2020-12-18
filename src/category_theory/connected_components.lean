@@ -19,7 +19,6 @@ We show that each `component j` is in fact connected.
 We show every category can be expressed as a disjoint union of its connected components, in
 particular `decomposed J` is the category (definitionally) given by the sigma-type of the connected
 components of `J`, and it is shown that this is equivalent to `J`.
-
 -/
 
 universes v₁ v₂ v₃ u₁ u₂
@@ -43,7 +42,7 @@ def connected_components (J : Type u₁) [category.{v₁} J] : Type u₁ := quot
 def component (j : connected_components J) : Type u₁ := {k : J // quotient.mk' k = j}
 
 /-- The inclusion functor from a connected component to the whole category. -/
-@[derive [full, faithful]]
+@[derive [full, faithful], simps {rhs_md := semireducible}]
 def include_component (j) : component j ⥤ J :=
 full_subcategory_inclusion _
 
@@ -56,12 +55,11 @@ begin
 end
 
 /-- Each connected component of the category is connected. -/
--- TODO: this proof seems longer than it should be, so I suspect there's some API missing for
 -- `is_connected`.
 instance (j : connected_components J) : is_connected (component j) :=
 begin
   -- Show it's connected by constructing a zigzag (in `component j`) between any two objects
-  apply zigzag_is_connected,
+  apply is_connected_of_zigzag,
   rintro ⟨j₁, hj₁⟩ ⟨j₂, rfl⟩,
   -- We know that the underlying objects j₁ j₂ have some zigzag between them in `J`
   have h₁₂ : zigzag j₁ j₂ := quotient.exact' hj₁,
@@ -76,32 +74,11 @@ begin
     { intros j k,
       apply relation.refl_trans_gen.head },
     { apply relation.refl_trans_gen.refl } },
-  -- Lift the zigzag from `j₁` to `j₂` in `J` to the same thing in `component j`.
-  let l' : list (component (quotient.mk' j₂)) := l.pmap f hf,
-  -- The new zigzag in `component j` is in fact a zigzag.
-  have : list.chain zigzag (⟨j₁, hj₁⟩ : component _) l',
-  { induction l generalizing hl₁ hl₂ j₁ hf,
-    { apply list.chain.nil },
-    { have hl₃ := list.chain_cons.1 hl₁,
-      apply list.chain.cons,
-      { apply relation.refl_trans_gen.single,
-        refine zag_of_zag_obj (include_component _) _,
-        apply hl₃.1 },
-      { refine l_ih _ _ _ hl₃.2 _ _,
-        { apply relation.refl_trans_gen.head (zag_symmetric hl₃.1) h₁₂ },
-        { rwa list.last_cons_cons at hl₂ } } } },
-  -- Convert our list zigzag to the relation zigzag to conclude.
-  apply list.chain.induction_head (λ t, zigzag t (⟨j₂, rfl⟩ : component _)) _ this _ _ _,
-  { refine ⟨_, rfl⟩ },
-  { have h : ∀ (a : J), a ∈ j₁ :: l → zigzag a j₂,
-    { simpa [h₁₂] using hf },
-    change (list.pmap f (j₁ :: l) h).last _ = _,
-    erw list.last_pmap _ _ _ _ (list.cons_ne_nil _ _),
-    apply subtype.ext,
-    apply hl₂ },
-  { intros _ _,
-    apply relation.refl_trans_gen.trans },
-  { apply relation.refl_trans_gen.refl },
+  -- Now lift the zigzag from `j₁` to `j₂` in `J` to the same thing in `component j`.
+  refine ⟨l.pmap f hf, _, _⟩,
+  apply list.chain_pmap_of_chain f (λ x y _ _ h, zag_of_zag_obj (include_component _) h) _ hl₁ h₁₂,
+  erw list.last_pmap _ f (j₁ :: l) (by simpa [h₁₂] using hf) (list.cons_ne_nil _ _),
+  exact subtype.ext hl₂,
 end
 
 /--
@@ -109,8 +86,8 @@ The disjoint union of `J`s connected components, written explicitly as a sigma-t
 category structure.
 This category is equivalent to `J`.
 -/
-@[derive category]
-def decomposed (J : Type u₁) [category.{v₁} J] := Σ (j : connected_components J), component j
+abbreviation decomposed (J : Type u₁) [category.{v₁} J] :=
+Σ (j : connected_components J), component j
 
 /--
 The inclusion of each component into the decomposed category. This is just `sigma.incl` but having

@@ -14,6 +14,16 @@ Tactic to clear denominators in algebraic expressions, based on `simp` with a sp
 -/
 
 namespace tactic
+
+/-- Try to prove a goal of the form `x ≠ 0` by calling `assumption`, or `norm_num1` if `x` is
+a numeral. -/
+meta def field_simp.ne_zero : tactic unit := do
+  goal ← tactic.target,
+  match goal with
+  | `(%%e ≠ 0) := assumption <|> do n ← e.to_rat, `[norm_num1]
+  | _ := tactic.fail "goal should be of the form `x ≠ 0`"
+  end
+
 namespace interactive
 open interactive interactive.types
 
@@ -33,7 +43,7 @@ If the goal is an equality, this simpset will also clear the denominators, so th
 can normally be concluded by an application of `ring` or `ring_exp`.
 
 `field_simp [hx, hy]` is a short form for
-`simp [-one_div, -mul_eq_zero, hx, hy] with field_simps {discharger := [assumption <|> norm_num]}`
+`simp [-one_div, -mul_eq_zero, hx, hy] with field_simps {discharger := [field_simp.ne_zero]}`
 
 Note that this naive algorithm will not try to detect common factors in denominators to reduce the
 complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
@@ -48,8 +58,7 @@ invocation, check the denominators of the resulting expression and provide proof
 nonzero to enable further progress.
 
 To check that denominators are nonzero, `field_simp` will look for facts in the context, and
-will try to apply `norm_num` to close numerical goals. If you don't need these features and
-`field_simp` is too slow in your use-case, use `field_simp [hx, hy] {discharger := none}`.
+will try to apply `norm_num` to close numerical goals.
 
 The invocation of `field_simp` removes the lemma `one_div` from the simpset, as this lemma
 works against the algorithm explained above. It also removes
@@ -75,7 +84,7 @@ entirely remove (numeric) division from the expression by multiplying by a facto
 meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list)
   (locat : parse location)
-  (cfg : simp_config_ext := {discharger := `[assumption <|> norm_num]}) : tactic unit :=
+  (cfg : simp_config_ext := {discharger := field_simp.ne_zero}) : tactic unit :=
 let attr_names := `field_simps :: attr_names,
     hs := simp_arg_type.except `one_div :: simp_arg_type.except `mul_eq_zero :: hs in
 propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat)

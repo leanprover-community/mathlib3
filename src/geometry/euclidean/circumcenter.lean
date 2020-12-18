@@ -85,6 +85,8 @@ begin
   exact h
 end
 
+set_option profiler true
+
 /-- The induction step for the existence and uniqueness of the
 circumcenter.  Given a nonempty set of points in a nonempty affine
 subspace whose direction is complete, such that there is a unique
@@ -129,7 +131,7 @@ begin
               (orthogonal_projection_mem hn hc p) hcc _ _
               (vsub_orthogonal_projection_mem_direction_orthogonal s p),
             ←dist_eq_norm_vsub V p, dist_comm _ cc],
-        field_simp [hy0] {discharger := none},
+        field_simp [hy0],
         ring },
       { rw [dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
               _ (hps hp1),
@@ -175,16 +177,18 @@ begin
     rw [(show x * x + (1 - t₃) * (1 - t₃) * (y * y) =
            x * x + y * y - 2 * y * (t₃ * y) + t₃ * y * (t₃ * y), by ring), add_left_inj] at hcr₃,
     have ht₃ : t₃ = ycc₂ / y,
-    { field_simp [←hcr₃, hy0] {discharger := none},
+    { field_simp [←hcr₃, hy0],
       ring },
     subst ht₃,
     change cc₃ = cc₂ at hcc₃,
     congr',
     rw hcr₃val,
     congr' 2,
-    field_simp [hy0] {discharger := none},
+    field_simp [hy0],
     ring }
 end
+
+#exit
 
 /-- Given a finite nonempty affinely independent family of points,
 there is a unique (circumcenter, circumradius) pair for those points

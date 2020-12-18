@@ -277,9 +277,9 @@ theorem ext {φ₁ φ₂ : (⨂[R] i, s i) →ₗ[R] E}
 begin
   refine linear_map.ext _,
   refine λ z,
-    (pi_tensor_product.induction_on' z _ (λ x y hx hy, by rw [φ₁.map_add, φ₂.map_add, hx, hy])),
+    (pi_tensor_product.induction_on z _ (λ x y hx hy, by rw [φ₁.map_add, φ₂.map_add, hx, hy])),
   { intros r f,
-    rw [tprod_coeff_eq_smul_tprod, φ₁.map_smul, φ₂.map_smul],
+    rw [φ₁.map_smul, φ₂.map_smul],
     apply _root_.congr_arg,
     exact multilinear_map.congr_fun H f }
 end

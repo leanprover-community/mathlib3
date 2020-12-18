@@ -115,43 +115,17 @@ begin
   split,
   { exact measurable.add hf.1 hg.1, },
   simp_rw [pi.add_apply, ennreal.coe_rpow_of_nonneg _ hp0],
-  -- step 1: use nnnorm_add_le
-  calc ∫⁻ (a : α), ↑(nnnorm (f a + g a) ^ p) ∂μ ≤ ∫⁻ a, ↑((nnnorm (f a) + nnnorm (g a)) ^ p) ∂ μ :
-  begin
-    refine lintegral_mono_nnreal (λ a, _),
-    exact nnreal.rpow_le_rpow (nnnorm_add_le (f a) (g a)) (le_of_lt hp0_lt)
-  end
-  -- step 2: use convexity of rpow
-  ... ≤ ∫⁻ a, ↑((2:nnreal)^(p-1) * (nnnorm (f a)) ^ p + (2:nnreal)^(p-1) * (nnnorm (g a)) ^ p) ∂ μ :
-  begin
-    refine lintegral_mono_nnreal (λ a, _),
-    have h_zero_lt_half_rpow : (0 : nnreal) < (1 / 2) ^ p,
-    { rw [←nnreal.zero_rpow (ne_of_lt hp0_lt).symm, nnreal.rpow_lt_rpow_iff hp0_lt],
-      simp [zero_lt_one], },
-    have h_rw : (1 / 2) ^ p * (2:nnreal) ^ (p - 1) = 1 / 2,
-    { rw [nnreal.rpow_sub two_ne_zero, nnreal.div_rpow, nnreal.one_rpow, nnreal.rpow_one,
-        ←mul_div_assoc, one_div, inv_mul_cancel],
-      simp [two_ne_zero], },
-    rw [←mul_le_mul_left h_zero_lt_half_rpow, mul_add, ← mul_assoc, ← mul_assoc, h_rw,
-      ←nnreal.mul_rpow, mul_add],
-    refine nnreal.rpow_arith_mean_le_arith_mean2_rpow (1/2 : nnreal) (1/2 : nnreal)
-      (nnnorm (f a)) (nnnorm (g a)) _ hp1,
-    rw [nnreal.div_add_div_same, one_add_one_eq_two, nnreal.div_self two_ne_zero]
-  end
-  -- step 3: use hypotheses hf and hg
-  ... < ⊤ :
-  begin
-    simp_rw [ennreal.coe_add, ennreal.coe_mul, ←ennreal.coe_rpow_of_nonneg _ hp0],
-    rw [lintegral_add, lintegral_const_mul, lintegral_const_mul, ennreal.add_lt_top],
-    { simp [ennreal.mul_lt_top_iff, hf.2, hg.2] },
-    -- finish by proving the measurability of all functions involved
-    { exact hg.left.nnnorm.ennreal_coe.ennreal_rpow_const, },
-    { exact hf.left.nnnorm.ennreal_coe.ennreal_rpow_const, },
-    { exact (ennreal.continuous_const_mul (by simp)).measurable.comp
-        hf.left.nnnorm.ennreal_coe.ennreal_rpow_const, },
-    { exact (ennreal.continuous_const_mul (by simp)).measurable.comp
-        hg.left.nnnorm.ennreal_coe.ennreal_rpow_const },
-  end
+  have h_nnnorm_add_le : ∫⁻ (a : α), ↑(nnnorm (f a + g a) ^ p) ∂μ
+    ≤ ∫⁻ a, ↑((nnnorm (f a) + nnnorm (g a)) ^ p) ∂μ,
+  { refine lintegral_mono_nnreal (λ a, _),
+    exact nnreal.rpow_le_rpow (nnnorm_add_le (f a) (g a)) (le_of_lt hp0_lt), },
+  refine lt_of_le_of_lt h_nnnorm_add_le _,
+  simp_rw [←ennreal.coe_rpow_of_nonneg _ hp0, ennreal.coe_add],
+  let f_nnnorm := (λ a : α, (nnnorm (f a) : ennreal)),
+  let g_nnnorm := (λ a : α, (nnnorm (g a) : ennreal)),
+  change ∫⁻ (a : α), ((f_nnnorm + g_nnnorm) a) ^ p ∂μ < ⊤,
+  exact ennreal.lintegral_rpow_add_lt_top_of_lintegral_rpow_lt_top hf.1.nnnorm.ennreal_coe hf.2
+    hg.1.nnnorm.ennreal_coe hg.2 hp1,
 end
 
 end borel_space

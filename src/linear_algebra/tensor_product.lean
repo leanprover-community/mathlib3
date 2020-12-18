@@ -710,12 +710,12 @@ end semiring
 
 section ring
 
-variables {R : Type*} [comm_ring R]
+variables {R : Type*} [comm_semiring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
 variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
   [add_comm_group S]
-variables [module R M] [module R N] [module R P] [module R Q] [module R S]
+variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
 
 namespace tensor_product
 
@@ -755,11 +755,13 @@ lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := rfl
 
 instance : add_comm_group (M ⊗[R] N) :=
 { neg := has_neg.neg,
+  sub := _,
+  sub_eq_add_neg := λ _ _, rfl,
   add_left_neg := λ x, tensor_product.induction_on x
     (by { rw [add_zero], apply (neg.aux R).map_zero, })
     (λ x y, by { convert (add_tmul (-x) x y).symm, rw [add_left_neg, zero_tmul], })
     (λ x y hx hy, by {
-      unfold has_neg.neg,
+      unfold has_neg.neg sub_neg_monoid.neg,
       rw add_monoid_hom.map_add,
       ac_change (-x + x) + (-y + y) = 0,
       rw [hx, hy, add_zero], }),

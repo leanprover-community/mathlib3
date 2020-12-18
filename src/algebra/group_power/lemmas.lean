@@ -283,8 +283,8 @@ by induction m with m ih; [exact int.cast_one,
 lemma neg_one_pow_eq_pow_mod_two [ring R] {n : ℕ} : (-1 : R) ^ n = (-1) ^ (n % 2) :=
 by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [pow_two]
 
-section linear_ordered_semiring
-variable [linear_ordered_semiring R]
+section ordered_semiring
+variable [ordered_semiring R]
 
 /-- Bernoulli's inequality. This version works for semirings but requires
 an additional hypothesis `0 ≤ a * a`. -/
@@ -339,7 +339,7 @@ lemma pow_le_one {x : R} : ∀ (n : ℕ) (h0 : 0 ≤ x) (h1 : x ≤ 1), x ^ n �
 | 0     h0 h1 := le_refl (1 : R)
 | (n+1) h0 h1 := mul_le_one h1 (pow_nonneg h0 _) (pow_le_one n h0 h1)
 
-end linear_ordered_semiring
+end ordered_semiring
 
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
 theorem one_add_mul_le_pow [linear_ordered_ring R] {a : R} (H : -2 ≤ a) :

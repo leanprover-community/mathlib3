@@ -74,23 +74,16 @@ instance [has_zero α] : has_zero (matrix m n α) := pi.has_zero
 instance [add_monoid α] : add_monoid (matrix m n α) := pi.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (matrix m n α) := pi.add_comm_monoid
 instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
+instance [has_sub α] : has_sub (matrix m n α) := pi.has_sub
 instance [add_group α] : add_group (matrix m n α) := pi.add_group
 instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_group
 
-@[simp] theorem zero_apply [has_zero α] (i j) :
-  (0 : matrix m n α) i j = 0 :=
-rfl
-
-@[simp] theorem neg_apply [has_neg α] (M : matrix m n α) (i j) :
-  (- M) i j = - M i j :=
-rfl
-
+@[simp] theorem zero_apply [has_zero α] (i j) : (0 : matrix m n α) i j = 0 := rfl
+@[simp] theorem neg_apply [has_neg α] (M : matrix m n α) (i j) : (- M) i j = - M i j := rfl
 @[simp] theorem add_apply [has_add α] (M N : matrix m n α) (i j) :
   (M + N) i j = M i j + N i j :=
 rfl
-
--- TODO: this should assume `has_sub α` when we fix the `add_group -> has_sub` diamond issue
-@[simp] theorem sub_apply [add_group α] (M N : matrix m n α) (i j) :
+@[simp] theorem sub_apply [has_sub α] (M N : matrix m n α) (i j) :
   (M - N) i j = M i j - N i j :=
 rfl
 

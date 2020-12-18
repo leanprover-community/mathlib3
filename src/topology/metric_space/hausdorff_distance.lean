@@ -500,20 +500,20 @@ by simp [inf_dist, inf_edist_image hΦ]
 
 /-! ### Distance of a point to a set as a function into `ℝ≥0`. -/
 
-/-- The minimal distance of a point to a set as a `nnreal` -/
+/-- The minimal distance of a point to a set as a `ℝ≥0` -/
 def inf_nndist (x : α) (s : set α) : ℝ≥0 := ennreal.to_nnreal (inf_edist x s)
 @[simp] lemma coe_inf_nndist : (inf_nndist x s : ℝ) = inf_dist x s := rfl
 
-/-- The minimal distance to a set (as `nnreal`) is Lipschitz in point with constant 1 -/
+/-- The minimal distance to a set (as `ℝ≥0`) is Lipschitz in point with constant 1 -/
 lemma lipschitz_inf_nndist_pt (s : set α) : lipschitz_with 1 (λx, inf_nndist x s) :=
 lipschitz_with.of_le_add $ λ x y, inf_dist_le_inf_dist_add_dist
 
-/-- The minimal distance to a set (as `nnreal`) is uniformly continuous in point -/
+/-- The minimal distance to a set (as `ℝ≥0`) is uniformly continuous in point -/
 lemma uniform_continuous_inf_nndist_pt (s : set α) :
   uniform_continuous (λx, inf_nndist x s) :=
 (lipschitz_inf_nndist_pt s).uniform_continuous
 
-/-- The minimal distance to a set (as `nnreal`) is continuous in point -/
+/-- The minimal distance to a set (as `ℝ≥0`) is continuous in point -/
 lemma continuous_inf_nndist_pt (s : set α) : continuous (λx, inf_nndist x s) :=
 (uniform_continuous_inf_nndist_pt s).continuous
 

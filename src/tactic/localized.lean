@@ -36,8 +36,6 @@ The code is inspired by code from Gabriel Ebner from the
 
 open lean lean.parser interactive tactic native
 
-reserve notation `localized`
-
 @[user_attribute]
 meta def localized_attr : user_attribute (rb_lmap name string) unit := {
   name := "_localized",

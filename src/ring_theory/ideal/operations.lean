@@ -1145,7 +1145,11 @@ lemma quotient_map_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.c
   {x : R} : quotient_map I f H (quotient.mk J x) = quotient.mk I (f x) :=
 quotient.lift_mk J _ _
 
-/-- If we take `J = I.comap f` then `quotient_map` is injective -/
+lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f} :
+  (quotient_map I f H).comp (quotient.mk J) = (quotient.mk I).comp f :=
+ring_hom.ext (λ x, by simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient_map_mk])
+
+/-- If we take `J = I.comap f` then `quotient_map` is injective. -/
 lemma quotient_map_injective {I : ideal S} {f : R →+* S} :
   function.injective (quotient_map I f le_rfl) :=
 begin
@@ -1155,7 +1159,12 @@ begin
   rwa quotient.eq_zero_iff_mem at ha ⊢
 end
 
-/-- Commutativity of a square is preserved when taking quotients by an ideal -/
+lemma quotient_map_surjective {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
+  (hf : function.surjective f) : function.surjective (quotient_map I f H) :=
+λ x, let ⟨x, hx⟩ := quotient.mk_surjective x in
+  let ⟨y, hy⟩ := hf x in ⟨(quotient.mk J) y, by simp [hx, hy]⟩
+
+/-- Commutativity of a square is preserved when taking quotients by an ideal. -/
 lemma comp_quotient_map_eq_of_comp_eq {R' S' : Type*} [comm_ring R'] [comm_ring S']
   {f : R →+* S} {f' : R' →+* S'} {g : R →+* R'} {g' : S →+* S'} (hfg : f'.comp g = g'.comp f)
   (I : ideal S') : (quotient_map I g' le_rfl).comp (quotient_map (I.comap g') f le_rfl) =

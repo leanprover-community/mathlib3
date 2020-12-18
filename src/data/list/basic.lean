@@ -1892,7 +1892,7 @@ by rw [foldl_cons, hc.comm, foldl_assoc]
 
 end
 
-/-! ### mfoldl, mfoldr -/
+/-! ### mfoldl, mfoldr, mmap -/
 
 section mfoldl_mfoldr
 variables {m : Type v → Type w} [monad m]
@@ -1910,6 +1910,11 @@ variables {m : Type v → Type w} [monad m]
 theorem mfoldr_eq_foldr (f : α → β → m β) (b l) :
   mfoldr f b l = foldr (λ a mb, mb >>= f a) (pure b) l :=
 by induction l; simp *
+
+@[simp] lemma mmap_nil {f : α → m β} : list.nil.mmap f = pure [] := rfl
+
+@[simp] lemma mmap_cons {f : α → m β} {a l} :
+  (a :: l).mmap f = f a >>= λ a', l.mmap f >>= λ l', pure (a'::l') := rfl
 
 variables [is_lawful_monad m]
 

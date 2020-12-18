@@ -7,6 +7,12 @@ Authors: Sébastien Gouëzel
 import tactic.interactive
 import tactic.norm_num
 
+/-!
+# `field_simp` tactic
+
+Tactic to clear denominators in algebraic expressions, based on `simp` with a specific simpset.
+-/
+
 namespace tactic
 namespace interactive
 open interactive interactive.types
@@ -44,8 +50,11 @@ nonzero to enable further progress.
 To check that denominators are nonzero, `field_simp` will look for facts in the context, and
 will try to apply `norm_num` to close numerical goals.
 
-The invocation of `field_simp` removes the lemma `one_div` (which is marked as a simp lemma
-in core) from the simpset, as this lemma works against the algorithm explained above.
+The invocation of `field_simp` removes the lemma `one_div` from the simpset, as this lemma
+works against the algorithm explained above. It also removes
+`mul_eq_zero : x * y = 0 ↔ x = 0 ∨ y = 0`, as `norm_num` can not work on disjunctions to
+close goals of the form `24 ≠ 0`, and replaces it with `mul_ne_zero : x ≠ 0 → y ≠ 0 → x * y ≠ 0`
+creating two goals instead of a disjunction.
 
 For example,
 ```lean
@@ -55,12 +64,12 @@ begin
   field_simp,
   ring
 end
+```
 
 See also the `cancel_denoms` tactic, which tries to do a similar simplification for expressions
 that have numerals in denominators.
 The tactics are not related: `cancel_denoms` will only handle numeric denominators, and will try to
 entirely remove (numeric) division from the expression by multiplying by a factor.
-```
 -/
 meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list)

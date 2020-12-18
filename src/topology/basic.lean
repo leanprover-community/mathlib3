@@ -1000,6 +1000,8 @@ lemma continuous.tendsto {f : α → β} (hf : continuous f) (x) :
 ((nhds_basis_opens x).tendsto_iff $ nhds_basis_opens $ f x).2 $
   λ t ⟨hxt, ht⟩, ⟨f ⁻¹' t, ⟨hxt, ht.preimage hf⟩, subset.refl _⟩
 
+/-- A version of `continuous.tendsto` that allows one to specify a simpler form of the limit.
+E.g., one can write `continuous_exp.tendsto' 0 1 exp_zero`. -/
 lemma continuous.tendsto' {f : α → β} (hf : continuous f) (x : α) (y : β) (h : f x = y) :
   tendsto f (𝓝 x) (𝓝 y) :=
 h ▸ hf.tendsto x

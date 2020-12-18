@@ -11,7 +11,7 @@ universes u v₁ v₂ v₃ v₄
 
 
 /-!
-# The tensor product of R-algebras.
+# The tensor product of R-algebras
 
 We construct the R-algebra structure on `A ⊗[R] B`, when `A` and `B` are both `R`-algebras,
 and provide the structure isomorphisms

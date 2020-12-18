@@ -480,6 +480,16 @@ protected def function.injective.ring [has_zero β] [has_one β] [has_add β] [h
   ring β :=
 { .. hf.add_comm_group f zero add neg, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
+/-- Pullback a `ring` instance along an injective function,
+with a subtraction (`-`) that is not necessarily defeq to `a + -b`. -/
+protected def function.injective.ring_sub
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  ring β :=
+{ .. hf.add_comm_group_sub f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
+
 /-- Pullback a `ring` instance along an injective function. -/
 protected def function.surjective.ring [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -487,6 +497,16 @@ protected def function.surjective.ring [has_zero β] [has_one β] [has_add β] [
   (neg : ∀ x, f (-x) = -f x) :
   ring β :=
 { .. hf.add_comm_group f zero add neg, .. hf.monoid f one mul, .. hf.distrib f add mul }
+
+/-- Pullback a `ring` instance along an injective function,
+with a subtraction (`-`) that is not necessarily defeq to `a + -b`. -/
+protected def function.surjective.ring_sub
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  ring β :=
+{ .. hf.add_comm_group_sub f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
 lemma neg_mul_eq_neg_mul (a b : α) : -(a * b) = -a * b :=
 neg_eq_of_add_eq_zero
@@ -622,7 +642,7 @@ instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 section comm_ring
 variables [comm_ring α] {a b c : α}
 
-/-- Pullback a `ring` instance along an injective function. -/
+/-- Pullback a `comm_ring` instance along an injective function. -/
 protected def function.injective.comm_ring [has_zero β] [has_one β] [has_add β] [has_mul β]
   [has_neg β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
@@ -630,13 +650,33 @@ protected def function.injective.comm_ring [has_zero β] [has_one β] [has_add �
   comm_ring β :=
 { .. hf.ring f zero one add mul neg, .. hf.comm_semigroup f mul }
 
-/-- Pullback a `ring` instance along an injective function. -/
+/-- Pullback a `comm_ring` instance along an injective function,
+with a subtraction (`-`) that is not necessarily defeq to `a + -b`. -/
+protected def function.injective.comm_ring_sub
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  comm_ring β :=
+{ .. hf.ring_sub f zero one add mul neg sub, .. hf.comm_semigroup f mul }
+
+/-- Pullback a `comm_ring` instance along an injective function. -/
 protected def function.surjective.comm_ring [has_zero β] [has_one β] [has_add β] [has_mul β]
   [has_neg β] (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) :
   comm_ring β :=
 { .. hf.ring f zero one add mul neg, .. hf.comm_semigroup f mul }
+
+/-- Pullback a `comm_ring` instance along an injective function,
+with a subtraction (`-`) that is not necessarily defeq to `a + -b`. -/
+protected def function.surjective.comm_ring_sub
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  comm_ring β :=
+{ .. hf.ring_sub f zero one add mul neg sub, .. hf.comm_semigroup f mul }
 
 local attribute [simp] add_assoc add_comm add_left_comm mul_comm
 

@@ -360,7 +360,7 @@ def cast (eq : n = m) : fin n ≃o fin m :=
 @[simp] lemma cast_trans {k : ℕ} (h : n = m) (h' : m = k) {i : fin n} :
   cast h' (cast h i) = cast (eq.trans h h') i := rfl
 
-@[simp] lemma cast_id {h : n = n} {i : fin n} : cast h i = i :=
+@[simp] lemma cast_refl {i : fin n} : cast rfl i = i :=
 by { ext, refl }
 
 /-- `cast_add m i` embeds `i : fin n` in `fin (n+m)`. -/

@@ -308,7 +308,8 @@ def alternatization : multilinear_map R (λ i : ι, M) N' →+ alternating_map R
 { to_fun := λ m,
   { to_fun := λ v, ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v,
     map_add' := λ v i a b, by simp_rw [←finset.sum_add_distrib, multilinear_map.map_add, smul_add],
-    map_smul' := λ v i c a, by simp_rw [finset.smul_sum, multilinear_map.map_smul, smul_comm],
+    map_smul' := λ v i c a, by simp_rw [finset.smul_sum, multilinear_map.map_smul,
+                                        smul_comm (_ : ℤ)],
     map_eq_zero_of_eq' := λ v i j hvij hij, alternization_map_eq_zero_of_eq_aux m v i j hij hvij },
   map_add' := λ a b, begin
     ext,

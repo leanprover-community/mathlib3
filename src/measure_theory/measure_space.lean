@@ -498,6 +498,10 @@ begin
   exact λ x ⟨⟨_, h₁⟩, _, h₂⟩, h₂ h₁
 end
 
+protected lemma caratheodory (μ : measure α) {s t : set α} (hs : is_measurable s) :
+  μ (t ∩ s) + μ (t \ s) = μ t :=
+(le_to_outer_measure_caratheodory μ s hs t).symm
+
 @[simp] lemma to_measure_to_outer_measure {α} (m : outer_measure α)
   [ms : measurable_space α] (h : ms ≤ m.caratheodory) :
   (m.to_measure h).to_outer_measure = m.trim := rfl

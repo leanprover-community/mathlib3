@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Yakov Pechersky. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yakov Pechersky
+-/
 import data.list.basic
 
 open parser parse_result
@@ -18,7 +23,8 @@ def valid : Prop :=
   ∀ (cb : char_buffer) (n : ℕ), n ≤ (p cb n).pos ∧ ((p cb n).pos ≤ cb.size → n ≤ cb.size)
 
 lemma fail_iff :
-  (∀ pos' result, p cb n ≠ done pos' result) ↔ ∃ (pos' : ℕ) (err : dlist string), p cb n = fail pos' err :=
+  (∀ pos' result, p cb n ≠ done pos' result) ↔
+    ∃ (pos' : ℕ) (err : dlist string), p cb n = fail pos' err :=
 begin
   cases p cb n,
   { simp only [not_not, exists_false, exists_eq_right', iff_false, exists_eq', not_forall] },
@@ -229,7 +235,8 @@ begin
       { have : posq = n := le_antisymm (le_of_not_lt H) (le_of_not_lt H'),
         simp only [this, lt_irrefl, true_and, false_or, eq_self_iff_true, exists_eq_left',
                    and_false] } } },
-  { simp only [h, parser.orelse, if_true, exists_false, ne.def, not_false_iff, false_and, or_self] },
+  { simp only [h, parser.orelse, if_true, exists_false, ne.def, not_false_iff, false_and,
+               or_self] },
 end
 
 lemma orelse_eq_fail_invalid_lt (hn : n' < n) : (p <|> q) cb n = fail n' err ↔

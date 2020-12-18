@@ -157,14 +157,13 @@ end linear_map
 
 section semiring
 variables {R : Type*} [comm_semiring R]
-variables {R' : Type*} [comm_semiring R'] [has_scalar R' R]
+variables {R' : Type*} [comm_semiring R']
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
   [add_comm_monoid S]
 variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
 variables [semimodule R' M] [semimodule R' N]
-variables [is_scalar_tower R' R M] [is_scalar_tower R' R N]
 include R
 
 variables (M N)
@@ -249,13 +248,36 @@ variables {N}
 lemma tmul_add (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ + n₂) = m ⊗ₜ n₁ + m ⊗ₜ[R] n₂ :=
 eq.symm $ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_add_right _ _ _
 
-lemma smul_tmul (r : R') (m : M) (n : N) : (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
-begin
+section
+
+variables (R R' M N)
+
+/--
+A typeclass for `has_scalar` structures which can be moved across a tensor product.
+
+This typeclass is generated automatically from a `has_scalar_tower` instance, but exists so that
+we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
+`R` does not support negation.
+-/
+class compatible_smul :=
+(smul_tmul : ∀ (r : R') (m : M) (n : N), (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n))
+
+end
+
+instance compatible_smul.has_scalar_tower
+  [has_scalar R' R] [is_scalar_tower R' R M] [is_scalar_tower R' R N] :
+  compatible_smul R R' M N :=
+⟨λ r m n, begin
   conv_lhs {rw ← one_smul R m},
   conv_rhs {rw ← one_smul R n},
   rw [←smul_assoc, ←smul_assoc],
   exact (quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _),
-end
+end⟩
+
+variables [compatible_smul R R' M N] [smul_comm_class R R' M] [smul_comm_class R R' N]
+
+lemma smul_tmul (r : R') (m : M) (n : N) : (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
+compatible_smul.smul_tmul _ _ _
 
 /-- Auxiliary function to defining scalar multiplication on tensor product. -/
 def smul.aux {R' : Type*} [has_scalar R' M] (r : R') : free_add_monoid (M × N) →+ M ⊗[R] N :=
@@ -280,7 +302,7 @@ add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
 | _, _, (eqv.of_add_right m n₁ n₂) := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, smul.aux_of, tmul_add]
 | _, _, (eqv.of_smul s m n)        := (add_con.ker_rel _).2 $
-    by rw [smul.aux_of, smul.aux_of, ←smul_assoc, smul_tmul, smul_tmul, smul_assoc]
+    by rw [smul.aux_of, smul.aux_of, ←smul_comm, smul_tmul]
 | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end⟩
@@ -798,6 +820,23 @@ lemma tmul_sub (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ - n₂) = (m ⊗ₜ[R] n
 
 lemma sub_tmul (m₁ m₂ : M) (n : N) : (m₁ - m₂) ⊗ₜ n = (m₁ ⊗ₜ[R] n) - (m₂ ⊗ₜ[R] n) :=
 (mk R M N).map_sub₂ _ _ _
+
+/--
+While the tensor product will automatically inherit a ℤ-module structure from
+`add_comm_group.int_module`, that structure won't be compatible with lemmas like `tmul_smul` unless
+we use a `ℤ-module` instance provided by `tensor_product.semimodule'`.
+
+When `R` is a `ring` we get the required `tensor_product.compatible_smul` instance through
+`is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
+The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
+-/
+instance compatible_smul.int : compatible_smul R ℤ M N :=
+⟨λ r m n, begin
+  induction r using int.induction_on,
+  case hz : { simp },
+  case hp : r ih { simpa [add_smul, tmul_add, add_tmul] using ih, },
+  case hn : r ih { simpa [sub_smul, tmul_sub, sub_tmul] using ih, },
+end⟩
 
 end tensor_product
 

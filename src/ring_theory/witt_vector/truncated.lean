@@ -16,20 +16,18 @@ It retains the first `n` coefficients of each Witt vector.
 In this file, we set up the basic quotient API for this ring.
 
 The ring of Witt vectors is the projective limit of all the rings of truncated Witt vectors.
-We prove this in future work.
 
 ## Main declarations
 
 - `truncated_witt_vector`: the underlying type of the ring of truncated Witt vectors
-- `witt_vector.truncate_fun`: the truncation map that truncates a Witt vector,
-                              to obtain a truncated Witt vector
-                              (in future work, this will be bundled into a homomorphism)
 - `truncated_witt_vector.comm_ring`: the ring structure on truncated Witt vectors
-
-## TODO
-
-Show that `witt_vector p R` is the projective limit of the system
-`truncated_witt_vector p n R` as `n` varies.
+- `witt_vector.truncate`: the quotient homomorphism that truncates a Witt vector,
+  to obtain a truncated Witt vector
+- `truncated_witt_vector.truncate`: the homomorphism that truncates
+  a truncated Witt vector of length `n` to one of length `m` (for some `m ≤ n`)
+- `witt_vector.lift`: the unique ring homomorphism into the ring of Witt vectors
+  that is compatible with a family of ring homomorphisms to the truncated Witt vectors:
+  this realizes the ring of Witt vectors as projective limit of the rings of truncated Witt vectors
 
 -/
 
@@ -240,3 +238,221 @@ instance : comm_ring (truncated_witt_vector p n R) :=
   (truncate_fun_neg n)
 
 end truncated_witt_vector
+
+namespace witt_vector
+open truncated_witt_vector
+
+variables (n)
+variable [comm_ring R]
+include hp
+
+/-- `truncate n` is a ring homomorphism that truncates `x` to its first `n` entries
+to obtain a `truncated_witt_vector`, which has the same base `p` as `x`. -/
+def truncate : 𝕎 R →+* truncated_witt_vector p n R :=
+{ to_fun := truncate_fun n,
+  map_zero' := truncate_fun_zero p n R,
+  map_add' := truncate_fun_add n,
+  map_one' := truncate_fun_one p n R,
+  map_mul' := truncate_fun_mul n }
+
+variables (p n R)
+
+lemma truncate_surjective : surjective (truncate n : 𝕎 R → truncated_witt_vector p n R) :=
+truncate_fun_surjective p n R
+
+variables {p n R}
+
+@[simp] lemma coeff_truncate (x : 𝕎 R) (i : fin n) :
+  (truncate n x).coeff i = x.coeff i :=
+coeff_truncate_fun _ _
+
+variables (n)
+
+lemma mem_ker_truncate (x : 𝕎 R) :
+  x ∈ (@truncate p _ n R _).ker ↔ ∀ i < n, x.coeff i = 0 :=
+begin
+  simp only [ring_hom.mem_ker, truncate, truncate_fun, ring_hom.coe_mk,
+    truncated_witt_vector.ext_iff, truncated_witt_vector.coeff_mk, coeff_zero],
+  exact subtype.forall
+end
+
+variables (p)
+
+@[simp] lemma truncate_mk (f : ℕ → R) :
+  truncate n (mk p f) = truncated_witt_vector.mk _ (λ k, f k) :=
+begin
+  ext i,
+  rw [coeff_truncate, coeff_mk, truncated_witt_vector.coeff_mk],
+end
+
+end witt_vector
+
+namespace truncated_witt_vector
+
+variable [comm_ring R]
+include hp
+
+/--
+A ring homomorphism that truncates a truncated Witt vector of length `m` to
+a truncated Witt vector of length `n`, for `n ≤ m`.
+-/
+def truncate {m : ℕ} (hm : n ≤ m) : truncated_witt_vector p m R →+* truncated_witt_vector p n R :=
+ring_hom.lift_of_surjective
+  (witt_vector.truncate m)
+  (witt_vector.truncate_surjective p m R)
+  (witt_vector.truncate n)
+  begin
+    intro x,
+    simp only [witt_vector.mem_ker_truncate],
+    intros h i hi,
+    exact h i (lt_of_lt_of_le hi hm)
+  end
+
+@[simp] lemma truncate_comp_witt_vector_truncate {m : ℕ} (hm : n ≤ m) :
+  (@truncate p _ n R _ m hm).comp (witt_vector.truncate m) = witt_vector.truncate n :=
+ring_hom.lift_of_surjective_comp _ _ _ _
+
+@[simp] lemma truncate_witt_vector_truncate {m : ℕ} (hm : n ≤ m) (x : 𝕎 R) :
+  truncate hm (witt_vector.truncate m x) = witt_vector.truncate n x :=
+ring_hom.lift_of_surjective_comp_apply _ _ _ _ _
+
+@[simp] lemma truncate_truncate {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n₃)
+  (x : truncated_witt_vector p n₃ R) :
+  (truncate h1) (truncate h2 x) = truncate (h1.trans h2) x :=
+begin
+  obtain ⟨x, rfl⟩ := witt_vector.truncate_surjective p n₃ R x,
+  simp only [truncate_witt_vector_truncate],
+end
+
+@[simp] lemma truncate_comp {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n₃) :
+  (@truncate p _ _ R _ _ h1).comp (truncate h2) = truncate (h1.trans h2) :=
+begin
+  ext1 x, simp only [truncate_truncate, function.comp_app, ring_hom.coe_comp]
+end
+
+lemma truncate_surjective {m : ℕ} (hm : n ≤ m) : surjective (@truncate p _ _ R _ _ hm) :=
+begin
+  intro x,
+  obtain ⟨x, rfl⟩ := witt_vector.truncate_surjective p _ R x,
+  exact ⟨witt_vector.truncate _ x, truncate_witt_vector_truncate _ _⟩
+end
+
+@[simp] lemma coeff_truncate {m : ℕ} (hm : n ≤ m) (i : fin n) (x : truncated_witt_vector p m R) :
+  (truncate hm x).coeff i = x.coeff (fin.cast_le hm i) :=
+begin
+  obtain ⟨y, rfl⟩ := witt_vector.truncate_surjective p _ _ x,
+  simp only [truncate_witt_vector_truncate, witt_vector.coeff_truncate, fin.coe_cast_le],
+end
+
+section fintype
+omit hp
+
+instance {R : Type*} [fintype R] : fintype (truncated_witt_vector p n R) := pi.fintype
+
+variables (p n R)
+
+lemma card {R : Type*} [fintype R] :
+  fintype.card (truncated_witt_vector p n R) = fintype.card R ^ n :=
+by simp only [truncated_witt_vector, fintype.card_fin, fintype.card_fun]
+
+end fintype
+
+lemma infi_ker_truncate : (⨅ i : ℕ, (@witt_vector.truncate p _ i R _).ker) = ⊥ :=
+begin
+  rw [submodule.eq_bot_iff],
+  intros x hx,
+  ext,
+  simp only [witt_vector.mem_ker_truncate, ideal.mem_infi, witt_vector.zero_coeff] at hx ⊢,
+  exact hx _ _ (nat.lt_succ_self _)
+end
+
+end truncated_witt_vector
+
+namespace witt_vector
+open truncated_witt_vector (hiding truncate coeff)
+
+section lift
+
+variable [comm_ring R]
+variables {S : Type*} [semiring S]
+variable (f : Π k : ℕ, S →+* truncated_witt_vector p k R)
+variable f_compat : ∀ (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂),
+           (truncated_witt_vector.truncate hk).comp (f k₂) = f k₁
+variables {p R}
+variable (n)
+
+/--
+Given a family `fₖ : S → truncated_witt_vector p k R` and `s : S`, we produce a Witt vector by
+defining the `k`th entry to be the final entry of `fₖ s`.
+-/
+def lift_fun (s : S) : 𝕎 R :=
+witt_vector.mk p $ λ k, truncated_witt_vector.coeff (fin.last k) (f (k+1) s)
+
+variables {f}
+include f_compat
+
+@[simp] lemma truncate_lift_fun (s : S) :
+  witt_vector.truncate n (lift_fun f s) = f n s :=
+begin
+  ext i,
+  simp only [lift_fun, truncated_witt_vector.coeff_mk, witt_vector.truncate_mk],
+  rw [← f_compat (i+1) n i.is_lt, ring_hom.comp_apply, truncated_witt_vector.coeff_truncate],
+  -- this is a bit unfortunate
+  congr' with _,
+  simp only [fin.coe_last, fin.coe_cast_le],
+end
+
+variable (f)
+
+/--
+Given compatible ring homs from `S` into `truncated_witt_vector n` for each `n`, we can lift these
+to a ring hom `S → 𝕎 R`.
+
+`lift` defines the universal property of `𝕎 R` as the inverse limit of `truncated_witt_vector n`.
+-/
+def lift : S →+* 𝕎 R :=
+by refine_struct { to_fun := lift_fun f };
+   { intros,
+     rw [← sub_eq_zero, ← ideal.mem_bot, ← infi_ker_truncate, ideal.mem_infi],
+     simp [ring_hom.mem_ker, f_compat] }
+
+variable {f}
+
+@[simp] lemma truncate_lift (s : S) :
+  witt_vector.truncate n (lift _ f_compat s) = f n s :=
+truncate_lift_fun _ f_compat s
+
+@[simp] lemma truncate_comp_lift :
+  (witt_vector.truncate n).comp (lift _ f_compat) = f n :=
+by { ext1, rw [ring_hom.comp_apply, truncate_lift] }
+
+/-- The uniqueness part of the universal property of `𝕎 R`. -/
+lemma lift_unique (g : S →+* 𝕎 R) (g_compat : ∀ k, (witt_vector.truncate k).comp g = f k) :
+  lift _ f_compat = g :=
+begin
+  ext1 x,
+  rw [← sub_eq_zero, ← ideal.mem_bot, ← infi_ker_truncate, ideal.mem_infi],
+  intro i,
+  simp only [ring_hom.mem_ker, g_compat, ←ring_hom.comp_apply,
+    truncate_comp_lift, ring_hom.map_sub, sub_self],
+end
+
+omit f_compat
+include hp
+
+/-- The universal property of `𝕎 R` as projective limit of truncated Witt vector rings. -/
+@[simps] def lift_equiv : {f : Π k, S →+* truncated_witt_vector p k R // ∀ k₁ k₂ (hk : k₁ ≤ k₂),
+  (truncated_witt_vector.truncate hk).comp (f k₂) = f k₁} ≃ (S →+* 𝕎 R) :=
+{ to_fun := λ f, lift f.1 f.2,
+  inv_fun := λ g, ⟨λ k, (truncate k).comp g,
+    by { intros _ _ h, simp only [←ring_hom.comp_assoc, truncate_comp_witt_vector_truncate] }⟩,
+  left_inv := by { rintro ⟨f, hf⟩, simp only [truncate_comp_lift] },
+  right_inv := λ g, lift_unique _ _ $ λ _, rfl }
+
+lemma hom_ext (g₁ g₂ : S →+* 𝕎 R) (h : ∀ k, (truncate k).comp g₁ = (truncate k).comp g₂) :
+  g₁ = g₂ :=
+lift_equiv.symm.injective $ subtype.ext $ funext h
+
+end lift
+
+end witt_vector

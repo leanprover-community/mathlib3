@@ -424,11 +424,15 @@ def local_inverse (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) : F → 
 
 variables {f f' a}
 
+lemma local_inverse_def (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
+  hf.local_inverse f _ _ = (hf.to_local_homeomorph f).symm :=
+rfl
+
 lemma eventually_left_inverse (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
   ∀ᶠ x in 𝓝 a, hf.local_inverse f f' a (f x) = x :=
 (hf.to_local_homeomorph f).eventually_left_inverse hf.mem_to_local_homeomorph_source
 
-lemma local_inverse_apply_image (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
+@[simp] lemma local_inverse_apply_image (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
   hf.local_inverse f f' a (f a) = a :=
 hf.eventually_left_inverse.self_of_nhds
 
@@ -454,11 +458,8 @@ eventually_eq_of_left_inv_of_right_inv hg hf.eventually_right_inverse $
 then the inverse function `hf.local_inverse f` has derivative `f'.symm` at `f a`. -/
 theorem to_local_inverse (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
   has_strict_fderiv_at (hf.local_inverse f f' a) (f'.symm : F →L[𝕜] E) (f a) :=
-begin
-  have : has_strict_fderiv_at f (f' : E →L[𝕜] F) (hf.local_inverse f f' a (f a)),
-  { rwa hf.local_inverse_apply_image },
-  exact this.of_local_left_inverse hf.local_inverse_continuous_at hf.eventually_right_inverse
-end
+(hf.to_local_homeomorph f).has_strict_fderiv_at_symm hf.image_mem_to_local_homeomorph_target $
+  by simpa [← local_inverse_def] using hf
 
 /-- If `f : E → F` has an invertible derivative `f'` at `a` in the sense of strict differentiability
 and `g (f x) = x` in a neighborhood of `a`, then `g` has derivative `f'.symm` at `f a`.
@@ -563,7 +564,8 @@ lemma to_local_inverse
   times_cont_diff_at ℝ n (hf.local_inverse hf' hn) (f a) :=
 begin
   have := hf.local_inverse_apply_image hf' hn,
-  apply times_cont_diff_at.of_local_homeomorph (image_mem_to_local_homeomorph_target hf hf' hn),
+  apply (hf.to_local_homeomorph f hf' hn).times_cont_diff_at_symm
+    (image_mem_to_local_homeomorph_target hf hf' hn),
   { convert hf' },
   { convert hf }
 end

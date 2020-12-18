@@ -623,6 +623,7 @@ end sum_prod
 -/
 
 section add_monoid
+
 variables [add_monoid M]
 
 instance : has_add (α →₀ M) := ⟨zip_with (+) (add_zero 0)⟩
@@ -837,9 +838,13 @@ instance [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
 { add_comm := assume ⟨s, f, _⟩ ⟨t, g, _⟩, ext $ assume a, add_comm _ _,
   .. finsupp.add_monoid }
 
+instance [add_group G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
+
 instance [add_group G] : add_group (α →₀ G) :=
-{ neg          := map_range (has_neg.neg) neg_zero,
-  add_left_neg := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
+{ neg            := map_range (has_neg.neg) neg_zero,
+  sub            := has_sub.sub,
+  sub_eq_add_neg := λ x y, ext (λ i, sub_eq_add_neg _ _),
+  add_left_neg   := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
   .. finsupp.add_monoid }
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=

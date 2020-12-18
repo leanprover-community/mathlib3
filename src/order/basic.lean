@@ -154,6 +154,7 @@ def order_dual (α : Type*) := α
 
 namespace order_dual
 instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
+instance (α : Type*) [h : subsingleton α] : subsingleton (order_dual α) := h
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
 instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λx y:α, y < x⟩
 

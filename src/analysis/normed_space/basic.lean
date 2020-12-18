@@ -414,7 +414,7 @@ lemma tendsto_norm {x : α} : tendsto (λg : α, ∥g∥) (𝓝 x) (𝓝 ∥x∥
 by simpa using tendsto_id.dist (tendsto_const_nhds : tendsto (λ g, (0:α)) _ _)
 
 lemma tendsto_norm_zero : tendsto (λg : α, ∥g∥) (𝓝 0) (𝓝 0) :=
-by simpa using (tendsto_norm : tendsto _ (𝓝 (0:α)) _)
+by simpa using tendsto_norm_sub_self (0:α)
 
 lemma continuous_norm : continuous (λg:α, ∥g∥) :=
 by simpa using continuous_id.dist (continuous_const : continuous (λ g, (0:α)))

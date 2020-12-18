@@ -53,7 +53,8 @@ lemma length_zip_with_of_left {f : α → β → γ} {i : ℕ} {l : list α} {l'
   i < l.length :=
 by { rw [length_zip_with, lt_min_iff] at h, exact h.left }
 
-lemma length_zip_with_of_right {f : α → β → γ} {i : ℕ} {l : list α} {l' : list β} (h : i < (zip_with f l l').length) :
+lemma length_zip_with_of_right {f : α → β → γ} {i : ℕ} {l : list α} {l' : list β}
+  (h : i < (zip_with f l l').length) :
   i < l'.length :=
 by { rw [length_zip_with, lt_min_iff] at h, exact h.right }
 
@@ -196,8 +197,10 @@ begin
   { rintro ⟨h₀, h₁⟩, exact ⟨_,_,h₀,h₁,rfl⟩ }
 end
 
-@[simp] lemma nth_le_zip_with {f : α → β → γ} {l : list α} {l' : list β} {i : ℕ} {h : i < (zip_with f l l').length} :
-  (zip_with f l l').nth_le i h = f (l.nth_le i (length_zip_with_of_left h)) (l'.nth_le i (length_zip_with_of_right h)) :=
+@[simp] lemma nth_le_zip_with {f : α → β → γ} {l : list α} {l' : list β} {i : ℕ}
+  {h : i < (zip_with f l l').length} :
+  (zip_with f l l').nth_le i h =
+    f (l.nth_le i (length_zip_with_of_left h)) (l'.nth_le i (length_zip_with_of_right h)) :=
 begin
   rw [←option.some_inj, ←nth_le_nth, nth_zip_with_eq_some],
   refine ⟨l.nth_le i (length_zip_with_of_left h), l'.nth_le i (length_zip_with_of_right h),
@@ -206,7 +209,8 @@ begin
 end
 
 @[simp] lemma nth_le_zip {l : list α} {l' : list β} {i : ℕ} {h : i < (zip l l').length} :
-  (zip l l').nth_le i h = (l.nth_le i (length_zip_of_left h), l'.nth_le i (length_zip_of_right h)) :=
+  (zip l l').nth_le i h =
+    (l.nth_le i (length_zip_of_left h), l'.nth_le i (length_zip_of_right h)) :=
 nth_le_zip_with
 
 lemma mem_zip_inits_tails {l : list α} {init tail : list α} :

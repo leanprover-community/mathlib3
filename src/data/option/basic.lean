@@ -162,6 +162,9 @@ by { rcases x with _ | _ | x; simp }
   x.join.join = (x.map join).join :=
 by { rcases x with _ | _ | _ | x; simp }
 
+lemma mem_of_mem_join {a : α} {x : option (option α)} (h : a ∈ x.join) : some a ∈ x :=
+mem_def.mpr ((mem_def.mp h).symm ▸ join_eq_some.mp h)
+
 @[simp] theorem seq_some {α β} {a : α} {f : α → β} : some f <*> some a = some (f a) := rfl
 
 @[simp] theorem some_orelse' (a : α) (x : option α) : (some a).orelse x = some a := rfl

@@ -1916,6 +1916,12 @@ by induction l; simp *
 @[simp] lemma mmap_cons {f : α → m β} {a l} :
   (a :: l).mmap f = f a >>= λ a', l.mmap f >>= λ l', pure (a'::l') := rfl
 
+@[simp] lemma mmap'_nil {m : Type → Type v} [monad m] {α β} {f : α → m β} :
+  list.nil.mmap' f = pure () := rfl
+
+@[simp] lemma mmap'_cons {m : Type → Type v} [monad m] {α β} {f : α → m β} {a l} :
+  (a :: l).mmap' f = f a >> l.mmap' f := rfl
+
 variables [is_lawful_monad m]
 
 theorem mfoldl_eq_foldl (f : β → α → m β) (b l) :

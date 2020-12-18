@@ -689,7 +689,7 @@ lemma tendsto_mul_exp_add_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) (hn 
   tendsto (λ x, (b * (exp x) + c) / (x^n)) at_top at_top :=
 begin
   refine tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) _)
-    (tendsto_at_top_add_tendsto_right ( (tendsto_exp_div_pow_at_top n).const_mul_at_top hb)
+    (((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
       ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
   intros x hx,
   simp only [fpow_neg x n],

@@ -2255,7 +2255,7 @@ begin
   { refine (inverse_add_norm_diff_second_order x).trans_is_o ((is_o_norm_norm).mp _),
     simp only [normed_field.norm_pow, norm_norm],
     have h12 : 1 < 2 := by norm_num,
-    convert (asymptotics.is_o_pow_pow h12).comp_tendsto lim_norm_zero,
+    convert (asymptotics.is_o_pow_pow h12).comp_tendsto tendsto_norm_zero,
     ext, simp },
   have h_lim : tendsto (λ (y:R), y - x) (𝓝 x) (𝓝 0),
   { refine tendsto_zero_iff_norm_tendsto_zero.mpr _,

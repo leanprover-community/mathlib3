@@ -120,7 +120,7 @@ src/algebra/lie/classical.lean : line 215 : ERR_LIN : Line has more than 100 cha
 src/algebra/lie/classical.lean : line 363 : ERR_LIN : Line has more than 100 characters
 src/algebra/linear_recurrence.lean : line 172 : ERR_LIN : Line has more than 100 characters
 src/algebra/module/basic.lean : line 117 : ERR_LIN : Line has more than 100 characters
-src/algebra/module/basic.lean : line 325 : ERR_LIN : Line has more than 100 characters
+src/algebra/module/basic.lean : line 343 : ERR_LIN : Line has more than 100 characters
 src/algebra/module/ordered.lean : line 182 : ERR_LIN : Line has more than 100 characters
 src/algebra/module/ordered.lean : line 190 : ERR_LIN : Line has more than 100 characters
 src/algebra/module/ordered.lean : line 193 : ERR_LIN : Line has more than 100 characters
@@ -165,12 +165,12 @@ src/analysis/analytic/composition.lean : line 905 : ERR_LIN : Line has more than
 src/analysis/analytic/composition.lean : line 906 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 909 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 949 : ERR_LIN : Line has more than 100 characters
-src/analysis/calculus/deriv.lean : line 1099 : ERR_LIN : Line has more than 100 characters
+src/analysis/calculus/deriv.lean : line 1086 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/deriv.lean : line 308 : ERR_LIN : Line has more than 100 characters
-src/analysis/calculus/fderiv.lean : line 1865 : ERR_LIN : Line has more than 100 characters
+src/analysis/calculus/fderiv.lean : line 1927 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/fderiv.lean : line 205 : ERR_LIN : Line has more than 100 characters
-src/analysis/calculus/fderiv.lean : line 2289 : ERR_LIN : Line has more than 100 characters
-src/analysis/calculus/fderiv.lean : line 2458 : ERR_LIN : Line has more than 100 characters
+src/analysis/calculus/fderiv.lean : line 2351 : ERR_LIN : Line has more than 100 characters
+src/analysis/calculus/fderiv.lean : line 2520 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/fderiv.lean : line 307 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/fderiv.lean : line 404 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/fderiv.lean : line 974 : ERR_LIN : Line has more than 100 characters
@@ -1147,7 +1147,7 @@ src/linear_algebra/matrix.lean : line 711 : ERR_LIN : Line has more than 100 cha
 src/linear_algebra/matrix.lean : line 724 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/matrix.lean : line 865 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/multilinear.lean : line 126 : ERR_LIN : Line has more than 100 characters
-src/linear_algebra/multilinear.lean : line 517 : ERR_LIN : Line has more than 100 characters
+src/linear_algebra/multilinear.lean : line 524 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/multilinear.lean : line 63 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/multilinear.lean : line 78 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/special_linear_group.lean : line 53 : ERR_LIN : Line has more than 100 characters
@@ -1749,7 +1749,7 @@ src/topology/algebra/multilinear.lean : line 245 : ERR_LIN : Line has more than 
 src/topology/algebra/multilinear.lean : line 46 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/multilinear.lean : line 60 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/open_subgroup.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/topology/algebra/ordered.lean : line 1698 : ERR_LIN : Line has more than 100 characters
+src/topology/algebra/ordered.lean : line 1678 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/ordered.lean : line 41 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/ordered.lean : line 430 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/ordered.lean : line 434 : ERR_LIN : Line has more than 100 characters

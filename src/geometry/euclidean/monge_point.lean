@@ -548,7 +548,7 @@ lemma dist_orthocenter_reflection_circumcenter_finset (t : triangle ℝ P) {i₁
   dist t.orthocenter (reflection (affine_span ℝ (t.points '' ↑({i₁, i₂} : finset (fin 3))))
                                  t.circumcenter) =
     t.circumradius :=
-dist_orthocenter_reflection_circumcenter t h
+by { convert dist_orthocenter_reflection_circumcenter _ h, simp }
 
 /-- The affine span of the orthocenter and a vertex is contained in
 the altitude. -/

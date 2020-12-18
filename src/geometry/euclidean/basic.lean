@@ -851,6 +851,11 @@ lemma reflection_apply (s : affine_subspace ℝ P) [nonempty s] [complete_space 
   reflection s p = (↑(orthogonal_projection s p) -ᵥ p) +ᵥ orthogonal_projection s p :=
 rfl
 
+lemma eq_reflection_of_eq_subspace {s s' : affine_subspace ℝ P} [nonempty s]
+  [nonempty s'] [complete_space s.direction] [complete_space s'.direction] (h : s = s') (p : P) :
+  (reflection s p : P) = (reflection s' p : P) :=
+by simp [reflection_apply, eq_orthogonal_projection_of_eq_subspace h]
+
 /-- Reflection is its own inverse. -/
 @[simp] lemma reflection_symm (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] :
   (reflection s).symm = reflection s :=

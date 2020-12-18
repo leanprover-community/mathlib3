@@ -46,7 +46,7 @@ polynomial ring in `n` variables by a finitely generated ideal. -/
 @[class]
 def algebra.finitely_presented : Prop :=
 ∃ (n : ℕ) (f : mv_polynomial (fin n) R →ₐ[R] A),
-surjective f ∧ (ring_hom.ker (alg_hom.to_ring_hom f)).fg
+surjective f ∧ f.to_ring_hom.ker.fg
 
 namespace module
 

@@ -864,6 +864,9 @@ lemma coe_eq (e : α ≃ᵐ β) : (e : α → β) = e.to_equiv := rfl
 protected lemma measurable (e : α ≃ᵐ β) : measurable (e : α → β) :=
 e.measurable_to_fun
 
+@[simp] lemma coe_mk (e : α ≃ β) (h1 : measurable e) (h2 : measurable e.symm) :
+  ((⟨e, h1, h2⟩ : α ≃ᵐ β) : α → β) = e := rfl
+
 /-- Any measurable space is equivalent to itself. -/
 def refl (α : Type*) [measurable_space α] : α ≃ᵐ α :=
 { to_equiv := equiv.refl α,
@@ -883,6 +886,9 @@ instance : inhabited (α ≃ᵐ α) := ⟨refl α⟩
 { to_equiv := ab.to_equiv.symm,
   measurable_to_fun := ab.measurable_inv_fun,
   measurable_inv_fun := ab.measurable_to_fun }
+
+@[simp] lemma coe_symm_mk (e : α ≃ β) (h1 : measurable e) (h2 : measurable e.symm) :
+  ((⟨e, h1, h2⟩ : α ≃ᵐ β).symm : β → α) = e.symm := rfl
 
 /-- Equal measurable spaces are equivalent. -/
 protected def cast {α β} [i₁ : measurable_space α] [i₂ : measurable_space β]

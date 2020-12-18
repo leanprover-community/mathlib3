@@ -335,8 +335,7 @@ by simp_rw [prod_apply (hs.prod ht), mk_preimage_prod_right_eq_if, measure_if,
 
 local attribute [instance] nonempty_measurable_superset
 /-- If we don't assume measurability of `s` and `t`, we can bound the measure of their product. -/
-lemma prod_prod_le {s : set α} {t : set β} :
-  μ.prod ν (s.prod t) ≤ μ s * ν t :=
+lemma prod_prod_le (s : set α) (t : set β) : μ.prod ν (s.prod t) ≤ μ s * ν t :=
 begin
   by_cases hs0 : μ s = 0,
   { rcases (exists_is_measurable_superset_of_measure_eq_zero hs0) with ⟨s', hs', h2s', h3s'⟩,

@@ -706,6 +706,8 @@ if hf : measurable f then
     le_to_outer_measure_caratheodory μ _ (hf hs) (f ⁻¹' t)
 else 0
 
+/-- We can evaluate the pushforward on measurable sets. For non-measurable sets, see
+  `measure_theory.measure.le_map_apply` and `measurable_equiv.map_apply`. -/
 @[simp] theorem map_apply {f : α → β} (hf : measurable f) {s : set β} (hs : is_measurable s) :
   map f μ s = μ (f ⁻¹' s) :=
 by simp [map, dif_pos hf, hs]
@@ -720,8 +722,7 @@ by simp [hf, hg, hs, hg hs, hg.comp hf, ← preimage_comp]
 
 /-- Even if `s` is not measurable, we can bound `map f μ s` from below.
   See also `measurable_equiv.map_apply`. -/
-theorem le_map_apply {f : α → β} (hf : measurable f) {s : set β} :
-  μ (f ⁻¹' s) ≤ map f μ s :=
+theorem le_map_apply {f : α → β} (hf : measurable f) (s : set β) : μ (f ⁻¹' s) ≤ map f μ s :=
 begin
   rw [measure_eq_infi' (map f μ)], refine le_infi _, rintro ⟨t, hst, ht⟩,
   convert measure_mono (preimage_mono hst),
@@ -1766,9 +1767,9 @@ variables {μ : measure α} {ν : measure β}
 
 /-- If we map a measure along a measurable equivalence, we can compute the measure on all sets
   (not just the measurable ones). -/
-@[simp] protected theorem map_apply (f : α ≃ᵐ β) {s : set β} : map f μ s = μ (f ⁻¹' s) :=
+protected theorem map_apply (f : α ≃ᵐ β) (s : set β) : measure.map f μ s = μ (f ⁻¹' s) :=
 begin
-  refine le_antisymm _ (le_map_apply f.measurable_to_fun),
+  refine le_antisymm _ (le_map_apply f.measurable s),
   rw [measure_eq_infi' μ],
   refine le_infi _, rintro ⟨t, hst, ht⟩,
   rw [subtype.coe_mk],
@@ -1778,7 +1779,7 @@ begin
   convert measure_mono hst,
   rw [map_apply, preimage_preimage],
   { refine congr_arg μ (eq.symm _), convert preimage_id, exact funext f.left_inv },
-  exacts [f.measurable_to_fun, f.measurable_inv_fun ht]
+  exacts [f.measurable, f.measurable_inv_fun ht]
 end
 
 end measurable_equiv

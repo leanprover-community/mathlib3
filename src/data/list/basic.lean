@@ -178,6 +178,8 @@ lemma bind_map {g : α → list β} {f : β → γ} :
 theorem length_eq_zero {l : list α} : length l = 0 ↔ l = [] :=
 ⟨eq_nil_of_length_eq_zero, λ h, h.symm ▸ rfl⟩
 
+@[simp] lemma length_singleton (a : α) : length [a] = 1 := rfl
+
 theorem length_pos_of_mem {a : α} : ∀ {l : list α}, a ∈ l → 0 < length l
 | (b::l) _ := zero_lt_succ _
 
@@ -1826,8 +1828,6 @@ begin
   { simp only [nth_le, scanl_nil] },
   { simp only [nth_le, scanl_cons, singleton_append] }
 end
-
-@[simp] lemma length_singleton (a : α) : length [a] = 1 := rfl
 
 lemma nth_succ_scanl {i : ℕ} :
   (scanl f b l).nth (i + 1) =

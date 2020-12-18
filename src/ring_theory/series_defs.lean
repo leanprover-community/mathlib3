@@ -11,7 +11,7 @@ import data.nat.parity
 
 In this file we define the following power series:
 
-* `power_series.inv_units_sub`: given `u : units R`, this is the series for `1 / (1 - u)`.
+* `power_series.inv_units_sub`: given `u : units R`, this is the series for `1 / (u - x)`.
   It is given by `∑ n, x ^ n /ₚ u ^ (n + 1)`.
 
 * `power_series.sin`, `power_series.cos`, `power_series.exp` : power series for sin, cosine, and
@@ -24,7 +24,7 @@ section ring
 
 variables {R S : Type*} [ring R] [ring S]
 
-/-- The power series for `1 / (1 - u)`. -/
+/-- The power series for `1 / (u - x)`. -/
 def inv_units_sub (u : units R) : power_series R := mk $ λ n, 1 /ₚ u ^ (n + 1)
 
 @[simp] lemma coeff_inv_units_sub (u : units R) (n : ℕ) :

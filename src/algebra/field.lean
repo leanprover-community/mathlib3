@@ -243,13 +243,13 @@ variables {β γ : Type*} [division_ring α] [semiring β] [nontrivial β] [divi
 
 lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := f.to_monoid_with_zero_hom.map_ne_zero
 
-lemma map_eq_zero : f x = 0 ↔ x = 0 := f.to_monoid_with_zero_hom.map_eq_zero
+@[simp] lemma map_eq_zero : f x = 0 ↔ x = 0 := f.to_monoid_with_zero_hom.map_eq_zero
 
 variables (x y)
 
-lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv' x
+@[simp] lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv' x
 
-lemma map_div : g (x / y) = g x / g y := g.to_monoid_with_zero_hom.map_div x y
+@[simp] lemma map_div : g (x / y) = g x / g y := g.to_monoid_with_zero_hom.map_div x y
 
 protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
 

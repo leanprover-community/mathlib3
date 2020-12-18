@@ -45,54 +45,27 @@ using `map_swap` as a definition, and does not require `has_neg N`.
 -- TODO: move
 section to_move
 
+lemma semimodule.nsmul {M : Type*} [add_comm_monoid M] (i : semimodule ℕ M) (n : ℕ) (a : M) :
+  n •ℕ a = n • a :=
+begin
+  have := subsingleton.elim add_comm_monoid.nat_semimodule i,
+  rw ←nat.smul_def,
+  rw this,
+end
+
 namespace tensor_product
 
 open_locale tensor_product
 
-/-- `tensor_product.smul_tmul` for `nat` -/
-lemma smul_tmul_nat {R : Type*} {M : Type*} {N : Type*}
-  [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [semimodule R M] [semimodule R N]
-  (r : ℕ) (m : M) (n : N) : ((r • m) ⊗ₜ[R] n) = m ⊗ₜ[R] r • n :=
-begin
-  induction r,
-  { simp, },
-  { rw [nat.smul_def, nat.smul_def, succ_nsmul, succ_nsmul, ←nat.smul_def, ←nat.smul_def],
-    rw [add_tmul, tmul_add, r_ih], },
-end
 
-/-- `tensor_product.smul_tmul'` for `nat` -/
-theorem smul_tmul'_nat {R : Type*} {M : Type*} {N : Type*}
-  [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [semimodule R M] [semimodule R N]
-  (r : ℕ) (m : M) (n : N) :
-  r • (m ⊗ₜ n : M ⊗[R] N) = (r • m) ⊗ₜ n :=
-begin
-  induction r,
-  { simp, },
-  { rw [nat.smul_def, nat.smul_def, succ_nsmul, succ_nsmul, ←nat.smul_def, ←nat.smul_def, add_tmul,
-      r_ih], },
-end
-
-/-- `tensor_product.tmul_smul` for `nat` -/
-theorem tmul_smul_nat {R : Type*} {M : Type*} {N : Type*}
-  [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [semimodule R M] [semimodule R N]
-  (r : ℕ) (m : M) (n : N) :
-  m ⊗ₜ (r • n) = r • (m ⊗ₜ n : M ⊗[R] N) :=
-begin
-  induction r,
-  { simp, },
-  { rw [nat.smul_def, nat.smul_def, succ_nsmul, succ_nsmul, ←nat.smul_def, ←nat.smul_def, tmul_add,
-      r_ih], },
-end
-
--- note: can be comm_semiring R after #5315
 lemma smul_tmul_int {R : Type*} {M : Type*} {N : Type*}
   [comm_semiring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
   (r : ℤ) (m : M) (n : N) : ((r • m) ⊗ₜ[R] n) = m ⊗ₜ[R] r • n :=
 begin
   simp only [←gsmul_eq_smul],
   induction r,
-  simp only [gsmul_of_nat, ←nat.smul_def, smul_tmul_nat],
-  simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg, smul_tmul_nat],
+  simp only [gsmul_of_nat, ←nat.smul_def, smul_tmul],
+  simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg, smul_tmul],
 end
 
 -- note: can be comm_semiring R after #5315
@@ -103,8 +76,20 @@ theorem smul_tmul'_int {R : Type*} {M : Type*} {N : Type*}
 begin
   simp only [←gsmul_eq_smul],
   induction r,
-  simp only [gsmul_of_nat, ←nat.smul_def, smul_tmul'_nat],
-  simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg, smul_tmul'_nat],
+  { simp only [gsmul_of_nat, smul_tmul'],
+    rw [tensor_product.semimodule'.nsmul, smul_tmul'],
+    have := subsingleton.elim add_comm_monoid.nat_semimodule tensor_product.semimodule',
+    convert smul_tmul' _ _ _,
+    rw this,
+    refl,
+    repeat {apply_instance }, },
+  { simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg],
+    rw neg_inj,
+    have := subsingleton.elim add_comm_monoid.nat_semimodule tensor_product.semimodule',
+    convert smul_tmul' _ _ _,
+    rw this,
+    refl,
+    repeat {apply_instance }, }
 end
 
 theorem tmul_smul_int {R : Type*} {M : Type*} {N : Type*}
@@ -114,8 +99,8 @@ theorem tmul_smul_int {R : Type*} {M : Type*} {N : Type*}
 begin
   simp only [←gsmul_eq_smul],
   induction r,
-  simp only [gsmul_of_nat, ←nat.smul_def, tmul_smul_nat],
-  simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg, tmul_smul_nat],
+  simp only [gsmul_of_nat, ←nat.smul_def, tmul_smul],
+  simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg, tmul_smul],
 end
 
 end tensor_product
@@ -501,7 +486,7 @@ private def dom_coprod_aux
   have : ((σ₁ * perm.sum_congr_hom _ _ (sl, sr)).sign : ℤ) = σ₁.sign * (sl.sign * sr.sign) :=
     by simp,
   rw [h, this, mul_smul, mul_smul, units.smul_left_cancel, ←tensor_product.tmul_smul_int,
-    tensor_product.smul_tmul'_int],
+    tensor_product.smul_tmul'],
   simp only [sum.map_inr, perm.sum_congr_hom_apply, perm.sum_congr_apply, sum.map_inl,
              function.comp_app, perm.coe_mul],
   rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))],

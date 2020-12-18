@@ -87,6 +87,37 @@ by cases a; cases b; refl
 lemma bind_assoc (x : option α) (f : α → option β) (g : β → option γ) :
   (x.bind f).bind g = x.bind (λ y, (f y).bind g) := by cases x; refl
 
+/--
+Flatten an `option` of `option`, a specialization of `mjoin`.
+-/
+@[simp] def join : option (option α) → option α
+| none            := none
+| (some (none))   := none
+| (some (some x)) := some x
+
+@[simp] lemma join_eq_some {x : option (option α)} {a : α} :
+  x.join = some a ↔ x = some (some a) :=
+by { rcases x with _ | _ | x; simp }
+
+lemma join_ne_none {x : option (option α)} :
+  x.join ≠ none ↔ ∃ z, x = some (some z) :=
+by { rcases x with _ | _ | x; simp }
+
+@[simp] lemma join_ne_none' {x : option (option α)} :
+  ¬(x.join = none) ↔ ∃ z, x = some (some z) :=
+by { rcases x with _ | _ | x; simp }
+
+lemma bind_id_eq_join {x : option (option α)} :
+  x >>= id = x.join :=
+by { rcases x with _ | _ | x; simp }
+
+lemma join_eq_join : @join α = mjoin :=
+funext (λ x, by rw [mjoin, bind_id_eq_join])
+
+lemma bind_eq_bind {α β : Type*} {f : α → option β} {x : option α} :
+  x.bind f = x >>= f := rfl
+
+-- TODO: flip lemmas like this to go in functor-generalized direction
 @[simp] lemma map_eq_map {α β} {f : α → β} :
   (<$>) f = option.map f := rfl
 
@@ -118,6 +149,18 @@ lemma comp_map (h : β → γ) (g : α → β) (x : option α) :
 @[simp] lemma map_comp_map (f : α → β) (g : β → γ) :
   option.map g ∘ option.map f = option.map (g ∘ f) :=
 by { ext x, rw comp_map }
+
+lemma bind_map_comm {α β} {x : option (option α) } {f : α → β} :
+  x >>= option.map f = x.map (option.map f) >>= id :=
+by { cases x; simp }
+
+lemma join_map_eq_map_join {f : α → β} {x : option (option α)} :
+  (x.map (option.map f)).join = x.join.map f :=
+by { rcases x with _ | _ | x; simp }
+
+@[simp] lemma join_join {x : option (option (option α))} :
+  x.join.join = (x.map join).join :=
+by { rcases x with _ | _ | _ | x; simp }
 
 @[simp] theorem seq_some {α β} {a : α} {f : α → β} : some f <*> some a = some (f a) := rfl
 

@@ -910,6 +910,32 @@ begin
   { exact ⟨y, h⟩ }
 end
 
+lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
+if hz : 0 ≤ a - b then
+  (calc
+      a ≥ b     : le_of_sub_nonneg hz
+    ... ≥ b - c : sub_le_self _ $ (abs_nonneg _).trans h)
+else
+  have habs : b - a ≤ c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
+  have habs' : b ≤ c + a, from le_add_of_sub_right_le habs,
+  sub_left_le_of_le_add habs'
+
+lemma sub_le_of_abs_sub_le_right (h : abs (a - b) ≤ c) : a - c ≤ b :=
+sub_le_of_abs_sub_le_left (abs_sub a b ▸ h)
+
+lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
+if hz : 0 ≤ a - b then
+   (calc
+      a ≥ b     : le_of_sub_nonneg hz
+    ... > b - c : sub_lt_self _ ((abs_nonneg _).trans_lt h))
+else
+  have habs : b - a < c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
+  have habs' : b < c + a, from lt_add_of_sub_right_lt habs,
+  sub_left_lt_of_lt_add habs'
+
+lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
+sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
+
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_add_comm_group.to_no_top_order [nontrivial α] :
   no_top_order α :=

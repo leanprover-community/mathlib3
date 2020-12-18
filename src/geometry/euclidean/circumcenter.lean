@@ -186,8 +186,6 @@ begin
     ring }
 end
 
-#exit
-
 /-- Given a finite nonempty affinely independent family of points,
 there is a unique (circumcenter, circumradius) pair for those points
 in the affine subspace they span. -/

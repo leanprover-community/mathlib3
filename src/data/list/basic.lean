@@ -2688,6 +2688,16 @@ by simp only [filter_map, h]
   filter_map f (a :: l) = b :: filter_map f l :=
 by simp only [filter_map, h]; split; refl
 
+lemma filter_map_append {α β : Type*} (l l' : list α) (f : α → option β) :
+  filter_map f (l ++ l') = filter_map f l ++ filter_map f l' :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { rw [cons_append, filter_map, filter_map],
+    cases f hd;
+    simp only [filter_map, hl, cons_append, eq_self_iff_true, and_self] }
+end
+
 theorem filter_map_eq_map (f : α → β) : filter_map (some ∘ f) = map f :=
 begin
   funext l,
@@ -2774,6 +2784,114 @@ by induction s with l₁ l₂ a s IH l₁ l₂ a s IH;
 theorem sublist.map (f : α → β) {l₁ l₂ : list α}
   (s : l₁ <+ l₂) : map f l₁ <+ map f l₂ :=
 filter_map_eq_map f ▸ s.filter_map _
+
+/-! ### reduce_option -/
+
+@[simp] lemma reduce_option_cons_of_some (x : α) (l : list (option α)) :
+  reduce_option (some x :: l) = x :: l.reduce_option :=
+by simp only [reduce_option, filter_map, id.def, eq_self_iff_true, and_self]
+
+@[simp] lemma reduce_option_cons_of_none (l : list (option α)) :
+  reduce_option (none :: l) = l.reduce_option :=
+by simp only [reduce_option, filter_map, id.def]
+
+@[simp] lemma reduce_option_nil : @reduce_option α [] = [] := rfl
+
+@[simp] lemma reduce_option_map {l : list (option α)} {f : α → β} :
+  reduce_option (map (option.map f) l) = map f (reduce_option l) :=
+begin
+  induction l with hd tl hl,
+  { simp only [reduce_option_nil, map_nil] },
+  { cases hd;
+    simpa only [true_and, option.map_some', map, eq_self_iff_true,
+                reduce_option_cons_of_some] using hl },
+end
+
+lemma reduce_option_append (l l' : list (option α)) :
+  (l ++ l').reduce_option = l.reduce_option ++ l'.reduce_option :=
+filter_map_append l l' id
+
+lemma reduce_option_length_le (l : list (option α)) :
+  l.reduce_option.length ≤ l.length :=
+begin
+  induction l with hd tl hl,
+  { simp only [reduce_option_nil, length] },
+  { cases hd,
+    { exact nat.le_succ_of_le hl },
+    { simpa only [length, add_le_add_iff_right, reduce_option_cons_of_some] using hl} }
+end
+
+lemma reduce_option_forall_iff {l : list (option α)} :
+  l.reduce_option.length = l.length ↔ ∀ x ∈ l, option.is_some x :=
+begin
+  induction l with hd tl hl,
+  { simp only [forall_const, reduce_option_nil, not_mem_nil,
+               forall_prop_of_false, eq_self_iff_true, length, not_false_iff] },
+  { cases hd,
+    { simp only [mem_cons_iff, forall_eq_or_imp, bool.coe_sort_ff, false_and,
+                 reduce_option_cons_of_none, length, option.is_some_none, iff_false],
+      intro H,
+      have := reduce_option_length_le tl,
+      rw H at this,
+      exact absurd (nat.lt_succ_self _) (not_lt_of_le this) },
+    { simp only [hl, true_and, mem_cons_iff, forall_eq_or_imp, add_left_inj,
+                 bool.coe_sort_tt, length, option.is_some_some, reduce_option_cons_of_some] } }
+end
+
+lemma reduce_option_exists_iff {l : list (option α)} :
+  l.reduce_option.length < l.length ↔ ∃ x ∈ l, x = none :=
+begin
+  induction l with hd tl hl,
+  { simp only [reduce_option_nil, not_mem_nil, length, not_false_iff, not_lt,
+               exists_false, exists_prop_of_false, iff_false] },
+  { cases hd,
+    { simp only [mem_cons_iff, reduce_option_cons_of_none, length, exists_prop,
+                 true_or, eq_self_iff_true, exists_eq_right, iff_true],
+      have := reduce_option_length_le tl,
+      exact lt_of_le_of_lt this (nat.lt_succ_self _) },
+    { simp only [hl, mem_cons_iff, length, reduce_option_cons_of_some,
+                 exists_prop, false_or, exists_eq_right, add_lt_add_iff_right] } }
+end
+
+lemma to_list_eq_reduce_option (x : option α) :
+  x.to_list = [x].reduce_option :=
+by { cases x; refl }
+
+lemma reduce_option_concat (l : list (option α)) (x : option α) :
+  (l.concat x).reduce_option = l.reduce_option ++ x.to_list :=
+begin
+  induction l with hd tl hl generalizing x,
+  { cases x;
+    simp [option.to_list] },
+  { simp only [concat_eq_append, reduce_option_append] at hl,
+    cases hd;
+    simp [hl, reduce_option_append] }
+end
+
+lemma reduce_option_concat_of_some (l : list (option α)) (x : α) :
+  (l.concat (some x)).reduce_option = l.reduce_option.concat x :=
+by simp only [reduce_option_nil, concat_eq_append, reduce_option_append, reduce_option_cons_of_some]
+
+lemma reduce_option_mem_iff {l : list (option α)} {x : α} :
+  (some x) ∈ l ↔ x ∈ l.reduce_option :=
+begin
+  induction l with hd tl hl,
+  { simp only [reduce_option_nil, not_mem_nil] },
+  { simp only [hl, mem_cons_iff],
+    split,
+    { rintro (rfl | H),
+      { simp only [mem_cons_iff, true_or, eq_self_iff_true, reduce_option_cons_of_some] },
+      { cases hd;
+        simp only [H, mem_cons_iff, or_true, reduce_option_cons_of_some, reduce_option_cons_of_none] } },
+    { intro H,
+      cases hd,
+      { simpa only [false_or] using H },
+      { simpa only using H } } },
+end
+
+lemma reduce_option_nth_iff {l : list (option α)} {x : α} :
+  (∃ i, l.nth i = some (some x)) ↔ ∃ i, l.reduce_option.nth i = some x :=
+by rw [←mem_iff_nth, ←mem_iff_nth, reduce_option_mem_iff]
 
 /-! ### filter -/
 

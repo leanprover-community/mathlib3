@@ -33,6 +33,8 @@ variables {σ : Type*} {R : Type*} [comm_ring R]
 instance {I : ideal (mv_polynomial σ R)} : algebra R (ideal.quotient I) :=
 (ring_hom.to_algebra (ring_hom.comp (ideal.quotient.mk I) C))
 
+/-- The canonical morphism `(mv_polynomial σ R) →ₐ[R] I.quotient`, for `I` an ideal of
+`mv_polynomial σ R`, as morphism of `R`-algebras. -/
 def ideal.quotient.mk.alg (σ : Type*) (I : ideal (mv_polynomial σ R)) :
   (mv_polynomial σ R) →ₐ[R] I.quotient :=
 ⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl, λ _, rfl⟩

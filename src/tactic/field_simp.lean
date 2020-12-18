@@ -48,7 +48,8 @@ invocation, check the denominators of the resulting expression and provide proof
 nonzero to enable further progress.
 
 To check that denominators are nonzero, `field_simp` will look for facts in the context, and
-will try to apply `norm_num` to close numerical goals.
+will try to apply `norm_num` to close numerical goals. If you don't need these features and
+`field_simp` is too slow in your use-case, use `field_simp [hx, hy] {discharger := none}`.
 
 The invocation of `field_simp` removes the lemma `one_div` from the simpset, as this lemma
 works against the algorithm explained above. It also removes

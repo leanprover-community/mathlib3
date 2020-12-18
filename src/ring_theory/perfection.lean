@@ -345,7 +345,7 @@ instance : integral_domain (pre_tilt K v O hv p) :=
 { exists_pair_ne := (char_p.nontrivial_of_char_ne_one hp.ne_one).1,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ f g hfg,
     by { simp_rw ← map_eq_zero at hfg ⊢, contrapose! hfg, rw valuation.map_mul,
-      exact nnreal.mul_ne_zero' hfg.1 hfg.2 },
+      exact mul_ne_zero hfg.1 hfg.2 },
   .. (infer_instance : comm_ring (pre_tilt K v O hv p)) }
 
 end pre_tilt

@@ -85,8 +85,6 @@ begin
   exact h
 end
 
-set_option profiler true
-
 /-- The induction step for the existence and uniqueness of the
 circumcenter.  Given a nonempty set of points in a nonempty affine
 subspace whose direction is complete, such that there is a unique
@@ -187,8 +185,6 @@ begin
     field_simp [hy0],
     ring }
 end
-
-#exit
 
 /-- Given a finite nonempty affinely independent family of points,
 there is a unique (circumcenter, circumradius) pair for those points

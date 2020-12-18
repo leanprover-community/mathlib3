@@ -116,6 +116,9 @@ begin
   rw [← update_eq_self i m, h, ← this, f.map_smul, zero_smul]
 end
 
+@[simp] lemma map_update_zero (m : Πi, M₁ i) (i : ι) : f (update m i 0) = 0 :=
+f.map_coord_zero i (update_same i 0 m)
+
 @[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
 begin
   obtain ⟨i, _⟩ : ∃i:ι, i ∈ set.univ := set.exists_mem_of_nonempty ι,

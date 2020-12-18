@@ -4,77 +4,89 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import data.set.intervals.infinite
+import analysis.real.prelims_polynomial
 import topology.algebra.polynomial
 import analysis.calculus.mean_value
 
 /-!
-This file contains some lemmas about real polynomials and their derivatives.
+This file contains some lemmas about real polynomials and their derivatives
 -/
 
 open polynomial real set
 
+/-- This lemma is almost identical to a lemma in the PR:
+the last condition of the present lemma is `x ∉ f.roots.to_finset`,
+the last condition of the original PR is `f.eval x ≠ 0`.  -/
+lemma non_root_small_interval_of_polynomial
+  (α : ℝ) (f : polynomial ℝ) (M : ℝ) (hM : 0 < M) :
+  ∃ B : ℝ, 0 < B ∧ B ≤ 1 / M ∧ B ≤ 1
+  ∧ ∀ x (hr : abs (α - x) < B) (hn : x ≠ α), x ∉ f.roots.to_finset :=
+begin
+  obtain ⟨l, m, I, F⟩ := Ioo_not_mem_finset α f.roots.to_finset,
+  refine ⟨min 1 (min (1 / M) (min (α - l) (m - α))), _, _, _, λ x K, (λ J, F x (mem_Ioo.mpr _) J)⟩,
+  { rw [lt_min_iff, lt_min_iff, lt_min_iff, one_div, inv_pos],
+    exact ⟨zero_lt_one, hM, sub_pos.mpr I.1, sub_pos.mpr I.2⟩ },
+  { exact (min_le_iff.mpr (or.inr (min_le_iff.mpr (or.inl rfl.le)))) },
+  { exact min_le_iff.mpr (or.inl rfl.le) },
+  { have H : (x < α + (α - l) ∧ l < x) ∧ x < m ∧ α - x < m - α,
+    { simp only [abs_lt, neg_lt_sub_iff_lt_add, lt_min_iff, sub_lt_sub_iff_left,
+        add_sub_cancel'_right] at K,
+      exact K.2.2 },
+    exact ⟨H.1.2, H.2.1⟩ }
+end
 
+/-- A polynomial is bounded on a compact interval. In this formulation, there is the
+flexibility of using a larger-than-optimal bound. -/
+lemma exists_forall_ge_of_polynomial_Ioo (α : ℝ) (f : polynomial ℝ) :
+  ∃ M : ℝ, ∀ N, N ≥ M → ∀ y ∈ Icc (α - 1) (α + 1), abs (eval y f) ≤ N :=
+begin
+  obtain ⟨x, ⟨-, hy⟩⟩ := is_compact.exists_forall_ge compact_Icc ⟨α - 1, ⟨rfl.le,
+    sub_le_iff_le_add.mpr (le_add_of_le_of_nonneg (le_add_of_le_of_nonneg rfl.le zero_le_one)
+    zero_le_one)⟩⟩ (continuous_abs.comp (polynomial.continuous f)).continuous_on,
+  exact ⟨abs (f.eval x), λ N hN y hy1, le_trans (hy y hy1) hN⟩,
+end
+
+/-- A lemma in the original PR, now a consequence of `exists_forall_ge_of_polynomial_Ioo`. -/
 lemma exists_forall_ge_of_polynomial_eval (α : ℝ) (f : polynomial ℝ):
   ∃ M : ℝ, 0 < M ∧ ∀ (y : ℝ), abs (y - α) ≤ 1 → abs (eval y f) ≤ M :=
 begin
-  obtain ⟨x_max, ⟨h_x_max_range, hM⟩⟩ := is_compact.exists_forall_ge (@compact_Icc (α - 1) (α + 1))
-    ⟨α, le_of_lt $ sub_one_lt _, le_of_lt $ lt_add_one _⟩
-    (continuous_abs.comp f.continuous).continuous_on,
-  use [max (abs (f.eval x_max)) 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _)],
-  intros y hy,
-  have hy' : y ∈ Icc (α - 1) (α + 1),
-  { apply mem_Icc.mpr,
-    have h1 := le_abs_self (y - α),
-    have h2 := neg_le_abs_self (y - α),
-    split; linarith },
-  exact le_trans (hM y hy') (le_max_left _ _),
+  obtain ⟨M, F⟩ := exists_forall_ge_of_polynomial_Ioo α f,
+  simp_rw ← abs_le_iff_mem_Icc at F,
+  by_cases M0 : M ≤ 0,
+  { exact ⟨1, zero_lt_one, λ y h, F 1 (le_trans M0 zero_le_one) y h⟩ },
+  { exact ⟨M, not_le.mp M0, F M rfl.ge⟩ },
 end
 
-lemma non_root_interval_of_polynomial (α : ℝ) (f : polynomial ℝ) (h_f_nonzero : f ≠ 0) :
-  ∃ B : ℝ, 0 < B ∧ ∀ x (hr : abs (α - x) < B) (hn : x ≠ α), f.eval x ≠ 0 :=
+/-- Almost the original statement: I moved the introduction of the second real number `x`
+next to the introduction of `α`, I introduced the `hax` hypothesis and used a differentiable
+function, instead of a polynomial. -/
+lemma exists_deriv_eq_slope_of_fun_zero_lt (α x : ℝ) (f : ℝ → ℝ)
+  (fc : continuous_on f (Icc α x)) (df : differentiable_on ℝ f (Ioo α x))
+  (h_α_root : f α = 0) (h : f x ≠ 0)
+   (hax : α < x) :
+  ∃ x₀, α - x = - ((f x) / (deriv f x₀)) ∧ deriv f x₀ ≠ 0 ∧ x₀ ∈ Ioo α x:=
 begin
-  set f_roots := f.roots.to_finset.erase α,
-  set distances := insert (1 : ℝ) (f_roots.image (λ x, abs (α - x))),
-  have h_nonempty : distances.nonempty := ⟨1, finset.mem_insert_self _ _⟩,
-  set B := distances.min' h_nonempty with hB,
-  have h_allpos : ∀ x : ℝ, x ∈ distances → 0 < x,
-  { intros x hx, rw [finset.mem_insert, finset.mem_image] at hx,
-    rcases hx with rfl | ⟨α₀, ⟨h, rfl⟩⟩,
-    { exact zero_lt_one },
-    { rw [finset.mem_erase] at h,
-      rw [abs_pos, sub_ne_zero], exact h.1.symm }},
-  use [B, (h_allpos B (distances.min'_mem h_nonempty))],
-  intros x hx hxα,
-  have hab₂ : x ∉ f.roots.to_finset,
-  { intro h,
-    have h₁ : x ∈ f_roots, { rw [finset.mem_erase], exact ⟨hxα, h⟩ },
-    have h₂ : abs (α - x) ∈ distances,
-    { rw [finset.mem_insert, finset.mem_image], right, exact ⟨x, ⟨h₁, rfl⟩⟩ },
-    have h₃ := finset.min'_le distances (abs (α - x)) h₂,
-    erw ←hB at h₃, linarith only [lt_of_lt_of_le hx h₃] },
-  rwa [multiset.mem_to_finset, mem_roots h_f_nonzero, is_root.def] at hab₂
+  obtain ⟨c, I, F⟩ := exists_deriv_eq_slope f hax fc df,
+  rw [h_α_root, sub_zero] at F,
+  refine ⟨c, by rwa [F, div_div_cancel', neg_sub], λ d, _, I⟩,
+  { rw [eq_comm, d, div_eq_iff (ne_of_gt (sub_pos.mpr hax)), zero_mul] at F,
+    exact h F },
 end
 
-lemma non_root_small_interval_of_polynomial (α : ℝ) (f : polynomial ℝ) (h_f_nonzero : f ≠ 0)
-  (M : ℝ) (hM : 0 < M) :
-  ∃ B : ℝ, 0 < B ∧ B ≤ 1 / M ∧ B ≤ 1
-  ∧ ∀ x (hr : abs (α - x) < B) (hn : x ≠ α), f.eval x ≠ 0 :=
+/-- The second half of exists_deriv_eq_slope_of_fun_zero_gt. -/
+lemma exists_deriv_eq_slope_of_fun_zero_gt (α x : ℝ) (f : ℝ → ℝ)
+  (fc : continuous_on f (Icc x α)) (df : differentiable_on ℝ f (Ioo x α))
+  (h_α_root : f α = 0) (h : f x ≠ 0) (hax : x < α) :
+  ∃ x₀, α - x = - ((f x) / (deriv f x₀)) ∧ (deriv f x₀ ≠ 0) ∧ (x₀ ∈ Ioo x α) :=
 begin
-  obtain ⟨B0, ⟨h_B0_pos, h_B0_root⟩⟩ := non_root_interval_of_polynomial α f h_f_nonzero,
-  have h1M : 0 < 1 / M := one_div_pos.mpr hM,
-  obtain ⟨B1, ⟨hB11, hB12, hB13⟩⟩ : ∃ B1 : ℝ, 0 < B1 ∧ B1 ≤ 1 / M ∧ B1 ≤ B0,
-  { cases le_or_gt (1 / M) B0,
-    { use 1 / M, tauto },
-    { exact ⟨B0, h_B0_pos, le_of_lt h, le_refl B0⟩ }},
-  obtain ⟨B, ⟨hB1, hB2, hB3, hB4⟩⟩ : ∃ B : ℝ, 0 < B ∧ B ≤ 1 / M ∧ B ≤ 1 ∧ B ≤ B0,
-  { cases le_or_gt 1 B1,
-    { use 1, split, norm_num, split, linarith, split, norm_num, linarith },
-    { use B1, exact ⟨hB11, ⟨hB12, ⟨le_of_lt h, hB13⟩⟩⟩ }},
-  refine ⟨B, hB1, hB2, hB3, λ (x : ℝ) (hx : abs (α - x) < B), h_B0_root x _ ⟩,
-  linarith
+  obtain ⟨c, I, F⟩ := exists_deriv_eq_slope f hax fc df,
+  rw [h_α_root, zero_sub] at F,
+  refine ⟨c, by { rwa [F, ← neg_div, div_div_cancel'], exact neg_ne_zero.mpr h }, λ d, _, I⟩,
+  { rw [eq_comm, d, div_eq_iff_mul_eq (ne_of_gt (sub_pos.mpr hax)), zero_mul] at F,
+    exact h (neg_eq_zero.mp F.symm) },
 end
 
+/-- The literal statement appearing in the PR. -/
 lemma exists_deriv_eq_slope_of_polynomial_root (α : ℝ) (f : polynomial ℝ) (h_α_root : f.eval α = 0)
   (x : ℝ) (h : f.eval x ≠ 0) :
   ∃ x₀, α - x = - ((f.eval x) / (f.derivative.eval x₀))
@@ -82,50 +94,15 @@ lemma exists_deriv_eq_slope_of_polynomial_root (α : ℝ) (f : polynomial ℝ) (
     ∧ abs (α - x₀) < abs (α - x)
     ∧ abs (x - x₀) < abs (α - x) :=
 begin
-  have h₀ : x ≠ α, { intro h₁, rw ← h₁ at h_α_root, rw h_α_root at h, tauto },
-  rcases ne_iff_lt_or_gt.1 h₀ with h_α_gt | h_α_lt,
-  { -- When `x < α`
-    have h_cont : continuous_on (λ x, f.eval x) (Icc x α) := f.continuous.continuous_on,
-    have h_diff : differentiable_on ℝ (λ x, f.eval x) (Ioo x α) :=
-      differentiable.differentiable_on f.differentiable,
-    rcases (exists_deriv_eq_slope (λ x, f.eval x) h_α_gt h_cont h_diff) with ⟨x₀, x₀_range, hx₀⟩,
-    rw polynomial.deriv at hx₀,
-    change eval x₀ f.derivative = (eval α f - eval x f) / (α - x) at hx₀,
-    rw [h_α_root, zero_sub] at hx₀,
-    replace hx₀ := hx₀.symm,
-    have h_Df_nonzero : f.derivative.eval x₀ ≠ 0 := hx₀.symm ▸ λ hc, h
-      begin
-      rwa [hc, neg_div, neg_eq_zero, div_eq_iff (show α - x ≠ 0, by linarith), zero_mul] at hx₀ end,
-    use x₀,
-    split,
-    { symmetry, rw ← neg_div, rw div_eq_iff at hx₀ ⊢, rwa mul_comm,
-      exact h_Df_nonzero,
-      rw sub_ne_zero, exact h₀.symm },
-    apply and.intro h_Df_nonzero,
-    rw mem_Ioo at x₀_range,
-    rw [abs_of_pos (sub_pos.mpr h_α_gt), abs_of_pos (sub_pos.mpr x₀_range.2),
-      abs_of_neg (sub_lt_zero.mpr x₀_range.1)],
-    split; linarith },
-  { -- When `α < x`
-    have h_cont : continuous_on (λ x, f.eval x) (Icc α x) := f.continuous.continuous_on,
-    have h_diff : differentiable_on ℝ (λ x, f.eval x) (Ioo α x):=
-      differentiable.differentiable_on f.differentiable,
-    rcases (exists_deriv_eq_slope (λ x, f.eval x) h_α_lt h_cont h_diff) with ⟨x₀, x₀_range, hx₀⟩,
-    rw polynomial.deriv at hx₀,
-    change eval x₀ f.derivative = (eval x f - eval α f) / (x - α) at hx₀,
-    rw [h_α_root, sub_zero] at hx₀,
-    replace hx₀ := hx₀.symm,
-    have h_Df_nonzero : f.derivative.eval x₀ ≠ 0 := hx₀.symm ▸ λ hc, h
-      begin rwa [hc, div_eq_iff (show x - α ≠ 0, by linarith), zero_mul] at hx₀ end,
-    use x₀,
-    split,
-    { symmetry, rw ← neg_div, rw div_eq_iff at hx₀ ⊢,
-      {rw hx₀, ring },
-      { exact h_Df_nonzero },
-      { rwa sub_ne_zero }},
-    apply and.intro h_Df_nonzero,
-    rw mem_Ioo at x₀_range,
-    rw [abs_of_neg (sub_lt_zero.mpr x₀_range.1), abs_of_neg (sub_lt_zero.mpr h_α_lt),
-      abs_of_pos (sub_pos.mpr x₀_range.2)],
-    split; linarith }
+  rcases @trichotomous _ (has_lt.lt) _ α x with ax | rfl | xa,
+  { obtain ⟨c, d, e, I⟩:= exists_deriv_eq_slope_of_fun_zero_lt α x (λ y, f.eval y)
+      (polynomial.continuous_on f) (polynomial.differentiable_on f) h_α_root h ax,
+    refine ⟨c, by rwa [polynomial.deriv] at d, by rwa [polynomial.deriv] at e, _⟩,
+    exact ⟨abs_lt_abs_left I, abs_lt_abs_right I⟩ },
+  { exact false.rec _ (h h_α_root) },
+  { obtain ⟨c, d, e, I⟩:= exists_deriv_eq_slope_of_fun_zero_gt α x (λ y, f.eval y)
+      (polynomial.continuous_on f) (polynomial.differentiable_on f) h_α_root h xa,
+    refine ⟨c, by rwa [polynomial.deriv] at d, by rwa [polynomial.deriv] at e, _⟩,
+    { rw abs_sub _ x,
+      exact ⟨abs_lt_abs_right I, abs_lt_abs_left I⟩ } },
 end

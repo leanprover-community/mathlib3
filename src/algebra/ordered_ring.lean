@@ -736,32 +736,6 @@ lt_of_not_ge (λ hb, absurd h (mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 lemma mul_self_add_mul_self_eq_zero {x y : α} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
 by rw [add_eq_zero_iff', mul_self_eq_zero, mul_self_eq_zero]; apply mul_self_nonneg
 
-lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
-if hz : 0 ≤ a - b then
-  (calc
-      a ≥ b     : le_of_sub_nonneg hz
-    ... ≥ b - c : sub_le_self _ $ (abs_nonneg _).trans h)
-else
-  have habs : b - a ≤ c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
-  have habs' : b ≤ c + a, from le_add_of_sub_right_le habs,
-  sub_left_le_of_le_add habs'
-
-lemma sub_le_of_abs_sub_le_right (h : abs (a - b) ≤ c) : a - c ≤ b :=
-sub_le_of_abs_sub_le_left (abs_sub a b ▸ h)
-
-lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
-if hz : 0 ≤ a - b then
-   (calc
-      a ≥ b     : le_of_sub_nonneg hz
-    ... > b - c : sub_lt_self _ ((abs_nonneg _).trans_lt h))
-else
-  have habs : b - a < c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
-  have habs' : b < c + a, from lt_add_of_sub_right_lt habs,
-  sub_left_lt_of_lt_add habs'
-
-lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
-sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
-
 lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
 (mul_self_add_mul_self_eq_zero.mp h).left
 

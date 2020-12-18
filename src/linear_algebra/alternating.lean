@@ -126,6 +126,7 @@ namespace interactive
 open lean.parser
 open interactive
 
+/-- Focus on the first `n` goals. -/
 meta def first_n_goals : parse small_nat → itactic → tactic unit
 | n t := do
   goals ← get_goals,
@@ -541,29 +542,24 @@ begin
   { dsimp only [quotient.lift_on'_beta, quotient.map'_mk', multilinear_map.smul_apply,
       multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply],
     apply mt,
+    intro hσ,
     cases hi : σ⁻¹ i with i' i';
       cases hj : σ⁻¹ j with j' j';
       rw perm.inv_eq_iff_eq at hi hj;
       substs hi hj,
     rotate,
     first_n_goals 2 { -- the term pairs with and cancels another term
+      all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient.eq'.mp hσ, },
+      work_on_goal 0 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
+      work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
       all_goals {
-        intro h,
-        obtain ⟨⟨sl, sr⟩, h⟩ := quotient.eq'.mp h,
-      },
-      work_on_goal 0 { replace h := equiv.congr_fun h (sum.inl i'), },
-      work_on_goal 1 { replace h := equiv.congr_fun h (sum.inr i'), },
-      all_goals {
-        rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at h,
-        simpa using h,
-        done, }, },
+        rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at hσ,
+        simpa using hσ, }, },
     first_n_goals 2 { -- the term does not pair but is zero
-      all_goals {
-        intro _,
-        convert smul_zero _, },
+      all_goals { convert smul_zero _, },
       work_on_goal 0 { convert tensor_product.tmul_zero _ _, },
       work_on_goal 1 { convert tensor_product.zero_tmul _ _, },
-      all_goals { refine alternating_map.map_eq_zero_of_eq _ _ hv (λ hij', hij (hij' ▸ rfl)), },
+      all_goals { exact alternating_map.map_eq_zero_of_eq _ _ hv (λ hij', hij (hij' ▸ rfl)), },
       }, },
   { exact _root_.congr_arg (quot.mk _) (equiv.swap_mul_involutive i j σ), }
 end
@@ -658,9 +654,8 @@ lemma multilinear_map.dom_coprod_alternization
     a.alternatization.dom_coprod b.alternatization :=
 begin
   ext,
-  simp only [dom_coprod_apply, smul_apply],
-  dsimp only [smul_apply, multilinear_map.alternatization_def, alternating_map.dom_coprod_apply,
-    dom_coprod_aux],
+  dsimp only [dom_coprod_apply, smul_apply, multilinear_map.alternatization_def,
+    alternating_map.dom_coprod_apply, dom_coprod_aux],
   simp_rw multilinear_map.sum_apply,
   rw finset.sum_partition (quotient_group.left_rel (perm.sum_congr_hom ιa ιb).range),
   congr' 1,

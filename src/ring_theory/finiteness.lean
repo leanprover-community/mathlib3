@@ -231,7 +231,7 @@ begin
   use [n, alg_equiv.to_alg_hom equiv.symm],
   split,
   { exact (alg_equiv.symm equiv).surjective },
-  suffices hinj : function.injective (equiv.symm.to_alg_hom.to_ring_hom),
+  suffices hinj : function.injective equiv.symm.to_alg_hom.to_ring_hom,
   { rw [(ring_hom.injective_iff_ker_eq_bot _).1 hinj],
     exact submodule.fg_bot },
   exact (alg_equiv.symm equiv).injective

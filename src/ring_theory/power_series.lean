@@ -143,10 +143,10 @@ lemma coeff_one :
   coeff R n (1 : mv_power_series σ R) = if n = 0 then 1 else 0 :=
 coeff_monomial _ _ _
 
-@[simp] lemma coeff_zero_one : coeff R (0 : σ →₀ ℕ) 1 = 1 :=
+lemma coeff_zero_one : coeff R (0 : σ →₀ ℕ) 1 = 1 :=
 coeff_monomial_same 0 1
 
-@[simp] lemma monomial_zero_one : monomial R (0 : σ →₀ ℕ) 1 = 1 := rfl
+lemma monomial_zero_one : monomial R (0 : σ →₀ ℕ) 1 = 1 := rfl
 
 instance : has_mul (mv_power_series σ R) :=
 ⟨λ φ ψ n, ∑ p in (finsupp.antidiagonal n).support, coeff R p.1 φ * coeff R p.2 ψ⟩
@@ -212,30 +212,20 @@ ext $ λ n, by simp only [coeff_mul, add_mul, finset.sum_add_distrib, linear_map
 
 protected lemma mul_assoc (φ₁ φ₂ φ₃ : mv_power_series σ R) :
   (φ₁ * φ₂) * φ₃ = φ₁ * (φ₂ * φ₃) :=
-ext $ λ n,
 begin
-  simp only [coeff_mul],
-  have := @finset.sum_sigma ((σ →₀ ℕ) × (σ →₀ ℕ)) R _ _ (antidiagonal n).support
-    (λ p, (antidiagonal (p.1)).support) (λ x, coeff R x.2.1 φ₁ * coeff R x.2.2 φ₂ * coeff R x.1.2 φ₃),
-  convert this.symm using 1; clear this,
-  { apply finset.sum_congr rfl,
-    intros p hp, exact finset.sum_mul },
-  have := @finset.sum_sigma ((σ →₀ ℕ) × (σ →₀ ℕ)) R _ _ (antidiagonal n).support
-    (λ p, (antidiagonal (p.2)).support) (λ x, coeff R x.1.1 φ₁ * (coeff R x.2.1 φ₂ * coeff R x.2.2 φ₃)),
-  convert this.symm using 1; clear this,
-  { apply finset.sum_congr rfl, intros p hp, rw finset.mul_sum },
-  apply finset.sum_bij,
-  swap 5,
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l+j), (l, j)⟩ },
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
-    simp only [finset.mem_sigma, mem_antidiagonal_support] at H ⊢, finish },
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
-  { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
-    simp only [finset.mem_sigma, mem_antidiagonal_support,
-      and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
-    finish },
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i+k, l), (i, k)⟩, _, _⟩;
-    { simp only [finset.mem_sigma, mem_antidiagonal_support] at H ⊢, finish } }
+  ext1 n,
+  simp only [coeff_mul, finset.sum_mul, finset.mul_sum, finset.sum_sigma'],
+  refine finset.sum_bij (λ p _, ⟨(p.2.1, p.2.2 + p.1.2), (p.2.2, p.1.2)⟩) _ _ _ _;
+    simp only [mem_antidiagonal_support, finset.mem_sigma, heq_iff_eq, prod.mk.inj_iff, and_imp,
+      exists_prop],
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩, dsimp only, rintro rfl rfl,
+    simp [add_assoc] },
+  { rintros ⟨⟨a, b⟩, ⟨c, d⟩⟩, dsimp only, rintro rfl rfl,
+    apply mul_assoc },
+  { rintros ⟨⟨a, b⟩, ⟨c, d⟩⟩ ⟨⟨i, j⟩, ⟨k, l⟩⟩, dsimp only, rintro rfl rfl - rfl rfl - rfl rfl,
+    refl },
+  { rintro ⟨⟨i, j⟩, ⟨k, l⟩⟩, dsimp only, rintro rfl rfl,
+    refine ⟨⟨(i + k, l), (i, k)⟩, _, _⟩; simp [add_assoc] }
 end
 
 instance : semiring (mv_power_series σ R) :=
@@ -299,7 +289,7 @@ lemma coeff_C (n : σ →₀ ℕ) (a : R) :
   coeff R n (C σ R a) = if n = 0 then a else 0 :=
 coeff_monomial _ _ _
 
-@[simp] lemma coeff_zero_C (a : R) : coeff R (0 : σ →₀ℕ) (C σ R a) = a :=
+lemma coeff_zero_C (a : R) : coeff R (0 : σ →₀ℕ) (C σ R a) = a :=
 coeff_monomial_same 0 a
 
 /-- The variables of the multivariate formal power series ring.-/
@@ -317,7 +307,7 @@ by { simp only [coeff_X, single_left_inj one_ne_zero], split_ifs; refl }
   coeff R (single s 1) (X s : mv_power_series σ R) = 1 :=
 coeff_monomial_same _ _
 
-@[simp] lemma coeff_zero_X (s : σ) : coeff R (0 : σ →₀ ℕ) (X s : mv_power_series σ R) = 0 :=
+lemma coeff_zero_X (s : σ) : coeff R (0 : σ →₀ ℕ) (X s : mv_power_series σ R) = 0 :=
 by { rw [coeff_X, if_neg], intro h, exact one_ne_zero (single_eq_zero.mp h.symm) }
 
 lemma X_def (s : σ) : X s = monomial R (single s 1) 1 := rfl

@@ -266,7 +266,7 @@ prod_product
 
 @[to_additive]
 lemma prod_sigma {σ : α → Type*}
-  {s : finset α} {t : Πa, finset (σ a)} {f : sigma σ → β} :
+  (s : finset α) (t : Πa, finset (σ a)) (f : sigma σ → β) :
   (∏ x in s.sigma t, f x) = ∏ a in s, ∏ s in (t a), f ⟨a, s⟩ :=
 by classical;
 calc (∏ x in s.sigma t, f x) =
@@ -277,6 +277,12 @@ calc (∏ x in s.sigma t, f x) =
       rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
   ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
     prod_congr rfl $ λ _ _, prod_map _ _ _
+
+@[to_additive]
+lemma prod_sigma' {σ : α → Type*}
+  (s : finset α) (t : Πa, finset (σ a)) (f : Πa, σ a → β) :
+  (∏ a in s, ∏ s in (t a), f a s) = ∏ x in s.sigma t, f x.1 x.2 :=
+eq.symm $ prod_sigma s t (λ x, f x.1 x.2)
 
 @[to_additive]
 lemma prod_fiberwise_of_maps_to [decidable_eq γ] {s : finset α} {t : finset γ} {g : α → γ}

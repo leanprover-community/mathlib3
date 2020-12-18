@@ -6,36 +6,23 @@ Authors: Johannes Hölzl
 Type class hierarchy for Boolean algebras.
 -/
 import order.bounded_lattice
+import order.heyting_algebra
 
 set_option old_structure_cmd true
 
 universes u v
 variables {α : Type u} {w x y z : α}
 
-/-- Set / lattice complement -/
-class has_compl (α : Type*) := (compl : α → α)
-
-export has_compl (compl)
-
-postfix `ᶜ`:(max+1) := compl
-
 /-- A boolean algebra is a bounded distributive lattice with a
   complementation operation `-` such that `x ⊓ - x = ⊥` and `x ⊔ - x = ⊤`.
   This is a generalization of (classical) logic of propositions, or
   the powerset lattice. -/
-class boolean_algebra α extends bounded_distrib_lattice α, has_compl α, has_sdiff α :=
-(inf_compl_le_bot : ∀x:α, x ⊓ xᶜ ≤ ⊥)
+class boolean_algebra α extends heyting_algebra α, has_sdiff α :=
 (top_le_sup_compl : ∀x:α, ⊤ ≤ x ⊔ xᶜ)
 (sdiff_eq : ∀x y:α, x \ y = x ⊓ yᶜ)
 
 section boolean_algebra
 variables [boolean_algebra α]
-
-@[simp] theorem inf_compl_eq_bot : x ⊓ xᶜ = ⊥ :=
-bot_unique $ boolean_algebra.inf_compl_le_bot x
-
-@[simp] theorem compl_inf_eq_bot : xᶜ ⊓ x = ⊥ :=
-eq.trans inf_comm inf_compl_eq_bot
 
 @[simp] theorem sup_compl_eq_top : x ⊔ xᶜ = ⊤ :=
 top_unique $ boolean_algebra.top_le_sup_compl x
@@ -54,9 +41,6 @@ theorem disjoint_compl_left : disjoint xᶜ x := disjoint_compl_right.symm
 
 theorem sdiff_eq : x \ y = x ⊓ yᶜ :=
 boolean_algebra.sdiff_eq x y
-
-theorem compl_unique (i : x ⊓ y = ⊥) (s : x ⊔ y = ⊤) : xᶜ = y :=
-(is_compl.of_eq i s).compl_eq
 
 @[simp] theorem compl_top : ⊤ᶜ = (⊥:α) :=
 is_compl_top_bot.compl_eq
@@ -110,10 +94,12 @@ instance boolean_algebra_Prop : boolean_algebra Prop :=
 { compl := not,
   sdiff := λ p q, p ∧ ¬ q,
   sdiff_eq := λ _ _, rfl,
-  inf_compl_le_bot := λ p ⟨Hp, Hpc⟩, Hpc Hp,
   top_le_sup_compl := λ p H, classical.em p,
-  .. bounded_distrib_lattice_Prop }
+  .. heyting_algebra_prop }
 
 instance pi.boolean_algebra {α : Type u} {β : Type v} [boolean_algebra β] :
   boolean_algebra (α → β) :=
-by pi_instance
+  begin
+    pi_instance,
+    apply pi.heyting_algebra.imp_adjoint,
+  end

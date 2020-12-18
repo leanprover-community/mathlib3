@@ -1900,6 +1900,11 @@ def order_iso_multiset : (α →₀ ℕ) ≃o multiset α :=
 { to_equiv := to_multiset.to_equiv,
   map_rel_iff' := λ f g, by simp [multiset.le_iff_count, le_def] }
 
+@[simp] lemma coe_order_iso_multiset : ⇑(@order_iso_multiset α) = to_multiset := rfl
+
+@[simp] lemma coe_order_iso_multiset_symm :
+  ⇑(@order_iso_multiset α).symm = multiset.to_finsupp := rfl
+
 lemma to_multiset_strict_mono : strict_mono (@to_multiset α) :=
 order_iso_multiset.strict_mono
 

@@ -115,7 +115,8 @@ instance : inhabited (⨂[R] i, s i) := ⟨0⟩
 variables (R) {s}
 
 /-- `tprod_coeff R r f` with `r : R` and `f : Π i, s i` is the tensor product of the vectors `f i`
-over all `i : ι`, multiplied by the coefficient `r`. -/
+over all `i : ι`, multiplied by the coefficient `r`. Note that this is meant as an auxiliary
+definition for this file alone, and that one should use `tprod` defined below for most purposes. -/
 def tprod_coeff (r : R) (f : Π i, s i) : ⨂[R] i, s i := add_con.mk' _ $ free_add_monoid.of (r, f)
 
 variables {R}

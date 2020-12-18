@@ -132,16 +132,41 @@ instance ideal.unique_factorization_monoid :
      λ h, irreducible_of_prime h⟩,
   .. ideal.wf_dvd_monoid }
 
+#check associates.mk
+
+namespace unique_factorization_monoid
+
 -- 3.2: "Only finitely many divisors"
-lemma unique_factorization_monoid.finite_divisors
+lemma finite_divisors
   {R : Type*} [comm_cancel_monoid_with_zero R] [unique_factorization_monoid R]
-  (x : R) : set.finite {y | y ∣ x} :=
+  {x : R} (hx : x ≠ 0) : set.finite {(y : associates R) | y ∣ associates.mk x} :=
 begin
-  sorry
+  haveI : nontrivial R := ⟨⟨x, 0, hx⟩⟩,
+  haveI := @unique_factorization_monoid.normalization_monoid R _ _ _,
+  haveI := classical.dec_eq R,
+  haveI := classical.dec_eq (associates R),
+  set divisors := ((factors x).powerset.map (λ (s : multiset R), associates.mk s.prod)).to_finset,
+  convert set.finite_mem_finset divisors,
+  ext y,
+  obtain ⟨y, rfl⟩ := associates.mk_surjective y,
+  simp only [exists_prop, multiset.mem_to_finset, multiset.mem_powerset, exists_eq_right,
+    multiset.mem_map, associates.mk_dvd_mk],
+  split,
+  { intro h,
+    have hy : y ≠ 0, { refine mt (λ hy, _) hx, rwa [hy, zero_dvd_iff] at h },
+    refine ⟨factors y, _, quot.sound (factors_prod hy)⟩,
+    exact (dvd_iff_factors_le_factors hy hx).mp h },
+  { rintros ⟨s, hs, hy⟩,
+    refine (dvd_iff_factors_le_factors _ hx).mpr (le_trans (le_of_eq _) hs),
+    apply factors_unique }
 end
 
-lemma ideal.finite_divisors (I : ideal R) : set.finite {J | J ∣ I} :=
-unique_factorization_monoid.finite_divisors I
+end unique_factorization_monoid
+
+lemma ideal.finite_divisors (I : ideal R) (hI : I ≠ ⊥) : set.finite {J | J ∣ I} :=
+begin
+  have := unique_factorization_monoid.finite_divisors hI,
+end
 
 end dedekind_domain
 
@@ -459,6 +484,8 @@ variables (f : fraction_map R K) (abs : euclidean_absolute_value R ℤ) -- TODO:
 is a `q ∶ R` such that `abs (x - q) < 1`. -/
 noncomputable def integral_part (x : f.codomain) : R :=
 f.num x / f.denom x
+
+#print euclidean_domain
 
 lemma integral_part_mk' (a : R) (b : non_zero_divisors R) :
   f.integral_part (f.mk' a b) = a / b :=
@@ -846,7 +873,13 @@ begin
   split,
   { rintros ⟨z, ⟨xy, hxy, rfl⟩, eq_J⟩,
     have hx : (f.to_localization_map.sec (xy : f.codomain)).1 ≠ 0,
-    { sorry },
+    { suffices : f.to_map (f.to_localization_map.sec (xy : f.codomain)).1 ≠ 0,
+      { refine mt (λ h, _) this,
+        rw [h, ring_hom.map_zero] },
+      rw [ne.def, ← localization_map.sec_spec (xy : f.codomain), mul_eq_zero],
+      push_neg,
+      use xy.ne_zero,
+      exact f.to_map_ne_zero_of_mem_non_zero_divisors _ },
     use [(f.to_localization_map.sec (xy : f.codomain)).1,
          (f.to_localization_map.sec (xy : f.codomain)).2,
          hx,

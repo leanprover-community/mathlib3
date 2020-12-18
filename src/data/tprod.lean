@@ -42,7 +42,7 @@ namespace list
 variable (α)
 
 /-- The product of a family of types over a list. -/
-@[nolint has_inhabited_instance] def tprod (l : list ι) : Type* :=
+def tprod (l : list ι) : Type* :=
 l.foldr (λ i β, α i × β) punit
 
 variable {α}
@@ -55,6 +55,9 @@ open list
 protected def mk : ∀ (l : list ι) (f : Π i, α i), tprod α l
 | []        := λ f, punit.star
 | (i :: is) := λ f, (f i, mk is f)
+
+instance [∀ i, inhabited (α i)] : inhabited (tprod α l) :=
+⟨tprod.mk l (λ i, default (α i))⟩
 
 @[simp] lemma fst_mk (i : ι) (l : list ι) (f : Π i, α i) : (tprod.mk (i::l) f).1 = f i := rfl
 

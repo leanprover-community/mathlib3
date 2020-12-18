@@ -116,6 +116,9 @@ begin
   rw [← update_eq_self i m, h, ← this, f.map_smul, zero_smul]
 end
 
+@[simp] lemma map_update_zero (m : Πi, M₁ i) (i : ι) : f (update m i 0) = 0 :=
+f.map_coord_zero i (update_same i 0 m)
+
 @[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
 begin
   obtain ⟨i, _⟩ : ∃i:ι, i ∈ set.univ := set.exists_mem_of_nonempty ι,
@@ -429,6 +432,14 @@ multilinearity by expanding successively with respect to each coordinate. -/
 lemma map_sum [∀ i, fintype (α i)] :
   f (λ i, ∑ j, g i j) = ∑ r : Π i, α i, f (λ i, g i (r i)) :=
 f.map_sum_finset g (λ i, finset.univ)
+
+lemma map_update_sum {α : Type*} (t : finset α) (i : ι) (g : α → M₁ i) (m : Π i, M₁ i):
+  f (update m i (∑ a in t, g a)) = ∑ a in t, f (update m i (g a)) :=
+begin
+  induction t using finset.induction with a t has ih h,
+  { simp },
+  { simp [finset.sum_insert has, ih] }
+end
 
 end apply_sum
 

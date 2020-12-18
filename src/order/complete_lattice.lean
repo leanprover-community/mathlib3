@@ -814,12 +814,6 @@ infi_of_empty nonempty_empty
 @[simp] theorem supr_empty {s : empty → α} : supr s = ⊥ :=
 supr_of_empty nonempty_empty
 
-@[simp] theorem infi_unit {f : unit → α} : (⨅ x, f x) = f () :=
-le_antisymm (infi_le _ _) (le_infi $ assume ⟨⟩, le_refl _)
-
-@[simp] theorem supr_unit {f : unit → α} : (⨆ x, f x) = f () :=
-le_antisymm (supr_le $ assume ⟨⟩, le_refl _) (le_supr _ _)
-
 lemma supr_bool_eq {f : bool → α} : (⨆b:bool, f b) = f tt ⊔ f ff :=
 le_antisymm
   (supr_le $ assume b, match b with tt := le_sup_left | ff := le_sup_right end)

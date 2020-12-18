@@ -1349,59 +1349,40 @@ end
 
 end linear_order
 
-section linear_ordered_ring
-variables [topological_space α] [linear_ordered_ring α] [order_topology α]
+section linear_ordered_add_comm_group
+variables [topological_space α] [linear_ordered_add_comm_group α] [order_topology α]
 variables {l : filter β} {f g : β → α}
 
-/- TODO The theorems in this section ought to be written in the context of linearly ordered
-(additive) commutative groups rather than linearly ordered rings; however, the former concept does
-not currently exist in mathlib. -/
-
-/-- In a linearly ordered ring with the order topology, if `f` tends to `C` and `g` tends to
-`at_top` then `f + g` tends to `at_top`. -/
-lemma tendsto_at_top_add_tendsto_left
-  {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_top) :
+/-- In a linearly ordered additive commutative group with the order topology, if `f` tends to `C`
+and `g` tends to `at_top` then `f + g` tends to `at_top`. -/
+lemma filter.tendsto.add_at_top {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
 begin
+  nontriviality α,
   obtain ⟨C', hC'⟩ : ∃ C', C' < C := no_bot C,
   refine tendsto_at_top_add_left_of_le' _ C' _ hg,
   exact (hf.eventually (lt_mem_nhds hC')).mono (λ x, le_of_lt)
 end
 
-/-- In a linearly ordered ring with the order topology, if `f` tends to `C` and `g` tends to
-`at_bot` then `f + g` tends to `at_bot`. -/
-lemma tendsto_at_bot_add_tendsto_left
-  {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_bot) :
+/-- In a linearly ordered additive commutative group with the order topology, if `f` tends to `C`
+and `g` tends to `at_bot` then `f + g` tends to `at_bot`. -/
+lemma filter.tendsto.add_at_bot {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_bot) :
   tendsto (λ x, f x + g x) l at_bot :=
-begin
-  obtain ⟨C', hC'⟩ : ∃ C', C < C' := no_top C,
-  refine tendsto_at_bot_add_left_of_ge' _ C' _ hg,
-  exact (hf.eventually (gt_mem_nhds hC')).mono (λ x, le_of_lt)
-end
+@filter.tendsto.add_at_top (order_dual α) _ _ _ _ _ _ _ _ hf hg
 
-/-- In a linearly ordered ring with the order topology, if `f` tends to `at_top` and `g` tends to
-`C` then `f + g` tends to `at_top`. -/
-lemma tendsto_at_top_add_tendsto_right
-  {C : α} (hf : tendsto f l at_top) (hg : tendsto g l (𝓝 C)) :
+/-- In a linearly ordered additive commutative group with the order topology, if `f` tends to
+`at_top` and `g` tends to `C` then `f + g` tends to `at_top`. -/
+lemma filter.tendsto.at_top_add {C : α} (hf : tendsto f l at_top) (hg : tendsto g l (𝓝 C)) :
   tendsto (λ x, f x + g x) l at_top :=
-begin
-  convert tendsto_at_top_add_tendsto_left hg hf,
-  ext,
-  exact add_comm _ _,
-end
+by { conv in (_ + _) { rw add_comm }, exact hg.add_at_top hf }
 
-/-- In a linearly ordered ring with the order topology, if `f` tends to `at_bot` and `g` tends to
-`C` then `f + g` tends to `at_bot`. -/
-lemma tendsto_at_bot_add_tendsto_right
-  {C : α} (hf : tendsto f l at_bot) (hg : tendsto g l (𝓝 C)) :
+/-- In a linearly ordered additive commutative group with the order topology, if `f` tends to
+`at_bot` and `g` tends to `C` then `f + g` tends to `at_bot`. -/
+lemma filter.tendsto.at_bot_add {C : α} (hf : tendsto f l at_bot) (hg : tendsto g l (𝓝 C)) :
   tendsto (λ x, f x + g x) l at_bot :=
-begin
-  convert tendsto_at_bot_add_tendsto_left hg hf,
-  ext,
-  exact add_comm _ _,
-end
+by { conv in (_ + _) { rw add_comm }, exact hg.add_at_bot hf }
 
-end linear_ordered_ring
+end linear_ordered_add_comm_group
 
 section linear_ordered_field
 variables [linear_ordered_field α]
@@ -1420,6 +1401,13 @@ begin
     hf.eventually (eventually_ge_at_top 0)],
   exact λ x hg hf, mul_le_mul_of_nonneg_left hg.le hf
 end
+
+/-- In a linearly ordered field with the order topology, if `f` tends to a positive constant `C` and
+`g` tends to `at_top` then `f * g` tends to `at_top`. -/
+lemma filter.tendsto.mul_at_top {C : α} (hC : 0 < C) (hf : tendsto f l (𝓝 C))
+  (hg : tendsto g l at_top) :
+  tendsto (λ x, (f x * g x)) l at_top :=
+by simpa only [mul_comm] using hg.at_top_mul hC hf
 
 /-- In a linearly ordered field with the order topology, if `f` tends to `at_top` and `g` tends to
 a negative constant `C` then `f * g` tends to `at_bot`. -/

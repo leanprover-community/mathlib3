@@ -262,8 +262,7 @@ begin
       0   ≤ re ⟪x - T • y, x - T • y⟫
                   : inner_self_nonneg
       ... = re ⟪x, x⟫ - re ⟪T • y, x⟫ - re ⟪x, T • y⟫ + re ⟪T • y, T • y⟫
-                  : by simp [inner_sub_sub_self, inner_smul_left, inner_smul_right, h₁, h₂,
-                             -ring_hom.map_div]
+                  : by simp [inner_sub_sub_self, inner_smul_left, inner_smul_right, h₁, h₂]
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)

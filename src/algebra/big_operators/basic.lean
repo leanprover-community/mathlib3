@@ -792,7 +792,7 @@ lemma prod_comp [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ
 calc ∏ a in s, f (g a)
     = ∏ x in (s.image g).sigma (λ b : γ, s.filter (λ a, g a = b)), f (g x.2) :
   prod_bij (λ a ha, ⟨g a, a⟩) (by simp; tauto) (λ _ _, rfl) (by simp) (by finish)
-... = ∏ b in s.image g, ∏ a in s.filter (λ a, g a = b), f (g a) : prod_sigma
+... = ∏ b in s.image g, ∏ a in s.filter (λ a, g a = b), f (g a) : prod_sigma _ _ _
 ... = ∏ b in s.image g, ∏ a in s.filter (λ a, g a = b), f b :
   prod_congr rfl (λ b hb, prod_congr rfl (by simp {contextual := tt}))
 ... = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card :

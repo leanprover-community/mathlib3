@@ -251,19 +251,20 @@ end
 
 namespace finset
 
-lemma mem_range_le (n : ℕ) : ∀ x ∈ finset.range (n + 1), x ≤ n :=
+lemma mem_range_le (n : ℕ) : ∀ x ∈ finset.range n, x ≤ n :=
 begin
   rintros x hx,
   rw finset.mem_range at hx,
-  exact lt_succ_iff.1 hx,
+  apply le_of_lt hx,
 end
 
-lemma sub_ne_zero (n : ℕ) : ∀ x ∈ finset.range (n + 1), n - x ≠ 0 :=
+lemma sub_ne_zero (n : ℕ) : ∀ x ∈ finset.range n, n - x ≠ 0 :=
 begin
   rintros x hx,
-  rw finset.mem_range at hx, rw lt_succ_iff at hx,
+  rw finset.mem_range at hx,
   rintros h,
-  sorry,
+  rw nat.sub_eq_zero_iff_le at h,
+  apply le_lt_antisymm h hx,
 end
 
 end finset
@@ -279,6 +280,8 @@ begin
   apply g, refl,
   simp at *, apply not_succ_le_zero n, assumption,
 end
+
+lemma sub_add_assoc (k m n : ℕ) : k - (m + n) = k - m - n := sorry
 
 end nat
 
@@ -314,13 +317,14 @@ begin
   simp,
   rw [hf, hg], simp,
   rw finset.sum_antidiagonal, simp,
-  convert_to ∑ (i : ℕ) in finset.range (n + 1), (bernoulli_neg i / ↑(i.factorial) * (↑((n - i).factorial))⁻¹) = 0,
+  rw finset.sum_range_succ, simp,
+  convert_to ∑ (i : ℕ) in finset.range n, (bernoulli_neg i / ↑(i.factorial) * (↑((n - i).factorial))⁻¹) = 0,
   rw <-sub_eq_zero_iff_eq,
   rw <-finset.sum_sub_distrib,
   apply finset.sum_eq_zero,
   rintros x hx,
   simp [finset.sub_ne_zero n x hx],
-  suffices l : (n.factorial : ℚ) * (∑ (i : ℕ) in finset.range (n + 1), 1 / ((i.factorial) * ((n - i).factorial)) * bernoulli_neg i) = 0,
+  suffices l : (n.factorial : ℚ) * (∑ (i : ℕ) in finset.range n, 1 / ((i.factorial) * ((n - i).factorial)) * bernoulli_neg i) = 0,
   {
     rw mul_eq_zero at l,
     cases l,
@@ -344,7 +348,7 @@ begin
   },
   {
     rw finset.mul_sum,
-    convert_to (∑ (x : ℕ) in finset.range (n + 1), (n.choose x : ℚ) * bernoulli_neg x) = 0,
+    convert_to (∑ (x : ℕ) in finset.range n, (n.choose x : ℚ) * bernoulli_neg x) = 0,
     {
       {
         rw <-sub_eq_zero_iff_eq,
@@ -370,8 +374,91 @@ begin
 end
 
 lemma bernoulli_poly_var (X : ℚ) (n : ℕ) : bernoulli_poly n (X + 1) =
- ∑ (i : ℕ) in finset.range n, (n.choose i : ℚ) * bernoulli_poly i X :=
- sorry
+ ∑ (i : ℕ) in finset.range (n + 1), (n.choose i : ℚ) * bernoulli_poly i X :=
+begin
+ have h : ∀ k : ℕ, (X + 1)^k = ∑ (i : ℕ) in finset.range (k + 1), k.choose i * X^i,
+ sorry,
+ rw [bernoulli_poly_def],
+ conv_lhs
+ {
+   apply_congr,
+   skip,
+   rw h x,
+ },
+ conv_lhs
+ {
+   apply_congr,
+   skip,
+   rw finset.mul_sum,
+   rw finset.range_eq_Ico,
+ },
+ rw finset.range_eq_Ico,
+ rw <-finset.dependent_double_sum,
+ conv_lhs
+{
+  apply_congr,
+  skip,
+  funext,
+  rw [finset.sum_Ico_eq_sum_range, finset.range_eq_Ico],
+  conv{
+    apply_congr,
+    skip,
+    rw nat.sub_add_assoc,
+  },
+},
+conv_rhs
+{
+  apply_congr,
+  skip,
+  rw bernoulli_poly_def,
+  rw finset.mul_sum,
+  rw finset.range_eq_Ico,
+},
+rw <-finset.dependent_double_sum,
+conv_rhs
+{
+  apply_congr,
+  skip,
+  funext,
+  rw [finset.sum_Ico_eq_sum_range, finset.range_eq_Ico],
+  conv
+  {
+    apply_congr,
+    skip,
+    rw [nat.add_sub_cancel_left x _],
+  },
+},
+rw <-sub_eq_zero_iff_eq,
+rw <-finset.sum_sub_distrib,
+apply finset.sum_eq_zero,
+rintros x hx, rw sub_eq_zero_iff_eq,
+rw <-finset.range_eq_Ico,
+have k :∀ n : ℕ, ∀ x ∈ finset.range (n + 1), n + 1 - x = (n - x) + 1,
+sorry,
+rw [k],
+rw <-finset.sum_flip,
+rw <-sub_eq_zero_iff_eq,
+rw <-finset.sum_sub_distrib,
+apply finset.sum_eq_zero,
+rintros y hy, rw sub_eq_zero_iff_eq,
+rw nat.sub_sub_self, rw choose_symm_of_eq_add,
+swap,
+suffices l : n = x + (n - x - y) + y,
+exact l,
+{sorry,},
+rw <-mul_assoc, rw <-mul_assoc, rw mul_eq_mul_right_iff, left,
+rw <-mul_assoc, rw mul_comm _ (bernoulli_neg y), rw mul_assoc, rw mul_assoc, rw mul_eq_mul_left_iff, left,
+rw choose_mul, rw <-choose_symm,
+have d : x + (n - x - y) = n - y,
+sorry,
+rw d,
+rw choose_mul,
+{
+  rw finset.mem_range at hx,
+  exact lt_succ_iff.1 hx,
+},
+rw <-finset.range_eq_Ico at hx, assumption,
+end
 
 lemma exp_bernoulli_poly (t : ℕ) (f : ℕ → ℕ → ℚ) (hf : f = λ t i, (bernoulli_poly i t / (nat.factorial i)) )
 (g : ℕ → ℕ → ℚ) (hg : g = λ t i, if i = 0 then 0 else (1 / (nat.factorial (i) )) )
@@ -385,7 +472,6 @@ begin
     simp_rw hf, simp,
     simp_rw hg,
   },
-  --set f' := λ i : ℕ, (bernoulli_poly i d / (nat.factorial i)) with hf',
   rw pow_succ,
   have lg' : ∀ x y, g' x = g' y,
   {
@@ -413,30 +499,54 @@ begin
   simp,
   rw [hf, hg'],
   rw finset.sum_antidiagonal, simp only [cast_succ, factorial],
-sorry
+  simp_rw bernoulli_poly_var,
+  rw finset.sum_div,
+  rw <-sub_eq_zero_iff_eq,
+  rw <-finset.sum_sub_distrib,
+  apply finset.sum_eq_zero,
+  rintros x hx, rw sub_eq_zero_iff_eq,
+  rw div_eq_iff,
+  rw mul_comm,
+  rw div_eq_mul_one_div, rw mul_assoc, rw mul_assoc,
+  rw mul_eq_mul_left_iff, left,
+  rw choose_eq_factorial_div_factorial,
+  rw rat.coe_nat_div,
+  {
+    rw mul_comm _ (n.factorial : ℚ), rw <-mul_assoc, rw mul_comm _ (n.factorial : ℚ), rw one_div, rw one_div,
+    rw div_eq_iff, rw mul_assoc, rw mul_comm ((n - x).factorial : ℚ)⁻¹ _, rw <-mul_assoc, simp, rw <-mul_assoc,
+    rw mul_assoc, rw rat.mul_inv_cancel ((n-x).factorial : ℚ), simp,
+    rw mul_assoc, rw rat.inv_mul_cancel (x.factorial : ℚ), simp,
+    {
+      simp,
+      apply factorial_ne_zero,
+    },
+    {
+      simp,
+      apply factorial_ne_zero,
+    },
+    simp,
+    apply not_or,
+    apply factorial_ne_zero,
+    apply factorial_ne_zero,
+  },
+  {
+    apply factorial_mul_factorial_dvd_factorial,
+    rw finset.mem_range at hx,
+    exact lt_succ_iff.1 hx,
+  },
+  {
+    rw finset.mem_range at hx,
+    exact lt_succ_iff.1 hx,
+  },
+  {
+      simp,
+      apply factorial_ne_zero,
+  },
 end
 
 lemma one_sub_eq_neg : ∀ n : ℕ, ∀ X : ℚ, (bernoulli_poly n) ((1: ℚ) - X) = (-1)^n * bernoulli_poly n X :=
 begin
-  rintros n X,
-  have h := exp_bernoulli_poly 1 (1 - X),
-  simp at h,
-  have h' := exp_bernoulli_poly (-1) X,
-  simp at h',
-  have f : real.exp (1 - X) = (real.exp 1 - 1) * -real.exp (-X) / (real.exp (-1) - 1),
-  sorry,
-  rw f at h,
-  rw <-h' at h,
-  rw <-sub_eq_zero_iff_eq at h,
-  rw mul_comm at h,
---  rw <-tsum_sub at h,
---  let g : ℕ → ℚ := λ b, (bernoulli_poly b (1 - X) / ↑(b.factorial) - bernoulli_poly b X * (-1) ^ b / ↑(b.factorial)),
---  have g' : (∑' b, g b) = 0,
---  exact h,
---  have g'' : summable g,
-  sorry,
---  have f' := @tsum_eq_zero_iff _ _ _ _ _ g,
---  sorry
+  sorry
 end
 
 end bernoulli_poly

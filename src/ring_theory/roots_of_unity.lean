@@ -12,6 +12,7 @@ import number_theory.divisors
 import data.zmod.basic
 import tactic.zify
 import field_theory.separable
+import field_theory.finite.basic
 
 /-!
 # Roots of unity and primitive roots of unity
@@ -258,6 +259,10 @@ begin
       mul_pow, ← gpow_coe_nat, ← gpow_mul, mul_right_comm],
   simp only [gpow_mul, hl, h.pow_eq_one, one_gpow, one_pow, one_mul, gpow_coe_nat]
 end
+
+lemma pow_of_prime (h : is_primitive_root ζ k) {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ k) :
+  is_primitive_root (ζ ^ p) k :=
+h.pow_of_coprime p (hprime.coprime_iff_not_dvd.2 hdiv)
 
 lemma pow_iff_coprime (h : is_primitive_root ζ k) (h0 : 0 < k) (i : ℕ) :
   is_primitive_root (ζ ^ i) k ↔ i.coprime k :=
@@ -764,6 +769,47 @@ end
 lemma squarefree_minimal_polynomial_mod {p : ℕ} [fact p.prime] (hdiv : ¬ p ∣ n) :
   squarefree (map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos))) :=
 (separable_minimal_polynomial_mod h hpos hdiv).squarefree
+
+/- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
+`μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `expand ℤ p Q`. -/
+lemma minimal_polynomial_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
+  minimal_polynomial (is_integral h hpos) ∣
+  expand ℤ p (minimal_polynomial (is_integral (pow_of_prime h hprime hdiv) hpos)) :=
+begin
+  apply minimal_polynomial.integer_dvd,
+  { apply monic.is_primitive,
+    rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
+        (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
+    exact minimal_polynomial.monic (is_integral (pow_of_prime h hprime hdiv) hpos) },
+  { rw [aeval_def, coe_expand, ← comp, eval₂_eq_eval_map, map_comp, map_pow, map_X, eval_comp,
+      eval_pow, eval_X, ← eval₂_eq_eval_map, ← aeval_def],
+    exact minimal_polynomial.aeval (is_integral (pow_of_prime h hprime hdiv) hpos) }
+end
+
+/- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
+`μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `Q ^ p` modulo `p`. -/
+lemma minimal_polynomial_dvd_pow_mod {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
+  map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos)) ∣
+  map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral
+    (pow_of_prime h hprime hdiv) hpos)) ^ p :=
+begin
+  set Q := minimal_polynomial (is_integral (pow_of_prime h hprime hdiv) hpos),
+  have hfrob : map (int.cast_ring_hom (zmod p)) Q ^ p =
+    map (int.cast_ring_hom (zmod p)) (expand ℤ p Q),
+  by rw [← zmod.expand_card, map_expand (nat.prime.pos hprime)],
+  rw [hfrob],
+  apply ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))),
+  exact minimal_polynomial_dvd_expand h hpos hprime hdiv
+end
+
+/- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
+`μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `Q` modulo `p`. -/
+lemma minimal_polynomial_dvd_mod_p {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
+  map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos)) ∣
+  map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral
+    (pow_of_prime h hprime hdiv) hpos)) :=
+(unique_factorization_monoid.dvd_pow_iff_dvd_of_squarefree (squarefree_minimal_polynomial_mod h
+  hpos hdiv) (nat.prime.ne_zero hprime)).1 (minimal_polynomial_dvd_pow_mod h hpos hdiv)
 
 end minimal_polynomial
 

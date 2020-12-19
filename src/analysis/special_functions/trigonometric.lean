@@ -2156,35 +2156,17 @@ calc cos x = cos y ↔ cos x - cos y = 0 : sub_eq_zero.symm
 ... ↔ (∃ k : ℤ, y = 2 * k * π + x) ∨ (∃ k :ℤ, y = 2 * k * π - x) :
 begin
   apply or_congr;
-  rw sin_eq_zero_iff;
-  field_simp [(by norm_num : -(2:ℂ) ≠ 0)],
-  work_on_goal 0 -- material specific to the left of the `or`, when x ≅ y mod 2π
-  { split,
-    all_goals
-    { rintros ⟨k, hk⟩,
-      refine ⟨-k, eq.symm _⟩ } },
-  work_on_goal 2 -- material specific to the right of the `or`, when x ≅ -y mod 2π
-  { refine exists_congr (λ k, ⟨λ hk, _, λ hk, _⟩) },
-  all_goals -- joint material for showing two equations differ by a constant
-  { rw ← sub_eq_zero at hk ⊢,
-    convert hk using 1,
-    try { push_cast },
-    ring }
+    field_simp [sin_eq_zero_iff, (by norm_num : -(2:ℂ) ≠ 0), eq_sub_iff_add_eq',
+      sub_eq_iff_eq_add, mul_comm (2:ℂ), mul_right_comm _ (2:ℂ)],
+  split; { rintros ⟨k, rfl⟩, use -k, simp, },
 end
 ... ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x : exists_or_distrib.symm
 
 lemma sin_eq_sin_iff {x y : ℂ} :
   sin x = sin y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = (2 * k + 1) * π - x :=
 begin
-  rw [←complex.cos_sub_pi_div_two, ←complex.cos_sub_pi_div_two, cos_eq_cos_iff],
-  simp only [exists_or_distrib],
-  apply or_congr;
-  refine exists_congr (λ k, ⟨_, _⟩);
-  { intros h,
-    rw ← sub_eq_zero at ⊢ h,
-    convert h using 1,
-    field_simp,
-    ring },
+  simp only [← complex.cos_sub_pi_div_two, cos_eq_cos_iff, sub_eq_iff_eq_add],
+  refine exists_congr (λ k, or_congr _ _); refine eq.congr rfl _; field_simp; ring
 end
 
 lemma has_deriv_at_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) :
@@ -2207,22 +2189,27 @@ continuous_on_sin.div continuous_on_cos $ λ x, id
 lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 continuous_on_iff_continuous_restrict.1 continuous_on_tan
 
+lemma cos_eq_iff_quadratic {z w : ℂ} :
+  cos z = w ↔ (exp (z * I)) ^ 2 - 2 * w * exp (z * I) + 1 = 0 :=
+begin
+  rw ← sub_eq_zero,
+  field_simp [cos, exp_neg, exp_ne_zero],
+  refine eq.congr _ rfl,
+  ring
+end
+
 lemma cos_surjective : function.surjective cos :=
 begin
   intro x,
-  obtain ⟨w, hw⟩ : ∃ w, 1 * w * w + (-2 * x) * w + 1 = 0,
-  { exact exists_quadratic_eq_zero one_ne_zero (exists_eq_mul_self _) },
-  have hw' : exp (log w / I * I) = w,
-  { rw [div_mul_cancel _ I_ne_zero, exp_log],
+  obtain ⟨w, w₀, hw⟩ : ∃ w ≠ 0, 1 * w * w + (-2 * x) * w + 1 = 0,
+  { rcases exists_quadratic_eq_zero one_ne_zero (exists_eq_mul_self _) with ⟨w, hw⟩,
+    refine ⟨w, _, hw⟩,
     rintro rfl,
     simpa only [zero_add, one_ne_zero, mul_zero] using hw },
-  obtain ⟨z, hz⟩ : ∃ z : ℂ, (exp (z * I)) ^ 2 - 2 * x * exp (z * I) + 1 = 0,
-  { use log w / I, rw [hw', ← hw], ring },
-  use z,
-  delta cos,
-  rw ← mul_left_inj' (exp_ne_zero (z * I)),
-  rw [sub_add_eq_add_sub, sub_eq_zero, pow_two, ← exp_add, mul_comm _ x, mul_right_comm] at hz,
-  field_simp [add_mul, ← exp_add, hz]
+  refine ⟨log w / I, cos_eq_iff_quadratic.2 _⟩,
+  rw [div_mul_cancel _ I_ne_zero, exp_log w₀],
+  convert hw,
+  ring
 end
 
 @[simp] lemma range_cos : range cos = set.univ :=
@@ -2232,7 +2219,7 @@ lemma sin_surjective : function.surjective sin :=
 begin
   intro x,
   rcases cos_surjective x with ⟨z, rfl⟩,
-  exact ⟨z+π/2, sin_add_pi_div_two z⟩
+  exact ⟨z + π / 2, sin_add_pi_div_two z⟩
 end
 
 @[simp] lemma range_sin : range sin = set.univ :=
@@ -2270,32 +2257,18 @@ namespace real
 open_locale real
 
 theorem cos_eq_zero_iff {θ : ℝ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
-begin
-  rw [← complex.of_real_eq_zero, complex.of_real_cos θ],
-  convert @complex.cos_eq_zero_iff θ,
-  norm_cast,
-end
+by exact_mod_cast @complex.cos_eq_zero_iff θ
 
 theorem cos_ne_zero_iff {θ : ℝ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
 by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
 
 lemma cos_eq_cos_iff {x y : ℝ} :
   cos x = cos y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x :=
-begin
-  have := @complex.cos_eq_cos_iff x y,
-  rw [← complex.of_real_cos, ← complex.of_real_cos] at this,
-  norm_cast at this,
-  simp [this],
-end
+by exact_mod_cast @complex.cos_eq_cos_iff x y
 
 lemma sin_eq_sin_iff {x y : ℝ} :
   sin x = sin y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = (2 * k + 1) * π - x :=
-begin
-  have := @complex.sin_eq_sin_iff x y,
-  rw [← complex.of_real_sin, ← complex.of_real_sin] at this,
-  norm_cast at this,
-  simp [this],
-end
+by exact_mod_cast @complex.sin_eq_sin_iff x y
 
 lemma has_deriv_at_tan {x : ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) :
   has_deriv_at tan (1 / (cos x)^2) x :=

@@ -1109,7 +1109,7 @@ by rw [nth_le_nth hn, nth_le_nth hn', nth_le_append]
 lemma nth_append_right {l₁ l₂ : list α} {n : ℕ} (hn : l₁.length ≤ n) :
   (l₁ ++ l₂).nth n = l₂.nth (n - l₁.length) :=
 begin
-  by_cases hl : (n < (l₁ ++ l₂).length),
+  by_cases hl : n < (l₁ ++ l₂).length,
   { rw [nth_le_nth hl, nth_le_nth, nth_le_append_right hn] },
   { rw [nth_len_le (le_of_not_lt hl), nth_len_le],
     rw [not_lt, length_append] at hl,
@@ -1529,7 +1529,7 @@ lemma nth_le_take' (L : list α) {i j : ℕ} (hi : i < (L.take j).length) :
   nth_le (L.take j) i hi = nth_le L i (lt_of_lt_of_le hi (by simp [le_refl])) :=
 by { simp at hi, rw nth_le_take L _ hi.1 }
 
-lemma nth_take_of_lt {l : list α} {n m : ℕ} (h : m < n) :
+lemma nth_take {l : list α} {n m : ℕ} (h : m < n) :
   (l.take n).nth m = l.nth m :=
 begin
   induction n with n hn generalizing l m,
@@ -1542,9 +1542,9 @@ begin
       { simpa only using hn (nat.lt_of_succ_lt_succ h) } } },
 end
 
-@[simp] lemma nth_take {l : list α} {n : ℕ} :
+@[simp] lemma nth_take_of_succ {l : list α} {n : ℕ} :
   (l.take (n + 1)).nth n = l.nth n :=
-nth_take_of_lt (nat.lt_succ_self n)
+nth_take (nat.lt_succ_self n)
 
 lemma take_succ {l : list α} {n : ℕ} :
   l.take (n + 1) = l.take n ++ (l.nth n).to_list :=

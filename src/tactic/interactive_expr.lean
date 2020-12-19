@@ -74,9 +74,12 @@ def subtract {α} [decidable_eq α]: (list α) → (list α) → option (list α
 -- if t₂ ++ z = t₁ then (h₁ :: t₁) ++ z = (h₁ :: t₂)
 | (h₁ :: t₁) (h₂ :: t₂) := if h₁ = h₂ then subtract t₁ t₂ else none
 
-meta def sf.follow : expr.address → sf → option sf
-| [] s := some s
-| l (sf.tag_expr ea e  m) := subtract l ea >>= λ a, sf.follow a m
+meta def sf.follow : expr.address → sf → option (expr × sf)
+| [] s := none
+| l (sf.tag_expr ea e  m) := do
+  a ← subtract l ea,
+  if a = [] then pure (e,m) else
+  sf.follow a m
 | l (sf.block _ a) := sf.follow l a
 | l (sf.highlight _ a) := sf.follow l a
 | l (sf.of_string _) := none
@@ -103,12 +106,11 @@ meta def sf.collapse_restricted_quantifiers_core : sf → tactic sf
   do
   should_collapse ← sf.collapse_restricted_quantifiers_pred py,
   if ¬ should_collapse then pure s else do
-  binder_prop_adr ← pure $ [expr.coord.pi_body, expr.coord.pi_var_type],
-  binder_body_adr ← pure $ [expr.coord.pi_body, expr.coord.pi_body],
-  binder_prop ← sf.follow binder_prop_adr a,
-  binder_body ← sf.follow binder_body_adr a,
-  pure (sf.tag_expr addr e $ "∀ (" ++ binder_prop ++ "), " ++ binder_body)
--- | (sf.tag_expr a x b) := pure "asdf"
+  a1 ← pure $ [expr.coord.pi_body, expr.coord.pi_var_type],
+  a2 ← pure $ [expr.coord.pi_body, expr.coord.pi_body],
+  (e1, s1) ← sf.follow a1 a,
+  (e2, s2) ← sf.follow a2 a,
+  pure (sf.tag_expr addr e $ "∀ (" ++ (sf.tag_expr (addr ++ a1) e1 s1) ++ "), " ++ (sf.tag_expr (addr ++ a2) e2 s2))
 | x := pure x
 
 /-- Flattens an `sf`, i.e. merges adjacent `of_string` constructors. -/
@@ -533,7 +535,7 @@ attribute [vm_override widget_override.term_goal_widget] widget.term_goal_widget
 attribute [vm_override widget_override.tactic_state_widget] widget.tactic_state_widget
 
 
--- example : ∀ (x : ℕ), x > 3 → ∃ (N : set ℕ), ∀ y, y ∈ N → x > 2 :=
--- begin
+example : ∀ (x : ℕ), x > 3 → ∃ (N : set ℕ), ∀ y, y ∈ N → x > 2 :=
+begin
 
--- end
+end

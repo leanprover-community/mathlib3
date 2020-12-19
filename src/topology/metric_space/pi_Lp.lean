@@ -47,7 +47,7 @@ are equivalent on `ℝ^n` for abstract (norm equivalence) reasons. Instead, we g
 -/
 
 open real set filter
-open_locale big_operators uniformity topological_space
+open_locale big_operators uniformity topological_space nnreal
 
 noncomputable theory
 
@@ -141,7 +141,7 @@ begin
 end
 
 lemma antilipschitz_with_equiv :
-  antilipschitz_with ((fintype.card ι : nnreal) ^ (1/p)) (pi_Lp.equiv p hp α) :=
+  antilipschitz_with ((fintype.card ι : ℝ≥0) ^ (1/p)) (pi_Lp.equiv p hp α) :=
 begin
   have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
   have nonneg : 0 ≤ 1 / p := one_div_nonneg.2 (le_of_lt pos),
@@ -156,12 +156,12 @@ begin
     apply ennreal.rpow_le_rpow _ (le_of_lt pos),
     exact finset.le_sup (finset.mem_univ i)
   end
-  ... = (((fintype.card ι : nnreal)) ^ (1/p) : nnreal) *
+  ... = (((fintype.card ι : ℝ≥0)) ^ (1/p) : ℝ≥0) *
     edist (pi_Lp.equiv p hp α x) (pi_Lp.equiv p hp α y) :
   begin
     simp only [nsmul_eq_mul, finset.card_univ, ennreal.rpow_one, finset.sum_const,
       ennreal.mul_rpow_of_nonneg _ _ nonneg, ←ennreal.rpow_mul, cancel],
-    have : (fintype.card ι : ennreal) = (fintype.card ι : nnreal) :=
+    have : (fintype.card ι : ennreal) = (fintype.card ι : ℝ≥0) :=
       (ennreal.coe_nat (fintype.card ι)).symm,
     rw [this, ennreal.coe_rpow_of_nonneg _ nonneg]
   end

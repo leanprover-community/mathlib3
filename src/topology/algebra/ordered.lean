@@ -674,16 +674,8 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le' hg hh
 
 lemma nhds_order_unbounded {a : α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
   𝓝 a = (⨅l (h₂ : l < a) u (h₂ : a < u), 𝓟 (Ioo l u)) :=
-calc 𝓝 a = (⨅b<a, 𝓟 {c | b < c}) ⊓ (⨅b>a, 𝓟 {c | c < b}) : nhds_eq_order a
-  ... = (⨅b<a, 𝓟 {c | b < c} ⊓ (⨅b>a, 𝓟 {c | c < b})) : binfi_inf hl
-  ... = (⨅l<a, (⨅u>a, 𝓟 {c | c < u} ⊓ 𝓟 {c | l < c})) :
-    begin
-      congr, funext x,
-      congr, funext hx,
-      rw [inf_comm],
-      apply binfi_inf hu
-    end
-  ... = _ : by simp [inter_comm]; refl
+have ∃ u, u ∈ Ioi a, from hu, have ∃ l, l ∈ Iio a, from hl,
+by { simp only [nhds_eq_order, inf_binfi, binfi_inf, *, inf_principal, Ioi_inter_Iio], refl }
 
 lemma tendsto_order_unbounded {f : β → α} {a : α} {x : filter β}
   (hu : ∃u, a < u) (hl : ∃l, l < a) (h : ∀l u, l < a → a < u → ∀ᶠ b in x, l < f b ∧ f b < u) :
@@ -857,25 +849,6 @@ lemma exists_Ico_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h
   ∃ u (_ : a < u), Ico a u ⊆ s :=
 let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ico_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.1, hl.snd⟩
 
-lemma mem_nhds_unbounded {a : α} {s : set α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
-  s ∈ 𝓝 a ↔ (∃l u, l < a ∧ a < u ∧ ∀b, l < b → b < u → b ∈ s) :=
-let ⟨l, hl'⟩ := hl, ⟨u, hu'⟩ := hu in
-have 𝓝 a = (⨅p : {l // l < a} × {u // a < u}, 𝓟 (Ioo p.1.val p.2.val)),
-  by simp [nhds_order_unbounded hu hl, infi_subtype, infi_prod],
-iff.intro
-  (assume hs, by rw [this] at hs; from infi_sets_induct hs
-    ⟨l, u, hl', hu', by simp⟩
-    begin
-      intro p, rcases p with ⟨⟨l, hl⟩, ⟨u, hu⟩⟩,
-      simp [set.subset_def],
-      intros s₁ s₂ hs₁ l' hl' u' hu' hs₂,
-      refine ⟨max l l', _, min u u', _⟩;
-      simp [*, lt_min_iff, max_lt_iff] {contextual := tt}
-    end
-    (assume s₁ s₂ h ⟨l, u, h₁, h₂, h₃⟩, ⟨l, u, h₁, h₂, assume b hu hl, h $ h₃ _ hu hl⟩))
-  (assume ⟨l, u, hl, hu, h⟩,
-    by rw [this]; exact mem_infi_sets ⟨⟨l, hl⟩, ⟨u, hu⟩⟩ (assume b ⟨h₁, h₂⟩, h b h₁ h₂))
-
 lemma order_separated {a₁ a₂ : α} (h : a₁ < a₂) :
   ∃u v : set α, is_open u ∧ is_open v ∧ a₁ ∈ u ∧ a₂ ∈ v ∧ (∀b₁∈u, ∀b₂∈v, b₁ < b₂) :=
 match dense_or_discrete a₁ a₂ with
@@ -945,15 +918,14 @@ instance order_topology.regular_space : regular_space α :=
 
 /-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,
 provided `a` is neither a bottom element nor a top element. -/
-lemma mem_nhds_iff_exists_Ioo_subset' {a l' u' : α} {s : set α}
-  (hl' : l' < a) (hu' : a < u') :
+lemma mem_nhds_iff_exists_Ioo_subset' {a : α} {s : set α} (hl : ∃ l, l < a) (hu : ∃ u, a < u) :
   s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
 begin
   split,
   { assume h,
-    rcases exists_Ico_subset_of_mem_nhds' h hu' with ⟨u, au, hu⟩,
-    rcases exists_Ioc_subset_of_mem_nhds' h hl' with ⟨l, la, hl⟩,
-    refine ⟨l, u, ⟨la.2, au.1⟩, λx hx, _⟩,
+    rcases exists_Ico_subset_of_mem_nhds h hu with ⟨u, au, hu⟩,
+    rcases exists_Ioc_subset_of_mem_nhds h hl with ⟨l, la, hl⟩,
+    refine ⟨l, u, ⟨la, au⟩, λx hx, _⟩,
     cases le_total a x with hax hax,
     { exact hu ⟨hax, hx.2⟩ },
     { exact hl ⟨hx.1, hax⟩ } },
@@ -965,7 +937,15 @@ end
 -/
 lemma mem_nhds_iff_exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α} {s : set α} :
   s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
-let ⟨l', hl'⟩ := no_bot a in let ⟨u', hu'⟩ := no_top a in mem_nhds_iff_exists_Ioo_subset' hl' hu'
+mem_nhds_iff_exists_Ioo_subset' (no_bot a) (no_top a)
+
+lemma nhds_basis_Ioo' {a : α} (hl : ∃l, l < a) (hu : ∃u, a < u) :
+  (𝓝 a).has_basis (λ b : α × α, b.1 < a ∧ a < b.2) (λ b, Ioo b.1 b.2) :=
+⟨λ s, (mem_nhds_iff_exists_Ioo_subset' hl hu).trans $ by simp⟩
+
+lemma nhds_basis_Ioo [no_top_order α] [no_bot_order α] {a : α} :
+  (𝓝 a).has_basis (λ b : α × α, b.1 < a ∧ a < b.2) (λ b, Ioo b.1 b.2) :=
+nhds_basis_Ioo' (no_bot a) (no_top a)
 
 lemma filter.eventually.exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α} {p : α → Prop}
   (hp : ∀ᶠ x in 𝓝 a, p x) :
@@ -1369,59 +1349,40 @@ end
 
 end linear_order
 
-section linear_ordered_ring
-variables [topological_space α] [linear_ordered_ring α] [order_topology α]
+section linear_ordered_add_comm_group
+variables [topological_space α] [linear_ordered_add_comm_group α] [order_topology α]
 variables {l : filter β} {f g : β → α}
 
-/- TODO The theorems in this section ought to be written in the context of linearly ordered
-(additive) commutative groups rather than linearly ordered rings; however, the former concept does
-not currently exist in mathlib. -/
-
-/-- In a linearly ordered ring with the order topology, if `f` tends to `C` and `g` tends to
-`at_top` then `f + g` tends to `at_top`. -/
-lemma tendsto_at_top_add_tendsto_left
-  {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_top) :
+/-- In a linearly ordered additive commutative group with the order topology, if `f` tends to `C`
+and `g` tends to `at_top` then `f + g` tends to `at_top`. -/
+lemma filter.tendsto.add_at_top {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
 begin
+  nontriviality α,
   obtain ⟨C', hC'⟩ : ∃ C', C' < C := no_bot C,
   refine tendsto_at_top_add_left_of_le' _ C' _ hg,
   exact (hf.eventually (lt_mem_nhds hC')).mono (λ x, le_of_lt)
 end
 
-/-- In a linearly ordered ring with the order topology, if `f` tends to `C` and `g` tends to
-`at_bot` then `f + g` tends to `at_bot`. -/
-lemma tendsto_at_bot_add_tendsto_left
-  {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_bot) :
+/-- In a linearly ordered additive commutative group with the order topology, if `f` tends to `C`
+and `g` tends to `at_bot` then `f + g` tends to `at_bot`. -/
+lemma filter.tendsto.add_at_bot {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_bot) :
   tendsto (λ x, f x + g x) l at_bot :=
-begin
-  obtain ⟨C', hC'⟩ : ∃ C', C < C' := no_top C,
-  refine tendsto_at_bot_add_left_of_ge' _ C' _ hg,
-  exact (hf.eventually (gt_mem_nhds hC')).mono (λ x, le_of_lt)
-end
+@filter.tendsto.add_at_top (order_dual α) _ _ _ _ _ _ _ _ hf hg
 
-/-- In a linearly ordered ring with the order topology, if `f` tends to `at_top` and `g` tends to
-`C` then `f + g` tends to `at_top`. -/
-lemma tendsto_at_top_add_tendsto_right
-  {C : α} (hf : tendsto f l at_top) (hg : tendsto g l (𝓝 C)) :
+/-- In a linearly ordered additive commutative group with the order topology, if `f` tends to
+`at_top` and `g` tends to `C` then `f + g` tends to `at_top`. -/
+lemma filter.tendsto.at_top_add {C : α} (hf : tendsto f l at_top) (hg : tendsto g l (𝓝 C)) :
   tendsto (λ x, f x + g x) l at_top :=
-begin
-  convert tendsto_at_top_add_tendsto_left hg hf,
-  ext,
-  exact add_comm _ _,
-end
+by { conv in (_ + _) { rw add_comm }, exact hg.add_at_top hf }
 
-/-- In a linearly ordered ring with the order topology, if `f` tends to `at_bot` and `g` tends to
-`C` then `f + g` tends to `at_bot`. -/
-lemma tendsto_at_bot_add_tendsto_right
-  {C : α} (hf : tendsto f l at_bot) (hg : tendsto g l (𝓝 C)) :
+/-- In a linearly ordered additive commutative group with the order topology, if `f` tends to
+`at_bot` and `g` tends to `C` then `f + g` tends to `at_bot`. -/
+lemma filter.tendsto.at_bot_add {C : α} (hf : tendsto f l at_bot) (hg : tendsto g l (𝓝 C)) :
   tendsto (λ x, f x + g x) l at_bot :=
-begin
-  convert tendsto_at_bot_add_tendsto_left hg hf,
-  ext,
-  exact add_comm _ _,
-end
+by { conv in (_ + _) { rw add_comm }, exact hg.add_at_bot hf }
 
-end linear_ordered_ring
+end linear_ordered_add_comm_group
 
 section linear_ordered_field
 variables [linear_ordered_field α]
@@ -1440,6 +1401,13 @@ begin
     hf.eventually (eventually_ge_at_top 0)],
   exact λ x hg hf, mul_le_mul_of_nonneg_left hg.le hf
 end
+
+/-- In a linearly ordered field with the order topology, if `f` tends to a positive constant `C` and
+`g` tends to `at_top` then `f * g` tends to `at_top`. -/
+lemma filter.tendsto.mul_at_top {C : α} (hC : 0 < C) (hf : tendsto f l (𝓝 C))
+  (hg : tendsto g l at_top) :
+  tendsto (λ x, (f x * g x)) l at_top :=
+by simpa only [mul_comm] using hg.at_top_mul hC hf
 
 /-- In a linearly ordered field with the order topology, if `f` tends to `at_top` and `g` tends to
 a negative constant `C` then `f * g` tends to `at_bot`. -/

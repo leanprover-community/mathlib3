@@ -150,11 +150,11 @@ lemma is_compact.elim_finite_subfamily_closed {s : set α} {ι : Type v} (hs : i
   (Z : ι → set α) (hZc : ∀i, is_closed (Z i)) (hsZ : s ∩ (⋂ i, Z i) = ∅) :
   ∃ t : finset ι, s ∩ (⋂ i ∈ t, Z i) = ∅ :=
 let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) hZc
-  (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
-    exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using hsZ)
+  (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
+    exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using hsZ)
     in
-⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
-    exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
+⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
+    exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using ht⟩
 
 /-- To show that a compact set intersects the intersection of a family of closed sets,
   it is sufficient to show that it intersects every finite subfamily. -/
@@ -268,11 +268,11 @@ lemma compact_of_finite_subcover
 compact_of_finite_subfamily_closed $
   assume ι Z hZc hsZ,
   let ⟨t, ht⟩ := h (λ i, (Z i)ᶜ) (assume i, is_open_compl_iff.mpr $ hZc i)
-    (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
-      exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using hsZ)
+    (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
+      exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using hsZ)
       in
-  ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
-      exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
+  ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
+      exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using ht⟩
 
 /-- A set `s` is compact if and only if
 for every open cover of `s`, there exists a finite subcover. -/
@@ -390,7 +390,7 @@ have ∀x : subtype s, ∃uv : set α × set β,
     let ⟨ux,vx,H1⟩ := H x hx n hn this in ⟨⟨ux,vx⟩,H1⟩,
 let ⟨uvs, h⟩ := classical.axiom_of_choice this in
 have us_cover : s ⊆ ⋃i, (uvs i).1, from
-  assume x hx, set.subset_Union _ ⟨x,hx⟩ (by simpa using (h ⟨x,hx⟩).2.2.1),
+  assume x hx, subset_Union _ ⟨x,hx⟩ (by simpa using (h ⟨x,hx⟩).2.2.1),
 let ⟨s0, s0_cover⟩ :=
   hs.elim_finite_subcover _ (λi, (h i).1) us_cover in
 let u := ⋃(i ∈ s0), (uvs i).1 in
@@ -541,7 +541,7 @@ end
 
 /-- Finite topological spaces are compact. -/
 @[priority 100] instance fintype.compact_space [fintype α] : compact_space α :=
-{ compact_univ := set.finite_univ.is_compact }
+{ compact_univ := finite_univ.is_compact }
 
 /-- The product of two compact spaces is compact. -/
 instance [compact_space α] [compact_space β] : compact_space (α × β) :=
@@ -573,7 +573,7 @@ end
 
 /-- A version of Tychonoff's theorem that uses `set.pi`. -/
 lemma compact_univ_pi {s : Πi:ι, set (π i)} (h : ∀i, is_compact (s i)) :
-  is_compact (set.pi set.univ s) :=
+  is_compact (pi univ s) :=
 by { convert compact_pi_infinite h, simp only [pi, forall_prop_of_true, mem_univ] }
 
 instance pi.compact [∀i:ι, compact_space (π i)] : compact_space (Πi, π i) :=
@@ -647,6 +647,34 @@ theorem is_clopen_compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
 theorem is_clopen_diff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s \ t) :=
 is_clopen_inter hs (is_clopen_compl ht)
 
+lemma is_clopen_Inter {β : Type*} [fintype β] {s : β → set α}
+  (h : ∀ i, is_clopen (s i)) : is_clopen (⋂ i, s i) :=
+⟨(is_open_Inter (forall_and_distrib.1 h).1), (is_closed_Inter (forall_and_distrib.1 h).2)⟩
+
+lemma is_clopen_bInter {β : Type*} {s : finset β} {f : β → set α} (h : ∀i∈s, is_clopen (f i)) :
+  is_clopen (⋂i∈s, f i) :=
+⟨ is_open_bInter ⟨finset_coe.fintype s⟩ (λ i hi, (h i hi).1),
+  by {show is_closed (⋂ (i : β) (H : i ∈ (↑s : set β)), f i), rw bInter_eq_Inter,
+    apply is_closed_Inter, rintro ⟨i, hi⟩, exact (h i hi).2}⟩
+
+lemma continuous_on.preimage_clopen_of_clopen {β: Type*} [topological_space β]
+  {f : α → β} {s : set α} {t : set β} (hf : continuous_on f s) (hs : is_clopen s)
+  (ht : is_clopen t) : is_clopen (s ∩ f⁻¹' t) :=
+⟨continuous_on.preimage_open_of_open hf hs.1 ht.1, continuous_on.preimage_closed_of_closed hf hs.2 ht.2⟩
+
+/-- The intersection of a disjoint covering by two open sets of a clopen set will be clopen. -/
+theorem is_clopen_inter_of_disjoint_cover_clopen {Z a b : set α} (h : is_clopen Z)
+  (cover : Z ⊆ a ∪ b) (ha : is_open a) (hb : is_open b) (hab : a ∩ b = ∅) : is_clopen (Z ∩ a) :=
+begin
+  refine ⟨is_open_inter h.1 ha, _⟩,
+  have : is_closed (Z ∩ bᶜ) := is_closed_inter h.2 (is_closed_compl_iff.2 hb),
+  convert this using 1,
+  apply subset.antisymm,
+  { exact inter_subset_inter_right Z (subset_compl_iff_disjoint.2 hab) },
+  { rintros x ⟨hx₁, hx₂⟩,
+    exact ⟨hx₁, by simpa [not_mem_of_mem_compl hx₂] using cover hx₁⟩ }
+end
+
 end clopen
 
 section preirreducible
@@ -701,7 +729,7 @@ let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset₀ {t : set α | is_preirreducible
         (assume hqp : q ⊆ p, let ⟨x, hxp, hxuv⟩ := hc hpc u v hu hv
             ⟨y, hyp, hyu⟩ ⟨z, hqp hzq, hzv⟩ in
           ⟨x, mem_sUnion_of_mem hxp hpc, hxuv⟩),
-    λ x hxc, set.subset_sUnion_of_mem hxc⟩) s H in
+    λ x hxc, subset_sUnion_of_mem hxc⟩) s H in
 ⟨m, hm, hsm, λ u hu hmu, hmm _ hu hmu⟩
 
 /-- A maximal irreducible set that contains a given point. -/
@@ -749,17 +777,17 @@ theorem is_preirreducible.image [topological_space β] {s : set α} (H : is_prei
   (f : α → β) (hf : continuous_on f s) : is_preirreducible (f '' s) :=
 begin
   rintros u v hu hv ⟨_, ⟨⟨x, hx, rfl⟩, hxu⟩⟩ ⟨_, ⟨⟨y, hy, rfl⟩, hyv⟩⟩,
-  rw ← set.mem_preimage at hxu hyv,
+  rw ← mem_preimage at hxu hyv,
   rcases continuous_on_iff'.1 hf u hu with ⟨u', hu', u'_eq⟩,
   rcases continuous_on_iff'.1 hf v hv with ⟨v', hv', v'_eq⟩,
   have := H u' v' hu' hv',
-  rw [set.inter_comm s u', ← u'_eq] at this,
-  rw [set.inter_comm s v', ← v'_eq] at this,
+  rw [inter_comm s u', ← u'_eq] at this,
+  rw [inter_comm s v', ← v'_eq] at this,
   rcases this ⟨x, hxu, hx⟩ ⟨y, hyv, hy⟩ with ⟨z, hzs, hzu', hzv'⟩,
   refine ⟨f z, mem_image_of_mem f hzs, _, _⟩,
   all_goals
-  { rw ← set.mem_preimage,
-    apply set.mem_of_mem_inter_left,
+  { rw ← mem_preimage,
+    apply mem_of_mem_inter_left,
     show z ∈ _ ∩ s,
     simp [*] }
 end
@@ -1139,7 +1167,7 @@ lemma subtype.preconnected_space {s : set α} (h : is_preconnected s) :
     rcases h u v hu hv _ ⟨x, hxs, hxu⟩ ⟨y, hys, hyv⟩ with ⟨z, hzs, ⟨hzu, hzv⟩⟩,
     exact ⟨⟨z, hzs⟩, ⟨set.mem_univ _, ⟨hzu, hzv⟩⟩⟩,
     intros z hz,
-    rcases hs (set.mem_univ ⟨z, hz⟩) with hzu|hzv,
+    rcases hs (mem_univ ⟨z, hz⟩) with hzu|hzv,
     { left, assumption },
     { right, assumption }
   end }
@@ -1242,6 +1270,96 @@ begin
       rw [finset.mem_insert, finset.mem_singleton],
       rintro (rfl|rfl); assumption },
     { simpa using hs } }
+end
+
+/-- Preconnected sets are either contained in or disjoint to any given clopen set. -/
+theorem subset_or_disjoint_of_clopen {α : Type*} [topological_space α] {s t : set α}
+  (h : is_preconnected t) (h1 : is_clopen s) : s ∩ t = ∅ ∨ t ⊆ s :=
+begin
+  by_contradiction h2,
+  have h3 : (s ∩ t).nonempty := ne_empty_iff_nonempty.mp (mt or.inl h2),
+  have h4 : (t ∩ sᶜ).nonempty,
+  { apply inter_compl_nonempty_iff.2,
+    push_neg at h2,
+    exact h2.2 },
+  rw [inter_comm] at h3,
+  apply ne_empty_iff_nonempty.2 (h s sᶜ h1.1 (is_open_compl_iff.2 h1.2) _ h3 h4),
+  { rw [inter_compl_self, inter_empty] },
+  { rw [union_compl_self],
+    exact subset_univ t },
+end
+
+/-- A set `s` is preconnected if and only if
+for every cover by two closed sets that are disjoint on `s`,
+it is contained in one of the two covering sets. -/
+theorem is_preconnected_iff_subset_of_disjoint_closed {α : Type*} {s : set α} [topological_space α] :
+  is_preconnected s ↔
+  ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
+  s ⊆ u ∨ s ⊆ v :=
+begin
+  split; intro h,
+  { intros u v hu hv hs huv,
+    rw is_preconnected_closed_iff at h,
+    specialize h u v hu hv hs,
+    contrapose! huv,
+    rw ne_empty_iff_nonempty,
+    simp [not_subset] at huv,
+    rcases huv with ⟨⟨x, hxs, hxu⟩, ⟨y, hys, hyv⟩⟩,
+    have hxv : x ∈ v := or_iff_not_imp_left.mp (hs hxs) hxu,
+    have hyu : y ∈ u := or_iff_not_imp_right.mp (hs hys) hyv,
+    exact h ⟨y, hys, hyu⟩ ⟨x, hxs, hxv⟩ },
+  { rw is_preconnected_closed_iff,
+    intros u v hu hv hs hsu hsv,
+    rw ← ne_empty_iff_nonempty,
+    intro H,
+    specialize h u v hu hv hs H,
+    contrapose H,
+    apply ne_empty_iff_nonempty.mpr,
+    cases h,
+    { rcases hsv with ⟨x, hxs, hxv⟩, exact ⟨x, hxs, ⟨h hxs, hxv⟩⟩ },
+    { rcases hsu with ⟨x, hxs, hxu⟩, exact ⟨x, hxs, ⟨hxu, h hxs⟩⟩ } }
+end
+
+/-- A closed set `s` is preconnected if and only if
+for every cover by two closed sets that are disjoint,
+it is contained in one of the two covering sets. -/
+theorem is_preconnected_iff_subset_of_fully_disjoint_closed {s : set α} (hs : is_closed s) :
+  is_preconnected s ↔
+  ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hss : s ⊆ u ∪ v) (huv : u ∩ v = ∅),
+  s ⊆ u ∨ s ⊆ v :=
+begin
+  split,
+  { intros h u v hu hv hss huv,
+    apply is_preconnected_iff_subset_of_disjoint_closed.1 h u v hu hv hss,
+    rw huv,
+    exact inter_empty s },
+  intro H,
+  rw is_preconnected_iff_subset_of_disjoint_closed,
+  intros u v hu hv hss huv,
+  have H1 := H (u ∩ s) (v ∩ s),
+  rw [subset_inter_iff, subset_inter_iff] at H1,
+  simp only [subset.refl, and_true] at H1,
+  apply H1 (is_closed_inter hu hs) (is_closed_inter hv hs),
+  { rw ←inter_distrib_right,
+    apply subset_inter_iff.2,
+    exact ⟨hss, subset.refl s⟩ },
+  { rw [inter_comm v s, inter_assoc, ←inter_assoc s, inter_self s,
+        inter_comm, inter_assoc, inter_comm v u, huv] }
+end
+
+/-- The connected component of a point is always a subset of the intersection of all its clopen
+neighbourhoods. -/
+lemma connected_component_subset_Inter_clopen {x : α} :
+  connected_component x ⊆ ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
+begin
+  apply subset_Inter (λ Z, _),
+  cases (subset_or_disjoint_of_clopen (@is_connected_connected_component _ _ x).2 Z.2.1),
+  { exfalso,
+    apply nonempty.ne_empty
+      (nonempty_of_mem (mem_inter (@mem_connected_component _ _ x) Z.2.2)),
+    rw inter_comm,
+    exact h  },
+  exact h,
 end
 
 end preconnected

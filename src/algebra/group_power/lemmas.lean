@@ -365,7 +365,7 @@ calc 1 + (n + 2) •ℕ a ≤ 1 + (n + 2) •ℕ a + (n •ℕ (a * a * (2 + a))
 /-- Bernoulli's inequality reformulated to estimate `a^n`. -/
 theorem one_add_sub_mul_le_pow [linear_ordered_ring R]
   {a : R} (H : -1 ≤ a) (n : ℕ) : 1 + n •ℕ (a - 1) ≤ a ^ n :=
-have -2 ≤ a - 1, by { rw [bit0, neg_add, ← sub_eq_add_neg], exact sub_le_sub_right H 1 },
+have -2 ≤ a - 1, by rwa [bit0, neg_add, ← sub_eq_add_neg, sub_le_sub_iff_right],
 by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 
 namespace int

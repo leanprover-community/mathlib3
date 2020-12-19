@@ -2504,81 +2504,77 @@ end liminf_limsup
 
 end order_topology
 
-lemma order_topology_of_nhds_abs
-  {α : Type*} [linear_ordered_add_comm_group α] [topological_space α]
-  (h_nhds : ∀a:α, 𝓝 a = (⨅r>0, 𝓟 {b | abs (a - b) < r})) : order_topology α :=
-order_topology.mk $ eq_of_nhds_eq_nhds $ assume a:α, le_antisymm_iff.mpr
-begin
-  simp [infi_and, topological_space.nhds_generate_from,
-        h_nhds, le_infi_iff, -le_principal_iff, and_comm],
-  refine ⟨λ s ha b hs, _, λ r hr, _⟩,
-  { rcases hs with rfl | rfl,
-    { refine infi_le_of_le (a - b)
-        (infi_le_of_le (lt_sub_left_of_add_lt $ by simpa using ha) $
-          principal_mono.mpr $ assume c (hc : abs (a - c) < a - b), _),
-      have : a + -c < a + -b :=
-        by simpa only [sub_eq_add_neg] using lt_of_le_of_lt (le_abs_self _) hc,
-      exact lt_of_neg_lt_neg (lt_of_add_lt_add_left this) },
-    { refine infi_le_of_le (b - a)
-        (infi_le_of_le (lt_sub_left_of_add_lt $ by simpa using ha) $
-          principal_mono.mpr $ assume c (hc : abs (a - c) < b - a), _),
-      have : abs (c - a) < b - a, {rw abs_sub; simpa using hc},
-      have : c + -a < b + -a :=
-        by simpa only [sub_eq_add_neg] using lt_of_le_of_lt (le_abs_self _) this,
-      exact lt_of_add_lt_add_right this } },
-  { have h : {b | abs (a - b) < r} = {b | a - r < b} ∩ {b | b < a + r},
-      from set.ext (assume b,
-        by simp [abs_lt, sub_lt, lt_sub_iff_add_lt, sub_lt_iff_lt_add']; cc),
-    rw [h, ← inf_principal],
-    apply le_inf _ _,
-    { exact infi_le_of_le {b : α | a - r < b} (infi_le_of_le (sub_lt_self a hr) $
-        infi_le_of_le (a - r) $ infi_le _ (or.inl rfl)) },
-    { exact infi_le_of_le {b : α | b < a + r} (infi_le_of_le (lt_add_of_pos_right _ hr) $
-        infi_le_of_le (a + r) $ infi_le _ (or.inr rfl)) } }
-end
+section linear_ordered_add_comm_group
 
-/-- $\lim_{x\to+\infty}|x|=+\infty$ -/
-lemma tendsto_abs_at_top_at_top [linear_ordered_add_comm_group α] :
-  tendsto (abs : α → α) at_top at_top :=
-tendsto_at_top_mono (λ n, le_abs_self _) tendsto_id
+variables [linear_ordered_add_comm_group α] [topological_space α]
 
 local notation `|` x `|` := abs x
 
-lemma linear_ordered_add_comm_group.tendsto_nhds
-  [linear_ordered_add_comm_group α] [topological_space α] [order_topology α] {β : Type*}
-  (f : β → α) (x : filter β) (a : α) :
-  filter.tendsto f x (nhds a) ↔ ∀ ε > (0 : α), ∀ᶠ b in x, |f b - a| < ε :=
+lemma nhds_eq_infi_abs_sub [order_topology α] (a : α) :
+  𝓝 a = (⨅r>0, 𝓟 {b | |a - b| < r}) :=
 begin
-  rw (show _, from @tendsto_order α), -- does not work without `show` for some reason
-  split,
-  { rintros ⟨hyp_lt_a, hyp_gt_a⟩ ε ε_pos,
-    suffices : {b : β | f b - a < ε ∧ a - f b < ε} ∈ x, by simpa only [abs_sub_lt_iff],
-    have set1 : {b : β | a - f b < ε} ∈ x,
-    { have : {b : β | a - ε < f b} ∈ x, from hyp_lt_a (a - ε) (sub_lt_self a ε_pos),
-      have : ∀ b, a - f b < ε ↔ a - ε < f b, by { intro _, exact sub_lt },
-      simpa only [this] },
-    have set2 : {b : β | f b - a < ε} ∈ x,
-    { have : {b : β | a + ε > f b} ∈ x, from hyp_gt_a (a + ε) (lt_add_of_pos_right a ε_pos),
-      have : ∀ b, f b - a < ε ↔ a + ε > f b, by { intro _, exact sub_lt_iff_lt_add' },
-      simpa only [this] },
-    exact (x.inter_sets set2 set1) },
-  { assume hyp_ε_pos,
-    split,
-    { assume a' a'_lt_a,
-      let ε := a - a',
-      have : {b : β | |f b - a| < ε} ∈ x, from hyp_ε_pos ε (sub_pos.elim_right a'_lt_a),
-      have : {b : β | f b - a < ε ∧ a - f b < ε} ∈ x, by simpa only [abs_sub_lt_iff] using this,
-      have : {b : β | a - f b < ε} ∈ x, from x.sets_of_superset this (set.inter_subset_right _ _),
-      have : ∀ b, a' < f b ↔ a - f b < ε, by {intro b, rw [sub_lt, sub_sub_self] },
-      simpa only [this] },
-    { assume a' a'_gt_a,
-      let ε := a' - a,
-      have : {b : β | |f b - a| < ε} ∈ x, from hyp_ε_pos ε (sub_pos.elim_right a'_gt_a),
-      have : {b : β | f b - a < ε ∧ a - f b < ε} ∈ x, by simpa only [abs_sub_lt_iff] using this,
-      have : {b : β | f b - a < ε} ∈ x, from x.sets_of_superset this (set.inter_subset_left _ _),
-      have : ∀ b, f b < a' ↔ f b - a < ε, by { intro b, simp [lt_sub_iff_add_lt] },
-      simpa only [this] }}
+  simp only [le_antisymm_iff, nhds_eq_order, le_inf_iff, le_infi_iff, le_principal_iff, mem_Ioi,
+    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ a, @sub_lt _ _ a, set_of_and],
+  refine ⟨_, _, _⟩,
+  { intros ε ε0,
+    exact inter_mem_inf_sets
+      (mem_infi_sets (a - ε) $ mem_infi_sets (sub_lt_self a ε0) (mem_principal_self _))
+      (mem_infi_sets (ε + a) $ mem_infi_sets (by simpa) (mem_principal_self _)) },
+  { intros b hb,
+    exact mem_infi_sets (a - b) (mem_infi_sets (sub_pos.2 hb) (by simp [Ioi])) },
+  { intros b hb,
+    exact mem_infi_sets (b - a) (mem_infi_sets (sub_pos.2 hb) (by simp [Iio])) }
 end
+
+lemma order_topology_of_nhds_abs (h_nhds : ∀a:α, 𝓝 a = (⨅r>0, 𝓟 {b | |a - b| < r})) :
+  order_topology α :=
+begin
+  refine ⟨eq_of_nhds_eq_nhds $ λ a, _⟩,
+  rw [h_nhds],
+  letI := preorder.topology α, letI : order_topology α := ⟨rfl⟩,
+  exact (nhds_eq_infi_abs_sub a).symm
+end
+
+variables [order_topology α]
+
+lemma linear_ordered_add_comm_group.tendsto_nhds {f : β → α} {x : filter β} {a : α} :
+  tendsto f x (𝓝 a) ↔ ∀ ε > (0 : α), ∀ᶠ b in x, |f b - a| < ε :=
+by simp [nhds_eq_infi_abs_sub, abs_sub a]
+
+lemma eventually_abs_sub_lt (a : α) {ε : α} (hε : 0 < ε) : ∀ᶠ x in 𝓝 a, |x - a| < ε :=
+(nhds_eq_infi_abs_sub a).symm ▸ mem_infi_sets ε
+  (mem_infi_sets hε $ by simp only [abs_sub, mem_principal_self])
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_add_comm_group.topological_add_group : topological_add_group α :=
+{ continuous_add :=
+    begin
+      refine continuous_iff_continuous_at.2 _,
+      rintro ⟨a, b⟩,
+      refine linear_ordered_add_comm_group.tendsto_nhds.2 (λ ε ε0, _),
+      rcases dense_or_discrete 0 ε with (⟨δ, δ0, δε⟩|⟨h₁, h₂⟩),
+      { -- If there exists `δ ∈ (0, ε)`, then we choose `δ`-nhd of `a` and `(ε-δ)`-nhd of `b`
+        filter_upwards [prod_mem_nhds_sets (eventually_abs_sub_lt a δ0)
+          (eventually_abs_sub_lt b (sub_pos.2 δε))],
+        rintros ⟨x, y⟩ ⟨hx : |x - a| < δ, hy : |y - b| < ε - δ⟩,
+        rw [add_sub_comm],
+        calc |x - a + (y - b)| ≤ |x - a| + |y - b| : abs_add _ _
+        ... < δ + (ε - δ) : add_lt_add hx hy
+        ... = ε : add_sub_cancel'_right _ _ },
+      { -- Otherewise `ε`-nhd of each point `a` is `{a}`
+        have hε : ∀ {x y}, abs (x - y) < ε → x = y,
+        { intros x y h,
+          simpa [sub_eq_zero] using h₂ _ h },
+        filter_upwards [prod_mem_nhds_sets (eventually_abs_sub_lt a ε0)
+          (eventually_abs_sub_lt b ε0)],
+        rintros ⟨x, y⟩ ⟨hx : |x - a| < ε, hy : |y - b| < ε⟩,
+        simpa [hε hx, hε hy] }
+    end,
+  continuous_neg := continuous_iff_continuous_at.2 $ λ a,
+    linear_ordered_add_comm_group.tendsto_nhds.2 $ λ ε ε0,
+      (eventually_abs_sub_lt a ε0).mono $ λ x hx, by rwa [neg_sub_neg, abs_sub] }
+
+end linear_ordered_add_comm_group
 
 /-!
 Here is a counter-example to a version of the following with `conditionally_complete_lattice α`.

@@ -67,13 +67,15 @@ meta def sf.of_eformat : eformat → sf
 | (of_format f) := sf.of_string $ format.to_string f
 | (compose x y) := sf.compose (sf.of_eformat x) (sf.of_eformat y)
 
-/-- `subtract x y` is some `z` when `∃ z, x = y ++ z` -/ -- [fixme] this probably already exists.
+/-- `subtract x y` is some `z` when `∃ z, x = y ++ z` [fixme] this probably already exists. -/
 def subtract {α} [decidable_eq α]: (list α) → (list α) → option (list α)
 | a [] := some a -- [] ++ a = a
 | [] _ := none   -- (h::t) ++ _ ≠ []
 -- if t₂ ++ z = t₁ then (h₁ :: t₁) ++ z = (h₁ :: t₂)
 | (h₁ :: t₁) (h₂ :: t₂) := if h₁ = h₂ then subtract t₁ t₂ else none
 
+/-- Get the subexpression and sf object at the given address, if any.
+The address must point to a `sf.tag_expr` boundary. -/
 meta def sf.follow : expr.address → sf → option (expr × sf)
 | [] s := none
 | l (sf.tag_expr ea e  m) := do
@@ -85,6 +87,7 @@ meta def sf.follow : expr.address → sf → option (expr × sf)
 | l (sf.of_string _) := none
 | l (sf.compose a b) := sf.follow l a <|> sf.follow l b
 
+/-- Run `f` on each of the immediate child substrings of the given string. -/
 meta def sf.traverse {m} [applicative m] (f : sf → m sf) : sf → m sf
 | (sf.tag_expr ea e m) := pure (sf.tag_expr ea e) <*> f m
 | (sf.block x a) := pure (sf.block x) <*> f a
@@ -96,11 +99,17 @@ meta def sf.traverse {m} [applicative m] (f : sf → m sf) : sf → m sf
 meta def sf.replace {m} [monad m] [alternative m] (f : sf → m sf) : sf → m sf
 | x := (f x >>= sf.traverse sf.replace) <|> pure x
 
+/-- The test for whether the proposition is a valid target for restricted quantifier collapsing -/
 meta def sf.collapse_restricted_quantifiers_pred : expr → tactic bool
 | `(@gt _ _ %%(expr.var 0) _) := pure tt
 | `(@has_mem.mem _ _ _ %%(expr.var 0) _) := pure tt
+-- [fixme] add to this list! So many predicates. Maybe just include all of them.
 | _ := pure ff
 
+/-- If the given sf has the form `∀ (x : α), P x → Q`
+and `P x` obeys `collapse_restricted_quantifiers_pred`
+then replace it with `∀ (P x), Q`, mapping the addresses properly
+so interactive rendering still works. -/
 meta def sf.collapse_restricted_quantifiers_core : sf → tactic sf
 | s@(sf.tag_expr addr e@(expr.pi x xbi xy (expr.pi p pbi py b)) a) :=
   do

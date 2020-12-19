@@ -40,32 +40,62 @@ namespace parser
 
 variables (α : Type) [has_zero α] [has_one α] [has_add α]
 
+/--
+Parse a string of digits as a numeral while casting it to target type `α`.
+-/
 def numeral : parser α :=
 nat.cast <$> nat
 
+/--
+Parse a string of digits as a numeral while casting it to target type `α`,
+which has a `[fintype α]` constraint. The parser ensures that the numeral parsed in
+is within the cardinality of the type `α`.
+-/
 def numeral.of_fintype [fintype α] : parser α :=
 do
   c ← nat,
   guard (c < fintype.card α),
   pure c
 
+/--
+Parse a string of digits as a numeral while casting it to target type `α`. The parsing starts
+at "1", so `"1"` is parsed in as `nat.cast 0`. Providing `"0"` to the parser causes a failure.
+-/
 def numeral.from_one : parser α :=
 do
   c ← nat,
   guard (0 < c),
   pure $ ((c - 1) : ℕ)
 
+/--
+Parse a string of digits as a numeral while casting it to target type `α`,
+which has a `[fintype α]` constraint. The parser ensures that the numeral parsed in
+is within the cardinality of the type `α`. The parsing starts
+at "1", so `"1"` is parsed in as `nat.cast 0`. Providing `"0"` to the parser causes a failure.
+-/
 def numeral.from_one.of_fintype [fintype α] : parser α :=
 do
   c ← nat,
   guard (0 < c ∧ c ≤ fintype.card α),
   pure $ ((c - 1) : ℕ)
 
+/--
+Parse a character as a numeral while casting it to target type `α`,
+The parser ensures that the character parsed in is within the bounds set by `fromc` and `toc`,
+and subtracts the value of `fromc` from the parsed in character.
+-/
 def numeral.char (fromc toc : char) : parser α :=
 do
   c ← sat (λ c, fromc ≤ c ∧ c ≤ toc),
   pure $ ((c.to_nat - fromc.to_nat) : ℕ)
 
+/--
+Parse a character as a numeral while casting it to target type `α`,
+which has a `[fintype α]` constraint.
+The parser ensures that the character parsed in is greater or equal to `fromc` and
+and subtracts the value of `fromc` from the parsed in character. There is also a check
+that the resulting value is within the cardinality of the type `α`.
+-/
 def numeral.char.of_fintype [fintype α] (fromc : char) : parser α :=
 do
   c ← sat (λ c, fromc ≤ c ∧ c.to_nat - fintype.card α < fromc.to_nat),

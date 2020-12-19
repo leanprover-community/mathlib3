@@ -594,12 +594,7 @@ begin
     by simpa only [formal_multilinear_series.partial_sum,
                    continuous_multilinear_map.map_sum_finset] using H,
   -- rewrite the first sum as a big sum over a sigma type
-  rw ← @finset.sum_sigma _ _ _ _
-    (finset.range N) (λ (n : ℕ), (fintype.pi_finset (λ (i : fin n), finset.Ico 1 N)) : _)
-    (λ i, q i.1 (λ (j : fin i.1), p (i.2 j) (λ (k : fin (i.2 j)), z))),
-  show ∑ i in comp_partial_sum_source N,
-    q i.1 (λ (j : fin i.1), p (i.2 j) (λ (k : fin (i.2 j)), z)) =
-    ∑ i in comp_partial_sum_target N, q.comp_along_composition_multilinear p i.2 (λ j, z),
+  rw [finset.sum_sigma'],
   -- show that the two sums correspond to each other by reindexing the variables.
   apply finset.sum_bij (comp_change_of_variables N),
   -- To conclude, we should show that the correspondance we have set up is indeed a bijection
@@ -1057,19 +1052,14 @@ begin
   /- First, rewrite the two compositions appearing in the theorem as two sums over complicated
   sigma types, as in the description of the proof above. -/
   let f : (Σ (a : composition n), composition a.length) → H :=
-    λ ⟨a, b⟩, r b.length (apply_composition q b (apply_composition p a v)),
+    λ c, r c.2.length (apply_composition q c.2 (apply_composition p c.1 v)),
   let g : (Σ (c : composition n), Π (i : fin c.length), composition (c.blocks_fun i)) → H :=
-    λ ⟨c, d⟩, r c.length
-      (λ (i : fin c.length), q (d i).length (apply_composition p (d i) (v ∘ c.embedding i))),
-  suffices A : ∑ c, f c = ∑ c, g c,
-  { dsimp [formal_multilinear_series.comp],
-    simp only [continuous_multilinear_map.sum_apply, comp_along_composition_apply],
-    rw ← @finset.sum_sigma _ _ _ _ (finset.univ : finset (composition n)) _ f,
-    dsimp [apply_composition],
-    simp only [continuous_multilinear_map.sum_apply, comp_along_composition_apply,
-      continuous_multilinear_map.map_sum],
-    rw ← @finset.sum_sigma _ _ _ _ (finset.univ : finset (composition n)) _ g,
-    exact A },
+    λ c, r c.1.length (λ (i : fin c.1.length),
+      q (c.2 i).length (apply_composition p (c.2 i) (v ∘ c.1.embedding i))),
+  suffices : ∑ c, f c = ∑ c, g c,
+    by simpa only [formal_multilinear_series.comp, continuous_multilinear_map.sum_apply,
+      comp_along_composition_apply, continuous_multilinear_map.map_sum, finset.sum_sigma',
+      apply_composition],
   /- Now, we use `composition.sigma_equiv_sigma_pi n` to change
   variables in the second sum, and check that we get exactly the same sums. -/
   rw ← (sigma_equiv_sigma_pi n).sum_comp,

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 import data.fintype.card
+import data.buffer.parser.basic
 
 /-!
 # Numeral parsers
@@ -70,5 +71,29 @@ def numeral.char.of_fintype [fintype α] (fromc : char) : parser α :=
 do
   c ← sat (λ c, fromc ≤ c ∧ c.to_nat - fintype.card α < fromc.to_nat),
   pure $ ((c.to_nat - fromc.to_nat) : ℕ)
+
+namespace valid
+
+variable {α}
+
+lemma numeral : valid (numeral α) := nat.map
+
+lemma numeral.of_fintype [fintype α] : valid (numeral.of_fintype α) :=
+nat.bind (λ _, guard.bind (λ _, pure))
+
+lemma numeral.from_one : valid (numeral.from_one α) :=
+nat.bind (λ _, guard.bind (λ _, pure))
+
+lemma numeral.from_one.of_fintype [fintype α] : valid (numeral.from_one.of_fintype α) :=
+nat.bind (λ _, guard.bind (λ _, pure))
+
+lemma numeral.char {fromc toc : char} : valid (numeral.char α fromc toc) :=
+sat.bind (λ _, pure)
+
+lemma numeral.char.of_fintype [fintype α] {fromc : char} :
+  valid (numeral.char.of_fintype α fromc) :=
+sat.bind (λ _, pure)
+
+end valid
 
 end parser

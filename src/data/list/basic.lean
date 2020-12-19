@@ -3139,7 +3139,7 @@ instance decidable_suffix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidab
     decidable_of_iff' (l₁ = drop (len2-len1) l₂) suffix_iff_eq_drop
   else is_false $ λ h, hl $ length_le_of_sublist $ sublist_of_suffix h
 
-lemma prefix_take_le_iff (L : list (list (option α))) (m n : ℕ) (hm : m < L.length) :
+lemma prefix_take_le_iff {L : list (list (option α))} {m n : ℕ} (hm : m < L.length):
   (take m L) <+: (take n L) ↔ m ≤ n :=
 begin
   simp only [prefix_iff_eq_take, length_take],
@@ -3149,22 +3149,20 @@ begin
     { simp only [nat.nat_zero_eq_zero, le_zero_iff_eq, take, take_nil],
       split,
       { cases L,
-        { simp only [length] at hm,
-          exact absurd hm (not_lt_of_le m.succ.zero_le) },
+        { exact absurd hm (not_lt_of_le m.succ.zero_le) },
         { simp only [forall_prop_of_false, not_false_iff, take] } },
       { intro h,
         contradiction } },
     { cases L with l ls,
+      { exact absurd hm (not_lt_of_le m.succ.zero_le) },
       { simp only [length] at hm,
-        exact absurd hm (not_lt_of_le m.succ.zero_le) },
-      { simp only [length] at hm,
-        specialize IH ls n (nat.lt_of_succ_lt_succ hm),
+        specialize @IH ls n (nat.lt_of_succ_lt_succ hm),
         simp only [le_of_lt (nat.lt_of_succ_lt_succ hm), min_eq_left] at IH,
         simp only [le_of_lt hm, IH, true_and, min_eq_left, eq_self_iff_true, length, take],
         exact ⟨nat.succ_le_succ, nat.le_of_succ_le_succ⟩ } } },
 end
 
-lemma cons_prefix_iff {l l' : list α} (x y : α) :
+lemma cons_prefix_iff {l l' : list α} {x y : α} :
   x :: l <+: y :: l' ↔ x = y ∧ l <+: l' :=
 begin
   split,

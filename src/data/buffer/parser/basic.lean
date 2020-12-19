@@ -28,6 +28,10 @@ notation for shorter term proofs that are parallel to the definitions of the par
 
 open parser parse_result
 
+/--
+For some `parse_result α`, give the position at which the result was provided, in either the
+`done` or the `fail` case.
+-/
 @[simp] def parse_result.pos {α} : parse_result α → ℕ
 | (done n _) := n
 | (fail n _) := n
@@ -40,6 +44,13 @@ variables {α β : Type} (msgs : thunk (list string)) (msg : thunk string)
 variables (p q : parser α) (cb : char_buffer) (n n' : ℕ) {err : dlist string}
 variables {a : α} {b : β}
 
+/--
+A `parser α` is defined to be `valid` if the result `p cb n` it gives,
+for some `cb : char_buffer` and `n : ℕ`, (whether `done` or `fail`),
+is always at a `parse_result.pos` that is at least `n`. Additionally, if the position `n` provided
+was within the size of the `cb`, then the `parse_result.pos` of the output will also be within
+the size of the `cb`.
+-/
 def valid : Prop :=
   ∀ (cb : char_buffer) (n : ℕ), n ≤ (p cb n).pos ∧ ((p cb n).pos ≤ cb.size → n ≤ cb.size)
 
@@ -317,7 +328,7 @@ variables {sep : parser unit}
 
 namespace valid
 
-@[simp] lemma pure : valid (pure a) :=
+lemma pure : valid (pure a) :=
 by { intros cb n, simp only [pure_eq_done, parse_result.pos, imp_self, and_true] }
 
 @[simp] lemma bind {f : α → parser β} (hp : p.valid) (hf : ∀ a, (f a).valid) :

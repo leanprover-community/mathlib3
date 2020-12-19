@@ -837,13 +837,8 @@ begin
     have hpp2 : p * p2 = q,
     { symmetry, rw [mul_comm, ←div_eq_iff hp0_ne], },
     have hpq2 : p * q2 = r,
-    { change p * ((q/p)/(q/p - 1)) = r,
-      have hr : r = p * q / (q - p),
-      { symmetry,
-        rw [←one_mul r, ←div_eq_iff hr0_ne, div_eq_mul_one_div, h_one_div_r],
-        have hpq0_ne : q - p ≠ 0, by simp [sub_eq_zero, (ne_of_lt hpq).symm],
-        field_simp [hp0_ne, hq0_ne, hpq0_ne], },
-      field_simp [hp0_ne, hr], },
+    { rw [← inv_inv' r, ← one_div, ← one_div, h_one_div_r],
+      field_simp [q2, real.conjugate_exponent, p2, hp0_ne, hq0_ne] },
     simp_rw [div_mul_div, mul_one, mul_comm p2, mul_comm q2, hpp2, hpq2],
   end
 end

@@ -1485,6 +1485,9 @@ def sin_order_iso : Icc (-(π / 2)) (π / 2) ≃o Icc (-1:ℝ) 1 :=
 @[simp] lemma coe_sin_order_iso_apply (x : Icc (-(π / 2)) (π / 2)) :
   (sin_order_iso x : ℝ) = sin x := rfl
 
+lemma sin_order_iso_apply (x : Icc (-(π / 2)) (π / 2)) :
+  sin_order_iso x = ⟨sin x, sin_mem_Icc x⟩ := rfl
+
 /-- Inverse of the `sin` function, returns values in the range `-π / 2 ≤ arcsin x ≤ π / 2`.
 It defaults to `-π / 2` on `(-∞, -1)` and to `π / 2` to `(1, ∞)`. -/
 @[pp_nodot] noncomputable def arcsin : ℝ → ℝ :=
@@ -1624,6 +1627,9 @@ neg_nonneg.symm.trans $ arcsin_neg x ▸ arcsin_nonneg.trans neg_nonneg
 @[simp] lemma arcsin_eq_zero_iff {x : ℝ} : arcsin x = 0 ↔ x = 0 :=
 by simp [le_antisymm_iff]
 
+@[simp] lemma zero_eq_arcsin_iff {x} : 0 = arcsin x ↔ x = 0 :=
+eq_comm.trans arcsin_eq_zero_iff
+
 @[simp] lemma arcsin_pos {x : ℝ} : 0 < arcsin x ↔ 0 < x :=
 lt_iff_lt_of_le_iff_le arcsin_nonpos
 
@@ -1637,6 +1643,24 @@ lt_iff_lt_of_le_iff_le arcsin_nonneg
 @[simp] lemma neg_pi_div_two_lt_arcsin {x : ℝ} : -(π / 2) < arcsin x ↔ -1 < x :=
 (lt_arcsin_iff_sin_lt' $ left_mem_Ico.2 $ neg_lt_self pi_div_two_pos).trans $
   by rw [sin_neg, sin_pi_div_two]
+
+@[simp] lemma arcsin_eq_pi_div_two {x : ℝ} : arcsin x = π / 2 ↔ 1 ≤ x :=
+⟨λ h, not_lt.1 $ λ h', (arcsin_lt_pi_div_two.2 h').ne h, arcsin_of_one_le⟩
+
+@[simp] lemma pi_div_two_eq_arcsin {x} : π / 2 = arcsin x ↔ 1 ≤ x :=
+eq_comm.trans arcsin_eq_pi_div_two
+
+@[simp] lemma pi_div_two_le_arcsin {x} : π / 2 ≤ arcsin x ↔ 1 ≤ x :=
+(arcsin_le_pi_div_two x).le_iff_eq.trans pi_div_two_eq_arcsin
+
+@[simp] lemma arcsin_eq_neg_pi_div_two {x : ℝ} : arcsin x = -(π / 2) ↔ x ≤ -1 :=
+⟨λ h, not_lt.1 $ λ h', (neg_pi_div_two_lt_arcsin.2 h').ne' h, arcsin_of_le_neg_one⟩
+
+@[simp] lemma neg_pi_div_two_eq_arcsin {x} : -(π / 2) = arcsin x ↔ x ≤ -1 :=
+eq_comm.trans arcsin_eq_neg_pi_div_two
+
+@[simp] lemma arcsin_le_neg_pi_div_two {x} : arcsin x ≤ -(π / 2) ↔ x ≤ -1 :=
+(neg_pi_div_two_le_arcsin x).le_iff_eq.trans arcsin_eq_neg_pi_div_two
 
 lemma maps_to_sin_Ioo : maps_to sin (Ioo (-(π / 2)) (π / 2)) (Ioo (-1) 1) :=
 λ x h, by rwa [mem_Ioo, ← arcsin_lt_pi_div_two, ← neg_pi_div_two_lt_arcsin,
@@ -1793,15 +1817,29 @@ by rw [arccos, cos_pi_div_two_sub, sin_arcsin hx₁ hx₂]
 lemma arccos_cos {x : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π) : arccos (cos x) = x :=
 by rw [arccos, ← sin_pi_div_two_sub, arcsin_sin]; simp [sub_eq_add_neg]; linarith
 
+lemma strict_mono_decr_on_arccos : strict_mono_decr_on arccos (Icc (-1) 1) :=
+λ x hx y hy h, sub_lt_sub_left (strict_mono_incr_on_arcsin hx hy h) _
+
+lemma arccos_inj_on : inj_on arccos (Icc (-1) 1) := strict_mono_decr_on_arccos.inj_on
+
 lemma arccos_inj {x y : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) (hy₁ : -1 ≤ y) (hy₂ : y ≤ 1) :
   arccos x = arccos y ↔ x = y :=
-by simp [arccos, arcsin_inj hx₁ hx₂ hy₁ hy₂]
+arccos_inj_on.eq_iff ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩
 
 @[simp] lemma arccos_zero : arccos 0 = π / 2 := by simp [arccos]
 
 @[simp] lemma arccos_one : arccos 1 = 0 := by simp [arccos]
 
 @[simp] lemma arccos_neg_one : arccos (-1) = π := by simp [arccos, add_halves]
+
+@[simp] lemma arccos_eq_zero {x} : arccos x = 0 ↔ 1 ≤ x :=
+by simp [arccos, sub_eq_zero]
+
+@[simp] lemma arccos_eq_pi_div_two {x} : arccos x = π / 2 ↔ x = 0 :=
+by simp [arccos, sub_eq_iff_eq_add]
+
+@[simp] lemma arccos_eq_pi {x} : arccos x = π ↔ x ≤ -1 :=
+by rw [arccos, sub_eq_iff_eq_add, ← sub_eq_iff_eq_add', div_two_sub_self, neg_pi_div_two_eq_arcsin]
 
 lemma arccos_neg (x : ℝ) : arccos (-x) = π - arccos x :=
 by rw [← add_halves π, arccos, arcsin_neg, arccos, add_sub_assoc, sub_sub_self, sub_neg_eq_add]

@@ -518,6 +518,9 @@ e.to_equiv.apply_symm_apply x
 @[simp] lemma symm_apply_apply (e : α ≃o β) (x : α) : e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply x
 
+theorem symm_apply_eq (e : α ≃o β) {x : α} {y : β} : e.symm y = x ↔ y = e x :=
+e.to_equiv.symm_apply_eq
+
 open set
 
 @[simp] lemma preimage_Iic (e : α ≃o β) (b : β) : e ⁻¹' (Iic b) = Iic (e.symm b) :=

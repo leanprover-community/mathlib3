@@ -1222,6 +1222,8 @@ lemma deriv_within_integral_left (hf : interval_integrable f volume a b)
 
 /-~ ### Theorems pertaining to FTC-2. -/
 
+variables {f' : ℝ → E}
+
 theorem integral_of_continuous_differentiable_on {s : set ℝ}
   (hintg : ∀ x ∈ s, interval_integrable f volume a x) (hcont : continuous f) :
   differentiable_on ℝ (λ u, ∫ x in a..u, f x) s :=

@@ -55,6 +55,8 @@ meta def sf.repr : sf → format
 meta instance : has_to_format sf := ⟨sf.repr⟩
 meta instance : has_to_string sf := ⟨λ s, s.repr.to_string⟩
 meta instance : has_repr sf := ⟨λ s, s.repr.to_string⟩
+meta instance : has_coe string sf := ⟨sf.of_string⟩
+meta instance : has_append sf := ⟨sf.compose⟩
 
 /-- Constructs an `sf` from an `eformat` by forgetting grouping, nesting, etc. -/
 meta def sf.of_eformat : eformat → sf
@@ -64,6 +66,50 @@ meta def sf.of_eformat : eformat → sf
 | (highlight c m) := sf.highlight c $ sf.of_eformat m
 | (of_format f) := sf.of_string $ format.to_string f
 | (compose x y) := sf.compose (sf.of_eformat x) (sf.of_eformat y)
+
+/-- `subtract x y` is some `z` when `∃ z, x = y ++ z` -/ -- [fixme] this probably already exists.
+def subtract {α} [decidable_eq α]: (list α) → (list α) → option (list α)
+| a [] := some a -- [] ++ a = a
+| [] _ := none   -- (h::t) ++ _ ≠ []
+-- if t₂ ++ z = t₁ then (h₁ :: t₁) ++ z = (h₁ :: t₂)
+| (h₁ :: t₁) (h₂ :: t₂) := if h₁ = h₂ then subtract t₁ t₂ else none
+
+meta def sf.follow : expr.address → sf → option sf
+| [] s := some s
+| l (sf.tag_expr ea e  m) := subtract l ea >>= λ a, sf.follow a m
+| l (sf.block _ a) := sf.follow l a
+| l (sf.highlight _ a) := sf.follow l a
+| l (sf.of_string _) := none
+| l (sf.compose a b) := sf.follow l a <|> sf.follow l b
+
+meta def sf.traverse {m} [applicative m] (f : sf → m sf) : sf → m sf
+| (sf.tag_expr ea e m) := pure (sf.tag_expr ea e) <*> f m
+| (sf.block x a) := pure (sf.block x) <*> f a
+| (sf.highlight x a) := pure (sf.highlight x) <*> f a
+| (sf.compose a b) := pure (sf.compose) <*> f a <*> f b
+| (sf.of_string s) := pure $ sf.of_string s
+
+/-- Run `f` on each child. If it fails then stop traversing and keep it the same.-/
+meta def sf.replace {m} [monad m] [alternative m] (f : sf → m sf) : sf → m sf
+| x := (f x >>= sf.traverse sf.replace) <|> pure x
+
+meta def sf.collapse_restricted_quantifiers_pred : expr → tactic bool
+| `(@gt _ _ %%(expr.var 0) _) := pure tt
+| `(@has_mem.mem _ _ _ %%(expr.var 0) _) := pure tt
+| _ := pure ff
+
+meta def sf.collapse_restricted_quantifiers_core : sf → tactic sf
+| s@(sf.tag_expr addr e@(expr.pi x xbi xy (expr.pi p pbi py b)) a) :=
+  do
+  should_collapse ← sf.collapse_restricted_quantifiers_pred py,
+  if ¬ should_collapse then pure s else do
+  binder_prop_adr ← pure $ [expr.coord.pi_body, expr.coord.pi_var_type],
+  binder_body_adr ← pure $ [expr.coord.pi_body, expr.coord.pi_body],
+  binder_prop ← sf.follow binder_prop_adr a,
+  binder_body ← sf.follow binder_body_adr a,
+  pure (sf.tag_expr addr e $ "∀ (" ++ binder_prop ++ "), " ++ binder_body)
+-- | (sf.tag_expr a x b) := pure "asdf"
+| x := pure x
 
 /-- Flattens an `sf`, i.e. merges adjacent `of_string` constructors. -/
 meta def sf.flatten : sf → sf
@@ -240,6 +286,7 @@ $ tc.mk_simple
     let m := m.elim_part_apps,
     let m := m.flatten,
     let m := m.tag_expr [] e, -- [hack] in pp.cpp I forgot to add an expr-boundary for the root expression.
+    m ← sf.replace sf.collapse_restricted_quantifiers_core m,
     v ← view tooltip_comp (prod.snd <$> ca) (prod.snd <$> sa) ⟨e, []⟩ m,
     pure $
     [ h "span" [
@@ -484,3 +531,9 @@ end widget_override
 
 attribute [vm_override widget_override.term_goal_widget] widget.term_goal_widget
 attribute [vm_override widget_override.tactic_state_widget] widget.tactic_state_widget
+
+
+-- example : ∀ (x : ℕ), x > 3 → ∃ (N : set ℕ), ∀ y, y ∈ N → x > 2 :=
+-- begin
+
+-- end

@@ -48,23 +48,23 @@ zip_with_nil_right _ l
    length (zip l₁ l₂) = min (length l₁) (length l₂) :=
 length_zip_with _
 
-lemma length_zip_with_of_left {f : α → β → γ} {i : ℕ} {l : list α} {l' : list β}
+lemma lt_length_left_of_zip_with {f : α → β → γ} {i : ℕ} {l : list α} {l' : list β}
   (h : i < (zip_with f l l').length) :
   i < l.length :=
 by { rw [length_zip_with, lt_min_iff] at h, exact h.left }
 
-lemma length_zip_with_of_right {f : α → β → γ} {i : ℕ} {l : list α} {l' : list β}
+lemma lt_length_right_of_zip_with {f : α → β → γ} {i : ℕ} {l : list α} {l' : list β}
   (h : i < (zip_with f l l').length) :
   i < l'.length :=
 by { rw [length_zip_with, lt_min_iff] at h, exact h.right }
 
-lemma length_zip_of_left {i : ℕ} {l : list α} {l' : list β} (h : i < (zip l l').length) :
+lemma lt_length_left_of_zip {i : ℕ} {l : list α} {l' : list β} (h : i < (zip l l').length) :
   i < l.length :=
-length_zip_with_of_left h
+lt_length_left_of_zip_with h
 
-lemma length_zip_of_right {i : ℕ} {l : list α} {l' : list β} (h : i < (zip l l').length) :
+lemma lt_length_right_of_zip {i : ℕ} {l : list α} {l' : list β} (h : i < (zip l l').length) :
   i < l'.length :=
-length_zip_with_of_right h
+lt_length_right_of_zip_with h
 
 theorem zip_append : ∀ {l₁ l₂ r₁ r₂ : list α} (h : length l₁ = length l₂),
    zip (l₁ ++ r₁) (l₂ ++ r₂) = zip l₁ l₂ ++ zip r₁ r₂
@@ -200,17 +200,17 @@ end
 @[simp] lemma nth_le_zip_with {f : α → β → γ} {l : list α} {l' : list β} {i : ℕ}
   {h : i < (zip_with f l l').length} :
   (zip_with f l l').nth_le i h =
-    f (l.nth_le i (length_zip_with_of_left h)) (l'.nth_le i (length_zip_with_of_right h)) :=
+    f (l.nth_le i (lt_length_left_of_zip_with h)) (l'.nth_le i (lt_length_right_of_zip_with h)) :=
 begin
   rw [←option.some_inj, ←nth_le_nth, nth_zip_with_eq_some],
-  refine ⟨l.nth_le i (length_zip_with_of_left h), l'.nth_le i (length_zip_with_of_right h),
+  refine ⟨l.nth_le i (lt_length_left_of_zip_with h), l'.nth_le i (lt_length_right_of_zip_with h),
           nth_le_nth _, _⟩,
   simp only [←nth_le_nth, eq_self_iff_true, and_self]
 end
 
 @[simp] lemma nth_le_zip {l : list α} {l' : list β} {i : ℕ} {h : i < (zip l l').length} :
   (zip l l').nth_le i h =
-    (l.nth_le i (length_zip_of_left h), l'.nth_le i (length_zip_of_right h)) :=
+    (l.nth_le i (lt_length_left_of_zip h), l'.nth_le i (lt_length_right_of_zip h)) :=
 nth_le_zip_with
 
 lemma mem_zip_inits_tails {l : list α} {init tail : list α} :

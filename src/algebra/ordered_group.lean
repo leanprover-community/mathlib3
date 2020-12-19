@@ -326,6 +326,10 @@ have (a⁻¹)⁻¹ < b⁻¹ ↔ b < a⁻¹, from inv_lt_inv_iff,
 by rwa inv_inv at this
 
 @[to_additive]
+lemma inv_lt_self (h : 1 < a) : a⁻¹ < a :=
+(inv_lt_one'.2 h).trans h
+
+@[to_additive]
 lemma le_inv_mul_iff_mul_le : b ≤ a⁻¹ * c ↔ a * b ≤ c :=
 have a⁻¹ * (a * b) ≤ a⁻¹ * c ↔ a * b ≤ c, from mul_le_mul_iff_left _,
 by rwa inv_mul_cancel_left at this

@@ -258,13 +258,16 @@ begin
   apply h, cc
 end
 
-/-- An uncurried version of `prod_product`. -/
-@[to_additive]
+/-- An uncurried version of `finset.prod_product`. -/
+@[to_additive "An uncurried version of `finset.sum_product`"]
 lemma prod_product' {s : finset γ} {t : finset α} {f : γ → α → β} :
   (∏ x in s.product t, f x.1 x.2) = ∏ x in s, ∏ y in t, f x y :=
 prod_product
 
-@[to_additive]
+/-- Product over a sigma type equals the product of fiberwise products. For rewriting
+in the reverse direction, use `finset.prod_sigma'`.  -/
+@[to_additive "Sum over a sigma type equals the sum of fiberwise sums. For rewriting
+in the reverse direction, use `finset.sum_sigma'`"]
 lemma prod_sigma {σ : α → Type*}
   (s : finset α) (t : Πa, finset (σ a)) (f : sigma σ → β) :
   (∏ x in s.sigma t, f x) = ∏ a in s, ∏ s in (t a), f ⟨a, s⟩ :=

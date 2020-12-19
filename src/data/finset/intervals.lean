@@ -48,6 +48,12 @@ multiset.Ico.card _ _
 @[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
 multiset.Ico.mem
 
+lemma coe_eq_Ico {n m : ℕ} : ↑(Ico n m) = set.Ico n m :=
+begin
+  ext,
+  rw [set.mem_Ico, mem_coe, finset.Ico.mem],
+end
+
 theorem eq_empty_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = ∅ :=
 eq_of_veq $ multiset.Ico.eq_zero_of_le h
 
@@ -85,17 +91,8 @@ by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
 /-- The union of two intervals that overlap each other is also an interval -/
 lemma union_overlapping {n m l k : ℕ} (hlm : l ≤ m) (hnk : n ≤ k) :
   Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
-begin
-  ext,
-  rw [mem_union, Ico.mem, Ico.mem, Ico.mem, min_le_iff, lt_max_iff],
-  by_cases hl : l ≤ a; by_cases hk : a < k,
-  { tauto, },
-  { have hna : n ≤ a, from le_trans hnk (le_of_not_gt hk),
-    tauto, },
-  { have ham : a < m, from lt_of_lt_of_le (lt_of_not_ge hl) hlm,
-    tauto, },
-  { tauto, },
-end
+by rw [←coe_inj, coe_union, coe_eq_Ico, coe_eq_Ico, coe_eq_Ico,
+  set.Ico_union_Ico_eq_Ico_of_overlapping hlm hnk]
 
 @[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = ∅ :=
 begin
@@ -104,11 +101,8 @@ begin
 end
 
 lemma inter {n m l k : ℕ} : Ico n m ∩ Ico l k = Ico (max n l) (min m k) :=
-begin
-  ext,
-  rw [mem_inter, Ico.mem, Ico.mem, Ico.mem, max_le_iff, lt_min_iff],
-  tauto,
-end
+by rw [←coe_inj, coe_inter, coe_eq_Ico, coe_eq_Ico, coe_eq_Ico, ←inf_eq_min, ←sup_eq_max,
+  set.Ico_inter_Ico]
 
 lemma disjoint_consecutive (n m l : ℕ) : disjoint (Ico n m) (Ico m l) :=
 le_of_eq $ inter_consecutive n m l

@@ -102,6 +102,9 @@ meta def sf.replace {m} [monad m] [alternative m] (f : sf → m sf) : sf → m s
 /-- The test for whether the proposition is a valid target for restricted quantifier collapsing -/
 meta def sf.collapse_restricted_quantifiers_pred : expr → tactic bool
 | `(@gt _ _ %%(expr.var 0) _) := pure tt
+| `(@has_lt.lt _ _ %%(expr.var 0) _) := pure tt
+| `(@has_le.le _ _ %%(expr.var 0) _) := pure tt
+| `(@ge _ _ %%(expr.var 0) _) := pure tt
 | `(@has_mem.mem _ _ _ %%(expr.var 0) _) := pure tt
 -- [fixme] add to this list! So many predicates. Maybe just include all of them.
 | _ := pure ff

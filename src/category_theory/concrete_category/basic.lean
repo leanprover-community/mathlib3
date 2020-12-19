@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather, Yury Kudryashov
 -/
 import category_theory.types
-import category_theory.full_subcategory
+import category_theory.epi_mono
 
 /-!
 # Concrete categories

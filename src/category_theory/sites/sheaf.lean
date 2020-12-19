@@ -80,14 +80,11 @@ lemma w : fork_map R P ≫ first_map R P = fork_map R P ≫ second_map R P :=
 begin
   apply limit.hom_ext,
   rintro ⟨⟨Y, f, hf⟩, ⟨Z, g, hg⟩⟩,
-  simp only [first_map, second_map, fork_map],
-  simp only [limit.lift_π, limit.lift_π_assoc, assoc, fan.mk_π_app, subtype.coe_mk,
-             subtype.val_eq_coe],
+  simp only [first_map, second_map, fork_map, limit.lift_π, limit.lift_π_assoc, assoc,
+    fan.mk_π_app, subtype.coe_mk, subtype.val_eq_coe],
   rw [← P.map_comp, ← op_comp, pullback.condition],
   simp,
 end
-
--- definition 3 in Bhaviks list
 
 def is_sheaf' (P : Cᵒᵖ ⥤ A) : Prop := ∀ (U : C) (R : presieve U) (hR : generate R ∈ J U),
 nonempty (is_limit (fork.of_ι _ (w R P)))

@@ -73,7 +73,7 @@ variables {k k'} (n : ℕ) (f : k →+* k')
 
 @[simp] lemma coeff_exp : coeff k n (exp k) = 1 / n! := coeff_mk _ _
 
-@[simp] lemma map_exp : map f (exp k) = exp k' := by { ext, simp }
+@[simp] lemma map_exp : map f (exp k) = exp k' := by { ext, simp [f.map_inv] }
 
 @[simp] lemma map_sin : map f (sin k) = sin k' := by { ext, simp [sin, apply_ite f] }
 

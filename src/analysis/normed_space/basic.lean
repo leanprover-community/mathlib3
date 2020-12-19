@@ -381,14 +381,12 @@ lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, normed_group (π i
 (pi_norm_le_iff (norm_nonneg x)).1 (le_refl _) i
 
 lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
-  tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥ f e - b ∥) a (𝓝 0) :=
-by rw tendsto_iff_dist_tendsto_zero ; simp only [(dist_eq_norm _ _).symm]
+  tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=
+by { convert tendsto_iff_dist_tendsto_zero, simp [dist_eq_norm] }
 
 lemma tendsto_zero_iff_norm_tendsto_zero {f : γ → β} {a : filter γ} :
-  tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥ f e ∥) a (𝓝 0) :=
-have tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (𝓝 0) :=
-  tendsto_iff_norm_tendsto_zero,
-by simpa
+  tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥f e∥) a (𝓝 0) :=
+by simp [tendsto_iff_norm_tendsto_zero]
 
 /-- Special case of the sandwich theorem: if the norm of `f` is eventually bounded by a real
 function `g` which tends to `0`, then `f` tends to `0`.
@@ -409,34 +407,66 @@ lemma squeeze_zero_norm {f : γ → α} {g : γ → ℝ} {t₀ : filter γ}
   tendsto f t₀ (𝓝 0) :=
 squeeze_zero_norm' (eventually_of_forall h) h'
 
-lemma lim_norm (x : α) : tendsto (λg : α, ∥g - x∥) (𝓝 x) (𝓝 0) :=
-tendsto_iff_norm_tendsto_zero.1 (continuous_iff_continuous_at.1 continuous_id x)
+lemma tendsto_norm_sub_self (x : α) : tendsto (λ g : α, ∥g - x∥) (𝓝 x) (𝓝 0) :=
+by simpa [dist_eq_norm] using tendsto_id.dist (tendsto_const_nhds : tendsto (λ g, (x:α)) (𝓝 x) _)
 
-lemma lim_norm_zero : tendsto (λg : α, ∥g∥) (𝓝 0) (𝓝 0) :=
-by simpa using lim_norm (0:α)
+lemma tendsto_norm {x : α} : tendsto (λg : α, ∥g∥) (𝓝 x) (𝓝 ∥x∥) :=
+by simpa using tendsto_id.dist (tendsto_const_nhds : tendsto (λ g, (0:α)) _ _)
+
+lemma tendsto_norm_zero : tendsto (λg : α, ∥g∥) (𝓝 0) (𝓝 0) :=
+by simpa using tendsto_norm_sub_self (0:α)
 
 lemma continuous_norm : continuous (λg:α, ∥g∥) :=
-begin
-  rw continuous_iff_continuous_at,
-  intro x,
-  rw [continuous_at, tendsto_iff_dist_tendsto_zero],
-  exact squeeze_zero (λ t, abs_nonneg _) (λ t, abs_norm_sub_norm_le _ _) (lim_norm x)
-end
-
-lemma filter.tendsto.norm {β : Type*} {l : filter β} {f : β → α} {a : α} (h : tendsto f l (𝓝 a)) :
-  tendsto (λ x, ∥f x∥) l (𝓝 ∥a∥) :=
-tendsto.comp continuous_norm.continuous_at h
-
-lemma continuous.norm [topological_space γ] {f : γ → α} (hf : continuous f) :
-  continuous (λ x, ∥f x∥) :=
-continuous_norm.comp hf
+by simpa using continuous_id.dist (continuous_const : continuous (λ g, (0:α)))
 
 lemma continuous_nnnorm : continuous (nnnorm : α → ℝ≥0) :=
 continuous_subtype_mk _ continuous_norm
 
-lemma filter.tendsto.nnnorm {β : Type*} {l : filter β} {f : β → α} {a : α} (h : tendsto f l (𝓝 a)) :
+lemma tendsto_norm_nhds_within_zero : tendsto (norm : α → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
+(continuous_norm.tendsto' (0 : α) 0 norm_zero).inf $ tendsto_principal_principal.2 $
+  λ x, norm_pos_iff.2
+
+section
+
+variables {l : filter γ} {f : γ → α} {a : α}
+
+lemma filter.tendsto.norm {a : α} (h : tendsto f l (𝓝 a)) : tendsto (λ x, ∥f x∥) l (𝓝 ∥a∥) :=
+tendsto_norm.comp h
+
+lemma filter.tendsto.nnnorm (h : tendsto f l (𝓝 a)) :
   tendsto (λ x, nnnorm (f x)) l (𝓝 (nnnorm a)) :=
 tendsto.comp continuous_nnnorm.continuous_at h
+
+end
+
+section
+
+variables [topological_space γ] {f : γ → α} {s : set γ} {a : γ} {b : α}
+
+lemma continuous.norm (h : continuous f) : continuous (λ x, ∥f x∥) := continuous_norm.comp h
+
+lemma continuous.nnnorm (h : continuous f) : continuous (λ x, nnnorm (f x)) :=
+continuous_nnnorm.comp h
+
+lemma continuous_at.norm (h : continuous_at f a) : continuous_at (λ x, ∥f x∥) a := h.norm
+
+lemma continuous_at.nnnorm (h : continuous_at f a) : continuous_at (λ x, nnnorm (f x)) a := h.nnnorm
+
+lemma continuous_within_at.norm (h : continuous_within_at f s a) :
+  continuous_within_at (λ x, ∥f x∥) s a :=
+h.norm
+
+lemma continuous_within_at.nnnorm (h : continuous_within_at f s a) :
+  continuous_within_at (λ x, nnnorm (f x)) s a :=
+h.nnnorm
+
+lemma continuous_on.norm (h : continuous_on f s) : continuous_on (λ x, ∥f x∥) s :=
+λ x hx, (h x hx).norm
+
+lemma continuous_on.nnnorm (h : continuous_on f s) : continuous_on (λ x, nnnorm (f x)) s :=
+λ x hx, (h x hx).nnnorm
+
+end
 
 /-- If `∥y∥→∞`, then we can assume `y≠x` for any fixed `x`. -/
 lemma eventually_ne_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
@@ -600,7 +630,7 @@ instance normed_ring_top_monoid [normed_ring α] : has_continuous_mul α :=
 instance normed_top_ring [normed_ring α] : topological_ring α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α, -e - -x = -(e - x), by intro; simp,
-    by simp only [this, norm_neg]; apply lim_norm ⟩
+    by simp only [this, norm_neg]; apply tendsto_norm_sub_self ⟩
 
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=

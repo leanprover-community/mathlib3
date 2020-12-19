@@ -151,11 +151,14 @@ end linear_map
 
 section semiring
 variables {R : Type*} [comm_semiring R]
+variables {R' : Type*} [comm_semiring R'] [has_scalar R' R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
   [add_comm_monoid S]
 variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
+variables [semimodule R' M] [semimodule R' N]
+variables [is_scalar_tower R' R M] [is_scalar_tower R' R N]
 include R
 
 variables (M N)
@@ -240,20 +243,28 @@ variables {N}
 lemma tmul_add (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ + n₂) = m ⊗ₜ n₁ + m ⊗ₜ[R] n₂ :=
 eq.symm $ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_add_right _ _ _
 
-lemma smul_tmul (r : R) (m : M) (n : N) : (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
-quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _
+lemma smul_tmul (r : R') (m : M) (n : N) : (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
+begin
+  conv_lhs {rw ← one_smul R m},
+  conv_rhs {rw ← one_smul R n},
+  rw [←smul_assoc, ←smul_assoc],
+  exact (quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _),
+end
 
 /-- Auxiliary function to defining scalar multiplication on tensor product. -/
-def smul.aux (r : R) : free_add_monoid (M × N) →+ M ⊗[R] N :=
+def smul.aux {R' : Type*} [has_scalar R' M] (r : R') : free_add_monoid (M × N) →+ M ⊗[R] N :=
 free_add_monoid.lift $ λ p : M × N, (r • p.1) ⊗ₜ p.2
 
-theorem smul.aux_of (r : R) (m : M) (n : N) :
-  smul.aux r (free_add_monoid.of (m, n)) = (r • m) ⊗ₜ n :=
+theorem smul.aux_of {R' : Type*} [has_scalar R' M] (r : R') (m : M) (n : N) :
+  smul.aux r (free_add_monoid.of (m, n)) = (r • m) ⊗ₜ[R] n :=
 rfl
 
-instance : has_scalar R (M ⊗[R] N) :=
-⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (smul.aux r) $ add_con.add_con_gen_le $
-λ x y hxy, match x, y, hxy with
+-- Most of the time we want the instance below this one, which is easier for typeclass resolution
+-- to find.
+@[priority 900]
+instance has_scalar' : has_scalar R' (M ⊗[R] N) :=
+⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (smul.aux r : _ →+ M ⊗[R] N) $
+add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
 | _, _, (eqv.of_zero_left n)       := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_zero, smul.aux_of, smul_zero, zero_tmul]
 | _, _, (eqv.of_zero_right m)      := (add_con.ker_rel _).2 $
@@ -263,23 +274,28 @@ instance : has_scalar R (M ⊗[R] N) :=
 | _, _, (eqv.of_add_right m n₁ n₂) := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, smul.aux_of, tmul_add]
 | _, _, (eqv.of_smul s m n)        := (add_con.ker_rel _).2 $
-    by simp_rw [smul.aux_of, smul_tmul, smul_smul, mul_comm]
+    by rw [smul.aux_of, smul.aux_of, ←smul_assoc, smul_tmul, smul_tmul, smul_assoc]
 | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end⟩
 
-protected theorem smul_zero (r : R) : (r • 0 : M ⊗[R] N) = 0 :=
+instance : has_scalar R (M ⊗[R] N) := tensor_product.has_scalar'
+
+protected theorem smul_zero (r : R') : (r • 0 : M ⊗[R] N) = 0 :=
 add_monoid_hom.map_zero _
 
-protected theorem smul_add (r : R) (x y : M ⊗[R] N) :
+protected theorem smul_add (r : R') (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
 add_monoid_hom.map_add _ _ _
 
-theorem smul_tmul' (r : R) (m : M) (n : N) :
+theorem smul_tmul' (r : R') (m : M) (n : N) :
   r • (m ⊗ₜ n : M ⊗[R] N) = (r • m) ⊗ₜ n :=
 rfl
 
-instance : semimodule R (M ⊗[R] N) :=
+-- Most of the time we want the instance below this one, which is easier for typeclass resolution
+-- to find.
+@[priority 900]
+instance semimodule' : semimodule R' (M ⊗[R] N) :=
 { smul := (•),
   smul_add := λ r x y, tensor_product.smul_add r x y,
   mul_smul := λ r s x, tensor_product.induction_on x
@@ -300,7 +316,9 @@ instance : semimodule R (M ⊗[R] N) :=
     (λ m n, by rw [smul_tmul', zero_smul, zero_tmul])
     (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy, add_zero]) }
 
-@[simp] lemma tmul_smul (r : R) (x : M) (y : N) : x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
+instance : semimodule R (M ⊗[R] N) := tensor_product.semimodule'
+
+@[simp] lemma tmul_smul (r : R') (x : M) (y : N) : x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
 
 variables (R M N)

@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.tangent_cone
 import analysis.normed_space.units
+import analysis.asymptotic_equivalent
 
 /-!
 # The Fréchet derivative
@@ -112,7 +113,7 @@ derivative, differentiable, Fréchet, calculus
 -/
 
 open filter asymptotics continuous_linear_map set metric
-open_locale topological_space classical nnreal
+open_locale topological_space classical nnreal asymptotics filter
 
 noncomputable theory
 
@@ -2255,7 +2256,7 @@ begin
   { refine (inverse_add_norm_diff_second_order x).trans_is_o ((is_o_norm_norm).mp _),
     simp only [normed_field.norm_pow, norm_norm],
     have h12 : 1 < 2 := by norm_num,
-    convert (asymptotics.is_o_pow_pow h12).comp_tendsto lim_norm_zero,
+    convert (asymptotics.is_o_pow_pow h12).comp_tendsto tendsto_norm_zero,
     ext, simp },
   have h_lim : tendsto (λ (y:R), y - x) (𝓝 x) (𝓝 0),
   { refine tendsto_zero_iff_norm_tendsto_zero.mpr _,
@@ -2469,6 +2470,21 @@ lemma local_homeomorph.has_fderiv_at_symm (f : local_homeomorph E F) {f' : E ≃
   (ha : a ∈ f.target) (htff' : has_fderiv_at f (f' : E →L[𝕜] F) (f.symm a)) :
   has_fderiv_at f.symm (f'.symm : F →L[𝕜] E) a :=
 htff'.of_local_left_inverse (f.symm.continuous_at ha) (f.eventually_right_inverse ha)
+
+lemma has_fderiv_within_at.eventually_ne (h : has_fderiv_within_at f f' s x)
+  (hf' : ∃ C, ∀ z, ∥z∥ ≤ C * ∥f' z∥) :
+  ∀ᶠ z in 𝓝[s \ {x}] x, f z ≠ f x :=
+begin
+  rw [nhds_within, diff_eq, ← inf_principal, ← inf_assoc, eventually_inf_principal],
+  have A : is_O (λ z, z - x) (λ z, f' (z - x)) (𝓝[s] x) :=
+    (is_O_iff.2 $ hf'.imp $ λ C hC, eventually_of_forall $ λ z, hC _),
+  have : (λ z, f z - f x) ~[𝓝[s] x] (λ z, f' (z - x)) := h.trans_is_O A,
+  simpa [not_imp_not, sub_eq_zero] using (A.trans this.is_O_symm).eq_zero_imp
+end
+
+lemma has_fderiv_at.eventually_ne (h : has_fderiv_at f f' x) (hf' : ∃ C, ∀ z, ∥z∥ ≤ C * ∥f' z∥) :
+  ∀ᶠ z in 𝓝[{x}ᶜ] x, f z ≠ f x :=
+by simpa only [compl_eq_univ_diff] using (has_fderiv_within_at_univ.2 h).eventually_ne hf'
 
 end
 

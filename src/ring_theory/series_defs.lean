@@ -75,9 +75,9 @@ variables {k k'} (n : ℕ) (f : k →+* k')
 
 @[simp] lemma map_exp : map f (exp k) = exp k' := by { ext, simp [f.map_inv] }
 
-@[simp] lemma map_sin : map f (sin k) = sin k' := by { ext, simp [sin, apply_ite f] }
+@[simp] lemma map_sin : map f (sin k) = sin k' := by { ext, simp [sin, apply_ite f, f.map_div] }
 
-@[simp] lemma map_cos : map f (cos k) = cos k' := by { ext, simp [cos, apply_ite f] }
+@[simp] lemma map_cos : map f (cos k) = cos k' := by { ext, simp [cos, apply_ite f, f.map_div] }
 
 end field
 

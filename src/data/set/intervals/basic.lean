@@ -683,7 +683,7 @@ subset.antisymm (λ x hx, hx.elim (λ hx, lt_of_le_of_lt hx h) and.right) Iio_su
 
 /-! #### Two finite intervals, `I?o` and `Ic?` -/
 
-variable {c : α}
+variables {c d : α}
 
 lemma Ioo_subset_Ioo_union_Ico : Ioo a c ⊆ Ioo a b ∪ Ico b c :=
 λ x hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)
@@ -700,6 +700,20 @@ lemma Ico_subset_Ico_union_Ico : Ico a c ⊆ Ico a b ∪ Ico b c :=
 subset.antisymm
   (λ x hx, hx.elim (λ hx, ⟨hx.1, lt_of_lt_of_le hx.2 h₂⟩) (λ hx, ⟨le_trans h₁ hx.1, hx.2⟩))
   Ico_subset_Ico_union_Ico
+
+lemma Ico_union_Ico_eq_Ico_of_overlapping (h₁ : c ≤ b) (h₂ : a ≤ d) :
+  Ico a b ∪ Ico c d = Ico (min a c) (max b d) :=
+begin
+  ext1 x,
+  simp_rw [mem_union, mem_Ico, min_le_iff, lt_max_iff],
+  by_cases hc : c ≤ x; by_cases hd : x < d,
+  { tauto, },
+  { have hax : a ≤ x, from le_trans h₂ (le_of_not_gt hd),
+    tauto, },
+  { have hxb : x < b, from lt_of_lt_of_le (lt_of_not_ge hc) h₁,
+    tauto, },
+  { tauto, },
+end
 
 lemma Icc_subset_Ico_union_Icc : Icc a c ⊆ Ico a b ∪ Icc b c :=
 λ x hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)

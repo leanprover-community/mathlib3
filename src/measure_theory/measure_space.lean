@@ -490,9 +490,6 @@ begin
   exact λ x ⟨⟨_, h₁⟩, _, h₂⟩, h₂ h₁
 end
 
-protected lemma caratheodory (μ : measure α) (hs : is_measurable s) : μ (t ∩ s) + μ (t \ s) = μ t :=
-(le_to_outer_measure_caratheodory μ s hs t).symm
-
 @[simp] lemma to_measure_to_outer_measure (m : outer_measure α) (h : ms ≤ m.caratheodory) :
   (m.to_measure h).to_outer_measure = m.trim := rfl
 
@@ -514,6 +511,9 @@ variables [measurable_space α] [measurable_space β] [measurable_space γ]
 variables {μ μ₁ μ₂ ν ν' ν₁ ν₂ : measure α} {s s' t : set α}
 
 namespace measure
+
+protected lemma caratheodory (μ : measure α) (hs : is_measurable s) : μ (t ∩ s) + μ (t \ s) = μ t :=
+(le_to_outer_measure_caratheodory μ s hs t).symm
 
 /-! ### The `ennreal`-module of measures -/
 

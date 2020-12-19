@@ -98,7 +98,6 @@ begin
   sorry
 end
 
+end presheaf
 
-
-
-variables {X Y : C} {S : sieve X} {R : presieve X}
+end category_theory

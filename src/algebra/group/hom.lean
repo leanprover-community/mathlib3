@@ -584,6 +584,12 @@ add_decl_doc add_monoid_hom.has_zero
 @[simp, to_additive] lemma monoid_hom.one_apply [monoid M] [monoid N]
   (x : M) : (1 : M →* N) x = 1 := rfl
 
+@[simp, to_additive] lemma one_hom.one_comp [has_one M] [has_one N] [has_one P] (f : one_hom M N) :
+  (1 : one_hom N P).comp f = 1 := rfl
+@[simp, to_additive] lemma one_hom.comp_one [has_one M] [has_one N] [has_one P] (f : one_hom N P) :
+  f.comp (1 : one_hom M N) = 1 :=
+by { ext, simp only [one_hom.map_one, one_hom.coe_comp, function.comp_app, one_hom.one_apply] }
+
 @[to_additive]
 instance [has_one M] [has_one N] : inhabited (one_hom M N) := ⟨1⟩
 @[to_additive]
@@ -614,6 +620,20 @@ add_decl_doc add_monoid_hom.has_add
 @[simp, to_additive] lemma mul_apply {M N} {mM : monoid M} {mN : comm_monoid N}
   (f g : M →* N) (x : M) :
   (f * g) x = f x * g x := rfl
+
+@[simp, to_additive] lemma one_comp [monoid M] [monoid N] [monoid P] (f : M →* N) :
+  (1 : N →* P).comp f = 1 := rfl
+@[simp, to_additive] lemma comp_one [monoid M] [monoid N] [monoid P] (f : N →* P) :
+  f.comp (1 : M →* N) = 1 :=
+by { ext, simp only [map_one, coe_comp, function.comp_app, one_apply] }
+
+@[to_additive] lemma mul_comp [monoid M] [comm_monoid N] [comm_monoid P]
+  (g₁ g₂ : N →* P) (f : M →* N) :
+  (g₁ * g₂).comp f = g₁.comp f * g₂.comp f := rfl
+@[to_additive] lemma comp_mul [monoid M] [comm_monoid N] [comm_monoid P]
+  (g : N →* P) (f₁ f₂ : M →* N) :
+  g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
+by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 
 /-- (M →* N) is a comm_monoid if N is commutative. -/
 @[to_additive]
@@ -646,6 +666,15 @@ def eval [monoid M] [comm_monoid N] : M →* (M →* N) →* N := (monoid_hom.id
 
 @[simp, to_additive]
 lemma eval_apply [monoid M] [comm_monoid N] (x : M) (f : M →* N) : eval x f = f x := rfl
+
+/-- Composition of monoid morphisms (`monoid_hom.comp`) as a monoid morphism. -/
+@[simps, to_additive "Composition of additive monoid morphisms
+(`add_monoid_hom.comp`) as an additive monoid morphism."]
+def comp_hom [monoid M] [comm_monoid N] [comm_monoid P] :
+  (N →* P) →* (M →* N) →* (M →* P) :=
+{ to_fun := λ g, { to_fun := g.comp, map_one' := comp_one g, map_mul' := comp_mul g },
+  map_one' := by { ext1 f, exact one_comp f },
+  map_mul' := λ g₁ g₂, by { ext1 f, exact mul_comp g₁ g₂ f } }
 
 /-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
 @[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
@@ -720,10 +749,27 @@ add_decl_doc add_monoid_hom.has_neg
   (f : M →* G) (x : M) :
   f⁻¹ x = (f x)⁻¹ := rfl
 
+/-- If `f` and `g` are monoid homomorphisms to a commutative group, then `f / g` is the homomorphism
+sending `x` to `(f x) / (g x). -/
+@[to_additive]
+instance {M G} [monoid M] [comm_group G] : has_div (M →* G) :=
+⟨λ f g, mk' (λ x, f x / g x) $ λ a b,
+  by simp [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]⟩
+
+/-- If `f` and `g` are monoid homomorphisms to an additive commutative group, then `f - g`
+is the homomorphism sending `x` to `(f x) - (g x). -/
+add_decl_doc add_monoid_hom.has_sub
+
+@[simp, to_additive] lemma div_apply {M G} {mM : monoid M} {gG : comm_group G}
+  (f g : M →* G) (x : M) :
+  (f / g) x = f x / g x := rfl
+
 /-- If `G` is a commutative group, then `M →* G` a commutative group too. -/
 @[to_additive]
 instance {M G} [monoid M] [comm_group G] : comm_group (M →* G) :=
 { inv := has_inv.inv,
+  div := has_div.div,
+  div_eq_mul_inv := by { intros, ext, apply div_eq_mul_inv },
   mul_left_inv := by intros; ext; apply mul_left_inv,
   ..monoid_hom.comm_monoid }
 
@@ -734,14 +780,15 @@ end monoid_hom
 
 namespace add_monoid_hom
 
-variables [add_group G] [add_group H]
+variables {A B : Type*} [add_monoid A] [add_comm_group B] [add_group G] [add_group H]
 
 /-- Additive group homomorphisms preserve subtraction. -/
-@[simp] theorem map_sub (f : G →+ H) (g h : G) : f (g - h) = (f g) - (f h) := f.map_add_neg g h
+@[simp] theorem map_sub (f : G →+ H) (g h : G) : f (g - h) = (f g) - (f h) :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, f.map_add_neg g h]
 
 /-- Define a morphism of additive groups given a map which respects difference. -/
 def of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) : G →+ H :=
-of_map_add_neg f hf
+of_map_add_neg f (by simpa only [sub_eq_add_neg] using hf)
 
 @[simp] lemma coe_of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) :
   ⇑(of_map_sub f hf) = f :=

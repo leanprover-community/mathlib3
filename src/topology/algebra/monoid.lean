@@ -101,6 +101,47 @@ instance [topological_space N] [has_mul N] [has_continuous_mul N] : has_continuo
 ⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
  ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
 
+@[to_additive, priority 100]
+instance has_continuous_mul_of_discrete_topology [topological_space N]
+  [has_mul N] [discrete_topology N] : has_continuous_mul N :=
+⟨continuous_of_discrete_topology⟩
+
+open_locale filter
+
+open function
+
+@[to_additive]
+lemma has_continuous_mul.of_nhds_one {M : Type*} [monoid M] [topological_space M]
+  (hmul : tendsto (uncurry ((*) : M → M → M)) (𝓝 1 ×ᶠ 𝓝 1) $ 𝓝 1)
+  (hleft : ∀ x₀ : M, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1))
+  (hright : ∀ x₀ : M, 𝓝 x₀ = map (λ x, x*x₀) (𝓝 1)) : has_continuous_mul M :=
+⟨begin
+    rw continuous_iff_continuous_at,
+    rintros ⟨x₀, y₀⟩,
+    have key : (λ p : M × M, x₀ * p.1 * (p.2 * y₀)) = ((λ x, x₀*x) ∘ (λ x, x*y₀)) ∘ (uncurry (*)),
+    { ext p, simp [uncurry, mul_assoc] },
+    have key₂ : (λ x, x₀*x) ∘ (λ x, y₀*x) = λ x, (x₀ *y₀)*x,
+    { ext x, simp },
+    calc map (uncurry (*)) (𝓝 (x₀, y₀))
+        = map (uncurry (*)) (𝓝 x₀ ×ᶠ 𝓝 y₀) : by rw nhds_prod_eq
+    ... = map (λ (p : M × M), x₀ * p.1 * (p.2 * y₀)) ((𝓝 1) ×ᶠ (𝓝 1))
+            : by rw [uncurry, hleft x₀, hright y₀, prod_map_map_eq, filter.map_map]
+    ... = map ((λ x, x₀ * x) ∘ λ x, x * y₀) (map (uncurry (*)) (𝓝 1 ×ᶠ 𝓝 1))
+            : by { rw [key, ← filter.map_map], }
+    ... ≤ map ((λ (x : M), x₀ * x) ∘ λ x, x * y₀) (𝓝 1) : map_mono hmul
+    ... = 𝓝 (x₀*y₀) : by rw [← filter.map_map, ← hright, hleft y₀, filter.map_map, key₂, ← hleft]
+  end⟩
+
+@[to_additive]
+lemma has_continuous_mul_of_comm_of_nhds_one (M : Type*) [comm_monoid M] [topological_space M]
+  (hmul : tendsto (uncurry ((*) : M → M → M)) (𝓝 1 ×ᶠ 𝓝 1) (𝓝 1))
+  (hleft : ∀ x₀ : M, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1)) : has_continuous_mul M :=
+begin
+  apply has_continuous_mul.of_nhds_one hmul hleft,
+  intros x₀,
+  simp_rw [mul_comm, hleft x₀]
+end
+
 end has_continuous_mul
 
 section has_continuous_mul

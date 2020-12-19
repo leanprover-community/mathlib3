@@ -14,17 +14,12 @@ variables {α : Type u}
 
 /-- A `division_ring` is a `ring` with multiplicative inverses for nonzero elements -/
 @[protect_proj, ancestor ring has_inv]
-class division_ring (α : Type u) extends ring α, has_inv α, nontrivial α :=
+class division_ring (α : Type u) extends ring α, div_inv_monoid α, nontrivial α :=
 (mul_inv_cancel : ∀ {a : α}, a ≠ 0 → a * a⁻¹ = 1)
-(inv_mul_cancel : ∀ {a : α}, a ≠ 0 → a⁻¹ * a = 1)
 (inv_zero : (0 : α)⁻¹ = 0)
 
 section division_ring
 variables [division_ring α] {a b : α}
-
-@[priority 100] -- see Note [lower instance priority]
-instance division_ring_has_div : has_div α :=
-⟨λ a b, a * b⁻¹⟩
 
 /-- Every division ring is a `group_with_zero`. -/
 @[priority 100] -- see Note [lower instance priority]
@@ -41,7 +36,7 @@ begin
   { exact ring.inverse_unit (units.mk0 x hx) }
 end
 
-@[field_simps] lemma inv_eq_one_div (a : α) : a⁻¹ = 1 / a := by simp
+attribute [field_simps] inv_eq_one_div
 
 local attribute [simp]
   division_def mul_comm mul_assoc
@@ -66,7 +61,7 @@ calc
   b / (- a) = b * (1 / (- a)) : by rw [← inv_eq_one_div, division_def]
         ... = b * -(1 / a)    : by rw one_div_neg_eq_neg_one_div
         ... = -(b * (1 / a))  : by rw neg_mul_eq_mul_neg
-        ... = - (b * a⁻¹)     : by rw inv_eq_one_div
+        ... = - (b / a)       : by rw mul_one_div
 
 lemma neg_div (a b : α) : (-b) / a = - (b / a) :=
 by rw [neg_eq_neg_one_mul, mul_div_assoc, ← neg_eq_neg_one_mul]
@@ -78,7 +73,7 @@ lemma neg_div_neg_eq (a b : α) : (-a) / (-b) = a / b :=
 by rw [div_neg_eq_neg_div, neg_div, neg_neg]
 
 @[field_simps] lemma div_add_div_same (a b c : α) : a / c + b / c = (a + b) / c :=
-eq.symm $ right_distrib a b (c⁻¹)
+by simpa only [div_eq_mul_inv] using (right_distrib a b (c⁻¹)).symm
 
 lemma div_sub_div_same (a b c : α) : (a / c) - (b / c) = (a - b) / c :=
 by rw [sub_eq_add_neg, ← neg_div, div_add_div_same, sub_eq_add_neg]
@@ -130,8 +125,7 @@ variable [field α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_division_ring : division_ring α :=
-{ inv_mul_cancel := λ _ h, by rw [mul_comm, field.mul_inv_cancel h]
-  ..show field α, by apply_instance }
+{ ..show field α, by apply_instance }
 
 /-- Every field is a `comm_group_with_zero`. -/
 @[priority 100] -- see Note [lower instance priority]

@@ -73,7 +73,6 @@ the polynomial being represented.
 
 polynomial, multivariate polynomial, multivariable polynomial
 
-S₁ S₂ S₃
 -/
 
 noncomputable theory
@@ -110,7 +109,7 @@ finsupp.has_coe_to_fun
 
 local attribute [instance] coeff_coe_to_fun
 
-/-- `monomial s a` is the monomial `a * X^s` -/
+/-- `monomial s a` is the monomial with coefficient `a` and exponents given by `s`  -/
 def monomial (s : σ →₀ ℕ) (a : R) : mv_polynomial σ R := single s a
 
 lemma single_eq_monomial (s : σ →₀ ℕ) (a : R) : single s a = monomial s a := rfl
@@ -297,7 +296,7 @@ local attribute [reducible] mv_polynomial
 def coeff (m : σ →₀ ℕ) (p : mv_polynomial σ R) : R := p m
 end
 
-lemma ext (p q : mv_polynomial σ R) :
+@[ext] lemma ext (p q : mv_polynomial σ R) :
   (∀ m, coeff m p = coeff m q) → p = q := ext
 
 lemma ext_iff (p q : mv_polynomial σ R) :

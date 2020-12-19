@@ -361,7 +361,7 @@ variables {Q : quadratic_form R₁ M}
   associated Q x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
 
 lemma associated_is_sym : is_sym Q.associated :=
-λ x y, by simp [add_comm, add_left_comm, sub_eq_add_neg]
+λ x y, by simp only [associated_apply, add_comm, add_left_comm, sub_eq_add_neg]
 
 @[simp] lemma associated_comp {N : Type v} [add_comm_group N] [module R₁ N] (f : N →ₗ[R₁] M) :
   (Q.comp f).associated = Q.associated.comp f f :=
@@ -435,23 +435,23 @@ matrix.
 The determinant of the matrix is the discriminant of the quadratic form.
 -/
 
-variables {n : Type w} [fintype n]
+variables {n : Type w} [fintype n] [decidable_eq n]
 
 /-- `M.to_quadratic_form` is the map `λ x, col x ⬝ M ⬝ row x` as a quadratic form. -/
-def matrix.to_quadratic_form (M : matrix n n R₁) : quadratic_form R₁ (n → R₁) :=
-M.to_bilin_form.to_quadratic_form
+def matrix.to_quadratic_form' (M : matrix n n R₁) :
+  quadratic_form R₁ (n → R₁) :=
+M.to_bilin'.to_quadratic_form
 
-variables [decidable_eq n] [invertible (2 : R₁)]
+variables [invertible (2 : R₁)]
 
 /-- A matrix representation of the quadratic form. -/
-def quadratic_form.to_matrix (Q : quadratic_form R₁ (n → R₁)) :
-  matrix n n R₁ :=
-Q.associated.to_matrix
+def quadratic_form.to_matrix' (Q : quadratic_form R₁ (n → R₁)) : matrix n n R₁ :=
+Q.associated.to_matrix'
 
 open quadratic_form
-lemma quadratic_form.to_matrix_smul (a : R₁) (Q : quadratic_form R₁ (n → R₁)) :
-  (a • Q).to_matrix = a • Q.to_matrix :=
-by simp only [to_matrix, bilin_form.to_matrix_smul, linear_map.map_smul]
+lemma quadratic_form.to_matrix'_smul (a : R₁) (Q : quadratic_form R₁ (n → R₁)) :
+  (a • Q).to_matrix' = a • Q.to_matrix' :=
+by simp only [to_matrix', linear_equiv.map_smul, linear_map.map_smul]
 
 end
 
@@ -463,18 +463,18 @@ variables {m : Type w} [decidable_eq m] [fintype m]
 open_locale matrix
 
 @[simp]
-lemma to_matrix_comp (Q : quadratic_form R₁ (m → R₁)) (f : (n → R₁) →ₗ[R₁] (m → R₁)) :
-  (Q.comp f).to_matrix = f.to_matrix'ᵀ ⬝ Q.to_matrix ⬝ f.to_matrix' :=
-by { ext, simp [to_matrix, bilin_form.to_matrix_comp] }
+lemma to_matrix'_comp (Q : quadratic_form R₁ (m → R₁)) (f : (n → R₁) →ₗ[R₁] (m → R₁)) :
+  (Q.comp f).to_matrix' = f.to_matrix'ᵀ ⬝ Q.to_matrix' ⬝ f.to_matrix' :=
+by { ext, simp [to_matrix', bilin_form.to_matrix'_comp] }
 
 section discriminant
 variables {Q : quadratic_form R₁ (n → R₁)}
 
 /-- The discriminant of a quadratic form generalizes the discriminant of a quadratic polynomial. -/
-def discr (Q : quadratic_form R₁ (n → R₁)) : R₁ := Q.to_matrix.det
+def discr (Q : quadratic_form R₁ (n → R₁)) : R₁ := Q.to_matrix'.det
 
 lemma discr_smul (a : R₁) : (a • Q).discr = a ^ fintype.card n * Q.discr :=
-by simp only [discr, to_matrix_smul, matrix.det_smul]
+by simp only [discr, to_matrix'_smul, matrix.det_smul]
 
 lemma discr_comp (f : (n → R₁) →ₗ[R₁] (n → R₁)) :
   (Q.comp f).discr = f.to_matrix'.det * f.to_matrix'.det * Q.discr :=

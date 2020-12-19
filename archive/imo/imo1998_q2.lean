@@ -194,12 +194,7 @@ local notation x `/` y := (x : ℚ) / y
 
 lemma clear_denominators {a b k : ℕ} (ha : 0 < a) (hb : 0 < b) :
   (b - 1) / (2 * b) ≤ k / a ↔ (b - 1) * a ≤ k * (2 * b) :=
-begin
-  rw div_le_div_iff,
-  { convert nat.cast_le; finish, },
-  { simp only [hb, zero_lt_mul_right, zero_lt_bit0, nat.cast_pos, zero_lt_one], },
-  { simp only [ha, nat.cast_pos], },
-end
+by rw div_le_div_iff; norm_cast; simp [ha, hb]
 
 theorem imo1998_q2 [fintype J] [fintype C]
   (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)

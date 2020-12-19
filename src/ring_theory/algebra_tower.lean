@@ -111,11 +111,8 @@ def restrict_base (f : A →ₐ[S] B) : A →ₐ[R] B :=
 
 @[simp] lemma restrict_base_apply (f : A →ₐ[S] B) (x : A) : restrict_base R f x = f x := rfl
 
-instance right : is_scalar_tower R S S :=
-of_algebra_map_eq $ λ x, rfl
-
-instance nat : is_scalar_tower ℕ S A :=
-of_algebra_map_eq $ λ x, ((algebra_map S A).map_nat_cast x).symm
+instance right : is_scalar_tower R A A :=
+⟨λ x y z, by simp only [algebra.smul_def, smul_eq_mul, mul_assoc]⟩
 
 instance comap {R S A : Type*} [comm_semiring R] [comm_semiring S] [semiring A]
   [algebra R S] [algebra S A] : is_scalar_tower R S (algebra.comap R S A) :=
@@ -191,15 +188,6 @@ instance linear_map (R : Type u) (A : Type v) (V : Type w)
 ⟨λ x y f, linear_map.ext $ λ v, algebra.smul_mul_assoc x y (f v)⟩
 
 end comm_semiring
-
-section comm_ring
-variables [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] [algebra R A]
-variables [is_scalar_tower R S A]
-
-instance int : is_scalar_tower ℤ S A :=
-of_algebra_map_eq $ λ x, ((algebra_map S A).map_int_cast x).symm
-
-end comm_ring
 
 section division_ring
 variables [field R] [division_ring S] [algebra R S] [char_zero R] [char_zero S]
@@ -470,3 +458,36 @@ by exactI fg_of_injective (is_scalar_tower.to_alg_hom B₀ B C).to_linear_map
   (linear_map.ker_eq_bot.2 hBCi)
 
 end artin_tate
+
+section alg_hom_tower
+
+variables {A} {C D : Type*} [comm_semiring A] [comm_semiring C] [comm_semiring D]
+  [algebra A C] [algebra A D]
+
+variables (f : C →ₐ[A] D) (B) [comm_semiring B] [algebra A B] [algebra B C] [is_scalar_tower A B C]
+
+/-- Restrict the domain of an `alg_hom`. -/
+def alg_hom.restrict_domain : B →ₐ[A] D := f.comp (is_scalar_tower.to_alg_hom A B C)
+
+/-- Extend the scalars of an `alg_hom`. -/
+def alg_hom.extend_scalars : @alg_hom B C D _ _ _ _ (f.restrict_domain B).to_ring_hom.to_algebra :=
+{ commutes' := λ _, rfl .. f }
+
+variables {B}
+
+/-- `alg_hom`s from the top of a tower are equivalent to a pair of `alg_hom`s. -/
+def alg_hom_equiv_sigma :
+  (C →ₐ[A] D) ≃ Σ (f : B →ₐ[A] D), @alg_hom B C D _ _ _ _ f.to_ring_hom.to_algebra :=
+{ to_fun := λ f, ⟨f.restrict_domain B, f.extend_scalars B⟩,
+  inv_fun := λ fg, @is_scalar_tower.restrict_base A _ _ _ _ _ _ _ _ _
+    fg.1.to_ring_hom.to_algebra _ _ _ _ fg.2,
+  left_inv := λ f, by { dsimp only, ext, refl },
+  right_inv :=
+  begin
+    rintros ⟨⟨f, _, _, _, _, _⟩, g, _, _, _, _, hg⟩,
+    have : f = λ x, g (algebra_map B C x) := by { ext, exact (hg x).symm },
+    subst this,
+    refl,
+  end }
+
+end alg_hom_tower

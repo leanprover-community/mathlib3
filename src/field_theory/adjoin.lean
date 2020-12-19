@@ -17,7 +17,7 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 
 ## Main results
 
-- `adjoin_adjoin_left`: adjoining S and then T is the same as adjoining S ∪ T.
+- `adjoin_adjoin_left`: adjoining S and then T is the same as adjoining `S ∪ T`.
 - `bot_eq_top_of_dim_adjoin_eq_one`: if `F⟮x⟯` has dimension `1` over `F` for every `x`
   in `E` then `F = E`
 
@@ -79,6 +79,45 @@ by { ext, rw [mem_to_subalgebra, algebra.mem_bot, mem_bot] }
 
 @[simp] lemma top_to_subalgebra : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
 by { ext, rw [mem_to_subalgebra, iff_true_right algebra.mem_top], exact mem_top }
+
+/--  Construct an algebra isomorphism from an equality of subalgebras -/
+def subalgebra.equiv_of_eq {X Y : subalgebra F E} (h : X = Y) : X ≃ₐ[F] Y :=
+by refine { to_fun := λ x, ⟨x, _⟩, inv_fun := λ x, ⟨x, _⟩, .. }; tidy
+
+/-- The bottom intermediate_field is isomorphic to the field. -/
+noncomputable def bot_equiv : (⊥ : intermediate_field F E) ≃ₐ[F] F :=
+(subalgebra.equiv_of_eq bot_to_subalgebra).trans (algebra.bot_equiv F E)
+
+@[simp] lemma bot_equiv_def (x : F) :
+  bot_equiv (algebra_map F (⊥ : intermediate_field F E) x) = x :=
+alg_equiv.commutes bot_equiv x
+
+noncomputable instance algebra_over_bot : algebra (⊥ : intermediate_field F E) F :=
+  ring_hom.to_algebra intermediate_field.bot_equiv.to_alg_hom.to_ring_hom
+
+instance is_scalar_tower_over_bot : is_scalar_tower (⊥ : intermediate_field F E) F E :=
+is_scalar_tower.of_algebra_map_eq
+begin
+  intro x,
+  let ϕ := algebra.of_id F (⊥ : subalgebra F E),
+  let ψ := alg_equiv.of_bijective ϕ ((algebra.bot_equiv F E).symm.bijective),
+  change (↑x : E) = ↑(ψ (ψ.symm ⟨x, _⟩)),
+  rw alg_equiv.apply_symm_apply ψ ⟨x, _⟩,
+  refl
+end
+
+/-- The top intermediate_field is isomorphic to the field. -/
+noncomputable def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
+(subalgebra.equiv_of_eq top_to_subalgebra).trans algebra.top_equiv
+
+@[simp] lemma top_equiv_def (x : (⊤ : intermediate_field F E)) : top_equiv x = ↑x :=
+begin
+  suffices : algebra.to_top (top_equiv x) = algebra.to_top (x : E),
+  { rwa subtype.ext_iff at this },
+  exact alg_equiv.apply_symm_apply (alg_equiv.of_bijective algebra.to_top
+    ⟨λ _ _, subtype.mk.inj, λ x, ⟨x.val, by { ext, refl }⟩⟩ : E ≃ₐ[F] (⊤ : subalgebra F E))
+    (subalgebra.equiv_of_eq top_to_subalgebra x),
+end
 
 @[simp] lemma coe_bot_eq_self (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
 by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
@@ -303,26 +342,24 @@ adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 section adjoin_dim
 open finite_dimensional vector_space
 
-@[simp] lemma dim_intermediate_field_eq_dim_subalgebra :
-  dim F (adjoin F S).to_subalgebra = dim F (adjoin F S) := rfl
+variables {K L : intermediate_field F E}
 
-@[simp] lemma findim_intermediate_field_eq_findim_subalgebra :
-  findim F (adjoin F S).to_subalgebra = findim F (adjoin F S) := rfl
+@[simp] lemma dim_eq_one_iff : dim F K = 1 ↔ K = ⊥ :=
+by rw [← to_subalgebra_eq_iff, ← dim_eq_dim_subalgebra,
+  subalgebra.dim_eq_one_iff, bot_to_subalgebra]
 
-@[simp] lemma to_subalgebra_eq_iff {K L : intermediate_field F E} :
-  K.to_subalgebra = L.to_subalgebra ↔ K = L :=
-by { rw [subalgebra.ext_iff, intermediate_field.ext'_iff, set.ext_iff], refl }
+@[simp] lemma findim_eq_one_iff : findim F K = 1 ↔ K = ⊥ :=
+by rw [← to_subalgebra_eq_iff, ← findim_eq_findim_subalgebra,
+  subalgebra.findim_eq_one_iff, bot_to_subalgebra]
 
 lemma dim_adjoin_eq_one_iff : dim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
-by rw [←dim_intermediate_field_eq_dim_subalgebra, subalgebra.dim_eq_one_iff,
-      ←bot_to_subalgebra, to_subalgebra_eq_iff, adjoin_eq_bot_iff]
+iff.trans dim_eq_one_iff adjoin_eq_bot_iff
 
 lemma dim_adjoin_simple_eq_one_iff : dim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
-by { rw [dim_adjoin_eq_one_iff], exact set.singleton_subset_iff }
+by { rw dim_adjoin_eq_one_iff, exact set.singleton_subset_iff }
 
 lemma findim_adjoin_eq_one_iff : findim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
-by rw [←findim_intermediate_field_eq_findim_subalgebra, subalgebra.findim_eq_one_iff,
-      ←bot_to_subalgebra, to_subalgebra_eq_iff, adjoin_eq_bot_iff]
+iff.trans findim_eq_one_iff adjoin_eq_bot_iff
 
 lemma findim_adjoin_simple_eq_one_iff : findim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
 by { rw [findim_adjoin_eq_one_iff], exact set.singleton_subset_iff }
@@ -472,17 +509,28 @@ lemma fg_of_noetherian (S : intermediate_field F E)
   [is_noetherian F E] : S.fg :=
 S.fg_of_fg_to_subalgebra S.to_subalgebra.fg_of_noetherian
 
+lemma induction_on_adjoin_finset (S : finset E) (P : intermediate_field F E → Prop) (base : P ⊥)
+  (ih : ∀ (K : intermediate_field F E) (x ∈ S), P K → P ↑K⟮x⟯) : P (adjoin F ↑S) :=
+begin
+  apply finset.induction_on' S,
+  { exact base },
+  { intros a s h1 _ _ h4,
+    rw [finset.coe_insert, set.insert_eq, set.union_comm, ←adjoin_adjoin_left],
+    exact ih (adjoin F s) a h1 h4 }
+end
+
+lemma induction_on_adjoin_fg (P : intermediate_field F E → Prop)
+  (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
+  (K : intermediate_field F E) (hK : K.fg) : P K :=
+begin
+  obtain ⟨S, rfl⟩ := hK,
+  exact induction_on_adjoin_finset S P base (λ K x _ hK, ih K x hK),
+end
+
 lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field F E → Prop)
   (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
   (K : intermediate_field F E) : P K :=
-begin
-  haveI := classical.prop_decidable,
-  obtain ⟨s, rfl⟩ := fg_of_noetherian K,
-  apply @finset.induction_on E (λ s, P (adjoin F ↑s)) _ s base,
-  intros a t _ h,
-  rw [finset.coe_insert, ←set.union_singleton, ←adjoin_adjoin_left],
-  exact ih (adjoin F ↑t) a h
-end
+induction_on_adjoin_fg P base ih K K.fg_of_noetherian
 
 end induction
 

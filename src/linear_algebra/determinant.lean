@@ -8,6 +8,7 @@ import data.fintype.card
 import group_theory.perm.sign
 import algebra.algebra.basic
 import tactic.ring
+import linear_algebra.alternating
 
 universes u v w z
 open equiv equiv.perm finset function
@@ -60,15 +61,15 @@ begin
   exact sum_involution
     (λ σ _, σ * swap i j)
     (λ σ _,
-      have ∀ a, p (swap i j a) = p a := λ a, by simp only [swap_apply_def]; split_ifs; cc,
       have ∏ x, M (σ x) (p x) = ∏ x, M ((σ * swap i j) x) (p x),
-        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _) (by simp [this])
+        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _)
+          (by simp [apply_swap_eq_self hpij])
           (λ _ _ _ _ h, (swap i j).injective h)
           (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
       by simp [sign_mul, this, sign_swap hij, prod_mul_distrib])
-    (λ σ _ _ h, hij (σ.injective $ by conv {to_lhs, rw ← h}; simp))
+    (λ σ _ _, (not_congr mul_swap_eq_iff).mpr hij)
     (λ _ _, mem_univ _)
-    (λ _ _, equiv.ext $ by simp)
+    (λ σ _, mul_swap_involutive i j σ)
 end
 
 @[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
@@ -121,18 +122,19 @@ end
 
 /-- The determinant of a permutation matrix equals its sign. -/
 @[simp] lemma det_permutation (σ : perm n) :
-  matrix.det (σ.to_pequiv.to_matrix : matrix n n R) = σ.sign := begin
+  matrix.det (σ.to_pequiv.to_matrix : matrix n n R) = σ.sign :=
+begin
   suffices : matrix.det (σ.to_pequiv.to_matrix) = ↑σ.sign * det (1 : matrix n n R), { simp [this] },
   unfold det,
   rw mul_sum,
   apply sum_bij (λ τ _, σ * τ),
   { intros τ _, apply mem_univ },
   { intros τ _,
-    conv_lhs { rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)] },
-    conv_rhs { rw [←mul_assoc, coe_coe, sign_mul, units.coe_mul, int.cast_mul, ←mul_assoc] },
+    rw [←mul_assoc, sign_mul, coe_coe, ←int.cast_mul, ←units.coe_mul, ←mul_assoc,
+        int.units_mul_self, one_mul],
     congr,
-    { simp [pow_two] },
-    { ext i, apply pequiv.equiv_to_pequiv_to_matrix } },
+    ext i,
+    apply pequiv.equiv_to_pequiv_to_matrix },
   { intros τ τ' _ _, exact (mul_right_inj σ).mp },
   { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }
 end
@@ -182,47 +184,22 @@ end
 lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (j : n) (h : ∀ i, A i j = 0) : det A = 0 :=
 by { rw ← det_transpose, exact det_eq_zero_of_row_eq_zero j h, }
 
-/--
-  `mod_swap i j` contains permutations up to swapping `i` and `j`.
-
-  We use this to partition permutations in the expression for the determinant,
-  such that each partitions sums up to `0`.
--/
-def mod_swap {n : Type u} [decidable_eq n] (i j : n) : setoid (perm n) :=
-⟨ λ σ τ, σ = τ ∨ σ = swap i j * τ,
-  λ σ, or.inl (refl σ),
-  λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
-  λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish⟩
-
-instance (i j : n) : decidable_rel (mod_swap i j).r := λ σ τ, or.decidable
-
 variables {M : matrix n n R} {i j : n}
 
 /-- If a matrix has a repeated row, the determinant will be zero. -/
 theorem det_zero_of_row_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
 begin
-  have swap_invariant : ∀ k, M (swap i j k) = M k,
-  { intros k,
-    rw [swap_apply_def],
-    by_cases k = i, { rw [if_pos h, h, ←hij] },
-    rw [if_neg h],
-    by_cases k = j, { rw [if_pos h, h, hij] },
-    rw [if_neg h] },
-
-  have : ∀ σ, _root_.disjoint {σ} {swap i j * σ},
-  { intros σ,
-    rw [disjoint_singleton, mem_singleton],
-    exact (not_congr swap_mul_eq_iff).mpr i_ne_j },
-
-  apply finset.sum_cancels_of_partition_cancels (mod_swap i j),
-  intros σ _,
-  erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
-    sum_union (this σ), sum_singleton, sum_singleton],
+  apply finset.sum_involution
+    (λ σ _, swap i j * σ)
+    (λ σ _, _)
+    (λ σ _ _, (not_congr swap_mul_eq_iff).mpr i_ne_j)
+    (λ σ _, finset.mem_univ _)
+    (λ σ _, swap_mul_involutive i j σ),
   convert add_right_neg (↑↑(sign σ) * ∏ i, M (σ i) i),
-  rw [neg_mul_eq_neg_mul],
+  rw neg_mul_eq_neg_mul,
   congr,
   { rw [sign_mul, sign_swap i_ne_j], norm_num },
-  ext j, rw [perm.mul_apply, swap_invariant]
+  { ext j, rw [perm.mul_apply, apply_swap_eq_self hij], }
 end
 
 end det_zero
@@ -271,6 +248,16 @@ begin
   rw [← det_transpose, ← update_column_transpose, det_update_column_smul],
   simp [update_column_transpose, det_transpose]
 end
+
+/-- `det` is an alternating multilinear map over the rows of the matrix.
+
+See also `is_basis.det`. -/
+@[simps apply]
+def det_row_multilinear : alternating_map R (n → R) R n:=
+{ to_fun := det,
+  map_add' := det_update_row_add,
+  map_smul' := det_update_row_smul,
+  map_eq_zero_of_eq' := λ M i j h hij, det_zero_of_row_eq hij h }
 
 @[simp] lemma det_block_diagonal {o : Type*} [fintype o] [decidable_eq o] (M : o → matrix n n R) :
   (block_diagonal M).det = ∏ k, (M k).det :=

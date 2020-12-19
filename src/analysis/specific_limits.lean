@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import analysis.normed_space.basic
 import algebra.geom_sum
 import order.filter.archimedean
+import order.iterate
 import topology.instances.ennreal
 import tactic.ring_exp
 
@@ -16,7 +17,7 @@ import tactic.ring_exp
 noncomputable theory
 open classical function filter finset metric
 
-open_locale classical topological_space nat big_operators uniformity
+open_locale classical topological_space nat big_operators uniformity nnreal
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -38,10 +39,10 @@ tendsto_inv_at_top_zero.comp tendsto_coe_nat_at_top_at_top
 lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
 by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
 
-lemma nnreal.tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : nnreal)⁻¹) at_top (𝓝 0) :=
+lemma nnreal.tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ≥0)⁻¹) at_top (𝓝 0) :=
 by { rw ← nnreal.tendsto_coe, convert tendsto_inverse_at_top_nhds_0_nat, simp }
 
-lemma nnreal.tendsto_const_div_at_top_nhds_0_nat (C : nnreal) :
+lemma nnreal.tendsto_const_div_at_top_nhds_0_nat (C : ℝ≥0) :
   tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
 by simpa using tendsto_const_nhds.mul nnreal.tendsto_inverse_at_top_nhds_0_nat
 
@@ -68,13 +69,13 @@ lemma nat.tendsto_pow_at_top_at_top_of_one_lt {m : ℕ} (h : 1 < m) :
 nat.sub_add_cancel (le_of_lt h) ▸
   tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
 
-lemma lim_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
+lemma tendsto_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
   tendsto (norm : 𝕜 → ℝ) (𝓝[{x | x ≠ 0}] 0) (𝓝[set.Ioi 0] 0) :=
-lim_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, norm_pos_iff.2 hx
+tendsto_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, norm_pos_iff.2 hx
 
 lemma normed_field.tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
   tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[{x | x ≠ 0}] 0) at_top :=
-(tendsto_inv_zero_at_top.comp lim_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
+(tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
@@ -92,40 +93,24 @@ lemma uniformity_basis_dist_pow_of_lt_1 {α : Type*} [metric_space α]
 metric.mk_uniformity_basis (λ i _, pow_pos h₀ _) $ λ ε ε0,
   (exists_pow_lt_of_lt_one ε0 h₁).imp $ λ k hk, ⟨trivial, hk.le⟩
 
-lemma geom_lt {u : ℕ → ℝ} {k : ℝ} (hk : 0 < k) {n : ℕ} (h : ∀ m ≤ n, k*u m < u (m + 1)) :
-  k^(n + 1) *u 0 < u (n + 1) :=
-begin
- induction n with n ih,
- { simpa using h 0 (le_refl _) },
- have : (∀ (m : ℕ), m ≤ n → k * u m < u (m + 1)),
-   intros m hm, apply h, exact nat.le_succ_of_le hm,
- specialize ih this,
- change k ^ (n + 2) * u 0 < u (n + 2),
- replace h : k * u (n + 1) < u (n + 2) := h (n+1) (le_refl _),
- calc k ^ (n + 2) * u 0 = k*(k ^ (n + 1) * u 0) : by ring_exp
-  ... < k*(u (n + 1)) : mul_lt_mul_of_pos_left ih hk
-  ... < u (n + 2) : h,
-end
+lemma geom_lt {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) {n : ℕ} (hn : 0 < n)
+  (h : ∀ k < n, c * u k < u (k + 1)) :
+  c ^ n * u 0 < u n :=
+(monotone_mul_left_of_nonneg hc).seq_pos_lt_seq_of_le_of_lt hn (by simp)
+  (λ k hk, by simp [pow_succ, mul_assoc]) h
 
-/-- If a sequence `v` of real numbers satisfies `k*v n < v (n+1)` with `1 < k`,
+lemma geom_le {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) (n : ℕ) (h : ∀ k < n, c * u k ≤ u (k + 1)) :
+  c ^ n * u 0 ≤ u n :=
+by refine (monotone_mul_left_of_nonneg hc).seq_le_seq n _ _ h; simp [pow_succ, mul_assoc, le_refl]
+
+/-- If a sequence `v` of real numbers satisfies `k * v n ≤ v (n+1)` with `1 < k`,
 then it goes to +∞. -/
-lemma tendsto_at_top_of_geom_lt {v : ℕ → ℝ} {k : ℝ} (h₀ : 0 < v 0) (hk : 1 < k)
-  (hu : ∀ n, k*v n < v (n+1)) : tendsto v at_top at_top :=
-begin
-  apply tendsto_at_top_mono,
-  show ∀ n, k^n*v 0 ≤ v n,
-  { intro n,
-    induction n with n ih,
-    { simp },
-    calc
-    k ^ (n + 1) * v 0 = k*(k^n*v 0) : by ring_exp
-                  ... ≤ k*v n       : mul_le_mul_of_nonneg_left ih (by linarith)
-                  ... ≤ v (n + 1)   : le_of_lt (hu n) },
-  apply tendsto_at_top_mul_right h₀,
-  exact tendsto_pow_at_top_at_top_of_one_lt hk,
-end
+lemma tendsto_at_top_of_geom_le {v : ℕ → ℝ} {c : ℝ} (h₀ : 0 < v 0) (hc : 1 < c)
+  (hu : ∀ n, c * v n ≤ v (n + 1)) : tendsto v at_top at_top :=
+tendsto_at_top_mono (λ n, geom_le (zero_le_one.trans hc.le) n (λ k hk, hu k)) $
+  (tendsto_pow_at_top_at_top_of_one_lt hc).at_top_mul_const h₀
 
-lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : nnreal} (hr : r < 1) :
+lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ≥0} (hr : r < 1) :
   tendsto (λ n:ℕ, r^n) at_top (𝓝 0) :=
 nnreal.tendsto_coe.1 $ by simp only [nnreal.coe_pow, nnreal.coe_zero,
   tendsto_pow_at_top_nhds_0_of_lt_1 r.coe_nonneg hr]
@@ -200,7 +185,7 @@ lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :
 lemma tsum_geometric_two' (a : ℝ) : (∑' n:ℕ, (a / 2) / 2^n) = a :=
 (has_sum_geometric_two' a).tsum_eq
 
-lemma nnreal.has_sum_geometric {r : nnreal} (hr : r < 1) :
+lemma nnreal.has_sum_geometric {r : ℝ≥0} (hr : r < 1) :
   has_sum (λ n : ℕ, r ^ n) (1 - r)⁻¹ :=
 begin
   apply nnreal.has_sum_coe.1,
@@ -209,10 +194,10 @@ begin
   exact has_sum_geometric_of_lt_1 r.coe_nonneg hr
 end
 
-lemma nnreal.summable_geometric {r : nnreal} (hr : r < 1) : summable (λn:ℕ, r ^ n) :=
+lemma nnreal.summable_geometric {r : ℝ≥0} (hr : r < 1) : summable (λn:ℕ, r ^ n) :=
 ⟨_, nnreal.has_sum_geometric hr⟩
 
-lemma tsum_geometric_nnreal {r : nnreal} (hr : r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+lemma tsum_geometric_nnreal {r : ℝ≥0} (hr : r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 (nnreal.has_sum_geometric hr).tsum_eq
 
 /-- The series `pow r` converges to `(1-r)⁻¹`. For `r < 1` the RHS is a finite number,
@@ -538,8 +523,8 @@ end
 
 namespace nnreal
 
-theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable ι] :
-  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
+theorem exists_pos_sum_of_encodable {ε : ℝ≥0} (hε : 0 < ε) (ι) [encodable ι] :
+  ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
 let ⟨a, a0, aε⟩ := exists_between hε in
 let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
 ⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.2 $ hε' i,
@@ -551,7 +536,7 @@ end nnreal
 namespace ennreal
 
 theorem exists_pos_sum_of_encodable {ε : ennreal} (hε : 0 < ε) (ι) [encodable ι] :
-  ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ (∑' i, (ε' i : ennreal)) < ε :=
+  ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ (∑' i, (ε' i : ennreal)) < ε :=
 begin
   rcases exists_between hε with ⟨r, h0r, hrε⟩,
   rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,

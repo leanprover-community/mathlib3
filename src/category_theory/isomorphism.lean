@@ -211,19 +211,19 @@ is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 
 @[simp]
 lemma inv_comp_eq (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : inv α ≫ f = g ↔ f = α ≫ g :=
-⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+(as_iso α).inv_comp_eq
 
 @[simp]
 lemma eq_inv_comp (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : g = inv α ≫ f ↔ α ≫ g = f :=
-(inv_comp_eq (inv α)).symm
+(as_iso α).eq_inv_comp
 
 @[simp]
-lemma comp_inv_eq (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫ (inv α) = g ↔ f = g ≫ α :=
-⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+lemma comp_inv_eq (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫ inv α = g ↔ f = g ≫ α :=
+(as_iso α).comp_inv_eq
 
 @[simp]
-lemma comp_is_iso_eq (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ (inv α) ↔ g ≫ α = f :=
-(comp_inv_eq (inv α)).symm
+lemma eq_comp_inv (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ inv α ↔ g ≫ α = f :=
+(as_iso α).eq_comp_inv
 
 @[priority 100] -- see Note [lower instance priority]
 instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
@@ -253,6 +253,12 @@ instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
 
 lemma is_iso.inv_eq_inv {f g : X ⟶ Y} [is_iso f] [is_iso g] : inv f = inv g ↔ f = g :=
 iso.inv_eq_inv (as_iso f) (as_iso g)
+
+lemma hom_comp_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : g ≫ f = 𝟙 X ↔ f = inv g :=
+(as_iso g).hom_comp_eq_id
+
+lemma comp_hom_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y ↔ f = inv g :=
+(as_iso g).comp_hom_eq_id
 
 namespace iso
 

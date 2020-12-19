@@ -66,7 +66,7 @@ begin
   -- Get an explicit zigzag as a list
   rcases list.exists_chain_of_relation_refl_trans_gen h₁₂ with ⟨l, hl₁, hl₂⟩,
   -- Everything which has a zigzag to j₂ can be lifted to the same component as `j₂`.
-  let f : Π x, zigzag x j₂ → component (quotient.mk' j₂) := λ x h, subtype.mk x (quotient.sound' h),
+  let f : Π x, zigzag x j₂ → component (quotient.mk' j₂) := λ x h, ⟨x, quotient.sound' h⟩,
   -- Everything in our chosen zigzag from `j₁` to `j₂` has a zigzag to `j₂`.
   have hf : ∀ (a : J), a ∈ l → zigzag a j₂,
   { intros i hi,
@@ -76,9 +76,9 @@ begin
     { apply relation.refl_trans_gen.refl } },
   -- Now lift the zigzag from `j₁` to `j₂` in `J` to the same thing in `component j`.
   refine ⟨l.pmap f hf, _, _⟩,
-  apply list.chain_pmap_of_chain f (λ x y _ _ h, zag_of_zag_obj (include_component _) h) _ hl₁ h₁₂,
-  erw list.last_pmap _ f (j₁ :: l) (by simpa [h₁₂] using hf) (list.cons_ne_nil _ _),
-  exact subtype.ext hl₂,
+  { apply l.chain_pmap_of_chain f (λ x y _ _ h, zag_of_zag_obj (include_component _) h) hl₁ h₁₂ },
+  { erw list.last_pmap _ f (j₁ :: l) (by simpa [h₁₂] using hf) (list.cons_ne_nil _ _),
+    exact subtype.ext hl₂ },
 end
 
 /--

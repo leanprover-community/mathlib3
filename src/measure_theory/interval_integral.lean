@@ -204,9 +204,13 @@ begin
   all_goals
   { refine measure_theory.integrable_on.mono_set _ Ioc_subset_Icc_self,
     refine continuous_on.integrable_on_compact compact_Icc hum (hu.mono _) },
-  { exact Icc_subset_interval },
-  { exact Icc_subset_interval' }
+  exacts [Icc_subset_interval, Icc_subset_interval']
 end
+
+lemma continuous_on.interval_integrable_of_Icc {u : ℝ → E} {a b : ℝ} (h : a ≤ b)
+  (hu : continuous_on u (Icc a b)) (hum : measurable u) :
+  interval_integrable u μ a b :=
+continuous_on.interval_integrable ((interval_of_le h).symm ▸ hu) hum
 
 /-- A continuous function on `ℝ` is `interval_integrable` with respect to any locally finite measure
 `ν` on ℝ. -/
@@ -1216,63 +1220,7 @@ lemma deriv_within_integral_left (hf : interval_integrable f volume a b)
 (integral_has_deriv_within_at_left hf ha).deriv_within hs
 
 
-/-- Theorems pertaining to FTC-2. -/
-
-theorem constant_of_right_deriv_zero (hcont : continuous_on f (Icc a b))
-  (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at f 0 (Ioi x) x) :
-  ∀ x ∈ Icc a b, f x = f a :=
-by simpa only [zero_mul, norm_le_zero_iff, sub_eq_zero] using
-  λ x hx, norm_image_sub_le_of_norm_deriv_right_le_segment
-    hcont hderiv (λ y hy, by rw norm_le_zero_iff) x hx
-
-theorem constant_of_deriv_zero (hdiff : differentiable_on ℝ f (Icc a b))
-  (hderiv : ∀ x ∈ Ico a b, deriv_within f (Icc a b) x = 0) :
-  ∀ x ∈ Icc a b, f x = f a :=
-begin
-  have H : ∀ x ∈ Ico a b, ∥deriv_within f (Icc a b) x∥ ≤ 0 :=
-    by simpa only [norm_le_zero_iff] using λ x hx, hderiv x hx,
-  simpa only [zero_mul, norm_le_zero_iff, sub_eq_zero] using
-    λ x hx, norm_image_sub_le_of_norm_deriv_le_segment hdiff H x hx,
-end
-
-variables {f' g : ℝ → E}
-
-theorem eq_of_right_deriv_eq
-  (derivf : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
-  (derivg : ∀ x ∈ Ico a b, has_deriv_within_at g (f' x) (Ici x) x)
-  (fcont : continuous_on f (Icc a b)) (gcont : continuous_on g (Icc a b))
-  (hi : f a = g a) :
-  ∀ y ∈ Icc a b, f y = g y :=
-begin
-  have H : ∀ y ∈ Ico a b, has_deriv_within_at (f - g) 0 (Ioi y) y,
-  { intros y hy,
-    convert (derivf y hy).sub (derivg y hy),
-    { rw sub_self },
-    { sorry } }, -- Missing piece: `Ioi y = Ici y`
-  simpa only [zero_mul, sub_eq_zero.mpr hi, norm_le_zero_iff, sub_eq_zero] using
-    λ y hy, norm_image_sub_le_of_norm_deriv_right_le_segment
-      (fcont.sub gcont) H (λ z hz, by rw norm_le_zero_iff) y hy,
-end
-
-theorem eq_of_deriv_eq (hu : ∀ s : set ℝ, ∀ c ∈ s, unique_diff_within_at ℝ s c)
-  (fdiff : differentiable_on ℝ f (Icc a b)) (gdiff : differentiable_on ℝ g (Icc a b))
-  (hderiv : ∀ x ∈ Ico a b, deriv_within f (Icc a b) x = deriv_within g (Icc a b) x)
-  (hi : f a = g a) :
-  ∀ y ∈ Icc a b, f y = g y :=
-begin
-  have H : ∀ y ∈ Ico a b, ∥deriv_within (f - g) (Icc a b) y∥ ≤ 0,
-  { intros y hy,
-    have hf : differentiable_within_at ℝ f (Icc a b) y :=
-      by simpa only [differentiable_on] using fdiff y (mem_Icc_of_Ico hy),
-    have hg : differentiable_within_at ℝ g (Icc a b) y :=
-      by simpa only [differentiable_on] using gdiff y (mem_Icc_of_Ico hy),
-    have h := deriv_within_add (hu _ _ (mem_Icc_of_Ico hy)) hf
-      (by simpa only [differentiable_on] using (gdiff y (mem_Icc_of_Ico hy)).neg),
-    rw [deriv_within.neg (hu _ _ (mem_Icc_of_Ico hy)) hg, tactic.ring.add_neg_eq_sub] at h,
-    simpa only [← sub_eq_zero, ← norm_le_zero_iff, ← h] using hderiv y hy },
-  simpa only [zero_mul, sub_eq_zero.mpr hi, norm_le_zero_iff, sub_eq_zero] using
-    λ y hy, norm_image_sub_le_of_norm_deriv_le_segment (fdiff.sub gdiff) H y hy,
-end
+/-~ ### Theorems pertaining to FTC-2. -/
 
 theorem integral_of_continuous_differentiable_on {s : set ℝ}
   (hintg : ∀ x ∈ s, interval_integrable f volume a x) (hcont : continuous f) :
@@ -1285,19 +1233,57 @@ theorem integral_of_continuous_continuous_on {s : set ℝ}
   continuous_on (λ u, ∫ x in a..u, f x) s :=
 (integral_of_continuous_differentiable_on hintg hcont).continuous_on
 
-theorem has_deriv_within_at_right_integrable (hcont : continuous_on f (Icc a b))
+theorem integral_eq_sub_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuous_on f (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
-  --(contf' : ∀ x ∈ Ico a b, continuous_within_at f' (Ioi x) x)
-  (hcont' : continuous f') -- Is this a permissible switch? Could prob use `continuous_at` instead
-  (hintg : ∀ x ∈ Icc a b, interval_integrable f' volume a x) :
-  ∀ x ∈ Ico a b, ∫ y in a..x, f' y = f x - f a :=
+  (hcont' : continuous_on f' (Icc a b)) (hmeas' : measurable f') :
+  ∫ y in a..b, f' y = f b - f a :=
 begin
-  intros x hx,
-  rw [eq_of_right_deriv_eq hderiv
-        (λ y hy, (integral_has_deriv_within_at_right (hintg y (mem_Icc_of_Ico hy))
-          hcont'.continuous_within_at).const_add (f a)) hcont (continuous_on_const.add
-            (integral_of_continuous_continuous_on hintg hcont')) (by simp) x (mem_Icc_of_Ico hx),
-      add_sub_cancel'],
+  refine eq_sub_of_add_eq (eq_of_has_deriv_right_eq (λ y hy, _) hderiv
+    (λ y hy, _) hcont (by simp) _ (right_mem_Icc.2 hab)),
+  { refine (integral_has_deriv_within_at_right _ _).add_const _,
+    { refine (hcont'.mono _).interval_integrable hmeas',
+      simp [hy.1, Icc_subset_Icc_right hy.2.le] },
+    { exact (hcont' _ (mem_Icc_of_Ico hy)).mono_of_mem (Icc_mem_nhds_within_Ioi hy) } },
+  { -- TODO: prove that integral of any integrable function is continuous, and use here
+    letI : tendsto_Ixx_class Ioc (𝓟 (Icc a b)) (𝓟 (Ioc a b)) :=
+      tendsto_Ixx_class_principal.2 (λ x hx y hy, Ioc_subset_Ioc hx.1 hy.2),
+    haveI : is_measurably_generated (𝓝[Ioc a b] y) :=
+      is_measurable_Ioc.nhds_within_is_measurably_generated y,
+    letI : FTC_filter y (𝓝[Icc a b] y) (𝓝[Ioc a b] y) := ⟨pure_le_nhds_within hy, inf_le_left⟩,
+    refine (integral_has_deriv_within_at_right _ _).continuous_within_at.add
+      continuous_within_at_const,
+    { exact (hcont'.mono $ Icc_subset_Icc_right hy.2).interval_integrable_of_Icc hy.1 hmeas' },
+    { exact (hcont' y hy).mono Ioc_subset_Icc_self } }
 end
+
+theorem integral_eq_sub_of_has_deriv_right (hcont : continuous_on f (interval a b))
+  (hderiv : ∀ x ∈ Ico (min a b) (max a b), has_deriv_within_at f (f' x) (Ici x) x)
+  (hcont' : continuous_on f' (interval a b)) (hmeas' : measurable f') :
+  ∫ y in a..b, f' y = f b - f a :=
+begin
+  cases le_total a b with hab hab,
+  { simp only [interval_of_le, min_eq_left, max_eq_right, hab] at hcont hcont' hderiv,
+    exact integral_eq_sub_of_has_deriv_right_of_le hab hcont hderiv hcont' hmeas' },
+  { simp only [interval_of_ge, min_eq_right, max_eq_left, hab] at hcont hcont' hderiv,
+    rw [integral_symm, integral_eq_sub_of_has_deriv_right_of_le hab hcont hderiv hcont' hmeas',
+      neg_sub] }
+end
+
+theorem integral_eq_sub_of_has_deriv_at' (hcont : continuous_on f (interval a b))
+  (hderiv : ∀ x ∈ Ico (min a b) (max a b), has_deriv_at f (f' x) x)
+  (hcont' : continuous_on f' (interval a b)) (hmeas' : measurable f') :
+  ∫ y in a..b, f' y = f b - f a :=
+integral_eq_sub_of_has_deriv_right hcont (λ x hx, (hderiv x hx).has_deriv_within_at) hcont' hmeas'
+
+theorem integral_eq_sub_of_has_deriv_at (hderiv : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (hcont' : continuous_on f' (interval a b)) (hmeas' : measurable f') :
+  ∫ y in a..b, f' y = f b - f a :=
+integral_eq_sub_of_has_deriv_at' (λ x hx, (hderiv x hx).continuous_at.continuous_within_at)
+  (λ x hx, hderiv _ (mem_Icc_of_Ico hx)) hcont' hmeas'
+
+theorem integral_deriv_eq_sub (hderiv : ∀ x ∈ interval a b, differentiable_at ℝ f x)
+  (hcont' : continuous_on (deriv f) (interval a b)) (hmeas' : measurable (deriv f)) :
+  ∫ y in a..b, deriv f y = f b - f a :=
+integral_eq_sub_of_has_deriv_at (λ x hx, (hderiv x hx).has_deriv_at) hcont' hmeas'
 
 end interval_integral

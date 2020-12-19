@@ -29,6 +29,9 @@ cases, it can be inferred, so one can write, for example
 def get_fin : string → fin 5 :=
 sum.elim (λ _, 0) id ∘ parser.run_string (parser.numeral.of_fintype _)
 ```
+
+In the definitions of the parsers (except for `numeral`), there is an implicit `nat.cast` in
+the final `pure` statement.
 -/
 
 open parser parse_result

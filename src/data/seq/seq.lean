@@ -679,6 +679,26 @@ end
 theorem mem_append_left {s₁ s₂ : seq α} {a : α} (h : a ∈ s₁) : a ∈ append s₁ s₂ :=
 by apply mem_rec_on h; intros; simp [*]
 
+section coe
+
+/-- Coerce a sequence by elementwise coercion. -/
+def has_coe_to_seq [has_coe α β] : has_coe (seq α) (seq β) := ⟨seq.map (λ a, (a : β))⟩
+
+/-- Coerce a seq by elementwise coercion. -/
+def has_coe_t_to_seq [has_coe_t α β] : has_coe_t (seq α) (seq β) :=
+⟨seq.map (λ a, (↑a : β))⟩
+
+local attribute [instance] option.has_coe_t_to_option has_coe_t_to_seq
+
+lemma coe_t_to_seq [has_coe_t α β] (s : seq α) : (↑(s : seq α) : seq β) = s.map (λ a, (↑a : β)) :=
+rfl
+
+@[simp, norm_cast]
+lemma coe_t_nth [has_coe_t α β] {s : seq α} {n : ℕ} : (↑s : seq β).nth n = ↑(s.nth n : option α) :=
+by { unfold_coes, simp [seq.map_nth] }
+
+end coe
+
 end seq
 
 namespace seq1

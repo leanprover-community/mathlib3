@@ -12,23 +12,44 @@ import data.list.range
 # Additional instances and attributes for streams
 -/
 
+variable {α : Type*}
+
 attribute [ext] stream.ext
 
-instance {α} [inhabited α] : inhabited (stream α) :=
+instance [inhabited α] : inhabited (stream α) :=
 ⟨stream.const (default _)⟩
 
 namespace stream
 open nat
 
 /-- `take s n` returns a list of the `n` first elements of stream `s` -/
-def take {α} (s : stream α) (n : ℕ) : list α :=
+def take (s : stream α) (n : ℕ) : list α :=
 (list.range n).map s
 
-lemma length_take {α} (s : stream α) (n : ℕ) : (take s n).length = n :=
+lemma length_take (s : stream α) (n : ℕ) : (take s n).length = n :=
 by simp [take]
 
 /-- Use a state monad to generate a stream through corecursion -/
 def corec_state {σ α} (cmd : state σ α) (s : σ) : stream α :=
 stream.corec prod.fst (cmd.run ∘ prod.snd) (cmd.run s)
+
+section coe_t
+
+variable {β : Type*}
+
+/-- Coerce a stream by elementwise coercion. -/
+def has_coe_t_to_stream [has_coe_t α β] : has_coe_t (stream α) (stream β) :=
+⟨stream.map (λ a, (↑a : β))⟩
+
+local attribute [instance] has_coe_t_to_stream
+
+lemma coe_t_to_stream [has_coe_t α β] (s : stream α) :
+  (↑(s : stream α) : stream β) = s.map (λ a, (↑a : β)) :=
+rfl
+
+@[simp]
+lemma coe_t_nth [has_coe_t α β] {s : stream α} {n : ℕ} : (↑s : stream β) n = ↑(s n : α) := rfl
+
+end coe_t
 
 end stream

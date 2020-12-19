@@ -221,4 +221,25 @@ def cases_on' : option α → β → (α → β) → β
   cases_on' o (f none) (f ∘ coe) = f o :=
 by cases o; refl
 
+section coe_t
+
+/-- Coerce an option by coercing its stored value. -/
+def has_coe_t_to_option [has_coe_t α β] : has_coe_t (option α) (option β) :=
+⟨option.map (λ a, (↑a : β))⟩
+
+local attribute [instance] has_coe_t_to_option
+
+@[simp, norm_cast]
+lemma coe_t_to_some [has_coe_t α β] {a : α} : (↑(some a) : option β) = some (↑a : β) := rfl
+
+@[simp, norm_cast]
+lemma coe_t_to_none [has_coe_t α β] : (↑(none : option α) : option β) = (none : option β) := rfl
+
+@[simp, norm_cast]
+lemma coe_t_eq_none_iff_eq_none [has_coe_t α β] {o : option α} :
+  (↑o : option β) = (none : option β) ↔ (o = (none : option α)) :=
+by { split, { intro h, cases o; finish }, { intro h, simp [h] } }
+
+end coe_t
+
 end option

@@ -379,9 +379,18 @@ variables (F : C ⥤ D) [preserves_limits_of_shape (discrete walking_pair) F]
 The exponential comparison map.
 `F` is a cartesian closed functor if this is an iso for all `A,B`.
 -/
-def exp_comparison (A B : C) :
-  F.obj (A ⟹ B) ⟶ F.obj A ⟹ F.obj B :=
-curry (inv (prod_comparison F A _) ≫ F.map ((ev _).app _))
+def exp_comparison (A : C) :
+  exp A ⋙ F ⟶ F ⋙ (exp (F.obj A)) :=
+{ app := λ B,
+  begin
+    refine (coev (F.obj A)).app _ ≫ _,
+    refine (exp _).map (inv (prod_comparison F A _) ≫ F.map _),
+    apply (ev _).app _,
+  end
+
+
+}
+-- curry (inv (prod_comparison F A _) ≫ F.map ((ev _).app _))
 
 /-- The exponential comparison map is natural in its left argument. -/
 lemma exp_comparison_natural_left (A A' B : C) (f : A' ⟶ A) :

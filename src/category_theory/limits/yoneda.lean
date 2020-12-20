@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.limits.limits
 import category_theory.limits.functor_category
@@ -68,7 +68,7 @@ instance yoneda_preserves_limits (X : C) : preserves_limits (yoneda.obj X) :=
         uniq' := λ s m w, funext $ λ x,
         begin
           refine has_hom.hom.op_inj (t.uniq ⟨op X, _, _⟩ _ (λ j, _)),
-          { dsimp, simp [← s.w α] },
+          { dsimp, simp [← s.w α] }, -- See library note [dsimp, simp]
           { exact has_hom.hom.unop_inj (congr_fun (w j) x) },
         end }
         } } }
@@ -79,6 +79,7 @@ instance coyoneda_preserves_limits (X : Cᵒᵖ) : preserves_limits (coyoneda.ob
   { preserves_limit := λ K,
     { preserves := λ c t,
       { lift := λ s x, t.lift ⟨unop X, λ j, s.π.app j x, λ j₁ j₂ α, by { dsimp, simp [← s.w α]}⟩,
+          -- See library note [dsimp, simp]
         fac' := λ s j, funext $ λ x, t.fac _ _,
         uniq' := λ s m w, funext $ λ x,
         begin

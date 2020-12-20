@@ -2839,11 +2839,18 @@ begin
 end
 
 lemma reduce_option_length_lt_iff {l : list (option α)} :
-  l.reduce_option.length < l.length ↔ ∃ x ∈ l, x = none :=
+  l.reduce_option.length < l.length ↔ none ∈ l :=
 begin
-  rw [←not_iff_not, not_exists, not_lt_iff_eq_or_lt, reduce_option_length_eq_iff],
-  simp only [exists_prop, not_and, or_false, ←ne.def,
-             not_lt_of_le (reduce_option_length_le l), option.ne_none_iff_is_some]
+  rw [←not_iff_not, not_lt_iff_eq_or_lt, reduce_option_length_eq_iff],
+  simp only [exists_prop, not_and, or_false,
+             not_lt_of_le (reduce_option_length_le l), option.ne_none_iff_is_some],
+  split,
+  { intros H h,
+    simpa only using H none h },
+  { intros h x hx,
+    rw ←option.ne_none_iff_is_some,
+    intro H,
+    exact h (H ▸ hx) }
 end
 
 lemma reduce_option_singleton (x : option α) :

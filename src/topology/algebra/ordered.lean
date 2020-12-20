@@ -2574,6 +2574,28 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
     linear_ordered_add_comm_group.tendsto_nhds.2 $ λ ε ε0,
       (eventually_abs_sub_lt a ε0).mono $ λ x hx, by rwa [neg_sub_neg, abs_sub] }
 
+@[continuity]
+lemma continuous_abs : continuous (abs : α → α) := continuous_id.max continuous_neg
+
+lemma filter.tendsto.abs {f : β → α} {a : α} {l : filter β} (h : tendsto f l (𝓝 a)) :
+  tendsto (λ x, |f x|) l (𝓝 (|a|)) :=
+(continuous_abs.tendsto _).comp h
+
+variables [topological_space β] {f : β → α} {b : β} {a : α} {s : set β}
+
+lemma continuous.abs (h : continuous f) : continuous (λ x, |f x|) := continuous_abs.comp h
+
+lemma continuous_at.abs (h : continuous_at f b) : continuous_at (λ x, |f x|) b := h.abs
+
+lemma continuous_within_at.abs (h : continuous_within_at f s b) :
+  continuous_within_at (λ x, |f x|) s b := h.abs
+
+lemma continuous_on.abs (h : continuous_on f s) : continuous_on (λ x, |f x|) s :=
+λ x hx, (h x hx).abs
+
+lemma tendsto_abs_nhds_within_zero : tendsto (abs : α → α) (𝓝[{0}ᶜ] 0) (𝓝[Ioi 0] 0) :=
+(continuous_abs.tendsto' (0 : α) 0 abs_zero).inf $ tendsto_principal_principal.2 $ λ x, abs_pos.2
+
 end linear_ordered_add_comm_group
 
 /-!

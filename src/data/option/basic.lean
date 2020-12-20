@@ -111,13 +111,12 @@ lemma bind_id_eq_join {x : option (option α)} :
   x >>= id = x.join :=
 by { rcases x with _ | _ | x; simp }
 
-lemma join_eq_join : @join α = mjoin :=
+lemma join_eq_join : mjoin = @join α :=
 funext (λ x, by rw [mjoin, bind_id_eq_join])
 
 lemma bind_eq_bind {α β : Type*} {f : α → option β} {x : option α} :
-  x.bind f = x >>= f := rfl
+  x >>= f = x.bind f := rfl
 
--- TODO: flip lemmas like this to go in functor-generalized direction
 @[simp] lemma map_eq_map {α β} {f : α → β} :
   (<$>) f = option.map f := rfl
 

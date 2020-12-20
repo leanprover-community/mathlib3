@@ -1,6 +1,26 @@
+/-
+Copyright (c) 2020 Kevin Buzzard. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin Buzzard
+-/
+
 import category_theory.sites.sheaf_of_types
 import category_theory.concrete_category
 
+/-!
+# Sheaves taking values in a category
+
+If C is a category with a Grothendieck topology, we define the notion of a sheaf
+taking values in an arbitrary category `A`. We follow the definition in
+https://stacks.math.columbia.edu/tag/00VR , noting that the presheaf of sets "defined above"
+can be seen in the comments between tags 00VQ and 00VR on the
+page https://stacks.math.columbia.edu/tag/00VL . The advantage of this definition is that
+we need no assumptions whatsoever on `A` other than the assumption that the morphisms
+in `C` and `A` live in the same universe.
+
+TODO: Everything.
+
+-/
 -- sheaves taking values in objects of a category
 
 universes v v' u' u

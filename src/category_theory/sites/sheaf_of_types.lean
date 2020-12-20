@@ -9,9 +9,10 @@ import category_theory.limits.shapes.types
 import category_theory.full_subcategory
 
 /-!
-# Sheaves on a Grothendieck topology
+# Sheaves of types on a Grothendieck topology
 
-Defines the notion of a sheaf on a Grothendieck topology, as well as a range of equivalent
+Defines the notion of a sheaf of types (usually called a sheaf of sets by mathematicians)
+on a category equipped with a Grothendieck topology, as well as a range of equivalent
 conditions useful in different situations.
 
 First define what it means for a presheaf `P : Cᵒᵖ ⥤ Type v` to be a sheaf *for* a particular

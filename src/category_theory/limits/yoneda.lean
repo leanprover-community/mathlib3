@@ -70,8 +70,7 @@ instance yoneda_preserves_limits (X : C) : preserves_limits (yoneda.obj X) :=
           refine has_hom.hom.op_inj (t.uniq ⟨op X, _, _⟩ _ (λ j, _)),
           { dsimp, simp [← s.w α] }, -- See library note [dsimp, simp]
           { exact has_hom.hom.unop_inj (congr_fun (w j) x) },
-        end }
-        } } }
+        end } } } }
 
 /-- The coyoneda embedding `coyoneda.obj X : C ⥤ Type v` for `X : Cᵒᵖ` preserves limits. -/
 instance coyoneda_preserves_limits (X : Cᵒᵖ) : preserves_limits (coyoneda.obj X) :=
@@ -85,7 +84,6 @@ instance coyoneda_preserves_limits (X : Cᵒᵖ) : preserves_limits (coyoneda.ob
         begin
           refine (t.uniq ⟨unop X, _⟩ _ (λ j, _)),
           exact congr_fun (w j) x,
-        end }
-        } } }
+        end } } } }
 
 end category_theory

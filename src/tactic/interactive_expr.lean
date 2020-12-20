@@ -545,9 +545,3 @@ end widget_override
 
 attribute [vm_override widget_override.term_goal_widget] widget.term_goal_widget
 attribute [vm_override widget_override.tactic_state_widget] widget.tactic_state_widget
-
-
-example : ∀ (x : ℕ), x > 3 → ∃ (N : set ℕ), ∀ y, y ∈ N → x > 2 :=
-begin
-
-end

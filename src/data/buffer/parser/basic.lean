@@ -215,7 +215,7 @@ end map
 @[simp] lemma orelse_eq_orelse : p.orelse q = (p <|> q) := rfl
 
 @[simp] lemma orelse_eq_done : (p <|> q) cb n = done n' a ↔
-  (p cb n = done n' a ∨ ((∃ err, p cb n = fail n err) ∧ q cb n = done n' a)) :=
+  (p cb n = done n' a ∨ (q cb n = done n' a ∧ ∃ err, p cb n = fail n err)) :=
 begin
   rw ←orelse_eq_orelse,
   split,
@@ -234,7 +234,7 @@ begin
           split_ifs at h;
           exact h.elim } },
       { exact h.elim } } },
-  { rintro (h | ⟨⟨err, h⟩, h'⟩),
+  { rintro (h | ⟨h', err, h⟩),
     { simp only [parser.orelse, h, eq_self_iff_true, and_self] },
     { simp only [h, parser.orelse, eq_self_iff_true, not_true, if_false, ne.def],
       cases q cb n with posq resq posq errq,
@@ -399,7 +399,7 @@ by simp only [guard, apply_ite valid, pure, failure, or_true, if_true_left_eq_or
 begin
   intros cb n,
   cases hx : (p <|> q) cb n with posx resx posx errx,
-  { obtain h | ⟨⟨err, h⟩, h'⟩ := orelse_eq_done.mp hx,
+  { obtain h | ⟨h', err, h⟩ := orelse_eq_done.mp hx,
     { simpa only [h] using hp cb n },
     { simpa only [h'] using hq cb n } },
   { by_cases h : n = posx,

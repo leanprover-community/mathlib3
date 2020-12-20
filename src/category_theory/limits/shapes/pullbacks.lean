@@ -131,6 +131,7 @@ lemma span_map_id {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) (w : walking_span) :
   (span f g).map (walking_span.hom.id w) = 𝟙 _ := rfl
 
 /-- Every diagram indexing an pullback is naturally isomorphic (actually, equal) to a `cospan` -/
+@[simps {rhs_md := semireducible}]
 def diagram_iso_cospan (F : walking_cospan ⥤ C) :
   F ≅ cospan (F.map inl) (F.map inr) :=
 nat_iso.of_components (λ j, eq_to_iso (by tidy)) (by tidy)

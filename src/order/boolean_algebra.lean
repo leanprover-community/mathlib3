@@ -17,9 +17,31 @@ variables {α : Type u} {w x y z : α}
   complementation operation `-` such that `x ⊓ - x = ⊥` and `x ⊔ - x = ⊤`.
   This is a generalization of (classical) logic of propositions, or
   the powerset lattice. -/
+
 class boolean_algebra α extends heyting_algebra α, has_sdiff α :=
 (top_le_sup_compl : ∀x:α, ⊤ ≤ x ⊔ xᶜ)
 (sdiff_eq : ∀x y:α, x \ y = x ⊓ yᶜ)
+
+
+
+instance boolean_from_compl (α : Type*) [inst_bdl : bounded_distrib_lattice α] [inst_c : has_compl α] [inst_s : has_sdiff α]
+  (sdiff_eq' : ∀x y:α, x \ y = x ⊓ yᶜ) (top_le_sup_compl' : ∀x:α, ⊤ ≤ x ⊔ xᶜ) :
+  boolean_algebra α :=
+  {
+    imp := λ x y, xᶜ ⊔ y,
+    imp_adjoint :=
+      begin
+        intros,
+        have h : ∀ x y, x ⇨ y = xᶜ ⊔ y := λ x y, begin unfold imp, end,
+        rw h,
+      end,
+    compl_eq := λ x, sup_bot_eq.symm,
+    top_le_sup_compl := top_le_sup_compl',
+    sdiff_eq := sdiff_eq',
+    .. inst_bdl,
+    .. inst_c,
+    .. inst_s
+  }
 
 section boolean_algebra
 variables [boolean_algebra α]

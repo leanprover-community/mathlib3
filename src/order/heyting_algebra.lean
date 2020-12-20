@@ -5,11 +5,26 @@ Authors: Chris A. Upshaw.
 
 Type class hierarchy for Heyting algebras.
 -/
-import
-
 import order.bounded_lattice
 
 set_option old_structure_cmd true
+
+/-!
+# Heyting algebra
+
+In this file we introduce Heyting algebras.
+
+A Heyting algebra is a bounded distributed lattice with an internal implication.
+
+Having an internal implication and a bottom allows for defining an (possilbe intuitionistic)
+complement.
+
+## Notation
+
+ - `ᶜ` : Set / lattice complement
+ - ` ⇨ ` : implication as an operator internal to a lattice.
+
+-/
 
 /-- Set / lattice complement -/
 class has_compl (α : Type*) := (compl : α → α)
@@ -24,24 +39,25 @@ variables {α : Type u} {w x y z : α}
 class has_internal_imp (α : Type*) :=
   (imp : α → α → α)
 
-infixr ` ⟶ `:60 := has_internal_imp.imp
+infixr ` ⇨ `:60 := has_internal_imp.imp
 
-/-- A heyting algebra is a bounded distributive lattice with a
-  internal implication right adjoint to the meet. Equivently it is a
-  bounded distributive lattice with a psudo-complement `ᶜ` such that
-  `x ⊓ xᶜ = ⊥`, but not nessarily `x ⊔ xᶜ = ⊤`.
-  This is a generalization of the logic of propositions, or
-  the powerset lattice.-/
+/-- A heyting algebra is a bounded distributive lattice with a internal implication right adjoint to
+ the meet. This also allows the definition of a psudo-complement `ᶜ` such that `x ⊓ xᶜ = ⊥`,
+ (but not nessarily `x ⊔ xᶜ = ⊤`).
+
+  This is a generalization of the logic of propositions and of open sets of a topology, though
+  heyting algebra morphisms are distinct from images of continous functions.
+  -/
 class heyting_algebra α extends bounded_distrib_lattice α, has_compl α, has_internal_imp α :=
-  (imp_adjoint : ∀ a b c : α, a ⊓ b ≤ c ↔ a ≤ b ⟶ c)
-  (compl_from_imp : ∀ a : α, aᶜ = (a ⟶ ⊥))
+  (imp_adjoint : ∀ x y z : α, x ⊓ y ≤ z ↔ x ≤ y ⇨ z)
+  (compl_eq : ∀ x : α, xᶜ = (x ⇨ ⊥))
 
-export heyting_algebra (imp_adjoint compl_from_imp)
+export heyting_algebra (imp_adjoint compl_eq)
 
 section heyting_algebra
 variables [heyting_algebra α]
 
-@[simp] lemma imp_refl : x ⟶ x = ⊤ :=
+@[simp] lemma internal_imp_refl : x ⇨ x = ⊤ :=
   begin
     rw le_antisymm_iff,
     split,
@@ -52,38 +68,38 @@ variables [heyting_algebra α]
       },
   end
 
-lemma imp_mp : x ⊓ (x ⟶ y) ≤ y :=
+lemma internal_imp_mp : x ⊓ (x ⇨ y) ≤ y :=
   begin
     rw inf_comm,
     rw imp_adjoint,
     reflexivity,
   end
 
-lemma le_imp : x ≤ (y ⟶ x) :=
+lemma le_internal_imp : x ≤ (y ⇨ x) :=
   begin
     rw ← imp_adjoint,
     exact inf_le_left,
   end
 
 @[simp]
-lemma imp_mp_simp : x ⊓ (x ⟶ y) = x ⊓ y :=
-  le_antisymm (le_inf inf_le_left imp_mp) (inf_le_inf (le_refl x) le_imp)
+lemma inf_imp_eq_inf_left : x ⊓ (x ⇨ y) = x ⊓ y :=
+  le_antisymm (le_inf inf_le_left internal_imp_mp) (inf_le_inf (le_refl x) le_internal_imp)
 
-lemma imp_app : (x ⟶ y) ⊓ x ≤ y :=
+lemma imp_app : (x ⇨ y) ⊓ x ≤ y :=
   begin
     rw inf_comm,
-    exact imp_mp
+    exact internal_imp_mp
   end
 
 @[simp]
-lemma imp_app_simp : (x ⟶ y) ⊓ x = y ⊓ x:=
-  le_antisymm (le_inf imp_app inf_le_right) (inf_le_inf le_imp rfl.ge)
+lemma imp_inf_eq_left_inf : (x ⇨ y) ⊓ x = y ⊓ x:=
+  le_antisymm (le_inf imp_app inf_le_right) (inf_le_inf le_internal_imp rfl.ge)
 
 @[simp]
 lemma inf_compl_eq_bot : x ⊓ xᶜ = ⊥ :=
   begin
-    rw compl_from_imp,
-    exact imp_mp_simp.trans inf_bot_eq,
+    rw compl_eq,
+    exact inf_imp_eq_inf_left.trans inf_bot_eq,
   end
 
 @[simp] theorem compl_inf_eq_bot : xᶜ ⊓ x = ⊥ :=
@@ -92,18 +108,18 @@ lemma inf_compl_eq_bot : x ⊓ xᶜ = ⊥ :=
 -- if x has a boolean complement it is unique
 theorem compl_unique (i : x ⊓ y = ⊥) (s : x ⊔ y = ⊤) : xᶜ = y :=
   begin
-    rw compl_from_imp,
+    rw compl_eq,
     apply le_antisymm,
     {
-      transitivity (⊤ ⊓ (x ⟶ ⊥)),
-      have h : (x ⟶ ⊥) = ⊤ ⊓ (x ⟶ ⊥):= top_inf_eq.symm,
+      transitivity (⊤ ⊓ (x ⇨ ⊥)),
+      have h : (x ⇨ ⊥) = ⊤ ⊓ (x ⇨ ⊥):= top_inf_eq.symm,
       rw ← h,
       reflexivity,
       rw ← s,
       rw inf_sup_right,
       apply sup_le,
       transitivity ⊥,
-      apply imp_mp,
+      apply internal_imp_mp,
       exact bot_le,
       apply inf_le_left,
     },
@@ -119,7 +135,7 @@ end heyting_algebra
 
 instance has_internal_imp_prop : has_internal_imp Prop := ⟨λ x y, x → y⟩
 
-lemma imp_adjoint_prop (a b c : Prop) : (a ⊓ b ≤ c) ↔ (a ≤ b ⟶ c) :=
+lemma imp_adjoint_prop (a b c : Prop) : (a ⊓ b ≤ c) ↔ (a ≤ b ⇨ c) :=
   begin
     unfold has_internal_imp.imp,
     simp,
@@ -131,7 +147,7 @@ instance heyting_algebra_prop : heyting_algebra Prop :=
   {
     compl := not,
     imp_adjoint := imp_adjoint_prop,
-    compl_from_imp := λ a, rfl,
+    compl_eq := λ a, rfl,
     ..has_internal_imp_prop,
     ..bounded_distrib_lattice_Prop
   }
@@ -142,20 +158,20 @@ instance pi.heyting_algebra {α : Type u} {β : Type v} [heyting_algebra β] :
     pi_instance,
     intros,
     simp only [],
-    transitivity ∀ i, (a i) ⊓ (b i) ≤ c i,
+    transitivity ∀ i, (x i) ⊓ (y i) ≤ z i,
     {
-      have inf_unfolded : ∀ i : α, (a ⊓ b) i = a i ⊓ b i := λ i, begin simp end,
+      have inf_unfolded : ∀ i : α, (x ⊓ y) i = x i ⊓ y i := λ i, begin simp end,
       split; intros hyp i;
         try { rw inf_unfolded i}; try {rw ← inf_unfolded i};
         exact hyp i,
     },
     symmetry,
-    transitivity (∀ i : α, a i ≤ heyting_algebra.imp (b i) (c i)),
+    transitivity (∀ i : α, x i ≤ heyting_algebra.imp (y i) (z i)),
     {
-      have h : ∀ x : α → β, a ≤ x ↔ ∀ i, a i ≤ x i,
+      have h : ∀ x' : α → β, x ≤ x' ↔ ∀ i, x i ≤ x' i,
         {
           unfold_projs,
-          intros, split; intros a_le_x; apply a_le_x,
+          intros, split; intros x_le_x'; apply x_le_x',
         },
       rw h,
     },

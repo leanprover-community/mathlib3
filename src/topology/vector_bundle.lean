@@ -15,14 +15,17 @@ In this file we define topological vector bundles.
 
 The most important idea here is that vector bundles are named through their fibers.
 Let `B` be the base space. The collection of the fibers is a function `E : B → Type*` for which
-there is an appropriate instance on each `E x` and an instance of topological space over `Σ x, E x`.
-Naming conventions are essential to work with vector bundles this way.
+there is an appropriate instance on each `E x` and an instance of topological space over
+`bundle.total_space E` which is a type synonim for `Σ x, E x`. Naming conventions are essential to
+work with vector bundles this way.
 
 ## Definitions
 
-* `nc_topological_vector_bundle R E F`  : topological vector bundle with non constant fiber. Here
-                                          `F` is a function `I → Type*` and `I` is an index type.
-* `topological_vector_bundle R E F`     : topological vector bundle constant fiber `F : Type*`.
+* `nc_topological_vector_bundle R E F`  : topological vector bundle with non constant fiber. It is
+                                          implemented as a `class : Prop`. Here `F` is a function
+                                          `I → Type*` and `I` is an index type.
+* `topological_vector_bundle R E F`     : topological vector bundle constant fiber `F : Type*`. It
+                                          also implemented as a `class : Prop`,
 
 -/
 
@@ -61,6 +64,8 @@ variables [topological_space B] [topological_space F] [topological_space (total_
 @[nolint unused_arguments]
 instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
 
+lemma to_total_space_coe {x : B} {v : E x} : (v : total_space E) = ⟨x, v⟩ := rfl
+
 /-- Local trivialization for vector bunlde. -/
 @[nolint has_inhabited_instance]
 structure vector_bundle_trivialization extends bundle_trivialization F (proj E) :=
@@ -73,7 +78,8 @@ instance : has_coe_to_fun (vector_bundle_trivialization R E F) :=
 ⟨_, λ e, e.to_bundle_trivialization⟩
 
 @[simp] lemma coe_eq_coe_coe {e : vector_bundle_trivialization R E F} :
-  (⇑e : (total_space E) → B × F) = ((e : bundle_trivialization F (proj E)) : (total_space E) → B × F) :=
+  (⇑e : (total_space E) → B × F) =
+  ((e : bundle_trivialization F (proj E)) : (total_space E) → B × F) :=
 rfl
 
 section
@@ -81,19 +87,14 @@ section
 def vector_bundle_trivialization.at (e : vector_bundle_trivialization R E F) (b : B)
   (hb : b ∈ e.base_set):
   continuous_linear_equiv R (E b) F :=
-{
-  to_fun := λ y, (e.to_fun y).2,
+{ to_fun := λ y, (e.to_fun y).2,
   inv_fun := λ z, begin let g := (e.to_local_homeomorph.symm ⟨b, z⟩).2,
     have h : ((e.to_bundle_trivialization.to_local_homeomorph.symm) (b, z)).fst = b := sorry,
     rw h at g,
     exact g,
   end,
   left_inv := begin
-    intro x,
-    dsimp at *, simp at *,
-    unfold eq.mp,
-  end,
-}
+  end, }
 
 end
 
@@ -119,7 +120,7 @@ lemma mem_trivialization_base_set : ∀ b : B, b ∈ (trivialization_at R E F' b
 λ b, classical.some_spec (classical.some_spec (locally_trivial R E F' b))
 
 lemma mem_trivialization_source : ∀ z : total_space E, z ∈ (trivialization_at R E F' z.1).source :=
-λ z, begin  end
+λ z, begin sorry end
 
 end nc_topological_vector_bundle
 
@@ -128,11 +129,25 @@ class topological_vector_bundle : Prop :=
 (inducing [] : ∀ b : B, inducing (λ x : (E b), (x : total_space E)))
 (locally_trivial [] : ∀ b : B, ∃ e : vector_bundle_trivialization R E F, b ∈ e.base_set)
 
-instance topological_vector_bundle.nc_topological_vector_bundle [topological_vector_bundle R E F] :
+namespace topological_vector_bundle
+
+instance nc_topological_vector_bundle [topological_vector_bundle R E F] :
   nc_topological_vector_bundle R E (λ u : unit, F) :=
-{ fiber_index_at := λ x, unit.star,
-  trivialization_at := λ b, topological_vector_bundle.trivialization_at R E F b,
-  mem_trivialization_source := λ x, topological_vector_bundle.mem_trivialization_source R F x }
+{ inducing := topological_vector_bundle.inducing R E F,
+  locally_trivial := λ b : B, ⟨unit.star, topological_vector_bundle.locally_trivial R E F b⟩ }
+
+variable [topological_vector_bundle R E F]
+
+def trivialization_at : Π b : B, vector_bundle_trivialization R E F :=
+λ b, classical.some (locally_trivial R E F b)
+
+lemma mem_trivialization_base_set : ∀ b : B, b ∈ (trivialization_at R E F b).base_set :=
+λ b, classical.some_spec (locally_trivial R E F b)
+
+lemma mem_trivialization_source : ∀ z : total_space E, z ∈ (trivialization_at R E F z.1).source :=
+λ z, begin sorry end
+
+end topological_vector_bundle
 
 end
 
@@ -184,13 +199,18 @@ def trivial_bundle_trivialization : vector_bundle_trivialization R (trivial_bund
   proj_to_fun := λ y hy, rfl,
   linear := λ x hx, ⟨λ y z, rfl, λ c y, rfl⟩ }
 
+lemma induced_const {X : Type*} {Y : Type*} [t : topological_space X] {x : X} :
+  t.induced (λ y : Y, x) = ⊤ := le_antisymm le_top (@continuous_const Y X ⊤ t x).le_induced
+
 instance trivial_bundle.topological_vector_bundle :
   topological_vector_bundle R (trivial_bundle B F) F :=
-⟨λ x, trivial_bundle_trivialization B R F, λ x, set.mem_univ x⟩
+⟨λ x, ⟨by {simp only [to_total_space_coe, bundle.total_space.topological_space, induced_inf,
+  induced_compose, function.comp, proj, induced_const, top_inf_eq, trivial_bundle.proj_snd],
+  exact induced_id.symm}⟩, λ x, ⟨trivial_bundle_trivialization B R F, set.mem_univ x⟩⟩
 
 variables {R} {F} {E} {B}
 
 lemma is_topological_vector_bundle_is_topological_fiber_bundle [topological_vector_bundle R E F] :
   is_topological_fiber_bundle F (proj E) :=
 λ x, ⟨topological_vector_bundle.trivialization_at R E F x.1,
-  topological_vector_bundle.mem_trivialization_source R F x⟩
+  topological_vector_bundle.mem_trivialization_source R E F x⟩

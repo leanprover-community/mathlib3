@@ -22,17 +22,85 @@ variables (J : grothendieck_topology C)
 -- We follow https://stacks.math.columbia.edu/tag/00VL definition 00VR
 
 /-
-A sheaf of abelian groups is a presheaf F : C^op => AbGroup such that for every X : AbGroup, the
-presheaf of types given by sending U to the homset X -> F U is a sheaf.
+A sheaf of A is a presheaf P : C^op => A such that for every X : A, the
+presheaf of types given by sending U : C to Hom_{A}(X, P U) is a sheaf of types.
+
 https://stacks.math.columbia.edu/tag/00VR
 -/
-
-
 
 def is_sheaf (P : Cᵒᵖ ⥤ A) : Prop := ∀ X : A,
 presieve.is_sheaf J (P ⋙ coyoneda.obj (op X))
 
+
+/-!
+
+## practice
+
+-/
+
+#check coyoneda.obj (op punit.{v+1})
+
+lemma practice (P : Cᵒᵖ ⥤ Type v) : P ≅ (P ⋙ coyoneda.obj (op punit.{v+1})) :=
+{ hom := { app := λ X a _, a },
+  inv := { app := λ X f, f punit.star},-- Hom (*, P X) → P X},
+  hom_inv_id' := by tidy,
+  inv_hom_id' := by tidy }
+
+example (P Q : Cᵒᵖ ⥤ Type v) (h : P ≅ Q) : presieve.is_sheaf J P → presieve.is_sheaf J Q :=
+begin
+  exact presieve.is_sheaf_iso J h,
+end
+
 end presheaf
+
+variables {C : Type u} [category.{v} C]
+variables (J : grothendieck_topology C)
+variables (A : Type u') [category.{v} A]
+
+/-- The category of sheaves on a grothendieck topology. -/
+@[derive category]
+def Sheaf : Type* :=
+{P : Cᵒᵖ ⥤ A // presheaf.is_sheaf J P}
+
+-- instance : inhabited (Sheaf (⊥ : grothendieck_topology C)) :=
+-- ⟨⟨(functor.const _).obj punit,
+--   λ X S hS,
+--   begin
+--     simp only [grothendieck_topology.bot_covering] at hS,
+--     subst hS,
+--     apply presieve.is_sheaf_for_top_sieve,
+--   end⟩⟩
+
+/-- The inclusion functor from sheaves to presheaves. -/
+@[simps {rhs_md := semireducible}, derive [full, faithful]]
+def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
+full_subcategory_inclusion (presheaf.is_sheaf J)
+
+theorem Sheaf_is_SheafOfTypes (P : Cᵒᵖ ⥤ Type v) (hP : presheaf.is_sheaf J P) :
+  presieve.is_sheaf J P :=
+begin
+  specialize hP punit,
+  apply presieve.is_sheaf_iso J,
+  apply practice,
+end
+
+
+theorem Sheaf_of_types_equiv_Sheaf : Sheaf J (Type v) ≌ SheafOfTypes J :=
+{ functor := { obj := λ S, ⟨S.1, _⟩,
+    map := _,
+    map_id' := _,
+    map_comp' := _ },
+  inverse := _,
+  unit_iso := _,
+  counit_iso := _,
+  --functor_unit_iso_comp' := _ }
+}
+
+end category_theory
+
+namespace category_theory
+
+open opposite category_theory category limits sieve classical
 
 namespace presheaf
 
@@ -92,7 +160,9 @@ nonempty (is_limit (fork.of_ι _ (w R P)))
 theorem is_sheaf_iff_is_sheaf' (P : Cᵒᵖ ⥤ A) :
 is_sheaf J P ↔ is_sheaf' J P :=
 begin
-  sorry
+  split,
+  { sorry },
+  { sorry }
 end
 
 end presheaf

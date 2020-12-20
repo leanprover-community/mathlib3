@@ -885,10 +885,10 @@ variables (J : grothendieck_topology C)
 
 /-- The category of sheaves on a grothendieck topology. -/
 @[derive category]
-def Sheaf (J : grothendieck_topology C) : Type (max u (v+1)) :=
+def SheafOfTypes (J : grothendieck_topology C) : Type (max u (v+1)) :=
 {P : Cᵒᵖ ⥤ Type v // presieve.is_sheaf J P}
 
-instance : inhabited (Sheaf (⊥ : grothendieck_topology C)) :=
+instance : inhabited (SheafOfTypes (⊥ : grothendieck_topology C)) :=
 ⟨⟨(functor.const _).obj punit,
   λ X S hS,
   begin
@@ -899,7 +899,7 @@ instance : inhabited (Sheaf (⊥ : grothendieck_topology C)) :=
 
 /-- The inclusion functor from sheaves to presheaves. -/
 @[simps {rhs_md := semireducible}, derive [full, faithful]]
-def Sheaf_to_presheaf : Sheaf J ⥤ (Cᵒᵖ ⥤ Type v) :=
+def SheafOfTypes_to_presheaf : SheafOfTypes J ⥤ (Cᵒᵖ ⥤ Type v) :=
 full_subcategory_inclusion (presieve.is_sheaf J)
 
 end category_theory

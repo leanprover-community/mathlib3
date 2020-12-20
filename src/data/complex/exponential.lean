@@ -675,14 +675,12 @@ lemma tanh_mul_I : tanh (x * I) = tan x * I :=
 by rw [tanh_eq_sinh_div_cosh, cosh_mul_I, sinh_mul_I, mul_div_right_comm, tan]
 
 lemma cos_mul_I : cos (x * I) = cosh x :=
-by {rw ← cosh_mul_I, ring, simp }
+by { rw ← cosh_mul_I, ring, simp }
 
 lemma sin_mul_I : sin (x * I) = sinh x * I :=
-begin
-  have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring, simp },
-  simpa only [neg_mul_eq_neg_mul_symm, div_I, neg_neg]
-    using cancel_factors.cancel_factors_eq_div h I_ne_zero,
-end
+have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring, simp },
+by simpa only [neg_mul_eq_neg_mul_symm, div_I, neg_neg]
+  using cancel_factors.cancel_factors_eq_div h I_ne_zero
 
 lemma tan_mul_I : tan (x * I) = tanh x * I :=
 by rw [tan, sin_mul_I, cos_mul_I, mul_div_right_comm, tanh_eq_sinh_div_cosh]
@@ -711,6 +709,18 @@ by simp [sub_eq_add_neg, sin_add, sin_neg, cos_neg]
 
 lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
+
+lemma sin_add_mul_I (x y : ℂ) : sin (x + y*I) = sin x * cosh y + cos x * sinh y * I :=
+by rw [sin_add, cos_mul_I, sin_mul_I, mul_assoc]
+
+lemma sin_eq (z : ℂ) : sin z = sin z.re * cosh z.im + cos z.re * sinh z.im * I :=
+by convert sin_add_mul_I z.re z.im; exact (re_add_im z).symm
+
+lemma cos_add_mul_I (x y : ℂ) : cos (x + y*I) = cos x * cosh y - sin x * sinh y * I :=
+by rw [cos_add, cos_mul_I, sin_mul_I, mul_assoc]
+
+lemma cos_eq (z : ℂ) : cos z = cos z.re * cosh z.im - sin z.re * sinh z.im * I :=
+by convert cos_add_mul_I z.re z.im; exact (re_add_im z).symm
 
 theorem sin_sub_sin : sin x - sin y = 2 * sin((x - y)/2) * cos((x + y)/2) :=
 begin

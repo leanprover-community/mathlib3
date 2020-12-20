@@ -69,7 +69,7 @@ begin
 end
 
 lemma even_or_odd (n : ℤ) : even n ∨ odd n :=
-by { rw [even, odd, ← exists_or_distrib], exact even_or_odd' n }
+by rw [even, odd, ← exists_or_distrib]; exact even_or_odd' n
 
 lemma even_xor_odd (n : ℤ) : xor (even n) (odd n) :=
 begin

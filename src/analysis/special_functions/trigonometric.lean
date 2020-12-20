@@ -1722,13 +1722,9 @@ by rw [tan_eq_sin_div_cos, sin_arctan, cos_arctan, div_div_div_div_eq, mul_one,
     div_self (mt sqrt_eq_zero'.1 (not_le_of_gt (add_pos_of_pos_of_nonneg zero_lt_one (pow_two_nonneg x)))),
     mul_one]
 
-lemma arcsin_to_arctan {x : ℝ} (h: x ∈ set.Ioo (-(1:ℝ)) 1) :
-  arcsin x = arctan (x / sqrt (1 - x^2)) :=
-begin
-  rw [arctan, div_pow, sqr_sqrt, one_add_div, div_div_eq_div_mul, ← sqrt_mul, mul_div_cancel',
-      sub_add_cancel, sqrt_one, div_one];
-  nlinarith [h.1, h.2],
-end
+lemma arcsin_to_arctan {x : ℝ} (h: x ∈ Ioo (-(1:ℝ)) 1) : arcsin x = arctan (x / sqrt (1 - x^2)) :=
+by rw [arctan, div_pow, sqr_sqrt, one_add_div, div_div_eq_div_mul, ← sqrt_mul, mul_div_cancel',
+      sub_add_cancel, sqrt_one, div_one]; nlinarith [h.1, h.2]
 
 lemma arctan_lt_pi_div_two (x : ℝ) : arctan x < π / 2 :=
 lt_of_le_of_ne (arcsin_le_pi_div_two _)
@@ -2139,7 +2135,8 @@ by cases n; simp only [cos_nat_mul_two_pi, int.of_nat_eq_coe,
 lemma cos_int_mul_two_pi_add_pi (n : ℤ) : cos (n * (2 * π) + π) = -1 :=
 by simp [cos_add, sin_add, cos_int_mul_two_pi]
 
-lemma exp_pi_mul_I : exp (π * I) = -1 := by { rw exp_mul_I, simp, }
+lemma exp_pi_mul_I : exp (π * I) = -1 :=
+by { rw exp_mul_I, simp, }
 
 theorem cos_eq_zero_iff {θ : ℂ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
 begin
@@ -2177,11 +2174,9 @@ end
 theorem sin_ne_zero_iff {θ : ℂ} : sin θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ k * π :=
 by rw [← not_exists, not_iff_not, sin_eq_zero_iff]
 
-lemma tan_of_mul_pi_div_two (θ : ℂ) (h : ∃ k : ℤ, θ = (2 * k + 1) * π / 2) : tan θ = 0 :=
-by rw [tan, cos_eq_zero_iff.mpr h, div_zero]
-
-lemma tan_of_mul_pi (θ : ℂ) (h : ∃ k : ℤ, θ = k * π) : tan θ = 0 :=
-by rw [tan, sin_eq_zero_iff.mpr h, zero_div]
+lemma sin_eq_zero_iff_cos_eq {z : ℂ} : sin z = 0 ↔ cos z = 1 ∨ cos z = -1 :=
+by rw [← mul_self_eq_one_iff, ← sin_sq_add_cos_sq, pow_two, pow_two, ← sub_eq_iff_eq_add, sub_self];
+  exact ⟨λ h, by rw [h, mul_zero], eq_zero_of_mul_self_eq_zero ∘ eq.symm⟩
 
 lemma tan_ne_zero_iff {θ : ℂ} : tan θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ k * π / 2 :=
 begin
@@ -2200,7 +2195,7 @@ begin
   { intro h,
     split,
     { intro k,
-      have h' := h (2*k),
+      let h' := h (2*k),
       simp only [int.cast_bit0, int.cast_mul, int.cast_one] at h',
       ring at h',
       rwa mul_comm },
@@ -2209,6 +2204,12 @@ end
 
 lemma tan_eq_zero_iff {θ : ℂ} : tan θ = 0 ↔ ∃ k : ℤ, θ = k * π / 2 :=
 by rw [← not_iff_not, not_exists, ← ne, tan_ne_zero_iff]
+
+lemma tan_int_mul_pi_div_two (n : ℤ) : tan (n * π/2) = 0 :=
+tan_eq_zero_iff.mpr (by use n)
+
+lemma tan_int_mul_pi (n : ℤ) : tan (n * π) = 0 :=
+by rw tan_eq_zero_iff; use (2*n); field_simp [mul_comm ((n:ℂ)*(π:ℂ)) 2, ← mul_assoc]
 
 lemma cos_eq_cos_iff {x y : ℂ} :
   cos x = cos y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x :=
@@ -2250,25 +2251,46 @@ begin
     ring },
 end
 
-lemma tan_add {x y : ℂ} (hx : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2)
-  (hy : ∀ k : ℤ, y ≠ (2 * k + 1) * π / 2) :
+lemma tan_add {x y : ℂ}
+  (h : ((∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, y ≠ (2 * l + 1) * π / 2)
+     ∨ ((∃ k : ℤ, x = (2 * k + 1) * π / 2) ∧ ∃ l : ℤ, y = (2 * l + 1) * π / 2)) :
   tan (x + y) = (tan x + tan y) / (1 - tan x * tan y) :=
-by { rw [tan, sin_add, cos_add,
-          ← div_div_div_cancel_right (sin x * cos y + cos x * sin y)
-              (mul_ne_zero (cos_ne_zero_iff.mpr hx) (cos_ne_zero_iff.mpr hy)),
-          add_div, sub_div],
-    simp [← div_mul_div, ← tan,
-          div_self (cos_ne_zero_iff.mpr hy), div_self (cos_ne_zero_iff.mpr hx)] }
+begin
+  cases h,
+  { rw [tan, sin_add, cos_add,
+        ← div_div_div_cancel_right (sin x * cos y + cos x * sin y)
+            (mul_ne_zero (cos_ne_zero_iff.mpr h.1) (cos_ne_zero_iff.mpr h.2)),
+        add_div, sub_div],
+    simp only [←div_mul_div, ←tan, mul_one, one_mul,
+              div_self (cos_ne_zero_iff.mpr h.right), div_self (cos_ne_zero_iff.mpr h.left)] },
+  { cases h.1 with k h1, cases h.2 with l h2,
+    have hx := tan_int_mul_pi_div_two (2*k+1),
+    have hy := tan_int_mul_pi_div_two (2*l+1),
+    have hxy := tan_int_mul_pi_div_two (2*k+1+(2*l+1)),
+    simp only [int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one, ← h1, ← h2] at hx hy hxy,
+    rw [hx, hy, add_zero, zero_div, h1, h2, mul_div_assoc, mul_div_assoc,
+        ← add_mul (2*(k:ℂ)+1) (2*(l:ℂ)+1) ((π:ℂ)/2), ← mul_div_assoc, hxy] },
+end
 
-lemma tan_eq' {x y : ℂ} (hx : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2)
-  (hy : ∀ k : ℤ, y * I ≠ (2 * k + 1) * π / 2) :
-  tan (x + y * I) = (tan x + tanh y * I) / (1 - tan x * tanh y * I) :=
-by rw [tan_add hx hy, tan_mul_I, mul_assoc]
+lemma tan_two_mul {z : ℂ} : tan (2 * z) = 2 * tan z / (1 - tan z ^ 2) :=
+begin
+  by_cases h : ∀ k : ℤ, z ≠ (2 * k + 1) * π / 2,
+  { rw [two_mul, two_mul, pow_two, tan_add (or.inl ⟨h, h⟩)] },
+  { rw not_forall_not at h,
+    rw [two_mul, two_mul, pow_two, tan_add (or.inr ⟨h, h⟩)] },
+end
 
-lemma tan_eq {z : ℂ} (hre : ∀ k : ℤ, (z.re:ℂ) ≠ (2 * k + 1) * π / 2)
-  (him : ∀ k : ℤ, (z.im:ℂ) * I ≠ (2 * k + 1) * π / 2) :
+lemma tan_add_mul_I {x y : ℂ}
+  (h : ((∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, y * I ≠ (2 * l + 1) * π / 2)
+     ∨ ((∃ k : ℤ, x = (2 * k + 1) * π / 2) ∧ ∃ l : ℤ, y * I = (2 * l + 1) * π / 2)) :
+  tan (x + y*I) = (tan x + tanh y * I) / (1 - tan x * tanh y * I) :=
+by rw [tan_add h, tan_mul_I, mul_assoc]
+
+lemma tan_eq {z : ℂ}
+  (h : ((∀ k : ℤ, (z.re:ℂ) ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, (z.im:ℂ) * I ≠ (2 * l + 1) * π / 2)
+     ∨ ((∃ k : ℤ, (z.re:ℂ) = (2 * k + 1) * π / 2) ∧ ∃ l : ℤ, (z.im:ℂ) * I = (2 * l + 1) * π / 2)) :
   tan z = (tan z.re + tanh z.im * I) / (1 - tan z.re * tanh z.im * I) :=
-by { convert tan_eq' hre him, exact (re_add_im z).symm }
+by convert tan_add_mul_I h; exact (re_add_im z).symm
 
 lemma has_deriv_at_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) :
   has_deriv_at tan (1 / (cos x)^2) x :=
@@ -2352,14 +2374,18 @@ end chebyshev₁
 namespace real
 open_locale real
 
-lemma tan_add {x y : ℝ} (hx : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2)
-  (hy : ∀ k : ℤ, y ≠ (2 * k + 1) * π / 2) :
+lemma tan_add {x y : ℝ}
+  (h : ((∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, y ≠ (2 * l + 1) * π / 2)
+     ∨ ((∃ k : ℤ, x = (2 * k + 1) * π / 2) ∧ ∃ l : ℤ, y = (2 * l + 1) * π / 2)) :
   tan (x + y) = (tan x + tan y) / (1 - tan x * tan y) :=
-begin
-  simp only [← complex.of_real_inj, complex.of_real_sub, complex.of_real_add, complex.of_real_div,
-              complex.of_real_mul, complex.of_real_tan],
-  exact complex.tan_add (by { convert hx, norm_cast }) (by { convert hy, norm_cast }),
-end
+by simpa only [← complex.of_real_inj, complex.of_real_sub, complex.of_real_add, complex.of_real_div,
+              complex.of_real_mul, complex.of_real_tan]
+    using @complex.tan_add (x:ℂ) (y:ℂ) (by { convert h; norm_cast })
+
+lemma tan_two_mul {x:ℝ} : tan (2 * x) = 2 * tan x / (1 - tan x ^ 2) :=
+by simpa only [← complex.of_real_inj, complex.of_real_sub, complex.of_real_div, complex.of_real_pow,
+              complex.of_real_mul, complex.of_real_tan, complex.of_real_bit0, complex.of_real_one]
+    using complex.tan_two_mul
 
 theorem cos_eq_zero_iff {θ : ℝ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
 begin
@@ -2372,16 +2398,16 @@ theorem cos_ne_zero_iff {θ : ℝ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k
 by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
 
 lemma tan_ne_zero_iff {θ : ℝ} : tan θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ k * π / 2 :=
-by { rw [← complex.of_real_ne_zero, complex.of_real_tan, complex.tan_ne_zero_iff], norm_cast }
+by rw [← complex.of_real_ne_zero, complex.of_real_tan, complex.tan_ne_zero_iff]; norm_cast
 
 lemma tan_eq_zero_iff {θ : ℝ} : tan θ = 0 ↔ ∃ k : ℤ, θ = k * π / 2 :=
 by rw [← not_iff_not, not_exists, ← ne, tan_ne_zero_iff]
 
-lemma tan_of_mul_pi_div_two (θ : ℝ) (h : ∃ k : ℤ, θ = (2 * k + 1) * π / 2) : tan θ = 0 :=
-by rw [tan_eq_sin_div_cos, cos_eq_zero_iff.mpr h, div_zero]
+lemma tan_int_mul_pi_div_two (n : ℤ) : tan (n * π/2) = 0 :=
+tan_eq_zero_iff.mpr (by use n)
 
-lemma tan_of_mul_pi (θ : ℝ) (h : ∃ k : ℤ, (k : ℝ) * π = θ) : tan θ = 0 :=
-by rw [tan_eq_sin_div_cos, sin_eq_zero_iff.mpr h, zero_div]
+lemma tan_int_mul_pi (n : ℤ) : tan (n * π) = 0 :=
+by rw tan_eq_zero_iff; use (2*n); field_simp [mul_comm ((n:ℝ)*(π:ℝ)) 2, ← mul_assoc]
 
 lemma cos_eq_cos_iff {x y : ℝ} :
   cos x = cos y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x :=

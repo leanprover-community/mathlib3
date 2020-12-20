@@ -59,6 +59,7 @@ presieve.is_sheaf J (P ⋙ coyoneda.obj (op X))
 -/
 
 #check coyoneda.obj (op punit.{v+1})
+#check iso_comp_punit
 
 lemma practice (P : Cᵒᵖ ⥤ Type v) : P ≅ (P ⋙ coyoneda.obj (op punit.{v+1})) :=
 { hom := { app := λ X a _, a },

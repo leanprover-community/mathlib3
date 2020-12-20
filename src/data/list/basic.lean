@@ -1830,8 +1830,7 @@ begin
 end
 
 lemma nth_succ_scanl {i : ℕ} :
-  (scanl f b l).nth (i + 1) =
-  ((scanl f b l).nth i).bind (λ x, (l.nth i).map (λ y, f x y))
+  (scanl f b l).nth (i + 1) = ((scanl f b l).nth i).bind (λ x, (l.nth i).map (λ y, f x y))
   :=
 begin
   induction l with hd tl hl generalizing b i,
@@ -1846,8 +1845,8 @@ end
 
 lemma nth_le_succ_scanl {i : ℕ} {h : i + 1 < (scanl f b l).length} :
   (scanl f b l).nth_le (i + 1) h =
-  f ((scanl f b l).nth_le i (nat.lt_of_succ_lt h)) (l.nth_le i (nat.lt_of_succ_lt_succ (lt_of_lt_of_le h (le_of_eq (length_scanl b l)))))
-  :=
+  f ((scanl f b l).nth_le i (nat.lt_of_succ_lt h))
+    (l.nth_le i (nat.lt_of_succ_lt_succ (lt_of_lt_of_le h (le_of_eq (length_scanl b l))))) :=
 begin
   induction i with i hi generalizing b l,
   { cases l,
@@ -1859,9 +1858,8 @@ begin
       exact absurd h (not_lt_of_lt nat.succ_pos') },
     { simp_rw scanl_cons,
       rw nth_le_append_right _,
-      swap,
-      { simp only [length, nat.zero_le, le_add_iff_nonneg_left] },
-      simpa only [hi, length, nat.succ_add_sub_one] } },
+      { simpa only [hi, length, succ_add_sub_one] },
+      { simp only [length, nat.zero_le, le_add_iff_nonneg_left] } } }
 end
 
 end scanl

@@ -210,6 +210,20 @@ end
 by simp only [←bind_pure_comp_eq_map, exists_false, function.comp_app, or_false, pure_eq_done,
               bind_eq_fail, and_false]
 
+@[simp] lemma map_const_eq_done {b'} : (b <$ p) cb n = done n' b' ↔
+  ∃ (a : α), p cb n = done n' a ∧ b = b' :=
+by simp only [map_const_eq, function.const_apply, iff_self, map_eq_done]
+
+@[simp] lemma map_const_eq_fail : (b <$ p) cb n = fail n' err ↔ p cb n = fail n' err :=
+by simp only [map_const_eq, map_eq_fail]
+
+lemma map_const_rev_eq_done {b'} : (p $> b) cb n = done n' b' ↔
+  ∃ (a : α), p cb n = done n' a ∧ b = b' :=
+map_const_eq_done
+
+lemma map_rev_const_eq_fail : (p $> b) cb n = fail n' err ↔ p cb n = fail n' err :=
+map_const_eq_fail
+
 end map
 
 @[simp] lemma orelse_eq_orelse : p.orelse q = (p <|> q) := rfl

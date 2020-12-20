@@ -26,7 +26,7 @@ There's also the typeclass `fintype α`
 as well as the predicate `finite` on `s : set α` (which asserts `nonempty (fintype s)`).
 -/
 
-open multiset subtype nat
+open multiset subtype nat function
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
@@ -90,7 +90,7 @@ ext_iff.2
 @[simp, norm_cast] theorem coe_inj {s₁ s₂ : finset α} : (s₁ : set α) = s₂ ↔ s₁ = s₂ :=
 set.ext_iff.trans ext_iff.symm
 
-lemma coe_injective {α} : function.injective (coe : finset α → set α) :=
+lemma coe_injective {α} : injective (coe : finset α → set α) :=
 λ s t, coe_inj.1
 
 /-! ### subset -/
@@ -327,6 +327,9 @@ ext $ λ a, by simp
 @[simp, norm_cast] lemma coe_insert (a : α) (s : finset α) :
   ↑(insert a s) = (insert a s : set α) :=
 set.ext $ λ x, by simp only [mem_coe, mem_insert, set.mem_insert_iff]
+
+lemma mem_insert_coe {s : finset α} {x y : α} : x ∈ insert y s ↔ x ∈ insert y (s : set α) :=
+by simp
 
 instance : is_lawful_singleton α (finset α) := ⟨λ a, by { ext, simp }⟩
 
@@ -923,7 +926,7 @@ lemma piecewise_insert_of_ne [decidable_eq α] {i j : α} [∀i, decidable (i �
 by simp [piecewise, h]
 
 lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert j s)] :
-  (insert j s).piecewise f g = function.update (s.piecewise f g) j (f j) :=
+  (insert j s).piecewise f g = update (s.piecewise f g) j (f j) :=
 begin
   classical,
   rw [← piecewise_coe, ← piecewise_coe, ← set.piecewise_insert, ← coe_insert j s],
@@ -938,7 +941,7 @@ lemma piecewise_mem_set_pi {δ : α → Type*} {t : set α} {t' : Π i, set (δ 
 by { classical, rw ← piecewise_coe, exact set.piecewise_mem_pi ↑s hf hg }
 
 lemma piecewise_singleton [decidable_eq α] (i : α) :
-  piecewise {i} f g = function.update g i (f i) :=
+  piecewise {i} f g = update g i (f i) :=
 by rw [← insert_emptyc_eq, piecewise_insert, piecewise_empty]
 
 lemma piecewise_piecewise_of_subset_left {s t : finset α} [Π i, decidable (i ∈ s)]
@@ -960,30 +963,29 @@ s.piecewise_congr (λ _ _, rfl) (λ i hi, t.piecewise_eq_of_not_mem _ _ (mt (@h 
 piecewise_piecewise_of_subset_right (subset.refl _) f g₁ g₂
 
 lemma update_eq_piecewise {β : Type*} [decidable_eq α] (f : α → β) (i : α) (v : β) :
-  function.update f i v = piecewise (singleton i) (λj, v) f :=
+  update f i v = piecewise (singleton i) (λj, v) f :=
 (piecewise_singleton _ _ _).symm
 
 lemma update_piecewise [decidable_eq α] (i : α) (v : δ i) :
-  function.update (s.piecewise f g) i v =
-    s.piecewise (function.update f i v) (function.update g i v) :=
+  update (s.piecewise f g) i v = s.piecewise (update f i v) (update g i v) :=
 begin
   ext j,
   rcases em (j = i) with (rfl|hj); by_cases hs : j ∈ s; simp *
 end
 
 lemma update_piecewise_of_mem [decidable_eq α] {i : α} (hi : i ∈ s) (v : δ i) :
-  function.update (s.piecewise f g) i v = s.piecewise (function.update f i v) g :=
+  update (s.piecewise f g) i v = s.piecewise (update f i v) g :=
 begin
   rw update_piecewise,
-  refine s.piecewise_congr (λ _ _, rfl) (λ j hj, function.update_noteq _ _ _),
+  refine s.piecewise_congr (λ _ _, rfl) (λ j hj, update_noteq _ _ _),
   exact λ h, hj (h.symm ▸ hi)
 end
 
 lemma update_piecewise_of_not_mem [decidable_eq α] {i : α} (hi : i ∉ s) (v : δ i) :
-  function.update (s.piecewise f g) i v = s.piecewise f (function.update g i v) :=
+  update (s.piecewise f g) i v = s.piecewise f (update g i v) :=
 begin
   rw update_piecewise,
-  refine s.piecewise_congr (λ j hj, function.update_noteq _ _ _)  (λ _ _, rfl),
+  refine s.piecewise_congr (λ j hj, update_noteq _ _ _)  (λ _ _, rfl),
   exact λ h, hi (h ▸ hj)
 end
 
@@ -1373,13 +1375,15 @@ rfl
 @[simp] theorem to_finset_cons {a : α} {l : list α} : to_finset (a :: l) = insert a (to_finset l) :=
 finset.eq_of_veq $ by by_cases h : a ∈ l; simp [finset.insert_val', multiset.erase_dup_cons, h]
 
-theorem to_finset_surjective : function.surjective (to_finset : list α → finset α) :=
+lemma to_finset_surj_on : set.surj_on to_finset {l : list α | l.nodup} set.univ :=
 begin
-  refine λ s, ⟨quotient.out' s.val, finset.ext $ λ x, _⟩,
-  obtain ⟨l, hl⟩ := quot.exists_rep s.val,
-  rw [list.mem_to_finset, finset.mem_def, ←hl],
-  exact list.perm.mem_iff (quotient.mk_out l)
+  rintro s -,
+  cases s with t hl, induction t using quot.ind with l,
+  refine ⟨l, hl, (to_finset_eq hl).symm⟩
 end
+
+theorem to_finset_surjective : surjective (to_finset : list α → finset α) :=
+by { intro s, rcases to_finset_surj_on (set.mem_univ s) with ⟨l, -, hls⟩, exact ⟨l, hls⟩ }
 
 end list
 
@@ -1618,7 +1622,7 @@ by simp [ext_iff, subtype.forall, subtype.coe_mk]; refl
 /-- `s.subtype p` converts back to `s.filter p` with
 `embedding.subtype`. -/
 @[simp] lemma subtype_map (p : α → Prop) [decidable_pred p] :
-  (s.subtype p).map (function.embedding.subtype _) = s.filter p :=
+  (s.subtype p).map (embedding.subtype _) = s.filter p :=
 begin
   ext x,
   rw mem_map,
@@ -1638,14 +1642,14 @@ end
 /-- If all elements of a `finset` satisfy the predicate `p`,
 `s.subtype p` converts back to `s` with `embedding.subtype`. -/
 lemma subtype_map_of_mem {p : α → Prop} [decidable_pred p] (h : ∀ x ∈ s, p x) :
-  (s.subtype p).map (function.embedding.subtype _) = s :=
+  (s.subtype p).map (embedding.subtype _) = s :=
 by rw [subtype_map, filter_true_of_mem h]
 
 /-- If a `finset` of a subtype is converted to the main type with
 `embedding.subtype`, all elements of the result have the property of
 the subtype. -/
 lemma property_of_mem_map_subtype {p : α → Prop} (s : finset {x // p x}) {a : α}
-    (h : a ∈ s.map (function.embedding.subtype _)) : p a :=
+  (h : a ∈ s.map (embedding.subtype _)) : p a :=
 begin
   rcases mem_map.1 h with ⟨x, hx, rfl⟩,
   exact x.2
@@ -1655,14 +1659,14 @@ end
 `embedding.subtype`, the result does not contain any value that does
 not satisfy the property of the subtype. -/
 lemma not_mem_map_subtype_of_not_property {p : α → Prop} (s : finset {x // p x})
-    {a : α} (h : ¬ p a) : a ∉ (s.map (function.embedding.subtype _)) :=
+  {a : α} (h : ¬ p a) : a ∉ (s.map (embedding.subtype _)) :=
 mt s.property_of_mem_map_subtype h
 
 /-- If a `finset` of a subtype is converted to the main type with
 `embedding.subtype`, the result is a subset of the set giving the
 subtype. -/
 lemma map_subtype_subset {t : set α} (s : finset t) :
-    ↑(s.map (function.embedding.subtype _)) ⊆ t :=
+  ↑(s.map (embedding.subtype _)) ⊆ t :=
 begin
   intros a ha,
   rw mem_coe at ha,
@@ -1782,7 +1786,7 @@ theorem card_image_of_inj_on [decidable_eq β] {f : α → β} {s : finset α}
 by simp only [card, image_val_of_inj_on H, card_map]
 
 theorem card_image_of_injective [decidable_eq β] {f : α → β} (s : finset α)
-  (H : function.injective f) : card (image f s) = card s :=
+  (H : injective f) : card (image f s) = card s :=
 card_image_of_inj_on $ λ x _ y _ h, H h
 
 lemma fiber_card_ne_zero_iff_mem_image (s : finset α) (f : α → β) [decidable_eq β] (y : β) :
@@ -1934,7 +1938,7 @@ let f' : {x // x ∈ s} → {x // x ∈ t} := λ x, ⟨f x.1 x.2, hf x.1 x.2⟩ 
 let g : {x // x ∈ t} → {x // x ∈ s} :=
   @surj_inv _ _ f'
     (λ x, let ⟨y, hy₁, hy₂⟩ := hsurj x.1 x.2 in ⟨⟨y, hy₁⟩, subtype.eq hy₂.symm⟩) in
-have hg : injective g, from function.injective_surj_inv _,
+have hg : injective g, from injective_surj_inv _,
 have hsg : surjective g, from λ x,
   let ⟨y, hy⟩ := surj_on_of_inj_on_of_card_le (λ (x : {x // x ∈ t}) (hx : x ∈ t.attach), g x)
     (λ x _, show (g x) ∈ s.attach, from mem_attach _ _)
@@ -2094,7 +2098,7 @@ theorem sigma_mono {s₁ s₂ : finset α} {t₁ t₂ : Πa, finset (σ a)}
 
 theorem sigma_eq_bind [decidable_eq (Σ a, σ a)] (s : finset α)
   (t : Πa, finset (σ a)) :
-  s.sigma t = s.bind (λa, (t a).map $ function.embedding.sigma_mk a) :=
+  s.sigma t = s.bind (λa, (t a).map $ embedding.sigma_mk a) :=
 by { ext ⟨x, y⟩, simp [and.left_comm] }
 
 end sigma

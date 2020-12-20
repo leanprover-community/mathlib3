@@ -334,6 +334,20 @@ by rw [infi, range_const, cInf_singleton]
 @[simp] theorem csupr_const [hι : nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
 by rw [supr, range_const, cSup_singleton]
 
+theorem infi_unique [unique ι] {s : ι → α} : (⨅ i, s i) = s (default ι) :=
+have ∀ i, s i = s (default ι) := λ i, congr_arg s (unique.eq_default i),
+by simp only [this, cinfi_const]
+
+theorem supr_unique [unique ι] {s : ι → α} : (⨆ i, s i) = s (default ι) :=
+have ∀ i, s i = s (default ι) := λ i, congr_arg s (unique.eq_default i),
+by simp only [this, csupr_const]
+
+@[simp] theorem infi_unit {f : unit → α} : (⨅ x, f x) = f () :=
+by { convert infi_unique, apply_instance }
+
+@[simp] theorem supr_unit {f : unit → α} : (⨆ x, f x) = f () :=
+by { convert supr_unique, apply_instance }
+
 /-- Nested intervals lemma: if `f` is a monotonically increasing sequence, `g` is a monotonically
 decreasing sequence, and `f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals
 `[f n, g n]`. -/

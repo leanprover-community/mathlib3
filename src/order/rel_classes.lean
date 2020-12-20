@@ -125,22 +125,19 @@ def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop)
   extends is_trichotomous α lt, is_strict_order α lt : Prop.
 
-/-- Construct a linear order from a `is_strict_total_order'` relation -/
-def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
+/-- Construct a linear order from an `is_strict_total_order'` relation -/
+def linear_order_of_STO' (r) [is_strict_total_order' α r] [Π x y, decidable (¬ r x y)] :
+  linear_order α :=
 { le_total := λ x y,
     match y, trichotomous_of r x y with
     | y, or.inl h := or.inl (or.inr h)
     | _, or.inr (or.inl rfl) := or.inl (or.inl rfl)
     | _, or.inr (or.inr h) := or.inr (or.inr h)
     end,
+  decidable_le := λ x y, decidable_of_iff (¬ r y x)
+    ⟨λ h, ((trichotomous_of r y x).resolve_left h).imp eq.symm id,
+      λ h, h.elim (λ h, h ▸ irrefl_of _ _) (asymm_of r)⟩,
   ..partial_order_of_SO r }
-
-/-- Construct a decidable linear order from a `is_strict_total_order'` relation -/
-def decidable_linear_order_of_STO' (r) [is_strict_total_order' α r] [decidable_rel r] :
-  decidable_linear_order α :=
-by letI LO := linear_order_of_STO' r; exact
-{ decidable_le := λ x y, decidable_of_iff (¬ r y x) (@not_lt _ _ y x),
-  ..LO }
 
 theorem is_strict_total_order'.swap (r) [is_strict_total_order' α r] :
   is_strict_total_order' α (swap r) :=
@@ -220,9 +217,9 @@ instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α 
   is_asymm α r := by apply_instance
 
 /-- Construct a decidable linear order from a well-founded linear order. -/
-noncomputable def is_well_order.decidable_linear_order (r : α → α → Prop) [is_well_order α r] :
-  decidable_linear_order α :=
-by { haveI := linear_order_of_STO' r, exact classical.DLO α }
+noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_order α r] :
+  linear_order α :=
+by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO' r }
 
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,

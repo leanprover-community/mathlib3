@@ -25,6 +25,12 @@ localized "notation n `!`:10000 := nat.factorial n" in nat
 
 @[simp] theorem factorial_one : 1! = 1 := rfl
 
+theorem mul_factorial_pred (hn : 0 < n) : n * (n - 1)! = n! :=
+have n - 1 + 1 = n, from nat.sub_add_cancel (succ_le_of_lt hn),
+calc n * (n - 1)! = (n - 1 + 1) * (n - 1)! : by rw this
+... = (n - 1 + 1)! : rfl
+... = n! : by rw this
+
 theorem factorial_pos : ∀ n, 0 < n!
 | 0        := zero_lt_one
 | (succ n) := mul_pos (succ_pos _) (factorial_pos n)
@@ -62,9 +68,9 @@ begin
   { have : ∀(n : ℕ), 0 < n → n! < n.succ!,
     { intros k hk, rw [factorial_succ, succ_mul, lt_add_iff_pos_left],
       apply mul_pos hk (factorial_pos k) },
-    induction h generalizing h0,
+    induction h with k hnk generalizing h0,
     { exact this _ h0, },
-    { refine lt_trans (h_ih h0) (this _ _), exact lt_trans h0 (lt_of_succ_le h_a) }}
+    { refine lt_trans (h_ih h0) (this _ _), exact lt_trans h0 (lt_of_succ_le hnk) }}
 end
 
 lemma one_lt_factorial : 1 < n! ↔ 1 < n :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker
 -/
 import algebra.group.basic
+import logic.nontrivial
 
 /-!
 # Units (i.e., invertible elements) of a multiplicative monoid
@@ -225,7 +226,7 @@ a two-sided additive inverse. The actual definition says that `a` is equal to so
 `u : add_units M`, where `add_units M` is a bundled version of `is_add_unit`."]
 def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, (u : M) = a
 
-lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
+@[nontriviality] lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
 ⟨⟨a, a, subsingleton.elim _ _, subsingleton.elim _ _⟩, rfl⟩
 
 @[simp, to_additive is_add_unit_add_unit]

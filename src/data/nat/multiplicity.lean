@@ -3,10 +3,10 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.nat.choose.dvd
-import data.nat.modeq
+import data.nat.bitwise
+import data.nat.parity
 import ring_theory.int.basic
-import data.finset.intervals
+import algebra.big_operators.intervals
 
 /-!
 
@@ -57,28 +57,22 @@ calc multiplicity m n = ↑(Ico 1 $ ((multiplicity m n).get (finite_nat_iff.2 �
 
 namespace prime
 
-lemma multiplicity_one {p : ℕ} (hp : p.prime) :
-  multiplicity p 1 = 0 :=
-by rw [multiplicity.one_right (mt nat.is_unit_iff.mp (ne_of_gt hp.one_lt))]
+lemma multiplicity_one {p : ℕ} (hp : p.prime) : multiplicity p 1 = 0 :=
+multiplicity.one_right (prime_iff_prime.mp hp).not_unit
 
 lemma multiplicity_mul {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m * n) = multiplicity p m + multiplicity p n :=
-by rw [← int.coe_nat_multiplicity, ← int.coe_nat_multiplicity,
-  ← int.coe_nat_multiplicity, int.coe_nat_mul, multiplicity.mul (nat.prime_iff_prime_int.1 hp)]
+multiplicity.mul $ prime_iff_prime.mp hp
 
 lemma multiplicity_pow {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m ^ n) = n •ℕ (multiplicity p m) :=
-by induction n; simp [pow_succ', hp.multiplicity_mul, *, hp.multiplicity_one, succ_nsmul,
-  add_comm]
+multiplicity.pow $ prime_iff_prime.mp hp
 
 lemma multiplicity_self {p : ℕ} (hp : p.prime) : multiplicity p p = 1 :=
-have h₁ : ¬ is_unit (p : ℤ), from mt is_unit_int.1 (ne_of_gt hp.one_lt),
-have h₂ : (p : ℤ) ≠ 0, from int.coe_nat_ne_zero.2 hp.ne_zero,
-by rw [← int.coe_nat_multiplicity, multiplicity_self h₁ h₂]
+multiplicity_self (prime_iff_prime.mp hp).not_unit hp.ne_zero
 
 lemma multiplicity_pow_self {p n : ℕ} (hp : p.prime) : multiplicity p (p ^ n) = n :=
-by induction n; simp [hp.multiplicity_one, pow_succ', hp.multiplicity_mul, *,
-  hp.multiplicity_self, succ_eq_add_one]
+multiplicity_pow_self hp.ne_zero (prime_iff_prime.mp hp).not_unit n
 
 /-- The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`.
   This sum is expressed over the set `Ico 1 b` where `b` is any bound at least `n` -/
@@ -95,6 +89,41 @@ lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
     by rw [sum_add_distrib, sum_boole]; simp
   ... = (∑ i in Ico 1 b, (n + 1) / p ^ i : ℕ) :
     congr_arg coe $ finset.sum_congr rfl (by intros; simp [nat.succ_div]; congr)
+
+/-- The multiplicity of `p` in `(p(n+1))!` is one more than the sum
+  of the multiplicities of `p` in `(p * n)!` and `n + 1`. -/
+lemma multiplicity_factorial_mul_succ {n p : ℕ} (hp : p.prime) :
+  multiplicity p (p * (n + 1))! = multiplicity p (p * n)! + multiplicity p (n + 1) + 1 :=
+begin
+  have hp' := prime_iff_prime.mp hp,
+  have h0 : 2 ≤ p := hp.two_le,
+  have h1 : 1 ≤ p * n + 1 := le_add_left _ _,
+  have h2 : p * n + 1 ≤ p * (n + 1), linarith,
+  have h3 : p * n + 1 ≤ p * (n + 1) + 1, linarith,
+  have hm : multiplicity p (p * n)! ≠ ⊤,
+  { rw [ne.def, eq_top_iff_not_finite, not_not, finite_nat_iff],
+    exact ⟨hp.ne_one, factorial_pos _⟩ },
+  revert hm,
+  have h4 : ∀ m ∈ Ico (p * n + 1) (p * (n + 1)), multiplicity p m = 0,
+  { intros m hm, apply multiplicity_eq_zero_of_not_dvd,
+    rw [← exists_lt_and_lt_iff_not_dvd _ (pos_iff_ne_zero.mpr hp.ne_zero)], rw [Ico.mem] at hm,
+    exact ⟨n, lt_of_succ_le hm.1, hm.2⟩ },
+  simp_rw [← prod_Ico_id_eq_factorial, multiplicity.finset.prod hp', ← sum_Ico_consecutive _ h1 h3,
+    add_assoc], intro h,
+  rw [enat.add_left_cancel_iff h, sum_Ico_succ_top h2, multiplicity.mul hp',
+    hp.multiplicity_self, sum_congr rfl h4, sum_const_zero, zero_add,
+    add_comm (1 : enat)]
+end
+
+/-- The multiplicity of `p` in `(pn)!` is `n` more than that of `n!`. -/
+lemma multiplicity_factorial_mul {n p : ℕ} (hp : p.prime) :
+  multiplicity p (p * n)! = multiplicity p n! + n :=
+begin
+  induction n with n ih,
+  { simp },
+  { simp [succ_eq_add_one, multiplicity.mul, hp, prime_iff_prime.mp hp, ih,
+      multiplicity_factorial_mul_succ, add_assoc, add_left_comm] }
+end
 
 /-- A prime power divides `n!` iff it is at most the sum of the quotients `n / p ^ i`.
   This sum is expressed over the set `Ico 1 b` where `b` is any bound at least `n` -/
@@ -193,4 +222,26 @@ le_antisymm
     exact multiplicity_le_multiplicity_choose_add hp _ _)
 
 end prime
+
+lemma multiplicity_two_factorial_lt : ∀ {n : ℕ} (h : n ≠ 0), multiplicity 2 n! < n :=
+begin
+  have h2 := prime_iff_prime.mp prime_two,
+  refine binary_rec _ _,
+  { contradiction },
+  { intros b n ih h,
+    by_cases hn : n = 0,
+    { subst hn, simp at h, simp [h, one_right h2.not_unit, enat.zero_lt_one] },
+    have : multiplicity 2 (2 * n)! < (2 * n : ℕ),
+    { rw [prime_two.multiplicity_factorial_mul],
+      refine (enat.add_lt_add_right (ih hn) (enat.coe_ne_top _)).trans_le _,
+      rw [two_mul], norm_cast },
+    cases b,
+    { simpa [bit0_eq_two_mul n] },
+    { suffices : multiplicity 2 (2 * n + 1) + multiplicity 2 (2 * n)! < ↑(2 * n) + 1,
+      { simpa [succ_eq_add_one, multiplicity.mul, h2, prime_two, nat.bit1_eq_succ_bit0,
+          bit0_eq_two_mul n] },
+      rw [multiplicity_eq_zero_of_not_dvd (two_not_dvd_two_mul_add_one n), zero_add],
+      refine this.trans _, exact_mod_cast lt_succ_self _ }}
+end
+
 end nat

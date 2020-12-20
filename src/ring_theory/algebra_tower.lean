@@ -7,6 +7,7 @@ Authors: Kenny Lau
 import algebra.invertible
 import ring_theory.adjoin
 import linear_algebra.basis
+import algebra.algebra.basic
 
 /-!
 # Towers of algebras
@@ -110,11 +111,8 @@ def restrict_base (f : A →ₐ[S] B) : A →ₐ[R] B :=
 
 @[simp] lemma restrict_base_apply (f : A →ₐ[S] B) (x : A) : restrict_base R f x = f x := rfl
 
-instance right : is_scalar_tower R S S :=
-of_algebra_map_eq $ λ x, rfl
-
-instance nat : is_scalar_tower ℕ S A :=
-of_algebra_map_eq $ λ x, ((algebra_map S A).map_nat_cast x).symm
+instance right : is_scalar_tower R A A :=
+⟨λ x y z, by simp only [algebra.smul_def, smul_eq_mul, mul_assoc]⟩
 
 instance comap {R S A : Type*} [comm_semiring R] [comm_semiring S] [semiring A]
   [algebra R S] [algebra S A] : is_scalar_tower R S (algebra.comap R S A) :=
@@ -124,10 +122,13 @@ of_algebra_map_eq $ λ x, rfl
 @[priority 999] instance subsemiring (U : subsemiring S) : is_scalar_tower U S A :=
 of_algebra_map_eq $ λ x, rfl
 
+section
+local attribute [instance] algebra.of_is_subring subset.comm_ring
 -- conflicts with is_scalar_tower.subalgebra
 @[priority 999] instance subring {S A : Type*} [comm_ring S] [ring A] [algebra S A]
   (U : set S) [is_subring U] : is_scalar_tower U S A :=
 of_algebra_map_eq $ λ x, rfl
+end
 
 @[nolint instance_priority]
 instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_semiring B]
@@ -188,15 +189,6 @@ instance linear_map (R : Type u) (A : Type v) (V : Type w)
 
 end comm_semiring
 
-section comm_ring
-variables [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] [algebra R A]
-variables [is_scalar_tower R S A]
-
-instance int : is_scalar_tower ℤ S A :=
-of_algebra_map_eq $ λ x, ((algebra_map S A).map_int_cast x).symm
-
-end comm_ring
-
 section division_ring
 variables [field R] [division_ring S] [algebra R S] [char_zero R] [char_zero S]
 
@@ -228,6 +220,8 @@ namespace subalgebra
 
 open is_scalar_tower
 
+section semiring
+
 variables (R) {S A} [comm_semiring R] [comm_semiring S] [semiring A]
 variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 
@@ -250,6 +244,19 @@ def of_under {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
   [algebra S B] [is_scalar_tower R S B] (f : U →ₐ[S] B) : S.under U →ₐ[R] B :=
 { commutes' := λ r, (f.commutes (algebra_map R S r)).trans (algebra_map_apply R S B r).symm,
   .. f }
+
+end semiring
+
+section comm_semiring
+
+variables (R) {S A} [comm_semiring R] [comm_semiring S] [comm_semiring A]
+variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
+
+@[simp] lemma aeval_coe {S : subalgebra R A} {x : S} {p : polynomial R} :
+  polynomial.aeval (x : A) p = polynomial.aeval x p :=
+(algebra_map_aeval R S A x p).symm
+
+end comm_semiring
 
 end subalgebra
 
@@ -281,32 +288,6 @@ let ⟨s, hs⟩ := hRS, ⟨t, ht⟩ := hSA in ⟨s.image (algebra_map S A) ∪ t
 by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union, algebra.adjoin_algebra_map, hs,
     algebra.map_top, is_scalar_tower.range_under_adjoin, ht, subalgebra.res_top]⟩
 end
-
-namespace submodule
-
-open is_scalar_tower
-
-variables [comm_semiring R] [semiring S] [add_comm_monoid A]
-variables [algebra R S] [semimodule S A] [semimodule R A] [is_scalar_tower R S A]
-
-variables (R) {S A}
-/-- Restricting the scalars of submodules in an algebra tower. -/
-def restrict_scalars' (U : submodule S A) : submodule R A :=
-{ smul_mem' := λ r x hx, algebra_map_smul S r x ▸ U.smul_mem _ hx, .. U }
-
-variables (R S A)
-theorem restrict_scalars'_top : restrict_scalars' R (⊤ : submodule S A) = ⊤ := rfl
-
-variables {R S A}
-theorem restrict_scalars'_injective (U₁ U₂ : submodule S A)
-  (h : restrict_scalars' R U₁ = restrict_scalars' R U₂) : U₁ = U₂ :=
-ext $ by convert set.ext_iff.1 (ext'_iff.1 h); refl
-
-theorem restrict_scalars'_inj {U₁ U₂ : submodule S A} :
-  restrict_scalars' R U₁ = restrict_scalars' R U₂ ↔ U₁ = U₂ :=
-⟨restrict_scalars'_injective U₁ U₂, congr_arg _⟩
-
-end submodule
 
 section semiring
 
@@ -343,7 +324,7 @@ span_induction hx (λ x hx, let ⟨p, q, hp, hq, hpq⟩ := set.mem_smul.1 hx in
   (λ c x hx, smul_left_comm c k x ▸ smul_mem _ _ hx)
 
 theorem span_smul {s : set S} (hs : span R s = ⊤) (t : set A) :
-  span R (s • t) = (span S t).restrict_scalars' R :=
+  span R (s • t) = (span S t).restrict_scalars R :=
 le_antisymm (span_le.2 $ λ x hx, let ⟨p, q, hps, hqt, hpqx⟩ := set.mem_smul.1 hx in
   hpqx ▸ (span S t).smul_mem p (subset_span hqt)) $
 λ p hp, span_induction hp (λ x hx, one_smul S x ▸ smul_mem_span_smul hs (subset_span hx))
@@ -354,7 +335,6 @@ le_antisymm (span_le.2 $ λ x hx, let ⟨p, q, hps, hqt, hpqx⟩ := set.mem_smul
 end submodule
 
 end semiring
-
 
 section ring
 
@@ -384,8 +364,8 @@ end
 theorem is_basis.smul {ι : Type v₁} {b : ι → S} {ι' : Type w₁} {c : ι' → A}
   (hb : is_basis R b) (hc : is_basis S c) : is_basis R (λ p : ι × ι', b p.1 • c p.2) :=
 ⟨linear_independent_smul hb.1 hc.1,
-by rw [← set.range_smul_range, submodule.span_smul hb.2, ← submodule.restrict_scalars'_top R S A,
-    submodule.restrict_scalars'_inj, hc.2]⟩
+by rw [← set.range_smul_range, submodule.span_smul hb.2, ← submodule.restrict_scalars_top R S A,
+    submodule.restrict_scalars_inj, hc.2]⟩
 
 theorem is_basis.smul_repr
   {ι ι' : Type*} {b : ι → S} {c : ι' → A}
@@ -455,8 +435,8 @@ begin
         ⟨f (yi * yj) yk, algebra.subset_adjoin $ hsy yi yj yk hyi hyj hyk⟩
         (subset_span $ set.mem_insert_of_mem _ hyk : yk ∈ _)) } },
   refine ⟨algebra.adjoin A (↑s : set B), subalgebra.fg_adjoin_finset _, insert 1 y, _⟩,
-  refine restrict_scalars'_injective _ _ (_ : restrict_scalars' A _ = _),
-  rw [restrict_scalars'_top, eq_top_iff, ← algebra.coe_top, ← hx, algebra.adjoin_eq_span, span_le],
+  refine restrict_scalars_injective A _ _ _,
+  rw [restrict_scalars_top, eq_top_iff, ← algebra.coe_top, ← hx, algebra.adjoin_eq_span, span_le],
   refine λ r hr, monoid.in_closure.rec_on hr hxy (subset_span $ mem_insert_self _ _)
       (λ p q _ _ hp hq, hyy $ submodule.mul_mem_mul hp hq)
 end
@@ -478,3 +458,36 @@ by exactI fg_of_injective (is_scalar_tower.to_alg_hom B₀ B C).to_linear_map
   (linear_map.ker_eq_bot.2 hBCi)
 
 end artin_tate
+
+section alg_hom_tower
+
+variables {A} {C D : Type*} [comm_semiring A] [comm_semiring C] [comm_semiring D]
+  [algebra A C] [algebra A D]
+
+variables (f : C →ₐ[A] D) (B) [comm_semiring B] [algebra A B] [algebra B C] [is_scalar_tower A B C]
+
+/-- Restrict the domain of an `alg_hom`. -/
+def alg_hom.restrict_domain : B →ₐ[A] D := f.comp (is_scalar_tower.to_alg_hom A B C)
+
+/-- Extend the scalars of an `alg_hom`. -/
+def alg_hom.extend_scalars : @alg_hom B C D _ _ _ _ (f.restrict_domain B).to_ring_hom.to_algebra :=
+{ commutes' := λ _, rfl .. f }
+
+variables {B}
+
+/-- `alg_hom`s from the top of a tower are equivalent to a pair of `alg_hom`s. -/
+def alg_hom_equiv_sigma :
+  (C →ₐ[A] D) ≃ Σ (f : B →ₐ[A] D), @alg_hom B C D _ _ _ _ f.to_ring_hom.to_algebra :=
+{ to_fun := λ f, ⟨f.restrict_domain B, f.extend_scalars B⟩,
+  inv_fun := λ fg, @is_scalar_tower.restrict_base A _ _ _ _ _ _ _ _ _
+    fg.1.to_ring_hom.to_algebra _ _ _ _ fg.2,
+  left_inv := λ f, by { dsimp only, ext, refl },
+  right_inv :=
+  begin
+    rintros ⟨⟨f, _, _, _, _, _⟩, g, _, _, _, _, hg⟩,
+    have : f = λ x, g (algebra_map B C x) := by { ext, exact (hg x).symm },
+    subst this,
+    refl,
+  end }
+
+end alg_hom_tower

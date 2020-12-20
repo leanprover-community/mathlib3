@@ -190,6 +190,14 @@ s.fold t (λ a t, t.insert a)
 meta def insert_list (s : name_set) (l : list name) : name_set :=
 l.foldr (λ n s', s'.insert n) s
 
+/--
+`local_list_to_name_set lcs` is the set of unique names of the local
+constants `lcs`. If any of the `lcs` are not local constants, the returned set
+will contain bogus names.
+-/
+meta def local_list_to_name_set (lcs : list expr) : name_set :=
+lcs.foldl (λ ns h, ns.insert h.local_uniq_name) mk_name_set
+
 end name_set
 
 /-! ### Declarations about `name_map` -/
@@ -200,3 +208,17 @@ meta instance {data : Type} : inhabited (name_map data) :=
 ⟨mk_name_map⟩
 
 end name_map
+
+/-! ### Declarations about `expr_set` -/
+
+namespace expr_set
+
+/--
+`local_set_to_name_set lcs` is the set of unique names of the local constants
+`lcs`. If any of the `lcs` are not local constants, the returned set will
+contain bogus names.
+-/
+meta def local_set_to_name_set (lcs : expr_set) : name_set :=
+lcs.fold mk_name_set $ λ h ns, ns.insert h.local_uniq_name
+
+end expr_set

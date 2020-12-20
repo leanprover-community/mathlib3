@@ -3,9 +3,9 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import algebra.char_p
+import algebra.char_p.basic
 import data.equiv.ring
-import algebra.group_with_zero_power
+import algebra.group_with_zero.power
 import algebra.iterate_hom
 
 /-!
@@ -84,10 +84,8 @@ section
 variables (K : Type u) [comm_ring K] (p : ℕ) [fact p.prime] [char_p K p]
 
 /-- `perfect_closure K p` is the quotient by this relation. -/
-inductive perfect_closure.r : (ℕ × K) → (ℕ × K) → Prop
+@[mk_iff] inductive perfect_closure.r : (ℕ × K) → (ℕ × K) → Prop
 | intro : ∀ n x, perfect_closure.r (n, x) (n+1, frobenius K p x)
-
-mk_iff_of_inductive_prop perfect_closure.r perfect_closure.r_iff
 
 /-- The perfect closure is the smallest extension that makes frobenius surjective. -/
 def perfect_closure : Type u := quot (perfect_closure.r K p)
@@ -229,6 +227,7 @@ instance : comm_ring (perfect_closure K p) :=
     by simp only [ring_hom.iterate_map_zero, iterate_zero_apply, zero_add]),
   add_zero := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
     by simp only [ring_hom.iterate_map_zero, iterate_zero_apply, add_zero]),
+  sub_eq_add_neg := λ a b, rfl,
   add_left_neg := λ e, quot.induction_on e (λ ⟨n, x⟩,
     by simp only [quot_mk_eq_mk, neg_mk, mk_add_mk,
       ring_hom.iterate_map_neg, add_left_neg, mk_zero]),

@@ -35,7 +35,7 @@ end
 
 section
 variables {α : Type*} {β : Type*} [ring β]
-  [discrete_linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
 
 lemma is_cau_of_decreasing_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : ∀ n ≥ m, abs (f n) ≤ a)
   (hnm : ∀ n ≥ m, f n.succ ≤ f n) : is_cau_seq abs f :=
@@ -83,7 +83,7 @@ end
 
 section no_archimedean
 variables {α : Type*} {β : Type*} [ring β]
-  [discrete_linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
 
 lemma is_cau_series_of_abv_le_cau {f : ℕ → β} {g : ℕ → α} (n : ℕ) :
   (∀ m, n ≤ m → abv (f m) ≤ g m) →
@@ -111,6 +111,7 @@ begin
   { dsimp at *,
     simp only [nat.succ_add, sum_range_succ, sub_eq_add_neg, add_assoc],
     refine le_trans (abv_add _ _ _) _,
+    simp only [sub_eq_add_neg] at hi,
     exact add_le_add (hm _ (le_add_of_nonneg_of_le (nat.zero_le _) (le_max_left _ _))) hi },
 end
 
@@ -122,7 +123,7 @@ end no_archimedean
 
 section
 variables {α : Type*} {β : Type*} [ring β]
-  [discrete_linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
 
 lemma is_cau_geo_series {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
    (x : β) (hx1 : abv x < 1) : is_cau_seq abv (λ n, ∑ m in range n, x ^ m) :=
@@ -183,11 +184,7 @@ end
 lemma sum_range_diag_flip {α : Type*} [add_comm_monoid α] (n : ℕ) (f : ℕ → ℕ → α) :
   ∑ m in range n, ∑ k in range (m + 1), f k (m - k) =
   ∑ m in range n, ∑ k in range (n - m), f m k :=
-have h₁ : ∑ a in (range n).sigma (range ∘ nat.succ), f (a.2) (a.1 - a.2) =
-    ∑ m in range n, ∑ k in range (m + 1), f k (m - k) := sum_sigma,
-have h₂ : ∑ a in (range n).sigma (λ m, range (n - m)), f (a.1) (a.2) =
-    ∑ m in range n, ∑ k in range (n - m), f m k := sum_sigma,
-h₁ ▸ h₂ ▸ sum_bij
+by rw [sum_sigma', sum_sigma']; exact sum_bij
 (λ a _, ⟨a.2, a.1 - a.2⟩)
 (λ a ha, have h₁ : a.1 < n := mem_range.1 (mem_sigma.1 ha).1,
   have h₂ : a.2 < nat.succ a.1 := mem_range.1 (mem_sigma.1 ha).2,
@@ -228,7 +225,7 @@ end
 
 section no_archimedean
 variables {α : Type*} {β : Type*} [ring β]
-  [discrete_linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
 
 lemma abv_sum_le_sum_abv {γ : Type*} (f : γ → β) (s : finset γ) :
   abv (∑ k in s, f k) ≤ ∑ k in s, abv (f k) :=
@@ -762,6 +759,9 @@ lemma cos_of_real_re (x : ℝ) : (cos x).re = real.cos x := rfl
 
 lemma tan_eq_sin_div_cos : tan x = sin x / cos x := rfl
 
+lemma tan_mul_cos {x : ℂ} (hx : cos x ≠ 0) : tan x * cos x = sin x :=
+by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
+
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
 lemma tan_conj : tan (conj x) = conj (tan x) :=
@@ -784,10 +784,13 @@ by rw [← cosh_add_sinh, sinh_mul_I, cosh_mul_I]
 lemma cos_sub_sin_I : cos x - sin x * I = exp (-x * I) :=
 by rw [← neg_mul_eq_neg_mul, ← cosh_sub_sinh, sinh_mul_I, cosh_mul_I]
 
-lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
+@[simp] lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
 eq.trans
   (by rw [cosh_mul_I, sinh_mul_I, mul_pow, I_sq, mul_neg_one, sub_neg_eq_add, add_comm])
   (cosh_sq_sub_sinh_sq (x * I))
+
+@[simp] lemma cos_sq_add_sin_sq : cos x ^ 2 + sin x ^ 2 = 1 :=
+by rw [add_comm, sin_sq_add_cos_sq]
 
 lemma cos_two_mul' : cos (2 * x) = cos x ^ 2 - sin x ^ 2 :=
 by rw [two_mul, cos_add, ← pow_two, ← pow_two]
@@ -803,10 +806,18 @@ lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
 by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero', -one_div]
 
 lemma cos_square' : cos x ^ 2 = 1 - sin x ^ 2 :=
-by { rw [←sin_sq_add_cos_sq x], simp }
+by rw [←sin_sq_add_cos_sq x, add_sub_cancel']
 
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
-by { rw [←sin_sq_add_cos_sq x], simp }
+by rw [←sin_sq_add_cos_sq x, add_sub_cancel]
+
+lemma inv_one_add_tan_sq {x : ℂ} (hx : cos x ≠ 0) : (1 + tan x ^ 2)⁻¹ = cos x ^ 2 :=
+have cos x ^ 2 ≠ 0, from pow_ne_zero 2 hx,
+by { rw [tan_eq_sin_div_cos, div_pow], field_simp [this] }
+
+lemma tan_sq_div_one_add_tan_sq {x : ℂ} (hx : cos x ≠ 0) :
+  tan x ^ 2 / (1 + tan x ^ 2) = sin x ^ 2 :=
+by simp only [← tan_mul_cos hx, mul_pow, ← inv_one_add_tan_sq hx, div_eq_mul_inv, one_mul]
 
 lemma cos_three_mul : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
 begin
@@ -938,12 +949,18 @@ else
   by rw [sin, cos, tan, complex.tan, ← of_real_inj, div_eq_mul_inv, mul_re];
   simp [norm_sq, (div_div_eq_div_mul _ _ _).symm, div_self h]; refl
 
+lemma tan_mul_cos {x : ℝ} (hx : cos x ≠ 0) : tan x * cos x = sin x :=
+by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
+
 @[simp] lemma tan_zero : tan 0 = 0 := by simp [tan]
 
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
-lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
-of_real_inj.1 $ by simpa using sin_sq_add_cos_sq x
+@[simp] lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
+of_real_inj.1 $ by simp
+
+@[simp] lemma cos_sq_add_sin_sq : cos x ^ 2 + sin x ^ 2 = 1 :=
+by rw [add_comm, sin_sq_add_cos_sq]
 
 lemma sin_sq_le_one : sin x ^ 2 ≤ 1 :=
 by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_right (pow_two_nonneg _)
@@ -952,14 +969,10 @@ lemma cos_sq_le_one : cos x ^ 2 ≤ 1 :=
 by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_left (pow_two_nonneg _)
 
 lemma abs_sin_le_one : abs' (sin x) ≤ 1 :=
-(mul_self_le_mul_self_iff (_root_.abs_nonneg (sin x)) (by exact zero_le_one)).2 $
-by rw [← _root_.abs_mul, abs_mul_self, mul_one, ← pow_two];
-   apply sin_sq_le_one
+abs_le_one_iff_mul_self_le_one.2 $ by simp only [← pow_two, sin_sq_le_one]
 
 lemma abs_cos_le_one : abs' (cos x) ≤ 1 :=
-(mul_self_le_mul_self_iff (_root_.abs_nonneg (cos x)) (by exact zero_le_one)).2 $
-by rw [← _root_.abs_mul, abs_mul_self, mul_one, ← pow_two];
-   apply cos_sq_le_one
+abs_le_one_iff_mul_self_le_one.2 $ by simp only [← pow_two, cos_sq_le_one]
 
 lemma sin_le_one : sin x ≤ 1 :=
 (abs_le.1 (abs_sin_le_one _)).2
@@ -986,10 +999,26 @@ lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
 of_real_inj.1 $ by simpa using cos_square x
 
 lemma cos_square' : cos x ^ 2 = 1 - sin x ^ 2 :=
-by { rw [←sin_sq_add_cos_sq x], simp }
+by rw [←sin_sq_add_cos_sq x, add_sub_cancel']
 
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
+
+lemma inv_one_add_tan_sq {x : ℝ} (hx : cos x ≠ 0) : (1 + tan x ^ 2)⁻¹ = cos x ^ 2  :=
+have complex.cos x ≠ 0, from mt (congr_arg re) hx,
+of_real_inj.1 $ by simpa using complex.inv_one_add_tan_sq this
+
+lemma tan_sq_div_one_add_tan_sq {x : ℝ} (hx : cos x ≠ 0) :
+  tan x ^ 2 / (1 + tan x ^ 2) = sin x ^ 2 :=
+by simp only [← tan_mul_cos hx, mul_pow, ← inv_one_add_tan_sq hx, div_eq_mul_inv, one_mul]
+
+lemma inv_sqrt_one_add_tan_sq {x : ℝ} (hx : 0 < cos x) :
+  (sqrt (1 + tan x ^ 2))⁻¹ = cos x :=
+by rw [← sqrt_sqr hx.le, ← sqrt_inv, inv_one_add_tan_sq hx.ne']
+
+lemma tan_div_sqrt_one_add_tan_sq {x : ℝ} (hx : 0 < cos x) :
+  tan x / sqrt (1 + tan x ^ 2) = sin x :=
+by rw [← tan_mul_cos hx.ne', ← inv_sqrt_one_add_tan_sq hx, div_eq_mul_inv]
 
 lemma cos_three_mul : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
 by rw ← of_real_inj; simp [cos_three_mul]
@@ -1101,11 +1130,13 @@ lemma exp_strict_mono : strict_mono exp :=
 
 @[mono] lemma exp_monotone : ∀ {x y : ℝ}, x ≤ y → exp x ≤ exp y := exp_strict_mono.monotone
 
-lemma exp_lt_exp {x y : ℝ} : exp x < exp y ↔ x < y := exp_strict_mono.lt_iff_lt
+@[simp] lemma exp_lt_exp {x y : ℝ} : exp x < exp y ↔ x < y := exp_strict_mono.lt_iff_lt
 
-lemma exp_le_exp {x y : ℝ} : exp x ≤ exp y ↔ x ≤ y := exp_strict_mono.le_iff_le
+@[simp] lemma exp_le_exp {x y : ℝ} : exp x ≤ exp y ↔ x ≤ y := exp_strict_mono.le_iff_le
 
 lemma exp_injective : function.injective exp := exp_strict_mono.injective
+
+@[simp] lemma exp_eq_exp {x y : ℝ} : exp x = exp y ↔ x = y := exp_injective.eq_iff
 
 @[simp] lemma exp_eq_one_iff : exp x = 1 ↔ x = 0 :=
 by rw [← exp_zero, exp_injective.eq_iff]
@@ -1130,7 +1161,7 @@ end real
 
 namespace complex
 
-lemma sum_div_factorial_le {α : Type*} [discrete_linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
+lemma sum_div_factorial_le {α : Type*} [linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
   ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α) ≤ n.succ * (n! * n)⁻¹ :=
 calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
     = ∑ m in range (j - n), 1 / (m + n)! :
@@ -1181,6 +1212,7 @@ lemma exp_bound {x : ℂ} (hx : abs x ≤ 1) {n : ℕ} (hn : 0 < n) :
 begin
   rw [← lim_const (∑ m in range n, _), exp, sub_eq_add_neg, ← lim_neg, lim_add, ← lim_abs],
   refine lim_le (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
+  simp_rw ← sub_eq_add_neg,
   show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!)
     ≤ abs x ^ n * (n.succ * (n! * n)⁻¹),
   rw sum_range_sub_sum_range hj,
@@ -1229,6 +1261,70 @@ namespace real
 
 open complex finset
 
+lemma exp_bound {x : ℝ} (hx : abs' x ≤ 1) {n : ℕ} (hn : 0 < n) :
+  abs' (exp x - ∑ m in range n, x ^ m / m!) ≤ abs' x ^ n * (n.succ / (n! * n)) :=
+begin
+  have hxc : complex.abs x ≤ 1, by exact_mod_cast hx,
+  convert exp_bound hxc hn; norm_cast
+end
+
+/-- A finite initial segment of the exponential series, followed by an arbitrary tail.
+For fixed `n` this is just a linear map wrt `r`, and each map is a simple linear function
+of the previous (see `exp_near_succ`), with `exp_near n x r ⟶ exp x` as `n ⟶ ∞`,
+for any `r`. -/
+def exp_near (n : ℕ) (x r : ℝ) : ℝ := ∑ m in range n, x ^ m / m! + x ^ n / n! * r
+
+@[simp] theorem exp_near_zero (x r) : exp_near 0 x r = r := by simp [exp_near]
+
+@[simp] theorem exp_near_succ (n x r) : exp_near (n + 1) x r = exp_near n x (1 + x / (n+1) * r) :=
+by { simp [exp_near, range_succ, mul_add, add_left_comm, add_assoc, pow_succ],
+     field_simp [mul_assoc, mul_left_comm] }
+
+theorem exp_near_sub (n x r₁ r₂) : exp_near n x r₁ - exp_near n x r₂ = x ^ n / n! * (r₁ - r₂) :=
+by simp [exp_near, mul_sub]
+
+lemma exp_approx_end (n m : ℕ) (x : ℝ)
+  (e₁ : n + 1 = m) (h : abs' x ≤ 1) :
+  abs' (exp x - exp_near m x 0) ≤ abs' x ^ m / m! * ((m+1)/m) :=
+by { simp [exp_near], convert exp_bound h _ using 1, field_simp [mul_comm], linarith }
+
+lemma exp_approx_succ {n} {x a₁ b₁ : ℝ} (m : ℕ)
+  (e₁ : n + 1 = m) (a₂ b₂ : ℝ)
+  (e : abs' (1 + x / m * a₂ - a₁) ≤ b₁ - abs' x / m * b₂)
+  (h : abs' (exp x - exp_near m x a₂) ≤ abs' x ^ m / m! * b₂) :
+  abs' (exp x - exp_near n x a₁) ≤ abs' x ^ n / n! * b₁ :=
+begin
+  refine le_trans (_root_.abs_sub_le _ _ _)
+    (le_trans (add_le_add_right h _) _),
+  subst e₁, rw [exp_near_succ, exp_near_sub, _root_.abs_mul],
+  convert mul_le_mul_of_nonneg_left (le_sub_iff_add_le'.1 e) _,
+  { simp [mul_add, pow_succ', _root_.abs_div, ← pow_abs],
+    field_simp [mul_assoc] },
+  { simp [_root_.div_nonneg, _root_.abs_nonneg] }
+end
+
+lemma exp_approx_end' {n} {x a b : ℝ} (m : ℕ)
+  (e₁ : n + 1 = m) (rm : ℝ) (er : ↑m = rm) (h : abs' x ≤ 1)
+  (e : abs' (1 - a) ≤ b - abs' x / rm * ((rm+1)/rm)) :
+  abs' (exp x - exp_near n x a) ≤ abs' x ^ n / n! * b :=
+by subst er; exact
+exp_approx_succ _ e₁ _ _ (by simpa using e) (exp_approx_end _ _ _ e₁ h)
+
+lemma exp_1_approx_succ_eq {n} {a₁ b₁ : ℝ} {m : ℕ}
+  (en : n + 1 = m) {rm : ℝ} (er : ↑m = rm)
+  (h : abs' (exp 1 - exp_near m 1 ((a₁ - 1) * rm)) ≤ abs' 1 ^ m / m! * (b₁ * rm)) :
+  abs' (exp 1 - exp_near n 1 a₁) ≤ abs' 1 ^ n / n! * b₁ :=
+begin
+  subst er,
+  refine exp_approx_succ _ en _ _ _ h,
+  field_simp [show (m : ℝ) ≠ 0, by norm_cast; linarith],
+end
+
+lemma exp_approx_start (x a b : ℝ)
+  (h : abs' (exp x - exp_near 0 x a) ≤ abs' x ^ 0 / 0! * b) :
+  abs' (exp x - a) ≤ b :=
+by simpa using h
+
 lemma cos_bound {x : ℝ} (hx : abs' x ≤ 1) :
   abs' (cos x - (1 - x ^ 2 / 2)) ≤ abs' x ^ 4 * (5 / 96) :=
 calc abs' (cos x - (1 - x ^ 2 / 2)) = abs (complex.cos x - (1 - x ^ 2 / 2)) :
@@ -1250,8 +1346,8 @@ calc abs' (cos x - (1 - x ^ 2 / 2)) = abs (complex.cos x - (1 - x ^ 2 / 2)) :
   by simp [complex.abs_div]
 ... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2 +
     (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2)  :
-  add_le_add ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
-             ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
+  add_le_add ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
+             ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
 ... ≤ abs' x ^ 4 * (5 / 96) : by norm_num; simp [mul_assoc, mul_comm, mul_left_comm, mul_div_assoc]
 
 lemma sin_bound {x : ℝ} (hx : abs' x ≤ 1) :
@@ -1276,8 +1372,8 @@ calc abs' (sin x - (x - x ^ 3 / 6)) = abs (complex.sin x - (x - x ^ 3 / 6)) :
   by simp [add_comm, complex.abs_div, complex.abs_mul]
 ... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2 +
     (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2) :
-  add_le_add ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
-             ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
+  add_le_add ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
+             ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
 ... ≤ abs' x ^ 4 * (5 / 96) : by norm_num; simp [mul_assoc, mul_comm, mul_left_comm, mul_div_assoc]
 
 lemma cos_pos_of_le_one {x : ℝ} (hx : abs' x ≤ 1) : 0 < cos x :=

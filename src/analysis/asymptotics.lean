@@ -147,6 +147,14 @@ theorem is_O.exists_nonneg (h : is_O f g' l) :
   ∃ c (H : 0 ≤ c), is_O_with c f g' l :=
 let ⟨c, hc⟩ := h in hc.exists_nonneg
 
+/-! ### Subsingleton -/
+
+@[nontriviality] lemma is_o_of_subsingleton [subsingleton E'] : is_o f' g' l :=
+λ c hc, is_O_with.of_bound $ by simp [subsingleton.elim (f' _) 0, mul_nonneg hc.le]
+
+@[nontriviality] lemma is_O_of_subsingleton [subsingleton E'] : is_O f' g' l :=
+is_o_of_subsingleton.is_O
+
 /-! ### Congruence -/
 
 theorem is_O_with_congr {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
@@ -157,7 +165,6 @@ begin
   apply filter.congr_sets,
   filter_upwards [hf, hg],
   assume x e₁ e₂,
-  dsimp at e₁ e₂ ⊢,
   rw [e₁, e₂]
 end
 
@@ -484,11 +491,7 @@ end
 
 lemma is_O_with.prod_left_same (hf : is_O_with c f' k' l) (hg : is_O_with c g' k' l) :
   is_O_with c (λ x, (f' x, g' x)) k' l :=
-begin
-  filter_upwards [hf, hg],
-  simp only [mem_set_of_eq],
-  exact λ x, max_le
-end
+by filter_upwards [hf, hg] λ x, max_le
 
 lemma is_O_with.prod_left (hf : is_O_with c f' k' l) (hg : is_O_with c' g' k' l) :
   is_O_with (max c c') (λ x, (f' x, g' x)) k' l :=
@@ -532,6 +535,12 @@ is_O_snd_prod.trans_is_o h
   is_o (λ x, (f' x, g' x)) k' l ↔ is_o f' k' l ∧ is_o g' k' l :=
 ⟨λ h, ⟨h.prod_left_fst, h.prod_left_snd⟩, λ h, h.1.prod_left h.2⟩
 
+lemma is_O_with.eq_zero_imp (h : is_O_with c f' g' l) : ∀ᶠ x in l, g' x = 0 → f' x = 0 :=
+eventually.mono h $ λ x hx hg, norm_le_zero_iff.1 $ by simpa [hg] using hx
+
+lemma is_O.eq_zero_imp (h : is_O f' g' l) : ∀ᶠ x in l, g' x = 0 → f' x = 0 :=
+let ⟨C, hC⟩ := h in hC.eq_zero_imp
+
 /-! ### Addition and subtraction -/
 
 section add_sub
@@ -571,17 +580,17 @@ theorem is_o.add_is_O_with (h₁ : is_o f₁ g l) (h₂ : is_O_with c₁ f₂ g 
 
 theorem is_O_with.sub (h₁ : is_O_with c₁ f₁ g l) (h₂ : is_O_with c₂ f₂ g l) :
   is_O_with (c₁ + c₂) (λ x, f₁ x - f₂ x) g l :=
-h₁.add h₂.neg_left
+by simpa only [sub_eq_add_neg] using h₁.add h₂.neg_left
 
 theorem is_O_with.sub_is_o (h₁ : is_O_with c₁ f₁ g l) (h₂ : is_o f₂ g l) (hc : c₁ < c₂) :
   is_O_with c₂ (λ x, f₁ x - f₂ x) g l :=
-h₁.add_is_o h₂.neg_left hc
+by simpa only [sub_eq_add_neg] using h₁.add_is_o h₂.neg_left hc
 
 theorem is_O.sub (h₁ : is_O f₁ g l) (h₂ : is_O f₂ g l) : is_O (λ x, f₁ x - f₂ x) g l :=
-h₁.add h₂.neg_left
+by simpa only [sub_eq_add_neg] using h₁.add h₂.neg_left
 
 theorem is_o.sub (h₁ : is_o f₁ g l) (h₂ : is_o f₂ g l) : is_o (λ x, f₁ x - f₂ x) g l :=
-h₁.add h₂.neg_left
+by simpa only [sub_eq_add_neg] using h₁.add h₂.neg_left
 
 end add_sub
 
@@ -875,7 +884,7 @@ theorem is_O_with.mul {f₁ f₂ : α → R} {g₁ g₂ : α → 𝕜} {c₁ c�
   (h₁ : is_O_with c₁ f₁ g₁ l) (h₂ : is_O_with c₂ f₂ g₂ l) :
   is_O_with (c₁ * c₂) (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 begin
-  filter_upwards [h₁, h₂], simp only [mem_set_of_eq],
+  filter_upwards [h₁, h₂],
   intros x hx₁ hx₂,
   apply le_trans (norm_mul_le _ _),
   convert mul_le_mul hx₁ hx₂ (norm_nonneg _) (le_trans (norm_nonneg _) hx₁) using 1,
@@ -1053,10 +1062,122 @@ have eq₃ : is_O f (λ x, f x / g x * g x) l,
   end,
 eq₃.trans_is_o eq₂
 
+private theorem is_o_of_tendsto' {f g : α → 𝕜} {l : filter α}
+    (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) (h : tendsto (λ x, f x / (g x)) l (𝓝 0)) :
+  is_o f g l :=
+let ⟨u, hu, himp⟩ := hgf.exists_mem in
+have key : u.indicator f =ᶠ[l] f,
+  from eventually_eq_of_mem hu eq_on_indicator,
+have himp : ∀ x, g x = 0 → (u.indicator f) x = 0,
+  from λ x hgx,
+    begin
+      by_cases h : x ∈ u,
+      { exact (indicator_of_mem h f).symm ▸ himp x h hgx },
+      { exact indicator_of_not_mem h f }
+    end,
+suffices h : is_o (u.indicator f) g l,
+  from is_o.congr' key (by refl) h,
+is_o_of_tendsto himp (h.congr' (key.symm.div (by refl)))
+
 theorem is_o_iff_tendsto {f g : α → 𝕜} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) :
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 iff.intro is_o.tendsto_0 (is_o_of_tendsto hgf)
+
+theorem is_o_iff_tendsto' {f g : α → 𝕜} {l : filter α}
+    (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) :
+  is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
+iff.intro is_o.tendsto_0 (is_o_of_tendsto' hgf)
+
+/-!
+### Eventually (u / v) * v = u
+
+If `u` and `v` are linked by an `is_O_with` relation, then we
+eventually have `(u / v) * v = u`, even if `v` vanishes.
+-/
+
+section eventually_mul_div_cancel
+
+variables {u v : α → 𝕜}
+
+lemma is_O_with.eventually_mul_div_cancel (h : is_O_with c u v l) :
+  (u / v) * v =ᶠ[l] u :=
+begin
+  refine eventually.mono h (λ y hy, div_mul_cancel_of_imp $ λ hv, _),
+  rw hv at *,
+  simpa using hy
+end
+
+/-- If `u = O(v)` along `l`, then `(u / v) * v = u` eventually at `l`. -/
+lemma is_O.eventually_mul_div_cancel (h : is_O u v l) :  (u / v) * v =ᶠ[l] u :=
+let ⟨c, hc⟩ := h in hc.eventually_mul_div_cancel
+
+/-- If `u = o(v)` along `l`, then `(u / v) * v = u` eventually at `l`. -/
+lemma is_o.eventually_mul_div_cancel (h : is_o u v l) : (u / v) * v =ᶠ[l] u :=
+(h zero_lt_one).eventually_mul_div_cancel
+
+end eventually_mul_div_cancel
+
+/-! ### Equivalent definitions of the form `∃ φ, u =ᶠ[l] φ * v` in a `normed_field`. -/
+
+section exists_mul_eq
+
+variables {u v : α → 𝕜}
+
+/-- If `∥φ∥` is eventually bounded by `c`, and `u =ᶠ[l] φ * v`, then we have `is_O_with c u v l`.
+    This does not require any assumptions on `c`, which is why we keep this version along with
+    `is_O_with_iff_exists_eq_mul`. -/
+lemma is_O_with_of_eq_mul (φ : α → 𝕜) (hφ : ∀ᶠ x in l, ∥φ x∥ ≤ c) (h : u =ᶠ[l] φ * v) :
+  is_O_with c u v l :=
+begin
+  refine h.symm.rw (λ x a, ∥a∥ ≤ c * ∥v x∥) (hφ.mono $ λ x hx, _),
+  simp only [normed_field.norm_mul, pi.mul_apply],
+  exact mul_le_mul_of_nonneg_right hx (norm_nonneg _)
+end
+
+lemma is_O_with_iff_exists_eq_mul (hc : 0 ≤ c) :
+  is_O_with c u v l ↔ ∃ (φ : α → 𝕜) (hφ : ∀ᶠ x in l, ∥φ x∥ ≤ c), u =ᶠ[l] φ * v :=
+begin
+  split,
+  { intro h,
+    use (λ x, u x / v x),
+    refine ⟨eventually.mono h (λ y hy, _), h.eventually_mul_div_cancel.symm⟩,
+    simpa using div_le_iff_of_nonneg_of_le (norm_nonneg _) hc hy },
+  { rintros ⟨φ, hφ, h⟩,
+    exact is_O_with_of_eq_mul φ hφ h }
+end
+
+lemma is_O_with.exists_eq_mul (h : is_O_with c u v l) (hc : 0 ≤ c) :
+  ∃ (φ : α → 𝕜) (hφ : ∀ᶠ x in l, ∥φ x∥ ≤ c), u =ᶠ[l] φ * v :=
+(is_O_with_iff_exists_eq_mul hc).mp h
+
+lemma is_O_iff_exists_eq_mul :
+  is_O u v l ↔ ∃ (φ : α → 𝕜) (hφ : l.is_bounded_under (≤) (norm ∘ φ)), u =ᶠ[l] φ * v :=
+begin
+  split,
+  { rintros h,
+    rcases h.exists_nonneg with ⟨c, hnnc, hc⟩,
+    rcases hc.exists_eq_mul hnnc with ⟨φ, hφ, huvφ⟩,
+    exact ⟨φ, ⟨c, hφ⟩, huvφ⟩ },
+  { rintros ⟨φ, ⟨c, hφ⟩, huvφ⟩,
+    exact ⟨c, is_O_with_of_eq_mul φ hφ huvφ⟩ }
+end
+
+alias is_O_iff_exists_eq_mul ↔ asymptotics.is_O.exists_eq_mul _
+
+lemma is_o_iff_exists_eq_mul :
+  is_o u v l ↔ ∃ (φ : α → 𝕜) (hφ : tendsto φ l (𝓝 0)), u =ᶠ[l] φ * v :=
+begin
+  split,
+  { exact λ h, ⟨λ x, u x / v x, h.tendsto_0, h.eventually_mul_div_cancel.symm⟩ },
+  { rintros ⟨φ, hφ, huvφ⟩ c hpos,
+    rw normed_group.tendsto_nhds_zero at hφ,
+    exact is_O_with_of_eq_mul _ ((hφ c hpos).mono $ λ x, le_of_lt)  huvφ }
+end
+
+alias is_o_iff_exists_eq_mul ↔ asymptotics.is_o.exists_eq_mul _
+
+end exists_mul_eq
 
 /-! ### Miscellanous lemmas -/
 

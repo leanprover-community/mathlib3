@@ -6,6 +6,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 Elegant pairing function.
 -/
 import data.nat.sqrt
+import data.set.lattice
 open prod decidable
 
 namespace nat
@@ -102,3 +103,15 @@ begin
 end
 
 end nat
+
+namespace set
+
+lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
+  (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
+begin
+  ext, simp only [mem_Union, mem_prod], split,
+  { rintro ⟨n, h1n, h2n⟩, exact ⟨⟨_, h1n⟩, _, h2n⟩ },
+  { rintro ⟨⟨n, hn⟩, m, hm⟩, use n.mkpair m, simp [hn, hm] }
+end
+
+end set

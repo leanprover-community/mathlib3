@@ -69,7 +69,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
-open_locale topological_space classical big_operators
+open_locale topological_space classical big_operators nnreal
 open filter
 
 /-! ### The radius of a formal multilinear series -/
@@ -79,14 +79,14 @@ namespace formal_multilinear_series
 /-- The radius of a formal multilinear series is the largest `r` such that the sum `Σ pₙ yⁿ`
 converges for all `∥y∥ < r`. -/
 def radius (p : formal_multilinear_series 𝕜 E F) : ennreal :=
-liminf at_top (λ n, 1/((nnnorm (p n)) ^ (1 / (n : ℝ)) : nnreal))
+liminf at_top (λ n, 1/((nnnorm (p n)) ^ (1 / (n : ℝ)) : ℝ≥0))
 
 /--If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
-lemma le_radius_of_bound (p : formal_multilinear_series 𝕜 E F) (C : nnreal) {r : nnreal}
+lemma le_radius_of_bound (p : formal_multilinear_series 𝕜 E F) (C : ℝ≥0) {r : ℝ≥0}
   (h : ∀ (n : ℕ), nnnorm (p n) * r^n ≤ C) : (r : ennreal) ≤ p.radius :=
 begin
-  have L : tendsto (λ n : ℕ, (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : nnreal))
-    at_top (𝓝 ((r : ennreal) / ((C + 1)^(0 : ℝ) : nnreal))),
+  have L : tendsto (λ n : ℕ, (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : ℝ≥0))
+    at_top (𝓝 ((r : ennreal) / ((C + 1)^(0 : ℝ) : ℝ≥0))),
   { apply ennreal.tendsto.div tendsto_const_nhds,
     { simp },
     { rw ennreal.tendsto_coe,
@@ -94,7 +94,7 @@ begin
       simp },
     { simp } },
   have A : ∀ n : ℕ , 0 < n →
-    (r : ennreal) ≤ ((C + 1)^(1/(n : ℝ)) : nnreal) * (1 / (nnnorm (p n) ^ (1/(n:ℝ)) : nnreal)),
+    (r : ennreal) ≤ ((C + 1)^(1/(n : ℝ)) : ℝ≥0) * (1 / (nnnorm (p n) ^ (1/(n:ℝ)) : ℝ≥0)),
   { assume n npos,
     simp only [one_div, mul_assoc, mul_one, eq.symm ennreal.mul_div_assoc],
     rw [ennreal.le_div_iff_mul_le _ _, ← nnreal.pow_nat_rpow_nat_inv r npos, ← ennreal.coe_mul,
@@ -103,21 +103,21 @@ begin
     { simp },
     { simp } },
   have B : ∀ᶠ (n : ℕ) in at_top,
-    (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : nnreal) ≤ 1 / (nnnorm (p n) ^ (1/(n:ℝ)) : nnreal),
+    (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : ℝ≥0) ≤ 1 / (nnnorm (p n) ^ (1/(n:ℝ)) : ℝ≥0),
   { apply eventually_at_top.2 ⟨1, λ n hn, _⟩,
     rw [ennreal.div_le_iff_le_mul, mul_comm],
     { apply A n hn },
     { simp },
     { simp } },
-  have D : liminf at_top (λ n : ℕ, (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : nnreal)) ≤ p.radius :=
+  have D : liminf at_top (λ n : ℕ, (r : ennreal) / ((C + 1)^(1/(n : ℝ)) : ℝ≥0)) ≤ p.radius :=
     liminf_le_liminf B,
   rw L.liminf_eq at D,
   simpa using D
 end
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` is bounded. -/
-lemma bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : nnreal}
-  (h : (r : ennreal) < p.radius) : ∃ (C : nnreal), ∀ n, nnnorm (p n) * r^n ≤ C :=
+lemma bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
+  (h : (r : ennreal) < p.radius) : ∃ (C : ℝ≥0), ∀ n, nnnorm (p n) * r^n ≤ C :=
 begin
   obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ n, n ≥ N → (r : ennreal) < 1 / ↑(nnnorm (p n) ^ (1 / (n : ℝ))) :=
     eventually.exists_forall_of_at_top (eventually_lt_of_lt_liminf h),
@@ -143,14 +143,14 @@ begin
 end
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially. -/
-lemma geometric_bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : nnreal}
+lemma geometric_bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
   (h : (r : ennreal) < p.radius) : ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * r^n ≤ C * a^n :=
 begin
-  obtain ⟨t, rt, tp⟩ : ∃ (t : nnreal), (r : ennreal) < t ∧ (t : ennreal) < p.radius :=
+  obtain ⟨t, rt, tp⟩ : ∃ (t : ℝ≥0), (r : ennreal) < t ∧ (t : ennreal) < p.radius :=
     ennreal.lt_iff_exists_nnreal_btwn.1 h,
   rw ennreal.coe_lt_coe at rt,
   have tpos : t ≠ 0 := ne_of_gt (lt_of_le_of_lt (zero_le _) rt),
-  obtain ⟨C, hC⟩ : ∃ (C : nnreal), ∀ n, nnnorm (p n) * t^n ≤ C := p.bound_of_lt_radius tp,
+  obtain ⟨C, hC⟩ : ∃ (C : ℝ≥0), ∀ n, nnnorm (p n) * t^n ≤ C := p.bound_of_lt_radius tp,
   refine ⟨r / t, C, nnreal.div_lt_one_of_lt rt, λ n, _⟩,
   calc nnnorm (p n) * r ^ n
     = (nnnorm (p n) * t ^ n) * (r / t) ^ n : by { field_simp [tpos], ac_refl }
@@ -163,9 +163,9 @@ lemma min_radius_le_radius_add (p q : formal_multilinear_series 𝕜 E F) :
 begin
   refine le_of_forall_ge_of_dense (λ r hr, _),
   cases r, { simpa using hr },
-  obtain ⟨Cp, hCp⟩ : ∃ (C : nnreal), ∀ n, nnnorm (p n) * r^n ≤ C :=
+  obtain ⟨Cp, hCp⟩ : ∃ (C : ℝ≥0), ∀ n, nnnorm (p n) * r^n ≤ C :=
     p.bound_of_lt_radius (lt_of_lt_of_le hr (min_le_left _ _)),
-  obtain ⟨Cq, hCq⟩ : ∃ (C : nnreal), ∀ n, nnnorm (q n) * r^n ≤ C :=
+  obtain ⟨Cq, hCq⟩ : ∃ (C : ℝ≥0), ∀ n, nnnorm (q n) * r^n ≤ C :=
     q.bound_of_lt_radius (lt_of_lt_of_le hr (min_le_right _ _)),
   have : ∀ n, nnnorm ((p + q) n) * r^n ≤ Cp + Cq,
   { assume n,
@@ -283,16 +283,16 @@ let ⟨pf, hpf⟩ := hf in hpf.neg.analytic_at
 lemma has_fpower_series_on_ball.sub
   (hf : has_fpower_series_on_ball f pf x r) (hg : has_fpower_series_on_ball g pg x r) :
   has_fpower_series_on_ball (f - g) (pf - pg) x r :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma has_fpower_series_at.sub
   (hf : has_fpower_series_at f pf x) (hg : has_fpower_series_at g pg x) :
   has_fpower_series_at (f - g) (pf - pg) x :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma analytic_at.sub (hf : analytic_at 𝕜 f x) (hg : analytic_at 𝕜 g x) :
   analytic_at 𝕜 (f - g) x :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma has_fpower_series_on_ball.coeff_zero (hf : has_fpower_series_on_ball f pf x r)
   (v : fin 0 → E) : pf 0 v = f x :=
@@ -314,9 +314,9 @@ let ⟨rf, hrf⟩ := hf in hrf.coeff_zero v
 
 /-- If a function admits a power series expansion, then it is exponentially close to the partial
 sums of this power series on strict subdisks of the disk of convergence. -/
-lemma has_fpower_series_on_ball.uniform_geometric_approx {r' : nnreal}
+lemma has_fpower_series_on_ball.uniform_geometric_approx {r' : ℝ≥0}
   (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
-  ∃ (a C : nnreal), a < 1 ∧ (∀ y ∈ metric.ball (0 : E) r', ∀ n,
+  ∃ (a C : ℝ≥0), a < 1 ∧ (∀ y ∈ metric.ball (0 : E) r', ∀ n,
   ∥f (x + y) - p.partial_sum n y∥ ≤ C * a ^ n) :=
 begin
   obtain ⟨a, C, ha, hC⟩ : ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * r' ^n ≤ C * a^n :=
@@ -344,7 +344,7 @@ end
 /-- If a function admits a power series expansion at `x`, then it is the uniform limit of the
 partial sums of this power series on strict subdisks of the disk of convergence, i.e., `f (x + y)`
 is the uniform limit of `p.partial_sum n y` there. -/
-lemma has_fpower_series_on_ball.tendsto_uniformly_on {r' : nnreal}
+lemma has_fpower_series_on_ball.tendsto_uniformly_on {r' : ℝ≥0}
   (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
   tendsto_uniformly_on (λ n y, p.partial_sum n y) (λ y, f (x + y)) at_top (metric.ball (0 : E) r') :=
 begin
@@ -378,7 +378,7 @@ end
 /-- If a function admits a power series expansion at `x`, then it is the uniform limit of the
 partial sums of this power series on strict subdisks of the disk of convergence, i.e., `f y`
 is the uniform limit of `p.partial_sum n (y - x)` there. -/
-lemma has_fpower_series_on_ball.tendsto_uniformly_on' {r' : nnreal}
+lemma has_fpower_series_on_ball.tendsto_uniformly_on' {r' : ℝ≥0}
   (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
   tendsto_uniformly_on (λ n y, p.partial_sum n (y - x)) f at_top (metric.ball (x : E) r') :=
 begin
@@ -460,11 +460,11 @@ end
 If a function is analytic in a disk `D(x, R)`, then it is analytic in any disk contained in that
 one. Indeed, one can write
 $$
-f (x + y + z) = \sum_{n} p_n (y + z)^n = \sum_{n, k} \choose n k p_n y^{n-k} z^k
-= \sum_{k} (\sum_{n} \choose n k p_n y^{n-k}) z^k.
+f (x + y + z) = \sum_{n} p_n (y + z)^n = \sum_{n, k} \binom{n}{k} p_n y^{n-k} z^k
+= \sum_{k} \Bigl(\sum_{n} \binom{n}{k} p_n y^{n-k}\Bigr) z^k.
 $$
 The corresponding power series has thus a `k`-th coefficient equal to
-`\sum_{n} \choose n k p_n y^{n-k}`. In the general case where `pₙ` is a multilinear map, this has
+$\sum_{n} \binom{n}{k} p_n y^{n-k}$. In the general case where `pₙ` is a multilinear map, this has
 to be interpreted suitably: instead of having a binomial coefficient, one should sum over all
 possible subsets `s` of `fin n` of cardinal `k`, and attribute `z` to the indices in `s` and
 `y` to the indices outside of `s`.
@@ -476,7 +476,7 @@ discussion is that the set of points where a function is analytic is open.
 
 namespace formal_multilinear_series
 
-variables (p : formal_multilinear_series 𝕜 E F) {x y : E} {r : nnreal}
+variables (p : formal_multilinear_series 𝕜 E F) {x y : E} {r : ℝ≥0}
 
 /--
 Changing the origin of a formal multilinear series `p`, so that
@@ -504,7 +504,7 @@ begin
   obtain ⟨a, C, ha, hC⟩ :
     ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * (nnnorm x + r) ^ n ≤ C * a^n :=
   p.geometric_bound_of_lt_radius h,
-  let Bnnnorm : (Σ (n : ℕ), finset (fin n)) → nnreal :=
+  let Bnnnorm : (Σ (n : ℕ), finset (fin n)) → ℝ≥0 :=
     λ ⟨n, s⟩, nnnorm (p n) * (nnnorm x) ^ (n - s.card) * r ^ s.card,
   have : ((λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card) :
     (Σ (n : ℕ), finset (fin n)) → ℝ) = (λ b, (Bnnnorm b : ℝ)),
@@ -513,7 +513,7 @@ begin
   apply ne_of_lt,
   calc (∑' b, ↑(Bnnnorm b))
   = (∑' n, (∑' s, ↑(Bnnnorm ⟨n, s⟩))) : by exact ennreal.tsum_sigma' _
-  ... ≤ (∑' n, (((nnnorm (p n) * (nnnorm x + r)^n) : nnreal) : ennreal)) :
+  ... ≤ (∑' n, (((nnnorm (p n) * (nnnorm x + r)^n) : ℝ≥0) : ennreal)) :
     begin
       refine ennreal.tsum_le_tsum (λ n, _),
       rw [tsum_fintype, ← ennreal.coe_finset_sum, ennreal.coe_le_coe],
@@ -537,7 +537,6 @@ lemma change_origin_summable_aux2 (h : (nnnorm x + r : ennreal) < p.radius) :
   @summable ℝ _ _ _ ((λ ⟨k, n, s, hs⟩, ∥(p n).restr s hs x∥ * ↑r ^ k) :
     (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :=
 begin
-  let γ : ℕ → Type* := λ k, (Σ (n : ℕ), {s : finset (fin n) // s.card = k}),
   let Bnorm : (Σ (n : ℕ), finset (fin n)) → ℝ := λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card,
   have SBnorm : summable Bnorm := p.change_origin_summable_aux1 h,
   let Anorm : (Σ (n : ℕ), finset (fin n)) → ℝ := λ ⟨n, s⟩, ∥(p n).restr s rfl x∥ * r ^ s.card,
@@ -583,7 +582,7 @@ lemma change_origin_summable_aux3 (k : ℕ) (h : (nnnorm x : ennreal) < p.radius
   @summable ℝ _ _ _ (λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ :
   (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :=
 begin
-  obtain ⟨r, rpos, hr⟩ : ∃ (r : nnreal), 0 < r ∧ ((nnnorm x + r) : ennreal) < p.radius :=
+  obtain ⟨r, rpos, hr⟩ : ∃ (r : ℝ≥0), 0 < r ∧ ((nnnorm x + r) : ennreal) < p.radius :=
     ennreal.lt_iff_exists_add_pos_lt.mp h,
   have S : @summable ℝ _ _ _ ((λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ * (r : ℝ) ^ k) :
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ),

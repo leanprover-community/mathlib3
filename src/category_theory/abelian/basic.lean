@@ -5,7 +5,6 @@ Authors: Markus Himmel
 -/
 
 import category_theory.limits.shapes.constructions.pullbacks
-import category_theory.limits.shapes.regular_mono
 import category_theory.limits.shapes.biproducts
 import category_theory.limits.shapes.images
 import category_theory.abelian.non_preadditive

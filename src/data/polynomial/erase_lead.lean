@@ -3,7 +3,7 @@ Copyright (c) 2020 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import data.polynomial.degree.basic
+import data.polynomial.degree
 import data.polynomial.degree.trailing_degree
 
 /-!
@@ -101,7 +101,7 @@ end
 begin
   by_cases hr : r = 0,
   { subst r, simp only [monomial_zero_right, erase_lead_zero] },
-  { rw [erase_lead, nat_degree_monomial _ _ hr, monomial, erase_single] }
+  { rw [erase_lead, nat_degree_monomial _ _ hr], exact erase_single }
 end
 
 @[simp] lemma erase_lead_C (r : R) : erase_lead (C r) = 0 :=
@@ -132,6 +132,17 @@ lemma erase_lead_nat_degree_lt (f0 : 2 ≤ f.support.card) :
   (erase_lead f).nat_degree < f.nat_degree :=
 lt_of_le_of_ne erase_lead_nat_degree_le $ ne_nat_degree_of_mem_erase_lead_support $
   nat_degree_mem_support_of_nonzero $ erase_lead_ne_zero f0
+
+lemma erase_lead_nat_degree_lt_or_erase_lead_eq_zero (f : polynomial R) :
+  (erase_lead f).nat_degree < f.nat_degree ∨ f.erase_lead = 0 :=
+begin
+  by_cases h : f.support.card ≤ 1,
+  { right,
+    rw ← C_mul_X_pow_eq_self h,
+    simp },
+  { left,
+    apply erase_lead_nat_degree_lt (lt_of_not_ge h) }
+end
 
 end erase_lead
 

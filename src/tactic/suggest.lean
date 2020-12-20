@@ -366,9 +366,9 @@ You can also use `suggest with attr` to include all lemmas with the attribute `a
 meta def suggest (n : parse (with_desc "n" small_nat)?)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : opt := { }) :
   tactic unit :=
-do asms ← mk_assumption_set ff hs attr_names,
+do (lemma_thunks, ctx_thunk) ← mk_assumption_set ff hs attr_names,
    L ← tactic.suggest_scripts (n.get_or_else 50)
-     { lemma_thunks := return asms, ..opt },
+     { lemma_thunks := some lemma_thunks, ctx_thunk := ctx_thunk, ..opt },
   if is_trace_enabled_for `silence_suggest then
     skip
   else
@@ -419,11 +419,18 @@ add_tactic_doc
 declare_trace silence_library_search
 
 /--
-`library_search` attempts to apply every definition in the library whose head symbol
-matches the goal, and then discharge any new goals using `solve_by_elim`.
+`library_search` is a tactic to identify existing lemmas in the library. It tries to close the
+current goal by applying a lemma from the library, then discharging any new goals using
+`solve_by_elim`.
 
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
+
+Typical usage is:
+```lean
+example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
+by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
+```
 
 By default `library_search` only unfolds `reducible` definitions
 when attempting to match lemmas against the goal.
@@ -444,10 +451,11 @@ You can also use `library_search with attr` to include all lemmas with the attri
 meta def library_search (semireducible : parse $ optional (tk "!"))
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (opt : opt := { }) : tactic unit :=
-do asms ← mk_assumption_set ff hs attr_names,
+do (lemma_thunks, ctx_thunk) ← mk_assumption_set ff hs attr_names,
    (tactic.library_search
      { backtrack_all_goals := tt,
-       lemma_thunks := return asms,
+       lemma_thunks := some lemma_thunks,
+       ctx_thunk := ctx_thunk,
        md := if semireducible.is_some then
          tactic.transparency.semireducible else tactic.transparency.reducible,
        ..opt } >>=
@@ -477,20 +485,6 @@ Possible reasons why `library_search` failed:
 * If all else fails, ask on https://leanprover.zulipchat.com/,
   and maybe we can improve the library and/or `library_search` for next time."
 
-/--
-`library_search` is a tactic to identify existing lemmas in the library. It tries to close the
-current goal by applying a lemma from the library, then discharging any new goals using
-`solve_by_elim`.
-
-Typical usage is:
-```lean
-example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
-```
-
-`library_search` prints a trace message showing the proof it found, shown above as a comment.
-Typically you will then copy and paste this proof, replacing the call to `library_search`.
--/
 add_tactic_doc
 { name        := "library_search",
   category    := doc_category.tactic,

@@ -123,11 +123,11 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators
+open_locale classical topological_space big_operators nnreal
 
 namespace measure_theory
 
-variables {α E : Type*} [measurable_space α] [decidable_linear_order E] [has_zero E]
+variables {α E : Type*} [measurable_space α] [linear_order E] [has_zero E]
 
 local infixr ` →ₛ `:25 := simple_func
 
@@ -155,7 +155,8 @@ by { rw neg_part, exact pos_part_map_norm _ }
 lemma pos_part_sub_neg_part (f : α →ₛ ℝ) : f.pos_part - f.neg_part = f :=
 begin
   simp only [pos_part, neg_part],
-  ext,
+  ext a,
+  rw coe_sub,
   exact max_zero_sub_eq_self (f a)
 end
 
@@ -261,7 +262,7 @@ begin
   simp only [← map_apply g f, lintegral_eq_lintegral],
   rw [map_integral f _ hf, map_lintegral, ennreal.to_real_sum],
   { refine finset.sum_congr rfl (λb hb, _),
-    rw [smul_eq_mul, to_real_mul_to_real, mul_comm] },
+    rw [smul_eq_mul, to_real_mul, mul_comm] },
   { assume a ha,
     by_cases a0 : a = 0,
     { rw [a0, hg0, zero_mul], exact with_top.zero_lt_top },
@@ -532,7 +533,8 @@ lemma of_simple_func_neg (f : α →ₛ E) (hf : integrable f μ) :
   of_simple_func (-f) hf.neg = -of_simple_func f hf := rfl
 
 lemma of_simple_func_sub (f g : α →ₛ E) (hf : integrable f μ) (hg : integrable g μ) :
-  of_simple_func (f - g) (hf.sub hg) = of_simple_func f hf - of_simple_func g hg := rfl
+  of_simple_func (f - g) (hf.sub hg) = of_simple_func f hf - of_simple_func g hg :=
+by { simp only [sub_eq_add_neg, ← of_simple_func_neg, ← of_simple_func_add], refl }
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
@@ -577,10 +579,8 @@ variables (α E)
 lemma zero_to_simple_func : (0 : α →₁ₛ[μ] E).to_simple_func =ᵐ[μ] 0 :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (0 : α →₁ₛ[μ] E), l1.zero_to_fun α E],
-  simp only [mem_set_of_eq],
-  assume a h,
-  rw h,
-  exact id
+  assume a h₁ h₂,
+  rwa h₁,
 end
 variables {α E}
 
@@ -590,7 +590,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (f + g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, l1.add_to_fun (f : α →₁[μ] E) g],
   assume a,
-  simp only [mem_set_of_eq, ← coe_coe, coe_add, pi.add_apply],
+  simp only [← coe_coe, coe_add, pi.add_apply],
   iterate 4 { assume h, rw h }
 end
 
@@ -599,7 +599,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (-f), to_simple_func_eq_to_fun f,
     l1.neg_to_fun (f : α →₁[μ] E)],
   assume a,
-  simp only [mem_set_of_eq, pi.neg_apply, coe_neg, ← coe_coe],
+  simp only [pi.neg_apply, coe_neg, ← coe_coe],
   repeat { assume h, rw h }
 end
 
@@ -609,7 +609,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (f - g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, l1.sub_to_fun (f : α →₁[μ] E) g],
   assume a,
-  simp only [mem_set_of_eq, coe_sub, pi.sub_apply, ← coe_coe],
+  simp only [coe_sub, pi.sub_apply, ← coe_coe],
   repeat { assume h, rw h }
 end
 
@@ -621,7 +621,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (k • f), to_simple_func_eq_to_fun f,
     l1.smul_to_fun k (f : α →₁[μ] E)],
   assume a,
-  simp only [mem_set_of_eq, pi.smul_apply, coe_smul, ← coe_coe],
+  simp only [pi.smul_apply, coe_smul, ← coe_coe],
   repeat { assume h, rw h }
 end
 
@@ -801,7 +801,6 @@ begin
   have ae_eq : ∀ᵐ a ∂μ, f.pos_part.to_simple_func a = max (f.to_simple_func a) 0,
   { filter_upwards [to_simple_func_eq_to_fun f.pos_part, pos_part_to_fun (f : α →₁[μ] ℝ),
       to_simple_func_eq_to_fun f],
-    simp only [mem_set_of_eq],
     assume a h₁ h₂ h₃,
     rw [h₁, ← coe_coe, coe_pos_part, h₂, coe_coe, ← h₃] },
   refine ae_eq.mono (assume a h, _),
@@ -813,7 +812,6 @@ lemma neg_part_to_simple_func (f : α →₁ₛ[μ] ℝ) :
 begin
   rw [simple_func.neg_part, measure_theory.simple_func.neg_part],
   filter_upwards [pos_part_to_simple_func (-f), neg_to_simple_func f],
-  simp only [mem_set_of_eq],
   assume a h₁ h₂,
   rw h₁,
   show max _ _ = max _ _,
@@ -826,14 +824,12 @@ begin
   -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq₁ : f.to_simple_func.pos_part =ᵐ[μ] (f.pos_part).to_simple_func.map norm,
   { filter_upwards [pos_part_to_simple_func f],
-    simp only [mem_set_of_eq],
     assume a h,
     rw [simple_func.map_apply, h],
     conv_lhs { rw [← simple_func.pos_part_map_norm, simple_func.map_apply] } },
   -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq₂ : f.to_simple_func.neg_part =ᵐ[μ] (f.neg_part).to_simple_func.map norm,
   { filter_upwards [neg_part_to_simple_func f],
-    simp only [mem_set_of_eq],
     assume a h,
     rw [simple_func.map_apply, h],
     conv_lhs { rw [← simple_func.neg_part_map_norm, simple_func.map_apply] } },
@@ -841,7 +837,6 @@ begin
   have ae_eq : ∀ᵐ a ∂μ, f.to_simple_func.pos_part a - f.to_simple_func.neg_part a =
     (f.pos_part).to_simple_func.map norm a - (f.neg_part).to_simple_func.map norm a,
   { filter_upwards [ae_eq₁, ae_eq₂],
-    simp only [mem_set_of_eq],
     assume a h₁ h₂,
     rw [h₁, h₂] },
   rw [integral, norm_eq_integral, norm_eq_integral, ← simple_func.integral_sub],
@@ -849,7 +844,6 @@ begin
       ((f.pos_part.to_simple_func).map norm - f.neg_part.to_simple_func.map norm).integral μ,
     apply measure_theory.simple_func.integral_congr f.integrable,
     filter_upwards [ae_eq₁, ae_eq₂],
-    simp only [mem_set_of_eq],
     assume a h₁ h₂, show _ = _ - _,
     rw [← h₁, ← h₂],
     have := f.to_simple_func.pos_part_sub_neg_part,
@@ -911,7 +905,7 @@ local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _ _
 local notation `sIntegral` := @simple_func.integral_clm α E _ _ _ _ _ μ _
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
-calc ∥Integral∥ ≤ (1 : nnreal) * ∥sIntegral∥ :
+calc ∥Integral∥ ≤ (1 : ℝ≥0) * ∥sIntegral∥ :
   op_norm_extend_le _ _ _ $ λs, by {rw [nnreal.coe_one, one_mul], refl}
   ... = ∥sIntegral∥ : one_mul _
   ... ≤ 1 : norm_Integral_le_one
@@ -1018,7 +1012,7 @@ integral_neg f
 
 lemma integral_sub (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, f a - g a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
-by { rw [sub_eq_add_neg, ← integral_neg], exact integral_add hf hg.neg }
+by { simp only [sub_eq_add_neg, ← integral_neg], exact integral_add hf hg.neg }
 
 lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
@@ -1149,7 +1143,6 @@ begin
     { assumption },
     { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
     { filter_upwards [h_lim],
-      simp only [mem_set_of_eq],
       assume a h_lim,
       apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
       { assumption },
@@ -1171,7 +1164,6 @@ begin
   congr' 1,
   apply lintegral_congr_ae,
   filter_upwards [l1.pos_part_to_fun f₁, l1.to_fun_of_fun f hf],
-  simp only [mem_set_of_eq],
   assume a h₁ h₂,
   rw [h₁, h₂, real.norm_eq_abs, abs_of_nonneg],
   exact le_max_right _ _
@@ -1183,7 +1175,6 @@ begin
   congr' 1,
   apply lintegral_congr_ae,
   filter_upwards [l1.neg_part_to_fun_eq_min f₁, l1.to_fun_of_fun f hf],
-  simp only [mem_set_of_eq],
   assume a h₁ h₂,
   rw [h₁, h₂, real.norm_eq_abs, abs_of_nonneg],
   rw [neg_nonneg],
@@ -1227,7 +1218,7 @@ begin
   { rw integral_non_measurable hfm }
 end
 
-lemma lintegral_coe_eq_integral (f : α → nnreal) (hfi : integrable (λ x, (f x : real)) μ) :
+lemma lintegral_coe_eq_integral (f : α → ℝ≥0) (hfi : integrable (λ x, (f x : real)) μ) :
   ∫⁻ a, f a ∂μ = ennreal.of_real ∫ a, f a ∂μ :=
 begin
   simp_rw [integral_eq_lintegral_of_nonneg_ae (eventually_of_forall (λ x, (f x).coe_nonneg))
@@ -1447,7 +1438,7 @@ begin
   refine tendsto_nhds_unique _ (tendsto_const_nhds.smul (tendsto_integral_approx_on_univ hfi)),
   convert tendsto_integral_approx_on_univ (hfi.smul_measure hc),
   simp only [simple_func.integral, measure.smul_apply, finset.smul_sum, smul_smul,
-    ennreal.to_real_mul_to_real]
+    ennreal.to_real_mul]
 end
 
 lemma integral_map {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)

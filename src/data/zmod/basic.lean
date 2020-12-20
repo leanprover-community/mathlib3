@@ -5,7 +5,7 @@ Author: Chris Hughes
 -/
 
 import data.int.modeq
-import algebra.char_p
+import algebra.char_p.basic
 import data.nat.totient
 import ring_theory.ideal.operations
 
@@ -427,6 +427,8 @@ begin
   rw zmod.int_coe_eq_int_coe_iff,
   apply int.modeq.mod_modeq,
 end
+
+local attribute [semireducible] int.nonneg
 
 @[simp] lemma coe_to_nat (p : ℕ) :
   ∀ {z : ℤ} (h : 0 ≤ z), (z.to_nat : zmod p) = z

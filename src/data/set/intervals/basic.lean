@@ -221,6 +221,8 @@ lemma Icc_subset_Ici_self : Icc a b ⊆ Ici a := λ x, and.left
 
 lemma Icc_subset_Iic_self : Icc a b ⊆ Iic b := λ x, and.right
 
+lemma Ioc_subset_Iic_self : Ioc a b ⊆ Iic b := λ x, and.right
+
 lemma Ioc_subset_Ioc (h₁ : a₂ ≤ a₁) (h₂ : b₁ ≤ b₂) :
   Ioc a₁ b₁ ⊆ Ioc a₂ b₂ :=
 λ x ⟨hx₁, hx₂⟩, ⟨lt_of_le_of_lt h₁ hx₁, le_trans hx₂ h₂⟩
@@ -262,6 +264,8 @@ lemma Ioo_subset_Ioi_self : Ioo a b ⊆ Ioi a := λ x, and.left
 lemma Ioi_subset_Ici_self : Ioi a ⊆ Ici a := λx hx, le_of_lt hx
 
 lemma Iio_subset_Iic_self : Iio a ⊆ Iic a := λx hx, le_of_lt hx
+
+lemma Ico_subset_Ici_self : Ico a b ⊆ Ici a := λ x, and.left
 
 lemma Icc_subset_Icc_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Icc a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
@@ -324,6 +328,14 @@ lemma Ici_inter_Iio : Ici a ∩ Iio b = Ico a b := rfl
 lemma Ioi_inter_Iic : Ioi a ∩ Iic b = Ioc a b := rfl
 lemma Ioi_inter_Iio : Ioi a ∩ Iio b = Ioo a b := rfl
 
+lemma mem_Icc_of_Ioo (h : x ∈ Ioo a b) : x ∈ Icc a b := Ioo_subset_Icc_self h
+lemma mem_Ico_of_Ioo (h : x ∈ Ioo a b) : x ∈ Ico a b := Ioo_subset_Ico_self h
+lemma mem_Ioc_of_Ioo (h : x ∈ Ioo a b) : x ∈ Ioc a b := Ioo_subset_Ioc_self h
+lemma mem_Icc_of_Ico (h : x ∈ Ico a b) : x ∈ Icc a b := Ico_subset_Icc_self h
+lemma mem_Icc_of_Ioc (h : x ∈ Ioc a b) : x ∈ Icc a b := Ioc_subset_Icc_self h
+lemma mem_Ici_of_Ioi (h : x ∈ Ioi a) : x ∈ Ici a := Ioi_subset_Ici_self h
+lemma mem_Iic_of_Iio (h : x ∈ Iio a) : x ∈ Iic a := Iio_subset_Iic_self h
+
 end intervals
 
 section partial_order
@@ -377,6 +389,20 @@ by rw [← Iic_diff_right, diff_diff_cancel_left (singleton_subset_iff.2 right_m
 @[simp] lemma Ioi_union_left : Ioi a ∪ {a} = Ici a := ext $ λ x, by simp [eq_comm, le_iff_eq_or_lt]
 
 @[simp] lemma Iio_union_right : Iio a ∪ {a} = Iic a := ext $ λ x, le_iff_lt_or_eq.symm
+
+lemma Ioo_union_left (hab : a < b) : Ioo a b ∪ {a} = Ico a b :=
+by rw [← Ico_diff_left, diff_union_self,
+  union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Ico.2 hab)]
+
+lemma Ioo_union_right (hab : a < b) : Ioo a b ∪ {b} = Ioc a b :=
+by simpa only [dual_Ioo, dual_Ico] using @Ioo_union_left (order_dual α) _ b a hab
+
+lemma Ioc_union_left (hab : a ≤ b) : Ioc a b ∪ {a} = Icc a b :=
+by rw [← Icc_diff_left, diff_union_self,
+  union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Icc.2 hab)]
+
+lemma Ico_union_right (hab : a ≤ b) : Ico a b ∪ {b} = Icc a b :=
+by simpa only [dual_Ioc, dual_Icc] using @Ioc_union_left (order_dual α) _ b a hab
 
 lemma mem_Ici_Ioi_of_subset_of_subset {s : set α} (ho : Ioi a ⊆ s) (hc : s ⊆ Ici a) :
   s ∈ ({Ici a, Ioi a} : set (set α)) :=
@@ -447,13 +473,27 @@ lemma Iic_singleton_of_bot {a : α} (h_bot : ∀ x, a ≤ x) : Iic a = {a} :=
 
 end partial_order
 
-section order_top_or_bot
-variables {α : Type u}
+section order_top
 
-@[simp] lemma Ici_top [order_top α] : Ici (⊤ : α) = {⊤} := Ici_singleton_of_top (λ _, le_top)
-@[simp] lemma Ici_bot [order_bot α] : Iic (⊥ : α) = {⊥} := Iic_singleton_of_bot (λ _, bot_le)
+variables {α : Type u} [order_top α] {a : α}
 
-end order_top_or_bot
+@[simp] lemma Ici_top : Ici (⊤ : α) = {⊤} := Ici_singleton_of_top (λ _, le_top)
+@[simp] lemma Iic_top : Iic (⊤ : α) = univ := eq_univ_of_forall $ λ x, le_top
+@[simp] lemma Icc_top : Icc a ⊤ = Ici a := by simp [← Ici_inter_Iic]
+@[simp] lemma Ioc_top : Ioc a ⊤ = Ioi a := by simp [← Ioi_inter_Iic]
+
+end order_top
+
+section order_bot
+
+variables {α : Type u} [order_bot α] {a : α}
+
+@[simp] lemma Iic_bot : Iic (⊥ : α) = {⊥} := Iic_singleton_of_bot (λ _, bot_le)
+@[simp] lemma Ici_bot : Ici (⊥ : α) = univ := @Iic_top (order_dual α) _
+@[simp] lemma Icc_bot : Icc ⊥ a = Iic a := by simp [← Ici_inter_Iic]
+@[simp] lemma Ico_bot : Ico ⊥ a = Iio a := by simp [← Ici_inter_Iio]
+
+end order_bot
 
 section linear_order
 variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ : α}
@@ -801,8 +841,8 @@ end both
 
 end lattice
 
-section decidable_linear_order
-variables {α : Type u} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
+section linear_order
+variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
 
 lemma Ioc_inter_Ioo_of_left_lt (h : b₁ < b₂) : Ioc a₁ b₁ ∩ Ioo a₂ b₂ = Ioc (max a₁ a₂) b₁ :=
 ext $ λ x, by simp [and_assoc, @and.left_comm (x ≤ _),
@@ -852,11 +892,11 @@ begin
     le_max_right_of_le, le_refl] { max_depth := 5 }}
 end
 
-end decidable_linear_order
+end linear_order
 
-section decidable_linear_ordered_add_comm_group
+section linear_ordered_add_comm_group
 
-variables {α : Type u} [decidable_linear_ordered_add_comm_group α]
+variables {α : Type u} [linear_ordered_add_comm_group α]
 
 /-- If we remove a smaller interval from a larger, the result is nonempty -/
 lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :
@@ -867,6 +907,6 @@ begin
   { use max x (x + dy), simp [*, le_refl] }
 end
 
-end decidable_linear_ordered_add_comm_group
+end linear_ordered_add_comm_group
 
 end set

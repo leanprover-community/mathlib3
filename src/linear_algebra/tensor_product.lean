@@ -275,9 +275,9 @@ instance compatible_smul.has_scalar_tower
   exact (quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _),
 end⟩
 
-variables [compatible_smul R R' M N] [smul_comm_class R R' M] [smul_comm_class R R' N]
 
-lemma smul_tmul (r : R') (m : M) (n : N) : (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
+lemma smul_tmul [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
+  (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
 compatible_smul.smul_tmul _ _ _
 
 /-- Auxiliary function to defining scalar multiplication on tensor product. -/
@@ -288,9 +288,12 @@ theorem smul.aux_of {R' : Type*} [has_scalar R' M] (r : R') (m : M) (n : N) :
   smul.aux r (free_add_monoid.of (m, n)) = (r • m) ⊗ₜ[R] n :=
 rfl
 
+variables [smul_comm_class R R' M] [smul_comm_class R R' N]
+
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
--- to find.
-@[priority 900]
+-- to find. The `unused_arguments` is from one of the two comm_classes - while we only make use
+-- of one, it makes sense to make the API symmetric.
+@[priority 900, nolint unused_arguments]
 instance has_scalar' : has_scalar R' (M ⊗[R] N) :=
 ⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (smul.aux r : _ →+ M ⊗[R] N) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
@@ -347,7 +350,8 @@ instance semimodule' : semimodule R' (M ⊗[R] N) :=
 
 instance : semimodule R (M ⊗[R] N) := tensor_product.semimodule'
 
-@[simp] lemma tmul_smul (r : R') (x : M) (y : N) : x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
+@[simp] lemma tmul_smul [compatible_smul R R' M N] (r : R') (x : M) (y : N) :
+  x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
 
 variables (R M N)
@@ -858,3 +862,5 @@ by simp only [← coe_rtensor_hom, map_neg]
 end linear_map
 
 end ring
+
+#lint

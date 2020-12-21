@@ -607,6 +607,10 @@ variables {K : Type*} [is_R_or_C K]
 open_locale classical
 open is_R_or_C
 
+/-- This instance generates a type-class problem with a metavariable `?m` that should satisfy
+`is_R_or_C ?m`. Since this can only be satisfied by `ℝ` or `ℂ`, this does not cause problems. -/
+library_note "is_R_or_C instance"
+
 /-- An `is_R_or_C` field is finite-dimensional over `ℝ`, since it is spanned by `{1, I}`. -/
 @[nolint dangerous_instance] instance is_R_or_C_to_real : finite_dimensional ℝ K :=
 finite_dimensional.iff_fg.mpr ⟨{1, I},
@@ -622,7 +626,7 @@ finite_dimensional.iff_fg.mpr ⟨{1, I},
 
 /-- Over an `is_R_or_C` field, we can register the properness of finite-dimensional normed spaces as
 an instance. -/
-@[priority 900, nolint dangerous_instance] instance proper_is_R_or_C
+@[priority 900, nolint dangerous_instance] instance proper_is_R_or_C -- note [is_R_or_C instance]
   {E : Type*} [normed_group E] [normed_space K E] [finite_dimensional K E] :
   proper_space E :=
 begin

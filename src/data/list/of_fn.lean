@@ -92,4 +92,47 @@ by simp only [mem_of_fn, set.forall_range_iff]
   of_fn (λ i : fin n, c) = repeat c n :=
 nat.rec_on n (by simp) $ λ n ihn, by simp [ihn]
 
+lemma list.of_fn_congr {ι : Type*} {m n : ℕ} (f : fin m → ι) (h : n = m) :
+  list.of_fn f = list.of_fn (f ∘ fin.cast h) :=
+begin
+  congr,
+  { rw h },
+  { rw fin.heq_fun_iff h.symm,
+    intro i,
+    congr,
+    ext,
+    refl },
+end
+
+lemma of_fn_append {ι : Type*} {m n : ℕ} :
+  ∀ {o : ℕ} (f : fin m → ι) (g : fin n → ι) (ho : o = m + n),
+    list.of_fn (fin.append ho f g) = list.of_fn f ++ list.of_fn g :=
+begin
+  induction m with j hj,
+  { intros o f g ho,
+    rw zero_add at ho,
+    rw [list.of_fn_zero, list.nil_append],
+    congr,
+    { exact ho },
+    { exact (fin.heq_fun_iff ho).2 (λ i, fin.default_append _ _ ho _) }},
+  { intros o f g ho,
+  have hjn : o.pred = j + n := by rw [ho, nat.succ_add_eq_succ_add]; refl,
+  rw list.of_fn_succ,
+  rw list.cons_append,
+  erw ←hj (fin.tail f) g hjn,
+  rw list.of_fn_congr _ ((nat.succ_add_eq_succ_add _ _).symm.trans ho.symm),
+  rw list.of_fn_succ,
+  congr,
+  rw hjn,
+  rw fin.heq_fun_iff hjn.symm,
+  intro i,
+  rw function.comp_app,
+  conv_lhs {rw ←fin.cons_self_tail f},
+  rw cons_append _ _ ho hjn,
+  convert cons_succ _ _ _,
+  refl,
+  ext,
+  simp only [coe_cast, coe_mk, coe_succ]},
+end
+
 end list

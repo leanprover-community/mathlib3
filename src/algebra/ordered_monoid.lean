@@ -577,30 +577,10 @@ calc a = 1 * a : by simp
 calc a = a * 1 : by simp
   ... ≤ b * c : mul_le_mul' h (one_le _)
 
-#check with_zero.ordered_add_comm_monoid
+local attribute [semireducible] with_zero
 
-local attribute [semireducible] with_zero with_one
-
-instance with_one.canonically_ordered_monoid :
-  canonically_ordered_monoid (with_one α) :=
-{ le_iff_exists_mul := λ a b, begin
-    cases a with a,
-    { exact iff_of_true bot_le ⟨b, (zero_add b).symm⟩ },
-    cases b with b,
-    { exact iff_of_false
-        (mt (le_antisymm bot_le) (by simp))
-        (λ ⟨c, h⟩, by cases c; cases h) },
-    { simp [le_iff_exists_add, -add_comm],
-      split; intro h; rcases h with ⟨c, h⟩,
-      { exact ⟨some c, congr_arg some h⟩ },
-      { cases c; cases h,
-        { exact ⟨_, (add_zero _).symm⟩ },
-        { exact ⟨_, rfl⟩ } } }
-  end,
-  bot    := 1,
-  bot_le := assume a a' h, option.no_confusion h,
-  .. with_one.ordered_comm_monoid one_le }
-
+-- This instance looks absurd: a monoid already has a zero
+/-- Adding a new zero to a canonically ordered additive monoid produces another one. -/
 instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
   canonically_ordered_add_monoid (with_zero α) :=
 { le_iff_exists_add := λ a b, begin
@@ -621,7 +601,8 @@ instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ord
   bot_le := assume a a' h, option.no_confusion h,
   .. with_zero.ordered_add_comm_monoid zero_le }
 
-instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] : canonically_ordered_add_monoid (with_top α) :=
+instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
+  canonically_ordered_add_monoid (with_top α) :=
 { le_iff_exists_add := assume a b,
   match a, b with
   | a, none     := show a ≤ ⊤ ↔ ∃c, ⊤ = a + c, by simp; refine ⟨⊤, _⟩; cases a; refl
@@ -637,22 +618,35 @@ instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_orde
   .. with_top.order_bot,
   .. with_top.ordered_add_comm_monoid }
 
-end canonically_ordered_add_monoid
+end canonically_ordered_monoid
 
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
     whose ordering is a linear order. -/
-@[protect_proj]
+@[protect_proj, ancestor canonically_ordered_add_monoid linear_order]
 class canonically_linear_ordered_add_monoid (α : Type*)
       extends canonically_ordered_add_monoid α, linear_order α
 
-section canonically_linear_ordered_add_monoid
-variables [canonically_linear_ordered_add_monoid α]
+/-- A canonically linear-ordered monoid is a canonically ordered monoid
+    whose ordering is a linear order. -/
+@[protect_proj, ancestor canonically_ordered_monoid linear_order]
+class canonically_linear_ordered_monoid (α : Type*)
+      extends canonically_ordered_monoid α, linear_order α
+
+section canonically_linear_ordered_monoid
+variables
 
 @[priority 100]  -- see Note [lower instance priority]
-instance canonically_linear_ordered_add_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
+instance canonically_linear_ordered_add_monoid.semilattice_sup_bot
+  [canonically_linear_ordered_add_monoid α] : semilattice_sup_bot α :=
 { ..lattice_of_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
 
-end canonically_linear_ordered_add_monoid
+@[priority 100, to_additive canonically_linear_ordered_add_monoid.semilattice_sup_bot]
+-- see Note [lower instance priority]
+instance canonically_linear_ordered_monoid.semilattice_sup_bot
+  [canonically_linear_ordered_monoid α] : semilattice_sup_bot α :=
+{ ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }
+
+end canonically_linear_ordered_monoid
 
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,

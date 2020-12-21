@@ -71,27 +71,6 @@ by refl
 @[simp] lemma empty_support : (matching.empty G).support = ∅ :=
 by { ext, simp [empty], }
 
-/- probably don't need this since v ∈ M.support is ok? (trying to avoid extra lemmas)
-/--
-A vertex `v` is saturated by a matching `M` if `v ∈ M.support`
--/
-def saturated_vertex (M : G.matching) (v : V) : Prop :=
-v ∈ M.support
--/
-
-/--
-A set of vertices `S` is saturated by a matching `M` if `S ⊆ M.support`
--/
-def saturates (M : G.matching) (S : set V) : Prop :=
-S ⊆ M.support
-
-lemma subset_saturates (M : G.matching) {S S' : set V} (hsub : S ⊆ S') (h : M.saturates S') :
-  M.saturates S :=
-λ v hv, h (hsub hv)
-
-lemma saturates_support (M : G.matching) : M.saturates M.support :=
-by simp only [saturates]
-
 /--
 A perfect matching `M` on graph `G` is a matching such that
   every vertex is contained in an edge of `M`.
@@ -151,31 +130,31 @@ lemma opposite_ne (M : G.matching) (v : V) (h : v ∈ M.support) :
 /--
 Given a set saturated by a matching, get the set of vertices opposite that set.
 -/
-def opposite_set (M : G.matching) (S : set V) (h : M.saturates S) : set V :=
+def opposite_set (M : G.matching) (S : set V) (h : S ⊆ M.support) : set V :=
 {v | ∃ (w : V) (wel : w ∈ S), M.opposite w (h wel) = v}
 
 @[simp]
-lemma mem_opposite_set (M : G.matching) (S : set V) (h : M.saturates S) (v : V) :
+lemma mem_opposite_set (M : G.matching) (S : set V) (h : S ⊆ M.support) (v : V) :
   v ∈ M.opposite_set S h ↔ ∃ (w : V) (wel : w ∈ S), M.opposite w (h wel) = v :=
 by refl
 
-lemma opposite_set_subset_set_neighbor_set (M : G.matching) (S : set V) (h : M.saturates S) :
-  M.opposite_set S h ⊆ G.set_neighbor_set S :=
+lemma opposite_set_subneighbor_set' (M : G.matching) (S : set V) (h : S ⊆ M.support) :
+  M.opposite_set S h ⊆ G.neighbor_set' S :=
 begin
   rintros v ⟨w, wel, hw⟩,
-  rw mem_set_neighbor_set,
+  rw mem_neighbor_set',
   use [w, wel],
   have hh := M.sub_edges (M.opposite_spec w (h wel)),
   simpa [hw] using hh,
 end
 
 lemma mem_iff_mem_opposite_set (M : G.matching)
-  (S : set V) (hS : M.saturates S) (v : V) (hv : v ∈ M.support) :
+  (S : set V) (hS : S ⊆ M.support) (v : V) (hv : v ∈ M.support) :
   v ∈ S ↔ M.opposite v hv ∈ M.opposite_set S hS :=
 by simp [opposite_set]
 
-lemma opposite_set_saturated (M : G.matching) (S : set V) (h : M.saturates S) :
-  M.saturates (M.opposite_set S h) :=
+lemma opposite_set_saturated (M : G.matching) (S : set V) (h : S ⊆ M.support) :
+  (M.opposite_set S h) ⊆ M.support :=
 begin
   rintros v ⟨w, H, hv⟩,
   use ⟦(w, v)⟧,
@@ -185,7 +164,7 @@ begin
 end
 
 noncomputable
-def opposite_set_equiv (M : G.matching) (S : set V) (h : M.saturates S) :
+def opposite_set_equiv (M : G.matching) (S : set V) (h : S ⊆ M.support) :
   M.opposite_set S h ≃ S :=
 { to_fun := λ vv, ⟨classical.some vv.2, begin
     rcases classical.some_spec vv.2 with ⟨hw, _⟩,
@@ -204,11 +183,11 @@ def opposite_set_equiv (M : G.matching) (S : set V) (h : M.saturates S) :
 
 noncomputable
 instance opposite_set.fintype
-  (M : G.matching) {S : set V} [fintype S] (h : M.saturates S) :
+  (M : G.matching) {S : set V} [fintype S] (h : S ⊆ M.support) :
   fintype (M.opposite_set S h) :=
 fintype.of_equiv _ ((M.opposite_set_equiv S h).symm)
 
-lemma opposites_card_eq (M : G.matching) {S : set V} [fintype S] (h : M.saturates S) :
+lemma opposites_card_eq (M : G.matching) {S : set V} [fintype S] (h : S ⊆ M.support) :
   fintype.card (M.opposite_set S h) = fintype.card S :=
 begin
 --  rw ←fintype.card_coe,
@@ -216,7 +195,7 @@ begin
 end
 
 lemma opposite_set_support_eq (M : G.matching) :
-  (M.opposite_set M.support M.saturates_support) = M.support :=
+  (M.opposite_set M.support (set.subset.refl M.support)) = M.support :=
 begin
   apply set.subset.antisymm,
   { apply M.opposite_set_saturated, },
@@ -225,9 +204,10 @@ begin
     exact ⟨M.opposite v hs, M.opposite_mem_support v hs, M.opposite_invol v hs⟩, },
 end
 
-noncomputable
+/-noncomputable
 def support_opposite (M : G.matching) : M.support → M.support :=
-λ vv, ⟨M.opposite vv.1 (M.saturates_support vv.2), begin
+λ vv, ⟨M.opposite vv.1 (vv.2 ∈ M.support),
+begin
   have h := (M.mem_iff_mem_opposite_set M.support M.saturates_support _ (M.saturates_support vv.2)).mp vv.2,
   rwa M.opposite_set_support_eq at h,
 end⟩
@@ -237,7 +217,7 @@ by { rintros ⟨v, hv⟩, dunfold support_opposite, simp only [subtype.mk_eq_mk,
 
 lemma support_opposite_ne (M : G.matching) (v : M.support) :
   M.support_opposite v ≠ v :=
-by { rcases v with ⟨v, hv⟩, simp [support_opposite, opposite_ne] }
+by { rcases v with ⟨v, hv⟩, simp [support_opposite, opposite_ne] }-/
 
 lemma card_even_if_fixedpoint_free_invol {α : Type*} [fintype α] [decidable_eq α] (f : α → α)
   (hi : function.involutive f) (hn : ∀ x, x ≠ f x) : even (fintype.card α) :=
@@ -289,8 +269,8 @@ begin
   sorry
 end
 
-lemma support_card_even [fintype V] [decidable_eq V] (M : G.matching) : even (fintype.card M.support) :=
-card_even_if_fixedpoint_free_invol M.support_opposite (support_opposite_invol M) (λ x, (support_opposite_ne M x).symm)
+/-lemma support_card_even [fintype V] [decidable_eq V] (M : G.matching) : even (fintype.card M.support) :=
+card_even_if_fixedpoint_free_invol M.support_opposite (support_opposite_invol M) (λ x, (support_opposite_ne M x).symm)-/
 
 /-
 noncomputable for now...
@@ -323,6 +303,7 @@ begin
   exact fintype.of_equiv _ eqv.symm,
 end
 
+
 end matching
 
 open finset
@@ -331,10 +312,62 @@ variables (M : G.matching) [fintype M.support]
 section bipartite
 variables [fintype V] [decidable_eq V] (f : G.bipartition)
 
-lemma not_saturates_iff_exists : ¬M.saturates (f.color_set 0) ↔ ∃ u, u ∈ f.color_set 0 ∧ ¬u ∈ M.support :=
+/-lemma not_saturates_iff_exists : ¬M.saturates (f.color_set 0) ↔ ∃ u, u ∈ f.color_set 0 ∧ ¬u ∈ M.support :=
 begin
   rw ←not_iff_not, push_neg, rw ←set.subset, refl,
-end
+end-/
+
+def matching.disjoint_union (M M' : G.matching) (h : disjoint M.support M'.support) : G.matching :=
+{ edges := M.edges ∪ M'.edges,
+  sub_edges :=
+    begin
+      simp [M.sub_edges, M'.sub_edges],
+    end,
+  disjoint := λ e f he hf v hve hvf,
+    begin
+      let w := hve.other,
+      simp at *,
+      wlog : e ∈ M.edges := he using M M',
+      have hvM : v ∈ M.support,
+      rw matching.mem_support,
+      refine ⟨e, he, hve⟩,
+      have hwM : w ∈ M.support,
+      rw matching.mem_support,
+      refine ⟨e, he, sym2.mem_other_mem hve⟩,
+      have hfM : f ∉ M'.edges,
+      let x := hvf.other,
+      have hvM' : v ∉ M'.support,
+      apply set.disjoint_left.mp h hvM,
+      by_contra hfM',
+      apply hvM',
+      rw matching.mem_support,
+      refine ⟨f, hfM', hvf⟩,
+      apply M.disjoint e f he,
+      tauto,
+      exact hve,
+      exact hvf,
+    end }
+
+/-def matching.disjoint_union' (M M' : G.matching) (e f : sym2 V) (v : V)
+ (h : (e ∈ M.edges ∧ f ∈ M'.edges) ∧ v ∈ e ∩ f → e = f) : G.matching :=
+{ edges := M.edges ∪ M'.edges,
+  sub_edges :=
+    begin
+      simp [M.sub_edges, M'.sub_edges],
+    end,
+  disjoint := λ e f he hf v hve hvf,
+    begin
+      have : v ∈ M.support ∪ M'.support,
+      simp at *,
+      cases he with hM hM',
+      use e,
+      refine ⟨hM, hve⟩,
+      right,
+      use e,
+      refine ⟨hM', hve⟩,
+      sorry,
+    end }-/
+  -- h : (e ∈ M.edges ∧ f ∈ M'.edges) ∧ v ∈ e ∩ f → e = f
 
 /--
 `alternating_path b u v` is a path starting at u and ending at v, where the edges alternating between being in M and being outside M.
@@ -344,31 +377,53 @@ inductive alternating_path (M : G.matching) : bool → V → V → Type u
 | consM {u v w : V} (p : alternating_path tt u v) (h : ⟦(v,w)⟧ ∈ M.edges) : alternating_path ff u w
 | consNot {u v w : V} (p : alternating_path ff u v) (h : ⟦(v,w)⟧ ∈ G.edge_set \ M.edges) : alternating_path tt u w
 
+lemma foo (α : Type*) [partial_order α] (f : α → α) (h : ∀ (x : α), x ≤ f x) :
+  (∀ x, x < f x) ∨ (∃ x, x = f x) :=
+begin
+  simp_rw le_iff_eq_or_lt at h,
+  rw or_iff_not_imp_left,
+  intro ha,
+  push_neg at ha,
+  cases ha with x hx,
+  use x,
+  specialize h x,
+  tauto,
+end
+
 theorem hall_marriage_theorem
   (h2 : fintype.card (f.color_set 0) ≤ fintype.card (f.color_set 1)) :
-  (∃ (M : G.matching), M.saturates (f.color_set 0)) ↔
+  (∃ (M : G.matching), (f.color_set 0) ⊆ M.support) ↔
   (∀ (S ⊆ f.color_set 0),
-    fintype.card S ≤ fintype.card (G.set_neighbor_set S)) :=
+    fintype.card S ≤ fintype.card (G.neighbor_set' S)) :=
 begin
   split,
   { rintros ⟨M, hM⟩ S hs,
-    have Ssat := (M.subset_saturates hs hM),
+    have Ssat := set.subset.trans hs hM,
     rw ←M.opposites_card_eq Ssat,
     have Sopp := M.opposites_card_eq Ssat,
-    exact set.card_le_of_subset (M.opposite_set_subset_set_neighbor_set S Ssat) },
+    exact set.card_le_of_subset (M.opposite_set_subneighbor_set' S Ssat) },
   { intro hh,
-    by_contra hv, push_neg at hv,
-    let matchings : finset G.matching := {M : G.matching | M.support ⊆ f.color_set 0}.to_finset,
-    have matchings_nonempty : matchings.nonempty,
-    { use matching.empty G, simp, },
-    rcases exists_max_image matchings (λ M, fintype.card M.support) matchings_nonempty with ⟨M, Mel, hmax⟩,
-    by_cases hsat : M.saturates (f.color_set 0),
-    { exact hv M hsat, },
-    rcases (not_saturates_iff_exists G M f).mp hsat with ⟨u, hu0, hunotsupp⟩,
-    -- Goal: extend M and then use hmax to get a contradiction.
+    -- ∀ x, x ≤ f x → (∀ x, x < f x) ∨ (∃ x, x = f x)
+    --by_contra hv,
 
+    -- induction on `|f.color_set 0|` using partial colorings
+      --
+      -- have `partial_coloring.restrict f.to_partial`
+    -- base case: `|f.color_set 0| = 0`, i.e. `f.color_set 0 = ∅`
+      -- this is trivial
+
+    -- IH: `∀ (S ⊆ f.color_set 0), fintype.card S ≤ fintype.card (G.neighbor_set' S))`
+    -- ` → ∃ (M : G.matching), (f.color_set 0) ⊆ M.support`
+      -- what i mean by this is `f.color_set 0` when you push `f` through to an induced subgraph
     sorry },
 end
+
+/- TO DO:
+
+-
+
+
+-/
 
 end bipartite
 

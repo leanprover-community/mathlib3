@@ -73,8 +73,8 @@ variables {V : Type u} (G : simple_graph V)
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
-/-- `G.set_neighbor_set v` is the union of neighbor_sets of `S ⊆ V` in `G`. -/
-def set_neighbor_set (S : set V) : set V := ⋃v∈S, G.neighbor_set v
+/-- `G.neighbor_set' S` is the union of neighbor_sets of `S ⊆ V` in `G`. -/
+def neighbor_set' (S : set V) : set V := ⋃v∈S, G.neighbor_set v
 
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
@@ -136,19 +136,19 @@ by { dunfold edge_finset, simp }
 by tauto
 
 @[simp]
-lemma mem_set_neighbor_set (S : set V) (v : V) :
-  v ∈ G.set_neighbor_set S ↔ ∃ (w ∈ S), v ∈ G.neighbor_set w :=
-by { simp only [set_neighbor_set, set.mem_Union] }
+lemma mem_neighbor_set' (S : set V) (v : V) :
+  v ∈ G.neighbor_set' S ↔ ∃ (w ∈ S), v ∈ G.neighbor_set w :=
+by { simp only [neighbor_set', set.mem_Union] }
 
 instance neighbor_set.decidable_pred [h : decidable_rel G.adj] (v : V) :
   decidable_pred (G.neighbor_set v) :=
 h v
 
-instance set_neighbor_set.decidable_pred [h : decidable_rel G.adj] [fintype V]
-  (S : set V) [hs : decidable_pred S] : decidable_pred (G.set_neighbor_set S) :=
+instance neighbor_set'.decidable_pred [h : decidable_rel G.adj] [fintype V]
+  (S : set V) [hs : decidable_pred S] : decidable_pred (G.neighbor_set' S) :=
 begin
-  intro w, change decidable (w ∈ G.set_neighbor_set S),
-  simp only [exists_prop, mem_set_neighbor_set, mem_neighbor_set], apply_instance,
+  intro w, change decidable (w ∈ G.neighbor_set' S),
+  simp only [exists_prop, mem_neighbor_set', mem_neighbor_set], apply_instance,
 end
 
 section finite_at
@@ -238,29 +238,29 @@ The graph with no edges on a given vertex type.
 def empty_graph (V : Type u) : simple_graph V :=
 { adj := λ i j, false }
 
--- Let's see if we really need this.  fintype.card (G.set_neighbor_set S) works well enough
+-- Let's see if we really need this.  fintype.card (G.neighbor_set' S) works well enough
 
 -- section set_neighbor_finset
 --
--- variables (S : finset V) [fintype (G.set_neighbor_set S)]
+-- variables (S : finset V) [fintype (G.neighbor_set' S)]
 --
 -- /--
 -- `G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
 -- locally finite at `v`.
 -- -/
--- def set_neighbor_finset : finset V := (G.set_neighbor_set S).to_finset
+-- def set_neighbor_finset : finset V := (G.neighbor_set' S).to_finset
 --
 -- @[simp] lemma mem_set_neighbor_finset_eq (w : V) :
---   w ∈ G.set_neighbor_finset S ↔ w ∈ G.set_neighbor_set S :=
+--   w ∈ G.set_neighbor_finset S ↔ w ∈ G.neighbor_set' S :=
 -- by { simp only [set_neighbor_finset, set.mem_to_finset] }
 --
 -- @[simp] lemma coe_set_neighbor_finset_eq :
---   (G.set_neighbor_finset S : set V) = G.set_neighbor_set S :=
+--   (G.set_neighbor_finset S : set V) = G.neighbor_set' S :=
 -- by { ext, simp only [set_neighbor_finset, set.coe_to_finset] }
 --
 -- /- unnecessary. just here temporarily for my information --kmill
--- instance set_neighbor_set_fintype [decidable_rel G.adj] (S : set V) [decidable_pred S] :
---   fintype (G.set_neighbor_set S) :=
+-- instance neighbor_set'_fintype [decidable_rel G.adj] (S : set V) [decidable_pred S] :
+--   fintype (G.neighbor_set' S) :=
 -- by apply_instance
 -- -/
 --

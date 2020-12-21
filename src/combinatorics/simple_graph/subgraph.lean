@@ -376,8 +376,7 @@ def subgraph_neighbor_set_in_supergraph {G' G'' : subgraph G} (h : G' ≤ G'') (
   left_inv := λ w, by tidy,
   right_inv := λ w, by tidy }
 
---bookmark
-/-/--
+/--
 This instance also provides finiteness of subgraphs when `[decidable_rel (adj G)]` and `[fintype (V G)]`.
 -/
 instance finite_at
@@ -389,9 +388,9 @@ fintype.of_equiv _ (subgraph_neighbor_set_in_graph G' v).symm
 Not an instance because it depends on `h`.
 -/
 def finite_at_subgraph {G' G'' : subgraph G} [decidable_rel G'.adj'] [decidable_rel G''.adj']
-  (h : G' ≤ G'') (v : V ↟G') [hf : fintype (neighbor_set (map h v))] :
-  fintype (neighbor_set v) :=
-fintype.of_equiv _ (subgraph_neighbor_set_in_supergraph h v).symm-/
+  (h : G' ≤ G'') (v : G'.V') [hf : fintype (G.neighbor_set (map h v))] :
+  fintype (G.neighbor_set v) :=
+fintype.of_equiv _ (subgraph_neighbor_set_in_supergraph h v).symm
 
 
 

@@ -63,11 +63,11 @@ def restrict_coloring {G : simple_graph V} {G' : simple_graph V} (f : G →g G')
          apply F.valid (f.map_adj h) hF,
        end }
 
-/--
+/-/--
 Given a coloring of a graph, one may restrict the coloring to a subgraph.
 -/
-def restrict_coloring_subgraph {β : Type*} (G' : subgraph G) : coloring G β → coloring G'.to_simple_graph β :=
-restrict_coloring G'.map_top
+def restrict_coloring_subgraph {β : Type*} (G' : subgraph G) : coloring G'.to_simple_graph β → coloring G β :=
+restrict_coloring G'.map_top-/
 
 
 /-- A `colorable G α` graph is an `α`-partite graph, so we define bipartite as `colorable G (fin 2)`. -/
@@ -105,5 +105,24 @@ end
 
 
 end bipartite
+
+structure partial_coloring (β : Type v) :=
+(verts : set V)
+(color : V → β)
+(valid : ∀ ⦃v w : V⦄, v ∈ verts → w ∈ verts → G.adj v w → color v ≠ color w)
+
+
+def partial_bipartition (G : simple_graph V) := G.partial_coloring (fin 2)
+
+def coloring.to_partial (β : Type v) (f : G.coloring β) : G.partial_coloring β :=
+{ verts := set.univ,
+  color := f.color,
+  valid := λ v w hv hw hadj, f.valid hadj }
+
+def partial_coloring.restrict (β : Type v) (f : G.partial_coloring β) (V' : set V) (h : V' ⊆ f.verts) :
+  G.partial_coloring β :=
+{ verts := V',
+  color := f.color,
+  valid := λ v w hv hw, f.valid (h hv) (h hw) }
 
 end simple_graph

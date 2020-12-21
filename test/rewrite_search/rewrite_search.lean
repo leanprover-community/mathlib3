@@ -86,4 +86,6 @@ by rewrite_search [rat.cast_zero, nat.cast_zero, add_comm]
 lemma test_pp_2 : idf (0 : ℕ) + 1 = 1 + idf (0 : ℚ) :=
 by rewrite_search [rat.cast_zero, nat.cast_zero, add_comm]
 
+example (x : ℕ) : x = x := by rewrite_search
+
 end tactic.rewrite_search.testing

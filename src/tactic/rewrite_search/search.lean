@@ -67,6 +67,7 @@ of our initial equation.
 * `solving_edge` represents a solution that will prove our target equation.
   It is an edge that would connect the two trees, so `solving_edge.fr` and `solving_edge.to`
   are vertices in different trees.
+* `lhs` and `rhs` are the left and right expressions we are trying to prove are equal.
 -/
 meta structure graph :=
 (conf         : config)
@@ -74,6 +75,8 @@ meta structure graph :=
 (vertices     : buffer vertex)
 (vmap         : native.rb_map string (list ℕ))
 (solving_edge : option edge)
+(lhs          : expr)
+(rhs          : expr)
 
 /--
 Construct a graph to search for a proof of a given equation.
@@ -82,14 +85,15 @@ This graph initially contains only two disconnected vertices corresponding to th
 sides of the equation. When `find_proof` is called, we will run a search and add
 new vertices and edges.
 -/
-meta def mk_graph (conf : config) (rules : list (expr × bool)) (eq : expr) : tactic graph :=
+meta def mk_graph (conf : config) (rules : list (expr × bool)) (eq : expr)
+  : tactic graph :=
 do (lhs, rhs) ← tactic.match_eq eq <|> tactic.match_iff eq,
   lhs_pp ← to_string <$> tactic.pp lhs,
   rhs_pp ← to_string <$> tactic.pp rhs,
   let lhs_vertex : vertex := ⟨0, lhs, lhs_pp, side.L, none⟩,
   let rhs_vertex : vertex := ⟨1, rhs, rhs_pp, side.R, none⟩,
   return ⟨conf, rules, [lhs_vertex, rhs_vertex].to_buffer,
-          native.rb_map.of_list [(lhs_pp, [0]), (rhs_pp, [1])], none⟩
+          native.rb_map.of_list [(lhs_pp, [0]), (rhs_pp, [1])], none, lhs, rhs⟩
 
 variables (g : graph)
 
@@ -202,11 +206,21 @@ private meta def proof_for_edges : (side × list edge) → tactic (option proof_
   return $ some ⟨proof, s, hows⟩
 
 /--
+Checks to see if an empty series of rewrites will solve this, because it's an expression
+of the form a = a.
+-/
+private meta def find_trivial_proof : tactic (graph × expr × list proof_unit) :=
+do is_def_eq g.lhs g.rhs,
+  exp ← mk_eq_refl g.lhs,
+  return (g, exp, [])
+
+/--
 Run the search to find a proof for the provided graph.
 Normally, this is the only external method needed to run the graph search.
 -/
 meta def find_proof : tactic (graph × expr × list proof_unit) :=
-do g ← find_solving_edge g 0,
+find_trivial_proof g <|> do
+  g ← find_solving_edge g 0,
   (left_edges, right_edges) ← solution_paths g,
   units ← [(side.L, left_edges), (side.R, right_edges)].mmap_filter proof_for_edges,
   proof ← combine_proofs $ units.map $ λ u, u.proof,

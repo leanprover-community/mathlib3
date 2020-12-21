@@ -247,8 +247,9 @@ Emit it as "Try this: <code>" with each successive line of code indented.
 -/
 meta def explain_search_result (cfg : config) (rules : list (expr × bool)) (proof : expr)
   (units : list proof_unit) : tactic unit :=
-do explanation ← explain_proof_concisely rules proof units <|>
-                 explain_proof_full rules cfg.explain_using_conv units,
+if units.empty then trace "Try this: exact rfl" else do
+  explanation ← explain_proof_concisely rules proof units <|>
+                explain_proof_full rules cfg.explain_using_conv units,
   trace $ "Try this: " ++ explanation
 
 end tactic.rewrite_search

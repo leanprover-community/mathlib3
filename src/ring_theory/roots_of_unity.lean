@@ -821,26 +821,22 @@ begin
   by_contra hdiff,
   set P := minimal_polynomial (is_integral h hpos),
   set Q := minimal_polynomial (is_integral (pow_of_prime h hprime hdiv) hpos),
-  have Pmonic : P.monic := minimal_polynomial.monic (is_integral h hpos),
-  have Qmonic : Q.monic := minimal_polynomial.monic (is_integral (pow_of_prime h hprime hdiv) hpos),
-  have Pirr : irreducible P := minimal_polynomial.irreducible (is_integral h hpos),
-  have Qirr : irreducible Q := minimal_polynomial.irreducible (is_integral
-    (pow_of_prime h hprime hdiv) hpos),
+  have Pmonic : P.monic := minimal_polynomial.monic _,
+  have Qmonic : Q.monic := minimal_polynomial.monic _,
+  have Pirr : irreducible P := minimal_polynomial.irreducible _,
+  have Qirr : irreducible Q := minimal_polynomial.irreducible _,
   have PQprim : is_primitive (P * Q) := Pmonic.is_primitive.mul Qmonic.is_primitive,
   have prod : P * Q ∣ X ^ n - 1,
   { apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
       ((monic_X_pow_sub_C 1 (ne_of_lt hpos).symm).is_primitive)).2,
     rw [map_mul],
     refine is_coprime.mul_dvd _ _ _,
-    cases (dvd_or_coprime (map (int.cast_ring_hom ℚ) P) (map (int.cast_ring_hom ℚ) Q) _)
-      with hdiv hcopr,
-    { exfalso,
-      rw map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic at hdiv,
+    { have aux := is_primitive.int.irreducible_iff_irreducible_map_cast Pmonic.is_primitive,
+      refine (dvd_or_coprime _ _ (aux.1 Pirr)).resolve_left _,
+      rw map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic,
+      intro hdiv,
       refine hdiff (eq_of_monic_of_associated Pmonic Qmonic _),
       exact associated_of_dvd_dvd hdiv (dvd_symm_of_irreducible Pirr Qirr hdiv) },
-    { exact hcopr },
-    { apply (is_primitive.int.irreducible_iff_irreducible_map_cast Pmonic.is_primitive).1,
-      exact minimal_polynomial.irreducible (is_integral h hpos) },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic).2,
       exact minimal_polynomial_dvd_X_pow_sub_one h hpos },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Qmonic).2,
@@ -864,7 +860,7 @@ begin
     rw degree_map_eq_of_leading_coeff_ne_zero _ _ at hunit,
     { exact (ne_of_lt (minimal_polynomial.degree_pos (is_integral h hpos))).symm hunit },
     simp only [Pmonic, ring_hom.eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
-    not_false_iff, one_ne_zero] }
+      not_false_iff, one_ne_zero] }
 end
 
 end minimal_polynomial

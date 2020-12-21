@@ -599,9 +599,16 @@ ring_hom.map_finsupp_sum _ f g
   ((f.prod (λ a b, g a b) : ℝ) : K) = f.prod (λ a b, ((g a b) : K)) :=
 ring_hom.map_finsupp_prod _ f g
 
-open_locale classical
+end is_R_or_C
 
-instance finite_dimensional.is_R_or_C_to_real : finite_dimensional ℝ K :=
+namespace finite_dimensional
+variables {K : Type*} [is_R_or_C K]
+
+open_locale classical
+open is_R_or_C
+
+/-- An `is_R_or_C` field is finite-dimensional over `ℝ`, since it is spanned by `{1, I}`. -/
+instance is_R_or_C_to_real : finite_dimensional ℝ K :=
 finite_dimensional.iff_fg.mpr ⟨{1, I},
   begin
     rw eq_top_iff,
@@ -615,8 +622,7 @@ finite_dimensional.iff_fg.mpr ⟨{1, I},
 
 /- Over an `is_R_or_C` field, we can register the properness of finite-dimensional normed spaces as
 an instance. -/
-instance finite_dimensional.proper_is_R_or_C
-  {E : Type*} [normed_group E] [normed_space K E] [finite_dimensional K E] :
+instance proper_is_R_or_C {E : Type*} [normed_group E] [normed_space K E] [finite_dimensional K E] :
   proper_space E :=
 begin
   letI : normed_space ℝ E := restrict_scalars.normed_space ℝ K E,
@@ -625,7 +631,7 @@ begin
   apply_instance
 end
 
-end is_R_or_C
+end finite_dimensional
 
 section instances
 

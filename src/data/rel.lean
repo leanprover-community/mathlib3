@@ -140,7 +140,7 @@ set.ext (by simp [mem_core, imp_and_distrib, forall_and_distrib])
 lemma core_union (s t : set β) : r.core s ∪ r.core t ⊆ r.core (s ∪ t) :=
 r.core_mono.le_map_sup s t
 
-lemma core_univ : r.core set.univ = set.univ := set.ext (by simp [mem_core])
+@[simp] lemma core_univ : r.core set.univ = set.univ := set.ext (by simp [mem_core])
 
 lemma core_id (s : set α) : core (@eq α) s = s :=
 by simp [core]

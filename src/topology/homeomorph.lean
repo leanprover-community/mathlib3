@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Re
 -/
 import topology.dense_embedding
 
-open set
+open set filter
+open_locale topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -88,6 +89,10 @@ funext h.symm.to_equiv.image_eq_preimage
 lemma preimage_symm (h : α ≃ₜ β) : preimage h.symm = image h :=
 (funext h.to_equiv.image_eq_preimage).symm
 
+@[simp] lemma image_preimage (h : α ≃ₜ β) (s : set β) : h '' (h ⁻¹' s) = s := h.to_equiv.image_preimage s
+
+@[simp] lemma preimage_image (h : α ≃ₜ β) (s : set α) : h ⁻¹' (h '' s) = s := h.to_equiv.preimage_image s
+
 lemma induced_eq
   {α : Type*} {β : Type*} [tα : topological_space α] [tβ : topological_space β] (h : α ≃ₜ β) :
   tβ.induced h = tα :=
@@ -120,7 +125,7 @@ by rw ← image_symm; exact h.symm.compact_image
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := assume a, by rw [h.range_coe, closure_univ]; trivial,
   inj     := h.to_equiv.injective,
-  induced := (induced_iff_nhds_eq _).2 (assume a, by rw [← nhds_induced, h.induced_eq]) }
+  induced := h.induced_eq.symm }
 
 protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h :=
 begin
@@ -142,8 +147,32 @@ closed_embedding_of_embedding_closed h.embedding h.is_closed_map
 @[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
 begin
   refine ⟨λ hs, _, continuous_def.1 h.continuous_to_fun s⟩,
-  rw [← (image_preimage_eq h.to_equiv.surjective : _ = s)], exact h.is_open_map _ hs
+  rw [← h.image_preimage s], exact h.is_open_map _ hs
 end
+
+@[simp] lemma is_open_image (h : α ≃ₜ β) {s : set α} : is_open (h '' s) ↔ is_open s :=
+by rw [← preimage_symm, is_open_preimage]
+
+@[simp] lemma is_closed_preimage (h : α ≃ₜ β) {s : set β} : is_closed (h ⁻¹' s) ↔ is_closed s :=
+by simp only [is_closed, ← preimage_compl, is_open_preimage]
+
+@[simp] lemma is_closed_image (h : α ≃ₜ β) {s : set α} : is_closed (h '' s) ↔ is_closed s :=
+by rw [← preimage_symm, is_closed_preimage]
+
+lemma preimage_closure (h : α ≃ₜ β) (s : set β) : h ⁻¹' (closure s) = closure (h ⁻¹' s) :=
+by rw [h.embedding.closure_eq_preimage_closure_image, h.image_preimage]
+
+lemma image_closure (h : α ≃ₜ β) (s : set α) : h '' (closure s) = closure (h '' s) :=
+by rw [← preimage_symm, preimage_closure]
+
+@[simp] lemma map_nhds_eq (h : α ≃ₜ β) (x : α) : map h (𝓝 x) = 𝓝 (h x) :=
+h.embedding.map_nhds_eq _ (by simp)
+
+@[simp] lemma comap_nhds_eq (h : α ≃ₜ β) (y : β) : comap h (𝓝 y) = 𝓝 (h.symm y) :=
+by rw [h.embedding.to_inducing.nhds_eq_comap, h.apply_symm_apply]
+
+lemma nhds_eq_comap (h : α ≃ₜ β) (x : α) : 𝓝 x = comap h (𝓝 (h x)) :=
+by rw [comap_nhds_eq, h.symm_apply_apply]
 
 /-- If an bijective map `e : α ≃ β` is continuous and open, then it is a homeomorphism. -/
 def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : is_open_map e) :

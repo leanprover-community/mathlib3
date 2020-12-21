@@ -44,10 +44,13 @@ instance : cartesian_closed (Type v₁) :=
 instance {C : Type u₁} [category.{v₁} C] : has_finite_products (C ⥤ Type u₁) :=
 has_finite_products_of_has_products _
 
+set_option pp.universes true
+
 instance {C : Type v₁} [small_category C] : cartesian_closed (C ⥤ Type v₁) :=
 { closed := λ F,
   { is_adj :=
     begin
+      letI := λ (X : Type v₁), category_theory.obj.limits.preserves_colimits X,
       letI := functor_category.prod_preserves_colimits F,
       apply is_left_adjoint_of_preserves_colimits (prod.functor.obj F),
     end } }

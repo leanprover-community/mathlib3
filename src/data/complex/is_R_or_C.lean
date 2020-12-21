@@ -616,13 +616,13 @@ finite_dimensional.iff_fg.mpr (⟨{1, I},
 
 /- Over an `is_R_or_C` field, we can register the properness of finite-dimensional normed spaces as
 an instance. -/
-instance finite_dimensional.proper_is_R_or_C {𝕜 : Type*}
-  [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E] [finite_dimensional 𝕜 E] :
+instance finite_dimensional.proper_is_R_or_C
+  {E : Type*} [normed_group E] [normed_space K E] [finite_dimensional K E] :
   proper_space E :=
 begin
-  letI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,
-  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
-  letI : finite_dimensional ℝ E := finite_dimensional.trans ℝ 𝕜 E,
+  letI : normed_space ℝ E := restrict_scalars.normed_space ℝ K E,
+  letI : is_scalar_tower ℝ K E := restrict_scalars.is_scalar_tower _ _ _,
+  letI : finite_dimensional ℝ E := finite_dimensional.trans ℝ K E,
   apply_instance
 end
 

@@ -107,7 +107,6 @@ instance has_continuous_mul_of_discrete_topology [topological_space N]
   [has_mul N] [discrete_topology N] : has_continuous_mul N :=
 ⟨continuous_of_discrete_topology⟩
 
-#where
 open_locale filter
 
 open function

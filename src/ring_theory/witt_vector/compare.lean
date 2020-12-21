@@ -61,7 +61,6 @@ char_p_of_prime_pow_injective _ _ _ (card_zmod _ _)
     (eq_of_le_of_cast_pow_eq_zero p n (zmod p))
 
 local attribute [instance] char_p_zmod
-variable (n)
 
 /--
 Since `truncated_witt_vector p n (zmod p)` is a finite ring

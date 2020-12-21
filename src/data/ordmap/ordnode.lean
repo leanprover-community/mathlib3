@@ -695,7 +695,12 @@ def span (p : α → Prop) [decidable_pred p] : ordnode α → ordnode α × ord
   if p x then let (r₁, r₂) := span r in (link l x r₁, r₂)
   else        let (l₁, l₂) := span l in (l₁, link l₂ x r)
 
-/-- Auxiliary definition for `of_asc_list`. -/
+/-- Auxiliary definition for `of_asc_list`.
+
+**Note:** This function is defined by well founded recursion, so it will probably not compute
+in the kernel, meaning that you probably can't prove things like
+`of_asc_list [1, 2, 3] = {1, 2, 3}` by `rfl`.
+This implementation is optimized for VM evaluation. -/
 def of_asc_list_aux₁ : ∀ l : list α, ℕ → ordnode α × {l' : list α // l'.length ≤ l.length}
 | [] := λ s, (nil, ⟨[], le_refl _⟩)
 | (x :: xs) := λ s,

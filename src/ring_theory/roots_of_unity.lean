@@ -811,7 +811,8 @@ lemma minimal_polynomial_dvd_mod_p {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ 
 (unique_factorization_monoid.dvd_pow_iff_dvd_of_squarefree (squarefree_minimal_polynomial_mod h
   hpos hdiv) (nat.prime.ne_zero hprime)).1 (minimal_polynomial_dvd_pow_mod h hpos hdiv)
 
-/-- If `p` is a prime that does not divide `n`, then the minimal polynomials of a root of unity `μ`
+/-- If `p` is a prime that does not divide `n`,
+then the minimal polynomials of a primitive `n`-th root of unity `μ`
 and of `μ ^ p` are the same. -/
 lemma minimal_polynomial_eq_pow {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
   minimal_polynomial (is_integral h hpos) =

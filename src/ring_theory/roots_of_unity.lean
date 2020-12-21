@@ -825,8 +825,7 @@ begin
   have Pirr : irreducible P := minimal_polynomial.irreducible (is_integral h hpos),
   have Qirr : irreducible Q := minimal_polynomial.irreducible (is_integral
     (pow_of_prime h hprime hdiv) hpos),
-  have PQprim : is_primitive (P * Q) := is_primitive.mul (monic.is_primitive Pmonic)
-    (monic.is_primitive Qmonic),
+  have PQprim : is_primitive (P * Q) := Pmonic.is_primitive.mul Qmonic.is_primitive,
   have prod : P * Q ∣ X ^ n - 1,
   { apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
       (monic.is_primitive ((monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)))).2,

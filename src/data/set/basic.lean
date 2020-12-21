@@ -1357,14 +1357,14 @@ subset.antisymm
   (λ x ⟨y, hy, e⟩, h e ▸ hy)
   (subset_preimage_image f s)
 
-theorem image_preimage_eq {f : α → β} {s : set β} (h : surjective f) : f '' (f ⁻¹' s) = s :=
+theorem image_preimage_eq {f : α → β} (s : set β) (h : surjective f) : f '' (f ⁻¹' s) = s :=
 subset.antisymm
   (image_preimage_subset f s)
   (λ x hx, let ⟨y, e⟩ := h x in ⟨y, (e.symm ▸ hx : f y ∈ s), e⟩)
 
-lemma preimage_eq_preimage {f : β → α} (hf : surjective f) : f ⁻¹' s = preimage f t ↔ s = t :=
+lemma preimage_eq_preimage {f : β → α} (hf : surjective f) : f ⁻¹' s = f ⁻¹' t ↔ s = t :=
 iff.intro
-  (assume eq, by rw [← @image_preimage_eq β α f s hf, ← @image_preimage_eq β α f t hf, eq])
+  (assume eq, by rw [← image_preimage_eq s hf, ← image_preimage_eq t hf, eq])
   (assume eq, eq ▸ rfl)
 
 lemma image_inter_preimage (f : α → β) (s : set α) (t : set β) :
@@ -1756,11 +1756,17 @@ variables {ι : Sort*} {α : Type*} {β : Type*} {f : α → β}
 lemma surjective.preimage_injective (hf : surjective f) : injective (preimage f) :=
 assume s t, (preimage_eq_preimage hf).1
 
+lemma injective.preimage_image (hf : injective f) (s : set α) : f ⁻¹' (f '' s) = s :=
+preimage_image_eq s hf
+
 lemma injective.preimage_surjective (hf : injective f) : surjective (preimage f) :=
-by { intro s, use f '' s, rw preimage_image_eq _ hf }
+by { intro s, use f '' s, rw hf.preimage_image }
+
+lemma surjective.image_preimage (hf : surjective f) (s : set β) : f '' (f ⁻¹' s) = s :=
+image_preimage_eq s hf
 
 lemma surjective.image_surjective (hf : surjective f) : surjective (image f) :=
-by { intro s, use f ⁻¹' s, rw image_preimage_eq hf }
+by { intro s, use f ⁻¹' s, rw hf.image_preimage }
 
 lemma injective.image_injective (hf : injective f) : injective (image f) :=
 by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] }

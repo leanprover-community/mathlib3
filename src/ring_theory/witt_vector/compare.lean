@@ -123,8 +123,7 @@ def to_zmod_pow (k : ℕ) : 𝕎 (zmod p) →+* zmod (p ^ k) :=
 (zmod_equiv_trunc p k).symm.to_ring_hom.comp (truncate k)
 
 lemma to_zmod_pow_compat (m n : ℕ) (h : m ≤ n) :
-  (zmod.cast_hom (pow_dvd_pow p h) (zmod (p ^ m))).comp ((λ (k : ℕ), to_zmod_pow p k) n) =
-    (λ (k : ℕ), to_zmod_pow p k) m :=
+  (zmod.cast_hom (pow_dvd_pow p h) (zmod (p ^ m))).comp (to_zmod_pow p n) = to_zmod_pow p m :=
 calc (zmod.cast_hom _ (zmod (p ^ m))).comp
       ((zmod_equiv_trunc p n).symm.to_ring_hom.comp (truncate n)) =
   ((zmod_equiv_trunc p m).symm.to_ring_hom.comp
@@ -137,10 +136,7 @@ calc (zmod.cast_hom _ (zmod (p ^ m))).comp
 `to_padic_int` lifts `to_zmod_pow` to a ring hom to `ℤ_[p]` using `padic_int.lift`, the universal
 property of `ℤ_[p]`.
 -/
-def to_padic_int : 𝕎 (zmod p) →+* ℤ_[p] :=
--- I think the family should be an explicit argument of `lift`,
--- for increased readability.
-padic_int.lift (λ m n h, to_zmod_pow_compat p m n h)
+def to_padic_int : 𝕎 (zmod p) →+* ℤ_[p] := padic_int.lift $ to_zmod_pow_compat p
 
 lemma zmod_equiv_trunc_compat (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂) :
     (truncated_witt_vector.truncate hk).comp
@@ -148,7 +144,6 @@ lemma zmod_equiv_trunc_compat (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂) :
            (padic_int.to_zmod_pow k₂)) =
       (zmod_equiv_trunc p k₁).to_ring_hom.comp (padic_int.to_zmod_pow k₁) :=
 by rw [← ring_hom.comp_assoc, commutes, ring_hom.comp_assoc, padic_int.zmod_cast_comp_to_zmod_pow]
-
 
 /--
 `from_padic_int` uses `witt_vector.lift` to lift `truncated_witt_vector.zmod_equiv_trunc`

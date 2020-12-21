@@ -2841,16 +2841,8 @@ end
 lemma reduce_option_length_lt_iff {l : list (option α)} :
   l.reduce_option.length < l.length ↔ none ∈ l :=
 begin
-  rw [←not_iff_not, not_lt_iff_eq_or_lt, reduce_option_length_eq_iff],
-  simp only [exists_prop, not_and, or_false,
-             not_lt_of_le (reduce_option_length_le l), option.ne_none_iff_is_some],
-  split,
-  { intros H h,
-    simpa only using H none h },
-  { intros h x hx,
-    rw ←option.ne_none_iff_is_some,
-    intro H,
-    exact h (H ▸ hx) }
+  convert not_iff_not.mpr reduce_option_length_eq_iff;
+  simp [lt_iff_le_and_ne, reduce_option_length_le l, option.is_none_iff_eq_none]
 end
 
 lemma reduce_option_singleton (x : option α) :
@@ -2874,21 +2866,8 @@ by simp only [reduce_option_nil, concat_eq_append, reduce_option_append, reduce_
 
 lemma reduce_option_mem_iff {l : list (option α)} {x : α} :
   x ∈ l.reduce_option ↔ (some x) ∈ l :=
-begin
-  induction l with hd tl hl,
-  { simp only [reduce_option_nil, not_mem_nil] },
-  { simp only [←hl, mem_cons_iff],
-    split,
-    { intro H,
-      cases hd,
-      { simpa only [false_or] using H },
-      { simpa only using H } },
-    { rintro (rfl | H),
-      { simp only [mem_cons_iff, true_or, eq_self_iff_true, reduce_option_cons_of_some] },
-      { cases hd;
-        simp only [H, mem_cons_iff, or_true, reduce_option_cons_of_some,
-                   reduce_option_cons_of_none] } } }
-end
+by simp only [reduce_option, id.def, mem_filter_map, exists_eq_right]
+
 
 lemma reduce_option_nth_iff {l : list (option α)} {x : α} :
   (∃ i, l.nth i = some (some x)) ↔ ∃ i, l.reduce_option.nth i = some x :=

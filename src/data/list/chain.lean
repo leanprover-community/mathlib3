@@ -79,7 +79,7 @@ theorem chain_pmap_of_chain {S : β → β → Prop} {p : α → Prop}
   (hl₁ : chain R a l) (ha : p a) (hl₂ : ∀ a ∈ l, p a) :
   chain S (f a ha) (list.pmap f l hl₂) :=
 begin
-  induction l generalizing a,
+  induction l with lh lt l_ih generalizing a,
   { simp },
   { simp [H _ _ _ _ (rel_of_chain_cons hl₁), l_ih _ (chain_of_chain_cons hl₁)] }
 end
@@ -90,7 +90,7 @@ theorem chain_of_chain_pmap {S : β → β → Prop} {p : α → Prop}
   (H : ∀ a b ha hb, S (f a ha) (f b hb) → R a b) :
   chain R a l :=
 begin
-  induction l generalizing a,
+  induction l with lh lt l_ih generalizing a,
   { simp },
   { simp [H _ _ _ _ (rel_of_chain_cons hl₂), l_ih _ _ (chain_of_chain_cons hl₂)] }
 end

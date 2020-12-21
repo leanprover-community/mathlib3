@@ -53,6 +53,11 @@ which may need to be revised if it turns out some operations violate these assum
 because there is a decent amount of slop in the actual data structure invariants, so the
 theorem will go through with multiple choices of assumption.
 
+**Note:** This file is incomplete, in the sense that the intent is to have verified
+versions and lemmas about all the definitions in `ordnode.lean`, but at the moment only
+a few operations are verified (the hard part should be out of the way, but still).
+Contributors are encouraged to pick this up and finish the job, if it appeals to you.
+
 ## Tags
 
 ordered map, ordered set, data structure, verified programming

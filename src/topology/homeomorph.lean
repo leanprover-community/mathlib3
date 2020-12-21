@@ -142,7 +142,8 @@ closed_embedding_of_embedding_closed h.embedding h.is_closed_map
 @[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
 begin
   refine ⟨λ hs, _, continuous_def.1 h.continuous_to_fun s⟩,
-  rw [← (image_preimage_eq h.to_equiv.surjective : _ = s)], exact h.is_open_map _ hs
+  rw [← h.surjective.image_preimage s],
+  exact h.is_open_map _ hs
 end
 
 /-- If an bijective map `e : α ≃ β` is continuous and open, then it is a homeomorphism. -/

@@ -46,9 +46,9 @@ variables [is_filtered K]
 
 section
 
-def filtered_colimit_finite_limit_iso : c₁.X ≅ c₂.X :=
-{ hom := colimit_to_limit tj tk t₁ t₂,
-  inv := sorry }
+-- def filtered_colimit_finite_limit_iso : c₁.X ≅ c₂.X :=
+-- { hom := colimit_to_limit tj tk t₁ t₂,
+--   inv := sorry }
 
 end
 

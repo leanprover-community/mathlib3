@@ -43,7 +43,6 @@ def algebra.finite_type : Prop := (⊤ : subalgebra R A).fg
 
 /-- An algebra over a commutative ring is `finitely_presented` if it is the quotient of a
 polynomial ring in `n` variables by a finitely generated ideal. -/
-@[class]
 def algebra.finitely_presented : Prop :=
 ∃ (n : ℕ) (f : mv_polynomial (fin n) R →ₐ[R] A),
 surjective f ∧ f.to_ring_hom.ker.fg
@@ -201,15 +200,15 @@ end finite_type
 
 namespace finitely_presented
 
-theorem spec [h : finitely_presented R A] :
+theorem spec (h : finitely_presented R A) :
   ∃ (n : ℕ) (f : mv_polynomial (fin n) R →ₐ[R] A),
   surjective f ∧ (ring_hom.ker (alg_hom.to_ring_hom f)).fg :=
 h
 
 /-- If `e : A ≃ₐ[R] B` and `A` is finitely presented, then so is `B`. -/
-lemma equiv [finitely_presented R A] (e : A ≃ₐ[R] B) : finitely_presented R B :=
+lemma equiv (hfp : finitely_presented R A) (e : A ≃ₐ[R] B) : finitely_presented R B :=
 begin
-  obtain ⟨n, f, hf⟩ := spec R A,
+  obtain ⟨n, f, hf⟩ := spec R A hfp,
   use [n, alg_hom.comp ↑e f],
   split,
   { exact function.surjective.comp e.surjective hf.1 },

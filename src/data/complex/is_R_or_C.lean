@@ -602,17 +602,16 @@ ring_hom.map_finsupp_prod _ f g
 open_locale classical
 
 instance finite_dimensional.is_R_or_C_to_real : finite_dimensional ℝ K :=
-finite_dimensional.iff_fg.mpr (⟨{1, I},
+finite_dimensional.iff_fg.mpr ⟨{1, I},
   begin
     rw eq_top_iff,
     intros a _,
     rw [finset.coe_insert, finset.coe_singleton, submodule.mem_span_insert],
-    refine ⟨re a, (im a) * I, _, _⟩,
+    refine ⟨re a, (im a) • I, _, _⟩,
     { rw submodule.mem_span_singleton,
-      use im a,
-      simp [algebra.smul_def, algebra_map_eq_of_real] },
+      use im a },
     simp [re_add_im a, algebra.smul_def, algebra_map_eq_of_real]
-  end⟩)
+  end⟩
 
 /- Over an `is_R_or_C` field, we can register the properness of finite-dimensional normed spaces as
 an instance. -/

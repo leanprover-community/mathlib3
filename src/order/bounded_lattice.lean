@@ -10,6 +10,7 @@ Includes the Prop and fun instances.
 import order.lattice
 import data.option.basic
 import tactic.pi_instances
+import logic.nontrivial
 
 set_option old_structure_cmd true
 
@@ -1010,6 +1011,8 @@ end bounded_distrib_lattice
 
 end disjoint
 
+section is_compl
+
 /-!
 ### `is_compl` predicate
 -/
@@ -1100,3 +1103,96 @@ is_compl.of_eq bot_inf_eq sup_top_eq
 
 lemma is_compl_top_bot [bounded_lattice α] : is_compl (⊤ : α) ⊥ :=
 is_compl.of_eq inf_bot_eq top_sup_eq
+
+end is_compl
+
+section atoms
+
+section is_atom
+
+variable [order_bot α]
+
+/-- An atom of an `order_bot` is an element with no other element between it and `⊥`,
+  which is not `⊥`. -/
+def is_atom (a : α) : Prop := a ≠ ⊥ ∧ (∀ b, b < a → b = ⊥)
+
+lemma eq_bot_or_eq_of_le_atom {a b : α} (ha : is_atom a) (hab : b ≤ a) : b = ⊥ ∨ b = a :=
+or.imp_left (ha.2 b) (lt_or_eq_of_le hab)
+
+end is_atom
+
+section is_coatom
+
+variable [order_top α]
+
+/-- A coatom of an `order_top` is an element with no other element between it and `⊤`,
+  which is not `⊤`. -/
+def is_coatom (a : α) : Prop := a ≠ ⊤ ∧ (∀ b, a < b → b = ⊤)
+
+lemma eq_top_or_eq_of_coatom_le {a b : α} (ha : is_coatom a) (hab : a ≤ b) : b = ⊤ ∨ b = a :=
+or.imp (ha.2 b) eq_comm.2 (lt_or_eq_of_le hab)
+
+end is_coatom
+
+variables [bounded_lattice α] {a : α}
+
+lemma is_atom_iff_is_coatom_dual : is_atom a ↔ @is_coatom (order_dual α) _ a := iff.refl _
+
+lemma is_coatom_iff_is_atom_dual : is_coatom a ↔ @is_atom (order_dual α) _ a := iff.refl _
+
+end atoms
+
+class is_simple_lattice (α : Type*) [bounded_lattice α] extends nontrivial α : Prop :=
+(eq_bot_or_eq_top : ∀ (a : α), a = ⊥ ∨ a = ⊤)
+
+export is_simple_lattice (eq_bot_or_eq_top)
+
+theorem is_simple_lattice_iff_is_simple_lattice_order_dual [bounded_lattice α] :
+  is_simple_lattice α ↔ is_simple_lattice (order_dual α) :=
+begin
+  split; intro i; haveI := i,
+  { exact { exists_pair_ne := @exists_pair_ne α _,
+      eq_bot_or_eq_top := λ a, or.symm (@eq_bot_or_eq_top α _ _ a) } },
+  { exact { exists_pair_ne := @exists_pair_ne (order_dual α) _,
+      eq_bot_or_eq_top := λ a, or.symm (@eq_bot_or_eq_top (order_dual α) _ _ a) } }
+end
+
+section is_simple_lattice
+
+variables [bounded_lattice α] [is_simple_lattice α]
+
+instance : is_simple_lattice (order_dual α) :=
+is_simple_lattice_iff_is_simple_lattice_order_dual.1 (by apply_instance)
+
+lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
+begin
+  rcases exists_pair_ne α with ⟨a, b, h⟩,
+  rcases eq_bot_or_eq_top a with rfl | rfl,
+  { rcases eq_bot_or_eq_top b with rfl | rfl,
+    { exfalso,
+      apply h rfl },
+    exact h },
+  { rcases eq_bot_or_eq_top b with rfl | rfl,
+    { exact ne.symm h },
+    { exfalso,
+      apply h rfl } },
+end
+
+lemma top_ne_bot : (⊤ : α) ≠ ⊥ := ne.symm bot_ne_top
+
+lemma is_atom_top : is_atom (⊤ : α) :=
+⟨top_ne_bot, λ a ha, or.resolve_right (eq_bot_or_eq_top a) (ne_of_lt ha)⟩
+
+lemma is_coatom_bot : is_coatom (⊥ : α) := is_coatom_iff_is_atom_dual.2 is_atom_top
+
+end is_simple_lattice
+
+theorem is_simple_lattice_iff_is_atom_top [bounded_lattice α] :
+  is_simple_lattice α ↔ is_atom (⊤ : α) :=
+⟨λ h, @is_atom_top _ _ h, λ h, {
+  exists_pair_ne := ⟨⊤, ⊥, h.1⟩,
+  eq_bot_or_eq_top := λ a, ((eq_or_lt_of_le (@le_top _ _ a)).imp_right (h.2 a)).symm }⟩
+
+theorem is_simple_lattice_iff_is_coatom_bot [bounded_lattice α] :
+  is_simple_lattice α ↔ is_coatom (⊥ : α) :=
+iff.trans is_simple_lattice_iff_is_simple_lattice_order_dual is_simple_lattice_iff_is_atom_top

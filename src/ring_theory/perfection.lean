@@ -186,7 +186,7 @@ lemma of : perfection_map p (perfection.coeff R p 0) :=
 mk' (ring_equiv.refl _) $ (equiv.apply_eq_iff_eq_symm_apply _).2 rfl
 
 /-- For a perfect ring, it itself is the perfection. -/
-def id [perfect_ring R p] : perfection_map p (ring_hom.id R) :=
+lemma id [perfect_ring R p] : perfection_map p (ring_hom.id R) :=
 { injective := λ x y hxy, hxy 0,
   surjective := λ f hf, ⟨f 0, λ n, show pth_root R p ^[n] (f 0) = f n,
     from nat.rec_on n rfl $ λ n ih, injective_pow_p p $

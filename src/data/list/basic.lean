@@ -3139,7 +3139,7 @@ instance decidable_suffix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidab
     decidable_of_iff' (l₁ = drop (len2-len1) l₂) suffix_iff_eq_drop
   else is_false $ λ h, hl $ length_le_of_sublist $ sublist_of_suffix h
 
-lemma prefix_take_le_iff {L : list (list (option α))} {m n : ℕ} (hm : m < L.length):
+lemma prefix_take_le_iff {L : list (list (option α))} {m n : ℕ} (hm : m < L.length) :
   (take m L) <+: (take n L) ↔ m ≤ n :=
 begin
   simp only [prefix_iff_eq_take, length_take],

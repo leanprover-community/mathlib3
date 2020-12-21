@@ -620,7 +620,7 @@ finite_dimensional.iff_fg.mpr ⟨{1, I},
     simp [re_add_im a, algebra.smul_def, algebra_map_eq_of_real]
   end⟩
 
-/- Over an `is_R_or_C` field, we can register the properness of finite-dimensional normed spaces as
+/-- Over an `is_R_or_C` field, we can register the properness of finite-dimensional normed spaces as
 an instance. -/
 instance proper_is_R_or_C {E : Type*} [normed_group E] [normed_space K E] [finite_dimensional K E] :
   proper_space E :=

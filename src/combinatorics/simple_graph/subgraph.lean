@@ -101,9 +101,24 @@ def to_subgraph {V' : set V} {G : simple_graph V} {G' : simple_graph V'} (h : is
   edge_vert := λ v w ⟨hv, hw, hvw⟩, hv,
   sym' := λ a b ⟨ha, hb, hadj⟩, ⟨hb, ha, G'.sym hadj⟩ }
 
-@[simp]
-lemma adj_iff {G : simple_graph V} {G' : subgraph G} (v w : G'.V') : G.adj v w ↔ G'.adj' ↑v ↑w :=
-sorry
+example : ∃ {V : Type u} {G : simple_graph V} {G' : subgraph G} (v w : G'.V'),
+  ¬(G.adj v w ↔ G'.adj' ↑v ↑w) :=
+begin
+  refine ⟨ulift bool, complete_graph _, ⟨set.univ, λ _ _, false, _, _, _⟩, _, _, _⟩,
+  { simp },
+  { simp },
+  { tauto },
+  { exact ⟨ulift.up tt, ⟨⟩⟩ },
+  { exact ⟨ulift.up ff, ⟨⟩⟩ },
+  { simp only [complete_graph, not_not, subtype.coe_mk, iff_false],
+    intro a,
+    cases ulift.up.inj a }
+end
+
+-- lemma is false, see counterexample ^
+-- @[simp]
+-- lemma adj_iff {G : simple_graph V} {G' : subgraph G} (v w : G'.V') : G.adj v w ↔ G'.adj' ↑v ↑w :=
+-- sorry
 
 /--
 Give the vertex as an element of the subgraph's vertex type.
@@ -112,20 +127,14 @@ Give the vertex as an element of the subgraph's vertex type.
 def vert (G' : subgraph G) (v : V) (h : v ∈ G'.V') : G'.V' :=
 subtype.mk v h
 
-@[simp]
-lemma adj_iff_adj' {G' : subgraph G} {v w : V} (hv : v ∈ G'.V') (hw : w ∈ G'.V') :
-  G.adj (G'.vert v hv) (G'.vert w hw) ↔ G'.adj' v w :=
-begin
-  split,
-  intro h,
-  rw adj_iff at h,
-  simp at h,
-  exact h,
-  intro h,
-  rw adj_iff,
-  simp,
-  exact h
-end
+-- lemma is false, it's equivalent to adj_iff
+-- @[simp]
+-- lemma adj_iff_adj' {G' : subgraph G} {v w : V} (hv : v ∈ G'.V') (hw : w ∈ G'.V') :
+--   G.adj (G'.vert v hv) (G'.vert w hw) ↔ G'.adj' v w :=
+-- begin
+--   rw adj_iff,
+--   refl,
+-- end
 
 /--
 Given a subgraph, replace the vertex set with an equal set.
@@ -265,12 +274,7 @@ A subgraph of `G` embeds in `G`.
 -/
 def map_top (x : subgraph G) : x.to_simple_graph →g G :=
 { to_fun := λ v, v,
-  map_rel' :=
-  begin
-    rintros ⟨v, hv⟩ ⟨w, hw⟩ hvw,
-    rw subgraph.adj_iff_adj',
-    exact hvw,
-  end }
+  map_rel' := λ v w hvw, x.adj_sub hvw }
 
 def map_top.injective {x : subgraph G} : function.injective x.map_top :=
 λ v w h, subtype.ext h
@@ -376,25 +380,20 @@ def subgraph_neighbor_set_in_supergraph {G' G'' : subgraph G} (h : G' ≤ G'') (
   left_inv := λ w, by tidy,
   right_inv := λ w, by tidy }
 
-/--
-This instance also provides finiteness of subgraphs when `[decidable_rel (adj G)]` and `[fintype (V G)]`.
--/
-instance finite_at
-  {G' : subgraph G} [decidable_rel G'.adj'] (v : G'.V') [fintype ((G'.to_simple_graph).neighbor_set v)] :
-  fintype (G.neighbor_set v) :=
-fintype.of_equiv _ (subgraph_neighbor_set_in_graph G' v).symm
+-- This instance is false.
+-- /--
+-- -- This instance also provides finiteness of subgraphs when `[decidable_rel (adj G)]` and `[fintype (V G)]`.
+-- -- -/
+-- instance finite_at {G' : subgraph G} [decidable_rel G'.adj'] (v : G'.V')
+--   [fintype (G'.to_simple_graph.neighbor_set v)] : fintype (G.neighbor_set v) :=
+-- fintype.of_equiv _ (subgraph_neighbor_set_in_graph G' v).symm
 
-/--
-Not an instance because it depends on `h`.
--/
-def finite_at_subgraph {G' G'' : subgraph G} [decidable_rel G'.adj'] [decidable_rel G''.adj']
-  (h : G' ≤ G'') (v : G'.V') [hf : fintype (G.neighbor_set (map h v))] :
-  fintype (G.neighbor_set v) :=
-fintype.of_equiv _ (subgraph_neighbor_set_in_supergraph h v).symm
-
-
-
-
-
+-- /--
+-- Not an instance because it depends on `h`.
+-- -/
+-- def finite_at_subgraph {G' G'' : subgraph G} [decidable_rel G'.adj'] [decidable_rel G''.adj']
+--   (h : G' ≤ G'') (v : G'.V') [hf : fintype (G.neighbor_set (map h v))] :
+--   fintype (G.neighbor_set v) :=
+-- fintype.of_equiv _ (subgraph_neighbor_set_in_supergraph h v).symm
 
 end subgraph

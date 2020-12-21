@@ -131,8 +131,8 @@ instance comm_ring (R : Type u₁) [comm_ring R] [char_p R p] : comm_ring (ring.
     pi.one_apply, ring_hom.map_neg, ring_hom.map_one]).to_comm_ring
 
 /-- Given rings `R` and `S` of characteristic `p`, with `R` being perfect,
-any homomorphism `R →+* S` can be extended to a homomorphism `R →+* perfection S p`. -/
-@[simps] def extend (R : Type u₁) [comm_semiring R] [char_p R p] [perfect_ring R p]
+any homomorphism `R →+* S` can be lifted to a homomorphism `R →+* perfection S p`. -/
+@[simps] def lift (R : Type u₁) [comm_semiring R] [char_p R p] [perfect_ring R p]
   (S : Type u₂) [comm_semiring S] [char_p S p] :
   (R →+* S) ≃ (R →+* ring.perfection S p) :=
 { to_fun := λ f,
@@ -170,12 +170,12 @@ variables {P : Type u₂} [comm_semiring P] [char_p P p] [perfect_ring P p]
 
 /-- Create a `perfection_map` from an isomorphism to the perfection. -/
 @[simps] lemma mk' {f : P →+* R} (g : P ≃+* ring.perfection R p)
-  (hfg : perfection.extend p P R f = g) :
+  (hfg : perfection.lift p P R f = g) :
   perfection_map p f :=
 { injective := λ x y hxy, g.injective $ (ring_hom.ext_iff.1 hfg x).symm.trans $
     eq.symm $ (ring_hom.ext_iff.1 hfg y).symm.trans $ perfection.ext $ λ n, (hxy n).symm,
   surjective := λ y hy, let ⟨x, hx⟩ := g.surjective ⟨y, hy⟩ in
-    ⟨x, λ n, show perfection.coeff R p n (perfection.extend p P R f x) =
+    ⟨x, λ n, show perfection.coeff R p n (perfection.lift p P R f x) =
         perfection.coeff R p n ⟨y, hy⟩,
       by rw [hfg, ← coe_fn_coe_base, hx]⟩ }
 
@@ -195,20 +195,20 @@ def id [perfect_ring R p] : perfection_map p (ring_hom.id R) :=
 variables {p R P}
 /-- A perfection map induces an isomorphism to the prefection. -/
 noncomputable def equiv {π : P →+* R} (m : perfection_map p π) : P ≃+* ring.perfection R p :=
-ring_equiv.of_bijective (perfection.extend p P R π)
+ring_equiv.of_bijective (perfection.lift p P R π)
 ⟨λ x y hxy, m.injective $ λ n, (congr_arg (perfection.coeff R p n) hxy : _),
 λ f, let ⟨x, hx⟩ := m.surjective f.1 f.2 in ⟨x, perfection.ext $ hx⟩⟩
 
 variables (p R P)
 /-- Given rings `R` and `S` of characteristic `p`, with `R` being perfect,
-any homomorphism `R →+* S` can be extended to a homomorphism `R →+* P`,
+any homomorphism `R →+* S` can be lifted to a homomorphism `R →+* P`,
 where `P` is any perfection of `S`. -/
-@[simps] noncomputable def extend [perfect_ring R p] (S : Type u₂) [comm_semiring S] [char_p S p]
+@[simps] noncomputable def lift [perfect_ring R p] (S : Type u₂) [comm_semiring S] [char_p S p]
   (P : Type u₃) [comm_semiring P] [char_p P p] [perfect_ring P p]
   (π : P →+* S) (m : perfection_map p π) :
   (R →+* S) ≃ (R →+* P) :=
-{ to_fun := λ f, ring_hom.comp ↑m.equiv.symm $ perfection.extend p R S f,
-  inv_fun := λ f, (perfection.extend p R S).symm (ring_hom.comp ↑m.equiv f),
+{ to_fun := λ f, ring_hom.comp ↑m.equiv.symm $ perfection.lift p R S f,
+  inv_fun := λ f, (perfection.lift p R S).symm (ring_hom.comp ↑m.equiv f),
   left_inv := λ f, (equiv.symm_apply_eq _).2 $ ring_hom.ext $ λ x,
     by simp_rw [ring_hom.comp_apply, ring_equiv.coe_ring_hom, ring_equiv.apply_symm_apply],
   right_inv := λ f, ring_hom.ext $ λ x, by simp_rw [equiv.apply_symm_apply,

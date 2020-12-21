@@ -15,7 +15,6 @@ import category_theory.limits.preserves.shapes.terminal
 import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.equalizers
 
-
 /-!
 # Flat functors
 
@@ -164,28 +163,27 @@ def alt_colimit (F : C ⥤ Type v₁) :
 
 set_option pp.universes true
 
-def preserves_finite_limits_of_set_flat [has_finite_limits.{v₁} C] (F : C ⥤ Type v₁) [is_set_flat F]
-  (J : Type v₁) [small_category J] [fin_category J] :
-preserves_limits_of_shape J F :=
-{ preserves_limit := λ K,
-  { preserves := λ c t,
-    begin
-      have := limits.types.sort.category_theory.limits.has_colimits_of_shape,
-      have : has_colimits_of_shape (F.elementsᵒᵖ) (Type v₁),
+-- def preserves_finite_limits_of_set_flat [has_finite_limits.{v₁} C] (F : C ⥤ Type v₁)
+-- [is_set_flat F] (J : Type v₁) [small_category J] [fin_category J] :
+-- preserves_limits_of_shape J F :=
+-- { preserves_limit := λ K,
+--   { preserves := λ c t,
+--     begin
+--       have := limits.types.sort.category_theory.limits.has_colimits_of_shape,
+--       have : has_colimits_of_shape (F.elementsᵒᵖ) (Type v₁),
 
-      -- have : has_colimits_of_shape (F.elementsᵒᵖ) (C ⥤ Type v₁) := category_theory.limits.functor_category_has_colimits_of_shape,
-      -- have := alt_colimit F,
-      -- have := colimit (my_functor F),
-      -- have := category_theory.limits.functor_category_has_colimits_of_shape,
+--       -- have := alt_colimit F,
+--       -- have := colimit (my_functor F),
+--       -- have := category_theory.limits.functor_category_has_colimits_of_shape,
 
-      -- let X := limit (K ⋙ F),
-      -- let θ := functor.op (category_of_elements.π F),
-      -- have := colimit_limit_to_limit_colimit,
+--       -- let X := limit (K ⋙ F),
+--       -- let θ := functor.op (category_of_elements.π F),
+--       -- have := colimit_limit_to_limit_colimit,
 
-      -- let F' := (op_op_equivalence C).functor ⋙ F,
-      -- have := colimit_of_representable F',
-      -- have := colimit_of_representable,
-    end } }
+--       -- let F' := (op_op_equivalence C).functor ⋙ F,
+--       -- have := colimit_of_representable F',
+--       -- have := colimit_of_representable,
+--     end } }
 
 -- def is_set_flat_of_is_flat (F : C ⥤ Type w) [is_flat F] : is_set_flat F :=
 -- begin

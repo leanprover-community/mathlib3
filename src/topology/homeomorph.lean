@@ -89,12 +89,15 @@ funext h.symm.to_equiv.image_eq_preimage
 lemma preimage_symm (h : α ≃ₜ β) : preimage h.symm = image h :=
 (funext h.to_equiv.image_eq_preimage).symm
 
-@[simp] lemma image_preimage (h : α ≃ₜ β) (s : set β) : h '' (h ⁻¹' s) = s := h.to_equiv.image_preimage s
+@[simp] lemma image_preimage (h : α ≃ₜ β) (s : set β) : h '' (h ⁻¹' s) = s :=
+h.to_equiv.image_preimage s
 
-@[simp] lemma preimage_image (h : α ≃ₜ β) (s : set α) : h ⁻¹' (h '' s) = s := h.to_equiv.preimage_image s
+@[simp] lemma preimage_image (h : α ≃ₜ β) (s : set α) : h ⁻¹' (h '' s) = s :=
+h.to_equiv.preimage_image s
 
 protected lemma inducing (h : α ≃ₜ β) : inducing h :=
-inducing_of_inducing_compose h.continuous h.symm.continuous $ by simp only [symm_comp_self, inducing_id]
+inducing_of_inducing_compose h.continuous h.symm.continuous $
+  by simp only [symm_comp_self, inducing_id]
 
 lemma induced_eq (h : α ≃ₜ β) : topological_space.induced h ‹_› = ‹_› := h.inducing.1.symm
 

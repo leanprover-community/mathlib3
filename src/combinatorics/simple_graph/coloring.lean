@@ -124,5 +124,10 @@ def partial_coloring.restrict (β : Type v) (f : G.partial_coloring β) (V' : se
 { verts := V',
   color := f.color,
   valid := λ v w hv hw, f.valid (h hv) (h hw) }
+-- we do have restrict!!!!!!! nice
+
+-- do i need this?
+/-def partial_coloring.to_coloring (β : Type v) (f : G.partial_coloring β) (h : f.verts = set.univ) :
+  G.coloring β = _-/
 
 end simple_graph

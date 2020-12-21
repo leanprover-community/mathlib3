@@ -377,18 +377,11 @@ inductive alternating_path (M : G.matching) : bool → V → V → Type u
 | consM {u v w : V} (p : alternating_path tt u v) (h : ⟦(v,w)⟧ ∈ M.edges) : alternating_path ff u w
 | consNot {u v w : V} (p : alternating_path ff u v) (h : ⟦(v,w)⟧ ∈ G.edge_set \ M.edges) : alternating_path tt u w
 
-lemma foo (α : Type*) [partial_order α] (f : α → α) (h : ∀ (x : α), x ≤ f x) :
-  (∀ x, x < f x) ∨ (∃ x, x = f x) :=
-begin
-  simp_rw le_iff_eq_or_lt at h,
-  rw or_iff_not_imp_left,
-  intro ha,
-  push_neg at ha,
-  cases ha with x hx,
-  use x,
-  specialize h x,
-  tauto,
-end
+
+-- If Hall's condition is true for $G$, we show that it is satisfied for $G'$
+-- induced by $S \cup \Gamma(S)$ for any $S \subseteq A$.
+-- shit
+
 
 theorem hall_marriage_theorem
   (h2 : fintype.card (f.color_set 0) ≤ fintype.card (f.color_set 1)) :
@@ -403,6 +396,29 @@ begin
     have Sopp := M.opposites_card_eq Ssat,
     exact set.card_le_of_subset (M.opposite_set_subneighbor_set' S Ssat) },
   { intro hh,
+    -- we have `to_partial`, that's what i need to do my strong induction proof
+    -- either every subset of the left class has a neighbour set larger than it,
+    -- or there's one where the neighbour set is the same
+    have h : (∀ (S ⊆ f.color_set 0), fintype.card S < fintype.card (G.neighbor_set' S)) ∨
+        (∃ (S ⊆ f.color_set 0), fintype.card S = fintype.card (G.neighbor_set' S)),
+    { --simp_rw le_iff_eq_or_lt at hh,
+      rw or_iff_not_imp_left,
+      intro ha,
+      push_neg at ha,
+      cases ha with x hx,
+      use x,
+      specialize hh x,
+      cases hx with h3 h4,
+      specialize hh h3,
+      have h7 := le_antisymm hh h4,
+      split,
+      exact h3,
+      exact h7 },
+      cases h with ha he,
+      {
+
+        sorry },
+      -- jesus fuck
     -- ∀ x, x ≤ f x → (∀ x, x < f x) ∨ (∃ x, x = f x)
     --by_contra hv,
 

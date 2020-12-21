@@ -264,6 +264,7 @@ class compatible_smul :=
 
 end
 
+@[priority 100]
 instance compatible_smul.has_scalar_tower
   [has_scalar R' R] [is_scalar_tower R' R M] [is_scalar_tower R' R N] :
   compatible_smul R R' M N :=

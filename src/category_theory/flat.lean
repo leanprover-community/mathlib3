@@ -217,4 +217,21 @@ preserves_limits_of_shape J F :=
 --   end,
 --   counit_iso := nat_iso.of_components (λ p, eq_to_iso (by tidy)) (by tidy) }
 
+lemma is_filtered_or_empty_of_equiv (h : C ≌ D)
+[hC : is_filtered_or_empty C] : is_filtered_or_empty D :=
+let ⟨F,G,unit_iso,counit_iso,iso_comp⟩ := h in
+let ⟨e,e1,he,he1⟩ := counit_iso in
+⟨λ X Y, let ⟨Z,f,g,_⟩ := is_filtered_or_empty.cocone_objs (G.obj X) (G.obj Y) in
+⟨F.obj Z,(e1.app X) ≫ (F.map f),(e1.app Y) ≫ (F.map g),trivial⟩,
+λ X Y f g, let ⟨Z,h,hh⟩ := is_filtered_or_empty.cocone_maps (G.map f) (G.map g) in
+⟨F.obj Z,(e1.app Y) ≫ (F.map h),sorry /-tactic for naturality?-/⟩⟩
+-- was gonna use this to prove the representables flat with comma category
+-- cuz more intuitive, but realised that's just doing extra steps
+
+lemma representable_is_set_flat (U : C) :
+is_filtered_or_empty (coyoneda.obj(op U)).elementsᵒᵖ :=
+⟨λ V W, let ⟨V0,v⟩ := unop V in let ⟨W0,w⟩ := unop W in
+  ⟨(op ⟨U,𝟙 U⟩),sorry /-why it doesnt let me make subtype-/,sorry⟩,
+sorry⟩
+
 end category_theory

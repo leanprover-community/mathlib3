@@ -48,6 +48,7 @@ structure matching :=
 (sub_edges : edges ⊆ G.edge_set)
 (disjoint : ∀ (x y ∈ edges) (v : V), v ∈ x → v ∈ y → x = y)
 
+/-- The empty matching of a graph. -/
 def matching.empty : G.matching :=
 ⟨∅, set.empty_subset _, λ _ _ hx, false.elim (set.not_mem_empty _ hx)⟩
 
@@ -59,14 +60,14 @@ variables {G}
 
 /--
 `M.support` is the set of vertices of `G` that are
-contained in some edge of matching `M`
+contained in some edge of the matching `M`
 -/
 def support (M : G.matching) : set V :=
 {v : V | ∃ x, x ∈ M.edges ∧ v ∈ x}
 
 @[simp] lemma mem_support (M : G.matching) (v : V) :
   v ∈ M.support ↔ ∃ x, x ∈ M.edges ∧ v ∈ x :=
-by refl
+iff.rfl
 
 @[simp] lemma empty_support : (matching.empty G).support = ∅ :=
 by { ext, simp [empty], }

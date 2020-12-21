@@ -8,7 +8,7 @@ import category_theory.discrete_category
 import category_theory.yoneda
 import category_theory.reflects_isomorphisms
 
-universes v v' u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w v v' u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory
 

@@ -74,7 +74,8 @@ variable {α : Type u}
 instance : has_emptyc (ordnode α) := ⟨nil⟩
 instance : inhabited (ordnode α) := ⟨nil⟩
 
-/-- (Internal use only.)
+/-- **Internal use only**
+
 The maximal relative difference between the sizes of
 two trees, it corresponds with the `w` in Adams' paper.
 
@@ -83,7 +84,8 @@ of `(3, 2)` and `(4, 2)` will work, and the proofs in
 `ordset.lean` assume `delta := 3` and `ratio := 2`. -/
 @[inline] def delta := 3
 
-/-- (Internal use only.)
+/-- **Internal use only**
+
 The ratio between an outer and inner sibling of the
 heavier subtree in an unbalanced setting. It determines
 whether a double or single rotation should be performed
@@ -114,17 +116,18 @@ instance : has_singleton α (ordnode α) := ⟨ordnode.singleton⟩
 | nil := tt
 | (node _ _ _ _) := ff
 
-/-- O(n). The dual of a tree is a tree with its left and right sides reversed throughout.
-The dual of a valid BST is valid under the dual order. This is convenient for exploiting
-symmetries in the algorithms.
+/-- **Internal use only**, because it violates the BST property on the original order.
 
-Internal/specialized use only, because it violates the BST property on the original order. -/
+O(n). The dual of a tree is a tree with its left and right sides reversed throughout.
+The dual of a valid BST is valid under the dual order. This is convenient for exploiting
+symmetries in the algorithms. -/
 @[simp] def dual : ordnode α → ordnode α
 | nil := nil
 | (node s l x r) := node s (dual r) x (dual l)
 
-/-- O(1). Construct a node with the correct size information, without rebalancing.
-Internal use only. -/
+/-- **Internal use only**
+
+O(1). Construct a node with the correct size information, without rebalancing. -/
 @[inline, reducible] def node' (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 node (size l + size r + 1) l x r
 
@@ -137,8 +140,10 @@ def repr {α} [has_repr α] : ordnode α → string
 
 instance {α} [has_repr α] : has_repr (ordnode α) := ⟨repr⟩
 
-/-- O(1). Rebalance a tree which was previously balanced but has had its left
-side grow by 1, or its right side shrink by 1. Internal use only. -/
+/-- **Internal use only**
+
+O(1). Rebalance a tree which was previously balanced but has had its left
+side grow by 1, or its right side shrink by 1. -/
 -- Note: The function has been written with tactics to avoid extra junk
 def balance_l (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 by clean begin
@@ -170,8 +175,10 @@ by clean begin
           (node (size lrr + rs + 1) lrr x r) } }
 end
 
-/-- O(1). Rebalance a tree which was previously balanced but has had its right
-side grow by 1, or its left side shrink by 1. Internal use only. -/
+/-- **Internal use only**
+
+O(1). Rebalance a tree which was previously balanced but has had its right
+side grow by 1, or its left side shrink by 1. -/
 def balance_r (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 by clean begin
   cases id l with ls,
@@ -202,8 +209,10 @@ by clean begin
           (node (size rlr + rrs + 1) rlr rx rr) } }
 end
 
-/-- O(1). Rebalance a tree which was previously balanced but has had one side change
-by at most 1. Internal use only. -/
+/-- **Internal use only**
+
+O(1). Rebalance a tree which was previously balanced but has had one side change
+by at most 1. -/
 def balance (l : ordnode α) (x : α) (r : ordnode α) : ordnode α :=
 by clean begin
   cases id l with ls ll lx lr,
@@ -361,8 +370,9 @@ def erase_max : ordnode α → ordnode α
 | (node _ l x nil) := l
 | (node _ l x r) := balance_l l x (erase_max r)
 
-/-- O(log n). Extract and remove the minimum element from a nonempty tree.
-(Internal use only, because it requires a balancing constraint on the inputs.) -/
+/-- **Internal use only**, because it requires a balancing constraint on the inputs.
+
+O(log n). Extract and remove the minimum element from a nonempty tree. -/
 def split_min' : ordnode α → α → ordnode α → α × ordnode α
 | nil x r := (x, r)
 | (node _ ll lx lr) x r :=
@@ -377,8 +387,9 @@ def split_min : ordnode α → option (α × ordnode α)
 | nil := none
 | (node _ l x r) := split_min' l x r
 
-/-- O(log n). Extract and remove the maximum element from a nonempty tree.
-(Internal use only, because it requires a balancing constraint on the inputs.) -/
+/-- **Internal use only**, because it requires a balancing constraint on the inputs.
+
+O(log n). Extract and remove the maximum element from a nonempty tree. -/
 def split_max' : ordnode α → α → ordnode α → ordnode α × α
 | l x nil := (l, x)
 | l x (node _ rl rx rr) :=
@@ -393,8 +404,9 @@ def split_max : ordnode α → option (ordnode α × α)
 | nil := none
 | (node _ x l r) := split_max' x l r
 
-/-- O(log(m+n)). Concatenate two trees that are balanced and ordered with respect to each other.
-(Internal use only.) -/
+/-- **Internal use only**
+
+O(log(m+n)). Concatenate two trees that are balanced and ordered with respect to each other. -/
 def glue : ordnode α → ordnode α → ordnode α
 | nil r := r
 | l@(node _ _ _ _) nil := l

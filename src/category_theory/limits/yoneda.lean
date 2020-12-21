@@ -24,7 +24,7 @@ universes v u
 namespace category_theory
 
 namespace coyoneda
-variables {C : Type v} [small_category.{v} C]
+variables {C : Type v} [small_category C]
 
 /--
 The colimit cocone over `coyoneda.obj X`, with cocone point `punit`.

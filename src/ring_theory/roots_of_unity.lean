@@ -829,7 +829,7 @@ begin
     (monic.is_primitive Qmonic),
   have prod : P * Q ∣ X ^ n - 1,
   { apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
-    (monic.is_primitive ((monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)))).2,
+      (monic.is_primitive ((monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)))).2,
     rw [map_mul],
     refine is_coprime.mul_dvd _ _ _,
     cases (dvd_or_coprime (map (int.cast_ring_hom ℚ) P) (map (int.cast_ring_hom ℚ) Q) _)

@@ -533,6 +533,29 @@ by rw [union_comm, union_eq_left_iff_subset]
   s = t ∪ s ↔ t ⊆ s :=
 by rw [← union_eq_right_iff_subset, eq_comm]
 
+/--
+To prove a relation on pairs of `finset X`, it suffices to show that it is
+  * symmetric,
+  * it holds when one of the `finset`s is empty,
+  * it holds for pairs of singletons,
+  * if it holds for `[a, c]` and for `[b, c]`, then it holds for `[a ∪ b, c]`.
+-/
+lemma induction_on_union (P : finset α → finset α → Prop)
+  (symm : ∀ {a b}, P a b → P b a)
+  (empty_right : ∀ {a}, P a ∅)
+  (singletons : ∀ {a b}, P {a} {b})
+  (union_of : ∀ {a b c}, P a c → P b c → P (a ∪ b) c) :
+  ∀ a b, P a b :=
+begin
+  intros a b,
+  refine finset.induction_on b empty_right (λ x s xs hi, symm _),
+  rw finset.insert_eq,
+  apply union_of _ (symm hi),
+  refine finset.induction_on a empty_right (λ a t ta hi, symm _),
+  rw finset.insert_eq,
+  exact union_of singletons (symm hi),
+end
+
 /-! ### inter -/
 
 /-- `s ∩ t` is the set such that `a ∈ s ∩ t` iff `a ∈ s` and `a ∈ t`. -/

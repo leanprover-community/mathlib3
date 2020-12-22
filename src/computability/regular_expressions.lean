@@ -15,6 +15,10 @@ import computability.language
 This file contains the formal definition for regular expressions and basic lemmas. Note these are
 regular expressions in terms of formal language theory. Note this is different to regex's used in
 computer science such as the POSIX standard.
+
+TODO
+* Show that this regular expressions and DFA/NFA's are equivalent.
+* `attribute [pattern] has_mul.mul` has been added into this file, it could be moved.
 -/
 
 universe u
@@ -48,6 +52,8 @@ instance : has_mul (regular_expression α) := ⟨comp⟩
 instance : has_one (regular_expression α) := ⟨epsilon⟩
 instance : has_zero (regular_expression α) := ⟨zero⟩
 
+attribute [pattern] has_mul.mul
+
 @[simp] lemma zero_def : (zero : regular_expression α) = 0 := rfl
 @[simp] lemma one_def : (epsilon : regular_expression α) = 1 := rfl
 
@@ -60,7 +66,7 @@ def matches : regular_expression α → language α
 | 1 := 1
 | (char a) := {[a]}
 | (P + Q) := P.matches + Q.matches
-| (comp P Q) := P.matches * Q.matches
+| (P * Q) := P.matches * Q.matches
 | (star P) := P.matches.star
 
 @[simp] lemma matches_zero_def : (0 : regular_expression α).matches = 0 := rfl
@@ -77,7 +83,7 @@ def match_epsilon : regular_expression α → bool
 | 1 := tt
 | (char _) := ff
 | (P + Q) := P.match_epsilon || Q.match_epsilon
-| (comp P Q) := P.match_epsilon && Q.match_epsilon
+| (P * Q) := P.match_epsilon && Q.match_epsilon
 | (star P) := tt
 
 include dec
@@ -89,7 +95,7 @@ def deriv : regular_expression α → α → regular_expression α
 | 1 _ := 0
 | (char a₁) a₂ := if a₁ = a₂ then 1 else 0
 | (P + Q) a := deriv P a + deriv Q a
-| (comp P Q) a :=
+| (P * Q) a :=
   if P.match_epsilon then
     deriv P a * Q + deriv Q a
   else
@@ -140,7 +146,7 @@ lemma mul_rmatch_iff (P Q : regular_expression α) (x : list α) :
   (P * Q).rmatch x ↔ ∃ t u : list α, x = t ++ u ∧ P.rmatch t ∧ Q.rmatch u :=
 begin
   induction x with a x ih generalizing P Q,
-  { rw [←comp_def, rmatch, match_epsilon],
+  { rw [rmatch, match_epsilon],
     split,
     { intro h,
       refine ⟨ [], [], rfl, _ ⟩,
@@ -152,7 +158,7 @@ begin
       subst hu,
       repeat {rw rmatch at h₂},
       finish } },
-  { rw [←comp_def, rmatch, deriv],
+  { rw [rmatch, deriv],
     split_ifs with hepsilon,
     { rw [add_rmatch_iff, ih],
       split,
@@ -246,6 +252,7 @@ begin
   { try {rw zero_def},
     try {rw one_def},
     try {rw plus_def},
+    try {rw comp_def},
     rw matches },
   { rw zero_rmatch,
     tauto },
@@ -288,3 +295,4 @@ begin
 end
 
 end regular_expression
+#lint

@@ -357,6 +357,19 @@ ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
 @[simp] theorem insert_ne_empty (a : α) (s : finset α) : insert a s ≠ ∅ :=
 (insert_nonempty a s).ne_empty
 
+section
+universe u
+/-!
+The universe annotation is required for the following instance, possibly this is a bug in Lean. See
+leanprover.zulipchat.com/#narrow/stream/113488-general/topic/strange.20error.20(universe.20issue.3F)
+-/
+
+instance {α : Type u} [decidable_eq α] (i : α) (s : finset α) :
+  nonempty.{u + 1} ((insert i s : finset α) : set α) :=
+(finset.coe_nonempty.mpr (s.insert_nonempty i)).to_subtype
+
+end
+
 lemma ne_insert_of_not_mem (s t : finset α) {a : α} (h : a ∉ s) :
   s ≠ insert a t :=
 by { contrapose! h, simp [h] }

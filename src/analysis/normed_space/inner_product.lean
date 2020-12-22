@@ -1697,6 +1697,18 @@ begin
     exact hv ⟨w, hw⟩ }
 end
 
+/-- The orthogonal complement of any submodule `K` is closed. -/
+lemma submodule.is_closed_orthogonal (K : submodule 𝕜 E) : is_closed (K.orthogonal : set E) :=
+begin
+  rw orthogonal_eq_inter K,
+  convert is_closed_Inter (λ v : K, (inner_left (v:E)).is_closed_ker),
+  simp
+end
+
+/-- In a complete space, the orthogonal complement of any submodule `K` is complete. -/
+instance [complete_space E] (K : submodule 𝕜 E) : complete_space K.orthogonal :=
+K.is_closed_orthogonal.complete_space_coe
+
 variables (𝕜 E)
 
 /-- `submodule.orthogonal` gives a `galois_connection` between
@@ -1714,7 +1726,6 @@ subspaces. -/
 lemma submodule.orthogonal_le {K₁ K₂ : submodule 𝕜 E} (h : K₁ ≤ K₂) :
   K₂.orthogonal ≤ K₁.orthogonal :=
 (submodule.orthogonal_gc 𝕜 E).monotone_l h
-
 
 /-- `K` is contained in `K.orthogonal.orthogonal`. -/
 lemma submodule.le_orthogonal_orthogonal (K : submodule 𝕜 E) : K ≤ K.orthogonal.orthogonal :=
@@ -1831,19 +1842,6 @@ begin
   have : K ⊔ K.orthogonal = ⊤ := submodule.sup_orthogonal_of_is_complete hK,
   rwa [h, sup_comm, bot_sup_eq] at this,
 end
-
-/-- In a complete space, the orthogonal complement of any submodule `K` is closed. -/
-lemma submodule.is_closed_orthogonal [complete_space E] (K : submodule 𝕜 E) :
-  is_closed (K.orthogonal : set E) :=
-begin
-  rw orthogonal_eq_inter K,
-  convert is_closed_Inter (λ v : K, (inner_left (v:E)).is_closed_ker),
-  simp
-end
-
-/-- In a complete space, the orthogonal complement of any submodule `K` is complete. -/
-instance [complete_space E] (K : submodule 𝕜 E) : complete_space K.orthogonal :=
-K.is_closed_orthogonal.complete_space_coe
 
 open finite_dimensional
 

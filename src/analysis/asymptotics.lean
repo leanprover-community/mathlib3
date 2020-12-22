@@ -692,6 +692,21 @@ theorem is_O_const_const (c : E) {c' : F'} (hc' : c' ≠ 0) (l : filter α) :
 
 end zero_const
 
+@[simp] lemma is_O_with_top : is_O_with c f g ⊤ ↔ ∀ x, ∥f x∥ ≤ c * ∥g x∥ := iff.rfl
+
+@[simp] lemma is_O_top : is_O f g ⊤ ↔ ∃ C, ∀ x, ∥f x∥ ≤ C * ∥g x∥ := iff.rfl
+
+@[simp] lemma is_o_top : is_o f' g' ⊤ ↔ ∀ x, f' x = 0 :=
+begin
+  refine ⟨_, λ h, (is_o_zero g' ⊤).congr (λ x, (h x).symm) (λ x, rfl)⟩,
+  simp only [is_o_iff, eventually_top],
+  refine λ h x, norm_le_zero_iff.1 _,
+  have : tendsto (λ c : ℝ, c * ∥g' x∥) (𝓝[Ioi 0] 0) 0 :=
+    ((continuous_id.mul continuous_const).tendsto' _ _ _).mono_left _,
+--   (le_of_tendsto_of_tendsto tendsto_const_nhds _ _),
+end
+
+
 theorem is_O_with_const_one (c : E) (l : filter α) : is_O_with ∥c∥ (λ x : α, c) (λ x, (1 : 𝕜)) l :=
 begin
   refine (is_O_with_const_const c _ l).congr_const _,
@@ -1040,48 +1055,20 @@ have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : 𝕜)) l,
   from is_O_of_le _ (λ x, by by_cases h : ∥g x∥ = 0; simp [h, zero_le_one]),
 (is_o_one_iff 𝕜).mp (eq₁.trans_is_O eq₂)
 
-private theorem is_o_of_tendsto {f g : α → 𝕜} {l : filter α}
-    (hgf : ∀ x, g x = 0 → f x = 0) (h : tendsto (λ x, f x / (g x)) l (𝓝 0)) :
-  is_o f g l :=
-have eq₁ : is_o (λ x, f x / (g x)) (λ x, (1 : 𝕜)) l,
-  from (is_o_one_iff _).mpr h,
-have eq₂ : is_o (λ x, f x / g x * g x) g l,
-  by convert eq₁.mul_is_O (is_O_refl _ _); simp,
-have eq₃ : is_O f (λ x, f x / g x * g x) l,
-  begin
-    refine is_O_of_le _ (λ x, _),
-    by_cases H : g x = 0,
-    { simp only [H, hgf _ H, mul_zero] },
-    { simp only [div_mul_cancel _ H] }
-  end,
-eq₃.trans_is_o eq₂
-
-private theorem is_o_of_tendsto' {f g : α → 𝕜} {l : filter α}
-    (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) (h : tendsto (λ x, f x / (g x)) l (𝓝 0)) :
-  is_o f g l :=
-let ⟨u, hu, himp⟩ := hgf.exists_mem in
-have key : u.indicator f =ᶠ[l] f,
-  from eventually_eq_of_mem hu eq_on_indicator,
-have himp : ∀ x, g x = 0 → (u.indicator f) x = 0,
-  from λ x hgx,
-    begin
-      by_cases h : x ∈ u,
-      { exact (indicator_of_mem h f).symm ▸ himp x h hgx },
-      { exact indicator_of_not_mem h f }
-    end,
-suffices h : is_o (u.indicator f) g l,
-  from is_o.congr' key (by refl) h,
-is_o_of_tendsto himp (h.congr' (key.symm.div (by refl)))
+theorem is_o_iff_tendsto' {f g : α → 𝕜} {l : filter α}
+    (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) :
+  is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
+iff.intro is_o.tendsto_0 $ λ h,
+  (((is_o_one_iff _).mpr h).mul_is_O (is_O_refl g l)).congr'
+    (hgf.mono $ λ x, div_mul_cancel_of_imp) (eventually_of_forall $ λ x, one_mul _)
 
 theorem is_o_iff_tendsto {f g : α → 𝕜} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) :
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
-iff.intro is_o.tendsto_0 (is_o_of_tendsto hgf)
+⟨λ h, h.tendsto_0, (is_o_iff_tendsto' (eventually_of_forall hgf)).2⟩
 
-theorem is_o_iff_tendsto' {f g : α → 𝕜} {l : filter α}
-    (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) :
-  is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
-iff.intro is_o.tendsto_0 (is_o_of_tendsto' hgf)
+alias is_o_iff_tendsto' ↔ _ asymptotics.is_o_of_tendsto'
+alias is_o_iff_tendsto ↔ _ asymptotics.is_o_of_tendsto
 
 /-!
 ### Eventually (u / v) * v = u
@@ -1213,6 +1200,13 @@ theorem is_o.right_is_O_sub {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
 theorem is_o.right_is_O_add {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
   is_O f₂ (λx, f₁ x + f₂ x) l :=
 ((h.def' one_half_pos).right_le_add_of_lt_1 one_half_lt_one).is_O
+
+theorem is_O_cofinite_iff : is_O f' g' cofinite ↔ \
+
+theorem exists_is_o_tfae [preorder β] [densely_ordered β] {f : β → α → E'} 
+  (h : ∀ ⦃i j⦄, i < j → is_o (f i) (f j) l) (g : α → F') (b : β) :
+  tfae [∃ i < b, is_o g (f i) l,
+    ∃ i < b, is_O g (f i) l]
 
 end asymptotics
 

@@ -895,7 +895,7 @@ begin
 end
 
 /-- If `m : ℕ` is coprime with `n`,
-then the minimal polynomials of a primitive `n`-th root of unity `μ`
+then the minimal polynomial of a primitive `n`-th root of unity `μ`
 has `μ ^ m` as root. -/
 lemma pow_is_root_minimal_polynomial {m : ℕ} (hcop : nat.coprime m n) :
   is_root (map (int.cast_ring_hom K) (minimal_polynomial (is_integral h hpos))) (μ ^ m) :=

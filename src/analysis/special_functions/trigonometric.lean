@@ -2178,32 +2178,17 @@ lemma sin_eq_zero_iff_cos_eq {z : ℂ} : sin z = 0 ↔ cos z = 1 ∨ cos z = -1 
 by rw [← mul_self_eq_one_iff, ← sin_sq_add_cos_sq, pow_two, pow_two, ← sub_eq_iff_eq_add, sub_self];
   exact ⟨λ h, by rw [h, mul_zero], eq_zero_of_mul_self_eq_zero ∘ eq.symm⟩
 
-lemma tan_ne_zero_iff {θ : ℂ} : tan θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ k * π / 2 :=
+lemma tan_eq_zero_iff {θ : ℂ} : tan θ = 0 ↔ ∃ k : ℤ, θ = k * π / 2 :=
 begin
-  rw [tan, div_ne_zero_iff, sin_ne_zero_iff, cos_ne_zero_iff],
-  split,
-  { intros h k,
-    by_cases hk : odd k,
-    { cases hk with l hk,
-      convert h.2 l,
-      simp only [hk, int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one] },
-    { rw ← int.even_iff_not_odd at hk,
-      cases hk with l hk,
-      convert h.1 l,
-      simp only [hk, int.cast_bit0, int.cast_mul, int.cast_one],
-      ring } },
-  { intro h,
-    split,
-    { intro k,
-      let h' := h (2*k),
-      simp only [int.cast_bit0, int.cast_mul, int.cast_one] at h',
-      ring at h',
-      rwa mul_comm },
-    { simpa only [int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one] using λ k, h (2*k+1) } },
+  have h := (sin_two_mul x).symm,
+  rw mul_assoc at h,
+  rw [tan, div_eq_zero_iff, ← mul_eq_zero, ← zero_mul ((1/2):ℂ), mul_one_div,
+      cancel_factors.cancel_factors_eq_div h two_ne_zero', mul_comm],
+  simpa only [zero_div, zero_mul, ne.def, not_false_iff] with field_simps using sin_eq_zero_iff,
 end
 
-lemma tan_eq_zero_iff {θ : ℂ} : tan θ = 0 ↔ ∃ k : ℤ, θ = k * π / 2 :=
-by rw [← not_iff_not, not_exists, ← ne, tan_ne_zero_iff]
+lemma tan_ne_zero_iff {θ : ℂ} : tan θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ k * π / 2 :=
+by rw [← not_exists, not_iff_not, tan_eq_zero_iff]
 
 lemma tan_int_mul_pi_div_two (n : ℤ) : tan (n * π/2) = 0 :=
 tan_eq_zero_iff.mpr (by use n)

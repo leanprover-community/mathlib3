@@ -42,34 +42,11 @@ by rw [not_odd_iff, even_iff]
 @[simp] lemma odd_iff_not_even {n : ℤ} : odd n ↔ ¬ even n :=
 by rw [not_even_iff, odd_iff]
 
-lemma even_or_odd' (n : ℤ) : ∃ k : ℤ, n = 2 * k ∨ n = 2 * k + 1 :=
-begin
-  cases n,
-  { induction n with n ih,
-    { use 0,
-      simp },
-    { cases ih with l hn,
-      simp only [int.coe_nat_succ, of_nat_eq_coe] at hn ⊢,
-      cases hn,
-      { use l,
-        exact or.inr (by rw hn) },
-      { use l+1,
-        exact or.inl (by { rw hn, ring }) } } },
-  { rw neg_succ_of_nat_coe,
-    induction n with n ih,
-    { use -1,
-      exact or.inr rfl },
-    { cases ih with l hn,
-      simp only [neg_add_rev, int.coe_nat_succ] at hn ⊢,
-      cases hn,
-      { use l-1,
-        exact or.inr (by { rw hn, ring }) },
-      { use l,
-        exact or.inl (by { rw hn, ring }) } } },
-end
-
 lemma even_or_odd (n : ℤ) : even n ∨ odd n :=
-by rw [even, odd, ← exists_or_distrib]; exact even_or_odd' n
+by simpa only [not_not] using (iff_iff_not_or_and_or_not.mp even_iff_not_odd).2
+
+lemma even_or_odd' (n : ℤ) : ∃ k : ℤ, n = 2 * k ∨ n = 2 * k + 1 :=
+by simpa only [exists_or_distrib, ← odd, ← even] using even_or_odd n
 
 lemma even_xor_odd (n : ℤ) : xor (even n) (odd n) :=
 begin
@@ -84,9 +61,9 @@ begin
   use k,
   cases h,
   { simpa only [xor, h, true_and, eq_self_iff_true, not_true, or_false, and_false]
-      using (succ_ne_self (2*k)).symm},
+      using (succ_ne_self (2*k)).symm },
   { simp only [xor, h, add_right_eq_self, false_or, eq_self_iff_true, not_true, not_false_iff,
-                one_ne_zero, and_self] },
+               one_ne_zero, and_self] },
 end
 
 lemma ne_of_odd_sum {x y : ℤ} (h : odd (x + y)) : x ≠ y :=

@@ -2180,7 +2180,7 @@ by rw [← mul_self_eq_one_iff, ← sin_sq_add_cos_sq, pow_two, pow_two, ← sub
 
 lemma tan_eq_zero_iff {θ : ℂ} : tan θ = 0 ↔ ∃ k : ℤ, θ = k * π / 2 :=
 begin
-  have h := (sin_two_mul x).symm,
+  have h := (sin_two_mul θ).symm,
   rw mul_assoc at h,
   rw [tan, div_eq_zero_iff, ← mul_eq_zero, ← zero_mul ((1/2):ℂ), mul_one_div,
       cancel_factors.cancel_factors_eq_div h two_ne_zero', mul_comm],

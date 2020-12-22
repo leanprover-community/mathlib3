@@ -535,6 +535,12 @@ is_O_snd_prod.trans_is_o h
   is_o (λ x, (f' x, g' x)) k' l ↔ is_o f' k' l ∧ is_o g' k' l :=
 ⟨λ h, ⟨h.prod_left_fst, h.prod_left_snd⟩, λ h, h.1.prod_left h.2⟩
 
+lemma is_O_with.eq_zero_imp (h : is_O_with c f' g' l) : ∀ᶠ x in l, g' x = 0 → f' x = 0 :=
+eventually.mono h $ λ x hx hg, norm_le_zero_iff.1 $ by simpa [hg] using hx
+
+lemma is_O.eq_zero_imp (h : is_O f' g' l) : ∀ᶠ x in l, g' x = 0 → f' x = 0 :=
+let ⟨C, hC⟩ := h in hC.eq_zero_imp
+
 /-! ### Addition and subtraction -/
 
 section add_sub

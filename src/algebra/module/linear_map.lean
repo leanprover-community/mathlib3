@@ -303,7 +303,7 @@ end
 attribute [nolint doc_blame] linear_equiv.to_linear_map
 attribute [nolint doc_blame] linear_equiv.to_add_equiv
 
-infix ` ≃ₗ `:25 := linear_equiv _
+infix ` ≃ₗ ` := linear_equiv _
 notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv R M M₂
 
 namespace linear_equiv

@@ -29,8 +29,7 @@ instance : full (forget₂ (Module ℤ) AddCommGroup.{u}) :=
 
 /-- The forgetful functor from `ℤ` modules to `AddCommGroup` is essentially surjective. -/
 instance : ess_surj (forget₂ (Module ℤ) AddCommGroup.{u}) :=
-{ obj_preimage := λ A, Module.of ℤ A,
-  iso' := λ A, { hom := 𝟙 A, inv := 𝟙 A, } }
+{ mem_ess_image := λ A, ⟨Module.of ℤ A, ⟨{ hom := 𝟙 A, inv := 𝟙 A }⟩⟩}
 
-instance : is_equivalence (forget₂ (Module ℤ) AddCommGroup.{u}) :=
+noncomputable instance : is_equivalence (forget₂ (Module ℤ) AddCommGroup.{u}) :=
 equivalence_of_fully_faithfully_ess_surj (forget₂ (Module ℤ) AddCommGroup)

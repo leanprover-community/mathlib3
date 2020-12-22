@@ -636,6 +636,10 @@ lemma binfi_inf {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i,
 by haveI : nonempty {i // p i} := (let ⟨i, hi⟩ := h in ⟨⟨i, hi⟩⟩);
   rw [infi_subtype', infi_subtype', infi_inf]
 
+lemma inf_binfi {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i, p i) :
+  a ⊓ (⨅i (h : p i), f i h) = (⨅ i (h : p i), a ⊓ f i h) :=
+by simpa only [inf_comm] using binfi_inf h
+
 theorem supr_sup_eq {f g : β → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
 @infi_inf_eq (order_dual α) β _ _ _
 
@@ -809,12 +813,6 @@ infi_of_empty nonempty_empty
 
 @[simp] theorem supr_empty {s : empty → α} : supr s = ⊥ :=
 supr_of_empty nonempty_empty
-
-@[simp] theorem infi_unit {f : unit → α} : (⨅ x, f x) = f () :=
-le_antisymm (infi_le _ _) (le_infi $ assume ⟨⟩, le_refl _)
-
-@[simp] theorem supr_unit {f : unit → α} : (⨆ x, f x) = f () :=
-le_antisymm (supr_le $ assume ⟨⟩, le_refl _) (le_supr _ _)
 
 lemma supr_bool_eq {f : bool → α} : (⨆b:bool, f b) = f tt ⊔ f ff :=
 le_antisymm

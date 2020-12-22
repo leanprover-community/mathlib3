@@ -32,7 +32,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
 open metric set asymptotics filter real
-open_locale classical topological_space
+open_locale classical topological_space nnreal
 
 /-! ### Technical lemmas about `gronwall_bound` -/
 
@@ -178,7 +178,7 @@ people call this Grönwall's inequality too.
 
 This version assumes all inequalities to be true in the whole space. -/
 theorem dist_le_of_approx_trajectories_ODE {v : ℝ → E → E}
-  {K : nnreal} (hv : ∀ t, lipschitz_with K (v t))
+  {K : ℝ≥0} (hv : ∀ t, lipschitz_with K (v t))
   {f g f' g' : ℝ → E} {a b : ℝ} {εf εg δ : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (f' t) (Ioi t) t)
@@ -226,7 +226,7 @@ people call this Grönwall's inequality too.
 
 This version assumes all inequalities to be true in the whole space. -/
 theorem dist_le_of_trajectories_ODE {v : ℝ → E → E}
-  {K : nnreal} (hv : ∀ t, lipschitz_with K (v t))
+  {K : ℝ≥0} (hv : ∀ t, lipschitz_with K (v t))
   {f g : ℝ → E} {a b : ℝ} {δ : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
@@ -262,7 +262,7 @@ end
 /-- There exists only one solution of an ODE \(\dot x=v(t, x)\) with
 a given initial value provided that RHS is Lipschitz continuous in `x`. -/
 theorem ODE_solution_unique {v : ℝ → E → E}
-  {K : nnreal} (hv : ∀ t, lipschitz_with K (v t))
+  {K : ℝ≥0} (hv : ∀ t, lipschitz_with K (v t))
   {f g : ℝ → E} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)

@@ -187,8 +187,8 @@ lemma conj_bijective : @function.bijective K K is_R_or_C.conj := conj_involutive
 
 lemma conj_inj (z w : K) : conj z = conj w ↔ z = w := conj_bijective.1.eq_iff
 
-@[simp] lemma conj_eq_zero {z : K} : conj z = 0 ↔ z = 0 :=
-by simpa using @conj_inj K _ z 0
+lemma conj_eq_zero {z : K} : conj z = 0 ↔ z = 0 :=
+ring_hom.map_eq_zero conj
 
 lemma eq_conj_iff_real {z : K} : conj z = z ↔ ∃ r : ℝ, z = (r : K) :=
 begin

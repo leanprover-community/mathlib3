@@ -295,19 +295,30 @@ instance : has_neg (cau_seq β abv) :=
 theorem const_neg (x : β) : const (-x) = -const x :=
 ext $ λ i, rfl
 
+instance : has_sub (cau_seq β abv) :=
+⟨λ f g, of_eq (f + -g) (λ x, f x - g x) (λ i, by simp [sub_eq_add_neg])⟩
+
+@[simp] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
+
+theorem const_sub (x y : β) : const (x - y) = const x - const y :=
+ext $ λ i, rfl
+
 instance : ring (cau_seq β abv) :=
-by refine {neg := has_neg.neg, add := (+), zero := 0, mul := (*), one := 1, ..};
-   { intros, apply ext, simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm] }
+by refine
+     { neg := has_neg.neg,
+       add := (+),
+       zero := 0,
+       mul := (*),
+       one := 1,
+       sub := has_sub.sub,
+       sub_eq_add_neg := _,
+       .. };
+  { intros, apply ext, simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg] }
 
 instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
   comm_ring (cau_seq β abv) :=
 { mul_comm := by intros; apply ext; simp [mul_left_comm, mul_comm],
   ..cau_seq.ring }
-
-theorem const_sub (x y : β) : const (x - y) = const x - const y :=
-by rw [sub_eq_add_neg, const_add, const_neg, sub_eq_add_neg]
-
-@[simp] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
 
 /-- `lim_zero f` holds when `f` approaches 0. -/
 def lim_zero {abv : β → α} (f : cau_seq β abv) : Prop := ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j) < ε

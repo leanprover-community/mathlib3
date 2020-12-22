@@ -302,10 +302,8 @@ begin
   obtain ⟨s, g, h, i, hi, hz⟩ := linear_dependent_iff.mp h,
   -- the part that uses `division_ring`
   suffices : f (update v i (g i • v i)) = 0,
-  { apply (units.mk0 (g i) hz).smul_eq_zero.1,
-    rw units.coe_mk0,
-    rw [f.map_smul, function.update_eq_self i v] at this,
-    exact this, },
+  { rw [f.map_smul, function.update_eq_self, smul_eq_zero] at this,
+    exact or.resolve_left this hz, },
   conv at h in (g _ • v _) { rw ←if_t_t (i = x) (g _ • v _), },
   rw [finset.sum_ite, finset.filter_eq, finset.filter_ne, if_pos hi, finset.sum_singleton,
     add_eq_zero_iff_eq_neg] at h,

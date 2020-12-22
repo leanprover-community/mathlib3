@@ -22,17 +22,14 @@ sub`set`s are contained in disjoint open sets.
 -/
 def separated : set α → set α → Prop :=
   λ (s t : set α), ∃ U V : (set α), (is_open U) ∧ is_open V ∧
-  (∀ a : α, a ∈ s → a ∈ U) ∧ (∀ a : α, a ∈ t → a ∈ V) ∧ disjoint U V
+  (s ⊆ U) ∧ (t ⊆ V) ∧ disjoint U V
 
 namespace separated
 
 open separated
 
 @[symm] lemma symm {s t : set α} : separated s t → separated t s :=
-begin
-  rintros ⟨U, V, oU, oV, aU, bV, UV⟩,
-  exact ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩
-end
+λ ⟨U, V, oU, oV, aU, bV, UV⟩, ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩
 
 lemma comm (s t : set α) : separated s t ↔ separated t s :=
 ⟨symm, symm⟩
@@ -44,17 +41,11 @@ lemma empty_left (a : set α) : separated ∅ a :=
 (empty_right _).symm
 
 lemma union_left {a b c : set α} : separated a c → separated b c → separated (a ∪ b) c :=
-begin
-  rintros ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
-  refine ⟨U ∪ W, V ∩ X, is_open_union oU oW, is_open_inter oV oX,
-    λ x xab, _, λ x xc, ⟨bV _ xc, bX _ xc⟩, _⟩,
-  { cases (mem_union _ _ _).mp xab with h h,
-    { exact mem_union_left W (aU x h) },
-    { exact mem_union_right U (aW x h) } },
-  { apply set.disjoint_union_left.mpr,
-    exact ⟨disjoint_of_subset_right (inter_subset_left _ _) UV,
-      disjoint_of_subset_right (inter_subset_right _ _) WX⟩ },
-end
+λ ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
+  ⟨U ∪ W, V ∩ X, is_open_union oU oW, is_open_inter oV oX,
+    union_subset_union aU aW, subset_inter bV bX, set.disjoint_union_left.mpr
+    ⟨disjoint_of_subset_right (inter_subset_left _ _) UV,
+      disjoint_of_subset_right (inter_subset_right _ _) WX⟩⟩
 
 lemma union_right {a b c : set α} (ab : separated a b) (ac : separated a c) :
   separated a (b ∪ c) :=
@@ -216,7 +207,7 @@ begin
     exact this rfl },
 end
 
-namespace separated
+section separated
 
 open separated finset
 
@@ -229,17 +220,13 @@ begin
     refine ⟨U, V, oU, oV, λ f hf, _, λ f hf, _, set.disjoint_iff_inter_eq_empty.mpr UV⟩;
     rwa [finset.mem_singleton.mp hf] },
   { intros a b c ac bc d,
-    rw [coe_union],
-    apply union_left (ac (disjoint_of_subset_left (a.subset_union_left b) d)) (bc _),
+    apply_mod_cast union_left (ac (disjoint_of_subset_left (a.subset_union_left b) d)) (bc _),
     exact disjoint_of_subset_left (a.subset_union_right b) d },
 end
 
 lemma point_disjoint_finset_opens_of_t2 [t2_space α] {x : α} {s : finset α} (h : x ∉ s) :
   separated ({x} : set α) ↑s :=
-begin
-  rw ← coe_singleton x,
-  exact finset_disjoint_finset_opens_of_t2 {x} s (singleton_disjoint.mpr h),
-end
+by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (singleton_disjoint.mpr h)
 
 end separated
 

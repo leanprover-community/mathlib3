@@ -2313,7 +2313,7 @@ begin
   exact tendsto_principal_principal.2 (λ y, mt complex.of_real_inj.1)
 end
 
-lemma tendsto_abs_tan_zt_top (k : ℤ) :
+lemma tendsto_abs_tan_at_top (k : ℤ) :
   tendsto (λ x, abs (tan x)) (𝓝[{(2 * k + 1) * π / 2}ᶜ] ((2 * k + 1) * π / 2)) at_top :=
 tendsto_abs_tan_of_cos_eq_zero $ cos_eq_zero_iff.2 ⟨k, rfl⟩
 

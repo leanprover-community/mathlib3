@@ -2192,6 +2192,10 @@ begin
     (tendsto.inv_tendsto_zero $ tendsto_norm_nhds_within_zero.comp B),
 end
 
+lemma tendsto_abs_tan_at_top (k : ℤ) :
+  tendsto (λ x, abs (tan x)) (𝓝[{(2 * k + 1) * π / 2}ᶜ] ((2 * k + 1) * π / 2)) at_top :=
+tendsto_abs_tan_of_cos_eq_zero $ cos_eq_zero_iff.2 ⟨k, rfl⟩
+
 @[simp] lemma continuous_at_tan {x : ℂ} : continuous_at tan x ↔ cos x ≠ 0 :=
 begin
   refine ⟨λ hc h₀, _, λ h, (has_deriv_at_tan h).continuous_at⟩,
@@ -2308,6 +2312,10 @@ begin
   refine tendsto.inf complex.continuous_of_real.continuous_at _,
   exact tendsto_principal_principal.2 (λ y, mt complex.of_real_inj.1)
 end
+
+lemma tendsto_abs_tan_zt_top (k : ℤ) :
+  tendsto (λ x, abs (tan x)) (𝓝[{(2 * k + 1) * π / 2}ᶜ] ((2 * k + 1) * π / 2)) at_top :=
+tendsto_abs_tan_of_cos_eq_zero $ cos_eq_zero_iff.2 ⟨k, rfl⟩
 
 lemma continuous_at_tan {x : ℝ} : continuous_at tan x ↔ cos x ≠ 0 :=
 begin

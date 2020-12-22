@@ -5,7 +5,7 @@ Author: Yury G. Kudryashov
 -/
 import measure_theory.set_integral
 import measure_theory.lebesgue_measure
-import analysis.calculus.deriv
+import analysis.calculus.fderiv_measurable
 import analysis.calculus.mean_value
 
 /-!
@@ -1284,8 +1284,8 @@ integral_eq_sub_of_has_deriv_at' (λ x hx, (hderiv x hx).continuous_at.continuou
   (λ x hx, hderiv _ (mem_Icc_of_Ico hx)) hcont' hmeas'
 
 theorem integral_deriv_eq_sub (hderiv : ∀ x ∈ interval a b, differentiable_at ℝ f x)
-  (hcont' : continuous_on (deriv f) (interval a b)) (hmeas' : measurable (deriv f)) :
+  (hcont' : continuous_on (deriv f) (interval a b)) :
   ∫ y in a..b, deriv f y = f b - f a :=
-integral_eq_sub_of_has_deriv_at (λ x hx, (hderiv x hx).has_deriv_at) hcont' hmeas'
+integral_eq_sub_of_has_deriv_at (λ x hx, (hderiv x hx).has_deriv_at) hcont' (measurable_deriv f)
 
 end interval_integral

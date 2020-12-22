@@ -183,7 +183,7 @@ begin
 end
 
 lemma star_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
-  (star P).rmatch x ↔ ∃ S : list (list α), x = S.join ∧ ∀ t ∈ S, ¬(list.empty t) ∧ P.rmatch t
+  (star P).rmatch x ↔ ∃ S : list (list α), x = S.join ∧ ∀ t ∈ S, t ≠ [] ∧ P.rmatch t
 | x :=
 begin
   have IH := λ t (h : list.length t < list.length x), star_rmatch_iff t,
@@ -241,7 +241,7 @@ using_well_founded {
   ∀ x : list α, P.rmatch x ↔ x ∈ P.matches :=
 begin
   intro x,
-  induction P with _ _ _ ih₁ ih₂ _ _ ih₁ ih₂ _ ih generalizing x,
+  induction P with _ _ _ ih₁ ih₂ _ _ ih₁ ih₂ P ih generalizing x,
   all_goals
   { try {rw zero_def},
     try {rw one_def},
@@ -266,8 +266,17 @@ begin
       rw ←ih₁ at hmatch₁,
       rw ←ih₂ at hmatch₂,
       exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ } },
-  { rw star_rmatch_iff,
-    finish }
+  { rw [star_rmatch_iff, language.star_def_nonempty],
+    split,
+    all_goals
+    { rintro ⟨ S, hx, hS ⟩,
+      refine ⟨ S, hx, _ ⟩,
+      intro y,
+      specialize hS y },
+    { rw ←ih y,
+      tauto },
+    { rw ih y,
+      tauto } }
 end
 
 instance (P : regular_expression α) : decidable_pred P.matches :=

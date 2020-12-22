@@ -91,10 +91,16 @@ variables {R M N P}
 theorem map_zero₂ (y) : f 0 y = 0 := (flip f y).map_zero
 
 theorem map_neg₂ {R : Type*} [comm_semiring R] {M N P : Type*}
-  [add_comm_group M] [add_comm_group N] [add_comm_group P]
+  [add_comm_group M] [add_comm_monoid N] [add_comm_group P]
   [semimodule R M] [semimodule R N] [semimodule R P] (f : M →ₗ[R] N →ₗ[R] P) (x y) :
   f (-x) y = -f x y :=
 (flip f y).map_neg _
+
+theorem map_sub₂ {R : Type*} [comm_semiring R] {M N P : Type*}
+  [add_comm_group M] [add_comm_monoid N] [add_comm_group P]
+  [semimodule R M] [semimodule R N] [semimodule R P] (f : M →ₗ[R] N →ₗ[R] P) (x y z) :
+  f (x - y) z = f x z - f y z :=
+(flip f z).map_sub _ _
 
 theorem map_add₂ (x₁ x₂ y) : f (x₁ + x₂) y = f x₁ y + f x₂ y := (flip f y).map_add _ _
 
@@ -769,8 +775,6 @@ instance : has_neg (M ⊗[R] N) :=
         by simp_rw [add_monoid_hom.map_add, add_comm]
     end }
 
-lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := rfl
-
 instance : add_comm_group (M ⊗[R] N) :=
 { neg := has_neg.neg,
   sub := _,
@@ -785,7 +789,15 @@ instance : add_comm_group (M ⊗[R] N) :=
       rw [hx, hy, add_zero], }),
   ..(infer_instance : add_comm_monoid (M ⊗[R] N)) }
 
+lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := rfl
+
 lemma tmul_neg (m : M) (n : N) : m ⊗ₜ (-n) = -(m ⊗ₜ[R] n) := (mk R M N _).map_neg _
+
+lemma tmul_sub (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ - n₂) = (m ⊗ₜ[R] n₁) - (m ⊗ₜ[R] n₂) :=
+(mk R M N _).map_sub _ _
+
+lemma sub_tmul (m₁ m₂ : M) (n : N) : (m₁ - m₂) ⊗ₜ n = (m₁ ⊗ₜ[R] n) - (m₂ ⊗ₜ[R] n) :=
+(mk R M N).map_sub₂ _ _ _
 
 end tensor_product
 

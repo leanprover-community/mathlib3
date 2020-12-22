@@ -189,6 +189,21 @@ instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
 
 instance : Π [inhabited α], inhabited (order_dual α) := id
 
+theorem preorder.dual_dual (α : Type*) [H : preorder α] :
+  order_dual.preorder (order_dual α) = H :=
+preorder.ext $ λ _ _, iff.rfl
+
+theorem partial_order.dual_dual (α : Type*) [H : partial_order α] :
+  order_dual.partial_order (order_dual α) = H :=
+partial_order.ext $ λ _ _, iff.rfl
+
+theorem linear_order.dual_dual (α : Type*) [H : linear_order α] :
+  order_dual.linear_order (order_dual α) = H :=
+linear_order.ext $ λ _ _, iff.rfl
+
+theorem cmp_le_flip {α} [has_le α] [@decidable_rel α (≤)] (x y : α) :
+  @cmp_le (order_dual α) _ _ x y = cmp_le y x := rfl
+
 end order_dual
 
 namespace strict_mono_incr_on

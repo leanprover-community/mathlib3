@@ -265,6 +265,9 @@ by simp only [add_comm, add_one_le_iff]
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 (lt_or_eq_of_le H).imp le_of_lt_succ id
 
+lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
+⟨lt_of_succ_lt_succ, succ_lt_succ⟩
+
 /-! ### `add` -/
 
 -- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding

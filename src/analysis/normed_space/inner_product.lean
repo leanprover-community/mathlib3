@@ -98,10 +98,8 @@ class inner_product_space (𝕜 : Type*) (E : Type*) [is_R_or_C 𝕜]
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = (conj r) * inner x y)
 
-/- This instance generates the type-class problem `inner_product_space ?m E` when looking for
-   `normed_group E`. However, since `?m` can only ever be `ℝ` or `ℂ`, this should not cause
-   problems. -/
 attribute [nolint dangerous_instance] inner_product_space.to_normed_group
+-- note [is_R_or_C instance]
 
 /-!
 ### Constructing a normed space structure from an inner product

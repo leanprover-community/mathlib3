@@ -1692,8 +1692,8 @@ begin
   rw [this, sin_arcsin hx₁ hx₂],
 end
 
-lemma deriv_arcsin_aux {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) (n : with_top ℕ) :
-  has_deriv_at arcsin (1 / sqrt (1 - x ^ 2)) x ∧ times_cont_diff_at ℝ n arcsin x :=
+lemma deriv_arcsin_aux {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
+  has_deriv_at arcsin (1 / sqrt (1 - x ^ 2)) x ∧ ∀ n, times_cont_diff_at ℝ n arcsin x :=
 begin
   cases h₁.lt_or_lt with h₁ h₁,
   { have : 1 - x ^ 2 < 0, by nlinarith [h₁],
@@ -1701,27 +1701,27 @@ begin
     have : arcsin =ᶠ[𝓝 x] λ _, -(π / 2) :=
       (gt_mem_nhds h₁).mono (λ y hy, arcsin_of_le_neg_one hy.le),
     exact ⟨(has_deriv_at_const _ _).congr_of_eventually_eq this,
-      times_cont_diff_at_const.congr_of_eventually_eq this⟩ },
+      λ n, times_cont_diff_at_const.congr_of_eventually_eq this⟩ },
   cases h₂.lt_or_lt with h₂ h₂,
   { have : 0 < sqrt (1 - x ^ 2) := sqrt_pos.2 (by nlinarith [h₁, h₂]),
     simp only [← cos_arcsin h₁.le h₂.le, one_div] at this ⊢,
     exact ⟨sin_local_homeomorph.has_deriv_at_symm ⟨h₁, h₂⟩ this.ne' (has_deriv_at_sin _),
-      sin_local_homeomorph.times_cont_diff_at_symm_deriv this.ne' ⟨h₁, h₂⟩
+      λ n, sin_local_homeomorph.times_cont_diff_at_symm_deriv this.ne' ⟨h₁, h₂⟩
         (has_deriv_at_sin _) times_cont_diff_sin.times_cont_diff_at⟩ },
   { have : 1 - x ^ 2 < 0, by nlinarith [h₂],
     rw [sqrt_eq_zero'.2 this.le, div_zero],
     have : arcsin =ᶠ[𝓝 x] λ _, π / 2 := (lt_mem_nhds h₂).mono (λ y hy, arcsin_of_one_le hy.le),
     exact ⟨(has_deriv_at_const _ _).congr_of_eventually_eq this,
-      times_cont_diff_at_const.congr_of_eventually_eq this⟩ }
+      λ n, times_cont_diff_at_const.congr_of_eventually_eq this⟩ }
 end
 
 lemma has_deriv_at_arcsin {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
   has_deriv_at arcsin (1 / sqrt (1 - x ^ 2)) x :=
-(deriv_arcsin_aux h₁ h₂ 0).1
+(deriv_arcsin_aux h₁ h₂).1
 
 lemma times_cont_diff_at_arcsin {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) {n : with_top ℕ} :
   times_cont_diff_at ℝ n arcsin x :=
-(deriv_arcsin_aux h₁ h₂ n).2
+(deriv_arcsin_aux h₁ h₂).2 n
 
 lemma has_deriv_within_at_arcsin_Ici {x : ℝ} (h : x ≠ -1) :
   has_deriv_within_at arcsin (1 / sqrt (1 - x ^ 2)) (Ici x) x :=
@@ -2437,15 +2437,6 @@ continuous_on_sin.div continuous_on_cos $ λ x, id
 
 lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 continuous_on_iff_continuous_restrict.1 continuous_on_tan
-
-@[simp] lemma differentiable_at_tan {x : ℂ} : differentiable_at ℂ tan x ↔ cos x ≠ 0:=
-⟨λ h, continuous_at_tan.1 h.continuous_at, λ h, (has_deriv_at_tan h).differentiable_at⟩
-
-@[simp] lemma deriv_tan (x : ℂ) : deriv tan x = 1 / (cos x)^2 :=
-if h : cos x = 0 then
-  have ¬differentiable_at ℂ tan x := mt differentiable_at_tan.1 (not_not.2 h),
-  by simp [deriv_zero_of_not_differentiable_at this, h, pow_two]
-else (has_deriv_at_tan h).deriv
 
 @[simp] lemma times_cont_diff_at_tan {x : ℂ} {n : with_top ℕ} :
   times_cont_diff_at ℂ n tan x ↔ cos x ≠ 0 :=

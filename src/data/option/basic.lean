@@ -106,6 +106,18 @@ by cases x; simp
   x.map f = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 
+lemma map_eq_none {α β} {x : option α} {f : α → β} :
+  f <$> x = none ↔ x = none :=
+by { cases x; simp only [map_none, map_some, eq_self_iff_true] }
+
+@[simp] lemma map_eq_none' {x : option α} {f : α → β} :
+  x.map f = none ↔ x = none :=
+by { cases x; simp only [map_none', map_some', eq_self_iff_true] }
+
+lemma map_congr {f g : α → β} {x : option α} (h : ∀ a ∈ x, f a = g a) :
+  option.map f x = option.map g x :=
+by { cases x; simp only [map_none', map_some', h, mem_def] }
+
 @[simp] theorem map_id' : option.map (@id α) = id := map_id
 
 @[simp] lemma map_map (h : β → γ) (g : α → β) (x : option α) :

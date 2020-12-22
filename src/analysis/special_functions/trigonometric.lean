@@ -1554,7 +1554,7 @@ arcsin_eq_of_sin_eq sin_pi_div_two $ right_mem_Icc.2 (neg_le_self pi_div_two_pos
 lemma arcsin_of_one_le {x : ℝ} (hx : 1 ≤ x) : arcsin x = π / 2 :=
 by rw [← arcsin_proj_Icc, proj_Icc_of_right_le _ hx, subtype.coe_mk, arcsin_one]
 
-@[simp] lemma arcsin_neg_one : arcsin (-1) = -(π / 2) :=
+lemma arcsin_neg_one : arcsin (-1) = -(π / 2) :=
 arcsin_eq_of_sin_eq (by rw [sin_neg, sin_pi_div_two]) $
   left_mem_Icc.2 (neg_le_self pi_div_two_pos.le)
 

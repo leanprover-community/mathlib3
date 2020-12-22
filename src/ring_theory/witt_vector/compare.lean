@@ -25,14 +25,15 @@ of the inverse limit of `zmod (p^n)`.
 
 noncomputable theory
 
-namespace truncated_witt_vector
+variables {p : ℕ} [hp : fact p.prime]
 
-variables {p : ℕ} [hp : fact p.prime] (n : ℕ) (R : Type*) [comm_ring R]
+local notation `𝕎` := witt_vector p
+
 include hp
 
-local notation `𝕎` := witt_vector p -- type as `\bbW`
+namespace truncated_witt_vector
 
-variables (p n R)
+variables (p) (n : ℕ) (R : Type*) [comm_ring R]
 
 lemma eq_of_le_of_cast_pow_eq_zero [char_p R p] (i : ℕ) (hin : i ≤ n)
   (hpi : (p ^ i : truncated_witt_vector p n R) = 0) :
@@ -63,18 +64,31 @@ char_p_of_prime_pow_injective _ _ _ (card_zmod _ _)
 local attribute [instance] char_p_zmod
 
 /--
-Since `truncated_witt_vector p n (zmod p)` is a finite ring
-with characteristic and cardinality `p^n`,
-it is isomorphic to `zmod (p^n)`.
+The unique isomorphism between `zmod p^n` and `truncated_witt_vector p n (zmod p)`.
+
+This isomorphism exists, because `truncated_witt_vector p n (zmod p)` is a finite ring
+with characteristic and cardinality `p^n`.
 -/
 def zmod_equiv_trunc : zmod (p^n) ≃+* truncated_witt_vector p n (zmod p) :=
 zmod.ring_equiv (truncated_witt_vector p n (zmod p)) (card_zmod _ _)
 
 lemma zmod_equiv_trunc_apply {x : zmod (p^n)} :
-  zmod_equiv_trunc p n x =
-  zmod.cast_hom (by refl) (truncated_witt_vector p n (zmod p)) x :=
+  zmod_equiv_trunc p n x = zmod.cast_hom (by refl) (truncated_witt_vector p n (zmod p)) x :=
 rfl
 
+/--
+The following diagram commutes:
+```text
+          zmod (p^n) ----------------------------> zmod (p^m)
+            |                                        |
+            |                                        |
+            v                                        v
+truncated_witt_vector p n (zmod p) ----> truncated_witt_vector p m (zmod p)
+```
+Here the vertical arrows are `truncated_witt_vector.zmod_equiv_trunc`,
+the horizontal arrow at the top is `zmod.cast_hom`,
+and the horizontal arrow at the bottom is `truncated_witt_vector.truncate`.
+-/
 lemma commutes {m : ℕ} (hm : n ≤ m) :
   (truncate hm).comp (zmod_equiv_trunc p m).to_ring_hom =
     (zmod_equiv_trunc p n).to_ring_hom.comp (zmod.cast_hom (pow_dvd_pow p hm) _) :=
@@ -95,7 +109,20 @@ begin
   simp
 end
 
-lemma commutes_symm {m : ℕ} (hm : n ≤ m)  :
+/--
+The following diagram commutes:
+```text
+truncated_witt_vector p n (zmod p) ----> truncated_witt_vector p m (zmod p)
+            |                                        |
+            |                                        |
+            v                                        v
+          zmod (p^n) ----------------------------> zmod (p^m)
+```
+Here the vertical arrows are `(truncated_witt_vector.zmod_equiv_trunc p _).symm`,
+the horizontal arrow at the top is `zmod.cast_hom`,
+and the horizontal arrow at the bottom is `truncated_witt_vector.truncate`.
+-/
+lemma commutes_symm {m : ℕ} (hm : n ≤ m) :
   (zmod_equiv_trunc p n).symm.to_ring_hom.comp (truncate hm) =
     (zmod.cast_hom (pow_dvd_pow p hm) _).comp (zmod_equiv_trunc p m).symm.to_ring_hom :=
 by ext; apply commutes_symm'
@@ -106,11 +133,6 @@ end truncated_witt_vector
 
 namespace witt_vector
 open truncated_witt_vector
-
-variables {p : ℕ} [hp : fact p.prime]
-include hp
-
-local notation `𝕎` := witt_vector p -- type as `\bbW`
 
 variables (p)
 
@@ -133,8 +155,8 @@ calc (zmod.cast_hom _ (zmod (p ^ m))).comp
   by rw [ring_hom.comp_assoc, truncate_comp_witt_vector_truncate]
 
 /--
-`to_padic_int` lifts `to_zmod_pow` to a ring hom to `ℤ_[p]` using `padic_int.lift`, the universal
-property of `ℤ_[p]`.
+`to_padic_int` lifts `to_zmod_pow : 𝕎 (zmod p) →+* zmod (p ^ k)` to a ring hom to `ℤ_[p]`
+using `padic_int.lift`, the universal property of `ℤ_[p]`.
 -/
 def to_padic_int : 𝕎 (zmod p) →+* ℤ_[p] := padic_int.lift $ to_zmod_pow_compat p
 
@@ -161,7 +183,7 @@ begin
   rw [← ring_hom.comp_assoc, to_padic_int, padic_int.lift_spec],
   simp only [from_padic_int, to_zmod_pow, ring_hom.comp_id],
   rw [ring_hom.comp_assoc, truncate_comp_lift, ← ring_hom.comp_assoc],
-  convert ring_hom.id_comp _,
+  simp only [ring_equiv.symm_to_ring_hom_comp_to_ring_hom, ring_hom.id_comp]
 end
 
 lemma to_padic_int_comp_from_padic_int_ext (x) :
@@ -174,10 +196,8 @@ begin
   apply witt_vector.hom_ext,
   intro n,
   rw [from_padic_int, ← ring_hom.comp_assoc, truncate_comp_lift, ring_hom.comp_assoc],
-  simp only [to_padic_int, to_zmod_pow, ring_hom.comp_id],
-  rw [padic_int.lift_spec, ← ring_hom.comp_assoc],
-  convert ring_hom.id_comp _,
-  ext1, simp
+  simp only [to_padic_int, to_zmod_pow, ring_hom.comp_id, padic_int.lift_spec, ring_hom.id_comp,
+    ← ring_hom.comp_assoc, ring_equiv.to_ring_hom_comp_symm_to_ring_hom]
 end
 
 lemma from_padic_int_comp_to_padic_int_ext (x) :

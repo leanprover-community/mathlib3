@@ -248,6 +248,16 @@ equiv.symm_apply_apply (e.to_equiv)
 lemma to_ring_hom_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
   (e₁.trans e₂).to_ring_hom = e₂.to_ring_hom.comp e₁.to_ring_hom := rfl
 
+@[simp]
+lemma to_ring_hom_comp_symm_to_ring_hom (e : R ≃+* S) :
+  e.to_ring_hom.comp e.symm.to_ring_hom = ring_hom.id _ :=
+by { ext, simp }
+
+@[simp]
+lemma symm_to_ring_hom_comp_to_ring_hom (e : R ≃+* S) :
+  e.symm.to_ring_hom.comp e.to_ring_hom = ring_hom.id _ :=
+by { ext, simp }
+
 /--
 Construct an equivalence of rings from homomorphisms in both directions, which are inverses.
 -/

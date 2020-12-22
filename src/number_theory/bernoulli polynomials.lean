@@ -1,7 +1,6 @@
 import number_theory.bernoulli
 import data.nat.basic
 import analysis.complex.roots_of_unity
-import data.complex.exponential
 import topology.algebra.infinite_sum
 import data.real.ereal
 import data.finset.basic
@@ -267,6 +266,12 @@ begin
   apply le_lt_antisymm h hx,
 end
 
+lemma range_succ_mem_le (n x : ℕ) (h : x ∈ finset.range (n+1)) : x ≤ n :=
+begin
+  rw finset.mem_range at h,
+  exact lt_succ_iff.1 h,
+end
+
 end finset
 
 namespace nat
@@ -281,7 +286,7 @@ begin
   simp at *, apply not_succ_le_zero n, assumption,
 end
 
-lemma sub_add_assoc (k m n : ℕ) : k - (m + n) = k - m - n := sorry
+lemma sub_add_assoc (k m n : ℕ) : k - (m + n) = k - m - n := by omega
 
 end nat
 
@@ -377,7 +382,10 @@ lemma bernoulli_poly_var (X : ℚ) (n : ℕ) : bernoulli_poly n (X + 1) =
  ∑ (i : ℕ) in finset.range (n + 1), (n.choose i : ℚ) * bernoulli_poly i X :=
 begin
  have h : ∀ k : ℕ, (X + 1)^k = ∑ (i : ℕ) in finset.range (k + 1), k.choose i * X^i,
- sorry,
+ {
+   rintros k,
+   rw add_pow X 1 k, simp [mul_comm],
+ },
  rw [bernoulli_poly_def],
  conv_lhs
  {
@@ -453,11 +461,22 @@ have d : x + (n - x - y) = n - y,
 sorry,
 rw d,
 rw choose_mul,
+rw mul_eq_mul_left_iff, left,
+rw nat.add_sub_cancel_left,
+have e : n - y - x = n - x - y,
+sorry,
+rw e,
+rw choose_symm,
 {
-  rw finset.mem_range at hx,
-  exact lt_succ_iff.1 hx,
+  exact finset.range_succ_mem_le _ _ hy,
 },
-rw <-finset.range_eq_Ico at hx, assumption,
+{ apply nat.sub_le_self, },
+sorry,
+sorry,
+sorry,
+sorry,
+exact finset.range_succ_mem_le _ _ hy,
+rw <-finset.range_eq_Ico at hx, exact hx,
 end
 
 lemma exp_bernoulli_poly (t : ℕ) (f : ℕ → ℕ → ℚ) (hf : f = λ t i, (bernoulli_poly i t / (nat.factorial i)) )

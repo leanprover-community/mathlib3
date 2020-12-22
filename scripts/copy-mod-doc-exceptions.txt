@@ -705,8 +705,8 @@ src/data/lazy_list/basic.lean : line 187 : ERR_LIN : Line has more than 100 char
 src/data/lazy_list/basic.lean : line 199 : ERR_LIN : Line has more than 100 characters
 src/data/lazy_list/basic.lean : line 201 : ERR_LIN : Line has more than 100 characters
 src/data/list/bag_inter.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/data/list/basic.lean : line 1648 : ERR_LIN : Line has more than 100 characters
-src/data/list/basic.lean : line 1656 : ERR_LIN : Line has more than 100 characters
+src/data/list/basic.lean : line 1685 : ERR_LIN : Line has more than 100 characters
+src/data/list/basic.lean : line 1693 : ERR_LIN : Line has more than 100 characters
 src/data/list/chain.lean : line 255 : ERR_LIN : Line has more than 100 characters
 src/data/list/chain.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/list/erase_dup.lean : line 8 : ERR_MOD : Module docstring missing, or too late

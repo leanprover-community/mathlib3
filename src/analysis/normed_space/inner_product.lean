@@ -1786,10 +1786,10 @@ lemma submodule.exists_sum_mem_mem_orthogonal (K : submodule 𝕜 E) [complete_s
 by { rw [← submodule.mem_sup], simp [submodule.sup_orthogonal_of_complete_space] }
 
 /-- If `K` is complete, then the orthogonal complement of its orthogonal complement is itself. -/
-@[simp] lemma submodule.mem_orthogonal_orthogonal_iff
-  (K : submodule 𝕜 E) [complete_space K] (v : E) :
-  v ∈ K.orthogonal.orthogonal ↔ v ∈ K :=
+@[simp] lemma submodule.orthogonal_orthogonal (K : submodule 𝕜 E) [complete_space K] :
+  K.orthogonal.orthogonal = K :=
 begin
+  ext v,
   split,
   { obtain ⟨y, hy, z, hz, hvyz⟩ := K.exists_sum_mem_mem_orthogonal v,
     intros hv,
@@ -1801,11 +1801,6 @@ begin
     rw inner_eq_zero_sym,
     exact hw v hv }
 end
-
-/-- If `K` is complete, then the orthogonal complement of its orthogonal complement is itself. -/
-@[simp] lemma submodule.orthogonal_orthogonal (K : submodule 𝕜 E) [complete_space K] :
-  K.orthogonal.orthogonal = K :=
-by { ext v, exact K.mem_orthogonal_orthogonal_iff v }
 
 /-- If `K` is complete, `K` and `K.orthogonal` are complements of each
 other. -/

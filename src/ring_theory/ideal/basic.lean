@@ -197,8 +197,7 @@ lemma bot_prime {R : Type*} [integral_domain R] : (⊥ : ideal R).is_prime :=
  λ x y h, mul_eq_zero.mp (by simpa only [submodule.mem_bot] using h)⟩
 
 /-- An ideal is maximal if it is maximal in the collection of proper ideals. -/
-@[class] def is_maximal (I : ideal α) : Prop :=
-I ≠ ⊤ ∧ ∀ J, I < J → J = ⊤
+@[class] def is_maximal (I : ideal α) : Prop := is_coatom I
 
 theorem is_maximal_iff {I : ideal α} : I.is_maximal ↔
   (1:α) ∉ I ∧ ∀ (J : ideal α) x, I ≤ J → x ∉ I → x ∈ J → (1:α) ∈ J :=

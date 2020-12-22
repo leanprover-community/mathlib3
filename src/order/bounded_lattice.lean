@@ -1142,6 +1142,7 @@ lemma is_coatom_iff_is_atom_dual : is_coatom a ↔ @is_atom (order_dual α) _ a 
 
 end atoms
 
+/-- A lattice is simple iff it has only two elements, `⊥` and `⊤`. -/
 class is_simple_lattice (α : Type*) [bounded_lattice α] extends nontrivial α : Prop :=
 (eq_bot_or_eq_top : ∀ (a : α), a = ⊥ ∨ a = ⊤)
 

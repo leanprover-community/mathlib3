@@ -1685,7 +1685,7 @@ begin
 end
 
 /-- `K.orthogonal` can be characterized as the intersection of the kernels of the operations of
-inner product which each of the elements of `K`. -/
+inner product with each of the elements of `K`. -/
 lemma orthogonal_eq_inter (K : submodule 𝕜 E) : K.orthogonal = ⨅ v : K, (inner_left (v:E)).ker :=
 begin
   apply le_antisymm,

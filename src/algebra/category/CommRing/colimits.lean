@@ -290,10 +290,8 @@ instance : comm_ring (colimit_type F) :=
 
 @[simp] lemma quot_zero : quot.mk setoid.r zero = (0 : colimit_type F) := rfl
 @[simp] lemma quot_one : quot.mk setoid.r one = (1 : colimit_type F) := rfl
-
-@[simp] lemma quot_neg (x) : quot.mk setoid.r (neg x) = (-(quot.mk setoid.r x) : colimit_type F) :=
-rfl
-
+@[simp] lemma quot_neg (x) :
+  quot.mk setoid.r (neg x) = (-(quot.mk setoid.r x) : colimit_type F) := rfl
 @[simp] lemma quot_add (x y) :
   quot.mk setoid.r (add x y) = ((quot.mk setoid.r x) + (quot.mk setoid.r y) : colimit_type F) := rfl
 @[simp] lemma quot_mul (x y) :

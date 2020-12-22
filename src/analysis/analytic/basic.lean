@@ -81,12 +81,12 @@ def radius (p : formal_multilinear_series 𝕜 E F) : ennreal :=
 ⨆ (r : ℝ≥0) (hr : ∃ C, ∀ n, nnnorm (p n) * r ^ n ≤ C), (r : ennreal)
 
 /--If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
-lemma le_radius_of_bound (p : formal_multilinear_series 𝕜 E F) (C : nnreal) {r : nnreal}
+lemma le_radius_of_bound (p : formal_multilinear_series 𝕜 E F) (C : ℝ≥0) {r : ℝ≥0}
   (h : ∀ (n : ℕ), nnnorm (p n) * r^n ≤ C) : (r : ennreal) ≤ p.radius :=
 le_supr_of_le r (le_supr (λ _, (r : ennreal)) $ Exists.intro C h)
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially. -/
-lemma geometric_bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : nnreal}
+lemma geometric_bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
   (h : (r : ennreal) < p.radius) : ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * r^n ≤ C * a^n :=
 begin
   simp only [radius, lt_supr_iff] at h,
@@ -113,7 +113,7 @@ begin
   lift r to ℝ≥0 using (ne_top_of_lt hr),
   obtain ⟨Cp, hCp⟩ : ∃ (C : nnreal), ∀ n, nnnorm (p n) * r^n ≤ C :=
     p.bound_of_lt_radius (lt_of_lt_of_le hr (min_le_left _ _)),
-  obtain ⟨Cq, hCq⟩ : ∃ (C : nnreal), ∀ n, nnnorm (q n) * r^n ≤ C :=
+  obtain ⟨Cq, hCq⟩ : ∃ (C : ℝ≥0), ∀ n, nnnorm (q n) * r^n ≤ C :=
     q.bound_of_lt_radius (lt_of_lt_of_le hr (min_le_right _ _)),
   refine (p + q).le_radius_of_bound (Cp + Cq) (λ n, _),
   calc nnnorm (p n + q n) * r ^ n ≤ (nnnorm (p n) + nnnorm (q n)) * r ^ n :
@@ -258,9 +258,9 @@ let ⟨rf, hrf⟩ := hf in hrf.coeff_zero v
 
 /-- If a function admits a power series expansion, then it is exponentially close to the partial
 sums of this power series on strict subdisks of the disk of convergence. -/
-lemma has_fpower_series_on_ball.uniform_geometric_approx {r' : nnreal}
+lemma has_fpower_series_on_ball.uniform_geometric_approx {r' : ℝ≥0}
   (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
-  ∃ (a C : nnreal), a < 1 ∧ (∀ y ∈ metric.ball (0 : E) r', ∀ n,
+  ∃ (a C : ℝ≥0), a < 1 ∧ (∀ y ∈ metric.ball (0 : E) r', ∀ n,
   ∥f (x + y) - p.partial_sum n y∥ ≤ C * a ^ n) :=
 begin
   obtain ⟨a, C, ha, hC⟩ : ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * r' ^n ≤ C * a^n :=
@@ -287,7 +287,7 @@ end
 /-- If a function admits a power series expansion at `x`, then it is the uniform limit of the
 partial sums of this power series on strict subdisks of the disk of convergence, i.e., `f (x + y)`
 is the uniform limit of `p.partial_sum n y` there. -/
-lemma has_fpower_series_on_ball.tendsto_uniformly_on {r' : nnreal}
+lemma has_fpower_series_on_ball.tendsto_uniformly_on {r' : ℝ≥0}
   (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
   tendsto_uniformly_on (λ n y, p.partial_sum n y)
     (λ y, f (x + y)) at_top (metric.ball (0 : E) r') :=
@@ -321,7 +321,7 @@ end
 /-- If a function admits a power series expansion at `x`, then it is the uniform limit of the
 partial sums of this power series on strict subdisks of the disk of convergence, i.e., `f y`
 is the uniform limit of `p.partial_sum n (y - x)` there. -/
-lemma has_fpower_series_on_ball.tendsto_uniformly_on' {r' : nnreal}
+lemma has_fpower_series_on_ball.tendsto_uniformly_on' {r' : ℝ≥0}
   (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
   tendsto_uniformly_on (λ n y, p.partial_sum n (y - x)) f at_top (metric.ball (x : E) r') :=
 begin
@@ -403,11 +403,11 @@ end
 If a function is analytic in a disk `D(x, R)`, then it is analytic in any disk contained in that
 one. Indeed, one can write
 $$
-f (x + y + z) = \sum_{n} p_n (y + z)^n = \sum_{n, k} \choose n k p_n y^{n-k} z^k
-= \sum_{k} (\sum_{n} \choose n k p_n y^{n-k}) z^k.
+f (x + y + z) = \sum_{n} p_n (y + z)^n = \sum_{n, k} \binom{n}{k} p_n y^{n-k} z^k
+= \sum_{k} \Bigl(\sum_{n} \binom{n}{k} p_n y^{n-k}\Bigr) z^k.
 $$
 The corresponding power series has thus a `k`-th coefficient equal to
-`\sum_{n} \choose n k p_n y^{n-k}`. In the general case where `pₙ` is a multilinear map, this has
+$\sum_{n} \binom{n}{k} p_n y^{n-k}$. In the general case where `pₙ` is a multilinear map, this has
 to be interpreted suitably: instead of having a binomial coefficient, one should sum over all
 possible subsets `s` of `fin n` of cardinal `k`, and attribute `z` to the indices in `s` and
 `y` to the indices outside of `s`.
@@ -419,7 +419,7 @@ discussion is that the set of points where a function is analytic is open.
 
 namespace formal_multilinear_series
 
-variables (p : formal_multilinear_series 𝕜 E F) {x y : E} {r : nnreal}
+variables (p : formal_multilinear_series 𝕜 E F) {x y : E} {r : ℝ≥0}
 
 /--
 Changing the origin of a formal multilinear series `p`, so that
@@ -445,7 +445,7 @@ begin
   obtain ⟨a, C, ha, hC⟩ :
     ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * (nnnorm x + r) ^ n ≤ C * a^n :=
   p.geometric_bound_of_lt_radius h,
-  let Bnnnorm : (Σ (n : ℕ), finset (fin n)) → nnreal :=
+  let Bnnnorm : (Σ (n : ℕ), finset (fin n)) → ℝ≥0 :=
     λ ⟨n, s⟩, nnnorm (p n) * (nnnorm x) ^ (n - s.card) * r ^ s.card,
   have : ((λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card) :
     (Σ (n : ℕ), finset (fin n)) → ℝ) = (λ b, (Bnnnorm b : ℝ)),
@@ -454,7 +454,7 @@ begin
   apply ne_of_lt,
   calc (∑' b, ↑(Bnnnorm b))
   = (∑' n, (∑' s, ↑(Bnnnorm ⟨n, s⟩))) : by exact ennreal.tsum_sigma' _
-  ... ≤ (∑' n, (((nnnorm (p n) * (nnnorm x + r)^n) : nnreal) : ennreal)) :
+  ... ≤ (∑' n, (((nnnorm (p n) * (nnnorm x + r)^n) : ℝ≥0) : ennreal)) :
     begin
       refine ennreal.tsum_le_tsum (λ n, _),
       rw [tsum_fintype, ← ennreal.coe_finset_sum, ennreal.coe_le_coe],
@@ -523,7 +523,7 @@ lemma change_origin_summable_aux3 (k : ℕ) (h : (nnnorm x : ennreal) < p.radius
   @summable ℝ _ _ _ (λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ :
   (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :=
 begin
-  obtain ⟨r, rpos, hr⟩ : ∃ (r : nnreal), 0 < r ∧ ((nnnorm x + r) : ennreal) < p.radius :=
+  obtain ⟨r, rpos, hr⟩ : ∃ (r : ℝ≥0), 0 < r ∧ ((nnnorm x + r) : ennreal) < p.radius :=
     ennreal.lt_iff_exists_add_pos_lt.mp h,
   have S : @summable ℝ _ _ _ ((λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ * (r : ℝ) ^ k) :
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ),

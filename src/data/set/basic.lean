@@ -313,7 +313,12 @@ lemma nonempty_iff_univ_nonempty : nonempty α ↔ (univ : set α).nonempty :=
 lemma nonempty.to_subtype (h : s.nonempty) : nonempty s :=
 nonempty_subtype.2 h
 
+instance [nonempty α] : nonempty (set.univ : set α) := set.univ_nonempty.to_subtype
+
 @[simp] lemma nonempty_insert (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
+
+lemma nonempty_of_nonempty_subtype [nonempty s] : s.nonempty :=
+nonempty_subtype.mp ‹_›
 
 /-! ### Lemmas about the empty set -/
 
@@ -560,6 +565,9 @@ by finish [subset_def, ext_iff, iff_def]
 theorem inter_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∩ t = t :=
 by finish [subset_def, ext_iff, iff_def]
 
+theorem subset_iff_inter_eq_self {s t : set α} : s ⊆ t ↔ s ∩ t = s :=
+⟨λ h, inter_eq_self_of_subset_left h, λ h x h1, set.mem_of_mem_inter_right (by {rw h, exact h1})⟩
+
 lemma inter_compl_nonempty_iff {s t : set α} : (s ∩ tᶜ).nonempty ↔ ¬ s ⊆ t :=
 begin
   split,
@@ -646,6 +654,8 @@ by { ext, simp [or.comm, or.left_comm] }
 
 theorem insert_nonempty (a : α) (s : set α) : (insert a s).nonempty :=
 ⟨a, mem_insert a s⟩
+
+instance (a : α) (s : set α) : nonempty (insert a s : set α) := (insert_nonempty a s).to_subtype
 
 lemma insert_inter (x : α) (s t : set α) : insert x (s ∩ t) = insert x s ∩ insert x t :=
 by { ext y, simp [←or_and_distrib_left] }
@@ -1326,6 +1336,9 @@ lemma nonempty.of_image {f : α → β} {s : set α} : (f '' s).nonempty → s.n
   (f '' s).nonempty ↔ s.nonempty :=
 ⟨nonempty.of_image, λ h, h.image f⟩
 
+instance (f : α → β) (s : set α) [nonempty s] : nonempty (f '' s) :=
+(set.nonempty.image f nonempty_of_nonempty_subtype).to_subtype
+
 /-- image and preimage are a Galois connection -/
 @[simp] theorem image_subset_iff {s : set α} {t : set β} {f : α → β} :
   f '' s ⊆ t ↔ s ⊆ f ⁻¹' t :=
@@ -1344,14 +1357,14 @@ subset.antisymm
   (λ x ⟨y, hy, e⟩, h e ▸ hy)
   (subset_preimage_image f s)
 
-theorem image_preimage_eq {f : α → β} {s : set β} (h : surjective f) : f '' (f ⁻¹' s) = s :=
+theorem image_preimage_eq {f : α → β} (s : set β) (h : surjective f) : f '' (f ⁻¹' s) = s :=
 subset.antisymm
   (image_preimage_subset f s)
   (λ x hx, let ⟨y, e⟩ := h x in ⟨y, (e.symm ▸ hx : f y ∈ s), e⟩)
 
-lemma preimage_eq_preimage {f : β → α} (hf : surjective f) : f ⁻¹' s = preimage f t ↔ s = t :=
+lemma preimage_eq_preimage {f : β → α} (hf : surjective f) : f ⁻¹' s = f ⁻¹' t ↔ s = t :=
 iff.intro
-  (assume eq, by rw [← @image_preimage_eq β α f s hf, ← @image_preimage_eq β α f t hf, eq])
+  (assume eq, by rw [← image_preimage_eq s hf, ← image_preimage_eq t hf, eq])
   (assume eq, eq ▸ rfl)
 
 lemma image_inter_preimage (f : α → β) (s : set α) (t : set β) :
@@ -1470,6 +1483,12 @@ begin
   { exact λ h, subsingleton.intro (λ a b, set_coe.ext (h a.property b.property)) }
 end
 
+/-- `s` is a subsingleton, if its image of an injective function is. -/
+theorem subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.injective f)
+  (s : set α) (hs : subsingleton (f '' s)) : subsingleton s :=
+subsingleton.intro $ λ ⟨a, ha⟩ ⟨b, hb⟩, subtype.ext $ hf
+  (by {simpa using @subsingleton.elim _ hs ⟨f a, ⟨a, ha, rfl⟩⟩ ⟨f b, ⟨b, hb, rfl⟩⟩})
+
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 
@@ -1555,6 +1574,8 @@ range_nonempty_iff_nonempty.2 h
 
 @[simp] lemma range_eq_empty {f : ι → α} : range f = ∅ ↔ ¬ nonempty ι :=
 not_nonempty_iff_eq_empty.symm.trans $ not_congr range_nonempty_iff_nonempty
+
+instance [nonempty ι] (f : ι → α) : nonempty (range f) := (range_nonempty f).to_subtype
 
 @[simp] lemma image_union_image_compl_eq_range (f : α → β) :
   (f '' s) ∪ (f '' sᶜ) = range f :=
@@ -1735,11 +1756,17 @@ variables {ι : Sort*} {α : Type*} {β : Type*} {f : α → β}
 lemma surjective.preimage_injective (hf : surjective f) : injective (preimage f) :=
 assume s t, (preimage_eq_preimage hf).1
 
+lemma injective.preimage_image (hf : injective f) (s : set α) : f ⁻¹' (f '' s) = s :=
+preimage_image_eq s hf
+
 lemma injective.preimage_surjective (hf : injective f) : surjective (preimage f) :=
-by { intro s, use f '' s, rw preimage_image_eq _ hf }
+by { intro s, use f '' s, rw hf.preimage_image }
+
+lemma surjective.image_preimage (hf : surjective f) (s : set β) : f '' (f ⁻¹' s) = s :=
+image_preimage_eq s hf
 
 lemma surjective.image_surjective (hf : surjective f) : surjective (image f) :=
-by { intro s, use f ⁻¹' s, rw image_preimage_eq hf }
+by { intro s, use f ⁻¹' s, rw hf.image_preimage }
 
 lemma injective.image_injective (hf : injective f) : injective (image f) :=
 by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] }

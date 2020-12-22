@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
 -/
 import analysis.normed_space.multilinear
-import ring_theory.power_series
+import ring_theory.power_series.basic
 
 /-!
 # Formal multilinear series
@@ -13,19 +13,10 @@ In this file we define `formal_multilinear_series 𝕜 E F` to be a family of `n
 all `n`, designed to model the sequence of derivatives of a function. In other files we use this
 notion to define `C^n` functions (called `times_cont_diff` in `mathlib`) and analytic functions.
 
-## Implementation notes
-
-The definitions in this file are designed to work on any field `𝕜`. They are sometimes slightly more
-complicated than the naive definitions one would guess from the intuition over the real or complex
-numbers, but they are designed to circumvent the lack of gluing properties and partitions of unity
-in general. In the usual situations, they coincide with the usual definitions.
-
 ## Notations
 
 We use the notation `E [×n]→L[𝕜] F` for the space of continuous multilinear maps on `E^n` with
 values in `F`. This is the space in which the `n`-th derivative of a function from `E` to `F` lives.
-
-In this file, we denote `⊤ : with_top ℕ` with `∞`.
 
 ## Tags
 
@@ -33,14 +24,6 @@ multilinear, formal series
 -/
 
 noncomputable theory
-open_locale classical big_operators
-
-local notation `∞` := (⊤ : with_top ℕ)
-
-universes u v w
-
-local attribute [instance, priority 1001]
-normed_group.to_add_comm_group normed_space.to_semimodule add_comm_group.to_add_comm_monoid
 
 open set fin
 open_locale topological_space
@@ -48,7 +31,6 @@ open_locale topological_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
-{G : Type*} [normed_group G] [normed_space 𝕜 G]
 
 /-- A formal multilinear series over a field `𝕜`, from `E` to `F`, is given by a family of
 multilinear maps from `E^n` to `F` for all `n`. -/
@@ -103,7 +85,6 @@ by { cases h1, congr' with ⟨i, hi⟩, exact h2 i hi hi }
 variables (𝕜) {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
 variables [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
-variables {p' : E → formal_multilinear_series 𝕜' E F} {n : with_top ℕ}
 
 /-- Reinterpret a formal `𝕜'`-multilinear series as a formal `𝕜`-multilinear series, where `𝕜'` is a
 normed algebra over `𝕜`. -/

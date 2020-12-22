@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import tactic.doc_commands
+import tactic.reserved_notation
 
 /-!
 # Basic logic properties
@@ -498,7 +499,8 @@ by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm decidable.not_imp_c
 theorem iff_not_comm : (a ↔ ¬ b) ↔ (b ↔ ¬ a) := decidable.iff_not_comm
 
 -- See Note [decidable namespace]
-protected theorem decidable.iff_iff_and_or_not_and_not [decidable b] : (a ↔ b) ↔ (a ∧ b) ∨ (¬ a ∧ ¬ b) :=
+protected theorem decidable.iff_iff_and_or_not_and_not [decidable b] :
+  (a ↔ b) ↔ (a ∧ b) ∨ (¬ a ∧ ¬ b) :=
 by { split; intro h,
      { rw h; by_cases b; [left,right]; split; assumption },
      { cases h with h h; cases h; split; intro; { contradiction <|> assumption } } }
@@ -575,7 +577,8 @@ by rw [← not_or_distrib, decidable.not_not]
 theorem or_iff_not_and_not : a ∨ b ↔ ¬ (¬a ∧ ¬b) := decidable.or_iff_not_and_not
 
 -- See Note [decidable namespace]
-protected theorem decidable.and_iff_not_or_not [decidable a] [decidable b] : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) :=
+protected theorem decidable.and_iff_not_or_not [decidable a] [decidable b] :
+  a ∧ b ↔ ¬ (¬ a ∨ ¬ b) :=
 by rw [← decidable.not_and_distrib, decidable.not_not]
 
 theorem and_iff_not_or_not : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) := decidable.and_iff_not_or_not
@@ -875,7 +878,8 @@ theorem Exists.snd {p : b → Prop} : ∀ h : Exists p, p h.fst
 @[simp] theorem exists_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃ h' : p, q h') ↔ q h :=
 @exists_const (q h) p ⟨h⟩
 
-@[simp] theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) : (∀ h' : p, q h') ↔ true :=
+@[simp] theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) :
+  (∀ h' : p, q h') ↔ true :=
 iff_true_intro $ λ h, hn.elim h
 
 @[simp] theorem exists_prop_of_false {p : Prop} {q : p → Prop} : ¬ p → ¬ (∃ h' : p, q h') :=

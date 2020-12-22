@@ -1158,28 +1158,23 @@ begin
       eq_bot_or_eq_top := λ a, or.symm (@eq_bot_or_eq_top (order_dual α) _ _ a) } }
 end
 
+section nontrivial
+
+variables [bounded_lattice α] [nontrivial α]
+
+lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
+λ H, not_nontrivial_iff_subsingleton.mpr (subsingleton_of_bot_eq_top H) ‹_›
+
+lemma top_ne_bot : (⊤ : α) ≠ ⊥ := ne.symm bot_ne_top
+
+end nontrivial
+
 section is_simple_lattice
 
 variables [bounded_lattice α] [is_simple_lattice α]
 
 instance : is_simple_lattice (order_dual α) :=
 is_simple_lattice_iff_is_simple_lattice_order_dual.1 (by apply_instance)
-
-lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
-begin
-  rcases exists_pair_ne α with ⟨a, b, h⟩,
-  rcases eq_bot_or_eq_top a with rfl | rfl,
-  { rcases eq_bot_or_eq_top b with rfl | rfl,
-    { exfalso,
-      apply h rfl },
-    exact h },
-  { rcases eq_bot_or_eq_top b with rfl | rfl,
-    { exact ne.symm h },
-    { exfalso,
-      apply h rfl } },
-end
-
-lemma top_ne_bot : (⊤ : α) ≠ ⊥ := ne.symm bot_ne_top
 
 lemma is_atom_top : is_atom (⊤ : α) :=
 ⟨top_ne_bot, λ a ha, or.resolve_right (eq_bot_or_eq_top a) (ne_of_lt ha)⟩

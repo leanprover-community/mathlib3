@@ -2373,7 +2373,7 @@ lemma cos_eq_cos_iff {x y : ℂ} :
   cos x = cos y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x :=
 calc cos x = cos y ↔ cos x - cos y = 0 : sub_eq_zero.symm
 ... ↔ -2 * sin((x + y)/2) * sin((x - y)/2) = 0 : by rw cos_sub_cos
-... ↔ sin((x + y)/2) = 0 ∨ sin((x - y)/2) = 0 : by { field_simp [(by norm_num : -(2:ℂ) ≠ 0)] }
+... ↔ sin((x + y)/2) = 0 ∨ sin((x - y)/2) = 0 : by simp [(by norm_num : (2:ℂ) ≠ 0)]
 ... ↔ sin((x - y)/2) = 0 ∨ sin((x + y)/2) = 0 : or.comm
 ... ↔ (∃ k : ℤ, y = 2 * k * π + x) ∨ (∃ k :ℤ, y = 2 * k * π - x) :
 begin
@@ -2412,12 +2412,25 @@ begin
     (tendsto.inv_tendsto_zero $ tendsto_norm_nhds_within_zero.comp B),
 end
 
+lemma tendsto_abs_tan_at_top (k : ℤ) :
+  tendsto (λ x, abs (tan x)) (𝓝[{(2 * k + 1) * π / 2}ᶜ] ((2 * k + 1) * π / 2)) at_top :=
+tendsto_abs_tan_of_cos_eq_zero $ cos_eq_zero_iff.2 ⟨k, rfl⟩
+
 @[simp] lemma continuous_at_tan {x : ℂ} : continuous_at tan x ↔ cos x ≠ 0 :=
 begin
   refine ⟨λ hc h₀, _, λ h, (has_deriv_at_tan h).continuous_at⟩,
   exact not_tendsto_nhds_of_tendsto_at_top (tendsto_abs_tan_of_cos_eq_zero h₀) _
     (hc.norm.tendsto.mono_left inf_le_left)
 end
+
+@[simp] lemma differentiable_at_tan {x : ℂ} : differentiable_at ℂ tan x ↔ cos x ≠ 0:=
+⟨λ h, continuous_at_tan.1 h.continuous_at, λ h, (has_deriv_at_tan h).differentiable_at⟩
+
+@[simp] lemma deriv_tan (x : ℂ) : deriv tan x = 1 / (cos x)^2 :=
+if h : cos x = 0 then
+  have ¬differentiable_at ℂ tan x := mt differentiable_at_tan.1 (not_not.2 h),
+  by simp [deriv_zero_of_not_differentiable_at this, h, pow_two]
+else (has_deriv_at_tan h).deriv
 
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 continuous_on_sin.div continuous_on_cos $ λ x, id
@@ -2534,17 +2547,18 @@ begin
   exact tendsto_principal_principal.2 (λ y, mt complex.of_real_inj.1)
 end
 
-@[simp] lemma continuous_at_tan {x : ℝ} : continuous_at tan x ↔ cos x ≠ 0 :=
+lemma tendsto_abs_tan_at_top (k : ℤ) :
+  tendsto (λ x, abs (tan x)) (𝓝[{(2 * k + 1) * π / 2}ᶜ] ((2 * k + 1) * π / 2)) at_top :=
+tendsto_abs_tan_of_cos_eq_zero $ cos_eq_zero_iff.2 ⟨k, rfl⟩
+
+lemma continuous_at_tan {x : ℝ} : continuous_at tan x ↔ cos x ≠ 0 :=
 begin
   refine ⟨λ hc h₀, _, λ h, (has_deriv_at_tan h).continuous_at⟩,
   exact not_tendsto_nhds_of_tendsto_at_top (tendsto_abs_tan_of_cos_eq_zero h₀) _
     (hc.norm.tendsto.mono_left inf_le_left)
 end
 
-lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
-λ x hx, (continuous_at_tan.2 hx).continuous_within_at
-
-@[simp] lemma differentiable_at_tan {x : ℝ} : differentiable_at ℝ tan x ↔ cos x ≠ 0 :=
+lemma differentiable_at_tan {x : ℝ} : differentiable_at ℝ tan x ↔ cos x ≠ 0 :=
 ⟨λ h, continuous_at_tan.1 h.continuous_at, λ h, (has_deriv_at_tan h).differentiable_at⟩
 
 @[simp] lemma deriv_tan (x : ℝ) : deriv tan x = 1 / (cos x)^2 :=
@@ -2556,6 +2570,9 @@ else (has_deriv_at_tan h).deriv
 @[simp] lemma times_cont_diff_at_tan {n x} : times_cont_diff_at ℝ n tan x ↔ cos x ≠ 0 :=
 ⟨λ h, continuous_at_tan.1 h.continuous_at,
   λ h, (complex.times_cont_diff_at_tan.2 $ by exact_mod_cast h).real_of_complex⟩
+
+lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
+λ x hx, (continuous_at_tan.2 hx).continuous_within_at
 
 lemma has_deriv_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ Ioo (-(π/2):ℝ) (π/2)) :
   has_deriv_at tan (1 / (cos x)^2) x :=

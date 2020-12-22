@@ -117,7 +117,7 @@ lemma segment_translate_preimage (a b c : E) : (λ x, a + x) ⁻¹' [a + b, a + 
 set.ext $ λ x, mem_segment_translate a
 
 lemma segment_translate_image (a b c: E) : (λx, a + x) '' [b, c] = [a + b, a + c] :=
-segment_translate_preimage a b c ▸ image_preimage_eq $ add_left_surjective a
+segment_translate_preimage a b c ▸ image_preimage_eq _ $ add_left_surjective a
 
 /-! ### Convexity of sets -/
 /-- Convexity of sets -/

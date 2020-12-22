@@ -811,6 +811,58 @@ lemma minimal_polynomial_dvd_mod_p {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ 
 (unique_factorization_monoid.dvd_pow_iff_dvd_of_squarefree (squarefree_minimal_polynomial_mod h
   hpos hdiv) (nat.prime.ne_zero hprime)).1 (minimal_polynomial_dvd_pow_mod h hpos hdiv)
 
+/-- If `p` is a prime that does not divide `n`,
+then the minimal polynomials of a primitive `n`-th root of unity `μ`
+and of `μ ^ p` are the same. -/
+lemma minimal_polynomial_eq_pow {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
+  minimal_polynomial (is_integral h hpos) =
+  minimal_polynomial (is_integral (pow_of_prime h hprime hdiv) hpos) :=
+begin
+  by_contra hdiff,
+  set P := minimal_polynomial (is_integral h hpos),
+  set Q := minimal_polynomial (is_integral (pow_of_prime h hprime hdiv) hpos),
+  have Pmonic : P.monic := minimal_polynomial.monic _,
+  have Qmonic : Q.monic := minimal_polynomial.monic _,
+  have Pirr : irreducible P := minimal_polynomial.irreducible _,
+  have Qirr : irreducible Q := minimal_polynomial.irreducible _,
+  have PQprim : is_primitive (P * Q) := Pmonic.is_primitive.mul Qmonic.is_primitive,
+  have prod : P * Q ∣ X ^ n - 1,
+  { apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
+      ((monic_X_pow_sub_C 1 (ne_of_lt hpos).symm).is_primitive)).2,
+    rw [map_mul],
+    refine is_coprime.mul_dvd _ _ _,
+    { have aux := is_primitive.int.irreducible_iff_irreducible_map_cast Pmonic.is_primitive,
+      refine (dvd_or_coprime _ _ (aux.1 Pirr)).resolve_left _,
+      rw map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic,
+      intro hdiv,
+      refine hdiff (eq_of_monic_of_associated Pmonic Qmonic _),
+      exact associated_of_dvd_dvd hdiv (dvd_symm_of_irreducible Pirr Qirr hdiv) },
+    { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic).2,
+      exact minimal_polynomial_dvd_X_pow_sub_one h hpos },
+    { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Qmonic).2,
+      exact minimal_polynomial_dvd_X_pow_sub_one (pow_of_prime h hprime hdiv) hpos } },
+  replace prod := ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))) prod,
+  rw [ring_hom.coe_of, map_mul, map_sub, map_one, map_pow, map_X] at prod,
+  obtain ⟨R, hR⟩ := minimal_polynomial_dvd_mod_p h hpos hdiv,
+  rw [hR, ← mul_assoc, ← map_mul, ← pow_two, map_pow] at prod,
+  have habs : map (int.cast_ring_hom (zmod p)) P ^ 2 ∣ map (int.cast_ring_hom (zmod p)) P ^ 2 * R,
+  { use R },
+  replace habs := lt_of_lt_of_le (enat.coe_lt_coe.2 one_lt_two)
+    (multiplicity.le_multiplicity_of_pow_dvd (dvd_trans habs prod)),
+  have hfree : squarefree (X ^ n - 1 : polynomial (zmod p)),
+  { refine squarefree_X_pow_sub_C 1 _ one_ne_zero,
+    by_contra hzero,
+    exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero)) },
+  cases (multiplicity.squarefree_iff_multiplicity_le_one (X ^ n - 1)).1 hfree
+    (map (int.cast_ring_hom (zmod p)) P) with hle hunit,
+  { exact not_lt_of_le hle habs },
+  { replace hunit := degree_eq_zero_of_is_unit hunit,
+    rw degree_map_eq_of_leading_coeff_ne_zero _ _ at hunit,
+    { exact (ne_of_lt (minimal_polynomial.degree_pos (is_integral h hpos))).symm hunit },
+    simp only [Pmonic, ring_hom.eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
+      not_false_iff, one_ne_zero] }
+end
+
 end minimal_polynomial
 
 end is_primitive_root

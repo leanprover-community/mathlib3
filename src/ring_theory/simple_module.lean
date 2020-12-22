@@ -49,12 +49,20 @@ begin
   apply eq_bot_or_eq_top,
 end
 
+theorem injective_of_ne_zero_of_simple [is_simple_module R M] {f : M →ₗ[R] N} (h : f ≠ 0) :
+  function.injective f :=
+f.injective_or_eq_zero_of_simple.resolve_right h
+
 theorem surjective_or_eq_zero_of_simple [is_simple_module R N] (f : M →ₗ[R] N) :
   function.surjective f ∨ f = 0 :=
 begin
-  rw [← range_eq_top, ← range_le_bot_iff, le_bot_iff, or_comm],
+  rw [← range_eq_top, ← range_eq_bot, or_comm],
   apply eq_bot_or_eq_top,
 end
+
+theorem surjective_of_ne_zero_of_simple [is_simple_module R M] {f : M →ₗ[R] N} (h : f ≠ 0) :
+  function.surjective f :=
+f.surjective_or_eq_zero_of_simple.resolve_right h
 
 /-- Schur's Lemma for linear maps between (possibly distinct) simple modules -/
 theorem bijective_or_eq_zero_of_simple [is_simple_module R M] [is_simple_module R N]
@@ -64,17 +72,21 @@ begin
   by_cases h : f = 0,
   { right,
     exact h },
-  exact or.intro_left _ ⟨or.resolve_right f.injective_or_eq_zero_of_simple h,
-    or.resolve_right f.surjective_or_eq_zero_of_simple h⟩,
+  exact or.intro_left _ ⟨injective_of_ne_zero_of_simple h, f.surjective_of_ne_zero_of_simple h⟩,
 end
+
+theorem bijective_of_ne_zero_of_simple [is_simple_module R M] [is_simple_module R N]
+  {f : M →ₗ[R] N)}:
+  function.bijective f :=
+f.bijective_or_eq_zero_of_simple.resolve_right h
 
 /-- Schur's Lemma makes the endomorphism ring of a simple module a division ring. -/
 noncomputable instance [decidable_eq (M →ₗ[R] M)] [is_simple_module R M] :
   division_ring (M →ₗ[R] M) :=
 { inv := λ f, if h : f = 0 then 0 else (linear_map.inverse f
-    (equiv.of_bijective _ (f.bijective_or_eq_zero_of_simple.resolve_right h)).inv_fun
-    (equiv.of_bijective _ (f.bijective_or_eq_zero_of_simple.resolve_right h)).left_inv
-    (equiv.of_bijective _ (f.bijective_or_eq_zero_of_simple.resolve_right h)).right_inv),
+    (equiv.of_bijective _ (bijective_of_ne_zero_of_simple h)).inv_fun
+    (equiv.of_bijective _ (bijective_of_ne_zero_of_simple h)).left_inv
+    (equiv.of_bijective _ (bijective_of_ne_zero_of_simple h)).right_inv),
   exists_pair_ne := ⟨0, 1, begin
     haveI := is_simple_module.nontrivial R M,
     have h := exists_pair_ne M,
@@ -88,7 +100,7 @@ noncomputable instance [decidable_eq (M →ₗ[R] M)] [is_simple_module R M] :
     change (a * (dite _ _ _)) = 1,
     ext,
     rw [dif_neg a0, mul_eq_comp, one_app, comp_apply],
-    exact (equiv.of_bijective _ (a.bijective_or_eq_zero_of_simple.resolve_right a0)).right_inv x,
+    exact (equiv.of_bijective _ (bijective_of_ne_zero_of_simple a0)).right_inv x,
   end,
   inv_zero := dif_pos rfl,
 .. (infer_instance : ring (M →ₗ[R] M))}

@@ -81,7 +81,7 @@ def incl : skeleton ⥤ Fintype :=
 instance : full incl := { preimage := λ _ _ f, f }
 instance : faithful incl := {}
 instance : ess_surj incl :=
-{ obj_preimage := λ X,
+{ mem_ess_image := λ X,
   let F := trunc.out (fintype.equiv_fin X) in
   ⟨fintype.card X, ⟨⟨F.symm, F, F.self_comp_symm, F.symm_comp_self⟩⟩⟩ }
 

@@ -46,6 +46,10 @@ theorem linear_map.antilipschitz_of_bound {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ 
 antilipschitz_with.of_le_mul_dist $
 λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
+lemma linear_map.bound_of_antilipschitz {K : ℝ≥0} (h : antilipschitz_with K f) (x) :
+  ∥x∥ ≤ K * ∥f x∥ :=
+by simpa only [dist_zero_right, f.map_zero] using h.le_mul_dist x 0
+
 lemma linear_map.uniform_continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   uniform_continuous f :=
 (f.lipschitz_of_bound C h).uniform_continuous

@@ -245,27 +245,10 @@ begin
     suffices : (x, y) ∈ 𝓢 α ↔ x = y, by simpa only [mem_id_rel],
     refine ⟨λ H, h ⟨mk_mem_prod x_in y_in, H⟩, _⟩,
     rintro rfl,
-    apply id_rel_sub_separation_relation α,
-    rw mem_id_rel },
-  { -- For legibility purpose, let's have explicit coercion C s : ↥s → α  for every α and s : set α
-    let C : Π {β : Type*} (s : set β) (x : s), β := λ _ _, subtype.val,
-    let Δ := diagonal,
-    change _ ⊆ Δ _,
-    change (prod.map (C s) (C s)) ⁻¹' (𝓢 α) = Δ _ at h,
-    rw [inter_comm, ← subtype.image_preimage_coe,  image_subset_iff],
-    change (C _) ⁻¹' _ ⊆ (C _) ⁻¹' _,
-
-    let φ : ↥s × ↥s → (s.prod s)  := (λ x : s × s, ⟨(x.1.1, x.2.1), mk_mem_prod x.1.2 x.2.2⟩),
-    have φ_surj : surjective φ :=
-      λ ⟨⟨x, y⟩, ⟨x_in, y_in⟩⟩, ⟨(⟨x, x_in⟩, ⟨y, y_in⟩), rfl⟩,
-
-    have CCCφ: prod.map (C s) (C s) = C (s.prod s) ∘ φ, by ext ; refl,
-
-    have ΔΔ: (prod.map (C s) (C s)) ⁻¹' (Δ α) = Δ s := set.preimage_coe_coe_diagonal s,
-    apply_fun (image φ) at h,
-    rw [ ← ΔΔ, CCCφ, preimage_comp, preimage_comp,
-        image_preimage_eq φ_surj, image_preimage_eq φ_surj] at h,
-    rw h },
+    exact id_rel_sub_separation_relation α rfl },
+  { rintros ⟨x, y⟩ ⟨⟨x_in, y_in⟩, hS⟩,
+    have A : (⟨⟨x, x_in⟩, ⟨y, y_in⟩⟩ : ↥s × ↥s) ∈ prod.map (coe : s → α) (coe : s → α) ⁻¹' 𝓢 α := hS,
+    simpa using h.subset A }
 end
 
 lemma eq_of_uniformity_inf_nhds_of_is_separated {s : set α} (hs : is_separated s) :

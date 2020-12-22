@@ -56,7 +56,7 @@ theorem psub_eq_some {m : ℕ} : ∀ {n k}, psub m n = some k ↔ k + n = m
     simp [psub_eq_some, add_comm, add_left_comm, nat.succ_eq_add_one]
   end
 
-theorem psub_eq_none (m n : ℕ) : psub m n = none ↔ m < n :=
+theorem psub_eq_none {m n : ℕ} : psub m n = none ↔ m < n :=
 begin
   cases s : psub m n; simp [eq_comm],
   { show m < n, refine lt_of_not_ge (λ h, _),
@@ -73,5 +73,12 @@ psub_eq_some.2 $ nat.sub_add_cancel h
 
 theorem psub_add (m n k) : psub m (n + k) = do x ← psub m n, psub x k :=
 by induction k; simp [*, add_succ, bind_assoc]
+
+/-- Same as `psub`, but with a more efficient implementation. -/
+@[inline] def psub' (m n : ℕ) : option ℕ := if n ≤ m then some (m - n) else none
+
+theorem psub'_eq_psub (m n) : psub' m n = psub m n :=
+by rw [psub']; split_ifs;
+  [exact (psub_eq_sub h).symm, exact (psub_eq_none.2 (not_le.1 h)).symm]
 
 end nat

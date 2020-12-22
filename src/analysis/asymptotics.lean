@@ -707,11 +707,11 @@ begin
   refine ⟨_, λ h, (is_o_zero g' ⊤).congr (λ x, (h x).symm) (λ x, rfl)⟩,
   simp only [is_o_iff, eventually_top],
   refine λ h x, norm_le_zero_iff.1 _,
-  have : tendsto (λ c : ℝ, c * ∥g' x∥) (𝓝[Ioi 0] 0) 0 :=
-    ((continuous_id.mul continuous_const).tendsto' _ _ _).mono_left _,
---   (le_of_tendsto_of_tendsto tendsto_const_nhds _ _),
+  have : tendsto (λ c : ℝ, c * ∥g' x∥) (𝓝[Ioi 0] 0) (𝓝 0) :=
+    ((continuous_id.mul continuous_const).tendsto' _ _ (zero_mul _)).mono_left inf_le_left,
+  exact le_of_tendsto_of_tendsto tendsto_const_nhds this
+    (eventually_nhds_within_iff.2 $ eventually_of_forall $ λ c hc, h hc x)
 end
-
 
 theorem is_O_with_const_one (c : E) (l : filter α) : is_O_with ∥c∥ (λ x : α, c) (λ x, (1 : 𝕜)) l :=
 begin
@@ -1207,12 +1207,33 @@ theorem is_o.right_is_O_add {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
   is_O f₂ (λx, f₁ x + f₂ x) l :=
 ((h.def' one_half_pos).right_le_add_of_lt_1 one_half_lt_one).is_O
 
-theorem is_O_cofinite_iff : is_O f' g' cofinite ↔ \
+/-- If `f x = O(g x)` along `cofinite`, then there exists a positive constant `C` such that
+`∥f x∥ ≤ C * ∥g x∥` whenever `g x ≠ 0`. -/
+theorem bound_of_is_O_cofinite (h : is_O f g' cofinite) :
+  ∃ C > 0, ∀ ⦃x⦄, g' x ≠ 0 → ∥f x∥ ≤ C * ∥g' x∥ :=
+begin
+  rcases h.exists_pos with ⟨C, C₀, hC⟩,
+  rw [is_O_with, eventually_cofinite] at hC,
+  rcases (hC.to_finset.image (λ x, ∥f x∥ / ∥g' x∥)).exists_le with ⟨C', hC'⟩,
+  have : ∀ x, C * ∥g' x∥ < ∥f x∥ → ∥f x∥ / ∥g' x∥ ≤ C', by simpa using hC',
+  refine ⟨max C C', lt_max_iff.2 (or.inl C₀), λ x h₀, _⟩,
+  rw [max_mul_of_nonneg _ _ (norm_nonneg _), le_max_iff, or_iff_not_imp_left, not_le],
+  exact λ hx, (div_le_iff (norm_pos_iff.2 h₀)).1 (this _ hx)
+end
 
-theorem exists_is_o_tfae [preorder β] [densely_ordered β] {f : β → α → E'} 
-  (h : ∀ ⦃i j⦄, i < j → is_o (f i) (f j) l) (g : α → F') (b : β) :
-  tfae [∃ i < b, is_o g (f i) l,
-    ∃ i < b, is_O g (f i) l]
+theorem is_O_cofinite_iff (h : ∀ x, g' x = 0 → f' x = 0) :
+  is_O f' g' cofinite ↔ ∃ C, ∀ x, ∥f' x∥ ≤ C * ∥g' x∥ :=
+⟨λ h', let ⟨C, C₀, hC⟩ := bound_of_is_O_cofinite h' in
+  ⟨C, λ x, if hx : g' x = 0 then by simp [h _ hx, hx] else hC hx⟩,
+  λ h, (is_O_top.2 h).mono le_top⟩
+
+theorem bound_of_is_O_nat_at_top {f : ℕ → E} {g' : ℕ → E'} (h : is_O f g' at_top) :
+  ∃ C > 0, ∀ ⦃x⦄, g' x ≠ 0 → ∥f x∥ ≤ C * ∥g' x∥ :=
+bound_of_is_O_cofinite $ by rwa nat.cofinite_eq_at_top
+
+theorem is_O_nat_at_top_iff {f : ℕ → E'} {g : ℕ → F'} (h : ∀ x, g x = 0 → f x = 0) :
+  is_O f g at_top ↔ ∃ C, ∀ x, ∥f x∥ ≤ C * ∥g x∥ :=
+by rw [← nat.cofinite_eq_at_top, is_O_cofinite_iff h]
 
 end asymptotics
 

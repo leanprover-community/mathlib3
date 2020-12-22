@@ -79,6 +79,12 @@ theorem eq_top_iff_one : I = ⊤ ↔ (1:α) ∈ I :=
 theorem ne_top_iff_one : I ≠ ⊤ ↔ (1:α) ∉ I :=
 not_congr I.eq_top_iff_one
 
+lemma exists_mem_ne_zero_of_ne_bot (hI : I ≠ ⊥) : ∃ p ∈ I, p ≠ (0 : α) :=
+begin
+  contrapose! hI,
+  exact eq_bot_iff.2 (λ x hx, (hI x hx).symm ▸ (ideal.zero_mem ⊥)),
+end
+
 @[simp]
 theorem unit_mul_mem_iff_mem {x y : α} (hy : is_unit y) : y * x ∈ I ↔ x ∈ I :=
 begin

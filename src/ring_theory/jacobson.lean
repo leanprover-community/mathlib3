@@ -354,13 +354,6 @@ begin
       (ring_hom.is_integral_quotient_of_is_integral _ hφ'))),
 end
 
-lemma exists_non_zero_mem_of_ne_bot {R : Type*} [comm_ring R] (I : ideal R) (hI : I ≠ ⊥) :
-  ∃ p ∈ I, p ≠ (0 : R) :=
-begin
-  contrapose! hI,
-  exact eq_bot_iff.2 (λ x hx, (hI x hx).symm ▸ (ideal.zero_mem ⊥)),
-end
-
 /-- Used to bootstrap the proof of `is_jacobson_polynomial_iff_is_jacobson`.
   That theorem is more general and should be used instead of this one -/
 private lemma is_jacobson_polynomial_of_domain (R : Type*) [integral_domain R] [hR : is_jacobson R]
@@ -373,7 +366,7 @@ begin
     have hP'_inj : function.injective (quotient.mk P') := (quotient.mk P').injective_iff.2
       (λ x hx, by rwa [quotient.eq_zero_iff_mem, (by rwa eq_bot_iff : P' = ⊥)] at hx),
     haveI : P'.is_prime := comap_is_prime C P,
-    obtain ⟨pX, hpX, hp0⟩ := exists_non_zero_mem_of_ne_bot P hP,
+    obtain ⟨pX, hpX, hp0⟩ := P.exists_mem_ne_zero_of_ne_bot hP,
     have hp0 : (pX.map (quotient.mk P')).leading_coeff ≠ 0 :=
     λ hp0', hp0 $ map_injective (quotient.mk P') ((quotient.mk P').injective_iff.2
       (λ x hx, by rwa [quotient.eq_zero_iff_mem, (by rwa eq_bot_iff : P' = ⊥)] at hx))
@@ -443,8 +436,8 @@ private lemma quotient_mk_comp_C_is_integral_of_jacobson' {R : Type*} [integral_
 begin
   let P' : ideal R := P.comap C,
   haveI hp'_prime : P'.is_prime := comap_is_prime C P,
-  obtain ⟨pX, hpX, hp0⟩ :=
-    exists_non_zero_mem_of_ne_bot P (ne_of_lt (bot_lt_of_maximal P polynomial_not_is_field)).symm,
+  obtain ⟨pX, hpX, hp0⟩ := P.exists_mem_ne_zero_of_ne_bot
+    (ne_of_lt (bot_lt_of_maximal P polynomial_not_is_field)).symm,
 
   have hp0 : (pX.map (quotient.mk P')).leading_coeff ≠ 0 :=
     λ hp0', hp0 $ map_injective (quotient.mk P') ((quotient.mk P').injective_iff.2
@@ -461,7 +454,6 @@ begin
 
   have hcomm: φ'.comp ϕ.to_map = ϕ'.to_map.comp φ := ϕ.map_comp _,
   have hφ : function.injective φ := quotient_map_injective,
-  have hφ' : φ.comp (quotient.mk P') = (quotient.mk P).comp C := rfl,
   have hM : (0 : P'.quotient) ∉ M := λ hM, hp0 (let ⟨n, hn⟩ := hM in pow_eq_zero hn),
   have hM' : (0 : P.quotient) ∉ M' := λ hM', hM (let ⟨z, hz⟩ := hM' in (hφ (trans hz.2 φ.map_zero.symm)) ▸ hz.1),
   have hφ'_int : φ'.is_integral := is_integral_localization_map_polynomial_quotient P pX hpX ϕ ϕ',
@@ -480,8 +472,7 @@ begin
     { rw le_antisymm bot_le (comap_bot_le_of_injective φ' (map_injective_of_injective φ hφ M ϕ ϕ'
         (le_non_zero_divisors_of_domain hM'))),
       refine is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ'_int ⊥ this },
-    have : (⊥ : ideal (localization M')) = map ϕ'.to_map ⊥ := map_bot.symm,
-    rw this,
+    rw (map_bot.symm : (⊥ : ideal (localization M')) = map ϕ'.to_map ⊥),
     refine map.is_maximal ϕ'.to_map (localization_map_bijective_of_field hM' _ ϕ') hP,
     rwa [← quotient.maximal_ideal_iff_is_field_quotient, ← bot_quotient_is_maximal_iff],
   end,
@@ -533,9 +524,8 @@ begin
   rwa [quotient.eq_zero_iff_mem, mem_comap, hIJ, mem_comap, coe_map_ring_hom, map_C],
 end
 
-lemma pullbackMaximalB {R : Type*} [integral_domain R] [is_jacobson R]
-  (P : ideal (polynomial R)) [hP : P.is_maximal] :
-  (P.comap (C : R →+* polynomial R)).is_maximal :=
+lemma is_maximal_comap_C_of_is_jacobson {R : Type*} [integral_domain R] [is_jacobson R]
+  (P : ideal (polynomial R)) [hP : P.is_maximal] : (P.comap (C : R →+* polynomial R)).is_maximal :=
 begin
   have := is_maximal_comap_of_is_integral_of_is_maximal' _
     (quotient_mk_comp_C_is_integral_of_jacobson P) ⊥ (by rwa bot_quotient_is_maximal_iff),
@@ -565,7 +555,7 @@ begin
     let P3 : ideal (polynomial (mv_polynomial (fin n) R)) := P.comap ϕ3,
     haveI : P3.is_maximal := comap_is_maximal_of_surjective ϕ3 (mv_polynomial.fin_succ_equiv R n).symm.surjective,
     let P2 : ideal (mv_polynomial (fin n) R) := P3.comap ϕ2,
-    haveI : P2.is_maximal := pullbackMaximalB P3,
+    haveI : P2.is_maximal := is_maximal_comap_C_of_is_jacobson P3,
     let P1 : ideal R := P2.comap ϕ1,
     let φ3 : P3.quotient →+* P.quotient := quotient_map P ϕ3 le_rfl,
     have hφ3 : φ3.is_integral := φ3.is_integral_of_surjective
@@ -573,7 +563,7 @@ begin
     let φ2 : P2.quotient →+* P3.quotient := quotient_map P3 ϕ2 le_rfl,
     have hφ2 : φ2.is_integral := begin
       rw is_integral_quotient_map_iff,
-      refine lemmaB P3,
+      refine quotient_mk_comp_C_is_integral_of_jacobson P3,
     end,
     let φ1 : P1.quotient →+* P2.quotient := quotient_map P2 ϕ1 le_rfl,
     have hφ1 : φ1.is_integral := begin

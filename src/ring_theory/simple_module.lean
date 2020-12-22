@@ -26,9 +26,11 @@ import linear_algebra.basic
 
 variables (R : Type*) [comm_ring R] (M : Type*) [add_comm_group M] [module R M]
 
+/-- A module is simple when it has only two submodules, `⊥` and `⊤`. -/
 abbreviation is_simple_module := (is_simple_lattice (submodule R M))
 
-instance is_simple_module.nontrivial [is_simple_module R M] : nontrivial M :=
+-- Making this an instance causes the linter to complain of "dangerous instances"
+theorem is_simple_module.nontrivial [is_simple_module R M] : nontrivial M :=
 ⟨⟨0, begin
   have h : (⊥ : submodule R M) ≠ ⊤ := bot_ne_top,
   contrapose! h,
@@ -36,7 +38,7 @@ instance is_simple_module.nontrivial [is_simple_module R M] : nontrivial M :=
   simp [submodule.mem_bot,submodule.mem_top, h x],
 end⟩⟩
 
-variables {R} {M} {N : Type*} [add_comm_group N] [module R N]
+variables {R} {M}  {N : Type*} [add_comm_group N] [module R N]
 
 namespace linear_map
 
@@ -74,6 +76,7 @@ noncomputable instance [decidable_eq (M →ₗ[R] M)] [is_simple_module R M] :
     (equiv.of_bijective _ (f.bijective_or_eq_zero_of_simple.resolve_right h)).left_inv
     (equiv.of_bijective _ (f.bijective_or_eq_zero_of_simple.resolve_right h)).right_inv),
   exists_pair_ne := ⟨0, 1, begin
+    haveI := is_simple_module.nontrivial R M,
     have h := exists_pair_ne M,
     contrapose! h,
     intros x y,

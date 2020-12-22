@@ -72,7 +72,7 @@ begin
   by_cases h : f = 0,
   { right,
     exact h },
-  exact or.intro_left _ ⟨injective_of_ne_zero h, f.surjective_of_ne_zero h⟩,
+  exact or.intro_left _ ⟨injective_of_ne_zero h, surjective_of_ne_zero h⟩,
 end
 
 theorem bijective_of_ne_zero [is_simple_module R M] [is_simple_module R N]

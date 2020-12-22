@@ -5,6 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.module.linear_map
 import group_theory.group_action.sub_mul_action
+import algebra.module.bimodule
 /-!
 
 # Submodules of a module
@@ -13,6 +14,11 @@ In this file we define
 
 * `submodule R M` : a subset of a `module` `M` that contains zero and is closed with respect to addition and
   scalar multiplication.
+
+* `right_submodule A B M` : a subset of a `right_module` `M` that contains zero and is closed with
+  respect to addition and right scalar multiplication.
+
+* `subbimodule A B M` : a `submodule` of a `bimodule` `M` that is also a `right_submodule`.
 
 * `subspace k M` : an abbreviation for `submodule` assuming that `k` is a `field`.
 
@@ -209,3 +215,31 @@ end submodule
 abbreviation subspace (R : Type u) (M : Type v)
   [field R] [add_comm_group M] [vector_space R M] :=
 submodule R M
+
+/-- A right submodule is just a submodule under the opposite ring. -/
+abbreviation right_submodule
+  (B : Type v) (M : Type w) [semiring B] [add_comm_monoid M] [right_semimodule B M] :=
+submodule Bᵒᵖ M
+
+/-- A subbimodule is a submodule of a bimodule that is also a right submodule. -/
+structure subbimodule (A : Type u) (B : Type w) (M : Type v)
+  [semiring A] [semiring B] [add_comm_monoid M]
+  [semimodule A M] [right_semimodule B M] [bisemimodule A B M] extends submodule A M :=
+( rsmul_mem' : ∀ (b : B) {x : M}, x ∈ carrier → x •ᵣ b ∈ carrier)
+
+namespace subbimodule
+variables (A : Type u) (B : Type w) [semiring A] [semiring B] [add_comm_monoid M]
+variables [semimodule A M] [right_semimodule B M] [bisemimodule A B M]
+
+instance : has_coe_t (subbimodule A B M) (set M) := ⟨λ s, s.carrier⟩
+instance : has_mem M (subbimodule A B M) := ⟨λ x p, x ∈ (p : set M)⟩
+instance : has_coe_to_sort (subbimodule A B M) := ⟨_, λ p, {x : M // x ∈ p}⟩
+
+/-- A subbimodule is also a right submodule. -/
+def to_right_submodule (s : subbimodule A B M) : right_submodule B M :=
+{ carrier := s.carrier,
+  zero_mem' := s.zero_mem',
+  add_mem' := s.add_mem',
+  smul_mem' := λ b x hx, s.rsmul_mem' (b.unop) hx }
+
+end subbimodule

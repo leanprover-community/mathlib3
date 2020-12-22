@@ -76,7 +76,7 @@ begin
 end
 
 theorem bijective_of_ne_zero [is_simple_module R M] [is_simple_module R N]
-  {f : M →ₗ[R] N)}:
+  {f : M →ₗ[R] N} (h : f ≠ 0):
   function.bijective f :=
 f.bijective_or_eq_zero.resolve_right h
 

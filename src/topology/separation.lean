@@ -217,8 +217,8 @@ begin
   refine induction_on_union _ (λ a b hi d, (hi d.symm).symm) (λ a d, empty_right a) (λ a b ab, _) _,
   { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation
       (by { rw [ne.def, ← finset.mem_singleton], exact (disjoint_singleton.mp ab.symm) }),
-    refine ⟨U, V, oU, oV, λ f hf, _, λ f hf, _, set.disjoint_iff_inter_eq_empty.mpr UV⟩;
-    rwa [finset.mem_singleton.mp hf] },
+    refine ⟨U, V, oU, oV, _, _, set.disjoint_iff_inter_eq_empty.mpr UV⟩;
+    exact singleton_subset_set_iff.mpr ‹_› },
   { intros a b c ac bc d,
     apply_mod_cast union_left (ac (disjoint_of_subset_left (a.subset_union_left b) d)) (bc _),
     exact disjoint_of_subset_left (a.subset_union_right b) d },

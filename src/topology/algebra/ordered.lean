@@ -1581,15 +1581,6 @@ lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (
 lemma filter.map_neg [add_group α] : map (has_neg.neg : α → α) = comap (has_neg.neg : α → α) :=
 funext $ assume f, map_eq_comap_of_inverse (funext neg_neg) (funext neg_neg)
 
-section topological_add_group
-
-variables [topological_space α] [ordered_add_comm_group α] [topological_add_group α]
-
-lemma neg_preimage_closure {s : set α} : (λr:α, -r) ⁻¹' closure s = closure ((λr:α, -r) '' s) :=
-(homeomorph.neg α).preimage_closure
-
-end topological_add_group
-
 section order_topology
 
 variables [topological_space α] [topological_space β]

@@ -865,7 +865,7 @@ end
 
 /-- If `m : ℕ` is coprime with `n`,
 then the minimal polynomials of a primitive `n`-th root of unity `μ`
-and `μ ^ m` of are the same. -/
+and of `μ ^ m` are the same. -/
 lemma minimal_polynomial_eq_pow_coprime {m : ℕ} (hcop : nat.coprime m n) :
   minimal_polynomial (is_integral h hpos) = minimal_polynomial
   (is_integral (h.pow_of_coprime m hcop) hpos) :=

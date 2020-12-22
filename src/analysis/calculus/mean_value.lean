@@ -85,7 +85,7 @@ lemma image_le_of_liminf_slope_right_lt_deriv_boundary' {f f' : ℝ → ℝ} {a 
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
     ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : continuous_on B (Icc a b))
-  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
+  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
 begin
@@ -96,31 +96,27 @@ begin
   { simp only [s, inter_comm],
     exact A.preimage_closed_of_closed is_closed_Icc order_closed_topology.is_closed_le' },
   apply this.Icc_subset_of_forall_exists_gt ha,
-  rintros x ⟨hxB, xab⟩ y hy,
-  change f x ≤ B x at hxB,
-  cases lt_or_eq_of_le hxB with hxB hxB,
+  rintros x ⟨hxB : f x ≤ B x, xab⟩ y hy,
+  cases hxB.lt_or_eq with hxB hxB,
   { -- If `f x < B x`, then all we need is continuity of both sides
-    apply @nonempty_of_mem_sets _ (𝓝[Ioi x] x),
-    refine inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_refl x, hy⟩),
+    refine nonempty_of_mem_sets (inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_rfl, hy⟩)),
     have : ∀ᶠ x in 𝓝[Icc a b] x, f x < B x,
       from A x (Ico_subset_Icc_self xab)
         (mem_nhds_sets (is_open_lt continuous_fst continuous_snd) hxB),
     have : ∀ᶠ x in 𝓝[Ioi x] x, f x < B x,
       from nhds_within_le_of_mem (Icc_mem_nhds_within_Ioi xab) this,
-    refine mem_sets_of_superset this (set_of_subset_set_of.2 $ λ y, le_of_lt) },
+    exact this.mono (λ y, le_of_lt) },
   { rcases exists_between (bound x xab hxB) with ⟨r, hfr, hrB⟩,
     specialize hf' x xab r hfr,
     have HB : ∀ᶠ z in 𝓝[Ioi x] x, r < (z - x)⁻¹ * (B z - B x),
-      from (has_deriv_within_at_iff_tendsto_slope' $ lt_irrefl x).1 (hB' x xab)
-        (mem_nhds_sets is_open_Ioi hrB),
+      from (has_deriv_within_at_iff_tendsto_slope' $ lt_irrefl x).1
+        (hB' x xab).Ioi_of_Ici (Ioi_mem_nhds hrB),
     obtain ⟨z, ⟨hfz, hzB⟩, hz⟩ :
       ∃ z, ((z - x)⁻¹ * (f z - f x) < r ∧ r < (z - x)⁻¹ * (B z - B x)) ∧ z ∈ Ioc x y,
-      from ((hf'.and_eventually HB).and_eventually
-        (Ioc_mem_nhds_within_Ioi ⟨le_refl _, hy⟩)).exists,
-    have := le_of_lt (lt_trans hfz hzB),
+      from ((hf'.and_eventually HB).and_eventually (Ioc_mem_nhds_within_Ioi ⟨le_rfl, hy⟩)).exists,
     refine ⟨z, _, hz⟩,
-    rw [mul_le_mul_left (inv_pos.2 $ sub_pos.2 hz.1), hxB, sub_le_sub_iff_right] at this,
-    exact this }
+    have := (hfz.trans hzB).le,
+    rwa [mul_le_mul_left (inv_pos.2 $ sub_pos.2 hz.1), hxB, sub_le_sub_iff_right] at this }
 end
 
 /-- General fencing theorem for continuous functions with an estimate on the derivative.
@@ -157,20 +153,20 @@ Then `f x ≤ B x` everywhere on `[a, b]`. -/
 lemma image_le_of_liminf_slope_right_le_deriv_boundary {f : ℝ → ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : continuous_on B (Icc a b))
-  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
+  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
   -- `bound` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ B' x`
   (bound : ∀ x ∈ Ico a b, ∀ r, B' x < r →
     ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
 begin
-  have Hr : ∀ x ∈ Icc a b, ∀ r ∈ Ioi (0:ℝ), f x ≤ B x + r * (x - a),
+  have Hr : ∀ x ∈ Icc a b, ∀ r > 0, f x ≤ B x + r * (x - a),
   { intros x hx r hr,
     apply image_le_of_liminf_slope_right_lt_deriv_boundary' hf bound,
     { rwa [sub_self, mul_zero, add_zero] },
     { exact hB.add (continuous_on_const.mul
         (continuous_id.continuous_on.sub continuous_on_const)) },
     { assume x hx,
-      exact (hB' x hx).add (((has_deriv_within_at_id x (Ioi x)).sub_const a).const_mul r) },
+      exact (hB' x hx).add (((has_deriv_within_at_id x (Ici x)).sub_const a).const_mul r) },
     { assume x hx _,
       rw [mul_one],
       exact (lt_add_iff_pos_right _).2 hr },
@@ -178,7 +174,7 @@ begin
   assume x hx,
   have : continuous_within_at (λ r, B x + r * (x - a)) (Ioi 0) 0,
     from continuous_within_at_const.add (continuous_within_at_id.mul continuous_within_at_const),
-  convert continuous_within_at_const.closure_le _ this (Hr x hx); simp [closure_Ioi]
+  convert continuous_within_at_const.closure_le _ this (Hr x hx); simp
 end
 
 /-- General fencing theorem for continuous functions with an estimate on the derivative.
@@ -192,9 +188,9 @@ Let `f` and `B` be continuous functions on `[a, b]` such that
 Then `f x ≤ B x` everywhere on `[a, b]`. -/
 lemma image_le_of_deriv_right_lt_deriv_boundary' {f f' : ℝ → ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : continuous_on B (Icc a b))
-  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
+  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
 image_le_of_liminf_slope_right_lt_deriv_boundary' hf
@@ -211,7 +207,7 @@ Let `f` and `B` be continuous functions on `[a, b]` such that
 Then `f x ≤ B x` everywhere on `[a, b]`. -/
 lemma image_le_of_deriv_right_lt_deriv_boundary {f f' : ℝ → ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : ∀ x, has_deriv_at B (B' x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
@@ -230,9 +226,9 @@ Let `f` and `B` be continuous functions on `[a, b]` such that
 Then `f x ≤ B x` everywhere on `[a, b]`. -/
 lemma image_le_of_deriv_right_le_deriv_boundary {f f' : ℝ → ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : continuous_on B (Icc a b))
-  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
+  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
   (bound : ∀ x ∈ Ico a b, f' x ≤ B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
 image_le_of_liminf_slope_right_le_deriv_boundary hf ha hB hB' $
@@ -260,7 +256,7 @@ lemma image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary {E : Type*} [no
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
     ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r)
   {B B' : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : continuous_on B (Icc a b))
-  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
+  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
   (bound : ∀ x ∈ Ico a b, ∥f x∥ = B x → f' x < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → ∥f x∥ ≤ B x :=
 image_le_of_liminf_slope_right_lt_deriv_boundary' (continuous_norm.comp_continuous_on hf) hf'
@@ -278,9 +274,9 @@ to make this theorem work for piecewise differentiable functions.
 -/
 lemma image_norm_le_of_norm_deriv_right_lt_deriv_boundary' {f' : ℝ → E}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   {B B' : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : continuous_on B (Icc a b))
-  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
+  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
   (bound : ∀ x ∈ Ico a b, ∥f x∥ = B x → ∥f' x∥ < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → ∥f x∥ ≤ B x :=
 image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary hf
@@ -299,7 +295,7 @@ to make this theorem work for piecewise differentiable functions.
 -/
 lemma image_norm_le_of_norm_deriv_right_lt_deriv_boundary {f' : ℝ → E}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   {B B' : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : ∀ x, has_deriv_at B (B' x) x)
   (bound : ∀ x ∈ Ico a b, ∥f x∥ = B x → ∥f' x∥ < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → ∥f x∥ ≤ B x :=
@@ -319,9 +315,9 @@ to make this theorem work for piecewise differentiable functions.
 -/
 lemma image_norm_le_of_norm_deriv_right_le_deriv_boundary' {f' : ℝ → E}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   {B B' : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : continuous_on B (Icc a b))
-  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
+  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
   (bound : ∀ x ∈ Ico a b, ∥f' x∥ ≤ B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → ∥f x∥ ≤ B x :=
 image_le_of_liminf_slope_right_le_deriv_boundary (continuous_norm.comp_continuous_on hf) ha hB hB' $
@@ -340,7 +336,7 @@ to make this theorem work for piecewise differentiable functions.
 -/
 lemma image_norm_le_of_norm_deriv_right_le_deriv_boundary {f' : ℝ → E}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   {B B' : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : ∀ x, has_deriv_at B (B' x) x)
   (bound : ∀ x ∈ Ico a b, ∥f' x∥ ≤ B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → ∥f x∥ ≤ B x :=
@@ -352,13 +348,13 @@ image_norm_le_of_norm_deriv_right_le_deriv_boundary' hf hf' ha
 satisfies `∥f x - f a∥ ≤ C * (x - a)`. -/
 theorem norm_image_sub_le_of_norm_deriv_right_le_segment {f' : ℝ → E} {C : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   (bound : ∀x ∈ Ico a b, ∥f' x∥ ≤ C) :
   ∀ x ∈ Icc a b, ∥f x - f a∥ ≤ C * (x - a) :=
 begin
   let g := λ x, f x - f a,
   have hg : continuous_on g (Icc a b), from hf.sub continuous_on_const,
-  have hg' : ∀ x ∈ Ico a b, has_deriv_within_at g (f' x) (Ioi x) x,
+  have hg' : ∀ x ∈ Ico a b, has_deriv_within_at g (f' x) (Ici x) x,
   { assume x hx,
     simpa using (hf' x hx).sub (has_deriv_within_at_const _ _ _) },
   let B := λ x, C * (x - a),
@@ -380,8 +376,7 @@ theorem norm_image_sub_le_of_norm_deriv_le_segment' {f' : ℝ → E} {C : ℝ}
 begin
   refine norm_image_sub_le_of_norm_deriv_right_le_segment
     (λ x hx, (hf x hx).continuous_within_at) (λ x hx, _) bound,
-  apply (hf x $ Ico_subset_Icc_self hx).nhds_within,
-  exact Icc_mem_nhds_within_Ioi hx
+  exact (hf x $ Ico_subset_Icc_self hx).nhds_within (Icc_mem_nhds_within_Ici hx)
 end
 
 /-- A function on `[a, b]` with the norm of the derivative within `[a, b]`

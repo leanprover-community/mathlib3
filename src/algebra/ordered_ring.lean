@@ -1057,8 +1057,6 @@ begin
   simp [ha, hb, mul_def, option.bind_comm a b, mul_comm]
 end
 
-#print add_eq_zero_iff
-
 private lemma distrib' (a b c : with_top α) : (a + b) * c = a * c + b * c :=
 begin
   cases c,

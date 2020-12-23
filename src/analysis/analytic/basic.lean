@@ -69,7 +69,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
 open_locale topological_space classical big_operators nnreal
-open filter
+open set filter asymptotics
 
 /-! ### The radius of a formal multilinear series -/
 
@@ -85,24 +85,74 @@ lemma le_radius_of_bound (p : formal_multilinear_series 𝕜 E F) (C : ℝ≥0) 
   (h : ∀ (n : ℕ), nnnorm (p n) * r^n ≤ C) : (r : ennreal) ≤ p.radius :=
 le_supr_of_le r (le_supr (λ _, (r : ennreal)) $ Exists.intro C h)
 
+/--If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
+lemma le_radius_of_is_O (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
+  (h : is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : (r : ennreal) ≤ p.radius :=
+begin
+  rcases is_O_one_nat_at_top_iff.1 h with ⟨C, hC⟩,
+  refine p.le_radius_of_bound (nnreal.of_real C)
+    (λ n, nnreal.coe_le_coe.1 (le_trans _ $ nnreal.le_coe_of_real _)),
+  simpa using hC n
+end
+
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially. -/
 lemma geometric_bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
-  (h : (r : ennreal) < p.radius) : ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * r^n ≤ C * a^n :=
+  (h : (r : ennreal) < p.radius) : ∃  C (a < 1), ∀ n, nnnorm (p n) * r^n ≤ C * a^n :=
 begin
   simp only [radius, lt_supr_iff] at h,
   rcases h with ⟨t, ⟨C, hC⟩, rt⟩,
   rw ennreal.coe_lt_coe at rt,
-  refine ⟨r / t, C, nnreal.div_lt_one_of_lt rt, λ n, _⟩,
+  refine ⟨C, r / t, nnreal.div_lt_one_of_lt rt, λ n, _⟩,
   have tpos : t ≠ 0 := ne_of_gt (lt_of_le_of_lt (zero_le _) rt),
   calc nnnorm (p n) * r ^ n = (nnnorm (p n) * t ^ n) * (r / t) ^ n :
     by field_simp [tpos, mul_right_comm]
   ... ≤ C * (r / t) ^ n : mul_le_mul_of_nonneg_right (hC n) (zero_le _)
 end
 
+lemma lt_radius_tfae (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0} :
+  tfae [↑r < p.radius,
+    ∃ C (a < 1), ∀ n, nnnorm (p n) * r ^ n ≤ C * a ^ n,
+    ∃ C (a < 1), ∀ n, ∥p n∥ * r ^ n ≤ C * a ^ n,
+    ∃ C (a ∈ Ico (0 : ℝ) 1), ∀ n, ∥p n∥ * r ^ n ≤ C * a ^ n,
+    ∃ a ∈ Ico (0 : ℝ) 1, is_O (λ n, ∥p n∥ * r ^ n) (λ n, a ^ n) at_top,
+    ∃ a ∈ Ico (0 : ℝ) 1, is_o (λ n, ∥p n∥ * r ^ n) (λ n, a ^ n) at_top] :=
+begin
+  tfae_have : 1 → 2, from p.geometric_bound_of_lt_radius,
+  tfae_have : 2 → 3,
+  { rintros ⟨C, a, ha, haC⟩,
+    exact ⟨C, a, ha, by exact_mod_cast haC⟩ },
+  tfae_have : 3 → 4,
+  { rintros ⟨C, a, ha, haC⟩,
+    have : ∀ n, 0 ≤ C * a ^ n := λ n, (mul_nonneg (norm_nonneg _) (pow_nonneg r.2 _)).trans (haC n),
+    rcases sign_cases_of_C_mul_pow_nonneg this with rfl | ⟨C₀, a₀⟩,
+    { refine ⟨0, 0, left_mem_Ico.2 zero_lt_one, λ n, _⟩,
+      simpa using haC n },
+    { exact ⟨C, a, ⟨a₀, ha⟩, haC⟩ } },
+  tfae_have : 4 → 5,
+  { rintros ⟨C, a, ha, haC⟩,
+    refine ⟨a, ha, is_O_of_le' _ $ λ n, _⟩,
+    show ℝ, from abs C,
+    have A : ∥a∥ = a := abs_of_nonneg ha.1,
+    simpa [A]
+      using (haC n).trans (mul_le_mul_of_nonneg_right (le_abs_self C) (pow_nonneg ha.1 _)) },
+  tfae_have : 5 → 6,
+  { rintros ⟨a, ha, hO⟩,
+    rcases exists_between ha.2 with ⟨b, ab, b1⟩,
+    exact ⟨b, ⟨ha.1.trans ab.le, b1⟩, hO.trans_is_o (is_o_pow_pow_of_lt_left ha.1 ab)⟩ },
+  tfae_have : 6 → 1,
+  { rintros ⟨a, ha, hao⟩,
+    rcases ha.1.eq_or_lt with rfl | ha₀,
+    { have := hao.congr' (eventually_eq.refl _ _) zero_pow_eventually_eq,
+      sorry },
+    lift a to ℝ≥0 using ha.1,
+    calc (r : ennreal) < ↑(r / a) : ennreal.coe_lt_coe.2 _
+    ... ≤ p.radius : p.le_radius_of_is_O _ }
+end
+
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` is bounded. -/
-lemma bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : nnreal}
-  (h : (r : ennreal) < p.radius) : ∃ (C : nnreal), ∀ n, nnnorm (p n) * r^n ≤ C :=
-let ⟨a, C, ha, h⟩ := p.geometric_bound_of_lt_radius h
+lemma bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
+  (h : (r : ennreal) < p.radius) : ∃ (C : ℝ≥0), ∀ n, nnnorm (p n) * r^n ≤ C :=
+let ⟨C, a, ha, h⟩ := p.geometric_bound_of_lt_radius h
 in ⟨C, λ n, (h n).trans $ mul_le_of_le_one_right (zero_le _) (pow_le_one _ (zero_le _) ha.le)⟩
 
 /-- The radius of the sum of two formal series is at least the minimum of their two radii. -/
@@ -111,7 +161,7 @@ lemma min_radius_le_radius_add (p q : formal_multilinear_series 𝕜 E F) :
 begin
   refine le_of_forall_ge_of_dense (λ r hr, _),
   lift r to ℝ≥0 using (ne_top_of_lt hr),
-  obtain ⟨Cp, hCp⟩ : ∃ (C : nnreal), ∀ n, nnnorm (p n) * r^n ≤ C :=
+  obtain ⟨Cp, hCp⟩ : ∃ (C : ℝ≥0), ∀ n, nnnorm (p n) * r^n ≤ C :=
     p.bound_of_lt_radius (lt_of_lt_of_le hr (min_le_left _ _)),
   obtain ⟨Cq, hCq⟩ : ∃ (C : ℝ≥0), ∀ n, nnnorm (q n) * r^n ≤ C :=
     q.bound_of_lt_radius (lt_of_lt_of_le hr (min_le_right _ _)),

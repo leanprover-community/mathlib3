@@ -1309,6 +1309,8 @@ variable {a : α}
 
 @[simp] lemma insert_nth_nil (a : α) : insert_nth 0 a [] = [a] := rfl
 
+@[simp] lemma insert_nth_succ_nil (n : ℕ) (a : α) : insert_nth (n + 1) a [] = [] := rfl
+
 lemma length_insert_nth : ∀n as, n ≤ length as → length (insert_nth n a as) = length as + 1
 | 0     as       h := rfl
 | (n+1) []       h := (nat.not_succ_le_zero _ h).elim

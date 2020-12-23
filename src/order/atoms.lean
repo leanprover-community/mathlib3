@@ -8,7 +8,6 @@ import order.complete_boolean_algebra
 import order.order_dual
 import data.set.intervals.basic
 import order.rel_iso
-import data.fintype.basic
 
 /-!
 # Atoms, Coatoms, and Simple Lattices

@@ -206,9 +206,17 @@ lemma enum_eq_zip_range (l : list α) :
   l.enum = (range l.length).zip l :=
 zip_of_prod (enum_map_fst _) (enum_map_snd _)
 
+@[simp] lemma unzip_enum_eq_prod (l : list α) :
+  l.enum.unzip = (range l.length, l) :=
+by simp only [enum_eq_zip_range, unzip_zip, length_range]
+
 lemma enum_from_eq_zip_range' (l : list α) {n : ℕ} :
   l.enum_from n = (range' n l.length).zip l :=
 zip_of_prod (enum_from_map_fst _ _) (enum_from_map_snd _ _)
+
+@[simp] lemma unzip_enum_from_eq_prod (l : list α) {n : ℕ} :
+  (l.enum_from n).unzip = (range' n l.length, l) :=
+by simp only [enum_from_eq_zip_range', unzip_zip, length_range']
 
 @[simp] lemma nth_le_range {n} (i) (H : i < (range n).length) :
   nth_le (range n) i H = i :=

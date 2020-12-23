@@ -104,6 +104,9 @@ by rwa [sdiff_eq, inf_eq_left, is_compl_compl.le_right_iff, disjoint_iff]
 theorem sdiff_le_sdiff (h₁ : w ≤ y) (h₂ : z ≤ x) : w \ x ≤ y \ z :=
 by rw [sdiff_eq, sdiff_eq]; from inf_le_inf h₁ (compl_le_compl h₂)
 
+@[simp] lemma sdiff_idem_right : x \ y \ y = x \ y :=
+by rw [sdiff_eq, sdiff_eq, inf_assoc, inf_idem]
+
 end boolean_algebra
 
 instance boolean_algebra_Prop : boolean_algebra Prop :=

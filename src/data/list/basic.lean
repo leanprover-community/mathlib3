@@ -3397,7 +3397,7 @@ end
 
 lemma is_prefix.reduce_option {l l' : list (option α)} (h : l <+: l') :
   l.reduce_option <+: l'.reduce_option :=
-filter_map_prefix id h
+h.filter_map id
 
 @[simp] theorem mem_inits : ∀ (s t : list α), s ∈ inits t ↔ s <+: t
 | s []     := suffices s = nil ↔ s <+: nil, by simpa only [inits, mem_singleton],

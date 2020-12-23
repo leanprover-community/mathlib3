@@ -2848,7 +2848,7 @@ end
 
 lemma reduce_option_singleton (x : option α) :
   [x].reduce_option = x.to_list :=
-by { cases x; refl }
+by cases x; refl
 
 lemma reduce_option_concat (l : list (option α)) (x : option α) :
   (l.concat x).reduce_option = l.reduce_option ++ x.to_list :=

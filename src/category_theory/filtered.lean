@@ -127,6 +127,7 @@ noncomputable def coeq_hom {j j' : C} (f f' : j ⟶ j') : j' ⟶ coeq f f' :=
 `coeq_condition f f'`, for morphisms `f f' : j ⟶ j'`, is the proof that
 `f ≫ coeq_hom f f' = f' ≫ coeq_hom f f'`.
 -/
+@[simp, reassoc]
 lemma coeq_condition {j j' : C} (f f' : j ⟶ j') : f ≫ coeq_hom f f' = f' ≫ coeq_hom f f' :=
 (is_filtered_or_empty.cocone_maps f f').some_spec.some_spec
 
@@ -238,20 +239,17 @@ variables {D : Type u₁} [category.{v₁} D]
 /--
   Being filtered is preserved by equivalence of categories.
 -/
-lemma is_filtered_of_equiv (h : C ≌ D)
-[hC : is_filtered C] : is_filtered D :=
-{
-  cocone_objs :=
-  λ X Y, let ⟨Z,f,g,_⟩ :=
-  is_filtered_or_empty.cocone_objs (h.inverse.obj X) (h.inverse.obj Y) in
-  ⟨h.functor.obj Z, h.counit_inv.app X ≫ h.functor.map f, h.counit_inv.app Y ≫ h.functor.map g, ⟨⟩⟩,
+lemma of_equiv (h : C ≌ D) : is_filtered D :=
+{ cocone_objs := λ X Y,
+    ⟨h.functor.obj (max (h.inverse.obj X) (h.inverse.obj Y)),
+     h.counit_inv.app X ≫ h.functor.map (left_to_max _ _),
+     h.counit_inv.app Y ≫ h.functor.map (right_to_max _ _),
+     ⟨⟩⟩,
   cocone_maps := λ X Y f g,
-  let ⟨Z,z,zz⟩ :=
-  is_filtered_or_empty.cocone_maps (h.inverse.map f) (h.inverse.map g) in
-  ⟨h.functor.obj Z, h.counit_inv.app Y ≫ h.functor.map z,
-    by { erw [h.counit_inv.naturality_assoc, functor.comp_map, ← h.functor.map_comp, zz], simp } ⟩,
-  nonempty := nonempty.map h.functor.obj hC.nonempty
-}
+    ⟨h.functor.obj (coeq (h.inverse.map f) (h.inverse.map g)),
+     h.counit_inv.app Y ≫ h.functor.map (coeq_hom _ _),
+     by { erw [h.counit_inv.naturality_assoc, functor.comp_map, ← h.functor.map_comp], simp } ⟩,
+  nonempty := is_filtered.nonempty.map h.functor.obj }
 
 end is_filtered
 

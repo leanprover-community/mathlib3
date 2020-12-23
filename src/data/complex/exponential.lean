@@ -184,11 +184,7 @@ end
 lemma sum_range_diag_flip {α : Type*} [add_comm_monoid α] (n : ℕ) (f : ℕ → ℕ → α) :
   ∑ m in range n, ∑ k in range (m + 1), f k (m - k) =
   ∑ m in range n, ∑ k in range (n - m), f m k :=
-have h₁ : ∑ a in (range n).sigma (range ∘ nat.succ), f (a.2) (a.1 - a.2) =
-    ∑ m in range n, ∑ k in range (m + 1), f k (m - k) := sum_sigma,
-have h₂ : ∑ a in (range n).sigma (λ m, range (n - m)), f (a.1) (a.2) =
-    ∑ m in range n, ∑ k in range (n - m), f m k := sum_sigma,
-h₁ ▸ h₂ ▸ sum_bij
+by rw [sum_sigma', sum_sigma']; exact sum_bij
 (λ a _, ⟨a.2, a.1 - a.2⟩)
 (λ a ha, have h₁ : a.1 < n := mem_range.1 (mem_sigma.1 ha).1,
   have h₂ : a.2 < nat.succ a.1 := mem_range.1 (mem_sigma.1 ha).2,

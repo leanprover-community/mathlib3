@@ -595,9 +595,6 @@ begin
     rw [sqrt_eq_zero_of_nonpos (le_of_lt h), rpow_def_of_neg h, this, cos_pi_div_two, mul_zero] }
 end
 
-lemma continuous_sqrt : continuous sqrt :=
-by rw sqrt_eq_rpow; exact continuous_rpow_of_pos (λa, by norm_num) continuous_id continuous_const
-
 end sqrt
 
 end real

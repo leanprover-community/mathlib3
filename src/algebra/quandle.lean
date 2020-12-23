@@ -521,7 +521,9 @@ The universal enveloping group for the rack R.
 -/
 def envel_group (R : Type*) [rack R] := quotient (pre_envel_group.setoid R)
 
-instance (R : Type*) [rack R] : group (envel_group R) :=
+-- Define the `group` instances in two steps so `inv` can be inferred correctly.
+-- TODO: is there a non-invasive way of defining the instance directly?
+instance (R : Type*) [rack R] : div_inv_monoid (envel_group R) :=
 { mul := λ a b, quotient.lift_on₂ a b
                   (λ a b, ⟦pre_envel_group.mul a b⟧)
                   (λ a b a' b' ⟨ha⟩ ⟨hb⟩,
@@ -536,9 +538,12 @@ instance (R : Type*) [rack R] : group (envel_group R) :=
   one_mul := λ a,
     quotient.induction_on a (λ a, quotient.sound (pre_envel_group_rel'.one_mul a).rel),
   mul_one := λ a,
-    quotient.induction_on a (λ a, quotient.sound (pre_envel_group_rel'.mul_one a).rel),
-  mul_left_inv := λ a,
-    quotient.induction_on a (λ a, quotient.sound (pre_envel_group_rel'.mul_left_inv a).rel) }
+    quotient.induction_on a (λ a, quotient.sound (pre_envel_group_rel'.mul_one a).rel),}
+
+instance (R : Type*) [rack R] : group (envel_group R) :=
+{ mul_left_inv := λ a,
+    quotient.induction_on a (λ a, quotient.sound (pre_envel_group_rel'.mul_left_inv a).rel),
+  .. envel_group.div_inv_monoid _ }
 
 instance envel_group.inhabited (R : Type*) [rack R] : inhabited (envel_group R) := ⟨1⟩
 

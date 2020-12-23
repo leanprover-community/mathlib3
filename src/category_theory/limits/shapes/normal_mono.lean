@@ -11,9 +11,9 @@ import category_theory.limits.shapes.kernels
 
 A normal monomorphism is a morphism that is the kernel of some other morphism.
 
-We give the construction `normal_mono → regular_mono` (`category_theory.normal_mono.regular_mono`) 
-as well as the dual construction for normal epimorphisms. We show equivalences reflect normal 
-monomorphisms (`category_theory.equivalence_reflects_normal_mono`), and that the pullback of a 
+We give the construction `normal_mono → regular_mono` (`category_theory.normal_mono.regular_mono`)
+as well as the dual construction for normal epimorphisms. We show equivalences reflect normal
+monomorphisms (`category_theory.equivalence_reflects_normal_mono`), and that the pullback of a
 normal monomorphism is normal (`category_theory.normal_of_is_pullback_snd_of_normal`).
 -/
 
@@ -46,13 +46,13 @@ def equivalence_reflects_normal_mono {D : Type u₂} [category.{v₁} D] [has_ze
   (F : C ⥤ D) [is_equivalence F] {X Y : C} {f : X ⟶ Y} (hf : normal_mono (F.map f)) :
   normal_mono f :=
 { Z := F.obj_preimage hf.Z,
-  g := full.preimage (hf.g ≫ (F.fun_obj_preimage_iso hf.Z).inv),
+  g := full.preimage (hf.g ≫ (F.obj_obj_preimage_iso hf.Z).inv),
   w := faithful.map_injective F $ by simp [reassoc_of hf.w],
   is_limit := reflects_limit.reflects $
     is_limit.of_cone_equiv (cones.postcompose_equivalence (comp_nat_iso F)) $
       is_limit.of_iso_limit
         (by exact is_limit.of_iso_limit
-          (is_kernel.of_comp_iso _ _ (F.fun_obj_preimage_iso hf.Z) (by simp) hf.is_limit)
+          (is_kernel.of_comp_iso _ _ (F.obj_obj_preimage_iso hf.Z) (by simp) hf.is_limit)
           (of_ι_congr (category.comp_id _).symm)) (iso_of_ι _).symm }
 
 end
@@ -125,13 +125,13 @@ def equivalence_reflects_normal_epi {D : Type u₂} [category.{v₁} D] [has_zer
   (F : C ⥤ D) [is_equivalence F] {X Y : C} {f : X ⟶ Y} (hf : normal_epi (F.map f)) :
   normal_epi f :=
 { W := F.obj_preimage hf.W,
-  g := full.preimage ((F.fun_obj_preimage_iso hf.W).hom ≫ hf.g),
+  g := full.preimage ((F.obj_obj_preimage_iso hf.W).hom ≫ hf.g),
   w := faithful.map_injective F $ by simp [hf.w],
   is_colimit := reflects_colimit.reflects $
     is_colimit.of_cocone_equiv (cocones.precompose_equivalence (comp_nat_iso F).symm) $
       is_colimit.of_iso_colimit
         (by exact is_colimit.of_iso_colimit
-          (is_cokernel.of_iso_comp _ _ (F.fun_obj_preimage_iso hf.W).symm (by simp) hf.is_colimit)
+          (is_cokernel.of_iso_comp _ _ (F.obj_obj_preimage_iso hf.W).symm (by simp) hf.is_colimit)
             (of_π_congr (category.id_comp _).symm))
         (iso_of_π _).symm }
 

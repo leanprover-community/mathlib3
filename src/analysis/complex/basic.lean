@@ -120,6 +120,8 @@ calc 1 = ∥continuous_linear_map.im I∥ : by simp
 /-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
 def continuous_linear_map.of_real : ℝ →L[ℝ] ℂ := linear_map.of_real.to_continuous_linear_map
 
+lemma continuous_of_real : continuous (coe : ℝ → ℂ) := continuous_linear_map.of_real.continuous
+
 @[simp] lemma continuous_linear_map.of_real_coe :
   (coe (continuous_linear_map.of_real) : ℝ →ₗ[ℝ] ℂ) = linear_map.of_real := rfl
 

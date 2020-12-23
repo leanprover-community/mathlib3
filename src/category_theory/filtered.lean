@@ -40,7 +40,7 @@ of finsets of morphisms.
 * Forgetful functors for algebraic categories typically preserve filtered colimits.
 -/
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₁ u u₁-- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
@@ -232,6 +232,26 @@ An arbitrary choice of cocone over `F : J ⥤ C`, for `fin_category J` and `is_f
 -/
 noncomputable def cocone (F : J ⥤ C) : cocone F :=
 (cocone_nonempty F).some
+
+variables {D : Type u₁} [category.{v₁} D]
+
+/--
+  Being filtered is preserved by equivalence of categories.
+-/
+lemma is_filtered_of_equiv (h : C ≌ D)
+[hC : is_filtered C] : is_filtered D :=
+{
+  cocone_objs :=
+  λ X Y, let ⟨Z,f,g,_⟩ :=
+  is_filtered_or_empty.cocone_objs (h.inverse.obj X) (h.inverse.obj Y) in
+  ⟨h.functor.obj Z,(h.counit_inv.app X) ≫ (h.functor.map f),(h.counit_inv.app Y)
+  ≫ (h.functor.map g),trivial⟩,
+  cocone_maps := λ X Y f g,
+  let ⟨Z,z,zz⟩ :=
+  is_filtered_or_empty.cocone_maps (h.inverse.map f) (h.inverse.map g) in
+  ⟨h.functor.obj Z,(h.counit_inv.app Y) ≫ (h.functor.map z),sorry⟩,
+  nonempty := nonempty.map h.functor.obj hC.nonempty
+}
 
 end is_filtered
 

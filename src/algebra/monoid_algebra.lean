@@ -336,7 +336,7 @@ ring_hom.coe_add_monoid_hom_injective $ add_hom_ext $ λ a b,
 and `single 1 b`, then they are equal.
 
 See note [partially-applied ext lemmas]. -/
-@[ext, priority 1500] lemma ring_hom_ext' {R} [semiring k] [monoid G] [semiring R]
+@[ext] lemma ring_hom_ext' {R} [semiring k] [monoid G] [semiring R]
   {f g : monoid_algebra k G →+* R} (h₁ : f.comp single_one_ring_hom = g.comp single_one_ring_hom)
   (h_of : (f : monoid_algebra k G →* R).comp (of k G) =
     (g : monoid_algebra k G →* R).comp (of k G)) :
@@ -395,7 +395,7 @@ lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] A⦄
 alg_hom.to_linear_map_inj $ finsupp.lhom_ext' $ λ a, linear_map.ext_ring (h a)
 
 /-- See note [partially-applied ext lemmas]. -/
-@[ext, priority 1500] lemma alg_hom_ext' ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] A⦄
+@[ext] lemma alg_hom_ext' ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] A⦄
   (h : (φ₁ : monoid_algebra k G →* A).comp (of k G) =
     (φ₂ : monoid_algebra k G →* A).comp (of k G)) : φ₁ = φ₂ :=
 alg_hom_ext $ monoid_hom.congr_fun h
@@ -812,7 +812,7 @@ lemma ring_hom_ext {R} [semiring k] [add_monoid G] [semiring R]
 and `single 0 b`, then they are equal.
 
 See note [partially-applied ext lemmas]. -/
-@[ext, priority 1500] lemma ring_hom_ext' {R} [semiring k] [add_monoid G] [semiring R]
+@[ext] lemma ring_hom_ext' {R} [semiring k] [add_monoid G] [semiring R]
   {f g : add_monoid_algebra k G →+* R}
   (h₁ : f.comp single_zero_ring_hom = g.comp single_zero_ring_hom)
   (h_of : (f : add_monoid_algebra k G →* R).comp (of k G) =
@@ -861,7 +861,7 @@ lemma alg_hom_ext ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A⦄
 @monoid_algebra.alg_hom_ext k (multiplicative G) _ _ _ _ _ _ _ h
 
 /-- See note [partially-applied ext lemmas]. -/
-@[ext, priority 1500] lemma alg_hom_ext' ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A⦄
+@[ext] lemma alg_hom_ext' ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A⦄
   (h : (φ₁ : add_monoid_algebra k G →* A).comp (of k G) =
     (φ₂ : add_monoid_algebra k G →* A).comp (of k G)) : φ₁ = φ₂ :=
 alg_hom_ext $ monoid_hom.congr_fun h

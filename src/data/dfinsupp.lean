@@ -463,7 +463,7 @@ end
 they are equal.
 
 See note [partially-applied ext lemmas]. -/
-@[ext, priority 1500] lemma add_hom_ext' {γ : Type w} [add_monoid γ] ⦃f g : (Π₀ i, β i) →+ γ⦄
+@[ext] lemma add_hom_ext' {γ : Type w} [add_monoid γ] ⦃f g : (Π₀ i, β i) →+ γ⦄
   (H : ∀ x, f.comp (single_add_hom β x) = g.comp (single_add_hom β x)) :
   f = g :=
 add_hom_ext $ λ x, add_monoid_hom.congr_fun (H x)

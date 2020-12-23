@@ -67,7 +67,7 @@ protected theorem unique (g : free_abelian_group α →+ β)
     hg x) _
 
 /-- See note [partially-applied ext lemmas]. -/
-@[ext, priority 1500]
+@[ext]
 protected theorem ext (g h : free_abelian_group α →+ β)
   (H : ∀ x, g (of x) = h (of x)) :
   g = h :=

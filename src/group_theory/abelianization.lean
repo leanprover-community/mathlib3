@@ -84,7 +84,7 @@ end lift
 variables {A : Type v} [monoid A]
 
 /-- See note [partially-applied ext lemmas]. -/
-@[ext, priority 1500]
+@[ext]
 theorem hom_ext (φ ψ : abelianization G →* A)
   (h : φ.comp of = ψ.comp of) : φ = ψ :=
 begin

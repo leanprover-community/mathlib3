@@ -60,7 +60,7 @@ linear_map.to_add_monoid_hom_injective $ add_hom_ext h
 
 See note [partially-applied ext lemmas].
 After apply this lemma, if `M = R` then it suffices to verify `φ (single a 1) = ψ (single a 1)`. -/
-@[ext, priority 1500] lemma lhom_ext' ⦃φ ψ : (Π₀ i, M i) →ₗ[R] N⦄
+@[ext] lemma lhom_ext' ⦃φ ψ : (Π₀ i, M i) →ₗ[R] N⦄
   (h : ∀ i, φ.comp (lsingle i) = ψ.comp (lsingle i)) :
   φ = ψ :=
 lhom_ext $ λ i, linear_map.congr_fun (h i)

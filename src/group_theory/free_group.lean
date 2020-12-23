@@ -427,7 +427,7 @@ by rintros ⟨L⟩; exact list.rec_on L (is_group_hom.map_one g)
 /-- Two homomorphisms out of a free group are equal if they are equal on generators.
 
 See note [partially-applied ext lemmas]. -/
-@[ext, priority 1500]
+@[ext]
 lemma ext_hom {G : Type*} [group G] (f g : free_group α →* G) (h : ∀ a, f (of a) = g (of a)) :
   f = g :=
 begin

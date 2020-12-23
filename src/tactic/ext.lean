@@ -352,8 +352,8 @@ If the domain of `of` is `ℕ` or `ℤ` and `of` is a `ring_hom`, such a lemma c
 
 For bundled morphisms, there is a `ext` lemma that always applies of the form
 `(∀ x, ⇑f x = ⇑g x) → f = g`. When adding type-specific `ext` lemmas like the one above, we want
-these to be tried first. While in practice this would happen automatically since the type-specific
-lemmas are inevitably defined later, for clarity we give them a higher priority (usually 1500).
+these to be tried first. This happens automatically since the type-specific lemmas are inevitably
+defined later.
 -/
 library_note "partially-applied ext lemmas"
 

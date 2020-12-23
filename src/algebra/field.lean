@@ -262,13 +262,13 @@ section noncomputable_defs
 variables {R : Type*} [nontrivial R]
 
 /-- Constructs a `division_ring` structure on a `ring` consisting only of units and 0. -/
-noncomputable def division_ring_of_is_unit_or_eq_zero [ring R]
+noncomputable def division_ring_of_is_unit_or_eq_zero [hR : ring R]
   (h : ∀ (a : R), is_unit a ∨ a = 0) : division_ring R :=
-{ .. (group_with_zero_of_is_unit_or_eq_zero h), .. (infer_instance : ring R) }
+{ .. (group_with_zero_of_is_unit_or_eq_zero h), .. hR }
 
 /-- Constructs a `field` structure on a `comm_ring` consisting only of units and 0. -/
-noncomputable def field_of_is_unit_or_eq_zero [comm_ring R]
+noncomputable def field_of_is_unit_or_eq_zero [hR : comm_ring R]
   (h : ∀ (a : R), is_unit a ∨ a = 0) : field R :=
-{ .. (group_with_zero_of_is_unit_or_eq_zero h), .. (infer_instance : comm_ring R) }
+{ .. (group_with_zero_of_is_unit_or_eq_zero h), .. hR }
 
 end noncomputable_defs

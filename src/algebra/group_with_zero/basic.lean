@@ -918,7 +918,7 @@ variables {M : Type*} [nontrivial M]
 
 /-- Constructs a `group_with_zero` structure on a `monoid_with_zero`
   consisting only of units and 0. -/
-noncomputable def group_with_zero_of_is_unit_or_eq_zero [monoid_with_zero M]
+noncomputable def group_with_zero_of_is_unit_or_eq_zero [hM : monoid_with_zero M]
   (h : ∀ (a : M), is_unit a ∨ a = 0) : group_with_zero M :=
 { inv := λ a, if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹,
   inv_zero := dif_pos rfl,
@@ -926,12 +926,12 @@ noncomputable def group_with_zero_of_is_unit_or_eq_zero [monoid_with_zero M]
     change a * (if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹) = 1,
     rw [dif_neg h0, units.mul_inv_eq_iff_eq_mul, one_mul, is_unit.unit_spec] },
   exists_pair_ne := nontrivial.exists_pair_ne,
-.. (infer_instance : monoid_with_zero M) }
+.. hM }
 
 /-- Constructs a `comm_group_with_zero` structure on a `comm_monoid_with_zero`
   consisting only of units and 0. -/
-noncomputable def comm_group_with_zero_of_is_unit_or_eq_zero [comm_monoid_with_zero M]
+noncomputable def comm_group_with_zero_of_is_unit_or_eq_zero [hM : comm_monoid_with_zero M]
   (h : ∀ (a : M), is_unit a ∨ a = 0) : comm_group_with_zero M :=
-{ .. (group_with_zero_of_is_unit_or_eq_zero h), .. (infer_instance : comm_monoid_with_zero M) }
+{ .. (group_with_zero_of_is_unit_or_eq_zero h), .. hM }
 
 end noncomputable_defs

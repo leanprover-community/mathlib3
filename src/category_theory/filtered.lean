@@ -244,12 +244,12 @@ lemma is_filtered_of_equiv (h : C ≌ D)
   cocone_objs :=
   λ X Y, let ⟨Z,f,g,_⟩ :=
   is_filtered_or_empty.cocone_objs (h.inverse.obj X) (h.inverse.obj Y) in
-  ⟨h.functor.obj Z,(h.counit_inv.app X) ≫ (h.functor.map f),(h.counit_inv.app Y)
-  ≫ (h.functor.map g),trivial⟩,
+  ⟨h.functor.obj Z, h.counit_inv.app X ≫ h.functor.map f, h.counit_inv.app Y ≫ h.functor.map g, ⟨⟩⟩,
   cocone_maps := λ X Y f g,
   let ⟨Z,z,zz⟩ :=
   is_filtered_or_empty.cocone_maps (h.inverse.map f) (h.inverse.map g) in
-  ⟨h.functor.obj Z,(h.counit_inv.app Y) ≫ (h.functor.map z),sorry⟩,
+  ⟨h.functor.obj Z, h.counit_inv.app Y ≫ h.functor.map z,
+    by { erw [h.counit_inv.naturality_assoc, functor.comp_map, ← h.functor.map_comp, zz], simp } ⟩,
   nonempty := nonempty.map h.functor.obj hC.nonempty
 }
 

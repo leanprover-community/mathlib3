@@ -221,21 +221,41 @@ def alt_colimit (F : C ⥤ Type v₁) :
 --   end,
 --   counit_iso := nat_iso.of_components (λ p, eq_to_iso (by tidy)) (by tidy) }
 
-lemma is_filtered_or_empty_of_equiv (h : C ≌ D)
-[hC : is_filtered_or_empty C] : is_filtered_or_empty D :=
-let ⟨F,G,unit_iso,counit_iso,iso_comp⟩ := h in
-let ⟨e,e1,he,he1⟩ := counit_iso in
-⟨λ X Y, let ⟨Z,f,g,_⟩ := is_filtered_or_empty.cocone_objs (G.obj X) (G.obj Y) in
-⟨F.obj Z,(e1.app X) ≫ (F.map f),(e1.app Y) ≫ (F.map g),trivial⟩,
-λ X Y f g, let ⟨Z,h,hh⟩ := is_filtered_or_empty.cocone_maps (G.map f) (G.map g) in
-⟨F.obj Z,(e1.app Y) ≫ (F.map h),sorry /-tactic for naturality?-/⟩⟩
--- was gonna use this to prove the representables flat with comma category
--- cuz more intuitive, but realised that's just doing extra steps
+lemma is_filtered_of_equiv (h : C ≌ D)
+[hC : is_filtered C] : is_filtered D :=
+{
+  cocone_objs :=
+  λ X Y, let ⟨Z,f,g,_⟩ :=
+  is_filtered_or_empty.cocone_objs (h.inverse.obj X) (h.inverse.obj Y) in
+  ⟨h.functor.obj Z,(h.counit_inv.app X) ≫ (h.functor.map f),(h.counit_inv.app Y)
+  ≫ (h.functor.map g),trivial⟩,
+  cocone_maps := λ X Y f g,
+  let ⟨Z,z,zz⟩ :=
+  is_filtered_or_empty.cocone_maps (h.inverse.map f) (h.inverse.map g) in
+  ⟨h.functor.obj Z,(h.counit_inv.app Y) ≫ (h.functor.map z),sorry⟩,
+  nonempty := nonempty.map h.functor.obj hC.nonempty
+}
+
+lemma is_filtered_of (T : C) (hT : is_terminal T) :
+is_filtered C :=
+{ cocone_objs := λ X Y, ⟨T,hT.from X,hT.from Y,trivial⟩,
+  cocone_maps := λ X Y f g, ⟨T,hT.from Y,hT.hom_ext _ _⟩,
+  nonempty := ⟨T⟩ }
+
+def elements.initial2 (A : C) : (coyoneda.obj (op A)).elements :=
+⟨A, 𝟙 _⟩
+
+def is_initial2 (A : C) : is_initial (elements.initial2 A) :=
+{ desc := λ s, ⟨s.X.2, category.id_comp _⟩,
+  uniq' := λ s m w,
+  begin
+    simp_rw ← m.2,
+    dsimp [elements.initial2],
+    simp,
+  end }
 
 lemma representable_is_set_flat (U : C) :
-is_filtered_or_empty (coyoneda.obj(op U)).elementsᵒᵖ :=
-⟨λ V W, let ⟨V0,v⟩ := unop V in let ⟨W0,w⟩ := unop W in
-  ⟨(op ⟨U,𝟙 U⟩),sorry /-why it doesnt let me make subtype-/,sorry⟩,
-sorry⟩
+is_filtered (coyoneda.obj(op U)).elementsᵒᵖ :=
+is_filtered_of (op (elements.initial2 U)) (terminal_op_of_initial (is_initial2 U))
 
 end category_theory

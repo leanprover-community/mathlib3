@@ -477,7 +477,6 @@ begin
     intros q q_monic q_aeval,
     have commutes : (lift (algebra_map K (adjoin_root f)) (root f) q_aeval).comp (mk q) = mk f,
     { ext,
-      -- refine add_monoid_algebra.ring_hom_ext' (ring_hom.ext (λ (x : K), _[x])) (monoid_hom.ext_mnat _),
       { simp only [ring_hom.comp_apply, mk_C, lift_of], refl },
       { simp only [ring_hom.comp_apply, mk_X, lift_root] } },
     rw [degree_eq_nat_degree f'_monic.ne_zero, degree_eq_nat_degree q_monic.ne_zero,

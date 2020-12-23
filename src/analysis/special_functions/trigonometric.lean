@@ -1722,9 +1722,10 @@ by rw [tan_eq_sin_div_cos, sin_arctan, cos_arctan, div_div_div_div_eq, mul_one,
     div_self (mt sqrt_eq_zero'.1 (not_le_of_gt (add_pos_of_pos_of_nonneg zero_lt_one (pow_two_nonneg x)))),
     mul_one]
 
-lemma arcsin_to_arctan {x : ℝ} (h: x ∈ Ioo (-(1:ℝ)) 1) : arcsin x = arctan (x / sqrt (1 - x^2)) :=
+lemma arcsin_eq_arctan {x : ℝ} (h: x ∈ Ioo (-(1:ℝ)) 1) : arcsin x = arctan (x / sqrt (1 - x^2)) :=
 by rw [arctan, div_pow, sqr_sqrt, one_add_div, div_div_eq_div_mul, ← sqrt_mul, mul_div_cancel',
-      sub_add_cancel, sqrt_one, div_one]; nlinarith [h.1, h.2]
+      sub_add_cancel, sqrt_one, div_one];
+  nlinarith [h.1, h.2]
 
 lemma arctan_lt_pi_div_two (x : ℝ) : arctan x < π / 2 :=
 lt_of_le_of_ne (arcsin_le_pi_div_two _)
@@ -2136,7 +2137,7 @@ lemma cos_int_mul_two_pi_add_pi (n : ℤ) : cos (n * (2 * π) + π) = -1 :=
 by simp [cos_add, sin_add, cos_int_mul_two_pi]
 
 lemma exp_pi_mul_I : exp (π * I) = -1 :=
-by { rw exp_mul_I, simp, }
+by rw exp_mul_I; simp
 
 theorem cos_eq_zero_iff {θ : ℂ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
 begin
@@ -2241,21 +2242,23 @@ lemma tan_add {x y : ℂ}
      ∨ ((∃ k : ℤ, x = (2 * k + 1) * π / 2) ∧ ∃ l : ℤ, y = (2 * l + 1) * π / 2)) :
   tan (x + y) = (tan x + tan y) / (1 - tan x * tan y) :=
 begin
-  cases h,
+  rcases h with ⟨h1, h2⟩ | ⟨⟨k, rfl⟩, ⟨l, rfl⟩⟩,
   { rw [tan, sin_add, cos_add,
         ← div_div_div_cancel_right (sin x * cos y + cos x * sin y)
-            (mul_ne_zero (cos_ne_zero_iff.mpr h.1) (cos_ne_zero_iff.mpr h.2)),
+            (mul_ne_zero (cos_ne_zero_iff.mpr h1) (cos_ne_zero_iff.mpr h2)),
         add_div, sub_div],
     simp only [←div_mul_div, ←tan, mul_one, one_mul,
-              div_self (cos_ne_zero_iff.mpr h.right), div_self (cos_ne_zero_iff.mpr h.left)] },
-  { cases h.1 with k h1, cases h.2 with l h2,
-    have hx := tan_int_mul_pi_div_two (2*k+1),
-    have hy := tan_int_mul_pi_div_two (2*l+1),
-    have hxy := tan_int_mul_pi_div_two (2*k+1+(2*l+1)),
-    simp only [int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one, ← h1, ← h2] at hx hy hxy,
-    rw [hx, hy, add_zero, zero_div, h1, h2, mul_div_assoc, mul_div_assoc,
-        ← add_mul (2*(k:ℂ)+1) (2*(l:ℂ)+1) ((π:ℂ)/2), ← mul_div_assoc, hxy] },
+              div_self (cos_ne_zero_iff.mpr h1), div_self (cos_ne_zero_iff.mpr h2)] },
+  { obtain ⟨t, hx, hy, hxy⟩ := ⟨tan_int_mul_pi_div_two, t (2*k+1), t (2*l+1), t (2*k+1+(2*l+1))⟩,
+    simp only [int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one, hx, hy] at hx hy hxy,
+    rw [hx, hy, add_zero, zero_div,
+        mul_div_assoc, mul_div_assoc, ← add_mul (2*(k:ℂ)+1) (2*l+1) (π/2), ← mul_div_assoc, hxy] },
 end
+
+lemma tan_add' {x y : ℂ}
+  (h : ((∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, y ≠ (2 * l + 1) * π / 2)) :
+  tan (x + y) = (tan x + tan y) / (1 - tan x * tan y) :=
+tan_add (or.inl h)
 
 lemma tan_two_mul {z : ℂ} : tan (2 * z) = 2 * tan z / (1 - tan z ^ 2) :=
 begin
@@ -2365,7 +2368,12 @@ lemma tan_add {x y : ℝ}
   tan (x + y) = (tan x + tan y) / (1 - tan x * tan y) :=
 by simpa only [← complex.of_real_inj, complex.of_real_sub, complex.of_real_add, complex.of_real_div,
               complex.of_real_mul, complex.of_real_tan]
-    using @complex.tan_add (x:ℂ) (y:ℂ) (by { convert h; norm_cast })
+    using @complex.tan_add (x:ℂ) (y:ℂ) (by convert h; norm_cast)
+
+lemma tan_add' {x y : ℝ}
+  (h : ((∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, y ≠ (2 * l + 1) * π / 2)) :
+  tan (x + y) = (tan x + tan y) / (1 - tan x * tan y) :=
+tan_add (or.inl h)
 
 lemma tan_two_mul {x:ℝ} : tan (2 * x) = 2 * tan x / (1 - tan x ^ 2) :=
 by simpa only [← complex.of_real_inj, complex.of_real_sub, complex.of_real_div, complex.of_real_pow,
@@ -2482,7 +2490,7 @@ lemma tendsto_cos_neg_pi_div_two : tendsto cos (𝓝[Ioi (-(π/2))] (-(π/2))) (
 begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
   { convert continuous_cos.continuous_within_at, simp },
-  { filter_upwards [Ioo_mem_nhds_within_Ioi (set.left_mem_Ico.mpr (norm_num.lt_neg_pos
+  { filter_upwards [Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr (norm_num.lt_neg_pos
       _ _ pi_div_two_pos pi_div_two_pos))] λ x hx, cos_pos_of_mem_Ioo hx.1 hx.2 },
 end
 

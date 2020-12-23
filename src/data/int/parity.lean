@@ -43,9 +43,9 @@ by rw [not_odd_iff, even_iff]
 by rw [not_even_iff, odd_iff]
 
 lemma even_or_odd (n : ℤ) : even n ∨ odd n :=
-by simpa only [not_not] using (iff_iff_not_or_and_or_not.mp even_iff_not_odd).2
+or.imp_right (odd_iff_not_even.2) (em (even n))
 
-lemma even_or_odd' (n : ℤ) : ∃ k : ℤ, n = 2 * k ∨ n = 2 * k + 1 :=
+lemma even_or_odd' (n : ℤ) : ∃ k, n = 2 * k ∨ n = 2 * k + 1 :=
 by simpa only [exists_or_distrib, ← odd, ← even] using even_or_odd n
 
 lemma even_xor_odd (n : ℤ) : xor (even n) (odd n) :=
@@ -55,11 +55,10 @@ begin
   { exact or.inr ⟨h, (odd_iff_not_even.mp h)⟩ },
 end
 
-lemma even_xor_odd' (n : ℤ) : ∃ k : ℤ, xor (n = 2 * k) (n = 2 * k + 1) :=
+lemma even_xor_odd' (n : ℤ) : ∃ k, xor (n = 2 * k) (n = 2 * k + 1) :=
 begin
-  cases (even_or_odd' n) with k h,
+  rcases (even_or_odd n) with ⟨k, h⟩ | ⟨k, h⟩;
   use k,
-  cases h,
   { simpa only [xor, h, true_and, eq_self_iff_true, not_true, or_false, and_false]
       using (succ_ne_self (2*k)).symm },
   { simp only [xor, h, add_right_eq_self, false_or, eq_self_iff_true, not_true, not_false_iff,

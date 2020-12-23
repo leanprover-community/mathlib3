@@ -25,11 +25,37 @@ theorem odd_iff {n : ℕ} : odd n ↔ n % 2 = 1 :=
 lemma not_even_iff {n : ℕ} : ¬ even n ↔ n % 2 = 1 :=
 by rw [even_iff, mod_two_ne_zero]
 
+lemma not_odd_iff {n : ℕ} : ¬ odd n ↔ n % 2 = 0 :=
+by rw [odd_iff, mod_two_ne_one]
+
+lemma even_iff_not_odd {n : ℕ} : even n ↔ ¬ odd n :=
+by rw [not_odd_iff, even_iff]
+
 @[simp] lemma odd_iff_not_even {n : ℕ} : odd n ↔ ¬ even n :=
 by rw [not_even_iff, odd_iff]
 
 lemma even_or_odd (n : ℕ) : even n ∨ odd n :=
 or.imp_right (odd_iff_not_even.2) (em (even n))
+
+lemma even_or_odd' (n : ℕ) : ∃ k, n = 2 * k ∨ n = 2 * k + 1 :=
+by simpa only [exists_or_distrib, ← odd, ← even] using even_or_odd n
+
+lemma even_xor_odd (n : ℕ) : xor (even n) (odd n) :=
+begin
+  cases (even_or_odd n) with h,
+  { exact or.inl ⟨h, (even_iff_not_odd.mp h)⟩ },
+  { exact or.inr ⟨h, (odd_iff_not_even.mp h)⟩ },
+end
+
+lemma even_xor_odd' (n : ℕ) : ∃ k, xor (n = 2 * k) (n = 2 * k + 1) :=
+begin
+  rcases (even_or_odd n) with ⟨k, h⟩ | ⟨k, h⟩;
+  use k,
+  { simpa only [xor, h, true_and, eq_self_iff_true, not_true, or_false, and_false]
+      using (succ_ne_self (2*k)).symm },
+  { simp only [xor, h, add_eq_left_iff, false_or, eq_self_iff_true, not_true, not_false_iff,
+              one_ne_zero, and_self] },
+end
 
 lemma odd_gt_zero {n : ℕ} (h : odd n) : 0 < n :=
 by { obtain ⟨k, hk⟩ := h, rw hk, exact succ_pos', }

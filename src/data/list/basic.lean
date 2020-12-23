@@ -3176,6 +3176,51 @@ instance decidable_suffix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidab
     decidable_of_iff' (l₁ = drop (len2-len1) l₂) suffix_iff_eq_drop
   else is_false $ λ h, hl $ length_le_of_sublist $ sublist_of_suffix h
 
+lemma prefix_take_le_iff {L : list (list (option α))} {m n : ℕ} (hm : m < L.length) :
+  (take m L) <+: (take n L) ↔ m ≤ n :=
+begin
+  simp only [prefix_iff_eq_take, length_take],
+  induction m with m IH generalizing L n,
+  { simp only [min_eq_left, eq_self_iff_true, nat.zero_le, take] },
+  { cases n,
+    { simp only [nat.nat_zero_eq_zero, le_zero_iff_eq, take, take_nil],
+      split,
+      { cases L,
+        { exact absurd hm (not_lt_of_le m.succ.zero_le) },
+        { simp only [forall_prop_of_false, not_false_iff, take] } },
+      { intro h,
+        contradiction } },
+    { cases L with l ls,
+      { exact absurd hm (not_lt_of_le m.succ.zero_le) },
+      { simp only [length] at hm,
+        specialize @IH ls n (nat.lt_of_succ_lt_succ hm),
+        simp only [le_of_lt (nat.lt_of_succ_lt_succ hm), min_eq_left] at IH,
+        simp only [le_of_lt hm, IH, true_and, min_eq_left, eq_self_iff_true, length, take],
+        exact ⟨nat.succ_le_succ, nat.le_of_succ_le_succ⟩ } } },
+end
+
+lemma cons_prefix_iff {l l' : list α} {x y : α} :
+  x :: l <+: y :: l' ↔ x = y ∧ l <+: l' :=
+begin
+  split,
+  { rintro ⟨L, hL⟩,
+    simp only [cons_append] at hL,
+    exact ⟨hL.left, ⟨L, hL.right⟩⟩ },
+  { rintro ⟨rfl, h⟩,
+    rwa [prefix_cons_inj] },
+end
+
+lemma map_prefix {l l' : list α} (f : α → β) (h : l <+: l') :
+  l.map f <+: l'.map f :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp only [nil_prefix, map_nil] },
+  { cases l' with hd' tl',
+    { simpa only using eq_nil_of_prefix_nil h },
+    { rw cons_prefix_iff at h,
+      simp only [h, prefix_cons_inj, hl, map] } },
+end
+
 @[simp] theorem mem_inits : ∀ (s t : list α), s ∈ inits t ↔ s <+: t
 | s []     := suffices s = nil ↔ s <+: nil, by simpa only [inits, mem_singleton],
   ⟨λh, h.symm ▸ prefix_refl [], eq_nil_of_prefix_nil⟩

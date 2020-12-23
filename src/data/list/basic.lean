@@ -1830,8 +1830,7 @@ begin
 end
 
 lemma nth_succ_scanl {i : ℕ} :
-  (scanl f b l).nth (i + 1) = ((scanl f b l).nth i).bind (λ x, (l.nth i).map (λ y, f x y))
-  :=
+  (scanl f b l).nth (i + 1) = ((scanl f b l).nth i).bind (λ x, (l.nth i).map (λ y, f x y)) :=
 begin
   induction l with hd tl hl generalizing b i,
   { symmetry,

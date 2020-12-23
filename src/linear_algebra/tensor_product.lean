@@ -255,17 +255,23 @@ variables (R R' M N)
 /--
 A typeclass for `has_scalar` structures which can be moved across a tensor product.
 
-This typeclass is generated automatically from a `has_scalar_tower` instance, but exists so that
+This typeclass is generated automatically from a `is_scalar_tower` instance, but exists so that
 we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
 `R` does not support negation.
+
+Note that `semimodule R' (M ⊗[R] N)` is available even without this typeclass on `R'`; it's only
+needed if `tensor_product.smul_tmul`, `tensor_product.smul_tmul'`, or `tensor_product.tmul_smul` is
+used.
 -/
 class compatible_smul :=
 (smul_tmul : ∀ (r : R') (m : M) (n : N), (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n))
 
 end
 
+/-- Note that this provides the default `compatible_smul R R M N` instance through
+`mul_action.is_scalar_tower.left`. -/
 @[priority 100]
-instance compatible_smul.has_scalar_tower
+instance compatible_smul.is_scalar_tower
   [has_scalar R' R] [is_scalar_tower R' R M] [is_scalar_tower R' R N] :
   compatible_smul R R' M N :=
 ⟨λ r m n, begin
@@ -275,7 +281,7 @@ instance compatible_smul.has_scalar_tower
   exact (quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _),
 end⟩
 
-
+/-- `smul` can be moved from one side of the product to the other .-/
 lemma smul_tmul [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
   (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
 compatible_smul.smul_tmul _ _ _
@@ -320,35 +326,39 @@ protected theorem smul_add (r : R') (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
 add_monoid_hom.map_add _ _ _
 
-theorem smul_tmul' (r : R') (m : M) (n : N) :
-  r • (m ⊗ₜ n : M ⊗[R] N) = (r • m) ⊗ₜ n :=
-rfl
-
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
 @[priority 900]
 instance semimodule' : semimodule R' (M ⊗[R] N) :=
+have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ n : M ⊗[R] N) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 { smul := (•),
   smul_add := λ r x y, tensor_product.smul_add r x y,
   mul_smul := λ r s x, tensor_product.induction_on x
     (by simp_rw tensor_product.smul_zero)
-    (λ m n, by simp_rw [smul_tmul', mul_smul])
+    (λ m n, by simp_rw [this, mul_smul])
     (λ x y ihx ihy, by { simp_rw tensor_product.smul_add, rw [ihx, ihy] }),
   one_smul := λ x, tensor_product.induction_on x
     (by rw tensor_product.smul_zero)
-    (λ m n, by rw [smul_tmul', one_smul])
+    (λ m n, by rw [this, one_smul])
     (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy]),
   add_smul := λ r s x, tensor_product.induction_on x
     (by simp_rw [tensor_product.smul_zero, add_zero])
-    (λ m n, by simp_rw [smul_tmul', add_smul, add_tmul])
+    (λ m n, by simp_rw [this, add_smul, add_tmul])
     (λ x y ihx ihy, by { simp_rw tensor_product.smul_add, rw [ihx, ihy, add_add_add_comm] }),
   smul_zero := λ r, tensor_product.smul_zero r,
   zero_smul := λ x, tensor_product.induction_on x
     (by rw tensor_product.smul_zero)
-    (λ m n, by rw [smul_tmul', zero_smul, zero_tmul])
+    (λ m n, by rw [this, zero_smul, zero_tmul])
     (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy, add_zero]) }
 
 instance : semimodule R (M ⊗[R] N) := tensor_product.semimodule'
+
+-- note that we don't actually need `compatible_smul` here, but we include it for symmetry
+-- with `tmul_smul` to avoid exposing our asymmetric definition.
+@[nolint unused_arguments]
+theorem smul_tmul' [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
+  r • (m ⊗ₜ n : M ⊗[R] N) = (r • m) ⊗ₜ n :=
+rfl
 
 @[simp] lemma tmul_smul [compatible_smul R R' M N] (r : R') (x : M) (y : N) :
   x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=

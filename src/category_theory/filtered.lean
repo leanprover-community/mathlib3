@@ -5,6 +5,7 @@ Authors: Reid Barton
 -/
 import category_theory.fin_category
 import category_theory.limits.cones
+import category_theory.adjunction.basic
 import order.bounded_lattice
 
 /-!
@@ -236,20 +237,18 @@ noncomputable def cocone (F : J ⥤ C) : cocone F :=
 
 variables {D : Type u₁} [category.{v₁} D]
 
-/--
-  Being filtered is preserved by equivalence of categories.
--/
-lemma of_equiv (h : C ≌ D) : is_filtered D :=
+/-- If `C` is filtered, and we have a right adjoint functor `C ⥤ D`, then `D` is filtered. -/
+lemma of_right_adjoint {L : D ⥤ C} {R : C ⥤ D} (h : L ⊣ R) : is_filtered D :=
 { cocone_objs := λ X Y,
-    ⟨h.functor.obj (max (h.inverse.obj X) (h.inverse.obj Y)),
-     h.counit_inv.app X ≫ h.functor.map (left_to_max _ _),
-     h.counit_inv.app Y ≫ h.functor.map (right_to_max _ _),
-     ⟨⟩⟩,
+    ⟨_, h.hom_equiv _ _ (left_to_max _ _), h.hom_equiv _ _ (right_to_max _ _), ⟨⟩⟩,
   cocone_maps := λ X Y f g,
-    ⟨h.functor.obj (coeq (h.inverse.map f) (h.inverse.map g)),
-     h.counit_inv.app Y ≫ h.functor.map (coeq_hom _ _),
-     by { erw [h.counit_inv.naturality_assoc, functor.comp_map, ← h.functor.map_comp], simp } ⟩,
-  nonempty := is_filtered.nonempty.map h.functor.obj }
+    ⟨_, h.hom_equiv _ _ (coeq_hom _ _),
+     by rw [← h.hom_equiv_naturality_left, ← h.hom_equiv_naturality_left, coeq_condition]⟩,
+  nonempty := is_filtered.nonempty.map R.obj }
+
+/-- Being filtered is preserved by equivalence of categories. -/
+lemma of_equivalence (h : C ≌ D) : is_filtered D :=
+of_right_adjoint h.symm.to_adjunction
 
 end is_filtered
 

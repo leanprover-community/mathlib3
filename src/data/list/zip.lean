@@ -15,13 +15,21 @@ namespace list
 
 /- zip & unzip -/
 
+@[simp] theorem zip_with_cons_cons (f : α → β → γ) (a : α) (b : β) (l₁ : list α) (l₂ : list β) :
+  zip_with f (a :: l₁) (b :: l₂) = f a b :: zip_with f l₁ l₂ := rfl
+
 @[simp] theorem zip_cons_cons (a : α) (b : β) (l₁ : list α) (l₂ : list β) :
   zip (a :: l₁) (b :: l₂) = (a, b) :: zip l₁ l₂ := rfl
+
+@[simp] theorem zip_with_nil_left (f : α → β → γ) (l) : zip_with f [] l = [] := rfl
+
+@[simp] theorem zip_with_nil_right (f : α → β → γ) (l)  : zip_with f l [] = [] :=
+by cases l; refl
 
 @[simp] theorem zip_nil_left (l : list α) : zip ([] : list β) l = [] := rfl
 
 @[simp] theorem zip_nil_right (l : list α) : zip l ([] : list β) = [] :=
-by cases l; refl
+zip_with_nil_right _ l
 
 @[simp] theorem zip_swap : ∀ (l₁ : list α) (l₂ : list β),
   (zip l₁ l₂).map prod.swap = zip l₂ l₁
@@ -30,11 +38,33 @@ by cases l; refl
 | (a::l₁) (b::l₂) := by simp only [zip_cons_cons, map_cons, zip_swap l₁ l₂, prod.swap_prod_mk];
     split; refl
 
-@[simp] theorem length_zip : ∀ (l₁ : list α) (l₂ : list β),
-   length (zip l₁ l₂) = min (length l₁) (length l₂)
+@[simp] theorem length_zip_with (f : α → β → γ) : ∀  (l₁ : list α) (l₂ : list β),
+   length (zip_with f l₁ l₂) = min (length l₁) (length l₂)
 | []      l₂      := rfl
-| l₁      []      := by simp only [length, zip_nil_right, min_zero]
-| (a::l₁) (b::l₂) := by by simp only [length, zip_cons_cons, length_zip l₁ l₂, min_add_add_right]
+| l₁      []      := by simp only [length, min_zero, zip_with_nil_right]
+| (a::l₁) (b::l₂) := by by simp [length, zip_cons_cons, length_zip_with l₁ l₂, min_add_add_right]
+
+@[simp] theorem length_zip : ∀ (l₁ : list α) (l₂ : list β),
+   length (zip l₁ l₂) = min (length l₁) (length l₂) :=
+length_zip_with _
+
+lemma lt_length_left_of_zip_with {f : α → β → γ} {i : ℕ} {l : list α} {l' : list β}
+  (h : i < (zip_with f l l').length) :
+  i < l.length :=
+by { rw [length_zip_with, lt_min_iff] at h, exact h.left }
+
+lemma lt_length_right_of_zip_with {f : α → β → γ} {i : ℕ} {l : list α} {l' : list β}
+  (h : i < (zip_with f l l').length) :
+  i < l'.length :=
+by { rw [length_zip_with, lt_min_iff] at h, exact h.right }
+
+lemma lt_length_left_of_zip {i : ℕ} {l : list α} {l' : list β} (h : i < (zip l l').length) :
+  i < l.length :=
+lt_length_left_of_zip_with h
+
+lemma lt_length_right_of_zip {i : ℕ} {l : list α} {l' : list β} (h : i < (zip l l').length) :
+  i < l'.length :=
+lt_length_right_of_zip_with h
 
 theorem zip_append : ∀ {l₁ l₂ r₁ r₂ : list α} (h : length l₁ = length l₂),
    zip (l₁ ++ r₁) (l₂ ++ r₂) = zip l₁ l₂ ++ zip r₁ r₂
@@ -166,6 +196,22 @@ begin
   { rintro ⟨x, y, h₀, h₁, h₂⟩, cc },
   { rintro ⟨h₀, h₁⟩, exact ⟨_,_,h₀,h₁,rfl⟩ }
 end
+
+@[simp] lemma nth_le_zip_with {f : α → β → γ} {l : list α} {l' : list β} {i : ℕ}
+  {h : i < (zip_with f l l').length} :
+  (zip_with f l l').nth_le i h =
+    f (l.nth_le i (lt_length_left_of_zip_with h)) (l'.nth_le i (lt_length_right_of_zip_with h)) :=
+begin
+  rw [←option.some_inj, ←nth_le_nth, nth_zip_with_eq_some],
+  refine ⟨l.nth_le i (lt_length_left_of_zip_with h), l'.nth_le i (lt_length_right_of_zip_with h),
+          nth_le_nth _, _⟩,
+  simp only [←nth_le_nth, eq_self_iff_true, and_self]
+end
+
+@[simp] lemma nth_le_zip {l : list α} {l' : list β} {i : ℕ} {h : i < (zip l l').length} :
+  (zip l l').nth_le i h =
+    (l.nth_le i (lt_length_left_of_zip h), l'.nth_le i (lt_length_right_of_zip h)) :=
+nth_le_zip_with
 
 lemma mem_zip_inits_tails {l : list α} {init tail : list α} :
   (init, tail) ∈ zip l.inits l.tails ↔ init ++ tail = l :=

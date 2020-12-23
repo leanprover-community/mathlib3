@@ -145,6 +145,7 @@ begin
   refl,
 end
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext]
 theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : clifford_algebra Q →ₐ[R] A} :
   f.to_linear_map.comp (ι Q) = g.to_linear_map.comp (ι Q) → f = g :=

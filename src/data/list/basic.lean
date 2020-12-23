@@ -178,6 +178,8 @@ lemma bind_map {g : α → list β} {f : β → γ} :
 theorem length_eq_zero {l : list α} : length l = 0 ↔ l = [] :=
 ⟨eq_nil_of_length_eq_zero, λ h, h.symm ▸ rfl⟩
 
+@[simp] lemma length_singleton (a : α) : length [a] = 1 := rfl
+
 theorem length_pos_of_mem {a : α} : ∀ {l : list α}, a ∈ l → 0 < length l
 | (b::l) _ := zero_lt_succ _
 
@@ -1834,10 +1836,69 @@ end
 
 /- scanl -/
 
-lemma length_scanl {β : Type*} {f : α → β → α} :
+section scanl
+
+variables {f : β → α → β} {b : β} {a : α} {l : list α}
+
+lemma length_scanl :
   ∀ a l, length (scanl f a l) = l.length + 1
 | a [] := rfl
 | a (x :: l) := by erw [length_cons, length_cons, length_scanl]
+
+@[simp] lemma scanl_nil (b : β) : scanl f b nil = [b] := rfl
+
+@[simp] lemma scanl_cons :
+  scanl f b (a :: l) = [b] ++ scanl f (f b a) l :=
+by simp only [scanl, eq_self_iff_true, singleton_append, and_self]
+
+@[simp] lemma nth_zero_scanl : (scanl f b l).nth 0 = some b :=
+begin
+  cases l,
+  { simp only [nth, scanl_nil] },
+  { simp only [nth, scanl_cons, singleton_append] }
+end
+
+@[simp] lemma nth_le_zero_scanl {h : 0 < (scanl f b l).length} :
+  (scanl f b l).nth_le 0 h = b :=
+begin
+  cases l,
+  { simp only [nth_le, scanl_nil] },
+  { simp only [nth_le, scanl_cons, singleton_append] }
+end
+
+lemma nth_succ_scanl {i : ℕ} :
+  (scanl f b l).nth (i + 1) = ((scanl f b l).nth i).bind (λ x, (l.nth i).map (λ y, f x y)) :=
+begin
+  induction l with hd tl hl generalizing b i,
+  { symmetry,
+    simp only [option.bind_eq_none', nth, forall_2_true_iff, not_false_iff, option.map_none',
+               scanl_nil, option.not_mem_none, forall_true_iff] },
+  { simp only [nth, scanl_cons, singleton_append],
+    cases i,
+    { simp only [option.map_some', nth_zero_scanl, nth, option.some_bind'] },
+    { simp only [hl, nth] } }
+end
+
+lemma nth_le_succ_scanl {i : ℕ} {h : i + 1 < (scanl f b l).length} :
+  (scanl f b l).nth_le (i + 1) h =
+  f ((scanl f b l).nth_le i (nat.lt_of_succ_lt h))
+    (l.nth_le i (nat.lt_of_succ_lt_succ (lt_of_lt_of_le h (le_of_eq (length_scanl b l))))) :=
+begin
+  induction i with i hi generalizing b l,
+  { cases l,
+    { simp only [length, zero_add, scanl_nil] at h,
+      exact absurd h (lt_irrefl 1) },
+    { simp only [scanl_cons, singleton_append, nth_le_zero_scanl, nth_le] } },
+  { cases l,
+    { simp only [length, add_lt_iff_neg_right, scanl_nil] at h,
+      exact absurd h (not_lt_of_lt nat.succ_pos') },
+    { simp_rw scanl_cons,
+      rw nth_le_append_right _,
+      { simpa only [hi, length, succ_add_sub_one] },
+      { simp only [length, nat.zero_le, le_add_iff_nonneg_left] } } }
+end
+
+end scanl
 
 /- scanr -/
 

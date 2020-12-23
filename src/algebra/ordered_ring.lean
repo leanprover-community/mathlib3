@@ -555,12 +555,6 @@ have b * -c < a * -c,     from mul_lt_mul_of_pos_right h this,
 have -(b * c) < -(a * c), by rwa [← neg_mul_eq_mul_neg, ← neg_mul_eq_mul_neg] at this,
 lt_of_neg_lt_neg this
 
-lemma mul_lt_mul_of_neg {a b c d : α} (h₁ : c < a) (h₂ : d ≤ b) (h₃ : b < 0) (h₄ : c ≤ 0) :
-  a * b < c * d :=
-calc a * b = (-a) * (-b) : (neg_mul_neg a b).symm
-... < (-c) * (-d) : mul_lt_mul (neg_lt_neg h₁) (neg_le_neg h₂) (neg_pos.2 h₃) (neg_nonneg.2 h₄)
-... = c * d : neg_mul_neg c d
-
 lemma mul_pos_of_neg_of_neg {a b : α} (ha : a < 0) (hb : b < 0) : 0 < a * b :=
 have 0 * b < a * b, from mul_lt_mul_of_neg_right ha hb,
 by rwa zero_mul at this

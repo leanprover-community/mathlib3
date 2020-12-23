@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author:  Aaron Anderson.
 -/
 
-import order.bounded_lattice
+import order.complete_boolean_algebra
 import order.order_dual
+import data.set.intervals.basic
+import order.rel_iso
+import data.fintype.basic
 
 /-!
 # Atoms, Coatoms, and Simple Lattices
@@ -88,6 +91,23 @@ lemma is_coatom_bot : is_coatom (⊥ : α) := is_coatom_iff_is_atom_dual.2 is_at
 
 end is_simple_lattice
 
+namespace is_simple_lattice
+
+variables [bounded_lattice α] [is_simple_lattice α]
+
+protected def bounded_distrib_lattice : bounded_distrib_lattice α :=
+{ le_sup_inf := λ x y z, sorry,
+.. (infer_instance : bounded_lattice α) }
+
+
+protected def boolean_algebra : boolean_algebra α :=
+{
+
+.. (infer_instance : bounded_lattice α) }
+
+
+end is_simple_lattice
+
 theorem is_simple_lattice_iff_is_atom_top [bounded_lattice α] :
   is_simple_lattice α ↔ is_atom (⊤ : α) :=
 ⟨λ h, @is_atom_top _ _ h, λ h, {
@@ -97,3 +117,75 @@ theorem is_simple_lattice_iff_is_atom_top [bounded_lattice α] :
 theorem is_simple_lattice_iff_is_coatom_bot [bounded_lattice α] :
   is_simple_lattice α ↔ is_coatom (⊥ : α) :=
 iff.trans is_simple_lattice_iff_is_simple_lattice_order_dual is_simple_lattice_iff_is_atom_top
+
+namespace set
+
+namespace Iic
+
+protected def lattice [lattice α] {a : α} : lattice (Iic a) :=
+subtype.lattice (λ x y hx hy, mem_Iic.2 (sup_le hx hy)) (λ x y hx hy, le_trans inf_le_left hx)
+
+attribute [instance] set.Iic.lattice
+
+protected def order_top [partial_order α] {a : α} : order_top (Iic a) :=
+{ top := ⟨a, le_refl a⟩,
+  le_top := λ x, x.prop,
+.. (subtype.partial_order _) }
+
+attribute [instance] set.Iic.order_top
+
+protected def bounded_lattice [bounded_lattice α] {a : α} :
+  bounded_lattice (Iic a) :=
+{ bot := ⟨⊥, mem_Iic.2 bot_le⟩,
+  bot_le := λ ⟨_, _⟩, subtype.mk_le_mk.2 bot_le,
+  .. (set.Iic.order_top),
+  .. (set.Iic.lattice) }
+
+attribute [instance] set.Iic.bounded_lattice
+
+end Iic
+
+theorem is_simple_lattice_Iic_iff_is_atom [bounded_lattice α] {a : α} :
+  is_simple_lattice (Iic a) ↔ is_atom a :=
+is_simple_lattice_iff_is_atom_top.trans $ and_congr (not_congr subtype.mk_eq_mk)
+  ⟨λ h b ab, subtype.mk_eq_mk.1 (h ⟨b, le_of_lt ab⟩ ab),
+    λ h ⟨b, hab⟩ hbotb, subtype.mk_eq_mk.2 (h b (subtype.mk_lt_mk.1 hbotb))⟩
+
+namespace Ici
+
+protected def lattice [lattice α] {a : α} : lattice (Ici a) :=
+subtype.lattice (λ x y hx hy, le_trans hx le_sup_left) (λ x y hx hy, le_inf hx hy)
+
+attribute [instance] set.Ici.lattice
+
+protected def order_bot [partial_order α] {a : α} : order_bot (Ici a) :=
+{ bot := ⟨a, le_refl a⟩,
+  bot_le := λ x, x.prop,
+.. (subtype.partial_order _) }
+
+attribute [instance] set.Ici.order_bot
+
+protected def bounded_lattice [bounded_lattice α] {a : α} :
+  bounded_lattice (Ici a) :=
+{ top := ⟨⊤, mem_Ici.2 le_top⟩,
+  le_top := λ ⟨_, _⟩, subtype.mk_le_mk.2 le_top,
+  .. (set.Ici.order_bot),
+  .. (set.Ici.lattice) }
+
+attribute [instance] set.Ici.bounded_lattice
+
+end Ici
+
+theorem is_simple_lattice_Ici_iff_is_coatom [bounded_lattice α] {a : α} :
+  is_simple_lattice (Ici a) ↔ is_coatom a :=
+is_simple_lattice_iff_is_coatom_bot.trans $ and_congr (not_congr subtype.mk_eq_mk)
+  ⟨λ h b ab, subtype.mk_eq_mk.1 (h ⟨b, le_of_lt ab⟩ ab),
+    λ h ⟨b, hab⟩ hbotb, subtype.mk_eq_mk.2 (h b (subtype.mk_lt_mk.1 hbotb))⟩
+
+end set
+
+section rel_embedding
+
+
+
+end rel_embedding

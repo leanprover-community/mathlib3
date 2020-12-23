@@ -138,6 +138,7 @@ class compatible_smul (R S : Type*) [semiring S] [has_scalar R S] [has_scalar R 
 (map_smul : ∀ (f : M →ₗ[S] M₂) (c : R) (x : M), f (c • x) = c • f x)
 variables {M M₂}
 
+@[priority 100]
 instance compatible_smul.is_scalar_tower
   {R S : Type*} [semiring S] [has_scalar R S]
   [has_scalar R M] [semimodule S M] [is_scalar_tower R S M]

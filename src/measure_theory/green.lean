@@ -7,6 +7,7 @@ noncomputable theory
 
 open fin set function
 open_locale big_operators
+open_locale topological_space
 
 section misc_lemmas
 
@@ -818,12 +819,180 @@ end
 variables {P Q} (hP : differentiable ℝ P) (hQ : differentiable ℝ Q)
 variables (hdiv : integrable ((divergence P Q) ∘ (foo' ℝ ℝ).symm) volume)
 
+#check continuous.continuous_at
 
 -- add lemma that the average over smaller and smaller boxes is the value at a point
 lemma averaging (P : (fin 2 → ℝ) → ℝ) (pcont: continuous P) (b : fin 2 → ℝ) :
   asymptotics.is_o (box_integral' P - (λ p, (box_volume' p) * P b)) box_volume'
     (nhds_within (b, b) ((Iic b).prod (Ici b))) :=
 begin
+  rw asymptotics.is_o,
+  intros c cpos,
+  rw asymptotics.is_O_with,
+  --rw continuous at pcont,
+  --have := pcont.continuous_at ,
+  have := @continuous.continuous_at _ _ _ _ _ b pcont,
+  rw continuous_at at this,
+  rw  filter.tendsto_iff_eventually at this,
+
+
+
+
+  let NeighPb : set ℝ := Ioo (P(b)-c) (P(b) + c),
+  have sIsNeigh : NeighPb ∈ 𝓝 (P b),
+  {
+    refine Ioo_mem_nhds _ _,
+    linarith,
+    linarith,
+  },
+
+  have thiss := this sIsNeigh,
+
+  have foofoo := eventually_nhds_within_of_eventually_nhds thiss,
+
+  have foo''' :
+  ∀ᶠ (x : (fin 2 → ℝ) × (fin 2 → ℝ)) in 𝓝[(Iic b).prod (Ici b)] (b, b),
+  ∀ (y ∈ rectangle x.1 x.2), P (foo''.symm y) ∈ NeighPb,
+  {
+    -- HEATHER
+    sorry,
+  },
+
+  refine foo'''.mp _,
+
+
+  refine eventually_nhds_with_of_forall _ ,
+
+  rintros ⟨ x1, x2⟩  ⟨ H1,  H2⟩  H3,
+
+  simp at H3,
+
+  simp,
+
+  rw box_volume',
+
+  rw box_integral',
+
+  rw uncurry,
+
+  simp,
+
+  refine abs_le.2 _,
+
+  split,
+
+  {
+--    rw mul_comm,
+--    rw ← box_integral_const,
+    rw box_integral,
+
+    calc
+    -(c * ∥box_volume x1 x2∥)
+    =    -(c * box_volume x1 x2) : _
+    ... = box_volume x1 x2 * P b
+    - box_volume x1 x2 * c
+     - box_volume x1 x2 * P b : _
+    ... = box_volume x1 x2 * P b
+    - ∫ (x : ℝ × ℝ) in rectangle x1 x2, c ∂volume.prod volume
+     - box_volume x1 x2 * P b : _
+    ... = ∫ (x : ℝ × ℝ) in rectangle x1 x2, P b ∂volume.prod volume
+    - ∫ (x : ℝ × ℝ) in rectangle x1 x2, c ∂volume.prod volume
+     - box_volume x1 x2 * P b : _
+    ... = ∫ (x : ℝ × ℝ) in rectangle x1 x2, (P b - c) ∂volume.prod volume - box_volume x1 x2 * P b : _
+    ... ≤ ∫ (x : ℝ × ℝ) in rectangle x1 x2,
+    P (((foo' ℝ ℝ).symm) x) ∂volume.prod volume - box_volume x1 x2 * P b : _,
+
+    {
+      simp,
+      left,
+      rw box_volume,
+      have x11LeB : x1 1 ≤ b 1 ,
+      {
+        refine H1 _,
+      },
+      have x12LeB : x1 0 ≤ b 0 ,
+      {
+        refine H1 _,
+      },
+      have x21geB : b 1 ≤ x2 1 ,
+      {
+        refine H2 _,
+      },
+      have x22geB : b 0 ≤ x2 0 ,
+      {
+        refine H2 _,
+      },
+      have x2igex1i : ∀ (i : fin 2), x1 i ≤ x2 i,
+      {
+        intros,
+        cases split_fin2 i,
+        rw h,
+        linarith,
+        rw h,
+        linarith,
+      },
+      have prodGe0 : 0 ≤
+      ∏ (i : fin 2), (x2 i - x1 i),
+      {
+
+        sorry,
+      },
+      refine  abs_of_nonneg prodGe0 ,
+    },
+    {
+      sorry,
+    },
+    {
+      sorry,
+    },
+    {
+      sorry,
+    },
+    {
+      sorry,
+    },
+    {
+      sorry,
+    },
+  },
+
+  {
+
+    sorry,
+  },
+
+
+  --ALEX
+
+  sorry,
+
+/-
+  have foofoo' := eventually_nhds_within_of_eventually_nhds thiss,
+
+
+  have foo'' := filter.eventually.prod_mk foofoo foofoo',
+
+  rw ← nhds_within_prod_eq at foo'',
+
+  refine foo''.mp _,
+
+  rw mul_comm,
+
+  rw ← box_integral_const,
+
+  rw box_integral,
+  rw box_integral,
+
+  rw ←  measure_theory.integral_sub,
+
+
+
+
+
+
+-/
+
+
   sorry,
 end
 

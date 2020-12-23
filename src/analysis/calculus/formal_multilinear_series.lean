@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
 -/
 import analysis.normed_space.multilinear
-import ring_theory.power_series
+import ring_theory.power_series.basic
 
 /-!
 # Formal multilinear series

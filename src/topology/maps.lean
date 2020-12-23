@@ -239,7 +239,7 @@ lemma to_quotient_map {f : α → β}
     split,
     { exact continuous_def.1 cont s },
     { assume h,
-      rw ← @image_preimage_eq _ _ _ s surj,
+      rw ← surj.image_preimage s,
       exact open_map _ h }
   end⟩
 

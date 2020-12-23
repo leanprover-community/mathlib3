@@ -432,9 +432,6 @@ begin
     rw [of_real_eq_zero.2 hq, of_real_eq_zero.2 hpq, mul_zero] }
 end
 
-@[field_simps] theorem mul_ne_zero' {a b : ℝ≥0} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
-mul_ne_zero h₁ h₂
-
 end mul
 
 section sub

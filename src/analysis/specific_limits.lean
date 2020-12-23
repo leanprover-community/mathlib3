@@ -3,19 +3,19 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import analysis.normed_space.basic
 import algebra.geom_sum
 import order.filter.archimedean
 import order.iterate
 import topology.instances.ennreal
 import tactic.ring_exp
+import analysis.asymptotics
 
 /-!
 # A collection of specific limit computations
 -/
 
 noncomputable theory
-open classical function filter finset metric
+open classical function filter finset metric asymptotics
 
 open_locale classical topological_space nat big_operators uniformity nnreal
 
@@ -77,15 +77,30 @@ lemma normed_field.tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [nor
   tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[{x | x ≠ 0}] 0) at_top :=
 (tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
 
-lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
+lemma tendsto_pow_at_top_nhds_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field 𝕜] [archimedean 𝕜]
+  [topological_space 𝕜] [order_topology 𝕜] {r : 𝕜} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
-by_cases
-  (assume : r = 0, (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, this, tendsto_const_nhds])
-  (assume : r ≠ 0,
+h₁.eq_or_lt.elim
+  (assume : 0 = r, (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, ← this, tendsto_const_nhds])
+  (assume : 0 < r,
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (𝓝 0),
       from tendsto_inv_at_top_zero.comp
-        (tendsto_pow_at_top_at_top_of_one_lt $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
-    tendsto.congr' (univ_mem_sets' $ by simp *) this)
+        (tendsto_pow_at_top_at_top_of_one_lt $ one_lt_inv this h₂),
+    this.congr (λ n, by simp))
+
+lemma is_o_pow_pow_of_lt_left {r₁ r₂ : ℝ} (h₁ : 0 ≤ r₁) (h₂ : r₁ < r₂) :
+  is_o (λ n : ℕ, r₁ ^ n) (λ n, r₂ ^ n) at_top :=
+have H : 0 < r₂ := h₁.trans_lt h₂,
+is_o_of_tendsto (λ n hn, false.elim $ H.ne' $ pow_eq_zero hn) $
+  (tendsto_pow_at_top_nhds_0_of_lt_1 (div_nonneg h₁ (h₁.trans h₂.le)) ((div_lt_one H).2 h₂)).congr
+    (λ n, div_pow _ _ _)
+
+lemma is_o_pow_pow_of_abs_lt_left {r₁ r₂ : ℝ} (h : abs r₁ < abs r₂) :
+  is_o (λ n : ℕ, r₁ ^ n) (λ n, r₂ ^ n) at_top :=
+begin
+  refine (is_o.of_norm_left _).of_norm_right,
+  exact (is_o_pow_pow_of_lt_left (abs_nonneg r₁) h).congr (pow_abs r₁) (pow_abs r₂)
+end
 
 lemma uniformity_basis_dist_pow_of_lt_1 {α : Type*} [metric_space α]
   {r : ℝ} (h₀ : 0 < r) (h₁ : r < 1) :
@@ -560,16 +575,14 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
   (eventually_of_forall $ λ n, div_nonneg (by exact_mod_cast n.factorial_pos.le)
     (pow_nonneg (by exact_mod_cast n.zero_le) _))
   begin
-    rw eventually_iff_exists_mem,
-    use [set.Ioi 0, Ioi_mem_at_top 0],
-    rintros n (hn : 0 < n),
+    refine (eventually_gt_at_top 0).mono (λ n hn, _),
     rcases nat.exists_eq_succ_of_ne_zero hn.ne.symm with ⟨k, rfl⟩,
-    rw [← prod_range_add_one_eq_factorial, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div, prod_nat_cast,
-        nat.cast_succ, ← prod_inv_distrib', ← prod_mul_distrib, finset.prod_range_succ'],
+    rw [← prod_range_add_one_eq_factorial, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div,
+      prod_nat_cast, nat.cast_succ, ← prod_inv_distrib', ← prod_mul_distrib,
+      finset.prod_range_succ'],
     simp only [prod_range_succ', one_mul, nat.cast_add, zero_add, nat.cast_one],
     refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) (prod_le_one _ _);
-    intros x hx;
-    rw finset.mem_range at hx,
+      intros x hx; rw finset.mem_range at hx,
     { refine mul_nonneg _ (inv_nonneg.mpr _); norm_cast; linarith },
     { refine (div_le_one $ by exact_mod_cast hn).mpr _, norm_cast, linarith }
   end

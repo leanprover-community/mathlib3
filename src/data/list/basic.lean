@@ -1100,11 +1100,21 @@ lemma nth_le_append_right : ∀ {l₁ l₂ : list α} {n : ℕ} (h₁ : l₁.len
   (list.repeat a n).nth_le m h = a :=
 eq_of_mem_repeat (nth_le_mem _ _ _)
 
-lemma nth_append  {l₁ l₂ : list α} {n : ℕ} (hn : n < l₁.length) :
+lemma nth_append {l₁ l₂ : list α} {n : ℕ} (hn : n < l₁.length) :
   (l₁ ++ l₂).nth n = l₁.nth n :=
 have hn' : n < (l₁ ++ l₂).length := lt_of_lt_of_le hn
   (by rw length_append; exact le_add_right _ _),
 by rw [nth_le_nth hn, nth_le_nth hn', nth_le_append]
+
+lemma nth_append_right {l₁ l₂ : list α} {n : ℕ} (hn : l₁.length ≤ n) :
+  (l₁ ++ l₂).nth n = l₂.nth (n - l₁.length) :=
+begin
+  by_cases hl : n < (l₁ ++ l₂).length,
+  { rw [nth_le_nth hl, nth_le_nth, nth_le_append_right hn] },
+  { rw [nth_len_le (le_of_not_lt hl), nth_len_le],
+    rw [not_lt, length_append] at hl,
+    exact nat.le_sub_left_of_add_le hl }
+end
 
 lemma last_eq_nth_le : ∀ (l : list α) (h : l ≠ []),
   last l h = l.nth_le (l.length - 1) (sub_lt (length_pos_of_ne_nil h) one_pos)
@@ -1518,6 +1528,33 @@ length `> i`. Version designed to rewrite from the small list to the big list. -
 lemma nth_le_take' (L : list α) {i j : ℕ} (hi : i < (L.take j).length) :
   nth_le (L.take j) i hi = nth_le L i (lt_of_lt_of_le hi (by simp [le_refl])) :=
 by { simp at hi, rw nth_le_take L _ hi.1 }
+
+lemma nth_take {l : list α} {n m : ℕ} (h : m < n) :
+  (l.take n).nth m = l.nth m :=
+begin
+  induction n with n hn generalizing l m,
+  { simp only [nat.nat_zero_eq_zero] at h,
+    exact absurd h (not_lt_of_le m.zero_le) },
+  { cases l with hd tl,
+    { simp only [take_nil] },
+    { cases m,
+      { simp only [nth, take] },
+      { simpa only using hn (nat.lt_of_succ_lt_succ h) } } },
+end
+
+@[simp] lemma nth_take_of_succ {l : list α} {n : ℕ} :
+  (l.take (n + 1)).nth n = l.nth n :=
+nth_take (nat.lt_succ_self n)
+
+lemma take_succ {l : list α} {n : ℕ} :
+  l.take (n + 1) = l.take n ++ (l.nth n).to_list :=
+begin
+  induction l with hd tl hl generalizing n,
+  { simp only [option.to_list, nth, take_nil, append_nil]},
+  { cases n,
+    { simp only [option.to_list, nth, eq_self_iff_true, and_self, take, nil_append] },
+    { simp only [hl, cons_append, nth, eq_self_iff_true, and_self, take] } }
+end
 
 @[simp] theorem drop_nil : ∀ n, drop n [] = ([] : list α)
 | 0     := rfl
@@ -3138,6 +3175,51 @@ instance decidable_suffix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidab
   if hl : len1 ≤ len2 then
     decidable_of_iff' (l₁ = drop (len2-len1) l₂) suffix_iff_eq_drop
   else is_false $ λ h, hl $ length_le_of_sublist $ sublist_of_suffix h
+
+lemma prefix_take_le_iff {L : list (list (option α))} {m n : ℕ} (hm : m < L.length) :
+  (take m L) <+: (take n L) ↔ m ≤ n :=
+begin
+  simp only [prefix_iff_eq_take, length_take],
+  induction m with m IH generalizing L n,
+  { simp only [min_eq_left, eq_self_iff_true, nat.zero_le, take] },
+  { cases n,
+    { simp only [nat.nat_zero_eq_zero, le_zero_iff_eq, take, take_nil],
+      split,
+      { cases L,
+        { exact absurd hm (not_lt_of_le m.succ.zero_le) },
+        { simp only [forall_prop_of_false, not_false_iff, take] } },
+      { intro h,
+        contradiction } },
+    { cases L with l ls,
+      { exact absurd hm (not_lt_of_le m.succ.zero_le) },
+      { simp only [length] at hm,
+        specialize @IH ls n (nat.lt_of_succ_lt_succ hm),
+        simp only [le_of_lt (nat.lt_of_succ_lt_succ hm), min_eq_left] at IH,
+        simp only [le_of_lt hm, IH, true_and, min_eq_left, eq_self_iff_true, length, take],
+        exact ⟨nat.succ_le_succ, nat.le_of_succ_le_succ⟩ } } },
+end
+
+lemma cons_prefix_iff {l l' : list α} {x y : α} :
+  x :: l <+: y :: l' ↔ x = y ∧ l <+: l' :=
+begin
+  split,
+  { rintro ⟨L, hL⟩,
+    simp only [cons_append] at hL,
+    exact ⟨hL.left, ⟨L, hL.right⟩⟩ },
+  { rintro ⟨rfl, h⟩,
+    rwa [prefix_cons_inj] },
+end
+
+lemma map_prefix {l l' : list α} (f : α → β) (h : l <+: l') :
+  l.map f <+: l'.map f :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp only [nil_prefix, map_nil] },
+  { cases l' with hd' tl',
+    { simpa only using eq_nil_of_prefix_nil h },
+    { rw cons_prefix_iff at h,
+      simp only [h, prefix_cons_inj, hl, map] } },
+end
 
 @[simp] theorem mem_inits : ∀ (s t : list α), s ∈ inits t ↔ s <+: t
 | s []     := suffices s = nil ↔ s <+: nil, by simpa only [inits, mem_singleton],

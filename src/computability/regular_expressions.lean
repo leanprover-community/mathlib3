@@ -247,22 +247,27 @@ using_well_founded {
   ∀ x : list α, P.rmatch x ↔ x ∈ P.matches :=
 begin
   intro x,
-  induction P with _ _ _ ih₁ ih₂ _ _ ih₁ ih₂ P ih generalizing x,
+  induction P generalizing x,
   all_goals
   { try {rw zero_def},
     try {rw one_def},
     try {rw plus_def},
     try {rw comp_def},
     rw matches },
-  { rw zero_rmatch,
+  case zero : {
+    rw zero_rmatch,
     tauto },
-  { rw one_rmatch_iff,
+  case epsilon : {
+    rw one_rmatch_iff,
     refl },
-  { rw char_rmatch_iff,
+  case char : {
+    rw char_rmatch_iff,
     refl },
-  { rw [add_rmatch_iff, ih₁, ih₂],
+  case plus : _ _ ih₁ ih₂ {
+    rw [add_rmatch_iff, ih₁, ih₂],
     refl },
-  { simp only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
+  case comp : P Q ih₁ ih₂ {
+    simp only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
       set.image_prod],
     split,
     { rintro ⟨ x, y, hsum, hmatch₁, hmatch₂ ⟩,
@@ -273,7 +278,8 @@ begin
       rw ←ih₁ at hmatch₁,
       rw ←ih₂ at hmatch₂,
       exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ } },
-  { rw [star_rmatch_iff, language.star_def_nonempty],
+  case star : _ ih {
+    rw [star_rmatch_iff, language.star_def_nonempty],
     split,
     all_goals
     { rintro ⟨ S, hx, hS ⟩,

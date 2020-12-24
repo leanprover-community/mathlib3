@@ -36,10 +36,7 @@ lemma inv_gold : φ⁻¹ = -ψ :=
 begin
   have : 1 + real.sqrt 5 ≠ 0,
     from ne_of_gt (add_pos (by norm_num) $ real.sqrt_pos.mpr (by norm_num)),
-  field_simp,
-  apply mul_left_cancel' this,
-  rw mul_div_cancel' _ this,
-  rw [add_comm, ← sq_sub_sq],
+  field_simp [sub_mul, mul_add],
   norm_num
 end
 

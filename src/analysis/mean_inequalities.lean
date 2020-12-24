@@ -802,6 +802,47 @@ begin
   end
 end
 
+lemma lintegral_Lp_mul_le_Lq_mul_Lr {α} [measurable_space α] {p q r : ℝ} (hp0_lt : 0 < p)
+  (hpq : p < q) (hpqr : 1/p = 1/q + 1/r) (μ : measure α) {f g : α → ennreal}
+  (hf : measurable f) (hg : measurable g) :
+  (∫⁻ a, ((f * g) a)^p ∂μ) ^ (1/p) ≤ (∫⁻ a, (f a)^q ∂μ) ^ (1/q) * (∫⁻ a, (g a)^r ∂μ) ^ (1/r) :=
+begin
+  have hp0_ne : p ≠ 0, from (ne_of_lt hp0_lt).symm,
+  have hp0 : 0 ≤ p, from le_of_lt hp0_lt,
+  have hq0_lt : 0 < q, from lt_of_le_of_lt hp0 hpq,
+  have hq0_ne : q ≠ 0, from (ne_of_lt hq0_lt).symm,
+  have h_one_div_r : 1/r = 1/p - 1/q, by simp [hpqr],
+  have hr0_ne : r ≠ 0,
+  { have hr_inv_pos : 0 < 1/r,
+    by rwa [h_one_div_r, sub_pos, one_div_lt_one_div hq0_lt hp0_lt],
+    rw [one_div, _root_.inv_pos] at hr_inv_pos,
+    exact (ne_of_lt hr_inv_pos).symm, },
+  let p2 := q/p,
+  let q2 := p2.conjugate_exponent,
+  have hp2q2 : p2.is_conjugate_exponent q2,
+  from real.is_conjugate_exponent_conjugate_exponent (by simp [lt_div_iff, hpq, hp0_lt]),
+  calc (∫⁻ (a : α), ((f * g) a) ^ p ∂μ) ^ (1 / p)
+      = (∫⁻ (a : α), (f a)^p * (g a)^p ∂μ) ^ (1 / p) :
+  by simp_rw [pi.mul_apply, ennreal.mul_rpow_of_nonneg _ _ hp0]
+  ... ≤ ((∫⁻ a, (f a)^(p * p2) ∂ μ)^(1/p2) * (∫⁻ a, (g a)^(p * q2) ∂ μ)^(1/q2)) ^ (1/p) :
+  begin
+    refine ennreal.rpow_le_rpow _ (by simp [hp0]),
+    simp_rw ennreal.rpow_mul,
+    exact ennreal.lintegral_mul_le_Lp_mul_Lq μ hp2q2 hf.ennreal_rpow_const hg.ennreal_rpow_const,
+  end
+  ... = (∫⁻ (a : α), (f a) ^ q ∂μ) ^ (1 / q) * (∫⁻ (a : α), (g a) ^ r ∂μ) ^ (1 / r) :
+  begin
+    rw [@ennreal.mul_rpow_of_nonneg _ _ (1/p) (by simp [hp0]), ←ennreal.rpow_mul,
+      ←ennreal.rpow_mul],
+    have hpp2 : p * p2 = q,
+    { symmetry, rw [mul_comm, ←div_eq_iff hp0_ne], },
+    have hpq2 : p * q2 = r,
+    { rw [← inv_inv' r, ← one_div, ← one_div, h_one_div_r],
+      field_simp [q2, real.conjugate_exponent, p2, hp0_ne, hq0_ne] },
+    simp_rw [div_mul_div, mul_one, mul_comm p2, mul_comm q2, hpp2, hpq2],
+  end
+end
+
 lemma lintegral_mul_rpow_le_lintegral_rpow_mul_lintegral_rpow {p q : ℝ}
   (hpq : p.is_conjugate_exponent q) {f g : α → ennreal} (hf : measurable f) (hg : measurable g)
   (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) :

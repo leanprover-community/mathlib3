@@ -270,6 +270,10 @@ begin
   exact with_top.coe_le_coe.2 (with_top.coe_lt_coe.1 h)
 end
 
+lemma one_le_iff_pos {n : with_top ℕ} : 1 ≤ n ↔ 0 < n :=
+⟨λ h, (coe_lt_coe.2 zero_lt_one).trans_le h,
+  λ h, by simpa only [zero_add] using add_one_le_of_lt h⟩
+
 @[elab_as_eliminator]
 lemma nat_induction {P : with_top ℕ → Prop} (a : with_top ℕ)
   (h0 : P 0) (hsuc : ∀n:ℕ, P n → P n.succ) (htop : (∀n : ℕ, P n) → P ⊤) : P a :=

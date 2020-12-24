@@ -8,6 +8,7 @@ import order.complete_boolean_algebra
 import order.order_dual
 import data.set.intervals.basic
 import order.rel_iso
+import data.fintype.basic
 
 /-!
 # Atoms, Coatoms, and Simple Lattices
@@ -95,15 +96,58 @@ namespace is_simple_lattice
 variables [bounded_lattice α] [is_simple_lattice α]
 
 protected def bounded_distrib_lattice : bounded_distrib_lattice α :=
-{ le_sup_inf := λ x y z, sorry,
+{ le_sup_inf := λ x y z, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
 .. (infer_instance : bounded_lattice α) }
 
+instance [decidable_eq α] : fintype α :=
+{ elems := {⊥, ⊤},
+  complete := eq_bot_or_eq_top }
 
-protected def boolean_algebra : boolean_algebra α :=
-{
+lemma card [decidable_eq α] : fintype.card α = 2 :=
+begin
+  simp
+end
 
+protected def boolean_algebra [decidable_eq α] : boolean_algebra α :=
+{ compl := λ x, if x = ⊥ then ⊤ else ⊥,
+  sdiff := λ x y, if x = ⊤ ∧ y = ⊥ then ⊤ else ⊥,
+  sdiff_eq := λ x y, by { rcases (eq_bot_or_eq_top x) with rfl | rfl; simp [bot_ne_top] },
+  inf_compl_le_bot := λ x, by { rcases (eq_bot_or_eq_top x) with rfl | rfl; simp },
+  top_le_sup_compl := λ x, by { rcases (eq_bot_or_eq_top x) with rfl | rfl; simp },
+.. (is_simple_lattice.bounded_distrib_lattice) }
+
+open_locale classical
+
+protected noncomputable def complete_lattice : complete_lattice α :=
+{ Sup := λ s, if ⊤ ∈ s then ⊤ else ⊥,
+  Inf := λ s, if ⊥ ∈ s then ⊥ else ⊤,
+  le_Sup := λ s x h, by { rcases (eq_bot_or_eq_top x) with rfl | rfl,
+    { exact bot_le },
+    { rw if_pos h } },
+  Sup_le := λ s x h, by { rcases (eq_bot_or_eq_top x) with rfl | rfl,
+    { rw if_neg,
+      intro con,
+      exact bot_ne_top (eq_top_iff.2 (h ⊤ con)) },
+    { exact le_top } },
+  Inf_le := λ s x h, by { rcases (eq_bot_or_eq_top x) with rfl | rfl,
+    { rw if_pos h },
+    { exact le_top } },
+  le_Inf := λ s x h, by { rcases (eq_bot_or_eq_top x) with rfl | rfl,
+    { exact bot_le },
+    { rw if_neg,
+      intro con,
+      exact top_ne_bot (eq_bot_iff.2 (h ⊥ con)) } },
 .. (infer_instance : bounded_lattice α) }
 
+protected noncomputable def complete_boolean_algebra : complete_boolean_algebra α :=
+{ infi_sup_le_sup_Inf := λ x s, by { rcases (eq_bot_or_eq_top x) with rfl | rfl,
+    { simp only [bot_sup_eq, ← Inf_eq_infi], apply le_refl },
+    { simp only [top_sup_eq, le_top] }, },
+  inf_Sup_le_supr_inf := λ x s, by { rcases (eq_bot_or_eq_top x) with rfl | rfl,
+    { simp only [bot_inf_eq, bot_le] },
+    { simp only [top_inf_eq, ← Sup_eq_supr], apply le_refl } },
+  .. (is_simple_lattice.complete_lattice),
+  .. (is_simple_lattice.boolean_algebra) }
 
 end is_simple_lattice
 

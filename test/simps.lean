@@ -776,3 +776,32 @@ run_cmd do
 
 example {M N} [has_one M] [has_one N] : (1 : M × N) = ⟨1, 1⟩ := by simp
 example {M N} [has_zero M] [has_zero N] : (0 : M × N) = ⟨0, 0⟩ := by simp
+
+section
+/-! Test `dsimp, simp` with the option `simp_rhs` -/
+
+local attribute [simp] nat.add
+
+structure my_type :=
+(A : Type)
+
+@[simps {simp_rhs := tt}] def my_type_def : my_type := ⟨{ x : fin (nat.add 3 0) // 1 + 1 = 2 }⟩
+
+example (h : false) (x y : { x : fin (nat.add 3 0) // 1 + 1 = 2 }) : my_type_def.A = unit :=
+begin
+  simp only [my_type_def_A],
+  guard_target ({ x : fin 3 // true } = unit),
+  /- note: calling only one of `simp` or `dsimp` does not produce the current target,
+  as the following tests show. -/
+  success_if_fail { guard_hyp x : { x : fin 3 // true } },
+  dsimp at x,
+  success_if_fail { guard_hyp x : { x : fin 3 // true } },
+  simp at y,
+  success_if_fail { guard_hyp y : { x : fin 3 // true } },
+  simp at x, dsimp at y,
+  guard_hyp x : { x : fin 3 // true },
+  guard_hyp y : { x : fin 3 // true },
+  contradiction
+end
+
+end

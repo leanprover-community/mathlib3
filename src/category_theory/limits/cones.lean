@@ -25,12 +25,14 @@ namespace category_theory
 namespace functor
 variables {J C} (F : J ⥤ C)
 
+set_option trace.simps.verbose true
+
 /--
 `F.cones` is the functor assigning to an object `X` the type of
 natural transformations from the constant functor with value `X` to `F`.
 An object representing this functor is a limit of `F`.
 -/
-def cones : Cᵒᵖ ⥤ Type v := (const J).op ⋙ (yoneda.obj F)
+@[simps map_app {rhs_md := semireducible, type_md := tactic.transparency.all}] def cones : Cᵒᵖ ⥤ Type v := (const J).op ⋙ (yoneda.obj F)
 
 lemma cones_obj (X : Cᵒᵖ) : F.cones.obj X = ((const J).obj (unop X) ⟶ F) := rfl
 

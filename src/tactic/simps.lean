@@ -299,7 +299,8 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
     appended to the definition name to form the lemma name, and when this is `tt`, only the
     last projection name will be appended.
   * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put in
-    simp-normal form.
+    simp-normal form. More precisely: `dsimp, simp` will be called on all these expressions.
+    See note [dsimp, simp].
   * `type_md` specifies how aggressively definitions are unfolded in the type of expressions
     for the purposes of finding out whether the type is a function type.
     Default: `instances`. This will unfold coercion instances (so that a coercion to a function type
@@ -330,7 +331,9 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   when_tracing `simps.debug trace!
     "[simps] > Planning to add\n        > {lhs}\n        > =\n        > {rhs}\n        > in type
         > {type}",
-  (rhs2, prf) ← (guard cfg.simp_rhs >> rhs.simp) <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
+  (rhs2, prf) ← (guard cfg.simp_rhs >>
+    rhs.dsimp {fail_if_unchanged := ff} >>= λ rhs', rhs'.simp {fail_if_unchanged := ff})
+    <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
   when_tracing `simps.debug $ when (rhs ≠ rhs2) trace!
     "[simps] > Simplified\n        > {rhs}\n        > to\n        > {rhs2}",
   eq_ap ← mk_mapp `eq $ [type, lhs, rhs2].map some,

@@ -134,28 +134,20 @@ by simp [mono_of_fin_apply, max'_eq_sorted_last, h]
   ↑(mono_of_fin {a} (card_singleton a) i) = a :=
 by rw [subsingleton.elim i ⟨0, zero_lt_one⟩, mono_of_fin_zero _ zero_lt_one, min'_singleton]
 
-/-- Any increasing bijection between `fin k` and a finset of cardinality `k` has to coincide with
-the increasing bijection `mono_of_fin s h`. For a statement assuming only that `f` maps `univ` to
-`s`, see `mono_of_fin_unique'`.-/
-lemma mono_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fin k → α}
-  (hbij : set.bij_on f set.univ ↑s) (hmono : strict_mono f) : f = coe ∘ s.mono_of_fin h :=
-begin
-
-end
-
-/-- Any increasing map between `fin k` and a finset of cardinality `k` has to coincide with
+/-- Any increasing map `f` from `fin k` to a finset of cardinality `k` has to coincide with
 the increasing bijection `mono_of_fin s h`. -/
-lemma mono_of_fin_unique' {s : finset α} {k : ℕ} (h : s.card = k)
-  {f : fin k → α} (fmap : set.maps_to f set.univ ↑s) (hmono : strict_mono f) :
-  f = s.mono_of_fin h :=
+lemma mono_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fin k → α}
+  (hfs : ∀ x, f x ∈ s) (hmono : strict_mono f) : f = coe ∘ s.mono_of_fin h :=
 begin
-  have finj : set.inj_on f set.univ := hmono.injective.inj_on _,
-  apply mono_of_fin_unique h (set.bij_on.mk fmap finj (λ y hy, _)) hmono,
-  simp only [set.image_univ, set.mem_range],
-  rcases surj_on_of_inj_on_of_card_le (λ i (hi : i ∈ finset.fin_range k), f i)
-    (λ i hi, fmap (set.mem_univ i)) (λ i j hi hj hij, finj (set.mem_univ i) (set.mem_univ j) hij)
-    (by simp [h]) y hy with ⟨x, _, hx⟩,
-  exact ⟨x, hx.symm⟩
+  have : set.range f = s,
+  { rw [← set.image_univ, ← coe_fin_range, ← coe_image, coe_inj],
+    refine eq_of_subset_of_card_le (λ x hx, _) _,
+    { rcases mem_image.1 hx with ⟨x, hx, rfl⟩, exact hfs x },
+    { rw [h, card_image_of_injective _ hmono.injective, fin_range_card] } },
+  let g : fin k ≃o (s : set α) := (hmono.order_iso _).trans (order_iso.set_congr _ _ this),
+  have : g = s.mono_of_fin h := subsingleton.elim _ _,
+  rw ← this,
+  refl
 end
 
 /-- Two parametrizations `mono_of_fin` of the same set take the same value on `i` and `j` if and
@@ -165,18 +157,9 @@ necessarily `k = l`), the conclusion is rather written `(i : ℕ) = (j : ℕ)`. 
   {k l : ℕ} {s : finset α} {i : fin k} {j : fin l} {h : s.card = k} {h' : s.card = l} :
   s.mono_of_fin h i = s.mono_of_fin h' j ↔ (i : ℕ) = (j : ℕ) :=
 begin
-  have A : k = l, by rw [← h', ← h],
-  have : s.mono_of_fin h = (s.mono_of_fin h') ∘ (λ j : (fin k), ⟨j, A ▸ j.is_lt⟩) := rfl,
-  rw [this, function.comp_app, (s.mono_of_fin_injective h').eq_iff, fin.ext_iff, fin.coe_mk]
+  subst k, subst l,
+  exact (s.mono_of_fin rfl).apply_eq_iff_eq.trans (fin.ext_iff _ _) 
 end
-
-/-- Given a finset `s` of cardinal `k` in a linear order `α`, the equiv `mono_equiv_of_fin s h`
-is the increasing bijection between `fin k` and `s` as an `s`-valued map. Here, `h` is a proof that
-the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
-casting issues in further uses of this function. -/
-noncomputable def mono_equiv_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
-  fin k ≃ {x // x ∈ s} :=
-(equiv.set.univ _).symm.trans $ (s.mono_of_fin_bij_on h).equiv _
 
 end sort_linear_order
 

@@ -123,7 +123,7 @@ infix ` ↪o `:25 := order_embedding
 
 /-- The induced relation on a subtype is an embedding under the natural inclusion. -/
 definition subtype.rel_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
-((subtype.val : subtype p → X) ⁻¹'o r) ↪r r :=
+  ((subtype.val : subtype p → X) ⁻¹'o r) ↪r r :=
 ⟨⟨subtype.val,subtype.val_injective⟩,by intros;refl⟩
 
 theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
@@ -316,6 +316,12 @@ def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
 
 @[simp] lemma coe_of_strict_mono {α β} [linear_order α] [preorder β] {f : α → β}
   (h : strict_mono f) : ⇑(of_strict_mono f h) = f := rfl
+
+/-- Embedding of a subtype into the ambient type as an `order_embedding`. -/
+def subtype [preorder α] (p : α → Prop) : subtype p ↪o α :=
+⟨embedding.subtype p, λ x y, iff.rfl⟩
+
+@[simp] lemma coe_subtype [preorder α] (p : α → Prop) : ⇑(subtype p) = coe := rfl
 
 end order_embedding
 
@@ -601,12 +607,9 @@ noncomputable def strict_mono.order_iso_of_surjective {α β} [linear_order α] 
   (f : α → β) (h_mono : strict_mono f) (h_surj : surjective f) : α ≃o β :=
 (h_mono.order_iso f).trans $ (order_iso.set_congr _ _ h_surj.range_eq).trans order_iso.set.univ
 
-/-- A subset `p : set α` embeds into `α` -/
-def set_coe_embedding {α : Type*} (p : set α) : p ↪ α := ⟨subtype.val, @subtype.eq _ _⟩
-
 /-- `subrel r p` is the inherited relation on a subset. -/
 def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
-@subtype.val _ p ⁻¹'o r
+(coe : p → α) ⁻¹'o r
 
 @[simp] theorem subrel_val (r : α → α → Prop) (p : set α)
   {a b} : subrel r p a b ↔ r a.1 b.1 := iff.rfl
@@ -615,7 +618,7 @@ namespace subrel
 
 /-- The relation embedding from the inherited relation on a subset. -/
 protected def rel_embedding (r : α → α → Prop) (p : set α) :
-  subrel r p ↪r r := ⟨set_coe_embedding _, λ a b, iff.rfl⟩
+  subrel r p ↪r r := ⟨embedding.subtype _, λ a b, iff.rfl⟩
 
 @[simp] theorem rel_embedding_apply (r : α → α → Prop) (p a) :
   subrel.rel_embedding r p a = a.1 := rfl

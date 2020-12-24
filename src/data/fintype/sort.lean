@@ -16,4 +16,4 @@ that the cardinality of `s` is `k`. We use this instead of an isomorphism `fin s
 casting issues in further uses of this function. -/
 def mono_equiv_of_fin (α) [fintype α] [linear_order α] {k : ℕ}
   (h : fintype.card α = k) : fin k ≃o α :=
-(univ.mono_of_fin h).trans $ (order_iso.set_congr _ _ coe_univ).trans order_iso.set.univ
+(univ.order_iso_of_fin h).trans $ (order_iso.set_congr _ _ coe_univ).trans order_iso.set.univ

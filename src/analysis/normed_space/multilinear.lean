@@ -257,7 +257,7 @@ begin
   convert H _ using 2,
   simp only [apply_dite norm, fintype.prod_dite, prod_const (∥z∥), finset.card_univ,
     fintype.card_of_subtype sᶜ (λ x, mem_compl), card_compl, fintype.card_fin, hk, mk_coe,
-    ← (s.mono_of_fin hk).symm.bijective.prod_comp (λ x, ∥v x∥)],
+    ← (s.order_iso_of_fin hk).symm.bijective.prod_comp (λ x, ∥v x∥)],
   refl
 end
 

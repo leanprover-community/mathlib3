@@ -177,7 +177,9 @@ instance (r : α → α → Prop) : inhabited (r ↪r r) := ⟨rel_embedding.ref
 
 @[simp] theorem refl_apply (x : α) : rel_embedding.refl r x = x := rfl
 
-@[simp] theorem trans_apply (f : r ↪r s) (g : s ↪r t) (a : α) : (f.trans g) a = g (f a) := rfl
+theorem trans_apply (f : r ↪r s) (g : s ↪r t) (a : α) : (f.trans g) a = g (f a) := rfl
+
+@[simp] theorem coe_trans (f : r ↪r s) (g : s ↪r t)  : ⇑(f.trans g) = g ∘ f := rfl
 
 /-- A relation embedding is also a relation embedding between dual relations. -/
 protected def swap (f : r ↪r s) : swap r ↪r swap s :=

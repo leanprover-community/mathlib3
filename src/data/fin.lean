@@ -448,15 +448,34 @@ begin
   { rwa [← h j hj (hj.trans hi), ← lt_iff_coe_lt_coe, e.apply_lt_apply] }
 end
 
-instance order_iso_subsingleton {α : Type*} [preorder α] : subsingleton (fin n ≃o α) :=
+section
+
+variables {α : Type*} [preorder α]
+open set
+
+instance order_iso_subsingleton : subsingleton (fin n ≃o α) :=
 ⟨λ e e', by { ext i,
   rw [← e.symm.apply_eq_iff_eq, e.symm_apply_apply, ← e'.trans_apply, ext_iff,
     coe_order_iso_apply] }⟩
 
-instance order_iso_subsingleton' {α : Type*} [preorder α] : subsingleton (α ≃o fin n) :=
+instance order_iso_subsingleton' : subsingleton (α ≃o fin n) :=
 order_iso.symm_injective.subsingleton
 
 instance order_iso_unique : unique (fin n ≃o fin n) := unique.mk' _
+
+/-- Two strictly monotone functions from `fin n` are equal provided that their ranges
+are equal. -/
+lemma strict_mono_unique {f g : fin n → α} (hf : strict_mono f) (hg : strict_mono g)
+  (h : range f = range g) : f = g :=
+have (hf.order_iso f).trans (order_iso.set_congr _ _ h) = hg.order_iso g,
+  from subsingleton.elim _ _,
+congr_arg (function.comp (coe : range g → α)) (funext $ rel_iso.ext_iff.1 this)
+
+/-- Two order embeddings of `fin n` are equal provided that their ranges are equal. -/
+lemma order_embedding_eq {f g : fin n ↪o α} (h : range f = range g) : f = g :=
+rel_embedding.ext $ funext_iff.1 $ strict_mono_unique f.strict_mono g.strict_mono h
+
+end
 
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 

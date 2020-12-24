@@ -100,63 +100,80 @@ lemma max'_eq_sorted_last {s : finset α} {h : s.nonempty} :
     (by simpa using sub_lt (card_pos.mpr h) zero_lt_one) :=
 (sorted_last_eq_max'_aux _ _ _).symm
 
-/-- Given a finset `s` of cardinal `k` in a linear order `α`, the map `mono_of_fin s h`
-is the increasing bijection between `fin k` and `s` as an `α`-valued map. Here, `h` is a proof that
-the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
+/-- Given a finset `s` of cardinal `k` in a linear order `α`, the map `order_iso_of_fin s h`
+is the increasing bijection between `fin k` and `s` as an `order_iso`. Here, `h` is a proof that
+the cardinality of `s` is `k`. We use this instead of an iso `fin s.card ≃o s` to avoid
 casting issues in further uses of this function. -/
-def mono_of_fin (s : finset α) {k : ℕ} (h : s.card = k) : fin k ≃o (s : set α) :=
+def order_iso_of_fin (s : finset α) {k : ℕ} (h : s.card = k) : fin k ≃o (s : set α) :=
 order_iso.trans (fin.cast ((length_sort (≤)).trans h).symm) $
   (s.sort_sorted_lt.nth_le_iso _).trans $ order_iso.set_congr _ _ $
     set.ext $ λ x, mem_sort _
 
-lemma mono_of_fin_apply (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) :
-  ↑(s.mono_of_fin h i) = (s.sort (≤)).nth_le i (by { rw [length_sort, h], exact i.2 }) :=
+/-- Given a finset `s` of cardinal `k` in a linear order `α`, the map `order_emb_of_fin s h` is the
+increasing bijection between `fin k` and `s` as an order embedding into `α`. Here, `h` is a proof
+that the cardinality of `s` is `k`. We use this instead of an embedding `fin s.card ↪o α` to avoid
+casting issues in further uses of this function. -/
+def order_emb_of_fin (s : finset α) {k : ℕ} (h : s.card = k) : fin k ↪o α :=
+(order_iso_of_fin s h).to_order_embedding.trans (order_embedding.subtype _)
+
+@[simp] lemma coe_order_iso_of_fin_apply (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) :
+  ↑(order_iso_of_fin s h i) = order_emb_of_fin s h i :=
 rfl
 
-lemma mono_of_fin_symm_apply (s : finset α) {k : ℕ} (h : s.card = k) (x : (s : set α)) :
-  ↑((s.mono_of_fin h).symm x) = (s.sort (≤)).index_of x :=
+lemma order_iso_of_fin_symm_apply (s : finset α) {k : ℕ} (h : s.card = k) (x : (s : set α)) :
+  ↑((s.order_iso_of_fin h).symm x) = (s.sort (≤)).index_of x :=
 rfl
 
-/-- The bijection `mono_of_fin s h` sends `0` to the minimum of `s`. -/
-lemma mono_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
-  ↑(mono_of_fin s h ⟨0, hz⟩) = s.min' (card_pos.mp (h.symm ▸ hz)) :=
-by simp only [mono_of_fin_apply, subtype.coe_mk, sorted_zero_eq_min']
+lemma order_emb_of_fin_apply (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) :
+  s.order_emb_of_fin h i = (s.sort (≤)).nth_le i (by { rw [length_sort, h], exact i.2 }) :=
+rfl
 
-/-- The bijection `mono_of_fin s h` sends `k-1` to the maximum of `s`. -/
-lemma mono_of_fin_last {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
-  ↑(mono_of_fin s h ⟨k-1, buffer.lt_aux_2 hz⟩) = s.max' (card_pos.mp (h.symm ▸ hz)) :=
-by simp [mono_of_fin_apply, max'_eq_sorted_last, h]
+@[simp] lemma range_order_emb_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
+  set.range (s.order_emb_of_fin h) = s :=
+by simp [order_emb_of_fin, set.range_comp coe (s.order_iso_of_fin h)]
 
-/-- `mono_of_fin {a} h` sends any argument to `a`. -/
-@[simp] lemma mono_of_fin_singleton (a : α) (i : fin 1) :
-  ↑(mono_of_fin {a} (card_singleton a) i) = a :=
-by rw [subsingleton.elim i ⟨0, zero_lt_one⟩, mono_of_fin_zero _ zero_lt_one, min'_singleton]
+/-- The bijection `order_emb_of_fin s h` sends `0` to the minimum of `s`. -/
+lemma order_emb_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
+  order_emb_of_fin s h ⟨0, hz⟩ = s.min' (card_pos.mp (h.symm ▸ hz)) :=
+by simp only [order_emb_of_fin_apply, subtype.coe_mk, sorted_zero_eq_min']
+
+/-- The bijection `order_emb_of_fin s h` sends `k-1` to the maximum of `s`. -/
+lemma order_emb_of_fin_last {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
+  order_emb_of_fin s h ⟨k-1, buffer.lt_aux_2 hz⟩ = s.max' (card_pos.mp (h.symm ▸ hz)) :=
+by simp [order_emb_of_fin_apply, max'_eq_sorted_last, h]
+
+/-- `order_emb_of_fin {a} h` sends any argument to `a`. -/
+@[simp] lemma order_emb_of_fin_singleton (a : α) (i : fin 1) :
+  order_emb_of_fin {a} (card_singleton a) i = a :=
+by rw [subsingleton.elim i ⟨0, zero_lt_one⟩, order_emb_of_fin_zero _ zero_lt_one, min'_singleton]
 
 /-- Any increasing map `f` from `fin k` to a finset of cardinality `k` has to coincide with
-the increasing bijection `mono_of_fin s h`. -/
-lemma mono_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fin k → α}
-  (hfs : ∀ x, f x ∈ s) (hmono : strict_mono f) : f = coe ∘ s.mono_of_fin h :=
+the increasing bijection `order_emb_of_fin s h`. -/
+lemma order_emb_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fin k → α}
+  (hfs : ∀ x, f x ∈ s) (hmono : strict_mono f) : f = s.order_emb_of_fin h :=
 begin
-  have : set.range f = s,
-  { rw [← set.image_univ, ← coe_fin_range, ← coe_image, coe_inj],
-    refine eq_of_subset_of_card_le (λ x hx, _) _,
-    { rcases mem_image.1 hx with ⟨x, hx, rfl⟩, exact hfs x },
-    { rw [h, card_image_of_injective _ hmono.injective, fin_range_card] } },
-  let g : fin k ≃o (s : set α) := (hmono.order_iso _).trans (order_iso.set_congr _ _ this),
-  have : g = s.mono_of_fin h := subsingleton.elim _ _,
-  rw ← this,
-  refl
+  apply fin.strict_mono_unique hmono (s.order_emb_of_fin h).strict_mono,
+  rw [range_order_emb_of_fin, ← set.image_univ, ← coe_fin_range, ← coe_image, coe_inj],
+  refine eq_of_subset_of_card_le (λ x hx, _) _,
+  { rcases mem_image.1 hx with ⟨x, hx, rfl⟩, exact hfs x },
+  { rw [h, card_image_of_injective _ hmono.injective, fin_range_card] }
 end
 
-/-- Two parametrizations `mono_of_fin` of the same set take the same value on `i` and `j` if and
+/-- An order embedding `f` from `fin k` to a finset of cardinality `k` has to coincide with
+the increasing bijection `order_emb_of_fin s h`. -/
+lemma order_emb_of_fin_unique' {s : finset α} {k : ℕ} (h : s.card = k) {f : fin k ↪o α}
+  (hfs : ∀ x, f x ∈ s) : f = s.order_emb_of_fin h :=
+rel_embedding.ext $ function.funext_iff.1 $ order_emb_of_fin_unique h hfs f.strict_mono
+
+/-- Two parametrizations `order_emb_of_fin` of the same set take the same value on `i` and `j` if and
 only if `i = j`. Since they can be defined on a priori not defeq types `fin k` and `fin l` (although
 necessarily `k = l`), the conclusion is rather written `(i : ℕ) = (j : ℕ)`. -/
-@[simp] lemma mono_of_fin_eq_mono_of_fin_iff
+@[simp] lemma order_emb_of_fin_eq_order_emb_of_fin_iff
   {k l : ℕ} {s : finset α} {i : fin k} {j : fin l} {h : s.card = k} {h' : s.card = l} :
-  s.mono_of_fin h i = s.mono_of_fin h' j ↔ (i : ℕ) = (j : ℕ) :=
+  s.order_emb_of_fin h i = s.order_emb_of_fin h' j ↔ (i : ℕ) = (j : ℕ) :=
 begin
   subst k, subst l,
-  exact (s.mono_of_fin rfl).apply_eq_iff_eq.trans (fin.ext_iff _ _) 
+  exact (s.order_emb_of_fin rfl).apply_eq_apply.trans (fin.ext_iff _ _)
 end
 
 end sort_linear_order

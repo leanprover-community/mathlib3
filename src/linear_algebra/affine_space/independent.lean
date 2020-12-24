@@ -458,18 +458,19 @@ lemma ext_iff {n : ℕ} (s1 s2 : simplex k P n): s1 = s2 ↔ ∀ i, s1.points i 
 points. -/
 def face {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))} {m : ℕ} (h : fs.card = m + 1) :
   simplex k P m :=
-⟨_,
+⟨s.points ∘ fs.order_emb_of_fin h,
  affine_independent_embedding_of_affine_independent
-   ((fs.mono_of_fin h).to_equiv.to_embedding.trans (embedding.subtype _)) s.independent⟩
+   (fs.order_emb_of_fin h).to_embedding s.independent⟩
 
 /-- The points of a face of a simplex are given by `mono_of_fin`. -/
 lemma face_points {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))} {m : ℕ}
-  (h : fs.card = m + 1) (i : fin (m + 1)) : (s.face h).points i = s.points (fs.mono_of_fin h i) :=
+  (h : fs.card = m + 1) (i : fin (m + 1)) :
+  (s.face h).points i = s.points (fs.order_emb_of_fin h i) :=
 rfl
 
 /-- The points of a face of a simplex are given by `mono_of_fin`. -/
 lemma face_points' {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))} {m : ℕ}
-  (h : fs.card = m + 1) : (s.face h).points = s.points ∘ coe ∘ (fs.mono_of_fin h) :=
+  (h : fs.card = m + 1) : (s.face h).points = s.points ∘ (fs.order_emb_of_fin h) :=
 rfl
 
 /-- A single-point face equals the 0-simplex constructed with
@@ -481,10 +482,7 @@ by { ext, simp [face_points] }
 /-- The set of points of a face. -/
 @[simp] lemma range_face_points {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))}
   {m : ℕ} (h : fs.card = m + 1) : set.range (s.face h).points = s.points '' ↑fs :=
-begin
-  rw [face_points', set.range_comp, set.range_comp],
-  simp
-end
+by rw [face_points', set.range_comp, finset.range_order_emb_of_fin]
 
 end simplex
 
@@ -503,10 +501,9 @@ the points. -/
   {m : ℕ} (h : fs.card = m + 1) :
   finset.univ.centroid k (s.face h).points = fs.centroid k s.points :=
 begin
-  convert (finset.univ.centroid_map k
-    ((fs.mono_of_fin h).to_equiv.to_embedding.trans (embedding.subtype _)) s.points).symm,
-  rw [←finset.coe_inj, finset.coe_map, finset.coe_univ],
-  simp [set.range_comp coe (fs.mono_of_fin _)]
+  convert (finset.univ.centroid_map k (fs.order_emb_of_fin h).to_embedding s.points).symm,
+  rw [← finset.coe_inj, finset.coe_map, finset.coe_univ, set.image_univ],
+  simp
 end
 
 /-- Over a characteristic-zero division ring, the centroids given by

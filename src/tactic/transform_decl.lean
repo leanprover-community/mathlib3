@@ -8,7 +8,7 @@ import meta.rb_map
 import tactic.core
 
 namespace tactic
-/-- `copy_attribute attr_name c_name p d_name` copy (user) attribute `attr_name` from
+/-- `copy_attribute' attr_name src tgt p d_name` copy (user) attribute `attr_name` from
    `src` to `tgt` if it is defined for `src`; and copy the parameter of the user attribute, in the
    user attribute case. Make it persistent if `p` is `tt`; if `p` is `none`, the copied attribute is
    made persistent iff it is persistent on `src`  -/

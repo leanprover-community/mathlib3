@@ -873,7 +873,20 @@ end
 variables {P Q} (hP : differentiable ℝ P) (hQ : differentiable ℝ Q)
 variables (hdiv : integrable ((divergence P Q) ∘ (foo' ℝ ℝ).symm) volume)
 
-#check continuous.continuous_at
+
+-- lemma added to mathlib after the beginning of our branch
+lemma nhds_basis_Ioo' {α : Type*} [topological_space α] [linear_order α] [order_topology α]
+  {a : α} (hl : ∃ (l : α), l < a) (hu : ∃ (u : α), a < u) :
+  (𝓝 a).has_basis (λ (b : α × α), b.fst < a ∧ a < b.snd) (λ (b : α × α), set.Ioo b.fst b.snd) :=
+sorry
+
+-- lemma added to mathlib after the beginning of our branch
+lemma nhds_basis_Ioo {α : Type*} [topological_space α] [linear_order α] [order_topology α]
+  [no_top_order α] [no_bot_order α] {a : α} :
+  (𝓝 a).has_basis (λ (b : α × α), b.fst < a ∧ a < b.snd) (λ (b : α × α), set.Ioo b.fst b.snd) :=
+sorry
+
+
 
 -- add lemma that the average over smaller and smaller boxes is the value at a point
 lemma averaging (P : (fin 2 → ℝ) → ℝ) (pcont: continuous P) (b : fin 2 → ℝ) :
@@ -902,13 +915,27 @@ begin
 
   have thiss := this sIsNeigh,
 
+  -- have := filter.eventually.curry thiss,
+
+  -- rw filter.has_basis.eventually_iff  nhds_basis_Ioo at thiss,
+  -- obtain ⟨x, ⟨hx₁, hx₂⟩, hx'⟩ := thiss,
+
+  -- obtain ⟨a, b⟩ := thiss,
+
   have foofoo := eventually_nhds_within_of_eventually_nhds thiss,
+  -- have foofoo := eventually_nhds_within_of_eventually_nhds thiss,
 
   have foo''' :
   ∀ᶠ (x : (fin 2 → ℝ) × (fin 2 → ℝ)) in 𝓝[(Iic b).prod (Ici b)] (b, b),
   ∀ (y ∈ rectangle x.1 x.2), P (foo''.symm y) ∈ NeighPb,
-  {
-    -- HEATHER
+  { -- HEATHER
+    rw filter.eventually_iff_exists_mem,
+    refine ⟨(Ioc x.1 b).prod (Ico b x.2), _, _⟩,
+    { apply nhds_within_prod,
+      have := hx₁,
+      -- apply Ioc_mem_nhds_within_Iic,
+      -- library_search,
+    },
     sorry,
   },
 

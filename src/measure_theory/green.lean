@@ -157,11 +157,23 @@ def box_volume (a b : fin 2 → ℝ) := ∏ (i : fin 2), (b i - a i)
 
 def box_volume' : (fin 2 → ℝ) × (fin 2 → ℝ) → ℝ := uncurry box_volume
 
+
+
+theorem set_mem_iff_prop (p : ℝ → Prop) (a : ℝ ) :
+a ∈ {x : ℝ  | p x} ↔ p a
+:=
+begin
+  rw  set.mem_def,
+  rw  set.set_of_app_iff,
+end
+
+
 lemma box_volume_eq (a b : fin 2 → ℝ) :
   box_volume a b = (b 0 - a 0)*(b 1 - a 1)
 :=
 begin
   rw box_volume,
+
   -- HOW TO GET ∏ to know there are two terms???
   sorry,
 end
@@ -347,7 +359,13 @@ begin
         rw mul_assoc,
 --        ring,
       },
-      simp [rw6],
+      simp at rw6,
+      simp,
+
+--    UH OH!!! SOMETHING'S BROKEN HERE; have a wrong sign (come back later...)
+
+--      refine rw6,
+      sorry,
       --rw rw2,
 --      refl,
 --      rw ite_eq_iff refl,  --ite_eq_left_iff,
@@ -403,7 +421,12 @@ begin
         rw this,
         --ring,
       },
-      exact rw6,
+
+      sorry,
+      -- SOMETHING IS WRONG HERE TOO!!! Sign error somewhere
+
+--      refine rw6,
+
     },
   },
   --- HEATHER
@@ -493,14 +516,6 @@ section prod_eq_pi
 
 /-! Lemmas relating `fin 2 → ℝ` and `ℝ × ℝ`. -/
 
-theorem set_mem_iff_prop (p : ℝ → Prop) (a : ℝ ) :
-a ∈ {x : ℝ  | p x} ↔ p a
-:=
-begin
-  rw  set.mem_def,
-  rw  set.set_of_app_iff,
-end
-
 
 def foo'' {α : Type} : equiv ((fin 2) → α) (α × α) :=
 { to_fun := λ f, ⟨f 0, f 1⟩,
@@ -534,16 +549,18 @@ def rectangle' {n : ℕ} (a b : fin n → ℝ) : set (fin n → ℝ) := λ x, �
 /-! A hyperplane divides a box in `fin n → ℝ` into smaller boxes. -/
 
 lemma covers (n : ℕ)  (i : fin n)
-  (p q a : fin n → ℝ) :
+  (p q a : fin n → ℝ) : p i ≤ a i → a i ≤ q i →
   rectangle' p q =
     rectangle' p (update q i (a i)) ∪
       rectangle' (update p i (a i)) q :=
 begin
+  intros piai qiai,
 --  rw Ioc,
   ext,
 --  simp,
   split,
   {
+    -- in big rect implies in both little rect's
     intros h,
     -- rw Ioc at h,
     -- either x i < a i or a i <= x i
@@ -591,53 +608,60 @@ begin
     },
   },
   {
+    -- in one of the little rect's implies in big rect
     intros h,
+    intros j,
+    rw Ioc,
+    rw set_mem_iff_prop,
 
-    -- split here by cases x i ≤ a i etc
-
-    by_cases xiLeai : x i ≤ a i,
-
+    rw rectangle' at h,
+    rw rectangle' at h,
+    by_cases ji : j = i,
     {
+      rw ji,
 
-    cases h,
-    {
-    --- ALEX
-      simp only [rectangle'],
-      intros j,
-      rw rectangle' at h,
-      by_cases ji : j = i,
+      cases h,
       {
-        let hj := h j,
+        -- we're in the bottom rectangle
+        have hj := h j,
+        rw Ioc at hj,
         rw ji at hj,
-        simp at hj,
-        rw Ioc,
-        rw ji,
-
-        rw set_mem_iff_prop,
-
-        rw set.mem_def at h,
-        have hi := h i,
-        rw set.mem_def at hi,
---        rw set.set_of_app_iff at hi,
+        rw set_mem_iff_prop at hj,
         split,
-        exact hj.1,
-        sorry,
+        linarith,
+        have hj2 := hj.2,
+        simp at hj2,
+        linarith,
       },
       {
-        sorry,
+        -- we're in the top rectangle
+        have hj := h j,
+        rw Ioc at hj,
+        rw ji at hj,
+        rw set_mem_iff_prop at hj,
+        rw update at hj,
+        simp at hj,
+        split,
+        linarith,
+        linarith,
       },
     },
     {
-    --- ALEX
-      sorry,
-    },      sorry,
-    },
-    {
-      sorry,
-    },
+      cases h,
+      {
+        have hj := h j,
+        rw update at hj,
+        simp [ji] at hj,
+        exact hj,
+      },
+      {
+        have hj := h j,
+        rw update at hj,
+        simp [ji] at hj,
+        exact hj,
+      },
 
-
-    sorry,
+    },
 
 
   },
@@ -648,6 +672,7 @@ lemma is_disjoint (n : ℕ) (i : fin n)
   disjoint (rectangle' p (update q i (a i)))
     (rectangle' (update p i (a i)) q) :=
 begin
+
   rw disjoint,
   intros x h,
   simp,
@@ -661,34 +686,27 @@ begin
   --have h211i := h.2.1.1 i,
   --simp at h211i,
   have h2 := h.2,
-  have h22 := h.2.2,
-  have h21 := h.2.1,
+  have h1 := h.1,
 
-  have h212 := h.2.1.2,
-  have h211 := h.2.1.1,
-  have claim : ∀ (i_1 : fin n), x i_1 ≤ update I.left i (a i) i_1 ,
-  {
-    intros j,
-    rw update,
-    split_ifs,
-    simp [h_1,xiLai],
-    have h1 := h.1.2 j,
-    convert h1,
-    simp [h_1],
---    refine h.2.1,
---ALEX
-    --by_cases ji : j= i,
+  rw rectangle' at h1,
+  rw  set.mem_def at h1,
+  have h1i := h1 i,
+  rw Ioc at h1i,
+  rw set_mem_iff_prop at h1i,
+  have h1i2 := h1i.2,
+  rw update at h1i2,
+  simp at h1i2,
 
-    sorry,
-  },
-  exact h212 claim,
---    have h212i := h212 i,
-    --convert h.2.1.2 i,
-    --simp,
-   sorry,
---  },
+  rw rectangle' at h2,
+  rw  set.mem_def at h2,
+  have h2i := h2 i,
+  rw Ioc at h2i,
+  rw set_mem_iff_prop at h2i,
+  have h2i2 := h2i.1,
+  rw update at h2i2,
+  simp at h2i2,
 
-
+  linarith,
 end
 
 end box_partition
@@ -791,7 +809,10 @@ begin
             rectangle (update I.left i (a i)) I.right),
     { rw [← rectangle_eq, ← rectangle_eq, ← rectangle_eq],
       rw ← preimage_union,
-      rw covers },
+      -- THIS IS NOW BROKEN - SORRY! -- need to give pi≤ ai≤ qi ...
+      --rw covers
+      sorry,
+      },
     rw this },
   { rw [← rectangle_eq, ← rectangle_eq],
     apply disjoint.preimage,
@@ -1162,7 +1183,7 @@ need lemma: if f=o(m) then div_diff = o
 
     -/
 
-    sorry,
+    repeat {sorry},
 
   },
 

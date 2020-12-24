@@ -8,14 +8,20 @@ import meta.rb_map
 import tactic.core
 
 namespace tactic
-meta def copy_attribute' (attr_name : name) (src : name) (tgt : name) (p : option bool := none) : tactic unit :=
+/-- `copy_attribute attr_name c_name p d_name` copy (user) attribute `attr_name` from
+   `src` to `tgt` if it is defined for `src`; and copy the parameter of the user attribute, in the
+   user attribute case. Make it persistent if `p` is `tt`; if `p` is `none`, the copied attribute is
+   made persistent iff it is persistent on `src`  -/
+meta def copy_attribute' (attr_name : name) (src : name) (tgt : name) (p : option bool := none) :
+tactic unit :=
 try $ do
   (p', prio) ← has_attribute attr_name src,
   let p := p.get_or_else p',
 get_decl tgt <|> fail!"unknown declaration {tgt}",
 s ← try_or_report_error (set_basic_attribute attr_name tgt p prio),
 sum.inr msg ← return s | skip,
-if msg = (format!"set_basic_attribute tactic failed, '{attr_name}' is not a basic attribute").to_string
+if msg =
+(format!"set_basic_attribute tactic failed, '{attr_name}' is not a basic attribute").to_string
 then do
   user_attr_nm ← get_user_attribute_name attr_name,
   user_attr_const ← mk_const user_attr_nm,

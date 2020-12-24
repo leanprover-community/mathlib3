@@ -77,6 +77,25 @@ lemma is_coatom_iff_is_atom_dual : is_coatom a ↔ is_atom (order_dual.to_dual a
 
 end atoms
 
+begin atomic
+
+variables [bounded_lattice α]
+
+/-- A lattice is atomic iff every element other than `⊥` has an atom below it. -/
+class is_atomic (α : Type*) [bounded_lattice α] : Prop :=
+(eq_bot_or_exists_atom_le : ∀ (b : α), b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b)
+
+/-- A lattice is coatomic iff every element other than `⊤` has a coatom above it. -/
+class is_coatomic (α : Type*) [bounded_lattice α] : Prop :=
+(eq_top_or_exists_le_coatom : ∀ (b : α), b = ⊤ ∨ ∃ (a : α), is_coatom a ∧ b ≤ a)
+
+theorem is_atomic_iff_is_coatomic_dual : is_atomic α ↔ is_coatomic (order_dual α) := refl
+
+theorem is_coatomic_iff_is_atomic_dual : is_coatomic α ↔ is_atomic (order_dual α) :=
+(is_atomic_iff_is_coatomic_dual (order_dual α)).symm
+
+end atomic
+
 /-- A lattice is simple iff it has only two elements, `⊥` and `⊤`. -/
 class is_simple_lattice (α : Type*) [bounded_lattice α] extends nontrivial α : Prop :=
 (eq_bot_or_eq_top : ∀ (a : α), a = ⊥ ∨ a = ⊤)

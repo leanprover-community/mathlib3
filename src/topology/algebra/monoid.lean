@@ -48,9 +48,6 @@ lemma continuous.mul [topological_space α] {f : α → M} {g : α → M}
   continuous (λx, f x * g x) :=
 continuous_mul.comp (hf.prod_mk hg : _)
 
--- should `to_additive` be doing this?
-attribute [continuity] continuous.add
-
 @[to_additive]
 lemma continuous_mul_left (a : M) : continuous (λ b:M, a * b) :=
 continuous_const.mul continuous_id
@@ -241,19 +238,14 @@ lemma tendsto_finset_prod {f : β → α → M} {x : filter α} {a : β → M} (
   (∀c∈s, tendsto (f c) x (𝓝 (a c))) → tendsto (λb, ∏ c in s, f c b) x (𝓝 (∏ c in s, a c)) :=
 tendsto_multiset_prod _
 
-@[to_additive, continuity]
+@[continuity, to_additive]
 lemma continuous_multiset_prod [topological_space α] {f : β → α → M} (s : multiset β) :
   (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).prod) :=
 by { rcases s with ⟨l⟩, simp, exact continuous_list_prod l }
-
-attribute [continuity] continuous_multiset_sum
 
 @[continuity, to_additive]
 lemma continuous_finset_prod [topological_space α] {f : β → α → M} (s : finset β) :
   (∀c∈s, continuous (f c)) → continuous (λa, ∏ c in s, f c a) :=
 continuous_multiset_prod _
-
--- should `to_additive` be doing this?
-attribute [continuity] continuous_finset_sum
 
 end

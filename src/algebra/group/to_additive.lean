@@ -301,7 +301,7 @@ protected meta def attr : user_attribute unit value_type :=
     else do
       transform_decl_with_prefix_dict dict src tgt
         [`reducible, `simp, `norm_cast, `instance, `refl, `symm, `trans, `elab_as_eliminator,
-          `no_rsimp],
+          `no_rsimp, `continuity],
       match val.doc with
       | some doc := add_doc_string tgt doc
       | none := skip

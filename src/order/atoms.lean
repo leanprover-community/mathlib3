@@ -101,12 +101,10 @@ protected def bounded_distrib_lattice : bounded_distrib_lattice α :=
 
 instance [decidable_eq α] : fintype α :=
 { elems := {⊥, ⊤},
-  complete := λ x, sorry, }
+  complete := λ x, finset.mem_insert.2 (or.imp_right finset.mem_singleton.2 (eq_bot_or_eq_top x)) }
 
 lemma card [decidable_eq α] : fintype.card α = 2 :=
-begin
-  simp
-end
+finset.card_insert_of_not_mem $ λ con, bot_ne_top (finset.mem_singleton.1 con)
 
 protected def boolean_algebra [decidable_eq α] : boolean_algebra α :=
 { compl := λ x, if x = ⊥ then ⊤ else ⊥,
@@ -227,8 +225,25 @@ is_simple_lattice_iff_is_coatom_bot.trans $ and_congr (not_congr subtype.mk_eq_m
 
 end set
 
-section rel_embedding
+namespace order_iso
 
+variables [bounded_lattice α] {β : Type*} [bounded_lattice β] (f : α ≃o β)
+include f
 
+lemma is_atom_iff (a : α) : is_atom a ↔ is_atom (f a) :=
+and_congr (not_congr ⟨λ h, f.map_bot ▸ (congr rfl h), λ h, (f.injective (f.map_bot.symm ▸ h))⟩)
+  ⟨λ h b hb, f.symm.injective begin
+    rw f.symm.map_bot,
+    apply h,
+    rw [← f.symm_apply_apply a],
+    exact (order_embedding.map_lt_iff ↑f.symm).1 hb,
+  end,
+  λ h b hb, f.injective (eq.trans (h (f b) ((order_embedding.map_lt_iff ↑f).1 hb)) f.map_bot.symm) ⟩
 
-end rel_embedding
+lemma is_coatom_iff (a : α) : is_coatom a ↔ is_coatom (f a) := f.dual.is_atom_iff a
+
+lemma is_simple_lattice_iff (f : α ≃o β) : is_simple_lattice α ↔ is_simple_lattice β :=
+by rw [is_simple_lattice_iff_is_atom_top, is_simple_lattice_iff_is_atom_top,
+  f.is_atom_iff ⊤, f.map_top]
+
+end order_iso

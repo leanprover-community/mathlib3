@@ -1,5 +1,24 @@
+/-
+Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Yury G. Kudryashov
+-/
 import data.list.sort
 import data.fin
+
+/-!
+# Isomorphism between `fin (length l)` and `{x // x ∈ l}`
+
+Given a list `l,
+
+* if `l` has no duplicates, then `list.nodup.nth_le_equiv` is the bijection between `fin (length l)`
+  and `{x // x ∈ l}` sending `⟨i, hi⟩` to `⟨nth_le l i hi, _⟩` with the inverse sending `⟨x, hx⟩` to
+  `⟨index_of x l, _⟩`;
+
+* if `l` is sorted w.r.t. `(<)`, then `list.sorted.nth_le_iso` is the same bijection reinterpreted
+  as an `order_iso`.
+
+-/
 
 namespace list
 

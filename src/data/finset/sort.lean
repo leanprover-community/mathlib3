@@ -45,8 +45,6 @@ multiset.length_sort _
 
 end sort
 
-set_option trace.class_instances false
-
 section sort_linear_order
 
 variables [linear_order α]

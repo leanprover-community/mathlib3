@@ -701,8 +701,29 @@ lemma box_integral_const (cU : ℝ)  (a b : fin 2 → ℝ) :
 begin
 
   -- ALEX TO DO
+  -- TRIED AND FAILED!!!
+
   rw box_integral,
   rw rectangle,
+
+--  rw measure_theory.integral_prod ,
+
+--  refine interval_integral.integral_const_of_cdf,
+
+
+--  rw interval_integral.integral_const_of_cdf,
+  sorry,
+end
+
+lemma box_integral_ineq ( P Q : (fin 2 → ℝ ) →  ℝ)  (a b : fin 2 → ℝ) :
+  (∀ x, (foo'' x) ∈ (rectangle a b) → P x ≤  Q x) → box_integral P a b ≤   box_integral Q a b  :=
+begin
+  intros,
+  -- ALEX TO DO
+  --- ???? Abstract measure inequality??
+  rw box_integral,
+  rw box_integral,
+
 --  rw interval_integral.integral_const_of_cdf,
   sorry,
 end
@@ -879,12 +900,53 @@ begin
 
   refine abs_le.2 _,
 
+  have x11LeB : x1 1 ≤ b 1 ,
+  {
+    refine H1 _,
+  },
+  have x12LeB : x1 0 ≤ b 0 ,
+  {
+    refine H1 _,
+  },
+  have x21geB : b 1 ≤ x2 1 ,
+  {
+    refine H2 _,
+  },
+  have x22geB : b 0 ≤ x2 0 ,
+  {
+    refine H2 _,
+  },
+  have x2igex1i : ∀ (i : fin 2), x1 i ≤ x2 i,
+  {
+    intros,
+    cases split_fin2 i,
+    rw h,
+    linarith,
+    rw h,
+    linarith,
+  },
+
+  have boxVolAbs :
+  ∥box_volume x1 x2∥
+    =   box_volume x1 x2,
+    {
+      rw box_volume,
+      have prodGe0 : 0 ≤
+      ∏ (i : fin 2), (x2 i - x1 i),
+      {
+        refine finset.prod_nonneg _,
+        simp [x2igex1i],
+      },
+      refine  abs_of_nonneg prodGe0 ,
+
+    },
+
   split,
 
   {
 --    rw mul_comm,
 --    rw ← box_integral_const,
-    rw box_integral,
+--    rw box_integral,
 
     calc
     -(c * ∥box_volume x1 x2∥)
@@ -892,107 +954,104 @@ begin
     ... = box_volume x1 x2 * P b
     - box_volume x1 x2 * c
      - box_volume x1 x2 * P b : _
-    ... = box_volume x1 x2 * P b
-    - ∫ (x : ℝ × ℝ) in rectangle x1 x2, c ∂volume.prod volume
+    ... = box_integral (λ x,  P b - c ) x1 x2
      - box_volume x1 x2 * P b : _
-    ... = ∫ (x : ℝ × ℝ) in rectangle x1 x2, P b ∂volume.prod volume
-    - ∫ (x : ℝ × ℝ) in rectangle x1 x2, c ∂volume.prod volume
-     - box_volume x1 x2 * P b : _
-    ... = ∫ (x : ℝ × ℝ) in rectangle x1 x2, (P b - c) ∂volume.prod volume - box_volume x1 x2 * P b : _
-    ... ≤ ∫ (x : ℝ × ℝ) in rectangle x1 x2,
-    P (((foo' ℝ ℝ).symm) x) ∂volume.prod volume - box_volume x1 x2 * P b : _,
+    ... ≤ box_integral P x1 x2 - box_volume x1 x2 * P b : _,
 
     {
       simp,
       left,
-      rw box_volume,
-      have x11LeB : x1 1 ≤ b 1 ,
-      {
-        refine H1 _,
-      },
-      have x12LeB : x1 0 ≤ b 0 ,
-      {
-        refine H1 _,
-      },
-      have x21geB : b 1 ≤ x2 1 ,
-      {
-        refine H2 _,
-      },
-      have x22geB : b 0 ≤ x2 0 ,
-      {
-        refine H2 _,
-      },
-      have x2igex1i : ∀ (i : fin 2), x1 i ≤ x2 i,
-      {
-        intros,
-        cases split_fin2 i,
-        rw h,
-        linarith,
-        rw h,
-        linarith,
-      },
-      have prodGe0 : 0 ≤
-      ∏ (i : fin 2), (x2 i - x1 i),
-      {
+      exact boxVolAbs,
+    },
+    {
+      ring,
+    },
+    {
+      rw box_integral_const,
+      ring,
+    },
+    {
+      simp,
 
-        sorry,
+      have ineq1 : ∀ x, (foo'' x ∈ rectangle x1 x2) →  P b - c ≤ P x,
+      {
+        intros x hx,
+        have h3hx := le_of_lt (H3 (x 0) (x 1) hx).1,
+        have xIs : ((foo''.symm) (x 0, x 1)) = x,
+        {
+          ext,
+          cases split_fin2 x_1,
+          rw h,
+          rw foo'',
+          simp,
+          rw h,
+          rw foo'',
+          simp,
+        },
+        rw xIs at h3hx,
+        exact h3hx,
       },
-      refine  abs_of_nonneg prodGe0 ,
-    },
-    {
-      sorry,
-    },
-    {
-      sorry,
-    },
-    {
-      sorry,
-    },
-    {
-      sorry,
-    },
-    {
-      sorry,
+
+
+      refine box_integral_ineq ((λ (x : fin 2 → ℝ), P b - c)) P  x1 x2 ineq1,
     },
   },
 
   {
+    calc
+    box_integral P x1 x2 - box_volume x1 x2 * P b
+    ≤
+    box_integral (λ x,  P b + c ) x1 x2 - box_volume x1 x2 * P b  : _
+    ... =
+    box_volume x1 x2 * P b
+    + box_volume x1 x2 * c
+     - box_volume x1 x2 * P b : _
+    ... =    (c * box_volume x1 x2) : _
+    ... =
+         c * ∥box_volume x1 x2∥ : _,
 
-    sorry,
+    {
+      simp,
+
+      have ineq1 : ∀ x, (foo'' x ∈ rectangle x1 x2) →  P x ≤  P b + c ,
+      {
+        intros x hx,
+        have h3hx := le_of_lt (H3 (x 0) (x 1) hx).2,
+        have xIs : ((foo''.symm) (x 0, x 1)) = x,
+        {
+          ext,
+          cases split_fin2 x_1,
+          rw h,
+          rw foo'',
+          simp,
+          rw h,
+          rw foo'',
+          simp,
+        },
+        rw xIs at h3hx,
+        exact h3hx,
+      },
+
+      refine box_integral_ineq P ((λ (x : fin 2 → ℝ), P b + c))  x1 x2 ineq1,
+    },
+
+    {
+      rw box_integral_const,
+      ring,
+    },
+    {
+      ring,
+    },
+    {
+      simp,
+      left,
+      rw  boxVolAbs,
+    },
+
   },
 
 
-  --ALEX
-
-  sorry,
-
-/-
-  have foofoo' := eventually_nhds_within_of_eventually_nhds thiss,
-
-
-  have foo'' := filter.eventually.prod_mk foofoo foofoo',
-
-  rw ← nhds_within_prod_eq at foo'',
-
-  refine foo''.mp _,
-
-  rw mul_comm,
-
-  rw ← box_integral_const,
-
-  rw box_integral,
-  rw box_integral,
-
-  rw ←  measure_theory.integral_sub,
-
-
-
-
-
-
--/
-
-
+  -- ????
   sorry,
 end
 

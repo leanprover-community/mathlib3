@@ -161,6 +161,8 @@ lemma box_volume_eq (a b : fin 2 → ℝ) :
   box_volume a b = (b 0 - a 0)*(b 1 - a 1)
 :=
 begin
+  rw box_volume,
+  -- HOW TO GET ∏ to know there are two terms???
   sorry,
 end
 
@@ -491,6 +493,15 @@ section prod_eq_pi
 
 /-! Lemmas relating `fin 2 → ℝ` and `ℝ × ℝ`. -/
 
+theorem set_mem_iff_prop (p : ℝ → Prop) (a : ℝ ) :
+a ∈ {x : ℝ  | p x} ↔ p a
+:=
+begin
+  rw  set.mem_def,
+  rw  set.set_of_app_iff,
+end
+
+
 def foo'' {α : Type} : equiv ((fin 2) → α) (α × α) :=
 { to_fun := λ f, ⟨f 0, f 1⟩,
   inv_fun := λ p i, if i = 0 then p.fst else p.snd,
@@ -584,7 +595,9 @@ begin
 
     -- split here by cases x i ≤ a i etc
 
-    sorry,
+    by_cases xiLeai : x i ≤ a i,
+
+    {
 
     cases h,
     {
@@ -597,6 +610,17 @@ begin
         let hj := h j,
         rw ji at hj,
         simp at hj,
+        rw Ioc,
+        rw ji,
+
+        rw set_mem_iff_prop,
+
+        rw set.mem_def at h,
+        have hi := h i,
+        rw set.mem_def at hi,
+--        rw set.set_of_app_iff at hi,
+        split,
+        exact hj.1,
         sorry,
       },
       {
@@ -606,7 +630,16 @@ begin
     {
     --- ALEX
       sorry,
+    },      sorry,
     },
+    {
+      sorry,
+    },
+
+
+    sorry,
+
+
   },
 end
 

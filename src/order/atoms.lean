@@ -101,7 +101,7 @@ protected def bounded_distrib_lattice : bounded_distrib_lattice α :=
 
 instance [decidable_eq α] : fintype α :=
 { elems := {⊥, ⊤},
-  complete := eq_bot_or_eq_top }
+  complete := λ x, sorry, }
 
 lemma card [decidable_eq α] : fintype.card α = 2 :=
 begin

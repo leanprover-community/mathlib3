@@ -21,17 +21,9 @@ complement.
 
 ## Notation
 
- - `ᶜ` : Set / lattice complement
  - ` ⇨ ` : implication as an operator internal to a lattice.
 
 -/
-
-/-- Set / lattice complement -/
-class has_compl (α : Type*) := (compl : α → α)
-
-export has_compl (compl)
-
-postfix `ᶜ`:(max+1) := compl
 
 universes u v
 variables {α : Type u} {w x y z : α}
@@ -48,11 +40,10 @@ infixr ` ⇨ `:60 := has_internal_imp.imp
   This is a generalization of the logic of propositions and of open sets of a topology, though
   heyting algebra morphisms are distinct from images of continous functions.
   -/
-class heyting_algebra α extends bounded_distrib_lattice α, has_compl α, has_internal_imp α :=
+class heyting_algebra α extends bounded_distrib_lattice α, has_internal_imp α :=
   (imp_adjoint : ∀ x y z : α, x ⊓ y ≤ z ↔ x ≤ y ⇨ z)
-  (compl_eq : ∀ x : α, xᶜ = (x ⇨ ⊥))
 
-export heyting_algebra (imp_adjoint compl_eq)
+export heyting_algebra (imp_adjoint)
 
 section heyting_algebra
 variables [heyting_algebra α]
@@ -94,43 +85,6 @@ lemma imp_app : (x ⇨ y) ⊓ x ≤ y :=
 @[simp]
 lemma imp_inf_eq_left_inf : (x ⇨ y) ⊓ x = y ⊓ x:=
   le_antisymm (le_inf imp_app inf_le_right) (inf_le_inf le_internal_imp rfl.ge)
-
-@[simp]
-lemma inf_compl_eq_bot : x ⊓ xᶜ = ⊥ :=
-  begin
-    rw compl_eq,
-    exact inf_imp_eq_inf_left.trans inf_bot_eq,
-  end
-
-@[simp] theorem compl_inf_eq_bot : xᶜ ⊓ x = ⊥ :=
-  eq.trans inf_comm inf_compl_eq_bot
-
--- if x has a boolean complement it is unique
-theorem compl_unique (i : x ⊓ y = ⊥) (s : x ⊔ y = ⊤) : xᶜ = y :=
-  begin
-    rw compl_eq,
-    apply le_antisymm,
-    {
-      transitivity (⊤ ⊓ (x ⇨ ⊥)),
-      have h : (x ⇨ ⊥) = ⊤ ⊓ (x ⇨ ⊥):= top_inf_eq.symm,
-      rw ← h,
-      reflexivity,
-      rw ← s,
-      rw inf_sup_right,
-      apply sup_le,
-      transitivity ⊥,
-      apply internal_imp_mp,
-      exact bot_le,
-      apply inf_le_left,
-    },
-
-    {
-      rw ← imp_adjoint,
-      rw inf_comm,
-      rw i,
-    }
-
-  end
 end heyting_algebra
 
 instance has_internal_imp_prop : has_internal_imp Prop := ⟨λ x y, x → y⟩
@@ -145,9 +99,7 @@ lemma imp_adjoint_prop (a b c : Prop) : (a ⊓ b ≤ c) ↔ (a ≤ b ⇨ c) :=
 
 instance heyting_algebra_prop : heyting_algebra Prop :=
   {
-    compl := not,
     imp_adjoint := imp_adjoint_prop,
-    compl_eq := λ a, rfl,
     ..has_internal_imp_prop,
     ..bounded_distrib_lattice_Prop
   }

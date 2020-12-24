@@ -13,38 +13,30 @@ set_option old_structure_cmd true
 universes u v
 variables {α : Type u} {w x y z : α}
 
+/-- Set / lattice complement -/
+class has_compl (α : Type*) := (compl : α → α)
+
+export has_compl (compl)
+
+postfix `ᶜ`:(max+1) := compl
+
 /-- A boolean algebra is a bounded distributive lattice with a
   complementation operation `-` such that `x ⊓ - x = ⊥` and `x ⊔ - x = ⊤`.
   This is a generalization of (classical) logic of propositions, or
   the powerset lattice. -/
-
-class boolean_algebra α extends heyting_algebra α, has_sdiff α :=
+class boolean_algebra α extends bounded_distrib_lattice α, has_compl α, has_sdiff α :=
+(inf_compl_le_bot : ∀x:α, x ⊓ xᶜ ≤ ⊥)
 (top_le_sup_compl : ∀x:α, ⊤ ≤ x ⊔ xᶜ)
 (sdiff_eq : ∀x y:α, x \ y = x ⊓ yᶜ)
 
-
-
-instance boolean_from_compl (α : Type*) [inst_bdl : bounded_distrib_lattice α] [inst_c : has_compl α] [inst_s : has_sdiff α]
-  (sdiff_eq' : ∀x y:α, x \ y = x ⊓ yᶜ) (top_le_sup_compl' : ∀x:α, ⊤ ≤ x ⊔ xᶜ) :
-  boolean_algebra α :=
-  {
-    imp := λ x y, xᶜ ⊔ y,
-    imp_adjoint :=
-      begin
-        intros,
-        have h : ∀ x y, x ⇨ y = xᶜ ⊔ y := λ x y, begin unfold imp, end,
-        rw h,
-      end,
-    compl_eq := λ x, sup_bot_eq.symm,
-    top_le_sup_compl := top_le_sup_compl',
-    sdiff_eq := sdiff_eq',
-    .. inst_bdl,
-    .. inst_c,
-    .. inst_s
-  }
-
 section boolean_algebra
 variables [boolean_algebra α]
+
+@[simp] theorem inf_compl_eq_bot : x ⊓ xᶜ = ⊥ :=
+bot_unique $ boolean_algebra.inf_compl_le_bot x
+
+@[simp] theorem compl_inf_eq_bot : xᶜ ⊓ x = ⊥ :=
+eq.trans inf_comm inf_compl_eq_bot
 
 @[simp] theorem sup_compl_eq_top : x ⊔ xᶜ = ⊤ :=
 top_unique $ boolean_algebra.top_le_sup_compl x
@@ -63,6 +55,9 @@ theorem disjoint_compl_left : disjoint xᶜ x := disjoint_compl_right.symm
 
 theorem sdiff_eq : x \ y = x ⊓ yᶜ :=
 boolean_algebra.sdiff_eq x y
+
+theorem compl_unique (i : x ⊓ y = ⊥) (s : x ⊔ y = ⊤) : xᶜ = y :=
+(is_compl.of_eq i s).compl_eq
 
 @[simp] theorem compl_top : ⊤ᶜ = (⊥:α) :=
 is_compl_top_bot.compl_eq
@@ -116,12 +111,52 @@ instance boolean_algebra_Prop : boolean_algebra Prop :=
 { compl := not,
   sdiff := λ p q, p ∧ ¬ q,
   sdiff_eq := λ _ _, rfl,
+  inf_compl_le_bot := λ p ⟨Hp, Hpc⟩, Hpc Hp,
   top_le_sup_compl := λ p H, classical.em p,
-  .. heyting_algebra_prop }
+  .. bounded_distrib_lattice_Prop }
 
 instance pi.boolean_algebra {α : Type u} {β : Type v} [boolean_algebra β] :
   boolean_algebra (α → β) :=
-  begin
-    pi_instance,
-    apply pi.heyting_algebra.imp_adjoint,
-  end
+by pi_instance
+
+instance has_internal_imp_of_boolean {α} [H : boolean_algebra α] : has_internal_imp α :=
+  {imp := λ x y, xᶜ ⊔ y}
+
+@[simp] lemma boolean_imp_eq {α} [H : boolean_algebra α] (x y : α) : (x ⇨ y) = xᶜ ⊔ y := rfl
+
+lemma heyting_of_boolean_aux_aux {α}
+  [H : boolean_algebra α]
+  (x y z : α)
+  (h_1 : x ≤ yᶜ ⊔ z)
+  (h_2 : x ≤ y)
+  : x ≤ z :=
+  calc
+    x ≤ (y ⊓ (yᶜ ⊔ z)) : le_inf h_2 h_1
+    ... ≤ (y ⊓ yᶜ) ⊔ (y ⊓ z) : inf_sup_left.le
+    ... ≤ ((y ⊓ yᶜ) ⊔ z) : sup_le_sup_left inf_le_right (y ⊓ yᶜ)
+    ... = ⊥ ⊔ z : by {congr, exact inf_compl_eq_bot}
+    ... = z : by {exact bot_sup_eq}
+
+lemma heyting_of_boolean_aux {α}
+  [H : boolean_algebra α]
+  (x y z : α)
+  (h : x ⊓ y ≤ yᶜ ⊔ z) :
+  x ⊓ y ≤ z := heyting_of_boolean_aux_aux (x ⊓ y) y z h inf_le_right
+
+instance heyting_of_boolean {α} [H : boolean_algebra α] : heyting_algebra α :=
+  {
+    imp_adjoint := λ x y z,
+      begin
+        rw boolean_imp_eq,
+        symmetry,
+        split; intros h,
+        refine heyting_of_boolean_aux x y z (le_trans inf_le_left h),
+        {
+          transitivity x ⊓ (y ⊔ yᶜ),
+          refine le_inf (le_refl x) (le_trans le_top (boolean_algebra.top_le_sup_compl y)),
+          refine le_trans inf_sup_left.le (le_trans (sup_le_sup h inf_le_right) sup_comm.le),
+        }
+      end,
+    ..H,
+    .. @has_internal_imp_of_boolean α H,
+  }

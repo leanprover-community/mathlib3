@@ -132,7 +132,8 @@ instance : semilattice_inf_top (open_subgroup G) :=
 
 @[simp, norm_cast, to_additive] lemma coe_subset : (U : set G) ⊆ V ↔ U ≤ V := iff.rfl
 
-@[simp, norm_cast, to_additive] lemma coe_subgroup_le : (U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
+@[simp, norm_cast, to_additive] lemma coe_subgroup_le :
+(U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
 
 end open_subgroup
 

@@ -236,11 +236,14 @@ instance : has_neg (continuous_multilinear_map R M₁ M₂) :=
 
 @[simp] lemma neg_apply (m : Πi, M₁ i) : (-f) m = - (f m) := rfl
 
-instance : add_comm_group (continuous_multilinear_map R M₁ M₂) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
-   intros; ext; simp [add_comm, add_left_comm]
+instance : has_sub (continuous_multilinear_map R M₁ M₂) :=
+⟨λ f g, { cont := f.cont.sub g.cont, .. (f.to_multilinear_map - g.to_multilinear_map) }⟩
 
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - f') m = f m - f' m := rfl
+
+instance : add_comm_group (continuous_multilinear_map R M₁ M₂) :=
+by refine { zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _, .. };
+   intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
 
 end topological_add_group
 

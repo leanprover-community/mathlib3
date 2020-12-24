@@ -393,22 +393,6 @@ lt_of_not_ge (λ ha, absurd h (mul_nonpos_of_nonneg_of_nonpos ha hb).not_lt)
 lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
 lt_of_not_ge (λ hb, absurd h (mul_nonpos_of_nonpos_of_nonneg ha hb).not_lt)
 
-lemma exists_lt_mul_self (a : α) : ∃ x : α, a < x * x :=
-begin
-  by_cases ha : 0 ≤ a,
-  { use (a + 1),
-    calc a = a * 1 : by rw mul_one
-    ... < (a + 1) * (a + 1) : mul_lt_mul (lt_add_one _) (le_add_of_nonneg_left ha)
-                                         zero_lt_one (add_nonneg ha zero_le_one) },
-  { rw not_le at ha,
-    use 1,
-    calc a < 0     : ha
-       ... < 1 * 1 : by simpa only [mul_one] using zero_lt_one' }
-end
-
-lemma exists_le_mul_self (a : α) : ∃ x : α, a ≤ x * x :=
-let ⟨x, hx⟩ := exists_lt_mul_self a in ⟨x, le_of_lt hx⟩
-
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
   no_top_order α :=
@@ -509,35 +493,27 @@ begin
 end
 
 lemma ordered_ring.mul_le_mul_of_nonneg_left (h₁ : a ≤ b) (h₂ : 0 ≤ c) : c * a ≤ c * b :=
-have 0 ≤ b - a,       from sub_nonneg_of_le h₁,
-have 0 ≤ c * (b - a), from ordered_ring.mul_nonneg c (b - a) h₂ this,
 begin
-  rw mul_sub_left_distrib at this,
-  apply le_of_sub_nonneg this
+  rw [← sub_nonneg, ← mul_sub],
+  exact ordered_ring.mul_nonneg c (b - a) h₂ (sub_nonneg.2 h₁),
 end
 
 lemma ordered_ring.mul_le_mul_of_nonneg_right (h₁ : a ≤ b) (h₂ : 0 ≤ c) : a * c ≤ b * c :=
-have 0 ≤ b - a,       from sub_nonneg_of_le h₁,
-have 0 ≤ (b - a) * c, from ordered_ring.mul_nonneg (b - a) c this h₂,
 begin
-  rw mul_sub_right_distrib at this,
-  apply le_of_sub_nonneg this
+  rw [← sub_nonneg, ← sub_mul],
+  exact ordered_ring.mul_nonneg _ _ (sub_nonneg.2 h₁) h₂,
 end
 
 lemma ordered_ring.mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
-have 0 < b - a,       from sub_pos_of_lt h₁,
-have 0 < c * (b - a), from ordered_ring.mul_pos c (b - a) h₂ this,
 begin
-  rw mul_sub_left_distrib at this,
-  apply lt_of_sub_pos this
+  rw [← sub_pos, ← mul_sub],
+  exact ordered_ring.mul_pos _ _ h₂ (sub_pos.2 h₁),
 end
 
 lemma ordered_ring.mul_lt_mul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a * c < b * c :=
-have 0 < b - a,       from sub_pos_of_lt h₁,
-have 0 < (b - a) * c, from ordered_ring.mul_pos (b - a) c this h₂,
 begin
-  rw mul_sub_right_distrib at this,
-  apply lt_of_sub_pos this
+  rw [← sub_pos, ← sub_mul],
+  exact ordered_ring.mul_pos _ _ (sub_pos.2 h₁) h₂,
 end
 
 @[priority 100] -- see Note [lower instance priority]
@@ -735,32 +711,6 @@ lt_of_not_ge (λ hb, absurd h (mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 /-- The sum of two squares is zero iff both elements are zero. -/
 lemma mul_self_add_mul_self_eq_zero {x y : α} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
 by rw [add_eq_zero_iff', mul_self_eq_zero, mul_self_eq_zero]; apply mul_self_nonneg
-
-lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
-if hz : 0 ≤ a - b then
-  (calc
-      a ≥ b     : le_of_sub_nonneg hz
-    ... ≥ b - c : sub_le_self _ $ (abs_nonneg _).trans h)
-else
-  have habs : b - a ≤ c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
-  have habs' : b ≤ c + a, from le_add_of_sub_right_le habs,
-  sub_left_le_of_le_add habs'
-
-lemma sub_le_of_abs_sub_le_right (h : abs (a - b) ≤ c) : a - c ≤ b :=
-sub_le_of_abs_sub_le_left (abs_sub a b ▸ h)
-
-lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
-if hz : 0 ≤ a - b then
-   (calc
-      a ≥ b     : le_of_sub_nonneg hz
-    ... > b - c : sub_lt_self _ ((abs_nonneg _).trans_lt h))
-else
-  have habs : b - a < c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
-  have habs' : b < c + a, from lt_add_of_sub_right_lt habs,
-  sub_left_lt_of_lt_add habs'
-
-lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
-sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
 
 lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
 (mul_self_add_mul_self_eq_zero.mp h).left

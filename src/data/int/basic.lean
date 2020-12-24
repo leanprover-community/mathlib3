@@ -31,6 +31,7 @@ instance : comm_ring int :=
   one            := int.one,
   one_mul        := int.one_mul,
   mul_one        := int.mul_one,
+  sub            := int.sub,
   left_distrib   := int.distrib_left,
   right_distrib  := int.distrib_right,
   mul_comm       := int.mul_comm }
@@ -586,8 +587,8 @@ by rw [mul_comm, mul_comm c, mul_div_mul_of_pos _ _ H]
 by rw [mod_def, mod_def, mul_div_mul_of_pos _ _ H, mul_sub_left_distrib, mul_assoc]
 
 theorem lt_div_add_one_mul_self (a : ℤ) {b : ℤ} (H : 0 < b) : a < (a / b + 1) * b :=
-by rw [add_mul, one_mul, mul_comm]; apply lt_add_of_sub_left_lt;
-   rw [← mod_def]; apply mod_lt_of_pos _ H
+by { rw [add_mul, one_mul, mul_comm, ← sub_lt_iff_lt_add', ← mod_def],
+  exact mod_lt_of_pos _ H }
 
 theorem abs_div_le_abs : ∀ (a b : ℤ), abs (a / b) ≤ abs a :=
 suffices ∀ (a : ℤ) (n : ℕ), abs (a / n) ≤ abs a, from

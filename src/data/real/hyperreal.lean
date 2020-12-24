@@ -500,7 +500,7 @@ is_st_iff_abs_sub_lt_delta.mpr $ λ d hd,
         (mul_le_mul_of_nonneg_right (le_of_lt $ hxr' _ $ half_pos $ div_pos hd $
           abs_pos.2 hs) $ abs_nonneg _)
   ... = (d / 2 * (abs x / t) + d / 2 : ℝ*) : by
-      { push_cast,
+      { push_cast [-filter.germ.const_div], -- TODO: Why wasn't `hyperreal.coe_div` used?
         have : (abs s : ℝ*) ≠ 0, by simpa,
         have : (2 : ℝ*) ≠ 0 := two_ne_zero,
         field_simp [*, add_mul, mul_add, mul_assoc],

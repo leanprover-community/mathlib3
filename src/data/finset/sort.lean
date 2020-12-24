@@ -165,9 +165,9 @@ lemma order_emb_of_fin_unique' {s : finset α} {k : ℕ} (h : s.card = k) {f : f
   (hfs : ∀ x, f x ∈ s) : f = s.order_emb_of_fin h :=
 rel_embedding.ext $ function.funext_iff.1 $ order_emb_of_fin_unique h hfs f.strict_mono
 
-/-- Two parametrizations `order_emb_of_fin` of the same set take the same value on `i` and `j` if and
-only if `i = j`. Since they can be defined on a priori not defeq types `fin k` and `fin l` (although
-necessarily `k = l`), the conclusion is rather written `(i : ℕ) = (j : ℕ)`. -/
+/-- Two parametrizations `order_emb_of_fin` of the same set take the same value on `i` and `j` if
+and only if `i = j`. Since they can be defined on a priori not defeq types `fin k` and `fin l`
+(although necessarily `k = l`), the conclusion is rather written `(i : ℕ) = (j : ℕ)`. -/
 @[simp] lemma order_emb_of_fin_eq_order_emb_of_fin_iff
   {k l : ℕ} {s : finset α} {i : fin k} {j : fin l} {h : s.card = k} {h' : s.card = l} :
   s.order_emb_of_fin h i = s.order_emb_of_fin h' j ↔ (i : ℕ) = (j : ℕ) :=

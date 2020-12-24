@@ -220,9 +220,7 @@ begin
   intros i j hij,
   rw affine_independent_iff_linear_independent_vsub _ _ j at ha,
   by_contra hij',
-  refine ha.ne_zero _,
-  { exact ⟨i, hij'⟩ },
-  { exact vsub_eq_zero_iff_eq.mpr hij },
+  exact ha.ne_zero ⟨i, hij'⟩ (vsub_eq_zero_iff_eq.mpr hij)
 end
 
 /-- If a family is affinely independent, so is any subfamily given by
@@ -364,7 +362,7 @@ begin
     have h0 : ∀ v : V, v ∈ sv → v ≠ 0,
     { intros v hv,
       change ((⟨v, hv⟩ : sv) : V) ≠ 0,
-      exact hsvi.ne_zero },
+      exact hsvi.ne_zero _ },
     rw linear_independent_set_iff_affine_independent_vadd_union_singleton k h0 p₁ at hsvi,
     use [{p₁} ∪ (λ v, v +ᵥ p₁) '' sv, set.empty_subset _, hsvi,
          affine_span_singleton_union_vadd_eq_top_of_span_eq_top p₁ hsvt] },
@@ -373,7 +371,7 @@ begin
     have h0 : ∀ v : V, v ∈ sv → v ≠ 0,
     { intros v hv,
       change ((⟨v, hv⟩ : sv) : V) ≠ 0,
-      exact hsvi.ne_zero },
+      exact hsvi.ne_zero _ },
     rw linear_independent_set_iff_affine_independent_vadd_union_singleton k h0 p₁ at hsvi,
     use {p₁} ∪ (λ v, v +ᵥ p₁) '' sv,
     split,

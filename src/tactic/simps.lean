@@ -36,6 +36,7 @@ open tactic expr
 
 setup_tactic_parser
 declare_trace simps.verbose
+declare_trace simps.debug
 
 /--
 The `@[_simps_str]` attribute specifies the preferred projections of the given structure,
@@ -326,8 +327,13 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
 meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
   (univs : list name) (cfg : simps_cfg) : tactic unit := do
   -- simplify `rhs` if `simp_rhs` and `simp` makes progress
-  (rhs, prf) ← (guard cfg.simp_rhs >> rhs.simp) <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
-  eq_ap ← mk_mapp `eq $ [type, lhs, rhs].map some,
+  when_tracing `simps.debug trace!
+    "[simps] > Planning to add\n        > {lhs}\n        > =\n        > {rhs}\n        > in type
+        > {type}",
+  (rhs2, prf) ← (guard cfg.simp_rhs >> rhs.simp) <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
+  when_tracing `simps.debug $ when (rhs ≠ rhs2) trace!
+    "[simps] > Simplified\n        > {rhs}\n        > to\n        > {rhs2}",
+  eq_ap ← mk_mapp `eq $ [type, lhs, rhs2].map some,
   decl_name ← get_unused_decl_name nm,
   let decl_type := eq_ap.pis args,
   let decl_value := prf.lambdas args,
@@ -336,7 +342,7 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
     "[simps] > adding projection\n        > {decl_name} : {decl_type}",
   decorate_error ("failed to add projection lemma " ++ decl_name.to_string ++ ". Nested error:") $
     add_decl decl,
-  b ← succeeds $ is_def_eq lhs rhs,
+  b ← succeeds $ is_def_eq lhs rhs2,
   when (b ∧ `simp ∈ cfg.attrs) (set_basic_attribute `_refl_lemma decl_name tt),
   cfg.attrs.mmap' $ λ nm, set_attribute nm decl_name tt
 
@@ -347,8 +353,15 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
   (cfg : simps_cfg) (todo : list string), tactic unit
 | e nm suffix type lhs rhs args univs must_be_str cfg todo := do
   -- we don't want to unfold non-reducible definitions (like `set`) to apply more arguments
+  when_tracing `simps.debug trace!
+    "[simps] > Trying to add simp-lemmas for\n        > {lhs}
+[simps] > Type of the expression before normalizing: {type}",
   (type_args, tgt) ← whnf type cfg.type_md >>= open_pis,
+  when_tracing `simps.debug trace!
+    "[simps] > Type after removing pi's: {tgt}",
   tgt ← whnf tgt,
+  when_tracing `simps.debug trace!
+    "[simps] > Type after reduction: {tgt}",
   let new_args := args ++ type_args,
   let lhs_ap := lhs.mk_app type_args,
   let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,

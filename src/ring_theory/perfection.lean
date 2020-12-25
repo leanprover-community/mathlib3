@@ -155,7 +155,12 @@ any homomorphism `R →+* S` can be lifted to a homomorphism `R →+* perfection
     by rw [← coeff_iterate_frobenius _ 0 n, zero_add, ← ring_hom.map_iterate_frobenius,
       right_inverse_pth_root_frobenius.iterate] }
 
-variables {R p} {S : Type u₂} [comm_semiring S] [char_p S p]
+lemma hom_ext {R : Type u₁} [comm_semiring R] [char_p R p] [perfect_ring R p]
+  {S : Type u₂} [comm_semiring S] [char_p S p] {f g : R →+* ring.perfection S p}
+  (hfg : ∀ x, coeff S p 0 (f x) = coeff S p 0 (g x)) : f = g :=
+(lift p R S).symm.injective $ ring_hom.ext hfg
+
+variables {R} {S : Type u₂} [comm_semiring S] [char_p S p]
 
 /-- A ring homomorphism `R →+* S` induces `perfection R p →+* perfection S p` -/
 @[simps] def map (φ : R →+* S) : ring.perfection R p →+* ring.perfection S p :=
@@ -166,7 +171,7 @@ variables {R p} {S : Type u₂} [comm_semiring S] [char_p S p]
   map_add' := λ f g, subtype.eq $ funext $ λ n, φ.map_add _ _ }
 
 lemma coeff_map (φ : R →+* S) (f : ring.perfection R p) (n : ℕ) :
-  coeff S p n (map φ f) = φ (coeff R p n f) :=
+  coeff S p n (map p φ f) = φ (coeff R p n f) :=
 rfl
 
 end perfection
@@ -217,6 +222,26 @@ ring_equiv.of_bijective (perfection.lift p P R π)
 ⟨λ x y hxy, m.injective $ λ n, (congr_arg (perfection.coeff R p n) hxy : _),
 λ f, let ⟨x, hx⟩ := m.surjective f.1 f.2 in ⟨x, perfection.ext $ hx⟩⟩
 
+lemma equiv_apply {π : P →+* R} (m : perfection_map p π) (x : P) :
+  m.equiv x = perfection.lift p P R π x :=
+rfl
+
+lemma comp_equiv {π : P →+* R} (m : perfection_map p π) (x : P) :
+  perfection.coeff R p 0 (m.equiv x) = π x :=
+rfl
+
+lemma comp_equiv' {π : P →+* R} (m : perfection_map p π) :
+  (perfection.coeff R p 0).comp ↑m.equiv = π :=
+ring_hom.ext $ λ x, rfl
+
+lemma comp_symm_equiv {π : P →+* R} (m : perfection_map p π) (f : ring.perfection R p) :
+  π (m.equiv.symm f) = perfection.coeff R p 0 f :=
+(m.comp_equiv _).symm.trans $ congr_arg _ $ m.equiv.apply_symm_apply f
+
+lemma comp_symm_equiv' {π : P →+* R} (m : perfection_map p π) :
+  π.comp ↑m.equiv.symm = perfection.coeff R p 0 :=
+ring_hom.ext m.comp_symm_equiv
+
 variables (p R P)
 /-- Given rings `R` and `S` of characteristic `p`, with `R` being perfect,
 any homomorphism `R →+* S` can be lifted to a homomorphism `R →+* P`,
@@ -226,19 +251,40 @@ where `P` is any perfection of `S`. -/
   (π : P →+* S) (m : perfection_map p π) :
   (R →+* S) ≃ (R →+* P) :=
 { to_fun := λ f, ring_hom.comp ↑m.equiv.symm $ perfection.lift p R S f,
-  inv_fun := λ f, (perfection.lift p R S).symm (ring_hom.comp ↑m.equiv f),
-  left_inv := λ f, (equiv.symm_apply_eq _).2 $ ring_hom.ext $ λ x,
-    by simp_rw [ring_hom.comp_apply, ring_equiv.coe_ring_hom, ring_equiv.apply_symm_apply],
-  right_inv := λ f, ring_hom.ext $ λ x, by simp_rw [equiv.apply_symm_apply,
-      ring_hom.comp_apply, ring_equiv.coe_ring_hom, ring_equiv.symm_apply_apply] }
+  inv_fun := λ f, π.comp f,
+  left_inv := λ f, by { simp_rw [← ring_hom.comp_assoc, comp_symm_equiv'],
+    exact (perfection.lift p R S).symm_apply_apply f },
+  right_inv := λ f, ring_hom.ext $ λ x, m.equiv.injective $ (m.equiv.apply_symm_apply _).trans $
+    show perfection.lift p R S (π.comp f) x = ring_hom.comp ↑m.equiv f x,
+    from ring_hom.ext_iff.1 ((perfection.lift p R S).apply_eq_iff_eq_symm_apply.2 rfl) _ }
 
-variables {R p} {S : Type u₂} [comm_semiring S] [char_p S p]
+variables {R p}
+
+lemma hom_ext [perfect_ring R p] {S : Type u₂} [comm_semiring S] [char_p S p]
+  {P : Type u₃} [comm_semiring P] [char_p P p] [perfect_ring P p]
+  (π : P →+* S) (m : perfection_map p π) {f g : R →+* P}
+  (hfg : ∀ x, π (f x) = π (g x)) : f = g :=
+(lift p R S P π m).symm.injective $ ring_hom.ext hfg
+
+variables {R P} (p) {S : Type u₂} [comm_semiring S] [char_p S p]
 variables {Q : Type u₄} [comm_semiring Q] [char_p Q p] [perfect_ring Q p]
 
 /-- A ring homomorphism `R →+* S` induces `P →+* Q`, a map of the respective perfections -/
 noncomputable def map {π : P →+* R} (m : perfection_map p π) {σ : Q →+* S} (n : perfection_map p σ)
   (φ : R →+* S) : P →+* Q :=
 lift p P S Q σ n $ φ.comp π
+
+lemma comp_map {π : P →+* R} (m : perfection_map p π) {σ : Q →+* S} (n : perfection_map p σ)
+  (φ : R →+* S) : σ.comp (map p m n φ) = φ.comp π :=
+(lift p P S Q σ n).symm_apply_apply _
+
+lemma map_map {π : P →+* R} (m : perfection_map p π) {σ : Q →+* S} (n : perfection_map p σ)
+  (φ : R →+* S) (x : P) : σ (map p m n φ x) = φ (π x) :=
+ring_hom.ext_iff.1 (comp_map p m n φ) x
+
+-- Why is this slow?
+lemma map_eq_map (φ : R →+* S) : map p (of p R) (of p S) φ = perfection.map p φ :=
+hom_ext _ (of p S) $ λ f, by rw [map_map, perfection.coeff_map]
 
 end perfection_map
 

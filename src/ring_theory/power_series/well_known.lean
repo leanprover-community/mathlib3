@@ -54,30 +54,30 @@ end ring
 
 section field
 
-variables (k k' : Type*) [field k] [field k']
+variables (A A' : Type*) [ring A] [ring A'] [algebra ℚ A] [algebra ℚ A']
 
 open_locale nat
 
 /-- Power series for the exponential function at zero. -/
-def exp : power_series k := mk $ λ n, 1 / n!
+def exp : power_series A := mk $ λ n, algebra_map ℚ A (1 / n!)
 
 /-- Power series for the sine function at zero. -/
-def sin : power_series k :=
-mk $ λ n, if even n then 0 else (-1) ^ (n / 2) / n!
+def sin : power_series A :=
+mk $ λ n, if even n then 0 else algebra_map ℚ A ((-1) ^ (n / 2) / n!)
 
 /-- Power series for the cosine function at zero. -/
-def cos : power_series k :=
-mk $ λ n, if even n then (-1) ^ (n / 2) / n! else 0
+def cos : power_series A :=
+mk $ λ n, if even n then algebra_map ℚ A ((-1) ^ (n / 2) / n!) else 0
 
-variables {k k'} (n : ℕ) (f : k →+* k')
+variables {A A'} (n : ℕ) (f : A →+* A')
 
-@[simp] lemma coeff_exp : coeff k n (exp k) = 1 / n! := coeff_mk _ _
+@[simp] lemma coeff_exp : coeff A n (exp A) = algebra_map ℚ A (1 / n!) := coeff_mk _ _
 
-@[simp] lemma map_exp : map f (exp k) = exp k' := by { ext, simp [f.map_inv] }
+@[simp] lemma map_exp : map (f : A →+* A') (exp A) = exp A' := by { ext, simp }
 
-@[simp] lemma map_sin : map f (sin k) = sin k' := by { ext, simp [sin, apply_ite f, f.map_div] }
+@[simp] lemma map_sin : map f (sin A) = sin A' := by { ext, simp [sin, apply_ite f] }
 
-@[simp] lemma map_cos : map f (cos k) = cos k' := by { ext, simp [cos, apply_ite f, f.map_div] }
+@[simp] lemma map_cos : map f (cos A) = cos A' := by { ext, simp [cos, apply_ite f] }
 
 end field
 

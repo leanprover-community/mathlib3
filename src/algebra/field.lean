@@ -256,3 +256,19 @@ protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.
 end
 
 end ring_hom
+
+section noncomputable_defs
+
+variables {R : Type*} [nontrivial R]
+
+/-- Constructs a `division_ring` structure on a `ring` consisting only of units and 0. -/
+noncomputable def division_ring_of_is_unit_or_eq_zero [hR : ring R]
+  (h : ∀ (a : R), is_unit a ∨ a = 0) : division_ring R :=
+{ .. (group_with_zero_of_is_unit_or_eq_zero h), .. hR }
+
+/-- Constructs a `field` structure on a `comm_ring` consisting only of units and 0. -/
+noncomputable def field_of_is_unit_or_eq_zero [hR : comm_ring R]
+  (h : ∀ (a : R), is_unit a ∨ a = 0) : field R :=
+{ .. (group_with_zero_of_is_unit_or_eq_zero h), .. hR }
+
+end noncomputable_defs

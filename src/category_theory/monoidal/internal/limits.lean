@@ -74,7 +74,7 @@ def limit_cone_is_limit (F : J ⥤ Mon_ C) : is_limit (limit_cone F) :=
   uniq' := λ s m w,
   begin
     ext,
-    dsimp, simp only [Mon_.forget_map, limit.lift_π, functor.map_cone_π],
+    dsimp, simp only [Mon_.forget_map, limit.lift_π, functor.map_cone_π_app],
     exact congr_arg Mon_.hom.hom (w j),
   end, }
 

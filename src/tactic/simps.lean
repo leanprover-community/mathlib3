@@ -327,16 +327,25 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   If `add_simp` then we make the resulting lemma a simp-lemma. -/
 meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
   (univs : list name) (cfg : simps_cfg) : tactic unit := do
-  -- simplify `rhs` if `simp_rhs` and `simp` makes progress
   when_tracing `simps.debug trace!
     "[simps] > Planning to add\n        > {lhs}\n        > =\n        > {rhs}\n        > in type
         > {type}",
-  (rhs2, prf) ← (guard cfg.simp_rhs >>
-    rhs.dsimp {fail_if_unchanged := ff} >>= λ rhs', rhs'.simp {fail_if_unchanged := ff})
+  -- simplify `rhs` if `cfg.simp_rhs` is true
+  (rhs, prf) ← do { guard cfg.simp_rhs,
+    rhs' ← rhs.dsimp {fail_if_unchanged := ff},
+    -- o ← get_options,
+    -- let o' := o.set_bool `pp.implicit tt,
+    -- let o' := o'.set_bool `pp.notation ff,
+    -- set_options o',
+    when_tracing `simps.debug $ when (rhs ≠ rhs') trace!
+      "[simps] > `dsimp` simplified rhs to\n        > {rhs'}",
+    rhsprf ← rhs'.simp {fail_if_unchanged := ff},
+    when_tracing `simps.debug $ when (rhs' ≠ rhsprf.1) trace!
+      "[simps] > `simp` simplified rhs to\n        > {rhsprf.1}",
+    -- set_options o,
+    return rhsprf }
     <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
-  when_tracing `simps.debug $ when (rhs ≠ rhs2) trace!
-    "[simps] > Simplified\n        > {rhs}\n        > to\n        > {rhs2}",
-  eq_ap ← mk_mapp `eq $ [type, lhs, rhs2].map some,
+  eq_ap ← mk_mapp `eq $ [type, lhs, rhs].map some,
   decl_name ← get_unused_decl_name nm,
   let decl_type := eq_ap.pis args,
   let decl_value := prf.lambdas args,
@@ -345,7 +354,7 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
     "[simps] > adding projection\n        > {decl_name} : {decl_type}",
   decorate_error ("failed to add projection lemma " ++ decl_name.to_string ++ ". Nested error:") $
     add_decl decl,
-  b ← succeeds $ is_def_eq lhs rhs2,
+  b ← succeeds $ is_def_eq lhs rhs,
   when (b ∧ `simp ∈ cfg.attrs) (set_basic_attribute `_refl_lemma decl_name tt),
   cfg.attrs.mmap' $ λ nm, set_attribute nm decl_name tt
 
@@ -359,7 +368,7 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
   when_tracing `simps.debug trace!
     "[simps] > Trying to add simp-lemmas for\n        > {lhs}
 [simps] > Type of the expression before normalizing: {type}",
-  (type_args, tgt) ← whnf type cfg.type_md >>= open_pis,
+  (type_args, tgt) ← open_pis_whnf type cfg.type_md,
   when_tracing `simps.debug trace!
     "[simps] > Type after removing pi's: {tgt}",
   tgt ← whnf tgt,

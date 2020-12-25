@@ -270,6 +270,7 @@ variables {R P} (p) {S : Type u₂} [comm_semiring S] [char_p S p]
 variables {Q : Type u₄} [comm_semiring Q] [char_p Q p] [perfect_ring Q p]
 
 /-- A ring homomorphism `R →+* S` induces `P →+* Q`, a map of the respective perfections -/
+@[nolint unused_arguments]
 noncomputable def map {π : P →+* R} (m : perfection_map p π) {σ : Q →+* S} (n : perfection_map p σ)
   (φ : R →+* S) : P →+* Q :=
 lift p P S Q σ n $ φ.comp π

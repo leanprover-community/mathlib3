@@ -24,7 +24,7 @@ Define the valuation on the tilt, and define a characteristic predicate for the 
 
 -/
 
-universes u₁ u₂ u₃
+universes u₁ u₂ u₃ u₄
 
 open_locale nnreal
 
@@ -85,6 +85,10 @@ rfl
 lemma coeff_pow_p (f : ring.perfection R p) (n : ℕ) :
   coeff R p (n + 1) (f ^ p) = coeff R p n f :=
 by { rw ring_hom.map_pow, exact f.2 n }
+
+lemma coeff_pow_p' (f : ring.perfection R p) (n : ℕ) :
+  coeff R p (n + 1) f ^ p = coeff R p n f :=
+f.2 n
 
 lemma coeff_frobenius (f : ring.perfection R p) (n : ℕ) :
   coeff R p (n + 1) (frobenius _ p f) = coeff R p n f :=
@@ -151,6 +155,20 @@ any homomorphism `R →+* S` can be lifted to a homomorphism `R →+* perfection
     by rw [← coeff_iterate_frobenius _ 0 n, zero_add, ← ring_hom.map_iterate_frobenius,
       right_inverse_pth_root_frobenius.iterate] }
 
+variables {R p} {S : Type u₂} [comm_semiring S] [char_p S p]
+
+/-- A ring homomorphism `R →+* S` induces `perfection R p →+* perfection S p` -/
+@[simps] def map (φ : R →+* S) : ring.perfection R p →+* ring.perfection S p :=
+{ to_fun := λ f, ⟨λ n, φ (coeff R p n f), λ n, by rw [← φ.map_pow, coeff_pow_p']⟩,
+  map_one' := subtype.eq $ funext $ λ n, φ.map_one,
+  map_mul' := λ f g, subtype.eq $ funext $ λ n, φ.map_mul _ _,
+  map_zero' := subtype.eq $ funext $ λ n, φ.map_zero,
+  map_add' := λ f g, subtype.eq $ funext $ λ n, φ.map_add _ _ }
+
+lemma coeff_map (φ : R →+* S) (f : ring.perfection R p) (n : ℕ) :
+  coeff S p n (map φ f) = φ (coeff R p n f) :=
+rfl
+
 end perfection
 
 /-- A perfection map to a ring of characteristic `p` is a map that is isomorphic
@@ -166,7 +184,7 @@ namespace perfection_map
 
 variables {p : ℕ} [fact p.prime]
 variables {R : Type u₁} [comm_semiring R] [char_p R p]
-variables {P : Type u₂} [comm_semiring P] [char_p P p] [perfect_ring P p]
+variables {P : Type u₃} [comm_semiring P] [char_p P p] [perfect_ring P p]
 
 /-- Create a `perfection_map` from an isomorphism to the perfection. -/
 @[simps] lemma mk' {f : P →+* R} (g : P ≃+* ring.perfection R p)
@@ -213,6 +231,14 @@ where `P` is any perfection of `S`. -/
     by simp_rw [ring_hom.comp_apply, ring_equiv.coe_ring_hom, ring_equiv.apply_symm_apply],
   right_inv := λ f, ring_hom.ext $ λ x, by simp_rw [equiv.apply_symm_apply,
       ring_hom.comp_apply, ring_equiv.coe_ring_hom, ring_equiv.symm_apply_apply] }
+
+variables {R p} {S : Type u₂} [comm_semiring S] [char_p S p]
+variables {Q : Type u₄} [comm_semiring Q] [char_p Q p] [perfect_ring Q p]
+
+/-- A ring homomorphism `R →+* S` induces `P →+* Q`, a map of the respecitve perfections -/
+noncomputable def map {π : P →+* R} (m : perfection_map p π) {σ : Q →+* S} (n : perfection_map p σ)
+  (φ : R →+* S) : P →+* Q :=
+lift p P S Q σ n $ φ.comp π
 
 end perfection_map
 

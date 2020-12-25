@@ -258,7 +258,7 @@ section nnnorm
 /-- Version of the norm taking values in nonnegative reals. -/
 def nnnorm (a : α) : ℝ≥0 := ⟨norm a, norm_nonneg a⟩
 
-@[simp] lemma coe_nnnorm (a : α) : (nnnorm a : ℝ) = norm a := rfl
+@[simp, norm_cast] lemma coe_nnnorm (a : α) : (nnnorm a : ℝ) = norm a := rfl
 
 lemma nndist_eq_nnnorm (a b : α) : nndist a b = nnnorm (a - b) := nnreal.eq $ dist_eq_norm _ _
 
@@ -661,11 +661,21 @@ instance to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel' (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
+@[simp] lemma nnnorm_mul (a b : α) : nnnorm (a * b) = nnnorm a * nnnorm b :=
+nnreal.eq $ norm_mul a b
+
 /-- `norm` as a `monoid_hom`. -/
 @[simps] def norm_hom : monoid_with_zero_hom α ℝ := ⟨norm, norm_zero, norm_one, norm_mul⟩
 
+/-- `nnnorm` as a `monoid_hom`. -/
+@[simps] def nnnorm_hom : monoid_with_zero_hom α ℝ≥0 :=
+⟨nnnorm, nnnorm_zero, nnnorm_one, nnnorm_mul⟩
+
 @[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
 norm_hom.to_monoid_hom.map_pow a
+
+@[simp] lemma nnnorm_pow (a : α) (n : ℕ) : nnnorm (a ^ n) = nnnorm a ^ n :=
+nnnorm_hom.to_monoid_hom.map_pow a n
 
 @[simp] lemma norm_prod (s : finset β) (f : β → α) :
   ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=

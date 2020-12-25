@@ -80,12 +80,12 @@ converges for all `∥y∥ < r`. -/
 def radius (p : formal_multilinear_series 𝕜 E F) : ennreal :=
 ⨆ (r : ℝ≥0) (hr : ∃ C, ∀ n, nnnorm (p n) * r ^ n ≤ C), (r : ennreal)
 
-/--If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
+/-- If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
 lemma le_radius_of_bound (p : formal_multilinear_series 𝕜 E F) (C : ℝ≥0) {r : ℝ≥0}
   (h : ∀ (n : ℕ), nnnorm (p n) * r^n ≤ C) : (r : ennreal) ≤ p.radius :=
 le_supr_of_le r (le_supr (λ _, (r : ennreal)) $ Exists.intro C h)
 
-/--If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
+/-- If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
 lemma le_radius_of_is_O (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
   (h : is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : (r : ennreal) ≤ p.radius :=
 begin
@@ -97,62 +97,96 @@ end
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially. -/
 lemma geometric_bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
-  (h : (r : ennreal) < p.radius) : ∃  C (a < 1), ∀ n, nnnorm (p n) * r^n ≤ C * a^n :=
+  (h : (r : ennreal) < p.radius) : ∃ (a < 1) C, ∀ n, nnnorm (p n) * r^n ≤ C * a^n :=
 begin
   simp only [radius, lt_supr_iff] at h,
   rcases h with ⟨t, ⟨C, hC⟩, rt⟩,
   rw ennreal.coe_lt_coe at rt,
-  refine ⟨C, r / t, nnreal.div_lt_one_of_lt rt, λ n, _⟩,
+  refine ⟨r / t, nnreal.div_lt_one_of_lt rt, C, λ n, _⟩,
   have tpos : t ≠ 0 := ne_of_gt (lt_of_le_of_lt (zero_le _) rt),
   calc nnnorm (p n) * r ^ n = (nnnorm (p n) * t ^ n) * (r / t) ^ n :
     by field_simp [tpos, mul_right_comm]
   ... ≤ C * (r / t) ^ n : mul_le_mul_of_nonneg_right (hC n) (zero_le _)
 end
 
-lemma lt_radius_tfae (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0} :
-  tfae [↑r < p.radius,
-    ∃ C (a < 1), ∀ n, nnnorm (p n) * r ^ n ≤ C * a ^ n,
-    ∃ C (a < 1), ∀ n, ∥p n∥ * r ^ n ≤ C * a ^ n,
-    ∃ C (a ∈ Ico (0 : ℝ) 1), ∀ n, ∥p n∥ * r ^ n ≤ C * a ^ n,
-    ∃ a ∈ Ico (0 : ℝ) 1, is_O (λ n, ∥p n∥ * r ^ n) (λ n, a ^ n) at_top,
-    ∃ a ∈ Ico (0 : ℝ) 1, is_o (λ n, ∥p n∥ * r ^ n) (λ n, a ^ n) at_top] :=
+lemma lt_radius_tfae' (p : formal_multilinear_series 𝕜 E F) (r : ℝ≥0) :
+  tfae [∃ (a < 1) C, ∀ n, nnnorm (p n) * r ^ n ≤ C * a ^ n,
+    ∃ (a ∈ Ioo (0 : ℝ≥0) 1) (C > 0), ∀ n, nnnorm (p n) * r ^ n ≤ C * a ^ n,
+    ∃ a < 1, ∀ᶠ n in at_top, nnnorm (p n) * r ^ n ≤ a ^ n,
+    ∃ a ∈ Ioo (0 : ℝ≥0) 1, ∀ᶠ n in at_top, nnnorm (p n) * r ^ n ≤ a ^ n,
+    ∃ a ∈ Ioo (0 : ℝ≥0) 1, ∀ C > 0, ∀ᶠ n in at_top, nnnorm (p n) * r ^ n ≤ C * a ^ n,
+    ∃ (a < 1) C, ∀ n, ∥p n∥ * r ^ n ≤ C * a ^ n,
+    ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0), ∀ n, ∥p n∥ * r ^ n ≤ C * a ^ n,
+    ∃ a < 1, ∀ᶠ n in at_top, ∥p n∥ * r ^ n ≤ a ^ n,
+    ∃ a ∈ Ioo (0 : ℝ) 1, ∀ᶠ n in at_top, ∥p n∥ * r ^ n ≤ a ^ n,
+    ∃ a ∈ Ioo (0 : ℝ) 1, is_O (λ n, ∥p n∥ * r ^ n) (pow a) at_top,
+    ∃ a ∈ Ioo (-1 : ℝ) 1, is_O (λ n, ∥p n∥ * r ^ n) (pow a) at_top,
+    ∃ a ∈ Ioo (0 : ℝ) 1, is_o (λ n, ∥p n∥ * r ^ n) (pow a) at_top,
+    ∃ a ∈ Ioo (-1 : ℝ) 1, is_o (λ n, ∥p n∥ * r ^ n) (pow a) at_top] :=
 begin
-  tfae_have : 1 → 2, from p.geometric_bound_of_lt_radius,
-  tfae_have : 2 → 3,
-  { rintros ⟨C, a, ha, haC⟩,
-    exact ⟨C, a, ha, by exact_mod_cast haC⟩ },
-  tfae_have : 3 → 4,
-  { rintros ⟨C, a, ha, haC⟩,
-    have : ∀ n, 0 ≤ C * a ^ n := λ n, (mul_nonneg (norm_nonneg _) (pow_nonneg r.2 _)).trans (haC n),
-    rcases sign_cases_of_C_mul_pow_nonneg this with rfl | ⟨C₀, a₀⟩,
-    { refine ⟨0, 0, left_mem_Ico.2 zero_lt_one, λ n, _⟩,
-      simpa using haC n },
-    { exact ⟨C, a, ⟨a₀, ha⟩, haC⟩ } },
-  tfae_have : 4 → 5,
-  { rintros ⟨C, a, ha, haC⟩,
-    refine ⟨a, ha, is_O_of_le' _ $ λ n, _⟩,
-    show ℝ, from abs C,
-    have A : ∥a∥ = a := abs_of_nonneg ha.1,
-    simpa [A]
-      using (haC n).trans (mul_le_mul_of_nonneg_right (le_abs_self C) (pow_nonneg ha.1 _)) },
-  tfae_have : 5 → 6,
-  { rintros ⟨a, ha, hO⟩,
-    rcases exists_between ha.2 with ⟨b, ab, b1⟩,
-    exact ⟨b, ⟨ha.1.trans ab.le, b1⟩, hO.trans_is_o (is_o_pow_pow_of_lt_left ha.1 ab)⟩ },
-  tfae_have : 6 → 1,
-  { rintros ⟨a, ha, hao⟩,
-    rcases ha.1.eq_or_lt with rfl | ha₀,
-    { have := hao.congr' (eventually_eq.refl _ _) zero_pow_eventually_eq,
-      sorry },
-    lift a to ℝ≥0 using ha.1,
-    calc (r : ennreal) < ↑(r / a) : ennreal.coe_lt_coe.2 _
-    ... ≤ p.radius : p.le_radius_of_is_O _ }
+  /- 6-13 come from `tfae_exists_lt_is_o_pow (λ n, ∥p n∥ * r ^ n) 1`. -/
+  have H := tfae_exists_lt_is_o_pow (λ n, ∥p n∥ * r ^ n) 1,
+  have A : ∀ n, abs (∥p n∥ * r ^ n) = ∥p n∥ * r ^ n := λ n, by simp [abs_mul],
+  tfae_have : 6 ↔ 7, by simpa only [exists_prop, or_true, true_and, zero_lt_one, A] using H.out 4 5,
+  tfae_have : 7 ↔ 8, by simpa only [A] using H.out 5 6,
+  tfae_have : 8 ↔ 9, by simpa only [A] using H.out 6 7,
+  tfae_have : 9 ↔ 10, by simpa only [A] using H.out 7 3,
+  tfae_have : 10 ↔ 11, from H.out 3 2,
+  tfae_have : 11 ↔ 12, from H.out 2 1,
+  tfae_have : 12 ↔ 13, from H.out 1 0,
+  /- Add 1 and 2 -/
+  tfae_have : 1 → 6,
+  { rintro ⟨a, ha, C, H⟩, exact ⟨a, ha, C, by exact_mod_cast H⟩ },
+  tfae_have : 7 → 2,
+  { rintro ⟨a, ha, C, hC, H⟩,
+    lift C to ℝ≥0 using hC.lt.le, lift a to ℝ≥0 using ha.1.le,
+    refine ⟨a, ha, C, hC, λ n, _⟩,
+    exact_mod_cast H n },
+  tfae_have : 2 → 1, { rintro ⟨a, ha, C, hC, H⟩, exact ⟨a, ha.2, C, H⟩ },
+  /- Add 3, 4, and 5 -/
+  tfae_have : 3 → 8, { rintro ⟨a, ha, H⟩, refine ⟨a, ha, _⟩, exact_mod_cast H },
+  tfae_have : 12 → 5,
+  { rintro ⟨a, ha, H⟩,
+    lift a to ℝ≥0 using ha.1.le,
+    refine ⟨a, ha, λ C hC, (H.def hC).mono $ λ n hn, nnreal.coe_le_coe.1 _⟩,
+    rw [real.norm_eq_abs, A, real.norm_eq_abs] at hn,
+    simpa using hn },
+  tfae_have : 5 → 4, from λ ⟨a, ha, H⟩, ⟨a, ha, by simpa only [one_mul] using H 1 zero_lt_one⟩,
+  tfae_have : 4 → 3, { rintro ⟨a, ha, H⟩, exact ⟨a, ha.2, H⟩ },
+  tfae_finish
+end
+
+lemma lt_radius_tfae (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0} (hr : r ≠ 0) :
+  tfae [↑r < p.radius,
+    ∃ (a < 1) C, ∀ n, nnnorm (p n) * r ^ n ≤ C * a ^ n,
+    ∃ (a ∈ Ioo (0 : ℝ≥0) 1) (C > 0), ∀ n, nnnorm (p n) * r ^ n ≤ C * a ^ n,
+    ∃ a < 1, ∀ᶠ n in at_top, nnnorm (p n) * r ^ n ≤ a ^ n,
+    ∃ a ∈ Ioo (0 : ℝ≥0) 1, ∀ᶠ n in at_top, nnnorm (p n) * r ^ n ≤ a ^ n,
+    ∃ a ∈ Ioo (0 : ℝ≥0) 1, ∀ C > 0, ∀ᶠ n in at_top, nnnorm (p n) * r ^ n ≤ C * a ^ n,
+    ∃ (a < 1) C, ∀ n, ∥p n∥ * r ^ n ≤ C * a ^ n,
+    ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0), ∀ n, ∥p n∥ * r ^ n ≤ C * a ^ n,
+    ∃ a < 1, ∀ᶠ n in at_top, ∥p n∥ * r ^ n ≤ a ^ n,
+    ∃ a ∈ Ioo (0 : ℝ) 1, ∀ᶠ n in at_top, ∥p n∥ * r ^ n ≤ a ^ n,
+    ∃ a ∈ Ioo (0 : ℝ) 1, is_O (λ n, ∥p n∥ * r ^ n) (pow a) at_top,
+    ∃ a ∈ Ioo (-1 : ℝ) 1, is_O (λ n, ∥p n∥ * r ^ n) (pow a) at_top,
+    ∃ a ∈ Ioo (0 : ℝ) 1, is_o (λ n, ∥p n∥ * r ^ n) (pow a) at_top,
+    ∃ a ∈ Ioo (-1 : ℝ) 1, is_o (λ n, ∥p n∥ * r ^ n) (pow a) at_top] :=
+begin
+  refine (list.tfae_cons_of_mem _).2 ⟨_, p.lt_radius_tfae' r⟩,
+  show _ ∈ _, from or.inl rfl,
+  refine ⟨p.geometric_bound_of_lt_radius, λ h, _⟩,
+  rcases ((p.lt_radius_tfae' r).out 0 1).1 h with ⟨a, ha, C, hC, H⟩,
+  simp only [← nnreal.div_le_iff (pow_ne_zero _ ha.1.ne'), mul_div_assoc, ← div_pow] at H,
+  refine lt_of_lt_of_le _ (p.le_radius_of_bound C H),
+  rw [ennreal.coe_lt_coe, nnreal.lt_div_iff ha.1.ne'],
+  calc r * a < r * 1 : mul_lt_mul_of_pos_left ha.2 (zero_lt_iff_ne_zero.2 hr)
+  ... = r : mul_one r
 end
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` is bounded. -/
 lemma bound_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
   (h : (r : ennreal) < p.radius) : ∃ (C : ℝ≥0), ∀ n, nnnorm (p n) * r^n ≤ C :=
-let ⟨C, a, ha, h⟩ := p.geometric_bound_of_lt_radius h
+let ⟨a, ha, C, h⟩ := p.geometric_bound_of_lt_radius h
 in ⟨C, λ n, (h n).trans $ mul_le_of_le_one_right (zero_le _) (pow_le_one _ (zero_le _) ha.le)⟩
 
 /-- The radius of the sum of two formal series is at least the minimum of their two radii. -/
@@ -313,8 +347,8 @@ lemma has_fpower_series_on_ball.uniform_geometric_approx {r' : ℝ≥0}
   ∃ (a C : ℝ≥0), a < 1 ∧ (∀ y ∈ metric.ball (0 : E) r', ∀ n,
   ∥f (x + y) - p.partial_sum n y∥ ≤ C * a ^ n) :=
 begin
-  obtain ⟨a, C, ha, hC⟩ : ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * r' ^n ≤ C * a^n :=
-    p.geometric_bound_of_lt_radius (lt_of_lt_of_le h hf.r_le),
+  obtain ⟨a, ha, C, hC⟩ : ∃ (a < 1) C, ∀ n, nnnorm (p n) * r' ^n ≤ C * a^n :=
+    p.geometric_bound_of_lt_radius (h.trans_le hf.r_le),
   refine ⟨a, C / (1 - a), ha, λ y hy n, _⟩,
   have yr' : ∥y∥ < r', by { rw ball_0_eq at hy, exact hy },
   have : y ∈ emetric.ball (0 : E) r,
@@ -417,7 +451,7 @@ lemma formal_multilinear_series.has_fpower_series_on_ball [complete_space F]
     rw zero_add,
     replace hy : (nnnorm y : ennreal) < p.radius,
       by { convert hy, exact (edist_eq_coe_nnnorm _).symm },
-    obtain ⟨a, C, ha, hC⟩ : ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * (nnnorm y)^n ≤ C * a^n :=
+    obtain ⟨a, ha, C, hC⟩ : ∃ (a < 1) C, ∀ n, nnnorm (p n) * (nnnorm y)^n ≤ C * a^n :=
       p.geometric_bound_of_lt_radius hy,
     refine (summable_of_norm_bounded (λ n, (C : ℝ) * a ^ n)
       ((summable_geometric_of_lt_1 a.2 ha).mul_left _) (λ n, _)).has_sum,
@@ -492,9 +526,8 @@ lemma change_origin_summable_aux1 (h : (nnnorm x + r : ennreal) < p.radius) :
   @summable ℝ _ _ _ ((λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card) :
     (Σ (n : ℕ), finset (fin n)) → ℝ) :=
 begin
-  obtain ⟨a, C, ha, hC⟩ :
-    ∃ a C, a < 1 ∧ ∀ n, nnnorm (p n) * (nnnorm x + r) ^ n ≤ C * a^n :=
-  p.geometric_bound_of_lt_radius h,
+  obtain ⟨a, ha, C, hC⟩ : ∃ (a < 1) C, ∀ n, nnnorm (p n) * (nnnorm x + r) ^ n ≤ C * a^n :=
+    p.geometric_bound_of_lt_radius h,
   let Bnnnorm : (Σ (n : ℕ), finset (fin n)) → ℝ≥0 :=
     λ ⟨n, s⟩, nnnorm (p n) * (nnnorm x) ^ (n - s.card) * r ^ s.card,
   have : ((λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card) :

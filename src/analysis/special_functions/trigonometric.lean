@@ -1478,7 +1478,7 @@ end
 
 end angle
 
-/-- `real.sin` as an `order_iso` between `(-(π / 2), π / 2)` and `(-1, 1)`. -/
+/-- `real.sin` as an `order_iso` between `[-(π / 2), π / 2]` and `[-1, 1]`. -/
 def sin_order_iso : Icc (-(π / 2)) (π / 2) ≃o Icc (-1:ℝ) 1 :=
 (strict_mono_incr_on_sin.order_iso _ _).trans $ order_iso.set_congr _ _ bij_on_sin.image_eq
 

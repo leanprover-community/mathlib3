@@ -167,6 +167,10 @@ def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
 { X := X,
   ι := c.extensions.app X f }
 
+@[simp] lemma extend_ι (c : cocone F) {X : C} (f : c.X ⟶ X) :
+  (extend c f).ι = c.extensions.app X f :=
+rfl
+
 /--
 Whisker a cocone by precomposition of a functor. See `whiskering` for a functorial
 version.

@@ -2,7 +2,7 @@ import tactic.simps
 import algebra.group.to_additive
 
 universe variables v u w
--- set_option trace.simps.verbose true
+set_option trace.simps.verbose true
 -- set_option trace.simps.debug true
 -- set_option trace.app_builder true
 
@@ -53,23 +53,15 @@ example {α} (x : α) : foo.rfl.to_fun = @id α := by { success_if_fail {simp}, 
 
 /- check some failures -/
 def bar1 : ℕ := 1 -- type is not a structure
-def bar2 : ℕ × ℤ := prod.map (λ x, x + 2) (λ y, y - 3) (3, 4) -- value is not a constructor
-noncomputable def bar3 {α} : α ≃ α :=
+noncomputable def bar2 {α} : α ≃ α :=
 classical.choice ⟨foo.rfl⟩
 
 run_cmd do
   success_if_fail_with_msg (simps_tac `foo.bar1)
-    "Invalid `simps` attribute. Target is not a structure",
+    "Invalid `simps` attribute. Target nat is not a structure",
   success_if_fail_with_msg (simps_tac `foo.bar2)
     "Invalid `simps` attribute. The body is not a constructor application:
-  prod.map (λ (x : ℕ), x + 2) (λ (y : ℤ), y - 3) (3, 4)
-Possible solution: add option {rhs_md := semireducible}.
-The option {simp_rhs := tt} might also be useful to simplify the right-hand side.",
-  success_if_fail_with_msg (simps_tac `foo.bar3)
-    "Invalid `simps` attribute. The body is not a constructor application:
-  classical.choice bar3._proof_1
-Possible solution: add option {rhs_md := semireducible}.
-The option {simp_rhs := tt} might also be useful to simplify the right-hand side.",
+  classical.choice bar2._proof_1",
   e ← get_env,
   let nm := `foo.bar1,
   d ← e.get nm,
@@ -77,11 +69,16 @@ The option {simp_rhs := tt} might also be useful to simplify the right-hand side
   simps_add_projections e nm "" d.type lhs d.value [] d.univ_params ff {} []
 
 
-/- test `rhs_md` option -/
-def rfl2 {α} : α ≃ α := foo.rfl
+/- test that if a non-constructor is given as definition, then
+  `{rhs_md := semireducible, simp_rhs := tt}` is applied automatically. -/
+@[simps] def rfl2 {α} : α ≃ α := foo.rfl
 
-run_cmd success_if_fail (simps_tac `foo.rfl2)
-attribute [simps {rhs_md := semireducible}] foo.rfl2
+example {α} (x : α) : rfl2.to_fun x = x ∧ rfl2.inv_fun x = x :=
+begin
+  dsimp only [rfl2_to_fun, rfl2_inv_fun],
+  guard_target (x = x ∧ x = x),
+  exact ⟨rfl, rfl⟩
+end
 
 /- test `fully_applied` option -/
 
@@ -227,7 +224,7 @@ namespace specify
 @[simps snd] def specify2 : ℕ × ℕ × ℕ := (1, 2, 3)
 @[simps snd_fst] def specify3 : ℕ × ℕ × ℕ := (1, 2, 3)
 @[simps snd snd_snd snd_snd] def specify4 : ℕ × ℕ × ℕ := (1, 2, 3) -- last argument is ignored
-@[simps] def specify5 : ℕ × ℕ × ℕ := (1, prod.map (λ x, x) (λ y, y) (2, 3))
+@[simps] noncomputable def specify5 : ℕ × ℕ × ℕ := (1, classical.choice ⟨(2, 3)⟩)
 end specify
 
 run_cmd do
@@ -257,9 +254,7 @@ Note: the projection names used by @[simps] might not correspond to the projecti
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
     "Invalid simp-lemma specify.specify5_snd_snd.
 The given definition is not a constructor application:
-  prod.map (λ (x : ℕ), x) (λ (y : ℕ), y) (2, 3)
-Possible solution: add option {rhs_md := semireducible}.
-The option {simp_rhs := tt} might also be useful to simplify the right-hand side."
+  classical.choice specify.specify5._proof_1"
 
 
 /- We also eta-reduce if we explicitly specify the projection. -/
@@ -324,6 +319,17 @@ run_cmd do
   e ← get_env,
   e.get `pprod_equiv_prod_to_fun_fst,
   e.get `pprod_equiv_prod_inv_fun_snd
+
+-- we can disable this behavior with the option `not_recursive`.
+@[simps {not_recursive := []}] def pprod_equiv_prod2 : pprod ℕ ℕ ≃ ℕ × ℕ :=
+pprod_equiv_prod
+
+run_cmd do
+  e ← get_env,
+  e.get `pprod_equiv_prod2_to_fun_fst,
+  e.get `pprod_equiv_prod2_to_fun_snd,
+  e.get `pprod_equiv_prod2_inv_fun_fst,
+  e.get `pprod_equiv_prod2_inv_fun_snd
 
 /- Tests with universe levels -/
 class has_hom (obj : Type u) : Type (max u (v+1)) :=

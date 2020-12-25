@@ -758,6 +758,8 @@ def cocone_left_op_of_cone (c : cone F) : cocone (F.left_op) :=
 -- set_option pp.structure_projections false
 
 /-- Change a cone on `F.left_op : Jᵒᵖ ⥤ C` to a cocone on `F : J ⥤ Cᵒᵖ`. -/
+-- When trying to generate the `ι_app` field of this definition, `@[simps]` tries to reduce the RHS
+-- using `expr.dsimp` and `expr.simp`, but for some reason the expression is not reduced enough.
 @[simps X] -- @[simps {rhs_md := semireducible, simp_rhs := tt}]
 def cocone_of_cone_left_op (c : cone F.left_op) : cocone F :=
 { X := op c.X,
@@ -788,15 +790,12 @@ def cocone_of_cone_left_op (c : cone F.left_op) : cocone F :=
   (cocone_of_cone_left_op c).ι.app j = (c.π.app (op j)).op :=
 by { dsimp [cocone_of_cone_left_op], simp }
 
-
+-- set_option trace.simps.verbose true
 /-- Change a cocone on `F : J ⥤ Cᵒᵖ` to a cone on `F.left_op : Jᵒᵖ ⥤ C`. -/
-@[simps X] def cone_left_op_of_cocone (c : cocone F) : cone (F.left_op) :=
+@[simps {rhs_md := semireducible, simp_rhs := tt}]
+def cone_left_op_of_cocone (c : cocone F) : cone (F.left_op) :=
 { X := unop c.X,
   π := nat_trans.left_op c.ι }
-
-@[simp] lemma cone_left_op_of_cocone_π_app (c : cocone F) (j) :
-  (cone_left_op_of_cocone c).π.app j = (c.ι.app (unop j)).unop :=
-by { dsimp [cone_left_op_of_cocone], simp }
 
 end
 

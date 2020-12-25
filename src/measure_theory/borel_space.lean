@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.measure_space
+import analysis.complex.basic
 import analysis.normed_space.finite_dimension
 import topology.G_delta
 
@@ -367,8 +368,7 @@ hf.borel_measurable.mono opens_measurable_space.borel_le
 /-- A homeomorphism between two Borel spaces is a measurable equivalence.-/
 def homeomorph.to_measurable_equiv {α : Type*} {β : Type*} [topological_space α]
   [measurable_space α] [borel_space α] [topological_space β] [measurable_space β]
-  [borel_space β] (h : α ≃ₜ β) :
-  measurable_equiv α β :=
+  [borel_space β] (h : α ≃ₜ β) : α ≃ᵐ β :=
 { measurable_to_fun := h.continuous_to_fun.measurable,
   measurable_inv_fun := h.continuous_inv_fun.measurable,
   .. h }
@@ -521,7 +521,7 @@ lemma measurable_inv_iff [group α] [topological_group α] {f : δ → α} :
 lemma measurable.sub [add_group α] [topological_add_group α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ x, f x - g x) :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma measurable_comp_iff_of_closed_embedding {f : δ → β} (g : β → γ) (hg : closed_embedding g) :
   measurable (g ∘ f) ↔ measurable f :=
@@ -681,8 +681,7 @@ end
 end conditionally_complete_linear_order
 
 /-- Convert a `homeomorph` to a `measurable_equiv`. -/
-def homemorph.to_measurable_equiv (h : α ≃ₜ β) :
-  measurable_equiv α β :=
+def homemorph.to_measurable_equiv (h : α ≃ₜ β) : α ≃ᵐ β :=
 { to_equiv := h.to_equiv,
   measurable_to_fun := h.continuous_to_fun.measurable,
   measurable_inv_fun := h.continuous_inv_fun.measurable }
@@ -831,12 +830,10 @@ begin
       refine @is_measurable.inter _ g _ _ _ (hg _),
       refine @is_measurable.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
       exact @is_measurable.compl _ _ g (hg _) },
-    { simp [Ioo, Iio],
-      refine and_congr _ iff.rfl,
-      exact ⟨λ h,
-        let ⟨c, ac, cx⟩ := exists_rat_btwn h in
-        ⟨c, rat.cast_lt.1 ac, le_of_lt cx⟩,
-       λ ⟨c, ac, cx⟩, lt_of_lt_of_le (rat.cast_lt.2 ac) cx⟩ } },
+    { suffices : x < ↑b → (↑a < x ↔ ∃ (i : ℚ), a < i ∧ ↑i ≤ x), by simpa,
+      refine λ _, ⟨λ h, _, λ ⟨i, hai, hix⟩, (rat.cast_lt.2 hai).trans_le hix⟩,
+      rcases exists_rat_btwn h with ⟨c, ac, cx⟩,
+      exact ⟨c, rat.cast_lt.1 ac, cx.le⟩ } },
   { simp, rintro r rfl, exact is_open_Iio.is_measurable }
 end
 
@@ -868,7 +865,7 @@ lemma measurable.ennreal_of_real {f : α → ℝ} (hf : measurable f) :
 ennreal.continuous_of_real.measurable.comp hf
 
 /-- The set of finite `ennreal` numbers is `measurable_equiv` to `ℝ≥0`. -/
-def measurable_equiv.ennreal_equiv_nnreal : measurable_equiv {r : ennreal | r ≠ ⊤} ℝ≥0 :=
+def measurable_equiv.ennreal_equiv_nnreal : {r : ennreal | r ≠ ⊤} ≃ᵐ ℝ≥0 :=
 ennreal.ne_top_homeomorph_nnreal.to_measurable_equiv
 
 namespace ennreal
@@ -882,8 +879,7 @@ measurable_of_measurable_on_compl_singleton ⊤
   (measurable_equiv.ennreal_equiv_nnreal.symm.measurable_coe_iff.1 h)
 
 /-- `ennreal` is `measurable_equiv` to `ℝ≥0 ⊕ unit`. -/
-def ennreal_equiv_sum :
-  measurable_equiv ennreal (ℝ≥0 ⊕ unit) :=
+def ennreal_equiv_sum : ennreal ≃ᵐ ℝ≥0 ⊕ unit :=
 { measurable_to_fun  := measurable_of_measurable_nnreal measurable_inl,
   measurable_inv_fun := measurable_sum measurable_coe (@measurable_const ennreal unit _ _ ⊤),
   .. equiv.option_equiv_sum_punit ℝ≥0 }
@@ -894,7 +890,7 @@ lemma measurable_of_measurable_nnreal_prod [measurable_space β] [measurable_spa
   {f : ennreal × β → γ} (H₁ : measurable (λ p : ℝ≥0 × β, f (p.1, p.2)))
   (H₂ : measurable (λ x, f (⊤, x))) :
   measurable f :=
-let e : measurable_equiv (ennreal × β) (ℝ≥0 × β ⊕ unit × β) :=
+let e : ennreal × β ≃ᵐ ℝ≥0 × β ⊕ unit × β :=
   (ennreal_equiv_sum.prod_congr (measurable_equiv.refl β)).trans
     (measurable_equiv.sum_prod_distrib _ _ _) in
 e.symm.measurable_coe_iff.1 $ measurable_sum H₁ (H₂.comp measurable_id.snd)

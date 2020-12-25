@@ -123,7 +123,7 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators
+open_locale classical topological_space big_operators nnreal
 
 namespace measure_theory
 
@@ -155,7 +155,8 @@ by { rw neg_part, exact pos_part_map_norm _ }
 lemma pos_part_sub_neg_part (f : α →ₛ ℝ) : f.pos_part - f.neg_part = f :=
 begin
   simp only [pos_part, neg_part],
-  ext,
+  ext a,
+  rw coe_sub,
   exact max_zero_sub_eq_self (f a)
 end
 
@@ -532,7 +533,8 @@ lemma of_simple_func_neg (f : α →ₛ E) (hf : integrable f μ) :
   of_simple_func (-f) hf.neg = -of_simple_func f hf := rfl
 
 lemma of_simple_func_sub (f g : α →ₛ E) (hf : integrable f μ) (hg : integrable g μ) :
-  of_simple_func (f - g) (hf.sub hg) = of_simple_func f hf - of_simple_func g hg := rfl
+  of_simple_func (f - g) (hf.sub hg) = of_simple_func f hf - of_simple_func g hg :=
+by { simp only [sub_eq_add_neg, ← of_simple_func_neg, ← of_simple_func_add], refl }
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
@@ -903,7 +905,7 @@ local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _ _
 local notation `sIntegral` := @simple_func.integral_clm α E _ _ _ _ _ μ _
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
-calc ∥Integral∥ ≤ (1 : nnreal) * ∥sIntegral∥ :
+calc ∥Integral∥ ≤ (1 : ℝ≥0) * ∥sIntegral∥ :
   op_norm_extend_le _ _ _ $ λs, by {rw [nnreal.coe_one, one_mul], refl}
   ... = ∥sIntegral∥ : one_mul _
   ... ≤ 1 : norm_Integral_le_one
@@ -1010,7 +1012,7 @@ integral_neg f
 
 lemma integral_sub (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, f a - g a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
-by { rw [sub_eq_add_neg, ← integral_neg], exact integral_add hf hg.neg }
+by { simp only [sub_eq_add_neg, ← integral_neg], exact integral_add hf hg.neg }
 
 lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
@@ -1216,7 +1218,7 @@ begin
   { rw integral_non_measurable hfm }
 end
 
-lemma lintegral_coe_eq_integral (f : α → nnreal) (hfi : integrable (λ x, (f x : real)) μ) :
+lemma lintegral_coe_eq_integral (f : α → ℝ≥0) (hfi : integrable (λ x, (f x : real)) μ) :
   ∫⁻ a, f a ∂μ = ennreal.of_real ∫ a, f a ∂μ :=
 begin
   simp_rw [integral_eq_lintegral_of_nonneg_ae (eventually_of_forall (λ x, (f x).coe_nonneg))

@@ -66,10 +66,12 @@ protected theorem unique (g : free_abelian_group α →+ β)
     ((add_monoid_hom.to_multiplicative' g).comp abelianization.of)
     hg x) _
 
+/-- See note [partially-applied ext lemmas]. -/
+@[ext]
 protected theorem ext (g h : free_abelian_group α →+ β)
-  (H : ∀ x, g (of x) = h (of x)) {x} :
-  g x = h x :=
-(lift.unique (g ∘ of) g (λ _, rfl)).trans $
+  (H : ∀ x, g (of x) = h (of x)) :
+  g = h :=
+add_monoid_hom.ext $ λ x, (lift.unique (g ∘ of) g (λ _, rfl)).trans $
 eq.symm $ lift.unique _ _ $ λ x, eq.symm $ H x
 
 lemma map_hom {α β γ} [add_comm_group β] [add_comm_group γ]
@@ -106,7 +108,7 @@ variables (X : Type*) (G : Type*) [add_comm_group G]
 def hom_equiv : (free_abelian_group X →+ G) ≃ (X → G) :=
 { to_fun := λ f, f.1 ∘ of,
   inv_fun := λ f, add_monoid_hom.of (lift f),
-  left_inv := λ f, begin ext, simp, exact (lift.unique _ _ (λ x, rfl)).symm, end,
+  left_inv := λ f, begin ext, simp end,
   right_inv := λ f, funext $ λ x, lift.of f x }
 
 @[simp]

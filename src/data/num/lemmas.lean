@@ -934,10 +934,11 @@ variables {α : Type*}
 | 0       a       := by cases a; exact (_root_.zero_add _).symm
 | b       0       := by cases b; exact (_root_.add_zero _).symm
 | (pos a) (pos b) := pos_num.cast_add _ _
-| (pos a) (neg b) := pos_num.cast_sub' _ _
-| (neg a) (pos b) := (pos_num.cast_sub' _ _).trans $
-  show ↑b + -↑a = -↑a + ↑b, by rw [← pos_num.cast_to_int a, ← pos_num.cast_to_int b,
-    ← int.cast_neg, ← int.cast_add (-a)]; simp [add_comm]
+| (pos a) (neg b) := by simpa only [sub_eq_add_neg] using pos_num.cast_sub' _ _
+| (neg a) (pos b) :=
+have (↑b + -↑a : α) = -↑a + ↑b, by rw [← pos_num.cast_to_int a, ← pos_num.cast_to_int b,
+  ← int.cast_neg, ← int.cast_add (-a)]; simp [add_comm],
+(pos_num.cast_sub' _ _).trans $ (sub_eq_add_neg _ _).trans this
 | (neg a) (neg b) := show -(↑(a + b) : α) = -a + -b, by rw [
   pos_num.cast_add, neg_eq_iff_neg_eq, neg_add_rev, neg_neg, neg_neg,
   ← pos_num.cast_to_int a, ← pos_num.cast_to_int b, ← int.cast_add]; simp [add_comm]

@@ -281,14 +281,18 @@ instance [has_neg β] : has_neg (α →ₛ β) := ⟨λf, f.map (has_neg.neg)⟩
 
 @[simp, norm_cast] lemma coe_neg [has_neg β] (f : α →ₛ β) : ⇑(-f) = -f := rfl
 
-instance [add_group β] : add_group (α →ₛ β) :=
-function.injective.add_group (λ f, show α → β, from f) coe_injective coe_zero coe_add coe_neg
+instance [has_sub β] : has_sub (α →ₛ β) := ⟨λf g, (f.map (has_sub.sub)).seq g⟩
 
-@[simp, norm_cast] lemma coe_sub [add_group β] (f g : α →ₛ β) : ⇑(f - g) = f - g := rfl
+@[simp, norm_cast] lemma coe_sub [add_group β] (f g : α →ₛ β) : ⇑(f - g) = f - g :=
+rfl
+
+instance [add_group β] : add_group (α →ₛ β) :=
+function.injective.add_group_sub (λ f, show α → β, from f) coe_injective
+  coe_zero coe_add coe_neg coe_sub
 
 instance [add_comm_group β] : add_comm_group (α →ₛ β) :=
-function.injective.add_comm_group (λ f, show α → β, from f) coe_injective
-  coe_zero coe_add coe_neg
+function.injective.add_comm_group_sub (λ f, show α → β, from f) coe_injective
+  coe_zero coe_add coe_neg coe_sub
 
 variables {K : Type*}
 
@@ -380,12 +384,12 @@ ext $ λ x,
 if hs : is_measurable s then by simp [hs, set.indicator_comp_of_zero hg]
 else by simp [restrict_of_not_measurable hs, hg]
 
-theorem map_coe_ennreal_restrict (f : α →ₛ nnreal) (s : set α) :
-  (f.restrict s).map (coe : nnreal → ennreal) = (f.map coe).restrict s :=
+theorem map_coe_ennreal_restrict (f : α →ₛ ℝ≥0) (s : set α) :
+  (f.restrict s).map (coe : ℝ≥0 → ennreal) = (f.map coe).restrict s :=
 map_restrict_of_zero ennreal.coe_zero _ _
 
-theorem map_coe_nnreal_restrict (f : α →ₛ nnreal) (s : set α) :
-  (f.restrict s).map (coe : nnreal → ℝ) = (f.map coe).restrict s :=
+theorem map_coe_nnreal_restrict (f : α →ₛ ℝ≥0) (s : set α) :
+  (f.restrict s).map (coe : ℝ≥0 → ℝ) = (f.map coe).restrict s :=
 map_restrict_of_zero nnreal.coe_zero _ _
 
 theorem restrict_apply (f : α →ₛ β) {s : set α} (hs : is_measurable s) (a) :
@@ -855,7 +859,7 @@ lemma lintegral_mono ⦃f g : α → ennreal⦄ (hfg : f ≤ g) :
   ∫⁻ a, f a ∂μ ≤ ∫⁻ a, g a ∂μ :=
 lintegral_mono' (le_refl μ) hfg
 
-lemma lintegral_mono_nnreal {f g : α → nnreal} (h : f ≤ g) :
+lemma lintegral_mono_nnreal {f g : α → ℝ≥0} (h : f ≤ g) :
   ∫⁻ a, f a ∂μ ≤ ∫⁻ a, g a ∂μ :=
 begin
   refine lintegral_mono _,
@@ -878,7 +882,7 @@ by rw [lintegral_const, one_mul, measure.restrict_apply_univ]
 functions `φ : α →ₛ ℝ≥0`. -/
 lemma lintegral_eq_nnreal (f : α → ennreal) (μ : measure α) :
   (∫⁻ a, f a ∂μ) = (⨆ (φ : α →ₛ ℝ≥0) (hf : ∀ x, ↑(φ x) ≤ f x),
-      (φ.map (coe : nnreal → ennreal)).lintegral μ) :=
+      (φ.map (coe : ℝ≥0 → ennreal)).lintegral μ) :=
 begin
   refine le_antisymm
     (bsupr_le $ assume φ hφ, _)
@@ -928,7 +932,7 @@ theorem lintegral_supr
   {f : ℕ → α → ennreal} (hf : ∀n, measurable (f n)) (h_mono : monotone f) :
   (∫⁻ a, ⨆n, f n a ∂μ) = (⨆n, ∫⁻ a, f n a ∂μ) :=
 begin
-  set c : nnreal → ennreal := coe,
+  set c : ℝ≥0 → ennreal := coe,
   set F := λ a:α, ⨆n, f n a,
   have hF : measurable F := measurable_supr hf,
   refine le_antisymm _ (supr_lintegral_le _),
@@ -1040,6 +1044,8 @@ calc (∫⁻ a, f a + g a ∂μ) =
     by rw [lintegral_eq_supr_eapprox_lintegral hf, lintegral_eq_supr_eapprox_lintegral hg]
 
 lemma lintegral_zero : (∫⁻ a:α, 0 ∂μ) = 0 := by simp
+
+lemma lintegral_zero_fun : (∫⁻ a:α, (0 : α → ennreal) a ∂μ) = 0 := by simp
 
 @[simp] lemma lintegral_smul_measure (c : ennreal) (f : α → ennreal) :
   ∫⁻ a, f a ∂ (c • μ) = c * ∫⁻ a, f a ∂μ :=

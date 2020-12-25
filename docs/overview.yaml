@@ -319,6 +319,7 @@ Data structures:
     set: 'set'
     finite set: 'finset'
     multiset: 'multiset'
+    ordered set: 'ordset'
 
   Maps:
     key-value map: 'alist'
@@ -330,6 +331,7 @@ Data structures:
   Trees:
     tree: 'tree'
     red-black tree: 'rbtree'
+    size-balanced binary search tree: 'ordnode'
     W type: 'W_type'
 
 Logic and computation:

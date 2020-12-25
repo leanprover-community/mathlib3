@@ -38,7 +38,7 @@ subtype.semilattice_inf (λ x y hx hy, ⟨le_inf hx.1 hy.1, lt_of_le_of_lt inf_l
 def order_bot [partial_order α] {a b : α} (h : a < b) : order_bot (Ico a b) :=
 { bot := ⟨a, ⟨le_refl a, h⟩⟩,
   bot_le := λ x, x.prop.1,
-.. (subtype.partial_order _) }
+  .. (subtype.partial_order _) }
 
 /-- `Ico a b` is a `semilattice_inf_bot` whenever `a < b`. -/
 def semilattice_inf_bot [semilattice_inf α] {a b : α} (h : a < b) : semilattice_inf_bot (Ico a b) :=
@@ -62,7 +62,7 @@ subtype.semilattice_sup (λ x y hx hy, ⟨lt_of_lt_of_le hx.1 le_sup_left, sup_l
 def order_top [partial_order α] {a b : α} (h : a < b) : order_top (Ioc a b) :=
 { top := ⟨b, ⟨h, le_refl b⟩⟩,
   le_top := λ x, x.prop.2,
-.. (subtype.partial_order _) }
+  .. (subtype.partial_order _) }
 
 /-- `Ioc a b` is a `semilattice_sup_top` whenever `a < b`. -/
 def semilattice_sup_top [semilattice_sup α] {a b : α} (h : a < b) : semilattice_sup_top (Ioc a b) :=
@@ -85,7 +85,7 @@ subtype.lattice (λ x y hx hy, mem_Iic.2 (sup_le hx hy)) (λ x y hx hy, le_trans
 instance order_top [partial_order α] {a : α} : order_top (Iic a) :=
 { top := ⟨a, le_refl a⟩,
   le_top := λ x, x.prop,
-.. (subtype.partial_order _) }
+  .. (subtype.partial_order _) }
 
 @[simp] lemma coe_top [partial_order α] {a : α} : ↑(⊤ : Iic a) = a := rfl
 
@@ -108,7 +108,7 @@ subtype.lattice (λ x y hx hy, le_trans hx le_sup_left) (λ x y hx hy, le_inf hx
 instance order_bot [partial_order α] {a : α} : order_bot (Ici a) :=
 { bot := ⟨a, le_refl a⟩,
   bot_le := λ x, x.prop,
-.. (subtype.partial_order _) }
+  .. (subtype.partial_order _) }
 
 @[simp] lemma coe_bot [partial_order α] {a : α} : ↑(⊥ : Ici a) = a := rfl
 

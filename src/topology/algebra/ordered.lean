@@ -2272,6 +2272,9 @@ lemma continuous.surjective' {f : α → δ} (hf : continuous f) (h_top : tendst
   function.surjective f :=
 @continuous.surjective (order_dual α) _ _ _ _ _ _ _ _ _ hf h_top h_bot
 
+/-- If a function `f : α → β` is continuous on a nonempty interval `s`, its restriction to `s`
+tends to `at_bot : filter β` along `at_bot : filter ↥s` and tends to `at_top : filter β` along
+`at_top : filter ↥s`, then `f` is surjective. -/
 lemma continuous_on.surj_on_of_tendsto {f : α → β} {s : set α} [ord_connected s]
   (hs : s.nonempty) (hf : continuous_on f s) (hbot : tendsto (λ x : s, f x) at_bot at_bot)
   (htop : tendsto (λ x : s, f x) at_top at_top) :
@@ -2280,6 +2283,9 @@ by haveI := inhabited_of_nonempty hs.to_subtype;
   exact (surj_on_iff_surjective.2 $
     (continuous_on_iff_continuous_restrict.1 hf).surjective htop hbot)
 
+/-- If a function `f : α → β` is continuous on a nonempty interval `s`, its restriction to `s`
+tends to `at_top : filter β` along `at_bot : filter ↥s` and tends to `at_bot : filter β` along
+`at_top : filter ↥s`, then `f` is surjective. -/
 lemma continuous_on.surj_on_of_tendsto' {f : α → β} {s : set α} [ord_connected s]
   (hs : s.nonempty) (hf : continuous_on f s) (hbot : tendsto (λ x : s, f x) at_bot at_top)
   (htop : tendsto (λ x : s, f x) at_top at_bot) :

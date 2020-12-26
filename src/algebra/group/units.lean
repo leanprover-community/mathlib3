@@ -288,3 +288,26 @@ lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 classical.some_spec h
 
 end is_unit
+
+section noncomputable_defs
+
+variables {M : Type*}
+
+/-- Constructs a `group` structure on a `monoid` consisting only of units. -/
+noncomputable def group_of_is_unit [hM : monoid M] (h : ∀ (a : M), is_unit a) : group M :=
+{ inv := λ a, ↑((h a).unit)⁻¹,
+  mul_left_inv := λ a, by {
+    change ↑((h a).unit)⁻¹ * a = 1,
+    rw [units.inv_mul_eq_iff_eq_mul, (h a).unit_spec, mul_one] },
+.. hM }
+
+/-- Constructs a `comm_group` structure on a `comm_monoid` consisting only of units. -/
+noncomputable def comm_group_of_is_unit [hM : comm_monoid M] (h : ∀ (a : M), is_unit a) :
+  comm_group M :=
+{ inv := λ a, ↑((h a).unit)⁻¹,
+  mul_left_inv := λ a, by {
+    change ↑((h a).unit)⁻¹ * a = 1,
+    rw [units.inv_mul_eq_iff_eq_mul, (h a).unit_spec, mul_one] },
+.. hM }
+
+end noncomputable_defs

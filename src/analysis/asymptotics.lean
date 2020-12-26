@@ -670,15 +670,15 @@ theorem is_o_refl_left : is_o (λ x, f' x - f' x) g' l :=
 
 variables {g g' l}
 
-theorem is_O_with_zero_right_iff :
+@[simp] theorem is_O_with_zero_right_iff :
   is_O_with c f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
 by simp only [is_O_with, exists_prop, true_and, norm_zero, mul_zero, norm_le_zero_iff]
 
-theorem is_O_zero_right_iff : is_O f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
+@[simp] theorem is_O_zero_right_iff : is_O f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
 ⟨λ h, let ⟨c, hc⟩ := h in  (is_O_with_zero_right_iff).1 hc,
   λ h, (is_O_with_zero_right_iff.2 h : is_O_with 1 _ _ _).is_O⟩
 
-theorem is_o_zero_right_iff :
+@[simp] theorem is_o_zero_right_iff :
   is_o f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
 ⟨λ h, is_O_zero_right_iff.1 h.is_O,
   λ h c hc, is_O_with_zero_right_iff.2 h⟩
@@ -1234,6 +1234,11 @@ bound_of_is_O_cofinite $ by rwa nat.cofinite_eq_at_top
 theorem is_O_nat_at_top_iff {f : ℕ → E'} {g : ℕ → F'} (h : ∀ x, g x = 0 → f x = 0) :
   is_O f g at_top ↔ ∃ C, ∀ x, ∥f x∥ ≤ C * ∥g x∥ :=
 by rw [← nat.cofinite_eq_at_top, is_O_cofinite_iff h]
+
+theorem is_O_one_nat_at_top_iff {f : ℕ → E'} :
+  is_O f (λ n, 1 : ℕ → ℝ) at_top ↔ ∃ C, ∀ n, ∥f n∥ ≤ C :=
+iff.trans (is_O_nat_at_top_iff (λ n h, (one_ne_zero h).elim)) $
+  by simp only [norm_one, mul_one]
 
 end asymptotics
 

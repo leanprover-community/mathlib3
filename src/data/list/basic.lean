@@ -3382,7 +3382,7 @@ begin
       simp only [h, prefix_cons_inj, hl, map] } },
 end
 
-lemma filter_map_prefix {l l' : list α} (f : α → option β) (h : l <+: l') :
+lemma is_prefix.filter_map {l l' : list α} (h : l <+: l') (f : α → option β) :
   l.filter_map f <+: l'.filter_map f :=
 begin
   induction l with hd tl hl generalizing l',
@@ -3395,7 +3395,7 @@ begin
       exact hl h.right } },
 end
 
-lemma reduce_option_prefix {l l' : list (option α)} (h : l <+: l') :
+lemma is_prefix.reduce_option {l l' : list (option α)} (h : l <+: l') :
   l.reduce_option <+: l'.reduce_option :=
 filter_map_prefix id h
 

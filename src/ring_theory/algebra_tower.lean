@@ -134,14 +134,6 @@ by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union, algebra.adjoin_
     algebra.map_top, is_scalar_tower.range_under_adjoin, ht, subalgebra.res_top]⟩
 end
 
-section semiring
-
-variables {R S A}
-variables [comm_semiring R] [semiring S] [add_comm_monoid A]
-variables [algebra R S] [semimodule S A] [semimodule R A] [is_scalar_tower R S A]
-
-end semiring
-
 section ring
 
 open finsupp

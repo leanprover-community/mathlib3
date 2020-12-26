@@ -431,6 +431,8 @@ order_embedding.of_strict_mono (λ i, ⟨n + (i : ℕ), add_lt_add_left i.2 _⟩
 
 @[simp] lemma coe_nat_add (n : ℕ) {m : ℕ} (i : fin m) : (nat_add n i : ℕ) = n + i := rfl
 
+/-- If `e` is an `order_iso` between `fin n` and `fin m`, then `n = m` and `e` is the identity
+map. In this lemma we state that for each `i : fin n` we have `(e i : ℕ) = (i : ℕ)`. -/
 @[simp] lemma coe_order_iso_apply (e : fin n ≃o fin m) (i : fin n) : (e i : ℕ) = i :=
 begin
   rcases i with ⟨i, hi⟩,

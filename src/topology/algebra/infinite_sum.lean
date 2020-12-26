@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import algebra.big_operators.intervals
 import topology.instances.real
+import topology.algebra.module
 import data.indicator_function
 import data.equiv.encodable.lattice
 import order.filter.at_top_bot
@@ -27,7 +28,7 @@ generally, see `has_sum.tendsto_sum_nat`.
 
 noncomputable theory
 open finset filter function classical
-open_locale topological_space classical big_operators
+open_locale topological_space classical big_operators nnreal
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -35,13 +36,16 @@ section has_sum
 variables [add_comm_monoid α] [topological_space α]
 
 /-- Infinite sum on a topological monoid
-The `at_top` filter on `finset α` is the limit of all finite sets towards the entire type. So we sum
-up bigger and bigger sets. This sum operation is still invariant under reordering, and a absolute
-sum operator.
 
-This is based on Mario Carneiro's infinite sum in Metamath.
+The `at_top` filter on `finset β` is the limit of all finite sets towards the entire type. So we sum
+up bigger and bigger sets. This sum operation is invariant under reordering. In particular,
+the function `ℕ → ℝ` sending `n` to `(-1)^n / (n+1)` does not have a
+sum for this definition, but a series which is absolutely convergent will have the correct sum.
 
-For the definition or many statements, α does not need to be a topological monoid. We only add
+This is based on Mario Carneiro's
+[infinite sum `df-tsms` in Metamath](http://us.metamath.org/mpeuni/df-tsms.html).
+
+For the definition or many statements, `α` does not need to be a topological monoid. We only add
 this assumption later, for the lemmas where it is relevant.
 -/
 def has_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, ∑ b in s, f b) at_top (𝓝 a)
@@ -542,7 +546,6 @@ If `s` is a finset of `α`, we show that the summability of `f` in the whole spa
 formula `(∑ i in range k, f i) + (∑' i, f (i + k)) = (∑' i, f i)`, in `sum_add_tsum_nat_add`.
 -/
 section subtype
-variables {s : finset β}
 
 lemma has_sum_nat_add_iff {f : ℕ → α} (k : ℕ) {a : α} :
   has_sum (λ n, f (n + k)) a ↔ has_sum f (a + ∑ i in range k, f i) :=
@@ -568,6 +571,23 @@ by simpa [add_comm] using
 lemma tsum_eq_zero_add [t2_space α] {f : ℕ → α} (hf : summable f) :
   (∑'b, f b) = f 0 + (∑'b, f (b + 1)) :=
 by simpa only [range_one, sum_singleton] using (sum_add_tsum_nat_add 1 hf).symm
+
+/-- For `f : ℕ → α`, then `∑' k, f (k + i)` tends to zero. This does not require a summability
+assumption on `f`, as otherwise all sums are zero. -/
+lemma tendsto_sum_nat_add [t2_space α] (f : ℕ → α) : tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
+begin
+  by_cases hf : summable f,
+  { have h₀ : (λ i, (∑' i, f i) - ∑ j in range i, f j) = λ i, ∑' (k : ℕ), f (k + i),
+    { ext1 i,
+      rw [sub_eq_iff_eq_add, add_comm, sum_add_tsum_nat_add i hf] },
+    have h₁ : tendsto (λ i : ℕ, ∑' i, f i) at_top (𝓝 (∑' i, f i)) := tendsto_const_nhds,
+    simpa only [h₀, sub_self] using tendsto.sub h₁ hf.has_sum.tendsto_sum_nat },
+  { convert tendsto_const_nhds,
+    ext1 i,
+    rw ← summable_nat_add_iff i at hf,
+    { exact tsum_eq_zero_of_not_summable hf },
+    { apply_instance } }
+end
 
 end subtype
 
@@ -600,6 +620,24 @@ lemma tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b, f b) * a
 end tsum
 
 end topological_semiring
+
+section topological_semimodule
+variables {R : Type*}
+[semiring R] [topological_space R]
+[topological_space α] [add_comm_monoid α]
+[semimodule R α] [topological_semimodule R α]
+{f : β → α}
+
+lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
+hf.map (const_smul_hom α r) (continuous_const.smul continuous_id)
+
+lemma summable.smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
+hf.has_sum.smul.summable
+
+lemma tsum_smul [t2_space α] {r : R} (hf : summable f) : (∑' z, r • f z) = r • (∑' z, f z) :=
+hf.has_sum.smul.tsum_eq
+
+end topological_semimodule
 
 section division_ring
 
@@ -867,7 +905,7 @@ open finset.Ico filter
 
 /-- If the extended distance between consequent points of a sequence is estimated
 by a summable series of `nnreal`s, then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d : ℕ → nnreal)
+lemma cauchy_seq_of_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d : ℕ → ℝ≥0)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
 begin
   refine emetric.cauchy_seq_iff_nnreal.2 (λ ε εpos, _),

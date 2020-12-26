@@ -32,6 +32,9 @@ polynomial of every element `x` in `K` splits in `K`, i.e. every conjugate of `x
 @[class] def normal : Prop :=
 ∀ x : K, ∃ H : is_integral F x, splits (algebra_map F K) (minimal_polynomial H)
 
+instance normal_self : normal F F :=
+λ x, ⟨is_integral_algebra_map, by { rw minimal_polynomial.eq_X_sub_C, exact splits_X_sub_C _ }⟩
+
 theorem normal.is_integral [h : normal F K] (x : K) : is_integral F x := (h x).fst
 
 theorem normal.splits [h : normal F K] (x : K) :
@@ -52,3 +55,41 @@ begin
   rw [is_root.def, eval_map, ← aeval_def, alg_hom.map_prod],
   exact finset.prod_eq_zero x.2 (minimal_polynomial.aeval _)
 end
+
+section normal_tower
+
+variables (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_tower F K E]
+
+lemma normal.tower_top_of_normal (h : normal F E) : normal K E :=
+begin
+  intros x,
+  cases h x with hx hhx,
+  rw is_scalar_tower.algebra_map_eq F K E at hhx,
+  exact ⟨is_integral_of_is_scalar_tower x hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
+    (polynomial.map_ne_zero (minimal_polynomial.ne_zero hx))
+    ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx)
+    (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩,
+end
+
+variables {F} {E} {E' : Type*} [field E'] [algebra F E']
+
+lemma normal.of_alg_equiv [h : normal F E] (f : E ≃ₐ[F] E') : normal F E' :=
+begin
+  intro x,
+  cases h (f.symm x) with hx hhx,
+  have H := is_integral_alg_hom f.to_alg_hom hx,
+  rw [alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom, alg_equiv.apply_symm_apply] at H,
+  use H,
+  apply polynomial.splits_of_splits_of_dvd (algebra_map F E') (minimal_polynomial.ne_zero hx),
+  { rw ← alg_hom.comp_algebra_map f.to_alg_hom,
+    exact polynomial.splits_comp_of_splits (algebra_map F E) f.to_alg_hom.to_ring_hom hhx },
+  { apply minimal_polynomial.dvd H,
+    rw ← add_equiv.map_eq_zero_iff f.symm.to_add_equiv,
+    exact eq.trans (polynomial.aeval_alg_hom_apply f.symm.to_alg_hom x
+      (minimal_polynomial hx)).symm (minimal_polynomial.aeval hx) },
+end
+
+lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
+⟨λ h, by exactI normal.of_alg_equiv f, λ h, by exactI normal.of_alg_equiv f.symm⟩
+
+end normal_tower

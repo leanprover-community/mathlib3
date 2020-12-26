@@ -46,12 +46,6 @@ This file only provides purely algebraic definitions and results.
 Those depending on analysis or topology are defined elsewhere; see
 `analysis.normed_space.add_torsor` and `topology.algebra.affine`.
 
-## TODO
-
-* Coercions from an `affine_subspace` to the subtype of its points,
-  and a corresponding `affine_space` instance on that subtype in the
-  case of a nonempty subspace.
-
 ## References
 
 * https://en.wikipedia.org/wiki/Affine_space
@@ -148,7 +142,8 @@ begin
   rcases hp2 with ⟨p2a, ⟨hp2a, ⟨v2, ⟨hv2, hv2p⟩⟩⟩⟩,
   rw [hv1p, hv2p, vsub_vadd_eq_vsub_sub (v1 +ᵥ p1a), vadd_vsub_assoc, add_comm, add_sub_assoc],
   have hv1v2 : v1 - v2 ∈ vector_span k s,
-  { apply (vector_span k s).add_mem hv1,
+  { rw sub_eq_add_neg,
+    apply (vector_span k s).add_mem hv1,
     rw ←neg_one_smul k v2,
     exact (vector_span k s).smul_mem (-1 : k) hv2 },
   refine (vector_span k s).add_mem _ hv1v2,
@@ -376,6 +371,23 @@ begin
     rw hd,
     exact vsub_mem_direction hp hq2 }
 end
+
+instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.direction s :=
+{ vadd := λ a b, ⟨(a:V) +ᵥ (b:P), vadd_mem_of_mem_direction a.2 b.2⟩,
+  zero_vadd' := by simp,
+  vadd_assoc' := λ a b c, by { ext, apply add_torsor.vadd_assoc' },
+  vsub := λ a b, ⟨(a:P) -ᵥ (b:P), (vsub_left_mem_direction_iff_mem a.2 _).mpr b.2 ⟩,
+  nonempty := by apply_instance,
+  vsub_vadd' := λ a b, by { ext, apply add_torsor.vsub_vadd' },
+  vadd_vsub' := λ a b, by { ext, apply add_torsor.vadd_vsub' } }
+
+@[simp, norm_cast] lemma coe_vsub (s : affine_subspace k P) [nonempty s] (a b : s) :
+  ↑(a -ᵥ b) = (a:P) -ᵥ (b:P) :=
+rfl
+
+@[simp, norm_cast] lemma coe_vadd (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
+  ↑(a +ᵥ b) = (a:V) +ᵥ (b:P) :=
+rfl
 
 /-- Two affine subspaces with nonempty intersection are equal if and
 only if their directions are equal. -/
@@ -955,6 +967,10 @@ is. -/
 lemma affine_span_nonempty (s : set P) :
   (affine_span k s : set P).nonempty ↔ s.nonempty :=
 span_points_nonempty k s
+
+/-- The affine span of a nonempty set is nonempty. -/
+instance {s : set P} [nonempty s] : nonempty (affine_span k s) :=
+((affine_span_nonempty k s).mpr (nonempty_subtype.mp ‹_›)).to_subtype
 
 variables {k}
 

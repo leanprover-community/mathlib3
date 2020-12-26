@@ -128,6 +128,8 @@ theorem eq_on.maps_to_iff (H : eq_on f₁ f₂ s) : maps_to f₁ s t ↔ maps_to
 theorem maps_to.comp (h₁ : maps_to g t p) (h₂ : maps_to f s t) : maps_to (g ∘ f) s p :=
 λ x h, h₁ (h₂ h)
 
+theorem maps_to_id (s : set α) : maps_to id s s := λ x, id
+
 theorem maps_to.iterate {f : α → α} {s : set α} (h : maps_to f s s) :
   ∀ n, maps_to (f^[n]) s s
 | 0 := λ _, id
@@ -195,6 +197,10 @@ theorem maps_to.mem_iff (h : maps_to f s t) (hc : maps_to f sᶜ tᶜ) {x} : f x
 
 theorem inj_on_empty (f : α → β) : inj_on f ∅ :=
 λ _ h₁, false.elim h₁
+
+theorem inj_on.eq_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  f x = f y ↔ x = y :=
+⟨h hx hy, λ h, h ▸ rfl⟩
 
 theorem inj_on.congr (h₁ : inj_on f₁ s) (h : eq_on f₁ f₂ s) :
   inj_on f₂ s :=
@@ -364,6 +370,11 @@ h.surj_on.image_eq_of_maps_to h.maps_to
 theorem bij_on.comp (hg : bij_on g t p) (hf : bij_on f s t) : bij_on (g ∘ f) s p :=
 bij_on.mk (hg.maps_to.comp hf.maps_to) (hg.inj_on.comp hf.inj_on hf.maps_to)
   (hg.surj_on.comp hf.surj_on)
+
+theorem bij_on.bijective (h : bij_on f s t) :
+  bijective (t.cod_restrict (s.restrict f) $ λ x, h.maps_to x.val_prop) :=
+⟨λ x y h', subtype.ext $ h.inj_on x.2 y.2 $ subtype.ext_iff.1 h',
+  λ ⟨y, hy⟩, let ⟨x, hx, hxy⟩ := h.surj_on hy in ⟨⟨x, hx⟩, subtype.eq hxy⟩⟩
 
 lemma bijective_iff_bij_on_univ : bijective f ↔ bij_on f univ univ :=
 iff.intro
@@ -569,6 +580,10 @@ by simp [piecewise, hi]
 lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
 by simp [piecewise, hi]
 
+lemma piecewise_singleton (x : α) [Π y, decidable (y ∈ ({x} : set α))] [decidable_eq α]
+  (f g : α → β) : piecewise {x} f g = function.update g x (f x) :=
+by { ext y, by_cases hy : y = x, { subst y, simp }, { simp [hy] } }
+
 lemma piecewise_eq_on (f g : α → β) : eq_on (s.piecewise f g) f s :=
 λ _, piecewise_eq_of_mem _ _ _
 
@@ -622,6 +637,23 @@ lemma strict_mono_decr_on.inj_on [linear_order α] [preorder β] {f : α → β}
   (H : strict_mono_decr_on f s) :
   s.inj_on f :=
 @strict_mono_incr_on.inj_on α (order_dual β) _ _ f s H
+
+lemma strict_mono_incr_on.comp [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_incr_on g t)
+  (hf : strict_mono_incr_on f s) (hs : set.maps_to f s t) :
+  strict_mono_incr_on (g ∘ f) s :=
+λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
+
+lemma strict_mono.comp_strict_mono_incr_on [preorder α] [preorder β] [preorder γ]
+  {g : β → γ} {f : α → β} {s : set α} (hg : strict_mono g)
+  (hf : strict_mono_incr_on f s) :
+  strict_mono_incr_on (g ∘ f) s :=
+λ x hx y hy hxy, hg $ hf hx hy hxy
+
+lemma strict_mono.cod_restrict [preorder α] [preorder β] {f : α → β} (hf : strict_mono f)
+  {s : set β} (hs : ∀ x, f x ∈ s) :
+  strict_mono (set.cod_restrict f s hs) :=
+hf
 
 namespace function
 
@@ -698,9 +730,9 @@ end
 
 end semiconj
 
-lemma update_comp_eq_of_not_mem_range [decidable_eq β]
-  (g : β → γ) {f : α → β} {i : β} (a : γ) (h : i ∉ set.range f) :
-  (function.update g i a) ∘ f = g ∘ f :=
+lemma update_comp_eq_of_not_mem_range' {α β : Sort*} {γ : β → Sort*} [decidable_eq β]
+  (g : Π b, γ b) {f : α → β} {i : β} (a : γ i) (h : i ∉ set.range f) :
+  (λ j, (function.update g i a) (f j)) = (λ j, g (f j)) :=
 begin
   ext p,
   have : f p ≠ i,
@@ -711,9 +743,15 @@ begin
   simp [this],
 end
 
-lemma update_comp_eq_of_injective [decidable_eq α] [decidable_eq β]
-  (g : β → γ) {f : α → β} (hf : function.injective f) (i : α) (a : γ) :
-  (function.update g (f i) a) ∘ f = function.update (g ∘ f) i a :=
+/-- Non-dependent version of `function.update_comp_eq_of_not_mem_range'` -/
+lemma update_comp_eq_of_not_mem_range {α β γ : Sort*} [decidable_eq β]
+  (g : β → γ) {f : α → β} {i : β} (a : γ) (h : i ∉ set.range f) :
+  (function.update g i a) ∘ f = g ∘ f :=
+update_comp_eq_of_not_mem_range' g a h
+
+lemma update_comp_eq_of_injective' {α β : Sort*} {γ : β → Sort*} [decidable_eq α] [decidable_eq β]
+  (g : Π b, γ b) {f : α → β} (hf : function.injective f) (i : α) (a : γ (f i)) :
+  (λ j, function.update g (f i) a (f j)) = function.update (λ i, g (f i)) i a :=
 begin
   ext j,
   by_cases h : j = i,
@@ -721,5 +759,11 @@ begin
   { have : f j ≠ f i := hf.ne h,
     simp [h, this] }
 end
+
+/-- Non-dependent version of `function.update_comp_eq_of_injective'` -/
+lemma update_comp_eq_of_injective {α β γ : Sort*} [decidable_eq α] [decidable_eq β]
+  (g : β → γ) {f : α → β} (hf : function.injective f) (i : α) (a : γ) :
+  (function.update g (f i) a) ∘ f = function.update (g ∘ f) i a :=
+update_comp_eq_of_injective' g hf i a
 
 end function

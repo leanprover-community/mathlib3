@@ -10,7 +10,7 @@ import algebra.algebra.tower
 universes u v₁ v₂ v₃ v₄
 
 /-!
-# Tensor products and algebras
+# The tensor product of R-algebras
 
 Let `R` be a (semi)ring and `A` an `R`-algebra.
 In this file we:
@@ -602,7 +602,8 @@ def alg_equiv_of_linear_equiv_triple_tensor_product
     f ((a₁ * a₂) ⊗ₜ (b₁ * b₂) ⊗ₜ (c₁ * c₂)) = f (a₁ ⊗ₜ b₁ ⊗ₜ c₁) * f (a₂ ⊗ₜ b₂ ⊗ₜ c₂))
   (w₂ : ∀ r, f (((algebra_map R A) r ⊗ₜ[R] (1 : B)) ⊗ₜ[R] (1 : C)) = (algebra_map R D) r) :
   (A ⊗[R] B) ⊗[R] C ≃ₐ[R] D :=
-{ map_mul' := λ x y,
+{ to_fun := f,
+  map_mul' := λ x y,
   begin
     apply tensor_product.induction_on x,
     { simp, },
@@ -617,16 +618,14 @@ def alg_equiv_of_linear_equiv_triple_tensor_product
           { simp, },
           { simp [w₁], },
           { intros x₁ x₂ h₁ h₂,
-            simp at h₁, simp at h₂,
+            simp at h₁ h₂,
             simp [mul_add, add_tmul, h₁, h₂], }, },
         { intros x₁ x₂ h₁ h₂,
-          simp at h₁, simp at h₂,
+          simp at h₁ h₂,
           simp [add_mul, add_tmul, h₁, h₂], }, },
       { intros x₁ x₂ h₁ h₂,
-        simp at h₁, simp at h₂,
         simp [mul_add, add_mul, h₁, h₂], }, },
     { intros x₁ x₂ h₁ h₂,
-      simp at h₁, simp at h₂,
       simp [mul_add, add_mul, h₁, h₂], }
   end,
   commutes' := λ r, by simp [w₂],

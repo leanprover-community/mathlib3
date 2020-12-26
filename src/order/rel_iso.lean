@@ -124,7 +124,7 @@ infix ` ↪o `:25 := order_embedding
 /-- The induced relation on a subtype is an embedding under the natural inclusion. -/
 definition subtype.rel_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
   ((subtype.val : subtype p → X) ⁻¹'o r) ↪r r :=
-⟨⟨subtype.val,subtype.val_injective⟩,by intros;refl⟩
+⟨embedding.subtype p, λ x y, iff.rfl⟩
 
 theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
   (hs : equivalence s) : equivalence (f ⁻¹'o s) :=
@@ -320,10 +320,10 @@ def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
   (h : strict_mono f) : ⇑(of_strict_mono f h) = f := rfl
 
 /-- Embedding of a subtype into the ambient type as an `order_embedding`. -/
-def subtype [preorder α] (p : α → Prop) : subtype p ↪o α :=
+def subtype (p : α → Prop) : subtype p ↪o α :=
 ⟨embedding.subtype p, λ x y, iff.rfl⟩
 
-@[simp] lemma coe_subtype [preorder α] (p : α → Prop) : ⇑(subtype p) = coe := rfl
+@[simp] lemma coe_subtype (p : α → Prop) : ⇑(subtype p) = coe := rfl
 
 end order_embedding
 

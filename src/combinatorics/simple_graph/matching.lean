@@ -36,6 +36,7 @@ TODO:
 TODO: Tutte and Hall require a definition of subgraphs.
 -/
 open finset
+open fintype
 universe u
 
 namespace simple_graph
@@ -58,6 +59,12 @@ instance : inhabited (matching G) :=
 
 namespace matching
 variables {G}
+
+/-- Check whether a given matching matches everything in the first set to something in the second.
+This is that the matching can be regarded as a function with domain `V₀` and codomain `V₁`. -/
+structure matches_to (M : G.matching) (V₀ V₁ : set V) : Prop :=
+(dom : ∀ (v₀ ∈ V₀), ∃ (e ∈ M.edges), v₀ ∈ e)
+(cod : ∀ (v₀ ∈ V₀) (v₁ : V), ⟦(v₀, v₁)⟧ ∈ M.edges → v₁ ∈ V₁)
 
 /--
 `M.support` is the set of vertices of `G` that are
@@ -200,11 +207,8 @@ instance opposite_set.fintype
 fintype.of_equiv _ ((M.opposite_set_equiv S h).symm)
 
 lemma opposites_card_eq (M : G.matching) {S : set V} [fintype S] (h : S ⊆ M.support) :
-  fintype.card (M.opposite_set S h) = fintype.card S :=
-begin
---  rw ←fintype.card_coe,
-  exact fintype.card_congr (M.opposite_set_equiv S h),
-end
+  card (M.opposite_set S h) = card S :=
+fintype.card_congr (M.opposite_set_equiv S h)
 
 lemma opposite_set_support_eq (M : G.matching) :
   (M.opposite_set M.support (set.subset.refl M.support)) = M.support :=
@@ -270,7 +274,7 @@ simp,
   }
 end -/
 
-lemma support_card_even [fintype V] [decidable_eq V] (M : G.matching) : even (fintype.card M.support) :=
+lemma support_card_even [fintype V] [decidable_eq V] (M : G.matching) : even (card M.support) :=
 --card_even_if_fixedpoint_free_invol M.support_opposite (support_opposite_invol M) (λ x, (support_opposite_ne M x).symm)-/
 begin
   sorry,
@@ -399,11 +403,58 @@ begin
   tauto,
 end
 
+lemma hall_marriage_theorem.hard_step (k : ℕ) (f : G.partial_bipartition)
+  (hc : fintype.card (f.color_set 0) = k)
+  (h : ∀ (S ⊆ f.color_set 0), card S ≤ card (G.neighbor_set_image S)) :
+  ∃ (M : G.matching), M.matches_to (f.color_set 0) (f.color_set 1) :=
+begin
+  revert f,
+  refine nat.strong_induction_on k (λ n ih, _),
+  intros f hc h,
+  by_cases h' : ∀ (S ⊆ f.color_set 0), S.nonempty → card S + 1 ≤ card (G.neighbor_set_image S),
+  { cases n,
+    { use matching.empty G,
+      split; { intros v₀ H, exact false.elim (card_eq_zero_iff.mp hc ⟨v₀, H⟩), }, },
+      have hc' : 0 < card (partial_coloring.color_set f 0),
+      { rw hc, exact nat.succ_pos _, },
+      rcases classical.choice (card_pos_iff.mp hc') with ⟨v, hv⟩,
+      have h' : 0 < card (G.neighbor_set_image {v}),
+      { refine nat.lt_of_lt_of_le (nat.succ_pos 0) _,
+        convert h {v} (by simp [hv]),
+        convert (set.card_singleton _).symm, },
+      rcases classical.choice (card_pos_iff.mp h') with ⟨w, hw⟩,
+      have diff_subset : f.verts \ {v, w} ⊆ f.verts,
+      { intro u,
+        simp only [and_imp, set.mem_insert_iff, set.mem_diff, set.mem_singleton_iff],
+        intros h1 h2,
+        exact h1, },
+      let f' := f.restrict (f.verts \ {v, w}) diff_subset,
+      rcases ih n (lt_add_one n) f' _ _ with ⟨M, hM⟩,
+      let M' : G.matching :=
+      { edges := insert ⟦(v, w)⟧ M.edges,
+        sub_edges := begin
+          intro e, simp only [set.mem_insert_iff],
+          rintro (rfl | he),
+          { simpa using hw, },
+          { exact M.sub_edges he, },
+        end,
+        disjoint := begin
+          intros x y hx hy v vx vy,
+          simp at hx hy,
+        end
+      },
+      --have h' := h {v} (by simp [hv]),
+      --squeeze_simp at h',
+   },
+  { push_neg at h',
+   },
+end
+
 theorem hall_marriage_theorem
-  (h2 : fintype.card (f.color_set 0) ≤ fintype.card (f.color_set 1)) :
+  (h2 : card (f.color_set 0) ≤ card (f.color_set 1)) :
   (∃ (M : G.matching), (f.color_set 0) ⊆ M.support) ↔
   (∀ (S ⊆ f.color_set 0),
-    fintype.card S ≤ fintype.card (G.neighbor_set_image S)) :=
+    card S ≤ card (G.neighbor_set_image S)) :=
 begin
   split,
   { rintros ⟨M, hM⟩ S hs,

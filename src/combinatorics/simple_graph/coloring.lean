@@ -120,15 +120,22 @@ structure partial_coloring (β : Type v) :=
 
 def partial_bipartition (G : simple_graph V) := G.partial_coloring (fin 2)
 
-def coloring.to_partial (β : Type v) (f : G.coloring β) : G.partial_coloring β :=
+variables {G} {β : Type v}
+
+def coloring.to_partial (f : G.coloring β) : G.partial_coloring β :=
 { verts := set.univ,
   color := f.color,
   valid := λ v w hv hw hadj, f.valid hadj }
 
-def partial_coloring.restrict (β : Type v) (f : G.partial_coloring β) (V' : set V) (h : V' ⊆ f.verts) :
+variables (f : G.partial_coloring β)
+
+def partial_coloring.restrict (V' : set V) (h : V' ⊆ f.verts) :
   G.partial_coloring β :=
 { verts := V',
   color := f.color,
   valid := λ v w hv hw, f.valid (h hv) (h hw) }
+
+/-- The set of vertices with the given color. -/
+def partial_coloring.color_set (c : β) : set V := f.verts ∩ f.color ⁻¹' {c}
 
 end simple_graph

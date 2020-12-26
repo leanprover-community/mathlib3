@@ -76,7 +76,7 @@ by { ext i, fin_cases i }
 
 section val
 
-@[simp] lemma head_fin_one (a : α) : vec_head (λ (i : fin 1), a) = a := rfl
+@[simp] lemma head_fin_const (a : α) : vec_head (λ (i : fin (n + 1)), a) = a := rfl
 
 @[simp] lemma cons_val_zero (x : α) (u : fin m → α) : vec_cons x u 0 = x := rfl
 

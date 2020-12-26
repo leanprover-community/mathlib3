@@ -50,11 +50,6 @@ variables {R} (A) {M}
 theorem algebra_map_smul (r : R) (x : M) : algebra_map R A r • x = r • x :=
 by rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul]
 
-variables {R A M}
-theorem smul_left_comm (r : R) (s : A) (x : M) : r • s • x = s • r • x :=
-by rw [← smul_assoc, algebra.smul_def r s, algebra.commutes, mul_smul, algebra_map_smul]
-
-
 end semimodule
 
 section semiring
@@ -256,7 +251,7 @@ theorem smul_mem_span_smul {s : set S} (hs : span R s = ⊤) {t : set A} {k : S}
 span_induction hx (λ x hx, smul_mem_span_smul_of_mem (hs.symm ▸ mem_top) hx)
   (by { rw smul_zero, exact zero_mem _ })
   (λ x y ihx ihy, by { rw smul_add, exact add_mem _ ihx ihy })
-  (λ c x hx, smul_left_comm c k x ▸ smul_mem _ _ hx)
+  (λ c x hx, smul_comm c k x ▸ smul_mem _ _ hx)
 
 theorem smul_mem_span_smul' {s : set S} (hs : span R s = ⊤) {t : set A} {k : S}
   {x : A} (hx : x ∈ span R (s • t)) :
@@ -265,7 +260,7 @@ span_induction hx (λ x hx, let ⟨p, q, hp, hq, hpq⟩ := set.mem_smul.1 hx in
     by { rw [← hpq, smul_smul], exact smul_mem_span_smul_of_mem (hs.symm ▸ mem_top) hq })
   (by { rw smul_zero, exact zero_mem _ })
   (λ x y ihx ihy, by { rw smul_add, exact add_mem _ ihx ihy })
-  (λ c x hx, smul_left_comm c k x ▸ smul_mem _ _ hx)
+  (λ c x hx, smul_comm c k x ▸ smul_mem _ _ hx)
 
 theorem span_smul {s : set S} (hs : span R s = ⊤) (t : set A) :
   span R (s • t) = (span S t).restrict_scalars R :=

@@ -290,9 +290,12 @@ instance : comm_ring (colimit_type F) :=
 
 @[simp] lemma quot_zero : quot.mk setoid.r zero = (0 : colimit_type F) := rfl
 @[simp] lemma quot_one : quot.mk setoid.r one = (1 : colimit_type F) := rfl
-@[simp] lemma quot_neg (x) : quot.mk setoid.r (neg x) = (-(quot.mk setoid.r x) : colimit_type F) := rfl
-@[simp] lemma quot_add (x y) : quot.mk setoid.r (add x y) = ((quot.mk setoid.r x) + (quot.mk setoid.r y) : colimit_type F) := rfl
-@[simp] lemma quot_mul (x y) : quot.mk setoid.r (mul x y) = ((quot.mk setoid.r x) * (quot.mk setoid.r y) : colimit_type F) := rfl
+@[simp] lemma quot_neg (x) :
+  quot.mk setoid.r (neg x) = (-(quot.mk setoid.r x) : colimit_type F) := rfl
+@[simp] lemma quot_add (x y) :
+  quot.mk setoid.r (add x y) = ((quot.mk setoid.r x) + (quot.mk setoid.r y) : colimit_type F) := rfl
+@[simp] lemma quot_mul (x y) :
+  quot.mk setoid.r (mul x y) = ((quot.mk setoid.r x) * (quot.mk setoid.r y) : colimit_type F) := rfl
 
 /-- The bundled commutative ring giving the colimit of a diagram. -/
 def colimit : CommRing := CommRing.of (colimit_type F)
@@ -301,7 +304,8 @@ def colimit : CommRing := CommRing.of (colimit_type F)
 def cocone_fun (j : J) (x : F.obj j) : colimit_type F :=
 quot.mk _ (of j x)
 
-/-- The ring homomorphism from a given commutative ring in the diagram to the colimit commutative ring. -/
+/-- The ring homomorphism from a given commutative ring in the diagram to the colimit commutative
+ring. -/
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
 { to_fun := cocone_fun F j,
   map_one' := by apply quot.sound; apply relation.one,
@@ -327,7 +331,8 @@ def colimit_cocone : cocone F :=
   ι :=
   { app := cocone_morphism F } }.
 
-/-- The function from the free commutative ring on the diagram to the cone point of any other cocone. -/
+/-- The function from the free commutative ring on the diagram to the cone point of any other
+cocone. -/
 @[simp] def desc_fun_lift (s : cocone F) : prequotient F → s.X
 | (of j x)  := (s.ι.app j) x
 | zero      := 0
@@ -396,7 +401,8 @@ begin
   }
 end
 
-/-- The ring homomorphism from the colimit commutative ring to the cone point of any other cocone. -/
+/-- The ring homomorphism from the colimit commutative ring to the cone point of any other
+cocone. -/
 def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_one' := rfl,

@@ -7,11 +7,12 @@ import category_theory.limits.limits
 import category_theory.limits.functor_category
 
 /-!
-# The colimit of `coyoneda.obj X` is `punit`
+# Limit properties relating to the (co)yoneda embedding.
 
 We calculate the colimit of `Y ↦ (X ⟶ Y)`, which is just `punit`.
+(This is used in characterising cofinal functors.)
 
-(This is used later in characterising cofinal functors.)
+We also show the (co)yoneda embeddings preserve limits and jointly reflect them.
 -/
 
 open opposite
@@ -23,7 +24,7 @@ universes v u
 namespace category_theory
 
 namespace coyoneda
-variables {C : Type v} [small_category.{v} C]
+variables {C : Type v} [small_category C]
 
 /--
 The colimit cocone over `coyoneda.obj X`, with cocone point `punit`.
@@ -85,5 +86,40 @@ instance coyoneda_preserves_limits (X : Cᵒᵖ) : preserves_limits (coyoneda.ob
           refine (t.uniq ⟨unop X, _⟩ _ (λ j, _)),
           exact congr_fun (w j) x,
         end } } } }
+
+/-- The yoneda embeddings jointly reflect limits. -/
+def yoneda_jointly_reflects_limits (J : Type v) [small_category J] (K : J ⥤ Cᵒᵖ) (c : cone K)
+  (t : Π (X : C), is_limit ((yoneda.obj X).map_cone c)) : is_limit c :=
+let s' : Π (s : cone K), cone (K ⋙ yoneda.obj s.X.unop) :=
+  λ s, ⟨punit, λ j _, (s.π.app j).unop, λ j₁ j₂ α, funext $ λ _, has_hom.hom.op_inj (s.w α).symm⟩
+in
+{ lift := λ s, ((t s.X.unop).lift (s' s) punit.star).op,
+  fac' := λ s j, has_hom.hom.unop_inj (congr_fun ((t s.X.unop).fac (s' s) j) punit.star),
+  uniq' := λ s m w,
+  begin
+    apply has_hom.hom.unop_inj,
+    suffices : (λ (x : punit), m.unop) = (t s.X.unop).lift (s' s),
+    { apply congr_fun this punit.star },
+    apply (t _).uniq (s' s) _ (λ j, _),
+    ext,
+    exact has_hom.hom.op_inj (w j),
+  end }
+
+/-- The coyoneda embeddings jointly reflect limits. -/
+def coyoneda_jointly_reflects_limits (J : Type v) [small_category J] (K : J ⥤ C) (c : cone K)
+  (t : Π (X : Cᵒᵖ), is_limit ((coyoneda.obj X).map_cone c)) : is_limit c :=
+let s' : Π (s : cone K), cone (K ⋙ coyoneda.obj (op s.X)) :=
+  λ s, ⟨punit, λ j _, s.π.app j, λ j₁ j₂ α, funext $ λ _, (s.w α).symm⟩
+in
+{ lift := λ s, (t (op s.X)).lift (s' s) punit.star,
+  fac' := λ s j, congr_fun ((t _).fac (s' s) j) punit.star,
+  uniq' := λ s m w,
+  begin
+    suffices : (λ (x : punit), m) = (t _).lift (s' s),
+    { apply congr_fun this punit.star },
+    apply (t _).uniq (s' s) _ (λ j, _),
+    ext,
+    exact (w j),
+  end }
 
 end category_theory

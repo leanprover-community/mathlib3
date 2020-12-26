@@ -7,11 +7,9 @@ namespace simple_graph
 universes u v
 variables {V : Type u} (G : simple_graph V)
 
-/--
-A graph `G` is `β`-colorable if there is an assignment of elements of `β` to
+/-- A graph `G` is `β`-colorable if there is an assignment of elements of `β` to
 vertices of `G` (allowing repetition) such that adjacent vertices have
-distinct colors.
--/
+distinct colors. -/
 @[ext]
 structure coloring (β : Type v) :=
 (color : V → β)
@@ -63,17 +61,17 @@ Given a `β`-coloring of `G'` and an embedding of `G` into `G'`, one may restric
 to `G`.
 -/
 def restrict_coloring {G G' : simple_graph V} (f : G →g G') [hom.mono f]
-  {β : Type*} (F : coloring G' β) :
-coloring G β :=
+  {β : Type v} (F : coloring G' β) : coloring G β :=
 { color := λ v, F.color (f v),
-  valid :=  λ v w h hF, F.valid (f.map_adj h) hF }
+  valid := λ v w h hF, F.valid (f.map_adj h) hF }
 
-/-/--
+/--
 Given a coloring of a graph, one may restrict the coloring to a subgraph.
 -/
-def restrict_coloring_subgraph {β : Type*} (G' : subgraph G) : coloring G'.to_simple_graph β → coloring G β :=
-restrict_coloring G'.map_top-/
-
+def restrict_coloring_subgraph {β : Type*} (G' : subgraph G) (F : coloring G β) :
+  coloring G'.coe β :=
+{ color := λ v, F.color v,
+  valid := λ v w h hF, F.valid (G'.adj_sub h) hF }
 
 /--
 A `colorable G α` graph is an `α`-partite graph, so we define bipartite as `colorable G (fin 2)`.
@@ -113,11 +111,12 @@ end
 
 end bipartite
 
+/-- A partial coloring is a coloring where vertices in a given subset cannot be the same color if
+adjacent. -/
 structure partial_coloring (β : Type v) :=
 (verts : set V)
 (color : V → β)
 (valid : ∀ ⦃v w : V⦄, v ∈ verts → w ∈ verts → G.adj v w → color v ≠ color w)
-
 
 def partial_bipartition (G : simple_graph V) := G.partial_coloring (fin 2)
 

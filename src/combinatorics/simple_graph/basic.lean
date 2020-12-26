@@ -54,6 +54,7 @@ The relation describes which pairs of vertices are adjacent.
 There is exactly one edge for every pair of adjacent edges;
 see `simple_graph.edge_set` for the corresponding edge set.
 -/
+@[ext]
 structure simple_graph (V : Type u) :=
 (adj : V → V → Prop)
 (sym : symmetric adj . obviously)
@@ -92,8 +93,8 @@ variables {V : Type u} (G : simple_graph V)
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
-/-- `G.neighbor_set' S` is the union of neighbor_sets of `S ⊆ V` in `G`. -/
-def neighbor_set' (S : set V) : set V := ⋃v∈S, G.neighbor_set v
+/-- `G.neighbor_set_image S` is the union of neighbor_sets of `S ⊆ V` in `G`. -/
+def neighbor_set_image (S : set V) : set V := ⋃v∈S, G.neighbor_set v
 
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
@@ -174,19 +175,19 @@ fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 by tauto
 
 @[simp]
-lemma mem_neighbor_set' (S : set V) (v : V) :
-  v ∈ G.neighbor_set' S ↔ ∃ (w ∈ S), v ∈ G.neighbor_set w :=
-by { simp only [neighbor_set', set.mem_Union] }
+lemma mem_neighbor_set_image (S : set V) (v : V) :
+  v ∈ G.neighbor_set_image S ↔ ∃ (w ∈ S), v ∈ G.neighbor_set w :=
+by { simp only [neighbor_set_image, set.mem_Union] }
 
 instance neighbor_set.decidable_pred [h : decidable_rel G.adj] (v : V) :
   decidable_pred (G.neighbor_set v) :=
 h v
 
-instance neighbor_set'.decidable_pred [h : decidable_rel G.adj] [fintype V]
-  (S : set V) [hs : decidable_pred S] : decidable_pred (G.neighbor_set' S) :=
+instance neighbor_set_image.decidable_pred [h : decidable_rel G.adj] [fintype V]
+  (S : set V) [hs : decidable_pred S] : decidable_pred (G.neighbor_set_image S) :=
 begin
-  intro w, change decidable (w ∈ G.neighbor_set' S),
-  simp only [exists_prop, mem_neighbor_set', mem_neighbor_set], apply_instance,
+  intro w, change decidable (w ∈ G.neighbor_set_image S),
+  simp only [exists_prop, mem_neighbor_set_image, mem_neighbor_set], apply_instance,
 end
 
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=

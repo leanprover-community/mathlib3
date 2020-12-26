@@ -532,23 +532,6 @@ begin
   rwa [← comap_comap, ← ring_hom.ker_eq_comap_bot, mk_ker] at this,
 end
 
-example {R : Type*} [hR : comm_ring R] (n : ℕ) : R :=
-begin
-  -- haveI : comm_semiring R := comm_ring.to_comm_semiring,
-
-  -- let sr1 : semiring (mv_polynomial (fin n) R) := comm_semiring.to_semiring,
-  -- let sr2 : semiring (mv_polynomial (fin n) R) := ring.to_semiring,
-
-  have a : mv_polynomial (option (fin n)) R ≃+* polynomial (mv_polynomial (fin n) R),
-  {
-    have := mv_polynomial.option_equiv_left R (fin n),
-    sorry,
-    -- exact this,
-  },
-
-  exact 0,
-end
-
 lemma mv_poly_step {R : Type*} [comm_semiring R] (n : ℕ) :
   ((mv_polynomial.fin_succ_equiv R n).symm.to_ring_hom).comp
     ((polynomial.C).comp (mv_polynomial.C))
@@ -560,16 +543,6 @@ begin
     (trans ((mv_polynomial.fin_succ_equiv R n).apply_symm_apply _) _),
   simp only [mv_polynomial.fin_succ_equiv_apply, mv_polynomial.eval₂_hom_C],
 end
-
-lemma mv_poly_step' {R : Type*} [comm_semiring R] (n : ℕ) :
-  ((mv_polynomial.fin_succ_equiv R n).symm.to_ring_hom).comp
-    ((polynomial.C).comp (mv_polynomial.C))
-    = (mv_polynomial.C : R →+* mv_polynomial (fin n.succ) R) :=
-mv_poly_step n
-
--- lemma mv_poly_step {R S T U : Type*} [comm_ring R] [comm_ring S] [comm_ring T] [comm_ring U]
---   (f : R →+* S) (g : S →+* T) (h : T →+* U) (I : ideal U) :
---   (quotient.mk I).comp (h.comp (g.comp f)) =
 
 lemma C_surj {R : Type*} [comm_ring R] :
   function.surjective (mv_polynomial.C : R → mv_polynomial (fin 0) R) :=
@@ -587,49 +560,43 @@ begin
       (equiv.equiv_pempty $ fin.elim0)).trans (mv_polynomial.pempty_ring_equiv R),
     refine ring_hom.is_integral_of_surjective _ (function.surjective.comp quotient.mk_surjective _),
     refine C_surj },
-  { --haveI : comm_semiring R := comm_ring.to_comm_semiring,
-    let ϕ1 : R →+* mv_polynomial (fin n) R := mv_polynomial.C,
+  { let ϕ1 : R →+* mv_polynomial (fin n) R := mv_polynomial.C,
     let ϕ2 : (mv_polynomial (fin n) R) →+* polynomial (mv_polynomial (fin n) R) := polynomial.C,
     let ϕ3 := (mv_polynomial.fin_succ_equiv R n).symm.to_ring_hom,
     let ϕ : R →+* (mv_polynomial (fin (n+1)) R) := ϕ3.comp (ϕ2.comp ϕ1),
     have hϕ : ϕ = mv_polynomial.C := begin
+      -- Can't use `mv_poly_step n` directly because of a diamond problem
       refine ring_hom.ext (λ x, _),
-      have := congr_arg (λ (f : R →+* mv_polynomial (fin n.succ) R), f x) (mv_poly_step n),
-      simp at this,
-      exact this,
-
-    end, --@mv_poly_step R comm_ring.to_comm_semiring n,
+      simpa using congr_arg (λ (f : R →+* mv_polynomial (fin n.succ) R), f x) (mv_poly_step n),
+    end,
     rw ← hϕ,
 
     let P3 : ideal (polynomial (mv_polynomial (fin n) R)) := P.comap ϕ3,
-    haveI : P3.is_maximal := comap_is_maximal_of_surjective ϕ3 (mv_polynomial.fin_succ_equiv R n).symm.surjective,
     let P2 : ideal (mv_polynomial (fin n) R) := P3.comap ϕ2,
-    haveI : P2.is_maximal := is_maximal_comap_C_of_is_jacobson P3,
     let P1 : ideal R := P2.comap ϕ1,
+    haveI : P3.is_maximal := comap_is_maximal_of_surjective ϕ3 (mv_polynomial.fin_succ_equiv R n).symm.surjective,
+    haveI : P2.is_maximal := is_maximal_comap_C_of_is_jacobson P3,
 
     let φ3 : P3.quotient →+* P.quotient := quotient_map P ϕ3 le_rfl,
+    let φ2 : P2.quotient →+* P3.quotient := quotient_map P3 ϕ2 le_rfl,
+    let φ1 : P1.quotient →+* P2.quotient := quotient_map P2 ϕ1 le_rfl,
+    let φ : P1.quotient →+* P.quotient := φ3.comp (φ2.comp φ1),
+
     have hφ3 : φ3.is_integral := φ3.is_integral_of_surjective
       (quotient_map_surjective ((mv_polynomial.fin_succ_equiv R n).symm.surjective)),
-
-    let φ2 : P2.quotient →+* P3.quotient := quotient_map P3 ϕ2 le_rfl,
-    have hφ2 : φ2.is_integral := begin
-      rw is_integral_quotient_map_iff,
-      refine quotient_mk_comp_C_is_integral_of_jacobson P3,
-    end,
-
-    let φ1 : P1.quotient →+* P2.quotient := quotient_map P2 ϕ1 le_rfl,
-    have hφ1 : φ1.is_integral := begin
-      rw is_integral_quotient_map_iff,
-      refine IH P2,
-    end,
-
-    let φ : P1.quotient →+* P.quotient := φ3.comp (φ2.comp φ1),
+    have hφ2 : φ2.is_integral,
+    { rw is_integral_quotient_map_iff ϕ2,
+      refine quotient_mk_comp_C_is_integral_of_jacobson P3 } ,
+    have hφ1 : φ1.is_integral,
+    { rw is_integral_quotient_map_iff ϕ1,
+      refine IH P2 },
     have hφ : φ.is_integral := ring_hom.is_integral_trans (φ2.comp φ1) φ3
       (ring_hom.is_integral_trans φ1 φ2 hφ1 hφ2) hφ3,
 
-    have : (quotient.mk P).comp ϕ = φ.comp (quotient.mk P1) := begin
-      sorry,
-    end,
+    have : (quotient.mk P).comp ϕ = φ.comp (quotient.mk P1),
+    by rw [ring_hom.comp_assoc, ring_hom.comp_assoc, quotient_map_comp_mk, ← ring_hom.comp_assoc ϕ1,
+      quotient_map_comp_mk, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc,
+      ← ring_hom.comp_assoc, quotient_map_comp_mk],
     rw this,
     refine ring_hom.is_integral_trans (quotient.mk P1) φ _ hφ,
     exact (quotient.mk P1).is_integral_of_surjective (quotient.mk_surjective) }

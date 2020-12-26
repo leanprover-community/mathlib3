@@ -39,6 +39,14 @@ If `V` is a `fintype` with `decidable_eq`, then this gives that `color_class f c
 instance color_class.decidable_pred (c : β) [decidable_eq β] : decidable_pred (f.color_set c) :=
 by { intro v, change decidable (f.color v = c), apply_instance }
 
+lemma color_set_disjoint (c c' : β) (hn : c ≠ c') : f.color_set c ∩ f.color_set c' = ∅ :=
+begin
+  ext,
+  simp only [set.mem_empty_eq, mem_color_set_iff, set.mem_inter_eq, not_and, iff_false],
+  rintro rfl,
+  exact hn,
+end
+
 end coloring
 
 /--
@@ -110,6 +118,69 @@ end
 
 
 end bipartite
+
+/-- This is an indexed family of disjoint subsets of the vertex type of `G` such that vertices in
+the same set are not adjacent.  This is similar to `subgraph.coloring`, however not every vertex
+needs to be given a color. -/
+@[ext]
+structure coloring' {V : Type u} (G : simple_graph V) (β : Type v) :=
+(color_set : β → set V)
+(disjoint : ∀ (c c' : β), c ≠ c' → color_set c ∩ color_set c' = ∅)
+(valid : ∀ (c : β) (v v' : V), v ∈ color_set c → v' ∈ color_set c → ¬G.adj v v')
+
+@[simps]
+def coloring.to_coloring' {V : Type u} {G : simple_graph V} {β : Type v}
+  (f : G.coloring β) : G.coloring' β :=
+{ color_set := f.color_set,
+  disjoint := f.color_set_disjoint,
+  valid := λ c v v' hv hv' h, begin
+    rw coloring.mem_color_set_iff at hv hv',
+    rw ←hv' at hv,
+    exact f.valid h hv,
+  end }
+
+section coloring'
+variables {G} {β : Type v}
+
+def empty : G.coloring' β :=
+{ color_set := λ c, ∅,
+  disjoint := by tidy,
+  valid := by tidy }
+
+def is_subcoloring (f f' : G.coloring' β) : Prop :=
+∀ (c : β), f.color_set c ⊆ f'.color_set c
+
+instance : has_subset (G.coloring' β) := ⟨is_subcoloring⟩
+
+def inter (f f' : G.coloring' β) : G.coloring' β :=
+{ color_set := λ c, f.color_set c ∩ f'.color_set c,
+  disjoint := λ c c' hn, begin
+    rw [set.inter_assoc, set.inter_comm (f'.color_set c),
+        set.inter_assoc (f.color_set c'), ←set.inter_assoc,
+        f.disjoint _ _ hn, f'.disjoint _ _ hn.symm],
+    simp,
+  end,
+  valid := λ c v v' hv hv', f.valid c v v' hv.left hv'.left }
+
+instance : has_inter (G.coloring' β) := ⟨inter⟩
+
+instance subcoloring.semilattice_inf_bot : semilattice_inf_bot (G.coloring' β) :=
+{ le := has_subset.subset,
+  le_refl := by tidy,
+  le_trans := by tidy,
+  le_antisymm := λ f f' h h', by { ext1, exact funext (λ c, set.subset.antisymm (h c) (h' c)) },
+  inf := has_inter.inter,
+  le_inf := by tidy,
+  inf_le_left := by tidy,
+  inf_le_right := by tidy,
+  bot := empty,
+  bot_le := by tidy }
+
+end coloring'
+
+/-- A `bipartition'` is a bipartition of a subset of vertices.  This is implemented with
+`G.coloring' (fin 2)` so bipartitions form a `semilattice_inf_bot`. -/
+def bipartition' (G : simple_graph V) := G.coloring' (fin 2)
 
 /-- A partial coloring is a coloring where vertices in a given subset cannot be the same color if
 adjacent. -/

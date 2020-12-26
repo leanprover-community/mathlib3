@@ -383,6 +383,12 @@ protected theorem decidable.not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b �
 
 theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
 
+@[simp] theorem or_iff_left_iff_imp : (a ∨ b ↔ a) ↔ (b → a) :=
+⟨λ h hb, h.1 (or.inr hb), or_iff_left_of_imp⟩
+
+@[simp] theorem or_iff_right_iff_imp : (a ∨ b ↔ b) ↔ (a → b) :=
+by rw [or_comm, or_iff_left_iff_imp]
+
 /-! ### Declarations about distributivity -/
 
 /-- `∧` distributes over `∨` (on the left). -/

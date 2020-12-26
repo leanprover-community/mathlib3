@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import tactic.doc_commands
+import tactic.reserved_notation
 
 /-!
 # Basic logic properties
@@ -281,6 +282,13 @@ protected theorem decidable.not_imp_comm [decidable a] [decidable b] : (¬a → 
 
 theorem not_imp_comm : (¬a → b) ↔ (¬b → a) := decidable.not_imp_comm
 
+@[simp] theorem imp_not_self : (a → ¬a) ↔ ¬a := ⟨λ h ha, h ha ha, λ h _, h⟩
+
+theorem decidable.not_imp_self [decidable a] : (¬a → a) ↔ a :=
+by { have := @imp_not_self (¬a), rwa decidable.not_not at this }
+
+@[simp] theorem not_imp_self : (¬a → a) ↔ a := decidable.not_imp_self
+
 theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 ⟨function.swap, function.swap⟩
 
@@ -302,10 +310,10 @@ theorem and.imp_right (h : a → b) : c ∧ a → c ∧ b :=
 and.imp id h
 
 lemma and.right_comm : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ b :=
-by simp [and.left_comm, and.comm]
+by simp only [and.left_comm, and.comm]
 
 lemma and.rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a :=
-by simp [and.left_comm, and.comm]
+by simp only [and.left_comm, and.comm]
 
 theorem and_not_self_iff (a : Prop) : a ∧ ¬ a ↔ false :=
 iff.intro (assume h, (h.right) (h.left)) (assume h, h.elim)
@@ -325,8 +333,11 @@ iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 @[simp] theorem and_iff_right_iff_imp {a b : Prop} : ((a ∧ b) ↔ b) ↔ (b → a) :=
 ⟨λ h ha, (h.2 ha).1, and_iff_right_of_imp⟩
 
-lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
+@[simp] lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
 ⟨λ h ha, by simp [ha] at h; exact h, and_congr_right⟩
+
+@[simp] lemma and.congr_left_iff : (a ∧ c ↔ b ∧ c) ↔ c → (a ↔ b) :=
+by simp only [and.comm, ← and.congr_right_iff]
 
 @[simp] lemma and_self_left : a ∧ a ∧ b ↔ a ∧ b :=
 ⟨λ h, ⟨h.1, h.2.2⟩, λ h, ⟨h.1, h.1, h.2⟩⟩
@@ -488,7 +499,8 @@ by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm decidable.not_imp_c
 theorem iff_not_comm : (a ↔ ¬ b) ↔ (b ↔ ¬ a) := decidable.iff_not_comm
 
 -- See Note [decidable namespace]
-protected theorem decidable.iff_iff_and_or_not_and_not [decidable b] : (a ↔ b) ↔ (a ∧ b) ∨ (¬ a ∧ ¬ b) :=
+protected theorem decidable.iff_iff_and_or_not_and_not [decidable b] :
+  (a ↔ b) ↔ (a ∧ b) ∨ (¬ a ∧ ¬ b) :=
 by { split; intro h,
      { rw h; by_cases b; [left,right]; split; assumption },
      { cases h with h h; cases h; split; intro; { contradiction <|> assumption } } }
@@ -565,7 +577,8 @@ by rw [← not_or_distrib, decidable.not_not]
 theorem or_iff_not_and_not : a ∨ b ↔ ¬ (¬a ∧ ¬b) := decidable.or_iff_not_and_not
 
 -- See Note [decidable namespace]
-protected theorem decidable.and_iff_not_or_not [decidable a] [decidable b] : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) :=
+protected theorem decidable.and_iff_not_or_not [decidable a] [decidable b] :
+  a ∧ b ↔ ¬ (¬ a ∨ ¬ b) :=
 by rw [← decidable.not_and_distrib, decidable.not_not]
 
 theorem and_iff_not_or_not : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) := decidable.and_iff_not_or_not
@@ -865,7 +878,8 @@ theorem Exists.snd {p : b → Prop} : ∀ h : Exists p, p h.fst
 @[simp] theorem exists_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃ h' : p, q h') ↔ q h :=
 @exists_const (q h) p ⟨h⟩
 
-@[simp] theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) : (∀ h' : p, q h') ↔ true :=
+@[simp] theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) :
+  (∀ h' : p, q h') ↔ true :=
 iff_true_intro $ λ h, hn.elim h
 
 @[simp] theorem exists_prop_of_false {p : Prop} {q : p → Prop} : ¬ p → ¬ (∃ h' : p, q h') :=
@@ -1057,6 +1071,14 @@ end classical
 
 lemma ite_eq_iff {α} {p : Prop} [decidable p] {a b c : α} :
   (if p then a else b) = c ↔ p ∧ a = c ∨ ¬p ∧ b = c :=
+by by_cases p; simp *
+
+@[simp] lemma ite_eq_left_iff {α} {p : Prop} [decidable p] {a b : α} :
+  (if p then a else b) = a ↔ (¬p → b = a) :=
+by by_cases p; simp *
+
+@[simp] lemma ite_eq_right_iff {α} {p : Prop} [decidable p] {a b : α} :
+  (if p then a else b) = b ↔ (p → a = b) :=
 by by_cases p; simp *
 
 /-! ### Declarations about `nonempty` -/

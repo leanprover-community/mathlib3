@@ -3,7 +3,7 @@ Copyright (c) 2017 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Mario Carneiro
 -/
-import data.real.basic
+import data.real.sqrt
 
 open_locale big_operators
 
@@ -95,6 +95,8 @@ instance : has_neg ℂ := ⟨λ z, ⟨-z.re, -z.im⟩⟩
 @[simp] lemma neg_im (z : ℂ) : (-z).im = -z.im := rfl
 @[simp, norm_cast] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : ℂ) = -r := ext_iff.2 $ by simp
 
+instance : has_sub ℂ := ⟨λ z w, ⟨z.re - w.re, z.im - w.im⟩⟩
+
 instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im + z.im * w.re⟩⟩
 
 @[simp] lemma mul_re (z w : ℂ) : (z * w).re = z.re * w.re - z.im * w.im := rfl
@@ -128,7 +130,8 @@ ext_iff.2 $ by simp
 /-! ### Commutative ring instance and lemmas -/
 
 instance : comm_ring ℂ :=
-by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..};
+by refine { zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1, mul := (*),
+            sub_eq_add_neg := _, ..};
    { intros, apply ext_iff.2; split; simp; ring }
 
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
@@ -461,6 +464,9 @@ else by { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, 
 
 @[simp, norm_cast] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
 by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
+
+@[simp, norm_cast] lemma int_cast_abs (n : ℤ) : ↑(abs' n) = abs n :=
+by rw [← of_real_int_cast, abs_of_real, int.cast_abs]
 
 lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=
 by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]

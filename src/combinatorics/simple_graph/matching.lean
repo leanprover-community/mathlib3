@@ -8,6 +8,7 @@ import data.sym2
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.coloring
 import combinatorics.simple_graph.subgraph
+import combinatorics.simple_graph.degree_sum
 import data.fin
 import data.set.finite
 /-!
@@ -71,6 +72,16 @@ iff.rfl
 
 @[simp] lemma empty_support : (matching.empty G).support = ∅ :=
 by { ext, simp [empty], }
+
+/-- A matching may be regarded as a subgraph whose vertex set is `M.support` and whose edge set is
+`M.edges`. -/
+@[simps]
+def to_subgraph (M : G.matching) : subgraph G :=
+{ V' := M.support,
+  adj := λ v w, ⟦(v, w)⟧ ∈ M.edges,
+  adj_sub := λ v w h, by { have h' := M.sub_edges h, rwa mem_edge_set at h' },
+  edge_vert := λ v w h, by { use ⟦(v, w)⟧, simp [h] },
+  sym := λ v w h, by { rw sym2.eq_swap, exact h } }
 
 /--
 A perfect matching `M` on graph `G` is a matching such that
@@ -140,10 +151,10 @@ lemma mem_opposite_set (M : G.matching) (S : set V) (h : S ⊆ M.support) (v : V
 by refl
 
 lemma opposite_set_subneighbor_set' (M : G.matching) (S : set V) (h : S ⊆ M.support) :
-  M.opposite_set S h ⊆ G.neighbor_set' S :=
+  M.opposite_set S h ⊆ G.neighbor_set_image S :=
 begin
   rintros v ⟨w, wel, hw⟩,
-  rw mem_neighbor_set',
+  rw mem_neighbor_set_image,
   use [w, wel],
   have hh := M.sub_edges (M.opposite_spec w (h wel)),
   simpa [hw] using hh,
@@ -205,6 +216,32 @@ begin
     exact ⟨M.opposite v hs, M.opposite_mem_support v hs, M.opposite_invol v hs⟩, },
 end
 
+lemma matching_neighbor_set (M : G.matching) (v : V) (h : v ∈ M.support) :
+  M.to_subgraph.neighbor_set (⟨v, h⟩ : M.support) = {M.opposite v h} :=
+begin
+  ext w,
+  simp only [to_subgraph_adj, set.mem_singleton_iff, subgraph.mem_neighbor_set, subtype.coe_mk],
+  split,
+  { intro h',
+    have key := M.disjoint _ _ h' (M.opposite_spec v h) v,
+    simp only [forall_prop_of_true, sym2.mem_iff, true_or, eq_self_iff_true] at key,
+    rwa sym2.congr_right at key, },
+  { rintro rfl, exact M.opposite_spec v h, }
+end
+
+noncomputable
+instance matching_neighbor_set_fintype (M : G.matching) (v : V) (h : v ∈ M.support) :
+  fintype (M.to_subgraph.neighbor_set (⟨v, h⟩ : M.support)) :=
+by { rw matching_neighbor_set M v h, apply_instance, }
+
+lemma matching_degree_eq_one (M : G.matching) (v : V) (h : v ∈ M.support) :
+  M.to_subgraph.degree (⟨v, h⟩ : M.support) = 1 :=
+begin
+  dunfold subgraph.degree,
+  rw fintype.card_congr (equiv.set.of_eq (matching_neighbor_set M v h)),
+  rw set.card_singleton,
+end
+
 /-noncomputable
 def support_opposite (M : G.matching) : M.support → M.support :=
 λ vv, ⟨M.opposite vv.1 (vv.2 ∈ M.support),
@@ -220,58 +257,29 @@ lemma support_opposite_ne (M : G.matching) (v : M.support) :
   M.support_opposite v ≠ v :=
 by { rcases v with ⟨v, hv⟩, simp [support_opposite, opposite_ne] }-/
 
-lemma card_even_if_fixedpoint_free_invol {α : Type*} [fintype α] [decidable_eq α] (f : α → α)
+/- lemma card_even_if_fixedpoint_free_invol {α : Type*} [fintype α] [decidable_eq α] (f : α → α)
   (hi : function.involutive f) (hn : ∀ x, x ≠ f x) : even (fintype.card α) :=
 begin
-/-  let orbit : α → finset α := λ x, {x, f x},
-  have horbit' : ∀ x, orbit x = orbit (f x),
-  { intro x, ext y, simp [hi x], rw or.comm },
-  have horbit : ∀ x y, y ∈ orbit x → f y ∈ orbit x,
-  { intros x y hy, simp only [finset.mem_insert, finset.mem_singleton] at hy,
-    rcases hy with ⟨rfl, hy⟩, simp, rw hy, rw hi, simp },
-  have htwo : ∀ x, (orbit x).card = 2,
-  { intro x,
-    rw finset.card_insert_of_not_mem, rw card_singleton,
-    rw mem_singleton, apply hn },
-  let orbits : set (finset α) := orbit '' set.univ,
-  have hne : ∀ (s : orbits), s.1.nonempty,
-  { rintro ⟨s, hs⟩, use classical.some hs, have aa := (classical.some_spec hs).2,
-    convert_to classical.some hs ∈ s,
-    have hh : classical.some hs ∈ orbit (classical.some hs), simp only [mem_insert, true_or, eq_self_iff_true],
-    rwa aa at hh, },
-  choose repr hrepr using hne,
-  let R0 := repr '' set.univ,
-  let R1 := R0ᶜ,
-  have hc : ∀ x, x ∈ R0 ↔ f x ∈ R1,
-  { intro x,
-    split,
-    rintros ⟨⟨o1,ho1⟩,-,hr1⟩ ⟨⟨o2,ho2⟩,-,hr2⟩,
-    have hh1 := hrepr ⟨o1, ho1⟩,
-    have hh2 := hrepr ⟨o2, ho2⟩,
-    rw hr1 at hh1, rw hr2 at hh2,
-    have heq : o1 = o2,
-    { rcases ho1 with ⟨y1,_,hy1⟩, rcases ho2 with ⟨y2,_,hy2⟩,
-      rw [←hy1,←hy2],
-      simp only at hh1 hh2, rw ←hy1 at hh1, rw ← hy2 at hh2,
-      simp at hh1 hh2,
-      cases hh1, subst y1, cases hh2, subst y2, apply horbit',
-      have hh2' := hi.injective hh2, subst y2,
-      have hh1' := congr_arg f hh1, rw hi y1 at hh1', subst y1,
-      cases hh2, subst y2, rw hh2, rw ←horbit', },
-    subst o2,
-    rw hr1 at hr2, exact hn _ hr2,
+  let G : simple_graph α :=
+  { adj := λ x y, f x = y,
+    sym := begin rintros x y rfl, apply hi, end,
+    loopless := begin intro x, exact (hn x).symm end, },
+  have h : ∀ (v : α), G.degree v = 1,
+  { intro v, simp [degree], dunfold neighbor_finset, dunfold neighbor_set, dunfold adj,
+simp,
+  }
+end -/
 
-    simp, intro h,
-    by_contra h', push_neg at h',
-    specialize h (orbit x) ⟨x,by simp⟩,
-    specialize h' (orbit x) ⟨x,by simp⟩,
-    sorry
-  }, -/
-  sorry
+lemma support_card_even [fintype V] [decidable_eq V] (M : G.matching) : even (fintype.card M.support) :=
+--card_even_if_fixedpoint_free_invol M.support_opposite (support_opposite_invol M) (λ x, (support_opposite_ne M x).symm)-/
+begin
+  sorry,
+  --have key : ∀ v, odd (M.to_subgraph.coe.degree v),
+  --{ rintro ⟨v, h⟩,
+  --  rw matching_degree_eq_one M v h,
+  --}
+  --convert even_card_odd_degree_vertices M.to_subgraph.coe,
 end
-
-/-lemma support_card_even [fintype V] [decidable_eq V] (M : G.matching) : even (fintype.card M.support) :=
-card_even_if_fixedpoint_free_invol M.support_opposite (support_opposite_invol M) (λ x, (support_opposite_ne M x).symm)-/
 
 /-
 noncomputable for now...
@@ -388,7 +396,7 @@ theorem hall_marriage_theorem
   (h2 : fintype.card (f.color_set 0) ≤ fintype.card (f.color_set 1)) :
   (∃ (M : G.matching), (f.color_set 0) ⊆ M.support) ↔
   (∀ (S ⊆ f.color_set 0),
-    fintype.card S ≤ fintype.card (G.neighbor_set' S)) :=
+    fintype.card S ≤ fintype.card (G.neighbor_set_image S)) :=
 begin
   split,
   { rintros ⟨M, hM⟩ S hs,

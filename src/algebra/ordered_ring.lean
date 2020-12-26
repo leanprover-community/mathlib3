@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.ordered_group
+import data.set.intervals.basic
 
 set_option old_structure_cmd true
 
@@ -112,11 +113,14 @@ lemma mul_neg_of_neg_of_pos (ha : a < 0) (hb : 0 < b) : a * b < 0 :=
 have h : a * b < 0 * b, from mul_lt_mul_of_pos_right ha hb,
 by rwa zero_mul at  h
 
-lemma mul_self_le_mul_self (h1 : 0 ≤ a) (h2 : a ≤ b) : a * a ≤ b * b :=
-mul_le_mul h2 h2 h1 $ h1.trans h2
-
 lemma mul_self_lt_mul_self (h1 : 0 ≤ a) (h2 : a < b) : a * a < b * b :=
 mul_lt_mul' h2.le h2 h1 $ h1.trans_lt h2
+
+lemma strict_mono_incr_on_mul_self : strict_mono_incr_on (λ x : α, x * x) (set.Ici 0) :=
+λ x hx y hy hxy, mul_self_lt_mul_self hx hxy
+
+lemma mul_self_le_mul_self (h1 : 0 ≤ a) (h2 : a ≤ b) : a * a ≤ b * b :=
+mul_le_mul h2 h2 h1 $ h1.trans h2
 
 lemma mul_lt_mul'' (h1 : a < c) (h2 : b < d) (h3 : 0 ≤ a) (h4 : 0 ≤ b) : a * b < c * d :=
 (lt_or_eq_of_le h4).elim
@@ -389,22 +393,6 @@ lt_of_not_ge (λ ha, absurd h (mul_nonpos_of_nonneg_of_nonpos ha hb).not_lt)
 lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
 lt_of_not_ge (λ hb, absurd h (mul_nonpos_of_nonpos_of_nonneg ha hb).not_lt)
 
-lemma exists_lt_mul_self (a : α) : ∃ x : α, a < x * x :=
-begin
-  by_cases ha : 0 ≤ a,
-  { use (a + 1),
-    calc a = a * 1 : by rw mul_one
-    ... < (a + 1) * (a + 1) : mul_lt_mul (lt_add_one _) (le_add_of_nonneg_left ha)
-                                         zero_lt_one (add_nonneg ha zero_le_one) },
-  { rw not_le at ha,
-    use 1,
-    calc a < 0     : ha
-       ... < 1 * 1 : by simpa only [mul_one] using zero_lt_one' }
-end
-
-lemma exists_le_mul_self (a : α) : ∃ x : α, a ≤ x * x :=
-let ⟨x, hx⟩ := exists_lt_mul_self a in ⟨x, le_of_lt hx⟩
-
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
   no_top_order α :=
@@ -505,35 +493,27 @@ begin
 end
 
 lemma ordered_ring.mul_le_mul_of_nonneg_left (h₁ : a ≤ b) (h₂ : 0 ≤ c) : c * a ≤ c * b :=
-have 0 ≤ b - a,       from sub_nonneg_of_le h₁,
-have 0 ≤ c * (b - a), from ordered_ring.mul_nonneg c (b - a) h₂ this,
 begin
-  rw mul_sub_left_distrib at this,
-  apply le_of_sub_nonneg this
+  rw [← sub_nonneg, ← mul_sub],
+  exact ordered_ring.mul_nonneg c (b - a) h₂ (sub_nonneg.2 h₁),
 end
 
 lemma ordered_ring.mul_le_mul_of_nonneg_right (h₁ : a ≤ b) (h₂ : 0 ≤ c) : a * c ≤ b * c :=
-have 0 ≤ b - a,       from sub_nonneg_of_le h₁,
-have 0 ≤ (b - a) * c, from ordered_ring.mul_nonneg (b - a) c this h₂,
 begin
-  rw mul_sub_right_distrib at this,
-  apply le_of_sub_nonneg this
+  rw [← sub_nonneg, ← sub_mul],
+  exact ordered_ring.mul_nonneg _ _ (sub_nonneg.2 h₁) h₂,
 end
 
 lemma ordered_ring.mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
-have 0 < b - a,       from sub_pos_of_lt h₁,
-have 0 < c * (b - a), from ordered_ring.mul_pos c (b - a) h₂ this,
 begin
-  rw mul_sub_left_distrib at this,
-  apply lt_of_sub_pos this
+  rw [← sub_pos, ← mul_sub],
+  exact ordered_ring.mul_pos _ _ h₂ (sub_pos.2 h₁),
 end
 
 lemma ordered_ring.mul_lt_mul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a * c < b * c :=
-have 0 < b - a,       from sub_pos_of_lt h₁,
-have 0 < (b - a) * c, from ordered_ring.mul_pos (b - a) c this h₂,
 begin
-  rw mul_sub_right_distrib at this,
-  apply lt_of_sub_pos this
+  rw [← sub_pos, ← sub_mul],
+  exact ordered_ring.mul_pos _ _ (sub_pos.2 h₁) h₂,
 end
 
 @[priority 100] -- see Note [lower instance priority]
@@ -652,9 +632,7 @@ lemma mul_nonpos_iff : a * b ≤ 0 ↔ 0 ≤ a ∧ b ≤ 0 ∨ a ≤ 0 ∧ 0 ≤
 by rw [← neg_nonneg, neg_mul_eq_mul_neg, mul_nonneg_iff, neg_nonneg, neg_nonpos]
 
 lemma mul_self_nonneg (a : α) : 0 ≤ a * a :=
-or.elim (le_total 0 a)
-  (assume h : a ≥ 0, mul_nonneg h h)
-  (assume h : a ≤ 0, mul_nonneg_of_nonpos_of_nonpos h h)
+abs_mul_self a ▸ abs_nonneg _
 
 lemma gt_of_mul_lt_mul_neg_left (h : c * a < c * b) (hc : c ≤ 0) : b < a :=
 have nhc : 0 ≤ -c, from neg_nonneg_of_nonpos hc,
@@ -686,13 +664,10 @@ lemma mul_self_le_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a ≤ 
 ⟨mul_self_le_mul_self h1, nonneg_le_nonneg_of_squares_le h2⟩
 
 lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b ↔ a * a < b * b :=
-iff.trans (lt_iff_not_ge _ _) $ iff.trans (not_iff_not_of_iff $ mul_self_le_mul_self_iff h2 h1) $
-  iff.symm (lt_iff_not_ge _ _)
+((@strict_mono_incr_on_mul_self α _).lt_iff_lt h1 h2).symm
 
 lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
-⟨λ h3, le_antisymm ((nonneg_le_nonneg_of_squares_le h2) h3.le) $
-  (nonneg_le_nonneg_of_squares_le h1) h3.symm.le,
- λ h3, le_antisymm ((mul_self_le_mul_self h1) h3.le) $ (mul_self_le_mul_self h2) h3.symm.le⟩
+(@strict_mono_incr_on_mul_self α _).inj_on.eq_iff h1 h2
 
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
 ⟨le_imp_le_of_lt_imp_lt $ λ h', mul_lt_mul_of_neg_left h' h,
@@ -717,9 +692,8 @@ by rcases lt_trichotomy a 0 with h|h|h;
 
 lemma mul_self_le_mul_self_of_le_of_neg_le {x y : α} (h₁ : x ≤ y) (h₂ : -x ≤ y) : x * x ≤ y * y :=
 begin
-  cases le_total 0 x,
-  { exact mul_self_le_mul_self h h₁ },
-  { rw ← neg_mul_neg, exact mul_self_le_mul_self (neg_nonneg_of_nonpos h) h₂ }
+  rw [← abs_mul_abs_self x],
+  exact mul_self_le_mul_self (abs_nonneg x) (abs_le.2 ⟨neg_le.2 h₂, h₁⟩)
 end
 
 lemma nonneg_of_mul_nonpos_left {a b : α} (h : a * b ≤ 0) (hb : b < 0) : 0 ≤ a :=
@@ -736,39 +710,7 @@ lt_of_not_ge (λ hb, absurd h (mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 
 /-- The sum of two squares is zero iff both elements are zero. -/
 lemma mul_self_add_mul_self_eq_zero {x y : α} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
-begin
-  split; intro h, swap, { rcases h with ⟨rfl, rfl⟩, simp },
-  have : y * y ≤ 0, { rw [← h], apply le_add_of_nonneg_left (mul_self_nonneg x) },
-  have : y * y = 0 := le_antisymm this (mul_self_nonneg y),
-  have hx : x = 0, { rwa [this, add_zero, mul_self_eq_zero] at h },
-  rw mul_self_eq_zero at this, split; assumption
-end
-
-lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
-if hz : 0 ≤ a - b then
-  (calc
-      a ≥ b     : le_of_sub_nonneg hz
-    ... ≥ b - c : sub_le_self _ $ (abs_nonneg _).trans h)
-else
-  have habs : b - a ≤ c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
-  have habs' : b ≤ c + a, from le_add_of_sub_right_le habs,
-  sub_left_le_of_le_add habs'
-
-lemma sub_le_of_abs_sub_le_right (h : abs (a - b) ≤ c) : a - c ≤ b :=
-sub_le_of_abs_sub_le_left (abs_sub a b ▸ h)
-
-lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
-if hz : 0 ≤ a - b then
-   (calc
-      a ≥ b     : le_of_sub_nonneg hz
-    ... > b - c : sub_lt_self _ ((abs_nonneg _).trans_lt h))
-else
-  have habs : b - a < c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
-  have habs' : b < c + a, from lt_add_of_sub_right_lt habs,
-  sub_left_lt_of_lt_add habs'
-
-lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
-sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
+by rw [add_eq_zero_iff', mul_self_eq_zero, mul_self_eq_zero]; apply mul_self_nonneg
 
 lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
 (mul_self_add_mul_self_eq_zero.mp h).left

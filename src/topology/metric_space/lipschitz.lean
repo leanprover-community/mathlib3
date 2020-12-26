@@ -31,7 +31,7 @@ uniformly continuous.
 
 ## Implementation notes
 
-The parameter `K` has type `nnreal`. This way we avoid conjuction in the definition and have
+The parameter `K` has type `ℝ≥0`. This way we avoid conjuction in the definition and have
 coercions both to `ℝ` and `ennreal`. Constructors whose names end with `'` take `K : ℝ` as an
 argument, and return `lipschitz_with (nnreal.of_real K) f`.
 -/

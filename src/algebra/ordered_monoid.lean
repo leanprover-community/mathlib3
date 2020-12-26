@@ -208,13 +208,18 @@ namespace units
 instance [monoid α] [preorder α] : preorder (units α) :=
 preorder.lift (coe : units α → α)
 
-@[simp, to_additive, norm_cast]
+@[simp, norm_cast, to_additive]
 theorem coe_le_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) ≤ b ↔ a ≤ b := iff.rfl
 
-@[simp, to_additive, norm_cast]
+-- should `to_additive` do this?
+attribute [norm_cast] add_units.coe_le_coe
+
+@[simp, norm_cast, to_additive]
 theorem coe_lt_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) < b ↔ a < b := iff.rfl
+
+attribute [norm_cast] add_units.coe_lt_coe
 
 @[to_additive]
 instance [monoid α] [partial_order α] : partial_order (units α) :=
@@ -224,15 +229,19 @@ partial_order.lift coe units.ext
 instance [monoid α] [linear_order α] : linear_order (units α) :=
 linear_order.lift coe units.ext
 
-@[simp, to_additive, norm_cast]
+@[simp, norm_cast, to_additive]
 theorem max_coe [monoid α] [linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=
 by by_cases b ≤ a; simp [max, h]
 
-@[simp, to_additive, norm_cast]
+attribute [norm_cast] add_units.max_coe
+
+@[simp, norm_cast, to_additive]
 theorem min_coe [monoid α] [linear_order α] {a b : units α} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [min, h]
+
+attribute [norm_cast] add_units.min_coe
 
 end units
 

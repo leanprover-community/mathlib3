@@ -303,7 +303,7 @@ end
 attribute [nolint doc_blame] linear_equiv.to_linear_map
 attribute [nolint doc_blame] linear_equiv.to_add_equiv
 
-infix ` ≃ₗ `:25 := linear_equiv _
+infix ` ≃ₗ ` := linear_equiv _
 notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv R M M₂
 
 namespace linear_equiv
@@ -359,6 +359,14 @@ section
 variables {e e'}
 @[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
 injective_to_equiv (equiv.ext h)
+
+protected lemma congr_arg : Π {x x' : M}, x = x' → e x = e x'
+| _ _ rfl := rfl
+
+protected lemma congr_fun (h : e = e') (x : M) : e x = e' x := h ▸ rfl
+
+lemma ext_iff : e = e' ↔ ∀ x, e x = e' x :=
+⟨λ h x, h ▸ rfl, ext⟩
 
 end
 

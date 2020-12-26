@@ -295,19 +295,30 @@ instance : has_neg (cau_seq β abv) :=
 theorem const_neg (x : β) : const (-x) = -const x :=
 ext $ λ i, rfl
 
+instance : has_sub (cau_seq β abv) :=
+⟨λ f g, of_eq (f + -g) (λ x, f x - g x) (λ i, by simp [sub_eq_add_neg])⟩
+
+@[simp] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
+
+theorem const_sub (x y : β) : const (x - y) = const x - const y :=
+ext $ λ i, rfl
+
 instance : ring (cau_seq β abv) :=
-by refine {neg := has_neg.neg, add := (+), zero := 0, mul := (*), one := 1, ..};
-   { intros, apply ext, simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm] }
+by refine
+     { neg := has_neg.neg,
+       add := (+),
+       zero := 0,
+       mul := (*),
+       one := 1,
+       sub := has_sub.sub,
+       sub_eq_add_neg := _,
+       .. };
+  { intros, apply ext, simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg] }
 
 instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
   comm_ring (cau_seq β abv) :=
 { mul_comm := by intros; apply ext; simp [mul_left_comm, mul_comm],
   ..cau_seq.ring }
-
-theorem const_sub (x y : β) : const (x - y) = const x - const y :=
-by rw [sub_eq_add_neg, const_add, const_neg, sub_eq_add_neg]
-
-@[simp] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
 
 /-- `lim_zero f` holds when `f` approaches 0. -/
 def lim_zero {abv : β → α} (f : cau_seq β abv) : Prop := ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j) < ε
@@ -338,7 +349,7 @@ by rw ← neg_one_mul; exact mul_lim_zero_right _ hf
 
 theorem sub_lim_zero {f g : cau_seq β abv}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f - g) :=
-add_lim_zero hf (neg_lim_zero hg)
+by simpa only [sub_eq_add_neg] using add_lim_zero hf (neg_lim_zero hg)
 
 theorem lim_zero_sub_rev {f g : cau_seq β abv} (hfg : lim_zero (f - g)) : lim_zero (g - f) :=
 by simpa using neg_lim_zero hfg
@@ -566,6 +577,7 @@ instance : has_le (cau_seq α abs) := ⟨λ f g, f < g ∨ f ≈ g⟩
 
 theorem lt_of_lt_of_eq {f g h : cau_seq α abs}
   (fg : f < g) (gh : g ≈ h) : f < h :=
+show pos (h - f),
 by simpa [sub_eq_add_neg, add_comm, add_left_comm] using pos_add_lim_zero fg (neg_lim_zero gh)
 
 theorem lt_of_eq_of_lt {f g h : cau_seq α abs}
@@ -574,6 +586,7 @@ by have := pos_add_lim_zero gh (neg_lim_zero fg);
    rwa [← sub_eq_add_neg, sub_sub_sub_cancel_right] at this
 
 theorem lt_trans {f g h : cau_seq α abs} (fg : f < g) (gh : g < h) : f < h :=
+show pos (h - f),
 by simpa [sub_eq_add_neg, add_comm, add_left_comm] using add_pos fg gh
 
 theorem lt_irrefl {f : cau_seq α abs} : ¬ f < f

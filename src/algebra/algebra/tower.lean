@@ -104,7 +104,13 @@ def to_alg_hom : S →ₐ[R] A :=
 { commutes' := λ _, (algebra_map_apply _ _ _ _).symm,
   .. algebra_map S A }
 
-@[simp] lemma to_alg_hom_apply (y : S) : to_alg_hom R S A y = algebra_map S A y := rfl
+lemma to_alg_hom_apply (y : S) : to_alg_hom R S A y = algebra_map S A y := rfl
+
+@[simp] lemma coe_to_alg_hom : ↑(to_alg_hom R S A) = algebra_map S A :=
+ring_hom.ext $ λ _, rfl
+
+@[simp] lemma coe_to_alg_hom' : (to_alg_hom R S A : S → A) = algebra_map S A :=
+rfl
 
 variables (R) {S A B}
 /-- R ⟶ S induces S-Alg ⥤ R-Alg -/

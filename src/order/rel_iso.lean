@@ -528,6 +528,9 @@ e.to_equiv.apply_symm_apply x
 @[simp] lemma symm_apply_apply (e : α ≃o β) (x : α) : e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply x
 
+theorem symm_apply_eq (e : α ≃o β) {x : α} {y : β} : e.symm y = x ↔ y = e x :=
+e.to_equiv.symm_apply_eq
+
 @[simp] lemma symm_symm (e : α ≃o β) : e.symm.symm = e := by { ext, refl }
 
 lemma symm_injective : injective (symm : (α ≃o β) → (β ≃o α)) :=

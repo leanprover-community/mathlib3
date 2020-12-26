@@ -205,6 +205,11 @@ def partial_coloring.restrict (V' : set V) (h : V' ⊆ f.verts) :
 { verts := V',
   color := f.color,
   valid := λ v w hv hw, f.valid (h hv) (h hw) }
+-- we do have restrict!!!!!!! nice
+
+-- do i need this?
+/-def partial_coloring.to_coloring (β : Type v) (f : G.partial_coloring β) (h : f.verts = set.univ) :
+  G.coloring β = _-/
 
 /-- The set of vertices with the given color. -/
 def partial_coloring.color_set (c : β) : set V := f.verts ∩ f.color ⁻¹' {c}

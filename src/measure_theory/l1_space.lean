@@ -276,8 +276,8 @@ end
 lemma tendsto_lintegral_norm_of_dominated_convergence [measurable_space β]
   [borel_space β] [second_countable_topology β]
   {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
-  (F_measurable : ∀ n, measurable (F n))
-  (f_measurable : measurable f)
+  (F_measurable : ∀ n, ae_measurable (F n) μ)
+  (f_measurable : ae_measurable f μ)
   (bound_has_finite_integral : has_finite_integral bound μ)
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
@@ -312,9 +312,9 @@ begin
   suffices h : tendsto (λn, ∫⁻ a, (ennreal.of_real ∥F n a - f a∥) ∂μ) at_top (𝓝 (∫⁻ (a:α), 0 ∂μ)),
   { rwa lintegral_zero at h },
   -- Using the dominated convergence theorem.
-  refine tendsto_lintegral_of_dominated_convergence _ _ hb _ _,
-  -- Show `λa, ∥f a - F n a∥` is measurable for all `n`
-  { exact λn, measurable_of_real.comp ((F_measurable n).sub f_measurable).norm },
+  refine tendsto_lintegral_of_dominated_convergence' _ _ hb _ _,
+  -- Show `λa, ∥f a - F n a∥` is almost everywhere measurable for all `n`
+  { exact λn, measurable_of_real.comp_ae_measurable ((F_measurable n).sub f_measurable).norm },
   -- Show `2 * bound` is has_finite_integral
   { rw has_finite_integral_iff_of_real at bound_has_finite_integral,
     { calc ∫⁻ a, b a ∂μ = 2 * ∫⁻ a, ennreal.of_real (bound a) ∂μ :
@@ -323,19 +323,6 @@ begin
     filter_upwards [h_bound 0] λ a h, le_trans (norm_nonneg _) h },
   -- Show `∥f a - F n a∥ --> 0`
   { exact h }
-end
-
-lemma tendsto_lintegral_norm_of_dominated_convergence' [measurable_space β]
-  [borel_space β] [second_countable_topology β]
-  {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
-  (F_measurable : ∀ n, ae_measurable (F n) μ)
-  (f_measurable : ae_measurable f μ)
-  (bound_has_finite_integral : has_finite_integral bound μ)
-  (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
-  (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
-  tendsto (λn, ∫⁻ a, (ennreal.of_real ∥F n a - f a∥) ∂μ) at_top (𝓝 0) :=
-begin
-
 end
 
 end dominated_convergence

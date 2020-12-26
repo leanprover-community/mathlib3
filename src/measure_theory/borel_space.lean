@@ -1027,6 +1027,10 @@ lemma measurable.to_real {f : α → ennreal} (hf : measurable f) :
   measurable (λ x, ennreal.to_real (f x)) :=
 ennreal.measurable_to_real.comp hf
 
+lemma ae_measurable.to_real {f : α → ennreal} {μ : measure α} (hf : ae_measurable f μ) :
+  ae_measurable (λ x, ennreal.to_real (f x)) μ :=
+ennreal.measurable_to_real.comp_ae_measurable hf
+
 lemma measurable.ennreal_mul {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, f a * g a) :=
 ennreal.measurable_mul.comp (hf.prod_mk hg)

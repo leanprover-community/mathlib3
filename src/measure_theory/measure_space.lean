@@ -1274,6 +1274,10 @@ end
 lemma ae_smul_measure {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) (c : ennreal) : ∀ᵐ x ∂(c • μ), p x :=
 ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, mul_zero]
 
+lemma ae_smul_measure_iff {p : α → Prop} {c : ennreal} (hc : c ≠ 0) :
+  (∀ᵐ x ∂(c • μ), p x) ↔ ∀ᵐ x ∂μ, p x :=
+by simp [ae_iff, hc]
+
 lemma ae_add_measure_iff {p : α → Prop} {ν} : (∀ᵐ x ∂μ + ν, p x) ↔ (∀ᵐ x ∂μ, p x) ∧ ∀ᵐ x ∂ν, p x :=
 add_eq_zero_iff
 
@@ -2003,9 +2007,7 @@ end
 
 lemma smul_measure (h : ae_measurable f μ) (c : ennreal) :
   ae_measurable f (c • μ) :=
-begin
-  exact ⟨h.mk f, h.measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
-end
+⟨h.mk f, h.measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
 
 lemma comp_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
@@ -2034,6 +2036,11 @@ lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : �
 
 @[simp] lemma ae_measurable_const {b : β} : ae_measurable (λ a : α, b) μ :=
 measurable_const.ae_measurable
+
+@[simp] lemma ae_measurable_smul_measure_iff {c : ennreal} (hc : c ≠ 0) :
+  ae_measurable f (c • μ) ↔ ae_measurable f μ :=
+⟨λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).1 h.ae_eq_mk⟩,
+  λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).2 h.ae_eq_mk⟩⟩
 
 end
 

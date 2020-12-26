@@ -1384,6 +1384,32 @@ tendsto_of_le_liminf_of_limsup_le
       limsup_lintegral_le hF_meas h_bound h_fin
  ... = ∫⁻ a, f a ∂μ : lintegral_congr_ae $ h_lim.mono $ λ a h, h.limsup_eq)
 
+/-- Dominated convergence theorem for nonnegative functions which are just almost everywhere
+measurable. -/
+lemma tendsto_lintegral_of_dominated_convergence'
+  {F : ℕ → α → ennreal} {f : α → ennreal} (bound : α → ennreal)
+  (hF_meas : ∀n, ae_measurable (F n) μ) (h_bound : ∀n, F n ≤ᵐ[μ] bound)
+  (h_fin : ∫⁻ a, bound a ∂μ < ⊤)
+  (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+  tendsto (λn, ∫⁻ a, F n a ∂μ) at_top (𝓝 (∫⁻ a, f a ∂μ)) :=
+begin
+  have : ∀ n, ∫⁻ a, F n a ∂μ = ∫⁻ a, (hF_meas n).mk (F n) a ∂μ :=
+    λ n, lintegral_congr_ae (hF_meas n).ae_eq_mk,
+  simp_rw this,
+  apply tendsto_lintegral_of_dominated_convergence bound (λ n, (hF_meas n).measurable_mk) _ h_fin,
+  { have : ∀ n, ∀ᵐ a ∂μ, (hF_meas n).mk (F n) a = F n a :=
+      λ n, (hF_meas n).ae_eq_mk.symm,
+    have : ∀ᵐ a ∂μ, ∀ n, (hF_meas n).mk (F n) a = F n a := ae_all_iff.mpr this,
+    filter_upwards [this, h_lim],
+    assume a H H',
+    simp_rw H,
+    exact H' },
+  { assume n,
+    filter_upwards [h_bound n, (hF_meas n).ae_eq_mk],
+    assume a H H',
+    rwa H' at H }
+end
+
 /-- Dominated convergence theorem for filters with a countable basis -/
 lemma tendsto_lintegral_filter_of_dominated_convergence {ι} {l : filter ι}
   {F : ι → α → ennreal} {f : α → ennreal} (bound : α → ennreal)

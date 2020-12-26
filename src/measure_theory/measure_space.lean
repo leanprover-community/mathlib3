@@ -1277,6 +1277,15 @@ ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, mul_zero]
 lemma ae_add_measure_iff {p : α → Prop} {ν} : (∀ᵐ x ∂μ + ν, p x) ↔ (∀ᵐ x ∂μ, p x) ∧ ∀ᵐ x ∂ν, p x :=
 add_eq_zero_iff
 
+lemma ae_eq_comp {δ : Type*} [measurable_space β] {f : α → β} {g g' : β → δ} (hf : measurable f)
+  (h : g =ᵐ[measure.map f μ] g') : g ∘ f =ᵐ[μ] g' ∘ f :=
+begin
+  rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t, ht, tmeas, tzero⟩,
+  refine le_antisymm _ bot_le,
+  calc μ {x | g (f x) ≠ g' (f x)} ≤ μ (f⁻¹' t) : measure_mono (λ x hx, ht hx)
+  ... = 0 : by rwa ← measure.map_apply hf tmeas
+end
+
 @[simp] lemma ae_restrict_eq {s : set α} (hs : is_measurable s):
   (μ.restrict s).ae = μ.ae ⊓ 𝓟 s :=
 begin
@@ -1920,6 +1929,113 @@ meta def volume_tac : tactic unit := `[exact measure_theory.measure_space.volume
 end measure_space
 
 end measure_theory
+
+/-!
+# Almost everywhere measurable functions
+
+A function is almost everywhere measurable if it coincides almost everywhere with a measurable
+function. We define this property, called `ae_measurable f μ`, and discuss several of its properties
+that are analogous to properties of measurable functions.
+-/
+
+section
+open measure_theory
+
+variables {α β δ : Type*} [measurable_space α] [measurable_space β]
+{f g : α → β} {μ ν : measure α}
+
+/-- A function is almost everywhere measurable if it coincides almost everywhere with a measurable
+function. -/
+def ae_measurable (f : α → β) (μ : measure α . volume_tac) : Prop :=
+∃ g : α → β, measurable g ∧ f =ᵐ[μ] g
+
+lemma measurable.ae_measurable (h : measurable f) : ae_measurable f μ :=
+⟨f, h, ae_eq_refl f⟩
+
+namespace ae_measurable
+
+/-- Given an almost everywhere measurable function `f`, associate to it a measurable function
+that coincides with it almost everywhere. `f` is explicit in the definition to make sure that
+it shows in pretty-printing. -/
+def mk (f : α → β) (h : ae_measurable f μ) : α → β := classical.some h
+
+lemma measurable_mk (h : ae_measurable f μ) : measurable (h.mk f) :=
+(classical.some_spec h).1
+
+lemma ae_eq_mk (h : ae_measurable f μ) : f =ᵐ[μ] (h.mk f) :=
+(classical.some_spec h).2
+
+lemma congr (hf : ae_measurable f μ) (h : f =ᵐ[μ] g) : ae_measurable g μ :=
+⟨hf.mk f, hf.measurable_mk, h.symm.trans hf.ae_eq_mk⟩
+
+lemma mono_measure (h : ae_measurable f μ) (h' : ν ≤ μ) : ae_measurable f ν :=
+begin
+  exact ⟨h.mk f, h.measurable_mk, eventually.filter_mono (ae_mono h') h.ae_eq_mk⟩
+end
+
+lemma add_measure {f : α → β} (hμ : ae_measurable f μ) (hν : ae_measurable f ν) :
+  ae_measurable f (μ + ν) :=
+begin
+  let s := {x | f x ≠ hμ.mk f x},
+  have : μ s = 0 := hμ.ae_eq_mk,
+  obtain ⟨t, st, t_meas, μt⟩ : ∃ t, s ⊆ t ∧ is_measurable t ∧ μ t = 0 :=
+    exists_is_measurable_superset_of_measure_eq_zero this,
+  let g : α → β := t.piecewise (hν.mk f) (hμ.mk f),
+  refine ⟨g, measurable.piecewise t_meas hν.measurable_mk hμ.measurable_mk, _⟩,
+  change μ {x | f x ≠ g x} + ν {x | f x ≠ g x} = 0,
+  suffices : μ {x | f x ≠ g x} = 0 ∧ ν {x | f x ≠ g x} = 0, by simp [this.1, this.2],
+  have ht : {x | f x ≠ g x} ⊆ t,
+  { assume x hx,
+    by_contra h,
+    simp only [g, h, mem_set_of_eq, ne.def, not_false_iff, piecewise_eq_of_not_mem] at hx,
+    exact h (st hx) },
+  split,
+  { have : μ {x | f x ≠ g x} ≤ μ t := measure_mono ht,
+    rw μt at this,
+    exact le_antisymm this bot_le },
+  { have : {x | f x ≠ g x} ⊆ {x | f x ≠ hν.mk f x},
+    { assume x hx,
+      simpa [ht hx, g] using hx },
+    apply le_antisymm _ bot_le,
+    calc ν {x | f x ≠ g x} ≤ ν {x | f x ≠ hν.mk f x} : measure_mono this
+    ... = 0 : hν.ae_eq_mk }
+end
+
+lemma smul_measure (h : ae_measurable f μ) (c : ennreal) :
+  ae_measurable f (c • μ) :=
+begin
+  exact ⟨h.mk f, h.measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
+end
+
+lemma comp_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
+  (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
+⟨(hg.mk g) ∘ f, hg.measurable_mk.comp hf, ae_eq_comp hf hg.ae_eq_mk⟩
+
+lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
+  (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ x, (f x, g x)) μ :=
+⟨λ a, (hf.mk f a, hg.mk g a), hf.measurable_mk.prod_mk hg.measurable_mk,
+  eventually_eq.prod_mk hf.ae_eq_mk hg.ae_eq_mk⟩
+
+end ae_measurable
+
+lemma ae_measurable_congr (h : f =ᵐ[μ] g) :
+  ae_measurable f μ ↔ ae_measurable g μ :=
+⟨λ hf, ae_measurable.congr hf h, λ hg, ae_measurable.congr hg h.symm⟩
+
+@[simp] lemma ae_measurable_add_measure_iff :
+  ae_measurable f (μ + ν) ↔ ae_measurable f μ ∧ ae_measurable f ν :=
+⟨λ h, ⟨h.mono_measure (measure.le_add_right (le_refl _)),
+         h.mono_measure (measure.le_add_left (le_refl _))⟩,
+  λ h, h.1.add_measure h.2⟩
+
+lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
+  (hg : measurable g) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
+⟨g ∘ hf.mk f, hg.comp hf.measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk _⟩
+
+@[simp] lemma ae_measurable_const {b : β} : ae_measurable (λ a : α, b) μ :=
+measurable_const.ae_measurable
+
+end
 
 namespace is_compact
 

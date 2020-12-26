@@ -325,6 +325,19 @@ begin
   { exact h }
 end
 
+lemma tendsto_lintegral_norm_of_dominated_convergence' [measurable_space β]
+  [borel_space β] [second_countable_topology β]
+  {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
+  (F_measurable : ∀ n, ae_measurable (F n) μ)
+  (f_measurable : ae_measurable f μ)
+  (bound_has_finite_integral : has_finite_integral bound μ)
+  (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
+  (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+  tendsto (λn, ∫⁻ a, (ennreal.of_real ∥F n a - f a∥) ∂μ) at_top (𝓝 0) :=
+begin
+
+end
+
 end dominated_convergence
 
 section pos_part
@@ -780,7 +793,7 @@ protected lemma has_finite_integral (f : α →₁[μ] β) : has_finite_integral
 f.integrable.has_finite_integral
 
 lemma integrable_norm (f : α →₁[μ] β) : integrable (λ a, ∥f a∥) μ :=
-(integrable_norm_iff f.measurable.ae_measurable).mpr f.integrable
+(integrable_norm_iff f.ae_measurable).mpr f.integrable
 
 lemma of_fun_to_fun (f : α →₁[μ] β) : of_fun f f.integrable = f :=
 subtype.ext (f : α →ₘ[μ] β).mk_coe_fn

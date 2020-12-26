@@ -119,7 +119,11 @@ def restrict_base (f : A →ₐ[S] B) : A →ₐ[R] B :=
     exact f.commutes (algebra_map R S r) },
   .. (f : A →+* B) }
 
-@[simp] lemma restrict_base_apply (f : A →ₐ[S] B) (x : A) : restrict_base R f x = f x := rfl
+lemma restrict_base_apply (f : A →ₐ[S] B) (x : A) : restrict_base R f x = f x := rfl
+
+@[simp] lemma coe_restrict_base (f : A →ₐ[S] B) : (restrict_base R f : A →+* B) = f := rfl
+
+@[simp] lemma coe_restrict_base' (f : A →ₐ[S] B) : (restrict_base R f : A → B) = f := rfl
 
 instance right : is_scalar_tower S A A :=
 ⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, algebra.smul_mul_assoc]⟩

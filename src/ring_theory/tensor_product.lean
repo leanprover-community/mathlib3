@@ -5,7 +5,7 @@ Authors: Scott Morrison, Johan Commelin
 -/
 
 import linear_algebra.tensor_product
-import algebra.algebra.basic
+import algebra.algebra.tower
 
 universes u v₁ v₂ v₃ v₄
 
@@ -21,10 +21,7 @@ In this file we:
   * `R ⊗[R] A ≃ₐ[R] A`
   * `A ⊗[R] R ≃ₐ[R] A`
   * `A ⊗[R] B ≃ₐ[R] B ⊗[R] A`
-  The code for
   * `((A ⊗[R] B) ⊗[R] C) ≃ₐ[R] (A ⊗[R] (B ⊗[R] C))`
-  is written and compiles, but takes longer than the `-T100000` time limit,
-  so is currently commented out.
 
 ## Main declaration
 
@@ -34,35 +31,6 @@ In this file we:
 
 open_locale tensor_product
 open tensor_product
-
--- move this
-namespace algebra
-
-variables {R A M N P : Type*}
-variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
-variables [add_comm_monoid N] [semimodule R N]
-
-variables (R M)
-
-/-- The `R`-algebra morphism `A → End (M)` corresponding to the `A`-module structure on `M`. -/
-def lsmul : A →ₐ[R] (M →ₗ[R] M) :=
-{ map_one' := by { ext m, exact one_smul A m },
-  map_mul' := by { intros a b, ext c, exact smul_assoc a b c },
-  map_zero' := by { ext m, exact zero_smul A m },
-  commutes' := by { intro r, ext m, exact algebra_map_smul A r m },
-  .. (show A →ₗ[R] M →ₗ[R] M, from linear_map.mk₂ R (•)
-  (λ x y z, add_smul x y z)
-  (λ c x y, smul_assoc c x y)
-  (λ x y z, smul_add x y z)
-  (λ c x y, smul_algebra_smul_comm c x y)) }
-
-@[simp] lemma lsmul_coe (a : A) : (lsmul R M a : M → M) = (•) a := rfl
-
-instance : is_scalar_tower R A A :=
-{ smul_assoc := λ r a b, by simp only [smul_eq_mul, smul_mul_assoc] }
-
-end algebra
 
 namespace tensor_product
 
@@ -205,19 +173,19 @@ bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N �
   map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl }
 
-/-- Heterobasic version of `tensor_product.lift_equiv`:
+/-- Heterobasic version of `tensor_product.lift.equiv`:
 
 A linear equivalence constructing a linear map `M ⊗[R] N →[A] P` given a
 bilinear map `M →[A] N →[R] P` with the property that its composition with the
 canonical bilinear map `M →[A] N →[R] M ⊗[R] N` is the given bilinear map `M →[A] N →[R] P`. -/
-def lift_equiv' : (M →ₗ[A] (N →ₗ[R] P)) ≃ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
+def lift.equiv' : (M →ₗ[A] (N →ₗ[R] P)) ≃ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
 linear_equiv.of_linear (uncurry' R A M N P) (lcurry' R A M N P)
   (linear_map.ext $ λ f, ext $ λ x y, lift'_tmul _ x y)
   (linear_map.ext $ λ f, linear_map.ext $ λ x, linear_map.ext $ λ y, lift'_tmul f x y)
 
 variables {R A M N P}
 lemma curry'_inj : function.injective (@curry' R A M N P _ _ _ _ _ _ _ _ _ _ _ _ _) :=
-(lift_equiv' R A M N P).to_equiv.symm.injective
+(lift.equiv' R A M N P).to_equiv.symm.injective
 
 variables (R A M N P)
 /-- Heterobasic version of `tensor_product.mk`:
@@ -263,7 +231,7 @@ section semiring
 variables {R A B M N : Type*} [comm_semiring R]
 variables [semiring A] [algebra R A] [semiring B] [algebra R B]
 variables [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] [semimodule R N]
-variables (f g : M →ₗ[R] N)
+variables (r : R) (f g : M →ₗ[R] N)
 
 variables (A)
 
@@ -291,9 +259,15 @@ by { ext, simp only [base_change_eq_ltensor, add_apply, ltensor_add] }
 @[simp] lemma base_change_zero : base_change A (0 : M →ₗ[R] N) = 0 :=
 by { ext, simp only [base_change_eq_ltensor, zero_apply, ltensor_zero] }
 
-@[simp] lemma base_change_smul (r : R) :
-  (r • f).base_change A = r • (f.base_change A) :=
+@[simp] lemma base_change_smul : (r • f).base_change A = r • (f.base_change A) :=
 by { ext a m, simp only [base_change_tmul, smul_apply, tmul_smul] }
+
+variables (R A M N)
+/-- `base_change` as a linear map. -/
+@[simps] def base_change_hom : (M →ₗ[R] N) →ₗ[R] A ⊗[R] M →ₗ[A] A ⊗[R] N :=
+{ to_fun := base_change A,
+  map_add' := base_change_add,
+  map_smul' := base_change_smul }
 
 end semiring
 

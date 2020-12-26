@@ -22,13 +22,11 @@ Given a list `l,
 
 namespace list
 
-variables {α : Type*} [decidable_eq α]
-
-namespace sorted
-
-end sorted
+variable {α : Type*}
 
 namespace nodup
+
+variable [decidable_eq α]
 
 /-- If `l` has no duplicates, then `list.nth_le` defines a bijection between `fin (length l)` and
 the set of elements of `l`. -/
@@ -56,6 +54,8 @@ lemma nth_le_mono (h : l.sorted (≤)) :
 lemma nth_le_strict_mono (h : l.sorted (<)) :
   strict_mono (λ i : fin l.length, l.nth_le i i.2) :=
 λ i j, pairwise_iff_nth_le.1 h i j j.2
+
+variable [decidable_eq α]
 
 /-- If `l` is a list sorted w.r.t. `(<)`, then `list.nth_le` defines an order isomorphism between
 `fin (length l)` and the set of elements of `l`. -/

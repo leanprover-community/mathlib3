@@ -193,7 +193,7 @@ quotient.fintype (left_rel s)
 
 /-- The canonical map from a group `α` to the quotient `α/s`. -/
 @[to_additive "The canonical map from an `add_group` `α` to the quotient `α/s`."]
-def mk (a : α) : quotient s :=
+abbreviation mk (a : α) : quotient s :=
 quotient.mk' a
 
 @[elab_as_eliminator, to_additive]

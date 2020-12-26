@@ -32,6 +32,9 @@ polynomial of every element `x` in `K` splits in `K`, i.e. every conjugate of `x
 @[class] def normal : Prop :=
 ∀ x : K, ∃ H : is_integral F x, splits (algebra_map F K) (minimal_polynomial H)
 
+instance normal_self : normal F F :=
+λ x, ⟨is_integral_algebra_map, by { rw minimal_polynomial.eq_X_sub_C, exact splits_X_sub_C _ }⟩
+
 theorem normal.is_integral [h : normal F K] (x : K) : is_integral F x := (h x).fst
 
 theorem normal.splits [h : normal F K] (x : K) :

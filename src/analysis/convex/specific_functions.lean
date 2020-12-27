@@ -147,7 +147,7 @@ begin
     exact lt_irrefl 0 hx },
   refine concave_on_of_deriv2_nonpos (convex_Iio 0) (continuous_on_log.mono h₁) _ _ _,
   { rw [interior_Iio],
-    refine differentiable_on.mono differentiable_on_log h₁ },
+    exact differentiable_on_log.mono h₁ },
   { rw [interior_Iio],
     refine differentiable_on.mono _ h₁,
     rw [deriv_log'],

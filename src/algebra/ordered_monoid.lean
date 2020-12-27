@@ -554,7 +554,7 @@ variables [canonically_ordered_monoid α] {a b c d : α}
 lemma le_iff_exists_mul : a ≤ b ↔ ∃c, b = a * c :=
 canonically_ordered_monoid.le_iff_exists_mul a b
 
-@[to_additive zero_le, simp] lemma one_le (a : α) : 1 ≤ a := le_iff_exists_mul.mpr ⟨a, by simp⟩
+@[simp, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a := le_iff_exists_mul.mpr ⟨a, by simp⟩
 
 @[simp, to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
 le_antisymm bot_le (one_le ⊥)

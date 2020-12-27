@@ -1395,7 +1395,7 @@ end
 
 variable {ν : measure α}
 
-lemma integral_add_measure_of_measurable
+private lemma integral_add_measure_of_measurable
   {f : α → E} (fmeas : measurable f) (hμ : integrable f μ) (hν : integrable f ν) :
   ∫ x, f x ∂(μ + ν) = ∫ x, f x ∂μ + ∫ x, f x ∂ν :=
 begin
@@ -1430,7 +1430,8 @@ private lemma integral_smul_measure_aux {f : α → E} {c : ennreal}
   (h0 : 0 < c) (hc : c < ⊤) (fmeas : measurable f) (hfi : integrable f μ) :
   ∫ x, f x ∂(c • μ) = c.to_real • ∫ x, f x ∂μ :=
 begin
-  refine tendsto_nhds_unique _ (tendsto_const_nhds.smul (tendsto_integral_approx_on_univ_of_measurable fmeas hfi)),
+  refine tendsto_nhds_unique _
+    (tendsto_const_nhds.smul (tendsto_integral_approx_on_univ_of_measurable fmeas hfi)),
   convert tendsto_integral_approx_on_univ_of_measurable fmeas (hfi.smul_measure hc),
   simp only [simple_func.integral, measure.smul_apply, finset.smul_sum, smul_smul,
     ennreal.to_real_mul]

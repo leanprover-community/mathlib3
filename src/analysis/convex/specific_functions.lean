@@ -114,3 +114,49 @@ begin
     apply mul_nonneg (le_trans zero_le_one hp),
     exact mul_nonneg (sub_nonneg_of_le hp) (rpow_nonneg_of_nonneg (le_of_lt hx) _) }
 end
+
+lemma concave_on_log_Ioi : concave_on (Ioi 0) log :=
+begin
+  have h₁ : Ioi 0 ⊆ ({0} : set ℝ)ᶜ,
+  { intros x hx hx',
+    rw [mem_singleton_iff] at hx',
+    rw [hx'] at hx,
+    exact lt_irrefl 0 hx },
+  refine concave_on_of_deriv2_nonpos (convex_Ioi 0) (continuous_on.mono continuous_on_log h₁) _ _ _,
+  { rw [interior_Ioi],
+    refine differentiable_on.mono differentiable_on_log h₁ },
+  { rw [interior_Ioi],
+    refine differentiable_on.mono _ h₁,
+    rw [deriv_log'],
+    refine differentiable_on.inv differentiable_on_id (λ x hx, _),
+    rwa [compl_singleton_eq (0 : ℝ)] at hx },
+  { intros x hx,
+    rw [interior_Ioi] at hx,
+    rw [function.iterate_succ, function.iterate_one],
+    change (deriv (deriv log)) x ≤ 0,
+    rw [deriv_log', deriv_inv (show x ≠ 0, by {rintro rfl, exact lt_irrefl 0 hx})],
+    exact neg_nonpos.mpr (inv_nonneg.mpr (pow_two_nonneg x)) }
+end
+
+lemma concave_on_log_Iio : concave_on (Iio 0) log :=
+begin
+  have h₁ : Iio 0 ⊆ ({0} : set ℝ)ᶜ,
+  { intros x hx hx',
+    rw [mem_singleton_iff] at hx',
+    rw [hx'] at hx,
+    exact lt_irrefl 0 hx },
+  refine concave_on_of_deriv2_nonpos (convex_Iio 0) (continuous_on.mono continuous_on_log h₁) _ _ _,
+  { rw [interior_Iio],
+    refine differentiable_on.mono differentiable_on_log h₁ },
+  { rw [interior_Iio],
+    refine differentiable_on.mono _ h₁,
+    rw [deriv_log'],
+    refine differentiable_on.inv differentiable_on_id (λ x hx, _),
+    rwa [compl_singleton_eq (0 : ℝ)] at hx },
+  { intros x hx,
+    rw [interior_Iio] at hx,
+    rw [function.iterate_succ, function.iterate_one],
+    change (deriv (deriv log)) x ≤ 0,
+    rw [deriv_log', deriv_inv (show x ≠ 0, by {rintro rfl, exact lt_irrefl 0 hx})],
+    exact neg_nonpos.mpr (inv_nonneg.mpr (pow_two_nonneg x)) }
+end

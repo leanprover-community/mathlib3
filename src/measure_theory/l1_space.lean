@@ -46,7 +46,7 @@ Maybe `integrable f` should be mean `(∫⁻ a, edist (f a) 0) < ⊤`, so that `
 `lintegral_nnnorm_eq_lintegral_edist : (∫⁻ a, nnnorm (f a)) = (∫⁻ a, edist (f a) 0)` to switch the
 two forms.
 
-To prove something for an arbitrary integrable + measurable function, a useful theorem is
+To prove something for an arbitrary integrable function, a useful theorem is
 `integrable.induction` in the file `set_integral`.
 
 ## Tags
@@ -61,8 +61,6 @@ open_locale classical topological_space big_operators
 open set filter topological_space ennreal emetric measure_theory
 
 variables {α β γ δ : Type*} [measurable_space α] {μ ν : measure α}
-
-
 variables [normed_group β]
 variables [normed_group γ]
 
@@ -580,7 +578,7 @@ variable [opens_measurable_space β]
 def integrable (f : α →ₘ[μ] β) : Prop := f ∈ ball (0 : α →ₘ[μ] β) ⊤
 
 lemma integrable_mk {f : α → β} (hf : ae_measurable f μ ) :
-  (integrable (mk f hf: α →ₘ[μ] β)) ↔ measure_theory.integrable f μ :=
+  (integrable (mk f hf : α →ₘ[μ] β)) ↔ measure_theory.integrable f μ :=
 by simp [integrable, zero_def, edist_mk_mk', measure_theory.integrable, nndist_eq_nnnorm,
          has_finite_integral, hf]
 

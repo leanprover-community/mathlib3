@@ -222,11 +222,6 @@ lemma tendsto_approx_on_univ_l1 [borel_space E] [second_countable_topology E]
     at_top (𝓝 $ l1.of_fun f hf) :=
 tendsto_iff_edist_tendsto_0.2 $ tendsto_approx_on_univ_l1_edist fmeas hf
 
-/-
-def l1_simple_approx [borel_space E] [second_countable_topology E] {f : β → E} {μ : measure β}
-  (hf : integrable f μ) (n : ℕ) :
--/
-
 end simple_func
 
 end measure_theory

@@ -30,6 +30,7 @@ import topology.G_delta
   is continuous, then `λ x, op (f x, g y)` is measurable;
 * `measurable.add` etc : dot notation for arithmetic operations on `measurable` predicates,
   and similarly for `dist` and `edist`;
+* `ae_measurable.add` : similar dot notation for almost everywhere measurable functions;
 * `measurable.ennreal*` : special cases for arithmetic operations on `ennreal`s.
 -/
 
@@ -577,17 +578,12 @@ lemma closed_embedding.measurable_inv_fun [n : nonempty β] {g : β → γ} (hg 
   measurable (function.inv_fun g) :=
 begin
   refine measurable_of_is_closed (λ s hs, _),
-  let o := classical.choice n,
-  by_cases h : o ∈ s,
-  { have : function.inv_fun g ⁻¹' s = g '' s ∪ (g '' univ)ᶜ :=
-      preimage_inv_fun_of_mem hg.to_embedding.inj h,
-    rw this,
+  by_cases h : classical.choice n ∈ s,
+  { rw preimage_inv_fun_of_mem hg.to_embedding.inj h,
     apply is_measurable.union,
     { exact ((closed_embedding.closed_iff_image_closed hg).mp hs).is_measurable },
     { exact ((closed_embedding.closed_iff_image_closed hg).mp is_closed_univ).is_measurable.compl } },
-  { have : function.inv_fun g ⁻¹' s = g '' s :=
-      preimage_inv_fun_of_not_mem hg.to_embedding.inj h,
-    rw this,
+  { rw preimage_inv_fun_of_not_mem hg.to_embedding.inj h,
     exact ((closed_embedding.closed_iff_image_closed hg).mp hs).is_measurable }
 end
 

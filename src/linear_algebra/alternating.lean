@@ -58,18 +58,9 @@ namespace tensor_product
 open_locale tensor_product
 
 
-lemma smul_tmul_int {R : Type*} {M : Type*} {N : Type*}
-  [comm_semiring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
-  (r : ℤ) (m : M) (n : N) : ((r • m) ⊗ₜ[R] n) = m ⊗ₜ[R] r • n :=
-begin
-  simp only [←gsmul_eq_smul],
-  induction r,
-  simp only [gsmul_of_nat, ←nat.smul_def, smul_tmul],
-  simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg, smul_tmul],
-end
-
 theorem smul_tmul'_int {R : Type*} {M : Type*} {N : Type*}
   [comm_semiring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
+  [semimodule ℤ M] [semimodule ℤ N]
   (r : ℤ) (m : M) (n : N) :
   r • (m ⊗ₜ n : M ⊗[R] N) = (r • m) ⊗ₜ n :=
 begin
@@ -81,6 +72,7 @@ end
 
 theorem tmul_smul_int {R : Type*} {M : Type*} {N : Type*}
   [comm_semiring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
+   [semimodule ℤ M] [semimodule ℤ N]
   (r : ℤ) (m : M) (n : N) :
   m ⊗ₜ (r • n) = r • (m ⊗ₜ n : M ⊗[R] N) :=
 begin
@@ -89,6 +81,15 @@ begin
   case hp : n ih { simpa [add_smul, tmul_add] using ih },
   case hn : n ih { simpa [sub_smul, tmul_sub] using ih },
 end
+
+lemma smul_tmul_int {R : Type*} {M : Type*} {N : Type*}
+  [comm_semiring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
+   [semimodule ℤ M] [semimodule ℤ N]
+  (r : ℤ) (m : M) (n : N) : ((r • m) ⊗ₜ[R] n) = m ⊗ₜ[R] r • n :=
+begin
+  rw [tmul_smul_int, smul_tmul'_int]
+end
+
 
 end tensor_product
 
@@ -677,6 +678,18 @@ begin
   congr,
 end
 
+instance nat_is_scalar_tower {S : Type*} [semiring S] [semimodule S M] [semimodule ℕ M] :
+  is_scalar_tower ℕ S M :=
+{ smul_assoc := begin
+    intros n x y,
+    induction n with n ih,
+    { simp only [zero_smul] },
+    { simp only [nat.succ_eq_add_one, add_smul, one_smul, ih] }
+  end }
+
+  #check @alternating_map.nat_is_scalar_tower
+
+
 /-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two
 `alternating_map`s gives a scaled version of the `alternating_map.coprod` of those maps.
 -/
@@ -692,30 +705,14 @@ lemma multilinear_map.dom_coprod_alternization_eq
     ((fintype.card ιa).factorial * (fintype.card ιb).factorial) • a.dom_coprod b :=
 begin
   rw [multilinear_map.dom_coprod_alternization, coe_alternatization, coe_alternatization, mul_smul],
-  rw [←dom_coprod'_apply, ←dom_coprod'_apply],
-  -- diamonds in `((•) : ℕ → _ → _)` make this trivial proof painful
-  calc dom_coprod' (((fintype.card ιa).factorial • a) ⊗ₜ[R] (fintype.card ιb).factorial • b)
-      = dom_coprod' ((fintype.card ιa).factorial • (fintype.card ιb).factorial • (a ⊗ₜ[R] b)) :
-        begin
-          congr' 1,
-          rw [←tensor_product.tmul_smul_nat, tensor_product.smul_tmul'_nat],
-          congr;
-          { rw subsingleton.elim add_comm_monoid.nat_semimodule alternating_map.semimodule,
-            refl,
-            apply_instance }
-        end
-  ... = (fintype.card ιa).factorial • (fintype.card ιb).factorial • dom_coprod' (a ⊗ₜ[R] b) :
-        begin
-          rw ←mul_smul,
-          rw ←mul_smul,
-          rw ←linear_map.map_smul_of_tower dom_coprod' (_ : ℕ),
-          apply_instance,
-          apply_instance,
-          convert add_comm_monoid.nat_is_scalar_tower,
-          { rw subsingleton.elim add_comm_monoid.nat_semimodule alternating_map.semimodule,
-            refl,
-            apply_instance }
-        end
+  rw [←dom_coprod'_apply, ←dom_coprod'_apply, ←tensor_product.smul_tmul', tensor_product.tmul_smul],
+  rw [linear_map.map_smul_of_tower dom_coprod', linear_map.map_smul_of_tower dom_coprod'],
+  -- typeclass resolution is a little confused here
+  all_goals {try {apply_instance}},
+  all_goals {
+    convert alternating_map.nat_is_scalar_tower,
+    change tensor_product.semimodule'.to_distrib_mul_action.to_mul_action.to_has_scalar = _,
+    congr, }
 end
 
 end alternating_map

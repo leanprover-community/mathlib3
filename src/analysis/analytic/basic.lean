@@ -631,8 +631,7 @@ begin
         apply mul_le_mul_of_nonneg_right _ (pow_nonneg (nnreal.coe_nonneg _) _),
         apply norm_tsum_le_tsum_norm,
         convert p.change_origin_summable_aux3 k h,
-        ext a,
-        rcases a with ⟨a1, ⟨a2, ha2⟩⟩,
+        ext ⟨a1, ⟨a2, ha2⟩⟩,
         refl
       end
   ... = tsum (λ i, ∥(p i.1).restr i.2.1 i.2.2 x∥ * ↑r ^ k :
@@ -640,15 +639,13 @@ begin
       begin
         rw tsum_mul_right,
         convert p.change_origin_summable_aux3 k h,
-        ext a,
-        rcases a with ⟨a1, ⟨a2, ha2⟩⟩,
+        ext  ⟨a1, ⟨a2, ha2⟩⟩,
         refl
       end
   ... = tsum (A ∘ change_origin_summable_aux_j k) :
     begin
       congr,
-      ext a,
-      rcases a with ⟨a1, ⟨a2, ha2⟩⟩,
+      ext ⟨a1, ⟨a2, ha2⟩⟩,
       refl
     end
   ... ≤ tsum A : tsum_comp_le_tsum_of_inj SA A_nonneg (change_origin_summable_aux_j_injective k)

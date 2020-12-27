@@ -15,7 +15,7 @@ file.
 
 It also provides decidable instances on membership in these subgroups, since
 `monoid_hom.decidable_mem_range` cannot be inferred without the help of a lambda.
-The presence of these instances induces a `fintype` instance on the `quotient_gruop.quotient` of
+The presence of these instances induces a `fintype` instance on the `quotient_group.quotient` of
 these subgroups.
 -/
 

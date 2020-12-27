@@ -10,6 +10,13 @@ import algebra.algebra.subalgebra
 # Towers of algebras
 
 In this file we prove basic facts about towers of algebra.
+
+An algebra tower A/S/R is expressed by having instances of `algebra A S`,
+`algebra R S`, `algebra R A` and `is_scalar_tower R S A`, the later asserting the
+compatibility condition `(r • s) • a = r • (s • a)`.
+
+An important definition is `to_alg_hom R S A`, the canonical `R`-algebra homomorphism `S →ₐ[R] A`.
+
 -/
 
 universes u v w u₁ v₁

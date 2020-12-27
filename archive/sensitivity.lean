@@ -417,5 +417,6 @@ begin
     ... ≤ (finset.card ((H ∩ Q.adjacent q).to_finset )) * |ε q y| :
      (mul_le_mul_right H_q_pos).mpr (by {
              norm_cast,
-             exact finset.card_le_of_subset (by rw set.to_finset_inter; convert finset.inter_subset_inter_right coeffs_support) })
+             rw set.to_finset_inter,
+             convert finset.card_le_of_subset (finset.inter_subset_inter_right coeffs_support) })
 end

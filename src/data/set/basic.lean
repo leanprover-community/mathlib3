@@ -234,15 +234,13 @@ instance : has_ssubset (set α) := ⟨(<)⟩
 theorem ssubset_def : (s ⊂ t) = (s ⊆ t ∧ ¬ (t ⊆ s)) := rfl
 
 theorem eq_or_ssubset_of_subset (h : s ⊆ t) : s = t ∨ s ⊂ t :=
-classical.by_cases
-  (λ H : t ⊆ s, or.inl $ subset.antisymm h H)
-  (λ H, or.inr ⟨h, H⟩)
+eq_or_lt_of_le h
 
 lemma exists_of_ssubset {s t : set α} (h : s ⊂ t) : (∃x∈t, x ∉ s) :=
 not_subset.1 h.2
 
 lemma ssubset_iff_subset_ne {s t : set α} : s ⊂ t ↔ s ⊆ t ∧ s ≠ t :=
-by split; simp [set.ssubset_def, ne.def, set.subset.antisymm_iff] {contextual := tt}
+@lt_iff_le_and_ne (set α) _ s t
 
 lemma ssubset_iff_of_subset {s t : set α} (h : s ⊆ t) : s ⊂ t ↔ ∃ x ∈ t, x ∉ s :=
 ⟨exists_of_ssubset, λ ⟨x, hxt, hxs⟩, ⟨h, λ h, hxs $ h hxt⟩⟩
@@ -2207,18 +2205,15 @@ lemma inclusion_injective {s t : set α} (h : s ⊆ t) :
   function.injective (inclusion h)
 | ⟨_, _⟩ ⟨_, _⟩ := subtype.ext_iff_val.2 ∘ subtype.ext_iff_val.1
 
+lemma range_inclusion {s t : set α} (h : s ⊆ t) : range (inclusion h) = {x : t | (x:α) ∈ s} :=
+by { ext ⟨x, hx⟩, simp [inclusion] }
+
 lemma eq_of_inclusion_surjective {s t : set α} {h : s ⊆ t}
   (h_surj : function.surjective (inclusion h)) : s = t :=
 begin
-  apply set.subset.antisymm h,
-  intros x hx,
-  cases h_surj ⟨x, hx⟩ with y key,
-  rw [←subtype.coe_mk x hx, ←key, coe_inclusion],
-  exact subtype.mem y,
+  rw [← range_iff_surjective, range_inclusion, eq_univ_iff_forall] at h_surj,
+  exact set.subset.antisymm h (λ x hx, h_surj ⟨x, hx⟩)
 end
-
-lemma range_inclusion {s t : set α} (h : s ⊆ t) : range (inclusion h) = {x : t | (x:α) ∈ s} :=
-by { ext ⟨x, hx⟩, simp [inclusion] }
 
 end inclusion
 

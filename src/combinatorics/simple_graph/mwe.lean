@@ -36,7 +36,7 @@ begin
     simp only [mem_image, exists_prop] at h2,
     rcases h2 with ⟨a, ha, hfa⟩,
     unfold image_rel,
-    squeeze_simp,
+    simp only [true_and, exists_prop, mem_filter, mem_univ],
     specialize hf₂ a,
     rw hfa at hf₂,
     refine ⟨a, ha, hf₂⟩ },

@@ -1061,7 +1061,7 @@ private lemma distrib' (a b c : with_top α) : (a + b) * c = a * c + b * c :=
 begin
   cases c,
   { show (a + b) * ⊤ = a * ⊤ + b * ⊤,
-    by_cases ha : a = 0; simp [ha] }, -- ...but add_eq_zero_iff is a simp lemma!
+    by_cases ha : a = 0; simp [ha] },
   { show (a + b) * c = a * c + b * c,
     by_cases hc : c = 0, { simp [hc] },
     simp [mul_coe hc], cases a; cases b,

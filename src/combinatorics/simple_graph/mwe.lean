@@ -1,8 +1,10 @@
 import data.fintype.basic
+import data.sym2
+import data.fin
 
 open finset
 
-universe u
+universes u v
 
 -- Let α and β be finite types
 variables {α β : Type u} [fintype α] [fintype β]
@@ -271,4 +273,103 @@ begin
   intros h,
   rcases h with ⟨f, hf, hf2⟩,
   exact hall_easy r f hf hf2,
+end
+
+
+/--
+A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
+The relation describes which pairs of vertices are adjacent.
+There is exactly one edge for every pair of adjacent edges;
+see `simple_graph.edge_set` for the corresponding edge set.
+-/
+@[ext]
+structure simple_graph (V : Type u) :=
+(adj : V → V → Prop)
+(sym : symmetric adj . obviously)
+(loopless : irreflexive adj . obviously)
+
+/-- A graph `G` is `β`-colorable if there is an assignment of elements of `β` to
+vertices of `G` (allowing repetition) such that adjacent vertices have
+distinct colors. -/
+@[ext]
+structure coloring (β : Type v) :=
+(color : V → β)
+(valid : ∀ ⦃v w : V⦄, G.adj v w → color v ≠ color w)
+
+/-- A graph `G` is `β`-colorable if there is a `β`-coloring. -/
+def colorable (β : Type v) : Prop := nonempty (G.coloring β)
+
+/--
+A `colorable G α` graph is an `α`-partite graph, so we define bipartite as `colorable G (fin 2)`.
+-/
+def is_bipartite (G : simple_graph V) : Prop := G.colorable (fin 2)
+
+abbreviation bipartition (G : simple_graph V) := G.coloring (fin 2)
+
+/--
+A matching on `G` is a subset of its edges such that no two edges share a vertex.
+-/
+structure matching :=
+(edges : set (sym2 V))
+(sub_edges : edges ⊆ G.edge_set)
+(disjoint : ∀ (x y ∈ edges) (v : V), v ∈ x → v ∈ y → x = y)
+
+/--
+`M.support` is the set of vertices of `G` that are
+contained in some edge of the matching `M`
+-/
+def matching.support (M : G.matching) : set V :=
+{v : V | ∃ x, x ∈ M.edges ∧ v ∈ x}
+
+lemma matching.is_injective (M : G.matching) :
+
+theorem hall_marriage_theorem
+  (h2 : fintype.card (f.color_set 0) ≤ fintype.card (f.color_set 1)) :
+  (∃ (M : G.matching), (f.color_set 0) ⊆ M.support) ↔
+  (∀ (S ⊆ f.color_set 0),
+    fintype.card S ≤ fintype.card (G.neighbor_set_image S)) :=
+begin
+  split,
+  { rintros ⟨M, hM⟩ S hs,
+    have Ssat := set.subset.trans hs hM,
+    rw ←M.opposites_card_eq Ssat,
+    have Sopp := M.opposites_card_eq Ssat,
+    exact set.card_le_of_subset (M.opposite_set_subneighbor_set' S Ssat) },
+  { intro hh,
+    -- we have `to_partial`, that's what i need to do my strong induction proof
+    -- either every subset of the left class has a neighbour set larger than it,
+    -- or there's one where the neighbour set is the same
+    have h : (∀ (S ⊆ f.color_set 0), fintype.card S < fintype.card (G.neighbor_set' S)) ∨
+        (∃ (S ⊆ f.color_set 0), fintype.card S = fintype.card (G.neighbor_set' S)),
+    { --simp_rw le_iff_eq_or_lt at hh,
+      rw or_iff_not_imp_left,
+      intro ha,
+      push_neg at ha,
+      cases ha with x hx,
+      use x,
+      specialize hh x,
+      cases hx with h3 h4,
+      specialize hh h3,
+      have h7 := le_antisymm hh h4,
+      split,
+      exact h3,
+      exact h7 },
+      cases h with ha he,
+      {
+
+        sorry },
+      -- jesus fuck
+    -- ∀ x, x ≤ f x → (∀ x, x < f x) ∨ (∃ x, x = f x)
+    --by_contra hv,
+
+    -- induction on `|f.color_set 0|` using partial colorings
+      --
+      -- have `partial_coloring.restrict f.to_partial`
+    -- base case: `|f.color_set 0| = 0`, i.e. `f.color_set 0 = ∅`
+      -- this is trivial
+
+    -- IH: `∀ (S ⊆ f.color_set 0), fintype.card S ≤ fintype.card (G.neighbor_set' S))`
+    -- ` → ∃ (M : G.matching), (f.color_set 0) ⊆ M.support`
+      -- what i mean by this is `f.color_set 0` when you push `f` through to an induced subgraph
+    sorry },
 end

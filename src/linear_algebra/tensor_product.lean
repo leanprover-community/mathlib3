@@ -845,13 +845,11 @@ When `R` is a `ring` we get the required `tensor_product.compatible_smul` instan
 `is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
 The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
 -/
-instance compatible_smul.int : compatible_smul R ℤ M N :=
-⟨λ r m n, begin
-  induction r using int.induction_on,
-  case hz : { simp },
-  case hp : r ih { simpa [add_smul, tmul_add, add_tmul] using ih, },
-  case hn : r ih { simpa [sub_smul, tmul_sub, sub_tmul] using ih, },
-end⟩
+instance compatible_smul.int [semimodule ℤ M] [semimodule ℤ N] : compatible_smul R ℤ M N :=
+⟨λ r m n, int.induction_on r
+  (by simp)
+  (λ r ih, by simpa [add_smul, tmul_add, add_tmul] using ih)
+  (λ r ih, by simpa [sub_smul, tmul_sub, sub_tmul] using ih)⟩
 
 end tensor_product
 

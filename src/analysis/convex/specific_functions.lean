@@ -145,7 +145,7 @@ begin
     rw [mem_singleton_iff] at hx',
     rw [hx'] at hx,
     exact lt_irrefl 0 hx },
-  refine concave_on_of_deriv2_nonpos (convex_Iio 0) (continuous_on.mono continuous_on_log h₁) _ _ _,
+  refine concave_on_of_deriv2_nonpos (convex_Iio 0) (continuous_on_log.mono h₁) _ _ _,
   { rw [interior_Iio],
     refine differentiable_on.mono differentiable_on_log h₁ },
   { rw [interior_Iio],

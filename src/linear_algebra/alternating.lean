@@ -68,28 +68,15 @@ begin
   simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg, smul_tmul],
 end
 
--- note: can be comm_semiring R after #5315
 theorem smul_tmul'_int {R : Type*} {M : Type*} {N : Type*}
   [comm_semiring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
   (r : ℤ) (m : M) (n : N) :
   r • (m ⊗ₜ n : M ⊗[R] N) = (r • m) ⊗ₜ n :=
 begin
-  simp only [←gsmul_eq_smul],
-  induction r,
-  { simp only [gsmul_of_nat, smul_tmul'],
-    rw [tensor_product.semimodule'.nsmul, smul_tmul'],
-    have := subsingleton.elim add_comm_monoid.nat_semimodule tensor_product.semimodule',
-    convert smul_tmul' _ _ _,
-    rw this,
-    refl,
-    repeat {apply_instance }, },
-  { simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg],
-    rw neg_inj,
-    have := subsingleton.elim add_comm_monoid.nat_semimodule tensor_product.semimodule',
-    convert smul_tmul' _ _ _,
-    rw this,
-    refl,
-    repeat {apply_instance }, }
+  induction r using int.induction_on,
+  case hz : { simp },
+  case hp : n ih { simpa [add_smul, add_tmul] using ih },
+  case hn : n ih { simpa [sub_smul, sub_tmul] using ih },
 end
 
 theorem tmul_smul_int {R : Type*} {M : Type*} {N : Type*}
@@ -97,10 +84,10 @@ theorem tmul_smul_int {R : Type*} {M : Type*} {N : Type*}
   (r : ℤ) (m : M) (n : N) :
   m ⊗ₜ (r • n) = r • (m ⊗ₜ n : M ⊗[R] N) :=
 begin
-  simp only [←gsmul_eq_smul],
-  induction r,
-  simp only [gsmul_of_nat, ←nat.smul_def, tmul_smul],
-  simp only [gsmul_neg_succ_of_nat, ←nat.smul_def, neg_tmul, tmul_neg, tmul_smul],
+  induction r using int.induction_on,
+  case hz : { simp },
+  case hp : n ih { simpa [add_smul, tmul_add] using ih },
+  case hn : n ih { simpa [sub_smul, tmul_sub] using ih },
 end
 
 end tensor_product
@@ -486,14 +473,11 @@ private def dom_coprod_aux
   have : ((σ₁ * perm.sum_congr_hom _ _ (sl, sr)).sign : ℤ) = σ₁.sign * (sl.sign * sr.sign) :=
     by simp,
   rw [h, this, mul_smul, mul_smul, units.smul_left_cancel, ←tensor_product.tmul_smul_int,
-    tensor_product.smul_tmul'],
+    tensor_product.smul_tmul'_int],
   simp only [sum.map_inr, perm.sum_congr_hom_apply, perm.sum_congr_apply, sum.map_inl,
              function.comp_app, perm.coe_mul],
   rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))],
 end)
-
--- we need this to apply `mul_action.quotient.smul_mk` below
-local attribute [reducible] quotient_group.mk
 
 private lemma dom_coprod_aux_eq_zero_if_eq
   {R : Type*} {M N₁ N₂ : Type*}

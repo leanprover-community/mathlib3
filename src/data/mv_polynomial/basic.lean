@@ -147,6 +147,13 @@ lemma C_injective (σ : Type*) (R : Type*) [comm_semiring R] :
   function.injective (C : R → mv_polynomial σ R) :=
 finsupp.single_injective _
 
+lemma C_surjective {R : Type*} [comm_ring R] :
+  function.surjective (mv_polynomial.C : R → mv_polynomial (fin 0) R) :=
+begin
+  refine λ p, ⟨p.to_fun 0, finsupp.ext (λ a, _)⟩,
+  simpa [(finsupp.ext fin_zero_elim : a = 0), C, monomial],
+end
+
 @[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_semiring R] (r s : R) :
   (C r : mv_polynomial σ R) = C s ↔ r = s :=
 (C_injective σ R).eq_iff

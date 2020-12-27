@@ -532,25 +532,6 @@ begin
   rwa [← comap_comap, ← ring_hom.ker_eq_comap_bot, mk_ker] at this,
 end
 
-lemma mv_poly_step {R : Type*} [comm_semiring R] (n : ℕ) :
-  ((mv_polynomial.fin_succ_equiv R n).symm.to_ring_hom).comp
-    ((polynomial.C).comp (mv_polynomial.C))
-    = (mv_polynomial.C : R →+* mv_polynomial (fin n.succ) R) :=
-begin
-  refine ring_hom.ext (λ x, _),
-  rw ring_hom.comp_apply,
-  refine (mv_polynomial.fin_succ_equiv R n).injective
-    (trans ((mv_polynomial.fin_succ_equiv R n).apply_symm_apply _) _),
-  simp only [mv_polynomial.fin_succ_equiv_apply, mv_polynomial.eval₂_hom_C],
-end
-
-lemma C_surj {R : Type*} [comm_ring R] :
-  function.surjective (mv_polynomial.C : R → mv_polynomial (fin 0) R) :=
-begin
-  refine λ p, ⟨p.to_fun 0, mv_polynomial.ext _ _ (λ a, _)⟩,
-  simpa [(finsupp.ext fin_zero_elim : a = 0), if_true, eq_self_iff_true, mv_polynomial.coeff_C],
-end
-
 lemma lemmaB'_bootstrap {R : Type*} [integral_domain R] [is_jacobson R]
   {n : ℕ} (P : ideal (mv_polynomial (fin n) R)) [hP : P.is_maximal] :
   ((quotient.mk P).comp mv_polynomial.C : R →+* P.quotient).is_integral :=
@@ -559,15 +540,16 @@ begin
   { have := (mv_polynomial.ring_equiv_of_equiv R
       (equiv.equiv_pempty $ fin.elim0)).trans (mv_polynomial.pempty_ring_equiv R),
     refine ring_hom.is_integral_of_surjective _ (function.surjective.comp quotient.mk_surjective _),
-    refine C_surj },
+    refine mv_polynomial.C_surjective },
   { let ϕ1 : R →+* mv_polynomial (fin n) R := mv_polynomial.C,
     let ϕ2 : (mv_polynomial (fin n) R) →+* polynomial (mv_polynomial (fin n) R) := polynomial.C,
     let ϕ3 := (mv_polynomial.fin_succ_equiv R n).symm.to_ring_hom,
     let ϕ : R →+* (mv_polynomial (fin (n+1)) R) := ϕ3.comp (ϕ2.comp ϕ1),
     have hϕ : ϕ = mv_polynomial.C := begin
-      -- Can't use `mv_poly_step n` directly because of a diamond problem
+      -- Can't use `fin_succ_equiv_comp_C_eq_C n` directly because of a typeclass inference problem
       refine ring_hom.ext (λ x, _),
-      simpa using congr_arg (λ (f : R →+* mv_polynomial (fin n.succ) R), f x) (mv_poly_step n),
+      simpa using congr_arg (λ (f : R →+* mv_polynomial (fin n.succ) R), f x)
+        (mv_polynomial.fin_succ_equiv_comp_C_eq_C n),
     end,
     rw ← hϕ,
 

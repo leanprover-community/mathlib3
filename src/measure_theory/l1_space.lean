@@ -925,7 +925,7 @@ end l1
 end measure_theory
 open measure_theory
 
-lemma measurable.integrable_zero [measurable_space β] {f : α → β} :
+lemma integrable_zero_measure [measurable_space β] {f : α → β} :
   integrable f 0 :=
 begin
   apply (integrable_zero _ _ _).congr,

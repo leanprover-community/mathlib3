@@ -711,6 +711,9 @@ lemma map_map {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurab
 ext $ λ s hs,
 by simp [hf, hg, hs, hg hs, hg.comp hf, ← preimage_comp]
 
+lemma map_mono {f : α → β} (hf : measurable f) (h : μ ≤ ν) : map f μ ≤ map f ν :=
+λ s hs, by simp [hf, hs, h _ (hf hs)]
+
 /-- Pullback of a `measure`. If `f` sends each `measurable` set to a `measurable` set, then for each
 measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
 def comap (f : α → β) : measure β →ₗ[ennreal] measure α :=
@@ -1254,6 +1257,10 @@ lemma diff_ae_eq_self {s t : set α} :
 by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
   diff_diff, diff_eq_empty.2 (set.subset_union_right _ _)]
 
+lemma ae_eq_set {s t : set α} :
+  s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
+by simp [eventually_le_antisymm_iff, ae_le_set]
+
 lemma mem_ae_map_iff [measurable_space β] {f : α → β} (hf : measurable f)
   {s : set β} (hs : is_measurable s) :
   s ∈ (map f μ).ae ↔ (f ⁻¹' s) ∈ μ.ae :=
@@ -1268,6 +1275,13 @@ lemma ae_restrict_iff {s : set α} {p : α → Prop} (hp : is_measurable {x | p 
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
 begin
   simp only [ae_iff, ← compl_set_of, restrict_apply hp.compl],
+  congr' with x, simp [and_comm]
+end
+
+lemma ae_restrict_iff' {s : set α} {p : α → Prop} (hp : is_measurable s) :
+  (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
+begin
+  simp only [ae_iff, ← compl_set_of, restrict_apply_eq_zero' hp],
   congr' with x, simp [and_comm]
 end
 
@@ -1290,7 +1304,7 @@ begin
   ... = 0 : by rwa ← measure.map_apply hf tmeas
 end
 
-@[simp] lemma ae_restrict_eq {s : set α} (hs : is_measurable s):
+@[simp] lemma ae_restrict_eq {s : set α} (hs : is_measurable s) :
   (μ.restrict s).ae = μ.ae ⊓ 𝓟 s :=
 begin
   ext t,
@@ -1867,6 +1881,52 @@ begin
   exact ht.compl.diff_null hz
 end
 
+theorem is_null_measurable_iff_ae {s : set α} :
+  is_null_measurable μ s ↔ ∃ t, is_measurable t ∧ s =ᵐ[μ] t :=
+begin
+  simp only [ae_eq_set],
+  split,
+  { assume h,
+    rcases is_null_measurable_iff.1 h with ⟨t, ts, tmeas, ht⟩,
+    refine ⟨t, tmeas, ht, _⟩,
+    rw [diff_eq_empty.2 ts, measure_empty] },
+  { rintros ⟨t, tmeas, h₁, h₂⟩,
+    have : is_null_measurable μ (t ∪ (s \ t)) :=
+      is_null_measurable.union_null (tmeas.is_null_measurable _) h₁,
+    have A : is_null_measurable μ ((t ∪ (s \ t)) \ (t \ s)) :=
+      is_null_measurable.diff_null this h₂,
+    have : (t ∪ (s \ t)) \ (t \ s) = s,
+    { apply subset.antisymm,
+      { assume x hx,
+        simp only [mem_union_eq, not_and, mem_diff, not_not_mem] at hx,
+        cases hx.1, { exact hx.2 h }, { exact h.1 } },
+      { assume x hx,
+        simp [hx, classical.em (x ∈ t)] } },
+    rwa this at A }
+end
+
+lemma restrict_apply_of_is_null_measurable {s t : set α}
+  (hs : is_measurable s) (ht : is_null_measurable (μ.restrict s) t) :
+  μ.restrict s t = μ (t ∩ s) :=
+begin
+  rcases is_null_measurable_iff_ae.1 ht with ⟨u, umeas, hu⟩,
+  have A : (t ∩ s : set α) =ᵐ[μ.restrict s] (u ∩ s : set α),
+  { filter_upwards [hu],
+    change ∀ a, (a ∈ t) = (a ∈ u) → (a ∈ t ∧ a ∈ s) = (a ∈ u ∧ a ∈ s),
+    simp {contextual := tt} },
+  have : (t ∩ s : set α) =ᵐ[μ] (u ∩ s : set α),
+  { filter_upwards [(ae_restrict_iff' hs).1 A],
+    assume a ha,
+    change (a ∈ t ∩ s) = (a ∈ u ∩ s),
+    change a ∈ s → (a ∈ (t ∩ s)) = (a ∈ u ∩ s) at ha,
+    by_cases h : a ∈ s,
+    { simpa [h] using ha },
+    { simp [h] } },
+  have A : μ (t ∩ s) = μ (u ∩ s) := measure_congr this,
+  have B : μ.restrict s t = μ.restrict s u := measure_congr hu,
+  rw [A, B, measure.restrict_apply umeas],
+end
+
 /-- The measurable space of all null measurable sets. -/
 def null_measurable {α : Type*} [measurable_space α]
   (μ : measure α) : measurable_space α :=
@@ -2017,6 +2077,17 @@ lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ x, (f x, g x)) μ :=
 ⟨λ a, (hf.mk f a, hg.mk g a), hf.measurable_mk.prod_mk hg.measurable_mk,
   eventually_eq.prod_mk hf.ae_eq_mk hg.ae_eq_mk⟩
+
+lemma is_null_measurable (h : ae_measurable f μ) {s : set β} (hs : is_measurable s) :
+  is_null_measurable μ (f ⁻¹' s) :=
+begin
+  apply is_null_measurable_iff_ae.2,
+  refine ⟨(h.mk f) ⁻¹' s, h.measurable_mk hs, _⟩,
+  filter_upwards [h.ae_eq_mk],
+  assume x hx,
+  change (f x ∈ s) = ((h.mk f) x ∈ s),
+  rwa hx
+end
 
 end ae_measurable
 

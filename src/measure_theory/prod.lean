@@ -227,7 +227,7 @@ lemma measurable.lintegral_prod_left' [sigma_finite μ] {f : α × β → ennrea
   (hf : measurable f) : measurable (λ y, ∫⁻ x, f (x, y) ∂μ) :=
 (measurable_swap_iff.mpr hf).lintegral_prod_right'
 
-/-- The Lebesgue intergral is measurable. This shows that the integrand of (the right-hand-side of)
+/-- The Lebesgue integral is measurable. This shows that the integrand of (the right-hand-side of)
   the symmetric version of Tonelli's theorem is measurable.
   This version has the argument `f` in curried form. -/
 lemma measurable.lintegral_prod_left [sigma_finite μ] {f : α → β → ennreal}
@@ -341,7 +341,7 @@ lemma integrable_measure_prod_mk_left {s : set (α × β)}
   (hs : is_measurable s) (h2s : (μ.prod ν) s < ⊤) :
   integrable (λ x, (ν (prod.mk x ⁻¹' s)).to_real) μ :=
 begin
-  refine ⟨(measurable_measure_prod_mk_left hs).to_real, _⟩,
+  refine ⟨(measurable_measure_prod_mk_left hs).to_real.ae_measurable, _⟩,
   simp_rw [has_finite_integral, ennnorm_eq_of_real to_real_nonneg],
   convert h2s using 1, simp_rw [prod_apply hs], apply lintegral_congr_ae,
   refine (ae_measure_lt_top hs h2s).mp _, apply eventually_of_forall, intros x hx,

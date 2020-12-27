@@ -169,8 +169,13 @@ by split; simp [hf]
 lemma neg [borel_space E] (h : interval_integrable f μ a b) : interval_integrable (-f) μ a b :=
 ⟨h.1.neg, h.2.neg⟩
 
-protected lemma measurable (h : interval_integrable f μ a b) : measurable f :=
-h.1.measurable
+protected lemma ae_measurable (h : interval_integrable f μ a b) :
+  ae_measurable f (μ.restrict (Ioc a b)):=
+h.1.ae_measurable
+
+protected lemma ae_measurable' (h : interval_integrable f μ a b) :
+  ae_measurable f (μ.restrict (Ioc b a)):=
+h.2.ae_measurable
 
 end
 
@@ -195,14 +200,13 @@ section
 
 variables {μ : measure ℝ} [locally_finite_measure μ]
 
-lemma continuous_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : continuous_on u (interval a b))
-  (hum : measurable u) :
-  interval_integrable u μ a b :=
+lemma continuous_on.interval_integrable [borel_space E] {u : ℝ → E} {a b : ℝ}
+  (hu : continuous_on u (interval a b)) : interval_integrable u μ a b :=
 begin
   split,
   all_goals
   { refine measure_theory.integrable_on.mono_set _ Ioc_subset_Icc_self,
-    refine continuous_on.integrable_on_compact compact_Icc hum (hu.mono _) },
+    refine continuous_on.integrable_on_compact compact_Icc (hu.mono _), },
   { exact Icc_subset_interval },
   { exact Icc_subset_interval' }
 end
@@ -211,7 +215,7 @@ end
 `ν` on ℝ. -/
 lemma continuous.interval_integrable [borel_space E] {u : ℝ → E} (hu : continuous u) (a b : ℝ) :
   interval_integrable u μ a b :=
-hu.continuous_on.interval_integrable hu.measurable
+hu.continuous_on.interval_integrable
 
 end
 
@@ -224,8 +228,9 @@ Suppose that `f : α → E` has a finite limit at `l' ⊓ μ.ae`. Then `f` is in
 Typeclass instances allow Lean to find `l'` based on `l` but not vice versa, so
 `apply tendsto.eventually_interval_integrable_ae` will generate goals `filter α` and
 `tendsto_Ixx_class Ioc ?m_1 l'`. -/
-lemma filter.tendsto.eventually_interval_integrable_ae {f : α → E} (hfm : measurable f)
-  {μ : measure α} {l l' : filter α} [tendsto_Ixx_class Ioc l l'] [is_measurably_generated l']
+lemma filter.tendsto.eventually_interval_integrable_ae {f : α → E} {μ : measure α}
+  (hfm : ae_measurable f μ) {l l' : filter α}
+  [tendsto_Ixx_class Ioc l l'] [is_measurably_generated l']
   (hμ : μ.finite_at_filter l') {c : E} (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
   {u v : β → α} {lt : filter β} (hu : tendsto u lt l) (hv : tendsto v lt l) :
   ∀ᶠ t in lt, interval_integrable f μ (u t) (v t) :=
@@ -241,8 +246,9 @@ provided that both `u` and `v` tend to `l`.
 Typeclass instances allow Lean to find `l'` based on `l` but not vice versa, so
 `apply tendsto.eventually_interval_integrable_ae` will generate goals `filter α` and
 `tendsto_Ixx_class Ioc ?m_1 l'`. -/
-lemma filter.tendsto.eventually_interval_integrable {f : α → E} (hfm : measurable f)
-  {μ : measure α} {l l' : filter α} [tendsto_Ixx_class Ioc l l'] [is_measurably_generated l']
+lemma filter.tendsto.eventually_interval_integrable {f : α → E} {μ : measure α}
+  (hfm : ae_measurable f μ) {l l' : filter α}
+  [tendsto_Ixx_class Ioc l l'] [is_measurably_generated l']
   (hμ : μ.finite_at_filter l') {c : E} (hf : tendsto f l' (𝓝 c))
   {u v : β → α} {lt : filter β} (hu : tendsto u lt l) (hv : tendsto v lt l) :
   ∀ᶠ t in lt, interval_integrable f μ (u t) (v t) :=
@@ -293,9 +299,10 @@ lemma integral_cases (f : α → E) (a b) :
     -∫ x in Ioc (min a b) (max a b), f x ∂μ} : set E) :=
 (le_total a b).imp (λ h, by simp [h, integral_of_le]) (λ h, by simp [h, integral_of_ge])
 
-lemma integral_non_measurable {f : α → E} {a b} (hf : ¬measurable f) :
+lemma integral_non_ae_measurable {f : α → E} {a b}
+  (h : a < b) (hf : ¬ ae_measurable f (μ.restrict (Ioc a b))) :
   ∫ x in a..b, f x ∂μ = 0 :=
-by rw [interval_integral, integral_non_measurable hf, integral_non_measurable hf, sub_zero]
+by rw [integral_of_le h.le, integral_non_ae_measurable hf]
 
 lemma norm_integral_eq_norm_integral_Ioc :
   ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ioc (min a b) (max a b), f x ∂μ∥ :=
@@ -355,28 +362,32 @@ lemma integral_smul_measure (c : ennreal) :
   ∫ x in a..b, f x ∂(c • μ) = c.to_real • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, measure.restrict_smul, integral_smul_measure, smul_sub]
 
-lemma integral_comp_add_right (a b c : ℝ) (f : ℝ → E) (hfm : measurable f) :
+lemma integral_comp_add_right (a b c : ℝ) (f : ℝ → E) (hfm : ae_measurable f) :
   ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x :=
+have A : ae_measurable f (measure.map (λ x, x + c) volume), by rwa [real.map_volume_add_right],
 calc ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x ∂(measure.map (λ x, x + c) volume) :
-  by simp only [interval_integral, set_integral_map is_measurable_Ioc hfm (measurable_add_right _),
+  by simp only [interval_integral, set_integral_map is_measurable_Ioc A (measurable_add_right _),
     preimage_add_const_Ioc, add_sub_cancel]
 ... = ∫ x in a+c..b+c, f x : by rw [real.map_volume_add_right]
 
-lemma integral_comp_mul_right {c : ℝ} (hc : 0 < c) (a b : ℝ) (f : ℝ → E) (hfm : measurable f) :
+lemma integral_comp_mul_right {c : ℝ} (hc : 0 < c) (a b : ℝ) (f : ℝ → E) (hfm : ae_measurable f) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
 begin
+  have A : ae_measurable f (measure.map (λ (x : ℝ), x*c) volume),
+    by { rw real.map_volume_mul_right (ne_of_gt hc), exact hfm.smul_measure _ },
   conv_rhs { rw [← real.smul_map_volume_mul_right (ne_of_gt hc)] },
   rw [integral_smul_measure],
-  simp only [interval_integral, set_integral_map is_measurable_Ioc hfm (measurable_mul_right _),
+  simp only [interval_integral, set_integral_map is_measurable_Ioc A (measurable_mul_right _),
     hc, preimage_mul_const_Ioc, mul_div_cancel _ (ne_of_gt hc), abs_of_pos,
-    ennreal.to_real_of_real (le_of_lt hc), inv_smul_smul' (ne_of_gt hc)]
+    ennreal.to_real_of_real (le_of_lt hc), inv_smul_smul' (ne_of_gt hc)],
 end
 
-lemma integral_comp_neg (a b : ℝ) (f : ℝ → E) (hfm : measurable f) :
+lemma integral_comp_neg (a b : ℝ) (f : ℝ → E) (hfm : ae_measurable f) :
   ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=
 begin
+  have A : ae_measurable f (measure.map (λ (x : ℝ), -x) volume), by rwa real.map_volume_neg,
   conv_rhs { rw ← real.map_volume_neg },
-  simp only [interval_integral, set_integral_map is_measurable_Ioc hfm measurable_neg, neg_preimage,
+  simp only [interval_integral, set_integral_map is_measurable_Ioc A measurable_neg, neg_preimage,
     preimage_neg_Ioc, neg_neg, restrict_congr_set Ico_ae_eq_Ioc]
 end
 
@@ -459,12 +470,11 @@ end
 lemma integral_eq_integral_of_support_subset {f : α → E} {a b} (h : function.support f ⊆ Ioc a b) :
   ∫ x in a..b, f x ∂μ = ∫ x, f x ∂μ :=
 begin
-  by_cases hfm : measurable f,
-  { cases le_total a b with hab hab,
-    { rw [integral_of_le hab, ← integral_indicator hfm is_measurable_Ioc, indicator_eq_self.2 h] },
-    { rw [Ioc_eq_empty hab, subset_empty_iff, function.support_eq_empty_iff] at h,
-      simp [h] } },
-  { rw [integral_non_measurable hfm, measure_theory.integral_non_measurable hfm] },
+  cases le_total a b with hab hab,
+  { rw [integral_of_le hab, ← integral_indicator is_measurable_Ioc, indicator_eq_self.2 h];
+    apply_instance },
+  { rw [Ioc_eq_empty hab, subset_empty_iff, function.support_eq_empty_iff] at h,
+    simp [h] }
 end
 
 end order_closed_topology
@@ -494,7 +504,7 @@ begin
   cases le_total a b with hab hab,
   { simp only [integral_of_le hab, Ioc_eq_empty hab, union_empty] at hf ⊢,
     symmetry,
-    rw [set_integral_pos_iff_support_of_nonneg_ae hf hfi.1, and_iff_right_iff_imp],
+    rw [set_integral_pos_iff_support_of_nonneg_ae hf is_measurable_Ioc hfi.1, and_iff_right_iff_imp],
     contrapose!,
     intro h,
     simp [Ioc_eq_empty h] },
@@ -614,7 +624,7 @@ We use integrals of constants instead of measures because this way it is easier 
 a statement that works in both cases `u ≤ v` and `v ≤ u`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae'
   [is_measurably_generated l'] [tendsto_Ixx_class Ioc l l']
-  (hfm : measurable f) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c)) (hl : μ.finite_at_filter l')
+  (hfm : ae_measurable f μ) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c)) (hl : μ.finite_at_filter l')
   (hu : tendsto u lt l) (hv : tendsto v lt l) :
   is_o (λ t, ∫ x in u t..v t, f x ∂μ - ∫ x in u t..v t, c ∂μ)
     (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) lt :=
@@ -641,7 +651,7 @@ See also `measure_integral_sub_linear_is_o_of_tendsto_ae_of_le` for a version as
 The primed version also works, e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_le'
   [is_measurably_generated l'] [tendsto_Ixx_class Ioc l l']
-  (hfm : measurable f) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c)) (hl : μ.finite_at_filter l')
+  (hfm : ae_measurable f μ) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c)) (hl : μ.finite_at_filter l')
   (hu : tendsto u lt l) (hv : tendsto v lt l) (huv : u ≤ᶠ[lt] v) :
   is_o (λ t, ∫ x in u t..v t, f x ∂μ - (μ (Ioc (u t) (v t))).to_real • c)
     (λ t, (μ $ Ioc (u t) (v t)).to_real) lt :=
@@ -661,7 +671,7 @@ See also `measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge` for a version as
 The primed version also works, e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge'
   [is_measurably_generated l'] [tendsto_Ixx_class Ioc l l']
-  (hfm : measurable f) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c)) (hl : μ.finite_at_filter l')
+  (hfm : ae_measurable f μ) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c)) (hl : μ.finite_at_filter l')
   (hu : tendsto u lt l) (hv : tendsto v lt l) (huv : v ≤ᶠ[lt] u) :
   is_o (λ t, ∫ x in u t..v t, f x ∂μ + (μ (Ioc (v t) (u t))).to_real • c)
     (λ t, (μ $ Ioc (v t) (u t)).to_real) lt :=
@@ -688,7 +698,7 @@ See also `measure_integral_sub_linear_is_o_of_tendsto_ae'` for a version that al
 
 We use integrals of constants instead of measures because this way it is easier to formulate
 a statement that works in both cases `u ≤ v` and `v ≤ u`. -/
-lemma measure_integral_sub_linear_is_o_of_tendsto_ae (hfm : measurable f)
+lemma measure_integral_sub_linear_is_o_of_tendsto_ae (hfm : ae_measurable f μ)
   (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c)) (hu : tendsto u lt l) (hv : tendsto v lt l) :
   is_o (λ t, ∫ x in u t..v t, f x ∂μ - ∫ x in u t..v t, c ∂μ)
     (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) lt :=
@@ -702,7 +712,7 @@ If `f` has a finite limit `c` at `l' ⊓ μ.ae`, then
 See also `measure_integral_sub_linear_is_o_of_tendsto_ae_of_le'` for a version that also works,
 e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_le
-  (hfm : measurable f) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
+  (hfm : ae_measurable f μ) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
   (hu : tendsto u lt l) (hv : tendsto v lt l) (huv : u ≤ᶠ[lt] v) :
   is_o (λ t, ∫ x in u t..v t, f x ∂μ - (μ (Ioc (u t) (v t))).to_real • c)
     (λ t, (μ $ Ioc (u t) (v t)).to_real) lt :=
@@ -717,7 +727,7 @@ If `f` has a finite limit `c` at `l' ⊓ μ.ae`, then
 See also `measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge'` for a version that also works,
 e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge
-  (hfm : measurable f) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
+  (hfm : ae_measurable f μ) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
   (hu : tendsto u lt l) (hv : tendsto v lt l) (huv : v ≤ᶠ[lt] u) :
   is_o (λ t, ∫ x in u t..v t, f x ∂μ + (μ (Ioc (v t) (u t))).to_real • c)
     (λ t, (μ $ Ioc (v t) (u t)).to_real) lt :=
@@ -753,8 +763,8 @@ lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae
     (λ t, ∥∫ x in ua t..va t, (1:ℝ) ∂μ∥ + ∥∫ x in ub t..vb t, (1:ℝ) ∂μ∥) lt :=
 begin
   refine
-    ((measure_integral_sub_linear_is_o_of_tendsto_ae hab.measurable ha_lim hua hva).neg_left.add_add
-    (measure_integral_sub_linear_is_o_of_tendsto_ae hab.measurable hb_lim hub hvb)).congr'
+    ((measure_integral_sub_linear_is_o_of_tendsto_ae hab.ae_measurable ha_lim hua hva).neg_left.add_add
+    (measure_integral_sub_linear_is_o_of_tendsto_ae hab.ae_measurable hb_lim hub hvb)).congr'
       _ (eventually_eq.refl _ _),
   have A : ∀ᶠ t in lt, interval_integrable f μ (ua t) (va t) :=
     ha_lim.eventually_interval_integrable_ae hab.measurable (FTC_filter.finite_at_inner la) hua hva,
@@ -834,7 +844,7 @@ we have no definition of `has_strict_(f)deriv_at_filter` in the library.
 `l'`, where `(l, l')` is an `FTC_filter` pair around `a`, then
 `∫ x in u..v, f x ∂μ = (v - u) • c + o (v - u)` as both `u` and `v` tend to `l`. -/
 lemma integral_sub_linear_is_o_of_tendsto_ae [FTC_filter a l l']
-  (hfm : measurable f) (hf : tendsto f (l' ⊓ volume.ae) (𝓝 c))
+  (hfm : ae_measurable f) (hf : tendsto f (l' ⊓ volume.ae) (𝓝 c))
   {u v : β → ℝ} (hu : tendsto u lt l) (hv : tendsto v lt l) :
   is_o (λ t, (∫ x in u t..v t, f x) - (v t - u t) • c) (v - u) lt :=
 by simpa [integral_const] using measure_integral_sub_linear_is_o_of_tendsto_ae hfm hf hu hv

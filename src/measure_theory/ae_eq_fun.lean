@@ -75,60 +75,6 @@ open_locale classical
 open set filter topological_space ennreal emetric measure_theory function
 variables {α β γ δ : Type*} [measurable_space α] {μ ν : measure α}
 
-
-
-
-
-
-
-
-
-
-
-/-
-
-/-- Given an almost everywhere measurable function `f`, associate its class of almost everywhere
-defined functions. -/
-def ae_measurable.mk_ae (f : α → β) (h : ae_measurable f μ) : α →ₘ[μ] β :=
-ae_eq_fun.mk (h.mk f) h.measurable_mk
-
-@[simp] lemma ae_measurable.mk_ae_eq_mk_ae_iff (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
-  hf.mk_ae f = hg.mk_ae g ↔ f =ᵐ[μ] g :=
-begin
-  simp only [ae_measurable.mk_ae, ae_eq_fun.mk_eq_mk],
-  exact ⟨λ H, (hf.ae_eq_mk.trans H).trans hg.ae_eq_mk.symm,
-    λ H, (hf.ae_eq_mk.symm.trans H).trans hg.ae_eq_mk⟩
-end
-
-lemma ae_measurable.mk_ae_eq_mk (hf : measurable f) :
-  (hf.ae_measurable.mk_ae f : α →ₘ[μ] β) = ae_eq_fun.mk f hf :=
-begin
-  rw [ae_measurable.mk_ae, ae_eq_fun.mk_eq_mk],
-  exact hf.ae_measurable.ae_eq_mk.symm
-end
-
-@[simp] lemma coe_fn_mk_ae (f : α →ₘ[μ] β) :
-  ae_measurable.mk_ae f f.measurable.ae_measurable = f :=
-begin
-  conv_rhs { rw ← ae_eq_fun.mk_coe_fn f },
-  rw [ae_measurable.mk_ae, ae_eq_fun.mk_eq_mk],
-  exact (ae_measurable.ae_eq_mk _).symm
-end
-
-lemma edist_mk_ae_mk_ae'
-  [metric_space β] [second_countable_topology β] [opens_measurable_space β]
-  (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
-  edist (hf.mk_ae f) (hg.mk_ae g) = ∫⁻ x, nndist (f x) (g x) ∂μ :=
-calc
-edist (hf.mk_ae f) (hg.mk_ae g) = ∫⁻ x, nndist (hf.mk f x) (hg.mk g x) ∂μ :
-  ae_eq_fun.edist_mk_mk' hf.measurable_mk hg.measurable_mk
-... = ∫⁻ x, nndist (f x) (g x) ∂μ :
-begin
-  apply lintegral_congr_ae,
-  apply eventually_eq.comp₂ hf.ae_eq_mk.symm (λ x y, (nndist x y : ennreal)) hg.ae_eq_mk.symm,
-end
--/
-
 namespace measure_theory
 
 section measurable_space

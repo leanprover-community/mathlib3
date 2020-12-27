@@ -595,11 +595,23 @@ le_of_not_lt $ λ h1, not_le_of_lt (pow_lt_pow_of_lt_left h1 hb hn) h
 
 end linear_ordered_semiring
 
-theorem pow_two_nonneg [linear_ordered_ring R] (a : R) : 0 ≤ a ^ 2 :=
-by { rw pow_two, exact mul_self_nonneg _ }
+section linear_ordered_ring
 
-theorem pow_two_pos_of_ne_zero [linear_ordered_ring R] (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
-lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
+variable [linear_ordered_ring R]
+
+theorem pow_bit0_nonneg (a : R) (n : ℕ) : 0 ≤ a ^ bit0 n :=
+by { rw pow_bit0, exact mul_self_nonneg _ }
+
+theorem pow_two_nonneg (a : R) : 0 ≤ a ^ 2 :=
+pow_bit0_nonneg a 1
+
+theorem pow_bit0_pos {a : R} (h : a ≠ 0) (n : ℕ) : 0 < a ^ bit0 n :=
+(pow_bit0_nonneg a n).lt_of_ne (pow_ne_zero _ h).symm
+
+theorem pow_two_pos_of_ne_zero (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
+pow_bit0_pos h 1
+
+end linear_ordered_ring
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]

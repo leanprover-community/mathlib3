@@ -60,10 +60,11 @@ instance one.unique : unique (1 : Group) :=
 @[simp, to_additive]
 lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
-@[to_additive, ext]
+@[ext, to_additive]
 lemma ext (G H : Group) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
 by { ext1, apply w }
 
+-- should to_additive do this automatically?
 attribute [ext] AddGroup.ext
 
 @[to_additive has_forget_to_AddMon]

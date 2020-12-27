@@ -1020,11 +1020,11 @@ lemma continuous_iff_continuous_at {f : α → β} : continuous f ↔ ∀ x, con
   show is_open (f ⁻¹' s),
     from is_open_iff_nhds.2 $ λ a ha, le_principal_iff.2 $ hf _ (this a ha)⟩
 
-lemma continuous_const {b : β} : continuous (λa:α, b) :=
-continuous_iff_continuous_at.mpr $ assume a, tendsto_const_nhds
-
 lemma continuous_at_const {x : α} {b : β} : continuous_at (λ a:α, b) x :=
-continuous_const.continuous_at
+tendsto_const_nhds
+
+lemma continuous_const {b : β} : continuous (λa:α, b) :=
+continuous_iff_continuous_at.mpr $ assume a, continuous_at_const
 
 lemma continuous_at_id {x : α} : continuous_at id x :=
 continuous_id.continuous_at

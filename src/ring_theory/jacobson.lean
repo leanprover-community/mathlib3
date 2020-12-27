@@ -532,7 +532,7 @@ begin
   rwa [← comap_comap, ← ring_hom.ker_eq_comap_bot, mk_ker] at this,
 end
 
-lemma lemmaB'_bootstrap {R : Type*} [integral_domain R] [is_jacobson R]
+lemma lemmaB'_bootstrap {R : Type u} [integral_domain R] [is_jacobson R]
   {n : ℕ} (P : ideal (mv_polynomial (fin n) R)) [hP : P.is_maximal] :
   ((quotient.mk P).comp mv_polynomial.C : R →+* P.quotient).is_integral :=
 begin
@@ -545,13 +545,6 @@ begin
     let ϕ2 : (mv_polynomial (fin n) R) →+* polynomial (mv_polynomial (fin n) R) := polynomial.C,
     let ϕ3 := (mv_polynomial.fin_succ_equiv R n).symm.to_ring_hom,
     let ϕ : R →+* (mv_polynomial (fin (n+1)) R) := ϕ3.comp (ϕ2.comp ϕ1),
-    have hϕ : ϕ = mv_polynomial.C := begin
-      -- Can't use `fin_succ_equiv_comp_C_eq_C n` directly because of a typeclass inference problem
-      refine ring_hom.ext (λ x, _),
-      simpa using congr_arg (λ (f : R →+* mv_polynomial (fin n.succ) R), f x)
-        (mv_polynomial.fin_succ_equiv_comp_C_eq_C n),
-    end,
-    rw ← hϕ,
 
     let P3 : ideal (polynomial (mv_polynomial (fin n) R)) := P.comap ϕ3,
     let P2 : ideal (mv_polynomial (fin n) R) := P3.comap ϕ2,
@@ -579,7 +572,7 @@ begin
     by rw [ring_hom.comp_assoc, ring_hom.comp_assoc, quotient_map_comp_mk, ← ring_hom.comp_assoc ϕ1,
       quotient_map_comp_mk, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc,
       ← ring_hom.comp_assoc, quotient_map_comp_mk],
-    rw this,
+    rw [← mv_polynomial.fin_succ_equiv_comp_C_eq_C n, this],
     refine ring_hom.is_integral_trans (quotient.mk P1) φ _ hφ,
     exact (quotient.mk P1).is_integral_of_surjective (quotient.mk_surjective) }
 end

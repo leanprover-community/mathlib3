@@ -112,6 +112,24 @@ into the two cases
 * `∃ (A : finset α), A ≠ univ → A.card = (image_rel r A).card`
 -/
 
+variable [decidable_eq β]
+lemma ite_injective (f₁ f₂ : α → β) (h₁ : function.injective f₁) (h₂ : function.injective f₂)
+(h12 : disjoint (image f₁) (image f₂))(p : α → Prop) :
+  function.injective (λ (a : α), if p a then f₁ a else f₂ a) :=
+begin
+  classical,
+  intros a₁ a₂ h,
+  dsimp at h,
+  split_ifs at h,
+  { apply h₁ h },
+  { --rw disjoint_iff_ne at h12,
+    sorry },
+  { sorry },
+  { apply h₂ h },
+  --rw @disjoint_iff_ne β (image f₁) (image f₂) at h12,
+  --apply h12,
+end
+
 /-- First case of the inductive step: assuming that
 `∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (image_rel r A).card`
 and that the statement of Hall's Marriage Theorem
@@ -150,8 +168,7 @@ begin
   let f := λ x, if h : x = a then b else f' ⟨x, h⟩,
   use f,
   split,
-  {
-    sorry },
+  { sorry },
   { sorry },
 end
 
@@ -166,7 +183,45 @@ lemma hall_hard_inductive_step_B [nontrivial α] {n : ℕ} (hn : fintype.card α
     [∀ a, decidable_pred (r' a)], by exactI fintype.card α' ≤ n →
     by exactI (∀ (A : finset α'), A.card ≤ (image_rel r' A).card) →
     ∃ (f : α' → β'), function.injective f ∧ ∀ x, r' x (f x)) :
-  ∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x) := sorry
+  ∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x) :=
+begin
+  cases ha with A ha,
+  rcases eq_empty_or_nonempty A with (rfl | Ane),
+  { have hb := @univ_nonempty_iff α _inst_1,
+    --have hc := @nontrivial.to_nonempty α _inst_4,
+    cases hb with hu hn,
+    --specialize hn hc,
+    rw card_empty at ha,
+    have hemp := 0 = (image_rel r ∅).card,
+    sorry },
+  simp at ha,
+  rcases exists_pair_ne α with ⟨a, a', ne⟩,
+
+  let α' := {a' : α // a' ∈ A},
+  let β' := {b' : β // b' ∈ (image_rel r A)},
+  let r' : α' → β' → Prop := λ a' b', r a' b',
+  have h3 : fintype.card α' ≤ n,
+  { sorry },
+  have h4 : (∀ (A : finset α'), A.card ≤ (image_rel r' A).card),
+  { sorry },
+  have ih' := ih r' h3 h4,
+  rcases ih' with ⟨f', hf', hrf'⟩,
+
+  let α'' := {a' : α // a' ∉ A},
+  let β'' := {b' : β // b' ∉ (image_rel r A)},
+  let r'' : α'' → β'' → Prop := λ a'' b'', r a'' b'',
+  have h3' : fintype.card α'' ≤ n,
+  { sorry },
+  have h4' : (∀ (A : finset α''), A.card ≤ (image_rel r'' A).card),
+  { sorry },
+  have ih'' := ih r'' h3' h4',
+  rcases ih'' with ⟨f'', hf'', hrf''⟩,
+
+  refine ⟨λ a, if h₁ : a ∈ A then (f' ⟨a, h₁⟩).1 else (f'' ⟨a, h₁⟩).1, _, _⟩,
+  --rw at hn,
+  sorry,
+  sorry,
+end
 
 /-
 Here we use the two cases and our induction hypothesis

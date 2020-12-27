@@ -3382,6 +3382,23 @@ begin
       simp only [h, prefix_cons_inj, hl, map] } },
 end
 
+lemma is_prefix.filter_map {l l' : list α} (h : l <+: l') (f : α → option β) :
+  l.filter_map f <+: l'.filter_map f :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp only [nil_prefix, filter_map_nil] },
+  { cases l' with hd' tl',
+    { simpa only using eq_nil_of_prefix_nil h },
+    { rw cons_prefix_iff at h,
+      rw [←@singleton_append _ hd _, ←@singleton_append _ hd' _, filter_map_append,
+         filter_map_append, h.left, prefix_append_right_inj],
+      exact hl h.right } },
+end
+
+lemma is_prefix.reduce_option {l l' : list (option α)} (h : l <+: l') :
+  l.reduce_option <+: l'.reduce_option :=
+h.filter_map id
+
 @[simp] theorem mem_inits : ∀ (s t : list α), s ∈ inits t ↔ s <+: t
 | s []     := suffices s = nil ↔ s <+: nil, by simpa only [inits, mem_singleton],
   ⟨λh, h.symm ▸ prefix_refl [], eq_nil_of_prefix_nil⟩

@@ -239,7 +239,7 @@ def preserves_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_colim
   preserves_colimits G :=
 { preserves_colimits_of_shape := λ J 𝒥₁, by exactI preserves_colimits_of_shape_of_nat_iso h }
 
-/-- Transfer preservation of limits along a equivalence in the shape. -/
+/-- Transfer preservation of colimits along a equivalence in the shape. -/
 def preserves_colimits_of_shape_of_equiv {J' : Type v} [small_category J'] (e : J ≌ J')
   (F : C ⥤ D) [preserves_colimits_of_shape J F] :
   preserves_colimits_of_shape J' F :=

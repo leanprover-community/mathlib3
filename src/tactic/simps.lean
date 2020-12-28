@@ -340,16 +340,11 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   -- simplify `rhs` if `cfg.simp_rhs` is true
   (rhs, prf) ← do { guard cfg.simp_rhs,
     rhs' ← rhs.dsimp {fail_if_unchanged := ff},
-    -- o ← get_options,
-    -- let o' := o.set_bool `pp.implicit tt,
-    -- let o' := o'.set_bool `pp.notation ff,
-    -- set_options o',
     when_tracing `simps.debug $ when (rhs ≠ rhs') trace!
       "[simps] > `dsimp` simplified rhs to\n        > {rhs'}",
     rhsprf ← rhs'.simp {fail_if_unchanged := ff},
     when_tracing `simps.debug $ when (rhs' ≠ rhsprf.1) trace!
       "[simps] > `simp` simplified rhs to\n        > {rhsprf.1}",
-    -- set_options o,
     return rhsprf }
     <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
   eq_ap ← mk_mapp `eq $ [type, lhs, rhs].map some,

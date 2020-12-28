@@ -20,7 +20,7 @@ open category_theory.category
 open category_theory.functor
 open opposite
 
--- set_option trace.simps.verbose true
+set_option trace.simps.verbose true
 -- set_option trace.simps.debug true
 
 namespace category_theory
@@ -33,21 +33,16 @@ variables {J C} (F : J ⥤ C)
 natural transformations from the constant functor with value `X` to `F`.
 An object representing this functor is a limit of `F`.
 -/
-@[simps map_app {rhs_md := semireducible, type_md := semireducible, simp_rhs := tt}]
+@[simps]
 def cones : Cᵒᵖ ⥤ Type v := (const J).op ⋙ (yoneda.obj F)
-
-lemma cones_obj (X : Cᵒᵖ) : F.cones.obj X = ((const J).obj (unop X) ⟶ F) := rfl
-
 
 /--
 `F.cocones` is the functor assigning to an object `X` the type of
 natural transformations from `F` to the constant functor with value `X`.
 An object corepresenting this functor is a colimit of `F`.
 -/
-@[simps map_app {rhs_md := semireducible, type_md := semireducible, simp_rhs := tt}]
+@[simps]
 def cocones : C ⥤ Type v := const J ⋙ coyoneda.obj (op F)
-
-lemma cocones_obj (X : C) : F.cocones.obj X = (F ⟶ (const J).obj X) := rfl
 
 end functor
 
@@ -280,7 +275,7 @@ def whiskering_equivalence {K : Type v} [small_category K] (e : K ≌ J) :
 The categories of cones over `F` and `G` are equivalent if `F` and `G` are naturally isomorphic
 (possibly after changing the indexing category by an equivalence).
 -/
-@[simps functor_obj {rhs_md := semireducible, simp_rhs := tt}]
+@[simps functor_obj]
 def equivalence_of_reindexing {K : Type v} [small_category K] {G : K ⥤ C}
   (e : K ≌ J) (α : e.functor ⋙ F ≅ G) : cone F ≌ cone G :=
 (whiskering_equivalence e).trans (postcompose_equivalence α)
@@ -441,7 +436,7 @@ def whiskering_equivalence {K : Type v} [small_category K] (e : K ≌ J) :
 The categories of cocones over `F` and `G` are equivalent if `F` and `G` are naturally isomorphic
 (possibly after changing the indexing category by an equivalence).
 -/
-@[simps functor_obj {rhs_md := semireducible, simp_rhs := tt}]
+@[simps functor_obj]
 def equivalence_of_reindexing {K : Type v} [small_category K] {G : K ⥤ C}
   (e : K ≌ J) (α : e.functor ⋙ F ≅ G) : cocone F ≌ cocone G :=
 (whiskering_equivalence e).trans (precompose_equivalence α.symm)
@@ -523,10 +518,10 @@ variables {F : J ⥤ C} {G : J ⥤ C} (H : C ⥤ D)
 open category_theory.limits
 
 /-- The image of a cone in C under a functor G : C ⥤ D is a cone in D. -/
-@[simps {rhs_md := semireducible, simp_rhs := tt}]
+@[simps]
 def map_cone   (c : cone F)   : cone (F ⋙ H)   := (cones.functoriality F H).obj c
 /-- The image of a cocone in C under a functor G : C ⥤ D is a cocone in D. -/
-@[simps {rhs_md := semireducible, simp_rhs := tt}]
+@[simps]
 def map_cocone (c : cocone F) : cocone (F ⋙ H) := (cocones.functoriality F H).obj c
 
 /-- Given a cone morphism `c ⟶ c'`, construct a cone morphism on the mapped cones functorially.  -/
@@ -755,46 +750,19 @@ def cocone_left_op_of_cone (c : cone F) : cocone (F.left_op) :=
 { X := unop c.X,
   ι := nat_trans.left_op c.π }
 
--- local attribute [simp] comp_id
--- set_option trace.simps.debug true
--- set_option pp.implicit true
--- set_option pp.notation false
--- set_option pp.structure_projections false
-
 /-- Change a cone on `F.left_op : Jᵒᵖ ⥤ C` to a cocone on `F : J ⥤ Cᵒᵖ`. -/
--- When trying to generate the `ι_app` field of this definition, `@[simps]` tries to reduce the RHS
--- using `expr.dsimp` and `expr.simp`, but for some reason the expression is not reduced enough.
-@[simps X] -- @[simps {rhs_md := semireducible, simp_rhs := tt}]
+/- When trying use `@[simps]` to generate the `ι_app` field of this definition, `@[simps]` tries to
+  reduce the RHS using `expr.dsimp` and `expr.simp`, but for some reason the expression is not
+  being simplified properly. -/
+@[simps X]
 def cocone_of_cone_left_op (c : cone F.left_op) : cocone F :=
 { X := op c.X,
   ι := nat_trans.remove_left_op ((const.op_obj_unop (op c.X)).hom ≫ c.π) }
-
--- lemma cocone_of_cone_left_op_ι_app' (c : cone F.left_op) (X : J) :
---   (@nat_trans.app Jᵒᵖ (@category.opposite J _inst_1) C _inst_2
---    ((@const J _inst_1 Cᵒᵖ (@category.opposite C _inst_2)).obj (@op C c.X)).left_op
---    F.left_op
---    ((@const.op_obj_unop J _inst_1 C _inst_2 (@op C c.X)).hom ≫ c.π)
---    (@op J X)).op = sorry :=
--- by { dsimp, simp, }
-
--- -- set_option pp.all true
--- lemma cocone_of_cone_left_op_ι_app'' (c : cone F.left_op) (X : J) :
---   @category_struct.comp (opposite C) (@to_category_struct (opposite C) (@category.opposite C _inst_2)) (F.obj X)
---   (@op C c.X)
---   (@op C c.X)
---   (@nat_trans.app (opposite J) (@category.opposite J _inst_1) C _inst_2
---      ((@const J _inst_1 (opposite C) (@category.opposite C _inst_2)).obj (@op C c.X)).left_op
---      F.left_op
---      c.π
---      (@op J X)).op
---   (@category_struct.id (opposite C) (@to_category_struct (opposite C) (@category.opposite C _inst_2)) (@op C c.X)) = sorry :=
--- by {  simp, }
 
 @[simp] lemma cocone_of_cone_left_op_ι_app (c : cone F.left_op) (j) :
   (cocone_of_cone_left_op c).ι.app j = (c.π.app (op j)).op :=
 by { dsimp [cocone_of_cone_left_op], simp }
 
--- set_option trace.simps.verbose true
 /-- Change a cocone on `F : J ⥤ Cᵒᵖ` to a cone on `F.left_op : Jᵒᵖ ⥤ C`. -/
 @[simps {rhs_md := semireducible, simp_rhs := tt}]
 def cone_left_op_of_cocone (c : cocone F) : cone (F.left_op) :=

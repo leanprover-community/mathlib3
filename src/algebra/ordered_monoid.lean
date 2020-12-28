@@ -532,7 +532,7 @@ end with_bot
   in which the ordering coincides with the subtractibility relation,
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
-  the integers or other ordered groups. -/
+  the integers or other nontrivial `ordered_add_comm_group`s. -/
 @[protect_proj, ancestor ordered_add_comm_monoid order_bot]
 class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, order_bot α :=
 (le_iff_exists_add : ∀ a b : α, a ≤ b ↔ ∃ c, b = a + c)
@@ -540,8 +540,12 @@ class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoi
 /-- A canonically ordered monoid is an ordered commutative monoid
   in which the ordering coincides with the divisibility relation,
   which is to say, `a ≤ b` iff there exists `c` with `b = a * c`.
-  This is satisfied by the natural numbers, for example, but not
-  the integers or other ordered groups. -/
+  Example seem rare; it seems more likely that the `order_dual`
+  of a naturally-occurring lattice satisfies this than the lattice
+  itself (for example, dual of the lattice of ideals of a PID or
+  Dedekind domain satisfy this; collections of all things ≤ 1 seem to
+  be more natural that collections of all things ≥ 1).
+-/
 @[protect_proj, ancestor ordered_comm_monoid order_bot, to_additive]
 class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, order_bot α :=
 (le_iff_exists_mul : ∀ a b : α, a ≤ b ↔ ∃ c, b = a * c)

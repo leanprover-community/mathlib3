@@ -73,9 +73,9 @@ theorem chain_map_of_chain {S : β → β → Prop} (f : α → β)
 (chain_map f).2 $ p.imp H
 
 theorem chain_pmap_of_chain {S : β → β → Prop} {p : α → Prop}
-  (f : Π a, p a → β)
+  {f : Π a, p a → β}
   (H : ∀ a b ha hb, R a b → S (f a ha) (f b hb))
-  {a : α} (l : list α)
+  {a : α} {l : list α}
   (hl₁ : chain R a l) (ha : p a) (hl₂ : ∀ a ∈ l, p a) :
   chain S (f a ha) (list.pmap f l hl₂) :=
 begin

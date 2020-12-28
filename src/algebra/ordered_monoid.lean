@@ -562,12 +562,14 @@ le_antisymm bot_le (one_le ⊥)
 @[simp, to_additive] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
 mul_eq_one_iff' (one_le _) (one_le _)
 
+-- TODO -- global replace le_zero_iff_eq by n nonpos_iff_eq_zero?
 @[simp, to_additive le_zero_iff_eq] lemma le_one_iff_eq : a ≤ 1 ↔ a = 1 :=
 iff.intro
   (assume h, le_antisymm h (one_le a))
   (assume h, h ▸ le_refl a)
 
-@[to_additive] lemma one_lt_iff_ne_one : 1 < a ↔ a ≠ 1 :=
+-- TODO -- global replace zero_lt_iff_ne_zero by pos_iff_ne_zero?
+@[to_additive zero_lt_iff_ne_zero] lemma one_lt_iff_ne_one : 1 < a ↔ a ≠ 1 :=
 iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (one_le _) hne.symm
 
 @[to_additive] lemma exists_pos_mul_of_lt (h : a < b) : ∃ c > 1, a * c = b :=

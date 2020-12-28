@@ -155,7 +155,7 @@ theorem balanced_sz.symm {l r : ℕ} : balanced_sz l r → balanced_sz r l :=
 or.imp (by rw add_comm; exact id) and.symm
 
 theorem balanced_sz_zero {l : ℕ} : balanced_sz l 0 ↔ l ≤ 1 :=
-by simp [balanced_sz]; apply or_iff_left_of_imp; rintro rfl; exact zero_le_one
+by simp [balanced_sz] { contextual := tt }
 
 theorem balanced_sz_up {l r₁ r₂ : ℕ} (h₁ : r₁ ≤ r₂)
   (h₂ : l + r₂ ≤ 1 ∨ r₂ ≤ delta * l)

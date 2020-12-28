@@ -2259,7 +2259,7 @@ lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : c
 is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
 
 /-- A continuous function which tendsto `at_top` `at_top` and to `at_bot` `at_bot` is surjective. -/
-lemma surjective_of_continuous {f : α → δ} (hf : continuous f) (h_top : tendsto f at_top at_top)
+lemma continuous.surjective {f : α → δ} (hf : continuous f) (h_top : tendsto f at_top at_top)
   (h_bot : tendsto f at_bot at_bot) :
   function.surjective f :=
 λ p, mem_range_of_exists_le_of_exists_ge hf
@@ -2267,10 +2267,32 @@ lemma surjective_of_continuous {f : α → δ} (hf : continuous f) (h_top : tend
   (h_top.eventually (eventually_ge_at_top p)).exists
 
 /-- A continuous function which tendsto `at_bot` `at_top` and to `at_top` `at_bot` is surjective. -/
-lemma surjective_of_continuous' {f : α → δ} (hf : continuous f) (h_top : tendsto f at_bot at_top)
+lemma continuous.surjective' {f : α → δ} (hf : continuous f) (h_top : tendsto f at_bot at_top)
   (h_bot : tendsto f at_top at_bot) :
   function.surjective f :=
-@surjective_of_continuous (order_dual α) _ _ _ _ _ _ _ _ _ hf h_top h_bot
+@continuous.surjective (order_dual α) _ _ _ _ _ _ _ _ _ hf h_top h_bot
+
+/-- If a function `f : α → β` is continuous on a nonempty interval `s`, its restriction to `s`
+tends to `at_bot : filter β` along `at_bot : filter ↥s` and tends to `at_top : filter β` along
+`at_top : filter ↥s`, then the restriction of `f` to `s` is surjective. We formulate the
+conclusion as `surj_on f s univ`. -/
+lemma continuous_on.surj_on_of_tendsto {f : α → β} {s : set α} [ord_connected s]
+  (hs : s.nonempty) (hf : continuous_on f s) (hbot : tendsto (λ x : s, f x) at_bot at_bot)
+  (htop : tendsto (λ x : s, f x) at_top at_top) :
+  surj_on f s univ :=
+by haveI := inhabited_of_nonempty hs.to_subtype;
+  exact (surj_on_iff_surjective.2 $
+    (continuous_on_iff_continuous_restrict.1 hf).surjective htop hbot)
+
+/-- If a function `f : α → β` is continuous on a nonempty interval `s`, its restriction to `s`
+tends to `at_top : filter β` along `at_bot : filter ↥s` and tends to `at_bot : filter β` along
+`at_top : filter ↥s`, then the restriction of `f` to `s` is surjective. We formulate the
+conclusion as `surj_on f s univ`. -/
+lemma continuous_on.surj_on_of_tendsto' {f : α → β} {s : set α} [ord_connected s]
+  (hs : s.nonempty) (hf : continuous_on f s) (hbot : tendsto (λ x : s, f x) at_bot at_top)
+  (htop : tendsto (λ x : s, f x) at_top at_bot) :
+  surj_on f s univ :=
+@continuous_on.surj_on_of_tendsto α (order_dual β) _ _ _ _ _ _ _ _ _ _ hs hf hbot htop
 
 end densely_ordered
 
@@ -3115,7 +3137,7 @@ noncomputable def homeomorph_of_strict_mono_continuous
   (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
   (h_bot : tendsto f at_bot at_bot) :
   homeomorph α β :=
-(h_mono.order_iso_of_surjective f (surjective_of_continuous h_cont h_top h_bot)).to_homeomorph
+(h_mono.order_iso_of_surjective f (h_cont.surjective h_top h_bot)).to_homeomorph
 
 @[simp] lemma coe_homeomorph_of_strict_mono_continuous
   (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)

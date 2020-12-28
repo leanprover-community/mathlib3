@@ -1673,7 +1673,7 @@ lemma submodule.inner_right_of_mem_orthogonal {u v : E} {K : submodule 𝕜 E} (
 (K.mem_orthogonal v).1 hv u hu
 
 /-- A vector in `K.orthogonal` is orthogonal to one in `K`. -/
-lemma submodule.inner_right_of_mem_orthogonal {u v : E} {K : submodule 𝕜 E} (hu : u ∈ K)
+lemma submodule.inner_left_of_mem_orthogonal {u v : E} {K : submodule 𝕜 E} (hu : u ∈ K)
     (hv : v ∈ K.orthogonal) : ⟪v, u⟫ = 0 :=
 by rw [inner_eq_zero_sym]; exact submodule.inner_right_of_mem_orthogonal hu hv
 
@@ -1716,8 +1716,8 @@ variables (𝕜 E)
 lemma submodule.orthogonal_gc :
   @galois_connection (submodule 𝕜 E) (order_dual $ submodule 𝕜 E) _ _
     submodule.orthogonal submodule.orthogonal :=
-λ K₁ K₂, ⟨λ h v hv u hu, submodule.inner_right_of_mem_orthogonal hv (h hu),
-          λ h v hv u hu, submodule.inner_right_of_mem_orthogonal hv (h hu)⟩
+λ K₁ K₂, ⟨λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu),
+          λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu)⟩
 
 variables {𝕜 E}
 

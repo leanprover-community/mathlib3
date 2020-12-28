@@ -77,7 +77,7 @@ open_locale my.add
 
 * More generally, the following will declare all localized notation in the specified locales.
 ```lean
-open_locale locale locale ...
+open_locale locale1 locale2 ...
 ```
 
 * You can also declare other localized commands, like local attributes

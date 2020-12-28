@@ -908,7 +908,7 @@ begin
     simp_rw [deriv.neg],
     exact neg_le_neg (hf'_mono x y hx hy hxy) },
   exact (neg_convex_on_iff D f).mp (convex_on_of_deriv_mono hD
-    (continuous_on.neg hf) (differentiable_on.neg hf') this),
+    hf.neg hf'.neg this),
 end
 
 /-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is differentiable on its interior,

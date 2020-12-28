@@ -943,6 +943,10 @@ lemma measurable.ennreal_coe {f : α → ℝ≥0} (hf : measurable f) :
   measurable (λ x, (f x : ennreal)) :=
 ennreal.continuous_coe.measurable.comp hf
 
+lemma ae_measurable.ennreal_coe {f : α → ℝ≥0} {μ : measure α} (hf :  ae_measurable f μ) :
+  ae_measurable (λ x, (f x : ennreal)) μ :=
+ennreal.continuous_coe.measurable.comp_ae_measurable hf
+
 lemma measurable.ennreal_of_real {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, ennreal.of_real (f x)) :=
 ennreal.continuous_of_real.measurable.comp hf
@@ -1031,9 +1035,9 @@ lemma measurable.ennreal_mul {f g : α → ennreal} (hf : measurable f) (hg : me
   measurable (λ a, f a * g a) :=
 ennreal.measurable_mul.comp (hf.prod_mk hg)
 
-lemma measurable.ennreal_add {f g : α → ennreal}
-  (hf : measurable f) (hg : measurable g) : measurable (λ a, f a + g a) :=
-hf.add hg
+lemma ae_measurable.ennreal_mul {f g : α → ennreal} {μ : measure α}
+  (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ a, f a * g a) μ:=
+ennreal.measurable_mul.comp_ae_measurable (hf.prod_mk hg)
 
 lemma measurable.ennreal_sub {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, f a - g a) :=

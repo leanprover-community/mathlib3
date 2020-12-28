@@ -1141,6 +1141,15 @@ calc (∫⁻ a, r * f a ∂μ) = (∫⁻ a, (⨆n, (const α r * eapprox f n) a)
   end
   ... = r * (∫⁻ a, f a ∂μ) : by rw [← ennreal.mul_supr, lintegral_eq_supr_eapprox_lintegral hf]
 
+lemma lintegral_const_mul'' (r : ennreal) {f : α → ennreal} (hf : ae_measurable f μ) :
+  (∫⁻ a, r * f a ∂μ) = r * (∫⁻ a, f a ∂μ) :=
+begin
+  have A : ∫⁻ a, f a ∂μ = ∫⁻ a, hf.mk f a ∂μ := lintegral_congr_ae hf.ae_eq_mk,
+  have B : ∫⁻ a, r * f a ∂μ = ∫⁻ a, r * hf.mk f a ∂μ :=
+    lintegral_congr_ae (eventually_eq.fun_comp hf.ae_eq_mk _),
+  rw [A, B, lintegral_const_mul _ hf.measurable_mk],
+end
+
 lemma lintegral_const_mul_le (r : ennreal) (f : α → ennreal) :
   r * (∫⁻ a, f a ∂μ) ≤ (∫⁻ a, r * f a ∂μ) :=
 begin
@@ -1171,6 +1180,10 @@ end
 lemma lintegral_mul_const (r : ennreal) {f : α → ennreal} (hf : measurable f) :
   ∫⁻ a, f a * r ∂μ = ∫⁻ a, f a ∂μ * r :=
 by simp_rw [mul_comm, lintegral_const_mul r hf]
+
+lemma lintegral_mul_const'' (r : ennreal) {f : α → ennreal} (hf : ae_measurable f μ) :
+  ∫⁻ a, f a * r ∂μ = ∫⁻ a, f a ∂μ * r :=
+by simp_rw [mul_comm, lintegral_const_mul'' r hf]
 
 lemma lintegral_mul_const_le (r : ennreal) (f : α → ennreal) :
   ∫⁻ a, f a ∂μ * r ≤ ∫⁻ a, f a * r ∂μ :=

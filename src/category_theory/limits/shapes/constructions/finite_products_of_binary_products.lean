@@ -127,9 +127,7 @@ begin
   apply has_limit_of_iso this,
 end }
 
-/--
-If `C` has a terminal object and binary products, then it
--/
+/-- If `C` has a terminal object and binary products, then it has finite products. -/
 def has_finite_products_of_has_binary_and_terminal : has_finite_products C :=
 λ J 𝒥₁ 𝒥₂,
 begin
@@ -146,6 +144,10 @@ variables [preserves_limits_of_shape (discrete walking_pair) F]
 variables [preserves_limits_of_shape (discrete pempty) F]
 variables [has_finite_products.{v} C] [has_finite_products.{v} D]
 
+/--
+If `F` preserves the terminal object and binary products, then it preserves products indexed by
+`ulift (fin n)` for any `n`.
+-/
 noncomputable def preserves_fin_of_preserves_binary_and_terminal  :
   Π (n : ℕ) (f : ulift (fin n) → C), preserves_limit (discrete.functor f) F
 | 0 := λ f,
@@ -179,6 +181,10 @@ noncomputable def preserves_fin_of_preserves_binary_and_terminal  :
       refl }
   end
 
+/--
+If `F` preserves the terminal object and binary products, then it preserves limits of shape
+`discrete (ulift (fin n))`.
+-/
 def preserves_ulift_fin_of_preserves_binary_and_terminal (n : ℕ) :
   preserves_limits_of_shape (discrete (ulift (fin n))) F :=
 { preserves_limit := λ K,
@@ -188,6 +194,7 @@ def preserves_ulift_fin_of_preserves_binary_and_terminal (n : ℕ) :
     apply preserves_limit_of_iso_diagram F this,
   end }
 
+/-- If `F` preserves the terminal object and binary products then it preserves finite products. -/
 def preserves_finite_products_of_preserves_binary_and_terminal
   (J : Type v) [fintype J] :
   preserves_limits_of_shape.{v} (discrete J) F :=

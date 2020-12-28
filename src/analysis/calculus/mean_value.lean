@@ -967,7 +967,7 @@ then `f` is convex on `ℝ`. -/
 theorem convex_on_univ_of_deriv2_nonneg {f : ℝ → ℝ} (hf' : differentiable ℝ f)
   (hf'' : differentiable ℝ (deriv f)) (hf''_nonneg : ∀ x, 0 ≤ (deriv^[2] f x)) :
   convex_on univ f :=
-convex_on_of_deriv2_nonneg convex_univ hf'.continuous.continuous_on hf'.differentiable_on
+convex_on_open_of_deriv2_nonneg convex_univ is_open_univ hf'.differentiable_on
   hf''.differentiable_on (λ x _, hf''_nonneg x)
 
 /-- If a function `f` is twice differentiable on `ℝ`, and `f''` is nonpositive on `ℝ`,
@@ -975,7 +975,7 @@ then `f` is concave on `ℝ`. -/
 theorem concave_on_univ_of_deriv2_nonpos {f : ℝ → ℝ} (hf' : differentiable ℝ f)
   (hf'' : differentiable ℝ (deriv f)) (hf''_nonpos : ∀ x, (deriv^[2] f x) ≤ 0) :
   concave_on univ f :=
-concave_on_of_deriv2_nonpos convex_univ hf'.continuous.continuous_on hf'.differentiable_on
+concave_on_open_of_deriv2_nonpos convex_univ is_open_univ hf'.differentiable_on
   hf''.differentiable_on (λ x _, hf''_nonpos x)
 
 /-! ### Functions `f : E → ℝ` -/

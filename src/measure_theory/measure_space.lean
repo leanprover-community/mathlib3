@@ -2032,7 +2032,7 @@ variables {α β δ : Type*} [measurable_space α] [measurable_space β]
 
 /-- A function is almost everywhere measurable if it coincides almost everywhere with a measurable
 function. -/
-def ae_measurable (f : α → β) (μ : measure α . volume_tac) : Prop :=
+def ae_measurable (f : α → β) (μ : measure α . measure_theory.volume_tac) : Prop :=
 ∃ g : α → β, measurable g ∧ f =ᵐ[μ] g
 
 lemma measurable.ae_measurable (h : measurable f) : ae_measurable f μ :=
@@ -2123,10 +2123,6 @@ lemma ae_measurable_congr (h : f =ᵐ[μ] g) :
          h.mono_measure (measure.le_add_left (le_refl _))⟩,
   λ h, h.1.add_measure h.2⟩
 
-lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
-  (hg : measurable g) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
-⟨g ∘ hf.mk f, hg.comp hf.measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk _⟩
-
 @[simp] lemma ae_measurable_const {b : β} : ae_measurable (λ a : α, b) μ :=
 measurable_const.ae_measurable
 
@@ -2134,6 +2130,10 @@ measurable_const.ae_measurable
   ae_measurable f (c • μ) ↔ ae_measurable f μ :=
 ⟨λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).1 h.ae_eq_mk⟩,
   λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).2 h.ae_eq_mk⟩⟩
+
+lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
+  (hg : measurable g) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
+⟨g ∘ hf.mk f, hg.comp hf.measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk _⟩
 
 end
 

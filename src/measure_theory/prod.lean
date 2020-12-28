@@ -499,11 +499,20 @@ open measure_theory.measure
 
 variables [sigma_finite ν]
 
+lemma ae_measurable_prod_swap [sigma_finite μ] {f : α × β → γ}
+  (hf : ae_measurable f (μ.prod ν)) : ae_measurable (λ (z : β × α), f z.swap) (ν.prod μ) :=
+begin
+  rw ← prod_swap at hf,
+  exact hf.comp_measurable measurable_swap,
+end
+
+alias ae_measurable_prod_swap ← ae_measurable.prod_swap
+
 lemma lintegral_prod_swap [sigma_finite μ] (f : α × β → ennreal)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z.swap ∂(ν.prod μ) = ∫⁻ z, f z ∂(μ.prod ν) :=
 begin
   rw ← prod_swap at hf,
-  rw [← lintegral_map' hf measurable_swap, prod_swap]
+  rw [← lintegral_map' hf measurable_swap, prod_swap],
 end
 
 /-- Tonelli's Theorem: For `ennreal`-valued measurable functions on `α × β`,
@@ -527,11 +536,34 @@ begin
     simp only [lintegral_supr hf h2f, lintegral_supr (kf _), k2f, lintegral_supr lf l2f, h3f] },
 end
 
-/-- The symmetric verion of Tonelli's Theorem: For `ennreal`-valued measurable functions on `α × β`,
-  the integral of `f` is equal to the iterated integral, in reverse order. -/
+/-- Tonelli's Theorem: For `ennreal`-valued almost everywhere measurable functions on `α × β`,
+  the integral of `f` is equal to the iterated integral. -/
+lemma lintegral_prod' (f : α × β → ennreal) (hf : ae_measurable f (μ.prod ν)) :
+  ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ :=
+begin
+  have A : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ z, hf.mk f z ∂(μ.prod ν) :=
+    lintegral_congr_ae hf.ae_eq_mk,
+  have B : ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ = ∫⁻ x, ∫⁻ y, hf.mk f (x, y) ∂ν ∂μ,
+  { apply lintegral_congr_ae,
+    filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk],
+    assume a ha,
+    exact lintegral_congr_ae ha },
+  rw [A, B, lintegral_prod _ hf.measurable_mk],
+  apply_instance
+end
+
+/-- The symmetric verion of Tonelli's Theorem: For `ennreal`-valued almost everywhere measurable
+functions on `α × β`,  the integral of `f` is equal to the iterated integral, in reverse order. -/
+lemma lintegral_prod_symm' [sigma_finite μ] (f : α × β → ennreal)
+  (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ y, ∫⁻ x, f (x, y) ∂μ ∂ν :=
+by { simp_rw [← lintegral_prod_swap f hf],
+     exact lintegral_prod' _ hf.prod_swap }
+
+/-- The symmetric verion of Tonelli's Theorem: For `ennreal`-valued measurable
+functions on `α × β`,  the integral of `f` is equal to the iterated integral, in reverse order. -/
 lemma lintegral_prod_symm [sigma_finite μ] (f : α × β → ennreal)
   (hf : measurable f) : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ y, ∫⁻ x, f (x, y) ∂μ ∂ν :=
-by { simp_rw [← lintegral_prod_swap f hf], exact lintegral_prod _ (hf.comp measurable_swap) }
+lintegral_prod_symm' f hf.ae_measurable
 
 /-- The reversed version of Tonelli's Theorem. In this version `f` is in curried form, which makes
   it easier for the elaborator to figure out `f` automatically. -/
@@ -560,7 +592,7 @@ variables [opens_measurable_space E]
 
 lemma integrable.swap [sigma_finite μ] ⦃f : α × β → E⦄
   (hf : integrable f (μ.prod ν)) : integrable (f ∘ prod.swap) (ν.prod μ) :=
-⟨hf.measurable.comp measurable_swap,
+⟨hf.ae_measurable.prod_swap,
   (lintegral_prod_swap _ hf.ae_measurable.ennnorm : _).le.trans_lt hf.has_finite_integral⟩
 
 lemma integrable_swap_iff [sigma_finite μ] ⦃f : α × β → E⦄ :
@@ -573,7 +605,8 @@ lemma has_finite_integral_prod_iff ⦃f : α × β → E⦄ (h1f : measurable f)
 begin
   simp only [has_finite_integral, lintegral_prod _ h1f.ennnorm],
   have : ∀ x, ∀ᵐ y ∂ν, 0 ≤ ∥f (x, y)∥ := λ x, eventually_of_forall (λ y, norm_nonneg _),
-  simp_rw [integral_eq_lintegral_of_nonneg_ae (this _) (h1f.norm.comp measurable_prod_mk_left),
+  simp_rw [integral_eq_lintegral_of_nonneg_ae (this _)
+    (h1f.norm.comp measurable_prod_mk_left).ae_measurable,
     ennnorm_eq_of_real to_real_nonneg, of_real_norm_eq_coe_nnnorm],
   -- this fact is probably too specialized to be its own lemma
   have : ∀ {p q r : Prop} (h1 : r → p), (r ↔ p ∧ q) ↔ (p → (r ↔ q)) :=
@@ -585,25 +618,42 @@ begin
   { intro h2f, refine ae_lt_top _ h2f, exact h1f.ennnorm.lintegral_prod_right' },
 end
 
+lemma has_finite_integral_prod_iff' ⦃f : α × β → E⦄ (h1f : ae_measurable f (μ.prod ν)) :
+  has_finite_integral f (μ.prod ν) ↔ (∀ᵐ x ∂ μ, has_finite_integral (λ y, f (x, y)) ν) ∧
+    has_finite_integral (λ x, ∫ y, ∥f (x, y)∥ ∂ν) μ :=
+begin
+  rw [has_finite_integral_congr h1f.ae_eq_mk, has_finite_integral_prod_iff h1f.measurable_mk],
+  apply and_congr,
+  { apply eventually_congr,
+    filter_upwards [ae_ae_of_ae_prod h1f.ae_eq_mk.symm],
+    assume x hx,
+    exact has_finite_integral_congr hx },
+  { apply has_finite_integral_congr,
+    filter_upwards [ae_ae_of_ae_prod h1f.ae_eq_mk.symm],
+    assume x hx,
+    exact integral_congr_ae (eventually_eq.fun_comp hx _) },
+  { apply_instance }
+end
+
+
 /-- A binary function is integrable if the function `y ↦ f (x, y)` is integrable for almost every
   `x` and the function `x ↦ ∫ ∥f (x, y)∥ dy` is integrable. -/
-lemma integrable_prod_iff ⦃f : α × β → E⦄ (h1f : measurable f) :
+lemma integrable_prod_iff ⦃f : α × β → E⦄ (h1f : ae_measurable f (μ.prod ν)) :
   integrable f (μ.prod ν) ↔
     (∀ᵐ x ∂ μ, integrable (λ y, f (x, y)) ν) ∧ integrable (λ x, ∫ y, ∥f (x, y)∥ ∂ν) μ :=
 by simp only [integrable, h1f, h1f.comp measurable_prod_mk_left, h1f.norm.integral_prod_right',
-  true_and, has_finite_integral_prod_iff]
+  true_and, has_finite_integral_prod_iff']
 
 /-- A binary function is integrable if the function `x ↦ f (x, y)` is integrable for almost every
   `y` and the function `y ↦ ∫ ∥f (x, y)∥ dx` is integrable. -/
-lemma integrable_prod_iff' [sigma_finite μ] ⦃f : α × β → E⦄ (h1f : measurable f) :
+lemma integrable_prod_iff' [sigma_finite μ] ⦃f : α × β → E⦄ (h1f : ae_measurable f (μ.prod ν)) :
   integrable f (μ.prod ν) ↔
     (∀ᵐ y ∂ ν, integrable (λ x, f (x, y)) μ) ∧ integrable (λ y, ∫ x, ∥f (x, y)∥ ∂μ) ν :=
-by { convert integrable_prod_iff (h1f.comp measurable_swap) using 1, rw [integrable_swap_iff],
-  apply_instance }
+by { convert integrable_prod_iff (h1f.prod_swap) using 1, rw [integrable_swap_iff] }
 
 lemma integrable.prod_left_ae [sigma_finite μ] ⦃f : α × β → E⦄
   (hf : integrable f (μ.prod ν)) : ∀ᵐ y ∂ ν, integrable (λ x, f (x, y)) μ :=
-((integrable_prod_iff' hf.measurable).mp hf).1
+((integrable_prod_iff' hf.ae_measurable).mp hf).1
 
 lemma integrable.prod_right_ae [sigma_finite μ] ⦃f : α × β → E⦄
   (hf : integrable f (μ.prod ν)) : ∀ᵐ x ∂ μ, integrable (λ y, f (x, y)) ν :=
@@ -611,7 +661,7 @@ hf.swap.prod_left_ae
 
 lemma integrable.integral_norm_prod_left ⦃f : α × β → E⦄
   (hf : integrable f (μ.prod ν)) : integrable (λ x, ∫ y, ∥f (x, y)∥ ∂ν) μ :=
-((integrable_prod_iff hf.measurable).mp hf).2
+((integrable_prod_iff hf.ae_measurable).mp hf).2
 
 lemma integrable.integral_norm_prod_right [sigma_finite μ] ⦃f : α × β → E⦄
   (hf : integrable f (μ.prod ν)) : integrable (λ y, ∫ x, ∥f (x, y)∥ ∂μ) ν :=
@@ -624,7 +674,7 @@ variables [second_countable_topology E] [normed_space ℝ E]
 
 lemma integrable.integral_prod_left ⦃f : α × β → E⦄
   (hf : integrable f (μ.prod ν)) : integrable (λ x, ∫ y, f (x, y) ∂ν) μ :=
-integrable.mono hf.integral_norm_prod_left hf.measurable.integral_prod_right' $
+integrable.mono hf.integral_norm_prod_left hf.ae_measurable.integral_prod_right' $
   eventually_of_forall $ λ x, (norm_integral_le_integral_norm _).trans_eq $
   (norm_of_nonneg $ integral_nonneg_of_ae $ eventually_of_forall $ λ y, (norm_nonneg _ : _)).symm
 

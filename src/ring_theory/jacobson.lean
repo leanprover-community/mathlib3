@@ -259,7 +259,7 @@ end
 
 end localization
 
-section polynomial
+namespace polynomial
 open polynomial
 
 /-- If `I` is an ideal of `polynomial R` and `pX ∈ I` is a non-constant polynomial,
@@ -378,7 +378,8 @@ begin
       (is_integral_localization_map_polynomial_quotient P pX hpX _ _) },
 end
 
-theorem is_jacobson_polynomial_iff_is_jacobson {R : Type*} [comm_ring R] : is_jacobson (polynomial R) ↔ is_jacobson R :=
+theorem is_jacobson_polynomial_iff_is_jacobson {R : Type*} [comm_ring R] :
+  is_jacobson (polynomial R) ↔ is_jacobson R :=
 begin
   split; introI H,
   { exact is_jacobson_of_surjective ⟨eval₂_ring_hom (ring_hom.id _) 1, λ x, ⟨C x, by simp⟩⟩ },
@@ -409,25 +410,6 @@ end
 
 instance [is_jacobson R] : is_jacobson (polynomial R) :=
 is_jacobson_polynomial_iff_is_jacobson.mpr ‹is_jacobson R›
-
-lemma is_jacobson_mv_polynomial_fin [H : is_jacobson R] :
-  ∀ (n : ℕ), is_jacobson (mv_polynomial (fin n) R)
-| 0 := ((is_jacobson_iso ((mv_polynomial.ring_equiv_of_equiv R
-  (equiv.equiv_pempty $ fin.elim0)).trans (mv_polynomial.pempty_ring_equiv R))).mpr H)
-| (n+1) := (is_jacobson_iso (mv_polynomial.fin_succ_equiv R n)).2
-  (is_jacobson_polynomial_iff_is_jacobson.2 (is_jacobson_mv_polynomial_fin n))
-
-/-- General form of the nullstellensatz for jacobson rings, since in a jacobson ring we have
-  `Inf {P maximal | P ≥ I} = Inf {P prime | P ≥ I} = I.radical`. Fields are always jacobson,
-  and in that special case this is (most of) the classical nullstellensatz,
-  since `I(V(I))` is the intersection of maximal ideals containing `I`, which is then `I.radical` -/
-instance {ι : Type*} [fintype ι] [is_jacobson R] : is_jacobson (mv_polynomial ι R) :=
-begin
-  haveI := classical.dec_eq ι,
-  obtain ⟨e⟩ := fintype.equiv_fin ι,
-  rw is_jacobson_iso (mv_polynomial.ring_equiv_of_equiv R e),
-  exact is_jacobson_mv_polynomial_fin _
-end
 
 /-- Used to bootstrap the more general `quotient_mk_comp_C_is_integral_of_jacobson` -/
 private lemma quotient_mk_comp_C_is_integral_of_jacobson' {R : Type*} [integral_domain R]
@@ -495,12 +477,10 @@ lemma quotient_mk_comp_C_is_integral_of_jacobson {R : Type*} [integral_domain R]
 begin
   let I' : ideal R := I.comap C,
   haveI : I'.is_prime := comap_is_prime C I,
-
   let i : R →+* I'.quotient := quotient.mk I',
   let f : polynomial R →+* polynomial I'.quotient := polynomial.map_ring_hom (quotient.mk I'),
   have hf : function.surjective f := map_surjective i quotient.mk_surjective,
   let J : ideal (polynomial I'.quotient) := I.map f,
-
   have hIJ : I = J.comap f := begin
     rw comap_map_of_surjective f hf,
     refine le_antisymm (le_sup_left_of_le le_rfl) (sup_le le_rfl _),
@@ -509,7 +489,6 @@ begin
     rw [mem_comap, ideal.mem_bot, polynomial.ext_iff] at hp,
     simpa using hp n,
   end,
-
   haveI : J.is_maximal := or.rec_on (map_eq_top_or_is_maximal_of_surjective f hf hI)
     (λ h, absurd (trans (h ▸ hIJ : I = comap f ⊤) comap_top : I = ⊤) hI.1) id,
   let i' : I.quotient →+* J.quotient := quotient_map J f le_comap_map,
@@ -532,25 +511,48 @@ begin
   rwa [← comap_comap, ← ring_hom.ker_eq_comap_bot, mk_ker] at this,
 end
 
-lemma lemmaB'_bootstrap {R : Type u} [integral_domain R] [is_jacobson R]
+end polynomial
+
+namespace mv_polynomial
+open mv_polynomial
+
+lemma is_jacobson_mv_polynomial_fin [H : is_jacobson R] :
+  ∀ (n : ℕ), is_jacobson (mv_polynomial (fin n) R)
+| 0 := ((is_jacobson_iso ((ring_equiv_of_equiv R
+  (equiv.equiv_pempty $ fin.elim0)).trans (pempty_ring_equiv R))).mpr H)
+| (n+1) := (is_jacobson_iso (fin_succ_equiv R n)).2
+  (polynomial.is_jacobson_polynomial_iff_is_jacobson.2 (is_jacobson_mv_polynomial_fin n))
+
+/-- General form of the nullstellensatz for jacobson rings, since in a jacobson ring we have
+  `Inf {P maximal | P ≥ I} = Inf {P prime | P ≥ I} = I.radical`. Fields are always jacobson,
+  and in that special case this is (most of) the classical nullstellensatz,
+  since `I(V(I))` is the intersection of maximal ideals containing `I`, which is then `I.radical` -/
+instance {ι : Type*} [fintype ι] [is_jacobson R] : is_jacobson (mv_polynomial ι R) :=
+begin
+  haveI := classical.dec_eq ι,
+  obtain ⟨e⟩ := fintype.equiv_fin ι,
+  rw is_jacobson_iso (ring_equiv_of_equiv R e),
+  exact is_jacobson_mv_polynomial_fin _
+end
+
+lemma quotient_mk_comp_C_is_integral_of_jacobson {R : Type u} [integral_domain R] [is_jacobson R]
   {n : ℕ} (P : ideal (mv_polynomial (fin n) R)) [hP : P.is_maximal] :
   ((quotient.mk P).comp mv_polynomial.C : R →+* P.quotient).is_integral :=
 begin
   unfreezingI {induction n with n IH},
-  { have := (mv_polynomial.ring_equiv_of_equiv R
-      (equiv.equiv_pempty $ fin.elim0)).trans (mv_polynomial.pempty_ring_equiv R),
+  { have := (ring_equiv_of_equiv R (equiv.equiv_pempty $ fin.elim0)).trans (pempty_ring_equiv R),
     refine ring_hom.is_integral_of_surjective _ (function.surjective.comp quotient.mk_surjective _),
-    refine mv_polynomial.C_surjective },
+    exact C_surjective },
   { let ϕ1 : R →+* mv_polynomial (fin n) R := mv_polynomial.C,
     let ϕ2 : (mv_polynomial (fin n) R) →+* polynomial (mv_polynomial (fin n) R) := polynomial.C,
-    let ϕ3 := (mv_polynomial.fin_succ_equiv R n).symm.to_ring_hom,
+    let ϕ3 := (fin_succ_equiv R n).symm.to_ring_hom,
     let ϕ : R →+* (mv_polynomial (fin (n+1)) R) := ϕ3.comp (ϕ2.comp ϕ1),
 
     let P3 : ideal (polynomial (mv_polynomial (fin n) R)) := P.comap ϕ3,
     let P2 : ideal (mv_polynomial (fin n) R) := P3.comap ϕ2,
     let P1 : ideal R := P2.comap ϕ1,
-    haveI : P3.is_maximal := comap_is_maximal_of_surjective ϕ3 (mv_polynomial.fin_succ_equiv R n).symm.surjective,
-    haveI : P2.is_maximal := is_maximal_comap_C_of_is_jacobson P3,
+    haveI : P3.is_maximal := comap_is_maximal_of_surjective ϕ3 (fin_succ_equiv R n).symm.surjective,
+    haveI : P2.is_maximal := polynomial.is_maximal_comap_C_of_is_jacobson P3,
 
     let φ3 : P3.quotient →+* P.quotient := quotient_map P ϕ3 le_rfl,
     let φ2 : P2.quotient →+* P3.quotient := quotient_map P3 ϕ2 le_rfl,
@@ -558,10 +560,10 @@ begin
     let φ : P1.quotient →+* P.quotient := φ3.comp (φ2.comp φ1),
 
     have hφ3 : φ3.is_integral := φ3.is_integral_of_surjective
-      (quotient_map_surjective ((mv_polynomial.fin_succ_equiv R n).symm.surjective)),
+      (quotient_map_surjective (fin_succ_equiv R n).symm.surjective),
     have hφ2 : φ2.is_integral,
     { rw is_integral_quotient_map_iff ϕ2,
-      refine quotient_mk_comp_C_is_integral_of_jacobson P3 } ,
+      refine polynomial.quotient_mk_comp_C_is_integral_of_jacobson P3 } ,
     have hφ1 : φ1.is_integral,
     { rw is_integral_quotient_map_iff ϕ1,
       refine IH P2 },
@@ -572,11 +574,11 @@ begin
     by rw [ring_hom.comp_assoc, ring_hom.comp_assoc, quotient_map_comp_mk, ← ring_hom.comp_assoc ϕ1,
       quotient_map_comp_mk, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc,
       ← ring_hom.comp_assoc, quotient_map_comp_mk],
-    rw [← mv_polynomial.fin_succ_equiv_comp_C_eq_C n, this],
+    rw [← fin_succ_equiv_comp_C_eq_C n, this],
     refine ring_hom.is_integral_trans (quotient.mk P1) φ _ hφ,
     exact (quotient.mk P1).is_integral_of_surjective (quotient.mk_surjective) }
 end
 
-end polynomial
+end mv_polynomial
 
 end ideal

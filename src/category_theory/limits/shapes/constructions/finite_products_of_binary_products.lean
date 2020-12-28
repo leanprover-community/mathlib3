@@ -33,6 +33,12 @@ variables {J : Type v} [small_category J]
 variables {C : Type u} [category.{v} C]
 variables {D : Type u'} [category.{v} D]
 
+/--
+Given `n+1` objects of `C`, a fan for the last `n` with point `c₁.X` and a binary fan on `c₁.X` and
+`f 0`, we can build a fan for all `n+1`.
+
+In `build_limit` we show that if the two given fans are limits, then this fan is also a limit.
+-/
 @[simps {rhs_md := semireducible}]
 def build_prod {n : ℕ} {f : ulift (fin (n+1)) → C}
   (c₁ : fan (λ (i : ulift (fin n)), f ⟨i.down.succ⟩))
@@ -48,6 +54,10 @@ begin
     apply c₂.snd ≫ c₁.π.app (ulift.up i) },
 end
 
+/--
+Show that if the two given fans in `build_prod` are limits, then the constructed fan is also a
+limit.
+-/
 def build_limit {n : ℕ} (f : ulift (fin (n+1)) → C)
   {c₁ : fan (λ (i : ulift (fin n)), f ⟨i.down.succ⟩)} {c₂ : binary_fan (f ⟨0⟩) c₁.X}
   (t₁ : is_limit c₁) (t₂ : is_limit c₂) :
@@ -85,8 +95,12 @@ def build_limit {n : ℕ} (f : ulift (fin (n+1)) → C)
 section
 variables [has_binary_products.{v} C] [has_terminal C]
 
-def has_limit_fin :
-  Π (n : ℕ) (f : ulift (fin n) → C), has_limit (discrete.functor f)
+/--
+If `C` has a terminal object and binary products, then it has a product for objects indexed by
+`ulift (fin n)`.
+-/
+def has_product_ulift_fin :
+  Π (n : ℕ) (f : ulift (fin n) → C), has_product f
 | 0 := λ f,
   begin
     letI : has_limits_of_shape (discrete (ulift (fin 0))) C :=
@@ -96,26 +110,33 @@ def has_limit_fin :
   end
 | (n+1) := λ f,
   begin
-    haveI := has_limit_fin n,
+    haveI := has_product_ulift_fin n,
     apply has_limit.mk ⟨_, build_limit f (limit.is_limit _) (limit.is_limit _)⟩,
   end
 
-def has_finite_products_aux (n : ℕ) :
+/--
+If `C` has a terminal object and binary products, then it has limits of shape
+`discrete (ulift (fin n))` for any `n : ℕ`.
+-/
+def has_limits_of_shape_ulift_fin (n : ℕ) :
   has_limits_of_shape (discrete (ulift (fin n))) C :=
 { has_limit := λ K,
 begin
-  letI := has_limit_fin n K.obj,
+  letI := has_product_ulift_fin n K.obj,
   let : discrete.functor K.obj ≅ K := discrete.nat_iso (λ i, iso.refl _),
   apply has_limit_of_iso this,
 end }
 
-def has_finite_products_of_binary_terminal : has_finite_products C :=
+/--
+If `C` has a terminal object and binary products, then it
+-/
+def has_finite_products_of_has_binary_and_terminal : has_finite_products C :=
 λ J 𝒥₁ 𝒥₂,
 begin
   resetI,
   refine trunc.rec_on_subsingleton (fintype.equiv_fin J) (λ e, _),
   apply has_limits_of_shape_of_equivalence (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
-  refine has_finite_products_aux (fintype.card J),
+  refine has_limits_of_shape_ulift_fin (fintype.card J),
 end
 end
 

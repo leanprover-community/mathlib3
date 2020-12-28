@@ -237,7 +237,7 @@ hf.lintegral_prod_left'
 lemma is_measurable_integrable [sigma_finite ν] [opens_measurable_space E] ⦃f : α → β → E⦄
   (hf : measurable (uncurry f)) : is_measurable { x | integrable (f x) ν } :=
 begin
-  simp_rw [integrable, hf.of_uncurry_left, true_and],
+  simp_rw [integrable, hf.of_uncurry_left.ae_measurable, true_and],
   exact is_measurable_lt (measurable.lintegral_prod_right hf.ennnorm) measurable_const
 end
 
@@ -271,13 +271,13 @@ begin
   { rw [tendsto_pi], intro x,
     by_cases hfx : integrable (f x) ν,
     { have : ∀ n, integrable (s' n x) ν,
-      { intro n, apply (hfx.norm.add hfx.norm).mono' (s' n x).measurable,
+      { intro n, apply (hfx.norm.add hfx.norm).mono' (s' n x).measurable.ae_measurable,
         apply eventually_of_forall, intro y,
         simp_rw [s', simple_func.coe_comp], exact simple_func.norm_approx_on_zero_le _ _ (x, y) n },
       simp only [f', hfx, simple_func.integral_eq_integral _ (this _), indicator_of_mem,
         mem_set_of_eq],
       refine tendsto_integral_of_dominated_convergence (λ y, ∥f x y∥ + ∥f x y∥)
-        (λ n, (s' n x).measurable) hf.of_uncurry_left (hfx.norm.add hfx.norm) _ _,
+        (λ n, (s' n x).ae_measurable) hf.of_uncurry_left.ae_measurable (hfx.norm.add hfx.norm) _ _,
       { exact λ n, eventually_of_forall (λ y, simple_func.norm_approx_on_zero_le _ _ (x, y) n) },
       { exact eventually_of_forall (λ y, simple_func.tendsto_approx_on _ _ (by simp)) } },
     { simpa [f', hfx, integral_undef] using @tendsto_const_nhds _ _ _ (0 : E) _, }
@@ -500,8 +500,11 @@ open measure_theory.measure
 variables [sigma_finite ν]
 
 lemma lintegral_prod_swap [sigma_finite μ] (f : α × β → ennreal)
-  (hf : measurable f) : ∫⁻ z, f z.swap ∂(ν.prod μ) = ∫⁻ z, f z ∂(μ.prod ν) :=
-by rw [← lintegral_map hf measurable_swap, prod_swap]
+  (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z.swap ∂(ν.prod μ) = ∫⁻ z, f z ∂(μ.prod ν) :=
+begin
+  rw ← prod_swap at hf,
+  rw [← lintegral_map' hf measurable_swap, prod_swap]
+end
 
 /-- Tonelli's Theorem: For `ennreal`-valued measurable functions on `α × β`,
   the integral of `f` is equal to the iterated integral. -/
@@ -558,7 +561,7 @@ variables [opens_measurable_space E]
 lemma integrable.swap [sigma_finite μ] ⦃f : α × β → E⦄
   (hf : integrable f (μ.prod ν)) : integrable (f ∘ prod.swap) (ν.prod μ) :=
 ⟨hf.measurable.comp measurable_swap,
-  (lintegral_prod_swap _ hf.measurable.ennnorm : _).le.trans_lt hf.has_finite_integral⟩
+  (lintegral_prod_swap _ hf.ae_measurable.ennnorm : _).le.trans_lt hf.has_finite_integral⟩
 
 lemma integrable_swap_iff [sigma_finite μ] ⦃f : α × β → E⦄ :
   integrable (f ∘ prod.swap) (ν.prod μ) ↔ integrable f (μ.prod ν) :=

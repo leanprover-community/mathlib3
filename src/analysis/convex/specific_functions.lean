@@ -128,7 +128,7 @@ begin
   { rw [interior_Ioi],
     refine differentiable_on.mono _ h₁,
     rw [deriv_log'],
-    refine differentiable_on.inv differentiable_on_id (λ x hx, _),
+    refine differentiable_on_id.inv (λ x hx, _),
     rwa [compl_singleton_eq (0 : ℝ)] at hx },
   { intros x hx,
     rw [interior_Ioi] at hx,

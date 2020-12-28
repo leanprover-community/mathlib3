@@ -903,10 +903,9 @@ theorem concave_on_of_deriv_antimono {D : set ℝ} (hD : convex D) {f : ℝ → 
   concave_on D f :=
 begin
   have : ∀ x y ∈ interior D, x ≤ y → deriv (-f) x ≤ deriv (-f) y,
-  { refine λ x y hx hy hxy, _,
-    change deriv (λ z, -f z) x ≤ deriv (λ z, -f z) y,
-    simp_rw [deriv.neg],
-    exact neg_le_neg (hf'_mono x y hx hy hxy) },
+  { intros x y hx hy hxy,
+    convert neg_le_neg (hf'_mono x y hx hy hxy);
+    convert deriv.neg }
   exact (neg_convex_on_iff D f).mp (convex_on_of_deriv_mono hD
     hf.neg hf'.neg this),
 end

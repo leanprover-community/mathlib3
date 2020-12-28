@@ -85,7 +85,7 @@ begin
 end
 
 theorem chain_of_chain_pmap {S : β → β → Prop} {p : α → Prop}
-  (f : Π a, p a → β) (l : list α) (hl₁ : ∀ a ∈ l, p a)
+  (f : Π a, p a → β) {l : list α} (hl₁ : ∀ a ∈ l, p a)
   {a : α} (ha : p a) (hl₂ : chain S (f a ha) (list.pmap f l hl₁))
   (H : ∀ a b ha hb, S (f a ha) (f b hb) → R a b) :
   chain R a l :=

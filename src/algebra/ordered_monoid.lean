@@ -562,7 +562,7 @@ le_antisymm bot_le (one_le ⊥)
 @[simp, to_additive] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
 mul_eq_one_iff' (one_le _) (one_le _)
 
-@[simp, to_additive] lemma le_one_iff_eq : a ≤ 1 ↔ a = 1 :=
+@[simp, to_additive le_zero_iff_eq] lemma le_one_iff_eq : a ≤ 1 ↔ a = 1 :=
 iff.intro
   (assume h, le_antisymm h (one_le a))
   (assume h, h ▸ le_refl a)

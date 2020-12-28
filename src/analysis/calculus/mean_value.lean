@@ -911,15 +911,13 @@ begin
     hf.neg hf'.neg this),
 end
 
-/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is differentiable on its interior,
-and `f'` is monotone on the interior, then `f` is convex on `ℝ`. -/
+/-- If a function `f` is differentiable and `f'` is monotone on `ℝ` then `f` is convex. -/
 theorem convex_on_univ_of_deriv_mono {f : ℝ → ℝ} (hf : differentiable ℝ f)
   (hf'_mono : monotone (deriv f)) : convex_on univ f :=
 convex_on_of_deriv_mono convex_univ hf.continuous.continuous_on hf.differentiable_on
   (λ x y _ _ h, hf'_mono h)
 
-/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is differentiable on its interior,
-and `f'` is antimonotone on the interior, then `f` is concave on `ℝ`. -/
+/-- If a function `f` is differentiable and `f'` is antimonotone on `ℝ` then `f` is concave. -/
 theorem concave_on_univ_of_deriv_antimono {f : ℝ → ℝ} (hf : differentiable ℝ f)
   (hf'_antimono : ∀⦃a b⦄, a ≤ b → (deriv f) b ≤ (deriv f) a) : concave_on univ f :=
 concave_on_of_deriv_antimono convex_univ hf.continuous.continuous_on hf.differentiable_on

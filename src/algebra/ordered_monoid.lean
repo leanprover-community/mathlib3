@@ -539,7 +539,7 @@ class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoi
 
 /-- A canonically ordered monoid is an ordered commutative monoid
   in which the ordering coincides with the divisibility relation,
-  which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
+  which is to say, `a ≤ b` iff there exists `c` with `b = a * c`.
   This is satisfied by the natural numbers, for example, but not
   the integers or other ordered groups. -/
 @[protect_proj, ancestor ordered_comm_monoid order_bot, to_additive]

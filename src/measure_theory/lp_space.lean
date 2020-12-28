@@ -39,7 +39,7 @@ section ℒp_space_definition
 
 /-- The property that `f:α→E` is measurable and `∫ ∥f a∥^p ∂μ` is finite -/
 def mem_ℒp (f : α → E) (p : ℝ) (μ : measure α) : Prop :=
-measurable f ∧ ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤
+ae_measurable f μ ∧ ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤
 
 /-- `(∫ ∥f a∥^p ∂μ) ^ (1/p)`, which is a seminorm on the space of measurable functions for which
 this quantity is finite -/
@@ -77,9 +77,8 @@ begin
   exact ennreal.rpow_lt_top_of_nonneg (le_of_lt hp0_lt) (ne_of_lt hfp),
 end
 
-lemma mem_ℒp_of_snorm_lt_top {f : α → E} (hp0_lt : 0 < p) (hfm : measurable f)
-  (hfp : snorm f p μ < ⊤) :
-  mem_ℒp f p μ :=
+lemma mem_ℒp_of_snorm_lt_top {f : α → E} (hp0_lt : 0 < p) (hfm : ae_measurable f μ)
+  (hfp : snorm f p μ < ⊤) : mem_ℒp f p μ :=
 ⟨hfm, lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp0_lt hfp⟩
 
 end top
@@ -87,7 +86,7 @@ end top
 section zero
 
 lemma zero_mem_ℒp (hp0_lt : 0 < p) : mem_ℒp (0 : α → E) p μ :=
-⟨measurable_zero, by simp [hp0_lt]⟩
+⟨measurable_zero.ae_measurable, by simp [hp0_lt]⟩
 
 @[simp] lemma snorm_zero (hp0_lt : 0 < p) : snorm (0 : α → F) p μ = 0 :=
 by simp [snorm, hp0_lt]
@@ -102,10 +101,10 @@ section borel_space
 variable [borel_space E]
 
 lemma mem_ℒp.neg {f : α → E} (hf : mem_ℒp f p μ) : mem_ℒp (-f) p μ :=
-⟨measurable.neg hf.1, by simp [hf.right]⟩
+⟨ae_measurable.neg hf.1, by simp [hf.right]⟩
 
 lemma snorm_le_snorm_mul_rpow_measure_univ {p q : ℝ} (hp0_lt : 0 < p) (hpq : p ≤ q) (μ : measure α)
-  {f : α → E} (hf : measurable f) :
+  {f : α → E} (hf : ae_measurable f μ) :
   snorm f p μ ≤ snorm f q μ * (μ set.univ) ^ (1/p - 1/q) :=
 begin
   have hq0_lt : 0 < q, from lt_of_lt_of_le hp0_lt hpq,

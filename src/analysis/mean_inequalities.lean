@@ -623,7 +623,7 @@ variables {α : Type*} [measurable_space α] {μ : measure α}
 namespace ennreal
 
 lemma lintegral_mul_le_one_of_lintegral_rpow_eq_one {p q : ℝ} (hpq : p.is_conjugate_exponent q)
-  {f g : α → ennreal} (hf : measurable f) (hg : measurable g)
+  {f g : α → ennreal} (hf : ae_measurable f μ) (hg : ae_measurable g μ)
   (hf_norm : ∫⁻ a, (f a)^p ∂μ = 1) (hg_norm : ∫⁻ a, (g a)^q ∂μ = 1) :
   ∫⁻ a, (f * g) a ∂μ ≤ 1 :=
 begin

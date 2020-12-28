@@ -434,10 +434,10 @@ lemma set_integral_eq_zero_iff_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ.r
 integral_eq_zero_iff_of_nonneg_ae hf hfi
 
 lemma set_integral_pos_iff_support_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ.restrict s] f)
-  (hs : is_measurable s) (hfi : integrable_on f s μ) :
+  (hfi : integrable_on f s μ) :
   0 < ∫ x in s, f x ∂μ ↔ 0 < μ (support f ∩ s) :=
 begin
-  rw [integral_pos_iff_support_of_nonneg_ae hf hfi, restrict_apply_of_is_null_measurable hs],
+  rw [integral_pos_iff_support_of_nonneg_ae hf hfi, restrict_apply_of_is_null_measurable],
   exact hfi.ae_measurable.is_null_measurable (is_measurable_singleton 0).compl
 end
 

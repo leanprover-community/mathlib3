@@ -1905,26 +1905,48 @@ begin
     rwa this at A }
 end
 
-lemma restrict_apply_of_is_null_measurable {s t : set α}
-  (hs : is_measurable s) (ht : is_null_measurable (μ.restrict s) t) :
-  μ.restrict s t = μ (t ∩ s) :=
+theorem is_null_measurable_iff_sandwich {s : set α} :
+  is_null_measurable μ s ↔
+  ∃ (t u : set α), is_measurable t ∧ is_measurable u ∧ t ⊆ s ∧ s ⊆ u ∧ μ (u \ t) = 0 :=
 begin
-  rcases is_null_measurable_iff_ae.1 ht with ⟨u, umeas, hu⟩,
-  have A : (t ∩ s : set α) =ᵐ[μ.restrict s] (u ∩ s : set α),
-  { filter_upwards [hu],
-    change ∀ a, (a ∈ t) = (a ∈ u) → (a ∈ t ∧ a ∈ s) = (a ∈ u ∧ a ∈ s),
-    simp {contextual := tt} },
-  have : (t ∩ s : set α) =ᵐ[μ] (u ∩ s : set α),
-  { filter_upwards [(ae_restrict_iff' hs).1 A],
-    assume a ha,
-    change (a ∈ t ∩ s) = (a ∈ u ∩ s),
-    change a ∈ s → (a ∈ (t ∩ s)) = (a ∈ u ∩ s) at ha,
-    by_cases h : a ∈ s,
-    { simpa [h] using ha },
-    { simp [h] } },
-  have A : μ (t ∩ s) = μ (u ∩ s) := measure_congr this,
-  have B : μ.restrict s t = μ.restrict s u := measure_congr hu,
-  rw [A, B, measure.restrict_apply umeas],
+  split,
+  { assume h,
+    rcases is_null_measurable_iff.1 h with ⟨t, ts, tmeas, ht⟩,
+    rcases is_null_measurable_iff.1 h.compl with ⟨u', u's, u'meas, hu'⟩,
+    have A : s ⊆ u'ᶜ := subset_compl_comm.mp u's,
+    refine ⟨t, u'ᶜ, tmeas, u'meas.compl, ts, A, _⟩,
+    have : sᶜ \ u' = u'ᶜ \ s, by simp [compl_eq_univ_diff, diff_diff, union_comm],
+    rw this at hu',
+    apply le_antisymm _ bot_le,
+    calc μ (u'ᶜ \ t) ≤ μ ((u'ᶜ \ s) ∪ (s \ t)) :
+    begin
+      apply measure_mono,
+      assume x hx,
+      simp at hx,
+      simp [hx, or_comm, classical.em],
+    end
+    ... ≤ μ (u'ᶜ \ s) + μ (s \ t) : measure_union_le _ _
+    ... = 0 : by rw [ht, hu', zero_add] },
+  { rintros ⟨t, u, tmeas, umeas, ts, su, hμ⟩,
+    refine is_null_measurable_iff.2 ⟨t, ts, tmeas, _⟩,
+    apply le_antisymm _ bot_le,
+    calc μ (s \ t) ≤ μ (u \ t) : measure_mono (diff_subset_diff_left su)
+    ... = 0 : hμ }
+end
+
+lemma restrict_apply_of_is_null_measurable {s t : set α}
+  (ht : is_null_measurable (μ.restrict s) t) : μ.restrict s t = μ (t ∩ s) :=
+begin
+  rcases is_null_measurable_iff_sandwich.1 ht with ⟨u, v, umeas, vmeas, ut, tv, huv⟩,
+  apply le_antisymm _ (le_restrict_apply _ _),
+  calc μ.restrict s t ≤ μ.restrict s v : measure_mono tv
+  ... = μ (v ∩ s) : restrict_apply vmeas
+  ... ≤ μ ((u ∩ s) ∪ ((v \ u) ∩ s)) : measure_mono $
+    by { assume x hx, simp at hx, simp [hx, classical.em] }
+  ... ≤ μ (u ∩ s) + μ ((v \ u) ∩ s) : measure_union_le _ _
+  ... = μ (u ∩ s) + μ.restrict s (v \ u) : by rw measure.restrict_apply (vmeas.diff umeas)
+  ... = μ (u ∩ s) : by rw [huv, add_zero]
+  ... ≤ μ (t ∩ s) : measure_mono $ inter_subset_inter_left s ut
 end
 
 /-- The measurable space of all null measurable sets. -/

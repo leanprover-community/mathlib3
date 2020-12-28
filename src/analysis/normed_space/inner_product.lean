@@ -1027,7 +1027,7 @@ by simp_rw [sum_inner, inner_sum, real_inner_smul_left, real_inner_smul_right,
 /-- The inner product with a fixed left element, as a continuous linear map.  This can be upgraded
 to a continuous map which is jointly conjugate-linear in the left argument and linear in the right
 argument, once (TODO) conjugate-linear maps have been defined. -/
-def inner_left (v : E) : E →L[𝕜] 𝕜 :=
+def inner_right (v : E) : E →L[𝕜] 𝕜 :=
 linear_map.mk_continuous
   { to_fun := λ w, ⟪v, w⟫,
     map_add' := λ x y, inner_add_right,
@@ -1035,9 +1035,9 @@ linear_map.mk_continuous
   ∥v∥
   (by simpa [is_R_or_C.norm_eq_abs] using abs_inner_le_norm v)
 
-@[simp] lemma inner_left_coe (v : E) : (inner_left v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
+@[simp] lemma inner_right_coe (v : E) : (inner_right v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
 
-@[simp] lemma inner_left_apply (v w : E) : inner_left v w = ⟪v, w⟫ := rfl
+@[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
 
 end norm
 
@@ -1673,7 +1673,7 @@ lemma submodule.inner_right_of_mem_orthogonal {u v : E} {K : submodule 𝕜 E} (
 (K.mem_orthogonal v).1 hv u hu
 
 /-- A vector in `K.orthogonal` is orthogonal to one in `K`. -/
-lemma submodule.inner_left_of_mem_orthogonal {u v : E} {K : submodule 𝕜 E} (hu : u ∈ K)
+lemma submodule.inner_right_of_mem_orthogonal {u v : E} {K : submodule 𝕜 E} (hu : u ∈ K)
     (hv : v ∈ K.orthogonal) : ⟪v, u⟫ = 0 :=
 by rw [inner_eq_zero_sym]; exact submodule.inner_right_of_mem_orthogonal hu hv
 
@@ -1686,7 +1686,7 @@ end
 
 /-- `K.orthogonal` can be characterized as the intersection of the kernels of the operations of
 inner product with each of the elements of `K`. -/
-lemma orthogonal_eq_inter (K : submodule 𝕜 E) : K.orthogonal = ⨅ v : K, (inner_left (v:E)).ker :=
+lemma orthogonal_eq_inter (K : submodule 𝕜 E) : K.orthogonal = ⨅ v : K, (inner_right (v:E)).ker :=
 begin
   apply le_antisymm,
   { rw le_infi_iff,
@@ -1701,7 +1701,7 @@ end
 lemma submodule.is_closed_orthogonal (K : submodule 𝕜 E) : is_closed (K.orthogonal : set E) :=
 begin
   rw orthogonal_eq_inter K,
-  convert is_closed_Inter (λ v : K, (inner_left (v:E)).is_closed_ker),
+  convert is_closed_Inter (λ v : K, (inner_right (v:E)).is_closed_ker),
   simp
 end
 
@@ -1716,8 +1716,8 @@ variables (𝕜 E)
 lemma submodule.orthogonal_gc :
   @galois_connection (submodule 𝕜 E) (order_dual $ submodule 𝕜 E) _ _
     submodule.orthogonal submodule.orthogonal :=
-λ K₁ K₂, ⟨λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu),
-          λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu)⟩
+λ K₁ K₂, ⟨λ h v hv u hu, submodule.inner_right_of_mem_orthogonal hv (h hu),
+          λ h v hv u hu, submodule.inner_right_of_mem_orthogonal hv (h hu)⟩
 
 variables {𝕜 E}
 

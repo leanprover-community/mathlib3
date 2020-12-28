@@ -905,7 +905,7 @@ begin
   have : ∀ x y ∈ interior D, x ≤ y → deriv (-f) x ≤ deriv (-f) y,
   { intros x y hx hy hxy,
     convert neg_le_neg (hf'_mono x y hx hy hxy);
-    convert deriv.neg }
+    convert deriv.neg },
   exact (neg_convex_on_iff D f).mp (convex_on_of_deriv_mono hD
     hf.neg hf'.neg this),
 end

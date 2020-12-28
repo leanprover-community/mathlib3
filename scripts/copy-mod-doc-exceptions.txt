@@ -138,8 +138,8 @@ src/algebraic_geometry/stalks.lean : line 48 : ERR_LIN : Line has more than 100 
 src/analysis/analytic/basic.lean : line 206 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/basic.lean : line 349 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/basic.lean : line 574 : ERR_LIN : Line has more than 100 characters
-src/analysis/analytic/basic.lean : line 675 : ERR_LIN : Line has more than 100 characters
-src/analysis/analytic/basic.lean : line 755 : ERR_LIN : Line has more than 100 characters
+src/analysis/analytic/basic.lean : line 686 : ERR_LIN : Line has more than 100 characters
+src/analysis/analytic/basic.lean : line 766 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 161 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 204 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 242 : ERR_LIN : Line has more than 100 characters
@@ -701,8 +701,8 @@ src/data/list/pairwise.lean : line 276 : ERR_LIN : Line has more than 100 charac
 src/data/list/pairwise.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/palindrome.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/perm.lean : line 759 : ERR_LIN : Line has more than 100 characters
-src/data/list/range.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/data/list/range.lean : line 137 : ERR_LIN : Line has more than 100 characters
+src/data/list/range.lean : line 11 : ERR_MOD : Module docstring missing, or too late
+src/data/list/range.lean : line 138 : ERR_LIN : Line has more than 100 characters
 src/data/list/rotate.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/sections.lean : line 32 : ERR_LIN : Line has more than 100 characters
 src/data/list/sections.lean : line 8 : ERR_MOD : Module docstring missing, or too late

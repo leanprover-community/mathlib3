@@ -141,9 +141,6 @@ lemma restrict_base_apply (f : A →ₐ[S] B) (x : A) : restrict_base R f x = f 
 instance right : is_scalar_tower S A A :=
 ⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, algebra.smul_mul_assoc]⟩
 
-instance nat : is_scalar_tower ℕ S A :=
-of_algebra_map_eq $ λ x, ((algebra_map S A).map_nat_cast x).symm
-
 instance comap {R S A : Type*} [comm_semiring R] [comm_semiring S] [semiring A]
   [algebra R S] [algebra S A] : is_scalar_tower R S (algebra.comap R S A) :=
 of_algebra_map_eq $ λ x, rfl
@@ -167,26 +164,6 @@ instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_s
 by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commutes x).symm) }
 
 end semiring
-
-section comm_semiring
-variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
-variables [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
-
-instance linear_map (R : Type u) (A : Type v) (V : Type w)
-  [comm_semiring R] [comm_semiring A] [add_comm_monoid V]
-  [semimodule R V] [algebra R A] : is_scalar_tower R A (V →ₗ[R] A) :=
-⟨λ x y f, linear_map.ext $ λ v, algebra.smul_mul_assoc x y (f v)⟩
-
-end comm_semiring
-
-section comm_ring
-variables [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] [algebra R A]
-variables [is_scalar_tower R S A]
-
-instance int : is_scalar_tower ℤ S A :=
-of_algebra_map_eq $ λ x, ((algebra_map S A).map_int_cast x).symm
-
-end comm_ring
 
 section division_ring
 variables [field R] [division_ring S] [algebra R S] [char_zero R] [char_zero S]

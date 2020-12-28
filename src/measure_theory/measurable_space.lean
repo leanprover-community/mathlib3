@@ -121,14 +121,6 @@ begin
   exact ‹measurable_space α›.is_measurable_Union _ (is_measurable.bUnion_decode2 h)
 end
 
-lemma is_measurable.Union_fintype [fintype β] {f : β → set α} (h : ∀ b, is_measurable (f b)) :
-  is_measurable (⋃ b, f b) :=
-begin
-  have := encodable.trunc_encodable_of_fintype β,
-  induction this using trunc.rec_on_subsingleton,
-  exactI is_measurable.Union h
-end
-
 lemma is_measurable.bUnion {f : β → set α} {s : set β} (hs : countable s)
   (h : ∀ b ∈ s, is_measurable (f b)) : is_measurable (⋃ b ∈ s, f b) :=
 begin
@@ -165,10 +157,19 @@ lemma is_measurable.Inter [encodable β] {f : β → set α} (h : ∀ b, is_meas
 is_measurable.compl_iff.1 $
 by { rw compl_Inter, exact is_measurable.Union (λ b, (h b).compl) }
 
+section fintype
+
+local attribute [instance] fintype.encodable
+
+lemma is_measurable.Union_fintype [fintype β] {f : β → set α} (h : ∀ b, is_measurable (f b)) :
+  is_measurable (⋃ b, f b) :=
+is_measurable.Union h
+
 lemma is_measurable.Inter_fintype [fintype β] {f : β → set α} (h : ∀ b, is_measurable (f b)) :
   is_measurable (⋂ b, f b) :=
-is_measurable.compl_iff.1 $
-  by { rw compl_Inter, exact is_measurable.Union_fintype (λ b, (h b).compl) }
+is_measurable.Inter h
+
+end fintype
 
 lemma is_measurable.bInter {f : β → set α} {s : set β} (hs : countable s)
   (h : ∀ b ∈ s, is_measurable (f b)) : is_measurable (⋂ b ∈ s, f b) :=
@@ -771,14 +772,6 @@ lemma is_measurable.pi_univ [encodable δ] {t : Π i : δ, set (π i)}
   (ht : ∀ i, is_measurable (t i)) : is_measurable (pi univ t) :=
 is_measurable.pi (countable_encodable _) (λ i _, ht i)
 
-lemma is_measurable.pi_fintype [fintype δ] {s : set δ} {t : Π i, set (π i)}
-  (ht : ∀ i ∈ s, is_measurable (t i)) : is_measurable (pi s t) :=
-begin
-  have := encodable.trunc_encodable_of_fintype δ,
-  induction this using trunc.rec_on_subsingleton,
-  exactI is_measurable.pi (countable_encodable _) ht
-end
-
 lemma is_measurable_pi_of_nonempty {s : set δ} {t : Π i, set (π i)} (hs : countable s)
   (h : (pi s t).nonempty) : is_measurable (pi s t) ↔ ∀ i ∈ s, is_measurable (t i) :=
 begin
@@ -794,6 +787,15 @@ begin
   { simp [is_measurable_pi_of_nonempty hs, h, ← not_nonempty_iff_eq_empty] }
 end
 
+section fintype
+
+local attribute [instance] fintype.encodable
+
+lemma is_measurable.pi_fintype [fintype δ] {s : set δ} {t : Π i, set (π i)}
+  (ht : ∀ i ∈ s, is_measurable (t i)) : is_measurable (pi s t) :=
+is_measurable.pi (countable_encodable _) ht
+
+end fintype
 end pi
 
 instance {α β} [m₁ : measurable_space α] [m₂ : measurable_space β] : measurable_space (α ⊕ β) :=

@@ -946,6 +946,24 @@ assume x y hx hy hxy,
 hD.interior.antimono_of_deriv_nonpos hf''.continuous_on (by rwa [interior_interior])
   (by rwa [interior_interior]) _ _ hx hy hxy
 
+/-- If a function `f` is twice differentiable on a open convex set `D ⊆ ℝ` and
+`f''` is nonnegative on `D`, then `f` is convex on `D`. -/
+theorem convex_on_open_of_deriv2_nonneg {D : set ℝ} (hD : convex D) (hD₂ : is_open D) {f : ℝ → ℝ}
+  (hf' : differentiable_on ℝ f D) (hf'' : differentiable_on ℝ (deriv f) D)
+  (hf''_nonneg : ∀ x ∈ D, 0 ≤ (deriv^[2] f x)) : convex_on D f :=
+convex_on_of_deriv2_nonneg hD hf'.continuous_on (by simpa [is_open.interior_eq hD₂] using hf')
+  (by simpa [is_open.interior_eq hD₂] using hf'')
+  (by simpa [is_open.interior_eq hD₂] using hf''_nonneg)
+
+/-- If a function `f` is twice differentiable on a open convex set `D ⊆ ℝ` and
+`f''` is nonpositive on `D`, then `f` is concave on `D`. -/
+theorem concave_on_open_of_deriv2_nonpos {D : set ℝ} (hD : convex D) (hD₂ : is_open D) {f : ℝ → ℝ}
+  (hf' : differentiable_on ℝ f D) (hf'' : differentiable_on ℝ (deriv f) D)
+  (hf''_nonpos : ∀ x ∈ D, (deriv^[2] f x) ≤ 0) : concave_on D f :=
+concave_on_of_deriv2_nonpos hD hf'.continuous_on (by simpa [is_open.interior_eq hD₂] using hf')
+  (by simpa [is_open.interior_eq hD₂] using hf'')
+  (by simpa [is_open.interior_eq hD₂] using hf''_nonpos)
+
 /-- If a function `f` is twice differentiable on `ℝ`, and `f''` is nonnegative on `ℝ`,
 then `f` is convex on `ℝ`. -/
 theorem convex_on_univ_of_deriv2_nonneg {f : ℝ → ℝ} (hf' : differentiable ℝ f)

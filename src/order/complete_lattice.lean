@@ -269,6 +269,10 @@ iff.intro
 @[simp] theorem Sup_eq_bot : Sup s = ⊥ ↔ (∀a∈s, a = ⊥) :=
 @Inf_eq_top (order_dual α) _ _
 
+lemma Sup_eq_bot_nonempty_eq_singleton {s : set α}
+  (h_sup : Sup s = ⊥) (hne : s.nonempty) : s = {⊥} :=
+by { rw set.eq_singleton_iff_nonempty_unique_mem, rw Sup_eq_bot at h_sup, exact ⟨hne, h_sup⟩, }
+
 end
 
 section complete_linear_order

@@ -204,6 +204,9 @@ exists_mem_of_ne_zero (mt val_eq_zero.1 h)
 theorem nonempty_iff_ne_empty {s : finset α} : s.nonempty ↔ s ≠ ∅ :=
 ⟨nonempty.ne_empty, nonempty_of_ne_empty⟩
 
+@[simp] theorem not_nonempty_iff_eq_empty {s : finset α} : ¬s.nonempty ↔ s = ∅ :=
+by { rw nonempty_iff_ne_empty, exact not_not, }
+
 theorem eq_empty_or_nonempty (s : finset α) : s = ∅ ∨ s.nonempty :=
 classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 
@@ -247,6 +250,15 @@ begin
     refine ⟨finset.mem_singleton_self _, λ _, finset.mem_singleton.1⟩,
   ext, rw finset.mem_singleton,
   refine ⟨t.right _, λ r, r.symm ▸ t.left⟩
+end
+
+lemma eq_singleton_iff_nonempty_unique_mem {s : finset α} {a : α} :
+  s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
+begin
+  split,
+  { intros h, subst h, simp, },
+  { rintros ⟨hne, h_uniq⟩, rw eq_singleton_iff_unique_mem, refine ⟨_, h_uniq⟩,
+    rw ← h_uniq hne.some hne.some_spec, apply hne.some_spec, },
 end
 
 lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = {a}) ↔ ∃! a, a ∈ s :=

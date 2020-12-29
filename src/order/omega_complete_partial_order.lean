@@ -671,13 +671,13 @@ def of_mono (f : α →ₘ β) (h : ∀ c : chain α, f (ωSup c) = ωSup (c.map
   cont := h }
 
 /-- The identity as a continuous function. -/
-@[simps { rhs_md := reducible }]
+@[simps]
 def id : α →𝒄 α :=
 of_mono preorder_hom.id
   (by intro; rw [chain.map_id]; refl)
 
 /-- The composition of continuous functions. -/
-@[simps { rhs_md := reducible }]
+@[simps]
 def comp (f : β →𝒄 γ) (g : α →𝒄 β) : α →𝒄 γ :=
 of_mono (preorder_hom.comp (↑f) (↑g))
   (by intro; rw [preorder_hom.comp,← preorder_hom.comp,← chain.map_comp,← f.continuous,← g.continuous]; refl)
@@ -761,7 +761,7 @@ by rw [forall_swap,forall_forall_merge]
 
 /-- The `ωSup` operator for continuous functions, which takes the pointwise countable supremum
 of the functions in the `ω`-chain. -/
-@[simps { rhs_md := reducible }]
+@[simps]
 protected def ωSup (c : chain (α →𝒄 β)) : α →𝒄 β :=
 continuous_hom.of_mono (ωSup $ c.map to_mono)
 begin
@@ -772,7 +772,7 @@ begin
     forall_forall_merge, forall_forall_merge', function.comp_app],
 end
 
-@[simps ωSup {rhs_md := reducible}]
+@[simps ωSup]
 instance : omega_complete_partial_order (α →𝒄 β) :=
 omega_complete_partial_order.lift continuous_hom.to_mono continuous_hom.ωSup
   (λ x y h, h) (λ c, rfl)

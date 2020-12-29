@@ -20,9 +20,6 @@ open category_theory.category
 open category_theory.functor
 open opposite
 
-set_option trace.simps.verbose true
--- set_option trace.simps.debug true
-
 namespace category_theory
 
 namespace functor

@@ -336,7 +336,7 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
 meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
   (univs : list name) (cfg : simps_cfg) : tactic unit := do
   when_tracing `simps.debug trace!
-    "[simps] > Planning to add lemma\n        > {lhs} = ({rhs} : {type})",
+    "[simps] > Planning to add the equality\n        > {lhs} = ({rhs} : {type})",
   -- simplify `rhs` if `cfg.simp_rhs` is true
   (rhs, prf) ← do { guard cfg.simp_rhs,
     rhs' ← rhs.dsimp {fail_if_unchanged := ff},

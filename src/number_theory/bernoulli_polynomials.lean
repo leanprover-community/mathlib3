@@ -82,76 +82,73 @@ namespace bernoulli_poly
 lemma bernoulli_poly_def (n : ℕ) (X : ℚ) : bernoulli_poly n X = ∑ i in finset.range (n+1),
   (bernoulli_neg (n - i))*(nat.choose n i)*(X^i) :=
 begin
-  rw <-finset.sum_flip,
-  rw bernoulli_poly, simp,
-  rw <-sub_eq_zero_iff_eq,
-  rw <-finset.sum_sub_distrib,
-  apply finset.sum_eq_zero,
-  rintros,
-  rw sub_eq_zero_iff_eq,
-  rw nat.sub_sub_self,
-  rw choose_symm,
-  {
-    rw finset.mem_range at H,
-    rw <-lt_succ_iff,
-    exact H,
-  },
-  {
-    rw finset.mem_range at H,
-    rw <-lt_succ_iff,
-    exact H,
-  },
+  -- flip the sum
+  rw [← finset.sum_flip, bernoulli_poly],
+  -- suffices to prove the terms in the sums are equal
+  apply finset.sum_congr rfl,
+  -- so assume k ≤ n,
+  intros k hk,
+  -- get hk to say something useful
+  rw [finset.mem_range, lt_succ_iff] at hk,
+  -- make the mathematical substitution we need
+  rw choose_symm hk,
+  -- now there should be hardly anything left
+  congr',
+  -- there's some stupid easy thing
+  omega,
 end
 
 --lemma bernoulli_poly_def (n : ℕ) (X : ℚ) : bernoulli_poly n X = ∑ i in finset.range (n+1), (bernoulli_neg i)*(nat.choose n i)*(X^(n-i)) :=
 --by { rw [bernoulli_poly, ← fin.sum_univ_eq_sum_range] }
 
+/-
+### examples
+-/
+
+section examples
+
+open finset
+
 @[simp] lemma bernoulli_poly_zero (X : ℚ) : bernoulli_poly 0 X = 1 := rfl
 
 @[simp] lemma bernoulli_poly_zero' (n : ℕ) : bernoulli_poly n 0 = bernoulli_neg n :=
 begin
-  induction n with d hd,
-  simp,
-  rw [bernoulli_poly],  simp,
-  try { rw [finset.sum_range_succ] },
-  rw nat.sub_self,
-  rw pow_zero,
-  rw choose_self,
-  rw mul_one, norm_cast, rw mul_one, apply add_eq_of_eq_sub', simp,
-  have f : ∀ x ∈ finset.range (d.succ), (0 : ℚ)^(d.succ - x) = 0,
-  {
-    rintros x H,
-    rw zero_pow,
-    rw finset.mem_range at H,
-    rw nat.lt_sub_right_iff_add_lt,
+  -- don't need induction
+  -- rewrite the definition
+  rw bernoulli_poly, dsimp only,
+  -- this is a sum to range n.succ. There's a lemma for that. You can guess its name
+  rw sum_range_succ,
+  -- Claim: If we can show that sum is zero, we're done.
+  suffices : ∑ (x : ℕ) in range n, bernoulli_neg x * (n.choose x) * 0 ^ (n - x) = 0,
+  { rw this,
+    -- Proof : the simplifier can do it.
     simp,
-    assumption,
   },
-  apply finset.sum_eq_zero,
-  rintros x H,
-  rw mul_eq_zero,
-  right,
-  rw f,
-  exact H,
+  -- a sum is zero if all terms are zero
+  apply sum_eq_zero,
+  -- say k < n
+  intros k hk, rw mem_range at hk,
+  suffices : (0 : ℚ) ^ (n - k) = 0,
+    rw this, simp,
+  -- zero_pow is bound to exist
+  apply zero_pow,
+  -- library_search can now find the way
+  exact nat.sub_pos_of_lt hk,
 end
 
 @[simp] lemma bernoulli_poly_one (X : ℚ) : bernoulli_poly 1 X = X -1/2 :=
 begin
-  rw [bernoulli_poly_def],
-  try { rw [finset.sum_range_succ] }, try { rw [nat.choose_succ_succ] },
-  simp, norm_num1, ring,
+  simp [bernoulli_poly_def, sum_range_succ], ring,
 end
+
+end examples
 
 open_locale nat
 
 def choose_eq_factorial_div_factorial' {a b : ℕ}
   (hab : a ≤ b) : (b.choose a : ℚ) = b! / (a! * (b - a)!) :=
 begin
-  -- now what?
-  have h : ((a! : ℚ) * (b - a)!) ≠ 0,
-    norm_cast,
-    apply_rules [mul_ne_zero, factorial_ne_zero],
-  field_simp [h],
+  field_simp [mul_ne_zero, factorial_ne_zero],
   norm_cast,
   rw ← choose_mul_factorial_mul_factorial hab,
   ring,
@@ -196,6 +193,8 @@ lemma sum_antidiagonal {M : Type*} [add_comm_monoid M]
 begin
   sorry
 end
+
+#check finset.prod_bij'
 
 end finset
 
@@ -324,7 +323,7 @@ theorem exp_bernoulli_neg (f : ℕ → ℚ) (hf : f = λ i : ℕ, (bernoulli_neg
 (g : ℕ → ℚ) (hg : g = λ i : ℕ, if i = 0 then 0 else (1 / (nat.factorial (i) )) ) :
 (power_series.mk f) * (power_series.mk g) = power_series.X :=
 begin
-  rw ext_iff,
+  rw power_series.ext_iff,
   rintros,
   rw coeff_X,
   have g' : g 0 = 0,
@@ -506,6 +505,7 @@ sorry,
 exact finset.range_succ_mem_le _ _ hy,
 rw <-finset.range_eq_Ico at hx, exact hx,
 end
+
 
 lemma exp_bernoulli_poly (t : ℕ) (f : ℕ → ℕ → ℚ) (hf : f = λ t i, (bernoulli_poly i t / (nat.factorial i)) )
 (g : ℕ → ℕ → ℚ) (hg : g = λ t i, if i = 0 then 0 else (1 / (nat.factorial (i) )) )

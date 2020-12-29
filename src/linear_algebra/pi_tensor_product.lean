@@ -223,8 +223,7 @@ instance : semimodule R (⨂[R] i, s i) :=
       { intros r f,
         simp_rw [smul_tprod_coeff' _ _, add_mul, add_tprod_coeff'] },
       { intros x y ihx ihy,
-        simp_rw pi_tensor_product.smul_add,
-        rw [ihx, ihy, add_add_add_comm] }
+        simp [pi_tensor_product.smul_add, ihx, ihy, add_add_add_comm] }
     end,
   smul_zero := λ r, pi_tensor_product.smul_zero r,
   zero_smul := λ x,

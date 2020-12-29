@@ -78,8 +78,6 @@ namespace grothendieck_topology
 instance : has_coe_to_fun (grothendieck_topology C) :=
 ⟨_, λ J, J.sieves⟩
 
-initialize_simps_projections grothendieck_topology (sieves → apply)
-
 variables {C} {X Y : C} {S R : sieve X}
 variables (J : grothendieck_topology C)
 
@@ -196,7 +194,6 @@ also known as the indiscrete, coarse, or chaotic topology.
 See [MM92] Chapter III, Section 2, example (a), or
 https://en.wikipedia.org/wiki/Grothendieck_topology#The_discrete_and_indiscrete_topologies
 -/
-@[simps]
 def trivial : grothendieck_topology C :=
 { sieves := λ X, {⊤},
   top_mem' := λ X, rfl,
@@ -308,7 +305,6 @@ The dense Grothendieck topology.
 
 See https://ncatlab.org/nlab/show/dense+topology, or [MM92] Chapter III, Section 2, example (e).
 -/
-@[simps]
 def dense : grothendieck_topology C :=
 { sieves := λ X S, ∀ {Y : C} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S (g ≫ f),
   top_mem' := λ X Y f, ⟨Y, 𝟙 Y, ⟨⟩⟩,
@@ -325,6 +321,9 @@ def dense : grothendieck_topology C :=
     rcases H₂ H₃ (𝟙 Z) with ⟨W, h, H₄⟩,
     exact ⟨W, (h ≫ g), by simpa using H₄⟩,
   end }
+
+lemma dense_covering : S ∈ dense X ↔ ∀ {Y} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S (g ≫ f) :=
+iff.rfl
 
 /--
 A category satisfies the right Ore condition if any span can be completed to a commutative square.
@@ -343,7 +342,6 @@ For the pullback stability condition, we need the right Ore condition to hold.
 
 See https://ncatlab.org/nlab/show/atomic+site, or [MM92] Chapter III, Section 2, example (f).
 -/
-@[simps]
 def atomic (hro : right_ore_condition C) : grothendieck_topology C :=
 { sieves := λ X S, ∃ Y (f : Y ⟶ X), S f,
   top_mem' := λ X, ⟨_, 𝟙 _, ⟨⟩⟩,

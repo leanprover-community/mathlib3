@@ -151,7 +151,6 @@ Construct the finest (largest) Grothendieck topology for which the given preshea
 This is a special case of https://stacks.math.columbia.edu/tag/00Z9, but following a different
 proof (see the comments there).
 -/
-@[simps]
 def finest_topology_single (P : Cᵒᵖ ⥤ Type v) : grothendieck_topology C :=
 { sieves := λ X S, ∀ Y (f : Y ⟶ X), presieve.is_sheaf_for P (S.pullback f),
   top_mem' := λ X Y f,

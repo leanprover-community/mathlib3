@@ -436,7 +436,7 @@ f.map_sum_finset g (λ i, finset.univ)
 lemma map_update_sum {α : Type*} (t : finset α) (i : ι) (g : α → M₁ i) (m : Π i, M₁ i):
   f (update m i (∑ a in t, g a)) = ∑ a in t, f (update m i (g a)) :=
 begin
-  induction t using finset.induction with a t has ih h,
+  induction t using finset.induction with a t has ih,
   { simp },
   { simp [finset.sum_insert has, ih] }
 end

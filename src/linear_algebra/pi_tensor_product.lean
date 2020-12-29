@@ -34,7 +34,7 @@ binary tensor product in `linear_algebra/tensor_product.lean`.
 ## Implementation notes
 
 * We define it via `free_add_monoid (R × Π i, s i)` with the `R` representing a "hidden" tensor
-  factor, rather than `free_add_monoid (R × Π i, s i)` to ensure that, if `ι` is an empty type,
+  factor, rather than `free_add_monoid (Π i, s i)` to ensure that, if `ι` is an empty type,
   the space is isomorphic to the base ring `R`.
 * We have not restricted the index type `ι` to be a `fintype`, as nothing we do here strictly
   requires it. However, problems may arise in the case where `ι` is infinite; use at your own
@@ -212,7 +212,7 @@ instance : semimodule R (⨂[R] i, s i) :=
       { intros r'' f,
         simp [smul_tprod_coeff', mul_assoc] },
       { intros x y ihx ihy,
-        rw [pi_tensor_product.smul_add, ihx, ihy] }
+        simp [pi_tensor_product.smul_add, ihx, ihy] }
     end,
   one_smul := λ x, pi_tensor_product.induction_on' x
     (λ f, by simp [smul_tprod_coeff' _ _])

@@ -153,7 +153,7 @@ end
 
 /-- For point `x` in a discrete subset `s` of a topological space, there is a set `U`
 such that
-1. `U ∪ {x}` is a neighbourhood of `x`,
+1. `U` is a punctured neighborhood of `x` (ie. `U ∪ {x}` is a neighbourhood of `x`),
 2. `U` is disjoint from `s`.
 -/
 lemma disjoint_nhds_within_of_mem_discrete {s : set α} [discrete_topology s] {x : α} (hx : x ∈ s) :

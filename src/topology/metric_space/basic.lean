@@ -683,13 +683,16 @@ begin
   exact eq_empty_iff_forall_not_mem.mp (disjoint_iff_inter_eq_empty.mp hU) y ⟨hε ⟨hyB, hxy⟩, hyt⟩,
 end
 
-/-- Given a point `x` in a discrete subset `s` of a metric space, there is a radius `ε` such that
-`x` is the only point of `s` with distance smaller than `ε` from `x`.
-This formulation is defeq to `metric.ball_of_mem_discrete`.
- -/
-lemma dist_lt_of_mem_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
-∃ ε > 0, ∀ y, dist y x < ε → y ≠ x → y ∉ s :=
-ball_of_mem_discrete hx
+/-- Given a point `x` in a discrete subset `s` of a metric space, there is a closed ball
+of positive radius centered at `x` and intersecting `s` only at `x`. -/
+lemma metric.closed_ball_of_mem_discrete {x : α} (hx : x ∈ s) :
+∃ ε > 0, ∀ y ∈ metric.closed_ball x ε, y ≠ x → y ∉ s :=
+begin
+  obtain ⟨ε, e0, F⟩ := metric.ball_of_mem_discrete hx,
+  refine ⟨ε / 2, half_pos e0, λ y (yb : dist y x ≤ ε / 2), _⟩,
+  apply F,
+  exact lt_of_le_of_lt yb (half_lt_self e0)
+end
 
 end metric
 

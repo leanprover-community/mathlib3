@@ -142,8 +142,36 @@ begin
   simp, norm_num1, ring,
 end
 
-lemma choose_mul (n k s : ℕ) (hn : k ≤ n) (hs : s ≤ k) : (n.choose k : ℚ) * k.choose s = n.choose s * (n - s).choose (k - s) :=
-sorry
+open_locale nat
+
+def choose_eq_factorial_div_factorial' {a b : ℕ}
+  (hab : a ≤ b) : (b.choose a : ℚ) = b! / (a! * (b - a)!) :=
+begin
+  -- now what?
+  have h : ((a! : ℚ) * (b - a)!) ≠ 0,
+    norm_cast,
+    apply_rules [mul_ne_zero, factorial_ne_zero],
+  field_simp [h],
+  norm_cast,
+  rw ← choose_mul_factorial_mul_factorial hab,
+  ring,
+end
+
+lemma choose_mul (n k s : ℕ) (hn : k ≤ n) (hs : s ≤ k) : (n.choose k : ℚ) * k.choose s =
+n.choose s * (n - s).choose (k - s) :=
+begin
+  -- write everything as ratios of factorials
+  rw [choose_eq_factorial_div_factorial' hn,
+      choose_eq_factorial_div_factorial' hs,
+      choose_eq_factorial_div_factorial' (le_trans hs hn),
+      choose_eq_factorial_div_factorial' ],
+  -- notice annoying k - s ≤ n - s proof
+  swap, exact nat.sub_le_sub_right hn s, -- thank you library-search, it was you or omega
+    field_simp [mul_ne_zero, factorial_ne_zero],
+  -- notice annoying `n - s - (k - s)` term
+  rw sub_sub_sub_cancel_right hs, -- thank you library_search, it was you or omega
+  ring,
+end
 
 namespace finset
 

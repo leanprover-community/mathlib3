@@ -212,8 +212,7 @@ instance : semimodule R (⨂[R] i, s i) :=
       { intros r'' f,
         simp [smul_tprod_coeff', mul_assoc] },
       { intros x y ihx ihy,
-        simp_rw [pi_tensor_product.smul_add],
-        rw [ihx, ihy] }
+        rw [pi_tensor_product.smul_add, ihx, ihy] }
     end,
   one_smul := λ x, pi_tensor_product.induction_on' x
     (λ f, by simp [smul_tprod_coeff' _ _])

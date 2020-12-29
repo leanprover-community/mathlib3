@@ -132,7 +132,7 @@ lemma heyting_of_boolean_aux_aux {α}
   : x ≤ z :=
   calc
     x ≤ (y ⊓ (yᶜ ⊔ z)) : le_inf h_2 h_1
-    ... ≤ (y ⊓ yᶜ) ⊔ (y ⊓ z) : inf_sup_left.le
+    ... = (y ⊓ yᶜ) ⊔ (y ⊓ z) : inf_sup_left
     ... ≤ ((y ⊓ yᶜ) ⊔ z) : sup_le_sup_left inf_le_right (y ⊓ yᶜ)
     ... = ⊥ ⊔ z : by {congr, exact inf_compl_eq_bot}
     ... = z : by {exact bot_sup_eq}

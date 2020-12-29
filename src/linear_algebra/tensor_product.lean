@@ -327,6 +327,37 @@ instance : semimodule R (M ⊗[R] N) := tensor_product.semimodule'
 @[simp] lemma tmul_smul (r : R') (x : M) (y : N) : x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
 
+section
+
+variables {R'' : Type*} [comm_semiring R''] [has_scalar R'' R']
+  [semimodule R'' M] [semimodule R'' N]
+  [has_scalar R'' R] [is_scalar_tower R'' R M] [is_scalar_tower R'' R N]
+
+/-- `is_scalar_tower R'' R' M` implies `is_scalar_tower R'' R' (M ⊗[R] N)` -/
+@[priority 900]
+instance is_scalar_tower_left [is_scalar_tower R'' R' M] :
+    is_scalar_tower R'' R' (M ⊗[R] N) :=
+⟨λ s r x, tensor_product.induction_on x
+  (by simp)
+  (λ m n, by rw [smul_tmul', smul_tmul', smul_tmul', smul_assoc])
+  (λ x y ihx ihy, by rw [smul_add, smul_add, smul_add, ihx, ihy])⟩
+
+/-- `is_scalar_tower R'' R' N` implies `is_scalar_tower R'' R' (M ⊗[R] N)` -/
+@[priority 900]
+instance is_scalar_tower_right [is_scalar_tower R'' R' N] :
+    is_scalar_tower R'' R' (M ⊗[R] N) :=
+⟨λ s r x, tensor_product.induction_on x
+  (by simp)
+  (λ m n, by rw [←tmul_smul, ←tmul_smul, ←tmul_smul, smul_assoc])
+  (λ x y ihx ihy, by rw [smul_add, smul_add, smul_add, ihx, ihy])⟩
+
+end
+
+/-- A short-cut instance for the common case, where the requirements for the `semimodule` instance
+are sufficient. -/
+instance is_scalar_tower : is_scalar_tower R' R (M ⊗[R] N) :=
+tensor_product.is_scalar_tower_right  -- or left, it doesn't matter
+
 variables (R M N)
 /-- The canonical bilinear map `M → N → M ⊗[R] N`. -/
 def mk : M →ₗ N →ₗ M ⊗[R] N :=

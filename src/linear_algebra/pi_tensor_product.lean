@@ -332,8 +332,6 @@ def lift : (multilinear_map R s E) ≃ₗ[R] ((⨂[R] i, s i) →ₗ[R] E) :=
 variables {φ : multilinear_map R s E}
 
 @[simp] lemma lift.tprod (f : Π i, s i) : lift φ (tprod R f) = φ f := lift_aux_tprod φ f
-
-
 theorem lift.unique' {φ' : (⨂[R] i, s i) →ₗ[R] E} (H : φ'.comp_multilinear_map (tprod R) = φ) :
   φ' = lift φ :=
 ext $ H.symm ▸ (lift.symm_apply_apply φ).symm

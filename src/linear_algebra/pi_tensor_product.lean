@@ -294,10 +294,10 @@ variables {s}
 `multilinear_map R s (⨂[R] i, s i)` is the given multilinear map. -/
 def lift_aux (φ : multilinear_map R s E) : (⨂[R] i, s i) →+ E :=
   lift_add_hom (λ (p : R × Π i, s i), p.1 • (φ p.2))
-    (λ z f i hf, by simp_rw [map_coord_zero φ i hf, smul_zero])
-    (λ f, by simp_rw [zero_smul])
-    (λ z f i m₁ m₂, by { simp_rw [←smul_add], congr, simp_rw [φ.map_add] })
-    (λ z₁ z₂ f, by simp_rw [←add_smul])
+    (λ z f i hf, by rw [map_coord_zero φ i hf, smul_zero])
+    (λ f, by rw [zero_smul])
+    (λ z f i m₁ m₂, by rw [←smul_add, φ.map_add])
+    (λ z₁ z₂ f, by rw [←add_smul])
     (λ z f i r, by simp [φ.map_smul, smul_smul, mul_comm])
 
 lemma lift_aux_tprod (φ : multilinear_map R s E) (f : Π i, s i) : lift_aux φ (tprod R f) = φ f :=

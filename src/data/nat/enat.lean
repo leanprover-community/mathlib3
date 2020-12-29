@@ -96,7 +96,7 @@ by rw [add_comm, top_add]
 @[simp, norm_cast] lemma coe_add (x y : ℕ) : ((x + y : ℕ) : enat) = x + y :=
 roption.ext' (and_true _).symm (λ _ _, rfl)
 
-@[simp, norm_cast] lemma get_coe {x : ℕ} : get (x : enat) true.intro = x := rfl
+lemma get_coe {x : ℕ} : get (x : enat) true.intro = x := rfl
 
 @[simp, norm_cast] lemma get_coe' (x : ℕ) (h : (x : enat).dom) : get (x : enat) h = x := rfl
 

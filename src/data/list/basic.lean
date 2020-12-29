@@ -1017,6 +1017,8 @@ theorem mem_iff_nth_le {a} {l : list α} : a ∈ l ↔ ∃ n h, nth_le l n h = a
 theorem mem_iff_nth {a} {l : list α} : a ∈ l ↔ ∃ n, nth l n = some a :=
 mem_iff_nth_le.trans $ exists_congr $ λ n, nth_eq_some.symm
 
+lemma nth_zero (l : list α) : l.nth 0 = l.head' := by cases l; refl
+
 lemma nth_injective {α : Type u} {xs : list α} {i j : ℕ}
   (h₀ : i < xs.length)
   (h₁ : nodup xs)

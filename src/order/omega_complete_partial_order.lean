@@ -558,7 +558,7 @@ protected def ωSup (c : chain (α →ₘ β)) : α →ₘ β :=
 { to_fun := λ a, ωSup (c.map (monotone_apply a)),
   monotone' := λ x y h, ωSup_le_ωSup_of_le (chain.map_le_map _ $ λ a, a.monotone h) }
 
-@[simps ωSup_to_fun {rhs_md := semireducible, simp_rhs := tt}]
+@[simps ωSup_to_fun]
 instance omega_complete_partial_order : omega_complete_partial_order (α →ₘ β) :=
 omega_complete_partial_order.lift preorder_hom.to_fun_hom preorder_hom.ωSup
   (λ x y h, h) (λ c, rfl)

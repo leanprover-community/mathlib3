@@ -158,7 +158,7 @@ variables {f : α → E} {a b c : α} {μ : measure α}
 h.symm
 
 @[refl] lemma refl : interval_integrable f μ a a :=
-by split; simp [hf]
+by split; simp
 
 @[trans] lemma trans  (hab : interval_integrable f μ a b) (hbc : interval_integrable f μ b c) :
   interval_integrable f μ a c :=

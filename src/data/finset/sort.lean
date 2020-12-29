@@ -240,7 +240,7 @@ the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` 
 casting issues in further uses of this function. -/
 noncomputable def mono_equiv_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
   fin k ≃ {x // x ∈ s} :=
-(s.mono_of_fin_bij_on h).equiv _
+(equiv.set.univ _).symm.trans $ (s.mono_of_fin_bij_on h).equiv _
 
 end sort_linear_order
 

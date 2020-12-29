@@ -197,9 +197,6 @@ variables [ring R] {p q : polynomial R}
 lemma div_wf_lemma (h : degree q ≤ degree p ∧ p ≠ 0) (hq : monic q) :
   degree (p - C (leading_coeff p) * X ^ (nat_degree p - nat_degree q) * q) < degree p :=
 have hp : leading_coeff p ≠ 0 := mt leading_coeff_eq_zero.1 h.2,
-have hpq : leading_coeff (C (leading_coeff p) * X ^ (nat_degree p - nat_degree q)) *
-    leading_coeff q ≠ 0,
-  by rwa [leading_coeff_monomial, monic.def.1 hq, mul_one],
 if h0 : p - C (leading_coeff p) * X ^ (nat_degree p - nat_degree q) * q = 0
 then h0.symm ▸ (lt_of_not_ge $ mt le_bot_iff.1 (mt degree_eq_bot.1 h.2))
 else
@@ -208,10 +205,10 @@ else
     (by rw [← degree_eq_nat_degree h.2, ← degree_eq_nat_degree hq0];
     exact h.1),
   degree_sub_lt
-  (by rw [degree_mul' hpq, degree_C_mul_X_pow _ hp, degree_eq_nat_degree h.2,
+  (by rw [degree_mul_monic hq, degree_C_mul_X_pow _ hp, degree_eq_nat_degree h.2,
       degree_eq_nat_degree hq0, ← with_bot.coe_add, nat.sub_add_cancel hlt])
   h.2
-  (by rw [leading_coeff_mul' hpq, leading_coeff_monomial, monic.def.1 hq, mul_one])
+  (by rw [leading_coeff_mul_monic hq, leading_coeff_mul_X_pow, leading_coeff_C])
 
 /-- See `div_by_monic`. -/
 noncomputable def div_mod_by_monic_aux : Π (p : polynomial R) {q : polynomial R},
@@ -423,9 +420,9 @@ else
   have h₂ : degree (r - f %ₘ g) = degree (g * (q - f /ₘ g)),
     by simp [h₁],
   have h₄ : degree (r - f %ₘ g) < degree g,
-    from calc degree (r - f %ₘ g) ≤ max (degree r) (degree (-(f %ₘ g))) :
-      degree_add_le _ _
-    ... < degree g : max_lt_iff.2 ⟨h.2, by rw degree_neg; exact degree_mod_by_monic_lt _ hg hg0⟩,
+    from calc degree (r - f %ₘ g) ≤ max (degree r) (degree (f %ₘ g)) :
+      degree_sub_le _ _
+    ... < degree g : max_lt_iff.2 ⟨h.2, degree_mod_by_monic_lt _ hg hg0⟩,
   have h₅ : q - (f /ₘ g) = 0,
     from by_contradiction
       (λ hqf, not_le_of_gt h₄ $

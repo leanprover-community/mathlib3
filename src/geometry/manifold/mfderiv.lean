@@ -1001,7 +1001,7 @@ begin
   simp only with mfld_simps at B,
   rw [inter_comm, differentiable_within_at_inter] at B,
   { simpa only with mfld_simps },
-  { apply mem_nhds_sets (I.continuous_symm _ (local_homeomorph.open_source _)) mem.1 }
+  { apply mem_nhds_sets ((local_homeomorph.open_source _).preimage I.continuous_symm) mem.1 }
 end
 
 lemma mdifferentiable_on_atlas (h : e ∈ atlas H M) :
@@ -1024,7 +1024,7 @@ begin
   simp only with mfld_simps at B,
   rw [inter_comm, differentiable_within_at_inter] at B,
   { simpa only with mfld_simps },
-  { apply (mem_nhds_sets (I.continuous_symm _ (local_homeomorph.open_source _)) mem.1) }
+  { apply (mem_nhds_sets ((local_homeomorph.open_source _).preimage I.continuous_symm) mem.1) }
 end
 
 lemma mdifferentiable_on_atlas_symm (h : e ∈ atlas H M) :

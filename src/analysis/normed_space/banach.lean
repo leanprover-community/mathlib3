@@ -211,6 +211,7 @@ namespace linear_equiv
 theorem continuous_symm (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   continuous e.symm :=
 begin
+  rw continuous_def,
   intros s hs,
   rw [← e.image_eq_preimage],
   rw [← e.coe_coe] at h ⊢,

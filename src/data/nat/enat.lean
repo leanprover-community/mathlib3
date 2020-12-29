@@ -150,7 +150,7 @@ instance order_top : order_top enat :=
 
 lemma top_eq_none : (⊤ : enat) = none := rfl
 
-lemma coe_lt_top (x : ℕ) : (x : enat) < ⊤ :=
+@[simp] lemma coe_lt_top (x : ℕ) : (x : enat) < ⊤ :=
 lt_of_le_of_ne le_top (λ h, absurd (congr_arg dom h) true_ne_false)
 
 @[simp] lemma coe_ne_top (x : ℕ) : (x : enat) ≠ ⊤ := ne_of_lt (coe_lt_top x)

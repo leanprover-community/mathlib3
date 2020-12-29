@@ -6,6 +6,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 import algebra.associated
 import linear_algebra.basic
 import order.zorn
+import order.atoms
 /-!
 
 # Ideals over a ring
@@ -197,8 +198,7 @@ lemma bot_prime {R : Type*} [integral_domain R] : (⊥ : ideal R).is_prime :=
  λ x y h, mul_eq_zero.mp (by simpa only [submodule.mem_bot] using h)⟩
 
 /-- An ideal is maximal if it is maximal in the collection of proper ideals. -/
-@[class] def is_maximal (I : ideal α) : Prop :=
-I ≠ ⊤ ∧ ∀ J, I < J → J = ⊤
+@[class] def is_maximal (I : ideal α) : Prop := is_coatom I
 
 theorem is_maximal_iff {I : ideal α} : I.is_maximal ↔
   (1:α) ∉ I ∧ ∀ (J : ideal α) x, I ≤ J → x ∉ I → x ∈ J → (1:α) ∈ J :=
@@ -228,7 +228,7 @@ theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
 ⟨H.1, λ x y hxy, or_iff_not_imp_left.2 $ λ hx, begin
   cases H.exists_inv hx with z hz,
   have := I.mul_mem_left hz,
-  rw [mul_sub, mul_one, mul_comm, mul_assoc] at this,
+  rw [mul_sub, mul_one, mul_comm, mul_assoc, sub_eq_add_neg] at this,
   exact I.neg_mem_iff.1 ((I.add_mem_iff_right $ I.mul_mem_left hxy).1 this)
 end⟩
 

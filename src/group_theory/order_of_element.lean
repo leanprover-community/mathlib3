@@ -60,10 +60,6 @@ fintype.card_eq_one_iff.2
 
 variables [fintype α] [dec : decidable_eq α]
 
-instance quotient_group.fintype (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
-  fintype (quotient s) :=
-@quotient.fintype _ _ (left_rel s) (λ _ _, d _)
-
 lemma card_eq_card_quotient_mul_card_subgroup (s : subgroup α) [fintype s]
   [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
 by rw ← fintype.card_prod;
@@ -302,6 +298,31 @@ lemma is_cyclic_of_order_of_eq_card [group α] [decidable_eq α] [fintype α]
 ⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le
   (set.subset_univ _)
   (by {rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers], refl})⟩⟩
+
+lemma is_cyclic_of_prime_card [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
+  (h : fintype.card α = p) : is_cyclic α :=
+⟨begin
+  obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1,
+  from fintype.exists_ne_of_one_lt_card (by { rw h, exact nat.prime.one_lt hp }) 1,
+  have : fintype.card (subgroup.gpowers g) ∣ p,
+  { rw ←h,
+    apply card_subgroup_dvd_card },
+  rw nat.dvd_prime hp at this,
+  cases this,
+  { rw fintype.card_eq_one_iff at this,
+    cases this with t ht,
+    suffices : g = 1,
+    { contradiction },
+    have hgt := ht ⟨g, by { change g ∈ subgroup.gpowers g, exact subgroup.mem_gpowers g }⟩,
+    rw [←ht 1] at hgt,
+    change (⟨_, _⟩ : subgroup.gpowers g) = ⟨_, _⟩ at hgt,
+    simpa using hgt },
+  { use g,
+    intro x,
+    rw [←h] at this,
+    rw subgroup.eq_top_of_card_eq _ this,
+    exact subgroup.mem_top _ }
+end⟩
 
 lemma order_of_eq_card_of_forall_mem_gpowers [group α] [decidable_eq α] [fintype α]
   {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=

@@ -341,7 +341,7 @@ begin
     { intros _ _ _ _ _ _, exact subtype.mk.inj, },
     { intros b hbs hb,
       use b,
-      simpa only [hbs, exists_prop, dif_pos, mk_coe, and_true, if_true, finset.coe_mem,
+      simpa only [hbs, exists_prop, dif_pos, finset.mk_coe, and_true, if_true, finset.coe_mem,
         eq_self_iff_true, exists_prop_of_true, ne.def] using hb, },
     { intros a h₁, dsimp, rw [dif_pos h₁],
       intro h₂, rw [if_pos], contrapose! h₂,
@@ -362,7 +362,7 @@ begin
   have card_pos : 0 < t.card := lt_trans (nat.succ_pos _) h,
   obtain ⟨x₀, m⟩ := (finset.card_pos.1 card_pos).bex,
   -- and apply the previous lemma to the {xᵢ - x₀}
-  let shift : V ↪ V := ⟨λ x, x - x₀, add_left_injective (-x₀)⟩,
+  let shift : V ↪ V := ⟨λ x, x - x₀, sub_left_injective⟩,
   let t' := (t.erase x₀).map shift,
   have h' : findim K V < t'.card,
   { simp only [t', card_map, finset.card_erase_of_mem m],
@@ -830,7 +830,7 @@ have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
 
 end alg_hom
 
-/-- Biijection between algebra equivalences and algebra homomorphisms -/
+/-- Bijection between algebra equivalences and algebra homomorphisms -/
 noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [field E]
   [algebra F E] [finite_dimensional F E] : (E ≃ₐ[F] E) ≃ (E →ₐ[F] E) :=
 { to_fun := λ ϕ, ϕ.to_alg_hom,

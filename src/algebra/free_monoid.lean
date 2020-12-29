@@ -5,6 +5,7 @@ Authors: Simon Hudon, Yury Kudryashov
 -/
 import data.equiv.basic
 import data.list.basic
+import algebra.star.basic
 
 /-!
 # Free monoid over a given alphabet
@@ -51,6 +52,9 @@ def of (x : α) : free_monoid α := [x]
 @[to_additive]
 lemma of_def (x : α) : of x = [x] := rfl
 
+lemma of_injective : function.injective (@of α) :=
+λ a b, list.head_eq_of_cons_eq
+
 /-- Recursor for `free_monoid` using `1` and `of x * xs` instead of `[]` and `x :: xs`. -/
 @[to_additive "Recursor for `free_add_monoid` using `0` and `of x + xs` instead of `[]` and `x :: xs`."]
 def rec_on {C : free_monoid α → Sort*} (xs : free_monoid α) (h0 : C 1)
@@ -64,7 +68,7 @@ lemma hom_eq ⦃f g : free_monoid α →* M⦄ (h : ∀ x, f (of x) = g (of x)) 
 monoid_hom.ext $ λ l, rec_on l (f.map_one.trans g.map_one.symm) $
   λ x xs hxs, by simp only [h, hxs, monoid_hom.map_mul]
 
-attribute [ext, priority 1500] hom_eq free_add_monoid.hom_eq
+attribute [ext] hom_eq free_add_monoid.hom_eq
 
 /-- Equivalence between maps `α → M` and monoid homomorphisms `free_monoid α →* M`. -/
 @[to_additive "Equivalence between maps `α → A` and additive monoid homomorphisms
@@ -118,5 +122,17 @@ hom_eq $ λ x, rfl
 @[to_additive]
 lemma map_comp (g : β → γ) (f : α → β) : map (g ∘ f) = (map g).comp (map f) :=
 hom_eq $ λ x, rfl
+
+instance : star_monoid (free_monoid α) :=
+{ star := list.reverse,
+  star_involutive := list.reverse_reverse,
+  star_mul := list.reverse_append, }
+
+@[simp]
+lemma star_of (x : α) : star (of x) = of x := rfl
+
+/-- Note that `star_one` is already a global simp lemma, but this one works with dsimp too -/
+@[simp]
+lemma star_one : star (1 : free_monoid α) = 1 := rfl
 
 end free_monoid

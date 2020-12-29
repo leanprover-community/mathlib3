@@ -42,16 +42,12 @@ instance {X : CompHaus} : t2_space X := X.is_hausdorff
 
 instance category : category CompHaus := induced_category.category to_Top
 
+@[simp]
+lemma coe_to_Top {X : CompHaus} : (X.to_Top : Type*) = X :=
+rfl
+
 end  CompHaus
 
 /-- The fully faithful embedding of `CompHaus` in `Top`. -/
-def CompHaus_to_Top : CompHaus ⥤ Top :=
-{ obj := λ X, { α := X },
-  map := λ _ _ f, f }
-
-namespace CompHaus_to_Top
-
-instance : full CompHaus_to_Top := { preimage := λ _ _ f, f }
-instance : faithful CompHaus_to_Top := {}
-
-end CompHaus_to_Top
+@[simps {rhs_md := semireducible}, derive [full, faithful]]
+def CompHaus_to_Top : CompHaus ⥤ Top := induced_functor _

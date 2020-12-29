@@ -3,7 +3,7 @@ Copyright (c) Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.deriv
+import analysis.calculus.times_cont_diff
 import analysis.normed_space.finite_dimension
 
 /-!
@@ -24,7 +24,7 @@ it defines functions:
 They are bundled versions of the real part, the imaginary part, and the embedding of `ℝ` in `ℂ`,
 as continuous `ℝ`-linear maps.
 
-`has_deriv_at_real_of_complex` expresses that, if a function on `ℂ` is differentiable (over `ℂ`),
+`has_deriv_at.real_of_complex` expresses that, if a function on `ℂ` is differentiable (over `ℂ`),
 then its restriction to `ℝ` is differentiable over `ℝ`, with derivative the real part of the
 complex derivative.
 -/
@@ -32,6 +32,14 @@ noncomputable theory
 
 
 namespace complex
+
+instance : has_norm ℂ := ⟨abs⟩
+
+instance : normed_group ℂ :=
+normed_group.of_core ℂ
+{ norm_eq_zero_iff := λ z, abs_eq_zero,
+  triangle := abs_add,
+  norm_neg := abs_neg }
 
 instance : normed_field ℂ :=
 { norm := abs,
@@ -48,6 +56,8 @@ instance normed_algebra_over_reals : normed_algebra ℝ ℂ :=
 
 @[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
+lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
+
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
 @[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = _root_.abs (r : ℝ) :=
@@ -63,18 +73,12 @@ by rw [norm_real, real.norm_eq_abs]
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
 by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
 
-/-- Over the complex numbers, any finite-dimensional spaces is proper (and therefore complete).
-We can register this as an instance, as it will not cause problems in instance resolution since
-the properness of `ℂ` is already known and there is no metavariable. -/
-instance finite_dimensional.proper
-  (E : Type) [normed_group E] [normed_space ℂ E] [finite_dimensional ℂ E] : proper_space E :=
-finite_dimensional.proper ℂ E
-attribute [instance, priority 900] complex.finite_dimensional.proper
-
 /-- A complex normed vector space is also a real normed vector space. -/
 @[priority 900]
 instance normed_space.restrict_scalars_real (E : Type*) [normed_group E] [normed_space ℂ E] :
   normed_space ℝ E := normed_space.restrict_scalars ℝ ℂ E
+
+open continuous_linear_map
 
 /-- The space of continuous linear maps over `ℝ`, from a real vector space to a complex vector
 space, is a normed vector space over `ℂ`. -/
@@ -84,12 +88,7 @@ instance continuous_linear_map.real_smul_complex (E : Type*) [normed_group E] [n
 continuous_linear_map.normed_space_extend_scalars
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def continuous_linear_map.re : ℂ →L[ℝ] ℝ :=
-linear_map.re.mk_continuous 1 $ λx, begin
-  change _root_.abs (x.re) ≤ 1 * abs x,
-  rw one_mul,
-  exact abs_re_le_abs x
-end
+def continuous_linear_map.re : ℂ →L[ℝ] ℝ := linear_map.re.to_continuous_linear_map
 
 @[simp] lemma continuous_linear_map.re_coe :
   (coe (continuous_linear_map.re) : ℂ →ₗ[ℝ] ℝ) = linear_map.re := rfl
@@ -99,19 +98,12 @@ end
 
 @[simp] lemma continuous_linear_map.re_norm :
   ∥continuous_linear_map.re∥ = 1 :=
-begin
-  apply le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _),
-  calc 1 = ∥continuous_linear_map.re (1 : ℂ)∥ : by simp
-    ... ≤ ∥continuous_linear_map.re∥ : by { apply continuous_linear_map.unit_le_op_norm, simp }
-end
+le_antisymm (op_norm_le_bound _ zero_le_one $ λ z, by simp [real.norm_eq_abs, abs_re_le_abs]) $
+calc 1 = ∥continuous_linear_map.re 1∥ : by simp
+   ... ≤ ∥continuous_linear_map.re∥ : unit_le_op_norm _ _ (by simp)
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def continuous_linear_map.im : ℂ →L[ℝ] ℝ :=
-linear_map.im.mk_continuous 1 $ λx, begin
-  change _root_.abs (x.im) ≤ 1 * abs x,
-  rw one_mul,
-  exact complex.abs_im_le_abs x
-end
+def continuous_linear_map.im : ℂ →L[ℝ] ℝ := linear_map.im.to_continuous_linear_map
 
 @[simp] lemma continuous_linear_map.im_coe :
   (coe (continuous_linear_map.im) : ℂ →ₗ[ℝ] ℝ) = linear_map.im := rfl
@@ -121,16 +113,14 @@ end
 
 @[simp] lemma continuous_linear_map.im_norm :
   ∥continuous_linear_map.im∥ = 1 :=
-begin
-  apply le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _),
-  calc 1 = ∥continuous_linear_map.im (I : ℂ)∥ : by simp
-    ... ≤ ∥continuous_linear_map.im∥ :
-      by { apply continuous_linear_map.unit_le_op_norm, rw ← abs_I, exact le_refl _ }
-end
+le_antisymm (op_norm_le_bound _ zero_le_one $ λ z, by simp [real.norm_eq_abs, abs_im_le_abs]) $
+calc 1 = ∥continuous_linear_map.im I∥ : by simp
+   ... ≤ ∥continuous_linear_map.im∥ : unit_le_op_norm _ _ (by simp)
 
 /-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
-def continuous_linear_map.of_real : ℝ →L[ℝ] ℂ :=
-linear_map.of_real.mk_continuous 1 $ λx, by simp
+def continuous_linear_map.of_real : ℝ →L[ℝ] ℂ := linear_map.of_real.to_continuous_linear_map
+
+lemma continuous_of_real : continuous (coe : ℝ → ℂ) := continuous_linear_map.of_real.continuous
 
 @[simp] lemma continuous_linear_map.of_real_coe :
   (coe (continuous_linear_map.of_real) : ℝ →ₗ[ℝ] ℂ) = linear_map.of_real := rfl
@@ -140,12 +130,9 @@ linear_map.of_real.mk_continuous 1 $ λx, by simp
 
 @[simp] lemma continuous_linear_map.of_real_norm :
   ∥continuous_linear_map.of_real∥ = 1 :=
-begin
-  apply le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _),
-  calc 1 = ∥continuous_linear_map.of_real (1 : ℝ)∥ : by simp
-    ... ≤ ∥continuous_linear_map.of_real∥ :
-      by { apply continuous_linear_map.unit_le_op_norm, simp }
-end
+le_antisymm (op_norm_le_bound _ zero_le_one $ λ z, by simp) $
+calc 1 = ∥continuous_linear_map.of_real 1∥ : by simp
+   ... ≤ ∥continuous_linear_map.of_real∥ : unit_le_op_norm _ _ (by simp)
 
 lemma continuous_linear_map.of_real_isometry :
   isometry continuous_linear_map.of_real :=
@@ -158,16 +145,10 @@ section real_deriv_of_complex
 open complex
 variables {e : ℂ → ℂ} {e' : ℂ} {z : ℝ}
 
-/--
-A preliminary lemma for `has_deriv_at_real_of_complex`,
-which we only separate out to keep the maximum compile time per declaration low.
--/
-lemma has_deriv_at_real_of_complex_aux (h : has_deriv_at e e' z) :
-  has_deriv_at (⇑continuous_linear_map.re ∘ λ {z : ℝ}, e (continuous_linear_map.of_real z))
-    (((continuous_linear_map.re.comp
-       ((continuous_linear_map.smul_right (1 : ℂ →L[ℂ] ℂ) e').restrict_scalars ℝ)).comp
-         continuous_linear_map.of_real) (1 : ℝ))
-    z :=
+/-- If a complex function is differentiable at a real point, then the induced real function is also
+differentiable at this point, with a derivative equal to the real part of the complex derivative. -/
+theorem has_deriv_at.real_of_complex (h : has_deriv_at e e' z) :
+  has_deriv_at (λx:ℝ, (e x).re) e'.re z :=
 begin
   have A : has_fderiv_at continuous_linear_map.of_real continuous_linear_map.of_real z :=
     continuous_linear_map.of_real.has_fderiv_at,
@@ -176,17 +157,23 @@ begin
     (has_deriv_at_iff_has_fderiv_at.1 h).restrict_scalars ℝ,
   have C : has_fderiv_at continuous_linear_map.re continuous_linear_map.re
     (e (continuous_linear_map.of_real z)) := continuous_linear_map.re.has_fderiv_at,
-  exact has_fderiv_at_iff_has_deriv_at.1 (C.comp z (B.comp z A)),
+  simpa using has_fderiv_at_iff_has_deriv_at.1 (C.comp z (B.comp z A)),
 end
 
-/-- If a complex function is differentiable at a real point, then the induced real function is also
-differentiable at this point, with a derivative equal to the real part of the complex derivative. -/
-theorem has_deriv_at_real_of_complex (h : has_deriv_at e e' z) :
-  has_deriv_at (λx:ℝ, (e x).re) e'.re z :=
+theorem times_cont_diff_at.real_of_complex {n : with_top ℕ} (h : times_cont_diff_at ℂ n e z) :
+  times_cont_diff_at ℝ n (λ x : ℝ, (e x).re) z :=
 begin
-  rw (show (λx:ℝ, (e x).re) = (continuous_linear_map.re : ℂ → ℝ) ∘ e ∘ (continuous_linear_map.of_real : ℝ → ℂ),
-    by { ext x, refl }),
-  simpa using has_deriv_at_real_of_complex_aux h,
+  have A : times_cont_diff_at ℝ n continuous_linear_map.of_real z,
+    from continuous_linear_map.of_real.times_cont_diff.times_cont_diff_at,
+  have B : times_cont_diff_at ℝ n e z := h.restrict_scalars ℝ,
+  have C : times_cont_diff_at ℝ n continuous_linear_map.re (e z),
+    from continuous_linear_map.re.times_cont_diff.times_cont_diff_at,
+  exact C.comp z (B.comp z A)
 end
+
+theorem times_cont_diff.real_of_complex {n : with_top ℕ} (h : times_cont_diff ℂ n e) :
+  times_cont_diff ℝ n (λ x : ℝ, (e x).re) :=
+times_cont_diff_iff_times_cont_diff_at.2 $ λ x,
+  h.times_cont_diff_at.real_of_complex
 
 end real_deriv_of_complex

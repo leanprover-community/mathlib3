@@ -129,7 +129,7 @@ lemma comap_comap (S : submonoid P) (g : N →* P) (f : M →* N) :
   (S.comap g).comap f = S.comap (g.comp f) :=
 rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma comap_id (S : submonoid P) : S.comap (monoid_hom.id _) = S :=
 ext (by simp)
 
@@ -152,7 +152,7 @@ lemma mem_map {f : M →* N} {S : submonoid M} {y : N} :
 mem_image_iff_bex
 
 @[to_additive]
-lemma mem_map_of_mem {f : M →* N} {S : submonoid M} (x : S) : f x ∈ S.map f :=
+lemma mem_map_of_mem (f : M →* N) (x : S) : f x ∈ S.map f :=
 mem_image_of_mem f x.2
 
 @[to_additive]

@@ -265,6 +265,9 @@ by simp only [add_comm, add_one_le_iff]
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 (lt_or_eq_of_le H).imp le_of_lt_succ id
 
+lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
+⟨lt_of_succ_lt_succ, succ_lt_succ⟩
+
 /-! ### `add` -/
 
 -- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding
@@ -586,6 +589,12 @@ protected theorem mul_left_inj {a b c : ℕ} (ha : 0 < a) : b * a = c * a ↔ b 
 protected theorem mul_right_inj {a b c : ℕ} (ha : 0 < a) : a * b = a * c ↔ b = c :=
 ⟨nat.eq_of_mul_eq_mul_left ha, λ e, e ▸ rfl⟩
 
+lemma mul_left_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, x * a) :=
+λ _ _, eq_of_mul_eq_mul_right ha
+
+lemma mul_right_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, a * x) :=
+λ _ _, eq_of_mul_eq_mul_left ha
+
 lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
 nat.mul_right_inj ha
@@ -881,6 +890,14 @@ nat.dvd_add_right (dvd_refl m)
 @[simp] protected lemma dvd_add_self_right {m n : ℕ} :
   m ∣ n + m ↔ m ∣ n :=
 nat.dvd_add_left (dvd_refl m)
+
+lemma not_dvd_of_pos_of_lt {a b : ℕ} (h1 : 0 < b) (h2 : b < a) : ¬ a ∣ b :=
+begin
+  rintros ⟨c, rfl⟩,
+  rcases eq_zero_or_pos c with (rfl | hc),
+  { exact lt_irrefl 0 h1 },
+  { exact not_lt.2 (le_mul_of_pos_right hc) h2 },
+end
 
 protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : 0 < a) : a * b ∣ a * c ↔ b ∣ c :=
 exists_congr $ λ d, by rw [mul_assoc, nat.mul_right_inj ha]

@@ -72,7 +72,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [normed_group H] [normed_space 𝕜 H]
 
 open filter list
-open_locale topological_space big_operators classical
+open_locale topological_space big_operators classical nnreal
 
 /-! ### Composing formal multilinear series -/
 
@@ -94,7 +94,7 @@ def apply_composition
 
 lemma apply_composition_ones (p : formal_multilinear_series 𝕜 E F) (n : ℕ) :
   apply_composition p (composition.ones n) =
-    λ v i, p 1 (λ _, v (i.cast_le (composition.length_le _))) :=
+    λ v i, p 1 (λ _, v (fin.cast_le (composition.length_le _) i)) :=
 begin
   funext v i,
   apply p.congr (composition.ones_blocks_fun _ _),
@@ -126,7 +126,7 @@ begin
       by rw B,
     suffices C : (function.update v (r j') z) ∘ r = function.update (v ∘ r) j' z,
       by { convert C, exact (c.embedding_comp_inv j).symm },
-    exact function.update_comp_eq_of_injective _ (c.embedding_injective _) _ _ },
+    exact function.update_comp_eq_of_injective _ (c.embedding _).injective _ _ },
   { simp only [h, function.update_eq_self, function.update_noteq, ne.def, not_false_iff],
     let r : fin (c.blocks_fun k) → fin n := c.embedding k,
     change p (c.blocks_fun k) ((function.update v j z) ∘ r) = p (c.blocks_fun k) (v ∘ r),
@@ -329,9 +329,8 @@ begin
     { ext v,
       rw [comp_along_composition_apply, id_apply_one' _ _ (composition.single_length n_pos)],
       dsimp [apply_composition],
-      apply p.congr rfl,
-      intros,
-      rw [function.comp_app, composition.single_embedding] },
+      refine p.congr rfl (λ i him hin, congr_arg v $ _),
+      ext, simp },
     show ∀ (b : composition n),
       b ∈ finset.univ → b ≠ composition.single n n_pos → comp_along_composition (id 𝕜 F) p b = 0,
     { assume b _ hb,
@@ -350,17 +349,17 @@ geometric term). -/
 theorem comp_summable_nnreal
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (hq : 0 < q.radius) (hp : 0 < p.radius) :
-  ∃ (r : nnreal), 0 < r ∧ summable (λ i, nnnorm (q.comp_along_composition p i.2) * r ^ i.1 :
-    (Σ n, composition n) → nnreal) :=
+  ∃ (r : ℝ≥0), 0 < r ∧ summable (λ i, nnnorm (q.comp_along_composition p i.2) * r ^ i.1 :
+    (Σ n, composition n) → ℝ≥0) :=
 begin
   /- This follows from the fact that the growth rate of `∥qₙ∥` and `∥pₙ∥` is at most geometric,
   giving a geometric bound on each `∥q.comp_along_composition p op∥`, together with the
   fact that there are `2^(n-1)` compositions of `n`, giving at most a geometric loss. -/
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hq with ⟨rq, rq_pos, hrq⟩,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hp with ⟨rp, rp_pos, hrp⟩,
-  obtain ⟨Cq, hCq⟩ : ∃ (Cq : nnreal), ∀ n, nnnorm (q n) * rq^n ≤ Cq := q.bound_of_lt_radius hrq,
-  obtain ⟨Cp, hCp⟩ : ∃ (Cp : nnreal), ∀ n, nnnorm (p n) * rp^n ≤ Cp := p.bound_of_lt_radius hrp,
-  let r0 : nnreal := (4 * max Cp 1)⁻¹,
+  obtain ⟨Cq, hCq⟩ : ∃ (Cq : ℝ≥0), ∀ n, nnnorm (q n) * rq^n ≤ Cq := q.bound_of_lt_radius hrq,
+  obtain ⟨Cp, hCp⟩ : ∃ (Cp : ℝ≥0), ∀ n, nnnorm (p n) * rp^n ≤ Cp := p.bound_of_lt_radius hrp,
+  let r0 : ℝ≥0 := (4 * max Cp 1)⁻¹,
   set r := min rp 1 * min rq 1 * r0,
   have r_pos : 0 < r,
   { apply mul_pos (mul_pos _ _),
@@ -370,9 +369,9 @@ begin
       { exact lt_of_lt_of_le zero_lt_one (le_max_right _ _) } },
     { rw ennreal.coe_pos at rp_pos, simp [rp_pos, zero_lt_one] },
     { rw ennreal.coe_pos at rq_pos, simp [rq_pos, zero_lt_one] } },
-  let a : ennreal := ((4 : nnreal) ⁻¹ : nnreal),
+  let a : ennreal := ((4 : ℝ≥0) ⁻¹ : ℝ≥0),
   have two_a : 2 * a < 1,
-  { change ((2 : nnreal) : ennreal) * ((4 : nnreal) ⁻¹ : nnreal) < (1 : nnreal),
+  { change ((2 : ℝ≥0) : ennreal) * ((4 : ℝ≥0) ⁻¹ : ℝ≥0) < (1 : ℝ≥0),
     rw [← ennreal.coe_mul, ennreal.coe_lt_coe, ← nnreal.coe_lt_coe, nnreal.coe_mul],
     change (2 : ℝ) * (4 : ℝ)⁻¹ < 1,
     norm_num },
@@ -413,7 +412,7 @@ begin
     ... = Cq * 4⁻¹ ^ n :
       begin
         dsimp [r0],
-        have A : (4 : nnreal) ≠ 0, by norm_num,
+        have A : (4 : ℝ≥0) ≠ 0, by norm_num,
         have B : max Cp 1 ≠ 0 :=
           ne_of_gt (lt_of_lt_of_le zero_lt_one (le_max_right Cp 1)),
         field_simp [A, B],
@@ -437,7 +436,7 @@ begin
       rw composition_card,
       simp only [nat.cast_bit0, nat.cast_one, nat.cast_pow],
       apply ennreal.pow_le_pow _ (nat.sub_le n 1),
-      have : (1 : nnreal) ≤ (2 : nnreal), by norm_num,
+      have : (1 : ℝ≥0) ≤ (2 : ℝ≥0), by norm_num,
       rw ← ennreal.coe_le_coe at this,
       exact this
     end
@@ -449,9 +448,9 @@ end
 /-- Bounding below the radius of the composition of two formal multilinear series assuming
 summability over all compositions. -/
 theorem le_comp_radius_of_summable
-  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) (r : nnreal)
+  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) (r : ℝ≥0)
   (hr : summable (λ i, nnnorm (q.comp_along_composition p i.2) * r ^ i.1 :
-    (Σ n, composition n) → nnreal)) :
+    (Σ n, composition n) → ℝ≥0)) :
   (r : ennreal) ≤ (q.comp p).radius :=
 begin
   apply le_radius_of_bound _ (tsum (λ (i : Σ (n : ℕ), composition n),
@@ -595,12 +594,7 @@ begin
     by simpa only [formal_multilinear_series.partial_sum,
                    continuous_multilinear_map.map_sum_finset] using H,
   -- rewrite the first sum as a big sum over a sigma type
-  rw ← @finset.sum_sigma _ _ _ _
-    (finset.range N) (λ (n : ℕ), (fintype.pi_finset (λ (i : fin n), finset.Ico 1 N)) : _)
-    (λ i, q i.1 (λ (j : fin i.1), p (i.2 j) (λ (k : fin (i.2 j)), z))),
-  show ∑ i in comp_partial_sum_source N,
-    q i.1 (λ (j : fin i.1), p (i.2 j) (λ (k : fin (i.2 j)), z)) =
-    ∑ i in comp_partial_sum_target N, q.comp_along_composition_multilinear p i.2 (λ j, z),
+  rw [finset.sum_sigma'],
   -- show that the two sums correspond to each other by reindexing the variables.
   apply finset.sum_bij (comp_change_of_variables N),
   -- To conclude, we should show that the correspondance we have set up is indeed a bijection
@@ -1058,19 +1052,14 @@ begin
   /- First, rewrite the two compositions appearing in the theorem as two sums over complicated
   sigma types, as in the description of the proof above. -/
   let f : (Σ (a : composition n), composition a.length) → H :=
-    λ ⟨a, b⟩, r b.length (apply_composition q b (apply_composition p a v)),
+    λ c, r c.2.length (apply_composition q c.2 (apply_composition p c.1 v)),
   let g : (Σ (c : composition n), Π (i : fin c.length), composition (c.blocks_fun i)) → H :=
-    λ ⟨c, d⟩, r c.length
-      (λ (i : fin c.length), q (d i).length (apply_composition p (d i) (v ∘ c.embedding i))),
-  suffices A : ∑ c, f c = ∑ c, g c,
-  { dsimp [formal_multilinear_series.comp],
-    simp only [continuous_multilinear_map.sum_apply, comp_along_composition_apply],
-    rw ← @finset.sum_sigma _ _ _ _ (finset.univ : finset (composition n)) _ f,
-    dsimp [apply_composition],
-    simp only [continuous_multilinear_map.sum_apply, comp_along_composition_apply,
-      continuous_multilinear_map.map_sum],
-    rw ← @finset.sum_sigma _ _ _ _ (finset.univ : finset (composition n)) _ g,
-    exact A },
+    λ c, r c.1.length (λ (i : fin c.1.length),
+      q (c.2 i).length (apply_composition p (c.2 i) (v ∘ c.1.embedding i))),
+  suffices : ∑ c, f c = ∑ c, g c,
+    by simpa only [formal_multilinear_series.comp, continuous_multilinear_map.sum_apply,
+      comp_along_composition_apply, continuous_multilinear_map.map_sum, finset.sum_sigma',
+      apply_composition],
   /- Now, we use `composition.sigma_equiv_sigma_pi n` to change
   variables in the second sum, and check that we get exactly the same sums. -/
   rw ← (sigma_equiv_sigma_pi n).sum_comp,

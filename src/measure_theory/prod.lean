@@ -821,11 +821,12 @@ lemma integral_prod : ∀ (f : α × β → E) (hf : integrable f (μ.prod ν)),
   ∫ z, f z ∂(μ.prod ν) = ∫ x, ∫ y, f (x, y) ∂ν ∂μ :=
 begin
   apply integrable.induction,
-  { intros c s hs h2s, simp_rw [integral_indicator hs, ← indicator_comp_right,
+  { intros c s hs h2s,
+    simp_rw [integral_indicator hs, ← indicator_comp_right,
       function.comp, integral_indicator (measurable_prod_mk_left hs),
       set_integral_const, integral_smul_const,
-      integral_to_real (measurable_measure_prod_mk_left hs).ae_measurable (ae_measure_lt_top hs h2s),
-      prod_apply hs] },
+      integral_to_real (measurable_measure_prod_mk_left hs).ae_measurable
+      (ae_measure_lt_top hs h2s), prod_apply hs] },
   { intros f g hfg i_f i_g hf hg,
     simp_rw [integral_add' i_f i_g, integral_integral_add' i_f i_g, hf, hg] },
   { exact is_closed_eq continuous_integral continuous_integral_integral },

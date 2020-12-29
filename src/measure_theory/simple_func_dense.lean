@@ -198,7 +198,8 @@ begin
   simp only [has_finite_integral, ← nndist_eq_nnnorm, ← edist_nndist, edist_comm _ y₀,
     pi.sub_apply] at hi ⊢,
   have : measurable (λ x, edist y₀ (f x)) := measurable_edist_right.comp fmeas,
-  calc ∫⁻ x, edist y₀ (approx_on f fmeas s y₀ h₀ n x) ∂μ ≤ ∫⁻ x, edist y₀ (f x) + edist y₀ (f x) ∂μ :
+  calc
+  ∫⁻ x, edist y₀ (approx_on f fmeas s y₀ h₀ n x) ∂μ ≤ ∫⁻ x, edist y₀ (f x) + edist y₀ (f x) ∂μ :
     measure_theory.lintegral_mono (λ x, edist_approx_on_y0_le fmeas h₀ x n)
   ... = ∫⁻ x, edist y₀ (f x) ∂μ + ∫⁻ x, edist y₀ (f x) ∂μ :
     measure_theory.lintegral_add this this
@@ -218,8 +219,8 @@ integrable_approx_on fmeas hf _ (integrable_zero _ _ _) n
 
 lemma tendsto_approx_on_univ_l1 [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) :
-  tendsto (λ n, l1.of_fun (approx_on f fmeas univ 0 trivial n) (integrable_approx_on_univ fmeas hf n))
-    at_top (𝓝 $ l1.of_fun f hf) :=
+  tendsto (λ n, l1.of_fun (approx_on f fmeas univ 0 trivial n)
+    (integrable_approx_on_univ fmeas hf n)) at_top (𝓝 $ l1.of_fun f hf) :=
 tendsto_iff_edist_tendsto_0.2 $ tendsto_approx_on_univ_l1_edist fmeas hf
 
 end simple_func

@@ -498,7 +498,8 @@ end
 
 /-- A function `f` continuous on a compact set `s` is integrable on this set with respect to any
 locally finite measure. -/
-lemma continuous_on.integrable_on_compact [topological_space α] [opens_measurable_space α] [borel_space E]
+lemma continuous_on.integrable_on_compact
+  [topological_space α] [opens_measurable_space α] [borel_space E]
   [t2_space α] {μ : measure α} [locally_finite_measure μ]
   {s : set α} (hs : is_compact s) {f : α → E} (hf : continuous_on f s) :
   integrable_on f s μ :=

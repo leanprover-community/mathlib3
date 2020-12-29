@@ -1259,9 +1259,10 @@ integral_nonpos_of_ae $ eventually_of_forall hf
 lemma integral_eq_zero_iff_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hfi : integrable f μ) :
   ∫ x, f x ∂μ = 0 ↔ f =ᵐ[μ] 0 :=
 by simp_rw [integral_eq_lintegral_of_nonneg_ae hf hfi.1, ennreal.to_real_eq_zero_iff,
-  lintegral_eq_zero_iff' (ennreal.measurable_of_real.comp_ae_measurable hfi.1), ← ennreal.not_lt_top,
-  ← has_finite_integral_iff_of_real hf, hfi.2, not_true, or_false, ← hf.le_iff_eq,
-  filter.eventually_eq, filter.eventually_le, (∘), pi.zero_apply, ennreal.of_real_eq_zero]
+  lintegral_eq_zero_iff' (ennreal.measurable_of_real.comp_ae_measurable hfi.1),
+  ← ennreal.not_lt_top, ← has_finite_integral_iff_of_real hf, hfi.2, not_true, or_false,
+  ← hf.le_iff_eq, filter.eventually_eq, filter.eventually_le, (∘), pi.zero_apply,
+  ennreal.of_real_eq_zero]
 
 lemma integral_eq_zero_iff_of_nonneg {f : α → ℝ} (hf : 0 ≤ f) (hfi : integrable f μ) :
   ∫ x, f x ∂μ = 0 ↔ f =ᵐ[μ] 0 :=
@@ -1454,8 +1455,8 @@ begin
     { have : f =ᵐ[⊤ • μ] 0 := ae_smul_measure hf ⊤,
       exact integral_eq_zero_of_ae this },
     { apply integral_undef,
-      rw [integrable, has_finite_integral, iff_true_intro (hfm.smul_measure ⊤), true_and, lintegral_smul_measure,
-        top_mul, if_neg],
+      rw [integrable, has_finite_integral, iff_true_intro (hfm.smul_measure ⊤), true_and,
+          lintegral_smul_measure, top_mul, if_neg],
       { apply lt_irrefl },
       { rw [lintegral_eq_zero_iff' hfm.ennnorm],
         refine λ h, hf (h.mono $ λ x, _),

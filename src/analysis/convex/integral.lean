@@ -55,7 +55,8 @@ begin
   have hc : integrable (λ _, y₀) μ := integrable_const _,
   set F : ℕ → simple_func α E := simple_func.approx_on f hfm s y₀ h₀,
   have : tendsto (λ n, (F n).integral μ) at_top (𝓝 $ ∫ x, f x ∂μ),
-  { simp only [simple_func.integral_eq_integral _ (simple_func.integrable_approx_on hfm hfi h₀ hc _)],
+  { simp only [simple_func.integral_eq_integral _
+      (simple_func.integrable_approx_on hfm hfi h₀ hc _)],
     exact tendsto_integral_of_l1 _ hfi
       (eventually_of_forall $ simple_func.integrable_approx_on hfm hfi h₀ hc)
       (simple_func.tendsto_approx_on_l1_edist hfm h₀ hfs (hfi.sub hc).2) },

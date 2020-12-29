@@ -153,17 +153,17 @@ lemma integrable_on.union (hs : integrable_on f s μ) (ht : integrable_on f t μ
   integrable_on f (s ∪ t) μ ↔ integrable_on f s μ ∧ integrable_on f t μ :=
 ⟨λ h, ⟨h.left_of_union, h.right_of_union⟩, λ h, h.1.union h.2⟩
 
-@[simp] lemma integrable_on_finite_union (hf : measurable f) {s : set β} (hs : finite s)
+@[simp] lemma integrable_on_finite_union {s : set β} (hs : finite s)
   {t : β → set α} : integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 begin
   apply hs.induction_on,
-  { simp [hf] },
+  { simp },
   { intros a s ha hs hf, simp [hf, or_imp_distrib, forall_and_distrib] }
 end
 
-@[simp] lemma integrable_on_finset_union (hf : measurable f) {s : finset β} {t : β → set α} :
+@[simp] lemma integrable_on_finset_union  {s : finset β} {t : β → set α} :
   integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
-integrable_on_finite_union hf s.finite_to_set
+integrable_on_finite_union s.finite_to_set
 
 lemma integrable_on.add_measure (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
   integrable_on f s (μ + ν) :=

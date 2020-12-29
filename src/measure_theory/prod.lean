@@ -516,8 +516,8 @@ lemma ae_measurable.integral_prod_right' [sigma_finite ν]
   exact integral_congr_ae hx
 end⟩
 
-lemma ae_measurable.prod_left [sigma_finite ν] {f : α × β → E} (hf : ae_measurable f (μ.prod ν)) :
-  ∀ᵐ x ∂μ, ae_measurable (λ y, f (x, y)) ν :=
+lemma ae_measurable.prod_mk_left [sigma_finite ν] {f : α × β → γ}
+  (hf : ae_measurable f (μ.prod ν)) : ∀ᵐ x ∂μ, ae_measurable (λ y, f (x, y)) ν :=
 begin
   filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk],
   assume x hx,
@@ -666,7 +666,7 @@ lemma integrable_prod_iff ⦃f : α × β → E⦄ (h1f : ae_measurable f (μ.pr
   integrable f (μ.prod ν) ↔
     (∀ᵐ x ∂ μ, integrable (λ y, f (x, y)) ν) ∧ integrable (λ x, ∫ y, ∥f (x, y)∥ ∂ν) μ :=
 by simp [integrable, h1f, has_finite_integral_prod_iff', h1f.norm.integral_prod_right',
-         h1f.prod_left]
+         h1f.prod_mk_left]
 
 /-- A binary function is integrable if the function `x ↦ f (x, y)` is integrable for almost every
   `y` and the function `y ↦ ∫ ∥f (x, y)∥ dx` is integrable. -/
@@ -723,11 +723,9 @@ variables {E' : Type*} [measurable_space E'] [normed_group E'] [borel_space E'] 
 /-! Some rules about the sum/difference of double integrals. They follow from `integral_add`, but
   we separate them out as separate lemmas, because they involve quite some steps. -/
 
-/-- Integrals commute with addition inside another integral. `F` can be any measurable function. -/
-lemma integral_fn_integral_add ⦃f g : α × β → E⦄
-  {F : E → E'} (hF : measurable F)
-  (hf : integrable f (μ.prod ν))
-  (hg : integrable g (μ.prod ν)) :
+/-- Integrals commute with addition inside another integral. `F` can be any function. -/
+lemma integral_fn_integral_add ⦃f g : α × β → E⦄ (F : E → E')
+  (hf : integrable f (μ.prod ν)) (hg : integrable g (μ.prod ν)) :
   ∫ x, F (∫ y, f (x, y) + g (x, y) ∂ν) ∂μ = ∫ x, F (∫ y, f (x, y) ∂ν + ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
   refine integral_congr_ae _,
@@ -737,10 +735,8 @@ end
 
 /-- Integrals commute with subtraction inside another integral.
   `F` can be any measurable function. -/
-lemma integral_fn_integral_sub ⦃f g : α × β → E⦄
-  {F : E → E'} (hF : measurable F)
-  (hf : integrable f (μ.prod ν))
-  (hg : integrable g (μ.prod ν)) :
+lemma integral_fn_integral_sub ⦃f g : α × β → E⦄ (F : E → E')
+  (hf : integrable f (μ.prod ν)) (hg : integrable g (μ.prod ν)) :
   ∫ x, F (∫ y, f (x, y) - g (x, y) ∂ν) ∂μ = ∫ x, F (∫ y, f (x, y) ∂ν - ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
   refine integral_congr_ae _,
@@ -761,33 +757,29 @@ end
 
 /-- Double integrals commute with addition. -/
 lemma integral_integral_add ⦃f g : α × β → E⦄
-  (hf : integrable f (μ.prod ν))
-  (hg : integrable g (μ.prod ν)) :
+  (hf : integrable f (μ.prod ν)) (hg : integrable g (μ.prod ν)) :
   ∫ x, ∫ y, f (x, y) + g (x, y) ∂ν ∂μ = ∫ x, ∫ y, f (x, y) ∂ν ∂μ + ∫ x, ∫ y, g (x, y) ∂ν ∂μ :=
-(integral_fn_integral_add measurable_id hf hg).trans $
+(integral_fn_integral_add id hf hg).trans $
   integral_add hf.integral_prod_left hg.integral_prod_left
 
 /-- Double integrals commute with addition. This is the version with `(f + g) (x, y)`
   (instead of `f (x, y) + g (x, y)`) in the LHS. -/
 lemma integral_integral_add' ⦃f g : α × β → E⦄
-  (hf : integrable f (μ.prod ν))
-  (hg : integrable g (μ.prod ν)) :
+  (hf : integrable f (μ.prod ν)) (hg : integrable g (μ.prod ν)) :
   ∫ x, ∫ y, (f + g) (x, y) ∂ν ∂μ = ∫ x, ∫ y, f (x, y) ∂ν ∂μ + ∫ x, ∫ y, g (x, y) ∂ν ∂μ :=
 integral_integral_add hf hg
 
 /-- Double integrals commute with subtraction. -/
 lemma integral_integral_sub ⦃f g : α × β → E⦄
-  (hf : integrable f (μ.prod ν))
-  (hg : integrable g (μ.prod ν)) :
+  (hf : integrable f (μ.prod ν)) (hg : integrable g (μ.prod ν)) :
   ∫ x, ∫ y, f (x, y) - g (x, y) ∂ν ∂μ = ∫ x, ∫ y, f (x, y) ∂ν ∂μ - ∫ x, ∫ y, g (x, y) ∂ν ∂μ :=
-(integral_fn_integral_sub measurable_id hf hg).trans $
+(integral_fn_integral_sub id hf hg).trans $
   integral_sub hf.integral_prod_left hg.integral_prod_left
 
 /-- Double integrals commute with subtraction. This is the version with `(f - g) (x, y)`
   (instead of `f (x, y) - g (x, y)`) in the LHS. -/
 lemma integral_integral_sub' ⦃f g : α × β → E⦄
-  (hf : integrable f (μ.prod ν))
-  (hg : integrable g (μ.prod ν)) :
+  (hf : integrable f (μ.prod ν)) (hg : integrable g (μ.prod ν)) :
   ∫ x, ∫ y, (f - g) (x, y) ∂ν ∂μ = ∫ x, ∫ y, f (x, y) ∂ν ∂μ - ∫ x, ∫ y, g (x, y) ∂ν ∂μ :=
 integral_integral_sub hf hg
 

@@ -157,11 +157,10 @@ variables {f : α → E} {a b c : α} {μ : measure α}
 @[symm] lemma symm (h : interval_integrable f μ a b) : interval_integrable f μ b a :=
 h.symm
 
-@[refl] lemma refl (hf : measurable f) : interval_integrable f μ a a :=
+@[refl] lemma refl : interval_integrable f μ a a :=
 by split; simp [hf]
 
-@[trans] lemma trans  (hab : interval_integrable f μ a b)
-  (hbc : interval_integrable f μ b c) :
+@[trans] lemma trans  (hab : interval_integrable f μ a b) (hbc : interval_integrable f μ b c) :
   interval_integrable f μ a c :=
 ⟨(hab.1.union hbc.1).mono_set Ioc_subset_Ioc_union_Ioc,
   (hbc.2.union hab.2).mono_set Ioc_subset_Ioc_union_Ioc⟩

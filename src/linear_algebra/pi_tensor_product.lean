@@ -221,7 +221,7 @@ instance : semimodule R (⨂[R] i, s i) :=
     begin
       refine pi_tensor_product.induction_on' x _ _,
       { intros r f,
-        simp_rw [smul_tprod_coeff' _ _, add_mul, add_tprod_coeff'] },
+        simp [smul_tprod_coeff' _ _, add_mul, add_tprod_coeff'] },
       { intros x y ihx ihy,
         simp [pi_tensor_product.smul_add, ihx, ihy, add_add_add_comm] }
     end,

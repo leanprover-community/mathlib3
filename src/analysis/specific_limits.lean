@@ -77,6 +77,17 @@ lemma normed_field.tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [nor
   tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[{x | x ≠ 0}] 0) at_top :=
 (tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
 
+@[simp] lemma normed_field.continuous_at_inv_iff {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {x : 𝕜} :
+  continuous_at (λx:𝕜, x⁻¹) x ↔ x ≠ 0 :=
+begin
+  refine ⟨_, λ t, continuous_at_inv' t⟩,
+  rintros h rfl,
+  apply not_tendsto_nhds_of_tendsto_at_top normed_field.tendsto_norm_inverse_nhds_within_0_at_top
+    (∥(0:𝕜)⁻¹∥),
+  convert (continuous_norm.continuous_at.comp h).tendsto.mono_left inf_le_left,
+  exact normed_field.punctured_nhds_ne_bot 0
+end
+
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field 𝕜] [archimedean 𝕜]
   [topological_space 𝕜] [order_topology 𝕜] {r : 𝕜} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=

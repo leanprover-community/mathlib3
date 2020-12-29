@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Sébastien Gouëzel
 -/
 import analysis.calculus.fderiv
+import analysis.specific_limits
 import data.polynomial.derivative
 
 /-!
@@ -1277,15 +1278,20 @@ lemma differentiable_within_at_inv (x_ne_zero : x ≠ 0) :
 lemma differentiable_on_inv : differentiable_on 𝕜 (λx:𝕜, x⁻¹) {x | x ≠ 0} :=
 λx hx, differentiable_within_at_inv hx
 
-lemma deriv_inv (x_ne_zero : x ≠ 0) :
-  deriv (λx, x⁻¹) x = -(x^2)⁻¹ :=
-(has_deriv_at_inv x_ne_zero).deriv
+@[simp] lemma differentiable_at_inv_iff : differentiable_at 𝕜 (λx:𝕜, x⁻¹) x ↔ x ≠ 0 :=
+⟨λ h, normed_field.continuous_at_inv_iff.1 h.continuous_at, differentiable_at_inv⟩
+
+@[simp] lemma deriv_inv : deriv (λx, x⁻¹) x = -(x^2)⁻¹ :=
+if hx : x = 0 then
+  by { rw [deriv_zero_of_not_differentiable_at (mt differentiable_at_inv_iff.1 (not_not.2 hx)), hx],
+       simp }
+else (has_deriv_at_inv hx).deriv
 
 lemma deriv_within_inv (x_ne_zero : x ≠ 0) (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, x⁻¹) s x = -(x^2)⁻¹ :=
 begin
   rw differentiable_at.deriv_within (differentiable_at_inv x_ne_zero) hxs,
-  exact deriv_inv x_ne_zero
+  exact deriv_inv
 end
 
 lemma has_fderiv_at_inv (x_ne_zero : x ≠ 0) :

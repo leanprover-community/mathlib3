@@ -62,7 +62,6 @@ section semiring
 variables {ι : Type*} {R : Type*} [comm_semiring R]
 variables {R' : Type*} [comm_semiring R'] [algebra R' R]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
-variables [∀ i, semimodule R' (s i)] [∀ i, is_scalar_tower R' R (s i)]
 variables {E : Type*} [add_comm_monoid E] [semimodule R E]
 variables {F : Type*} [add_comm_monoid F]
 
@@ -142,7 +141,8 @@ lemma smul_tprod_coeff_aux (z : R) (f : Π i, s i) (i : ι) (r : R) :
   tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r * z) f :=
  quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
 
-lemma smul_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (r : R') :
+lemma smul_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (r : R')
+  [semimodule R' (s i)] [is_scalar_tower R' R (s i)] :
   tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r • z) f :=
 begin
   have h₁ : r • z = (r • (1 : R)) * z := by simp,

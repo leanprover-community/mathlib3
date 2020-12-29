@@ -13,6 +13,11 @@ import tactic.monotonicity
 We define (bundled) closure operators on a partial order as an monotone (increasing), extensive
 (inflationary) and idempotent function.
 We define closed elements for the operator as elements which are fixed by it.
+
+## References
+
+* https://en.wikipedia.org/wiki/Closure_operator#Closure_operators_on_partially_ordered_sets
+
 -/
 universe u
 

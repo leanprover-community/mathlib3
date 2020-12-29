@@ -685,7 +685,7 @@ end
 
 /-- Given a point `x` in a discrete subset `s` of a metric space, there is a closed ball
 of positive radius centered at `x` and intersecting `s` only at `x`. -/
-lemma metric.closed_ball_of_mem_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
+lemma closed_ball_of_mem_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
 ∃ ε > 0, ∀ y ∈ metric.closed_ball x ε, y ≠ x → y ∉ s :=
 begin
   obtain ⟨ε, e0, F⟩ := ball_of_mem_discrete hx,

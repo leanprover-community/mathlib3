@@ -98,15 +98,11 @@ begin
       simp only [Sup_insert], exact h_sup _ _ h₄.1 (h₃ h₄.2), }, },
 end
 
-/-- Surely this exists somewhere (at least implicitly) already. -/
-lemma nat.finite_subset_is_bounded {s : set ℕ} (h : s.finite) : ∃ n, ∀ x ∈ s, x ≤ n :=
+lemma finite_subset_is_bounded {β : Type*} [semilattice_sup_bot β] {s : set β} (h : s.finite) :
+  ∃ y, ∀ x ∈ s, x ≤ y :=
 begin
-  apply h.induction_on,
-  { use 0, simp, },
-  { intros m s h₁ h₂ h₃, obtain ⟨n, h₄⟩ := h₃, use m ⊔ n,
-    intros x hx, rw le_sup_iff, rw set.mem_insert_iff at hx, rcases hx,
-    { left, rw hx, },
-    { right, apply h₄, assumption, }, },
+  use h.to_finset.sup id,
+  intros x hx, exact finset.le_sup (set.finite.mem_to_finset.mpr hx),
 end
 
 lemma well_founded_iff_is_sup_closed_compact :
@@ -136,7 +132,7 @@ begin
     have hn : ∃ (n : ℕ), Sup t ≤ a n,
     { let s := a ⁻¹' t,
       have hs : s.finite, { apply set.finite.preimage_embedding, assumption, },
-      obtain ⟨n, hn⟩ := nat.finite_subset_is_bounded hs,
+      obtain ⟨n, hn⟩ := finite_subset_is_bounded hs,
       have hn' : ∀ m, a m ∈ t → a m ≤ a n,
       { intros m hm, specialize hn m hm, by_cases hmn : m = n,
         { rw hmn, },

@@ -35,7 +35,7 @@ by interpreting it as a functor `Mon_ (J ⥤ C)`,
 and noting that taking limits is a lax monoidal functor,
 and hence sends monoid objects to monoid objects.
 -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def limit (F : J ⥤ Mon_ C) : Mon_ C :=
 lim_lax.map_Mon.obj (Mon_functor_category_equivalence.inverse.obj F)
 

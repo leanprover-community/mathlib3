@@ -112,7 +112,7 @@ instance [inhabited C] : inhabited (algebra T) :=
     cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
 -- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
 -- those are added too
-@[simps unit counit {rhs_md := semireducible}]
+@[simps unit counit]
 def adj : free T ⊣ forget T :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
@@ -229,7 +229,7 @@ for a comonad.
 -/
 -- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
 -- those are added too
-@[simps unit counit {rhs_md := semireducible}]
+@[simps unit counit]
 def adj : forget G ⊣ cofree G :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,

@@ -1454,7 +1454,7 @@ protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α)
  λ ⟨y, h⟩, subtype.eq (classical.some_spec h).2⟩
 
 /-- If `f` is an injective function, then `s` is equivalent to `f '' s`. -/
-@[simps apply {rhs_md := semireducible}]
+@[simps apply]
 protected noncomputable def image {α β} (f : α → β) (s : set α) (H : injective f) : s ≃ (f '' s) :=
 equiv.set.image_of_inj_on f s (H.inj_on s)
 

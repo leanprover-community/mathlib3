@@ -126,7 +126,7 @@ noncomputable def construct_left_adjoint_obj (Y : B) : A :=
 coequalizer (F'.map (U.map (adj₁.counit.app Y))) (other_map _ _ adj₁ adj₂ Y)
 
 /-- The homset equivalence which helps show that `R` is a right adjoint. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 noncomputable
 def construct_left_adjoint_equiv [∀ (X : B), regular_epi (adj₁.counit.app X)] (Y : A) (X : B) :
   (construct_left_adjoint_obj _ _ adj₁ adj₂ X ⟶ Y) ≃ (X ⟶ R.obj Y) :=

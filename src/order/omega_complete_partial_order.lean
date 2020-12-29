@@ -96,7 +96,7 @@ def prod.snd : (α × β) →ₘ β :=
   monotone' := λ ⟨x,x'⟩ ⟨y,y'⟩ ⟨h,h'⟩, h' }
 
 /-- The `prod` constructor, as a monotone function. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def prod.zip (f : α →ₘ β) (g : α →ₘ γ) : α →ₘ (β × γ) :=
 (prod.map f g).comp prod.diag
 
@@ -144,7 +144,7 @@ instance : has_le (chain α) :=
 { le := λ x y, ∀ i, ∃ j, x i ≤ y j  }
 
 /-- `map` function for `chain` -/
-@[simps {rhs_md := semireducible}] def map : chain β :=
+@[simps] def map : chain β :=
 f.comp c
 
 variables {f}
@@ -169,7 +169,7 @@ lemma map_le_map {g : α →ₘ β} (h : f ≤ g) : c.map f ≤ c.map g :=
 λ i, by simp [mem_map_iff]; intros; existsi i; apply h
 
 /-- `chain.zip` pairs up the elements of two chains that have the same index -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def zip (c₀ : chain α) (c₁ : chain β) : chain (α × β) :=
 preorder_hom.prod.zip c₀ c₁
 
@@ -421,7 +421,7 @@ variables [omega_complete_partial_order γ]
 protected def ωSup (c : chain (α × β)) : α × β :=
 (ωSup (c.map preorder_hom.prod.fst), ωSup (c.map preorder_hom.prod.snd))
 
-@[simps ωSup_fst ωSup_snd {rhs_md := semireducible}]
+@[simps ωSup_fst ωSup_snd]
 instance : omega_complete_partial_order (α × β) :=
 { ωSup := prod.ωSup,
   ωSup_le := λ c ⟨x,x'⟩ h, ⟨ωSup_le _ _ $ λ i, (h i).1, ωSup_le _ _ $ λ i, (h i).2⟩,

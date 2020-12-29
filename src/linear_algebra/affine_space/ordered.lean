@@ -5,6 +5,7 @@ Author: Yury G. Kudryashov
 -/
 import linear_algebra.affine_space.midpoint
 import algebra.module.ordered
+import tactic.field_simp
 
 /-!
 # Ordered modules as affine spaces

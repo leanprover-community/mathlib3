@@ -139,7 +139,7 @@ instance : comm_group_with_zero ℝ≥0 :=
 (to_real_hom : ℝ≥0 →+ ℝ).map_indicator _ _ _
 
 @[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
-@[norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
+@[simp, norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 to_real_hom.map_pow r n
 
 @[norm_cast] lemma coe_list_sum (l : list ℝ≥0) :
@@ -431,9 +431,6 @@ begin
   { have hpq := mul_nonpos_of_nonneg_of_nonpos hp hq,
     rw [of_real_eq_zero.2 hq, of_real_eq_zero.2 hpq, mul_zero] }
 end
-
-@[field_simps] theorem mul_ne_zero' {a b : ℝ≥0} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=
-mul_ne_zero h₁ h₂
 
 end mul
 

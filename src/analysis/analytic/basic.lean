@@ -631,13 +631,23 @@ begin
         apply mul_le_mul_of_nonneg_right _ (pow_nonneg (nnreal.coe_nonneg _) _),
         apply norm_tsum_le_tsum_norm,
         convert p.change_origin_summable_aux3 k h,
-        ext a,
-        tidy
+        ext ⟨_, _, _⟩,
+        refl
       end
   ... = tsum (λ i, ∥(p i.1).restr i.2.1 i.2.2 x∥ * ↑r ^ k :
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :
-      by { rw tsum_mul_right, convert p.change_origin_summable_aux3 k h, tidy }
-  ... = tsum (A ∘ change_origin_summable_aux_j k) : by { congr, tidy }
+      begin
+        rw tsum_mul_right,
+        convert p.change_origin_summable_aux3 k h,
+        ext ⟨_, _, _⟩,
+        refl
+      end
+  ... = tsum (A ∘ change_origin_summable_aux_j k) :
+    begin
+      congr,
+      ext ⟨_, _, _⟩,
+      refl
+    end
   ... ≤ tsum A : tsum_comp_le_tsum_of_inj SA A_nonneg (change_origin_summable_aux_j_injective k)
 end
 
@@ -654,7 +664,8 @@ begin
   apply summable.has_sum,
   apply summable_of_summable_norm,
   convert p.change_origin_summable_aux3 k h,
-  tidy
+  ext ⟨_, _, _⟩,
+  refl
 end
 
 /-- Summing the series `p.change_origin x` at a point `y` gives back `p (x + y)`-/
@@ -721,8 +732,8 @@ begin
     have : (nnnorm x : ennreal) < radius p := lt_of_le_of_lt (le_add_right (le_refl _)) h,
     convert continuous_multilinear_map.has_sum_eval (p.change_origin_has_sum k this)
       (λ(i : fin k), y),
-    ext i,
-    tidy },
+    ext ⟨_, _, _⟩,
+    refl },
   exact has_sum_A.sigma J
 end
 

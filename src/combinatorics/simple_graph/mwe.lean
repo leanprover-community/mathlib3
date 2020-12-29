@@ -1,8 +1,10 @@
 import data.fintype.basic
+import data.sym2
+import data.fin
 
 open finset
 
-universe u
+universes u v
 
 -- Let α and β be finite types
 variables {α β : Type u} [fintype α] [fintype β]
@@ -28,42 +30,18 @@ open_locale classical
 theorem hall_easy (f : α → β) (hf₁ : function.injective f) (hf₂ : ∀ x, r x (f x)) (A : finset α) :
   A.card ≤ (image_rel r A).card :=
 begin
-  -- it's enough to show that the image of A under f is a subset of image_rel
-  suffices h : (image f A) ⊆ (image_rel r A),
-  {
-    -- the cardinality of the image of an injective function is the cardinality of its preimage
-    rw ← card_image_of_injective A hf₁,
-
-    -- the cardinality of a subset is less than or equal to its superset
-    apply card_le_of_subset h },
-
-  -- use the fact that A is a subset of B if and only if x ∈ A implies x ∈ B
-  rw subset_iff,
-
-  -- let x be of type β and let h2 be the statement that x is in the image of f(A)
-  intros x h2,
-
-  -- convert h2 into an existential statement
-  simp only [mem_image, exists_prop] at h2,
-
-  -- break up h2 into its respective parts; i.e.
-    -- a : α
-    -- ha : a ∈ A
-    -- hfa : f a = x
-  rcases h2 with ⟨a, ha, hfa⟩,
-
-  -- because a is of type α, by hf₂ we have that a is related to f(a) by r
-  specialize hf₂ a,
-
-  -- replace f a with x in hf₂
-  rw hfa at hf₂,
-
-  -- convert the goal into an existential statement
-  simp [image_rel],
-
-  -- close by supplying a as a witness and supplying ha and hf₂ as proofs that a works
-  use ⟨a, ha, hf₂⟩,
-
+  have h : (image f A) ⊆ (image_rel r A),
+  { rw subset_iff,
+    intros x h2,
+    simp only [mem_image, exists_prop] at h2,
+    rcases h2 with ⟨a, ha, hfa⟩,
+    unfold image_rel,
+    simp only [true_and, exists_prop, mem_filter, mem_univ],
+    specialize hf₂ a,
+    rw hfa at hf₂,
+    refine ⟨a, ha, hf₂⟩ },
+  rw ← card_image_of_injective A hf₁,
+  apply card_le_of_subset h,
 end
 
 /- we prove the opposite direction using strong induction on
@@ -74,20 +52,15 @@ theorem hall_hard_inductive_zero (hn : fintype.card α ≤ 0)
   (hr : ∀ (A : finset α), A.card ≤ (image_rel r A).card) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x) :=
 begin
-  -- We know α is empty. `h` is the automation-friendly form of this fact
-  have h : α → false,
-  {
-    -- two standard lemmas show that `h` is the same as `hn`
-    rwa [← fintype.card_eq_zero_iff, ← le_zero_iff_eq],
-  },
-  -- split into two subgoals: give a function and then prove it has the desired properties
+  rw le_zero_iff_eq at hn,
+  rw fintype.card_eq_zero_iff at hn,
   refine ⟨_, _⟩,
-
-  -- there is no nontrivial function out of α; `tauto` can deal with this for us
-  { tautology },
-
-  -- since our function is trivial, proving it has the properties is also trivial
-  { tautology },
+  intro a,
+  specialize hn a,
+  tauto,
+  split,
+  tauto,
+  tauto,
 end
 
 /-- Base case 1: the cardinality of `α` is `1` -/
@@ -95,80 +68,41 @@ theorem hall_hard_inductive_one (hn : fintype.card α = 1)
   (hr : ∀ (A : finset α), A.card ≤ (image_rel r A).card) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x) :=
 begin
-  -- we know α is a singleton. we convert this fact into a fact about its only element
   rw fintype.card_eq_one_iff at hn,
-
-  -- we pull out the only element of α. we call the element `x` and the proof of uniqueness `hx`.
   cases hn with x hx,
-
-  -- it is enough to find an element of β related to x
-  suffices hxb : ∃ b : β, r x b,
-  {
-    -- assuming we have such an element, name it `b` and give the name `hb` to the proof of `r x b`
-    cases hxb with b hb,
-
-    -- for our existential goal, use the constant function sending everything to `b`
-    use (λ a, b),
-
-    -- we need to prove injectivity and prove that `r` is satisfied
-    split,
-    { -- injectivity asks us to prove equality between some elements with equal image
-      -- call our test elements a1 and a2. we leave the equality anonymous since we won't use it.
-      intros a1 a2 _,
-
-      -- recall α is a singleton! both a1 and a2 are equal to x and therefore to each other.
-      rw [hx a1, hx a2] },
-    { -- we want to show `r a b` for an arbitrary `a`
-      intro a,
-
-      -- we remember that `a = x`, and `r x b` is already a hypothesis
-      rwa hx a }
-  },
-
-  -- we have a statement `hr` about finsets on `α`. The only interesting one is the singleton `{x}`.
   specialize hr {x},
-
-  -- convert `hr` into a disjunction on the cardinality of `image_rel r {x}`
   rw [card_singleton, le_iff_lt_or_eq] at hr,
-
-  -- split into two cases. in each case we'll have something slightly different to do
-  -- in order to get our witness `b` and prove `r x b`.
   cases hr with hlt heq,
+  rw one_lt_card_iff at hlt,
+  rcases hlt with ⟨b1, b2, hb1, hb2, hbne⟩,
+  unfold image_rel at hb1,
+  simp at hb1,
+  use (λ a, b1),
+  split,
+  unfold function.injective,
+  intros a1 a2 h,
+  rw [hx a1, hx a2],
+  intros x1,
+  change r x1 b1,
+  specialize hx x1,
+  rw hx,
+  exact hb1,
 
-  work_on_goal 0 {
-    -- convert `hlt` into an existential statement
-    rw one_lt_card_iff at hlt,
-
-    -- pull out the witness `b` and proof `hb` from `hlt`
-    rcases hlt with ⟨b, _, hb, _, _⟩ },
-
-  work_on_goal 1 {
-    -- flip the equality to make it easier to match the form of a `rw` lemma
-    symmetry' at heq,
-
-    -- convert statement to an existential
-    rw card_eq_one at heq,
-
-    -- pull out the witness `b` and not-the-right-proof `hb'` from `heq`
-    cases heq with b hb',
-
-    -- convert `hb'` to a conjunction, of which we care about only the left part
-    rw eq_singleton_iff_unique_mem at hb',
-
-    -- pull out the left part, calling it `hb`
-    cases hb' with hb _ },
-
-  -- in both cases we're ready to finish the proof
-  all_goals {
-    -- use the `b` witness for the goal
-    use b,
-
-    -- ask lean to unify our goal with the `hb` proof
-    convert hb,
-
-    -- now the simplifier can handle it, so long as we tell it to peek under the hood of
-    -- the `image_rel` definition
-    simp [image_rel] },
+  symmetry' at heq,
+  rw card_eq_one at heq,
+  cases heq with a ha,
+  use (λ x, a),
+  split,
+  unfold function.injective,
+  intros a1 a2 ha,
+  rw [hx a1, hx a2],
+  intros x2,
+  unfold image_rel at ha,
+  rw eq_singleton_iff_unique_mem at ha,
+  rcases ha with ⟨ha, ha2⟩,
+  simp at ha,
+  rw hx x2,
+  exact ha,
 end
 
 /-
@@ -177,6 +111,24 @@ into the two cases
 * `∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (image_rel r A).card`
 * `∃ (A : finset α), A ≠ univ → A.card = (image_rel r A).card`
 -/
+
+variable [decidable_eq β]
+lemma ite_injective (f₁ f₂ : α → β) (h₁ : function.injective f₁) (h₂ : function.injective f₂)
+(h12 : disjoint (image f₁) (image f₂))(p : α → Prop) :
+  function.injective (λ (a : α), if p a then f₁ a else f₂ a) :=
+begin
+  classical,
+  intros a₁ a₂ h,
+  dsimp at h,
+  split_ifs at h,
+  { apply h₁ h },
+  { --rw disjoint_iff_ne at h12,
+    sorry },
+  { sorry },
+  { apply h₂ h },
+  --rw @disjoint_iff_ne β (image f₁) (image f₂) at h12,
+  --apply h12,
+end
 
 /-- First case of the inductive step: assuming that
 `∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (image_rel r A).card`
@@ -216,8 +168,7 @@ begin
   let f := λ x, if h : x = a then b else f' ⟨x, h⟩,
   use f,
   split,
-  {
-    sorry },
+  { sorry },
   { sorry },
 end
 
@@ -232,7 +183,45 @@ lemma hall_hard_inductive_step_B [nontrivial α] {n : ℕ} (hn : fintype.card α
     [∀ a, decidable_pred (r' a)], by exactI fintype.card α' ≤ n →
     by exactI (∀ (A : finset α'), A.card ≤ (image_rel r' A).card) →
     ∃ (f : α' → β'), function.injective f ∧ ∀ x, r' x (f x)) :
-  ∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x) := sorry
+  ∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x) :=
+begin
+  cases ha with A ha,
+  rcases eq_empty_or_nonempty A with (rfl | Ane),
+  { have hb := @univ_nonempty_iff α _inst_1,
+    --have hc := @nontrivial.to_nonempty α _inst_4,
+    cases hb with hu hn,
+    --specialize hn hc,
+    rw card_empty at ha,
+    have hemp := 0 = (image_rel r ∅).card,
+    sorry },
+  simp at ha,
+  rcases exists_pair_ne α with ⟨a, a', ne⟩,
+
+  let α' := {a' : α // a' ∈ A},
+  let β' := {b' : β // b' ∈ (image_rel r A)},
+  let r' : α' → β' → Prop := λ a' b', r a' b',
+  have h3 : fintype.card α' ≤ n,
+  { sorry },
+  have h4 : (∀ (A : finset α'), A.card ≤ (image_rel r' A).card),
+  { sorry },
+  have ih' := ih r' h3 h4,
+  rcases ih' with ⟨f', hf', hrf'⟩,
+
+  let α'' := {a' : α // a' ∉ A},
+  let β'' := {b' : β // b' ∉ (image_rel r A)},
+  let r'' : α'' → β'' → Prop := λ a'' b'', r a'' b'',
+  have h3' : fintype.card α'' ≤ n,
+  { sorry },
+  have h4' : (∀ (A : finset α''), A.card ≤ (image_rel r'' A).card),
+  { sorry },
+  have ih'' := ih r'' h3' h4',
+  rcases ih'' with ⟨f'', hf'', hrf''⟩,
+
+  refine ⟨λ a, if h₁ : a ∈ A then (f' ⟨a, h₁⟩).1 else (f'' ⟨a, h₁⟩).1, _, _⟩,
+  --rw at hn,
+  sorry,
+  sorry,
+end
 
 /-
 Here we use the two cases and our induction hypothesis
@@ -324,3 +313,127 @@ begin
   rcases h with ⟨f, hf, hf2⟩,
   exact hall_easy r f hf hf2,
 end
+
+
+/--
+A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
+The relation describes which pairs of vertices are adjacent.
+There is exactly one edge for every pair of adjacent edges;
+see `simple_graph.edge_set` for the corresponding edge set.
+-/
+@[ext]
+structure simple_graph (V : Type u) :=
+(adj : V → V → Prop)
+(sym : symmetric adj . obviously)
+(loopless : irreflexive adj . obviously)
+
+namespace simple_graph
+variables {V : Type u} (G : simple_graph V)
+
+/-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
+def neighbor_set (v : V) : set V := set_of (G.adj v)
+
+/-- `G.neighbor_set_image S` is the union of neighbor_sets of `S ⊆ V` in `G`. -/
+def neighbor_set_image (S : set V) : set V := ⋃v∈S, G.neighbor_set v
+
+variables (v : V) [fintype (G.neighbor_set v)] (S : finset V) [fintype (G.neighbor_set_image S)]
+
+/--
+`G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
+locally finite at `v`.
+-/
+def neighbor_finset : finset V := (G.neighbor_set v).to_finset
+
+/-- `G.neighbor_set_image S` is the union of neighbor_sets of `S ⊆ V` in `G`. -/
+def neighbor_finset_image : finset V := (G.neighbor_set_image S).to_finset
+
+/--
+The edges of G consist of the unordered pairs of vertices related by
+`G.adj`.
+-/
+def edge_set : set (sym2 V) := sym2.from_rel G.sym
+
+/-- A graph `G` is `C`-colorable if there is an assignment of elements of `C` to
+vertices of `G` (allowing repetition) such that adjacent vertices have
+distinct colors. -/
+@[ext]
+structure coloring (C : Type v) :=
+(color : V → C)
+(valid : ∀ ⦃v w : V⦄, G.adj v w → color v ≠ color w)
+
+/-- A graph `G` is `C`-colorable if there is a `C`-coloring. -/
+def colorable (C : Type v) : Prop := nonempty (G.coloring C)
+
+namespace coloring
+variables {G} {C : Type v} (f : G.coloring C)
+
+/-- The set of vertices with the given color. -/
+def color_set (c : C) : set V := f.color ⁻¹' {c}
+
+variables (c : C) [fintype (f.color ⁻¹' {c})]
+
+/-- The set of vertices with the given color. -/
+def color_finset : finset V := (f.color ⁻¹' {c}).to_finset
+
+def partition_adj (f : G.coloring C) (c1 c2 : C) :
+  f.color_set c1 → f.color_set c2 → Prop := λ a b, G.adj a b
+
+end coloring
+
+/--
+A `colorable G α` graph is an `α`-partite graph, so we define bipartite as `colorable G (fin 2)`.
+-/
+def is_bipartite : Prop := G.colorable (fin 2)
+
+-- CR : keep this in?
+abbreviation bipartition := G.coloring (fin 2)
+
+variables [fintype V] [decidable_eq V] (b : G.bipartition)
+
+/--
+A matching on `G` is a subset of its edges such that no two edges share a vertex.
+-/
+structure matching :=
+(edges : set (sym2 V))
+(sub_edges : edges ⊆ G.edge_set)
+(disjoint : ∀ (x y ∈ edges) (v : V), v ∈ x → v ∈ y → x = y)
+
+namespace matching
+variables {V} {G}
+
+
+/--
+`M.support` is the set of vertices of `G` that are
+contained in some edge of the matching `M`
+-/
+def support (M : G.matching) : set V :=
+{v : V | ∃ x, x ∈ M.edges ∧ v ∈ x}
+
+--lemma matching.is_injective (M : G.matching) :
+
+
+/-theorem hall :
+  (∀ (A : finset α), A.card ≤ (image_rel r A).card)
+    ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x))
+  * `(A : finset α)` is `(S ⊆ b.color_set 0)`
+  * `r : α → β → Prop` is `G.partite_adj`, but between the color classes somehow?
+  * `image_rel r A` is `neighborhood`, but idk if that's even necessary
+  * `(f : α → β), function.injective f ∧ ∀ x, r x (f x)` is `matching`
+    - cast to function? cast injective function between bipartite color classes to matching?
+  -/
+theorem hall_marriage_theorem
+  (h2 : fintype.card (b.color_set 0) ≤ fintype.card (b.color_set 1)) :
+  (∀ (S ⊆ (b.color_finset 0)), card S ≤ card (G.neighbor_finset_image S))
+   ↔ (∃ (M : G.matching), (b.color_set 0) ⊆ M.support) :=
+begin
+  have hall := hall (coloring.partition_adj b 0 1),
+  cases hall with hall1 hall2,
+  split,
+  { intro h1,
+    sorry },
+  { intro h2,
+    sorry },
+end
+
+end matching
+end simple_graph

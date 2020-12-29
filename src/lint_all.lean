@@ -835,7 +835,6 @@ import linear_algebra.smodeq
 import linear_algebra.special_linear_group
 import linear_algebra.tensor_algebra
 import linear_algebra.tensor_product
-import lint_all
 import logic.basic
 import logic.embedding
 import logic.function.basic

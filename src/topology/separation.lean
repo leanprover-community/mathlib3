@@ -139,6 +139,28 @@ begin
   exact is_closed_bUnion (finite.of_fintype _) (λ y _, is_closed_singleton)
 end
 
+/-- A point `x` in a discrete subset `s` of a topological space admits a neighbourhood
+that only meets `s` at `x`.  -/
+lemma nhd_singleton_of_mem_discrete {s : set α} [discrete_topology s] {x : α} (hx : x ∈ s) :
+∃ U ∈ 𝓝 x, U ∩ s = {x} :=
+begin
+  have : ({⟨x, hx⟩} : set s) ∈ 𝓝 (⟨x, hx⟩ : s), by simp [nhds_discrete],
+  rw [nhds_induced] at this,
+  rcases this with ⟨U, U_in, h⟩,
+  refine ⟨U, U_in, subset.antisymm _ (singleton_subset_iff.mpr ⟨mem_of_nhds U_in, hx⟩)⟩,
+  simpa only [image_singleton, subtype.image_preimage_coe] using image_subset (coe : s → α) h
+end
+
+/-- For point `x` in a discrete subset `s` of a topological space, there is a set `U`
+such that
+1. `U ∪ {x}` is a neighbourhood of `x`,
+2. `U` is disjoint from `s`.
+-/
+lemma disjoint_nhds_within_of_mem_discrete {s : set α} [discrete_topology s] {x : α} (hx : x ∈ s) :
+∃ U ∈ 𝓝[{x}ᶜ] x, disjoint U s :=
+let ⟨V, h, h'⟩ := nhd_singleton_of_mem_discrete hx in ⟨{x}ᶜ ∩ V, inter_mem_nhds_within _ h,
+  (disjoint_iff_inter_eq_empty.mpr (by { rw [inter_assoc, h', compl_inter_self] }))⟩
+
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/

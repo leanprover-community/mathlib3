@@ -672,6 +672,25 @@ lemma is_open_singleton_iff {X : Type*} [metric_space X] {x : X} :
   is_open ({x} : set X) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
 by simp [is_open_iff, subset_singleton_iff, mem_ball]
 
+/-- Given a point `x` in a discrete subset `s` of a metric space, there is an open ball
+centered at `x` and intersecting `s` only at `x`. -/
+lemma ball_of_mem_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
+∃ ε > 0, ∀ y ∈ metric.ball x ε, y ≠ x → y ∉ s :=
+begin
+  rcases disjoint_nhds_within_of_mem_discrete hx with ⟨U, U_in, hU⟩,
+  rcases metric.nhds_within_basis_ball.mem_iff.mp U_in with ⟨ε, ε_pos, hε⟩,
+  refine ⟨ε, ε_pos, λ y hyB hxy hyt, _⟩,
+  exact eq_empty_iff_forall_not_mem.mp (disjoint_iff_inter_eq_empty.mp hU) y ⟨hε ⟨hyB, hxy⟩, hyt⟩,
+end
+
+/-- Given a point `x` in a discrete subset `s` of a metric space, there is a radius `ε` such that
+`x` is the only point of `s` with distance smaller than `ε` from `x`.
+This formulation is defeq to `metric.ball_of_mem_discrete`.
+ -/
+lemma dist_lt_of_mem_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
+∃ ε > 0, ∀ y, dist y x < ε → y ≠ x → y ∉ s :=
+ball_of_mem_discrete hx
+
 end metric
 
 open metric

@@ -195,7 +195,7 @@ begin
   exact measurable_measure_prod_mk_right hs
 end
 
-/-- The Lebesgue intergral is measurable. This shows that the integrand of (the right-hand-side of)
+/-- The Lebesgue integral is measurable. This shows that the integrand of (the right-hand-side of)
   Tonelli's theorem is measurable. -/
 lemma measurable.lintegral_prod_right' [sigma_finite ν] :
   ∀ {f : α × β → ennreal} (hf : measurable f), measurable (λ x, ∫⁻ y, f (x, y) ∂ν) :=
@@ -214,14 +214,14 @@ begin
     simpa [lintegral_supr (λ n, (hf n).comp m), this] }
 end
 
-/-- The Lebesgue intergral is measurable. This shows that the integrand of (the right-hand-side of)
+/-- The Lebesgue integral is measurable. This shows that the integrand of (the right-hand-side of)
   Tonelli's theorem is measurable.
   This version has the argument `f` in curried form. -/
 lemma measurable.lintegral_prod_right [sigma_finite ν] {f : α → β → ennreal}
   (hf : measurable (uncurry f)) : measurable (λ x, ∫⁻ y, f x y ∂ν) :=
 hf.lintegral_prod_right'
 
-/-- The Lebesgue intergral is measurable. This shows that the integrand of (the right-hand-side of)
+/-- The Lebesgue integral is measurable. This shows that the integrand of (the right-hand-side of)
   the symmetric version of Tonelli's theorem is measurable. -/
 lemma measurable.lintegral_prod_left' [sigma_finite μ] {f : α × β → ennreal}
   (hf : measurable f) : measurable (λ y, ∫⁻ x, f (x, y) ∂μ) :=
@@ -245,7 +245,7 @@ section
 variables [second_countable_topology E] [normed_space ℝ E]
   [complete_space E] [borel_space E]
 
-/-- The Bochner intergral is measurable. This shows that the integrand of (the right-hand-side of)
+/-- The Bochner integral is measurable. This shows that the integrand of (the right-hand-side of)
   Fubini's theorem is measurable.
   This version has `f` in curried form. -/
 lemma measurable.integral_prod_right [sigma_finite ν] ⦃f : α → β → E⦄
@@ -285,20 +285,20 @@ begin
   exact measurable_of_tendsto_metric hf' h2f'
 end
 
-/-- The Bochner intergral is measurable. This shows that the integrand of (the right-hand-side of)
+/-- The Bochner integral is measurable. This shows that the integrand of (the right-hand-side of)
   Fubini's theorem is measurable. -/
 lemma measurable.integral_prod_right' [sigma_finite ν] ⦃f : α × β → E⦄
   (hf : measurable f) : measurable (λ x, ∫ y, f (x, y) ∂ν) :=
 by { rw [← uncurry_curry f] at hf, exact hf.integral_prod_right }
 
-/-- The Bochner intergral is measurable. This shows that the integrand of (the right-hand-side of)
+/-- The Bochner integral is measurable. This shows that the integrand of (the right-hand-side of)
   the symmetric version of Fubini's theorem is measurable.
   This version has `f` in curried form. -/
 lemma measurable.integral_prod_left [sigma_finite μ] ⦃f : α → β → E⦄
   (hf : measurable (uncurry f)) : measurable (λ y, ∫ x, f x y ∂μ) :=
 (hf.comp measurable_swap).integral_prod_right'
 
-/-- The Bochner intergral is measurable. This shows that the integrand of (the right-hand-side of)
+/-- The Bochner integral is measurable. This shows that the integrand of (the right-hand-side of)
   the symmetric version of Fubini's theorem is measurable. -/
 lemma measurable.integral_prod_left' [sigma_finite μ] ⦃f : α × β → E⦄
   (hf : measurable f) : measurable (λ y, ∫ x, f (x, y) ∂μ) :=
@@ -492,21 +492,45 @@ lemma add_prod (μ' : measure α) [sigma_finite μ'] : (μ + μ').prod ν = μ.p
 by { refine prod_eq (λ s t hs ht, _), simp_rw [add_apply, prod_prod hs ht, right_distrib] }
 
 end measure
+end measure_theory
 
 open measure_theory.measure
 
-/-! ### The Lebesgue integral on a product -/
+section
 
-variables [sigma_finite ν]
-
-lemma ae_measurable_prod_swap [sigma_finite μ] {f : α × β → γ}
+lemma ae_measurable.prod_swap [sigma_finite ν] [sigma_finite μ] {f : α × β → γ}
   (hf : ae_measurable f (μ.prod ν)) : ae_measurable (λ (z : β × α), f z.swap) (ν.prod μ) :=
 begin
   rw ← prod_swap at hf,
   exact hf.comp_measurable measurable_swap,
 end
 
-alias ae_measurable_prod_swap ← ae_measurable.prod_swap
+/-- The Bochner integral is measurable. This shows that the integrand of (the right-hand-side of)
+  Fubini's theorem is measurable. -/
+lemma ae_measurable.integral_prod_right' [sigma_finite ν]
+  [second_countable_topology E] [normed_space ℝ E] [borel_space E] [complete_space E]
+  ⦃f : α × β → E⦄ (hf : ae_measurable f (μ.prod ν)) : ae_measurable (λ x, ∫ y, f (x, y) ∂ν) μ :=
+⟨λ x, ∫ y, hf.mk f (x, y) ∂ν, hf.measurable_mk.integral_prod_right', begin
+  filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk],
+  assume x hx,
+  exact integral_congr_ae hx
+end⟩
+
+lemma ae_measurable.prod_left [sigma_finite ν] {f : α × β → E} (hf : ae_measurable f (μ.prod ν)) :
+  ∀ᵐ x ∂μ, ae_measurable (λ y, f (x, y)) ν :=
+begin
+  filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk],
+  assume x hx,
+  exact ⟨λ y, hf.mk f (x, y), hf.measurable_mk.comp measurable_prod_mk_left, hx⟩
+end
+
+end
+
+namespace measure_theory
+
+/-! ### The Lebesgue integral on a product -/
+
+variables [sigma_finite ν]
 
 lemma lintegral_prod_swap [sigma_finite μ] (f : α × β → ennreal)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z.swap ∂(ν.prod μ) = ∫⁻ z, f z ∂(μ.prod ν) :=
@@ -641,8 +665,8 @@ end
 lemma integrable_prod_iff ⦃f : α × β → E⦄ (h1f : ae_measurable f (μ.prod ν)) :
   integrable f (μ.prod ν) ↔
     (∀ᵐ x ∂ μ, integrable (λ y, f (x, y)) ν) ∧ integrable (λ x, ∫ y, ∥f (x, y)∥ ∂ν) μ :=
-by simp only [integrable, h1f, h1f.comp measurable_prod_mk_left, h1f.norm.integral_prod_right',
-  true_and, has_finite_integral_prod_iff']
+by simp [integrable, h1f, has_finite_integral_prod_iff', h1f.norm.integral_prod_right',
+         h1f.prod_left]
 
 /-- A binary function is integrable if the function `x ↦ f (x, y)` is integrable for almost every
   `y` and the function `y ↦ ∫ ∥f (x, y)∥ dx` is integrable. -/
@@ -687,8 +711,11 @@ hf.swap.integral_prod_left
 variables [sigma_finite μ]
 
 lemma integral_prod_swap (f : α × β → E)
-  (hf : measurable f) : ∫ z, f z.swap ∂(ν.prod μ) = ∫ z, f z ∂(μ.prod ν) :=
-by rw [← integral_map measurable_swap hf, prod_swap]
+  (hf : ae_measurable f (μ.prod ν)) : ∫ z, f z.swap ∂(ν.prod μ) = ∫ z, f z ∂(μ.prod ν) :=
+begin
+  rw ← prod_swap at hf,
+  rw [← integral_map measurable_swap hf, prod_swap]
+end
 
 variables {E' : Type*} [measurable_space E'] [normed_group E'] [borel_space E'] [complete_space E']
   [normed_space ℝ E'] [second_countable_topology E']
@@ -703,9 +730,7 @@ lemma integral_fn_integral_add ⦃f g : α × β → E⦄
   (hg : integrable g (μ.prod ν)) :
   ∫ x, F (∫ y, f (x, y) + g (x, y) ∂ν) ∂μ = ∫ x, F (∫ y, f (x, y) ∂ν + ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
-  refine integral_congr_ae
-    (hF.comp (hf.add hg).measurable.integral_prod_right')
-    (hF.comp (hf.measurable.integral_prod_right'.add hg.measurable.integral_prod_right')) _,
+  refine integral_congr_ae _,
   filter_upwards [hf.prod_right_ae, hg.prod_right_ae],
   intros x h2f h2g, simp [integral_add h2f h2g],
 end
@@ -718,9 +743,7 @@ lemma integral_fn_integral_sub ⦃f g : α × β → E⦄
   (hg : integrable g (μ.prod ν)) :
   ∫ x, F (∫ y, f (x, y) - g (x, y) ∂ν) ∂μ = ∫ x, F (∫ y, f (x, y) ∂ν - ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
-  refine integral_congr_ae
-    (hF.comp (hf.sub hg).measurable.integral_prod_right')
-    (hF.comp (hf.measurable.integral_prod_right'.sub hg.measurable.integral_prod_right')) _,
+  refine integral_congr_ae _,
   filter_upwards [hf.prod_right_ae, hg.prod_right_ae],
   intros x h2f h2g, simp [integral_sub h2f h2g]
 end
@@ -798,21 +821,20 @@ lemma integral_prod : ∀ (f : α × β → E) (hf : integrable f (μ.prod ν)),
   ∫ z, f z ∂(μ.prod ν) = ∫ x, ∫ y, f (x, y) ∂ν ∂μ :=
 begin
   apply integrable.induction,
-  { intros c s hs h2s, simp_rw [integral_indicator measurable_const hs, ← indicator_comp_right,
-      function.comp, integral_indicator measurable_const (measurable_prod_mk_left hs),
+  { intros c s hs h2s, simp_rw [integral_indicator hs, ← indicator_comp_right,
+      function.comp, integral_indicator (measurable_prod_mk_left hs),
       set_integral_const, integral_smul_const,
-      integral_to_real (measurable_measure_prod_mk_left hs) (ae_measure_lt_top hs h2s),
+      integral_to_real (measurable_measure_prod_mk_left hs).ae_measurable (ae_measure_lt_top hs h2s),
       prod_apply hs] },
   { intros f g hfg i_f i_g hf hg,
     simp_rw [integral_add' i_f i_g, integral_integral_add' i_f i_g, hf, hg] },
   { exact is_closed_eq continuous_integral continuous_integral_integral },
-  { intros f g hfg i_f m_g hf, convert hf using 1,
-    { exact integral_congr_ae m_g i_f.measurable hfg.symm },
-    { refine integral_congr_ae m_g.integral_prod_right' i_f.measurable.integral_prod_right' _,
+  { intros f g hfg i_f hf, convert hf using 1,
+    { exact integral_congr_ae hfg.symm },
+    { refine integral_congr_ae _,
       rw [eventually_eq] at hfg, refine (ae_ae_of_ae_prod hfg).mp _,
       apply eventually_of_forall, intros x hfgx,
-      refine integral_congr_ae (m_g.comp measurable_prod_mk_left)
-        (i_f.measurable.comp measurable_prod_mk_left) (ae_eq_symm hfgx) } }
+      exact integral_congr_ae (ae_eq_symm hfgx) } }
 end
 
 /-- Symmetric version of Fubini's Theorem: For integrable functions on `α × β`,
@@ -820,7 +842,7 @@ end
   This version has the integrals on the right-hand side in the other order. -/
 lemma integral_prod_symm (f : α × β → E) (hf : integrable f (μ.prod ν)) :
   ∫ z, f z ∂(μ.prod ν) = ∫ y, ∫ x, f (x, y) ∂μ ∂ν :=
-by { simp_rw [← integral_prod_swap f hf.measurable], exact integral_prod _ hf.swap }
+by { simp_rw [← integral_prod_swap f hf.ae_measurable], exact integral_prod _ hf.swap }
 
 /-- Reversed version of Fubini's Theorem. -/
 lemma integral_integral {f : α → β → E} (hf : integrable (uncurry f) (μ.prod ν)) :

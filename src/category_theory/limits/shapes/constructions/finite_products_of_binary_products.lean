@@ -99,7 +99,7 @@ variables [has_binary_products.{v} C] [has_terminal C]
 If `C` has a terminal object and binary products, then it has a product for objects indexed by
 `ulift (fin n)`.
 -/
-def has_product_ulift_fin :
+lemma has_product_ulift_fin :
   Π (n : ℕ) (f : ulift (fin n) → C), has_product f
 | 0 := λ f,
   begin
@@ -118,7 +118,7 @@ def has_product_ulift_fin :
 If `C` has a terminal object and binary products, then it has limits of shape
 `discrete (ulift (fin n))` for any `n : ℕ`.
 -/
-def has_limits_of_shape_ulift_fin (n : ℕ) :
+lemma has_limits_of_shape_ulift_fin (n : ℕ) :
   has_limits_of_shape (discrete (ulift (fin n))) C :=
 { has_limit := λ K,
 begin
@@ -128,11 +128,11 @@ begin
 end }
 
 /-- If `C` has a terminal object and binary products, then it has finite products. -/
-def has_finite_products_of_has_binary_and_terminal : has_finite_products C :=
+lemma has_finite_products_of_has_binary_and_terminal : has_finite_products C :=
 λ J 𝒥₁ 𝒥₂,
 begin
   resetI,
-  refine trunc.rec_on_subsingleton (fintype.equiv_fin J) (λ e, _),
+  rcases fintype.equiv_fin J with ⟨e⟩,
   apply has_limits_of_shape_of_equivalence (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
   refine has_limits_of_shape_ulift_fin (fintype.card J),
 end
@@ -142,7 +142,7 @@ section preserves
 variables (F : C ⥤ D)
 variables [preserves_limits_of_shape (discrete walking_pair) F]
 variables [preserves_limits_of_shape (discrete pempty) F]
-variables [has_finite_products.{v} C] [has_finite_products.{v} D]
+variables [has_finite_products.{v} C]
 
 /--
 If `F` preserves the terminal object and binary products, then it preserves products indexed by

@@ -420,7 +420,6 @@ begin
   haveI hp'_prime : P'.is_prime := comap_is_prime C P,
   obtain ⟨pX, hpX, hp0⟩ := P.exists_mem_ne_zero_of_ne_bot
     (ne_of_lt (bot_lt_of_maximal P polynomial_not_is_field)).symm,
-
   have hp0 : (pX.map (quotient.mk P')).leading_coeff ≠ 0 :=
     λ hp0', hp0 $ map_injective (quotient.mk P') ((quotient.mk P').injective_iff.2
       (λ x hx, by rwa [quotient.eq_zero_iff_mem, (by rwa eq_bot_iff : P' = ⊥)] at hx))
@@ -439,9 +438,6 @@ begin
   have hM : (0 : P'.quotient) ∉ M := λ hM, hp0 (let ⟨n, hn⟩ := hM in pow_eq_zero hn),
   have hM' : (0 : P.quotient) ∉ M' := λ hM', hM (let ⟨z, hz⟩ := hM' in (hφ (trans hz.2 φ.map_zero.symm)) ▸ hz.1),
   have hφ'_int : φ'.is_integral := is_integral_localization_map_polynomial_quotient P pX hpX ϕ ϕ',
-
-  rw ← is_integral_quotient_map_iff,
-
   haveI : P'.is_maximal := begin
     letI : integral_domain (localization M') :=
       localization_map.integral_domain_localization (le_non_zero_divisors_of_domain hM'),
@@ -458,11 +454,11 @@ begin
     refine map.is_maximal ϕ'.to_map (localization_map_bijective_of_field hM' _ ϕ') hP,
     rwa [← quotient.maximal_ideal_iff_is_field_quotient, ← bot_quotient_is_maximal_iff],
   end,
-
   have hϕ : ϕ.to_map.is_integral,
   { refine ϕ.to_map.is_integral_of_surjective (localization_map_bijective_of_field hM _ ϕ).2,
     by rwa ← quotient.maximal_ideal_iff_is_field_quotient },
 
+  rw ← is_integral_quotient_map_iff,
   have : (φ'.comp ϕ.to_map).is_integral := ring_hom.is_integral_trans ϕ.to_map φ' hϕ hφ'_int,
   rw hcomm at this,
   refine φ.is_integral_tower_bot_of_is_integral ϕ'.to_map _ this,
@@ -542,7 +538,7 @@ begin
   unfreezingI {induction n with n IH},
   { have := (ring_equiv_of_equiv R (equiv.equiv_pempty $ fin.elim0)).trans (pempty_ring_equiv R),
     refine ring_hom.is_integral_of_surjective _ (function.surjective.comp quotient.mk_surjective _),
-    exact C_surjective },
+    exact C_surjective_fin_0 },
   { let ϕ1 : R →+* mv_polynomial (fin n) R := mv_polynomial.C,
     let ϕ2 : (mv_polynomial (fin n) R) →+* polynomial (mv_polynomial (fin n) R) := polynomial.C,
     let ϕ3 := (fin_succ_equiv R n).symm.to_ring_hom,

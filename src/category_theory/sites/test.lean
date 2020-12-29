@@ -1,4 +1,4 @@
-import category_theory.sites.sheaf
+import category_theory.sites.sheaf_of_types
 
 universes v u
 
@@ -31,9 +31,7 @@ lemma grothendieck_topology.is_closed_pullback {X Y : C} (f : Y ⟶ X) (S : siev
 begin
   intros hS Z g hg,
   apply hS (g ≫ f),
-  rw J₁.covers_iff,
-  rw sieve.pullback_comp,
-  apply hg
+  rwa [J₁.covers_iff, sieve.pullback_comp],
 end
 
 /-- The `J`-closure of a sieve is the collection of arrows which it covers. -/
@@ -137,38 +135,28 @@ begin
   refine ⟨_, _⟩,
   { rintro x ⟨M, hM⟩ ⟨N, hN⟩ hM₂ hN₂,
     ext,
-    dsimp,
-    rw ← J₁.covers_iff_mem_of_closed hM,
-    rw ← J₁.covers_iff_mem_of_closed hN,
+    dsimp only [subtype.coe_mk],
+    rw [← J₁.covers_iff_mem_of_closed hM, ← J₁.covers_iff_mem_of_closed hN],
     have q : ∀ ⦃Z : C⦄ (g : Z ⟶ X) (hg : S g), M.pullback g = N.pullback g,
     { intros Z g hg,
       apply congr_arg subtype.val ((hM₂ g hg).trans (hN₂ g hg).symm) },
     have MSNS : M ⊓ S = N ⊓ S,
     { ext Z g,
-      rw sieve.mem_inter,
-      rw sieve.mem_inter,
-      rw and_comm (N g),
-      rw and_comm,
+      rw [sieve.inter_apply, sieve.inter_apply, and_comm (N g), and_comm],
       apply and_congr_right,
       intro hg,
-      rw sieve.pullback_eq_top_iff_mem,
-      rw sieve.pullback_eq_top_iff_mem,
-      rw q g hg },
-    have : J₁.covers S f,
-      apply J₁.pullback_stable _ hS,
+      rw [sieve.pullback_eq_top_iff_mem, sieve.pullback_eq_top_iff_mem, q g hg] },
     split,
     { intro hf,
       rw J₁.covers_iff,
-      have : J₁.covers (N ⊓ S) f,
-        rw ← MSNS,
-        apply J₁.arrow_intersect f M S hf this,
-      apply J₁.superset_covering (sieve.pullback_monotone f inf_le_left) this },
+      apply J₁.superset_covering (sieve.pullback_monotone f inf_le_left),
+      rw ← MSNS,
+      apply J₁.arrow_intersect f M S hf (J₁.pullback_stable _ hS) },
     { intro hf,
       rw J₁.covers_iff,
-      have : J₁.covers (M ⊓ S) f,
-        rw MSNS,
-        apply J₁.arrow_intersect f N S hf this,
-      apply J₁.superset_covering (sieve.pullback_monotone f inf_le_left) this } },
+      apply J₁.superset_covering (sieve.pullback_monotone f inf_le_left),
+      rw MSNS,
+      apply J₁.arrow_intersect f N S hf (J₁.pullback_stable _ hS) } },
   { intros x hx,
     rw presieve.compatible_iff_sieve_compatible at hx,
     let M := sieve.bind S (λ Y f hf, (x f hf).1),
@@ -176,24 +164,18 @@ begin
     { intros Y f hf,
       apply le_antisymm,
       { rintro Z u ⟨W, g, f', hf', (hg : (x f' hf').1 _), c⟩,
-        rw sieve.pullback_eq_top_iff_mem,
-        rw ←(show (x (u ≫ f) _).1 = (x f hf).1.pullback u, from congr_arg subtype.val (hx f u hf)),
+        rw [sieve.pullback_eq_top_iff_mem,
+          ←(show (x (u ≫ f) _).1 = (x f hf).1.pullback u, from congr_arg subtype.val (hx f u hf))],
         simp_rw ← c,
         rw (show (x (g ≫ f') _).1 = _, from congr_arg subtype.val (hx f' g hf')),
         apply sieve.pullback_eq_top_of_mem _ hg },
       { apply sieve.le_pullback_bind S (λ Y f hf, (x f hf).1) } },
-    refine ⟨⟨J₁.close M, _⟩, _⟩,
-    { apply J₁.close_is_closed },
+    refine ⟨⟨_, J₁.close_is_closed M⟩, _⟩,
     { intros Y f hf,
       ext1,
       dsimp,
-      rw ← J₁.pullback_close,
-      rw this _ hf,
-      apply le_antisymm,
-      apply J₁.le_close_of_is_closed,
-      apply le_refl _,
-      apply (x f hf).2,
-      apply J₁.le_close } },
+      rw [← J₁.pullback_close, this _ hf],
+      apply le_antisymm (J₁.le_close_of_is_closed (le_refl _) (x f hf).2) (J₁.le_close _) } },
 end
 
 /-- If presheaf of `J₁`-closed sieves is a `J₂`-sheaf then `J₁ ≤ J₂`. -/
@@ -265,6 +247,9 @@ def topology_of_closure_operator
     apply hR hf,
   end }
 
+/--
+The topology given by the closure operator `J.close` on a Grothendieck topology is the same as `J`.
+-/
 lemma same_topology :
   topology_of_closure_operator (λ X, J₁.close)
     (λ X, J₁.le_close)

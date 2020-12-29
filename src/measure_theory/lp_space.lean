@@ -124,13 +124,13 @@ begin
     ring, },
   calc (∫⁻ (a : α), (↑(nnnorm (f a)) * g a) ^ p ∂μ) ^ (1/p)
       ≤ (∫⁻ (a : α), ↑(nnnorm (f a)) ^ q ∂μ) ^ (1/q) * (∫⁻ (a : α), (g a) ^ r ∂μ) ^ (1/r) :
-    ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp0_lt hpq hpqr μ hf.nnnorm.ennreal_coe measurable_const
+    ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp0_lt hpq hpqr μ hf.nnnorm.ennreal_coe ae_measurable_const
   ... = (∫⁻ (a : α), ↑(nnnorm (f a)) ^ q ∂μ) ^ (1/q) * μ set.univ ^ (1/p - 1/q) :
     by simp [hpqr],
 end
 
 lemma snorm_le_snorm_of_exponent_le {p q : ℝ} (hp0_lt : 0 < p) (hpq : p ≤ q) (μ : measure α)
-  [probability_measure μ] {f : α → E} (hf : measurable f) :
+  [probability_measure μ] {f : α → E} (hf : ae_measurable f μ) :
   snorm f p μ ≤ snorm f q μ :=
 begin
   have h_le_μ := snorm_le_snorm_mul_rpow_measure_univ hp0_lt hpq μ hf,
@@ -182,7 +182,7 @@ begin
   have hp0_lt : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
   have hp0 : 0 ≤ p, from le_of_lt hp0_lt,
   split,
-  { exact measurable.add hf.1 hg.1, },
+  { exact ae_measurable.add hf.1 hg.1, },
   simp_rw [pi.add_apply, ennreal.coe_rpow_of_nonneg _ hp0],
   have h_nnnorm_add_le : ∫⁻ (a : α), ↑(nnnorm (f a + g a) ^ p) ∂μ
     ≤ ∫⁻ a, ↑((nnnorm (f a) + nnnorm (g a)) ^ p) ∂μ,
@@ -207,14 +207,14 @@ lemma mem_ℒp.const_smul {f : α → E} (hfp : mem_ℒp f p μ) (c : 𝕜) (hp0
   mem_ℒp (c • f) p μ :=
 begin
   split,
-  { exact measurable.const_smul hfp.1 c, },
+  { exact ae_measurable.const_smul hfp.1 c, },
   simp_rw [pi.smul_apply, nnnorm_smul, ennreal.coe_mul, ennreal.mul_rpow_of_nonneg _ _ hp0],
-  rw lintegral_const_mul _ hfp.1.nnnorm.ennreal_coe.ennreal_rpow_const,
+  rw lintegral_const_mul'' _ hfp.1.nnnorm.ennreal_coe.ennreal_rpow_const,
   exact ennreal.mul_lt_top (ennreal.rpow_lt_top_of_nonneg hp0 ennreal.coe_ne_top) hfp.2,
 end
 
 lemma snorm_smul_le_mul_snorm [measurable_space 𝕜] [opens_measurable_space 𝕜] {q r : ℝ}
-  {f : α → E} (hf : measurable f) {φ : α → 𝕜} (hφ : measurable φ)
+  {f : α → E} (hf : ae_measurable f μ) {φ : α → 𝕜} (hφ : ae_measurable φ μ)
   (hp0_lt : 0 < p) (hpq : p < q) (hpqr : 1/p = 1/q + 1/r) :
   snorm (φ • f) p μ ≤ snorm φ q μ * snorm f r μ :=
 begin

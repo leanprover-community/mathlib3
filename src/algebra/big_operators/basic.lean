@@ -258,15 +258,18 @@ begin
   apply h, cc
 end
 
-/-- An uncurried version of `prod_product`. -/
-@[to_additive]
+/-- An uncurried version of `finset.prod_product`. -/
+@[to_additive "An uncurried version of `finset.sum_product`"]
 lemma prod_product' {s : finset γ} {t : finset α} {f : γ → α → β} :
   (∏ x in s.product t, f x.1 x.2) = ∏ x in s, ∏ y in t, f x y :=
 prod_product
 
-@[to_additive]
+/-- Product over a sigma type equals the product of fiberwise products. For rewriting
+in the reverse direction, use `finset.prod_sigma'`.  -/
+@[to_additive "Sum over a sigma type equals the sum of fiberwise sums. For rewriting
+in the reverse direction, use `finset.sum_sigma'`"]
 lemma prod_sigma {σ : α → Type*}
-  {s : finset α} {t : Πa, finset (σ a)} {f : sigma σ → β} :
+  (s : finset α) (t : Πa, finset (σ a)) (f : sigma σ → β) :
   (∏ x in s.sigma t, f x) = ∏ a in s, ∏ s in (t a), f ⟨a, s⟩ :=
 by classical;
 calc (∏ x in s.sigma t, f x) =
@@ -277,6 +280,12 @@ calc (∏ x in s.sigma t, f x) =
       rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
   ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
     prod_congr rfl $ λ _ _, prod_map _ _ _
+
+@[to_additive]
+lemma prod_sigma' {σ : α → Type*}
+  (s : finset α) (t : Πa, finset (σ a)) (f : Πa, σ a → β) :
+  (∏ a in s, ∏ s in (t a), f a s) = ∏ x in s.sigma t, f x.1 x.2 :=
+eq.symm $ prod_sigma s t (λ x, f x.1 x.2)
 
 @[to_additive]
 lemma prod_fiberwise_of_maps_to [decidable_eq γ] {s : finset α} {t : finset γ} {g : α → γ}
@@ -503,13 +512,23 @@ prod_dite_eq s a (λ x _, b x)
   (∏ x in s, (ite (x = a) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
 prod_dite_eq' s a (λ x _, b x)
 
+@[to_additive]
+lemma prod_ite_index (p : Prop) [decidable p] (s t : finset α) (f : α → β) :
+  (∏ x in if p then s else t, f x) = if p then ∏ x in s, f x else ∏ x in t, f x :=
+apply_ite (λ s, ∏ x in s, f x) _ _ _
+
 /--
   Reorder a product.
 
   The difference with `prod_bij'` is that the bijection is specified as a surjective injection,
   rather than by an inverse function.
 -/
-@[to_additive]
+@[to_additive "
+  Reorder a sum.
+
+  The difference with `sum_bij'` is that the bijection is specified as a surjective injection,
+  rather than by an inverse function.
+"]
 lemma prod_bij {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
   (i : Πa∈s, γ) (hi : ∀a ha, i a ha ∈ t) (h : ∀a ha, f a = g (i a ha))
   (i_inj : ∀a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂) (i_surj : ∀b∈t, ∃a ha, b = i a ha) :
@@ -523,7 +542,12 @@ congr_arg multiset.prod
   The difference with `prod_bij` is that the bijection is specified with an inverse, rather than
   as a surjective injection.
 -/
-@[to_additive]
+@[to_additive "
+  Reorder a sum.
+
+  The difference with `sum_bij` is that the bijection is specified with an inverse, rather than
+  as a surjective injection.
+"]
 lemma prod_bij' {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
   (i : Πa∈s, γ) (hi : ∀a ha, i a ha ∈ t) (h : ∀a ha, f a = g (i a ha))
   (j : Πa∈t, α) (hj : ∀a ha, j a ha ∈ s) (left_inv : ∀ a ha, j (i a ha) (hi a ha) = a)
@@ -781,7 +805,7 @@ lemma prod_comp [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ
 calc ∏ a in s, f (g a)
     = ∏ x in (s.image g).sigma (λ b : γ, s.filter (λ a, g a = b)), f (g x.2) :
   prod_bij (λ a ha, ⟨g a, a⟩) (by simp; tauto) (λ _ _, rfl) (by simp) (by finish)
-... = ∏ b in s.image g, ∏ a in s.filter (λ a, g a = b), f (g a) : prod_sigma
+... = ∏ b in s.image g, ∏ a in s.filter (λ a, g a = b), f (g a) : prod_sigma _ _ _
 ... = ∏ b in s.image g, ∏ a in s.filter (λ a, g a = b), f b :
   prod_congr rfl (λ b hb, prod_congr rfl (by simp {contextual := tt}))
 ... = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card :

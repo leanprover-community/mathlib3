@@ -191,6 +191,12 @@ by rw [continuous_iff_coinduced_le, continuous_iff_coinduced_le, hf.right, coind
 protected lemma continuous {f : α → β} (hf : quotient_map f) : continuous f :=
 hf.continuous_iff.mp continuous_id
 
+protected lemma surjective {f : α → β} (hf : quotient_map f) : function.surjective f := hf.1
+
+protected lemma is_open_preimage {f : α → β} (hf : quotient_map f) {s : set β} :
+  is_open (f ⁻¹' s) ↔ is_open s :=
+((quotient_map_iff.1 hf).2 s).symm
+
 end quotient_map
 
 /-- A map `f : α → β` is said to be an *open map*, if the image of any open `U : set α`
@@ -239,7 +245,7 @@ lemma to_quotient_map {f : α → β}
     split,
     { exact continuous_def.1 cont s },
     { assume h,
-      rw ← @image_preimage_eq _ _ _ s surj,
+      rw ← surj.image_preimage s,
       exact open_map _ h }
   end⟩
 

@@ -309,8 +309,8 @@ tendsto_inf.2 ⟨tendsto_exp_at_bot, tendsto_principal.2 $ eventually_of_forall 
 /-- `real.exp` as an order isomorphism between `ℝ` and `(0, +∞)`. -/
 def exp_order_iso : ℝ ≃o Ioi (0 : ℝ) :=
 strict_mono.order_iso_of_surjective _ (exp_strict_mono.cod_restrict exp_pos) $
-  surjective_of_continuous (continuous_subtype_mk _ continuous_exp)
-    (by simp only [tendsto_Ioi_at_top, coe_cod_restrict_apply, tendsto_exp_at_top])
+  (continuous_subtype_mk _ continuous_exp).surjective
+    (by simp only [tendsto_Ioi_at_top, subtype.coe_mk, tendsto_exp_at_top])
     (by simp [tendsto_exp_at_bot_nhds_within])
 
 @[simp] lemma coe_exp_order_iso_apply (x : ℝ) : (exp_order_iso x : ℝ) = exp x := rfl
@@ -462,10 +462,8 @@ tendsto_comp_exp_at_top.1 $ by simpa only [log_exp] using tendsto_id
 lemma tendsto_log_nhds_within_zero : tendsto log (𝓝[{0}ᶜ] 0) at_bot :=
 begin
   rw [← (show _ = log, from funext log_abs)],
-  refine tendsto.comp (_ : tendsto log (𝓝[Ioi 0] (abs 0)) at_bot)
-    ((continuous_abs.tendsto 0).inf (tendsto_principal_principal.2 $ λ a, abs_pos.2)),
-  rw [abs_zero, ← tendsto_comp_exp_at_bot],
-  simpa using tendsto_id
+  refine tendsto.comp _ tendsto_abs_nhds_within_zero,
+  simpa [← tendsto_comp_exp_at_bot] using tendsto_id
 end
 
 lemma continuous_on_log : continuous_on log {0}ᶜ :=
@@ -689,7 +687,7 @@ lemma tendsto_mul_exp_add_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) (hn 
   tendsto (λ x, (b * (exp x) + c) / (x^n)) at_top at_top :=
 begin
   refine tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) _)
-    (tendsto_at_top_add_tendsto_right ( (tendsto_exp_div_pow_at_top n).const_mul_at_top hb)
+    (((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
       ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
   intros x hx,
   simp only [fpow_neg x n],

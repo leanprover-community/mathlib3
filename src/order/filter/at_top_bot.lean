@@ -135,6 +135,19 @@ le_antisymm (le_pure_iff.2 $ (eventually_ge_at_top ⊤).mono $ λ b, top_unique)
 lemma order_bot.at_bot_eq (α) [order_bot α] : (at_bot : filter α) = pure ⊥ :=
 @order_top.at_top_eq (order_dual α) _
 
+@[nontriviality]
+lemma subsingleton.at_top_eq (α) [subsingleton α] [preorder α] : (at_top : filter α) = ⊤ :=
+begin
+  refine top_unique (λ s hs x, _),
+  letI : unique α := ⟨⟨x⟩, λ y, subsingleton.elim y x⟩,
+  rw [at_top, infi_unique, unique.default_eq x, mem_principal_sets] at hs,
+  exact hs left_mem_Ici
+end
+
+@[nontriviality]
+lemma subsingleton.at_bot_eq (α) [subsingleton α] [preorder α] : (at_bot : filter α) = ⊤ :=
+subsingleton.at_top_eq (order_dual α)
+
 lemma tendsto_at_top_pure [order_top α] (f : α → β) :
   tendsto f at_top (pure $ f ⊤) :=
 (order_top.at_top_eq α).symm ▸ tendsto_pure_pure _ _
@@ -396,6 +409,12 @@ lemma tendsto.nsmul_at_bot (hf : tendsto f l at_bot) {n : ℕ} (hn : 0 < n) :
   tendsto (λ x, n •ℕ f x) l at_bot :=
 @tendsto.nsmul_at_top α (order_dual β) _ l f hf n hn
 
+lemma tendsto_bit0_at_top : tendsto bit0 (at_top : filter β) at_top :=
+tendsto_at_top_add tendsto_id tendsto_id
+
+lemma tendsto_bit0_at_bot : tendsto bit0 (at_bot : filter β) at_bot :=
+tendsto_at_bot_add tendsto_id tendsto_id
+
 end ordered_add_comm_monoid
 
 section ordered_cancel_add_comm_monoid
@@ -527,6 +546,9 @@ section ordered_semiring
 
 variables [ordered_semiring α] {l : filter β} {f g : β → α}
 
+lemma tendsto_bit1_at_top : tendsto bit1 (at_top : filter α) at_top :=
+tendsto_at_top_add_nonneg_right tendsto_bit0_at_top (λ _, zero_le_one)
+
 lemma tendsto.at_top_mul_at_top (hf : tendsto f l at_top) (hg : tendsto g l at_top) :
   tendsto (λ x, f x * g x) l at_top :=
 begin
@@ -538,7 +560,7 @@ end
 lemma tendsto_mul_self_at_top : tendsto (λ x : α, x * x) at_top at_top :=
 tendsto_id.at_top_mul_at_top tendsto_id
 
-/-- The function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
+/-- The monomial function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_at_top`. -/
 lemma tendsto_pow_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ n) at_top at_top :=
 begin
@@ -547,6 +569,10 @@ begin
 end
 
 end ordered_semiring
+
+lemma zero_pow_eventually_eq [monoid_with_zero α] :
+  (λ n : ℕ, (0 : α) ^ n) =ᶠ[at_top] (λ n, 0) :=
+eventually_at_top.2 ⟨1, λ n hn, zero_pow (zero_lt_one.trans_le hn)⟩
 
 section ordered_ring
 
@@ -571,6 +597,20 @@ by simpa only [neg_mul_neg] using this
 
 end ordered_ring
 
+section linear_ordered_add_comm_group
+
+variables [linear_ordered_add_comm_group α]
+
+/-- $\lim_{x\to+\infty}|x|=+\infty$ -/
+lemma tendsto_abs_at_top_at_top : tendsto (abs : α → α) at_top at_top :=
+tendsto_at_top_mono le_abs_self tendsto_id
+
+/-- $\lim_{x\to-\infty}|x|=+\infty$ -/
+lemma tendsto_abs_at_bot_at_top : tendsto (abs : α → α) at_bot at_top :=
+tendsto_at_top_mono neg_le_abs_self tendsto_neg_at_bot_at_top
+
+end linear_ordered_add_comm_group
+
 section linear_ordered_semiring
 
 variables [linear_ordered_semiring α] {l : filter β} {f : β → α}
@@ -584,6 +624,10 @@ lemma tendsto.at_top_of_mul_const {c : α} (hc : 0 < c) (hf : tendsto (λ x, f x
 tendsto_at_top.2 $ λ b, (tendsto_at_top.1 hf (b * c)).mono $ λ x hx, le_of_mul_le_mul_right hx hc
 
 end linear_ordered_semiring
+
+lemma nonneg_of_eventually_pow_nonneg [linear_ordered_ring α] {a : α}
+  (h : ∀ᶠ n in at_top, 0 ≤ a ^ (n : ℕ)) : 0 ≤ a :=
+let ⟨n, hn⟩ := (tendsto_bit1_at_top.eventually h).exists in pow_bit1_nonneg_iff.1 hn
 
 section linear_ordered_field
 

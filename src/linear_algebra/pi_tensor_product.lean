@@ -60,7 +60,9 @@ open function
 section semiring
 
 variables {ι : Type*} {R : Type*} [comm_semiring R]
+variables {R' : Type*} [comm_semiring R'] [algebra R' R]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
+variables [∀ i, semimodule R' (s i)] [∀ i, is_scalar_tower R' R (s i)]
 variables {E : Type*} [add_comm_monoid E] [semimodule R E]
 variables {F : Type*} [add_comm_monoid F]
 
@@ -136,9 +138,18 @@ lemma add_tprod_coeff' (z₁ z₂ : R) (f : Π i, s i) :
   tprod_coeff R z₁ f + tprod_coeff R z₂ f = tprod_coeff R (z₁ + z₂) f :=
 quotient.sound' $ add_con_gen.rel.of _ _ (eqv.of_add_scalar z₁ z₂ f)
 
-lemma smul_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (r : R) :
+lemma smul_tprod_coeff_aux (z : R) (f : Π i, s i) (i : ι) (r : R) :
   tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r * z) f :=
-quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
+ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
+
+lemma smul_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (r : R') :
+  tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r • z) f :=
+begin
+  have h₁ : r • z = (r • (1 : R)) * z := by simp,
+  have h₂ : r • (f i) = (r • (1 : R)) • f i := by simp,
+  rw [h₁, h₂],
+  exact smul_tprod_coeff_aux z f i _,
+end
 
 /-- Construct an `add_monoid_hom` from `(⨂[R] i, s i)` to some space `F` from a function
 `φ : (R × Π i, s i) → F` with the appropriate properties. -/
@@ -168,21 +179,25 @@ def lift_add_hom (φ : (R × Π i, s i) → F)
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end
 
-instance : has_scalar R (⨂[R] i, s i) :=
-⟨λ r, lift_add_hom (λ f : R × Π i, s i, tprod_coeff R (r * f.1) f.2)
+-- Most of the time we want the instance below this one, which is easier for typeclass resolution
+-- to find.
+instance has_scalar' : has_scalar R' (⨂[R] i, s i) :=
+⟨λ r, lift_add_hom (λ f : R × Π i, s i, tprod_coeff R (r • f.1) f.2)
   (λ r' f i hf, by simp_rw [zero_tprod_coeff' _ f i hf])
   (λ f, by simp [zero_tprod_coeff])
   (λ r' f i m₁ m₂, by simp [add_tprod_coeff])
   (λ r' r'' f, by simp [add_tprod_coeff', mul_add])
-  (λ z f i r', by simp [smul_tprod_coeff, (show r' * (r * z) = r * (r' * z), by ring)])⟩
+  (λ z f i r', by simp [smul_tprod_coeff])⟩
 
-lemma smul_tprod_coeff' (r z : R) (f : Π i, s i) :
-  r • (tprod_coeff R z f) = tprod_coeff R (r * z) f := rfl
+instance : has_scalar R (⨂[R] i, s i) := pi_tensor_product.has_scalar'
 
-protected theorem smul_zero (r : R) : (r • 0 : ⨂[R] i, s i) = 0 :=
+lemma smul_tprod_coeff' (r : R') (z : R) (f : Π i, s i) :
+  r • (tprod_coeff R z f) = tprod_coeff R (r • z) f := rfl
+
+protected theorem smul_zero (r : R') : (r • 0 : ⨂[R] i, s i) = 0 :=
 add_monoid_hom.map_zero _
 
-protected theorem smul_add (r : R) (x y : ⨂[R] i, s i) :
+protected theorem smul_add (r : R') (x y : ⨂[R] i, s i) :
   r • (x + y) = r • x + r • y :=
 add_monoid_hom.map_add _ _ _
 
@@ -203,14 +218,16 @@ begin
   simp only [prod.mk.eta],
 end
 
-instance : semimodule R (⨂[R] i, s i) :=
+-- Most of the time we want the instance below this one, which is easier for typeclass resolution
+-- to find.
+instance semimodule' : semimodule R' (⨂[R] i, s i) :=
 { smul := (•),
   smul_add := λ r x y, pi_tensor_product.smul_add r x y,
   mul_smul := λ r r' x,
     begin
       refine pi_tensor_product.induction_on' x _ _,
       { intros r'' f,
-        simp [smul_tprod_coeff', mul_assoc] },
+        simp [smul_tprod_coeff', smul_smul] },
       { intros x y ihx ihy,
         simp [pi_tensor_product.smul_add, ihx, ihy] }
     end,
@@ -221,7 +238,7 @@ instance : semimodule R (⨂[R] i, s i) :=
     begin
       refine pi_tensor_product.induction_on' x _ _,
       { intros r f,
-        simp [smul_tprod_coeff' _ _, add_mul, add_tprod_coeff'] },
+        simp [smul_tprod_coeff' _ _, add_smul, add_tprod_coeff'] },
       { intros x y ihx ihy,
         simp [pi_tensor_product.smul_add, ihx, ihy, add_add_add_comm] }
     end,
@@ -230,23 +247,24 @@ instance : semimodule R (⨂[R] i, s i) :=
     begin
       refine pi_tensor_product.induction_on' x _ _,
       { intros r f,
-        rw [smul_tprod_coeff' _ _, zero_mul],
+        simp_rw [smul_tprod_coeff' _ _, zero_smul],
         exact zero_tprod_coeff _ },
       { intros x y ihx ihy,
         rw [pi_tensor_product.smul_add, ihx, ihy, add_zero] },
     end }
 
-variables {R}
+instance : semimodule R' (⨂[R] i, s i) := pi_tensor_product.semimodule'
 
+variables {R}
 
 variables (R)
 /-- The canonical `multilinear_map R s (⨂[R] i, s i)`. -/
 def tprod : multilinear_map R s (⨂[R] i, s i) :=
 { to_fun := tprod_coeff R 1,
   map_add' := λ f i x y, (add_tprod_coeff (1 : R) f i x y).symm,
-  map_smul' := λ f i r x, begin
-    rw [smul_tprod_coeff', ←smul_tprod_coeff (1 : R) _ i, update_idem, update_same],
-  end }
+  map_smul' := λ f i r x,
+    by simp_rw [smul_tprod_coeff', ←smul_tprod_coeff (1 : R) _ i, update_idem, update_same] }
+
 variables {R}
 
 notation `⨂ₜ[`:100 R`] ` binders `, ` r:(scoped:67 f, tprod R f) := r
@@ -254,7 +272,8 @@ notation `⨂ₜ[`:100 R`] ` binders `, ` r:(scoped:67 f, tprod R f) := r
 @[simp]
 lemma tprod_coeff_eq_smul_tprod (z : R) (f : Π i, s i) : tprod_coeff R z f = z • tprod R f :=
 begin
-  conv_lhs { rw ←mul_one z },
+  have : z = z • (1 : R) := by simp only [mul_one, algebra.id.smul_eq_mul],
+  conv_lhs { rw this },
   rw ←smul_tprod_coeff',
   refl,
 end

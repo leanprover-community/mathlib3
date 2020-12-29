@@ -69,9 +69,9 @@ theorem is_simple_lattice_iff_is_simple_lattice_order_dual [bounded_lattice α] 
 begin
   split; intro i; haveI := i,
   { exact { exists_pair_ne := @exists_pair_ne α _,
-      eq_bot_or_eq_top := λ a, or.symm (@eq_bot_or_eq_top α _ _ a) } },
+      eq_bot_or_eq_top := λ a, or.symm (eq_bot_or_eq_top ((order_dual.of_dual a)) : _ ∨ _) } },
   { exact { exists_pair_ne := @exists_pair_ne (order_dual α) _,
-      eq_bot_or_eq_top := λ a, or.symm (@eq_bot_or_eq_top (order_dual α) _ _ a) } }
+      eq_bot_or_eq_top := λ a, or.symm (eq_bot_or_eq_top (order_dual.to_dual a)) } }
 end
 
 section is_simple_lattice

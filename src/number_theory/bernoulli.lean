@@ -39,7 +39,7 @@ To get the "minus" convention, just use `(-1)^n * bernoulli n`.
 There is no particular reason that the `+` convention was used.
 In some sense it's like choosing whether you want to sum over `fin n`
 (so `j < n`) or sum over `j ≤ n` (or `nat.antidagonal n`). Indeed
-$$(t+1)\sum_{j<n}j^t=\sum_{k\leq t}\binom{t+1}{k}B_k^{-}n^{t+1-k}$$
+$$(t+1)\sum_{j}j^t=\sum_{k\leq t}\binom{t+1}{k}B_k^{-}n^{t+1-k}$$
 and
 $$(t+1)\sum_{j\leq n}j^t=\sum_{k\leq t}\binom{t+1}{k}B_k^{+}n^{t+1-k}.$$
 

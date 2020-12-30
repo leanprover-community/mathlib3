@@ -151,7 +151,7 @@ begin
     ∥x∥ ≤ (∑'n, ∥u n∥) : norm_tsum_le_tsum_norm sNu
     ... ≤ (∑'n, (1/2)^n * (C * ∥y∥)) :
       tsum_le_tsum ule sNu (summable.mul_right _ summable_geometric_two)
-    ... = (∑'n, (1/2)^n) * (C * ∥y∥) : by { rw tsum_mul_right, exact summable_geometric_two }
+    ... = (∑'n, (1/2)^n) * (C * ∥y∥) : tsum_mul_right _ _
     ... = 2 * (C * ∥y∥) : by rw tsum_geometric_two
     ... = 2 * C * ∥y∥ + 0 : by rw [add_zero, mul_assoc]
     ... ≤ 2 * C * ∥y∥ + ∥y∥ : add_le_add (le_refl _) (norm_nonneg _)

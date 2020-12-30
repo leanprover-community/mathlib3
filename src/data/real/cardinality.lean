@@ -86,7 +86,7 @@ lemma cantor_function_succ (f : ℕ → bool) (h1 : 0 ≤ c) (h2 : c < 1) :
   cantor_function c f = cond (f 0) 1 0 + c * cantor_function c (λ n, f (n+1)) :=
 begin
   rw [cantor_function, tsum_eq_zero_add (summable_cantor_function f h1 h2)],
-  rw [cantor_function_aux_succ, tsum_mul_left _ (summable_cantor_function _ h1 h2)], refl
+  rw [cantor_function_aux_succ, tsum_mul_left], refl
 end
 
 /-- `cantor_function c` is strictly increasing with if `0 < c < 1/2`, if we endow `ℕ → bool` with a

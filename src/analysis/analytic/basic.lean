@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.formal_multilinear_series
 import analysis.specific_limits
@@ -28,8 +28,13 @@ for `n : ℕ`.
 
 * `p.radius`: the largest `r : ennreal` such that `∥p n∥ * r^n` grows subexponentially, defined as
   a liminf.
-* `p.le_radius_of_bound`, `p.bound_of_lt_radius`, `p.geometric_bound_of_lt_radius`: relating the
-  value of the radius with the growth of `∥p n∥ * r^n`.
+* `p.le_radius_of_bound`, `p.le_radius_of_bound_nnreal`, `p.le_radius_of_is_O`: if `∥p n∥ * r ^ n`
+  is bounded above, then `r ≤ p.radius`;
+* `p.is_o_of_lt_radius`, `p.norm_mul_pow_le_mul_pow_of_lt_radius`, `p.is_o_one_of_lt_radius`,
+  `p.norm_mul_pow_le_of_lt_radius`, `p.nnnorm_mul_pow_le_of_lt_radius`: if `r < p.radius`, then
+  `∥p n∥ * r ^ n` tends to zero exponentially;
+* `p.lt_radius_of_is_O`: if `r ≠ 0` and `∥p n∥ * r ^ n = O(a ^ n)` for some `-1 < a < 1`, then
+  `r < p.radius`;
 * `p.partial_sum n x`: the sum `∑_{i = 0}^{n-1} pᵢ xⁱ`.
 * `p.sum x`: the sum `∑'_{i = 0}^{∞} pᵢ xⁱ`.
 

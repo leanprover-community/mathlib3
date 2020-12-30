@@ -1,5 +1,6 @@
 import data.fintype.basic
 import data.set.finite
+import combinatorics.simple_graph.konig2
 import tactic
 
 open fintype
@@ -394,12 +395,8 @@ def combine_matchings [fintype α]
     { intro h,
       have h' := f'.injective h,
       simpa using h', },
-    { intro h,
-      exfalso,
-      exact ι_restrict.compl_matching_disj ι s f' f'' h, },
-    { intro h,
-      exfalso,
-      exact ι_restrict.compl_matching_disj ι s f' f'' h.symm, },
+    { exact λ h, false.elim (ι_restrict.compl_matching_disj ι s f' f'' h), },
+    { exact λ h, false.elim (ι_restrict.compl_matching_disj ι s f' f'' h.symm), },
     { intro h,
       have h' := f''.injective h,
       simpa using h', },
@@ -465,4 +462,204 @@ begin
     exact hall_hard_inductive ι (card α) rfl hr, },
   { rintros ⟨f⟩,
     exact f.card_le_card_bind, },
+end
+
+noncomputable
+instance [fintype α] : fintype (matching ι) :=
+begin
+  let β' := finset.univ.bind ι,
+  haveI : fintype (α → (β' : set β)) := by apply_instance,
+  let f : matching ι → (α → (β' : set β)) :=
+    λ m a, ⟨m.f a, begin simp [finset.mem_bind], use a, apply m.mem_prod, end⟩,
+  have finj : injective f,
+  { intros x y h,
+    ext a,
+    have h' := congr_fun h a,
+    simp only [matching.eq_coe, subtype.mk_eq_mk] at h',
+    exact h', },
+  apply fintype.of_injective f finj,
+end
+
+section infinite_hall
+
+def fin_restrict (h : ℕ ≃ α) (n : ℕ) : fin n → finset β := λ k, ι (h k)
+
+lemma fin_restrict_matching_nonempty (h : ℕ ≃ α)
+  (hr : ∀ (s : finset α), s.card ≤ (s.bind ι).card)
+  (n : ℕ) :
+  nonempty (matching (fin_restrict ι h n)) :=
+begin
+  rw ←hall,
+  intro s,
+  specialize hr (s.image (λ n, h n)),
+  rw finset.card_image_of_injective at hr,
+  swap,
+  { rintros ⟨x, hx⟩ ⟨y, hy⟩ h,
+    simpa using h, },
+  convert hr,
+  ext b,
+  simp only [fin_restrict, exists_prop, finset.mem_bind,
+             exists_exists_and_eq_and, finset.mem_image],
+end
+
+@[simps]
+def matching_restrict (h : ℕ ≃ α) (n : ℕ)
+  (M : matching (fin_restrict ι h n)) : matching (fin_restrict ι h n.pred) :=
+{ f := λ k, M.f ⟨k, begin cases k, simp, cases n, omega, simp at k_property, omega, end⟩,
+  mem_prod' := begin
+    intro a,
+    apply M.mem_prod,
+  end,
+  injective' := begin
+    rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+    simpa using hxy,
+  end }
+
+@[simps]
+noncomputable
+lemma fin_restrict_inverse_system (h : ℕ ≃ α) :
+  inv_system (Σ (n : ℕ), matching (fin_restrict ι h n)) :=
+{ ι := λ n, by { classical, exact (finset.univ : finset _).image (λ x, ⟨n, x⟩) },
+  f := λ M, begin
+    cases M with n M,
+    exact ⟨n.pred, matching_restrict ι h n M⟩,
+  end,
+  fprop := begin
+    rintros n ⟨n', M⟩,
+    simp,
+    rintro rfl,
+    simp,
+  end }
+
+noncomputable
+def limit_of_limit (h : ℕ ≃ α) (L : (fin_restrict_inverse_system ι h).limit) (a : α) : β :=
+begin
+  apply (L.s (h.symm a).succ).snd ⟨h.symm a, _⟩,
+  have Lsmem := L.s_mem (h.symm a).succ,
+  simp at Lsmem,
+  cases Lsmem,
+  rw ←Lsmem_h,
+  simp only,
+  exact lt_add_one _,
+end
+
+lemma limit_of_limit_mem (h : ℕ ≃ α) (L : (fin_restrict_inverse_system ι h).limit) (a : α) :
+  limit_of_limit ι h L a ∈ ι a :=
+begin
+  simp [limit_of_limit],
+  have key : ∀ (n : ℕ) (x) (hx : x = L.s n.succ) (hlt : n < x.fst), x.snd ⟨n, hlt⟩ ∈ ι (h n),
+  { intros,
+    cases x,
+    cases L,
+    dsimp,
+    dsimp at hlt,
+    dsimp at hx,
+    specialize L_s_mem n.succ,
+    simp at L_s_mem,
+    rw ←hx at L_s_mem,
+    simp at L_s_mem,
+    rcases L_s_mem with ⟨rfl, M, hm⟩,
+    simp at hm,
+    subst x_snd,
+    apply M.mem_prod', },
+  specialize key (h.symm a) (L.s (h.symm a).succ) rfl,
+  dsimp at key,
+  convert key _,
+  rw equiv.apply_symm_apply,
+end
+
+lemma limit_fst (h : ℕ ≃ α) (L : (fin_restrict_inverse_system ι h).limit) (n : ℕ) :
+  (L.s n).fst = n :=
+begin
+  cases L,
+  dsimp,
+  specialize L_s_mem n,
+  simp at L_s_mem,
+  cases L_s_mem with M hM,
+  rw ←hM,
+end
+
+lemma limit_of_limit_eq' (h : ℕ ≃ α) (L : (fin_restrict_inverse_system ι h).limit) (a : α) (k : ℕ)
+  (ha : h.symm a < h.symm a + k.succ) :
+  limit_of_limit ι h L a = (L.s (h.symm a + k.succ)).snd ⟨h.symm a, by { convert ha, apply limit_fst }⟩ :=
+begin
+  have key : ∀ (x y : Σ (n : ℕ), matching (fin_restrict ι h n)) (hh : x = y) (m : ℕ) (h : m < x.fst),
+    x.snd ⟨m, h⟩ = y.snd ⟨m, by rwa ←hh⟩,
+  { rintros x y rfl m h, refl, },
+  simp [limit_of_limit],
+  induction k,
+  refl,
+  simp at k_ih,
+  rw k_ih,
+  have hlim := L.is_lim (h.symm a + k_n.succ),
+  simp at hlim,
+  generalize' h2 : L.s (h.symm a + k_n.succ.succ) = L2,
+  generalize' h1 : L.s (h.symm a + k_n.succ) = L1,
+  rw [h1, h2] at hlim,
+  cases L1, cases L2,
+  simp at hlim,
+  cases hlim,
+  subst L1_fst,
+  simp at hlim_right,
+  subst L1_snd,
+  rw key _ _ h1,
+  rw key _ _ h2,
+  refl,
+end
+
+lemma limit_of_limit_eq (h : ℕ ≃ α) (L : (fin_restrict_inverse_system ι h).limit) (a : α) (n : ℕ)
+  (ha : h.symm a < n) :
+  limit_of_limit ι h L a = (L.s n).snd ⟨h.symm a, by { convert ha, apply limit_fst }⟩ :=
+begin
+  have key : ∀ (x y : Σ (n : ℕ), matching (fin_restrict ι h n)) (hh : x = y) (m : ℕ) (h : m < x.fst),
+    x.snd ⟨m, h⟩ = y.snd ⟨m, by rwa ←hh⟩,
+  { rintros x y rfl m h, refl, },
+  have hn : n = h.symm a + (n - (h.symm a).succ).succ := by omega,
+  rw key _ _ (congr_arg L.s hn),
+  apply limit_of_limit_eq',
+  omega,
+end
+
+end infinite_hall
+
+theorem infinite_hall (h : ℕ ≃ α) :
+  (∀ (s : finset α), s.card ≤ (s.bind ι).card) ↔ nonempty (matching ι) :=
+begin
+  split,
+  swap,
+  { rintro ⟨f⟩,
+    exact f.card_le_card_bind, },
+  intro hr,
+  haveI : ∀ (n : ℕ), nonempty (matching (fin_restrict ι h n)) :=
+    fin_restrict_matching_nonempty ι h hr,
+  let S : inv_system _ := fin_restrict_inverse_system ι h,
+  have key := S.exists_if_finite_and_nonempty _,
+  swap,
+  { intro n,
+    simp [S],
+    rw finset.univ_nonempty_iff,
+    apply_instance, },
+  rcases key with ⟨L⟩,
+  fsplit,
+  fsplit,
+  { intro a,
+    exact limit_of_limit ι h L a, },
+  { intro a,
+    apply limit_of_limit_mem, },
+  { intros x y hxy,
+    let n := (max (h.symm x) (h.symm y)).succ,
+    rw limit_of_limit_eq ι h L x n
+      (lt_of_le_of_lt (le_max_left (h.symm x) (h.symm y)) (lt_add_one _)) at hxy,
+    rw limit_of_limit_eq ι h L y n
+      (lt_of_le_of_lt (le_max_right (h.symm x) (h.symm y)) (lt_add_one _)) at hxy,
+    cases L,
+    dsimp at hxy,
+    have key : injective (L_s n).snd,
+    { generalize hL : L_s n = Lsn,
+      cases Lsn,
+      cases Lsn_snd,
+      exact Lsn_snd_injective', },
+    have key' := key hxy,
+    simp at key',
+    exact key', },
 end

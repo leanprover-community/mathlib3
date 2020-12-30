@@ -189,8 +189,6 @@ begin
   refl,
 end
 
-end inv_system
-
 def mk_lim (f : ℕ → α → α)
   (hf : ∀ (n : ℕ) (a : α), a ∈ ι n → f n a ∈ ι n.succ ∧ a = ι.f (f n a))
   (a₀ : α) (h₀ : a₀ ∈ ι 0) : Π (n : ℕ), {a // a ∈ ι n}
@@ -198,7 +196,7 @@ def mk_lim (f : ℕ → α → α)
 | (n+1) := let v := mk_lim n in ⟨f n v.1, (hf n v.1 v.2).1⟩
 
 /-- Konig's lemma for inverse systems -/
-lemma inv_lim_exists_if_finite_and_nonempty (hne : ∀ n, (ι n).nonempty) :
+lemma exists_if_finite_and_nonempty (hne : ∀ n, (ι n).nonempty) :
   nonempty ι.limit :=
 begin
   let ι' := ι.restrict_very_extendable,
@@ -237,3 +235,33 @@ begin
     simp [mk_lim],
     exact (hf _ _ (f'sub n)).2.symm, },
 end
+
+end inv_system
+
+/-
+structure inv_system' :=
+(ι : ℕ → Type u)
+(f' : Π (n : ℕ), ι n.succ → ι n)
+
+instance : has_coe_to_fun inv_system' := ⟨_, inv_system'.ι⟩
+
+def inv_system'.f (ι : inv_system') {n : ℕ} (x : ι n.succ) : ι n := ι.f' n x
+
+@[simp] lemma inv_system'.eq_coe (S : inv_system') : S.ι = S := rfl
+
+/-- Type of all limits of the inverse system. -/
+structure inv_system'.limit {α : Type u} (ι : inv_system') :=
+(s : Π (n : ℕ), ι n)
+(is_lim : ∀ (n : ℕ), ι.f (s n.succ) = s n)
+
+lemma inv_system'.exists_if_finite_and_nonempty (ι : inv_system'.{u})
+  [∀ n, nonempty (ι n)] [∀ n, fintype (ι n)] :
+  nonempty ι.limit :=
+begin
+  classical,
+  let α' := Σ (n : ℕ), ι n,
+  let ι' : inv_system α' :=
+  { ι := λ n, begin have aa := (finset.univ : finset (ι n)).image (λ x, x), end,
+    f := begin end,
+    fprop := begin end },
+end-/

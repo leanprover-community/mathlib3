@@ -96,8 +96,8 @@ begin
   exact card_lt_card (erase_ssubset $ nat_degree_mem_support_of_nonzero h)
 end
 
-lemma erase_lead_card_support_eq {R : Type*} [semiring R] {c : ℕ} {f : polynomial R}
-  (f0 : f.support.card = c.succ) :
+lemma erase_lead_card_support {R : Type*} [semiring R] {c : ℕ} {f : polynomial R}
+  (f0 : f.support.card = c + 1) :
   f.erase_lead.support.card = c :=
 begin
   rw [erase_lead_support, card_erase_of_mem],

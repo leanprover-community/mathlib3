@@ -684,8 +684,15 @@ nnnorm_hom.to_monoid_hom.map_pow a n
   ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=
 (norm_hom.to_monoid_hom : α →* ℝ).map_prod f s
 
+@[simp] lemma nnnorm_prod (s : finset β) (f : β → α) :
+  nnnorm (∏ b in s, f b) = ∏ b in s, nnnorm (f b) :=
+(nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_prod f s
+
 @[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ :=
 (norm_hom : monoid_with_zero_hom α ℝ).map_div a b
+
+@[simp] lemma nnnorm_div (a b : α) : nnnorm (a / b) = nnnorm a / nnnorm b :=
+(nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_div a b
 
 @[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
 (norm_hom : monoid_with_zero_hom α ℝ).map_inv' a
@@ -696,24 +703,25 @@ nnreal.eq $ by simp
 @[simp] lemma norm_fpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n :=
 (norm_hom : monoid_with_zero_hom α ℝ).map_fpow
 
+@[simp] lemma nnnorm_fpow : ∀ (a : α) (n : ℤ), nnnorm (a^n) = (nnnorm a)^n :=
+(nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_fpow
+
 @[priority 100] -- see Note [lower instance priority]
 instance : has_continuous_inv' α :=
 begin
   refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
   rcases exists_between r0' with ⟨ε, ε0, εr⟩,
-  have : ∀ᶠ e in 𝓝 r, ∥e⁻¹ - r⁻¹∥ ≤ ∥r - e∥ / (∥r∥ * ε),
+  have : ∀ᶠ e in 𝓝 r, ∥e⁻¹ - r⁻¹∥ ≤ ∥r - e∥ / ∥r∥ / ε,
   { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr],
     intros e he,
     have e0 : e ≠ 0 := norm_pos_iff.1 (ε0.trans he),
-    calc ∥e⁻¹ - r⁻¹∥ = ∥r - e∥ / (∥r∥ * ∥e∥) :
-      by simp only [← norm_div, ← norm_mul, sub_div, div_mul_right _ r0, div_mul_left e0, one_div]
-    ... ≤ ∥r - e∥ / (∥r∥ * ε) :
-      div_le_div_of_le_left (norm_nonneg _) (mul_pos r0' ε0)
-        (mul_le_mul_of_nonneg_left he.le r0'.le) },
+    calc ∥e⁻¹ - r⁻¹∥ = ∥r - e∥ / ∥r∥ / ∥e∥ : by field_simp [mul_comm]
+    ... ≤ ∥r - e∥ / ∥r∥ / ε :
+      div_le_div_of_le_left (div_nonneg (norm_nonneg _) (norm_nonneg _)) ε0 he.le },
   refine squeeze_zero' (eventually_of_forall $ λ _, norm_nonneg _) this _,
-  rw [← zero_div (∥r∥ * ε), ← @norm_zero α, ← sub_self r],
-  exact tendsto.mul (tendsto_const_nhds.sub tendsto_id).norm tendsto_const_nhds
+  refine (continuous_const.sub continuous_id).norm.div_const.div_const.tendsto' _ _ _,
+  simp
 end
 
 end normed_field

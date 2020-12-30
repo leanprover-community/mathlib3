@@ -15,11 +15,11 @@ number theory.
 ## Mathematical overview
 
 The Bernoulli numbers $(B_0, B_1, B_2, \ldots)=(1, 1/2, 1/6, 0, -1/30, \ldots)$ are
-a sequence of rational numbers. They show up in the formula for the the sum
-of the first $n$ `k`th powers, they are related to the Taylor series of
-trigonometric and hyperbolic functions such as $x/tan(x)$, and also show up in the values
-that the Riemann Zeta function takes both at both negative and positive integers.
-For example If $1 \leq n$ is even then
+a sequence of rational numbers. They show up in the formula for the sums of $k$th
+powers. They are related to the Taylor series expansions of $x/\tan(x)$ and
+of $\coth(x)$, and also show up in the values that the Riemann Zeta function
+takes both at both negative and positive integers (and hence in the
+theory of modular forms). For example If $1 \leq n$ is even then
 
 $$\zeta(2n)=\sum_{t\geq1}t^{-2n}=(-1)^{n+1}\frac{(2\pi)^{2n}B_{2n}}{2(2n)!}.$$
 
@@ -44,7 +44,7 @@ well_founded.fix nat.lt_wf
   (λ n bernoulli, 1 - ∑ k : fin n, (n.choose k) * bernoulli k k.2 / (n + 1 - k))
 ```
 
-The formal definition has the property that `bernoulli 0 = 1`
+Setting `n = 0` we deduce that `bernoulli 1 = 0` and one can go on from there.
 
 ## Main theorems
 

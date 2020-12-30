@@ -1601,8 +1601,8 @@ ball_congr $ λ x hl, imp_congr lt_succ_iff iff.rfl
 /-! ### find -/
 
 theorem find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
-    (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
-    nat.find hp ≤ nat.find hq :=
+  (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
+  nat.find hp ≤ nat.find hq :=
 nat.find_min' _ ((h _) (nat.find_spec hq))
 
 end nat

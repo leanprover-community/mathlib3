@@ -286,6 +286,15 @@ continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_const_mul (or.inl h
 protected lemma continuous_mul_const {a : ennreal} (ha : a ≠ ⊤) : continuous (λ x, x * a) :=
 continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_mul_const (or.inl ha)
 
+lemma le_of_forall_lt_one_mul_le {x y : ennreal} (h : ∀ a < 1, a * x ≤ y) : x ≤ y :=
+begin
+  have : tendsto (* x) (𝓝[Iio 1] 1) (𝓝 (1 * x)) :=
+    (ennreal.continuous_at_mul_const (or.inr one_ne_zero)).mono_left inf_le_left,
+  rw one_mul at this,
+  haveI : (𝓝[Iio 1] (1 : ennreal)).ne_bot := nhds_within_Iio_self_ne_bot' ennreal.zero_lt_one,
+  exact le_of_tendsto this (eventually_nhds_within_iff.2 $ eventually_of_forall h)
+end
+
 lemma infi_mul_left {ι} [nonempty ι] {f : ι → ennreal} {a : ennreal}
   (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
   (⨅ i, a * f i) = a * ⨅ i, f i :=

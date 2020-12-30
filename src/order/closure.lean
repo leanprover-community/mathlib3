@@ -88,6 +88,7 @@ lemma closure_is_closed (x : α) : c x ∈ c.closed := c.idempotent x
 lemma closed_eq_range_close : c.closed = set.range c :=
 set.ext $ λ x, ⟨λ h, ⟨x, h⟩, by { rintro ⟨y, rfl⟩, apply c.idempotent }⟩
 
+/-- Send an `x` to an element of the set of closed elements (by taking the closure). -/
 def to_closed (x : α) : c.closed := ⟨c x, c.closure_is_closed x⟩
 
 lemma top_mem_closed {α : Type u} [order_top α] (c : closure_operator α) : ⊤ ∈ c.closed :=
@@ -96,6 +97,7 @@ c.closure_top
 lemma closure_le_closed_iff_le {x y : α} (hy : c.closed y) : x ≤ y ↔ c x ≤ y :=
 by rw [← c.closure_eq_self_of_mem_closed hy, le_closure_iff]
 
+/-- The set of closed elements has a galois insertion to the underlying type. -/
 def gi : galois_insertion c.to_closed coe :=
 { choice := λ x hx, ⟨x, le_antisymm hx (c.le_closure x)⟩,
   gc := λ x y, (c.closure_le_closed_iff_le y.2).symm,

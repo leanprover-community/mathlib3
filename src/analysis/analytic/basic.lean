@@ -638,9 +638,6 @@ begin
     (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :
       begin
         rw tsum_mul_right,
-        convert p.change_origin_summable_aux3 k h,
-        ext ⟨_, _, _⟩,
-        refl
       end
   ... = tsum (A ∘ change_origin_summable_aux_j k) :
     begin

@@ -1782,8 +1782,12 @@ submodule.sup_orthogonal_of_is_complete (complete_space_coe_iff_is_complete.mp �
 /-- If `K` is complete, any `v` in `E` can be expressed as a sum of elements of `K` and
 `K.orthogonal`. -/
 lemma submodule.exists_sum_mem_mem_orthogonal (K : submodule 𝕜 E) [complete_space K] (v : E) :
-  ∃ (y ∈ K) (z ∈ K.orthogonal), y + z = v :=
-by { rw [← submodule.mem_sup], simp [submodule.sup_orthogonal_of_complete_space] }
+  ∃ (y ∈ K) (z ∈ K.orthogonal), v = y + z :=
+begin
+  have h_mem : v ∈ K ⊔ K.orthogonal := by simp [submodule.sup_orthogonal_of_complete_space],
+  obtain ⟨y, hy, z, hz, hyz⟩ := submodule.mem_sup.mp h_mem,
+  exact ⟨y, hy, z, hz, hyz.symm⟩
+end
 
 /-- If `K` is complete, then the orthogonal complement of its orthogonal complement is itself. -/
 @[simp] lemma submodule.orthogonal_orthogonal (K : submodule 𝕜 E) [complete_space K] :
@@ -1791,12 +1795,12 @@ by { rw [← submodule.mem_sup], simp [submodule.sup_orthogonal_of_complete_spac
 begin
   ext v,
   split,
-  { obtain ⟨y, hy, z, hz, hvyz⟩ := K.exists_sum_mem_mem_orthogonal v,
+  { obtain ⟨y, hy, z, hz, rfl⟩ := K.exists_sum_mem_mem_orthogonal v,
     intros hv,
     have hz' : z = 0,
     { have hyz : ⟪z, y⟫ = 0 := by simp [hz y hy, inner_eq_zero_sym],
-      simpa [← hvyz, inner_add_right, hyz] using hv z hz },
-    simp [← hvyz, hy, hz'] },
+      simpa [inner_add_right, hyz] using hv z hz },
+    simp [hy, hz'] },
   { intros hv w hw,
     rw inner_eq_zero_sym,
     exact hw v hv }

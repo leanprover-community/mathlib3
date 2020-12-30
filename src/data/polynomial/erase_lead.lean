@@ -96,6 +96,19 @@ begin
   exact card_lt_card (erase_ssubset $ nat_degree_mem_support_of_nonzero h)
 end
 
+lemma erase_lead_card_support_eq {R : Type*} [semiring R] {c : ℕ} {f : polynomial R}
+  (f0 : f.support.card = c.succ) :
+  f.erase_lead.support.card = c :=
+begin
+  rw [erase_lead_support, card_erase_of_mem],
+  { exact nat.pred_eq_of_eq_succ f0 },
+  { rw nat_degree_eq_support_max',
+    refine f.support.max'_mem (nonempty_support_iff.mpr _),
+    { rintro rfl,
+      rw [support_zero, card_empty] at f0,
+      exact (not_le.mpr (nat.succ_pos c)) (eq.ge f0) } }
+end
+
 @[simp] lemma erase_lead_monomial (i : ℕ) (r : R) :
   erase_lead (monomial i r) = 0 :=
 begin

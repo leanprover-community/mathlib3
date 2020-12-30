@@ -104,9 +104,9 @@ begin
   { exact nat.pred_eq_of_eq_succ f0 },
   { rw nat_degree_eq_support_max',
     refine f.support.max'_mem (nonempty_support_iff.mpr _),
-    { rintro rfl,
-      rw [support_zero, card_empty] at f0,
-      exact (not_le.mpr (nat.succ_pos c)) (eq.ge f0) } }
+    rintro rfl,
+    rw [support_zero, card_empty] at f0,
+    exact (not_le.mpr c.succ_pos) f0.ge }
 end
 
 @[simp] lemma erase_lead_monomial (i : ℕ) (r : R) :

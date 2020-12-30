@@ -37,12 +37,14 @@ begin
       ennreal.coe_le_one_iff, one_div, ← nnreal.rpow_one r, ← mul_inv_cancel this.ne',
       nnreal.rpow_mul, ← nnreal.mul_rpow, ← nnreal.one_rpow (n⁻¹),
       nnreal.rpow_le_rpow_iff (inv_pos.2 this), mul_comm, nnreal.rpow_nat_cast] } },
-  apply le_antisymm;
-    refine le_of_forall_ge_of_dense (λ r hr, _); lift r to ℝ≥0 using (ne_top_of_lt hr),
-  { rcases ((p.lt_radius_tfae' r).out 0 3).mp (p.geometric_bound_of_lt_radius hr) with ⟨a, ha, H⟩,
+  apply le_antisymm; refine ennreal.le_of_forall_nnreal_lt (λ r hr, _),
+  { rcases ((tfae_exists_lt_is_o_pow (λ n, ∥p n∥ * r ^ n) 1).out 1 7).1 (p.is_o_of_lt_radius hr)
+      with ⟨a, ha, H⟩,
     refine le_Liminf_of_le (by apply_auto_param) (eventually_map.2 $ _),
-    refine H.mp ((eventually_gt_at_top 0).mono $ λ n hn₀ hn, (this _ hn₀).2 (hn.trans _)),
-    exact pow_le_one _ ha.1.le ha.2.le },
+    refine H.mp ((eventually_gt_at_top 0).mono $ λ n hn₀ hn, (this _ hn₀).2
+      (nnreal.coe_le_coe.1 _)),
+    push_cast,
+    exact (le_abs_self _).trans (hn.trans (pow_le_one _ ha.1.le ha.2.le)) },
   { refine p.le_radius_of_is_O (is_O.of_bound 1 _),
     refine (eventually_lt_of_lt_liminf hr).mp ((eventually_gt_at_top 0).mono (λ n hn₀ hn, _)),
     simpa using nnreal.coe_le_coe.2 ((this _ hn₀).1 hn.le) }

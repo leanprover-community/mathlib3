@@ -656,6 +656,18 @@ lemma summable_mul_left_iff (h : a ≠ 0) : summable f ↔ summable (λb, a * f 
 lemma summable_mul_right_iff (h : a ≠ 0) : summable f ↔ summable (λb, f b * a) :=
 ⟨λ H, H.mul_right _, λ H, by simpa only [mul_inv_cancel_right' h] using H.mul_right a⁻¹⟩
 
+lemma tsum_mul_left' [t2_space α] : (∑' x, a * f x) = a * ∑' x, f x :=
+if hf : summable f then tsum_mul_left a hf
+else if ha : a = 0 then by simp [ha]
+else by rw [tsum_eq_zero_of_not_summable hf,
+  tsum_eq_zero_of_not_summable (mt (summable_mul_left_iff ha).2 hf), mul_zero]
+
+lemma tsum_mul_right' [t2_space α] : (∑' x, f x * a) = (∑' x, f x) * a :=
+if hf : summable f then tsum_mul_right a hf
+else if ha : a = 0 then by simp [ha]
+else by rw [tsum_eq_zero_of_not_summable hf,
+  tsum_eq_zero_of_not_summable (mt (summable_mul_right_iff ha).2 hf), zero_mul]
+
 end division_ring
 
 section order_topology
@@ -713,17 +725,23 @@ le_has_sum (summable.has_sum hf) b hb
 lemma tsum_le_tsum (h : ∀b, f b ≤ g b) (hf : summable f) (hg : summable g) : (∑'b, f b) ≤ (∑'b, g b) :=
 has_sum_le h hf.has_sum hg.has_sum
 
+lemma has_sum.nonneg (h : ∀ b, 0 ≤ g b) (ha : has_sum g a) : 0 ≤ a :=
+has_sum_le h has_sum_zero ha
+
+lemma has_sum.nonpos (h : ∀ b, g b ≤ 0) (ha : has_sum g a) : a ≤ 0 :=
+has_sum_le h ha has_sum_zero
+
 lemma tsum_nonneg (h : ∀ b, 0 ≤ g b) : 0 ≤ (∑'b, g b) :=
 begin
   by_cases hg : summable g,
-  { simpa using tsum_le_tsum h summable_zero hg },
+  { exact hg.has_sum.nonneg h },
   { simp [tsum_eq_zero_of_not_summable hg] }
 end
 
 lemma tsum_nonpos (h : ∀ b, f b ≤ 0) : (∑'b, f b) ≤ 0 :=
 begin
   by_cases hf : summable f,
-  { simpa using tsum_le_tsum h hf summable_zero},
+  { exact hf.has_sum.nonpos h },
   { simp [tsum_eq_zero_of_not_summable hf] }
 end
 

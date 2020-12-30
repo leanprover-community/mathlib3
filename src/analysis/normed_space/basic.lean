@@ -286,6 +286,9 @@ by rw [edist_dist, dist_eq_norm, of_real_norm_eq_coe_nnnorm]
 lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (nnnorm x : ennreal) :=
 by rw [edist_eq_coe_nnnorm_sub, _root_.sub_zero]
 
+lemma mem_emetric_ball_0_iff {x : β} {r : ennreal} : x ∈ emetric.ball (0 : β) r ↔ ↑(nnnorm x) < r :=
+by rw [emetric.mem_ball, edist_eq_coe_nnnorm]
+
 lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : α) :
   nndist (g₁ + g₂) (h₁ + h₂) ≤ nndist g₁ h₁ + nndist g₂ h₂ :=
 nnreal.coe_le_coe.2 $ dist_add_add_le g₁ g₂ h₁ h₂

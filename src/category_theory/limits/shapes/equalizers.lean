@@ -769,9 +769,10 @@ variables {C} [split_mono f]
 A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
 Here we build the cone, and show in `split_mono_equalizes` that it is a limit cone.
 -/
-@[simps]
+@[simps {rhs_md := semireducible}]
 def cone_of_split_mono : cone (parallel_pair (𝟙 Y) (retraction f ≫ f)) :=
 fork.of_ι f (by simp)
+
 
 /--
 A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
@@ -792,7 +793,7 @@ variables {C} [split_epi f]
 A split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
 Here we build the cocone, and show in `split_epi_coequalizes` that it is a colimit cocone.
 -/
-@[simps]
+@[simps {rhs_md := semireducible}]
 def cocone_of_split_epi : cocone (parallel_pair (𝟙 X) (f ≫ section_ f)) :=
 cofork.of_π f (by simp)
 

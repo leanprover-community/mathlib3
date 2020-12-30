@@ -66,7 +66,10 @@ end
 def opp_c {i : fin 2} : subtype ({i} : set (fin 2))ᶜ :=
 ⟨ if i = 0 then (1 : fin 2) else (0 : fin 2),
   begin
-    have : ¬ (1 : fin 2) = 0 := sorry,
+    have : ¬ (1 : fin 2) = 0,
+    {
+      simp,
+    },
     cases split_fin2 i,
     { rw h,
       exact this },
@@ -174,8 +177,43 @@ lemma box_volume_eq (a b : fin 2 → ℝ) :
 begin
   rw box_volume,
 
+  let s : finset (fin 2) := {(1 : fin 2) }ᶜ,
+
+  have univIs : finset.univ = insert (1: fin 2) s,
+  {
+    ext x,
+    simp,
+    -- ALEX HOMEWORK
+    sorry,
+  },
+
+
+  have :
+  ∏ i in finset.univ, (b i - a i) = (b 1 - a 1) * ∏ i in  s , (b i - a i),
+  {
+    rw univIs,
+    refine finset.prod_insert _,
+    simp [s],
+  },
+
+  rw this,
+
+  have sIs : s = {(0 : fin 2)},
+  {
+    simp [s],
+    ext x,
+    simp,
+    -- ALEX HOMEWORK
+--    rw eq_zero_of_ne_one,
+    sorry,
+  },
+
+  rw sIs,
+
+  rw finset.prod_singleton,
+  ring,
+
   -- HOW TO GET ∏ to know there are two terms???
-  sorry,
 end
 
 lemma box_line_integral_linear (u: (fin 2→ ℝ ) →L[ℝ] ℝ ) (i : fin 2) (a b : fin 2 → ℝ) :
@@ -548,8 +586,8 @@ def rectangle' {n : ℕ} (a b : fin n → ℝ) : set (fin n → ℝ) := λ x, �
 
 /-! A hyperplane divides a box in `fin n → ℝ` into smaller boxes. -/
 
-lemma covers (n : ℕ)  (i : fin n)
-  (p q a : fin n → ℝ) : p i ≤ a i → a i ≤ q i →
+lemma covers {n : ℕ}  {i : fin n}
+  {p q a : fin n → ℝ} : p i ≤ a i → a i ≤ q i →
   rectangle' p q =
     rectangle' p (update q i (a i)) ∪
       rectangle' (update p i (a i)) q :=
@@ -757,23 +795,60 @@ begin
   rw box_integral,
   rw rectangle,
 
+  -- HEATHER ?
+
+  calc
+  ∫ (x : ℝ × ℝ) in (Ioc (a 0) (b 0)).prod (Ioc (a 1) (b 1)), cU ∂volume.prod volume
+  = cU * ∫ (x : ℝ × ℝ) in (Ioc (a 0) (b 0)).prod (Ioc (a 1) (b 1)), 1 ∂volume.prod volume  : _
+ -- ... = cU * ((∂volume.prod volume) ((Ioc (a 0) (b 0)).prod (Ioc (a 1) (b 1)))): _
+  ... = cU * box_volume a b : _,
+
+  {
+    sorry,
+  },
+
+  {
+    sorry,
+  },
+
+--  refine measure_theory.integral_smul _ _,
+
 --  rw measure_theory.integral_prod ,
 
 --  refine interval_integral.integral_const_of_cdf,
 
 
 --  rw interval_integral.integral_const_of_cdf,
-  sorry,
+--  sorry,
+
 end
 
-lemma box_integral_ineq ( P Q : (fin 2 → ℝ ) →  ℝ)  (a b : fin 2 → ℝ) :
-  (∀ x, (foo'' x) ∈ (rectangle a b) → P x ≤  Q x) → box_integral P a b ≤   box_integral Q a b  :=
+#check pi.le_def
+
+example : partial_order ((fin 2 → ℝ ) →  ℝ) := pi.partial_order
+
+lemma box_integral_ineq ( P Q : (fin 2 → ℝ ) →  ℝ)  (a b : fin 2 → ℝ) (h : P ≤ Q) :
+   box_integral P a b ≤   box_integral Q a b  :=
 begin
-  intros,
   -- ALEX TO DO
   --- ???? Abstract measure inequality??
   rw box_integral,
   rw box_integral,
+
+  have :  (P ∘ (((foo' ℝ ℝ).symm))) ≤ Q ∘  ((foo' ℝ ℝ).symm) ,
+  {
+    rw pi.le_def,
+--    hint,
+--    library_search,
+--    cases,
+  --  intros,
+
+--    ext x,
+
+    sorry,
+  },
+
+  refine  measure_theory.integral_mono _ _ h,
 
 --  rw interval_integral.integral_const_of_cdf,
   sorry,
@@ -809,9 +884,10 @@ begin
             rectangle (update I.left i (a i)) I.right),
     { rw [← rectangle_eq, ← rectangle_eq, ← rectangle_eq],
       rw ← preimage_union,
-      -- THIS IS NOW BROKEN - SORRY! -- need to give pi≤ ai≤ qi ...
-      --rw covers
-      sorry,
+      cases ha,
+      have ha1 := ha_left i,
+      have ha2 := ha_right i,
+      rw covers ha1 ha2 ,
       },
     rw this },
   { rw [← rectangle_eq, ← rectangle_eq],

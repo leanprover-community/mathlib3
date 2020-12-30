@@ -1039,23 +1039,12 @@ mul_comm a a⁻¹ ▸ mul_inv_cancel h0 ht
 lemma mul_le_iff_le_inv {a b r : ennreal} (hr₀ : r ≠ 0) (hr₁ : r ≠ ∞) : (r * a ≤ b ↔ a ≤ r⁻¹ * b) :=
 by rw [← @ennreal.mul_le_mul_left _ a _ hr₀ hr₁, ← mul_assoc, mul_inv_cancel hr₀ hr₁, one_mul]
 
-lemma le_of_forall_lt_one_mul_lt : ∀{x y : ennreal}, (∀a<1, a * x ≤ y) → x ≤ y :=
-forall_ennreal.2 $ and.intro
-  (assume r, forall_ennreal.2 $ and.intro
-    (assume q h, coe_le_coe.2 $ nnreal.le_of_forall_lt_one_mul_lt $ assume a ha,
-      begin rw [← coe_le_coe, coe_mul], exact h _ (coe_lt_coe.2 ha) end)
-    (assume h, le_top))
-  (assume r hr,
-    have ((1 / 2 : ℝ≥0) : ennreal) * ∞ ≤ r :=
-      hr _ (coe_lt_coe.2 ((@nnreal.coe_lt_coe (1/2) 1).1 one_half_lt_one)),
-    have ne : ((1 / 2 : ℝ≥0) : ennreal) ≠ 0,
-    begin
-      rw [(≠), coe_eq_zero],
-      refine zero_lt_iff_ne_zero.1 _,
-      show 0 < (1 / 2 : ℝ),
-      linarith,
-    end,
-    by rwa [mul_top, if_neg ne] at this)
+lemma le_of_forall_nnreal_lt {x y : ennreal} (h : ∀ r : ℝ≥0, ↑r < x → ↑r ≤ y) : x ≤ y :=
+begin
+  refine le_of_forall_ge_of_dense (λ r hr, _),
+  lift r to ℝ≥0 using ne_top_of_lt hr,
+  exact h r hr
+end
 
 lemma div_add_div_same {a b c : ennreal} : a / c + b / c = (a + b) / c :=
 eq.symm $ right_distrib a b (c⁻¹)

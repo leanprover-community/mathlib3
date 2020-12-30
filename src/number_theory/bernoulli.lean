@@ -36,6 +36,13 @@ Note that $B_1=+1/2$, meaning that we are using the $B_n^+$ of
 https://en.wikipedia.org/wiki/Bernoulli_number .
 To get the "minus" convention, just use `(-1)^n * bernoulli n`.
 
+There is no particular reason that the `+` convention was used.
+In some sense it's like choosing whether you want to sum over `fin n`
+(so `j < n`) or sum over `j ≤ n` (or `nat.antidagonal n`). Indeed
+$$(t+1)\sum_{j<n}j^t=\sum_{k\leq t}\binom{t+1}{k}B_k^{-}n^{t+1-k}$$
+and
+$$(t+1)\sum_{j\leq n}j^t=\sum_{k\leq t}\binom{t+1}{k}B_k^{+}n^{t+1-k}.$$
+
 ## Implementation detail
 
 ```
@@ -44,7 +51,7 @@ well_founded.fix nat.lt_wf
   (λ n bernoulli, 1 - ∑ k : fin n, (n.choose k) * bernoulli k k.2 / (n + 1 - k))
 ```
 
-Setting `n = 0` we deduce that `bernoulli 1 = 0` and one can go on from there.
+Setting `n = 0` we deduce that `bernoulli 0 = 1` and one can go on from there.
 
 ## Main theorems
 

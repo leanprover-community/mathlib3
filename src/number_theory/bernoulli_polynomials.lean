@@ -194,8 +194,6 @@ begin
   sorry
 end
 
-#check finset.prod_bij'
-
 end finset
 
 @[simp] theorem sum_bernoulli_poly (n : ℕ) (X : ℚ) :

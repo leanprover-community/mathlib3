@@ -143,6 +143,10 @@ alg_hom.map_nat_cast _ _
 lemma aeval_mul : aeval x (p * q) = aeval x p * aeval x q :=
 alg_hom.map_mul _ _ _
 
+lemma aeval_comp {A : Type*} [comm_semiring A] [algebra R A] (x : A) :
+  aeval x (p.comp q) = (aeval (aeval x q) p) :=
+eval₂_comp (algebra_map R A)
+
 theorem eval_unique (φ : polynomial R →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map R A) (φ X) p :=
 begin

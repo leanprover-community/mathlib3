@@ -88,7 +88,8 @@ end
 
 lemma is_algebraic_iff_is_integral' :
   algebra.is_algebraic K A ↔ algebra.is_integral K A :=
-⟨λ h x, (is_algebraic_iff_is_integral K).mp (h x), λ h x, (is_algebraic_iff_is_integral K).mpr (h x)⟩
+⟨λ h x, (is_algebraic_iff_is_integral K).mp (h x),
+  λ h x, (is_algebraic_iff_is_integral K).mpr (h x)⟩
 
 end field
 

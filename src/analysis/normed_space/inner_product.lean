@@ -1022,6 +1022,21 @@ by simp_rw [sum_inner, inner_sum, real_inner_smul_left, real_inner_smul_right,
             h₁, h₂, zero_mul, mul_zero, finset.sum_const_zero, zero_add, zero_sub, finset.mul_sum,
             neg_div, finset.sum_div, mul_div_assoc, mul_assoc]
 
+/-- The inner product with a fixed left element, as a continuous linear map.  This can be upgraded
+to a continuous map which is jointly conjugate-linear in the left argument and linear in the right
+argument, once (TODO) conjugate-linear maps have been defined. -/
+def inner_right (v : E) : E →L[𝕜] 𝕜 :=
+linear_map.mk_continuous
+  { to_fun := λ w, ⟪v, w⟫,
+    map_add' := λ x y, inner_add_right,
+    map_smul' := λ c x, inner_smul_right }
+  ∥v∥
+  (by simpa [is_R_or_C.norm_eq_abs] using abs_inner_le_norm v)
+
+@[simp] lemma inner_right_coe (v : E) : (inner_right v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
+
+@[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
+
 end norm
 
 /-! ### Inner product space structure on product spaces -/
@@ -1647,6 +1662,31 @@ begin
   exact λ x hx ho, inner_self_eq_zero.1 (ho x hx)
 end
 
+/-- `K.orthogonal` can be characterized as the intersection of the kernels of the operations of
+inner product with each of the elements of `K`. -/
+lemma orthogonal_eq_inter (K : submodule 𝕜 E) : K.orthogonal = ⨅ v : K, (inner_right (v:E)).ker :=
+begin
+  apply le_antisymm,
+  { rw le_infi_iff,
+    rintros ⟨v, hv⟩ w hw,
+    simpa using hw _ hv },
+  { intros v hv w hw,
+    simp only [submodule.mem_infi] at hv,
+    exact hv ⟨w, hw⟩ }
+end
+
+/-- The orthogonal complement of any submodule `K` is closed. -/
+lemma submodule.is_closed_orthogonal (K : submodule 𝕜 E) : is_closed (K.orthogonal : set E) :=
+begin
+  rw orthogonal_eq_inter K,
+  convert is_closed_Inter (λ v : K, (inner_right (v:E)).is_closed_ker),
+  simp
+end
+
+/-- In a complete space, the orthogonal complement of any submodule `K` is complete. -/
+instance [complete_space E] (K : submodule 𝕜 E) : complete_space K.orthogonal :=
+K.is_closed_orthogonal.complete_space_coe
+
 variables (𝕜 E)
 
 /-- `submodule.orthogonal` gives a `galois_connection` between
@@ -1664,7 +1704,6 @@ subspaces. -/
 lemma submodule.orthogonal_le {K₁ K₂ : submodule 𝕜 E} (h : K₁ ≤ K₂) :
   K₂.orthogonal ≤ K₁.orthogonal :=
 (submodule.orthogonal_gc 𝕜 E).monotone_l h
-
 
 /-- `K` is contained in `K.orthogonal.orthogonal`. -/
 lemma submodule.le_orthogonal_orthogonal (K : submodule 𝕜 E) : K ≤ K.orthogonal.orthogonal :=
@@ -1710,6 +1749,39 @@ lemma submodule.sup_orthogonal_of_is_complete {K : submodule 𝕜 E} (h : is_com
 begin
   convert submodule.sup_orthogonal_inf_of_is_complete (le_top : K ≤ ⊤) h,
   simp
+end
+
+/-- If `K` is complete, `K` and `K.orthogonal` span the whole space. Version using `complete_space`.
+-/
+lemma submodule.sup_orthogonal_of_complete_space {K : submodule 𝕜 E} [complete_space K] :
+  K ⊔ K.orthogonal = ⊤ :=
+submodule.sup_orthogonal_of_is_complete (complete_space_coe_iff_is_complete.mp ‹_›)
+
+/-- If `K` is complete, any `v` in `E` can be expressed as a sum of elements of `K` and
+`K.orthogonal`. -/
+lemma submodule.exists_sum_mem_mem_orthogonal (K : submodule 𝕜 E) [complete_space K] (v : E) :
+  ∃ (y ∈ K) (z ∈ K.orthogonal), v = y + z :=
+begin
+  have h_mem : v ∈ K ⊔ K.orthogonal := by simp [submodule.sup_orthogonal_of_complete_space],
+  obtain ⟨y, hy, z, hz, hyz⟩ := submodule.mem_sup.mp h_mem,
+  exact ⟨y, hy, z, hz, hyz.symm⟩
+end
+
+/-- If `K` is complete, then the orthogonal complement of its orthogonal complement is itself. -/
+@[simp] lemma submodule.orthogonal_orthogonal (K : submodule 𝕜 E) [complete_space K] :
+  K.orthogonal.orthogonal = K :=
+begin
+  ext v,
+  split,
+  { obtain ⟨y, hy, z, hz, rfl⟩ := K.exists_sum_mem_mem_orthogonal v,
+    intros hv,
+    have hz' : z = 0,
+    { have hyz : ⟪z, y⟫ = 0 := by simp [hz y hy, inner_eq_zero_sym],
+      simpa [inner_add_right, hyz] using hv z hz },
+    simp [hy, hz'] },
+  { intros hv w hw,
+    rw inner_eq_zero_sym,
+    exact hw v hv }
 end
 
 /-- If `K` is complete, `K` and `K.orthogonal` are complements of each

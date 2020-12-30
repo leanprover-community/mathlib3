@@ -669,6 +669,17 @@ lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ≥0} (hf : summable 
   {i : β → α} (hi : function.injective i) : (∑' x, f (i x)) ≤ ∑' x, f x :=
 tsum_le_tsum_of_inj i hi (λ c hc, zero_le _) (λ b, le_refl _) (summable_comp_injective hf hi) hf
 
+lemma summable_sigma {β : Π x : α, Type*} {f : (Σ x, β x) → ℝ≥0} :
+  summable f ↔ (∀ x, summable (λ y, f ⟨x, y⟩)) ∧ summable (λ x, ∑' y, f ⟨x, y⟩) :=
+begin
+  split,
+  { simp only [← nnreal.summable_coe, nnreal.coe_tsum],
+    exact λ h, ⟨h.sigma_factor, h.sigma⟩ },
+  { rintro ⟨h₁, h₂⟩,
+    simpa only [← ennreal.tsum_coe_ne_top_iff_summable, ennreal.tsum_sigma', ennreal.coe_tsum, h₁]
+      using h₂ }
+end
+
 open finset
 
 /-- For `f : ℕ → ℝ≥0`, then `∑' k, f (k + i)` tends to zero. This does not require a summability
@@ -737,6 +748,10 @@ end
 lemma summable_iff_not_tendsto_nat_at_top_of_nonneg {f : ℕ → ℝ} (hf : ∀ n, 0 ≤ f n) :
   summable f ↔ ¬ tendsto (λ n : ℕ, ∑ i in finset.range n, f i) at_top at_top :=
 by rw [← not_iff_not, not_not, not_summable_iff_tendsto_nat_at_top_of_nonneg hf]
+
+lemma summable_sigma_of_nonneg {β : Π x : α, Type*} {f : (Σ x, β x) → ℝ} (hf : ∀ x, 0 ≤ f x) :
+  summable f ↔ (∀ x, summable (λ y, f ⟨x, y⟩)) ∧ summable (λ x, ∑' y, f ⟨x, y⟩) :=
+by { lift f to (Σ x, β x) → ℝ≥0 using hf, exact_mod_cast nnreal.summable_sigma }
 
 lemma summable_of_sum_range_le {f : ℕ → ℝ} {c : ℝ} (hf : ∀ n, 0 ≤ f n)
   (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : summable f :=

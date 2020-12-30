@@ -5,6 +5,7 @@ Author: Bhavik Mehta
 -/
 import order.basic
 import order.preorder_hom
+import order.galois_connection
 import tactic.monotonicity
 
 /-!
@@ -74,11 +75,31 @@ lemma closure_union_closure_le {α : Type u} [semilattice_sup α] (c : closure_o
 sup_le (c.monotone le_sup_left) (c.monotone le_sup_right)
 
 /-- An element `x` is closed for the closure operator `c` if it is a fixed point for it. -/
-def is_closed (x : α) : Prop := c x = x
+def closed : set α := λ x, c x = x
 
-lemma is_closed_iff (x : α) : c.is_closed x ↔ c x = x := iff.rfl
+lemma mem_closed_iff (x : α) : x ∈ c.closed ↔ c x = x := iff.rfl
+lemma mem_closed_iff_closure_le (x : α) : x ∈ c.closed ↔ c x ≤ x :=
+⟨le_of_eq, λ h, le_antisymm h (c.le_closure x)⟩
+lemma closure_eq_self_of_mem_closed {x : α} (h : x ∈ c.closed) : c x = x := h
 
-lemma top_is_closed {α : Type u} [order_top α] (c : closure_operator α) : c.is_closed ⊤ :=
+lemma closure_is_closed (x : α) : c x ∈ c.closed := c.idempotent x
+
+/-- The set of closed elements for `c` is exactly its range. -/
+lemma closed_eq_range_close : c.closed = set.range c :=
+set.ext $ λ x, ⟨λ h, ⟨x, h⟩, by { rintro ⟨y, rfl⟩, apply c.idempotent }⟩
+
+def to_closed (x : α) : c.closed := ⟨c x, c.closure_is_closed x⟩
+
+lemma top_mem_closed {α : Type u} [order_top α] (c : closure_operator α) : ⊤ ∈ c.closed :=
 c.closure_top
+
+lemma closure_le_closed_iff_le {x y : α} (hy : c.closed y) : x ≤ y ↔ c x ≤ y :=
+by rw [← c.closure_eq_self_of_mem_closed hy, le_closure_iff]
+
+def gi : galois_insertion c.to_closed coe :=
+{ choice := λ x hx, ⟨x, le_antisymm hx (c.le_closure x)⟩,
+  gc := λ x y, (c.closure_le_closed_iff_le y.2).symm,
+  le_l_u := λ x, c.le_closure _,
+  choice_eq := λ x hx, le_antisymm (c.le_closure x) hx }
 
 end closure_operator

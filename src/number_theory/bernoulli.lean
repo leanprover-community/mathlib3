@@ -125,24 +125,24 @@ end
 
 end examples
 
-open nat
+open nat finset
 
 @[simp] lemma sum_bernoulli (n : ℕ) :
   ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli k = n :=
 begin
   cases n with n, simp,
-  rw [finset.sum_range_succ, bernoulli_def],
-  suffices : (n + 1 : ℚ) * ∑ (k : ℕ) in finset.range n, (n.choose k : ℚ) / (n - k + 1) * bernoulli k
-    = ∑ (x : ℕ) in finset.range n, (n.succ.choose x : ℚ) * bernoulli x,
-  { rw [← this, nat.choose_succ_self_right], norm_cast, ring},
-  simp_rw [finset.mul_sum, ← mul_assoc],
-  apply finset.sum_congr rfl,
-  intros k hk, replace hk := le_of_lt (finset.mem_range.1 hk),
+  rw [sum_range_succ, bernoulli_def],
+  suffices : (n + 1 : ℚ) * ∑ k in range n, (n.choose k : ℚ) / (n - k + 1) * bernoulli k =
+    ∑ x in range n, (n.succ.choose x : ℚ) * bernoulli x,
+  { rw [← this, choose_succ_self_right], norm_cast, ring},
+  simp_rw [mul_sum, ← mul_assoc],
+  apply sum_congr rfl,
+  intros k hk, replace hk := le_of_lt (mem_range.1 hk),
   rw ← cast_sub hk,
   congr',
   field_simp [show ((n - k : ℕ) : ℚ) + 1 ≠ 0, by {norm_cast, simp}],
   -- down to nat
   norm_cast,
   rw [mul_comm, nat.sub_add_eq_add_sub hk],
-  exact nat.choose_mul_succ_eq n k,
+  exact choose_mul_succ_eq n k,
 end

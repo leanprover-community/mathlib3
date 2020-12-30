@@ -611,10 +611,10 @@ lemma summable.mul_right (a) (hf : summable f) : summable (λb, f b * a) :=
 section tsum
 variables [t2_space α]
 
-lemma tsum_mul_left (a) (hf : summable f) : (∑'b, a * f b) = a * (∑'b, f b) :=
+lemma summable.tsum_mul_left (a) (hf : summable f) : (∑'b, a * f b) = a * (∑'b, f b) :=
 (hf.has_sum.mul_left _).tsum_eq
 
-lemma tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b, f b) * a :=
+lemma summable.tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b, f b) * a :=
 (hf.has_sum.mul_right _).tsum_eq
 
 end tsum
@@ -656,14 +656,14 @@ lemma summable_mul_left_iff (h : a ≠ 0) : summable f ↔ summable (λb, a * f 
 lemma summable_mul_right_iff (h : a ≠ 0) : summable f ↔ summable (λb, f b * a) :=
 ⟨λ H, H.mul_right _, λ H, by simpa only [mul_inv_cancel_right' h] using H.mul_right a⁻¹⟩
 
-lemma tsum_mul_left' [t2_space α] : (∑' x, a * f x) = a * ∑' x, f x :=
-if hf : summable f then tsum_mul_left a hf
+lemma tsum_mul_left [t2_space α] : (∑' x, a * f x) = a * ∑' x, f x :=
+if hf : summable f then hf.tsum_mul_left a
 else if ha : a = 0 then by simp [ha]
 else by rw [tsum_eq_zero_of_not_summable hf,
   tsum_eq_zero_of_not_summable (mt (summable_mul_left_iff ha).2 hf), mul_zero]
 
-lemma tsum_mul_right' [t2_space α] : (∑' x, f x * a) = (∑' x, f x) * a :=
-if hf : summable f then tsum_mul_right a hf
+lemma tsum_mul_right [t2_space α] : (∑' x, f x * a) = (∑' x, f x) * a :=
+if hf : summable f then hf.tsum_mul_right a
 else if ha : a = 0 then by simp [ha]
 else by rw [tsum_eq_zero_of_not_summable hf,
   tsum_eq_zero_of_not_summable (mt (summable_mul_right_iff ha).2 hf), zero_mul]

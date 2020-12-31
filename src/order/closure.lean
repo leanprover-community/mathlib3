@@ -52,8 +52,6 @@ instance : inhabited (closure_operator α) := ⟨id α⟩
 
 variables {α} (c : closure_operator α)
 
-@[simp] lemma coe_to_preorder_hom : ⇑c.to_preorder_hom = c := rfl
-
 @[mono] lemma monotone : monotone c := c.monotone'
 /--
 Every element is less than its closure. This property is sometimes referred to as extensivity or

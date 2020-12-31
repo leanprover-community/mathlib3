@@ -143,7 +143,7 @@ begin
       H.trans_is_o (is_o_pow_pow_of_abs_lt_left (hab.trans_le (le_abs_self b)))⟩ },
   tfae_have : 2 → 4, from λ ⟨a, ha, H⟩, ⟨a, ha, H.is_O⟩,
   tfae_have : 4 → 3, from λ ⟨a, ha, H⟩, ⟨a, B ha, H⟩,
-  -- Add 5 and 6 using 4 → 6 → 5 → ??
+  -- Add 5 and 6 using 4 → 6 → 5 → 3
   tfae_have : 4 → 6,
   { rintro ⟨a, ha, H⟩,
     rcases bound_of_is_O_nat_at_top H with ⟨C, hC₀, hC⟩,

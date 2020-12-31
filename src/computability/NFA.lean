@@ -54,29 +54,8 @@ list.foldl M.step_set start
 def eval := M.eval_from M.start
 
 /-- `M.accepts x` says that there is an accept state in `M.eval x`. -/
-def accepts (s : list α) : Prop :=
-∃ S ∈ M.accept, S ∈ M.eval s
-
-/-- Two NFA's are equivalent if they accept exactly the same strings. -/
-def equiv (M : NFA α σ₁) (N : NFA α σ₂) : Prop := ∀ x, M.accepts x ↔ N.accepts x
-
-local infix ` ≈ ` := equiv
-
-@[refl] lemma equiv_refl (M : NFA α σ) : M ≈ M := λ x, by refl
-@[symm] lemma equiv_symm (M : NFA α σ₁) (N : NFA α σ₂) : M ≈ N → N ≈ M := λ h x, (h x).symm
-@[trans] lemma equiv_trans (M : NFA α σ₁) (N : NFA α σ₂) (P : NFA α σ₃) : M ≈ N → N ≈ P → M ≈ P :=
-λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
-
-instance : setoid (Σ σ , NFA α σ) :=
-⟨ λ M N, equiv M.2 N.2,
-  λ M, equiv_refl M.2,
-  λ M N, equiv_symm M.2 N.2,
-  λ M N P, equiv_trans M.2 N.2 P.2 ⟩
-
-instance : has_coe (DFA α σ') (Σ σ, DFA α σ) := ⟨λ M, ⟨σ', M⟩⟩
-
-@[simp] lemma equiv_def (M : NFA α σ₁) (N : NFA α σ₂) : M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
-by refl
+def accepts : language α :=
+λ x, ∃ S ∈ M.accept, S ∈ M.eval x
 
 /-- `M.to_DFA` is an `DFA` constructed from a `NFA` `M` using the subset construction. The
   states is the type of `set`s of `M.state` and the step function is `M.step_set`. -/
@@ -85,9 +64,10 @@ def to_DFA : DFA α (set σ) :=
   start := M.start,
   accept := {S | ∃ s ∈ S, s ∈ M.accept} }
 
-lemma to_DFA_correct (x : list α) :
-  M.accepts x ↔ M.to_DFA.accepts x :=
+lemma to_DFA_correct :
+  M.accepts = M.to_DFA.accepts :=
 begin
+  ext x,
   rw [accepts, DFA.accepts, eval, DFA.eval],
   change _ ↔ list.foldl _ _ _ ∈ {S | _},
   finish
@@ -118,9 +98,10 @@ begin
     tauto }
 end
 
-lemma to_NFA_correct (M : DFA α σ) (x : list α) :
-  M.accepts x ↔ M.to_NFA.accepts x :=
+lemma to_NFA_correct (M : DFA α σ) :
+  M.accepts = M.to_NFA.accepts :=
 begin
+  ext x,
   change _ ↔ ∃ S H, S ∈ M.to_NFA.eval_from {M.start} x,
   rw to_NFA_eval_from_match,
   split,

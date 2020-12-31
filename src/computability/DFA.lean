@@ -5,6 +5,7 @@ Authors: Fox Thomson
 -/
 
 import data.fintype.basic
+import computability.language
 
 /-!
 # Deterministic Finite Automata
@@ -39,27 +40,7 @@ list.foldl M.step start
 def eval := M.eval_from M.start
 
 /-- `M.accepts x` says that `M.eval x` is an accept state. -/
-def accepts (x : list α) : Prop :=
-M.eval x ∈ M.accept
-
-/-- Two DFA's are equivalent if they accept exactly the same strings. -/
-def equiv (M : DFA α σ₁) (N : DFA α σ₂) : Prop := ∀ x, M.accepts x ↔ N.accepts x
-
-local infix ` ≈ ` := equiv
-
-@[refl] lemma equiv_refl (M : DFA α σ) : M ≈ M := λ x, by refl
-@[symm] lemma equiv_symm (M : DFA α σ₁) (N : DFA α σ₂) : M ≈ N → N ≈ M := λ h x, (h x).symm
-@[trans] lemma equiv_trans (M : DFA α σ₁) (N : DFA α σ₂) (P : DFA α σ₃) : M ≈ N → N ≈ P → M ≈ P :=
-λ h₁ h₂ x, iff.trans (h₁ x) (h₂ x)
-
-instance : setoid (Σ σ, DFA α σ) :=
-⟨ λ M N, M.2 ≈ N.2,
-  λ M, M.2.equiv_refl, λ M N, M.2.equiv_symm N.2, λ M N P, M.2.equiv_trans N.2 P.2 ⟩
-
-instance : has_coe (DFA α σ) (Σ σ, DFA α σ) := ⟨λ M, ⟨σ, M⟩⟩
-
-@[simp] lemma equiv_def (M : DFA α σ₁) (N : DFA α σ₂) :
-  M ≈ N ↔ ∀ x, M.accepts x ↔ N.accepts x :=
-by refl
+def accepts : language α :=
+λ x, M.eval x ∈ M.accept
 
 end DFA

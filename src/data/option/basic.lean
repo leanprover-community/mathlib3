@@ -157,7 +157,7 @@ lemma join_map_eq_map_join {f : α → β} {x : option (option α)} :
   (x.map (option.map f)).join = x.join.map f :=
 by { rcases x with _ | _ | x; simp }
 
-@[simp] lemma join_join {x : option (option (option α))} :
+lemma join_join {x : option (option (option α))} :
   x.join.join = (x.map join).join :=
 by { rcases x with _ | _ | _ | x; simp }
 

@@ -30,7 +30,6 @@ structure NFA (α : Type u) (σ : Type v) :=
 (accept : set σ)
 
 variables {α : Type u} {σ σ' σ₁ σ₂ σ₃ : Type v} (M : NFA α σ)
--- variables [decidable_eq σ] [decidable_eq σ₁] [decidable_eq σ₂] [decidable_eq σ₃]
 
 namespace NFA
 
@@ -53,7 +52,7 @@ list.foldl M.step_set start
   `M.start`. -/
 def eval := M.eval_from M.start
 
-/-- `M.accepts x` says that there is an accept state in `M.eval x`. -/
+/-- `M.accepts` is the language of `x` such that there is an accept state in `M.eval x`. -/
 def accepts : language α :=
 λ x, ∃ S ∈ M.accept, S ∈ M.eval x
 

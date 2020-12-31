@@ -39,7 +39,7 @@ list.foldl M.step start
 /-- `M.eval x` evaluates `M` with input `x` starting from the state `M.start`. -/
 def eval := M.eval_from M.start
 
-/-- `M.accepts x` says that `M.eval x` is an accept state. -/
+/-- `M.accepts` is the language of `x` such that `M.eval x` is an accept state. -/
 def accepts : language α :=
 λ x, M.eval x ∈ M.accept
 

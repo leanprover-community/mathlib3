@@ -938,7 +938,7 @@ begin
   refine le_antisymm _ (supr_lintegral_le _),
   rw [lintegral_eq_nnreal],
   refine supr_le (assume s, supr_le (assume hsf, _)),
-  refine ennreal.le_of_forall_lt_one_mul_lt (assume a ha, _),
+  refine ennreal.le_of_forall_lt_one_mul_le (assume a ha, _),
   rcases ennreal.lt_iff_exists_coe.1 ha with ⟨r, rfl, ha⟩,
   have ha : r < 1 := ennreal.coe_lt_coe.1 ha,
   let rs := s.map (λa, r * a),

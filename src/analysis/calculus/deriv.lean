@@ -1692,7 +1692,7 @@ begin
     exact nat.succ_le_of_lt hm },
   rcases lt_trichotomy m 0 with hm|hm|hm,
   { have hm' : ¬(0 ≤ m) := by simp [hm],
-    have hx' : x ≠ 0 := hx.elim _ _,
+    have hx' : x ≠ 0 := hx.elim id (λ h, absurd h hm'),
     have := (has_strict_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
       [skip, exact fpow_ne_zero_of_ne_zero hx' _],
     simp only [(∘), fpow_neg, one_div, inv_inv', smul_eq_mul] at this,
@@ -1730,10 +1730,9 @@ if hx : x ≠ 0 ∨ 0 ≤ m then
 else
   begin
     rw deriv_zero_of_not_differentiable_at (mt differentiable_at_fpow_iff.1 (hx)),
-    push_neg at hx,--hx],
-    simp [hx.1],
-    right,
-    sorry
+    push_neg at hx,
+    have hm : m - 1 ≠ 0 := by linarith [hx.2],
+    simp [hx.1, zero_fpow _ hm]
   end
 
 lemma deriv_within_fpow (hxs : unique_diff_within_at 𝕜 s x) (hx : x ≠ 0) :

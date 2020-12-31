@@ -107,11 +107,24 @@ begin
       simp [hk'] },
     split,
     { rintros h rfl,
-      suffices h' : tendsto (λ x : 𝕜, ∥(x ^ k)⁻¹∥) (nhds 0) at_top,
-      { apply not_tendsto_nhds_of_tendsto_at_top h' _,
-        convert (continuous_norm.continuous_at.comp h).tendsto },
+      suffices h' : tendsto (λ x : 𝕜, ∥(x ^ k)⁻¹∥) (𝓝[{0}ᶜ] 0) at_top,
+      { haveI := normed_field.punctured_nhds_ne_bot (0:𝕜),
+        apply not_tendsto_nhds_of_tendsto_at_top h' _,
+        exact (continuous_norm.continuous_at.comp h).continuous_within_at.tendsto },
       refine normed_field.tendsto_norm_inverse_nhds_within_0_at_top.comp _,
-      sorry },
+      change tendsto _ _ (_ ⊓ _),
+      rw filter.tendsto_inf,
+      split,
+      { apply tendsto_nhds_within_of_tendsto_nhds,
+        convert (continuous_pow k).continuous_at.tendsto,
+        { refine (zero_pow _).symm,
+          rw hk' at hm,
+          exact_mod_cast neg_lt_zero.mp hm },
+        apply_instance },
+      simp only [tendsto_principal],
+      refine ⟨set.univ, univ_mem_sets, {(0:𝕜)}ᶜ, by simp [subset.rfl], _⟩,
+      rw set.univ_inter,
+      exact λ _, mt pow_eq_zero },
     { intros h,
       refine continuous_at.comp _ (continuous_pow k).continuous_at,
       refine continuous_at_inv' _,
@@ -119,7 +132,6 @@ begin
   { simp [hm, fpow_zero, int.cast_zero, zero_mul, continuous_at_const, rfl.ge] },
   { simp [this m hm, le_of_lt hm] }
 end
-
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field 𝕜] [archimedean 𝕜]
   [topological_space 𝕜] [order_topology 𝕜] {r : 𝕜} (h₁ : 0 ≤ r) (h₂ : r < 1) :

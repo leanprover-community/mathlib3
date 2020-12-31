@@ -207,12 +207,37 @@ and that the statement of Hall's Marriage Theorem
 is true for all `α'` of cardinality ≤ `n`, then it is true for `α`.
 -/
 lemma hall_hard_inductive_step_B [nontrivial α] {n : ℕ} (hn : fintype.card α ≤ n.succ)
-  (ha : ∃ (A : finset α), A ≠ univ → A.card = (image_rel r A).card)
+  (ha : ∃ (A : finset α), A.nonempty ∧ A ≠ univ ∧ A.card = (image_rel r A).card)
   (ih : ∀ {α' β' : Type u} [fintype α'] [fintype β'] (r' : α' → β' → Prop)
     [∀ a, decidable_pred (r' a)], by exactI fintype.card α' ≤ n →
     by exactI (∀ (A : finset α'), A.card ≤ (image_rel r' A).card) →
     ∃ (f : α' → β'), function.injective f ∧ ∀ x, r' x (f x)) :
-  ∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x) := sorry
+  ∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x) :=
+begin
+  rcases ha with ⟨A, hA, hnA, huA⟩,
+  let α' := {a' : α // a' ∈ A},
+  let β' := {b' : β // b' ∈ image_rel r A},
+  let r' : α' → β' → Prop := λ a' b', r a' b',
+  have h3 : fintype.card α' ≤ n,
+  { sorry },
+  have h4 : (∀ (A_1 : finset α'), A_1.card ≤ (image_rel r' A_1).card),
+  { sorry },
+  have h' := ih r' h3 h4,
+
+  rcases h' with ⟨f', hf', hAf'⟩,
+
+  let α'' := {a'' : α // a'' ∉ A},
+  let β'' := {b'' : β // b'' ∉ image_rel r A},
+  let r'' : α'' → β'' → Prop := λ a'' b'', r a'' b'',
+  have h5 : fintype.card α'' ≤ n,
+  { sorry },
+  have h6 : (∀ (A_1 : finset α''), A_1.card ≤ (image_rel r'' A_1).card),
+  { sorry },
+  have h'' := ih r'' h5 h6,
+
+  rcases h'' with ⟨f'', hf'', hAf''⟩,
+  sorry,
+end
 
 /-
 Here we use the two cases and our induction hypothesis
@@ -232,8 +257,10 @@ theorem hall_hard_inductive_step [nontrivial α] {n : ℕ} (hn : fintype.card α
     ∃ (f : α' → β'), function.injective f ∧ ∀ x, r' x (f x)) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x) :=
 begin
+  -- this is the statement that allows us to break `∀ (A : finset α), A.card ≤ (image_rel r A).card)`
+  -- into the aforementioned cases
   have h :  (∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (image_rel r A).card) ∨
-        (∃ (A : finset α), A ≠ univ → A.card = (image_rel r A).card),
+        (∃ (A : finset α), A.nonempty ∧ A ≠ univ ∧ A.card = (image_rel r A).card),
   classical,
   { rw or_iff_not_imp_left,
     intros ha,

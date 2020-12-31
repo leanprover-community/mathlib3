@@ -30,19 +30,44 @@ open_locale classical
 theorem hall_easy (f : α → β) (hf₁ : function.injective f) (hf₂ : ∀ x, r x (f x)) (A : finset α) :
   A.card ≤ (image_rel r A).card :=
 begin
-  have h : (image f A) ⊆ (image_rel r A),
-  { rw subset_iff,
-    intros x h2,
-    simp only [mem_image, exists_prop] at h2,
-    rcases h2 with ⟨a, ha, hfa⟩,
-    unfold image_rel,
-    simp only [true_and, exists_prop, mem_filter, mem_univ],
-    specialize hf₂ a,
-    rw hfa at hf₂,
-    refine ⟨a, ha, hf₂⟩ },
-  rw ← card_image_of_injective A hf₁,
-  apply card_le_of_subset h,
+  -- it's enough to show that the image of A under f is a subset of image_rel
+  suffices h : (image f A) ⊆ (image_rel r A),
+  {
+    -- the cardinality of the image of an injective function is the cardinality of its preimage
+    rw ← card_image_of_injective A hf₁,
+
+    -- the cardinality of a subset is less than or equal to its superset
+    apply card_le_of_subset h },
+
+  -- use the fact that A is a subset of B if and only if x ∈ A implies x ∈ B
+  rw subset_iff,
+
+  -- let x be of type β and let h2 be the statement that x is in the image of f(A)
+  intros x h2,
+
+  -- convert h2 into an existential statement
+  simp only [mem_image, exists_prop] at h2,
+
+  -- break up h2 into its respective parts; i.e.
+    -- a : α
+    -- ha : a ∈ A
+    -- hfa : f a = x
+  rcases h2 with ⟨a, ha, hfa⟩,
+
+  -- because a is of type α, by hf₂ we have that a is related to f(a) by r
+  specialize hf₂ a,
+
+  -- replace f a with x in hf₂
+  rw hfa at hf₂,
+
+  -- convert the goal into an existential statement
+  simp [image_rel],
+
+  -- close by supplying a as a witness and supplying ha and hf₂ as proofs that a works
+  use ⟨a, ha, hf₂⟩,
+
 end
+
 
 /- we prove the opposite direction using strong induction on
    the cardinality of `α`. -/
@@ -332,6 +357,8 @@ variables {V : Type u} (G : simple_graph V)
 
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
+
+def neighbor_set' (G : simple_graph V) (S : set V) : set V := λ w, ∃ v ∈ S, G.adj v w
 
 /-- `G.neighbor_set_image S` is the union of neighbor_sets of `S ⊆ V` in `G`. -/
 def neighbor_set_image (S : set V) : set V := ⋃v∈S, G.neighbor_set v

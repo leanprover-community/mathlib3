@@ -30,7 +30,7 @@ variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower
 
 variables {A}
 
-/-- The `R`-algebra morphism `A → End (M)` corresponding to the `A`-module structure on `M`. -/
+/-- The `R`-algebra morphism `A → End (M)` corresponding to the representation of the algebra `A` on the `R`-module `M`. -/
 def lsmul : A →ₐ[R] module.End R M :=
 { map_one' := by { ext m, exact one_smul A m },
   map_mul' := by { intros a b, ext c, exact smul_assoc a b c },

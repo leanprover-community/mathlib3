@@ -678,17 +678,12 @@ begin
   congr,
 end
 
-instance nat_is_scalar_tower {S : Type*} [semiring S] [semimodule S M] [semimodule ℕ M] :
+instance nat_is_scalar_tower {S : Type*}
+  [semiring S] [semimodule S M] [semimodule ℕ S] [semimodule ℕ M] :
   is_scalar_tower ℕ S M :=
-{ smul_assoc := begin
-    intros n x y,
-    induction n with n ih,
-    { simp only [zero_smul] },
-    { simp only [nat.succ_eq_add_one, add_smul, one_smul, ih] }
-  end }
-
-  #check @alternating_map.nat_is_scalar_tower
-
+{ smul_assoc := λ n x y, nat.rec_on n
+    (by simp only [zero_smul])
+    (λ n ih, by simp only [nat.succ_eq_add_one, add_smul, one_smul, ih]) }
 
 /-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two
 `alternating_map`s gives a scaled version of the `alternating_map.coprod` of those maps.

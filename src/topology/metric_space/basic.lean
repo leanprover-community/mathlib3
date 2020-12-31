@@ -675,7 +675,7 @@ by simp [is_open_iff, subset_singleton_iff, mem_ball]
 /-- Given a point `x` in a discrete subset `s` of a metric space, there is an open ball
 centered at `x` and intersecting `s` only at `x`. -/
 lemma ball_of_mem_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
-∃ ε > 0, ∀ y ∈ metric.ball x ε, y ≠ x → y ∉ s :=
+  ∃ ε > 0, ∀ y ∈ metric.ball x ε, y ≠ x → y ∉ s :=
 begin
   rcases disjoint_nhds_within_of_mem_discrete hx with ⟨U, U_in, hU⟩,
   rcases metric.nhds_within_basis_ball.mem_iff.mp U_in with ⟨ε, ε_pos, hε⟩,
@@ -686,7 +686,7 @@ end
 /-- Given a point `x` in a discrete subset `s` of a metric space, there is a closed ball
 of positive radius centered at `x` and intersecting `s` only at `x`. -/
 lemma closed_ball_of_mem_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
-∃ ε > 0, ∀ y ∈ metric.closed_ball x ε, y ≠ x → y ∉ s :=
+  ∃ ε > 0, ∀ y ∈ metric.closed_ball x ε, y ≠ x → y ∉ s :=
 begin
   obtain ⟨ε, e0, F⟩ := ball_of_mem_discrete hx,
   refine ⟨ε / 2, half_pos e0, λ y (yb : dist y x ≤ ε / 2), _⟩,

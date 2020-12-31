@@ -1679,7 +1679,7 @@ section fpow
 variables {x : 𝕜} {s : set 𝕜}
 variable {m : ℤ}
 
-lemma has_strict_deriv_at_fpow (m : ℤ) (hx : x ≠ 0) :
+lemma has_strict_deriv_at_fpow (m : ℤ) (hx : x ≠ 0 ∨ 0 ≤ m) :
   has_strict_deriv_at (λx, x^m) ((m : 𝕜) * x^(m-1)) x :=
 begin
   have : ∀ m : ℤ, 0 < m → has_strict_deriv_at (λx, x^m) ((m:𝕜) * x^(m-1)) x,
@@ -1691,41 +1691,54 @@ begin
     norm_cast at hm,
     exact nat.succ_le_of_lt hm },
   rcases lt_trichotomy m 0 with hm|hm|hm,
-  { have := (has_strict_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
-      [skip, exact fpow_ne_zero_of_ne_zero hx _],
+  { have hm' : ¬(0 ≤ m) := by simp [hm],
+    have hx' : x ≠ 0 := hx.elim _ _,
+    have := (has_strict_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
+      [skip, exact fpow_ne_zero_of_ne_zero hx' _],
     simp only [(∘), fpow_neg, one_div, inv_inv', smul_eq_mul] at this,
     convert this using 1,
     rw [pow_two, mul_inv', inv_inv', int.cast_neg, ← neg_mul_eq_neg_mul, neg_mul_neg,
-      ← fpow_add hx, mul_assoc, ← fpow_add hx], congr, abel },
+      ← fpow_add hx', mul_assoc, ← fpow_add hx'], congr, abel },
   { simp only [hm, fpow_zero, int.cast_zero, zero_mul, has_strict_deriv_at_const] },
   { exact this m hm }
 end
 
-lemma has_deriv_at_fpow (m : ℤ) (hx : x ≠ 0) :
+lemma has_deriv_at_fpow (m : ℤ) (hx : x ≠ 0 ∨ 0 ≤ m) :
   has_deriv_at (λx, x^m) ((m : 𝕜) * x^(m-1)) x :=
 (has_strict_deriv_at_fpow m hx).has_deriv_at
 
-theorem has_deriv_within_at_fpow (m : ℤ) (hx : x ≠ 0) (s : set 𝕜) :
+theorem has_deriv_within_at_fpow (m : ℤ) (hx : x ≠ 0 ∨ 0 ≤ m) (s : set 𝕜) :
   has_deriv_within_at (λx, x^m) ((m : 𝕜) * x^(m-1)) s x :=
 (has_deriv_at_fpow m hx).has_deriv_within_at
 
-lemma differentiable_at_fpow (hx : x ≠ 0)  : differentiable_at 𝕜 (λx, x^m) x :=
+lemma differentiable_at_fpow (hx : x ≠ 0 ∨ 0 ≤ m) : differentiable_at 𝕜 (λx, x^m) x :=
 (has_deriv_at_fpow m hx).differentiable_at
 
-lemma differentiable_within_at_fpow (hx : x ≠ 0) :
+lemma differentiable_within_at_fpow (hx : x ≠ 0 ∨ 0 ≤ m) :
   differentiable_within_at 𝕜 (λx, x^m) s x :=
 (differentiable_at_fpow hx).differentiable_within_at
 
 lemma differentiable_on_fpow (hs : (0:𝕜) ∉ s) : differentiable_on 𝕜 (λx, x^m) s :=
-λ x hxs, differentiable_within_at_fpow (λ hx, hs $ hx ▸ hxs)
+λ x hxs, differentiable_within_at_fpow (or.inl (λ hx, hs $ hx ▸ hxs))
 
--- TODO : this is true at `x=0` as well
-lemma deriv_fpow (hx : x ≠ 0) : deriv (λx, x^m) x = (m : 𝕜) * x^(m-1) :=
-(has_deriv_at_fpow m hx).deriv
+@[simp] lemma differentiable_at_fpow_iff : differentiable_at 𝕜 (λx:𝕜, x^m) x ↔ (x ≠ 0 ∨ 0 ≤ m) :=
+⟨λ h, normed_field.continuous_at_fpow_iff.1 h.continuous_at, differentiable_at_fpow⟩
+
+lemma deriv_fpow : deriv (λx, x^m) x = (m : 𝕜) * x^(m-1) :=
+if hx : x ≠ 0 ∨ 0 ≤ m then
+  (has_deriv_at_fpow m hx).deriv
+else
+  begin
+    rw deriv_zero_of_not_differentiable_at (mt differentiable_at_fpow_iff.1 (hx)),
+    push_neg at hx,--hx],
+    simp [hx.1],
+    right,
+    sorry
+  end
 
 lemma deriv_within_fpow (hxs : unique_diff_within_at 𝕜 s x) (hx : x ≠ 0) :
   deriv_within (λx, x^m) s x = (m : 𝕜) * x^(m-1) :=
-(has_deriv_within_at_fpow m hx s).deriv_within hxs
+(has_deriv_within_at_fpow m (or.inl hx) s).deriv_within hxs
 
 lemma iter_deriv_fpow {k : ℕ} (hx : x ≠ 0) :
   deriv^[k] (λx:𝕜, x^m) x = (∏ i in finset.range k, (m - i) : ℤ) * x^(m-k) :=
@@ -1734,7 +1747,7 @@ begin
   { simp only [one_mul, finset.prod_range_zero, function.iterate_zero_apply, int.coe_nat_zero,
       sub_zero, int.cast_one] },
   { rw [function.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc, mul_left_comm,
-      int.coe_nat_succ, ← sub_sub, ← ((has_deriv_at_fpow _ hx).const_mul _).deriv],
+      int.coe_nat_succ, ← sub_sub, ← ((has_deriv_at_fpow _ (or.inl hx)).const_mul _).deriv],
     exact filter.eventually_eq.deriv_eq (eventually.mono (mem_nhds_sets is_open_ne hx) @ihk) }
 end
 

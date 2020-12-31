@@ -88,6 +88,39 @@ begin
   exact normed_field.punctured_nhds_ne_bot 0
 end
 
+@[simp] lemma normed_field.continuous_at_fpow_iff
+  {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
+  continuous_at (λx:𝕜, x^m) x ↔ (x ≠ 0 ∨ 0 ≤ m) :=
+begin
+  have : ∀ m : ℤ, 0 < m → continuous_at (λx, x^m) x,
+  { assume m hm,
+    lift m to ℕ using (le_of_lt hm),
+    exact (continuous_pow m).continuous_at },
+  rcases lt_trichotomy m 0 with hm|hm|hm,
+  { have : ¬ (0 ≤ m) := not_le.mpr hm,
+    simp only [this, or_false, ne.def],
+    lift -m to ℕ using le_of_lt (neg_pos.mpr hm) with k hk,
+    have hk' : m = -↑k := eq_neg_of_eq_neg hk,
+    suffices : continuous_at (λ x, (x ^ k)⁻¹) x ↔ x ≠ 0,
+    { convert this,
+      ext y,
+      simp [hk'] },
+    split,
+    { rintros h rfl,
+      suffices h' : tendsto (λ x : 𝕜, ∥(x ^ k)⁻¹∥) (nhds 0) at_top,
+      { apply not_tendsto_nhds_of_tendsto_at_top h' _,
+        convert (continuous_norm.continuous_at.comp h).tendsto },
+      refine normed_field.tendsto_norm_inverse_nhds_within_0_at_top.comp _,
+      sorry },
+    { intros h,
+      refine continuous_at.comp _ (continuous_pow k).continuous_at,
+      refine continuous_at_inv' _,
+      exact pow_ne_zero k h } },
+  { simp [hm, fpow_zero, int.cast_zero, zero_mul, continuous_at_const, rfl.ge] },
+  { simp [this m hm, le_of_lt hm] }
+end
+
+
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field 𝕜] [archimedean 𝕜]
   [topological_space 𝕜] [order_topology 𝕜] {r : 𝕜} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=

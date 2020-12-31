@@ -128,10 +128,7 @@ begin
   { refine ((times_cont_diff_on_log.deriv_of_open _ le_top).differentiable_on le_top).mono h₁,
     exact is_open_compl_singleton },
   { intros x hx,
-    rw [function.iterate_succ, function.iterate_one],
-    change (deriv (deriv log)) x ≤ 0,
-    rw [deriv_log', deriv_inv (show x ≠ 0, by {rintro rfl, exact lt_irrefl 0 hx})],
-    exact neg_nonpos.mpr (inv_nonneg.mpr (pow_two_nonneg x)) }
+    simp [function.iterate_succ, function.iterate_one, pow_two_nonneg x] }
 end
 
 lemma concave_on_log_Iio : concave_on (Iio 0) log :=
@@ -146,8 +143,5 @@ begin
   { refine ((times_cont_diff_on_log.deriv_of_open _ le_top).differentiable_on le_top).mono h₁,
     exact is_open_compl_singleton },
   { intros x hx,
-    rw [function.iterate_succ, function.iterate_one],
-    change (deriv (deriv log)) x ≤ 0,
-    rw [deriv_log', deriv_inv (show x ≠ 0, by {rintro rfl, exact lt_irrefl 0 hx})],
-    exact neg_nonpos.mpr (inv_nonneg.mpr (pow_two_nonneg x)) }
+    simp [function.iterate_succ, function.iterate_one, pow_two_nonneg x] }
 end

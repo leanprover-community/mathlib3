@@ -14,7 +14,7 @@ This type should not be used if `Π i, α i` or `Π i ∈ l, α i` can be used i
 (in the last expression, we could also replace the list `l` by a set or a finset).
 This type is used as an intermediary between binary products and finitary products.
 The application of this type is finitary product measures, but it could be used in any
-construction/theorem that is easier to define/proof on binary products than on finitary products.
+construction/theorem that is easier to define/prove on binary products than on finitary products.
 
 * Once we have the construction on binary products (like binary product measures in
   `measure_theory.prod`), we can easily define a finitary version on the type `tprod l α`
@@ -22,9 +22,9 @@ construction/theorem that is easier to define/proof on binary products than on f
   by iterating.
 * Then we can use the equivalence `list.tprod.pi_equiv_tprod` below (or enhanced versions of it,
   like a `measurable_equiv` for product measures) to get the construction on `Π i : ι, α i`, at
-  least when assuming `[fintype ι] [encodable ι]`.
-  Using choice or in proofs, we can remove the argument `[encodable I]` using
-  `encodable.trunc_encodable_of_fintype`.
+  least when assuming `[fintype ι] [encodable ι]` (using `encodable.sorted_univ`).
+  Using `local attribute [instance] fintype.encodable` we can get rid of the argument
+  `[encodable ι]`.
 
 ## Main definitions
 

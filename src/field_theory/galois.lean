@@ -29,7 +29,7 @@ In this file we define Galois extensions as extensions which are both separable 
   then `fixed_field (fixing_subgroup K) = K`
 Together, these two result prove the Galois correspondence
 
-- `tfae` : Equivalent characterizations of a Galois extension of finite degree
+- `is_galois.tfae` : Equivalent characterizations of a Galois extension of finite degree
 -/
 
 noncomputable theory

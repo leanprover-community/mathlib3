@@ -52,6 +52,8 @@ instance : inhabited (closure_operator α) := ⟨id α⟩
 
 variables {α} (c : closure_operator α)
 
+@[simp] lemma coe_to_preorder_hom : ⇑c.to_preorder_hom = c := rfl
+
 @[mono] lemma monotone : monotone c := c.monotone'
 /--
 Every element is less than its closure. This property is sometimes referred to as extensivity or
@@ -82,7 +84,7 @@ lemma mem_closed_iff_closure_le (x : α) : x ∈ c.closed ↔ c x ≤ x :=
 ⟨le_of_eq, λ h, le_antisymm h (c.le_closure x)⟩
 lemma closure_eq_self_of_mem_closed {x : α} (h : x ∈ c.closed) : c x = x := h
 
-lemma closure_is_closed (x : α) : c x ∈ c.closed := c.idempotent x
+@[simp] lemma closure_is_closed (x : α) : c x ∈ c.closed := c.idempotent x
 
 /-- The set of closed elements for `c` is exactly its range. -/
 lemma closed_eq_range_close : c.closed = set.range c :=

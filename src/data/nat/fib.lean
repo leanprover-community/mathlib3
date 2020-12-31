@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
 import data.stream.basic
-import tactic.norm_num
-import tactic.monotonicity
+import tactic
+import data.nat.gcd
 /-!
 # The Fibonacci Sequence
 
@@ -19,7 +19,8 @@ Definition of the Fibonacci sequence `F₀ = 0, F₁ = 1, Fₙ₊₂ = Fₙ + F�
 
 ## Main Statements
 
-- `fib_succ_succ` shows that `fib` indeed satisfies the Fibonacci recurrence `Fₙ₊₂ = Fₙ + Fₙ₊₁.`.
+- `fib_succ_succ` : shows that `fib` indeed satisfies the Fibonacci recurrence `Fₙ₊₂ = Fₙ + Fₙ₊₁.`.
+- `gcd_fib_fib`   : `fib n` is a strong divisibility sequence.
 
 ## Implementation Notes
 
@@ -94,6 +95,77 @@ begin
     have : n' ≠ 0, by { intro h, have : 5 ≤ 1, by rwa h at five_le_n, norm_num at this },
     have : 1 ≤ fib n', from nat.succ_le_of_lt (fib_pos $ zero_lt_iff_ne_zero.mpr this),
     mono }
+end
+
+/-- https://proofwiki.org/wiki/Consecutive_Fibonacci_Numbers_are_Coprime -/
+lemma fib_succ_coprime (n : ℕ) : gcd (fib n) (fib (n + 1)) = 1 :=
+begin
+  induction n with n ih,
+  { simp },
+  { convert ih using 1,
+    rw [fib_succ_succ, succ_eq_add_one, gcd_rec, add_mod_right, gcd_comm (fib n),
+      gcd_rec (fib (n + 1))], }
+end
+
+/-- https://proofwiki.org/wiki/Fibonacci_Number_in_terms_of_Smaller_Fibonacci_Numbers -/
+lemma fib_add (m n : ℕ) :
+  fib m * fib n + fib (m + 1) * fib (n + 1) = fib (m + n + 1) :=
+begin
+  induction n with n ih generalizing m,
+  { simp },
+  { intros,
+    specialize ih (m + 1),
+    rw [add_assoc m 1 n, add_comm 1 n] at ih,
+    simp only [fib_succ_succ, ← ih],
+    ring, }
+end
+
+
+lemma gcd_fib_add_self' (m n : ℕ) : gcd (fib m) (fib n) = gcd (fib m) (fib (n + m)) :=
+begin
+  cases eq_zero_or_pos n,
+  { rw h, simp },
+  replace h := nat.succ_pred_eq_of_pos h, rw [← h, succ_eq_add_one],
+  calc (fib m).gcd (fib (n.pred + 1)) 
+        = gcd (fib m) (fib (n.pred + 1) * fib (m + 1)) :
+    begin
+      have hcop := coprime.symm (fib_succ_coprime m),
+      rwa [gcd_comm, gcd_comm (fib m) _, mul_comm _ (fib (m + 1)), coprime.gcd_mul_left_cancel]
+    end
+    ... = gcd (fib m) (fib (n.pred) * (fib m) + fib (n.pred + 1) * fib (m + 1)) :
+    by rw [gcd_add_self (fib m) _ (fib (n.pred)), add_comm]
+    ... = m.fib.gcd (n.pred + 1 + m).fib :
+    begin rw ← eq.symm (fib_add n.pred _), ring end
+    ... = m.fib.gcd (n.pred + 1 + m).fib : by ring,
+end
+
+lemma gcd_fib_add_self (m n k : ℕ) : gcd (fib m) (fib n) = gcd (fib m) (fib (n + k * m)) :=
+begin
+  induction k with k hk,
+  { simp },
+  { rw [hk, gcd_fib_add_self' _ _],
+    ring, }
+end
+
+lemma gcd_fib_fib' (m' n' : ℕ) (hmn : m' ≤ n') : gcd (fib m') (fib n') = fib (gcd m' n') :=
+begin
+  apply gcd.induction m' n',
+  { simp },
+  { intros m n mpos h,
+    rw ←gcd_rec m n at h,
+    conv_lhs { rw ← mod_add_div n m },
+    rw [mul_comm, ← gcd_fib_add_self m (n % m) (n / m), gcd_comm],
+    exact h, }
+end
+
+/-- `fib n` is a strong divisibility sequence.
+  https://proofwiki.org/wiki/GCD_of_Fibonacci_Numbers -/
+lemma gcd_fib_fib (m n : ℕ) : gcd (fib m) (fib n) = fib (gcd m n):=
+begin
+  cases le_total m n with m_le_n n_le_m,
+  { exact gcd_fib_fib' m n m_le_n },
+  { rw [gcd_comm, gcd_comm m n],
+    exact gcd_fib_fib' n m n_le_m }
 end
 
 end nat

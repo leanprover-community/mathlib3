@@ -1581,8 +1581,7 @@ lemma orthogonal_projection_fn_norm_sq (K : submodule 𝕜 E) [complete_space K]
 begin
   set p := orthogonal_projection_fn K v,
   have h' : ⟪v - p, p⟫ = 0,
-  { apply orthogonal_projection_fn_inner_eq_zero,
-    exact orthogonal_projection_fn_mem v },
+  { exact orthogonal_projection_fn_inner_eq_zero _ _ (orthogonal_projection_fn_mem v) },
   convert norm_add_square_eq_norm_square_add_norm_square_of_inner_eq_zero (v - p) p h' using 2;
   simp,
 end

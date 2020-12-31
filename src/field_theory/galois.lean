@@ -45,6 +45,9 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 
 namespace is_galois
 
+instance self : is_galois F F :=
+⟨is_separable_self F, normal_self F⟩
+
 @[priority 100] -- see Note [lower instance priority]
 instance to_is_separable [h : is_galois F E] : is_separable F E := h.1
 
@@ -142,6 +145,9 @@ lemma alg_equiv.transfer_galois (f : E ≃ₐ[F] E') : is_galois F E ↔ is_galo
 
 lemma is_galois_iff_is_galois_top : is_galois F (⊤ : intermediate_field F E) ↔ is_galois F E :=
 (intermediate_field.top_equiv).transfer_galois
+
+instance is_galois_bot : is_galois F (⊥ : intermediate_field F E) :=
+intermediate_field.bot_equiv.transfer_galois.mpr (is_galois.self F)
 
 end is_galois_tower
 

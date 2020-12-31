@@ -272,6 +272,32 @@ begin
   exact lt_succ_iff.1 h,
 end
 
+lemma sum_eq_sum_iff {α β : Type*} [canonically_ordered_add_monoid β] [add_comm_group β] ( f g : α → ℕ ) (s : finset α)
+( h : ∑ x in s, f x = ∑ x in s, g x) :  ∀ x ∈ s, f x  = g x :=
+begin
+  conv at h
+  {
+    rw <-sub_eq_zero_iff_eq,
+    rw <-finset.sum_sub_distrib,
+    conv
+    {
+      to_lhs,
+      apply_congr,
+      skip,
+    },
+  },
+  have h' : ∑ (x : α) in s, (f - g) x = 0,
+  simp at *, exact h,
+  suffices f : ∀ (x : α), x ∈ s → (f - g) x = 0,
+  simp at f,
+  rintros x hx,
+  specialize f x hx,
+  rw sub_eq_zero_iff_eq at f, exact f,
+  set g' := f - g with hg',
+  have h1 := finset.sum_eq_zero_iff.1 h',
+  sorry,
+end
+
 end finset
 
 namespace nat

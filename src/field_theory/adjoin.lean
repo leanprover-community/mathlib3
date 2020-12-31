@@ -301,15 +301,15 @@ begin
   { rw [h, inv_zero], exact subalgebra.zero_mem (algebra.adjoin F {α}) },
 
   let ϕ := alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial F α hα,
-  let inv := (@adjoin_root.field F _ _ (minimal_polynomial.irreducible hα)).inv,
-  suffices : ϕ ⟨x, hx⟩ * inv (ϕ ⟨x, hx⟩) = 1,
-  { convert subtype.mem (ϕ.symm (inv (ϕ ⟨x, hx⟩))),
+  haveI := minimal_polynomial.irreducible hα,
+  suffices : ϕ ⟨x, hx⟩ * (ϕ ⟨x, hx⟩)⁻¹ = 1,
+  { convert subtype.mem (ϕ.symm (ϕ ⟨x, hx⟩)⁻¹),
     refine (eq_inv_of_mul_right_eq_one _).symm,
     apply_fun ϕ.symm at this,
     rw [alg_equiv.map_one, alg_equiv.map_mul, alg_equiv.symm_apply_apply] at this,
     rw [←subsemiring.coe_one, ←this, subsemiring.coe_mul, subtype.coe_mk] },
 
-  rw field.mul_inv_cancel (mt (λ key, _) h),
+  rw mul_inv_cancel (mt (λ key, _) h),
   rw ← ϕ.map_zero at key,
   change ↑(⟨x, hx⟩ : algebra.adjoin F {α}) = _,
   rw [ϕ.injective key, submodule.coe_zero]

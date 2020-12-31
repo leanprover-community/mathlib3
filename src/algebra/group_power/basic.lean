@@ -433,8 +433,7 @@ end
 mt pow_eq_zero h
 
 lemma pow_abs [linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
-by induction n with n ih; [exact (abs_one).symm,
-  rw [pow_succ, pow_succ, ih, abs_mul]]
+(abs_hom.to_monoid_hom.map_pow a n).symm
 
 lemma abs_neg_one_pow [linear_ordered_comm_ring R] (n : ℕ) : abs ((-1 : R)^n) = 1 :=
 by rw [←pow_abs, abs_neg, abs_one, one_pow]

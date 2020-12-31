@@ -10,6 +10,13 @@ import algebra.algebra.subalgebra
 # Towers of algebras
 
 In this file we prove basic facts about towers of algebra.
+
+An algebra tower A/S/R is expressed by having instances of `algebra A S`,
+`algebra R S`, `algebra R A` and `is_scalar_tower R S A`, the later asserting the
+compatibility condition `(r • s) • a = r • (s • a)`.
+
+An important definition is `to_alg_hom R S A`, the canonical `R`-algebra homomorphism `S →ₐ[R] A`.
+
 -/
 
 universes u v w u₁ v₁
@@ -23,8 +30,9 @@ variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower
 
 variables {A}
 
-/-- The `R`-algebra morphism `A → End (M)` corresponding to the `A`-module structure on `M`. -/
-def lsmul : A →ₐ[R] (M →ₗ[R] M) :=
+/-- The `R`-algebra morphism `A → End (M)` corresponding to the representation of the algebra `A`
+on the `R`-module `M`. -/
+def lsmul : A →ₐ[R] module.End R M :=
 { map_one' := by { ext m, exact one_smul A m },
   map_mul' := by { intros a b, ext c, exact smul_assoc a b c },
   map_zero' := by { ext m, exact zero_smul A m },
@@ -61,6 +69,12 @@ theorem of_algebra_map_eq [algebra R A]
   (h : ∀ x, algebra_map R A x = algebra_map S A (algebra_map R S x)) :
   is_scalar_tower R S A :=
 ⟨λ x y z, by simp_rw [algebra.smul_def, ring_hom.map_mul, mul_assoc, h]⟩
+
+/-- See note [partially-applied ext lemmas]. -/
+theorem of_algebra_map_eq' [algebra R A]
+  (h : algebra_map R A = (algebra_map S A).comp (algebra_map R S)) :
+  is_scalar_tower R S A :=
+of_algebra_map_eq $ ring_hom.ext_iff.1 h
 
 variables (R S A)
 
@@ -128,9 +142,6 @@ lemma restrict_base_apply (f : A →ₐ[S] B) (x : A) : restrict_base R f x = f 
 instance right : is_scalar_tower S A A :=
 ⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, algebra.smul_mul_assoc]⟩
 
-instance nat : is_scalar_tower ℕ S A :=
-of_algebra_map_eq $ λ x, ((algebra_map S A).map_nat_cast x).symm
-
 instance comap {R S A : Type*} [comm_semiring R] [comm_semiring S] [semiring A]
   [algebra R S] [algebra S A] : is_scalar_tower R S (algebra.comap R S A) :=
 of_algebra_map_eq $ λ x, rfl
@@ -154,26 +165,6 @@ instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_s
 by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commutes x).symm) }
 
 end semiring
-
-section comm_semiring
-variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
-variables [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
-
-instance linear_map (R : Type u) (A : Type v) (V : Type w)
-  [comm_semiring R] [comm_semiring A] [add_comm_monoid V]
-  [semimodule R V] [algebra R A] : is_scalar_tower R A (V →ₗ[R] A) :=
-⟨λ x y f, linear_map.ext $ λ v, algebra.smul_mul_assoc x y (f v)⟩
-
-end comm_semiring
-
-section comm_ring
-variables [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] [algebra R A]
-variables [is_scalar_tower R S A]
-
-instance int : is_scalar_tower ℤ S A :=
-of_algebra_map_eq $ λ x, ((algebra_map S A).map_int_cast x).symm
-
-end comm_ring
 
 section division_ring
 variables [field R] [division_ring S] [algebra R S] [char_zero R] [char_zero S]

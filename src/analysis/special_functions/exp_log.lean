@@ -309,8 +309,8 @@ tendsto_inf.2 ⟨tendsto_exp_at_bot, tendsto_principal.2 $ eventually_of_forall 
 /-- `real.exp` as an order isomorphism between `ℝ` and `(0, +∞)`. -/
 def exp_order_iso : ℝ ≃o Ioi (0 : ℝ) :=
 strict_mono.order_iso_of_surjective _ (exp_strict_mono.cod_restrict exp_pos) $
-  surjective_of_continuous (continuous_subtype_mk _ continuous_exp)
-    (by simp only [tendsto_Ioi_at_top, coe_cod_restrict_apply, tendsto_exp_at_top])
+  (continuous_subtype_mk _ continuous_exp).surjective
+    (by simp only [tendsto_Ioi_at_top, subtype.coe_mk, tendsto_exp_at_top])
     (by simp [tendsto_exp_at_bot_nhds_within])
 
 @[simp] lemma coe_exp_order_iso_apply (x : ℝ) : (exp_order_iso x : ℝ) = exp x := rfl

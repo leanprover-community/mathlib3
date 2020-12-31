@@ -316,10 +316,10 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
     `@[simps]`, so only the "final" projection will be non-fully applied.
     However, it can be used in combination with explicit field names, to get a partially applied
     intermediate projection.
-  * The list `not_recursive` is the list of names of types for which `@[simps]` doesn't recursively
-    apply projections. For example, given an equivalence `α × β ≃ β × α` one usually wants to only
-    apply the projections for `equiv`, and not also those for `×`. This option is  only relevant if
-    no explicit projection names are given as argument to `@[simps]`.
+  * The option `not_recursive` contains the list of names of types for which `@[simps]` doesn't
+    recursively apply projections. For example, given an equivalence `α × β ≃ β × α` one usually
+    wants to only apply the projections for `equiv`, and not also those for `×`. This option is
+    only relevant if no explicit projection names are given as argument to `@[simps]`.
 -/
 @[derive [has_reflect, inhabited]] structure simps_cfg :=
 (attrs         := [`simp])
@@ -353,7 +353,7 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   let decl_value := prf.lambdas args,
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
   when_tracing `simps.verbose trace!
-    "[simps] > adding projection {decl_name} :\n        > {decl_type}",
+    "[simps] > adding projection {decl_name}:\n        > {decl_type}",
   decorate_error ("failed to add projection lemma " ++ decl_name.to_string ++ ". Nested error:") $
     add_decl decl,
   b ← succeeds $ is_def_eq lhs rhs,

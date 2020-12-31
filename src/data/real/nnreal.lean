@@ -87,7 +87,8 @@ instance : has_one ℝ≥0   := ⟨⟨1, zero_le_one⟩⟩
 instance : has_add ℝ≥0   := ⟨λa b, ⟨a + b, add_nonneg a.2 b.2⟩⟩
 instance : has_sub ℝ≥0   := ⟨λa b, nnreal.of_real (a - b)⟩
 instance : has_mul ℝ≥0   := ⟨λa b, ⟨a * b, mul_nonneg a.2 b.2⟩⟩
-instance : has_inv ℝ≥0   := ⟨λa, ⟨(a.1)⁻¹, inv_nonneg.2 a.2⟩⟩
+instance : has_inv ℝ≥0   := ⟨λa, ⟨a⁻¹, inv_nonneg.2 a.2⟩⟩
+instance : has_div ℝ≥0   := ⟨λa b, ⟨a / b, div_nonneg a.2 b.2⟩⟩
 instance : has_le ℝ≥0    := ⟨λ r s, (r:ℝ) ≤ s⟩
 instance : has_bot ℝ≥0   := ⟨0⟩
 instance : inhabited ℝ≥0 := ⟨0⟩
@@ -111,14 +112,9 @@ max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 @[simp] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 := by norm_cast
 lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by norm_cast
 
-instance : comm_semiring ℝ≥0 :=
-begin
-  refine { zero := 0, add := (+), one := 1, mul := (*), ..};
-  { intros;
-    apply nnreal.eq;
-    simp [mul_comm, mul_assoc, add_comm_monoid.add, left_distrib, right_distrib,
-          add_comm_monoid.zero, add_comm, add_left_comm] }
-end
+instance : semifield ℝ≥0 :=
+{ .. nnreal.injective_coe.comm_semiring _ rfl rfl (λ _ _, rfl) (λ _ _, rfl),
+  .. nnreal.injective_coe.group_with_zero_div _ rfl rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) }
 
 /-- Coercion `ℝ≥0 → ℝ` as a `ring_hom`. -/
 def to_real_hom : ℝ≥0 →+* ℝ :=
@@ -126,19 +122,13 @@ def to_real_hom : ℝ≥0 →+* ℝ :=
 
 @[simp] lemma coe_to_real_hom : ⇑to_real_hom = coe := rfl
 
-instance : comm_group_with_zero ℝ≥0 :=
-{ exists_pair_ne := ⟨0, 1, assume h, zero_ne_one $ nnreal.eq_iff.2 h⟩,
-  inv_zero       := nnreal.eq $ show (0⁻¹ : ℝ) = 0, from inv_zero,
-  mul_inv_cancel := assume x h, nnreal.eq $ mul_inv_cancel $ ne_iff.2 h,
-  .. (by apply_instance : has_inv ℝ≥0),
-  .. (_ : comm_semiring ℝ≥0),
-  .. (_ : semiring ℝ≥0) }
-
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
   ((s.indicator f a : ℝ≥0) : ℝ) = s.indicator (λ x, f x) a :=
 (to_real_hom : ℝ≥0 →+ ℝ).map_indicator _ _ _
 
-@[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
+@[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ :=
+to_real_hom.map_div r₁ r₂
+
 @[simp, norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 to_real_hom.map_pow r n
 
@@ -204,7 +194,7 @@ instance : canonically_ordered_add_monoid ℝ≥0 :=
         ⟨⟨b - a, le_sub_iff_add_le.2 $ by simp [h]⟩,
           nnreal.eq $ show b = a + (b - a), by rw [add_sub_cancel'_right]⟩)
       (assume ⟨⟨c, hc⟩, eq⟩, eq.symm ▸ show a ≤ a + c, from (le_add_iff_nonneg_right a).2 hc),
-  ..nnreal.comm_semiring,
+  ..nnreal.semifield,
   ..nnreal.order_bot,
   ..nnreal.linear_order }
 
@@ -228,19 +218,18 @@ instance : linear_ordered_semiring ℝ≥0 :=
   exists_pair_ne             := ⟨0, 1, ne_of_lt (@zero_lt_one ℝ _ _)⟩,
   .. nnreal.linear_order,
   .. nnreal.canonically_ordered_add_monoid,
-  .. nnreal.comm_semiring, }
+  .. nnreal.semifield, }
 
 instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
 { mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),
   zero_le_one := zero_le 1,
   .. nnreal.linear_ordered_semiring,
-  .. nnreal.comm_group_with_zero }
+  .. nnreal.semifield }
 
 instance : canonically_ordered_comm_semiring ℝ≥0 :=
 { .. nnreal.canonically_ordered_add_monoid,
-  .. nnreal.comm_semiring,
   .. (show no_zero_divisors ℝ≥0, by apply_instance),
-  .. nnreal.comm_group_with_zero }
+  .. nnreal.semifield }
 
 instance : densely_ordered ℝ≥0 :=
 ⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := exists_between h in
@@ -504,51 +493,16 @@ end sub
 
 section inv
 
-lemma div_def {r p : ℝ≥0} : r / p = r * p⁻¹ := rfl
-
-lemma sum_div {ι} (s : finset ι) (f : ι → ℝ≥0) (b : ℝ≥0) :
-  (∑ i in s, f i) / b = ∑ i in s, (f i / b) :=
-by simp only [nnreal.div_def, finset.sum_mul]
-
-@[simp] lemma inv_zero : (0 : ℝ≥0)⁻¹ = 0 := nnreal.eq inv_zero
-
-@[simp] lemma inv_eq_zero {r : ℝ≥0} : (r : ℝ≥0)⁻¹ = 0 ↔ r = 0 :=
-inv_eq_zero
-
 @[simp] lemma inv_pos {r : ℝ≥0} : 0 < r⁻¹ ↔ 0 < r :=
 by simp [zero_lt_iff_ne_zero]
 
-lemma div_pos {r p : ℝ≥0}  (hr : 0 < r) (hp : 0 < p) : 0 < r / p :=
-mul_pos hr (inv_pos.2 hp)
-
-@[simp] lemma inv_one : (1:ℝ≥0)⁻¹ = 1 := nnreal.eq $ inv_one
-
-@[simp] lemma div_one {r : ℝ≥0} : r / 1 = r := by rw [div_def, inv_one, mul_one]
+lemma div_pos {r p : ℝ≥0} (hr : 0 < r) (hp : 0 < p) : 0 < r / p :=
+by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
 
 protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev' _ _
 
-protected lemma inv_pow {r : ℝ≥0} {n : ℕ} : (r^n)⁻¹ = (r⁻¹)^n :=
-nnreal.eq $ by { push_cast, exact (inv_pow' _ _).symm }
-
-@[simp] lemma inv_mul_cancel {r : ℝ≥0} (h : r ≠ 0) : r⁻¹ * r = 1 :=
-nnreal.eq $ inv_mul_cancel $ mt (@nnreal.eq_iff r 0).1 h
-
-@[simp] lemma mul_inv_cancel {r : ℝ≥0} (h : r ≠ 0) : r * r⁻¹ = 1 :=
-by rw [mul_comm, inv_mul_cancel h]
-
-@[simp] lemma div_self {r : ℝ≥0} (h : r ≠ 0) : r / r = 1 :=
-mul_inv_cancel h
-
 lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 :=
 if h : r = 0 then by simp [h] else by rw [div_self h]
-
-@[simp] lemma mul_div_cancel {r p : ℝ≥0} (h : p ≠ 0) : r * p / p = r :=
-by rw [div_def, mul_assoc, mul_inv_cancel h, mul_one]
-
-@[simp] lemma mul_div_cancel' {r p : ℝ≥0} (h : r ≠ 0) : r * (p / r) = p :=
-by rw [mul_comm, div_mul_cancel _ h]
-
-@[simp] lemma inv_inv {r : ℝ≥0} : r⁻¹⁻¹ = r := nnreal.eq (inv_inv' _)
 
 @[simp] lemma inv_le {r p : ℝ≥0} (h : r ≠ 0) : r⁻¹ ≤ p ↔ 1 ≤ r * p :=
 by rw [← mul_le_mul_left (zero_lt_iff_ne_zero.2 h), mul_inv_cancel h]
@@ -567,10 +521,11 @@ have 0 < r, from lt_of_le_of_ne (zero_le r) hr.symm,
 by rw [← @mul_le_mul_left _ _ a _ r this, ← mul_assoc, mul_inv_cancel hr, one_mul]
 
 lemma le_div_iff_mul_le {a b r : ℝ≥0} (hr : r ≠ 0) : a ≤ b / r ↔ a * r ≤ b :=
-by rw [div_def, mul_comm, ← mul_le_iff_le_inv hr, mul_comm]
+by rw [div_eq_inv_mul, ← mul_le_iff_le_inv hr, mul_comm]
 
 lemma div_le_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a / r ≤ b ↔ a ≤ b * r :=
-@div_le_iff ℝ _ a r b $ zero_lt_iff_ne_zero.2 hr
+by rw [← nnreal.coe_le_coe, nnreal.coe_div,
+  div_le_iff (nnreal.coe_pos.2 $ zero_lt_iff_ne_zero.2 hr), ← nnreal.coe_mul, nnreal.coe_le_coe]
 
 lemma lt_div_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a < b / r ↔ a * r < b :=
 lt_iff_lt_of_le_iff_le (div_le_iff hr)
@@ -586,23 +541,20 @@ lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x �
 le_of_forall_ge_of_dense $ assume a ha,
   have hx : x ≠ 0 := zero_lt_iff_ne_zero.1 (lt_of_le_of_lt (zero_le _) ha),
   have hx' : x⁻¹ ≠ 0, by rwa [(≠), inv_eq_zero],
-  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv],
+  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv'],
   have (a * x⁻¹) * x ≤ y, from h _ this,
   by rwa [mul_assoc, inv_mul_cancel hx, mul_one] at this
 
-lemma div_add_div_same (a b c : ℝ≥0) : a / c + b / c = (a + b) / c :=
-eq.symm $ right_distrib a b (c⁻¹)
-
 lemma half_pos {a : ℝ≥0} (h : 0 < a) : 0 < a / 2 := div_pos h zero_lt_two
 
-lemma add_halves (a : ℝ≥0) : a / 2 + a / 2 = a := nnreal.eq (add_halves a)
+lemma add_halves (a : ℝ≥0) : a / 2 + a / 2 = a := nnreal.eq (add_halves ↑a)
 
 lemma half_lt_self {a : ℝ≥0} (h : a ≠ 0) : a / 2 < a :=
 by rw [← nnreal.coe_lt_coe, nnreal.coe_div]; exact
 half_lt_self (bot_lt_iff_ne_bot.2 h)
 
 lemma two_inv_lt_one : (2⁻¹:ℝ≥0) < 1 :=
-by simpa [div_def] using half_lt_self zero_ne_one.symm
+by simpa using half_lt_self zero_ne_one.symm
 
 lemma div_lt_iff {a b c : ℝ≥0} (hc : c ≠ 0) : b / c < a ↔ b < a * c :=
 begin
@@ -616,59 +568,6 @@ begin
   exact ne_of_gt (lt_of_le_of_lt (zero_le _) h)
 end
 
-@[field_simps] theorem div_pow {a b : ℝ≥0} (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
-div_pow _ _ _
-
-@[field_simps] lemma mul_div_assoc' (a b c : ℝ≥0) : a * (b / c) = (a * b) / c :=
-by rw [div_def, div_def, mul_assoc]
-
-@[field_simps] lemma div_add_div (a : ℝ≥0) {b : ℝ≥0} (c : ℝ≥0) {d : ℝ≥0}
-  (hb : b ≠ 0) (hd : d ≠ 0) : a / b + c / d = (a * d + b * c) / (b * d) :=
-begin
-  rw ← nnreal.eq_iff,
-  simp only [nnreal.coe_add, nnreal.coe_div, nnreal.coe_mul],
-  exact div_add_div _ _ (coe_ne_zero.2 hb) (coe_ne_zero.2 hd)
-end
-
-@[field_simps] lemma inv_eq_one_div (a : ℝ≥0) : a⁻¹ = 1/a :=
-by rw [div_def, one_mul]
-
-@[field_simps] lemma div_mul_eq_mul_div (a b c : ℝ≥0) : (a / b) * c = (a * c) / b :=
-by { rw [div_def, div_def], ac_refl }
-
-@[field_simps] lemma add_div' (a b c : ℝ≥0) (hc : c ≠ 0) :
-  b + a / c = (b * c + a) / c :=
-by simpa using div_add_div b a one_ne_zero hc
-
-@[field_simps] lemma div_add' (a b c : ℝ≥0) (hc : c ≠ 0) :
-  a / c + b = (a + b * c) / c :=
-by rwa [add_comm, add_div', add_comm]
-
-lemma one_div (a : ℝ≥0) : 1 / a = a⁻¹ :=
-one_mul a⁻¹
-
-lemma one_div_div (a b : ℝ≥0) : 1 / (a / b) = b / a :=
-by { rw ← nnreal.eq_iff, simp [one_div_div] }
-
-lemma div_eq_mul_one_div (a b : ℝ≥0) : a / b = a * (1 / b) :=
-by rw [div_def, div_def, one_mul]
-
-@[field_simps] lemma div_div_eq_mul_div (a b c : ℝ≥0) : a / (b / c) = (a * c) / b :=
-by { rw ← nnreal.eq_iff, simp [div_div_eq_mul_div] }
-
-@[field_simps] lemma div_div_eq_div_mul (a b c : ℝ≥0) : (a / b) / c = a / (b * c) :=
-by { rw ← nnreal.eq_iff, simp [div_div_eq_div_mul] }
-
-@[field_simps] lemma div_eq_div_iff {a b c d : ℝ≥0} (hb : b ≠ 0) (hd : d ≠ 0) :
-  a / b = c / d ↔ a * d = c * b :=
-div_eq_div_iff hb hd
-
-@[field_simps] lemma div_eq_iff {a b c : ℝ≥0} (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
-by simpa using @div_eq_div_iff a b c 1 hb one_ne_zero
-
-@[field_simps] lemma eq_div_iff {a b c : ℝ≥0} (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
-by simpa using @div_eq_div_iff c 1 a b one_ne_zero hb
-
 lemma of_real_inv {x : ℝ} :
   nnreal.of_real x⁻¹ = (nnreal.of_real x)⁻¹ :=
 begin
@@ -681,29 +580,13 @@ end
 
 lemma of_real_div {x y : ℝ} (hx : 0 ≤ x) :
   nnreal.of_real (x / y) = nnreal.of_real x / nnreal.of_real y :=
-by rw [div_def, ←of_real_inv, ←of_real_mul hx, div_eq_mul_inv]
+by rw [div_eq_mul_inv, div_eq_mul_inv, ←of_real_inv, ←of_real_mul hx]
 
 lemma of_real_div' {x y : ℝ} (hy : 0 ≤ y) :
   nnreal.of_real (x / y) = nnreal.of_real x / nnreal.of_real y :=
-by rw [div_def, ←of_real_inv, mul_comm, ←@of_real_mul y⁻¹ _ (by simp [hy]), mul_comm,
-  div_eq_mul_inv]
+by rw [div_eq_inv_mul, div_eq_inv_mul, of_real_mul (inv_nonneg.2 hy), of_real_inv]
 
 end inv
-
-section pow
-
-theorem pow_eq_zero {a : ℝ≥0} {n : ℕ} (h : a^n = 0) : a = 0 :=
-begin
-  rw ← nnreal.eq_iff,
-  rw [← nnreal.eq_iff, coe_pow] at h,
-  exact pow_eq_zero h
-end
-
-@[field_simps] theorem pow_ne_zero {a : ℝ≥0} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
-mt pow_eq_zero h
-
-end pow
-
 
 @[simp] lemma abs_eq (x : ℝ≥0) : abs (x : ℝ) = x :=
 abs_of_nonneg x.property

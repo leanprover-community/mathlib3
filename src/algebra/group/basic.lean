@@ -145,6 +145,12 @@ lemma mul_one_div (x y : G) :
   x * (1 / y) = x / y :=
 by rw [div_eq_mul_inv, one_mul, div_eq_mul_inv]
 
+lemma mul_div_assoc {a b c : G} : a * b / c = a * (b / c) :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc _ _ _]
+
+lemma mul_div_assoc' (a b c : G) : a * (b / c) = (a * b) / c :=
+mul_div_assoc.symm
+
 end div_inv_monoid
 
 section group

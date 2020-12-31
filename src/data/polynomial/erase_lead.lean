@@ -97,16 +97,24 @@ begin
 end
 
 lemma erase_lead_card_support {R : Type*} [semiring R] {c : ℕ} {f : polynomial R}
-  (f0 : f.support.card = c + 1) :
+  (fc : f.support.card = c + 1) :
   f.erase_lead.support.card = c :=
 begin
-  rw [erase_lead_support, card_erase_of_mem],
-  { exact nat.pred_eq_of_eq_succ f0 },
-  { rw nat_degree_eq_support_max',
-    refine f.support.max'_mem (nonempty_support_iff.mpr _),
-    rintro rfl,
-    rw [support_zero, card_empty] at f0,
-    exact (not_le.mpr c.succ_pos) f0.ge }
+  by_cases f0 : f = 0,
+  { rw [f0, support_zero, card_empty] at fc,
+    exact false.rec _ (nat.succ_ne_zero c fc.symm) },
+  { rw [erase_lead_support, card_erase_of_mem (nat_degree_mem_support_of_nonzero f0), fc],
+    exact nat.pred_succ c },
+end
+
+lemma erase_lead_card_support' {R : Type*} [semiring R] {c : ℕ} {f : polynomial R}
+  (fc : f.support.card = c) :
+  f.erase_lead.support.card = c - 1 :=
+begin
+  by_cases f0 : f = 0,
+  { rw [← fc, f0, erase_lead_zero, support_zero, card_empty] },
+  { rw [erase_lead_support, card_erase_of_mem (nat_degree_mem_support_of_nonzero f0), fc],
+    exact nat.pred_eq_sub_one c },
 end
 
 @[simp] lemma erase_lead_monomial (i : ℕ) (r : R) :

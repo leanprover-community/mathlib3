@@ -125,12 +125,13 @@ calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst
 lemma sup_closed_of_sup_closed {s : set α} (t : finset α) (htne : t.nonempty) (h_subset : ↑t ⊆ s)
   (h : ∀⦃a b⦄, a ∈ s → b ∈ s → a ⊔ b ∈ s) : t.sup id ∈ s :=
 begin
-  classical, revert htne h_subset, apply t.induction_on,
-  { intros contra, exfalso, apply finset.not_nonempty_empty contra, },
-  { intros x t h₀ h₁ h₂ h₃, rw [finset.coe_insert, set.insert_subset] at h₃,
+  classical,
+  induction t using finset.induction_on with x t h₀ h₁,
+  { exfalso, apply finset.not_nonempty_empty htne, },
+  { rw [finset.coe_insert, set.insert_subset] at h_subset,
     cases t.eq_empty_or_nonempty with hte htne,
-    { subst hte, simp only [insert_emptyc_eq, id.def, finset.sup_singleton, h₃], },
-    { rw [finset.sup_insert, id.def], exact h h₃.1 (h₁ htne h₃.2), }, },
+    { subst hte, simp only [insert_emptyc_eq, id.def, finset.sup_singleton, h_subset], },
+    { rw [finset.sup_insert, id.def], exact h h_subset.1 (h₁ htne h_subset.2), }, },
 end
 
 end sup

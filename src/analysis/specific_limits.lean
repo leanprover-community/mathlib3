@@ -112,7 +112,8 @@ end
 * 1: $f n = o(a ^ n)$ for some $0 < a < R$;
 * 2: $f n = O(a ^ n)$ for some $-R < a < R$;
 * 3: $f n = O(a ^ n)$ for some $0 < a < R$;
-* 4: there exist `a < R` and a positive `C` such that $|f n| ≤ Ca^n$ for all `n`;
+* 4: there exist `a < R` and `C` such that one of `C` and `R` is positive and $|f n| ≤ Ca^n$
+     for all `n`;
 * 5: there exists `0 < a < R` and a positive `C` such that $|f n| ≤ Ca^n$ for all `n`;
 * 6: there exists `a < R` such that $|f n| ≤ a ^ n$ for sufficiently large `n`;
 * 7: there exists `0 < a < R` such that $|f n| ≤ a ^ n$ for sufficiently large `n`.
@@ -124,7 +125,7 @@ lemma tfae_exists_lt_is_o_pow (f : ℕ → ℝ) (R : ℝ) :
     ∃ a ∈ Ioo 0 R, is_o f (pow a) at_top,
     ∃ a ∈ Ioo (-R) R, is_O f (pow a) at_top,
     ∃ a ∈ Ioo 0 R, is_O f (pow a) at_top,
-    ∃ (a < R) (C > 0), ∀ n, abs (f n) ≤ C * a ^ n,
+    ∃ (a < R) C (h₀ : 0 < C ∨ 0 < R), ∀ n, abs (f n) ≤ C * a ^ n,
     ∃ (a ∈ Ioo 0 R) (C > 0), ∀ n, abs (f n) ≤ C * a ^ n,
     ∃ a < R, ∀ᶠ n in at_top, abs (f n) ≤ a ^ n,
     ∃ a ∈ Ioo 0 R, ∀ᶠ n in at_top, abs (f n) ≤ a ^ n] :=
@@ -149,11 +150,13 @@ begin
     refine ⟨a, ha, C, hC₀, λ n, _⟩,
     simpa only [real.norm_eq_abs, abs_pow, abs_of_nonneg ha.1.le]
       using hC (pow_ne_zero n ha.1.ne') },
-  tfae_have : 6 → 5, from λ ⟨a, ha, H⟩, ⟨a, ha.2, H⟩,
+  tfae_have : 6 → 5, from λ ⟨a, ha, C, H₀, H⟩, ⟨a, ha.2, C, or.inl H₀, H⟩,
   tfae_have : 5 → 3,
-  { rintro ⟨a, ha, C, hC₀, H⟩,
+  { rintro ⟨a, ha, C, h₀, H⟩,
     rcases sign_cases_of_C_mul_pow_nonneg (λ n, (abs_nonneg _).trans (H n)) with rfl | ⟨hC₀, ha₀⟩,
-    { exact (lt_irrefl 0 hC₀).elim },
+    { obtain rfl : f = 0, by { ext n, simpa using H n },
+      simp only [lt_irrefl, false_or] at h₀,
+      exact ⟨0, ⟨neg_lt_zero.2 h₀, h₀⟩, is_O_zero _ _⟩ },
     exact ⟨a, A ⟨ha₀, ha⟩,
       is_O_of_le' _ (λ n, (H n).trans $ mul_le_mul_of_nonneg_left (le_abs_self _) hC₀.le)⟩ },
   -- Add 7 and 8 using 2 → 8 → 7 → 3

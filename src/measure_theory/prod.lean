@@ -333,6 +333,35 @@ by simp_rw [prod_apply (hs.prod ht), mk_preimage_prod_right_eq_if, measure_if,
   lintegral_indicator _ hs, lintegral_const, restrict_apply is_measurable.univ,
   univ_inter, mul_comm]
 
+local attribute [instance] nonempty_measurable_superset
+/-- If we don't assume measurability of `s` and `t`, we can bound the measure of their product. -/
+lemma prod_prod_le (s : set α) (t : set β) : μ.prod ν (s.prod t) ≤ μ s * ν t :=
+begin
+  by_cases hs0 : μ s = 0,
+  { rcases (exists_is_measurable_superset_of_measure_eq_zero hs0) with ⟨s', hs', h2s', h3s'⟩,
+    convert measure_mono (prod_mono hs' (subset_univ _)),
+    simp_rw [hs0, prod_prod h2s' is_measurable.univ, h3s', zero_mul] },
+  by_cases hti : ν t = ⊤,
+  { convert le_top, simp_rw [hti, ennreal.mul_top, hs0, if_false] },
+  rw [measure_eq_infi' μ],
+  simp_rw [ennreal.infi_mul hti],
+  refine le_infi _,
+  rintro ⟨s', h1s', h2s'⟩,
+  rw [subtype.coe_mk],
+  by_cases ht0 : ν t = 0,
+  { rcases (exists_is_measurable_superset_of_measure_eq_zero ht0) with ⟨t', ht', h2t', h3t'⟩,
+    convert measure_mono (prod_mono (subset_univ _) ht'),
+    simp_rw [ht0, prod_prod is_measurable.univ h2t', h3t', mul_zero] },
+  by_cases hsi : μ s' = ⊤,
+  { convert le_top, simp_rw [hsi, ennreal.top_mul, ht0, if_false] },
+  rw [measure_eq_infi' ν],
+  simp_rw [ennreal.mul_infi hsi],
+  refine le_infi _,
+  rintro ⟨t', h1t', h2t'⟩,
+  convert measure_mono (prod_mono h1s' h1t'),
+  simp [prod_prod h2s' h2t'],
+end
+
 lemma ae_measure_lt_top {s : set (α × β)} (hs : is_measurable s)
   (h2s : (μ.prod ν) s < ⊤) : ∀ᵐ x ∂μ, ν (prod.mk x ⁻¹' s) < ⊤ :=
 by { simp_rw [prod_apply hs] at h2s, refine ae_lt_top (measurable_measure_prod_mk_left hs) h2s }

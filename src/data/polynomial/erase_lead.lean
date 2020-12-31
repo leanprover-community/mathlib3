@@ -97,17 +97,6 @@ begin
 end
 
 lemma erase_lead_card_support {R : Type*} [semiring R] {c : ℕ} {f : polynomial R}
-  (fc : f.support.card = c + 1) :
-  f.erase_lead.support.card = c :=
-begin
-  by_cases f0 : f = 0,
-  { rw [f0, support_zero, card_empty] at fc,
-    exact false.rec _ (nat.succ_ne_zero c fc.symm) },
-  { rw [erase_lead_support, card_erase_of_mem (nat_degree_mem_support_of_nonzero f0), fc],
-    exact nat.pred_succ c },
-end
-
-lemma erase_lead_card_support' {R : Type*} [semiring R] {c : ℕ} {f : polynomial R}
   (fc : f.support.card = c) :
   f.erase_lead.support.card = c - 1 :=
 begin

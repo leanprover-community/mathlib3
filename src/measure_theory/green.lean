@@ -414,57 +414,15 @@ begin
       rw this,
       rw oppI,
       ring,
-      have rw1 : (ite (1 = 0) 1 0) = 0,
-      {
-        simp,
-      },
-      -- rw rw1,
-      have rw2:  a (ite (1 = 0) 1 0) = a 0,
-      {
-        simp [rw1],
-      },
---      rw rw2,
-      have rw3:  b (ite (1 = 0) 1 0) = b 0,
-      {
-        simp [rw1],
-      },
---      rw rw3,
-      have rw4:  a (ite (1 = 0) 1 0) -  b (ite (1 = 0) 1 0) = a 0 - b 0,
-      {
-        simp [rw2, rw3],
-      },
---      rw rw4,
-      have rw5 :
+
+      calc
       (b 1 - a 1) • ((a (ite (1 = 0) 1 0) - b (ite (1 = 0) 1 0)) * u (oppE 1))
-      =
-      (b 1 - a 1) • ((a 0 - b 0) * u (oppE 1)),
-      {
-        simp [rw4],
-      },
---      rw rw5,
-      have rw6 :
-      (b 1 - a 1) • ((a (ite (1 = 0) 1 0) - b (ite (1 = 0) 1 0)) * ⇑u (oppE 1))
-      =
-      (b 0 - a 0) * (a 1 - b 1) * u (oppE 1),
-      {
-        simp [rw5],
-        rw ←  mul_assoc,
-        have :
-        (b 1 - a 1) * (a 0 - b 0)
-        =
-        (b 0 - a 0) * (a 1 - b 1),
-        {
-          ring,
-        },
-        rw this,
+      = (b 1 - a 1) • ((a (0) - b (ite (1 = 0) 1 0)) * u (oppE 1)) : by simp
+      ... = (b 1 - a 1) • ((a (0) - b (0)) * u (oppE 1)) : by simp
+      ... = -((b 0 - a 0) * (b 1 - a 1) * u (oppE 1)) : _,
 
-        --ring,
-      },
-      rw rw6,
-      ring,
-      --- It's getting hung here, not responding???
-      sorry,
-
+      simp,
+      ring
     },
   },
   --- HEATHER
@@ -848,6 +806,7 @@ begin
 
 --  rw interval_integral.integral_const_of_cdf,
   sorry,
+  sorry,
 end
 
 -- need Tonelli over sets !
@@ -913,13 +872,14 @@ variables (P Q : (fin 2 → ℝ) → ℝ)
 
 =
 
-∫_R (P_y - Q_x ) dx dy
+∫_R (Q_x - P_y ) dx dy
 
 U=(P,Q)
 
 -/
 
-def divergence : (fin 2 → ℝ) → ℝ := (λ x, fderiv ℝ P x ey - fderiv ℝ Q x ex)
+def divergence : (fin 2 → ℝ) → ℝ := (λ x, fderiv ℝ Q x ex - fderiv ℝ P x ey)
+-- IS THIS SIGN RIGHT???
 
 def div_diff (a b : fin 2 → ℝ) : ℝ :=
 box_integral (divergence P Q) a b
@@ -941,13 +901,14 @@ begin
 end
 
 lemma linear_divergence (P Q : (fin 2 → ℝ) →L[ℝ] ℝ) :
-divergence P Q = (λ x, P ey - Q ex)
+divergence P Q = (λ x, - P ey + Q ex)
 :=
 begin
   rw divergence,
   ext,
   rw continuous_linear_map.fderiv,
   rw continuous_linear_map.fderiv,
+  ring,
 end
 
 lemma linear_div_diff_cancels (a b : fin 2 → ℝ) (P Q : (fin 2 → ℝ) →L[ℝ] ℝ) :
@@ -959,7 +920,7 @@ begin
   rw box_integral_const,
 
   simp [box_line_integral_linear, oppE],
-  simp,
+
   ring,
 end
 

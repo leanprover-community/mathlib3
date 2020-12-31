@@ -102,7 +102,7 @@ lemma erase_lead_card_support {R : Type*} [semiring R] {c : ℕ} {f : polynomial
 begin
   by_cases f0 : f = 0,
   { rw [f0, support_zero, card_empty] at fc,
-    exact false.rec _ (nat.succ_ne_zero c fc.symm) },
+    exact (c.succ_ne_zero fc.symm).elim },
   { rw [erase_lead_support, card_erase_of_mem (nat_degree_mem_support_of_nonzero f0), fc],
     exact nat.pred_succ c },
 end

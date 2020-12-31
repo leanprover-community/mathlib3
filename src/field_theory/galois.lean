@@ -28,6 +28,8 @@ In this file we define Galois extensions as extensions which are both separable 
 - `fixed_field_of_fixing_subgroup`: If `E/F` is finite dimensional and Galois
   then `fixed_field (fixing_subgroup K) = K`
 Together, these two result prove the Galois correspondence
+
+- `tfae` : Equivalent characterizations of a Galois extension of finite degree
 -/
 
 noncomputable theory
@@ -393,6 +395,7 @@ begin
   exact (linear_equiv.findim_eq (intermediate_field.lift2_alg_equiv K⟮x⟯).to_linear_equiv).symm,
 end
 
+/--Equivalent characterizations of a Galois extension of finite degree-/
 theorem tfae [finite_dimensional F E] :
   tfae [is_galois F E,
     intermediate_field.fixed_field (⊤ : subgroup (E ≃ₐ[F] E)) = ⊥,

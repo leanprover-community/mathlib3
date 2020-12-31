@@ -248,7 +248,7 @@ begin
   rw [borel_eq_generate_from_of_subbasis this],
   apply generate_from_le,
   rintros _ ⟨s, i, hi, rfl⟩,
-  refine is_measurable_pi i.countable_to_set (λ a ha, is_open.is_measurable _),
+  refine is_measurable.pi i.countable_to_set (λ a ha, is_open.is_measurable _),
   rw [hinst],
   exact generate_open.basic _ (hi a ha)
 end

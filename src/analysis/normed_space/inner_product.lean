@@ -39,6 +39,8 @@ We globally denote the real and complex inner products by `⟪·, ·⟫_ℝ` and
 We also provide two notation namespaces: `real_inner_product_space`, `complex_inner_product_space`,
 which respectively introduce the plain notation `⟪·, ·⟫` for the the real and complex inner product.
 
+The orthogonal complement of a submodule `K` is denoted by `Kᗮ`.
+
 ## Implementation notes
 
 We choose the convention that inner products are conjugate linear in the first argument and linear
@@ -1022,6 +1024,21 @@ by simp_rw [sum_inner, inner_sum, real_inner_smul_left, real_inner_smul_right,
             h₁, h₂, zero_mul, mul_zero, finset.sum_const_zero, zero_add, zero_sub, finset.mul_sum,
             neg_div, finset.sum_div, mul_div_assoc, mul_assoc]
 
+/-- The inner product with a fixed left element, as a continuous linear map.  This can be upgraded
+to a continuous map which is jointly conjugate-linear in the left argument and linear in the right
+argument, once (TODO) conjugate-linear maps have been defined. -/
+def inner_right (v : E) : E →L[𝕜] 𝕜 :=
+linear_map.mk_continuous
+  { to_fun := λ w, ⟪v, w⟫,
+    map_add' := λ x y, inner_add_right,
+    map_smul' := λ c x, inner_smul_right }
+  ∥v∥
+  (by simpa [is_R_or_C.norm_eq_abs] using abs_inner_le_norm v)
+
+@[simp] lemma inner_right_coe (v : E) : (inner_right v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
+
+@[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
+
 end norm
 
 /-! ### Inner product space structure on product spaces -/
@@ -1619,33 +1636,58 @@ def submodule.orthogonal (K : submodule 𝕜 E) : submodule 𝕜 E :=
   add_mem' := λ x y hx hy u hu, by rw [inner_add_right, hx u hu, hy u hu, add_zero],
   smul_mem' := λ c x hx u hu, by rw [inner_smul_right, hx u hu, mul_zero] }
 
-/-- When a vector is in `K.orthogonal`. -/
-lemma submodule.mem_orthogonal (K : submodule 𝕜 E) (v : E) :
-  v ∈ K.orthogonal ↔ ∀ u ∈ K, ⟪u, v⟫ = 0 :=
+notation K`ᗮ`:1200 := submodule.orthogonal K
+
+/-- When a vector is in `Kᗮ`. -/
+lemma submodule.mem_orthogonal (K : submodule 𝕜 E) (v : E) : v ∈ Kᗮ ↔ ∀ u ∈ K, ⟪u, v⟫ = 0 :=
 iff.rfl
 
-/-- When a vector is in `K.orthogonal`, with the inner product the
+/-- When a vector is in `Kᗮ`, with the inner product the
 other way round. -/
-lemma submodule.mem_orthogonal' (K : submodule 𝕜 E) (v : E) :
-  v ∈ K.orthogonal ↔ ∀ u ∈ K, ⟪v, u⟫ = 0 :=
+lemma submodule.mem_orthogonal' (K : submodule 𝕜 E) (v : E) : v ∈ Kᗮ ↔ ∀ u ∈ K, ⟪v, u⟫ = 0 :=
 by simp_rw [submodule.mem_orthogonal, inner_eq_zero_sym]
 
-/-- A vector in `K` is orthogonal to one in `K.orthogonal`. -/
+/-- A vector in `K` is orthogonal to one in `Kᗮ`. -/
 lemma submodule.inner_right_of_mem_orthogonal {u v : E} {K : submodule 𝕜 E} (hu : u ∈ K)
-    (hv : v ∈ K.orthogonal) : ⟪u, v⟫ = 0 :=
+    (hv : v ∈ Kᗮ) : ⟪u, v⟫ = 0 :=
 (K.mem_orthogonal v).1 hv u hu
 
-/-- A vector in `K.orthogonal` is orthogonal to one in `K`. -/
+/-- A vector in `Kᗮ` is orthogonal to one in `K`. -/
 lemma submodule.inner_left_of_mem_orthogonal {u v : E} {K : submodule 𝕜 E} (hu : u ∈ K)
-    (hv : v ∈ K.orthogonal) : ⟪v, u⟫ = 0 :=
+    (hv : v ∈ Kᗮ) : ⟪v, u⟫ = 0 :=
 by rw [inner_eq_zero_sym]; exact submodule.inner_right_of_mem_orthogonal hu hv
 
-/-- `K` and `K.orthogonal` have trivial intersection. -/
-lemma submodule.orthogonal_disjoint (K : submodule 𝕜 E) : disjoint K K.orthogonal :=
+/-- `K` and `Kᗮ` have trivial intersection. -/
+lemma submodule.orthogonal_disjoint (K : submodule 𝕜 E) : disjoint K Kᗮ :=
 begin
   simp_rw [submodule.disjoint_def, submodule.mem_orthogonal],
   exact λ x hx ho, inner_self_eq_zero.1 (ho x hx)
 end
+
+/-- `Kᗮ` can be characterized as the intersection of the kernels of the operations of
+inner product with each of the elements of `K`. -/
+lemma orthogonal_eq_inter (K : submodule 𝕜 E) : Kᗮ = ⨅ v : K, (inner_right (v:E)).ker :=
+begin
+  apply le_antisymm,
+  { rw le_infi_iff,
+    rintros ⟨v, hv⟩ w hw,
+    simpa using hw _ hv },
+  { intros v hv w hw,
+    simp only [submodule.mem_infi] at hv,
+    exact hv ⟨w, hw⟩ }
+end
+
+/-- The orthogonal complement of any submodule `K` is closed. -/
+lemma submodule.is_closed_orthogonal (K : submodule 𝕜 E) : is_closed (Kᗮ : set E) :=
+begin
+  rw orthogonal_eq_inter K,
+  convert is_closed_Inter (λ v : K, (inner_right (v:E)).is_closed_ker),
+  simp
+end
+
+/-- In a complete space, the orthogonal complement of any submodule `K` is complete. -/
+instance [complete_space E] (K : submodule 𝕜 E) : complete_space Kᗮ :=
+K.is_closed_orthogonal.complete_space_coe
 
 variables (𝕜 E)
 
@@ -1661,36 +1703,31 @@ variables {𝕜 E}
 
 /-- `submodule.orthogonal` reverses the `≤` ordering of two
 subspaces. -/
-lemma submodule.orthogonal_le {K₁ K₂ : submodule 𝕜 E} (h : K₁ ≤ K₂) :
-  K₂.orthogonal ≤ K₁.orthogonal :=
+lemma submodule.orthogonal_le {K₁ K₂ : submodule 𝕜 E} (h : K₁ ≤ K₂) : K₂ᗮ ≤ K₁ᗮ :=
 (submodule.orthogonal_gc 𝕜 E).monotone_l h
 
-
-/-- `K` is contained in `K.orthogonal.orthogonal`. -/
-lemma submodule.le_orthogonal_orthogonal (K : submodule 𝕜 E) : K ≤ K.orthogonal.orthogonal :=
+/-- `K` is contained in `Kᗮᗮ`. -/
+lemma submodule.le_orthogonal_orthogonal (K : submodule 𝕜 E) : K ≤ Kᗮᗮ :=
 (submodule.orthogonal_gc 𝕜 E).le_u_l _
 
 /-- The inf of two orthogonal subspaces equals the subspace orthogonal
 to the sup. -/
-lemma submodule.inf_orthogonal (K₁ K₂ : submodule 𝕜 E) :
-  K₁.orthogonal ⊓ K₂.orthogonal = (K₁ ⊔ K₂).orthogonal :=
+lemma submodule.inf_orthogonal (K₁ K₂ : submodule 𝕜 E) : K₁ᗮ ⊓ K₂ᗮ = (K₁ ⊔ K₂)ᗮ :=
 (submodule.orthogonal_gc 𝕜 E).l_sup.symm
 
 /-- The inf of an indexed family of orthogonal subspaces equals the
 subspace orthogonal to the sup. -/
-lemma submodule.infi_orthogonal {ι : Type*} (K : ι → submodule 𝕜 E) :
-  (⨅ i, (K i).orthogonal) = (supr K).orthogonal :=
+lemma submodule.infi_orthogonal {ι : Type*} (K : ι → submodule 𝕜 E) : (⨅ i, (K i)ᗮ) = (supr K)ᗮ :=
 (submodule.orthogonal_gc 𝕜 E).l_supr.symm
 
 /-- The inf of a set of orthogonal subspaces equals the subspace
 orthogonal to the sup. -/
-lemma submodule.Inf_orthogonal (s : set $ submodule 𝕜 E) :
-  (⨅ K ∈ s, submodule.orthogonal K) = (Sup s).orthogonal :=
+lemma submodule.Inf_orthogonal (s : set $ submodule 𝕜 E) : (⨅ K ∈ s, Kᗮ) = (Sup s)ᗮ :=
 (submodule.orthogonal_gc 𝕜 E).l_Sup.symm
 
-/-- If `K₁` is complete and contained in `K₂`, `K₁` and `K₁.orthogonal ⊓ K₂` span `K₂`. -/
+/-- If `K₁` is complete and contained in `K₂`, `K₁` and `K₁ᗮ ⊓ K₂` span `K₂`. -/
 lemma submodule.sup_orthogonal_inf_of_is_complete {K₁ K₂ : submodule 𝕜 E} (h : K₁ ≤ K₂)
-  (hc : is_complete (K₁ : set E)) : K₁ ⊔ (K₁.orthogonal ⊓ K₂) = K₂ :=
+  (hc : is_complete (K₁ : set E)) : K₁ ⊔ (K₁ᗮ ⊓ K₂) = K₂ :=
 begin
   ext x,
   rw submodule.mem_sup,
@@ -1703,40 +1740,72 @@ begin
                  add_sub_cancel'_right _ _⟩ }
 end
 
-/-- If `K` is complete, `K` and `K.orthogonal` span the whole
+/-- If `K` is complete, `K` and `Kᗮ` span the whole
 space. -/
 lemma submodule.sup_orthogonal_of_is_complete {K : submodule 𝕜 E} (h : is_complete (K : set E)) :
-  K ⊔ K.orthogonal = ⊤ :=
+  K ⊔ Kᗮ = ⊤ :=
 begin
   convert submodule.sup_orthogonal_inf_of_is_complete (le_top : K ≤ ⊤) h,
   simp
 end
 
-/-- If `K` is complete, `K` and `K.orthogonal` are complements of each
+/-- If `K` is complete, `K` and `Kᗮ` span the whole space. Version using `complete_space`.
+-/
+lemma submodule.sup_orthogonal_of_complete_space {K : submodule 𝕜 E} [complete_space K] :
+  K ⊔ Kᗮ = ⊤ :=
+submodule.sup_orthogonal_of_is_complete (complete_space_coe_iff_is_complete.mp ‹_›)
+
+/-- If `K` is complete, any `v` in `E` can be expressed as a sum of elements of `K` and
+`Kᗮ`. -/
+lemma submodule.exists_sum_mem_mem_orthogonal (K : submodule 𝕜 E) [complete_space K] (v : E) :
+  ∃ (y ∈ K) (z ∈ Kᗮ), v = y + z :=
+begin
+  have h_mem : v ∈ K ⊔ Kᗮ := by simp [submodule.sup_orthogonal_of_complete_space],
+  obtain ⟨y, hy, z, hz, hyz⟩ := submodule.mem_sup.mp h_mem,
+  exact ⟨y, hy, z, hz, hyz.symm⟩
+end
+
+/-- If `K` is complete, then the orthogonal complement of its orthogonal complement is itself. -/
+@[simp] lemma submodule.orthogonal_orthogonal (K : submodule 𝕜 E) [complete_space K] : Kᗮᗮ = K :=
+begin
+  ext v,
+  split,
+  { obtain ⟨y, hy, z, hz, rfl⟩ := K.exists_sum_mem_mem_orthogonal v,
+    intros hv,
+    have hz' : z = 0,
+    { have hyz : ⟪z, y⟫ = 0 := by simp [hz y hy, inner_eq_zero_sym],
+      simpa [inner_add_right, hyz] using hv z hz },
+    simp [hy, hz'] },
+  { intros hv w hw,
+    rw inner_eq_zero_sym,
+    exact hw v hv }
+end
+
+/-- If `K` is complete, `K` and `Kᗮ` are complements of each
 other. -/
 lemma submodule.is_compl_orthogonal_of_is_complete {K : submodule 𝕜 E}
-    (h : is_complete (K : set E)) : is_compl K K.orthogonal :=
+  (h : is_complete (K : set E)) : is_compl K Kᗮ :=
 ⟨K.orthogonal_disjoint, le_of_eq (submodule.sup_orthogonal_of_is_complete h).symm⟩
 
-@[simp] lemma submodule.top_orthogonal_eq_bot : (⊤ : submodule 𝕜 E).orthogonal = ⊥ :=
+@[simp] lemma submodule.top_orthogonal_eq_bot : (⊤ : submodule 𝕜 E)ᗮ = ⊥ :=
 begin
   ext,
   rw [submodule.mem_bot, submodule.mem_orthogonal],
   exact ⟨λ h, inner_self_eq_zero.mp (h x submodule.mem_top), by { rintro rfl, simp }⟩
 end
 
-@[simp] lemma submodule.bot_orthogonal_eq_top : (⊥ : submodule 𝕜 E).orthogonal = ⊤ :=
+@[simp] lemma submodule.bot_orthogonal_eq_top : (⊥ : submodule 𝕜 E)ᗮ = ⊤ :=
 begin
   rw [← submodule.top_orthogonal_eq_bot, eq_top_iff],
   exact submodule.le_orthogonal_orthogonal ⊤
 end
 
 lemma submodule.eq_top_iff_orthogonal_eq_bot {K : submodule 𝕜 E} (hK : is_complete (K : set E)) :
-  K = ⊤ ↔ K.orthogonal = ⊥ :=
+  K = ⊤ ↔ Kᗮ = ⊥ :=
 begin
   refine ⟨by { rintro rfl, exact submodule.top_orthogonal_eq_bot }, _⟩,
   intro h,
-  have : K ⊔ K.orthogonal = ⊤ := submodule.sup_orthogonal_of_is_complete hK,
+  have : K ⊔ Kᗮ = ⊤ := submodule.sup_orthogonal_of_is_complete hK,
   rwa [h, sup_comm, bot_sup_eq] at this,
 end
 
@@ -1747,10 +1816,10 @@ containined in it, the dimensions of `K₁` and the intersection of its
 orthogonal subspace with `K₂` add to that of `K₂`. -/
 lemma submodule.findim_add_inf_findim_orthogonal {K₁ K₂ : submodule 𝕜 E}
   [finite_dimensional 𝕜 K₂] (h : K₁ ≤ K₂) :
-  findim 𝕜 K₁ + findim 𝕜 (K₁.orthogonal ⊓ K₂ : submodule 𝕜 E) = findim 𝕜 K₂ :=
+  findim 𝕜 K₁ + findim 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = findim 𝕜 K₂ :=
 begin
   haveI := submodule.finite_dimensional_of_le h,
-  have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁.orthogonal ⊓ K₂),
+  have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁ᗮ ⊓ K₂),
   rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, findim_bot,
       submodule.sup_orthogonal_inf_of_is_complete h
         (submodule.complete_of_finite_dimensional _)] at hd,

@@ -872,6 +872,8 @@ theorem forall_iff_forall_surj
 
 @[simp] theorem exists_false : ¬ (∃a:α, false) := assume ⟨a, h⟩, h
 
+@[simp] lemma exists_unique_false : ¬ (∃! (a : α), false) := assume ⟨a, h, h'⟩, h
+
 theorem Exists.fst {p : b → Prop} : Exists p → b
 | ⟨h, _⟩ := h
 

@@ -6,7 +6,6 @@ Authors: Robert Y. Lewis, Keeley Hoek
 import data.nat.cast
 import tactic.localized
 import order.rel_iso
-import order.complete_lattice
 
 /-!
 # The finite type with `n` elements

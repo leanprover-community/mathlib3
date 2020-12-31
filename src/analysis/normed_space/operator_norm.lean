@@ -802,6 +802,10 @@ linear_map.mk_continuous
   1
   (λ x, by { simp only [one_mul, submodule.subtype_apply], refl })
 
+@[simp] lemma submodule.subtype_continuous_apply (K : submodule 𝕜 E) (v : K) :
+  submodule.subtype_continuous K v = ↑v :=
+rfl
+
 section has_sum
 
 -- Results in this section hold for continuous additive monoid homomorphisms or equivalences but we

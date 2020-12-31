@@ -19,7 +19,15 @@ proofs that they are indeed equivalent to well-foundedness.
  * `is_Sup_finite_compact`
 
 ## Main results
- * TODO ...
+The main result is that the following three conditions are equivalent for a complete lattice:
+ * `well_founded (>)`
+ * `is_sup_closed_compact`
+ * `is_Sup_finite_compact`
+
+This is demonstrated by means of the following three lemmas:
+ * `is_Sup_finite_compact_of_well_founded`
+ * `is_sup_closed_compact_of_is_Sup_finite_compact`
+ * `well_founded_of_is_sup_closed_compact`
 
 ## Tags
 
@@ -64,19 +72,6 @@ begin
   { rw ht₂, exact t.sup_closed_of_sup_closed h ht₁ hsc, },
 end
 
--- TODO Sort out this lemma.
-lemma nat_rel_embedding_map_sup (a : ((>) : ℕ → ℕ → Prop) ↪r ((>) : α → α → Prop)) (m n : ℕ) :
-  a (m ⊔ n) = a m ⊔ a n :=
-begin
-  symmetry, cases le_or_lt m n with h,
-  { rw [sup_eq_right.mpr h, sup_eq_right], --exact a.swap.to_preorder_hom.monotone h, (if PR#5434)
-    by_cases hmn : m = n,
-    { rw hmn, },
-    { rw ne.le_iff_lt hmn at h, change _ > _ at h,
-      rw a.map_rel_iff at h, exact le_of_lt h, }, },
-  { rw [sup_eq_left.mpr (le_of_lt h), sup_eq_left], exact le_of_lt (a.map_rel_iff.mp h), },
-end
-
 lemma well_founded_of_is_sup_closed_compact (h : is_sup_closed_compact α) :
   well_founded ((>) : α → α → Prop) :=
 begin
@@ -87,7 +82,7 @@ begin
     apply lt_irrefl (a (n+1)), apply lt_of_le_of_lt _ h', apply le_Sup, apply set.mem_range_self, },
   apply h (set.range a),
   { use a 37, apply set.mem_range_self, },
-  { rintros x y ⟨m, hm⟩ ⟨n, hn⟩, use m ⊔ n, rw [← hm, ← hn], apply nat_rel_embedding_map_sup, },
+  { rintros x y ⟨m, hm⟩ ⟨n, hn⟩, use m ⊔ n, rw [← hm, ← hn], apply a.to_rel_hom.map_sup, },
 end
 
 end complete_lattice

@@ -79,6 +79,30 @@ end
 protected theorem well_founded : ∀ (f : r →r s) (h : well_founded s), well_founded r
 | f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
 
+lemma monotone [partial_order α] [preorder β]
+  (f : ((<) : α → α → Prop) →r ((<) : β → β → Prop)) : monotone f :=
+begin
+  intros a b h, by_cases hab : a = b,
+  { rw hab, },
+  { rw ne.le_iff_lt hab at h, exact le_of_lt (f.map_rel h), },
+end
+
+lemma map_inf {α β : Type*} [semilattice_inf α] [linear_order β]
+  (a : ((<) : β → β → Prop) →r ((<) : α → α → Prop)) (m n : β) : a (m ⊓ n) = a m ⊓ a n :=
+begin
+  symmetry, cases le_or_lt n m with h,
+  { rw [inf_eq_right.mpr h, inf_eq_right], exact a.monotone h, },
+  { rw [inf_eq_left.mpr (le_of_lt h), inf_eq_left], exact le_of_lt (a.map_rel h), },
+end
+
+lemma map_sup {α β : Type*} [semilattice_sup α] [linear_order β]
+  (a : ((>) : β → β → Prop) →r ((>) : α → α → Prop)) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
+begin
+  symmetry, cases le_or_lt m n with h,
+  { rw [sup_eq_right.mpr h, sup_eq_right], exact a.swap.monotone h, },
+  { rw [sup_eq_left.mpr (le_of_lt h), sup_eq_left], exact le_of_lt (a.map_rel h), },
+end
+
 end rel_hom
 
 /-- An increasing function is injective -/

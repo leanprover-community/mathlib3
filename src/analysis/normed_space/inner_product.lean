@@ -1562,8 +1562,9 @@ in setting up the bundled version and should not be used once that is
 defined. -/
 lemma eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero {K : submodule 𝕜 E} [complete_space K]
   {u v : E} (hvm : v ∈ K) (hvo : ∀ w ∈ K, ⟪u - v, w⟫ = 0) :
-  v = orthogonal_projection_fn K u :=
+  orthogonal_projection_fn K u = v :=
 begin
+  symmetry,
   rw [←sub_eq_zero, ←inner_self_eq_zero],
   have hvs : v - orthogonal_projection_fn K u ∈ K :=
     submodule.sub_mem K hvm (orthogonal_projection_fn_mem u),
@@ -1633,7 +1634,7 @@ orthogonal_projection_fn_inner_eq_zero v
 orthogonality property. -/
 lemma eq_orthogonal_projection_of_mem_of_inner_eq_zero {K : submodule 𝕜 E} [complete_space K]
   {u v : E} (hvm : v ∈ K) (hvo : ∀ w ∈ K, ⟪u - v, w⟫ = 0) :
-  v = orthogonal_projection K u :=
+  ↑(orthogonal_projection K u) = v :=
 eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hvm hvo
 
 /-- The orthogonal projections onto equal subspaces are coerced back to the same point in `E`. -/
@@ -1650,6 +1651,11 @@ end
 lemma orthogonal_projection_norm_le (K : submodule 𝕜 E) [complete_space K] :
   ∥orthogonal_projection K∥ ≤ 1 :=
 linear_map.mk_continuous_norm_le _ (by norm_num) _
+
+/-- The orthogonal projection sends elements of `K` to themselves. -/
+lemma orthogonal_projection_mem_subspace_eq_self {K : submodule 𝕜 E} [complete_space K] (v : K) :
+  orthogonal_projection K v = v :=
+by { ext, apply eq_orthogonal_projection_of_mem_of_inner_eq_zero; simp }
 
 /-- The subspace of vectors orthogonal to a given subspace. -/
 def submodule.orthogonal (K : submodule 𝕜 E) : submodule 𝕜 E :=
@@ -1835,6 +1841,43 @@ begin
   have : K ⊔ K.orthogonal = ⊤ := submodule.sup_orthogonal_of_is_complete hK,
   rwa [h, sup_comm, bot_sup_eq] at this,
 end
+
+/-- A point in `K` with the orthogonality property (here characterized in terms of `Kᗮ`) must be the
+orthogonal projection. -/
+lemma eq_orthogonal_projection_of_mem_orthogonal {K : submodule 𝕜 E} [complete_space K]
+  {u v : E} (hv : v ∈ K) (hvo : u - v ∈ Kᗮ) :
+  ↑(orthogonal_projection K u) = v :=
+(eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hv (λ w, inner_eq_zero_sym.mp ∘ (hvo w))).symm
+
+/-- A point in `K` with the orthogonality property (here characterized in terms of `Kᗮ`) must be the
+orthogonal projection. -/
+lemma eq_orthogonal_projection_of_mem_orthogonal' {K : submodule 𝕜 E} [complete_space K]
+  {u v z : E} (hv : v ∈ K) (hz : z ∈ Kᗮ) (hu : u = v + z) :
+  ↑(orthogonal_projection K u) = v :=
+eq_orthogonal_projection_of_mem_orthogonal hv (by simpa [hu])
+
+/-- In a complete space `E`, a vector splits as the sum of its orthogonal projections onto a
+complete submodule `K` and onto the orthogonal complement of `K`.-/
+lemma eq_sum_orthogonal_projection_self_orthogonal_complement
+  [complete_space E] (K : submodule 𝕜 E) [complete_space K] (w : E) :
+  w = ↑(orthogonal_projection K w) + ↑(orthogonal_projection Kᗮ w) :=
+begin
+  obtain ⟨y, hy, z, hz, hwyz⟩ := K.exists_sum_mem_mem_orthogonal w,
+  convert hwyz,
+  { exact eq_orthogonal_projection_of_mem_orthogonal' hy hz hwyz },
+  { rw add_comm at hwyz,
+    refine eq_orthogonal_projection_of_mem_orthogonal' hz _ hwyz,
+    simp [hy] }
+end
+
+/-- In a complete space `E`, the projection maps onto a complete subspace `K` and its orthogonal
+complement sum to the identity. -/
+lemma id_eq_sum_orthogonal_projection_self_orthogonal_complement
+  [complete_space E] (K : submodule 𝕜 E) [complete_space K] :
+  continuous_linear_map.id 𝕜 E
+  = K.subtype_continuous.comp (orthogonal_projection K)
+  + Kᗮ.subtype_continuous.comp (orthogonal_projection Kᗮ) :=
+by { ext w, exact eq_sum_orthogonal_projection_self_orthogonal_complement K w }
 
 open finite_dimensional
 

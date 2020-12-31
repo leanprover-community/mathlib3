@@ -112,6 +112,7 @@ the `i`-axis. -/
 def box_line_integral  (i : fin 2) (a b : fin 2 → ℝ) : ℝ :=
 (segment_parametrized_integral u a i (b i) + segment_parametrized_integral u b i (a i))
 ---- IS THIS DEF CORRECT???? OR OFF BY A SIGN??
+-- NO, it's correct
 
 lemma box_line_integral_const (cU : ℝ ) (i : fin 2) (a b : fin 2 → ℝ) :
   box_line_integral (λ x, cU ) i a b  = 0 :=
@@ -183,8 +184,12 @@ begin
   {
     ext x,
     simp,
+    cases split_fin2 x,
+    rw h,
+    simp,
+    rw h,
+    simp,
     -- ALEX HOMEWORK
-    sorry,
   },
 
 
@@ -203,9 +208,13 @@ begin
     simp [s],
     ext x,
     simp,
+    cases split_fin2 x,
+    rw h,
+    simp,
+    rw h,
+    simp,
     -- ALEX HOMEWORK
 --    rw eq_zero_of_ne_one,
-    sorry,
   },
 
   rw sIs,
@@ -217,7 +226,7 @@ begin
 end
 
 lemma box_line_integral_linear (u: (fin 2→ ℝ ) →L[ℝ] ℝ ) (i : fin 2) (a b : fin 2 → ℝ) :
-  box_line_integral u i a b  = (box_volume a b) * (u (oppE i))  :=
+  box_line_integral u i a b  = - (box_volume a b) * (u (oppE i))  :=
 begin
   rw box_volume_eq,
   rw box_line_integral,
@@ -399,16 +408,7 @@ begin
       },
       simp at rw6,
       simp,
-
---    UH OH!!! SOMETHING'S BROKEN HERE; have a wrong sign (come back later...)
-
---      refine rw6,
-      sorry,
-      --rw rw2,
---      refl,
---      rw ite_eq_iff refl,  --ite_eq_left_iff,
---      simp,
-  --    ring,
+      ring,
     },
     {
       rw this,
@@ -443,7 +443,7 @@ begin
       },
 --      rw rw5,
       have rw6 :
-      (b 1 - a 1) • ((a (ite (1 = 0) 1 0) - b (ite (1 = 0) 1 0)) * u (oppE 1))
+      (b 1 - a 1) • ((a (ite (1 = 0) 1 0) - b (ite (1 = 0) 1 0)) * ⇑u (oppE 1))
       =
       (b 0 - a 0) * (a 1 - b 1) * u (oppE 1),
       {
@@ -457,13 +457,13 @@ begin
           ring,
         },
         rw this,
+
         --ring,
       },
-
+      rw rw6,
+      ring,
+      --- It's getting hung here, not responding???
       sorry,
-      -- SOMETHING IS WRONG HERE TOO!!! Sign error somewhere
-
---      refine rw6,
 
     },
   },
@@ -838,17 +838,13 @@ begin
   have :  (P ∘ (((foo' ℝ ℝ).symm))) ≤ Q ∘  ((foo' ℝ ℝ).symm) ,
   {
     rw pi.le_def,
---    hint,
---    library_search,
---    cases,
-  --  intros,
-
---    ext x,
-
-    sorry,
+    intros,
+    refine h _,
   },
 
-  refine  measure_theory.integral_mono _ _ h,
+  refine  measure_theory.integral_mono _ _ this,
+
+  -- NEED TO ADD HYPOTHESES THAT P AND Q ARE INTEGRABLE...?
 
 --  rw interval_integral.integral_const_of_cdf,
   sorry,

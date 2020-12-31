@@ -104,7 +104,7 @@ begin
   { rw [f0, support_zero, card_empty] at fc,
     exact (c.succ_ne_zero fc.symm).elim },
   { rw [erase_lead_support, card_erase_of_mem (nat_degree_mem_support_of_nonzero f0), fc],
-    exact nat.pred_succ c },
+    exact c.pred_succ },
 end
 
 lemma erase_lead_card_support' {R : Type*} [semiring R] {c : ℕ} {f : polynomial R}

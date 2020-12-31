@@ -37,14 +37,15 @@ lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) a
 tendsto_inv_at_top_zero.comp tendsto_coe_nat_at_top_at_top
 
 lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
-by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
+by simpa only [mul_zero, div_eq_mul_inv]
+  using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
 
 lemma nnreal.tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ≥0)⁻¹) at_top (𝓝 0) :=
 by { rw ← nnreal.tendsto_coe, convert tendsto_inverse_at_top_nhds_0_nat, simp }
 
 lemma nnreal.tendsto_const_div_at_top_nhds_0_nat (C : ℝ≥0) :
   tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
-by simpa using tendsto_const_nhds.mul nnreal.tendsto_inverse_at_top_nhds_0_nat
+by simpa [div_eq_mul_inv] using tendsto_const_nhds.mul nnreal.tendsto_inverse_at_top_nhds_0_nat
 
 lemma tendsto_one_div_add_at_top_nhds_0_nat :
   tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
@@ -258,7 +259,7 @@ lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin
   convert has_sum.mul_left (a / 2) (has_sum_geometric_of_lt_1
     (le_of_lt one_half_pos) one_half_lt_one),
-  { funext n, simp, refl, },
+  { funext n, simp [div_eq_mul_inv] },
   { norm_num }
 end
 
@@ -309,7 +310,7 @@ begin
     from ((tendsto_pow_at_top_nhds_0_of_norm_lt_1 h).sub tendsto_const_nhds).mul tendsto_const_nhds,
   have B : (λ n, (∑ i in range n, ξ ^ i)) = (λ n, geom_series ξ n) := rfl,
   rw [has_sum_iff_tendsto_nat_of_summable_norm, B],
-  { simpa [geom_sum, xi_ne_one, neg_inv] using A },
+  { simpa [geom_sum, xi_ne_one, neg_inv, div_eq_mul_inv] using A },
   { simp [normed_field.norm_pow, summable_geometric_of_lt_1 (norm_nonneg _) h] }
 end
 
@@ -375,7 +376,7 @@ lemma edist_le_of_edist_le_geometric_of_tendsto {a : α} (ha : tendsto f at_top 
   edist (f n) a ≤ (C * r^n) / (1 - r) :=
 begin
   convert edist_le_tsum_of_edist_le_of_tendsto _ hu ha _,
-  simp only [pow_add, ennreal.tsum_mul_left, ennreal.tsum_geometric, ennreal.div_def, mul_assoc]
+  simp only [pow_add, ennreal.tsum_mul_left, ennreal.tsum_geometric, div_eq_mul_inv, mul_assoc]
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, then the distance from
@@ -396,7 +397,7 @@ include hC hu
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then `f` is a Cauchy sequence.-/
 lemma cauchy_seq_of_edist_le_geometric_two : cauchy_seq f :=
 begin
-  simp only [ennreal.div_def, ennreal.inv_pow] at hu,
+  simp only [div_eq_mul_inv, ennreal.inv_pow] at hu,
   refine cauchy_seq_of_edist_le_geometric 2⁻¹ C _ hC hu,
   simp [ennreal.one_lt_two]
 end
@@ -409,8 +410,8 @@ include ha
 lemma edist_le_of_edist_le_geometric_two_of_tendsto (n : ℕ) :
   edist (f n) a ≤ 2 * C / 2^n :=
 begin
-  simp only [ennreal.div_def, ennreal.inv_pow] at hu,
-  rw [ennreal.div_def, mul_assoc, mul_comm, ennreal.inv_pow],
+  simp only [div_eq_mul_inv, ennreal.inv_pow] at *,
+  rw [mul_assoc, mul_comm],
   convert edist_le_of_edist_le_geometric_of_tendsto 2⁻¹ C hu ha n,
   rw [ennreal.one_sub_inv_two, ennreal.inv_inv]
 end
@@ -418,7 +419,7 @@ end
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from
 `f 0` to the limit of `f` is bounded above by `2 * C`. -/
 lemma edist_le_of_edist_le_geometric_two_of_tendsto₀: edist (f 0) a ≤ 2 * C :=
-by simpa only [pow_zero, ennreal.div_def, ennreal.inv_one, mul_one]
+by simpa only [pow_zero, div_eq_mul_inv, ennreal.inv_one, mul_one]
   using edist_le_of_edist_le_geometric_two_of_tendsto C hu ha 0
 
 end edist_le_geometric_two
@@ -434,7 +435,8 @@ lemma aux_has_sum_of_le_geometric : has_sum (λ n : ℕ, C * r^n) (C / (1 - r)) 
 begin
   rcases sign_cases_of_C_mul_pow_nonneg (λ n, dist_nonneg.trans (hu n)) with rfl | ⟨C₀, r₀⟩,
   { simp [has_sum_zero] },
-  { refine has_sum.mul_left C _,
+  { simp only [div_eq_mul_inv],
+    refine has_sum.mul_left C _,
     simpa using has_sum_geometric_of_lt_1 r₀ hr }
 end
 
@@ -486,9 +488,9 @@ lemma dist_le_of_le_geometric_two_of_tendsto {a : α} (ha : tendsto f at_top (�
   dist (f n) a ≤ C / 2^n :=
 begin
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu₂ (summable_geometric_two' C) ha n,
-  simp only [add_comm n, pow_add, (div_div_eq_div_mul _ _ _).symm],
+  simp only [add_comm n, pow_add, ← div_div_eq_div_mul],
   symmetry,
-  exact ((has_sum_geometric_two' C).mul_right _).tsum_eq
+  exact ((has_sum_geometric_two' C).div_const _).tsum_eq
 end
 
 end le_geometric
@@ -648,5 +650,5 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
     refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) (prod_le_one _ _);
       intros x hx; rw finset.mem_range at hx,
     { refine mul_nonneg _ (inv_nonneg.mpr _); norm_cast; linarith },
-    { refine (div_le_one $ by exact_mod_cast hn).mpr _, norm_cast, linarith }
+    { rw ← div_eq_mul_inv, refine iff.mpr (div_le_one k.cast_add_one_pos) _, norm_cast, linarith }
   end

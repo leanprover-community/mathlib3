@@ -96,10 +96,9 @@ begin
   have A : ∀ n : ℕ , 0 < n →
     (r : ennreal) ≤ ((C + 1)^(1/(n : ℝ)) : ℝ≥0) * (1 / (nnnorm (p n) ^ (1/(n:ℝ)) : ℝ≥0)),
   { assume n npos,
-    simp only [one_div, mul_assoc, mul_one, eq.symm ennreal.mul_div_assoc],
-    rw [ennreal.le_div_iff_mul_le _ _, ← nnreal.pow_nat_rpow_nat_inv r npos, ← ennreal.coe_mul,
-        ennreal.coe_le_coe, ← nnreal.mul_rpow, mul_comm],
-    { exact nnreal.rpow_le_rpow (le_trans (h n) (le_add_right (le_refl _))) (by simp) },
+    rw [mul_one_div, ennreal.le_div_iff_mul_le, ← nnreal.pow_nat_rpow_nat_inv r npos,
+      ← ennreal.coe_mul, ennreal.coe_le_coe, ← one_div, ← nnreal.mul_rpow, mul_comm],
+    { exact nnreal.rpow_le_rpow (le_trans (h n) (le_add_right le_rfl)) (by simp) },
     { simp },
     { simp } },
   have B : ∀ᶠ (n : ℕ) in at_top,
@@ -133,7 +132,7 @@ begin
     have A : nnnorm (p n) ^ (1 / (n : ℝ)) ≠ 0, by simp [nnreal.rpow_eq_zero_iff, hpn],
     have B : r < (nnnorm (p n) ^ (1 / (n : ℝ)))⁻¹,
     { have := hN n (le_of_lt hn),
-      rwa [ennreal.div_def, ← ennreal.coe_inv A, one_mul, ennreal.coe_lt_coe] at this },
+      rwa [div_eq_mul_inv, ← ennreal.coe_inv A, one_mul, ennreal.coe_lt_coe] at this },
     rw [nnreal.lt_inv_iff_mul_lt A, mul_comm] at B,
     have : (nnnorm (p n) ^ (1 / (n : ℝ)) * r) ^ n ≤ 1 :=
       pow_le_one n (zero_le (nnnorm (p n) ^ (1 / ↑n) * r)) (le_of_lt B),

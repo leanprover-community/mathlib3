@@ -1819,7 +1819,7 @@ by rw [eq_div_iff_mul_eq (mt abs_eq_zero.1 hx), ← real.mul_self_sqrt (abs_nonn
     arg, if_pos hxr, real.cos_arcsin (abs_le.1 (abs_im_div_abs_le_one x)).1
     (abs_le.1 (abs_im_div_abs_le_one x)).2, ← real.sqrt_mul (abs_nonneg _), ← real.sqrt_mul this,
     sub_mul, div_pow, ← pow_two, div_mul_cancel _ (pow_ne_zero 2 (mt abs_eq_zero.1 hx)),
-    one_mul, pow_two, mul_self_abs, norm_sq, pow_two, add_sub_cancel, real.sqrt_mul_self hxr]
+    one_mul, pow_two, mul_self_abs, norm_sq_def, pow_two, add_sub_cancel, real.sqrt_mul_self hxr]
 
 lemma cos_arg {x : ℂ} (hx : x ≠ 0) : real.cos (arg x) = x.re / x.abs :=
 if hxr : 0 ≤ x.re then cos_arg_of_re_nonneg hx hxr
@@ -2182,13 +2182,13 @@ end
 lemma tendsto_abs_tan_of_cos_eq_zero {x : ℂ} (hx : cos x = 0) :
   tendsto (λ x, abs (tan x)) (𝓝[{x}ᶜ] x) at_top :=
 begin
-  simp only [tan_eq_sin_div_cos, ← norm_eq_abs, normed_field.norm_div],
+  simp_rw [tan_eq_sin_div_cos, abs_div, div_eq_mul_inv],
   have A : sin x ≠ 0 := λ h, by simpa [*, pow_two] using sin_sq_add_cos_sq x,
   have B : tendsto cos (𝓝[{x}ᶜ] (x)) (𝓝[{0}ᶜ] 0),
   { refine tendsto_inf.2 ⟨tendsto.mono_left _ inf_le_left, tendsto_principal.2 _⟩,
     exacts [continuous_cos.tendsto' x 0 hx,
       hx ▸ (has_deriv_at_cos _).eventually_ne (neg_ne_zero.2 A)] },
-  exact tendsto.mul_at_top (norm_pos_iff.2 A) continuous_sin.continuous_within_at.norm
+  exact continuous_sin.continuous_within_at.norm.mul_at_top (norm_pos_iff.2 A) 
     (tendsto.inv_tendsto_zero $ tendsto_norm_nhds_within_zero.comp B),
 end
 

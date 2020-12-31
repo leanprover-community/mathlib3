@@ -393,6 +393,27 @@ begin
   exact (linear_equiv.findim_eq (intermediate_field.lift2_alg_equiv K⟮x⟯).to_linear_equiv).symm,
 end
 
+theorem tfae [finite_dimensional F E] :
+  tfae [is_galois F E,
+    intermediate_field.fixed_field (⊤ : subgroup (E ≃ₐ[F] E)) = ⊥,
+    fintype.card (E ≃ₐ[F] E) = findim F E,
+    ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E] :=
+begin
+  tfae_have : 1 → 2,
+  { exact λ h, order_iso.map_bot (@intermediate_field_equiv_subgroup F _ E _ _ _ h).symm },
+  tfae_have : 1 → 3,
+  { introI _, exact card_aut_eq_findim F E },
+  tfae_have : 1 → 4,
+  { introI _, exact is_separable_splitting_field F E },
+  tfae_have : 2 → 1,
+  { exact of_fixed_field_eq_bot F E },
+  tfae_have : 3 → 1,
+  { exact of_card_aut_eq_findim F E },
+  tfae_have : 4 → 1,
+  { rintros ⟨h, hp1, _⟩, exactI of_separable_splitting_field hp1 },
+  tfae_finish,
+end
+
 end is_galois
 
 end galois_equivalent_definitions

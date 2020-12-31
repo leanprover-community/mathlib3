@@ -553,6 +553,9 @@ classical.by_cases (λ hb : b = 0, by simp [*]) (mul_div_cancel a)
 lemma mul_div_assoc {a b c : G₀} : a * b / c = a * (b / c) :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc _ _ _]
 
+@[field_simps] lemma mul_div_assoc' (a b c : G₀) : a * (b / c) = (a * b) / c :=
+mul_div_assoc.symm
+
 local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
 
 lemma div_eq_mul_one_div (a b : G₀) : a / b = a * (1 / b) :=

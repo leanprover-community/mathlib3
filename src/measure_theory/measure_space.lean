@@ -1283,7 +1283,7 @@ by simp [ae_iff, hc]
 lemma ae_add_measure_iff {p : α → Prop} {ν} : (∀ᵐ x ∂μ + ν, p x) ↔ (∀ᵐ x ∂μ, p x) ∧ ∀ᵐ x ∂ν, p x :=
 add_eq_zero_iff
 
-lemma ae_eq_comp {δ : Type*} [measurable_space β] {f : α → β} {g g' : β → δ} (hf : measurable f)
+lemma ae_eq_comp {f : α → β} {g g' : β → δ} (hf : measurable f)
   (h : g =ᵐ[measure.map f μ] g') : g ∘ f =ᵐ[μ] g' ∘ f :=
 begin
   rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t, ht, tmeas, tzero⟩,
@@ -2022,7 +2022,7 @@ that are analogous to properties of measurable functions.
 section
 open measure_theory
 
-variables {α β δ : Type*} [measurable_space α] [measurable_space β]
+variables [measurable_space α] [measurable_space β]
 {f g : α → β} {μ ν : measure α}
 
 /-- A function is almost everywhere measurable if it coincides almost everywhere with a measurable

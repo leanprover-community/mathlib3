@@ -96,4 +96,16 @@ begin
   tfae_finish,
 end
 
+lemma well_founded_iff_is_Sup_finite_compact :
+  well_founded ((>) : α → α → Prop) ↔ is_Sup_finite_compact α :=
+(well_founded_characterisations α).out 0 1
+
+lemma is_Sup_finite_compact_iff_is_sup_closed_compact :
+  is_Sup_finite_compact α ↔ is_sup_closed_compact α :=
+(well_founded_characterisations α).out 1 2
+
+lemma is_sup_closed_compact_iff_well_founded :
+  is_sup_closed_compact α ↔ well_founded ((>) : α → α → Prop) :=
+(well_founded_characterisations α).out 2 0
+
 end complete_lattice

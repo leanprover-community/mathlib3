@@ -33,7 +33,7 @@ although that happens to not be the definition in mathlib (this is an *implement
 detail* though, and need not concern the mathematician).
 
 Note that $B_1=+1/2$, meaning that we are using the $B_n^+$ of
-https://en.wikipedia.org/wiki/Bernoulli_number .
+[from Wikipedia](https://en.wikipedia.org/wiki/Bernoulli_number).
 To get the "minus" convention, just use `(-1)^n * bernoulli n`.
 
 There is no particular reason that the `+` convention was used.

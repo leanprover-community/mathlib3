@@ -153,6 +153,22 @@ letI := classical.dec_eq V₁; exact
 let ⟨b, hb⟩ := exists_is_basis K V in
 cardinal.lift_inj.1 $ hb.mk_eq_dim.symm.trans (f.is_basis hb).mk_eq_dim
 
+/-- Two vector spaces are isomorphic if they have the same dimension. -/
+theorem nonempty_linear_equiv_of_dim_eq (cond : dim K V = dim K V₁) :
+  nonempty (V ≃ₗ[K] V₁) :=
+begin
+  obtain ⟨B,h⟩ := exists_is_basis K V,
+  obtain ⟨B₁,h₁⟩ := exists_is_basis K V₁,
+  have : cardinal.mk B = cardinal.mk B₁, by rwa [is_basis.mk_eq_dim'' h, is_basis.mk_eq_dim'' h₁],
+  rw cardinal.eq at this,
+  cases this with h₀,
+  exact ⟨equiv_of_is_basis h h₁ h₀⟩
+end
+
+/-- Two vector spaces are isomorphic if and onlyy if they have the same dimension. -/
+theorem linear_equiv.nonempty_equiv_iff_dim_eq : nonempty (V ≃ₗ[K] V₁) ↔ dim K V = dim K V₁ :=
+⟨λ ⟨h⟩, linear_equiv.dim_eq h, λ h, nonempty_linear_equiv_of_dim_eq h⟩
+
 @[simp] lemma dim_bot : dim K (⊥ : submodule K V) = 0 :=
 by letI := classical.dec_eq V;
   rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty K V _ _ _ not_nonempty_pempty).mk_eq_dim,

@@ -88,12 +88,12 @@ begin
   { have : 5 = fib 5, by refl,  -- 5 ≤ fib 5
     exact le_of_eq this },
   { -- n + 1 ≤ fib (n + 1) for 5 ≤ n
-    cases n with n, -- rewrite n = succ n to use fib.succ_succ
+    cases n with n', -- rewrite n = succ n' to use fib.succ_succ
     { have : 5 = 0, from nat.le_zero_iff.elim_left five_le_n, contradiction },
     rw fib_succ_succ,
-    suffices : 1 + (n + 1) ≤ fib n + fib (n + 1), by rwa [nat.succ_eq_add_one, add_comm],
-    have : n ≠ 0, by { intro h, have : 5 ≤ 1, by rwa h at five_le_n, norm_num at this },
-    have : 1 ≤ fib n, from nat.succ_le_of_lt (fib_pos $ zero_lt_iff_ne_zero.mpr this),
+    suffices : 1 + (n' + 1) ≤ fib n' + fib (n' + 1), by rwa [nat.succ_eq_add_one, add_comm],
+    have : n' ≠ 0, by { intro h, have : 5 ≤ 1, by rwa h at five_le_n, norm_num at this },
+    have : 1 ≤ fib n', from nat.succ_le_of_lt (fib_pos $ zero_lt_iff_ne_zero.mpr this),
     mono }
 end
 
@@ -158,7 +158,7 @@ begin
   { apply gcd.induction m n,
     { simp },
     intros m n mpos h,
-    rw ←gcd_rec m n at h,
+    rw ← gcd_rec m n at h,
     conv_rhs { rw ← mod_add_div n m },
     rwa [mul_comm, gcd_fib_add_self m (n % m) (n / m), gcd_comm (fib m) _] },
   rwa [gcd_comm, gcd_comm (fib m) ]

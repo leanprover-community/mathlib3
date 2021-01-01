@@ -161,11 +161,10 @@ begin
   obtain ⟨B₁,h₁⟩ := exists_is_basis K V₁,
   have : cardinal.mk B = cardinal.mk B₁, by rwa [is_basis.mk_eq_dim'' h, is_basis.mk_eq_dim'' h₁],
   rw cardinal.eq at this,
-  cases this with h₀,
-  exact ⟨equiv_of_is_basis h h₁ h₀⟩
+  exact nonempty.map (equiv_of_is_basis h h₁) this,
 end
 
-/-- Two vector spaces are isomorphic if and onlyy if they have the same dimension. -/
+/-- Two vector spaces are isomorphic if and only if they have the same dimension. -/
 theorem linear_equiv.nonempty_equiv_iff_dim_eq : nonempty (V ≃ₗ[K] V₁) ↔ dim K V = dim K V₁ :=
 ⟨λ ⟨h⟩, linear_equiv.dim_eq h, λ h, nonempty_linear_equiv_of_dim_eq h⟩
 

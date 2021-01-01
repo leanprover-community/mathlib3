@@ -656,6 +656,28 @@ end linear_equiv
 
 namespace finite_dimensional
 
+/--
+Two finite-dimensional vector spaces are isomorphic if they have the same (finite) dimension.
+-/
+theorem nonempty_linear_equiv_of_findim_eq [finite_dimensional K V] [finite_dimensional K V₂]
+  (cond : findim K V = findim K V₂) : nonempty (V ≃ₗ[K] V₂) :=
+begin
+  obtain ⟨B,hB,hf⟩ := exists_is_basis_finite K V,
+  obtain ⟨B₂,hB₂,hf₂⟩ := exists_is_basis_finite K V₂,
+  haveI := set.finite.fintype hf,
+  haveI := set.finite.fintype hf₂,
+  rw [findim_eq_card_basis hB, findim_eq_card_basis hB₂] at cond,
+  apply nonempty.map (equiv_of_is_basis hB hB₂),
+  rwa fintype.card_eq at cond,
+end
+
+/--
+Two finite-dimensional vector spaces are isomorphic if and only if they have the same (finite) dimension.
+-/
+theorem nonempty_linear_equiv_iff_findim_eq [finite_dimensional K V] [finite_dimensional K V₂] :
+   nonempty (V ≃ₗ[K] V₂) ↔ findim K V = findim K V₂ :=
+⟨λ ⟨h⟩, h.findim_eq, λ h, nonempty_linear_equiv_of_findim_eq h⟩
+
 lemma eq_of_le_of_findim_le {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (hle : S₁ ≤ S₂)
   (hd : findim K S₂ ≤ findim K S₁) : S₁ = S₂ :=
 begin

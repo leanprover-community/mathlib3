@@ -25,9 +25,9 @@ The main result is that the following three conditions are equivalent for a comp
  * `is_Sup_finite_compact`
 
 This is demonstrated by means of the following three lemmas:
- * `is_Sup_finite_compact_of_well_founded`
- * `is_sup_closed_compact_of_is_Sup_finite_compact`
- * `well_founded_of_is_sup_closed_compact`
+ * `well_founded.is_Sup_finite_compact`
+ * `is_Sup_finite_compact.is_sup_closed_compact`
+ * `is_sup_closed_compact.well_founded`
 
 ## Tags
 
@@ -47,7 +47,7 @@ def is_sup_closed_compact :=
 same `Sup`. -/
 def is_Sup_finite_compact := ∀ (s : set α), ∃ (t : finset α), ↑t ⊆ s ∧ Sup s = t.sup id
 
-lemma is_Sup_finite_compact_of_well_founded (h : well_founded ((>) : α → α → Prop)) :
+lemma well_founded.is_Sup_finite_compact (h : well_founded ((>) : α → α → Prop)) :
   is_Sup_finite_compact α :=
 begin
   intros s,

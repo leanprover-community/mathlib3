@@ -68,7 +68,8 @@ lemma is_Sup_finite_compact.is_sup_closed_compact (h : is_Sup_finite_compact α)
 begin
   intros s hne hsc, obtain ⟨t, ht₁, ht₂⟩ := h s, clear h,
   cases t.eq_empty_or_nonempty with h h,
-  { subst h, rw finset.sup_empty at ht₂, rw ht₂, simp [Sup_eq_bot_nonempty_eq_singleton ht₂ hne], },
+  { subst h, rw finset.sup_empty at ht₂, rw ht₂,
+    simp [eq_singleton_bot_of_Sup_eq_bot_of_nonempty ht₂ hne], },
   { rw ht₂, exact t.sup_closed_of_sup_closed h ht₁ hsc, },
 end
 

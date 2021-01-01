@@ -88,18 +88,20 @@ begin
   { have : 5 = fib 5, by refl,  -- 5 ≤ fib 5
     exact le_of_eq this },
   { -- n + 1 ≤ fib (n + 1) for 5 ≤ n
-    cases n with n', -- rewrite n = succ n' to use fib.succ_succ
+    cases n with n, -- rewrite n = succ n to use fib.succ_succ
     { have : 5 = 0, from nat.le_zero_iff.elim_left five_le_n, contradiction },
     rw fib_succ_succ,
-    suffices : 1 + (n' + 1) ≤ fib n' + fib (n' + 1), by rwa [nat.succ_eq_add_one, add_comm],
-    have : n' ≠ 0, by { intro h, have : 5 ≤ 1, by rwa h at five_le_n, norm_num at this },
-    have : 1 ≤ fib n', from nat.succ_le_of_lt (fib_pos $ zero_lt_iff_ne_zero.mpr this),
+    suffices : 1 + (n + 1) ≤ fib n + fib (n + 1), by rwa [nat.succ_eq_add_one, add_comm],
+    have : n ≠ 0, by { intro h, have : 5 ≤ 1, by rwa h at five_le_n, norm_num at this },
+    have : 1 ≤ fib n, from nat.succ_le_of_lt (fib_pos $ zero_lt_iff_ne_zero.mpr this),
     mono }
 end
 
-/-- https://proofwiki.org/wiki/Consecutive_Fibonacci_Numbers_are_Coprime -/
-lemma fib_succ_coprime (n : ℕ) : gcd (fib n) (fib (n + 1)) = 1 :=
+/-- Subsequent Fibonacci numbers are coprime,
+  see https://proofwiki.org/wiki/Consecutive_Fibonacci_Numbers_are_Coprime -/
+lemma fib_succ_coprime (n : ℕ) : nat.coprime (fib n) (fib (n + 1)) :=
 begin
+  unfold coprime,
   induction n with n ih,
   { simp },
   { convert ih using 1,
@@ -107,7 +109,7 @@ begin
       gcd_rec (fib (n + 1))], }
 end
 
-/-- https://proofwiki.org/wiki/Fibonacci_Number_in_terms_of_Smaller_Fibonacci_Numbers -/
+/-- See https://proofwiki.org/wiki/Fibonacci_Number_in_terms_of_Smaller_Fibonacci_Numbers -/
 lemma fib_add (m n : ℕ) :
   fib m * fib n + fib (m + 1) * fib (n + 1) = fib (m + n + 1) :=
 begin
@@ -121,8 +123,9 @@ begin
 end
 
 
-lemma gcd_fib_add_self' (m n : ℕ) : gcd (fib m) (fib n) = gcd (fib m) (fib (n + m)) :=
+lemma gcd_fib_add_self' (m n : ℕ) : gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n) :=
 begin
+  symmetry,
   cases eq_zero_or_pos n,
   { rw h, simp },
   replace h := nat.succ_pred_eq_of_pos h, rw [← h, succ_eq_add_one],
@@ -133,39 +136,35 @@ begin
       rwa [gcd_comm, gcd_comm (fib m) _, mul_comm _ (fib (m + 1)), coprime.gcd_mul_left_cancel]
     end
     ... = gcd (fib m) (fib (n.pred) * (fib m) + fib (n.pred + 1) * fib (m + 1)) :
-    by rw [gcd_add_self (fib m) _ (fib (n.pred)), add_comm]
+    by rw [← gcd_add_self (fib m) _ (fib (n.pred)), add_comm]
     ... = m.fib.gcd (n.pred + 1 + m).fib :
     begin rw ← eq.symm (fib_add n.pred _), ring end
     ... = m.fib.gcd (n.pred + 1 + m).fib : by ring,
 end
 
-lemma gcd_fib_add_self (m n k : ℕ) : gcd (fib m) (fib n) = gcd (fib m) (fib (n + k * m)) :=
+lemma gcd_fib_add_self (m n k : ℕ) : gcd (fib m) (fib (n + k * m)) = gcd (fib m) (fib n) :=
 begin
   induction k with k hk,
   { simp },
-  { rw [hk, gcd_fib_add_self' _ _],
-    ring, }
+  { rw [← hk, succ_eq_add_one, add_mul, ← add_assoc, one_mul, gcd_fib_add_self' _ _] }
 end
 
-lemma gcd_fib_fib' (m' n' : ℕ) (hmn : m' ≤ n') : gcd (fib m') (fib n') = fib (gcd m' n') :=
+/-- `fib n` is a strong divisibility sequence, 
+  see https://proofwiki.org/wiki/GCD_of_Fibonacci_Numbers -/
+lemma gcd_fib_fib (m n : ℕ) : fib (gcd m n) = gcd (fib m) (fib n) :=
 begin
-  apply gcd.induction m' n',
-  { simp },
-  { intros m n mpos h,
+  wlog h : m ≤ n using [n m, m n],
+  exact le_total m n,
+  { apply gcd.induction m n,
+    { simp },
+    intros m n mpos h,
     rw ←gcd_rec m n at h,
-    conv_lhs { rw ← mod_add_div n m },
-    rw [mul_comm, ← gcd_fib_add_self m (n % m) (n / m), gcd_comm],
-    exact h, }
+    conv_rhs { rw ← mod_add_div n m },
+    rwa [mul_comm, gcd_fib_add_self m (n % m) (n / m), gcd_comm (fib m) _] },
+  rwa [gcd_comm, gcd_comm (fib m) ]
 end
 
-/-- `fib n` is a strong divisibility sequence.
-  https://proofwiki.org/wiki/GCD_of_Fibonacci_Numbers -/
-lemma gcd_fib_fib (m n : ℕ) : gcd (fib m) (fib n) = fib (gcd m n):=
-begin
-  cases le_total m n with m_le_n n_le_m,
-  { exact gcd_fib_fib' m n m_le_n },
-  { rw [gcd_comm, gcd_comm m n],
-    exact gcd_fib_fib' n m n_le_m }
-end
+lemma fib_div (m n : ℕ) (h : m ∣ n) : fib m ∣ fib n :=
+by rwa [gcd_eq_left_iff_dvd, ← gcd_fib_fib, gcd_eq_left_iff_dvd.mp]
 
 end nat

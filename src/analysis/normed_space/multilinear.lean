@@ -114,7 +114,7 @@ begin
     rw [f.map_coord_zero i hi, norm_zero],
     exact mul_nonneg (le_of_lt C_pos) (prod_nonneg (λi hi, norm_nonneg _)) },
   { push_neg at h,
-    have : ∀i, ∃d:𝕜, d ≠ 0 ∧ ∥d • m i∥ ≤ δ ∧ (δ/∥c∥ ≤ ∥d • m i∥) ∧ (∥d∥⁻¹ ≤ δ⁻¹ * ∥c∥ * ∥m i∥) :=
+    have : ∀i, ∃d:𝕜, d ≠ 0 ∧ ∥d • m i∥ < δ ∧ (δ/∥c∥ ≤ ∥d • m i∥) ∧ (∥d∥⁻¹ ≤ δ⁻¹ * ∥c∥ * ∥m i∥) :=
       λi, rescale_to_shell hc δ_pos (h i),
     choose d hd using this,
     have A : 0 ≤ 1 + ∥f 0∥ := add_nonneg zero_le_one (norm_nonneg _),
@@ -127,7 +127,7 @@ begin
       ... = (∏ i, ∥d i∥⁻¹) * ∥f (λi, d i • m i)∥ :
         by { rw [norm_smul, normed_field.norm_prod], congr' with i, rw normed_field.norm_inv }
       ... ≤ (∏ i, ∥d i∥⁻¹) * (1 + ∥f 0∥) :
-        mul_le_mul_of_nonneg_left (H ((pi_norm_le_iff (le_of_lt δ_pos)).2 (λi, (hd i).2.1)))
+        mul_le_mul_of_nonneg_left (H ((pi_norm_le_iff (le_of_lt δ_pos)).2 (λi, (hd i).2.1.le)))
           (prod_nonneg B)
       ... ≤ (∏ i, δ⁻¹ * ∥c∥ * ∥m i∥) * (1 + ∥f 0∥) :
         mul_le_mul_of_nonneg_right (prod_le_prod B (λi hi, (hd i).2.2.2)) A
@@ -1026,7 +1026,23 @@ def continuous_multilinear_curry_right_equiv :
   end,
   .. continuous_multilinear_curry_right_equiv_aux 𝕜 E E₂ }
 
-variables {𝕜 G E E₂}
+variables (n G)
+
+/-- The space of continuous multilinear maps on `Π(i : fin (n+1)), G` is canonically isomorphic to
+the space of continuous multilinear maps on `Π(i : fin n), G` with values in the space
+of continuous linear maps on `G`, by separating the last variable. We register this
+isomorphism as a continuous linear equiv in `continuous_multilinear_curry_right_equiv' 𝕜 n G E₂`.
+For a version allowing dependent types, see `continuous_multilinear_curry_right_equiv`. When there
+are no dependent types, use the primed version as it helps Lean a lot for unification.
+
+The direct and inverse maps are given by `f.uncurry_right` and `f.curry_right`. Use these
+unless you need the full framework of continuous linear equivs. -/
+def continuous_multilinear_curry_right_equiv' :
+  (continuous_multilinear_map 𝕜 (λ(i : fin n), G) (G →L[𝕜] E₂)) ≃L[𝕜]
+  (continuous_multilinear_map 𝕜 (λ(i : fin n.succ), G) E₂) :=
+continuous_multilinear_curry_right_equiv 𝕜 (λ (i : fin n.succ), G) E₂
+
+variables {n 𝕜 G E E₂}
 
 @[simp] lemma continuous_multilinear_curry_right_equiv_apply
   (f : (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)))
@@ -1038,6 +1054,15 @@ variables {𝕜 G E E₂}
   (v : Π (i : fin n), E i.cast_succ) (x : E (last n)) :
   (continuous_multilinear_curry_right_equiv 𝕜 E E₂).symm f v x = f (snoc v x) := rfl
 
+@[simp] lemma continuous_multilinear_curry_right_equiv_apply'
+  (f : (continuous_multilinear_map 𝕜 (λ(i : fin n), G) (G →L[𝕜] E₂)))
+  (v : Π (i : fin n.succ), G) :
+  (continuous_multilinear_curry_right_equiv' 𝕜 n G E₂) f v = f (init v) (v (last n)) := rfl
+
+@[simp] lemma continuous_multilinear_curry_right_equiv_symm_apply'
+  (f : continuous_multilinear_map 𝕜 (λ(i : fin n.succ), G) E₂)
+  (v : Π (i : fin n), G) (x : G) :
+  (continuous_multilinear_curry_right_equiv' 𝕜 n G E₂).symm f v x = f (snoc v x) := rfl
 
 /-!
 #### Currying with `0` variables

@@ -110,7 +110,7 @@ lemma gpow_sub (a : G) (m n : ℤ) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 by rw [sub_eq_add_neg, gpow_add, gpow_neg]
 
 lemma sub_gsmul (m n : ℤ) (a : A) : (m - n) •ℤ a = m •ℤ a - n •ℤ a :=
-@gpow_sub (multiplicative A) _ _ _ _
+by simpa only [sub_eq_add_neg] using @gpow_sub (multiplicative A) _ _ _ _
 
 theorem gpow_one_add (a : G) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [gpow_add, gpow_one]
@@ -147,10 +147,10 @@ by rw [bit1, gpow_add, gpow_bit0, gpow_one]
 theorem bit1_gsmul : ∀ (a : A) (n : ℤ), bit1 n •ℤ a = n •ℤ a + n •ℤ a + a :=
 @gpow_bit1 (multiplicative A) _
 
-theorem monoid_hom.map_gpow (f : G →* H) (a : G) (n : ℤ) : f (a ^ n) = f a ^ n :=
+@[simp] theorem monoid_hom.map_gpow (f : G →* H) (a : G) (n : ℤ) : f (a ^ n) = f a ^ n :=
 by cases n; [exact f.map_pow _ _, exact (f.map_inv _).trans (congr_arg _ $ f.map_pow _ _)]
 
-theorem add_monoid_hom.map_gsmul (f : A →+ B) (a : A) (n : ℤ) : f (n •ℤ a) = n •ℤ f a :=
+@[simp] theorem add_monoid_hom.map_gsmul (f : A →+ B) (a : A) (n : ℤ) : f (n •ℤ a) = n •ℤ f a :=
 f.to_multiplicative.map_gpow a n
 
 @[simp, norm_cast] lemma units.coe_gpow (u : units G) (n : ℤ) : ((u ^ n : units G) : G) = u ^ n :=
@@ -283,8 +283,8 @@ by induction m with m ih; [exact int.cast_one,
 lemma neg_one_pow_eq_pow_mod_two [ring R] {n : ℕ} : (-1 : R) ^ n = (-1) ^ (n % 2) :=
 by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [pow_two]
 
-section linear_ordered_semiring
-variable [linear_ordered_semiring R]
+section ordered_semiring
+variable [ordered_semiring R]
 
 /-- Bernoulli's inequality. This version works for semirings but requires
 an additional hypothesis `0 ≤ a * a`. -/
@@ -323,6 +323,13 @@ lemma pow_lt_pow_of_lt_one  {a : R} (h : 0 < a) (ha : a < 1)
 let ⟨k, hk⟩ := nat.exists_eq_add_of_lt hij in
 by rw hk; exact pow_lt_pow_of_lt_one_aux h ha _ _
 
+lemma pow_lt_pow_iff_of_lt_one {a : R} {n m : ℕ} (hpos : 0 < a) (h : a < 1) :
+  a ^ m < a ^ n ↔ n < m :=
+begin
+  have : strict_mono (λ (n : order_dual ℕ), a ^ (id n : ℕ)) := λ m n, pow_lt_pow_of_lt_one hpos h,
+  exact this.lt_iff_lt
+end
+
 lemma pow_le_pow_of_le_one  {a : R} (h : 0 ≤ a) (ha : a ≤ 1)
   {i j : ℕ} (hij : i ≤ j) : a ^ j ≤ a ^ i :=
 let ⟨k, hk⟩ := nat.exists_eq_add_of_le hij in
@@ -332,11 +339,56 @@ lemma pow_le_one {x : R} : ∀ (n : ℕ) (h0 : 0 ≤ x) (h1 : x ≤ 1), x ^ n �
 | 0     h0 h1 := le_refl (1 : R)
 | (n+1) h0 h1 := mul_le_one h1 (pow_nonneg h0 _) (pow_le_one n h0 h1)
 
+end ordered_semiring
+
+section linear_ordered_semiring
+
+variables [linear_ordered_semiring R]
+
+lemma sign_cases_of_C_mul_pow_nonneg {C r : R} (h : ∀ n : ℕ, 0 ≤ C * r ^ n) :
+  C = 0 ∨ (0 < C ∧ 0 ≤ r) :=
+begin
+  have : 0 ≤ C, by simpa only [pow_zero, mul_one] using h 0,
+  refine this.eq_or_lt.elim (λ h, or.inl h.symm) (λ hC, or.inr ⟨hC, _⟩),
+  refine nonneg_of_mul_nonneg_left _ hC,
+  simpa only [pow_one] using h 1
+end
+
 end linear_ordered_semiring
 
+section linear_ordered_ring
+
+variables [linear_ordered_ring R]
+
+@[simp] lemma abs_pow (a : R) (n : ℕ) : abs (a ^ n) = abs a ^ n :=
+abs_hom.to_monoid_hom.map_pow a n
+
+@[simp] theorem pow_bit1_neg_iff {a : R} {n : ℕ} : a ^ bit1 n < 0 ↔ a < 0 :=
+⟨λ h, not_le.1 $ λ h', not_le.2 h $ pow_nonneg h' _,
+  λ h, mul_neg_of_neg_of_pos h (pow_bit0_pos h.ne _)⟩
+
+@[simp] theorem pow_bit1_nonneg_iff {a : R} {n : ℕ} : 0 ≤ a ^ bit1 n ↔ 0 ≤ a :=
+le_iff_le_iff_lt_iff_lt.2 pow_bit1_neg_iff
+
+@[simp] theorem pow_bit1_nonpos_iff {a : R} {n : ℕ} : a ^ bit1 n ≤ 0 ↔ a ≤ 0 :=
+by simp only [le_iff_lt_or_eq, pow_bit1_neg_iff, pow_eq_zero_iff (bit1_pos (zero_le n))]
+
+@[simp] theorem pow_bit1_pos_iff {a : R} {n : ℕ} : 0 < a ^ bit1 n ↔ 0 < a :=
+lt_iff_lt_of_le_iff_le pow_bit1_nonpos_iff
+
+lemma strict_mono_pow_bit1 (n : ℕ) : strict_mono (λ a : R, a ^ bit1 n) :=
+begin
+  intros a b hab,
+  cases le_total a 0 with ha ha,
+  { cases le_or_lt b 0 with hb hb,
+    { rw [← neg_lt_neg_iff, ← neg_pow_bit1, ← neg_pow_bit1],
+      exact pow_lt_pow_of_lt_left (neg_lt_neg hab) (neg_nonneg.2 hb) (bit1_pos (zero_le n)) },
+    { exact (pow_bit1_nonpos_iff.2 ha).trans_lt (pow_bit1_pos_iff.2 hb) } },
+  { exact pow_lt_pow_of_lt_left hab ha (bit1_pos (zero_le n)) }
+end
+
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
-theorem one_add_mul_le_pow [linear_ordered_ring R] {a : R} (H : -2 ≤ a) :
-  ∀ (n : ℕ), 1 + n •ℕ a ≤ (1 + a) ^ n
+theorem one_add_mul_le_pow {a : R} (H : -2 ≤ a) : ∀ (n : ℕ), 1 + n •ℕ a ≤ (1 + a) ^ n
 | 0     := le_of_eq $ add_zero _
 | 1     := by simp
 | (n+2) :=
@@ -356,15 +408,16 @@ calc 1 + (n + 2) •ℕ a ≤ 1 + (n + 2) •ℕ a + (n •ℕ (a * a * (2 + a))
 ... = (1 + a)^(n + 2) : by simp only [pow_succ, mul_assoc]
 
 /-- Bernoulli's inequality reformulated to estimate `a^n`. -/
-theorem one_add_sub_mul_le_pow [linear_ordered_ring R]
-  {a : R} (H : -1 ≤ a) (n : ℕ) : 1 + n •ℕ (a - 1) ≤ a ^ n :=
-have -2 ≤ a - 1, by { rw [bit0, neg_add], exact sub_le_sub_right H 1 },
+theorem one_add_sub_mul_le_pow {a : R} (H : -1 ≤ a) (n : ℕ) : 1 + n •ℕ (a - 1) ≤ a ^ n :=
+have -2 ≤ a - 1, by rwa [bit0, neg_add, ← sub_eq_add_neg, sub_le_sub_iff_right],
 by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
+
+end linear_ordered_ring
 
 namespace int
 
 lemma units_pow_two (u : units ℤ) : u ^ 2 = 1 :=
-(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+(pow_two u).symm ▸ units_mul_self u
 
 lemma units_pow_eq_pow_mod_two (u : units ℤ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
 by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_pow_two, one_pow, mul_one]

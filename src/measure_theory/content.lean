@@ -12,7 +12,7 @@ import topology.compacts
 # Contents
 
 In this file we work with *contents*. A content `λ` is a function from a certain class of subsets
-(such as the the compact subsets) to `ennreal` (or `nnreal`) that is
+(such as the the compact subsets) to `ennreal` (or `ℝ≥0`) that is
 * additive: If `K₁` and `K₂` are disjoint sets in the domain of `λ`,
   then `λ(K₁ ∪ K₂) = λ(K₁) + λ(K₂)`;
 * subadditive: If `K₁` and `K₂` are in the domain of `λ`, then `λ(K₁ ∪ K₂) ≤ λ(K₁) + λ(K₂)`;
@@ -42,6 +42,7 @@ universe variables u v w
 noncomputable theory
 
 open set topological_space
+open_locale nnreal
 
 namespace measure_theory
 
@@ -83,7 +84,7 @@ lemma inner_content_mono {μ : compacts G → ennreal} ⦃U V : set G⦄ (hU : i
 supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
 
 lemma inner_content_exists_compact {μ : compacts G → ennreal} {U : opens G}
-  (hU : inner_content μ U < ⊤) {ε : nnreal} (hε : 0 < ε) :
+  (hU : inner_content μ U < ⊤) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ K : compacts G, K.1 ⊆ U ∧ inner_content μ U ≤ μ K + ε :=
 begin
   have h'ε := ennreal.zero_lt_coe_iff.2 hε,
@@ -204,7 +205,7 @@ lemma of_content_interior_compacts (h3 : ∀ (K₁ K₂ : compacts G), K₁.1 �
 le_trans (le_of_eq $ of_content_opens h2 (opens.interior K.1))
          (inner_content_le h3 _ _ interior_subset)
 
-lemma of_content_exists_compact {U : opens G} (hU : of_content μ h1 U < ⊤) {ε : nnreal}
+lemma of_content_exists_compact {U : opens G} (hU : of_content μ h1 U < ⊤) {ε : ℝ≥0}
   (hε : 0 < ε) : ∃ K : compacts G, K.1 ⊆ U ∧ of_content μ h1 U ≤ of_content μ h1 K.1 + ε :=
 begin
   rw [of_content_opens h2] at hU ⊢,
@@ -212,7 +213,7 @@ begin
   exact ⟨K, h1K, le_trans h2K $ add_le_add_right (le_of_content_compacts h2 K) _⟩,
 end
 
-lemma of_content_exists_open {A : set G} (hA : of_content μ h1 A < ⊤) {ε : nnreal} (hε : 0 < ε) :
+lemma of_content_exists_open {A : set G} (hA : of_content μ h1 A < ⊤) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ U : opens G, A ⊆ U ∧ of_content μ h1 U ≤ of_content μ h1 A + ε :=
 begin
   rcases induced_outer_measure_exists_set _ _ inner_content_mono hA hε with ⟨U, hU, h2U, h3U⟩,

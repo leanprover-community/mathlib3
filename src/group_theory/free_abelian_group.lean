@@ -66,10 +66,12 @@ protected theorem unique (g : free_abelian_group α →+ β)
     ((add_monoid_hom.to_multiplicative' g).comp abelianization.of)
     hg x) _
 
+/-- See note [partially-applied ext lemmas]. -/
+@[ext]
 protected theorem ext (g h : free_abelian_group α →+ β)
-  (H : ∀ x, g (of x) = h (of x)) {x} :
-  g x = h x :=
-(lift.unique (g ∘ of) g (λ _, rfl)).trans $
+  (H : ∀ x, g (of x) = h (of x)) :
+  g = h :=
+add_monoid_hom.ext $ λ x, (lift.unique (g ∘ of) g (λ _, rfl)).trans $
 eq.symm $ lift.unique _ _ $ λ x, eq.symm $ H x
 
 lemma map_hom {α β γ} [add_comm_group β] [add_comm_group γ]
@@ -87,13 +89,26 @@ end
 end lift
 
 section
+open_locale classical
+
+lemma of_injective : function.injective (of : α → free_abelian_group α) :=
+λ x y hoxy, classical.by_contradiction $ assume hxy : x ≠ y,
+  let f : free_abelian_group α →+ ℤ := lift (λ z, if x = z then 1 else 0) in
+  have hfx1 : f (of x) = 1, from (lift.of _ _).trans $ if_pos rfl,
+  have hfy1 : f (of y) = 1, from hoxy ▸ hfx1,
+  have hfy0 : f (of y) = 0, from (lift.of _ _).trans $ if_neg hxy,
+  one_ne_zero $ hfy1.symm.trans hfy0
+
+end
+
+section
 variables (X : Type*) (G : Type*) [add_comm_group G]
 
 /-- The bijection underlying the free-forgetful adjunction for abelian groups.-/
 def hom_equiv : (free_abelian_group X →+ G) ≃ (X → G) :=
 { to_fun := λ f, f.1 ∘ of,
   inv_fun := λ f, add_monoid_hom.of (lift f),
-  left_inv := λ f, begin ext, simp, exact (lift.unique _ _ (λ x, rfl)).symm, end,
+  left_inv := λ f, begin ext, simp end,
   right_inv := λ f, funext $ λ x, lift.of f x }
 
 @[simp]

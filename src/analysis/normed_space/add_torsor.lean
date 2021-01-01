@@ -257,7 +257,7 @@ continuous_vadd.comp (hf.prod_mk hg)
 
 lemma continuous.vsub {f g : α → P} (hf : continuous f) (hg : continuous g) :
   continuous (f -ᵥ g) :=
-continuous_vsub.comp (hf.prod_mk hg)
+continuous_vsub.comp (hf.prod_mk hg : _)
 
 lemma continuous_at.vadd {f : α → V} {g : α → P} {x : α} (hf : continuous_at f x)
   (hg : continuous_at g x) :

@@ -58,9 +58,8 @@ linear_map.to_add_monoid_hom_injective $ add_hom_ext h
 
 /-- Two `R`-linear maps from `Π₀ i, M i` which agree on each `single i x` agree everywhere.
 
-We formulate this fact using equality of linear maps `φ.comp (lsingle a)` and `ψ.comp (lsingle a)`
-so that the `ext` tactic can apply a type-specific extensionality lemma to prove equality of these
-maps. E.g., if `M = R`, then it suffices to verify `φ (single a 1) = ψ (single a 1)`. -/
+See note [partially-applied ext lemmas].
+After apply this lemma, if `M = R` then it suffices to verify `φ (single a 1) = ψ (single a 1)`. -/
 @[ext] lemma lhom_ext' ⦃φ ψ : (Π₀ i, M i) →ₗ[R] N⦄
   (h : ∀ i, φ.comp (lsingle i) = ψ.comp (lsingle i)) :
   φ = ψ :=

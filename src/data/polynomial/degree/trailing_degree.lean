@@ -3,7 +3,7 @@ Copyright (c) 2020 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import data.polynomial.degree.basic
+import data.polynomial.degree.definitions
 
 /-!
 # Trailing degree of univariate polynomials
@@ -262,7 +262,7 @@ section ring
 variables [ring R]
 
 @[simp] lemma trailing_degree_neg (p : polynomial R) : trailing_degree (-p) = trailing_degree p :=
-by unfold trailing_degree; rw support_neg
+by unfold trailing_degree; rw finsupp.support_neg
 
 @[simp] lemma nat_trailing_degree_neg (p : polynomial R) :
   nat_trailing_degree (-p) = nat_trailing_degree p :=

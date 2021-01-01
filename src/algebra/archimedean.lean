@@ -46,18 +46,21 @@ end
 
 end linear_ordered_add_comm_group
 
-theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
+theorem exists_nat_gt [ordered_semiring α] [nontrivial α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=
 let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 ⟨n+1, lt_of_le_of_lt (by rwa ← nsmul_one)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
 
-theorem exists_nat_ge [linear_ordered_semiring α] [archimedean α] (x : α) :
+theorem exists_nat_ge [ordered_semiring α] [archimedean α] (x : α) :
   ∃ n : ℕ, x ≤ n :=
-(exists_nat_gt x).imp $ λ n, le_of_lt
+begin
+  nontriviality α,
+  exact (exists_nat_gt x).imp (λ n, le_of_lt)
+end
 
-lemma add_one_pow_unbounded_of_pos [linear_ordered_semiring α] [archimedean α] (x : α) {y : α}
-  (hy : 0 < y) :
+lemma add_one_pow_unbounded_of_pos [ordered_semiring α] [nontrivial α] [archimedean α]
+  (x : α) {y : α} (hy : 0 < y) :
   ∃ n : ℕ, x < (y + 1) ^ n :=
 let ⟨n, h⟩ := archimedean.arch x hy in
 ⟨n, calc x ≤ n •ℕ y : h
@@ -110,10 +113,12 @@ end linear_ordered_ring
 
 section linear_ordered_field
 
-/-- Every positive x is between two successive integer powers of
-another y greater than one. This is the same as `exists_int_pow_near'`,
+variables [linear_ordered_field α]
+
+/-- Every positive `x` is between two successive integer powers of
+another `y` greater than one. This is the same as `exists_int_pow_near'`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near [linear_ordered_field α] [archimedean α]
+lemma exists_int_pow_near [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
 by classical; exact
@@ -128,10 +133,10 @@ let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
 let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
 
-/-- Every positive x is between two successive integer powers of
-another y greater than one. This is the same as `exists_int_pow_near`,
+/-- Every positive `x` is between two successive integer powers of
+another `y` greater than one. This is the same as `exists_int_pow_near`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near' [linear_ordered_field α] [archimedean α]
+lemma exists_int_pow_near' [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
 let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
@@ -141,7 +146,31 @@ by rwa [fpow_neg, inv_lt (fpow_pos_of_pos hyp _) hx],
 by rwa [neg_add, neg_add_cancel_right, fpow_neg,
         le_inv hx (fpow_pos_of_pos hyp _)]⟩
 
-variables [linear_ordered_field α] [floor_ring α]
+/-- For any `y < 1` and any positive `x`, there exists `n : ℕ` with `y ^ n < x`. -/
+lemma exists_pow_lt_of_lt_one [archimedean α] {x y : α} (hx : 0 < x) (hy : y < 1) :
+  ∃ n : ℕ, y ^ n < x :=
+begin
+  by_cases y_pos : y ≤ 0,
+  { use 1, simp only [pow_one], linarith, },
+  rw [not_le] at y_pos,
+  rcases pow_unbounded_of_one_lt (x⁻¹) (one_lt_inv y_pos hy) with ⟨q, hq⟩,
+  exact ⟨q, by rwa [inv_pow', inv_lt_inv hx (pow_pos y_pos _)] at hq⟩
+end
+
+/-- Given `x` and `y` between `0` and `1`, `x` is between two successive powers of `y`.
+This is the same as `exists_nat_pow_near`, but for elements between `0` and `1` -/
+lemma exists_nat_pow_near_of_lt_one [archimedean α]
+  {x : α} {y : α} (xpos : 0 < x) (hx : x ≤ 1) (ypos : 0 < y) (hy : y < 1) :
+  ∃ n : ℕ, y ^ (n + 1) < x ∧ x ≤ y ^ n :=
+begin
+  rcases exists_nat_pow_near (one_le_inv_iff.2 ⟨xpos, hx⟩) (one_lt_inv_iff.2 ⟨ypos, hy⟩)
+    with ⟨n, hn, h'n⟩,
+  refine ⟨n, _, _⟩,
+  { rwa [inv_pow', inv_lt_inv xpos (pow_pos ypos _)] at h'n },
+  { rwa [inv_pow', inv_le_inv (pow_pos ypos _) xpos] at hn }
+end
+
+variables [floor_ring α]
 
 lemma sub_floor_div_mul_nonneg (x : α) {y : α} (hy : 0 < y) :
   0 ≤ x - ⌊x / y⌋ * y :=
@@ -182,7 +211,7 @@ variables [linear_ordered_field α]
 
 theorem archimedean_iff_nat_lt :
   archimedean α ↔ ∀ x : α, ∃ n : ℕ, x < n :=
-⟨@exists_nat_gt α _, λ H, ⟨λ x y y0,
+⟨@exists_nat_gt α _ _, λ H, ⟨λ x y y0,
   (H (x / y)).imp $ λ n h, le_of_lt $
   by rwa [div_lt_iff y0, ← nsmul_eq_mul] at h⟩⟩
 
@@ -221,8 +250,8 @@ begin
   cases exists_nat_gt (y - x)⁻¹ with n nh,
   cases exists_floor (x * n) with z zh,
   refine ⟨(z + 1 : ℤ) / n, _⟩,
-  have n0 := nat.cast_pos.1 (lt_trans (inv_pos.2 (sub_pos.2 h)) nh),
-  have n0' := (@nat.cast_pos α _ _).2 n0,
+  have n0' := (inv_pos.2 (sub_pos.2 h)).trans nh,
+  have n0 := nat.cast_pos.1 n0',
   rw [rat.cast_div_of_ne_zero, rat.cast_coe_nat, rat.cast_coe_int, div_lt_iff n0'],
   refine ⟨(lt_div_iff n0').2 $
     (lt_iff_lt_of_le_iff_le (zh _)).1 (lt_add_one _), _⟩,

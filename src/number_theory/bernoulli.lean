@@ -59,11 +59,11 @@ Setting `n = 0` we deduce that `bernoulli 0 = 1` and one can go on from there.
 
 ## Todo
 
-`∑ (k : fin n) n.binomial k * (-1)^k * bernoulli k = if n = 1 then 1 else 0`
+`∑ k : fin n, n.binomial k * (-1)^k * bernoulli k = if n = 1 then 1 else 0`
 
-`∑ (k : fin n) k ^ t =` some explicit Bernoulli polynomial B_t evaluated at n
+`∑ k : fin n, k ^ t =` some explicit Bernoulli polynomial B_t evaluated at n
 
-`∑ (k : fin n.succ) n.succ.choose k bernoulli_poly k X = n.succ * X ^ n` as polynomials
+`∑ k : fin n.succ, n.succ.choose k bernoulli_poly k X = n.succ * X ^ n` as polynomials
 -/
 
 open_locale big_operators

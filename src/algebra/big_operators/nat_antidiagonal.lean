@@ -58,13 +58,8 @@ prod_congr rfl $ λ p hp, by rw [nat.mem_antidiagonal.1 hp]
 lemma prod_antidiagonal_eq_prod_range_succ {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) (n : ℕ) :
   ∏ ij in finset.nat.antidiagonal n, f ij.1 ij.2 = ∏ k in range n.succ, f k (n - k) :=
 begin
-  refine finset.prod_bij' (λ (ij : ℕ × ℕ) _, ij.1) _ _
-    (λ a _, (a, n - a) : Π (a : ℕ), a ∈ finset.range n.succ → ℕ × ℕ) _ _ _,
-  { rintro ⟨i, j⟩ ha, rw mem_antidiagonal at ha, simp [mem_range_succ_iff, nat.le.intro ha] },
-  { rintro ⟨i, j⟩ ha, rw mem_antidiagonal at ha, subst ha, congr', simp },
-  { intros a ha, rw mem_range_succ_iff at ha, rw mem_antidiagonal, exact nat.add_sub_of_le ha, },
-  { rintro ⟨i, j⟩ ha, rw mem_antidiagonal at ha, subst ha, congr', simp },
-  { rintros, refl },
+  convert prod_map _ ⟨λ i, (i, n - i), λ x y h, (prod.mk.inj h).1⟩ _,
+  refl,
 end
 
 end nat

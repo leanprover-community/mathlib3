@@ -6,6 +6,7 @@ Authors: Oliver Nash
 import order.well_founded
 import order.order_iso_nat
 import data.set.finite
+import tactic.tfae
 
 /-!
 # Well-foundedness for complete lattices
@@ -84,6 +85,15 @@ begin
   apply h (set.range a),
   { use a 37, apply set.mem_range_self, },
   { rintros x y ⟨m, hm⟩ ⟨n, hn⟩, use m ⊔ n, rw [← hm, ← hn], apply a.to_rel_hom.map_sup, },
+end
+
+lemma well_founded_characterisations :
+  tfae [well_founded ((>) : α → α → Prop), is_Sup_finite_compact α, is_sup_closed_compact α] :=
+begin
+  tfae_have : 1 → 2, by { exact well_founded.is_Sup_finite_compact α, },
+  tfae_have : 2 → 3, by { exact is_Sup_finite_compact.is_sup_closed_compact α, },
+  tfae_have : 3 → 1, by { exact is_sup_closed_compact.well_founded α, },
+  tfae_finish,
 end
 
 end complete_lattice

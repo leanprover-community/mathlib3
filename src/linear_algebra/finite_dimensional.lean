@@ -662,8 +662,8 @@ Two finite-dimensional vector spaces are isomorphic if they have the same (finit
 theorem nonempty_linear_equiv_of_findim_eq [finite_dimensional K V] [finite_dimensional K V₂]
   (cond : findim K V = findim K V₂) : nonempty (V ≃ₗ[K] V₂) :=
 begin
-  obtain ⟨B,hB,hf⟩ := exists_is_basis_finite K V,
-  obtain ⟨B₂,hB₂,hf₂⟩ := exists_is_basis_finite K V₂,
+  obtain ⟨B, hB, hf⟩ := exists_is_basis_finite K V,
+  obtain ⟨B₂, hB₂, hf₂⟩ := exists_is_basis_finite K V₂,
   haveI := set.finite.fintype hf,
   haveI := set.finite.fintype hf₂,
   rw [findim_eq_card_basis hB, findim_eq_card_basis hB₂] at cond,

@@ -157,8 +157,8 @@ cardinal.lift_inj.1 $ hb.mk_eq_dim.symm.trans (f.is_basis hb).mk_eq_dim
 theorem nonempty_linear_equiv_of_dim_eq (cond : dim K V = dim K V₁) :
   nonempty (V ≃ₗ[K] V₁) :=
 begin
-  obtain ⟨B,h⟩ := exists_is_basis K V,
-  obtain ⟨B₁,h₁⟩ := exists_is_basis K V₁,
+  obtain ⟨B, h⟩ := exists_is_basis K V,
+  obtain ⟨B₁, h₁⟩ := exists_is_basis K V₁,
   have : cardinal.mk B = cardinal.mk B₁, by rwa [is_basis.mk_eq_dim'' h, is_basis.mk_eq_dim'' h₁],
   rw cardinal.eq at this,
   exact nonempty.map (linear_equiv_of_is_basis h h₁) this,

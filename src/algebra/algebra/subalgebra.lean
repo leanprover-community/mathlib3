@@ -298,6 +298,18 @@ theorem injective_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : �
   function.injective (f.cod_restrict S hf) ↔ function.injective f :=
 ⟨λ H x y hxy, H $ subtype.eq hxy, λ H x y hxy, H (congr_arg subtype.val hxy : _)⟩
 
+/-- Restrict an injective algebra homomorphism to an algebra isomorphism -/
+noncomputable def alg_equiv_range (f : A →ₐ[R] B) (hf : function.injective f) :
+  A ≃ₐ[R] f.range :=
+alg_equiv.of_bijective (f.cod_restrict f.range (λ x, f.mem_range.mpr ⟨x, rfl⟩))
+⟨(f.injective_cod_restrict f.range (λ x, f.mem_range.mpr ⟨x, rfl⟩)).mpr hf,
+  λ x, Exists.cases_on (f.mem_range.mp (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy⟩)⟩
+
+/-- Restrict an algebra homomorphism between fields to an algebra isomorphism -/
+noncomputable def alg_equiv_range_field {E F : Type*} [field F] [field E]
+  [algebra R E] [algebra R F] (f : E →ₐ[R] F) : E ≃ₐ[R] f.range :=
+f.alg_equiv_range f.to_ring_hom.injective
+
 /-- The equalizer of two R-algebra homomorphisms -/
 def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 { carrier := {a | ϕ a = ψ a},

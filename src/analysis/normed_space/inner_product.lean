@@ -1844,7 +1844,7 @@ orthogonal projection. -/
 lemma eq_orthogonal_projection_of_mem_orthogonal {K : submodule 𝕜 E} [complete_space K]
   {u v : E} (hv : v ∈ K) (hvo : u - v ∈ Kᗮ) :
   ↑(orthogonal_projection K u) = v :=
-(eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hv (λ w, inner_eq_zero_sym.mp ∘ (hvo w))).symm
+eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hv (λ w, inner_eq_zero_sym.mp ∘ (hvo w))
 
 /-- A point in `K` with the orthogonality property (here characterized in terms of `Kᗮ`) must be the
 orthogonal projection. -/

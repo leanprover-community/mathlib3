@@ -72,7 +72,7 @@ begin
   { rw ht₂, exact t.sup_closed_of_sup_closed h ht₁ hsc, },
 end
 
-lemma well_founded_of_is_sup_closed_compact (h : is_sup_closed_compact α) :
+lemma is_sup_closed_compact.well_founded (h : is_sup_closed_compact α) :
   well_founded ((>) : α → α → Prop) :=
 begin
   rw rel_embedding.well_founded_iff_no_descending_seq, rintros ⟨a⟩,

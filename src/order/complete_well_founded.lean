@@ -108,4 +108,9 @@ lemma is_sup_closed_compact_iff_well_founded :
   is_sup_closed_compact α ↔ well_founded ((>) : α → α → Prop) :=
 (well_founded_characterisations α).out 2 0
 
+alias well_founded_iff_is_Sup_finite_compact ↔ _ is_Sup_finite_compact.well_founded
+alias is_Sup_finite_compact_iff_is_sup_closed_compact ↔
+      _ is_sup_closed_compact.is_Sup_finite_compact
+alias is_sup_closed_compact_iff_well_founded ↔ _ well_founded.is_sup_closed_compact
+
 end complete_lattice

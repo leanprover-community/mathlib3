@@ -665,6 +665,19 @@ theorem nonempty_linear_equiv_iff_findim_eq [finite_dimensional K V] [finite_dim
    nonempty (V ≃ₗ[K] V₂) ↔ findim K V = findim K V₂ :=
 ⟨λ ⟨h⟩, h.findim_eq, λ h, nonempty_linear_equiv_of_findim_eq h⟩
 
+section
+
+variables (V V₂)
+
+/--
+Two finite-dimensional vector spaces are isomorphic if they have the same (finite) dimension.
+-/
+def linear_equiv.of_findim_eq [finite_dimensional K V] [finite_dimensional K V₂]
+  (cond : findim K V = findim K V₂) : V ≃ₗ[K] V₂ :=
+classical.choice $ nonempty_linear_equiv_of_findim_eq cond
+
+end
+
 lemma eq_of_le_of_findim_le {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (hle : S₁ ≤ S₂)
   (hd : findim K S₂ ≤ findim K S₁) : S₁ = S₂ :=
 begin

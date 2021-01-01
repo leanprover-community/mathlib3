@@ -1852,6 +1852,18 @@ lemma eq_orthogonal_projection_of_mem_orthogonal' {K : submodule 𝕜 E} [comple
   ↑(orthogonal_projection K u) = v :=
 eq_orthogonal_projection_of_mem_orthogonal hv (by simpa [hu])
 
+/-- The orthogonal projection onto `K` of an element of `Kᗮ` is zero. -/
+lemma orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero
+  (K : submodule 𝕜 E) [complete_space K] {v : E} (hv : v ∈ Kᗮ) :
+  orthogonal_projection K v = 0 :=
+by { ext, convert eq_orthogonal_projection_of_mem_orthogonal _ _; simp [hv] }
+
+/-- The orthogonal projection onto `Kᗮ` of an element of `K` is zero. -/
+lemma orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
+  [complete_space E] (K : submodule 𝕜 E) {v : E} (hv : v ∈ K) :
+  orthogonal_projection Kᗮ v = 0 :=
+orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero Kᗮ (K.le_orthogonal_orthogonal hv)
+
 /-- In a complete space `E`, a vector splits as the sum of its orthogonal projections onto a
 complete submodule `K` and onto the orthogonal complement of `K`.-/
 lemma eq_sum_orthogonal_projection_self_orthogonal_complement

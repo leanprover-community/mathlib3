@@ -99,7 +99,8 @@ meta def sf.traverse {m} [applicative m] (f : sf → m sf) : sf → m sf
 meta def sf.replace {m} [monad m] [alternative m] (f : sf → m sf) : sf → m sf
 | x := (f x >>= sf.traverse sf.replace) <|> pure x
 
-/-- The test for whether the proposition is a valid target for restricted quantifier collapsing -/
+/-- The test for whether the proposition is a valid target for restricted quantifier collapsing.
+Eg (@has_mem.mem _ _ _ _) -/
 meta def sf.collapse_restricted_quantifiers_pred : expr → tactic bool
 | `(@gt _ _ %%(expr.var 0) _) := pure tt
 | `(@has_lt.lt _ _ %%(expr.var 0) _) := pure tt
@@ -109,6 +110,39 @@ meta def sf.collapse_restricted_quantifiers_pred : expr → tactic bool
 -- [fixme] add to this list! So many predicates. Maybe just include all of them.
 | _ := pure ff
 
+open expr.coord
+/-
+(block 1 "∃" ""
+  (block 0 " "
+    (block 0 "(y :"
+      (block 1 " "
+        (tag_expr [app_arg, lam_body, app_arg, lam_var_type] `(nat) "ℕ")
+      )
+      ")"
+    )
+  )
+  (block 0 " "
+    (block 0 "(h :"
+      (block 1 " "
+        (tag_expr [app_arg, lam_var_type] `(gt.{0} nat nat.has_lt y x)
+          (block 1
+            (tag_expr [app_fn, app_arg] `(y) "y")
+            " > "
+            (tag_expr [app_arg] `(x) "x")
+          )
+        )
+      ) ")"
+    )
+  )
+  ", "
+  (tag_expr [app_arg, lam_body, app_arg, lam_body] `(eq.{1} nat y y)
+    (block 1
+      (tag_expr [app_fn, app_arg] `(y) "y")
+      " = "
+      (tag_expr [app_arg] `(y) "y")
+    )
+  )
+) -/
 /-- If the given sf has the form `∀ (x : α), P x → Q`
 and `P x` obeys `collapse_restricted_quantifiers_pred`
 then replace it with `∀ (P x), Q`, mapping the addresses properly
@@ -118,11 +152,25 @@ meta def sf.collapse_restricted_quantifiers_core : sf → tactic sf
   do
   should_collapse ← sf.collapse_restricted_quantifiers_pred py,
   if ¬ should_collapse then pure s else do
-  a1 ← pure $ [expr.coord.pi_body, expr.coord.pi_var_type],
-  a2 ← pure $ [expr.coord.pi_body, expr.coord.pi_body],
+  a1 ← pure $ [pi_body, pi_var_type],
+  a2 ← pure $ [pi_body, pi_body],
   (e1, s1) ← sf.follow a1 a,
   (e2, s2) ← sf.follow a2 a,
   pure (sf.tag_expr addr e $ "∀ (" ++ (sf.tag_expr (addr ++ a1) e1 s1) ++ "), " ++ (sf.tag_expr (addr ++ a2) e2 s2))
+| s@(sf.tag_expr addr e a) := (do
+  `(Exists %%pred) ← pure e,
+  expr.lam _ _ α pred ← pure pred,
+  `(Exists %%pred) ← pure pred,
+  expr.lam _ _ py pred ← pure pred,
+  should_collapse ← sf.collapse_restricted_quantifiers_pred py,
+  if ¬ should_collapse then pure s else do
+  a1 ← pure $ [app_arg, lam_var_type], -- [hack] There is a bug in the addresing code. Second binder has the address of the first binder!
+  a2 ← pure $ [app_arg, lam_body, app_arg, lam_body],
+  (e1, s1) ← sf.follow a1 a,
+  (e2, s2) ← sf.follow a2 a,
+  pure (sf.tag_expr addr e $ "∃ (" ++ (sf.tag_expr (addr ++ a1) e1 s1) ++ "), " ++ (sf.tag_expr (addr ++ a2) e2 s2))
+  )
+  -- <|> (pure $ sf.of_string "hello")
 | x := pure x
 
 /-- Flattens an `sf`, i.e. merges adjacent `of_string` constructors. -/
@@ -545,3 +593,8 @@ end widget_override
 
 attribute [vm_override widget_override.term_goal_widget] widget.term_goal_widget
 attribute [vm_override widget_override.tactic_state_widget] widget.tactic_state_widget
+
+example (x : ℕ) : ∃ (y : ℕ) (h : y > x), y = y :=
+begin
+
+end

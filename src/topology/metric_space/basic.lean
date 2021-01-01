@@ -674,32 +674,15 @@ by simp [is_open_iff, subset_singleton_iff, mem_ball]
 
 /-- Given a point `x` in a discrete subset `s` of a metric space, there is an open ball
 centered at `x` and intersecting `s` only at `x`. -/
-lemma exists_ball_inter_eq_singleton_of_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
+lemma exists_ball_inter_eq_singleton_of_mem_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
   ∃ ε > 0, metric.ball x ε ∩ s = {x} :=
-begin
-  rcases disjoint_nhds_within_of_mem_discrete hx with ⟨U, U_in, hU⟩,
-  rcases metric.nhds_within_basis_ball.mem_iff.mp U_in with ⟨ε, ε0, hε⟩,
-  refine ⟨ε, ε0, subset.antisymm (λ z hz, _) ((singleton_subset_iff).mpr (⟨mem_ball_self ε0, hx⟩))⟩,
-  by_cases zx : z = x,
-  { exact zx },
-  { refine (disjoint_left.mp hU (mem_of_mem_of_subset (mem_inter hz.1 (mem_compl zx)) hε) _).elim,
-    exact mem_of_mem_of_subset hz (inter_subset_right _ _) }
-end
+nhds_basis_ball.exists_inter_eq_singleton_of_mem_discrete hx
 
 /-- Given a point `x` in a discrete subset `s` of a metric space, there is a closed ball
 of positive radius centered at `x` and intersecting `s` only at `x`. -/
 lemma exists_closed_ball_inter_eq_singleton_of_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
   ∃ ε > 0, metric.closed_ball x ε ∩ s = {x} :=
-begin
-  obtain ⟨ε, e0, F⟩ := exists_ball_inter_eq_singleton_of_discrete hx,
-  refine ⟨ε / 2, half_pos e0, subset.antisymm _ (λ f hf, _)⟩,
-  { rw ← F,
-    refine subset_inter _ (inter_subset_right _ _),
-    rintros f ⟨hf : dist _ _ ≤ _, -⟩,
-    exact lt_of_le_of_lt hf (half_lt_self e0) },
-  { cases hf,
-    exact ⟨mem_closed_ball_self (le_of_lt (half_pos e0)), hx⟩ }
-end
+nhds_basis_closed_ball.exists_inter_eq_singleton_of_mem_discrete hx
 
 end metric
 

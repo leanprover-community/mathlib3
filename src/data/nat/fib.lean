@@ -99,7 +99,7 @@ end
 
 /-- Subsequent Fibonacci numbers are coprime,
   see https://proofwiki.org/wiki/Consecutive_Fibonacci_Numbers_are_Coprime -/
-lemma fib_succ_coprime (n : ℕ) : nat.coprime (fib n) (fib (n + 1)) :=
+lemma fib_coprime_fib_succ (n : ℕ) : nat.coprime (fib n) (fib (n + 1)) :=
 begin
   unfold coprime,
   induction n with n ih,
@@ -125,33 +125,29 @@ end
 
 lemma gcd_fib_add_self' (m n : ℕ) : gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n) :=
 begin
-  symmetry,
   cases eq_zero_or_pos n,
   { rw h, simp },
-  replace h := nat.succ_pred_eq_of_pos h, rw [← h, succ_eq_add_one],
+  replace h := nat.succ_pred_eq_of_pos h, rw [← h, succ_eq_add_one], symmetry,
   calc (fib m).gcd (fib (n.pred + 1)) 
         = gcd (fib m) (fib (n.pred + 1) * fib (m + 1)) :
     begin
-      have hcop := coprime.symm (fib_succ_coprime m),
+      have hcop := coprime.symm (fib_coprime_fib_succ m),
       rwa [gcd_comm, gcd_comm (fib m) _, mul_comm _ (fib (m + 1)), coprime.gcd_mul_left_cancel]
     end
     ... = gcd (fib m) (fib (n.pred) * (fib m) + fib (n.pred + 1) * fib (m + 1)) :
     by rw [← gcd_add_self (fib m) _ (fib (n.pred)), add_comm]
     ... = m.fib.gcd (n.pred + 1 + m).fib :
-    begin rw ← eq.symm (fib_add n.pred _), ring end
+    by { rw (fib_add n.pred _), ring }
     ... = m.fib.gcd (n.pred + 1 + m).fib : by ring,
 end
 
-lemma gcd_fib_add_self (m n k : ℕ) : gcd (fib m) (fib (n + k * m)) = gcd (fib m) (fib n) :=
-begin
-  induction k with k hk,
-  { simp },
-  { rw [← hk, succ_eq_add_one, add_mul, ← add_assoc, one_mul, gcd_fib_add_self' _ _] }
-end
+lemma gcd_fib_add_self (m n : ℕ) : ∀ k, gcd (fib m) (fib (n + k * m)) = gcd (fib m) (fib n)
+| 0     := by simp
+| (k+1) := by rw [← gcd_fib_add_self k, add_mul, ← add_assoc, one_mul, gcd_fib_add_self' _ _]
 
 /-- `fib n` is a strong divisibility sequence, 
   see https://proofwiki.org/wiki/GCD_of_Fibonacci_Numbers -/
-lemma gcd_fib_fib (m n : ℕ) : fib (gcd m n) = gcd (fib m) (fib n) :=
+lemma fib_gcd (m n : ℕ) : fib (gcd m n) = gcd (fib m) (fib n) :=
 begin
   wlog h : m ≤ n using [n m, m n],
   exact le_total m n,
@@ -161,10 +157,10 @@ begin
     rw ← gcd_rec m n at h,
     conv_rhs { rw ← mod_add_div n m },
     rwa [mul_comm, gcd_fib_add_self m (n % m) (n / m), gcd_comm (fib m) _] },
-  rwa [gcd_comm, gcd_comm (fib m) ]
+  rwa [gcd_comm, gcd_comm (fib m)]
 end
 
-lemma fib_div (m n : ℕ) (h : m ∣ n) : fib m ∣ fib n :=
-by rwa [gcd_eq_left_iff_dvd, ← gcd_fib_fib, gcd_eq_left_iff_dvd.mp]
+lemma fib_dvd (m n : ℕ) (h : m ∣ n) : fib m ∣ fib n :=
+by rwa [gcd_eq_left_iff_dvd, ← fib_gcd, gcd_eq_left_iff_dvd.mp]
 
 end nat

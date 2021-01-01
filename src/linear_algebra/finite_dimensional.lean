@@ -667,7 +667,7 @@ begin
   haveI := set.finite.fintype hf,
   haveI := set.finite.fintype hf₂,
   rw [findim_eq_card_basis hB, findim_eq_card_basis hB₂] at cond,
-  apply nonempty.map (equiv_of_is_basis hB hB₂),
+  apply nonempty.map (linear_equiv_of_is_basis hB hB₂),
   rwa fintype.card_eq at cond,
 end
 

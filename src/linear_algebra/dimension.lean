@@ -161,7 +161,7 @@ begin
   obtain ⟨B₁,h₁⟩ := exists_is_basis K V₁,
   have : cardinal.mk B = cardinal.mk B₁, by rwa [is_basis.mk_eq_dim'' h, is_basis.mk_eq_dim'' h₁],
   rw cardinal.eq at this,
-  exact nonempty.map (equiv_of_is_basis h h₁) this,
+  exact nonempty.map (linear_equiv_of_is_basis h h₁) this,
 end
 
 /-- Two vector spaces are isomorphic if and only if they have the same dimension. -/

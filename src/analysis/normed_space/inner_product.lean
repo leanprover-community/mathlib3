@@ -1635,7 +1635,7 @@ orthogonal_projection_fn_inner_eq_zero v
 orthogonality property. -/
 lemma eq_orthogonal_projection_of_mem_of_inner_eq_zero {K : submodule 𝕜 E} [complete_space K]
   {u v : E} (hvm : v ∈ K) (hvo : ∀ w ∈ K, ⟪u - v, w⟫ = 0) :
-  ↑(orthogonal_projection K u) = v :=
+  (orthogonal_projection K u : E) = v :=
 eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hvm hvo
 
 /-- The orthogonal projections onto equal subspaces are coerced back to the same point in `E`. -/
@@ -1842,14 +1842,14 @@ end
 orthogonal projection. -/
 lemma eq_orthogonal_projection_of_mem_orthogonal {K : submodule 𝕜 E} [complete_space K]
   {u v : E} (hv : v ∈ K) (hvo : u - v ∈ Kᗮ) :
-  ↑(orthogonal_projection K u) = v :=
+  (orthogonal_projection K u : E) = v :=
 eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hv (λ w, inner_eq_zero_sym.mp ∘ (hvo w))
 
 /-- A point in `K` with the orthogonality property (here characterized in terms of `Kᗮ`) must be the
 orthogonal projection. -/
 lemma eq_orthogonal_projection_of_mem_orthogonal' {K : submodule 𝕜 E} [complete_space K]
   {u v z : E} (hv : v ∈ K) (hz : z ∈ Kᗮ) (hu : u = v + z) :
-  ↑(orthogonal_projection K u) = v :=
+  (orthogonal_projection K u : E) = v :=
 eq_orthogonal_projection_of_mem_orthogonal hv (by simpa [hu])
 
 /-- The orthogonal projection onto `K` of an element of `Kᗮ` is zero. -/
@@ -1868,7 +1868,7 @@ orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (K.le_orthogona
 complete submodule `K` and onto the orthogonal complement of `K`.-/
 lemma eq_sum_orthogonal_projection_self_orthogonal_complement
   [complete_space E] (K : submodule 𝕜 E) [complete_space K] (w : E) :
-  w = ↑(orthogonal_projection K w) + ↑(orthogonal_projection Kᗮ w) :=
+  w = (orthogonal_projection K w : E) + (orthogonal_projection Kᗮ w : E) :=
 begin
   obtain ⟨y, hy, z, hz, hwyz⟩ := K.exists_sum_mem_mem_orthogonal w,
   convert hwyz,

@@ -275,12 +275,36 @@ have (a⁻¹)⁻¹ ≤ b⁻¹ ↔ b ≤ a⁻¹, from inv_le_inv_iff,
 by rwa inv_inv at this
 
 @[to_additive neg_le_iff_add_nonneg]
-lemma inv_le_iff_one_le_mul : a⁻¹ ≤ b ↔ 1 ≤ a * b :=
+lemma inv_le_iff_one_le_mul : a⁻¹ ≤ b ↔ 1 ≤ b * a :=
+(mul_le_mul_iff_right a).symm.trans $ by rw inv_mul_self
+
+@[to_additive neg_le_iff_add_nonneg']
+lemma inv_le_iff_one_le_mul' : a⁻¹ ≤ b ↔ 1 ≤ a * b :=
 (mul_le_mul_iff_left a).symm.trans $ by rw mul_inv_self
+
+@[to_additive neg_lt_iff_add_nonneg]
+lemma inv_lt_iff_one_lt_mul : a⁻¹ < b ↔ 1 < b * a :=
+(mul_lt_mul_iff_right a).symm.trans $ by rw inv_mul_self
+
+@[to_additive neg_lt_iff_add_nonneg']
+lemma inv_lt_iff_one_lt_mul' : a⁻¹ < b ↔ 1 < a * b :=
+(mul_lt_mul_iff_left a).symm.trans $ by rw mul_inv_self
 
 @[to_additive]
 lemma le_inv_iff_mul_le_one : a ≤ b⁻¹ ↔ a * b ≤ 1 :=
 (mul_le_mul_iff_right b).symm.trans $ by rw inv_mul_self
+
+@[to_additive]
+lemma le_inv_iff_mul_le_one' : a ≤ b⁻¹ ↔ b * a ≤ 1 :=
+(mul_le_mul_iff_left b).symm.trans $ by rw mul_inv_self
+
+@[to_additive]
+lemma lt_inv_iff_mul_lt_one : a < b⁻¹ ↔ a * b < 1 :=
+(mul_lt_mul_iff_right b).symm.trans $ by rw inv_mul_self
+
+@[to_additive]
+lemma lt_inv_iff_mul_lt_one' : a < b⁻¹ ↔ b * a < 1 :=
+(mul_lt_mul_iff_left b).symm.trans $ by rw mul_inv_self
 
 @[simp, to_additive neg_nonpos]
 lemma inv_le_one' : a⁻¹ ≤ 1 ↔ 1 ≤ a :=

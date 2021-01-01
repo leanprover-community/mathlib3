@@ -268,10 +268,10 @@ order_embedding.of_strict_mono fin.succ $ λ ⟨i, hi⟩ ⟨j, hj⟩ h, succ_lt_
 @[simp] lemma coe_succ_embedding : ⇑(succ_embedding n) = fin.succ := rfl
 
 @[simp] lemma succ_le_succ_iff : a.succ ≤ b.succ ↔ a ≤ b :=
-(succ_embedding n).apply_le_apply
+(succ_embedding n).le_iff_le
 
 @[simp] lemma succ_lt_succ_iff : a.succ < b.succ ↔ a < b :=
-(succ_embedding n).apply_lt_apply
+(succ_embedding n).lt_iff_lt
 
 lemma succ_injective (n : ℕ) : injective (@fin.succ n) :=
 (succ_embedding n).injective
@@ -379,7 +379,7 @@ lt_iff_coe_lt_coe.2 $ by simp only [coe_cast_succ, coe_succ, nat.lt_succ_self]
 lemma succ_above_aux (p : fin (n + 1)) :
   strict_mono (λ i : fin n, if i.cast_succ < p then i.cast_succ else i.succ) :=
 (cast_succ : fin n ↪o _).strict_mono.ite (succ_embedding n).strict_mono
-  (λ i j hij hj, lt_trans ((cast_succ : fin n ↪o _).apply_lt_apply.2 hij) hj)
+  (λ i j hij hj, lt_trans ((cast_succ : fin n ↪o _).lt_iff_lt.2 hij) hj)
   (λ i, (cast_succ_lt_succ i).le)
 
 /-- `succ_above p i` embeds `fin n` into `fin (n + 1)` with a hole around `p`. -/

@@ -889,8 +889,8 @@ def rel_iso_of_surjective :
   right_inv := λ I, subtype.eq $ show comap f (map f I.1) = I.1,
     from (comap_map_of_surjective f hf I).symm ▸ le_antisymm
       (sup_le (le_refl _) I.2) le_sup_left,
-  map_rel_iff' := λ I1 I2, ⟨comap_mono, λ H, map_comap_of_surjective f hf I1 ▸
-    map_comap_of_surjective f hf I2 ▸ map_mono H⟩ }
+  map_rel_iff' := λ I1 I2, ⟨λ H, map_comap_of_surjective f hf I1 ▸
+    map_comap_of_surjective f hf I2 ▸ map_mono H, comap_mono⟩ }
 
 /-- The map on ideals induced by a surjective map preserves inclusion. -/
 def order_embedding_of_surjective : ideal S ↪o ideal R :=

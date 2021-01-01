@@ -27,7 +27,7 @@ open_locale big_operators
 
 /-- The Bernoulli numbers:
 the $n$-th Bernoulli number $B_n$ is defined recursively via
-$$B_n = \sum_{k < n} \binom{n}{k} * \frac{B_k}{n+1-k}$$ -/
+$$B_n = 1 - \sum_{k < n} \binom{n}{k}\frac{B_k}{n+1-k}$$ -/
 def bernoulli : ℕ → ℚ :=
 well_founded.fix nat.lt_wf
   (λ n bernoulli, 1 - ∑ k : fin n, (n.choose k) * bernoulli k k.2 / (n + 1 - k))

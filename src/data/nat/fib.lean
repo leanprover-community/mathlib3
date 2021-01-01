@@ -160,7 +160,7 @@ end
 
 /-- `fib n` is a strong divisibility sequence.
   https://proofwiki.org/wiki/GCD_of_Fibonacci_Numbers -/
-lemma gcd_fib_fib (m n : ℕ) : gcd (fib m) (fib n) = fib (gcd m n):=
+lemma gcd_fib_fib (m n : ℕ) : gcd (fib m) (fib n) = fib (gcd m n) :=
 begin
   cases le_total m n with m_le_n n_le_m,
   { exact gcd_fib_fib' m n m_le_n },

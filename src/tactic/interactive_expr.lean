@@ -111,38 +111,7 @@ meta def sf.collapse_restricted_quantifiers_pred : expr → tactic bool
 | _ := pure ff
 
 open expr.coord
-/-
-(block 1 "∃" ""
-  (block 0 " "
-    (block 0 "(y :"
-      (block 1 " "
-        (tag_expr [app_arg, lam_body, app_arg, lam_var_type] `(nat) "ℕ")
-      )
-      ")"
-    )
-  )
-  (block 0 " "
-    (block 0 "(h :"
-      (block 1 " "
-        (tag_expr [app_arg, lam_var_type] `(gt.{0} nat nat.has_lt y x)
-          (block 1
-            (tag_expr [app_fn, app_arg] `(y) "y")
-            " > "
-            (tag_expr [app_arg] `(x) "x")
-          )
-        )
-      ) ")"
-    )
-  )
-  ", "
-  (tag_expr [app_arg, lam_body, app_arg, lam_body] `(eq.{1} nat y y)
-    (block 1
-      (tag_expr [app_fn, app_arg] `(y) "y")
-      " = "
-      (tag_expr [app_arg] `(y) "y")
-    )
-  )
-) -/
+
 /-- If the given sf has the form `∀ (x : α), P x → Q`
 and `P x` obeys `collapse_restricted_quantifiers_pred`
 then replace it with `∀ (P x), Q`, mapping the addresses properly
@@ -170,7 +139,6 @@ meta def sf.collapse_restricted_quantifiers_core : sf → tactic sf
   (e2, s2) ← sf.follow a2 a,
   pure (sf.tag_expr addr e $ "∃ (" ++ (sf.tag_expr (addr ++ a1) e1 s1) ++ "), " ++ (sf.tag_expr (addr ++ a2) e2 s2))
   )
-  -- <|> (pure $ sf.of_string "hello")
 | x := pure x
 
 /-- Flattens an `sf`, i.e. merges adjacent `of_string` constructors. -/
@@ -593,8 +561,3 @@ end widget_override
 
 attribute [vm_override widget_override.term_goal_widget] widget.term_goal_widget
 attribute [vm_override widget_override.tactic_state_widget] widget.tactic_state_widget
-
-example (x : ℕ) : ∃ (y : ℕ) (h : y > x), y = y :=
-begin
-
-end

@@ -1566,14 +1566,13 @@ lemma eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero {K : submodule 𝕜 E}
   {u v : E} (hvm : v ∈ K) (hvo : ∀ w ∈ K, ⟪u - v, w⟫ = 0) :
   orthogonal_projection_fn K u = v :=
 begin
-  symmetry,
   rw [←sub_eq_zero, ←inner_self_eq_zero],
-  have hvs : v - orthogonal_projection_fn K u ∈ K :=
-    submodule.sub_mem K hvm (orthogonal_projection_fn_mem u),
-  have huo : ⟪u - orthogonal_projection_fn K u, v - orthogonal_projection_fn K u⟫ = 0 :=
+  have hvs : orthogonal_projection_fn K u - v ∈ K :=
+    submodule.sub_mem K (orthogonal_projection_fn_mem u) hvm,
+  have huo : ⟪u - orthogonal_projection_fn K u, orthogonal_projection_fn K u - v⟫ = 0 :=
     orthogonal_projection_fn_inner_eq_zero u _ hvs,
-  have huv : ⟪u - v, v - orthogonal_projection_fn K u⟫ = 0 := hvo _ hvs,
-  have houv : ⟪(u - orthogonal_projection_fn K u) - (u - v), v - orthogonal_projection_fn K u⟫ = 0,
+  have huv : ⟪u - v, orthogonal_projection_fn K u - v⟫ = 0 := hvo _ hvs,
+  have houv : ⟪(u - v) - (u - orthogonal_projection_fn K u), orthogonal_projection_fn K u - v⟫ = 0,
   { rw [inner_sub_left, huo, huv, sub_zero] },
   rwa sub_sub_sub_cancel_left at houv
 end
@@ -1649,15 +1648,15 @@ begin
   exact h
 end
 
-/-- The orthogonal projection has norm `≤ 1`. -/
-lemma orthogonal_projection_norm_le (K : submodule 𝕜 E) [complete_space K] :
-  ∥orthogonal_projection K∥ ≤ 1 :=
-linear_map.mk_continuous_norm_le _ (by norm_num) _
-
 /-- The orthogonal projection sends elements of `K` to themselves. -/
 lemma orthogonal_projection_mem_subspace_eq_self {K : submodule 𝕜 E} [complete_space K] (v : K) :
   orthogonal_projection K v = v :=
 by { ext, apply eq_orthogonal_projection_of_mem_of_inner_eq_zero; simp }
+
+/-- The orthogonal projection has norm `≤ 1`. -/
+lemma orthogonal_projection_norm_le (K : submodule 𝕜 E) [complete_space K] :
+  ∥orthogonal_projection K∥ ≤ 1 :=
+linear_map.mk_continuous_norm_le _ (by norm_num) _
 
 /-- The subspace of vectors orthogonal to a given subspace. -/
 def submodule.orthogonal (K : submodule 𝕜 E) : submodule 𝕜 E :=

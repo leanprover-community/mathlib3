@@ -63,7 +63,7 @@ begin
   { rw [← ht₂, finset.sup_eq_Sup], exact Sup_le_Sup ht₁, },
 end
 
-lemma is_sup_closed_compact_of_is_Sup_finite_compact (h : is_Sup_finite_compact α) :
+lemma is_Sup_finite_compact.is_sup_closed_compact (h : is_Sup_finite_compact α) :
   is_sup_closed_compact α :=
 begin
   intros s hne hsc, obtain ⟨t, ht₁, ht₂⟩ := h s, clear h,

@@ -202,7 +202,7 @@ instance : star_ring ℂ :=
   map_one' := by simp,
   map_mul' := λ z w, by { dsimp, ring } }
 
-lemma norm_sq_def (z : ℂ) : norm_sq z = z.re * z.re + z.im * z.im := rfl
+lemma norm_sq_apply (z : ℂ) : norm_sq z = z.re * z.re + z.im * z.im := rfl
 
 @[simp] lemma norm_sq_of_real (r : ℝ) : norm_sq r = r * r :=
 by simp [norm_sq]

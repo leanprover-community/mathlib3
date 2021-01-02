@@ -37,6 +37,7 @@ let ⟨δ', hδ'₁, hδ'₂⟩ := continuous_iff.1 (polynomial.continuous g) z�
 let δ := min (min (δ' / 2) 1) (((f.eval z₀).abs / (g.eval z₀).abs) / 2) in
 have hf0' : 0 < (f.eval z₀).abs, from complex.abs_pos.2 hf0,
 have hg0' : 0 < abs (eval z₀ g), from complex.abs_pos.2 hg0,
+have hfg0 : 0 < (f.eval z₀).abs / abs (eval z₀ g), from div_pos hf0' hg0',
 have hδ0 : 0 < δ, from lt_min (lt_min (half_pos hδ'₁) (by norm_num)) (half_pos hfg0),
 have hδ : ∀ z : ℂ, abs (z - z₀) = δ → abs (g.eval z - g.eval z₀) < (g.eval z₀).abs,
   from λ z hz, hδ'₂ z (by rw [complex.dist_eq, hz];

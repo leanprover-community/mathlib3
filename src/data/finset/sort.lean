@@ -100,7 +100,7 @@ lemma max'_eq_sorted_last {s : finset α} {h : s.nonempty} :
     (by simpa using sub_lt (card_pos.mpr h) zero_lt_one) :=
 (sorted_last_eq_max'_aux _ _ _).symm
 
-/-- Given a finset `s` of cardinal `k` in a linear order `α`, the map `order_iso_of_fin s h`
+/-- Given a finset `s` of cardinality `k` in a linear order `α`, the map `order_iso_of_fin s h`
 is the increasing bijection between `fin k` and `s` as an `order_iso`. Here, `h` is a proof that
 the cardinality of `s` is `k`. We use this instead of an iso `fin s.card ≃o s` to avoid
 casting issues in further uses of this function. -/
@@ -109,10 +109,10 @@ order_iso.trans (fin.cast ((length_sort (≤)).trans h).symm) $
   (s.sort_sorted_lt.nth_le_iso _).trans $ order_iso.set_congr _ _ $
     set.ext $ λ x, mem_sort _
 
-/-- Given a finset `s` of cardinal `k` in a linear order `α`, the map `order_emb_of_fin s h` is the
-increasing bijection between `fin k` and `s` as an order embedding into `α`. Here, `h` is a proof
-that the cardinality of `s` is `k`. We use this instead of an embedding `fin s.card ↪o α` to avoid
-casting issues in further uses of this function. -/
+/-- Given a finset `s` of cardinality `k` in a linear order `α`, the map `order_emb_of_fin s h` is
+the increasing bijection between `fin k` and `s` as an order embedding into `α`. Here, `h` is a
+proof that the cardinality of `s` is `k`. We use this instead of an embedding `fin s.card ↪o α` to
+avoid casting issues in further uses of this function. -/
 def order_emb_of_fin (s : finset α) {k : ℕ} (h : s.card = k) : fin k ↪o α :=
 (order_iso_of_fin s h).to_order_embedding.trans (order_embedding.subtype _)
 
@@ -172,7 +172,7 @@ and only if `i = j`. Since they can be defined on a priori not defeq types `fin 
   {k l : ℕ} {s : finset α} {i : fin k} {j : fin l} {h : s.card = k} {h' : s.card = l} :
   s.order_emb_of_fin h i = s.order_emb_of_fin h' j ↔ (i : ℕ) = (j : ℕ) :=
 begin
-  subst k, subst l,
+  substs k l,
   exact (s.order_emb_of_fin rfl).apply_eq_apply.trans (fin.ext_iff _ _)
 end
 

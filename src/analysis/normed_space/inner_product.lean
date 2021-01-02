@@ -1865,9 +1865,9 @@ that of `E`. -/
 lemma submodule.findim_add_findim_orthogonal [finite_dimensional 𝕜 E] {K : submodule 𝕜 E} :
   findim 𝕜 K + findim 𝕜 Kᗮ = findim 𝕜 E :=
 begin
-  have : findim 𝕜 E = findim 𝕜 (⊤ : submodule 𝕜 E) := findim_top.symm,
-  have : Kᗮ = Kᗮ ⊓ ⊤ := inf_top_eq.symm,
-  convert submodule.findim_add_inf_findim_orthogonal (le_top : K ≤ ⊤)
+  convert submodule.findim_add_inf_findim_orthogonal (le_top : K ≤ ⊤) using 1,
+  { rw inf_top_eq },
+  { simp }
 end
 
 /-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to

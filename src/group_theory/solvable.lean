@@ -97,11 +97,8 @@ end
 @[simp] lemma general_commutator_bot (H : subgroup G) : general_commutator H ⊥ = ⊥ :=
 by { rw eq_bot_iff, exact general_commutator_le_right H ⊥ }
 
-@[simp] lemma bot_general_commutator_eq_bot (H : subgroup G) : general_commutator ⊥ H = ⊥ :=
-begin
-  rw eq_bot_iff,
-  exact general_commutator_le_left ⊥ H,
-end
+@[simp] lemma bot_general_commutator (H : subgroup G) : general_commutator ⊥ H = ⊥ :=
+by { rw eq_bot_iff, exact general_commutator_le_left ⊥ H }
 
 lemma general_commutator_le_inf (H₁ H₂ : subgroup G) [normal H₁] [normal H₂] :
   general_commutator H₁ H₂ ≤ H₁ ⊓ H₂ :=

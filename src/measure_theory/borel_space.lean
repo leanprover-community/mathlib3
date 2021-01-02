@@ -574,20 +574,6 @@ lemma ae_measurable.sub [add_group α] [topological_add_group α] [second_counta
   (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ x, f x - g x) μ :=
 by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
-lemma closed_embedding.measurable_inv_fun [n : nonempty β] {g : β → γ} (hg : closed_embedding g) :
-  measurable (function.inv_fun g) :=
-begin
-  refine measurable_of_is_closed (λ s hs, _),
-  by_cases h : classical.choice n ∈ s,
-  { rw preimage_inv_fun_of_mem hg.to_embedding.inj h,
-    apply is_measurable.union,
-    { exact ((closed_embedding.closed_iff_image_closed hg).mp hs).is_measurable },
-    { exact ((closed_embedding.closed_iff_image_closed hg).mp is_closed_univ).is_measurable.compl }
-  },
-  { rw preimage_inv_fun_of_not_mem hg.to_embedding.inj h,
-    exact ((closed_embedding.closed_iff_image_closed hg).mp hs).is_measurable }
-end
-
 lemma measurable_comp_iff_of_closed_embedding {f : δ → β} (g : β → γ) (hg : closed_embedding g) :
   measurable (g ∘ f) ↔ measurable f :=
 begin
@@ -595,20 +581,6 @@ begin
   apply measurable_of_is_closed, intros s hs,
   convert hf (hg.is_closed_map s hs).is_measurable,
   rw [@preimage_comp _ _ _ f g, preimage_image_eq _ hg.to_embedding.inj]
-end
-
-lemma ae_measurable_comp_iff_of_closed_embedding {f : δ → β} {μ : measure δ}
-  (g : β → γ) (hg : closed_embedding g) : ae_measurable (g ∘ f) μ ↔ ae_measurable f μ :=
-begin
-  by_cases h : nonempty β,
-  { resetI,
-    refine ⟨λ hf, _, λ hf, hg.continuous.measurable.comp_ae_measurable hf⟩,
-    convert hg.measurable_inv_fun.comp_ae_measurable hf,
-    ext x,
-    exact (function.left_inverse_inv_fun hg.to_embedding.inj (f x)).symm },
-  { have H : ¬ nonempty δ, by { contrapose! h, exact nonempty.map f h },
-    simp [(measurable_of_not_nonempty H (g ∘ f)).ae_measurable,
-          (measurable_of_not_nonempty H f).ae_measurable] }
 end
 
 section linear_order

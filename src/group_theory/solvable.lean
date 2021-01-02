@@ -94,11 +94,8 @@ begin
   convert mul_mem H₁ hp (h.conj_mem p⁻¹ (inv_mem H₁ hp) q),
 end
 
-@[simp] lemma general_commutator_bot_eq_bot (H : subgroup G) : general_commutator H ⊥ = ⊥ :=
-begin
-  rw eq_bot_iff,
-  exact general_commutator_le_right H ⊥,
-end
+@[simp] lemma general_commutator_bot (H : subgroup G) : general_commutator H ⊥ = ⊥ :=
+by { rw eq_bot_iff, exact general_commutator_le_right H ⊥ }
 
 @[simp] lemma bot_general_commutator_eq_bot (H : subgroup G) : general_commutator ⊥ H = ⊥ :=
 begin

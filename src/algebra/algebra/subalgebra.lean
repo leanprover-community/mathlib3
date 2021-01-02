@@ -306,7 +306,7 @@ alg_equiv.of_bijective (f.cod_restrict f.range (λ x, f.mem_range.mpr ⟨x, rfl�
   λ x, Exists.cases_on (f.mem_range.mp (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy⟩)⟩
 
 /-- Restrict an algebra homomorphism between fields to an algebra isomorphism -/
-noncomputable def alg_equiv_range_field {E F : Type*} [field F] [field E]
+noncomputable def alg_equiv_range_field {E F : Type*} [field E] [semiring F] [nontrivial F]
   [algebra R E] [algebra R F] (f : E →ₐ[R] F) : E ≃ₐ[R] f.range :=
 f.alg_equiv_range f.to_ring_hom.injective
 

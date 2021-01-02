@@ -5,6 +5,7 @@ Authors: Jordan Brown, Thomas Browning and Patrick Lutz
 -/
 
 import group_theory.abelianization
+import data.bracket
 
 /-!
 # Solvable Groups
@@ -28,14 +29,14 @@ variables {G : Type*} [group G]
 section general_commutator
 
 /-- The commutator of two subgroups `H₁` and `H₂`. -/
-def general_commutator (H₁ H₂ : subgroup G) : subgroup G :=
-closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x}
+instance general_commutator : has_bracket (subgroup G) (subgroup G) :=
+⟨λ H₁ H₂, closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x}⟩
 
 lemma general_commutator_def (H₁ H₂ : subgroup G) :
-  general_commutator H₁ H₂ = closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x} := rfl
+  ⁅H₁, H₂⁆ = closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x} := rfl
 
 instance general_commutator_normal (H₁ H₂ : subgroup G) [h₁ : H₁.normal]
-  [h₂ : H₂.normal] : normal (general_commutator H₁ H₂) :=
+  [h₂ : H₂.normal] : normal ⁅H₁, H₂⁆ :=
 begin
   let base : set G := {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x},
   suffices h_base : base = group.conjugates_of_set base,
@@ -50,7 +51,7 @@ begin
 end
 
 lemma general_commutator_mono {H₁ H₂ K₁ K₂ : subgroup G} (h₁ : H₁ ≤ K₁) (h₂ : H₂ ≤ K₂) :
-  general_commutator H₁ H₂ ≤ general_commutator K₁ K₂ :=
+  ⁅H₁, H₂⁆ ≤ ⁅K₁, K₂⁆ :=
 begin
   apply closure_mono,
   rintros x ⟨p, hp, q, hq, rfl⟩,
@@ -58,16 +59,16 @@ begin
 end
 
 lemma general_commutator_eq_normal_closure_self (H₁ H₂ : subgroup G) [H₁.normal]
-  [H₂.normal] : general_commutator H₁ H₂ = normal_closure (general_commutator H₁ H₂) :=
+  [H₂.normal] : ⁅H₁, H₂⁆ = normal_closure (↑⁅H₁, H₂⁆ : set G) :=
 eq.symm normal_closure_eq_self
 
 lemma general_commutator_def' (H₁ H₂ : subgroup G) [H₁.normal] [H₂.normal] :
-  general_commutator H₁ H₂ = normal_closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x} :=
+  ⁅H₁, H₂⁆ = normal_closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x} :=
 by rw [general_commutator_eq_normal_closure_self, general_commutator,
   normal_closure_closure_eq_normal_closure]
 
 lemma general_commutator_le (H₁ H₂ : subgroup G) (K : subgroup G) :
-  general_commutator H₁ H₂ ≤ K ↔ ∀ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ ∈ K :=
+  ⁅H₁, H₂⁆ ≤ K ↔ ∀ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ ∈ K :=
 begin
   rw [general_commutator, closure_le],
   split,
@@ -78,7 +79,7 @@ begin
 end
 
 lemma general_commutator_le_right (H₁ H₂ : subgroup G) [h : normal H₂] :
-  general_commutator H₁ H₂ ≤ H₂ :=
+  ⁅H₁, H₂⁆ ≤ H₂ :=
 begin
   rw general_commutator_le,
   intros p hp q hq,
@@ -86,7 +87,7 @@ begin
 end
 
 lemma general_commutator_le_left (H₁ H₂ : subgroup G) [h : normal H₁] :
-  general_commutator H₁ H₂ ≤ H₁ :=
+  ⁅H₁, H₂⁆ ≤ H₁ :=
 begin
   rw general_commutator_le,
   intros p hp q hq,
@@ -94,14 +95,14 @@ begin
   convert mul_mem H₁ hp (h.conj_mem p⁻¹ (inv_mem H₁ hp) q),
 end
 
-@[simp] lemma general_commutator_bot (H : subgroup G) : general_commutator H ⊥ = ⊥ :=
+@[simp] lemma general_commutator_bot (H : subgroup G) : ⁅H, ⊥⁆ = (⊥ : subgroup G) :=
 by { rw eq_bot_iff, exact general_commutator_le_right H ⊥ }
 
-@[simp] lemma bot_general_commutator (H : subgroup G) : general_commutator ⊥ H = ⊥ :=
+@[simp] lemma bot_general_commutator (H : subgroup G) : ⁅(⊥ : subgroup G), H⁆ = (⊥ : subgroup G) :=
 by { rw eq_bot_iff, exact general_commutator_le_left ⊥ H }
 
 lemma general_commutator_le_inf (H₁ H₂ : subgroup G) [normal H₁] [normal H₂] :
-  general_commutator H₁ H₂ ≤ H₁ ⊓ H₂ :=
+  ⁅H₁, H₂⁆ ≤ H₁ ⊓ H₂ :=
 by simp only [general_commutator_le_left, general_commutator_le_right, le_inf_iff, and_self]
 
 end general_commutator
@@ -114,12 +115,12 @@ variables (G)
   taking the commutator of the previous subgroup with itself for `n` times. -/
 def derived_series : ℕ → subgroup G
 | 0       := ⊤
-| (n + 1) := general_commutator (derived_series n) (derived_series n)
+| (n + 1) := ⁅(derived_series n), (derived_series n)⁆
 
 @[simp] lemma derived_series_zero : derived_series G 0 = ⊤ := rfl
 
 @[simp] lemma derived_series_succ (n : ℕ) :
-  derived_series G (n + 1) = general_commutator (derived_series G n) (derived_series G n) := rfl
+  derived_series G (n + 1) = ⁅(derived_series G n), (derived_series G n)⁆ := rfl
 
 lemma derived_series_normal (n : ℕ) : (derived_series G n).normal :=
 begin
@@ -130,7 +131,7 @@ begin
 end
 
 @[simp] lemma general_commutator_eq_commutator :
-  general_commutator (⊤ : subgroup G) (⊤ : subgroup G) = commutator G :=
+  ⁅(⊤ : subgroup G), (⊤ : subgroup G)⁆ = commutator G :=
 begin
   rw [commutator, general_commutator_def'],
   apply le_antisymm; apply normal_closure_mono,

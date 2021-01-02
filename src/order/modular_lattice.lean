@@ -16,7 +16,7 @@ any distributive lattice.
 - `is_modular_lattice` defines a modular lattice to be one such that
   `x ≤ z → (x ⊔ y) ⊓ z ≤ x ⊔ (y ⊓ z)`
 - `diamond_iso` gives an order isomorphism between the intervals `[a ⊓ b, a]` and `[b, a ⊔ b]`.
-  This gives rise to the diamond (or second) isomorphism theorems of algebra.
+  This corresponds to the diamond (or second) isomorphism theorems of algebra.
 
 ## Main Results
 - `is_modular_lattice_iff_modular_identity`:

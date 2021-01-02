@@ -87,29 +87,13 @@ by cases a; cases b; refl
 lemma bind_assoc (x : option α) (f : α → option β) (g : β → option γ) :
   (x.bind f).bind g = x.bind (λ y, (f y).bind g) := by cases x; refl
 
-/--
-Flatten an `option` of `option`, a specialization of `mjoin`.
--/
-@[simp] def join : option (option α) → option α
-| none            := none
-| (some (none))   := none
-| (some (some x)) := some x
+lemma join_eq_some {x : option (option α)} {a : α} : x.join = some a ↔ x = some (some a) := by simp
 
-@[simp] lemma join_eq_some {x : option (option α)} {a : α} :
-  x.join = some a ↔ x = some (some a) :=
-by { rcases x with _ | _ | x; simp }
+lemma join_ne_none {x : option (option α)} : x.join ≠ none ↔ ∃ z, x = some (some z) := by simp
 
-lemma join_ne_none {x : option (option α)} :
-  x.join ≠ none ↔ ∃ z, x = some (some z) :=
-by { rcases x with _ | _ | x; simp }
+lemma join_ne_none' {x : option (option α)} : ¬(x.join = none) ↔ ∃ z, x = some (some z) := by simp
 
-@[simp] lemma join_ne_none' {x : option (option α)} :
-  ¬(x.join = none) ↔ ∃ z, x = some (some z) :=
-by { rcases x with _ | _ | x; simp }
-
-lemma bind_id_eq_join {x : option (option α)} :
-  x >>= id = x.join :=
-by { rcases x with _ | _ | x; simp }
+lemma bind_id_eq_join {x : option (option α)} : x >>= id = x.join := by simp
 
 lemma join_eq_join : mjoin = @join α :=
 funext (λ x, by rw [mjoin, bind_id_eq_join])

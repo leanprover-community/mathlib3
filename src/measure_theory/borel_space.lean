@@ -529,12 +529,10 @@ begin
   refine measurable_of_is_closed (λ s hs, _),
   by_cases h : classical.choice n ∈ s,
   { rw preimage_inv_fun_of_mem hg.to_embedding.inj h,
-    apply is_measurable.union,
-    { exact ((closed_embedding.closed_iff_image_closed hg).mp hs).is_measurable },
-    { exact ((closed_embedding.closed_iff_image_closed hg).mp is_closed_univ).is_measurable.compl }
-  },
+    exact (hg.closed_iff_image_closed.mp hs).is_measurable.union
+      hg.closed_range.is_measurable.compl },
   { rw preimage_inv_fun_of_not_mem hg.to_embedding.inj h,
-    exact ((closed_embedding.closed_iff_image_closed hg).mp hs).is_measurable }
+    exact (hg.closed_iff_image_closed.mp hs).is_measurable }
 end
 
 lemma measurable_comp_iff_of_closed_embedding {f : δ → β} (g : β → γ) (hg : closed_embedding g) :

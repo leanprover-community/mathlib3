@@ -42,9 +42,4 @@ theorem well_founded_iff_no_descending_seq [is_strict_order α r] :
   N ⟨nat_gt (λ n, (f^[n] ⟨a, na⟩).1) $ λ n,
     by { rw [function.iterate_succ'], apply h }⟩⟩⟩
 
-lemma well_founded_of_well_founded {β : Type*} {s : β → β → Prop}
-  [is_strict_order α r] [is_strict_order β s]
-  (f : r ↪r s) (h : well_founded s) : well_founded r :=
-by { rw rel_embedding.well_founded_iff_no_descending_seq at h ⊢, rintros ⟨a⟩, exact h ⟨f.comp a⟩, }
-
 end rel_embedding

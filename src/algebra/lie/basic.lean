@@ -930,12 +930,11 @@ end lie_span
 lemma well_founded_of_noetherian [is_noetherian R M] :
   well_founded ((>) : lie_submodule R L M → lie_submodule R L M → Prop) :=
 begin
-  let f : ((>) : lie_submodule R L M → lie_submodule R L M → Prop) ↪r
+  let f : ((>) : lie_submodule R L M → lie_submodule R L M → Prop) →r
           ((>) : submodule R M → submodule R M → Prop) :=
   { to_fun       := coe,
-    inj'         := coe_submodule_injective,
-    map_rel_iff' := λ N N', by simpa, },
-  apply f.well_founded_of_well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
+    map_rel' := λ N N' h, h, },
+  apply f.well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
 end
 
 end lattice_structure

@@ -165,15 +165,6 @@ coe_fn_inj (funext h)
 theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-/-- The composition of two relation embeddings is a relation embedding. -/
-@[trans] protected def comp (g : s ↪r t) (f : r ↪r s) : r ↪r t :=
-{ to_fun       := (g : s →r t).comp (f : r →r s),
-  inj'         := function.injective.comp g.inj' f.inj',
-  map_rel_iff' := λ a b, by simp only [rel_hom.comp_apply, embedding.coe_fn_mk, coe_coe_fn,
-                                       ← g.map_rel_iff, ← f.map_rel_iff], }
-
-@[simp] theorem comp_apply (g : s ↪r t) (f : r ↪r s) (a : α) : (g.comp f) a = g (f a) := rfl
-
 /-- Identity map is a relation embedding. -/
 @[refl] protected def refl (r : α → α → Prop) : r ↪r r :=
 ⟨embedding.refl _, λ a b, iff.rfl⟩

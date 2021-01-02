@@ -323,8 +323,10 @@ lemma ballot_pos (p q : ℕ) :
 begin
   rw [filter_pos_counted_succ_succ, Prob, Prob, card_map],
   congr' 2,
-  have : ((counted_sequence p (q + 1)).map ⟨list.cons 1, list.cons_injective⟩).filter stays_positive =
-          ((counted_sequence p (q + 1)).filter stays_positive).map ⟨list.cons 1, list.cons_injective⟩,
+  have : ((counted_sequence p (q + 1)).map
+            ⟨list.cons 1, list.cons_injective⟩).filter stays_positive =
+         ((counted_sequence p (q + 1)).filter stays_positive).map
+            ⟨list.cons 1, list.cons_injective⟩,
   { ext t,
     simp only [exists_prop, mem_filter, function.embedding.coe_fn_mk, mem_map],
     split,
@@ -368,8 +370,10 @@ lemma ballot_neg (p q : ℕ) (qp : q < p) :
 begin
   rw [filter_neg_counted_succ_succ, Prob, Prob, card_map],
   congr' 2,
-  have : ((counted_sequence (p+1) q).map ⟨list.cons (-1), list.cons_injective⟩).filter stays_positive =
-           ((counted_sequence (p+1) q).filter stays_positive).map ⟨list.cons (-1), list.cons_injective⟩,
+  have : ((counted_sequence (p+1) q).map
+            ⟨list.cons (-1), list.cons_injective⟩).filter stays_positive =
+         ((counted_sequence (p+1) q).filter stays_positive).map
+            ⟨list.cons (-1), list.cons_injective⟩,
   { ext t,
     simp only [exists_prop, mem_filter, function.embedding.coe_fn_mk, mem_map],
     split,

@@ -31,7 +31,7 @@ section general_commutator
 def general_commutator (H₁ H₂ : subgroup G) : subgroup G :=
 subgroup.closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x}
 
-instance general_commutator_normal (H₁ : subgroup G) (H₂ : subgroup G) [h₁ : H₁.normal]
+instance general_commutator_normal (H₁ H₂ : subgroup G) [h₁ : H₁.normal]
   [h₂ : H₂.normal] : normal (general_commutator H₁ H₂) :=
 begin
   let base : set G := {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x},

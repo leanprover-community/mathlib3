@@ -24,8 +24,8 @@ equal/equal/less than or equal to its value on `[l, u]`.
 
 The main result of this file is theorem `box_subadditive_on.eq_zero_of_forall_is_o_prod`. It says
 that `f l u = 0` provided that `f` is `box_subadditive_on` the interval `[l, u]`, `l ≤ u`, and
-for any `p ∈ [l, u]` we have `f l' u' = o(volume [l', u'])` as both `l'` tends to `p` along `[l, p]`,
-`u'` tends to `p` along `[p, u]`, and the subbox `[l', u']` is homothetic to `[l, u]`.
+for any `p ∈ [l, u]` we have `f l' u' = o(volume [l', u'])` as both `l'` tends to `p` along
+`[l, p]`, `u'` tends to `p` along `[p, u]`, and the subbox `[l', u']` is homothetic to `[l, u]`.
 -/
 
 variables {ι α β M : Type*}

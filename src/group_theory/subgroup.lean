@@ -976,7 +976,7 @@ le_antisymm
 theorem normal_closure_eq_self_of_normal {H : subgroup G} [H.normal] : normal_closure ↑H = H :=
 le_antisymm (normal_closure_le_normal rfl.subset) (le_normal_closure)
 
-theorem normal_closure_idempotent : normal_closure ↑(normal_closure s) = normal_closure s :=
+@[simp] theorem normal_closure_idempotent : normal_closure ↑(normal_closure s) = normal_closure s :=
 normal_closure_eq_self_of_normal
 
 theorem closure_le_normal_closure {s : set G} : closure s ≤ normal_closure s :=

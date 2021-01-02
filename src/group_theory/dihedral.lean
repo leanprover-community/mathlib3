@@ -154,7 +154,7 @@ end
 /--
 If `0 < n`, then `r 1` has order `n`.
 -/
-lemma order_of_r_one [hnpos : fact (0 < n)] : order_of (r 1 : dihedral n) = n :=
+@[simp] lemma order_of_r_one [hnpos : fact (0 < n)] : order_of (r 1 : dihedral n) = n :=
 begin
   cases lt_or_eq_of_le (nat.le_of_dvd hnpos (order_of_dvd_of_pow_eq_one (@r_one_pow_n n))) with h h,
   { have h1 : (r 1 : dihedral n)^(order_of (r 1)) = 1,
@@ -169,7 +169,7 @@ end
 /--
 If `0 < n`, then `i : zmod n` has order `n / gcd n i`
 -/
-@[simp] lemma order_of_r [fact (0 < n)] (i : zmod n) : order_of (r i) = n / nat.gcd n i.val :=
+lemma order_of_r [fact (0 < n)] (i : zmod n) : order_of (r i) = n / nat.gcd n i.val :=
 begin
   conv_lhs { rw ←zmod.cast_val i },
   rw [←r_one_pow, order_of_pow, order_of_r_one]

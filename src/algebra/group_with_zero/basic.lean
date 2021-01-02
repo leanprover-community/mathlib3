@@ -882,7 +882,7 @@ variables (f : monoid_with_zero_hom G₀ M₀) {a : G₀}
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 ⟨λ hfa ha, hfa $ ha.symm ▸ f.map_zero, λ ha, ((is_unit.mk0 a ha).map f.to_monoid_hom).ne_zero⟩
 
-lemma map_eq_zero : f a = 0 ↔ a = 0 :=
+@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 :=
 by { classical, exact not_iff_not.1 f.map_ne_zero }
 
 end monoid_with_zero
@@ -892,14 +892,14 @@ section group_with_zero
 variables (f : monoid_with_zero_hom G₀ G₀') (a b : G₀)
 
 /-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
-lemma map_inv' : f a⁻¹ = (f a)⁻¹ :=
+@[simp] lemma map_inv' : f a⁻¹ = (f a)⁻¹ :=
 begin
   classical, by_cases h : a = 0, by simp [h],
   apply eq_inv_of_mul_left_eq_one,
   rw [← f.map_mul, inv_mul_cancel h, f.map_one]
 end
 
-lemma map_div : f (a / b) = f a / f b :=
+@[simp] lemma map_div : f (a / b) = f a / f b :=
 by simpa only [div_eq_mul_inv] using ((f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv' b)
 
 end group_with_zero

@@ -13,18 +13,19 @@ import analysis.asymptotics
 /-!
 # Sub/sup-additive functions on boxes
 
-Let `s` be a set in `ι → ℝ`. A subbox of `s` (called `set.subinterval` because it shares definition
-with the `1`-dimensional case) is a product of closed intervals which is included by `s`.
+Let `s` be a set in `ι → ℝ`. A subbox of `s` is a product of closed intervals which is included
+by `s`.
 
-A function `f : (ι → ℝ) → (ι → ℝ) → M` defines a function on `subinterval s` given by `λ I, f I.left
-I.right`. It is called `box_subadditive_on`/`box_additive_on`/`box_supadditive_on` if for any `I :
-subinterval s` and any hyperplane `x i = c`, `I.left i ≤ c ≤ I.right i`, the sum of its values on
-the two subboxes `I ∩ (Iic c)` and `I ∩ (Ici c)` is greater than or equal/equal/less than or equal
-to its value on `I`.
+A function `f : (ι → ℝ) → (ι → ℝ) → M` is called
+`box_subadditive_on`/`box_additive_on`/`box_supadditive_on` a set `s` if for any `l u : ι → ℝ`, `l ≤
+u`, `Icc l u ⊆ s` and any hyperplane `x i = c`, `l i ≤ c ≤ u i`, the sum of the values of `f` on the
+two subboxes `[l, u] ∩ {x | x i ≤ c}` and `[l, u] ∩ {x | c ≤ x i}` is greater than or
+equal/equal/less than or equal to its value on `[l, u]`.
 
 The main result of this file is theorem `box_subadditive_on.eq_zero_of_forall_is_o_prod`. It says
-that a `box_subadditive_on` function `f` which is `o(volume I)` near each point of `s` is equal to
-zero on any subinterval of `s`.
+that `f l u = 0` provided that `f` is `box_subadditive_on` the interval `[l, u]`, `l ≤ u`, and
+for any `p ∈ [l, u]` we have `f l' u' = o(volume [l', u'])` as both `l'` tends to `p` along `[l, p]`,
+`u'` tends to `p` along `[p, u]`, and the subbox `[l', u']` is homothetic to `[l, u]`.
 -/
 
 variables {ι α β M : Type*}
@@ -111,8 +112,6 @@ end
 end box_subadditive_on
 
 namespace box_additive_on
-
-open set.subinterval
 
 variables {G : Type*} [decidable_eq ι] [preorder α] {s : set (ι → α)}
 
@@ -252,8 +251,6 @@ end coe
 -/
 
 section
-
-open set.subinterval
 
 lemma box_additive_on_prod_sub [decidable_eq ι] [fintype ι] (s : set (ι → ℝ)) :
   box_additive_on (λ l r, ∏ i, (r i - l i)) s :=
@@ -498,6 +495,10 @@ begin
     using (Hc b hb).def hc
 end
 
+/-- Let `Icc l u` (a.k.a. `[l, u]`) be a non-trivial interval in a finite-dimensional space
+`ι → ℝ`. Suppose that `box_subadditive_on f [l, u]` and for any `p ∈ [l, u]` we have
+`f l' u' = o(volume [l', u'])` as `l'` tends to `p` along `[l, p]`, `u'` tends to `p`
+along `[p, u]`, and the subbox `[l', u']` is homothetic to `[l, u]`. Then `f l u = 0`. -/
 lemma eq_zero_of_forall_is_o_prod (hle : l ≤ u)
   (hf : box_subadditive_on (λ x y, ∥f x y∥) (Icc l u))
   (Hc : ∀ (b ∈ Icc l u), is_o (λ p : _ × ℝ, uncurry f p.1) (λ p, ∏ i, (p.1.1 i - p.1.2 i))

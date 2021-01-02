@@ -119,7 +119,7 @@ instance [comm_group G] [comm_group H] : comm_group (G × H) :=
 { .. prod.comm_semigroup, .. prod.group }
 
 @[to_additive add_units]
-lemma units {M N : Type*} [monoid M] [monoid N] : units (M × N) ≃ units M × units N :=
+lemma units [monoid M] [monoid N] : units (M × N) ≃ units M × units N :=
 { to_fun := λ ⟨⟨u₁, u₂⟩, ⟨v₁, v₂⟩, huv, hvu⟩,
           ⟨⟨u₁, v₁, by {rw [prod.mk_mul_mk, prod.mk_eq_one] at huv, exact huv.1},
                     by {rw [prod.mk_mul_mk, prod.mk_eq_one] at hvu, exact hvu.1}⟩,

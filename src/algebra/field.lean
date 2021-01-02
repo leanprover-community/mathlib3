@@ -29,7 +29,7 @@ universe u
 variables {K : Type u}
 
 /-- A `division_semiring` is a `semiring` with multiplicative inverses for nonzero elements. -/
-@[protect_proj, ancestor semiring div_iv_monoid nontrivial]
+@[protect_proj, ancestor semiring div_inv_monoid nontrivial]
 class division_semiring (K : Type u) extends semiring K, div_inv_monoid K, nontrivial K :=
 (mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : K)⁻¹ = 0)
@@ -75,7 +75,7 @@ by rwa [add_comm, add_div', add_comm]
 end division_semiring
 
 /-- A `division_ring` is a `ring` with multiplicative inverses for nonzero elements -/
-@[protect_proj, ancestor ring div_iv_monoid nontrivial]
+@[protect_proj, ancestor ring div_inv_monoid nontrivial]
 class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K :=
 (mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : K)⁻¹ = 0)

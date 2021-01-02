@@ -341,9 +341,11 @@ mt (λ h, show x ∈ N, from h.symm ▸ N.zero_mem) (not_mem_of_ortho ortho)
 
 
 lemma induction_on_rank_aux (hb : is_basis R b) (P : submodule R M → Sort*)
-  (ih : ∀ (N : submodule R M), (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') → P N)
+  (ih : ∀ (N : submodule R M),
+    (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') → P N)
   (n : ℕ) (N : submodule R M)
-  (rank_le : ∀ (s : finset M) (hs : ∀ x ∈ s, x ∈ N), linear_independent R (coe : (↑s : set M) → M) → s.card ≤ n) :
+  (rank_le : ∀ (s : finset M) (hs : ∀ x ∈ s, x ∈ N),
+    linear_independent R (coe : (↑s : set M) → M) → s.card ≤ n) :
   P N :=
 begin
   haveI : decidable_eq M := classical.dec_eq M,
@@ -403,58 +405,194 @@ begin
     exact submodule.subset_span ⟨i, mem_s, rfl⟩ }
 end
 
+def finset.insert.map {α β : Type*} [decidable_eq α] (x : α) (s : finset α)
+  (f : (↑s : set α) → β) (y : β) (x' : (↑(insert x s) : set α)) : β :=
+if hx : (x' : α) ∈ s then f ⟨x', hx⟩ else y
+
+lemma finset.insert.map_self {α β : Type*} [decidable_eq α] {x : α} {s : finset α} (hxs : x ∉ s)
+  (f : (↑s : set α) → β) (y : β) (hx) : finset.insert.map x s f y ⟨x, hx⟩ = y :=
+dif_neg hxs
+
+lemma finset.insert.map_subset {α β : Type*} [decidable_eq α] {x : α} {s : finset α} (hxs : x ∉ s)
+  (f : (↑s : set α) → β) (y : β) {x' : α} (hx' : x' ∈ s) :
+  finset.insert.map x s f y ⟨x', finset.subset_insert x s hx'⟩ = f ⟨x', hx'⟩ :=
+dif_pos hx'
+
+lemma finset.insert.map_injective {α β : Type*} [decidable_eq α] (x : α) {s : finset α}
+  {f : (↑s : set α) → β} (y : β) (hf : function.injective f) (hy : y ∉ set.range f) :
+  function.injective (finset.insert.map x s f y) :=
+begin
+  intros x1 x2 h,
+  unfold finset.insert.map at h,
+  split_ifs at h,
+  { exact subtype.coe_injective (subtype.mk_eq_mk.mp (hf h)) },
+  { exfalso,
+    rw [set.mem_range, not_exists] at hy,
+    exact hy _ h },
+  { exfalso,
+    rw [set.mem_range, not_exists] at hy,
+    exact hy _ h.symm },
+  { cases x1 with x1 hx1,
+    cases x2 with x2 hx2,
+    congr,
+    have hx1' : x1 = x := or.resolve_right (finset.mem_insert.mp hx1) h_1,
+    have hx2' : x2 = x := or.resolve_right (finset.mem_insert.mp hx2) h_2,
+    exact hx1'.trans hx2'.symm }
+end
+
+lemma finset.insert.range_map {α β : Type*} [decidable_eq α] {x : α} {s : finset α} (hxs : x ∉ s)
+  {f : (↑s : set α) → β} (y : β) :
+  set.range (finset.insert.map x s f y) = insert y (set.range f) :=
+begin
+  ext y',
+  rw [set.mem_range, set.mem_insert_iff],
+  split,
+  { rintros ⟨⟨x', hx'⟩, rfl⟩,
+    rcases finset.mem_insert.mp hx' with rfl | hx',
+    { rw finset.insert.map_self hxs,
+      exact or.inl rfl },
+    { exact or.inr (set.mem_range.mpr ⟨⟨x', hx'⟩, (finset.insert.map_subset hxs _ _ _).symm⟩) } },
+  { rintros (rfl | hy'),
+    { exact ⟨⟨x, finset.mem_insert_self _ _⟩, finset.insert.map_self hxs _ _ _⟩ },
+    { obtain ⟨⟨x', hx'⟩, rfl⟩ := set.mem_range.mp hy',
+      exact ⟨⟨x', finset.subset_insert _ _ hx'⟩, finset.insert.map_subset hxs _ _ _⟩, } }
+end
+
+def finset.coe {α : Type*} (s : finset α) : (↑s : set α) → α := coe
+
+lemma finset.prod_fin_succ {α : Type*} [comm_monoid α] {n : ℕ}
+  (f : fin n.succ → α) : ∏ i, f i = (∏ (i : fin n), f i.succ) * f 0 :=
+begin
+  simp only [finset.prod_fin_eq_prod_range, finset.prod_range_succ', dif_pos (nat.zero_lt_succ n)],
+  congr,
+  ext i,
+  split_ifs with hi1 hi hi,
+  { refl },
+  { have := nat.succ_lt_succ_iff.mp hi1,
+    contradiction },
+  { have := nat.succ_lt_succ_iff.mpr hi,
+    contradiction },
+  { refl }
+end
+
+lemma finset.sum_fin_succ {α : Type*} [add_comm_monoid α] {n : ℕ}
+  (f : fin n.succ → α) : ∑ i, f i = (∑ (i : fin n), f i.succ) + f 0 :=
+begin
+  simp only [finset.sum_fin_eq_sum_range, finset.sum_range_succ', dif_pos (nat.zero_lt_succ n)],
+  congr,
+  ext i,
+  split_ifs with hi1 hi hi,
+  { refl },
+  { have := nat.succ_lt_succ_iff.mp hi1,
+    contradiction },
+  { have := nat.succ_lt_succ_iff.mpr hi,
+    contradiction },
+  { refl }
+end
+
+lemma finset.sum_fin_succ_above {α : Type*} [add_comm_monoid α] {n : ℕ} (i : fin n.succ)
+  (f : fin n.succ → α) : ∑ j, f j = f i + ∑ (j : fin n), f (i.succ_above j) :=
+begin
+  rw [← finset.insert_erase (finset.mem_univ i), finset.sum_insert (finset.not_mem_erase i _),
+      finset.sum_bij (λ j hj, i.pred_above _ (finset.ne_of_mem_erase hj))],
+  { intros j hj, exact finset.mem_univ _ },
+  { intros j hj, simp },
+  { intros j j' hj hj' h, simpa using congr_arg i.succ_above h },
+  { intros j hj,
+    refine ⟨i.succ_above j, finset.mem_erase.mpr ⟨i.succ_above_ne j, finset.mem_univ _⟩, _⟩,
+    simp },
+end
+
+/-- In an `n`-dimensional space, the rank is at most `m`. -/
+lemma is_basis.card_le_card_of_linear_independent_aux (n : ℕ)
+  {m : ℕ} (v : fin m → fin n → R) :
+  linear_independent R v → m ≤ n :=
+begin
+  revert m,
+  refine nat.rec_on n _ _,
+  { intros m v hv,
+    cases m, { refl },
+    exfalso,
+    have : v 0 = 0,
+    { ext i, exact fin_zero_elim i },
+    have := hv.ne_zero 0,
+    contradiction },
+  intros n ih m v hv,
+  cases m,
+  { exact nat.zero_le _ },
+
+  -- Induction: try deleting a dimension and a vector.
+  suffices : ∃ (v' : fin m → fin n → R), linear_independent R v',
+  { obtain ⟨v', hv'⟩ := this,
+    exact nat.succ_le_succ (ih v' hv') },
+  -- Either the `0`th dimension is irrelevant...
+  by_cases this : linear_independent R (λ i, v i ∘ fin.succ),
+  { exact ⟨_, this.comp fin.succ (fin.succ_injective _)⟩ },
+  -- ... or we can write (x, 0, 0, ...) = ∑ i, c i • v i where c i ≠ 0 for some i.
+  simp only [fintype.linear_independent_iff, not_forall, not_imp] at this,
+  obtain ⟨c, hc, i, hi⟩ := this,
+  have hc : ∀ (j : fin n), ∑ (i : fin m.succ), c i * v i j.succ = 0,
+  { intro j,
+    convert congr_fun hc j,
+    rw [@finset.sum_apply (fin n) (λ _, R) _ _ _],
+    simp },
+  set x := ∑ i', c i' * v i' 0 with x_eq,
+  -- We'll show each equation of the form (y, 0, 0, ...) = ∑ i', c' i' • v i' must have c' i ≠ 0.
+  use λ i' j', v (i.succ_above i') j'.succ,
+  rw fintype.linear_independent_iff at ⊢ hv,
+  -- Assume that ∑ i, c' i • v i = (y, 0, 0, ...).
+  intros c' hc' i',
+  set y := ∑ i', c' i' * v (i.succ_above i') 0 with y_eq,
+  have hc' : ∀ (j : fin n), (∑ (i' : fin m), c' i' * v (i.succ_above i') j.succ) = 0,
+  { intro j,
+    convert congr_fun hc' j,
+    rw [@finset.sum_apply (fin n) (λ _, R) _ _ _],
+    simp },
+  -- Combine these equations to get a linear dependence on the full space.
+  have : ∑ i', (y * c i' - x * (@fin.insert_nth _ (λ _, R) i 0 c') i') • v i' = 0,
+  { simp only [sub_smul, mul_smul, finset.sum_sub_distrib, ← finset.smul_sum],
+    ext j,
+    rw [pi.zero_apply, @pi.sub_apply (fin n.succ) (λ _, R) _ _ _ _],
+    simp only [@finset.sum_apply (fin n.succ) (λ _, R) _ _ _, pi.smul_apply, smul_eq_mul, sub_eq_zero],
+    symmetry,
+    rw [finset.sum_fin_succ_above i, fin.insert_nth_apply_same, zero_mul, zero_add, mul_comm],
+    simp only [fin.insert_nth_apply_succ_above],
+    refine fin.cases _ _ j,
+    { simp },
+    { intro j,
+      rw [hc', hc, zero_mul, mul_zero] } },
+  have hyc := hv _ this i,
+  simp only [fin.insert_nth_apply_same, mul_zero, sub_zero, mul_eq_zero] at hyc,
+  -- Therefore, either `c i = 0` (which contradicts the assumption on `i`) or `y = 0`.
+  have hy := hyc.resolve_right hi,
+  -- If `y = 0`, then we can extend `c'` to a linear dependence on the full space,
+  -- which implies `c'` is trivial.
+  convert hv (@fin.insert_nth _ (λ _, R) i 0 c') _ (i.succ_above i'),
+  { rw [fin.insert_nth_apply_succ_above] },
+  ext j,
+  -- After a bit of calculation, we find that `∑ i, c' i • v i = (y, 0, 0, ...) = 0` as promised.
+  rw [@finset.sum_apply (fin n.succ) (λ _, R) _ _ _, pi.zero_apply],
+  simp only [pi.smul_apply, smul_eq_mul],
+  rw [finset.sum_fin_succ_above i, fin.insert_nth_apply_same, zero_mul, zero_add],
+  simp only [fin.insert_nth_apply_succ_above],
+  refine fin.cases _ _ j,
+  { rw [← y_eq, hy] },
+  { exact hc' },
+end
+
 lemma is_basis.card_le_card_of_linear_independent
   {ι : Type*} [fintype ι] {b : ι → M} (hb : is_basis R b)
-  {ι' : Type*} [fintype ι'] {b' : ι' → M} (hb' : linear_independent R b') :
+  {ι' : Type*} [fintype ι'] {v : ι' → M} (hv : linear_independent R v) :
   fintype.card ι' ≤ fintype.card ι :=
 begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq ι',
-  haveI := classical.dec_eq R,
-  have : ∀ s : finset ι', s = finset.univ ∨ ∃ i : ι,
-    (∀ (c : R) (y ∈ submodule.span R (b' '' (↑s : set ι'))), c • b i + y = (0 : M) → c = 0),
-  { intros s,
-    rw or_iff_not_imp_right,
-    intro not_indep,
-    simp only [not_exists, not_forall] at not_indep,
-    rw finset.eq_univ_iff_forall,
-    intros i',
-    by_contra hi',
-    have : ∀ (c : R), c ≠ 0 → c • b' i' ∉ submodule.span R (b' '' s),
-    { intros c,
-      rw [← finset.mem_coe, ← hb'.mem_span_iff, not_exists] at hi',
-      specialize hi' c,
-      rwa not_and at hi' },
-    apply this (∏ i, classical.some (not_indep i)),
-    { rw finset.prod_ne_zero_iff,
-      intros i _,
-      exact (classical.some_spec (classical.some_spec (classical.some_spec (classical.some_spec
-        (not_indep i))))) },
-    have : ∀ i, (∏ (i : ι), classical.some (not_indep i)) • b i ∈ submodule.span R (b' '' s),
-    { intro i,
-      rw [← finset.insert_erase (finset.mem_univ i), finset.prod_insert (finset.not_mem_erase i _)],
-      rw [mul_comm, mul_smul],
-      apply submodule.smul_mem _ _ _,
-      have := classical.some (classical.some_spec (classical.some_spec (not_indep i))),
-      apply (submodule.add_mem_iff_left _ this).mp _,
-      convert submodule.zero_mem _,
-      exact classical.some (classical.some_spec (classical.some_spec (classical.some_spec (not_indep i)))) },
-    rw [← hb.total_repr (b' i'), ← linear_map.map_smul, finsupp.total_apply, finsupp.sum_fintype],
-    refine submodule.sum_mem _ (λ j _, _),
-    rw [finsupp.smul_apply, smul_eq_mul, mul_comm, mul_smul],
-    apply submodule.smul_mem _ _ _,
-    exact this j,
-    simp },
-  have : ∀ s : finset ι', ∃ f : (↑s : set ι') → ι, function.injective f,
-  { intro s,
-    refine s.induction_on _ _,
-    { rw finset.coe_empty,
-      refine ⟨λ i, false.elim i.2, λ i, false.elim i.2⟩ },
-    { rintros a s ha ⟨f, hf⟩,
-      obtain ⟨i, hi⟩ := (this s).resolve_left _,
-      sorry, sorry } },
-  rw ← finset.card_univ,
-  sorry
+  obtain ⟨e⟩ := fintype.equiv_fin ι,
+  obtain ⟨e'⟩ := fintype.equiv_fin ι',
+  have hb := hb.comp _ e.symm.bijective,
+  have hv := (linear_independent_equiv e'.symm).mpr hv,
+  have hv := hv.map' _ hb.equiv_fun.ker,
+  exact is_basis.card_le_card_of_linear_independent_aux (fintype.card ι) _ hv,
 end
 
 lemma induction_on_rank [fintype ι] (hb : is_basis R b) (P : submodule R M → Sort*)

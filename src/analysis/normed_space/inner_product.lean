@@ -1851,4 +1851,38 @@ begin
   rw add_zero at hd,
   exact hd.symm
 end
+
+/-- Given a finite-dimensional subspace `K₂`, and a subspace `K₁`
+containined in it, the dimensions of `K₁` and the intersection of its
+orthogonal subspace with `K₂` add to that of `K₂`. -/
+lemma submodule.findim_add_inf_findim_orthogonal' {K₁ K₂ : submodule 𝕜 E}
+  [finite_dimensional 𝕜 K₂] (h : K₁ ≤ K₂) {n : ℕ} (h_dim : findim 𝕜 K₁ + n = findim 𝕜 K₂) :
+  findim 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = n :=
+begin
+  refine (add_right_inj (findim 𝕜 ↥K₁)).mp _,
+  simp [submodule.findim_add_inf_findim_orthogonal h, h_dim]
+end
+
+/-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to
+that of `E`. -/
+lemma submodule.findim_add_findim_orthogonal [finite_dimensional 𝕜 E] {K : submodule 𝕜 E} :
+  findim 𝕜 K + findim 𝕜 Kᗮ = findim 𝕜 E :=
+begin
+  have : findim 𝕜 E = findim 𝕜 (⊤ : submodule 𝕜 E) := findim_top.symm,
+  have : Kᗮ = Kᗮ ⊓ ⊤ := inf_top_eq.symm,
+  convert submodule.findim_add_inf_findim_orthogonal (le_top : K ≤ ⊤)
+end
+
+/-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to
+that of `E`. -/
+lemma submodule.findim_add_findim_orthogonal' [finite_dimensional 𝕜 E] {K : submodule 𝕜 E} {n : ℕ}
+  (h_dim : findim 𝕜 K + n = findim 𝕜 E) :
+  findim 𝕜 Kᗮ = n :=
+begin
+  have : findim 𝕜 E = findim 𝕜 (⊤ : submodule 𝕜 E) := findim_top.symm,
+  rw this at h_dim,
+  have : Kᗮ = Kᗮ ⊓ ⊤ := inf_top_eq.symm,
+  convert submodule.findim_add_inf_findim_orthogonal' (le_top : K ≤ ⊤) h_dim
+end
+
 end orthogonal

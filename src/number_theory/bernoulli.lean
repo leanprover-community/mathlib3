@@ -47,7 +47,7 @@ $$(t+1)\sum_{j\leq n}j^t=\sum_{k\leq t}\binom{t+1}{k}B_k^{+}n^{t+1-k}.$$
 
 The Bernoulli numbers are defined using well-founded induction, by the formula
 $$B_n=1-\sum_{k\lt n}\frac{\binom{n}{k}}{n-k+1}B_k.$$
-This formula is true for all $$n$$ and in particular it implies that $$B_0=1$$.
+This formula is true for all $n$ and in particular $B_0=1$.
 
 ## Main theorems
 
@@ -55,11 +55,13 @@ This formula is true for all $$n$$ and in particular it implies that $$B_0=1$$.
 
 ## Todo
 
-`∑ k : fin n, n.binomial k * (-1)^k * bernoulli k = if n = 1 then 1 else 0`
+* `∑ k : fin n, n.binomial k * (-1)^k * bernoulli k = if n = 1 then 1 else 0`
 
-`∑ k : fin n, k ^ t =` some explicit Bernoulli polynomial B_t evaluated at n
+* Bernoulli polynomials
 
-`∑ k : fin n.succ, n.succ.choose k bernoulli_poly k X = n.succ * X ^ n` as polynomials
+* `∑ k : fin n, k ^ t =` the Bernoulli polynomial B_t evaluated at n
+
+* `∑ k : fin n.succ, n.succ.choose k bernoulli_poly k X = n.succ * X ^ n` as polynomials
 -/
 
 open_locale big_operators

@@ -29,8 +29,8 @@ zero on any subinterval of `s`.
 
 variables {ι α β M : Type*}
 
-open set (univ ord_connected pi Icc subinterval) function finset (hiding univ pi) filter
-open_locale big_operators topological_space nnreal
+open set (univ pi Icc Ioi) function finset (hiding univ pi) filter
+open_locale big_operators topological_space nnreal filter
 
 /-!
 ### Definitions and basic properties
@@ -40,45 +40,53 @@ prove some basic properties.
 -/
 
 /-- A function `f : (ι → α) → (ι → α) → M` is called `box_subadditive_on` a set `s : set (ι → α)`
-if for any rectangular box `I ⊆ s` and a hyperplane `x i = c`, `I.left i ≤ c ≤ I.right i`, we have
-`f' I ≤ f' (I ∩ {x | x i ≤ c}) + f' (I ∩ {x | c ≤ x i})`, where `f' I` means `f I.left I.right`. -/
+if for any rectangular box `[l, u] ⊆ s` and a hyperplane `x i = c`, `l i ≤ c ≤ u i`,
+we have `f l u ≤ f' (I ∩ {x | x i ≤ c}) + f' (I ∩ {x | c ≤ x i})`, where `I = [l, u]`, and
+`f' [a, b]` means `f a b`. -/
 def box_subadditive_on [decidable_eq ι] [preorder α] [ordered_add_comm_monoid M]
   (f : (ι → α) → (ι → α) → M) (s : set (ι → α)) :=
-∀ ⦃I : subinterval s⦄ ⦃m : ι → α⦄ (hm : m ∈ I) i,
-  f I.left I.right ≤ f I.left (update I.right i (m i)) + f (update I.left i (m i)) I.right
+∀ ⦃l u⦄ (hsub : Icc l u ⊆ s) ⦃m : ι → α⦄ (hm : m ∈ Icc l u) i,
+  f l u ≤ f l (update u i (m i)) + f (update l i (m i)) u
 
 /-- A function `f : (ι → α) → (ι → α) → M` is called `box_additive_on` a set `s : set (ι → α)`
-if for any rectangular box `I ⊆ s` and a hyperplane `x i = c`, `I.left i ≤ c ≤ I.right i`, we have
-`f' (I ∩ {x | x i ≤ c}) + f' (I ∩ {x | c ≤ x i}) = f' I`, where `f' I` means `f I.left I.right`. -/
+if for any rectangular box `[l, u] ⊆ s` and a hyperplane `x i = c`, `l i ≤ c ≤ u i`,
+we have `f' (I ∩ {x | x i ≤ c}) + f' (I ∩ {x | c ≤ x i}) = f l u`, where `I = [l, u]`, and
+`f' [a, b]` means `f a b`. -/
 def box_additive_on [decidable_eq ι] [preorder α] [has_add M] (f : (ι → α) → (ι → α) → M)
   (s : set (ι → α)) :=
-∀ ⦃I : subinterval s⦄ ⦃m : ι → α⦄ (hm : m ∈ I) i,
-  f I.left (update I.right i (m i)) + f (update I.left i (m i)) I.right = f I.left I.right
+∀ ⦃l u⦄ (hsub : Icc l u ⊆ s) ⦃m : ι → α⦄ (hm : m ∈ Icc l u) i,
+  f l (update u i (m i)) + f (update l i (m i)) u = f l u
 
-/-- A function `f : (ι → α) → (ι → α) → M` is called `box_subadditive_on` a set `s : set (ι → α)`
-if for any rectangular box `I ⊆ s` and a hyperplane `x i = c`, `I.left i ≤ c ≤ I.right i`, we have
-`f' (I ∩ {x | x i ≤ c}) + f' (I ∩ {x | c ≤ x i}) ≤ f' I`, where `f' I` means `f I.left I.right`. -/
+/-- A function `f : (ι → α) → (ι → α) → M` is called `box_supadditive_on` a set `s : set (ι → α)`
+if for any rectangular box `[l, u] ⊆ s` and a hyperplane `x i = c`, `l i ≤ c ≤ u i`,
+we have `f' (I ∩ {x | x i ≤ c}) + f' (I ∩ {x | c ≤ x i}) ≤ f l u`, where `I = [l, u]`, and
+`f' [a, b]` means `f a b`. -/
 def box_supadditive_on [decidable_eq ι] [preorder α] [ordered_add_comm_monoid M]
   (f : (ι → α) → (ι → α) → M) (s : set (ι → α)) :=
-∀ ⦃I : subinterval s⦄ ⦃m : ι → α⦄ (hm : m ∈ I) i,
-  f I.left (update I.right i (m i)) + f (update I.left i (m i)) I.right ≤ f I.left I.right
+∀ ⦃l u⦄ (hsub : Icc l u ⊆ s) ⦃m : ι → α⦄ (hm : m ∈ Icc l u) i,
+  f l (update u i (m i)) + f (update l i (m i)) u ≤ f l u
 
 namespace box_subadditive_on
 
 variables [decidable_eq ι] [preorder α] [ordered_add_comm_monoid M] {s : set (ι → α)}
-  {f : (ι → α) → (ι → α) → M}
+  {f : (ι → α) → (ι → α) → M} {l m u : ι → α}
 
-lemma le_sum_finset_subboxes (h : box_subadditive_on f s) (I : s.subinterval) {m} (hm : m ∈ I)
-  (t : finset ι) :
-  f I.left I.right ≤ ∑ t' in t.powerset,
-    f (I.pi_subbox m hm t' (t \ t')).left (I.pi_subbox m hm t' (t \ t')).right :=
+protected lemma mono (h : box_subadditive_on f s) {t} (ht : t ⊆ s) : box_subadditive_on f t :=
+λ l u hsub, h (set.subset.trans hsub ht)
+
+lemma le_sum_finset_subboxes (h : box_subadditive_on f s) (hsub : Icc l u ⊆ s)
+  (hm : m ∈ Icc l u) (t : finset ι) :
+  f l u ≤ ∑ t' in t.powerset, f (t'.piecewise m l) ((t \ t').piecewise m u) :=
 begin
   induction t using finset.induction_on with j t hj iht, { simp },
   simp only [sum_powerset_insert hj, piecewise_insert, ← sum_add_distrib],
   refine iht.trans (sum_le_sum $ λ t' ht', _),
   rw [mem_powerset] at ht',
-  simp [hj, mt (@ht' _) hj, insert_sdiff_of_not_mem, sdiff_insert_of_not_mem,
-    h (I.mem_pi_subbox m hm _ _) j],
+  rw [insert_sdiff_of_not_mem _ (mt (@ht' _) hj), piecewise_insert,
+    insert_sdiff_insert, sdiff_insert_of_not_mem hj],
+  refine h (set.subset.trans (set.Icc_subset_Icc _ _) hsub) ⟨_, _⟩ _;
+    apply_rules [le_piecewise_of_le_of_le, piecewise_le_of_le_of_le, hm.1, hm.2, hm.1.trans hm.2];
+    refl'
 end
 
 variables [fintype ι]
@@ -87,9 +95,18 @@ variables [fintype ι]
 = mid i` split the box `[lo, hi]` into `2^n` subboxes, where `n = card ι`.  If `f` is subadditive on
 subboxes, then its value on `[lo, hi]` is less than or equal to the sum of its values on these `2^n`
 subboxes. -/
-lemma le_sum_subboxes (h : box_subadditive_on f s) (I : s.subinterval) {m} (hm : m ∈ I) :
-  f I.left I.right ≤ ∑ t : finset ι, f (I.pi_subbox m hm t tᶜ).left (I.pi_subbox m hm t tᶜ).right :=
-by simpa using h.le_sum_finset_subboxes I hm finset.univ
+lemma le_sum_subboxes (h : box_subadditive_on f s) (hsub : Icc l u ⊆ s) {m} (hm : m ∈ Icc l u) :
+  f l u ≤ ∑ t : finset ι, f (t.piecewise m l) (t.piecewise u m) :=
+begin
+  convert h.le_sum_finset_subboxes hsub hm finset.univ,
+  ext t,
+  rw [← compl_eq_univ_sdiff, piecewise_compl]
+end
+/-
+ TODO: why does `by simpa only [← compl_eq_univ_sdiff, piecewise_compl]
+    using h.le_sum_finset_subboxes hsub hm finset.univ`
+ times out?
+-/
 
 end box_subadditive_on
 
@@ -99,39 +116,41 @@ open set.subinterval
 
 variables {G : Type*} [decidable_eq ι] [preorder α] {s : set (ι → α)}
 
+protected lemma mono [has_add G] {f : (ι → α) → (ι → α) → G}
+  (h : box_additive_on f s) {t} (ht : t ⊆ s) : box_additive_on f t :=
+λ l u hsub, h (set.subset.trans hsub ht)
+
 lemma abs_of_nonneg [linear_ordered_add_comm_group G] {f : (ι → α) → (ι → α) → G}
-  (h : box_additive_on f s) (h₀ : ∀ I : subinterval s, 0 ≤ f I.left I.right) :
+  (h : box_additive_on f s) (h₀ : ∀ {l u}, l ≤ u → Icc l u ⊆ s → 0 ≤ f l u) :
   box_additive_on (λ x y, abs (f x y)) s :=
 begin
-  intros I m hm i,
-  have A := h₀ (I.pi_subbox m hm ∅ {i}),
-  have B := h₀ (I.pi_subbox m hm {i} ∅),
-  simp only [pi_subbox_empty_left, pi_subbox_empty_right, pi_subbox_single_right,
-    pi_subbox_single_left] at A B,
-  simp only [abs_of_nonneg, h hm, *]
+  intros l u hsub m hm i,
+  convert h hsub hm i; refine abs_of_nonneg (h₀ _ (set.subset.trans (set.Icc_subset_Icc _ _) hsub));
+    simp [le_refl, le_update_iff, update_le_iff, hm.1 i, hm.2 i, hm.1.trans hm.2,
+      (hm.1.trans hm.2) _]
 end
 
 protected lemma add [add_comm_semigroup M] {f g : (ι → α) → (ι → α) → M}
   (hf : box_additive_on f s) (hg : box_additive_on g s) :
   box_additive_on (f + g) s :=
-λ I m hm i, by simp [hf hm i, hg hm i, add_add_add_comm _ (g _ _)]
+λ l u h m hm i, by simp [hf h hm i, hg h hm i, add_add_add_comm _ (g _ _)]
 
 protected lemma neg [add_comm_group G] {f : (ι → α) → (ι → α) → G} (hf : box_additive_on f s) :
   box_additive_on (-f) s :=
-λ I m hm i, by simp [← hf hm i, add_comm]
+λ l u h m hm i, by simp [← hf h hm i, add_comm]
 
 protected lemma sub [add_comm_group G] {f g : (ι → α) → (ι → α) → G}
   (hf : box_additive_on f s) (hg : box_additive_on g s) :
   box_additive_on (f - g) s :=
-hf.add hg.neg
+by simp only [sub_eq_add_neg, hf.add hg.neg]
 
 protected lemma prod [fintype ι] {R} [comm_semiring R] (f : α → α → R)
   (hf : ∀ ⦃x y z⦄, x ≤ y → y ≤ z → f x y + f y z = f x z) :
   box_additive_on (λ x y, ∏ i : ι, f (x i) (y i)) s :=
 begin
-  intros I m hm i,
-  have := function.apply_update (λ j, f (I.left j)) I.right i (m i),
-  have := function.apply_update (λ j y, f y (I.right j)) I.left i (m i),
+  intros l u h m hm i,
+  have := function.apply_update (λ j, f (l j)) u i (m i),
+  have := function.apply_update (λ j y, f y (u j)) l i (m i),
   simp only at *,
   simp only [*, prod_update_of_mem, mem_univ, ← add_mul],
   rw [← prod_mul_prod_compl {i}, prod_singleton, compl_eq_univ_sdiff, hf (hm.1 i) (hm.2 i)]
@@ -139,33 +158,34 @@ end
 
 protected lemma box_subadditive_on [ordered_add_comm_monoid M] {f : (ι → α) → (ι → α) → M}
   (hf : box_additive_on f s) : box_subadditive_on f s :=
-λ I m hm i, (hf hm i).ge
+λ l u h m hm i, (hf h hm i).ge
 
 protected lemma box_supadditive_on [ordered_add_comm_monoid M] {f : (ι → α) → (ι → α) → M}
   (hf : box_additive_on f s) : box_supadditive_on f s :=
-λ I m hm i, (hf hm i).le
+λ l u h m hm i, (hf h hm i).le
 
 lemma norm_subadditive_on {E : Type*} [normed_group E] {f : (ι → α) → (ι → α) → E}
   (hf : box_additive_on f s) : box_subadditive_on (λ x y, ∥f x y∥) s :=
-λ I m hm i, by simp only [← hf hm i, norm_add_le]
+λ l u h m hm i, by simp only [← hf h hm i, norm_add_le]
 
 end box_additive_on
 
 namespace box_supadditive_on
 
 variables [decidable_eq ι] [preorder α] [ordered_add_comm_monoid M] {s : set (ι → α)}
+  {l m u : ι → α} {f : (ι → α) → (ι → α) → M}
 
-protected lemma order_dual {f : (ι → α) → (ι → α) → M} (hf : box_supadditive_on f s) :
+protected lemma order_dual (hf : box_supadditive_on f s) :
   @box_subadditive_on ι α (order_dual M) _ _ _ f s :=
 hf
 
-variables {f : (ι → α) → (ι → α) → M}
+protected lemma mono (h : box_supadditive_on f s) {t} (ht : t ⊆ s) : box_supadditive_on f t :=
+λ l u hsub, h (set.subset.trans hsub ht)
 
-lemma le_sum_finset_subboxes (h : box_supadditive_on f s) (I : s.subinterval) {m} (hm : m ∈ I)
+lemma sum_finset_subboxes_le (h : box_supadditive_on f s) (hsub : Icc l u ⊆ s) (hm : m ∈ Icc l u)
   (t : finset ι) :
-  ∑ t' in t.powerset, f (I.pi_subbox m hm t' (t \ t')).left (I.pi_subbox m hm t' (t \ t')).right ≤
-    f I.left I.right :=
-h.order_dual.le_sum_finset_subboxes  I hm t
+  ∑ t' in t.powerset, f (t'.piecewise m l) ((t \ t').piecewise m u) ≤ f l u :=
+h.order_dual.le_sum_finset_subboxes hsub hm t
 
 variables [fintype ι]
 
@@ -173,9 +193,9 @@ variables [fintype ι]
 = mid i` split the box `[lo, hi]` into `2^n` subboxes, where `n = card ι`.  If `f` is supadditive on
 subboxes, then its value on `[lo, hi]` is greater than or equal to the sum of its values on these
 `2^n` subboxes. -/
-lemma sum_subboxes_le (h : box_supadditive_on f s) (I : s.subinterval) {m} (hm : m ∈ I) :
-  ∑ t : finset ι, f (I.pi_subbox m hm t tᶜ).left (I.pi_subbox m hm t tᶜ).right ≤ f I.left I.right :=
-h.order_dual.le_sum_subboxes I hm
+lemma sum_subboxes_le (h : box_supadditive_on f s) (hsub : Icc l u ⊆ s) (hm : m ∈ Icc l u) :
+  ∑ t : finset ι, f (t.piecewise m l) (t.piecewise u m) ≤ f l u :=
+h.order_dual.le_sum_subboxes hsub hm
 
 end box_supadditive_on
 
@@ -186,10 +206,10 @@ variables {N : Type*} [decidable_eq ι] [preorder α] {s : set (ι → α)}
 lemma box_subsupadditive_coe_helper [add_monoid M] [add_monoid N] {c : M → N} (rM : M → M → Prop)
   (rN : N → N → Prop) (hr : ∀ x y, rN (c x) (c y) ↔ rM x y)
   (hadd : ∀ x y, c (x + y) = c x + c y) {f : (ι → α) → (ι → α) → M} :
-  (∀ ⦃I : subinterval s⦄ ⦃m : ι → α⦄ (hm : m ∈ I) i, rN (c $ f I.left I.right) $
-    (c $ f I.left (update I.right i (m i))) + (c $ f (update I.left i (m i)) I.right)) ↔
-  (∀ ⦃I : subinterval s⦄ ⦃m : ι → α⦄ (hm : m ∈ I) i, rM (f I.left I.right) $
-    f I.left (update I.right i (m i)) + f (update I.left i (m i)) I.right) :=
+  (∀ ⦃l u : ι → α⦄ (h : Icc l u ⊆ s) ⦃m : ι → α⦄ (hm : m ∈ Icc l u) i, rN (c $ f l u) $
+    (c $ f l (update u i (m i))) + (c $ f (update l i (m i)) u)) ↔
+  (∀ ⦃l u : ι → α⦄ (h : Icc l u ⊆ s) ⦃m : ι → α⦄ (hm : m ∈ Icc l u) i, rM (f l u) $
+    (f l (update u i (m i))) + (f (update l i (m i)) u)) :=
 by simp only [← hadd, hr]
 
 variables {f g : (ι → α) → (ι → α) → ℝ≥0}
@@ -241,8 +261,9 @@ box_additive_on.prod (λ x y : ℝ, y - x) $ λ x y z _ _, sub_add_sub_cancel' _
 
 lemma box_additive_on_prod_dist [decidable_eq ι] [fintype ι] (s : set (ι → ℝ)) :
   box_additive_on (λ l r, ∏ i, dist (l i) (r i)) s :=
-by simpa only [real.dist_eq, abs_prod, abs_sub] using (box_additive_on_prod_sub s).abs_of_nonneg
-    (λ I, prod_nonneg $ λ i _, sub_nonneg.2 $ I.nontrivial i)
+by simpa only [real.dist_eq, abs_prod, abs_sub]
+  using (box_additive_on_prod_sub s).abs_of_nonneg
+    (λ l u h _, prod_nonneg (λ i _, sub_nonneg.2 (h _)))
 
 lemma box_additive_on_prod_nndist [decidable_eq ι] [fintype ι] (s : set (ι → ℝ)) :
   box_additive_on (λ l r, ∏ i, nndist (l i) (r i)) s :=
@@ -261,26 +282,18 @@ namespace box_subadditive_on
 section preorder
 
 variables [decidable_eq ι] [fintype ι] [preorder α]
-  {s : set (ι → α)} {f g : (ι → α) → (ι → α) → ennreal}
-  {I : s.subinterval} {m : ι → α}
+  {s : set (ι → α)} {f g : (ι → α) → (ι → α) → ennreal} {l m u : ι → α}
 
-lemma exists_subbox_mul_lt_of_mul_lt (hf : box_subadditive_on f s)
-  (hg : box_supadditive_on g s) (hm : m ∈ I) {c : ennreal}
-  (hlt : c * g I.left I.right < f I.left I.right) :
+lemma exists_subbox_mul_lt_of_mul_lt (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (hsub : Icc l u ⊆ s) (hm : m ∈ Icc l u) {c : ennreal} (hlt : c * g l u < f l u) :
   ∃ t : finset ι,
-    c * g (I.pi_subbox m hm t tᶜ).left (I.pi_subbox m hm t tᶜ).right <
-      f (I.pi_subbox m hm t tᶜ).left (I.pi_subbox m hm t tᶜ).right :=
+    c * g (t.piecewise m l) (t.piecewise u m) < f (t.piecewise m l) (t.piecewise u m) :=
 begin
   contrapose! hlt,
-  calc f I.left I.right
-      ≤ ∑ t : finset ι, f (I.pi_subbox m hm t tᶜ).left (I.pi_subbox m hm t tᶜ).right :
-    hf.le_sum_subboxes I hm
-  ... ≤ ∑ t : finset ι, c * g (I.pi_subbox m hm t tᶜ).left (I.pi_subbox m hm t tᶜ).right  :
-    sum_le_sum (λ t _, hlt t)
-  ... = c * ∑ t : finset ι, g (I.pi_subbox m hm t tᶜ).left (I.pi_subbox m hm t tᶜ).right :
-    mul_sum.symm
-  ... ≤ c * g I.left I.right :
-    canonically_ordered_semiring.mul_le_mul_left' (hg.sum_subboxes_le I hm) c
+  calc f l u ≤ ∑ t : finset ι, f (t.piecewise m l) (t.piecewise u m) : hf.le_sum_subboxes hsub hm
+  ... ≤ ∑ t : finset ι, c * g (t.piecewise m l) (t.piecewise u m) : sum_le_sum (λ t _, hlt t)
+  ... = c * ∑ t : finset ι, g (t.piecewise m l) (t.piecewise u m) : mul_sum.symm
+  ... ≤ c * g l u : canonically_ordered_semiring.mul_le_mul_left' (hg.sum_subboxes_le hsub hm) c
 end
 
 end preorder
@@ -289,142 +302,175 @@ variables [decidable_eq ι] [fintype ι]
 
 noncomputable theory
 
-variables {s : set (ι → ℝ)}
+variables {s : set (ι → ℝ)} {l u : ι → ℝ}
 
 section ennreal
 
 variables {f g : (ι → ℝ) → (ι → ℝ) → ennreal} {c : ennreal}
 
-/-- An auxiliary sequence of `set.subinterval`s for the proof of
-`box_subadditive_on.eq_zero_of_forall_eventually_le_mul`. -/
-def seq (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
-  (I : subinterval s) (hI : c * g I.left I.right < f I.left I.right) (n : ℕ) :
-  {I : subinterval s // c * g I.left I.right < f I.left I.right} :=
-(λ I, ⟨_, (classical.indefinite_description _
-  (hf.exists_subbox_mul_lt_of_mul_lt hg (I.1.midpoint_mem ℝ) I.2)).2⟩)^[n] ⟨I, hI⟩
+structure subbox_mul_lt (s : set (ι → ℝ)) (f g : (ι → ℝ) → (ι → ℝ) → ennreal) (c : ennreal) :=
+(left right : ι → ℝ)
+(le : left ≤ right)
+(sub : Icc left right ⊆ s)
+(mul_lt : c * g left right < f left right)
 
-lemma seq_zero (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I : subinterval s)
-  (hI : c * g I.left I.right < f I.left I.right) :
-  ↑(seq hf hg I hI 0) = I := rfl
+lemma subbox_mul_lt.midpoint_mem (I : subbox_mul_lt s f g c) :
+  midpoint ℝ I.left I.right ∈ Icc I.left I.right :=
+⟨left_le_midpoint.2 I.le, midpoint_le_right.2 I.le⟩
 
-lemma seq_succ_le (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I : subinterval s)
-  (hI : c * g I.left I.right < f I.left I.right) (n : ℕ) :
-  seq hf hg I hI (n + 1) ≤ seq hf hg I hI n :=
+def next (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I : subbox_mul_lt s f g c) :
+  {I' : subbox_mul_lt s f g c // I.left ≤ I'.left ∧ I'.right ≤ I.right ∧
+    ∀ i, I'.right i - I'.left i = (I.right i - I.left i) / 2} :=
 begin
-  simp only [seq, iterate_succ_apply'],
-  apply set.subinterval.pi_subbox_le
+  obtain ⟨t, ht⟩ := classical.indefinite_description _
+    (hf.exists_subbox_mul_lt_of_mul_lt hg I.sub I.midpoint_mem I.mul_lt),
+  have hl : I.left ≤ t.piecewise (midpoint ℝ I.left I.right) I.left :=
+    t.le_piecewise_of_le_of_le I.midpoint_mem.1 le_rfl,
+  have hr : t.piecewise I.right (midpoint ℝ I.left I.right) ≤ I.right :=
+    t.piecewise_le_of_le_of_le le_rfl I.midpoint_mem.2,
+  refine ⟨⟨_, _, _, set.subset.trans (set.Icc_subset_Icc hl hr) I.sub, ht⟩, hl, hr, λ i, _⟩,
+  { exact t.piecewise_le_piecewise I.midpoint_mem.2 I.midpoint_mem.1 },
+  { by_cases hi : i ∈ t; simp [hi, div_eq_inv_mul] }
 end
 
-lemma size_seq_succ (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I : subinterval s)
-  (hI : c * g I.left I.right < f I.left I.right) (n : ℕ) :
-  (seq hf hg I hI (n + 1) : subinterval s).size = (seq hf hg I hI n : subinterval s).size / 2 :=
-begin
-  simp only [seq, iterate_succ_apply'],
-  apply set.subinterval.size_pi_subbox_midpoint
-end
-
-lemma size_seq (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I : subinterval s)
-  (hI : c * g I.left I.right < f I.left I.right) (n : ℕ) :
-  (seq hf hg I hI n : subinterval s).size = I.size / 2 ^ n :=
-begin
-  induction n with n ihn, { simp [seq_zero] },
-  simp [size_seq_succ, ihn, div_div_eq_div_mul, pow_succ']
-end
-
-lemma seq_mul_lt (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I : subinterval s)
-  (hI : c * g I.left I.right < f I.left I.right) (n : ℕ) :
-  c * g (seq hf hg I hI n : subinterval s).left (seq hf hg I hI n : subinterval s).right <
-    f (seq hf hg I hI n : subinterval s).left (seq hf hg I hI n : subinterval s).right :=
-(seq hf hg I hI n).2
-
-lemma tendsto_size_seq (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) 
-  (I : subinterval s) (hI : c * g I.left I.right < f I.left I.right) :
-  tendsto (λ n, (seq hf hg I hI n : subinterval s).size) at_top (𝓝 0) :=
-begin
-  simp only [size_seq, div_eq_mul_inv, ← inv_pow'],
-  rw [← mul_zero I.size],
-  exact tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 (inv_nonneg.2 zero_le_two)
-    (inv_lt_one one_lt_two))
-end
+def seq (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I₀ : subbox_mul_lt s f g c)
+  (n : ℕ) : subbox_mul_lt s f g c :=
+(λ I, hf.next hg I)^[n] I₀
 
 /-- An auxiliary definition for `box_subadditive_on.eq_zero_of_forall_eventually_le_mul`:
 the limit point of the sequence `box_subadditive_on.seq hf hg I hI`. -/
-def fix (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I : subinterval s)
-  (hI : c * g I.left I.right < f I.left I.right) :
+def fix (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I : subbox_mul_lt s f g c) :
   ι → ℝ :=
-⨆ n, (seq hf hg I hI n : subinterval s).left
+⨆ n, (seq hf hg I n).left
 
-lemma fix_mem_seq (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I : subinterval s)
-  (hI : c * g I.left I.right < f I.left I.right) (n : ℕ) :
-  fix hf hg I hI ∈ (seq hf hg I hI n : subinterval s) :=
-set.subinterval.csupr_mem_nat (λ n, seq_succ_le _ _ _ _ n) n
+@[simp] lemma seq_zero (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) :
+  seq hf hg I 0 = I := rfl
 
-lemma fix_mem (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I : subinterval s)
-  (hI : c * g I.left I.right < f I.left I.right) :
-  fix hf hg I hI ∈ I :=
-fix_mem_seq hf hg I hI 0
+@[simp] lemma seq_succ (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) (n : ℕ) :
+  seq hf hg I (n + 1) = next hf hg (seq hf hg I n) :=
+iterate_succ_apply' _ _ _
 
-lemma fix_mem_set (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I : subinterval s)
-  (hI : c * g I.left I.right < f I.left I.right) :
-  fix hf hg I hI ∈ s :=
-I.coe_subset $ fix_mem hf hg I hI
-
-lemma tendsto_left_fix (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
-  (I : subinterval s) (hI : c * g I.left I.right < f I.left I.right) :
-  tendsto (λ n, (seq hf hg I hI n : subinterval s).left) at_top
-    (𝓝[set.Iic (fix hf hg I hI)] (fix hf hg I hI)) :=
+@[simp] lemma seq_right_sub_left_apply (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) (n : ℕ) (i : ι) :
+  (seq hf hg I n).right i - (seq hf hg I n).left i = (I.right i - I.left i) / 2 ^ n :=
 begin
-  refine tendsto_inf.2 ⟨tendsto_iff_dist_tendsto_zero.2 $
-    squeeze_zero (λ _, dist_nonneg) (λ n, _) (tendsto_size_seq hf hg I hI),
-    tendsto_principal.2 $ eventually_of_forall $ λ n, (fix_mem_seq hf hg I hI n).1⟩,
+  induction n with n ihn, { simp },
+  rw [seq_succ, (next hf hg _).coe_prop.2.2, ihn, pow_succ', div_div_eq_div_mul]
+end
+
+@[simp] lemma seq_right_sub_left (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) (n : ℕ) :
+  (seq hf hg I n).right - (seq hf hg I n).left = ((1 / 2) ^ n : ℝ) • (I.right - I.left) :=
+funext $ λ i, (seq_right_sub_left_apply hf hg I n i).trans $
+  by simp only [div_eq_inv_mul, pi.smul_apply, pi.sub_apply, smul_eq_mul, mul_one, inv_pow']
+
+lemma dist_seq_left_right (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) (n : ℕ) :
+  dist (seq hf hg I n).left (seq hf hg I n).right = dist I.left I.right / 2 ^ n :=
+by rw [dist_comm, dist_eq_norm, seq_right_sub_left, norm_smul, ← dist_eq_norm, dist_comm, mul_comm,
+  one_div, inv_pow', normed_field.norm_inv, normed_field.norm_pow, real.norm_eq_abs,
+  abs_of_pos (@zero_lt_two ℝ _ _), div_eq_mul_inv]
+
+lemma seq_left_mono (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) :
+  monotone (λ n, (seq hf hg I n).left) :=
+monotone_of_monotone_nat $ λ n, by simp only [seq_succ, (next _ _ _).coe_prop.1]
+
+lemma seq_right_mono (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) :
+  ∀ ⦃m n⦄, m ≤ n → (seq hf hg I n).right ≤ (seq hf hg I m).right :=
+begin
+  refine @monotone_of_monotone_nat (order_dual (ι → ℝ)) _ _ (λ n, _),
+  rw seq_succ,
+  exact (next _ _ _).coe_prop.2.1
+end
+
+lemma tendsto_dist_seq_left_right (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) :
+  tendsto (λ n, dist (seq hf hg I n).left (seq hf hg I n).right) at_top (𝓝 0) :=
+begin
+  simp only [dist_seq_left_right],
+  exact tendsto_const_nhds.div_at_top (tendsto_pow_at_top_at_top_of_one_lt one_lt_two)
+end
+
+lemma fix_mem_Inter_seq (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c):
+  fix hf hg I ∈ ⋂ n, Icc (seq hf hg I n).left (seq hf hg I n).right :=
+csupr_mem_Inter_Icc_of_mono_incr_of_mono_decr (seq_left_mono hf hg I) (seq_right_mono hf hg I) $
+  λ n, (seq hf hg I n).le
+
+lemma fix_mem_seq (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) (n : ℕ) :
+  fix hf hg I ∈ Icc (seq hf hg I n).left (seq hf hg I n).right :=
+have _ := set.mem_Inter.1 (fix_mem_Inter_seq hf hg I) n, this
+
+lemma fix_mem (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) :
+  fix hf hg I ∈ Icc I.left I.right :=
+fix_mem_seq hf hg I 0
+
+lemma fix_mem_set (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) :
+  fix hf hg I ∈ s :=
+I.sub $ fix_mem hf hg I
+
+lemma tendsto_left_nhds_fix (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) :
+  tendsto (λ n, (seq hf hg I n).left) at_top (𝓝 (fix hf hg I)) :=
+begin
+  refine (tendsto_iff_dist_tendsto_zero.2 $
+    squeeze_zero (λ _, dist_nonneg) (λ n, _) (tendsto_dist_seq_left_right hf hg I)),
   refine (dist_pi_le_iff dist_nonneg).2 (λ i, le_trans _ (dist_le_pi_dist _ _ i)),
   exact real.dist_left_le_of_mem_interval (set.Icc_subset_interval $
-    ⟨(fix_mem_seq hf hg I hI _).1 _, (fix_mem_seq hf hg I hI _).2 _⟩)
+    ⟨(fix_mem_seq hf hg I _).1 _, (fix_mem_seq hf hg I _).2 _⟩)
 end
 
-lemma tendsto_right_fix (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
-  (I : subinterval s) (hI : c * g I.left I.right < f I.left I.right) :
-  tendsto (λ n, (seq hf hg I hI n : subinterval s).right) at_top
-    (𝓝[set.Ici (fix hf hg I hI)] (fix hf hg I hI)) :=
-begin
-  refine tendsto_inf.2 ⟨tendsto_iff_dist_tendsto_zero.2 $
-    squeeze_zero (λ _, dist_nonneg) (λ n, _) (tendsto_size_seq hf hg I hI),
-    tendsto_principal.2 $ eventually_of_forall $ λ n, (fix_mem_seq hf hg I hI n).2⟩,
-  refine (dist_pi_le_iff dist_nonneg).2 (λ i, le_trans _ (dist_le_pi_dist _ _ i)),
-  rw dist_comm,
-  exact real.dist_right_le_of_mem_interval (set.Icc_subset_interval $
-    ⟨(fix_mem_seq hf hg I hI _).1 _, (fix_mem_seq hf hg I hI _).2 _⟩)
-end
+lemma tendsto_left_nhds_within_fix (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) :
+  tendsto (λ n, (seq hf hg I n).left) at_top (𝓝[Icc I.left (fix hf hg I)] (fix hf hg I)) :=
+tendsto_inf.2 ⟨tendsto_left_nhds_fix hf hg I, tendsto_principal.2 $ eventually_of_forall $
+  λ n, ⟨seq_left_mono hf hg I (zero_le n), (fix_mem_seq hf hg I n).1⟩⟩
 
-lemma frequently_mul_lt (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
-  (I : subinterval s) (hI : c * g I.left I.right < f I.left I.right) :
-  ∃ᶠ p in (𝓝[(set.Iic (fix hf hg I hI)).prod (set.Ici (fix hf hg I hI))]
-    (fix hf hg I hI, fix hf hg I hI)), c * g (prod.fst p) (prod.snd p) < f p.1 p.2 :=
-begin
-  rw [nhds_within_prod_eq],
-  exact ((tendsto_left_fix hf hg I hI).prod_mk (tendsto_right_fix hf hg I hI)).frequently
-    (frequently_of_forall (λ n, seq_mul_lt hf hg I hI n))
-end
+lemma tendsto_right_nhds_fix (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) :
+  tendsto (λ n, (seq hf hg I n).right) at_top (𝓝 (fix hf hg I)) :=
+(tendsto_left_nhds_fix hf hg I).congr_dist (tendsto_dist_seq_left_right hf hg I)
 
-lemma le_mul_of_forall_eventually_le_mul (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
-  (Hc : ∀ (b ∈ s), ∀ᶠ p in 𝓝[(set.Iic b).prod (set.Ici b)] (b, b),
-    f (prod.fst p) p.2 ≤ c * g p.1 p.2) (I : subinterval s) :
-  f I.left I.right ≤ c * g I.left I.right :=
+lemma tendsto_right_nhds_within_fix (hf : box_subadditive_on f s) (hg : box_supadditive_on g s)
+  (I : subbox_mul_lt s f g c) :
+  tendsto (λ n, (seq hf hg I n).right) at_top (𝓝[Icc (fix hf hg I) I.right] (fix hf hg I)) :=
+tendsto_inf.2 ⟨tendsto_right_nhds_fix hf hg I, tendsto_principal.2 $ eventually_of_forall $
+  λ n, ⟨(fix_mem_seq hf hg I n).2, seq_right_mono hf hg I (zero_le n)⟩⟩
+
+lemma le_mul_of_forall_eventually_le_mul (hle : l ≤ u)
+  (hf : box_subadditive_on f (Icc l u)) (hg : box_supadditive_on g (Icc l u))
+  (Hc : ∀ (b ∈ Icc l u),
+    ∀ᶠ (p : ((ι → ℝ) × (ι → ℝ)) × ℝ) in 𝓝[(Icc l b)] b ×ᶠ 𝓝[Icc b u] b ×ᶠ 𝓝[Ioi 0] (0:ℝ),
+    (p.1.2 - p.1.1 = p.2 • (u - l)) → f (p.1.1) p.1.2 ≤ c * g p.1.1 p.1.2) :
+  f l u ≤ c * g l u :=
 begin
   contrapose! Hc,
-  simp only [not_eventually, not_le],
-  exact ⟨fix hf hg I Hc, fix_mem_set hf hg I Hc, frequently_mul_lt hf hg I Hc⟩
+  set I : subbox_mul_lt (Icc l u) f g c := ⟨l, u, hle, refl _, Hc⟩,
+  refine ⟨_, fix_mem hf hg I, λ H, _⟩,
+  have : tendsto (λ n : ℕ, (1 / 2 : ℝ) ^ n) at_top (𝓝[Ioi 0] 0),
+    from tendsto_pow_at_top_nhds_within_0_of_lt_1 one_half_pos one_half_lt_one,
+  obtain ⟨n, hn⟩ := ((((tendsto_left_nhds_within_fix hf hg I).prod_mk
+    (tendsto_right_nhds_within_fix hf hg I)).prod_mk this).eventually H).exists,
+  exact (hn (seq_right_sub_left hf hg I n)).not_lt (seq hf hg I n).mul_lt
 end
 
-lemma eq_zero_of_forall_eventually_le_mul (hf : box_subadditive_on f s)
-  (hg : box_supadditive_on g s)
-  (Hc : ∀ (b ∈ s) (c : ℝ≥0), 0 < c → ∀ᶠ p in 𝓝[(set.Iic b).prod (set.Ici b)] (b, b),
-    f (prod.fst p) p.2 ≤ c * g p.1 p.2) (I : subinterval s) (h_inf : g I.left I.right < ⊤) :
-  f I.left I.right = 0 :=
+lemma eq_zero_of_forall_eventually_le_mul (hle : l ≤ u) (hf : box_subadditive_on f (Icc l u))
+  (hg : box_supadditive_on g (Icc l u)) (h_inf : g l u ≠ ⊤)
+  (Hc : ∀ (b ∈ Icc l u) (c : ℝ≥0), 0 < c →
+    ∀ᶠ (p : ((ι → ℝ) × (ι → ℝ)) × ℝ) in 𝓝[Icc l b] b ×ᶠ 𝓝[Icc b u] b ×ᶠ 𝓝[Ioi 0] 0,
+    (p.1.2 - p.1.1 = p.2 • (u - l)) → f (p.1.1) p.1.2 ≤ (c : ℝ≥0) * g p.1.1 p.1.2) :
+  f l u = 0 :=
 begin
   by_contra h0,
-  rcases ennreal.exists_nnreal_pos_mul_lt h_inf.ne h0 with ⟨c, cpos, hc⟩,
-  exact hc.not_le (le_mul_of_forall_eventually_le_mul hf hg (λ b hb, Hc b hb _ cpos) I)
+  rcases ennreal.exists_nnreal_pos_mul_lt h_inf h0 with ⟨c, cpos, hc⟩,
+  exact hc.not_le (le_mul_of_forall_eventually_le_mul hle hf hg $ λ b hb, Hc b hb c cpos)
 end
 
 end ennreal
@@ -436,29 +482,32 @@ variables {E F : Type*} [normed_group E] [normed_group F]
 
 open asymptotics function
 
-lemma eq_zero_of_forall_is_o (hf : box_subadditive_on (λ x y, ∥f x y∥) s)
-  (hg : box_supadditive_on (λ x y, ∥g x y∥) s)
-  (Hc : ∀ (b ∈ s), is_o (uncurry f) (uncurry g) (𝓝[(set.Iic b).prod (set.Ici b)] (b, b)))
-  (I : subinterval s) : f I.left I.right = 0 :=
+lemma eq_zero_of_forall_is_o (hle : l ≤ u) (hf : box_subadditive_on (λ x y, ∥f x y∥) (Icc l u))
+  (hg : box_supadditive_on (λ x y, ∥g x y∥) (Icc l u))
+  (Hc : ∀ (b ∈ Icc l u), is_o (λ p : _ × ℝ, uncurry f p.1) (λ p, uncurry g p.1)
+    ((𝓝[Icc l b] b ×ᶠ 𝓝[Icc b u] b ×ᶠ 𝓝[Ioi 0] 0) ⊓ 𝓟 {p | p.1.2 - p.1.1 = p.2 • (u - l)}))
+  : f l u = 0 :=
 begin
   simp only [← coe_nnnorm, coe_nnreal, ← coe_ennreal] at hf,
   simp only [← coe_nnnorm, box_supadditive_on.coe_nnreal,
     ← box_supadditive_on.coe_ennreal] at hg,
   rw [← nnnorm_eq_zero, ← ennreal.coe_eq_zero],
-  refine eq_zero_of_forall_eventually_le_mul hf hg _ I ennreal.coe_lt_top,
+  refine eq_zero_of_forall_eventually_le_mul hle hf hg ennreal.coe_ne_top _,
   intros b hb c hc,
-  simpa [← coe_nnnorm, uncurry, ← nnreal.coe_mul, ← ennreal.coe_mul] using (Hc b hb).def hc
+  simpa [← coe_nnnorm, uncurry, ← nnreal.coe_mul, ← ennreal.coe_mul, eventually_inf_principal]
+    using (Hc b hb).def hc
 end
 
-lemma eq_zero_of_forall_is_o_prod (hf : box_subadditive_on (λ x y, ∥f x y∥) s)
-  (Hc : ∀ (b ∈ s), is_o (uncurry f) (λ p, ∏ i, (p.1 i - p.2 i))
-    (𝓝[(set.Iic b).prod (set.Ici b)] (b, b)))
-  (I : subinterval s) : f I.left I.right = 0 :=
+lemma eq_zero_of_forall_is_o_prod (hle : l ≤ u)
+  (hf : box_subadditive_on (λ x y, ∥f x y∥) (Icc l u))
+  (Hc : ∀ (b ∈ Icc l u), is_o (λ p : _ × ℝ, uncurry f p.1) (λ p, ∏ i, (p.1.1 i - p.1.2 i))
+    ((𝓝[Icc l b] b ×ᶠ 𝓝[Icc b u] b ×ᶠ 𝓝[Ioi 0] 0) ⊓ 𝓟 {p | p.1.2 - p.1.1 = p.2 • (u - l)})) :
+  f l u = 0 :=
 begin
-  have : box_supadditive_on (λ l r, ∥∏ (i : ι), dist (l i) (r i)∥) s :=
-    ((box_additive_on_prod_dist s).abs_of_nonneg
-      (λ _, prod_nonneg $ λ _ _, dist_nonneg)).box_supadditive_on,
-  refine eq_zero_of_forall_is_o hf this _ I,
+  have : box_supadditive_on (λ l r, ∥∏ (i : ι), dist (l i) (r i)∥) (Icc l u) :=
+    ((box_additive_on_prod_dist (Icc l u)).abs_of_nonneg
+      (λ _ _ _ _, prod_nonneg $ λ _ _, dist_nonneg)).box_supadditive_on,
+  refine eq_zero_of_forall_is_o hle hf this _,
   simpa only [dist_eq_norm, ← normed_field.norm_prod, uncurry, is_o_norm_right]
 end
 

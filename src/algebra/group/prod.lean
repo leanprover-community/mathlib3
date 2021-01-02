@@ -120,7 +120,8 @@ instance [comm_group G] [comm_group H] : comm_group (G × H) :=
 
 /-- The monoid equivalence between units of a product of two monoids, and the product of the
     units of each monoid. -/
-def units [monoid M] [monoid N] : units (M × N) ≃* units M × units N := mul_equiv.mk'
+def units [monoid M] [monoid N] : units (M × N) ≃* units M × units N :=
+mul_equiv.mk'
 { to_fun := λ ⟨⟨u₁, u₂⟩, ⟨v₁, v₂⟩, huv, hvu⟩,
               ⟨⟨u₁, v₁, by {rw [prod.mk_mul_mk, prod.mk_eq_one] at huv, exact huv.1},
                         by {rw [prod.mk_mul_mk, prod.mk_eq_one] at hvu, exact hvu.1}⟩,

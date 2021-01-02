@@ -977,7 +977,7 @@ le_antisymm
 le_antisymm (normal_closure_le_normal rfl.subset) (le_normal_closure)
 
 @[simp] theorem normal_closure_idempotent : normal_closure ↑(normal_closure s) = normal_closure s :=
-normal_closure_eq_self_of_normal
+normal_closure_eq_self
 
 theorem closure_le_normal_closure {s : set G} : closure s ≤ normal_closure s :=
 by simp only [subset_normal_closure, closure_le]

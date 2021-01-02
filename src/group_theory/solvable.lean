@@ -71,8 +71,9 @@ variables (G)
 
 /-- The derived series of the group `G`, obtained by starting from the subgroup `⊤` and repeatedly
   taking the commutator of the previous subgroup with itself for `n` times. -/
-def derived_series (n : ℕ) : subgroup G :=
-nat.rec_on n (⊤ : subgroup G) (λ _ H, general_commutator H H)
+def derived_series : Π n : ℕ, subgroup G
+| 0       := ⊤
+| (n + 1) := general_commutator (derived_series n) (derived_series n)
 
 @[simp] lemma derived_series_zero : derived_series G 0 = ⊤ := rfl
 

@@ -44,6 +44,8 @@ mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `
 reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
 division-free."
 
+attribute [field_simps] mul_div_assoc'
+
 section
 
 section mul_zero_class
@@ -529,9 +531,6 @@ by rw [div_eq_mul_inv, mul_inv_cancel h]
 @[simp] lemma div_one (a : G₀) : a / 1 = a :=
 by simp [div_eq_mul_inv a 1]
 
-@[simp] lemma one_div (a : G₀) : 1 / a = a⁻¹ :=
-by rw [div_eq_mul_inv, one_mul]
-
 @[simp] lemma zero_div (a : G₀) : 0 / a = 0 :=
 by rw [div_eq_mul_inv, zero_mul]
 
@@ -549,9 +548,6 @@ by rw [div_eq_mul_inv, mul_inv_cancel_right' h a]
 
 lemma mul_div_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a * b / b = a :=
 classical.by_cases (λ hb : b = 0, by simp [*]) (mul_div_cancel a)
-
-lemma mul_div_assoc {a b c : G₀} : a * b / c = a * (b / c) :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc _ _ _]
 
 local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
 
@@ -886,7 +882,7 @@ variables (f : monoid_with_zero_hom G₀ M₀) {a : G₀}
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 ⟨λ hfa ha, hfa $ ha.symm ▸ f.map_zero, λ ha, ((is_unit.mk0 a ha).map f.to_monoid_hom).ne_zero⟩
 
-lemma map_eq_zero : f a = 0 ↔ a = 0 :=
+@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 :=
 by { classical, exact not_iff_not.1 f.map_ne_zero }
 
 end monoid_with_zero
@@ -896,14 +892,14 @@ section group_with_zero
 variables (f : monoid_with_zero_hom G₀ G₀') (a b : G₀)
 
 /-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
-lemma map_inv' : f a⁻¹ = (f a)⁻¹ :=
+@[simp] lemma map_inv' : f a⁻¹ = (f a)⁻¹ :=
 begin
   classical, by_cases h : a = 0, by simp [h],
   apply eq_inv_of_mul_left_eq_one,
   rw [← f.map_mul, inv_mul_cancel h, f.map_one]
 end
 
-lemma map_div : f (a / b) = f a / f b :=
+@[simp] lemma map_div : f (a / b) = f a / f b :=
 by simpa only [div_eq_mul_inv] using ((f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv' b)
 
 end group_with_zero

@@ -1136,10 +1136,6 @@ lemma measurable_smul_const {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
   measurable (λ x, f x • c) ↔ measurable f :=
 measurable_comp_iff_of_closed_embedding (λ y : 𝕜, y • c) (closed_embedding_smul_left hc)
 
-lemma ae_measurable_smul_const {f : α → 𝕜} {μ : measure α} {c : E} (hc : c ≠ 0) :
-  ae_measurable (λ x, f x • c) μ ↔ ae_measurable f μ :=
-ae_measurable_comp_iff_of_closed_embedding (λ y : 𝕜, y • c) (closed_embedding_smul_left hc)
-
 end normed_space
 
 namespace measure_theory

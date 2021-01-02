@@ -11,13 +11,13 @@ import group_theory.abelianization
 
 In this file we introduce the notion of a solvable group. We define a solvable group as one whose
 nth commutator is `1` for some `n`. This requires defining the commutator of two subgroups and
-the nth commutator of a group.
+the derived series of a group.
 
 ## Main definitions
 
 * `general_commutator H₁ H₂` : the commutator of the subgroups `H₁` and `H₂`
-* `nth_commutator G n` : the `n`th commutator of `G`, defined by iterating `general_commutator`
-  starting with the top subgroup
+* `derived_series G n` : the `n`th term in the derived series of `G`, defined by iterating
+  `general_commutator` starting with the top subgroup
 * `is_solvable G` : the group `G` is solvable
 -/
 
@@ -65,27 +65,27 @@ by rw [general_commutator_eq_normal_closure_self, general_commutator,
 
 end general_commutator
 
-section nth_commutator
+section derived_series
 
 variables (G)
 
-/-- The nth commutator of the group `G`, obtained by starting from the subgroup `⊤` and repeatedly
+/-- The derived series of the group `G`, obtained by starting from the subgroup `⊤` and repeatedly
   taking the commutator of the previous subgroup with itself for `n` times. -/
-def nth_commutator (n : ℕ) : subgroup G :=
+def derived_series (n : ℕ) : subgroup G :=
 nat.rec_on n (⊤ : subgroup G) (λ _ H, general_commutator H H)
 
-@[simp] lemma nth_commutator_zero : nth_commutator G 0 = ⊤ := rfl
+@[simp] lemma derived_series_zero : derived_series G 0 = ⊤ := rfl
 
-@[simp] lemma nth_commutator_succ (n : ℕ) :
-  nth_commutator G (n + 1) = general_commutator (nth_commutator G n) (nth_commutator G n) := rfl
+@[simp] lemma derived_series_succ (n : ℕ) :
+  derived_series G (n + 1) = general_commutator (derived_series G n) (derived_series G n) := rfl
 
-lemma nth_commutator_normal (n : ℕ) : (nth_commutator G n).normal :=
+lemma derived_series_normal (n : ℕ) : (derived_series G n).normal :=
 begin
   induction n with n ih,
   { exact subgroup.top_normal, },
-  { haveI : (nth_commutator G n).normal := ih,
-    rw nth_commutator_succ,
-    exact general_commutator_normal (nth_commutator G n) (nth_commutator G n), }
+  { haveI : (derived_series G n).normal := ih,
+    rw derived_series_succ,
+    exact general_commutator_normal (derived_series G n) (derived_series G n), }
 end
 
 lemma commutator_eq_general_commutator_top_top :
@@ -105,23 +105,23 @@ begin
   { exact λ x ⟨p, q, h⟩, ⟨p, mem_top p, q, mem_top q, h⟩ }
 end
 
-@[simp] lemma nth_commutator_one : nth_commutator G 1 = commutator G :=
+@[simp] lemma derived_series_one : derived_series G 1 = commutator G :=
 eq.symm $ commutator_eq_general_commutator_top_top G
 
-end nth_commutator
+end derived_series
 
 section solvable
 
 variables (G)
 
-/-- A group `G` is solvable if for some `n`, its nth commutator is trivial. We use this definition
+/-- A group `G` is solvable if its derived series is eventually trivial. We use this definition
   because it's the most convenient one to work with. -/
-def is_solvable : Prop := ∃ n : ℕ, nth_commutator G n = (⊥ : subgroup G)
+def is_solvable : Prop := ∃ n : ℕ, derived_series G n = (⊥ : subgroup G)
 
 lemma is_solvable_of_comm {G : Type*} [comm_group G] : is_solvable G :=
 begin
   use 1,
-  rw [eq_bot_iff, nth_commutator_one],
+  rw [eq_bot_iff, derived_series_one],
   calc commutator G ≤ (monoid_hom.id G).ker : abelianization.commutator_subset_ker (monoid_hom.id G)
   ... = ⊥ : rfl,
 end

@@ -28,7 +28,7 @@ variables {G : Type*} [group G]
 section general_commutator
 
 /-- The commutator of two subgroups `H₁` and `H₂`. -/
-def general_commutator (H₁ : subgroup G) (H₂ : subgroup G) : subgroup G :=
+def general_commutator (H₁ H₂ : subgroup G) : subgroup G :=
 subgroup.closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x}
 
 instance general_commutator_normal (H₁ : subgroup G) (H₂ : subgroup G) [h₁ : H₁.normal]

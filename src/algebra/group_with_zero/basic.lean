@@ -44,6 +44,8 @@ mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `
 reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
 division-free."
 
+attribute [field_simps] mul_div_assoc'
+
 section
 
 section mul_zero_class
@@ -529,9 +531,6 @@ by rw [div_eq_mul_inv, mul_inv_cancel h]
 @[simp] lemma div_one (a : G₀) : a / 1 = a :=
 by simp [div_eq_mul_inv a 1]
 
-@[simp] lemma one_div (a : G₀) : 1 / a = a⁻¹ :=
-by rw [div_eq_mul_inv, one_mul]
-
 @[simp] lemma zero_div (a : G₀) : 0 / a = 0 :=
 by rw [div_eq_mul_inv, zero_mul]
 
@@ -549,9 +548,6 @@ by rw [div_eq_mul_inv, mul_inv_cancel_right' h a]
 
 lemma mul_div_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a * b / b = a :=
 classical.by_cases (λ hb : b = 0, by simp [*]) (mul_div_cancel a)
-
-lemma mul_div_assoc {a b c : G₀} : a * b / c = a * (b / c) :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc _ _ _]
 
 local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
 
@@ -913,3 +909,27 @@ end monoid_with_zero_hom
 @[simp] lemma monoid_hom.map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀]
   (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
 by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', monoid_hom.map_inv]
+
+section noncomputable_defs
+
+variables {M : Type*} [nontrivial M]
+
+/-- Constructs a `group_with_zero` structure on a `monoid_with_zero`
+  consisting only of units and 0. -/
+noncomputable def group_with_zero_of_is_unit_or_eq_zero [hM : monoid_with_zero M]
+  (h : ∀ (a : M), is_unit a ∨ a = 0) : group_with_zero M :=
+{ inv := λ a, if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹,
+  inv_zero := dif_pos rfl,
+  mul_inv_cancel := λ a h0, by {
+    change a * (if h0 : a = 0 then 0 else ↑((h a).resolve_right h0).unit⁻¹) = 1,
+    rw [dif_neg h0, units.mul_inv_eq_iff_eq_mul, one_mul, is_unit.unit_spec] },
+  exists_pair_ne := nontrivial.exists_pair_ne,
+.. hM }
+
+/-- Constructs a `comm_group_with_zero` structure on a `comm_monoid_with_zero`
+  consisting only of units and 0. -/
+noncomputable def comm_group_with_zero_of_is_unit_or_eq_zero [hM : comm_monoid_with_zero M]
+  (h : ∀ (a : M), is_unit a ∨ a = 0) : comm_group_with_zero M :=
+{ .. (group_with_zero_of_is_unit_or_eq_zero h), .. hM }
+
+end noncomputable_defs

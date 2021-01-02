@@ -58,13 +58,9 @@ begin
   exact ⟨p, h₁ hp, q, h₂ hq, rfl⟩,
 end
 
-lemma general_commutator_eq_normal_closure_self (H₁ H₂ : subgroup G) [H₁.normal]
-  [H₂.normal] : ⁅H₁, H₂⁆ = normal_closure (↑⁅H₁, H₂⁆ : set G) :=
-eq.symm normal_closure_eq_self
-
 lemma general_commutator_def' (H₁ H₂ : subgroup G) [H₁.normal] [H₂.normal] :
   ⁅H₁, H₂⁆ = normal_closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x} :=
-by rw [general_commutator_eq_normal_closure_self, general_commutator,
+by rw [← normal_closure_eq_self ⁅H₁, H₂⁆, general_commutator_def,
   normal_closure_closure_eq_normal_closure]
 
 lemma general_commutator_le (H₁ H₂ : subgroup G) (K : subgroup G) :

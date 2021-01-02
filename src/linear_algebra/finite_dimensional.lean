@@ -672,7 +672,7 @@ variables (V V₂)
 /--
 Two finite-dimensional vector spaces are isomorphic if they have the same (finite) dimension.
 -/
-def linear_equiv.of_findim_eq [finite_dimensional K V] [finite_dimensional K V₂]
+noncomputable def linear_equiv.of_findim_eq [finite_dimensional K V] [finite_dimensional K V₂]
   (cond : findim K V = findim K V₂) : V ≃ₗ[K] V₂ :=
 classical.choice $ nonempty_linear_equiv_of_findim_eq cond
 

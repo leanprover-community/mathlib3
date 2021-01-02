@@ -45,13 +45,9 @@ $$(t+1)\sum_{j\leq n}j^t=\sum_{k\leq t}\binom{t+1}{k}B_k^{+}n^{t+1-k}.$$
 
 ## Implementation detail
 
-```
-def bernoulli : ℕ → ℚ :=
-well_founded.fix nat.lt_wf
-  (λ n bernoulli, 1 - ∑ k : fin n, (n.choose k) * bernoulli k k.2 / (n + 1 - k))
-```
-
-Setting `n = 0` we deduce that `bernoulli 0 = 1` and one can go on from there.
+The Bernoulli numbers are defined using well-founded induction, by the formula
+$$B_n=1-\sum_{k\lt n}\frac{\binom{n}{k}}{n-k+1}B_k.$$
+This formula is true for all $$n$$ and in particular it implies that $$B_0=1$$.
 
 ## Main theorems
 

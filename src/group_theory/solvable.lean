@@ -100,8 +100,7 @@ end
 
 lemma commutator_def' : commutator G = subgroup.closure {x : G | ∃ p q, p * q * p⁻¹ * q⁻¹ = x} :=
 begin
-  rw commutator_eq_general_commutator_top_top,
-  rw general_commutator,
+  rw [commutator_eq_general_commutator_top_top, general_commutator],
   apply le_antisymm; apply closure_mono,
   { exact λ x ⟨p, _, q, _, h⟩, ⟨p, q, h⟩ },
   { exact λ x ⟨p, q, h⟩, ⟨p, mem_top p, q, mem_top q, h⟩ }

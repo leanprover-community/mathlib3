@@ -803,7 +803,7 @@ linear_map.mk_continuous
   (λ x, by { simp only [one_mul, submodule.subtype_apply], refl })
 
 @[simp] lemma submodule.subtype_continuous_apply (K : submodule 𝕜 E) (v : K) :
-  submodule.subtype_continuous K v = ↑v :=
+  submodule.subtype_continuous K v = (v : E) :=
 rfl
 
 section has_sum

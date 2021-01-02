@@ -71,7 +71,7 @@ variables (G)
 
 /-- The derived series of the group `G`, obtained by starting from the subgroup `⊤` and repeatedly
   taking the commutator of the previous subgroup with itself for `n` times. -/
-def derived_series : Π n : ℕ, subgroup G
+def derived_series : ℕ → subgroup G
 | 0       := ⊤
 | (n + 1) := general_commutator (derived_series n) (derived_series n)
 

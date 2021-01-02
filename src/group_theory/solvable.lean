@@ -10,7 +10,7 @@ import group_theory.abelianization
 # Solvable Groups
 
 In this file we introduce the notion of a solvable group. We define a solvable group as one whose
-nth commutator is `1` for some `n`. This requires defining the commutator of two subgroups and
+derived series is eventually trivial. This requires defining the commutator of two subgroups and
 the derived series of a group.
 
 ## Main definitions

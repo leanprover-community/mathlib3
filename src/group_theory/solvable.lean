@@ -54,7 +54,7 @@ begin
   exact ⟨p, h₁ hp, q, h₂ hq, rfl⟩,
 end
 
-lemma general_commutator_eq_normal_closure_self (H₁ : subgroup G) (H₂ : subgroup G) [H₁.normal]
+lemma general_commutator_eq_normal_closure_self (H₁ H₂ : subgroup G) [H₁.normal]
   [H₂.normal] : general_commutator H₁ H₂ = normal_closure (general_commutator H₁ H₂) :=
 eq.symm normal_closure_eq_self_of_normal
 

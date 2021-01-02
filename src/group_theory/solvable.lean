@@ -29,7 +29,10 @@ section general_commutator
 
 /-- The commutator of two subgroups `H₁` and `H₂`. -/
 def general_commutator (H₁ H₂ : subgroup G) : subgroup G :=
-subgroup.closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x}
+closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x}
+
+lemma general_commutator_def (H₁ H₂ : subgroup G) :
+  general_commutator H₁ H₂ = closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x} := rfl
 
 instance general_commutator_normal (H₁ H₂ : subgroup G) [h₁ : H₁.normal]
   [h₂ : H₂.normal] : normal (general_commutator H₁ H₂) :=
@@ -62,6 +65,50 @@ lemma general_commutator_def' (H₁ H₂ : subgroup G) [H₁.normal] [H₂.norma
   general_commutator H₁ H₂ = normal_closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x} :=
 by rw [general_commutator_eq_normal_closure_self, general_commutator,
   normal_closure_closure_eq_normal_closure]
+
+lemma general_commutator_le (H₁ H₂ : subgroup G) (K : subgroup G) :
+  general_commutator H₁ H₂ ≤ K ↔ ∀ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ ∈ K :=
+begin
+  rw [general_commutator, closure_le],
+  split,
+  { intros h p hp q hq,
+    exact h ⟨p, hp, q, hq, rfl⟩, },
+  { rintros h x ⟨p, hp, q, hq, rfl⟩,
+    exact h p hp q hq, }
+end
+
+lemma general_commutator_le_right (H₁ H₂ : subgroup G) [h : normal H₂] :
+  general_commutator H₁ H₂ ≤ H₂ :=
+begin
+  rw general_commutator_le,
+  intros p hp q hq,
+  exact mul_mem H₂ (h.conj_mem q hq p) (inv_mem H₂ hq),
+end
+
+lemma general_commutator_le_left (H₁ H₂ : subgroup G) [h : normal H₁] :
+  general_commutator H₁ H₂ ≤ H₁ :=
+begin
+  rw general_commutator_le,
+  intros p hp q hq,
+  rw (show p * q * p⁻¹ * q⁻¹ = p * (q * p⁻¹ * q⁻¹), by group),
+  convert mul_mem H₁ hp (h.conj_mem p⁻¹ (inv_mem H₁ hp) q),
+end
+
+@[simp] lemma general_commutator_bot_eq_bot (H : subgroup G) : general_commutator H ⊥ = ⊥ :=
+begin
+  rw eq_bot_iff,
+  exact general_commutator_le_right H ⊥,
+end
+
+@[simp] lemma bot_general_commutator_eq_bot (H : subgroup G) : general_commutator ⊥ H = ⊥ :=
+begin
+  rw eq_bot_iff,
+  exact general_commutator_le_left ⊥ H,
+end
+
+lemma general_commutator_le_inf (H₁ H₂ : subgroup G) [normal H₁] [normal H₂] :
+  general_commutator H₁ H₂ ≤ H₁ ⊓ H₂ :=
+by simp only [general_commutator_le_left, general_commutator_le_right, le_inf_iff, and_self]
 
 end general_commutator
 
@@ -117,9 +164,10 @@ variables (G)
 
 /-- A group `G` is solvable if its derived series is eventually trivial. We use this definition
   because it's the most convenient one to work with. -/
-def is_solvable : Prop := ∃ n : ℕ, derived_series G n = ⊥
+class is_solvable : Prop :=
+(solvable : ∃ n : ℕ, derived_series G n = ⊥)
 
-lemma is_solvable_of_comm {G : Type*} [comm_group G] : is_solvable G :=
+instance is_solvable_of_comm {G : Type*} [comm_group G] : is_solvable G :=
 begin
   use 1,
   rw [eq_bot_iff, derived_series_one],

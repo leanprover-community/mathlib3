@@ -40,7 +40,7 @@ instance general_commutator_normal (H₁ H₂ : subgroup G) [h₁ : H₁.normal]
 begin
   let base : set G := {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x},
   suffices h_base : base = group.conjugates_of_set base,
-  { dsimp only [general_commutator, ←base],
+  { dsimp only [general_commutator_def, ←base],
     rw h_base,
     exact subgroup.normal_closure_normal },
   apply set.subset.antisymm group.subset_conjugates_of_set,

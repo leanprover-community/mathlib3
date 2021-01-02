@@ -3,6 +3,7 @@ Copyright (c) 2019 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import data.bracket
 import algebra.algebra.basic
 import linear_algebra.bilinear_form
 import linear_algebra.matrix
@@ -43,17 +44,6 @@ lie bracket, ring commutator, jacobi identity, lie ring, lie algebra
 -/
 
 universes u v w w₁ w₂
-
-/-- The has_bracket class has two intended uses:
-
-  1. for the product `⁅x, y⁆` of two elements `x`, `y` in a Lie algebra
-     (analogous to `has_mul` in the associative setting),
-
-  2. for the action `⁅x, m⁆` of an element `x` of a Lie algebra on an element `m` in one of its
-     modules (analogous to `has_scalar` in the associative setting). -/
-class has_bracket (L : Type v) (M : Type w) := (bracket : L → M → M)
-
-notation `⁅`x`,` y`⁆` := has_bracket.bracket x y
 
 /-- A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. The bracket is not associative unless it is identically zero. -/

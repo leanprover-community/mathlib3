@@ -398,7 +398,8 @@ begin
   convert (nnreal.summable_geometric (nnreal.div_lt_one_of_lt one_lt_two)).mul_left (1 / 4),
   ext1 n,
   rw [(this _).tsum_eq, nat.add_sub_cancel],
-  field_simp [← mul_assoc, pow_succ', ← mul_pow, show (2 * 2 : ℝ≥0) = 4, from two_mul 2]
+  field_simp [← mul_assoc, pow_succ', mul_pow, show (4 : ℝ≥0) = 2 * 2, from (two_mul 2).symm,
+    mul_right_comm]
 end
 
 /-- Bounding below the radius of the composition of two formal multilinear series assuming

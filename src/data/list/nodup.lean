@@ -30,7 +30,7 @@ by simp only [nodup, pairwise_cons, forall_mem_ne]
 
 protected lemma pairwise.nodup {l : list α} {r : α → α → Prop} [is_irrefl α r] (h : pairwise r l) :
   nodup l :=
-h.imp $ λ a b hr heq, irrefl_of r a $ by rwa ← heq at hr
+h.imp $ λ a b, ne_of_irrefl
 
 lemma rel_nodup {r : α → β → Prop} (hr : relator.bi_unique r) : (forall₂ r ⇒ (↔)) nodup nodup
 | _ _ forall₂.nil      := by simp only [nodup_nil]

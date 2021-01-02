@@ -523,6 +523,20 @@ lemma measurable.sub [add_group α] [topological_add_group α] [second_countable
   measurable (λ x, f x - g x) :=
 by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
+lemma closed_embedding.measurable_inv_fun [n : nonempty β] {g : β → γ} (hg : closed_embedding g) :
+  measurable (function.inv_fun g) :=
+begin
+  refine measurable_of_is_closed (λ s hs, _),
+  by_cases h : classical.choice n ∈ s,
+  { rw preimage_inv_fun_of_mem hg.to_embedding.inj h,
+    apply is_measurable.union,
+    { exact ((closed_embedding.closed_iff_image_closed hg).mp hs).is_measurable },
+    { exact ((closed_embedding.closed_iff_image_closed hg).mp is_closed_univ).is_measurable.compl }
+  },
+  { rw preimage_inv_fun_of_not_mem hg.to_embedding.inj h,
+    exact ((closed_embedding.closed_iff_image_closed hg).mp hs).is_measurable }
+end
+
 lemma measurable_comp_iff_of_closed_embedding {f : δ → β} (g : β → γ) (hg : closed_embedding g) :
   measurable (g ∘ f) ↔ measurable f :=
 begin

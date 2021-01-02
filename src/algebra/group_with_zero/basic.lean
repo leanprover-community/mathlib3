@@ -365,7 +365,7 @@ protected def function.surjective.group_with_zero [has_zero G₀'] [has_mul G₀
   exists_pair_ne := ⟨0, 1, h01⟩,
   .. hf.monoid_with_zero f zero one mul }
 
-/-- Pushforward a `group_with_zero` class along an surjective function. This is a version of
+/-- Pushforward a `group_with_zero` class along a surjective function. This is a version of
 `function.surjective.group_with_zero` that uses a specified `/` instead of the default
 `a / b = a * b⁻¹`. -/
 protected def function.surjective.group_with_zero_div [has_zero G₀'] [has_mul G₀'] [has_one G₀']
@@ -711,7 +711,7 @@ protected def function.surjective.comm_group_with_zero [has_zero G₀'] [has_mul
   comm_group_with_zero G₀' :=
 { .. hf.group_with_zero h01 f zero one mul inv, .. hf.comm_semigroup f mul }
 
-/-- Pushforward a `comm_group_with_zero` class along an surjective function. -/
+/-- Pushforward a `comm_group_with_zero` class along a surjective function. -/
 protected def function.surjective.comm_group_with_zero_div [has_zero G₀'] [has_mul G₀']
   [has_one G₀'] [has_inv G₀'] [has_div G₀'] (h01 : (0:G₀') ≠ 1) (f : G₀ → G₀') (hf : surjective f)
   (zero : f 0 = 0) (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)

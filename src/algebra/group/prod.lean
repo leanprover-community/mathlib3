@@ -67,6 +67,14 @@ lemma snd_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).2 = (p.2)⁻¹ := 
 lemma inv_mk [has_inv G] [has_inv H] (a : G) (b : H) : (a, b)⁻¹ = (a⁻¹, b⁻¹) := rfl
 
 @[to_additive]
+instance [has_div M] [has_div N] : has_div (M × N) := ⟨λ p q, ⟨p.1 / q.1, p.2 / q.2⟩⟩
+
+@[simp] lemma fst_sub [add_group A] [add_group B] (a b : A × B) : (a - b).1 = a.1 - b.1 := rfl
+@[simp] lemma snd_sub [add_group A] [add_group B] (a b : A × B) : (a - b).2 = a.2 - b.2 := rfl
+@[simp] lemma mk_sub_mk [add_group A] [add_group B] (x₁ x₂ : A) (y₁ y₂ : B) :
+(x₁, y₁) - (x₂, y₂) = (x₁ - x₂, y₁ - y₂) := rfl
+
+@[to_additive]
 instance [semigroup M] [semigroup N] : semigroup (M × N) :=
 { mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,
   .. prod.has_mul }
@@ -80,12 +88,8 @@ instance [monoid M] [monoid N] : monoid (M × N) :=
 @[to_additive]
 instance [group G] [group H] : group (G × H) :=
 { mul_left_inv := assume a, mk.inj_iff.mpr ⟨mul_left_inv _, mul_left_inv _⟩,
-  .. prod.monoid, .. prod.has_inv }
-
-@[simp] lemma fst_sub [add_group A] [add_group B] (a b : A × B) : (a - b).1 = a.1 - b.1 := rfl
-@[simp] lemma snd_sub [add_group A] [add_group B] (a b : A × B) : (a - b).2 = a.2 - b.2 := rfl
-@[simp] lemma mk_sub_mk [add_group A] [add_group B] (x₁ x₂ : A) (y₁ y₂ : B) :
-  (x₁, y₁) - (x₂, y₂) = (x₁ - x₂, y₁ - y₂) := rfl
+  div_eq_mul_inv := λ a b, mk.inj_iff.mpr ⟨div_eq_mul_inv _ _, div_eq_mul_inv _ _⟩,
+  .. prod.monoid, .. prod.has_inv, .. prod.has_div }
 
 @[to_additive]
 instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=
@@ -113,6 +117,24 @@ instance [comm_monoid M] [comm_monoid N] : comm_monoid (M × N) :=
 @[to_additive]
 instance [comm_group G] [comm_group H] : comm_group (G × H) :=
 { .. prod.comm_semigroup, .. prod.group }
+
+/-- The monoid equivalence between units of a product of two monoids, and the product of the
+    units of each monoid. -/
+def units [monoid M] [monoid N] : units (M × N) ≃* units M × units N :=
+mul_equiv.mk'
+{ to_fun := λ ⟨⟨u₁, u₂⟩, ⟨v₁, v₂⟩, huv, hvu⟩,
+              ⟨⟨u₁, v₁, by {rw [prod.mk_mul_mk, prod.mk_eq_one] at huv, exact huv.1},
+                        by {rw [prod.mk_mul_mk, prod.mk_eq_one] at hvu, exact hvu.1}⟩,
+               ⟨u₂, v₂, by {rw [prod.mk_mul_mk, prod.mk_eq_one] at huv, exact huv.2},
+                        by {rw [prod.mk_mul_mk, prod.mk_eq_one] at hvu, exact hvu.2}⟩⟩,
+  inv_fun := λ ⟨⟨u₁, v₁, huv₁, hvu₁⟩, ⟨u₂, v₂, huv₂, hvu₂⟩⟩,
+               ⟨(u₁, u₂), (v₁, v₂), by {rw [prod.mk_mul_mk, prod.mk_eq_one], exact ⟨huv₁, huv₂⟩},
+                                    by {rw [prod.mk_mul_mk, prod.mk_eq_one], exact ⟨hvu₁, hvu₂⟩}⟩,
+  left_inv := by {rintro ⟨⟨u₁, u₂⟩, ⟨v₁, v₂⟩, huv, hvu⟩, simpa, },
+  right_inv := by {rintro ⟨⟨u₁, v₁, huv₁, hvu₁⟩, ⟨u₂, v₂, huv₂, hvu₂⟩⟩, simpa, } }
+   (λ ⟨⟨ux, ux₂⟩, ⟨vx₁, vx₂⟩, hxuv, hxvu⟩ ⟨⟨uy₁, uy₂⟩, ⟨vy₁, vy₂⟩, hyuv, hyvu⟩, rfl)
+
+-- TODO attribute [to_additive add_units] units fails
 
 end prod
 

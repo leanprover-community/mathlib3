@@ -117,7 +117,7 @@ lemma segment_translate_preimage (a b c : E) : (λ x, a + x) ⁻¹' [a + b, a + 
 set.ext $ λ x, mem_segment_translate a
 
 lemma segment_translate_image (a b c: E) : (λx, a + x) '' [b, c] = [a + b, a + c] :=
-segment_translate_preimage a b c ▸ image_preimage_eq $ add_left_surjective a
+segment_translate_preimage a b c ▸ image_preimage_eq _ $ add_left_surjective a
 
 /-! ### Convexity of sets -/
 /-- Convexity of sets -/
@@ -910,10 +910,9 @@ lemma finset.center_mass_insert (ha : i ∉ t) (hw : ∑ j in t, w j ≠ 0) :
   (insert i t).center_mass w z = (w i / (w i + ∑ j in t, w j)) • z i +
     ((∑ j in t, w j) / (w i + ∑ j in t, w j)) • t.center_mass w z :=
 begin
-  simp only [center_mass, sum_insert ha, smul_add, (mul_smul _ _ _).symm],
+  simp only [center_mass, sum_insert ha, smul_add, (mul_smul _ _ _).symm, ← div_eq_inv_mul],
   congr' 2,
-  { apply mul_comm },
-  { rw [div_mul_eq_mul_div, mul_inv_cancel hw, one_div] }
+  rw [div_mul_eq_mul_div, mul_inv_cancel hw, one_div]
 end
 
 lemma finset.center_mass_singleton (hw : w i ≠ 0) : ({i} : finset ι).center_mass w z = z i :=

@@ -209,7 +209,7 @@ section comm_ring
 variables {R : Type u} [comm_ring R]
 
 lemma separable_X_sub_C {x : R} : separable (X - C x) :=
-by simpa only [C_neg] using separable_X_add_C (-x)
+by simpa only [sub_eq_add_neg, C_neg] using separable_X_add_C (-x)
 
 lemma separable.mul {f g : polynomial R} (hf : f.separable) (hg : g.separable)
   (h : is_coprime f g) : (f * g).separable :=
@@ -551,6 +551,9 @@ the minimal polynomial of every `x : K` is separable. -/
 @[class] def is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
 ∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable
 
+instance is_separable_self (F : Type*) [field F] : is_separable F F :=
+λ x, ⟨is_integral_algebra_map, by { rw minimal_polynomial.eq_X_sub_C, exact separable_X_sub_C }⟩
+
 section is_separable_tower
 variables {F E : Type*} (K : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
   [algebra K E] [is_scalar_tower F K E]
@@ -571,6 +574,14 @@ begin
   apply polynomial.separable.of_mul_left,
   rw ← hq,
   exact hs,
+end
+
+lemma is_separable.of_alg_hom {E' : Type*} [field E'] [algebra F E']
+  (f : E →ₐ[F] E') (h : is_separable F E') : is_separable F E :=
+begin
+  letI : algebra E E' := ring_hom.to_algebra f.to_ring_hom,
+  haveI : is_scalar_tower F E E' := is_scalar_tower.of_algebra_map_eq (λ x, (f.commutes x).symm),
+  exact is_separable_tower_bot_of_is_separable E h,
 end
 
 end is_separable_tower

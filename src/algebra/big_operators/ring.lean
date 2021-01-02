@@ -46,8 +46,7 @@ end semiring
 
 lemma sum_div [division_ring β] {s : finset α} {f : α → β} {b : β} :
   (∑ x in s, f x) / b = ∑ x in s, f x / b :=
-calc (∑ x in s, f x) / b = ∑ x in s, f x * (1 / b) : by rw [div_eq_mul_one_div, sum_mul]
-                     ... = ∑ x in s, f x / b : by { congr' with x, rw ← div_eq_mul_one_div (f x) b }
+by simp only [div_eq_mul_inv, sum_mul]
 
 section comm_semiring
 variables [comm_semiring β]

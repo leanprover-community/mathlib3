@@ -5,7 +5,7 @@ Authors: Bhavik Mehta, Edward Ayers, Thomas Read
 -/
 
 import category_theory.limits.shapes.finite_products
-import category_theory.limits.shapes.constructions.preserve_binary_products
+import category_theory.limits.preserves.shapes.binary_products
 import category_theory.closed.monoidal
 import category_theory.monoidal.of_has_finite_products
 import category_theory.adjunction
@@ -389,9 +389,12 @@ lemma exp_comparison_natural_left (A A' B : C) (f : A' ⟶ A) :
 begin
   rw [exp_comparison, exp_comparison, ← curry_natural_left, eq_curry_iff, uncurry_natural_left,
        pre, uncurry_curry, prod.map_swap_assoc, curry_eq, prod.map_id_comp, assoc, ev_naturality],
-  erw [ev_coev_assoc, ← F.map_id, ← prod_comparison_inv_natural_assoc,
-       ← F.map_id, ← prod_comparison_inv_natural_assoc, ← F.map_comp, ← F.map_comp, pre, curry_eq,
-       prod.map_id_comp, assoc, (ev _).naturality, ev_coev_assoc], refl,
+  dsimp only [prod.functor_obj_obj],
+  rw [ev_coev_assoc, ← F.map_id, ← F.map_id, ← prod_comparison_inv_natural_assoc,
+      ← prod_comparison_inv_natural_assoc, ← F.map_comp, ← F.map_comp, pre, curry_eq,
+      prod.map_id_comp, assoc, ev_naturality],
+  dsimp only [prod.functor_obj_obj],
+  rw ev_coev_assoc,
 end
 
 /-- The exponential comparison map is natural in its right argument. -/

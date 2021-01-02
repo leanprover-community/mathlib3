@@ -29,6 +29,13 @@ to form the Dirichlet ring.
  * `Ω n` is the number of prime factors of `n` counted with multiplicity.
  * `μ` is the Möbius function.
 
+## Main Results
+ * Several forms of Möbius inversion:
+ * `sum_eq_iff_sum_mul_moebius_eq` for functions to a `comm_ring`
+ * `sum_eq_iff_sum_smul_moebius_eq` for functions to an `add_comm_group`
+ * `prod_eq_iff_prod_pow_moebius_eq` for functions to a `comm_group`
+ * `prod_eq_iff_prod_pow_moebius_eq_of_nonzero` for functions to a `comm_group_with_zero`
+
 ## Notation
 The arithmetic functions `ζ` and `σ` have Greek letter names, which are localized notation in
 the namespace `arithmetic_function`.
@@ -110,7 +117,7 @@ instance int_coe [has_zero R] [has_one R] [has_add R] [has_neg R] :
 @[simp]
 lemma int_coe_int (f : arithmetic_function ℤ) :
   (↑f : arithmetic_function ℤ) = f :=
-ext $ λ _, int.cast_id _ 
+ext $ λ _, int.cast_id _
 
 @[simp]
 lemma int_coe_apply [has_zero R] [has_one R] [has_add R] [has_neg R]
@@ -153,34 +160,86 @@ instance [add_comm_group R] : add_comm_group (arithmetic_function R) :=
 { .. arithmetic_function.add_comm_monoid,
   .. arithmetic_function.add_group }
 
-section dirichlet_ring
-variable [semiring R]
+section has_scalar
+variables {M : Type*} [has_zero R] [add_comm_monoid M] [has_scalar R M]
 
 /-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
   such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
-instance : has_mul (arithmetic_function R) :=
-⟨λ f g, ⟨λ n, ∑ x in divisors_antidiagonal n, f x.fst * g x.snd, by simp⟩⟩
+instance : has_scalar (arithmetic_function R) (arithmetic_function M) :=
+⟨λ f g, ⟨λ n, ∑ x in divisors_antidiagonal n, f x.fst • g x.snd, by simp⟩⟩
 
 @[simp]
-lemma mul_apply {f g : arithmetic_function R} {n : ℕ} :
+lemma smul_apply {f : arithmetic_function R} {g : arithmetic_function M} {n : ℕ} :
+  (f • g) n = ∑ x in divisors_antidiagonal n, f x.fst • g x.snd := rfl
+
+end has_scalar
+
+/-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
+  such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
+instance [semiring R] : has_mul (arithmetic_function R) := ⟨(•)⟩
+
+@[simp]
+lemma mul_apply [semiring R] {f g : arithmetic_function R} {n : ℕ} :
   (f * g) n = ∑ x in divisors_antidiagonal n, f x.fst * g x.snd := rfl
 
+section module
+variables {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+
+lemma mul_smul' (f g : arithmetic_function R) (h : arithmetic_function M) :
+  (f * g) • h = f • g • h :=
+begin
+  ext n,
+  simp only [mul_apply, smul_apply, sum_smul, mul_smul, smul_sum, finset.sum_sigma'],
+  apply finset.sum_bij,
+  swap 5,
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l*j), (l, j)⟩ },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
+    simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢,
+    rcases H with ⟨⟨rfl, n0⟩, rfl, i0⟩,
+    refine ⟨⟨(mul_assoc _ _ _).symm, n0⟩, rfl, _⟩,
+    rw mul_ne_zero_iff at *,
+    exact ⟨i0.2, n0.2⟩, },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
+  { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
+    simp only [finset.mem_sigma, mem_divisors_antidiagonal,
+      and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
+    rintros rfl h2 rfl rfl,
+    exact ⟨⟨eq.trans H₁.2.1.symm H₂.2.1, rfl⟩, rfl, rfl⟩ },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩,
+  { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢,
+    rcases H with ⟨⟨rfl, n0⟩, rfl, j0⟩,
+    refine ⟨⟨mul_assoc _ _ _, n0⟩, rfl, _⟩,
+    rw mul_ne_zero_iff at *,
+    exact ⟨n0.1, j0.1⟩ },
+  { simp only [true_and, mem_divisors_antidiagonal, and_true, prod.mk.inj_iff, eq_self_iff_true,
+      ne.def, mem_sigma, heq_iff_eq] at H ⊢,
+    rw H.2.1 } }
+end
+
+lemma one_smul' (b : arithmetic_function M) :
+  (1 : arithmetic_function R) • b = b :=
+begin
+  ext,
+  rw smul_apply,
+  by_cases x0 : x = 0, {simp [x0]},
+  have h : {(1,x)} ⊆ divisors_antidiagonal x := by simp [x0],
+  rw ← sum_subset h, {simp},
+  intros y ymem ynmem,
+  have y1ne : y.fst ≠ 1,
+  { intro con,
+    simp only [con, mem_divisors_antidiagonal, one_mul, ne.def] at ymem,
+    simp only [mem_singleton, prod.ext_iff] at ynmem,
+    tauto },
+  simp [y1ne],
+end
+
+end module
+
+section semiring
+variable [semiring R]
+
 instance : monoid (arithmetic_function R) :=
-{ one_mul := λ f,
-  begin
-    ext,
-    rw mul_apply,
-    by_cases x0 : x = 0, {simp [x0]},
-    have h : {(1,x)} ⊆ divisors_antidiagonal x := by simp [x0],
-    rw ← sum_subset h, {simp},
-    intros y ymem ynmem,
-    have y1ne : y.fst ≠ 1,
-    { intro con,
-      simp only [con, mem_divisors_antidiagonal, one_mul, ne.def] at ymem,
-      simp only [mem_singleton, prod.ext_iff] at ynmem,
-      tauto },
-    simp [y1ne],
-  end,
+{ one_mul := one_smul',
   mul_one := λ f,
   begin
     ext,
@@ -196,47 +255,22 @@ instance : monoid (arithmetic_function R) :=
       tauto },
     simp [y2ne],
   end,
-  mul_assoc := λ f g h,
-  begin
-    ext n,
-    simp only [mul_apply],
-    have := @finset.sum_sigma (ℕ × ℕ) R _ _ (divisors_antidiagonal n)
-      (λ p, (divisors_antidiagonal p.1)) (λ x, f x.2.1 * g x.2.2 * h x.1.2),
-    convert this.symm using 1; clear this,
-    { apply finset.sum_congr rfl,
-      intros p hp, exact finset.sum_mul },
-    have := @finset.sum_sigma (ℕ × ℕ) R _ _ (divisors_antidiagonal n)
-      (λ p, (divisors_antidiagonal p.2)) (λ x, f x.1.1 * (g x.2.1 * h x.2.2)),
-    convert this.symm using 1; clear this,
-    { apply finset.sum_congr rfl, intros p hp, rw finset.mul_sum },
-    apply finset.sum_bij,
-    swap 5,
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l*j), (l, j)⟩ },
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
-      simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish },
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
-    { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
-      simp only [finset.mem_sigma, mem_divisors_antidiagonal,
-        and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
-      finish },
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩;
-      { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish } }
-  end,
+  mul_assoc := mul_smul',
   .. arithmetic_function.has_one,
   .. arithmetic_function.has_mul }
 
 instance : semiring (arithmetic_function R) :=
-{ zero_mul := λ f, by { ext, simp, },
-  mul_zero := λ f, by { ext, simp, },
-  left_distrib := λ a b c, by { ext, simp [← sum_add_distrib, mul_add] },
-  right_distrib := λ a b c, by { ext, simp [← sum_add_distrib, add_mul] },
+{ zero_mul := λ f, by { ext, simp only [mul_apply, zero_mul, sum_const_zero, zero_apply] },
+  mul_zero := λ f, by { ext, simp only [mul_apply, sum_const_zero, mul_zero, zero_apply] },
+  left_distrib := λ a b c, by { ext, simp only [←sum_add_distrib, mul_add, mul_apply, add_apply] },
+  right_distrib := λ a b c, by { ext, simp only [←sum_add_distrib, add_mul, mul_apply, add_apply] },
   .. arithmetic_function.has_zero R,
   .. arithmetic_function.has_mul,
   .. arithmetic_function.has_add,
   .. arithmetic_function.add_comm_monoid,
   .. arithmetic_function.monoid }
 
-end dirichlet_ring
+end semiring
 
 instance [comm_semiring R] : comm_semiring (arithmetic_function R) :=
 { mul_comm := λ f g, by { ext,
@@ -247,6 +281,15 @@ instance [comm_semiring R] : comm_semiring (arithmetic_function R) :=
 instance [comm_ring R] : comm_ring (arithmetic_function R) :=
 { .. arithmetic_function.add_comm_group,
   .. arithmetic_function.comm_semiring }
+
+instance {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M] :
+  semimodule (arithmetic_function R) (arithmetic_function M) :=
+{ one_smul := one_smul',
+  mul_smul := mul_smul',
+  smul_add := λ r x y, by { ext, simp only [sum_add_distrib, smul_add, smul_apply, add_apply] },
+  smul_zero := λ r, by { ext, simp only [smul_apply, sum_const_zero, smul_zero, zero_apply] },
+  add_smul := λ r s x, by { ext, simp only [add_smul, sum_add_distrib, smul_apply, add_apply] },
+  zero_smul := λ r, by { ext, simp only [smul_apply, sum_const_zero, zero_smul, zero_apply] }, }
 
 section zeta
 
@@ -271,6 +314,34 @@ begin
     intros i hi,
     rcases mem_divisors_antidiagonal.1 hi with ⟨rfl, h⟩,
     rw [nat_coe_apply, zeta_apply_ne (left_ne_zero_of_mul h), cast_one, one_mul] },
+  { apply sum_bij (λ i h, prod.snd i),
+    { rintros ⟨a, b⟩ h, simp [snd_mem_divisors_of_mem_antidiagonal h] },
+    { rintros ⟨a, b⟩ h, refl },
+    { rintros ⟨a1, b1⟩ ⟨a2, b2⟩ h1 h2 h,
+      dsimp at h,
+      rw h at *,
+      rw mem_divisors_antidiagonal at *,
+      ext, swap, {refl},
+      simp only [prod.fst, prod.snd] at *,
+      apply nat.eq_of_mul_eq_mul_right _ (eq.trans h1.1 h2.1.symm),
+      rcases h1 with ⟨rfl, h⟩,
+      apply nat.pos_of_ne_zero (right_ne_zero_of_mul h) },
+    { intros a ha,
+      rcases mem_divisors.1 ha with ⟨⟨b, rfl⟩, ne0⟩,
+      use (b, a),
+      simp [ne0, mul_comm] } }
+end
+
+theorem coe_zeta_smul_apply {M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+  {f : arithmetic_function M} {x : ℕ} :
+  ((↑ζ : arithmetic_function R) • f) x = ∑ i in divisors x, f i :=
+begin
+  rw smul_apply,
+  transitivity ∑ i in divisors_antidiagonal x, f i.snd,
+  { apply sum_congr rfl,
+    intros i hi,
+    rcases mem_divisors_antidiagonal.1 hi with ⟨rfl, h⟩,
+    rw [nat_coe_apply, zeta_apply_ne (left_ne_zero_of_mul h), cast_one, one_smul] },
   { apply sum_bij (λ i h, prod.snd i),
     { rintros ⟨a, b⟩ h, simp [snd_mem_divisors_of_mem_antidiagonal h] },
     { rintros ⟨a, b⟩ h, refl },
@@ -720,25 +791,79 @@ lemma coe_zeta_unit :
 lemma inv_zeta_unit :
   ((zeta_unit⁻¹ : units (arithmetic_function R)) : arithmetic_function R) = μ := rfl
 
-/-- One version of Möbius inversion. -/
-theorem sum_eq_iff_sum_moebius_eq {f g : ℕ → R} (hf : f 0 = 0) (hg : g 0 = 0) :
-  (∀ (n : ℕ), ∑ i in (n.divisors), f i = g n) ↔
-    ∀ (n : ℕ), ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, (μ x.fst : R) * g x.snd = f n :=
+end comm_ring
+
+/-- Möbius inversion for functions to an `add_comm_group`. -/
+theorem sum_eq_iff_sum_smul_moebius_eq
+  [add_comm_group R] {f g : ℕ → R} :
+  (∀ (n : ℕ), 0 < n → ∑ i in (n.divisors), f i = g n) ↔
+    ∀ (n : ℕ), 0 < n → ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, μ x.fst • g x.snd = f n :=
 begin
-  let f' : arithmetic_function R := ⟨f, hf⟩,
-  let g' : arithmetic_function R := ⟨g, hg⟩,
-  transitivity ↑ζ * f' = g',
+  let f' : arithmetic_function R := ⟨λ x, if x = 0 then 0 else f x, if_pos rfl⟩,
+  let g' : arithmetic_function R := ⟨λ x, if x = 0 then 0 else g x, if_pos rfl⟩,
+  transitivity (ζ : arithmetic_function ℤ) • f' = g',
   { rw ext_iff,
     apply forall_congr,
     intro n,
-    simp },
-  rw [← coe_zeta_unit, ← units.eq_inv_mul_iff_mul_eq, ext_iff],
-  apply forall_congr,
-  intro n,
-  simp [eq_comm],
+    cases n, { simp },
+    rw coe_zeta_smul_apply,
+    simp only [n.succ_ne_zero, forall_prop_of_true, succ_pos', if_false, zero_hom.coe_mk],
+    rw sum_congr rfl (λ x hx, _),
+    rw (if_neg (ne_of_gt (nat.pos_of_mem_divisors hx))) },
+  transitivity μ • g' = f',
+  { split; intro h,
+    { rw [← h, ← mul_smul, moebius_mul_coe_zeta, one_smul] },
+    { rw [← h, ← mul_smul, coe_zeta_mul_moebius, one_smul] } },
+  { rw ext_iff,
+    apply forall_congr,
+    intro n,
+    cases n, { simp },
+    simp only [n.succ_ne_zero, forall_prop_of_true, succ_pos', smul_apply,
+      if_false, zero_hom.coe_mk],
+    rw sum_congr rfl (λ x hx, _),
+    rw (if_neg (ne_of_gt (nat.pos_of_mem_divisors (snd_mem_divisors_of_mem_antidiagonal hx)))) },
 end
 
-end comm_ring
+/-- Möbius inversion for functions to a `comm_ring`. -/
+theorem sum_eq_iff_sum_mul_moebius_eq [comm_ring R] {f g : ℕ → R} :
+  (∀ (n : ℕ), 0 < n → ∑ i in (n.divisors), f i = g n) ↔
+    ∀ (n : ℕ), 0 < n → ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, (μ x.fst : R) * g x.snd = f n :=
+begin
+  rw sum_eq_iff_sum_smul_moebius_eq,
+  apply forall_congr,
+  intro a,
+  apply imp_congr (iff.refl _) (eq.congr_left (sum_congr rfl (λ x hx, _))),
+  rw [← module.gsmul_eq_smul, gsmul_eq_mul],
+end
+
+/-- Möbius inversion for functions to a `comm_group`. -/
+theorem prod_eq_iff_prod_pow_moebius_eq [comm_group R] {f g : ℕ → R} :
+  (∀ (n : ℕ), 0 < n → ∏ i in (n.divisors), f i = g n) ↔
+    ∀ (n : ℕ), 0 < n → ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
+@sum_eq_iff_sum_smul_moebius_eq (additive R) _ _ _
+
+/-- Möbius inversion for functions to a `comm_group_with_zero`. -/
+theorem prod_eq_iff_prod_pow_moebius_eq_of_nonzero [comm_group_with_zero R] {f g : ℕ → R}
+  (hf : ∀ (n : ℕ), 0 < n → f n ≠ 0) (hg : ∀ (n : ℕ), 0 < n → g n ≠ 0) :
+  (∀ (n : ℕ), 0 < n → ∏ i in (n.divisors), f i = g n) ↔
+    ∀ (n : ℕ), 0 < n → ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
+begin
+  refine iff.trans (iff.trans (forall_congr (λ n, _)) (@prod_eq_iff_prod_pow_moebius_eq (units R) _
+    (λ n, if h : 0 < n then units.mk0 (f n) (hf n h) else 1)
+    (λ n, if h : 0 < n then units.mk0 (g n) (hg n h) else 1))) (forall_congr (λ n, _));
+  refine imp_congr_right (λ hn, _),
+  { dsimp,
+    rw [dif_pos hn, ← units.eq_iff, ← units.coe_hom_apply, monoid_hom.map_prod, units.coe_mk0,
+      prod_congr rfl _],
+    intros x hx,
+    rw [dif_pos (nat.pos_of_mem_divisors hx), units.coe_hom_apply, units.coe_mk0] },
+  { dsimp,
+    rw [dif_pos hn, ← units.eq_iff, ← units.coe_hom_apply, monoid_hom.map_prod, units.coe_mk0,
+      prod_congr rfl _],
+    intros x hx,
+    rw [dif_pos (nat.pos_of_mem_divisors (nat.snd_mem_divisors_of_mem_antidiagonal hx)),
+      units.coe_hom_apply, units.coe_gpow', units.coe_mk0] }
+end
 
 end special_functions
 end arithmetic_function

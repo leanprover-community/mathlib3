@@ -335,8 +335,7 @@ ring_hom.coe_add_monoid_hom_injective $ add_hom_ext $ λ a b,
 /-- If two ring homomorphisms from `monoid_algebra k G` are equal on all `single a 1`
 and `single 1 b`, then they are equal.
 
-We formulate this lemma using equality of homomorphisms so that `ext` tactic can apply
-type-specific extensionality lemmas to prove equalities of these homomorphisms. -/
+See note [partially-applied ext lemmas]. -/
 @[ext] lemma ring_hom_ext' {R} [semiring k] [monoid G] [semiring R]
   {f g : monoid_algebra k G →+* R} (h₁ : f.comp single_one_ring_hom = g.comp single_one_ring_hom)
   (h_of : (f : monoid_algebra k G →* R).comp (of k G) =
@@ -395,6 +394,7 @@ lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] A⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 alg_hom.to_linear_map_inj $ finsupp.lhom_ext' $ λ a, linear_map.ext_ring (h a)
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma alg_hom_ext' ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] A⦄
   (h : (φ₁ : monoid_algebra k G →* A).comp (of k G) =
     (φ₂ : monoid_algebra k G →* A).comp (of k G)) : φ₁ = φ₂ :=
@@ -662,6 +662,8 @@ finsupp.add_group
 instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 { neg := has_neg.neg,
   add_left_neg := add_left_neg,
+  sub := has_sub.sub,
+  sub_eq_add_neg := finsupp.add_group.sub_eq_add_neg,
   .. add_monoid_algebra.semiring }
 
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
@@ -809,8 +811,7 @@ lemma ring_hom_ext {R} [semiring k] [add_monoid G] [semiring R]
 /-- If two ring homomorphisms from `add_monoid_algebra k G` are equal on all `single a 1`
 and `single 0 b`, then they are equal.
 
-We formulate this lemma using equality of homomorphisms so that `ext` tactic can apply
-type-specific extensionality lemmas to prove equalities of these homomorphisms. -/
+See note [partially-applied ext lemmas]. -/
 @[ext] lemma ring_hom_ext' {R} [semiring k] [add_monoid G] [semiring R]
   {f g : add_monoid_algebra k G →+* R}
   (h₁ : f.comp single_zero_ring_hom = g.comp single_zero_ring_hom)
@@ -859,6 +860,7 @@ lemma alg_hom_ext ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 @monoid_algebra.alg_hom_ext k (multiplicative G) _ _ _ _ _ _ _ h
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma alg_hom_ext' ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A⦄
   (h : (φ₁ : add_monoid_algebra k G →* A).comp (of k G) =
     (φ₂ : add_monoid_algebra k G →* A).comp (of k G)) : φ₁ = φ₂ :=

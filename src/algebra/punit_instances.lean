@@ -17,7 +17,8 @@ instance : comm_group punit :=
 by refine
 { mul := λ _ _, star,
   one := star,
-  inv := λ _, star, .. };
+  inv := λ _, star,
+  div := λ _ _, star, .. };
 intros; exact subsingleton.elim _ _
 
 instance : comm_ring punit :=
@@ -71,6 +72,7 @@ intros; exact subsingleton.elim _ _
 @[simp, to_additive] lemma one_eq : (1 : punit) = star := rfl
 @[simp] lemma add_eq : x + y = star := rfl
 @[simp, to_additive] lemma mul_eq : x * y = star := rfl
+@[simp, to_additive] lemma div_eq : x / y = star := rfl
 @[simp] lemma neg_eq : -x = star := rfl
 @[simp, to_additive] lemma inv_eq : x⁻¹ = star := rfl
 lemma smul_eq : x • y = star := rfl

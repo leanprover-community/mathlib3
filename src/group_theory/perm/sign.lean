@@ -7,6 +7,18 @@ import data.fintype.basic
 import data.finset.sort
 import algebra.group.conj
 import algebra.big_operators.basic
+import group_theory.perm.basic
+
+/-!
+# Sign of a permutation
+
+The main definition of this file is `equiv.perm.sign`, associating a `units ℤ` sign with a
+permutation.
+
+This file also contains miscellaneous lemmas about `equiv.perm` and `equiv.swap`, building on top
+of those in `data/equiv/basic` and `data/equiv/perm`.
+
+-/
 
 universes u v
 open equiv function fintype finset
@@ -14,6 +26,21 @@ open_locale big_operators
 variables {α : Type u} {β : Type v}
 
 namespace equiv.perm
+
+/--
+`mod_swap i j` contains permutations up to swapping `i` and `j`.
+
+We use this to partition permutations in `matrix.det_zero_of_row_eq`, such that each partition
+sums up to `0`.
+-/
+def mod_swap [decidable_eq α] (i j : α) : setoid (perm α) :=
+⟨λ σ τ, σ = τ ∨ σ = swap i j * τ,
+ λ σ, or.inl (refl σ),
+ λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
+ λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish⟩
+
+instance {α : Type*} [fintype α] [decidable_eq α] (i j : α) : decidable_rel (mod_swap i j).r :=
+λ σ τ, or.decidable
 
 /-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation
   on `{x // p x}` induced by `f`. -/
@@ -44,13 +71,6 @@ def of_subtype {p : α → Prop} [decidable_pred p] : perm (subtype p) →* perm
     simp only [h, h₂, coe_fn_mk, perm.mul_apply, dif_pos, subtype.coe_eta] },
   { simp only [h, coe_fn_mk, perm.mul_apply, dif_neg, not_false_iff] }
 end }
-
-
-lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y :=
-by conv {to_lhs, rw [← injective.eq_iff f.injective, apply_inv_self]}
-
-lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y :=
-by rw [eq_comm, eq_inv_iff_eq, eq_comm]
 
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,
 every element is fixed either by `f`, or by `g`. -/
@@ -153,34 +173,6 @@ by simp only [support, true_and, mem_filter, mem_univ]
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements.  -/
 def is_swap (f : perm α) := ∃ x y, x ≠ y ∧ f = swap x y
 
-lemma swap_mul_eq_mul_swap (f : perm α) (x y : α) : swap x y * f = f * swap (f⁻¹ x) (f⁻¹ y) :=
-equiv.ext $ λ z, begin
-  simp only [perm.mul_apply, swap_apply_def],
-  split_ifs;
-  simp only [perm.apply_inv_self, *, eq_inv_iff_eq,eq_self_iff_true, not_true] at *
-end
-
-lemma mul_swap_eq_swap_mul (f : perm α) (x y : α) : f * swap x y = swap (f x) (f y) * f :=
-by rw [swap_mul_eq_mul_swap, inv_apply_self, inv_apply_self]
-
-/-- Multiplying a permutation with `swap i j` twice gives the original permutation.
-
-  This specialization of `swap_mul_self` is useful when using cosets of permutations.
--/
-@[simp]
-lemma swap_mul_self_mul (i j : α) (σ : perm α) : equiv.swap i j * (equiv.swap i j * σ) = σ :=
-by rw [←mul_assoc (swap i j) (swap i j) σ, equiv.swap_mul_self, one_mul]
-
-/-- A stronger version of `mul_right_injective` -/
-@[simp]
-lemma swap_mul_involutive (i j : α) : function.involutive ((*) (equiv.swap i j)) :=
-swap_mul_self_mul i j
-
-lemma swap_mul_eq_iff {i j : α} {σ : perm α} : swap i j * σ = σ ↔ i = j :=
-⟨(assume h, have swap_id : swap i j = 1 := mul_right_cancel (trans h (one_mul σ).symm),
-  by {rw [←swap_apply_right i j, swap_id], refl}),
-(assume h, by erw [h, swap_self, one_mul])⟩
-
 lemma is_swap_of_subtype {p : α → Prop} [decidable_pred p]
   {f : perm (subtype p)} (h : is_swap f) : is_swap (of_subtype f) :=
 let ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h in
@@ -273,10 +265,6 @@ is preserved under composition with a non-trivial swap, then `P` holds for all p
 @[elab_as_eliminator] lemma swap_induction_on' [fintype α] {P : perm α → Prop} (f : perm α) :
   P 1 → (∀ f x y, x ≠ y → P f → P (f * swap x y)) → P f :=
 λ h1 IH, inv_inv f ▸ swap_induction_on f⁻¹ h1 (λ f, IH f⁻¹)
-
-lemma swap_mul_swap_mul_swap {x y z : α} (hwz: x ≠ y) (hxz : x ≠ z) :
-  swap y z * swap x y * swap y z = swap z x :=
-equiv.ext $ λ n, by simp only [swap_apply_def, mul_apply]; split_ifs; cc
 
 lemma is_conj_swap {w x y z : α} (hwx : w ≠ x) (hyz : y ≠ z) : is_conj (swap w x) (swap y z) :=
 have h : ∀ {y z : α}, y ≠ z → w ≠ z →
@@ -802,6 +790,24 @@ end
   (e.perm_congr p).sign = p.sign :=
 equiv.perm.sign_eq_sign_of_equiv _ _ e.symm (by simp)
 
+end
+
+@[simp] lemma sign_sum_congr {α β : Type*} [decidable_eq α] [decidable_eq β]
+  [fintype α] [fintype β] (σa : perm α) (σb : perm β) :
+  (sum_congr σa σb).sign = σa.sign * σb.sign :=
+begin
+  suffices : (sum_congr σa (1 : perm β)).sign = σa.sign ∧
+             (sum_congr (1 : perm α) σb).sign = σb.sign,
+  { rw [←this.1, ←this.2, ←sign_mul, sum_congr_mul, one_mul, mul_one], },
+  split,
+  { apply σa.swap_induction_on _ (λ σa' a₁ a₂ ha ih, _),
+    { simp },
+    { rw [←one_mul (1 : perm β), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_swap_one,
+          sign_swap ha, sign_swap (sum.injective_inl.ne_iff.mpr ha)], }, },
+  { apply σb.swap_induction_on _ (λ σb' b₁ b₂ hb ih, _),
+    { simp },
+    { rw [←one_mul (1 : perm α), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_one_swap,
+          sign_swap hb, sign_swap (sum.injective_inr.ne_iff.mpr hb)], }, }
 end
 
 end sign

@@ -229,6 +229,14 @@ le_antisymm
 lemma eq_bot_of_singletons_open {t : topological_space α} (h : ∀ x, t.is_open {x}) : t = ⊥ :=
 bot_unique $ λ s hs, bUnion_of_singleton s ▸ is_open_bUnion (λ x _, h x)
 
+lemma forall_open_iff_discrete {X : Type*} [topological_space X] :
+  (∀ s : set X, is_open s) ↔ discrete_topology X :=
+⟨λ h, ⟨by { ext U , show is_open U ↔ true, simp [h U] }⟩, λ a, @is_open_discrete _ _ a⟩
+
+lemma singletons_open_iff_discrete {X : Type*} [topological_space X] :
+  (∀ a : X, is_open ({a} : set X)) ↔ discrete_topology X :=
+⟨λ h, ⟨eq_bot_of_singletons_open h⟩, λ a _, @is_open_discrete _ _ a _⟩
+
 end lattice
 
 section galois_connection

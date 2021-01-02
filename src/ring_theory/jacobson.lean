@@ -89,7 +89,7 @@ lemma is_jacobson_iff_Inf_maximal' : is_jacobson R ↔
 ⟨λ H I h, eq_jacobson_iff_Inf_maximal'.1 (H _ (is_prime.radical h)),
   λ H , is_jacobson_iff_prime_eq.2 (λ P hP, eq_jacobson_iff_Inf_maximal'.2 (H hP))⟩
 
-lemma radical_eq_jacobson (H : is_jacobson R) (I : ideal R) : I.radical = I.jacobson :=
+lemma radical_eq_jacobson [H : is_jacobson R] (I : ideal R) : I.radical = I.jacobson :=
 le_antisymm (le_Inf (λ J ⟨hJ, hJ_max⟩, (is_prime.radical_le_iff hJ_max.is_prime).mpr hJ))
             ((H I.radical (radical_idem I)) ▸ (jacobson_mono le_radical))
 
@@ -290,11 +290,7 @@ begin
   haveI : (⊥ : ideal (I.comap ϕ'.to_map).quotient).is_prime := bot_prime,
   have hcomm: φ'.comp ϕ.to_map = ϕ'.to_map.comp φ := ϕ.map_comp _,
   let f := quotient_map (I.comap ϕ'.to_map) φ le_rfl,
-  let f' := quotient_map I φ' le_rfl,
   let g := quotient_map I ϕ'.to_map le_rfl,
-  let g' : ((I.comap ϕ'.to_map).comap φ).quotient →+* (I.comap φ').quotient :=
-    quotient_map (I.comap φ') ϕ.to_map
-    (le_of_eq (trans (comap_comap φ ϕ'.to_map) (hcomm ▸ (comap_comap ϕ.to_map φ').symm))),
   have := ((is_maximal_iff_is_maximal_disjoint ϕ _).1
     (is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ' I hI)).left,
   have : ((I.comap ϕ'.to_map).comap φ).is_maximal,

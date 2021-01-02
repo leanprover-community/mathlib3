@@ -254,6 +254,12 @@ instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
 lemma is_iso.inv_eq_inv {f g : X ⟶ Y} [is_iso f] [is_iso g] : inv f = inv g ↔ f = g :=
 iso.inv_eq_inv (as_iso f) (as_iso g)
 
+lemma hom_comp_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : g ≫ f = 𝟙 X ↔ f = inv g :=
+(as_iso g).hom_comp_eq_id
+
+lemma comp_hom_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y ↔ f = inv g :=
+(as_iso g).comp_hom_eq_id
+
 namespace iso
 
 /-!

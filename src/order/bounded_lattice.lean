@@ -10,6 +10,7 @@ Includes the Prop and fun instances.
 import order.lattice
 import data.option.basic
 import tactic.pi_instances
+import logic.nontrivial
 
 set_option old_structure_cmd true
 
@@ -954,8 +955,8 @@ by rw [disjoint, disjoint, inf_comm]
 @[symm] theorem disjoint.symm ⦃a b : α⦄ : disjoint a b → disjoint b a :=
 disjoint.comm.1
 
-@[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := disjoint_iff.2 bot_inf_eq
-@[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := disjoint_iff.2 inf_bot_eq
+@[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := inf_le_left
+@[simp] theorem disjoint_bot_right {a : α} : disjoint a ⊥ := inf_le_right
 
 theorem disjoint.mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
   disjoint b d → disjoint a c := le_trans (inf_le_inf h₁ h₂)
@@ -974,6 +975,15 @@ by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
 
 end semilattice_inf_bot
 
+section bounded_lattice
+
+variables [bounded_lattice α] {a : α}
+
+@[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
+@[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
+
+end bounded_lattice
+
 section bounded_distrib_lattice
 
 variables [bounded_distrib_lattice α] {a b c : α}
@@ -990,9 +1000,18 @@ disjoint_sup_left.2 ⟨ha, hb⟩
 lemma disjoint.sup_right (hb : disjoint a b) (hc : disjoint a c) : disjoint a (b ⊔ c) :=
 disjoint_sup_right.2 ⟨hb, hc⟩
 
+lemma disjoint.left_le_of_le_sup_right {a b c : α} (h : a ≤ b ⊔ c) (hd : disjoint a c) : a ≤ b :=
+(λ x, le_of_inf_le_sup_le x (sup_le h le_sup_right)) ((disjoint_iff.mp hd).symm ▸ bot_le)
+
+lemma disjoint.left_le_of_le_sup_left {a b c : α} (h : a ≤ c ⊔ b) (hd : disjoint a c) : a ≤ b :=
+@le_of_inf_le_sup_le _ _ a b c ((disjoint_iff.mp hd).symm ▸ bot_le)
+  ((@sup_comm _ _ c b) ▸ (sup_le h le_sup_left))
+
 end bounded_distrib_lattice
 
 end disjoint
+
+section is_compl
 
 /-!
 ### `is_compl` predicate
@@ -1084,3 +1103,16 @@ is_compl.of_eq bot_inf_eq sup_top_eq
 
 lemma is_compl_top_bot [bounded_lattice α] : is_compl (⊤ : α) ⊥ :=
 is_compl.of_eq inf_bot_eq top_sup_eq
+
+end is_compl
+
+section nontrivial
+
+variables [bounded_lattice α] [nontrivial α]
+
+lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
+λ H, not_nontrivial_iff_subsingleton.mpr (subsingleton_of_bot_eq_top H) ‹_›
+
+lemma top_ne_bot : (⊤ : α) ≠ ⊥ := ne.symm bot_ne_top
+
+end nontrivial

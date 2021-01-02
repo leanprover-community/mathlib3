@@ -6,14 +6,12 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 import algebra.group.hom
 import algebra.group.type_tags
 import algebra.group.units_hom
-import data.equiv.basic
 
 /-!
 # Multiplicative and additive equivs
 
 In this file we define two extensions of `equiv` called `add_equiv` and `mul_equiv`, which are
-datatypes representing isomorphisms of `add_monoid`s/`add_group`s and `monoid`s/`group`s. We also
-introduce the corresponding groups of automorphisms `add_aut` and `mul_aut`.
+datatypes representing isomorphisms of `add_monoid`s/`add_group`s and `monoid`s/`group`s.
 
 ## Notations
 
@@ -25,13 +23,9 @@ notation when treating the isomorphisms as maps.
 The fields for `mul_equiv`, `add_equiv` now avoid the unbundled `is_mul_hom` and `is_add_hom`, as
 these are deprecated.
 
-Definition of multiplication in the groups of automorphisms agrees with function composition,
-multiplication in `equiv.perm`, and multiplication in `category_theory.End`, not with
-`category_theory.comp`.
-
 ## Tags
 
-equiv, mul_equiv, add_equiv, mul_aut, add_aut
+equiv, mul_equiv, add_equiv
 -/
 
 variables {A : Type*} {B : Type*} {M : Type*} {N : Type*} {P : Type*} {G : Type*} {H : Type*}
@@ -219,6 +213,17 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
+@[to_additive]
+protected lemma congr_arg {f : mul_equiv M N} : Π {x x' : M}, x = x' → f x = f x'
+| _ _ rfl := rfl
+
+@[to_additive]
+protected lemma congr_fun {f g : mul_equiv M N} (h : f = g) (x : M) : f x = g x := h ▸ rfl
+
+@[to_additive]
+lemma ext_iff {f g : mul_equiv M N} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, ext⟩
+
 @[to_additive] lemma to_monoid_hom_injective
   {M N} [monoid M] [monoid N] : function.injective (to_monoid_hom : (M ≃* N) → M →* N) :=
 λ f g h, mul_equiv.ext (monoid_hom.ext_iff.1 h)
@@ -266,106 +271,6 @@ lemma add_equiv.map_sub [add_group A] [add_group B] (h : A ≃+ B) (x y : A) :
 h.to_add_monoid_hom.map_sub x y
 
 instance add_equiv.inhabited {M : Type*} [has_add M] : inhabited (M ≃+ M) := ⟨add_equiv.refl M⟩
-
-/-- The group of multiplicative automorphisms. -/
-@[to_additive "The group of additive automorphisms."]
-def mul_aut (M : Type*) [has_mul M] := M ≃* M
-
-attribute [reducible] mul_aut add_aut
-
-namespace mul_aut
-
-variables (M) [has_mul M]
-
-/--
-The group operation on multiplicative automorphisms is defined by
-`λ g h, mul_equiv.trans h g`.
-This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
--/
-instance : group (mul_aut M) :=
-by refine_struct
-{ mul := λ g h, mul_equiv.trans h g,
-  one := mul_equiv.refl M,
-  inv := mul_equiv.symm };
-intros; ext; try { refl }; apply equiv.left_inv
-
-instance : inhabited (mul_aut M) := ⟨1⟩
-
-@[simp] lemma coe_mul (e₁ e₂ : mul_aut M) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
-@[simp] lemma coe_one : ⇑(1 : mul_aut M) = id := rfl
-
-lemma mul_def (e₁ e₂ : mul_aut M) : e₁ * e₂ = e₂.trans e₁ := rfl
-lemma one_def : (1 : mul_aut M) = mul_equiv.refl _ := rfl
-lemma inv_def (e₁ : mul_aut M) : e₁⁻¹ = e₁.symm := rfl
-@[simp] lemma mul_apply (e₁ e₂ : mul_aut M) (m : M) : (e₁ * e₂) m = e₁ (e₂ m) := rfl
-@[simp] lemma one_apply (m : M) : (1 : mul_aut M) m = m := rfl
-
-@[simp] lemma apply_inv_self (e : mul_aut M) (m : M) : e (e⁻¹ m) = m :=
-mul_equiv.apply_symm_apply _ _
-
-@[simp] lemma inv_apply_self (e : mul_aut M) (m : M) : e⁻¹ (e m) = m :=
-mul_equiv.apply_symm_apply _ _
-
-/-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
-def to_perm : mul_aut M →* equiv.perm M :=
-by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
-
-/-- group conjugation as a group homomorphism into the automorphism group.
-  `conj g h = g * h * g⁻¹` -/
-def conj [group G] : G →* mul_aut G :=
-{ to_fun := λ g,
-  { to_fun := λ h, g * h * g⁻¹,
-    inv_fun := λ h, g⁻¹ * h * g,
-    left_inv := λ _, by simp [mul_assoc],
-    right_inv := λ _, by simp [mul_assoc],
-    map_mul' := by simp [mul_assoc] },
-  map_mul' := λ _ _, by ext; simp [mul_assoc],
-  map_one' := by ext; simp [mul_assoc] }
-
-@[simp] lemma conj_apply [group G] (g h : G) : conj g h = g * h * g⁻¹ := rfl
-@[simp] lemma conj_symm_apply [group G] (g h : G) : (conj g).symm h = g⁻¹ * h * g := rfl
-@[simp] lemma conj_inv_apply {G : Type*} [group G] (g h : G) : (conj g)⁻¹ h = g⁻¹ * h * g := rfl
-
-end mul_aut
-
-namespace add_aut
-
-variables (A) [has_add A]
-
-/--
-The group operation on additive automorphisms is defined by
-`λ g h, mul_equiv.trans h g`.
-This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
--/
-instance group : group (add_aut A) :=
-by refine_struct
-{ mul := λ g h, add_equiv.trans h g,
-  one := add_equiv.refl A,
-  inv := add_equiv.symm };
-intros; ext; try { refl }; apply equiv.left_inv
-
-instance : inhabited (add_aut A) := ⟨1⟩
-
-@[simp] lemma coe_mul (e₁ e₂ : add_aut A) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
-@[simp] lemma coe_one : ⇑(1 : add_aut A) = id := rfl
-
-lemma mul_def (e₁ e₂ : add_aut A) : e₁ * e₂ = e₂.trans e₁ := rfl
-lemma one_def : (1 : add_aut A) = add_equiv.refl _ := rfl
-lemma inv_def (e₁ : add_aut A) : e₁⁻¹ = e₁.symm := rfl
-@[simp] lemma mul_apply (e₁ e₂ : add_aut A) (a : A) : (e₁ * e₂) a = e₁ (e₂ a) := rfl
-@[simp] lemma one_apply (a : A) : (1 : add_aut A) a = a := rfl
-
-@[simp] lemma apply_inv_self (e : add_aut A) (a : A) : e⁻¹ (e a) = a :=
-add_equiv.apply_symm_apply _ _
-
-@[simp] lemma inv_apply_self (e : add_aut A) (a : A) : e (e⁻¹ a) = a :=
-add_equiv.apply_symm_apply _ _
-
-/-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
-def to_perm : add_aut A →* equiv.perm A :=
-by refine_struct { to_fun := add_equiv.to_equiv }; intros; refl
-
-end add_aut
 
 /-- A group is isomorphic to its group of units. -/
 @[to_additive to_add_units "An additive group is isomorphic to its group of additive units"]

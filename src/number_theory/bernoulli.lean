@@ -130,7 +130,7 @@ open nat finset
 @[simp] lemma sum_bernoulli (n : ℕ) :
   ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli k = n :=
 begin
-  cases n with n, simp,
+  cases n with n, { simp },
   rw [sum_range_succ, bernoulli_def],
   suffices : (n + 1 : ℚ) * ∑ k in range n, (n.choose k : ℚ) / (n - k + 1) * bernoulli k =
     ∑ x in range n, (n.succ.choose x : ℚ) * bernoulli x,

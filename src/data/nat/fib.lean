@@ -20,7 +20,7 @@ Definition of the Fibonacci sequence `F₀ = 0, F₁ = 1, Fₙ₊₂ = Fₙ + F�
 ## Main Statements
 
 - `fib_succ_succ` : shows that `fib` indeed satisfies the Fibonacci recurrence `Fₙ₊₂ = Fₙ + Fₙ₊₁.`.
-- `gcd_fib_fib`   : `fib n` is a strong divisibility sequence.
+- `fib_gcd`       : `fib n` is a strong divisibility sequence.
 
 ## Implementation Notes
 
@@ -123,27 +123,24 @@ begin
 end
 
 
-lemma gcd_fib_add_self' (m n : ℕ) : gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n) :=
+lemma gcd_fib_add_self (m n : ℕ) : gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n) :=
 begin
   cases eq_zero_or_pos n,
   { rw h, simp },
-  replace h := nat.succ_pred_eq_of_pos h, rw [← h, succ_eq_add_one], symmetry,
-  calc (fib m).gcd (fib (n.pred + 1)) 
-        = gcd (fib m) (fib (n.pred + 1) * fib (m + 1)) :
-    begin
-      have hcop := coprime.symm (fib_coprime_fib_succ m),
-      rwa [gcd_comm, gcd_comm (fib m) _, mul_comm _ (fib (m + 1)), coprime.gcd_mul_left_cancel]
-    end
-    ... = gcd (fib m) (fib (n.pred) * (fib m) + fib (n.pred + 1) * fib (m + 1)) :
-    by rw [← gcd_add_self (fib m) _ (fib (n.pred)), add_comm]
-    ... = m.fib.gcd (n.pred + 1 + m).fib :
-    by { rw (fib_add n.pred _), ring }
-    ... = m.fib.gcd (n.pred + 1 + m).fib : by ring,
+  replace h := nat.succ_pred_eq_of_pos h, rw [← h, succ_eq_add_one],
+  calc gcd (fib m) (fib (n.pred + 1 + m))
+        = gcd (fib m) (fib (n.pred) * (fib m) + fib (n.pred + 1) * fib (m + 1)) : 
+    by { rw fib_add n.pred _, ring }
+    ... = gcd (fib m) (fib (n.pred + 1) * fib (m + 1)) : 
+    by rw [add_comm, gcd_add_self (fib m) _ (fib (n.pred))]
+    ... = gcd (fib m) (fib (n.pred + 1)) : 
+    coprime.gcd_mul_right_cancel_right 
+      (fib (n.pred + 1)) (coprime.symm (fib_coprime_fib_succ m))
 end
 
-lemma gcd_fib_add_self (m n : ℕ) : ∀ k, gcd (fib m) (fib (n + k * m)) = gcd (fib m) (fib n)
+lemma gcd_fib_add_mul_self (m n : ℕ) : ∀ k, gcd (fib m) (fib (n + k * m)) = gcd (fib m) (fib n)
 | 0     := by simp
-| (k+1) := by rw [← gcd_fib_add_self k, add_mul, ← add_assoc, one_mul, gcd_fib_add_self' _ _]
+| (k+1) := by rw [← gcd_fib_add_mul_self k, add_mul, ← add_assoc, one_mul, gcd_fib_add_self _ _]
 
 /-- `fib n` is a strong divisibility sequence, 
   see https://proofwiki.org/wiki/GCD_of_Fibonacci_Numbers -/
@@ -156,7 +153,7 @@ begin
     intros m n mpos h,
     rw ← gcd_rec m n at h,
     conv_rhs { rw ← mod_add_div n m },
-    rwa [mul_comm, gcd_fib_add_self m (n % m) (n / m), gcd_comm (fib m) _] },
+    rwa [mul_comm, gcd_fib_add_mul_self m (n % m) (n / m), gcd_comm (fib m) _] },
   rwa [gcd_comm, gcd_comm (fib m)]
 end
 

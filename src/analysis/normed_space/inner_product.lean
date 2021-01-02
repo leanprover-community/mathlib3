@@ -1622,7 +1622,7 @@ linear_map.mk_continuous
 
 @[simp]
 lemma orthogonal_projection_fn_eq {K : submodule 𝕜 E} [complete_space K] (v : E) :
-  orthogonal_projection_fn K v = ↑(orthogonal_projection K v) :=
+  orthogonal_projection_fn K v = (orthogonal_projection K v : E) :=
 rfl
 
 /-- The characterization of the orthogonal projection.  -/

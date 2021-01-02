@@ -505,12 +505,12 @@ begin
       intro v,
       simp [h' v] },
     { use v₀,
-      have h' : span K {v₀} = ⊤, { simpa [hd.eq_singleton_of_mem hv₀] using h.2 },
+      have h' : (K ∙ v₀) = ⊤, { simpa [hd.eq_singleton_of_mem hv₀] using h.2 },
       intro v,
       have hv : v ∈ (⊤ : submodule K V) := mem_top,
       rwa [←h', mem_span_singleton] at hv } },
   { rintros ⟨v₀, hv₀⟩,
-    have h : span K ({v₀} : set V) = ⊤,
+    have h : (K ∙ v₀) = ⊤,
     { ext, simp [mem_span_singleton, hv₀] },
     rw [←dim_top, ←h],
     convert dim_span_le _,
@@ -520,7 +520,7 @@ end
 /-- A submodule has dimension at most `1` if and only if there is a
 single vector in the submodule such that the submodule is contained in
 its span. -/
-lemma dim_submodule_le_one_iff (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀ ∈ s, s ≤ span K {v₀} :=
+lemma dim_submodule_le_one_iff (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀ ∈ s, s ≤ K ∙ v₀ :=
 begin
   simp_rw [dim_le_one_iff, le_span_singleton_iff],
   split,
@@ -543,7 +543,7 @@ end
 /-- A submodule has dimension at most `1` if and only if there is a
 single vector, not necessarily in the submodule, such that the
 submodule is contained in its span. -/
-lemma dim_submodule_le_one_iff' (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀, s ≤ span K {v₀} :=
+lemma dim_submodule_le_one_iff' (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀, s ≤ K ∙ v₀ :=
 begin
   rw dim_submodule_le_one_iff,
   split,

@@ -44,6 +44,8 @@ mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `
 reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
 division-free."
 
+attribute [field_simps] mul_div_assoc'
+
 section
 
 section mul_zero_class
@@ -529,9 +531,6 @@ by rw [div_eq_mul_inv, mul_inv_cancel h]
 @[simp] lemma div_one (a : G₀) : a / 1 = a :=
 by simp [div_eq_mul_inv a 1]
 
-@[simp] lemma one_div (a : G₀) : 1 / a = a⁻¹ :=
-by rw [div_eq_mul_inv, one_mul]
-
 @[simp] lemma zero_div (a : G₀) : 0 / a = 0 :=
 by rw [div_eq_mul_inv, zero_mul]
 
@@ -549,9 +548,6 @@ by rw [div_eq_mul_inv, mul_inv_cancel_right' h a]
 
 lemma mul_div_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a * b / b = a :=
 classical.by_cases (λ hb : b = 0, by simp [*]) (mul_div_cancel a)
-
-lemma mul_div_assoc {a b c : G₀} : a * b / c = a * (b / c) :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc _ _ _]
 
 local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
 

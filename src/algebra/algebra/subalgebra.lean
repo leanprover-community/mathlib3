@@ -354,7 +354,7 @@ suffices (of_id R A).range = (⊥ : subalgebra R A),
 by { rw [← this, ← subalgebra.mem_coe, alg_hom.coe_range], refl },
 le_bot_iff.mp (λ x hx, subalgebra.range_le _ ((of_id R A).coe_range ▸ hx))
 
-theorem to_submodule_bot : ((⊥ : subalgebra R A) : submodule R A) = submodule.span R {1} :=
+theorem to_submodule_bot : ((⊥ : subalgebra R A) : submodule R A) = R ∙ 1 :=
 by { ext x, simp [mem_bot, -set.singleton_one, submodule.mem_span_singleton, algebra.smul_def] }
 
 @[simp] theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=

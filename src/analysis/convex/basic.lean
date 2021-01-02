@@ -213,11 +213,11 @@ end
 
 lemma convex.combo_to_vadd {a b : ℝ} {x y : E} (h : a + b = 1) :
   a • x + b • y = b • (y - x) + x :=
-eq.symm (calc
-  b • (y - x) + x = b • (y - x) + (1 : ℝ) • x           : by rw [one_smul]
-              ... = b • (y - x) + (a + b) • x           : by rw [h]
-              ... = (b • y - b • x) + (a • x + b • x)   : by rw [add_smul, smul_sub]
-              ... = a • x + b • y                       : by abel)
+calc
+  a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
+            ... = b • (y - x) + (a + b) • x         : by rw [smul_sub, add_smul]
+            ... = b • (y - x) + (1 : ℝ) • x         : by rw [h]
+            ... = b • (y - x) + x                   : by rw [one_smul]
 
 /--
 Applying an affine map to an affine combination of two points yields
@@ -373,10 +373,10 @@ convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im) _
 /-! ### Convex combinations in intervals -/
 
 lemma convex.combo_self (a : α) {x y : α} (h : x + y = 1) : a = x * a + y * a :=
-  calc
-      a   = 1 * a           : by rw [one_mul]
-      ... = (x + y) * a     : by rw [h]
-      ... = x * a + y * a   : by rw [add_mul]
+calc
+  a   = 1 * a         : by rw [one_mul]
+  ... = (x + y) * a   : by rw [h]
+  ... = x * a + y * a : by rw [add_mul]
 
 /--
 If `x` is in an `Ioo`, it can be expressed as a convex combination of the endpoints.
@@ -768,11 +768,10 @@ begin
   rcases hz with ⟨za,zb,hza,hzb,hzazb,H⟩,
   rw ←H,
   calc
-    f (za • x + zb • y) ≤ za • (f x) + zb • (f y)   : hf.2 hx.1 hy.1 hza hzb hzazb
-                    ... ≤ za • r + zb • r
-                      : add_le_add (smul_le_smul_of_nonneg hx.2 hza)
-                                    (smul_le_smul_of_nonneg hy.2 hzb)
-                    ... ≤ r                         : by simp [←add_smul, hzazb]
+    f (za • x + zb • y) ≤ za • (f x) + zb • (f y) : hf.2 hx.1 hy.1 hza hzb hzazb
+                    ... ≤ za • r + zb • r         : add_le_add (smul_le_smul_of_nonneg hx.2 hza)
+                                                      (smul_le_smul_of_nonneg hy.2 hzb)
+                    ... ≤ r                       : by simp [←add_smul, hzazb]
 end
 
 lemma concave_on.concave_le [ordered_semimodule ℝ β] {f : E → β} (hf : concave_on s f) (r : β) :
@@ -851,7 +850,7 @@ begin
     (f ∘ g) (a • x + b • y) = f (g (a • x + b • y))         : rfl
                        ...  = f (a • (g x) + b • (g y))     : by rw [convex.combo_affine_apply hab]
                        ...  ≤ a • f (g x) + b • f (g y)     : hf.2 xs ys ha hb hab
-                       ...  = a • (f ∘ g) x + b • (f ∘ g) y  : rfl
+                       ...  = a • (f ∘ g) x + b • (f ∘ g) y : rfl
 end
 
 /-- If a function is concave on `s`, it remains concave when precomposed by an affine map. -/
@@ -984,7 +983,7 @@ end
 lemma finset.center_mass_filter_ne_zero :
   (t.filter (λ i, w i ≠ 0)).center_mass w z = t.center_mass w z :=
 finset.center_mass_subset z (filter_subset _ _) $ λ i hit hit',
-by simpa only [hit, mem_filter, true_and, ne.def, not_not] using hit'
+  by simpa only [hit, mem_filter, true_and, ne.def, not_not] using hit'
 
 variable {z}
 
@@ -1241,7 +1240,7 @@ variables (ι) [fintype ι] {f : ι → ℝ}
 /-- The standard simplex in the space of functions `ι → ℝ` is the set
 of vectors with non-negative coordinates with total sum `1`. -/
 def std_simplex (ι : Type*) [fintype ι] : set (ι → ℝ) :=
-{ f | (∀ x, 0 ≤ f x) ∧ ∑ x, f x = 1 }
+{f | (∀ x, 0 ≤ f x) ∧ ∑ x, f x = 1}
 
 lemma std_simplex_eq_inter :
   std_simplex ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | ∑ x, f x = 1} :=

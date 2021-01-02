@@ -137,6 +137,19 @@ calc ↑u⁻¹ = ↑u⁻¹ * 1 : by rw mul_one
 lemma inv_unique {u₁ u₂ : units α} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
 suffices ↑u₁ * (↑u₂⁻¹ : α) = 1, by exact inv_eq_of_mul_eq_one this, by rw [h, u₂.mul_inv]
 
+@[to_additive]
+lemma prod {M N : Type*} [monoid M] [monoid N] : units (M × N) ≃ units M × units N :=
+{ to_fun := λ ⟨⟨u₁, u₂⟩, ⟨v₁, v₂⟩, huv, hvu⟩,
+          ⟨⟨u₁, v₁, by {rw [prod.mk_mul_mk, prod.mk_eq_one] at huv, exact huv.1},
+                    by {rw [prod.mk_mul_mk, prod.mk_eq_one] at hvu, exact hvu.1}⟩,
+           ⟨u₂, v₂, by {rw [prod.mk_mul_mk, prod.mk_eq_one] at huv, exact huv.2},
+                    by {rw [prod.mk_mul_mk, prod.mk_eq_one] at hvu, exact hvu.2}⟩⟩,
+  inv_fun := λ ⟨⟨u₁, v₁, huv₁, hvu₁⟩, ⟨u₂, v₂, huv₂, hvu₂⟩⟩,
+              ⟨(u₁, u₂), (v₁, v₂), by {rw [prod.mk_mul_mk, prod.mk_eq_one], exact ⟨huv₁, huv₂⟩},
+                                   by {rw [prod.mk_mul_mk, prod.mk_eq_one], exact ⟨hvu₁, hvu₂⟩}⟩,
+  left_inv := by {rintro ⟨⟨u₁, u₂⟩, ⟨v₁, v₂⟩, huv, hvu⟩, simp, },
+  right_inv := by {rintro ⟨⟨u₁, v₁, huv₁, hvu₁⟩, ⟨u₂, v₂, huv₂, hvu₂⟩⟩, simp, } }
+
 end units
 
 /-- For `a, b` in a `comm_monoid` such that `a * b = 1`, makes a unit out of `a`. -/

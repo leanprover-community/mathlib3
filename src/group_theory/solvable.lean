@@ -131,9 +131,8 @@ lemma derived_series_normal (n : ℕ) : (derived_series G n).normal :=
 begin
   induction n with n ih,
   { exact subgroup.top_normal, },
-  { haveI : (derived_series G n).normal := ih,
-    rw derived_series_succ,
-    exact general_commutator_normal (derived_series G n) (derived_series G n), }
+  { rw derived_series_succ,
+    exactI general_commutator_normal (derived_series G n) (derived_series G n), }
 end
 
 lemma commutator_eq_general_commutator_top_top :
@@ -167,6 +166,7 @@ variables (G)
 class is_solvable : Prop :=
 (solvable : ∃ n : ℕ, derived_series G n = ⊥)
 
+@[priority 100]
 instance is_solvable_of_comm {G : Type*} [comm_group G] : is_solvable G :=
 begin
   use 1,

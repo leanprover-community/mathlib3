@@ -130,8 +130,8 @@ def units [monoid M] [monoid N] : units (M × N) ≃* units M × units N := mul_
                ⟨(u₁, u₂), (v₁, v₂), by {rw [prod.mk_mul_mk, prod.mk_eq_one], exact ⟨huv₁, huv₂⟩},
                                     by {rw [prod.mk_mul_mk, prod.mk_eq_one], exact ⟨hvu₁, hvu₂⟩}⟩,
   left_inv := by {rintro ⟨⟨u₁, u₂⟩, ⟨v₁, v₂⟩, huv, hvu⟩, simpa, },
-  right_inv := by {rintro ⟨⟨u₁, v₁, huv₁, hvu₁⟩, ⟨u₂, v₂, huv₂, hvu₂⟩⟩, simpa, },
-   } (λ ⟨⟨ux, ux₂⟩, ⟨vx₁, vx₂⟩, hxuv, hxvu⟩ ⟨⟨uy₁, uy₂⟩, ⟨vy₁, vy₂⟩, hyuv, hyvu⟩, rfl)
+  right_inv := by {rintro ⟨⟨u₁, v₁, huv₁, hvu₁⟩, ⟨u₂, v₂, huv₂, hvu₂⟩⟩, simpa, } }
+   (λ ⟨⟨ux, ux₂⟩, ⟨vx₁, vx₂⟩, hxuv, hxvu⟩ ⟨⟨uy₁, uy₂⟩, ⟨vy₁, vy₂⟩, hyuv, hyvu⟩, rfl)
 
 -- TODO attribute [to_additive add_units] units fails
 

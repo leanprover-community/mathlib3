@@ -1,7 +1,22 @@
+/-
+Copyright (c) 2020 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import tactic
+
+/-!
+# Probability on finsets
+
+This file gives an API for probabilities over finite sets (as rational numbers). In particular,
+`Prob s P` is the probability that a random element from `s` satisfies the predicate `P`.
+
+We prove a range of lemmas about this, mostly as wrappers over finset lemmas.
+-/
 
 open finset
 
+/-- `Prob s P` is the probability that a random element from `s` satisfies the predicate `P`. -/
 def Prob {α : Type*} (s : finset α) (P : α → Prop) [decidable_pred P] : ℚ :=
 (s.filter P).card / s.card
 

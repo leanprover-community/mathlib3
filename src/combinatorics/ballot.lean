@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import data.fintype.basic
 import data.set.finite
 import data.list
@@ -5,18 +10,20 @@ import tactic.field_simp
 import tactic.abel
 import combinatorics.Prob
 
+/-!
+# Ballot Problem
+
+This file proves Theorem 30 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
+
+-/
+
 open finset
 
-/-- Every nonempty suffix has positive sum -/
+/-- Every nonempty suffix has positive sum. -/
 def stays_positive (l : list ℤ) : Prop := ∀ l₂, l₂ ≠ [] → l₂ <:+ l → 0 < l₂.sum
 
 @[simp] lemma stays_positive_empty : stays_positive [] :=
 λ l hl hl₁, (hl (list.eq_nil_of_suffix_nil hl₁)).elim
-
-example {α : Type*} (x : α) (l l₁ : list α)
-  (hl₂ : l₁ <:+ l) :
-  l₁ <:+ x :: l :=
-hl₂.trans (list.suffix_cons _ _)
 
 lemma sublist_cons {α : Type*} (x : α) (l₁ l₂ : list α) :
   l₁ <:+ x :: l₂ ↔ l₁ = x :: l₂ ∨ l₁ <:+ l₂ :=
@@ -52,7 +59,7 @@ begin
     { apply hl _ hl₁ hl₂ } }
 end
 
-def list.sum_pos : ∀ (l : list ℤ) (hl : ∀ x ∈ l, (0 : ℤ) < x) (hl₂ : l ≠ []), 0 < l.sum
+lemma list.sum_pos : ∀ (l : list ℤ) (hl : ∀ x ∈ l, (0 : ℤ) < x) (hl₂ : l ≠ []), 0 < l.sum
 | [] _ h := (h rfl).elim
 | [b] h _ := by simpa using h
 | (a :: b :: l) hl₁ hl₂ :=
@@ -63,6 +70,12 @@ begin
   apply le_of_lt ((b :: l).sum_pos hl₁.2 (l.cons_ne_nil b)),
 end
 
+/--
+`counted_sequence p q` is the (fin)set of lists of `ℤ` for which every element is `+1` or `-1`,
+there are `p` lots of `+1` and `q` lots of `-1`.
+This represents vote sequences where candidate `+1` receives `p` votes and candidate `-1` receives
+`q` votes.
+-/
 def counted_sequence : ℕ → ℕ → finset (list ℤ)
 | 0 q := {list.repeat (-1) q}
 | (p+1) 0 := {list.repeat 1 (p+1)}
@@ -198,7 +211,7 @@ end
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ p, p.1 + p.2.1)⟩]}
 
 lemma first_vote_pos :
-  ∀ p q, p + q > 0 → Prob (counted_sequence p q) (λ l, l.head = 1) = p / (p + q)
+  ∀ p q, 0 < p + q  → Prob (counted_sequence p q) (λ l, l.head = 1) = p / (p + q)
 | (p+1) 0 h :=
   begin
     rw [counted_right_zero, Prob_singleton, list.repeat_succ, list.head_cons, if_pos rfl,
@@ -242,7 +255,7 @@ lemma head_mem_of_nonempty {α : Type*} [inhabited α] :
 | [] h := h rfl
 | (x :: l) _ := or.inl rfl
 
-lemma first_vote_neg (p q : ℕ) (h : p + q > 0) :
+lemma first_vote_neg (p q : ℕ) (h : 0 < p + q) :
   Prob (counted_sequence p q) (λ l, ¬(l.head = 1)) = q / (p + q) :=
 begin
   have := Prob_neg (λ (l : list ℤ), l.head = 1) (λ (l : list ℤ), ¬(l.head = 1))
@@ -256,28 +269,6 @@ begin
   { intros x hx,
     simp }
 end
-
--- lemma first_vote_neg (p q : ℕ) (h : p + q > 0) :
---   Prob (counted_sequence p q) (λ l, l.head = -1) = q / (p + q) :=
--- begin
---   have := Prob_neg (λ (l : list ℤ), l.head = 1) (λ (l : list ℤ), l.head = -1)
---             (counted_sequence p q) _ _,
---   { rw [first_vote_pos _ _ h, ← eq_sub_iff_add_eq'] at this,
---     rw this,
---     field_simp [show (p : ℚ) + q ≠ 0, by { apply ne_of_gt, assumption_mod_cast }] },
---   { rw [←card_pos, card_counted_sequence],
---     apply nat.choose_pos,
---     apply nat.le_add_right },
---   { intros l hl,
---     dsimp only,
---     rcases mem_counted_sequence hl (head_mem_of_nonempty _) with (h₁ | h₁),
---     { rw h₁,
---       norm_num },
---     { rw h₁,
---       norm_num },
---     apply list.ne_nil_of_length_pos,
---     rwa counted_sequence_length hl }
--- end
 
 lemma ballot_same (p : ℕ) : Prob (counted_sequence (p+1) (p+1)) stays_positive = 0 :=
 begin
@@ -402,29 +393,6 @@ begin
         assumption_mod_cast },
       apply hl₂ _ hl₃ hl₄ } },
   rw [this, card_map],
-end
-
-example (q p : ℕ) (qp : q < p) :
-  (↑p - ↑(q + 1)) / (↑p + ↑(q + 1)) *
-        (↑(p + 1) / (↑(p + 1) + ↑(q + 1))) +
-      (↑(p + 1) - ↑q) / (↑(p + 1) + ↑q) *
-        (↑(q + 1) / (↑(p + 1) + ↑(q + 1))) =
-    (↑(p + 1) - ↑(q + 1)) / (↑(p + 1) + ↑(q + 1) : ℚ) :=
-begin
-  have h₄ : (↑(p + 1) + ↑(q + 1)) ≠ (0 : ℚ),
-  { apply ne_of_gt,
-    norm_cast,
-    linarith },
-  have h₅ : (↑(p + 1) + ↑q) ≠ (0 : ℚ),
-  { apply ne_of_gt,
-    norm_cast,
-    linarith },
-  have h₆ : (↑p + ↑(q + 1)) ≠ (0 : ℚ),
-  { apply ne_of_gt,
-    norm_cast,
-    linarith },
-  field_simp [h₄, h₅, h₆],
-  ring,
 end
 
 theorem ballot :

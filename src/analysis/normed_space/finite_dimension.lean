@@ -177,15 +177,15 @@ def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E �
   end,
   ..e }
 
-/-- Two finite-dimensional normed spaces are linearly equivalent if they have the same (finite)
-dimension. -/
+/-- Two finite-dimensional normed spaces are continuously linearly equivalent if they have the same
+(finite) dimension. -/
 theorem finite_dimensional.nonempty_continuous_linear_equiv_of_findim_eq
   [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] (cond : findim 𝕜 E = findim 𝕜 F) :
   nonempty (E ≃L[𝕜] F) :=
 (nonempty_linear_equiv_of_findim_eq cond).map linear_equiv.to_continuous_linear_equiv
 
-/-- Two finite-dimensional normed spaces are linearly equivalent if and only if they have the same
-(finite) dimension. -/
+/-- Two finite-dimensional normed spaces are continuously linearly equivalent if and only if they
+have the same (finite) dimension. -/
 theorem finite_dimensional.nonempty_continuous_linear_equiv_iff_findim_eq
   [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] :
    nonempty (E ≃L[𝕜] F) ↔ findim 𝕜 E = findim 𝕜 F :=

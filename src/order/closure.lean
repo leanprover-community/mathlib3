@@ -52,6 +52,15 @@ instance : inhabited (closure_operator α) := ⟨id α⟩
 
 variables {α} (c : closure_operator α)
 
+/-- Constructor for a closure operator using the weaker idempotency axiom: `f (f x) ≤ f x`. -/
+@[simps]
+def mk' (f : α → α) (hf₁ : monotone f) (hf₂ : ∀ x, x ≤ f x) (hf₃ : ∀ x, f (f x) ≤ f x) :
+  closure_operator α :=
+{ to_fun := f,
+  monotone' := hf₁,
+  le_closure' := hf₂,
+  idempotent' := λ x, le_antisymm (hf₃ x) (hf₁ (hf₂ x)) }
+
 @[mono] lemma monotone : monotone c := c.monotone'
 /--
 Every element is less than its closure. This property is sometimes referred to as extensivity or

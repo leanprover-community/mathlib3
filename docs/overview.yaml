@@ -98,7 +98,7 @@ General algebra:
     tensor product of algebras: 'algebra.tensor_product.tensor_product.algebra'
     tensor algebra of a commutative ring: 'tensor_algebra'
     Lie algebra: 'lie_algebra'
-    Exterior algebra: 'exterior_algebra'
+    exterior algebra: 'exterior_algebra'
     Clifford algebra: 'clifford_algebra'
 
   Field theory:

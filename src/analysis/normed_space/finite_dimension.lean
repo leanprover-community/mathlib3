@@ -190,7 +190,7 @@ theorem finite_dimensional.nonempty_continuous_linear_equiv_iff_findim_eq
   [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] :
    nonempty (E ≃L[𝕜] F) ↔ findim 𝕜 E = findim 𝕜 F :=
 ⟨ λ ⟨h⟩, h.to_linear_equiv.findim_eq,
-  λ h, finite_dimensional.nonempty_continuous_linear_equiv_of_findim_eq h⟩
+  λ h, finite_dimensional.nonempty_continuous_linear_equiv_of_findim_eq h ⟩
 
 /-- A continuous linear equivalence between two finite-dimensional normed spaces of the same
 (finite) dimension. -/

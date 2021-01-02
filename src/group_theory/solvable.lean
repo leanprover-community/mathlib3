@@ -129,8 +129,8 @@ begin
     exactI general_commutator_normal (derived_series G n) (derived_series G n), }
 end
 
-lemma commutator_eq_general_commutator_top_top :
-  commutator G = general_commutator (⊤ : subgroup G) (⊤ : subgroup G) :=
+lemma general_commutator_eq_commutator :
+  general_commutator (⊤ : subgroup G) (⊤ : subgroup G) = commutator G :=
 begin
   rw [commutator, general_commutator_def'],
   apply le_antisymm; apply normal_closure_mono,

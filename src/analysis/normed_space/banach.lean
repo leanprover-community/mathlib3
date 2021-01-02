@@ -151,10 +151,9 @@ begin
     ∥x∥ ≤ (∑'n, ∥u n∥) : norm_tsum_le_tsum_norm sNu
     ... ≤ (∑'n, (1/2)^n * (C * ∥y∥)) :
       tsum_le_tsum ule sNu (summable.mul_right _ summable_geometric_two)
-    ... = (∑'n, (1/2)^n) * (C * ∥y∥) : by { rw tsum_mul_right, exact summable_geometric_two }
-    ... = 2 * (C * ∥y∥) : by rw tsum_geometric_two
-    ... = 2 * C * ∥y∥ + 0 : by rw [add_zero, mul_assoc]
-    ... ≤ 2 * C * ∥y∥ + ∥y∥ : add_le_add (le_refl _) (norm_nonneg _)
+    ... = (∑'n, (1/2)^n) * (C * ∥y∥) : tsum_mul_right
+    ... = 2 * C * ∥y∥ : by rw [tsum_geometric_two, mul_assoc]
+    ... ≤ 2 * C * ∥y∥ + ∥y∥ : le_add_of_nonneg_right (norm_nonneg y)
     ... = (2 * C + 1) * ∥y∥ : by ring,
   have fsumeq : ∀n:ℕ, f (∑ i in finset.range n, u i) = y - (h^[n]) y,
   { assume n,
@@ -172,10 +171,8 @@ begin
     rw tendsto_iff_norm_tendsto_zero,
     simp only [sub_zero],
     refine squeeze_zero (λ_, norm_nonneg _) hnle _,
-    have : 0 = 0 * ∥y∥, by rw zero_mul,
-    rw this,
-    refine tendsto.mul _ tendsto_const_nhds,
-    exact tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num) },
+    rw [← zero_mul ∥y∥],
+    refine (tendsto_pow_at_top_nhds_0_of_lt_1 _ _).mul tendsto_const_nhds; norm_num },
   have feq : f x = y - 0 := tendsto_nhds_unique L₁ L₂,
   rw sub_zero at feq,
   exact ⟨x, feq, x_ineq⟩
@@ -211,6 +208,7 @@ namespace linear_equiv
 theorem continuous_symm (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   continuous e.symm :=
 begin
+  rw continuous_def,
   intros s hs,
   rw [← e.image_eq_preimage],
   rw [← e.coe_coe] at h ⊢,

@@ -110,6 +110,17 @@ swap_swap
 @[simp] lemma swap_right_inverse : function.right_inverse (@swap α β) swap :=
 swap_swap
 
+lemma swap_injective : function.injective (@swap α β) :=
+swap_left_inverse.injective
+
+lemma swap_surjective : function.surjective (@swap α β) :=
+swap_left_inverse.surjective
+
+lemma swap_bijective : function.bijective (@swap α β) :=
+⟨swap_injective, swap_surjective⟩
+
+@[simp] lemma swap_inj {p q : α × β} : swap p = swap q ↔ p = q := swap_injective.eq_iff
+
 lemma eq_iff_fst_eq_snd_eq : ∀{p q : α × β}, p = q ↔ (p.1 = q.1 ∧ p.2 = q.2)
 | ⟨p₁, p₂⟩ ⟨q₁, q₂⟩ := by simp
 

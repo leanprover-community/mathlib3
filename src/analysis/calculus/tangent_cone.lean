@@ -217,7 +217,6 @@ segment belongs to the tangent cone at its endpoints. -/
 lemma mem_tangent_cone_of_segment_subset {s : set G} {x y : G} (h : segment x y ⊆ s) :
   y - x ∈ tangent_cone_at ℝ s x :=
 begin
-  let w : ℝ := 2,
   let c := λn:ℕ, (2:ℝ)^n,
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
   refine ⟨c, d, filter.univ_mem_sets' (λn, h _), _, _⟩,
@@ -342,7 +341,7 @@ begin
     simp [(submodule.span ℝ (tangent_cone_at ℝ s x)).eq_top_of_nonempty_interior'
       ⟨y - x, interior_mono submodule.subset_span this⟩] },
   rw [mem_interior_iff_mem_nhds] at hy ⊢,
-  apply mem_sets_of_superset ((is_open_map_add_right (-x)).image_mem_nhds hy),
+  apply mem_sets_of_superset ((is_open_map_sub_right x).image_mem_nhds hy),
   rintros _ ⟨z, zs, rfl⟩,
   exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs zs)
 end

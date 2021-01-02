@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Devon Tuma
 -/
 import ring_theory.ideal.operations
+import ring_theory.polynomial.basic
 
 /-!
 # Jacobson radical
@@ -154,6 +155,11 @@ begin
     { exact set.mem_insert_of_mem ⊤ ⟨map_mono hJ.1.1, hmax⟩ } },
 end
 
+lemma map_jacobson_of_bijective {f : R →+* S} (hf : function.bijective f) {I : ideal R} :
+  map f (I.jacobson) = (map f I).jacobson :=
+map_jacobson_of_surjective hf.right
+  (le_trans (le_of_eq (f.injective_iff_ker_eq_bot.1 hf.left)) bot_le)
+
 lemma comap_jacobson {f : R →+* S} {K : ideal S} :
   comap f (K.jacobson) = Inf (comap f '' {J : ideal S | K ≤ J ∧ J.is_maximal}) :=
 trans (comap_Inf' f _) (Inf_eq_infi).symm
@@ -177,6 +183,12 @@ begin
     haveI : J.is_maximal := hJ.right,
     refine Inf_le ⟨comap_mono hJ.left, comap_is_maximal_of_surjective _ hf⟩ }
 end
+
+lemma mem_jacobson_bot {x : R} : x ∈ jacobson (⊥ : ideal R) ↔ ∀ y, is_unit (x * y + 1) :=
+⟨λ hx y, let ⟨z, hz⟩ := (mem_jacobson_iff.1 hx) y in
+  is_unit_iff_exists_inv.2 ⟨z, by rwa [add_mul, one_mul, ← sub_eq_zero_iff_eq]⟩,
+λ h, mem_jacobson_iff.mpr (λ y, (let ⟨b, hb⟩ := is_unit_iff_exists_inv.1 (h y) in
+  ⟨b, (submodule.mem_bot R).2 (hb ▸ (by ring))⟩))⟩
 
 /-- An ideal `I` of `R` is equal to its Jacobson radical if and only if
 the Jacobson radical of the quotient ring `R/I` is the zero ideal -/
@@ -221,6 +233,36 @@ begin
 end
 
 end jacobson
+
+section polynomial
+open polynomial
+
+lemma jacobson_bot_polynomial_le_Inf_map_maximal :
+  jacobson (⊥ : ideal (polynomial R)) ≤ Inf (map C '' {J : ideal R | J.is_maximal}) :=
+begin
+  refine le_Inf (λ J, exists_imp_distrib.2 (λ j hj, _)),
+  haveI : j.is_maximal := hj.1,
+  refine trans (jacobson_mono bot_le) (le_of_eq _ : J.jacobson ≤ J),
+  suffices : (⊥ : ideal (polynomial j.quotient)).jacobson = ⊥,
+  { rw [← hj.2, jacobson_eq_iff_jacobson_quotient_eq_bot],
+    replace this := congr_arg (map (polynomial_quotient_equiv_quotient_polynomial j).to_ring_hom) this,
+    rwa [map_jacobson_of_bijective _, map_bot] at this,
+    exact (ring_equiv.bijective (polynomial_quotient_equiv_quotient_polynomial j)) },
+  refine eq_bot_iff.2 (λ f hf, _),
+  simpa [(λ hX, by simpa using congr_arg (λ f, coeff f 1) hX : (X : polynomial j.quotient) ≠ 0)]
+    using eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit ((mem_jacobson_bot.1 hf) X)),
+end
+
+lemma jacobson_bot_polynomial_of_jacobson_bot (h : jacobson (⊥ : ideal R) = ⊥) :
+  jacobson (⊥ : ideal (polynomial R)) = ⊥ :=
+begin
+  refine eq_bot_iff.2 (le_trans jacobson_bot_polynomial_le_Inf_map_maximal _),
+  refine (λ f hf, ((submodule.mem_bot _).2 (polynomial.ext (λ n, trans _ (coeff_zero n).symm)))),
+  suffices : f.coeff n ∈ ideal.jacobson ⊥, by rwa [h, submodule.mem_bot] at this,
+  exact mem_Inf.2 (λ j hj, (mem_map_C_iff.1 ((mem_Inf.1 hf) ⟨j, ⟨hj.2, rfl⟩⟩)) n),
+end
+
+end polynomial
 
 section is_local
 

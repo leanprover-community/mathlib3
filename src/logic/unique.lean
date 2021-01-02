@@ -56,10 +56,15 @@ instance punit.unique : unique punit.{u} :=
 { default := punit.star,
   uniq := λ x, punit_eq x _ }
 
+lemma fin.eq_zero : ∀ n : fin 1, n = 0
+| ⟨n, hn⟩ := fin.eq_of_veq (nat.eq_zero_of_le_zero (nat.le_of_lt_succ hn))
+
+instance {n : ℕ} : inhabited (fin n.succ) := ⟨0⟩
+
+@[simp] lemma fin.default_eq_zero (n : ℕ) : default (fin n.succ) = 0 := rfl
+
 instance fin.unique : unique (fin 1) :=
-{ default := 0,
-  uniq := λ ⟨n, hn⟩, fin.eq_of_veq
-    (nat.eq_zero_of_le_zero (nat.le_of_lt_succ hn)) }
+{ uniq := fin.eq_zero, .. fin.inhabited }
 
 namespace unique
 open function
@@ -110,6 +115,11 @@ rfl
 instance pi.unique {β : Π a : α, Sort v} [Π a, unique (β a)] : unique (Π a, β a) :=
 { uniq := λ f, funext $ λ x, unique.eq_default _,
   .. pi.inhabited α }
+
+/-- There is a unique function on an empty domain. -/
+def pi.unique_of_empty (h : α → false) (β : Π a : α, Sort v) : unique (Π a, β a) :=
+{ default := λ a, (h a).elim,
+  uniq := λ f, funext $ λ a, (h a).elim }
 
 namespace function
 

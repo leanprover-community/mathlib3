@@ -5,6 +5,7 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import tactic.nth_rewrite
 import data.matrix.basic
+import data.equiv.ring_aut
 import linear_algebra.tensor_product
 import ring_theory.subring
 import deprecated.subring
@@ -196,7 +197,7 @@ The canonical ring homomorphism `algebra_map R A : R →* A` for any `R`-algebra
 packaged as an `R`-linear map.
 -/
 protected def linear_map : R →ₗ[R] A :=
-{ map_smul' := λ x y, begin dsimp, simp [algebra.smul_def], end,
+{ map_smul' := λ x y, by simp [algebra.smul_def],
   ..algebra_map R A }
 
 @[simp]
@@ -327,12 +328,11 @@ namespace opposite
 variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 
 instance : algebra R Aᵒᵖ :=
-{ smul := λ c x, op (c • unop x),
-  to_ring_hom := (algebra_map R A).to_opposite $ λ x y, algebra.commutes _ _,
-  smul_def' := λ c x, by dsimp; simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop],
-  commutes' := λ r, op_induction $ λ x, by dsimp; simp only [← op_mul, algebra.commutes] }
-
-@[simp] lemma op_smul (c : R) (a : A) : op (c • a) = c • op a := rfl
+{ to_ring_hom := (algebra_map R A).to_opposite $ λ x y, algebra.commutes _ _,
+  smul_def' := λ c x, unop_injective $
+    by { dsimp, simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop] },
+  commutes' := λ r, op_induction $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
+  ..opposite.has_scalar A R }
 
 @[simp] lemma algebra_map_apply (c : R) : algebra_map R Aᵒᵖ c = op (algebra_map R A c) := rfl
 
@@ -477,6 +477,14 @@ lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α)
 @[simp] lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) :=
 φ.to_ring_hom.map_bit1 x
 
+/-- If a `ring_hom` is `R`-linear, then it is an `alg_hom`. -/
+def mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : A →ₐ[R] B :=
+{ to_fun := f,
+  commutes' := λ c, by simp only [algebra.algebra_map_eq_smul_one, h, f.map_one],
+  .. f }
+
+@[simp] lemma coe_mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : ⇑(mk' f h) = f := rfl
+
 section
 
 variables (R A)
@@ -609,6 +617,14 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
+protected lemma congr_arg {f : A₁ ≃ₐ[R] A₂} : Π {x x' : A₁}, x = x' → f x = f x'
+| _ _ rfl := rfl
+
+protected lemma congr_fun {f g : A₁ ≃ₐ[R] A₂} (h : f = g) (x : A₁) : f x = g x := h ▸ rfl
+
+lemma ext_iff {f g : A₁ ≃ₐ[R] A₂} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, ext⟩
+
 lemma coe_fun_injective : @function.injective (A₁ ≃ₐ[R] A₂) (A₁ → A₂) (λ e, (e : A₁ → A₂)) :=
 begin
   intros f g w,
@@ -728,6 +744,39 @@ by { ext, simp }
   alg_hom.comp ↑e.symm (e : A₁ →ₐ[R] A₂) = alg_hom.id R A₁ :=
 by { ext, simp }
 
+/-- If `A₁` is equivalent to `A₁'` and `A₂` is equivalent to `A₂'`, then the type of maps
+`A₁ →ₐ[R] A₂` is equivalent to the type of maps `A₁' →ₐ[R] A₂'`. -/
+def arrow_congr {A₁' A₂' : Type*} [semiring A₁'] [semiring A₂'] [algebra R A₁'] [algebra R A₂']
+  (e₁ : A₁ ≃ₐ[R] A₁') (e₂ : A₂ ≃ₐ[R] A₂') : (A₁ →ₐ[R] A₂) ≃ (A₁' →ₐ[R] A₂') :=
+{ to_fun := λ f, (e₂.to_alg_hom.comp f).comp e₁.symm.to_alg_hom,
+  inv_fun := λ f, (e₂.symm.to_alg_hom.comp f).comp e₁.to_alg_hom,
+  left_inv := λ f, by { simp only [alg_hom.comp_assoc, to_alg_hom_eq_coe, symm_comp],
+    simp only [←alg_hom.comp_assoc, symm_comp, alg_hom.id_comp, alg_hom.comp_id] },
+  right_inv := λ f, by { simp only [alg_hom.comp_assoc, to_alg_hom_eq_coe, comp_symm],
+    simp only [←alg_hom.comp_assoc, comp_symm, alg_hom.id_comp, alg_hom.comp_id] } }
+
+lemma arrow_congr_comp {A₁' A₂' A₃' : Type*} [semiring A₁'] [semiring A₂'] [semiring A₃']
+  [algebra R A₁'] [algebra R A₂'] [algebra R A₃'] (e₁ : A₁ ≃ₐ[R] A₁') (e₂ : A₂ ≃ₐ[R] A₂')
+  (e₃ : A₃ ≃ₐ[R] A₃') (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₃) :
+  arrow_congr e₁ e₃ (g.comp f) = (arrow_congr e₂ e₃ g).comp (arrow_congr e₁ e₂ f) :=
+by { ext, simp only [arrow_congr, equiv.coe_fn_mk, alg_hom.comp_apply],
+  congr, exact (e₂.symm_apply_apply _).symm }
+
+@[simp] lemma arrow_congr_refl :
+  arrow_congr alg_equiv.refl alg_equiv.refl = equiv.refl (A₁ →ₐ[R] A₂) :=
+by { ext, refl }
+
+@[simp] lemma arrow_congr_trans {A₁' A₂' A₃' : Type*} [semiring A₁'] [semiring A₂'] [semiring A₃']
+  [algebra R A₁'] [algebra R A₂'] [algebra R A₃'] (e₁ : A₁ ≃ₐ[R] A₂) (e₁' : A₁' ≃ₐ[R] A₂')
+  (e₂ : A₂ ≃ₐ[R] A₃) (e₂' : A₂' ≃ₐ[R] A₃') :
+  arrow_congr (e₁.trans e₂) (e₁'.trans e₂') = (arrow_congr e₁ e₁').trans (arrow_congr e₂ e₂') :=
+by { ext, refl }
+
+@[simp] lemma arrow_congr_symm {A₁' A₂' : Type*} [semiring A₁'] [semiring A₂']
+  [algebra R A₁'] [algebra R A₂'] (e₁ : A₁ ≃ₐ[R] A₁') (e₂ : A₂ ≃ₐ[R] A₂') :
+  (arrow_congr e₁ e₂).symm = arrow_congr e₁.symm e₂.symm :=
+by { ext, refl }
+
 /-- If an algebra morphism has an inverse, it is a algebra isomorphism. -/
 def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.comp g = alg_hom.id R A₂)
   (h₂ : g.comp f = alg_hom.id R A₁) : A₁ ≃ₐ[R] A₂ :=
@@ -774,6 +823,15 @@ ext $ λ x, show e₁.to_linear_map x = e₂.to_linear_map x, by rw H
 @[simp] lemma trans_to_linear_map (f : A₁ ≃ₐ[R] A₂) (g : A₂ ≃ₐ[R] A₃) :
   (f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
+instance aut : group (A₁ ≃ₐ[R] A₁) :=
+{ mul := λ ϕ ψ, ψ.trans ϕ,
+  mul_assoc := λ ϕ ψ χ, rfl,
+  one := 1,
+  one_mul := λ ϕ, by { ext, refl },
+  mul_one := λ ϕ, by { ext, refl },
+  inv := symm,
+  mul_left_inv := λ ϕ, by { ext, exact symm_apply_apply ϕ a } }
+
 end semiring
 
 section comm_semiring
@@ -818,6 +876,44 @@ e.to_alg_hom.map_div x y
 end division_ring
 
 end alg_equiv
+
+namespace matrix
+
+/-! ### `matrix` section
+
+Specialize `matrix.one_map` and `matrix.zero_map` to `alg_hom` and `alg_equiv`.
+TODO: there should be a way to avoid restating these for each `foo_hom`.
+-/
+
+variables {R A₁ A₂ n : Type*} [fintype n]
+
+section semiring
+
+variables [comm_semiring R] [semiring A₁] [algebra R A₁] [semiring A₂] [algebra R A₂]
+
+/-- A version of `matrix.one_map` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_one [decidable_eq n]
+  (f : A₁ →ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `matrix.one_map` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_one [decidable_eq n]
+  (f : A₁ ≃ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `matrix.zero_map` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_zero
+  (f : A₁ →ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `matrix.zero_map` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_zero
+  (f : A₁ ≃ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
+map_zero f.map_zero
+
+end semiring
+
+end matrix
 
 namespace algebra
 
@@ -882,6 +978,32 @@ def comap : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
   ..φ }
 
 end alg_hom
+
+namespace ring_hom
+
+variables {R S : Type*}
+
+/-- Reinterpret a `ring_hom` as an `ℕ`-algebra homomorphism. -/
+def to_nat_alg_hom [semiring R] [semiring S] [algebra ℕ R] [algebra ℕ S] (f : R →+* S) :
+  R →ₐ[ℕ] S :=
+{ to_fun := f, commutes' := λ n, by simp, .. f }
+
+/-- Reinterpret a `ring_hom` as a `ℤ`-algebra homomorphism. -/
+def to_int_alg_hom [ring R] [ring S] [algebra ℤ R] [algebra ℤ S] (f : R →+* S) :
+  R →ₐ[ℤ] S :=
+{ commutes' := λ n, by simp, .. f }
+
+@[simp] lemma map_rat_algebra_map [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+* S)
+  (r : ℚ) :
+  f (algebra_map ℚ R r) = algebra_map ℚ S r :=
+ring_hom.ext_iff.1 (subsingleton.elim (f.comp (algebra_map ℚ R)) (algebra_map ℚ S)) r
+
+/-- Reinterpret a `ring_hom` as a `ℚ`-algebra homomorphism. -/
+def to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+* S) :
+  R →ₐ[ℚ] S :=
+{ commutes' := f.map_rat_algebra_map, .. f }
+
+end ring_hom
 
 namespace rat
 
@@ -977,18 +1099,11 @@ section nat
 
 variables (R : Type*) [semiring R]
 
-/-- Reinterpret a `ring_hom` as an `ℕ`-algebra homomorphism. -/
-def alg_hom_nat
-  {R : Type u} [semiring R] [algebra ℕ R]
-  {S : Type v} [semiring S] [algebra ℕ S]
-  (f : R →+* S) : R →ₐ[ℕ] S :=
-{ commutes' := λ i, show f _ = _, by simp, .. f }
-
 /-- Semiring ⥤ ℕ-Alg -/
 instance algebra_nat : algebra ℕ R :=
 { commutes' := nat.cast_commute,
   smul_def' := λ _ _, nsmul_eq_mul _ _,
-  .. nat.cast_ring_hom R }
+  to_ring_hom := nat.cast_ring_hom R }
 
 section span_nat
 open submodule
@@ -1010,25 +1125,11 @@ section int
 
 variables (R : Type*) [ring R]
 
-/-- Reinterpret a `ring_hom` as a `ℤ`-algebra homomorphism. -/
-def alg_hom_int
-  {R : Type u} [comm_ring R] [algebra ℤ R]
-  {S : Type v} [comm_ring S] [algebra ℤ S]
-  (f : R →+* S) : R →ₐ[ℤ] S :=
-{ commutes' := λ i, show f _ = _, by simp, .. f }
-
 /-- Ring ⥤ ℤ-Alg -/
 instance algebra_int : algebra ℤ R :=
 { commutes' := int.cast_commute,
   smul_def' := λ _ _, gsmul_eq_mul _ _,
-  .. int.cast_ring_hom R }
-
-/--
-Promote a ring homomorphisms to a `ℤ`-algebra homomorphism.
--/
-def ring_hom.to_int_alg_hom {R S : Type*} [ring R] [ring S] (f : R →+* S) : R →ₐ[ℤ] S :=
-{ commutes' := λ n, by simp,
-  .. f }
+  to_ring_hom := int.cast_ring_hom R }
 
 variables {R}
 

@@ -69,7 +69,7 @@ by rw [eigenspace, linear_map.mem_ker, linear_map.sub_apply, algebra_map_End_app
 lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :
   eigenspace f (a / b) = (b • f - algebra_map K (End K V) a).ker :=
 calc
-  eigenspace f (a / b) = eigenspace f (b⁻¹ * a) : by { dsimp [(/)], rw mul_comm }
+  eigenspace f (a / b) = eigenspace f (b⁻¹ * a) : by { rw [div_eq_mul_inv, mul_comm] }
   ... = (f - (b⁻¹ * a) • linear_map.id).ker : rfl
   ... = (f - b⁻¹ • a • linear_map.id).ker : by rw smul_smul
   ... = (f - b⁻¹ • algebra_map K (End K V) a).ker : rfl
@@ -177,7 +177,7 @@ begin
   { simp only [←not_imp, (is_unit.mem_submonoid_iff _).symm],
     apply not_forall.1 (λ h, h_eval_p_not_unit
       (ring_hom_mem_submonoid_of_factors_subset_of_units_subset
-      (eval₂_ring_hom' (algebra_map _ _) algebra.commutes f)
+      (eval₂_ring_hom' (algebra_map _ _) f _)
       (is_unit.submonoid (End K V)) p h_mon.ne_zero h _)),
     simp only [is_unit.mem_submonoid_iff, linear_map.is_unit_iff],
     apply ker_aeval_ring_hom'_unit_polynomial },

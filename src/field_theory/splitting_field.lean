@@ -11,6 +11,7 @@ import ring_theory.algebraic
 import ring_theory.polynomial
 import field_theory.minimal_polynomial
 import linear_algebra.finite_dimensional
+import tactic.field_simp
 
 noncomputable theory
 open_locale classical big_operators
@@ -100,6 +101,9 @@ splits_of_splits_of_dvd i one_ne_zero (splits_one _) $ is_unit_iff_dvd_one.1 hu
 
 theorem splits_X_sub_C {x : α} : (X - C x).splits i :=
 splits_of_degree_eq_one _ $ degree_X_sub_C x
+
+theorem splits_X : X.splits i :=
+splits_of_degree_eq_one _ $ degree_X
 
 theorem splits_id_iff_splits {f : polynomial α} :
   (f.map i).splits (ring_hom.id β) ↔ f.splits i :=
@@ -362,31 +366,27 @@ end
 
 /-- A polynomial `p` that has as much roots as its degree
 can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
-lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α} (hzero : p ≠ 0)
+lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α}
   (hroots : p.roots.card = p.nat_degree) :
   (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod = p :=
 begin
-  have hcoeff : p.leading_coeff ≠ 0,
-  { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
-  have sameroots : p.roots = (normalize p).roots,
-  { rw [normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero,
-        roots_C_mul _ (inv_ne_zero hcoeff)] },
-  have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
-  { rw [← sameroots, normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero],
-    have hCzero : C (p.leading_coeff)⁻¹ ≠ 0,
-    { rw [ne.def, C_eq_zero], exact (inv_ne_zero hcoeff) },
-    simp only [nat_degree_C, zero_add, nat_degree_mul hCzero hzero],
-    exact hroots },
-  have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero) hrootsnorm,
-  rw [← sameroots, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
-  calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
-      = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
-  ... = p * C 1 : by field_simp [hcoeff]
-  ... = p : by simp only [mul_one, ring_hom.map_one]
+  by_cases hzero : p = 0,
+  { rw [hzero, leading_coeff_zero, ring_hom.map_zero, zero_mul], },
+  { have hcoeff : p.leading_coeff ≠ 0,
+    { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
+    have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
+    { rw [roots_normalize, normalize_apply, nat_degree_mul hzero (units.ne_zero _), hroots, coe_norm_unit,
+        nat_degree_C, add_zero], },
+    have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero) hrootsnorm,
+    rw [roots_normalize, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
+    calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
+        = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
+    ... = p * C 1 : by field_simp
+    ... = p : by simp only [mul_one, ring_hom.map_one], },
 end
 
 /-- A polynomial splits if and only if it has as much roots as its degree. -/
-lemma splits_iff_card_roots {p : polynomial α} (hzero : p ≠ 0) :
+lemma splits_iff_card_roots {p : polynomial α} :
   splits (ring_hom.id α) p ↔ p.roots.card = p.nat_degree :=
 begin
   split,
@@ -395,7 +395,7 @@ begin
     apply (splits_iff_exists_multiset (ring_hom.id α)).2,
     use p.roots,
     simp only [ring_hom.id_apply, map_id],
-    exact (C_leading_coeff_mul_prod_multiset_X_sub_C hzero hroots).symm },
+    exact (C_leading_coeff_mul_prod_multiset_X_sub_C hroots).symm },
 end
 
 end splits
@@ -452,7 +452,8 @@ begin
       (minimal_polynomial.dvd _ _),
     { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
     { rw [← is_scalar_tower.aeval_apply, minimal_polynomial.aeval H1] } },
-  obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (minimal_polynomial.degree_ne_zero H5),
+  obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6
+  (ne_of_lt (minimal_polynomial.degree_pos H5)).symm,
   exact ⟨subalgebra.of_under _ _ $ (adjoin_root.lift_hom (minimal_polynomial H5) y hy).comp $
     alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial _ _ H5⟩
 end

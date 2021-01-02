@@ -291,28 +291,64 @@ instance has_lift2 {F : intermediate_field K L} :
 @[simp] lemma mem_lift2 {F : intermediate_field K L} {E : intermediate_field F L} {x : L} :
   x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := iff.rfl
 
+instance lift2_alg {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
+{ to_fun := (algebra_map F E).comp (algebra_map K F),
+  map_zero' := ((algebra_map F E).comp (algebra_map K F)).map_zero,
+  map_one' := ((algebra_map F E).comp (algebra_map K F)).map_one,
+  map_add' := ((algebra_map F E).comp (algebra_map K F)).map_add,
+  map_mul' := ((algebra_map F E).comp (algebra_map K F)).map_mul,
+  smul := λ a b, (((algebra_map F E).comp (algebra_map K F)) a) * b,
+  smul_def' := λ _ _, rfl,
+  commutes' := λ a b, mul_comm (((algebra_map F E).comp (algebra_map K F)) a) b }
+
+instance lift2_tower {F : intermediate_field K L} {E : intermediate_field F L} :
+  is_scalar_tower K F E :=
+⟨λ a b c, by { simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc], refl }⟩
+
+/-- `lift2` is isomorphic to the original `intermediate_field`. -/
+def lift2_alg_equiv {F : intermediate_field K L} (E : intermediate_field F L) :
+  (↑E : intermediate_field K L) ≃ₐ[K] E :=
+{ to_fun := λ x, x,
+  inv_fun := λ x, x,
+  left_inv := λ x, rfl,
+  right_inv := λ x, rfl,
+  map_add' := λ x y, rfl,
+  map_mul' := λ x y, rfl,
+  commutes' := λ x, rfl }
+
 end tower
 
 section finite_dimensional
 
-instance finite_dimensional_left [finite_dimensional K L] (F : intermediate_field K L) :
-  finite_dimensional K F :=
+variables (F E : intermediate_field K L)
+
+instance finite_dimensional_left [finite_dimensional K L] : finite_dimensional K F :=
 finite_dimensional.finite_dimensional_submodule F.to_subalgebra.to_submodule
 
-instance finite_dimensional_right [finite_dimensional K L] (F : intermediate_field K L) :
-  finite_dimensional F L :=
+instance finite_dimensional_right [finite_dimensional K L] : finite_dimensional F L :=
 right K F L
 
-lemma eq_of_le_of_findim_le [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
+@[simp] lemma dim_eq_dim_subalgebra :
+  vector_space.dim K F.to_subalgebra = vector_space.dim K F := rfl
+
+@[simp] lemma findim_eq_findim_subalgebra :
+  findim K F.to_subalgebra = findim K F := rfl
+
+variables {F} {E}
+
+@[simp] lemma to_subalgebra_eq_iff : F.to_subalgebra = E.to_subalgebra ↔ F = E :=
+by { rw [subalgebra.ext_iff, intermediate_field.ext'_iff, set.ext_iff], refl }
+
+lemma eq_of_le_of_findim_le [finite_dimensional K L] (h_le : F ≤ E)
   (h_findim : findim K E ≤ findim K F) : F = E :=
 intermediate_field.ext'_iff.mpr (submodule.ext'_iff.mp (eq_of_le_of_findim_le
   (show F.to_subalgebra.to_submodule ≤ E.to_subalgebra.to_submodule, by exact h_le) h_findim))
 
-lemma eq_of_le_of_findim_eq [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
+lemma eq_of_le_of_findim_eq [finite_dimensional K L] (h_le : F ≤ E)
   (h_findim : findim K F = findim K E) : F = E :=
 eq_of_le_of_findim_le h_le h_findim.ge
 
-lemma eq_of_le_of_findim_le' [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
+lemma eq_of_le_of_findim_le' [finite_dimensional K L] (h_le : F ≤ E)
   (h_findim : findim F L ≤ findim E L) : F = E :=
 begin
   apply eq_of_le_of_findim_le h_le,
@@ -322,7 +358,7 @@ begin
   nlinarith,
 end
 
-lemma eq_of_le_of_findim_eq' [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
+lemma eq_of_le_of_findim_eq' [finite_dimensional K L] (h_le : F ≤ E)
   (h_findim : findim F L = findim E L) : F = E :=
 eq_of_le_of_findim_le' h_le h_findim.le
 

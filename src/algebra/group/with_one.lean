@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
 import algebra.ring.basic
+import data.equiv.basic
 
 universes u v
 variable {α : Type u}
@@ -90,13 +91,17 @@ variables [semigroup α] {β : Type v} [monoid β]
 
 /-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism. -/
 @[to_additive "Lift an add_semigroup homomorphism `f` to a bundled add_monoid homorphism."]
-def lift (f : mul_hom α β) : (with_one α) →* β :=
-{ to_fun := λ x, option.cases_on x 1 f,
-  map_one' := rfl,
-  map_mul' := λ x y,
-    with_one.cases_on x (by { rw one_mul, exact (one_mul _).symm }) $ λ x,
-    with_one.cases_on y (by { rw mul_one, exact (mul_one _).symm }) $ λ y,
-    f.map_mul x y }
+def lift : mul_hom α β ≃ (with_one α →* β) :=
+{ to_fun := λ f,
+  { to_fun := λ x, option.cases_on x 1 f,
+    map_one' := rfl,
+    map_mul' := λ x y,
+      with_one.cases_on x (by { rw one_mul, exact (one_mul _).symm }) $ λ x,
+      with_one.cases_on y (by { rw mul_one, exact (mul_one _).symm }) $ λ y,
+      f.map_mul x y },
+  inv_fun := λ F, F.to_mul_hom.comp coe_mul_hom,
+  left_inv := λ f, mul_hom.ext $ λ x, rfl,
+  right_inv := λ F, monoid_hom.ext $ λ x, with_one.cases_on x F.map_one.symm $ λ x, rfl }
 
 variables (f : mul_hom α β)
 
@@ -108,7 +113,7 @@ lemma lift_one : lift f 1 = 1 := rfl
 
 @[to_additive]
 theorem lift_unique (f : with_one α →* β) : f = lift (f.to_mul_hom.comp coe_mul_hom) :=
-monoid_hom.ext $ λ x, with_one.cases_on x f.map_one $ λ x, rfl
+(lift.apply_symm_apply f).symm
 
 end lift
 

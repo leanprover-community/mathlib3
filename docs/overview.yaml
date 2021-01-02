@@ -306,10 +306,10 @@ Geometry:
 
 Combinatorics:
   Graph theory:
-    simple graphs: 'simple_graph'
+    simple graph: 'simple_graph'
     degree-sum formula: 'simple_graph.sum_degrees_eq_twice_card_edges'
-    matchings: 'simple_graph.matching'
-    adjacency matrices: 'simple_graph.adj_matrix'
+    matching: 'simple_graph.matching'
+    adjacency matrix: 'simple_graph.adj_matrix'
   Pigeonhole principles:
     finite: 'fintype.exists_ne_map_eq_of_card_lt'
     infinite: 'fintype.exists_infinite_fiber'

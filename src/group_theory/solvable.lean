@@ -91,8 +91,7 @@ end
 lemma commutator_eq_general_commutator_top_top :
   commutator G = general_commutator (⊤ : subgroup G) (⊤ : subgroup G) :=
 begin
-  rw commutator,
-  rw general_commutator_def',
+  rw [commutator, general_commutator_def'],
   apply le_antisymm; apply normal_closure_mono,
   { exact λ x ⟨p, q, h⟩, ⟨p, mem_top p, q, mem_top q, h⟩, },
   { exact λ x ⟨p, _, q, _, h⟩, ⟨p, q, h⟩, }

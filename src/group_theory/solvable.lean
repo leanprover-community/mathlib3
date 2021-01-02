@@ -116,7 +116,7 @@ variables (G)
 
 /-- A group `G` is solvable if its derived series is eventually trivial. We use this definition
   because it's the most convenient one to work with. -/
-def is_solvable : Prop := ∃ n : ℕ, derived_series G n = (⊥ : subgroup G)
+def is_solvable : Prop := ∃ n : ℕ, derived_series G n = ⊥
 
 lemma is_solvable_of_comm {G : Type*} [comm_group G] : is_solvable G :=
 begin

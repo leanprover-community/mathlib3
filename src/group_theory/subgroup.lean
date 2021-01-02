@@ -982,7 +982,7 @@ normal_closure_eq_self_of_normal
 theorem closure_le_normal_closure {s : set G} : closure s ≤ normal_closure s :=
 by simp only [subset_normal_closure, closure_le]
 
-theorem normal_closure_closure_eq_normal_closure {s : set G} :
+@[simp] theorem normal_closure_closure_eq_normal_closure {s : set G} :
   normal_closure ↑(closure s) = normal_closure s :=
 le_antisymm (normal_closure_le_normal closure_le_normal_closure)
   (normal_closure_mono subset_closure)

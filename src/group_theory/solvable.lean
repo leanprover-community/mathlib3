@@ -59,7 +59,7 @@ end
 
 lemma general_commutator_eq_normal_closure_self (H₁ H₂ : subgroup G) [H₁.normal]
   [H₂.normal] : general_commutator H₁ H₂ = normal_closure (general_commutator H₁ H₂) :=
-eq.symm normal_closure_eq_self_of_normal
+eq.symm normal_closure_eq_self
 
 lemma general_commutator_def' (H₁ H₂ : subgroup G) [H₁.normal] [H₂.normal] :
   general_commutator H₁ H₂ = normal_closure {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x} :=
@@ -129,25 +129,25 @@ begin
     exactI general_commutator_normal (derived_series G n) (derived_series G n), }
 end
 
-lemma general_commutator_eq_commutator :
+@[simp] lemma general_commutator_eq_commutator :
   general_commutator (⊤ : subgroup G) (⊤ : subgroup G) = commutator G :=
 begin
   rw [commutator, general_commutator_def'],
   apply le_antisymm; apply normal_closure_mono,
-  { exact λ x ⟨p, q, h⟩, ⟨p, mem_top p, q, mem_top q, h⟩, },
-  { exact λ x ⟨p, _, q, _, h⟩, ⟨p, q, h⟩, }
+  { exact λ x ⟨p, _, q, _, h⟩, ⟨p, q, h⟩, },
+  { exact λ x ⟨p, q, h⟩, ⟨p, mem_top p, q, mem_top q, h⟩, }
 end
 
 lemma commutator_def' : commutator G = subgroup.closure {x : G | ∃ p q, p * q * p⁻¹ * q⁻¹ = x} :=
 begin
-  rw [commutator_eq_general_commutator_top_top, general_commutator],
+  rw [← general_commutator_eq_commutator, general_commutator],
   apply le_antisymm; apply closure_mono,
   { exact λ x ⟨p, _, q, _, h⟩, ⟨p, q, h⟩ },
   { exact λ x ⟨p, q, h⟩, ⟨p, mem_top p, q, mem_top q, h⟩ }
 end
 
 @[simp] lemma derived_series_one : derived_series G 1 = commutator G :=
-eq.symm $ commutator_eq_general_commutator_top_top G
+general_commutator_eq_commutator G
 
 end derived_series
 

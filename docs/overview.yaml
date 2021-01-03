@@ -94,9 +94,12 @@ General algebra:
   Algebras over a ring:
     associative algebra over a commutative ring: 'algebra'
     the category of algebras over a ring: 'Algebra'
+    free algebra of a commutative ring: 'free_algebra'
     tensor product of algebras: 'algebra.tensor_product.tensor_product.algebra'
     tensor algebra of a commutative ring: 'tensor_algebra'
     Lie algebra: 'lie_algebra'
+    exterior algebra: 'exterior_algebra'
+    Clifford algebra: 'clifford_algebra'
 
   Field theory:
     fields: 'field'

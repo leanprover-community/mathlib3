@@ -63,4 +63,10 @@ instance of_is_lawful_functor
   map_refl' := λ α, by { ext, apply is_lawful_functor.id_map, },
   map_trans' := λ α β γ k h, by { ext x, apply (is_lawful_functor.comp_map k h x), } }
 
+lemma map_equiv.injective
+  (f : Type u₀ → Type u₁) [applicative f] [is_lawful_applicative f] {α β : Type u₀}
+  (h : ∀ γ, function.injective (pure : γ → f γ)) :
+  function.injective (@equiv_functor.map_equiv f _ α β) :=
+λ e₁ e₂ H, equiv.ext $ λ x, h β (by simpa [equiv_functor.map] using equiv.congr_fun H (pure x))
+
 end equiv_functor

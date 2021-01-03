@@ -9,7 +9,7 @@ open equiv
 
 lemma equiv_functor.map_equiv_option_injective {α β : Type*} :
   function.injective (equiv_functor.map_equiv option : α ≃ β → option α ≃ option β) :=
-λ σ₁ σ₂ h, equiv.ext $ λ x, by simpa [equiv_functor.map] using equiv.congr_fun h (some x)
+equiv_functor.map_equiv.injective option option.some_injective
 
 @[simp]
 lemma map_equiv_remove_none {α : Type*} [decidable_eq α] [fintype α] (σ : perm (option α)) :

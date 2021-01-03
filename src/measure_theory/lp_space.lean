@@ -174,6 +174,19 @@ begin
   exact hfp.mem_ℒp_of_exponent_le zero_lt_one hp1,
 end
 
+lemma snorm_add_le {f g : α → E} (hf : measurable f) (hg : measurable g) (hp1 : 1 ≤ p) :
+  snorm (f + g) p μ ≤ snorm f p μ + snorm g p μ :=
+calc (∫⁻ a, ↑(nnnorm ((f + g) a)) ^ p ∂μ) ^ (1 / p)
+    ≤ (∫⁻ a, (((λ a, (nnnorm (f a) : ennreal))
+        + (λ a, (nnnorm (g a) : ennreal))) a) ^ p ∂μ) ^ (1 / p) :
+begin
+  refine @ennreal.rpow_le_rpow _ _ (1/p) _ (by simp [le_trans zero_le_one hp1]),
+  refine lintegral_mono (λ a, ennreal.rpow_le_rpow _ (le_trans zero_le_one hp1)),
+  simp [←ennreal.coe_add, nnnorm_add_le],
+end
+... ≤ snorm f p μ + snorm g p μ :
+  ennreal.lintegral_Lp_add_le hf.nnnorm.ennreal_coe hg.nnnorm.ennreal_coe hp1
+
 section second_countable_topology
 variable [topological_space.second_countable_topology E]
 

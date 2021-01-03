@@ -246,6 +246,9 @@ def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃
 ⟨ λac, (ab.symm.trans ac).trans cd, λbd, ab.trans $ bd.trans $ cd.symm,
   assume ac, by { ext x, simp }, assume ac, by { ext x, simp } ⟩
 
+@[simp] lemma equiv_congr_apply_apply {δ} (ab : α ≃ β) (cd : γ ≃ δ) (e : α ≃ γ) (x) :
+  ab.equiv_congr cd e x = cd (e (ab.symm x)) := rfl
+
 /-- If `α` is equivalent to `β`, then `perm α` is equivalent to `perm β`. -/
 def perm_congr {α : Type*} {β : Type*} (e : α ≃ β) : perm α ≃ perm β :=
 equiv_congr e e

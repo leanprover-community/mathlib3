@@ -43,7 +43,6 @@ def equiv.perm.decompose_fin {n : ℕ} :
 ((equiv.perm_congr $ fin_succ_equiv n).trans equiv.perm.decompose_option).trans
   (equiv.prod_congr (fin_succ_equiv n).symm (equiv.refl _))
 
-
 /-- The set of all permutations of `option α` can be constructed by augmenting the set of
 permutations of `α` by each element of `option α` in turn. -/
 lemma finset.univ_perm_option {α : Type*} [decidable_eq α] [fintype α] :
@@ -54,6 +53,6 @@ lemma finset.univ_perm_option {α : Type*} [decidable_eq α] [fintype α] :
 /-- The set of all permutations of `option α` can be constructed by augmenting the set of
 permutations of `α` by each element of `option α` in turn. -/
 lemma finset.univ_perm_fin_succ {n : ℕ} :
-  @finset.univ (perm $ fin n.succ) _ = (finset.univ : finset $ fin n × perm (fin n)).map
+  @finset.univ (perm $ fin n.succ) _ = (finset.univ : finset $ fin n.succ × perm (fin n)).map
   equiv.perm.decompose_fin.symm.to_embedding :=
 (finset.univ_map_equiv_to_embedding _).symm

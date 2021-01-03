@@ -393,7 +393,7 @@ theorem one_add_mul_le_pow {a : R} (H : -2 ≤ a) : ∀ (n : ℕ), 1 + n •ℕ 
 | 1     := by simp
 | (n+2) :=
 have H' : 0 ≤ 2 + a,
-  from neg_le_iff_add_nonneg.1 H,
+  from neg_le_iff_add_nonneg'.1 H,
 have 0 ≤ n •ℕ (a * a * (2 + a)) + a * a,
   from add_nonneg (nsmul_nonneg (mul_nonneg (mul_self_nonneg a) H') n)
     (mul_self_nonneg a),

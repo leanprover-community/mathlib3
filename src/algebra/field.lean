@@ -42,9 +42,6 @@ local attribute [simp]
   division_def mul_comm mul_assoc
   mul_left_comm mul_inv_cancel inv_mul_cancel
 
-@[field_simps] lemma mul_div_assoc' (a b c : K) : a * (b / c) = (a * b) / c :=
-by simp [mul_div_assoc]
-
 lemma one_div_neg_one_eq_neg_one : (1:K) / (-1) = -1 :=
 have (-1) * (-1) = (1:K), by rw [neg_mul_neg, one_mul],
 eq.symm (eq_one_div_of_mul_eq_one this)

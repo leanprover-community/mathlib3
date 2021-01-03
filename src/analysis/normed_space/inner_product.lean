@@ -1097,9 +1097,10 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 { inner := (λ x y, (conj x) * y),
-  norm_sq_eq_inner := λ x, by unfold inner; rw [mul_comm, mul_conj, of_real_re, norm_sq, norm_sq_eq_def],
+  norm_sq_eq_inner := λ x,
+    by { unfold inner, rw [mul_comm, mul_conj, of_real_re, norm_sq_eq_def'] },
   conj_sym := λ x y, by simp [mul_comm],
-  nonneg_im := λ x, by rw[mul_im, conj_re, conj_im]; ring,
+  nonneg_im := λ x, by rw [mul_im, conj_re, conj_im]; ring,
   add_left := λ x y z, by simp [inner, add_mul],
   smul_left := λ x y z, by simp [inner, mul_assoc] }
 
@@ -1577,33 +1578,52 @@ begin
   rwa sub_sub_sub_cancel_left at houv
 end
 
+lemma orthogonal_projection_fn_norm_sq (K : submodule 𝕜 E) [complete_space K] (v : E) :
+  ∥v∥ * ∥v∥ = ∥v - (orthogonal_projection_fn K v)∥ * ∥v - (orthogonal_projection_fn K v)∥
+            + ∥orthogonal_projection_fn K v∥ * ∥orthogonal_projection_fn K v∥ :=
+begin
+  set p := orthogonal_projection_fn K v,
+  have h' : ⟪v - p, p⟫ = 0,
+  { exact orthogonal_projection_fn_inner_eq_zero _ _ (orthogonal_projection_fn_mem v) },
+  convert norm_add_square_eq_norm_square_add_norm_square_of_inner_eq_zero (v - p) p h' using 2;
+  simp,
+end
+
 /-- The orthogonal projection onto a complete subspace. -/
-def orthogonal_projection (K : submodule 𝕜 E) [complete_space K] : E →ₗ[𝕜] K :=
-{ to_fun := λ v, ⟨orthogonal_projection_fn K v, orthogonal_projection_fn_mem v⟩,
-  map_add' := λ x y, begin
-    have hm : orthogonal_projection_fn K x + orthogonal_projection_fn K y ∈ K :=
-      submodule.add_mem K (orthogonal_projection_fn_mem x) (orthogonal_projection_fn_mem y),
-    have ho :
-      ∀ w ∈ K, ⟪x + y - (orthogonal_projection_fn K x + orthogonal_projection_fn K y), w⟫ = 0,
-    { intros w hw,
-      rw [add_sub_comm, inner_add_left, orthogonal_projection_fn_inner_eq_zero _ w hw,
-          orthogonal_projection_fn_inner_eq_zero _ w hw, add_zero] },
-    ext,
-    simp [eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hm ho]
-  end,
-  map_smul' := λ c x, begin
-    have hm : c • orthogonal_projection_fn K x ∈ K :=
-      submodule.smul_mem K _ (orthogonal_projection_fn_mem x),
-    have ho : ∀ w ∈ K, ⟪c • x - c • orthogonal_projection_fn K x, w⟫ = 0,
-    { intros w hw,
-      rw [←smul_sub, inner_smul_left, orthogonal_projection_fn_inner_eq_zero _ w hw, mul_zero] },
-    ext,
-    simp [eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hm ho]
-  end }
+def orthogonal_projection (K : submodule 𝕜 E) [complete_space K] : E →L[𝕜] K :=
+linear_map.mk_continuous
+  { to_fun := λ v, ⟨orthogonal_projection_fn K v, orthogonal_projection_fn_mem v⟩,
+    map_add' := λ x y, begin
+      have hm : orthogonal_projection_fn K x + orthogonal_projection_fn K y ∈ K :=
+        submodule.add_mem K (orthogonal_projection_fn_mem x) (orthogonal_projection_fn_mem y),
+      have ho :
+        ∀ w ∈ K, ⟪x + y - (orthogonal_projection_fn K x + orthogonal_projection_fn K y), w⟫ = 0,
+      { intros w hw,
+        rw [add_sub_comm, inner_add_left, orthogonal_projection_fn_inner_eq_zero _ w hw,
+            orthogonal_projection_fn_inner_eq_zero _ w hw, add_zero] },
+      ext,
+      simp [eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hm ho]
+    end,
+    map_smul' := λ c x, begin
+      have hm : c • orthogonal_projection_fn K x ∈ K :=
+        submodule.smul_mem K _ (orthogonal_projection_fn_mem x),
+      have ho : ∀ w ∈ K, ⟪c • x - c • orthogonal_projection_fn K x, w⟫ = 0,
+      { intros w hw,
+        rw [←smul_sub, inner_smul_left, orthogonal_projection_fn_inner_eq_zero _ w hw, mul_zero] },
+      ext,
+      simp [eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hm ho]
+    end }
+  1
+  (λ x, begin
+    simp only [one_mul, linear_map.coe_mk],
+    refine le_of_pow_le_pow 2 (norm_nonneg _) (by norm_num) _,
+    change ∥orthogonal_projection_fn K x∥ ^ 2 ≤ ∥x∥ ^ 2,
+    nlinarith [orthogonal_projection_fn_norm_sq K x]
+  end)
 
 @[simp]
 lemma orthogonal_projection_fn_eq {K : submodule 𝕜 E} [complete_space K] (v : E) :
-  orthogonal_projection_fn K v = orthogonal_projection K v :=
+  orthogonal_projection_fn K v = (orthogonal_projection K v : E) :=
 rfl
 
 /-- The characterization of the orthogonal projection.  -/
@@ -1628,6 +1648,11 @@ begin
   congr,
   exact h
 end
+
+/-- The orthogonal projection has norm `≤ 1`. -/
+lemma orthogonal_projection_norm_le (K : submodule 𝕜 E) [complete_space K] :
+  ∥orthogonal_projection K∥ ≤ 1 :=
+linear_map.mk_continuous_norm_le _ (by norm_num) _
 
 /-- The subspace of vectors orthogonal to a given subspace. -/
 def submodule.orthogonal (K : submodule 𝕜 E) : submodule 𝕜 E :=

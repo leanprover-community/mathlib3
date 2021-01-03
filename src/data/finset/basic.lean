@@ -1286,6 +1286,9 @@ range_succ
 
 theorem range_mono : monotone range := λ _ _, range_subset.2
 
+lemma mem_range_succ_iff {a b : ℕ} : a ∈ finset.range b.succ ↔ a ≤ b :=
+finset.mem_range.trans nat.lt_succ_iff
+
 end range
 
 /- useful rules for calculations with quantifiers -/
@@ -2343,6 +2346,9 @@ by simp [fin_range]
 @[simp]
 lemma mem_fin_range {k : ℕ} (m : fin k) : m ∈ fin_range k :=
 list.mem_fin_range m
+
+@[simp] lemma coe_fin_range (k : ℕ) : (fin_range k : set (fin k)) = set.univ :=
+set.eq_univ_of_forall mem_fin_range
 
 /-- Given a finset `s` of `ℕ` contained in `{0,..., n-1}`, the corresponding finset in `fin n`
 is `s.attach_fin h` where `h` is a proof that all elements of `s` are less than `n`. -/

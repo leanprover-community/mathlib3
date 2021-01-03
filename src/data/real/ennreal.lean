@@ -261,8 +261,8 @@ def of_nnreal_hom : ℝ≥0 →+* ennreal :=
 @[simp, norm_cast] lemma coe_pow (n : ℕ) : (↑(r^n) : ennreal) = r^n :=
 of_nnreal_hom.map_pow r n
 
-lemma add_eq_top : a + b = ∞ ↔ a = ∞ ∨ b = ∞ := with_top.add_eq_top
-lemma add_lt_top : a + b < ∞ ↔ a < ∞ ∧ b < ∞ := with_top.add_lt_top
+@[simp] lemma add_eq_top : a + b = ∞ ↔ a = ∞ ∨ b = ∞ := with_top.add_eq_top
+@[simp] lemma add_lt_top : a + b < ∞ ↔ a < ∞ ∧ b < ∞ := with_top.add_lt_top
 
 lemma to_nnreal_add {r₁ r₂ : ennreal} (h₁ : r₁ < ∞) (h₂ : r₂ < ∞) :
   (r₁ + r₂).to_nnreal = r₁.to_nnreal + r₂.to_nnreal :=
@@ -479,19 +479,11 @@ end
 
 lemma add_lt_add (ac : a < c) (bd : b < d) : a + b < c + d :=
 begin
-  rcases exists_between ac with ⟨a', aa', a'c⟩,
-  rcases lt_iff_exists_coe.1 aa' with ⟨aR, rfl, _⟩,
-  rcases lt_iff_exists_coe.1 a'c with ⟨a'R, rfl, _⟩,
-  rcases exists_between bd with ⟨b', bb', b'd⟩,
-  rcases lt_iff_exists_coe.1 bb' with ⟨bR, rfl, _⟩,
-  rcases lt_iff_exists_coe.1 b'd with ⟨b'R, rfl, _⟩,
-  have I : ↑aR + ↑bR < ↑a'R + ↑b'R :=
-  begin
-    rw [← coe_add, ← coe_add, coe_lt_coe],
-    apply add_lt_add (coe_lt_coe.1 aa') (coe_lt_coe.1 bb')
-  end,
-  have J : ↑a'R + ↑b'R ≤ c + d := add_le_add (le_of_lt a'c) (le_of_lt b'd),
-  apply lt_of_lt_of_le I J
+  lift a to ℝ≥0 using ne_top_of_lt ac,
+  lift b to ℝ≥0 using ne_top_of_lt bd,
+  cases c, { simp }, cases d, { simp },
+  simp only [← coe_add, some_eq_coe, coe_lt_coe] at *,
+  exact add_lt_add ac bd
 end
 
 @[norm_cast] lemma coe_min : ((min r p:ℝ≥0):ennreal) = min r p :=
@@ -534,6 +526,19 @@ section mul
 
 lemma mul_le_mul : a ≤ b → c ≤ d → a * c ≤ b * d :=
 canonically_ordered_semiring.mul_le_mul
+
+lemma mul_lt_mul (ac : a < c) (bd : b < d) : a * b < c * d :=
+begin
+  rcases lt_iff_exists_nnreal_btwn.1 ac with ⟨a', aa', a'c⟩,
+  lift a to ℝ≥0 using ne_top_of_lt aa',
+  rcases lt_iff_exists_nnreal_btwn.1 bd with ⟨b', bb', b'd⟩,
+  lift b to ℝ≥0 using ne_top_of_lt bb',
+  norm_cast at *,
+  calc ↑(a * b) < ↑(a' * b') :
+    coe_lt_coe.2 (mul_lt_mul' aa'.le bb' (zero_le _) ((zero_le a).trans_lt aa'))
+  ... = ↑a' * ↑b' : coe_mul
+  ... ≤ c * d : mul_le_mul a'c.le b'd.le
+end
 
 lemma mul_left_mono : monotone ((*) a) := λ b c, mul_le_mul (le_refl a)
 

@@ -54,5 +54,14 @@ lemma prod_antidiagonal_subst {n : ℕ} {f : ℕ × ℕ → ℕ → M} :
   ∏ p in antidiagonal n, f p n = ∏ p in antidiagonal n, f p (p.1 + p.2) :=
 prod_congr rfl $ λ p hp, by rw [nat.mem_antidiagonal.1 hp]
 
+@[to_additive]
+lemma prod_antidiagonal_eq_prod_range_succ {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) (n : ℕ) :
+  ∏ ij in finset.nat.antidiagonal n, f ij.1 ij.2 = ∏ k in range n.succ, f k (n - k) :=
+begin
+  convert prod_map _ ⟨λ i, (i, n - i), λ x y h, (prod.mk.inj h).1⟩ _,
+  refl,
+end
+
 end nat
+
 end finset

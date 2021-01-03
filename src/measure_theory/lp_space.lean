@@ -97,6 +97,45 @@ end zero
 @[simp] lemma snorm_neg {f : α → F} : snorm (-f) p μ = snorm f p μ :=
 by simp [snorm]
 
+section opens_measurable_space
+variable [opens_measurable_space E]
+
+lemma snorm_zero_ae {f : α → E} (hp0_lt : 0 < p) (hf : measurable f) (hf_zero : f =ᵐ[μ] 0) :
+  snorm f p μ = 0 :=
+begin
+  rw [snorm, ennreal.rpow_eq_zero_iff],
+  left,
+  split,
+  { rw lintegral_eq_zero_iff hf.nnnorm.ennreal_coe.ennreal_rpow_const,
+    refine filter.eventually.mp hf_zero (filter.eventually_of_forall (λ x hx, _)),
+    simp_rw ennreal.coe_rpow_of_nonneg _ (le_of_lt hp0_lt),
+    simpa [pi.zero_apply, hx, (ne_of_lt hp0_lt).symm] using hx, },
+  { simp [hp0_lt], },
+end
+
+lemma snorm_eq_zero {f : α → E} (hp0 : 0 ≤ p) (hf : measurable f) (h : snorm f p μ = 0) :
+  f =ᵐ[μ] 0 :=
+begin
+  rw [snorm, ennreal.rpow_eq_zero_iff] at h,
+  cases h,
+  { rw lintegral_eq_zero_iff hf.nnnorm.ennreal_coe.ennreal_rpow_const at h,
+    refine filter.eventually.mp h.left (filter.eventually_of_forall (λ x hx, _)),
+    rw [pi.zero_apply, ennreal.rpow_eq_zero_iff] at hx,
+    cases hx,
+    { cases hx with hx _,
+      rwa [←ennreal.coe_zero, ennreal.coe_eq_coe, nnnorm_eq_zero] at hx, },
+    { exfalso,
+      linarith, }, },
+  { exfalso,
+    rw [one_div, inv_lt_zero] at h,
+    linarith, },
+end
+
+lemma snorm_eq_zero_iff (hp0_lt : 0 < p) {f : α → E} (hf : measurable f) :
+  snorm f p μ = 0 ↔ f =ᵐ[μ] 0 :=
+⟨snorm_eq_zero (le_of_lt hp0_lt) hf, snorm_zero_ae hp0_lt hf⟩
+
+end opens_measurable_space
 
 section borel_space
 variable [borel_space E]

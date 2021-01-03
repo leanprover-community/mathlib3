@@ -315,6 +315,7 @@ lemma subbox_mul_lt.midpoint_mem (I : subbox_mul_lt s f g c) :
   midpoint ℝ I.left I.right ∈ Icc I.left I.right :=
 ⟨left_le_midpoint.2 I.le, midpoint_le_right.2 I.le⟩
 
+/-- An auxiliary definition for `box_subadditive_on.eq_zero_of_forall_eventually_le_mul`. -/
 def next (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I : subbox_mul_lt s f g c) :
   {I' : subbox_mul_lt s f g c // I.left ≤ I'.left ∧ I'.right ≤ I.right ∧
     ∀ i, I'.right i - I'.left i = (I.right i - I.left i) / 2} :=
@@ -330,6 +331,8 @@ begin
   { by_cases hi : i ∈ t; simp [hi, div_eq_inv_mul] }
 end
 
+/-- An auxiliary definition for `box_subadditive_on.eq_zero_of_forall_eventually_le_mul`:
+a decreasing sequence of subboxes `[l n, u n]` such that `c * g (l n) (u n) < f (l u) (u n)`. -/
 def seq (hf : box_subadditive_on f s) (hg : box_supadditive_on g s) (I₀ : subbox_mul_lt s f g c)
   (n : ℕ) : subbox_mul_lt s f g c :=
 (λ I, hf.next hg I)^[n] I₀
@@ -458,6 +461,11 @@ begin
   exact (hn (seq_right_sub_left hf hg I n)).not_lt (seq hf hg I n).mul_lt
 end
 
+/-- Let `Icc l u` (a.k.a. `[l, u]`) be a non-trivial interval in a finite-dimensional space
+`ι → ℝ`. Suppose that `f` is an `ennreal`-valued function such that `box_subadditive_on f [l, u]`
+and for any `p ∈ [l, u]` we have `f l' u' = o(volume [l', u'])` as `l'` tends to `p` along `[l, p]`,
+`u'` tends to `p` along `[p, u]`, and the subbox `[l', u']` is homothetic to `[l, u]`.
+Then `f l u = 0`. -/
 lemma eq_zero_of_forall_eventually_le_mul (hle : l ≤ u) (hf : box_subadditive_on f (Icc l u))
   (hg : box_supadditive_on g (Icc l u)) (h_inf : g l u ≠ ⊤)
   (Hc : ∀ (b ∈ Icc l u) (c : ℝ≥0), 0 < c →

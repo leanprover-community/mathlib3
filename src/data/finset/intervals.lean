@@ -90,19 +90,11 @@ by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
 
 lemma union' {n m l k : ℕ} (hlm : l ≤ m) (hnk : n ≤ k) :
   Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
-begin
-  rw ←coe_inj,
-  push_cast,
-  exact set.Ico_union_Ico' hlm hnk,
-end
+by simp [←coe_inj, set.Ico_union_Ico' hlm hnk]
 
 lemma union {n m l k : ℕ} (h₁ : min n m ≤ max l k) (h₂ : min l k ≤ max n m) :
   Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
-begin
-  rw ←coe_inj,
-  push_cast,
-  exact set.Ico_union_Ico h₁ h₂,
-end
+by simp [←coe_inj, set.Ico_union_Ico h₁ h₂]
 
 @[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = ∅ :=
 begin

@@ -1847,8 +1847,7 @@ begin
   rwa [h, sup_comm, bot_sup_eq] at this,
 end
 
-@[simp] lemma submodule.orthogonal_eq_top_iff (hK : is_complete (K : set E)) :
-  Kᗮ = ⊤ ↔ K = ⊥ :=
+@[simp] lemma submodule.orthogonal_eq_top_iff : Kᗮ = ⊤ ↔ K = ⊥ :=
 begin
   refine ⟨_, by { rintro rfl, exact submodule.bot_orthogonal_eq_top }⟩,
   intro h,

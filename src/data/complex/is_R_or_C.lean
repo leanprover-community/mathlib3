@@ -484,7 +484,7 @@ begin
   linarith
 end
 
-lemma re_eq_self_of_le {a : K} (h : abs a ≤ re a) : ↑(re a) = a :=
+lemma re_eq_self_of_le {a : K} (h : abs a ≤ re a) : (re a : K) = a :=
 by { rw ← re_add_im a, simp [im_eq_zero_of_le h] }
 
 lemma abs_add (z w : K) : abs (z + w) ≤ abs z + abs w :=

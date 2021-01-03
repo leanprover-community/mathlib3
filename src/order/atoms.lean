@@ -77,24 +77,90 @@ lemma is_coatom_iff_is_atom_dual : is_coatom a ↔ is_atom (order_dual.to_dual a
 
 end atoms
 
-begin atomic
+section atomic
 
-variables [bounded_lattice α]
+variables (α) [bounded_lattice α]
 
 /-- A lattice is atomic iff every element other than `⊥` has an atom below it. -/
-class is_atomic (α : Type*) [bounded_lattice α] : Prop :=
+class is_atomic : Prop :=
 (eq_bot_or_exists_atom_le : ∀ (b : α), b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b)
 
 /-- A lattice is coatomic iff every element other than `⊤` has a coatom above it. -/
-class is_coatomic (α : Type*) [bounded_lattice α] : Prop :=
+class is_coatomic : Prop :=
 (eq_top_or_exists_le_coatom : ∀ (b : α), b = ⊤ ∨ ∃ (a : α), is_coatom a ∧ b ≤ a)
 
-theorem is_atomic_iff_is_coatomic_dual : is_atomic α ↔ is_coatomic (order_dual α) := refl
+export is_atomic (eq_bot_or_exists_atom_le) is_coatomic (eq_top_or_exists_le_coatom)
+
+variable {α}
+
+theorem is_atomic_iff_is_coatomic_dual : is_atomic α ↔ is_coatomic (order_dual α) :=
+⟨λ h, ⟨λ b, by apply h.eq_bot_or_exists_atom_le⟩, λ h, ⟨λ b, by apply h.eq_top_or_exists_le_coatom⟩⟩
 
 theorem is_coatomic_iff_is_atomic_dual : is_coatomic α ↔ is_atomic (order_dual α) :=
-(is_atomic_iff_is_coatomic_dual (order_dual α)).symm
+⟨λ h, ⟨λ b, by apply h.eq_top_or_exists_le_coatom⟩, λ h, ⟨λ b, by apply h.eq_bot_or_exists_atom_le⟩⟩
+
+instance is_atomic.is_coatomic_dual [h : is_atomic α] : is_coatomic (order_dual α) :=
+is_atomic_iff_is_coatomic_dual.1 h
+
+instance is_coatomic.is_atomic_dual [h : is_coatomic α] : is_atomic (order_dual α) :=
+is_coatomic_iff_is_atomic_dual.1 h
 
 end atomic
+
+section atomistic
+
+variables (α) [complete_lattice α]
+
+/-- A lattice is atomistic iff every element is a `Sup` of a set of atoms. -/
+class is_atomistic : Prop :=
+(eq_Sup_atoms : ∀ (b : α), ∃ (s : set α), b = Sup s ∧ ∀ a, a ∈ s → is_atom a)
+
+/-- A lattice is coatomistic iff every element is an `Inf` of a set of coatoms. -/
+class is_coatomistic: Prop :=
+(eq_Inf_coatoms : ∀ (b : α), ∃ (s : set α), b = Inf s ∧ ∀ a, a ∈ s → is_coatom a)
+
+export is_atomistic (eq_Sup_atoms) is_coatomistic (eq_Inf_coatoms)
+
+variable {α}
+
+theorem is_atomistic_iff_is_coatomistic_dual : is_atomistic α ↔ is_coatomistic (order_dual α) :=
+⟨λ h, ⟨λ b, by apply h.eq_Sup_atoms⟩, λ h, ⟨λ b, by apply h.eq_Inf_coatoms⟩⟩
+
+theorem is_coatomistic_iff_is_atomistic_dual : is_coatomistic α ↔ is_atomistic (order_dual α) :=
+⟨λ h, ⟨λ b, by apply h.eq_Inf_coatoms⟩, λ h, ⟨λ b, by apply h.eq_Sup_atoms⟩⟩
+
+namespace is_atomistic
+
+instance is_coatomistic_dual [h : is_atomistic α] : is_coatomistic (order_dual α) :=
+is_atomistic_iff_is_coatomistic_dual.1 h
+
+variable [is_atomistic α]
+
+@[priority 100]
+instance : is_atomic α :=
+⟨λ b, by { rcases eq_Sup_atoms b with ⟨s, rfl, hs⟩,
+  cases s.eq_empty_or_nonempty with h h,
+  { simp [h] },
+  { exact or.intro_right _ ⟨h.some, hs _ h.some_spec, le_Sup h.some_spec⟩ } } ⟩
+
+end is_atomistic
+
+namespace is_coatomistic
+
+instance is_atomistic_dual [h : is_coatomistic α] : is_atomistic (order_dual α) :=
+is_coatomistic_iff_is_atomistic_dual.1 h
+
+variable [is_coatomistic α]
+
+@[priority 100]
+instance : is_coatomic α :=
+⟨λ b, by { rcases eq_Inf_coatoms b with ⟨s, rfl, hs⟩,
+  cases s.eq_empty_or_nonempty with h h,
+  { simp [h] },
+  { exact or.intro_right _ ⟨h.some, hs _ h.some_spec, Inf_le h.some_spec⟩ } } ⟩
+
+end is_coatomistic
+end atomistic
 
 /-- A lattice is simple iff it has only two elements, `⊥` and `⊤`. -/
 class is_simple_lattice (α : Type*) [bounded_lattice α] extends nontrivial α : Prop :=

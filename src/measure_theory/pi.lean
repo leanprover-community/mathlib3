@@ -167,7 +167,7 @@ def pi' : measure (Π i, α i) :=
 measure.map (tprod.elim' encodable.mem_sorted_univ) (measure.tprod (encodable.sorted_univ ι) μ)
 
 lemma pi'_pi [∀ i, sigma_finite (μ i)] {s : Π i, set (α i)}
-  (hs : ∀ i, is_measurable (s i)) : measure.pi' μ (pi univ s) = ∏ i, μ i (s i) :=
+  (hs : ∀ i, is_measurable (s i)) : pi' μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
   have hl := λ i : ι, encodable.mem_sorted_univ i,
   have hnd := @encodable.sorted_univ_nodup ι _ _,
@@ -194,9 +194,12 @@ end encodable
 lemma pi_caratheodory :
   measurable_space.pi ≤ (outer_measure.pi (λ i, (μ i).to_outer_measure)).caratheodory :=
 begin
-  refine supr_le _, intros i s hs,
-  rw [measurable_space.comap] at hs, rcases hs with ⟨s, hs, rfl⟩,
-  apply bounded_by_caratheodory, intro t,
+  refine supr_le _,
+  intros i s hs,
+  rw [measurable_space.comap] at hs,
+  rcases hs with ⟨s, hs, rfl⟩,
+  apply bounded_by_caratheodory,
+  intro t,
   simp_rw [pi_premeasure],
   refine finset.prod_add_prod_le' (finset.mem_univ i) _ _ _,
   { simp [image_inter_preimage, image_diff_preimage, (μ i).caratheodory hs, le_refl] },
@@ -209,21 +212,24 @@ end
 protected def pi : measure (Π i, α i) :=
 to_measure (outer_measure.pi (λ i, (μ i).to_outer_measure)) (pi_caratheodory μ)
 
+local attribute [instance] encodable.fintype.encodable
 lemma pi_pi [∀ i, sigma_finite (μ i)] (s : Π i, set (α i))
   (hs : ∀ i, is_measurable (s i)) : measure.pi μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
-  have := encodable.trunc_encodable_of_fintype ι,
-  induction this using trunc.rec_on_subsingleton,
-  resetI, refine le_antisymm _ _,
+  refine le_antisymm _ _,
   { rw [measure.pi, to_measure_apply _ _ (is_measurable.pi_fintype (λ i _, hs i))],
     apply outer_measure.pi_pi_le },
-  { rw [← pi'_pi], swap, exact hs,
+  { rw [← pi'_pi],
+    work_on_goal 1 { exact hs },
     simp_rw [measure.pi, to_measure_apply _ _ (is_measurable.pi_fintype (λ i _, hs i)),
       ← to_outer_measure_apply],
     suffices : (pi' μ).to_outer_measure ≤ outer_measure.pi (λ i, (μ i).to_outer_measure),
     { exact this _ },
-    clear hs s, rw [outer_measure.le_pi], intros s hs,
-    simp_rw [to_outer_measure_apply], exact pi'_pi_le μ }
+    clear hs s,
+    rw [outer_measure.le_pi],
+    intros s hs,
+    simp_rw [to_outer_measure_apply],
+    exact pi'_pi_le μ }
 end
 
 end measure

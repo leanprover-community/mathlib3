@@ -59,6 +59,10 @@ lemma continuous.smul {α : Type*} [topological_space α] {f : α → R} {g : α
   (hf : continuous f) (hg : continuous g) : continuous (λp, f p • g p) :=
 continuous_smul.comp (hf.prod_mk hg)
 
+lemma continuous_on.smul {α : Type*} [topological_space α] {s : set α} {f : α → R} {g : α → M}
+  (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λp, f p • g p) s :=
+continuous_smul.comp_continuous_on (hf.prod hg)
+
 lemma tendsto_smul {c : R} {x : M} : tendsto (λp:R×M, p.fst • p.snd) (𝓝 (c, x)) (𝓝 (c • x)) :=
 continuous_smul.tendsto _
 

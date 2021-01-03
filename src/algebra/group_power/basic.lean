@@ -3,7 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.ordered_ring
+import algebra.ordered_field
 import deprecated.group
 
 /-!
@@ -611,6 +611,25 @@ theorem pow_two_pos_of_ne_zero (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
 pow_bit0_pos h 1
 
 end linear_ordered_ring
+
+@[simp] lemma abs_sq_eq [linear_ordered_ring R] (a : R) : (abs a) ^ 2 = a ^ 2 :=
+begin
+  by_cases h : 0 ≤ a,
+  { simp [abs_of_nonneg h] },
+  { simp [abs_of_neg (not_le.mp h)] }
+end
+
+/-- this lemma would work for `ordered_integral_domain`, if that typeclass existed -/
+@[simp] lemma eq_of_pow_two_eq_pow_two [linear_ordered_field R] {a b : R} (ha : 0 ≤ a) (hb : 0 ≤ b) :
+  a ^ 2 = b ^ 2 ↔ a = b :=
+begin
+  refine ⟨_, congr_arg _⟩,
+  intros h,
+  refine (eq_or_eq_neg_of_pow_two_eq_pow_two _ _ h).elim id _,
+  rintros rfl,
+  rw le_antisymm (neg_nonneg.mp ha) hb,
+  exact neg_zero
+end
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]

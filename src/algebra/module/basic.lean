@@ -510,3 +510,27 @@ end add_monoid_hom
 
 -- We finally turn on these instances globally:
 attribute [instance] add_comm_monoid.nat_semimodule add_comm_group.int_module
+
+section module_division_ring
+/-! Some tests for the vanishing of elements in modules over division rings. -/
+
+variables (R) [division_ring R] [add_comm_group M] [module R M]
+
+lemma smul_nat_eq_zero [char_zero R] {v : M} {n : ℕ} :
+  n • v = 0 ↔ n = 0 ∨ v = 0 :=
+by { rw [semimodule.smul_eq_smul R, smul_eq_zero], simp }
+
+lemma eq_zero_of_smul_two_eq_zero [char_zero R] {v : M} (hv : 2 • v = 0) : v = 0 :=
+((smul_nat_eq_zero R).mp hv).resolve_left (by norm_num)
+
+lemma eq_zero_of_eq_neg [char_zero R] {v : M} (hv : v = - v) : v = 0 :=
+begin
+  refine eq_zero_of_smul_two_eq_zero R _,
+  convert add_eq_zero_iff_eq_neg.mpr hv,
+  abel
+end
+
+lemma ne_neg_of_ne_zero [char_zero R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
+λ h, hv (eq_zero_of_eq_neg R h)
+
+end module_division_ring

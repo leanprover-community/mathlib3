@@ -132,6 +132,7 @@ Linear algebra:
     noetherian module: 'is_noetherian'
     bases: 'is_basis'
     multilinear map: 'multilinear_map'
+    alternating map: 'alternating_map'
     general linear group: 'linear_map.general_linear_group'
   Duality:
     dual vector space: 'module.dual'

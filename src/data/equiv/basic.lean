@@ -1575,7 +1575,7 @@ by { unfold swap_core, split_ifs; cc }
 def swap (a b : α) : perm α :=
 ⟨swap_core a b, swap_core a b, λr, swap_core_swap_core r a b, λr, swap_core_swap_core r a b⟩
 
-theorem swap_self (a : α) : swap a a = equiv.refl _ :=
+@[simp] theorem swap_self (a : α) : swap a a = equiv.refl _ :=
 ext $ λ r, swap_core_self r a
 
 theorem swap_comm (a b : α) : swap a b = swap b a :=

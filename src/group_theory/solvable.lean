@@ -97,10 +97,8 @@ end
 lemma general_commutator_le_left (H₁ H₂ : subgroup G) [h : normal H₁] :
   ⁅H₁, H₂⁆ ≤ H₁ :=
 begin
-  rw general_commutator_le,
-  intros p hp q hq,
-  rw (show p * q * p⁻¹ * q⁻¹ = p * (q * p⁻¹ * q⁻¹), by group),
-  convert mul_mem H₁ hp (h.conj_mem p⁻¹ (inv_mem H₁ hp) q),
+  rw general_commutator_comm,
+  exact general_commutator_le_right H₂ H₁,
 end
 
 @[simp] lemma general_commutator_bot (H : subgroup G) : ⁅H, ⊥⁆ = (⊥ : subgroup G) :=

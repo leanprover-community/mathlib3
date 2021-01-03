@@ -1,4 +1,5 @@
 import combinatorics.simple_graph.basic
+import data.fin
 import tactic.fin_cases
 
 namespace simple_graph
@@ -15,6 +16,12 @@ structure coloring (β : Type v) :=
 
 /-- A graph `G` is `β`-colorable if there is a `β`-coloring. -/
 def colorable (β : Type v) : Prop := nonempty (G.coloring β)
+
+def trivial_coloring : coloring G V :=
+{ color := λ x, x,
+  valid := λ x y, ne_of_adj _ }
+
+instance : inhabited (coloring G V) := ⟨trivial_coloring G⟩
 
 namespace coloring
 variables {G} {β : Type v} (f : G.coloring β)
@@ -47,26 +54,62 @@ end
 
 end coloring
 
-def nat.colorable (G : simple_graph V) (n : ℕ)  :
-  Prop := G.colorable (fin n)
+/--
+Given a coloring and a larger set of colors, one can extend the coloring set.
+-/
+def extend_coloring {β β' : Type*} (f : β ↪ β') : coloring G β ↪ coloring G β' :=
+{ to_fun := λ F,
+  { color := λ v, f (F.color v),
+    valid := λ v w h hc, F.valid h (f.injective hc) },
+  inj' := λ F F' h,
+  begin
+    ext,
+    apply f.injective,
+    simp only at h,
+    exact congr_fun h x,
+  end }
 
--- if V isn't finite then there won't necessarily be a chromatic number
-lemma fintype_colorable [fintype V] [decidable_eq V] (G : simple_graph V) : ∃ (n : ℕ), nat.colorable G n :=
+lemma colorable_of_embedding {β β' : Type*} (f : β ↪ β') : G.colorable β → G.colorable β' :=
+nonempty.map (G.extend_coloring f)
+
+lemma colorable_iff_of_equiv {β β' : Type*} (e : β ≃ β') : G.colorable β ↔ G.colorable β' :=
+⟨colorable_of_embedding G e.to_embedding, colorable_of_embedding G e.symm.to_embedding⟩
+
+def nat_colorable (G : simple_graph V) (n : ℕ) : Prop := G.colorable (fin n)
+
+lemma colorable_of_nat_colorable {G : simple_graph V} {β : Type*} [fintype β] :
+  G.nat_colorable (fintype.card β) ↔ G.colorable β :=
 begin
-  use fintype.card V,
-  rw nat.colorable,
-  rw colorable, -- use bijection from V to (fin (fintype.card V))
-  have f := fintype.equiv_fin V,
-  apply nonempty_of_exists,
-
-  --have h := equiv.injective f.to_fun,
-  --ext v w,
-  sorry,
-  sorry,
+  classical,
+  rcases fintype.equiv_fin β with ⟨e⟩,
+  apply colorable_iff_of_equiv _ e.symm
 end
 
--- ∃ (n : ℕ), G.nat.colorable n →
-  -- ∀ (k : ℕ), G.nat.colorable k → n ≤ k
---def chromatic_number (G : simple_graph V) : nat := nat.find (λ (k : ℕ))
+-- if V isn't finite then there won't necessarily be a chromatic number
+lemma fintype_colorable [fintype V] (G : simple_graph V) :
+  ∃ (n : ℕ), nat_colorable G n :=
+begin
+  refine ⟨fintype.card V, _⟩,
+  rw colorable_of_nat_colorable,
+  exact ⟨trivial_coloring G⟩,
+end
+
+open_locale classical
+
+noncomputable def chromatic_number [fintype V] (G : simple_graph V) : ℕ :=
+nat.find (fintype_colorable G)
+
+lemma chromatic_number_colorable [fintype V] (G : simple_graph V) :
+  G.nat_colorable G.chromatic_number :=
+nat.find_spec _
+
+lemma colorable_iff_le_chromatic_number [fintype V] {n : ℕ} :
+  G.chromatic_number ≤ n ↔ nat_colorable G n :=
+begin
+  split,
+  { intro h,
+    apply colorable_of_embedding _ (fin.cast_le h).to_embedding G.chromatic_number_colorable },
+  { apply nat.find_min' _ }
+end
 
 end simple_graph

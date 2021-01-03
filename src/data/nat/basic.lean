@@ -1598,4 +1598,11 @@ instance decidable_lo_hi_le (lo hi : ℕ) (P : ℕ → Prop) [H : decidable_pred
 decidable_of_iff (∀x, lo ≤ x → x < hi + 1 → P x) $
 ball_congr $ λ x hl, imp_congr lt_succ_iff iff.rfl
 
+/-! ### find -/
+
+theorem find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
+  (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
+  nat.find hp ≤ nat.find hq :=
+nat.find_min' _ ((h _) (nat.find_spec hq))
+
 end nat

@@ -85,7 +85,7 @@ theorem coe_sort_coe_trans
 Many structures such as bundled morphisms coerce to functions so that you can
 transparently apply them to arguments. For example, if `e : α ≃ β` and `a : α`
 then you can write `e a` and this is elaborated as `⇑e a`. This type of
-coercion is implemented using the `has_coe_to_fun`type class. There is one
+coercion is implemented using the `has_coe_to_fun` type class. There is one
 important consideration:
 
 If a type coerces to another type which in turn coerces to a function,
@@ -871,6 +871,8 @@ theorem forall_iff_forall_surj
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩⟩
 
 @[simp] theorem exists_false : ¬ (∃a:α, false) := assume ⟨a, h⟩, h
+
+@[simp] lemma exists_unique_false : ¬ (∃! (a : α), false) := assume ⟨a, h, h'⟩, h
 
 theorem Exists.fst {p : b → Prop} : Exists p → b
 | ⟨h, _⟩ := h

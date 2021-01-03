@@ -231,12 +231,11 @@ def to_composition_as_set : composition_as_set n :=
 
 /-- The canonical increasing bijection between `fin (c.length + 1)` and `c.boundaries` is
 exactly `c.boundary`. -/
-lemma mono_of_fin_boundaries :
-  finset.mono_of_fin c.boundaries c.card_boundaries_eq_succ_length = c.boundary :=
+lemma order_emb_of_fin_boundaries :
+  c.boundaries.order_emb_of_fin c.card_boundaries_eq_succ_length = c.boundary :=
 begin
-  refine (finset.mono_of_fin_unique' _ _ c.boundary.strict_mono).symm,
-  assume i hi,
-  simp [boundaries, - set.mem_range, set.mem_range_self]
+  refine (finset.order_emb_of_fin_unique' _ _).symm,
+  exact λ i, (finset.mem_map' _).2 (finset.mem_univ _)
 end
 
 /-- Embedding the `i`-th block of a composition (identified with `fin (c.blocks_fun i)`) into
@@ -688,18 +687,17 @@ lemma lt_length' (i : fin c.length) : (i : ℕ) < c.boundaries.card :=
 lt_of_le_of_lt (nat.le_succ i) (c.lt_length i)
 
 /-- Canonical increasing bijection from `fin c.boundaries.card` to `c.boundaries`. -/
-def boundary : fin c.boundaries.card → fin (n+1) :=
-finset.mono_of_fin c.boundaries rfl
+def boundary : fin c.boundaries.card ↪o fin (n + 1) := c.boundaries.order_emb_of_fin rfl
 
-@[simp] lemma boundary_zero : c.boundary ⟨0, c.card_boundaries_pos⟩ = 0 :=
+@[simp] lemma boundary_zero : (c.boundary ⟨0, c.card_boundaries_pos⟩ : fin (n + 1)) = 0 :=
 begin
-  rw [boundary, finset.mono_of_fin_zero rfl c.card_boundaries_pos],
+  rw [boundary, finset.order_emb_of_fin_zero rfl c.card_boundaries_pos],
   exact le_antisymm (finset.min'_le _ _ c.zero_mem) (fin.zero_le _),
 end
 
 @[simp] lemma boundary_length : c.boundary ⟨c.length, c.length_lt_card_boundaries⟩ = fin.last n :=
 begin
-  convert finset.mono_of_fin_last rfl c.card_boundaries_pos,
+  convert finset.order_emb_of_fin_last rfl c.card_boundaries_pos,
   exact le_antisymm (finset.le_max' _ _ c.last_mem) (fin.le_last _)
 end
 
@@ -711,7 +709,7 @@ lemma blocks_fun_pos (i : fin c.length) : 0 < c.blocks_fun i :=
 begin
   have : (⟨i, c.lt_length' i⟩ : fin c.boundaries.card) < ⟨i + 1, c.lt_length i⟩ :=
     nat.lt_succ_self _,
-  exact nat.lt_sub_left_of_add_lt (finset.mono_of_fin_strict_mono c.boundaries rfl this)
+  exact nat.lt_sub_left_of_add_lt ((c.boundaries.order_emb_of_fin rfl).strict_mono this)
 end
 
 /-- List of the sizes of the blocks in a `composition_as_set`. -/
@@ -731,10 +729,8 @@ begin
   have B : i < c.boundaries.card := lt_of_lt_of_le A (by simp [blocks, length, nat.sub_le]),
   rw [sum_take_succ _ _ A, IH B],
   simp only [blocks, blocks_fun, fin.coe_eq_val, nth_le_of_fn'],
-  rw nat.add_sub_cancel',
-  refine le_of_lt (@finset.mono_of_fin_strict_mono _ _ c.boundaries _ rfl
-    (⟨i, B⟩ : fin c.boundaries.card) _ _),
-  exact nat.lt_succ_self _
+  apply nat.add_sub_cancel',
+  simp
 end
 
 lemma mem_boundaries_iff_exists_blocks_sum_take_eq {j : fin (n+1)} :
@@ -742,12 +738,13 @@ lemma mem_boundaries_iff_exists_blocks_sum_take_eq {j : fin (n+1)} :
 begin
   split,
   { assume hj,
-    rcases (c.boundaries.mono_of_fin_bij_on rfl).surj_on hj with ⟨i, _, hi⟩,
+    rcases (c.boundaries.order_iso_of_fin rfl).surjective ⟨j, hj⟩ with ⟨i, hi⟩,
+    rw [subtype.ext_iff, subtype.coe_mk] at hi,
     refine ⟨i.1, i.2, _⟩,
     rw [← hi, c.blocks_partial_sum i.2],
     refl },
   { rintros ⟨i, hi, H⟩,
-    convert (c.boundaries.mono_of_fin_bij_on rfl).maps_to (set.mem_univ ⟨i, hi⟩),
+    convert (c.boundaries.order_iso_of_fin rfl ⟨i, hi⟩).2,
     have : c.boundary ⟨i, hi⟩ = j, by rwa [fin.ext_iff, ← c.blocks_partial_sum hi],
     exact this.symm }
 end
@@ -803,11 +800,11 @@ begin
     exact length_of_fn _ },
   have i_lt' : i < c.boundaries.card := i_lt,
   have i_lt'' : i < c.length + 1, by rwa c.card_boundaries_eq_succ_length at i_lt',
-  have A : finset.mono_of_fin d.boundaries rfl ⟨i, i_lt⟩
-    = finset.mono_of_fin c.boundaries c.card_boundaries_eq_succ_length ⟨i, i_lt''⟩ := rfl,
+  have A : d.boundaries.order_emb_of_fin rfl ⟨i, i_lt⟩
+    = c.boundaries.order_emb_of_fin c.card_boundaries_eq_succ_length ⟨i, i_lt''⟩ := rfl,
   have B : c.size_up_to i = c.boundary ⟨i, i_lt''⟩ := rfl,
   rw [d.blocks_partial_sum i_lt, composition_as_set.boundary, ← composition.size_up_to, B,
-    A, c.mono_of_fin_boundaries],
+    A, c.order_emb_of_fin_boundaries]
 end
 
 @[simp] lemma composition_as_set.to_composition_blocks (c : composition_as_set n) :

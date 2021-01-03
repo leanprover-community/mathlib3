@@ -451,7 +451,7 @@ lemma is_basis.iff_det {v : ι → M} : is_basis R v ↔ is_unit (he.det v) :=
 begin
   split,
   { intro hv,
-    suffices : is_unit (linear_map.to_matrix he he (equiv_of_is_basis he hv $ equiv.refl ι)).det,
+    suffices : is_unit (linear_map.to_matrix he he (linear_equiv_of_is_basis he hv $ equiv.refl ι)).det,
     { rw [is_basis.det_apply, is_basis.to_matrix_eq_to_matrix_constr],
       exact this },
     apply linear_equiv.is_unit_det },

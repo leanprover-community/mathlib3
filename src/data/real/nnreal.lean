@@ -572,7 +572,17 @@ by rw [div_def, mul_comm, ← mul_le_iff_le_inv hr, mul_comm]
 lemma div_le_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a / r ≤ b ↔ a ≤ b * r :=
 @div_le_iff ℝ _ a r b $ zero_lt_iff_ne_zero.2 hr
 
-lemma le_of_forall_lt_one_mul_lt {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x ≤ y :=
+lemma lt_div_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a < b / r ↔ a * r < b :=
+lt_iff_lt_of_le_iff_le (div_le_iff hr)
+
+lemma mul_lt_of_lt_div {a b r : ℝ≥0} (h : a < b / r) : a * r < b :=
+begin
+  refine (lt_div_iff $ λ hr, false.elim _).1 h,
+  subst r,
+  simpa using h
+end
+
+lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x ≤ y :=
 le_of_forall_ge_of_dense $ assume a ha,
   have hx : x ≠ 0 := zero_lt_iff_ne_zero.1 (lt_of_le_of_lt (zero_le _) ha),
   have hx' : x⁻¹ ≠ 0, by rwa [(≠), inv_eq_zero],

@@ -48,7 +48,7 @@ multiset.Ico.card _ _
 @[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
 multiset.Ico.mem
 
-lemma coe_eq_Ico {n m : ℕ} : ↑(Ico n m) = set.Ico n m :=
+@[simp, norm_cast] lemma coe_eq_Ico {n m : ℕ} : ↑(Ico n m) = set.Ico n m :=
 begin
   ext,
   rw [set.mem_Ico, mem_coe, finset.Ico.mem],
@@ -90,11 +90,19 @@ by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
 
 lemma union' {n m l k : ℕ} (hlm : l ≤ m) (hnk : n ≤ k) :
   Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
-by rw [←coe_inj, coe_union, coe_eq_Ico, coe_eq_Ico, coe_eq_Ico, set.Ico_union_Ico' hlm hnk]
+begin
+  rw ←coe_inj,
+  push_cast,
+  exact set.Ico_union_Ico' hlm hnk,
+end
 
 lemma union {n m l k : ℕ} (h₁ : min n m ≤ max l k) (h₂ : min l k ≤ max n m) :
   Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
-by rw [←coe_inj, coe_union, coe_eq_Ico, coe_eq_Ico, coe_eq_Ico, set.Ico_union_Ico h₁ h₂]
+begin
+  rw ←coe_inj,
+  push_cast,
+  exact set.Ico_union_Ico h₁ h₂,
+end
 
 @[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = ∅ :=
 begin

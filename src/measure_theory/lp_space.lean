@@ -92,6 +92,17 @@ lemma zero_mem_ℒp (hp0_lt : 0 < p) : mem_ℒp (0 : α → E) p μ :=
 @[simp] lemma snorm_zero (hp0_lt : 0 < p) : snorm (0 : α → F) p μ = 0 :=
 by simp [snorm, hp0_lt]
 
+/-- When `μ = 0`, we have `∫ f^p ∂μ = 0`. `snorm f p μ` is then `0`, `1` or `⊤` depending on `p`. -/
+lemma snorm_measure_zero_of_pos {f : α → F} (hp_pos : 0 < p) : snorm f p 0 = 0 :=
+by simp [snorm, hp_pos]
+
+/-- When `μ = 0`, we have `∫ f^p ∂μ = 0`. `snorm f p μ` is then `0`, `1` or `⊤` depending on `p`. -/
+lemma snorm_measure_zero_of_exponent_zero {f : α → F} : snorm f 0 0 = 1 := by simp [snorm]
+
+/-- When `μ = 0`, we have `∫ f^p ∂μ = 0`. `snorm f p μ` is then `0`, `1` or `⊤` depending on `p`. -/
+lemma snorm_measure_zero_of_neg {f : α → F} (hp_neg : p < 0) : snorm f p 0 = ⊤ :=
+by simp [snorm, hp_neg]
+
 end zero
 
 @[simp] lemma snorm_neg {f : α → F} : snorm (-f) p μ = snorm f p μ :=

@@ -22,6 +22,12 @@ which are lattices with only two elements, and related ideas.
   * `is_atom a` indicates that the only element below `a` is `⊥`.
   * `is_coatom a` indicates that the only element above `a` is `⊤`.
 
+### Atomic and Atomistic Lattices
+  * `is_atomic` indicates that every element other than `⊥` is above an atom.
+  * `is_coatomic` indicates that every element other than `⊤` is below a coatom.
+  * `is_atomistic` indicates that every element is the `Sup` of a set of atoms.
+  * `is_coatomistic` indicates that every element is the `Inf` of a set of coatoms.
+
 ### Simple Lattices
   * `is_simple_lattice` indicates that a bounded lattice has only two elements, `⊥` and `⊤`.
   * Given an instance of `is_simple_lattice`, we provide the following definitions. These are not

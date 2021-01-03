@@ -50,8 +50,8 @@ lemma finset.univ_perm_option {α : Type*} [decidable_eq α] [fintype α] :
     (finset.univ : finset $ option α × perm α).map equiv.perm.decompose_option.symm.to_embedding :=
 (finset.univ_map_equiv_to_embedding _).symm
 
-/-- The set of all permutations of `option α` can be constructed by augmenting the set of
-permutations of `α` by each element of `option α` in turn. -/
+/-- The set of all permutations of `fin (n + 1)` can be constructed by augmenting the set of
+permutations of `fin n` by each element of `fin (n + 1)` in turn. -/
 lemma finset.univ_perm_fin_succ {n : ℕ} :
   @finset.univ (perm $ fin n.succ) _ = (finset.univ : finset $ fin n.succ × perm (fin n)).map
   equiv.perm.decompose_fin.symm.to_embedding :=

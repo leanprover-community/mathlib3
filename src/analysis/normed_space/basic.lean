@@ -223,28 +223,28 @@ calc
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
 
-@[simp] lemma mem_sphere_iff_norm (v w : E) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
+@[simp] lemma mem_sphere_iff_norm (v w : α) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
 by simp [dist_eq_norm]
 
-@[simp] lemma mem_sphere_zero_iff_norm {w : E} {r : ℝ} : w ∈ sphere (0:E) r ↔ ∥w∥ = r :=
+@[simp] lemma mem_sphere_zero_iff_norm {w : α} {r : ℝ} : w ∈ sphere (0:α) r ↔ ∥w∥ = r :=
 by simp [dist_eq_norm]
 
-@[simp] lemma norm_eq_of_mem_sphere {r : ℝ} (x : sphere (0:E) r) : ∥(x:E)∥ = r :=
+@[simp] lemma norm_eq_of_mem_sphere {r : ℝ} (x : sphere (0:α) r) : ∥(x:α)∥ = r :=
 mem_sphere_zero.mp x.2
 
-lemma nonzero_of_mem_sphere {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : (x:E) ≠ 0 :=
+lemma nonzero_of_mem_sphere {r : ℝ} (hr : 0 < r) (x : sphere (0:α) r) : (x:α) ≠ 0 :=
 by rwa [← norm_pos_iff, norm_eq_of_mem_sphere]
 
-lemma nonzero_of_mem_unit_sphere (x : sphere (0:E) 1) : (x:E) ≠ 0 :=
+lemma nonzero_of_mem_unit_sphere (x : sphere (0:α) 1) : (x:α) ≠ 0 :=
 by { apply nonzero_of_mem_sphere, norm_num }
 
 /-- We equip the sphere, in a normed group, with a formal operation of negation, namely the
 antipodal map. -/
-instance {r : ℝ} : has_neg (sphere (0:E) r) :=
+instance {r : ℝ} : has_neg (sphere (0:α) r) :=
 { neg := λ w, ⟨-↑w, by simp⟩ }
 
-@[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0:E) r) :
-  (((-v) : sphere _ _) : E) = - (v:E) :=
+@[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0:α) r) :
+  (((-v) : sphere _ _) : E) = - (v:α) :=
 rfl
 
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :

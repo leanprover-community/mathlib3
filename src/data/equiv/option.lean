@@ -50,7 +50,7 @@ def remove_none : α ≃ β :=
   right_inv := remove_none_aux_inv e.symm, }
 
 @[simp]
-lemma remove_none_symm {x : α} : (remove_none e).symm = remove_none e.symm := rfl
+lemma remove_none_symm : (remove_none e).symm = remove_none e.symm := rfl
 
 lemma remove_none_some {x : α} (h : ∃ x', e (some x) = some x') :
   some (remove_none e x) = e (some x) := remove_none_aux_some e h

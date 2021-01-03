@@ -54,6 +54,7 @@ The relation describes which pairs of vertices are adjacent.
 There is exactly one edge for every pair of adjacent edges;
 see `simple_graph.edge_set` for the corresponding edge set.
 -/
+@[ext]
 structure simple_graph (V : Type u) :=
 (adj : V → V → Prop)
 (sym : symmetric adj . obviously)
@@ -67,6 +68,14 @@ def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :
 { adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
   sym := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
+
+noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
+begin
+  classical,
+  refine fintype.of_injective (simple_graph.adj) (λ G₁ G₂ h, _),
+  ext,
+  rw h,
+end
 
 @[simp]
 lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :

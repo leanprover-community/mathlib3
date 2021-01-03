@@ -2339,6 +2339,9 @@ by simp [fin_range]
 lemma mem_fin_range {k : ℕ} (m : fin k) : m ∈ fin_range k :=
 list.mem_fin_range m
 
+@[simp] lemma coe_fin_range (k : ℕ) : (fin_range k : set (fin k)) = set.univ :=
+set.eq_univ_of_forall mem_fin_range
+
 /-- Given a finset `s` of `ℕ` contained in `{0,..., n-1}`, the corresponding finset in `fin n`
 is `s.attach_fin h` where `h` is a proof that all elements of `s` are less than `n`. -/
 def attach_fin (s : finset ℕ) {n : ℕ} (h : ∀ m ∈ s, m < n) : finset (fin n) :=

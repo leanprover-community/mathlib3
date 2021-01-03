@@ -74,6 +74,18 @@ begin
     exact h p hp q hq, }
 end
 
+lemma general_commutator_comm' (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ ≤ ⁅H₂, H₁⁆ :=
+begin
+  rw general_commutator_le,
+  intros p hp q hq,
+  have h : (p * q * p⁻¹ * q⁻¹)⁻¹ ∈ ⁅H₂, H₁⁆ := subset_closure ⟨q, hq, p, hp, by group⟩,
+  convert inv_mem ⁅H₂, H₁⁆ h,
+  group,
+end
+
+lemma general_commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
+le_antisymm (general_commutator_comm' _ _) (general_commutator_comm' _ _)
+
 lemma general_commutator_le_right (H₁ H₂ : subgroup G) [h : normal H₂] :
   ⁅H₁, H₂⁆ ≤ H₂ :=
 begin

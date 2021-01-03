@@ -70,12 +70,7 @@ def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :
   loopless := λ a ⟨hn, _⟩, hn rfl }
 
 noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
-begin
-  classical,
-  refine fintype.of_injective (simple_graph.adj) (λ G₁ G₂ h, _),
-  ext,
-  rw h,
-end
+by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
 
 @[simp]
 lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :

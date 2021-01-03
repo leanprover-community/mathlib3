@@ -103,8 +103,7 @@ begin
 end
 
 lemma inter {n m l k : ℕ} : Ico n m ∩ Ico l k = Ico (max n l) (min m k) :=
-by rw [←coe_inj, coe_inter, coe_eq_Ico, coe_eq_Ico, coe_eq_Ico, ←inf_eq_min, ←sup_eq_max,
-  set.Ico_inter_Ico]
+by simp [←coe_inj, ←inf_eq_min, ←sup_eq_max, set.Ico_inter_Ico]
 
 lemma disjoint_consecutive (n m l : ℕ) : disjoint (Ico n m) (Ico m l) :=
 le_of_eq $ inter_consecutive n m l

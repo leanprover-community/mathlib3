@@ -264,7 +264,8 @@ def prod_comm : M × N ≃* N × M :=
 
 /-- The monoid equivalence between units of a product of two monoids, and the product of the
     units of each monoid. -/
-@[to_additive prod_add_units]
+@[to_additive prod_add_units "The additive monoid equivalence between additive units of a product
+of two additive monoids, and the product of the additive units of each additive monoid."]
 def prod_units : units (M × N) ≃* units M × units N :=
 { to_fun := (units.map (monoid_hom.fst M N)).prod (units.map (monoid_hom.snd M N)),
   inv_fun := λ u, ⟨(u.1, u.2), (↑u.1⁻¹, ↑u.2⁻¹), by simp, by simp⟩,

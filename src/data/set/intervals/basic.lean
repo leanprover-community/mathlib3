@@ -936,6 +936,28 @@ subset.antisymm
   (λ x hx, hx.elim (λ hx, ⟨hx.1, le_trans hx.2 h₂⟩) (λ hx, ⟨lt_of_le_of_lt h₁ hx.1, hx.2⟩))
   Ioc_subset_Ioc_union_Ioc
 
+lemma Ioc_union_Ioc' (h₁ : c ≤ b) (h₂ : a ≤ d) :
+  Ioc a b ∪ Ioc c d = Ioc (min a c) (max b d) :=
+begin
+  ext1 x,
+  simp_rw [mem_union, mem_Ioc, min_lt_iff, le_max_iff],
+  by_cases hc : c < x; by_cases hd : x ≤ d,
+  { tauto, },
+  { have hax : a < x, from lt_of_le_of_lt h₂ (lt_of_not_ge hd),
+    tauto, },
+  { have hxb : x ≤ b, from le_trans (le_of_not_gt hc) h₁,
+    tauto, },
+  { tauto, },
+end
+
+lemma Ioc_union_Ioc (h₁ : min a b ≤ max c d) (h₂ : min c d ≤ max a b) :
+  Ioc a b ∪ Ioc c d = Ioc (min a c) (max b d) :=
+begin
+  cases le_total a b with hab hab; cases le_total c d with hcd hcd; simp [hab, hcd] at h₁ h₂,
+  { exact Ioc_union_Ioc' h₂ h₁, },
+  all_goals { simp [*] },
+end
+
 /-! #### Two finite intervals with a common point -/
 
 lemma Ioo_subset_Ioc_union_Ico : Ioo a c ⊆ Ioc a b ∪ Ico b c :=
@@ -962,6 +984,35 @@ subset.antisymm
   (λ x hx, hx.elim (λ hx, ⟨hx.1, le_trans hx.2 h₂⟩) (λ hx, ⟨le_trans h₁ hx.1, hx.2⟩))
   Icc_subset_Icc_union_Icc
 
+lemma Icc_union_Icc' (h₁ : c ≤ b) (h₂ : a ≤ d) :
+  Icc a b ∪ Icc c d = Icc (min a c) (max b d) :=
+begin
+  ext1 x,
+  simp_rw [mem_union, mem_Icc, min_le_iff, le_max_iff],
+  by_cases hc : c ≤ x; by_cases hd : x ≤ d,
+  { tauto, },
+  { have hax : a ≤ x, from le_trans h₂ (le_of_not_ge hd),
+    tauto, },
+  { have hxb : x ≤ b, from le_trans (le_of_not_ge hc) h₁,
+    tauto, },
+  { tauto, },
+end
+
+/--
+We cannot replace `<` by `≤` in the hypotheses.
+Otherwise for `b < a = d < c` the l.h.s. is `∅` and the r.h.s. is `{a}`.
+-/
+lemma Icc_union_Icc (h₁ : min a b < max c d) (h₂ : min c d < max a b) :
+  Icc a b ∪ Icc c d = Icc (min a c) (max b d) :=
+begin
+  cases le_or_lt a b with hab hab; cases le_or_lt c d with hcd hcd;
+    simp only [min_eq_left, min_eq_right, max_eq_left, max_eq_right, min_eq_left_of_lt,
+    min_eq_right_of_lt, max_eq_left_of_lt, max_eq_right_of_lt, hab, hcd] at h₁ h₂,
+  { exact Icc_union_Icc' (le_of_lt h₂) (le_of_lt h₁), },
+  all_goals { simp [*, min_eq_left_of_lt, max_eq_left_of_lt, min_eq_right_of_lt,
+    max_eq_right_of_lt], },
+end
+
 lemma Ioc_subset_Ioc_union_Icc : Ioc a c ⊆ Ioc a b ∪ Icc b c :=
 subset.trans Ioc_subset_Ioc_union_Ioc (union_subset_union_right _ Ioc_subset_Icc_self)
 
@@ -969,6 +1020,31 @@ subset.trans Ioc_subset_Ioc_union_Ioc (union_subset_union_right _ Ioc_subset_Icc
 subset.antisymm
   (λ x hx, hx.elim (λ hx, ⟨hx.1, le_trans hx.2 h₂⟩) (λ hx, ⟨lt_of_lt_of_le h₁ hx.1, hx.2⟩))
   Ioc_subset_Ioc_union_Icc
+
+lemma Ioo_union_Ioo' (h₁ : c < b) (h₂ : a < d) :
+  Ioo a b ∪ Ioo c d = Ioo (min a c) (max b d) :=
+begin
+  ext1 x,
+  simp_rw [mem_union, mem_Ioo, min_lt_iff, lt_max_iff],
+  by_cases hc : c < x; by_cases hd : x < d,
+  { tauto, },
+  { have hax : a < x, from lt_of_lt_of_le h₂ (le_of_not_gt hd),
+    tauto, },
+  { have hxb : x < b, from lt_of_le_of_lt (le_of_not_gt hc) h₁,
+    tauto, },
+  { tauto, },
+end
+
+lemma Ioo_union_Ioo (h₁ : min a b < max c d) (h₂ : min c d < max a b) :
+  Ioo a b ∪ Ioo c d = Ioo (min a c) (max b d) :=
+begin
+  cases le_total a b with hab hab; cases le_total c d with hcd hcd;
+    simp only [min_eq_left, min_eq_right, max_eq_left, max_eq_right, hab, hcd] at h₁ h₂,
+  { exact Ioo_union_Ioo' h₂ h₁, },
+  all_goals {
+    simp [*, min_eq_left_of_lt, min_eq_right_of_lt, max_eq_left_of_lt, max_eq_right_of_lt,
+      le_of_lt h₂, le_of_lt h₁], },
+end
 
 end linear_order
 
@@ -1046,16 +1122,6 @@ ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
 
 @[simp] lemma Ico_inter_Iio : Ico a b ∩ Iio c = Ico a (min b c) :=
 ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
-
-lemma Ioc_union_Ioc (h₁ : min a b ≤ max c d) (h₂ : min c d ≤ max a b) :
-  Ioc a b ∪ Ioc c d = Ioc (min a c) (max b d) :=
-begin
-  cases le_total a b with hab hab; cases le_total c d with hcd hcd; simp [hab, hcd] at h₁ h₂,
-  { ext x,
-    simp [iff_def, and_imp, or_imp_distrib, (h₂.lt_or_le x).symm, h₁.lt_or_le]
-      { contextual := tt } },
-  all_goals { simp [*] }
-end
 
 @[simp] lemma Ioc_union_Ioc_right : Ioc a b ∪ Ioc a c = Ioc a (max b c) :=
 by rw [Ioc_union_Ioc, min_self]; exact (min_le_left _ _).trans (le_max_left _ _)

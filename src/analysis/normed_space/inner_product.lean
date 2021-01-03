@@ -1663,6 +1663,18 @@ end
 lemma orthogonal_projection_mem_subspace_eq_self (v : K) : orthogonal_projection K v = v :=
 by { ext, apply eq_orthogonal_projection_of_mem_of_inner_eq_zero; simp }
 
+local attribute [instance] finite_dimensional_bot
+
+/-- The orthogonal projection onto the trivial submodule is the zero map. -/
+@[simp] lemma orthogonal_projection_bot : orthogonal_projection (⊥ : submodule 𝕜 E) = 0 :=
+begin
+  ext u,
+  apply eq_orthogonal_projection_of_mem_of_inner_eq_zero,
+  { simp },
+  { intros w hw,
+    simp [(submodule.mem_bot 𝕜).mp hw] }
+end
+
 variables (K)
 
 /-- The orthogonal projection has norm `≤ 1`. -/
@@ -1687,9 +1699,13 @@ begin
 end
 
 /-- Formula for orthogonal projection onto a single vector. -/
-lemma orthogonal_projection_singleton {v : E} (hv : v ≠ 0) (w : E) :
+lemma orthogonal_projection_singleton {v : E} (w : E) :
   (orthogonal_projection (𝕜 ∙ v) w : E) = (⟪v, w⟫ / ∥v∥ ^ 2) • v :=
 begin
+  by_cases hv : v = 0,
+  { rw [hv, eq_orthogonal_projection_of_eq_submodule submodule.span_zero_singleton],
+    { simp },
+    { apply_instance } },
   have hv' : ∥v∥ ≠ 0 := ne_of_gt (norm_pos_iff.mpr hv),
   have key : ((∥v∥ ^ 2 : 𝕜)⁻¹ * ∥v∥ ^ 2) • ↑(orthogonal_projection (𝕜 ∙ v) w)
               = ((∥v∥ ^ 2 : 𝕜)⁻¹ * ⟪v, w⟫) • v,

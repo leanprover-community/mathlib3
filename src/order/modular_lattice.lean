@@ -83,3 +83,36 @@ instance [distrib_lattice α] : is_modular_lattice α :=
 ⟨λ x y z xz, by rw [inf_sup_right, inf_eq_left.2 xz]⟩
 
 end distrib_lattice
+
+namespace is_modular_lattice
+
+variables [bounded_lattice α] [is_modular_lattice α]
+
+section is_complemented
+variables [is_complemented α] {a : α}
+
+theorem is_complemented_Iic : is_complemented (set.Iic a) :=
+⟨λ ⟨x, hx⟩, ⟨⟨(classical.some (exists_is_compl x)) ⊓ a, set.mem_Iic.2 inf_le_right⟩, begin
+    split,
+    { change x ⊓ (classical.some _ ⊓ a) ≤ ⊥, -- improve lattice subtype API
+      rw ← inf_assoc,
+      exact le_trans inf_le_left (classical.some_spec (exists_is_compl x)).1 },
+    { change a ≤ x ⊔ (classical.some _ ⊓ a), -- improve lattice subtype API
+      rw [← sup_inf_assoc_of_le (set.mem_Iic.1 hx),
+          top_le_iff.1 (classical.some_spec (exists_is_compl x)).2, top_inf_eq] }
+  end⟩⟩
+
+theorem is_complemented_Ici : is_complemented (set.Ici a) :=
+⟨λ ⟨x, hx⟩, ⟨⟨(classical.some (exists_is_compl x)) ⊔ a, set.mem_Ici.2 le_sup_right⟩, begin
+    split,
+    { change x ⊓ (classical.some _ ⊔ a) ≤ a, -- improve lattice subtype API
+      rw [← inf_sup_assoc_of_le (set.mem_Ici.1 hx),
+          le_bot_iff.1 (classical.some_spec (exists_is_compl x)).1, bot_sup_eq] },
+    { change ⊤ ≤ x ⊔ (classical.some _ ⊔ a), -- improve lattice subtype API
+      rw ← sup_assoc,
+      exact le_trans (classical.some_spec (exists_is_compl x)).2 le_sup_left }
+  end⟩⟩
+
+end is_complemented
+
+end is_modular_lattice

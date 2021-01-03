@@ -6,7 +6,7 @@ Author:  Aaron Anderson.
 
 import order.complete_boolean_algebra
 import order.order_dual
-import order.lattice_intervals
+import order.modular_lattice
 import order.rel_iso
 import data.fintype.basic
 
@@ -361,3 +361,17 @@ by rw [is_simple_lattice_iff_is_atom_top, is_simple_lattice_iff_is_atom_top,
   f.is_atom_iff ⊤, f.map_top]
 
 end order_iso
+
+namespace is_modular_lattice
+variables [bounded_lattice α] [is_modular_lattice α]
+
+namespace is_compl
+variables {a b : α} (hc : is_compl a b)
+include hc
+
+lemma is_atom_iff_is_coatom : is_atom a ↔ is_coatom b :=
+set.is_simple_lattice_Iic_iff_is_atom.symm.trans sorry
+
+end is_compl
+
+end is_modular_lattice

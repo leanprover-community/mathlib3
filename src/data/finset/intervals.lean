@@ -88,11 +88,15 @@ lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
 by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
   multiset.Ico.add_consecutive hnm hml, to_finset]
 
-/-- The union of two intervals that overlap each other is also an interval -/
-lemma union_overlapping {n m l k : ℕ} (hlm : l ≤ m) (hnk : n ≤ k) :
+lemma union' {n m l k : ℕ} (hlm : l ≤ m) (hnk : n ≤ k) :
   Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
 by rw [←coe_inj, coe_union, coe_eq_Ico, coe_eq_Ico, coe_eq_Ico,
-  set.Ico_union_Ico_eq_Ico_of_overlapping hlm hnk]
+  set.Ico_union_Ico' hlm hnk]
+
+lemma union {n m l k : ℕ} (h₁ : min n m ≤ max l k) (h₂ : min l k ≤ max n m) :
+  Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
+by rw [←coe_inj, coe_union, coe_eq_Ico, coe_eq_Ico, coe_eq_Ico,
+  set.Ico_union_Ico h₁ h₂]
 
 @[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = ∅ :=
 begin

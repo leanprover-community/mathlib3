@@ -223,6 +223,30 @@ calc
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
 
+@[simp] lemma mem_sphere_iff_norm (v w : E) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
+by simp [dist_eq_norm]
+
+@[simp] lemma mem_sphere_zero_iff_norm {w : E} {r : ℝ} : w ∈ sphere (0:E) r ↔ ∥w∥ = r :=
+by simp [dist_eq_norm]
+
+@[simp] lemma norm_eq_of_mem_sphere {r : ℝ} (x : sphere (0:E) r) : ∥(x:E)∥ = r :=
+mem_sphere_zero.mp x.2
+
+lemma nonzero_of_mem_sphere {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : (x:E) ≠ 0 :=
+by rwa [← norm_pos_iff, norm_eq_of_mem_sphere]
+
+lemma nonzero_of_mem_unit_sphere (x : sphere (0:E) 1) : (x:E) ≠ 0 :=
+by { apply nonzero_of_mem_sphere, norm_num }
+
+/-- We equip the sphere, in a normed group, with a formal operation of negation, namely the
+antipodal map. -/
+instance {r : ℝ} : has_neg (sphere (0:E) r) :=
+{ neg := λ w, ⟨-↑w, by simp⟩ }
+
+@[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0:E) r) :
+  (((-v) : sphere _ _) : E) = - (v:E) :=
+rfl
+
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
@@ -982,6 +1006,12 @@ by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
 theorem frontier_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball' x r, closed_ball_diff_ball]
+
+lemma ne_neg_of_mem_sphere [char_zero 𝕜] {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : x ≠ - x :=
+λ h, nonzero_of_mem_sphere hr x (eq_zero_of_eq_neg 𝕜 (by { conv_lhs {rw h}, simp }))
+
+lemma ne_neg_of_mem_unit_sphere [char_zero 𝕜] (x : sphere (0:E) 1) : x ≠ - x :=
+ne_neg_of_mem_sphere 𝕜 (by norm_num) x
 
 open normed_field
 

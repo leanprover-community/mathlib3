@@ -1104,6 +1104,13 @@ is_compl.of_eq bot_inf_eq sup_top_eq
 lemma is_compl_top_bot [bounded_lattice α] : is_compl (⊤ : α) ⊥ :=
 is_compl.of_eq inf_bot_eq top_sup_eq
 
+/-- A complemented bounded lattice is one where every element has a
+  (not necessarily unique) complement. -/
+class is_complemented (α) [bounded_lattice α] : Prop :=
+(exists_is_compl : ∀ (a : α), ∃ (b : α), is_compl a b)
+
+export is_complemented (exists_is_compl)
+
 end is_compl
 
 section nontrivial

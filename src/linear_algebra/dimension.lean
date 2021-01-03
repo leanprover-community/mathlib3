@@ -145,13 +145,61 @@ hb.mk_eq_dim'' ▸ cardinal.card_le_of (λ s, @finset.card_map _ _ ⟨_, subtype
 
 variables [add_comm_group V'] [vector_space K V']
 
+/-- Two linearly equivalent vector spaces have the same dimension, a version with different
+universes. -/
+theorem linear_equiv.lift_dim_eq (f : V ≃ₗ[K] V') :
+  cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K V') :=
+let ⟨b, hb⟩ := exists_is_basis K V in
+calc cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v v'} (cardinal.mk b) :
+  congr_arg _ hb.mk_eq_dim''.symm
+... = cardinal.lift.{v' v} (dim K V') : (f.is_basis hb).mk_eq_dim
+
 /-- Two linearly equivalent vector spaces have the same dimension. -/
 theorem linear_equiv.dim_eq (f : V ≃ₗ[K] V₁) :
   dim K V = dim K V₁ :=
-by letI := classical.dec_eq V;
-letI := classical.dec_eq V₁; exact
-let ⟨b, hb⟩ := exists_is_basis K V in
-cardinal.lift_inj.1 $ hb.mk_eq_dim.symm.trans (f.is_basis hb).mk_eq_dim
+cardinal.lift_inj.1 f.lift_dim_eq
+
+/-- Two vector spaces are isomorphic if they have the same dimension. -/
+theorem nonempty_linear_equiv_of_lift_dim_eq
+  (cond : cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K V')) :
+  nonempty (V ≃ₗ[K] V') :=
+begin
+  obtain ⟨B, h⟩ := exists_is_basis K V,
+  obtain ⟨B', h'⟩ := exists_is_basis K V',
+  have : cardinal.lift.{v v'} (cardinal.mk B) = cardinal.lift.{v' v} (cardinal.mk B'),
+    by rw [h.mk_eq_dim'', cond, h'.mk_eq_dim''],
+  exact (cardinal.lift_mk_eq.{v v' 0}.1 this).map (linear_equiv_of_is_basis h h')
+end
+
+/-- Two vector spaces are isomorphic if they have the same dimension. -/
+theorem nonempty_linear_equiv_of_dim_eq (cond : dim K V = dim K V₁) :
+  nonempty (V ≃ₗ[K] V₁) :=
+nonempty_linear_equiv_of_lift_dim_eq $ congr_arg _ cond
+
+section
+
+variables (V V' V₁)
+
+/-- Two vector spaces are isomorphic if they have the same dimension. -/
+def linear_equiv.of_lift_dim_eq
+  (cond : cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K V')) :
+  V ≃ₗ[K] V' :=
+classical.choice (nonempty_linear_equiv_of_lift_dim_eq cond)
+
+/-- Two vector spaces are isomorphic if they have the same dimension. -/
+def linear_equiv.of_dim_eq (cond : dim K V = dim K V₁) : V ≃ₗ[K] V₁ :=
+classical.choice (nonempty_linear_equiv_of_dim_eq cond)
+
+end
+
+/-- Two vector spaces are isomorphic if and only if they have the same dimension. -/
+theorem linear_equiv.nonempty_equiv_iff_lift_dim_eq :
+  nonempty (V ≃ₗ[K] V') ↔ cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K V') :=
+⟨λ ⟨h⟩, linear_equiv.lift_dim_eq h, λ h, nonempty_linear_equiv_of_lift_dim_eq h⟩
+
+/-- Two vector spaces are isomorphic if and only if they have the same dimension. -/
+theorem linear_equiv.nonempty_equiv_iff_dim_eq : nonempty (V ≃ₗ[K] V₁) ↔ dim K V = dim K V₁ :=
+⟨λ ⟨h⟩, linear_equiv.dim_eq h, λ h, nonempty_linear_equiv_of_dim_eq h⟩
 
 @[simp] lemma dim_bot : dim K (⊥ : submodule K V) = 0 :=
 by letI := classical.dec_eq V;

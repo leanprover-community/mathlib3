@@ -886,6 +886,7 @@ end linear_nonneg_ring
 /-- A canonically ordered commutative semiring is an ordered, commutative semiring
 in which `a ≤ b` iff there exists `c` with `b = a + c`. This is satisfied by the
 natural numbers, for example, but not the integers or other ordered groups. -/
+@[protect_proj]
 class canonically_ordered_comm_semiring (α : Type*) extends
   canonically_ordered_add_monoid α, comm_semiring α :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
@@ -904,15 +905,15 @@ lemma mul_le_mul {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) : a * c ≤ b * 
 begin
   rcases (le_iff_exists_add _ _).1 hab with ⟨b, rfl⟩,
   rcases (le_iff_exists_add _ _).1 hcd with ⟨d, rfl⟩,
-  suffices : a * c ≤ a * c + (a * d + b * c + b * d), by simpa [mul_add, add_mul, _root_.add_assoc],
+  suffices : a * c ≤ a * c + (a * d + b * c + b * d), by simpa [mul_add, add_mul, add_assoc],
   exact (le_iff_exists_add _ _).2 ⟨_, rfl⟩
 end
 
 lemma mul_le_mul_left' {b c : α} (h : b ≤ c) (a : α) : a * b ≤ a * c :=
-mul_le_mul (le_refl a) h
+mul_le_mul le_rfl h
 
 lemma mul_le_mul_right' {b c : α} (h : b ≤ c) (a : α) : b * a ≤ c * a :=
-mul_le_mul h (le_refl a)
+mul_le_mul h le_rfl
 
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
 lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one

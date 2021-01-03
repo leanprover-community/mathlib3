@@ -52,13 +52,17 @@ end is_coatom
 
 section pairwise
 
-lemma inf_eq_bot_of_atom_ne_atom [semilattice_inf_bot α] {a b : α}
+lemma is_atom.inf_eq_bot_of_ne [semilattice_inf_bot α] {a b : α}
   (ha : is_atom a) (hb : is_atom b) (hab : a ≠ b) : a ⊓ b = ⊥ :=
 or.elim (eq_bot_or_eq_of_le_atom ha inf_le_left) id
   (λ h1, or.elim (eq_bot_or_eq_of_le_atom hb inf_le_right) id
   (λ h2, false.rec _ (hab (le_antisymm (inf_eq_left.mp h1) (inf_eq_right.mp h2)))))
 
-lemma sup_eq_top_of_coatom_ne_coatom [semilattice_sup_top α] {a b : α}
+lemma is_atom.disjoint_of_ne [semilattice_inf_bot α] {a b : α}
+  (ha : is_atom a) (hb : is_atom b) (hab : a ≠ b) : disjoint a b :=
+disjoint_iff.mpr (is_atom.inf_eq_bot_of_ne ha hb hab)
+
+lemma is_coatom.sup_eq_top_of_ne [semilattice_sup_top α] {a b : α}
   (ha : is_coatom a) (hb : is_coatom b) (hab : a ≠ b) : a ⊔ b = ⊤ :=
 or.elim (eq_top_or_eq_of_coatom_le ha le_sup_left) id
   (λ h1, or.elim (eq_top_or_eq_of_coatom_le hb le_sup_right) id

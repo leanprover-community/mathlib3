@@ -230,7 +230,7 @@ by simp [dist_eq_norm]
 by simp [dist_eq_norm]
 
 @[simp] lemma norm_eq_of_mem_sphere {r : ℝ} (x : sphere (0:α) r) : ∥(x:α)∥ = r :=
-mem_sphere_zero.mp x.2
+mem_sphere_zero_iff_norm.mp x.2
 
 lemma nonzero_of_mem_sphere {r : ℝ} (hr : 0 < r) (x : sphere (0:α) r) : (x:α) ≠ 0 :=
 by rwa [← norm_pos_iff, norm_eq_of_mem_sphere]
@@ -244,7 +244,7 @@ instance {r : ℝ} : has_neg (sphere (0:α) r) :=
 { neg := λ w, ⟨-↑w, by simp⟩ }
 
 @[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0:α) r) :
-  (((-v) : sphere _ _) : E) = - (v:α) :=
+  (((-v) : sphere _ _) : α) = - (v:α) :=
 rfl
 
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
@@ -1007,11 +1007,15 @@ theorem frontier_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : �
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball' x r, closed_ball_diff_ball]
 
-lemma ne_neg_of_mem_sphere [char_zero 𝕜] {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : x ≠ - x :=
-λ h, nonzero_of_mem_sphere hr x (eq_zero_of_eq_neg 𝕜 (by { conv_lhs {rw h}, simp }))
+variables (α)
 
-lemma ne_neg_of_mem_unit_sphere [char_zero 𝕜] (x : sphere (0:E) 1) : x ≠ - x :=
-ne_neg_of_mem_sphere 𝕜 (by norm_num) x
+lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : x ≠ - x :=
+λ h, nonzero_of_mem_sphere hr x (eq_zero_of_eq_neg α (by { conv_lhs {rw h}, simp }))
+
+lemma ne_neg_of_mem_unit_sphere [char_zero α] (x : sphere (0:E) 1) : x ≠ - x :=
+ne_neg_of_mem_sphere α  (by norm_num) x
+
+variables {α}
 
 open normed_field
 

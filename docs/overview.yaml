@@ -307,6 +307,17 @@ Geometry:
     locally ringed space: 'algebraic_geometry.LocallyRingedSpace'
     scheme: 'algebraic_geometry.Scheme'
 
+Combinatorics:
+  Graph theory:
+    simple graph: 'simple_graph'
+    degree-sum formula: 'simple_graph.sum_degrees_eq_twice_card_edges'
+    matching: 'simple_graph.matching'
+    adjacency matrix: 'simple_graph.adj_matrix'
+  Pigeonhole principles:
+    finite: 'fintype.exists_ne_map_eq_of_card_lt'
+    infinite: 'fintype.exists_infinite_fiber'
+    strong pigeonhole principle: 'fintype.exists_lt_card_fiber_of_mul_lt_card'
+
 Data structures:
   List-like structures:
     list: 'list'

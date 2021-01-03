@@ -662,12 +662,10 @@ lemma Iio_union_Ico' {c d : α} (h₁ : c ≤ b) :
 begin
   ext1 x,
   simp_rw [mem_union, mem_Iio, mem_Ico, lt_max_iff],
-  by_cases hc : c ≤ x; by_cases hd : x < d,
-  { tauto, },
+  by_cases hc : c ≤ x,
   { tauto, },
   { have hxb : x < b, from lt_of_lt_of_le (lt_of_not_ge hc) h₁,
     tauto, },
-  { tauto, },
 end
 
 lemma Iio_union_Ico {c d : α} (h : min c d ≤ b) :

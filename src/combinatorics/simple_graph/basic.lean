@@ -164,6 +164,12 @@ by { dunfold edge_finset, simp }
   (univ : finset G.edge_set).card = G.edge_finset.card :=
 fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 
+lemma edge_finset_card_le [decidable_eq V] [fintype V] [decidable_rel G.adj] :
+  G.edge_finset.card ≤ (fintype.card V).choose 2 :=
+begin
+
+end
+
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
 @[symm] lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩

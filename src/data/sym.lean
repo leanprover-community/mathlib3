@@ -113,10 +113,26 @@ begin
   exact h,
 end
 
+/-- `sym α 0` is equivalent to unit. -/
+def sym0_equiv_unit : sym α 0 ≃ unit :=
+{ to_fun := λ _, unit.star,
+  inv_fun := λ _, nil,
+  left_inv := λ x,
+  begin
+    cases x,
+    ext,
+    dsimp,
+    symmetry,
+    simpa using x_property,
+  end,
+  right_inv := λ x, subsingleton.elim _ _ }
+
 /--
 Another definition of the nth symmetric power, using vectors modulo permutations. (See `sym`.)
 -/
 def sym' (α : Type u) (n : ℕ) := quotient (vector.perm.is_setoid α n)
+
+instance [fintype α] [decidable_eq α] : fintype (sym' α n) := quotient.fintype _
 
 /--
 This is `cons` but for the alternative `sym'` definition.
@@ -132,7 +148,11 @@ Multisets of cardinality n are equivalent to length-n vectors up to permutations
 def sym_equiv_sym' {α : Type u} {n : ℕ} : sym α n ≃ sym' α n :=
 equiv.subtype_quotient_equiv_quotient_subtype _ _ (λ _, by refl) (λ _ _, by refl)
 
-lemma cons_equiv_eq_equiv_cons (α : Type u) (n : ℕ) (a : α) (s : sym α n) : a :: sym_equiv_sym' s = sym_equiv_sym' (a :: s) :=
+instance [fintype α] [decidable_eq α] : fintype (sym α n) :=
+fintype.of_equiv _ (sym_equiv_sym').symm
+
+lemma cons_equiv_eq_equiv_cons (α : Type u) (n : ℕ) (a : α) (s : sym α n) :
+  a :: sym_equiv_sym' s = sym_equiv_sym' (a :: s) :=
 by tidy
 
 section inhabited

@@ -54,6 +54,9 @@ def is_atom (a : α) : Prop := a ≠ ⊥ ∧ (∀ b, b < a → b = ⊥)
 lemma eq_bot_or_eq_of_le_atom {a b : α} (ha : is_atom a) (hab : b ≤ a) : b = ⊥ ∨ b = a :=
 or.imp_left (ha.2 b) (lt_or_eq_of_le hab)
 
+lemma is_atom.Iic {x a : α} (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set.Iic x) :=
+⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
+
 end is_atom
 
 section is_coatom
@@ -66,6 +69,9 @@ def is_coatom (a : α) : Prop := a ≠ ⊤ ∧ (∀ b, a < b → b = ⊤)
 
 lemma eq_top_or_eq_of_coatom_le {a b : α} (ha : is_coatom a) (hab : a ≤ b) : b = ⊤ ∨ b = a :=
 or.imp (ha.2 b) eq_comm.2 (lt_or_eq_of_le hab)
+
+lemma is_coatom.Ici {x a : α} (ha : is_coatom a) (hax : x ≤ a) : is_coatom (⟨a, hax⟩ : set.Ici x) :=
+⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
 
 end is_coatom
 
@@ -99,11 +105,30 @@ theorem is_atomic_iff_is_coatomic_dual : is_atomic α ↔ is_coatomic (order_dua
 theorem is_coatomic_iff_is_atomic_dual : is_coatomic α ↔ is_atomic (order_dual α) :=
 ⟨λ h, ⟨λ b, by apply h.eq_top_or_exists_le_coatom⟩, λ h, ⟨λ b, by apply h.eq_bot_or_exists_atom_le⟩⟩
 
-instance is_atomic.is_coatomic_dual [h : is_atomic α] : is_coatomic (order_dual α) :=
+namespace is_atomic
+
+instance is_coatomic_dual [h : is_atomic α] : is_coatomic (order_dual α) :=
 is_atomic_iff_is_coatomic_dual.1 h
 
-instance is_coatomic.is_atomic_dual [h : is_coatomic α] : is_atomic (order_dual α) :=
+variables [is_atomic α]
+
+instance {x : α} : is_atomic (set.Iic x) :=
+⟨λ ⟨y, hy⟩, (eq_bot_or_exists_atom_le y).imp subtype.mk_eq_mk.2
+  (λ ⟨a, ha, hay⟩, ⟨⟨a, le_trans hay hy⟩, ha.Iic (le_trans hay hy), hay⟩)⟩
+
+end is_atomic
+
+namespace is_coatomic
+instance is_coatomic [h : is_coatomic α] : is_atomic (order_dual α) :=
 is_coatomic_iff_is_atomic_dual.1 h
+
+variables [is_coatomic α]
+
+instance {x : α} : is_coatomic (set.Ici x) :=
+⟨λ ⟨y, hy⟩, (eq_top_or_exists_le_coatom y).imp subtype.mk_eq_mk.2
+  (λ ⟨a, ha, hay⟩, ⟨⟨a, le_trans hy hay⟩, ha.Ici (le_trans hy hay), hay⟩)⟩
+
+end is_coatomic
 
 end atomic
 
@@ -201,6 +226,13 @@ protected def bounded_distrib_lattice : bounded_distrib_lattice α :=
 { le_sup_inf := λ x y z, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
   .. (infer_instance : bounded_lattice α) }
 
+@[priority 100]
+instance : is_atomic α :=
+⟨λ b, (eq_bot_or_eq_top b).imp_right (λ h, ⟨⊤, ⟨is_atom_top, ge_of_eq h⟩⟩)⟩
+
+@[priority 100]
+instance : is_coatomic α := is_coatomic_iff_is_atomic_dual.2 is_simple_lattice.is_atomic
+
 section decidable_eq
 variable [decidable_eq α]
 
@@ -259,6 +291,19 @@ protected noncomputable def complete_boolean_algebra : complete_boolean_algebra 
     { simp only [top_inf_eq, ← Sup_eq_supr], apply le_refl } },
   .. is_simple_lattice.complete_lattice,
   .. is_simple_lattice.boolean_algebra }
+
+end is_simple_lattice
+
+namespace is_simple_lattice
+variables [complete_lattice α] [is_simple_lattice α]
+set_option default_priority 100
+
+instance : is_atomistic α :=
+⟨λ b, (eq_bot_or_eq_top b).elim
+  (λ h, ⟨∅, ⟨h.trans Sup_empty.symm, λ a ha, false.elim (set.not_mem_empty _ ha)⟩⟩)
+  (λ h, ⟨{⊤}, h.trans Sup_singleton.symm, λ a ha, (set.mem_singleton_iff.1 ha).symm ▸ is_atom_top⟩)⟩
+
+instance : is_coatomistic α := is_coatomistic_iff_is_atomistic_dual.2 is_simple_lattice.is_atomistic
 
 end is_simple_lattice
 

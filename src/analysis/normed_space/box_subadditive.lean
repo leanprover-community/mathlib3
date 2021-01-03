@@ -305,6 +305,8 @@ section ennreal
 
 variables {f g : (ι → ℝ) → (ι → ℝ) → ennreal} {c : ennreal}
 
+/-- An auxiliary type for the proof of `box_subadditive_on.eq_zero_of_forall_eventually_le_mul`. -/
+@[nolint has_inhabited_instance]
 structure subbox_mul_lt (s : set (ι → ℝ)) (f g : (ι → ℝ) → (ι → ℝ) → ennreal) (c : ennreal) :=
 (left right : ι → ℝ)
 (le : left ≤ right)

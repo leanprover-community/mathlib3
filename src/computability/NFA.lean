@@ -63,12 +63,12 @@ def to_DFA : DFA α (set σ) :=
   start := M.start,
   accept := {S | ∃ s ∈ S, s ∈ M.accept} }
 
-lemma to_DFA_correct :
-  M.accepts = M.to_DFA.accepts :=
+@[simp] lemma to_DFA_correct :
+  M.to_DFA.accepts = M.accepts :=
 begin
   ext x,
   rw [accepts, DFA.accepts, eval, DFA.eval],
-  change _ ↔ list.foldl _ _ _ ∈ {S | _},
+  change list.foldl _ _ _ ∈ {S | _} ↔ _,
   finish
 end
 
@@ -97,20 +97,20 @@ begin
     tauto }
 end
 
-lemma to_NFA_correct (M : DFA α σ) :
-  M.accepts = M.to_NFA.accepts :=
+@[simp] lemma to_NFA_correct (M : DFA α σ) :
+  M.to_NFA.accepts = M.accepts :=
 begin
   ext x,
-  change _ ↔ ∃ S H, S ∈ M.to_NFA.eval_from {M.start} x,
+  change (∃ S H, S ∈ M.to_NFA.eval_from {M.start} x) ↔ _,
   rw to_NFA_eval_from_match,
   split,
-  { intro h,
-    use M.eval x,
-    finish },
   { rintro ⟨ S, hS₁, hS₂ ⟩,
     rw set.mem_singleton_iff at hS₂,
     rw hS₂ at hS₁,
-    assumption }
+    assumption },
+  { intro h,
+    use M.eval x,
+    finish }
 end
 
 end DFA

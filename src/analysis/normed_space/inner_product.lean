@@ -1443,7 +1443,7 @@ begin
       apply cinfi_le, use 0, rintros y ⟨z, rfl⟩, exact norm_nonneg _ }
 end
 
-variables (K : subspace E)
+variables (K : submodule 𝕜 E)
 
 /--
 Existence of projections on complete subspaces.
@@ -1457,7 +1457,7 @@ begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
   letI : module ℝ E := restrict_scalars.semimodule ℝ 𝕜 E,
   letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
-  let K' : subspace ℝ E := submodule.restrict_scalars ℝ K,
+  let K' : submodule ℝ E := submodule.restrict_scalars ℝ K,
   exact exists_norm_eq_infi_of_complete_convex ⟨0, K'.zero_mem⟩ h K'.convex
 end
 
@@ -1469,7 +1469,7 @@ for all `w ∈ K`, `⟪u - v, w⟫ = 0` (i.e., `u - v` is orthogonal to the subs
 This is superceded by `norm_eq_infi_iff_inner_eq_zero` that gives the same conclusion over
 any `is_R_or_C` field.
 -/
-theorem norm_eq_infi_iff_real_inner_eq_zero (K : subspace ℝ F) {u : F} {v : F}
+theorem norm_eq_infi_iff_real_inner_eq_zero (K : submodule ℝ F) {u : F} {v : F}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set F), ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫_ℝ = 0 :=
 iff.intro
 begin
@@ -1516,7 +1516,7 @@ begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
   letI : module ℝ E := restrict_scalars.semimodule ℝ 𝕜 E,
   letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
-  let K' : subspace ℝ E := K.restrict_scalars ℝ,
+  let K' : submodule ℝ E := K.restrict_scalars ℝ,
   split,
   { assume H,
     have A : ∀ w ∈ K, re ⟪u - v, w⟫ = 0 := (norm_eq_infi_iff_real_inner_eq_zero K' hv).1 H,
@@ -1585,7 +1585,7 @@ end
 
 variables (K)
 
-lemma orthogonal_projection_fn_norm_sq :
+lemma orthogonal_projection_fn_norm_sq (v : E) :
   ∥v∥ * ∥v∥ = ∥v - (orthogonal_projection_fn K v)∥ * ∥v - (orthogonal_projection_fn K v)∥
             + ∥orthogonal_projection_fn K v∥ * ∥orthogonal_projection_fn K v∥ :=
 begin

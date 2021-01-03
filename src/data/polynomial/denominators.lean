@@ -53,10 +53,10 @@ lemma is_integer_eval_zero (N : ℕ) (a b : R) :
 ⟨0, by simp only [eval_zero, ring_hom.map_zero, mul_zero, map_zero] ⟩
 
 lemma is_integer_eval_C_mul_X_pow (N : ℕ) (a b : R) (bu : bi * i b = 1) :
-  ∀ (n : ℕ) (r : R), r ≠ 0 → n ≤ N →
+  ∀ (n : ℕ) (r : R), n ≤ N →
     ∃ D : R,  i D = i b ^ N * eval (i a * bi) (polynomial.map i (C r * X ^ n)) :=
 begin
-  refine λ n r r0 nN, ⟨r * a ^ n * b ^ (N - n), _⟩,
+  refine λ n r nN, ⟨r * a ^ n * b ^ (N - n), _⟩,
   rw [C_mul_X_pow_eq_monomial, map_monomial, ← C_mul_X_pow_eq_monomial, eval_mul, eval_pow, eval_C],
   rw [ring_hom.map_mul, ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_pow, eval_X, mul_comm],
   rw [← nat.sub_add_cancel nN] {occs := occurrences.pos [2]},
@@ -65,18 +65,19 @@ begin
 end
 
 lemma is_integer_eval_add (N : ℕ) (a b : R) :
-  ∀ (f g : polynomial R), f.nat_degree ≤ N → g.nat_degree ≤ N →
+  ∀ (f g : polynomial R),
     (∃ D : R, i D = (i b ^ N * eval (i a * bi) (polynomial.map i f))) →
     (∃ D : R, i D = (i b ^ N * eval (i a * bi) (polynomial.map i g))) →
     (∃ D : R, i D = (i b ^ N * eval (i a * bi) (polynomial.map i (f + g)))) :=
-λ f g fN gN ⟨Df, Hf⟩ ⟨Dg, Hg⟩,
+λ f g ⟨Df, Hf⟩ ⟨Dg, Hg⟩,
   ⟨Df + Dg, by rw [ring_hom.map_add, polynomial.map_add, eval_add, mul_add, Hf, Hg] ⟩
 
 lemma exists_integer_eval_div (N : ℕ) (a b : R) {bi : K} (bu : bi * i b = 1) :
   ∀ (f : polynomial R), f.nat_degree ≤ N →
   (∃ D : R, i D = (i b ^ N * eval (i a * bi) (polynomial.map i f))) :=
 induction_with_nat_degree_le N (is_integer_eval_zero N a b)
-  (is_integer_eval_C_mul_X_pow N a b bu) (is_integer_eval_add N a b)
+  (λ N_1 r r0, is_integer_eval_C_mul_X_pow N a b bu N_1 r)
+  (λ f g fN gN, is_integer_eval_add N a b f g)
 
 /-- If `i : R → K` is a ring homomorphism, `f` is a polynomial with coefficients in `R`,
 `a, b` are elements of `R`, with `i b` invertible, then there is a `D ∈ R` such that

@@ -88,6 +88,8 @@ lemma one : map_fun f (1 : 𝕎 R) = 1 := by map_fun_tac
 
 lemma add : map_fun f (x + y) = map_fun f x + map_fun f y := by map_fun_tac
 
+lemma sub : map_fun f (x - y) = map_fun f x - map_fun f y := by map_fun_tac
+
 lemma mul : map_fun f (x * y) = map_fun f x * map_fun f y := by map_fun_tac
 
 lemma neg : map_fun f (-x) = -map_fun f x := by map_fun_tac
@@ -108,9 +110,11 @@ do fn ← to_expr ```(%%fn : fin _ → ℕ → R),
   to_expr ```(witt_structure_int_prop p (%%φ : mv_polynomial (fin %%k) ℤ) n) >>= note `aux none >>=
      apply_fun_to_hyp ```(aeval (uncurry %%fn)) none,
 `[simp only [aeval_bind₁] at aux,
-  simp only [pi.zero_apply, pi.one_apply, pi.add_apply, pi.mul_apply, pi.neg_apply, ghost_fun],
+  simp only [pi.zero_apply, pi.one_apply, pi.add_apply, pi.sub_apply, pi.mul_apply, pi.neg_apply,
+    ghost_fun],
   convert aux using 1; clear aux;
-  simp only [alg_hom.map_zero, alg_hom.map_one, alg_hom.map_add, alg_hom.map_mul, alg_hom.map_neg,
+  simp only [alg_hom.map_zero, alg_hom.map_one, alg_hom.map_add,
+    alg_hom.map_sub, alg_hom.map_mul, alg_hom.map_neg,
     aeval_X, aeval_rename]; refl]
 end tactic
 
@@ -136,6 +140,9 @@ private lemma ghost_fun_one : ghost_fun (1 : 𝕎 R) = 1 := by ghost_fun_tac 1 !
 
 private lemma ghost_fun_add : ghost_fun (x + y) = ghost_fun x + ghost_fun y :=
 by ghost_fun_tac (X 0 + X 1) ![x.coeff, y.coeff]
+
+private lemma ghost_fun_sub : ghost_fun (x - y) = ghost_fun x - ghost_fun y :=
+by ghost_fun_tac (X 0 - X 1) ![x.coeff, y.coeff]
 
 private lemma ghost_fun_mul : ghost_fun (x * y) = ghost_fun x * ghost_fun y :=
 by ghost_fun_tac (X 0 * X 1) ![x.coeff, y.coeff]
@@ -172,18 +179,18 @@ include hp
 
 local attribute [instance]
 private def comm_ring_aux₁ : comm_ring (𝕎 (mv_polynomial R ℚ)) :=
-(ghost_equiv' p (mv_polynomial R ℚ)).injective.comm_ring (ghost_fun)
-  ghost_fun_zero ghost_fun_one ghost_fun_add ghost_fun_mul ghost_fun_neg
+(ghost_equiv' p (mv_polynomial R ℚ)).injective.comm_ring_sub (ghost_fun)
+  ghost_fun_zero ghost_fun_one ghost_fun_add ghost_fun_mul ghost_fun_neg ghost_fun_sub
 
 local attribute [instance]
 private def comm_ring_aux₂ : comm_ring (𝕎 (mv_polynomial R ℤ)) :=
-(map_fun.injective _ $ map_injective (int.cast_ring_hom ℚ) int.cast_injective).comm_ring _
-  (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _)
+(map_fun.injective _ $ map_injective (int.cast_ring_hom ℚ) int.cast_injective).comm_ring_sub _
+  (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _) (map_fun.sub _)
 
 /-- The commutative ring structure on `𝕎 R`. -/
 instance : comm_ring (𝕎 R) :=
-(map_fun.surjective _ $ counit_surjective _).comm_ring (map_fun $ mv_polynomial.counit _)
-  (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _)
+(map_fun.surjective _ $ counit_surjective _).comm_ring_sub (map_fun $ mv_polynomial.counit _)
+  (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _) (map_fun.sub _)
 
 variables {p R}
 

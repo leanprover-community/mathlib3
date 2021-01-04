@@ -80,14 +80,10 @@ def incl : skeleton ⥤ Fintype :=
 
 instance : full incl := { preimage := λ _ _ f, f }
 instance : faithful incl := {}
-noncomputable instance : ess_surj incl :=
-{ obj_preimage := λ X, fintype.card X,
-  iso' := λ X,
+instance : ess_surj incl :=
+{ mem_ess_image := λ X,
   let F := trunc.out (fintype.equiv_fin X) in
-  { hom := F.symm,
-    inv := F,
-    hom_inv_id' := by { change F.to_fun ∘ F.inv_fun = _, simpa },
-    inv_hom_id' := by { change F.inv_fun ∘ F.to_fun = _, simpa } } }
+  ⟨fintype.card X, ⟨⟨F.symm, F, F.self_comp_symm, F.symm_comp_self⟩⟩⟩ }
 
 noncomputable instance : is_equivalence incl :=
 equivalence.equivalence_of_fully_faithfully_ess_surj _

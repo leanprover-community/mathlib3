@@ -6,6 +6,7 @@ Authors: Anne Baanen
 import ring_theory.localization
 import ring_theory.noetherian
 import ring_theory.principal_ideal_domain
+import tactic.field_simp
 
 /-!
 # Fractional ideals
@@ -1028,7 +1029,7 @@ begin
   { intros x hx,
     rw [val_eq_coe, coe_div h_spand, submodule.mem_div_iff_forall_mul_mem] at hx,
     specialize hx d (mem_span_singleton_self d),
-    have h_xd : x = d⁻¹ * (x * d), { field_simp [hd] },
+    have h_xd : x = d⁻¹ * (x * d), { field_simp },
     rw [val_eq_coe, coe_mul, one_div_span_singleton, h_xd],
     exact submodule.mul_mem_mul (mem_span_singleton_self _) hx },
   { rw [le_div_iff_mul_le h_spand, mul_assoc, mul_left_comm, one_div_span_singleton,

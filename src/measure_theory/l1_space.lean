@@ -488,14 +488,14 @@ lemma integrable.neg [borel_space β] {f : α → β} (hf : integrable f μ) : i
 lemma integrable.sub' [opens_measurable_space β] {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) : has_finite_integral (f - g) μ :=
 calc ∫⁻ a, nnnorm (f a - g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (-g a) ∂μ :
-  lintegral_mono (assume a, by exact_mod_cast nnnorm_add_le _ _ )
+  lintegral_mono (assume a, by { simp only [sub_eq_add_neg], exact_mod_cast nnnorm_add_le _ _ } )
 ... = _ :
   by { simp only [nnnorm_neg], exact lintegral_nnnorm_add hf.measurable hg.measurable }
 ... < ⊤ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩
 
 lemma integrable.sub [borel_space β] [second_countable_topology β] {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) : integrable (f - g) μ :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma integrable.norm [opens_measurable_space β] {f : α → β} (hf : integrable f μ) :
   integrable (λa, ∥f a∥) μ :=
@@ -742,7 +742,7 @@ lemma of_fun_neg (f : α → β) (hf : integrable f μ) :
 
 lemma of_fun_sub (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) :
   of_fun (f - g) (hf.sub hg) = of_fun f hf - of_fun g hg :=
-rfl
+by simp only [sub_eq_add_neg, of_fun_add _ _ hf hg.neg, of_fun_neg]
 
 lemma norm_of_fun (f : α → β) (hf : integrable f μ) :
   ∥ of_fun f hf ∥ = ennreal.to_real (∫⁻ a, edist (f a) 0 ∂μ) :=

@@ -1154,7 +1154,7 @@ lemma count_pow {a : associates α} (ha : a ≠ 0) {p : associates α} (hp : irr
 begin
   induction k with n h,
   { rw [pow_zero, factors_one, zero_mul, count_zero hp] },
-  { rw [pow_succ, count_mul ha (pow_ne_zero' _ ha) hp, h, nat.succ_eq_add_one], ring }
+  { rw [pow_succ, count_mul ha (pow_ne_zero _ ha) hp, h, nat.succ_eq_add_one], ring }
 end
 
 theorem dvd_count_pow {a : associates α} (ha : a ≠ 0) {p : associates α} (hp : irreducible p)

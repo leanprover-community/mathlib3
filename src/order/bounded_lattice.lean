@@ -1103,3 +1103,11 @@ instance : bounded_lattice bool :=
   .. (infer_instance : lattice bool)}
 
 end bool
+
+section bool
+
+@[simp] lemma top_eq_tt : ⊤ = tt := rfl
+
+@[simp] lemma bot_eq_ff : ⊥ = ff := rfl
+
+end bool

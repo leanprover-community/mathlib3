@@ -120,7 +120,6 @@ instance : bounded_distrib_lattice α :=
 section decidable_eq
 variable [decidable_eq α]
 
-
 def order_iso_bool : α ≃o bool :=
 { to_fun := λ x, x = ⊤,
   inv_fun := λ x, if x then ⊤ else ⊥,
@@ -128,20 +127,14 @@ def order_iso_bool : α ≃o bool :=
   right_inv := λ x, by { cases x; simp [bot_ne_top] },
   map_rel_iff' := λ a b, begin
     rcases (eq_bot_or_eq_top a) with rfl | rfl,
-    { simp [bot_ne_top], },
+    { simp [bot_ne_top] },
     { rcases (eq_bot_or_eq_top b) with rfl | rfl,
-      { squeeze_simp [bot_ne_top], },
-      { squeeze_simp [bot_ne_top], } }
-  end,
-}
+      { simp [bot_ne_top.symm, bot_ne_top, bool.ff_lt_tt] },
+      { simp [bot_ne_top] } }
+  end }
 
 @[priority 200]
-instance : fintype α := equiv.fintype order_iso_bool
-
-lemma finset_univ : (finset.univ : finset α) = {⊥, ⊤} := rfl
-
-lemma card : fintype.card α = 2 :=
-finset.card_insert_of_not_mem $ λ con, bot_ne_top (finset.mem_singleton.1 con)
+instance : fintype α := fintype.of_equiv bool (order_iso_bool.to_equiv).symm
 
 /-- A simple `bounded_lattice` is also a `boolean_algebra`. -/
 protected def boolean_algebra : boolean_algebra α :=
@@ -190,6 +183,35 @@ protected noncomputable def complete_boolean_algebra : complete_boolean_algebra 
   .. is_simple_lattice.boolean_algebra }
 
 end is_simple_lattice
+
+namespace fintype
+namespace is_simple_lattice
+variables [bounded_lattice α] [is_simple_lattice α] [decidable_eq α]
+
+lemma univ : (finset.univ : finset α) = {⊤, ⊥} :=
+begin
+  change finset.map _ (finset.univ : finset bool) = _,
+  rw fintype.univ_bool,
+  simp only [finset.map_insert, function.embedding.coe_fn_mk, finset.map_singleton],
+  refl,
+end
+
+lemma card : fintype.card α = 2 :=
+(fintype.of_equiv_card _).trans fintype.card_bool
+
+end is_simple_lattice
+end fintype
+
+namespace bool
+
+instance : is_simple_lattice bool :=
+⟨λ a, begin
+  rw [← finset.mem_singleton, or.comm, ← finset.mem_insert,
+      top_eq_tt, bot_eq_ff, ← fintype.univ_bool],
+  exact fintype.mem_univ,
+end⟩
+
+end bool
 
 theorem is_simple_lattice_iff_is_atom_top [bounded_lattice α] :
   is_simple_lattice α ↔ is_atom (⊤ : α) :=
@@ -242,4 +264,3 @@ lemma is_simple_lattice [h : is_simple_lattice β] (f : α ≃o β) : is_simple_
 f.is_simple_lattice_iff.mpr h
 
 end order_iso
-#lint

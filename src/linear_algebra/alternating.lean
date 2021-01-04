@@ -306,6 +306,38 @@ instance : semimodule S (alternating_map R M N ι) :=
 
 end semimodule
 
+end alternating_map
+
+/-!
+### Composition with linear maps
+-/
+
+namespace linear_map
+
+variables {N₂ : Type*} [add_comm_monoid N₂] [semimodule R N₂]
+
+/-- Composing a alternating map with a linear map gives again a alternating map. -/
+def comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
+  alternating_map R M N₂ ι :=
+{ map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+  ..(g.comp_multilinear_map (f : multilinear_map R (λ _ : ι, M) N)) }
+
+@[simp] lemma coe_comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
+  ⇑(g.comp_alternating_map f) = g ∘ f := rfl
+
+lemma comp_alternating_map_apply (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) (m : ι → M) :
+  g.comp_alternating_map f m = g (f m) := rfl
+
+end linear_map
+
+namespace alternating_map
+
+variables (f f' : alternating_map R M N ι)
+variables (g g₂ : alternating_map R M N' ι)
+variables (g' : alternating_map R M' N' ι)
+variables (v : ι → M) (v' : ι → M')
+open function
+
 /-!
 ### Other lemmas from `multilinear_map`
 -/
@@ -473,7 +505,34 @@ end
 
 end alternating_map
 
+
+namespace linear_map
+
+variables {N'₂ : Type*} [add_comm_group N'₂] [semimodule R N'₂] [fintype ι]
+
+/-- Composition with a linear map before and after alternatization are equivalent. -/
+lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
+  (f : multilinear_map R (λ _ : ι, M) N') :
+  (g.comp_multilinear_map f).alternatization = g.comp_alternating_map (f.alternatization) :=
+begin
+  have map_smul : ∀ (z : units ℤ) (x : N'), (z : ℤ) • g x = g ((z : ℤ) • x),
+  { intros z v,
+    -- `linear_map.map_smul` and `linear_map.map_smul_of_tower` do not work here, as `R` is a
+    -- `semiring` not a `ring`.
+    cases int.units_eq_one_or z with h;
+    simp [h], },
+  ext,
+  simp [multilinear_map.alternatization_def, map_smul],
+end
+
+end linear_map
+
 section coprod
+
+open_locale big_operators
+open_locale tensor_product
+
+variables {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
 
 namespace equiv.perm
 
@@ -484,14 +543,9 @@ quotient_group.quotient (equiv.perm.sum_congr_hom α β).range
 end equiv.perm
 
 namespace alternating_map
-
-open_locale big_operators
-open_locale tensor_product
 open equiv
 
-variables {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] [fintype ιb]
-
-private def dom_coprod_aux
+def dom_coprod_fun
   {R : Type*} {M N₁ N₂ : Type*}
   [comm_semiring R]
   [add_comm_group N₁] [semimodule R N₁]
@@ -519,7 +573,7 @@ private def dom_coprod_aux
   rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))],
 end)
 
-private lemma dom_coprod_aux_eq_zero_if_eq
+private lemma dom_coprod_fun_eq_zero_if_eq
   {R : Type*} {M N₁ N₂ : Type*}
   [comm_semiring R]
   [add_comm_group N₁] [semimodule R N₁]
@@ -527,9 +581,9 @@ private lemma dom_coprod_aux_eq_zero_if_eq
   [add_comm_monoid M] [semimodule R M]
   (a : alternating_map R M N₁ ιa) (b : alternating_map R M N₂ ιb)
   (v : ιa ⊕ ιb → M) (i j : ιa ⊕ ιb) (hv : v i = v j) (hij : i ≠ j) :
-  dom_coprod_aux a b v = 0 :=
+  dom_coprod_fun a b v = 0 :=
 begin
-  unfold dom_coprod_aux,
+  unfold dom_coprod_fun,
   dsimp only,
   rw multilinear_map.sum_apply,
   apply finset.sum_involution
@@ -598,9 +652,9 @@ def dom_coprod
   [add_comm_monoid M] [semimodule R M]
   (a : alternating_map R M N₁ ιa) (b : alternating_map R M N₂ ιb) :
   alternating_map R M (N₁ ⊗[R] N₂) (ιa ⊕ ιb) :=
-{ to_fun := dom_coprod_aux a b,
-  map_eq_zero_of_eq' := dom_coprod_aux_eq_zero_if_eq a b,
-  ..dom_coprod_aux a b }
+{ to_fun := dom_coprod_fun a b,
+  map_eq_zero_of_eq' := dom_coprod_fun_eq_zero_if_eq a b,
+  ..dom_coprod_fun a b }
 
 -- /-- The usual definition of multiplication of alternating maps, over integer indices. -/
 -- def mul_fin {n m} {R : Type*} {M N : Type*}
@@ -626,7 +680,7 @@ tensor_product.lift $ by
     (λ m n₁ n₂, _)
     (λ c m n, _);
   { ext,
-    simp only [dom_coprod_apply, dom_coprod_aux, add_apply, smul_apply, ←finset.sum_add_distrib,
+    simp only [dom_coprod_apply, dom_coprod_fun, add_apply, smul_apply, ←finset.sum_add_distrib,
       finset.smul_sum, multilinear_map.sum_apply],
     congr,
     ext σ,
@@ -649,6 +703,10 @@ lemma dom_coprod'_apply
   dom_coprod' (a ⊗ₜ[R] b) = dom_coprod a b :=
 by simp only [dom_coprod', tensor_product.lift.tmul, linear_map.mk₂_apply]
 
+end alternating_map
+
+open alternating_map
+
 /-- Computing the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` is the same
 as computing the `alternating_map.dom_coprod` of the `multilinear_map.alternatization`s.
 -/
@@ -664,7 +722,7 @@ lemma multilinear_map.dom_coprod_alternization
 begin
   ext,
   dsimp only [dom_coprod_apply, smul_apply, multilinear_map.alternatization_def,
-    alternating_map.dom_coprod_apply, dom_coprod_aux],
+    alternating_map.dom_coprod_apply, dom_coprod_fun],
   simp_rw multilinear_map.sum_apply,
   rw finset.sum_partition (quotient_group.left_rel (perm.sum_congr_hom ιa ιb).range),
   congr' 1,
@@ -741,7 +799,5 @@ begin
     change tensor_product.semimodule'.to_distrib_mul_action.to_mul_action.to_has_scalar = _,
     congr, }
 end
-
-end alternating_map
 
 end coprod

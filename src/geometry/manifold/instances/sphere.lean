@@ -294,12 +294,10 @@ begin
     continuous_linear_equiv.of_findim_eq hv_perp,
   let U' : (ℝ ∙ (v':E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
     continuous_linear_equiv.of_findim_eq hv'_perp,
-  let hv := norm_eq_of_mem_sphere v,
-  let hv' := norm_eq_of_mem_sphere v',
-  have hUv : stereographic' v
-      = (stereographic hv).trans U.to_homeomorph.to_local_homeomorph := rfl,
-  have hU'v' : stereographic' v'
-      = (stereographic hv').trans U'.to_homeomorph.to_local_homeomorph := rfl,
+  have hUv : stereographic' v = (stereographic (norm_eq_of_mem_sphere v)).trans
+      U.to_homeomorph.to_local_homeomorph := rfl,
+  have hU'v' : stereographic' v' = (stereographic (norm_eq_of_mem_sphere v')).trans
+      U'.to_homeomorph.to_local_homeomorph := rfl,
   have H₁ := U'.to_continuous_linear_map.times_cont_diff.comp_times_cont_diff_on
       times_cont_diff_on_stereo_to_fun,
   have H₂ := (times_cont_diff_stereo_inv_fun_aux.comp
@@ -307,9 +305,7 @@ begin
       U.symm.to_continuous_linear_map.times_cont_diff,
   convert H₁.comp' (H₂.times_cont_diff_on : times_cont_diff_on ℝ ⊤ _ set.univ) using 1,
   have h_set : ∀ p : sphere (0:E) 1, p = v' ↔ ⟪(p:E), v'⟫_ℝ = 1,
-  { intros p,
-    have hp := norm_eq_of_mem_sphere p,
-    simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one, hv', hp] },
+  { simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one] },
   ext,
   simp [h_set, hUv, hU'v', stereographic, real_inner_comm]
 end

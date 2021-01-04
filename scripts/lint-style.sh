@@ -20,11 +20,27 @@
 
 # ## Implementation details
 
-# A Python script `scripts/lint-style.py` that lints the contents of a Lean file.
-# This script is called below on all Lean files in the repository.
-# Exceptions are maintained in `scripts/style-exceptions.txt`.
+# There are two parts.
+# 1. A Python script `scripts/lint-style.py` that lints the contents of a Lean file.
+#    This script is called below on all Lean files in the repository.
+#    Exceptions are maintained in `scripts/style-exceptions.txt`.
+# 2. The remainder of this shell script #    contains some lints on the global repository.
+
+# 1. Call the Lean file linter, implemented in Python
 
 touch scripts/style-exceptions.txt
 
 find src archive -name '*.lean' | xargs ./scripts/lint-style.py
+
+# 2. Global checks on the mathlib repository
+
+# 2.1 Check for executable bit on Lean files
+
+nrexecbit=`find . -name *.lean -type f -executable | wc -l`
+
+if [[ $nrexecbit -ne 0 ]]
+then
+	echo "ERROR: The following Lean files have the executable bit set."
+	find . -name *.lean -type f -executable
+fi
 

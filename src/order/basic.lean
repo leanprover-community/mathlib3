@@ -396,12 +396,12 @@ iff.rfl
 lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
   {x y : Π i, α i} {i : ι} {a : α i} :
   x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
-function.rel_update_iff (λ i : ι, (≥))
+function.forall_update_iff _ (λ j z, x j ≤ z)
 
 lemma update_le_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
   {x y : Π i, α i} {i : ι} {a : α i} :
   function.update x i a ≤ y ↔ a ≤ y i ∧ ∀ j ≠ i, x j ≤ y j :=
-function.rel_update_iff (λ i : ι, (≤))
+function.forall_update_iff _ (λ j z, z ≤ y j)
 
 instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] :
   partial_order (Πi, α i) :=

@@ -24,6 +24,16 @@ def antidiagonal (n : ℕ) : finset (ℕ × ℕ) :=
   x ∈ antidiagonal n ↔ x.1 + x.2 = n :=
 by rw [antidiagonal, mem_def, multiset.nat.mem_antidiagonal]
 
+/-- If (i,j) is contained in the antidiagonal of `n` then `i ≤ n`. -/
+@[simp] lemma fst_le_of_mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} :
+  x ∈ antidiagonal n → x.1 ≤ n :=
+by { rw mem_antidiagonal, exact nat.le.intro }
+
+/-- If (i,j) is contained in the antidiagonal of `n` then `j ≤ n`. -/
+@[simp] lemma snd_le_of_mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} :
+  x ∈ antidiagonal n → x.2 ≤ n :=
+by { rw [mem_antidiagonal, add_comm], exact nat.le.intro }
+
 /-- The cardinality of the antidiagonal of `n` is `n+1`. -/
 @[simp] lemma card_antidiagonal (n : ℕ) : (antidiagonal n).card = n+1 :=
 by simp [antidiagonal]
@@ -56,6 +66,13 @@ begin
   { rintro rfl,
     use [a.snd, a.fst],
     simp }
+end
+
+lemma sum_antidiagonal {M : Type*} [add_comm_monoid M]
+  (n : ℕ) (f : ℕ × ℕ → M) :
+ ∑ (p : ℕ × ℕ) in antidiagonal n, f p = ∑ (i : ℕ) in finset.range (n + 1), f (i,(n - i))  :=
+begin
+  sorry
 end
 
 end nat

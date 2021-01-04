@@ -7,6 +7,7 @@ Authors: Johannes Hölzl
 import data.finset.fold
 import data.equiv.mul_add
 import tactic.abel
+import data.finset.nat_antidiagonal
 
 /-!
 # Big operators
@@ -606,6 +607,27 @@ lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
 @prod_range_one (multiplicative δ) _ f
 
 attribute [to_additive finset.sum_range_one] prod_range_one
+
+@[to_additive] lemma prod_antidiagonal {M : Type*} [comm_monoid M]
+  (n : ℕ) (f : ℕ × ℕ → M) :
+ ∏ (p : ℕ × ℕ) in finset.nat.antidiagonal n, f p = ∏ (i : ℕ) in finset.range (n + (nat.succ 0)), f (i,(n - i))  :=
+begin
+  have : ∀ {a}, a ∈ finset.nat.antidiagonal n → ((a : ℕ × ℕ).fst, n - a.fst) = a,
+  { rintros ⟨a1, a2⟩ ha,
+    rw finset.nat.mem_antidiagonal at ha,
+    subst ha,
+    congr',
+    simp,
+  },
+  apply finset.prod_bij' (λ (a : ℕ × ℕ) _, a.1) _ _ (λ (i : ℕ) _, (i, n - i)),
+  { intros, apply this ha },
+  { intros, simp },
+  { intros, simp only [finset.nat.mem_antidiagonal],
+    apply nat.add_sub_cancel', apply range_succ_mem_le _ _ ha },
+  { intros, simp only [finset.mem_range],
+    exact nat.lt_succ_of_le (finset.nat.fst_le_of_mem_antidiagonal ha) },
+  { intros, simp [this ha] },
+end
 
 open multiset
 

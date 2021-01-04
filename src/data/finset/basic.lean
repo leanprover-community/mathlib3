@@ -1229,6 +1229,9 @@ def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 theorem range_succ : range (succ n) = insert n (range n) :=
 eq_of_veq $ (range_succ n).trans $ (ndinsert_of_not_mem not_mem_range_self).symm
 
+lemma range_succ_mem_le (n x : ℕ) (h : x ∈ finset.range (n+1)) : x ≤ n :=
+by { rw mem_range at h, exact lt_succ_iff.1 h }
+
 theorem range_add_one : range (n + 1) = insert n (range n) :=
 range_succ
 
@@ -1532,7 +1535,7 @@ theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.im
 by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset',
   multiset.map_subset_map h]
 
-theorem image_subset_iff {s : finset α} {t : finset β} {f : α → β} :
+theorem image_subset_iff {s : finset α} {t : finset β} {f : α ��� β} :
   s.image f ⊆ t ↔ ∀ x ∈ s, f x ∈ t :=
 calc s.image f ⊆ t ↔ f '' ↑s ⊆ ↑t : by norm_cast
                ... ↔ _ : set.image_subset_iff

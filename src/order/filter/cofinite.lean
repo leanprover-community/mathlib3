@@ -37,6 +37,9 @@ def cofinite : filter α :=
 
 @[simp] lemma mem_cofinite {s : set α} : s ∈ (@cofinite α) ↔ finite sᶜ := iff.rfl
 
+@[simp] lemma eventually_cofinite {p : α → Prop} :
+  (∀ᶠ x in cofinite, p x) ↔ finite {x | ¬p x} := iff.rfl
+
 instance cofinite_ne_bot [infinite α] : ne_bot (@cofinite α) :=
 mt empty_in_sets_eq_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }
 

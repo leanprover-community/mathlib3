@@ -266,8 +266,16 @@ iff.intro
   (assume h a ha, top_unique $ h ▸ Inf_le ha)
   (assume h, top_unique $ le_Inf $ assume a ha, top_le_iff.2 $ h a ha)
 
+lemma eq_singleton_top_of_Inf_eq_top_of_nonempty {s : set α}
+  (h_inf : Inf s = ⊤) (hne : s.nonempty) : s = {⊤} :=
+by { rw set.eq_singleton_iff_nonempty_unique_mem, rw Inf_eq_top at h_inf, exact ⟨hne, h_inf⟩, }
+
 @[simp] theorem Sup_eq_bot : Sup s = ⊥ ↔ (∀a∈s, a = ⊥) :=
 @Inf_eq_top (order_dual α) _ _
+
+lemma eq_singleton_bot_of_Sup_eq_bot_of_nonempty {s : set α}
+  (h_sup : Sup s = ⊥) (hne : s.nonempty) : s = {⊥} :=
+by { rw set.eq_singleton_iff_nonempty_unique_mem, rw Sup_eq_bot at h_sup, exact ⟨hne, h_sup⟩, }
 
 end
 

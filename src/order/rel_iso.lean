@@ -79,6 +79,22 @@ end
 protected theorem well_founded : ∀ (f : r →r s) (h : well_founded s), well_founded r
 | f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
 
+lemma map_inf {α β : Type*} [semilattice_inf α] [linear_order β]
+  (a : ((<) : β → β → Prop) →r ((<) : α → α → Prop)) (m n : β) : a (m ⊓ n) = a m ⊓ a n :=
+begin
+  symmetry, cases le_or_lt n m with h,
+  { rw [inf_eq_right.mpr h, inf_eq_right], exact strict_mono.monotone (λ x y, a.map_rel) h, },
+  { rw [inf_eq_left.mpr (le_of_lt h), inf_eq_left], exact le_of_lt (a.map_rel h), },
+end
+
+lemma map_sup {α β : Type*} [semilattice_sup α] [linear_order β]
+  (a : ((>) : β → β → Prop) →r ((>) : α → α → Prop)) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
+begin
+  symmetry, cases le_or_lt m n with h,
+  { rw [sup_eq_right.mpr h, sup_eq_right], exact strict_mono.monotone (λ x y, a.swap.map_rel) h, },
+  { rw [sup_eq_left.mpr (le_of_lt h), sup_eq_left], exact le_of_lt (a.map_rel h), },
+end
+
 end rel_hom
 
 /-- An increasing function is injective -/
@@ -123,8 +139,8 @@ infix ` ↪o `:25 := order_embedding
 
 /-- The induced relation on a subtype is an embedding under the natural inclusion. -/
 definition subtype.rel_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
-((subtype.val : subtype p → X) ⁻¹'o r) ↪r r :=
-⟨⟨subtype.val,subtype.val_injective⟩,by intros;refl⟩
+  ((subtype.val : subtype p → X) ⁻¹'o r) ↪r r :=
+⟨embedding.subtype p, λ x y, iff.rfl⟩
 
 theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
   (hs : equivalence s) : equivalence (f ⁻¹'o s) :=
@@ -177,7 +193,9 @@ instance (r : α → α → Prop) : inhabited (r ↪r r) := ⟨rel_embedding.ref
 
 @[simp] theorem refl_apply (x : α) : rel_embedding.refl r x = x := rfl
 
-@[simp] theorem trans_apply (f : r ↪r s) (g : s ↪r t) (a : α) : (f.trans g) a = g (f a) := rfl
+theorem trans_apply (f : r ↪r s) (g : s ↪r t) (a : α) : (f.trans g) a = g (f a) := rfl
+
+@[simp] theorem coe_trans (f : r ↪r s) (g : s ↪r t)  : ⇑(f.trans g) = g ∘ f := rfl
 
 /-- A relation embedding is also a relation embedding between dual relations. -/
 protected def swap (f : r ↪r s) : swap r ↪r swap s :=
@@ -317,6 +335,12 @@ def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
 @[simp] lemma coe_of_strict_mono {α β} [linear_order α] [preorder β] {f : α → β}
   (h : strict_mono f) : ⇑(of_strict_mono f h) = f := rfl
 
+/-- Embedding of a subtype into the ambient type as an `order_embedding`. -/
+def subtype (p : α → Prop) : subtype p ↪o α :=
+⟨embedding.subtype p, λ x y, iff.rfl⟩
+
+@[simp] lemma coe_subtype (p : α → Prop) : ⇑(subtype p) = coe := rfl
+
 end order_embedding
 
 /-- A relation isomorphism is an equivalence that is also a relation embedding. -/
@@ -384,6 +408,8 @@ theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨f₁.to_equiv.trans f₂.to_equiv, λ a b, f₁.map_rel_iff.trans f₂.map_rel_iff⟩
 
 instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
+
+@[simp] lemma default_def (r : α → α → Prop) : default (r ≃r r) = rel_iso.refl r := rfl
 
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
 protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=
@@ -489,7 +515,7 @@ e.to_rel_embedding
 @[simp] lemma coe_to_order_embedding [has_le α] [has_le β] (e : α ≃o β) :
   ⇑(e.to_order_embedding) = e := rfl
 
-variables [preorder α] [preorder β]
+variables [preorder α] [preorder β] [preorder γ]
 
 protected lemma monotone (e : α ≃o β) : monotone e := e.to_order_embedding.monotone
 
@@ -517,6 +543,21 @@ e.to_equiv.apply_symm_apply x
 
 @[simp] lemma symm_apply_apply (e : α ≃o β) (x : α) : e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply x
+
+theorem symm_apply_eq (e : α ≃o β) {x : α} {y : β} : e.symm y = x ↔ y = e x :=
+e.to_equiv.symm_apply_eq
+
+@[simp] lemma symm_symm (e : α ≃o β) : e.symm.symm = e := by { ext, refl }
+
+lemma symm_injective : injective (symm : (α ≃o β) → (β ≃o α)) :=
+λ e e' h, by rw [← e.symm_symm, h, e'.symm_symm]
+
+/-- Composition of two order isomorphisms is an order isomorphism. -/
+@[trans] def trans (e : α ≃o β) (e' : β ≃o γ) : α ≃o γ := e.trans e'
+
+@[simp] lemma coe_trans (e : α ≃o β) (e' : β ≃o γ) : ⇑(e.trans e') = e' ∘ e := rfl
+
+lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e' (e x) := rfl
 
 open set
 
@@ -587,12 +628,9 @@ noncomputable def strict_mono.order_iso_of_surjective {α β} [linear_order α] 
   (f : α → β) (h_mono : strict_mono f) (h_surj : surjective f) : α ≃o β :=
 (h_mono.order_iso f).trans $ (order_iso.set_congr _ _ h_surj.range_eq).trans order_iso.set.univ
 
-/-- A subset `p : set α` embeds into `α` -/
-def set_coe_embedding {α : Type*} (p : set α) : p ↪ α := ⟨subtype.val, @subtype.eq _ _⟩
-
 /-- `subrel r p` is the inherited relation on a subset. -/
 def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
-@subtype.val _ p ⁻¹'o r
+(coe : p → α) ⁻¹'o r
 
 @[simp] theorem subrel_val (r : α → α → Prop) (p : set α)
   {a b} : subrel r p a b ↔ r a.1 b.1 := iff.rfl
@@ -601,7 +639,7 @@ namespace subrel
 
 /-- The relation embedding from the inherited relation on a subset. -/
 protected def rel_embedding (r : α → α → Prop) (p : set α) :
-  subrel r p ↪r r := ⟨set_coe_embedding _, λ a b, iff.rfl⟩
+  subrel r p ↪r r := ⟨embedding.subtype _, λ a b, iff.rfl⟩
 
 @[simp] theorem rel_embedding_apply (r : α → α → Prop) (p a) :
   subrel.rel_embedding r p a = a.1 := rfl
@@ -625,15 +663,19 @@ protected def order_iso.dual [preorder α] [preorder β] (f : α ≃o β) :
 
 section lattice_isos
 
-lemma order_iso.map_bot [order_bot α] [order_bot β]
-  (f : α ≃o β) :
-  f ⊥ = ⊥ :=
-by { rw [eq_bot_iff, ← f.apply_symm_apply ⊥, ← f.map_rel_iff], apply bot_le, }
+lemma order_iso.map_bot' [partial_order α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+  (hx : ∀ x', x ≤ x') (hy : ∀ y', y ≤ y') : f x = y :=
+by { refine le_antisymm _ (hy _), rw [← f.apply_symm_apply y, ← f.map_rel_iff], apply hx }
 
-lemma order_iso.map_top [order_top α] [order_top β]
-  (f : α ≃o β) :
-  f ⊤ = ⊤ :=
-by { rw [eq_top_iff, ← f.apply_symm_apply ⊤, ← f.map_rel_iff], apply le_top, }
+lemma order_iso.map_bot [order_bot α] [order_bot β] (f : α ≃o β) : f ⊥ = ⊥ :=
+f.map_bot' (λ _, bot_le) (λ _, bot_le)
+
+lemma order_iso.map_top' [partial_order α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+  (hx : ∀ x', x' ≤ x) (hy : ∀ y', y' ≤ y) : f x = y :=
+f.dual.map_bot' hx hy
+
+lemma order_iso.map_top [order_top α] [order_top β] (f : α ≃o β) : f ⊤ = ⊤ :=
+f.dual.map_bot
 
 lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
   (f : α ↪o β) (x y : α) :
@@ -644,9 +686,8 @@ lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β]
   (f : α ≃o β) (x y : α) :
   f (x ⊓ y) = f x ⊓ f y :=
 begin
-  apply le_antisymm,
-  { apply f.to_order_embedding.map_inf_le },
-  { simpa [← f.symm.apply_le_apply] using f.symm.to_order_embedding.map_inf_le (f x) (f y) }
+  refine (f.to_order_embedding.map_inf_le x y).antisymm _,
+  simpa [← f.symm.apply_le_apply] using f.symm.to_order_embedding.map_inf_le (f x) (f y)
 end
 
 lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]

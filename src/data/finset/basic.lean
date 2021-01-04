@@ -369,6 +369,19 @@ ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
 @[simp] theorem insert_ne_empty (a : α) (s : finset α) : insert a s ≠ ∅ :=
 (insert_nonempty a s).ne_empty
 
+section
+universe u
+/-!
+The universe annotation is required for the following instance, possibly this is a bug in Lean. See
+leanprover.zulipchat.com/#narrow/stream/113488-general/topic/strange.20error.20(universe.20issue.3F)
+-/
+
+instance {α : Type u} [decidable_eq α] (i : α) (s : finset α) :
+  nonempty.{u + 1} ((insert i s : finset α) : set α) :=
+(finset.coe_nonempty.mpr (s.insert_nonempty i)).to_subtype
+
+end
+
 lemma ne_insert_of_not_mem (s t : finset α) {a : α} (h : a ∉ s) :
   s ≠ insert a t :=
 by { contrapose! h, simp [h] }
@@ -544,6 +557,29 @@ by rw [union_comm, union_eq_left_iff_subset]
 @[simp] lemma right_eq_union_iff_subset {s t : finset α} :
   s = t ∪ s ↔ t ⊆ s :=
 by rw [← union_eq_right_iff_subset, eq_comm]
+
+/--
+To prove a relation on pairs of `finset X`, it suffices to show that it is
+  * symmetric,
+  * it holds when one of the `finset`s is empty,
+  * it holds for pairs of singletons,
+  * if it holds for `[a, c]` and for `[b, c]`, then it holds for `[a ∪ b, c]`.
+-/
+lemma induction_on_union (P : finset α → finset α → Prop)
+  (symm : ∀ {a b}, P a b → P b a)
+  (empty_right : ∀ {a}, P a ∅)
+  (singletons : ∀ {a b}, P {a} {b})
+  (union_of : ∀ {a b c}, P a c → P b c → P (a ∪ b) c) :
+  ∀ a b, P a b :=
+begin
+  intros a b,
+  refine finset.induction_on b empty_right (λ x s xs hi, symm _),
+  rw finset.insert_eq,
+  apply union_of _ (symm hi),
+  refine finset.induction_on a empty_right (λ a t ta hi, symm _),
+  rw finset.insert_eq,
+  exact union_of singletons (symm hi),
+end
 
 /-! ### inter -/
 
@@ -1009,6 +1045,14 @@ lemma le_piecewise_of_le_of_le {δ : α → Type*} [Π i, preorder (δ i)] {f g 
   (Hf : h ≤ f) (Hg : h ≤ g) : h ≤ s.piecewise f g :=
 λ x, piecewise_cases s f g (λ y, h x ≤ y) (Hf x) (Hg x)
 
+lemma piecewise_le_piecewise' {δ : α → Type*} [Π i, preorder (δ i)] {f g f' g' : Π i, δ i}
+  (Hf : ∀ x ∈ s, f x ≤ f' x) (Hg : ∀ x ∉ s, g x ≤ g' x) : s.piecewise f g ≤ s.piecewise f' g' :=
+λ x, by { by_cases hx : x ∈ s; simp [hx, *] }
+
+lemma piecewise_le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {f g f' g' : Π i, δ i}
+  (Hf : f ≤ f') (Hg : g ≤ g') : s.piecewise f g ≤ s.piecewise f' g' :=
+s.piecewise_le_piecewise' (λ x _, Hf x) (λ x _, Hg x)
+
 lemma piecewise_mem_Icc_of_mem_of_mem {δ : α → Type*} [Π i, preorder (δ i)] {f f₁ g g₁ : Π i, δ i}
   (hf : f ∈ set.Icc f₁ g₁) (hg : g ∈ set.Icc f₁ g₁) :
   s.piecewise f g ∈ set.Icc f₁ g₁ :=
@@ -1253,6 +1297,9 @@ range_succ
 @[simp] theorem range_subset {n m} : range n ⊆ range m ↔ n ≤ m := range_subset
 
 theorem range_mono : monotone range := λ _ _, range_subset.2
+
+lemma mem_range_succ_iff {a b : ℕ} : a ∈ finset.range b.succ ↔ a ≤ b :=
+finset.mem_range.trans nat.lt_succ_iff
 
 end range
 
@@ -2311,6 +2358,9 @@ by simp [fin_range]
 @[simp]
 lemma mem_fin_range {k : ℕ} (m : fin k) : m ∈ fin_range k :=
 list.mem_fin_range m
+
+@[simp] lemma coe_fin_range (k : ℕ) : (fin_range k : set (fin k)) = set.univ :=
+set.eq_univ_of_forall mem_fin_range
 
 /-- Given a finset `s` of `ℕ` contained in `{0,..., n-1}`, the corresponding finset in `fin n`
 is `s.attach_fin h` where `h` is a proof that all elements of `s` are less than `n`. -/

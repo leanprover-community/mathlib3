@@ -47,7 +47,7 @@ instance : has_one (submodule R A) :=
 theorem one_eq_map_top :
   (1 : submodule R A) = submodule.map (of_id R A).to_linear_map (⊤ : submodule R R) := rfl
 
-theorem one_eq_span : (1 : submodule R A) = span R {1} :=
+theorem one_eq_span : (1 : submodule R A) = R ∙ 1 :=
 begin
   apply submodule.ext,
   intro a,

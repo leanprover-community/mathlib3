@@ -741,12 +741,6 @@ begin
       prod.comp_lift, ← F.map_comp, prod.map_fst, ← F.map_comp, prod.map_snd]
 end
 
-@[simps]
-def prod_comparison_nat_trans [has_binary_products C] [has_binary_products D] :
-  prod.functor.obj A ⋙ F ⟶ F ⋙ prod.functor.obj (F.obj A) :=
-{ app := λ B, prod_comparison F A B,
-  naturality' := λ B B' f, (prod_comparison_natural _ _ _).trans (by simp) }
-
 @[reassoc]
 lemma inv_prod_comparison_map_fst [is_iso (prod_comparison F A B)] :
   inv (prod_comparison F A B) ≫ F.map prod.fst = prod.fst :=
@@ -764,19 +758,6 @@ lemma prod_comparison_inv_natural (f : A ⟶ A') (g : B ⟶ B')
   inv (prod_comparison F A B) ≫ F.map (prod.map f g) =
     prod.map (F.map f) (F.map g) ≫ inv (prod_comparison F A' B') :=
 by rw [is_iso.eq_comp_inv, category.assoc, is_iso.inv_comp_eq, prod_comparison_natural]
-
-/--
-If each `prod_comparison` is an isomorphism, they together form a natural isomorphism.
-Note that the assumption is equivalent (and deduced from) the assumption that `F` preserves binary
-products, see `category_theory.limits.preserves.shapes.binary_products`.
--/
-@[simps {rhs_md := semireducible}]
-def prod_comparison_nat_iso [has_binary_products C] [has_binary_products D]
-  [∀ A B, is_iso (prod_comparison F A B)] :
-  prod.functor.obj A ⋙ F ≅ F ⋙ prod.functor.obj (F.obj A) :=
-nat_iso.of_components
-  (λ X, (as_iso (prod_comparison F A X)))
-  (λ X Y f, (prod_comparison_nat_trans _).naturality' _)
 
 end prod_comparison
 

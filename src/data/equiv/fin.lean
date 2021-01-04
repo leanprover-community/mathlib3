@@ -50,6 +50,13 @@ def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
 @[simp] lemma fin_succ_equiv_succ {n : ℕ} (m : fin n):
   (fin_succ_equiv n) m.succ = some m := by simp [fin_succ_equiv]
 
+@[simp] lemma fin_succ_equiv_ne_zero {n : ℕ} {m : fin (n + 1)} (h : m ≠ 0) :
+  (fin_succ_equiv n) m = some (m.pred h) :=
+begin
+  set m' : fin n := m.pred h,
+  rw [show m = (m.pred h).succ, by rw [fin.succ_pred], fin_succ_equiv_succ]
+end
+
 @[simp] lemma fin_succ_equiv_symm_none {n : ℕ} :
   (fin_succ_equiv n).symm none = 0 := rfl
 

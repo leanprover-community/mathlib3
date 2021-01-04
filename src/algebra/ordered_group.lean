@@ -275,12 +275,36 @@ have (a⁻¹)⁻¹ ≤ b⁻¹ ↔ b ≤ a⁻¹, from inv_le_inv_iff,
 by rwa inv_inv at this
 
 @[to_additive neg_le_iff_add_nonneg]
-lemma inv_le_iff_one_le_mul : a⁻¹ ≤ b ↔ 1 ≤ a * b :=
+lemma inv_le_iff_one_le_mul : a⁻¹ ≤ b ↔ 1 ≤ b * a :=
+(mul_le_mul_iff_right a).symm.trans $ by rw inv_mul_self
+
+@[to_additive neg_le_iff_add_nonneg']
+lemma inv_le_iff_one_le_mul' : a⁻¹ ≤ b ↔ 1 ≤ a * b :=
 (mul_le_mul_iff_left a).symm.trans $ by rw mul_inv_self
+
+@[to_additive neg_lt_iff_add_nonneg]
+lemma inv_lt_iff_one_lt_mul : a⁻¹ < b ↔ 1 < b * a :=
+(mul_lt_mul_iff_right a).symm.trans $ by rw inv_mul_self
+
+@[to_additive neg_lt_iff_add_nonneg']
+lemma inv_lt_iff_one_lt_mul' : a⁻¹ < b ↔ 1 < a * b :=
+(mul_lt_mul_iff_left a).symm.trans $ by rw mul_inv_self
 
 @[to_additive]
 lemma le_inv_iff_mul_le_one : a ≤ b⁻¹ ↔ a * b ≤ 1 :=
 (mul_le_mul_iff_right b).symm.trans $ by rw inv_mul_self
+
+@[to_additive]
+lemma le_inv_iff_mul_le_one' : a ≤ b⁻¹ ↔ b * a ≤ 1 :=
+(mul_le_mul_iff_left b).symm.trans $ by rw mul_inv_self
+
+@[to_additive]
+lemma lt_inv_iff_mul_lt_one : a < b⁻¹ ↔ a * b < 1 :=
+(mul_lt_mul_iff_right b).symm.trans $ by rw inv_mul_self
+
+@[to_additive]
+lemma lt_inv_iff_mul_lt_one' : a < b⁻¹ ↔ b * a < 1 :=
+(mul_lt_mul_iff_left b).symm.trans $ by rw mul_inv_self
 
 @[simp, to_additive neg_nonpos]
 lemma inv_le_one' : a⁻¹ ≤ 1 ↔ 1 ≤ a :=
@@ -370,9 +394,11 @@ lemma div_le_div_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 begin
   split ; intro h,
   have := mul_le_mul_right' (mul_le_mul_right' h b) d,
-  rwa [inv_mul_cancel_right, mul_assoc _ _ b, mul_comm _ b, ← mul_assoc, inv_mul_cancel_right] at this,
+  rwa [inv_mul_cancel_right, mul_assoc _ _ b, mul_comm _ b, ← mul_assoc, inv_mul_cancel_right]
+    at this,
   have := mul_le_mul_right' (mul_le_mul_right' h d⁻¹) b⁻¹,
-  rwa [mul_inv_cancel_right, _root_.mul_assoc, _root_.mul_comm d⁻¹ b⁻¹, ← mul_assoc, mul_inv_cancel_right] at this,
+  rwa [mul_inv_cancel_right, _root_.mul_assoc, _root_.mul_comm d⁻¹ b⁻¹, ← mul_assoc,
+    mul_inv_cancel_right] at this,
 end
 
 end ordered_comm_group
@@ -509,19 +535,33 @@ lt_sub_iff_add_lt'.trans lt_sub_iff_add_lt.symm
 
 end ordered_add_comm_group
 
-/-- A decidable linearly ordered additive commutative group is an
-additive commutative group with a decidable linear order in which
-addition is strictly monotone. -/
+/-!
+
+### Linearly ordered commutative groups
+
+-/
+
+/-- A linearly ordered additive commutative group is an
+additive commutative group with a linear order in which
+addition is monotone. -/
 @[protect_proj] class linear_ordered_add_comm_group (α : Type u)
   extends add_comm_group α, linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_ordered_add_comm_group (α : Type u)
-  [s : linear_ordered_add_comm_group α] : ordered_add_comm_group α :=
-{ add := s.add, ..s }
+/-- A linearly ordered commutative group is a
+commutative group with a linear order in which
+multiplication is monotone. -/
+@[protect_proj, to_additive] class linear_ordered_comm_group (α : Type u)
+  extends comm_group α, linear_order α :=
+(mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
+
+@[to_additive, priority 100] -- see Note [lower instance priority]
+instance linear_ordered_comm_group.to_ordered_comm_group (α : Type u)
+  [s : linear_ordered_comm_group α] : ordered_comm_group α :=
+{ ..s }
 
 section linear_ordered_add_comm_group
+
 variables [linear_ordered_add_comm_group α] {a b c : α}
 
 @[priority 100] -- see Note [lower instance priority]

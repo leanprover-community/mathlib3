@@ -131,13 +131,13 @@ by rw [norm_smul, norm_norm', coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
     element of the dual space, of norm `1`, whose value on `x` is `∥x∥`. -/
 theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=
 begin
-  let p : submodule 𝕜 E := span 𝕜 {x},
+  let p : submodule 𝕜 E := 𝕜 ∙ x,
   let f := norm' 𝕜 x • coord 𝕜 x h,
   obtain ⟨g, hg⟩ := exists_extension_norm_eq p f,
   use g, split,
   { rw [hg.2, coord_norm'] },
-  { calc g x = g (⟨x, mem_span_singleton_self x⟩ : span 𝕜 {x}) : by rw coe_mk
-    ... = (norm' 𝕜 x • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : span 𝕜 {x}) : by rw ← hg.1
+  { calc g x = g (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw coe_mk
+    ... = (norm' 𝕜 x • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw ← hg.1
     ... = norm' 𝕜 x : by simp [coord_self] }
 end
 

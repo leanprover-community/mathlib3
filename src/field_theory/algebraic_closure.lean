@@ -67,6 +67,25 @@ lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : 
   p.degree = 1 :=
 degree_eq_one_of_irreducible_of_splits h_nz hp (polynomial.splits' _)
 
+lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [domain K]
+  [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_integral k K) :
+  function.surjective (algebra_map k K) :=
+begin
+  refine λ x, ⟨-((minimal_polynomial (hf x)).coeff 0), _⟩,
+  have hq : (minimal_polynomial (hf x)).leading_coeff = 1 := minimal_polynomial.monic (hf x),
+  have h : (minimal_polynomial (hf x)).degree = 1 := degree_eq_one_of_irreducible k
+    (minimal_polynomial.ne_zero (hf x)) (minimal_polynomial.irreducible (hf x)),
+  have : (aeval x (minimal_polynomial (hf x))) = 0 := minimal_polynomial.aeval (hf x),
+  rw [eq_X_add_C_of_degree_eq_one h, hq, C_1, one_mul,
+    aeval_add, aeval_X, aeval_C, add_eq_zero_iff_eq_neg] at this,
+  exact (ring_hom.map_neg (algebra_map k K) ((minimal_polynomial (hf x)).coeff 0)).symm ▸ this.symm,
+end
+
+lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [domain K]
+  [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_algebraic k K) :
+  function.surjective (algebra_map k K) :=
+algebra_map_surjective_of_is_integral ((is_algebraic_iff_is_integral' k).mp hf)
+
 end is_alg_closed
 
 instance complex.is_alg_closed : is_alg_closed ℂ :=

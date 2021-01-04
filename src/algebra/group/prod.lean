@@ -118,6 +118,24 @@ instance [comm_monoid M] [comm_monoid N] : comm_monoid (M × N) :=
 instance [comm_group G] [comm_group H] : comm_group (G × H) :=
 { .. prod.comm_semigroup, .. prod.group }
 
+/-- The monoid equivalence between units of a product of two monoids, and the product of the
+    units of each monoid. -/
+def units [monoid M] [monoid N] : units (M × N) ≃* units M × units N :=
+mul_equiv.mk'
+{ to_fun := λ ⟨⟨u₁, u₂⟩, ⟨v₁, v₂⟩, huv, hvu⟩,
+              ⟨⟨u₁, v₁, by {rw [prod.mk_mul_mk, prod.mk_eq_one] at huv, exact huv.1},
+                        by {rw [prod.mk_mul_mk, prod.mk_eq_one] at hvu, exact hvu.1}⟩,
+               ⟨u₂, v₂, by {rw [prod.mk_mul_mk, prod.mk_eq_one] at huv, exact huv.2},
+                        by {rw [prod.mk_mul_mk, prod.mk_eq_one] at hvu, exact hvu.2}⟩⟩,
+  inv_fun := λ ⟨⟨u₁, v₁, huv₁, hvu₁⟩, ⟨u₂, v₂, huv₂, hvu₂⟩⟩,
+               ⟨(u₁, u₂), (v₁, v₂), by {rw [prod.mk_mul_mk, prod.mk_eq_one], exact ⟨huv₁, huv₂⟩},
+                                    by {rw [prod.mk_mul_mk, prod.mk_eq_one], exact ⟨hvu₁, hvu₂⟩}⟩,
+  left_inv := by {rintro ⟨⟨u₁, u₂⟩, ⟨v₁, v₂⟩, huv, hvu⟩, simpa, },
+  right_inv := by {rintro ⟨⟨u₁, v₁, huv₁, hvu₁⟩, ⟨u₂, v₂, huv₂, hvu₂⟩⟩, simpa, } }
+   (λ ⟨⟨ux, ux₂⟩, ⟨vx₁, vx₂⟩, hxuv, hxvu⟩ ⟨⟨uy₁, uy₂⟩, ⟨vy₁, vy₂⟩, hyuv, hyvu⟩, rfl)
+
+-- TODO attribute [to_additive add_units] units fails
+
 end prod
 
 namespace monoid_hom

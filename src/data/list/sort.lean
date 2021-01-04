@@ -49,6 +49,10 @@ rel_of_pairwise_cons
   sorted r (a :: l) ↔ (∀ b ∈ l, r a b) ∧ sorted r l :=
 pairwise_cons
 
+protected theorem sorted.nodup {r : α → α → Prop} [is_irrefl α r] {l : list α} (h : sorted r l) :
+  nodup l :=
+h.nodup
+
 theorem eq_of_perm_of_sorted [is_antisymm α r]
   {l₁ l₂ : list α} (p : l₁ ~ l₂) (s₁ : sorted r l₁) (s₂ : sorted r l₂) : l₁ = l₂ :=
 begin

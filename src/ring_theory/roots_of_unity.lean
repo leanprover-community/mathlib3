@@ -909,7 +909,7 @@ begin
     using pow_is_root_minimal_polynomial h hpos hcop
 end
 
-/- The degree of the minimal polynomial of `μ` is at least `totient n`. -/
+/-- The degree of the minimal polynomial of `μ` is at least `totient n`. -/
 lemma totient_le_degree_minimal_polynomial : nat.totient n ≤ (minimal_polynomial
   (is_integral h hpos)).nat_degree :=
 

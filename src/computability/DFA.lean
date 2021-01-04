@@ -43,4 +43,12 @@ def eval := M.eval_from M.start
 def accepts : language α :=
 λ x, M.eval x ∈ M.accept
 
+variable [finset σ]
+
+lemma pumping_lemma : ∃ p : ℕ, ∀ x ∈ M.accepts, list.length x ≥ p → ∃ a b c,
+  x = a ++ b ++ c ∧ ∀ n, a ++ (list.repeat b n).foldl (++) [] ++ c ∈ M.accepts :=
+begin
+  sorry
+end
+
 end DFA

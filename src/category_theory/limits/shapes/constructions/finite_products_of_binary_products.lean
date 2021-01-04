@@ -1,7 +1,7 @@
 /-
--- Copyright (c) 2020 Bhavik Mehta. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Bhavik Mehta
+Copyright (c) 2020 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
@@ -37,13 +37,13 @@ variables {D : Type u'} [category.{v} D]
 Given `n+1` objects of `C`, a fan for the last `n` with point `c₁.X` and a binary fan on `c₁.X` and
 `f 0`, we can build a fan for all `n+1`.
 
-In `build_limit` we show that if the two given fans are limits, then this fan is also a limit.
+In `extend_fan_is_limit` we show that if the two given fans are limits, then this fan is also a limit.
 -/
 @[simps {rhs_md := semireducible}]
-def build_prod {n : ℕ} {f : ulift (fin (n+1)) → C}
+def extend_fan {n : ℕ} {f : ulift (fin (n+1)) → C}
   (c₁ : fan (λ (i : ulift (fin n)), f ⟨i.down.succ⟩))
   (c₂ : binary_fan (f ⟨0⟩) c₁.X) :
-fan f :=
+  fan f :=
 fan.mk c₂.X
 begin
   rintro ⟨i⟩,
@@ -55,13 +55,13 @@ begin
 end
 
 /--
-Show that if the two given fans in `build_prod` are limits, then the constructed fan is also a
+Show that if the two given fans in `extend_fan` are limits, then the constructed fan is also a
 limit.
 -/
-def build_limit {n : ℕ} (f : ulift (fin (n+1)) → C)
+def extend_fan_is_limit {n : ℕ} (f : ulift (fin (n+1)) → C)
   {c₁ : fan (λ (i : ulift (fin n)), f ⟨i.down.succ⟩)} {c₂ : binary_fan (f ⟨0⟩) c₁.X}
   (t₁ : is_limit c₁) (t₂ : is_limit c₂) :
-  is_limit (build_prod c₁ c₂) :=
+  is_limit (extend_fan c₁ c₂) :=
 { lift := λ s,
   begin
     apply (binary_fan.is_limit.lift' t₂ (s.π.app ⟨0⟩) _).1,
@@ -73,7 +73,7 @@ def build_limit {n : ℕ} (f : ulift (fin (n+1)) → C)
     apply fin.induction_on j,
     { apply (binary_fan.is_limit.lift' t₂ _ _).2.1 },
     { rintro i -,
-      dsimp only [build_prod_π_app],
+      dsimp only [extend_fan_π_app],
       rw [fin.cases_succ, ← assoc, (binary_fan.is_limit.lift' t₂ _ _).2.2, t₁.fac],
       refl }
   end,
@@ -88,7 +88,7 @@ def build_limit {n : ℕ} (f : ulift (fin (n+1)) → C)
       rw assoc,
       dsimp only [discrete.nat_trans_app],
       rw ← w ⟨j.succ⟩,
-      dsimp only [build_prod_π_app],
+      dsimp only [extend_fan_π_app],
       rw fin.cases_succ }
   end }
 
@@ -111,7 +111,7 @@ lemma has_product_ulift_fin :
 | (n+1) := λ f,
   begin
     haveI := has_product_ulift_fin n,
-    apply has_limit.mk ⟨_, build_limit f (limit.is_limit _) (limit.is_limit _)⟩,
+    apply has_limit.mk ⟨_, extend_fan_is_limit f (limit.is_limit _) (limit.is_limit _)⟩,
   end
 
 /--
@@ -162,9 +162,9 @@ noncomputable def preserves_fin_of_preserves_binary_and_terminal  :
     haveI := preserves_fin_of_preserves_binary_and_terminal n,
     intro f,
     refine preserves_limit_of_preserves_limit_cone
-      (build_limit f (limit.is_limit _) (limit.is_limit _)) _,
+      (extend_fan_is_limit f (limit.is_limit _) (limit.is_limit _)) _,
     apply (is_limit_map_cone_fan_mk_equiv _ _ _).symm _,
-    let := build_limit (λ i, F.obj (f i))
+    let := extend_fan_is_limit (λ i, F.obj (f i))
               (is_limit_of_has_product_of_preserves_limit F _)
               (is_limit_of_has_binary_product_of_preserves_limit F _ _),
     refine is_limit.of_iso_limit this _,
@@ -174,7 +174,7 @@ noncomputable def preserves_fin_of_preserves_binary_and_terminal  :
     apply fin.induction_on j,
     { apply (category.id_comp _).symm },
     { rintro i -,
-      dsimp only [build_prod_π_app, iso.refl_hom, fan.mk_π_app],
+      dsimp only [extend_fan_π_app, iso.refl_hom, fan.mk_π_app],
       rw [fin.cases_succ, fin.cases_succ],
       change F.map _ ≫ _ = 𝟙 _ ≫ _,
       rw [id_comp, ←F.map_comp],

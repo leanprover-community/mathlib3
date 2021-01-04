@@ -1562,6 +1562,10 @@ end
 lemma tendsto_inv_at_top_zero : tendsto (λr:α, r⁻¹) at_top (𝓝 0) :=
 tendsto_inv_at_top_zero'.mono_right inf_le_left
 
+lemma filter.tendsto.div_at_top [has_continuous_mul α] {f g : β → α} {l : filter β} {a : α}
+  (h : tendsto f l (𝓝 a)) (hg : tendsto g l at_top) : tendsto (λ x, f x / g x) l (𝓝 0) :=
+by { simp only [div_eq_mul_inv], exact mul_zero a ▸ h.mul (tendsto_inv_at_top_zero.comp hg) }
+
 lemma tendsto.inv_tendsto_at_top (h : tendsto f l at_top) : tendsto (f⁻¹) l (𝓝 0) :=
 tendsto_inv_at_top_zero.comp h
 

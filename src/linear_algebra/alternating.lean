@@ -5,6 +5,7 @@ Author: Eric Wieser, Zhangir Azerbayev
 -/
 
 import linear_algebra.multilinear
+import linear_algebra.linear_independent
 import group_theory.perm.sign
 
 /-!
@@ -227,6 +228,19 @@ instance : semimodule S (alternating_map R M N ι) :=
 end semimodule
 
 /-!
+### Other lemmas from `multilinear_map`
+-/
+section
+
+open_locale big_operators
+
+lemma map_update_sum {α : Type*} (t : finset α) (i : ι) (g : α → M) (m : ι → M):
+  f (update m i (∑ a in t, g a)) = ∑ a in t, f (update m i (g a)) :=
+f.to_multilinear_map.map_update_sum t i g m
+
+end
+
+/-!
 ### Theorems specific to alternating maps
 
 Various properties of reordered and repeated inputs which follow from
@@ -273,6 +287,31 @@ end
 lemma map_congr_perm [fintype ι] (σ : equiv.perm ι) :
   g v = (equiv.perm.sign σ : ℤ) • g (v ∘ σ) :=
 by { rw [g.map_perm, smul_smul], simp }
+
+/-- If the arguments are linearly dependent then the result is `0`.
+
+TODO: Can the `division_ring` requirement be relaxed? -/
+lemma map_linear_dependent
+  {K : Type*} [division_ring K]
+  {M : Type*} [add_comm_group M] [semimodule K M]
+  {N : Type*} [add_comm_group N] [semimodule K N]
+  (f : alternating_map K M N ι) (v : ι → M)
+  (h : ¬linear_independent K v) :
+  f v = 0 :=
+begin
+  obtain ⟨s, g, h, i, hi, hz⟩ := linear_dependent_iff.mp h,
+  -- the part that uses `division_ring`
+  suffices : f (update v i (g i • v i)) = 0,
+  { rw [f.map_smul, function.update_eq_self, smul_eq_zero] at this,
+    exact or.resolve_left this hz, },
+  conv at h in (g _ • v _) { rw ←if_t_t (i = x) (g _ • v _), },
+  rw [finset.sum_ite, finset.filter_eq, finset.filter_ne, if_pos hi, finset.sum_singleton,
+    add_eq_zero_iff_eq_neg] at h,
+  rw [h, f.map_neg, f.map_update_sum, neg_eq_zero, finset.sum_eq_zero],
+  intros j hj,
+  obtain ⟨hij, _⟩ := finset.mem_erase.mp hj,
+  rw [f.map_smul, f.map_update_self _ hij.symm, smul_zero],
+end
 
 end alternating_map
 

@@ -146,7 +146,7 @@ begin
   { rw [if_pos (mem_univ _), sub_zero, add_zero, card_fin],
     have hn3 : (n + 2 + 1 : ℝ) ≠ 0,
     { exact_mod_cast nat.succ_ne_zero _ },
-    field_simp [hn1, hn3] },
+    field_simp [hn1, hn3, mul_comm] },
   { field_simp [hn1],
     ring }
 end
@@ -253,13 +253,13 @@ This definition is only intended to be used when `i₁ ≠ i₂`. -/
 def monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) (i₁ i₂ : fin (n + 3)) :
   affine_subspace ℝ P :=
 mk' (({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points)
-  (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂})ᗮ ⊓
+  (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓
     affine_span ℝ (set.range s.points)
 
 /-- The definition of a Monge plane. -/
 lemma monge_plane_def {n : ℕ} (s : simplex ℝ P (n + 2)) (i₁ i₂ : fin (n + 3)) :
   s.monge_plane i₁ i₂ = mk' (({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points)
-                            (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂})ᗮ ⊓
+                            (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓
                           affine_span ℝ (set.range s.points) :=
 rfl
 
@@ -295,7 +295,7 @@ end
 -- useful without that hypothesis.
 /-- The direction of a Monge plane. -/
 lemma direction_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
-  (s.monge_plane i₁ i₂).direction = (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂})ᗮ ⊓
+  (s.monge_plane i₁ i₂).direction = (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓
     vector_span ℝ (set.range s.points) :=
 by rw [monge_plane_def, direction_inf_of_mem_inf (s.monge_point_mem_monge_plane h), direction_mk',
        direction_affine_span]
@@ -308,13 +308,13 @@ lemma eq_monge_point_of_forall_mem_monge_plane {n : ℕ} {s : simplex ℝ P (n +
 begin
   rw ←@vsub_eq_zero_iff_eq V,
   have h' : ∀ i₂, i₁ ≠ i₂ → p -ᵥ s.monge_point ∈
-    (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂})ᗮ ⊓ vector_span ℝ (set.range s.points),
+    (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓ vector_span ℝ (set.range s.points),
   { intros i₂ hne,
     rw [←s.direction_monge_plane hne,
         vsub_right_mem_direction_iff_mem (s.monge_point_mem_monge_plane hne)],
     exact h i₂ hne },
   have hi : p -ᵥ s.monge_point ∈ ⨅ (i₂ : {i // i₁ ≠ i}),
-    (submodule.span ℝ ({s.points i₁ -ᵥ s.points i₂}: set V))ᗮ,
+    (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ,
   { rw submodule.mem_infi,
     exact λ i, (submodule.mem_inf.1 (h' i i.property)).1 },
   rw [submodule.infi_orthogonal, ←submodule.span_Union] at hi,

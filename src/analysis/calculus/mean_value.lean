@@ -409,6 +409,57 @@ theorem norm_image_sub_le_of_norm_deriv_le_segment_01 {C : ℝ}
 by simpa only [sub_zero, mul_one]
   using norm_image_sub_le_of_norm_deriv_le_segment hf bound 1 (right_mem_Icc.2 zero_le_one)
 
+theorem constant_of_has_deriv_right_zero (hcont : continuous_on f (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at f 0 (Ici x) x) :
+  ∀ x ∈ Icc a b, f x = f a :=
+by simpa only [zero_mul, norm_le_zero_iff, sub_eq_zero] using
+  λ x hx, norm_image_sub_le_of_norm_deriv_right_le_segment
+    hcont hderiv (λ y hy, by rw norm_le_zero_iff) x hx
+
+theorem constant_of_deriv_within_zero (hdiff : differentiable_on ℝ f (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, deriv_within f (Icc a b) x = 0) :
+  ∀ x ∈ Icc a b, f x = f a :=
+begin
+  have H : ∀ x ∈ Ico a b, ∥deriv_within f (Icc a b) x∥ ≤ 0 :=
+    by simpa only [norm_le_zero_iff] using λ x hx, hderiv x hx,
+  simpa only [zero_mul, norm_le_zero_iff, sub_eq_zero] using
+    λ x hx, norm_image_sub_le_of_norm_deriv_le_segment hdiff H x hx,
+end
+
+variables {f' g : ℝ → E}
+
+/-- If two continuous functions on `[a, b]` have the same right derivative and are equal at `a`,
+  then they are equal everywhere on `[a, b]`. -/
+theorem eq_of_has_deriv_right_eq
+  (derivf : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
+  (derivg : ∀ x ∈ Ico a b, has_deriv_within_at g (f' x) (Ici x) x)
+  (fcont : continuous_on f (Icc a b)) (gcont : continuous_on g (Icc a b))
+  (hi : f a = g a) :
+  ∀ y ∈ Icc a b, f y = g y :=
+begin
+  simp only [← @sub_eq_zero _ _ (f _)] at hi ⊢,
+  exact hi ▸ constant_of_has_deriv_right_zero (fcont.sub gcont)
+    (λ y hy, by simpa only [sub_self] using (derivf y hy).sub (derivg y hy)),
+end
+
+/-- If two differentiable functions on `[a, b]` have the same derivative within `[a, b]` everywhere
+  on `[a, b)` and are equal at `a`, then they are equal everywhere on `[a, b]`. -/
+theorem eq_of_deriv_within_eq (fdiff : differentiable_on ℝ f (Icc a b))
+  (gdiff : differentiable_on ℝ g (Icc a b))
+  (hderiv : eq_on (deriv_within f (Icc a b)) (deriv_within g (Icc a b)) (Ico a b))
+  (hi : f a = g a) :
+  ∀ y ∈ Icc a b, f y = g y :=
+begin
+  have A : ∀ y ∈ Ico a b, has_deriv_within_at f (deriv_within f (Icc a b) y) (Ici y) y :=
+    λ y hy, (fdiff y (mem_Icc_of_Ico hy)).has_deriv_within_at.nhds_within
+      (Icc_mem_nhds_within_Ici hy),
+  have B : ∀ y ∈ Ico a b, has_deriv_within_at g (deriv_within g (Icc a b) y) (Ici y) y :=
+    λ y hy, (gdiff y (mem_Icc_of_Ico hy)).has_deriv_within_at.nhds_within
+      (Icc_mem_nhds_within_Ici hy),
+  exact eq_of_has_deriv_right_eq A (λ y hy, (hderiv hy).symm ▸ B y hy) fdiff.continuous_on
+    gdiff.continuous_on hi
+end
+
 end
 
 /-! ### Vector-valued functions `f : E → F` -/

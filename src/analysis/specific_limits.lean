@@ -88,6 +88,12 @@ h₁.eq_or_lt.elim
         (tendsto_pow_at_top_at_top_of_one_lt $ one_lt_inv this h₂),
     this.congr (λ n, by simp))
 
+lemma tendsto_pow_at_top_nhds_within_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field 𝕜] [archimedean 𝕜]
+  [topological_space 𝕜] [order_topology 𝕜] {r : 𝕜} (h₁ : 0 < r) (h₂ : r < 1) :
+  tendsto (λn:ℕ, r^n) at_top (𝓝[Ioi 0] 0) :=
+tendsto_inf.2 ⟨tendsto_pow_at_top_nhds_0_of_lt_1 h₁.le h₂,
+  tendsto_principal.2 $ eventually_of_forall $ λ n, pow_pos h₁ _⟩
+
 lemma is_o_pow_pow_of_lt_left {r₁ r₂ : ℝ} (h₁ : 0 ≤ r₁) (h₂ : r₁ < r₂) :
   is_o (λ n : ℕ, r₁ ^ n) (λ n, r₂ ^ n) at_top :=
 have H : 0 < r₂ := h₁.trans_lt h₂,

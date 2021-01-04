@@ -386,14 +386,15 @@ lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
   (g.comp_multilinear_map f).alternatization = g.comp_alternating_map (f.alternatization) :=
 begin
   ext,
-  simp [multilinear_map.alternatization_apply],
+  simp only [multilinear_map.alternatization_apply, coe_comp_multilinear_map, function.comp_app,
+    multilinear_map.dom_dom_congr_apply, map_sum, comp_multilinear_map_dom_dom_congr,
+    coe_comp_alternating_map],
   congr,
   ext1 σ,
-  -- `linear_map.map_smul` doesn't work here, as there is no ℤ-module structure to use
-  induction ↑(equiv.perm.sign σ) using int.induction_on,
-  case hz : { simp },
-  case hp : n ih { simpa [add_smul, g.map_smul] using ih, },
-  case hn : n ih { simpa [sub_smul, g.map_smul] using ih, },
+  -- `linear_map.map_smul` and `linear_map.map_smul_of_tower` do not work here, as `R` is a
+  -- `semiring` not a `ring`.
+  cases int.units_eq_one_or σ.sign with h;
+  simp [h],
 end
 
 end linear_map

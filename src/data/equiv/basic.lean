@@ -162,7 +162,7 @@ instance equiv_subsingleton {α β : Type*} [subsingleton β] :
 instance perm_subsingleton {α : Type*} [subsingleton α] : subsingleton (perm α) :=
 equiv.equiv_subsingleton
 
-@[simp] lemma perm.subsingleton_eq_refl {α : Type*} [subsingleton α] (e : perm α) :
+lemma perm.subsingleton_eq_refl {α : Type*} [subsingleton α] (e : perm α) :
   e = equiv.refl α := subsingleton.elim _ _
 
 /-- Transfer `decidable_eq` across an equivalence. -/
@@ -188,6 +188,9 @@ protected def cast {α β : Sort*} (h : α = β) : α ≃ β :=
 rfl
 
 @[simp] theorem coe_refl : ⇑(equiv.refl α) = id := rfl
+
+@[simp] theorem perm.coe_subsingleton {α : Type*} [subsingleton α] (e : perm α) : ⇑(e) = id :=
+by rw [perm.subsingleton_eq_refl e, coe_refl]
 
 theorem refl_apply (x : α) : equiv.refl α x = x := rfl
 

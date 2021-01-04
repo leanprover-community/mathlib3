@@ -23,6 +23,7 @@ and the appropriate definition of instances:
    to `[nonempty α]`
  * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used
    in the statement, and could thus be removed by using `classical` in the proof.
+ * `linter.has_coe_to_fun` checks whether necessary `has_coe_to_fun` instances are declared
 -/
 
 open tactic
@@ -300,6 +301,7 @@ attribute [nolint decidable_classical] dec_em not.decidable_imp_symm
 
 private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
 retrieve $ do
+tt ← return d.is_trusted | pure none,
 mk_meta_var d.type >>= set_goals ∘ pure,
 args ← unfreezing intros,
 expr.sort _ ← target | pure none,
@@ -325,4 +327,4 @@ pure $ format.to_string $
   no_errors_found := "has_coe_to_fun is used correctly",
   errors_found := "INVALID/MISSING `has_coe_to_fun` instances.
 You should add a `has_coe_to_fun` instance for the following types.
-See Note function coercions]." }
+See Note [function coercion]." }

@@ -540,40 +540,22 @@ begin
 end
 
 lemma preimage_inv_fun_of_mem [n : nonempty α] {f : α → β} (hf : injective f) {s : set α}
-  (h : classical.choice n ∈ s) : inv_fun f ⁻¹' s = f '' s ∪ (f '' univ)ᶜ :=
+  (h : classical.choice n ∈ s) : inv_fun f ⁻¹' s = f '' s ∪ (range f)ᶜ :=
 begin
-  apply subset.antisymm,
-  { assume x hx,
-    by_cases H : ∃ a, f a = x,
-    { simp only [inv_fun, inv_fun_on, H, true_and, dif_pos, mem_univ, mem_preimage] at hx,
-      left,
-      simp only [mem_image],
-      exact ⟨_, hx, classical.some_spec H⟩ },
-    { push_neg at H,
-      simp [H] } },
-  { assume x hx,
-    cases hx,
-    { rcases hx with ⟨y, ys, fy⟩,
-      simp only [←fy, left_inverse_inv_fun hf y, ys, mem_preimage] },
-    { have : ¬ (∃ a, f a = x), by simpa using hx,
-      simp only [inv_fun, inv_fun_on, this, h, true_and, mem_univ, mem_preimage, dif_neg,
-        not_false_iff] } }
+  ext x,
+  rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
+  { simp [left_inverse_inv_fun hf _, mem_image_of_injective hf] },
+  { simp [mem_preimage, inv_fun_neg hx, h, hx] }
 end
 
 lemma preimage_inv_fun_of_not_mem [n : nonempty α] {f : α → β} (hf : injective f)
   {s : set α} (h : classical.choice n ∉ s) : inv_fun f ⁻¹' s = f '' s :=
 begin
-  apply subset.antisymm,
-  { assume x hx,
-    by_cases H : ∃ a, f a = x,
-    { simp only [inv_fun, inv_fun_on, H, true_and, dif_pos, mem_univ, mem_preimage] at hx,
-      simp only [mem_image],
-      exact ⟨_, hx, classical.some_spec H⟩ },
-    { simp [inv_fun, inv_fun_on, H] at hx,
-      exact false.elim (h hx) } },
-  { assume x hx,
-    rcases hx with ⟨y, ys, fy⟩,
-    simp only [←fy, left_inverse_inv_fun hf y, ys, mem_preimage] },
+  ext x,
+  rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
+  { rw [mem_preimage, left_inverse_inv_fun hf, mem_image_of_injective hf] },
+  { have : x ∉ f '' s, from λ h', hx (image_subset_range _ _ h'),
+    simp only [mem_preimage, inv_fun_neg hx, h, this] },
 end
 
 end set

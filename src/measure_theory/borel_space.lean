@@ -396,6 +396,12 @@ lemma continuous.measurable2 [second_countable_topology α] [second_countable_to
   measurable (λ a, c (f a) (g a)) :=
 h.measurable.comp (hf.prod_mk hg)
 
+lemma continuous.ae_measurable2 [second_countable_topology α] [second_countable_topology β]
+  {f : δ → α} {g : δ → β} {c : α → β → γ} {μ : measure δ}
+  (h : continuous (λ p : α × β, c p.1 p.2)) (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  ae_measurable (λ a, c (f a) (g a)) μ :=
+h.measurable.comp_ae_measurable (hf.prod_mk hg)
+
 lemma measurable.smul [semiring α] [second_countable_topology α]
   [add_comm_monoid γ] [second_countable_topology γ]
   [semimodule α γ] [topological_semimodule α γ]
@@ -408,8 +414,7 @@ lemma ae_measurable.smul [semiring α] [second_countable_topology α]
   [semimodule α γ] [topological_semimodule α γ]
   {f : δ → α} {g : δ → γ} {μ : measure δ} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
   ae_measurable (λ c, f c • g c) μ :=
-⟨λ a, hf.mk f a • hg.mk g a, hf.measurable_mk.smul hg.measurable_mk,
-  eventually_eq.comp₂ hf.ae_eq_mk _ hg.ae_eq_mk⟩
+continuous_smul.ae_measurable2 hf hg
 
 lemma measurable.const_smul {R M : Type*} [topological_space R] [semiring R]
   [add_comm_monoid M] [semimodule R M] [topological_space M] [topological_semimodule R M]
@@ -423,7 +428,7 @@ lemma ae_measurable.const_smul {R M : Type*} [topological_space R] [semiring R]
   [measurable_space M] [borel_space M]
   {f : δ → M} {μ : measure δ} (hf : ae_measurable f μ) (c : R) :
   ae_measurable (λ x, c • f x) μ :=
-⟨λ a, c • hf.mk f a, hf.measurable_mk.const_smul _, eventually_eq.fun_comp hf.ae_eq_mk _⟩
+(continuous_const.smul continuous_id).measurable.comp_ae_measurable hf
 
 lemma measurable_const_smul_iff {α : Type*} [topological_space α]
   [division_ring α] [add_comm_monoid γ]
@@ -504,8 +509,7 @@ lemma measurable.mul [has_mul α] [has_continuous_mul α] [second_countable_topo
 lemma ae_measurable.mul [has_mul α] [has_continuous_mul α] [second_countable_topology α]
   {f : δ → α} {g : δ → α} {μ : measure δ}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ a, f a * g a) μ :=
-⟨λ a, hf.mk f a * hg.mk g a, hf.measurable_mk.mul hg.measurable_mk,
-  eventually_eq.comp₂ hf.ae_eq_mk _ hg.ae_eq_mk⟩
+(@continuous_mul α _ _ _).ae_measurable2 hf hg
 
 /-- A variant of `measurable.mul` that uses `*` on functions -/
 @[to_additive]
@@ -543,7 +547,7 @@ measurable_inv.comp hf
 @[to_additive]
 lemma ae_measurable.inv [group α] [topological_group α] {f : δ → α} {μ : measure δ}
   (hf : ae_measurable f μ) : ae_measurable (λ a, (f a)⁻¹) μ :=
-⟨λ a, (hf.mk f a)⁻¹, hf.measurable_mk.inv, eventually_eq.fun_comp hf.ae_eq_mk _⟩
+measurable_inv.comp_ae_measurable hf
 
 lemma measurable_inv' {α : Type*} [normed_field α] [measurable_space α] [borel_space α] :
   measurable (has_inv.inv : α → α) :=
@@ -580,12 +584,10 @@ begin
   refine measurable_of_is_closed (λ s hs, _),
   by_cases h : classical.choice n ∈ s,
   { rw preimage_inv_fun_of_mem hg.to_embedding.inj h,
-    apply is_measurable.union,
-    { exact ((closed_embedding.closed_iff_image_closed hg).mp hs).is_measurable },
-    { exact ((closed_embedding.closed_iff_image_closed hg).mp is_closed_univ).is_measurable.compl }
-  },
+    exact (hg.closed_iff_image_closed.mp hs).is_measurable.union
+      hg.closed_range.is_measurable.compl },
   { rw preimage_inv_fun_of_not_mem hg.to_embedding.inj h,
-    exact ((closed_embedding.closed_iff_image_closed hg).mp hs).is_measurable }
+    exact (hg.closed_iff_image_closed.mp hs).is_measurable }
 end
 
 lemma measurable_comp_iff_of_closed_embedding {f : δ → β} (g : β → γ) (hg : closed_embedding g) :
@@ -864,8 +866,7 @@ lemma measurable.edist {f g : β → α} (hf : measurable f) (hg : measurable g)
 
 lemma ae_measurable.edist {f g : β → α} {μ : measure β}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ a, edist (f a) (g a)) μ :=
-⟨λ a, edist (hf.mk f a) (hg.mk g a), hf.measurable_mk.edist hg.measurable_mk,
-  eventually_eq.comp₂ hf.ae_eq_mk _ hg.ae_eq_mk⟩
+(@continuous_edist α _).ae_measurable2 hf hg
 
 end emetric_space
 
@@ -1037,7 +1038,7 @@ lemma measurable.ennreal_mul {f g : α → ennreal} (hf : measurable f) (hg : me
 ennreal.measurable_mul.comp (hf.prod_mk hg)
 
 lemma ae_measurable.ennreal_mul {f g : α → ennreal} {μ : measure α}
-  (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ a, f a * g a) μ:=
+  (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ a, f a * g a) μ :=
 ennreal.measurable_mul.comp_ae_measurable (hf.prod_mk hg)
 
 lemma measurable.ennreal_sub {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
@@ -1061,7 +1062,7 @@ measurable_norm.comp hf
 
 lemma ae_measurable.norm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
   ae_measurable (λ a, norm (f a)) μ :=
-⟨λ a, norm (hf.mk f a), hf.measurable_mk.norm, hf.ae_eq_mk.fun_comp _⟩
+measurable_norm.comp_ae_measurable hf
 
 lemma measurable_nnnorm : measurable (nnnorm : α → ℝ≥0) :=
 continuous_nnnorm.measurable
@@ -1071,7 +1072,7 @@ measurable_nnnorm.comp hf
 
 lemma ae_measurable.nnnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
   ae_measurable (λ a, nnnorm (f a)) μ :=
-⟨λ a, nnnorm (hf.mk f a), hf.measurable_mk.nnnorm, hf.ae_eq_mk.fun_comp _⟩
+measurable_nnnorm.comp_ae_measurable hf
 
 lemma measurable_ennnorm : measurable (λ x : α, (nnnorm x : ennreal)) :=
 measurable_nnnorm.ennreal_coe
@@ -1082,8 +1083,7 @@ hf.nnnorm.ennreal_coe
 
 lemma ae_measurable.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
   ae_measurable (λ a, (nnnorm (f a) : ennreal)) μ :=
-⟨(λ a, (nnnorm (hf.mk f a) : ennreal)), hf.measurable_mk.ennnorm,
-  hf.ae_eq_mk.fun_comp (λ a : α, (nnnorm a : ennreal))⟩
+measurable_ennnorm.comp_ae_measurable hf
 
 end normed_group
 

@@ -83,11 +83,8 @@ begin
   clear hu key,
   -- Hence u is Cauchy
   have cauchy_u : cauchy_seq u,
-  { apply cauchy_seq_of_le_geometric _ ε (by norm_num : 1/(2:ℝ) < 1),
-    intro n,
-    convert key₁ n,
-    rw [one_div, inv_pow'],
-    congr },
+  { refine cauchy_seq_of_le_geometric _ ε one_half_lt_one (λ n, _),
+    simpa only [one_div, inv_pow'] using key₁ n },
   -- So u converges to some y
   obtain ⟨y, limy⟩ : ∃ y, tendsto u at_top (𝓝 y),
     from complete_space.complete cauchy_u,

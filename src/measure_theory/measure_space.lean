@@ -2050,9 +2050,7 @@ lemma congr (hf : ae_measurable f μ) (h : f =ᵐ[μ] g) : ae_measurable g μ :=
 ⟨hf.mk f, hf.measurable_mk, h.symm.trans hf.ae_eq_mk⟩
 
 lemma mono_measure (h : ae_measurable f μ) (h' : ν ≤ μ) : ae_measurable f ν :=
-begin
-  exact ⟨h.mk f, h.measurable_mk, eventually.filter_mono (ae_mono h') h.ae_eq_mk⟩
-end
+⟨h.mk f, h.measurable_mk, eventually.filter_mono (ae_mono h') h.ae_eq_mk⟩
 
 lemma add_measure {f : α → β} (hμ : ae_measurable f μ) (hν : ae_measurable f ν) :
   ae_measurable f (μ + ν) :=

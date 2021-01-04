@@ -1027,7 +1027,7 @@ include V
 sup of the two directions and of any one difference between points in
 the two subspaces. -/
 lemma direction_sup {s1 s2 : affine_subspace k P} {p1 p2 : P} (hp1 : p1 ∈ s1) (hp2 : p2 ∈ s2) :
-  (s1 ⊔ s2).direction = s1.direction ⊔ s2.direction ⊔ submodule.span k {p2 -ᵥ p1} :=
+  (s1 ⊔ s2).direction = s1.direction ⊔ s2.direction ⊔ k ∙ (p2 -ᵥ p1) :=
 begin
   refine le_antisymm _ _,
   { change (affine_span k ((s1 : set P) ∪ s2)).direction ≤ _,

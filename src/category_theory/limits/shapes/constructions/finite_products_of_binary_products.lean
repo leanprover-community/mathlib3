@@ -37,7 +37,8 @@ variables {D : Type u'} [category.{v} D]
 Given `n+1` objects of `C`, a fan for the last `n` with point `c₁.X` and a binary fan on `c₁.X` and
 `f 0`, we can build a fan for all `n+1`.
 
-In `extend_fan_is_limit` we show that if the two given fans are limits, then this fan is also a limit.
+In `extend_fan_is_limit` we show that if the two given fans are limits, then this fan is also a
+limit.
 -/
 @[simps {rhs_md := semireducible}]
 def extend_fan {n : ℕ} {f : ulift (fin (n+1)) → C}

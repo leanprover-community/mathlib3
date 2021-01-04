@@ -114,9 +114,6 @@ open_locale classical
 
 variables {R₁ : Type*} [integral_domain R₁] {g : fraction_map R₁ K}
 
-noncomputable instance fractional_ideal_has_div :
-  has_div (fractional_ideal g) :=
-⟨ λ I J, if h : J = 0 then 0 else ⟨I.1 / J.1, fractional_ideal.fractional_div_of_nonzero h⟩ ⟩
 
 variables {I J : fractional_ideal g}
 

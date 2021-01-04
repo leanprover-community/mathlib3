@@ -307,7 +307,7 @@ end
 
 
 
-lemma prime_of_principal_prime_ideal {R : Type u} [comm_ring R] {I : ideal R} {p : R}
+lemma aux_prime_of_principal_prime_ideal {R : Type u} [comm_ring R] {I : ideal R} {p : R}
   (Hprime : I.is_prime) (Hnon_zero : I ≠ ⊥) (Hprincipal : I = ideal.span {p}) : prime p :=
 begin
     let Hproper := Hprime.1,
@@ -356,7 +356,7 @@ begin
   have hmprime : is_prime m,
   apply is_maximal.is_prime,
   exact maximal_ideal.is_maximal R,
-  exact prime_of_principal_prime_ideal hmprime Hnon_zero Hprincipal,
+  exact aux_prime_of_principal_prime_ideal hmprime Hnon_zero Hprincipal,
 
   intros x hxnon_zero,
   let S : set (ideal R) := {I : ideal R | ∃ y : R, I = ideal.span {y} ∧ ∃ n : ℕ, associated (y * p^n) x},
@@ -376,7 +376,7 @@ begin
   have hmprime : is_prime m,
   apply is_maximal.is_prime,
   exact maximal_ideal.is_maximal R,
-  exact prime_of_principal_prime_ideal hmprime Hnon_zero Hprincipal,
+  exact aux_prime_of_principal_prime_ideal hmprime Hnon_zero Hprincipal,
 
   cases hmax with J hJmax,
   cases hJmax with HJS H,

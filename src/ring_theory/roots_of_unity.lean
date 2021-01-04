@@ -894,11 +894,8 @@ then the minimal polynomial of a primitive `n`-th root of unity `μ`
 has `μ ^ m` as root. -/
 lemma pow_is_root_minimal_polynomial {m : ℕ} (hcop : nat.coprime m n) :
   is_root (map (int.cast_ring_hom K) (minimal_polynomial (is_integral h hpos))) (μ ^ m) :=
-begin
-  rw [minimal_polynomial_eq_pow_coprime h hpos hcop, is_root.def, eval_map],
-  have h := minimal_polynomial.aeval (is_integral (h.pow_of_coprime m hcop) hpos),
-  rwa [aeval_def (μ ^ m) _] at h
-end
+by simpa [minimal_polynomial_eq_pow_coprime h hpos hcop, eval_map, aeval_def (μ ^ m) _]
+   using minimal_polynomial.aeval (is_integral (h.pow_of_coprime m hcop) hpos)
 
 /-- `primitive_roots n K` is a subset of the roots of the minimal polynomial of a primitive
 `n`-th root of unity `μ`. -/

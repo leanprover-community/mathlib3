@@ -383,8 +383,8 @@ lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E}
   (hs : is_measurable s) (hf : ae_measurable f (measure.map g μ)) (hg : measurable g) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
 begin
-   rw [measure.restrict_map hg hs, integral_map hg (hf.mono_measure _)],
-   exact measure.map_mono hg measure.restrict_le_self
+  rw [measure.restrict_map hg hs, integral_map hg (hf.mono_measure _)],
+  exact measure.map_mono hg measure.restrict_le_self
 end
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ⊤)

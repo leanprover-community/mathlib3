@@ -101,11 +101,11 @@ end measurable_space
 namespace ae_eq_fun
 variables [measurable_space β] [measurable_space γ] [measurable_space δ]
 
-/-- Construct the equivalence class `[f]` of a measurable function `f`, based on the equivalence
-    relation of being almost everywhere equal. -/
+/-- Construct the equivalence class `[f]` of an almost everywhere measurable function `f`, based
+    on the equivalence relation of being almost everywhere equal. -/
 def mk (f : α → β) (hf : ae_measurable f μ) : α →ₘ[μ] β := quotient.mk' ⟨f, hf⟩
 
-/-- A representative of an `ae_eq_fun` [f] -/
+/-- A measurable representative of an `ae_eq_fun` [f] -/
 instance : has_coe_to_fun (α →ₘ[μ] β) :=
 ⟨_, λf, ae_measurable.mk _ (quotient.out' f : {f : α → β // ae_measurable f μ}).2⟩
 
@@ -137,8 +137,8 @@ by rwa [← f.mk_coe_fn, ← g.mk_coe_fn, mk_eq_mk]
 
 lemma coe_fn_mk (f : α → β) (hf) : (mk f hf : α →ₘ[μ] β) =ᵐ[μ] f :=
 begin
-   apply (ae_measurable.ae_eq_mk _).symm.trans,
-   exact @quotient.mk_out' _ (μ.ae_eq_setoid β) (⟨f, hf⟩ : {f // ae_measurable f μ})
+  apply (ae_measurable.ae_eq_mk _).symm.trans,
+  exact @quotient.mk_out' _ (μ.ae_eq_setoid β) (⟨f, hf⟩ : {f // ae_measurable f μ})
 end
 
 @[elab_as_eliminator]
@@ -228,7 +228,8 @@ lemma coe_fn_comp₂ {γ δ : Type*} [measurable_space γ] [measurable_space δ]
   comp₂ g hg f₁ f₂ =ᵐ[μ] λ a, g (f₁ a) (f₂ a) :=
 by { rw comp₂_eq_mk, apply coe_fn_mk }
 
-/-- Interpret `f : α →ₘ[μ] β` as a germ at `μ.ae` forgetting that `f` is measurable. -/
+/-- Interpret `f : α →ₘ[μ] β` as a germ at `μ.ae` forgetting that `f` is almost everywhere
+    measurable. -/
 def to_germ (f : α →ₘ[μ] β) : germ μ.ae β :=
 quotient.lift_on' f (λ f, ((f : α → β) : germ μ.ae β)) $ λ f g H, germ.coe_eq.2 H
 
@@ -428,7 +429,7 @@ induction_on₂ f g $ λ f hf g hg hfg, lintegral_mono_ae hfg
 section
 variables [emetric_space γ] [second_countable_topology γ] [opens_measurable_space γ]
 
-/-- `comp_edist [f] [g] a` will return `edist (f a) (g a) -/
+/-- `comp_edist [f] [g] a` will return `edist (f a) (g a)` -/
 protected def edist (f g : α →ₘ[μ] γ) : α →ₘ[μ] ennreal := comp₂ edist measurable_edist f g
 
 protected lemma edist_comm (f g : α →ₘ[μ] γ) : f.edist g = g.edist f :=

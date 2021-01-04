@@ -1045,8 +1045,7 @@ by { simp only [mul_comm], exact integral_mul_left r f }
 lemma integral_div (r : ℝ) (f : α → ℝ) : ∫ a, (f a) / r ∂μ = ∫ a, f a ∂μ / r :=
 integral_mul_right r⁻¹ f
 
-lemma integral_congr_ae (h : f =ᵐ[μ] g) :
-   ∫ a, f a ∂μ = ∫ a, g a ∂μ :=
+lemma integral_congr_ae (h : f =ᵐ[μ] g) : ∫ a, f a ∂μ = ∫ a, g a ∂μ :=
 begin
   by_cases hfi : integrable f μ,
   { have hgi : integrable g μ := hfi.congr h,

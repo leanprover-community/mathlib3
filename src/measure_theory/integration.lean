@@ -1011,14 +1011,14 @@ end
 lemma lintegral_eq_supr_eapprox_lintegral {f : α → ennreal} (hf : measurable f) :
   (∫⁻ a, f a ∂μ) = (⨆n, (eapprox f n).lintegral μ) :=
 calc (∫⁻ a, f a ∂μ) = (∫⁻ a, ⨆n, (eapprox f n : α → ennreal) a ∂μ) :
-   by congr; ext a; rw [supr_eapprox_apply f hf]
- ... = (⨆n, ∫⁻ a, (eapprox f n : α → ennreal) a ∂μ) :
- begin
-   rw [lintegral_supr],
-   { assume n, exact (eapprox f n).measurable },
-   { assume i j h, exact (monotone_eapprox f h) }
- end
- ... = (⨆n, (eapprox f n).lintegral μ) : by congr; ext n; rw [(eapprox f n).lintegral_eq_lintegral]
+  by congr; ext a; rw [supr_eapprox_apply f hf]
+... = (⨆n, ∫⁻ a, (eapprox f n : α → ennreal) a ∂μ) :
+begin
+  rw [lintegral_supr],
+  { assume n, exact (eapprox f n).measurable },
+  { assume i j h, exact (monotone_eapprox f h) }
+end
+... = (⨆n, (eapprox f n).lintegral μ) : by congr; ext n; rw [(eapprox f n).lintegral_eq_lintegral]
 
 lemma lintegral_mono_ae {f g : α → ennreal} (h : ∀ᵐ a ∂μ, f a ≤ g a) :
   (∫⁻ a, f a ∂μ) ≤ (∫⁻ a, g a ∂μ) :=

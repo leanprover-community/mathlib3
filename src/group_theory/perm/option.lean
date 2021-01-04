@@ -17,8 +17,14 @@ lemma equiv_functor.map_equiv_option_injective {α β : Type*} :
   function.injective (equiv_functor.map_equiv option : α ≃ β → option α ≃ option β) :=
 equiv_functor.map_equiv.injective option option.some_injective
 
-@[simp]
-lemma map_equiv_remove_none {α : Type*} [decidable_eq α] (σ : perm (option α)) :
+
+@[simp] lemma map_equiv_option_one {α : Type*} : equiv_functor.map_equiv option (1 : perm α) = 1 :=
+by {ext, simp [equiv_functor.map_equiv, equiv_functor.map] }
+
+@[simp] lemma map_equiv_option_refl {α : Type*} :
+  equiv_functor.map_equiv option (equiv.refl α) = 1 := map_equiv_option_one
+
+@[simp] lemma map_equiv_remove_none {α : Type*} [decidable_eq α] (σ : perm (option α)) :
   equiv_functor.map_equiv option (remove_none σ) = swap none (σ none) * σ :=
 begin
   ext1 x,
@@ -47,38 +53,53 @@ The fixed `option α` is swapped with `none`. -/
     simp [←perm.eq_inv_iff_eq, equiv_functor.map, this],
   end }
 
-/-- Permutations of `fin (n + 1)` are equivalent to fixing a single
-`fin (n + 1)` and permuting the remaining with a `perm (fin n)`.
-The fixed `fin (n + 1)` is swapped with `0`. -/
-def equiv.perm.decompose_fin {n : ℕ} :
-  perm (fin n.succ) ≃ fin n.succ × perm (fin n) :=
-((equiv.perm_congr $ fin_succ_equiv n).trans equiv.perm.decompose_option).trans
-  (equiv.prod_congr (fin_succ_equiv n).symm (equiv.refl _))
+-- TODO: move these to data/equiv/basic, when we're ready to face the build time cost
+section needs_a_home
 
-@[simp] lemma equiv.perm.decompose_fin_symm_of_refl {n : ℕ} (p : fin (n + 1)) :
-  equiv.perm.decompose_fin.symm (p, equiv.refl _) = swap 0 p :=
-begin
-  ext x,
-  by_cases hp : p = 0;
-  by_cases hx : x = 0;
-  by_cases hx' : x = p;
-  simp [hp, hx, hx', swap_apply_of_ne_of_ne, equiv.perm.decompose_fin]
-end
+@[simp] lemma perm_congr_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm α) :
+  e.perm_congr p = (e.symm.trans p).trans e := rfl
 
-@[simp] lemma equiv.perm.decompose_fin_symm_of_one {n : ℕ} (p : fin (n + 1)) :
-  equiv.perm.decompose_fin.symm (p, 1) = swap 0 p :=
-equiv.perm.decompose_fin_symm_of_refl p
+@[simp] lemma perm_congr_symm {α β : Type*} (e : α ≃ β) :
+  e.perm_congr.symm = e.symm.perm_congr := rfl
+
+@[simp] lemma trans_swap_trans_symm {α β} [decidable_eq α] [decidable_eq β] (a b : β)
+  (e : α ≃ β) : (e.trans (swap a b)).trans e.symm = swap (e.symm a) (e.symm b) :=
+symm_trans_swap_trans a b e.symm
+
+end needs_a_home
+
+-- TODO: these are in gh-5614, wait for that
+namespace perm
+
+variables {α : Type*}
+
+@[simp] lemma trans_one {α : Sort*} {β : Type*} (e : α ≃ β) : e.trans (1 : perm β) = e :=
+equiv.trans_refl e
+
+@[simp] lemma mul_refl (e : perm α) : e * equiv.refl α = e := equiv.trans_refl e
+
+@[simp] lemma one_symm : (1 : perm α).symm = 1 := equiv.refl_symm
+
+@[simp] lemma refl_inv : (equiv.refl α : perm α)⁻¹ = 1 := equiv.refl_symm
+
+@[simp] lemma one_trans {α : Type*} {β : Sort*} (e : α ≃ β) : (1 : perm α).trans e = e :=
+equiv.refl_trans e
+
+@[simp] lemma refl_mul (e : perm α) : equiv.refl α * e = e := equiv.refl_trans e
+
+@[simp] lemma inv_trans (e : perm α) : e⁻¹.trans e = 1 := equiv.symm_trans e
+
+@[simp] lemma mul_symm (e : perm α) : e * e.symm = 1 := equiv.symm_trans e
+
+@[simp] lemma trans_inv (e : perm α) : e.trans e⁻¹ = 1 := equiv.trans_symm e
+
+@[simp] lemma symm_mul (e : perm α) : e.symm * e = 1 := equiv.trans_symm e
+
+end perm
 
 /-- The set of all permutations of `option α` can be constructed by augmenting the set of
 permutations of `α` by each element of `option α` in turn. -/
 lemma finset.univ_perm_option {α : Type*} [decidable_eq α] [fintype α] :
   @finset.univ (perm $ option α) _ =
     (finset.univ : finset $ option α × perm α).map equiv.perm.decompose_option.symm.to_embedding :=
-(finset.univ_map_equiv_to_embedding _).symm
-
-/-- The set of all permutations of `fin (n + 1)` can be constructed by augmenting the set of
-permutations of `fin n` by each element of `fin (n + 1)` in turn. -/
-lemma finset.univ_perm_fin_succ {n : ℕ} :
-  @finset.univ (perm $ fin n.succ) _ = (finset.univ : finset $ fin n.succ × perm (fin n)).map
-  equiv.perm.decompose_fin.symm.to_embedding :=
 (finset.univ_map_equiv_to_embedding _).symm

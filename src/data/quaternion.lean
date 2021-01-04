@@ -96,6 +96,13 @@ rfl
 @[simp] lemma neg_mk (a₁ a₂ a₃ a₄ : R) : -(mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) = ⟨-a₁, -a₂, -a₃, -a₄⟩ :=
 rfl
 
+@[simps] instance : has_sub ℍ[R, c₁, c₂] :=
+⟨λ a b, ⟨a.1 - b.1, a.2 - b.2, a.3 - b.3, a.4 - b.4⟩⟩
+
+@[simp] lemma mk_sub_mk (a₁ a₂ a₃ a₄ b₁ b₂ b₃ b₄ : R) :
+  (mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) - mk b₁ b₂ b₃ b₄ = mk (a₁ - b₁) (a₂ - b₂) (a₃ - b₃) (a₄ - b₄) :=
+rfl
+
 /-- Multiplication is given by
 
 * `1 * x = x * 1 = x`;
@@ -120,12 +127,13 @@ rfl
 
 instance : ring ℍ[R, c₁, c₂] :=
 by refine_struct
-  { add := (+), zero := (0 : ℍ[R, c₁, c₂]), neg := has_neg.neg, mul := (*), one := 1 };
-    intros; ext; simp; ring_exp
-
-@[simp] lemma mk_sub_mk (a₁ a₂ a₃ a₄ b₁ b₂ b₃ b₄ : R) :
-  (mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) - mk b₁ b₂ b₃ b₄ = mk (a₁ - b₁) (a₂ - b₂) (a₃ - b₃) (a₄ - b₄) :=
-rfl
+  { add := (+),
+    zero := (0 : ℍ[R, c₁, c₂]),
+    neg := has_neg.neg,
+    sub := has_sub.sub,
+    mul := (*),
+    one := 1 };
+  intros; ext; simp; ring_exp
 
 instance : algebra R ℍ[R, c₁, c₂] :=
 { smul := λ r a, ⟨r * a.1, r * a.2, r * a.3, r * a.4⟩,
@@ -248,6 +256,14 @@ lemma conj_neg : (-a).conj = -a.conj := (conj : ℍ[R, c₁, c₂] ≃ₗ[R] _).
 
 lemma conj_sub : (a - b).conj = a.conj - b.conj := (conj : ℍ[R, c₁, c₂] ≃ₗ[R] _).map_sub a b
 
+instance : star_ring ℍ[R, c₁, c₂] :=
+{ star := conj,
+  star_involutive := conj_conj,
+  star_add := conj_add,
+  star_mul := conj_mul }
+
+@[simp] lemma star_def (a : ℍ[R, c₁, c₂]) : star a = conj a := rfl
+
 open opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
@@ -278,6 +294,7 @@ instance : has_coe_t R ℍ[R] := quaternion_algebra.has_coe_t
 instance : ring ℍ[R] := quaternion_algebra.ring
 instance : inhabited ℍ[R] := quaternion_algebra.inhabited
 instance : algebra R ℍ[R] := quaternion_algebra.algebra
+instance : star_ring ℍ[R] := quaternion_algebra.star_ring
 
 @[ext] lemma ext : a.re = b.re → a.im_i = b.im_i → a.im_j = b.im_j → a.im_k = b.im_k → a = b :=
 quaternion_algebra.ext a b
@@ -507,8 +524,6 @@ variables [linear_ordered_field R] (a b : ℍ[R])
 instance : division_ring ℍ[R] :=
 { inv := has_inv.inv,
   inv_zero := by rw [has_inv_inv, conj_zero, smul_zero],
-  inv_mul_cancel := λ a ha, by rw [has_inv_inv, algebra.smul_mul_assoc, conj_mul_self, smul_coe,
-    inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
   mul_inv_cancel := λ a ha, by rw [has_inv_inv, algebra.mul_smul_comm, self_mul_conj, smul_coe,
     inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
   .. quaternion.domain }

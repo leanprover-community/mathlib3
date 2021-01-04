@@ -11,6 +11,7 @@ import data.finset.lattice
 import data.finset.pi
 import data.array.lemmas
 import order.well_founded
+import group_theory.perm.basic
 
 open_locale nat
 
@@ -87,6 +88,11 @@ by rw [inter_comm, univ_inter]
 
 @[simp] lemma piecewise_univ [∀i : α, decidable (i ∈ (univ : finset α))]
   {δ : α → Sort*} (f g : Πi, δ i) : univ.piecewise f g = f :=
+by { ext i, simp [piecewise] }
+
+lemma piecewise_compl [decidable_eq α] (s : finset α) [Π i : α, decidable (i ∈ s)]
+  [Π i : α, decidable (i ∈ sᶜ)] {δ : α → Sort*} (f g : Π i, δ i) :
+  sᶜ.piecewise f g = s.piecewise g f :=
 by { ext i, simp [piecewise] }
 
 lemma univ_map_equiv_to_embedding {α β : Type*} [fintype α] [fintype β] (e : α ≃ β) :
@@ -230,6 +236,9 @@ by letI := classical.dec; exact
 if hα : nonempty α then by letI := classical.inhabited_of_nonempty hα;
   exact of_surjective (inv_fun f) (inv_fun_surjective H)
 else ⟨∅, λ x, (hα ⟨x⟩).elim⟩
+
+noncomputable instance subtype_of_fintype [fintype α] (p : α → Prop) : fintype (subtype p) :=
+fintype.of_injective coe subtype.coe_injective
 
 /-- If `f : α ≃ β` and `α` is a fintype, then `β` is also a fintype. -/
 def of_equiv (α : Type*) [fintype α] (f : α ≃ β) : fintype β := of_bijective _ f.bijective

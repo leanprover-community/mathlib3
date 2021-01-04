@@ -87,7 +87,8 @@ by rw [← neg_sub, e.map_neg]
 lemma map_add_le (x y : V) : e (x + y) ≤ e x + e y := e.map_add_le' x y
 
 lemma map_sub_le (x y : V) : e (x - y) ≤ e x + e y :=
-calc e (x - y) ≤ e x + e (-y) : e.map_add_le x (-y)
+calc e (x - y) = e (x + -y)   : by rw sub_eq_add_neg
+           ... ≤ e x + e (-y) : e.map_add_le x (-y)
            ... = e x + e y    : by rw [e.map_neg]
 
 instance : partial_order (enorm 𝕜 V) :=
@@ -184,6 +185,6 @@ lemma finite_norm_eq (x : e.finite_subspace) : ∥x∥ = (e x).to_real := rfl
 
 /-- Normed space instance on `e.finite_subspace`. -/
 instance : normed_space 𝕜 e.finite_subspace :=
-{ norm_smul_le := λ c x, le_of_eq $ by simp [finite_norm_eq, ← ennreal.to_real_mul_to_real] }
+{ norm_smul_le := λ c x, le_of_eq $ by simp [finite_norm_eq, ennreal.to_real_mul] }
 
 end enorm

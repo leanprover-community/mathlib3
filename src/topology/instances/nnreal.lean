@@ -47,20 +47,18 @@ lemma tendsto_coe' {f : filter α} [ne_bot f] {m : α → ℝ≥0} {x : ℝ} :
 ⟨λ h, ⟨ge_of_tendsto' h (λ c, (m c).2), tendsto_coe.1 h⟩, λ ⟨hx, hm⟩, tendsto_coe.2 hm⟩
 
 @[simp] lemma map_coe_at_top : map (coe : ℝ≥0 → ℝ) at_top = at_top :=
-map_at_top_eq_of_gc nnreal.of_real 0 nnreal.coe_mono
-  (λ a b hb, (le_of_real_iff_coe_le hb).symm)
-  (λ b hb, le_coe_of_real b)
+map_coe_Ici_at_top 0
 
 lemma comap_coe_at_top : comap (coe : ℝ≥0 → ℝ) at_top = at_top :=
-by rw [← map_coe_at_top, comap_map nnreal.injective_coe]
+(at_top_Ici_eq 0).symm
 
 @[simp, norm_cast] lemma tendsto_coe_at_top {f : filter α} {m : α → ℝ≥0} :
   tendsto (λ a, (m a : ℝ)) f at_top ↔ tendsto m f at_top :=
-by rw [← comap_coe_at_top, tendsto_comap_iff]
+tendsto_Ici_at_top.symm
 
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
   tendsto (λa, nnreal.of_real (m a)) f (𝓝 (nnreal.of_real x)) :=
-tendsto.comp (continuous_iff_continuous_at.1 continuous_of_real _) h
+(continuous_of_real.tendsto _).comp h
 
 instance : has_continuous_sub ℝ≥0 :=
 ⟨continuous_subtype_mk _ $
@@ -89,6 +87,12 @@ if hf : summable f
 then (eq.symm $ (has_sum_coe.2 $ hf.has_sum).tsum_eq)
 else by simp [tsum, hf, mt summable_coe.1 hf]
 
+lemma tsum_mul_left (a : ℝ≥0) (f : α → ℝ≥0) : (∑' x, a * f x) = a * ∑' x, f x :=
+nnreal.eq $ by simp only [coe_tsum, nnreal.coe_mul, tsum_mul_left]
+
+lemma tsum_mul_right (f : α → ℝ≥0) (a : ℝ≥0) : (∑' x, f x * a) = (∑' x, f x) * a :=
+nnreal.eq $ by simp only [coe_tsum, nnreal.coe_mul, tsum_mul_right]
+
 lemma summable_comp_injective {β : Type*} {f : α → ℝ≥0} (hf : summable f)
   {i : β → α} (hi : function.injective i) :
   summable (f ∘ i) :=
@@ -97,6 +101,12 @@ show summable ((coe ∘ f) ∘ i), from (nnreal.summable_coe.2 hf).comp_injectiv
 
 lemma summable_nat_add (f : ℕ → ℝ≥0) (hf : summable f) (k : ℕ) : summable (λ i, f (i + k)) :=
 summable_comp_injective hf $ add_left_injective k
+
+lemma summable_nat_add_iff {f : ℕ → ℝ≥0} (k : ℕ) : summable (λ i, f (i + k)) ↔ summable f :=
+begin
+  rw [← summable_coe, ← summable_coe],
+  exact @summable_nat_add_iff ℝ _ _ _ (λ i, (f i : ℝ)) k,
+end
 
 lemma sum_add_tsum_nat_add {f : ℕ → ℝ≥0} (k : ℕ) (hf : summable f) :
   (∑' i, f i) = (∑ i in range k, f i) + ∑' i, f (i + k) :=

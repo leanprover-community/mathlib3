@@ -43,7 +43,6 @@ instance linear_ordered_comm_group_with_zero.to_ordered_comm_monoid : ordered_co
     exact linear_ordered_comm_group_with_zero.mul_le_mul_left h a }
   .. ‹linear_ordered_comm_group_with_zero α› }
 
-
 section linear_ordered_comm_monoid
 /-
 The following facts are true more generally in a (linearly) ordered commutative monoid.

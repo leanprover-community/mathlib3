@@ -277,9 +277,9 @@ variables [finite_dimensional ℝ E]
 
 /-- The unit sphere in a finite-dimensional inner product space `E` is a smooth manifold, modelled
 on the Euclidean space of dimension `findim ℝ E - 1`. -/
-instance : smooth_manifold_with_corners (𝓡 ((findim ℝ E - 1))) (sphere (0:E) 1) :=
+instance : smooth_manifold_with_corners (𝓡 (findim ℝ E - 1)) (sphere (0:E) 1) :=
 smooth_manifold_with_corners_of_times_cont_diff_on
-(𝓡 ((findim ℝ E - 1)))
+(𝓡 (findim ℝ E - 1))
 (sphere (0:E) 1)
 begin
   set n : ℕ := findim ℝ E - 1,
@@ -305,16 +305,13 @@ begin
   have H₂ := (times_cont_diff_stereo_inv_fun_aux.comp
       (ℝ ∙ (v:E))ᗮ.subtype_continuous.times_cont_diff).comp
       U.symm.to_continuous_linear_map.times_cont_diff,
-  have := H₁.comp' (H₂.times_cont_diff_on : times_cont_diff_on ℝ ⊤ _ set.univ),
-  have h_set : ∀ p : sphere (0:E) 1, p = v' ↔ ⟪(v':E), p⟫_ℝ = 1,
+  convert H₁.comp' (H₂.times_cont_diff_on : times_cont_diff_on ℝ ⊤ _ set.univ) using 1,
+  have h_set : ∀ p : sphere (0:E) 1, p = v' ↔ ⟪(p:E), v'⟫_ℝ = 1,
   { intros p,
     have hp := norm_eq_of_mem_sphere p,
-    simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one, hv', hp],
-    exact eq_comm },
-  simp,
-  convert this,
-  ext x,
-  simp [h_set, hUv, hU'v', stereographic, this]
+    simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one, hv', hp] },
+  ext,
+  simp [h_set, hUv, hU'v', stereographic, real_inner_comm]
 end
 
 end smooth_manifold

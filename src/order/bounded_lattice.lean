@@ -10,6 +10,7 @@ Includes the Prop and fun instances.
 import order.lattice
 import data.option.basic
 import tactic.pi_instances
+import logic.nontrivial
 
 set_option old_structure_cmd true
 
@@ -1010,6 +1011,8 @@ end bounded_distrib_lattice
 
 end disjoint
 
+section is_compl
+
 /-!
 ### `is_compl` predicate
 -/
@@ -1100,3 +1103,16 @@ is_compl.of_eq bot_inf_eq sup_top_eq
 
 lemma is_compl_top_bot [bounded_lattice α] : is_compl (⊤ : α) ⊥ :=
 is_compl.of_eq inf_bot_eq top_sup_eq
+
+end is_compl
+
+section nontrivial
+
+variables [bounded_lattice α] [nontrivial α]
+
+lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
+λ H, not_nontrivial_iff_subsingleton.mpr (subsingleton_of_bot_eq_top H) ‹_›
+
+lemma top_ne_bot : (⊤ : α) ≠ ⊥ := ne.symm bot_ne_top
+
+end nontrivial

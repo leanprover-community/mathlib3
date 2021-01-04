@@ -409,6 +409,57 @@ theorem norm_image_sub_le_of_norm_deriv_le_segment_01 {C : ℝ}
 by simpa only [sub_zero, mul_one]
   using norm_image_sub_le_of_norm_deriv_le_segment hf bound 1 (right_mem_Icc.2 zero_le_one)
 
+theorem constant_of_has_deriv_right_zero (hcont : continuous_on f (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at f 0 (Ici x) x) :
+  ∀ x ∈ Icc a b, f x = f a :=
+by simpa only [zero_mul, norm_le_zero_iff, sub_eq_zero] using
+  λ x hx, norm_image_sub_le_of_norm_deriv_right_le_segment
+    hcont hderiv (λ y hy, by rw norm_le_zero_iff) x hx
+
+theorem constant_of_deriv_within_zero (hdiff : differentiable_on ℝ f (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, deriv_within f (Icc a b) x = 0) :
+  ∀ x ∈ Icc a b, f x = f a :=
+begin
+  have H : ∀ x ∈ Ico a b, ∥deriv_within f (Icc a b) x∥ ≤ 0 :=
+    by simpa only [norm_le_zero_iff] using λ x hx, hderiv x hx,
+  simpa only [zero_mul, norm_le_zero_iff, sub_eq_zero] using
+    λ x hx, norm_image_sub_le_of_norm_deriv_le_segment hdiff H x hx,
+end
+
+variables {f' g : ℝ → E}
+
+/-- If two continuous functions on `[a, b]` have the same right derivative and are equal at `a`,
+  then they are equal everywhere on `[a, b]`. -/
+theorem eq_of_has_deriv_right_eq
+  (derivf : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
+  (derivg : ∀ x ∈ Ico a b, has_deriv_within_at g (f' x) (Ici x) x)
+  (fcont : continuous_on f (Icc a b)) (gcont : continuous_on g (Icc a b))
+  (hi : f a = g a) :
+  ∀ y ∈ Icc a b, f y = g y :=
+begin
+  simp only [← @sub_eq_zero _ _ (f _)] at hi ⊢,
+  exact hi ▸ constant_of_has_deriv_right_zero (fcont.sub gcont)
+    (λ y hy, by simpa only [sub_self] using (derivf y hy).sub (derivg y hy)),
+end
+
+/-- If two differentiable functions on `[a, b]` have the same derivative within `[a, b]` everywhere
+  on `[a, b)` and are equal at `a`, then they are equal everywhere on `[a, b]`. -/
+theorem eq_of_deriv_within_eq (fdiff : differentiable_on ℝ f (Icc a b))
+  (gdiff : differentiable_on ℝ g (Icc a b))
+  (hderiv : eq_on (deriv_within f (Icc a b)) (deriv_within g (Icc a b)) (Ico a b))
+  (hi : f a = g a) :
+  ∀ y ∈ Icc a b, f y = g y :=
+begin
+  have A : ∀ y ∈ Ico a b, has_deriv_within_at f (deriv_within f (Icc a b) y) (Ici y) y :=
+    λ y hy, (fdiff y (mem_Icc_of_Ico hy)).has_deriv_within_at.nhds_within
+      (Icc_mem_nhds_within_Ici hy),
+  have B : ∀ y ∈ Ico a b, has_deriv_within_at g (deriv_within g (Icc a b) y) (Ici y) y :=
+    λ y hy, (gdiff y (mem_Icc_of_Ico hy)).has_deriv_within_at.nhds_within
+      (Icc_mem_nhds_within_Ici hy),
+  exact eq_of_has_deriv_right_eq A (λ y hy, (hderiv hy).symm ▸ B y hy) fdiff.continuous_on
+    gdiff.continuous_on hi
+end
+
 end
 
 /-! ### Vector-valued functions `f : E → F` -/
@@ -896,11 +947,31 @@ begin
 end
 
 /-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is differentiable on its interior,
-and `f'` is monotone on the interior, then `f` is convex on `ℝ`. -/
+and `f'` is antimonotone on the interior, then `f` is concave on `D`. -/
+theorem concave_on_of_deriv_antimono {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'_mono : ∀ x y ∈ interior D, x ≤ y → deriv f y ≤ deriv f x) :
+  concave_on D f :=
+begin
+  have : ∀ x y ∈ interior D, x ≤ y → deriv (-f) x ≤ deriv (-f) y,
+  { intros x y hx hy hxy,
+    convert neg_le_neg (hf'_mono x y hx hy hxy);
+    convert deriv.neg },
+  exact (neg_convex_on_iff D f).mp (convex_on_of_deriv_mono hD
+    hf.neg hf'.neg this),
+end
+
+/-- If a function `f` is differentiable and `f'` is monotone on `ℝ` then `f` is convex. -/
 theorem convex_on_univ_of_deriv_mono {f : ℝ → ℝ} (hf : differentiable ℝ f)
   (hf'_mono : monotone (deriv f)) : convex_on univ f :=
 convex_on_of_deriv_mono convex_univ hf.continuous.continuous_on hf.differentiable_on
   (λ x y _ _ h, hf'_mono h)
+
+/-- If a function `f` is differentiable and `f'` is antimonotone on `ℝ` then `f` is concave. -/
+theorem concave_on_univ_of_deriv_antimono {f : ℝ → ℝ} (hf : differentiable ℝ f)
+  (hf'_antimono : ∀⦃a b⦄, a ≤ b → (deriv f) b ≤ (deriv f) a) : concave_on univ f :=
+concave_on_of_deriv_antimono convex_univ hf.continuous.continuous_on hf.differentiable_on
+  (λ x y _ _ h, hf'_antimono h)
 
 /-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its interior,
 and `f''` is nonnegative on the interior, then `f` is convex on `D`. -/
@@ -914,13 +985,49 @@ assume x y hx hy hxy,
 hD.interior.mono_of_deriv_nonneg hf''.continuous_on (by rwa [interior_interior])
   (by rwa [interior_interior]) _ _ hx hy hxy
 
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its interior,
+and `f''` is nonpositive on the interior, then `f` is concave on `D`. -/
+theorem concave_on_of_deriv2_nonpos {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'' : differentiable_on ℝ (deriv f) (interior D))
+  (hf''_nonpos : ∀ x ∈ interior D, (deriv^[2] f x) ≤ 0) :
+  concave_on D f :=
+concave_on_of_deriv_antimono hD hf hf' $
+assume x y hx hy hxy,
+hD.interior.antimono_of_deriv_nonpos hf''.continuous_on (by rwa [interior_interior])
+  (by rwa [interior_interior]) _ _ hx hy hxy
+
+/-- If a function `f` is twice differentiable on a open convex set `D ⊆ ℝ` and
+`f''` is nonnegative on `D`, then `f` is convex on `D`. -/
+theorem convex_on_open_of_deriv2_nonneg {D : set ℝ} (hD : convex D) (hD₂ : is_open D) {f : ℝ → ℝ}
+  (hf' : differentiable_on ℝ f D) (hf'' : differentiable_on ℝ (deriv f) D)
+  (hf''_nonneg : ∀ x ∈ D, 0 ≤ (deriv^[2] f x)) : convex_on D f :=
+convex_on_of_deriv2_nonneg hD hf'.continuous_on (by simpa [hD₂.interior_eq] using hf')
+  (by simpa [hD₂.interior_eq] using hf'') (by simpa [hD₂.interior_eq] using hf''_nonneg)
+
+/-- If a function `f` is twice differentiable on a open convex set `D ⊆ ℝ` and
+`f''` is nonpositive on `D`, then `f` is concave on `D`. -/
+theorem concave_on_open_of_deriv2_nonpos {D : set ℝ} (hD : convex D) (hD₂ : is_open D) {f : ℝ → ℝ}
+  (hf' : differentiable_on ℝ f D) (hf'' : differentiable_on ℝ (deriv f) D)
+  (hf''_nonpos : ∀ x ∈ D, (deriv^[2] f x) ≤ 0) : concave_on D f :=
+concave_on_of_deriv2_nonpos hD hf'.continuous_on (by simpa [hD₂.interior_eq] using hf')
+  (by simpa [hD₂.interior_eq] using hf'') (by simpa [hD₂.interior_eq] using hf''_nonpos)
+
 /-- If a function `f` is twice differentiable on `ℝ`, and `f''` is nonnegative on `ℝ`,
 then `f` is convex on `ℝ`. -/
 theorem convex_on_univ_of_deriv2_nonneg {f : ℝ → ℝ} (hf' : differentiable ℝ f)
   (hf'' : differentiable ℝ (deriv f)) (hf''_nonneg : ∀ x, 0 ≤ (deriv^[2] f x)) :
   convex_on univ f :=
-convex_on_of_deriv2_nonneg convex_univ hf'.continuous.continuous_on hf'.differentiable_on
+convex_on_open_of_deriv2_nonneg convex_univ is_open_univ hf'.differentiable_on
   hf''.differentiable_on (λ x _, hf''_nonneg x)
+
+/-- If a function `f` is twice differentiable on `ℝ`, and `f''` is nonpositive on `ℝ`,
+then `f` is concave on `ℝ`. -/
+theorem concave_on_univ_of_deriv2_nonpos {f : ℝ → ℝ} (hf' : differentiable ℝ f)
+  (hf'' : differentiable ℝ (deriv f)) (hf''_nonpos : ∀ x, (deriv^[2] f x) ≤ 0) :
+  concave_on univ f :=
+concave_on_open_of_deriv2_nonpos convex_univ is_open_univ hf'.differentiable_on
+  hf''.differentiable_on (λ x _, hf''_nonpos x)
 
 /-! ### Functions `f : E → ℝ` -/
 

@@ -1493,4 +1493,9 @@ lemma measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ennre
   measurable (λ a : α, (f a) ^ y) :=
 hf.ennreal_rpow measurable_const
 
+lemma ae_measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ennreal}
+  {μ : measure_theory.measure α} (hf : ae_measurable f μ) {y : ℝ} :
+  ae_measurable (λ a : α, (f a) ^ y) μ :=
+ennreal.measurable_rpow_const.comp_ae_measurable hf
+
 end measurability_ennreal

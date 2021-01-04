@@ -5,6 +5,7 @@ Author: Eric Wieser, Zhangir Azerbayev
 -/
 
 import linear_algebra.multilinear
+import linear_algebra.linear_independent
 import group_theory.perm.sign
 import group_theory.perm.subgroup
 import data.equiv.fin
@@ -306,6 +307,19 @@ instance : semimodule S (alternating_map R M N ι) :=
 end semimodule
 
 /-!
+### Other lemmas from `multilinear_map`
+-/
+section
+
+open_locale big_operators
+
+lemma map_update_sum {α : Type*} (t : finset α) (i : ι) (g : α → M) (m : ι → M):
+  f (update m i (∑ a in t, g a)) = ∑ a in t, f (update m i (g a)) :=
+f.to_multilinear_map.map_update_sum t i g m
+
+end
+
+/-!
 ### Theorems specific to alternating maps
 
 Various properties of reordered and repeated inputs which follow from
@@ -357,6 +371,31 @@ lemma coe_dom_dom_congr [fintype ι] (σ : equiv.perm ι) :
   (g : multilinear_map R (λ _ : ι, M) N').dom_dom_congr σ
     = (equiv.perm.sign σ : ℤ) • (g : multilinear_map R (λ _ : ι, M) N') :=
 multilinear_map.ext $ λ v, g.map_perm v σ
+
+/-- If the arguments are linearly dependent then the result is `0`.
+
+TODO: Can the `division_ring` requirement be relaxed? -/
+lemma map_linear_dependent
+  {K : Type*} [division_ring K]
+  {M : Type*} [add_comm_group M] [semimodule K M]
+  {N : Type*} [add_comm_group N] [semimodule K N]
+  (f : alternating_map K M N ι) (v : ι → M)
+  (h : ¬linear_independent K v) :
+  f v = 0 :=
+begin
+  obtain ⟨s, g, h, i, hi, hz⟩ := linear_dependent_iff.mp h,
+  -- the part that uses `division_ring`
+  suffices : f (update v i (g i • v i)) = 0,
+  { rw [f.map_smul, function.update_eq_self, smul_eq_zero] at this,
+    exact or.resolve_left this hz, },
+  conv at h in (g _ • v _) { rw ←if_t_t (i = x) (g _ • v _), },
+  rw [finset.sum_ite, finset.filter_eq, finset.filter_ne, if_pos hi, finset.sum_singleton,
+    add_eq_zero_iff_eq_neg] at h,
+  rw [h, f.map_neg, f.map_update_sum, neg_eq_zero, finset.sum_eq_zero],
+  intros j hj,
+  obtain ⟨hij, _⟩ := finset.mem_erase.mp hj,
+  rw [f.map_smul, f.map_update_self _ hij.symm, smul_zero],
+end
 
 end alternating_map
 
@@ -678,13 +717,6 @@ begin
   congr,
 end
 
-instance nat_is_scalar_tower {S : Type*}
-  [semiring S] [semimodule S M] [semimodule ℕ S] [semimodule ℕ M] :
-  is_scalar_tower ℕ S M :=
-{ smul_assoc := λ n x y, nat.rec_on n
-    (by simp only [zero_smul])
-    (λ n ih, by simp only [nat.succ_eq_add_one, add_smul, one_smul, ih]) }
-
 /-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two
 `alternating_map`s gives a scaled version of the `alternating_map.coprod` of those maps.
 -/
@@ -703,9 +735,9 @@ begin
   rw [←dom_coprod'_apply, ←dom_coprod'_apply, ←tensor_product.smul_tmul', tensor_product.tmul_smul],
   rw [linear_map.map_smul_of_tower dom_coprod', linear_map.map_smul_of_tower dom_coprod'],
   -- typeclass resolution is a little confused here
-  all_goals {try {apply_instance}},
+  all_goals { try {apply_instance} },
   all_goals {
-    convert alternating_map.nat_is_scalar_tower,
+    convert add_comm_monoid.nat_is_scalar_tower,
     change tensor_product.semimodule'.to_distrib_mul_action.to_mul_action.to_has_scalar = _,
     congr, }
 end

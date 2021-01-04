@@ -57,7 +57,8 @@ lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.sym
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
 `equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
-The made here is that if you're using the group structure, you want to preserve it after simp. -/
+The assumption made here is that if you're using the group structure, you want to preserve it after
+simp. -/
 
 @[simp] lemma trans_one {α : Sort*} {β : Type*} (e : α ≃ β) : e.trans (1 : perm β) = e :=
 equiv.trans_refl e

@@ -27,7 +27,7 @@ structure DFA (α : Type u) (σ : Type v) :=
 
 namespace DFA
 
-variables {α : Type u} {σ σ₁ σ₂ σ₃ : Type v} (M : DFA α σ)
+variables {α : Type u} {σ : Type v} (M : DFA α σ)
 
 instance [inhabited σ] : inhabited (DFA α σ) :=
 ⟨DFA.mk (λ _ _, default σ) (default σ) ∅⟩

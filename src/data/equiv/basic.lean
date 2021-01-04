@@ -256,7 +256,6 @@ def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃
 ⟨ λac, (ab.symm.trans ac).trans cd, λbd, ab.trans $ bd.trans $ cd.symm,
   assume ac, by { ext x, simp }, assume ac, by { ext x, simp } ⟩
 
-
 @[simp] lemma equiv_congr_refl_left {α β γ} (ab : β ≃ γ) (e : α ≃ β) :
   (equiv.refl α).equiv_congr ab e = e.trans ab := rfl
 

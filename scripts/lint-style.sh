@@ -41,6 +41,6 @@ nrexecbit=`find . -name *.lean -type f -executable | wc -l`
 if [[ $nrexecbit -ne 0 ]]
 then
 	echo "ERROR: The following Lean files have the executable bit set."
-	find . -name *.lean -type f -executable
+	find . -name '*.lean' -type f -executable
 fi
 

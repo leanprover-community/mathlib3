@@ -812,7 +812,7 @@ end
 
 theorem self_div_cancel_iff {I : fractional_ideal g} :
   I * (1 / I) = 1 ↔ ∃ J, I * J = 1 :=
-⟨λ h, ⟨ (1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← prod_one_self_div_eq I J hJ]⟩
+⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← prod_one_self_div_eq I J hJ]⟩
 
 variables {K' : Type*} [field K'] {g' : fraction_map R₁ K'}
 

@@ -120,7 +120,6 @@ instance : bounded_distrib_lattice α :=
 section decidable_eq
 variable [decidable_eq α]
 
-example boolean_algebra bool := infer_instance
 
 def order_iso_bool : α ≃o bool :=
 { to_fun := λ x, x = ⊤,
@@ -129,16 +128,15 @@ def order_iso_bool : α ≃o bool :=
   right_inv := λ x, by { cases x; simp [bot_ne_top] },
   map_rel_iff' := λ a b, begin
     rcases (eq_bot_or_eq_top a) with rfl | rfl,
-    { simp only [bot_ne_top, true_iff, equiv.coe_fn_mk, bool.to_bool_false, bot_le],
-      apply or.intro_left _ rfl },
-    { dsimp, }
+    { simp [bot_ne_top], },
+    { rcases (eq_bot_or_eq_top b) with rfl | rfl,
+      { squeeze_simp [bot_ne_top], },
+      { squeeze_simp [bot_ne_top], } }
   end,
 }
 
 @[priority 200]
-instance : fintype α :=
-{ elems := {⊥, ⊤},
-  complete := λ x, finset.mem_insert.2 (or.imp_right finset.mem_singleton.2 (eq_bot_or_eq_top x)) }
+instance : fintype α := equiv.fintype order_iso_bool
 
 lemma finset_univ : (finset.univ : finset α) = {⊥, ⊤} := rfl
 

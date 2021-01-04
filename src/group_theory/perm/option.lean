@@ -1,7 +1,13 @@
+/-
+Copyright (c) 2021 Eric Wieser. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Eric Wieser
+-/
 import group_theory.perm.basic
 import data.equiv.option
 import data.equiv.fin
 import data.fintype.basic
+
 /-!
 # Permutations of `option α`
 -/
@@ -42,6 +48,21 @@ def equiv.perm.decompose_fin {n : ℕ} :
   perm (fin n.succ) ≃ fin n.succ × perm (fin n) :=
 ((equiv.perm_congr $ fin_succ_equiv n).trans equiv.perm.decompose_option).trans
   (equiv.prod_congr (fin_succ_equiv n).symm (equiv.refl _))
+
+@[simp] lemma equiv.perm.decompose_fin_symm_of_refl {n : ℕ} (p : fin (n + 1)) :
+  equiv.perm.decompose_fin.symm (p, equiv.refl _) = swap 0 p :=
+begin
+  ext x,
+  by_cases hp : p = 0;
+  by_cases hx : x = 0;
+  by_cases hx' : x = p;
+  simp [hp, hx, hx', swap_apply_of_ne_of_ne,
+        equiv.perm.decompose_fin, equiv.perm.decompose_option],
+end
+
+@[simp] lemma equiv.perm.decompose_fin_symm_of_one {n : ℕ} (p : fin (n + 1)) :
+  equiv.perm.decompose_fin.symm (p, 1) = swap 0 p :=
+equiv.perm.decompose_fin_symm_of_refl p
 
 /-- The set of all permutations of `option α` can be constructed by augmenting the set of
 permutations of `α` by each element of `option α` in turn. -/

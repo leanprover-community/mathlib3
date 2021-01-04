@@ -50,10 +50,12 @@ theorem many_one_reducible.trans {α β γ} [primcodable α] [primcodable β] [p
 | ⟨f, c₁, h₁⟩ ⟨g, c₂, h₂⟩ := ⟨g ∘ f, c₂.comp c₁,
   λ a, ⟨λ h, by rwa [←h₂, ←h₁], λ h, by rwa [h₁, h₂]⟩⟩
 
-theorem reflexive_many_one_reducible {α} [primcodable α] : reflexive (@many_one_reducible α α _ _) :=
+theorem reflexive_many_one_reducible {α} [primcodable α] :
+  reflexive (@many_one_reducible α α _ _) :=
 many_one_reducible_refl
 
-theorem transitive_many_one_reducible {α} [primcodable α] : transitive (@many_one_reducible α α _ _) :=
+theorem transitive_many_one_reducible {α} [primcodable α] :
+  transitive (@many_one_reducible α α _ _) :=
 λ p q r, many_one_reducible.trans
 
 /--
@@ -82,17 +84,22 @@ theorem one_one_reducible.to_many_one {α β} [primcodable α] [primcodable β]
   {p : α → Prop} {q : β → Prop} : p ≤₁ q → p ≤₀ q
 | ⟨f, c, i, h⟩ := ⟨f, c, h⟩
 
-theorem one_one_reducible.of_equiv {α β} [primcodable α] [primcodable β] {e : α ≃ β} (q : β → Prop)
-  (h : computable e) : (q ∘ e) ≤₁ q := one_one_reducible.mk _ h e.injective
+theorem one_one_reducible.of_equiv {α β} [primcodable α] [primcodable β]
+    {e : α ≃ β} (q : β → Prop) (h : computable e) :
+  (q ∘ e) ≤₁ q :=
+one_one_reducible.mk _ h e.injective
 
-theorem one_one_reducible.of_equiv_symm {α β} [primcodable α] [primcodable β] {e : α ≃ β} (q : β → Prop)
-  (h : computable e.symm) : q ≤₁ (q ∘ e) :=
+theorem one_one_reducible.of_equiv_symm {α β} [primcodable α] [primcodable β]
+    {e : α ≃ β} (q : β → Prop) (h : computable e.symm) :
+  q ≤₁ (q ∘ e) :=
 by convert one_one_reducible.of_equiv _ h; funext; simp
 
-theorem reflexive_one_one_reducible {α} [primcodable α] : reflexive (@one_one_reducible α α _ _) :=
+theorem reflexive_one_one_reducible {α} [primcodable α] :
+  reflexive (@one_one_reducible α α _ _) :=
 one_one_reducible_refl
 
-theorem transitive_one_one_reducible {α} [primcodable α] : transitive (@one_one_reducible α α _ _) :=
+theorem transitive_one_one_reducible {α} [primcodable α] :
+  transitive (@one_one_reducible α α _ _) :=
 λ p q r, one_one_reducible.trans
 
 namespace computable_pred
@@ -139,7 +146,8 @@ theorem many_one_equiv.trans {α β γ} [primcodable α] [primcodable β] [primc
   many_one_equiv p q → many_one_equiv q r → many_one_equiv p r
 | ⟨pq, qp⟩ ⟨qr, rq⟩ := ⟨pq.trans qr, rq.trans qp⟩
 
-theorem equivalence_of_many_one_equiv {α} [primcodable α] : equivalence (@many_one_equiv α α _ _) :=
+theorem equivalence_of_many_one_equiv {α} [primcodable α] :
+  equivalence (@many_one_equiv α α _ _) :=
 ⟨many_one_equiv_refl, λ x y, many_one_equiv.symm, λ x y z, many_one_equiv.trans⟩
 
 @[refl]
@@ -164,7 +172,8 @@ theorem one_one_equiv.to_many_one {α β} [primcodable α] [primcodable β]
 | ⟨pq, qp⟩ := ⟨pq.to_many_one, qp.to_many_one⟩
 
 /-- a computable bijection -/
-def equiv.computable {α β} [primcodable α] [primcodable β] (e : α ≃ β) := computable e ∧ computable e.symm
+def equiv.computable {α β} [primcodable α] [primcodable β] (e : α ≃ β) :=
+computable e ∧ computable e.symm
 
 theorem equiv.computable.symm {α β} [primcodable α] [primcodable β] {e : α ≃ β} :
   e.computable → e.symm.computable := and.swap

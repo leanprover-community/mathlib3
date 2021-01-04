@@ -77,6 +77,11 @@ The functor `F` is cartesian closed (ie preserves exponentials) if each natural 
 class cartesian_closed_functor :=
 (comparison_iso : ∀ A, is_iso (exp_comparison F A))
 
+attribute [instance] cartesian_closed_functor.comparison_iso
+
+example [cartesian_closed_functor F] (A B : C) : F.obj (A ^^ B) ≅ F.obj A ^^ F.obj B :=
+as_iso ((exp_comparison F B).app A)
+
 variables {L : D ⥤ C}
 
 def frobenius_morphism (h : L ⊣ F) (A : C) :
@@ -103,6 +108,9 @@ begin
     simp },
 end.
 
+/--
+If `F` is full and faithful and has a left adjoint `L` which preserves binary products
+-/
 instance frobenius_morphism_iso_of_preserves_finite_products (h : L ⊣ F) (A : C)
   [preserves_limits_of_shape (discrete walking_pair) L] [full F] [faithful F] :
 is_iso (frobenius_morphism F h A) :=
@@ -110,9 +118,7 @@ begin
   apply nat_iso.is_iso_of_is_iso_app _,
   intro B,
   rw frobenius_morphism_app,
-  haveI : is_iso (h.counit.app A) := by apply_instance,
-
-  -- haveI : is_iso (limits.prod.map (𝟙 A) (h.counit.app A)) := by apply_instance,
+  apply_instance,
 end
 
 /--
@@ -132,13 +138,16 @@ def exp_comparison_iso_of_frobenius_morphism_iso (h : L ⊣ F) (A : C)
   is_iso (exp_comparison F A) :=
 @transfer_nat_trans_self_symm_of_iso _ _ _ _ _ _ _ _ _ _ _ i
 
+/--
+If `F` is full and faithful, and has a left adjoint which preserves binary products, then it is
+cartesian closed.
 
--- def cartesian_closed_functor_of_left_adjoint_preserves_finite_products (h : L ⊣ F) :
---   cartesian_closed_functor F
--- TODO: If F has a left adjoint L, then F is cartesian closed if and only if
--- L (B ⨯ F A) ⟶ L B ⨯ L F A ⟶ L B ⨯ A
--- is an iso for all A ∈ D, B ∈ C.
--- Corollary: If F has a left adjoint L which preserves finite products, F is cartesian closed iff
--- F is full and faithful.
+TODO: Show the converse, that if `F` is cartesian closed and its left adjoint preserves binary
+products, then it is full and faithful.
+-/
+def cartesian_closed_functor_of_left_adjoint_preserves_finite_products (h : L ⊣ F)
+  [full F] [faithful F] [preserves_limits_of_shape (discrete walking_pair) L] :
+  cartesian_closed_functor F :=
+{ comparison_iso := λ A, exp_comparison_iso_of_frobenius_morphism_iso F h _ }
 
 end category_theory

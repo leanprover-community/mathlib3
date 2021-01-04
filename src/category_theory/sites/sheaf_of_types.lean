@@ -899,7 +899,7 @@ instance : inhabited (SheafOfTypes (⊥ : grothendieck_topology C)) :=
   end⟩⟩
 
 /-- The inclusion functor from sheaves to presheaves. -/
-@[simps {rhs_md := semireducible}, derive [full, faithful]]
+@[simps, derive [full, faithful]]
 def SheafOfTypes_to_presheaf : SheafOfTypes J ⥤ (Cᵒᵖ ⥤ Type v) :=
 full_subcategory_inclusion (presieve.is_sheaf J)
 

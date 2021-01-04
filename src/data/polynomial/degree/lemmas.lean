@@ -59,7 +59,7 @@ else begin
   exact mt leading_coeff_eq_zero.1 h
 end
 
-lemma polynomial.nat_degree_map_le [semiring S] (f : R →+* S) :
+lemma nat_degree_map_le [semiring S] (f : R →+* S) :
   (map f p).nat_degree ≤ p.nat_degree :=
 begin
   by_cases hp : p = 0,

@@ -3,14 +3,14 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import geometry.manifold.charted_space
+import geometry.manifold.instances.real
 import analysis.normed_space.inner_product
 
 /-!
 # Manifold structure on the sphere
 
 This file defines stereographic projection from the sphere in an inner product space `E`, and uses
-it to put a charted space structure on the sphere.
+it to put a smooth manifold space structure on the sphere.
 
 -/
 
@@ -19,6 +19,7 @@ variables {E : Type*} [inner_product_space ℝ E]
 noncomputable theory
 
 open metric finite_dimensional
+open_locale manifold
 
 section stereographic_projection
 variables (v : E)
@@ -267,3 +268,53 @@ instance : charted_space (euclidean_space ℝ (fin (findim ℝ E - 1))) (sphere 
   chart_mem_atlas  := λ v, ⟨-v, rfl⟩ }
 
 end charted_space
+
+section smooth_manifold
+
+variables [finite_dimensional ℝ E]
+
+/-! ### Smooth manifold structure on the sphere -/
+
+/-- The unit sphere in a finite-dimensional inner product space `E` is a smooth manifold, modelled
+on the Euclidean space of dimension `findim ℝ E - 1`. -/
+instance : smooth_manifold_with_corners (𝓡 ((findim ℝ E - 1))) (sphere (0:E) 1) :=
+smooth_manifold_with_corners_of_times_cont_diff_on
+(𝓡 ((findim ℝ E - 1)))
+(sphere (0:E) 1)
+begin
+  set n : ℕ := findim ℝ E - 1,
+  rintros _ _ ⟨v, rfl⟩ ⟨v', rfl⟩,
+  have hv_perp : findim ℝ (ℝ ∙ (v:E))ᗮ = findim ℝ (euclidean_space ℝ (fin n)),
+  { rw findim_orthogonal_span_singleton (nonzero_of_mem_unit_sphere v),
+    simp },
+  have hv'_perp : findim ℝ (ℝ ∙ (v':E))ᗮ = findim ℝ (euclidean_space ℝ (fin n)),
+  { rw findim_orthogonal_span_singleton (nonzero_of_mem_unit_sphere v'),
+    simp },
+  let U : (ℝ ∙ (v:E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
+    continuous_linear_equiv.of_findim_eq hv_perp,
+  let U' : (ℝ ∙ (v':E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
+    continuous_linear_equiv.of_findim_eq hv'_perp,
+  let hv := norm_eq_of_mem_sphere v,
+  let hv' := norm_eq_of_mem_sphere v',
+  have hUv : stereographic' v
+      = (stereographic hv).trans U.to_homeomorph.to_local_homeomorph := rfl,
+  have hU'v' : stereographic' v'
+      = (stereographic hv').trans U'.to_homeomorph.to_local_homeomorph := rfl,
+  have H₁ := U'.to_continuous_linear_map.times_cont_diff.comp_times_cont_diff_on
+      times_cont_diff_on_stereo_to_fun,
+  have H₂ := (times_cont_diff_stereo_inv_fun_aux.comp
+      (ℝ ∙ (v:E))ᗮ.subtype_continuous.times_cont_diff).comp
+      U.symm.to_continuous_linear_map.times_cont_diff,
+  have := H₁.comp' (H₂.times_cont_diff_on : times_cont_diff_on ℝ ⊤ _ set.univ),
+  have h_set : ∀ p : sphere (0:E) 1, p = v' ↔ ⟪(v':E), p⟫_ℝ = 1,
+  { intros p,
+    have hp := norm_eq_of_mem_sphere p,
+    simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one, hv', hp],
+    exact eq_comm },
+  simp,
+  convert this,
+  ext x,
+  simp [h_set, hUv, hU'v', stereographic, this]
+end
+
+end smooth_manifold

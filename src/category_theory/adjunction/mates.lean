@@ -48,7 +48,7 @@ section square
 
 variables {E : Type u₃} {F : Type u₄} [category.{v₃} E] [category.{v₄} F]
 
-variables (G : C ⥤ E) (H : D ⥤ F) {L₁ : C ⥤ D} {R₁ : D ⥤ C} {L₂ : E ⥤ F} {R₂ : F ⥤ E}
+variables {G : C ⥤ E} {H : D ⥤ F} {L₁ : C ⥤ D} {R₁ : D ⥤ C} {L₂ : E ⥤ F} {R₂ : F ⥤ E}
 variables (adj₁ : L₁ ⊣ R₁) (adj₂ : L₂ ⊣ R₂)
 
 include adj₁ adj₂
@@ -73,7 +73,6 @@ This can be seen as a bijection of the 2-cells:
 
 Note that if one of the transformations is an iso, it does not imply the other is an iso.
 -/
-@[simps]
 def transfer_nat_trans : (G ⋙ L₂ ⟶ L₁ ⋙ H) ≃ (R₁ ⋙ G ⟶ H ⋙ R₂) :=
 { to_fun := λ h,
   { app := λ X, adj₂.unit.app _ ≫ R₂.map (h.app _ ≫ H.map (adj₁.counit.app _)),
@@ -111,11 +110,27 @@ def transfer_nat_trans : (G ⋙ L₂ ⟶ L₁ ⋙ H) ≃ (R₁ ⋙ G ⟶ H ⋙ R
       ←h.naturality, -functor.map_comp, ←functor.map_comp_assoc G, R₂.map_comp],
   end }
 
+lemma transfer_nat_trans_counit (f : G ⋙ L₂ ⟶ L₁ ⋙ H) (Y : D) :
+  L₂.map ((transfer_nat_trans adj₁ adj₂ f).app _) ≫ adj₂.counit.app _ =
+    f.app _ ≫ H.map (adj₁.counit.app Y) :=
+by simp [transfer_nat_trans]
+
+lemma unit_transfer_nat_trans (f : G ⋙ L₂ ⟶ L₁ ⋙ H) (X : C) :
+  G.map (adj₁.unit.app X) ≫ (transfer_nat_trans adj₁ adj₂ f).app _ =
+    adj₂.unit.app _ ≫ R₂.map (f.app _) :=
+begin
+  dsimp [transfer_nat_trans],
+  rw [←adj₂.unit_naturality_assoc, ←R₂.map_comp, ← functor.comp_map G L₂, f.naturality_assoc,
+    functor.comp_map, ← H.map_comp],
+  dsimp, simp, -- See library note [dsimp, simp]
+end
+
 end square
 
 section self
 
-variables {L₁ L₂ : C ⥤ D} {R₁ R₂ : D ⥤ C} (adj₁ : L₁ ⊣ R₁) (adj₂ : L₂ ⊣ R₂)
+variables {L₁ L₂ L₃ : C ⥤ D} {R₁ R₂ R₃ : D ⥤ C}
+variables (adj₁ : L₁ ⊣ R₁) (adj₂ : L₂ ⊣ R₂) (adj₃ : L₃ ⊣ R₃)
 
 /--
 Given two adjunctions `L₁ ⊣ R₁` and `L₂ ⊣ R₂` both between categories `C`, `D`, there is a
@@ -129,33 +144,68 @@ iff its image under the bijection is an iso, see eg `category_theory.transfer_na
 This is in contrast to the general case `transfer_nat_trans` which does not in general have this
 property.
 -/
-@[simps {rhs_md := semireducible}]
 def transfer_nat_trans_self : (L₂ ⟶ L₁) ≃ (R₁ ⟶ R₂) :=
 calc (L₂ ⟶ L₁) ≃ _         : (iso.hom_congr L₂.left_unitor L₁.right_unitor).symm
-           ... ≃ _         : transfer_nat_trans (𝟭 _) (𝟭 _) adj₁ adj₂
+           ... ≃ _         : transfer_nat_trans adj₁ adj₂
            ... ≃ (R₁ ⟶ R₂) : R₁.right_unitor.hom_congr R₂.left_unitor
+
+lemma transfer_nat_trans_self_counit (f : L₂ ⟶ L₁) (X) :
+  L₂.map ((transfer_nat_trans_self adj₁ adj₂ f).app _) ≫ adj₂.counit.app X =
+    f.app _ ≫ adj₁.counit.app X :=
+begin
+  dsimp [transfer_nat_trans_self],
+  rw [id_comp, comp_id],
+  have := transfer_nat_trans_counit adj₁ adj₂ (L₂.left_unitor.hom ≫ f ≫ L₁.right_unitor.inv) X,
+  dsimp at this,
+  rw this,
+  simp,
+end
+
+lemma unit_transfer_nat_trans_self (f : L₂ ⟶ L₁) (X) :
+  adj₁.unit.app _ ≫ (transfer_nat_trans_self adj₁ adj₂ f).app _ =
+    adj₂.unit.app X ≫ functor.map _ (f.app _) :=
+begin
+  dsimp [transfer_nat_trans_self],
+  rw [id_comp, comp_id],
+  have := unit_transfer_nat_trans adj₁ adj₂ (L₂.left_unitor.hom ≫ f ≫ L₁.right_unitor.inv) X,
+  dsimp at this,
+  rw this,
+  simp
+end
+
+@[simp]
+lemma transfer_nat_trans_self_id : transfer_nat_trans_self adj₁ adj₁ (𝟙 _) = 𝟙 _ :=
+by { ext, dsimp [transfer_nat_trans_self, transfer_nat_trans], simp }
+  -- See library note [dsimp, simp]
+
+@[simp]
+lemma transfer_nat_trans_self_symm_id :
+  (transfer_nat_trans_self adj₁ adj₁).symm (𝟙 _) = 𝟙 _ :=
+by { rw equiv.symm_apply_eq, simp }
+
+lemma transfer_nat_trans_self_comp (f g) :
+  transfer_nat_trans_self adj₁ adj₂ f ≫ transfer_nat_trans_self adj₂ adj₃ g =
+    transfer_nat_trans_self adj₁ adj₃ (g ≫ f) :=
+begin
+  ext,
+  dsimp [transfer_nat_trans_self, transfer_nat_trans],
+  simp only [id_comp, comp_id],
+  rw [←adj₃.unit_naturality_assoc, ←R₃.map_comp, g.naturality_assoc, L₂.map_comp, assoc,
+    adj₂.counit_naturality, adj₂.left_triangle_components_assoc, assoc],
+end
+
+lemma transfer_nat_trans_self_symm_comp (f g) :
+  (transfer_nat_trans_self adj₂ adj₁).symm f ≫ (transfer_nat_trans_self adj₃ adj₂).symm g =
+    (transfer_nat_trans_self adj₃ adj₁).symm (g ≫ f) :=
+by { rw [equiv.eq_symm_apply, ← transfer_nat_trans_self_comp _ adj₂], simp }
 
 lemma transfer_nat_trans_self_comm {f g} (gf : g ≫ f = 𝟙 _) :
   transfer_nat_trans_self adj₁ adj₂ f ≫ transfer_nat_trans_self adj₂ adj₁ g = 𝟙 _ :=
-begin
-  ext,
-  dsimp,
-  simp only [id_comp, comp_id],
-  rw [←adj₁.unit_naturality_assoc, ←R₁.map_comp, g.naturality_assoc, L₂.map_comp, assoc,
-    adj₂.counit_naturality, adj₂.left_triangle_components_assoc, ← assoc, ← nat_trans.comp_app],
-  simp [gf],
-end
+by rw [transfer_nat_trans_self_comp, gf, transfer_nat_trans_self_id]
 
 lemma transfer_nat_trans_self_symm_comm {f g} (gf : g ≫ f = 𝟙 _) :
   (transfer_nat_trans_self adj₁ adj₂).symm f ≫ (transfer_nat_trans_self adj₂ adj₁).symm g = 𝟙 _ :=
-begin
-  ext,
-  dsimp,
-  simp only [id_comp, comp_id],
-  rw [assoc, ←adj₂.counit_naturality, ←L₂.map_comp_assoc, assoc, ←f.naturality, R₁.map_comp, assoc,
-    adj₁.unit_naturality_assoc, assoc, adj₁.right_triangle_components_assoc, ← nat_trans.comp_app],
-  simp [gf],
-end
+by rw [transfer_nat_trans_self_symm_comp, gf, transfer_nat_trans_self_symm_id]
 
 /--
 If `f` is an isomorphism, then the transferred natural transformation is an isomorphism.

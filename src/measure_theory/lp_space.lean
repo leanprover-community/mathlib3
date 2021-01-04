@@ -245,7 +245,7 @@ begin
   exact hfp.mem_ℒp_of_exponent_le zero_lt_one hp1,
 end
 
-lemma snorm_add_le {f g : α → E} (hf : measurable f) (hg : measurable g) (hp1 : 1 ≤ p) :
+lemma snorm_add_le {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) (hp1 : 1 ≤ p) :
   snorm (f + g) p μ ≤ snorm f p μ + snorm g p μ :=
 calc (∫⁻ a, ↑(nnnorm ((f + g) a)) ^ p ∂μ) ^ (1 / p)
     ≤ (∫⁻ a, (((λ a, (nnnorm (f a) : ennreal))

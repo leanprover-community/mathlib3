@@ -206,14 +206,13 @@ begin
   split,
   all_goals
   { refine measure_theory.integrable_on.mono_set _ Ioc_subset_Icc_self,
-    refine continuous_on.integrable_on_compact compact_Icc hum (hu.mono _) },
+    refine continuous_on.integrable_on_compact compact_Icc (hu.mono _) },
   exacts [Icc_subset_interval, Icc_subset_interval']
 end
 
-lemma continuous_on.interval_integrable_of_Icc {u : ℝ → E} {a b : ℝ} (h : a ≤ b)
-  (hu : continuous_on u (Icc a b)) (hum : measurable u) :
-  interval_integrable u μ a b :=
-continuous_on.interval_integrable ((interval_of_le h).symm ▸ hu) hum
+lemma continuous_on.interval_integrable_of_Icc [borel_space E] {u : ℝ → E} {a b : ℝ} (h : a ≤ b)
+  (hu : continuous_on u (Icc a b)) : interval_integrable u μ a b :=
+continuous_on.interval_integrable ((interval_of_le h).symm ▸ hu)
 
 /-- A continuous function on `ℝ` is `interval_integrable` with respect to any locally finite measure
 `ν` on ℝ. -/
@@ -1266,7 +1265,7 @@ variables {f' : ℝ → E}
 theorem differentiable_on_integral_of_continuous {s : set ℝ}
   (hintg : ∀ x ∈ s, interval_integrable f volume a x) (hcont : continuous f) :
   differentiable_on ℝ (λ u, ∫ x in a..u, f x) s :=
-λ y hy, (integral_has_deriv_at_right (hintg y hy)
+λ y hy, (integral_has_deriv_at_right (hintg y hy) hcont.measurable.ae_measurable
           hcont.continuous_at).differentiable_at.differentiable_within_at
 
 /-- The integral of a continuous function is continuous on a real set `s`. This is true even
@@ -1281,13 +1280,13 @@ theorem continuous_on_integral_of_continuous {s : set ℝ}
   then `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuous_on f (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
-  (hcont' : continuous_on f' (Icc a b)) (hmeas' : measurable f') :
+  (hcont' : continuous_on f' (Icc a b)) :
   ∫ y in a..b, f' y = f b - f a :=
 begin
   refine eq_sub_of_add_eq (eq_of_has_deriv_right_eq (λ y hy, _) hderiv
     (λ y hy, _) hcont (by simp) _ (right_mem_Icc.2 hab)),
-  { refine (integral_has_deriv_within_at_right _ _).add_const _,
-    { refine (hcont'.mono _).interval_integrable hmeas',
+  { refine (integral_has_deriv_within_at_right _ _ _).add_const _,
+    { refine (hcont'.mono _).interval_integrable,
       simp [hy.1, Icc_subset_Icc_right hy.2.le] },
     { exact (hcont' _ (mem_Icc_of_Ico hy)).mono_of_mem (Icc_mem_nhds_within_Ioi hy) } },
   { -- TODO: prove that integral of any integrable function is continuous, and use here

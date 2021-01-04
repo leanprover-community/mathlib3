@@ -1563,14 +1563,16 @@ open algebra
 /-- If the field `L` is an algebraic extension of the integral domain `A`,
 the integral closure of `A` in `L` has fraction field `L`. -/
 def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
-  (inj : ∀ x, algebra_map A L x = 0 → x = 0) :
+  (inj : function.injective (algebra_map A L)) :
   fraction_map (integral_closure A L) L :=
 (algebra_map (integral_closure A L) L).to_localization_map
   (λ ⟨⟨y, integral⟩, nonzero⟩,
     have y ≠ 0 := λ h, mem_non_zero_divisors_iff_ne_zero.mp nonzero (subtype.ext_iff_val.mpr h),
     show is_unit y, from ⟨⟨y, y⁻¹, mul_inv_cancel this, inv_mul_cancel this⟩, rfl⟩)
   (λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
-    ⟨⟨x, ⟨y, mem_non_zero_divisors_iff_ne_zero.mpr hy⟩⟩, hxy⟩)
+    ⟨⟨x, algebra_map _ _ y, mem_non_zero_divisors_iff_ne_zero.mpr
+        (mt ((algebra_map A _).injective_iff.mp (algebra_map_injective inj) y) hy)⟩,
+        by simpa [algebra.smul_def, mul_comm] using hxy⟩)
   (λ x y, ⟨ λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext_iff_val.mpr h⟩,
             λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
               (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc) ⟩)
@@ -1584,8 +1586,8 @@ def fraction_map_of_finite_extension [algebra A L] [algebra f.codomain L]
   fraction_map (integral_closure A L) L :=
 fraction_map_of_algebraic
   (f.comap_is_algebraic_iff.mpr is_algebraic_of_finite)
-  (λ x hx, f.to_map_eq_zero_iff.mp ((algebra_map f.codomain L).map_eq_zero.mp $
-    (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
+  (λ x y hx, f.injective ((algebra_map f.codomain L).injective
+      (by simpa only [is_scalar_tower.algebra_map_apply A f.codomain L] using hx)))
 
 end integral_closure
 

@@ -387,7 +387,7 @@ section det
 
 open linear_map matrix
 
-variables {R : Type} [comm_ring R]
+variables {R : Type*} [comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
 variables {M' : Type*} [add_comm_group M'] [module R M']
 variables {ι : Type*} [decidable_eq ι] [fintype ι] {v : ι → M} {v' : ι → M'}
@@ -644,6 +644,32 @@ begin
   apply linear_equiv.dim_eq,
   apply h₂,
 end
+
+variables {V : Type*} [add_comm_group V] [vector_space K V]
+variables {v₁ : n → V} (hv₁ : is_basis K v₁)
+
+lemma ker_to_lin_eq_bot [decidable_eq n] (M : matrix n n K) (hM : M.det ≠ 0) :
+  (to_lin hv₁ hv₁ M).ker = ⊥ :=
+begin
+  rw submodule.eq_bot_iff,
+  intros x hx,
+  calc x = to_lin hv₁ hv₁ (M⁻¹ ⬝ M) x : by simp [nonsing_inv_mul M (is_unit.mk0 _ hM)]
+     ... = to_lin hv₁ hv₁ M⁻¹ (to_lin hv₁ hv₁ M x) : by simp [to_lin_mul hv₁ hv₁ hv₁]
+     ... = (to_lin hv₁ hv₁ M⁻¹) 0 : by rw mem_ker.mp hx
+     ... = 0 : linear_map.map_zero _
+end
+
+lemma range_to_lin_eq_top [decidable_eq n] (M : matrix n n K) (hM : M.det ≠ 0) :
+  (to_lin hv₁ hv₁ M).range = ⊤ :=
+begin
+  rw eq_top_iff,
+  rintros x -,
+  rw linear_map.mem_range,
+  use to_lin hv₁ hv₁ M⁻¹ x,
+  rw [← linear_map.comp_apply, ← to_lin_mul, mul_nonsing_inv _ (is_unit.mk0 _ hM),
+      to_lin_one, linear_map.id_apply]
+end
+
 
 end vector_space
 

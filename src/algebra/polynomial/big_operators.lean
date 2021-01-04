@@ -52,16 +52,62 @@ end
 The leading coefficient of a product of polynomials is equal to
 the product of the leading coefficients, provided that this product is nonzero.
 
+See `leading_coeff_multiset_prod` (without the `'`) for a version for integral domains,
+where this condition is automatically satisfied.
+-/
+lemma leading_coeff_multiset_prod' (m : multiset (polynomial R))
+  (h : (m.map leading_coeff).prod ≠ 0) :
+  m.prod.leading_coeff = (m.map leading_coeff).prod :=
+begin
+  revert h, refine multiset.induction _ _ m,
+  { intro h, exact leading_coeff_one },
+  intros a s hm h,
+  simp only [multiset.map_cons, multiset.prod_cons] at ⊢ h,
+  rw polynomial.leading_coeff_mul'; { rwa hm, apply right_ne_zero_of_mul h },
+end
+
+/--
+The leading coefficient of a product of polynomials is equal to
+the product of the leading coefficients, provided that this product is nonzero.
+
 See `leading_coeff_prod` (without the `'`) for a version for integral domains,
 where this condition is automatically satisfied.
 -/
 lemma leading_coeff_prod' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
 begin
-  classical,
-  revert h, induction s using finset.induction with a s ha hs, { simp },
-  repeat { rw prod_insert ha },
-  intro h, rw polynomial.leading_coeff_mul'; { rwa hs, apply right_ne_zero_of_mul h },
+  refine trans (leading_coeff_multiset_prod' (multiset.map f s.1) _) _,
+  { convert h, apply multiset.map_map },
+  { rw multiset.map_map, refl }
+end
+
+/--
+The degree of a product of polynomials is equal to
+the product of the degrees, provided that the product of leading coefficients is nonzero.
+
+See `nat_degree_multiset_prod` (without the `'`) for a version for integral domains,
+where this condition is automatically satisfied.
+-/
+lemma nat_degree_multiset_prod' (m : multiset (polynomial R))
+  (h : (m.map leading_coeff).prod ≠ 0) :
+  m.prod.nat_degree = (m.map nat_degree).sum :=
+begin
+  revert h, refine multiset.induction _ _ m,
+  { intro h, exact nat_degree_one },
+  intros a s hm h,
+  simp only [multiset.map_cons, multiset.prod_cons, multiset.sum_cons] at ⊢ h,
+  rw polynomial.nat_degree_mul', rw hm,
+  apply right_ne_zero_of_mul h,
+  rwa polynomial.leading_coeff_multiset_prod', apply right_ne_zero_of_mul h,
+end
+
+lemma nat_degree_multiset_prod_of_monic [nontrivial R] (m : multiset (polynomial R))
+  (h : ∀ f ∈ m, monic f) :
+  m.prod.nat_degree = (m.map nat_degree).sum :=
+begin
+  apply nat_degree_multiset_prod',
+  suffices : (m.map leading_coeff).prod = 1, { rw this, simp },
+  exact (congr_arg _ (multiset.map_congr h)).trans multiset.prod_map_one
 end
 
 /--
@@ -74,20 +120,17 @@ where this condition is automatically satisfied.
 lemma nat_degree_prod' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
-  classical,
-  revert h, induction s using finset.induction with a s ha hs, { simp },
-  rw [prod_insert ha, prod_insert ha, sum_insert ha],
-  intro h, rw polynomial.nat_degree_mul', rw hs,
-  apply right_ne_zero_of_mul h,
-  rwa polynomial.leading_coeff_prod', apply right_ne_zero_of_mul h,
+  refine trans (nat_degree_multiset_prod' _ _) _,
+  { convert h, apply multiset.map_map },
+  { rw multiset.map_map, refl }
 end
 
 lemma nat_degree_prod_of_monic [nontrivial R] (h : ∀ i ∈ s, (f i).monic) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
-  apply nat_degree_prod',
-  suffices : ∏ i in s, (f i).leading_coeff = 1, { rw this, simp },
-  rw prod_eq_one, intros, apply h, assumption,
+  refine trans (nat_degree_multiset_prod_of_monic _ _) _,
+  { intro _, rw multiset.mem_map, rintros ⟨i, hi, rfl⟩, exact h i hi },
+  { rw multiset.map_map, refl }
 end
 
 lemma coeff_zero_prod :
@@ -129,16 +172,33 @@ end comm_ring
 section integral_domain
 variables [integral_domain R] (f : ι → polynomial R)
 
+lemma nat_degree_multiset_prod (m : multiset (polynomial R)) (h : ∀ f ∈ m, f ≠ (0 : polynomial R)) :
+  m.prod.nat_degree = (m.map nat_degree).sum :=
+begin
+  apply nat_degree_multiset_prod',
+  rw [ne.def, multiset.prod_eq_zero_iff, multiset.mem_map],
+  rintros ⟨x, hx, fx_eq⟩,
+  exact h x hx (leading_coeff_eq_zero.mp fx_eq)
+end
+
 lemma nat_degree_prod (h : ∀ i ∈ s, f i ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
-  apply nat_degree_prod', rw prod_ne_zero_iff,
-  intros x hx, simp [h x hx],
+  refine trans (nat_degree_multiset_prod _ _) _,
+  { simp only [multiset.mem_map], rintros _ ⟨i, hi, rfl⟩, exact h i hi },
+  { rw multiset.map_map, refl }
 end
+
+lemma leading_coeff_multiset_prod (m : multiset (polynomial R)) :
+  m.prod.leading_coeff = (m.map leading_coeff).prod :=
+by { rw [← leading_coeff_hom_apply, monoid_hom.map_multiset_prod], refl }
 
 lemma leading_coeff_prod :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
-by { rw ← leading_coeff_hom_apply, apply monoid_hom.map_prod }
+begin
+  refine trans (leading_coeff_multiset_prod _) _,
+  rw multiset.map_map, refl
+end
 
 end integral_domain
 end polynomial

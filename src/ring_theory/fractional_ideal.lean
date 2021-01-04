@@ -81,7 +81,7 @@ def is_fractional (I : submodule R f.codomain) :=
 
   More precisely, let `P` be a localization of `R` at some submonoid `S`,
   then a fractional ideal `I ⊆ P` is an `R`-submodule of `P`,
-  such that there is a no nzero `a : R` with `a I ⊆ R`.
+  such that there is a nonzero `a : R` with `a I ⊆ R`.
 -/
 def fractional_ideal :=
 {I : submodule R f.codomain // is_fractional f I}

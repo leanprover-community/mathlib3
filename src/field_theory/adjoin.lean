@@ -5,6 +5,7 @@ Authors: Thomas Browning and Patrick Lutz
 -/
 
 import field_theory.intermediate_field
+import field_theory.minimal_polynomial
 import field_theory.splitting_field
 import field_theory.fixed
 import field_theory.minimal_polynomial
@@ -412,7 +413,7 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] {α : E}
 variables {K : Type*} [field K] [algebra F K]
 
 lemma aeval_gen_minimal_polynomial (h : is_integral F α) :
-  polynomial.aeval (adjoin_simple.gen F α) (minimal_polynomial h)  = 0 :=
+  polynomial.aeval (adjoin_simple.gen F α) (minimal_polynomial h) = 0 :=
 begin
   ext,
   convert minimal_polynomial.aeval h,

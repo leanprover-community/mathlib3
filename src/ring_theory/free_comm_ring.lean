@@ -180,7 +180,7 @@ end is_supported
 /-- The restriction map from `free_comm_ring α` to `free_comm_ring s` where `s : set α`, defined
   by sending all variables not in `s` to zero. -/
 def restriction (s : set α) [decidable_pred s] : free_comm_ring α →+* free_comm_ring s :=
-lift (λ p, if H : p ∈ s then of ⟨p, H⟩ else 0)
+lift (λ p, if H : p ∈ s then of ⟨p, H⟩  else 0)
 
 section restriction
 variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)
@@ -197,10 +197,7 @@ assume hps : is_supported (of p) s, begin
   { intros x hx, refine ring.in_closure.rec_on hx _ _ _ _,
     { use 1, rw [ring_hom.map_one], norm_cast },
     { use -1, rw [ring_hom.map_neg, ring_hom.map_one], norm_cast },
-    { rintros _ ⟨z, hzs, rfl⟩ _ _,
-      use 0,
-      rw [ring_hom.map_mul, lift_of, if_pos hzs, zero_mul],
-      norm_cast },
+    { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [ring_hom.map_mul, lift_of, if_pos hzs, zero_mul], norm_cast },
     { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [ring_hom.map_add, hq, hr], norm_cast } },
   specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
   exfalso, apply ne.symm int.zero_ne_one,
@@ -215,8 +212,7 @@ begin
   refine ring.in_closure.rec_on hxs _ _ _ _,
   { rw ring_hom.map_one, refl },
   { rw [ring_hom.map_neg, ring_hom.map_neg, ring_hom.map_one], refl },
-  { rintros _ ⟨p, hps, rfl⟩ n ih,
-    rw [ring_hom.map_mul, restriction_of, dif_pos hps, ring_hom.map_mul, map_of, ih] },
+  { rintros _ ⟨p, hps, rfl⟩ n ih, rw [ring_hom.map_mul, restriction_of, dif_pos hps, ring_hom.map_mul, map_of, ih] },
   { intros x y ihx ihy, rw [ring_hom.map_add, ring_hom.map_add, ihx, ihy] }
 end
 
@@ -247,6 +243,9 @@ def to_free_comm_ring {α} : free_ring α →+* free_comm_ring α :=
 free_ring.lift free_comm_ring.of
 
 instance : has_coe (free_ring α) (free_comm_ring α) := ⟨to_free_comm_ring⟩
+
+instance coe.is_ring_hom : is_ring_hom (coe : free_ring α → free_comm_ring α) :=
+free_ring.to_free_comm_ring.is_ring_hom
 
 @[simp, norm_cast] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
 @[simp, norm_cast] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
@@ -279,19 +278,9 @@ end
 lemma coe_eq :
   (coe : free_ring α → free_comm_ring α) =
   @functor.map free_abelian_group _ _ _ (λ (l : list α), (l : multiset α)) :=
-begin
-  funext,
-  apply free_abelian_group.lift.ext to_free_comm_ring.to_add_monoid_hom,
-  intros x,
-  change free_ring.lift free_comm_ring.of (free_abelian_group.of x) = _,
-  change _ = free_abelian_group.of (↑x),
-  induction x with hd tl ih,
-  { refl },
-  unfold free_ring.lift at *,
-  simp only [*, ring_hom.coe_mk, add_monoid_hom.to_fun_eq_coe,
-    free_abelian_group.lift.of, list.prod_cons, list.map] at *,
-  refl
-end
+funext $ λ x, free_abelian_group.lift.unique _ _ $ λ L,
+by { simp_rw [free_abelian_group.lift.of, (∘)], exact list.rec_on L rfl
+(λ hd tl ih, by { rw [list.map_cons, list.prod_cons, ih], refl }) }
 
 -- FIXME This was in `deprecated.ring`, but only used here.
 -- It would be good to inline it into the next construction.
@@ -309,7 +298,7 @@ def subsingleton_equiv_free_comm_ring [subsingleton α] :
     delta functor.map_equiv,
     rw congr_arg is_ring_hom _,
     work_on_goal 2 { symmetry, exact coe_eq α },
-    exact to_free_comm_ring.is_ring_hom
+    apply_instance
   end
 
 instance [subsingleton α] : comm_ring (free_ring α) :=

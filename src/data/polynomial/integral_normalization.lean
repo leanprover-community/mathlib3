@@ -95,7 +95,7 @@ end
 variables [comm_ring S]
 
 lemma integral_normalization_eval₂_eq_zero {p : polynomial R} (hp : p ≠ 0) (f : R →+* S)
-  {z : S} (hz : eval₂ f z p = 0) (inj : ∀ (x : R), f x = 0 → x = 0) :
+  {z : S} (hz : eval₂ f z p = 0) (inj : function.injective f) :
   eval₂ f (z * f p.leading_coeff) (integral_normalization p) = 0 :=
 calc eval₂ f (z * f p.leading_coeff) (integral_normalization p)
     = p.support.attach.sum
@@ -107,7 +107,7 @@ calc eval₂ f (z * f p.leading_coeff) (integral_normalization p)
         (λ i, f (coeff p i.1 * p.leading_coeff ^ (nat_degree p - 1)) * z ^ i.1) :
       begin
         have one_le_deg : 1 ≤ nat_degree p :=
-          nat.succ_le_of_lt (nat_degree_pos_of_eval₂_root hp f hz inj),
+          nat.succ_le_of_lt (nat_degree_pos_of_eval₂_root hp f hz (f.injective_iff.mp inj)),
         congr' with i,
         congr' 2,
         by_cases hi : i.1 = nat_degree p,
@@ -127,7 +127,7 @@ calc eval₂ f (z * f p.leading_coeff) (integral_normalization p)
 ... = 0 : by rw [hz, _root_.mul_zero]
 
 lemma integral_normalization_aeval_eq_zero [algebra R S] {f : polynomial R} (hf : f ≠ 0)
-  {z : S} (hz : aeval z f = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
+  {z : S} (hz : aeval z f = 0) (inj : function.injective (algebra_map R S)) :
   aeval (z * algebra_map R S f.leading_coeff) (integral_normalization f) = 0 :=
 integral_normalization_eval₂_eq_zero hf (algebra_map R S) hz inj
 

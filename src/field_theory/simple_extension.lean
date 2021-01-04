@@ -692,7 +692,7 @@ end
 lemma degree_minpoly_y :
   degree (minpoly_y K M x y) ≤ 1 :=
 begin
-  erw degree_eq_nat_degree (minimal_polynomial.ne_zero _),
+  rw [minpoly_y, is_separable.minimal_polynomial, degree_eq_nat_degree (minimal_polynomial.ne_zero _)],
   apply with_bot.some_le_some.mpr,
   exact nat_degree_minpoly_y K M x y splits,
   apply_instance

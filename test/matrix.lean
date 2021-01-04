@@ -1,4 +1,6 @@
 import data.matrix.notation
+import linear_algebra.determinant
+import group_theory.perm.option
 
 variables {α : Type} [semiring α]
 
@@ -49,5 +51,13 @@ example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 5 = f := by simp
 example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 7 = h := by simp
 example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 37 = f := by simp
 example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 99 = d := by simp
+
+example {α : Type} [comm_ring α] {a b c d : α} :
+  matrix.det ![![a, b], ![c, d]] = a * d - b * c :=
+begin
+  simp [matrix.det, finset.univ_perm_fin_succ, ←finset.univ_product_univ, finset.sum_product,
+        fin.sum_univ_succ, fin.prod_univ_succ],
+  ring
+end
 
 end matrix

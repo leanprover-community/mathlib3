@@ -24,9 +24,9 @@ which are lattices with only two elements, and related ideas.
 
 ### Simple Lattices
   * `is_simple_lattice` indicates that a bounded lattice has only two elements, `⊥` and `⊤`.
+  * `is_simple_lattice.bounded_distrib_lattice`
   * Given an instance of `is_simple_lattice`, we provide the following definitions. These are not
     made global instances as they contain data :
-    * `is_simple_lattice.bounded_distrib_lattice`
     * `is_simple_lattice.boolean_algebra`
     * `is_simple_lattice.complete_lattice`
     * `is_simple_lattice.complete_boolean_algebra`
@@ -112,12 +112,28 @@ namespace is_simple_lattice
 variables [bounded_lattice α] [is_simple_lattice α]
 
 /-- A simple `bounded_lattice` is also distributive. -/
+@[priority 100]
 instance : bounded_distrib_lattice α :=
 { le_sup_inf := λ x y z, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
   .. (infer_instance : bounded_lattice α) }
 
 section decidable_eq
 variable [decidable_eq α]
+
+example boolean_algebra bool := infer_instance
+
+def order_iso_bool : α ≃o bool :=
+{ to_fun := λ x, x = ⊤,
+  inv_fun := λ x, if x then ⊤ else ⊥,
+  left_inv := λ x, by { rcases (eq_bot_or_eq_top x) with rfl | rfl; simp [bot_ne_top] },
+  right_inv := λ x, by { cases x; simp [bot_ne_top] },
+  map_rel_iff' := λ a b, begin
+    rcases (eq_bot_or_eq_top a) with rfl | rfl,
+    { simp only [bot_ne_top, true_iff, equiv.coe_fn_mk, bool.to_bool_false, bot_le],
+      apply or.intro_left _ rfl },
+    { dsimp, }
+  end,
+}
 
 @[priority 200]
 instance : fintype α :=
@@ -208,23 +224,24 @@ namespace order_iso
 variables [bounded_lattice α] {β : Type*} [bounded_lattice β] (f : α ≃o β)
 include f
 
-lemma is_atom_iff (a : α) : is_atom (f a) ↔ is_atom a :=
-and_congr (λ h, (f.injective (f.map_bot.symm ▸ h))⟩)
-  ⟨λ h b hb, f.symm.injective begin
+@[simp] lemma is_atom_iff (a : α) : is_atom (f a) ↔ is_atom a :=
+and_congr (not_congr ⟨λ h, f.injective (f.map_bot.symm ▸ h), λ h, f.map_bot ▸ (congr rfl h)⟩)
+  ⟨λ h b hb, f.injective ((h (f b) ((f : α ↪o β).map_lt_iff.1 hb)).trans f.map_bot.symm),
+  λ h b hb, f.symm.injective begin
     rw f.symm.map_bot,
     apply h,
     rw [← f.symm_apply_apply a],
     exact (f.symm : β ↪o α).map_lt_iff.1 hb,
-  end,
-  λ h b hb, f.injective ((h (f b) ((f : α ↪o β).map_lt_iff.1 hb)).trans f.map_bot.symm)⟩
+  end⟩
 
-lemma is_coatom_iff (a : α) : is_coatom (f a) ↔ is_coatom a := f.dual.is_atom_iff a
+@[simp] lemma is_coatom_iff (a : α) : is_coatom (f a) ↔ is_coatom a := f.dual.is_atom_iff a
 
 lemma is_simple_lattice_iff (f : α ≃o β) : is_simple_lattice α ↔ is_simple_lattice β :=
 by rw [is_simple_lattice_iff_is_atom_top, is_simple_lattice_iff_is_atom_top,
-  f.is_atom_iff ⊤, f.map_top]
+  ← f.is_atom_iff ⊤, f.map_top]
 
-lemma is_simple_lattice [is_simple_lattice β] (f : α ≃o β) : is_simple_lattice α :=
-f.is_simple_lattice_iff.mpr
+lemma is_simple_lattice [h : is_simple_lattice β] (f : α ≃o β) : is_simple_lattice α :=
+f.is_simple_lattice_iff.mpr h
 
 end order_iso
+#lint

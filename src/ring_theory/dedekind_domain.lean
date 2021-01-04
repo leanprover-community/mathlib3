@@ -189,7 +189,7 @@ end
 lemma invertible_of_principal (I : fractional_ideal g)
   [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
   I * I⁻¹ = 1 :=
-(fractional_ideal.self_div_cancel_iff).mpr
+(fractional_ideal.mul_div_self_cancel_iff).mpr
   ⟨fractional_ideal.span_singleton (generator (I : submodule R₁ g.codomain))⁻¹,
     @mul_generator_self_inv _ _ _ _ _ I _ h⟩
 
@@ -232,23 +232,24 @@ TODO: prove the equivalence.
 
 structure is_dedekind_domain_inv : Prop :=
 (not_is_field : ¬ is_field A)
-(mul_inv_cancel : ∀ I ≠ (⊥ : fractional_ideal (fraction_ring.of A)), I * 1 / I = 1)
+(mul_inv_cancel : ∀ I ≠ (⊥ : fractional_ideal (fraction_ring.of A)), I * (1 / I) = 1)
 
 open ring.fractional_ideal
 
--- lemma is_dedekind_domain_inv_iff (f : fraction_map A K) :
---   is_dedekind_domain_inv A ↔
---     (¬ is_field A) ∧ (∀ I ≠ (⊥ : fractional_ideal f), I * I⁻¹ = 1) :=
--- begin
---   split; rintros ⟨hf, hi⟩; use hf; intros I hI,
---   { have := hi (map (fraction_ring.alg_equiv_of_quotient f).symm.to_alg_hom I) (map_ne_zero _ hI),
---     erw [← map_inv, ← fractional_ideal.map_mul] at this,
---     convert congr_arg (map (fraction_ring.alg_equiv_of_quotient f).to_alg_hom) this;
---       simp only [alg_equiv.to_alg_hom_eq_coe, map_symm_map, map_one] },
---   { have := hi (map (fraction_ring.alg_equiv_of_quotient f).to_alg_hom I) (map_ne_zero _ hI),
---     erw [← map_inv, ← fractional_ideal.map_mul] at this,
---     convert congr_arg (map (fraction_ring.alg_equiv_of_quotient f).symm.to_alg_hom) this;
---       simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one] }
--- end
+lemma is_dedekind_domain_inv_iff (f : fraction_map A K) :
+  is_dedekind_domain_inv A ↔
+    (¬ is_field A) ∧ (∀ I ≠ (⊥ : fractional_ideal f), I * I⁻¹ = 1) :=
+begin
+  set h : (fraction_ring.of A).codomain ≃ₐ[A] f.codomain := fraction_ring.alg_equiv_of_quotient f,
+  split; rintros ⟨hf, hi⟩; use hf; intros I hI,
+  { have := hi (map ↑h.symm I) (map_ne_zero _ hI),
+    convert congr_arg (map (h : (fraction_ring.of A).codomain →ₐ[A] f.codomain)) this;
+      simp only [map_symm_map, map_one, fractional_ideal.map_mul, fractional_ideal.map_div,
+                 inv_eq] },
+  { have := hi (map ↑h I) (map_ne_zero _ hI),
+    convert congr_arg (map (h.symm : f.codomain →ₐ[A] (fraction_ring.of A).codomain)) this;
+      simp only [map_map_symm, map_one, fractional_ideal.map_mul, fractional_ideal.map_div,
+                 inv_eq] },
+end
 
 end inverse

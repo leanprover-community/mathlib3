@@ -162,6 +162,9 @@ instance equiv_subsingleton {α β : Type*} [subsingleton α] [subsingleton β] 
 instance perm_subsingleton {α : Type*} [subsingleton α] : subsingleton (perm α) :=
 equiv.equiv_subsingleton
 
+@[simp] lemma perm.subsingleton_eq_refl {α : Type*} [subsingleton α] (e : perm α) :
+  e = equiv.refl α := subsingleton.elim _ _
+
 /-- Transfer `decidable_eq` across an equivalence. -/
 protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
 e.injective.decidable_eq

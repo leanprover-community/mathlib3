@@ -319,13 +319,17 @@ end finset
 
 namespace with_top
 open finset
-open_locale classical
+
+/-- A product of finite numbers is still finite -/
+lemma prod_lt_top [canonically_ordered_comm_semiring β] [nontrivial β] [decidable_eq β]
+  {s : finset α} {f : α → with_top β} :
+  (∀a∈s, f a < ⊤) → (∏ x in s, f x) < ⊤ :=
+λ h, prod_induction f (λ a, a < ⊤) (λ a b, mul_lt_top) (coe_lt_top 1) h
 
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top [ordered_add_comm_monoid β] {s : finset α} {f : α → with_top β} :
   (∀a∈s, f a < ⊤) → (∑ x in s, f x) < ⊤ :=
 λ h, sum_induction f (λ a, a < ⊤) (by { simp_rw add_lt_top, tauto }) zero_lt_top h
-
 
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top_iff [canonically_ordered_add_monoid β] {s : finset α} {f : α → with_top β} :

@@ -810,7 +810,7 @@ begin
   exact mul_mem_mul hx hy,
 end
 
-theorem self_div_cancel_iff {I : fractional_ideal g} :
+theorem mul_div_self_cancel_iff {I : fractional_ideal g} :
   I * (1 / I) = 1 ↔ ∃ J, I * J = 1 :=
 ⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← prod_one_self_div_eq I J hJ]⟩
 

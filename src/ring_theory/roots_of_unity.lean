@@ -871,27 +871,22 @@ lemma minimal_polynomial_eq_pow_coprime {m : ℕ} (hcop : nat.coprime m n) :
   (is_integral (h.pow_of_coprime m hcop) hpos) :=
 begin
   revert n hcop,
-  refine (unique_factorization_monoid.induction_on_prime m _ _ _),
+  refine unique_factorization_monoid.induction_on_prime m _ _ _,
   { intros n hn h hpos,
-    simp only [nat.coprime_zero_left] at hn,
-    subst hn,
-    simp only [is_primitive_root.one_right_iff] at h,
-    subst h,
-    simp only [one_pow] },
+    congr,
+    simpa [(nat.coprime_zero_left n).mp hn] using h },
   { intros u hunit n hcop h hpos,
-    simp only [nat.is_unit_iff] at hunit,
-    subst hunit,
-    simp only [pow_one] },
+    congr,
+    simp [nat.is_unit_iff.mp hunit] },
   { intros a p ha hprime hind n hcop h hpos,
-    replace hind := hind (nat.coprime.coprime_mul_left hcop) h hpos,
-    rw [hind],
+    rw hind (nat.coprime.coprime_mul_left hcop) h hpos, clear hind,
     replace hprime := nat.prime_iff_prime.2 hprime,
     have hdiv := (nat.prime.coprime_iff_not_dvd hprime).1 (nat.coprime.coprime_mul_right hcop),
     letI : fact p.prime := hprime,
     rw [minimal_polynomial_eq_pow
       (h.pow_of_coprime a (nat.coprime.coprime_mul_left hcop)) hpos hdiv],
-    have expeq : (μ ^ a) ^ p = μ ^ (p * a) := by rw [mul_comm, ← pow_mul],
-    simp only [expeq] }
+    congr' 1,
+    ring_exp }
 end
 
 /-- If `m : ℕ` is coprime with `n`,

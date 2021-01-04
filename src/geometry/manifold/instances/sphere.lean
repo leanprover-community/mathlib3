@@ -88,7 +88,7 @@ end
 
 lemma times_cont_diff_stereo_inv_fun_aux : times_cont_diff ℝ ⊤ (stereo_inv_fun_aux v) :=
 begin
-  have h₀ : times_cont_diff ℝ ⊤ (λ w : E, ∥w∥ ^ 2) := sorry, -- @urkud will PR
+  have h₀ : times_cont_diff ℝ ⊤ (λ w : E, ∥w∥ ^ 2) := times_cont_diff_norm_square,
   have h₁ : times_cont_diff ℝ ⊤ (λ w : E, (∥w∥ ^ 2 + 4)⁻¹),
   { refine (h₀.add times_cont_diff_const).inv _,
     intros x,

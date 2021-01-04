@@ -33,6 +33,9 @@ begin
   simpa using this,
 end
 
+/-- Permutations of `option α` are equivalent to fixing an
+`option α` and permuting the remaining with a `perm α`.
+The fixed `option α` is swapped with `none`. -/
 def equiv.perm.decompose_option {α : Type*} [decidable_eq α] [fintype α] :
   perm (option α) ≃ option α × perm α :=
 { to_fun := λ σ, (σ none, remove_none σ),
@@ -44,6 +47,9 @@ def equiv.perm.decompose_option {α : Type*} [decidable_eq α] [fintype α] :
     simp [←perm.eq_inv_iff_eq, equiv_functor.map, this],
   end }
 
+/-- Permutations of `fin (n + 1)` are equivalent to fixing a single
+`fin (n + 1)` and permuting the remaining with a `perm (fin n)`.
+The fixed `fin (n + 1)` is swapped with `0`. -/
 def equiv.perm.decompose_fin {n : ℕ} :
   perm (fin n.succ) ≃ fin n.succ × perm (fin n) :=
 ((equiv.perm_congr $ fin_succ_equiv n).trans equiv.perm.decompose_option).trans

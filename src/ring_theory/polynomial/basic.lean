@@ -530,10 +530,10 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
     have := polynomial.degree_sub_lt h1 hp0 h2,
     rw [polynomial.degree_eq_nat_degree hp0] at this,
     rw ← sub_add_cancel p (q * polynomial.X ^ (k - q.nat_degree)),
-    refine (ideal.span ↑s).add_mem _ ((ideal.span ↑s).mul_mem_right _),
+    refine (ideal.span ↑s).add_mem _ ((ideal.span ↑s).mul_mem_right _ _),
     { by_cases hpq : p - q * polynomial.X ^ (k - q.nat_degree) = 0,
       { rw hpq, exact ideal.zero_mem _ },
-      refine ih _ _ (I.sub_mem hp (I.mul_mem_right hq)) rfl,
+      refine ih _ _ (I.sub_mem hp (I.mul_mem_right _ hq)) rfl,
       rwa [polynomial.degree_eq_nat_degree hpq, with_bot.coe_lt_coe, hn] at this },
     exact hs2 ⟨polynomial.mem_degree_le.2 hdq, hq⟩ }
 end⟩⟩

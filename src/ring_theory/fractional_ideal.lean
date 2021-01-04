@@ -812,7 +812,7 @@ end
 
 theorem mul_div_self_cancel_iff {I : fractional_ideal g} :
   I * (1 / I) = 1 ↔ ∃ J, I * J = 1 :=
-⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← prod_one_self_div_eq I J hJ]⟩
+⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← eq_one_div_of_mul_eq_one I J hJ]⟩
 
 variables {K' : Type*} [field K'] {g' : fraction_map R₁ K'}
 
@@ -957,28 +957,7 @@ end
 
 lemma one_div_span_singleton (x : g.codomain) :
   1 / span_singleton x = span_singleton (x⁻¹) :=
-begin
-  by_cases h : x = 0,
-  { simp [h] },
-  { rw le_antisymm_iff,
-    split,
-    { rw [← coe_le_coe, coe_div (span_singleton_ne_zero_iff.mpr h), coe_one,
-      coe_span_singleton, coe_span_singleton, submodule.le_span_singleton_iff],
-      intros y hy,
-      rw submodule.mem_div_iff_forall_mul_mem at hy,
-      obtain ⟨r, hr⟩ : ∃ (r : R₁), (g.to_map r) = y *x ,
-      { specialize hy x (mem_span_singleton_self x),
-        apply fractional_ideal.mem_one_iff.mp,
-        rwa ← coe_one at hy },
-    use r,
-    change (g.to_map r) * x⁻¹ = y,
-    simp only [*, ne.def, not_false_iff, mul_inv_cancel_right'] },
-    { apply (le_div_iff_mul_le (span_singleton_ne_zero_iff.mpr h)).mpr,
-      rw [span_singleton_mul_span_singleton, inv_mul_cancel h, span_singleton_one],
-      apply le_of_eq _, simp only [eq_self_iff_true] } },
-end
-
-
+if h : x = 0 then by simp [h] else (eq_one_div_of_mul_eq_one _ _ (by simp [h])).symm
 
 @[simp] lemma div_span_singleton (J : fractional_ideal g) (d : g.codomain) :
   J / span_singleton d = span_singleton (d⁻¹) * J :=

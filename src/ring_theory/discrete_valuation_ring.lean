@@ -8,6 +8,7 @@ import ring_theory.principal_ideal_domain
 import order.conditionally_complete_lattice
 import ring_theory.multiplicity
 import ring_theory.valuation.basic
+import ring_theory.ideal.over
 
 /-!
 # Discrete valuation rings
@@ -298,6 +299,201 @@ begin
   letI : unique_factorization_monoid R := hR.to_unique_factorization_monoid,
   apply of_ufd_of_unique_irreducible _ hR.unique_irreducible,
   unfreezingI { obtain ⟨p, hp, H⟩ := hR, exact ⟨p, hp⟩, },
+end
+
+
+lemma prime_of_principal_prime_ideal {R : Type u} [comm_ring R] {I : ideal R} {p : R}
+  (Hprime : I.is_prime) (Hnon_zero : I ≠ ⊥) (Hprincipal : I = ideal.span {p}) : prime p :=
+begin
+    let Hproper := Hprime.1,
+  let Hprod := Hprime.2,
+  split,
+  {
+  intro hpzero,
+  apply Hnon_zero,
+  rw Hprincipal,
+  rw hpzero,
+  rw span_singleton_eq_bot,
+  }, split,
+  {
+    intro hpunit,
+    apply Hproper,
+    rw Hprincipal,
+    rw span_singleton_eq_top,
+    exact hpunit,
+  },{
+    intros a b,
+    rw <- mem_span_singleton,
+    rw <- mem_span_singleton,
+    rw <- mem_span_singleton,
+    rw <- Hprincipal,
+    exact Hprod,
+  }
+end
+
+/--
+A local noetherian integral domain `R` such that the maximal ideal of `R` is principal
+and the unique non-zero prime ideal (i.e. `R` has Krull dimension 1)
+is a discrete valuation ring.
+-/
+lemma of_principal_unique_prime_ideal {R : Type u}
+  [integral_domain R] [local_ring R] [Inoetherian : is_noetherian_ring R]
+  {p : R} (Hprincipal : maximal_ideal R = ideal.span {p})
+  (Hunique : ∀ I ≠ (⊥ : ideal R), I.is_prime → I = maximal_ideal R)
+  (Hnon_zero : maximal_ideal R ≠ ⊥) :
+  discrete_valuation_ring R :=
+begin
+  let m := maximal_ideal R,
+  apply of_has_unit_mul_pow_irreducible_factorization,
+  use p,
+  split,
+  apply irreducible_of_prime,
+  have hmprime : is_prime m,
+  apply is_maximal.is_prime,
+  exact maximal_ideal.is_maximal R,
+  exact prime_of_principal_prime_ideal hmprime Hnon_zero Hprincipal,
+
+  intros x hxnon_zero,
+  let S : set (ideal R) := {I : ideal R | ∃ y : R, I = ideal.span {y} ∧ ∃ n : ℕ, associated (y * p^n) x},
+  have hmax : ∃ J ∈ S, ∀ I ∈ S, J ≤ I → I = J,
+  {
+  apply set_has_maximal_iff_noetherian.2,
+  exact Inoetherian,
+  use (ideal.span {x}),
+  split,
+  split,
+  trivial,
+  use 0,
+  simp,
+  },
+
+  have hpprime : prime p,
+  have hmprime : is_prime m,
+  apply is_maximal.is_prime,
+  exact maximal_ideal.is_maximal R,
+  exact prime_of_principal_prime_ideal hmprime Hnon_zero Hprincipal,
+
+  cases hmax with J hJmax,
+  cases hJmax with HJS H,
+  have hJtop : J = ⊤,
+  {
+  by_contradiction hnJtop,
+  cases exists_le_maximal J hnJtop with m' hm',
+  have h4 : m' = m,
+  cases (maximal_ideal_unique R) with m'' h,
+  rw (h.2 m' hm'.1),
+  rw (h.2 m),
+  exact maximal_ideal.is_maximal R,
+  cases HJS with y1 hy1,
+  have hdiv : ∃ y2 : R, y2 * p = y1,
+  {
+  rw <- mem_span_singleton',
+  rw <- Hprincipal,
+  have h5 : maximal_ideal R = m, trivial,
+  rw h5,
+  rw <- h4,
+  apply hm'.2,
+  rw hy1.1,
+  apply subset_span,
+  simp, -- y1 in {y1}
+  },
+  cases hdiv with y2 hy2,
+  let J2 : ideal R := ideal.span {y2},
+  have hJ2S : J2 ∈ S,
+  {
+  use y2,
+  split,
+  trivial,
+  cases hy1.2 with n hn,
+  use n + 1,
+  rw <- hy2 at hn,
+  rw pow_succ,
+  rw <- mul_assoc,
+  exact hn,
+  },
+  have hJineq : J ≤ J2,
+  rw hy1.1,
+  intros t ht,
+  rw mem_span_singleton at ht,
+  rw <- hy2 at ht,
+  rw mem_span_singleton,
+  apply dvd_of_mul_right_dvd,
+  exact ht,
+  have Heq : span {y2} = span {y1},
+  rw <- hy1.1,
+  exact H J2 hJ2S hJineq,
+  rw span_singleton_eq_span_singleton at Heq,
+  rw <- hy2 at Heq,
+  have h7 : associated (y2*1) (y2*p), simp, exact Heq,
+  have h8 : associated 1 p,
+  apply associated_mul_left_cancel h7, trivial,
+  cases hy1.2 with n hn,
+  have h10 : y1*p^n ≠ 0,
+  rw ne_zero_iff_of_associated hn,
+  exact hxnon_zero,
+  have hy1ne_zero : y1 ≠ 0,
+  intro hzero,
+  apply h10,
+  rw hzero,
+  simp,
+  intro hy2zero,
+  apply hy1ne_zero,
+  rw <- hy2,
+  rw hy2zero,
+  simp,
+
+  apply hpprime.2.1,
+  rw <- is_unit_iff_of_associated h8,
+  simp,
+  },
+  cases HJS with y hy,
+  cases hy.2 with n hn,
+  use n,
+  have hn' : associated (y * p^n) (1 * x), simp, exact hn,
+  apply associated_mul_left_cancel hn',
+  rw <- span_singleton_eq_span_singleton,
+  rw <- hy.1,
+  rw hJtop,
+  rw <- span_singleton_one,
+  trivial,
+  have h9 : y*p^n ≠ 0,
+  rw ne_zero_iff_of_associated hn,
+  exact hxnon_zero,
+  intro hzero,
+  apply h9,
+  rw hzero,
+  simp,
+end
+
+/--
+A local noetherian integral domain `R` which is integrally closed in its field of fractions
+and such that the maximal ideal of `R` is the unique non-zero prime ideal
+(i.e. `R` has Krull dimension 1) is a discrete valuation ring.
+-/
+lemma of_integrally_closed_local_noetherian_unique_prime {R : Type u}
+  [integral_domain R] [local_ring R] [is_noetherian_ring R]
+  (Hintegrally_closed : integral_closure R (fraction_ring R) = ⊥)
+  (Hunique_prime : ∀ p ≠ (⊥ : ideal R), p.is_prime → p = maximal_ideal R)
+  (Hprime_nonzero : maximal_ideal R ≠ ⊥) :
+  discrete_valuation_ring R :=
+begin
+  let m := maximal_ideal R,
+  have htangent : m ≠ m*m,
+    intro heq,
+    apply Hprime_nonzero,
+    sorry, --nakayama here
+  have t : R, sorry,
+  have htinm : t ∈ m, sorry,
+  have htnotinmm : ¬ (t ∈ m*m), sorry,
+  have htgen : ∀ s : R, s ∈ m → ∃ r : R, s = r*t,
+    intros s hs,
+    let K := fraction_ring R,
+    let iota := fraction_map R K,
+    sorry,
+    -- Consider the ideal m^{-1} and show that m^{-1} * m = 1
+  have hprincipal : maximal_ideal R = ideal.span {t},
+  sorry, -- comes from htgen
+  exact of_principal_unique_prime_ideal hprincipal Hunique_prime Hprime_nonzero,
 end
 
 section

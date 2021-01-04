@@ -36,7 +36,7 @@ end
 /-- Permutations of `option α` are equivalent to fixing an
 `option α` and permuting the remaining with a `perm α`.
 The fixed `option α` is swapped with `none`. -/
-def equiv.perm.decompose_option {α : Type*} [decidable_eq α] :
+@[simps] def equiv.perm.decompose_option {α : Type*} [decidable_eq α] :
   perm (option α) ≃ option α × perm α :=
 { to_fun := λ σ, (σ none, remove_none σ),
   inv_fun := λ i, swap none i.1 * (equiv_functor.map_equiv option i.2),
@@ -62,8 +62,7 @@ begin
   by_cases hp : p = 0;
   by_cases hx : x = 0;
   by_cases hx' : x = p;
-  simp [hp, hx, hx', swap_apply_of_ne_of_ne,
-        equiv.perm.decompose_fin, equiv.perm.decompose_option],
+  simp [hp, hx, hx', swap_apply_of_ne_of_ne, equiv.perm.decompose_fin]
 end
 
 @[simp] lemma equiv.perm.decompose_fin_symm_of_one {n : ℕ} (p : fin (n + 1)) :

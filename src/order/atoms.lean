@@ -112,7 +112,7 @@ namespace is_simple_lattice
 variables [bounded_lattice α] [is_simple_lattice α]
 
 /-- A simple `bounded_lattice` is also distributive. -/
-protected def bounded_distrib_lattice : bounded_distrib_lattice α :=
+instance : bounded_distrib_lattice α :=
 { le_sup_inf := λ x y z, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
   .. (infer_instance : bounded_lattice α) }
 
@@ -208,8 +208,8 @@ namespace order_iso
 variables [bounded_lattice α] {β : Type*} [bounded_lattice β] (f : α ≃o β)
 include f
 
-lemma is_atom_iff (a : α) : is_atom a ↔ is_atom (f a) :=
-and_congr (not_congr ⟨λ h, f.map_bot ▸ (congr rfl h), λ h, (f.injective (f.map_bot.symm ▸ h))⟩)
+lemma is_atom_iff (a : α) : is_atom (f a) ↔ is_atom a :=
+and_congr (λ h, (f.injective (f.map_bot.symm ▸ h))⟩)
   ⟨λ h b hb, f.symm.injective begin
     rw f.symm.map_bot,
     apply h,
@@ -218,10 +218,13 @@ and_congr (not_congr ⟨λ h, f.map_bot ▸ (congr rfl h), λ h, (f.injective (f
   end,
   λ h b hb, f.injective ((h (f b) ((f : α ↪o β).map_lt_iff.1 hb)).trans f.map_bot.symm)⟩
 
-lemma is_coatom_iff (a : α) : is_coatom a ↔ is_coatom (f a) := f.dual.is_atom_iff a
+lemma is_coatom_iff (a : α) : is_coatom (f a) ↔ is_coatom a := f.dual.is_atom_iff a
 
 lemma is_simple_lattice_iff (f : α ≃o β) : is_simple_lattice α ↔ is_simple_lattice β :=
 by rw [is_simple_lattice_iff_is_atom_top, is_simple_lattice_iff_is_atom_top,
   f.is_atom_iff ⊤, f.map_top]
+
+lemma is_simple_lattice [is_simple_lattice β] (f : α ≃o β) : is_simple_lattice α :=
+f.is_simple_lattice_iff.mpr
 
 end order_iso

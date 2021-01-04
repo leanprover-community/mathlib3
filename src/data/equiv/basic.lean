@@ -155,7 +155,7 @@ set.eq_univ_of_forall e.surjective
 protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
 e.injective.subsingleton
 
-instance equiv_subsingleton {α β : Type*} [subsingleton α] [subsingleton β] :
+instance equiv_subsingleton {α β : Type*} [subsingleton β] :
   subsingleton (α ≃ β) :=
 ⟨λ f g, equiv.ext $ λ x, by simp⟩
 

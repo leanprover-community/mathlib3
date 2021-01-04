@@ -38,15 +38,20 @@ variables {v}
   stereo_to_fun v x = (2 / ((1:ℝ) - inner_right v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x :=
 rfl
 
-lemma continuous_on_stereo_to_fun [complete_space E] :
-  continuous_on (stereo_to_fun v) {x : E | inner_right v x ≠ (1:ℝ)} :=
+lemma times_cont_diff_on_stereo_to_fun [complete_space E] :
+  times_cont_diff_on ℝ ⊤ (stereo_to_fun v) {x : E | inner_right v x ≠ (1:ℝ)} :=
 begin
-  refine continuous_on.smul _ (orthogonal_projection (ℝ ∙ v)ᗮ).continuous.continuous_on,
-  refine continuous_const.continuous_on.div _ _,
-  { exact (continuous_const.sub (inner_right v).continuous).continuous_on },
+  refine times_cont_diff_on.smul _
+    (orthogonal_projection ((ℝ ∙ v)ᗮ)).times_cont_diff.times_cont_diff_on,
+  refine times_cont_diff_const.times_cont_diff_on.div _ _,
+  { exact (times_cont_diff_const.sub (inner_right v).times_cont_diff).times_cont_diff_on },
   { intros x h h',
     exact h (sub_eq_zero.mp h').symm }
 end
+
+lemma continuous_on_stereo_to_fun [complete_space E] :
+  continuous_on (stereo_to_fun v) {x : E | inner_right v x ≠ (1:ℝ)} :=
+times_cont_diff_on_stereo_to_fun.continuous_on
 
 variables (v)
 
@@ -80,6 +85,19 @@ begin
   ring,
 end
 
+lemma times_cont_diff_stereo_inv_fun_aux : times_cont_diff ℝ ⊤ (stereo_inv_fun_aux v) :=
+begin
+  have h₀ : times_cont_diff ℝ ⊤ (λ w : E, ∥w∥ ^ 2) := sorry, -- @urkud will PR
+  have h₁ : times_cont_diff ℝ ⊤ (λ w : E, (∥w∥ ^ 2 + 4)⁻¹),
+  { refine (h₀.add times_cont_diff_const).inv _,
+    intros x,
+    nlinarith },
+  have h₂ : times_cont_diff ℝ ⊤ (λ w, (4:ℝ) • w + (∥w∥ ^ 2 - 4) • v),
+  { refine (times_cont_diff_const.smul times_cont_diff_id).add _,
+    refine (h₀.sub times_cont_diff_const).smul times_cont_diff_const },
+  convert h₁.smul h₂
+end
+
 /-- Stereographic projection, reverse direction.  This is a map from the orthogonal complement of a
 unit vector `v` in an inner product space `E` to the unit sphere in `E`. -/
 def stereo_inv_fun (hv : ∥v∥ = 1) (w : (ℝ ∙ v)ᗮ) : sphere (0:E) 1 :=
@@ -104,22 +122,8 @@ begin
   { simpa using stereo_inv_fun_aux_mem hv w.2 }
 end
 
-lemma continuous_stereo_inv_fun (hv : ∥v∥ = 1) :
-  continuous (stereo_inv_fun hv) :=
-begin
-  let c : sphere (0:E) 1 → E := coe,
-  suffices : continuous (c ∘ (stereo_inv_fun hv)),
-  { exact continuous_induced_rng this },
-  have h₀ : continuous (λ w : E, ∥w∥ ^ 2) := (continuous_pow 2).comp continuous_norm,
-  have h₁ : continuous (λ w : E, (∥w∥ ^ 2 + 4)⁻¹),
-  { refine (h₀.add continuous_const).inv' _,
-    intros w,
-    nlinarith },
-  have h₂ : continuous (λ w, (4:ℝ) • w + (∥w∥ ^ 2 - 4) • v),
-  { refine (continuous_const.smul continuous_id).add _,
-    refine (h₀.sub continuous_const).smul continuous_const },
-  convert (h₁.smul h₂).comp continuous_subtype_coe
-end
+lemma continuous_stereo_inv_fun (hv : ∥v∥ = 1) : continuous (stereo_inv_fun hv) :=
+continuous_induced_rng (times_cont_diff_stereo_inv_fun_aux.continuous.comp continuous_subtype_coe)
 
 variables [complete_space E]
 

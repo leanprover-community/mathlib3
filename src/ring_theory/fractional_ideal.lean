@@ -790,7 +790,7 @@ lemma ne_zero_of_mul_eq_one (I J : fractional_ideal g) (h : I * J = 1) : I ≠ 0
 λ hI, @zero_ne_one (fractional_ideal g) _ _ (by { convert h, simp [hI], })
 
 
-theorem prod_one_self_div_eq (I J : fractional_ideal g) (h : I * J = 1) :
+theorem eq_one_div_of_mul_eq_one (I J : fractional_ideal g) (h : I * J = 1) :
   J = 1 / I :=
 begin
   have hI : I ≠ 0 := ne_zero_of_mul_eq_one I J h,

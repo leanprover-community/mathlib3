@@ -9,6 +9,7 @@ import order.conditionally_complete_lattice
 import ring_theory.multiplicity
 import ring_theory.valuation.basic
 import ring_theory.ideal.over
+import ring_theory.fractional_ideal
 
 /-!
 # Discrete valuation rings
@@ -482,23 +483,28 @@ lemma of_integrally_closed_local_noetherian_unique_prime {R : Type u}
   (Hprime_nonzero : maximal_ideal R ≠ ⊥) :
   discrete_valuation_ring R :=
 begin
-  let m := maximal_ideal R,
-  have htangent : m ≠ m*m,
-    intro heq,
-    apply Hprime_nonzero,
-    sorry, --nakayama here
-  have t : R, sorry,
-  have htinm : t ∈ m, sorry,
-  have htnotinmm : ¬ (t ∈ m*m), sorry,
-  have htgen : ∀ s : R, s ∈ m → ∃ r : R, s = r*t,
-    intros s hs,
-    let K := fraction_ring R,
-    let iota := fraction_map R K,
-    sorry,
-    -- Consider the ideal m^{-1} and show that m^{-1} * m = 1
-  have hprincipal : maximal_ideal R = ideal.span {t},
+  let K := fraction_ring R,
+  let m : ring.fractional_ideal (fraction_ring.of R) := maximal_ideal R,
+  let m' := m⁻¹,
+  let I := m * m',
+  let Rideal : ring.fractional_ideal (fraction_ring.of R) := (⊤ : ideal R),
+
+  have hsub : I ≤ Rideal,
+  sorry,
+
+  have hsup : m ≤ I,
+  sorry,
+
+  -- hence I = R or I = m
+  -- if I = R, then one can write 1 = sum x_i y_i with x_i in m and y_i in m'
+  -- one of the products x_i y_i does not lie in m, otherwise 1 in m
+  -- hence one of the products x_i y_i is a unit
+  -- and we can also write x y = 1 with x in m and y in m'
+  -- Now z in m can be written as z = z * 1 = z (x y) = (z y) x and (z y) in R by the def of m'
+  -- Hence m = (x) and we can apply of_principal_unique_prime_ideal
+  --
+  -- if I = m, then ...
   sorry, -- comes from htgen
-  exact of_principal_unique_prime_ideal hprincipal Hunique_prime Hprime_nonzero,
 end
 
 section

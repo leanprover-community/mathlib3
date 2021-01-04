@@ -18,7 +18,7 @@ lemma equiv_functor.map_equiv_option_injective {α β : Type*} :
 equiv_functor.map_equiv.injective option option.some_injective
 
 @[simp]
-lemma map_equiv_remove_none {α : Type*} [decidable_eq α] [fintype α] (σ : perm (option α)) :
+lemma map_equiv_remove_none {α : Type*} [decidable_eq α] (σ : perm (option α)) :
   equiv_functor.map_equiv option (remove_none σ) = swap none (σ none) * σ :=
 begin
   ext1 x,

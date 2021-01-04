@@ -320,7 +320,7 @@ end finset
 namespace with_top
 open finset
 
-/-- A sum of finite numbers is still finite -/
+/-- A product of finite numbers is still finite -/
 lemma prod_lt_top [canonically_ordered_comm_semiring β] [nontrivial β] [decidable_eq β]
   {s : finset α} {f : α → with_top β} :
   (∀a∈s, f a < ⊤) → (∏ x in s, f x) < ⊤ :=

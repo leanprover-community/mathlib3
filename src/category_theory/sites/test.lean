@@ -1,5 +1,31 @@
+/-
+Copyright (c) 2020 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import category_theory.sites.sheaf_of_types
 import order.closure
+
+/-!
+# Closed sieves
+
+A natural closure operator on sieves is a closure operator on `sieve X` for each `X` which commutes
+with pullback.
+We show that a Grothendieck topology `J` induces a natural closure operator, and define what the
+closed sieves are. The collection of `J`-closed sieves forms a presheaf which is a sheaf for `J`,
+and further this presheaf can be used to determine the Grothendieck topology from the sheaf
+predicate.
+Finally we show that a natural closure operator on sieves induces a Grothendieck topology, and hence
+that natural closure operators are in bijection with Grothendieck topologies.
+
+## Tags
+
+closed sieve, closure, Grothendieck topology
+
+## References
+
+* [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
+-/
 
 universes v u
 
@@ -21,9 +47,9 @@ lemma grothendieck_topology.le_close {X : C} (S : sieve X) : S ≤ J₁.close S 
 λ Y g hg, J₁.covering_of_eq_top (S.pullback_eq_top_of_mem hg)
 
 /--
-A sieve is closed for the Grothendieck topology if it contains every arrow it covers. In the case
-of the usual topology on a topological space, this means that the open cover contains every open
-set which it covers.
+A sieve is closed for the Grothendieck topology if it contains every arrow it covers.
+In the case of the usual topology on a topological space, this means that the open cover contains
+every open set which it covers.
 
 Note this has no relation to a closed subset of a topological space.
 -/
@@ -39,11 +65,7 @@ lemma grothendieck_topology.covers_iff_mem_of_closed {X : C} {S : sieve X}
 /-- Being `J`-closed is stable under pullback. -/
 lemma grothendieck_topology.is_closed_pullback {X Y : C} (f : Y ⟶ X) (S : sieve X) :
   J₁.is_closed S → J₁.is_closed (S.pullback f) :=
-begin
-  intros hS Z g hg,
-  apply hS (g ≫ f),
-  rwa [J₁.covers_iff, sieve.pullback_comp],
-end
+λ hS Z g hg, hS (g ≫ f) (by rwa [J₁.covers_iff, sieve.pullback_comp])
 
 /--
 The closure of a sieve `S` is the largest closed sieve which contains `S` (justifying the name
@@ -74,9 +96,6 @@ begin
     apply J₁.close_is_closed }
 end
 
-lemma grothendieck_topology.close_mono {X : C} : monotone (J₁.close : sieve X → sieve X) :=
-λ S₁ S₂ h, J₁.le_close_of_is_closed (le_trans h (J₁.le_close S₂)) (J₁.close_is_closed S₂)
-
 /-- Closing under `J` is stable under pullback. -/
 lemma grothendieck_topology.pullback_close {X Y : C} (f : Y ⟶ X) (S : sieve X) :
   J₁.close (S.pullback f) = (J₁.close S).pullback f :=
@@ -89,12 +108,6 @@ begin
     rw ← sieve.pullback_comp,
     apply hg }
 end
-
-lemma grothendieck_topology.close_idem {X : C} (S : sieve X) :
-  J₁.close (J₁.close S) = J₁.close S :=
-le_antisymm
-  (J₁.le_close_of_is_closed (le_refl (J₁.close S)) (J₁.close_is_closed S))
-  (J₁.close_mono (J₁.le_close S))
 
 /--
 The sieve `S` is in the topology iff its closure is the maximal sieve. This shows that the closure
@@ -115,12 +128,14 @@ begin
     apply J₁.pullback_stable _ hS }
 end
 
-@[simps]
+/-- A Grothendieck topology induces a natural family of closure operators on sieves. -/
+@[simps {rhs_md := semireducible}]
 def grothendieck_topology.closure_operator (X : C) : closure_operator (sieve X) :=
-{ to_fun := J₁.close,
-  monotone' := J₁.close_mono,
-  le_closure' := J₁.le_close,
-  idempotent' := J₁.close_idem }
+closure_operator.mk'
+  J₁.close
+  (λ S₁ S₂ h, J₁.le_close_of_is_closed (h.trans (J₁.le_close _)) (J₁.close_is_closed S₂))
+  J₁.le_close
+  (λ S, J₁.le_close_of_is_closed (le_refl _) (J₁.close_is_closed S))
 
 @[simp]
 lemma grothendieck_topology.closed_iff_closed {X : C} (S : sieve X) :
@@ -187,8 +202,11 @@ begin
       apply le_antisymm (J₁.le_close_of_is_closed (le_refl _) (x f hf).2) (J₁.le_close _) } },
 end
 
-/-- If presheaf of `J₁`-closed sieves is a `J₂`-sheaf then `J₁ ≤ J₂`. -/
-lemma opposite {J₁ J₂ : grothendieck_topology C}
+/--
+If presheaf of `J₁`-closed sieves is a `J₂`-sheaf then `J₁ ≤ J₂`. Note the converse is true by
+`classifier_is_sheaf` and `is_sheaf_of_le`.
+-/
+lemma le_topology_of_closed_sieves_is_sheaf {J₁ J₂ : grothendieck_topology C}
   (h : presieve.is_sheaf J₁ (functor.closed_sieves J₂)) :
   J₁ ≤ J₂ :=
 λ X S hS,
@@ -219,12 +237,12 @@ begin
     refl },
   { intro h,
     apply le_antisymm,
-    apply opposite,
-    rw h,
-    apply classifier_is_sheaf,
-    apply opposite,
-    rw ← h,
-    apply classifier_is_sheaf }
+    { apply le_topology_of_closed_sieves_is_sheaf,
+      rw h,
+      apply classifier_is_sheaf },
+    { apply le_topology_of_closed_sieves_is_sheaf,
+      rw ← h,
+      apply classifier_is_sheaf } }
 end
 
 /--

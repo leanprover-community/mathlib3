@@ -55,6 +55,33 @@ lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_
 
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.symm_apply_eq
 
+/-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
+`equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
+The assumption made here is that if you're using the group structure, you want to preserve it after
+simp. -/
+
+@[simp] lemma trans_one {α : Sort*} {β : Type*} (e : α ≃ β) : e.trans (1 : perm β) = e :=
+equiv.trans_refl e
+
+@[simp] lemma mul_refl (e : perm α) : e * equiv.refl α = e := equiv.trans_refl e
+
+@[simp] lemma one_symm : (1 : perm α).symm = 1 := equiv.refl_symm
+
+@[simp] lemma refl_inv : (equiv.refl α : perm α)⁻¹ = 1 := equiv.refl_symm
+
+@[simp] lemma one_trans {α : Type*} {β : Sort*} (e : α ≃ β) : (1 : perm α).trans e = e :=
+equiv.refl_trans e
+
+@[simp] lemma refl_mul (e : perm α) : equiv.refl α * e = e := equiv.refl_trans e
+
+@[simp] lemma inv_trans (e : perm α) : e⁻¹.trans e = 1 := equiv.symm_trans e
+
+@[simp] lemma mul_symm (e : perm α) : e * e.symm = 1 := equiv.symm_trans e
+
+@[simp] lemma trans_inv (e : perm α) : e.trans e⁻¹ = 1 := equiv.trans_symm e
+
+@[simp] lemma symm_mul (e : perm α) : e.symm * e = 1 := equiv.trans_symm e
+
 /-! Lemmas about `equiv.perm.sum_congr` re-expressed via the group structure. -/
 
 @[simp] lemma sum_congr_mul {α β : Type*} (e : perm α) (f : perm β) (g : perm α) (h : perm β) :

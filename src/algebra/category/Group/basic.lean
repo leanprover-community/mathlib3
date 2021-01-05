@@ -198,13 +198,13 @@ namespace category_theory.iso
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Group`. -/
 @[to_additive AddGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
-`AddGroup`.", simps {rhs_md := semireducible}]
+`AddGroup`.", simps]
 def Group_iso_to_mul_equiv {X Y : Group} (i : X ≅ Y) : X ≃* Y :=
 i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
 /-- Build a `mul_equiv` from an isomorphism in the category `CommGroup`. -/
 @[to_additive AddCommGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism
-in the category `AddCommGroup`.", simps {rhs_md := semireducible}]
+in the category `AddCommGroup`.", simps]
 def CommGroup_iso_to_mul_equiv {X Y : CommGroup} (i : X ≅ Y) : X ≃* Y :=
 i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 

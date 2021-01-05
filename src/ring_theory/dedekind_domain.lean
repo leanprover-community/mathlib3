@@ -211,17 +211,14 @@ end
 
 variables (f : fraction_map A K)
 
-lemma max_ideal_ne_bot {M : ideal A} (max : M.is_maximal) (not_field : ¬ is_field A) : M ≠ ⊥ :=
+lemma ne_bot_of_is_maximal_of_not_is_field {M : ideal A} (max : M.is_maximal) (not_field : ¬ is_field A) : M ≠ ⊥ :=
 begin
   rintros h,
   rw h at max,
   cases max with h1 h2,
-  rw not_is_field_iff_exists_ideal_bot_lt_and_lt_top at not_field,
-  rcases not_field with ⟨I, hIbot, hItop⟩,
+  obtain ⟨I, hIbot, hItop⟩ := not_is_field_iff_exists_ideal_bot_lt_and_lt_top.mp not_field,
   specialize h2 I hIbot,
-  rw h2 at hItop,
-  simp at hItop,
-  assumption,
+  exact ne_of_lt hItop h2
 end
 
 lemma ideal_le_iff_frac_ideal_le (I J : ideal A) : I ≤ J ↔
@@ -426,7 +423,7 @@ begin
   have coe_ne_bot : ∀ {I : ideal A}, I ≠ ⊥ → (I : fractional_ideal (fraction_ring.of A)) ≠ 0 :=
     λ I, (coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr,
   specialize hpinv (coe_ne_bot nz),
-  specialize h2 (coe_ne_bot (max_ideal_ne_bot hM1 h1)),
+  specialize h2 (coe_ne_bot (ne_bot_of_is_maximal_of_not_is_field hM1 h1)),
   set I := (M : fractional_ideal (fraction_ring.of A))⁻¹ * (p : fractional_ideal (fraction_ring.of A))
   with hI,
   have f' : I ≤ 1,

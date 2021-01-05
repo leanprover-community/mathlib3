@@ -25,7 +25,7 @@ jobs:
 
       - name: lint
         run: |
-          ./scripts/lint-copy-mod-doc.sh
+          ./scripts/lint-style.sh
 
   build:
     name: Build mathlib

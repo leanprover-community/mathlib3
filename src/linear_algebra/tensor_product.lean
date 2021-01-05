@@ -201,7 +201,7 @@ def tensor_product : Type* :=
 variables {R}
 
 localized "infix ` ⊗ `:100 := tensor_product _" in tensor_product
-localized "notation M ` ⊗[`:100 R `] ` N:100 := tensor_product R M N" in tensor_product
+localized "notation M ` ⊗[`:100 R `] `:0 N:100 := tensor_product R M N" in tensor_product
 
 namespace tensor_product
 
@@ -221,7 +221,7 @@ def tmul (m : M) (n : N) : M ⊗[R] N := add_con.mk' _ $ free_add_monoid.of (m, 
 variables {R}
 
 infix ` ⊗ₜ `:100 := tmul _
-notation x ` ⊗ₜ[`:100 R `] ` y := tmul R x y
+notation x ` ⊗ₜ[`:100 R `] `:0 y:100 := tmul R x y
 
 @[elab_as_eliminator]
 protected theorem induction_on
@@ -234,7 +234,7 @@ add_con.induction_on z $ λ x, free_add_monoid.rec_on x C0 $ λ ⟨m, n⟩ y ih,
 by { rw add_con.coe_add, exact Cp C1 ih }
 
 variables (M)
-@[simp] lemma zero_tmul (n : N) : (0 ⊗ₜ n : M ⊗[R] N)  = 0 :=
+@[simp] lemma zero_tmul (n : N) : (0 : M) ⊗ₜ[R] n = 0 :=
 quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero_left _
 variables {M}
 
@@ -242,7 +242,7 @@ lemma add_tmul (m₁ m₂ : M) (n : N) : (m₁ + m₂) ⊗ₜ n = m₁ ⊗ₜ n 
 eq.symm $ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_add_left _ _ _
 
 variables (N)
-@[simp] lemma tmul_zero (m : M) : (m ⊗ₜ 0 : M ⊗[R] N)  = 0 :=
+@[simp] lemma tmul_zero (m : M) : m ⊗ₜ[R] (0 : N) = 0 :=
 quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero_right _
 variables {N}
 
@@ -295,7 +295,7 @@ protected theorem smul_add (r : R') (x y : M ⊗[R] N) :
 add_monoid_hom.map_add _ _ _
 
 theorem smul_tmul' (r : R') (m : M) (n : N) :
-  r • (m ⊗ₜ n : M ⊗[R] N) = (r • m) ⊗ₜ n :=
+  r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n :=
 rfl
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
@@ -336,18 +336,18 @@ variables {R M N}
 @[simp] lemma mk_apply (m : M) (n : N) : mk R M N m n = m ⊗ₜ n := rfl
 
 lemma ite_tmul (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
-  ((if P then x₁ else 0) ⊗ₜ[R] x₂) = if P then (x₁ ⊗ₜ x₂) else 0 :=
+  (if P then x₁ else 0) ⊗ₜ[R] x₂ = if P then x₁ ⊗ₜ x₂ else 0 :=
 by { split_ifs; simp }
 
 lemma tmul_ite (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
-  (x₁ ⊗ₜ[R] (if P then x₂ else 0)) = if P then (x₁ ⊗ₜ x₂) else 0 :=
+  x₁ ⊗ₜ[R] (if P then x₂ else 0) = if P then x₁ ⊗ₜ x₂ else 0 :=
 by { split_ifs; simp }
 
 section
 open_locale big_operators
 
 lemma sum_tmul {α : Type*} (s : finset α) (m : α → M) (n : N) :
-  ((∑ a in s, m a) ⊗ₜ[R] n) = ∑ a in s, m a ⊗ₜ[R] n :=
+  (∑ a in s, m a) ⊗ₜ[R] n = ∑ a in s, m a ⊗ₜ[R] n :=
 begin
   classical,
   induction s using finset.induction with a s has ih h,
@@ -356,7 +356,7 @@ begin
 end
 
 lemma tmul_sum (m : M) {α : Type*} (s : finset α) (n : α → N) :
-  (m ⊗ₜ[R] (∑ a in s, n a)) = ∑ a in s, m ⊗ₜ[R] n a :=
+  m ⊗ₜ[R] (∑ a in s, n a) = ∑ a in s, m ⊗ₜ[R] n a :=
 begin
   classical,
   induction s using finset.induction with a s has ih h,

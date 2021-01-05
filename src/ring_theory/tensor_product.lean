@@ -463,7 +463,7 @@ section
 variables {R A B C}
 
 lemma assoc_aux_1 (a₁ a₂ : A) (b₁ b₂ : B) (c₁ c₂ : C) :
-  (tensor_product.assoc R A B C) (((a₁ * a₂) ⊗ₜ[R] b₁ * b₂) ⊗ₜ[R] c₁ * c₂) =
+  (tensor_product.assoc R A B C) (((a₁ * a₂) ⊗ₜ[R] (b₁ * b₂)) ⊗ₜ[R] (c₁ * c₂)) =
     (tensor_product.assoc R A B C) ((a₁ ⊗ₜ[R] b₁) ⊗ₜ[R] c₁) *
       (tensor_product.assoc R A B C) ((a₂ ⊗ₜ[R] b₂) ⊗ₜ[R] c₂) :=
 rfl

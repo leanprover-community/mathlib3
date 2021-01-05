@@ -39,7 +39,7 @@ section ℒp_space_definition
 
 /-- The property that `f:α→E` is measurable and `∫ ∥f a∥^p ∂μ` is finite -/
 def mem_ℒp (f : α → E) (p : ℝ) (μ : measure α) : Prop :=
-measurable f ∧ ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤
+ae_measurable f μ ∧ ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤
 
 /-- `(∫ ∥f a∥^p ∂μ) ^ (1/p)`, which is a seminorm on the space of measurable functions for which
 this quantity is finite -/
@@ -77,9 +77,8 @@ begin
   exact ennreal.rpow_lt_top_of_nonneg (le_of_lt hp0_lt) (ne_of_lt hfp),
 end
 
-lemma mem_ℒp_of_snorm_lt_top {f : α → E} (hp0_lt : 0 < p) (hfm : measurable f)
-  (hfp : snorm f p μ < ⊤) :
-  mem_ℒp f p μ :=
+lemma mem_ℒp_of_snorm_lt_top {f : α → E} (hp0_lt : 0 < p) (hfm : ae_measurable f μ)
+  (hfp : snorm f p μ < ⊤) : mem_ℒp f p μ :=
 ⟨hfm, lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp0_lt hfp⟩
 
 end top
@@ -87,7 +86,7 @@ end top
 section zero
 
 lemma zero_mem_ℒp (hp0_lt : 0 < p) : mem_ℒp (0 : α → E) p μ :=
-⟨measurable_zero, by simp [hp0_lt]⟩
+⟨measurable_zero.ae_measurable, by simp [hp0_lt]⟩
 
 @[simp] lemma snorm_zero (hp0_lt : 0 < p) : snorm (0 : α → F) p μ = 0 :=
 by simp [snorm, hp0_lt]
@@ -173,10 +172,10 @@ section borel_space
 variable [borel_space E]
 
 lemma mem_ℒp.neg {f : α → E} (hf : mem_ℒp f p μ) : mem_ℒp (-f) p μ :=
-⟨measurable.neg hf.1, by simp [hf.right]⟩
+⟨ae_measurable.neg hf.1, by simp [hf.right]⟩
 
 lemma snorm_le_snorm_mul_rpow_measure_univ {p q : ℝ} (hp0_lt : 0 < p) (hpq : p ≤ q) (μ : measure α)
-  {f : α → E} (hf : measurable f) :
+  {f : α → E} (hf : ae_measurable f μ) :
   snorm f p μ ≤ snorm f q μ * (μ set.univ) ^ (1/p - 1/q) :=
 begin
   have hq0_lt : 0 < q, from lt_of_lt_of_le hp0_lt hpq,
@@ -196,13 +195,14 @@ begin
     ring, },
   calc (∫⁻ (a : α), (↑(nnnorm (f a)) * g a) ^ p ∂μ) ^ (1/p)
       ≤ (∫⁻ (a : α), ↑(nnnorm (f a)) ^ q ∂μ) ^ (1/q) * (∫⁻ (a : α), (g a) ^ r ∂μ) ^ (1/r) :
-    ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp0_lt hpq hpqr μ hf.nnnorm.ennreal_coe measurable_const
+    ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp0_lt hpq hpqr μ hf.nnnorm.ennreal_coe
+      ae_measurable_const
   ... = (∫⁻ (a : α), ↑(nnnorm (f a)) ^ q ∂μ) ^ (1/q) * μ set.univ ^ (1/p - 1/q) :
     by simp [hpqr],
 end
 
 lemma snorm_le_snorm_of_exponent_le {p q : ℝ} (hp0_lt : 0 < p) (hpq : p ≤ q) (μ : measure α)
-  [probability_measure μ] {f : α → E} (hf : measurable f) :
+  [probability_measure μ] {f : α → E} (hf : ae_measurable f μ) :
   snorm f p μ ≤ snorm f q μ :=
 begin
   have h_le_μ := snorm_le_snorm_mul_rpow_measure_univ hp0_lt hpq μ hf,
@@ -245,7 +245,7 @@ begin
   exact hfp.mem_ℒp_of_exponent_le zero_lt_one hp1,
 end
 
-lemma snorm_add_le {f g : α → E} (hf : measurable f) (hg : measurable g) (hp1 : 1 ≤ p) :
+lemma snorm_add_le {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) (hp1 : 1 ≤ p) :
   snorm (f + g) p μ ≤ snorm f p μ + snorm g p μ :=
 calc (∫⁻ a, ↑(nnnorm ((f + g) a)) ^ p ∂μ) ^ (1 / p)
     ≤ (∫⁻ a, (((λ a, (nnnorm (f a) : ennreal))
@@ -267,7 +267,7 @@ begin
   have hp0_lt : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
   have hp0 : 0 ≤ p, from le_of_lt hp0_lt,
   split,
-  { exact measurable.add hf.1 hg.1, },
+  { exact ae_measurable.add hf.1 hg.1, },
   simp_rw [pi.add_apply, ennreal.coe_rpow_of_nonneg _ hp0],
   have h_nnnorm_add_le : ∫⁻ (a : α), ↑(nnnorm (f a + g a) ^ p) ∂μ
     ≤ ∫⁻ a, ↑((nnnorm (f a) + nnnorm (g a)) ^ p) ∂μ,
@@ -292,14 +292,14 @@ lemma mem_ℒp.const_smul {f : α → E} (hfp : mem_ℒp f p μ) (c : 𝕜) (hp0
   mem_ℒp (c • f) p μ :=
 begin
   split,
-  { exact measurable.const_smul hfp.1 c, },
+  { exact ae_measurable.const_smul hfp.1 c, },
   simp_rw [pi.smul_apply, nnnorm_smul, ennreal.coe_mul, ennreal.mul_rpow_of_nonneg _ _ hp0],
-  rw lintegral_const_mul _ hfp.1.nnnorm.ennreal_coe.ennreal_rpow_const,
+  rw lintegral_const_mul'' _ hfp.1.nnnorm.ennreal_coe.ennreal_rpow_const,
   exact ennreal.mul_lt_top (ennreal.rpow_lt_top_of_nonneg hp0 ennreal.coe_ne_top) hfp.2,
 end
 
 lemma snorm_smul_le_mul_snorm [measurable_space 𝕜] [opens_measurable_space 𝕜] {q r : ℝ}
-  {f : α → E} (hf : measurable f) {φ : α → 𝕜} (hφ : measurable φ)
+  {f : α → E} (hf : ae_measurable f μ) {φ : α → 𝕜} (hφ : ae_measurable φ μ)
   (hp0_lt : 0 < p) (hpq : p < q) (hpqr : 1/p = 1/q + 1/r) :
   snorm (φ • f) p μ ≤ snorm φ q μ * snorm f r μ :=
 begin

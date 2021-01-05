@@ -227,6 +227,38 @@ instance : semimodule S (alternating_map R M N ι) :=
 
 end semimodule
 
+end alternating_map
+
+/-!
+### Composition with linear maps
+-/
+
+namespace linear_map
+
+variables {N₂ : Type*} [add_comm_monoid N₂] [semimodule R N₂]
+
+/-- Composing a alternating map with a linear map gives again a alternating map. -/
+def comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
+  alternating_map R M N₂ ι :=
+{ map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+  ..(g.comp_multilinear_map (f : multilinear_map R (λ _ : ι, M) N)) }
+
+@[simp] lemma coe_comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
+  ⇑(g.comp_alternating_map f) = g ∘ f := rfl
+
+lemma comp_alternating_map_apply (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) (m : ι → M) :
+  g.comp_alternating_map f m = g (f m) := rfl
+
+end linear_map
+
+namespace alternating_map
+
+variables (f f' : alternating_map R M N ι)
+variables (g g₂ : alternating_map R M N' ι)
+variables (g' : alternating_map R M' N' ι)
+variables (v : ι → M) (v' : ι → M')
+open function
+
 /-!
 ### Other lemmas from `multilinear_map`
 -/
@@ -383,3 +415,24 @@ begin
 end
 
 end alternating_map
+
+namespace linear_map
+
+variables {N'₂ : Type*} [add_comm_group N'₂] [semimodule R N'₂] [fintype ι]
+
+/-- Composition with a linear map before and after alternatization are equivalent. -/
+lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
+  (f : multilinear_map R (λ _ : ι, M) N') :
+  (g.comp_multilinear_map f).alternatization = g.comp_alternating_map (f.alternatization) :=
+begin
+  -- `linear_map.map_smul` and `linear_map.map_smul_of_tower` do not work here, as `R` is a
+  -- `semiring` not a `ring`.
+  have map_smul : ∀ (z : units ℤ) (x : N'), (z : ℤ) • g x = g ((z : ℤ) • x),
+  { intros z v,
+    cases int.units_eq_one_or z with h;
+      simp [h], },
+  ext,
+  simp [multilinear_map.alternatization_apply, map_smul],
+end
+
+end linear_map

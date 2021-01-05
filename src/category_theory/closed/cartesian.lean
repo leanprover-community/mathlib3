@@ -388,16 +388,14 @@ curry (inv (prod_comparison F A _) ≫ F.map ((ev _).app _))
 
 /-- The exponential comparison map is natural in its left argument. -/
 lemma exp_comparison_natural_left (A A' B : C) (f : A' ⟶ A) :
-  exp_comparison F A B ≫ pre (F.obj B) (F.map f) = F.map (pre B f) ≫ exp_comparison F A' B :=
+  exp_comparison F A B ≫ (pre (F.map f)).app (F.obj B) =
+    F.map ((pre f).app B) ≫ exp_comparison F A' B :=
 begin
-  rw [exp_comparison, exp_comparison, ← curry_natural_left, eq_curry_iff, uncurry_natural_left,
-       pre, uncurry_curry, prod.map_swap_assoc, curry_eq, prod.map_id_comp, assoc, ev_naturality],
+  rw [exp_comparison, exp_comparison, ←curry_natural_left, eq_curry_iff, uncurry_natural_left,
+    uncurry_pre, prod.map_swap_assoc, curry_eq, prod.map_id_comp, assoc, ev_naturality],
   dsimp only [prod.functor_obj_obj],
   rw [ev_coev_assoc, ← F.map_id, ← F.map_id, ← prod_comparison_inv_natural_assoc,
-      ← prod_comparison_inv_natural_assoc, ← F.map_comp, ← F.map_comp, pre, curry_eq,
-      prod.map_id_comp, assoc, ev_naturality],
-  dsimp only [prod.functor_obj_obj],
-  rw ev_coev_assoc,
+      ← prod_comparison_inv_natural_assoc, ← F.map_comp, ← F.map_comp, prod_map_pre_app_comp_ev],
 end
 
 /-- The exponential comparison map is natural in its right argument. -/

@@ -133,7 +133,7 @@ This typeclass is generated automatically from a `is_scalar_tower` instance, but
 we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
 `R` does not support negation.
 -/
-class compatible_smul (R S : Type*) [semiring S] [has_scalar R S] [has_scalar R M]
+class compatible_smul (R S : Type*) [semiring S] [has_scalar R M]
   [semimodule S M] [has_scalar R M₂] [semimodule S M₂] :=
 (map_smul : ∀ (f : M →ₗ[S] M₂) (c : R) (x : M), f (c • x) = c • f x)
 variables {M M₂}
@@ -146,7 +146,7 @@ instance compatible_smul.is_scalar_tower
 ⟨λ f c x, by rw [← smul_one_smul S c x, ← smul_one_smul S c (f x), map_smul]⟩
 
 @[simp, priority 900]
-lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R S] [has_scalar R M]
+lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M]
   [semimodule S M] [has_scalar R M₂] [semimodule S M₂]
   [compatible_smul M M₂ R S] (f : M →ₗ[S] M₂) (c : R) (x : M) :
   f (c • x) = c • f x :=
@@ -235,7 +235,7 @@ instance : is_add_group_hom f :=
 { map_add := map_add f }
 
 instance compatible_smul.int_module
-  {S : Type*} [semiring S] [has_scalar ℤ S] [semimodule ℤ M]
+  {S : Type*} [semiring S] [semimodule ℤ M]
   [semimodule S M] [semimodule ℤ M₂] [semimodule S M₂] : compatible_smul M M₂ ℤ S :=
 ⟨λ f c x, begin
   induction c using int.induction_on,

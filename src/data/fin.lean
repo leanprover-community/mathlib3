@@ -439,11 +439,11 @@ begin
   rw [subtype.coe_mk],
   induction i using nat.strong_induction_on with i h,
   refine le_antisymm (forall_lt_iff_le.1 $ λ j hj, _) (forall_lt_iff_le.1 $ λ j hj, _),
-  { have := e.symm.apply_lt_apply.2 (mk_lt_of_lt_coe hj),
+  { have := e.symm.lt_iff_lt.2 (mk_lt_of_lt_coe hj),
     rw e.symm_apply_apply at this,
     convert this,
     simpa using h _ this (e.symm _).is_lt },
-  { rwa [← h j hj (hj.trans hi), ← lt_iff_coe_lt_coe, e.apply_lt_apply] }
+  { rwa [← h j hj (hj.trans hi), ← lt_iff_coe_lt_coe, e.lt_iff_lt] }
 end
 
 section

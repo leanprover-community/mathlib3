@@ -290,7 +290,7 @@ begin
 end
 
 lemma is_fractional_adjoin_integral (x : f.codomain) (hx : is_integral A x) :
-  is_fractional f ((algebra.adjoin A {x}).to_submodule : submodule A f.codomain) :=
+  is_fractional f (↑(algebra.adjoin A ({x} : set f.codomain)) : submodule A f.codomain) :=
 is_fractional_of_fg (fg_adjoin_singleton_of_integral x hx)
 
 lemma mem_adjoin_self (x : f.codomain) :
@@ -300,72 +300,28 @@ algebra.subset_adjoin (set.mem_singleton x)
 lemma int_closed_of_is_dedekind_domain_inv :
   is_dedekind_domain_inv A -> integral_closure A (fraction_ring A) = ⊥ :=
 begin
-  rintros h,
-  ext,
-  split,
-  { rintros hx,
-    cases h with h1 h2,
-    let S : subalgebra A (localization_map.codomain (fraction_ring.of A)) := algebra.adjoin A {x},
-    have f' : is_fractional _ (S.to_submodule),
-    { apply is_fractional_adjoin_integral,
-      rcases hx with ⟨p, hp1, hp2⟩,
-      split,
-      rotate,
-      use p,
-      split, assumption, assumption, },
-    set M : fractional_ideal (fraction_ring.of A) := ⟨S.to_submodule, f'⟩ with h1M,
-    by_cases x = 0,
-    rw h,
-    apply subalgebra.zero_mem ⊥,
-    have f : M = 1,
-    { specialize h2 M,
-      rw ←mul_one M,
-      have g : M ≠ ⊥,
-      { classical,
-        by_contradiction a,
-        simp at a,
-        rw subtype.ext_iff_val at a,
-        simp at a,
-        rw submodule.eq_bot_iff S.to_submodule at a,
-        specialize a x,
-        apply h,
-        apply a,
-        suffices f : x ∈ (S : submodule A (localization_map.codomain (fraction_ring.of A))), exact f,
-        rw subalgebra.mem_to_submodule,
-        apply mem_adjoin_self, },
-      have hM := h2 g,
-      suffices hM' : M * (M * M⁻¹) = 1,
-      rw hM at hM', assumption,
-      suffices hM' : M * M = M,
-      assoc_rw hM', assumption,
-      rw subtype.ext_iff_val,
-      simp,
-      suffices f : (S : submodule A (localization_map.codomain (fraction_ring.of A))) *
-      (S : submodule A (localization_map.codomain (fraction_ring.of A))) =
-      (S : submodule A (localization_map.codomain (fraction_ring.of A))), exact f,
-      rw subalgebra.mul_self, },
-    have fx : x ∈ M,
-    suffices f : x ∈ (S : submodule A (localization_map.codomain (fraction_ring.of A))), exact f,
-    rw subalgebra.mem_to_submodule,
-    apply mem_adjoin_self,
-    suffices h' : x ∈ ((⊥ : subalgebra A (localization_map.codomain (fraction_ring.of A))) :
+  rintros ⟨h1, h2⟩,
+  rw eq_bot_iff,
+  rintros x hx,
+  set M : fractional_ideal (fraction_ring.of A) := ⟨_, is_fractional_adjoin_integral _ hx⟩ with h1M,
+  have fx : x ∈ M := mem_adjoin_self x,
+  by_cases h : x = 0,
+  { rw h, apply subalgebra.zero_mem _ },
+  have mul_self : M * M = M,
+  { rw subtype.ext_iff_val,
+    simp },
+  have eq_one : M = 1,
+  { have g : M ≠ ⊥,
+    { intro a,
+      rw [fractional_ideal.bot_eq_zero, ← fractional_ideal.ext_iff] at a,
+      exact h (mem_zero_iff.mp ((a x).mp fx)) },
+    have h2 : M * (1 / M) = 1 := h2 _ g,
+    convert congr_arg (* (1 / M)) mul_self;
+      simp only [mul_assoc, h2, mul_one] },
+  show x ∈ ((⊥ : subalgebra A (localization_map.codomain (fraction_ring.of A))) :
     submodule A (localization_map.codomain (fraction_ring.of A))),
-    rw subalgebra.mem_to_submodule at h', assumption,
-    rw algebra.to_submodule_bot,
-    rw ← fractional_ideal.ext_iff at f,
-    specialize f x,
-    have g' := f.1 fx,
-    rw ←coe_span_singleton 1,
-    rw ring.fractional_ideal.span_singleton_one,
-    apply iff.rfl.1 g',  },
-  rintros hx,
-  rw mem_integral_closure_iff_mem_fg,
-  use ⊥,
-  split,
-  use {1},
-  rw algebra.to_submodule_bot,
-  simp,
-  assumption,
+  rwa [algebra.to_submodule_bot, ← coe_span_singleton 1, fractional_ideal.span_singleton_one,
+       ← eq_one],
 end
 
 lemma dim_le_one_of_is_dedekind_domain_inv : is_dedekind_domain_inv A -> dimension_le_one A :=

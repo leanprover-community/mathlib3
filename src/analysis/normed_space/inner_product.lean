@@ -725,7 +725,7 @@ lemma abs_real_inner_le_norm (x y : F) : absR ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y�
 by { have h := @abs_inner_le_norm ℝ F _ _ x y, simpa using h }
 
 /-- Cauchy–Schwarz inequality with norm -/
-lemma inner_le_norm (x y : F) : ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
+lemma real_inner_le_norm (x y : F) : ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
 le_trans (le_abs_self _) (abs_real_inner_le_norm _ _)
 
 include 𝕜
@@ -1022,26 +1022,33 @@ lemma inner_eq_norm_mul_iff {x y : E} :
 begin
   by_cases h : (x = 0 ∨ y = 0), -- WLOG `x` and `y` are nonzero
   { cases h; simp [h] },
-  transitivity ∥x∥ * ∥y∥ = re ⟪x, y⟫,
-  { norm_cast,
+  calc ⟪x, y⟫ = (∥x∥ : 𝕜) * ∥y∥ ↔ ∥x∥ * ∥y∥ = re ⟪x, y⟫ :
+  begin
+    norm_cast,
     split,
     { intros h',
       simp [h'] },
     { have cauchy_schwarz := abs_inner_le_norm x y,
       intros h',
       rw h' at ⊢ cauchy_schwarz,
-      rwa re_eq_self_of_le } },
-  transitivity 2 * ∥x∥ * ∥y∥ * (∥x∥ * ∥y∥ - re ⟪x, y⟫) = 0,
-  { have : (2:ℝ) ≠ 0 := by norm_num,
-    simp [h, this, sub_eq_zero] },
-  transitivity ∥(∥y∥:𝕜) • x - (∥x∥:𝕜) • y∥ * ∥(∥y∥:𝕜) • x - (∥x∥:𝕜) • y∥ = 0,
-  { simp only [norm_sub_mul_self, inner_smul_left, inner_smul_right, norm_smul, conj_of_real,
+      rwa re_eq_self_of_le }
+  end
+  ... ↔ 2 * ∥x∥ * ∥y∥ * (∥x∥ * ∥y∥ - re ⟪x, y⟫) = 0 :
+    by simp [h, show (2:ℝ) ≠ 0, by norm_num, sub_eq_zero]
+  ... ↔ ∥(∥y∥:𝕜) • x - (∥x∥:𝕜) • y∥ * ∥(∥y∥:𝕜) • x - (∥x∥:𝕜) • y∥ = 0 :
+  begin
+    simp only [norm_sub_mul_self, inner_smul_left, inner_smul_right, norm_smul, conj_of_real,
       is_R_or_C.norm_eq_abs, abs_of_real, of_real_im, of_real_re, mul_re, abs_norm_eq_norm],
     refine eq.congr _ rfl,
-    ring },
-  { simp [norm_sub_eq_zero_iff] }
+    ring
+  end
+  ... ↔ (∥y∥ : 𝕜) • x = (∥x∥ : 𝕜) • y : by simp [norm_sub_eq_zero_iff]
 end
 
+/-- If the inner product of two vectors is equal to the product of their norms (i.e.,
+`⟪x, y⟫ = ∥x∥ * ∥y∥`), then the two vectors are nonnegative real multiples of each other. One form
+of the equality case for Cauchy-Schwarz.
+Compare `abs_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ∥x∥ * ∥y∥`. -/
 lemma inner_eq_norm_mul_iff_real {x y : F} : ⟪x, y⟫_ℝ = ∥x∥ * ∥y∥ ↔ ∥y∥ • x = ∥x∥ • y :=
 inner_eq_norm_mul_iff
 
@@ -1054,7 +1061,7 @@ by { convert inner_eq_norm_mul_iff using 2; simp [hx, hy] }
 lemma inner_lt_norm_mul_iff_real {x y : F} :
   ⟪x, y⟫_ℝ < ∥x∥ * ∥y∥ ↔ ∥y∥ • x ≠ ∥x∥ • y :=
 calc ⟪x, y⟫_ℝ < ∥x∥ * ∥y∥
-    ↔ ⟪x, y⟫_ℝ ≠ ∥x∥ * ∥y∥ : ⟨ne_of_lt, lt_of_le_of_ne (inner_le_norm _ _)⟩
+    ↔ ⟪x, y⟫_ℝ ≠ ∥x∥ * ∥y∥ : ⟨ne_of_lt, lt_of_le_of_ne (real_inner_le_norm _ _)⟩
 ... ↔ ∥y∥ • x ≠ ∥x∥ • y : not_congr inner_eq_norm_mul_iff_real
 
 /-- If the inner product of two unit vectors is strictly less than `1`, then the two vectors are

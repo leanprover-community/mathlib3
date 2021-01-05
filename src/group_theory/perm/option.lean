@@ -17,12 +17,34 @@ lemma equiv_functor.map_equiv_option_injective {α β : Type*} :
   function.injective (equiv_functor.map_equiv option : α ≃ β → option α ≃ option β) :=
 equiv_functor.map_equiv.injective option option.some_injective
 
+@[simp] lemma equiv_functor.option.map_none {α β : Type*} (e : α ≃ β) :
+  equiv_functor.map e none = none :=
+by simp [equiv_functor.map]
 
 @[simp] lemma map_equiv_option_one {α : Type*} : equiv_functor.map_equiv option (1 : perm α) = 1 :=
 by {ext, simp [equiv_functor.map_equiv, equiv_functor.map] }
 
 @[simp] lemma map_equiv_option_refl {α : Type*} :
   equiv_functor.map_equiv option (equiv.refl α) = 1 := map_equiv_option_one
+
+@[simp] lemma map_equiv_option_swap {α : Type*} [decidable_eq α] (x y : α) :
+  equiv_functor.map_equiv option (swap x y) = swap (some x) (some y) :=
+begin
+  ext (_ | i),
+  { simp [swap_apply_of_ne_of_ne] },
+  { by_cases hx : i = x;
+    by_cases hy : i = y;
+    simp [hx, hy, swap_apply_of_ne_of_ne, equiv_functor.map] }
+end
+
+@[simp] lemma equiv_functor.option.sign {α : Type*} [decidable_eq α] [fintype α] (e : perm α) :
+  perm.sign (equiv_functor.map_equiv option e) = perm.sign e :=
+begin
+  apply perm.swap_induction_on e,
+  { simp [perm.one_def] },
+  { intros f x y hne h,
+    simp [h, hne, perm.mul_def, ←equiv_functor.map_equiv_trans] }
+end
 
 @[simp] lemma map_equiv_remove_none {α : Type*} [decidable_eq α] (σ : perm (option α)) :
   equiv_functor.map_equiv option (remove_none σ) = swap none (σ none) * σ :=

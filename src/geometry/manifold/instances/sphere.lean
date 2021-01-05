@@ -83,7 +83,7 @@ begin
     simpa [h₁, h₃, -one_pow] using this },
   simp [norm_add_pow_two_real, norm_smul, inner_smul_left, inner_smul_right,
     inner_left_of_mem_orthogonal_singleton _ hw, mul_pow, real.norm_eq_abs, hv],
-  ring,
+  ring
 end
 
 lemma times_cont_diff_stereo_inv_fun_aux : times_cont_diff ℝ ⊤ (stereo_inv_fun_aux v) :=
@@ -96,7 +96,7 @@ begin
   have h₂ : times_cont_diff ℝ ⊤ (λ w, (4:ℝ) • w + (∥w∥ ^ 2 - 4) • v),
   { refine (times_cont_diff_const.smul times_cont_diff_id).add _,
     refine (h₀.sub times_cont_diff_const).smul times_cont_diff_const },
-  convert h₁.smul h₂
+  exact h₁.smul h₂
 end
 
 /-- Stereographic projection, reverse direction.  This is a map from the orthogonal complement of a
@@ -262,7 +262,7 @@ by simp [stereographic']
 /-- The unit sphere in a finite-dimensional inner product space `E` is a charted space modelled on
 the Euclidean space of dimension `findim ℝ E - 1`. -/
 instance : charted_space (euclidean_space ℝ (fin (findim ℝ E - 1))) (sphere (0:E) 1) :=
-{ atlas            := { f | ∃ v : (sphere (0:E) 1), f = stereographic' v},
+{ atlas            := {f | ∃ v : (sphere (0:E) 1), f = stereographic' v},
   chart_at         := λ v, stereographic' (-v),
   mem_chart_source := λ v, by simpa using ne_neg_of_mem_unit_sphere ℝ v,
   chart_mem_atlas  := λ v, ⟨-v, rfl⟩ }

@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 
-# This script completely regenerates the scripts/style-exceptions.txt file
+# # Style exception file generator
+
+# ## Usage
+
+# Run this script from the root of mathlib using:
+# ./scripts/update-style-exceptions.sh
+
+# ## Purpose
+
+# This script completely regenerates the scripts/style-exceptions.txt file.
 # Typically this should only be run by automation.
 # Human contributors shouldn't need to run this unless they are making changes to the linting script
 

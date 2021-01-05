@@ -87,7 +87,7 @@ def comap_comp (f : K → J) (g : J → I) : comap C g ⋙ comap (C ∘ g) f ≅
   inv := { app := λ X b, 𝟙 (X (g (f b))) } }
 
 /-- The natural isomorphism between pulling back then evaluating, and just evaluating. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def comap_eval_iso_eval (h : J → I) (j : J) : comap C h ⋙ eval (C ∘ h) j ≅ eval C (h j) :=
 nat_iso.of_components (λ f, iso.refl _) (by tidy)
 

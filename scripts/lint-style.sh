@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
+<<<<<<< HEAD
 set -exo pipefail
 
 
+=======
+>>>>>>> mv-lint-style
 # # Style linter
 
 # ## Usage
@@ -30,6 +33,8 @@ set -exo pipefail
 # 2. The remainder of this shell script
 #    contains some lints on the global repository.
 
+################################################################################
+
 # 1. Call the Lean file linter, implemented in Python
 
 touch scripts/style-exceptions.txt
@@ -48,3 +53,4 @@ then
 	echo "$executable_files"
 	exit 1
 fi
+

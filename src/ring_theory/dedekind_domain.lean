@@ -140,6 +140,94 @@ begin
       simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one] }
 end
 
+open_locale classical -- to deal with union of two finsets!
+
+variables (B : Type*) [semiring B]
+variables (M : Type*) [add_comm_monoid M] [semimodule B M]
+
+open submodule
+
+lemma submodule.mem_span_finite_of_mem_span (S : set M) (x : M) (hx : x ∈ span B S) :
+  ∃ T : set M, T ⊆ S ∧ T.finite ∧ x ∈ span B T :=
+begin
+  apply span_induction hx;
+  clear hx x,
+  {
+    rintros x hx,
+    use {x},
+    split,
+    rwa set.singleton_subset_iff,
+    split, simp,
+    apply submodule.mem_span_singleton_self,
+  },
+  {
+    use ⊥, simp,
+  },
+  {
+    rintros x y ⟨X, hX, hxf, hxX⟩ ⟨Y, hY, hyf, hyY⟩,
+    use X ∪ Y,
+    split,
+    exact set.union_subset hX hY,
+    split,
+    refine set.finite.union hxf hyf,
+    rw [span_union X Y, mem_sup],
+    use [x, hxX, y, hyY],
+  },
+  rintros a x ⟨T, hT, h1, h2⟩,
+  use [T, hT, h1],
+  refine smul_mem _ _ h2,
+end
+
+lemma submodule.mem_span_mul_finite_of_mem_span_mul (B M : Type*) [comm_semiring B] [semiring M]
+[algebra B M] (S : set M) (S' : set M) (x : M) (hx : x ∈ span B S * span B S') :
+  ∃ (T : set M) (T' : set M), T ⊆ S ∧ T.finite ∧ T' ⊆ S' ∧ T'.finite ∧ x ∈ span B (T * T') :=
+begin
+  rw submodule.span_mul_span at hx,
+  have h := submodule.mem_span_finite_of_mem_span _ _ _ x hx,
+  rcases h with ⟨U, hU, h, fx⟩,
+  apply span_induction fx,
+  {
+    rintros x hx,
+    have hU' := set.mem_of_subset_of_mem hU hx,
+    rw set.mem_mul at hU',
+    rcases hU' with ⟨y, z, hy, hz, h'⟩,
+    have hy' := submodule.subset_span hy,
+    have hz' := submodule.subset_span hz,
+    have h := submodule.mem_span_finite_of_mem_span _ _ _ _ hy',
+    rcases h with ⟨T, hT, h1, fy⟩,
+    have h := submodule.mem_span_finite_of_mem_span _ _ _ _ hz',
+    rcases h with ⟨T', hT', h2, fz⟩,
+    use [T, T', hT, h1, hT', h2],
+    rw [<-h', <-submodule.span_mul_span],
+    apply mul_mem_mul fy fz,
+  },
+  {
+    use [⊥, ⊥],
+    simp,
+  },
+  {
+    rintros x y ⟨T, T', hT, fT, hT', fT', h1⟩ ⟨U, U', hU, fU, hU', fU', h2⟩,
+    use [T ∪ U, T' ∪ U'],
+    split, apply set.union_subset hT hU,
+    split, refine set.finite.union fT fU,
+    split, apply set.union_subset hT' hU',
+    split, refine set.finite.union fT' fU',
+    suffices f : x + y ∈ span B ((T * T') ∪ (U * U')),
+    {
+      have f' : ((T * T') ∪ (U * U')) ⊆ ((T ∪ U) * (T' ∪ U')),
+      rw [set.mul_union, set.union_mul, set.union_mul, set.union_comm (T * U') _, set.union_assoc,
+        set.union_comm (U * T') _, <-set.union_assoc, <-set.union_assoc, set.union_assoc],
+      apply set.subset_union_left,
+      apply span_mono f' f,
+    },
+    rw [ span_union (T * T') (U * U'), mem_sup ],
+    use [x, h1, y, h2],
+  },
+  rintros a x ⟨T, T', h1, hT, h2, hT', h⟩,
+  use [T, T', h1, hT, h2, hT'],
+  refine smul_mem _ _ h,
+end
+
 lemma coe_ne_bot (I :ideal A) : I ≠ ⊥ ↔ (I : fractional_ideal (fraction_ring.of A)) ≠ ⊥ :=
 begin
   split,
@@ -154,16 +242,13 @@ begin
     rw ideal.mem_bot,
     simp at h,
     let y:= (localization_map.to_map (fraction_ring.of A)) x,
-    specialize h y x,
+    specialize h x,
     split,
     {
       rintros hx,
       have f := h hx,
-      simp at f,
-      rw localization_map.to_map_eq_zero_iff at f,
-      exact f,
-      unfold has_le.le,
-      simp,
+      rw localization_map.to_map_eq_zero_iff at f, exact f,
+      refine le_refl _,
     },
     {
       rintros f,
@@ -189,17 +274,13 @@ begin
   assumption,
 end
 
-lemma mul_val (I J : fractional_ideal (fraction_ring.of A)) : (I*J).val = I.val*J.val :=
-begin
-  simp only [val_eq_coe, coe_mul],
-end
-
-lemma ext' (I J : fractional_ideal (fraction_ring.of A)) : I = J ↔ ∀ (x : localization_map.codomain (fraction_ring.of A)), (x ∈ I ↔ x ∈ J) :=
+lemma ext' (I J : fractional_ideal (fraction_ring.of A)) :
+  I = J ↔ ∀ (x : localization_map.codomain (fraction_ring.of A)), (x ∈ I ↔ x ∈ J) :=
 begin
   split,
   {
-    rintros,
-    rw a,
+    rintros a,
+    rw a, simp,
   },
   rintros,
   apply ring.fractional_ideal.ext,
@@ -207,50 +288,8 @@ begin
   assumption,
 end
 
-lemma one_mem : (1 : localization_map.codomain (fraction_ring.of A)) ∈ ((1 : ideal A) : fractional_ideal (fraction_ring.of A)) :=
-begin
-  apply one_mem_one,
-end
-
-lemma local_one : (localization_map.to_map (fraction_ring.of A)) 1 = 1 :=
-begin
-  simp,
-end
-
-lemma one_fg : (1 : ideal A).fg :=
-begin
-  use {1},
-  rw submodule.one_eq_span,
-  simp,
-end
-
-lemma one_coe : ((1 : fractional_ideal (fraction_ring.of A)) : submodule A (localization_map.codomain (fraction_ring.of A))) = submodule.span A {1} :=
-begin
-  ext,
-  split,
-  {
-    rintros hx,
-    rw submodule.mem_span_singleton,
-    change x ∈ (1 : fractional_ideal(fraction_ring.of A)) at hx,
-    rw mem_one_iff at hx,
-    rcases hx with ⟨y, hy⟩,
-    use y,
-    rw <-hy,
-    rw <-algebra.algebra_map_eq_smul_one y,
-    simp,
-  },
-  rintros hx,
-  change x ∈ (1 : fractional_ideal(fraction_ring.of A)),
-  rw mem_one_iff,
-  rw submodule.mem_span_singleton at hx,
-  rcases hx with ⟨y, hy⟩,
-  use y,
-  rw <-hy,
-  rw <-algebra.algebra_map_eq_smul_one y,
-  simp,
-end
-
-lemma ideal_le_iff_frac_ideal_le (I J : ideal A) : I ≤ J ↔ (I : fractional_ideal (fraction_ring.of A)) ≤ (J : fractional_ideal (fraction_ring.of A)) :=
+lemma ideal_le_iff_frac_ideal_le (I J : ideal A) : I ≤ J ↔
+  (I : fractional_ideal (fraction_ring.of A)) ≤ (J : fractional_ideal (fraction_ring.of A)) :=
 begin
   split,
   {
@@ -258,20 +297,15 @@ begin
     tidy,
   },
   rintros h,
-  rw le_iff at h,
-  change (∀ (x : A), x ∈ I → x ∈ J),
+  rw le_iff_mem at h,
   rintros x hI,
   specialize h ((localization_map.to_map (fraction_ring.of A)) x),
-  rw mem_coe at h,
-  simp at h,
-  specialize h x hI rfl,
-  rcases h with ⟨y, hJ, h⟩,
-  have f : y = x,
-  apply fraction_map.injective (fraction_ring.of A),
-  assumption,
-  rw f at hJ,
-  assumption,
+  simp at h, apply h, exact hI,
 end
+
+lemma mem_coe' {S : submonoid R} {P : Type*} [comm_ring P]
+  (f : localization_map S P) (I : fractional_ideal f) (x : f.codomain) :
+  x ∈ (I : submodule R f.codomain) ↔ x ∈ I := iff.rfl
 
 lemma noeth_two (s : submodule A A) (h2 : (s : fractional_ideal (fraction_ring.of A)) * (s : fractional_ideal (fraction_ring.of A))⁻¹ = 1)
   (q : submodule A (localization_map.codomain (fraction_ring.of A))) ( hq : q = (s : fractional_ideal (fraction_ring.of A)).val)
@@ -283,83 +317,77 @@ lemma noeth_two (s : submodule A A) (h2 : (s : fractional_ideal (fraction_ring.o
      s.fg :=
 begin
   rintros ⟨T, T', hT, h1, hT', h2, h3⟩,
-    have g := fraction_map.injective (fraction_ring.of A),
-    apply submodule.fg_of_fg_map _,
-    rw linear_map.ker_eq_bot,
-    swap 6,
-    refine localization_map.lin_coe (fraction_ring.of A),
-    exact g,
-    split,
-    swap,
-    use set.finite.to_finset h1,
-    simp only [set.finite.coe_to_finset],
-    ext,
-    split,
-    {
-      have f'' := submodule.span_mono hT,
-      swap,
-      exact A,
-      rw submodule.span_eq at f'',
-      simp only [localization_map.lin_coe_apply, submodule.mem_map],
-      rintros gx,
-      have g' := f'' gx,
-      rw [hq, val_eq_coe] at g',
-      change x ∈ (s : fractional_ideal(fraction_ring.of A)) at g',
-      rw mem_coe at g',
-      rcases g' with ⟨y, hy, g''⟩,
-      use [y, hy, g''],
-      --apply iff.rfl.1 f'',
-    },
-    rintros f,
-    have g'' := submodule.mem_span_singleton_self x,
+  have g := fraction_map.injective (fraction_ring.of A),
+  apply submodule.fg_of_fg_map _,
+  rw linear_map.ker_eq_bot,
+  swap 6,
+  refine localization_map.lin_coe (fraction_ring.of A),
+  exact g,
+  split,
+  swap,
+  use set.finite.to_finset h1,
+  simp only [set.finite.coe_to_finset],
+  ext,
+  split,
+  {
+    have f'' := submodule.span_mono hT,
     swap,
     exact A,
-    have g' : x * 1 ∈ submodule.span A {x} * submodule.span A (T * T'),
-    refine submodule.mul_mem_mul g'' h3,
-    rw [mul_one x, <- submodule.span_mul_span A T T', submodule.mul_comm] at g',
-    have g2 : x ∈ submodule.span A T * submodule.span A (T' * {x}),
-    {
-      rw [<-submodule.span_mul_span A, <-mul_assoc],
-      exact g',
-    },
-    suffices f2 : submodule.span A T * submodule.span A (T' * {x}) ≤ submodule.span A T,
-    apply iff.rfl.1 f2 g2,
-    suffices f2 : submodule.span A (T' * {x}) ≤ 1,
-    {
-      have f3 := submodule.mul_le_mul (le_refl (submodule.span A T)) f2,
-      rwa mul_one (submodule.span A T) at f3,
-    },
-    rw submodule.one_eq_span,
-    have f2 : {x} ⊆ (q : set (localization_map.codomain (fraction_ring.of A))),
-    {
-      simp only [submodule.mem_coe, set.singleton_subset_iff],
-      simp at f,
-      rw [hq, val_eq_coe],
-      change x ∈ (s : fractional_ideal(fraction_ring.of A)),
-      rw mem_coe,
-      rcases f with ⟨y, hy, g''⟩,
-      use [y, hy, g''],
-    --assumption,
-    },
-    have f3 := submodule.span_mono f2,
-    rw submodule.span_eq at f3,
-    have h1T' := submodule.span_mono hT',
-    rw submodule.span_eq at h1T',
-    have f' := submodule.mul_le_mul h1T' f3,
-    rw submodule.span_mul_span at f',
-    rw [hq, hq', val_eq_coe, val_eq_coe, <-coe_mul] at f',
-    suffices hf : (s : fractional_ideal (fraction_ring.of A))⁻¹ * (s : fractional_ideal (fraction_ring.of A)) = 1,
-    rw hf at f',
-    convert f',
-    rw one_coe A,
-    rw mul_comm _ _,
-    assumption,
+    rw submodule.span_eq at f'',
+    simp only [localization_map.lin_coe_apply, submodule.mem_map],
+    rintros gx,
+    have g' := f'' gx,
+    rw [hq, val_eq_coe] at g',
+    simp at g',
+    rcases g' with ⟨y, hy, g''⟩,
+    use [y, hy, g''],
+  },
+  rintros f,
+  have g'' := submodule.mem_span_singleton_self x,
+  swap,
+  exact A,
+  have g' : x * 1 ∈ submodule.span A {x} * submodule.span A (T * T') := submodule.mul_mem_mul g'' h3,
+  rw [mul_one x, <- submodule.span_mul_span A T T', submodule.mul_comm] at g',
+  have g2 : x ∈ submodule.span A T * submodule.span A (T' * {x}),
+  {
+    rw [<-submodule.span_mul_span A, <-mul_assoc],
+    exact g',
+  },
+  suffices f2 : submodule.span A T * submodule.span A (T' * {x}) ≤ submodule.span A T,
+  apply iff.rfl.1 f2 g2,
+  suffices f2 : submodule.span A (T' * {x}) ≤ 1,
+  {
+    have f3 := submodule.mul_le_mul (le_refl (submodule.span A T)) f2,
+    rwa mul_one (submodule.span A T) at f3,
+  },
+  rw submodule.one_eq_span,
+  have f2 : {x} ⊆ (q : set (localization_map.codomain (fraction_ring.of A))),
+  {
+    simp only [submodule.mem_coe, set.singleton_subset_iff],
+    simp at f,
+    rw [hq, val_eq_coe],
+    suffices f1 : x ∈ (s : fractional_ideal(fraction_ring.of A)), exact f1, simp,
+    rcases f with ⟨y, hy, g''⟩,
+    use [y, hy, g''],
+  },
+  have f3 := submodule.span_mono f2,
+  rw submodule.span_eq at f3,
+  have h1T' := submodule.span_mono hT',
+  rw submodule.span_eq at h1T',
+  have f' := submodule.mul_le_mul h1T' f3,
+  rw submodule.span_mul_span at f',
+  rw [hq, hq', val_eq_coe, val_eq_coe, <-coe_mul] at f',
+  suffices hf : (s : fractional_ideal (fraction_ring.of A))⁻¹ * (s : fractional_ideal (fraction_ring.of A)) = 1,
+  rw hf at f',
+  convert f',
+  simp, rw [submodule.one_eq_span],
+  rw mul_comm _ _,
+  assumption,
 end
 
 lemma coe_neq_bot (s : submodule A A) (h : s ≠ ⊥) : (s : fractional_ideal (fraction_ring.of A)) ≠ ⊥ :=
 begin
-  let p : ideal A := s,
-  change p ≠ ⊥ at h,
+  set p : ideal A := s with hp,
   rw coe_ne_bot A at h,
   exact h,
 end
@@ -373,8 +401,9 @@ begin
   by_cases s = ⊥,
   {
     rw h,
-    apply submodule.fg_bot, },
-  have h := coe_neq_bot A s h,
+    apply submodule.fg_bot,
+  },
+  have h := coe_neq_bot A (s : ideal A) h,
   have h' := h2 h,
   have hf := h2 h,
   rw ext' at h',
@@ -385,25 +414,20 @@ begin
   set q' : submodule A (localization_map.codomain (fraction_ring.of A)) :=
     (s : fractional_ideal (fraction_ring.of A))⁻¹.val with hq',
   rw [← mem_coe', coe_mul, ← val_eq_coe, ← val_eq_coe, <-submodule.span_eq (q * q')] at h'',
-  apply noeth_two A s hf,
-  exact hq,
-  exact hq',
+  apply noeth_two A s hf q hq q' hq',
   simp at h'',
   rw [<-submodule.span_eq q, <-submodule.span_eq q'] at h'',
   apply submodule.mem_span_mul_finite_of_mem_span_mul A _ _ _ 1 h'',
 end
 
-lemma fg_is_frac_ideal (I : submodule A (localization_map.codomain (fraction_ring.of A))) : I.fg -> is_fractional (fraction_ring.of A) I :=
-fractional_of_fg
+lemma fraction_ring_fractional_ideal (x : (fraction_ring A)) (hx : is_integral A x) :
+ is_fractional (fraction_ring.of A)
+((algebra.adjoin A {x}).to_submodule : submodule A (localization_map.codomain (fraction_ring.of A))) :=
+is_fractional_of_fg (fg_adjoin_singleton_of_integral x hx)
 
-lemma fraction_ring_fractional_ideal (x : (fraction_ring A)) (hx : is_integral A x) : is_fractional (fraction_ring.of A) ((algebra.adjoin A {x}).to_submodule : submodule A (localization_map.codomain (fraction_ring.of A))) :=
-fractional_of_fg (fg_adjoin_singleton_of_integral x hx)
-
-lemma mem_adjoin (x : fraction_ring A) : x ∈ ((algebra.adjoin A {x}) : subalgebra A (localization_map.codomain (fraction_ring.of A))) :=
-begin
-  apply subsemiring.subset_closure,
-  simp,
-end
+lemma mem_adjoin (x : fraction_ring A) :
+  x ∈ ((algebra.adjoin A {x}) : subalgebra A (localization_map.codomain (fraction_ring.of A))) :=
+by {apply subsemiring.subset_closure, simp}
 
 lemma int_close : is_dedekind_domain_inv A -> integral_closure A (fraction_ring A) = ⊥ :=
 begin
@@ -421,11 +445,9 @@ begin
       split,
       rotate,
       use p,
-      split,
-      assumption,
-      assumption,
+      split, assumption, assumption,
     },
-    let M : fractional_ideal (fraction_ring.of A) := ⟨S.to_submodule, f'⟩,
+    set M : fractional_ideal (fraction_ring.of A) := ⟨S.to_submodule, f'⟩ with h1M,
     by_cases x = 0,
     rw h,
     apply subalgebra.zero_mem ⊥,
@@ -436,7 +458,7 @@ begin
       have g : M ≠ ⊥,
       {
         classical,
-        by_contradiction,
+        by_contradiction a,
         simp at a,
         rw subtype.ext_iff_val at a,
         simp at a,
@@ -444,50 +466,29 @@ begin
         specialize a x,
         apply h,
         apply a,
-        change x ∈ (S : submodule A (localization_map.codomain (fraction_ring.of A))),
+        suffices f : x ∈ (S : submodule A (localization_map.codomain (fraction_ring.of A))), exact f,
         rw subalgebra.mem_to_submodule,
         apply mem_adjoin,
       },
       have hM := h2 g,
       suffices hM' : M * (M * M⁻¹) = 1,
-      rw hM at hM',
-      assumption,
+      rw hM at hM', assumption,
       suffices hM' : M * M = M,
-      assoc_rw hM',
-      assumption,
+      assoc_rw hM', assumption,
       rw subtype.ext_iff_val,
       simp,
-      change (S : submodule A (localization_map.codomain (fraction_ring.of A))) * (S : submodule A (localization_map.codomain (fraction_ring.of A))) = (S : submodule A (localization_map.codomain (fraction_ring.of A))),
-      ext,
-      split,
-      {
-        rintros hx2,
-        have hmul : (S : submodule A (localization_map.codomain (fraction_ring.of A))) * (S : submodule A (localization_map.codomain (fraction_ring.of A))) ≤ (S : submodule A (localization_map.codomain (fraction_ring.of A))),
-        {
-          rw submodule.mul_le,
-          rintros y hy z hz,
-          rw subalgebra.mem_to_submodule at hy,
-          rw subalgebra.mem_to_submodule at hz,
-          rw subalgebra.mem_to_submodule,
-          apply (subalgebra.mul_mem S hy hz),
-        },
-        change (∀ x ∈ (S : submodule A (localization_map.codomain (fraction_ring.of A))) * (S : submodule A (localization_map.codomain (fraction_ring.of A))), x ∈ (S : submodule A (localization_map.codomain (fraction_ring.of A)))) at hmul,
-        exact hmul x_1 hx2,
-      },
-      rintros hx1,
-      have h1 := subalgebra.one_mem S,
-      rw <-subalgebra.mem_to_submodule at h1,
-      have hx2 := submodule.mul_mem_mul hx1 h1,
-      simp at hx2,
-      assumption,
+      suffices f : (S : submodule A (localization_map.codomain (fraction_ring.of A))) *
+      (S : submodule A (localization_map.codomain (fraction_ring.of A))) =
+      (S : submodule A (localization_map.codomain (fraction_ring.of A))), exact f,
+      rw subalgebra.mul_self,
     },
     have fx : x ∈ M,
-    change x ∈ (S : submodule A (localization_map.codomain (fraction_ring.of A))),
+    suffices f : x ∈ (S : submodule A (localization_map.codomain (fraction_ring.of A))), exact f,
     rw subalgebra.mem_to_submodule,
     apply mem_adjoin,
-    suffices h' : x ∈ ((⊥ : subalgebra A (localization_map.codomain (fraction_ring.of A))) : submodule A (localization_map.codomain (fraction_ring.of A))),
-    rw subalgebra.mem_to_submodule at h',
-    assumption,
+    suffices h' : x ∈ ((⊥ : subalgebra A (localization_map.codomain (fraction_ring.of A))) :
+    submodule A (localization_map.codomain (fraction_ring.of A))),
+    rw subalgebra.mem_to_submodule at h', assumption,
     rw algebra.to_submodule_bot,
     rw ext' at f,
     specialize f x,
@@ -500,7 +501,6 @@ begin
   rw mem_integral_closure_iff_mem_fg,
   use ⊥,
   split,
-  unfold submodule.fg,
   use {1},
   rw algebra.to_submodule_bot,
   simp,
@@ -518,7 +518,8 @@ begin
   specialize h2 M,
   specialize hpinv ((coe_ne_bot A p).1 nz),
   specialize h2 ( (coe_ne_bot A M).1 (max_ideal_ne_bot A M hM1 h1)),
-  set I := (M : fractional_ideal (fraction_ring.of A))⁻¹ * (p : fractional_ideal (fraction_ring.of A)) with hI,
+  set I := (M : fractional_ideal (fraction_ring.of A))⁻¹ * (p : fractional_ideal (fraction_ring.of A))
+  with hI,
   have f' : I ≤ 1,
   {
     set N := (M : fractional_ideal (fraction_ring.of A))⁻¹ with hN,
@@ -532,7 +533,7 @@ begin
   },
   have f : (M : fractional_ideal (fraction_ring.of A)) * I = (p : fractional_ideal (fraction_ring.of A)),
   {
-    change ↑M * ((↑M)⁻¹ * ↑p) = ↑p,
+    rw hI,
     assoc_rw h2,
     simp,
   },
@@ -544,66 +545,55 @@ begin
   exfalso,
   have g : I ≤ (p : fractional_ideal (fraction_ring.of A)),
   {
-    rw le_iff,
+    rw le_iff_mem,
     rintros x hxI,
     have hpM :  ∃ (x : A), x ∈ M ∧ x ∉ p,
     {
       classical,
-      by_contradiction,
+      by_contradiction a,
       simp at a,
-      change M ≤ p at a,
+      have a : M ≤ p := a,
       apply h,
       rw <-has_le.le.le_iff_eq a,
       assumption,
     },
     rcases hpM with ⟨z, hz, hpz⟩,
-    rw le_iff at f',
+    rw le_iff_mem at f',
     specialize f' x hxI,
-    change x ∈ ((1 : ideal A) : fractional_ideal (fraction_ring.of A)) at f',
-    rw mem_coe at f',
-    rcases f' with ⟨y, hy, f'⟩,
-    change x ∈ (p : fractional_ideal(fraction_ring.of A)).val,
+    have f'' : x ∈ ((1 : ideal A) : fractional_ideal (fraction_ring.of A)) := f',
+    simp at f'',
+    rcases f'' with ⟨y, f'⟩,
     rw <-f',
     have f'' : y*z ∈ p,
     {
       suffices g : x * (localization_map.to_map (fraction_ring.of A) z) ∈ (p : fractional_ideal (fraction_ring.of A)),
       {
-        rw <-f' at g,
-        rw <-ring_hom.map_mul at g,
-        rw mem_coe at g,
+        rw [<-f', <-ring_hom.map_mul] at g,
+        simp at g,
         rcases g with ⟨x', Hx, g⟩,
         suffices g'' : x' = (y*z),
         rw g'' at Hx,
         assumption,
-        revert g,
         apply fraction_map.injective (fraction_ring.of A),
+        simp_rw g, simp,
       },
       rw <-f,
       rw mul_comm,
-      apply submodule.mul_mem_mul,
-      let z' := (localization_map.to_map (fraction_ring.of A)) z,
-      change z' ∈ (M : fractional_ideal (fraction_ring.of A)),
-      rw mem_coe,
-      use z,
-      split, assumption, refl,
-      assumption,
+      refine mul_mem_mul _ hxI,
+      set z' := (localization_map.to_map (fraction_ring.of A)) z with hz',
+      simp, assumption,
     },
-    unfold is_prime at hp,
     have hp' := hp.right f'',
     cases hp',
     {
-      let z' := (localization_map.to_map (fraction_ring.of A)) y,
-      change z' ∈ (p : fractional_ideal (fraction_ring.of A)),
-      rw mem_coe,
-      use y,
-      split, assumption, refl,
+      set z' := (localization_map.to_map (fraction_ring.of A)) y with hz',
+      simp, assumption,
     },
     finish,
   },
-  rw <-subtype.coe_le_coe at g,
-  rw hI at g,
+  rw [<-subtype.coe_le_coe, hI] at g,
   norm_cast at g,
-  change ((↑M)⁻¹ * ↑p) ≤ ↑p at g,
+--  change ((↑M)⁻¹ * ↑p) ≤ ↑p at g,
   have hM := le_refl (M : fractional_ideal (fraction_ring.of A)),
   have g' := submodule.mul_le_mul g hM,
   rw mul_comm at g',
@@ -615,14 +605,12 @@ begin
   have g'' := submodule.mul_le_mul g' (le_refl q),
   simp only [val_eq_coe, <-coe_mul] at g'',
   norm_cast at g'',
-  rw hpinv at g'',
-  rw mul_comm at g'',
+  rw [hpinv, mul_comm] at g'',
   rw mul_comm at hpinv,
   assoc_rw hpinv at g'',
   rw one_mul at g'',
   have ginv : (M : fractional_ideal (fraction_ring.of A)) ≤ 1,
   {
-    change (M : fractional_ideal (fraction_ring.of A)) ≤ ((1 : ideal A) : fractional_ideal (fraction_ring.of A)),
     apply submodule.map_mono,
     simp,
   },
@@ -631,18 +619,15 @@ begin
   apply hM11,
   unfold has_one.one at k,
   simp at k,
-  change ((1 : ideal A) : fractional_ideal (fraction_ring.of A)) = (M : fractional_ideal (fraction_ring.of A)) at k,
   rw ideal.eq_top_iff_one,
   rw ext' at k,
   specialize k 1,
-  have k' := k.1 (one_mem A),
-  rw mem_coe at k',
-  cases k' with x k',
-  cases k' with hx k',
+  have k' := k.1 one_mem_one,
+  simp at k',
+  rcases k' with ⟨x, hx, k'⟩,
   suffices f' : x = 1,
   rw f' at hx,
   assumption,
-  rw <-(local_one A) at k',
   apply fraction_map.injective (fraction_ring.of A),
   assumption,
 end

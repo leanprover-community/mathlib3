@@ -272,6 +272,28 @@ lemma Icc_subset_Icc_iff (h₁ : a₁ ≤ b₁) :
 ⟨λ h, ⟨(h ⟨le_refl _, h₁⟩).1, (h ⟨h₁, le_refl _⟩).2⟩,
  λ ⟨h, h'⟩ x ⟨hx, hx'⟩, ⟨le_trans h hx, le_trans hx' h'⟩⟩
 
+lemma Icc_ssubset_Icc_left (hI : a₂ ≤ b₂) (ha : a₂ < a₁) (hb : b₁ ≤ b₂) :
+  Icc a₁ b₁ ⊂ Icc a₂ b₂ :=
+begin
+  have h : Icc a₁ b₁ ⊆ Icc a₂ b₂ := Icc_subset_Icc (le_of_lt ha) hb,
+  rw ssubset_iff_of_subset h,
+  use a₂,
+  rw [mem_Icc, mem_Icc],
+  have h₂ : ¬(a₁ ≤ a₂) := not_le_of_gt ha,
+  tauto,
+end
+
+lemma Icc_ssubset_Icc_right (hI : a₂ ≤ b₂) (ha : a₂ ≤ a₁) (hb : b₁ < b₂) :
+  Icc a₁ b₁ ⊂ Icc a₂ b₂ :=
+begin
+  have h : Icc a₁ b₁ ⊆ Icc a₂ b₂ := Icc_subset_Icc ha (le_of_lt hb),
+  rw ssubset_iff_of_subset h,
+  use b₂,
+  rw [mem_Icc, mem_Icc],
+  have h₂ : ¬(b₂ ≤ b₁) := not_le_of_gt hb,
+  tauto,
+end
+
 lemma Icc_subset_Ioo_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Ioo a₂ b₂ ↔ a₂ < a₁ ∧ b₁ < b₂ :=
 ⟨λ h, ⟨(h ⟨le_refl _, h₁⟩).1, (h ⟨h₁, le_refl _⟩).2⟩,

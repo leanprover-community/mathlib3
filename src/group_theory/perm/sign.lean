@@ -520,9 +520,13 @@ quotient.induction_on₂ t s
         (equiv.ext (λ x, by simp only [equiv.coe_trans, apply_eq_iff_eq, symm_trans_apply])))
   ht hs
 
-lemma sign_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α)
-  (e : α ≃ β) : sign ((e.symm.trans f).trans e) = sign f :=
+@[simp] lemma sign_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α) (e : α ≃ β) :
+  sign ((e.symm.trans f).trans e) = sign f :=
 sign_aux3_symm_trans_trans f e mem_univ mem_univ
+
+@[simp] lemma sign_trans_trans_symm [decidable_eq β] [fintype β] (f : perm β) (e : α ≃ β) :
+  sign ((e.trans f).trans e.symm) = sign f :=
+sign_symm_trans_trans f e.symm
 
 lemma sign_prod_list_swap {l : list (perm α)}
   (hl : ∀ g ∈ l, is_swap g) : sign l.prod = (-1) ^ l.length :=

@@ -311,7 +311,7 @@ begin
 end
 
 /-- The inclusion map (i.e., `coe`) from the sphere in `E` to `E` is smooth.  -/
-lemma coe_sphere_smooth :
+lemma times_cont_mdiff_coe_sphere :
   times_cont_mdiff (𝓡 (findim ℝ E - 1)) (model_with_corners_self ℝ E) ⊤
   (coe : (sphere (0:E) 1) → E) :=
 begin

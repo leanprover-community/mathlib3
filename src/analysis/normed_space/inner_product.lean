@@ -63,8 +63,8 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 
 noncomputable theory
 
-open is_R_or_C real
-open_locale big_operators classical
+open is_R_or_C real filter
+open_locale big_operators classical topological_space
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 
@@ -1214,6 +1214,17 @@ end is_R_or_C_to_real
 
 section deriv
 
+/-!
+### Derivative of the inner product
+
+In this section we prove that the inner product and square of the norm in an inner space are
+infinitely `ℝ`-smooth. In order to state these results, we need a `normed_space ℝ E`
+instance. Though we can deduce this structure from `inner_product_space 𝕜 E`, this instance may be
+not definitionally equal to some other “natural” instance. So, we assume `[normed_space ℝ E]` and
+`[is_scalar_tower ℝ 𝕜 E]`. In both interesting cases `𝕜 = ℝ` and `𝕜 = ℂ` we have these instances.
+
+-/
+
 variables [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
 
 lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
@@ -1226,6 +1237,12 @@ lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ (λ p : E × E
   bound := ⟨1, zero_lt_one, λ x y,
     by { rw [one_mul, is_R_or_C.norm_eq_abs], exact abs_inner_le_norm x y, }⟩ }
 
+/-- Derivative of the inner product. -/
+def fderiv_inner_clm (p : E × E) : E × E →L[ℝ] 𝕜 := is_bounded_bilinear_map_inner.deriv p
+
+@[simp] lemma fderiv_inner_clm_apply (p x : E × E) :
+  fderiv_inner_clm  p x = ⟪p.1, x.2⟫ + ⟪x.1, p.2⟫ := rfl
+
 lemma times_cont_diff_inner {n} : times_cont_diff ℝ n (λ p : E × E, ⟪p.1, p.2⟫) :=
 is_bounded_bilinear_map_inner.times_cont_diff
 
@@ -1234,10 +1251,7 @@ lemma times_cont_diff_at_inner {p : E × E} {n} :
 times_cont_diff_inner.times_cont_diff_at
 
 lemma differentiable_inner : differentiable ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
-times_cont_diff_inner.differentiable le_rfl
-
-lemma continuous_inner : continuous (λ p : E × E, ⟪p.1, p.2⟫) :=
-differentiable_inner.continuous
+is_bounded_bilinear_map_inner.differentiable_at
 
 variables {G : Type*} [normed_group G] [normed_space ℝ G]
   {f g : G → E} {f' g' : G →L[ℝ] E} {s : set G} {x : G} {n : with_top ℕ}
@@ -1262,6 +1276,25 @@ lemma times_cont_diff.inner (hf : times_cont_diff ℝ n f) (hg : times_cont_diff
   times_cont_diff ℝ n (λ x, ⟪f x, g x⟫) :=
 times_cont_diff_inner.comp (hf.prod hg)
 
+lemma has_fderiv_within_at.inner (hf : has_fderiv_within_at f f' s x)
+  (hg : has_fderiv_within_at g g' s x) :
+  has_fderiv_within_at (λ t, ⟪f t, g t⟫) ((fderiv_inner_clm (f x, g x)).comp $ f'.prod g') s x :=
+(is_bounded_bilinear_map_inner.has_fderiv_at (f x, g x)).comp_has_fderiv_within_at x (hf.prod hg)
+
+lemma has_fderiv_at.inner (hf : has_fderiv_at f f' x) (hg : has_fderiv_at g g' x) :
+  has_fderiv_at (λ t, ⟪f t, g t⟫) ((fderiv_inner_clm (f x, g x)).comp $ f'.prod g') x :=
+(is_bounded_bilinear_map_inner.has_fderiv_at (f x, g x)).comp x (hf.prod hg)
+
+lemma has_deriv_within_at.inner {f g : ℝ → E} {f' g' : E} {s : set ℝ} {x : ℝ}
+  (hf : has_deriv_within_at f f' s x) (hg : has_deriv_within_at g g' s x) :
+  has_deriv_within_at (λ t, ⟪f t, g t⟫) (⟪f x, g'⟫ + ⟪f', g x⟫) s x :=
+by simpa using (hf.has_fderiv_within_at.inner hg.has_fderiv_within_at).has_deriv_within_at
+
+lemma has_deriv_at.inner {f g : ℝ → E} {f' g' : E} {x : ℝ} :
+  has_deriv_at f f' x →  has_deriv_at g g' x →
+  has_deriv_at (λ t, ⟪f t, g t⟫) (⟪f x, g'⟫ + ⟪f', g x⟫) x :=
+by simpa only [← has_deriv_within_at_univ] using has_deriv_within_at.inner
+
 lemma differentiable_within_at.inner (hf : differentiable_within_at ℝ f s x)
   (hg : differentiable_within_at ℝ g s x) :
   differentiable_within_at ℝ (λ x, ⟪f x, g x⟫) s x :=
@@ -1280,7 +1313,105 @@ lemma differentiable.inner (hf : differentiable ℝ f) (hg : differentiable ℝ 
   differentiable ℝ (λ x, ⟪f x, g x⟫) :=
 λ x, (hf x).inner (hg x)
 
+lemma fderiv_inner_apply (hf : differentiable_at ℝ f x) (hg : differentiable_at ℝ g x) (y : G) :
+  fderiv ℝ (λ t, ⟪f t, g t⟫) x y = ⟪f x, fderiv ℝ g x y⟫ + ⟪fderiv ℝ f x y, g x⟫ :=
+by { rw [(hf.has_fderiv_at.inner hg.has_fderiv_at).fderiv], refl }
+
+lemma deriv_inner_apply {f g : ℝ → E} {x : ℝ} (hf : differentiable_at ℝ f x)
+  (hg : differentiable_at ℝ g x) :
+  deriv (λ t, ⟪f t, g t⟫) x = ⟪f x, deriv g x⟫ + ⟪deriv f x, g x⟫ :=
+(hf.has_deriv_at.inner hg.has_deriv_at).deriv
+
+lemma times_cont_diff_norm_square : times_cont_diff ℝ n (λ x : E, ∥x∥ ^ 2) :=
+begin
+  simp only [pow_two, ← inner_self_eq_norm_square],
+  exact (re_clm : 𝕜 →L[ℝ] ℝ).times_cont_diff.comp (times_cont_diff_id.inner times_cont_diff_id)
+end
+
+lemma times_cont_diff.norm_square (hf : times_cont_diff ℝ n f) :
+  times_cont_diff ℝ n (λ x, ∥f x∥ ^ 2) :=
+times_cont_diff_norm_square.comp hf
+
+lemma times_cont_diff_within_at.norm_square (hf : times_cont_diff_within_at ℝ n f s x) :
+  times_cont_diff_within_at ℝ n (λ y, ∥f y∥ ^ 2) s x :=
+times_cont_diff_norm_square.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+
+lemma times_cont_diff_at.norm_square (hf : times_cont_diff_at ℝ n f x) :
+  times_cont_diff_at ℝ n (λ y, ∥f y∥ ^ 2) x :=
+hf.norm_square
+
+lemma times_cont_diff_on.norm_square (hf : times_cont_diff_on ℝ n f s) :
+  times_cont_diff_on ℝ n (λ y, ∥f y∥ ^ 2) s :=
+(λ x hx, (hf x hx).norm_square)
+
+lemma differentiable_at.norm_square (hf : differentiable_at ℝ f x) :
+  differentiable_at ℝ (λ y, ∥f y∥ ^ 2) x :=
+(times_cont_diff_norm_square.differentiable le_rfl).differentiable_at.comp x hf
+
+lemma differentiable.norm_square (hf : differentiable ℝ f) : differentiable ℝ (λ y, ∥f y∥ ^ 2) :=
+λ x, (hf x).norm_square
+
+lemma differentiable_within_at.norm_square (hf : differentiable_within_at ℝ f s x) :
+  differentiable_within_at ℝ (λ y, ∥f y∥ ^ 2) s x :=
+(times_cont_diff_norm_square.differentiable le_rfl).differentiable_at.comp_differentiable_within_at
+  x hf
+
+lemma differentiable_on.norm_square (hf : differentiable_on ℝ f s) :
+  differentiable_on ℝ (λ y, ∥f y∥ ^ 2) s :=
+λ x hx, (hf x hx).norm_square
+
 end deriv
+
+section continuous
+
+/-!
+### Continuity and measurability of the inner product
+
+Since the inner product is `ℝ`-smooth, it is continuous. We do not need a `[normed_space ℝ E]`
+structure to *state* this fact and its corollaries, so we introduce them in the proof instead.
+-/
+
+lemma continuous_inner : continuous (λ p : E × E, ⟪p.1, p.2⟫) :=
+begin
+  letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
+  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
+  exact differentiable_inner.continuous
+end
+
+variables {α : Type*}
+
+lemma filter.tendsto.inner {f g : α → E} {l : filter α} {x y : E} (hf : tendsto f l (𝓝 x))
+  (hg : tendsto g l (𝓝 y)) :
+  tendsto (λ t, ⟪f t, g t⟫) l (𝓝 ⟪x, y⟫) :=
+(continuous_inner.tendsto _).comp (hf.prod_mk_nhds hg)
+
+lemma measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
+  [topological_space.second_countable_topology E] [measurable_space 𝕜] [borel_space 𝕜]
+  {f g : α → E} (hf : measurable f) (hg : measurable g) :
+  measurable (λ t, ⟪f t, g t⟫) :=
+continuous.measurable2 continuous_inner hf hg
+
+variables [topological_space α] {f g : α → E} {x : α} {s : set α}
+
+include 𝕜
+
+lemma continuous_within_at.inner (hf : continuous_within_at f s x)
+  (hg : continuous_within_at g s x) :
+  continuous_within_at (λ t, ⟪f t, g t⟫) s x :=
+hf.inner hg
+
+lemma continuous_at.inner (hf : continuous_at f x) (hg : continuous_at g x) :
+  continuous_at (λ t, ⟪f t, g t⟫) x :=
+hf.inner hg
+
+lemma continuous_on.inner (hf : continuous_on f s) (hg : continuous_on g s) :
+  continuous_on (λ t, ⟪f t, g t⟫) s :=
+λ x hx, (hf x hx).inner (hg x hx)
+
+lemma continuous.inner (hf : continuous f) (hg : continuous g) : continuous (λ t, ⟪f t, g t⟫) :=
+continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.inner hg.continuous_at
+
+end continuous
 
 section pi_Lp
 local attribute [reducible] pi_Lp

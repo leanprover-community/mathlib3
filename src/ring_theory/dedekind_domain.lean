@@ -69,7 +69,7 @@ begin
   intros p ne_bot prime,
   haveI := prime,
   refine integral_closure.is_maximal_of_is_maximal_comap p
-  (h _ (integral_closure.comap_ne_bot ne_bot) _),
+    (h _ (integral_closure.comap_ne_bot ne_bot) _),
   apply is_prime.comap
 end
 end ring

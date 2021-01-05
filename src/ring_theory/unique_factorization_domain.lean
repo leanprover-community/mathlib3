@@ -481,6 +481,11 @@ begin
     apply multiset.prod_dvd_prod }
 end
 
+@[simp] lemma factors_eq_factors_iff {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
+  factors x = factors y ↔ x ~ᵤ y :=
+by rw [le_antisymm_iff, ← dvd_dvd_iff_associated,
+       dvd_iff_factors_le_factors hx hy, dvd_iff_factors_le_factors hy hx]
+
 end unique_factorization_monoid
 
 namespace unique_factorization_monoid

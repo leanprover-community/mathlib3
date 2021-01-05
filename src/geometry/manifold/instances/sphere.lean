@@ -310,4 +310,23 @@ begin
   simp [h_set, hUv, hU'v', stereographic, real_inner_comm]
 end
 
+/-- The inclusion map (i.e., `coe`) from the sphere in `E` to `E` is smooth.  -/
+lemma coe_sphere_smooth :
+  times_cont_mdiff (𝓡 (findim ℝ E - 1)) (model_with_corners_self ℝ E) ⊤
+  (coe : (sphere (0:E) 1) → E) :=
+begin
+  rw times_cont_mdiff_iff,
+  split,
+  { exact continuous_subtype_coe },
+  { intros v _,
+    have hv_perp : findim ℝ (ℝ ∙ ↑(-v))ᗮ = findim ℝ (euclidean_space ℝ (fin (findim ℝ E - 1))),
+    { rw findim_orthogonal_span_singleton (nonzero_of_mem_unit_sphere (-v)),
+      simp },
+    let U : (ℝ ∙ ((-v):E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin (findim ℝ E - 1)) :=
+      continuous_linear_equiv.of_findim_eq hv_perp,
+    exact ((times_cont_diff_stereo_inv_fun_aux.comp
+      (ℝ ∙ ((-v):E))ᗮ.subtype_continuous.times_cont_diff).comp
+      U.symm.to_continuous_linear_map.times_cont_diff).times_cont_diff_on }
+end
+
 end smooth_manifold

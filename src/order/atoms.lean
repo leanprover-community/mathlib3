@@ -208,7 +208,7 @@ instance : is_simple_lattice bool :=
 ⟨λ a, begin
   rw [← finset.mem_singleton, or.comm, ← finset.mem_insert,
       top_eq_tt, bot_eq_ff, ← fintype.univ_bool],
-  exact fintype.mem_univ,
+  apply finset.mem_univ,
 end⟩
 
 end bool

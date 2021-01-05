@@ -191,9 +191,9 @@ end
 /-- A finitely presented algebra is of finite type. -/
 lemma of_finitely_presented : finitely_presented R A → finite_type R A :=
 begin
-  rintro ⟨n, ⟨f, hf⟩⟩,
+  rintro ⟨n, f, hf⟩,
   apply (finite_type.iff_quotient_mv_polynomial'').2,
-  use [n, f, hf.1]
+  exact ⟨n, f, hf.1⟩
 end
 
 end finite_type

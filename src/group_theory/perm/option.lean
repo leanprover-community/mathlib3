@@ -75,6 +75,15 @@ The fixed `option α` is swapped with `none`. -/
     simp [←perm.eq_inv_iff_eq, equiv_functor.map, this],
   end }
 
+lemma equiv.perm.decompose_option_symm_of_none_apply {α : Type*} [decidable_eq α]
+  (e : perm α) (i : option α) :
+  equiv.perm.decompose_option.symm (none, e) i = i.map e :=
+by simp [equiv_functor.map]
+
+lemma equiv.perm.decompose_option_symm_sign {α : Type*} [decidable_eq α] [fintype α] (e : perm α) :
+  perm.sign (equiv.perm.decompose_option.symm (none, e)) = perm.sign e :=
+by simp
+
 -- TODO: move these to data/equiv/basic, when we're ready to face the build time cost
 section needs_a_home
 

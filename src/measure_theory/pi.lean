@@ -232,7 +232,7 @@ begin
     exact pi'_pi_le μ }
 end
 
-lemma measure_pi_preimage_eval_of_measure_zero [∀ i, sigma_finite (μ i)] {i : ι} {s : set (α i)}
+lemma pi_eval_preimage_null [∀ i, sigma_finite (μ i)] {i : ι} {s : set (α i)}
   (hs : μ i s = 0) : measure.pi μ (eval i ⁻¹' s) = 0 :=
 begin
   /- WLOG, `s` is measurable -/
@@ -247,10 +247,10 @@ begin
     rcases em (j = i) with rfl | hj; simp * }
 end
 
-lemma measure_pi_hyperplane [∀ i, sigma_finite (μ i)] (i : ι) [has_no_atoms (μ i)] (x : α i) :
+lemma pi_hyperplane [∀ i, sigma_finite (μ i)] (i : ι) [has_no_atoms (μ i)] (x : α i) :
   measure.pi μ {f : Π i, α i | f i = x} = 0 :=
 show measure.pi μ (eval i ⁻¹' {x}) = 0,
-from measure_pi_preimage_eval_of_measure_zero _ (measure_singleton x)
+from pi_eval_preimage_null _ (measure_singleton x)
 
 instance [Π i, topological_space (α i)] [∀ i, opens_measurable_space (α i)]
   [∀ i, locally_finite_measure (μ i)] [∀ i, sigma_finite (μ i)]:

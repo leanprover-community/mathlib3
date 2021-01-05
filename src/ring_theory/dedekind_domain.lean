@@ -209,9 +209,9 @@ begin
   exact ⟨T, T', hT, hT', smul_mem _ _ h⟩,
 end
 
-variables (f : fraction_map A K)
 
-lemma ne_bot_of_is_maximal_of_not_is_field {M : ideal A} (max : M.is_maximal) (not_field : ¬ is_field A) : M ≠ ⊥ :=
+lemma ne_bot_of_is_maximal_of_not_is_field {M : ideal A} (max : M.is_maximal)
+  (not_field : ¬ is_field A) : M ≠ ⊥ :=
 begin
   rintros h,
   rw h at max,
@@ -221,16 +221,22 @@ begin
   exact ne_of_lt hItop h2
 end
 
-lemma ideal_le_iff_frac_ideal_le (I J : ideal A) : I ≤ J ↔
-  (I : fractional_ideal (fraction_ring.of A)) ≤ (J : fractional_ideal (fraction_ring.of A)) :=
+variables {K} {f : fraction_map A K}
+
+@[simp, norm_cast]
+lemma coe_ideal_le_coe_ideal {I J : ideal A} :
+  (I : fractional_ideal f) ≤ (J : fractional_ideal f) ↔ I ≤ J :=
 begin
   split,
-  { rintros h, tidy, },
-  rintros h,
-  rw le_iff_mem at h,
-  rintros x hI,
-  specialize h ((localization_map.to_map (fraction_ring.of A)) x),
-  simp at h, apply h, exact hI,
+  { intros h x hI,
+    rw le_iff_mem at h,
+    specialize h (f.to_map x),
+    simp only [exists_prop, mem_coe_ideal, exists_mem_to_map_eq] at h,
+    exact h hI },
+  { rintros h x hx,
+    simp only [val_eq_coe, coe_coe_ideal, localization_map.mem_coe_submodule] at hx ⊢,
+    obtain ⟨y, hy, y_eq⟩ := hx,
+    exact ⟨y, h hy, y_eq⟩ },
 end
 
 lemma mem_coe' {S : submonoid R} {P : Type*} [comm_ring P]
@@ -240,10 +246,10 @@ lemma mem_coe' {S : submonoid R} {P : Type*} [comm_ring P]
 lemma noeth_two (s : submodule A A) (h2 : (s : fractional_ideal (fraction_ring.of A)) * (s : fractional_ideal (fraction_ring.of A))⁻¹ = 1)
   (q : submodule A (localization_map.codomain (fraction_ring.of A))) ( hq : q = (s : fractional_ideal (fraction_ring.of A)).val)
       (q' : submodule A (localization_map.codomain (fraction_ring.of A))) (hq' : q' = (s : fractional_ideal (fraction_ring.of A))⁻¹.val) :
-     (∃ (T T' : set (localization_map.codomain (fraction_ring.of A))),
+     (∃ (T T' : finset (localization_map.codomain (fraction_ring.of A))),
         T ⊆ ↑q ∧
-          T.finite ∧
-            T' ⊆ ↑q' ∧ T'.finite ∧ (1 : localization_map.codomain (fraction_ring.of A)) ∈ submodule.span A (T * T')) →
+          
+            T' ⊆ ↑q' ∧ (1 : localization_map.codomain (fraction_ring.of A)) ∈ submodule.span A (T * T')) →
      s.fg :=
 begin
   rintros ⟨T, T', hT, h1, hT', h2, h3⟩,
@@ -428,8 +434,7 @@ begin
   with hI,
   have f' : I ≤ 1,
   { set N := (M : fractional_ideal (fraction_ring.of A))⁻¹ with hN,
-    rw ideal_le_iff_frac_ideal_le at hM2,
-    have g'' := submodule.mul_le_mul hM2 (le_refl N),
+    have g'' := submodule.mul_le_mul (coe_ideal_le_coe_ideal.mp hM2) (le_refl N),
     simp only [val_eq_coe, ←coe_mul] at g'',
     norm_cast at g'',
     rw h2 at g'',

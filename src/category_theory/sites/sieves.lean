@@ -86,10 +86,6 @@ instance {X : C} : has_coe_to_fun (sieve X) := ⟨_, sieve.arrows⟩
 
 initialize_simps_projections sieve (arrows → apply)
 
-@[simp] lemma coe_fn_mk {X Y : C} {S : presieve X} (hS) (f : Y ⟶ X) :
-  { sieve . arrows := S, downward_closed' := hS } f = S f :=
-rfl
-
 variables {S R : sieve X}
 
 @[simp, priority 100] lemma downward_closed (S : sieve X) {f : Y ⟶ X} (hf : S f)

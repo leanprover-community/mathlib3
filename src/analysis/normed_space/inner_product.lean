@@ -6,7 +6,6 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
-import analysis.special_functions.pow
 import topology.metric_space.pi_Lp
 import data.complex.is_R_or_C
 
@@ -725,6 +724,10 @@ end
 lemma abs_real_inner_le_norm (x y : F) : absR ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
 by { have h := @abs_inner_le_norm ℝ F _ _ x y, simpa using h }
 
+/-- Cauchy–Schwarz inequality with norm -/
+lemma real_inner_le_norm (x y : F) : ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
+le_trans (le_abs_self _) (abs_real_inner_le_norm _ _)
+
 include 𝕜
 lemma parallelogram_law_with_norm {x y : E} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
@@ -938,7 +941,7 @@ end
 /--
 If the inner product of two vectors is equal to the product of their norms, then the two vectors
 are multiples of each other. One form of the equality case for Cauchy-Schwarz.
--/
+Compare `inner_eq_norm_mul_iff`, which takes the stronger hypothesis `⟪x, y⟫ = ∥x∥ * ∥y∥`. -/
 lemma abs_inner_eq_norm_iff (x y : E) (hx0 : x ≠ 0) (hy0 : y ≠ 0):
   abs ⟪x, y⟫ = ∥x∥ * ∥y∥ ↔ ∃ (r : 𝕜), r ≠ 0 ∧ y = r • x :=
 begin
@@ -1009,6 +1012,63 @@ begin
     rw hy,
     exact real_inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul hx hr }
 end
+
+/-- If the inner product of two vectors is equal to the product of their norms (i.e.,
+`⟪x, y⟫ = ∥x∥ * ∥y∥`), then the two vectors are nonnegative real multiples of each other. One form
+of the equality case for Cauchy-Schwarz.
+Compare `abs_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ∥x∥ * ∥y∥`. -/
+lemma inner_eq_norm_mul_iff {x y : E} :
+  ⟪x, y⟫ = (∥x∥ : 𝕜) * ∥y∥ ↔ (∥y∥ : 𝕜) • x = (∥x∥ : 𝕜) • y :=
+begin
+  by_cases h : (x = 0 ∨ y = 0), -- WLOG `x` and `y` are nonzero
+  { cases h; simp [h] },
+  calc ⟪x, y⟫ = (∥x∥ : 𝕜) * ∥y∥ ↔ ∥x∥ * ∥y∥ = re ⟪x, y⟫ :
+  begin
+    norm_cast,
+    split,
+    { intros h',
+      simp [h'] },
+    { have cauchy_schwarz := abs_inner_le_norm x y,
+      intros h',
+      rw h' at ⊢ cauchy_schwarz,
+      rwa re_eq_self_of_le }
+  end
+  ... ↔ 2 * ∥x∥ * ∥y∥ * (∥x∥ * ∥y∥ - re ⟪x, y⟫) = 0 :
+    by simp [h, show (2:ℝ) ≠ 0, by norm_num, sub_eq_zero]
+  ... ↔ ∥(∥y∥:𝕜) • x - (∥x∥:𝕜) • y∥ * ∥(∥y∥:𝕜) • x - (∥x∥:𝕜) • y∥ = 0 :
+  begin
+    simp only [norm_sub_mul_self, inner_smul_left, inner_smul_right, norm_smul, conj_of_real,
+      is_R_or_C.norm_eq_abs, abs_of_real, of_real_im, of_real_re, mul_re, abs_norm_eq_norm],
+    refine eq.congr _ rfl,
+    ring
+  end
+  ... ↔ (∥y∥ : 𝕜) • x = (∥x∥ : 𝕜) • y : by simp [norm_sub_eq_zero_iff]
+end
+
+/-- If the inner product of two vectors is equal to the product of their norms (i.e.,
+`⟪x, y⟫ = ∥x∥ * ∥y∥`), then the two vectors are nonnegative real multiples of each other. One form
+of the equality case for Cauchy-Schwarz.
+Compare `abs_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ∥x∥ * ∥y∥`. -/
+lemma inner_eq_norm_mul_iff_real {x y : F} : ⟪x, y⟫_ℝ = ∥x∥ * ∥y∥ ↔ ∥y∥ • x = ∥x∥ • y :=
+inner_eq_norm_mul_iff
+
+/-- If the inner product of two unit vectors is `1`, then the two vectors are equal. One form of
+the equality case for Cauchy-Schwarz. -/
+lemma inner_eq_norm_mul_iff_of_norm_one {x y : E} (hx : ∥x∥ = 1) (hy : ∥y∥ = 1) :
+  ⟪x, y⟫ = 1 ↔ x = y :=
+by { convert inner_eq_norm_mul_iff using 2; simp [hx, hy] }
+
+lemma inner_lt_norm_mul_iff_real {x y : F} :
+  ⟪x, y⟫_ℝ < ∥x∥ * ∥y∥ ↔ ∥y∥ • x ≠ ∥x∥ • y :=
+calc ⟪x, y⟫_ℝ < ∥x∥ * ∥y∥
+    ↔ ⟪x, y⟫_ℝ ≠ ∥x∥ * ∥y∥ : ⟨ne_of_lt, lt_of_le_of_ne (real_inner_le_norm _ _)⟩
+... ↔ ∥y∥ • x ≠ ∥x∥ • y : not_congr inner_eq_norm_mul_iff_real
+
+/-- If the inner product of two unit vectors is strictly less than `1`, then the two vectors are
+distinct. One form of the equality case for Cauchy-Schwarz. -/
+lemma inner_lt_one_iff_real_of_norm_one {x y : F} (hx : ∥x∥ = 1) (hy : ∥y∥ = 1) :
+  ⟪x, y⟫_ℝ < 1 ↔ x ≠ y :=
+by { convert inner_lt_norm_mul_iff_real; simp [hx, hy] }
 
 /-- The inner product of two weighted sums, where the weights in each
 sum add to 0, in terms of the norms of pairwise differences. -/

@@ -786,9 +786,9 @@ begin
 end
 
 @[simp] lemma sign_perm_congr {m n : Type*} [fintype m] [fintype n]
-  (e : m ≃ n) (p : equiv.perm m) :
+  (e : m ≃ n) (p : perm m) :
   (e.perm_congr p).sign = p.sign :=
-equiv.perm.sign_eq_sign_of_equiv _ _ e.symm (by simp)
+sign_eq_sign_of_equiv _ _ e.symm (by simp)
 
 end
 

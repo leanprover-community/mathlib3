@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 
-<<<<<<< HEAD
 set -exo pipefail
 
-
-=======
->>>>>>> mv-lint-style
 # # Style linter
 
 # ## Usage

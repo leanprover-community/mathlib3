@@ -191,43 +191,17 @@ begin
     use [set.union_subset hT hU, set.union_subset hT' hU'],
     suffices f : x + y ∈ span B ((T * T') ∪ (U * U') : set M),
     { have f' : ((T * T') ∪ (U * U') : set M) ⊆ ((T ∪ U) * (T' ∪ U') : set M),
-    { convert set.subset_union_left (T * T' ∪ U * U' : set M) (T * U' ∪ U * T'),
-      simp only [set.mul_union, set.union_mul, set.union_mul],
-      ac_refl },
-    apply span_mono f' f, },
+      { convert set.subset_union_left (T * T' ∪ U * U' : set M) (T * U' ∪ U * T'),
+        simp only [set.mul_union, set.union_mul, set.union_mul],
+        ac_refl },
+      apply span_mono f' f, },
     rw [span_union, mem_sup],
     exact ⟨x, h1, y, h2, rfl⟩ },
   rintros a x ⟨T, T', hT, hT', h⟩,
   exact ⟨T, T', hT, hT', smul_mem _ _ h⟩,
 end
 
-/-- An ideal is nontrivial if and only if the fractional ideal corresponding to it is nontrivial. -/
-lemma coe_ideal_ne_bot_iff (I :ideal A) : I ≠ ⊥ ↔ (I : fractional_ideal (fraction_ring.of A)) ≠ ⊥ :=
-begin
-  split,
-  { rw ring.fractional_ideal.bot_eq_zero,
-    contrapose,
-    simp only [not_not],
-    rw eq_zero_iff,
-    rintros h,
-    apply ideal.ext,
-    rintros x,
-    rw ideal.mem_bot,
-    simp at h,
-    let y:= (localization_map.to_map (fraction_ring.of A)) x,
-    specialize h x,
-    split,
-    { rintros hx,
-      have f := h hx,
-      rw localization_map.to_map_eq_zero_iff at f, exact f,
-      refine le_refl _, },
-    { rintros f,
-      rw f,
-      simp, }, },
-  contrapose, simp, rintros h,
-  rw h,
-  finish,
-end
+variables (f : fraction_map A K)
 
 lemma max_ideal_ne_bot (M : ideal A) (max : M.is_maximal) (not_field : ¬ is_field A) : M ≠ ⊥ :=
 begin
@@ -328,13 +302,6 @@ begin
   assumption,
 end
 
-lemma coe_neq_bot (s : submodule A A) (h : s ≠ ⊥) : (s : fractional_ideal (fraction_ring.of A)) ≠ ⊥ :=
-begin
-  set p : ideal A := s with hp,
-  rw coe_ideal_ne_bot_iff A at h,
-  exact h,
-end
-
 lemma noeth : is_dedekind_domain_inv A -> is_noetherian_ring A :=
 begin
   rintros ⟨h1, h2⟩,
@@ -343,7 +310,7 @@ begin
   specialize h2 s,
   by_cases s = ⊥,
   { rw h, apply submodule.fg_bot, },
-  have h := coe_neq_bot A (s : ideal A) h,
+  have h := (coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr h,
   have h' := h2 h,
   have hf := h2 h,
   rw ← fractional_ideal.ext_iff at h',
@@ -357,7 +324,7 @@ begin
   apply noeth_two A s hf q hq q' hq',
   simp at h'',
   rw [←submodule.span_eq q, ←submodule.span_eq q'] at h'',
-  apply submodule.mem_span_mul_finite_of_mem_span_mul A _ _ _ 1 h'',
+  -- apply submodule.mem_span_mul_finite_of_mem_span_mul A _ _ _ 1 h'',
 end
 
 lemma fraction_ring_fractional_ideal (x : (fraction_ring A)) (hx : is_integral A x) :
@@ -448,8 +415,10 @@ begin
   have hpmax := exists_le_maximal p hp.1,
   rcases hpmax with ⟨M, hM1, hM2⟩,
   specialize h2 M,
-  specialize hpinv ((coe_ideal_ne_bot_iff A p).1 nz),
-  specialize h2 ( (coe_ideal_ne_bot_iff A M).1 (max_ideal_ne_bot A M hM1 h1)),
+  have coe_ne_bot : ∀ {I : ideal A}, I ≠ ⊥ → (I : fractional_ideal (fraction_ring.of A)) ≠ 0 :=
+    λ I, (fractional_ideal.coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr,
+  specialize hpinv (coe_ne_bot nz),
+  specialize h2 (coe_ne_bot (max_ideal_ne_bot A M hM1 h1)),
   set I := (M : fractional_ideal (fraction_ring.of A))⁻¹ * (p : fractional_ideal (fraction_ring.of A))
   with hI,
   have f' : I ≤ 1,

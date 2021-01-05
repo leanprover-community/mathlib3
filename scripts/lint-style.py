@@ -14,7 +14,7 @@ ERR_OPT = 6 # set_option
 
 exceptions = []
 
-with open("scripts/copy-mod-doc-exceptions.txt", encoding="utf-8") as f:
+with open("scripts/style-exceptions.txt", encoding="utf-8") as f:
     for line in f.readlines():
         fn, _, _, _, _, errno, *_ = line.split()
         if errno == "ERR_COP":
@@ -207,7 +207,7 @@ for fn in fns:
     lint(fn)
 
 # if "exceptions" is empty,
-# we're trying to generate copy-mod-doc-exceptions.txt,
+# we're trying to generate style-exceptions.txt,
 # so new exceptions are expected
 if new_exceptions and len(exceptions) > 0:
     exit(1)

@@ -282,6 +282,7 @@ Analysis:
     dominated convergence theorem: 'measure_theory.tendsto_integral_of_dominated_convergence'
     fundamental theorem of calculus, part 1: 'interval_integral.integral_has_fderiv_at_of_tendsto_ae'
     Fubini's theorem: 'measure_theory.integral_prod'
+    product of finitely many measures: 'measure_theory.measure.pi'
 
 Geometry:
   Affine and Euclidean geometry:
@@ -316,6 +317,18 @@ Combinatorics:
     finite: 'fintype.exists_ne_map_eq_of_card_lt'
     infinite: 'fintype.exists_infinite_fiber'
     strong pigeonhole principle: 'fintype.exists_lt_card_fiber_of_mul_lt_card'
+
+Dynamics:
+  Circle dynamics:
+    translation number: 'circle_deg1_lift.translation_number'
+    translation numbers define a group action up to semiconjugacy:
+      'circle_deg1_lift.semiconj_of_group_action_of_forall_translation_number_eq'
+    translation number defines a homeomorphism up to semiconjugacy:
+      'circle_deg1_lift.semiconj_of_bijective_of_translation_number_eq'
+  General theory:
+    omega-limit sets: 'omega_limit'
+    fixed points: 'function.fixed_points'
+    periodic points: 'function.periodic_pts'
 
 Data structures:
   List-like structures:

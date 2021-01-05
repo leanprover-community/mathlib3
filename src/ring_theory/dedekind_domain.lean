@@ -209,6 +209,11 @@ begin
   exact ⟨T, T', hT, hT', smul_mem _ _ h⟩,
 end
 
+lemma submodule.mem_span_mul_finite_of_mem_mul {B M : Type*} [comm_semiring B] [semiring M]
+  [algebra B M] {P Q : submodule B M} {x : M} (hx : x ∈ P * Q) :
+  ∃ (T T' : finset M), (T : set M) ⊆ P ∧ (T' : set M) ⊆ Q ∧ x ∈ span B (T * T' : set M) :=
+submodule.mem_span_mul_finite_of_mem_span_mul
+  (by rwa [← submodule.span_eq P, ← submodule.span_eq Q, submodule.span_mul_span] at hx)
 
 lemma ne_bot_of_is_maximal_of_not_is_field {M : ideal A} (max : M.is_maximal)
   (not_field : ¬ is_field A) : M ≠ ⊥ :=
@@ -270,29 +275,17 @@ begin
   { rwa submodule.span_le }
 end
 
-lemma noeth : is_dedekind_domain_inv A -> is_noetherian_ring A :=
+lemma is_noetherian_of_is_dedekind_domain_inv : is_dedekind_domain_inv A → is_noetherian_ring A :=
 begin
   rintros ⟨h1, h2⟩,
-  split,
-  rintros s,
-  specialize h2 s,
-  by_cases s = ⊥,
-  { rw h, apply submodule.fg_bot, },
+  refine ⟨λ s, _⟩,
+  by_cases h : s = ⊥,
+  { rw h, apply submodule.fg_bot },
+  have : (1 : fraction_ring A) ∈ (1 : fractional_ideal (fraction_ring.of A)) := one_mem_one,
   have h := (coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr h,
-  have h' := h2 h,
-  have hf := h2 h,
-  rw ← fractional_ideal.ext_iff at h',
-  specialize h' 1,
-  have h'' := h'.2 one_mem_one,
-  set q : submodule A (localization_map.codomain (fraction_ring.of A)) :=
-    (s : fractional_ideal (fraction_ring.of A)).val with hq,
-  set q' : submodule A (localization_map.codomain (fraction_ring.of A)) :=
-    (s : fractional_ideal (fraction_ring.of A))⁻¹.val with hq',
-  rw [← mem_coe', coe_mul, ← val_eq_coe, ← val_eq_coe, ←submodule.span_eq (q * q')] at h'',
-  simp at h'',
-  rw [←submodule.span_eq q, ←submodule.span_eq q', submodule.span_mul_span] at h'',
-  obtain ⟨T, T', hT, hT', h⟩ := submodule.mem_span_mul_finite_of_mem_span_mul h'',
-  exact fg_of_one_mem_span_mul s hf T T' hT hT' h,
+  rw [← h2 _ h, ← mem_coe', fractional_ideal.coe_mul] at this,
+  obtain ⟨T, T', hT, hT', one_mem⟩ := submodule.mem_span_mul_finite_of_mem_mul this,
+  exact fg_of_one_mem_span_mul s (h2 _ h) T T' hT hT' one_mem,
 end
 
 lemma fraction_ring_fractional_ideal (x : (fraction_ring A)) (hx : is_integral A x) :

@@ -281,6 +281,7 @@ begin
   refine ⟨λ s, _⟩,
   by_cases h : s = ⊥,
   { rw h, apply submodule.fg_bot },
+
   have : (1 : fraction_ring A) ∈ (1 : fractional_ideal (fraction_ring.of A)) := one_mem_one,
   have h := (coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr h,
   rw [← h2 _ h, ← mem_coe', fractional_ideal.coe_mul] at this,
@@ -288,16 +289,16 @@ begin
   exact fg_of_one_mem_span_mul s (h2 _ h) T T' hT hT' one_mem,
 end
 
-lemma fraction_ring_fractional_ideal (x : (fraction_ring A)) (hx : is_integral A x) :
- is_fractional (fraction_ring.of A)
-((algebra.adjoin A {x}).to_submodule : submodule A (localization_map.codomain (fraction_ring.of A))) :=
+lemma is_fractional_adjoin_integral (x : f.codomain) (hx : is_integral A x) :
+  is_fractional f ((algebra.adjoin A {x}).to_submodule : submodule A f.codomain) :=
 is_fractional_of_fg (fg_adjoin_singleton_of_integral x hx)
 
-lemma mem_adjoin (x : fraction_ring A) :
-  x ∈ ((algebra.adjoin A {x}) : subalgebra A (localization_map.codomain (fraction_ring.of A))) :=
-by {apply subsemiring.subset_closure, simp}
+lemma mem_adjoin_self (x : f.codomain) :
+  x ∈ ((algebra.adjoin A {x}) : subalgebra A f.codomain) :=
+algebra.subset_adjoin (set.mem_singleton x)
 
-lemma int_close : is_dedekind_domain_inv A -> integral_closure A (fraction_ring A) = ⊥ :=
+lemma int_closed_of_is_dedekind_domain_inv :
+  is_dedekind_domain_inv A -> integral_closure A (fraction_ring A) = ⊥ :=
 begin
   rintros h,
   ext,
@@ -306,7 +307,7 @@ begin
     cases h with h1 h2,
     let S : subalgebra A (localization_map.codomain (fraction_ring.of A)) := algebra.adjoin A {x},
     have f' : is_fractional _ (S.to_submodule),
-    { apply fraction_ring_fractional_ideal,
+    { apply is_fractional_adjoin_integral,
       rcases hx with ⟨p, hp1, hp2⟩,
       split,
       rotate,
@@ -331,7 +332,7 @@ begin
         apply a,
         suffices f : x ∈ (S : submodule A (localization_map.codomain (fraction_ring.of A))), exact f,
         rw subalgebra.mem_to_submodule,
-        apply mem_adjoin, },
+        apply mem_adjoin_self, },
       have hM := h2 g,
       suffices hM' : M * (M * M⁻¹) = 1,
       rw hM at hM', assumption,
@@ -346,7 +347,7 @@ begin
     have fx : x ∈ M,
     suffices f : x ∈ (S : submodule A (localization_map.codomain (fraction_ring.of A))), exact f,
     rw subalgebra.mem_to_submodule,
-    apply mem_adjoin,
+    apply mem_adjoin_self,
     suffices h' : x ∈ ((⊥ : subalgebra A (localization_map.codomain (fraction_ring.of A))) :
     submodule A (localization_map.codomain (fraction_ring.of A))),
     rw subalgebra.mem_to_submodule at h', assumption,
@@ -367,7 +368,7 @@ begin
   assumption,
 end
 
-lemma dim_le_one : is_dedekind_domain_inv A -> dimension_le_one A :=
+lemma dim_le_one_of_is_dedekind_domain_inv : is_dedekind_domain_inv A -> dimension_le_one A :=
 begin
   rintros h,
   rcases h with ⟨h1, h2⟩,
@@ -384,9 +385,8 @@ begin
   with hI,
   have f' : I ≤ 1,
   { set N := (M : fractional_ideal (fraction_ring.of A))⁻¹ with hN,
-    have g'' := submodule.mul_le_mul (coe_ideal_le_coe_ideal.mp hM2) (le_refl N),
+    have g'' := fractional_ideal.mul_right_mono N (coe_ideal_le_coe_ideal.mpr hM2),
     simp only [val_eq_coe, ←coe_mul] at g'',
-    norm_cast at g'',
     rw h2 at g'',
     rw mul_comm at g'',
     exact g'', },
@@ -469,9 +469,9 @@ begin
   rintros h,
   split,
   { apply h.1, },
-  { apply noeth, assumption, },
-  { apply dim_le_one, assumption, },
-  { apply int_close, assumption, },
+  { apply is_noetherian_of_is_dedekind_domain_inv, assumption, },
+  { apply dim_le_one_of_is_dedekind_domain_inv, assumption, },
+  { apply int_closed_of_is_dedekind_domain_inv, assumption, },
 end
 
 end

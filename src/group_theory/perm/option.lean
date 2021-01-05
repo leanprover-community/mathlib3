@@ -82,21 +82,6 @@ lemma equiv.perm.decompose_option_symm_sign {α : Type*} [decidable_eq α] [fint
   perm.sign (equiv.perm.decompose_option.symm (none, e)) = perm.sign e :=
 by simp
 
--- TODO: move these to data/equiv/basic, when we're ready to face the build time cost
-section needs_a_home
-
-@[simp] lemma perm_congr_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm α) :
-  e.perm_congr p = (e.symm.trans p).trans e := rfl
-
-@[simp] lemma perm_congr_symm {α β : Type*} (e : α ≃ β) :
-  e.perm_congr.symm = e.symm.perm_congr := rfl
-
-@[simp] lemma trans_swap_trans_symm {α β} [decidable_eq α] [decidable_eq β] (a b : β)
-  (e : α ≃ β) : (e.trans (swap a b)).trans e.symm = swap (e.symm a) (e.symm b) :=
-symm_trans_swap_trans a b e.symm
-
-end needs_a_home
-
 -- TODO: these are in gh-5614, wait for that
 namespace perm
 

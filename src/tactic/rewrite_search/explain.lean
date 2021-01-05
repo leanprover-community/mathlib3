@@ -56,7 +56,7 @@ private meta def nth_rule (rs : list (expr × bool)) (i : ℕ) : expr × bool :=
 
 /-- Convert a rule into the string of Lean code used to refer to this rule. -/
 private meta def pp_rule (r : expr × bool) : tactic string :=
-do pp ← pp r.1, return $ (if r.2 then "←" else "") ++ (to_string pp)
+do pp ← pp r.1, return $ (if r.2 then "←" else "") ++ to_string pp
 
 private meta def how.to_rewrite (rs : list (expr × bool)) : how → option (expr × bool)
 | h := nth_rule rs h.rule_index

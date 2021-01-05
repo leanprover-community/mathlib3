@@ -61,7 +61,6 @@ The name of a lemma indicates using it as a rewrite. Prepending a "←" reverses
 private meta def rws_parser : lean.parser (pexpr × bool) :=
 do flipped ← optional $ tk "←",
    pexp ← lean.parser.pexpr 0,
-  --  exp ← to_expr' pexp,
    return (pexp, flipped.is_some)
 
 /--
@@ -78,9 +77,10 @@ do t ← tactic.target,
   if t.has_meta_var then
     tactic.fail "rewrite_search is not suitable for goals containing metavariables"
   else tactic.skip,
-  rules ← collect_rules,
-  rs ← (rs.get_or_else []).mmap (λ ⟨pe, dir⟩, do e ← to_expr' pe, return (e, dir)),
-  g ← mk_graph cfg (rules ++ rs) t,
+  implicit_rules ← collect_rules,
+  explicit_rules ← (rs.get_or_else []).mmap (λ ⟨pe, dir⟩, do e ← to_expr' pe, return (e, dir)),
+  let rules := implicit_rules ++ explicit_rules,
+  g ← mk_graph cfg rules t,
   (_, proof, steps) ← g.find_proof,
   tactic.exact proof,
   if explain.is_some then explain_search_result cfg rules proof steps else skip

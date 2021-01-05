@@ -764,7 +764,7 @@ end
 
 lemma to_matrix_is_basis_coe {ι : Type*} [decidable_eq ι] [fintype ι]
   {b : ι → integral_closure R L} (hb : is_basis R b)
-  {l : L →ₗ[f.codomain] L} {l' : integral_closure R L →ₗ[R] integral_closure R L}
+  (l : L →ₗ[f.codomain] L) (l' : integral_closure R L →ₗ[R] integral_closure R L)
   (hl : ∀ x : integral_closure R L, l x = l' x) :
   linear_map.to_matrix (is_basis_coe f hb) (is_basis_coe f hb) l =
     (linear_map.to_matrix hb hb l').map (algebra_map _ _) :=
@@ -1022,8 +1022,13 @@ lemma abs_frac_norm_coe [decidable_eq L] (x : integral_closure R L) :
   abs_frac_norm f abs (x : L) = abs_norm f abs x :=
 begin
   unfold abs_frac_norm abs_norm algebra.norm,
-  rw to_matrix_is_basis_coe,
-  sorry
+  rw [monoid_hom.coe_mk,
+      to_matrix_is_basis_coe f (integral_closure.is_basis L f)
+        (algebra.lmul (f.codomain) L x) (algebra.lmul R (integral_closure R L) x),
+      det_map, monoid_hom.coe_mk],
+  { exact abs.to_frac_to_map f _ },
+  intro y,
+  simp
 end
 
 /-- If `L` is a finite dimensional extension of the field of fractions of a Euclidean domain `R`,
@@ -1235,7 +1240,7 @@ section euclidean_domain
 variables {R K L : Type*} [euclidean_domain R] [is_dedekind_domain R]
 variables [field K] [field L] [decidable_eq L]
 variables (f : fraction_map R K)
-variables [algebra f.codomain L] [finite_dimensional f.codomain L]
+variables [algebra f.codomain L] [finite_dimensional f.codomain L] [is_separable f.codomain L]
 variables [algebra R L] [is_scalar_tower R f.codomain L]
 variables (abs : euclidean_absolute_value R ℤ)
 
@@ -1255,8 +1260,6 @@ begin
   { obtain ⟨b, b_mem, b_ne_zero⟩ := I.1.ne_bot_iff.mp I.2,
     exact ⟨_, ⟨b, b_mem, b_ne_zero, rfl⟩⟩ }
 end
-
-instance : is_dedekind_domain (integral_closure R L) := sorry
 
 lemma is_scalar_tower.algebra_map_injective {R S T : Type*}
   [comm_semiring R] [comm_semiring S] [comm_semiring T]

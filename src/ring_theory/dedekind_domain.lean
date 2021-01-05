@@ -15,6 +15,7 @@ import ring_theory.adjoin_root
 
 This file defines the notion of a Dedekind domain (or Dedekind ring),
 giving three equivalent definitions (TODO: and shows that they are equivalent).
+We have now shown one side of the equivalence two of these definitions.
 
 ## Main definitions
 
@@ -141,7 +142,7 @@ begin
       simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one] }
 end
 
-open_locale classical -- to deal with union of two finsets!
+open_locale classical
 
 variables (B : Type*) [semiring B]
 variables (M : Type*) [add_comm_monoid M] [semimodule B M]
@@ -214,7 +215,8 @@ begin
   refine smul_mem _ _ h,
 end
 
-lemma coe_ne_bot (I :ideal A) : I ≠ ⊥ ↔ (I : fractional_ideal (fraction_ring.of A)) ≠ ⊥ :=
+/-- An ideal is nontrivial if and only if the fractional ideal corresponding to it is nontrivial. -/
+lemma coe_ideal_ne_bot_iff (I :ideal A) : I ≠ ⊥ ↔ (I : fractional_ideal (fraction_ring.of A)) ≠ ⊥ :=
 begin
   split,
   { rw ring.fractional_ideal.bot_eq_zero,
@@ -355,7 +357,7 @@ end
 lemma coe_neq_bot (s : submodule A A) (h : s ≠ ⊥) : (s : fractional_ideal (fraction_ring.of A)) ≠ ⊥ :=
 begin
   set p : ideal A := s with hp,
-  rw coe_ne_bot A at h,
+  rw coe_ideal_ne_bot_iff A at h,
   exact h,
 end
 
@@ -472,8 +474,8 @@ begin
   have hpmax := exists_le_maximal p hp.1,
   rcases hpmax with ⟨M, hM1, hM2⟩,
   specialize h2 M,
-  specialize hpinv ((coe_ne_bot A p).1 nz),
-  specialize h2 ( (coe_ne_bot A M).1 (max_ideal_ne_bot A M hM1 h1)),
+  specialize hpinv ((coe_ideal_ne_bot_iff A p).1 nz),
+  specialize h2 ( (coe_ideal_ne_bot_iff A M).1 (max_ideal_ne_bot A M hM1 h1)),
   set I := (M : fractional_ideal (fraction_ring.of A))⁻¹ * (p : fractional_ideal (fraction_ring.of A))
   with hI,
   have f' : I ≤ 1,
@@ -493,13 +495,9 @@ begin
   have g : I ≤ (p : fractional_ideal (fraction_ring.of A)),
   { rw le_iff_mem,
     rintros x hxI,
-    have hpM :  ∃ (x : A), x ∈ M ∧ x ∉ p,
-    { classical,
-      by_contradiction a,
-      simp at a,
-      have a : M ≤ p := a,
-      apply h,
-      rw <-has_le.le.le_iff_eq a, assumption, },
+    have hpM :  ∃ (y : A) (H : y ∈ M), y ∉ p,
+    { apply exists_of_lt,
+      apply lt_of_le_of_ne, assumption, assumption, },
     rcases hpM with ⟨z, hz, hpz⟩,
     rw le_iff_mem at f',
     specialize f' x hxI,

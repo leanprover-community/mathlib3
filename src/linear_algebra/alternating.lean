@@ -706,6 +706,7 @@ by simp only [dom_coprod', tensor_product.lift.tmul, linear_map.mk₂_apply]
 end alternating_map
 
 open alternating_map
+open equiv
 
 /-- Computing the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` is the same
 as computing the `alternating_map.dom_coprod` of the `multilinear_map.alternatization`s.

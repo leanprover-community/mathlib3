@@ -430,7 +430,7 @@ begin
   have map_smul : ∀ (z : units ℤ) (x : N'), (z : ℤ) • g x = g ((z : ℤ) • x),
   { intros z v,
     cases int.units_eq_one_or z with h;
-    simp [h], },
+      simp [h], },
   ext,
   simp [multilinear_map.alternatization_apply, map_smul],
 end

@@ -58,6 +58,19 @@ def frobenius_morphism (h : L ⊣ F) (A : C) :
   prod.functor.obj (F.obj A) ⋙ L ⟶ L ⋙ prod.functor.obj A :=
 prod_comparison_nat_trans L (F.obj A) ≫ whisker_left _ (prod.functor.map (h.counit.app _))
 
+/--
+If `F` is full and faithful and has a left adjoint `L` which preserves binary products
+-/
+instance frobenius_morphism_iso_of_preserves_finite_products (h : L ⊣ F) (A : C)
+  [preserves_limits_of_shape (discrete walking_pair) L] [full F] [faithful F] :
+is_iso (frobenius_morphism F h A) :=
+begin
+  apply nat_iso.is_iso_of_is_iso_app _,
+  intro B,
+  dsimp [frobenius_morphism],
+  apply_instance,
+end
+
 variables [cartesian_closed C] [cartesian_closed D]
 variables [preserves_limits_of_shape (discrete walking_pair) F]
 
@@ -127,19 +140,6 @@ lemma frobenius_morphism_mate (h : L ⊣ F) (A : C) :
         inv_prod_comparison_map_snd],
       simp },
   end
-
-/--
-If `F` is full and faithful and has a left adjoint `L` which preserves binary products
--/
-instance frobenius_morphism_iso_of_preserves_finite_products (h : L ⊣ F) (A : C)
-  [preserves_limits_of_shape (discrete walking_pair) L] [full F] [faithful F] :
-is_iso (frobenius_morphism F h A) :=
-begin
-  apply nat_iso.is_iso_of_is_iso_app _,
-  intro B,
-  dsimp [frobenius_morphism],
-  apply_instance,
-end
 
 /--
 If the exponential comparison transformation (at `A`) is an isomorphism, then the Frobenius morphism

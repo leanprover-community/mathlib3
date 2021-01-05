@@ -3,10 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Eric Wieser
 -/
-import group_theory.perm.basic
+import group_theory.perm.sign
 import data.equiv.option
-import data.equiv.fin
-import data.fintype.basic
 
 /-!
 # Permutations of `option α`

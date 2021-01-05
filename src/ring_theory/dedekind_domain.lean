@@ -142,14 +142,22 @@ begin
       simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one] }
 end
 
+end
+
+section
+
+open ring.fractional_ideal
+
+variables {A}
+
 open_locale classical
 
-variables (B : Type*) [semiring B]
-variables (M : Type*) [add_comm_monoid M] [semimodule B M]
+variables {B : Type*} [semiring B]
+variables {M : Type*} [add_comm_monoid M] [semimodule B M]
 
 open submodule
 
-lemma submodule.mem_span_finite_of_mem_span (S : set M) (x : M) (hx : x ∈ span B S) :
+lemma submodule.mem_span_finite_of_mem_span {S : set M} {x : M} (hx : x ∈ span B S) :
   ∃ T : finset M, ↑T ⊆ S ∧ x ∈ span B (T : set M) :=
 begin
   refine span_induction hx (λ x hx, _) _ _ _,
@@ -168,8 +176,8 @@ begin
     exact ⟨T, hT, smul_mem _ _ h2⟩ }
 end
 
-lemma submodule.mem_span_mul_finite_of_mem_span_mul (B M : Type*) [comm_semiring B] [semiring M]
-  [algebra B M] (S : set M) (S' : set M) (x : M) (hx : x ∈ span B (S * S')) :
+lemma submodule.mem_span_mul_finite_of_mem_span_mul {B M : Type*} [comm_semiring B] [semiring M]
+  [algebra B M] {S : set M} {S' : set M} {x : M} (hx : x ∈ span B (S * S')) :
   ∃ (T T' : finset M), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ x ∈ span B (T * T' : set M) :=
 begin
   apply span_induction hx,
@@ -177,9 +185,9 @@ begin
     obtain ⟨y, z, hy, hz, h'⟩ := set.mem_mul.mp hx,
     have hy' := submodule.subset_span hy,
     have hz' := submodule.subset_span hz,
-    have h := submodule.mem_span_finite_of_mem_span _ _ _ _ hy',
+    have h := submodule.mem_span_finite_of_mem_span hy',
     rcases h with ⟨T, hT, fy⟩,
-    have h := submodule.mem_span_finite_of_mem_span _ _ _ _ hz',
+    have h := submodule.mem_span_finite_of_mem_span hz',
     rcases h with ⟨T', hT', fz⟩,
     use [T, T', hT, hT'],
     rw [←h', ←submodule.span_mul_span],
@@ -203,7 +211,7 @@ end
 
 variables (f : fraction_map A K)
 
-lemma max_ideal_ne_bot (M : ideal A) (max : M.is_maximal) (not_field : ¬ is_field A) : M ≠ ⊥ :=
+lemma max_ideal_ne_bot {M : ideal A} (max : M.is_maximal) (not_field : ¬ is_field A) : M ≠ ⊥ :=
 begin
   rintros h,
   rw h at max,
@@ -321,10 +329,10 @@ begin
   set q' : submodule A (localization_map.codomain (fraction_ring.of A)) :=
     (s : fractional_ideal (fraction_ring.of A))⁻¹.val with hq',
   rw [← mem_coe', coe_mul, ← val_eq_coe, ← val_eq_coe, ←submodule.span_eq (q * q')] at h'',
-  apply noeth_two A s hf q hq q' hq',
+  apply noeth_two s hf q hq q' hq',
   simp at h'',
   rw [←submodule.span_eq q, ←submodule.span_eq q'] at h'',
-  -- apply submodule.mem_span_mul_finite_of_mem_span_mul A _ _ _ 1 h'',
+  -- apply submodule.mem_span_mul_finite_of_mem_span_mul 1 h'',
 end
 
 lemma fraction_ring_fractional_ideal (x : (fraction_ring A)) (hx : is_integral A x) :
@@ -416,9 +424,9 @@ begin
   rcases hpmax with ⟨M, hM1, hM2⟩,
   specialize h2 M,
   have coe_ne_bot : ∀ {I : ideal A}, I ≠ ⊥ → (I : fractional_ideal (fraction_ring.of A)) ≠ 0 :=
-    λ I, (fractional_ideal.coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr,
+    λ I, (coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr,
   specialize hpinv (coe_ne_bot nz),
-  specialize h2 (coe_ne_bot (max_ideal_ne_bot A M hM1 h1)),
+  specialize h2 (coe_ne_bot (max_ideal_ne_bot hM1 h1)),
   set I := (M : fractional_ideal (fraction_ring.of A))⁻¹ * (p : fractional_ideal (fraction_ring.of A))
   with hI,
   have f' : I ≤ 1,

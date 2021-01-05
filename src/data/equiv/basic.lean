@@ -282,16 +282,16 @@ by { ext, refl }
 def perm_congr {α : Type*} {β : Type*} (e : α ≃ β) : perm α ≃ perm β :=
 equiv_congr e e
 
-@[simp] lemma perm_congr_def {α β : Type*} (e : α ≃ β) (p : equiv.perm α) :
+lemma perm_congr_def {α β : Type*} (e : α ≃ β) (p : equiv.perm α) :
   e.perm_congr p = (e.symm.trans p).trans e := rfl
 
 @[simp] lemma perm_congr_symm {α β : Type*} (e : α ≃ β) :
   e.perm_congr.symm = e.symm.perm_congr := rfl
 
-lemma perm_congr_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm α) (x) :
+@[simp] lemma perm_congr_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm α) (x) :
 e.perm_congr p x = e (p (e.symm x)) := rfl
 
-lemma perm_congr_symm_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm β) (x) :
+@[simp] lemma perm_congr_symm_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm β) (x) :
 e.perm_congr.symm p x = e.symm (p (e x)) := rfl
 
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=

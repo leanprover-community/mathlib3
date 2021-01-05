@@ -242,18 +242,6 @@ begin
   assumption,
 end
 
-lemma ext' (I J : fractional_ideal (fraction_ring.of A)) :
-  I = J ↔ ∀ (x : localization_map.codomain (fraction_ring.of A)), (x ∈ I ↔ x ∈ J) :=
-begin
-  split,
-  { rintros a,
-    rw a, simp, },
-  rintros,
-  apply ring.fractional_ideal.ext,
-  apply submodule.ext,
-  assumption,
-end
-
 lemma ideal_le_iff_frac_ideal_le (I J : ideal A) : I ≤ J ↔
   (I : fractional_ideal (fraction_ring.of A)) ≤ (J : fractional_ideal (fraction_ring.of A)) :=
 begin
@@ -358,7 +346,7 @@ begin
   have h := coe_neq_bot A (s : ideal A) h,
   have h' := h2 h,
   have hf := h2 h,
-  rw ext' at h',
+  rw ← fractional_ideal.ext_iff at h',
   specialize h' 1,
   have h'' := h'.2 one_mem_one,
   set q : submodule A (localization_map.codomain (fraction_ring.of A)) :=
@@ -435,7 +423,7 @@ begin
     submodule A (localization_map.codomain (fraction_ring.of A))),
     rw subalgebra.mem_to_submodule at h', assumption,
     rw algebra.to_submodule_bot,
-    rw ext' at f,
+    rw ← fractional_ideal.ext_iff at f,
     specialize f x,
     have g' := f.1 fx,
     rw ←coe_span_singleton 1,
@@ -535,7 +523,7 @@ begin
   unfold has_one.one at k,
   simp at k,
   rw ideal.eq_top_iff_one,
-  rw ext' at k,
+  rw ← fractional_ideal.ext_iff at k,
   specialize k 1,
   have k' := k.1 one_mem_one,
   simp at k',

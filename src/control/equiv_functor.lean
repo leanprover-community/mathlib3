@@ -54,6 +54,24 @@ def map_equiv :
 
 @[simp] lemma map_equiv_symm_apply (y : f β) :
   (map_equiv f e).symm y = equiv_functor.map e.symm y := rfl
+
+@[simp] lemma map_equiv_refl (α) :
+  map_equiv f (equiv.refl α) = equiv.refl (f α) :=
+by simpa [equiv_functor.map_equiv]
+
+lemma map_equiv_symm :
+  (map_equiv f e).symm = map_equiv f e.symm :=
+equiv.ext $ map_equiv_symm_apply f e
+
+/--
+The composition of `map_equiv`s is carried over the `equiv_functor`.
+For plain `functor`s, this lemma is named `map_map` when applied
+or `map_comp_map` when not applied.
+-/
+@[simp] lemma map_equiv_trans {γ : Type u₀} (ab : α ≃ β) (bc : β ≃ γ) :
+  (map_equiv f ab).trans (map_equiv f bc) = map_equiv f (ab.trans bc) :=
+equiv.ext $ λ x, by simp [map_equiv, map_trans']
+
 end
 
 @[priority 100]

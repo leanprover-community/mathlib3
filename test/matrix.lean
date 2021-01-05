@@ -61,4 +61,16 @@ begin
   ring
 end
 
+example {R : Type*} [comm_ring R] (A : matrix (fin 3) (fin 3) R) {a b c d e f g h i}
+        (hA : A = ![![a, b, c], ![d, e, f], ![g, h, i]]) :
+        matrix.det A = a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g :=
+begin
+  -- TODO: write swap simp lemmas
+  have h0 : equiv.swap (0 : fin 3) 1 (fin.succ 1) = 2 := dec_trivial,
+  have h1 : equiv.swap (0 : fin 3) (fin.succ 1) 1 = 1 := dec_trivial,
+  simp [h0, h1, hA, matrix.det, finset.univ_perm_fin_succ, ←finset.univ_product_univ,
+        finset.sum_product, fin.sum_univ_succ, fin.prod_univ_succ, fin.succ_ne_zero],
+  ring
+end
+
 end matrix

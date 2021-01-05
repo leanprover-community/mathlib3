@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.mean_value
+import analysis.calculus.formal_multilinear_series
 
 /-!
 # Higher differentiability
@@ -32,8 +33,6 @@ We prove basic properties of these notions.
 ## Main definitions and results
 Let `f : E → F` be a map between normed vector spaces over a nondiscrete normed field `𝕜`.
 
-* `formal_multilinear_series 𝕜 E F`: a family of `n`-multilinear maps for all `n`, designed to
-  model the sequence of derivatives of a function.
 * `has_ftaylor_series_up_to n f p`: expresses that the formal multilinear series `p` is a sequence
   of iterated derivatives of `f`, up to the `n`-th term (where `n` is a natural number or `∞`).
 * `has_ftaylor_series_up_to_on n f p s`: same thing, but inside a set `s`. The notion of derivative
@@ -175,58 +174,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
 {s s₁ t u : set E} {f f₁ : E → F} {g : F → G} {x : E} {c : F}
 {b : E × F → G}
-
-/-- A formal multilinear series over a field `𝕜`, from `E` to `F`, is given by a family of
-multilinear maps from `E^n` to `F` for all `n`. -/
-@[derive add_comm_group]
-def formal_multilinear_series
-  (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  (E : Type*) [normed_group E] [normed_space 𝕜 E]
-  (F : Type*) [normed_group F] [normed_space 𝕜 F] :=
-Π (n : ℕ), (E [×n]→L[𝕜] F)
-
-instance : inhabited (formal_multilinear_series 𝕜 E F) := ⟨0⟩
-
-section module
-/- `derive` is not able to find the module structure, probably because Lean is confused by the
-dependent types. We register it explicitly. -/
-local attribute [reducible] formal_multilinear_series
-
-instance : module 𝕜 (formal_multilinear_series 𝕜 E F) :=
-begin
-  letI : ∀ n, module 𝕜 (continuous_multilinear_map 𝕜 (λ (i : fin n), E) F) :=
-    λ n, by apply_instance,
-  apply_instance
-end
-
-end module
-
-namespace formal_multilinear_series
-
-variables (p : formal_multilinear_series 𝕜 E F)
-
-/-- Forgetting the zeroth term in a formal multilinear series, and interpreting the following terms
-as multilinear maps into `E →L[𝕜] F`. If `p` corresponds to the Taylor series of a function, then
-`p.shift` is the Taylor series of the derivative of the function. -/
-def shift : formal_multilinear_series 𝕜 E (E →L[𝕜] F) :=
-λn, (p n.succ).curry_right
-
-/-- Adding a zeroth term to a formal multilinear series taking values in `E →L[𝕜] F`. This
-corresponds to starting from a Taylor series for the derivative of a function, and building a Taylor
-series for the function itself. -/
-def unshift (q : formal_multilinear_series 𝕜 E (E →L[𝕜] F)) (z : F) :
-  formal_multilinear_series 𝕜 E F
-| 0       := (continuous_multilinear_curry_fin0 𝕜 E F).symm z
-| (n + 1) := continuous_multilinear_curry_right_equiv' 𝕜 n E F (q n)
-
-/-- Convenience congruence lemma stating in a dependent setting that, if the arguments to a formal
-multilinear series are equal, then the values are also equal. -/
-lemma congr (p : formal_multilinear_series 𝕜 E F) {m n : ℕ} {v : fin m → E} {w : fin n → E}
-  (h1 : m = n) (h2 : ∀ (i : ℕ) (him : i < m) (hin : i < n), v ⟨i, him⟩ = w ⟨i, hin⟩) :
-  p m v = p n w :=
-by { cases h1, congr' with ⟨i, hi⟩, exact h2 i hi hi }
-
-end formal_multilinear_series
 
 /-! ### Functions with a Taylor series on a domain -/
 
@@ -2511,8 +2458,8 @@ equivalence, then `f.symm` is `n` times continuously differentiable at the point
 
 This is one of the easy parts of the inverse function theorem: it assumes that we already have
 an inverse function. -/
-theorem times_cont_diff_at.of_local_homeomorph [complete_space E] {n : with_top ℕ}
-  {f : local_homeomorph E F} {f₀' : E ≃L[𝕜] F} {a : F} (ha : a ∈ f.target)
+theorem local_homeomorph.times_cont_diff_at_symm [complete_space E] {n : with_top ℕ}
+  (f : local_homeomorph E F) {f₀' : E ≃L[𝕜] F} {a : F} (ha : a ∈ f.target)
   (hf₀' : has_fderiv_at f (f₀' : E →L[𝕜] F) (f.symm a)) (hf : times_cont_diff_at 𝕜 n f (f.symm a)) :
   times_cont_diff_at 𝕜 n f.symm a :=
 begin
@@ -2543,7 +2490,7 @@ begin
       have h_deriv : has_fderiv_at f ↑e ((f.symm) x),
       { rw he,
         exact hff' (f.symm x) hxu },
-      convert h_deriv.of_local_homeomorph hx.1,
+      convert f.has_fderiv_at_symm hx.1 h_deriv,
       simp [← he] },
     { -- Then we check that the formula, being a composition of `times_cont_diff` pieces, is
       -- itself `times_cont_diff`
@@ -2751,12 +2698,6 @@ variables (𝕜) {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebr
 variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
 variables [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
 variables {p' : E → formal_multilinear_series 𝕜' E F} {n : with_top ℕ}
-
-/-- Reinterpret a formal `𝕜'`-multilinear series as a formal `𝕜`-multilinear series, where `𝕜'` is a
-normed algebra over `𝕜`. -/
-@[simp] def formal_multilinear_series.restrict_scalars (p : formal_multilinear_series 𝕜' E F) :
-  formal_multilinear_series 𝕜 E F :=
-λ n, (p n).restrict_scalars 𝕜
 
 lemma has_ftaylor_series_up_to_on.restrict_scalars
   (h : has_ftaylor_series_up_to_on n f p' s) :

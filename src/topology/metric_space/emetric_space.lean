@@ -26,7 +26,7 @@ The class `emetric_space` therefore extends `uniform_space` (and `topological_sp
 open set filter classical
 noncomputable theory
 
-open_locale uniformity topological_space big_operators filter
+open_locale uniformity topological_space big_operators filter nnreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -238,7 +238,7 @@ emetric.mk_uniformity_basis_le (λ _, and.left)
     ⟨min ε δ, ⟨lt_min ε₀ hδ.1, lt_of_le_of_lt (min_le_right _ _) hδ.2⟩, min_le_left _ _⟩)
 
 theorem uniformity_basis_edist_nnreal :
-  (𝓤 α).has_basis (λ ε : nnreal, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
+  (𝓤 α).has_basis (λ ε : ℝ≥0, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
 emetric.mk_uniformity_basis (λ _, ennreal.coe_pos.2)
   (λ ε ε₀, let ⟨δ, hδ⟩ := ennreal.lt_iff_exists_nnreal_btwn.1 ε₀ in
   ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
@@ -610,9 +610,9 @@ theorem cauchy_seq_iff' [nonempty β] [semilattice_sup β] {u : β → α} :
 uniformity_basis_edist.cauchy_seq_iff'
 
 /-- A variation of the emetric characterization of Cauchy sequences that deals with
-`nnreal` upper bounds. -/
+`ℝ≥0` upper bounds. -/
 theorem cauchy_seq_iff_nnreal [nonempty β] [semilattice_sup β] {u : β → α} :
-  cauchy_seq u ↔ ∀ ε : nnreal, 0 < ε → ∃ N, ∀ n, N ≤ n → edist (u n) (u N) < ε :=
+  cauchy_seq u ↔ ∀ ε : ℝ≥0, 0 < ε → ∃ N, ∀ n, N ≤ n → edist (u n) (u N) < ε :=
 uniformity_basis_edist_nnreal.cauchy_seq_iff'
 
 theorem totally_bounded_iff {s : set α} :

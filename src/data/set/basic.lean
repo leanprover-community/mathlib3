@@ -313,7 +313,12 @@ lemma nonempty_iff_univ_nonempty : nonempty α ↔ (univ : set α).nonempty :=
 lemma nonempty.to_subtype (h : s.nonempty) : nonempty s :=
 nonempty_subtype.2 h
 
+instance [nonempty α] : nonempty (set.univ : set α) := set.univ_nonempty.to_subtype
+
 @[simp] lemma nonempty_insert (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
+
+lemma nonempty_of_nonempty_subtype [nonempty s] : s.nonempty :=
+nonempty_subtype.mp ‹_›
 
 /-! ### Lemmas about the empty set -/
 
@@ -560,6 +565,9 @@ by finish [subset_def, ext_iff, iff_def]
 theorem inter_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∩ t = t :=
 by finish [subset_def, ext_iff, iff_def]
 
+theorem subset_iff_inter_eq_self {s t : set α} : s ⊆ t ↔ s ∩ t = s :=
+⟨λ h, inter_eq_self_of_subset_left h, λ h x h1, set.mem_of_mem_inter_right (by {rw h, exact h1})⟩
+
 lemma inter_compl_nonempty_iff {s t : set α} : (s ∩ tᶜ).nonempty ↔ ¬ s ⊆ t :=
 begin
   split,
@@ -646,6 +654,8 @@ by { ext, simp [or.comm, or.left_comm] }
 
 theorem insert_nonempty (a : α) (s : set α) : (insert a s).nonempty :=
 ⟨a, mem_insert a s⟩
+
+instance (a : α) (s : set α) : nonempty (insert a s : set α) := (insert_nonempty a s).to_subtype
 
 lemma insert_inter (x : α) (s t : set α) : insert x (s ∩ t) = insert x s ∩ insert x t :=
 by { ext y, simp [←or_and_distrib_left] }
@@ -742,6 +752,15 @@ instance unique_singleton (a : α) : unique ↥({a} : set α) :=
 lemma eq_singleton_iff_unique_mem {s : set α} {a : α} :
   s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
 by simp [ext_iff, @iff_def (_ ∈ s), forall_and_distrib, and_comm]
+
+lemma eq_singleton_iff_nonempty_unique_mem {s : set α} {a : α} :
+  s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
+begin
+  split,
+  { intros h, subst h, simp, },
+  { rintros ⟨hne, h_uniq⟩, rw eq_singleton_iff_unique_mem, refine ⟨_, h_uniq⟩,
+    rw ← h_uniq hne.some hne.some_spec, apply hne.some_spec, },
+end
 
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
@@ -1326,6 +1345,9 @@ lemma nonempty.of_image {f : α → β} {s : set α} : (f '' s).nonempty → s.n
   (f '' s).nonempty ↔ s.nonempty :=
 ⟨nonempty.of_image, λ h, h.image f⟩
 
+instance (f : α → β) (s : set α) [nonempty s] : nonempty (f '' s) :=
+(set.nonempty.image f nonempty_of_nonempty_subtype).to_subtype
+
 /-- image and preimage are a Galois connection -/
 @[simp] theorem image_subset_iff {s : set α} {t : set β} {f : α → β} :
   f '' s ⊆ t ↔ s ⊆ f ⁻¹' t :=
@@ -1344,14 +1366,14 @@ subset.antisymm
   (λ x ⟨y, hy, e⟩, h e ▸ hy)
   (subset_preimage_image f s)
 
-theorem image_preimage_eq {f : α → β} {s : set β} (h : surjective f) : f '' (f ⁻¹' s) = s :=
+theorem image_preimage_eq {f : α → β} (s : set β) (h : surjective f) : f '' (f ⁻¹' s) = s :=
 subset.antisymm
   (image_preimage_subset f s)
   (λ x hx, let ⟨y, e⟩ := h x in ⟨y, (e.symm ▸ hx : f y ∈ s), e⟩)
 
-lemma preimage_eq_preimage {f : β → α} (hf : surjective f) : f ⁻¹' s = preimage f t ↔ s = t :=
+lemma preimage_eq_preimage {f : β → α} (hf : surjective f) : f ⁻¹' s = f ⁻¹' t ↔ s = t :=
 iff.intro
-  (assume eq, by rw [← @image_preimage_eq β α f s hf, ← @image_preimage_eq β α f t hf, eq])
+  (assume eq, by rw [← image_preimage_eq s hf, ← image_preimage_eq t hf, eq])
   (assume eq, eq ▸ rfl)
 
 lemma image_inter_preimage (f : α → β) (s : set α) (t : set β) :
@@ -1470,6 +1492,12 @@ begin
   { exact λ h, subsingleton.intro (λ a b, set_coe.ext (h a.property b.property)) }
 end
 
+/-- `s` is a subsingleton, if its image of an injective function is. -/
+theorem subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.injective f)
+  (s : set α) (hs : subsingleton (f '' s)) : subsingleton s :=
+subsingleton.intro $ λ ⟨a, ha⟩ ⟨b, hb⟩, subtype.ext $ hf
+  (by {simpa using @subsingleton.elim _ hs ⟨f a, ⟨a, ha, rfl⟩⟩ ⟨f b, ⟨b, hb, rfl⟩⟩})
+
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 
@@ -1555,6 +1583,8 @@ range_nonempty_iff_nonempty.2 h
 
 @[simp] lemma range_eq_empty {f : ι → α} : range f = ∅ ↔ ¬ nonempty ι :=
 not_nonempty_iff_eq_empty.symm.trans $ not_congr range_nonempty_iff_nonempty
+
+instance [nonempty ι] (f : ι → α) : nonempty (range f) := (range_nonempty f).to_subtype
 
 @[simp] lemma image_union_image_compl_eq_range (f : α → β) :
   (f '' s) ∪ (f '' sᶜ) = range f :=
@@ -1735,11 +1765,17 @@ variables {ι : Sort*} {α : Type*} {β : Type*} {f : α → β}
 lemma surjective.preimage_injective (hf : surjective f) : injective (preimage f) :=
 assume s t, (preimage_eq_preimage hf).1
 
+lemma injective.preimage_image (hf : injective f) (s : set α) : f ⁻¹' (f '' s) = s :=
+preimage_image_eq s hf
+
 lemma injective.preimage_surjective (hf : injective f) : surjective (preimage f) :=
-by { intro s, use f '' s, rw preimage_image_eq _ hf }
+by { intro s, use f '' s, rw hf.preimage_image }
+
+lemma surjective.image_preimage (hf : surjective f) (s : set β) : f '' (f ⁻¹' s) = s :=
+image_preimage_eq s hf
 
 lemma surjective.image_surjective (hf : surjective f) : surjective (image f) :=
-by { intro s, use f ⁻¹' s, rw image_preimage_eq hf }
+by { intro s, use f ⁻¹' s, rw hf.image_preimage }
 
 lemma injective.image_injective (hf : injective f) : injective (image f) :=
 by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] }
@@ -2055,7 +2091,7 @@ end prod
 /-! ### Lemmas about set-indexed products of sets -/
 
 section pi
-variables {ι : Type*} {α : ι → Type*} {s : set ι} {t t₁ t₂ : Π i, set (α i)}
+variables {ι : Type*} {α : ι → Type*} {s s₁ : set ι} {t t₁ t₂ : Π i, set (α i)}
 
 /-- Given an index set `i` and a family of sets `s : Π i, set (α i)`, `pi i s`
 is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `π a`
@@ -2070,8 +2106,14 @@ by simp
 
 @[simp] lemma empty_pi (s : Π i, set (α i)) : pi ∅ s = univ := by { ext, simp [pi] }
 
+@[simp] lemma pi_univ (s : set ι) : pi s (λ i, (univ : set (α i))) = univ :=
+eq_univ_of_forall $ λ f i hi, mem_univ _
+
 lemma pi_mono (h : ∀ i ∈ s, t₁ i ⊆ t₂ i) : pi s t₁ ⊆ pi s t₂ :=
 λ x hx i hi, (h i hi $ hx i hi)
+
+lemma pi_congr (h : s = s₁) (h' : ∀ i ∈ s, t i = t₁ i) : pi s t = pi s₁ t₁ :=
+h ▸ (ext $ λ x, forall_congr $ λ i, forall_congr $ λ hi, h' i hi ▸ iff.rfl)
 
 lemma pi_eq_empty {i : ι} (hs : i ∈ s) (ht : t i = ∅) : s.pi t = ∅ :=
 by { ext f, simp only [mem_empty_eq, not_forall, iff_false, mem_pi, not_imp],
@@ -2107,6 +2149,9 @@ by { ext, simp [pi, or_imp_distrib, forall_and_distrib] }
   pi {i} t = (eval i ⁻¹' t i) :=
 by { ext, simp [pi] }
 
+lemma singleton_pi' (i : ι) (t : Π i, set (α i)) : pi {i} t = {x | x i ∈ t i} :=
+singleton_pi i t
+
 lemma pi_if {p : ι → Prop} [h : decidable_pred p] (s : set ι) (t₁ t₂ : Π i, set (α i)) :
   pi s (λ i, if p i then t₁ i else t₂ i) = pi {i ∈ s | p i} t₁ ∩ pi {i ∈ s | ¬ p i} t₂ :=
 begin
@@ -2116,6 +2161,34 @@ begin
   { rintros ⟨ht₁, ht₂⟩ i his,
     by_cases p i; simp * at * }
 end
+
+lemma union_pi : (s ∪ s₁).pi t = s.pi t ∩ s₁.pi t :=
+by simp [pi, or_imp_distrib, forall_and_distrib, set_of_and]
+
+@[simp] lemma pi_inter_compl (s : set ι) : pi s t ∩ pi sᶜ t = pi univ t :=
+by rw [← union_pi, union_compl_self]
+
+lemma pi_update_of_not_mem [decidable_eq ι] {β : Π i, Type*} {i : ι} (hi : i ∉ s) (f : Π j, α j)
+  (a : α i) (t : Π j, α j → set (β j)) :
+  s.pi (λ j, t j (update f i a j)) = s.pi (λ j, t j (f j)) :=
+pi_congr rfl $ λ j hj, by { rw update_noteq, exact λ h, hi (h ▸ hj) }
+
+lemma pi_update_of_mem [decidable_eq ι] {β : Π i, Type*} {i : ι} (hi : i ∈ s) (f : Π j, α j)
+  (a : α i) (t : Π j, α j → set (β j)) :
+  s.pi (λ j, t j (update f i a j)) = {x | x i ∈ t i a} ∩ (s \ {i}).pi (λ j, t j (f j)) :=
+calc s.pi (λ j, t j (update f i a j)) = ({i} ∪ s \ {i}).pi (λ j, t j (update f i a j)) :
+  by rw [union_diff_self, union_eq_self_of_subset_left (singleton_subset_iff.2 hi)]
+... = {x | x i ∈ t i a} ∩ (s \ {i}).pi (λ j, t j (f j)) :
+  by { rw [union_pi, singleton_pi', update_same, pi_update_of_not_mem], simp }
+
+lemma univ_pi_update [decidable_eq ι] {β : Π i, Type*} (i : ι) (f : Π j, α j)
+  (a : α i) (t : Π j, α j → set (β j)) :
+  pi univ (λ j, t j (update f i a j)) = {x | x i ∈ t i a} ∩ pi {i}ᶜ (λ j, t j (f j)) :=
+by rw [compl_eq_univ_diff, ← pi_update_of_mem (mem_univ _)]
+
+lemma univ_pi_update_univ [decidable_eq ι] (i : ι) (s : set (α i)) :
+  pi univ (update (λ j : ι, (univ : set (α j))) i s) = eval i ⁻¹' s :=
+by rw [univ_pi_update i (λ j, (univ : set (α j))) s (λ j t, t), pi_univ, inter_univ, preimage]
 
 open_locale classical
 

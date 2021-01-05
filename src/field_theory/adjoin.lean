@@ -301,15 +301,15 @@ begin
   { rw [h, inv_zero], exact subalgebra.zero_mem (algebra.adjoin F {α}) },
 
   let ϕ := alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial F α hα,
-  let inv := (@adjoin_root.field F _ _ (minimal_polynomial.irreducible hα)).inv,
-  suffices : ϕ ⟨x, hx⟩ * inv (ϕ ⟨x, hx⟩) = 1,
-  { convert subtype.mem (ϕ.symm (inv (ϕ ⟨x, hx⟩))),
+  haveI := minimal_polynomial.irreducible hα,
+  suffices : ϕ ⟨x, hx⟩ * (ϕ ⟨x, hx⟩)⁻¹ = 1,
+  { convert subtype.mem (ϕ.symm (ϕ ⟨x, hx⟩)⁻¹),
     refine (eq_inv_of_mul_right_eq_one _).symm,
     apply_fun ϕ.symm at this,
     rw [alg_equiv.map_one, alg_equiv.map_mul, alg_equiv.symm_apply_apply] at this,
     rw [←subsemiring.coe_one, ←this, subsemiring.coe_mul, subtype.coe_mk] },
 
-  rw field.mul_inv_cancel (mt (λ key, _) h),
+  rw mul_inv_cancel (mt (λ key, _) h),
   rw ← ϕ.map_zero at key,
   change ↑(⟨x, hx⟩ : algebra.adjoin F {α}) = _,
   rw [ϕ.injective key, submodule.coe_zero]
@@ -342,26 +342,24 @@ adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 section adjoin_dim
 open finite_dimensional vector_space
 
-@[simp] lemma dim_intermediate_field_eq_dim_subalgebra :
-  dim F (adjoin F S).to_subalgebra = dim F (adjoin F S) := rfl
+variables {K L : intermediate_field F E}
 
-@[simp] lemma findim_intermediate_field_eq_findim_subalgebra :
-  findim F (adjoin F S).to_subalgebra = findim F (adjoin F S) := rfl
+@[simp] lemma dim_eq_one_iff : dim F K = 1 ↔ K = ⊥ :=
+by rw [← to_subalgebra_eq_iff, ← dim_eq_dim_subalgebra,
+  subalgebra.dim_eq_one_iff, bot_to_subalgebra]
 
-@[simp] lemma to_subalgebra_eq_iff {K L : intermediate_field F E} :
-  K.to_subalgebra = L.to_subalgebra ↔ K = L :=
-by { rw [subalgebra.ext_iff, intermediate_field.ext'_iff, set.ext_iff], refl }
+@[simp] lemma findim_eq_one_iff : findim F K = 1 ↔ K = ⊥ :=
+by rw [← to_subalgebra_eq_iff, ← findim_eq_findim_subalgebra,
+  subalgebra.findim_eq_one_iff, bot_to_subalgebra]
 
 lemma dim_adjoin_eq_one_iff : dim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
-by rw [←dim_intermediate_field_eq_dim_subalgebra, subalgebra.dim_eq_one_iff,
-      ←bot_to_subalgebra, to_subalgebra_eq_iff, adjoin_eq_bot_iff]
+iff.trans dim_eq_one_iff adjoin_eq_bot_iff
 
 lemma dim_adjoin_simple_eq_one_iff : dim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
-by { rw [dim_adjoin_eq_one_iff], exact set.singleton_subset_iff }
+by { rw dim_adjoin_eq_one_iff, exact set.singleton_subset_iff }
 
 lemma findim_adjoin_eq_one_iff : findim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
-by rw [←findim_intermediate_field_eq_findim_subalgebra, subalgebra.findim_eq_one_iff,
-      ←bot_to_subalgebra, to_subalgebra_eq_iff, adjoin_eq_bot_iff]
+iff.trans findim_eq_one_iff adjoin_eq_bot_iff
 
 lemma findim_adjoin_simple_eq_one_iff : findim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
 by { rw [findim_adjoin_eq_one_iff], exact set.singleton_subset_iff }

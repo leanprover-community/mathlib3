@@ -87,6 +87,12 @@ if hf : summable f
 then (eq.symm $ (has_sum_coe.2 $ hf.has_sum).tsum_eq)
 else by simp [tsum, hf, mt summable_coe.1 hf]
 
+lemma tsum_mul_left (a : ℝ≥0) (f : α → ℝ≥0) : (∑' x, a * f x) = a * ∑' x, f x :=
+nnreal.eq $ by simp only [coe_tsum, nnreal.coe_mul, tsum_mul_left]
+
+lemma tsum_mul_right (f : α → ℝ≥0) (a : ℝ≥0) : (∑' x, f x * a) = (∑' x, f x) * a :=
+nnreal.eq $ by simp only [coe_tsum, nnreal.coe_mul, tsum_mul_right]
+
 lemma summable_comp_injective {β : Type*} {f : α → ℝ≥0} (hf : summable f)
   {i : β → α} (hi : function.injective i) :
   summable (f ∘ i) :=
@@ -95,6 +101,12 @@ show summable ((coe ∘ f) ∘ i), from (nnreal.summable_coe.2 hf).comp_injectiv
 
 lemma summable_nat_add (f : ℕ → ℝ≥0) (hf : summable f) (k : ℕ) : summable (λ i, f (i + k)) :=
 summable_comp_injective hf $ add_left_injective k
+
+lemma summable_nat_add_iff {f : ℕ → ℝ≥0} (k : ℕ) : summable (λ i, f (i + k)) ↔ summable f :=
+begin
+  rw [← summable_coe, ← summable_coe],
+  exact @summable_nat_add_iff ℝ _ _ _ (λ i, (f i : ℝ)) k,
+end
 
 lemma sum_add_tsum_nat_add {f : ℕ → ℝ≥0} (k : ℕ) (hf : summable f) :
   (∑' i, f i) = (∑ i in range k, f i) + ∑' i, f (i + k) :=

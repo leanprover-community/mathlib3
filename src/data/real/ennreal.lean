@@ -261,8 +261,8 @@ def of_nnreal_hom : ℝ≥0 →+* ennreal :=
 @[simp, norm_cast] lemma coe_pow (n : ℕ) : (↑(r^n) : ennreal) = r^n :=
 of_nnreal_hom.map_pow r n
 
-lemma add_eq_top : a + b = ∞ ↔ a = ∞ ∨ b = ∞ := with_top.add_eq_top
-lemma add_lt_top : a + b < ∞ ↔ a < ∞ ∧ b < ∞ := with_top.add_lt_top
+@[simp] lemma add_eq_top : a + b = ∞ ↔ a = ∞ ∨ b = ∞ := with_top.add_eq_top
+@[simp] lemma add_lt_top : a + b < ∞ ↔ a < ∞ ∧ b < ∞ := with_top.add_lt_top
 
 lemma to_nnreal_add {r₁ r₂ : ennreal} (h₁ : r₁ < ∞) (h₂ : r₂ < ∞) :
   (r₁ + r₂).to_nnreal = r₁.to_nnreal + r₂.to_nnreal :=
@@ -299,11 +299,11 @@ nat.le_induction (pow_one _) (λ m hm hm', by rw [pow_succ, hm', top_mul_top])
 lemma mul_eq_top : a * b = ∞ ↔ (a ≠ 0 ∧ b = ∞) ∨ (a = ∞ ∧ b ≠ 0) :=
 with_top.mul_eq_top_iff
 
-lemma mul_ne_top : a ≠ ∞ → b ≠ ∞ → a * b ≠ ∞ :=
-by simp [(≠), mul_eq_top] {contextual := tt}
-
 lemma mul_lt_top  : a < ∞ → b < ∞ → a * b < ∞ :=
-by simpa only [ennreal.lt_top_iff_ne_top] using mul_ne_top
+with_top.mul_lt_top
+
+lemma mul_ne_top : a ≠ ∞ → b ≠ ∞ → a * b ≠ ∞ :=
+by simpa only [lt_top_iff_ne_top] using mul_lt_top
 
 lemma ne_top_of_mul_ne_top_left (h : a * b ≠ ∞) (hb : b ≠ 0) : a ≠ ∞ :=
 by { simp [mul_eq_top, hb, not_or_distrib] at h ⊢, exact h.2 }
@@ -479,19 +479,11 @@ end
 
 lemma add_lt_add (ac : a < c) (bd : b < d) : a + b < c + d :=
 begin
-  rcases exists_between ac with ⟨a', aa', a'c⟩,
-  rcases lt_iff_exists_coe.1 aa' with ⟨aR, rfl, _⟩,
-  rcases lt_iff_exists_coe.1 a'c with ⟨a'R, rfl, _⟩,
-  rcases exists_between bd with ⟨b', bb', b'd⟩,
-  rcases lt_iff_exists_coe.1 bb' with ⟨bR, rfl, _⟩,
-  rcases lt_iff_exists_coe.1 b'd with ⟨b'R, rfl, _⟩,
-  have I : ↑aR + ↑bR < ↑a'R + ↑b'R :=
-  begin
-    rw [← coe_add, ← coe_add, coe_lt_coe],
-    apply add_lt_add (coe_lt_coe.1 aa') (coe_lt_coe.1 bb')
-  end,
-  have J : ↑a'R + ↑b'R ≤ c + d := add_le_add (le_of_lt a'c) (le_of_lt b'd),
-  apply lt_of_lt_of_le I J
+  lift a to ℝ≥0 using ne_top_of_lt ac,
+  lift b to ℝ≥0 using ne_top_of_lt bd,
+  cases c, { simp }, cases d, { simp },
+  simp only [← coe_add, some_eq_coe, coe_lt_coe] at *,
+  exact add_lt_add ac bd
 end
 
 @[norm_cast] lemma coe_min : ((min r p:ℝ≥0):ennreal) = min r p :=
@@ -499,6 +491,20 @@ coe_mono.map_min
 
 @[norm_cast] lemma coe_max : ((max r p:ℝ≥0):ennreal) = max r p :=
 coe_mono.map_max
+
+lemma le_of_top_imp_top_of_to_nnreal_le {a b : ennreal} (h : a = ⊤ → b = ⊤)
+  (h_nnreal : a ≠ ⊤ → b ≠ ⊤ → a.to_nnreal ≤ b.to_nnreal) :
+  a ≤ b :=
+begin
+  by_cases ha : a = ⊤,
+  { rw h ha,
+    exact le_top, },
+  by_cases hb : b = ⊤,
+  { rw hb,
+    exact le_top, },
+  rw [←coe_to_nnreal hb, ←coe_to_nnreal ha, coe_le_coe],
+  exact h_nnreal ha hb,
+end
 
 end order
 
@@ -520,6 +526,19 @@ section mul
 
 lemma mul_le_mul : a ≤ b → c ≤ d → a * c ≤ b * d :=
 canonically_ordered_semiring.mul_le_mul
+
+lemma mul_lt_mul (ac : a < c) (bd : b < d) : a * b < c * d :=
+begin
+  rcases lt_iff_exists_nnreal_btwn.1 ac with ⟨a', aa', a'c⟩,
+  lift a to ℝ≥0 using ne_top_of_lt aa',
+  rcases lt_iff_exists_nnreal_btwn.1 bd with ⟨b', bb', b'd⟩,
+  lift b to ℝ≥0 using ne_top_of_lt bb',
+  norm_cast at *,
+  calc ↑(a * b) < ↑(a' * b') :
+    coe_lt_coe.2 (mul_lt_mul' aa'.le bb' (zero_le _) ((zero_le a).trans_lt aa'))
+  ... = ↑a' * ↑b' : coe_mul
+  ... ≤ c * d : mul_le_mul a'c.le b'd.le
+end
 
 lemma mul_left_mono : monotone ((*) a) := λ b c, mul_le_mul (le_refl a)
 
@@ -729,6 +748,10 @@ section sum
 
 open finset
 
+/-- A product of finite numbers is still finite -/
+lemma prod_lt_top {s : finset α} {f : α → ennreal} (h : ∀a∈s, f a < ∞) : (∏ a in s, f a) < ∞ :=
+with_top.prod_lt_top h
+
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top {s : finset α} {f : α → ennreal} :
   (∀a∈s, f a < ∞) → ∑ a in s, f a < ∞ :=
@@ -744,7 +767,7 @@ lemma sum_eq_top_iff {s : finset α} {f : α → ennreal} :
   (∑ x in s, f x) = ∞ ↔ (∃a∈s, f a = ∞) :=
 with_top.sum_eq_top_iff
 
-/-- seeing `ennreal` as `nnreal` does not change their sum, unless one of the `ennreal` is
+/-- seeing `ennreal` as `ℝ≥0` does not change their sum, unless one of the `ennreal` is
 infinity -/
 lemma to_nnreal_sum {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ∞) :
   ennreal.to_nnreal (∑ a in s, f a) = ∑ a in s, ennreal.to_nnreal (f a) :=
@@ -1025,23 +1048,12 @@ mul_comm a a⁻¹ ▸ mul_inv_cancel h0 ht
 lemma mul_le_iff_le_inv {a b r : ennreal} (hr₀ : r ≠ 0) (hr₁ : r ≠ ∞) : (r * a ≤ b ↔ a ≤ r⁻¹ * b) :=
 by rw [← @ennreal.mul_le_mul_left _ a _ hr₀ hr₁, ← mul_assoc, mul_inv_cancel hr₀ hr₁, one_mul]
 
-lemma le_of_forall_lt_one_mul_lt : ∀{x y : ennreal}, (∀a<1, a * x ≤ y) → x ≤ y :=
-forall_ennreal.2 $ and.intro
-  (assume r, forall_ennreal.2 $ and.intro
-    (assume q h, coe_le_coe.2 $ nnreal.le_of_forall_lt_one_mul_lt $ assume a ha,
-      begin rw [← coe_le_coe, coe_mul], exact h _ (coe_lt_coe.2 ha) end)
-    (assume h, le_top))
-  (assume r hr,
-    have ((1 / 2 : ℝ≥0) : ennreal) * ∞ ≤ r :=
-      hr _ (coe_lt_coe.2 ((@nnreal.coe_lt_coe (1/2) 1).1 one_half_lt_one)),
-    have ne : ((1 / 2 : ℝ≥0) : ennreal) ≠ 0,
-    begin
-      rw [(≠), coe_eq_zero],
-      refine zero_lt_iff_ne_zero.1 _,
-      show 0 < (1 / 2 : ℝ),
-      linarith,
-    end,
-    by rwa [mul_top, if_neg ne] at this)
+lemma le_of_forall_nnreal_lt {x y : ennreal} (h : ∀ r : ℝ≥0, ↑r < x → ↑r ≤ y) : x ≤ y :=
+begin
+  refine le_of_forall_ge_of_dense (λ r hr, _),
+  lift r to ℝ≥0 using ne_top_of_lt hr,
+  exact h r hr
+end
 
 lemma div_add_div_same {a b c : ennreal} : a / c + b / c = (a + b) / c :=
 eq.symm $ right_distrib a b (c⁻¹)
@@ -1296,6 +1308,16 @@ def to_nnreal_hom : ennreal →* ℝ≥0 :=
   map_one' := to_nnreal_coe,
   map_mul' := by rintro (_|x) (_|y); simp only [← coe_mul, none_eq_top, some_eq_coe,
     to_nnreal_top_mul, to_nnreal_mul_top, top_to_nnreal, mul_zero, zero_mul, to_nnreal_coe] }
+
+lemma to_nnreal_mul {a b : ennreal}: (a * b).to_nnreal = a.to_nnreal * b.to_nnreal :=
+to_nnreal_hom.map_mul a b
+
+lemma to_nnreal_pow (a : ennreal) (n : ℕ) : (a ^ n).to_nnreal = a.to_nnreal ^ n :=
+to_nnreal_hom.map_pow a n
+
+lemma to_nnreal_prod {ι : Type*} {s : finset ι} {f : ι → ennreal} :
+  (∏ i in s, f i).to_nnreal = ∏ i in s, (f i).to_nnreal :=
+to_nnreal_hom.map_prod _ _
 
 /-- `ennreal.to_real` as a `monoid_hom`. -/
 def to_real_hom : ennreal →* ℝ :=

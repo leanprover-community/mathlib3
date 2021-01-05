@@ -241,15 +241,16 @@ lemma fin.sum_pow_mul_eq_add_pow {n : ℕ} {R : Type*} [comm_semiring R] (a b : 
 by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
 
 @[to_additive]
+lemma function.bijective.prod_comp [fintype α] [fintype β] [comm_monoid γ] {f : α → β}
+  (hf : function.bijective f) (g : β → γ) :
+  ∏ i, g (f i) = ∏ i, g i :=
+prod_bij (λ i hi, f i) (λ i hi, mem_univ _) (λ i hi, rfl) (λ i j _ _ h, hf.1 h) $
+  λ i hi, (hf.2 i).imp $ λ j hj, ⟨mem_univ _, hj.symm⟩
+
+@[to_additive]
 lemma equiv.prod_comp [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :
   ∏ i, f (e i) = ∏ i, f i :=
-begin
-  apply prod_bij (λ i hi, e i) (λ i hi, mem_univ _) _ (λ a b _ _ h, e.injective h),
-  { assume b hb,
-    rcases e.surjective b with ⟨a, ha⟩,
-    exact ⟨a, mem_univ _, ha.symm⟩, },
-  { simp }
-end
+e.bijective.prod_comp f
 
 /-- It is equivalent to sum a function over `fin n` or `finset.range n`. -/
 @[to_additive]

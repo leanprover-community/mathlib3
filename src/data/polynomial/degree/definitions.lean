@@ -61,6 +61,8 @@ by unfold monic; apply_instance
 @[simp] lemma monic.leading_coeff {p : polynomial R} (hp : p.monic) :
   leading_coeff p = 1 := hp
 
+lemma monic.coeff_nat_degree {p : polynomial R} (hp : p.monic) : p.coeff p.nat_degree = 1 := hp
+
 @[simp] lemma degree_zero : degree (0 : polynomial R) = ⊥ := rfl
 
 @[simp] lemma nat_degree_zero : nat_degree (0 : polynomial R) = 0 := rfl
@@ -71,6 +73,12 @@ lemma degree_eq_bot : degree p = ⊥ ↔ p = 0 :=
 ⟨λ h, by rw [degree, ← max_eq_sup_with_bot] at h;
   exact support_eq_empty.1 (max_eq_none.1 h),
 λ h, h.symm ▸ rfl⟩
+
+@[nontriviality] lemma degree_of_subsingleton [subsingleton R] : degree p = ⊥ :=
+by rw [subsingleton.elim p 0, degree_zero]
+
+@[nontriviality] lemma nat_degree_of_subsingleton [subsingleton R] : nat_degree p = 0 :=
+by rw [subsingleton.elim p 0, nat_degree_zero]
 
 lemma degree_eq_nat_degree (hp : p ≠ 0) : degree p = (nat_degree p : with_bot ℕ) :=
 let ⟨n, hn⟩ :=
@@ -720,6 +728,9 @@ variables [semiring R] [nontrivial R] {p q : polynomial R}
 
 @[simp] lemma degree_X_pow (n : ℕ) : degree ((X : polynomial R) ^ n) = n :=
 by rw [X_pow_eq_monomial, degree_monomial _ (@one_ne_zero R _ _)]
+
+@[simp] lemma nat_degree_X_pow (n : ℕ) : nat_degree ((X : polynomial R) ^ n) = n :=
+nat_degree_eq_of_degree_eq_some (degree_X_pow n)
 
 theorem not_is_unit_X : ¬ is_unit (X : polynomial R) :=
 λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by { rw [← coeff_one_zero, ← hgf], simp }

@@ -175,12 +175,12 @@ abbreviation module (R : Type u) (M : Type v) [ring R] [add_comm_group M] :=
 semimodule R M
 
 /--
-To prove two module structures on a fixed `add_comm_group` agree,
+To prove two semimodule structures on a fixed `add_comm_monoid` agree,
 it suffices to check the scalar multiplications agree.
 -/
--- We'll later use this to show `module ℤ M` is a subsingleton.
+-- We'll later use this to show `semimodule ℕ M` and `module ℤ M` are subsingletons.
 @[ext]
-lemma module_ext {R : Type*} [ring R] {M : Type*} [add_comm_group M] (P Q : module R M)
+lemma semimodule_ext {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q : semimodule R M)
   (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
   P = Q :=
 begin
@@ -280,16 +280,31 @@ def nat_semimodule : semimodule ℕ M :=
   zero_smul := zero_nsmul,
   smul_zero := nsmul_zero }
 
-local attribute [instance] nat_semimodule
+instance : subsingleton (semimodule ℕ M) :=
+begin
+  split,
+  intros P Q,
+  ext n,
+  -- isn't that lovely: `r • m = r • m`
+  have one_smul : by { haveI := P, exact (1 : ℕ) • m } = by { haveI := Q, exact (1 : ℕ) • m },
+    begin
+      rw [@one_smul ℕ _ _ (by { haveI := P, apply_instance, }) m],
+      rw [@one_smul ℕ _ _ (by { haveI := Q, apply_instance, }) m],
+    end,
+  induction n with n ih,
+  { erw [zero_smul, zero_smul], },
+  { rw [nat.succ_eq_add_one, add_smul, add_smul],
+    erw ih,
+    rw [one_smul], }
+end
 
-instance nat_is_scalar_tower [semiring S] [semimodule S M] :
+/-- Note this does not depend on the `nat_semimodule` definition above, to avoid issues when
+diamonds occur in finding `semimodule ℕ M` instances. -/
+instance nat_is_scalar_tower [semiring S] [semimodule S M] [semimodule ℕ S] [semimodule ℕ M] :
   is_scalar_tower ℕ S M :=
-{ smul_assoc := begin
-    intros n x y,
-    induction n with n ih,
-    { simp only [zero_smul] },
-    { simp only [nat.succ_eq_add_one, add_smul, one_smul, ih] }
-  end }
+{ smul_assoc := λ n x y, nat.rec_on n
+    (by simp only [zero_smul])
+    (λ n ih, by simp only [nat.succ_eq_add_one, add_smul, one_smul, ih]) }
 
 end add_comm_monoid
 
@@ -336,17 +351,12 @@ begin
   { rw [int.neg_succ_of_nat_coe, neg_smul, neg_smul, nat_smul], }
 end
 
-local attribute [instance] int_module add_comm_monoid.nat_semimodule
-
-instance int_is_scalar_tower [ring S] [module S M] :
+instance int_is_scalar_tower [ring S] [module S M] [semimodule ℤ S] [semimodule ℤ M] :
   is_scalar_tower ℤ S M :=
-{ smul_assoc := begin
-    intros n x y,
-    cases n,
-    { show (n • x) • y = n • x • y, apply smul_assoc },
-    { simp only [int.neg_succ_of_nat_eq, neg_smul],
-      convert congr_arg has_neg.neg (smul_assoc n.succ x y) },
-  end }
+{ smul_assoc := λ n x y, int.induction_on n
+    (by simp only [zero_smul])
+    (λ n ih, by simp only [one_smul, add_smul, ih])
+    (λ n ih, by simp only [one_smul, sub_smul, ih]) }
 
 end add_comm_group
 
@@ -372,21 +382,21 @@ lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
   n • x = n •ℕ x :=
 rfl
 
+end
+
 namespace nat
 
-variables [semiring R] [add_comm_monoid M] [semimodule R M]
+variables [semiring R] [add_comm_monoid M] [semimodule R M] [semimodule ℕ M]
 
 instance smul_comm_class : smul_comm_class ℕ R M :=
-{ smul_comm := λ n r m, begin
-    simp only [nat.smul_def],
-    induction n with n ih,
-    { simp },
-    { simp [succ_nsmul, ←ih, smul_add] },
-  end }
+{ smul_comm := λ n r m, nat.rec_on n
+    (by simp only [zero_smul, smul_zero])
+    (λ n ih, by simp only [succ_eq_add_one, add_smul, one_smul, ←ih, smul_add]) }
+
+-- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
+instance smul_comm_class' : smul_comm_class R ℕ M := smul_comm_class.symm _ _ _
 
 end nat
-
-end
 
 section
 local attribute [instance] add_comm_group.int_module
@@ -404,20 +414,26 @@ begin
     rw neg_smul, }
 end
 
+end
+
 lemma module.gsmul_eq_smul {M : Type*} [add_comm_group M] [module ℤ M]
   (n : ℤ) (b : M) : gsmul n b = n • b :=
 by rw [module.gsmul_eq_smul_cast ℤ, int.cast_id]
 
 namespace int
 
-variables [semiring R] [add_comm_group M] [semimodule R M]
+variables [semiring R] [add_comm_group M] [semimodule R M] [semimodule ℤ M]
 
 instance smul_comm_class : smul_comm_class ℤ R M :=
-{ smul_comm := λ z r l, by cases z; simp [←gsmul_eq_smul, ←nat.smul_def, smul_comm] }
+{ smul_comm := λ n x y, int.induction_on n
+    (by simp only [zero_smul, smul_zero])
+    (λ n ih, by simp only [one_smul, add_smul, smul_add, ih])
+    (λ n ih, by simp only [one_smul, sub_smul, smul_sub, ih]) }
+
+-- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
+instance smul_comm_class' : smul_comm_class R ℤ M := smul_comm_class.symm _ _ _
 
 end int
-
-end
 
 namespace add_monoid_hom
 
@@ -486,3 +502,27 @@ end add_monoid_hom
 
 -- We finally turn on these instances globally:
 attribute [instance] add_comm_monoid.nat_semimodule add_comm_group.int_module
+
+section module_division_ring
+/-! Some tests for the vanishing of elements in modules over division rings. -/
+
+variables (R) [division_ring R] [add_comm_group M] [module R M]
+
+lemma smul_nat_eq_zero [char_zero R] {v : M} {n : ℕ} :
+  n • v = 0 ↔ n = 0 ∨ v = 0 :=
+by { rw [semimodule.smul_eq_smul R, smul_eq_zero], simp }
+
+lemma eq_zero_of_smul_two_eq_zero [char_zero R] {v : M} (hv : 2 • v = 0) : v = 0 :=
+((smul_nat_eq_zero R).mp hv).resolve_left (by norm_num)
+
+lemma eq_zero_of_eq_neg [char_zero R] {v : M} (hv : v = - v) : v = 0 :=
+begin
+  refine eq_zero_of_smul_two_eq_zero R _,
+  convert add_eq_zero_iff_eq_neg.mpr hv,
+  abel
+end
+
+lemma ne_neg_of_ne_zero [char_zero R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
+λ h, hv (eq_zero_of_eq_neg R h)
+
+end module_division_ring

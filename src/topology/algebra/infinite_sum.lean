@@ -28,7 +28,7 @@ generally, see `has_sum.tendsto_sum_nat`.
 
 noncomputable theory
 open finset filter function classical
-open_locale topological_space classical big_operators
+open_locale topological_space classical big_operators nnreal
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -546,7 +546,6 @@ If `s` is a finset of `α`, we show that the summability of `f` in the whole spa
 formula `(∑ i in range k, f i) + (∑' i, f (i + k)) = (∑' i, f i)`, in `sum_add_tsum_nat_add`.
 -/
 section subtype
-variables {s : finset β}
 
 lemma has_sum_nat_add_iff {f : ℕ → α} (k : ℕ) {a : α} :
   has_sum (λ n, f (n + k)) a ↔ has_sum f (a + ∑ i in range k, f i) :=
@@ -573,6 +572,23 @@ lemma tsum_eq_zero_add [t2_space α] {f : ℕ → α} (hf : summable f) :
   (∑'b, f b) = f 0 + (∑'b, f (b + 1)) :=
 by simpa only [range_one, sum_singleton] using (sum_add_tsum_nat_add 1 hf).symm
 
+/-- For `f : ℕ → α`, then `∑' k, f (k + i)` tends to zero. This does not require a summability
+assumption on `f`, as otherwise all sums are zero. -/
+lemma tendsto_sum_nat_add [t2_space α] (f : ℕ → α) : tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
+begin
+  by_cases hf : summable f,
+  { have h₀ : (λ i, (∑' i, f i) - ∑ j in range i, f j) = λ i, ∑' (k : ℕ), f (k + i),
+    { ext1 i,
+      rw [sub_eq_iff_eq_add, add_comm, sum_add_tsum_nat_add i hf] },
+    have h₁ : tendsto (λ i : ℕ, ∑' i, f i) at_top (𝓝 (∑' i, f i)) := tendsto_const_nhds,
+    simpa only [h₀, sub_self] using tendsto.sub h₁ hf.has_sum.tendsto_sum_nat },
+  { convert tendsto_const_nhds,
+    ext1 i,
+    rw ← summable_nat_add_iff i at hf,
+    { exact tsum_eq_zero_of_not_summable hf },
+    { apply_instance } }
+end
+
 end subtype
 
 end topological_group
@@ -595,10 +611,10 @@ lemma summable.mul_right (a) (hf : summable f) : summable (λb, f b * a) :=
 section tsum
 variables [t2_space α]
 
-lemma tsum_mul_left (a) (hf : summable f) : (∑'b, a * f b) = a * (∑'b, f b) :=
+lemma summable.tsum_mul_left (a) (hf : summable f) : (∑'b, a * f b) = a * (∑'b, f b) :=
 (hf.has_sum.mul_left _).tsum_eq
 
-lemma tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b, f b) * a :=
+lemma summable.tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b, f b) * a :=
 (hf.has_sum.mul_right _).tsum_eq
 
 end tsum
@@ -639,6 +655,18 @@ lemma summable_mul_left_iff (h : a ≠ 0) : summable f ↔ summable (λb, a * f 
 
 lemma summable_mul_right_iff (h : a ≠ 0) : summable f ↔ summable (λb, f b * a) :=
 ⟨λ H, H.mul_right _, λ H, by simpa only [mul_inv_cancel_right' h] using H.mul_right a⁻¹⟩
+
+lemma tsum_mul_left [t2_space α] : (∑' x, a * f x) = a * ∑' x, f x :=
+if hf : summable f then hf.tsum_mul_left a
+else if ha : a = 0 then by simp [ha]
+else by rw [tsum_eq_zero_of_not_summable hf,
+  tsum_eq_zero_of_not_summable (mt (summable_mul_left_iff ha).2 hf), mul_zero]
+
+lemma tsum_mul_right [t2_space α] : (∑' x, f x * a) = (∑' x, f x) * a :=
+if hf : summable f then hf.tsum_mul_right a
+else if ha : a = 0 then by simp [ha]
+else by rw [tsum_eq_zero_of_not_summable hf,
+  tsum_eq_zero_of_not_summable (mt (summable_mul_right_iff ha).2 hf), zero_mul]
 
 end division_ring
 
@@ -697,17 +725,23 @@ le_has_sum (summable.has_sum hf) b hb
 lemma tsum_le_tsum (h : ∀b, f b ≤ g b) (hf : summable f) (hg : summable g) : (∑'b, f b) ≤ (∑'b, g b) :=
 has_sum_le h hf.has_sum hg.has_sum
 
+lemma has_sum.nonneg (h : ∀ b, 0 ≤ g b) (ha : has_sum g a) : 0 ≤ a :=
+has_sum_le h has_sum_zero ha
+
+lemma has_sum.nonpos (h : ∀ b, g b ≤ 0) (ha : has_sum g a) : a ≤ 0 :=
+has_sum_le h ha has_sum_zero
+
 lemma tsum_nonneg (h : ∀ b, 0 ≤ g b) : 0 ≤ (∑'b, g b) :=
 begin
   by_cases hg : summable g,
-  { simpa using tsum_le_tsum h summable_zero hg },
+  { exact hg.has_sum.nonneg h },
   { simp [tsum_eq_zero_of_not_summable hg] }
 end
 
 lemma tsum_nonpos (h : ∀ b, f b ≤ 0) : (∑'b, f b) ≤ 0 :=
 begin
   by_cases hf : summable f,
-  { simpa using tsum_le_tsum h hf summable_zero},
+  { exact hf.has_sum.nonpos h },
   { simp [tsum_eq_zero_of_not_summable hf] }
 end
 
@@ -889,7 +923,7 @@ open finset.Ico filter
 
 /-- If the extended distance between consequent points of a sequence is estimated
 by a summable series of `nnreal`s, then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d : ℕ → nnreal)
+lemma cauchy_seq_of_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d : ℕ → ℝ≥0)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
 begin
   refine emetric.cauchy_seq_iff_nnreal.2 (λ ε εpos, _),

@@ -4,12 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.natural_isomorphism
+import category_theory.full_subcategory
 
 /-!
 # Essential image of a functor
 
-The essential image of a functor consists of the objects in the target category which are isomorphic
-to an object in the image of the object function.
+The essential image `ess_image` of a functor consists of the objects in the target category which
+are isomorphic to an object in the image of the object function.
+This, for instance, allows us to talk about objects belonging to a subcategory expressed as a
+functor rather than a subtype, preserving the principle of equivalence. For example this lets us
+define exponential ideals.
+
+The essential image can also be seen as a subcategory of the target category, and witnesses that
+a functor decomposes into a essentially surjective functor and a fully faithful functor.
+(TODO: show that this decomposition forms an orthogonal factorisation system).
 -/
 universes v₁ v₂ u₁ u₂
 
@@ -36,8 +44,8 @@ def ess_image.witness {Y : D} (h : Y ∈ F.ess_image) : C := h.some
 def ess_image.get_iso {Y : D} (h : Y ∈ F.ess_image) : F.obj h.witness ≅ Y :=
 classical.choice h.some_spec
 
-/-- Being in the subcategory is a "hygenic" property: it is preserved under isomorphism. -/
-lemma ess_image.of_iso {Y Y' : D} (hY : Y ∈ ess_image F) (h : Y ≅ Y') :
+/-- Being in the essential image is a "hygenic" property: it is preserved under isomorphism. -/
+lemma ess_image.of_iso {Y Y' : D} (h : Y ≅ Y') (hY : Y ∈ ess_image F) :
   Y' ∈ ess_image F :=
 hY.imp (λ B, nonempty.map (≪≫ h))
 

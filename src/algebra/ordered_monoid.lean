@@ -208,13 +208,18 @@ namespace units
 instance [monoid α] [preorder α] : preorder (units α) :=
 preorder.lift (coe : units α → α)
 
-@[simp, to_additive, norm_cast]
+@[simp, norm_cast, to_additive]
 theorem coe_le_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) ≤ b ↔ a ≤ b := iff.rfl
 
-@[simp, to_additive, norm_cast]
+-- should `to_additive` do this?
+attribute [norm_cast] add_units.coe_le_coe
+
+@[simp, norm_cast, to_additive]
 theorem coe_lt_coe [monoid α] [preorder α] {a b : units α} :
   (a : α) < b ↔ a < b := iff.rfl
+
+attribute [norm_cast] add_units.coe_lt_coe
 
 @[to_additive]
 instance [monoid α] [partial_order α] : partial_order (units α) :=
@@ -224,15 +229,19 @@ partial_order.lift coe units.ext
 instance [monoid α] [linear_order α] : linear_order (units α) :=
 linear_order.lift coe units.ext
 
-@[simp, to_additive, norm_cast]
+@[simp, norm_cast, to_additive]
 theorem max_coe [monoid α] [linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=
 by by_cases b ≤ a; simp [max, h]
 
-@[simp, to_additive, norm_cast]
+attribute [norm_cast] add_units.max_coe
+
+@[simp, norm_cast, to_additive]
 theorem min_coe [monoid α] [linear_order α] {a b : units α} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [min, h]
+
+attribute [norm_cast] add_units.min_coe
 
 end units
 
@@ -301,6 +310,15 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
   ..with_zero.comm_monoid_with_zero,
   ..with_zero.partial_order
 }
+
+/-
+Note 1 : the below is not an instance because it requires `zero_le`. It seems
+like a rather pathological definition because α already has a zero.
+
+Note 2 : there is no multiplicative analogue because it does not seem necessary.
+Mathematicians might be more likely to use the order-dual version, where all
+elements are ≤ 1 and then 1 is the top element.
+-/
 
 /--
 If `0` is the least element in `α`, then `with_zero α` is an `ordered_add_comm_monoid`.
@@ -511,55 +529,74 @@ by norm_cast
 end with_bot
 
 /-- A canonically ordered additive monoid is an ordered commutative additive monoid
-  in which the ordering coincides with the divisibility relation,
+  in which the ordering coincides with the subtractibility relation,
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
-  the integers or other ordered groups. -/
-@[protect_proj]
+  the integers or other nontrivial `ordered_add_comm_group`s. -/
+@[protect_proj, ancestor ordered_add_comm_monoid order_bot]
 class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, order_bot α :=
-(le_iff_exists_add : ∀a b:α, a ≤ b ↔ ∃c, b = a + c)
+(le_iff_exists_add : ∀ a b : α, a ≤ b ↔ ∃ c, b = a + c)
 
-section canonically_ordered_add_monoid
-variables [canonically_ordered_add_monoid α] {a b c d : α}
+/-- A canonically ordered monoid is an ordered commutative monoid
+  in which the ordering coincides with the divisibility relation,
+  which is to say, `a ≤ b` iff there exists `c` with `b = a * c`.
+  Example seem rare; it seems more likely that the `order_dual`
+  of a naturally-occurring lattice satisfies this than the lattice
+  itself (for example, dual of the lattice of ideals of a PID or
+  Dedekind domain satisfy this; collections of all things ≤ 1 seem to
+  be more natural that collections of all things ≥ 1).
+-/
+@[protect_proj, ancestor ordered_comm_monoid order_bot, to_additive]
+class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, order_bot α :=
+(le_iff_exists_mul : ∀ a b : α, a ≤ b ↔ ∃ c, b = a * c)
 
-lemma le_iff_exists_add : a ≤ b ↔ ∃c, b = a + c :=
-canonically_ordered_add_monoid.le_iff_exists_add a b
+section canonically_ordered_monoid
 
-@[simp] lemma zero_le (a : α) : 0 ≤ a := le_iff_exists_add.mpr ⟨a, by simp⟩
+variables [canonically_ordered_monoid α] {a b c d : α}
 
-@[simp] lemma bot_eq_zero : (⊥ : α) = 0 :=
-le_antisymm bot_le (zero_le ⊥)
+@[to_additive]
+lemma le_iff_exists_mul : a ≤ b ↔ ∃c, b = a * c :=
+canonically_ordered_monoid.le_iff_exists_mul a b
 
-@[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=
-add_eq_zero_iff' (zero_le _) (zero_le _)
+@[simp, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a := le_iff_exists_mul.mpr ⟨a, by simp⟩
 
-@[simp] lemma le_zero_iff_eq : a ≤ 0 ↔ a = 0 :=
+@[simp, to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
+le_antisymm bot_le (one_le ⊥)
+
+@[simp, to_additive] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
+mul_eq_one_iff' (one_le _) (one_le _)
+
+-- TODO -- global replace le_zero_iff_eq by n nonpos_iff_eq_zero?
+@[simp, to_additive le_zero_iff_eq] lemma le_one_iff_eq : a ≤ 1 ↔ a = 1 :=
 iff.intro
-  (assume h, le_antisymm h (zero_le a))
+  (assume h, le_antisymm h (one_le a))
   (assume h, h ▸ le_refl a)
 
-lemma zero_lt_iff_ne_zero : 0 < a ↔ a ≠ 0 :=
-iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (zero_le _) hne.symm
+-- TODO -- global replace zero_lt_iff_ne_zero by pos_iff_ne_zero?
+@[to_additive zero_lt_iff_ne_zero] lemma one_lt_iff_ne_one : 1 < a ↔ a ≠ 1 :=
+iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (one_le _) hne.symm
 
-lemma exists_pos_add_of_lt (h : a < b) : ∃ c > 0, a + c = b :=
+@[to_additive] lemma exists_pos_mul_of_lt (h : a < b) : ∃ c > 1, a * c = b :=
 begin
-  obtain ⟨c, hc⟩ := le_iff_exists_add.1 h.le,
-  refine ⟨c, zero_lt_iff_ne_zero.2 _, hc.symm⟩,
+  obtain ⟨c, hc⟩ := le_iff_exists_mul.1 h.le,
+  refine ⟨c, one_lt_iff_ne_one.2 _, hc.symm⟩,
   rintro rfl,
   simpa [hc, lt_irrefl] using h
 end
 
-lemma le_add_left (h : a ≤ c) : a ≤ b + c :=
-calc a = 0 + a : by simp
-  ... ≤ b + c : add_le_add (zero_le _) h
+@[to_additive] lemma le_mul_left (h : a ≤ c) : a ≤ b * c :=
+calc a = 1 * a : by simp
+  ... ≤ b * c : mul_le_mul' (one_le _) h
 
-lemma le_add_right (h : a ≤ b) : a ≤ b + c :=
-calc a = a + 0 : by simp
-  ... ≤ b + c : add_le_add h (zero_le _)
+@[to_additive] lemma le_mul_right (h : a ≤ b) : a ≤ b * c :=
+calc a = a * 1 : by simp
+  ... ≤ b * c : mul_le_mul' h (one_le _)
 
 local attribute [semireducible] with_zero
 
-instance with_zero.canonically_ordered_add_monoid :
+-- This instance looks absurd: a monoid already has a zero
+/-- Adding a new zero to a canonically ordered additive monoid produces another one. -/
+instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
   canonically_ordered_add_monoid (with_zero α) :=
 { le_iff_exists_add := λ a b, begin
     cases a with a,
@@ -579,7 +616,8 @@ instance with_zero.canonically_ordered_add_monoid :
   bot_le := assume a a' h, option.no_confusion h,
   .. with_zero.ordered_add_comm_monoid zero_le }
 
-instance with_top.canonically_ordered_add_monoid : canonically_ordered_add_monoid (with_top α) :=
+instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
+  canonically_ordered_add_monoid (with_top α) :=
 { le_iff_exists_add := assume a b,
   match a, b with
   | a, none     := show a ≤ ⊤ ↔ ∃c, ⊤ = a + c, by simp; refine ⟨⊤, _⟩; cases a; refl
@@ -595,26 +633,39 @@ instance with_top.canonically_ordered_add_monoid : canonically_ordered_add_monoi
   .. with_top.order_bot,
   .. with_top.ordered_add_comm_monoid }
 
-end canonically_ordered_add_monoid
+end canonically_ordered_monoid
 
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
-    whose ordering is a decidable linear order. -/
-@[protect_proj]
+    whose ordering is a linear order. -/
+@[protect_proj, ancestor canonically_ordered_add_monoid linear_order]
 class canonically_linear_ordered_add_monoid (α : Type*)
       extends canonically_ordered_add_monoid α, linear_order α
 
-section canonically_linear_ordered_add_monoid
-variables [canonically_linear_ordered_add_monoid α]
+/-- A canonically linear-ordered monoid is a canonically ordered monoid
+    whose ordering is a linear order. -/
+@[protect_proj, ancestor canonically_ordered_monoid linear_order]
+class canonically_linear_ordered_monoid (α : Type*)
+      extends canonically_ordered_monoid α, linear_order α
+
+section canonically_linear_ordered_monoid
+variables
 
 @[priority 100]  -- see Note [lower instance priority]
-instance canonically_linear_ordered_add_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
+instance canonically_linear_ordered_add_monoid.semilattice_sup_bot
+  [canonically_linear_ordered_add_monoid α] : semilattice_sup_bot α :=
 { ..lattice_of_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
 
-end canonically_linear_ordered_add_monoid
+@[priority 100, to_additive canonically_linear_ordered_add_monoid.semilattice_sup_bot]
+-- see Note [lower instance priority]
+instance canonically_linear_ordered_monoid.semilattice_sup_bot
+  [canonically_linear_ordered_monoid α] : semilattice_sup_bot α :=
+{ ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }
+
+end canonically_linear_ordered_monoid
 
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,
-in which addition is cancellative and strictly monotone. -/
+in which addition is cancellative and monotone. -/
 @[protect_proj, ancestor add_comm_monoid add_left_cancel_semigroup
   add_right_cancel_semigroup partial_order]
 class ordered_cancel_add_comm_monoid (α : Type u)
@@ -625,15 +676,14 @@ class ordered_cancel_add_comm_monoid (α : Type u)
 
 /-- An ordered cancellative commutative monoid
 is a commutative monoid with a partial order,
-in which multiplication is cancellative and strictly monotone. -/
-@[protect_proj, ancestor comm_monoid left_cancel_semigroup right_cancel_semigroup partial_order]
+in which multiplication is cancellative and monotone. -/
+@[protect_proj, ancestor comm_monoid left_cancel_semigroup right_cancel_semigroup partial_order,
+  to_additive]
 class ordered_cancel_comm_monoid (α : Type u)
       extends comm_monoid α, left_cancel_semigroup α,
               right_cancel_semigroup α, partial_order α :=
 (mul_le_mul_left       : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 (le_of_mul_le_mul_left : ∀ a b c : α, a * b ≤ a * c → b ≤ c)
-
-attribute [to_additive] ordered_cancel_comm_monoid
 
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c d : α}
@@ -885,12 +935,6 @@ by simpa [add_comm] using @with_bot.add_lt_add_iff_left _ _ a b c
 
 end ordered_cancel_add_comm_monoid
 
-/-- A decidable linearly ordered cancellative additive commutative monoid
-is an additive commutative monoid with a decidable linear order
-in which addition is cancellative and strictly monotone. -/
-@[protect_proj] class linear_ordered_cancel_add_comm_monoid (α : Type u)
-  extends ordered_cancel_add_comm_monoid α, linear_order α
-
 /-! Some lemmas about types that have an ordering and a binary operation, with no
   rules relating them. -/
 @[to_additive]
@@ -903,50 +947,75 @@ lemma min_mul_max [linear_order α] [comm_semigroup α] (n m : α) :
   min n m * max n m = n * m :=
 fn_min_mul_fn_max id n m
 
-section linear_ordered_cancel_add_comm_monoid
-variables [linear_ordered_cancel_add_comm_monoid α]
+/-- A linearly ordered cancellative additive commutative monoid
+is an additive commutative monoid with a decidable linear order
+in which addition is cancellative and monotone. -/
+@[protect_proj, ancestor ordered_cancel_add_comm_monoid linear_order]
+class linear_ordered_cancel_add_comm_monoid (α : Type u)
+  extends ordered_cancel_add_comm_monoid α, linear_order α
 
-lemma min_add_add_left (a b c : α) : min (a + b) (a + c) = a + min b c :=
-(monotone_id.const_add a).map_min.symm
+/-- A linearly ordered cancellative commutative monoid
+is a commutative monoid with a linear order
+in which multiplication is cancellative and monotone. -/
+@[protect_proj, ancestor ordered_cancel_comm_monoid linear_order, to_additive]
+class linear_ordered_cancel_comm_monoid (α : Type u)
+  extends ordered_cancel_comm_monoid α, linear_order α
 
-lemma min_add_add_right (a b c : α) : min (a + c) (b + c) = min a b + c :=
-(monotone_id.add_const c).map_min.symm
+section linear_ordered_cancel_comm_monoid
 
-lemma max_add_add_left (a b c : α) : max (a + b) (a + c) = a + max b c :=
-(monotone_id.const_add a).map_max.symm
+variables [linear_ordered_cancel_comm_monoid α]
 
-lemma max_add_add_right (a b c : α) : max (a + c) (b + c) = max a b + c :=
-(monotone_id.add_const c).map_max.symm
+@[to_additive] lemma min_mul_mul_left (a b c : α) : min (a * b) (a * c) = a * min b c :=
+(monotone_id.const_mul' a).map_min.symm
 
-lemma min_le_add_of_nonneg_right {a b : α} (hb : 0 ≤ b) : min a b ≤ a + b :=
-min_le_iff.2 $ or.inl $ le_add_of_nonneg_right hb
+@[to_additive]
+lemma min_mul_mul_right (a b c : α) : min (a * c) (b * c) = min a b * c :=
+(monotone_id.mul_const' c).map_min.symm
 
-lemma min_le_add_of_nonneg_left {a b : α} (ha : 0 ≤ a) : min a b ≤ a + b :=
-min_le_iff.2 $ or.inr $ le_add_of_nonneg_left ha
+@[to_additive]
+lemma max_mul_mul_left (a b c : α) : max (a * b) (a * c) = a * max b c :=
+(monotone_id.const_mul' a).map_max.symm
 
-lemma max_le_add_of_nonneg {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) : max a b ≤ a + b :=
-max_le_iff.2 ⟨le_add_of_nonneg_right hb, le_add_of_nonneg_left ha⟩
+@[to_additive]
+lemma max_mul_mul_right (a b c : α) : max (a * c) (b * c) = max a b * c :=
+(monotone_id.mul_const' c).map_max.symm
 
-end linear_ordered_cancel_add_comm_monoid
+@[to_additive]
+lemma min_le_mul_of_one_le_right {a b : α} (hb : 1 ≤ b) : min a b ≤ a * b :=
+min_le_iff.2 $ or.inl $ le_mul_of_one_le_right' hb
+
+@[to_additive]
+lemma min_le_mul_of_one_le_left {a b : α} (ha : 1 ≤ a) : min a b ≤ a * b :=
+min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' ha
+
+@[to_additive]
+lemma max_le_mul_of_one_le {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : max a b ≤ a * b :=
+max_le_iff.2 ⟨le_mul_of_one_le_right' hb, le_mul_of_one_le_left' ha⟩
+
+end linear_ordered_cancel_comm_monoid
 
 namespace order_dual
 
-instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (order_dual α) :=
-{ add_le_add_left := λ a b h c, @add_le_add_left α _ b a h _,
-  lt_of_add_lt_add_left := λ a b c h, @lt_of_add_lt_add_left α _ a c b h,
+@[to_additive]
+instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
+{ mul_le_mul_left := λ a b h c, @mul_le_mul_left' α _ b a h _,
+  lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α _ a c b h,
   ..order_dual.partial_order α,
-  ..show add_comm_monoid α, by apply_instance }
+  ..show comm_monoid α, by apply_instance }
 
-instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_add_comm_monoid (order_dual α) :=
-{ le_of_add_le_add_left := λ a b c : α, le_of_add_le_add_left,
-  add_left_cancel := @add_left_cancel α _,
-  add_right_cancel := @add_right_cancel α _,
-  ..order_dual.ordered_add_comm_monoid }
 
-instance [linear_ordered_cancel_add_comm_monoid α] :
-  linear_ordered_cancel_add_comm_monoid (order_dual α) :=
+@[to_additive]
+instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=
+{ le_of_mul_le_mul_left := λ a b c : α, le_of_mul_le_mul_left',
+  mul_left_cancel := @mul_left_cancel α _,
+  mul_right_cancel := @mul_right_cancel α _,
+  ..order_dual.ordered_comm_monoid }
+
+@[to_additive]
+instance [linear_ordered_cancel_comm_monoid α] :
+  linear_ordered_cancel_comm_monoid (order_dual α) :=
 { .. order_dual.linear_order α,
-  .. order_dual.ordered_cancel_add_comm_monoid }
+  .. order_dual.ordered_cancel_comm_monoid }
 
 end order_dual
 

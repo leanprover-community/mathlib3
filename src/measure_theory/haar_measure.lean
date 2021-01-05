@@ -448,7 +448,7 @@ lemma haar_outer_measure_eq_infi (K₀ : positive_compacts G) (A : set G) :
 outer_measure.of_content_eq_infi echaar_sup_le A
 
 lemma echaar_le_haar_outer_measure {K₀ : positive_compacts G} (K : compacts G) :
-   echaar K₀ K ≤ haar_outer_measure K₀ K.1 :=
+  echaar K₀ K ≤ haar_outer_measure K₀ K.1 :=
 outer_measure.le_of_content_compacts echaar_sup_le K
 
 lemma haar_outer_measure_of_is_open {K₀ : positive_compacts G} (U : set G) (hU : is_open U) :

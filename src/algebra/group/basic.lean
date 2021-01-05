@@ -133,18 +133,26 @@ end right_cancel_monoid
 
 section div_inv_monoid
 
--- TODO: in a later PR, this `group G` instance will become `div_inv_monoid`
-variables {G : Type u} [group G]
+variables {G : Type u} [div_inv_monoid G]
 
 @[to_additive]
-lemma group.inv_eq_one_div (x : G) :
+lemma inv_eq_one_div (x : G) :
   x⁻¹ = 1 / x :=
-by rw [group.div_eq_mul_inv, one_mul]
+by rw [div_eq_mul_inv, one_mul]
 
 @[to_additive]
-lemma group.mul_one_div (x y : G) :
+lemma mul_one_div (x y : G) :
   x * (1 / y) = x / y :=
-by rw [group.div_eq_mul_inv, one_mul, group.div_eq_mul_inv]
+by rw [div_eq_mul_inv, one_mul, div_eq_mul_inv]
+
+lemma mul_div_assoc {a b c : G} : a * b / c = a * (b / c) :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc _ _ _]
+
+lemma mul_div_assoc' (a b c : G) : a * (b / c) = (a * b) / c :=
+mul_div_assoc.symm
+
+@[simp, to_additive] lemma one_div (a : G) : 1 / a = a⁻¹ :=
+(inv_eq_one_div a).symm
 
 end div_inv_monoid
 
@@ -304,11 +312,11 @@ lemma mul_right_eq_self : a * b = a ↔ b = 1 :=
 
 @[to_additive]
 lemma div_left_injective : function.injective (λ a, a / b) :=
-by simpa only [group.div_eq_mul_inv] using λ a a' h, mul_left_injective (b⁻¹) h
+by simpa only [div_eq_mul_inv] using λ a a' h, mul_left_injective (b⁻¹) h
 
 @[to_additive]
 lemma div_right_injective : function.injective (λ a, b / a) :=
-by simpa only [group.div_eq_mul_inv] using λ a a' h, inv_injective (mul_right_injective b h)
+by simpa only [div_eq_mul_inv] using λ a a' h, inv_injective (mul_right_injective b h)
 
 end group
 
@@ -337,9 +345,6 @@ by rw [h, sub_self]
 
 lemma sub_eq_zero_iff_eq : a - b = 0 ↔ a = b :=
 ⟨eq_of_sub_eq_zero, sub_eq_zero_of_eq⟩
-
-@[simp] lemma zero_sub (a : G) : 0 - a = -a :=
-by rw [sub_eq_add_neg, zero_add (-a)]
 
 @[simp] lemma sub_zero (a : G) : a - 0 = a :=
 by rw [sub_eq_add_neg, neg_zero, add_zero]

@@ -15,7 +15,7 @@ its basic properties. In particular, show that this space is itself a normed spa
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical nnreal
 
 
 variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
@@ -41,10 +41,14 @@ lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x�
   lipschitz_with (nnreal.of_real C) f :=
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
-theorem linear_map.antilipschitz_of_bound {K : nnreal} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+theorem linear_map.antilipschitz_of_bound {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
   antilipschitz_with K f :=
 antilipschitz_with.of_le_mul_dist $
 λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
+
+lemma linear_map.bound_of_antilipschitz {K : ℝ≥0} (h : antilipschitz_with K f) (x) :
+  ∥x∥ ≤ K * ∥f x∥ :=
+by simpa only [dist_zero_right, f.map_zero] using h.le_mul_dist x 0
 
 lemma linear_map.uniform_continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   uniform_continuous f :=
@@ -295,7 +299,7 @@ lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * �
   ∥f∥ ≤ M :=
 Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 
-theorem op_norm_le_of_lipschitz {f : E →L[𝕜] F} {K : nnreal} (hf : lipschitz_with K f) :
+theorem op_norm_le_of_lipschitz {f : E →L[𝕜] F} {K : ℝ≥0} (hf : lipschitz_with K f) :
   ∥f∥ ≤ K :=
 f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le_mul x 0
 
@@ -335,7 +339,7 @@ le_antisymm (φ.op_norm_le_bound M_nonneg h_above)
 
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
-show ∥f + g∥ ≤ (coe : nnreal → ℝ) (⟨_, f.op_norm_nonneg⟩ + ⟨_, g.op_norm_nonneg⟩),
+show ∥f + g∥ ≤ (coe : ℝ≥0 → ℝ) (⟨_, f.op_norm_nonneg⟩ + ⟨_, g.op_norm_nonneg⟩),
 from op_norm_le_of_lipschitz (f.lipschitz.add g.lipschitz)
 
 /-- An operator is zero iff its norm vanishes. -/
@@ -442,7 +446,7 @@ homothety_norm _ (to_span_singleton_homothety 𝕜 x)
 
 variable (f)
 
-theorem uniform_embedding_of_bound {K : nnreal} (hf : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+theorem uniform_embedding_of_bound {K : ℝ≥0} (hf : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
   uniform_embedding f :=
 (f.to_linear_map.antilipschitz_of_bound hf).uniform_embedding f.uniform_continuous
 
@@ -598,7 +602,7 @@ extend_unique _ _ _ _ _ (zero_comp _)
 end
 
 section
-variables {N : nnreal} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
+variables {N : ℝ≥0} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
 
 local notation `ψ` := f.extend e h_dense (uniform_embedding_of_bound _ h_e).to_uniform_inducing
 
@@ -925,7 +929,7 @@ continuous_linear_map.to_span_singleton_homothety _ _ _
 
 /-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural
     continuous linear equivalence from `E` to the span of `x`.-/
-def to_span_nonzero_singleton (x : E) (h : x ≠ 0) : 𝕜 ≃L[𝕜] (submodule.span 𝕜 ({x} : set E)) :=
+def to_span_nonzero_singleton (x : E) (h : x ≠ 0) : 𝕜 ≃L[𝕜] (𝕜 ∙ x) :=
 of_homothety 𝕜
   (linear_equiv.to_span_nonzero_singleton 𝕜 E x h)
   ∥x∥
@@ -934,19 +938,19 @@ of_homothety 𝕜
 
 /-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural continuous
     linear map from the span of `x` to `𝕜`.-/
-abbreviation coord (x : E) (h : x ≠ 0) : (submodule.span 𝕜 ({x} : set E)) →L[𝕜] 𝕜 :=
+abbreviation coord (x : E) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 :=
   (to_span_nonzero_singleton 𝕜 x h).symm
 
 lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
 begin
   have hx : 0 < ∥x∥ := (norm_pos_iff.mpr h),
-  haveI : nontrivial (submodule.span 𝕜 ({x} : set E)) := submodule.nontrivial_span_singleton h,
+  haveI : nontrivial (𝕜 ∙ x) := submodule.nontrivial_span_singleton h,
   exact continuous_linear_map.homothety_norm _
         (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
 end
 
 lemma coord_self (x : E) (h : x ≠ 0) :
-  (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span 𝕜 ({x} : set E)) = 1 :=
+  (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
 linear_equiv.coord_self 𝕜 E x h
 
 end continuous_linear_equiv

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import tactic.doc_commands
+import tactic.reserved_notation
 
 /-!
 # Basic logic properties
@@ -84,7 +85,7 @@ theorem coe_sort_coe_trans
 Many structures such as bundled morphisms coerce to functions so that you can
 transparently apply them to arguments. For example, if `e : α ≃ β` and `a : α`
 then you can write `e a` and this is elaborated as `⇑e a`. This type of
-coercion is implemented using the `has_coe_to_fun`type class. There is one
+coercion is implemented using the `has_coe_to_fun` type class. There is one
 important consideration:
 
 If a type coerces to another type which in turn coerces to a function,
@@ -382,6 +383,12 @@ protected theorem decidable.not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b �
 
 theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
 
+@[simp] theorem or_iff_left_iff_imp : (a ∨ b ↔ a) ↔ (b → a) :=
+⟨λ h hb, h.1 (or.inr hb), or_iff_left_of_imp⟩
+
+@[simp] theorem or_iff_right_iff_imp : (a ∨ b ↔ b) ↔ (a → b) :=
+by rw [or_comm, or_iff_left_iff_imp]
+
 /-! ### Declarations about distributivity -/
 
 /-- `∧` distributes over `∨` (on the left). -/
@@ -498,7 +505,8 @@ by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm decidable.not_imp_c
 theorem iff_not_comm : (a ↔ ¬ b) ↔ (b ↔ ¬ a) := decidable.iff_not_comm
 
 -- See Note [decidable namespace]
-protected theorem decidable.iff_iff_and_or_not_and_not [decidable b] : (a ↔ b) ↔ (a ∧ b) ∨ (¬ a ∧ ¬ b) :=
+protected theorem decidable.iff_iff_and_or_not_and_not [decidable b] :
+  (a ↔ b) ↔ (a ∧ b) ∨ (¬ a ∧ ¬ b) :=
 by { split; intro h,
      { rw h; by_cases b; [left,right]; split; assumption },
      { cases h with h h; cases h; split; intro; { contradiction <|> assumption } } }
@@ -575,7 +583,8 @@ by rw [← not_or_distrib, decidable.not_not]
 theorem or_iff_not_and_not : a ∨ b ↔ ¬ (¬a ∧ ¬b) := decidable.or_iff_not_and_not
 
 -- See Note [decidable namespace]
-protected theorem decidable.and_iff_not_or_not [decidable a] [decidable b] : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) :=
+protected theorem decidable.and_iff_not_or_not [decidable a] [decidable b] :
+  a ∧ b ↔ ¬ (¬ a ∨ ¬ b) :=
 by rw [← decidable.not_and_distrib, decidable.not_not]
 
 theorem and_iff_not_or_not : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) := decidable.and_iff_not_or_not
@@ -863,6 +872,8 @@ theorem forall_iff_forall_surj
 
 @[simp] theorem exists_false : ¬ (∃a:α, false) := assume ⟨a, h⟩, h
 
+@[simp] lemma exists_unique_false : ¬ (∃! (a : α), false) := assume ⟨a, h, h'⟩, h
+
 theorem Exists.fst {p : b → Prop} : Exists p → b
 | ⟨h, _⟩ := h
 
@@ -875,7 +886,8 @@ theorem Exists.snd {p : b → Prop} : ∀ h : Exists p, p h.fst
 @[simp] theorem exists_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃ h' : p, q h') ↔ q h :=
 @exists_const (q h) p ⟨h⟩
 
-@[simp] theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) : (∀ h' : p, q h') ↔ true :=
+@[simp] theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) :
+  (∀ h' : p, q h') ↔ true :=
 iff_true_intro $ λ h, hn.elim h
 
 @[simp] theorem exists_prop_of_false {p : Prop} {q : p → Prop} : ¬ p → ¬ (∃ h' : p, q h') :=

@@ -3,7 +3,7 @@ Copyright (c) 2017 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Mario Carneiro
 -/
-import data.real.basic
+import data.real.sqrt
 
 open_locale big_operators
 
@@ -95,6 +95,8 @@ instance : has_neg ℂ := ⟨λ z, ⟨-z.re, -z.im⟩⟩
 @[simp] lemma neg_im (z : ℂ) : (-z).im = -z.im := rfl
 @[simp, norm_cast] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : ℂ) = -r := ext_iff.2 $ by simp
 
+instance : has_sub ℂ := ⟨λ z w, ⟨z.re - w.re, z.im - w.im⟩⟩
+
 instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im + z.im * w.re⟩⟩
 
 @[simp] lemma mul_re (z w : ℂ) : (z * w).re = z.re * w.re - z.im * w.im := rfl
@@ -128,7 +130,8 @@ ext_iff.2 $ by simp
 /-! ### Commutative ring instance and lemmas -/
 
 instance : comm_ring ℂ :=
-by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..};
+by refine { zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1, mul := (*),
+            sub_eq_add_neg := _, ..};
    { intros, apply ext_iff.2; split; simp; ring }
 
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
@@ -193,26 +196,32 @@ instance : star_ring ℂ :=
 /-! ### Norm squared -/
 
 /-- The norm squared function. -/
-@[pp_nodot] def norm_sq (z : ℂ) : ℝ := z.re * z.re + z.im * z.im
+@[pp_nodot] def norm_sq : monoid_with_zero_hom ℂ ℝ :=
+{ to_fun := λ z, z.re * z.re + z.im * z.im,
+  map_zero' := by simp,
+  map_one' := by simp,
+  map_mul' := λ z w, by { dsimp, ring } }
+
+lemma norm_sq_apply (z : ℂ) : norm_sq z = z.re * z.re + z.im * z.im := rfl
 
 @[simp] lemma norm_sq_of_real (r : ℝ) : norm_sq r = r * r :=
 by simp [norm_sq]
 
-@[simp] lemma norm_sq_zero : norm_sq 0 = 0 := by simp [norm_sq]
-@[simp] lemma norm_sq_one : norm_sq 1 = 1 := by simp [norm_sq]
+lemma norm_sq_zero : norm_sq 0 = 0 := norm_sq.map_zero
+lemma norm_sq_one : norm_sq 1 = 1 := norm_sq.map_one
 @[simp] lemma norm_sq_I : norm_sq I = 1 := by simp [norm_sq]
 
 lemma norm_sq_nonneg (z : ℂ) : 0 ≤ norm_sq z :=
 add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)
 
-@[simp] lemma norm_sq_eq_zero {z : ℂ} : norm_sq z = 0 ↔ z = 0 :=
+lemma norm_sq_eq_zero {z : ℂ} : norm_sq z = 0 ↔ z = 0 :=
 ⟨λ h, ext
   (eq_zero_of_mul_self_add_mul_self_eq_zero h)
   (eq_zero_of_mul_self_add_mul_self_eq_zero $ (add_comm _ _).trans h),
  λ h, h.symm ▸ norm_sq_zero⟩
 
 @[simp] lemma norm_sq_pos {z : ℂ} : 0 < norm_sq z ↔ z ≠ 0 :=
-by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [norm_sq_nonneg]
+(norm_sq_nonneg z).lt_iff_ne.trans $ not_congr (eq_comm.trans norm_sq_eq_zero)
 
 @[simp] lemma norm_sq_neg (z : ℂ) : norm_sq (-z) = norm_sq z :=
 by simp [norm_sq]
@@ -220,8 +229,8 @@ by simp [norm_sq]
 @[simp] lemma norm_sq_conj (z : ℂ) : norm_sq (conj z) = norm_sq z :=
 by simp [norm_sq]
 
-@[simp] lemma norm_sq_mul (z w : ℂ) : norm_sq (z * w) = norm_sq z * norm_sq w :=
-by dsimp [norm_sq]; ring
+lemma norm_sq_mul (z w : ℂ) : norm_sq (z * w) = norm_sq z * norm_sq w :=
+norm_sq.map_mul z w
 
 lemma norm_sq_add (z w : ℂ) : norm_sq (z + w) =
   norm_sq z + norm_sq w + 2 * (z * conj w).re :=
@@ -314,12 +323,10 @@ of_real.map_fpow r n
 by simp [inv_eq_one_div]
 
 @[simp] lemma norm_sq_inv (z : ℂ) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
-if h : z = 0 then by simp [h] else
-mul_right_cancel' (mt norm_sq_eq_zero.1 h) $
-by rw [← norm_sq_mul]; simp [h, -norm_sq_mul]
+norm_sq.map_inv' z
 
 @[simp] lemma norm_sq_div (z w : ℂ) : norm_sq (z / w) = norm_sq z / norm_sq w :=
-by rw [division_def, norm_sq_mul, norm_sq_inv]; refl
+norm_sq.map_div z w
 
 /-! ### Cast lemmas -/
 
@@ -461,6 +468,9 @@ else by { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, 
 
 @[simp, norm_cast] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
 by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
+
+@[simp, norm_cast] lemma int_cast_abs (n : ℤ) : ↑(abs' n) = abs n :=
+by rw [← of_real_int_cast, abs_of_real, int.cast_abs]
 
 lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=
 by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]

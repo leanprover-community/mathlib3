@@ -595,9 +595,6 @@ begin
     rw [sqrt_eq_zero_of_nonpos (le_of_lt h), rpow_def_of_neg h, this, cos_pi_div_two, mul_zero] }
 end
 
-lemma continuous_sqrt : continuous sqrt :=
-by rw sqrt_eq_rpow; exact continuous_rpow_of_pos (λa, by norm_num) continuous_id continuous_const
-
 end sqrt
 
 end real
@@ -1014,33 +1011,33 @@ end nnreal
 
 section measurability_nnreal
 
-lemma nnreal.measurable_rpow : measurable (λ p : nnreal × ℝ, p.1 ^ p.2) :=
+lemma nnreal.measurable_rpow : measurable (λ p : ℝ≥0 × ℝ, p.1 ^ p.2) :=
 begin
-  have h_rw : (λ p : nnreal × ℝ, p.1 ^ p.2) = (λ p : nnreal × ℝ, nnreal.of_real(↑(p.1) ^ p.2)),
+  have h_rw : (λ p : ℝ≥0 × ℝ, p.1 ^ p.2) = (λ p : ℝ≥0 × ℝ, nnreal.of_real(↑(p.1) ^ p.2)),
   { ext1 a,
     rw [←nnreal.coe_rpow, nnreal.of_real_coe], },
   rw h_rw,
   exact (measurable_fst.nnreal_coe.rpow measurable_snd).nnreal_of_real,
 end
 
-lemma measurable.nnreal_rpow {α} [measurable_space α] {f : α → nnreal} (hf : measurable f)
+lemma measurable.nnreal_rpow {α} [measurable_space α] {f : α → ℝ≥0} (hf : measurable f)
   {g : α → ℝ} (hg : measurable g) :
   measurable (λ a : α, (f a) ^ (g a)) :=
 begin
-  change measurable ((λ p : nnreal × ℝ, p.1 ^ p.2) ∘ (λ a : α, (f a, g a))),
+  change measurable ((λ p : ℝ≥0 × ℝ, p.1 ^ p.2) ∘ (λ a : α, (f a, g a))),
   exact nnreal.measurable_rpow.comp (measurable.prod hf hg),
 end
 
-lemma nnreal.measurable_rpow_const {y : ℝ} : measurable (λ a : nnreal, a ^ y) :=
+lemma nnreal.measurable_rpow_const {y : ℝ} : measurable (λ a : ℝ≥0, a ^ y) :=
 begin
-  have h_rw : (λ a : nnreal, a ^ y) = (λ a : nnreal, nnreal.of_real(↑a ^ y)),
+  have h_rw : (λ a : ℝ≥0, a ^ y) = (λ a : ℝ≥0, nnreal.of_real(↑a ^ y)),
   { ext1 a,
     rw [←nnreal.coe_rpow, nnreal.of_real_coe], },
   rw h_rw,
   exact nnreal.measurable_coe.rpow_const.nnreal_of_real,
 end
 
-lemma measurable.nnreal_rpow_const {α} [measurable_space α] {f : α → nnreal} (hf : measurable f)
+lemma measurable.nnreal_rpow_const {α} [measurable_space α] {f : α → ℝ≥0} (hf : measurable f)
   {y : ℝ} :
   measurable (λ a : α, (f a) ^ y) :=
 hf.nnreal_rpow measurable_const
@@ -1495,5 +1492,10 @@ lemma measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ennre
   {y : ℝ} :
   measurable (λ a : α, (f a) ^ y) :=
 hf.ennreal_rpow measurable_const
+
+lemma ae_measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ennreal}
+  {μ : measure_theory.measure α} (hf : ae_measurable f μ) {y : ℝ} :
+  ae_measurable (λ a : α, (f a) ^ y) μ :=
+ennreal.measurable_rpow_const.comp_ae_measurable hf
 
 end measurability_ennreal

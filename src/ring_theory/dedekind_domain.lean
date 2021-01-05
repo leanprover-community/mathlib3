@@ -152,26 +152,15 @@ open submodule
 lemma submodule.mem_span_finite_of_mem_span (S : set M) (x : M) (hx : x ∈ span B S) :
   ∃ T : set M, T ⊆ S ∧ T.finite ∧ x ∈ span B T :=
 begin
-  apply span_induction hx;
-  clear hx x,
-  { rintros x hx,
-    use {x},
-    split,
-    rwa set.singleton_subset_iff,
-    split, simp,
-    apply submodule.mem_span_singleton_self, },
+  refine span_induction hx (λ x hx, _) _ _ _,
+  { exact ⟨{x}, set.singleton_subset_iff.mpr hx, (by simp), submodule.mem_span_singleton_self _⟩ },
   { use ⊥, simp, },
   { rintros x y ⟨X, hX, hxf, hxX⟩ ⟨Y, hY, hyf, hyY⟩,
-    use X ∪ Y,
-    split,
-    exact set.union_subset hX hY,
-    split,
-    refine set.finite.union hxf hyf,
+    use [X ∪ Y, set.union_subset hX hY, set.finite.union hxf hyf],
     rw [span_union X Y, mem_sup],
-    use [x, hxX, y, hyY], },
-  rintros a x ⟨T, hT, h1, h2⟩,
-  use [T, hT, h1],
-  refine smul_mem _ _ h2,
+    exact ⟨x, hxX, y, hyY, rfl⟩, },
+  { rintros a x ⟨T, hT, h1, h2⟩,
+    exact ⟨T, hT, h1, smul_mem _ _ h2⟩ }
 end
 
 lemma submodule.mem_span_mul_finite_of_mem_span_mul (B M : Type*) [comm_semiring B] [semiring M]

@@ -120,6 +120,7 @@ instance : bounded_distrib_lattice α :=
 section decidable_eq
 variable [decidable_eq α]
 
+/-- Every simple lattice is order-isomorphic to `bool`. -/
 def order_iso_bool : α ≃o bool :=
 { to_fun := λ x, x = ⊤,
   inv_fun := λ x, if x then ⊤ else ⊥,
@@ -264,3 +265,4 @@ lemma is_simple_lattice [h : is_simple_lattice β] (f : α ≃o β) : is_simple_
 f.is_simple_lattice_iff.mpr h
 
 end order_iso
+#lint

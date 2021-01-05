@@ -151,7 +151,10 @@ def functor.closed_sieves : Cᵒᵖ ⥤ Type u :=
 { obj := λ X, {S : sieve X.unop // J₁.is_closed S},
   map := λ X Y f S, ⟨S.1.pullback f.unop, J₁.is_closed_pullback f.unop _ S.2⟩ }
 
-/-- The presheaf of `J`-closed sieves is a `J`-sheaf. -/
+/--
+The presheaf of `J`-closed sieves is a `J`-sheaf.
+The proof of this is adapted from [MM92], Chatper III, Section 7, Lemma 1.
+-/
 lemma classifier_is_sheaf : presieve.is_sheaf J₁ (functor.closed_sieves J₁) :=
 begin
   intros X S hS,

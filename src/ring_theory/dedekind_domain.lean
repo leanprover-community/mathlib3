@@ -243,56 +243,31 @@ lemma mem_coe' {S : submonoid R} {P : Type*} [comm_ring P]
   (f : localization_map S P) (I : fractional_ideal f) (x : f.codomain) :
   x ∈ (I : submodule R f.codomain) ↔ x ∈ I := iff.rfl
 
-lemma fg_of_one_mem_span (s : ideal A) (h2 : (s * (1 / s) : fractional_ideal f) = 1)
+lemma fg_of_one_mem_span_mul (s : ideal A) (h2 : (s * (1 / s) : fractional_ideal f) = 1)
   (T T' : finset f.codomain)
   (hT : (T : set f.codomain) ⊆ (s : fractional_ideal f))
-  (hT' : (T' : set f.codomain) ⊆ ↑((s : fractional_ideal f)⁻¹))
-  (h3 : (1 : f.codomain) ∈ submodule.span A (T * T' : set f.codomain)) :
+  (hT' : (T' : set f.codomain) ⊆ ↑(1 / (s : fractional_ideal f)))
+  (one_mem : (1 : f.codomain) ∈ span A (T * T' : set f.codomain)) :
   s.fg :=
 begin
-  have g := f.injective,
-  apply submodule.fg_of_fg_map f.lin_coe (linear_map.ker_eq_bot.mpr f.injective),
+  apply fg_of_fg_map f.lin_coe (linear_map.ker_eq_bot.mpr f.injective),
   refine ⟨T, _⟩,
-  ext x,
-  split,
-  { intro gx,
-    have f'' : span A (T : set f.codomain) ≤ (s : fractional_ideal f) := submodule.span_le.mpr hT,
+  apply le_antisymm,
+  { intros x gx,
     simp only [localization_map.lin_coe_apply, submodule.mem_map],
-    have g' := f'' gx,
-    simp only [coe_coe_ideal] at g',
-    rcases g' with ⟨y, hy, g''⟩,
-    use [y, hy, g''], },
-  intro gx,
-  have g'' : x ∈ submodule.span A {x} := submodule.mem_span_singleton_self x,
-  have g' : x * 1 ∈ submodule.span A {x} * submodule.span A (T * T' : set f.codomain) :=
-    submodule.mul_mem_mul g'' h3,
-  rw [mul_one x, ← submodule.span_mul_span, submodule.mul_comm] at g',
-  have g2 : x ∈ submodule.span A (T : set f.codomain) * submodule.span A (T' * {x}),
-  { rw [←submodule.span_mul_span A, ←mul_assoc],
-    exact g', },
-  suffices f2 : submodule.span A (T : set f.codomain) * submodule.span A (T' * {x}) ≤ submodule.span A T,
-  apply iff.rfl.1 f2 g2,
-  suffices f2 : submodule.span A (T' * {x} : set f.codomain) ≤ 1,
-  { have f3 := submodule.mul_le_mul (le_refl (submodule.span A (T : set f.codomain))) f2,
-    rwa mul_one (submodule.span A (T : set f.codomain)) at f3, },
-  rw submodule.one_eq_span,
-  have f2 : ({x} : set f.codomain) ⊆ (s : fractional_ideal f),
-  { simp only [submodule.mem_coe, set.singleton_subset_iff],
-    simp at gx,
-    suffices f1 : x ∈ (s : fractional_ideal f), exact f1, simp,
-    rcases gx with ⟨y, hy, g''⟩,
-    use [y, hy, g''], },
-  have f3 : span A {x} ≤ ↑(s : fractional_ideal f) := submodule.span_le.mpr f2,
-  have h1T' : span A (T' : set f.codomain) ≤ ↑((s : fractional_ideal f)⁻¹) := submodule.span_le.mpr hT',
-  have f' := submodule.mul_le_mul h1T' f3,
-  rw submodule.span_mul_span at f',
-  rw ← coe_mul at f',
-  suffices hf : (s : fractional_ideal f)⁻¹ * (s : fractional_ideal f) = 1,
-  rw hf at f',
-  convert f',
-  simp, rw [submodule.one_eq_span],
-  rw mul_comm _ _,
-  assumption,
+    exact submodule.span_le.mpr hT gx },
+  intros x gx,
+  suffices f2 : span A ({x} * T' : set f.codomain) ≤ 1,
+  { convert submodule.mul_le_mul_left f2 _,
+    { exact (one_mul _).symm },
+    rw [submodule.span_mul_span, mul_assoc, ← mul_one x, ← submodule.span_mul_span,
+        mul_comm (T' : set f.codomain)]
+      { occs := occurrences.pos [1] },
+    exact submodule.mul_mem_mul (mem_span_singleton_self x) one_mem, },
+  rw [← fractional_ideal.coe_one, ← h2, fractional_ideal.coe_mul, ← submodule.span_mul_span],
+  apply submodule.mul_le_mul,
+  { rwa [submodule.span_le, set.singleton_subset_iff] },
+  { rwa submodule.span_le }
 end
 
 lemma noeth : is_dedekind_domain_inv A -> is_noetherian_ring A :=
@@ -317,7 +292,7 @@ begin
   simp at h'',
   rw [←submodule.span_eq q, ←submodule.span_eq q', submodule.span_mul_span] at h'',
   obtain ⟨T, T', hT, hT', h⟩ := submodule.mem_span_mul_finite_of_mem_span_mul h'',
-  exact fg_of_one_mem_span s hf T T' hT hT' h,
+  exact fg_of_one_mem_span_mul s hf T T' hT hT' h,
 end
 
 lemma fraction_ring_fractional_ideal (x : (fraction_ring A)) (hx : is_integral A x) :

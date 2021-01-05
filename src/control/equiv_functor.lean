@@ -52,14 +52,14 @@ def map_equiv :
 @[simp] lemma map_equiv_apply (x : f α) :
   map_equiv f e x = equiv_functor.map e x := rfl
 
-@[simp] lemma map_equiv_symm_apply (y : f β) :
+lemma map_equiv_symm_apply (y : f β) :
   (map_equiv f e).symm y = equiv_functor.map e.symm y := rfl
 
 @[simp] lemma map_equiv_refl (α) :
   map_equiv f (equiv.refl α) = equiv.refl (f α) :=
 by simpa [equiv_functor.map_equiv]
 
-lemma map_equiv_symm :
+@[simp] lemma map_equiv_symm :
   (map_equiv f e).symm = map_equiv f e.symm :=
 equiv.ext $ map_equiv_symm_apply f e
 

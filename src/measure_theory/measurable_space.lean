@@ -539,6 +539,13 @@ hf.piecewise hs measurable_const
 @[to_additive]
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
+lemma measurable_of_not_nonempty  (h : ¬ nonempty α) (f : α → β) : measurable f :=
+begin
+  assume s hs,
+  convert is_measurable.empty,
+  exact eq_empty_of_not_nonempty h _,
+end
+
 end measurable_functions
 
 section constructions

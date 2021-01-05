@@ -530,6 +530,10 @@ end tensor_product
 namespace alternating_map
 open equiv
 
+local attribute [instance, priority 100] add_comm_group.int_module
+
+#print add_comm_group.int_module
+
 def dom_coprod_fun
   {R : Type*} {M N₁ N₂ : Type*}
   [comm_semiring R]
@@ -548,8 +552,14 @@ def dom_coprod_fun
   { intros,
     rw [←tensor_product.tmul_smul, tensor_product.smul_tmul'], },
   ext v,
-  simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
-    coe_multilinear_map],
+  suffices : ↑(perm.sign σ₁) • (↑a.dom_coprod ↑b) (λ i, v (σ₁ i)) =
+              ↑(perm.sign σ₂) • (↑a.dom_coprod ↑b) (λ i, v (σ₂ i)),
+  sorry,
+  simp only [multilinear_map.dom_dom_congr_apply,
+    coe_multilinear_map, multilinear_map.smul_apply],
+    -- , multilinear_map.dom_coprod_apply
+  have : has_scalar ℤ (N₁ ⊗[R] N₂) := by show_term {apply_instance},
+  simp_rw tensor_product.int_has_scalar'_eq,
     simp only [multilinear_map.smul_apply],
   obtain ⟨⟨sl, sr⟩, h⟩ := h,
   replace h := h.symm,
@@ -560,7 +570,6 @@ def dom_coprod_fun
   simp only [sum.map_inr, perm.sum_congr_hom_apply, perm.sum_congr_apply, sum.map_inl,
              function.comp_app, perm.coe_mul],
   rw [a.map_congr_perm (λ i, v (σ₁ _)) sl, b.map_congr_perm (λ i, v (σ₁ _)) sr],
-  simp_rw tensor_product.int_has_scalar'_eq,
   convert tmul_helper _ _ _ _,
   all_goals { exact tensor_product.int_has_scalar'_eq, },
 end)

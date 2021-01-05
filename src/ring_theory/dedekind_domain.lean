@@ -150,57 +150,55 @@ variables (M : Type*) [add_comm_monoid M] [semimodule B M]
 open submodule
 
 lemma submodule.mem_span_finite_of_mem_span (S : set M) (x : M) (hx : x ∈ span B S) :
-  ∃ T : set M, T ⊆ S ∧ T.finite ∧ x ∈ span B T :=
+  ∃ T : finset M, ↑T ⊆ S ∧ x ∈ span B (T : set M) :=
 begin
   refine span_induction hx (λ x hx, _) _ _ _,
-  { exact ⟨{x}, set.singleton_subset_iff.mpr hx, (by simp), submodule.mem_span_singleton_self _⟩ },
-  { use ⊥, simp, },
-  { rintros x y ⟨X, hX, hxf, hxX⟩ ⟨Y, hY, hyf, hyY⟩,
-    use [X ∪ Y, set.union_subset hX hY, set.finite.union hxf hyf],
-    rw [span_union X Y, mem_sup],
+  { refine ⟨{x}, _, _⟩,
+    { rwa [finset.coe_singleton, set.singleton_subset_iff] },
+    { rw finset.coe_singleton,
+      exact submodule.mem_span_singleton_self x } },
+  { use ∅, simp },
+  { rintros x y ⟨X, hX, hxX⟩ ⟨Y, hY, hyY⟩,
+    refine ⟨X ∪ Y, _, _⟩,
+    { rw finset.coe_union,
+      exact set.union_subset hX hY },
+    rw [finset.coe_union, span_union, mem_sup],
     exact ⟨x, hxX, y, hyY, rfl⟩, },
-  { rintros a x ⟨T, hT, h1, h2⟩,
-    exact ⟨T, hT, h1, smul_mem _ _ h2⟩ }
+  { rintros a x ⟨T, hT, h2⟩,
+    exact ⟨T, hT, smul_mem _ _ h2⟩ }
 end
 
 lemma submodule.mem_span_mul_finite_of_mem_span_mul (B M : Type*) [comm_semiring B] [semiring M]
-  [algebra B M] (S : set M) (S' : set M) (x : M) (hx : x ∈ span B S * span B S') :
-  ∃ (T : set M) (T' : set M), T ⊆ S ∧ T.finite ∧ T' ⊆ S' ∧ T'.finite ∧ x ∈ span B (T * T') :=
+  [algebra B M] (S : set M) (S' : set M) (x : M) (hx : x ∈ span B (S * S')) :
+  ∃ (T T' : finset M), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ x ∈ span B (T * T' : set M) :=
 begin
-  rw submodule.span_mul_span at hx,
-  obtain ⟨U, hU, h, fx⟩ := submodule.mem_span_finite_of_mem_span _ _ _ x hx,
-  apply span_induction fx,
+  apply span_induction hx,
   { rintros x hx,
-    have hU' := set.mem_of_subset_of_mem hU hx,
-    rw set.mem_mul at hU',
-    rcases hU' with ⟨y, z, hy, hz, h'⟩,
+    obtain ⟨y, z, hy, hz, h'⟩ := set.mem_mul.mp hx,
     have hy' := submodule.subset_span hy,
     have hz' := submodule.subset_span hz,
     have h := submodule.mem_span_finite_of_mem_span _ _ _ _ hy',
-    rcases h with ⟨T, hT, h1, fy⟩,
+    rcases h with ⟨T, hT, fy⟩,
     have h := submodule.mem_span_finite_of_mem_span _ _ _ _ hz',
-    rcases h with ⟨T', hT', h2, fz⟩,
-    use [T, T', hT, h1, hT', h2],
+    rcases h with ⟨T', hT', fz⟩,
+    use [T, T', hT, hT'],
     rw [←h', ←submodule.span_mul_span],
     apply mul_mem_mul fy fz, },
-  { use [⊥, ⊥], simp, },
-  { rintros x y ⟨T, T', hT, fT, hT', fT', h1⟩ ⟨U, U', hU, fU, hU', fU', h2⟩,
+  { use [∅, ∅], simp, },
+  { rintros x y ⟨T, T', hT, hT', h1⟩ ⟨U, U', hU, hU', h2⟩,
     use [T ∪ U, T' ∪ U'],
-    split, apply set.union_subset hT hU,
-    split, refine set.finite.union fT fU,
-    split, apply set.union_subset hT' hU',
-    split, refine set.finite.union fT' fU',
-    suffices f : x + y ∈ span B ((T * T') ∪ (U * U')),
-    { have f' : ((T * T') ∪ (U * U')) ⊆ ((T ∪ U) * (T' ∪ U')),
-      rw [set.mul_union, set.union_mul, set.union_mul, set.union_comm (T * U') _, set.union_assoc,
-        set.union_comm (U * T') _, ←set.union_assoc, ←set.union_assoc, set.union_assoc],
-      apply set.subset_union_left,
-      apply span_mono f' f, },
-    rw [ span_union (T * T') (U * U'), mem_sup ],
-    use [x, h1, y, h2], },
-  rintros a x ⟨T, T', h1, hT, h2, hT', h⟩,
-  use [T, T', h1, hT, h2, hT'],
-  refine smul_mem _ _ h,
+    simp only [finset.coe_union],
+    use [set.union_subset hT hU, set.union_subset hT' hU'],
+    suffices f : x + y ∈ span B ((T * T') ∪ (U * U') : set M),
+    { have f' : ((T * T') ∪ (U * U') : set M) ⊆ ((T ∪ U) * (T' ∪ U') : set M),
+    { convert set.subset_union_left (T * T' ∪ U * U' : set M) (T * U' ∪ U * T'),
+      simp only [set.mul_union, set.union_mul, set.union_mul],
+      ac_refl },
+    apply span_mono f' f, },
+    rw [span_union, mem_sup],
+    exact ⟨x, h1, y, h2, rfl⟩ },
+  rintros a x ⟨T, T', hT, hT', h⟩,
+  exact ⟨T, T', hT, hT', smul_mem _ _ h⟩,
 end
 
 /-- An ideal is nontrivial if and only if the fractional ideal corresponding to it is nontrivial. -/

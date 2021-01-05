@@ -45,7 +45,7 @@ def algebra.finite_type : Prop := (⊤ : subalgebra R A).fg
 polynomial ring in `n` variables by a finitely generated ideal. -/
 def algebra.finitely_presented : Prop :=
 ∃ (n : ℕ) (f : mv_polynomial (fin n) R →ₐ[R] A),
-surjective f ∧ f.to_ring_hom.ker.fg
+  surjective f ∧ f.to_ring_hom.ker.fg
 
 namespace module
 

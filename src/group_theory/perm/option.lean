@@ -82,35 +82,6 @@ lemma equiv.perm.decompose_option_symm_sign {α : Type*} [decidable_eq α] [fint
   perm.sign (equiv.perm.decompose_option.symm (none, e)) = perm.sign e :=
 by simp
 
--- TODO: these are in gh-5614, wait for that
-namespace perm
-
-variables {α : Type*}
-
-@[simp] lemma trans_one {α : Sort*} {β : Type*} (e : α ≃ β) : e.trans (1 : perm β) = e :=
-equiv.trans_refl e
-
-@[simp] lemma mul_refl (e : perm α) : e * equiv.refl α = e := equiv.trans_refl e
-
-@[simp] lemma one_symm : (1 : perm α).symm = 1 := equiv.refl_symm
-
-@[simp] lemma refl_inv : (equiv.refl α : perm α)⁻¹ = 1 := equiv.refl_symm
-
-@[simp] lemma one_trans {α : Type*} {β : Sort*} (e : α ≃ β) : (1 : perm α).trans e = e :=
-equiv.refl_trans e
-
-@[simp] lemma refl_mul (e : perm α) : equiv.refl α * e = e := equiv.refl_trans e
-
-@[simp] lemma inv_trans (e : perm α) : e⁻¹.trans e = 1 := equiv.symm_trans e
-
-@[simp] lemma mul_symm (e : perm α) : e * e.symm = 1 := equiv.symm_trans e
-
-@[simp] lemma trans_inv (e : perm α) : e.trans e⁻¹ = 1 := equiv.trans_symm e
-
-@[simp] lemma symm_mul (e : perm α) : e.symm * e = 1 := equiv.trans_symm e
-
-end perm
-
 /-- The set of all permutations of `option α` can be constructed by augmenting the set of
 permutations of `α` by each element of `option α` in turn. -/
 lemma finset.univ_perm_option {α : Type*} [decidable_eq α] [fintype α] :

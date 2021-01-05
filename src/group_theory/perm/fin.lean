@@ -21,7 +21,7 @@ def equiv.perm.decompose_fin {n : ℕ} :
 
 @[simp] lemma equiv.perm.decompose_fin_symm_of_refl {n : ℕ} (p : fin (n + 1)) :
   equiv.perm.decompose_fin.symm (p, equiv.refl _) = swap 0 p :=
-by simp [equiv.perm.decompose_fin]
+by simp [equiv.perm.decompose_fin, equiv.perm_congr_def]
 
 @[simp] lemma equiv.perm.decompose_fin_symm_of_one {n : ℕ} (p : fin (n + 1)) :
   equiv.perm.decompose_fin.symm (p, 1) = swap 0 p :=

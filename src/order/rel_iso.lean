@@ -79,6 +79,22 @@ end
 protected theorem well_founded : ∀ (f : r →r s) (h : well_founded s), well_founded r
 | f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
 
+lemma map_inf {α β : Type*} [semilattice_inf α] [linear_order β]
+  (a : ((<) : β → β → Prop) →r ((<) : α → α → Prop)) (m n : β) : a (m ⊓ n) = a m ⊓ a n :=
+begin
+  symmetry, cases le_or_lt n m with h,
+  { rw [inf_eq_right.mpr h, inf_eq_right], exact strict_mono.monotone (λ x y, a.map_rel) h, },
+  { rw [inf_eq_left.mpr (le_of_lt h), inf_eq_left], exact le_of_lt (a.map_rel h), },
+end
+
+lemma map_sup {α β : Type*} [semilattice_sup α] [linear_order β]
+  (a : ((>) : β → β → Prop) →r ((>) : α → α → Prop)) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
+begin
+  symmetry, cases le_or_lt m n with h,
+  { rw [sup_eq_right.mpr h, sup_eq_right], exact strict_mono.monotone (λ x y, a.swap.map_rel) h, },
+  { rw [sup_eq_left.mpr (le_of_lt h), sup_eq_left], exact le_of_lt (a.map_rel h), },
+end
+
 end rel_hom
 
 /-- An increasing function is injective -/

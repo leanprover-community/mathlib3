@@ -180,7 +180,7 @@ algebra T :=
   begin
     apply is_colimit.hom_ext (preserves_colimit.preserves (preserves_colimit.preserves t)),
     intro j,
-    erw [← category.assoc, nat_trans.naturality (μ_ T), ← functor.map_cocone_ι, category.assoc,
+    erw [← category.assoc, nat_trans.naturality (μ_ T), ← functor.map_cocone_ι_app, category.assoc,
          is_colimit.fac _ (new_cocone c) j],
     rw ← category.assoc,
     erw [← functor.map_comp, commuting],

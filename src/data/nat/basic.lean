@@ -881,12 +881,12 @@ protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k 
 @[simp] protected theorem not_two_dvd_bit1 (n : ℕ) : ¬ 2 ∣ bit1 n :=
 mt (nat.dvd_add_right two_dvd_bit0).1 dec_trivial
 
-/-- A natural number m divides the sum m + n if and only if m divides b.-/
+/-- A natural number `m` divides the sum `m + n` if and only if `m` divides `n`.-/
 @[simp] protected lemma dvd_add_self_left {m n : ℕ} :
   m ∣ m + n ↔ m ∣ n :=
 nat.dvd_add_right (dvd_refl m)
 
-/-- A natural number m divides the sum n + m if and only if m divides b.-/
+/-- A natural number `m` divides the sum `n + m` if and only if `m` divides `n`.-/
 @[simp] protected lemma dvd_add_self_right {m n : ℕ} :
   m ∣ n + m ↔ m ∣ n :=
 nat.dvd_add_left (dvd_refl m)

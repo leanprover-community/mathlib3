@@ -482,6 +482,9 @@ variable [fintype α]
 @[simp] lemma sign_mul (f g : perm α) : sign (f * g) = sign f * sign g :=
 monoid_hom.map_mul sign f g
 
+@[simp] lemma sign_trans (f g : perm α) : sign (f.trans g) = sign g * sign f :=
+by rw [←mul_def, sign_mul]
+
 @[simp] lemma sign_one : (sign (1 : perm α)) = 1 :=
 monoid_hom.map_one sign
 
@@ -490,6 +493,9 @@ monoid_hom.map_one sign
 
 @[simp] lemma sign_inv (f : perm α) : sign f⁻¹ = sign f :=
 by rw [monoid_hom.map_inv sign f, int.units_inv_eq_self]
+
+@[simp] lemma sign_symm (e : perm α) : sign e.symm = sign e :=
+sign_inv e
 
 lemma sign_swap {x y : α} (h : x ≠ y) : sign (swap x y) = -1 :=
 (sign_aux3_mul_and_swap 1 1 _ mem_univ).2 x y h

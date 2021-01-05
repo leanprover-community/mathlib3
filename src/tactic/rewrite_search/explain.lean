@@ -72,7 +72,7 @@ private meta def explain_using_location (rs : list (expr × bool)) (s : side) :
 private meta def using_location.explain_rewrites (rs : list (expr × bool)) (s : side)
   (steps : list how) : tactic string :=
 do rules ← steps.mmap $ λ h : how, option.to_list <$> explain_using_location rs s h,
-  return $ string.intercalate ",\n" rules.join
+  return $ string.intercalate ",\n  " rules.join
 
 namespace using_conv
 
@@ -186,7 +186,7 @@ option app_addr → list how → tactic (list string)
 /-- Explain a list of rewrites using `conv_x` tactics. -/
 meta def explain_rewrites (rs : list (expr × bool)) (s : side) (hows : list how) :
   tactic string :=
-string.intercalate ",\n" <$> explanation_lines rs s none hows
+string.intercalate ",\n  " <$> explanation_lines rs s none hows
 
 end using_conv
 

@@ -5,9 +5,7 @@ Author:  Aaron Anderson.
 -/
 
 import order.complete_boolean_algebra
-import order.order_dual
 import order.modular_lattice
-import order.rel_iso
 import data.fintype.basic
 
 /-!
@@ -370,7 +368,7 @@ variables {a b : α} (hc : is_compl a b)
 include hc
 
 lemma is_atom_iff_is_coatom : is_atom a ↔ is_coatom b :=
-set.is_simple_lattice_Iic_iff_is_atom.symm.trans $ hc.diamond_iso.is_simple_lattice_iff.trans
+set.is_simple_lattice_Iic_iff_is_atom.symm.trans $ hc.Iic_order_iso_Ici.is_simple_lattice_iff.trans
   set.is_simple_lattice_Ici_iff_is_coatom
 
 lemma is_coatom_iff_is_atom : is_coatom a ↔ is_atom b := hc.symm.is_atom_iff_is_coatom.symm

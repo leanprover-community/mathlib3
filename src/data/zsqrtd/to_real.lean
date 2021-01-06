@@ -24,13 +24,6 @@ lift (real.sqrt d) (real.mul_self_sqrt (int.cast_nonneg.mpr h))
 
 lemma to_real_injective {d : ℤ} (h : 0 ≤ d) (h_nonsquare : ∀ n : ℤ, d ≠ n*n) :
   function.injective (to_real h) :=
-(to_real h).injective_iff.mpr $ λ a ha, (norm_eq_zero h_nonsquare a).mp begin
-  replace ha := congr_arg (λ x, x * to_real h a.conj) ha,
-  have : to_real h (a.norm : ℤ√d) = 0,
-  { simpa only [zero_mul, ←ring_hom.map_mul, ←norm_eq_mul_conj] using ha },
-  have : (a.norm : ℤ√d) = 0,
-  { simpa using this },
-  exact_mod_cast this,
-end
+lift_injective _ _ h_nonsquare ((ring_hom.injective_iff _).mpr $ λ a, by simp)
 
 end zsqrtd

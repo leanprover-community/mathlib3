@@ -611,4 +611,20 @@ def lift {d : ℤ} (r : R) (hr : r * r = ↑d) : ℤ√d →+* R := {
     simp [this, hr],
     ring, } }
 
+/-- `lift` is injective if `d` is non-square, and the map from `ℤ` into `R` is injective. -/
+lemma lift_injective {d : ℤ} (r : R) (hr : r * r = ↑d) (h_nonsquare : ∀ n : ℤ, d ≠ n*n)
+  (h_inj : function.injective $ int.cast_ring_hom R):
+  function.injective (lift r hr) :=
+(lift r hr).injective_iff.mpr $ λ a ha, (norm_eq_zero h_nonsquare a).mp begin
+  have coe_zero : ∀ x : ℤ, (x : R) = 0 ↔ x = 0 := λ x, ⟨
+    (int.cast_ring_hom R).injective_iff.mp h_inj x,
+    λ h, by { rw h, exact (int.cast_ring_hom R).map_zero }⟩,
+  replace ha := congr_arg (λ x, x * lift r hr a.conj) ha,
+  have : lift r hr (a.norm : ℤ√d) = 0,
+  { simpa only [zero_mul, ←ring_hom.map_mul, ←norm_eq_mul_conj] using ha },
+  have : (a.norm : ℤ√d) = 0,
+  { simpa [coe_zero] using this },
+  exact_mod_cast this,
+end
+
 end zsqrtd

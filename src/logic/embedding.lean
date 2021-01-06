@@ -219,7 +219,7 @@ lemma trans_to_embedding {α β γ : Type*} (e : α ≃ β) (f : β ≃ γ) :
 
 lemma swap_embedding_apply {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α ↪ β) (x y z : α) :
   swap (f x) (f y) (f z) = f (swap x y z) :=
-swap_inj_apply f.inj' x y z
+swap_inj_apply f.injective x y z
 
 end equiv
 

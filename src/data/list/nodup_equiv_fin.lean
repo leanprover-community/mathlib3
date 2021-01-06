@@ -61,7 +61,7 @@ variable [decidable_eq α]
 `fin (length l)` and the set of elements of `l`. -/
 def nth_le_iso (l : list α) (H : sorted (<) l) : fin (length l) ≃o {x // x ∈ l} :=
 { to_equiv := H.nodup.nth_le_equiv l,
-  map_rel_iff' := λ i j, H.nth_le_strict_mono.le_iff_le.symm }
+  map_rel_iff' := λ i j, H.nth_le_strict_mono.le_iff_le }
 
 variables (H : sorted (<) l) {x : {x // x ∈ l}} {i : fin l.length}
 

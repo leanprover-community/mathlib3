@@ -227,12 +227,12 @@ begin
   ... = ⊥ : rfl,
 end
 
-lemma is_solvable_of_top_eq_bot (h : (⊤ : subgroup G) = ⊥) : is_solvable G :=
+instance is_solvable_of_top_eq_bot (h : (⊤ : subgroup G) = ⊥) : is_solvable G :=
 ⟨⟨0, by simp *⟩⟩
 
 variables {G} {G' : Type*} [group G'] {f : G →* G'}
 
-lemma solvable_of_solvable_injective (hf : function.injective f) (h : is_solvable G') :
+instance solvable_of_solvable_injective (hf : function.injective f) [h : is_solvable G'] :
   is_solvable G :=
 begin
   rw is_solvable_def at *,
@@ -244,10 +244,10 @@ begin
   ... ≤ ⊥ : hn,
 end
 
-lemma subgroup_solvable_of_solvable (H : subgroup G) (h : is_solvable G) : is_solvable H :=
-solvable_of_solvable_injective (show function.injective (subtype H), by ext) h
+instance subgroup_solvable_of_solvable (H : subgroup G) [h : is_solvable G] : is_solvable H :=
+solvable_of_solvable_injective (show function.injective (subtype H), by ext)
 
-lemma solvable_image_of_solvable (hf : function.surjective f) (h : is_solvable G) :
+instance solvable_image_of_solvable (hf : function.surjective f) [h : is_solvable G] :
   is_solvable G' :=
 begin
   rw is_solvable_def at *,
@@ -258,8 +258,8 @@ begin
     ... = ⊥ : map_bot f,
 end
 
-lemma solvable_quotient_of_solvable (H : subgroup G) [H.normal] (h : is_solvable G) :
+instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solvable G] :
   is_solvable (quotient_group.quotient H) :=
-solvable_image_of_solvable (show function.surjective (quotient_group.mk' H), by tidy) h
+solvable_image_of_solvable (show function.surjective (quotient_group.mk' H), by tidy)
 
 end solvable

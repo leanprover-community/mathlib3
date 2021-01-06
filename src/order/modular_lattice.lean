@@ -16,12 +16,13 @@ any distributive lattice.
 ## Main Definitions
 - `is_modular_lattice` defines a modular lattice to be one such that
   `x ≤ z → (x ⊔ y) ⊓ z ≤ x ⊔ (y ⊓ z)`
-- `diamond_iso` gives an order isomorphism between the intervals `[a ⊓ b, a]` and `[b, a ⊔ b]`.
+- `inf_Icc_order_iso_Icc_sup` gives an order isomorphism between the intervals
+  `[a ⊓ b, a]` and `[b, a ⊔ b]`.
   This corresponds to the diamond (or second) isomorphism theorems of algebra.
 
 ## Main Results
-- `is_modular_lattice_iff_modular_identity`:
-  Modularity is equivalent to the `modular_identity`: `(x ⊓ z) ⊔ (y ⊓ z) = ((x ⊓ z) ⊔ y) ⊓ z`
+- `is_modular_lattice_iff_sup_inf_sup_assoc`:
+  Modularity is equivalent to the `sup_inf_sup_assoc`: `(x ⊓ z) ⊔ (y ⊓ z) = ((x ⊓ z) ⊔ y) ⊓ z`
 - `distrib_lattice.is_modular_lattice`: Distributive lattices are modular.
 
 ## To do
@@ -43,7 +44,7 @@ theorem sup_inf_assoc_of_le {x : α} (y : α) {z : α} (h : x ≤ z) :
 le_antisymm (is_modular_lattice.sup_inf_le_assoc_of_le y h)
   (le_inf (sup_le_sup_left inf_le_left _) (sup_le h inf_le_right))
 
-theorem is_modular_lattice.modular_identity {x y z : α} :
+theorem is_modular_lattice.sup_inf_sup_assoc {x y z : α} :
   (x ⊓ z) ⊔ (y ⊓ z) = ((x ⊓ z) ⊔ y) ⊓ z :=
 (sup_inf_assoc_of_le y inf_le_right).symm
 
@@ -84,9 +85,9 @@ def Iic_order_iso_Ici {a b : α} (h : is_compl a b) : set.Iic a ≃o set.Ici b :
 
 end is_compl
 
-theorem is_modular_lattice_iff_modular_identity [lattice α] :
+theorem is_modular_lattice_iff_sup_inf_sup_assoc [lattice α] :
   is_modular_lattice α ↔ ∀ (x y z : α), (x ⊓ z) ⊔ (y ⊓ z) = ((x ⊓ z) ⊔ y) ⊓ z :=
-⟨λ h, @is_modular_lattice.modular_identity _ _ h, λ h, ⟨λ x y z xz, by rw [← inf_eq_left.2 xz, h]⟩⟩
+⟨λ h, @is_modular_lattice.sup_inf_sup_assoc _ _ h, λ h, ⟨λ x y z xz, by rw [← inf_eq_left.2 xz, h]⟩⟩
 
 namespace distrib_lattice
 

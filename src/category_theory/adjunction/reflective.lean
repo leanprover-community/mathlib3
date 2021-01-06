@@ -7,6 +7,15 @@ import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.terminal
 import category_theory.adjunction.fully_faithful
 
+/-!
+# Reflective functors
+
+Basic properties of reflective functors, especially those relating to their essential image.
+
+Note properties of reflective functors relating to limits and colimits are included in
+`category_theory.monad.limits`.
+-/
+
 universes v₁ v₂ u₁ u₂
 
 noncomputable theory

@@ -1851,7 +1851,7 @@ begin
 end
 
 /-- The orthogonal projection sends elements of `K` to themselves. -/
-lemma orthogonal_projection_mem_subspace_eq_self (v : K) : orthogonal_projection K v = v :=
+@[simp] lemma orthogonal_projection_mem_subspace_eq_self (v : K) : orthogonal_projection K v = v :=
 by { ext, apply eq_orthogonal_projection_of_mem_of_inner_eq_zero; simp }
 
 local attribute [instance] finite_dimensional_bot
@@ -2088,12 +2088,21 @@ begin
   exact submodule.le_orthogonal_orthogonal ⊤
 end
 
-lemma submodule.eq_top_iff_orthogonal_eq_bot (hK : is_complete (K : set E)) : K = ⊤ ↔ Kᗮ = ⊥ :=
+@[simp] lemma submodule.orthogonal_eq_bot_iff (hK : is_complete (K : set E)) :
+  Kᗮ = ⊥ ↔ K = ⊤ :=
 begin
-  refine ⟨by { rintro rfl, exact submodule.top_orthogonal_eq_bot }, _⟩,
+  refine ⟨_, by { rintro rfl, exact submodule.top_orthogonal_eq_bot }⟩,
   intro h,
   have : K ⊔ Kᗮ = ⊤ := submodule.sup_orthogonal_of_is_complete hK,
   rwa [h, sup_comm, bot_sup_eq] at this,
+end
+
+@[simp] lemma submodule.orthogonal_eq_top_iff : Kᗮ = ⊤ ↔ K = ⊥ :=
+begin
+  refine ⟨_, by { rintro rfl, exact submodule.bot_orthogonal_eq_top }⟩,
+  intro h,
+  have : K ⊓ Kᗮ = ⊥ := K.orthogonal_disjoint.eq_bot,
+  rwa [h, inf_comm, top_inf_eq] at this
 end
 
 /-- A point in `K` with the orthogonality property (here characterized in terms of `Kᗮ`) must be the

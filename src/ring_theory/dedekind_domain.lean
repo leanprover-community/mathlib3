@@ -81,8 +81,8 @@ class is_dedekind_domain : Prop :=
 (dimension_le_one : dimension_le_one A)
 (is_integrally_closed : integral_closure A (fraction_ring A) = ⊥)
 
-/-- An integral domain is a Dedekind domain iff and only if it is not a field, is Noetherian, has dimension ≤ 1,
-and is integrally closed in a given fraction field.
+/-- An integral domain is a Dedekind domain iff and only if it is not a field, is
+Noetherian, has dimension ≤ 1, and is integrally closed in a given fraction field.
 In particular, this definition does not depend on the choice of this fraction field. -/
 lemma is_dedekind_domain_iff (f : fraction_map A K) :
   is_dedekind_domain A ↔
@@ -96,8 +96,8 @@ lemma is_dedekind_domain_iff (f : fraction_map A K) :
          hi, algebra.map_bot]⟩⟩
 
 /--
-A Dedekind domain is an integral domain that is not a field, is Noetherian, and the localization at
-every nonzero prime is a discrete valuation ring.
+A Dedekind domain is an integral domain that is not a field, is Noetherian, and the
+localization at every nonzero prime is a discrete valuation ring.
 
 This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
@@ -219,11 +219,13 @@ begin
   use (generator (I : submodule R₁ g.codomain))⁻¹,
   have hI : I  * fractional_ideal.span_singleton ((generator (I : submodule R₁ g.codomain))⁻¹)  = 1,
   apply @mul_generator_self_inv _ _ _ _ _ I _ h,
-  apply (@right_inverse_eq _ _ _ _ _ I (fractional_ideal.span_singleton ((generator (I : submodule R₁ g.codomain))⁻¹)) hI).symm,
+  apply (@right_inverse_eq _ _ _ _ _ I (fractional_ideal.span_singleton
+    ( (generator (I : submodule R₁ g.codomain))⁻¹)) hI).symm,
 end
 
 /--
-A Dedekind domain is an integral domain that is not a field such that every fractional ideal has an inverse.
+A Dedekind domain is an integral domain that is not a field such that every fractional ideal
+has an inverse.
 
 This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.

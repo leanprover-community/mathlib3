@@ -1043,4 +1043,11 @@ instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
   .. with_top.canonically_ordered_add_monoid,
   .. with_top.no_zero_divisors, .. with_top.nontrivial }
 
+lemma mul_lt_top [nontrivial α] {a b : with_top α} (ha : a < ⊤) (hb : b < ⊤) : a * b < ⊤ :=
+begin
+  lift a to α using ne_top_of_lt ha,
+  lift b to α using ne_top_of_lt hb,
+  simp only [← coe_mul, coe_lt_top]
+end
+
 end with_top

@@ -37,13 +37,19 @@ instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
 
 @[to_additive]
+instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
+  div_inv_monoid (Π i : I, f i) :=
+{ div_eq_mul_inv := λ x y, funext (λ i, div_eq_mul_inv (x i) (y i)),
+  .. pi.monoid, .. pi.has_div, .. pi.has_inv }
+
+@[to_additive]
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, .. };
+by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div, .. };
   tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, .. };
+by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div, .. };
   tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
@@ -64,12 +70,6 @@ instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :
   comm_monoid_with_zero (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*), .. };
   tactic.pi_instance_derive_field
-
-@[to_additive]
-instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
-  div_inv_monoid (Π i : I, f i) :=
-{ div_eq_mul_inv := λ x y, funext (λ i, div_eq_mul_inv (x i) (y i)),
-  .. pi.monoid, .. pi.has_div, .. pi.has_inv }
 
 section instance_lemmas
 open function

@@ -186,6 +186,12 @@ begin
   rwa dist_eq_norm
 end
 
+lemma norm_sub_eq_zero_iff {u v : α} : ∥u - v∥ = 0 ↔ u = v :=
+begin
+  convert dist_eq_zero,
+  rwa dist_eq_norm
+end
+
 lemma norm_le_insert (u v : α) : ∥v∥ ≤ ∥u∥ + ∥u - v∥ :=
 calc ∥v∥ = ∥u - (u - v)∥ : by abel
 ... ≤ ∥u∥ + ∥u - v∥ : norm_sub_le u _

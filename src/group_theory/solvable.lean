@@ -227,10 +227,10 @@ begin
   ... = ⊥ : rfl,
 end
 
-instance is_solvable_of_top_eq_bot (h : (⊤ : subgroup G) = ⊥) : is_solvable G :=
+lemma is_solvable_of_top_eq_bot (h : (⊤ : subgroup G) = ⊥) : is_solvable G :=
 ⟨⟨0, by simp *⟩⟩
 
-instance is_solvable_of_subsingleton [subsingleton G] : is_solvable G :=
+lemma is_solvable_of_subsingleton [subsingleton G] : is_solvable G :=
 is_solvable_of_top_eq_bot G (by ext; simp at *)
 
 variables {G} {G' : Type*} [group G'] {f : G →* G'}

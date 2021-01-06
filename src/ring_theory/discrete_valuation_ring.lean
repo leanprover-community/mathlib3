@@ -311,7 +311,7 @@ end
 lemma aux_prime_of_principal_prime_ideal {R : Type u} [comm_ring R] {I : ideal R} {p : R}
   (Hprime : I.is_prime) (Hnon_zero : I ≠ ⊥) (Hprincipal : I = ideal.span {p}) : prime p :=
 begin
-    let Hproper := Hprime.1,
+  let Hproper := Hprime.1,
   let Hprod := Hprime.2,
   split,
   {
@@ -344,13 +344,14 @@ is a discrete valuation ring.
 -/
 lemma of_principal_unique_prime_ideal {R : Type u}
   [integral_domain R] [local_ring R] [Inoetherian : is_noetherian_ring R]
-  {p : R} (Hprincipal : maximal_ideal R = ideal.span {p})
+  (Hprincipal : ∃ p: R, maximal_ideal R = ideal.span {p})
   (Hunique : ∀ I ≠ (⊥ : ideal R), I.is_prime → I = maximal_ideal R)
   (Hnon_zero : maximal_ideal R ≠ ⊥) :
   discrete_valuation_ring R :=
 begin
   let m := maximal_ideal R,
   apply of_has_unit_mul_pow_irreducible_factorization,
+  cases Hprincipal with p Hprincipal,
   use p,
   split,
   apply irreducible_of_prime,
@@ -471,40 +472,263 @@ begin
   simp,
 end
 
+lemma aux_nakayama_ideals_noetherian_local_ring {R : Type u}
+  [comm_ring R] [local_ring R] [is_noetherian_ring R]
+  {I : ideal R} (H : I ≤ (maximal_ideal R)*I) : I = ⊥ :=
+begin
+  have H1 : ∃ r : R, r - 1 ∈ maximal_ideal R ∧ ∀ x ∈ I, r * x = (0 : R),
+  apply submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul,
+  exactI is_noetherian.noetherian I,
+  exact H,
+  cases H1 with r hr,
+  have hunit : is_unit r,
+  cases is_unit_or_is_unit_one_sub_self r with htrivial hneg,
+  exact htrivial,
+  by_contradiction,
+  have hmtop : maximal_ideal R = ⊤,
+  apply eq_top_of_is_unit_mem (maximal_ideal R) hr.1,
+  have hassoc : associated (r - 1) (1 - r),
+  use (-1),
+  simp,
+  rw is_unit_iff_of_associated hassoc,
+  exact hneg,
+  apply (maximal_ideal.is_maximal R).1,
+  exact hmtop,
+  rw <- submodule.annihilator_eq_top_iff,
+  have hannihilate : r ∈ submodule.annihilator I,
+  rw submodule.mem_annihilator,
+  exact hr.2,
+  apply eq_top_of_is_unit_mem (submodule.annihilator I) hannihilate,
+  exact hunit,
+end
+
+lemma aux_mem_pow {R : Type u} [comm_ring R] {I : ideal R} {a : R}
+  (H : a ∈ I) (n : ℕ) : a^n ∈ I^n :=
+begin
+  induction n,
+  simp,
+  rw pow_succ,
+  rw pow_succ,
+  apply mul_mem_mul,
+  exact H,
+  exact n_ih,
+end
+
+
+lemma aux_noetherian_radical_pow {R : Type u} [comm_ring R] [is_noetherian_ring R]
+  (I : ideal R) : ∃ n : ℕ, (radical I)^n ≤ I :=
+begin
+  sorry,
+end
+
+lemma aux_mem_of_ideal_ne_zero {R : Type u} [comm_ring R] {I : ideal R} (H : I ≠ ⊥)
+  : ∃ a : R, a ∈ I ∧ a ≠ (0 : R) :=
+begin
+    by_contradiction,
+    apply H,
+    rw not_exists at h,
+    ext x,
+    rw mem_bot,
+    split,
+    have H1 := not_and.1 (h x),
+    rw not_not at H1,
+    exact H1,
+    intro hx,
+    rw hx,
+    exact ideal.zero_mem I,
+end
+
+lemma aux_integral_domain_not_nilpotent {R : Type u} [integral_domain R]
+  {I : ideal R} (H : I ≠ ⊥) : ∀ n : ℕ, I^n ≠ ⊥ :=
+begin
+    intros n hn,
+    cases (aux_mem_of_ideal_ne_zero H) with a ha,
+    apply ha.2,
+    rw <- mem_bot,
+    apply is_prime.mem_of_pow_mem bot_prime n,
+    rw <- hn,
+    apply aux_mem_pow,
+    exact ha.1,
+end
+
+lemma aux_noetherian_local_dim_one_min_pow_maximal_ideal {R : Type u} [integral_domain R] [local_ring R]
+  [Inoetherian : is_noetherian_ring R] {a : R}
+  (Hne_zero : a ≠ 0) (Hin_max : a ∈ maximal_ideal R)
+  (Hprime_unique : ∀ p ≠ (⊥ : ideal R), p.is_prime → p = maximal_ideal R)
+  (Hprime_ne_zero : maximal_ideal R ≠ ⊥)
+  : ∃ k : ℕ, (maximal_ideal R)^(k+1) ≤ ideal.span {a} ∧ ¬ ((maximal_ideal R)^k ≤ ideal.span {a}) :=
+begin
+  let m:= maximal_ideal R,
+
+  have hmelement := aux_mem_of_ideal_ne_zero Hprime_ne_zero,
+  have hnonilpotent := aux_integral_domain_not_nilpotent Hprime_ne_zero,
+
+  have hnak : ∀ n : ℕ, m^n ≠ m^(n+1),
+  {
+    intros n h,
+    apply hnonilpotent n,
+    rw pow_succ at h,
+    apply aux_nakayama_ideals_noetherian_local_ring,
+    exact le_of_eq h,
+  },
+
+  have hradical : radical (ideal.span {a}) = m,
+  {
+    rw radical_eq_Inf,
+    have h : {m} = {J : ideal R | span {a} ≤ J ∧ J.is_prime},
+    ext J,
+    rw set.mem_singleton_iff,
+    split,
+    intro hJ,
+    rw hJ,
+    split,
+    rw span_le,
+    rw set.singleton_subset_iff,
+    exact Hin_max,
+    apply is_maximal.is_prime,
+    exact maximal_ideal.is_maximal R,
+    intro hJ,
+    apply Hprime_unique,
+    intro Jbot,
+    apply Hne_zero,
+    rw <- mem_bot,
+    rw <- Jbot,
+    have h := hJ.1,
+    rw span_le at h,
+    rw set.singleton_subset_iff at h,
+    exact h,
+    exact hJ.2,
+    rw <- h,
+    exact Inf_singleton,
+  },
+
+  have Hpowle : ∃ k : ℕ, m^k ≤ ideal.span {a},
+  rw <- hradical,
+  exact aux_noetherian_radical_pow (ideal.span {a}),
+  let S := {J : ideal R | ∃ k : ℕ, J = m^k ∧ m^k ≤ ideal.span {a}},
+    have Hnoeth : ∀ a : set $ ideal R, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M',
+    rw set_has_maximal_iff_noetherian,
+    exact Inoetherian,
+    have hnonempty : S.nonempty,
+    cases Hpowle with k hk,
+    use m^k,
+    use k,
+    split,
+    refl,
+    exact hk,
+    cases Hnoeth S hnonempty with J hJ,
+    cases hJ with hJin hJ,
+    cases hJin with k hk,
+    have hkne_zero : k ≠ 0,
+    {
+      intro hkzero,
+      rw hkzero at hk,
+      apply (maximal_ideal.is_maximal R).1,
+      rw eq_top_iff,
+      have h3 : m^0 = ⊤, simp,
+      rw <- h3,
+      refine le_trans hk.2 _,
+      rw span_le,
+      rw set.singleton_subset_iff,
+      exact Hin_max,
+    },
+
+    have hkpos : 1 ≤ k,
+    rw <- nat.lt_iff_add_one_le,
+    rw nat.pos_iff_ne_zero,
+    exact hkne_zero,
+
+    rw le_iff_exists_add at hkpos,
+    cases hkpos with l hl,
+    use l,
+    rw add_comm,
+    rw <- hl,
+    split,
+    exact hk.2,
+    intro h,
+    apply hnak l,
+    rw add_comm,
+    rw <- hl,
+    rw <- hk.1,
+    apply hJ,
+    use l,
+    split,
+    refl,
+    exact h,
+    rw hk.1,
+    rw hl,
+    rw add_comm,
+    rw pow_succ,
+    generalize : m^l = I,
+    rw ideal.mul_le,
+    intros r hr s hs,
+    exact ideal.mul_mem_left I hs,
+end
+
 /--
 A local noetherian integral domain `R` which is integrally closed in its field of fractions
 and such that the maximal ideal of `R` is the unique non-zero prime ideal
 (i.e. `R` has Krull dimension 1) is a discrete valuation ring.
 -/
 lemma of_integrally_closed_local_noetherian_unique_prime {R : Type u}
-  [integral_domain R] [local_ring R] [is_noetherian_ring R]
+  [integral_domain R] [local_ring R] [Inoetherian : is_noetherian_ring R]
   (Hintegrally_closed : integral_closure R (fraction_ring R) = ⊥)
-  (Hunique_prime : ∀ p ≠ (⊥ : ideal R), p.is_prime → p = maximal_ideal R)
-  (Hprime_nonzero : maximal_ideal R ≠ ⊥) :
+  (Hprime_unique : ∀ p ≠ (⊥ : ideal R), p.is_prime → p = maximal_ideal R)
+  (Hprime_ne_zero : maximal_ideal R ≠ ⊥) :
   discrete_valuation_ring R :=
 begin
+  refine of_principal_unique_prime_ideal _ Hprime_unique Hprime_ne_zero,
+
+  let m := maximal_ideal R,
+  cases (aux_mem_of_ideal_ne_zero Hprime_ne_zero) with a ha,
+
+  have Hminimalk : ∃ k : ℕ, m^(k+1) ≤ ideal.span {a} ∧ ¬ (m^k ≤ ideal.span {a}) :=
+    aux_noetherian_local_dim_one_min_pow_maximal_ideal ha.2 ha.1 Hprime_unique Hprime_ne_zero,
+
+  have Hlemax : ideal.span {a} ≤ m,
+  rw span_le,
+  rw set.singleton_subset_iff,
+  exact ha.1,
+
+  cases Hminimalk with k hk,
+  have Helement : ∃ b : R, b ∈ m^k ∧ ¬ (b ∈ ideal.span {a}),
+  have Hnonempty : ((m^k).carrier \ (ideal.span {a}).carrier).nonempty,
+  rw set.nonempty_diff,
+  exact hk.2,
+  cases Hnonempty with b hb,
+  use b,
+  rw set.diff_eq at hb,
+  rw set.mem_inter_iff at hb,
+  rw submodule.mem_carrier at hb,
+  rw set.mem_compl_iff at hb,
+  rw submodule.mem_carrier at hb,
+  rw submodule.mem_coe at hb,
+  rw submodule.mem_coe at hb,
+  exact hb,
+
+  cases Helement with b hb,
   let K := fraction_ring R,
-  let m : ring.fractional_ideal (fraction_ring.of R) := maximal_ideal R,
-  let m' := m⁻¹,
-  let I := m * m',
-  let Rideal : ring.fractional_ideal (fraction_ring.of R) := (⊤ : ideal R),
+  let φ : fraction_map R K := fraction_ring.of R,
+  let f := localization_map.to_map φ,
+  let x : K := (f a)/(f b),
+  let m_frac : ring.fractional_ideal φ := m,
+  let Hx_inv_span_is_fractional : ring.is_fractional φ (submodule.span R {1/x}),
+  exact ring.fractional_ideal.is_fractional_span_singleton (1/x),
+  let x_inv_span : ring.fractional_ideal φ := subtype.mk (submodule.span R {1/x}) Hx_inv_span_is_fractional,
 
-  have hsub : I ≤ Rideal,
+  have Hnotle : ¬ (x_inv_span * m_frac ≤ m_frac),
+  rw ring.fractional_ideal.le_iff_mem,
+  intro Hle,
+  apply hb.2,
+  -- show that x^-1 is integral over R using the fact that x^-1 acts via an
+  -- endomorphism of m which is finitely generated then show that m = x
   sorry,
 
-  have hsup : m ≤ I,
+  have Hxm_le_one : x_inv_span * m_frac ≤ subtype.mk (submodule.span R {1}) (ring.fractional_ideal.is_fractional_span_singleton 1),
+  rw ring.fractional_ideal.le_iff_mem,
+  intros y hy,
   sorry,
-
-  -- hence I = R or I = m
-  -- if I = R, then one can write 1 = sum x_i y_i with x_i in m and y_i in m'
-  -- one of the products x_i y_i does not lie in m, otherwise 1 in m
-  -- hence one of the products x_i y_i is a unit
-  -- and we can also write x y = 1 with x in m and y in m'
-  -- Now z in m can be written as z = z * 1 = z (x y) = (z y) x and (z y) in R by the def of m'
-  -- Hence m = (x) and we can apply of_principal_unique_prime_ideal
-  --
-  -- if I = m, then ...
-  sorry, -- comes from htgen
+  sorry,
 end
 
 section

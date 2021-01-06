@@ -2112,6 +2112,9 @@ eq_univ_of_forall $ λ f i hi, mem_univ _
 lemma pi_mono (h : ∀ i ∈ s, t₁ i ⊆ t₂ i) : pi s t₁ ⊆ pi s t₂ :=
 λ x hx i hi, (h i hi $ hx i hi)
 
+lemma pi_inter_distrib : s.pi (λ i, t i ∩ t₁ i) = s.pi t ∩ s.pi t₁ :=
+ext $ λ x, by simp only [forall_and_distrib, mem_pi, mem_inter_eq]
+
 lemma pi_congr (h : s = s₁) (h' : ∀ i ∈ s, t i = t₁ i) : pi s t = pi s₁ t₁ :=
 h ▸ (ext $ λ x, forall_congr $ λ i, forall_congr $ λ hi, h' i hi ▸ iff.rfl)
 

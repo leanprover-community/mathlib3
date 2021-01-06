@@ -1050,15 +1050,26 @@ instance : is_comm_applicative (set : Type u → Type u) :=
 
 section pi
 
-lemma pi_def {α : Type*} {π : α → Type*} (i : set α) (s : Πa, set (π a)) :
-  pi i s = (⋂ a∈i, ((λf:(Πa, π a), f a) ⁻¹' (s a))) :=
-by ext; simp [pi]
+variables {π : α → Type*}
+
+lemma pi_def (i : set α) (s : Πa, set (π a)) :
+  pi i s = (⋂ a∈i, eval a ⁻¹' s a) :=
+by { ext, simp }
+
+lemma pi_diff_pi_subset (i : set α) (s t : Πa, set (π a)) :
+  pi i s \ pi i t ⊆ ⋃ a ∈ i, (eval a ⁻¹' (s a \ t a)) :=
+begin
+  refine diff_subset_comm.2 (λ x hx a ha, _),
+  simp only [mem_diff, mem_pi, mem_Union, not_exists, mem_preimage, not_and, not_not, eval_apply]
+    at hx,
+  exact hx.2 _ ha (hx.1 _ ha)
+end
 
 end pi
 
 end set
 
-/- disjoint sets -/
+/-! ### Disjoint sets -/
 
 section disjoint
 

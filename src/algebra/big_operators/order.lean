@@ -322,9 +322,9 @@ open finset
 
 /-- A product of finite numbers is still finite -/
 lemma prod_lt_top [canonically_ordered_comm_semiring β] [nontrivial β] [decidable_eq β]
-  {s : finset α} {f : α → with_top β} :
-  (∀a∈s, f a < ⊤) → (∏ x in s, f x) < ⊤ :=
-λ h, prod_induction f (λ a, a < ⊤) (λ a b, mul_lt_top) (coe_lt_top 1) h
+  {s : finset α} {f : α → with_top β} (h : ∀ a ∈ s, f a < ⊤) :
+  (∏ x in s, f x) < ⊤ :=
+prod_induction f (λ a, a < ⊤) (λ a b, mul_lt_top) (coe_lt_top 1) h
 
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top [ordered_add_comm_monoid β] {s : finset α} {f : α → with_top β} :

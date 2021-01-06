@@ -329,4 +329,42 @@ begin
       U.symm.to_continuous_linear_map.times_cont_diff).times_cont_diff_on }
 end
 
+variables {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {H : Type*} [topological_space H] {I : model_with_corners ℝ F H}
+variables {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+
+/-- If a `times_cont_mdiff` function `f : M → E`, where `M` is some manifold, takes values in the
+sphere, then it restricts to a `times_cont_mdiff` function from `M` to the sphere. -/
+lemma times_cont_mdiff.cod_restrict_sphere
+  {n : with_top ℕ} {f : M → E} (hf : times_cont_mdiff I (model_with_corners_self ℝ E) n f)
+  (hf' : ∀ x, f x ∈ sphere (0:E) 1) :
+  times_cont_mdiff I (𝓡 (findim ℝ E - 1)) n (set.cod_restrict _ _ hf' : M → (sphere (0:E) 1)) :=
+begin
+  rw times_cont_mdiff_iff_target,
+  refine ⟨continuous_induced_rng hf.continuous, _⟩,
+  intros v,
+  have hv_perp : findim ℝ (ℝ ∙ ↑(-v))ᗮ = findim ℝ (euclidean_space ℝ (fin (findim ℝ E - 1))),
+  { rw findim_orthogonal_span_singleton (nonzero_of_mem_unit_sphere (-v)),
+    simp },
+  let U : (ℝ ∙ ((-v):E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin (findim ℝ E - 1)) :=
+    continuous_linear_equiv.of_findim_eq hv_perp,
+  have h : times_cont_diff_on _ _ _ set.univ :=
+    U.to_continuous_linear_map.times_cont_diff.times_cont_diff_on,
+  have H₁ := (h.comp' times_cont_diff_on_stereo_to_fun).times_cont_mdiff_on,
+  have H₂ : times_cont_mdiff_on _ _ _ _ set.univ := hf.times_cont_mdiff_on,
+  convert (H₁.of_le le_top).comp' H₂ using 1,
+  ext x,
+  have hfxv : f x = -↑v ↔ ⟪f x, -↑v⟫_ℝ = 1,
+  { have hfx : ∥f x∥ = 1 := by simpa using hf' x,
+    rw inner_eq_norm_mul_iff_of_norm_one hfx,
+    exact norm_eq_of_mem_sphere (-v) },
+  dsimp [chart_at],
+  simp [not_iff_not, subtype.ext_iff, hfxv, real_inner_comm]
+end
+
+/-- The antipodal map is smooth. -/
+lemma times_cont_mdiff_neg_sphere :
+  times_cont_mdiff (𝓡 (findim ℝ E - 1)) (𝓡 (findim ℝ E - 1)) ⊤ (λ x : sphere (0:E) 1, -x) :=
+(times_cont_diff_neg.times_cont_mdiff.comp times_cont_mdiff_coe_sphere).cod_restrict_sphere _
+
 end smooth_manifold

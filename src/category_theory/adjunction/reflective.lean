@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.limits.preserves.shapes.binary_products
+import category_theory.limits.preserves.shapes.terminal
 import category_theory.adjunction.fully_faithful
 
 universes v₁ v₂ u₁ u₂

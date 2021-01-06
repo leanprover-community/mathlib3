@@ -168,8 +168,6 @@ open submodule submodule.is_principal
   (fractional_ideal.span_singleton x)⁻¹ = fractional_ideal.span_singleton (x⁻¹) :=
 fractional_ideal.one_div_span_singleton x
 
-local attribute [semireducible] fractional_ideal.span_singleton
-
 lemma mul_generator_self_inv (I : fractional_ideal g)
   [submodule.is_principal (I : submodule R₁ g.codomain)] (h : I ≠ 0) :
   I * fractional_ideal.span_singleton (generator (I : submodule R₁ g.codomain))⁻¹ = 1 :=

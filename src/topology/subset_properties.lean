@@ -9,12 +9,32 @@ import data.finset.order
 /-!
 # Properties of subsets of topological spaces
 
+In this file we define various properties of subsets of a topological space, and some classes on
+topological spaces.
+
 ## Main definitions
 
-`compact`, `is_clopen`, `is_irreducible`, `is_connected`, `is_totally_disconnected`,
-`is_totally_separated`
+We define the following properties for sets in a topological space:
 
-TODO: write better docs
+* `is_compact`: each open cover has a finite subcover. This is defined in mathlib using filters.
+  The main property of a compact set is `is_compact.elim_finite_subcover`.
+* `is_clopen`: a set that is both open and closed.
+* `is_irreducible`: a nonempty set that has contains no non-trivial pair of disjoint opens.
+  See also the section below in the module doc.
+* `is_connected`: a nonempty set that has no non-trivial open partition.
+  See also the section below in the module doc.
+  `connected_component` is the connected component of an element in the space.
+* `is_totally_disconnected`: all of its connected components are singletons.
+* `is_totally_separated`: any two points can be separated by two disjoint opens that cover the set.
+
+For each of these definitions (except for `is_clopen`), we also have a class stating that the whole
+space satisfies that property:
+`compact_space`, `irreducible_space`, `connected_space`, `totally_disconnected_space`, `totally_separated_space`.
+
+Furthermore, we have two more classes:
+* `locally_compact_space`: for every point `x`, every open neighborhood of `x` contains a compact
+  neighborhood of `x`. The definition is formulated in terms of the neighborhood filter.
+* `sigma_compact_space`: a space that is the union of a countably many compact subspaces.
 
 ## On the definition of irreducible and connected sets/spaces
 
@@ -66,8 +86,8 @@ begin
   exact h₂ (h₁ hs)
 end
 
-/-- If `p : set α → Prop` is stable under restriction and union, and each point `x of a compact set `s`
-  has a neighborhood `t` within `s` such that `p t`, then `p s` holds. -/
+/-- If `p : set α → Prop` is stable under restriction and union, and each point `x`
+  of a compact set `s` has a neighborhood `t` within `s` such that `p t`, then `p s` holds. -/
 @[elab_as_eliminator]
 lemma is_compact.induction_on {s : set α} (hs : is_compact s) {p : set α → Prop} (he : p ∅)
   (hmono : ∀ ⦃s t⦄, s ⊆ t → p t → p s) (hunion : ∀ ⦃s t⦄, p s → p t → p (s ∪ t))
@@ -617,6 +637,26 @@ begin
   rcases compact_univ.ultrafilter_le_nhds F (by simp) with ⟨x, -, h⟩,
   exact le_nhds_Lim ⟨x,h⟩,
 end
+
+variables (α)
+/-- A σ-compact space is a space that is the union of a countable collection of compact subspaces.
+  Note that a locally compact separable T₂ space need not be σ-compact.
+  The sequence can be extracted using `topological_space.compact_covering`. -/
+class sigma_compact_space (α : Type*) [topological_space α] : Prop :=
+(exists_compact_covering : ∃ K : ℕ → set α, (∀ n, is_compact (K n)) ∧ (⋃ n, K n) = univ)
+
+variables [sigma_compact_space α]
+open sigma_compact_space
+
+/-- An arbitrary compact covering of a σ-compact space. -/
+def compact_covering : ℕ → set α :=
+classical.some exists_compact_covering
+
+lemma is_compact_compact_covering (n : ℕ) : is_compact (compact_covering α n) :=
+(classical.some_spec sigma_compact_space.exists_compact_covering).1 n
+
+lemma Union_compact_covering : (⋃ n, compact_covering α n) = univ :=
+(classical.some_spec sigma_compact_space.exists_compact_covering).2
 
 end compact
 

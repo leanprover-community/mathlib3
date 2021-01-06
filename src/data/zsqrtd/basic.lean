@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import algebra.associated
 import tactic.ring
+import data.real.sqrt
 
 /-- The ring of integers adjoined with a square root of `d`.
   These have the form `a + b √d` where `a b : ℤ`. The components
@@ -157,9 +158,12 @@ by simp [ext, sub_eq_add_neg, mul_comm]
 theorem conj_mul {a b : ℤ√d} : conj (a * b) = conj a * conj b :=
 by { simp [ext], ring }
 
-protected lemma coe_int_add (m n : ℤ) : (↑(m + n) : ℤ√d) = ↑m + ↑n := by simp [ext]
-protected lemma coe_int_sub (m n : ℤ) : (↑(m - n) : ℤ√d) = ↑m - ↑n := by simp [ext, sub_eq_add_neg]
-protected lemma coe_int_mul (m n : ℤ) : (↑(m * n) : ℤ√d) = ↑m * ↑n := by simp [ext]
+protected lemma coe_int_add (m n : ℤ) : (↑(m + n) : ℤ√d) = ↑m + ↑n :=
+(int.cast_ring_hom _).map_add _ _
+protected lemma coe_int_sub (m n : ℤ) : (↑(m - n) : ℤ√d) = ↑m - ↑n :=
+(int.cast_ring_hom _).map_sub _ _
+protected lemma coe_int_mul (m n : ℤ) : (↑(m * n) : ℤ√d) = ↑m * ↑n :=
+(int.cast_ring_hom _).map_mul _ _
 protected lemma coe_int_inj {m n : ℤ} (h : (↑m : ℤ√d) = ↑n) : m = n :=
 by simpa using congr_arg re h
 
@@ -571,4 +575,35 @@ instance : linear_ordered_semiring ℤ√d := by apply_instance
 instance : ordered_semiring ℤ√d        := by apply_instance
 
 end
+
+/-- The image of `zsqrtd` in `ℝ`, using `real.sqrt` which takes the positive root of `d`. -/
+@[simps]
+noncomputable def to_real {d : ℤ} (h : 0 ≤ d) : ℤ√d →+* ℝ := {
+  to_fun := λ a, a.1 + a.2*real.sqrt d,
+  map_zero' := by simp,
+  map_add' := λ a b, by { simp, ring, },
+  map_one' := by simp,
+  map_mul' := λ a b, by {
+    have : (↑a.re + ↑a.im * real.sqrt d) * (↑b.re + ↑b.im * real.sqrt d) =
+             ↑a.re * ↑b.re + (↑a.re * ↑b.im + ↑a.im * ↑b.re) * real.sqrt d
+                           + ↑a.im * ↑b.im * (real.sqrt d * real.sqrt d) := by ring,
+    simp [this, real.mul_self_sqrt (int.cast_nonneg.mpr h)],
+    ring, } }
+
+lemma to_real_injective {d : ℤ} (h : 0 ≤ d) (h_nonsquare : ∀ n : ℤ, d ≠ n*n) :
+  function.injective (to_real h) :=
+(to_real h).injective_iff.mpr $ λ a ha, begin
+  rw ext,
+  simp [to_real_apply] at ha,
+  obtain ⟨d', rfl⟩ := int.eq_coe_of_zero_le h,
+  haveI : nonsquare d' := ⟨λ n h, h_nonsquare n $ by exact_mod_cast h⟩,
+  apply @divides_sq_eq_zero_z d',
+  have : (↑a.re + ↑a.im * real.sqrt d') * (↑a.re - ↑a.im * real.sqrt d') =
+          a.re * a.re - (real.sqrt d' * real.sqrt d') * a.im * a.im := by ring,
+  replace ha := congr_arg (λ x, x * (↑(a.re) - ↑(a.im) * real.sqrt ↑d')) ha,
+  simp [this, real.mul_self_sqrt (int.cast_nonneg.mpr h)] at ha,
+  rw sub_eq_zero at ha,
+  exact_mod_cast ha,
+end
+
 end zsqrtd

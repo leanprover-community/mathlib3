@@ -767,7 +767,8 @@ local_of_nonunits_ideal
     rw sub_eq_add_neg at hr,
     have := I.neg_mem_iff.1 ((ideal.add_mem_iff_right _ _).1 hr),
     { exact not_or (mt hp.mem_or_mem (not_or sx.2 sy.2)) sz.2 (hp.mem_or_mem this)},
-    { exact I.mul_mem_right (I.add_mem (I.mul_mem_right (this hx)) (I.mul_mem_right (this hy)))}
+    { exact I.mul_mem_right _ (I.add_mem (I.mul_mem_right _ (this hx))
+                                         (I.mul_mem_right _ (this hy)))}
   end)
 
 end localization_map
@@ -827,8 +828,8 @@ le_antisymm (ideal.map_le_iff_le_comap.2 (le_refl _)) $ λ x hJ,
 begin
   obtain ⟨r, s, hx⟩ := f.mk'_surjective x,
   rw ←hx at ⊢ hJ,
-  exact ideal.mul_mem_right _ (ideal.mem_map_of_mem (show f.to_map r ∈ J, from
-    f.mk'_spec r s ▸ @ideal.mul_mem_right _ _ J (f.mk' r s) (f.to_map s) hJ)),
+  exact ideal.mul_mem_right _ _ (ideal.mem_map_of_mem (show f.to_map r ∈ J, from
+    f.mk'_spec r s ▸ J.mul_mem_right (f.to_map s) hJ)),
 end
 
 theorem comap_map_of_is_prime_disjoint (I : ideal R) (hI : I.is_prime)
@@ -855,12 +856,11 @@ end
 
 /-- If `S` is the localization of `R` at a submonoid, the ordering of ideals of `S` is
 embedded in the ordering of ideals of `R`. -/
-def order_embedding :
-  ideal S ↪o ideal R :=
+def order_embedding : ideal S ↪o ideal R :=
 { to_fun := λ J, ideal.comap f.to_map J,
   inj'   := function.left_inverse.injective f.map_comap,
-  map_rel_iff'   := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
-    f.map_comap J₁ ▸ f.map_comap J₂ ▸ ideal.map_mono hJ⟩ }
+  map_rel_iff'   := λ J₁ J₂, ⟨λ hJ, f.map_comap J₁ ▸ f.map_comap J₂ ▸ ideal.map_mono hJ,
+    ideal.comap_mono⟩ }
 
 /-- If `R` is a ring, then prime ideals in the localization at `M`
 correspond to prime ideals in the original ring `R` that are disjoint from `M`.
@@ -872,13 +872,13 @@ begin
   split,
   { refine λ h, ⟨⟨_, _⟩, λ m hm, h.1 (ideal.eq_top_of_is_unit_mem _ hm.2 (map_units f ⟨m, hm.left⟩))⟩,
     { refine λ hJ, h.left _,
-      rw [eq_top_iff, (order_embedding f).map_rel_iff],
+      rw [eq_top_iff, ← f.order_embedding.le_iff_le],
       exact le_of_eq hJ.symm },
     { intros x y hxy,
       rw [ideal.mem_comap, ring_hom.map_mul] at hxy,
       exact h.right hxy } },
   { refine λ h, ⟨λ hJ, h.left.left (eq_top_iff.2 _), _⟩,
-    { rwa [eq_top_iff, (order_embedding f).map_rel_iff] at hJ },
+    { rwa [eq_top_iff, ← f.order_embedding.le_iff_le] at hJ },
     { intros x y hxy,
       obtain ⟨a, s, ha⟩ := mk'_surjective f x,
       obtain ⟨b, t, hb⟩ := mk'_surjective f y,
@@ -908,8 +908,8 @@ def order_iso_of_prime (f : localization_map M S) :
   inv_fun := λ p, ⟨ideal.map f.to_map p.1, is_prime_of_is_prime_disjoint f p.1 p.2.1 p.2.2⟩,
   left_inv := λ J, subtype.eq (map_comap f J),
   right_inv := λ I, subtype.eq (comap_map_of_is_prime_disjoint f I.1 I.2.1 I.2.2),
-  map_rel_iff' := λ I I', ⟨λ h x hx, h hx, λ h, (show I.val ≤ I'.val,
-    from (map_comap f I.val) ▸ (map_comap f I'.val) ▸ (ideal.map_mono h))⟩ }
+  map_rel_iff' := λ I I', ⟨λ h, (show I.val ≤ I'.val,
+    from (map_comap f I.val) ▸ (map_comap f I'.val) ▸ (ideal.map_mono h)), λ h x hx, h hx⟩ }
 
 /-- `quotient_map` applied to maximal ideals of a localization is `surjective`.
   The quotient by a maximal ideal is a field, so inverses to elements already exist,

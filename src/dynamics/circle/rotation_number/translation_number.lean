@@ -193,7 +193,7 @@ def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
       inv_fun := ⇑(f⁻¹),
       left_inv := units_inv_apply_apply f,
       right_inv := units_apply_inv_apply f,
-      map_rel_iff' := λ x y, ⟨mono f, λ h, by simpa using mono ↑(f⁻¹) h⟩ },
+      map_rel_iff' := λ x y, ⟨λ h, by simpa using mono ↑(f⁻¹) h, mono f⟩ },
   map_one' := rfl,
   map_mul' := λ f g, rfl }
 

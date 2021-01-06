@@ -1477,6 +1477,11 @@ lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filt
   μ.finite_at_filter f :=
 ⟨univ, univ_mem_sets, measure_lt_top μ univ⟩
 
+lemma finite_at_filter.exists_mem_basis {μ : measure α} {f : filter α} (hμ : finite_at_filter μ f)
+  {p : ι → Prop} {s : ι → set α} (hf : f.has_basis p s) :
+  ∃ i (hi : p i), μ (s i) < ⊤ :=
+(hf.exists_iff (λ s t hst ht, (measure_mono hst).trans_lt ht)).1 hμ
+
 lemma finite_at_bot (μ : measure α) : μ.finite_at_filter ⊥ :=
 ⟨∅, mem_bot_sets, by simp only [measure_empty, with_top.zero_lt_top]⟩
 
@@ -1566,6 +1571,27 @@ protected lemma is_countably_spanning (h : μ.finite_spanning_sets_in C) : is_co
 ⟨_, h.set_mem, h.spanning⟩
 
 end finite_spanning_sets_in
+
+lemma sigma_finite_of_not_nonempty (μ : measure α) (hα : ¬ nonempty α) : sigma_finite μ :=
+⟨⟨λ _, ∅, λ n, is_measurable.empty, λ n, by simp, by simp [eq_empty_of_not_nonempty hα univ]⟩⟩
+
+lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
+  (hm : ∀ s ∈ S, is_measurable s) (hμ : ∀ s ∈ S, μ s < ⊤)  (hU : ⋃₀ S = univ) :
+  sigma_finite μ :=
+begin
+  by_cases hα : nonempty α,
+  { resetI,
+    have : S.nonempty,
+    { clear hc, -- otherwise `rintro rfl` fails. TODO: why?
+      rw ← ne_empty_iff_nonempty,
+      rintro rfl,
+      simpa [eq_comm] using hU },
+    rcases (countable_iff_exists_surjective_to_subtype this).1 hc with ⟨s, hs⟩,
+    refine ⟨⟨λ n, s n, λ n, hm _ (s n).coe_prop, λ n, hμ _ (s n).coe_prop, _⟩⟩,
+    rw [Union, hs.supr_comp, ← hU, sUnion_eq_Union] },
+  { exact sigma_finite_of_not_nonempty μ hα }
+end
+
 end measure
 
 /-- Every finite measure is σ-finite. -/
@@ -1614,6 +1640,12 @@ lemma measure.finite_at_nhds [topological_space α] (μ : measure α)
   μ.finite_at_filter (𝓝 x) :=
 locally_finite_measure.finite_at_nhds x
 
+lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure α)
+  [locally_finite_measure μ] (x : α) :
+  ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ⊤ :=
+by simpa only [exists_prop, and.assoc]
+  using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
+
 /-- Two finite measures are equal if they are equal on the π-system generating the σ-algebra
   (and `univ`). -/
 lemma ext_of_generate_finite (C : set (set α)) (hA : _inst_1 = generate_from C)
@@ -1626,7 +1658,6 @@ begin
   { rintros t h1t h2t, change is_measurable t at h1t, simp [measure_compl, measure_lt_top, *] },
   { rintros f h1f h2f h3f, simp [measure_Union, is_measurable.Union, *] }
 end
-
 
 namespace measure
 

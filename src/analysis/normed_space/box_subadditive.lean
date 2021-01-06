@@ -115,6 +115,17 @@ namespace box_additive_on
 
 variables {G : Type*} [decidable_eq ι] [preorder α] {s : set (ι → α)}
 
+protected lemma congr [has_add G] {f g : (ι → α) → (ι → α) → G}
+  (hf : box_additive_on f s) (hfg : ∀ ⦃l u⦄, l ≤ u → Icc l u ⊆ s → f l u = g l u) :
+  box_additive_on g s :=
+begin
+  refine λ l u hsub m hm i, _,
+  have hle : l ≤ u := hm.1.trans hm.2,
+  rw [← hfg (hm.1.trans hm.2), ← hfg, ← hfg, hf hsub hm];
+    apply_rules [le_update_iff.2, update_le_iff.2, hsub, trans (set.Icc_subset_Icc _ _) hsub,
+      and.intro, hm.1, hm.2, hle, le_refl l, le_refl u]; intros; apply_rules [le_refl, hle]
+end
+
 protected lemma mono [has_add G] {f : (ι → α) → (ι → α) → G}
   (h : box_additive_on f s) {t} (ht : t ⊆ s) : box_additive_on f t :=
 λ l u hsub, h (set.subset.trans hsub ht)
@@ -122,11 +133,14 @@ protected lemma mono [has_add G] {f : (ι → α) → (ι → α) → G}
 lemma abs_of_nonneg [linear_ordered_add_comm_group G] {f : (ι → α) → (ι → α) → G}
   (h : box_additive_on f s) (h₀ : ∀ {l u}, l ≤ u → Icc l u ⊆ s → 0 ≤ f l u) :
   box_additive_on (λ x y, abs (f x y)) s :=
+h.congr $ λ l u hle hsub, (abs_of_nonneg $ h₀ hle hsub).symm
+
+lemma eq_zero_of_eq [add_left_cancel_monoid M] {f : (ι → α) → (ι → α) → M}
+  (h : box_additive_on f s) {l u i} (hle : l ≤ u) (hsub : Icc l u ⊆ s) (hi : l i = u i) :
+  f l u = 0 :=
 begin
-  intros l u hsub m hm i,
-  convert h hsub hm i; refine abs_of_nonneg (h₀ _ (set.subset.trans (set.Icc_subset_Icc _ _) hsub));
-    simp [le_refl, le_update_iff, update_le_iff, hm.1 i, hm.2 i, hm.1.trans hm.2,
-      (hm.1.trans hm.2) _]
+  have := h hsub (set.left_mem_Icc.2 hle) i,
+  rwa [update_eq_self, hi, update_eq_self, add_eq_left_iff] at this
 end
 
 protected lemma add [add_comm_semigroup M] {f g : (ι → α) → (ι → α) → M}
@@ -511,7 +525,7 @@ end
 along `[p, u]`, and the subbox `[l', u']` is homothetic to `[l, u]`. Then `f l u = 0`. -/
 lemma eq_zero_of_forall_is_o_prod (hle : l ≤ u)
   (hf : box_subadditive_on (λ x y, ∥f x y∥) (Icc l u))
-  (Hc : ∀ (b ∈ Icc l u), is_o (λ p : _ × ℝ, uncurry f p.1) (λ p, ∏ i, (p.1.1 i - p.1.2 i))
+  (Hc : ∀ (b ∈ Icc l u), is_o (λ p : _ × ℝ, uncurry f p.1) (λ p, ∏ i, (p.1.2 i - p.1.1 i))
     ((𝓝[Icc l b] b ×ᶠ 𝓝[Icc b u] b ×ᶠ 𝓝[Ioi 0] 0) ⊓ 𝓟 {p | p.1.2 - p.1.1 = p.2 • (u - l)})) :
   f l u = 0 :=
 begin
@@ -519,7 +533,7 @@ begin
     ((box_additive_on_prod_dist (Icc l u)).abs_of_nonneg
       (λ _ _ _ _, prod_nonneg $ λ _ _, dist_nonneg)).box_supadditive_on,
   refine eq_zero_of_forall_is_o hle hf this _,
-  simpa only [dist_eq_norm, ← normed_field.norm_prod, uncurry, is_o_norm_right]
+  simpa only [dist_eq_norm', ← normed_field.norm_prod, uncurry, is_o_norm_right]
 end
 
 end normed_group

@@ -235,7 +235,7 @@ is_solvable_of_top_eq_bot G (by ext; simp at *)
 
 variables {G} {G' : Type*} [group G'] {f : G →* G'}
 
-instance solvable_of_solvable_injective (hf : function.injective f) [h : is_solvable G'] :
+lemma solvable_of_solvable_injective (hf : function.injective f) [h : is_solvable G'] :
   is_solvable G :=
 begin
   rw is_solvable_def at *,
@@ -250,7 +250,7 @@ end
 instance subgroup_solvable_of_solvable (H : subgroup G) [h : is_solvable G] : is_solvable H :=
 solvable_of_solvable_injective (show function.injective (subtype H), from subtype.val_injective)
 
-instance solvable_of_surjective (hf : function.surjective f) [h : is_solvable G] :
+lemma solvable_of_surjective (hf : function.surjective f) [h : is_solvable G] :
   is_solvable G' :=
 begin
   rw is_solvable_def at *,

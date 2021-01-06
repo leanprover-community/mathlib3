@@ -9,6 +9,8 @@ import ring_theory.ideal.over
 import logic.function.basic
 import field_theory.minimal_polynomial
 import ring_theory.adjoin_root
+import linear_algebra.basic
+import algebra.algebra.operations
 
 /-!
 # Dedekind domains
@@ -157,25 +159,6 @@ variables {M : Type*} [add_comm_monoid M] [semimodule B M]
 
 open submodule
 
-lemma submodule.mem_span_finite_of_mem_span {S : set M} {x : M} (hx : x ∈ span B S) :
-  ∃ T : finset M, ↑T ⊆ S ∧ x ∈ span B (T : set M) :=
-begin
-  refine span_induction hx (λ x hx, _) _ _ _,
-  { refine ⟨{x}, _, _⟩,
-    { rwa [finset.coe_singleton, set.singleton_subset_iff] },
-    { rw finset.coe_singleton,
-      exact submodule.mem_span_singleton_self x } },
-  { use ∅, simp },
-  { rintros x y ⟨X, hX, hxX⟩ ⟨Y, hY, hyY⟩,
-    refine ⟨X ∪ Y, _, _⟩,
-    { rw finset.coe_union,
-      exact set.union_subset hX hY },
-    rw [finset.coe_union, span_union, mem_sup],
-    exact ⟨x, hxX, y, hyY, rfl⟩, },
-  { rintros a x ⟨T, hT, h2⟩,
-    exact ⟨T, hT, smul_mem _ _ h2⟩ }
-end
-
 lemma submodule.mem_span_mul_finite_of_mem_span_mul {B M : Type*} [comm_semiring B] [semiring M]
   [algebra B M] {S : set M} {S' : set M} {x : M} (hx : x ∈ span B (S * S')) :
   ∃ (T T' : finset M), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ x ∈ span B (T * T' : set M) :=
@@ -221,7 +204,7 @@ begin
   cases max with h1 h2,
   obtain ⟨I, hIbot, hItop⟩ := not_is_field_iff_exists_ideal_bot_lt_and_lt_top.mp not_field,
   specialize h2 I hIbot,
-  exact ne_of_lt hItop h2
+  exact ne_of_lt hItop h2,
 end
 
 variables {K} {f : fraction_map A K}
@@ -270,7 +253,7 @@ begin
   rw [← fractional_ideal.coe_one, ← h2, fractional_ideal.coe_mul, ← submodule.span_mul_span],
   apply submodule.mul_le_mul,
   { rwa [submodule.span_le, set.singleton_subset_iff] },
-  { rwa submodule.span_le }
+  { rwa submodule.span_le },
 end
 
 lemma is_noetherian_of_is_dedekind_domain_inv : is_dedekind_domain_inv A → is_noetherian_ring A :=
@@ -418,14 +401,12 @@ begin
   assumption,
 end
 
-theorem tp : is_dedekind_domain_inv A -> is_dedekind_domain A :=
-begin
-  rintros h,
-  split,
-  { apply h.1, },
-  { apply is_noetherian_of_is_dedekind_domain_inv, assumption, },
-  { apply dim_le_one_of_is_dedekind_domain_inv, assumption, },
-  { apply int_closed_of_is_dedekind_domain_inv, assumption, },
-end
+theorem is_dedekind_domain_of_is_dedekind_domain_inv :
+  is_dedekind_domain_inv A -> is_dedekind_domain A :=
+λ h,
+  ⟨ h.1,
+  is_noetherian_of_is_dedekind_domain_inv h,
+  dim_le_one_of_is_dedekind_domain_inv h,
+  int_closed_of_is_dedekind_domain_inv h⟩
 
 end

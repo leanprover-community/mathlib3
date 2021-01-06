@@ -65,9 +65,8 @@ instance : linear_ordered_cancel_add_comm_monoid ℕ :=
   ..nat.linear_ordered_semiring }
 
 instance : linear_ordered_comm_monoid_with_zero ℕ :=
-{ mul_le_mul_left := λ a b h c, nat.mul_le_mul_left c h a b,
-  zero_le_one := nat.zero_le_one,
-  ..nat.linear_order,
+{ mul_le_mul_left := λ a b h c, nat.mul_le_mul_left c h,
+  ..nat.linear_ordered_semiring,
   ..(infer_instance : comm_monoid_with_zero ℕ)}
 
 /-! Extra instances to short-circuit type class resolution -/

@@ -56,6 +56,10 @@ variables [monoid α]
 @[to_additive] instance [decidable_eq α] : decidable_eq (units α) :=
 λ a b, decidable_of_iff' _ ext_iff
 
+@[simp, to_additive] theorem mk_coe (u : units α) (y h₁ h₂) :
+  mk (u : α) y h₁ h₂ = u :=
+ext rfl
+
 /-- Units of a monoid form a group. -/
 @[to_additive] instance : group (units α) :=
 { mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
@@ -77,6 +81,8 @@ attribute [norm_cast] add_units.coe_zero
 
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : units α} : (a : α) = 1 ↔ a = 1 :=
 by rw [←units.coe_one, eq_iff]
+
+@[simp, to_additive] lemma inv_mk (x y : α) (h₁ h₂) : (mk x y h₁ h₂)⁻¹ = mk y x h₂ h₁ := rfl
 
 @[to_additive] lemma val_coe : (↑a : α) = a.val := rfl
 

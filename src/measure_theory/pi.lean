@@ -45,7 +45,7 @@ finitary product measure
 
 noncomputable theory
 open function set measure_theory.outer_measure
-open_locale classical big_operators
+open_locale classical big_operators topological_space
 
 namespace measure_theory
 
@@ -232,6 +232,49 @@ begin
     exact pi'_pi_le μ }
 end
 
+lemma pi_eval_preimage_null [∀ i, sigma_finite (μ i)] {i : ι} {s : set (α i)}
+  (hs : μ i s = 0) : measure.pi μ (eval i ⁻¹' s) = 0 :=
+begin
+  /- WLOG, `s` is measurable -/
+  rcases exists_is_measurable_superset_of_measure_eq_zero hs with ⟨t, hst, htm, hμt⟩,
+  suffices : measure.pi μ (eval i ⁻¹' t) = 0,
+    from measure_mono_null (preimage_mono hst) this,
+  clear_dependent s,
+  /- Now rewrite it as `set.pi`, and apply `pi_pi` -/
+  rw [← univ_pi_update_univ, pi_pi],
+  { apply finset.prod_eq_zero (finset.mem_univ i), simp [hμt] },
+  { intro j,
+    rcases em (j = i) with rfl | hj; simp * }
+end
+
+lemma pi_hyperplane [∀ i, sigma_finite (μ i)] (i : ι) [has_no_atoms (μ i)] (x : α i) :
+  measure.pi μ {f : Π i, α i | f i = x} = 0 :=
+show measure.pi μ (eval i ⁻¹' {x}) = 0,
+from pi_eval_preimage_null _ (measure_singleton x)
+
+instance [Π i, topological_space (α i)] [∀ i, opens_measurable_space (α i)]
+  [∀ i, locally_finite_measure (μ i)] [∀ i, sigma_finite (μ i)]:
+  locally_finite_measure (measure.pi μ) :=
+begin
+  refine ⟨λ x, _⟩,
+  choose s hxs ho hμ using λ i, (μ i).exists_is_open_measure_lt_top (x i),
+  refine ⟨pi univ s, set_pi_mem_nhds finite_univ (λ i hi, mem_nhds_sets (ho i) (hxs i)), _⟩,
+  rw [pi_pi],
+  exacts [ennreal.prod_lt_top (λ i _, hμ i), λ i, (ho i).is_measurable]
+end
+
 end measure
+
+instance measure_space.pi [Π i, measure_space (α i)] : measure_space (Π i, α i) :=
+⟨measure.pi (λ i, volume)⟩
+
+lemma measure_space.pi_def [Π i, measure_space (α i)] :
+  (volume : measure (Π i, α i)) = measure.pi (λ i, volume) :=
+rfl
+
+lemma volume_pi [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
+  (s : Π i, set (α i)) (hs : ∀ i, is_measurable (s i)) :
+  volume (pi univ s) = ∏ i, volume (s i) :=
+measure.pi_pi (λ i, volume) s hs
 
 end measure_theory

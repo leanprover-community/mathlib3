@@ -172,7 +172,7 @@ are defined by an action of `R` on `S` (formally, we have two scalar towers), th
 map from `M` to `M₂` is `R`-linear.
 
 See also `linear_map.map_smul_of_tower`. -/
-def restrict_scalars {S : Type*} [has_scalar R S] [semiring S] [semimodule S M] [semimodule S M₂]
+def restrict_scalars {S : Type*} [semiring S] [semimodule S M] [semimodule S M₂]
   [compatible_smul M M₂ R S] (f : M →ₗ[S] M₂) : M →ₗ[R] M₂ :=
 { to_fun := f,
   map_add' := f.map_add,

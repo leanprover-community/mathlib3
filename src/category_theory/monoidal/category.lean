@@ -165,7 +165,7 @@ variables {U V W X Y Z : C}
 -- monoidal_category.pentagon monoidal_category.triangle
 
 -- tensor_comp_id tensor_id_comp comp_id_tensor_tensor_id
--- triangle_assoc_comp_left triangle_assoc_comp_right 
+-- triangle_assoc_comp_left triangle_assoc_comp_right
 -- triangle_assoc_comp_left_inv triangle_assoc_comp_right_inv
 -- left_unitor_tensor left_unitor_tensor_inv
 -- right_unitor_tensor right_unitor_tensor_inv
@@ -445,7 +445,7 @@ def tensor_unit_right : C ⥤ C :=
 -- as natural isomorphisms.
 
 /-- The associator as a natural isomorphism. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def associator_nat_iso :
   left_assoc_tensor C ≅ right_assoc_tensor C :=
 nat_iso.of_components
@@ -453,7 +453,7 @@ nat_iso.of_components
   (by { intros, apply monoidal_category.associator_naturality })
 
 /-- The left unitor as a natural isomorphism. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def left_unitor_nat_iso :
   tensor_unit_left C ≅ 𝟭 C :=
 nat_iso.of_components
@@ -461,7 +461,7 @@ nat_iso.of_components
   (by { intros, apply monoidal_category.left_unitor_naturality })
 
 /-- The right unitor as a natural isomorphism. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def right_unitor_nat_iso :
   tensor_unit_right C ≅ 𝟭 C :=
 nat_iso.of_components

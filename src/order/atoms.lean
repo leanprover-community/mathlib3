@@ -50,6 +50,26 @@ or.imp (ha.2 b) eq_comm.2 (lt_or_eq_of_le hab)
 
 end is_coatom
 
+section pairwise
+
+lemma is_atom.inf_eq_bot_of_ne [semilattice_inf_bot α] {a b : α}
+  (ha : is_atom a) (hb : is_atom b) (hab : a ≠ b) : a ⊓ b = ⊥ :=
+or.elim (eq_bot_or_eq_of_le_atom ha inf_le_left) id
+  (λ h1, or.elim (eq_bot_or_eq_of_le_atom hb inf_le_right) id
+  (λ h2, false.rec _ (hab (le_antisymm (inf_eq_left.mp h1) (inf_eq_right.mp h2)))))
+
+lemma is_atom.disjoint_of_ne [semilattice_inf_bot α] {a b : α}
+  (ha : is_atom a) (hb : is_atom b) (hab : a ≠ b) : disjoint a b :=
+disjoint_iff.mpr (is_atom.inf_eq_bot_of_ne ha hb hab)
+
+lemma is_coatom.sup_eq_top_of_ne [semilattice_sup_top α] {a b : α}
+  (ha : is_coatom a) (hb : is_coatom b) (hab : a ≠ b) : a ⊔ b = ⊤ :=
+or.elim (eq_top_or_eq_of_coatom_le ha le_sup_left) id
+  (λ h1, or.elim (eq_top_or_eq_of_coatom_le hb le_sup_right) id
+  (λ h2, false.rec _ (hab (le_antisymm (sup_eq_right.mp h2) (sup_eq_left.mp h1)))))
+
+end pairwise
+
 variables [bounded_lattice α] {a : α}
 
 lemma is_atom_iff_is_coatom_dual : is_atom a ↔ is_coatom (order_dual.to_dual a) := iff.refl _

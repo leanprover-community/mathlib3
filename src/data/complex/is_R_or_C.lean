@@ -475,6 +475,18 @@ lemma re_le_abs (z : K) : re z ≤ abs z :=
 lemma im_le_abs (z : K) : im z ≤ abs z :=
 (abs_le.1 (abs_im_le_abs _)).2
 
+lemma im_eq_zero_of_le {a : K} (h : abs a ≤ re a) : im a = 0 :=
+begin
+  rw ← zero_eq_mul_self,
+  have : re a * re a = re a * re a + im a * im a,
+  { convert is_R_or_C.mul_self_abs a;
+    linarith [re_le_abs a] },
+  linarith
+end
+
+lemma re_eq_self_of_le {a : K} (h : abs a ≤ re a) : (re a : K) = a :=
+by { rw ← re_add_im a, simp [im_eq_zero_of_le h] }
+
 lemma abs_add (z w : K) : abs (z + w) ≤ abs z + abs w :=
 (mul_self_le_mul_self_iff (abs_nonneg _)
   (add_nonneg (abs_nonneg _) (abs_nonneg _))).2 $

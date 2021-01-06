@@ -90,12 +90,12 @@ theorem mem_jacobson_iff {I : ideal R} {x : R} :
     suffices x ∉ M, from (this $ mem_Inf.1 hx ⟨le_trans le_sup_left hm2, hm1⟩).elim,
     λ hxm, hm1.1 $ (eq_top_iff_one _).2 $ add_sub_cancel' (x * y) 1 ▸ M.sub_mem
       (le_trans le_sup_right hm2 $ mem_span_singleton.2 $ dvd_refl _)
-      (M.mul_mem_right hxm)),
+      (M.mul_mem_right _ hxm)),
 λ hx, mem_Inf.2 $ λ M ⟨him, hm⟩, classical.by_contradiction $ λ hxm,
   let ⟨y, hy⟩ := hm.exists_inv hxm, ⟨z, hz⟩ := hx (-y) in
   hm.1 $ (eq_top_iff_one _).2 $ sub_sub_cancel (x * -y * z + z) 1 ▸ M.sub_mem
     (by rw [← one_mul z, ← mul_assoc, ← add_mul, mul_one, mul_neg_eq_neg_mul_symm, neg_add_eq_sub, ← neg_sub,
-        neg_mul_eq_neg_mul_symm, neg_mul_eq_mul_neg, mul_comm x y]; exact M.mul_mem_right hy)
+        neg_mul_eq_neg_mul_symm, neg_mul_eq_mul_neg, mul_comm x y]; exact M.mul_mem_right _ hy)
     (him hz)⟩
 
 /-- An ideal equals its Jacobson radical iff it is the intersection of a set of maximal ideals.
@@ -299,7 +299,7 @@ from le_antisymm (le_Inf $ λ M ⟨him, hm⟩, hm.is_prime.radical_le_iff.2 him)
 ⟨ne_top_of_lt $ lt_of_le_of_lt le_radical (lt_top_iff_ne_top.2 hi.1),
 λ x y hxy, ((is_local_of_is_maximal_radical hi).mem_jacobson_or_exists_inv y).symm.imp
   (λ ⟨z, hz⟩, by rw [← mul_one x, ← sub_sub_cancel (z * y) 1, mul_sub, mul_left_comm]; exact
-    I.sub_mem (I.mul_mem_left hxy) (I.mul_mem_left hz))
+    I.sub_mem (I.mul_mem_left _ hxy) (I.mul_mem_left _ hz))
   (this ▸ id)⟩
 
 

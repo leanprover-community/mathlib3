@@ -88,7 +88,7 @@ def inverse : (C ⥤ Mon_ D) ⥤ Mon_ (C ⥤ D) :=
 /--
 The unit for the equivalence `Mon_ (C ⥤ D) ≌ C ⥤ Mon_ D`.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def unit_iso : 𝟭 (Mon_ (C ⥤ D)) ≅ functor ⋙ inverse :=
 nat_iso.of_components (λ A,
   { hom :=
@@ -109,7 +109,7 @@ nat_iso.of_components (λ A,
 /--
 The counit for the equivalence `Mon_ (C ⥤ D) ≌ C ⥤ Mon_ D`.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def counit_iso : inverse ⋙ functor ≅ 𝟭 (C ⥤ Mon_ D) :=
 nat_iso.of_components (λ A,
   nat_iso.of_components (λ X,
@@ -168,7 +168,7 @@ def inverse : (C ⥤ CommMon_ D) ⥤ CommMon_ (C ⥤ D) :=
 /--
 The unit for the equivalence `CommMon_ (C ⥤ D) ≌ C ⥤ CommMon_ D`.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def unit_iso : 𝟭 (CommMon_ (C ⥤ D)) ≅ functor ⋙ inverse :=
 nat_iso.of_components (λ A,
   { hom :=
@@ -189,7 +189,7 @@ nat_iso.of_components (λ A,
 /--
 The counit for the equivalence `CommMon_ (C ⥤ D) ≌ C ⥤ CommMon_ D`.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def counit_iso : inverse ⋙ functor ≅ 𝟭 (C ⥤ CommMon_ D) :=
 nat_iso.of_components (λ A,
   nat_iso.of_components (λ X,

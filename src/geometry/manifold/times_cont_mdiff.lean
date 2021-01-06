@@ -323,7 +323,9 @@ lemma times_cont_mdiff_on_iff_target :
     (s ∩ f ⁻¹' (ext_chart_at I' y).source) :=
 begin
   inhabit E',
-  simp [times_cont_mdiff_on_iff],
+  simp only [times_cont_mdiff_on_iff, model_with_corners.source_eq, chart_at_self_eq,
+    local_homeomorph.refl_local_equiv, local_equiv.refl_trans, ext_chart_at.equations._eqn_1,
+    set.preimage_univ, set.inter_univ, and.congr_right_iff],
   intros h,
   split,
   { refine λ h' y, ⟨_, λ x _, h' x y⟩,

@@ -247,7 +247,7 @@ end
 instance subgroup_solvable_of_solvable (H : subgroup G) [h : is_solvable G] : is_solvable H :=
 solvable_of_solvable_injective (show function.injective (subtype H), from subtype.val_injective)
 
-instance solvable_image_of_solvable (hf : function.surjective f) [h : is_solvable G] :
+instance solvable_of_surjective (hf : function.surjective f) [h : is_solvable G] :
   is_solvable G' :=
 begin
   rw is_solvable_def at *,
@@ -260,6 +260,6 @@ end
 
 instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solvable G] :
   is_solvable (quotient_group.quotient H) :=
-solvable_image_of_solvable (show function.surjective (quotient_group.mk' H), by tidy)
+solvable_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
 
 end solvable

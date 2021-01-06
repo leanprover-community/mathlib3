@@ -299,9 +299,7 @@ lemma dim_le_one_of_is_dedekind_domain_inv : is_dedekind_domain_inv A → dimens
 begin
   have coe_ne_bot : ∀ {I : ideal A}, I ≠ ⊥ → (I : fractional_ideal (fraction_ring.of A)) ≠ 0 :=
   λ I, (coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr,
-  rintros h,
-  rcases h with ⟨h1, h2⟩,
-  rintros p hpz hp,
+  rintros ⟨h1, h2⟩ p hpz hp,
   set p' : fractional_ideal (fraction_ring.of A) := p with p'_eq,
   have hpinv := h2 p' (coe_ne_bot hpz),
 
@@ -342,7 +340,7 @@ begin
     convert fractional_ideal.mul_mem_mul
       (show (fraction_ring.of A).to_map z ∈ M', from mem_coe_ideal.mpr ⟨_, hzM, rfl⟩)
       hx,
-    rw [← mul_assoc, hMinv, one_mul]
+    rw [← mul_assoc, hMinv, one_mul],
 end
 
 /-- Showing one side of the equivalence between the definitions

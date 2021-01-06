@@ -1625,13 +1625,13 @@ begin
   rw swap_apply_of_ne_of_ne hi hj,
 end
 
-lemma equiv.swap_inj_apply [decidable_eq β] {f : α → β} (hf : function.injective f) (x y z : α) :
-  equiv.swap (f x) (f y) (f z) = f (equiv.swap x y z) :=
+lemma swap_inj_apply [decidable_eq β] {f : α → β} (hf : function.injective f) (x y z : α) :
+  swap (f x) (f y) (f z) = f (swap x y z) :=
 begin
   by_cases hx : z = x;
   by_cases hy : z = y,
-  work_on_goal 3 { rw equiv.swap_apply_of_ne_of_ne },
-  all_goals { simp [hf, hx, hy, equiv.swap_apply_of_ne_of_ne] }
+  work_on_goal 3 { rw swap_apply_of_ne_of_ne },
+  all_goals { simp [hf, hx, hy, swap_apply_of_ne_of_ne] }
 end
 
 namespace perm

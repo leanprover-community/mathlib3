@@ -40,8 +40,8 @@ begin
 end
 
 /--
-If `A` is essentially in the reflective subcategory, then `η_A` is an isomorphism.
-This gives that the "witness" for `A` being in the subcategory can instead be given as the
+If `A` is essentially in the image of a reflective functor `i`, then `η_A` is an isomorphism.
+This gives that the "witness" for `A` being in the essential image can instead be given as the
 reflection of `A`, with the isomorphism as `η_A`.
 
 (For any `B` in the reflective subcategory, we automatically have that `ε_B` is an iso.)
@@ -58,7 +58,7 @@ begin
   simp,
 end
 
-/--  If `η_A` is an isomorphism, then `A` is in the subcategory. -/
+/-- If `η_A` is an isomorphism, then `A` is in the essential image of `i`. -/
 lemma mem_ess_image_of_unit_is_iso [is_right_adjoint i] (A : C)
   [is_iso ((adjunction.of_right_adjoint i).unit.app A)] : A ∈ i.ess_image :=
 ⟨(left_adjoint i).obj A, ⟨(as_iso ((adjunction.of_right_adjoint i).unit.app A)).symm⟩⟩

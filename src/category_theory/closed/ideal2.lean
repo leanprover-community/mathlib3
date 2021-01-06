@@ -6,6 +6,7 @@ Authors: Bhavik Mehta
 import category_theory.limits.preserves.shapes.binary_products
 import category_theory.monad.limits
 import category_theory.adjunction.fully_faithful
+import category_theory.adjunction.reflective
 import category_theory.closed.cartesian
 
 universes v₁ v₂ u₁ u₂
@@ -33,7 +34,9 @@ by simp [unit_comp_partial_bijective_aux]
 
 /--
 If `i` has a reflector `L`, then the function `(i L A ⟶ B) → (A ⟶ B)` given by precomposing with
-`η.app A` is a bijection provided `B` is in the subcategory given by `i`.
+`η.app A` is a bijection provided `B` is in the essential image of `i`.
+That is, the function `(f : i L A ⟶ B) ↦ η.app A ≫ f` is bijective, as long as `B` is in the
+essential image of `i`.
 
 This establishes there is a natural bijection `(A ⟶ B) ≃ (i L A ⟶ B)`. In other words, from the
 point of view of objects in `D`, `A` and `i L A` look the same: specifically that `η.app A` is
@@ -60,47 +63,6 @@ lemma unit_comp_partial_bijective_natural [reflective i] (A : C) {B B' : C} (h :
   (hB : B ∈ i.ess_image) (hB' : B' ∈ i.ess_image) (f : A ⟶ B) :
   (unit_comp_partial_bijective A hB') (f ≫ h) = unit_comp_partial_bijective A hB f ≫ h :=
 by rw [←equiv.eq_symm_apply, unit_comp_partial_bijective_symm_natural A h, equiv.symm_apply_apply]
-
--- /--
--- When restricted to objects explicitly in the reflective subcategory `D` given by `i : D ⥤ C`,
--- the unit is an isomorphism.
--- More generally this applies to objects essentially in the reflective subcategory, see
--- `functor.ess_image.unit_iso`.
--- -/
--- instance functor.ess_image.unit_iso_restrict [reflective i] {B : D} :
---   is_iso ((adjunction.of_right_adjoint i).unit.app (i.obj B)) :=
--- begin
---   have : (adjunction.of_right_adjoint i).unit.app (i.obj B) =
---             inv (i.map ((adjunction.of_right_adjoint i).counit.app B)),
---   { rw ← comp_hom_eq_id,
---     apply (adjunction.of_right_adjoint i).right_triangle_components },
---   rw this,
---   exact is_iso.inv_is_iso,
--- end
-
--- /--
--- If `A` is essentially in the reflective subcategory, then `η_A` is an isomorphism.
--- This gives that the "witness" for `A` being in the subcategory can instead be given as the
--- reflection of `A`, with the isomorphism as `η_A`.
-
--- (For any `B` in the reflective subcategory, we automatically have that `ε_B` is an iso.)
--- -/
--- def functor.ess_image.unit_iso [reflective i] {A : C} (h : A ∈ i.ess_image) :
---   is_iso ((adjunction.of_right_adjoint i).unit.app A) :=
--- begin
---   suffices : (adjunction.of_right_adjoint i).unit.app A =
---                 h.get_iso.inv ≫ (adjunction.of_right_adjoint i).unit.app (i.obj h.witness) ≫
---                   (left_adjoint i ⋙ i).map h.get_iso.hom,
---   { rw this,
---     apply_instance },
---   rw ← nat_trans.naturality,
---   simp,
--- end
-
--- /--  If `η_A` is an isomorphism, then `A` is in the subcategory. -/
--- lemma mem_ess_image_of_unit_is_iso [is_right_adjoint i] (A : C)
---   [is_iso ((adjunction.of_right_adjoint i).unit.app A)] : A ∈ i.ess_image :=
--- ⟨(left_adjoint i).obj A, ⟨(as_iso ((adjunction.of_right_adjoint i).unit.app A)).symm⟩⟩
 
 end subcat
 
@@ -140,7 +102,7 @@ lemma exponential_ideal.mk' (h : ∀ (B : D) (A : C), (A ⟹ i.obj B) ∈ i.ess_
 ⟨λ B hB A,
 begin
   rcases hB with ⟨B', ⟨iB'⟩⟩,
-  exact functor.ess_image.of_iso (h B' A) ((exp A).map_iso iB'),
+  exact functor.ess_image.of_iso ((exp A).map_iso iB') (h B' A),
 end⟩
 
 /-- The subcategory of subterminal objects is an exponential ideal. -/

@@ -5,7 +5,6 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.group_power.basic
 import algebra.order_functions
-import algebra.linear_ordered_comm_monoid_with_zero
 
 /-!
 # Basic operations on the natural numbers
@@ -63,9 +62,6 @@ instance : linear_ordered_semiring nat :=
 instance : linear_ordered_cancel_add_comm_monoid ℕ :=
 { add_left_cancel := @nat.add_left_cancel,
   ..nat.linear_ordered_semiring }
-
-instance : linear_ordered_comm_monoid_with_zero ℕ :=
-{ ..nat.linear_order, ..(infer_instance : comm_monoid_with_zero ℕ)}
 
 /-! Extra instances to short-circuit type class resolution -/
 instance : add_comm_monoid nat    := by apply_instance

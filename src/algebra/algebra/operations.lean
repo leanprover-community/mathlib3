@@ -166,7 +166,8 @@ calc map f.to_linear_map (M * N)
 
 open_locale classical
 
-lemma mem_span_mul_finite_of_mem_span_mul {S : set A} {S' : set A} {x : A} (hx : x ∈ span R (S * S')) :
+lemma mem_span_mul_finite_of_mem_span_mul {S : set A} {S' : set A} {x : A}
+  (hx : x ∈ span R (S * S')) :
   ∃ (T T' : finset A), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ x ∈ span R (T * T' : set A) :=
 begin
   apply span_induction hx,

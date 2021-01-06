@@ -228,8 +228,6 @@ A Dedekind domain is an integral domain that is not a field such that every frac
 This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
 -/
-
-
 structure is_dedekind_domain_inv : Prop :=
 (not_is_field : ¬ is_field A)
 (mul_inv_cancel : ∀ I ≠ (⊥ : fractional_ideal (fraction_ring.of A)), I * (1 / I) = 1)

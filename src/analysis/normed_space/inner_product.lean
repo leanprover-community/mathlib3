@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
+Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis, Heather Macbeth
 -/
 
 import linear_algebra.bilinear_form
@@ -1854,11 +1854,61 @@ end
 @[simp] lemma orthogonal_projection_mem_subspace_eq_self (v : K) : orthogonal_projection K v = v :=
 by { ext, apply eq_orthogonal_projection_of_mem_of_inner_eq_zero; simp }
 
+local attribute [instance] finite_dimensional_bot
+
+/-- The orthogonal projection onto the trivial submodule is the zero map. -/
+@[simp] lemma orthogonal_projection_bot : orthogonal_projection (⊥ : submodule 𝕜 E) = 0 :=
+begin
+  ext u,
+  apply eq_orthogonal_projection_of_mem_of_inner_eq_zero,
+  { simp },
+  { intros w hw,
+    simp [(submodule.mem_bot 𝕜).mp hw] }
+end
+
 variables (K)
 
 /-- The orthogonal projection has norm `≤ 1`. -/
 lemma orthogonal_projection_norm_le : ∥orthogonal_projection K∥ ≤ 1 :=
 linear_map.mk_continuous_norm_le _ (by norm_num) _
+
+variables (𝕜)
+
+lemma smul_orthogonal_projection_singleton {v : E} (w : E) :
+  (∥v∥ ^ 2 : 𝕜) • (orthogonal_projection (𝕜 ∙ v) w : E) = ⟪v, w⟫ • v :=
+begin
+  suffices : ↑(orthogonal_projection (𝕜 ∙ v) ((∥v∥ ^ 2 : 𝕜) • w)) = ⟪v, w⟫ • v,
+  { simpa using this },
+  apply eq_orthogonal_projection_of_mem_of_inner_eq_zero,
+  { rw submodule.mem_span_singleton,
+    use ⟪v, w⟫ },
+  { intros x hx,
+    obtain ⟨c, rfl⟩ := submodule.mem_span_singleton.mp hx,
+    have hv : ↑∥v∥ ^ 2 = ⟪v, v⟫ := by { norm_cast, simp [norm_sq_eq_inner] },
+    simp [inner_sub_left, inner_smul_left, inner_smul_right, is_R_or_C.conj_div, mul_comm, hv,
+      inner_product_space.conj_sym, hv] }
+end
+
+/-- Formula for orthogonal projection onto a single vector. -/
+lemma orthogonal_projection_singleton {v : E} (w : E) :
+  (orthogonal_projection (𝕜 ∙ v) w : E) = (⟪v, w⟫ / ∥v∥ ^ 2) • v :=
+begin
+  by_cases hv : v = 0,
+  { rw [hv, eq_orthogonal_projection_of_eq_submodule submodule.span_zero_singleton],
+    { simp },
+    { apply_instance } },
+  have hv' : ∥v∥ ≠ 0 := ne_of_gt (norm_pos_iff.mpr hv),
+  have key : ((∥v∥ ^ 2 : 𝕜)⁻¹ * ∥v∥ ^ 2) • ↑(orthogonal_projection (𝕜 ∙ v) w)
+              = ((∥v∥ ^ 2 : 𝕜)⁻¹ * ⟪v, w⟫) • v,
+  { simp [mul_smul, smul_orthogonal_projection_singleton 𝕜 w] },
+  convert key;
+  field_simp [hv']
+end
+
+/-- Formula for orthogonal projection onto a single unit vector. -/
+lemma orthogonal_projection_unit_singleton {v : E} (hv : ∥v∥ = 1) (w : E) :
+  (orthogonal_projection (𝕜 ∙ v) w : E) = ⟪v, w⟫ • v :=
+by { rw ← smul_orthogonal_projection_singleton 𝕜 w, simp [hv] }
 
 end orthogonal_projection
 
@@ -1888,6 +1938,14 @@ lemma submodule.inner_right_of_mem_orthogonal {u v : E} (hu : u ∈ K) (hv : v �
 /-- A vector in `Kᗮ` is orthogonal to one in `K`. -/
 lemma submodule.inner_left_of_mem_orthogonal {u v : E} (hu : u ∈ K) (hv : v ∈ Kᗮ) : ⟪v, u⟫ = 0 :=
 by rw [inner_eq_zero_sym]; exact submodule.inner_right_of_mem_orthogonal hu hv
+
+/-- A vector in `(𝕜 ∙ u)ᗮ` is orthogonal to `u`. -/
+lemma inner_right_of_mem_orthogonal_singleton (u : E) {v : E} (hv : v ∈ (𝕜 ∙ u)ᗮ) : ⟪u, v⟫ = 0 :=
+submodule.inner_right_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
+
+/-- A vector in `(𝕜 ∙ u)ᗮ` is orthogonal to `u`. -/
+lemma inner_left_of_mem_orthogonal_singleton (u : E) {v : E} (hv : v ∈ (𝕜 ∙ u)ᗮ) : ⟪v, u⟫ = 0 :=
+submodule.inner_left_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
 
 variables (K)
 
@@ -2073,6 +2131,12 @@ lemma orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
   orthogonal_projection Kᗮ v = 0 :=
 orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (K.le_orthogonal_orthogonal hv)
 
+/-- The orthogonal projection onto `(𝕜 ∙ v)ᗮ` of `v` is zero. -/
+lemma orthogonal_projection_orthogonal_complement_singleton_eq_zero [complete_space E] (v : E) :
+  orthogonal_projection (𝕜 ∙ v)ᗮ v = 0 :=
+orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
+  (submodule.mem_span_singleton_self v)
+
 variables (K)
 
 /-- In a complete space `E`, a vector splits as the sum of its orthogonal projections onto a
@@ -2141,4 +2205,14 @@ lemma submodule.findim_add_findim_orthogonal' [finite_dimensional 𝕜 E] {K : s
   findim 𝕜 Kᗮ = n :=
 by { rw ← add_right_inj (findim 𝕜 K), simp [submodule.findim_add_findim_orthogonal, h_dim] }
 
+/-- In a finite-dimensional inner product space, the dimension of the orthogonal complement of the
+span of a nonzero vector is one less than the dimension of the space. -/
+lemma findim_orthogonal_span_singleton [finite_dimensional 𝕜 E] {v : E} (hv : v ≠ 0) :
+  findim 𝕜 (𝕜 ∙ v)ᗮ = findim 𝕜 E - 1 :=
+begin
+  haveI : nontrivial E := ⟨⟨v, 0, hv⟩⟩,
+  apply submodule.findim_add_findim_orthogonal',
+  simp only [findim_span_singleton hv, findim_euclidean_space, fintype.card_fin],
+  exact nat.add_sub_cancel' (nat.succ_le_iff.mpr findim_pos)
+end
 end orthogonal

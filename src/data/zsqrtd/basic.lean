@@ -576,6 +576,16 @@ instance : ordered_semiring ℤ√d        := by apply_instance
 
 end
 
+lemma norm_eq_zero {d : ℤ} (h : 0 ≤ d) (h_nonsquare : ∀ n : ℤ, d ≠ n*n) (a : ℤ√d) :
+  norm a = 0 ↔ a = 0 :=
+begin
+  refine ⟨λ ha, ext.mpr _, λ h, by rw [h, norm_zero]⟩,
+  unfold norm at ha,
+  obtain ⟨d', rfl⟩ := int.eq_coe_of_zero_le h,
+  haveI : nonsquare d' := ⟨λ n h, h_nonsquare n $ by exact_mod_cast h⟩,
+  exact divides_sq_eq_zero_z (eq_of_sub_eq_zero ha),
+end
+
 /-- The image of `zsqrtd` in `ℝ`, using `real.sqrt` which takes the positive root of `d`. -/
 @[simps]
 noncomputable def to_real {d : ℤ} (h : 0 ≤ d) : ℤ√d →+* ℝ := {
@@ -592,18 +602,13 @@ noncomputable def to_real {d : ℤ} (h : 0 ≤ d) : ℤ√d →+* ℝ := {
 
 lemma to_real_injective {d : ℤ} (h : 0 ≤ d) (h_nonsquare : ∀ n : ℤ, d ≠ n*n) :
   function.injective (to_real h) :=
-(to_real h).injective_iff.mpr $ λ a ha, begin
-  rw ext,
-  simp [to_real_apply] at ha,
-  obtain ⟨d', rfl⟩ := int.eq_coe_of_zero_le h,
-  haveI : nonsquare d' := ⟨λ n h, h_nonsquare n $ by exact_mod_cast h⟩,
-  apply @divides_sq_eq_zero_z d',
-  have : (↑a.re + ↑a.im * real.sqrt d') * (↑a.re - ↑a.im * real.sqrt d') =
-          a.re * a.re - (real.sqrt d' * real.sqrt d') * a.im * a.im := by ring,
-  replace ha := congr_arg (λ x, x * (↑(a.re) - ↑(a.im) * real.sqrt ↑d')) ha,
-  simp [this, real.mul_self_sqrt (int.cast_nonneg.mpr h)] at ha,
-  rw sub_eq_zero at ha,
-  exact_mod_cast ha,
+(to_real h).injective_iff.mpr $ λ a ha, (norm_eq_zero h h_nonsquare a).mp begin
+  replace ha := congr_arg (λ x, x * to_real h a.conj) ha,
+  have : to_real h (a.norm : ℤ√d) = 0,
+  { simpa only [zero_mul, ←ring_hom.map_mul, ←norm_eq_mul_conj] using ha },
+  have : (a.norm : ℤ√d) = 0,
+  { simpa using this },
+  exact_mod_cast this,
 end
 
 end zsqrtd

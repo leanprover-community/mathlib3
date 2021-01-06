@@ -173,7 +173,7 @@ and only if `i = j`. Since they can be defined on a priori not defeq types `fin 
   s.order_emb_of_fin h i = s.order_emb_of_fin h' j ↔ (i : ℕ) = (j : ℕ) :=
 begin
   substs k l,
-  exact (s.order_emb_of_fin rfl).apply_eq_apply.trans (fin.ext_iff _ _)
+  exact (s.order_emb_of_fin rfl).eq_iff_eq.trans (fin.ext_iff _ _)
 end
 
 end sort_linear_order

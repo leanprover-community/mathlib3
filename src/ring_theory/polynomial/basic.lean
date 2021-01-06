@@ -720,6 +720,17 @@ instance {R : Type u} {σ : Type v} [integral_domain R] :
   end⟩,
   .. (by apply_instance : comm_ring (mv_polynomial σ R)) }
 
+lemma map_mv_polynomial_eq_eval₂ {S : Type*} [comm_ring S] [fintype σ]
+  (ϕ : mv_polynomial σ R →+* S) (p : mv_polynomial σ R) :
+  ϕ p = mv_polynomial.eval₂ (ϕ.comp mv_polynomial.C) (λ s, ϕ (mv_polynomial.X s)) p :=
+begin
+  refine trans (congr_arg ϕ (mv_polynomial.as_sum p)) _,
+  rw [mv_polynomial.eval₂_eq', ϕ.map_sum],
+  congr,
+  ext,
+  simp only [monomial_eq, ϕ.map_pow, ϕ.map_prod, ϕ.comp_apply, ϕ.map_mul, finsupp.prod_pow],
+end
+
 end mv_polynomial
 
 namespace polynomial

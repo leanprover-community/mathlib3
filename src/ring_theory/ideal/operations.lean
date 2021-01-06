@@ -392,7 +392,7 @@ theorem radical_mono (H : I ≤ J) : radical I ≤ radical J :=
 λ r ⟨n, hrni⟩, ⟨n, H hrni⟩
 
 variables (I)
-theorem radical_idem : radical (radical I) = radical I :=
+@[simp] theorem radical_idem : radical (radical I) = radical I :=
 le_antisymm (λ r ⟨n, k, hrnki⟩, ⟨n * k, (pow_mul r n k).symm ▸ hrnki⟩) le_radical
 variables {I}
 
@@ -975,6 +975,11 @@ calc I = comap f (map f I) : ((rel_iso_of_bijective f hf).right_inv I).symm
    ... = ⊤ : by rw comap_top
 
 end bijective
+
+lemma ring_equiv.bot_maximal_iff (e : R ≃+* S) :
+  (⊥ : ideal R).is_maximal ↔ (⊥ : ideal S).is_maximal :=
+⟨λ h, (@map_bot _ _ _ _ e.to_ring_hom) ▸ map.is_maximal e.to_ring_hom e.bijective h,
+  λ h, (@map_bot _ _ _ _ e.symm.to_ring_hom) ▸ map.is_maximal e.symm.to_ring_hom e.symm.bijective h⟩
 
 end map_and_comap
 

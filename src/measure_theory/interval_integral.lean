@@ -1256,8 +1256,10 @@ lemma deriv_within_integral_left
   deriv_within (λ u, ∫ x in u..b, f x) s a = -f a :=
 (integral_has_deriv_within_at_left hf hmeas ha).deriv_within hs
 
+/-!
+### Fundamental theorem of calculus, part 2
 
-/-~ ### Theorems pertaining to FTC-2. -/
+This section contains theorems pertaining to FTC-2 for interval integral. -/
 
 variables {f' : ℝ → E}
 

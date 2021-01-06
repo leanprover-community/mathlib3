@@ -113,8 +113,6 @@ section inverse
 open_locale classical
 
 variables {R₁ : Type*} [integral_domain R₁] {g : fraction_map R₁ K}
-
-
 variables {I J : fractional_ideal g}
 
 noncomputable instance : has_inv (fractional_ideal g) := ⟨λ I, 1 / I⟩

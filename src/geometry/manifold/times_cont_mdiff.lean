@@ -903,22 +903,42 @@ begin
   exact times_cont_diff_within_at.continuous_within_at
 end
 
+lemma times_cont_diff_within_at.times_cont_mdiff_within_at {f : E → E'} {s : set E} {x : E}
+  (hf : times_cont_diff_within_at 𝕜 n f s x) :
+  times_cont_mdiff_within_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f s x
+  :=
+times_cont_mdiff_within_at_iff_times_cont_diff_within_at.2 hf
+
 lemma times_cont_mdiff_at_iff_times_cont_diff_at {f : E → E'} {x : E} :
   times_cont_mdiff_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f x
   ↔ times_cont_diff_at 𝕜 n f x :=
 by rw [← times_cont_mdiff_within_at_univ,
   times_cont_mdiff_within_at_iff_times_cont_diff_within_at, times_cont_diff_within_at_univ]
 
+lemma times_cont_diff_at.times_cont_mdiff_at {f : E → E'} {x : E}
+  (hf : times_cont_diff_at 𝕜 n f x) :
+  times_cont_mdiff_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f x :=
+times_cont_mdiff_at_iff_times_cont_diff_at.2 hf
+
 lemma times_cont_mdiff_on_iff_times_cont_diff_on {f : E → E'} {s : set E} :
   times_cont_mdiff_on (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f s
   ↔ times_cont_diff_on 𝕜 n f s :=
 forall_congr $ by simp [times_cont_mdiff_within_at_iff_times_cont_diff_within_at]
+
+lemma times_cont_diff_on.times_cont_mdiff_on {f : E → E'} {s : set E}
+  (hf : times_cont_diff_on 𝕜 n f s) :
+  times_cont_mdiff_on (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f s :=
+times_cont_mdiff_on_iff_times_cont_diff_on.2 hf
 
 lemma times_cont_mdiff_iff_times_cont_diff {f : E → E'} :
   times_cont_mdiff (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f
   ↔ times_cont_diff 𝕜 n f :=
 by rw [← times_cont_diff_on_univ, ← times_cont_mdiff_on_univ,
   times_cont_mdiff_on_iff_times_cont_diff_on]
+
+lemma times_cont_diff.times_cont_mdiff {f : E → E'} (hf : times_cont_diff 𝕜 n f) :
+  times_cont_mdiff (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f :=
+times_cont_mdiff_iff_times_cont_diff.2 hf
 
 end vector_space
 

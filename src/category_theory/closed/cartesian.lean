@@ -91,11 +91,14 @@ closed.is_adj.adj
 
 /-- The evaluation natural transformation. -/
 def ev : exp A ⋙ prod.functor.obj A ⟶ 𝟭 C :=
-closed.is_adj.adj.counit
+(exp.adjunction A).counit
 
 /-- The coevaluation natural transformation. -/
 def coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A :=
-closed.is_adj.adj.unit
+(exp.adjunction A).unit
+
+@[simp] lemma exp_adjunction_counit : (exp.adjunction A).counit = ev A := rfl
+@[simp] lemma exp_adjunction_unit : (exp.adjunction A).unit = coev A := rfl
 
 @[simp, reassoc]
 lemma ev_naturality {X Y : C} (f : X ⟶ Y) :
@@ -130,10 +133,10 @@ namespace cartesian_closed
 variables [has_finite_products C] [exponentiable A]
 
 /-- Currying in a cartesian closed category. -/
-abbreviation curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
-((exp.adjunction A).hom_equiv _ _)
+def curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
+(exp.adjunction A).hom_equiv _ _
 /-- Uncurrying in a cartesian closed category. -/
-abbreviation uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
+def uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
 ((exp.adjunction A).hom_equiv _ _).symm
 
 @[simp] lemma hom_equiv_apply_eq (f : A ⨯ Y ⟶ X) :

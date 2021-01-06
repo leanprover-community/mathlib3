@@ -217,6 +217,10 @@ lemma refl_to_embedding {α : Type*} : (equiv.refl α).to_embedding = function.e
 lemma trans_to_embedding {α β γ : Type*} (e : α ≃ β) (f : β ≃ γ) :
   (e.trans f).to_embedding = e.to_embedding.trans f.to_embedding := rfl
 
+lemma swap_embedding_apply {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α ↪ β) (x y z : α) :
+  equiv.swap (f x) (f y) (f z) = f (equiv.swap x y z) :=
+equiv.swap_inj_apply f.inj' x y z
+
 end equiv
 
 namespace set

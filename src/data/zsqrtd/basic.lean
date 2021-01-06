@@ -595,4 +595,20 @@ begin
     exact mul_nonpos_of_nonpos_of_nonneg h.le (mul_self_nonneg _) }
 end
 
+variables {R : Type} [comm_ring R]
+
+/-- A `ring_hom` from `ℤ√d` to a ring `R`, constructed by replacing `√d` with the provided root. -/
+@[simps]
+def lift {d : ℤ} (r : R) (hr : r * r = ↑d) : ℤ√d →+* R := {
+  to_fun := λ a, a.1 + a.2*r,
+  map_zero' := by simp,
+  map_add' := λ a b, by { simp, ring, },
+  map_one' := by simp,
+  map_mul' := λ a b, by {
+    have : (↑a.re + ↑a.im * r) * (↑b.re + ↑b.im * r) =
+             ↑a.re * ↑b.re + (↑a.re * ↑b.im + ↑a.im * ↑b.re) * r
+                           + ↑a.im * ↑b.im * (r * r) := by ring,
+    simp [this, hr],
+    ring, } }
+
 end zsqrtd

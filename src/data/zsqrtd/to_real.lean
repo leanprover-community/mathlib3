@@ -19,17 +19,8 @@ namespace zsqrtd
 
 If the negative root is desired, use `to_real h a.conj`. -/
 @[simps]
-noncomputable def to_real {d : ℤ} (h : 0 ≤ d) : ℤ√d →+* ℝ := {
-  to_fun := λ a, a.1 + a.2*real.sqrt d,
-  map_zero' := by simp,
-  map_add' := λ a b, by { simp, ring, },
-  map_one' := by simp,
-  map_mul' := λ a b, by {
-    have : (↑a.re + ↑a.im * real.sqrt d) * (↑b.re + ↑b.im * real.sqrt d) =
-             ↑a.re * ↑b.re + (↑a.re * ↑b.im + ↑a.im * ↑b.re) * real.sqrt d
-                           + ↑a.im * ↑b.im * (real.sqrt d * real.sqrt d) := by ring,
-    simp [this, real.mul_self_sqrt (int.cast_nonneg.mpr h)],
-    ring, } }
+noncomputable def to_real {d : ℤ} (h : 0 ≤ d) : ℤ√d →+* ℝ :=
+lift (real.sqrt d) (real.mul_self_sqrt (int.cast_nonneg.mpr h))
 
 lemma to_real_injective {d : ℤ} (h : 0 ≤ d) (h_nonsquare : ∀ n : ℤ, d ≠ n*n) :
   function.injective (to_real h) :=

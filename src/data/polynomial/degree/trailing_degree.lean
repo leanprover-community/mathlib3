@@ -262,7 +262,7 @@ section ring
 variables [ring R]
 
 @[simp] lemma trailing_degree_neg (p : polynomial R) : trailing_degree (-p) = trailing_degree p :=
-by unfold trailing_degree; rw support_neg
+by unfold trailing_degree; rw finsupp.support_neg
 
 @[simp] lemma nat_trailing_degree_neg (p : polynomial R) :
   nat_trailing_degree (-p) = nat_trailing_degree p :=

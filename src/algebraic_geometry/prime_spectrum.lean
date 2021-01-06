@@ -280,9 +280,7 @@ begin
     rcases hs with ⟨s, hs1, hs2⟩,
     apply (ideal.is_prime.mem_or_mem (by apply_instance) _).resolve_left hs2,
     apply h,
-    split,
-    { exact ideal.mul_mem_left _ hr },
-    { exact ideal.mul_mem_right _ hs1 } },
+    exact ⟨I.mul_mem_left _ hr, J.mul_mem_right _ hs1⟩ },
   { rintro (h|h),
     all_goals
     { rw mem_zero_locus at h ⊢,

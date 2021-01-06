@@ -265,6 +265,9 @@ by simp only [add_comm, add_one_le_iff]
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 (lt_or_eq_of_le H).imp le_of_lt_succ id
 
+lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
+⟨lt_of_succ_lt_succ, succ_lt_succ⟩
+
 /-! ### `add` -/
 
 -- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding
@@ -878,12 +881,12 @@ protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k 
 @[simp] protected theorem not_two_dvd_bit1 (n : ℕ) : ¬ 2 ∣ bit1 n :=
 mt (nat.dvd_add_right two_dvd_bit0).1 dec_trivial
 
-/-- A natural number m divides the sum m + n if and only if m divides b.-/
+/-- A natural number `m` divides the sum `m + n` if and only if `m` divides `n`.-/
 @[simp] protected lemma dvd_add_self_left {m n : ℕ} :
   m ∣ m + n ↔ m ∣ n :=
 nat.dvd_add_right (dvd_refl m)
 
-/-- A natural number m divides the sum n + m if and only if m divides b.-/
+/-- A natural number `m` divides the sum `n + m` if and only if `m` divides `n`.-/
 @[simp] protected lemma dvd_add_self_right {m n : ℕ} :
   m ∣ n + m ↔ m ∣ n :=
 nat.dvd_add_left (dvd_refl m)
@@ -1594,5 +1597,12 @@ instance decidable_lo_hi_le (lo hi : ℕ) (P : ℕ → Prop) [H : decidable_pred
   decidable (∀x, lo ≤ x → x ≤ hi → P x) :=
 decidable_of_iff (∀x, lo ≤ x → x < hi + 1 → P x) $
 ball_congr $ λ x hl, imp_congr lt_succ_iff iff.rfl
+
+/-! ### find -/
+
+theorem find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
+  (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
+  nat.find hp ≤ nat.find hq :=
+nat.find_min' _ ((h _) (nat.find_spec hq))
 
 end nat

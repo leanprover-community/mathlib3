@@ -78,6 +78,14 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
+protected lemma congr_arg {f : R ≃+* S} : Π {x x' : R}, x = x' → f x = f x'
+| _ _ rfl := rfl
+
+protected lemma congr_fun {f g : R ≃+* S} (h : f = g) (x : R) : f x = g x := h ▸ rfl
+
+lemma ext_iff {f g : R ≃+* S} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, ext⟩
+
 instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.to_mul_equiv⟩
 
 instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
@@ -240,6 +248,16 @@ equiv.symm_apply_apply (e.to_equiv)
 lemma to_ring_hom_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
   (e₁.trans e₂).to_ring_hom = e₂.to_ring_hom.comp e₁.to_ring_hom := rfl
 
+@[simp]
+lemma to_ring_hom_comp_symm_to_ring_hom (e : R ≃+* S) :
+  e.to_ring_hom.comp e.symm.to_ring_hom = ring_hom.id _ :=
+by { ext, simp }
+
+@[simp]
+lemma symm_to_ring_hom_comp_to_ring_hom (e : R ≃+* S) :
+  e.symm.to_ring_hom.comp e.to_ring_hom = ring_hom.id _ :=
+by { ext, simp }
+
 /--
 Construct an equivalence of rings from homomorphisms in both directions, which are inverses.
 -/
@@ -296,41 +314,6 @@ protected def integral_domain {A : Type*} (B : Type*) [ring A] [integral_domain 
 { .. (‹_› : ring A), .. e.is_integral_domain B (integral_domain.to_is_integral_domain B) }
 
 end ring_equiv
-
-/-- The group of ring automorphisms. -/
-@[reducible] def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
-
-namespace ring_aut
-
-variables (R) [has_mul R] [has_add R]
-
-/--
-The group operation on automorphisms of a ring is defined by
-λ g h, ring_equiv.trans h g.
-This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
--/
-instance : group (ring_aut R) :=
-by refine_struct
-{ mul := λ g h, ring_equiv.trans h g,
-  one := ring_equiv.refl R,
-  inv := ring_equiv.symm };
-intros; ext; try { refl }; apply equiv.left_inv
-
-instance : inhabited (ring_aut R) := ⟨1⟩
-
-/-- Monoid homomorphism from ring automorphisms to additive automorphisms. -/
-def to_add_aut : ring_aut R →* add_aut R :=
-by refine_struct { to_fun := ring_equiv.to_add_equiv }; intros; refl
-
-/-- Monoid homomorphism from ring automorphisms to multiplicative automorphisms. -/
-def to_mul_aut : ring_aut R →* mul_aut R :=
-by refine_struct { to_fun := ring_equiv.to_mul_equiv }; intros; refl
-
-/-- Monoid homomorphism from ring automorphisms to permutations. -/
-def to_perm : ring_aut R →* equiv.perm R :=
-by refine_struct { to_fun := ring_equiv.to_equiv }; intros; refl
-
-end ring_aut
 
 namespace equiv
 

@@ -432,10 +432,12 @@ lemma subst_into_pow {α} [monoid α] (l r tl tr t)
 by rw [prl, prr, prt]
 
 lemma unfold_sub {α} [add_group α] (a b c : α)
-  (h : a + -b = c) : a - b = c := h
+  (h : a + -b = c) : a - b = c :=
+by rw [sub_eq_add_neg, h]
 
 lemma unfold_div {α} [division_ring α] (a b c : α)
-  (h : a * b⁻¹ = c) : a / b = c := h
+  (h : a * b⁻¹ = c) : a / b = c :=
+by rw [div_eq_mul_inv, h]
 
 /-- Evaluate a ring expression `e` recursively to normal form, together with a proof of
 equality. -/
@@ -453,10 +455,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
       e ← ic_lift $ λ ic, ic.mk_app ``has_add.add [e₁, e₂'],
       (e', p) ← eval e,
       p' ← ic_lift $ λ ic, ic.mk_app ``unfold_sub [e₁, e₂, e', p],
-      return (e',
-        if inst.const_name = `int.has_sub then
-          `(norm_num.int_sub_hack).mk_app [e₁, e₂, e', p']
-        else p'))
+      return (e', p'))
     (eval_atom e)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
@@ -475,7 +474,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
     return (const e' n, p)) <|> eval_atom e
 | e@`(@has_div.div _ %%inst %%e₁ %%e₂) := mcond
   (succeeds (do
-    inst' ← ic_lift $ λ ic, ic.mk_app ``division_ring_has_div [],
+    inst' ← ic_lift $ λ ic, ic.mk_app ``div_inv_monoid.to_has_div [],
     lift $ is_def_eq inst inst'))
   (do
     e₂' ← ic_lift $ λ ic, ic.mk_app ``has_inv.inv [e₂],
@@ -516,7 +515,7 @@ by simp [pow_add]
 theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) : b * a ^ m * a ^ n = b * a ^ (m + n) :=
 by simp [pow_add, mul_assoc]
 
-theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := rfl
+theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := (sub_eq_add_neg a b).symm
 
 /-- If `ring` fails to close the goal, it falls back on normalizing the expression to a "pretty"
 form so that you can see why it failed. This setting adjusts the resulting form:

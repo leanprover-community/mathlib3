@@ -187,8 +187,8 @@ lemma conj_bijective : @function.bijective K K is_R_or_C.conj := conj_involutive
 
 lemma conj_inj (z w : K) : conj z = conj w ↔ z = w := conj_bijective.1.eq_iff
 
-@[simp] lemma conj_eq_zero {z : K} : conj z = 0 ↔ z = 0 :=
-by simpa using @conj_inj K _ z 0
+lemma conj_eq_zero {z : K} : conj z = 0 ↔ z = 0 :=
+ring_hom.map_eq_zero conj
 
 lemma eq_conj_iff_real {z : K} : conj z = z ↔ ∃ r : ℝ, z = (r : K) :=
 begin
@@ -225,33 +225,37 @@ lemma eq_conj_iff_re {z : K} : conj z = z ↔ ((re z) : K) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
 /-- The norm squared function. -/
-def norm_sq (z : K) : ℝ := re z * re z + im z * im z
+def norm_sq : monoid_with_zero_hom K ℝ :=
+{ to_fun := λ z, re z * re z + im z * im z,
+  map_zero' := by simp,
+  map_one' := by simp,
+  map_mul' := λ z w, by { simp, ring } }
 
 lemma norm_sq_eq_def {z : K} : ∥z∥^2 = (re z) * (re z) + (im z) * (im z) := norm_sq_eq_def_ax z
-lemma norm_sq_eq_def' (z : K) : norm_sq z = ∥z∥^2 := by rw [norm_sq_eq_def, norm_sq]
+lemma norm_sq_eq_def' (z : K) : norm_sq z = ∥z∥^2 := by { rw norm_sq_eq_def, refl }
 
 @[simp] lemma norm_sq_of_real (r : ℝ) : ∥(r : K)∥^2 = r * r :=
 by simp [norm_sq_eq_def]
 
-@[simp] lemma norm_sq_zero : norm_sq (0 : K) = 0 := by simp [norm_sq, pow_two]
-@[simp] lemma norm_sq_one : norm_sq (1 : K) = 1 := by simp [norm_sq]
+lemma norm_sq_zero : norm_sq (0 : K) = 0 := norm_sq.map_zero
+lemma norm_sq_one : norm_sq (1 : K) = 1 := norm_sq.map_one
 
 lemma norm_sq_nonneg (z : K) : 0 ≤ norm_sq z :=
 add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)
 
 @[simp] lemma norm_sq_eq_zero {z : K} : norm_sq z = 0 ↔ z = 0 :=
-by { rw [norm_sq, ←norm_sq_eq_def], simp [pow_two] }
+by { rw [norm_sq_eq_def'], simp [pow_two] }
 
 @[simp] lemma norm_sq_pos {z : K} : 0 < norm_sq z ↔ z ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [norm_sq_nonneg]
 
 @[simp] lemma norm_sq_neg (z : K) : norm_sq (-z) = norm_sq z :=
-by simp [norm_sq]
+by simp [norm_sq_eq_def']
 
 @[simp] lemma norm_sq_conj (z : K) : norm_sq (conj z) = norm_sq z := by simp [norm_sq]
 
 @[simp] lemma norm_sq_mul (z w : K) : norm_sq (z * w) = norm_sq z * norm_sq w :=
-by simp [norm_sq, pow_two]; ring
+norm_sq.map_mul z w
 
 lemma norm_sq_add (z w : K) :
   norm_sq (z + w) = norm_sq z + norm_sq w + 2 * (re (z * conj w)) :=
@@ -289,10 +293,9 @@ by simp [-mul_re, norm_sq_add, add_comm, add_left_comm, sub_eq_add_neg]
 
 lemma sqrt_norm_sq_eq_norm {z : K} : real.sqrt (norm_sq z) = ∥z∥ :=
 begin
-  have h₁ : (norm_sq z) = ∥z∥^2 := by rw [norm_sq_eq_def, norm_sq],
-  have h₂ : ∥z∥ = real.sqrt (∥z∥^2) := eq_comm.mp (real.sqrt_sqr (norm_nonneg z)),
+  have h₂ : ∥z∥ = real.sqrt (∥z∥^2) := (real.sqrt_sqr (norm_nonneg z)).symm,
   rw [h₂],
-  exact congr_arg real.sqrt h₁
+  exact congr_arg real.sqrt (norm_sq_eq_def' z)
 end
 
 /-! ### Inversion -/
@@ -349,15 +352,10 @@ end
 by { by_cases h : (I : K) = 0; field_simp [h] }
 
 @[simp] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
-begin
-  by_cases z = 0,
-  { simp [h] },
-  { refine mul_right_cancel' (mt norm_sq_eq_zero.1 h) _,
-    simp [h, ←norm_sq_mul], }
-end
+(@norm_sq K _).map_inv' z
 
 @[simp] lemma norm_sq_div (z w : K) : norm_sq (z / w) = norm_sq z / norm_sq w :=
-by { rw [division_def, norm_sq_mul, norm_sq_inv], refl }
+(@norm_sq K _).map_div z w
 
 lemma norm_conj {z : K} : ∥conj z∥ = ∥z∥ :=
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
@@ -476,6 +474,18 @@ lemma re_le_abs (z : K) : re z ≤ abs z :=
 
 lemma im_le_abs (z : K) : im z ≤ abs z :=
 (abs_le.1 (abs_im_le_abs _)).2
+
+lemma im_eq_zero_of_le {a : K} (h : abs a ≤ re a) : im a = 0 :=
+begin
+  rw ← zero_eq_mul_self,
+  have : re a * re a = re a * re a + im a * im a,
+  { convert is_R_or_C.mul_self_abs a;
+    linarith [re_le_abs a] },
+  linarith
+end
+
+lemma re_eq_self_of_le {a : K} (h : abs a ≤ re a) : (re a : K) = a :=
+by { rw ← re_add_im a, simp [im_eq_zero_of_le h] }
 
 lemma abs_add (z w : K) : abs (z + w) ≤ abs z + abs w :=
 (mul_self_le_mul_self_iff (abs_nonneg _)
@@ -601,6 +611,43 @@ ring_hom.map_finsupp_prod _ f g
 
 end is_R_or_C
 
+namespace finite_dimensional
+variables {K : Type*} [is_R_or_C K]
+
+open_locale classical
+open is_R_or_C
+
+/-- This instance generates a type-class problem with a metavariable `?m` that should satisfy
+`is_R_or_C ?m`. Since this can only be satisfied by `ℝ` or `ℂ`, this does not cause problems. -/
+library_note "is_R_or_C instance"
+
+/-- An `is_R_or_C` field is finite-dimensional over `ℝ`, since it is spanned by `{1, I}`. -/
+@[nolint dangerous_instance] instance is_R_or_C_to_real : finite_dimensional ℝ K :=
+finite_dimensional.iff_fg.mpr ⟨{1, I},
+  begin
+    rw eq_top_iff,
+    intros a _,
+    rw [finset.coe_insert, finset.coe_singleton, submodule.mem_span_insert],
+    refine ⟨re a, (im a) • I, _, _⟩,
+    { rw submodule.mem_span_singleton,
+      use im a },
+    simp [re_add_im a, algebra.smul_def, algebra_map_eq_of_real]
+  end⟩
+
+/-- Over an `is_R_or_C` field, we can register the properness of finite-dimensional normed spaces as
+an instance. -/
+@[priority 900, nolint dangerous_instance] instance proper_is_R_or_C -- note [is_R_or_C instance]
+  {E : Type*} [normed_group E] [normed_space K E] [finite_dimensional K E] :
+  proper_space E :=
+begin
+  letI : normed_space ℝ E := restrict_scalars.normed_space ℝ K E,
+  letI : is_scalar_tower ℝ K E := restrict_scalars.is_scalar_tower _ _ _,
+  letI : finite_dimensional ℝ E := finite_dimensional.trans ℝ K E,
+  apply_instance
+end
+
+end finite_dimensional
+
 section instances
 
 noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
@@ -654,12 +701,11 @@ noncomputable instance complex.is_R_or_C : is_R_or_C ℂ :=
   conj_re_ax := λ z, by simp only [ring_hom.coe_mk, add_monoid_hom.coe_mk, complex.conj_re],
   conj_im_ax := λ z, by simp only [ring_hom.coe_mk, complex.conj_im, add_monoid_hom.coe_mk],
   conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
-  norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq, add_monoid_hom.coe_mk, complex.norm_eq_abs],
+  norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq_apply,
+    add_monoid_hom.coe_mk, complex.norm_eq_abs],
   mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
-  inv_def_ax := λ z, by {
-    simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
-               complex.of_real_eq_coe, complex.norm_eq_abs],
-  },
+  inv_def_ax := λ z, by simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
+    complex.of_real_eq_coe, complex.norm_eq_abs],
   div_I_ax := complex.div_I }
 
 end instances

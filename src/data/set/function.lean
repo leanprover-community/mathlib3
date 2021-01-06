@@ -539,6 +539,25 @@ begin
     exact hfs'.surj_on.mono hs' (subset.refl _) }
 end
 
+lemma preimage_inv_fun_of_mem [n : nonempty α] {f : α → β} (hf : injective f) {s : set α}
+  (h : classical.choice n ∈ s) : inv_fun f ⁻¹' s = f '' s ∪ (range f)ᶜ :=
+begin
+  ext x,
+  rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
+  { simp [left_inverse_inv_fun hf _, mem_image_of_injective hf] },
+  { simp [mem_preimage, inv_fun_neg hx, h, hx] }
+end
+
+lemma preimage_inv_fun_of_not_mem [n : nonempty α] {f : α → β} (hf : injective f)
+  {s : set α} (h : classical.choice n ∉ s) : inv_fun f ⁻¹' s = f '' s :=
+begin
+  ext x,
+  rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
+  { rw [mem_preimage, left_inverse_inv_fun hf, mem_image_of_injective hf] },
+  { have : x ∉ f '' s, from λ h', hx (image_subset_range _ _ h'),
+    simp only [mem_preimage, inv_fun_neg hx, h, this] },
+end
+
 end set
 
 /-! ### Piecewise defined function -/
@@ -579,6 +598,10 @@ by simp [piecewise, hi]
 @[simp, priority 990]
 lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
 by simp [piecewise, hi]
+
+lemma piecewise_singleton (x : α) [Π y, decidable (y ∈ ({x} : set α))] [decidable_eq α]
+  (f g : α → β) : piecewise {x} f g = function.update g x (f x) :=
+by { ext y, by_cases hy : y = x, { subst y, simp }, { simp [hy] } }
 
 lemma piecewise_eq_on (f g : α → β) : eq_on (s.piecewise f g) f s :=
 λ _, piecewise_eq_of_mem _ _ _
@@ -645,6 +668,11 @@ lemma strict_mono.comp_strict_mono_incr_on [preorder α] [preorder β] [preorder
   (hf : strict_mono_incr_on f s) :
   strict_mono_incr_on (g ∘ f) s :=
 λ x hx y hy hxy, hg $ hf hx hy hxy
+
+lemma strict_mono.cod_restrict [preorder α] [preorder β] {f : α → β} (hf : strict_mono f)
+  {s : set β} (hs : ∀ x, f x ∈ s) :
+  strict_mono (set.cod_restrict f s hs) :=
+hf
 
 namespace function
 

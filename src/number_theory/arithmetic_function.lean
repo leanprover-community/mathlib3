@@ -189,11 +189,7 @@ lemma mul_smul' (f g : arithmetic_function R) (h : arithmetic_function M) :
   (f * g) • h = f • g • h :=
 begin
   ext n,
-  simp only [mul_apply, smul_apply, sum_smul, mul_smul, smul_sum],
-  apply eq.trans (@finset.sum_sigma (ℕ × ℕ) M _ _ (divisors_antidiagonal n)
-    (λ p, (divisors_antidiagonal p.1)) (λ x, f x.2.1 • g x.2.2 • h x.1.2)).symm,
-  apply eq.trans _ (@finset.sum_sigma (ℕ × ℕ) M _ _ (divisors_antidiagonal n)
-    (λ p, (divisors_antidiagonal p.2)) (λ x, f x.1.1 • (g x.2.1 • h x.2.2))),
+  simp only [mul_apply, smul_apply, sum_smul, mul_smul, smul_sum, finset.sum_sigma'],
   apply finset.sum_bij,
   swap 5,
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l*j), (l, j)⟩ },

@@ -28,8 +28,6 @@ in another file. However, the lemmas about it are stated here.
 
 set_option old_structure_cmd true
 
-set_option pp.implicit true
-
 /-- A linearly ordered commutative group with a zero element. -/
 class linear_ordered_comm_group_with_zero (α : Type*)
   extends linear_ordered_comm_monoid_with_zero α, comm_group_with_zero α

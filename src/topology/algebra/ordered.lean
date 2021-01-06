@@ -645,11 +645,6 @@ tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
 instance tendsto_Ioo_class_nhds (a : α) : tendsto_Ixx_class Ioo (𝓝 a) (𝓝 a) :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Icc_self)
 
-instance tendsto_Ixx_nhds_within (a : α) {s t : set α} {Ixx}
-  [tendsto_Ixx_class Ixx (𝓝 a) (𝓝 a)] [tendsto_Ixx_class Ixx (𝓟 s) (𝓟 t)]:
-  tendsto_Ixx_class Ixx (𝓝[s] a) (𝓝[t] a) :=
-filter.tendsto_Ixx_class_inf
-
 /-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
 eventually for the filter. -/
 lemma tendsto_of_tendsto_of_tendsto_of_le_of_le' {f g h : β → α} {b : filter β} {a : α}
@@ -685,6 +680,27 @@ from (tendsto_infi.2 $ assume l, tendsto_infi.2 $ assume hl,
   tendsto_infi.2 $ assume u, tendsto_infi.2 $ assume hu, tendsto_principal.2 $ h l u hl hu)
 
 end partial_order
+
+instance tendsto_Ixx_nhds_within {α : Type*} [preorder α] [topological_space α]
+  (a : α) {s t : set α} {Ixx}
+  [tendsto_Ixx_class Ixx (𝓝 a) (𝓝 a)] [tendsto_Ixx_class Ixx (𝓟 s) (𝓟 t)]:
+  tendsto_Ixx_class Ixx (𝓝[s] a) (𝓝[t] a) :=
+filter.tendsto_Ixx_class_inf
+
+instance tendsto_Icc_class_nhds_pi {ι : Type*} {α : ι → Type*} [nonempty ι]
+  [Π i, partial_order (α i)] [Π i, topological_space (α i)] [∀ i, order_topology (α i)]
+  (f : Π i, α i) :
+  tendsto_Ixx_class Icc (𝓝 f) (𝓝 f) :=
+begin
+  constructor,
+  conv in ((𝓝 f).lift' powerset) { rw [nhds_pi] },
+  simp only [lift'_infi_powerset, comap_lift'_eq2 monotone_powerset, tendsto_infi, tendsto_lift',
+    mem_powerset_iff, subset_def, mem_preimage],
+  intros i s hs,
+  have : tendsto (λ g : Π i, α i, g i) (𝓝 f) (𝓝 (f i)) := ((continuous_apply i).tendsto f),
+  refine (tendsto_lift'.1 ((this.comp tendsto_fst).Icc (this.comp tendsto_snd)) s hs).mono _,
+  exact λ p hp g hg, hp ⟨hg.1 _, hg.2 _⟩
+end
 
 theorem induced_order_topology' {α : Type u} {β : Type v}
   [partial_order α] [ta : topological_space β] [partial_order β] [order_topology β]

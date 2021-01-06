@@ -274,6 +274,7 @@ section
 
 open measure_theory
 
+@[priority 100] -- see Note [lower instance priority]
 instance sigma_finite_of_locally_finite [second_countable_topology α]
   {μ : measure α} [locally_finite_measure μ] :
   sigma_finite μ :=

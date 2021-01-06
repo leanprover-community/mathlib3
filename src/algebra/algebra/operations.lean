@@ -164,6 +164,43 @@ calc map f.to_linear_map (M * N)
       simp [fy_eq] }
   end
 
+open_locale classical
+
+lemma mem_span_mul_finite_of_mem_span_mul {S : set A} {S' : set A} {x : A} (hx : x ∈ span R (S * S')) :
+  ∃ (T T' : finset A), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ x ∈ span R (T * T' : set A) :=
+begin
+  apply span_induction hx,
+  { rintros x hx,
+    obtain ⟨y, z, hy, hz, h'⟩ := set.mem_mul.mp hx,
+    have hy' := submodule.subset_span hy,
+    have hz' := submodule.subset_span hz,
+    obtain ⟨T, hT, fy⟩ := submodule.mem_span_finite_of_mem_span hy',
+    obtain ⟨T', hT', fz⟩ := submodule.mem_span_finite_of_mem_span hz',
+    use [T, T', hT, hT'],
+    rw [←h', ←submodule.span_mul_span],
+    apply mul_mem_mul fy fz, },
+  { use [∅, ∅], simp, },
+  { rintros x y ⟨T, T', hT, hT', h1⟩ ⟨U, U', hU, hU', h2⟩,
+    use [T ∪ U, T' ∪ U'],
+    simp only [finset.coe_union],
+    use [set.union_subset hT hU, set.union_subset hT' hU'],
+    suffices f : x + y ∈ span R ((T * T') ∪ (U * U') : set A),
+    { have f' : ((T * T') ∪ (U * U') : set A) ⊆ ((T ∪ U) * (T' ∪ U') : set A),
+      { convert set.subset_union_left (T * T' ∪ U * U' : set A) (T * U' ∪ U * T'),
+        simp only [set.mul_union, set.union_mul, set.union_mul],
+        ac_refl },
+      apply span_mono f' f, },
+    rw [span_union, mem_sup],
+    exact ⟨x, h1, y, h2, rfl⟩ },
+  rintros a x ⟨T, T', hT, hT', h⟩,
+  exact ⟨T, T', hT, hT', smul_mem _ _ h⟩,
+end
+
+lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :
+  ∃ (T T' : finset A), (T : set A) ⊆ P ∧ (T' : set A) ⊆ Q ∧ x ∈ span R (T * T' : set A) :=
+submodule.mem_span_mul_finite_of_mem_span_mul
+  (by rwa [← submodule.span_eq P, ← submodule.span_eq Q, submodule.span_mul_span] at hx)
+
 variables {M N P}
 
 /-- Sub-R-modules of an R-algebra form a semiring. -/

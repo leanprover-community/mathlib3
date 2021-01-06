@@ -362,7 +362,7 @@ by rw [is_simple_lattice_iff_is_atom_top, is_simple_lattice_iff_is_atom_top,
 
 end order_iso
 
-namespace is_modular_lattice
+section is_modular_lattice
 variables [bounded_lattice α] [is_modular_lattice α]
 
 namespace is_compl
@@ -370,7 +370,10 @@ variables {a b : α} (hc : is_compl a b)
 include hc
 
 lemma is_atom_iff_is_coatom : is_atom a ↔ is_coatom b :=
-set.is_simple_lattice_Iic_iff_is_atom.symm.trans sorry
+set.is_simple_lattice_Iic_iff_is_atom.symm.trans $ hc.diamond_iso.is_simple_lattice_iff.trans
+  set.is_simple_lattice_Ici_iff_is_coatom
+
+lemma is_coatom_iff_is_atom : is_coatom a ↔ is_atom b := hc.symm.is_atom_iff_is_coatom.symm
 
 end is_compl
 

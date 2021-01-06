@@ -70,6 +70,18 @@ def diamond_iso (a b : α) : set.Icc (a ⊓ b) a ≃o set.Icc b (a ⊔ b) :=
       ← sup_eq_right.2 y.prop.1, inf_sup_assoc_of_le y.prop.2, @sup_comm _ _ b],
     exact inf_le_inf_left _ h
   end }
+
+end is_modular_lattice
+
+section is_modular_lattice
+variables [bounded_lattice α] [is_modular_lattice α]
+
+/-- The diamond isomorphism between the intervals `set.Iic a` and `set.Ici b`. -/
+def is_compl.diamond_iso {a b : α} (h : is_compl a b) : set.Iic a ≃o set.Ici b :=
+(order_iso.set_congr (set.Iic a) (set.Icc (a ⊓ b) a) (h.inf_eq_bot.symm ▸ set.Icc_bot.symm)).trans $
+  (diamond_iso a b).trans
+  (order_iso.set_congr (set.Icc b (a ⊔ b)) (set.Ici b) (h.sup_eq_top.symm ▸ set.Icc_top))
+
 end is_modular_lattice
 
 theorem is_modular_lattice_iff_modular_identity [lattice α] :

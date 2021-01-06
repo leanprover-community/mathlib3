@@ -316,10 +316,18 @@ def monadic_creates_colimits_of_preserves_colimits (R : D ⥤ C) [monadic_right_
 
 section
 
-/-- If C has limits then any reflective subcategory has limits. -/
+lemma has_limit_of_reflective (F : J ⥤ D) (R : D ⥤ C) [has_limit (F ⋙ R)] [reflective R] :
+  has_limit F :=
+by { haveI := monadic_creates_limits R, exact has_limit_of_created F R }
+
+/-- If `C` has limits of shape `J` then any reflective subcategory has limits of shape `J`. -/
+lemma has_limits_of_shape_of_reflective [has_limits_of_shape J C] (R : D ⥤ C) [reflective R] :
+  has_limits_of_shape J D :=
+{ has_limit := λ F, has_limit_of_reflective F R }
+
+/-- If `C` has limits then any reflective subcategory has limits. -/
 lemma has_limits_of_reflective (R : D ⥤ C) [has_limits C] [reflective R] : has_limits D :=
-{ has_limits_of_shape := λ J 𝒥, by have := monadic_creates_limits R; exactI
-  { has_limit := λ F, has_limit_of_created F R } }
+{ has_limits_of_shape := λ J 𝒥₁, by exactI has_limits_of_shape_of_reflective R }
 
 end
 end category_theory

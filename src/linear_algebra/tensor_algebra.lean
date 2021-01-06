@@ -112,6 +112,7 @@ theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : tensor_algebra 
   lift R (g.to_linear_map.comp (ι R)) = g :=
 by { rw ←lift_symm_apply, exact (lift R).apply_symm_apply g }
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext]
 theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : tensor_algebra R M →ₐ[R] A}
   (w : f.to_linear_map.comp (ι R) = g.to_linear_map.comp (ι R)) : f = g :=

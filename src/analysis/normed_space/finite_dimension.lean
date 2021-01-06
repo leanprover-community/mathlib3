@@ -177,6 +177,28 @@ def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E �
   end,
   ..e }
 
+/-- Two finite-dimensional normed spaces are continuously linearly equivalent if they have the same
+(finite) dimension. -/
+theorem finite_dimensional.nonempty_continuous_linear_equiv_of_findim_eq
+  [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] (cond : findim 𝕜 E = findim 𝕜 F) :
+  nonempty (E ≃L[𝕜] F) :=
+(nonempty_linear_equiv_of_findim_eq cond).map linear_equiv.to_continuous_linear_equiv
+
+/-- Two finite-dimensional normed spaces are continuously linearly equivalent if and only if they
+have the same (finite) dimension. -/
+theorem finite_dimensional.nonempty_continuous_linear_equiv_iff_findim_eq
+  [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] :
+   nonempty (E ≃L[𝕜] F) ↔ findim 𝕜 E = findim 𝕜 F :=
+⟨ λ ⟨h⟩, h.to_linear_equiv.findim_eq,
+  λ h, finite_dimensional.nonempty_continuous_linear_equiv_of_findim_eq h ⟩
+
+/-- A continuous linear equivalence between two finite-dimensional normed spaces of the same
+(finite) dimension. -/
+def continuous_linear_equiv.of_findim_eq [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F]
+  (cond : findim 𝕜 E = findim 𝕜 F) :
+  E ≃L[𝕜] F :=
+(linear_equiv.of_findim_eq E F cond).to_continuous_linear_equiv
+
 variables {ι : Type*} [fintype ι]
 
 /-- Construct a continuous linear map given the value at a finite basis. -/

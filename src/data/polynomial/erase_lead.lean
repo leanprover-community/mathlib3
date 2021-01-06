@@ -96,6 +96,19 @@ begin
   exact card_lt_card (erase_ssubset $ nat_degree_mem_support_of_nonzero h)
 end
 
+lemma erase_lead_card_support {c : ℕ} (fc : f.support.card = c) :
+  f.erase_lead.support.card = c - 1 :=
+begin
+  by_cases f0 : f = 0,
+  { rw [← fc, f0, erase_lead_zero, support_zero, card_empty] },
+  { rw [erase_lead_support, card_erase_of_mem (nat_degree_mem_support_of_nonzero f0), fc],
+    exact c.pred_eq_sub_one },
+end
+
+lemma erase_lead_card_support' {c : ℕ} (fc : f.support.card = c + 1) :
+  f.erase_lead.support.card = c :=
+erase_lead_card_support fc
+
 @[simp] lemma erase_lead_monomial (i : ℕ) (r : R) :
   erase_lead (monomial i r) = 0 :=
 begin

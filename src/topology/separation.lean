@@ -16,6 +16,43 @@ variables {α : Type u} {β : Type v} [topological_space α]
 
 section separation
 
+/--
+`separated` is a predicate on pairs of sub`set`s of a topological space.  It holds if the two
+sub`set`s are contained in disjoint open sets.
+-/
+def separated : set α → set α → Prop :=
+  λ (s t : set α), ∃ U V : (set α), (is_open U) ∧ is_open V ∧
+  (s ⊆ U) ∧ (t ⊆ V) ∧ disjoint U V
+
+namespace separated
+
+open separated
+
+@[symm] lemma symm {s t : set α} : separated s t → separated t s :=
+λ ⟨U, V, oU, oV, aU, bV, UV⟩, ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩
+
+lemma comm (s t : set α) : separated s t ↔ separated t s :=
+⟨symm, symm⟩
+
+lemma empty_right (a : set α) : separated a ∅ :=
+⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
+
+lemma empty_left (a : set α) : separated ∅ a :=
+(empty_right _).symm
+
+lemma union_left {a b c : set α} : separated a c → separated b c → separated (a ∪ b) c :=
+λ ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
+  ⟨U ∪ W, V ∩ X, is_open_union oU oW, is_open_inter oV oX,
+    union_subset_union aU aW, subset_inter bV bX, set.disjoint_union_left.mpr
+    ⟨disjoint_of_subset_right (inter_subset_left _ _) UV,
+      disjoint_of_subset_right (inter_subset_right _ _) WX⟩⟩
+
+lemma union_right {a b c : set α} (ab : separated a b) (ac : separated a c) :
+  separated a (b ∪ c) :=
+(ab.symm.union_left ac.symm).symm
+
+end separated
+
 /-- A T₀ space, also known as a Kolmogorov space, is a topological space
   where for every pair `x ≠ y`, there is an open set containing one but not the other. -/
 class t0_space (α : Type u) [topological_space α] : Prop :=
@@ -169,6 +206,29 @@ begin
     have : ¬ (z, z) ∈ diagonal α := this (mk_mem_prod zU zV),
     exact this rfl },
 end
+
+section separated
+
+open separated finset
+
+lemma finset_disjoint_finset_opens_of_t2 [t2_space α] :
+  ∀ (s t : finset α), disjoint s t → separated (s : set α) t :=
+begin
+  refine induction_on_union _ (λ a b hi d, (hi d.symm).symm) (λ a d, empty_right a) (λ a b ab, _) _,
+  { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation
+      (by { rw [ne.def, ← finset.mem_singleton], exact (disjoint_singleton.mp ab.symm) }),
+    refine ⟨U, V, oU, oV, _, _, set.disjoint_iff_inter_eq_empty.mpr UV⟩;
+    exact singleton_subset_set_iff.mpr ‹_› },
+  { intros a b c ac bc d,
+    apply_mod_cast union_left (ac (disjoint_of_subset_left (a.subset_union_left b) d)) (bc _),
+    exact disjoint_of_subset_left (a.subset_union_right b) d },
+end
+
+lemma point_disjoint_finset_opens_of_t2 [t2_space α] {x : α} {s : finset α} (h : x ∉ s) :
+  separated ({x} : set α) ↑s :=
+by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (singleton_disjoint.mpr h)
+
+end separated
 
 @[simp] lemma nhds_eq_nhds_iff {a b : α} [t2_space α] : 𝓝 a = 𝓝 b ↔ a = b :=
 ⟨assume h, eq_of_nhds_ne_bot $ by rw [h, inf_idem]; exact nhds_ne_bot, assume h, h ▸ rfl⟩

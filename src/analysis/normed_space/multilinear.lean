@@ -253,12 +253,12 @@ lemma restr_norm_le {k n : ℕ} (f : (multilinear_map 𝕜 (λ i : fin n, G) E�
   (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (v : fin k → G) :
   ∥f.restr s hk z v∥ ≤ C * ∥z∥ ^ (n - k) * ∏ i, ∥v i∥ :=
 begin
-  rw mul_assoc,
+  rw [mul_right_comm, mul_assoc],
   convert H _ using 2,
   simp only [apply_dite norm, fintype.prod_dite, prod_const (∥z∥), finset.card_univ,
     fintype.card_of_subtype sᶜ (λ x, mem_compl), card_compl, fintype.card_fin, hk, mk_coe,
-    (s.mono_equiv_of_fin hk).symm.prod_comp (λ x, ∥v x∥)],
-  apply mul_comm
+    ← (s.order_iso_of_fin hk).symm.bijective.prod_comp (λ x, ∥v x∥)],
+  refl
 end
 
 end multilinear_map

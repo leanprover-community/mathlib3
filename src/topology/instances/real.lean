@@ -138,22 +138,16 @@ lemma real.uniform_continuous_abs : uniform_continuous (abs : ℝ → ℝ) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
   ⟨ε, ε0, λ a b, lt_of_le_of_lt (abs_abs_sub_abs_le_abs_sub _ _)⟩
 
-lemma real.continuous_abs : continuous (abs : ℝ → ℝ) :=
-real.uniform_continuous_abs.continuous
-
 lemma rat.uniform_continuous_abs : uniform_continuous (abs : ℚ → ℚ) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
   ⟨ε, ε0, λ a b h, lt_of_le_of_lt
     (by simpa [rat.dist_eq] using abs_abs_sub_abs_le_abs_sub _ _) h⟩
 
-lemma rat.continuous_abs : continuous (abs : ℚ → ℚ) :=
-rat.uniform_continuous_abs.continuous
-
 lemma real.tendsto_inv {r : ℝ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 by rw ← abs_pos at r0; exact
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
-  (mem_nhds_sets ((is_open_lt' (abs r / 2)).preimage real.continuous_abs) (half_lt_self r0))
+  (mem_nhds_sets ((is_open_lt' (abs r / 2)).preimage continuous_abs) (half_lt_self r0))
 
 lemma real.continuous_inv : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
@@ -188,8 +182,8 @@ tendsto_of_uniform_continuous_subtype
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
     (λ x, id))
   (mem_nhds_sets
-    (((is_open_gt' (abs a₁ + 1)).preimage real.continuous_abs).prod
-      ((is_open_gt' (abs a₂ + 1)).preimage real.continuous_abs ))
+    (((is_open_gt' (abs a₁ + 1)).preimage continuous_abs).prod
+      ((is_open_gt' (abs a₂ + 1)).preimage continuous_abs ))
     ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
 
 instance : topological_ring ℝ :=

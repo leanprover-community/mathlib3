@@ -184,11 +184,7 @@ end
 lemma sum_range_diag_flip {α : Type*} [add_comm_monoid α] (n : ℕ) (f : ℕ → ℕ → α) :
   ∑ m in range n, ∑ k in range (m + 1), f k (m - k) =
   ∑ m in range n, ∑ k in range (n - m), f m k :=
-have h₁ : ∑ a in (range n).sigma (range ∘ nat.succ), f (a.2) (a.1 - a.2) =
-    ∑ m in range n, ∑ k in range (m + 1), f k (m - k) := sum_sigma,
-have h₂ : ∑ a in (range n).sigma (λ m, range (n - m)), f (a.1) (a.2) =
-    ∑ m in range n, ∑ k in range (n - m), f m k := sum_sigma,
-h₁ ▸ h₂ ▸ sum_bij
+by rw [sum_sigma', sum_sigma']; exact sum_bij
 (λ a _, ⟨a.2, a.1 - a.2⟩)
 (λ a ha, have h₁ : a.1 < n := mem_range.1 (mem_sigma.1 ha).1,
   have h₂ : a.2 < nat.succ a.1 := mem_range.1 (mem_sigma.1 ha).2,
@@ -1281,8 +1277,8 @@ def exp_near (n : ℕ) (x r : ℝ) : ℝ := ∑ m in range n, x ^ m / m! + x ^ n
 @[simp] theorem exp_near_zero (x r) : exp_near 0 x r = r := by simp [exp_near]
 
 @[simp] theorem exp_near_succ (n x r) : exp_near (n + 1) x r = exp_near n x (1 + x / (n+1) * r) :=
-by { simp [exp_near, range_succ, mul_add, add_left_comm, add_assoc, pow_succ],
-     field_simp [mul_assoc, mul_left_comm] }
+by simp [exp_near, range_succ, mul_add, add_left_comm, add_assoc, pow_succ, div_eq_mul_inv,
+  mul_inv']; ac_refl
 
 theorem exp_near_sub (n x r₁ r₂) : exp_near n x r₁ - exp_near n x r₂ = x ^ n / n! * (r₁ - r₂) :=
 by simp [exp_near, mul_sub]
@@ -1298,12 +1294,11 @@ lemma exp_approx_succ {n} {x a₁ b₁ : ℝ} (m : ℕ)
   (h : abs' (exp x - exp_near m x a₂) ≤ abs' x ^ m / m! * b₂) :
   abs' (exp x - exp_near n x a₁) ≤ abs' x ^ n / n! * b₁ :=
 begin
-  refine le_trans (_root_.abs_sub_le _ _ _)
-    (le_trans (add_le_add_right h _) _),
+  refine (_root_.abs_sub_le _ _ _).trans ((add_le_add_right h _).trans _),
   subst e₁, rw [exp_near_succ, exp_near_sub, _root_.abs_mul],
   convert mul_le_mul_of_nonneg_left (le_sub_iff_add_le'.1 e) _,
-  { simp [mul_add, pow_succ', _root_.abs_div, ← pow_abs],
-    field_simp [mul_assoc] },
+  { simp [mul_add, pow_succ', div_eq_mul_inv, _root_.abs_mul, _root_.abs_inv, ← pow_abs, mul_inv'],
+    ac_refl },
   { simp [_root_.div_nonneg, _root_.abs_nonneg] }
 end
 

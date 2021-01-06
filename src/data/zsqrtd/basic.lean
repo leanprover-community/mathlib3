@@ -576,14 +576,24 @@ instance : ordered_semiring ℤ√d        := by apply_instance
 
 end
 
-lemma norm_eq_zero {d : ℤ} (h : 0 ≤ d) (h_nonsquare : ∀ n : ℤ, d ≠ n*n) (a : ℤ√d) :
+lemma norm_eq_zero {d : ℤ} (h_nonsquare : ∀ n : ℤ, d ≠ n*n) (a : ℤ√d) :
   norm a = 0 ↔ a = 0 :=
 begin
   refine ⟨λ ha, ext.mpr _, λ h, by rw [h, norm_zero]⟩,
-  unfold norm at ha,
-  obtain ⟨d', rfl⟩ := int.eq_coe_of_zero_le h,
-  haveI : nonsquare d' := ⟨λ n h, h_nonsquare n $ by exact_mod_cast h⟩,
-  exact divides_sq_eq_zero_z (eq_of_sub_eq_zero ha),
+  delta norm at ha,
+  rw sub_eq_zero at ha,
+  by_cases h : 0 ≤ d,
+  { obtain ⟨d', rfl⟩ := int.eq_coe_of_zero_le h,
+    haveI : nonsquare d' := ⟨λ n h, h_nonsquare n $ by exact_mod_cast h⟩,
+    exact divides_sq_eq_zero_z ha, },
+  { push_neg at h,
+    suffices : a.re * a.re = 0,
+    { rw eq_zero_of_mul_self_eq_zero this at ha ⊢,
+      simpa only [true_and, or_self_right, zero_re, zero_im, eq_self_iff_true,
+        zero_eq_mul, mul_zero, mul_eq_zero, h.ne, false_or, or_self] using ha },
+    apply _root_.le_antisymm _ (mul_self_nonneg _),
+    rw [ha, mul_assoc],
+    exact mul_nonpos_of_nonpos_of_nonneg h.le (mul_self_nonneg _) }
 end
 
 /-- The image of `zsqrtd` in `ℝ`, using `real.sqrt` which takes the positive root of `d`. -/
@@ -602,7 +612,7 @@ noncomputable def to_real {d : ℤ} (h : 0 ≤ d) : ℤ√d →+* ℝ := {
 
 lemma to_real_injective {d : ℤ} (h : 0 ≤ d) (h_nonsquare : ∀ n : ℤ, d ≠ n*n) :
   function.injective (to_real h) :=
-(to_real h).injective_iff.mpr $ λ a ha, (norm_eq_zero h h_nonsquare a).mp begin
+(to_real h).injective_iff.mpr $ λ a ha, (norm_eq_zero h_nonsquare a).mp begin
   replace ha := congr_arg (λ x, x * to_real h a.conj) ha,
   have : to_real h (a.norm : ℤ√d) = 0,
   { simpa only [zero_mul, ←ring_hom.map_mul, ←norm_eq_mul_conj] using ha },

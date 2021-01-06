@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.exp_log
-import data.int.parity
 import data.set.intervals.infinite
 import algebra.quadratic_discriminant
 import ring_theory.polynomial.chebyshev.defs

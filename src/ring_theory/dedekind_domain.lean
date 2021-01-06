@@ -196,17 +196,6 @@ lemma submodule.mem_span_mul_finite_of_mem_mul {B M : Type*} [comm_semiring B] [
 submodule.mem_span_mul_finite_of_mem_span_mul
   (by rwa [← submodule.span_eq P, ← submodule.span_eq Q, submodule.span_mul_span] at hx)
 
-lemma ne_bot_of_is_maximal_of_not_is_field {M : ideal A} (max : M.is_maximal)
-  (not_field : ¬ is_field A) : M ≠ ⊥ :=
-begin
-  rintros h,
-  rw h at max,
-  cases max with h1 h2,
-  obtain ⟨I, hIbot, hItop⟩ := not_is_field_iff_exists_ideal_bot_lt_and_lt_top.mp not_field,
-  specialize h2 I hIbot,
-  exact ne_of_lt hItop h2,
-end
-
 variables {K} {f : fraction_map A K}
 
 @[simp, norm_cast]
@@ -270,6 +259,7 @@ begin
   exact fg_of_one_mem_span_mul s (h2 _ h) T T' hT hT' one_mem,
 end
 
+/-- `A[x]` is a fractional ideal for every `x` in the codomain of the fraction map `f`. -/
 lemma is_fractional_adjoin_integral (x : f.codomain) (hx : is_integral A x) :
   is_fractional f (↑(algebra.adjoin A ({x} : set f.codomain)) : submodule A f.codomain) :=
 is_fractional_of_fg (fg_adjoin_singleton_of_integral x hx)
@@ -401,6 +391,8 @@ begin
   assumption,
 end
 
+/-- Showing one side of the equivalence between the definitions
+`is_dedekind_domain_inv` and `is_dedekind_domain` of Dedekind domains. -/
 theorem is_dedekind_domain_of_is_dedekind_domain_inv :
   is_dedekind_domain_inv A -> is_dedekind_domain A :=
 λ h,

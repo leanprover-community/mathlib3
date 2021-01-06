@@ -113,8 +113,6 @@ section inverse
 open_locale classical
 
 variables {R₁ : Type*} [integral_domain R₁] {g : fraction_map R₁ K}
-
-
 variables {I J : fractional_ideal g}
 
 noncomputable instance : has_inv (fractional_ideal g) := ⟨λ I, 1 / I⟩
@@ -230,8 +228,6 @@ has an inverse.
 This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
 -/
-
-
 structure is_dedekind_domain_inv : Prop :=
 (not_is_field : ¬ is_field A)
 (mul_inv_cancel : ∀ I ≠ (⊥ : fractional_ideal (fraction_ring.of A)), I * (1 / I) = 1)

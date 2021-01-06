@@ -245,7 +245,7 @@ begin
 end
 
 instance subgroup_solvable_of_solvable (H : subgroup G) [h : is_solvable G] : is_solvable H :=
-solvable_of_solvable_injective (show function.injective (subtype H), by ext)
+solvable_of_solvable_injective (show function.injective (subtype H), from subtype.val_injective)
 
 instance solvable_image_of_solvable (hf : function.surjective f) [h : is_solvable G] :
   is_solvable G' :=

@@ -888,6 +888,8 @@ end equalizer
 variables {C : Type u} [category.{v} C]
 variables (J : grothendieck_topology C)
 
+/-- The category of sheaves on a grothendieck topology. -/
+@[derive category]
 def SheafOfTypes (J : grothendieck_topology C) : Type (max u (v+1)) :=
 {P : Cᵒᵖ ⥤ Type v // presieve.is_sheaf J P}
 
@@ -895,23 +897,23 @@ def SheafOfTypes (J : grothendieck_topology C) : Type (max u (v+1)) :=
 @[simps, derive [full, faithful]]
 def SheafOfTypes_to_presheaf : SheafOfTypes J ⥤ (Cᵒᵖ ⥤ Type v) :=
 full_subcategory_inclusion (presieve.is_sheaf J)
+
 /--
 The category of sheaves on the bottom (trivial) grothendieck topology is equivalent to the category
 of presheaves.
 -/
 @[simps]
 def SheafOfTypes_bot_equiv : SheafOfTypes (⊥ : grothendieck_topology C) ≌ (Cᵒᵖ ⥤ Type v) :=
-{ functor := Sheaf_to_presheaf _,
+{ functor := SheafOfTypes_to_presheaf _,
   inverse :=
   { obj := λ P, ⟨P, presieve.is_sheaf_bot⟩,
-    map := λ P₁ P₂ f, (Sheaf_to_presheaf _).preimage f },
+    map := λ P₁ P₂ f, (SheafOfTypes_to_presheaf _).preimage f },
   unit_iso :=
   { hom := { app := λ _, 𝟙 _ },
     inv := { app := λ _, 𝟙 _ } },
   counit_iso := iso.refl _ }
 
-instance : inhabited (Sheaf (⊥ : grothendieck_topology C)) :=
-⟨Sheaf_bot_equiv.inverse.obj ((functor.const _).obj punit)⟩
-
+instance : inhabited (SheafOfTypes (⊥ : grothendieck_topology C)) :=
+⟨SheafOfTypes_bot_equiv.inverse.obj ((functor.const _).obj punit)⟩
 
 end category_theory

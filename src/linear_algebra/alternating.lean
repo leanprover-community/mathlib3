@@ -425,16 +425,14 @@ lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
   (f : multilinear_map R (λ _ : ι, M) N') :
   (g.comp_multilinear_map f).alternatization = g.comp_alternating_map (f.alternatization) :=
 begin
-  ext,
-  simp only [multilinear_map.alternatization_apply, coe_comp_multilinear_map, function.comp_app,
-    multilinear_map.dom_dom_congr_apply, map_sum, comp_multilinear_map_dom_dom_congr,
-    coe_comp_alternating_map],
-  congr,
-  ext1 σ,
   -- `linear_map.map_smul` and `linear_map.map_smul_of_tower` do not work here, as `R` is a
   -- `semiring` not a `ring`.
-  cases int.units_eq_one_or σ.sign with h;
-  simp [h],
+  have map_smul : ∀ (z : units ℤ) (x : N'), (z : ℤ) • g x = g ((z : ℤ) • x),
+  { intros z v,
+    cases int.units_eq_one_or z with h;
+      simp [h], },
+  ext,
+  simp [multilinear_map.alternatization_apply, map_smul],
 end
 
 end linear_map

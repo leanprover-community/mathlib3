@@ -56,7 +56,7 @@ In the case where `ℰ = Cᵒᵖ ⥤ Type u` and `A = yoneda`, this functor is i
 
 Defined as in [MM92], Chapter I, Section 5, Theorem 2.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def restricted_yoneda : ℰ ⥤ (Cᵒᵖ ⥤ Type u₁) :=
 yoneda ⋙ (whiskering_left _ _ (Type u₁)).obj (functor.op A)
 

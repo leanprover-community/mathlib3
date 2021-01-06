@@ -863,6 +863,66 @@ begin
       not_false_iff, one_ne_zero] }
 end
 
+/-- If `m : ℕ` is coprime with `n`,
+then the minimal polynomials of a primitive `n`-th root of unity `μ`
+and of `μ ^ m` are the same. -/
+lemma minimal_polynomial_eq_pow_coprime {m : ℕ} (hcop : nat.coprime m n) :
+  minimal_polynomial (is_integral h hpos) = minimal_polynomial
+  (is_integral (h.pow_of_coprime m hcop) hpos) :=
+begin
+  revert n hcop,
+  refine unique_factorization_monoid.induction_on_prime m _ _ _,
+  { intros n hn h hpos,
+    congr,
+    simpa [(nat.coprime_zero_left n).mp hn] using h },
+  { intros u hunit n hcop h hpos,
+    congr,
+    simp [nat.is_unit_iff.mp hunit] },
+  { intros a p ha hprime hind n hcop h hpos,
+    rw hind (nat.coprime.coprime_mul_left hcop) h hpos, clear hind,
+    replace hprime := nat.prime_iff_prime.2 hprime,
+    have hdiv := (nat.prime.coprime_iff_not_dvd hprime).1 (nat.coprime.coprime_mul_right hcop),
+    letI : fact p.prime := hprime,
+    rw [minimal_polynomial_eq_pow
+      (h.pow_of_coprime a (nat.coprime.coprime_mul_left hcop)) hpos hdiv],
+    congr' 1,
+    ring_exp }
+end
+
+/-- If `m : ℕ` is coprime with `n`,
+then the minimal polynomial of a primitive `n`-th root of unity `μ`
+has `μ ^ m` as root. -/
+lemma pow_is_root_minimal_polynomial {m : ℕ} (hcop : nat.coprime m n) :
+  is_root (map (int.cast_ring_hom K) (minimal_polynomial (is_integral h hpos))) (μ ^ m) :=
+by simpa [minimal_polynomial_eq_pow_coprime h hpos hcop, eval_map, aeval_def (μ ^ m) _]
+  using minimal_polynomial.aeval (is_integral (h.pow_of_coprime m hcop) hpos)
+
+/-- `primitive_roots n K` is a subset of the roots of the minimal polynomial of a primitive
+`n`-th root of unity `μ`. -/
+lemma is_roots_of_minimal_polynomial : primitive_roots n K ⊆ (map (int.cast_ring_hom K)
+  (minimal_polynomial (is_integral h hpos))).roots.to_finset :=
+begin
+  intros x hx,
+  obtain ⟨m, hle, hcop, rfl⟩ := (is_primitive_root_iff h hpos).1 ((mem_primitive_roots hpos).1 hx),
+  simpa [multiset.mem_to_finset,
+    mem_roots (map_monic_ne_zero $ minimal_polynomial.monic $ is_integral h hpos)]
+    using pow_is_root_minimal_polynomial h hpos hcop
+end
+
+/-- The degree of the minimal polynomial of `μ` is at least `totient n`. -/
+lemma totient_le_degree_minimal_polynomial : nat.totient n ≤ (minimal_polynomial
+  (is_integral h hpos)).nat_degree :=
+
+let P : polynomial ℤ := minimal_polynomial (is_integral h hpos),-- minimal polynomial of `μ`
+    P_K : polynomial K := map (int.cast_ring_hom K) P -- minimal polynomial of `μ` sent to `K[X]`
+in calc
+n.totient = (primitive_roots n K).card : (h.card_primitive_roots hpos).symm
+... ≤ P_K.roots.to_finset.card : finset.card_le_of_subset (is_roots_of_minimal_polynomial h hpos)
+... ≤ P_K.roots.card : multiset.to_finset_card_le _
+... ≤ P_K.nat_degree : (card_roots' $ map_monic_ne_zero
+        (minimal_polynomial.monic $ is_integral h hpos))
+... ≤ P.nat_degree : nat_degree_map_le _
+
 end minimal_polynomial
 
 end is_primitive_root

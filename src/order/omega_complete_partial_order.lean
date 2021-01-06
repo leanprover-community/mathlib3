@@ -96,7 +96,7 @@ def prod.snd : (α × β) →ₘ β :=
   monotone' := λ ⟨x,x'⟩ ⟨y,y'⟩ ⟨h,h'⟩, h' }
 
 /-- The `prod` constructor, as a monotone function. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def prod.zip (f : α →ₘ β) (g : α →ₘ γ) : α →ₘ (β × γ) :=
 (prod.map f g).comp prod.diag
 
@@ -144,7 +144,7 @@ instance : has_le (chain α) :=
 { le := λ x y, ∀ i, ∃ j, x i ≤ y j  }
 
 /-- `map` function for `chain` -/
-@[simps {rhs_md := semireducible}] def map : chain β :=
+@[simps] def map : chain β :=
 f.comp c
 
 variables {f}
@@ -169,7 +169,7 @@ lemma map_le_map {g : α →ₘ β} (h : f ≤ g) : c.map f ≤ c.map g :=
 λ i, by simp [mem_map_iff]; intros; existsi i; apply h
 
 /-- `chain.zip` pairs up the elements of two chains that have the same index -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def zip (c₀ : chain α) (c₁ : chain β) : chain (α × β) :=
 preorder_hom.prod.zip c₀ c₁
 
@@ -421,7 +421,7 @@ variables [omega_complete_partial_order γ]
 protected def ωSup (c : chain (α × β)) : α × β :=
 (ωSup (c.map preorder_hom.prod.fst), ωSup (c.map preorder_hom.prod.snd))
 
-@[simps ωSup_fst ωSup_snd {rhs_md := semireducible}]
+@[simps ωSup_fst ωSup_snd]
 instance : omega_complete_partial_order (α × β) :=
 { ωSup := prod.ωSup,
   ωSup_le := λ c ⟨x,x'⟩ h, ⟨ωSup_le _ _ $ λ i, (h i).1, ωSup_le _ _ $ λ i, (h i).2⟩,
@@ -558,7 +558,7 @@ protected def ωSup (c : chain (α →ₘ β)) : α →ₘ β :=
 { to_fun := λ a, ωSup (c.map (monotone_apply a)),
   monotone' := λ x y h, ωSup_le_ωSup_of_le (chain.map_le_map _ $ λ a, a.monotone h) }
 
-@[simps ωSup_to_fun {rhs_md := semireducible, simp_rhs := tt}]
+@[simps ωSup_to_fun]
 instance omega_complete_partial_order : omega_complete_partial_order (α →ₘ β) :=
 omega_complete_partial_order.lift preorder_hom.to_fun_hom preorder_hom.ωSup
   (λ x y h, h) (λ c, rfl)
@@ -671,13 +671,13 @@ def of_mono (f : α →ₘ β) (h : ∀ c : chain α, f (ωSup c) = ωSup (c.map
   cont := h }
 
 /-- The identity as a continuous function. -/
-@[simps { rhs_md := reducible }]
+@[simps]
 def id : α →𝒄 α :=
 of_mono preorder_hom.id
   (by intro; rw [chain.map_id]; refl)
 
 /-- The composition of continuous functions. -/
-@[simps { rhs_md := reducible }]
+@[simps]
 def comp (f : β →𝒄 γ) (g : α →𝒄 β) : α →𝒄 γ :=
 of_mono (preorder_hom.comp (↑f) (↑g))
   (by intro; rw [preorder_hom.comp,← preorder_hom.comp,← chain.map_comp,← f.continuous,← g.continuous]; refl)
@@ -761,7 +761,7 @@ by rw [forall_swap,forall_forall_merge]
 
 /-- The `ωSup` operator for continuous functions, which takes the pointwise countable supremum
 of the functions in the `ω`-chain. -/
-@[simps { rhs_md := reducible }]
+@[simps]
 protected def ωSup (c : chain (α →𝒄 β)) : α →𝒄 β :=
 continuous_hom.of_mono (ωSup $ c.map to_mono)
 begin
@@ -772,7 +772,7 @@ begin
     forall_forall_merge, forall_forall_merge', function.comp_app],
 end
 
-@[simps ωSup {rhs_md := reducible}]
+@[simps ωSup]
 instance : omega_complete_partial_order (α →𝒄 β) :=
 omega_complete_partial_order.lift continuous_hom.to_mono continuous_hom.ωSup
   (λ x y h, h) (λ c, rfl)

@@ -1,13 +1,12 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import measure_theory.measure_space
-import measure_theory.borel_space
+import measure_theory.pi
 
 /-!
-# Lebesgue measure on the real line
+# Lebesgue measure on the real line and on `ℝⁿ`
 -/
 
 noncomputable theory
@@ -234,6 +233,8 @@ open measure_theory
 
 namespace real
 
+variables {ι : Type*} [fintype ι]
+
 open_locale topological_space
 
 theorem volume_val (s) : volume s = lebesgue_outer s := rfl
@@ -258,6 +259,43 @@ instance locally_finite_volume : locally_finite_measure (volume : measure ℝ) :
 ⟨λ x, ⟨Ioo (x - 1) (x + 1),
   mem_nhds_sets is_open_Ioo ⟨sub_lt_self _ zero_lt_one, lt_add_of_pos_right _ zero_lt_one⟩,
   by simp only [real.volume_Ioo, ennreal.of_real_lt_top]⟩⟩
+
+instance sigma_finite_volume : sigma_finite (volume : measure ℝ) := by apply_instance
+
+lemma volume_Icc_pi {a b : ι → ℝ} : volume (Icc a b) = ∏ i, ennreal.of_real (b i - a i) :=
+begin
+  rw [← pi_univ_Icc, volume_pi_pi],
+  { simp only [real.volume_Icc] },
+  { exact λ i, is_measurable_Icc }
+end
+
+@[simp] lemma volume_Icc_pi_to_real {a b : ι → ℝ} (h : a ≤ b) :
+  (volume (Icc a b)).to_real = ∏ i, (b i - a i) :=
+by simp only [volume_Icc_pi, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+
+lemma volume_pi_Ioo {a b : ι → ℝ} :
+  volume (pi univ (λ i, Ioo (a i) (b i))) = ∏ i, ennreal.of_real (b i - a i) :=
+(measure_congr measure.univ_pi_Ioo_ae_eq_Icc).trans volume_Icc_pi
+
+@[simp] lemma volume_pi_Ioo_to_real {a b : ι → ℝ} (h : a ≤ b) :
+  (volume (pi univ (λ i, Ioo (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
+by simp only [volume_pi_Ioo, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+
+lemma volume_pi_Ioc {a b : ι → ℝ} :
+  volume (pi univ (λ i, Ioc (a i) (b i))) = ∏ i, ennreal.of_real (b i - a i) :=
+(measure_congr measure.univ_pi_Ioc_ae_eq_Icc).trans volume_Icc_pi
+
+@[simp] lemma volume_pi_Ioc_to_real {a b : ι → ℝ} (h : a ≤ b) :
+  (volume (pi univ (λ i, Ioc (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
+by simp only [volume_pi_Ioc, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+
+lemma volume_pi_Ico {a b : ι → ℝ} :
+  volume (pi univ (λ i, Ico (a i) (b i))) = ∏ i, ennreal.of_real (b i - a i) :=
+(measure_congr measure.univ_pi_Ico_ae_eq_Icc).trans volume_Icc_pi
+
+@[simp] lemma volume_pi_Ico_to_real {a b : ι → ℝ} (h : a ≤ b) :
+  (volume (pi univ (λ i, Ico (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
+by simp only [volume_pi_Ico, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
 
 lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,

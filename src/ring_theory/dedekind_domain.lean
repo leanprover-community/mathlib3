@@ -269,7 +269,7 @@ lemma mem_adjoin_self (x : f.codomain) :
 algebra.subset_adjoin (set.mem_singleton x)
 
 lemma int_closed_of_is_dedekind_domain_inv :
-  is_dedekind_domain_inv A -> integral_closure A (fraction_ring A) = ⊥ :=
+  is_dedekind_domain_inv A → integral_closure A (fraction_ring A) = ⊥ :=
 begin
   rintros ⟨h1, h2⟩,
   rw eq_bot_iff,
@@ -295,7 +295,7 @@ begin
        ← eq_one],
 end
 
-lemma dim_le_one_of_is_dedekind_domain_inv : is_dedekind_domain_inv A -> dimension_le_one A :=
+lemma dim_le_one_of_is_dedekind_domain_inv : is_dedekind_domain_inv A → dimension_le_one A :=
 begin
   rintros h,
   rcases h with ⟨h1, h2⟩,
@@ -394,7 +394,7 @@ end
 /-- Showing one side of the equivalence between the definitions
 `is_dedekind_domain_inv` and `is_dedekind_domain` of Dedekind domains. -/
 theorem is_dedekind_domain_of_is_dedekind_domain_inv :
-  is_dedekind_domain_inv A -> is_dedekind_domain A :=
+  is_dedekind_domain_inv A → is_dedekind_domain A :=
 λ h,
   ⟨ h.1,
   is_noetherian_of_is_dedekind_domain_inv h,

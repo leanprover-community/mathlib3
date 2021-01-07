@@ -1,7 +1,7 @@
 import ring_theory.dedekind_domain
 import ring_theory.ideal.operations
-import ring_theory.class_number.fractional_ideal
-import ring_theory.class_number.unique_factorization_monoid
+import algebraic_number_theory.class_number.fractional_ideal
+import algebraic_number_theory.class_number.unique_factorization_monoid
 
 open ring
 open ring.fractional_ideal

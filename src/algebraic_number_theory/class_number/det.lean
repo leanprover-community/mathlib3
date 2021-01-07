@@ -1,4 +1,4 @@
-import ring_theory.class_number.absolute_value
+import algebraic_number_theory.class_number.absolute_value
 import linear_algebra.determinant
 
 open_locale big_operators

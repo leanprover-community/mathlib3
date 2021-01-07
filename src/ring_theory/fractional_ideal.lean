@@ -105,6 +105,10 @@ instance : has_coe (fractional_ideal f) (submodule R f.codomain) := ⟨λ I, I.v
 
 instance : has_mem P (fractional_ideal f) := ⟨λ x I, x ∈ (I : submodule R f.codomain)⟩
 
+lemma mem_coe {x : f.codomain} {I : fractional_ideal f} :
+  x ∈ (I : submodule R f.codomain) ↔ x ∈ I :=
+iff.rfl
+
 /-- Fractional ideals are equal if their submodules are equal.
 
   Combined with `submodule.ext` this gives that fractional ideals are equal if
@@ -308,6 +312,12 @@ instance lattice : lattice (fractional_ideal f) :=
 instance : semilattice_sup_bot (fractional_ideal f) :=
 { ..fractional_ideal.order_bot, ..fractional_ideal.lattice }
 
+@[simp]
+lemma coe_ideal_le {I : ideal R} {J : fractional_ideal f} :
+  ↑I ≤ J ↔ ∀ x ∈ I, f.to_map x ∈ J :=
+⟨λ h x hx, h ⟨x, hx, rfl⟩,
+ λ h x hx, let ⟨x', hx', eq_x⟩ := fractional_ideal.mem_coe_ideal.mp hx in eq_x ▸ h x' hx'⟩
+
 end lattice
 
 section semiring
@@ -386,6 +396,32 @@ submodule.mul_le
   (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y))
   (hs : ∀ (r : R) x, C x → C (r • x)) : C r :=
 submodule.mul_induction_on hr hm h0 ha hs
+
+@[simp, norm_cast]
+lemma coe_ideal_mul (I J : ideal R) :
+  (↑(I * J) : fractional_ideal f) = I * J :=
+begin
+  apply le_antisymm,
+  { rw fractional_ideal.coe_ideal_le,
+    intros x hx,
+    refine submodule.mul_induction_on hx (λ x hx y hy, _) _ (λ x y hx hy, _) (λ r x hx, _),
+    { rw f.to_map.map_mul,
+      apply fractional_ideal.mul_mem_mul; rw fractional_ideal.mem_coe_ideal,
+      { exact ⟨x, hx, rfl⟩ },
+      { exact ⟨y, hy, rfl⟩ } },
+    { rw f.to_map.map_zero,
+      exact submodule.zero_mem _ },
+    { rw f.to_map.map_add,
+      exact submodule.add_mem _ hx hy },
+    { rw [smul_eq_mul, f.to_map.map_mul],
+      exact submodule.smul_mem _ _ hx } },
+  { rw fractional_ideal.mul_le,
+    intros x hx y hy,
+    obtain ⟨x', hx', rfl⟩ := fractional_ideal.mem_coe_ideal.mp hx,
+    obtain ⟨y', hy', rfl⟩ := fractional_ideal.mem_coe_ideal.mp hy,
+    rw fractional_ideal.mem_coe_ideal,
+    exact ⟨x' * y', ideal.mul_mem_mul hx' hy', f.to_map.map_mul _ _⟩ },
+end
 
 instance comm_semiring : comm_semiring (fractional_ideal f) :=
 { add_assoc := λ I J K, sup_assoc,

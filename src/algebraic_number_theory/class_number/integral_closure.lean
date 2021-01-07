@@ -1,17 +1,19 @@
 import algebra.big_operators.finsupp
 import linear_algebra.free_module
 import ring_theory.dedekind_domain
-import ring_theory.class_number.absolute_value
-import ring_theory.class_number.basis
-import ring_theory.class_number.localization
-import ring_theory.class_number.norm
+import algebraic_number_theory.class_number.euclidean_absolute_value
+import algebraic_number_theory.class_number.basis
+import algebraic_number_theory.class_number.localization
+import algebraic_number_theory.class_number.norm
+
+open_locale big_operators
+
+section integral_domain
 
 variables {R K L : Type*} [integral_domain R] [field K] [field L]
 variables (f : fraction_map R K)
 variables [algebra f.codomain L] [finite_dimensional f.codomain L]
 variables [algebra R L] [is_scalar_tower R f.codomain L]
-
-open_locale big_operators
 
 /-- If `b` is an `R`-basis for the integral closure of `L`,
 then mapping `b` to `L` gives a `K`-basis for `L`. -/
@@ -156,9 +158,20 @@ begin
   simp
 end
 
+end is_principal_ideal_ring
+
+end integral_domain
+
+section euclidean_domain
+
+variables {R K L : Type*} [euclidean_domain R] [field K] [field L]
+variables (f : fraction_map R K)
+variables [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
+variables [finite_dimensional f.codomain L] [is_separable f.codomain L]
+
 /-- If `L` is a finite dimensional extension of the field of fractions of a Euclidean domain `R`,
 there is a function mapping each `x : L` to the "closest" value that is integral over `R`. -/
 noncomputable def integral_part (x : L) : integral_closure R L :=
 ∑ i, f.integral_part ((is_basis_coe f (integral_closure.is_basis L f)).repr x i) • i
 
-end is_principal_ideal_ring
+end euclidean_domain

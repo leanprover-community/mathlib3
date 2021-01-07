@@ -2,8 +2,7 @@ import linear_algebra.free_module
 import linear_algebra.matrix
 import ring_theory.localization
 import ring_theory.trace
-
-import ring_theory.class_number.is_scalar_tower
+import algebraic_number_theory.class_number.is_scalar_tower
 
 open_locale big_operators
 

@@ -1,4 +1,4 @@
-import ring_theory.class_number.absolute_value
+import algebraic_number_theory.class_number.absolute_value
 
 local infix ` ≺ `:50 := euclidean_domain.r
 

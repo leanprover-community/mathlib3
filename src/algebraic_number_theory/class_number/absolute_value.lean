@@ -1,5 +1,5 @@
 import ring_theory.localization
-import ring_theory.class_number.non_zero_divisors
+import algebraic_number_theory.class_number.non_zero_divisors
 
 open_locale big_operators
 

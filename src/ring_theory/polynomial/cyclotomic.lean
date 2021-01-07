@@ -504,7 +504,7 @@ end
 lemma is_root_cyclotomic {n : ℕ} {K : Type*} [field K] (hpos : 0 < n) {μ : K}
   (h : is_primitive_root μ n) : is_root (cyclotomic n K) μ :=
 begin
-  rw [map_cyclotomic, ← mem_roots (cyclotomic_ne_zero n K),
+  rw [← mem_roots (cyclotomic_ne_zero n K),
   cyclotomic_eq_prod_X_sub_primitive_roots h, roots_prod_X_sub_C, ← finset.mem_def],
   rwa [← mem_primitive_roots hpos] at h,
 end
@@ -670,7 +670,7 @@ lemma minimal_polynomial_primitive_root_dvd_cyclotomic {n : ℕ} {K : Type*} [fi
   minimal_polynomial (is_integral h hpos) ∣ cyclotomic n ℤ :=
 begin
   apply minimal_polynomial.integer_dvd (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
-  simpa [aeval_def, eval₂_eq_eval_map, is_root.def] using root_of_cyclotomic hpos h
+  simpa [aeval_def, eval₂_eq_eval_map, is_root.def] using is_root_cyclotomic hpos h
 end
 
 /-- `cyclotomic n ℤ` is the minimal polynomial of a primitive `n`-th root of unity `μ`. -/
@@ -678,7 +678,7 @@ lemma minimal_polynomial_primitive_root_eq_cyclotomic {n : ℕ} {K : Type*} [fie
   (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
   cyclotomic n ℤ = minimal_polynomial (is_integral h hpos) :=
 begin
-  refine eq_of_monic_of_dvd_of_degree_le (minimal_polynomial.monic (is_integral h hpos))
+  refine eq_of_monic_of_dvd_of_nat_degree_le (minimal_polynomial.monic (is_integral h hpos))
     (cyclotomic.monic n ℤ) (minimal_polynomial_primitive_root_dvd_cyclotomic h hpos) _,
   simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minimal_polynomial h hpos
 end

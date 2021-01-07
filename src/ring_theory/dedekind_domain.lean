@@ -106,7 +106,7 @@ open ring
 
 /--
 A Dedekind domain is an integral domain that is Noetherian, integrally closed, and
-has Krull dimension exactly one (`not_is_field` and `dimension_le_one`).
+has Krull dimension at most one.
 
 The integral closure condition is independent of the choice of field of fractions:
 use `is_dedekind_domain_iff` to prove `is_dedekind_domain` for a given `fraction_map`.
@@ -116,22 +116,26 @@ This is the default implementation, but there are equivalent definitions,
 TODO: Prove that these are actually equivalent definitions.
 -/
 class is_dedekind_domain : Prop :=
-(not_is_field : ¬ is_field A)
 (is_noetherian_ring : is_noetherian_ring A)
 (dimension_le_one : dimension_le_one A)
 (is_integrally_closed : integral_closure A (fraction_ring A) = ⊥)
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_dedekind_domain.to_is_noetherian_ring {R : Type*} [integral_domain R]
+  [h : is_dedekind_domain R] : is_noetherian_ring R :=
+h.1
 
 /-- An integral domain is a Dedekind domain iff and only if it is not a field, is Noetherian, has dimension ≤ 1,
 and is integrally closed in a given fraction field.
 In particular, this definition does not depend on the choice of this fraction field. -/
 lemma is_dedekind_domain_iff (f : fraction_map A K) :
   is_dedekind_domain A ↔
-    (¬ is_field A) ∧ is_noetherian_ring A ∧ dimension_le_one A ∧
+    is_noetherian_ring A ∧ dimension_le_one A ∧
     integral_closure A f.codomain = ⊥ :=
-⟨λ ⟨hf, hr, hd, hi⟩, ⟨hf, hr, hd,
+⟨λ ⟨hr, hd, hi⟩, ⟨hr, hd,
   by rw [←integral_closure_map_alg_equiv (fraction_ring.alg_equiv_of_quotient f),
          hi, algebra.map_bot]⟩,
- λ ⟨hf, hr, hd, hi⟩, ⟨hf, hr, hd,
+ λ ⟨hr, hd, hi⟩, ⟨hr, hd,
   by rw [←integral_closure_map_alg_equiv (fraction_ring.alg_equiv_of_quotient f).symm,
          hi, algebra.map_bot]⟩⟩
 
@@ -143,7 +147,6 @@ This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
 -/
 structure is_dedekind_domain_dvr : Prop :=
-(not_is_field : ¬ is_field A)
 (is_noetherian_ring : is_noetherian_ring A)
 (is_dvr_at_nonzero_prime : ∀ P ≠ (⊥ : ideal A), P.is_prime →
   discrete_valuation_ring (localization.at_prime P))
@@ -268,20 +271,17 @@ A Dedekind domain is an integral domain that is not a field such that every frac
 This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
 -/
-
-
-structure is_dedekind_domain_inv : Prop :=
-(not_is_field : ¬ is_field A)
-(mul_inv_cancel : ∀ I ≠ (⊥ : fractional_ideal (fraction_ring.of A)), I * (1 / I) = 1)
+def is_dedekind_domain_inv : Prop :=
+∀ I ≠ (⊥ : fractional_ideal (fraction_ring.of A)), I * (1 / I) = 1
 
 open ring.fractional_ideal
 
 lemma is_dedekind_domain_inv_iff (f : fraction_map A K) :
   is_dedekind_domain_inv A ↔
-    (¬ is_field A) ∧ (∀ I ≠ (⊥ : fractional_ideal f), I * I⁻¹ = 1) :=
+    (∀ I ≠ (⊥ : fractional_ideal f), I * I⁻¹ = 1) :=
 begin
   set h : (fraction_ring.of A).codomain ≃ₐ[A] f.codomain := fraction_ring.alg_equiv_of_quotient f,
-  split; rintros ⟨hf, hi⟩; use hf; intros I hI,
+  split; intro hi; intros I hI,
   { have := hi (map ↑h.symm I) (map_ne_zero _ hI),
     convert congr_arg (map (h : (fraction_ring.of A).codomain →ₐ[A] f.codomain)) this;
       simp only [map_symm_map, map_one, fractional_ideal.map_mul, fractional_ideal.map_div,
@@ -396,7 +396,7 @@ end
 
 lemma is_noetherian_of_is_dedekind_domain_inv : is_dedekind_domain_inv A → is_noetherian_ring A :=
 begin
-  rintros ⟨h1, h2⟩,
+  intro h2,
   refine ⟨λ s, _⟩,
   by_cases h : s = ⊥,
   { rw h, apply submodule.fg_bot },
@@ -420,7 +420,7 @@ algebra.subset_adjoin (set.mem_singleton x)
 lemma int_closed_of_is_dedekind_domain_inv :
   is_dedekind_domain_inv A → integral_closure A (fraction_ring A) = ⊥ :=
 begin
-  rintros ⟨h1, h2⟩,
+  intro h2,
   rw eq_bot_iff,
   rintros x hx,
   set M : fractional_ideal (fraction_ring.of A) := ⟨_, is_fractional_adjoin_integral _ hx⟩ with h1M,
@@ -444,12 +444,21 @@ begin
        ← eq_one],
 end
 
+lemma is_field.is_principal_ideal_ring (h : is_field A) : is_principal_ideal_ring A :=
+@euclidean_domain.to_principal_ideal_domain A (@field.to_euclidean_domain A (h.to_field A))
+
 lemma dim_le_one_of_is_dedekind_domain_inv : is_dedekind_domain_inv A → dimension_le_one A :=
 begin
   have coe_ne_bot : ∀ {I : ideal A}, I ≠ ⊥ → (I : fractional_ideal (fraction_ring.of A)) ≠ 0 :=
   λ I, (coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr,
-  rintros h,
-  rcases h with ⟨h1, h2⟩,
+
+  rintros h2,
+
+  -- If A is a field, we're done.
+  by_cases h1 : is_field A,
+  { haveI : is_principal_ideal_ring A := is_field.is_principal_ideal_ring h1,
+    apply dimension_le_one.principal_ideal_ring },
+
   rintros p hpz hp,
   set p' : fractional_ideal (fraction_ring.of A) := p with p'_eq,
   have hpinv := h2 p' (coe_ne_bot hpz),
@@ -499,8 +508,7 @@ end
 theorem is_dedekind_domain_of_is_dedekind_domain_inv :
   is_dedekind_domain_inv A → is_dedekind_domain A :=
 λ h,
-  ⟨ h.1,
-  is_noetherian_of_is_dedekind_domain_inv h,
+  ⟨is_noetherian_of_is_dedekind_domain_inv h,
   dim_le_one_of_is_dedekind_domain_inv h,
   int_closed_of_is_dedekind_domain_inv h⟩
 
@@ -516,12 +524,10 @@ subalgebra.ext_iff.trans
       (@algebra.mem_bot R f.codomain _ _ _ _).symm⟩
 
 instance principal_ideal_ring.to_dedekind_domain [is_principal_ideal_ring A]
-  [field K] (f : fraction_map A K) (not_field : ¬ is_field A) :
-  is_dedekind_domain A :=
-(is_dedekind_domain_iff A K f).mpr
-⟨not_field, principal_ideal_ring.is_noetherian_ring, dimension_le_one.principal_ideal_ring _,
+  [field K] : is_dedekind_domain A :=
+⟨principal_ideal_ring.is_noetherian_ring, dimension_le_one.principal_ideal_ring _,
   @unique_factorization_monoid.integrally_closed A _ _
-    (principal_ideal_ring.to_unique_factorization_monoid) _ _⟩
+    (principal_ideal_ring.to_unique_factorization_monoid) _ (fraction_ring.of A)⟩
 
 namespace dedekind_domain
 
@@ -606,7 +612,7 @@ begin
         use [z, hz] } } },
   let IA : fractional_ideal f := ⟨A, h_fracA⟩,
   have h_noethA : is_noetherian R A,
-  { haveI : is_noetherian_ring R := hR.2,
+  { haveI : is_noetherian_ring R := hR.1,
     apply fractional_ideal.is_noetherian IA },
   obtain ⟨px, h_px , h_int_x⟩ : is_integral R x,
   { apply @is_integral_of_submodule_noetherian R K _ _ h_RalgK A h_noethA x h_xA },
@@ -621,10 +627,11 @@ lemma inv_of_maximal_not_top (hR : is_dedekind_domain R) (hM : ideal.is_maximal 
 begin sorry,
 end
 
-lemma maximal_ideal_inv_of_dedekind (hR : is_dedekind_domain R) (hM : ideal.is_maximal M) :
+lemma maximal_ideal_inv_of_dedekind (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
+  (hM : ideal.is_maximal M) :
   is_unit (M : fractional_ideal f) :=
 begin
-  have hnz_M : M ≠ 0, apply (lt_iff_le_and_ne.mp (ideal.bot_lt_of_maximal M hR.1) ).2.symm,
+  have hnz_M : M ≠ 0, apply (lt_iff_le_and_ne.mp (ideal.bot_lt_of_maximal M hNF) ).2.symm,
   have hnz_Mf : (↑M : fractional_ideal f) ≠ (⊥ : fractional_ideal f),
   { exact (fractional_ideal.coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors R))).mpr hnz_M },
   have h_MfinR : (↑M : fractional_ideal f) ≤ (1 : fractional_ideal f),
@@ -669,7 +676,7 @@ begin
          apply if_inv_then_int _ hR x hnz_M h_MMinvI hx,
          have h_intxR : x ∈ (integral_closure R f.codomain), apply h_integralfx,
          have h_xint : x ∈ ((⊥  : subalgebra R f.codomain) : submodule R f.codomain),
-         { rw ← ((is_dedekind_domain_iff _ _ f).mp hR).right.right.right, exact h_intxR },
+         { rw ← ((is_dedekind_domain_iff _ _ f).mp hR).right.right, exact h_intxR },
         rw [algebra.to_submodule_bot, ← (fractional_ideal.coe_span_singleton 1)] at h_xint,
         rw [← fractional_ideal.span_singleton_one,
           (fractional_ideal.val_eq_coe (fractional_ideal.span_singleton 1))],
@@ -703,7 +710,6 @@ end
 lemma mul_one_div (h : is_dedekind_domain R) {I J : fractional_ideal f} : I * (1 / J) = I / J :=
 sorry
 
--- TODO: define `ordered_semifield` and put such an instance on the fractional ideals.
 noncomputable instance [h : is_dedekind_domain R] : comm_group_with_zero (fractional_ideal f) :=
 { inv := λ I, 1 / I,
   div := λ I J, I / J,
@@ -712,14 +718,6 @@ noncomputable instance [h : is_dedekind_domain R] : comm_group_with_zero (fracti
   mul_inv_cancel := λ I hI, by rw [inv_eq, fractional_ideal_invertible_of_dedekind _ h I],
   .. fractional_ideal.nontrivial,
   .. fractional_ideal.comm_semiring }
-
-/-
-instance subalgebra.algebra_left {R A B : Type*} [comm_semiring R] [comm_semiring A]
-  [semiring B] [algebra R A] [algebra A B] (S : subalgebra A B) : algebra R S := sorry
-
-instance intermediate_field.algebra_left {R A B : Type*} [comm_semiring R] [field A]
-  [field B] [algebra R A] [algebra A B] (S : intermediate_field A B) : algebra R S := sorry
-  -/
 
 open_locale big_operators
 
@@ -832,9 +830,6 @@ is_noetherian_of_is_scalar_tower _ (is_noetherian_of_le
   (is_noetherian_span_of_finite _ (set.finite_range _))
   (integral_closure_le_span hb (λ x, hb_int x) int_cl))
 
-instance [h : is_dedekind_domain R] : is_noetherian_ring R :=
-h.2
-
 variables (f)
 
 /- If L is a finite extension of R's fraction field, the integral closure of R in L is a Dedekind domain. -/
@@ -843,8 +838,7 @@ def closure_in_field_extension [algebra f.codomain L] [algebra R L] [is_scalar_t
   (h : is_dedekind_domain R) :
   is_dedekind_domain (integral_closure R L) :=
 (is_dedekind_domain_iff _ _ (integral_closure.fraction_map_of_finite_extension L f)).mpr
-⟨sorry,
- integral_closure.is_noetherian_ring ((is_dedekind_domain_iff _ _ f).mp h).2.2.2,
+⟨integral_closure.is_noetherian_ring ((is_dedekind_domain_iff _ _ f).mp h).2.2,
  h.dimension_le_one.integral_closure _ _,
  integral_closure_idem⟩
 

@@ -77,8 +77,8 @@ lemma integral_closure.exists_is_basis
   [is_separable (localization_map.codomain f) L] [is_principal_ideal_ring R] :
   ∃ (n : ℕ) (b : fin n → (integral_closure R L)), is_basis R b :=
 begin
-  obtain ⟨s, b, hb, hb_int⟩ := dedekind_domain.exists_is_basis_integral L f,
-  have le := dedekind_domain.integral_closure_le_span hb hb_int
+  obtain ⟨s, b, hb, hb_int⟩ := is_dedekind_domain.exists_is_basis_integral L f,
+  have le := is_dedekind_domain.integral_closure_le_span hb hb_int
     unique_factorization_monoid.integrally_closed,
   refine submodule.exists_is_basis_of_le_span _ le,
   refine linear_independent.of_scalar_tower _

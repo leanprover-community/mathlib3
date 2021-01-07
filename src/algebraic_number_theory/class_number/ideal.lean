@@ -62,7 +62,7 @@ lemma ideal.dvd_iff_le {I J : ideal R} :
    use H,
    refine coe_to_fractional_ideal_injective (le_refl (non_zero_divisors R))
      (show (J : fractional_ideal f) = _, from _),
-   rw [fractional_ideal.coe_to_fractional_ideal_mul, hH, ← mul_assoc, mul_inv_cancel hI', one_mul]
+   rw [fractional_ideal.coe_ideal_mul, hH, ← mul_assoc, mul_inv_cancel hI', one_mul]
  end⟩
 
 
@@ -73,7 +73,7 @@ coe_to_fractional_ideal_injective
   (show (I : fractional_ideal (fraction_ring.of R)) = J,
    from mul_left_cancel'
     ((coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors R))).mpr hH)
-    (by simpa only [← fractional_ideal.coe_to_fractional_ideal_mul] using congr_arg coe hIJ))
+    (by simpa only [← fractional_ideal.coe_ideal_mul] using congr_arg coe hIJ))
 
 instance : comm_cancel_monoid_with_zero (ideal R) :=
 { mul_left_cancel_of_ne_zero := λ H I J hH hIJ, ideal.mul_left_cancel' hH hIJ,
@@ -99,7 +99,7 @@ by { ext, exact ideal.dvd_not_unit_iff_lt }
 instance : wf_dvd_monoid (ideal R) :=
 { well_founded_dvd_not_unit :=
   have well_founded ((>) : ideal R → ideal R → Prop) :=
-  is_noetherian_iff_well_founded.mp (is_dedekind_domain.is_noetherian_ring),
+  is_noetherian_iff_well_founded.mp (is_dedekind_domain.to_is_noetherian_ring),
   by rwa ideal.dvd_not_unit_eq_gt }
 
 instance ideal.unique_factorization_monoid :

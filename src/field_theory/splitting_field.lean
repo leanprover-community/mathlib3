@@ -781,14 +781,14 @@ def alg_hom.restrict_is_splitting_field_aux [hp : is_splitting_field F E p] :
 
 /-- Restrict algebra homomorphism to an is_splitting field -/
 def alg_hom.restrict_is_splitting_field [hp : is_splitting_field F E p] : E →ₐ[F] E :=
-((is_scalar_tower.to_alg_hom F E K).alg_equiv_range_field.symm.to_alg_hom.comp
+((alg_hom.alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F E K)).symm.to_alg_hom.comp
   (ϕ.restrict_is_splitting_field_aux p E)).comp
-    (is_scalar_tower.to_alg_hom F E K).alg_equiv_range_field.to_alg_hom
+    (alg_hom.alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F E K)).to_alg_hom
 
 lemma alg_hom.restrict_is_splitting_field_commutes [hp : is_splitting_field F E p] (x : E) :
 algebra_map E K (ϕ.restrict_is_splitting_field p E x) = ϕ (algebra_map E K x) :=
-subtype.ext_iff.mp (alg_equiv.apply_symm_apply
-  (is_scalar_tower.to_alg_hom F E K).alg_equiv_range_field (ϕ.restrict_is_splitting_field_aux p E
+subtype.ext_iff.mp (alg_equiv.apply_symm_apply (alg_hom.alg_equiv.of_injective_field
+  (is_scalar_tower.to_alg_hom F E K)) (ϕ.restrict_is_splitting_field_aux p E
     ⟨is_scalar_tower.to_alg_hom F E K x, ⟨x, ⟨subsemiring.mem_top x, rfl⟩⟩⟩))
 
 lemma alg_hom.restrict_is_splitting_field_comp [hp : is_splitting_field F E p] :

@@ -116,14 +116,11 @@ This is the default implementation, but there are equivalent definitions,
 TODO: Prove that these are actually equivalent definitions.
 -/
 class is_dedekind_domain : Prop :=
-(is_noetherian_ring : is_noetherian_ring A)
+(to_is_noetherian_ring : is_noetherian_ring A)
 (dimension_le_one : dimension_le_one A)
 (is_integrally_closed : integral_closure A (fraction_ring A) = ⊥)
 
-@[priority 100] -- see Note [lower instance priority]
-instance is_dedekind_domain.to_is_noetherian_ring {R : Type*} [integral_domain R]
-  [h : is_dedekind_domain R] : is_noetherian_ring R :=
-h.1
+attribute [instance, priority 100] is_dedekind_domain.to_is_noetherian_ring -- see Note [lower instance priority]
 
 /-- An integral domain is a Dedekind domain iff and only if it is not a field, is Noetherian, has dimension ≤ 1,
 and is integrally closed in a given fraction field.
@@ -147,7 +144,7 @@ This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
 -/
 structure is_dedekind_domain_dvr : Prop :=
-(is_noetherian_ring : is_noetherian_ring A)
+(to_is_noetherian_ring : is_noetherian_ring A)
 (is_dvr_at_nonzero_prime : ∀ P ≠ (⊥ : ideal A), P.is_prime →
   discrete_valuation_ring (localization.at_prime P))
 
@@ -523,13 +520,13 @@ subalgebra.ext_iff.trans
       ⟨λ hx, h x hx, λ ⟨y, hy⟩, hy ▸ is_integral_algebra_map⟩
       (@algebra.mem_bot R f.codomain _ _ _ _).symm⟩
 
-instance principal_ideal_ring.to_dedekind_domain [is_principal_ideal_ring A]
-  [field K] : is_dedekind_domain A :=
+@[priority 100] -- see Note [lower instance priority]
+instance principal_ideal_ring.to_dedekind_domain [is_principal_ideal_ring A] : is_dedekind_domain A :=
 ⟨principal_ideal_ring.is_noetherian_ring, dimension_le_one.principal_ideal_ring _,
   @unique_factorization_monoid.integrally_closed A _ _
     (principal_ideal_ring.to_unique_factorization_monoid) _ (fraction_ring.of A)⟩
 
-namespace dedekind_domain
+namespace is_dedekind_domain
 
 variables {R S : Type*} [integral_domain R] [integral_domain S] [algebra R S]
 variables {L : Type*} [field L] {f : fraction_map R K}
@@ -785,6 +782,7 @@ begin
       exact f.injective } }
 end
 
+/-- If `x` in a field `L` is not zero, then multiplying in `L` by `x` is a linear equivalence. -/
 def lsmul_equiv [algebra R L] {x : R} (hx : algebra_map R L x ≠ 0) : L ≃ₗ[R] L :=
 { inv_fun := λ y, (algebra_map R L x)⁻¹ * y,
   left_inv := λ y, by simp only [linear_map.to_fun_eq_coe, algebra.lmul_apply, ← mul_assoc, inv_mul_cancel hx, one_mul],
@@ -833,7 +831,7 @@ is_noetherian_of_is_scalar_tower _ (is_noetherian_of_le
 variables (f)
 
 /- If L is a finite extension of R's fraction field, the integral closure of R in L is a Dedekind domain. -/
-def closure_in_field_extension [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
+protected lemma integral_closure [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
   [finite_dimensional f.codomain L] [is_separable f.codomain L]
   (h : is_dedekind_domain R) :
   is_dedekind_domain (integral_closure R L) :=
@@ -846,8 +844,8 @@ instance [algebra (fraction_ring.of R).codomain L] [algebra R L] [is_scalar_towe
   [finite_dimensional (fraction_ring.of R).codomain L] [is_separable (fraction_ring.of R).codomain L]
   [h : is_dedekind_domain R] :
   is_dedekind_domain (integral_closure R L) :=
-closure_in_field_extension (fraction_ring.of R) h
+is_dedekind_domain.integral_closure (fraction_ring.of R) h
 
-end dedekind_domain
+end is_dedekind_domain
 
 end equivalence

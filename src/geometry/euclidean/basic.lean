@@ -229,7 +229,7 @@ end
 /-- Two vectors have inner product 0 if and only if the angle between
 them is π/2. -/
 lemma inner_eq_zero_iff_angle_eq_pi_div_two (x y : V) : ⟪x, y⟫ = 0 ↔ angle x y = π / 2 :=
-iff.symm $ by  simp [angle, or_imp_distrib] { contextual := tt }
+iff.symm $ by simp [angle, or_imp_distrib] { contextual := tt }
 
 end inner_product_geometry
 

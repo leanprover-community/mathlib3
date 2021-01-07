@@ -463,17 +463,19 @@ end add_monoid_hom
 section module_division_ring
 /-! Some tests for the vanishing of elements in modules over division rings. -/
 
-variables (R) [division_ring R] [add_comm_group M] [module R M] [semimodule ℕ R] [semimodule ℕ M]
+variables (R) [division_ring R] [add_comm_group M] [module R M]
 
-lemma smul_nat_eq_zero [char_zero R] {v : M} {n : ℕ} :
+lemma smul_nat_eq_zero [semimodule ℕ M] [char_zero R] {v : M} {n : ℕ} :
   n • v = 0 ↔ n = 0 ∨ v = 0 :=
 by { rw [←nsmul_eq_smul, nsmul_eq_smul_cast R, smul_eq_zero], simp }
 
-lemma eq_zero_of_smul_two_eq_zero [char_zero R] {v : M} (hv : 2 • v = 0) : v = 0 :=
+lemma eq_zero_of_smul_two_eq_zero [semimodule ℕ M] [char_zero R] {v : M} (hv : 2 • v = 0) : v = 0 :=
 ((smul_nat_eq_zero R).mp hv).resolve_left (by norm_num)
 
 lemma eq_zero_of_eq_neg [char_zero R] {v : M} (hv : v = - v) : v = 0 :=
 begin
+  -- any semimodule will do
+  haveI : semimodule ℕ M := add_comm_monoid.nat_semimodule,
   refine eq_zero_of_smul_two_eq_zero R _,
   rw ←nsmul_eq_smul,
   convert add_eq_zero_iff_eq_neg.mpr hv,
@@ -481,7 +483,7 @@ begin
 end
 
 lemma ne_neg_of_ne_zero [char_zero R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
-λ h, hv (eq_zero_of_eq_neg R h)
+λ h, have semimodule ℕ R := add_comm_monoid.nat_semimodule, by exactI hv (eq_zero_of_eq_neg R h)
 
 end module_division_ring
 

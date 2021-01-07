@@ -314,7 +314,7 @@ namespace measure
 
 /-- The binary product of measures. They are defined for arbitrary measures, but we basically
   prove all properties under the assumption that at least one of them is σ-finite. -/
-protected def prod (μ : measure α) (ν : measure β) : measure (α × β) :=
+@[irreducible] protected def prod (μ : measure α) (ν : measure β) : measure (α × β) :=
 bind μ $ λ x : α, map (prod.mk x) ν
 
 instance prod.measure_space {α β} [measure_space α] [measure_space β] : measure_space (α × β) :=

@@ -209,7 +209,7 @@ end
 
 /-- `measure.pi μ` is the finite product of the measures `{μ i | i : ι}`.
   It is defined to be measure corresponding to `measure_theory.outer_measure.pi`. -/
-protected def pi : measure (Π i, α i) :=
+@[irreducible] protected def pi : measure (Π i, α i) :=
 to_measure (outer_measure.pi (λ i, (μ i).to_outer_measure)) (pi_caratheodory μ)
 
 local attribute [instance] encodable.fintype.encodable

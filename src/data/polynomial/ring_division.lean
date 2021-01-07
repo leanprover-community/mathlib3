@@ -538,7 +538,7 @@ begin
   exact hrew.symm
 end
 
-lemma eq_of_monic_of_dvd_of_degree_le (hp : p.monic) (hq : q.monic) (hdiv : p ∣ q)
+lemma eq_of_monic_of_dvd_of_nat_degree_le (hp : p.monic) (hq : q.monic) (hdiv : p ∣ q)
   (hdeg : q.nat_degree ≤ p.nat_degree) : q = p :=
 begin
   obtain ⟨r, hr⟩ := hdiv,

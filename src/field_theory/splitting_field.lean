@@ -748,8 +748,8 @@ variables {F K : Type*} [field F] [field K] [algebra F K] (ϕ ψ : K →ₐ[F] K
   (p : polynomial F) (E : Type*) [field E] [algebra F E] [algebra E K]  [is_scalar_tower F E K]
 
 lemma is_scalar_tower_to_alg_hom_range_eq_adjoin [hp : is_splitting_field F E p] :
-(is_scalar_tower.to_alg_hom F E K).range =
-  algebra.adjoin F (↑(p.map (algebra_map F K)).roots.to_finset : set K) :=
+  (is_scalar_tower.to_alg_hom F E K).range =
+    algebra.adjoin F (↑(p.map (algebra_map F K)).roots.to_finset : set K) :=
 begin
   rw [is_scalar_tower.algebra_map_eq F E K, ←map_map, roots_map, ←finset.image_to_finset,
     finset.coe_image, algebra.adjoin_algebra_map, hp.adjoin_roots, algebra.map_top],
@@ -758,7 +758,7 @@ end
 
 /-- Restrict algebra homomorphism to range -/
 def alg_hom.restrict_is_splitting_field_aux [hp : is_splitting_field F E p] :
-(is_scalar_tower.to_alg_hom F E K).range →ₐ[F] (is_scalar_tower.to_alg_hom F E K).range :=
+  (is_scalar_tower.to_alg_hom F E K).range →ₐ[F] (is_scalar_tower.to_alg_hom F E K).range :=
 { to_fun := λ x, ⟨ϕ x, begin
     suffices : (is_scalar_tower.to_alg_hom F E K).range.map ϕ ≤ _,
     { exact this ⟨x, subtype.mem x, rfl⟩ },
@@ -786,14 +786,14 @@ def alg_hom.restrict_is_splitting_field [hp : is_splitting_field F E p] : E →�
     (alg_hom.alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F E K)).to_alg_hom
 
 lemma alg_hom.restrict_is_splitting_field_commutes [hp : is_splitting_field F E p] (x : E) :
-algebra_map E K (ϕ.restrict_is_splitting_field p E x) = ϕ (algebra_map E K x) :=
+  algebra_map E K (ϕ.restrict_is_splitting_field p E x) = ϕ (algebra_map E K x) :=
 subtype.ext_iff.mp (alg_equiv.apply_symm_apply (alg_hom.alg_equiv.of_injective_field
   (is_scalar_tower.to_alg_hom F E K)) (ϕ.restrict_is_splitting_field_aux p E
     ⟨is_scalar_tower.to_alg_hom F E K x, ⟨x, ⟨subsemiring.mem_top x, rfl⟩⟩⟩))
 
 lemma alg_hom.restrict_is_splitting_field_comp [hp : is_splitting_field F E p] :
-(ϕ.restrict_is_splitting_field p E).comp (ψ.restrict_is_splitting_field p E) =
-  (ϕ.comp ψ).restrict_is_splitting_field p E :=
+  (ϕ.restrict_is_splitting_field p E).comp (ψ.restrict_is_splitting_field p E) =
+    (ϕ.comp ψ).restrict_is_splitting_field p E :=
 alg_hom.ext (λ _, (algebra_map E K).injective (by
 { simp only [alg_hom.comp_apply, alg_hom.restrict_is_splitting_field_commutes] }))
 
@@ -809,17 +809,17 @@ alg_equiv.of_alg_hom (χ.to_alg_hom.restrict_is_splitting_field p E)
     alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom, alg_hom.id_apply, χ.symm_apply_apply] })))
 
 lemma alg_equiv.restrict_is_splitting_field_commutes [is_splitting_field F E p] (x : E) :
-algebra_map E K (χ.restrict_is_splitting_field p E x) = χ (algebra_map E K x) :=
+  algebra_map E K (χ.restrict_is_splitting_field p E x) = χ (algebra_map E K x) :=
 χ.to_alg_hom.restrict_is_splitting_field_commutes p E x
 
 lemma alg_equiv.restrict_is_splitting_field_comp [hp : is_splitting_field F E p] :
-(χ.restrict_is_splitting_field p E).trans (ω.restrict_is_splitting_field p E) =
-  (χ.trans ω).restrict_is_splitting_field p E :=
+  (χ.restrict_is_splitting_field p E).trans (ω.restrict_is_splitting_field p E) =
+    (χ.trans ω).restrict_is_splitting_field p E :=
 alg_equiv.ext (λ _, (algebra_map E K).injective (by
 { simp only [alg_equiv.trans_apply, alg_equiv.restrict_is_splitting_field_commutes] }))
 
 def alg_equiv.restict_is_splitting_field_hom [hp : is_splitting_field F E p] :
-(K ≃ₐ[F] K) →* (E ≃ₐ[F] E) :=
+  (K ≃ₐ[F] K) →* (E ≃ₐ[F] E) :=
 monoid_hom.mk' (λ χ, χ.restrict_is_splitting_field p E)
   (λ ω χ, (χ.restrict_is_splitting_field_comp ω p E).symm)
 

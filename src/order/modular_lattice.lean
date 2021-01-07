@@ -105,7 +105,7 @@ variables [bounded_lattice α] [is_modular_lattice α]
 section is_complemented
 variables [is_complemented α] {a : α}
 
-theorem is_complemented_Iic : is_complemented (set.Iic a) :=
+instance is_complemented_Iic : is_complemented (set.Iic a) :=
 ⟨λ ⟨x, hx⟩, ⟨⟨(classical.some (exists_is_compl x)) ⊓ a, set.mem_Iic.2 inf_le_right⟩, begin
     split,
     { change x ⊓ (classical.some _ ⊓ a) ≤ ⊥, -- improve lattice subtype API
@@ -116,7 +116,7 @@ theorem is_complemented_Iic : is_complemented (set.Iic a) :=
           top_le_iff.1 (classical.some_spec (exists_is_compl x)).2, top_inf_eq] }
   end⟩⟩
 
-theorem is_complemented_Ici : is_complemented (set.Ici a) :=
+instance is_complemented_Ici : is_complemented (set.Ici a) :=
 ⟨λ ⟨x, hx⟩, ⟨⟨(classical.some (exists_is_compl x)) ⊔ a, set.mem_Ici.2 le_sup_right⟩, begin
     split,
     { change x ⊓ (classical.some _ ⊔ a) ≤ a, -- improve lattice subtype API

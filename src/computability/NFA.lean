@@ -29,11 +29,11 @@ structure NFA (α : Type u) (σ : Type v) :=
 (start : set σ)
 (accept : set σ)
 
-variables {α : Type u} {σ σ' σ₁ σ₂ σ₃ : Type v} (M : NFA α σ)
+variables {α : Type u} {σ σ' : Type v} (M : NFA α σ)
 
 namespace NFA
 
-instance : inhabited (NFA α σ') := ⟨ NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
+instance : inhabited (NFA α σ) := ⟨ NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
 /-- `M.step_set S a` is the union of `M.step s a` for all `s ∈ S`. -/
 def step_set : set σ → α → set σ :=

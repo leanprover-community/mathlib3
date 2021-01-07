@@ -299,11 +299,11 @@ nat.le_induction (pow_one _) (λ m hm hm', by rw [pow_succ, hm', top_mul_top])
 lemma mul_eq_top : a * b = ∞ ↔ (a ≠ 0 ∧ b = ∞) ∨ (a = ∞ ∧ b ≠ 0) :=
 with_top.mul_eq_top_iff
 
-lemma mul_ne_top : a ≠ ∞ → b ≠ ∞ → a * b ≠ ∞ :=
-by simp [(≠), mul_eq_top] {contextual := tt}
-
 lemma mul_lt_top  : a < ∞ → b < ∞ → a * b < ∞ :=
-by simpa only [ennreal.lt_top_iff_ne_top] using mul_ne_top
+with_top.mul_lt_top
+
+lemma mul_ne_top : a ≠ ∞ → b ≠ ∞ → a * b ≠ ∞ :=
+by simpa only [lt_top_iff_ne_top] using mul_lt_top
 
 lemma ne_top_of_mul_ne_top_left (h : a * b ≠ ∞) (hb : b ≠ 0) : a ≠ ∞ :=
 by { simp [mul_eq_top, hb, not_or_distrib] at h ⊢, exact h.2 }
@@ -747,6 +747,10 @@ end sub
 section sum
 
 open finset
+
+/-- A product of finite numbers is still finite -/
+lemma prod_lt_top {s : finset α} {f : α → ennreal} (h : ∀a∈s, f a < ∞) : (∏ a in s, f a) < ∞ :=
+with_top.prod_lt_top h
 
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top {s : finset α} {f : α → ennreal} :

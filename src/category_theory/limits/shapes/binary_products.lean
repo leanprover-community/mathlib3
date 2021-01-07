@@ -90,14 +90,14 @@ def map_pair : F ⟶ G := { app := λ j, walking_pair.cases_on j f g }
 @[simp] lemma map_pair_right : (map_pair f g).app right = g := rfl
 
 /-- The natural isomorphism between two functors out of the walking pair, specified by its components. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def map_pair_iso (f : F.obj left ≅ G.obj left) (g : F.obj right ≅ G.obj right) : F ≅ G :=
 nat_iso.of_components (λ j, walking_pair.cases_on j f g) (by tidy)
 
 end
 
 /-- Every functor out of the walking pair is naturally isomorphic (actually, equal) to a `pair` -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def diagram_iso_pair (F : discrete walking_pair ⥤ C) :
   F ≅ pair (F.obj walking_pair.left) (F.obj walking_pair.right) :=
 map_pair_iso (iso.refl _) (iso.refl _)
@@ -391,6 +391,10 @@ def prod.map_iso {W X Y Z : C} [has_binary_product W X] [has_binary_product Y Z]
 { hom := prod.map f.hom g.hom,
   inv := prod.map f.inv g.inv }
 
+instance is_iso_prod {W X Y Z : C} [has_binary_product W X] [has_binary_product Y Z]
+  (f : W ⟶ Y) (g : X ⟶ Z) [is_iso f] [is_iso g] : is_iso (prod.map f g) :=
+is_iso.of_iso (prod.map_iso (as_iso f) (as_iso g))
+
 @[simp, reassoc]
 lemma prod.diag_map {X Y : C} (f : X ⟶ Y) [has_binary_product X X] [has_binary_product Y Y] :
   diag X ≫ prod.map f f = f ≫ diag Y :=
@@ -490,6 +494,10 @@ def coprod.map_iso {W X Y Z : C} [has_binary_coproduct W X] [has_binary_coproduc
   (f : W ≅ Y) (g : X ≅ Z) : W ⨿ X ≅ Y ⨿ Z :=
 { hom := coprod.map f.hom g.hom,
   inv := coprod.map f.inv g.inv }
+
+instance is_iso_coprod {W X Y Z : C} [has_binary_coproduct W X] [has_binary_coproduct Y Z]
+  (f : W ⟶ Y) (g : X ⟶ Z) [is_iso f] [is_iso g] : is_iso (coprod.map f g) :=
+is_iso.of_iso (coprod.map_iso (as_iso f) (as_iso g))
 
 -- The simp linter says simp can prove the reassoc version of this lemma.
 @[reassoc, simp]

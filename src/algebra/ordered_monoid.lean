@@ -54,23 +54,14 @@ class linear_ordered_comm_monoid_with_zero (α : Type*)
   extends linear_order α, comm_monoid_with_zero α, ordered_comm_monoid α :=
 (zero_le_one : (0:α) ≤ 1)
 (lt_of_mul_lt_mul_left := λ x y z, by {
-  -- type-class inference uses a meaningless `linear_order` without this!
-  set l : linear_order α := {
-    le := le,
-    lt := lt,
-    le_refl := ‹_›,
-    le_trans := ‹_›,
-    lt_iff_le_not_le := ‹_›,
-    le_antisymm := ‹_›,
-    le_total := ‹_›,
-    decidable_le := ‹_›,
-    decidable_eq := ‹_›,
-    decidable_lt := ‹_› },
   apply imp_of_not_imp_not,
   intro h,
   apply not_lt_of_le,
   apply mul_le_mul_left,
-  exact @le_of_not_lt _ l _ _ h })
+  -- type-class inference uses `a : linear_order α` which it can't unfold, unless we provide this!
+  -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide it.
+  let l : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
+  exactI le_of_not_lt h })
 
 section ordered_comm_monoid
 variables [ordered_comm_monoid α] {a b c d : α}

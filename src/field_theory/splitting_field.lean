@@ -818,6 +818,7 @@ lemma alg_equiv.restrict_is_splitting_field_comp [hp : is_splitting_field F E p]
 alg_equiv.ext (λ _, (algebra_map E K).injective (by
 { simp only [alg_equiv.trans_apply, alg_equiv.restrict_is_splitting_field_commutes] }))
 
+/-- Restriction to an is_splitting_field as a group homomorphism -/
 def alg_equiv.restict_is_splitting_field_hom [hp : is_splitting_field F E p] :
   (K ≃ₐ[F] K) →* (E ≃ₐ[F] E) :=
 monoid_hom.mk' (λ χ, χ.restrict_is_splitting_field p E)

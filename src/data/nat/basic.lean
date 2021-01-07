@@ -168,9 +168,6 @@ iff.intro
 
 /-! ### Equalities and inequalities involving zero and one -/
 
-theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
-⟨ne_of_gt, nat.pos_of_ne_zero⟩
-
 lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠ 1
 | 0     := dec_trivial
 | 1     := dec_trivial
@@ -1271,7 +1268,7 @@ by simp [find_eq_iff]
 
 @[simp] lemma find_pos {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) :
   0 < nat.find h ↔ ¬ p 0 :=
-by rw [nat.pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
+by rw [pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
 
 end find
 

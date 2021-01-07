@@ -762,7 +762,7 @@ begin
       cases NF_repr_split' e₂ with _ r₂,
       by_cases m = 0; simp [power_def, power, e₁, h, r₁, e₂, r₂, -nat.cast_succ],
       rw [power_add, power_mul, power_omega _ (nat_lt_omega _)],
-      simpa using nat_cast_lt.2 (nat.succ_lt_succ $ nat.pos_iff_ne_zero.2 h) } },
+      simpa using nat_cast_lt.2 (nat.succ_lt_succ $ pos_iff_ne_zero.2 h) } },
   { haveI := N₁.fst, haveI := N₁.snd,
     cases N₁.of_dvd_omega (split_dvd e₁) with a00 ad,
     have al := split_add_lt e₁,

@@ -1997,7 +1997,7 @@ begin
   { use 0, simp only [hx, zero_pow_eq_zero, hn] },
   { use exp (log x / n),
     rw [← exp_nat_mul, mul_div_cancel', exp_log hx],
-    exact_mod_cast (nat.pos_iff_ne_zero.mp hn) }
+    exact_mod_cast (pos_iff_ne_zero.mp hn) }
 end
 
 lemma exists_eq_mul_self (x : ℂ) : ∃ z, x = z * z :=

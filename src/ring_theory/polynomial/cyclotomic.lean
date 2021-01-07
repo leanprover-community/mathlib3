@@ -501,8 +501,8 @@ begin
 end
 
 /-- Any `n`-th primitive root of unity is a root of `cyclotomic n ℤ`.-/
-lemma root_of_cyclotomic {n : ℕ} {K : Type*} [field K] (hpos : 0 < n) {μ : K}
-  (h : is_primitive_root μ n) : is_root (map (int.cast_ring_hom K) (cyclotomic n ℤ)) μ :=
+lemma is_root_cyclotomic {n : ℕ} {K : Type*} [field K] (hpos : 0 < n) {μ : K}
+  (h : is_primitive_root μ n) : is_root (cyclotomic n K) μ :=
 begin
   rw [map_cyclotomic, ← mem_roots (cyclotomic_ne_zero n K),
   cyclotomic_eq_prod_X_sub_primitive_roots h, roots_prod_X_sub_C, ← finset.mem_def],

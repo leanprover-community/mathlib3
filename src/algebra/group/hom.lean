@@ -709,7 +709,7 @@ def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G 
   map_mul' := map_mul,
   map_one' := mul_self_iff_eq_one.1 $ by rw [←map_mul, mul_one] }
 
-/-- Makes an additive group homomomorphism from a proof that the map preserves multiplication. -/
+/-- Makes an additive group homomomorphism from a proof that the map preserves addition. -/
 add_decl_doc add_monoid_hom.mk'
 
 @[simp, to_additive]

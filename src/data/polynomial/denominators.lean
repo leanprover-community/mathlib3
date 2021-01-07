@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.polynomial.erase_lead
---import data.polynomial.induction
-
 /-!
 # Denominators of evaluation of polynomials at ratios
 

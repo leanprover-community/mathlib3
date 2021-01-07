@@ -378,7 +378,7 @@ hf.borel_measurable.mono opens_measurable_space.borel_le
   (le_of_eq $ borel_space.measurable_eq)
 
 section homeomorph
-#where
+
 /-- A homeomorphism between two Borel spaces is a measurable equivalence.-/
 def homeomorph.to_measurable_equiv (h : γ ≃ₜ γ₂) : γ ≃ᵐ γ₂ :=
 { measurable_to_fun := h.continuous_to_fun.measurable,

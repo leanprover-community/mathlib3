@@ -955,6 +955,15 @@ lemma span_lt_top_of_card_lt_findim {s : set V} [fintype s]
   (card_lt : s.to_finset.card < findim K V) : span K s < ⊤ :=
 lt_top_of_findim_lt_findim (lt_of_le_of_lt (findim_span_le_card _) card_lt)
 
+lemma findim_span_singleton {v : V} (hv : v ≠ 0) : findim K (K ∙ v) = 1 :=
+begin
+  apply le_antisymm,
+  { exact findim_span_le_card ({v} : set V) },
+  { rw [nat.succ_le_iff, findim_pos_iff],
+    use [⟨v, mem_span_singleton_self v⟩, 0],
+    simp [hv] }
+end
+
 end span
 
 section is_basis

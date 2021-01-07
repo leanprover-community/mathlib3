@@ -424,15 +424,6 @@ variables {N'₂ : Type*} [add_comm_group N'₂] [semimodule R N'₂] [fintype �
 lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
   (f : multilinear_map R (λ _ : ι, M) N') :
   (g.comp_multilinear_map f).alternatization = g.comp_alternating_map (f.alternatization) :=
-begin
-  -- `linear_map.map_smul` and `linear_map.map_smul_of_tower` do not work here, as `R` is a
-  -- `semiring` not a `ring`.
-  have map_smul : ∀ (z : units ℤ) (x : N'), (z : ℤ) • g x = g ((z : ℤ) • x),
-  { intros z v,
-    cases int.units_eq_one_or z with h;
-      simp [h], },
-  ext,
-  simp [multilinear_map.alternatization_apply, map_smul],
-end
+by { ext, simp [multilinear_map.alternatization_apply] }
 
 end linear_map

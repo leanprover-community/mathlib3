@@ -767,7 +767,8 @@ local_of_nonunits_ideal
     rw sub_eq_add_neg at hr,
     have := I.neg_mem_iff.1 ((ideal.add_mem_iff_right _ _).1 hr),
     { exact not_or (mt hp.mem_or_mem (not_or sx.2 sy.2)) sz.2 (hp.mem_or_mem this)},
-    { exact I.mul_mem_right (I.add_mem (I.mul_mem_right (this hx)) (I.mul_mem_right (this hy)))}
+    { exact I.mul_mem_right _ (I.add_mem (I.mul_mem_right _ (this hx))
+                                         (I.mul_mem_right _ (this hy)))}
   end)
 
 end localization_map
@@ -827,8 +828,8 @@ le_antisymm (ideal.map_le_iff_le_comap.2 (le_refl _)) $ λ x hJ,
 begin
   obtain ⟨r, s, hx⟩ := f.mk'_surjective x,
   rw ←hx at ⊢ hJ,
-  exact ideal.mul_mem_right _ (ideal.mem_map_of_mem (show f.to_map r ∈ J, from
-    f.mk'_spec r s ▸ @ideal.mul_mem_right _ _ J (f.mk' r s) (f.to_map s) hJ)),
+  exact ideal.mul_mem_right _ _ (ideal.mem_map_of_mem (show f.to_map r ∈ J, from
+    f.mk'_spec r s ▸ J.mul_mem_right (f.to_map s) hJ)),
 end
 
 theorem comap_map_of_is_prime_disjoint (I : ideal R) (hI : I.is_prime)

@@ -59,9 +59,10 @@ class linear_ordered_comm_monoid_with_zero (α : Type*)
   apply not_lt_of_le,
   apply mul_le_mul_left,
   -- type-class inference uses `a : linear_order α` which it can't unfold, unless we provide this!
-  -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide it.
-  let l : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
-  exactI le_of_not_lt h })
+  -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide that field.
+  letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
+  exact le_of_not_lt h })
+
 
 section ordered_comm_monoid
 variables [ordered_comm_monoid α] {a b c d : α}

@@ -309,6 +309,9 @@ theorem finite.preimage {s : set β} {f : α → β}
   (I : set.inj_on f (f⁻¹' s)) (h : finite s) : finite (f ⁻¹' s) :=
 finite_of_finite_image I (h.subset (image_preimage_subset f s))
 
+theorem finite.preimage_embedding {s : set β} (f : α ↪ β) (h : s.finite) : (f ⁻¹' s).finite :=
+finite.preimage (λ _ _ _ _ h', f.injective h') h
+
 instance fintype_Union [decidable_eq α] {ι : Type*} [fintype ι]
   (f : ι → set α) [∀ i, fintype (f i)] : fintype (⋃ i, f i) :=
 fintype.of_finset (finset.univ.bind (λ i, (f i).to_finset)) $ by simp

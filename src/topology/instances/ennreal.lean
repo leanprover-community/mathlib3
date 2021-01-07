@@ -228,23 +228,14 @@ protected lemma tendsto_mul (ha : a ≠ 0 ∨ b ≠ ⊤) (hb : b ≠ 0 ∨ a ≠
   tendsto (λp:ennreal×ennreal, p.1 * p.2) (𝓝 (a, b)) (𝓝 (a * b)) :=
 have ht : ∀b:ennreal, b ≠ 0 → tendsto (λp:ennreal×ennreal, p.1 * p.2) (𝓝 ((⊤:ennreal), b)) (𝓝 ⊤),
 begin
-  refine assume b hb, tendsto_nhds_top $ assume n, _,
-  rcases exists_between (zero_lt_iff_ne_zero.2 hb) with ⟨ε', hε', hεb'⟩,
-  rcases ennreal.lt_iff_exists_coe.1 hεb' with ⟨ε, rfl, h⟩,
-  rcases exists_nat_gt (↑n / ε) with ⟨m, hm⟩,
-  have hε : ε > 0, from coe_lt_coe.1 hε',
-  filter_upwards [prod_mem_nhds_sets (lt_mem_nhds $ @coe_lt_top m) (lt_mem_nhds $ h)],
+  refine assume b hb, tendsto_nhds_top_iff_nnreal.2 $ assume n, _,
+  rcases lt_iff_exists_nnreal_btwn.1 (zero_lt_iff_ne_zero.2 hb) with ⟨ε, hε, hεb⟩,
+  replace hε : 0 < ε, from coe_pos.1 hε,
+  filter_upwards [prod_mem_nhds_sets (lt_mem_nhds $ @coe_lt_top (n / ε)) (lt_mem_nhds hεb)],
   rintros ⟨a₁, a₂⟩ ⟨h₁, h₂⟩,
   dsimp at h₁ h₂ ⊢,
-  calc (n:ennreal) = ↑(((n:ℝ≥0) / ε) * ε) :
-    begin
-      norm_cast,
-      simp [nnreal.div_def, mul_assoc, nnreal.inv_mul_cancel (ne_of_gt hε)]
-    end
-    ... < (↑m * ε : ℝ≥0) : coe_lt_coe.2 $ mul_lt_mul hm (le_refl _) hε (nat.cast_nonneg _)
-    ... ≤ a₁ * a₂ : by rw [coe_mul]; exact canonically_ordered_semiring.mul_le_mul
-      (le_of_lt h₁)
-      (le_of_lt h₂)
+  rw [← div_mul_cancel n hε.ne', coe_mul],
+  exact mul_lt_mul h₁ h₂
 end,
 begin
   cases a, {simp [none_eq_top] at hb, simp [none_eq_top, ht b hb, top_mul, hb] },

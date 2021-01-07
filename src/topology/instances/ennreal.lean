@@ -443,7 +443,7 @@ by simp_rw [← le_zero_iff_eq, supr_le_iff]
 end topological_space
 
 section tsum
-'
+
 variables {f g : α → ennreal}
 
 @[norm_cast] protected lemma has_sum_coe {f : α → ℝ≥0} {r : ℝ≥0} :

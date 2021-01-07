@@ -194,9 +194,6 @@ instance : has_scalar R (⨂[R] i, s i) := pi_tensor_product.has_scalar'
 lemma smul_tprod_coeff' (r : R') (z : R) (f : Π i, s i) :
   r • (tprod_coeff R z f) = tprod_coeff R (r • z) f := rfl
 
-protected theorem smul_zero (r : R') : (r • 0 : ⨂[R] i, s i) = 0 :=
-add_monoid_hom.map_zero _
-
 protected theorem smul_add (r : R') (x y : ⨂[R] i, s i) :
   r • (x + y) = r • x + r • y :=
 add_monoid_hom.map_add _ _ _
@@ -242,7 +239,7 @@ instance semimodule' : semimodule R' (⨂[R] i, s i) :=
       { intros x y ihx ihy,
         simp [pi_tensor_product.smul_add, ihx, ihy, add_add_add_comm] }
     end,
-  smul_zero := λ r, pi_tensor_product.smul_zero r,
+  smul_zero := λ r, add_monoid_hom.map_zero _,
   zero_smul := λ x,
     begin
       refine pi_tensor_product.induction_on' x _ _,

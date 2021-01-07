@@ -717,7 +717,7 @@ lemma comap_infi {ι : Sort*} (f : G →* N) (s : ι → subgroup N) :
 
 @[to_additive]
 lemma map_eq_bot_iff {G' : Type*} [group G'] {f : G →* G'} (hf : function.injective f)
-  (H : subgroup G) : H.map f = ⊥ ↔ H = ⊥:=
+  (H : subgroup G) : H.map f = ⊥ ↔ H = ⊥ :=
 begin
   split,
   { rw [eq_bot_iff_forall, eq_bot_iff_forall],

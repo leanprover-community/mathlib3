@@ -406,7 +406,7 @@ begin
     rw [eq_of_add_eq_of_omega_le h this hb] },
   { have hc : c < omega,
     { rw [← not_le], intro hc,
-      apply lt_irrefl omega, apply lt_of_le_of_lt (le_trans hc (le_add_left _ a)),
+      apply lt_irrefl omega, apply lt_of_le_of_lt (le_trans hc (self_le_add_left _ a)),
       rw [← h], apply add_lt_omega ha hb },
     rw [lt_omega] at *,
     rcases ha with ⟨n, rfl⟩, rcases hb with ⟨m, rfl⟩, rcases hc with ⟨k, rfl⟩,
@@ -706,8 +706,8 @@ begin
   { assume h,
     apply bit0_le_bit1.1 (le_trans (self_le_add_right (bit0 a) 1) h) },
   { assume h,
-    calc a + a + 1 ≤ a + b + 1 : add_le_add_right 1 (add_le_add_left a h)
-           ... ≤ b + b + 1 : add_le_add_right 1 (add_le_add_right b h) }
+    calc a + a + 1 ≤ a + b + 1 : add_le_add_right (add_le_add_left h a) 1
+           ... ≤ b + b + 1 : add_le_add_right (add_le_add_right h b) 1 }
 end
 
 @[simp] lemma bit1_le_bit0 {a b : cardinal} : bit1 a ≤ bit0 b ↔ (a < b ∨ (a ≤ b ∧ omega ≤ a)) :=

@@ -31,7 +31,7 @@ universe u
 variables (α : Type u) [partial_order α]
 
 /--
-A closure operator on the partial order `α` is a monotone function which is extensive (every x
+A closure operator on the partial order `α` is a monotone function which is extensive (every `x`
 is less than its closure) and idempotent.
 -/
 structure closure_operator extends α →ₘ α :=
@@ -57,7 +57,7 @@ instance : inhabited (closure_operator α) := ⟨id α⟩
 
 variables {α} (c : closure_operator α)
 
-@[ext] lemma closure_operator.ext :
+@[ext] lemma ext :
   ∀ (c₁ c₂ : closure_operator α), (c₁ : α → α) = (c₂ : α → α) → c₁ = c₂
 | ⟨⟨c₁, _⟩, _, _⟩ ⟨⟨c₂, _⟩, _, _⟩ h := by { congr, exact h }
 

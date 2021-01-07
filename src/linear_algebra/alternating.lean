@@ -5,6 +5,7 @@ Author: Eric Wieser, Zhangir Azerbayev
 -/
 
 import linear_algebra.multilinear
+import linear_algebra.linear_independent
 import group_theory.perm.sign
 
 /-!
@@ -226,6 +227,51 @@ instance : semimodule S (alternating_map R M N ι) :=
 
 end semimodule
 
+end alternating_map
+
+/-!
+### Composition with linear maps
+-/
+
+namespace linear_map
+
+variables {N₂ : Type*} [add_comm_monoid N₂] [semimodule R N₂]
+
+/-- Composing a alternating map with a linear map gives again a alternating map. -/
+def comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
+  alternating_map R M N₂ ι :=
+{ map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+  ..(g.comp_multilinear_map (f : multilinear_map R (λ _ : ι, M) N)) }
+
+@[simp] lemma coe_comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
+  ⇑(g.comp_alternating_map f) = g ∘ f := rfl
+
+lemma comp_alternating_map_apply (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) (m : ι → M) :
+  g.comp_alternating_map f m = g (f m) := rfl
+
+end linear_map
+
+namespace alternating_map
+
+variables (f f' : alternating_map R M N ι)
+variables (g g₂ : alternating_map R M N' ι)
+variables (g' : alternating_map R M' N' ι)
+variables (v : ι → M) (v' : ι → M')
+open function
+
+/-!
+### Other lemmas from `multilinear_map`
+-/
+section
+
+open_locale big_operators
+
+lemma map_update_sum {α : Type*} (t : finset α) (i : ι) (g : α → M) (m : ι → M):
+  f (update m i (∑ a in t, g a)) = ∑ a in t, f (update m i (g a)) :=
+f.to_multilinear_map.map_update_sum t i g m
+
+end
+
 /-!
 ### Theorems specific to alternating maps
 
@@ -273,6 +319,31 @@ end
 lemma map_congr_perm [fintype ι] (σ : equiv.perm ι) :
   g v = (equiv.perm.sign σ : ℤ) • g (v ∘ σ) :=
 by { rw [g.map_perm, smul_smul], simp }
+
+/-- If the arguments are linearly dependent then the result is `0`.
+
+TODO: Can the `division_ring` requirement be relaxed? -/
+lemma map_linear_dependent
+  {K : Type*} [division_ring K]
+  {M : Type*} [add_comm_group M] [semimodule K M]
+  {N : Type*} [add_comm_group N] [semimodule K N]
+  (f : alternating_map K M N ι) (v : ι → M)
+  (h : ¬linear_independent K v) :
+  f v = 0 :=
+begin
+  obtain ⟨s, g, h, i, hi, hz⟩ := linear_dependent_iff.mp h,
+  -- the part that uses `division_ring`
+  suffices : f (update v i (g i • v i)) = 0,
+  { rw [f.map_smul, function.update_eq_self, smul_eq_zero] at this,
+    exact or.resolve_left this hz, },
+  conv at h in (g _ • v _) { rw ←if_t_t (i = x) (g _ • v _), },
+  rw [finset.sum_ite, finset.filter_eq, finset.filter_ne, if_pos hi, finset.sum_singleton,
+    add_eq_zero_iff_eq_neg] at h,
+  rw [h, f.map_neg, f.map_update_sum, neg_eq_zero, finset.sum_eq_zero],
+  intros j hj,
+  obtain ⟨hij, _⟩ := finset.mem_erase.mp hj,
+  rw [f.map_smul, f.map_update_self _ hij.symm, smul_zero],
+end
 
 end alternating_map
 
@@ -344,3 +415,15 @@ begin
 end
 
 end alternating_map
+
+namespace linear_map
+
+variables {N'₂ : Type*} [add_comm_group N'₂] [semimodule R N'₂] [fintype ι]
+
+/-- Composition with a linear map before and after alternatization are equivalent. -/
+lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
+  (f : multilinear_map R (λ _ : ι, M) N') :
+  (g.comp_multilinear_map f).alternatization = g.comp_alternating_map (f.alternatization) :=
+by { ext, simp [multilinear_map.alternatization_apply] }
+
+end linear_map

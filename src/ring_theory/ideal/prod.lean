@@ -26,14 +26,12 @@ def prod : ideal (R × S) :=
   add_mem' :=
   begin
     rintros ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨ha₁, ha₂⟩ ⟨hb₁, hb₂⟩,
-    refine ⟨ideal.add_mem _ _ _, ideal.add_mem _ _ _⟩;
-    simp only [ha₁, ha₂, hb₁, hb₂]
+    exact ⟨I.add_mem ha₁ hb₁, J.add_mem ha₂ hb₂⟩
   end,
   smul_mem' :=
   begin
     rintros ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨hb₁, hb₂⟩,
-    refine ⟨ideal.mul_mem_left _ _, ideal.mul_mem_left _ _⟩;
-    simp only [hb₁, hb₂]
+    exact ⟨I.mul_mem_left _ hb₁, J.mul_mem_left _ hb₂⟩,
   end }
 
 @[simp] lemma mem_prod {r : R} {s : S} : (⟨r, s⟩ : R × S) ∈ prod I J ↔ r ∈ I ∧ s ∈ J := iff.rfl
@@ -50,9 +48,7 @@ begin
     mem_map_iff_of_surjective (ring_hom.snd R S) prod.snd_surjective],
   refine ⟨λ h, ⟨⟨_, ⟨h, rfl⟩⟩, ⟨_, ⟨h, rfl⟩⟩⟩, _⟩,
   rintro ⟨⟨⟨r, s'⟩, ⟨h₁, rfl⟩⟩, ⟨⟨r', s⟩, ⟨h₂, rfl⟩⟩⟩,
-  have hr : (r, s') * (1, 0) ∈ I := ideal.mul_mem_right _ h₁,
-  have hs : (r', s) * (0, 1) ∈ I := ideal.mul_mem_right _ h₂,
-  simpa using ideal.add_mem _ hr hs
+  simpa using I.add_mem (I.mul_mem_right (1, 0) h₁) (I.mul_mem_right (0, 1) h₂)
 end
 
 @[simp] lemma map_fst_prod (I : ideal R) (J : ideal S) : map (ring_hom.fst R S) (prod I J) = I :=
@@ -70,9 +66,9 @@ begin
 end
 
 @[simp] lemma map_prod_comm_prod :
-  map (ring_equiv.prod_comm R S : R × S →+* S × R) (prod I J) = prod J I :=
+  map ↑(ring_equiv.prod_comm : R × S ≃+* S × R) (prod I J) = prod J I :=
 begin
-  rw [ideal_prod_eq (map (ring_equiv.prod_comm R S : R × S →+* S × R) (prod I J))],
+  rw [ideal_prod_eq (map _ _)],
   simp [map_map]
 end
 

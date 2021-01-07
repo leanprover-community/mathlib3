@@ -6,6 +6,7 @@ Author: Mario Carneiro
 import data.finset.fold
 import data.multiset.lattice
 import order.order_dual
+import order.complete_lattice
 
 /-!
 # Lattice operations on finsets
@@ -121,12 +122,27 @@ calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst
          ... = s.sup f ⊔ t.sup f : by rw finset.sup_union
          ... ≥ s.sup f : le_sup_left
 
+lemma sup_closed_of_sup_closed {s : set α} (t : finset α) (htne : t.nonempty) (h_subset : ↑t ⊆ s)
+  (h : ∀⦃a b⦄, a ∈ s → b ∈ s → a ⊔ b ∈ s) : t.sup id ∈ s :=
+begin
+  classical,
+  induction t using finset.induction_on with x t h₀ h₁,
+  { exfalso, apply finset.not_nonempty_empty htne, },
+  { rw [finset.coe_insert, set.insert_subset] at h_subset,
+    cases t.eq_empty_or_nonempty with hte htne,
+    { subst hte, simp only [insert_emptyc_eq, id.def, finset.sup_singleton, h_subset], },
+    { rw [finset.sup_insert, id.def], exact h h_subset.1 (h₁ htne h_subset.2), }, },
+end
+
 end sup
 
 lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
 le_antisymm
   (finset.sup_le $ assume a ha, le_supr_of_le a $ le_supr _ ha)
   (supr_le $ assume a, supr_le $ assume ha, le_sup ha)
+
+lemma sup_eq_Sup [complete_lattice α] (s : finset α) : s.sup id = Sup s :=
+by simp [Sup_eq_supr, sup_eq_supr]
 
 /-! ### inf -/
 section inf
@@ -192,6 +208,9 @@ end inf
 
 lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = (⨅a∈s, f a) :=
 @sup_eq_supr _ (order_dual β) _ _ _
+
+lemma inf_eq_Inf [complete_lattice α] (s : finset α) : s.inf id = Inf s :=
+by simp [Inf_eq_infi, inf_eq_infi]
 
 /-! ### max and min of finite sets -/
 section max_min

@@ -78,6 +78,9 @@ variables [normed_group α] [normed_group β]
 lemma dist_eq_norm (g h : α) : dist g h = ∥g - h∥ :=
 normed_group.dist_eq _ _
 
+lemma dist_eq_norm' (g h : α) : dist g h = ∥h - g∥ :=
+by rw [dist_comm, dist_eq_norm]
+
 @[simp] lemma dist_zero_right (g : α) : dist g 0 = ∥g∥ :=
 by rw [dist_eq_norm, sub_zero]
 
@@ -186,6 +189,12 @@ begin
   rwa dist_eq_norm
 end
 
+lemma norm_sub_eq_zero_iff {u v : α} : ∥u - v∥ = 0 ↔ u = v :=
+begin
+  convert dist_eq_zero,
+  rwa dist_eq_norm
+end
+
 lemma norm_le_insert (u v : α) : ∥v∥ ≤ ∥u∥ + ∥u - v∥ :=
 calc ∥v∥ = ∥u - (u - v)∥ : by abel
 ... ≤ ∥u∥ + ∥u - v∥ : norm_sub_le u _
@@ -222,6 +231,30 @@ calc
   ∥h∥ = ∥g + (h - g)∥ : by rw [add_sub_cancel'_right]
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
+
+@[simp] lemma mem_sphere_iff_norm (v w : α) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
+by simp [dist_eq_norm]
+
+@[simp] lemma mem_sphere_zero_iff_norm {w : α} {r : ℝ} : w ∈ sphere (0:α) r ↔ ∥w∥ = r :=
+by simp [dist_eq_norm]
+
+@[simp] lemma norm_eq_of_mem_sphere {r : ℝ} (x : sphere (0:α) r) : ∥(x:α)∥ = r :=
+mem_sphere_zero_iff_norm.mp x.2
+
+lemma nonzero_of_mem_sphere {r : ℝ} (hr : 0 < r) (x : sphere (0:α) r) : (x:α) ≠ 0 :=
+by rwa [← norm_pos_iff, norm_eq_of_mem_sphere]
+
+lemma nonzero_of_mem_unit_sphere (x : sphere (0:α) 1) : (x:α) ≠ 0 :=
+by { apply nonzero_of_mem_sphere, norm_num }
+
+/-- We equip the sphere, in a normed group, with a formal operation of negation, namely the
+antipodal map. -/
+instance {r : ℝ} : has_neg (sphere (0:α) r) :=
+{ neg := λ w, ⟨-↑w, by simp⟩ }
+
+@[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0:α) r) :
+  (((-v) : sphere _ _) : α) = - (v:α) :=
+rfl
 
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
@@ -982,6 +1015,16 @@ by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
 theorem frontier_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball' x r, closed_ball_diff_ball]
+
+variables (α)
+
+lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : x ≠ - x :=
+λ h, nonzero_of_mem_sphere hr x (eq_zero_of_eq_neg α (by { conv_lhs {rw h}, simp }))
+
+lemma ne_neg_of_mem_unit_sphere [char_zero α] (x : sphere (0:E) 1) : x ≠ - x :=
+ne_neg_of_mem_sphere α  (by norm_num) x
+
+variables {α}
 
 open normed_field
 

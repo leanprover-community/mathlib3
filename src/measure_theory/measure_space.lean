@@ -709,6 +709,9 @@ lemma map_map {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurab
 ext $ λ s hs,
 by simp [hf, hg, hs, hg hs, hg.comp hf, ← preimage_comp]
 
+lemma map_mono {f : α → β} (hf : measurable f) (h : μ ≤ ν) : map f μ ≤ map f ν :=
+λ s hs, by simp [hf, hs, h _ (hf hs)]
+
 /-- Even if `s` is not measurable, we can bound `map f μ s` from below.
   See also `measurable_equiv.map_apply`. -/
 theorem le_map_apply {f : α → β} (hf : measurable f) (s : set β) : μ (f ⁻¹' s) ≤ map f μ s :=
@@ -1244,6 +1247,10 @@ lemma diff_ae_eq_self : (s \ t : set α) =ᵐ[μ] s ↔ μ (s ∩ t) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
   diff_diff, diff_eq_empty.2 (set.subset_union_right _ _)]
 
+lemma ae_eq_set {s t : set α} :
+  s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
+by simp [eventually_le_antisymm_iff, ae_le_set]
+
 lemma mem_ae_map_iff {f : α → β} (hf : measurable f) {s : set β} (hs : is_measurable s) :
   s ∈ (map f μ).ae ↔ (f ⁻¹' s) ∈ μ.ae :=
 by simp only [mem_ae_iff, map_apply hf hs.compl, preimage_compl]
@@ -1259,11 +1266,31 @@ begin
   congr' with x, simp [and_comm]
 end
 
+lemma ae_restrict_iff' {s : set α} {p : α → Prop} (hp : is_measurable s) :
+  (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
+begin
+  simp only [ae_iff, ← compl_set_of, restrict_apply_eq_zero' hp],
+  congr' with x, simp [and_comm]
+end
+
 lemma ae_smul_measure {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) (c : ennreal) : ∀ᵐ x ∂(c • μ), p x :=
 ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, mul_zero]
 
+lemma ae_smul_measure_iff {p : α → Prop} {c : ennreal} (hc : c ≠ 0) :
+  (∀ᵐ x ∂(c • μ), p x) ↔ ∀ᵐ x ∂μ, p x :=
+by simp [ae_iff, hc]
+
 lemma ae_add_measure_iff {p : α → Prop} {ν} : (∀ᵐ x ∂μ + ν, p x) ↔ (∀ᵐ x ∂μ, p x) ∧ ∀ᵐ x ∂ν, p x :=
 add_eq_zero_iff
+
+lemma ae_eq_comp {f : α → β} {g g' : β → δ} (hf : measurable f)
+  (h : g =ᵐ[measure.map f μ] g') : g ∘ f =ᵐ[μ] g' ∘ f :=
+begin
+  rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t, ht, tmeas, tzero⟩,
+  refine le_antisymm _ bot_le,
+  calc μ {x | g (f x) ≠ g' (f x)} ≤ μ (f⁻¹' t) : measure_mono (λ x hx, ht hx)
+  ... = 0 : by rwa ← measure.map_apply hf tmeas
+end
 
 @[simp] lemma ae_restrict_eq (hs : is_measurable s) : (μ.restrict s).ae = μ.ae ⊓ 𝓟 s :=
 begin
@@ -1450,6 +1477,11 @@ lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filt
   μ.finite_at_filter f :=
 ⟨univ, univ_mem_sets, measure_lt_top μ univ⟩
 
+lemma finite_at_filter.exists_mem_basis {μ : measure α} {f : filter α} (hμ : finite_at_filter μ f)
+  {p : ι → Prop} {s : ι → set α} (hf : f.has_basis p s) :
+  ∃ i (hi : p i), μ (s i) < ⊤ :=
+(hf.exists_iff (λ s t hst ht, (measure_mono hst).trans_lt ht)).1 hμ
+
 lemma finite_at_bot (μ : measure α) : μ.finite_at_filter ⊥ :=
 ⟨∅, mem_bot_sets, by simp only [measure_empty, with_top.zero_lt_top]⟩
 
@@ -1539,6 +1571,27 @@ protected lemma is_countably_spanning (h : μ.finite_spanning_sets_in C) : is_co
 ⟨_, h.set_mem, h.spanning⟩
 
 end finite_spanning_sets_in
+
+lemma sigma_finite_of_not_nonempty (μ : measure α) (hα : ¬ nonempty α) : sigma_finite μ :=
+⟨⟨λ _, ∅, λ n, is_measurable.empty, λ n, by simp, by simp [eq_empty_of_not_nonempty hα univ]⟩⟩
+
+lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
+  (hm : ∀ s ∈ S, is_measurable s) (hμ : ∀ s ∈ S, μ s < ⊤)  (hU : ⋃₀ S = univ) :
+  sigma_finite μ :=
+begin
+  by_cases hα : nonempty α,
+  { resetI,
+    have : S.nonempty,
+    { clear hc, -- otherwise `rintro rfl` fails. TODO: why?
+      rw ← ne_empty_iff_nonempty,
+      rintro rfl,
+      simpa [eq_comm] using hU },
+    rcases (countable_iff_exists_surjective_to_subtype this).1 hc with ⟨s, hs⟩,
+    refine ⟨⟨λ n, s n, λ n, hm _ (s n).coe_prop, λ n, hμ _ (s n).coe_prop, _⟩⟩,
+    rw [Union, hs.supr_comp, ← hU, sUnion_eq_Union] },
+  { exact sigma_finite_of_not_nonempty μ hα }
+end
+
 end measure
 
 /-- Every finite measure is σ-finite. -/
@@ -1587,6 +1640,12 @@ lemma measure.finite_at_nhds [topological_space α] (μ : measure α)
   μ.finite_at_filter (𝓝 x) :=
 locally_finite_measure.finite_at_nhds x
 
+lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure α)
+  [locally_finite_measure μ] (x : α) :
+  ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ⊤ :=
+by simpa only [exists_prop, and.assoc]
+  using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
+
 /-- Two finite measures are equal if they are equal on the π-system generating the σ-algebra
   (and `univ`). -/
 lemma ext_of_generate_finite (C : set (set α)) (hA : _inst_1 = generate_from C)
@@ -1599,7 +1658,6 @@ begin
   { rintros t h1t h2t, change is_measurable t at h1t, simp [measure_compl, measure_lt_top, *] },
   { rintros f h1f h2f h3f, simp [measure_Union, is_measurable.Union, *] }
 end
-
 
 namespace measure
 
@@ -1852,6 +1910,74 @@ begin
   exact ht.compl.diff_null hz
 end
 
+theorem is_null_measurable_iff_ae {s : set α} :
+  is_null_measurable μ s ↔ ∃ t, is_measurable t ∧ s =ᵐ[μ] t :=
+begin
+  simp only [ae_eq_set],
+  split,
+  { assume h,
+    rcases is_null_measurable_iff.1 h with ⟨t, ts, tmeas, ht⟩,
+    refine ⟨t, tmeas, ht, _⟩,
+    rw [diff_eq_empty.2 ts, measure_empty] },
+  { rintros ⟨t, tmeas, h₁, h₂⟩,
+    have : is_null_measurable μ (t ∪ (s \ t)) :=
+      is_null_measurable.union_null (tmeas.is_null_measurable _) h₁,
+    have A : is_null_measurable μ ((t ∪ (s \ t)) \ (t \ s)) :=
+      is_null_measurable.diff_null this h₂,
+    have : (t ∪ (s \ t)) \ (t \ s) = s,
+    { apply subset.antisymm,
+      { assume x hx,
+        simp only [mem_union_eq, not_and, mem_diff, not_not_mem] at hx,
+        cases hx.1, { exact hx.2 h }, { exact h.1 } },
+      { assume x hx,
+        simp [hx, classical.em (x ∈ t)] } },
+    rwa this at A }
+end
+
+theorem is_null_measurable_iff_sandwich {s : set α} :
+  is_null_measurable μ s ↔
+  ∃ (t u : set α), is_measurable t ∧ is_measurable u ∧ t ⊆ s ∧ s ⊆ u ∧ μ (u \ t) = 0 :=
+begin
+  split,
+  { assume h,
+    rcases is_null_measurable_iff.1 h with ⟨t, ts, tmeas, ht⟩,
+    rcases is_null_measurable_iff.1 h.compl with ⟨u', u's, u'meas, hu'⟩,
+    have A : s ⊆ u'ᶜ := subset_compl_comm.mp u's,
+    refine ⟨t, u'ᶜ, tmeas, u'meas.compl, ts, A, _⟩,
+    have : sᶜ \ u' = u'ᶜ \ s, by simp [compl_eq_univ_diff, diff_diff, union_comm],
+    rw this at hu',
+    apply le_antisymm _ bot_le,
+    calc μ (u'ᶜ \ t) ≤ μ ((u'ᶜ \ s) ∪ (s \ t)) :
+    begin
+      apply measure_mono,
+      assume x hx,
+      simp at hx,
+      simp [hx, or_comm, classical.em],
+    end
+    ... ≤ μ (u'ᶜ \ s) + μ (s \ t) : measure_union_le _ _
+    ... = 0 : by rw [ht, hu', zero_add] },
+  { rintros ⟨t, u, tmeas, umeas, ts, su, hμ⟩,
+    refine is_null_measurable_iff.2 ⟨t, ts, tmeas, _⟩,
+    apply le_antisymm _ bot_le,
+    calc μ (s \ t) ≤ μ (u \ t) : measure_mono (diff_subset_diff_left su)
+    ... = 0 : hμ }
+end
+
+lemma restrict_apply_of_is_null_measurable {s t : set α}
+  (ht : is_null_measurable (μ.restrict s) t) : μ.restrict s t = μ (t ∩ s) :=
+begin
+  rcases is_null_measurable_iff_sandwich.1 ht with ⟨u, v, umeas, vmeas, ut, tv, huv⟩,
+  apply le_antisymm _ (le_restrict_apply _ _),
+  calc μ.restrict s t ≤ μ.restrict s v : measure_mono tv
+  ... = μ (v ∩ s) : restrict_apply vmeas
+  ... ≤ μ ((u ∩ s) ∪ ((v \ u) ∩ s)) : measure_mono $
+    by { assume x hx, simp at hx, simp [hx, classical.em] }
+  ... ≤ μ (u ∩ s) + μ ((v \ u) ∩ s) : measure_union_le _ _
+  ... = μ (u ∩ s) + μ.restrict s (v \ u) : by rw measure.restrict_apply (vmeas.diff umeas)
+  ... = μ (u ∩ s) : by rw [huv, add_zero]
+  ... ≤ μ (t ∩ s) : measure_mono $ inter_subset_inter_left s ut
+end
+
 /-- The measurable space of all null measurable sets. -/
 def null_measurable (μ : measure α) : measurable_space α :=
 { is_measurable' := is_null_measurable μ,
@@ -1915,6 +2041,125 @@ meta def volume_tac : tactic unit := `[exact measure_theory.measure_space.volume
 end measure_space
 
 end measure_theory
+
+/-!
+# Almost everywhere measurable functions
+
+A function is almost everywhere measurable if it coincides almost everywhere with a measurable
+function. We define this property, called `ae_measurable f μ`, and discuss several of its properties
+that are analogous to properties of measurable functions.
+-/
+
+section
+open measure_theory
+
+variables [measurable_space α] [measurable_space β]
+{f g : α → β} {μ ν : measure α}
+
+/-- A function is almost everywhere measurable if it coincides almost everywhere with a measurable
+function. -/
+def ae_measurable (f : α → β) (μ : measure α . measure_theory.volume_tac) : Prop :=
+∃ g : α → β, measurable g ∧ f =ᵐ[μ] g
+
+lemma measurable.ae_measurable (h : measurable f) : ae_measurable f μ :=
+⟨f, h, ae_eq_refl f⟩
+
+namespace ae_measurable
+
+/-- Given an almost everywhere measurable function `f`, associate to it a measurable function
+that coincides with it almost everywhere. `f` is explicit in the definition to make sure that
+it shows in pretty-printing. -/
+def mk (f : α → β) (h : ae_measurable f μ) : α → β := classical.some h
+
+lemma measurable_mk (h : ae_measurable f μ) : measurable (h.mk f) :=
+(classical.some_spec h).1
+
+lemma ae_eq_mk (h : ae_measurable f μ) : f =ᵐ[μ] (h.mk f) :=
+(classical.some_spec h).2
+
+lemma congr (hf : ae_measurable f μ) (h : f =ᵐ[μ] g) : ae_measurable g μ :=
+⟨hf.mk f, hf.measurable_mk, h.symm.trans hf.ae_eq_mk⟩
+
+lemma mono_measure (h : ae_measurable f μ) (h' : ν ≤ μ) : ae_measurable f ν :=
+⟨h.mk f, h.measurable_mk, eventually.filter_mono (ae_mono h') h.ae_eq_mk⟩
+
+lemma add_measure {f : α → β} (hμ : ae_measurable f μ) (hν : ae_measurable f ν) :
+  ae_measurable f (μ + ν) :=
+begin
+  let s := {x | f x ≠ hμ.mk f x},
+  have : μ s = 0 := hμ.ae_eq_mk,
+  obtain ⟨t, st, t_meas, μt⟩ : ∃ t, s ⊆ t ∧ is_measurable t ∧ μ t = 0 :=
+    exists_is_measurable_superset_of_measure_eq_zero this,
+  let g : α → β := t.piecewise (hν.mk f) (hμ.mk f),
+  refine ⟨g, measurable.piecewise t_meas hν.measurable_mk hμ.measurable_mk, _⟩,
+  change μ {x | f x ≠ g x} + ν {x | f x ≠ g x} = 0,
+  suffices : μ {x | f x ≠ g x} = 0 ∧ ν {x | f x ≠ g x} = 0, by simp [this.1, this.2],
+  have ht : {x | f x ≠ g x} ⊆ t,
+  { assume x hx,
+    by_contra h,
+    simp only [g, h, mem_set_of_eq, ne.def, not_false_iff, piecewise_eq_of_not_mem] at hx,
+    exact h (st hx) },
+  split,
+  { have : μ {x | f x ≠ g x} ≤ μ t := measure_mono ht,
+    rw μt at this,
+    exact le_antisymm this bot_le },
+  { have : {x | f x ≠ g x} ⊆ {x | f x ≠ hν.mk f x},
+    { assume x hx,
+      simpa [ht hx, g] using hx },
+    apply le_antisymm _ bot_le,
+    calc ν {x | f x ≠ g x} ≤ ν {x | f x ≠ hν.mk f x} : measure_mono this
+    ... = 0 : hν.ae_eq_mk }
+end
+
+lemma smul_measure (h : ae_measurable f μ) (c : ennreal) :
+  ae_measurable f (c • μ) :=
+⟨h.mk f, h.measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
+
+lemma comp_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
+  (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
+⟨(hg.mk g) ∘ f, hg.measurable_mk.comp hf, ae_eq_comp hf hg.ae_eq_mk⟩
+
+lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
+  (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ x, (f x, g x)) μ :=
+⟨λ a, (hf.mk f a, hg.mk g a), hf.measurable_mk.prod_mk hg.measurable_mk,
+  eventually_eq.prod_mk hf.ae_eq_mk hg.ae_eq_mk⟩
+
+lemma is_null_measurable (h : ae_measurable f μ) {s : set β} (hs : is_measurable s) :
+  is_null_measurable μ (f ⁻¹' s) :=
+begin
+  apply is_null_measurable_iff_ae.2,
+  refine ⟨(h.mk f) ⁻¹' s, h.measurable_mk hs, _⟩,
+  filter_upwards [h.ae_eq_mk],
+  assume x hx,
+  change (f x ∈ s) = ((h.mk f) x ∈ s),
+  rwa hx
+end
+
+end ae_measurable
+
+lemma ae_measurable_congr (h : f =ᵐ[μ] g) :
+  ae_measurable f μ ↔ ae_measurable g μ :=
+⟨λ hf, ae_measurable.congr hf h, λ hg, ae_measurable.congr hg h.symm⟩
+
+@[simp] lemma ae_measurable_add_measure_iff :
+  ae_measurable f (μ + ν) ↔ ae_measurable f μ ∧ ae_measurable f ν :=
+⟨λ h, ⟨h.mono_measure (measure.le_add_right (le_refl _)),
+         h.mono_measure (measure.le_add_left (le_refl _))⟩,
+  λ h, h.1.add_measure h.2⟩
+
+@[simp] lemma ae_measurable_const {b : β} : ae_measurable (λ a : α, b) μ :=
+measurable_const.ae_measurable
+
+@[simp] lemma ae_measurable_smul_measure_iff {c : ennreal} (hc : c ≠ 0) :
+  ae_measurable f (c • μ) ↔ ae_measurable f μ :=
+⟨λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).1 h.ae_eq_mk⟩,
+  λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).2 h.ae_eq_mk⟩⟩
+
+lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
+  (hg : measurable g) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
+⟨g ∘ hf.mk f, hg.comp hf.measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk _⟩
+
+end
 
 namespace is_compact
 

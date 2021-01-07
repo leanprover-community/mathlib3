@@ -331,7 +331,7 @@ end add_comm_monoid
 
 section add_comm_group
 
-variables [ring R] [add_comm_group M] [semimodule R M]
+variables [semiring S] [ring R] [add_comm_group M] [semimodule S M] [semimodule R M]
 
 /-- The natural ℤ-module structure on any `add_comm_group`. -/
 -- We don't immediately make this a global instance, as it results in too many instances,
@@ -383,14 +383,14 @@ instance add_comm_group.int_is_scalar_tower [semimodule ℤ R] [semimodule ℤ M
     (λ n ih, by simp only [one_smul, add_smul, ih])
     (λ n ih, by simp only [one_smul, sub_smul, ih]) }
 
-instance add_comm_group.int_smul_comm_class [semimodule ℤ M] : smul_comm_class ℤ R M :=
+instance add_comm_group.int_smul_comm_class [semimodule ℤ M] : smul_comm_class ℤ S M :=
 { smul_comm := λ n x y, int.induction_on n
     (by simp only [zero_smul, smul_zero])
     (λ n ih, by simp only [one_smul, add_smul, smul_add, ih])
     (λ n ih, by simp only [one_smul, sub_smul, smul_sub, ih]) }
 
 -- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
-instance add_comm_group.int_smul_comm_class' [semimodule ℤ M] : smul_comm_class R ℤ M :=
+instance add_comm_group.int_smul_comm_class' [semimodule ℤ M] : smul_comm_class S ℤ M :=
 smul_comm_class.symm _ _ _
 
 end add_comm_group

@@ -155,11 +155,14 @@ lemma finset.dvd_prod {ι M : Type*} [comm_monoid M] {x : ι} {s : finset ι}
   f x ∣ ∏ i in s, f i :=
 multiset.dvd_prod (multiset.mem_map.mpr ⟨x, hx, rfl⟩)
 
+-- TODO: how should we make this instance? It depends on `f.codomain`.
+instance : is_dedekind_domain (integral_closure R L) := sorry
+
 -- Theorem 5.2
 theorem exists_mul_eq_mul (I : nonzero_ideal (integral_closure R L)) :
   ∃ (J : nonzero_ideal (integral_closure R L)),
   class_group.mk0 (integral_closure.fraction_map_of_finite_extension L f) I =
-    class_group.mk0 (integral_closure.fraction_map_of_finite_extension L f) J ∧
+  class_group.mk0 (integral_closure.fraction_map_of_finite_extension L f) J ∧
     J.1 ∣ ideal.span {algebra_map _ _ (∏ m in finset_approx L f abs, m)} :=
 begin
   set m := ∏ m in finset_approx L f abs, m with m_eq,
@@ -168,7 +171,7 @@ begin
   { obtain ⟨J, hJ⟩ := this,
     refine ⟨⟨J, _⟩, _, _⟩,
     { sorry },
-    { rw class_group.mk_eq_mk_iff,
+    { rw class_group.mk0_eq_mk0_iff,
       refine ⟨algebra_map _ _ m, b, _, b_ne_zero, hJ⟩,
       refine mt ((algebra_map R _).injective_iff.mp (integral_closure.algebra_map_injective f) _) _,
       rw finset.prod_eq_zero_iff,
@@ -178,7 +181,7 @@ begin
       exact finset_approx.zero_not_mem f abs ha },
     apply ideal.dvd_of_mul_dvd_mul_left (ideal.span_singleton_ne_bot b_ne_zero),
     rw [ideal.dvd_iff_le, ← hJ, mul_comm, m_eq],
-    apply ideal.mul_mono,
+    apply ideal.mul_mono le_rfl,
     rw [ideal.span_le, set.singleton_subset_iff],
     exact b_mem },
   rw [ideal.dvd_iff_le, ideal.mul_le],
@@ -191,7 +194,6 @@ begin
   refine mul_dvd_mul_right (dvd_trans (ring_hom.map_dvd _ _) hr') _,
   exact finset.dvd_prod r_mem (λ x, x)
 end
-
 .
 
 -- Theorem 5.3

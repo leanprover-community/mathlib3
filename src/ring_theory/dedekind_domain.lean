@@ -835,6 +835,8 @@ is_noetherian_of_is_scalar_tower _ (is_noetherian_of_le
 instance [h : is_dedekind_domain R] : is_noetherian_ring R :=
 h.2
 
+variables (f)
+
 /- If L is a finite extension of R's fraction field, the integral closure of R in L is a Dedekind domain. -/
 def closure_in_field_extension [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
   [finite_dimensional f.codomain L] [is_separable f.codomain L]
@@ -846,7 +848,12 @@ def closure_in_field_extension [algebra f.codomain L] [algebra R L] [is_scalar_t
  h.dimension_le_one.integral_closure _ _,
  integral_closure_idem⟩
 
+instance [algebra (fraction_ring.of R).codomain L] [algebra R L] [is_scalar_tower R (fraction_ring.of R).codomain L]
+  [finite_dimensional (fraction_ring.of R).codomain L] [is_separable (fraction_ring.of R).codomain L]
+  [h : is_dedekind_domain R] :
+  is_dedekind_domain (integral_closure R L) :=
+closure_in_field_extension (fraction_ring.of R) h
+
 end dedekind_domain
 
 end equivalence
-

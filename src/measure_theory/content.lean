@@ -141,12 +141,14 @@ begin
   apply h,
 end
 
-lemma is_left_invariant_inner_content [group G] [topological_group G] {μ : compacts G → ennreal}
+@[to_additive]
+lemma is_mul_left_invariant_inner_content [group G] [topological_group G] {μ : compacts G → ennreal}
   (h : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K) (g : G)
   (U : opens G) : inner_content μ (U.comap $ continuous_mul_left g) = inner_content μ U :=
 by convert inner_content_comap (homeomorph.mul_left g) (λ K, h g) U
 
-lemma inner_content_pos [t2_space G] [group G] [topological_group G] {μ : compacts G → ennreal}
+lemma inner_content_pos_of_is_mul_left_invariant [t2_space G] [group G] [topological_group G]
+  {μ : compacts G → ennreal}
   (h1 : μ ⊥ = 0)
   (h2 : ∀ (K₁ K₂ : compacts G), μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂)
   (h3 : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K)
@@ -162,8 +164,22 @@ begin
   refine (le_inner_content _ _ this).trans _,
   refine (rel_supr_sum (inner_content μ) (inner_content_empty h1) (≤)
     (inner_content_Sup_nat h1 h2) _ _).trans _,
-  simp only [is_left_invariant_inner_content h3, finset.sum_const, nsmul_eq_mul, le_refl]
+  simp only [is_mul_left_invariant_inner_content h3, finset.sum_const, nsmul_eq_mul, le_refl]
 end
+
+/-- To additive fails to translate -/
+lemma inner_content_pos_of_is_add_left_invariant [t2_space G] [add_group G]
+  [topological_add_group G]
+  {μ : compacts G → ennreal}
+  (h1 : μ ⊥ = 0)
+  (h2 : ∀ (K₁ K₂ : compacts G), μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂)
+  (h3 : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_add_left g) = μ K)
+  (K : compacts G) (hK : 0 < μ K) (U : opens G) (hU : (U : set G).nonempty) :
+  0 < inner_content μ U :=
+@inner_content_pos_of_is_mul_left_invariant (multiplicative G) _inst_1 _inst_2 _ sorry μ h1 h2 h3
+  K hK U hU
+
+attribute [to_additive] inner_content_pos_of_is_mul_left_invariant
 
 lemma inner_content_mono' {μ : compacts G → ennreal} ⦃U V : set G⦄
   (hU : is_open U) (hV : is_open V) (h2 : U ⊆ V) :
@@ -228,7 +244,8 @@ begin
   intros s hs, convert inner_content_comap f h ⟨s, hs⟩
 end
 
-lemma is_left_invariant_of_content [group G] [topological_group G]
+@[to_additive]
+lemma is_mul_left_invariant_of_content [group G] [topological_group G]
   (h : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K) (g : G)
   (A : set G) : of_content μ h1 ((λ h, g * h) ⁻¹' A) = of_content μ h1 A :=
 by convert of_content_preimage h2 (homeomorph.mul_left g) (λ K, h g) A
@@ -243,11 +260,13 @@ begin
   apply inner_content_mono'
 end
 
-lemma of_content_pos_of_is_open [group G] [topological_group G]
+@[to_additive]
+lemma of_content_pos_of_is_mul_left_invariant [group G] [topological_group G]
   (h3 : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K)
   (K : compacts G) (hK : 0 < μ K) {U : set G} (h1U : is_open U) (h2U : U.nonempty) :
   0 < of_content μ h1 U :=
-by { convert inner_content_pos h1 h2 h3 K hK ⟨U, h1U⟩ h2U, exact of_content_opens h2 ⟨U, h1U⟩ }
+by { convert inner_content_pos_of_is_mul_left_invariant h1 h2 h3 K hK ⟨U, h1U⟩ h2U,
+     exact of_content_opens h2 ⟨U, h1U⟩ }
 
 end outer_measure
 end measure_theory

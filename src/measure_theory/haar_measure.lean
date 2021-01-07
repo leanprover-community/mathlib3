@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.content
-import measure_theory.group
+import measure_theory.prod_group
+
 /-!
 # Haar measure
 
@@ -483,7 +484,7 @@ end
 
 lemma haar_outer_measure_pos_of_is_open {K₀ : positive_compacts G}
   {U : set G} (hU : is_open U) (h2U : U.nonempty) : 0 < haar_outer_measure K₀ U :=
-outer_measure.of_content_pos_of_is_open echaar_sup_le is_left_invariant_echaar
+outer_measure.of_content_pos_of_is_mul_left_invariant echaar_sup_le is_left_invariant_echaar
   ⟨K₀.1, K₀.2.1⟩ (by simp only [echaar_self, ennreal.zero_lt_one]) hU h2U
 
 lemma haar_outer_measure_self_pos {K₀ : positive_compacts G} :
@@ -540,12 +541,12 @@ lemma haar_measure_apply {K₀ : positive_compacts G} {s : set G} (hs : is_measu
 by { simp only [haar_measure, hs, ennreal.div_def, mul_comm, to_measure_apply,
       algebra.id.smul_eq_mul, pi.smul_apply, measure.coe_smul] }
 
-lemma is_left_invariant_haar_measure (K₀ : positive_compacts G) :
-  is_left_invariant (haar_measure K₀) :=
+lemma is_mul_left_invariant_haar_measure (K₀ : positive_compacts G) :
+  is_mul_left_invariant (haar_measure K₀) :=
 begin
   intros g A hA, rw [haar_measure_apply hA, haar_measure_apply (measurable_mul_left g hA)],
   congr' 1,
-  exact outer_measure.is_left_invariant_of_content echaar_sup_le is_left_invariant_echaar g A
+  exact outer_measure.is_mul_left_invariant_of_content echaar_sup_le is_left_invariant_echaar g A
 end
 
 lemma haar_measure_self [locally_compact_space G] {K₀ : positive_compacts G} :
@@ -579,6 +580,36 @@ begin
     rw [to_measure_apply _ _ K.2.is_measurable], apply echaar_le_haar_outer_measure },
   { rw ennreal.inv_lt_top, apply haar_outer_measure_self_pos }
 end
+
+instance [locally_compact_space G] [separable_space G] (K₀ : positive_compacts G) :
+  sigma_finite (haar_measure K₀) :=
+regular_haar_measure.sigma_finite
+
+section unique
+
+variables [locally_compact_space G] [second_countable_topology G] {μ : measure G} [sigma_finite μ]
+
+/-- The Haar measure is unique up to scaling. More precisely: every σ-finite left invariant measure
+  is a scalar multiple of the Haar measure. -/
+theorem haar_measure_unqiue (hμ : is_mul_left_invariant μ)
+  (K₀ : positive_compacts G) : μ = μ K₀.1 • haar_measure K₀ :=
+begin
+  ext1 s hs,
+  have :=
+  measure_mul_measure_eq hμ (is_mul_left_invariant_haar_measure K₀) regular_haar_measure K₀.2.1 hs,
+  rw [haar_measure_self, one_mul] at this,
+  rw [← this (by norm_num), smul_apply],
+end
+
+theorem regular_of_left_invariant [locally_compact_space G] (hμ : is_mul_left_invariant μ)
+  {K} (hK : is_compact K)
+  (h2K : (interior K).nonempty) (hμK : μ K < ⊤) : regular μ :=
+begin
+  rw [haar_measure_unqiue hμ ⟨K, hK, h2K⟩],
+  refine regular.smul regular_haar_measure hμK
+end
+
+end unique
 
 end measure
 end measure_theory

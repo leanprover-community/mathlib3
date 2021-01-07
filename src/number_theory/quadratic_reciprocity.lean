@@ -331,7 +331,7 @@ begin
       { simpa [hq0] using congr_arg (coe : ℕ → zmod p) (le_antisymm hpq hqp) },
     apply_fun zmod.val at this,
     rw [val_cast_of_lt hxp, val_zero] at this,
-    simpa only [this, le_zero_iff_eq, Ico.mem, one_ne_zero, false_and, mem_product] using hx },
+    simpa only [this, nonpos_iff_eq_zero, Ico.mem, one_ne_zero, false_and, mem_product] using hx },
   have hunion : ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
       (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q) ∪
     ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter

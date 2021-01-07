@@ -693,7 +693,7 @@ begin
     rintro ⟨a, ⟨d, hd⟩, ha⟩,
     have hazero : 0 < a,
     { contrapose! hd with ha0,
-      simp only [le_zero_iff_eq, zero_mul, *] at *,
+      simp only [nonpos_iff_eq_zero, zero_mul, *] at *,
       exact n.ne_zero },
     rw mem_primitive_roots hazero at ha,
     rw [hd, pow_mul, ha.pow_eq_one, one_pow] },

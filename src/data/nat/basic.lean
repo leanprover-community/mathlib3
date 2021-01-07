@@ -1301,7 +1301,7 @@ lemma find_greatest_eq_iff {b m} :
 begin
   induction b with b ihb generalizing m,
   { rw [eq_comm, iff.comm],
-    simp only [le_zero_iff_eq, ne.def, and_iff_left_iff_imp, find_greatest_zero],
+    simp only [nonpos_iff_eq_zero, ne.def, and_iff_left_iff_imp, find_greatest_zero],
     rintro rfl,
     exact ⟨λ h, (h rfl).elim, λ n hlt heq, (hlt.ne heq.symm).elim⟩ },
   { by_cases hb : P (b + 1),

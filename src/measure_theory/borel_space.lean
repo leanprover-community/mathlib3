@@ -1238,3 +1238,14 @@ end regular
 
 end measure
 end measure_theory
+
+lemma is_compact.measure_lt_top_of_nhds_within [topological_space α]
+  {s : set α} {μ : measure α} (h : is_compact s) (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝[s] x)) :
+  μ s < ⊤ :=
+is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt ht)
+  (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
+
+lemma is_compact.measure_lt_top [topological_space α] {s : set α} {μ : measure α}
+  [locally_finite_measure μ] (h : is_compact s) :
+  μ s < ⊤ :=
+h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _

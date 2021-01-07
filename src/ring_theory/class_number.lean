@@ -1,3 +1,4 @@
+import algebra.big_operators.finsupp
 import algebra.floor
 import group_theory.quotient_group
 import linear_algebra.determinant
@@ -67,19 +68,6 @@ begin
     obtain ⟨y', hy', rfl⟩ := fractional_ideal.mem_coe_ideal.mp hy,
     rw fractional_ideal.mem_coe_ideal,
     exact ⟨x' * y', ideal.mul_mem_mul hx' hy', f.to_map.map_mul _ _⟩ },
-end
-
-@[simp]
-lemma fractional_ideal.coe_ideal_le_coe_ideal {I J : ideal R} :
-  (I : fractional_ideal f) ≤ (J : fractional_ideal f) ↔ I ≤ J :=
-begin
-  simp only [fractional_ideal.le_iff_mem, fractional_ideal.mem_coe_ideal],
-  split,
-  { intros h x hx,
-    obtain ⟨x', hx', x'_eq⟩ := h _ ⟨x, hx, rfl⟩,
-    rwa f.injective x'_eq at hx' },
-  { rintros h _ ⟨x, hx, rfl⟩,
-    exact ⟨x, h hx, rfl⟩ }
 end
 
 end
@@ -172,19 +160,6 @@ instance ideal.unique_factorization_monoid :
   .. ideal.wf_dvd_monoid }
 
 namespace unique_factorization_monoid
-
-/-
-lemma dvd_iff_factors_le_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
-x ∣ y ↔ factors x ≤ factors y :=
-begin
-split,
-{ rintro ⟨c, rfl⟩,
-simp [hx, right_ne_zero_of_mul hy] },
-{ rw [← dvd_iff_dvd_of_rel_left (factors_prod hx), ← dvd_iff_dvd_of_rel_right (factors_prod hy)],
-apply multiset.prod_dvd_prod }
-end
-
--/
 
 -- 3.2: "Only finitely many divisors"
 noncomputable def finite_divisors
@@ -762,17 +737,6 @@ begin
     exact submodule.smul_mem _ _ (submodule.subset_span ⟨i, rfl⟩) }
 end
 
-lemma to_matrix_is_basis_coe {ι : Type*} [decidable_eq ι] [fintype ι]
-  {b : ι → integral_closure R L} (hb : is_basis R b)
-  (l : L →ₗ[f.codomain] L) (l' : integral_closure R L →ₗ[R] integral_closure R L)
-  (hl : ∀ x : integral_closure R L, l x = l' x) :
-  linear_map.to_matrix (is_basis_coe f hb) (is_basis_coe f hb) l =
-    (linear_map.to_matrix hb hb l').map (algebra_map _ _) :=
-begin
-  ext i j,
-  sorry
-end
-
 section
 variables (L) (f)
 
@@ -1012,6 +976,44 @@ variables [algebra f.codomain L] [finite_dimensional f.codomain L] [is_separable
 variables [algebra R L] [is_scalar_tower R f.codomain L]
 variables (abs : euclidean_absolute_value R ℤ)
 
+lemma is_scalar_tower.map_smul {R S M N : Type*} [comm_semiring R] [semiring S] [algebra R S]
+  [add_comm_monoid M] [semimodule R M] [semimodule S M] [is_scalar_tower R S M]
+  [add_comm_monoid N] [semimodule R N] [semimodule S N] [is_scalar_tower R S N]
+  (f : M →ₗ[S] N) (x : R) (y : M) : f (x • y) = x • f y :=
+by rw [algebra_compatible_smul S x y, f.map_smul, algebra_compatible_smul S x (f y)]
+
+lemma is_basis_coe_repr_apply {ι : Type*} [decidable_eq ι] [fintype ι]
+  {b : ι → integral_closure R L} (hb : is_basis R b)
+  (x : integral_closure R L) (i : ι) :
+  (is_basis_coe f hb).repr x i = f.to_map (hb.repr x i) :=
+begin
+  have : ∀ j, (is_basis_coe f hb).repr (b j) i = f.to_map (hb.repr (b j) i),
+  { intro j,
+    calc (is_basis_coe f hb).repr ((coe ∘ b) j) i = if j = i then 1 else 0 :
+      by { rw (is_basis_coe f hb).repr_self_apply j i, congr }
+    ... = f.to_map (if j = i then 1 else 0) :
+      by rw [apply_ite f.to_map, ring_hom.map_one, ring_hom.map_zero]
+    ... = f.to_map (hb.repr (b j) i) : by { rw hb.repr_self_apply j i, congr } },
+  show (is_basis_coe f hb).repr (subalgebra.val _ x) i = f.to_map (hb.repr x i),
+  rw ← sum_repr hb x,
+  simp only [alg_hom.map_sum, linear_map.map_sum, alg_hom.map_smul, linear_map.map_smul,
+             ring_hom.map_sum, ring_hom.map_mul,
+             smul_eq_mul, finset.sum_apply', finsupp.smul_apply],
+  refine finset.sum_congr rfl (λ j _, _),
+  rw [is_scalar_tower.map_smul (is_basis_coe f hb).repr (hb.repr x j), finsupp.smul_apply',
+      subalgebra.coe_val, this j, algebra.smul_def, f.algebra_map_eq],
+end
+
+lemma to_matrix_is_basis_coe {ι : Type*} [decidable_eq ι] [fintype ι]
+  {b : ι → integral_closure R L} (hb : is_basis R b)
+  (l : L →ₗ[f.codomain] L) (l' : integral_closure R L →ₗ[R] integral_closure R L)
+  (hl : ∀ x : integral_closure R L, l x = l' x) :
+  linear_map.to_matrix (is_basis_coe f hb) (is_basis_coe f hb) l =
+    (linear_map.to_matrix hb hb l').map (algebra_map _ _) :=
+by { ext i j,
+     simp only [matrix.map_apply, linear_map.to_matrix_apply, is_basis.equiv_fun_apply,
+                function.comp_app, hl, localization_map.algebra_map_eq, is_basis_coe_repr_apply] }
+
 noncomputable def abs_norm [decidable_eq L] (x : integral_closure R L) : ℤ :=
 abs (@algebra.norm R (integral_closure R L) _ _ _ _ _ _ _ (integral_closure.is_basis L f) x)
 
@@ -1166,13 +1168,75 @@ lemma quotient_group.mk'_eq_mk' {G : Type*} [group G] {N : subgroup G} [hN : N.n
    λ ⟨z, z_mem, eq_y⟩,
      by { rw ← eq_y, show x⁻¹ * (x * z) ∈ N, rwa [← mul_assoc, mul_left_inv, one_mul] }⟩
 
+lemma ideal.mem_mul_span_singleton {x y : R} {I : ideal R} :
+  x ∈ I * ideal.span {y} ↔ ∃ z ∈ I, z * y = x :=
+submodule.mem_smul_span_singleton
+
+lemma ideal.mem_span_singleton_mul {x y : R} {I : ideal R} :
+  x ∈ ideal.span {y} * I ↔ ∃ z ∈ I, y * z = x :=
+by simp only [mul_comm, ideal.mem_mul_span_singleton]
+
+lemma ideal.le_span_singleton_mul_iff {x : R} {I J : ideal R} :
+  I ≤ ideal.span {x} * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI :=
+show (∀ {zI} (hzI : zI ∈ I), zI ∈ ideal.span {x} * J) ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI,
+by simp only [ideal.mem_span_singleton_mul]
+
+lemma ideal.span_singleton_mul_le_iff {x : R} {I J : ideal R} :
+  ideal.span {x} * I ≤ J ↔ ∀ z ∈ I, x * z ∈ J :=
+begin
+  simp only [ideal.mul_le, ideal.mem_span_singleton_mul, ideal.mem_span_singleton],
+  split,
+  { intros h zI hzI,
+    exact h x (dvd_refl x) zI hzI },
+  { rintros h _ ⟨z, rfl⟩ zI hzI,
+    rw [mul_comm x z, mul_assoc],
+    exact J.mul_mem_left (h zI hzI) },
+end
+
+lemma ideal.span_singleton_mul_le_span_singleton_mul {x y : R} {I J : ideal R} :
+  ideal.span {x} * I ≤ ideal.span {y} * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ :=
+by simp only [ideal.span_singleton_mul_le_iff, ideal.mem_span_singleton_mul, eq_comm]
+
+lemma ideal.eq_singleton_mul {x : R} (I J : ideal R) :
+  I = ideal.span {x} * J ↔ ((∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI) ∧ (∀ z ∈ J, x * z ∈ I)) :=
+by simp only [le_antisymm_iff, ideal.le_span_singleton_mul_iff, ideal.span_singleton_mul_le_iff]
+
+lemma ideal.singleton_mul_eq_singleton_mul {x y : R} (I J : ideal R) :
+  ideal.span {x} * I = ideal.span {y} * J ↔
+    ((∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ) ∧
+     (∀ zJ ∈ J, ∃ zI ∈ I, x * zI = y * zJ)) :=
+by simp only [le_antisymm_iff, ideal.span_singleton_mul_le_span_singleton_mul, eq_comm]
+
+lemma fractional_ideal.le_span_singleton_mul_iff {x : f.codomain} {I J : fractional_ideal f} :
+  I ≤ span_singleton x * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI :=
+show (∀ {zI} (hzI : zI ∈ I), zI ∈ span_singleton x * J) ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI,
+by { simp only [fractional_ideal.mem_singleton_mul, eq_comm], refl }
+
+lemma fractional_ideal.span_singleton_mul_le_iff {x : f.codomain} {I J : fractional_ideal f} :
+  span_singleton x * I ≤ J ↔ ∀ z ∈ I, x * z ∈ J :=
+begin
+  simp only [fractional_ideal.mul_le, fractional_ideal.mem_singleton_mul,
+             fractional_ideal.mem_span_singleton],
+  split,
+  { intros h zI hzI,
+    exact h x ⟨1, one_smul _ _⟩ zI hzI },
+  { rintros h _ ⟨z, rfl⟩ zI hzI,
+    rw [algebra.smul_mul_assoc],
+    exact submodule.smul_mem J.1 _ (h zI hzI) },
+end
+
+lemma fractional_ideal.eq_span_singleton_mul {x : f.codomain} {I J : fractional_ideal f} :
+  I = span_singleton x * J ↔ (∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI) ∧ ∀ z ∈ J, x * z ∈ I :=
+by simp only [le_antisymm_iff, fractional_ideal.le_span_singleton_mul_iff,
+              fractional_ideal.span_singleton_mul_le_iff]
+
 lemma class_group.mk_eq_mk_iff [is_dedekind_domain R]
   (I J : nonzero_ideal R) :
   class_group.mk f I = class_group.mk f J ↔
     ∃ (x y : R) (hx : x ≠ 0) (hy : y ≠ 0), ideal.span {x} * (I : ideal R) = ideal.span {y} * J :=
 begin
   simp only [class_group.mk, monoid_hom.comp_apply, monoid_hom.coe_mk, quotient_group.mk'_eq_mk',
-             exists_prop, monoid_hom.mem_range],
+    exists_prop, monoid_hom.mem_range, ideal.singleton_mul_eq_singleton_mul],
   split,
   { rintros ⟨z, ⟨xy, hxy, rfl⟩, eq_J⟩,
     have hx : (f.to_localization_map.sec (xy : f.codomain)).1 ≠ 0,

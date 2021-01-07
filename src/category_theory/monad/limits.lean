@@ -334,7 +334,8 @@ lemma has_limits_of_reflective (R : D ⥤ C) [has_limits C] [reflective R] : has
 The reflector always preserves terminal objects. Note this in general doesn't apply to any other
 limit.
 -/
-noncomputable def reflector_preserves_terminal (R : D ⥤ C) [reflective R] [has_terminal C] :
+noncomputable def left_adjoint_preserves_terminal_of_reflective
+  (R : D ⥤ C) [reflective R] [has_terminal C] :
   preserves_limits_of_shape (discrete pempty) (left_adjoint R) :=
 { preserves_limit := λ K,
   begin

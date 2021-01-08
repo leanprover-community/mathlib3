@@ -22,6 +22,7 @@ Some of the results here are true more generally for closed objects and for clos
 categories, and these could be generalised.
 
 ## References
+https://ncatlab.org/nlab/show/cartesian+closed+functor
 https://ncatlab.org/nlab/show/Frobenius+reciprocity
 
 ## Tags
@@ -59,7 +60,8 @@ def frobenius_morphism (h : L ⊣ F) (A : C) :
 prod_comparison_nat_trans L (F.obj A) ≫ whisker_left _ (prod.functor.map (h.counit.app _))
 
 /--
-If `F` is full and faithful and has a left adjoint `L` which preserves binary products
+If `F` is full and faithful and has a left adjoint `L` which preserves binary products, then the
+Frobenius morphism is an isomorphism.
 -/
 instance frobenius_morphism_iso_of_preserves_finite_products (h : L ⊣ F) (A : C)
   [preserves_limits_of_shape (discrete walking_pair) L] [full F] [faithful F] :

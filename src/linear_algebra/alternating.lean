@@ -66,6 +66,32 @@ meta def first_n_goals : parse small_nat → itactic → tactic unit
 end interactive
 end tactic
 
+open_locale big_operators
+
+/-- Filtering to the range of a function is equivalent to taking the image by it. -/
+@[simp] lemma finset.filter_mem_range_univ {α β : Sort*}
+  [fintype α] [fintype β] [decidable_eq β]
+  (f : α → β) {_ : decidable_pred (λ (b : β), b ∈ set.range f)} :
+  finset.filter (λ (b : β), b ∈ set.range f) finset.univ = finset.image f finset.univ :=
+by { ext, simp }
+
+@[simp, to_additive]
+lemma finset.prod_filter_univ_exists_eq {α β γ : Type*}
+  [fintype α] [fintype β] [comm_monoid γ]
+  (f : α → β) (h : function.injective f) {_ : decidable_pred (λ (b : β), ∃ a, f a = b)} (g : β → γ) :
+  ∏ x in finset.filter (λ (b : β), ∃ a, f a = b) finset.univ, g x = ∏ a, g (f a) :=
+begin
+  classical,
+  rw ←finset.prod_image (λ x _ y _ (z : f x = f y), h z),
+  refine finset.prod_congr (finset.filter_mem_range_univ f) (λ _ _, rfl),
+end
+
+lemma finset.sum_filter_univ_mem_monoid_hom_range {α β γ : Type*}
+  [fintype α] [fintype β] [group α] [group β] [add_comm_monoid γ]
+  (f : α →* β) (h : function.injective f) {_ : decidable_pred (λ (b : β), b ∈ f.range)} (g : β → γ) :
+  ∑ x in finset.filter (λ (b : β), b ∈ f.range) finset.univ, g x = ∑ a, g (f a) :=
+finset.sum_filter_univ_exists_eq f h g
+
 end to_move
 
 -- semiring / add_comm_monoid
@@ -679,25 +705,6 @@ end
 
 open alternating_map
 
-lemma finset.sum_filter_univ_mem_range {α β γ : Type*}
-  [fintype α] [fintype β]
-    [group α] [group β] [add_comm_monoid γ]
-  (f : α →* β) (h : function.injective f) {_ : decidable_pred (λ (b : β), b ∈ f.range)} (g : β → γ) :
-  ∑ x in finset.filter (λ (b : β), b ∈ f.range) finset.univ, g x = ∑ a, g (f a) :=
-begin
-  rw finset.sum_subtype (λ x, show x ∈ _ ↔ x ∈ f.range, from _),
-  change ∑ (a_1 : f.range), _ = _,
-  swap, { simp only [finset.mem_filter, finset.mem_univ, true_and] },
-  symmetry,
-  apply finset.sum_bij
-    (λ a ha, (⟨f a, a, rfl⟩ : f.range))
-    (λ a ha, finset.mem_univ _)
-    (λ a ha, _)
-    (λ a₁ a₂ ha₁ ha₂ heq, h (subtype.ext_iff.mp heq))
-    (λ b hb, let ⟨a, hb⟩ := b.prop in ⟨a, finset.mem_univ _, subtype.ext hb.symm⟩),
-  refl,
-end
-
 /-- Computing the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` is the same
 as computing the `alternating_map.dom_coprod` of the `multilinear_map.alternatization`s.
 -/
@@ -737,7 +744,7 @@ begin
   rw finset.image_filter,
   simp only [function.comp, mul_inv_rev, inv_mul_cancel_right, subgroup.inv_mem_iff],
   rw finset.sum_image (λ x hx y hy, (mul_right_inj σ).mp),
-  rw finset.sum_filter_univ_mem_range (perm.sum_congr_hom ιa ιb) perm.sum_congr_hom_injective _,
+  rw finset.sum_filter_univ_mem_monoid_hom_range (perm.sum_congr_hom ιa ιb) perm.sum_congr_hom_injective _,
   rw multilinear_map.dom_coprod_alternization_coe,
   rw [←finset.sum_product', finset.univ_product_univ],
 

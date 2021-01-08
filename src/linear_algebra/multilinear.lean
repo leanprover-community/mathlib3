@@ -1051,9 +1051,9 @@ variables {R M M₂}
 
 namespace multilinear_map
 
-/-- The pushforward of an indexed collection of submodule `p i ⊆ M₁ i` by `f : M₁ → M₂`.#exit
+/-- The pushforward of an indexed collection of submodule `p i ⊆ M₁ i` by `f : M₁ → M₂`.
 
-Note that this is not a submodule - it is not closed under multiplication. -/
+Note that this is not a submodule - it is not closed under addition. -/
 def map [nonempty ι] (f : multilinear_map R M₁ M₂) (p : Π i, submodule R (M₁ i)) :
   sub_mul_action R M₂ :=
 { carrier   := f '' { v | ∀ i, v i ∈ p i},

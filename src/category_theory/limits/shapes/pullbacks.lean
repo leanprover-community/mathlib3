@@ -591,27 +591,10 @@ pullback.lift_snd _ _ _
 @[simp, reassoc]
 lemma map_lift_pullback_comparison (f : X ⟶ Z) (g : Y ⟶ Z)
   [has_pullback f g] [has_pullback (G.map f) (G.map g)]
-  {Z : C} {h : Z ⟶ X} (w : h ≫ f = h ≫ g) :
-    G.map (equalizer.lift h w) ≫ equalizer_comparison f g G =
-      equalizer.lift (G.map h) (by simp only [←G.map_comp, w]) :=
-by { ext, simp [← G.map_comp] }
-
-/-- The comparison morphism for the coequalizer of `f,g`. -/
-def coequalizer_comparison [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)] :
-  coequalizer (G.map f) (G.map g) ⟶ G.obj (coequalizer f g) :=
-coequalizer.desc (G.map (coequalizer.π _ _)) (by simp only [←G.map_comp, coequalizer.condition])
-
-@[simp, reassoc]
-lemma ι_comp_coequalizer_comparison [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)] :
-  coequalizer.π _ _ ≫ coequalizer_comparison f g G = G.map (coequalizer.π _ _) :=
-coequalizer.π_desc _ _
-
-@[simp, reassoc]
-lemma coequalizer_comparison_map_desc [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)]
-  {Z : C} {h : Y ⟶ Z} (w : f ≫ h = g ≫ h) :
-  coequalizer_comparison f g G ≫ G.map (coequalizer.desc h w) =
-    coequalizer.desc (G.map h) (by simp only [←G.map_comp, w]) :=
-by { ext, simp [← G.map_comp] }
+  {W : C} {h : W ⟶ X} {k : W ⟶ Y} (w : h ≫ f = k ≫ g) :
+    G.map (pullback.lift _ _ w) ≫ pullback_comparison G f g =
+      pullback.lift (G.map h) (G.map k) (by simp only [←G.map_comp, w]) :=
+by { ext; simp [← G.map_comp] }
 
 end
 

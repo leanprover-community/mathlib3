@@ -620,7 +620,8 @@ begin
 end
 
 /-- this lemma would work for `ordered_integral_domain`, if that typeclass existed -/
-@[simp] lemma eq_of_pow_two_eq_pow_two [linear_ordered_field R] {a b : R} (ha : 0 ≤ a) (hb : 0 ≤ b) :
+@[simp] lemma eq_of_pow_two_eq_pow_two [linear_ordered_field R] {a b : R}
+  (ha : 0 ≤ a) (hb : 0 ≤ b) :
   a ^ 2 = b ^ 2 ↔ a = b :=
 begin
   refine ⟨_, congr_arg _⟩,

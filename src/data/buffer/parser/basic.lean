@@ -47,9 +47,9 @@ variables {a : α} {b : β}
 /--
 A `parser α` is defined to be `valid` if the result `p cb n` it gives,
 for some `cb : char_buffer` and `n : ℕ`, (whether `done` or `fail`),
-is always at a `parse_result.pos` that is at least `n`. Additionally, if the position `n` provided
-was within the size of the `cb`, then the `parse_result.pos` of the output will also be within
-the size of the `cb`.
+is always at a `parse_result.pos` that is at least `n`. Additionally, if the position of the result
+of the parser was within the size of the `cb`, then the input to the parser must have been within
+`cb.size` too.
 -/
 def valid : Prop :=
   ∀ (cb : char_buffer) (n : ℕ), n ≤ (p cb n).pos ∧ ((p cb n).pos ≤ cb.size → n ≤ cb.size)

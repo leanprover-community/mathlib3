@@ -529,6 +529,7 @@ pushout_cocone.condition _
   (h₁ : k ≫ pullback.snd = l ≫ pullback.snd) : k = l :=
 limit.hom_ext $ pullback_cone.equalizer_ext _ h₀ h₁
 
+/-- The pullback cone built from the pullback projections is a pullback. -/
 def pullback_is_pullback {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_pullback f g] :
   is_limit (pullback_cone.mk (pullback.fst : pullback f g ⟶ _) pullback.snd pullback.condition) :=
 pullback_cone.is_limit.mk _ (λ s, pullback.lift s.fst s.snd s.condition)

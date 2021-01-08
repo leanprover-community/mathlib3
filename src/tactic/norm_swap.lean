@@ -9,7 +9,11 @@ import tactic.norm_num
 /-!
 # `norm_swap`
 
-Evaluating `swap x y z` for numerals `x y z : ℕ`.
+Evaluating `swap x y z` for numerals `x y z : ℕ`, via a `norm_cast` plugin.
+Terms are passed to `eval`, quickly failing if not of the form `swap x y z`.
+The expressions for numerals `x y z` are converted to `nat`, and then compared.
+Based on equality of these `nat`s, equality proofs are generated using either
+`equiv.swap_apply_left`, `equiv.swap_apply_right`, or `swap_apply_of_ne_of_ne`.
 -/
 
 open equiv tactic expr

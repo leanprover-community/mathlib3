@@ -83,8 +83,8 @@ begin
     map_prod_inv_mul_eq_swap hν]
 end
 
-lemma measure_null_of_measure_inv_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : is_measurable E)
-  (h2E : μ ((λ x, x⁻¹) ⁻¹' E) = 0) : μ E = 0 :=
+lemma measure_null_of_measure_inv_null (hμ : is_mul_left_invariant μ)
+  {E : set G} (hE : is_measurable E) (h2E : μ ((λ x, x⁻¹) ⁻¹' E) = 0) : μ E = 0 :=
 begin
   have hf : measurable (λ z : G × G, (z.2 * z.1, z.1⁻¹)) :=
   (measurable_snd.mul measurable_fst).prod_mk measurable_fst.inv,

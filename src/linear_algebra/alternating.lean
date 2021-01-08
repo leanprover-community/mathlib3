@@ -408,7 +408,7 @@ lemma coe_alternatization [fintype ι] (a : alternating_map R M N' ι) :
   (↑a : multilinear_map R (λ ι, M) N').alternatization = nat.factorial (fintype.card ι) • a :=
 begin
   ext,
-  simp only [multilinear_map.alternatization_apply, map_perm, smul_smul, ←nat.smul_def, coe_mk,
+  simp only [multilinear_map.alternatization_apply, map_perm, smul_smul, nsmul_eq_smul, coe_mk,
     smul_apply, add_monoid_hom.coe_mk, finset.sum_const, coe_multilinear_map, one_smul,
     multilinear_map.dom_dom_congr_apply, int.units_coe_mul_self,
     finset.card_univ, fintype.card_perm],

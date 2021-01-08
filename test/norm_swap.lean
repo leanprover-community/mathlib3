@@ -5,14 +5,6 @@ open equiv tactic
 
 local attribute [-simp] swap_apply_left
 local attribute [-simp] swap_apply_right
-local attribute [-simp] swap_bit0_apply_bit1
-local attribute [-simp] swap_bit0_apply_bit1_of_zero
-local attribute [-simp] swap_bit0_apply_bit1_of_zero'
-local attribute [-simp] swap_bit0_apply_one
-local attribute [-simp] swap_bit1_apply_bit0
-local attribute [-simp] swap_bit1_apply_bit0_of_one
-local attribute [-simp] swap_bit1_apply_bit0_of_one'
-local attribute [-simp] swap_bit1_apply_zero
 
 /--
 We can check all possibilities of swapping of `0, 1, bit0 _, bit1 _` using the

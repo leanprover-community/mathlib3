@@ -1625,38 +1625,6 @@ begin
   rw swap_apply_of_ne_of_ne hi hj,
 end
 
-@[simp] lemma swap_bit0_apply_bit1 (x y z : ℕ) :
-  swap (bit0 x) (bit0 y) (bit1 z) = bit1 z :=
-swap_apply_of_ne_of_ne (nat.bit0_ne_bit1 _ _).symm (nat.bit0_ne_bit1 _ _).symm
-
-@[simp] lemma swap_bit0_apply_bit1_of_zero (y z : ℕ) :
-  swap 0 (bit0 y) (bit1 z) = bit1 z :=
-swap_bit0_apply_bit1 0 _ _
-
-@[simp] lemma swap_bit0_apply_bit1_of_zero' (x z : ℕ) :
-  swap (bit0 x) 0 (bit1 z) = bit1 z :=
-swap_bit0_apply_bit1 _ 0 _
-
-@[simp] lemma swap_bit0_apply_one (x y : ℕ) :
-  swap (bit0 x) (bit0 y) 1 = 1 :=
-swap_bit0_apply_bit1 _ _ 0
-
-@[simp] lemma swap_bit1_apply_bit0 (x y z : ℕ) :
-  swap (bit1 x) (bit1 y) (bit0 z) = bit0 z :=
-swap_apply_of_ne_of_ne (nat.bit0_ne_bit1 _ _) (nat.bit0_ne_bit1 _ _)
-
-@[simp] lemma swap_bit1_apply_bit0_of_one (y z : ℕ) :
-  swap 1 (bit1 y) (bit0 z) = bit0 z :=
-swap_bit1_apply_bit0 0 _ _
-
-@[simp] lemma swap_bit1_apply_bit0_of_one' (x z : ℕ) :
-  swap (bit1 x) 1 (bit0 z) = bit0 z :=
-swap_bit1_apply_bit0 _ 0 _
-
-@[simp] lemma swap_bit1_apply_zero (x y : ℕ) :
-  swap (bit1 x) (bit1 y) 0 = 0 :=
-swap_bit1_apply_bit0 _ _ 0
-
 namespace perm
 
 @[simp] lemma sum_congr_swap_refl {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : α) :

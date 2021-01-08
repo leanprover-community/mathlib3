@@ -209,9 +209,9 @@ lemma swap_apply {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α ↪
   equiv.swap (f x) (f y) (f z) = f (equiv.swap x y z) :=
 f.injective.swap_apply x y z
 
-lemma swap_comp {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α ↪ β) (x y z : α) :
+lemma swap_comp {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α ↪ β) (x y : α) :
   equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
-f.injective.swap_comp x y z
+f.injective.swap_comp x y
 
 end embedding
 end function

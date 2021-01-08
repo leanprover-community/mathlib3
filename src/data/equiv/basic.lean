@@ -1803,7 +1803,7 @@ begin
 end
 
 lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α → β}
-  (hf : function.injective f) (x y z : α) :
+  (hf : function.injective f) (x y : α) :
   equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
 funext $ λ z, hf.swap_apply _ _ _
 

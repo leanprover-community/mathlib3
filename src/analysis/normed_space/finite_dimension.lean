@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.operator_norm
+import analysis.normed_space.add_torsor
 import topology.bases
 import linear_algebra.finite_dimensional
 import tactic.omega
@@ -163,6 +164,11 @@ begin
   dsimp,
   rw linear_equiv.symm_apply_apply
 end
+
+theorem affine_map.continuous_of_finite_dimensional {PE PF : Type*}
+  [metric_space PE] [normed_add_torsor E PE] [metric_space PF] [normed_add_torsor F PF]
+  [finite_dimensional 𝕜 E] (f : PE →ᵃ[𝕜] PF) : continuous f :=
+affine_map.continuous_linear_iff.1 f.linear.continuous_of_finite_dimensional
 
 /-- The continuous linear map induced by a linear map on a finite dimensional space -/
 def linear_map.to_continuous_linear_map [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F') : E →L[𝕜] F' :=

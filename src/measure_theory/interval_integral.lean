@@ -523,7 +523,7 @@ integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 /-!
 ### Fundamental theorem of calculus, part 1, for any measure
 
-In this section we prove a few lemmas that can be seen as versions of FTC-1 for interval integral
+In this section we prove a few lemmas that can be seen as versions of FTC-1 for interval integrals
 w.r.t. any measure. Many theorems are formulated for one or two pairs of filters related by
 `FTC_filter a l l'`. This typeclass has exactly four “real” instances: `(a, pure a, ⊥)`,
 `(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`, `(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`, and two instances
@@ -1256,8 +1256,10 @@ lemma deriv_within_integral_left
   deriv_within (λ u, ∫ x in u..b, f x) s a = -f a :=
 (integral_has_deriv_within_at_left hf hmeas ha).deriv_within hs
 
+/-!
+### Fundamental theorem of calculus, part 2
 
-/-~ ### Theorems pertaining to FTC-2. -/
+This section contains theorems pertaining to FTC-2 for interval integrals. -/
 
 variables {f' : ℝ → E}
 

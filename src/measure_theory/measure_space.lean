@@ -789,12 +789,12 @@ lemma restrict_apply_eq_zero (ht : is_measurable t) : μ.restrict s t = 0 ↔ μ
 by rw [restrict_apply ht]
 
 lemma measure_inter_eq_zero_of_restrict (h : μ.restrict s t = 0) : μ (t ∩ s) = 0 :=
-le_zero_iff_eq.1 (h ▸ le_restrict_apply _ _)
+nonpos_iff_eq_zero.1 (h ▸ le_restrict_apply _ _)
 
 lemma restrict_apply_eq_zero' (hs : is_measurable s) : μ.restrict s t = 0 ↔ μ (t ∩ s) = 0 :=
 begin
   refine ⟨measure_inter_eq_zero_of_restrict, λ h, _⟩,
-  rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t', htt', ht', ht'0⟩,
+  rcases exists_is_measurable_superset_of_null h with ⟨t', htt', ht', ht'0⟩,
   apply measure_mono_null ((inter_subset _ _ _).1 htt'),
   rw [restrict_apply (hs.compl.union ht'), union_inter_distrib_right, compl_inter_self,
     set.empty_union],

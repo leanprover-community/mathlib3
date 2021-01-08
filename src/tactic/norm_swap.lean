@@ -9,16 +9,18 @@ import tactic.norm_num
 /-!
 # `norm_swap`
 
-Evaluating swapping expressions of numerals, of the form `swap x y z`,
-for numerals `x y z : ℕ`.
+Evaluating `swap x y z` for numerals `x y z : ℕ`.
 -/
 
 open equiv tactic expr
 
 /--
-If `e : expr` is of the form `app (⇑f) x`, get back the `expr`s for type of `f`,
-the `has_coe_to_fun` instance, the expr for `f` itself, and `x`.
--/
+Match a term of shape `app (⇑f) x` and return expressions for:
+  * the type `tf` of `f`
+  * the instance `has_coe_to_fun tf`
+  * `f`
+  * `x`
+  -/
 meta def expr.get_of_coe_fn (e : expr) (f : name) : tactic (expr × expr × expr × expr) :=
 do
   if e.is_app_of ``coe_fn
@@ -30,10 +32,8 @@ do
   else fail "not of coe_fn form with a single argument"
 
 /--
-Produce the `expr` which is the application of the term represented by `n` with the
-`expr`s in `l`, while constructing the proper typeclass context.
-Differs from `mk_app` because `mk_app` assumes that `n` is over `Type*`,
-while here, `mk_sorted_app` assumed that `n` is over `Sort*`.
+Creates the application `n c.α p l`, where `p` is a type class instance found in the cache `c`,
+but works on `c.α : Sort*` instead of how `mk_app` uses `c.α : Type*`.
 -/
 meta def tactic.instance_cache.mk_sorted_app (c : instance_cache) (n : name) (l : list expr) :
   tactic (instance_cache × expr) :=
@@ -46,8 +46,7 @@ open norm_num
 namespace norm_swap
 
 /--
-A tactic for normalizing swaps of the form `equiv.swap a b c` where
-`a, b, c` are numerals.
+A tactic for normalizing `equiv.swap a b c` where `a b c : ℕ` are numerals.
 
 ```
 example : equiv.swap 1 2 1 = 2 := by norm_num

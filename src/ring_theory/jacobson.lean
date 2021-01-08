@@ -262,7 +262,7 @@ end localization
 namespace polynomial
 open polynomial
 
-/-- If `I` is an ideal of `polynomial R` and `pX ∈ I` is a non-constant polynomial,
+/-- If `I` is a prime ideal of `polynomial R` and `pX ∈ I` is a non-constant polynomial,
   then the map `R →+* R[x]/I` descends to an integral map when localizing at `pX.leading_coeff`.
   In particular `X` is integral because it satisfies `pX`, and constants are trivially integral,
   so integrality of the entire extension follows by closure under addition and multiplication -/

@@ -658,8 +658,40 @@ by simp only [dom_coprod', tensor_product.lift.tmul, linear_map.mk₂_apply]
 
 end alternating_map
 
-open alternating_map
 open equiv
+
+/-- A helper lemma for `multilinear_map.dom_coprod_alternization`. -/
+lemma multilinear_map.dom_coprod_alternization_coe
+  {R : Type*} {M N₁ N₂ : Type*}
+  [comm_semiring R]
+  [add_comm_group N₁] [semimodule R N₁]
+  [add_comm_group N₂] [semimodule R N₂]
+  [add_comm_monoid M] [semimodule R M]
+  (a : multilinear_map R (λ _ : ιa, M) N₁) (b : multilinear_map R (λ _ : ιb, M) N₂) :
+  multilinear_map.dom_coprod ↑a.alternatization ↑b.alternatization =
+    ∑ (σa : perm ιa) (σb : perm ιb), (σa.sign : ℤ) • (σb.sign : ℤ) •
+      multilinear_map.dom_coprod (a.dom_dom_congr σa) (b.dom_dom_congr σb) :=
+begin
+  simp_rw [←multilinear_map.dom_coprod'_apply, multilinear_map.alternatization_coe],
+  simp_rw [tensor_product.sum_tmul, tensor_product.tmul_sum, linear_map.map_sum,
+    ←tensor_product.smul_tmul', tensor_product.tmul_smul, linear_map.map_smul_of_tower],
+end
+
+#check finset.sum_partition
+
+open_locale big_operators
+
+/-- A product can be partitioned into a product of products, each equivalent under a setoid. -/
+@[to_additive "A sum can be partitioned into a sum of sums, each equivalent under a setoid."]
+lemma prod_partition {α : Type} (R : setoid α) [decidable_rel R.r] :
+  (∏ x in s, f x) = ∏ xbar in s.image quotient.mk, ∏ y in s.filter (λ y, ⟦y⟧ = xbar), f y :=
+begin
+  refine (finset.prod_image' f (λ x hx, _)).symm,
+  refl,
+end
+
+
+open alternating_map
 
 /-- Computing the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` is the same
 as computing the `alternating_map.dom_coprod` of the `multilinear_map.alternatization`s.
@@ -708,15 +740,12 @@ begin
   swap, { simp only [finset.mem_filter, finset.mem_univ, true_and] },
   simp_rw [multilinear_map.dom_dom_congr_mul, perm.sign_mul],
 
-  -- pull out the other pair of sums and smuls, by rewriting functions into their bundled versions
-  simp_rw [←multilinear_map.dom_coprod'_apply,
-    ←multilinear_map.dom_dom_congr_equiv_apply,
-    multilinear_map.alternatization_coe],
-  simp_rw [tensor_product.sum_tmul, tensor_product.tmul_sum, linear_map.map_sum, add_equiv.map_sum,
-    ←tensor_product.smul_tmul', tensor_product.tmul_smul, linear_map.map_smul_of_tower,
-    ←add_equiv.coe_to_add_monoid_hom, add_monoid_hom.map_int_module_smul],
-  simp_rw [add_equiv.coe_to_add_monoid_hom, multilinear_map.dom_coprod'_apply,
-    multilinear_map.dom_dom_congr_equiv_apply],
+  rw multilinear_map.dom_coprod_alternization_coe,
+  -- pull out the other pair of sums and smuls, by rewriting `dom_dom_congr` into bundled
+  -- versions for which the lemmas we care about apply (and then undo the rewrites).
+  simp_rw [←multilinear_map.dom_dom_congr_equiv_apply, ←add_equiv.coe_to_add_monoid_hom,
+    add_monoid_hom.map_sum, add_monoid_hom.map_int_module_smul,
+    add_equiv.coe_to_add_monoid_hom, multilinear_map.dom_dom_congr_equiv_apply],
   rw [←finset.sum_product', finset.univ_product_univ, finset.smul_sum],
 
   -- massage the sums to look the same
@@ -732,10 +761,12 @@ begin
 
   -- pick up the pieces
   simp_rw [perm.sign_mul, units.coe_mul, perm.sum_congr_hom_apply ιa ιb (al, ar),
-    multilinear_map.dom_coprod_dom_dom_congr_sum_congr],
-  simp [perm.mul_apply, mul_smul],
-  -- congr,
-  sorry
+    multilinear_map.dom_coprod_dom_dom_congr_sum_congr, perm.sign_sum_congr],
+  ext,
+  simp only [multilinear_map.smul_apply, mul_smul],
+  -- simp [perm.mul_apply, mul_smul],
+  -- -- congr,
+  -- sorry
 end
 
 /-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two

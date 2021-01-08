@@ -2016,29 +2016,22 @@ def completion (μ : measure α) : @measure_theory.measure α (null_measurable �
 instance completion.is_complete (μ : measure α) : (completion μ).is_complete :=
 λ z hz, null_is_null_measurable hz
 
-lemma measurable.ae_eq {β} [measurable_space β] [hμ : μ.is_complete]
-  {f g : α → β} (hf : measurable f) (hfg : f =ᵐ[μ] g) :
+lemma measurable.ae_eq {α β} [measurable_space α] [measurable_space β] {μ : measure α}
+  [hμ : μ.is_complete] {f g : α → β} (hf : measurable f) (hfg : f =ᵐ[μ] g) :
   measurable g :=
 begin
   intros s hs,
   let t := {x | f x = g x},
-  have ht : is_measurable t,
-  { rw ←is_measurable.compl_iff,
-    rw [filter.eventually_eq, ae_iff] at hfg,
-    exact hμ tᶜ hfg, },
+  have ht_compl : μ tᶜ = 0, by rwa [filter.eventually_eq, ae_iff] at hfg,
   rw (set.inter_union_compl (g ⁻¹' s) t).symm,
   refine is_measurable.union _ _,
   { have h_g_to_f : (g ⁻¹' s) ∩ t = (f ⁻¹' s) ∩ t,
     { ext,
       simp only [set.mem_inter_iff, set.mem_preimage, and.congr_left_iff, set.mem_set_of_eq],
-      intro hx,
-      rw hx, },
+      exact λ hx, by rw hx, },
     rw h_g_to_f,
-    exact is_measurable.inter (hf hs) ht, },
-  { have h_μ0 : μ (g ⁻¹' s ∩ tᶜ) = 0,
-    { rw [filter.eventually_eq, ae_iff] at hfg,
-      exact measure_mono_null (set.inter_subset_right _ _) hfg, },
-    exact hμ (g ⁻¹' s ∩ tᶜ) h_μ0, },
+    exact is_measurable.inter (hf hs) (is_measurable.compl_iff.mp (hμ tᶜ ht_compl)), },
+  { exact hμ (g ⁻¹' s ∩ tᶜ) (measure_mono_null (set.inter_subset_right _ _) ht_compl), },
 end
 
 end is_complete

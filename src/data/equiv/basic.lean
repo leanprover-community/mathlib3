@@ -1807,7 +1807,6 @@ lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α �
   equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
 funext $ λ z, hf.swap_apply _ _ _
 
-
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
 instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton
 

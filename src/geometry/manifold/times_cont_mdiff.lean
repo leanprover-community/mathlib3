@@ -896,7 +896,7 @@ end id
 section vector_space
 
 lemma times_cont_mdiff_within_at_iff_times_cont_diff_within_at {f : E → E'} {s : set E} {x : E} :
-  times_cont_mdiff_within_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f s x
+  times_cont_mdiff_within_at 𝓘(𝕜, E) 𝓘(𝕜, E') n f s x
   ↔ times_cont_diff_within_at 𝕜 n f s x :=
 begin
   simp only [times_cont_mdiff_within_at, lift_prop_within_at, times_cont_diff_within_at_prop,
@@ -906,39 +906,39 @@ end
 
 lemma times_cont_diff_within_at.times_cont_mdiff_within_at {f : E → E'} {s : set E} {x : E}
   (hf : times_cont_diff_within_at 𝕜 n f s x) :
-  times_cont_mdiff_within_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f s x
+  times_cont_mdiff_within_at 𝓘(𝕜, E) 𝓘(𝕜, E') n f s x
   :=
 times_cont_mdiff_within_at_iff_times_cont_diff_within_at.2 hf
 
 lemma times_cont_mdiff_at_iff_times_cont_diff_at {f : E → E'} {x : E} :
-  times_cont_mdiff_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f x
+  times_cont_mdiff_at 𝓘(𝕜, E) 𝓘(𝕜, E') n f x
   ↔ times_cont_diff_at 𝕜 n f x :=
 by rw [← times_cont_mdiff_within_at_univ,
   times_cont_mdiff_within_at_iff_times_cont_diff_within_at, times_cont_diff_within_at_univ]
 
 lemma times_cont_diff_at.times_cont_mdiff_at {f : E → E'} {x : E}
   (hf : times_cont_diff_at 𝕜 n f x) :
-  times_cont_mdiff_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f x :=
+  times_cont_mdiff_at 𝓘(𝕜, E) 𝓘(𝕜, E') n f x :=
 times_cont_mdiff_at_iff_times_cont_diff_at.2 hf
 
 lemma times_cont_mdiff_on_iff_times_cont_diff_on {f : E → E'} {s : set E} :
-  times_cont_mdiff_on (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f s
+  times_cont_mdiff_on 𝓘(𝕜, E) 𝓘(𝕜, E') n f s
   ↔ times_cont_diff_on 𝕜 n f s :=
 forall_congr $ by simp [times_cont_mdiff_within_at_iff_times_cont_diff_within_at]
 
 lemma times_cont_diff_on.times_cont_mdiff_on {f : E → E'} {s : set E}
   (hf : times_cont_diff_on 𝕜 n f s) :
-  times_cont_mdiff_on (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f s :=
+  times_cont_mdiff_on 𝓘(𝕜, E) 𝓘(𝕜, E') n f s :=
 times_cont_mdiff_on_iff_times_cont_diff_on.2 hf
 
 lemma times_cont_mdiff_iff_times_cont_diff {f : E → E'} :
-  times_cont_mdiff (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f
+  times_cont_mdiff 𝓘(𝕜, E) 𝓘(𝕜, E') n f
   ↔ times_cont_diff 𝕜 n f :=
 by rw [← times_cont_diff_on_univ, ← times_cont_mdiff_on_univ,
   times_cont_mdiff_on_iff_times_cont_diff_on]
 
 lemma times_cont_diff.times_cont_mdiff {f : E → E'} (hf : times_cont_diff 𝕜 n f) :
-  times_cont_mdiff (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') n f :=
+  times_cont_mdiff 𝓘(𝕜, E) 𝓘(𝕜, E') n f :=
 times_cont_mdiff_iff_times_cont_diff.2 hf
 
 end vector_space
@@ -1293,7 +1293,7 @@ namespace basic_smooth_bundle_core
 variables (Z : basic_smooth_bundle_core I M E')
 
 lemma times_cont_mdiff_proj :
-  times_cont_mdiff ((I.prod (model_with_corners_self 𝕜 E'))) I n
+  times_cont_mdiff ((I.prod 𝓘(𝕜, E'))) I n
     Z.to_topological_fiber_bundle_core.proj :=
 begin
   assume x,
@@ -1308,38 +1308,38 @@ begin
 end
 
 lemma smooth_proj :
-  smooth ((I.prod (model_with_corners_self 𝕜 E'))) I Z.to_topological_fiber_bundle_core.proj :=
+  smooth ((I.prod 𝓘(𝕜, E'))) I Z.to_topological_fiber_bundle_core.proj :=
 times_cont_mdiff_proj Z
 
 lemma times_cont_mdiff_on_proj {s : set (Z.to_topological_fiber_bundle_core.total_space)} :
-  times_cont_mdiff_on ((I.prod (model_with_corners_self 𝕜 E'))) I n
+  times_cont_mdiff_on ((I.prod 𝓘(𝕜, E'))) I n
     Z.to_topological_fiber_bundle_core.proj s :=
 Z.times_cont_mdiff_proj.times_cont_mdiff_on
 
 lemma smooth_on_proj {s : set (Z.to_topological_fiber_bundle_core.total_space)} :
-  smooth_on ((I.prod (model_with_corners_self 𝕜 E'))) I Z.to_topological_fiber_bundle_core.proj s :=
+  smooth_on ((I.prod 𝓘(𝕜, E'))) I Z.to_topological_fiber_bundle_core.proj s :=
 times_cont_mdiff_on_proj Z
 
 lemma times_cont_mdiff_at_proj {p : Z.to_topological_fiber_bundle_core.total_space} :
-  times_cont_mdiff_at ((I.prod (model_with_corners_self 𝕜 E'))) I n
+  times_cont_mdiff_at ((I.prod 𝓘(𝕜, E'))) I n
     Z.to_topological_fiber_bundle_core.proj p :=
 Z.times_cont_mdiff_proj.times_cont_mdiff_at
 
 lemma smooth_at_proj {p : Z.to_topological_fiber_bundle_core.total_space} :
-  smooth_at ((I.prod (model_with_corners_self 𝕜 E'))) I Z.to_topological_fiber_bundle_core.proj p :=
+  smooth_at ((I.prod 𝓘(𝕜, E'))) I Z.to_topological_fiber_bundle_core.proj p :=
 Z.times_cont_mdiff_at_proj
 
 lemma times_cont_mdiff_within_at_proj
   {s : set (Z.to_topological_fiber_bundle_core.total_space)}
   {p : Z.to_topological_fiber_bundle_core.total_space} :
-  times_cont_mdiff_within_at ((I.prod (model_with_corners_self 𝕜 E'))) I n
+  times_cont_mdiff_within_at ((I.prod 𝓘(𝕜, E'))) I n
     Z.to_topological_fiber_bundle_core.proj s p :=
 Z.times_cont_mdiff_at_proj.times_cont_mdiff_within_at
 
 lemma smooth_within_at_proj
   {s : set (Z.to_topological_fiber_bundle_core.total_space)}
   {p : Z.to_topological_fiber_bundle_core.total_space} :
-  smooth_within_at ((I.prod (model_with_corners_self 𝕜 E'))) I
+  smooth_within_at ((I.prod 𝓘(𝕜, E'))) I
     Z.to_topological_fiber_bundle_core.proj s p :=
 Z.times_cont_mdiff_within_at_proj
 
@@ -1349,7 +1349,7 @@ zero section of a vector bundle. Another example (not yet defined) would be the 
 section of the endomorphism bundle of a vector bundle. -/
 lemma smooth_const_section (v : E')
   (h : ∀ (i j : atlas H M), ∀ x ∈ i.1.source ∩ j.1.source, Z.coord_change i j (i.1 x) v = v) :
-  smooth I ((I.prod (model_with_corners_self 𝕜 E')))
+  smooth I ((I.prod 𝓘(𝕜, E')))
     (show M → Z.to_topological_fiber_bundle_core.total_space, from λ x, ⟨x, v⟩) :=
 begin
   assume x,

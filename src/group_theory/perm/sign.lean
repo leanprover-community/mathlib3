@@ -5,9 +5,8 @@ Authors: Chris Hughes
 -/
 import data.fintype.basic
 import data.finset.sort
-import algebra.group.conj
-import algebra.big_operators.basic
 import group_theory.perm.basic
+import group_theory.order_of_element
 
 /-!
 # Sign of a permutation
@@ -616,6 +615,16 @@ let ⟨g, hg⟩ := hf in
 let ⟨a, ha⟩ := hg.2 x hx in
 let ⟨b, hb⟩ := hg.2 y hy in
 ⟨b - a, by rw [← ha, ← mul_apply, ← gpow_add, sub_add_cancel, hb]⟩
+
+lemma exists_pow_eq_of_is_cycle {α : Type*} [fintype α] [decidable_eq α] {σ : perm α}
+  (hσ : is_cycle σ) {x y : α} (hx : σ x ≠ x) (hy : σ y ≠ y) : ∃ i : ℕ, (σ ^ i) x = y :=
+begin
+  cases exists_gpow_eq_of_is_cycle hσ hx hy with n hn,
+  use (n % order_of σ).to_nat,
+  have := int.mod_nonneg n (mt int.coe_nat_eq_zero.mp (ne_of_gt (order_of_pos σ))),
+  conv { to_rhs, rw [←hn, ←int.mod_add_div n (order_of σ), gpow_add, gpow_mul, gpow_coe_nat,
+    pow_order_of_eq_one, one_gpow, mul_one, ←int.to_nat_of_nonneg this, gpow_coe_nat] },
+end
 
 lemma is_cycle_swap_mul_aux₁ {α : Type*} [decidable_eq α] : ∀ (n : ℕ) {b x : α} {f : perm α}
   (hb : (swap x (f x) * f) b ≠ b) (h : (f ^ n) (f x) = b),

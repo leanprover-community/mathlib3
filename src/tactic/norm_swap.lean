@@ -57,7 +57,7 @@ example : equiv.swap 1 2 1 = 2 := by norm_num
 @[norm_num] meta def eval : expr → tactic (expr × expr) := λ e, do
   (swapt, coe_fn_inst, f, c) ← expr.get_of_coe_fn e ``equiv.swap,
   [α, deceq_inst, a, b] ← pure f.get_app_args, -- the swap should have exactly two arguments applied
-  unify α `(ℕ) <|> (trace "currently, norm_swap supports only ℕ" >> failure),
+  unify α `(ℕ) <|> (fail "currently, norm_swap supports only ℕ"),
   dic ← mk_instance_cache α,
   na ← a.to_nat,
   nb ← b.to_nat,

@@ -30,8 +30,8 @@ def get_fin : string → fin 5 :=
 sum.elim (λ _, 0) id ∘ parser.run_string (parser.numeral.of_fintype _)
 ```
 
-In the definitions of the parsers (except for `numeral`), there is an implicit `nat.cast` in
-the final `pure` statement.
+In the definitions of the parsers (except for `numeral`), there is an explicit `nat.bin_cast`
+instead an explicit or implicit `nat.cast`
 -/
 
 open parser parse_result
@@ -44,7 +44,7 @@ variables (α : Type) [has_zero α] [has_one α] [has_add α]
 Parse a string of digits as a numeral while casting it to target type `α`.
 -/
 def numeral : parser α :=
-nat.cast <$> nat
+nat.bin_cast <$> nat
 
 /--
 Parse a string of digits as a numeral while casting it to target type `α`,
@@ -56,7 +56,7 @@ do
   c ← nat,
   decorate_error ("<numeral less than " ++ to_string (fintype.card α) ++ ">")
     (guard (c < fintype.card α)),
-  pure c
+  pure $ nat.bin_cast c
 
 /--
 Parse a string of digits as a numeral while casting it to target type `α`. The parsing starts
@@ -67,7 +67,7 @@ do
   c ← nat,
   decorate_error ("<positive numeral>")
     (guard (0 < c)),
-  pure $ ((c - 1) : ℕ)
+  pure $ nat.bin_cast (c - 1)
 
 /--
 Parse a string of digits as a numeral while casting it to target type `α`,
@@ -80,7 +80,7 @@ do
   c ← nat,
   decorate_error ("<positive numeral less than or equal to " ++ to_string (fintype.card α) ++ ">")
     (guard (0 < c ∧ c ≤ fintype.card α)),
-  pure $ ((c - 1) : ℕ)
+  pure $ nat.bin_cast (c - 1)
 
 /--
 Parse a character as a numeral while casting it to target type `α`,
@@ -92,7 +92,7 @@ do
   c ← decorate_error
     ("<char between '" ++ fromc.to_string ++ "' to '" ++ toc.to_string ++ "' inclusively>")
     (sat (λ c, fromc ≤ c ∧ c ≤ toc)),
-  pure $ ((c.to_nat - fromc.to_nat) : ℕ)
+  pure $ nat.bin_cast (c.to_nat - fromc.to_nat)
 
 /--
 Parse a character as a numeral while casting it to target type `α`,
@@ -107,6 +107,6 @@ do
     ("<char from '" ++ fromc.to_string ++ "' to '" ++
       (char.of_nat (fromc.to_nat + fintype.card α - 1)).to_string ++ "' inclusively>")
     (sat (λ c, fromc ≤ c ∧ c.to_nat - fintype.card α < fromc.to_nat)),
-  pure $ ((c.to_nat - fromc.to_nat) : ℕ)
+  pure $ nat.bin_cast (c.to_nat - fromc.to_nat)
 
 end parser

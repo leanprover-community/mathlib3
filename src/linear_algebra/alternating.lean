@@ -784,7 +784,7 @@ begin
   rw [←dom_coprod'_apply, ←dom_coprod'_apply, ←tensor_product.smul_tmul', tensor_product.tmul_smul],
   rw [linear_map.map_smul_of_tower dom_coprod', linear_map.map_smul_of_tower dom_coprod'],
   -- typeclass resolution is a little confused here
-  all_goals { apply_instance },
+  apply_instance, apply_instance,
 end
 
 end coprod

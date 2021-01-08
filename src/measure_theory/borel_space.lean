@@ -40,7 +40,7 @@ open classical set filter measure_theory
 open_locale classical big_operators topological_space nnreal
 
 universes u v w x y
-variables {α β γ δ : Type*} {ι : Sort y} {s t u : set α}
+variables {α β γ γ₂ δ : Type*} {ι : Sort y} {s t u : set α}
 
 open measurable_space topological_space
 
@@ -170,6 +170,7 @@ section
 variables [topological_space α] [measurable_space α] [opens_measurable_space α]
    [topological_space β] [measurable_space β] [opens_measurable_space β]
    [topological_space γ] [measurable_space γ] [borel_space γ]
+   [topological_space γ₂] [measurable_space γ₂] [borel_space γ₂]
    [measurable_space δ]
 
 lemma is_open.is_measurable (h : is_open s) : is_measurable s :=
@@ -376,13 +377,23 @@ lemma continuous.measurable {f : α → γ} (hf : continuous f) :
 hf.borel_measurable.mono opens_measurable_space.borel_le
   (le_of_eq $ borel_space.measurable_eq)
 
+section homeomorph
+
 /-- A homeomorphism between two Borel spaces is a measurable equivalence.-/
-def homeomorph.to_measurable_equiv {α : Type*} {β : Type*} [topological_space α]
-  [measurable_space α] [borel_space α] [topological_space β] [measurable_space β]
-  [borel_space β] (h : α ≃ₜ β) : α ≃ᵐ β :=
+def homeomorph.to_measurable_equiv (h : γ ≃ₜ γ₂) : γ ≃ᵐ γ₂ :=
 { measurable_to_fun := h.continuous_to_fun.measurable,
   measurable_inv_fun := h.continuous_inv_fun.measurable,
   .. h }
+
+@[simp]
+lemma homeomorph.to_measurable_equiv_coe (h : γ ≃ₜ γ₂) : (h.to_measurable_equiv : γ → γ₂) = h :=
+rfl
+
+@[simp] lemma homeomorph.to_measurable_equiv_symm_coe (h : γ ≃ₜ γ₂) :
+  (h.to_measurable_equiv.symm : γ₂ → γ) = h.symm :=
+rfl
+
+end homeomorph
 
 lemma measurable_of_continuous_on_compl_singleton [t1_space α] {f : α → γ} (a : α)
   (hf : continuous_on f {x | x ≠ a}) :
@@ -1015,6 +1026,12 @@ lemma measurable_sub : measurable (λ p : ennreal × ennreal, p.1 - p.2) :=
 by apply measurable_of_measurable_nnreal_nnreal;
   simp [← ennreal.coe_sub, continuous_sub.measurable.ennreal_coe]
 
+lemma measurable_inv : measurable (has_inv.inv : ennreal → ennreal) :=
+ennreal.continuous_inv.measurable
+
+lemma measurable_div : measurable (λ p : ennreal × ennreal, p.1 / p.2) :=
+ennreal.measurable_mul.comp $ measurable_fst.prod_mk $ ennreal.measurable_inv.comp measurable_snd
+
 end ennreal
 
 lemma measurable.to_nnreal {f : α → ennreal} (hf : measurable f) :
@@ -1049,6 +1066,13 @@ ennreal.measurable_sub.comp (hf.prod_mk hg)
 lemma measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ennreal} (h : ∀ i, measurable (f i)) :
   measurable (λ x, ∑' i, f i x) :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply measurable_supr, exact λ s, s.measurable_sum h }
+
+lemma measurable.ennreal_inv {f : α → ennreal} (hf : measurable f) : measurable (λ a, (f a)⁻¹) :=
+ennreal.measurable_inv.comp hf
+
+lemma measurable.ennreal_div {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
+  measurable (λ a, f a / g a) :=
+ennreal.measurable_div.comp $ hf.prod_mk hg
 
 section normed_group
 

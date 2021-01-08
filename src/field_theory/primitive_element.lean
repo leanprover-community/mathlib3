@@ -6,6 +6,8 @@ Authors: Thomas Browning and Patrick Lutz
 
 import field_theory.adjoin
 import field_theory.separable
+import linear_algebra.free_module
+import ring_theory.power_basis
 
 /-!
 # Primitive Element Theorem
@@ -16,6 +18,7 @@ In this file we prove the primitive element theorem.
 
 - `exists_primitive_element`: a finite separable extension `E / F` has a primitive element, i.e.
   there is an `α : E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.
+- `power_basis_of_finite_of_separable`: a finite separable extension `E / F` has a power basis
 
 ## Implementation notes
 
@@ -182,5 +185,80 @@ begin
       exact ⟨γ, hγ.symm⟩ },
     exact induction_on_adjoin P base ih ⊤ },
 end
+
+/-- An algebra equivalence induces an equivalence of power bases.
+
+This definition is used for either direction of `power_basis.congr`.
+-/
+def power_basis.congr_aux {R A A' : Type*} [comm_ring R] [ring A] [ring A']
+  [algebra R A] [algebra R A'] (e : A ≃ₐ[R] A')
+  (pb : power_basis R A) : power_basis R A' :=
+{ gen := e pb.gen,
+  dim := pb.dim,
+  is_basis := by { simp only [← e.map_pow],
+                   convert linear_equiv.is_basis pb.is_basis e.to_linear_equiv } }
+
+@[ext]
+lemma power_basis.ext {R A : Type*} [integral_domain R] [ring A] [algebra R A]
+  {pb pb' : power_basis R A} (h : pb.gen = pb'.gen) : pb = pb' :=
+begin
+  cases pb, cases pb', congr,
+  { exact h },
+  convert le_antisymm
+      (pb'_is_basis.card_le_card_of_linear_independent pb_is_basis.1)
+      (pb_is_basis.card_le_card_of_linear_independent pb'_is_basis.1);
+    rw fintype.card_fin
+end
+
+@[ext]
+lemma power_basis.ext_iff {R A : Type*} [integral_domain R] [ring A] [algebra R A]
+  {pb pb' : power_basis R A} : pb = pb' ↔ pb.gen = pb'.gen :=
+⟨λ h, by rw h, power_basis.ext⟩
+
+/-- An algebra equivalence induces an equivalence of power bases. -/
+def power_basis.congr {R A A' : Type*} [integral_domain R] [ring A] [ring A']
+  [algebra R A] [algebra R A'] (e : A ≃ₐ[R] A') :
+  power_basis R A ≃ power_basis R A' :=
+{ to_fun := power_basis.congr_aux e,
+  inv_fun := power_basis.congr_aux e.symm,
+  left_inv := λ pb, power_basis.ext (e.symm_apply_apply pb.gen),
+  right_inv := λ pb, power_basis.ext (e.apply_symm_apply pb.gen) }
+
+/-- Two subalgebras with the same elements are isomorphic as `R`-algebras. -/
+def subalgebra.equiv_of_eq {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+  {S S' : subalgebra R A} (h : S = S') :
+  S ≃ₐ[R] S' :=
+{ to_fun := λ x, ⟨x, h ▸ x.2⟩,
+  inv_fun := λ x, ⟨x, h.symm ▸ x.2⟩,
+  left_inv := λ x, subtype.ext rfl,
+  right_inv := λ x, subtype.ext rfl,
+  map_mul' := λ x y, subtype.ext rfl,
+  map_add' := λ x y, subtype.ext rfl,
+  commutes' := λ x, subtype.ext rfl }
+
+/-- Two intermediate fields with the same elements are isomorphic as `R`-algebras. -/
+def intermediate_field.equiv_of_eq {K L : Type*} [field K] [field L] [algebra K L]
+  {S S' : intermediate_field K L} (h : S = S') :
+  S ≃ₐ[K] S' :=
+{ to_fun := λ x, ⟨x, h ▸ x.2⟩,
+  inv_fun := λ x, ⟨x, h.symm ▸ x.2⟩,
+  left_inv := λ x, subtype.ext rfl,
+  right_inv := λ x, subtype.ext rfl,
+  map_mul' := λ x y, subtype.ext rfl,
+  map_add' := λ x y, subtype.ext rfl,
+  commutes' := λ x, subtype.ext rfl }
+
+/-- A finite separable extension `E / F` has a power basis given by the primitive element -/
+def power_basis_of_finite_of_separable [finite_dimensional F E] [F_sep : is_separable F E] :
+  power_basis F E :=
+let α := classical.some (exists_primitive_element F_sep) in
+power_basis.congr
+  (show F⟮α⟯ ≃ₐ[F] E,
+   from (intermediate_field.equiv_of_eq
+       (show F⟮α⟯ = ⊤, from classical.some_spec (exists_primitive_element F_sep))).trans $
+    (subalgebra.equiv_of_eq (intermediate_field.top_to_subalgebra)).trans
+    algebra.top_equiv)
+  (intermediate_field.adjoin.power_basis ((is_algebraic_iff_is_integral _).mp
+    (algebra.is_algebraic_of_finite α)))
 
 end field

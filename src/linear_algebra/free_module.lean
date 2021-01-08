@@ -504,8 +504,9 @@ begin
 end
 
 /-- In an `n`-dimensional space, the rank is at most `m`. -/
-lemma is_basis.card_le_card_of_linear_independent_aux (n : ℕ)
-  {m : ℕ} (v : fin m → fin n → R) :
+lemma is_basis.card_le_card_of_linear_independent_aux
+  {R : Type*} [integral_domain R]
+  (n : ℕ) {m : ℕ} (v : fin m → fin n → R) :
   linear_independent R v → m ≤ n :=
 begin
   revert m,
@@ -581,6 +582,7 @@ begin
 end
 
 lemma is_basis.card_le_card_of_linear_independent
+  {R : Type*} [integral_domain R] [module R M]
   {ι : Type*} [fintype ι] {b : ι → M} (hb : is_basis R b)
   {ι' : Type*} [fintype ι'] {v : ι' → M} (hv : linear_independent R v) :
   fintype.card ι' ≤ fintype.card ι :=

@@ -37,8 +37,8 @@ namespace category_theory.limits
 variables {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} {h : W ⟶ X} {k : W ⟶ Y} (comm : h ≫ f = k ≫ g)
 
 /--
-The map of a pullback cone is a limit iff the fork consisting of the mapped morphisms is a limit. This
-essentially lets us commute `binary_fan.mk` with `functor.map_cone`.
+The map of a pullback cone is a limit iff the fork consisting of the mapped morphisms is a limit.
+This essentially lets us commute `pullback_cone.mk` with `functor.map_cone`.
 -/
 def is_limit_map_cone_pullback_cone_equiv :
   is_limit (G.map_cone (pullback_cone.mk h k comm)) ≃

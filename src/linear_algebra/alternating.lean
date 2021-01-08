@@ -437,6 +437,6 @@ variables {N'₂ : Type*} [add_comm_group N'₂] [semimodule R N'₂] [fintype �
 lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
   (f : multilinear_map R (λ _ : ι, M) N') :
   (g.comp_multilinear_map f).alternatization = g.comp_alternating_map (f.alternatization) :=
-by { ext1, simp [multilinear_map.alternatization_def] }
+by { ext, simp [multilinear_map.alternatization_def] }
 
 end linear_map

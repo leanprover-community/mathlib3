@@ -618,13 +618,11 @@ let ⟨b, hb⟩ := hg.2 y hy in
 
 lemma exists_pow_eq_of_is_cycle [decidable_eq β] [fintype β] {f : perm β}
   (hf : is_cycle f) {x y : β} (hx : f x ≠ x) (hy : f y ≠ y) : ∃ i : ℕ, (f ^ i) x = y :=
-begin
-  cases exists_gpow_eq_of_is_cycle hf hx hy with n hn,
-  use (n % order_of f).to_nat,
-  have := int.mod_nonneg n (int.coe_nat_ne_zero.mpr $ ne_of_gt $ order_of_pos f),
-  conv { to_rhs, rw [←hn, ←int.mod_add_div n (order_of f), gpow_add, gpow_mul, gpow_coe_nat,
-    pow_order_of_eq_one, one_gpow, mul_one, ←int.to_nat_of_nonneg this, gpow_coe_nat] },
-end
+let ⟨n, hn⟩ := exists_gpow_eq_of_is_cycle hf hx hy in
+⟨(n % order_of f).to_nat, by {
+  have := int.mod_nonneg n (int.coe_nat_ne_zero.mpr (ne_of_gt (order_of_pos f))),
+  rw [←gpow_coe_nat, int.to_nat_of_nonneg this, ←gpow_eq_mod_order_of],
+  exact hn }⟩
 
 lemma is_cycle_swap_mul_aux₁ {α : Type*} [decidable_eq α] : ∀ (n : ℕ) {b x : α} {f : perm α}
   (hb : (swap x (f x) * f) b ≠ b) (h : (f ^ n) (f x) = b),

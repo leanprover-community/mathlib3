@@ -46,14 +46,6 @@ using `map_swap` as a definition, and does not require `has_neg N`.
 -- TODO: move
 section to_move
 
-lemma semimodule.nsmul {M : Type*} [add_comm_monoid M] (i : semimodule ℕ M) (n : ℕ) (a : M) :
-  n •ℕ a = n • a :=
-begin
-  have := subsingleton.elim add_comm_monoid.nat_semimodule i,
-  rw ←nat.smul_def,
-  rw this,
-end
-
 namespace tactic
 namespace interactive
 
@@ -468,7 +460,6 @@ end
 
 end alternating_map
 
-
 namespace linear_map
 
 variables {N'₂ : Type*} [add_comm_group N'₂] [semimodule R N'₂] [fintype ι]
@@ -555,15 +546,8 @@ def dom_coprod_fun
   { intros,
     rw [←tensor_product.tmul_smul, tensor_product.smul_tmul'], },
   ext v,
-  suffices : ↑(perm.sign σ₁) • (↑a.dom_coprod ↑b) (λ i, v (σ₁ i)) =
-              ↑(perm.sign σ₂) • (↑a.dom_coprod ↑b) (λ i, v (σ₂ i)),
-  sorry,
   simp only [multilinear_map.dom_dom_congr_apply,
-    coe_multilinear_map, multilinear_map.smul_apply],
-    -- , multilinear_map.dom_coprod_apply
-  have : has_scalar ℤ (N₁ ⊗[R] N₂) := by show_term {apply_instance},
-  simp_rw tensor_product.int_has_scalar'_eq,
-    simp only [multilinear_map.smul_apply],
+    coe_multilinear_map, multilinear_map.smul_apply, multilinear_map.dom_coprod_apply],
   obtain ⟨⟨sl, sr⟩, h⟩ := h,
   replace h := h.symm,
   rw inv_mul_eq_iff_eq_mul at h,
@@ -574,7 +558,6 @@ def dom_coprod_fun
              function.comp_app, perm.coe_mul],
   rw [a.map_congr_perm (λ i, v (σ₁ _)) sl, b.map_congr_perm (λ i, v (σ₁ _)) sr],
   convert tmul_helper _ _ _ _,
-  all_goals { exact tensor_product.int_has_scalar'_eq, },
 end)
 
 #exit

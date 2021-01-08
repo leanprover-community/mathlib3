@@ -13,7 +13,10 @@ In this file we show properties about measure theory in products of topological 
 or iterated integrals in topological groups.
 
 These lemmas show the uniqueness of left invariant measures on locally compact groups, up to
-scaling.
+scaling. In this file we follow the proof and refer to the book *Measure Theory* by Paul Halmos.
+The proof seems to contain an omission in §60 Th. A, see
+`measure_theory.measure_lintegral_div_measure` and
+https://math.stackexchange.com/questions/3974485/does-right-translation-preserve-finiteness-for-a-left-invariant-measure
 -/
 
 noncomputable theory

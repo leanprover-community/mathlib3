@@ -27,6 +27,8 @@ formally using Tychonoff's theorem.
 This function `h` forms a content, which we can extend to an outer measure `μ`
 (`haar_outer_measure`), and obtain the Haar measure from that (`haar_measure`).
 We normalize the Haar measure so that the measure of `K₀` is `1`.
+We show that for second countable spaces any left invariant Borel measure is a scalar multiple of
+the Haar measure.
 
 Note that `μ` need not coincide with `h` on compact sets, according to
 [halmos1950measure, ch. X, §53 p.233]. However, we know that `h(K)` lies between `μ(Kᵒ)` and `μ(K)`,

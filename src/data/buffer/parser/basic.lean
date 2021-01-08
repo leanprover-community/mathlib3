@@ -81,23 +81,23 @@ lemma decorate_error_success (h : p cb n = done n' a) :
   @decorate_error α msg p cb n = done n' a :=
 decorate_errors_success h
 
-@[simp] lemma decorate_errors_success_iff :
+@[simp] lemma decorate_errors_eq_done :
   @decorate_errors α msgs p cb n = done n' a ↔ p cb n = done n' a :=
 by cases h : p cb n; simp [decorate_errors, h]
 
-@[simp] lemma decorate_error_success_iff :
+@[simp] lemma decorate_error_eq_done :
   @decorate_error α msg p cb n = done n' a ↔ p cb n = done n' a :=
-decorate_errors_success_iff
+decorate_errors_eq_done
 
-@[simp] lemma decorate_errors_failure_iff :
+@[simp] lemma decorate_errors_eq_fail :
   @decorate_errors α msgs p cb n = fail n err ↔
     err = dlist.lazy_of_list (msgs ()) ∧ ∃ np err', p cb n = fail np err' :=
 by cases h : p cb n; simp [decorate_errors, h, eq_comm]
 
-@[simp] lemma decorate_error_failure_iff :
+@[simp] lemma decorate_error_eq_fail :
   @decorate_error α msg p cb n = fail n err ↔
     err = dlist.lazy_of_list ([msg ()]) ∧ ∃ np err', p cb n = fail np err' :=
-decorate_errors_failure_iff
+decorate_errors_eq_fail
 
 @[simp] lemma return_eq_pure : (@return parser _ _ a) = pure a := rfl
 

@@ -76,7 +76,7 @@ variables [has_pullback (G.map f) (G.map g)]
 If the pullback comparison map for `G` at `(f,g)` is an isomorphism, then `G` preserves the
 pullback of `(f,g)`.
 -/
-def preserves_pair.of_iso_comparison [i : is_iso (pullback_comparison G f g)] :
+def preserves_pullback.of_iso_comparison [i : is_iso (pullback_comparison G f g)] :
   preserves_limit (cospan f g) G :=
 begin
   apply preserves_limit_of_preserves_limit_cone (pullback_is_pullback f g),

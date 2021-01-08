@@ -302,10 +302,10 @@ begin
   have hnpos : 0 < n := nat.pos_of_ne_zero hn,
   by_cases hnb : n < b + 2,
   { simp_rw [digits_of_lt b.succ.succ n hnpos hnb],
-    exact nat.pos_iff_ne_zero.mp hnpos },
+    exact pos_iff_ne_zero.mp hnpos },
   { rw digits_last (show 2 ≤ b + 2, from dec_trivial) hnpos,
     refine IH _ (nat.div_lt_self hnpos dec_trivial) _,
-    { rw ←nat.pos_iff_ne_zero,
+    { rw ←pos_iff_ne_zero,
       exact nat.div_pos (le_of_not_lt hnb) dec_trivial } },
 end
 
@@ -406,7 +406,7 @@ begin
     list.length_init, of_digits_singleton, add_comm (l.length - 1), pow_add, pow_one],
   apply nat.mul_le_mul_left,
   refine le_trans _ (nat.le_add_left _ _),
-  have : 0 < l.last hl, { rwa [nat.pos_iff_ne_zero] },
+  have : 0 < l.last hl, { rwa [pos_iff_ne_zero] },
   convert nat.mul_le_mul_left _ this, rw [mul_one]
 end
 

@@ -42,7 +42,7 @@ lemma antilipschitz_with.mul_le_dist [metric_space α] [metric_space β] {K : �
 begin
   by_cases hK : K = 0, by simp [hK, dist_nonneg],
   rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  rw div_le_iff' (nnreal.coe_pos.2 $ zero_lt_iff_ne_zero.2 hK),
+  rw div_le_iff' (nnreal.coe_pos.2 $ pos_iff_ne_zero.2 hK),
   exact hf.le_mul_dist x y
 end
 

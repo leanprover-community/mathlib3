@@ -10,6 +10,7 @@ Includes the Prop and fun instances.
 import order.lattice
 import data.option.basic
 import tactic.pi_instances
+import logic.nontrivial
 
 set_option old_structure_cmd true
 
@@ -650,6 +651,11 @@ by simp [(≤)]
   @has_lt.lt (with_top α) _ (some a) none :=
 by simp [(<)]; existsi a; refl
 
+instance : can_lift (with_top α) α :=
+{ coe := coe,
+  cond := λ r, r ≠ ⊤,
+  prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
+
 instance [preorder α] : preorder (with_top α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₂, ∃ b ∈ o₁, b ≤ a,
   lt          := (<),
@@ -1010,6 +1016,8 @@ end bounded_distrib_lattice
 
 end disjoint
 
+section is_compl
+
 /-!
 ### `is_compl` predicate
 -/
@@ -1100,3 +1108,16 @@ is_compl.of_eq bot_inf_eq sup_top_eq
 
 lemma is_compl_top_bot [bounded_lattice α] : is_compl (⊤ : α) ⊥ :=
 is_compl.of_eq inf_bot_eq top_sup_eq
+
+end is_compl
+
+section nontrivial
+
+variables [bounded_lattice α] [nontrivial α]
+
+lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
+λ H, not_nontrivial_iff_subsingleton.mpr (subsingleton_of_bot_eq_top H) ‹_›
+
+lemma top_ne_bot : (⊤ : α) ≠ ⊥ := ne.symm bot_ne_top
+
+end nontrivial

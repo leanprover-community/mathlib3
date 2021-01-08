@@ -175,6 +175,7 @@ by simp_rw [← ne_empty_iff_nonempty, ne.def, null_of_is_mul_left_invariant_of_
 
 /-- For nonzero regular left invariant measures, the integral of a continuous nonnegative function
   `f` is 0 iff `f` is 0. -/
+-- @[to_additive] (fails for now)
 lemma lintegral_eq_zero_of_is_mul_left_invariant (hμ : regular μ)
   (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {f : G → ennreal} (hf : continuous f) :
   ∫⁻ x, f x ∂μ = 0 ↔ f = 0 :=
@@ -200,33 +201,6 @@ begin
 end
 
 end group
-
-section add_group
-
--- todo: move
-instance multiplicative.has_continuous_mul [has_add G] [has_continuous_add G] :
-  @has_continuous_mul (multiplicative G) _inst_2 _ :=
-{ continuous_mul := @continuous_add G _ _ _  }
-
-variables [add_group G] [topological_add_group G]
-
-instance multiplicative.topological_grop : @topological_group (multiplicative G) _inst_2 _ :=
-{ continuous_inv := @continuous_neg G _ _ _ }
-#check multiplicative.topological_grop
-
-/-- For nonzero regular left invariant measures, the integral of a continuous nonnegative function
-  `f` is 0 iff `f` is 0.
-  We manually prove this for the additive version, since the proof uses
-  multiplication that shouldn't be transformed into addition. -/
-lemma lintegral_eq_zero_of_is_add_left_invariant (hμ : regular μ)
-  (h2μ : is_add_left_invariant μ) (h3μ : μ ≠ 0) {f : G → ennreal} (hf : continuous f) :
-  ∫⁻ x, f x ∂μ = 0 ↔ f = 0 :=
-@lintegral_eq_zero_of_is_mul_left_invariant (multiplicative G) _inst_1 _inst_2 _inst_3
-  μ _ _ hμ h2μ h3μ f hf
-
-end add_group
-
-attribute [to_additive] lintegral_eq_zero_of_is_mul_left_invariant
 
 end measure
 

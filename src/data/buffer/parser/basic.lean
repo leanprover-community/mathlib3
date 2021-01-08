@@ -236,7 +236,7 @@ variables {sep : parser unit}
 namespace valid
 
 lemma pure : valid (pure a) :=
-by { intros cb n, simp only [pure_eq_done, parse_result.pos, imp_self, and_true] }
+λ _ _, by simp
 
 @[simp] lemma bind {f : α → parser β} (hp : p.valid) (hf : ∀ a, (f a).valid) :
   (p >>= f).valid :=

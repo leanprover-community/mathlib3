@@ -474,6 +474,10 @@ end linear_map
 
 section coprod
 
+-- otherwise these takes precedence over `tensor_product.semimodule`, which prevents tmul lemmas
+-- about that instance being applied.
+local attribute [instance, priority 100] add_comm_group.int_module add_comm_monoid.nat_semimodule
+
 open_locale big_operators
 open_locale tensor_product
 
@@ -487,47 +491,10 @@ quotient_group.quotient (equiv.perm.sum_congr_hom α β).range
 
 end equiv.perm
 
--- TODO: Move?
-namespace tensor_product
-
-@[simp]
-lemma nat_has_scalar'_eq {R M N : Type*}
-  [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [semimodule R M] [semimodule R N]
-  [semimodule ℕ M] [semimodule ℕ N] [smul_comm_class R ℕ M] [smul_comm_class R ℕ N] :
-  (add_comm_monoid.nat_semimodule.to_distrib_mul_action.to_mul_action.to_has_scalar
-    : has_scalar ℕ (M ⊗[R] N)) =
-  tensor_product.has_scalar' :=
-begin
-  change _ = tensor_product.semimodule'.to_distrib_mul_action.to_mul_action.to_has_scalar,
-  congr,
-  apply_instance,
-  apply_instance,
-end
-
-
-@[simp]
-lemma int_has_scalar'_eq {R M N : Type*}
-  [comm_semiring R] [add_comm_group M] [add_comm_group N] [semimodule R M] [semimodule R N]
-  [semimodule ℤ M] [semimodule ℤ N] [smul_comm_class R ℤ M] [smul_comm_class R ℤ N] :
-  (add_comm_group.int_module.to_distrib_mul_action.to_mul_action.to_has_scalar
-    : has_scalar ℤ (M ⊗[R] N)) =
-  tensor_product.has_scalar' :=
-begin
-  change _ = tensor_product.semimodule'.to_distrib_mul_action.to_mul_action.to_has_scalar,
-  congr,
-  apply_instance,
-  apply_instance,
-end
-
-end tensor_product
-
 namespace alternating_map
 open equiv
 
-local attribute [instance, priority 100] add_comm_group.int_module
-
-#print add_comm_group.int_module
-
+/-- Auxiliary helper for `dom_coprod`, before it has been proven that the result is alternating. -/
 def dom_coprod_fun
   {R : Type*} {M N₁ N₂ : Type*}
   [comm_semiring R]
@@ -541,26 +508,20 @@ def dom_coprod_fun
     (multilinear_map.dom_coprod a b : multilinear_map R (λ (_ : ιa ⊕ ιb), M) (N₁ ⊗ N₂))
       .dom_dom_congr σ)
 (λ σ₁ σ₂ h, begin
-  have tmul_helper : ∀ (z₁ z₂ : ℤ) (n₁ : N₁) (n₂ : N₂),
-    ((z₁ • n₁) ⊗ₜ[R] (z₂ • n₂)) = z₁ • z₂ • (n₁ ⊗ₜ[R] n₂),
-  { intros,
-    rw [←tensor_product.tmul_smul, tensor_product.smul_tmul'], },
   ext v,
-  simp only [multilinear_map.dom_dom_congr_apply,
-    coe_multilinear_map, multilinear_map.smul_apply, multilinear_map.dom_coprod_apply],
+  simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
+    coe_multilinear_map, multilinear_map.smul_apply],
   obtain ⟨⟨sl, sr⟩, h⟩ := h,
-  replace h := h.symm,
-  rw inv_mul_eq_iff_eq_mul at h,
+  replace h := inv_mul_eq_iff_eq_mul.mp h.symm,
   have : ((σ₁ * perm.sum_congr_hom _ _ (sl, sr)).sign : ℤ) = σ₁.sign * (sl.sign * sr.sign) :=
     by simp,
-  rw [h, this, mul_smul, mul_smul, units.smul_left_cancel],
+  rw [h, this, mul_smul, mul_smul, units.smul_left_cancel,
+    ←tensor_product.tmul_smul, tensor_product.smul_tmul'],
   simp only [sum.map_inr, perm.sum_congr_hom_apply, perm.sum_congr_apply, sum.map_inl,
              function.comp_app, perm.coe_mul],
-  rw [a.map_congr_perm (λ i, v (σ₁ _)) sl, b.map_congr_perm (λ i, v (σ₁ _)) sr],
-  convert tmul_helper _ _ _ _,
+  rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))],
 end)
 
-#exit
 private lemma dom_coprod_fun_eq_zero_if_eq
   {R : Type*} {M N₁ N₂ : Type*}
   [comm_semiring R]
@@ -712,7 +673,7 @@ begin
   ext,
   dsimp only [dom_coprod_apply, smul_apply, multilinear_map.alternatization_def,
     alternating_map.dom_coprod_apply, dom_coprod_fun],
-  simp_rw multilinear_map.sum_apply,
+  simp_rw [multilinear_map.sum_apply, multilinear_map.smul_apply],
   rw finset.sum_partition (quotient_group.left_rel (perm.sum_congr_hom ιa ιb).range),
   congr' 1,
   ext σ,
@@ -730,8 +691,9 @@ begin
   dsimp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
     coe_multilinear_map, multilinear_map.smul_apply, multilinear_map.alternatization_def],
   simp only [multilinear_map.sum_apply, multilinear_map.smul_apply],
+  simp_rw multilinear_map.smul_apply,
   simp_rw [tensor_product.sum_tmul, tensor_product.tmul_sum,
-    ←tensor_product.smul_tmul'_int, tensor_product.tmul_smul_int],
+    ←tensor_product.smul_tmul', tensor_product.tmul_smul],
 
   -- eliminate a multiplication
   have : @finset.univ (perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) := begin
@@ -748,8 +710,7 @@ begin
   change ∑ (a_1 : (perm.sum_congr_hom ιa ιb).range), _ = _,
   swap, { simp only [finset.mem_filter, finset.mem_univ, true_and] },
 
-  simp_rw [perm.sign_mul, units.coe_mul, mul_smul, finset.smul_sum],
-  rw [←finset.sum_product', finset.univ_product_univ],
+  rw [←finset.sum_product', finset.univ_product_univ, finset.smul_sum],
   symmetry,
   apply finset.sum_bij
     (λ a ha, (⟨perm.sum_congr_hom ιa ιb a, a, rfl⟩ : (perm.sum_congr_hom ιa ιb).range))
@@ -759,7 +720,9 @@ begin
     (λ b hb, let ⟨⟨sl, sr⟩, hb⟩ := b.prop in ⟨(sl, sr), finset.mem_univ _, subtype.ext hb.symm⟩),
   dsimp only [subtype.coe_mk],
   obtain ⟨al, ar⟩ := a,
-  simp_rw perm.sum_congr_hom_apply ιa ιb (al, ar),
+  simp_rw [perm.sign_mul, units.coe_mul, perm.sum_congr_hom_apply ιa ιb (al, ar)],
+  -- mul_smul (σ.sign : ℤ)],
+  -- simp_rw perm.sum_congr_hom_apply ιa ιb (al, ar),
   simp [perm.mul_apply, mul_smul],
   congr,
 end
@@ -782,11 +745,7 @@ begin
   rw [←dom_coprod'_apply, ←dom_coprod'_apply, ←tensor_product.smul_tmul', tensor_product.tmul_smul],
   rw [linear_map.map_smul_of_tower dom_coprod', linear_map.map_smul_of_tower dom_coprod'],
   -- typeclass resolution is a little confused here
-  all_goals { try {apply_instance} },
-  all_goals {
-    convert add_comm_monoid.nat_is_scalar_tower,
-    change tensor_product.semimodule'.to_distrib_mul_action.to_mul_action.to_has_scalar = _,
-    congr, }
+  all_goals { apply_instance },
 end
 
 end coprod

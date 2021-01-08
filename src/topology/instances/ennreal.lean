@@ -229,7 +229,7 @@ protected lemma tendsto_mul (ha : a ≠ 0 ∨ b ≠ ⊤) (hb : b ≠ 0 ∨ a ≠
 have ht : ∀b:ennreal, b ≠ 0 → tendsto (λp:ennreal×ennreal, p.1 * p.2) (𝓝 ((⊤:ennreal), b)) (𝓝 ⊤),
 begin
   refine assume b hb, tendsto_nhds_top_iff_nnreal.2 $ assume n, _,
-  rcases lt_iff_exists_nnreal_btwn.1 (zero_lt_iff_ne_zero.2 hb) with ⟨ε, hε, hεb⟩,
+  rcases lt_iff_exists_nnreal_btwn.1 (pos_iff_ne_zero.2 hb) with ⟨ε, hε, hεb⟩,
   replace hε : 0 < ε, from coe_pos.1 hε,
   filter_upwards [prod_mem_nhds_sets (lt_mem_nhds $ @coe_lt_top (n / ε)) (lt_mem_nhds hεb)],
   rintros ⟨a₁, a₂⟩ ⟨h₁, h₂⟩,
@@ -402,7 +402,7 @@ begin
   { simp only [not_forall] at hs,
     rcases hs with ⟨x, hx, hx0⟩,
     have s₁ : Sup s ≠ 0 :=
-      zero_lt_iff_ne_zero.1 (lt_of_lt_of_le (zero_lt_iff_ne_zero.2 hx0) (le_Sup hx)),
+      pos_iff_ne_zero.1 (lt_of_lt_of_le (pos_iff_ne_zero.2 hx0) (le_Sup hx)),
     have : Sup ((λb, a * b) '' s) = a * Sup s :=
       is_lub.Sup_eq (is_lub_of_is_lub_of_tendsto
         (assume x _ y _ h, canonically_ordered_semiring.mul_le_mul (le_refl _) h)

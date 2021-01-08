@@ -965,7 +965,7 @@ begin
     have : (rs.map c) x < ⨆ (n : ℕ), f n x,
     { refine lt_of_lt_of_le (ennreal.coe_lt_coe.2 (_)) (hsf x),
       suffices : r * s x < 1 * s x, simpa [rs],
-      exact mul_lt_mul_of_pos_right ha (zero_lt_iff_ne_zero.2 this) },
+      exact mul_lt_mul_of_pos_right ha (pos_iff_ne_zero.2 this) },
     rcases lt_supr_iff.1 this with ⟨i, hi⟩,
     exact mem_Union.2 ⟨i, le_of_lt hi⟩ },
   have mono : ∀r:ennreal, monotone (λn, (rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a}),
@@ -1255,7 +1255,7 @@ begin
   refine iff.intro (assume h, _) (assume h, _),
   { have : ∀n:ℕ, ∀ᵐ a ∂μ, f a < n⁻¹,
     { assume n,
-      rw [ae_iff, ← le_zero_iff_eq, ← @ennreal.zero_div n⁻¹,
+      rw [ae_iff, ← nonpos_iff_eq_zero, ← @ennreal.zero_div n⁻¹,
         ennreal.le_div_iff_mul_le, mul_comm],
       simp only [not_lt],
       -- TODO: why `rw ← h` fails with "not an equality or an iff"?
@@ -1280,7 +1280,7 @@ end
 
 lemma lintegral_pos_iff_support {f : α → ennreal} (hf : measurable f) :
   0 < ∫⁻ a, f a ∂μ ↔ 0 < μ (function.support f) :=
-by simp [zero_lt_iff_ne_zero, hf, filter.eventually_eq, ae_iff, function.support]
+by simp [pos_iff_ne_zero, hf, filter.eventually_eq, ae_iff, function.support]
 
 /-- Weaker version of the monotone convergence theorem-/
 lemma lintegral_supr_ae {f : ℕ → α → ennreal} (hf : ∀n, measurable (f n))

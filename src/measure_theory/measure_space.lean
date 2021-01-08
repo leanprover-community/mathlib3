@@ -192,7 +192,7 @@ ne_empty_iff_nonempty.1 $ λ h', h $ h'.symm ▸ measure_empty
 lemma measure_mono (h : s₁ ⊆ s₂) : μ s₁ ≤ μ s₂ := μ.mono h
 
 lemma measure_mono_null (h : s₁ ⊆ s₂) (h₂ : μ s₂ = 0) : μ s₁ = 0 :=
-le_zero_iff_eq.1 $ h₂ ▸ measure_mono h
+nonpos_iff_eq_zero.1 $ h₂ ▸ measure_mono h
 
 lemma measure_mono_top (h : s₁ ⊆ s₂) (h₁ : μ s₁ = ⊤) : μ s₂ = ⊤ :=
 top_unique $ h₁ ▸ measure_mono h
@@ -663,7 +663,7 @@ end Inf
 
 protected lemma zero_le (μ : measure α) : 0 ≤ μ := bot_le
 
-lemma le_zero_iff_eq' : μ ≤ 0 ↔ μ = 0 :=
+lemma nonpos_iff_eq_zero' : μ ≤ 0 ↔ μ = 0 :=
 μ.zero_le.le_iff_eq
 
 @[simp] lemma measure_univ_eq_zero : μ univ = 0 ↔ μ = 0 :=
@@ -790,7 +790,7 @@ by rw [restrict_apply ht]
 
 lemma restrict_apply_eq_zero' (hs : is_measurable s) : μ.restrict s t = 0 ↔ μ (t ∩ s) = 0 :=
 begin
-  refine ⟨λ h, le_zero_iff_eq.1 (h ▸ le_restrict_apply _ _), λ h, _⟩,
+  refine ⟨λ h, nonpos_iff_eq_zero.1 (h ▸ le_restrict_apply _ _), λ h, _⟩,
   rcases exists_is_measurable_superset_of_null h with ⟨t', htt', ht', ht'0⟩,
   apply measure_mono_null ((inter_subset _ _ _).1 htt'),
   rw [restrict_apply (hs.compl.union ht'), union_inter_distrib_right, compl_inter_self,
@@ -1304,7 +1304,7 @@ end
 ae_eq_bot.trans restrict_eq_zero
 
 @[simp] lemma ae_restrict_ne_bot {s} : (μ.restrict s).ae.ne_bot ↔ 0 < μ s :=
-(not_congr ae_restrict_eq_bot).trans zero_lt_iff_ne_zero.symm
+(not_congr ae_restrict_eq_bot).trans pos_iff_ne_zero.symm
 
 /-- A version of the Borel-Cantelli lemma: if sᵢ is a sequence of measurable sets such that
 ∑ μ sᵢ exists, then for almost all x, x does not belong to almost all sᵢ. -/
@@ -1423,7 +1423,7 @@ variables [has_no_atoms μ]
 
 lemma measure_countable (h : countable s) : μ s = 0 :=
 begin
-  rw [← bUnion_of_singleton s, ← le_zero_iff_eq],
+  rw [← bUnion_of_singleton s, ← nonpos_iff_eq_zero],
   refine le_trans (measure_bUnion_le h _) _,
   simp
 end
@@ -1728,7 +1728,7 @@ lemma sub_def : μ - ν = Inf {d | μ ≤ d + ν} := rfl
 
 lemma sub_eq_zero_of_le (h : μ ≤ ν) : μ - ν = 0 :=
 begin
-  rw [← le_zero_iff_eq', measure.sub_def],
+  rw [← nonpos_iff_eq_zero', measure.sub_def],
   apply @Inf_le (measure α) _ _,
   simp [h],
 end
@@ -1853,7 +1853,7 @@ theorem is_null_measurable.union_null (hs : is_null_measurable μ s) (hz : μ z 
   is_null_measurable μ (s ∪ z) :=
 begin
   rcases hs with ⟨t, z', rfl, ht, hz'⟩,
-  exact ⟨t, z' ∪ z, set.union_assoc _ _ _, ht, le_zero_iff_eq.1
+  exact ⟨t, z' ∪ z, set.union_assoc _ _ _, ht, nonpos_iff_eq_zero.1
     (le_trans (measure_union_le _ _) $ by simp [hz, hz'])⟩
 end
 
@@ -1885,7 +1885,7 @@ begin
   refine is_null_measurable_iff.2 ⟨s \ Inter f,
     diff_subset_diff_right (subset_Inter (λ i, (hf i).1)),
     hs.diff (is_measurable.Inter (λ i, (hf i).2.1)),
-    measure_mono_null _ (le_zero_iff_eq.1 $ le_of_not_lt $ λ h, _)⟩,
+    measure_mono_null _ (nonpos_iff_eq_zero.1 $ le_of_not_lt $ λ h, _)⟩,
   { exact Inter f },
   { rw [diff_subset_iff, diff_union_self],
     exact subset.trans (diff_subset _ _) (subset_union_left _ _) },

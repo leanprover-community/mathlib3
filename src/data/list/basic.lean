@@ -3348,7 +3348,7 @@ begin
   induction m with m IH generalizing L n,
   { simp only [min_eq_left, eq_self_iff_true, nat.zero_le, take] },
   { cases n,
-    { simp only [nat.nat_zero_eq_zero, le_zero_iff_eq, take, take_nil],
+    { simp only [nat.nat_zero_eq_zero, nonpos_iff_eq_zero, take, take_nil],
       split,
       { cases L,
         { exact absurd hm (not_lt_of_le m.succ.zero_le) },

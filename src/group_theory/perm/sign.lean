@@ -616,13 +616,13 @@ let ⟨a, ha⟩ := hg.2 x hx in
 let ⟨b, hb⟩ := hg.2 y hy in
 ⟨b - a, by rw [← ha, ← mul_apply, ← gpow_add, sub_add_cancel, hb]⟩
 
-lemma exists_pow_eq_of_is_cycle {α : Type*} [fintype α] [decidable_eq α] {σ : perm α}
-  (hσ : is_cycle σ) {x y : α} (hx : σ x ≠ x) (hy : σ y ≠ y) : ∃ i : ℕ, (σ ^ i) x = y :=
+lemma exists_pow_eq_of_is_cycle [decidable_eq β] [fintype β] {f : perm β}
+  (hf : is_cycle f) {x y : β} (hx : f x ≠ x) (hy : f y ≠ y) : ∃ i : ℕ, (f ^ i) x = y :=
 begin
-  cases exists_gpow_eq_of_is_cycle hσ hx hy with n hn,
-  use (n % order_of σ).to_nat,
-  have := int.mod_nonneg n (mt int.coe_nat_eq_zero.mp (ne_of_gt (order_of_pos σ))),
-  conv { to_rhs, rw [←hn, ←int.mod_add_div n (order_of σ), gpow_add, gpow_mul, gpow_coe_nat,
+  cases exists_gpow_eq_of_is_cycle hf hx hy with n hn,
+  use (n % order_of f).to_nat,
+  have := int.mod_nonneg n (mt int.coe_nat_eq_zero.mp (ne_of_gt (order_of_pos f))),
+  conv { to_rhs, rw [←hn, ←int.mod_add_div n (order_of f), gpow_add, gpow_mul, gpow_coe_nat,
     pow_order_of_eq_one, one_gpow, mul_one, ←int.to_nat_of_nonneg this, gpow_coe_nat] },
 end
 

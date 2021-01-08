@@ -438,6 +438,10 @@ lemma alternatization_def (m : multilinear_map R (λ i : ι, M) N') :
   ⇑(alternatization m) = (∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ : _) :=
 rfl
 
+lemma alternatization_coe (m : multilinear_map R (λ i : ι, M) N') :
+  ↑m.alternatization = (∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ : _) :=
+coe_inj rfl
+
 lemma alternatization_apply (m : multilinear_map R (λ i : ι, M) N') (v : ι → M) :
   alternatization m v = ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v :=
 by simp only [alternatization_def, smul_apply, sum_apply]
@@ -670,13 +674,13 @@ lemma multilinear_map.dom_coprod_alternization
   (multilinear_map.dom_coprod a b).alternatization =
     a.alternatization.dom_coprod b.alternatization :=
 begin
-  ext,
-  dsimp only [dom_coprod_apply, smul_apply, multilinear_map.alternatization_def,
-    alternating_map.dom_coprod_apply, dom_coprod_fun],
-  simp_rw [multilinear_map.sum_apply, multilinear_map.smul_apply],
+  -- unfold and unify the outer sums
+  apply alternating_map.coe_inj,
+  dsimp only [alternating_map.dom_coprod, multilinear_map.alternatization_def,
+    alternating_map.coe_mk, dom_coprod_fun],
   rw finset.sum_partition (quotient_group.left_rel (perm.sum_congr_hom ιa ιb).range),
-  congr' 1,
-  ext σ,
+  congr' 2,
+  ext1 σ,
   apply σ.induction_on' (λ σ, _),
 
   -- unfold the quotient mess
@@ -687,13 +691,6 @@ begin
   simp_rw (iff.intro quotient.exact' quotient.sound'),
   dunfold setoid.r quotient_group.left_rel,
   simp only,
-
-  dsimp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
-    coe_multilinear_map, multilinear_map.smul_apply, multilinear_map.alternatization_def],
-  simp only [multilinear_map.sum_apply, multilinear_map.smul_apply],
-  simp_rw multilinear_map.smul_apply,
-  simp_rw [tensor_product.sum_tmul, tensor_product.tmul_sum,
-    ←tensor_product.smul_tmul', tensor_product.tmul_smul],
 
   -- eliminate a multiplication
   have : @finset.univ (perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) := begin
@@ -709,8 +706,20 @@ begin
   rw finset.sum_subtype (λ x, show x ∈ _ ↔ x ∈ (perm.sum_congr_hom ιa ιb).range, from _),
   change ∑ (a_1 : (perm.sum_congr_hom ιa ιb).range), _ = _,
   swap, { simp only [finset.mem_filter, finset.mem_univ, true_and] },
+  simp_rw [multilinear_map.dom_dom_congr_mul, perm.sign_mul],
 
+  -- pull out the other pair of sums and smuls, by rewriting functions into their bundled versions
+  simp_rw [←multilinear_map.dom_coprod'_apply,
+    ←multilinear_map.dom_dom_congr_equiv_apply,
+    multilinear_map.alternatization_coe],
+  simp_rw [tensor_product.sum_tmul, tensor_product.tmul_sum, linear_map.map_sum, add_equiv.map_sum,
+    ←tensor_product.smul_tmul', tensor_product.tmul_smul, linear_map.map_smul_of_tower,
+    ←add_equiv.coe_to_add_monoid_hom, add_monoid_hom.map_int_module_smul],
+  simp_rw [add_equiv.coe_to_add_monoid_hom, multilinear_map.dom_coprod'_apply,
+    multilinear_map.dom_dom_congr_equiv_apply],
   rw [←finset.sum_product', finset.univ_product_univ, finset.smul_sum],
+
+  -- massage the sums to look the same
   symmetry,
   apply finset.sum_bij
     (λ a ha, (⟨perm.sum_congr_hom ιa ιb a, a, rfl⟩ : (perm.sum_congr_hom ιa ιb).range))
@@ -720,11 +729,13 @@ begin
     (λ b hb, let ⟨⟨sl, sr⟩, hb⟩ := b.prop in ⟨(sl, sr), finset.mem_univ _, subtype.ext hb.symm⟩),
   dsimp only [subtype.coe_mk],
   obtain ⟨al, ar⟩ := a,
-  simp_rw [perm.sign_mul, units.coe_mul, perm.sum_congr_hom_apply ιa ιb (al, ar)],
-  -- mul_smul (σ.sign : ℤ)],
-  -- simp_rw perm.sum_congr_hom_apply ιa ιb (al, ar),
+
+  -- pick up the pieces
+  simp_rw [perm.sign_mul, units.coe_mul, perm.sum_congr_hom_apply ιa ιb (al, ar),
+    multilinear_map.dom_coprod_dom_dom_congr_sum_congr],
   simp [perm.mul_apply, mul_smul],
-  congr,
+  -- congr,
+  sorry
 end
 
 /-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two

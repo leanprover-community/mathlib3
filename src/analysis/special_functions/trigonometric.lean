@@ -1789,7 +1789,7 @@ lemma times_cont_diff_on_arcsin {n : with_top ℕ} :
 lemma times_cont_diff_at_arcsin_iff {x : ℝ} {n : with_top ℕ} :
   times_cont_diff_at ℝ n arcsin x ↔ n = 0 ∨ (x ≠ -1 ∧ x ≠ 1) :=
 ⟨λ h, or_iff_not_imp_left.2 $ λ hn, differentiable_at_arcsin.1 $ h.differentiable_at $
-  with_top.one_le_iff_pos.2 (zero_lt_iff_ne_zero.2 hn),
+  with_top.one_le_iff_pos.2 (pos_iff_ne_zero.2 hn),
   λ h, h.elim (λ hn, hn.symm ▸ (times_cont_diff_zero.2 continuous_arcsin).times_cont_diff_at) $
     λ hx, times_cont_diff_at_arcsin hx.1 hx.2⟩
 
@@ -2217,7 +2217,7 @@ begin
   { use 0, simp only [hx, zero_pow_eq_zero, hn] },
   { use exp (log x / n),
     rw [← exp_nat_mul, mul_div_cancel', exp_log hx],
-    exact_mod_cast (nat.pos_iff_ne_zero.mp hn) }
+    exact_mod_cast (pos_iff_ne_zero.mp hn) }
 end
 
 lemma exists_eq_mul_self (x : ℂ) : ∃ z, x = z * z :=
@@ -2614,7 +2614,7 @@ end
 
 lemma surj_on_tan : surj_on tan (Ioo (-(π / 2)) (π / 2)) univ :=
 have _ := neg_lt_self pi_div_two_pos,
-continuous_on_tan_Ioo.surj_on_of_tendsto (nonempty_Ioo.2 this) 
+continuous_on_tan_Ioo.surj_on_of_tendsto (nonempty_Ioo.2 this)
   (by simp [tendsto_tan_neg_pi_div_two, this]) (by simp [tendsto_tan_pi_div_two, this])
 
 lemma tan_surjective : function.surjective tan :=

@@ -446,7 +446,7 @@ open_locale big_operators
 lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :
   ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n :=
 begin
-  rw ← nat.pos_iff_ne_zero at hn,
+  rw ← pos_iff_ne_zero at hn,
   have H : (factors n : multiset ℕ).prod = n,
   { rw [multiset.coe_prod, prod_factors hn], },
   rw finset.prod_multiset_count at H,

@@ -60,7 +60,7 @@ end
 variable [fintype σ]
 
 lemma pumping_lemma : ∃ p : ℕ, ∀ x ∈ M.accepts, p ≤ list.length x → ∃ a b c, x = a ++ b ++ c ∧
-  b ≠ [] ∧ (a ++ b).length ≤ p ∧ ∀ n, a ++ (list.repeat b n).foldl (++) [] ++ c ∈ M.accepts :=
+  b ≠ [] ∧ (a ++ b).length ≤ p ∧ {a} + language.star {b} + {c} ≤ M.accepts :=
 begin
   -- Let p be one more than the number of states in our DFA
   use fintype.card σ + 1,
@@ -93,12 +93,13 @@ begin
     apply lt_of_lt_of_le hm,
     assumption },
   split,
-  { -- `(a ++ b).length ≤ p follows easily
+  { -- `(a ++ b).length ≤ p` follows easily
     simp only [list.length_take, min_le_iff, list.take_append_drop],
     left,
     apply le_of_lt,
     assumption },
-  {  }
+  { intro k,
+    -- We now show `a ++ n*b` }
 end
 
 end DFA

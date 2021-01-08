@@ -280,12 +280,10 @@ instance sigma_finite_of_locally_finite [second_countable_topology α]
   {μ : measure α} [locally_finite_measure μ] :
   sigma_finite μ :=
 begin
-  set S : set (set α) := {s | is_open s ∧ μ s < ⊤},
-  rcases is_open_sUnion_countable S (λ s, and.left) with ⟨S', hc, hS, hU⟩,
-  refine measure.sigma_finite_of_countable hc (λ s hs, (hS hs).1.is_measurable)
-    (λ s hs, (hS hs).2) (hU.symm ▸ sUnion_eq_univ_iff.2 $ λ x, _),
-  rcases μ.exists_is_open_measure_lt_top x with ⟨s, hxs, ho, hμ⟩,
-  exact ⟨s, ⟨ho, hμ⟩, hxs⟩
+  choose s hsx hsμ using μ.finite_at_nhds,
+  rcases countable_cover_nhds hsx with ⟨t, htc, htU⟩,
+  refine measure.sigma_finite_of_countable (htc.image s) (ball_image_iff.2 $ λ x hx, hsμ x) _,
+  rwa sUnion_image
 end
 
 end

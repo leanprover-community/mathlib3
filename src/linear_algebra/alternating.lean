@@ -677,20 +677,6 @@ begin
     ←tensor_product.smul_tmul', tensor_product.tmul_smul, linear_map.map_smul_of_tower],
 end
 
-#check finset.sum_partition
-
-open_locale big_operators
-
-/-- A product can be partitioned into a product of products, each equivalent under a setoid. -/
-@[to_additive "A sum can be partitioned into a sum of sums, each equivalent under a setoid."]
-lemma prod_partition {α : Type} (R : setoid α) [decidable_rel R.r] :
-  (∏ x in s, f x) = ∏ xbar in s.image quotient.mk, ∏ y in s.filter (λ y, ⟦y⟧ = xbar), f y :=
-begin
-  refine (finset.prod_image' f (λ x hx, _)).symm,
-  refl,
-end
-
-
 open alternating_map
 
 /-- Computing the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` is the same
@@ -710,26 +696,23 @@ begin
   apply alternating_map.coe_inj,
   dsimp only [alternating_map.dom_coprod, multilinear_map.alternatization_def,
     alternating_map.coe_mk, dom_coprod_fun],
+  congr' 1,
   rw finset.sum_partition (quotient_group.left_rel (perm.sum_congr_hom ιa ιb).range),
-  congr' 2,
+  congr' 1,
   ext1 σ,
   apply σ.induction_on' (λ σ, _),
 
   -- unfold the quotient mess
   dsimp only [quotient.lift_on'_beta],
-  conv in (_ = quotient.mk' _) {
-    change quotient.mk' _ = quotient.mk' _,
-  },
+  conv in (_ = quotient.mk' _) { change quotient.mk' _ = quotient.mk' _, },
   simp_rw (iff.intro quotient.exact' quotient.sound'),
   dunfold setoid.r quotient_group.left_rel,
   simp only,
 
   -- eliminate a multiplication
-  have : @finset.univ (perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) := begin
-    ext, simp only [true_iff, finset.mem_univ, exists_prop_of_true, finset.mem_image],
-    use σ⁻¹ * a_1,
-    simp,
-  end,
+  have : @finset.univ (perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) := (finset.ext $ λ a, ⟨
+    λ _, finset.mem_image.mpr ⟨σ⁻¹ * a, finset.mem_univ _, mul_inv_cancel_left _ _⟩,
+    λ _, finset.mem_univ _⟩),
   rw this,
   simp only,
   rw finset.image_filter,
@@ -762,11 +745,8 @@ begin
   -- pick up the pieces
   simp_rw [perm.sign_mul, units.coe_mul, perm.sum_congr_hom_apply ιa ιb (al, ar),
     multilinear_map.dom_coprod_dom_dom_congr_sum_congr, perm.sign_sum_congr],
-  ext,
-  simp only [multilinear_map.smul_apply, mul_smul],
-  -- simp [perm.mul_apply, mul_smul],
-  -- -- congr,
-  -- sorry
+  simp only [multilinear_map.smul_apply, units.coe_mul, ←mul_smul],
+  congr' 3,  -- `congr` doesn't work here
 end
 
 /-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two

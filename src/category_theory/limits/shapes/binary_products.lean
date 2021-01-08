@@ -90,14 +90,14 @@ def map_pair : F ⟶ G := { app := λ j, walking_pair.cases_on j f g }
 @[simp] lemma map_pair_right : (map_pair f g).app right = g := rfl
 
 /-- The natural isomorphism between two functors out of the walking pair, specified by its components. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def map_pair_iso (f : F.obj left ≅ G.obj left) (g : F.obj right ≅ G.obj right) : F ≅ G :=
 nat_iso.of_components (λ j, walking_pair.cases_on j f g) (by tidy)
 
 end
 
 /-- Every functor out of the walking pair is naturally isomorphic (actually, equal) to a `pair` -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def diagram_iso_pair (F : discrete walking_pair ⥤ C) :
   F ≅ pair (F.obj walking_pair.left) (F.obj walking_pair.right) :=
 map_pair_iso (iso.refl _) (iso.refl _)

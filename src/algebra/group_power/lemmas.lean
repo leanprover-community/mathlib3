@@ -341,14 +341,59 @@ lemma pow_le_one {x : R} : ∀ (n : ℕ) (h0 : 0 ≤ x) (h1 : x ≤ 1), x ^ n �
 
 end ordered_semiring
 
+section linear_ordered_semiring
+
+variables [linear_ordered_semiring R]
+
+lemma sign_cases_of_C_mul_pow_nonneg {C r : R} (h : ∀ n : ℕ, 0 ≤ C * r ^ n) :
+  C = 0 ∨ (0 < C ∧ 0 ≤ r) :=
+begin
+  have : 0 ≤ C, by simpa only [pow_zero, mul_one] using h 0,
+  refine this.eq_or_lt.elim (λ h, or.inl h.symm) (λ hC, or.inr ⟨hC, _⟩),
+  refine nonneg_of_mul_nonneg_left _ hC,
+  simpa only [pow_one] using h 1
+end
+
+end linear_ordered_semiring
+
+section linear_ordered_ring
+
+variables [linear_ordered_ring R]
+
+@[simp] lemma abs_pow (a : R) (n : ℕ) : abs (a ^ n) = abs a ^ n :=
+abs_hom.to_monoid_hom.map_pow a n
+
+@[simp] theorem pow_bit1_neg_iff {a : R} {n : ℕ} : a ^ bit1 n < 0 ↔ a < 0 :=
+⟨λ h, not_le.1 $ λ h', not_le.2 h $ pow_nonneg h' _,
+  λ h, mul_neg_of_neg_of_pos h (pow_bit0_pos h.ne _)⟩
+
+@[simp] theorem pow_bit1_nonneg_iff {a : R} {n : ℕ} : 0 ≤ a ^ bit1 n ↔ 0 ≤ a :=
+le_iff_le_iff_lt_iff_lt.2 pow_bit1_neg_iff
+
+@[simp] theorem pow_bit1_nonpos_iff {a : R} {n : ℕ} : a ^ bit1 n ≤ 0 ↔ a ≤ 0 :=
+by simp only [le_iff_lt_or_eq, pow_bit1_neg_iff, pow_eq_zero_iff (bit1_pos (zero_le n))]
+
+@[simp] theorem pow_bit1_pos_iff {a : R} {n : ℕ} : 0 < a ^ bit1 n ↔ 0 < a :=
+lt_iff_lt_of_le_iff_le pow_bit1_nonpos_iff
+
+lemma strict_mono_pow_bit1 (n : ℕ) : strict_mono (λ a : R, a ^ bit1 n) :=
+begin
+  intros a b hab,
+  cases le_total a 0 with ha ha,
+  { cases le_or_lt b 0 with hb hb,
+    { rw [← neg_lt_neg_iff, ← neg_pow_bit1, ← neg_pow_bit1],
+      exact pow_lt_pow_of_lt_left (neg_lt_neg hab) (neg_nonneg.2 hb) (bit1_pos (zero_le n)) },
+    { exact (pow_bit1_nonpos_iff.2 ha).trans_lt (pow_bit1_pos_iff.2 hb) } },
+  { exact pow_lt_pow_of_lt_left hab ha (bit1_pos (zero_le n)) }
+end
+
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
-theorem one_add_mul_le_pow [linear_ordered_ring R] {a : R} (H : -2 ≤ a) :
-  ∀ (n : ℕ), 1 + n •ℕ a ≤ (1 + a) ^ n
+theorem one_add_mul_le_pow {a : R} (H : -2 ≤ a) : ∀ (n : ℕ), 1 + n •ℕ a ≤ (1 + a) ^ n
 | 0     := le_of_eq $ add_zero _
 | 1     := by simp
 | (n+2) :=
 have H' : 0 ≤ 2 + a,
-  from neg_le_iff_add_nonneg.1 H,
+  from neg_le_iff_add_nonneg'.1 H,
 have 0 ≤ n •ℕ (a * a * (2 + a)) + a * a,
   from add_nonneg (nsmul_nonneg (mul_nonneg (mul_self_nonneg a) H') n)
     (mul_self_nonneg a),
@@ -363,10 +408,11 @@ calc 1 + (n + 2) •ℕ a ≤ 1 + (n + 2) •ℕ a + (n •ℕ (a * a * (2 + a))
 ... = (1 + a)^(n + 2) : by simp only [pow_succ, mul_assoc]
 
 /-- Bernoulli's inequality reformulated to estimate `a^n`. -/
-theorem one_add_sub_mul_le_pow [linear_ordered_ring R]
-  {a : R} (H : -1 ≤ a) (n : ℕ) : 1 + n •ℕ (a - 1) ≤ a ^ n :=
-have -2 ≤ a - 1, by { rw [bit0, neg_add, ← sub_eq_add_neg], exact sub_le_sub_right H 1 },
+theorem one_add_sub_mul_le_pow {a : R} (H : -1 ≤ a) (n : ℕ) : 1 + n •ℕ (a - 1) ≤ a ^ n :=
+have -2 ≤ a - 1, by rwa [bit0, neg_add, ← sub_eq_add_neg, sub_le_sub_iff_right],
 by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
+
+end linear_ordered_ring
 
 namespace int
 

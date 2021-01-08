@@ -174,13 +174,13 @@ protected def homeomorph.inv : G ≃ₜ G :=
 
 @[to_additive]
 lemma nhds_one_symm : comap has_inv.inv (𝓝 (1 : G)) = 𝓝 (1 : G) :=
-begin
-  have lim : tendsto has_inv.inv (𝓝 (1 : G)) (𝓝 1),
-  { simpa only [one_inv] using tendsto_inv (1 : G) },
-  exact comap_eq_of_inverse _ inv_involutive.comp_self lim lim,
-end
+((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds one_inv)
 
 variable {G}
+
+@[to_additive]
+lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
+(homeomorph.inv G).preimage_closure s
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :
@@ -192,14 +192,7 @@ by simpa only [div_eq_mul_inv, nhds_prod_eq, mem_prod_self_iff, prod_subset_iff,
 
 @[to_additive]
 lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) = 𝓝 x :=
-begin
-  refine comap_eq_of_inverse (λ y : G, y * x) _ _ _,
-  { funext x, simp },
-  { rw ← mul_right_inv x,
-    exact tendsto_id.mul tendsto_const_nhds },
-  { suffices : tendsto (λ y : G, y * x) (𝓝 1) (𝓝 (1 * x)), { simpa },
-    exact tendsto_id.mul tendsto_const_nhds }
-end
+((homeomorph.mul_right x⁻¹).comap_nhds_eq 1).trans $ show 𝓝 (1 * x⁻¹⁻¹) = 𝓝 x, by simp
 
 @[to_additive]
 lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}

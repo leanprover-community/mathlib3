@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.tangent_cone
 import analysis.normed_space.units
+import analysis.asymptotic_equivalent
 
 /-!
 # The Fréchet derivative
@@ -112,7 +113,7 @@ derivative, differentiable, Fréchet, calculus
 -/
 
 open filter asymptotics continuous_linear_map set metric
-open_locale topological_space classical nnreal
+open_locale topological_space classical nnreal asymptotics filter
 
 noncomputable theory
 
@@ -548,13 +549,17 @@ begin
         fderiv_within_zero_of_not_differentiable_within_at this] }
 end
 
-lemma fderiv_within_of_open (hs : is_open s) (hx : x ∈ s) :
+lemma fderiv_within_of_mem_nhds (h : s ∈ 𝓝 x) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
 begin
   have : s = univ ∩ s, by simp only [univ_inter],
   rw [this, ← fderiv_within_univ],
-  exact fderiv_within_inter (mem_nhds_sets hs hx) (unique_diff_on_univ _ (mem_univ _))
+  exact fderiv_within_inter h (unique_diff_on_univ _ (mem_univ _))
 end
+
+lemma fderiv_within_of_open (hs : is_open s) (hx : x ∈ s) :
+  fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
+fderiv_within_of_mem_nhds (mem_nhds_sets hs hx)
 
 lemma fderiv_within_eq_fderiv (hs : unique_diff_within_at 𝕜 s x) (h : differentiable_at 𝕜 f x) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
@@ -871,7 +876,7 @@ e.has_fderiv_at.differentiable_at
 protected lemma continuous_linear_map.differentiable_within_at : differentiable_within_at 𝕜 e s x :=
 e.differentiable_at.differentiable_within_at
 
-protected lemma continuous_linear_map.fderiv : fderiv 𝕜 e x = e :=
+@[simp] protected lemma continuous_linear_map.fderiv : fderiv 𝕜 e x = e :=
 e.has_fderiv_at.fderiv
 
 protected lemma continuous_linear_map.fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
@@ -881,7 +886,7 @@ begin
   exact e.fderiv
 end
 
-@[simp]protected lemma continuous_linear_map.differentiable : differentiable 𝕜 e :=
+@[simp] protected lemma continuous_linear_map.differentiable : differentiable 𝕜 e :=
 λx, e.differentiable_at
 
 protected lemma continuous_linear_map.differentiable_on : differentiable_on 𝕜 e s :=
@@ -2469,6 +2474,21 @@ lemma local_homeomorph.has_fderiv_at_symm (f : local_homeomorph E F) {f' : E ≃
   (ha : a ∈ f.target) (htff' : has_fderiv_at f (f' : E →L[𝕜] F) (f.symm a)) :
   has_fderiv_at f.symm (f'.symm : F →L[𝕜] E) a :=
 htff'.of_local_left_inverse (f.symm.continuous_at ha) (f.eventually_right_inverse ha)
+
+lemma has_fderiv_within_at.eventually_ne (h : has_fderiv_within_at f f' s x)
+  (hf' : ∃ C, ∀ z, ∥z∥ ≤ C * ∥f' z∥) :
+  ∀ᶠ z in 𝓝[s \ {x}] x, f z ≠ f x :=
+begin
+  rw [nhds_within, diff_eq, ← inf_principal, ← inf_assoc, eventually_inf_principal],
+  have A : is_O (λ z, z - x) (λ z, f' (z - x)) (𝓝[s] x) :=
+    (is_O_iff.2 $ hf'.imp $ λ C hC, eventually_of_forall $ λ z, hC _),
+  have : (λ z, f z - f x) ~[𝓝[s] x] (λ z, f' (z - x)) := h.trans_is_O A,
+  simpa [not_imp_not, sub_eq_zero] using (A.trans this.is_O_symm).eq_zero_imp
+end
+
+lemma has_fderiv_at.eventually_ne (h : has_fderiv_at f f' x) (hf' : ∃ C, ∀ z, ∥z∥ ≤ C * ∥f' z∥) :
+  ∀ᶠ z in 𝓝[{x}ᶜ] x, f z ≠ f x :=
+by simpa only [compl_eq_univ_diff] using (has_fderiv_within_at_univ.2 h).eventually_ne hf'
 
 end
 

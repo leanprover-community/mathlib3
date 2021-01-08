@@ -375,7 +375,6 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
         apply adjunction.left_adjoint_of_nat_iso this },
     end } }
 
-
 end functor
 
 end category_theory

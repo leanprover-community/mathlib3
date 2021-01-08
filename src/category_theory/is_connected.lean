@@ -288,13 +288,10 @@ lemma is_connected_of_zigzag [nonempty J]
   (h : ∀ (j₁ j₂ : J), ∃ l, list.chain zag j₁ l ∧ list.last (j₁ :: l) (list.cons_ne_nil _ _) = j₂) :
   is_connected J :=
 begin
-  apply is_connected.of_induct,
-  intros p d k j,
-  obtain ⟨l, zags, lst⟩ := h j (classical.arbitrary J),
-  apply list.chain.induction_head p l zags lst _ d,
-  rintros _ _ (⟨⟨xy⟩⟩ | ⟨⟨yx⟩⟩),
-  { exact (k xy).2 },
-  { exact (k yx).1 }
+  apply zigzag_is_connected,
+  intros j₁ j₂,
+  rcases h j₁ j₂ with ⟨l, hl₁, hl₂⟩,
+  apply list.relation_refl_trans_gen_of_exists_chain l hl₁ hl₂,
 end
 
 /-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/

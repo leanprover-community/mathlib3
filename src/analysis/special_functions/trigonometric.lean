@@ -2164,7 +2164,7 @@ by rw [arg_eq_arg_neg_add_pi_of_im_nonneg_of_re_neg, ← of_real_neg, arg_of_rea
 
 /-- Inverse of the `exp` function. Returns values such that `(log x).im > - π` and `(log x).im ≤ π`.
   `log 0 = 0`-/
-noncomputable def log (x : ℂ) : ℂ := x.abs.log + arg x * I
+@[pp_nodot] noncomputable def log (x : ℂ) : ℂ := x.abs.log + arg x * I
 
 lemma log_re (x : ℂ) : x.log.re = x.abs.log := by simp [log]
 

@@ -404,6 +404,11 @@ meta def match_app {elab} : expr elab → option (expr elab × expr elab)
 | (app t u) := some (t, u)
 | _ := none
 
+/-- Match an application of `coe_fn`. -/
+meta def match_app_coe_fn : expr → option (expr × expr × expr × expr)
+| (app `(@coe_fn %%α %%inst %%fexpr) x) := some (α, inst, fexpr, x)
+| _ := none
+
 /-- Match an abstraction. -/
 meta def match_lam {elab} : expr elab →
   option (name × binder_info × expr elab × expr elab)

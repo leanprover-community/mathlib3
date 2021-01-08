@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 import data.equiv.basic
+import meta.expr
 import tactic.norm_num
 
 /-!
@@ -17,23 +18,6 @@ Based on equality of these `nat`s, equality proofs are generated using either
 -/
 
 open equiv tactic expr
-
-/--
-Match a term of shape `app (⇑f) x` and return expressions for:
-  * the type `tf` of `f`
-  * the instance `has_coe_to_fun tf`
-  * `f`
-  * `x`
-  -/
-meta def expr.get_of_coe_fn (e : expr) (f : name) : tactic (expr × expr × expr × expr) :=
-do
-  if e.is_app_of ``coe_fn
-  then do
-    [α, inst, fexpr, x] ← pure e.get_app_args,
-    let fname : name := fexpr.get_app_fn.const_name,
-    if fname = f then pure (α, inst, fexpr, x)
-      else fail!"retrieved function name {fname} is not the expected {f}"
-  else fail "not of coe_fn form with a single argument"
 
 /--
 Creates the application `n c.α p l`, where `p` is a type class instance found in the cache `c`,
@@ -57,9 +41,10 @@ example : equiv.swap 1 2 1 = 2 := by norm_num
 ```
 -/
 @[norm_num] meta def eval : expr → tactic (expr × expr) := λ e, do
-  (swapt, coe_fn_inst, f, c) ← expr.get_of_coe_fn e ``equiv.swap,
-  [α, deceq_inst, a, b] ← pure f.get_app_args, -- the swap should have exactly two arguments applied
-  unify α `(ℕ) <|> (fail "currently, norm_swap supports only ℕ"),
+  (swapt, coe_fn_inst, fexpr, c) ← e.match_app_coe_fn <|> fail "did not get an app coe_fn expr",
+  guard (fexpr.get_app_fn.const_name = ``equiv.swap) <|> fail "coe_fn not of equiv.swap",
+  [α, deceq_inst, a, b] ← pure fexpr.get_app_args <|> fail "swap did not have exactly two args applied",
+  unify α `(ℕ) <|> fail "currently, norm_swap supports only ℕ",
   dic ← mk_instance_cache α,
   na ← a.to_nat,
   nb ← b.to_nat,

@@ -197,13 +197,13 @@ le_zero_iff_eq.1 $ h₂ ▸ measure_mono h
 lemma measure_mono_top (h : s₁ ⊆ s₂) (h₁ : μ s₁ = ⊤) : μ s₂ = ⊤ :=
 top_unique $ h₁ ▸ measure_mono h
 
-lemma exists_is_measurable_superset_of_measure_eq_zero (h : μ s = 0) :
+lemma exists_is_measurable_superset_of_null (h : μ s = 0) :
   ∃ t, s ⊆ t ∧ is_measurable t ∧ μ t = 0 :=
 outer_measure.exists_is_measurable_superset_of_trim_eq_zero (by rw [← measure_eq_trim, h])
 
 lemma exists_is_measurable_superset_iff_measure_eq_zero :
   (∃ t, s ⊆ t ∧ is_measurable t ∧ μ t = 0) ↔ μ s = 0 :=
-⟨λ ⟨t, hst, _, ht⟩, measure_mono_null hst ht, exists_is_measurable_superset_of_measure_eq_zero⟩
+⟨λ ⟨t, hst, _, ht⟩, measure_mono_null hst ht, exists_is_measurable_superset_of_null⟩
 
 theorem measure_Union_le [encodable β] (s : β → set α) : μ (⋃ i, s i) ≤ (∑' i, μ (s i)) :=
 μ.to_outer_measure.Union _
@@ -791,7 +791,7 @@ by rw [restrict_apply ht]
 lemma restrict_apply_eq_zero' (hs : is_measurable s) : μ.restrict s t = 0 ↔ μ (t ∩ s) = 0 :=
 begin
   refine ⟨λ h, le_zero_iff_eq.1 (h ▸ le_restrict_apply _ _), λ h, _⟩,
-  rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t', htt', ht', ht'0⟩,
+  rcases exists_is_measurable_superset_of_null h with ⟨t', htt', ht', ht'0⟩,
   apply measure_mono_null ((inter_subset _ _ _).1 htt'),
   rw [restrict_apply (hs.compl.union ht'), union_inter_distrib_right, compl_inter_self,
     set.empty_union],
@@ -1212,7 +1212,7 @@ instance : countable_Inter_filter μ.ae :=
 end⟩
 
 instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
-⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_is_measurable_superset_of_measure_eq_zero hs in
+⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_is_measurable_superset_of_null hs in
   ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
 
 lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :
@@ -1286,7 +1286,7 @@ add_eq_zero_iff
 lemma ae_eq_comp {f : α → β} {g g' : β → δ} (hf : measurable f)
   (h : g =ᵐ[measure.map f μ] g') : g ∘ f =ᵐ[μ] g' ∘ f :=
 begin
-  rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t, ht, tmeas, tzero⟩,
+  rcases exists_is_measurable_superset_of_null h with ⟨t, ht, tmeas, tzero⟩,
   refine le_antisymm _ bot_le,
   calc μ {x | g (f x) ≠ g' (f x)} ≤ μ (f⁻¹' t) : measure_mono (λ x hx, ht hx)
   ... = 0 : by rwa ← measure.map_apply hf tmeas
@@ -2089,7 +2089,7 @@ begin
   let s := {x | f x ≠ hμ.mk f x},
   have : μ s = 0 := hμ.ae_eq_mk,
   obtain ⟨t, st, t_meas, μt⟩ : ∃ t, s ⊆ t ∧ is_measurable t ∧ μ t = 0 :=
-    exists_is_measurable_superset_of_measure_eq_zero this,
+    exists_is_measurable_superset_of_null this,
   let g : α → β := t.piecewise (hν.mk f) (hμ.mk f),
   refine ⟨g, measurable.piecewise t_meas hν.measurable_mk hμ.measurable_mk, _⟩,
   change μ {x | f x ≠ g x} + ν {x | f x ≠ g x} = 0,

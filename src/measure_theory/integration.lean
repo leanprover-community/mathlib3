@@ -878,8 +878,14 @@ lintegral_mono
 @[simp] lemma lintegral_const (c : ennreal) : ∫⁻ a, c ∂μ = c * μ univ :=
 by rw [← simple_func.const_lintegral, ← simple_func.lintegral_eq_lintegral, simple_func.coe_const]
 
+@[simp] lemma lintegral_one : ∫⁻ a, (1 : ennreal) ∂μ = μ univ :=
+by rw [lintegral_const, one_mul]
+
+lemma set_lintegral_const (s : set α) (c : ennreal) : ∫⁻ a in s, c ∂μ = c * μ s :=
+by rw [lintegral_const, measure.restrict_apply_univ]
+
 lemma set_lintegral_one (s) : ∫⁻ a in s, 1 ∂μ = μ s :=
-by rw [lintegral_const, one_mul, measure.restrict_apply_univ]
+by rw [set_lintegral_const, one_mul]
 
 /-- `∫⁻ a in s, f a ∂μ` is defined as the supremum of integrals of simple functions
 `φ : α →ₛ ennreal` such that `φ ≤ f`. This lemma says that it suffices to take
@@ -1023,7 +1029,7 @@ end
 lemma lintegral_mono_ae {f g : α → ennreal} (h : ∀ᵐ a ∂μ, f a ≤ g a) :
   (∫⁻ a, f a ∂μ) ≤ (∫⁻ a, g a ∂μ) :=
 begin
-  rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t, hts, ht, ht0⟩,
+  rcases exists_is_measurable_superset_of_null h with ⟨t, hts, ht, ht0⟩,
   have : ∀ᵐ x ∂μ, x ∉ t := measure_zero_iff_ae_nmem.1 ht0,
   refine (supr_le $ assume s, supr_le $ assume hfs,
     le_supr_of_le (s.restrict tᶜ) $ le_supr_of_le _ _),
@@ -1193,6 +1199,13 @@ lemma lintegral_mul_const' (r : ennreal) (f : α → ennreal) (hr : r ≠ ⊤):
   ∫⁻ a, f a * r ∂μ = ∫⁻ a, f a ∂μ * r :=
 by simp_rw [mul_comm, lintegral_const_mul' r f hr]
 
+/- A double integral of a product where each factor contains only one variable
+  is a product of integrals -/
+lemma lintegral_lintegral_mul {β} [measurable_space β] {ν : measure β}
+  {f : α → ennreal} {g : β → ennreal} (hf : measurable f) (hg : measurable g) :
+  ∫⁻ x, ∫⁻ y, f x * g y ∂ν ∂μ = ∫⁻ x, f x ∂μ * ∫⁻ y, g y ∂ν :=
+by simp [lintegral_const_mul _ hg, lintegral_mul_const _ hf]
+
 -- TODO: Need a better way of rewriting inside of a integral
 lemma lintegral_rw₁ {f f' : α → β} (h : f =ᵐ[μ] f') (g : β → ennreal) :
   (∫⁻ a, g (f a) ∂μ) = (∫⁻ a, g (f' a) ∂μ) :=
@@ -1273,7 +1286,7 @@ by simp [zero_lt_iff_ne_zero, hf, filter.eventually_eq, ae_iff, function.support
 lemma lintegral_supr_ae {f : ℕ → α → ennreal} (hf : ∀n, measurable (f n))
   (h_mono : ∀n, ∀ᵐ a ∂μ, f n a ≤ f n.succ a) :
   (∫⁻ a, ⨆n, f n a ∂μ) = (⨆n, ∫⁻ a, f n a ∂μ) :=
-let ⟨s, hs⟩ := exists_is_measurable_superset_of_measure_eq_zero
+let ⟨s, hs⟩ := exists_is_measurable_superset_of_null
                        (ae_iff.1 (ae_all_iff.2 h_mono)) in
 let g := λ n a, if a ∈ s then 0 else f n a in
 have g_eq_f : ∀ᵐ a ∂μ, ∀n, g n a = f n a,

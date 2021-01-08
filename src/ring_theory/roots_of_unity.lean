@@ -912,7 +912,6 @@ end
 /-- The degree of the minimal polynomial of `μ` is at least `totient n`. -/
 lemma totient_le_degree_minimal_polynomial : nat.totient n ≤ (minimal_polynomial
   (is_integral h hpos)).nat_degree :=
-
 let P : polynomial ℤ := minimal_polynomial (is_integral h hpos),-- minimal polynomial of `μ`
     P_K : polynomial K := map (int.cast_ring_hom K) P -- minimal polynomial of `μ` sent to `K[X]`
 in calc

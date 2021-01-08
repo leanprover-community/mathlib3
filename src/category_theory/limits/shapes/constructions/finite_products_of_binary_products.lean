@@ -99,8 +99,10 @@ variables [has_binary_products.{v} C] [has_terminal C]
 /--
 If `C` has a terminal object and binary products, then it has a product for objects indexed by
 `ulift (fin n)`.
+This is a helper lemma for `has_finite_products_of_has_binary_and_terminal`, which is more general
+than this.
 -/
-lemma has_product_ulift_fin :
+private lemma has_product_ulift_fin :
   Π (n : ℕ) (f : ulift (fin n) → C), has_product f
 | 0 := λ f,
   begin
@@ -118,8 +120,10 @@ lemma has_product_ulift_fin :
 /--
 If `C` has a terminal object and binary products, then it has limits of shape
 `discrete (ulift (fin n))` for any `n : ℕ`.
+This is a helper lemma for `has_finite_products_of_has_binary_and_terminal`, which is more general
+than this.
 -/
-lemma has_limits_of_shape_ulift_fin (n : ℕ) :
+private lemma has_limits_of_shape_ulift_fin (n : ℕ) :
   has_limits_of_shape (discrete (ulift (fin n))) C :=
 { has_limit := λ K,
 begin

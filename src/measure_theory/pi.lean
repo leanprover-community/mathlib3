@@ -313,6 +313,8 @@ by { rw ← pi_univ_Icc, exact pi_Ico_ae_eq_pi_Icc }
 
 end intervals
 
+/-- If one of the measures `μ i` has no atoms, them `measure.pi µ`
+has no atoms. The instance below assumes that all `μ i` have no atoms. -/
 lemma pi_has_no_atoms (i : ι) [has_no_atoms (μ i)] [∀ i, sigma_finite (μ i)] :
   has_no_atoms (measure.pi μ) :=
 ⟨λ x, flip measure_mono_null (pi_hyperplane μ i (x i)) (singleton_subset_iff.2 rfl)⟩

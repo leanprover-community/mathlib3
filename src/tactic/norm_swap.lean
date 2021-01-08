@@ -13,32 +13,21 @@ Evaluating swapping expressions of numerals, of the form `swap x y z`,
 for numerals `x y z : ℕ`.
 -/
 
-open equiv
-
-open tactic expr
+open equiv tactic expr
 
 /--
-If `e : expr` is of the form `const name _`, `app name _`,
-or `app (app name _) _`, or so on, get back the `name`.
--/
-meta def expr.name_of_const_or_app : expr → tactic name
-| (const n _) := pure n
-| (app f r) := expr.name_of_const_or_app f
-| _ := fail "not const or app"
-
-/--
-If `e : expr` is of the form `app (⇑f) x`, get back the `expr`s for
-type of `f`, the `has_coe_to_fun` instance, `f` itself, and `x`.
+If `e : expr` is of the form `app (⇑f) x`, get back the `expr`s for type of `f`,
+the `has_coe_to_fun` instance, the expr for `f` itself, and `x`.
 -/
 meta def expr.get_of_coe_fn (e : expr) (f : name) : tactic (expr × expr × expr × expr) :=
 do
   if e.is_app_of ``coe_fn
   then do
     [α, inst, fexpr, x] ← pure e.get_app_args,
-    fname ← expr.name_of_const_or_app fexpr,
-    decorate_error ("retrieved function name " ++ fname.to_string ++ " is not the expected " ++ f.to_string)
-      $ guard (fname = f),
-    pure (α, inst, fexpr, x)
+    let fname : name := fexpr.get_app_fn.const_name,
+    if fname = f then pure (α, inst, fexpr, x)
+    else
+      fail $ "retrieved function name " ++ fname.to_string ++ " is not the expected " ++ f.to_string
   else fail "not of coe_fn form with a single argument"
 
 /--

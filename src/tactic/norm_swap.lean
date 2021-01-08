@@ -26,8 +26,7 @@ do
     [α, inst, fexpr, x] ← pure e.get_app_args,
     let fname : name := fexpr.get_app_fn.const_name,
     if fname = f then pure (α, inst, fexpr, x)
-    else
-      fail!"retrieved function name {fname} is not the expected {f}"
+      else fail!"retrieved function name {fname} is not the expected {f}"
   else fail "not of coe_fn form with a single argument"
 
 /--

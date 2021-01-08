@@ -423,9 +423,6 @@ begin
   simp_rw [coe_dom_dom_congr, smul_smul, int.units_coe_mul_self, one_smul,
     finset.sum_const, finset.card_univ, fintype.card_perm, nsmul_eq_smul],
   rw [←coe_multilinear_map, coe_smul],
-  -- `nat.smul_def` introdices a `((•) : ℕ → _ → _)` diamond we have to resolve
-  rw subsingleton.elim add_comm_monoid.nat_semimodule,
-  apply_instance,
 end
 
 end alternating_map

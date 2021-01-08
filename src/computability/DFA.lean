@@ -7,6 +7,7 @@ Authors: Fox Thomson
 import data.fintype.basic
 import computability.language
 import tactic.norm_num
+import tactic.omega.main
 
 /-!
 # Deterministic Finite Automata
@@ -61,15 +62,16 @@ variable [fintype σ]
 lemma pumping_lemma : ∃ p : ℕ, ∀ x ∈ M.accepts, p ≤ list.length x → ∃ a b c, x = a ++ b ++ c ∧
   b ≠ [] ∧ (a ++ b).length ≤ p ∧ ∀ n, a ++ (list.repeat b n).foldl (++) [] ++ c ∈ M.accepts :=
 begin
-  -- Let p be the number of states in our DFA
-  use fintype.card σ,
+  -- Let p be one more than the number of states in our DFA
+  use fintype.card σ + 1,
   intros x hMx hlen,
 
   -- By pidgeon hole principal the DFA passes though the same state twice in the first p+1 states we
   -- pass through. Let these be the `n`th and `m`th states with `n < m`
-  let state_map : fin (fintype.card σ + 1) → σ := λ n, (M.state_path M.start x).nth_le n begin cases n with n h, rw [length_state_path, fin.coe_mk], apply lt_of_lt_of_le, assumption, finish end,
+  let state_map : fin (fintype.card σ + 1) → σ := λ n, (M.state_path M.start x).nth_le n begin cases n with n h, rw [length_state_path, fin.coe_mk], apply lt_of_lt_of_le, assumption, omega end,
   have h := fintype.exists_ne_map_eq_of_card_lt state_map (by norm_num),
   rcases h with ⟨ n, m, hneq, heq ⟩,
+  cases m with m hm, cases n with n hn,
   wlog hle : n ≤ m using [n m, m n],
   { exact le_total n m },
 
@@ -84,15 +86,19 @@ begin
     intro h,
     have hlen := congr_arg list.length h,
     simp only [list.length_drop, list.length, list.length_take] at hlen,
-    rw [min_eq_left_of_lt, nat.sub_eq_zero_iff_le, fin.coe_fin_le] at hlen,
+    rw [min_eq_left_of_lt, nat.sub_eq_zero_iff_le] at hlen,
     { apply hneq,
-      finish },
-    cases m with m hb,
-    simp,
-    apply lt_of_lt_of_le hb,
-    assumption,
-  },
-  {}
+      apply le_antisymm,
+      assumption' },
+    apply lt_of_lt_of_le hm,
+    assumption },
+  split,
+  { -- `(a ++ b).length ≤ p follows easily
+    simp only [list.length_take, min_le_iff, list.take_append_drop],
+    left,
+    apply le_of_lt,
+    assumption },
+  {  }
 end
 
 end DFA

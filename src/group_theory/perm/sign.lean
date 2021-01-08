@@ -621,7 +621,7 @@ lemma exists_pow_eq_of_is_cycle [decidable_eq β] [fintype β] {f : perm β}
 begin
   cases exists_gpow_eq_of_is_cycle hf hx hy with n hn,
   use (n % order_of f).to_nat,
-  have := int.mod_nonneg n (mt int.coe_nat_eq_zero.mp (ne_of_gt (order_of_pos f))),
+  have := int.mod_nonneg n (int.coe_nat_ne_zero.mpr $ ne_of_gt $ order_of_pos f),
   conv { to_rhs, rw [←hn, ←int.mod_add_div n (order_of f), gpow_add, gpow_mul, gpow_coe_nat,
     pow_order_of_eq_one, one_gpow, mul_one, ←int.to_nat_of_nonneg this, gpow_coe_nat] },
 end

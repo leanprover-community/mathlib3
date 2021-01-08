@@ -679,6 +679,25 @@ end
 
 open alternating_map
 
+lemma finset.sum_filter_univ_mem_range {α β γ : Type*}
+  [fintype α] [fintype β]
+    [group α] [group β] [add_comm_monoid γ]
+  (f : α →* β) (h : function.injective f) {_ : decidable_pred (λ (b : β), b ∈ f.range)} (g : β → γ) :
+  ∑ x in finset.filter (λ (b : β), b ∈ f.range) finset.univ, g x = ∑ a, g (f a) :=
+begin
+  rw finset.sum_subtype (λ x, show x ∈ _ ↔ x ∈ f.range, from _),
+  change ∑ (a_1 : f.range), _ = _,
+  swap, { simp only [finset.mem_filter, finset.mem_univ, true_and] },
+  symmetry,
+  apply finset.sum_bij
+    (λ a ha, (⟨f a, a, rfl⟩ : f.range))
+    (λ a ha, finset.mem_univ _)
+    (λ a ha, _)
+    (λ a₁ a₂ ha₁ ha₂ heq, h (subtype.ext_iff.mp heq))
+    (λ b hb, let ⟨a, hb⟩ := b.prop in ⟨a, finset.mem_univ _, subtype.ext hb.symm⟩),
+  refl,
+end
+
 /-- Computing the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` is the same
 as computing the `alternating_map.dom_coprod` of the `multilinear_map.alternatization`s.
 -/
@@ -718,29 +737,20 @@ begin
   rw finset.image_filter,
   simp only [function.comp, mul_inv_rev, inv_mul_cancel_right, subgroup.inv_mem_iff],
   rw finset.sum_image (λ x hx y hy, (mul_right_inj σ).mp),
-  rw finset.sum_subtype (λ x, show x ∈ _ ↔ x ∈ (perm.sum_congr_hom ιa ιb).range, from _),
-  change ∑ (a_1 : (perm.sum_congr_hom ιa ιb).range), _ = _,
-  swap, { simp only [finset.mem_filter, finset.mem_univ, true_and] },
-  simp_rw [multilinear_map.dom_dom_congr_mul, perm.sign_mul],
-
+  rw finset.sum_filter_univ_mem_range (perm.sum_congr_hom ιa ιb) perm.sum_congr_hom_injective _,
   rw multilinear_map.dom_coprod_alternization_coe,
+  rw [←finset.sum_product', finset.univ_product_univ],
+
+  simp_rw [multilinear_map.dom_dom_congr_mul, perm.sign_mul],
   -- pull out the other pair of sums and smuls, by rewriting `dom_dom_congr` into bundled
   -- versions for which the lemmas we care about apply (and then undo the rewrites).
   simp_rw [←multilinear_map.dom_dom_congr_equiv_apply, ←add_equiv.coe_to_add_monoid_hom,
     add_monoid_hom.map_sum, add_monoid_hom.map_int_module_smul,
     add_equiv.coe_to_add_monoid_hom, multilinear_map.dom_dom_congr_equiv_apply],
-  rw [←finset.sum_product', finset.univ_product_univ, finset.smul_sum],
+  rw [finset.smul_sum],
 
-  -- massage the sums to look the same
-  symmetry,
-  apply finset.sum_bij
-    (λ a ha, (⟨perm.sum_congr_hom ιa ιb a, a, rfl⟩ : (perm.sum_congr_hom ιa ιb).range))
-    (λ a ha, finset.mem_univ _)
-    (λ a ha, _)
-    (λ a₁ a₂ ha₁ ha₂ heq, perm.sum_congr_hom_injective (subtype.ext_iff.mp heq))
-    (λ b hb, let ⟨⟨sl, sr⟩, hb⟩ := b.prop in ⟨(sl, sr), finset.mem_univ _, subtype.ext hb.symm⟩),
-  dsimp only [subtype.coe_mk],
-  obtain ⟨al, ar⟩ := a,
+  congr' 1,
+  ext1 ⟨al, ar⟩,
 
   -- pick up the pieces
   simp_rw [perm.sign_mul, units.coe_mul, perm.sum_congr_hom_apply ιa ιb (al, ar),

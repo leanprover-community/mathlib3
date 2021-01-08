@@ -52,7 +52,7 @@ of the parser was within the size of the `cb`, then the input to the parser must
 `cb.size` too.
 -/
 def valid : Prop :=
-  ∀ (cb : char_buffer) (n : ℕ), n ≤ (p cb n).pos ∧ ((p cb n).pos ≤ cb.size → n ≤ cb.size)
+∀ (cb : char_buffer) (n : ℕ), n ≤ (p cb n).pos ∧ ((p cb n).pos ≤ cb.size → n ≤ cb.size)
 
 lemma fail_iff :
   (∀ pos' result, p cb n ≠ done pos' result) ↔

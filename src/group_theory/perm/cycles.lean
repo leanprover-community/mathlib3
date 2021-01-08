@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import group_theory.perm.sign
-import group_theory.order_of_element
 
 namespace equiv.perm
 open equiv function finset

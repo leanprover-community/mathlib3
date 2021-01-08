@@ -427,17 +427,6 @@ noncomputable def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
 (alg_equiv.of_bijective to_top ⟨λ _ _, subtype.mk.inj,
   λ x, ⟨x.val, by { ext, refl }⟩⟩ : A ≃ₐ[R] (⊤ : subalgebra R A)).symm
 
-lemma top_eq_bot_of_top_eq_bot {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-(h : ⊤ = (⊥ : subalgebra R A)) : ⊤ = (⊥ : subgroup (A ≃ₐ[R] A)) :=
-begin
-  rw subgroup.eq_bot_iff_forall,
-  rintros f -,
-  ext a,
-  have key : a ∈ (⊥ : subalgebra R A) := eq_bot_iff.mp h algebra.mem_top,
-  rcases set.mem_range.mp (algebra.mem_bot.mp key) with ⟨x, rfl⟩,
-  rw [alg_equiv.commutes, alg_equiv.commutes],
-end
-
 end algebra
 
 namespace subalgebra
@@ -446,6 +435,17 @@ open algebra
 variables {R : Type u} {A : Type v}
 variables [comm_semiring R] [semiring A] [algebra R A]
 variables (S : subalgebra R A)
+
+lemma subgroup.top_eq_bot_of_top_eq_bot (h : ⊤ = (⊥ : subalgebra R A)) :
+  ⊤ = (⊥ : subgroup (A ≃ₐ[R] A)) :=
+begin
+  rw subgroup.eq_bot_iff_forall,
+  rintros f -,
+  ext a,
+  have key : a ∈ (⊥ : subalgebra R A) := eq_bot_iff.mp h mem_top,
+  rcases set.mem_range.mp (mem_bot.mp key) with ⟨x, rfl⟩,
+  rw [alg_equiv.commutes, alg_equiv.commutes],
+end
 
 lemma range_val : S.val.range = S :=
 ext $ set.ext_iff.1 $ S.val.coe_range.trans subtype.range_val

@@ -1625,15 +1625,6 @@ begin
   rw swap_apply_of_ne_of_ne hi hj,
 end
 
-lemma swap_inj_apply [decidable_eq β] {f : α → β} (hf : function.injective f) (x y z : α) :
-  swap (f x) (f y) (f z) = f (swap x y z) :=
-begin
-  by_cases hx : z = x;
-  by_cases hy : z = y,
-  work_on_goal 3 { rw swap_apply_of_ne_of_ne },
-  all_goals { simp [hf, hx, hy, swap_apply_of_ne_of_ne] }
-end
-
 namespace perm
 
 @[simp] lemma sum_congr_swap_refl {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : α) :
@@ -1800,6 +1791,22 @@ def Pi_congr' : (Π a, W a) ≃ (Π b, Z b) :=
 end
 
 end equiv
+
+lemma function.injective.swap_apply [decidable_eq α] [decidable_eq β] {f : α → β}
+  (hf : function.injective f) (x y z : α) :
+  equiv.swap (f x) (f y) (f z) = f (equiv.swap x y z) :=
+begin
+  by_cases hx : z = x;
+  by_cases hy : z = y,
+  work_on_goal 3 { rw equiv.swap_apply_of_ne_of_ne },
+  all_goals { simp [hf, hx, hy, equiv.swap_apply_of_ne_of_ne] }
+end
+
+lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α → β}
+  (hf : function.injective f) (x y z : α) :
+  equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
+funext $ λ z, hf.swap_apply _ _ _
+
 
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
 instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton

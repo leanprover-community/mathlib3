@@ -238,10 +238,12 @@ namespace linear_map
 variables {N₂ : Type*} [add_comm_monoid N₂] [semimodule R N₂]
 
 /-- Composing a alternating map with a linear map gives again a alternating map. -/
-def comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
-  alternating_map R M N₂ ι :=
-{ map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
-  ..(g.comp_multilinear_map (f : multilinear_map R (λ _ : ι, M) N)) }
+def comp_alternating_map (g : N →ₗ[R] N₂) : alternating_map R M N ι →+ alternating_map R M N₂ ι :=
+{ to_fun := λ f,
+  { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+              ..(g.comp_multilinear_map (f : multilinear_map R (λ _ : ι, M) N)) },
+  map_zero' := by { ext, simp },
+  map_add' := λ a b, by { ext, simp } }
 
 @[simp] lemma coe_comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
   ⇑(g.comp_alternating_map f) = g ∘ f := rfl
@@ -435,6 +437,6 @@ variables {N'₂ : Type*} [add_comm_group N'₂] [semimodule R N'₂] [fintype �
 lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
   (f : multilinear_map R (λ _ : ι, M) N') :
   (g.comp_multilinear_map f).alternatization = g.comp_alternating_map (f.alternatization) :=
-by { ext, simp [multilinear_map.alternatization_def] }
+by { ext1, simp [multilinear_map.alternatization_def] }
 
 end linear_map

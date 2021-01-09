@@ -1009,8 +1009,7 @@ In this subsection we restate results from the previous subsection in terms of `
 /-- Fundamental theorem of calculus-1: if `f : ℝ → E` is integrable on `a..b` and `f x` has finite
 limits `ca` and `cb` almost surely as `x` tends to `a` and `b`, respectively, then
 `(u, v) ↦ ∫ x in u..v, f x` has derivative `(u, v) ↦ v • cb - u • ca` at `(a, b)`. -/
-lemma integral_has_fderiv_at_of_tendsto_ae
-  (hf : interval_integrable f volume a b)
+lemma integral_has_fderiv_at_of_tendsto_ae (hf : interval_integrable f volume a b)
   (hmeas_a : measurable_at_filter f (𝓝 a)) (hmeas_b : measurable_at_filter f (𝓝 b))
   (ha : tendsto f (𝓝 a ⊓ volume.ae) (𝓝 ca)) (hb : tendsto f (𝓝 b ⊓ volume.ae) (𝓝 cb)) :
   has_fderiv_at (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x)
@@ -1020,8 +1019,7 @@ lemma integral_has_fderiv_at_of_tendsto_ae
 /-- Fundamental theorem of calculus-1: if `f : ℝ → E` is integrable on `a..b` and `f` is continuous
 at `a` and `b`, then `(u, v) ↦ ∫ x in u..v, f x` has derivative `(u, v) ↦ v • cb - u • ca`
 at `(a, b)`. -/
-lemma integral_has_fderiv_at
-  (hf : interval_integrable f volume a b)
+lemma integral_has_fderiv_at (hf : interval_integrable f volume a b)
   (hmeas_a : measurable_at_filter f (𝓝 a)) (hmeas_b : measurable_at_filter f (𝓝 b))
   (ha : continuous_at f a) (hb : continuous_at f b) :
   has_fderiv_at (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x)
@@ -1031,8 +1029,7 @@ lemma integral_has_fderiv_at
 /-- Fundamental theorem of calculus-1: if `f : ℝ → E` is integrable on `a..b` and `f x` has finite
 limits `ca` and `cb` almost surely as `x` tends to `a` and `b`, respectively, then `fderiv`
 derivative of `(u, v) ↦ ∫ x in u..v, f x` at `(a, b)` equals `(u, v) ↦ v • cb - u • ca`. -/
-lemma fderiv_integral_of_tendsto_ae
-  (hf : interval_integrable f volume a b) (hmeas_a : measurable_at_filter f (𝓝 a))
+lemma fderiv_integral_of_tendsto_ae (hf : interval_integrable f volume a b)
   (hmeas_a : measurable_at_filter f (𝓝 a)) (hmeas_b : measurable_at_filter f (𝓝 b))
   (ha : tendsto f (𝓝 a ⊓ volume.ae) (𝓝 ca)) (hb : tendsto f (𝓝 b ⊓ volume.ae) (𝓝 cb)) :
   fderiv ℝ (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x) (a, b) =
@@ -1042,8 +1039,7 @@ lemma fderiv_integral_of_tendsto_ae
 /-- Fundamental theorem of calculus-1: if `f : ℝ → E` is integrable on `a..b` and `f` is continuous
 at `a` and `b`, then `fderiv` derivative of `(u, v) ↦ ∫ x in u..v, f x` at `(a, b)` equals `(u, v) ↦
 v • cb - u • ca`. -/
-lemma fderiv_integral
-  (hf : interval_integrable f volume a b)
+lemma fderiv_integral (hf : interval_integrable f volume a b)
   (hmeas_a : measurable_at_filter f (𝓝 a)) (hmeas_b : measurable_at_filter f (𝓝 b))
   (ha : continuous_at f a) (hb : continuous_at f b) :
   fderiv ℝ (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x) (a, b) =

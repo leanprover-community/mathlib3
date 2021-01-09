@@ -290,6 +290,17 @@ def iso_mk {A B : coalgebra G} (h : A.A ≅ B.A) (w : A.a ≫ G.map h.hom = h.ho
   { f := h.inv,
     h' := by { rw [h.eq_inv_comp, ←reassoc_of w, ←functor.map_comp], simp } } }
 
+/--
+To construct an isomorphism of coalgebras, it suffices to give an isomorphism of the carriers which
+commutes with the structure morphisms.
+-/
+@[simps]
+def mk_iso {A B : coalgebra G} (h : A.A ≅ B.A) (w : A.a ≫ G.map h.hom = h.hom ≫ B.a) : A ≅ B :=
+{ hom := { f := h.hom },
+  inv :=
+  { f := h.inv,
+    h' := by { rw [h.eq_inv_comp, ←reassoc_of w, ←G.map_comp], simp } } }
+
 end coalgebra
 
 variables (G : comonad C)

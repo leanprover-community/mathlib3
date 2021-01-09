@@ -9,6 +9,18 @@ import category_theory.limits.creates
 import category_theory.limits.shapes.binary_products
 import category_theory.monad.algebra
 
+/-!
+# Algebras for the coproduct monad
+
+The functor `Y ↦ X ⨿ Y` forms a monad, whose category of monads is equivalent to the under category
+of `X`. Similarly, `Y ↦ X ⨯ Y` forms a comonad, whose category of comonads is equivalent to the
+over category of `X`.
+
+## TODO
+
+If `X` is an internal monoid, then `Y ↦ X ⨯ Y` has a monad structure as well (the writer monad).
+-/
+
 noncomputable theory
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -23,6 +35,7 @@ section
 open comonad
 variable [has_binary_products C]
 
+/-- `X ⨯ -` has a comonad structure. This is sometimes called the writer comonad. -/
 @[simps]
 instance : comonad (prod.functor.obj X) :=
 { ε := { app := λ Y, limits.prod.snd },
@@ -87,14 +100,5 @@ def algebra_equiv_under :
   counit_iso := nat_iso.of_components (λ f, under.iso_mk (iso.refl _) (by tidy)) (λ f g k, by tidy) }.
 
 end
-
--- def star [has_binary_products C] : C ⥤ over X :=
--- cofree _ ⋙ coalgebra_to_over X
-
--- lemma forget_iso [has_binary_products C] : over_to_coalgebra X ⋙ forget _ = over.forget X :=
--- rfl
-
--- def forget_adj_star [has_binary_products C] : over.forget X ⊣ star X :=
--- (coalgebra_equiv_over X).symm.to_adjunction.comp _ _ (adj _)
 
 end category_theory

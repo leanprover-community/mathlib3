@@ -1269,7 +1269,7 @@ integral_eq_zero_iff_of_nonneg_ae (eventually_of_forall hf) hfi
 
 lemma integral_pos_iff_support_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hfi : integrable f μ) :
   (0 < ∫ x, f x ∂μ) ↔ 0 < μ (function.support f) :=
-by simp_rw [(integral_nonneg_of_ae hf).lt_iff_ne, zero_lt_iff_ne_zero, ne.def, @eq_comm ℝ 0,
+by simp_rw [(integral_nonneg_of_ae hf).lt_iff_ne, pos_iff_ne_zero, ne.def, @eq_comm ℝ 0,
   integral_eq_zero_iff_of_nonneg_ae hf hfi, filter.eventually_eq, ae_iff, pi.zero_apply,
   function.support]
 

@@ -445,7 +445,8 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
   rw [← αe, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   rw [← Se],
-  apply lt_imp_lt_of_le_imp_le (mul_le_mul_right c),
+  apply lt_imp_lt_of_le_imp_le
+    (λ (h : mk S ≤ c), canonically_ordered_semiring.mul_le_mul_right' h c),
   rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const],
   refine le_trans _ (sum_le_sum (λ x:S, card (typein r x)) _ _),
   { simp [typein, sum_mk (λ x:S, {a//r a x})],

@@ -931,7 +931,7 @@ begin
   obtain ⟨i, hi, hgi⟩ : ∃ i ∈ d.support, g i = 0 := h d (finsupp.mem_support_iff.mp hd),
   rw [eval₂_hom_monomial, finsupp.prod, finset.prod_eq_zero hi, mul_zero],
   rw [hgi, zero_pow],
-  rwa [nat.pos_iff_ne_zero, ← finsupp.mem_support_iff]
+  rwa [pos_iff_ne_zero, ← finsupp.mem_support_iff]
 end
 
 lemma aeval_eq_zero [algebra R S₂] (f : σ → S₂) (φ : mv_polynomial σ R)

@@ -714,7 +714,7 @@ iff.rfl
 @[simp] lemma mem_coe_submodule (N : lie_submodule R L M) {x : M} :
   x ∈ (N : submodule R M) ↔ x ∈ N := iff.rfl
 
-@[simp] lemma mem_coe (N : lie_submodule R L M) {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
+lemma mem_coe (N : lie_submodule R L M) {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
 
 @[simp] lemma coe_to_set_mk (S : set M) (h₁ h₂ h₃ h₄) :
   ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_submodule R L M) : set M) = S := rfl

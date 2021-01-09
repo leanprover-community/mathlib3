@@ -19,7 +19,7 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 
 open category_theory category_theory.limits
 
-variables {J : Type v} [small_category J]
+variables {J : Type v}
 variables {C : Type u} [category.{v} C]
 variable {X : C}
 

@@ -1142,6 +1142,11 @@ lemma eventually_eq.div [group_with_zero β] {f f' g g' : α → β} {l : filter
   ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
 by simpa only [div_eq_mul_inv] using h.mul h'.inv
 
+lemma eventually_eq.div' [group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
+  (h' : f' =ᶠ[l] g') :
+  ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
+by simpa only [div_eq_mul_inv] using h.mul h'.inv
+
 lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
@@ -1174,6 +1179,15 @@ iff.rfl
 lemma eventually_eq_inf_principal_iff {F : filter α} {s : set α} {f g : α → β} :
   (f =ᶠ[F ⊓ 𝓟 s] g) ↔ ∀ᶠ x in F, x ∈ s → f x = g x :=
 eventually_inf_principal
+
+#check pi.has_add
+
+lemma eventually_eq.sub_eq [add_group β] {u v : α → β} {l : filter α} (h : u =ᶠ[l] v) :
+  u - v =ᶠ[l] 0 :=
+by simpa using (eventually_eq.sub (eventually_eq.refl l u) h).symm
+
+lemma eventually_eq_iff_sub {u v : α → β} {l : filter α} : u =ᶠ[l] v ↔ u - v =ᶠ[l] 0 :=
+⟨λ h, h.sub_eq, λ h, by simpa using h.add (eventually_eq.refl l v)⟩
 
 section has_le
 

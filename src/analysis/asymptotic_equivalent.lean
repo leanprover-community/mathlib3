@@ -91,6 +91,14 @@ end
 @[trans] lemma is_equivalent.trans (huv : u ~[l] v) (hvw : v ~[l] w) : u ~[l] w :=
 (huv.is_o.trans_is_O hvw.is_O).triangle hvw.is_o
 
+lemma is_equivalent.congr_left {u v w : α → β} {l : filter α} (huv : u ~[l] v)
+  (huw : u =ᶠ[l] w) : w ~[l] v :=
+is_o.congr' (huw.sub (eventually_eq.refl _ _)) (eventually_eq.refl _ _) huv
+
+lemma is_equivalent.congr_right {u v w : α → β} {l : filter α} (huv : u ~[l] v)
+  (hvw : v =ᶠ[l] w) : u ~[l] w :=
+(huv.symm.congr_left hvw).symm
+
 lemma is_equivalent_zero_iff_eventually_zero : u ~[l] 0 ↔ u =ᶠ[l] 0 :=
 begin
   rw [is_equivalent, sub_zero],

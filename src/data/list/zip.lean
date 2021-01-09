@@ -66,11 +66,11 @@ lemma lt_length_right_of_zip {i : ℕ} {l : list α} {l' : list β} (h : i < (zi
   i < l'.length :=
 lt_length_right_of_zip_with h
 
-theorem zip_append : ∀ {l₁ l₂ r₁ r₂ : list α} (h : length l₁ = length l₂),
+theorem zip_append : ∀ {l₁ r₁ : list α} {l₂ r₂ : list β} (h : length l₁ = length l₂),
    zip (l₁ ++ r₁) (l₂ ++ r₂) = zip l₁ l₂ ++ zip r₁ r₂
-| []      l₂      r₁ r₂ h := by simp only [eq_nil_of_length_eq_zero h.symm]; refl
-| l₁      []      r₁ r₂ h := by simp only [eq_nil_of_length_eq_zero h]; refl
-| (a::l₁) (b::l₂) r₁ r₂ h := by simp only [cons_append, zip_cons_cons, zip_append (succ.inj h)];
+| []      r₁ l₂      r₂ h := by simp only [eq_nil_of_length_eq_zero h.symm]; refl
+| l₁      r₁ []      r₂ h := by simp only [eq_nil_of_length_eq_zero h]; refl
+| (a::l₁) r₁ (b::l₂) r₂ h := by simp only [cons_append, zip_cons_cons, zip_append (succ.inj h)];
     split; refl
 
 theorem zip_map (f : α → γ) (g : β → δ) : ∀ (l₁ : list α) (l₂ : list β),
@@ -149,6 +149,17 @@ theorem unzip_zip {l₁ : list α} {l₂ : list β} (h : length l₁ = length l�
   unzip (zip l₁ l₂) = (l₁, l₂) :=
 by rw [← @prod.mk.eta _ _ (unzip (zip l₁ l₂)),
   unzip_zip_left (le_of_eq h), unzip_zip_right (ge_of_eq h)]
+
+lemma zip_of_prod {l : list α} {l' : list β} {lp : list (α × β)}
+  (hl : lp.map prod.fst = l) (hr : lp.map prod.snd = l') :
+  lp = l.zip l' :=
+by rw [←hl, ←hr, ←zip_unzip lp, ←unzip_left, ←unzip_right, zip_unzip, zip_unzip]
+
+lemma map_prod_left_eq_zip {l : list α} (f : α → β) : l.map (λ x, (x, f x)) = l.zip (l.map f) :=
+by { rw ←zip_map', congr, exact map_id _ }
+
+lemma map_prod_right_eq_zip {l : list α} (f : α → β) : l.map (λ x, (f x, x)) = (l.map f).zip l :=
+by { rw ←zip_map', congr, exact map_id _ }
 
 @[simp] theorem length_revzip (l : list α) : length (revzip l) = length l :=
 by simp only [revzip, length_zip, length_reverse, min_self]

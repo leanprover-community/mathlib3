@@ -702,15 +702,13 @@ lemma injective_iff {G H} [group G] [monoid H] (f : G →* H) :
  λ h x y hxy, mul_inv_eq_one.1 $ h _ $ by rw [f.map_mul, hxy, ← f.map_mul, mul_inv_self, f.map_one]⟩
 
 include mM
-/-- Makes a group homomomorphism from a proof that the map preserves multiplication. -/
-@[to_additive]
+/-- Makes a group homomorphism from a proof that the map preserves multiplication. -/
+@[to_additive "Makes an additive group homomorphism from a proof that the map preserves addition."]
 def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G :=
 { to_fun := f,
   map_mul' := map_mul,
   map_one' := mul_self_iff_eq_one.1 $ by rw [←map_mul, mul_one] }
 
-/-- Makes an additive group homomomorphism from a proof that the map preserves multiplication. -/
-add_decl_doc add_monoid_hom.mk'
 
 @[simp, to_additive]
 lemma coe_mk' {f : M → G} (map_mul : ∀ a b : M, f (a * b) = f a * f b) :

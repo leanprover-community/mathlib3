@@ -448,7 +448,7 @@ lemma haar_outer_measure_eq_infi (K₀ : positive_compacts G) (A : set G) :
 outer_measure.of_content_eq_infi echaar_sup_le A
 
 lemma echaar_le_haar_outer_measure {K₀ : positive_compacts G} (K : compacts G) :
-   echaar K₀ K ≤ haar_outer_measure K₀ K.1 :=
+  echaar K₀ K ≤ haar_outer_measure K₀ K.1 :=
 outer_measure.le_of_content_compacts echaar_sup_le K
 
 lemma haar_outer_measure_of_is_open {K₀ : positive_compacts G} (U : set G) (hU : is_open U) :
@@ -552,7 +552,7 @@ lemma haar_measure_self [locally_compact_space G] {K₀ : positive_compacts G} :
   haar_measure K₀ K₀.1 = 1 :=
 begin
   rw [haar_measure_apply K₀.2.1.is_measurable, ennreal.div_self],
-  { rw [← zero_lt_iff_ne_zero], exact haar_outer_measure_self_pos },
+  { rw [← pos_iff_ne_zero], exact haar_outer_measure_self_pos },
   { exact ne_of_lt (haar_outer_measure_lt_top_of_is_compact K₀.2.1) }
 end
 
@@ -561,7 +561,7 @@ lemma haar_measure_pos_of_is_open [locally_compact_space G] {K₀ : positive_com
 begin
   rw [haar_measure_apply hU.is_measurable, ennreal.div_pos_iff],
   refine ⟨_, ne_of_lt $ haar_outer_measure_lt_top_of_is_compact K₀.2.1⟩,
-  rw [← zero_lt_iff_ne_zero], apply haar_outer_measure_pos_of_is_open hU h2U
+  rw [← pos_iff_ne_zero], apply haar_outer_measure_pos_of_is_open hU h2U
 end
 
 lemma regular_haar_measure [locally_compact_space G] {K₀ : positive_compacts G} :

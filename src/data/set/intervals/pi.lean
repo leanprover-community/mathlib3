@@ -31,6 +31,8 @@ ext $ λ y, by simp [pi.le_def]
 @[simp] lemma pi_univ_Icc : pi univ (λ i, Icc (x i) (y i)) = Icc x y :=
 ext $ λ y, by simp [pi.le_def, forall_and_distrib]
 
+section nonempty
+
 variable [nonempty ι]
 
 lemma pi_univ_Ioi_subset : pi univ (λ i, Ioi (x i)) ⊆ Ioi x :=
@@ -49,11 +51,54 @@ lemma pi_univ_Ioc_subset : pi univ (λ i, Ioc (x i) (y i)) ⊆ Ioc x y :=
 lemma pi_univ_Ico_subset : pi univ (λ i, Ico (x i) (y i)) ⊆ Ico x y :=
 λ x hx, ⟨λ i, (hx i trivial).1, pi_univ_Iio_subset _ $ λ i hi, (hx i hi).2⟩
 
+end nonempty
+
+variable [decidable_eq ι]
+
+open function (update)
+
+lemma pi_univ_Ioc_update_left {x y : Π i, α i} {i₀ : ι} {m : α i₀} (hm : x i₀ ≤ m) :
+  pi univ (λ i, Ioc (update x i₀ m i) (y i)) = {z | m < z i₀} ∩ pi univ (λ i, Ioc (x i) (y i)) :=
+begin
+  have : Ioc m (y i₀) = Ioi m ∩ Ioc (x i₀) (y i₀),
+    by rw [← Ioi_inter_Iic, ← Ioi_inter_Iic, ← inter_assoc,
+      inter_eq_self_of_subset_left (Ioi_subset_Ioi hm)],
+  simp_rw [univ_pi_update i₀ _ _ (λ i z, Ioc z (y i)), ← pi_inter_compl ({i₀} : set ι),
+    singleton_pi', ← inter_assoc, this],
+  refl
+end
+
+lemma pi_univ_Ioc_update_right {x y : Π i, α i} {i₀ : ι} {m : α i₀} (hm : m ≤ y i₀) :
+  pi univ (λ i, Ioc (x i) (update y i₀ m i)) = {z | z i₀ ≤ m} ∩ pi univ (λ i, Ioc (x i) (y i)) :=
+begin
+  have : Ioc (x i₀) m = Iic m ∩ Ioc (x i₀) (y i₀),
+    by rw [← Ioi_inter_Iic, ← Ioi_inter_Iic, inter_left_comm,
+      inter_eq_self_of_subset_left (Iic_subset_Iic.2 hm)],
+  simp_rw [univ_pi_update i₀ y m (λ i z, Ioc (x i) z), ← pi_inter_compl ({i₀} : set ι),
+    singleton_pi', ← inter_assoc, this],
+  refl
+end
+
+lemma disjoint_pi_univ_Ioc_update_left_right {x y : Π i, α i} {i₀ : ι} {m : α i₀} :
+  disjoint (pi univ (λ i, Ioc (x i) (update y i₀ m i)))
+    (pi univ (λ i, Ioc (update x i₀ m i) (y i))) :=
+begin
+  rintro z ⟨h₁, h₂⟩,
+  refine (h₁ i₀ (mem_univ _)).2.not_lt _,
+  simpa only [function.update_same] using (h₂ i₀ (mem_univ _)).1
+end
+
 end pi_preorder
 
 variables [decidable_eq ι] [Π i, linear_order (α i)]
 
 open function (update)
+
+lemma pi_univ_Ioc_update_union (x y : Π i, α i) (i₀ : ι) (m : α i₀) (hm : m ∈ Icc (x i₀) (y i₀)) :
+  pi univ (λ i, Ioc (x i) (update y i₀ m i)) ∪ pi univ (λ i, Ioc (update x i₀ m i) (y i)) =
+    pi univ (λ i, Ioc (x i) (y i)) :=
+by simp_rw [pi_univ_Ioc_update_left hm.1, pi_univ_Ioc_update_right hm.2,
+  ← union_inter_distrib_right, ← set_of_or, le_or_lt, set_of_true, univ_inter]
 
 /-- If `x`, `y`, `x'`, and `y'` are functions `Π i : ι, α i`, then
 the set difference between the box `[x, y]` and the product of the open intervals `(x' i, y' i)`

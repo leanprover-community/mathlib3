@@ -434,7 +434,7 @@ have hj : ∀ j : ℕ, ∑ m in range j, (x + y) ^ m / m! =
       rw [add_pow, div_eq_mul_inv, sum_mul],
       refine finset.sum_congr rfl (λ i hi, _),
       have h₁ : (m.choose i : ℂ) ≠ 0 := nat.cast_ne_zero.2
-        (nat.pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
+        (pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
       have h₂ := nat.choose_mul_factorial_mul_factorial (nat.le_of_lt_succ $ finset.mem_range.1 hi),
       rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv', mul_inv'],
       simp only [mul_left_comm (m.choose i : ℂ), mul_assoc, mul_left_comm (m.choose i : ℂ)⁻¹,
@@ -1188,11 +1188,11 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
   by simp [mul_inv', mul_sum.symm, sum_mul.symm, -nat.factorial_succ, mul_comm, inv_pow']
 ... = (n.succ - n.succ * n.succ⁻¹ ^ (j - n)) / (n! * n) :
   have h₁ : (n.succ : α) ≠ 1, from @nat.cast_one α _ _ ▸ mt nat.cast_inj.1
-        (mt nat.succ.inj (nat.pos_iff_ne_zero.1 hn)),
+        (mt nat.succ.inj (pos_iff_ne_zero.1 hn)),
   have h₂ : (n.succ : α) ≠ 0, from nat.cast_ne_zero.2 (nat.succ_ne_zero _),
   have h₃ : (n! * n : α) ≠ 0,
-    from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.factorial_pos _)))
-    (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 hn)),
+    from mul_ne_zero (nat.cast_ne_zero.2 (pos_iff_ne_zero.1 (nat.factorial_pos _)))
+    (nat.cast_ne_zero.2 (pos_iff_ne_zero.1 hn)),
   have h₄ : (n.succ - 1 : α) = n, by simp,
   by rw [← geom_series_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq h₃,
       mul_comm _ (n! * n : α), ← mul_assoc (n!⁻¹ : α), ← mul_inv_rev', h₄,
@@ -1277,8 +1277,8 @@ def exp_near (n : ℕ) (x r : ℝ) : ℝ := ∑ m in range n, x ^ m / m! + x ^ n
 @[simp] theorem exp_near_zero (x r) : exp_near 0 x r = r := by simp [exp_near]
 
 @[simp] theorem exp_near_succ (n x r) : exp_near (n + 1) x r = exp_near n x (1 + x / (n+1) * r) :=
-by { simp [exp_near, range_succ, mul_add, add_left_comm, add_assoc, pow_succ],
-     field_simp [mul_assoc, mul_left_comm] }
+by simp [exp_near, range_succ, mul_add, add_left_comm, add_assoc, pow_succ, div_eq_mul_inv,
+  mul_inv']; ac_refl
 
 theorem exp_near_sub (n x r₁ r₂) : exp_near n x r₁ - exp_near n x r₂ = x ^ n / n! * (r₁ - r₂) :=
 by simp [exp_near, mul_sub]
@@ -1294,12 +1294,11 @@ lemma exp_approx_succ {n} {x a₁ b₁ : ℝ} (m : ℕ)
   (h : abs' (exp x - exp_near m x a₂) ≤ abs' x ^ m / m! * b₂) :
   abs' (exp x - exp_near n x a₁) ≤ abs' x ^ n / n! * b₁ :=
 begin
-  refine le_trans (_root_.abs_sub_le _ _ _)
-    (le_trans (add_le_add_right h _) _),
+  refine (_root_.abs_sub_le _ _ _).trans ((add_le_add_right h _).trans _),
   subst e₁, rw [exp_near_succ, exp_near_sub, _root_.abs_mul],
   convert mul_le_mul_of_nonneg_left (le_sub_iff_add_le'.1 e) _,
-  { simp [mul_add, pow_succ', _root_.abs_div, ← pow_abs],
-    field_simp [mul_assoc] },
+  { simp [mul_add, pow_succ', div_eq_mul_inv, _root_.abs_mul, _root_.abs_inv, ← pow_abs, mul_inv'],
+    ac_refl },
   { simp [_root_.div_nonneg, _root_.abs_nonneg] }
 end
 

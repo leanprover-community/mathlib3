@@ -39,7 +39,7 @@ lemma coeff_zero_mem_comap_of_root_mem_of_eval_mem {r : S} (hr : r ∈ I) {p : p
 begin
   rw [←p.div_X_mul_X_add, eval₂_add, eval₂_C, eval₂_mul, eval₂_X] at hp,
   refine mem_comap.mpr ((I.add_mem_iff_right _).mp hp),
-  exact I.mul_mem_left hr
+  exact I.mul_mem_left _ hr
 end
 
 lemma coeff_zero_mem_comap_of_root_mem {r : S} (hr : r ∈ I) {p : polynomial R}

@@ -408,7 +408,7 @@ lemma inductive_limit_dist_eq_dist (I : ∀n, isometry (f n))
 begin
   induction m with m hm,
   { assume hx hy,
-    have A : max x.1 y.1 = 0, { rw [le_zero_iff_eq.1 hx, le_zero_iff_eq.1 hy], simp },
+    have A : max x.1 y.1 = 0, { rw [nonpos_iff_eq_zero.1 hx, nonpos_iff_eq_zero.1 hy], simp },
     unfold inductive_limit_dist,
     congr; simp only [A] },
   { assume hx hy,

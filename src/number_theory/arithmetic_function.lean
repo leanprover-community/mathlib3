@@ -833,7 +833,7 @@ begin
   apply forall_congr,
   intro a,
   apply imp_congr (iff.refl _) (eq.congr_left (sum_congr rfl (λ x hx, _))),
-  rw [← module.gsmul_eq_smul, gsmul_eq_mul],
+  rw [←gsmul_eq_smul, gsmul_eq_mul],
 end
 
 /-- Möbius inversion for functions to a `comm_group`. -/

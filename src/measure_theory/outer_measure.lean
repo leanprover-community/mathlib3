@@ -180,7 +180,7 @@ section supremum
 instance : has_Sup (outer_measure α) :=
 ⟨λms, {
   measure_of := λs, ⨆ m ∈ ms, (m : outer_measure α) s,
-  empty      := le_zero_iff_eq.1 $ bsupr_le $ λ m h, le_of_eq m.empty,
+  empty      := nonpos_iff_eq_zero.1 $ bsupr_le $ λ m h, le_of_eq m.empty,
   mono       := assume s₁ s₂ hs, bsupr_le_bsupr $ assume m hm, m.mono hs,
   Union_nat  := assume f, bsupr_le $ assume m hm,
     calc m (⋃i, f i) ≤ (∑' (i : ℕ), m (f i)) : m.Union_nat _
@@ -586,7 +586,7 @@ begin
 end
 
 lemma supr_Inf_gen_nonempty {m : set (outer_measure α)} (h : m.nonempty) (t : set α) :
-   (⨆ (h : t.nonempty), Inf_gen m t) = (⨅ (μ : outer_measure α) (h : μ ∈ m), μ t) :=
+  (⨆ (h : t.nonempty), Inf_gen m t) = (⨅ (μ : outer_measure α) (h : μ ∈ m), μ t) :=
 begin
   rcases t.eq_empty_or_nonempty with rfl|ht,
   { rcases h with ⟨μ, hμ⟩,

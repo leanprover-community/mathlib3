@@ -1278,7 +1278,7 @@ multiplicity X φ
 lemma order_finite_of_coeff_ne_zero (φ : power_series R) (h : ∃ n, coeff R n φ ≠ 0) :
   (order φ).dom :=
 begin
-  cases h with n h, refine ⟨n, _⟩,
+  cases h with n h, refine ⟨n, _⟩, dsimp only,
   rw X_pow_dvd_iff, push_neg, exact ⟨n, lt_add_one n, h⟩
 end
 

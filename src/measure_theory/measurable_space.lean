@@ -7,6 +7,7 @@ import data.set.disjointed
 import data.set.countable
 import data.indicator_function
 import data.equiv.encodable.lattice
+import data.tprod
 import order.filter.basic
 
 /-!
@@ -538,6 +539,13 @@ hf.piecewise hs measurable_const
 @[to_additive]
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
+lemma measurable_of_not_nonempty  (h : ¬ nonempty α) (f : α → β) : measurable f :=
+begin
+  assume s hs,
+  convert is_measurable.empty,
+  exact eq_empty_of_not_nonempty h _,
+end
+
 end measurable_functions
 
 section constructions
@@ -798,6 +806,43 @@ is_measurable.pi (countable_encodable _) ht
 end fintype
 end pi
 
+instance tprod.measurable_space (π : δ → Type*) [∀ x, measurable_space (π x)] :
+  ∀ (l : list δ), measurable_space (list.tprod π l)
+| []        := punit.measurable_space
+| (i :: is) := @prod.measurable_space _ _ _ (tprod.measurable_space is)
+
+section tprod
+
+open list
+
+variables {π : δ → Type*} [∀ x, measurable_space (π x)]
+
+lemma measurable_tprod_mk (l : list δ) : measurable (@tprod.mk δ π l) :=
+begin
+  induction l with i l ih,
+  { exact measurable_const },
+  { exact (measurable_pi_apply i).prod_mk ih }
+end
+
+lemma measurable_tprod_elim : ∀ {l : list δ} {i : δ} (hi : i ∈ l),
+  measurable (λ (v : tprod π l), v.elim hi)
+| (i :: is) j hj := begin
+  by_cases hji : j = i,
+  { subst hji, simp [measurable_fst] },
+  { rw [funext $ tprod.elim_of_ne _ hji],
+    exact (measurable_tprod_elim (hj.resolve_left hji)).comp measurable_snd }
+end
+
+lemma measurable_tprod_elim' {l : list δ} (h : ∀ i, i ∈ l) :
+  measurable (tprod.elim' h : tprod π l → Π i, π i) :=
+measurable_pi_lambda _ (λ i, measurable_tprod_elim (h i))
+
+lemma is_measurable.tprod (l : list δ) {s : ∀ i, set (π i)} (hs : ∀ i, is_measurable (s i)) :
+  is_measurable (set.tprod l s) :=
+by { induction l with i l ih, exact is_measurable.univ, exact (hs i).prod ih }
+
+end tprod
+
 instance {α β} [m₁ : measurable_space α] [m₂ : measurable_space β] : measurable_space (α ⊕ β) :=
 m₁.map sum.inl ⊓ m₂.map sum.inr
 
@@ -891,6 +936,10 @@ instance : inhabited (α ≃ᵐ α) := ⟨refl α⟩
 
 @[simp] lemma coe_symm_mk (e : α ≃ β) (h1 : measurable e) (h2 : measurable e.symm) :
   ((⟨e, h1, h2⟩ : α ≃ᵐ β).symm : β → α) = e.symm := rfl
+
+@[simp] theorem symm_comp_self (e : α ≃ᵐ β) : e.symm ∘ e = id := funext e.left_inv
+
+@[simp] theorem self_comp_symm (e : α ≃ᵐ β) : e ∘ e.symm = id := funext e.right_inv
 
 /-- Equal measurable spaces are equivalent. -/
 protected def cast {α β} [i₁ : measurable_space α] [i₂ : measurable_space β]
@@ -1067,6 +1116,13 @@ def Pi_congr_right (e : Π a, π a ≃ᵐ π' a) : (Π a, π a) ≃ᵐ (Π a, π
     measurable_pi_lambda _ (λ i, (e i).measurable_to_fun.comp (measurable_pi_apply i)),
   measurable_inv_fun :=
     measurable_pi_lambda _ (λ i, (e i).measurable_inv_fun.comp (measurable_pi_apply i)) }
+
+/-- Pi-types are measurably equivalent to iterated products. -/
+noncomputable def pi_measurable_equiv_tprod {l : list δ'} (hnd : l.nodup) (h : ∀ i, i ∈ l) :
+  (Π i, π i) ≃ᵐ list.tprod π l :=
+{ to_equiv := list.tprod.pi_equiv_tprod hnd h,
+  measurable_to_fun := measurable_tprod_mk l,
+  measurable_inv_fun := measurable_tprod_elim' h }
 
 end measurable_equiv
 

@@ -1,12 +1,11 @@
 /-
 Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
+Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis, Heather Macbeth
 -/
 
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
-import analysis.special_functions.pow
 import topology.metric_space.pi_Lp
 import data.complex.is_R_or_C
 
@@ -64,8 +63,8 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 
 noncomputable theory
 
-open is_R_or_C real
-open_locale big_operators classical
+open is_R_or_C real filter
+open_locale big_operators classical topological_space
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 
@@ -725,6 +724,10 @@ end
 lemma abs_real_inner_le_norm (x y : F) : absR ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
 by { have h := @abs_inner_le_norm ℝ F _ _ x y, simpa using h }
 
+/-- Cauchy–Schwarz inequality with norm -/
+lemma real_inner_le_norm (x y : F) : ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
+le_trans (le_abs_self _) (abs_real_inner_le_norm _ _)
+
 include 𝕜
 lemma parallelogram_law_with_norm {x y : E} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
@@ -938,7 +941,7 @@ end
 /--
 If the inner product of two vectors is equal to the product of their norms, then the two vectors
 are multiples of each other. One form of the equality case for Cauchy-Schwarz.
--/
+Compare `inner_eq_norm_mul_iff`, which takes the stronger hypothesis `⟪x, y⟫ = ∥x∥ * ∥y∥`. -/
 lemma abs_inner_eq_norm_iff (x y : E) (hx0 : x ≠ 0) (hy0 : y ≠ 0):
   abs ⟪x, y⟫ = ∥x∥ * ∥y∥ ↔ ∃ (r : 𝕜), r ≠ 0 ∧ y = r • x :=
 begin
@@ -1009,6 +1012,63 @@ begin
     rw hy,
     exact real_inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul hx hr }
 end
+
+/-- If the inner product of two vectors is equal to the product of their norms (i.e.,
+`⟪x, y⟫ = ∥x∥ * ∥y∥`), then the two vectors are nonnegative real multiples of each other. One form
+of the equality case for Cauchy-Schwarz.
+Compare `abs_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ∥x∥ * ∥y∥`. -/
+lemma inner_eq_norm_mul_iff {x y : E} :
+  ⟪x, y⟫ = (∥x∥ : 𝕜) * ∥y∥ ↔ (∥y∥ : 𝕜) • x = (∥x∥ : 𝕜) • y :=
+begin
+  by_cases h : (x = 0 ∨ y = 0), -- WLOG `x` and `y` are nonzero
+  { cases h; simp [h] },
+  calc ⟪x, y⟫ = (∥x∥ : 𝕜) * ∥y∥ ↔ ∥x∥ * ∥y∥ = re ⟪x, y⟫ :
+  begin
+    norm_cast,
+    split,
+    { intros h',
+      simp [h'] },
+    { have cauchy_schwarz := abs_inner_le_norm x y,
+      intros h',
+      rw h' at ⊢ cauchy_schwarz,
+      rwa re_eq_self_of_le }
+  end
+  ... ↔ 2 * ∥x∥ * ∥y∥ * (∥x∥ * ∥y∥ - re ⟪x, y⟫) = 0 :
+    by simp [h, show (2:ℝ) ≠ 0, by norm_num, sub_eq_zero]
+  ... ↔ ∥(∥y∥:𝕜) • x - (∥x∥:𝕜) • y∥ * ∥(∥y∥:𝕜) • x - (∥x∥:𝕜) • y∥ = 0 :
+  begin
+    simp only [norm_sub_mul_self, inner_smul_left, inner_smul_right, norm_smul, conj_of_real,
+      is_R_or_C.norm_eq_abs, abs_of_real, of_real_im, of_real_re, mul_re, abs_norm_eq_norm],
+    refine eq.congr _ rfl,
+    ring
+  end
+  ... ↔ (∥y∥ : 𝕜) • x = (∥x∥ : 𝕜) • y : by simp [norm_sub_eq_zero_iff]
+end
+
+/-- If the inner product of two vectors is equal to the product of their norms (i.e.,
+`⟪x, y⟫ = ∥x∥ * ∥y∥`), then the two vectors are nonnegative real multiples of each other. One form
+of the equality case for Cauchy-Schwarz.
+Compare `abs_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ∥x∥ * ∥y∥`. -/
+lemma inner_eq_norm_mul_iff_real {x y : F} : ⟪x, y⟫_ℝ = ∥x∥ * ∥y∥ ↔ ∥y∥ • x = ∥x∥ • y :=
+inner_eq_norm_mul_iff
+
+/-- If the inner product of two unit vectors is `1`, then the two vectors are equal. One form of
+the equality case for Cauchy-Schwarz. -/
+lemma inner_eq_norm_mul_iff_of_norm_one {x y : E} (hx : ∥x∥ = 1) (hy : ∥y∥ = 1) :
+  ⟪x, y⟫ = 1 ↔ x = y :=
+by { convert inner_eq_norm_mul_iff using 2; simp [hx, hy] }
+
+lemma inner_lt_norm_mul_iff_real {x y : F} :
+  ⟪x, y⟫_ℝ < ∥x∥ * ∥y∥ ↔ ∥y∥ • x ≠ ∥x∥ • y :=
+calc ⟪x, y⟫_ℝ < ∥x∥ * ∥y∥
+    ↔ ⟪x, y⟫_ℝ ≠ ∥x∥ * ∥y∥ : ⟨ne_of_lt, lt_of_le_of_ne (real_inner_le_norm _ _)⟩
+... ↔ ∥y∥ • x ≠ ∥x∥ • y : not_congr inner_eq_norm_mul_iff_real
+
+/-- If the inner product of two unit vectors is strictly less than `1`, then the two vectors are
+distinct. One form of the equality case for Cauchy-Schwarz. -/
+lemma inner_lt_one_iff_real_of_norm_one {x y : F} (hx : ∥x∥ = 1) (hy : ∥y∥ = 1) :
+  ⟪x, y⟫_ℝ < 1 ↔ x ≠ y :=
+by { convert inner_lt_norm_mul_iff_real; simp [hx, hy] }
 
 /-- The inner product of two weighted sums, where the weights in each
 sum add to 0, in terms of the norms of pairwise differences. -/
@@ -1097,9 +1157,10 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 { inner := (λ x y, (conj x) * y),
-  norm_sq_eq_inner := λ x, by unfold inner; rw [mul_comm, mul_conj, of_real_re, norm_sq, norm_sq_eq_def],
+  norm_sq_eq_inner := λ x,
+    by { unfold inner, rw [mul_comm, mul_conj, of_real_re, norm_sq_eq_def'] },
   conj_sym := λ x y, by simp [mul_comm],
-  nonneg_im := λ x, by rw[mul_im, conj_re, conj_im]; ring,
+  nonneg_im := λ x, by rw [mul_im, conj_re, conj_im]; ring,
   add_left := λ x y z, by simp [inner, add_mul],
   smul_left := λ x y z, by simp [inner, mul_assoc] }
 
@@ -1153,6 +1214,17 @@ end is_R_or_C_to_real
 
 section deriv
 
+/-!
+### Derivative of the inner product
+
+In this section we prove that the inner product and square of the norm in an inner space are
+infinitely `ℝ`-smooth. In order to state these results, we need a `normed_space ℝ E`
+instance. Though we can deduce this structure from `inner_product_space 𝕜 E`, this instance may be
+not definitionally equal to some other “natural” instance. So, we assume `[normed_space ℝ E]` and
+`[is_scalar_tower ℝ 𝕜 E]`. In both interesting cases `𝕜 = ℝ` and `𝕜 = ℂ` we have these instances.
+
+-/
+
 variables [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
 
 lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
@@ -1165,6 +1237,12 @@ lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ (λ p : E × E
   bound := ⟨1, zero_lt_one, λ x y,
     by { rw [one_mul, is_R_or_C.norm_eq_abs], exact abs_inner_le_norm x y, }⟩ }
 
+/-- Derivative of the inner product. -/
+def fderiv_inner_clm (p : E × E) : E × E →L[ℝ] 𝕜 := is_bounded_bilinear_map_inner.deriv p
+
+@[simp] lemma fderiv_inner_clm_apply (p x : E × E) :
+  fderiv_inner_clm  p x = ⟪p.1, x.2⟫ + ⟪x.1, p.2⟫ := rfl
+
 lemma times_cont_diff_inner {n} : times_cont_diff ℝ n (λ p : E × E, ⟪p.1, p.2⟫) :=
 is_bounded_bilinear_map_inner.times_cont_diff
 
@@ -1173,10 +1251,7 @@ lemma times_cont_diff_at_inner {p : E × E} {n} :
 times_cont_diff_inner.times_cont_diff_at
 
 lemma differentiable_inner : differentiable ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
-times_cont_diff_inner.differentiable le_rfl
-
-lemma continuous_inner : continuous (λ p : E × E, ⟪p.1, p.2⟫) :=
-differentiable_inner.continuous
+is_bounded_bilinear_map_inner.differentiable_at
 
 variables {G : Type*} [normed_group G] [normed_space ℝ G]
   {f g : G → E} {f' g' : G →L[ℝ] E} {s : set G} {x : G} {n : with_top ℕ}
@@ -1201,6 +1276,25 @@ lemma times_cont_diff.inner (hf : times_cont_diff ℝ n f) (hg : times_cont_diff
   times_cont_diff ℝ n (λ x, ⟪f x, g x⟫) :=
 times_cont_diff_inner.comp (hf.prod hg)
 
+lemma has_fderiv_within_at.inner (hf : has_fderiv_within_at f f' s x)
+  (hg : has_fderiv_within_at g g' s x) :
+  has_fderiv_within_at (λ t, ⟪f t, g t⟫) ((fderiv_inner_clm (f x, g x)).comp $ f'.prod g') s x :=
+(is_bounded_bilinear_map_inner.has_fderiv_at (f x, g x)).comp_has_fderiv_within_at x (hf.prod hg)
+
+lemma has_fderiv_at.inner (hf : has_fderiv_at f f' x) (hg : has_fderiv_at g g' x) :
+  has_fderiv_at (λ t, ⟪f t, g t⟫) ((fderiv_inner_clm (f x, g x)).comp $ f'.prod g') x :=
+(is_bounded_bilinear_map_inner.has_fderiv_at (f x, g x)).comp x (hf.prod hg)
+
+lemma has_deriv_within_at.inner {f g : ℝ → E} {f' g' : E} {s : set ℝ} {x : ℝ}
+  (hf : has_deriv_within_at f f' s x) (hg : has_deriv_within_at g g' s x) :
+  has_deriv_within_at (λ t, ⟪f t, g t⟫) (⟪f x, g'⟫ + ⟪f', g x⟫) s x :=
+by simpa using (hf.has_fderiv_within_at.inner hg.has_fderiv_within_at).has_deriv_within_at
+
+lemma has_deriv_at.inner {f g : ℝ → E} {f' g' : E} {x : ℝ} :
+  has_deriv_at f f' x →  has_deriv_at g g' x →
+  has_deriv_at (λ t, ⟪f t, g t⟫) (⟪f x, g'⟫ + ⟪f', g x⟫) x :=
+by simpa only [← has_deriv_within_at_univ] using has_deriv_within_at.inner
+
 lemma differentiable_within_at.inner (hf : differentiable_within_at ℝ f s x)
   (hg : differentiable_within_at ℝ g s x) :
   differentiable_within_at ℝ (λ x, ⟪f x, g x⟫) s x :=
@@ -1219,7 +1313,105 @@ lemma differentiable.inner (hf : differentiable ℝ f) (hg : differentiable ℝ 
   differentiable ℝ (λ x, ⟪f x, g x⟫) :=
 λ x, (hf x).inner (hg x)
 
+lemma fderiv_inner_apply (hf : differentiable_at ℝ f x) (hg : differentiable_at ℝ g x) (y : G) :
+  fderiv ℝ (λ t, ⟪f t, g t⟫) x y = ⟪f x, fderiv ℝ g x y⟫ + ⟪fderiv ℝ f x y, g x⟫ :=
+by { rw [(hf.has_fderiv_at.inner hg.has_fderiv_at).fderiv], refl }
+
+lemma deriv_inner_apply {f g : ℝ → E} {x : ℝ} (hf : differentiable_at ℝ f x)
+  (hg : differentiable_at ℝ g x) :
+  deriv (λ t, ⟪f t, g t⟫) x = ⟪f x, deriv g x⟫ + ⟪deriv f x, g x⟫ :=
+(hf.has_deriv_at.inner hg.has_deriv_at).deriv
+
+lemma times_cont_diff_norm_square : times_cont_diff ℝ n (λ x : E, ∥x∥ ^ 2) :=
+begin
+  simp only [pow_two, ← inner_self_eq_norm_square],
+  exact (re_clm : 𝕜 →L[ℝ] ℝ).times_cont_diff.comp (times_cont_diff_id.inner times_cont_diff_id)
+end
+
+lemma times_cont_diff.norm_square (hf : times_cont_diff ℝ n f) :
+  times_cont_diff ℝ n (λ x, ∥f x∥ ^ 2) :=
+times_cont_diff_norm_square.comp hf
+
+lemma times_cont_diff_within_at.norm_square (hf : times_cont_diff_within_at ℝ n f s x) :
+  times_cont_diff_within_at ℝ n (λ y, ∥f y∥ ^ 2) s x :=
+times_cont_diff_norm_square.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+
+lemma times_cont_diff_at.norm_square (hf : times_cont_diff_at ℝ n f x) :
+  times_cont_diff_at ℝ n (λ y, ∥f y∥ ^ 2) x :=
+hf.norm_square
+
+lemma times_cont_diff_on.norm_square (hf : times_cont_diff_on ℝ n f s) :
+  times_cont_diff_on ℝ n (λ y, ∥f y∥ ^ 2) s :=
+(λ x hx, (hf x hx).norm_square)
+
+lemma differentiable_at.norm_square (hf : differentiable_at ℝ f x) :
+  differentiable_at ℝ (λ y, ∥f y∥ ^ 2) x :=
+(times_cont_diff_norm_square.differentiable le_rfl).differentiable_at.comp x hf
+
+lemma differentiable.norm_square (hf : differentiable ℝ f) : differentiable ℝ (λ y, ∥f y∥ ^ 2) :=
+λ x, (hf x).norm_square
+
+lemma differentiable_within_at.norm_square (hf : differentiable_within_at ℝ f s x) :
+  differentiable_within_at ℝ (λ y, ∥f y∥ ^ 2) s x :=
+(times_cont_diff_norm_square.differentiable le_rfl).differentiable_at.comp_differentiable_within_at
+  x hf
+
+lemma differentiable_on.norm_square (hf : differentiable_on ℝ f s) :
+  differentiable_on ℝ (λ y, ∥f y∥ ^ 2) s :=
+λ x hx, (hf x hx).norm_square
+
 end deriv
+
+section continuous
+
+/-!
+### Continuity and measurability of the inner product
+
+Since the inner product is `ℝ`-smooth, it is continuous. We do not need a `[normed_space ℝ E]`
+structure to *state* this fact and its corollaries, so we introduce them in the proof instead.
+-/
+
+lemma continuous_inner : continuous (λ p : E × E, ⟪p.1, p.2⟫) :=
+begin
+  letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
+  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
+  exact differentiable_inner.continuous
+end
+
+variables {α : Type*}
+
+lemma filter.tendsto.inner {f g : α → E} {l : filter α} {x y : E} (hf : tendsto f l (𝓝 x))
+  (hg : tendsto g l (𝓝 y)) :
+  tendsto (λ t, ⟪f t, g t⟫) l (𝓝 ⟪x, y⟫) :=
+(continuous_inner.tendsto _).comp (hf.prod_mk_nhds hg)
+
+lemma measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
+  [topological_space.second_countable_topology E] [measurable_space 𝕜] [borel_space 𝕜]
+  {f g : α → E} (hf : measurable f) (hg : measurable g) :
+  measurable (λ t, ⟪f t, g t⟫) :=
+continuous.measurable2 continuous_inner hf hg
+
+variables [topological_space α] {f g : α → E} {x : α} {s : set α}
+
+include 𝕜
+
+lemma continuous_within_at.inner (hf : continuous_within_at f s x)
+  (hg : continuous_within_at g s x) :
+  continuous_within_at (λ t, ⟪f t, g t⟫) s x :=
+hf.inner hg
+
+lemma continuous_at.inner (hf : continuous_at f x) (hg : continuous_at g x) :
+  continuous_at (λ t, ⟪f t, g t⟫) x :=
+hf.inner hg
+
+lemma continuous_on.inner (hf : continuous_on f s) (hg : continuous_on g s) :
+  continuous_on (λ t, ⟪f t, g t⟫) s :=
+λ x hx, (hf x hx).inner (hg x hx)
+
+lemma continuous.inner (hf : continuous f) (hg : continuous g) : continuous (λ t, ⟪f t, g t⟫) :=
+continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.inner hg.continuous_at
+
+end continuous
 
 section pi_Lp
 local attribute [reducible] pi_Lp
@@ -1443,19 +1635,21 @@ begin
       apply cinfi_le, use 0, rintros y ⟨z, rfl⟩, exact norm_nonneg _ }
 end
 
+variables (K : submodule 𝕜 E)
+
 /--
 Existence of projections on complete subspaces.
 Let `u` be a point in an inner product space, and let `K` be a nonempty complete subspace.
 Then there exists a (unique) `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
 This point `v` is usually called the orthogonal projection of `u` onto `K`.
 -/
-theorem exists_norm_eq_infi_of_complete_subspace (K : subspace 𝕜 E)
+theorem exists_norm_eq_infi_of_complete_subspace
   (h : is_complete (↑K : set E)) : ∀ u : E, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (K : set E), ∥u - w∥ :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
   letI : module ℝ E := restrict_scalars.semimodule ℝ 𝕜 E,
   letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
-  let K' : subspace ℝ E := submodule.restrict_scalars ℝ K,
+  let K' : submodule ℝ E := submodule.restrict_scalars ℝ K,
   exact exists_norm_eq_infi_of_complete_convex ⟨0, K'.zero_mem⟩ h K'.convex
 end
 
@@ -1467,7 +1661,7 @@ for all `w ∈ K`, `⟪u - v, w⟫ = 0` (i.e., `u - v` is orthogonal to the subs
 This is superceded by `norm_eq_infi_iff_inner_eq_zero` that gives the same conclusion over
 any `is_R_or_C` field.
 -/
-theorem norm_eq_infi_iff_real_inner_eq_zero (K : subspace ℝ F) {u : F} {v : F}
+theorem norm_eq_infi_iff_real_inner_eq_zero (K : submodule ℝ F) {u : F} {v : F}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set F), ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫_ℝ = 0 :=
 iff.intro
 begin
@@ -1508,13 +1702,13 @@ Let `u` be a point in an inner product space, and let `K` be a nonempty subspace
 Then point `v` minimizes the distance `∥u - v∥` over points in `K` if and only if
 for all `w ∈ K`, `⟪u - v, w⟫ = 0` (i.e., `u - v` is orthogonal to the subspace `K`)
 -/
-theorem norm_eq_infi_iff_inner_eq_zero (K : subspace 𝕜 E) {u : E} {v : E}
+theorem norm_eq_infi_iff_inner_eq_zero {u : E} {v : E}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set E), ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫ = 0 :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
   letI : module ℝ E := restrict_scalars.semimodule ℝ 𝕜 E,
   letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
-  let K' : subspace ℝ E := K.restrict_scalars ℝ,
+  let K' : submodule ℝ E := K.restrict_scalars ℝ,
   split,
   { assume H,
     have A : ∀ w ∈ K, re ⟪u - v, w⟫ = 0 := (norm_eq_infi_iff_real_inner_eq_zero K' hv).1 H,
@@ -1534,25 +1728,29 @@ begin
     exact (norm_eq_infi_iff_real_inner_eq_zero K' hv).2 this }
 end
 
+section orthogonal_projection
+variables [complete_space K]
+
 /-- The orthogonal projection onto a complete subspace, as an
 unbundled function.  This definition is only intended for use in
 setting up the bundled version `orthogonal_projection` and should not
 be used once that is defined. -/
-def orthogonal_projection_fn (K : subspace 𝕜 E) [complete_space K] (v : E) :=
+def orthogonal_projection_fn (v : E) :=
 (exists_norm_eq_infi_of_complete_subspace K (complete_space_coe_iff_is_complete.mp ‹_›) v).some
+
+variables {K}
 
 /-- The unbundled orthogonal projection is in the given subspace.
 This lemma is only intended for use in setting up the bundled version
 and should not be used once that is defined. -/
-lemma orthogonal_projection_fn_mem {K : submodule 𝕜 E} [complete_space K] (v : E) :
-  orthogonal_projection_fn K v ∈ K :=
+lemma orthogonal_projection_fn_mem (v : E) : orthogonal_projection_fn K v ∈ K :=
 (exists_norm_eq_infi_of_complete_subspace K (complete_space_coe_iff_is_complete.mp ‹_›) v).some_spec.some
 
 /-- The characterization of the unbundled orthogonal projection.  This
 lemma is only intended for use in setting up the bundled version
 and should not be used once that is defined. -/
-lemma orthogonal_projection_fn_inner_eq_zero {K : submodule 𝕜 E} [complete_space K]
-  (v : E) : ∀ w ∈ K, ⟪v - orthogonal_projection_fn K v, w⟫ = 0 :=
+lemma orthogonal_projection_fn_inner_eq_zero (v : E) :
+  ∀ w ∈ K, ⟪v - orthogonal_projection_fn K v, w⟫ = 0 :=
 begin
   rw ←norm_eq_infi_iff_inner_eq_zero K (orthogonal_projection_fn_mem v),
   exact (exists_norm_eq_infi_of_complete_subspace K (complete_space_coe_iff_is_complete.mp ‹_›) v).some_spec.some_spec
@@ -1562,22 +1760,24 @@ end
 with the orthogonality property.  This lemma is only intended for use
 in setting up the bundled version and should not be used once that is
 defined. -/
-lemma eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero {K : submodule 𝕜 E} [complete_space K]
+lemma eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero
   {u v : E} (hvm : v ∈ K) (hvo : ∀ w ∈ K, ⟪u - v, w⟫ = 0) :
-  v = orthogonal_projection_fn K u :=
+  orthogonal_projection_fn K u = v :=
 begin
   rw [←sub_eq_zero, ←inner_self_eq_zero],
-  have hvs : v - orthogonal_projection_fn K u ∈ K :=
-    submodule.sub_mem K hvm (orthogonal_projection_fn_mem u),
-  have huo : ⟪u - orthogonal_projection_fn K u, v - orthogonal_projection_fn K u⟫ = 0 :=
+  have hvs : orthogonal_projection_fn K u - v ∈ K :=
+    submodule.sub_mem K (orthogonal_projection_fn_mem u) hvm,
+  have huo : ⟪u - orthogonal_projection_fn K u, orthogonal_projection_fn K u - v⟫ = 0 :=
     orthogonal_projection_fn_inner_eq_zero u _ hvs,
-  have huv : ⟪u - v, v - orthogonal_projection_fn K u⟫ = 0 := hvo _ hvs,
-  have houv : ⟪(u - orthogonal_projection_fn K u) - (u - v), v - orthogonal_projection_fn K u⟫ = 0,
+  have huv : ⟪u - v, orthogonal_projection_fn K u - v⟫ = 0 := hvo _ hvs,
+  have houv : ⟪(u - v) - (u - orthogonal_projection_fn K u), orthogonal_projection_fn K u - v⟫ = 0,
   { rw [inner_sub_left, huo, huv, sub_zero] },
   rwa sub_sub_sub_cancel_left at houv
 end
 
-lemma orthogonal_projection_fn_norm_sq (K : submodule 𝕜 E) [complete_space K] (v : E) :
+variables (K)
+
+lemma orthogonal_projection_fn_norm_sq (v : E) :
   ∥v∥ * ∥v∥ = ∥v - (orthogonal_projection_fn K v)∥ * ∥v - (orthogonal_projection_fn K v)∥
             + ∥orthogonal_projection_fn K v∥ * ∥orthogonal_projection_fn K v∥ :=
 begin
@@ -1589,7 +1789,7 @@ begin
 end
 
 /-- The orthogonal projection onto a complete subspace. -/
-def orthogonal_projection (K : submodule 𝕜 E) [complete_space K] : E →L[𝕜] K :=
+def orthogonal_projection : E →L[𝕜] K :=
 linear_map.mk_continuous
   { to_fun := λ v, ⟨orthogonal_projection_fn K v, orthogonal_projection_fn_mem v⟩,
     map_add' := λ x y, begin
@@ -1620,27 +1820,29 @@ linear_map.mk_continuous
     nlinarith [orthogonal_projection_fn_norm_sq K x]
   end)
 
+variables {K}
+
 @[simp]
-lemma orthogonal_projection_fn_eq {K : submodule 𝕜 E} [complete_space K] (v : E) :
+lemma orthogonal_projection_fn_eq (v : E) :
   orthogonal_projection_fn K v = (orthogonal_projection K v : E) :=
 rfl
 
 /-- The characterization of the orthogonal projection.  -/
 @[simp]
-lemma orthogonal_projection_inner_eq_zero {K : submodule 𝕜 E} [complete_space K] (v : E) :
+lemma orthogonal_projection_inner_eq_zero (v : E) :
   ∀ w ∈ K, ⟪v - orthogonal_projection K v, w⟫ = 0 :=
 orthogonal_projection_fn_inner_eq_zero v
 
 /-- The orthogonal projection is the unique point in `K` with the
 orthogonality property. -/
-lemma eq_orthogonal_projection_of_mem_of_inner_eq_zero {K : submodule 𝕜 E} [complete_space K]
+lemma eq_orthogonal_projection_of_mem_of_inner_eq_zero
   {u v : E} (hvm : v ∈ K) (hvo : ∀ w ∈ K, ⟪u - v, w⟫ = 0) :
-  v = orthogonal_projection K u :=
+  (orthogonal_projection K u : E) = v :=
 eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hvm hvo
 
 /-- The orthogonal projections onto equal subspaces are coerced back to the same point in `E`. -/
-lemma eq_orthogonal_projection_of_eq_submodule {K K' : submodule 𝕜 E} [complete_space K]
-  [complete_space K'] (h : K = K') (u : E) :
+lemma eq_orthogonal_projection_of_eq_submodule
+  {K' : submodule 𝕜 E} [complete_space K'] (h : K = K') (u : E) :
   (orthogonal_projection K u : E) = (orthogonal_projection K' u : E) :=
 begin
   change orthogonal_projection_fn K u = orthogonal_projection_fn K' u,
@@ -1648,13 +1850,70 @@ begin
   exact h
 end
 
+/-- The orthogonal projection sends elements of `K` to themselves. -/
+@[simp] lemma orthogonal_projection_mem_subspace_eq_self (v : K) : orthogonal_projection K v = v :=
+by { ext, apply eq_orthogonal_projection_of_mem_of_inner_eq_zero; simp }
+
+local attribute [instance] finite_dimensional_bot
+
+/-- The orthogonal projection onto the trivial submodule is the zero map. -/
+@[simp] lemma orthogonal_projection_bot : orthogonal_projection (⊥ : submodule 𝕜 E) = 0 :=
+begin
+  ext u,
+  apply eq_orthogonal_projection_of_mem_of_inner_eq_zero,
+  { simp },
+  { intros w hw,
+    simp [(submodule.mem_bot 𝕜).mp hw] }
+end
+
+variables (K)
+
 /-- The orthogonal projection has norm `≤ 1`. -/
-lemma orthogonal_projection_norm_le (K : submodule 𝕜 E) [complete_space K] :
-  ∥orthogonal_projection K∥ ≤ 1 :=
+lemma orthogonal_projection_norm_le : ∥orthogonal_projection K∥ ≤ 1 :=
 linear_map.mk_continuous_norm_le _ (by norm_num) _
 
+variables (𝕜)
+
+lemma smul_orthogonal_projection_singleton {v : E} (w : E) :
+  (∥v∥ ^ 2 : 𝕜) • (orthogonal_projection (𝕜 ∙ v) w : E) = ⟪v, w⟫ • v :=
+begin
+  suffices : ↑(orthogonal_projection (𝕜 ∙ v) ((∥v∥ ^ 2 : 𝕜) • w)) = ⟪v, w⟫ • v,
+  { simpa using this },
+  apply eq_orthogonal_projection_of_mem_of_inner_eq_zero,
+  { rw submodule.mem_span_singleton,
+    use ⟪v, w⟫ },
+  { intros x hx,
+    obtain ⟨c, rfl⟩ := submodule.mem_span_singleton.mp hx,
+    have hv : ↑∥v∥ ^ 2 = ⟪v, v⟫ := by { norm_cast, simp [norm_sq_eq_inner] },
+    simp [inner_sub_left, inner_smul_left, inner_smul_right, is_R_or_C.conj_div, mul_comm, hv,
+      inner_product_space.conj_sym, hv] }
+end
+
+/-- Formula for orthogonal projection onto a single vector. -/
+lemma orthogonal_projection_singleton {v : E} (w : E) :
+  (orthogonal_projection (𝕜 ∙ v) w : E) = (⟪v, w⟫ / ∥v∥ ^ 2) • v :=
+begin
+  by_cases hv : v = 0,
+  { rw [hv, eq_orthogonal_projection_of_eq_submodule submodule.span_zero_singleton],
+    { simp },
+    { apply_instance } },
+  have hv' : ∥v∥ ≠ 0 := ne_of_gt (norm_pos_iff.mpr hv),
+  have key : ((∥v∥ ^ 2 : 𝕜)⁻¹ * ∥v∥ ^ 2) • ↑(orthogonal_projection (𝕜 ∙ v) w)
+              = ((∥v∥ ^ 2 : 𝕜)⁻¹ * ⟪v, w⟫) • v,
+  { simp [mul_smul, smul_orthogonal_projection_singleton 𝕜 w] },
+  convert key;
+  field_simp [hv']
+end
+
+/-- Formula for orthogonal projection onto a single unit vector. -/
+lemma orthogonal_projection_unit_singleton {v : E} (hv : ∥v∥ = 1) (w : E) :
+  (orthogonal_projection (𝕜 ∙ v) w : E) = ⟪v, w⟫ • v :=
+by { rw ← smul_orthogonal_projection_singleton 𝕜 w, simp [hv] }
+
+end orthogonal_projection
+
 /-- The subspace of vectors orthogonal to a given subspace. -/
-def submodule.orthogonal (K : submodule 𝕜 E) : submodule 𝕜 E :=
+def submodule.orthogonal : submodule 𝕜 E :=
 { carrier := {v | ∀ u ∈ K, ⟪u, v⟫ = 0},
   zero_mem' := λ _ _, inner_zero_right,
   add_mem' := λ x y hx hy u hu, by rw [inner_add_right, hx u hu, hy u hu, add_zero],
@@ -1663,26 +1922,35 @@ def submodule.orthogonal (K : submodule 𝕜 E) : submodule 𝕜 E :=
 notation K`ᗮ`:1200 := submodule.orthogonal K
 
 /-- When a vector is in `Kᗮ`. -/
-lemma submodule.mem_orthogonal (K : submodule 𝕜 E) (v : E) : v ∈ Kᗮ ↔ ∀ u ∈ K, ⟪u, v⟫ = 0 :=
-iff.rfl
+lemma submodule.mem_orthogonal (v : E) : v ∈ Kᗮ ↔ ∀ u ∈ K, ⟪u, v⟫ = 0 := iff.rfl
 
 /-- When a vector is in `Kᗮ`, with the inner product the
 other way round. -/
-lemma submodule.mem_orthogonal' (K : submodule 𝕜 E) (v : E) : v ∈ Kᗮ ↔ ∀ u ∈ K, ⟪v, u⟫ = 0 :=
+lemma submodule.mem_orthogonal' (v : E) : v ∈ Kᗮ ↔ ∀ u ∈ K, ⟪v, u⟫ = 0 :=
 by simp_rw [submodule.mem_orthogonal, inner_eq_zero_sym]
 
+variables {K}
+
 /-- A vector in `K` is orthogonal to one in `Kᗮ`. -/
-lemma submodule.inner_right_of_mem_orthogonal {u v : E} {K : submodule 𝕜 E} (hu : u ∈ K)
-    (hv : v ∈ Kᗮ) : ⟪u, v⟫ = 0 :=
+lemma submodule.inner_right_of_mem_orthogonal {u v : E} (hu : u ∈ K) (hv : v ∈ Kᗮ) : ⟪u, v⟫ = 0 :=
 (K.mem_orthogonal v).1 hv u hu
 
 /-- A vector in `Kᗮ` is orthogonal to one in `K`. -/
-lemma submodule.inner_left_of_mem_orthogonal {u v : E} {K : submodule 𝕜 E} (hu : u ∈ K)
-    (hv : v ∈ Kᗮ) : ⟪v, u⟫ = 0 :=
+lemma submodule.inner_left_of_mem_orthogonal {u v : E} (hu : u ∈ K) (hv : v ∈ Kᗮ) : ⟪v, u⟫ = 0 :=
 by rw [inner_eq_zero_sym]; exact submodule.inner_right_of_mem_orthogonal hu hv
 
+/-- A vector in `(𝕜 ∙ u)ᗮ` is orthogonal to `u`. -/
+lemma inner_right_of_mem_orthogonal_singleton (u : E) {v : E} (hv : v ∈ (𝕜 ∙ u)ᗮ) : ⟪u, v⟫ = 0 :=
+submodule.inner_right_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
+
+/-- A vector in `(𝕜 ∙ u)ᗮ` is orthogonal to `u`. -/
+lemma inner_left_of_mem_orthogonal_singleton (u : E) {v : E} (hv : v ∈ (𝕜 ∙ u)ᗮ) : ⟪v, u⟫ = 0 :=
+submodule.inner_left_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
+
+variables (K)
+
 /-- `K` and `Kᗮ` have trivial intersection. -/
-lemma submodule.orthogonal_disjoint (K : submodule 𝕜 E) : disjoint K Kᗮ :=
+lemma submodule.orthogonal_disjoint : disjoint K Kᗮ :=
 begin
   simp_rw [submodule.disjoint_def, submodule.mem_orthogonal],
   exact λ x hx ho, inner_self_eq_zero.1 (ho x hx)
@@ -1690,7 +1958,7 @@ end
 
 /-- `Kᗮ` can be characterized as the intersection of the kernels of the operations of
 inner product with each of the elements of `K`. -/
-lemma orthogonal_eq_inter (K : submodule 𝕜 E) : Kᗮ = ⨅ v : K, (inner_right (v:E)).ker :=
+lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, (inner_right (v:E)).ker :=
 begin
   apply le_antisymm,
   { rw le_infi_iff,
@@ -1702,7 +1970,7 @@ begin
 end
 
 /-- The orthogonal complement of any submodule `K` is closed. -/
-lemma submodule.is_closed_orthogonal (K : submodule 𝕜 E) : is_closed (Kᗮ : set E) :=
+lemma submodule.is_closed_orthogonal : is_closed (Kᗮ : set E) :=
 begin
   rw orthogonal_eq_inter K,
   convert is_closed_Inter (λ v : K, (inner_right (v:E)).is_closed_ker),
@@ -1710,8 +1978,7 @@ begin
 end
 
 /-- In a complete space, the orthogonal complement of any submodule `K` is complete. -/
-instance [complete_space E] (K : submodule 𝕜 E) : complete_space Kᗮ :=
-K.is_closed_orthogonal.complete_space_coe
+instance [complete_space E] : complete_space Kᗮ := K.is_closed_orthogonal.complete_space_coe
 
 variables (𝕜 E)
 
@@ -1731,8 +1998,7 @@ lemma submodule.orthogonal_le {K₁ K₂ : submodule 𝕜 E} (h : K₁ ≤ K₂)
 (submodule.orthogonal_gc 𝕜 E).monotone_l h
 
 /-- `K` is contained in `Kᗮᗮ`. -/
-lemma submodule.le_orthogonal_orthogonal (K : submodule 𝕜 E) : K ≤ Kᗮᗮ :=
-(submodule.orthogonal_gc 𝕜 E).le_u_l _
+lemma submodule.le_orthogonal_orthogonal : K ≤ Kᗮᗮ := (submodule.orthogonal_gc 𝕜 E).le_u_l _
 
 /-- The inf of two orthogonal subspaces equals the subspace orthogonal
 to the sup. -/
@@ -1744,8 +2010,7 @@ subspace orthogonal to the sup. -/
 lemma submodule.infi_orthogonal {ι : Type*} (K : ι → submodule 𝕜 E) : (⨅ i, (K i)ᗮ) = (supr K)ᗮ :=
 (submodule.orthogonal_gc 𝕜 E).l_supr.symm
 
-/-- The inf of a set of orthogonal subspaces equals the subspace
-orthogonal to the sup. -/
+/-- The inf of a set of orthogonal subspaces equals the subspace orthogonal to the sup. -/
 lemma submodule.Inf_orthogonal (s : set $ submodule 𝕜 E) : (⨅ K ∈ s, Kᗮ) = (Sup s)ᗮ :=
 (submodule.orthogonal_gc 𝕜 E).l_Sup.symm
 
@@ -1764,24 +2029,23 @@ begin
                  add_sub_cancel'_right _ _⟩ }
 end
 
-/-- If `K` is complete, `K` and `Kᗮ` span the whole
-space. -/
-lemma submodule.sup_orthogonal_of_is_complete {K : submodule 𝕜 E} (h : is_complete (K : set E)) :
-  K ⊔ Kᗮ = ⊤ :=
+variables {K}
+
+/-- If `K` is complete, `K` and `Kᗮ` span the whole space. -/
+lemma submodule.sup_orthogonal_of_is_complete (h : is_complete (K : set E)) : K ⊔ Kᗮ = ⊤ :=
 begin
   convert submodule.sup_orthogonal_inf_of_is_complete (le_top : K ≤ ⊤) h,
   simp
 end
 
-/-- If `K` is complete, `K` and `Kᗮ` span the whole space. Version using `complete_space`.
--/
-lemma submodule.sup_orthogonal_of_complete_space {K : submodule 𝕜 E} [complete_space K] :
-  K ⊔ Kᗮ = ⊤ :=
+/-- If `K` is complete, `K` and `Kᗮ` span the whole space. Version using `complete_space`. -/
+lemma submodule.sup_orthogonal_of_complete_space [complete_space K] : K ⊔ Kᗮ = ⊤ :=
 submodule.sup_orthogonal_of_is_complete (complete_space_coe_iff_is_complete.mp ‹_›)
 
-/-- If `K` is complete, any `v` in `E` can be expressed as a sum of elements of `K` and
-`Kᗮ`. -/
-lemma submodule.exists_sum_mem_mem_orthogonal (K : submodule 𝕜 E) [complete_space K] (v : E) :
+variables (K)
+
+/-- If `K` is complete, any `v` in `E` can be expressed as a sum of elements of `K` and `Kᗮ`. -/
+lemma submodule.exists_sum_mem_mem_orthogonal [complete_space K] (v : E) :
   ∃ (y ∈ K) (z ∈ Kᗮ), v = y + z :=
 begin
   have h_mem : v ∈ K ⊔ Kᗮ := by simp [submodule.sup_orthogonal_of_complete_space],
@@ -1790,7 +2054,7 @@ begin
 end
 
 /-- If `K` is complete, then the orthogonal complement of its orthogonal complement is itself. -/
-@[simp] lemma submodule.orthogonal_orthogonal (K : submodule 𝕜 E) [complete_space K] : Kᗮᗮ = K :=
+@[simp] lemma submodule.orthogonal_orthogonal [complete_space K] : Kᗮᗮ = K :=
 begin
   ext v,
   split,
@@ -1805,10 +2069,10 @@ begin
     exact hw v hv }
 end
 
-/-- If `K` is complete, `K` and `Kᗮ` are complements of each
-other. -/
-lemma submodule.is_compl_orthogonal_of_is_complete {K : submodule 𝕜 E}
-  (h : is_complete (K : set E)) : is_compl K Kᗮ :=
+variables {K}
+
+/-- If `K` is complete, `K` and `Kᗮ` are complements of each other. -/
+lemma submodule.is_compl_orthogonal_of_is_complete (h : is_complete (K : set E)) : is_compl K Kᗮ :=
 ⟨K.orthogonal_disjoint, le_of_eq (submodule.sup_orthogonal_of_is_complete h).symm⟩
 
 @[simp] lemma submodule.top_orthogonal_eq_bot : (⊤ : submodule 𝕜 E)ᗮ = ⊥ :=
@@ -1824,14 +2088,79 @@ begin
   exact submodule.le_orthogonal_orthogonal ⊤
 end
 
-lemma submodule.eq_top_iff_orthogonal_eq_bot {K : submodule 𝕜 E} (hK : is_complete (K : set E)) :
-  K = ⊤ ↔ Kᗮ = ⊥ :=
+@[simp] lemma submodule.orthogonal_eq_bot_iff (hK : is_complete (K : set E)) :
+  Kᗮ = ⊥ ↔ K = ⊤ :=
 begin
-  refine ⟨by { rintro rfl, exact submodule.top_orthogonal_eq_bot }, _⟩,
+  refine ⟨_, by { rintro rfl, exact submodule.top_orthogonal_eq_bot }⟩,
   intro h,
   have : K ⊔ Kᗮ = ⊤ := submodule.sup_orthogonal_of_is_complete hK,
   rwa [h, sup_comm, bot_sup_eq] at this,
 end
+
+@[simp] lemma submodule.orthogonal_eq_top_iff : Kᗮ = ⊤ ↔ K = ⊥ :=
+begin
+  refine ⟨_, by { rintro rfl, exact submodule.bot_orthogonal_eq_top }⟩,
+  intro h,
+  have : K ⊓ Kᗮ = ⊥ := K.orthogonal_disjoint.eq_bot,
+  rwa [h, inf_comm, top_inf_eq] at this
+end
+
+/-- A point in `K` with the orthogonality property (here characterized in terms of `Kᗮ`) must be the
+orthogonal projection. -/
+lemma eq_orthogonal_projection_of_mem_orthogonal
+  [complete_space K] {u v : E} (hv : v ∈ K) (hvo : u - v ∈ Kᗮ) :
+  (orthogonal_projection K u : E) = v :=
+eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hv (λ w, inner_eq_zero_sym.mp ∘ (hvo w))
+
+/-- A point in `K` with the orthogonality property (here characterized in terms of `Kᗮ`) must be the
+orthogonal projection. -/
+lemma eq_orthogonal_projection_of_mem_orthogonal'
+  [complete_space K] {u v z : E} (hv : v ∈ K) (hz : z ∈ Kᗮ) (hu : u = v + z) :
+  (orthogonal_projection K u : E) = v :=
+eq_orthogonal_projection_of_mem_orthogonal hv (by simpa [hu])
+
+/-- The orthogonal projection onto `K` of an element of `Kᗮ` is zero. -/
+lemma orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero
+  [complete_space K] {v : E} (hv : v ∈ Kᗮ) :
+  orthogonal_projection K v = 0 :=
+by { ext, convert eq_orthogonal_projection_of_mem_orthogonal _ _; simp [hv] }
+
+/-- The orthogonal projection onto `Kᗮ` of an element of `K` is zero. -/
+lemma orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
+  [complete_space E] {v : E} (hv : v ∈ K) :
+  orthogonal_projection Kᗮ v = 0 :=
+orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (K.le_orthogonal_orthogonal hv)
+
+/-- The orthogonal projection onto `(𝕜 ∙ v)ᗮ` of `v` is zero. -/
+lemma orthogonal_projection_orthogonal_complement_singleton_eq_zero [complete_space E] (v : E) :
+  orthogonal_projection (𝕜 ∙ v)ᗮ v = 0 :=
+orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
+  (submodule.mem_span_singleton_self v)
+
+variables (K)
+
+/-- In a complete space `E`, a vector splits as the sum of its orthogonal projections onto a
+complete submodule `K` and onto the orthogonal complement of `K`.-/
+lemma eq_sum_orthogonal_projection_self_orthogonal_complement
+  [complete_space E] [complete_space K] (w : E) :
+  w = (orthogonal_projection K w : E) + (orthogonal_projection Kᗮ w : E) :=
+begin
+  obtain ⟨y, hy, z, hz, hwyz⟩ := K.exists_sum_mem_mem_orthogonal w,
+  convert hwyz,
+  { exact eq_orthogonal_projection_of_mem_orthogonal' hy hz hwyz },
+  { rw add_comm at hwyz,
+    refine eq_orthogonal_projection_of_mem_orthogonal' hz _ hwyz,
+    simp [hy] }
+end
+
+/-- In a complete space `E`, the projection maps onto a complete subspace `K` and its orthogonal
+complement sum to the identity. -/
+lemma id_eq_sum_orthogonal_projection_self_orthogonal_complement
+  [complete_space E] [complete_space K] :
+  continuous_linear_map.id 𝕜 E
+  = K.subtype_continuous.comp (orthogonal_projection K)
+  + Kᗮ.subtype_continuous.comp (orthogonal_projection Kᗮ) :=
+by { ext w, exact eq_sum_orthogonal_projection_self_orthogonal_complement K w }
 
 open finite_dimensional
 
@@ -1849,5 +2178,41 @@ begin
         (submodule.complete_of_finite_dimensional _)] at hd,
   rw add_zero at hd,
   exact hd.symm
+end
+
+/-- Given a finite-dimensional subspace `K₂`, and a subspace `K₁`
+containined in it, the dimensions of `K₁` and the intersection of its
+orthogonal subspace with `K₂` add to that of `K₂`. -/
+lemma submodule.findim_add_inf_findim_orthogonal' {K₁ K₂ : submodule 𝕜 E}
+  [finite_dimensional 𝕜 K₂] (h : K₁ ≤ K₂) {n : ℕ} (h_dim : findim 𝕜 K₁ + n = findim 𝕜 K₂) :
+  findim 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = n :=
+by { rw ← add_right_inj (findim 𝕜 K₁), simp [submodule.findim_add_inf_findim_orthogonal h, h_dim] }
+
+/-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to
+that of `E`. -/
+lemma submodule.findim_add_findim_orthogonal [finite_dimensional 𝕜 E] {K : submodule 𝕜 E} :
+  findim 𝕜 K + findim 𝕜 Kᗮ = findim 𝕜 E :=
+begin
+  convert submodule.findim_add_inf_findim_orthogonal (le_top : K ≤ ⊤) using 1,
+  { rw inf_top_eq },
+  { simp }
+end
+
+/-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to
+that of `E`. -/
+lemma submodule.findim_add_findim_orthogonal' [finite_dimensional 𝕜 E] {K : submodule 𝕜 E} {n : ℕ}
+  (h_dim : findim 𝕜 K + n = findim 𝕜 E) :
+  findim 𝕜 Kᗮ = n :=
+by { rw ← add_right_inj (findim 𝕜 K), simp [submodule.findim_add_findim_orthogonal, h_dim] }
+
+/-- In a finite-dimensional inner product space, the dimension of the orthogonal complement of the
+span of a nonzero vector is one less than the dimension of the space. -/
+lemma findim_orthogonal_span_singleton [finite_dimensional 𝕜 E] {v : E} (hv : v ≠ 0) :
+  findim 𝕜 (𝕜 ∙ v)ᗮ = findim 𝕜 E - 1 :=
+begin
+  haveI : nontrivial E := ⟨⟨v, 0, hv⟩⟩,
+  apply submodule.findim_add_findim_orthogonal',
+  simp only [findim_span_singleton hv, findim_euclidean_space, fintype.card_fin],
+  exact nat.add_sub_cancel' (nat.succ_le_iff.mpr findim_pos)
 end
 end orthogonal

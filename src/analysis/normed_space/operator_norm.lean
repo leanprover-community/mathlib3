@@ -706,6 +706,8 @@ def apply (v : E) : (E →L[𝕜] F) →L[𝕜] F :=
 
 variables {𝕜 F}
 
+@[simp] lemma apply_apply (v : E) (f : E →L[𝕜] F) : apply 𝕜 F v f = f v := rfl
+
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
@@ -794,6 +796,17 @@ def smul_algebra_right (f : E →L[𝕜] 𝕜') (x : F') : E →L[𝕜] F' :=
 end extend_scalars
 
 end continuous_linear_map
+
+/-- The continuous linear map of inclusion from a submodule of `K` into `E`. -/
+def submodule.subtype_continuous (K : submodule 𝕜 E) : K →L[𝕜] E :=
+linear_map.mk_continuous
+  K.subtype
+  1
+  (λ x, by { simp only [one_mul, submodule.subtype_apply], refl })
+
+@[simp] lemma submodule.subtype_continuous_apply (K : submodule 𝕜 E) (v : K) :
+  submodule.subtype_continuous K v = (v : E) :=
+rfl
 
 section has_sum
 

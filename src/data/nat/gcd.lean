@@ -136,6 +136,9 @@ by rw [gcd_comm, gcd_gcd_self_right_right]
 @[simp] lemma gcd_gcd_self_left_left (m n : ℕ) : gcd (gcd m n) m = gcd m n :=
 by rw [gcd_comm m n, gcd_gcd_self_left_right]
 
+lemma gcd_add_mul_self (m n k : ℕ) : gcd m (n + k * m) = gcd m n :=
+by simp [gcd_rec m (n + k * m), gcd_rec m n]
+
 /-! ### `lcm` -/
 
 theorem lcm_comm (m n : ℕ) : lcm m n = lcm n m :=

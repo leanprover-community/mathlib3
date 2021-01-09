@@ -761,7 +761,7 @@ lemma has_sum_zero_iff : has_sum f 0 ↔ ∀ x, f x = 0 :=
 begin
   refine ⟨_, λ h, _⟩,
   { contrapose!,
-    exact λ ⟨x, hx⟩ h, irrefl _ (lt_of_lt_of_le (zero_lt_iff_ne_zero.2 hx) (le_has_sum' h x)) },
+    exact λ ⟨x, hx⟩ h, irrefl _ (lt_of_lt_of_le (pos_iff_ne_zero.2 hx) (le_has_sum' h x)) },
   { convert has_sum_zero,
     exact funext h }
 end

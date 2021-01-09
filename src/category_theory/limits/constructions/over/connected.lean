@@ -8,8 +8,10 @@ import category_theory.limits.connected
 import category_theory.limits.creates
 
 /-!
-# `forget : over B ⥤ C` creates connected limits.
+# Connected limits in the over category
 
+Shows that the forgetful functor `over B ⥤ C` creates connected limits, in particular `over B` has
+any connected limit which `C` has.
 -/
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation

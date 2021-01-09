@@ -8,6 +8,13 @@ import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.finite_products
 
+/-!
+# Products in the over category
+
+Shows that products in the over category can be derived from wide pullbacks in the base category.
+The main result is `over_product_of_wide_pullback`, which says that if `C` has `J`-indexed wide
+pullbacks, then `over B` has `J`-indexed products.
+-/
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory category_theory.limits

@@ -212,8 +212,8 @@ Bilinear and Quadratic Forms Over a Vector Space:
     Gram-Schmidt orthogonalisation:
   Euclidean and Hermitian spaces:
     Euclidean vector spaces: 'inner_product_space'
-    Hermitian vector spaces:
-    dual isomorphism in the euclidean case:
+    Hermitian vector spaces: 'inner_product_space'
+    dual isomorphism in the euclidean case: 'inner_product_space.isometric.to_dual'
     orthogonal complement: 'submodule.orthogonal'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
     norm: 'inner_product_space.of_core.to_has_norm'
@@ -343,10 +343,10 @@ Single Variable Real Analysis:
     antiderivative of a continuous function:
     change of variable:
     integration by parts:
-    generalized integrals:
-    absolutely convergent integrals:
-    integration of asymptotic comparison relationships:
-    semi-convergent integrals:
+    improper integrals:
+    absolute convergence of improper integrals:
+    comparison test for improper integrals:
+    conditional convergence of improper integrals:
   Sequences and series of functions:
     pointwise convergence:
     uniform convergence: 'tendsto_uniformly'
@@ -414,7 +414,7 @@ Topology:
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
   Normed vector spaces on $\R$ and $\C$:
     topology on a normed vector space: 'normed_space.topological_vector_space'
-    equivalent norms:
+    equivalent norms: 'linear_equiv.to_continuous_linear_equiv_of_bounds'
     Banach open mapping theorem: 'open_mapping'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
     norms $\lVert\cdot\rVert_p$ on $\R^n$ and $\C^n$: 'pi_Lp.normed_space'
@@ -512,7 +512,7 @@ Measures and integral Calculus:
     fundamental theorem of calculus, part 2: 'interval_integral.integral_eq_sub_of_has_deriv_right_of_le'
     $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$:
     Completeness of $\mathrm{L}^p$ spaces:
-    Holder's inequality:
+    Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'
     change of variables for multiple integrals:
     integration by parts:

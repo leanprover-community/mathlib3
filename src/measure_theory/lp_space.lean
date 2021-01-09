@@ -85,7 +85,7 @@ end top
 
 section zero
 
-lemma snorm_exponent_zero {f : α → F} : snorm f 0 μ = 1 :=
+@[simp] lemma snorm_exponent_zero {f : α → F} : snorm f 0 μ = 1 :=
 by rw [snorm, div_zero, ennreal.rpow_zero]
 
 lemma zero_mem_ℒp_of_pos (hp_pos : 0 < p) : mem_ℒp (0 : α → E) p μ :=

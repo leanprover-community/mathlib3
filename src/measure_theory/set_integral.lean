@@ -487,27 +487,31 @@ end measure_theory
 
 open measure_theory asymptotics metric
 
-variables [measurable_space E] [normed_group E]
+variables {ι : Type*} [measurable_space E] [normed_group E]
 
-/-- Fundamental theorem of calculus for set integrals: if `μ` is a measure that is finite
-at a filter `l` and `f` is a measurable function that has a finite limit `b` at `l ⊓ μ.ae`,
-then `∫ x in s, f x ∂μ = μ s • b + o(μ s)` as `s` tends to `l.lift' powerset`. Since `μ s` is
-an `ennreal` number, we use `(μ s).to_real` in the actual statement. -/
+/-- Fundamental theorem of calculus for set integrals: if `μ` is a measure that is finite at a
+filter `l` and `f` is a measurable function that has a finite limit `b` at `l ⊓ μ.ae`, then `∫ x in
+s i, f x ∂μ = μ (s i) • b + o(μ (s i))` at a filter `li` provided that `s i` tends to `l.lift'
+powerset` along `li`. Since `μ (s i)` is an `ennreal` number, we use `(μ (s i)).to_real` in the
+actual statement.
+
+Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
+argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these
+arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma filter.tendsto.integral_sub_linear_is_o_ae
   [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
   {μ : measure α} {l : filter α} [l.is_measurably_generated]
   {f : α → E} {b : E} (h : tendsto f (l ⊓ μ.ae) (𝓝 b))
   (hfm : measurable_at_filter f l μ) (hμ : μ.finite_at_filter l)
-  {s : β → set α} {lb : filter β} (hs : tendsto s lb (l.lift' powerset))
-  (m : β → ℝ := λ t, (μ (s t)).to_real)
-  (hsμ : (λ  t, (μ (s t)).to_real) =ᶠ[lb] m . tactic.interactive.refl) :
-  is_o (λ t, ∫ x in s t, f x ∂μ - m t • b) m lb :=
+  {s : ι → set α} {li : filter ι} (hs : tendsto s li (l.lift' powerset))
+  (m : ι → ℝ := λ i, (μ (s i)).to_real)
+  (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
+  is_o (λ i, ∫ x in s i, f x ∂μ - m i • b) m li :=
 begin
   suffices : is_o (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • b) (λ s, (μ s).to_real)
     (l.lift' powerset),
-    from (this.comp_tendsto hs).congr' (hsμ.mono $ λ t ht, ht ▸ rfl) hsμ,
-  simp only [is_o_iff],
-  intros ε ε₀,
+    from (this.comp_tendsto hs).congr' (hsμ.mono $ λ a ha, ha ▸ rfl) hsμ,
+  refine is_o_iff.2 (λ ε ε₀, _),
   have : ∀ᶠ s in l.lift' powerset, ∀ᶠ x in μ.ae, x ∈ s → f x ∈ closed_ball b ε :=
     eventually_lift'_powerset_eventually.2 (h.eventually $ closed_ball_mem_nhds _ ε₀),
   filter_upwards [hμ.eventually, (hμ.integrable_at_filter_of_tendsto_ae hfm h).eventually,
@@ -520,37 +524,46 @@ begin
 end
 
 /-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
-finite measure that and `f` is an almost everywhere measurable function that is continuous at a
-point `a` within a measurable set `t`, then `∫ x in s, f x ∂μ = μ s • f a + o(μ s)` as `s` tends to
-`(𝓝[t] a).lift' powerset`.  Since `μ s` is an `ennreal` number, we use `(μ s).to_real` in the actual
-statement. -/
+finite measure and `f` is an almost everywhere measurable function that is continuous at a point `a`
+within a measurable set `t`, then `∫ x in s i, f x ∂μ = μ (s i) • f a + o(μ (s i))` at a filter `li`
+provided that `s i` tends to `(𝓝[t] a).lift' powerset` along `li`.  Since `μ (s i)` is an `ennreal`
+number, we use `(μ (s i)).to_real` in the actual statement.
+
+Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
+argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these
+arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_within_at.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
   [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
   {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α}
   {f : α → E} (ha : continuous_within_at f t a) (ht : is_measurable t)
   (hfm : measurable_at_filter f (𝓝[t] a) μ)
-  {s : β → set α} {lb : filter β} (hs : tendsto s lb ((𝓝[t] a).lift' powerset))
-  (m : β → ℝ := λ t, (μ (s t)).to_real)
-  (hsμ : (λ  t, (μ (s t)).to_real) =ᶠ[lb] m . tactic.interactive.refl) :
-  is_o (λ t, ∫ x in s t, f x ∂μ - m t • f a) m lb :=
+  {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝[t] a).lift' powerset))
+  (m : ι → ℝ := λ i, (μ (s i)).to_real)
+  (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
+  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
 by haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _;
 exact (ha.mono_left inf_le_left).integral_sub_linear_is_o_ae
   hfm (μ.finite_at_nhds_within a t) hs m hsμ
 
 /-- Fundamental theorem of calculus for set integrals, `nhds` version: if `μ` is a locally finite
-measure that and `f` is an almost everywhere measurable function that is continuous at a point `a`,
-then `∫ x in s, f x ∂μ = μ s • f a + o(μ s)` as `s` tends to `(𝓝 a).lift' powerset`.
-Since `μ s` is an `ennreal` number, we use `(μ s).to_real` in the actual statement. -/
+measure and `f` is an almost everywhere measurable function that is continuous at a point `a`, then
+`∫ x in s i, f x ∂μ = μ (s i) • f a + o(μ (s i))` at `li` provided that `s` tends to `(𝓝 a).lift'
+powerset` along `li.  Since `μ (s i)` is an `ennreal` number, we use `(μ (s i)).to_real` in the
+actual statement.
+
+Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
+argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these
+arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_at.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
   [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
   {μ : measure α} [locally_finite_measure μ] {a : α}
   {f : α → E} (ha : continuous_at f a) (hfm : measurable_at_filter f (𝓝 a) μ)
-  {s : β → set α} {lb : filter β} (hs : tendsto s lb ((𝓝 a).lift' powerset))
-  (m : β → ℝ := λ t, (μ (s t)).to_real)
-  (hsμ : (λ  t, (μ (s t)).to_real) =ᶠ[lb] m . tactic.interactive.refl) :
-  is_o (λ t, ∫ x in s t, f x ∂μ - m t • f a) m lb :=
+  {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝 a).lift' powerset))
+  (m : ι → ℝ := λ i, (μ (s i)).to_real)
+  (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
+  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
 (ha.mono_left inf_le_left).integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds a) hs m hsμ
 
 /-- If a function is integrable at `𝓝[s] x` for each point `x` of a compact set `s`, then it is
@@ -586,19 +599,22 @@ exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within, hft.ae_measura
   (μ.finite_at_nhds_within _ _)
 
 /-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
-finite measure that and `f` is an almost everywhere measurable function that is continuous at a
-point `a` within a measurable set `t`, then `∫ x in s, f x ∂μ = μ s • f a + o(μ s)` as `s` tends to
-`(𝓝[t] a).lift' powerset`.  Since `μ s` is an `ennreal` number, we use `(μ s).to_real` in the actual
-statement. -/
+finite measure, `f` is continuous on a measurable set `t`, and `a ∈ t`, then `∫ x in (s i), f x ∂μ =
+μ (s i) • f a + o(μ (s i))` at `li` provided that `s i` tends to `(𝓝[t] a).lift' powerset` along
+`li`.  Since `μ (s i)` is an `ennreal` number, we use `(μ (s i)).to_real` in the actual statement.
+
+Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
+argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these
+arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_on.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
   [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
   {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α}
   {f : α → E} (hft : continuous_on f t) (ha : a ∈ t) (ht : is_measurable t)
-  {s : β → set α} {lb : filter β} (hs : tendsto s lb ((𝓝[t] a).lift' powerset))
-  (m : β → ℝ := λ t, (μ (s t)).to_real)
-  (hsμ : (λ  t, (μ (s t)).to_real) =ᶠ[lb] m . tactic.interactive.refl) :
-  is_o (λ t, ∫ x in s t, f x ∂μ - m t • f a) m lb :=
+  {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝[t] a).lift' powerset))
+  (m : ι → ℝ := λ i, (μ (s i)).to_real)
+  (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
+  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
 (hft a ha).integral_sub_linear_is_o_ae ht ⟨t, self_mem_nhds_within, hft.ae_measurable ht⟩ hs m hsμ
 
 /-- A function `f` continuous on a compact set `s` is integrable on this set with respect to any

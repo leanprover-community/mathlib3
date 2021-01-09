@@ -684,7 +684,7 @@ section coe
 /-- Coerce a sequence by elementwise coercion. -/
 def has_coe_to_seq [has_coe α β] : has_coe (seq α) (seq β) := ⟨seq.map (λ a, (a : β))⟩
 
-/-- Coerce a seq by elementwise coercion. -/
+/-- Coerce a sequence by elementwise coercion. -/
 def has_coe_t_to_seq [has_coe_t α β] : has_coe_t (seq α) (seq β) :=
 ⟨seq.map (λ a, (↑a : β))⟩
 

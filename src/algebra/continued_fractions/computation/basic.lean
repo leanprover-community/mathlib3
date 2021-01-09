@@ -97,8 +97,9 @@ lemma coe_to_int_fract_pair [has_coe K β] {b : ℤ} {fr : K} :
   (↑(int_fract_pair.mk b fr) : int_fract_pair β) = int_fract_pair.mk b (↑fr : β) :=
 rfl
 
-/-- Again, coerce a pair by coercing the fractional component. This instance is needed for coercions
-that are not marked as `has_coe` but `has_coe_t` like `rat.cast_coe`. -/
+/-- Coerce a pair by coercing the fractional component. This instance is needed for coercions
+that are not marked as `has_coe` but `has_coe_t` like `rat.cast_coe`, cf.
+`has_coe_to_int_fract_pair`. -/
 instance has_coe_t_to_int_fract_pair [has_coe_t K β] :
   has_coe_t (int_fract_pair K) (int_fract_pair β) :=
 ⟨λ ifp, ⟨ifp.b, (ifp.fr : β)⟩⟩

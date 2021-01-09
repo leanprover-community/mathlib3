@@ -18,7 +18,7 @@ universe u
 variables {α : Type u} [dec : decidable_eq α]
 
 /-- A language is a set of strings over an alphabet. -/
-@[derive [has_mem (list α), has_singleton (list α), has_insert (list α)]]
+@[derive [has_mem (list α), has_singleton (list α), has_insert (list α), has_le]]
 def language (α) := set (list α)
 
 namespace language
@@ -149,6 +149,96 @@ begin
   { rintro ⟨ S, hx, h ⟩,
     refine ⟨ S, hx, _ ⟩,
     finish }
+end
+
+lemma le_iff (l m : language α) : l ≤ m ↔ l + m = m :=
+begin
+  rw [set.le_eq_subset, add_def],
+  split,
+  { intro h,
+    ext x,
+    simp only [set.mem_union_eq, or_iff_right_iff_imp],
+    tauto },
+  { intro h,
+    rw ←h,
+    exact set.subset_union_left l m }
+end
+
+lemma one_add_lang_lang_star_le_lang_star (l : language α) : 1 + l*l.star ≤ l.star :=
+begin
+  rw [set.le_eq_subset, one_def, add_def, mul_def, star_def],
+  intros x hx,
+  simp only [exists_and_distrib_left, set.mem_image2, set.image_prod, set.mem_union_eq,
+    set.mem_set_of_eq] at hx,
+  cases hx,
+  { rw [set.mem_singleton_iff] at hx,
+    subst hx,
+    use [[]],
+    split,
+    refl,
+    tauto },
+  { rcases hx with ⟨ a, ha, b, ⟨ ⟨ S, hb, hS ⟩, hx ⟩ ⟩,
+    use a :: S,
+    split,
+    finish,
+    rintros y (hy|hy);
+    finish }
+end
+
+lemma one_add_lang_star_lang_le_lang_star (l : language α) : 1 + l.star*l ≤ l.star :=
+begin
+  rw [set.le_eq_subset, one_def, add_def, mul_def, star_def],
+  intros x hx,
+  simp only [exists_and_distrib_left, set.mem_image2, set.image_prod, set.mem_union_eq,
+    set.mem_set_of_eq] at hx,
+  cases hx,
+  { rw [set.mem_singleton_iff] at hx,
+    subst hx,
+    use [[]],
+    split,
+    refl,
+    tauto },
+  { rcases hx with ⟨ b, ⟨ S, hb, hS ⟩, a, ha, hx ⟩,
+    use S ++ [a],
+    split,
+    finish,
+    simp only [list.mem_append, list.mem_singleton],
+    rintros y (hy|hy);
+    finish }
+end
+
+lemma star_mul_le_right_of_mul_le_right (l m : language α) : l*m ≤ m → l.star*m ≤ m :=
+begin
+  simp only [set.le_eq_subset, mul_def, star_def],
+  intros hle x hx,
+  simp only [exists_and_distrib_left, set.mem_image2, set.image_prod, set.mem_set_of_eq] at hx,
+  simp only [set.image_prod, set.image2_subset_iff] at hle,
+  rcases hx with ⟨ _, ⟨ S, rfl, hS ⟩, b, hb, rfl ⟩,
+  induction S with a S ih,
+  { assumption },
+  { specialize hle a _ (S.join ++ b) _,
+    { simp only [list.join, list.mem_cons_iff, list.append_assoc] at ⊢ hle,
+      assumption },
+    all_goals {simp only [forall_eq_or_imp, list.mem_cons_iff] at hS},
+    { exact hS.1 },
+    { cases hS,
+      tauto } }
+end
+
+lemma star_mul_le_left_of_mul_le_left (l m : language α) : m*l ≤ m → m*l.star ≤ m :=
+begin
+  simp only [set.le_eq_subset, mul_def, star_def],
+  intros hle x hx,
+  simp only [exists_and_distrib_left, set.mem_image2, set.image_prod, set.mem_set_of_eq] at hx,
+  simp only [set.image_prod, set.image2_subset_iff] at hle,
+  rcases hx with ⟨ a, ha, _, ⟨ S, rfl, hS ⟩, rfl ⟩,
+  induction S with b S ih,
+  { simpa only [list.join, list.append_nil] },
+  { specialize hle a _ (b ++ S.join) _,
+
+    { simp only [list.join, list.mem_cons_iff, list.append_assoc] at ⊢ hle,
+      assumption },
+    { assumption },
 end
 
 end language

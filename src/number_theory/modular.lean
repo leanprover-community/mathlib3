@@ -62,10 +62,9 @@ begin
     sorry,
   },
 
-  have : complex.norm_sq (bottom g z)≠ 0,
-  {
-    sorry,
-  },
+  have : complex.norm_sq (bottom g z) ≠ 0,
+  { refine ne.symm (ne_of_lt _),
+    simp [norm_sq_pos, bot_zero] },
 
   field_simp,
 

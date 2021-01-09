@@ -576,8 +576,9 @@ run_cmd do nm ← get_user_attribute_name `higher_order, guard $ nm = `tactic.hi
 run_cmd do success_if_fail $ get_user_attribute_name `zxy.xzy
 
 run_cmd set_attribute `norm `prod.map tt
+run_cmd set_attribute `my_attr `prod.map
+run_cmd set_attribute `to_additive `has_mul
 run_cmd success_if_fail $ set_attribute `higher_order `prod.map tt
-run_cmd success_if_fail $ set_attribute `my_attr `prod.map
 run_cmd success_if_fail $ set_attribute `norm `xyz.zxy
 run_cmd success_if_fail $ set_attribute `zxy.xyz `prod.map
 

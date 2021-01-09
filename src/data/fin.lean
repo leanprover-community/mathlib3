@@ -357,6 +357,12 @@ def cast (eq : n = m) : fin n ≃o fin m :=
 
 @[simp] lemma coe_cast (h : n = m) (i : fin n) : (cast h i : ℕ) = i := rfl
 
+@[simp] lemma cast_trans {k : ℕ} (h : n = m) (h' : m = k) {i : fin n} :
+  cast h' (cast h i) = cast (eq.trans h h') i := rfl
+
+@[simp] lemma cast_refl {i : fin n} : cast rfl i = i :=
+by { ext, refl }
+
 /-- `cast_add m i` embeds `i : fin n` in `fin (n+m)`. -/
 def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ le_add_right n m
 

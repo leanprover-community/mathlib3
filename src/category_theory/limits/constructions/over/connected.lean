@@ -56,7 +56,8 @@ lemma raised_cone_lowers_to_original [is_connected J] {B : C} {F : J ⥤ over B}
 by tidy
 
 /-- (Impl) Show that the raised cone is a limit. -/
-def raised_cone_is_limit [is_connected J] {B : C} {F : J ⥤ over B} {c : cone (F ⋙ forget B)} (t : is_limit c) :
+def raised_cone_is_limit [is_connected J] {B : C} {F : J ⥤ over B}
+  {c : cone (F ⋙ forget B)} (t : is_limit c) :
   is_limit (raise_cone c) :=
 { lift := λ s, over.hom_mk (t.lift ((forget B).map_cone s)) (by { dsimp, simp }),
   uniq' := λ s m K, by { ext1, apply t.hom_ext, intro j, simp [← K j] } }

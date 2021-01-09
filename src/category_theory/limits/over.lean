@@ -6,6 +6,7 @@ Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 import category_theory.over
 import category_theory.limits.preserves.basic
 import category_theory.limits.creates
+import category_theory.limits.shapes.binary_products
 
 /-!
 # Limits and colimits in the over and under categories
@@ -83,6 +84,45 @@ instance has_colimits [has_colimits C] : has_colimits (over X) :=
 
 -- We can automatically infer that the forgetful functor preserves colimits
 example [has_colimits C] : preserves_colimits (forget X) := infer_instance
+
+@[simps]
+def star (X : C) [has_binary_products C] : C ⥤ over X :=
+{ obj := λ A, mk (limits.prod.fst : X ⨯ A ⟶ X),
+  map := λ A₁ A₂ f, hom_mk (limits.prod.map (𝟙 _) f) }
+
+def forget_adj_star [has_binary_products C] : forget X ⊣ star X :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ f Y,
+  { to_fun := λ h, hom_mk (prod.lift f.hom h),
+    inv_fun := λ h, h.left ≫ limits.prod.snd,
+    left_inv := λ h, prod.lift_snd _ _,
+    right_inv := λ h,
+    begin
+      ext,
+      { dsimp,
+        rw [prod.lift_fst, (show h.left ≫ limits.prod.fst = _, from h.w)],
+        dsimp,
+        simp },
+      { simp }
+    end } }
+
+-- { obj := λ A, over.mk (limits.prod.fst : B ⨯ A ⟶ B),
+--   map := λ X Y f, over.hom_mk (limits.prod.map (𝟙 _) f),
+--   map_id' := λ X,
+--   begin
+--     apply over.over_morphism.ext,
+--     dsimp,
+--     simp,
+--   end,
+--   map_comp' := λ X Y Z f g,
+--   begin
+--     apply over.over_morphism.ext,
+--     dsimp,
+--     ext,
+--     { rw [limits.prod.map_fst, comp_id, assoc, limits.prod.map_fst, comp_id, limits.prod.map_fst,
+--           comp_id] },
+--     { rw [limits.prod.map_snd, assoc, limits.prod.map_snd, limits.prod.map_snd_assoc] }
+--   end }
 
 end category_theory.over
 

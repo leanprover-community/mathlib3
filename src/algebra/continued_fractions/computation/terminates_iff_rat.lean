@@ -205,7 +205,7 @@ lemma coe_of_s_rat_eq :
   (((gcf.of q).s).map (gcf.pair.map coe) : seq $ gcf.pair K) = (gcf.of v).s :=
 by { ext n, rw ←(coe_of_s_nth_rat_eq v_eq_q), refl }
 
-/-- Given `(v : K), (q : ℚ), and v = q`, int_fract_pair.stream, we have that `gcf.of q = gcf.of v` -/
+/-- Given `(v : K), (q : ℚ), and v = q`, we have that `gcf.of q = gcf.of v` -/
 lemma coe_of_rat_eq : (⟨(gcf.of q).h, (gcf.of q).s.map (gcf.pair.map coe)⟩ : gcf K) = gcf.of v :=
 begin
   cases gcf_v_eq : (gcf.of v) with h s,

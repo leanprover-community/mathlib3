@@ -72,6 +72,8 @@ We collect an integer part `b = ⌊v⌋` and fractional part `fr = v - ⌊v⌋` 
 -/
 structure int_fract_pair := (b : ℤ) (fr : K)
 
+variable {K}
+
 /-! Interlude: define some expected coercions and instances. -/
 namespace int_fract_pair
 
@@ -81,30 +83,23 @@ instance [has_repr K] : has_repr (int_fract_pair K) :=
 
 instance inhabited [inhabited K] : inhabited (int_fract_pair K) := ⟨⟨0, (default _)⟩⟩
 
-variable {K}
+/--
+Maps a function `f` on the fractional components of a given pair.
+-/
+def mapFr {β : Type*} (f : K → β) (gp : int_fract_pair K) : int_fract_pair β :=
+⟨gp.b, f gp.fr⟩
 
 section coe
 /-! Interlude: define some expected coercions. -/
-/- Fix another type `β`. -/
-variable {β : Type*}
+/- Fix another type `β` which we will convert to. -/
+variables {β : Type*} [has_coe K β]
 
 /-- Coerce a pair by coercing the fractional component. -/
-instance has_coe_to_int_fract_pair [has_coe K β] : has_coe (int_fract_pair K) (int_fract_pair β) :=
-⟨λ ifp, ⟨ifp.b, (ifp.fr : β)⟩⟩
+instance has_coe_to_int_fract_pair : has_coe (int_fract_pair K) (int_fract_pair β) :=
+⟨mapFr coe⟩
 
 @[simp, norm_cast]
-lemma coe_to_int_fract_pair [has_coe K β] {b : ℤ} {fr : K} :
-  (↑(int_fract_pair.mk b fr) : int_fract_pair β) = int_fract_pair.mk b (↑fr : β) :=
-rfl
-
-/-- Again, coerce a pair by coercing the fractional component. This instance is needed for coercions
-that are not marked as `has_coe` but `has_coe_t` like `rat.cast_coe`. -/
-instance has_coe_t_int_fract_pair [has_coe_t K β] :
-  has_coe_t (int_fract_pair K) (int_fract_pair β) :=
-⟨λ ifp, ⟨ifp.b, (ifp.fr : β)⟩⟩
-
-@[simp, norm_cast, priority 900]
-lemma coe_t_to_int_fract_pair [has_coe_t K β] {b : ℤ} {fr : K} :
+lemma coe_to_int_fract_pair {b : ℤ} {fr : K} :
   (↑(int_fract_pair.mk b fr) : int_fract_pair β) = int_fract_pair.mk b (↑fr : β) :=
 rfl
 
@@ -162,8 +157,6 @@ protected def seq1 (v : K) : seq1 $ int_fract_pair K :=
     @stream_is_seq _ _ _ v ⟩ ⟩ -- the proof that the stream is a sequence
 
 end int_fract_pair
-
-variable {K}
 
 /--
 Returns the `generalized_continued_fraction` of a value. In fact, the returned gcf is also

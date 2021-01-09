@@ -25,96 +25,17 @@ rational number, that is `↑v = q` for some `q : ℚ`.
 rational, continued fraction, termination
 -/
 
--- TODO: what about the following lemmas? Keep them here or move them to the corresponding `option`,
--- `stream`, and `seq` files?
-namespace option
-
-variables {α β : Type*}
-
-/-- Coerce an option by coercing its stored value. -/
-def has_coe_t_option [has_coe_t α β] : has_coe_t (option α) (option β) :=
-⟨option.map (λ a, (a : β))⟩
-
-local attribute [instance] has_coe_t_option
-
-@[simp, norm_cast]
-lemma coe_t_to_some [has_coe_t α β] {a : α} : (↑(some a) : option β) = some (↑a : β) := rfl
-
-@[simp, norm_cast]
-lemma coe_t_to_none [has_coe_t α β] : (↑(none : option α) : option β) = (none : option β) := rfl
-
-lemma coe_t_eq_some (a : α) : ↑a = some a := rfl
-
-@[simp, norm_cast]
-lemma coe_t_eq_none_iff_eq_none [has_coe_t α β] {o : option α} :
-  (↑o : option β) = (none : option β) ↔ (o = (none : option α)) :=
-by { split, { intro h, cases o; finish }, { intro h, simp [h] } }
-
-end option
-
-
-namespace stream
-
-variables {α β : Type*}
-
-/-- Coerce a stream by elementwise coercion. -/
-def has_coe_t_stream [has_coe_t α β] : has_coe_t (stream α) (stream β) :=
-⟨stream.map (λ a, (a : β))⟩
-
-local attribute [instance] has_coe_t_stream
-
-lemma coe_t_to_stream [has_coe_t α β] (s : stream α) :
-  (↑(s : stream α) : stream β) = s.map (λ a, (a : β)) :=
-rfl
-
-@[simp]
-lemma coe_t_nth [has_coe_t α β] {s : stream α} {n : ℕ} : (↑s : stream β) n = ↑(s n : α) := rfl
-
-end stream
-
-
-namespace seq
-
-variables {α β : Type*}
-
-/-- Coerce a seq by elementwise coercion. -/
-def has_coe_t_seq [has_coe_t α β] : has_coe_t (seq α) (seq β) :=
-⟨seq.map (λ a, (a : β))⟩
-
-local attribute [instance] option.has_coe_t_option has_coe_t_seq
-
-lemma coe_t_to_seq [has_coe_t α β] (s : seq α) : (↑(s : seq α) : seq β) = s.map (λ a, (a : β)) :=
-rfl
-
-@[simp, norm_cast]
-lemma coe_t_nth [has_coe_t α β] {s : seq α} {n : ℕ} : (↑s : seq β).nth n = ↑(s.nth n : option α) :=
-by { unfold_coes, simp [seq.map_nth] }
-
-end seq
-
-
 namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
-local attribute [instance] option.has_coe_t_option stream.has_coe_t_stream seq.has_coe_t_seq
-
-section coe
-
-variables {α β : Type*} [has_coe_t α β]
-
-/-- Coerce a gcf by elementwise coercion. -/
-instance has_coe_t_to_generalized_continued_fraction : has_coe (gcf α) (gcf β) :=
-⟨λ g, ⟨(g.h : β), (g.s : seq $ gcf.pair β)⟩⟩
-
-@[simp, norm_cast, priority 900]
-lemma coe_t_to_generalized_continued_fraction {g : gcf α} :
-  (↑(g : gcf α) : gcf β) = ⟨(g.h : β), (g.s : seq $ gcf.pair β)⟩ :=
-rfl
-
-end coe
-
-
 variables {K : Type*} [linear_ordered_field K] [floor_ring K]
+
+/-
+We constantly will have to coerce along our structures in below proofs using their provided map
+functions.
+-/
+local attribute [simp] gcf.pair.map
+local attribute [simp] gcf.int_fract_pair.mapFr
 
 /-!
 We want to show that the computation of a continued fraction `gcf.of v` terminates if and only if
@@ -128,7 +49,7 @@ section rat_of_terminates
 variables (v : K) (n : ℕ)
 
 lemma exists_gcf_pair_rat_eq_of_nth_conts_aux : ∃ (conts : gcf.pair ℚ),
-  (gcf.of v).continuants_aux n = (↑conts : gcf.pair K) :=
+  (gcf.of v).continuants_aux n = (conts.map coe : gcf.pair K) :=
 nat.strong_induction_on n
 begin
   clear n,
@@ -136,11 +57,11 @@ begin
   assume n IH,
   rcases n with _|_|n,
   -- n = 0
-  { suffices : ∃ (gp : gcf.pair ℚ), gcf.pair.mk (1 : K) 0 = ↑gp, by simpa [continuants_aux],
+  { suffices : ∃ (gp : gcf.pair ℚ), gcf.pair.mk (1 : K) 0 = gp.map coe, by simpa [continuants_aux],
     use (gcf.pair.mk 1 0),
     simp },
   -- n = 1
-  { suffices : ∃ (conts : gcf.pair ℚ), gcf.pair.mk g.h 1 = ↑conts, by
+  { suffices : ∃ (conts : gcf.pair ℚ), gcf.pair.mk g.h 1 = conts.map coe, by
       simpa [continuants_aux],
     use (gcf.pair.mk ⌊v⌋ 1),
     simp },
@@ -167,7 +88,7 @@ begin
 end
 
 lemma exists_gcf_pair_rat_eq_nth_conts : ∃ (conts : gcf.pair ℚ),
-  (gcf.of v).continuants n = (conts : gcf.pair K) :=
+  (gcf.of v).continuants n = (conts.map coe : gcf.pair K) :=
 by { rw [nth_cont_eq_succ_nth_cont_aux], exact (exists_gcf_pair_rat_eq_of_nth_conts_aux v $ n + 1) }
 
 lemma exists_rat_eq_nth_numerator : ∃ (q : ℚ), (gcf.of v).numerators n = (q : K) :=
@@ -226,17 +147,17 @@ include v_eq_q
 /-! First, we show the correspondence for the very basic functions in `gcf.int_fract_pair`. -/
 namespace int_fract_pair
 
-lemma coe_of_rat:
-  (↑(int_fract_pair.of q : int_fract_pair ℚ) : int_fract_pair K) = int_fract_pair.of v :=
+lemma coe_of_rat_eq :
+  ((int_fract_pair.of q).mapFr coe : int_fract_pair K) = int_fract_pair.of v :=
 suffices ⌊q⌋ = ⌊(↑q : K)⌋, by simpa [int_fract_pair.of, v_eq_q, fract],
 by rw [←(@rat.cast_floor K _ _ q), floor_ring_unique]
 
-lemma coe_stream_nth_rat :
-    (↑(int_fract_pair.stream q n : option $ int_fract_pair ℚ) : option $ int_fract_pair K)
+lemma coe_stream_nth_rat_eq :
+    ((int_fract_pair.stream q n).map (mapFr coe) : option $ int_fract_pair K)
   = int_fract_pair.stream v n :=
 begin
   induction n with n IH,
-  case nat.zero : { simp [int_fract_pair.stream, (coe_of_rat v_eq_q)] },
+  case nat.zero : { simp [int_fract_pair.stream, (coe_of_rat_eq v_eq_q)] },
   case nat.succ :
   { rw v_eq_q at IH,
     cases stream_q_nth_eq : (int_fract_pair.stream q n) with ifp_n,
@@ -248,49 +169,48 @@ begin
       { replace IH : some (int_fract_pair.mk b ↑fr) = int_fract_pair.stream ↑q n, by
           rwa [stream_q_nth_eq] at IH,
         have : (fr : K)⁻¹ = ((fr⁻¹ : ℚ) : K), by norm_cast,
-        have coe_of_fr := (coe_of_rat this),
+        have coe_of_fr := (coe_of_rat_eq this),
         simp [int_fract_pair.stream, IH.symm, v_eq_q, stream_q_nth_eq, fr_ne_zero],
         unfold_coes,
         simpa [coe_of_fr] } } }
 end
 
-lemma coe_stream_rat :
-    (↑(int_fract_pair.stream q : stream $ option $ int_fract_pair ℚ)
-      : stream $ option $ int_fract_pair K)
+lemma coe_stream_rat_eq :
+    ((int_fract_pair.stream q).map (option.map (mapFr coe)) : stream $ option $ int_fract_pair K)
   = int_fract_pair.stream v :=
-by { funext n, exact (int_fract_pair.coe_stream_nth_rat v_eq_q n) }
+by { funext n, exact (int_fract_pair.coe_stream_nth_rat_eq v_eq_q n) }
 
 end int_fract_pair
 
 /-! Now we lift the coercion results to the continued fraction computation. -/
 
-lemma coe_of_h_rat : (↑((gcf.of q).h : ℚ) : K) = (gcf.of v).h :=
+lemma coe_of_h_rat_eq : (↑((gcf.of q).h : ℚ) : K) = (gcf.of v).h :=
 begin
   unfold gcf.of int_fract_pair.seq1,
-  rw ←(int_fract_pair.coe_of_rat v_eq_q),
-  simp [int_fract_pair.of]
-end
-
-lemma coe_of_s_nth_rat :
-  (↑((gcf.of q).s.nth n : option $ gcf.pair ℚ) : option $ gcf.pair K) = (gcf.of v).s.nth n :=
-begin
-  simp only [gcf.of, gcf.int_fract_pair.seq1, seq.map_nth, seq.nth_tail],
-  simp only [seq.nth],
-  rw [←(int_fract_pair.coe_stream_rat v_eq_q), stream.coe_t_nth],
-  rcases (int_fract_pair.stream q (n + 1)) with _ | ⟨_, _⟩;
+  rw ←(int_fract_pair.coe_of_rat_eq v_eq_q),
   simp
 end
 
-lemma coe_of_s_rat :
-  (↑((gcf.of q).s : seq $ gcf.pair ℚ) : seq $ gcf.pair K) = (gcf.of v).s :=
-by { ext n, rw ←(coe_of_s_nth_rat v_eq_q), finish [seq.coe_t_nth] }
+lemma coe_of_s_nth_rat_eq :
+  (((gcf.of q).s.nth n).map (gcf.pair.map coe): option $ gcf.pair K) = (gcf.of v).s.nth n :=
+begin
+  simp only [gcf.of, gcf.int_fract_pair.seq1, seq.map_nth, seq.nth_tail],
+  simp only [seq.nth],
+  rw [←(int_fract_pair.coe_stream_rat_eq v_eq_q)],
+  rcases succ_nth_stream_eq : (int_fract_pair.stream q (n + 1)) with _ | ⟨_, _⟩;
+  simp [stream.map, stream.nth, succ_nth_stream_eq]
+end
 
-/-- Given `(v : K), (q : ℚ), and v = q`, we have that `gcf.of q = gcf.of v` -/
-lemma coe_of_rat : (↑(gcf.of q : gcf ℚ) : gcf K) = gcf.of v :=
+lemma coe_of_s_rat_eq :
+  (((gcf.of q).s).map (gcf.pair.map coe) : seq $ gcf.pair K) = (gcf.of v).s :=
+by { ext n, rw ←(coe_of_s_nth_rat_eq v_eq_q), refl }
+
+/-- Given `(v : K), (q : ℚ), and v = q`, int_fract_pair.stream, we have that `gcf.of q = gcf.of v` -/
+lemma coe_of_rat_eq : (⟨(gcf.of q).h, (gcf.of q).s.map (gcf.pair.map coe)⟩ : gcf K) = gcf.of v :=
 begin
   cases gcf_v_eq : (gcf.of v) with h s,
   have : ↑⌊↑q⌋ = h, by { rw v_eq_q at gcf_v_eq, injection gcf_v_eq },
-  simp [(coe_of_h_rat v_eq_q), (coe_of_s_rat v_eq_q), gcf_v_eq],
+  simp [(coe_of_h_rat_eq v_eq_q), (coe_of_s_rat_eq v_eq_q), gcf_v_eq],
   rwa [←(@rat.cast_floor K _ _ q), floor_ring_unique]
 end
 
@@ -301,7 +221,9 @@ begin
   intro h;
   cases h with n h;
   use n;
-  simpa [seq.terminated_at, (coe_of_s_nth_rat v_eq_q n).symm] using h,
+  simp only [seq.terminated_at, (coe_of_s_nth_rat_eq v_eq_q n).symm] at h ⊢;
+  cases ((gcf.of q).s.nth n);
+  trivial
 end
 
 end rat_translation

@@ -84,7 +84,7 @@ measure, almost everywhere, measure space, completion, null set, null measurable
 
 noncomputable theory
 
-open classical set filter function measurable_space
+open classical set filter function measurable_space encodable
 open_locale classical topological_space big_operators filter
 
 variables {α β γ δ ι : Type*}
@@ -201,19 +201,6 @@ lemma exists_is_measurable_superset (μ : measure α) (s : set α) :
   ∃ t, s ⊆ t ∧ is_measurable t ∧ μ t = μ s :=
 by simpa only [← measure_eq_trim] using μ.to_outer_measure.exists_is_measurable_superset_eq_trim s
 
-def to_measurable (μ : measure α) (s : set α) :=
-classical.some (exists_is_measurable_superset μ s)
-
-lemma subset_to_measurable (μ : measure α) (s : set α) : s ⊆ to_measurable μ s :=
-(classical.some_spec (exists_is_measurable_superset μ s)).1
-
-@[simp] lemma is_measurable_to_measurable (μ : measure α) (s : set α) :
-  is_measurable (to_measurable μ s) :=
-(classical.some_spec (exists_is_measurable_superset μ s)).2.1
-
-@[simp] lemma measure_to_measurable (s : set α) : μ (to_measurable μ s) = μ s :=
-(classical.some_spec (exists_is_measurable_superset μ s)).2.2
-
 lemma exists_is_measurable_superset_of_null (h : μ s = 0) :
   ∃ t, s ⊆ t ∧ is_measurable t ∧ μ t = 0 :=
 outer_measure.exists_is_measurable_superset_of_trim_eq_zero (by rw [← measure_eq_trim, h])
@@ -266,18 +253,442 @@ lemma measure_union_null_iff : μ (s₁ ∪ s₂) = 0 ↔ μ s₁ = 0 ∧ μ s�
 ⟨λ h, ⟨measure_mono_null (subset_union_left _ _) h, measure_mono_null (subset_union_right _ _) h⟩,
   λ h, measure_union_null h.1 h.2⟩
 
-lemma measure_Union [encodable β] {f : β → set α}
+namespace measure
+
+/-! ### The almost everywhere filter -/
+
+/-- The “almost everywhere” filter of co-null sets. -/
+def ae (μ : measure α) : filter α :=
+{ sets := {s | μ sᶜ = 0},
+  univ_sets := by simp,
+  inter_sets := λ s t hs ht, by simp only [compl_inter, mem_set_of_eq];
+    exact measure_union_null hs ht,
+  sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
+
+end measure
+
+notation `∀ᵐ` binders ` ∂` μ `, `
+  r:(scoped P, filter.eventually P (measure_theory.measure.ae μ)) := r
+notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[measure.ae μ] g
+notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[measure.ae μ] g
+
+lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
+
+lemma ae_iff {p : α → Prop} : (∀ᵐ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
+
+lemma compl_mem_ae_iff {s : set α} : sᶜ ∈ μ.ae ↔ μ s = 0 := by simp only [mem_ae_iff, compl_compl]
+
+lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ᵐ a ∂ μ, a ∉ s :=
+compl_mem_ae_iff.symm
+
+lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀ a, p a) → ∀ᵐ a ∂ μ, p a :=
+eventually_of_forall
+
+instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
+⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_is_measurable_superset_of_null hs in
+  ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
+
+instance : countable_Inter_filter μ.ae :=
+⟨begin
+  intros S hSc hS,
+  simp only [mem_ae_iff, compl_sInter, sUnion_image, bUnion_eq_Union] at hS ⊢,
+  haveI := hSc.to_encodable,
+  exact measure_Union_null (subtype.forall.2 hS)
+end⟩
+
+lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :
+  (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ (∀ i, ∀ᵐ a ∂ μ, p a i) :=
+eventually_countable_forall
+
+lemma ae_ball_iff {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S), Prop} :
+  (∀ᵐ x ∂ μ, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᵐ x ∂ μ, p x i ‹_› :=
+eventually_countable_ball hS
+
+lemma ae_eq_refl (f : α → δ) : f =ᵐ[μ] f := eventually_eq.refl _ _
+
+lemma ae_eq_symm {f g : α → δ} (h : f =ᵐ[μ] g) : g =ᵐ[μ] f :=
+h.symm
+
+lemma ae_eq_trans {f g h: α → δ} (h₁ : f =ᵐ[μ] g) (h₂ : g =ᵐ[μ] h) :
+  f =ᵐ[μ] h :=
+h₁.trans h₂
+
+@[simp] lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
+eventually_eq_empty.trans $ by simp [ae_iff]
+
+lemma ae_le_set : s ≤ᵐ[μ] t ↔ μ (s \ t) = 0 :=
+calc s ≤ᵐ[μ] t ↔ ∀ᵐ x ∂μ, x ∈ s → x ∈ t : iff.rfl
+           ... ↔ μ (s \ t) = 0          : by simp [ae_iff]; refl
+
+@[simp] lemma union_ae_eq_right : (s ∪ t : set α) =ᵐ[μ] t ↔ μ (s \ t) = 0 :=
+by simp [eventually_le_antisymm_iff, ae_le_set, union_diff_right,
+  diff_eq_empty.2 (set.subset_union_right _ _)]
+
+lemma diff_ae_eq_self : (s \ t : set α) =ᵐ[μ] s ↔ μ (s ∩ t) = 0 :=
+by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
+  diff_diff, diff_eq_empty.2 (set.subset_union_right _ _)]
+
+lemma ae_eq_set {s t : set α} :
+  s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
+by simp [eventually_le_antisymm_iff, ae_le_set]
+
+/-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
+@[mono] lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=
+calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
+     ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
+     ... ≤ μ t + μ (s \ t) : measure_union_le _ _
+     ... = μ t             : by rw [ae_le_set.1 H, add_zero]
+
+alias measure_mono_ae ← filter.eventually_le.measure_le
+
+/-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
+lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
+le_antisymm H.le.measure_le H.symm.le.measure_le
+
+end
+
+/-- A measure space is a measurable space equipped with a
+  measure, referred to as `volume`. -/
+class measure_space (α : Type*) extends measurable_space α :=
+(volume : measure α)
+
+export measure_space (volume)
+
+/-- `volume` is the canonical  measure on `α`. -/
+add_decl_doc volume
+
+section measure_space
+variables [measure_space α] {s s₁ s₂ t : set α}
+
+notation `∀ᵐ` binders `, ` r:(scoped P, filter.eventually P (measure.ae volume)) := r
+
+/-- The tactic `exact volume`, to be used in optional (`auto_param`) arguments. -/
+meta def volume_tac : tactic unit := `[exact measure_theory.measure_space.volume]
+
+end measure_space
+
+end measure_theory
+
+section null_measurable
+
+open measure_theory
+variables [measurable_space α] {μ : measure α} {s t : set α}
+
+/-- A type tag for `α` with `is_measurable` given by `null_measurable_set`. -/
+def null_measurable (α : Type*) [measurable_space α] (μ : measure α . volume_tac) : Type* := α
+
+instance : measurable_space (null_measurable α μ) :=
+{ is_measurable' := λ s, ∃ t, is_measurable t ∧ s =ᵐ[μ] t,
+  is_measurable_empty := ⟨∅, is_measurable.empty, ae_eq_refl _⟩,
+  is_measurable_compl := λ s ⟨t, htm, hts⟩, ⟨tᶜ, htm.compl, hts.compl⟩,
+  is_measurable_Union := λ s hs, by { choose t htm hts using hs,
+    exact ⟨⋃ i, t i, is_measurable.Union htm, eventually_eq.countable_Union hts⟩ } }
+
+/-- A set is called `null_measurable_set` if it can be approximated by a measurable set up to
+a set of null measure. -/
+def null_measurable_set (s : set α) (μ : measure α . volume_tac) : Prop :=
+@is_measurable (null_measurable α μ) _ s
+
+@[simp] lemma is_measurable.null_measurable (h : is_measurable s) : null_measurable_set s μ :=
+⟨s, h, ae_eq_refl _⟩
+
+lemma is_measurable.null_measurable' (h : @is_measurable (null_measurable α μ) _ s) :
+  null_measurable_set s μ := h
+
+lemma null_measurable_set_empty : null_measurable_set ∅ μ :=
+is_measurable.empty
+
+lemma null_measurable_set_univ : null_measurable_set univ μ :=
+is_measurable.univ
+
+namespace null_measurable_set
+
+lemma of_null (h : μ s = 0) : null_measurable_set s μ :=
+⟨∅, is_measurable.empty, ae_eq_empty.2 h⟩
+
+protected lemma empty : null_measurable_set ∅ μ := is_measurable.empty
+
+lemma compl (h : null_measurable_set s μ) : null_measurable_set sᶜ μ :=
+h.compl
+
+lemma of_compl (h : null_measurable_set sᶜ μ) : null_measurable_set s μ :=
+h.of_compl
+
+@[simp] lemma compl_iff : null_measurable_set sᶜ μ ↔ null_measurable_set s μ :=
+is_measurable.compl_iff
+
+@[simp] protected lemma univ : null_measurable_set univ μ := is_measurable.univ
+
+@[nontriviality]
+lemma of_subsingleton [subsingleton α] : null_measurable_set s μ :=
+@subsingleton.is_measurable _ _ ‹_› s
+
+protected lemma congr (hs : null_measurable_set s μ) (h : s =ᵐ[μ] t) :
+  null_measurable_set t μ :=
+let ⟨s', hm, hs'⟩ := hs in ⟨s', hm, h.symm.trans hs'⟩
+
+protected lemma Union [encodable ι] {s : ι → set α}
+  (h : ∀ i, null_measurable_set (s i) μ) : null_measurable_set (⋃ i, s i) μ :=
+is_measurable.Union h
+
+protected lemma bUnion_decode2 [encodable ι] ⦃f : ι → set α⦄ (h : ∀ i, null_measurable_set (f i) μ)
+  (n : ℕ) : null_measurable_set (⋃ b ∈ decode2 ι n, f b) μ :=
+is_measurable.bUnion_decode2 h n
+
+protected lemma bUnion {f : ι → set α} {s : set ι} (hs : countable s)
+  (h : ∀ b ∈ s, null_measurable_set (f b) μ) : null_measurable_set (⋃ b ∈ s, f b) μ :=
+is_measurable.bUnion hs h
+
+protected lemma sUnion {s : set (set α)} (hs : countable s) (h : ∀ t ∈ s, null_measurable_set t μ) :
+  null_measurable_set (⋃₀ s) μ :=
+by { rw sUnion_eq_bUnion, exact is_measurable.bUnion hs h }
+
+lemma Union_Prop {p : Prop} {f : p → set α} (hf : ∀ i, null_measurable_set (f i) μ) :
+  null_measurable_set (⋃ i, f i) μ :=
+is_measurable.Union_Prop hf
+
+lemma Union_fintype [fintype β] {f : β → set α} (h : ∀ b, null_measurable_set (f b) μ) :
+  null_measurable_set (⋃ b, f b) μ :=
+is_measurable.Union_fintype h
+
+protected lemma Inter [encodable ι] {f : ι → set α} (h : ∀ i, null_measurable_set (f i) μ) :
+  null_measurable_set (⋂ i, f i) μ :=
+is_measurable.Inter h
+
+protected lemma bInter {f : β → set α} {s : set β} (hs : countable s)
+  (h : ∀ b ∈ s, null_measurable_set (f b) μ) : null_measurable_set (⋂ b ∈ s, f b) μ :=
+is_measurable.bInter hs h
+
+protected lemma sInter {s : set (set α)} (hs : countable s) (h : ∀ t ∈ s, null_measurable_set t μ) :
+  null_measurable_set (⋂₀ s) μ :=
+is_measurable.sInter hs h
+
+lemma Inter_Prop {p : Prop} {f : p → set α} (hf : ∀ b, null_measurable_set (f b) μ) :
+  null_measurable_set (⋂ b, f b) μ :=
+is_measurable.Inter_Prop hf
+
+lemma Inter_fintype [fintype β] {f : β → set α} (h : ∀ b, null_measurable_set (f b) μ) :
+  null_measurable_set (⋂ b, f b) μ :=
+is_measurable.Inter_fintype h
+
+@[simp] protected lemma union (hs : null_measurable_set s μ) (ht : null_measurable_set t μ) :
+  null_measurable_set (s ∪ t) μ :=
+hs.union ht
+
+@[simp] protected lemma inter (hs : null_measurable_set s μ) (ht : null_measurable_set t μ) :
+  null_measurable_set (s ∩ t) μ :=
+hs.inter ht
+
+@[simp] protected lemma diff (hs : null_measurable_set s μ) (ht : null_measurable_set t μ) :
+  null_measurable_set (s \ t) μ :=
+hs.diff ht
+
+@[simp] protected lemma disjointed {f : ℕ → set α} (h : ∀ i, null_measurable_set (f i) μ) (n) :
+  null_measurable_set (disjointed f n) μ :=
+is_measurable.disjointed h n
+
+@[simp] protected lemma const (p : Prop) : null_measurable_set {a : α | p} μ :=
+is_measurable.const p
+
+instance [measurable_singleton_class α] : measurable_singleton_class (null_measurable α μ) :=
+⟨λ x, (@is_measurable_singleton α _ _ x).null_measurable⟩
+
+protected lemma insert [measurable_singleton_class (null_measurable α μ)]
+  (hs : null_measurable_set s μ) (a : α) :
+  null_measurable_set (insert a s) μ :=
+hs.insert a
+
+lemma exists_is_measurable_superset_ae_eq (h : null_measurable_set s μ) :
+  ∃ t ⊇ s, is_measurable t ∧ s =ᵐ[μ] t :=
+begin
+  rcases h with ⟨t₁, hm₁, eq₁⟩,
+  rcases exists_is_measurable_superset_of_null (ae_le_set.1 eq₁.le) with ⟨t₂, hsub, hm₂, eq₂⟩,
+  rw diff_subset_iff at hsub,
+  refine ⟨t₁ ∪ t₂, hsub, hm₁.union hm₂, _⟩,
+  simpa only [union_empty] using eq₁.union (ae_eq_empty.2 eq₂).symm
+end
+
+lemma exists_is_measurable_subset_ae_eq (h : null_measurable_set s μ) :
+  ∃ t ⊆ s, is_measurable t ∧ s =ᵐ[μ] t :=
+begin
+  rcases h with ⟨t₁, hm₁, eq₁⟩,
+  rcases exists_is_measurable_superset_of_null (ae_le_set.1 eq₁.symm.le) with ⟨t₂, hsub, hm₂, eq₂⟩,
+  rw diff_subset_comm at hsub,
+  refine ⟨t₁ \ t₂, hsub, hm₁.diff hm₂, _⟩,
+  simpa only [diff_empty] using eq₁.diff (ae_eq_empty.2 eq₂).symm
+end
+
+end null_measurable_set
+
+section  measurable_singleton_class
+
+variable [measurable_singleton_class (null_measurable α μ)]
+
+lemma null_measurable_set_singleton (x : α) : null_measurable_set {x} μ := is_measurable_singleton x
+
+@[simp] lemma null_measurable_set_insert {a : α} {s : set α} :
+  null_measurable_set (insert a s) μ ↔ null_measurable_set s μ :=
+is_measurable_insert
+
+lemma null_measurable_set_eq {a : α} : null_measurable_set {x | x = a} μ :=
+is_measurable_singleton a
+
+protected lemma set.finite.null_measurable (hs : finite s) : null_measurable_set s μ :=
+finite.is_measurable hs
+
+protected lemma finset.null_measurable (s : finset α) : null_measurable_set ↑s μ :=
+finset.is_measurable s
+
+end measurable_singleton_class
+
+lemma set.finite.null_measurable_bUnion {f : β → set α} {s : set β} (hs : finite s)
+  (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
+  null_measurable_set (⋃ b ∈ s, f b) μ :=
+finite.is_measurable_bUnion hs h
+
+lemma finset.null_measurable_bUnion {f : β → set α} (s : finset β)
+  (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
+  null_measurable_set (⋃ b ∈ s, f b) μ :=
+finset.is_measurable_bUnion s h
+
+lemma set.finite.null_measurable_sUnion {s : set (set α)} (hs : finite s)
+  (h : ∀ t ∈ s, null_measurable_set t μ) :
+  null_measurable_set (⋃₀ s) μ :=
+finite.is_measurable_sUnion hs h
+
+lemma set.finite.null_measurable_bInter {f : β → set α} {s : set β} (hs : finite s)
+  (h : ∀ b ∈ s, null_measurable_set (f b) μ) : null_measurable_set (⋂ b ∈ s, f b) μ :=
+finite.is_measurable_bInter hs h
+
+lemma finset.null_measurable_bInter {f : β → set α} (s : finset β)
+  (h : ∀ b ∈ s, null_measurable_set (f b) μ) : null_measurable_set (⋂ b ∈ s, f b) μ :=
+s.finite_to_set.null_measurable_bInter h
+
+lemma set.finite.null_measurable_sInter {s : set (set α)} (hs : finite s)
+  (h : ∀ t ∈ s, null_measurable_set t μ) : null_measurable_set (⋂₀ s) μ :=
+null_measurable_set.sInter hs.countable h
+
+/-- A measurable `t ⊇ s` such that `μ t = μ s`. For a `null_measurable_set`, it is chosen
+so that `μ (t \ s) = 0`. -/
+def to_measurable (s : set α) (μ : measure α . volume_tac) :=
+if h : null_measurable_set s μ then classical.some h.exists_is_measurable_superset_ae_eq
+else classical.some (exists_is_measurable_superset μ s)
+
+lemma subset_to_measurable : s ⊆ to_measurable s μ :=
+begin
+  dunfold to_measurable, split_ifs,
+  { exact (classical.some_spec h.exists_is_measurable_superset_ae_eq).fst },
+  { exact (classical.some_spec (exists_is_measurable_superset μ s)).1 }
+end
+
+lemma ae_le_to_measurable : s ≤ᵐ[μ] to_measurable s μ := ae_of_all _ subset_to_measurable
+
+@[simp] lemma is_measurable_to_measurable : is_measurable (to_measurable s μ) :=
+begin
+  dunfold to_measurable, split_ifs,
+  { exact (classical.some_spec h.exists_is_measurable_superset_ae_eq).snd.1 },
+  { exact (classical.some_spec (exists_is_measurable_superset μ s)).2.1 }
+end
+
+lemma null_measurable_to_measurable : null_measurable_set (to_measurable s μ) μ :=
+is_measurable_to_measurable.null_measurable
+
+lemma to_measurable_ae_eq (h : null_measurable_set s μ) : to_measurable s μ =ᵐ[μ] s :=
+begin
+  rw [to_measurable, dif_pos h],
+  exact (classical.some_spec h.exists_is_measurable_superset_ae_eq).snd.2.symm
+end
+
+@[simp] lemma measure_to_measurable (s : set α) : μ (to_measurable s μ) = μ s :=
+begin
+  by_cases h : null_measurable_set s μ,
+  { exact measure_congr (to_measurable_ae_eq h) },
+  { rw [to_measurable, dif_neg h],
+    exact (classical.some_spec (exists_is_measurable_superset μ s)).2.2 }
+end
+
+lemma null_measurable_set_tfae (s : set α) (μ : measure α) :
+  tfae [null_measurable_set s μ,
+    to_measurable s μ =ᵐ[μ] s,
+    ∃ t ⊆ s, is_measurable t ∧ s ≤ᵐ[μ] t,
+    ∃ t ⊆ s, is_measurable t ∧ s =ᵐ[μ] t,
+    ∃ t ⊆ s, is_measurable t ∧ μ (s \ t) = 0,
+    ∃ t ⊇ s, is_measurable t ∧ t ≤ᵐ[μ] s,
+    ∃ t ⊇ s, is_measurable t ∧ s =ᵐ[μ] t,
+    ∃ t ⊇ s, is_measurable t ∧ μ (t \ s) = 0] :=
+begin
+  -- Equivalence of 3, 4, and 5
+  tfae_have : 3 ↔ 5, by simp only [ae_le_set],
+  tfae_have : 3 → 4, from λ ⟨t, hts, ht, hle⟩, ⟨t, hts, ht, hle.antisymm (ae_of_all μ hts)⟩,
+  tfae_have : 4 → 3, from λ ⟨t, hts, ht, heq⟩, ⟨t, hts, ht, heq.le⟩,
+  -- Equivalence of 6, 7, and 8
+  tfae_have : 6 ↔ 8, by simp only [ae_le_set],
+  tfae_have : 6 → 7, from λ ⟨t, hts, ht, hle⟩, ⟨t, hts, ht, (hle.antisymm (ae_of_all μ hts)).symm⟩,
+  tfae_have : 7 → 6, from λ ⟨t, hts, ht, heq⟩, ⟨t, hts, ht, heq.symm.le⟩,
+  -- Add 1 and 2 to 6 ↔ 7 ↔ 8 using 1 → 2 → 7 → 1
+  tfae_have : 1 → 2, from to_measurable_ae_eq,
+  tfae_have : 2 → 7, from λ h, ⟨_, subset_to_measurable, is_measurable_to_measurable, h.symm⟩,
+  tfae_have : 7 → 1, from λ ⟨t, hts, ht, heq⟩, ⟨t, ht, heq⟩,
+  -- Merge two components using 4 → 1 and 1 → 4
+  tfae_have : 4 → 1, from λ ⟨t, hts, ht, heq⟩, ⟨t, ht, heq⟩,
+  tfae_have : 1 → 4, from λ h, h.exists_is_measurable_subset_ae_eq,
+  tfae_finish
+end
+
+end null_measurable
+
+section null_measurable_fun
+
+open measure_theory
+variables [measurable_space α] [measurable_space β] [measurable_space γ]
+  {μ : measure α} {f  : α → β}
+
+def null_measurable_fun (f : α → β) (μ : measure α . volume_tac) : Prop :=
+∀ ⦃s : set β⦄, is_measurable s → null_measurable_set (f ⁻¹' s) μ
+
+lemma measurable.null_measurable (h : measurable f) :
+  null_measurable_fun f μ :=
+λ s hs, (h hs).null_measurable
+
+lemma measurable.null_measurable' (h : @measurable (null_measurable α μ) β _ _ f) :
+  null_measurable_fun f μ := h
+
+lemma null_measurable_fun.measurable (h : null_measurable_fun f μ) :
+  @measurable (null_measurable α μ) β _ _ f := h
+
+lemma measurable.comp_null_measurable {g : β → γ} (hg : measurable g)
+  (hf : null_measurable_fun f μ) : null_measurable_fun (g ∘ f) μ :=
+hg.comp hf.measurable
+
+end null_measurable_fun
+
+namespace measure_theory
+
+variables [measurable_space α] {μ : measure α} {s s₁ s₂ t : set α}
+
+lemma measure_Union' [encodable β] {f : β → set α}
   (hn : pairwise (disjoint on f)) (h : ∀ i, is_measurable (f i)) :
   μ (⋃ i, f i) = (∑' i, μ (f i)) :=
 begin
   rw [measure_eq_extend (is_measurable.Union h),
     extend_Union is_measurable.empty _ is_measurable.Union _ hn h],
-  { simp [measure_eq_extend, h] },
+  { simp [measure_eq_extend (h _)] },
   { exact μ.empty },
   { exact μ.m_Union }
 end
 
-lemma measure_union (hd : disjoint s₁ s₂) (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) :
+lemma measure_Union [encodable β] {f : β → set α}
+  (hn : pairwise (disjoint on f)) (h : ∀ i, null_measurable_set (f i) μ) :
+  μ (⋃ i, f i) = (∑' i, μ (f i)) :=
+begin
+  choose g hsub hm heq using λ i, (h i).exists_is_measurable_subset_ae_eq,
+  have : (⋃ i, f i) =ᵐ[μ] ⋃ i, g i, from eventually_eq.countable_Union heq,
+  simp only [measure_congr this, measure_congr (heq _)],
+  exact measure_Union' (hn.mono (λ i j h, h.mono (hsub i) (hsub j))) hm
+end
+
+lemma measure_union (hd : disjoint s₁ s₂) (h₁ : null_measurable_set s₁ μ)
+  (h₂ : null_measurable_set s₂ μ) :
   μ (s₁ ∪ s₂) = μ s₁ + μ s₂ :=
 begin
   rw [union_eq_Union, measure_Union, tsum_fintype, fintype.sum_bool, cond, cond],
@@ -285,7 +696,7 @@ begin
 end
 
 lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
-  (hd : pairwise_on s (disjoint on f)) (h : ∀ b ∈ s, is_measurable (f b)) :
+  (hd : pairwise_on s (disjoint on f)) (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
   μ (⋃ b ∈ s, f b) = ∑' p : s, μ (f p) :=
 begin
   haveI := hs.to_encodable,
@@ -294,12 +705,12 @@ begin
 end
 
 lemma measure_sUnion {S : set (set α)} (hs : countable S)
-  (hd : pairwise_on S disjoint) (h : ∀ s ∈ S, is_measurable s) :
+  (hd : pairwise_on S disjoint) (h : ∀ s ∈ S, null_measurable_set s μ) :
   μ (⋃₀ S) = ∑' s : S, μ s :=
 by rw [sUnion_eq_bUnion, measure_bUnion hs hd h]
 
 lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : pairwise_on ↑s (disjoint on f))
-  (hm : ∀ b ∈ s, is_measurable (f b)) :
+  (hm : ∀ b ∈ s, null_measurable_set (f b) μ) :
   μ (⋃ b ∈ s, f b) = ∑ p in s, μ (f p) :=
 begin
   rw [← finset.sum_attach, finset.attach_eq_univ, ← tsum_fintype],
@@ -309,36 +720,36 @@ end
 /-- If `s` is a countable set, then the measure of its preimage can be found as the sum of measures
 of the fibers `f ⁻¹' {y}`. -/
 lemma tsum_measure_preimage_singleton {s : set β} (hs : countable s) {f : α → β}
-  (hf : ∀ y ∈ s, is_measurable (f ⁻¹' {y})) :
+  (hf : ∀ y ∈ s, null_measurable_set (f ⁻¹' {y}) μ) :
   (∑' b : s, μ (f ⁻¹' {↑b})) = μ (f ⁻¹' s) :=
 by rw [← set.bUnion_preimage_singleton, measure_bUnion hs (pairwise_on_disjoint_fiber _ _) hf]
 
 /-- If `s` is a `finset`, then the measure of its preimage can be found as the sum of measures
 of the fibers `f ⁻¹' {y}`. -/
 lemma sum_measure_preimage_singleton (s : finset β) {f : α → β}
-  (hf : ∀ y ∈ s, is_measurable (f ⁻¹' {y})) :
+  (hf : ∀ y ∈ s, null_measurable_set (f ⁻¹' {y}) μ) :
   ∑ b in s, μ (f ⁻¹' {b}) = μ (f ⁻¹' ↑s) :=
 by simp only [← measure_bUnion_finset (pairwise_on_disjoint_fiber _ _) hf,
   finset.bUnion_preimage_singleton]
 
-lemma measure_diff (h : s₂ ⊆ s₁) (h₁ : is_measurable s₁) (h₂ : is_measurable s₂)
+lemma measure_diff (h : s₂ ⊆ s₁) (h₁ : null_measurable_set s₁ μ) (h₂ : null_measurable_set s₂ μ)
   (h_fin : μ s₂ < ⊤) :
   μ (s₁ \ s₂) = μ s₁ - μ s₂ :=
 begin
-  refine (ennreal.add_sub_self' h_fin).symm.trans _,
-  rw [← measure_union disjoint_diff h₂ (h₁.diff h₂), union_diff_cancel h]
+  refine (ennreal.sub_eq_of_add_eq h_fin.ne _).symm,
+  rw [add_comm, ← measure_union disjoint_diff h₂ (h₁.diff h₂), union_diff_cancel h]
 end
 
-lemma measure_compl (h₁ : is_measurable s) (h_fin : μ s < ⊤) : μ (sᶜ) = μ univ - μ s :=
-by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) is_measurable.univ h₁ h_fin }
+lemma measure_compl (h₁ : null_measurable_set s μ) (h_fin : μ s < ⊤) : μ (sᶜ) = μ univ - μ s :=
+by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) null_measurable_set_univ h₁ h_fin }
 
-lemma sum_measure_le_measure_univ {s : finset ι} {t : ι → set α} (h : ∀ i ∈ s, is_measurable (t i))
-  (H : pairwise_on ↑s (disjoint on t)) :
+lemma sum_measure_le_measure_univ {s : finset ι} {t : ι → set α}
+  (h : ∀ i ∈ s, null_measurable_set (t i) μ) (H : pairwise_on ↑s (disjoint on t)) :
   ∑ i in s, μ (t i) ≤ μ (univ : set α) :=
 by { rw ← measure_bUnion_finset H h, exact measure_mono (subset_univ _) }
 
-lemma tsum_measure_le_measure_univ {s : ι → set α} (hs : ∀ i, is_measurable (s i))
-  (H : pairwise (disjoint on s)) :
+lemma tsum_measure_le_measure_univ {s : ι → set α}
+  (hs : ∀ i, null_measurable_set (s i) μ) (H : pairwise (disjoint on s)) :
   (∑' i, μ (s i)) ≤ μ (univ : set α) :=
 begin
   rw [ennreal.tsum_eq_supr_sum],
@@ -348,7 +759,7 @@ end
 /-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then
 one of the intersections `s i ∩ s j` is not empty. -/
 lemma exists_nonempty_inter_of_measure_univ_lt_tsum_measure (μ : measure α) {s : ι → set α}
-  (hs : ∀ i, is_measurable (s i)) (H : μ (univ : set α) < ∑' i, μ (s i)) :
+  (hs : ∀ i, null_measurable_set (s i) μ) (H : μ (univ : set α) < ∑' i, μ (s i)) :
   ∃ i j (h : i ≠ j), (s i ∩ s j).nonempty :=
 begin
   contrapose! H,
@@ -359,7 +770,8 @@ end
 /-- Pigeonhole principle for measure spaces: if `s` is a `finset` and
 `∑ i in s, μ (t i) > μ univ`, then one of the intersections `t i ∩ t j` is not empty. -/
 lemma exists_nonempty_inter_of_measure_univ_lt_sum_measure (μ : measure α) {s : finset ι}
-  {t : ι → set α} (h : ∀ i ∈ s, is_measurable (t i)) (H : μ (univ : set α) < ∑ i in s, μ (t i)) :
+  {t : ι → set α} (h : ∀ i ∈ s, null_measurable_set (t i) μ)
+  (H : μ (univ : set α) < ∑ i in s, μ (t i)) :
   ∃ (i ∈ s) (j ∈ s) (h : i ≠ j), (t i ∩ t j).nonempty :=
 begin
   contrapose! H,
@@ -369,15 +781,15 @@ end
 
 /-- Continuity from below: the measure of the union of a directed sequence of measurable sets
 is the supremum of the measures. -/
-lemma measure_Union_eq_supr [encodable ι] {s : ι → set α} (h : ∀ i, is_measurable (s i))
+lemma measure_Union_eq_supr [encodable ι] {s : ι → set α} (h : ∀ i, null_measurable_set (s i) μ)
   (hd : directed (⊆) s) : μ (⋃ i, s i) = ⨆ i, μ (s i) :=
 begin
   by_cases hι : nonempty ι, swap,
   { simp only [supr_of_empty hι, Union], exact measure_empty },
   resetI,
   refine le_antisymm _ (supr_le $ λ i, measure_mono $ subset_Union _ _),
-  have : ∀ n, is_measurable (disjointed (λ n, ⋃ b ∈ encodable.decode2 ι n, s b) n) :=
-    is_measurable.disjointed (is_measurable.bUnion_decode2 h),
+  have : ∀ n, null_measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode2 ι n, s b) n) μ :=
+    null_measurable_set.disjointed (null_measurable_set.bUnion_decode2 h),
   rw [← encodable.Union_decode2, ← Union_disjointed, measure_Union disjoint_disjointed this,
     ennreal.tsum_eq_supr_nat],
   simp only [← measure_bUnion_finset (disjoint_disjointed.pairwise_on _) (λ n _, this n)],
@@ -391,7 +803,7 @@ begin
 end
 
 lemma measure_bUnion_eq_supr {s : ι → set α} {t : set ι} (ht : countable t)
-  (h : ∀ i ∈ t, is_measurable (s i)) (hd : directed_on ((⊆) on s) t) :
+  (h : ∀ i ∈ t, null_measurable_set (s i) μ) (hd : directed_on ((⊆) on s) t) :
   μ (⋃ i ∈ t, s i) = ⨆ i ∈ t, μ (s i) :=
 begin
   haveI := ht.to_encodable,
@@ -403,14 +815,14 @@ end
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the infimum of the measures. -/
 lemma measure_Inter_eq_infi [encodable ι] {s : ι → set α}
-  (h : ∀ i, is_measurable (s i)) (hd : directed (⊇) s)
+  (h : ∀ i, null_measurable_set (s i) μ) (hd : directed (⊇) s)
   (hfin : ∃ i, μ (s i) < ⊤) :
   μ (⋂ i, s i) = (⨅ i, μ (s i)) :=
 begin
   rcases hfin with ⟨k, hk⟩,
   rw [← ennreal.sub_sub_cancel (by exact hk) (infi_le _ k), ennreal.sub_infi,
     ← ennreal.sub_sub_cancel (by exact hk) (measure_mono (Inter_subset _ k)),
-    ← measure_diff (Inter_subset _ k) (h k) (is_measurable.Inter h)
+    ← measure_diff (Inter_subset _ k) (h k) (null_measurable_set.Inter h)
       (lt_of_le_of_lt (measure_mono (Inter_subset _ k)) hk),
     diff_Inter, measure_Union_eq_supr],
   { congr' 1,
@@ -426,19 +838,34 @@ begin
   { exact hd.mono_comp _ (λ _ _, diff_subset_diff_right) }
 end
 
-lemma measure_eq_inter_diff (hs : is_measurable s) (ht : is_measurable t) :
-  μ s = μ (s ∩ t) + μ (s \ t) :=
-have hd : disjoint (s ∩ t) (s \ t) := assume a ⟨⟨_, hs⟩, _, hns⟩, hns hs ,
-by rw [← measure_union hd (hs.inter ht) (hs.diff ht), inter_union_diff s t]
+@[simp] lemma measure_inter_add_diff (s : set α) (ht : null_measurable_set t μ) :
+  μ (s ∩ t) + μ (s \ t) = μ s :=
+begin
+  apply le_antisymm,
+  { set s' := to_measurable s μ,
+    have : s ≤ᵐ[μ] s', from ae_le_to_measurable,
+    calc μ (s ∩ t) + μ (s \ t) ≤ μ (s' ∩ t) + μ (s' \ t) : by mono*
+    ... = μ (s' ∩ t ∪ s' \ t) : (measure_union _ _ _).symm
+    ... = μ s : by simp,
+    exacts [disjoint_diff.mono_left (inter_subset_right _ _),
+      null_measurable_to_measurable.inter ht, null_measurable_to_measurable.diff ht] },
+  { calc μ s = μ ((s ∩ t) ∪ (s \ t)) : by rw inter_union_diff
+    ... ≤ μ (s ∩ t) + μ (s \ t) : measure_union_le _ _ },
+end
 
-lemma measure_union_add_inter (hs : is_measurable s) (ht : is_measurable t) :
+@[simp] lemma measure_diff_add_inter (s : set α) (ht : null_measurable_set t μ) :
+  μ (s \ t) + μ (s ∩ t) = μ s :=
+(add_comm _ _).trans (measure_inter_add_diff s ht)
+
+lemma measure_union_add_inter (hs : null_measurable_set s μ) (ht : null_measurable_set t μ) :
   μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
-by { rw [measure_eq_inter_diff (hs.union ht) ht, set.union_inter_cancel_right,
-  union_diff_right, measure_eq_inter_diff hs ht], ac_refl }
+by rw [← measure_inter_add_diff (s ∪ t) ht, set.union_inter_cancel_right, union_diff_right,
+  add_assoc, measure_diff_add_inter s ht, add_comm]
 
 /-- Continuity from below: the measure of the union of an increasing sequence of measurable sets
 is the limit of the measures. -/
-lemma tendsto_measure_Union {s : ℕ → set α} (hs : ∀ n, is_measurable (s n)) (hm : monotone s) :
+lemma tendsto_measure_Union {s : ℕ → set α} (hs : ∀ n, null_measurable_set (s n) μ)
+  (hm : monotone s) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋃ n, s n))) :=
 begin
   rw measure_Union_eq_supr hs (directed_of_sup hm),
@@ -447,8 +874,8 @@ end
 
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the limit of the measures. -/
-lemma tendsto_measure_Inter {s : ℕ → set α}
-  (hs : ∀ n, is_measurable (s n)) (hm : ∀ ⦃n m⦄, n ≤ m → s m ⊆ s n) (hf : ∃ i, μ (s i) < ⊤) :
+lemma tendsto_measure_Inter {s : ℕ → set α} (hs : ∀ n, null_measurable_set (s n) μ)
+  (hm : ∀ ⦃n m⦄, n ≤ m → s m ⊆ s n) (hf : ∃ i, μ (s i) < ⊤) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋂ n, s n))) :=
 begin
   rw measure_Inter_eq_infi hs (directed_of_sup hm) hf,
@@ -457,14 +884,14 @@ end
 
 /-- One direction of the Borel-Cantelli lemma: if (sᵢ) is a sequence of measurable sets such that
   ∑ μ sᵢ exists, then the limit superior of the sᵢ is a null set. -/
-lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, is_measurable (s i))
+lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, null_measurable_set (s i) μ)
   (hs' : (∑' i, μ (s i)) ≠ ⊤) : μ (limsup at_top s) = 0 :=
 begin
   rw limsup_eq_infi_supr_of_nat',
   -- We will show that both `μ (⨅ n, ⨆ i, s (i + n))` and `0` are the limit of `μ (⊔ i, s (i + n))`
   -- as `n` tends to infinity. For the former, we use continuity from above.
   refine tendsto_nhds_unique
-    (tendsto_measure_Inter (λ i, is_measurable.Union (λ b, hs (b + i))) _
+    (tendsto_measure_Inter (λ i, null_measurable_set.Union (λ b, hs (b + i))) _
       ⟨0, lt_of_le_of_lt (measure_Union_le s) (ennreal.lt_top_iff_ne_top.2 hs')⟩) _,
   { intros n m hnm x,
     simp only [set.mem_Union],
@@ -481,8 +908,9 @@ lemma measure_if {x : β} {t : set β} {s : set α} {μ : measure α} :
   μ (if x ∈ t then s else ∅) = indicator t (λ _, μ s) x :=
 by { split_ifs; simp [h] }
 
-end
+end measure_theory
 
+namespace measure_theory
 section outer_measure
 
 variables [ms : measurable_space α] {s t : set α}
@@ -495,28 +923,24 @@ measure.of_measurable (λ s _, m s) m.empty
   (λ f hf hd, m.Union_eq_of_caratheodory (λ i, h _ (hf i)) hd)
 
 lemma le_to_outer_measure_caratheodory (μ : measure α) : ms ≤ μ.to_outer_measure.caratheodory :=
-begin
-  assume s hs,
-  rw to_outer_measure_eq_induced_outer_measure,
-  refine outer_measure.of_function_caratheodory (λ t, le_infi $ λ ht, _),
-  rw [← measure_eq_extend (ht.inter hs),
-    ← measure_eq_extend (ht.diff hs),
-    ← measure_union _ (ht.inter hs) (ht.diff hs),
-    inter_union_diff],
-  exact le_refl _,
-  exact λ x ⟨⟨_, h₁⟩, _, h₂⟩, h₂ h₁
-end
+λ s hs t, (measure_inter_add_diff _ (is_measurable.null_measurable hs)).symm
 
 @[simp] lemma to_measure_to_outer_measure (m : outer_measure α) (h : ms ≤ m.caratheodory) :
   (m.to_measure h).to_outer_measure = m.trim := rfl
 
-@[simp] lemma to_measure_apply (m : outer_measure α) (h : ms ≤ m.caratheodory)
-  {s : set α} (hs : is_measurable s) : m.to_measure h s = m s :=
-m.trim_eq hs
-
 lemma le_to_measure_apply (m : outer_measure α) (h : ms ≤ m.caratheodory) (s : set α) :
   m s ≤ m.to_measure h s :=
 m.le_trim s
+
+@[simp] lemma to_measure_apply (m : outer_measure α) (h : ms ≤ m.caratheodory)
+  {s : set α} (hs : null_measurable_set s (m.to_measure h)) : m.to_measure h s = m s :=
+begin
+  rcases hs.exists_is_measurable_subset_ae_eq with ⟨t, hts, htm, heq⟩,
+  refine le_antisymm _ (le_to_measure_apply _ _ _),
+  calc m.to_measure h s = m.to_measure h t : measure_congr heq
+  ... = m t : m.trim_eq htm
+  ... ≤ m s : m.mono' hts
+end
 
 @[simp] lemma to_outer_measure_to_measure {μ : measure α} :
   μ.to_outer_measure.to_measure (le_to_outer_measure_caratheodory _) = μ :=
@@ -528,9 +952,6 @@ variables [measurable_space α] [measurable_space β] [measurable_space γ]
 variables {μ μ₁ μ₂ ν ν' ν₁ ν₂ : measure α} {s s' t : set α}
 
 namespace measure
-
-protected lemma caratheodory (μ : measure α) (hs : is_measurable s) : μ (t ∩ s) + μ (t \ s) = μ t :=
-(le_to_outer_measure_caratheodory μ s hs t).symm
 
 /-! ### The `ennreal`-module of measures -/
 
@@ -553,7 +974,7 @@ instance : has_add (measure α) :=
   to_outer_measure := μ₁.to_outer_measure + μ₂.to_outer_measure,
   m_Union := λ s hs hd,
     show μ₁ (⋃ i, s i) + μ₂ (⋃ i, s i) = ∑' i, μ₁ (s i) + μ₂ (s i),
-    by rw [ennreal.tsum_add, measure_Union hd hs, measure_Union hd hs],
+    by rw [ennreal.tsum_add, measure_Union' hd hs, measure_Union' hd hs],
   trimmed := by rw [outer_measure.trim_add, μ₁.trimmed, μ₂.trimmed] }⟩
 
 @[simp] theorem add_to_outer_measure (μ₁ μ₂ : measure α) :
@@ -570,7 +991,7 @@ to_outer_measure_injective.add_comm_monoid to_outer_measure zero_to_outer_measur
 instance : has_scalar ennreal (measure α) :=
 ⟨λ c μ,
   { to_outer_measure := c • μ.to_outer_measure,
-    m_Union := λ s hs hd, by simp [measure_Union, *, ennreal.tsum_mul_left],
+    m_Union := λ s hs hd, by simp [measure_Union', *, ennreal.tsum_mul_left],
     trimmed := by rw [outer_measure.trim_smul, μ.trimmed] }⟩
 
 @[simp] theorem smul_to_outer_measure (c : ennreal) (μ : measure α) :
@@ -631,7 +1052,7 @@ protected lemma le_add_right (h : μ ≤ ν) : μ ≤ ν + ν' :=
 section Inf
 variables {m : set (measure α)}
 
-lemma Inf_caratheodory (s : set α) (hs : is_measurable s) :
+lemma Inf_caratheodory' (s : set α) (hs : ∀ μ ∈ m, null_measurable_set s μ) :
   (Inf (to_outer_measure '' m)).caratheodory.is_measurable' s :=
 begin
   rw [outer_measure.Inf_eq_bounded_by_Inf_gen],
@@ -642,18 +1063,21 @@ begin
   have hm : ∀ {s t}, s ⊆ t → outer_measure.Inf_gen (to_outer_measure '' m) s ≤ μ t,
   { intros s t hst,
     rw [outer_measure.Inf_gen_def],
-    refine infi_le_of_le (μ.to_outer_measure) (infi_le_of_le (mem_image_of_mem _ hμ) _),
-    rw [to_outer_measure_apply],
-    refine measure_mono hst },
-  rw [measure_eq_inter_diff hu hs],
+    exact infi_le_of_le (μ.to_outer_measure) (infi_le_of_le (mem_image_of_mem _ hμ)
+      (measure_mono hst)) },
+  rw [← measure_inter_add_diff u (hs _ hμ)],
   refine add_le_add (hm $ inter_subset_inter_left _ htu) (hm $ diff_subset_diff_left htu)
 end
+
+lemma Inf_caratheodory (s : set α) (hs : is_measurable s) :
+  (Inf (to_outer_measure '' m)).caratheodory.is_measurable' s :=
+Inf_caratheodory' s $ λ μ _, hs.null_measurable
 
 instance : has_Inf (measure α) :=
 ⟨λ m, (Inf (to_outer_measure '' m)).to_measure $ Inf_caratheodory⟩
 
 lemma Inf_apply (hs : is_measurable s) : Inf m s = Inf (to_outer_measure '' m) s :=
-to_measure_apply _ _ hs
+to_measure_apply _ _ hs.null_measurable
 
 private lemma measure_Inf_le (h : μ ∈ m) : Inf m ≤ μ :=
 have Inf (to_outer_measure '' m) ≤ μ.to_outer_measure := Inf_le (mem_image_of_mem _ h),
@@ -686,6 +1110,12 @@ lemma nonpos_iff_eq_zero' : μ ≤ 0 ↔ μ = 0 :=
 @[simp] lemma measure_univ_eq_zero : μ univ = 0 ↔ μ = 0 :=
 ⟨λ h, bot_unique $ λ s hs, trans_rel_left (≤) (measure_mono (subset_univ s)) h, λ h, h.symm ▸ rfl⟩
 
+@[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
+by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
+
+@[mono] lemma ae_mono {μ ν : measure α} (h : μ ≤ ν) : μ.ae ≤ ν.ae :=
+λ s hs, bot_unique $ trans_rel_left (≤) (measure.le_iff'.1 h _) hs
+
 /-! ### Pushforward and pullback -/
 
 /-- Lift a linear map between `outer_measure` spaces such that for each measure `μ` every measurable
@@ -698,16 +1128,21 @@ def lift_linear (f : outer_measure α →ₗ[ennreal] outer_measure β)
   map_smul' := λ c μ, ext $ λ s hs, by simp [hs] }
 
 @[simp] lemma lift_linear_apply {f : outer_measure α →ₗ[ennreal] outer_measure β} (hf)
-  {s : set β} (hs : is_measurable s) : lift_linear f hf μ s = f μ.to_outer_measure s :=
+  {s : set β} (hs : null_measurable_set s (lift_linear f hf μ)) :
+  lift_linear f hf μ s = f μ.to_outer_measure s :=
 to_measure_apply _ _ hs
 
 lemma le_lift_linear_apply {f : outer_measure α →ₗ[ennreal] outer_measure β} (hf) (s : set β) :
   f μ.to_outer_measure s ≤ lift_linear f hf μ s :=
 le_to_measure_apply _ _ s
 
-/-- The pushforward of a measure. It is defined to be `0` if `f` is not a measurable function. -/
-def map (f : α → β) : measure α →ₗ[ennreal] measure β :=
-if hf : measurable f then
+def lift_linear' (f : outer_measure α →ₗ[ennreal] outer_measure β) (μ : measure α) : measure β :=
+if h : 
+
+/-- The pushforward of a measure. It is defined to be `0` if `f` is not a null-measurable function
+w.r.t. `μ`. -/
+def map (f : α → β) (μ : measure α) : measure β :=
+if hf : null_measurable_fun f μ then
   lift_linear (outer_measure.map f) $ λ μ s hs t,
     le_to_outer_measure_caratheodory μ _ (hf hs) (f ⁻¹' t)
 else 0
@@ -1169,16 +1604,6 @@ calc count s < ⊤ ↔ count s ≠ ⊤ : lt_top_iff_ne_top
              ... ↔ ¬s.infinite : not_congr count_apply_eq_top
              ... ↔ s.finite    : not_not
 
-/-! ### The almost everywhere filter -/
-
-/-- The “almost everywhere” filter of co-null sets. -/
-def ae (μ : measure α) : filter α :=
-{ sets := {s | μ sᶜ = 0},
-  univ_sets := by simp,
-  inter_sets := λ s t hs ht, by simp only [compl_inter, mem_set_of_eq];
-    exact measure_union_null hs ht,
-  sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
-
 /-- The filter of sets `s` such that `sᶜ` has finite measure. -/
 def cofinite (μ : measure α) : filter α :=
 { sets := {s | μ sᶜ < ⊤},
@@ -1197,76 +1622,6 @@ lemma eventually_cofinite {p : α → Prop} : (∀ᶠ x in μ.cofinite, p x) ↔
 
 end measure
 open measure
-
-notation `∀ᵐ` binders ` ∂` μ `, ` r:(scoped P, filter.eventually P (measure.ae μ)) := r
-notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[measure.ae μ] g
-notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[measure.ae μ] g
-
-lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
-
-lemma ae_iff {p : α → Prop} : (∀ᵐ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
-
-lemma compl_mem_ae_iff {s : set α} : sᶜ ∈ μ.ae ↔ μ s = 0 := by simp only [mem_ae_iff, compl_compl]
-
-lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ᵐ a ∂ μ, a ∉ s :=
-compl_mem_ae_iff.symm
-
-@[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
-by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
-
-lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀ a, p a) → ∀ᵐ a ∂ μ, p a :=
-eventually_of_forall
-
-@[mono] lemma ae_mono {μ ν : measure α} (h : μ ≤ ν) : μ.ae ≤ ν.ae :=
-λ s hs, bot_unique $ trans_rel_left (≤) (measure.le_iff'.1 h _) hs
-
-instance : countable_Inter_filter μ.ae :=
-⟨begin
-  intros S hSc hS,
-  simp only [mem_ae_iff, compl_sInter, sUnion_image, bUnion_eq_Union] at hS ⊢,
-  haveI := hSc.to_encodable,
-  exact measure_Union_null (subtype.forall.2 hS)
-end⟩
-
-instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
-⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_is_measurable_superset_of_null hs in
-  ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
-
-lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :
-  (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ (∀ i, ∀ᵐ a ∂ μ, p a i) :=
-eventually_countable_forall
-
-lemma ae_ball_iff {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S), Prop} :
-  (∀ᵐ x ∂ μ, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᵐ x ∂ μ, p x i ‹_› :=
-eventually_countable_ball hS
-
-lemma ae_eq_refl (f : α → δ) : f =ᵐ[μ] f := eventually_eq.refl _ _
-
-lemma ae_eq_symm {f g : α → δ} (h : f =ᵐ[μ] g) : g =ᵐ[μ] f :=
-h.symm
-
-lemma ae_eq_trans {f g h: α → δ} (h₁ : f =ᵐ[μ] g) (h₂ : g =ᵐ[μ] h) :
-  f =ᵐ[μ] h :=
-h₁.trans h₂
-
-lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
-eventually_eq_empty.trans $ by simp [ae_iff]
-
-lemma ae_le_set : s ≤ᵐ[μ] t ↔ μ (s \ t) = 0 :=
-calc s ≤ᵐ[μ] t ↔ ∀ᵐ x ∂μ, x ∈ s → x ∈ t : iff.rfl
-           ... ↔ μ (s \ t) = 0          : by simp [ae_iff]; refl
-
-lemma union_ae_eq_right : (s ∪ t : set α) =ᵐ[μ] t ↔ μ (s \ t) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set, union_diff_right,
-  diff_eq_empty.2 (set.subset_union_right _ _)]
-
-lemma diff_ae_eq_self : (s \ t : set α) =ᵐ[μ] s ↔ μ (s ∩ t) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
-  diff_diff, diff_eq_empty.2 (set.subset_union_right _ _)]
-
-lemma ae_eq_set {s t : set α} :
-  s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set]
 
 lemma mem_ae_map_iff {f : α → β} (hf : measurable f) {s : set β} (hs : is_measurable s) :
   s ∈ (map f μ).ae ↔ (f ⁻¹' s) ∈ μ.ae :=
@@ -1365,19 +1720,6 @@ end
 lemma eventually_eq_dirac' [measurable_singleton_class α] {a : α} (f : α → δ) :
   f =ᵐ[dirac a] const α (f a) :=
 by { rw [dirac_ae_eq], show f a = f a, refl }
-
-/-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
-lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=
-calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
-     ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
-     ... ≤ μ t + μ (s \ t) : measure_union_le _ _
-     ... = μ t             : by rw [ae_le_set.1 H, add_zero]
-
-alias measure_mono_ae ← filter.eventually_le.measure_le
-
-/-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
-lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
-le_antisymm H.le.measure_le H.symm.le.measure_le
 
 lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
 begin
@@ -2048,26 +2390,6 @@ end
 end is_complete
 
 namespace measure_theory
-
-/-- A measure space is a measurable space equipped with a
-  measure, referred to as `volume`. -/
-class measure_space (α : Type*) extends measurable_space α :=
-(volume : measure α)
-
-export measure_space (volume)
-
-/-- `volume` is the canonical  measure on `α`. -/
-add_decl_doc volume
-
-section measure_space
-variables [measure_space α] {s₁ s₂ : set α}
-
-notation `∀ᵐ` binders `, ` r:(scoped P, filter.eventually P (measure.ae volume)) := r
-
-/-- The tactic `exact volume`, to be used in optional (`auto_param`) arguments. -/
-meta def volume_tac : tactic unit := `[exact measure_theory.measure_space.volume]
-
-end measure_space
 
 end measure_theory
 

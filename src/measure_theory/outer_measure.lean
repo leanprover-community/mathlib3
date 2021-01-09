@@ -938,6 +938,10 @@ begin
   exact ⟨t, hst, ht, h ▸ hm⟩
 end
 
+lemma null_of_trim_null {m : outer_measure α} {s : set α} (h : m.trim s = 0) :
+  m s = 0 :=
+nonpos_iff_eq_zero.1 ((le_trim m s).trans h.le
+
 theorem trim_smul (c : ennreal) (m : outer_measure α) :
   (c • m).trim = c • m.trim :=
 begin

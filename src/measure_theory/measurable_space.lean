@@ -104,6 +104,7 @@ s.compl_compl ▸ h.compl
 @[simp] lemma is_measurable.univ : is_measurable (univ : set α) :=
 by simpa using (@is_measurable.empty α _).compl
 
+@[nontriviality]
 lemma subsingleton.is_measurable [subsingleton α] {s : set α} : is_measurable s :=
 subsingleton.set_cases is_measurable.empty is_measurable.univ s
 

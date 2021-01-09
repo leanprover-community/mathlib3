@@ -436,17 +436,14 @@ variables {R : Type u} {A : Type v}
 variables [comm_semiring R] [semiring A] [algebra R A]
 variables (S : subalgebra R A)
 
-instance [subsingleton (subalgebra R A)] :
-  subsingleton (subgroup (A ≃ₐ[R] A)) :=
-begin
-  apply subsingleton_of_bot_eq_top,
-  rw [eq_comm, subgroup.eq_bot_iff_forall],
-  rintros f -,
+instance [subsingleton (subalgebra R A)] : subsingleton (A ≃ₐ[R] A) :=
+⟨begin
+  intros f g,
   ext a,
   rcases set.mem_range.mp (mem_bot.mp (show a ∈ (⊥ : subalgebra R A), from eq_bot_iff.mp
     (subsingleton.elim (⊤ : subalgebra R A) ⊥) mem_top)) with ⟨x, rfl⟩,
   rw [alg_equiv.commutes, alg_equiv.commutes],
-end
+end⟩
 
 lemma range_val : S.val.range = S :=
 ext $ set.ext_iff.1 $ S.val.coe_range.trans subtype.range_val

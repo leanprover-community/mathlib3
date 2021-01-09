@@ -777,6 +777,9 @@ as additive groups"]
 def prod_equiv (H : subgroup G) (K : subgroup N) : H.prod K ≃* H × K :=
 { map_mul' := λ x y, rfl, .. equiv.set.prod ↑H ↑K }
 
+instance [subsingleton G] : subsingleton (subgroup G) :=
+subsingleton_of_bot_eq_top ((eq_bot_iff_forall ⊤).mpr (λ x _, subsingleton.elim x _)).symm
+
 /-- A subgroup is normal if whenever `n ∈ H`, then `g * n * g⁻¹ ∈ H` for every `g : G` -/
 structure normal : Prop :=
 (conj_mem : ∀ n, n ∈ H → ∀ g : G, g * n * g⁻¹ ∈ H)

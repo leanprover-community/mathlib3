@@ -10,7 +10,7 @@ import measure_theory.group
 # The product of groups
 
 In this file we show properties about measure theory in products of topological groups
-or iterated integrals in topological groups.
+and properties of iterated integrals in topological groups.
 
 These lemmas show the uniqueness of left invariant measures on locally compact groups, up to
 scaling. In this file we follow the proof and refer to the book *Measure Theory* by Paul Halmos.

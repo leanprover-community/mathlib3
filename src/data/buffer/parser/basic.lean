@@ -101,7 +101,7 @@ decorate_errors_eq_fail
 
 @[simp] lemma return_eq_pure : (@return parser _ _ a) = pure a := rfl
 
-@[simp] lemma pure_eq_done : (@pure parser _ _ a) = λ _ n, done n a := rfl
+lemma pure_eq_done : (@pure parser _ _ a) = λ _ n, done n a := rfl
 
 section bind
 
@@ -126,11 +126,11 @@ by cases hp : p cb n; simp [hp, ←bind_eq_bind, parser.bind, and_assoc]
 
 lemma and_then_fail :
   (p >> return ()) cb n = parse_result.fail n' err ↔ p cb n = fail n' err :=
-by simp
+by simp [pure_eq_done]
 
 lemma and_then_success :
   (p >> return ()) cb n = parse_result.done n' () ↔ ∃ a, p cb n = done n' a:=
-by simp
+by simp [pure_eq_done]
 
 end bind
 
@@ -140,10 +140,10 @@ variable {f : α → β}
 
 @[simp] lemma map_eq_done : (f <$> p) cb n = done n' b ↔
   ∃ (a : α), p cb n = done n' a ∧ f a = b :=
-by cases hp : p cb n; simp [←is_lawful_monad.bind_pure_comp_eq_map, hp, and_assoc]
+by cases hp : p cb n; simp [←is_lawful_monad.bind_pure_comp_eq_map, hp, and_assoc, pure_eq_done]
 
 @[simp] lemma map_eq_fail : (f <$> p) cb n = fail n' err ↔ p cb n = fail n' err :=
-by simp [←bind_pure_comp_eq_map]
+by simp [←bind_pure_comp_eq_map, pure_eq_done]
 
 @[simp] lemma map_const_eq_done {b'} : (b <$ p) cb n = done n' b' ↔
   ∃ (a : α), p cb n = done n' a ∧ b = b' :=
@@ -267,7 +267,7 @@ by simp [seq_right_eq, seq_eq_fail]
 lemma mmap_eq_done {f : α → parser β} {a : α} {l : list α} {b : β} {l' : list β} :
   (a :: l).mmap f cb n = done n' (b :: l') ↔
   ∃ (np : ℕ), f a cb n = done np b ∧ l.mmap f cb np = done n' l' :=
-by simp [mmap, and.comm, and.assoc, and.left_comm]
+by simp [mmap, and.comm, and.assoc, and.left_comm, pure_eq_done]
 
 lemma mmap'_eq_done {f : α → parser β} {a : α} {l : list α} :
   (a :: l).mmap' f cb n = done n' () ↔
@@ -276,11 +276,11 @@ by simp [mmap']
 
 lemma guard_eq_done {p : Prop} [decidable p] :
   @guard parser _ p _ cb n = done n' () ↔ p ∧ n = n' :=
-by { by_cases hp : p; simp [guard, hp] }
+by { by_cases hp : p; simp [guard, hp, pure_eq_done] }
 
 lemma guard_eq_fail {p : Prop} [decidable p] :
   @guard parser _ p _ cb n = fail n' err ↔ (¬ p) ∧ n = n' ∧ err = dlist.empty :=
-by { by_cases hp : p; simp [guard, hp, eq_comm] }
+by { by_cases hp : p; simp [guard, hp, eq_comm, pure_eq_done] }
 
 section valid
 
@@ -289,7 +289,7 @@ variables {sep : parser unit}
 namespace valid
 
 lemma pure : valid (pure a) :=
-λ _ _, by simp
+λ _ _, by simp [pure_eq_done]
 
 @[simp] lemma bind {f : α → parser β} (hp : p.valid) (hf : ∀ a, (f a).valid) :
   (p >>= f).valid :=

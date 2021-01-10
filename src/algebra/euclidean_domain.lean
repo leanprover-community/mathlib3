@@ -216,9 +216,6 @@ using_well_founded {dec_tac := tactic.assumption,
 @[simp] theorem xgcd_zero_left {s t r' s' t' : R} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
 by unfold xgcd_aux; exact if_pos rfl
 
-@[simp] theorem xgcd_zero_right {s t r' s' t' : R} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
-by unfold xgcd_aux; exact if_pos rfl
-
 theorem xgcd_aux_rec {r s t r' s' t' : R} (h : r ≠ 0) :
   xgcd_aux r s t r' s' t' = xgcd_aux (r' % r) (s' - (r' / r) * s) (t' - (r' / r) * t) r s t :=
 by conv {to_lhs, rw [xgcd_aux]}; exact if_neg h

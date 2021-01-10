@@ -7,6 +7,9 @@ universe u
 variables {α β : Type u} [fintype α] [fintype β]
 variables (r : α → β → Prop) [∀ a, decidable_pred (r a)]
 
+/--
+The image of relation `r` from `α` in `β`.
+-/
 def image_rel (A : finset α) : finset β := univ.filter (λ b, ∃ a ∈ A, r a b)
 
 lemma image_rel_empty : image_rel r ∅ = ∅ := by simp [image_rel]

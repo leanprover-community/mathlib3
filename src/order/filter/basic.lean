@@ -1252,6 +1252,25 @@ lemma eventually_le.le_iff_eq [partial_order β] {l : filter α} {f g : α → �
   g ≤ᶠ[l] f ↔ g =ᶠ[l] f :=
 ⟨λ h', h'.antisymm h, eventually_eq.le⟩
 
+@[mono] lemma eventually_le.inter {s t s' t' : set α} {l : filter α} (h : s ≤ᶠ[l] t)
+  (h' : s' ≤ᶠ[l] t') :
+  (s ∩ s' : set α) ≤ᶠ[l] (t ∩ t' : set α) :=
+h'.mp $ h.mono $ λ x, and.imp
+
+@[mono] lemma eventually_le.union {s t s' t' : set α} {l : filter α} (h : s ≤ᶠ[l] t)
+  (h' : s' ≤ᶠ[l] t') :
+  (s ∪ s' : set α) ≤ᶠ[l] (t ∪ t' : set α) :=
+h'.mp $ h.mono $ λ x, or.imp
+
+@[mono] lemma eventually_le.compl {s t : set α} {l : filter α} (h : s ≤ᶠ[l] t) :
+  (tᶜ : set α) ≤ᶠ[l] (sᶜ : set α) :=
+h.mono $ λ x, mt
+
+@[mono] lemma eventually_le.diff {s t s' t' : set α} {l : filter α} (h : s ≤ᶠ[l] t)
+  (h' : t' ≤ᶠ[l] s') :
+  (s \ s' : set α) ≤ᶠ[l] (t \ t' : set α) :=
+h.inter h'.compl
+
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs
 

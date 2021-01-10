@@ -414,7 +414,7 @@ Topology:
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
   Normed vector spaces on $\R$ and $\C$:
     topology on a normed vector space: 'normed_space.topological_vector_space'
-    equivalent norms: 'linear_equiv.to_continuous_linear_equiv_of_bounds'
+    equivalent norms: 
     Banach open mapping theorem: 'open_mapping'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
     norms $\lVert\cdot\rVert_p$ on $\R^n$ and $\C^n$: 'pi_Lp.normed_space'

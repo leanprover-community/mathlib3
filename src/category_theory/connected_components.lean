@@ -79,7 +79,8 @@ begin
     { apply relation.refl_trans_gen.refl } },
   -- Now lift the zigzag from `j₁` to `j₂` in `J` to the same thing in `component j`.
   refine ⟨l.pmap f hf, _, _⟩,
-  { apply l.chain_pmap_of_chain (λ x y _ _ h, zag_of_zag_obj (include_component _) h) hl₁ h₁₂ },
+  { refine @@list.chain_pmap_of_chain _ _ _ f (λ x y _ _ h, _) hl₁ h₁₂ _,
+    exact zag_of_zag_obj (include_component _) h },
   { erw list.last_pmap _ f (j₁ :: l) (by simpa [h₁₂] using hf) (list.cons_ne_nil _ _),
     exact subtype.ext hl₂ },
 end
@@ -139,7 +140,7 @@ instance : faithful (decomposed_to J) :=
   end }
 
 instance : ess_surj (decomposed_to J) :=
-{ obj_preimage := λ j, ⟨⟨_, j, rfl⟩, ⟨iso.refl _⟩⟩ }
+{ mem_ess_image := λ j, ⟨⟨_, j, rfl⟩, ⟨iso.refl _⟩⟩ }
 
 instance : is_equivalence (decomposed_to J) :=
 equivalence.equivalence_of_fully_faithfully_ess_surj _

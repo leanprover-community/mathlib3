@@ -5,11 +5,11 @@ Authors: Damiano Testa
 -/
 import algebraic_geometry.prime_spectrum
 import ring_theory.polynomial.basic
-
-open ideal polynomial prime_spectrum set integral_domain
 /--
 The morphism `Spec R[x] --> Spec R` induced by the natural inclusion `R --> R[x]` is an open map.
 -/
+
+open ideal polynomial prime_spectrum set integral_domain
 
 local attribute [instance] classical.prop_decidable
 

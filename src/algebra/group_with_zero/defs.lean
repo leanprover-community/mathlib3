@@ -20,7 +20,11 @@ members.
 
 set_option old_structure_cmd true
 
-variables {M₀ G₀ M₀' G₀' : Type*}
+universe u
+
+-- We have to fix the universe of `G₀` here, since the default argument to
+-- `group_with_zero.div'` cannot contain a universe metavariable.
+variables {G₀ : Type u} {M₀ M₀' G₀' : Type*}
 
 section
 
@@ -89,7 +93,8 @@ The type is required to come with an “inverse” function, and the inverse of 
 
 Examples include division rings and the ordered monoids that are the
 target of valuations in general valuation theory.-/
-class group_with_zero (G₀ : Type*) extends monoid_with_zero G₀, has_inv G₀, nontrivial G₀ :=
+class group_with_zero (G₀ : Type u) extends
+  monoid_with_zero G₀, div_inv_monoid G₀, nontrivial G₀ :=
 (inv_zero : (0 : G₀)⁻¹ = 0)
 (mul_inv_cancel : ∀ a:G₀, a ≠ 0 → a * a⁻¹ = 1)
 

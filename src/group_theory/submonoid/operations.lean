@@ -129,7 +129,7 @@ lemma comap_comap (S : submonoid P) (g : N →* P) (f : M →* N) :
   (S.comap g).comap f = S.comap (g.comp f) :=
 rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma comap_id (S : submonoid P) : S.comap (monoid_hom.id _) = S :=
 ext (by simp)
 

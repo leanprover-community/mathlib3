@@ -15,7 +15,7 @@ import topology.algebra.ordered
 open set filter classical topological_space
 noncomputable theory
 
-open_locale uniformity topological_space big_operators filter
+open_locale uniformity topological_space big_operators filter nnreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -177,7 +177,7 @@ theorem eq_of_forall_dist_le {x y : α} (h : ∀ ε > 0, dist x y ≤ ε) : x = 
 eq_of_dist_eq_zero (eq_of_le_of_forall_le_of_dense dist_nonneg h)
 
 /-- Distance as a nonnegative real number. -/
-def nndist (a b : α) : nnreal := ⟨dist a b, dist_nonneg⟩
+def nndist (a b : α) : ℝ≥0 := ⟨dist a b, dist_nonneg⟩
 
 /--Express `nndist` in terms of `edist`-/
 lemma nndist_edist (x y : α) : nndist x y = (edist x y).to_nnreal :=
@@ -190,11 +190,11 @@ by { rw [edist_dist, nndist, ennreal.of_real_eq_coe_nnreal] }
 @[simp, norm_cast] lemma ennreal_coe_nndist (x y : α) : ↑(nndist x y) = edist x y :=
 (edist_nndist x y).symm
 
-@[simp, norm_cast] lemma edist_lt_coe {x y : α} {c : nnreal} :
+@[simp, norm_cast] lemma edist_lt_coe {x y : α} {c : ℝ≥0} :
   edist x y < c ↔ nndist x y < c :=
 by rw [edist_nndist, ennreal.coe_lt_coe]
 
-@[simp, norm_cast] lemma edist_le_coe {x y : α} {c : nnreal} :
+@[simp, norm_cast] lemma edist_le_coe {x y : α} {c : ℝ≥0} :
   edist x y ≤ c ↔ nndist x y ≤ c :=
 by rw [edist_nndist, ennreal.coe_le_coe]
 
@@ -215,11 +215,11 @@ lemma dist_nndist (x y : α) : dist x y = ↑(nndist x y) := rfl
 @[simp, norm_cast] lemma coe_nndist (x y : α) : ↑(nndist x y) = dist x y :=
 (dist_nndist x y).symm
 
-@[simp, norm_cast] lemma dist_lt_coe {x y : α} {c : nnreal} :
+@[simp, norm_cast] lemma dist_lt_coe {x y : α} {c : ℝ≥0} :
   dist x y < c ↔ nndist x y < c :=
 iff.rfl
 
-@[simp, norm_cast] lemma dist_le_coe {x y : α} {c : nnreal} :
+@[simp, norm_cast] lemma dist_le_coe {x y : α} {c : ℝ≥0} :
   dist x y ≤ c ↔ nndist x y ≤ c :=
 iff.rfl
 
@@ -280,10 +280,12 @@ by { ext, simp [dist_comm, uniform_space.ball] }
 /-- `closed_ball x ε` is the set of all points `y` with `dist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
 
+@[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ dist y x ≤ ε := iff.rfl
+
 /-- `sphere x ε` is the set of all points `y` with `dist y x = ε` -/
 def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 
-@[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ dist y x ≤ ε := iff.rfl
+@[simp] theorem mem_sphere : y ∈ sphere x ε ↔ dist y x = ε := iff.rfl
 
 theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ dist x y ≤ ε :=
 by { rw dist_comm, refl }
@@ -668,6 +670,22 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
 (at_top_basis.tendsto_iff nhds_basis_ball).trans $
   by { simp only [exists_prop, true_and], refl }
 
+lemma is_open_singleton_iff {X : Type*} [metric_space X] {x : X} :
+  is_open ({x} : set X) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
+by simp [is_open_iff, subset_singleton_iff, mem_ball]
+
+/-- Given a point `x` in a discrete subset `s` of a metric space, there is an open ball
+centered at `x` and intersecting `s` only at `x`. -/
+lemma exists_ball_inter_eq_singleton_of_mem_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
+  ∃ ε > 0, metric.ball x ε ∩ s = {x} :=
+nhds_basis_ball.exists_inter_eq_singleton_of_mem_discrete hx
+
+/-- Given a point `x` in a discrete subset `s` of a metric space, there is a closed ball
+of positive radius centered at `x` and intersecting `s` only at `x`. -/
+lemma exists_closed_ball_inter_eq_singleton_of_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
+  ∃ ε > 0, metric.closed_ball x ε ∩ s = {x} :=
+nhds_basis_closed_ball.exists_inter_eq_singleton_of_mem_discrete hx
+
 end metric
 
 open metric
@@ -725,7 +743,7 @@ begin
 end
 
 /-- Balls defined using the distance or the edistance coincide -/
-lemma metric.emetric_ball_nnreal {x : α} {ε : nnreal} : emetric.ball x ε = ball x ε :=
+lemma metric.emetric_ball_nnreal {x : α} {ε : ℝ≥0} : emetric.ball x ε = ball x ε :=
 by { convert metric.emetric_ball, simp }
 
 /-- Closed balls defined using the distance or the edistance coincide -/
@@ -734,7 +752,7 @@ lemma metric.emetric_closed_ball {x : α} {ε : ℝ} (h : 0 ≤ ε) :
 by ext y; simp [edist_dist]; rw ennreal.of_real_le_of_real_iff h
 
 /-- Closed balls defined using the distance or the edistance coincide -/
-lemma metric.emetric_closed_ball_nnreal {x : α} {ε : nnreal} :
+lemma metric.emetric_closed_ball_nnreal {x : α} {ε : ℝ≥0} :
   emetric.closed_ball x ε = closed_ball x ε :=
 by { convert metric.emetric_closed_ball ε.2, simp }
 
@@ -994,11 +1012,11 @@ theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x
 
 section nnreal
 
-instance : metric_space nnreal := by unfold nnreal; apply_instance
+instance : metric_space ℝ≥0 := by unfold nnreal; apply_instance
 
-lemma nnreal.dist_eq (a b : nnreal) : dist a b = abs ((a:ℝ) - b) := rfl
+lemma nnreal.dist_eq (a b : ℝ≥0) : dist a b = abs ((a:ℝ) - b) := rfl
 
-lemma nnreal.nndist_eq (a b : nnreal) :
+lemma nnreal.nndist_eq (a b : ℝ≥0) :
   nndist a b = max (a - b) (b - a) :=
 begin
   wlog h : a ≤ b,
@@ -1162,7 +1180,7 @@ begin
   uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/
   refine emetric_space.to_metric_space_of_dist
-    (λf g, ((sup univ (λb, nndist (f b) (g b)) : nnreal) : ℝ)) _ _,
+    (λf g, ((sup univ (λb, nndist (f b) (g b)) : ℝ≥0) : ℝ)) _ _,
   show ∀ (x y : Π (b : β), π b), edist x y ≠ ⊤,
   { assume x y,
     rw ← lt_top_iff_ne_top,
@@ -1179,19 +1197,19 @@ lemma nndist_pi_def (f g : Πb, π b) : nndist f g = sup univ (λb, nndist (f b)
 subtype.eta _ _
 
 lemma dist_pi_def (f g : Πb, π b) :
-  dist f g = (sup univ (λb, nndist (f b) (g b)) : nnreal) := rfl
+  dist f g = (sup univ (λb, nndist (f b) (g b)) : ℝ≥0) := rfl
 
 lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
   dist f g < r ↔ ∀b, dist (f b) (g b) < r :=
 begin
-  lift r to nnreal using hr.le,
+  lift r to ℝ≥0 using hr.le,
   simp [dist_pi_def, finset.sup_lt_iff (show ⊥ < r, from hr)],
 end
 
 lemma dist_pi_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
   dist f g ≤ r ↔ ∀b, dist (f b) (g b) ≤ r :=
 begin
-  lift r to nnreal using hr,
+  lift r to ℝ≥0 using hr,
   simp [nndist_pi_def]
 end
 

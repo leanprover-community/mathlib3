@@ -11,6 +11,7 @@ import ring_theory.algebraic
 import ring_theory.polynomial
 import field_theory.minimal_polynomial
 import linear_algebra.finite_dimensional
+import tactic.field_simp
 
 noncomputable theory
 open_locale classical big_operators
@@ -100,6 +101,9 @@ splits_of_splits_of_dvd i one_ne_zero (splits_one _) $ is_unit_iff_dvd_one.1 hu
 
 theorem splits_X_sub_C {x : α} : (X - C x).splits i :=
 splits_of_degree_eq_one _ $ degree_X_sub_C x
+
+theorem splits_X : X.splits i :=
+splits_of_degree_eq_one _ $ degree_X
 
 theorem splits_id_iff_splits {f : polynomial α} :
   (f.map i).splits (ring_hom.id β) ↔ f.splits i :=
@@ -377,7 +381,7 @@ begin
     rw [roots_normalize, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
     calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
         = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
-    ... = p * C 1 : by field_simp [hcoeff]
+    ... = p * C 1 : by field_simp
     ... = p : by simp only [mul_one, ring_hom.map_one], },
 end
 

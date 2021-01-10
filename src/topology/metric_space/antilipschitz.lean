@@ -14,7 +14,7 @@ For a metric space, the latter inequality is equivalent to `dist x y ≤ K * dis
 
 ## Implementation notes
 
-The parameter `K` has type `nnreal`. This way we avoid conjuction in the definition and have
+The parameter `K` has type `ℝ≥0`. This way we avoid conjuction in the definition and have
 coercions both to `ℝ` and `ennreal`. We do not require `0 < K` in the definition, mostly because
 we do not have a `posreal` type.
 -/
@@ -42,7 +42,7 @@ lemma antilipschitz_with.mul_le_dist [metric_space α] [metric_space β] {K : �
 begin
   by_cases hK : K = 0, by simp [hK, dist_nonneg],
   rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  rw div_le_iff' (nnreal.coe_pos.2 $ zero_lt_iff_ne_zero.2 hK),
+  rw div_le_iff' (nnreal.coe_pos.2 $ pos_iff_ne_zero.2 hK),
   exact hf.le_mul_dist x y
 end
 

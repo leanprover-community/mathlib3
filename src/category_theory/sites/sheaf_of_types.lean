@@ -6,11 +6,13 @@ Authors: Bhavik Mehta
 
 import category_theory.sites.pretopology
 import category_theory.limits.shapes.types
+import category_theory.full_subcategory
 
 /-!
-# Sheaves on a Grothendieck topology
+# Sheaves of types on a Grothendieck topology
 
-Defines the notion of a sheaf on a Grothendieck topology, as well as a range of equivalent
+Defines the notion of a sheaf of types (usually called a sheaf of sets by mathematicians)
+on a category equipped with a Grothendieck topology, as well as a range of equivalent
 conditions useful in different situations.
 
 First define what it means for a presheaf `P : Cᵒᵖ ⥤ Type v` to be a sheaf *for* a particular
@@ -420,7 +422,7 @@ The yoneda version of the sheaf condition is equivalent to the sheaf condition.
 
 C2.1.4 of [Elephant].
 -/
-lemma yoneda_condition_iff_sheaf_condition :
+lemma is_sheaf_for_iff_yoneda_sheaf_condition :
   is_sheaf_for P S ↔ yoneda_sheaf_condition P S :=
 begin
   rw [is_sheaf_for, yoneda_sheaf_condition],
@@ -432,6 +434,50 @@ begin
   rw equiv.exists_unique_congr_left _,
   simp,
 end
+
+/--
+If `P` is a sheaf for the sieve `S` on `X`, a natural transformation from `S` (viewed as a functor)
+to `P` can be (uniquely) extended to all of `yoneda.obj X`.
+
+      f
+   S  →  P
+   ↓  ↗
+   yX
+
+-/
+noncomputable def is_sheaf_for.extend (h : is_sheaf_for P S) (f : S.functor ⟶ P) :
+  yoneda.obj X ⟶ P :=
+classical.some (is_sheaf_for_iff_yoneda_sheaf_condition.1 h f).exists
+
+/--
+Show that the extension of `f : S.functor ⟶ P` to all of `yoneda.obj X` is in fact an extension, ie
+that the triangle below commutes, provided `P` is a sheaf for `S`
+
+      f
+   S  →  P
+   ↓  ↗
+   yX
+
+-/
+@[simp, reassoc]
+lemma is_sheaf_for.functor_inclusion_comp_extend (h : is_sheaf_for P S) (f : S.functor ⟶ P) :
+  S.functor_inclusion ≫ h.extend f = f :=
+classical.some_spec (is_sheaf_for_iff_yoneda_sheaf_condition.1 h f).exists
+
+/-- The extension of `f` to `yoneda.obj X` is unique. -/
+lemma is_sheaf_for.unique_extend (h : is_sheaf_for P S) {f : S.functor ⟶ P} (t : yoneda.obj X ⟶ P)
+  (ht : S.functor_inclusion ≫ t = f) :
+  t = h.extend f :=
+((is_sheaf_for_iff_yoneda_sheaf_condition.1 h f).unique ht (h.functor_inclusion_comp_extend f))
+
+/--
+If `P` is a sheaf for the sieve `S` on `X`, then if two natural transformations from `yoneda.obj X`
+to `P` agree when restricted to the subfunctor given by `S`, they are equal.
+-/
+lemma is_sheaf_for.hom_ext (h : is_sheaf_for P S) (t₁ t₂ : yoneda.obj X ⟶ P)
+  (ht : S.functor_inclusion ≫ t₁ = S.functor_inclusion ≫ t₂) :
+  t₁ = t₂ :=
+(h.unique_extend t₁ ht).trans (h.unique_extend t₂ rfl).symm
 
 /-- `P` is a sheaf for `R` iff it is separated for `R` and there exists an amalgamation. -/
 lemma is_separated_for_and_exists_is_amalgamation_iff_sheaf_for :
@@ -483,7 +529,7 @@ lemma is_sheaf_for.valid_glue
 t.is_amalgamation hx f Hf
 
 /-- C2.1.3 in [Elephant] -/
-lemma is_sheaf_for_iff_generate :
+lemma is_sheaf_for_iff_generate (R : presieve X) :
   is_sheaf_for P R ↔ is_sheaf_for P (generate R) :=
 begin
   rw ← is_separated_for_and_exists_is_amalgamation_iff_sheaf_for,
@@ -536,15 +582,13 @@ If `P` is a sheaf for `S`, and it is iso to `P'`, then `P'` is a sheaf for `S`. 
 -/
 lemma is_sheaf_for_iso {P' : Cᵒᵖ ⥤ Type v} (i : P ≅ P') : is_sheaf_for P R → is_sheaf_for P' R :=
 begin
-  rw [is_sheaf_for_iff_generate, yoneda_condition_iff_sheaf_condition, is_sheaf_for_iff_generate,
-      yoneda_condition_iff_sheaf_condition],
-  intros h f,
-  obtain ⟨g, hg₁, hg₂⟩ := h (f ≫ i.inv),
-  refine ⟨g ≫ i.hom, by simpa [iso.eq_comp_inv] using hg₁, _⟩,
-  { intros g' hg',
-    rw ← iso.comp_inv_eq,
-    apply hg₂,
-    rw reassoc_of hg' },
+  rw [is_sheaf_for_iff_generate R, is_sheaf_for_iff_generate R],
+  intro h,
+  rw [is_sheaf_for_iff_yoneda_sheaf_condition],
+  intro f,
+  refine ⟨h.extend (f ≫ i.inv) ≫ i.hom, by simp, _⟩,
+  intros g' hg',
+  rw [← i.comp_inv_eq, h.unique_extend (g' ≫ i.inv) (by rw reassoc_of hg')],
 end
 
 /--
@@ -603,24 +647,24 @@ check the sheaf condition at presieves in the pretopology.
 def is_sheaf (P : Cᵒᵖ ⥤ Type v) : Prop :=
 ∀ ⦃X⦄ (S : sieve X), S ∈ J X → is_sheaf_for P S
 
-lemma is_sheaf_for_coarser_topology (P : Cᵒᵖ ⥤ Type v) {J₁ J₂ : grothendieck_topology C} :
+lemma is_sheaf.is_sheaf_for {P : Cᵒᵖ ⥤ Type v} (hp : is_sheaf J P)
+  (R : presieve X) (hr : generate R ∈ J X) : is_sheaf_for P R :=
+(is_sheaf_for_iff_generate R).2 $ hp _ hr
+
+lemma is_sheaf_of_le (P : Cᵒᵖ ⥤ Type v) {J₁ J₂ : grothendieck_topology C} :
   J₁ ≤ J₂ → is_sheaf J₂ P → is_sheaf J₁ P :=
 λ h t X S hS, t S (h _ hS)
 
-lemma separated_of_sheaf (P : Cᵒᵖ ⥤ Type v) (h : is_sheaf J P) : is_separated J P :=
+lemma is_separated_of_is_sheaf (P : Cᵒᵖ ⥤ Type v) (h : is_sheaf J P) : is_separated J P :=
 λ X S hS, (h S hS).is_separated_for
 
 /-- The property of being a sheaf is preserved by isomorphism. -/
 lemma is_sheaf_iso {P' : Cᵒᵖ ⥤ Type v} (i : P ≅ P') (h : is_sheaf J P) : is_sheaf J P' :=
 λ X S hS, is_sheaf_for_iso i (h S hS)
 
-lemma is_sheaf_yoneda (h : ∀ {X} (S : sieve X), S ∈ J X → yoneda_sheaf_condition P S) :
+lemma is_sheaf_of_yoneda (h : ∀ {X} (S : sieve X), S ∈ J X → yoneda_sheaf_condition P S) :
   is_sheaf J P :=
-begin
-  intros X S hS,
-  rw yoneda_condition_iff_sheaf_condition,
-  apply h _ hS,
-end
+λ X S hS, is_sheaf_for_iff_yoneda_sheaf_condition.2 (h _ hS)
 
 /--
 For a topology generated by a basis, it suffices to check the sheaf condition on the basis
@@ -642,6 +686,10 @@ begin
     rw [← pullback_arrows_comm, ← is_sheaf_for_iff_generate],
     exact PK (pullback_arrows f R) (K.pullbacks f R hR) }
 end
+
+/-- Any presheaf is a sheaf for the bottom (trivial) grothendieck topology. -/
+lemma is_sheaf_bot : is_sheaf (⊥ : grothendieck_topology C) P :=
+λ X, by simp [is_sheaf_for_top_sieve]
 
 end presieve
 
@@ -836,4 +884,36 @@ end
 
 end presieve
 end equalizer
+
+variables {C : Type u} [category.{v} C]
+variables (J : grothendieck_topology C)
+
+/-- The category of sheaves on a grothendieck topology. -/
+@[derive category]
+def SheafOfTypes (J : grothendieck_topology C) : Type (max u (v+1)) :=
+{P : Cᵒᵖ ⥤ Type v // presieve.is_sheaf J P}
+
+/-- The inclusion functor from sheaves to presheaves. -/
+@[simps, derive [full, faithful]]
+def SheafOfTypes_to_presheaf : SheafOfTypes J ⥤ (Cᵒᵖ ⥤ Type v) :=
+full_subcategory_inclusion (presieve.is_sheaf J)
+
+/--
+The category of sheaves on the bottom (trivial) grothendieck topology is equivalent to the category
+of presheaves.
+-/
+@[simps]
+def SheafOfTypes_bot_equiv : SheafOfTypes (⊥ : grothendieck_topology C) ≌ (Cᵒᵖ ⥤ Type v) :=
+{ functor := SheafOfTypes_to_presheaf _,
+  inverse :=
+  { obj := λ P, ⟨P, presieve.is_sheaf_bot⟩,
+    map := λ P₁ P₂ f, (SheafOfTypes_to_presheaf _).preimage f },
+  unit_iso :=
+  { hom := { app := λ _, 𝟙 _ },
+    inv := { app := λ _, 𝟙 _ } },
+  counit_iso := iso.refl _ }
+
+instance : inhabited (SheafOfTypes (⊥ : grothendieck_topology C)) :=
+⟨SheafOfTypes_bot_equiv.inverse.obj ((functor.const _).obj punit)⟩
+
 end category_theory

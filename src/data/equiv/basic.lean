@@ -1796,10 +1796,9 @@ lemma function.injective.swap_apply [decidable_eq α] [decidable_eq β] {f : α 
   (hf : function.injective f) (x y z : α) :
   equiv.swap (f x) (f y) (f z) = f (equiv.swap x y z) :=
 begin
-  by_cases hx : z = x;
-  by_cases hy : z = y,
-  work_on_goal 3 { rw equiv.swap_apply_of_ne_of_ne },
-  all_goals { simp [hf, hx, hy, equiv.swap_apply_of_ne_of_ne] }
+  by_cases hx : z = x, by simp [hx],
+  by_cases hy : z = y, by simp [hy],
+  rw [equiv.swap_apply_of_ne_of_ne hx hy, equiv.swap_apply_of_ne_of_ne (hf.ne hx) (hf.ne hy)]
 end
 
 lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α → β}

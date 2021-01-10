@@ -288,6 +288,12 @@ variables {sep : parser unit}
 
 namespace valid
 
+lemma mono_done (hp : p.valid) (h : p cb n = done n' a) : n ≤ n' :=
+by simpa [h] using (hp cb n).left
+
+lemma mono_fail (hp : p.valid) (h : p cb n = fail n' err) : n ≤ n' :=
+by simpa [h] using (hp cb n).left
+
 lemma pure : valid (pure a) :=
 λ _ _, by simp [pure_eq_done]
 

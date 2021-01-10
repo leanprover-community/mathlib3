@@ -358,6 +358,10 @@ theorem bUnion_union (s t : set α) (u : α → set β) :
   (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
 supr_union
 
+@[simp] lemma set.bUnion_of_singleton_of_coe (s : set α) :
+  (⋃ (i : s), {i} : set α) = s :=
+ext $ by simp
+
 -- TODO(Jeremy): once again, simp doesn't do it alone.
 
 @[simp] theorem bUnion_insert (a : α) (s : set α) (t : α → set β) :

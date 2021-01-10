@@ -269,7 +269,7 @@ lemma mmap_eq_done {f : α → parser β} {a : α} {l : list α} {b : β} {l' : 
   ∃ (np : ℕ), f a cb n = done np b ∧ l.mmap f cb np = done n' l' :=
 by simp [mmap, and.comm, and.assoc, and.left_comm]
 
-lemma mmap'_eq_done {f : α → parser β} {a : α} {l : list α} {l' : list β} :
+lemma mmap'_eq_done {f : α → parser β} {a : α} {l : list α} :
   (a :: l).mmap' f cb n = done n' () ↔
   ∃ (np : ℕ) (b : β), f a cb n = done np b ∧ l.mmap' f cb np = done n' () :=
 by simp [mmap']

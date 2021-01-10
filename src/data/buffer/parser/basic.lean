@@ -229,6 +229,59 @@ end
 
 @[simp] lemma failure_def : (failure : parser α) cb n = fail n dlist.empty := rfl
 
+lemma not_failure_eq_done : ¬ (failure : parser α) cb n = done n' a :=
+by simp
+
+lemma failure_eq_fail : (failure : parser α) cb n = fail n' err ↔ n = n' ∧ err = dlist.empty :=
+by simp [eq_comm]
+
+lemma seq_eq_done {f : parser (α → β)} {p : parser α} : (f <*> p) cb n = done n' b ↔
+  ∃ (nf : ℕ) (f' : α → β) (a : α), f cb n = done nf f' ∧ p cb nf = done n' a ∧ f' a = b :=
+by simp [seq_eq_bind_map]
+
+lemma seq_eq_fail {f : parser (α → β)} {p : parser α} : (f <*> p) cb n = fail n' err ↔
+  (f cb n = fail n' err) ∨ (∃ (nf : ℕ) (f' : α → β), f cb n = done nf f' ∧ p cb nf = fail n' err) :=
+by simp [seq_eq_bind_map]
+
+lemma seq_left_eq_done {p : parser α} {q : parser β} : (p <* q) cb n = done n' a ↔
+  ∃ (np : ℕ) (b : β), p cb n = done np a ∧ q cb np = done n' b :=
+begin
+  have : ∀ (p q : ℕ → α → Prop),
+    (∃ (np : ℕ) (x : α), p np x ∧ q np x ∧ x = a) ↔ ∃ (np : ℕ), p np a ∧ q np a :=
+    λ _ _, ⟨λ ⟨np, x, hp, hq, rfl⟩, ⟨np, hp, hq⟩, λ ⟨np, hp, hq⟩, ⟨np, a, hp, hq, rfl⟩⟩,
+  simp [seq_left_eq, seq_eq_done, map_eq_done, this]
+end
+
+lemma seq_left_eq_fail {p : parser α} {q : parser β} : (p <* q) cb n = fail n' err ↔
+  (p cb n = fail n' err) ∨ (∃ (np : ℕ) (a : α), p cb n = done np a ∧ q cb np = fail n' err) :=
+by simp [seq_left_eq, seq_eq_fail]
+
+lemma seq_right_eq_done {p : parser α} {q : parser β} : (p *> q) cb n = done n' b ↔
+  ∃ (np : ℕ) (a : α), p cb n = done np a ∧ q cb np = done n' b :=
+by simp [seq_right_eq, seq_eq_done, map_eq_done, and.comm, and.assoc]
+
+lemma seq_right_eq_fail {p : parser α} {q : parser β} : (p *> q) cb n = fail n' err ↔
+  (p cb n = fail n' err) ∨ (∃ (np : ℕ) (a : α), p cb n = done np a ∧ q cb np = fail n' err) :=
+by simp [seq_right_eq, seq_eq_fail]
+
+lemma mmap_eq_done {f : α → parser β} {a : α} {l : list α} {b : β} {l' : list β} :
+  (a :: l).mmap f cb n = done n' (b :: l') ↔
+  ∃ (np : ℕ), f a cb n = done np b ∧ l.mmap f cb np = done n' l' :=
+by simp [mmap, and.comm, and.assoc, and.left_comm]
+
+lemma mmap'_eq_done {f : α → parser β} {a : α} {l : list α} {l' : list β} :
+  (a :: l).mmap' f cb n = done n' () ↔
+  ∃ (np : ℕ) (b : β), f a cb n = done np b ∧ l.mmap' f cb np = done n' () :=
+by simp [mmap']
+
+lemma guard_eq_done {p : Prop} [decidable p] :
+  @guard parser _ p _ cb n = done n' () ↔ p ∧ n = n' :=
+by { by_cases hp : p; simp [guard, hp] }
+
+lemma guard_eq_fail {p : Prop} [decidable p] :
+  @guard parser _ p _ cb n = fail n' err ↔ (¬ p) ∧ n = n' ∧ err = dlist.empty :=
+by { by_cases hp : p; simp [guard, hp, eq_comm] }
+
 section valid
 
 variables {sep : parser unit}

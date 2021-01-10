@@ -37,12 +37,12 @@ let ⟨a, ha⟩ := hg.2 x hx in
 let ⟨b, hb⟩ := hg.2 y hy in
 ⟨b - a, by rw [← ha, ← mul_apply, ← gpow_add, sub_add_cancel, hb]⟩
 
-lemma exists_pow_eq_of_is_cycle [decidable_eq β] [fintype β] {f : perm β}
+lemma exists_pow_eq_of_is_cycle [fintype β] {f : perm β}
   (hf : is_cycle f) {x y : β} (hx : f x ≠ x) (hy : f y ≠ y) : ∃ i : ℕ, (f ^ i) x = y :=
 let ⟨n, hn⟩ := exists_gpow_eq_of_is_cycle hf hx hy in
-⟨(n % order_of f).to_nat, by {
+(by classical; exact ⟨(n % order_of f).to_nat, by {
   have := int.mod_nonneg n (int.coe_nat_ne_zero.mpr (ne_of_gt (order_of_pos f))),
-  rwa [←gpow_coe_nat, int.to_nat_of_nonneg this, ←gpow_eq_mod_order_of] }⟩
+  rwa [←gpow_coe_nat, int.to_nat_of_nonneg this, ←gpow_eq_mod_order_of] }⟩)
 
 lemma is_cycle_swap_mul_aux₁ {α : Type*} [decidable_eq α] : ∀ (n : ℕ) {b x : α} {f : perm α}
   (hb : (swap x (f x) * f) b ≠ b) (h : (f ^ n) (f x) = b),

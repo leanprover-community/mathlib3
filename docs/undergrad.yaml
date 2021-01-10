@@ -340,7 +340,7 @@ Single Variable Real Analysis:
     integral over a segment of piecewise continuous functions:
     antiderivatives:
     Riemann sums:
-    antiderivative of a continuous function:
+    antiderivative of a continuous function: interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right
     change of variable:
     integration by parts:
     improper integrals:

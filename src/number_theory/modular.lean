@@ -60,7 +60,13 @@ g.det = (g 0 0 )*(g 1 1)-
 (g 1 0 ) * (g  0 1 )
 :=
 begin
+
+  refine (finset.sum_eq_single 1 _ _).trans _,
+
+
   simp only [det],
+
+
 --  rw finset.prod_sum,
   --rw det,
 
@@ -218,6 +224,21 @@ begin
   exact h1 h2,
 end
 
+
+
+lemma bottomNonZ  (g : special_linear_group (fin 2) ℝ) {z:ℂ} (h : z ∈ H) :
+  bottom g z ≠  0 :=
+begin
+  have : z.im ≠ 0,
+  {
+    rw H at h,
+    simp at h,
+    linarith,
+  },
+
+  exact czPd_nonZ_CP z g this,
+end
+
 lemma im_nonZ_then_nonZ (z : ℂ  ) : z.im ≠ 0 → z≠ 0
 :=
 begin
@@ -307,14 +328,92 @@ end
 
 --lemma OneActsHtoH  (z: ℂ) : smul_aux 1 z = z :=  by {rw [smul_aux, top, bottom], simp}
 
+lemma sumIs01 (f : fin 2 → ℂ ) :
+(∑ (x : fin 2), f x) = f 0 + f 1 :=
+begin
+--  library_search,
+  sorry,
+end
 
+lemma GactGpactH (x y : special_linear_group (fin 2) ℝ) {z: ℂ} (hz : z ∈ H ) :
+smul_aux (x * y) z = smul_aux x (smul_aux y z) :=
+begin
+
+  have bot1NonZ : bottom (x * y) z ≠ 0,
+  {
+    refine bottomNonZ _ _,
+    exact hz,
+  },
+  have bot2NonZ : bottom y z ≠ 0,
+  {
+    refine bottomNonZ _ _,
+    exact hz,
+  },
+
+  rw smul_aux,
+  simp,
+/-
+  rw (_ : top (x * y) z
+  =  bottom (x * y) z  * top x (top y z / bottom y z) / bottom x (top y z / bottom y z)),
+
+  ring,
+-/
+  rw top,
+  rw bottom,
+  simp,
+  rw matrix.mul,
+  simp,
+  repeat {rw dot_product},
+  simp,
+  repeat {rw sumIs01},
+  --simp,
+  --field_simp,
+  --ring,
+  rw bottom at bot2NonZ,
+  simp at bot2NonZ,
+  rw bottom at bot1NonZ,
+  simp at bot1NonZ,
+  rw matrix.mul at bot1NonZ,
+  simp at bot1NonZ,
+  rw dot_product at bot1NonZ,
+  rw dot_product at bot1NonZ,
+  simp at bot1NonZ,
+  rw sumIs01 at bot1NonZ,
+  rw sumIs01 at bot1NonZ,
+--  simp at bot1NonZ,
+/-
+= (↑(⇑x 0 0) * ((↑(⇑y 0 0) * z + ↑(⇑y 0 1)) / (↑(⇑y 1 0) * z + ↑(⇑y 1 1))) + ↑(⇑x 0 1)) / (↑(⇑x 1 0) * ((↑(⇑y 0 0) * z + ↑(⇑y 0 1)) / (↑(⇑y 1 0) * z + ↑(⇑y 1 1))) + ↑(⇑x 1 1))
+  (↑(⇑x 0 0) * ((↑(⇑y 0 0) * z + ↑(⇑y 0 1)) / (↑(⇑y 1 0) * z + ↑(⇑y 1 1))) + ↑(⇑x 0 1)) / (↑(⇑x 1 0) * ((↑(⇑y 0 0) * z + ↑(⇑y 0 1)) / (↑(⇑y 1 0) * z + ↑(⇑y 1 1))) + ↑(⇑x 1 1))
+-/
+/-
+  rw (_ :
+  (((x 0 0 : ℂ ) * (((y 0 0 : ℂ ) * z + (y 0 1)) /
+  ((y 1 0 : ℂ ) * z + (y 1 1)))
+  + (x 0 1))
+  /
+  ((x 1 0 : ℂ ) * (((y 0 0) * z + (y 0 1)) / ((y 1 0 : ℂ ) * z + (y 1 1))) + (x 1 1)))
+  =
+  ((x 0 0 : ℂ ) * (((y 0 0) * z + (y 0 1))  / ((x 1 0 : ℂ ) * (((y 0 0) * z + (y 0 1))))))),
+  {
+    sorry,
+  },
+
+  ring,
+-/
+
+
+
+
+
+  sorry,
+end
 
 
 
 instance : mul_action (special_linear_group (fin 2) ℝ) H :=
 { smul := λ g, λ z, ⟨smul_aux g z, GactsHtoH g z.2 ⟩ ,
   one_smul := λ z, by {apply subtype.ext, simp [smul_aux, top, bottom]},
-  mul_smul := _
+  mul_smul := _ -- λ g1, (λ g2, (λ z, by GactGpactH g1 g2 z)),
   -- ALEX
   }
 

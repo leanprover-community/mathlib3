@@ -919,6 +919,9 @@ lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
   s ≤ (R ∙ v₀) ↔ ∀ v ∈ s, ∃ r : R, r • v₀ = v :=
 by simp_rw [le_def', mem_span_singleton]
 
+@[simp] lemma span_zero_singleton : (R ∙ (0:M)) = ⊥ :=
+by { ext, simp [mem_span_singleton, eq_comm] }
+
 lemma span_singleton_eq_range (y : M) : ↑(R ∙ y) = range ((• y) : R → M) :=
 set.ext $ λ x, mem_span_singleton
 

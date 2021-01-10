@@ -693,7 +693,7 @@ begin
     rintro ⟨a, ⟨d, hd⟩, ha⟩,
     have hazero : 0 < a,
     { contrapose! hd with ha0,
-      simp only [le_zero_iff_eq, zero_mul, *] at *,
+      simp only [nonpos_iff_eq_zero, zero_mul, *] at *,
       exact n.ne_zero },
     rw mem_primitive_roots hazero at ha,
     rw [hd, pow_mul, ha.pow_eq_one, one_pow] },
@@ -912,7 +912,6 @@ end
 /-- The degree of the minimal polynomial of `μ` is at least `totient n`. -/
 lemma totient_le_degree_minimal_polynomial : nat.totient n ≤ (minimal_polynomial
   (is_integral h hpos)).nat_degree :=
-
 let P : polynomial ℤ := minimal_polynomial (is_integral h hpos),-- minimal polynomial of `μ`
     P_K : polynomial K := map (int.cast_ring_hom K) P -- minimal polynomial of `μ` sent to `K[X]`
 in calc

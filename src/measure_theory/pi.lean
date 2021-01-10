@@ -209,7 +209,7 @@ end
 
 /-- `measure.pi μ` is the finite product of the measures `{μ i | i : ι}`.
   It is defined to be measure corresponding to `measure_theory.outer_measure.pi`. -/
-protected def pi : measure (Π i, α i) :=
+@[irreducible] protected def pi : measure (Π i, α i) :=
 to_measure (outer_measure.pi (λ i, (μ i).to_outer_measure)) (pi_caratheodory μ)
 
 local attribute [instance] encodable.fintype.encodable
@@ -236,7 +236,7 @@ lemma pi_eval_preimage_null [∀ i, sigma_finite (μ i)] {i : ι} {s : set (α i
   (hs : μ i s = 0) : measure.pi μ (eval i ⁻¹' s) = 0 :=
 begin
   /- WLOG, `s` is measurable -/
-  rcases exists_is_measurable_superset_of_measure_eq_zero hs with ⟨t, hst, htm, hμt⟩,
+  rcases exists_is_measurable_superset_of_null hs with ⟨t, hst, htm, hμt⟩,
   suffices : measure.pi μ (eval i ⁻¹' t) = 0,
     from measure_mono_null (preimage_mono hst) this,
   clear_dependent s,

@@ -281,6 +281,7 @@ Analysis:
     Bochner integral: 'measure_theory.integral'
     dominated convergence theorem: 'measure_theory.tendsto_integral_of_dominated_convergence'
     fundamental theorem of calculus, part 1: 'interval_integral.integral_has_fderiv_at_of_tendsto_ae'
+    fundamental theorem of calculus, part 2: 'interval_integral.integral_eq_sub_of_has_deriv_right_of_le'
     Fubini's theorem: 'measure_theory.integral_prod'
     product of finitely many measures: 'measure_theory.measure.pi'
 

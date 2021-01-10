@@ -541,7 +541,7 @@ theorem irreducible.separable {F : Type u} [field F] [char_zero F] {f : polynomi
   (hf : irreducible f) (hf0 : f ≠ 0) : f.separable :=
 begin
   rw [separable_iff_derivative_ne_zero hf, ne, ← degree_eq_bot, degree_derivative_eq], rintro ⟨⟩,
-  rw [nat.pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],
+  rw [pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],
   refine λ hf1, hf.1 _, rw [hf1, is_unit_C, is_unit_iff_ne_zero],
   intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf0
 end

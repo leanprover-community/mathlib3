@@ -752,11 +752,11 @@ begin
     rw prod_extend_right_apply_ne _ ha' },
 end
 
-section
+section congr
 
-open_locale classical
+variables [decidable_eq β] [fintype β]
 
-lemma sign_prod_extend_right [fintype β] (a : α) (σ : perm β) :
+@[simp] lemma sign_prod_extend_right (a : α) (σ : perm β) :
   (prod_extend_right a σ).sign = σ.sign :=
 sign_bij (λ (ab : α × β) _, ab.snd)
   (λ ⟨a', b⟩ hab hab', by simp [eq_of_prod_extend_right_ne hab])
@@ -764,7 +764,7 @@ sign_bij (λ (ab : α × β) _, ab.snd)
     by simpa [eq_of_prod_extend_right_ne hab₁, eq_of_prod_extend_right_ne hab₂] using h)
   (λ y hy, ⟨(a, y), by simpa, by simp⟩)
 
-lemma sign_prod_congr_right [fintype β] (σ : α → perm β) :
+lemma sign_prod_congr_right (σ : α → perm β) :
   sign (prod_congr_right σ) = ∏ k, (σ k).sign :=
 begin
   obtain ⟨l, hl, mem_l⟩ := fintype.exists_univ_list α,
@@ -777,7 +777,7 @@ begin
   simp_rw ← λ a, sign_prod_extend_right a (σ a)
 end
 
-lemma sign_prod_congr_left [fintype β] (σ : α → perm β) :
+lemma sign_prod_congr_left (σ : α → perm β) :
   sign (prod_congr_left σ) = ∏ k, (σ k).sign :=
 begin
   refine (sign_eq_sign_of_equiv _ _ (prod_comm β α) _).trans (sign_prod_congr_right σ),
@@ -785,15 +785,11 @@ begin
   refl
 end
 
-@[simp] lemma sign_perm_congr {m n : Type*} [fintype m] [fintype n]
-  (e : m ≃ n) (p : equiv.perm m) :
+@[simp] lemma sign_perm_congr (e : α ≃ β) (p : perm α) :
   (e.perm_congr p).sign = p.sign :=
 equiv.perm.sign_eq_sign_of_equiv _ _ e.symm (by simp)
 
-end
-
-@[simp] lemma sign_sum_congr {α β : Type*} [decidable_eq α] [decidable_eq β]
-  [fintype α] [fintype β] (σa : perm α) (σb : perm β) :
+@[simp] lemma sign_sum_congr (σa : perm α) (σb : perm β) :
   (sum_congr σa σb).sign = σa.sign * σb.sign :=
 begin
   suffices : (sum_congr σa (1 : perm β)).sign = σa.sign ∧
@@ -809,6 +805,8 @@ begin
     { rw [←one_mul (1 : perm α), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_one_swap,
           sign_swap hb, sign_swap (sum.injective_inr.ne_iff.mpr hb)], }, }
 end
+
+end congr
 
 end sign
 

@@ -46,7 +46,7 @@ def is_sup_closed_compact : Prop :=
 
 /-- A compactness property for a complete lattice is that any subset has a finite subset with the
 same `Sup`. -/
-def is_Sup_finite_compact : Prop := 
+def is_Sup_finite_compact : Prop :=
 ∀ (s : set α), ∃ (t : finset α), ↑t ⊆ s ∧ Sup s = t.sup id
 
 lemma well_founded.is_Sup_finite_compact (h : well_founded ((>) : α → α → Prop)) :
@@ -81,7 +81,7 @@ begin
   rw rel_embedding.well_founded_iff_no_descending_seq, rintros ⟨a⟩,
   suffices : Sup (set.range a) ∈ set.range a,
   { obtain ⟨n, hn⟩ := set.mem_range.mp this,
-    have h' : Sup (set.range a) < a (n+1), { change _ > _, simp [← hn, ← a.map_rel_iff], },
+    have h' : Sup (set.range a) < a (n+1), { change _ > _, simp [← hn, a.map_rel_iff], },
     apply lt_irrefl (a (n+1)), apply lt_of_le_of_lt _ h', apply le_Sup, apply set.mem_range_self, },
   apply h (set.range a),
   { use a 37, apply set.mem_range_self, },

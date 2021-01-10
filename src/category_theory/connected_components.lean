@@ -79,7 +79,7 @@ begin
     { apply relation.refl_trans_gen.refl } },
   -- Now lift the zigzag from `j₁` to `j₂` in `J` to the same thing in `component j`.
   refine ⟨l.pmap f hf, _, _⟩,
-  { apply l.chain_pmap_of_chain f (λ x y _ _ h, zag_of_zag_obj (include_component _) h) hl₁ h₁₂ },
+  { apply l.chain_pmap_of_chain (λ x y _ _ h, zag_of_zag_obj (include_component _) h) hl₁ h₁₂ },
   { erw list.last_pmap _ f (j₁ :: l) (by simpa [h₁₂] using hf) (list.cons_ne_nil _ _),
     exact subtype.ext hl₂ },
 end

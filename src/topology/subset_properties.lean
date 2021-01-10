@@ -249,7 +249,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, cluster_pt
   let ⟨t, ht⟩ := h (λ i : f.sets, closure i.1) (λ i, is_closed_closure)
     (by simpa [eq_empty_iff_forall_not_mem, not_exists]) in
   have (⋂i∈t, subtype.val i) ∈ f,
-    from Inter_mem_sets t.finite_to_set $ assume i hi, i.2,
+    from t.Inter_mem_sets.2 $ assume i hi, i.2,
   have s ∩ (⋂i∈t, subtype.val i) ∈ f,
     from inter_mem_sets (le_principal_iff.1 hfs) this,
   have ∅ ∈ f,

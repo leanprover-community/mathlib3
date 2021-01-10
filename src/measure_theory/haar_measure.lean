@@ -603,8 +603,7 @@ begin
   rw [← this (by norm_num), smul_apply],
 end
 
-theorem regular_of_left_invariant [locally_compact_space G] (hμ : is_mul_left_invariant μ)
-  {K} (hK : is_compact K)
+theorem regular_of_left_invariant (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
   (h2K : (interior K).nonempty) (hμK : μ K < ⊤) : regular μ :=
 begin
   rw [haar_measure_unqiue hμ ⟨K, hK, h2K⟩],

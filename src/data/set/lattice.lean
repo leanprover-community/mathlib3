@@ -1053,7 +1053,7 @@ section pi
 variables {π : α → Type*}
 
 lemma pi_def (i : set α) (s : Πa, set (π a)) :
-  pi i s = (⋂ a∈i, eval a ⁻¹' s a) :=
+  pi i s = (⋂ a ∈ i, eval a ⁻¹' s a) :=
 by { ext, simp }
 
 lemma pi_diff_pi_subset (i : set α) (s t : Πa, set (π a)) :

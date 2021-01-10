@@ -248,10 +248,14 @@ begin
     rcases em (j = i) with rfl | hj; simp * }
 end
 
-lemma pi_hyperplane [∀ i, sigma_finite (μ i)] (i : ι) [has_no_atoms (μ i)] (x : α i) :
+lemma pi_hyperplane (i : ι) [has_no_atoms (μ i)] (x : α i) :
   measure.pi μ {f : Π i, α i | f i = x} = 0 :=
 show measure.pi μ (eval i ⁻¹' {x}) = 0,
 from pi_eval_preimage_null _ (measure_singleton x)
+
+lemma ae_eval_ne (i : ι) [has_no_atoms (μ i)] (x : α i) :
+  ∀ᵐ y : Π i, α i ∂measure.pi μ, y i ≠ x :=
+compl_mem_ae_iff.2 (pi_hyperplane μ i x)
 
 variable {μ}
 
@@ -265,20 +269,22 @@ le_infi $ λ i, tendsto_eval_ae_ae.le_comap
 
 lemma ae_eq_pi {β : ι → Type*} {f f' : Π i, α i → β i} (h : ∀ i, f i =ᵐ[μ i] f' i) :
   (λ (x : Π i, α i) i, f i (x i)) =ᵐ[measure.pi μ] (λ x i, f' i (x i)) :=
-(eventually_all_fintype (λ i, tendsto_eval_ae_ae.eventually (h i))).mono $ λ x hx, funext hx
+(eventually_all.2 (λ i, tendsto_eval_ae_ae.eventually (h i))).mono $ λ x hx, funext hx
 
 lemma ae_le_pi {β : ι → Type*} [Π i, preorder (β i)] {f f' : Π i, α i → β i}
   (h : ∀ i, f i ≤ᵐ[μ i] f' i) :
   (λ (x : Π i, α i) i, f i (x i)) ≤ᵐ[measure.pi μ] (λ x i, f' i (x i)) :=
-(eventually_all_fintype (λ i, tendsto_eval_ae_ae.eventually (h i))).mono $ λ x hx, hx
+(eventually_all.2 (λ i, tendsto_eval_ae_ae.eventually (h i))).mono $ λ x hx, hx
 
 lemma ae_le_set_pi {I : set ι} {s t : Π i, set (α i)} (h : ∀ i ∈ I, s i ≤ᵐ[μ i] t i) :
-  (set.pi univ s) ≤ᵐ[measure.pi μ] (set.pi univ t) :=
-(ae_le_pi h).mono $ λ x hx hs i hi, hx _ (hs i hi)
+  (set.pi I s) ≤ᵐ[measure.pi μ] (set.pi I t) :=
+((eventually_all_finite (finite.of_fintype I)).2
+  (λ i hi, tendsto_eval_ae_ae.eventually (h i hi))).mono $
+    λ x hst hx i hi, hst i hi $ hx i hi
 
-lemma ae_eq_set_pi {s t : Π i, set (α i)} (h : ∀ i, s i =ᵐ[μ i] t i) :
-  (set.pi univ s) =ᵐ[measure.pi μ] (set.pi univ t) :=
-(ae_le_set_pi (λ i, (h i).le)).antisymm (ae_le_set_pi (λ i, (h i).symm.le))
+lemma ae_eq_set_pi {I : set ι} {s t : Π i, set (α i)} (h : ∀ i ∈ I, s i =ᵐ[μ i] t i) :
+  (set.pi I s) =ᵐ[measure.pi μ] (set.pi I t) :=
+(ae_le_set_pi (λ i hi, (h i hi).le)).antisymm (ae_le_set_pi (λ i hi, (h i hi).symm.le))
 
 section intervals
 
@@ -286,11 +292,11 @@ variables {μ} [Π i, partial_order (α i)] [∀ i, has_no_atoms (μ i)]
 
 lemma pi_Iio_ae_eq_pi_Iic {s : set ι} {f : Π i, α i} :
   pi s (λ i, Iio (f i)) =ᵐ[measure.pi μ] pi s (λ i, Iic (f i)) :=
--- ae_eq_set_pi _
+ae_eq_set_pi $ λ i hi, Iio_ae_eq_Iic
 
 lemma pi_Ioi_ae_eq_pi_Ici {s : set ι} {f : Π i, α i} :
   pi s (λ i, Ioi (f i)) =ᵐ[measure.pi μ] pi s (λ i, Ici (f i)) :=
-@pi_Iio_ae_eq_pi_Iic ι _ (λ i, order_dual (α i)) _ _ _ _ _ s f
+ae_eq_set_pi $ λ i hi, Ioi_ae_eq_Ici
 
 lemma univ_pi_Iio_ae_eq_Iic {f : Π i, α i} :
   pi univ (λ i, Iio (f i)) =ᵐ[measure.pi μ] Iic f :=
@@ -302,10 +308,7 @@ by { rw ← pi_univ_Ici, exact pi_Ioi_ae_eq_pi_Ici }
 
 lemma pi_Ioo_ae_eq_pi_Icc {s : set ι} {f g : Π i, α i} :
   pi s (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Icc (f i) (g i)) :=
-begin
-  simp only [← Ioi_inter_Iio, ← Ici_inter_Iic, pi_inter_distrib],
-  exact pi_Ioi_ae_eq_pi_Ici.inter pi_Iio_ae_eq_pi_Iic
-end
+ae_eq_set_pi $ λ i hi, Ioo_ae_eq_Icc
 
 lemma univ_pi_Ioo_ae_eq_Icc {f g : Π i, α i} :
   pi univ (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] Icc f g :=
@@ -313,10 +316,7 @@ by { rw ← pi_univ_Icc, exact pi_Ioo_ae_eq_pi_Icc }
 
 lemma pi_Ioc_ae_eq_pi_Icc {s : set ι} {f g : Π i, α i} :
   pi s (λ i, Ioc (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Icc (f i) (g i)) :=
-begin
-  simp only [← Ioi_inter_Iic, ← Ici_inter_Iic, pi_inter_distrib],
-  exact pi_Ioi_ae_eq_pi_Ici.inter (eventually_eq.refl _ _)
-end
+ae_eq_set_pi $ λ i hi, Ioc_ae_eq_Icc
 
 lemma univ_pi_Ioc_ae_eq_Icc {f g : Π i, α i} :
   pi univ (λ i, Ioc (f i) (g i)) =ᵐ[measure.pi μ] Icc f g :=
@@ -324,10 +324,7 @@ by { rw ← pi_univ_Icc, exact pi_Ioc_ae_eq_pi_Icc }
 
 lemma pi_Ico_ae_eq_pi_Icc {s : set ι} {f g : Π i, α i} :
   pi s (λ i, Ico (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Icc (f i) (g i)) :=
-begin
-  simp only [← Ici_inter_Iio, ← Ici_inter_Iic, pi_inter_distrib],
-  exact (eventually_eq.refl _ _).inter pi_Iio_ae_eq_pi_Iic
-end
+ae_eq_set_pi $ λ i hi, Ico_ae_eq_Icc
 
 lemma univ_pi_Ico_ae_eq_Icc {f g : Π i, α i} :
   pi univ (λ i, Ico (f i) (g i)) =ᵐ[measure.pi μ] Icc f g :=
@@ -337,16 +334,15 @@ end intervals
 
 /-- If one of the measures `μ i` has no atoms, them `measure.pi µ`
 has no atoms. The instance below assumes that all `μ i` have no atoms. -/
-lemma pi_has_no_atoms (i : ι) [has_no_atoms (μ i)] [∀ i, sigma_finite (μ i)] :
+lemma pi_has_no_atoms (i : ι) [has_no_atoms (μ i)] :
   has_no_atoms (measure.pi μ) :=
 ⟨λ x, flip measure_mono_null (pi_hyperplane μ i (x i)) (singleton_subset_iff.2 rfl)⟩
 
-instance [h : nonempty ι] [∀ i, has_no_atoms (μ i)] [∀ i, sigma_finite (μ i)] :
-  has_no_atoms (measure.pi μ) :=
-h.elim $ λ i, pi_has_no_atoms μ i
+instance [h : nonempty ι] [∀ i, has_no_atoms (μ i)] : has_no_atoms (measure.pi μ) :=
+h.elim $ λ i, pi_has_no_atoms i
 
 instance [Π i, topological_space (α i)] [∀ i, opens_measurable_space (α i)]
-  [∀ i, locally_finite_measure (μ i)] [∀ i, sigma_finite (μ i)]:
+  [∀ i, locally_finite_measure (μ i)] :
   locally_finite_measure (measure.pi μ) :=
 begin
   refine ⟨λ x, _⟩,

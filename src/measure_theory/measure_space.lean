@@ -1641,7 +1641,7 @@ by { rw [← sum_cond], refine @sum.sigma_finite _ _ _ _ _ (bool.rec _ _); simpa
 class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=
 (finite_at_nhds : ∀ x, μ.finite_at_filter (𝓝 x))
 
-@[priority 100]
+@[priority 100] -- see Note [lower instance priority]
 instance finite_measure.to_locally_finite_measure [topological_space α] (μ : measure α)
   [finite_measure μ] :
   locally_finite_measure μ :=
@@ -1657,6 +1657,18 @@ lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure
   ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ⊤ :=
 by simpa only [exists_prop, and.assoc]
   using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
+
+@[priority 100] -- see Note [lower instance priority]
+instance sigma_finite_of_locally_finite [topological_space α]
+  [topological_space.second_countable_topology α]
+  {μ : measure α} [locally_finite_measure μ] :
+  sigma_finite μ :=
+begin
+  choose s hsx hsμ using μ.finite_at_nhds,
+  rcases topological_space.countable_cover_nhds hsx with ⟨t, htc, htU⟩,
+  refine measure.sigma_finite_of_countable (htc.image s) (ball_image_iff.2 $ λ x hx, hsμ x) _,
+  rwa sUnion_image
+end
 
 /-- Two finite measures are equal if they are equal on the π-system generating the σ-algebra
   (and `univ`). -/

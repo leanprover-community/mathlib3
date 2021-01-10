@@ -201,6 +201,7 @@ lemma exists_is_measurable_superset (μ : measure α) (s : set α) :
   ∃ t, s ⊆ t ∧ is_measurable t ∧ μ t = μ s :=
 by simpa only [← measure_eq_trim] using μ.to_outer_measure.exists_is_measurable_superset_eq_trim s
 
+/-- A measurable set `t ⊇ s` such that `μ t = μ s`. -/
 def to_measurable (μ : measure α) (s : set α) :=
 classical.some (exists_is_measurable_superset μ s)
 

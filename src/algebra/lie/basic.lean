@@ -714,6 +714,8 @@ iff.rfl
 @[simp] lemma mem_coe_submodule (N : lie_submodule R L M) {x : M} :
   x ∈ (N : submodule R M) ↔ x ∈ N := iff.rfl
 
+lemma mem_coe (N : lie_submodule R L M) {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
+
 @[simp] lemma coe_to_set_mk (S : set M) (h₁ h₂ h₃ h₄) :
   ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_submodule R L M) : set M) = S := rfl
 
@@ -908,12 +910,18 @@ by { change x ∈ (lie_span R L s : set M) ↔ _, erw Inf_coe, exact mem_bInter_
 lemma subset_lie_span : s ⊆ lie_span R L s :=
 by { intros m hm, erw mem_lie_span, intros N hN, exact hN hm, }
 
+lemma submodule_span_le_lie_span : submodule.span R s ≤ lie_span R L s :=
+by { rw [submodule.span_le, coe_to_submodule], apply subset_lie_span, }
+
 lemma lie_span_le {N} : lie_span R L s ≤ N ↔ s ⊆ N :=
 begin
   split,
   { exact subset.trans subset_lie_span, },
   { intros hs m hm, rw mem_lie_span at hm, exact hm _ hs, },
 end
+
+lemma lie_span_mono {t : set M} (h : s ⊆ t) : lie_span R L s ≤ lie_span R L t :=
+by { rw lie_span_le, exact subset.trans h subset_lie_span, }
 
 end lie_span
 
@@ -938,6 +946,26 @@ instance : has_bracket (lie_ideal R L) (lie_submodule R L M) :=
 
 lemma lie_ideal_oper_eq_span :
   ⁅I, N⁆ = lie_span R L { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m } := rfl
+
+lemma lie_ideal_oper_eq_linear_span :
+  (↑⁅I, N⁆ : submodule R M) = submodule.span R { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m } :=
+begin
+  apply le_antisymm,
+  { let s := {m : M | ∃ (x : ↥I) (n : ↥N), ⁅(x : L), (n : M)⁆ = m},
+    have aux : ∀ (y : L) (m' ∈ submodule.span R s), ⁅y, m'⁆ ∈ submodule.span R s,
+    { intros y m' hm', apply submodule.span_induction hm',
+      { rintros m'' ⟨x, n, hm''⟩, rw [← hm'', leibniz_lie],
+        refine submodule.add_mem _ _ _; apply submodule.subset_span,
+        { use [⟨⁅y, ↑x⁆, I.lie_mem x.property⟩, n], refl, },
+        { use [x, ⟨⁅y, ↑n⁆, N.lie_mem n.property⟩], refl, }, },
+      { simp only [lie_zero, submodule.zero_mem], },
+      { intros m₁ m₂ hm₁ hm₂, rw lie_add, exact submodule.add_mem _ hm₁ hm₂, },
+      { intros t m'' hm'', rw lie_smul, exact submodule.smul_mem _ t hm'', }, },
+    change _ ≤ ↑({ lie_mem := aux, ..submodule.span R s } : lie_submodule R L M),
+    rw [coe_submodule_le_coe_submodule, lie_ideal_oper_eq_span, lie_span_le],
+    exact submodule.subset_span, },
+  { rw lie_ideal_oper_eq_span, apply submodule_span_le_lie_span, },
+end
 
 lemma lie_mem_lie (x : I) (m : N) : ⁅(x : L), (m : M)⁆ ∈ ⁅I, N⁆ :=
 by { rw lie_ideal_oper_eq_span, apply subset_lie_span, use [x, m], }

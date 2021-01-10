@@ -5,6 +5,7 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.group_power.basic
 import algebra.order_functions
+import algebra.ordered_monoid
 
 /-!
 # Basic operations on the natural numbers
@@ -62,6 +63,11 @@ instance : linear_ordered_semiring nat :=
 instance : linear_ordered_cancel_add_comm_monoid ℕ :=
 { add_left_cancel := @nat.add_left_cancel,
   ..nat.linear_ordered_semiring }
+
+instance : linear_ordered_comm_monoid_with_zero ℕ :=
+{ mul_le_mul_left := λ a b h c, nat.mul_le_mul_left c h,
+  ..nat.linear_ordered_semiring,
+  ..(infer_instance : comm_monoid_with_zero ℕ)}
 
 /-! Extra instances to short-circuit type class resolution -/
 instance : add_comm_monoid nat    := by apply_instance
@@ -167,9 +173,6 @@ iff.intro
   (assume h, h.symm ▸ ⟨1, rfl⟩)
 
 /-! ### Equalities and inequalities involving zero and one -/
-
-theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
-⟨ne_of_gt, nat.pos_of_ne_zero⟩
 
 lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠ 1
 | 0     := dec_trivial
@@ -1271,7 +1274,7 @@ by simp [find_eq_iff]
 
 @[simp] lemma find_pos {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) :
   0 < nat.find h ↔ ¬ p 0 :=
-by rw [nat.pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
+by rw [pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
 
 end find
 
@@ -1301,7 +1304,7 @@ lemma find_greatest_eq_iff {b m} :
 begin
   induction b with b ihb generalizing m,
   { rw [eq_comm, iff.comm],
-    simp only [le_zero_iff_eq, ne.def, and_iff_left_iff_imp, find_greatest_zero],
+    simp only [nonpos_iff_eq_zero, ne.def, and_iff_left_iff_imp, find_greatest_zero],
     rintro rfl,
     exact ⟨λ h, (h rfl).elim, λ n hlt heq, (hlt.ne heq.symm).elim⟩ },
   { by_cases hb : P (b + 1),

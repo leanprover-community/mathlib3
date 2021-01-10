@@ -403,6 +403,9 @@ lemma remaining : remaining.valid :=
 lemma eof : eof.valid :=
 decorate_error (remaining.bind (λ _, guard))
 
+lemma foldr_core_zero {f : α → β → β} {b : β} : (foldr_core f p b 0).valid :=
+failure
+
 lemma foldr_core {f : α → β → β} {b : β} (hp : p.valid) :
   ∀ {reps : ℕ}, (foldr_core f p b reps).valid
 | 0          := failure
@@ -410,6 +413,9 @@ lemma foldr_core {f : α → β → β} {b : β} (hp : p.valid) :
 
 lemma foldr {f : α → β → β} (hp : p.valid) : valid (foldr f p b) :=
 λ _ _, foldr_core hp _ _
+
+lemma foldl_core_zero {f : β → α → β} {b : β} : (foldl_core f b p 0).valid :=
+failure
 
 lemma foldl_core {f : α → β → α} {p : parser β} (hp : p.valid) :
   ∀ {a : α} {reps : ℕ}, (foldl_core f a p reps).valid

@@ -21,7 +21,7 @@ open finset polynomial
 
 namespace vieta
 
-variables {α : Type u} [comm_ring α]
+variables {α : Type u} [integral_domain α]
 variables {n : ℕ} {r : ℕ → α} {f : polynomial α}
 
 lemma coeff_zero_X_add_C (a : α) : coeff (X + C a) 0 = a :=
@@ -116,8 +116,10 @@ lemma powerset_len_sum_succ_insert (n k : ℕ) (h : k ≤ n) :
   ∑ A in powerset_len (n - k) (range n), ∏ j in insert n A, r j =
   ∑ A in powerset_len (n.succ - k) (range n.succ), ∏ j in A, r j :=
 begin
-  have hh : ∑ a in filter (λ (a : finset ℕ), (insert n a).card = n.succ - k) (range n).powerset, ∏ j in insert n a, r j =
-            ∑ a in filter (λ (a : finset ℕ), a.card = n - k) (range n).powerset, ∏ j in insert n a, r j :=
+  have hh : ∑ a in filter (λ (a : finset ℕ), (insert n a).card = n.succ - k) (range n).powerset,
+            ∏ j in insert n a, r j =
+            ∑ a in filter (λ (a : finset ℕ), a.card = n - k) (range n).powerset,
+            ∏ j in insert n a, r j :=
   begin
     apply sum_congr,
     { ext,

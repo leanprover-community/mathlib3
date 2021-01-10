@@ -41,12 +41,13 @@ variables (α : Type*) [complete_lattice α]
 
 /-- A compactness property for a complete lattice is that any `sup`-closed non-empty subset
 contains its `Sup`. -/
-def is_sup_closed_compact :=
+def is_sup_closed_compact : Prop :=
   ∀ (s : set α) (h : s.nonempty), (∀ a b, a ∈ s → b ∈ s → a ⊔ b ∈ s) → (Sup s) ∈ s
 
 /-- A compactness property for a complete lattice is that any subset has a finite subset with the
 same `Sup`. -/
-def is_Sup_finite_compact := ∀ (s : set α), ∃ (t : finset α), ↑t ⊆ s ∧ Sup s = t.sup id
+def is_Sup_finite_compact : Prop := 
+∀ (s : set α), ∃ (t : finset α), ↑t ⊆ s ∧ Sup s = t.sup id
 
 lemma well_founded.is_Sup_finite_compact (h : well_founded ((>) : α → α → Prop)) :
   is_Sup_finite_compact α :=

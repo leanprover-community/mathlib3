@@ -7,78 +7,22 @@ import tactic
 import ring_theory.polynomial.basic
 import algebra.polynomial.big_operators
 
+/-!
+# Vieta's Formula
+
+The main result is `coeff_of_prod_X_add_C`, which relates the roots of
+a product of linear terms to the coefficients.
+-/
+
 universes u v w
 open_locale big_operators
-
-namespace polynomial
-
-
-lemma coeff_C_ne_zero' {R : Type u} {a : R} {n : ℕ} [semiring R] (h : n ≠ 0) : (C a).coeff n = 0 :=
-by finish [coeff_C]
-
-end polynomial
-
-namespace finset
-variables {α : Type u} (s : finset α)
-
-@[simp] lemma powerset_len_zero' (s : finset α) : powerset_len 0 s = {∅} :=
-begin
-  ext,
-  rw [mem_powerset_len, mem_singleton, card_eq_zero],
-  refine ⟨λ h, h.2, λ h, _⟩,
-  rw h,
-  exact ⟨empty_subset s, rfl⟩,
-end
-
-end finset
 
 open finset polynomial
 
 namespace vieta
 
-variables {α : Type u} [integral_domain α]
+variables {α : Type u} [comm_ring α]
 variables {n : ℕ} {r : ℕ → α} {f : polynomial α}
-
-lemma diag_inj
-  (n : ℕ) (x : ℕ × ℕ) (hx : x ∈ nat.antidiagonal n) (y : ℕ × ℕ) (hy : y ∈ nat.antidiagonal n) :
-  prod.fst x = prod.fst y → x = y :=
-begin
-  intro hg,
-  simp [nat.mem_antidiagonal] at *,
-  ext,
-  exact hg,
-  replace hg : x.fst = y.fst := by exact hg,
-  rw [← hx, hg] at hy,
-  rw add_left_cancel hy,
-end
-
-lemma coeff_prod (n : ℕ) (p q : polynomial α) :
-  coeff (p * q) n = ∑ i in range (n + 1), coeff p i * coeff q (n - i) :=
-begin
-  rw coeff_mul,
-  have hh := sum_image (diag_inj n),
-  symmetry,
-  have h : range (n + 1) = image (λ (x : ℕ × ℕ), prod.fst x) (nat.antidiagonal n) :=
-  begin
-  ext,
-  split,
-  { intro h,
-    rw mem_image,
-    use (a, n - a),
-    split,
-    { simp only [nat.mem_antidiagonal, nat.add_sub_cancel' (mem_range_succ_iff.mp h)] },
-    { refl } },
-  { intro h,
-    rcases (mem_image.mp h) with ⟨x, hx, hxx⟩,
-    replace hxx : x.fst = a := by exact hxx,
-    rw [nat.mem_antidiagonal, hxx] at hx,
-    rw mem_range_succ_iff,
-    linarith },
-  end,
-  rw [h, hh],
-  refine finset.sum_congr rfl (λ x hx, _),
-  rw ← nat.sub_eq_of_eq_add (eq.symm (nat.mem_antidiagonal.mp hx)),
-end
 
 lemma coeff_zero_X_add_C (a : α) : coeff (X + C a) 0 = a :=
 begin
@@ -87,16 +31,16 @@ end
 
 lemma coeff_one_X_add_C (a : α) : coeff (X + C a) 1 = (1 : α) :=
 begin
-  simp [polynomial.coeff_zero_eq_eval_zero, coeff_C_ne_zero'],
+  simp [polynomial.coeff_zero_eq_eval_zero, coeff_C_ne_zero],
 end
 
 lemma coeff_ge_two_X_add_C (a : α) (h : 2 ≤ n) : coeff (X + C a) n = (0 : α) :=
 begin
-  rw [coeff_add, coeff_C_ne_zero', add_zero, coeff_X, if_neg (ne_of_lt (nat.succ_le_iff.mp h))],
+  rw [coeff_add, coeff_C_ne_zero, add_zero, coeff_X, if_neg (ne_of_lt (nat.succ_le_iff.mp h))],
   exact ne_of_gt (lt_of_lt_of_le zero_lt_two h),
 end
 
-lemma degree_X_add_C (a : α) : degree (X + C a) = 1 :=
+lemma degree_X_add_C' (a : α) : degree (X + C a) = 1 :=
 have degree (C a) < degree (X : polynomial α),
 from calc degree (C a) ≤ 0 : degree_C_le
                    ... < 1 : with_bot.some_lt_some.mpr zero_lt_one
@@ -201,14 +145,14 @@ lemma coeff_of_prod_X_add_C :
 begin
   induction n with n ih,
   { simp only [nat.nat_zero_eq_zero, le_zero_iff_eq, nat.zero_sub, forall_eq, range_zero],
-    rw [prod_empty, coeff_one_zero, powerset_len_zero' ∅, sum_singleton, prod_empty] },
+    rw [prod_empty, coeff_one_zero, powerset_len_zero ∅, sum_singleton, prod_empty] },
   { intros k hk,
     cases nat.of_le_succ hk,
   { calc (∏ i in range n.succ, (X + C (r i))).coeff k
         = ∑ l in range (k + 1),
           coeff (∏ (i : ℕ) in range n, (X + C (r i))) l * (X + C (r n)).coeff (k - l) :
     begin
-      rw [nat.succ_eq_add_one, prod_range_succ, mul_comm, coeff_prod],
+      rw [nat.succ_eq_add_one, prod_range_succ, mul_comm, coeff_mul'],
     end
     ... = ∑ l in range (k + 1),
           (∑ A in powerset_len (n - l) (range n), ∏ j in A, r j) * (X + C (r n)).coeff (k - l) :
@@ -225,7 +169,7 @@ begin
     ... = ∑ A in powerset_len (n.succ - k) (range n.succ), (∏ j in A, r j) :
     by rwa [sum_mul, sum_prod_insert, powerset_len_sum_succ_insert] },
 
-    { simp only [h, nat.sub_self, powerset_len_zero', sum_singleton, prod_empty],
+    { simp only [h, nat.sub_self, powerset_len_zero, sum_singleton, prod_empty],
       convert coeff_top n.succ r } }
 end
 

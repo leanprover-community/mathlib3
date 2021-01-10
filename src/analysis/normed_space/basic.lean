@@ -78,6 +78,9 @@ variables [normed_group α] [normed_group β]
 lemma dist_eq_norm (g h : α) : dist g h = ∥g - h∥ :=
 normed_group.dist_eq _ _
 
+lemma dist_eq_norm' (g h : α) : dist g h = ∥h - g∥ :=
+by rw [dist_comm, dist_eq_norm]
+
 @[simp] lemma dist_zero_right (g : α) : dist g 0 = ∥g∥ :=
 by rw [dist_eq_norm, sub_zero]
 
@@ -183,6 +186,12 @@ abs_norm_sub_norm_le g h
 lemma eq_of_norm_sub_eq_zero {u v : α} (h : ∥u - v∥ = 0) : u = v :=
 begin
   apply eq_of_dist_eq_zero,
+  rwa dist_eq_norm
+end
+
+lemma norm_sub_eq_zero_iff {u v : α} : ∥u - v∥ = 0 ↔ u = v :=
+begin
+  convert dist_eq_zero,
   rwa dist_eq_norm
 end
 

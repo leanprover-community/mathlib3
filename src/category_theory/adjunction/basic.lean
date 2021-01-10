@@ -351,7 +351,7 @@ def left_adjoint_of_equiv : C ⥤ D :=
 
 /-- Show that the functor given by `left_adjoint_of_equiv` is indeed left adjoint to `G`. Dual
 to `adjunction_of_equiv_right`. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def adjunction_of_equiv_left : left_adjoint_of_equiv e he ⊣ G :=
 mk_of_hom_equiv
 { hom_equiv := e,
@@ -390,7 +390,7 @@ def right_adjoint_of_equiv : D ⥤ C :=
 
 /-- Show that the functor given by `right_adjoint_of_equiv` is indeed right adjoint to `F`. Dual
 to `adjunction_of_equiv_left`. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def adjunction_of_equiv_right : F ⊣ right_adjoint_of_equiv e he :=
 mk_of_hom_equiv
 { hom_equiv := e,
@@ -419,7 +419,7 @@ def to_equivalence (adj : F ⊣ G) [∀ X, is_iso (adj.unit.app X)] [∀ Y, is_i
 If the unit and counit for the adjunction corresponding to a right adjoint functor are (pointwise)
 isomorphisms, then the functor is an equivalence of categories.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def is_right_adjoint_to_is_equivalence [is_right_adjoint G]
   [∀ X, is_iso ((adjunction.of_right_adjoint G).unit.app X)]
   [∀ Y, is_iso ((adjunction.of_right_adjoint G).counit.app Y)] :

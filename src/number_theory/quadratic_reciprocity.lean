@@ -120,7 +120,7 @@ begin
   { intros a ha, simp only [cast_id, nat_cast_val], },
   { intros _ _ _ _ h, rw units.ext_iff, exact val_injective p h },
   { intros b hb,
-    rw [Ico.mem, nat.succ_le_iff, ← succ_sub hp, succ_sub_one, nat.pos_iff_ne_zero] at hb,
+    rw [Ico.mem, nat.succ_le_iff, ← succ_sub hp, succ_sub_one, pos_iff_ne_zero] at hb,
     refine ⟨units.mk0 b _, finset.mem_univ _, _⟩,
     { assume h, apply hb.1, apply_fun val at h,
       simpa only [val_cast_of_lt hb.right, val_zero] using h },
@@ -144,7 +144,7 @@ lemma Ico_map_val_min_abs_nat_abs_eq_Ico_map_id
   (Ico 1 (p / 2).succ).1.map (λ a, a) :=
 begin
   have he : ∀ {x}, x ∈ Ico 1 (p / 2).succ → x ≠ 0 ∧ x ≤ p / 2,
-    by simp [nat.lt_succ_iff, nat.succ_le_iff, nat.pos_iff_ne_zero] {contextual := tt},
+    by simp [nat.lt_succ_iff, nat.succ_le_iff, pos_iff_ne_zero] {contextual := tt},
   have hep : ∀ {x}, x ∈ Ico 1 (p / 2).succ → x < p,
     from λ x hx, lt_of_le_of_lt (he hx).2 (nat.div_lt_self hp.pos dec_trivial),
   have hpe : ∀ {x}, x ∈ Ico 1 (p / 2).succ → ¬ p ∣ x,
@@ -153,7 +153,7 @@ begin
     (a * x : zmod p).val_min_abs.nat_abs ∈ Ico 1 (p / 2).succ,
   { assume x hx,
     simp [hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hx, lt_succ_iff, succ_le_iff,
-        nat.pos_iff_ne_zero, nat_abs_val_min_abs_le _], },
+        pos_iff_ne_zero, nat_abs_val_min_abs_le _], },
   have hsurj : ∀ (b : ℕ) (hb : b ∈ Ico 1 (p / 2).succ),
     ∃ x ∈ Ico 1 (p / 2).succ, b = (a * x : zmod p).val_min_abs.nat_abs,
   { assume b hb,
@@ -331,7 +331,7 @@ begin
       { simpa [hq0] using congr_arg (coe : ℕ → zmod p) (le_antisymm hpq hqp) },
     apply_fun zmod.val at this,
     rw [val_cast_of_lt hxp, val_zero] at this,
-    simpa only [this, le_zero_iff_eq, Ico.mem, one_ne_zero, false_and, mem_product] using hx },
+    simpa only [this, nonpos_iff_eq_zero, Ico.mem, one_ne_zero, false_and, mem_product] using hx },
   have hunion : ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
       (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q) ∪
     ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter

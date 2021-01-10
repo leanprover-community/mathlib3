@@ -63,6 +63,18 @@ def pempty_ring_equiv : mv_polynomial pempty R ≃+* R :=
   map_mul'  := λ _ _, eval₂_mul _ _,
   map_add'  := λ _ _, eval₂_add _ _ }
 
+/-- The algebra isomorphism between multivariable polynomials in no variables and the ground ring. -/
+@[simps]
+def pempty_alg_equiv : mv_polynomial pempty R ≃ₐ[R] R :=
+{ to_fun    := mv_polynomial.eval₂ (ring_hom.id _) $ pempty.elim,
+  inv_fun   := C,
+  left_inv  := is_id (C.comp (eval₂_hom (ring_hom.id _) pempty.elim))
+    (assume a : R, by { dsimp, rw [eval₂_C], refl }) (assume a, a.elim),
+  right_inv := λ r, eval₂_C _ _ _,
+  map_mul'  := λ _ _, eval₂_mul _ _,
+  map_add'  := λ _ _, eval₂_add _ _,
+  commutes' := λ _, by rw [mv_polynomial.algebra_map_eq]; simp }
+
 /--
 The ring isomorphism between multivariable polynomials in a single variable and
 polynomials over the ground ring.

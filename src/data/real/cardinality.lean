@@ -165,7 +165,7 @@ begin
   { convert Iic_union_Ioi, exact Iio_union_right },
   rw ← hu,
   refine lt_of_le_of_lt (mk_union_le _ _) _,
-  refine lt_of_le_of_lt (add_le_add_right _ (mk_union_le _ _)) _,
+  refine lt_of_le_of_lt (add_le_add_right (mk_union_le _ _) _) _,
   have h2 : (λ x, a + a - x) '' Ioi a = Iio a,
   { convert image_const_sub_Ioi _ _, simp },
   rw ← h2,

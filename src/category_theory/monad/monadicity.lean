@@ -90,7 +90,7 @@ coequalizer (F .map A.a) (adj .counit.app _)
 We have a bijection of homsets which will be used to construct the left adjoint to the comparison
 functor.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def comparison_left_adjoint_hom_equiv (A : algebra (F ⋙ G)) (B : D)
   [has_coequalizer (F .map A.a) (adj .counit.app (F .obj A.A))] :
   (comparison_left_adjoint_obj A ⟶ B) ≃ (A ⟶ (comparison G).obj B) :=
@@ -132,7 +132,7 @@ end
 /--
 Provided we have the appropriate coequalizers, we have an adjunction to the comparison functor.
 -/
-@[simps counit {rhs_md := semireducible}]
+@[simps counit]
 def comparison_adjunction
   [∀ (A : algebra (F ⋙ G)), has_coequalizer (F .map A.a) (adj .counit.app (F .obj A.A))] :
   left_adjoint_comparison ⊣ comparison G :=
@@ -149,7 +149,7 @@ congr_arg (adj .hom_equiv _ _) (category.comp_id _)
 This is a cofork which is helpful for establishing monadicity: the morphism from the Beck
 coequalizer to this cofork is the unit for the adjunction on the comparison functor.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def unit_cofork (A : algebra (F ⋙ G))
   [has_coequalizer (F .map A.a) (adj .counit.app (F .obj A.A))] :
   cofork (G.map (F .map A.a)) (G.map (adj .counit.app (F .obj A.A))) :=
@@ -177,7 +177,7 @@ end
 The cofork which describes the counit of the adjunction: the morphism from the coequalizer of
 this pair to this morphism is the counit.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def counit_cofork (B : D) :
   cofork (F .map (G.map (adj .counit.app B))) (adj .counit.app (F .obj (G.obj B))) :=
 cofork.of_π (adj .counit.app B) (adj .counit_naturality _)

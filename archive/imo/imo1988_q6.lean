@@ -141,7 +141,7 @@ begin
   -- Finally, it also means that (m_x, m_y) does not lie in the base locus,
   -- that m_x ≠ 0, m_x ≠ m_y, B(m_x) ≠ m_y, and B(m_x) ≠ m_x + m_y.
   rcases h_base with ⟨h_base, hmx, hm_diag, hm_B₁, hm_B₂⟩,
-  replace hmx : 0 < mx := nat.pos_iff_ne_zero.mpr hmx,
+  replace hmx : 0 < mx := pos_iff_ne_zero.mpr hmx,
   -- Consider the quadratic equation that (m_x, m_y) satisfies.
   have h_quad := hHm, rw H_quad at h_quad,
   -- We find the other root of the equation, and Vieta's formulas.

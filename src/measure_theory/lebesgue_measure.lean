@@ -22,7 +22,7 @@ namespace measure_theory
 def lebesgue_length (s : set ℝ) : ennreal := ⨅a b (h : s ⊆ Ico a b), of_real (b - a)
 
 @[simp] lemma lebesgue_length_empty : lebesgue_length ∅ = 0 :=
-le_zero_iff_eq.1 $ infi_le_of_le 0 $ infi_le_of_le 0 $ by simp
+nonpos_iff_eq_zero.1 $ infi_le_of_le 0 $ infi_le_of_le 0 $ by simp
 
 @[simp] lemma lebesgue_length_Ico (a b : ℝ) :
   lebesgue_length (Ico a b) = of_real (b - a) :=

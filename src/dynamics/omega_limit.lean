@@ -237,7 +237,7 @@ begin
   end,
   rcases hk.elim_finite_subcover_image hj₁ hj₂ with ⟨g, hg₁ : ∀ u ∈ g, u ∈ f, hg₂, hg₃⟩,
   let w := (⋂ u ∈ g, u) ∩ v,
-  have hw₂ : w ∈ f, by simpa [*],
+  have hw₂ : w ∈ f, by simpa *,
   have hw₃ : k \ n ⊆ (closure (image2 ϕ w s))ᶜ, from
     calc k \ n ⊆ ⋃ u ∈ g, j u : hg₃
     ... ⊆ (closure (image2 ϕ w s))ᶜ :

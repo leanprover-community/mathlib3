@@ -68,7 +68,7 @@ end
 
 open set
 
-attribute [mono] monotone_inter monotone_union inter_subset_inter
+attribute [mono] inter_subset_inter union_subset_union
                  sUnion_mono bUnion_mono sInter_subset_sInter bInter_mono
                  image_subset preimage_mono prod_mono monotone_prod seq_mono
                  image2_subset

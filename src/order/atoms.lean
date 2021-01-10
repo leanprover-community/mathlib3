@@ -437,16 +437,8 @@ end is_compl
 variables [is_complemented α]
 
 theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=
-⟨λ h, ⟨λ x, begin
-  rcases exists_is_compl x with ⟨y, hy⟩,
-  haveI := h,
-  refine (eq_bot_or_exists_atom_le y).imp (λ h, eq_top_of_is_compl_bot (h ▸ hy))
-    exists_imp_exists (λ a, _),
-    sorry
-
-
-
-
-end⟩, sorry⟩
+begin
+  sorry
+end
 
 end is_modular_lattice

@@ -326,7 +326,6 @@ protected noncomputable def complete_boolean_algebra : complete_boolean_algebra 
 
 end is_simple_lattice
 
-<<<<<<< HEAD
 namespace is_simple_lattice
 variables [complete_lattice α] [is_simple_lattice α]
 set_option default_priority 100
@@ -339,7 +338,6 @@ instance : is_atomistic α :=
 instance : is_coatomistic α := is_coatomistic_iff_is_atomistic_dual.2 is_simple_lattice.is_atomistic
 
 end is_simple_lattice
-=======
 namespace fintype
 namespace is_simple_lattice
 variables [bounded_lattice α] [is_simple_lattice α] [decidable_eq α]
@@ -368,7 +366,6 @@ instance : is_simple_lattice bool :=
 end⟩
 
 end bool
->>>>>>> origin/atoms2
 
 theorem is_simple_lattice_iff_is_atom_top [bounded_lattice α] :
   is_simple_lattice α ↔ is_atom (⊤ : α) :=

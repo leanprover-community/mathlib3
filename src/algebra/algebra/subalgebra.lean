@@ -439,8 +439,6 @@ variables (S : subalgebra R A)
 instance [subsingleton A] : subsingleton (subalgebra R A) :=
 ⟨λ B C, ext (λ x, by { simp only [subsingleton.elim x 0, zero_mem] })⟩
 
-
-
 instance [subsingleton (subalgebra R A)] : subsingleton (A ≃ₐ[R] A) :=
 ⟨begin
   intros f g,

@@ -61,6 +61,10 @@ or.imp_left (ha.2 b) (lt_or_eq_of_le hab)
 lemma is_atom.Iic {x a : α} (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set.Iic x) :=
 ⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
 
+lemma is_atom.of_is_atom_coe_Iic {x : α} {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
+⟨λ con, ha.1 (subtype.ext con),
+  λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, le_trans (le_of_lt hba) a.prop⟩ hba)⟩
+
 end is_atom
 
 section is_coatom
@@ -76,6 +80,11 @@ or.imp (ha.2 b) eq_comm.2 (lt_or_eq_of_le hab)
 
 lemma is_coatom.Ici {x a : α} (ha : is_coatom a) (hax : x ≤ a) : is_coatom (⟨a, hax⟩ : set.Ici x) :=
 ⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
+
+lemma is_coatom.of_is_coatom_coe_Ici {x : α} {a : set.Ici x} (ha : is_coatom a) :
+  is_coatom (a : α) :=
+⟨λ con, ha.1 (subtype.ext con),
+  λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, le_trans a.prop (le_of_lt hba)⟩ hba)⟩
 
 end is_coatom
 
@@ -133,6 +142,17 @@ instance {x : α} : is_coatomic (set.Ici x) :=
   (λ ⟨a, ha, hay⟩, ⟨⟨a, le_trans hy hay⟩, ha.Ici (le_trans hy hay), hay⟩)⟩
 
 end is_coatomic
+
+theorem is_atomic_iff_forall_is_atomic_Iic :
+  is_atomic α ↔ ∀ (x : α), is_atomic (set.Iic x) :=
+⟨@is_atomic.set.Iic.is_atomic _ _, λ h, ⟨λ x, ((@eq_bot_or_exists_atom_le _ _ (h x))
+  (⊤ : set.Iic x)).imp subtype.mk_eq_mk.1 (exists_imp_exists' coe
+  (λ ⟨a, ha⟩, and.imp_left (is_atom.of_is_atom_coe_Iic)))⟩⟩
+
+theorem is_coatomic_iff_forall_is_coatomic_Ici :
+  is_coatomic α ↔ ∀ (x : α), is_coatomic (set.Ici x) :=
+is_coatomic_iff_is_atomic_dual.trans $ is_atomic_iff_forall_is_atomic_Iic.trans $ forall_congr
+  (λ x, is_atomic_iff_is_coatomic_dual.trans iff.rfl)
 
 end atomic
 

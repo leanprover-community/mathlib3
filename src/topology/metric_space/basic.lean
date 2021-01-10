@@ -674,6 +674,18 @@ lemma is_open_singleton_iff {X : Type*} [metric_space X] {x : X} :
   is_open ({x} : set X) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
 by simp [is_open_iff, subset_singleton_iff, mem_ball]
 
+/-- Given a point `x` in a discrete subset `s` of a metric space, there is an open ball
+centered at `x` and intersecting `s` only at `x`. -/
+lemma exists_ball_inter_eq_singleton_of_mem_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
+  ∃ ε > 0, metric.ball x ε ∩ s = {x} :=
+nhds_basis_ball.exists_inter_eq_singleton_of_mem_discrete hx
+
+/-- Given a point `x` in a discrete subset `s` of a metric space, there is a closed ball
+of positive radius centered at `x` and intersecting `s` only at `x`. -/
+lemma exists_closed_ball_inter_eq_singleton_of_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
+  ∃ ε > 0, metric.closed_ball x ε ∩ s = {x} :=
+nhds_basis_closed_ball.exists_inter_eq_singleton_of_mem_discrete hx
+
 end metric
 
 open metric

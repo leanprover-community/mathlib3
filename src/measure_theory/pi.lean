@@ -212,17 +212,18 @@ end
 protected def pi : measure (Π i, α i) :=
 to_measure (outer_measure.pi (λ i, (μ i).to_outer_measure)) (pi_caratheodory μ)
 
-local attribute [instance] encodable.fintype.encodable
-lemma pi_pi [∀ i, sigma_finite (μ i)] (s : Π i, set (α i))
-  (hs : ∀ i, is_measurable (s i)) : measure.pi μ (pi univ s) = ∏ i, μ i (s i) :=
+variables [∀ i, sigma_finite (μ i)]
+
+lemma pi_pi (s : Π i, set (α i)) (hs : ∀ i, is_measurable (s i)) :
+  measure.pi μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
   refine le_antisymm _ _,
   { rw [measure.pi, to_measure_apply _ _ (is_measurable.pi_fintype (λ i _, hs i))],
     apply outer_measure.pi_pi_le },
-  { rw [← pi'_pi],
-    work_on_goal 1 { exact hs },
-    simp_rw [measure.pi, to_measure_apply _ _ (is_measurable.pi_fintype (λ i _, hs i)),
-      ← to_outer_measure_apply],
+  { haveI : encodable ι := encodable.fintype.encodable ι,
+    rw [← pi'_pi μ hs],
+    simp_rw [← pi'_pi μ hs, measure.pi,
+      to_measure_apply _ _ (is_measurable.pi_fintype (λ i _, hs i)), ← to_outer_measure_apply],
     suffices : (pi' μ).to_outer_measure ≤ outer_measure.pi (λ i, (μ i).to_outer_measure),
     { exact this _ },
     clear hs s,
@@ -232,8 +233,8 @@ begin
     exact pi'_pi_le μ }
 end
 
-lemma pi_eval_preimage_null [∀ i, sigma_finite (μ i)] {i : ι} {s : set (α i)}
-  (hs : μ i s = 0) : measure.pi μ (eval i ⁻¹' s) = 0 :=
+lemma pi_eval_preimage_null {i : ι} {s : set (α i)} (hs : μ i s = 0) :
+  measure.pi μ (eval i ⁻¹' s) = 0 :=
 begin
   /- WLOG, `s` is measurable -/
   rcases exists_is_measurable_superset_of_measure_eq_zero hs with ⟨t, hst, htm, hμt⟩,
@@ -252,19 +253,40 @@ lemma pi_hyperplane [∀ i, sigma_finite (μ i)] (i : ι) [has_no_atoms (μ i)] 
 show measure.pi μ (eval i ⁻¹' {x}) = 0,
 from pi_eval_preimage_null _ (measure_singleton x)
 
+variable {μ}
+
+lemma tendsto_eval_ae_ae {i : ι} : tendsto (eval i) (measure.pi μ).ae (μ i).ae :=
+λ s hs, pi_eval_preimage_null μ hs
+
+-- TODO: should we introduce `filter.pi` and prove some basic facts about it?
+-- The same combinator appears here and in `nhds_pi`
+lemma ae_pi_le_infi_comap : (measure.pi μ).ae ≤ ⨅ i, filter.comap (eval i) (μ i).ae :=
+le_infi $ λ i, tendsto_eval_ae_ae.le_comap
+
+lemma ae_eq_pi {β : ι → Type*} {f f' : Π i, α i → β i} (h : ∀ i, f i =ᵐ[μ i] f' i) :
+  (λ (x : Π i, α i) i, f i (x i)) =ᵐ[measure.pi μ] (λ x i, f' i (x i)) :=
+(eventually_all_fintype (λ i, tendsto_eval_ae_ae.eventually (h i))).mono $ λ x hx, funext hx
+
+lemma ae_le_pi {β : ι → Type*} [Π i, preorder (β i)] {f f' : Π i, α i → β i}
+  (h : ∀ i, f i ≤ᵐ[μ i] f' i) :
+  (λ (x : Π i, α i) i, f i (x i)) ≤ᵐ[measure.pi μ] (λ x i, f' i (x i)) :=
+(eventually_all_fintype (λ i, tendsto_eval_ae_ae.eventually (h i))).mono $ λ x hx, hx
+
+lemma ae_le_set_pi {I : set ι} {s t : Π i, set (α i)} (h : ∀ i ∈ I, s i ≤ᵐ[μ i] t i) :
+  (set.pi univ s) ≤ᵐ[measure.pi μ] (set.pi univ t) :=
+(ae_le_pi h).mono $ λ x hx hs i hi, hx _ (hs i hi)
+
+lemma ae_eq_set_pi {s t : Π i, set (α i)} (h : ∀ i, s i =ᵐ[μ i] t i) :
+  (set.pi univ s) =ᵐ[measure.pi μ] (set.pi univ t) :=
+(ae_le_set_pi (λ i, (h i).le)).antisymm (ae_le_set_pi (λ i, (h i).symm.le))
+
 section intervals
 
-variables {μ} [Π i, partial_order (α i)] [∀ i, sigma_finite (μ i)] [∀ i, has_no_atoms (μ i)]
+variables {μ} [Π i, partial_order (α i)] [∀ i, has_no_atoms (μ i)]
 
 lemma pi_Iio_ae_eq_pi_Iic {s : set ι} {f : Π i, α i} :
   pi s (λ i, Iio (f i)) =ᵐ[measure.pi μ] pi s (λ i, Iic (f i)) :=
-begin
-  refine eventually_le.antisymm (eventually_of_forall $ pi_mono (λ i hi, Iio_subset_Iic_self)) _,
-  rw ae_le_set,
-  refine measure_mono_null (pi_diff_pi_subset _ _ _) _,
-  simp only [bUnion_eq_Union, Iic_diff_Iio_same],
-  refine measure_Union_null (λ i, pi_hyperplane _ _ _)
-end
+-- ae_eq_set_pi _
 
 lemma pi_Ioi_ae_eq_pi_Ici {s : set ι} {f : Π i, α i} :
   pi s (λ i, Ioi (f i)) =ᵐ[measure.pi μ] pi s (λ i, Ici (f i)) :=

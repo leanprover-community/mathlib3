@@ -146,21 +146,8 @@ by rw [← submodule.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
 
 lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (prime_spectrum R)) (I : ideal R) :
   t ⊆ zero_locus I ↔ I ≤ vanishing_ideal t :=
-begin
-  split; intro h,
-  { intros f hf,
-    rw [mem_vanishing_ideal],
-    intros x hx,
-    have hxI := h hx,
-    rw mem_zero_locus at hxI,
-    exact hxI hf },
-  { intros x hx,
-    rw mem_zero_locus,
-    refine le_trans h _,
-    intros f hf,
-    rw [mem_vanishing_ideal] at hf,
-    exact hf x hx }
-end
+⟨λ h f k, (mem_vanishing_ideal _ _).mpr (λ x j, (mem_zero_locus _ _).mpr (h j) k), λ h,
+  λ x j, (mem_zero_locus _ _).mpr (le_trans h (λ f h, ((mem_vanishing_ideal _ _).mp h) x j))⟩
 
 section gc
 variable (R)

@@ -95,46 +95,26 @@ theorem hall_hard_inductive_one (hn : fintype.card α = 1)
   (hr : ∀ (A : finset α), A.card ≤ (image_rel r A).card) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x) :=
 begin
-  -- we know α is a singleton. we convert this fact into a fact about its only element
   rw fintype.card_eq_one_iff at hn,
-
-  -- we pull out the only element of α. we call the element `x` and the proof of uniqueness `hx`.
   cases hn with x hx,
 
-  -- it is enough to find an element of β related to x
-  suffices hxb : ∃ b : β, r x b,
+  suffices hh : ∃ b : β, r x b,
   {
-    -- assuming we have such an element, name it `b` and give the name `hb` to the proof of `r x b`
-    cases hxb with b hb,
-
-    -- for our existential goal, use the constant function sending everything to `b`
+    cases hh with b hb,
     use (λ a, b),
-
-    -- we need to prove injectivity and prove that `r` is satisfied
     split,
-    { -- injectivity asks us to prove equality between some elements with equal image
-      -- call our test elements a1 and a2. we leave the equality anonymous since we won't use it.
-      intros a1 a2 _,
-
-      -- recall α is a singleton! both a1 and a2 are equal to x and therefore to each other.
+    { intros a1 a2 _,
       rw [hx a1, hx a2] },
-    { -- we want to show `r a b` for an arbitrary `a`
-      intro a,
-
-      -- we remember that `a = x`, and `r x b` is already a hypothesis
+    { intro a,
       rwa hx a }
   },
 
-  -- we have a statement `hr` about finsets on `α`. The only interesting one is the singleton `{x}`.
   specialize hr {x},
-
-  -- convert `hr` into a disjunction on the cardinality of `image_rel r {x}`
   rw [card_singleton, le_iff_lt_or_eq] at hr,
 
   -- split into two cases. in each case we'll have something slightly different to do
   -- in order to get our witness `b` and prove `r x b`.
   cases hr with hlt heq,
-
   work_on_goal 0 {
     -- convert `hlt` into an existential statement
     rw one_lt_card_iff at hlt,
@@ -155,10 +135,9 @@ begin
     -- convert `hb'` to a conjunction, of which we care about only the left part
     rw eq_singleton_iff_unique_mem at hb',
 
-    -- pull out the left part, calling it `hb`
+    -- pull out the left part `hb`
     cases hb' with hb _ },
 
-  -- in both cases we're ready to finish the proof
   all_goals {
     -- use the `b` witness for the goal
     use b,
@@ -169,6 +148,7 @@ begin
     -- now the simplifier can handle it, so long as we tell it to peek under the hood of
     -- the `image_rel` definition
     simp [image_rel] },
+
 end
 
 /-
@@ -256,6 +236,9 @@ begin
   have h'' := ih r'' h5 h6,
 
   rcases h'' with ⟨f'', hf'', hAf''⟩,
+
+  let f : α → β := λ x, if h : x ∈ A then f' ⟨x, h⟩ else f'' ⟨x, h⟩,
+  use f,
   sorry,
 end
 

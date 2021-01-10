@@ -436,6 +436,9 @@ variables {R : Type u} {A : Type v}
 variables [comm_semiring R] [semiring A] [algebra R A]
 variables (S : subalgebra R A)
 
+instance [subsingleton A] : subsingleton (subalgebra R A) :=
+⟨λ B C, ext (λ x, by { rw subsingleton.elim x 0, exact iff_of_true (zero_mem B) (zero_mem C) })⟩
+
 instance [subsingleton (subalgebra R A)] : subsingleton (A ≃ₐ[R] A) :=
 ⟨begin
   intros f g,

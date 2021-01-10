@@ -683,6 +683,9 @@ protected theorem mul_div_assoc (a : ℤ) : ∀ {b c : ℤ}, c ∣ b → (a * b)
 | ._ c ⟨d, rfl⟩ := if cz : c = 0 then by simp [cz] else
   by rw [mul_left_comm, int.mul_div_cancel_left _ cz, int.mul_div_cancel_left _ cz]
 
+protected theorem mul_div_assoc' (b : ℤ) {a c : ℤ} (h : c ∣ a) : a * b / c = a / c * b :=
+by rw [mul_comm, int.mul_div_assoc _ h, mul_comm]
+
 theorem div_dvd_div : ∀ {a b c : ℤ} (H1 : a ∣ b) (H2 : b ∣ c), b / a ∣ c / a
 | a ._ ._ ⟨b, rfl⟩ ⟨c, rfl⟩ := if az : a = 0 then by simp [az] else
   by rw [int.mul_div_cancel_left _ az, mul_assoc, int.mul_div_cancel_left _ az];
@@ -730,6 +733,13 @@ begin
   { apply mul_right_cancel' h3,
     rw add_mul, repeat {rw [int.div_mul_cancel]};
     try {apply dvd_add}; assumption }
+end
+
+lemma sub_div_of_dvd {a b c : ℤ} (hca : c ∣ a) (hcb : c ∣ b) : (a - b) / c = a / c - b / c :=
+begin
+  rw [sub_eq_add_neg, sub_eq_add_neg, add_div_of_dvd hca ((dvd_neg c b).mpr hcb)],
+  congr,
+  exact neg_div_of_dvd hcb,
 end
 
 theorem div_sign : ∀ a b, a / sign b = a * sign b

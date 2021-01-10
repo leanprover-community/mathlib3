@@ -216,6 +216,9 @@ using_well_founded {dec_tac := tactic.assumption,
 @[simp] theorem xgcd_zero_left {s t r' s' t' : R} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
 by unfold xgcd_aux; exact if_pos rfl
 
+@[simp] theorem xgcd_zero_right {s t r' s' t' : R} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
+by unfold xgcd_aux; exact if_pos rfl
+
 theorem xgcd_aux_rec {r s t r' s' t' : R} (h : r ≠ 0) :
   xgcd_aux r s t r' s' t' = xgcd_aux (r' % r) (s' - (r' / r) * s) (t' - (r' / r) * t) r s t :=
 by conv {to_lhs, rw [xgcd_aux]}; exact if_neg h
@@ -229,6 +232,12 @@ def gcd_a (x y : R) : R := (xgcd x y).1
 
 /-- The extended GCD `b` value in the equation `gcd x y = x * a + y * b`. -/
 def gcd_b (x y : R) : R := (xgcd x y).2
+
+@[simp] theorem gcd_a_zero_left {s : R} : gcd_a 0 s = 0 :=
+by {unfold gcd_a, rw [xgcd, xgcd_zero_left]}
+
+@[simp] theorem gcd_b_zero_left {s : R} : gcd_b 0 s = 1 :=
+by {unfold gcd_b, rw [xgcd, xgcd_zero_left]}
 
 @[simp] theorem xgcd_aux_fst (x y : R) : ∀ s t s' t',
   (xgcd_aux x s t y s' t').1 = gcd x y :=

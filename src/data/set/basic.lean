@@ -46,7 +46,7 @@ Definitions in the file:
 * `range f : set β` : the image of `univ` under `f`.
   Also works for `{p : Prop} (f : p → α)` (unlike `image`)
 
-* `prod s t : set (α × β)` : the subset `s × t`.
+* `s.prod t : set (α × β)` : the subset `s × t`.
 
 * `inclusion s₁ s₂ : ↥s₁ → ↥s₂` : the map `↥s₁ → ↥s₂` induced by an inclusion `s₁ ⊆ s₂`.
 
@@ -1964,7 +1964,14 @@ theorem prod_insert {b : β} : s.prod (insert b t) = ((λa, (a, b)) '' s) ∪ s.
 by { ext ⟨x, y⟩, simp [image, iff_def, or_imp_distrib, imp.swap] {contextual := tt} }
 
 theorem prod_preimage_eq {f : γ → α} {g : δ → β} :
-  (preimage f s).prod (preimage g t) = preimage (λp, (f p.1, g p.2)) (s.prod t) := rfl
+  (f ⁻¹' s).prod (g ⁻¹' t) = (λ p, (f p.1, g p.2)) ⁻¹' s.prod t := rfl
+
+lemma prod_preimage_left {f : γ → α} : (f ⁻¹' s).prod t = (λp, (f p.1, p.2)) ⁻¹' (s.prod t) := rfl
+
+lemma prod_preimage_right {g : δ → β} : s.prod (g ⁻¹' t) = (λp, (p.1, g p.2)) ⁻¹' (s.prod t) := rfl
+
+lemma mk_preimage_prod (f : γ → α) (g : γ → β) :
+  (λ x, (f x, g x)) ⁻¹' s.prod t = f ⁻¹' s ∩ g ⁻¹' t := rfl
 
 @[simp] lemma mk_preimage_prod_left {y : β} (h : y ∈ t) : (λ x, (x, y)) ⁻¹' s.prod t = s :=
 by { ext x, simp [h] }
@@ -1987,6 +1994,14 @@ by { split_ifs; simp [h] }
 lemma mk_preimage_prod_right_eq_if {x : α} [decidable_pred (∈ s)] :
   prod.mk x ⁻¹' s.prod t = if x ∈ s then t else ∅ :=
 by { split_ifs; simp [h] }
+
+lemma mk_preimage_prod_left_fn_eq_if {y : β} [decidable_pred (∈ t)] (f : γ → α) :
+  (λ x, (f x, y)) ⁻¹' s.prod t = if y ∈ t then f ⁻¹' s else ∅ :=
+by rw [← mk_preimage_prod_left_eq_if, prod_preimage_left, preimage_preimage]
+
+lemma mk_preimage_prod_right_fn_eq_if {x : α} [decidable_pred (∈ s)] (g : δ → β) :
+  (λ y, (x, g y)) ⁻¹' s.prod t = if x ∈ s then g ⁻¹' t else ∅ :=
+by rw [← mk_preimage_prod_right_eq_if, prod_preimage_right, preimage_preimage]
 
 theorem image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
 image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse

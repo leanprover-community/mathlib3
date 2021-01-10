@@ -389,9 +389,6 @@ begin
     exact (finset.sum_le_sum $ assume a ha, hf a h) }
 end
 
-section priority
--- for some reason the next proof fails without changing the priority of this instance
-local attribute [instance, priority 1000] classical.prop_decidable
 lemma mul_Sup {s : set ennreal} {a : ennreal} : a * Sup s = ⨆i∈s, a * i :=
 begin
   by_cases hs : ∀x∈s, x = (0:ennreal),
@@ -411,7 +408,6 @@ begin
         (ennreal.tendsto.const_mul (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
 end
-end priority
 
 lemma mul_supr {ι : Sort*} {f : ι → ennreal} {a : ennreal} : a * supr f = ⨆i, a * f i :=
 by rw [← Sup_range, mul_Sup, supr_range]
@@ -440,6 +436,9 @@ have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
     ⟨_, i, rfl⟩
     (tendsto.comp ennreal.tendsto_coe_sub (tendsto_id' inf_le_left)),
 by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_refl _
+
+lemma supr_eq_zero {ι : Sort*} {f : ι → ennreal} : (⨆ i, f i) = 0 ↔ ∀ i, f i = 0 :=
+by simp_rw [← nonpos_iff_eq_zero, supr_le_iff]
 
 end topological_space
 

@@ -78,6 +78,9 @@ variables [normed_group α] [normed_group β]
 lemma dist_eq_norm (g h : α) : dist g h = ∥g - h∥ :=
 normed_group.dist_eq _ _
 
+lemma dist_eq_norm' (g h : α) : dist g h = ∥h - g∥ :=
+by rw [dist_comm, dist_eq_norm]
+
 @[simp] lemma dist_zero_right (g : α) : dist g 0 = ∥g∥ :=
 by rw [dist_eq_norm, sub_zero]
 
@@ -161,6 +164,9 @@ dist_zero_right g ▸ dist_pos
 @[simp] lemma norm_le_zero_iff {g : α} : ∥g∥ ≤ 0 ↔ g = 0 :=
 by { rw[←dist_zero_right], exact dist_le_zero }
 
+lemma eq_of_norm_sub_le_zero {g h : α} (a : ∥g - h∥ ≤ 0) : g = h :=
+by rwa [← sub_eq_zero, ← norm_le_zero_iff]
+
 lemma norm_sub_le (g h : α) : ∥g - h∥ ≤ ∥g∥ + ∥h∥ :=
 by simpa [dist_eq_norm] using dist_triangle g 0 h
 
@@ -183,6 +189,12 @@ abs_norm_sub_norm_le g h
 lemma eq_of_norm_sub_eq_zero {u v : α} (h : ∥u - v∥ = 0) : u = v :=
 begin
   apply eq_of_dist_eq_zero,
+  rwa dist_eq_norm
+end
+
+lemma norm_sub_eq_zero_iff {u v : α} : ∥u - v∥ = 0 ↔ u = v :=
+begin
+  convert dist_eq_zero,
   rwa dist_eq_norm
 end
 
@@ -223,6 +235,30 @@ calc
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
 
+@[simp] lemma mem_sphere_iff_norm (v w : α) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
+by simp [dist_eq_norm]
+
+@[simp] lemma mem_sphere_zero_iff_norm {w : α} {r : ℝ} : w ∈ sphere (0:α) r ↔ ∥w∥ = r :=
+by simp [dist_eq_norm]
+
+@[simp] lemma norm_eq_of_mem_sphere {r : ℝ} (x : sphere (0:α) r) : ∥(x:α)∥ = r :=
+mem_sphere_zero_iff_norm.mp x.2
+
+lemma nonzero_of_mem_sphere {r : ℝ} (hr : 0 < r) (x : sphere (0:α) r) : (x:α) ≠ 0 :=
+by rwa [← norm_pos_iff, norm_eq_of_mem_sphere]
+
+lemma nonzero_of_mem_unit_sphere (x : sphere (0:α) 1) : (x:α) ≠ 0 :=
+by { apply nonzero_of_mem_sphere, norm_num }
+
+/-- We equip the sphere, in a normed group, with a formal operation of negation, namely the
+antipodal map. -/
+instance {r : ℝ} : has_neg (sphere (0:α) r) :=
+{ neg := λ w, ⟨-↑w, by simp⟩ }
+
+@[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0:α) r) :
+  (((-v) : sphere _ _) : α) = - (v:α) :=
+rfl
+
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
@@ -258,7 +294,7 @@ section nnnorm
 /-- Version of the norm taking values in nonnegative reals. -/
 def nnnorm (a : α) : ℝ≥0 := ⟨norm a, norm_nonneg a⟩
 
-@[simp] lemma coe_nnnorm (a : α) : (nnnorm a : ℝ) = norm a := rfl
+@[simp, norm_cast] lemma coe_nnnorm (a : α) : (nnnorm a : ℝ) = norm a := rfl
 
 lemma nndist_eq_nnnorm (a b : α) : nndist a b = nnnorm (a - b) := nnreal.eq $ dist_eq_norm _ _
 
@@ -285,6 +321,9 @@ by rw [edist_dist, dist_eq_norm, of_real_norm_eq_coe_nnnorm]
 
 lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (nnnorm x : ennreal) :=
 by rw [edist_eq_coe_nnnorm_sub, _root_.sub_zero]
+
+lemma mem_emetric_ball_0_iff {x : β} {r : ennreal} : x ∈ emetric.ball (0 : β) r ↔ ↑(nnnorm x) < r :=
+by rw [emetric.mem_ball, edist_eq_coe_nnnorm]
 
 lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : α) :
   nndist (g₁ + g₂) (h₁ + h₂) ≤ nndist g₁ h₁ + nndist g₂ h₂ :=
@@ -661,18 +700,35 @@ instance to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel' (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
+@[simp] lemma nnnorm_mul (a b : α) : nnnorm (a * b) = nnnorm a * nnnorm b :=
+nnreal.eq $ norm_mul a b
+
 /-- `norm` as a `monoid_hom`. -/
 @[simps] def norm_hom : monoid_with_zero_hom α ℝ := ⟨norm, norm_zero, norm_one, norm_mul⟩
 
+/-- `nnnorm` as a `monoid_hom`. -/
+@[simps] def nnnorm_hom : monoid_with_zero_hom α ℝ≥0 :=
+⟨nnnorm, nnnorm_zero, nnnorm_one, nnnorm_mul⟩
+
 @[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
 norm_hom.to_monoid_hom.map_pow a
+
+@[simp] lemma nnnorm_pow (a : α) (n : ℕ) : nnnorm (a ^ n) = nnnorm a ^ n :=
+nnnorm_hom.to_monoid_hom.map_pow a n
 
 @[simp] lemma norm_prod (s : finset β) (f : β → α) :
   ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=
 (norm_hom.to_monoid_hom : α →* ℝ).map_prod f s
 
+@[simp] lemma nnnorm_prod (s : finset β) (f : β → α) :
+  nnnorm (∏ b in s, f b) = ∏ b in s, nnnorm (f b) :=
+(nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_prod f s
+
 @[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ :=
 (norm_hom : monoid_with_zero_hom α ℝ).map_div a b
+
+@[simp] lemma nnnorm_div (a b : α) : nnnorm (a / b) = nnnorm a / nnnorm b :=
+(nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_div a b
 
 @[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
 (norm_hom : monoid_with_zero_hom α ℝ).map_inv' a
@@ -683,24 +739,25 @@ nnreal.eq $ by simp
 @[simp] lemma norm_fpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n :=
 (norm_hom : monoid_with_zero_hom α ℝ).map_fpow
 
+@[simp] lemma nnnorm_fpow : ∀ (a : α) (n : ℤ), nnnorm (a^n) = (nnnorm a)^n :=
+(nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_fpow
+
 @[priority 100] -- see Note [lower instance priority]
 instance : has_continuous_inv' α :=
 begin
   refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
   rcases exists_between r0' with ⟨ε, ε0, εr⟩,
-  have : ∀ᶠ e in 𝓝 r, ∥e⁻¹ - r⁻¹∥ ≤ ∥r - e∥ / (∥r∥ * ε),
+  have : ∀ᶠ e in 𝓝 r, ∥e⁻¹ - r⁻¹∥ ≤ ∥r - e∥ / ∥r∥ / ε,
   { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr],
     intros e he,
     have e0 : e ≠ 0 := norm_pos_iff.1 (ε0.trans he),
-    calc ∥e⁻¹ - r⁻¹∥ = ∥r - e∥ / (∥r∥ * ∥e∥) :
-      by simp only [← norm_div, ← norm_mul, sub_div, div_mul_right _ r0, div_mul_left e0, one_div]
-    ... ≤ ∥r - e∥ / (∥r∥ * ε) :
-      div_le_div_of_le_left (norm_nonneg _) (mul_pos r0' ε0)
-        (mul_le_mul_of_nonneg_left he.le r0'.le) },
+    calc ∥e⁻¹ - r⁻¹∥ = ∥r - e∥ / ∥r∥ / ∥e∥ : by field_simp [mul_comm]
+    ... ≤ ∥r - e∥ / ∥r∥ / ε :
+      div_le_div_of_le_left (div_nonneg (norm_nonneg _) (norm_nonneg _)) ε0 he.le },
   refine squeeze_zero' (eventually_of_forall $ λ _, norm_nonneg _) this _,
-  rw [← zero_div (∥r∥ * ε), ← @norm_zero α, ← sub_self r],
-  exact tendsto.mul (tendsto_const_nhds.sub tendsto_id).norm tendsto_const_nhds
+  refine (continuous_const.sub continuous_id).norm.div_const.div_const.tendsto' _ _ _,
+  simp
 end
 
 end normed_field
@@ -961,6 +1018,16 @@ by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
 theorem frontier_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball' x r, closed_ball_diff_ball]
+
+variables (α)
+
+lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : x ≠ - x :=
+λ h, nonzero_of_mem_sphere hr x (eq_zero_of_eq_neg α (by { conv_lhs {rw h}, simp }))
+
+lemma ne_neg_of_mem_unit_sphere [char_zero α] (x : sphere (0:E) 1) : x ≠ - x :=
+ne_neg_of_mem_sphere α  (by norm_num) x
+
+variables {α}
 
 open normed_field
 

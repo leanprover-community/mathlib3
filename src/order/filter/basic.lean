@@ -119,7 +119,7 @@ by simp only [filter_eq_iff, ext_iff, filter.mem_sets]
 protected lemma ext : (∀ s, s ∈ f ↔ s ∈ g) → f = g :=
 filter.ext_iff.2
 
-lemma univ_mem_sets : univ ∈ f :=
+@[simp] lemma univ_mem_sets : univ ∈ f :=
 f.univ_sets
 
 lemma mem_sets_of_superset : ∀{x y : set α}, x ∈ f → x ⊆ y → y ∈ f :=
@@ -127,6 +127,10 @@ f.sets_of_superset
 
 lemma inter_mem_sets : ∀{s t}, s ∈ f → t ∈ f → s ∩ t ∈ f :=
 f.inter_sets
+
+@[simp] lemma inter_mem_sets_iff {s t} : s ∩ t ∈ f ↔ s ∈ f ∧ t ∈ f :=
+⟨λ h, ⟨mem_sets_of_superset h (inter_subset_left s t),
+  mem_sets_of_superset h (inter_subset_right s t)⟩, and_imp.2 inter_mem_sets⟩
 
 lemma univ_mem_sets' (h : ∀ a, a ∈ s) : s ∈ f :=
 mem_sets_of_superset univ_mem_sets (assume x _, h x)
@@ -138,22 +142,24 @@ lemma congr_sets (h : {x | x ∈ s ↔ x ∈ t} ∈ f) : s ∈ f ↔ t ∈ f :=
 ⟨λ hs, mp_sets hs (mem_sets_of_superset h (λ x, iff.mp)),
  λ hs, mp_sets hs (mem_sets_of_superset h (λ x, iff.mpr))⟩
 
-lemma Inter_mem_sets {β : Type v} {s : β → set α} {is : set β} (hf : finite is) :
-  (∀i∈is, s i ∈ f) → (⋂i∈is, s i) ∈ f :=
-finite.induction_on hf
-  (assume hs, by simp only [univ_mem_sets, mem_empty_eq, Inter_neg, Inter_univ, not_false_iff])
-  (assume i is _ hf hi hs,
-    have h₁ : s i ∈ f, from hs i (by simp),
-    have h₂ : (⋂x∈is, s x) ∈ f, from hi $ assume a ha, hs _ $ by simp only [ha, mem_insert_iff, or_true],
-    by simp [inter_mem_sets h₁ h₂])
+@[simp] lemma bInter_mem_sets {β : Type v} {s : β → set α} {is : set β} (hf : finite is) :
+  (⋂ i ∈ is, s i) ∈ f ↔ ∀ i ∈ is, s i ∈ f :=
+finite.induction_on hf (by simp) (λ i s hi _ hs, by simp [hs])
 
-lemma sInter_mem_sets_of_finite {s : set (set α)} (hfin : finite s) (h_in : ∀ U ∈ s, U ∈ f) :
-  ⋂₀ s ∈ f :=
-by { rw sInter_eq_bInter, exact Inter_mem_sets hfin h_in }
+@[simp] lemma bInter_finset_mem_sets {β : Type v} {s : β → set α} (is : finset β) :
+  (⋂ i ∈ is, s i) ∈ f ↔ ∀ i ∈ is, s i ∈ f :=
+bInter_mem_sets is.finite_to_set
 
-lemma Inter_mem_sets_of_fintype {β : Type v} {s : β → set α} [fintype β] (h : ∀i, s i ∈ f) :
-  (⋂i, s i) ∈ f :=
-by simpa using Inter_mem_sets finite_univ (λi hi, h i)
+alias bInter_finset_mem_sets ← finset.Inter_mem_sets
+attribute [protected] finset.Inter_mem_sets
+
+@[simp] lemma sInter_mem_sets {s : set (set α)} (hfin : finite s) :
+  ⋂₀ s ∈ f ↔ ∀ U ∈ s, U ∈ f :=
+by rw [sInter_eq_bInter, bInter_mem_sets hfin]
+
+@[simp] lemma Inter_mem_sets {β : Type v} {s : β → set α} [fintype β] :
+  (⋂ i, s i) ∈ f ↔ ∀ i, s i ∈ f :=
+by simpa using bInter_mem_sets finite_univ
 
 lemma exists_sets_subset_iff : (∃t ∈ f, t ⊆ s) ↔ s ∈ f :=
 ⟨assume ⟨t, ht, ts⟩, mem_sets_of_superset ht ts, assume hs, ⟨s, hs, subset.refl _⟩⟩
@@ -366,7 +372,7 @@ local attribute [instance] original_complete_lattice
 instance : complete_lattice (filter α) := original_complete_lattice.copy
   /- le  -/ filter.partial_order.le rfl
   /- top -/ (filter.has_top).1
-  (top_unique $ assume s hs, by have := univ_mem_sets ; finish)
+  (top_unique $ assume s hs, by simp [mem_top_sets.1 hs])
   /- bot -/ _ rfl
   /- sup -/ _ rfl
   /- inf -/ (filter.has_inf).1
@@ -459,7 +465,7 @@ begin
     let V := λ i, ⋂₀ σ i,
     have V_in : ∀ i, V i ∈ s i,
     { rintro ⟨i, i_in⟩,
-      apply sInter_mem_sets_of_finite (σfin _),
+      rw sInter_mem_sets (σfin _),
       apply σsub },
     exact ⟨I, Ifin, V, V_in, tinter⟩ },
   { rintro ⟨I, Ifin, V, V_in, h⟩,
@@ -875,7 +881,7 @@ hp.mp (eventually_of_forall hq)
 
 @[simp] lemma eventually_and {p q : α → Prop} {f : filter α} :
   (∀ᶠ x in f, p x ∧ q x) ↔ (∀ᶠ x in f, p x) ∧ (∀ᶠ x in f, q x) :=
-⟨λ h, ⟨h.mono $ λ _, and.left, h.mono $ λ _, and.right⟩, λ h, h.1.and h.2⟩
+inter_mem_sets_iff
 
 lemma eventually.congr {f : filter α} {p q : α → Prop} (h' : ∀ᶠ x in f, p x)
   (h : ∀ᶠ x in f, p x ↔ q x) : ∀ᶠ x in f, q x :=
@@ -884,6 +890,24 @@ h'.mp (h.mono $ λ x hx, hx.mp)
 lemma eventually_congr {f : filter α} {p q : α → Prop} (h : ∀ᶠ x in f, p x ↔ q x) :
   (∀ᶠ x in f, p x) ↔ (∀ᶠ x in f, q x) :=
 ⟨λ hp, hp.congr h, λ hq, hq.congr $ by simpa only [iff.comm] using h⟩
+
+@[simp] lemma eventually_all {ι} [fintype ι] {l} {p : ι → α → Prop} :
+  (∀ᶠ x in l, ∀ i, p i x) ↔ ∀ i, ∀ᶠ x in l, p i x :=
+by simpa only [filter.eventually, set_of_forall] using Inter_mem_sets
+
+@[simp] lemma eventually_all_finite {ι} {I : set ι} (hI : I.finite) {l} {p : ι → α → Prop} :
+  (∀ᶠ x in l, ∀ i ∈ I, p i x) ↔ (∀ i ∈ I, ∀ᶠ x in l, p i x) :=
+by simpa only [filter.eventually, set_of_forall] using bInter_mem_sets hI
+
+alias eventually_all_finite ← set.finite.eventually_all
+attribute [protected] set.finite.eventually_all
+
+@[simp] lemma eventually_all_finset {ι} (I : finset ι) {l} {p : ι → α → Prop} :
+  (∀ᶠ x in l, ∀ i ∈ I, p i x) ↔ ∀ i ∈ I, ∀ᶠ x in l, p i x :=
+I.finite_to_set.eventually_all
+
+alias eventually_all_finset ← finset.eventually_all
+attribute [protected] finset.eventually_all
 
 @[simp] lemma eventually_or_distrib_left {f : filter α} {p : Prop} {q : α → Prop} :
   (∀ᶠ x in f, p ∨ q x) ↔ (p ∨ ∀ᶠ x in f, q x) :=
@@ -1227,6 +1251,25 @@ by simp only [eventually_eq, eventually_le, le_antisymm_iff, eventually_and]
 lemma eventually_le.le_iff_eq [partial_order β] {l : filter α} {f g : α → β} (h : f ≤ᶠ[l] g) :
   g ≤ᶠ[l] f ↔ g =ᶠ[l] f :=
 ⟨λ h', h'.antisymm h, eventually_eq.le⟩
+
+@[mono] lemma eventually_le.inter {s t s' t' : set α} {l : filter α} (h : s ≤ᶠ[l] t)
+  (h' : s' ≤ᶠ[l] t') :
+  (s ∩ s' : set α) ≤ᶠ[l] (t ∩ t' : set α) :=
+h'.mp $ h.mono $ λ x, and.imp
+
+@[mono] lemma eventually_le.union {s t s' t' : set α} {l : filter α} (h : s ≤ᶠ[l] t)
+  (h' : s' ≤ᶠ[l] t') :
+  (s ∪ s' : set α) ≤ᶠ[l] (t ∪ t' : set α) :=
+h'.mp $ h.mono $ λ x, or.imp
+
+@[mono] lemma eventually_le.compl {s t : set α} {l : filter α} (h : s ≤ᶠ[l] t) :
+  (tᶜ : set α) ≤ᶠ[l] (sᶜ : set α) :=
+h.mono $ λ x, mt
+
+@[mono] lemma eventually_le.diff {s t s' t' : set α} {l : filter α} (h : s ≤ᶠ[l] t)
+  (h' : t' ≤ᶠ[l] s') :
+  (s \ s' : set α) ≤ᶠ[l] (t \ t' : set α) :=
+h.inter h'.compl
 
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs

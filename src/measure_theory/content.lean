@@ -105,7 +105,7 @@ lemma inner_content_Sup_nat [t2_space G] {μ : compacts G → ennreal}
 begin
   have h3 : ∀ (t : finset ℕ) (K : ℕ → compacts G), μ (t.sup K) ≤ t.sum (λ i, μ (K i)),
   { intros t K, refine finset.induction_on t _ _,
-    { simp only [h1, le_zero_iff_eq, finset.sum_empty, finset.sup_empty] },
+    { simp only [h1, nonpos_iff_eq_zero, finset.sum_empty, finset.sup_empty] },
     { intros n s hn ih, rw [finset.sup_insert, finset.sum_insert hn],
       exact le_trans (h2 _ _) (add_le_add_left ih _) }},
   refine bsupr_le (λ K hK, _),

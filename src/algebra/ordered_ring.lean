@@ -197,6 +197,15 @@ calc a * b ≤ b : mul_le_of_le_one_left hb0 ha
 
 end ordered_semiring
 
+section ordered_comm_semiring
+
+/-- An `ordered_comm_semiring α` is a commutative semiring `α` with a partial order such that
+multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
+class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semiring α
+
+end ordered_comm_semiring
+
 /--
 A `linear_ordered_semiring α` is a nontrivial semiring `α` with a linear order
 such that multiplication with a positive number and addition are monotone.
@@ -561,6 +570,15 @@ by rwa zero_mul at this
 
 end ordered_ring
 
+section ordered_comm_ring
+
+/-- An `ordered_comm_ring α` is a commutative ring `α` with a partial order such that
+multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
+class ordered_comm_ring (α : Type u) extends ordered_ring α, ordered_comm_semiring α, comm_ring α
+
+end ordered_comm_ring
+
 /-- A `linear_ordered_ring α` is a ring `α` with a linear order such that
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj] class linear_ordered_ring (α : Type u)
@@ -744,9 +762,20 @@ such that multiplication with a positive number and addition are monotone. -/
 class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_comm_ring [s : linear_ordered_comm_ring α] :
-  comm_ring α :=
-{ ..s }
+instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_ring α] :
+  ordered_comm_ring α :=
+-- One might hope that `{ ..linear_ordered_ring.to_linear_ordered_semiring, ..d }`
+-- achieved the same result here.
+-- Unfortunately with that definition we see mismatched instances in `algebra.star.chsh`.
+let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
+{ zero_mul                   := @linear_ordered_semiring.zero_mul α s,
+  mul_zero                   := @linear_ordered_semiring.mul_zero α s,
+  add_left_cancel            := @linear_ordered_semiring.add_left_cancel α s,
+  add_right_cancel           := @linear_ordered_semiring.add_right_cancel α s,
+  le_of_add_le_add_left      := @linear_ordered_semiring.le_of_add_le_add_left α s,
+  mul_lt_mul_of_pos_left     := @linear_ordered_semiring.mul_lt_mul_of_pos_left α s,
+  mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,
+  ..d }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
@@ -886,6 +915,7 @@ end linear_nonneg_ring
 /-- A canonically ordered commutative semiring is an ordered, commutative semiring
 in which `a ≤ b` iff there exists `c` with `b = a + c`. This is satisfied by the
 natural numbers, for example, but not the integers or other ordered groups. -/
+@[protect_proj]
 class canonically_ordered_comm_semiring (α : Type*) extends
   canonically_ordered_add_monoid α, comm_semiring α :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
@@ -904,21 +934,21 @@ lemma mul_le_mul {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) : a * c ≤ b * 
 begin
   rcases (le_iff_exists_add _ _).1 hab with ⟨b, rfl⟩,
   rcases (le_iff_exists_add _ _).1 hcd with ⟨d, rfl⟩,
-  suffices : a * c ≤ a * c + (a * d + b * c + b * d), by simpa [mul_add, add_mul, _root_.add_assoc],
+  suffices : a * c ≤ a * c + (a * d + b * c + b * d), by simpa [mul_add, add_mul, add_assoc],
   exact (le_iff_exists_add _ _).2 ⟨_, rfl⟩
 end
 
 lemma mul_le_mul_left' {b c : α} (h : b ≤ c) (a : α) : a * b ≤ a * c :=
-mul_le_mul (le_refl a) h
+mul_le_mul le_rfl h
 
 lemma mul_le_mul_right' {b c : α} (h : b ≤ c) (a : α) : b * a ≤ c * a :=
-mul_le_mul h (le_refl a)
+mul_le_mul h le_rfl
 
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
 lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one
 
 lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
-by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
+by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 end canonically_ordered_semiring
 
@@ -1041,5 +1071,12 @@ instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
   .. with_top.add_comm_monoid, .. with_top.mul_zero_class,
   .. with_top.canonically_ordered_add_monoid,
   .. with_top.no_zero_divisors, .. with_top.nontrivial }
+
+lemma mul_lt_top [nontrivial α] {a b : with_top α} (ha : a < ⊤) (hb : b < ⊤) : a * b < ⊤ :=
+begin
+  lift a to α using ne_top_of_lt ha,
+  lift b to α using ne_top_of_lt hb,
+  simp only [← coe_mul, coe_lt_top]
+end
 
 end with_top

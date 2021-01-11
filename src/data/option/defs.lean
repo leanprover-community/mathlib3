@@ -121,6 +121,12 @@ inductive rel (r : α → β → Prop) : option α → option β → Prop
 | none     _ := none
 | (some a) H := some (f a (H a (mem_def.mpr rfl)))
 
+/--
+Flatten an `option` of `option`, a specialization of `mjoin`.
+-/
+@[simp] def join : option (option α) → option α :=
+λ x, bind x id
+
 protected def {u v} traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
   option α → F (option β)
 | none := pure none

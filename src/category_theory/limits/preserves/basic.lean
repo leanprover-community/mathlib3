@@ -193,6 +193,20 @@ def preserves_limits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_limits 
   preserves_limits G :=
 { preserves_limits_of_shape := λ J 𝒥₁, by exactI preserves_limits_of_shape_of_nat_iso h }
 
+/-- Transfer preservation of limits along a equivalence in the shape. -/
+def preserves_limits_of_shape_of_equiv {J' : Type v} [small_category J'] (e : J ≌ J')
+  (F : C ⥤ D) [preserves_limits_of_shape J F] :
+  preserves_limits_of_shape J' F :=
+{ preserves_limit := λ K,
+  { preserves := λ c t,
+    begin
+      let equ := e.inv_fun_id_assoc (K ⋙ F),
+      have := (is_limit_of_preserves F (t.whisker_equivalence e)).whisker_equivalence e.symm,
+      apply ((is_limit.postcompose_hom_equiv equ _).symm this).of_iso_limit,
+      refine cones.ext (iso.refl _) (λ j, _),
+      { dsimp, simp [←functor.map_comp] }, -- See library note [dsimp, simp].
+    end } }
+
 /-- If F preserves one colimit cocone for the diagram K,
   then it preserves any colimit cocone for K. -/
 def preserves_colimit_of_preserves_colimit_cocone {F : C ⥤ D} {t : cocone K}
@@ -224,6 +238,20 @@ def preserves_colimits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G)
 def preserves_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_colimits F] :
   preserves_colimits G :=
 { preserves_colimits_of_shape := λ J 𝒥₁, by exactI preserves_colimits_of_shape_of_nat_iso h }
+
+/-- Transfer preservation of colimits along a equivalence in the shape. -/
+def preserves_colimits_of_shape_of_equiv {J' : Type v} [small_category J'] (e : J ≌ J')
+  (F : C ⥤ D) [preserves_colimits_of_shape J F] :
+  preserves_colimits_of_shape J' F :=
+{ preserves_colimit := λ K,
+  { preserves := λ c t,
+    begin
+      let equ := e.inv_fun_id_assoc (K ⋙ F),
+      have := (is_colimit_of_preserves F (t.whisker_equivalence e)).whisker_equivalence e.symm,
+      apply ((is_colimit.precompose_inv_equiv equ _).symm this).of_iso_colimit,
+      refine cocones.ext (iso.refl _) (λ j, _),
+      { dsimp, simp [←functor.map_comp] }, -- See library note [dsimp, simp].
+    end } }
 
 /--
 A functor `F : C ⥤ D` reflects limits for `K : J ⥤ C` if

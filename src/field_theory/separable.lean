@@ -538,18 +538,21 @@ end polynomial
 open polynomial
 
 theorem irreducible.separable {F : Type u} [field F] [char_zero F] {f : polynomial F}
-  (hf : irreducible f) (hf0 : f ≠ 0) : f.separable :=
+  (hf : irreducible f) : f.separable :=
 begin
   rw [separable_iff_derivative_ne_zero hf, ne, ← degree_eq_bot, degree_derivative_eq], rintro ⟨⟩,
-  rw [nat.pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],
+  rw [pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],
   refine λ hf1, hf.1 _, rw [hf1, is_unit_C, is_unit_iff_ne_zero],
-  intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf0
+  intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf.ne_zero
 end
 
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
 the minimal polynomial of every `x : K` is separable. -/
 @[class] def is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
 ∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable
+
+instance is_separable_self (F : Type*) [field F] : is_separable F F :=
+λ x, ⟨is_integral_algebra_map, by { rw minimal_polynomial.eq_X_sub_C, exact separable_X_sub_C }⟩
 
 section is_separable_tower
 variables {F E : Type*} (K : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]

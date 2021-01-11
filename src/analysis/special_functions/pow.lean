@@ -1165,6 +1165,13 @@ begin
     { simp [coe_rpow_of_ne_zero h, h] } }
 end
 
+lemma rpow_eq_top_iff_of_pos {x : ennreal} {y : ℝ} (hy : 0 < y) : x ^ y = ⊤ ↔ x = ⊤ :=
+begin
+  rw rpow_eq_top_iff,
+  have hy_not_neg : ¬ y < 0, by { push_neg, exact le_of_lt hy, },
+  simp [hy, hy_not_neg],
+end
+
 lemma rpow_eq_top_of_nonneg (x : ennreal) {y : ℝ} (hy0 : 0 ≤ y) : x ^ y = ⊤ → x = ⊤ :=
 begin
   rw ennreal.rpow_eq_top_iff,
@@ -1333,6 +1340,36 @@ begin
   simp [coe_rpow_of_nonneg _ (le_of_lt h₂), nnreal.rpow_lt_rpow h₁ h₂]
 end
 
+lemma rpow_le_rpow_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) : x ^ z ≤ y ^ z ↔ x ≤ y :=
+begin
+  refine ⟨λ h, _, λ h, rpow_le_rpow h (le_of_lt hz)⟩,
+  rw [←rpow_one x, ←rpow_one y, ←@_root_.mul_inv_cancel _ _ z (ne_of_lt hz).symm, rpow_mul,
+    rpow_mul, ←one_div],
+  exact rpow_le_rpow h (by simp [le_of_lt hz]),
+end
+
+lemma rpow_lt_rpow_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) : x < y ↔ x^z < y^z :=
+begin
+  refine ⟨λ h, rpow_lt_rpow h hz, λ h_lt, _⟩,
+  rw [←rpow_one x, ←rpow_one y,  ←@_root_.mul_inv_cancel _ _ z (ne_of_lt hz).symm, rpow_mul,
+    rpow_mul],
+  exact rpow_lt_rpow h_lt (by simp [hz]),
+end
+
+lemma rpow_le_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) : x ^ z ≤ y ↔ x ≤ y ^ (1 / z) :=
+begin
+  nth_rewrite 1 ←rpow_one x,
+  nth_rewrite 0 ←@_root_.mul_inv_cancel _ _ z (ne_of_lt hz).symm,
+  rw [rpow_mul, ←one_div, @rpow_le_rpow_iff _ _ (1/z) (by simp [hz])],
+end
+
+lemma rpow_lt_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) : x ^ z < y ↔ x < y ^ (1 / z) :=
+begin
+  nth_rewrite 1 ←rpow_one x,
+  nth_rewrite 0 ←@_root_.mul_inv_cancel _ _ z (ne_of_lt hz).symm,
+  rw [rpow_mul, ←one_div, @rpow_lt_rpow_iff _ _ (1/z) (by simp [hz])],
+end
+
 lemma rpow_lt_rpow_of_exponent_lt {x : ennreal} {y z : ℝ} (hx : 1 < x) (hx' : x ≠ ⊤) (hyz : y < z) :
   x^y < x^z :=
 begin
@@ -1375,6 +1412,20 @@ begin
     simp [coe_rpow_of_ne_zero h,
           nnreal.rpow_le_rpow_of_exponent_ge (bot_lt_iff_ne_bot.mpr h) hx1 hyz] }
 end
+
+lemma rpow_pos_of_pos {p : ℝ} {x : ennreal} (hx_pos : 0 < x) (hp_pos : 0 < p) : 0 < x^p :=
+by { rw ←zero_rpow_of_pos hp_pos, exact rpow_lt_rpow hx_pos hp_pos }
+
+lemma rpow_pos {p : ℝ} {x : ennreal} (hx_pos : 0 < x) (hx_ne_top : x ≠ ⊤) : 0 < x^p :=
+begin
+  cases lt_or_le 0 p with hp_pos hp_nonpos,
+  { exact rpow_pos_of_pos hx_pos hp_pos, },
+  { rw [←neg_neg p, rpow_neg, inv_pos],
+    exact rpow_ne_top_of_nonneg (by simp [hp_nonpos]) hx_ne_top, },
+end
+
+lemma rpow_nonneg_of_pos {p : ℝ} {x : ennreal} (hx_nonneg : 0 ≤ x) (hp_pos : 0 < p) : 0 ≤ x^p :=
+by { rw ←zero_rpow_of_pos hp_pos,  exact rpow_le_rpow hx_nonneg (le_of_lt hp_pos) }
 
 lemma rpow_lt_one {x : ennreal} {z : ℝ} (hx : x < 1) (hz : 0 < z) : x^z < 1 :=
 begin
@@ -1455,6 +1506,28 @@ end
 
 lemma to_real_rpow (x : ennreal) (z : ℝ) : (x.to_real) ^ z = (x ^ z).to_real :=
 by rw [ennreal.to_real, ennreal.to_real, ←nnreal.coe_rpow, ennreal.to_nnreal_rpow]
+
+lemma injective_rpow_const_of_ne_zero {x : ℝ} (hx : x ≠ 0) :
+  function.injective (λ y : ennreal, y^x) :=
+begin
+  intros y z hyz,
+  dsimp only at hyz,
+ rw [←rpow_one y, ←rpow_one z, ←_root_.mul_inv_cancel hx, rpow_mul, rpow_mul, hyz],
+end
+
+lemma surjective_rpow_const_of_ne_zero {x : ℝ} (hx : x ≠ 0) :
+  function.surjective (λ y : ennreal, y^x) :=
+begin
+  refine λ y, Exists.intro (y ^ x⁻¹) _,
+  simp_rw [←rpow_mul, _root_.inv_mul_cancel hx, rpow_one],
+end
+
+lemma bijective_rpow_const_of_ne_zero {x : ℝ} (hx : x ≠ 0) :
+  function.bijective (λ y : ennreal, y^x) :=
+⟨injective_rpow_const_of_ne_zero hx, surjective_rpow_const_of_ne_zero hx⟩
+
+lemma monotone_rpow_const_of_nonneg {x : ℝ} (hx : 0 ≤ x) : monotone (λ y : ennreal, y^x) :=
+λ y z hyz, rpow_le_rpow hyz hx
 
 end ennreal
 

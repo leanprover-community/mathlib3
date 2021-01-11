@@ -619,9 +619,28 @@ end
 
 local attribute [instance] classical.prop_decidable
 
-lemma inv_of_maximal_not_top (hR : is_dedekind_domain R) (hM : ideal.is_maximal M) :
-  (1 / ↑M : fractional_ideal f) ≠ (1 : fractional_ideal f) :=
-begin sorry,
+lemma inv_of_maximal_not_top (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
+  (hM : ideal.is_maximal M) : (1 / ↑M : fractional_ideal f) ≠ (1 : fractional_ideal f) :=
+begin
+  obtain ⟨a, h_aM, h_nza⟩ : ∃ a :R, a ∈ M ∧ a ≠ 0, sorry,
+  let J : (ideal R) := ideal.span {a},
+  have J_nz : J ≠ ⊥ ∧ J ≤ M, sorry,
+  obtain ⟨Z, h_ZJ,h_nzJ⟩ : ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ J ∧
+    multiset.prod (Z.map (coe : subtype _ → ideal R)) ≠ ⊥,
+  apply exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF J_nz.left,
+  obtain ⟨P, h_ZP, h_JP⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ J, sorry,
+  replace h_JP : P.1 ≤ M, sorry,
+  replace h_JP : P.1 = M, sorry,
+  obtain ⟨Z', h_Z'Z, h_Z'P⟩ : ∃ Z' ≤ Z, Z = P ::ₘ Z', sorry,
+  let J' : ideal R := multiset.prod (Z'.map (coe : subtype _ → ideal R)),
+  have h_MJJ' : M * J' ≤ J, sorry,
+  have h_JJ' : ¬ J' ≤ J, sorry,
+  obtain ⟨b, h_bJ', h_bJ⟩ : ∃ b : R, b ∈ J' ∧ b ∉ J, sorry,
+  have h_fin : (M : fractional_ideal f) * (fractional_ideal.span_singleton (f.to_map a)⁻¹) *
+    (fractional_ideal.span_singleton (f.to_map b)) ≤ (1 : fractional_ideal f), sorry,
+  replace h_fin : (f.to_map b) * (f.to_map a)⁻¹ ∈ (1 / ↑M : fractional_ideal f), sorry,
+  have h_ab : (f.to_map b) * (f.to_map a)⁻¹ ∉ (1 : fractional_ideal f), sorry,
+  sorry,
 end
 
 lemma maximal_ideal_inv_of_dedekind (hR : is_dedekind_domain R) (hNF : ¬ is_field R)

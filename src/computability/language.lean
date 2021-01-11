@@ -13,7 +13,10 @@ The operations in this file define a [Kleene algebra](https://en.wikipedia.org/w
 over the languages.
 -/
 
-universe u
+universes u v
+
+def backwards_rec {α : Type u} {P : list α → Sort v} (hPempty : P [])
+  (hPind : ∀ l x, P l → P (l ++ [x])) : Π l, P l := sorry
 
 variables {α : Type u} [dec : decidable_eq α]
 
@@ -232,7 +235,7 @@ begin
   simp only [exists_and_distrib_left, set.mem_image2, set.image_prod, set.mem_set_of_eq] at hx,
   simp only [set.image_prod, set.image2_subset_iff] at hle,
   rcases hx with ⟨ a, ha, _, ⟨ S, rfl, hS ⟩, rfl ⟩,
-  induction S with b S ih,
+  induction S with b S ih using list.backwards_rec,
   { simpa only [list.join, list.append_nil] },
   { specialize hle a _ (b ++ S.join) _,
 

@@ -22,8 +22,8 @@ begin
 end
 
 lemma card_image_eq_card_rel_image {α β : Type*} [decidable_eq β]
-  (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})]
-  (A : finset α) : fintype.card (rel.image r A) = (rel_image r A).card :=
+  (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})] (A : finset α) :
+  fintype.card (rel.image r A) = (rel_image r A).card :=
 begin
   apply fintype.card_of_finset',
   simp [rel_image, rel.image],
@@ -49,21 +49,19 @@ open finset
 
 universes u v
 
+namespace hall_marriage_theorem
 variables {α : Type u} {β : Type v} [fintype α]
 variables (r : α → finset β)
-
-open_locale classical
-
 
 /-- Base case 0: the cardinality of `α` is ≤ `0` -/
 theorem hall_hard_inductive_zero (hn : fintype.card α ≤ 0) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin
-  have h : α → false,
-  { rwa [← fintype.card_eq_zero_iff, ← nat.le_zero_iff] },
-  refine ⟨λ a, (h a).elim, _⟩,
-  { tauto },
+  rw [nonpos_iff_eq_zero, fintype.card_eq_zero_iff] at hn,
+  refine ⟨λ a, (hn a).elim, by tauto⟩,
 end
+
+variables [decidable_eq β]
 
 /-- Base case 1: the cardinality of `α` is `1` -/
 theorem hall_hard_inductive_one (hn : fintype.card α = 1)
@@ -111,6 +109,7 @@ lemma hall_hard_inductive_step_A [nontrivial α] {n : ℕ} (hn : fintype.card α
     ∃ (f : α' → β), function.injective f ∧ ∀ x, f x ∈ r' x) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin
+  haveI : decidable_eq α := by { classical, apply_instance },
   rcases exists_pair_ne α with ⟨a, a', ne⟩,
   let α' := {a' : α // a' ≠ a},
   have hle : (finset.bind {a} r).nonempty,
@@ -189,9 +188,9 @@ lemma hall_hard_inductive_step_B [nontrivial α] {n : ℕ} (hn : fintype.card α
     ∃ (f : α' → β), function.injective f ∧ ∀ x, f x ∈ r' x) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin
+  haveI : decidable_eq α := by { classical, apply_instance },
   rcases ha with ⟨A, hA, hnA, huA⟩,
   let α' := {a' : α // a' ∈ A},
---  let β' := {b' : β // b' ∈ image_rel r A},
   let r' : α' → finset β := λ a', r a' ∩ A.bind r,
   have h3 : fintype.card α' ≤ n,
   { rw [fintype.card_of_subtype A (λ x, iff.rfl), ← nat.lt_succ_iff],
@@ -284,7 +283,7 @@ end
 If `α` has cardinality `n + 1` and the statement of Hall's Marriage Theorem
 is true for all `α'` of cardinality ≤ `n`, then it is true for `α`.
 -/
-theorem hall_hard_inductive_step [nontrivial α] {n : ℕ} (hn : fintype.card α ≤ n.succ)
+theorem hall_hard_inductive_step [nontrivial α] (n : ℕ) (hn : fintype.card α ≤ n.succ)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
   (ih : ∀ {α' : Type u} [fintype α'] (r' : α' → finset β)
     , by exactI fintype.card α' ≤ n →
@@ -334,7 +333,7 @@ begin
     { have h1lt := nat.succ_lt_succ (nat.zero_lt_succ k),
       rw ← heq at h1lt,
       rw fintype.one_lt_card_iff_nontrivial at h1lt,
-      apply @hall_hard_inductive_step α β _ r h1lt (k.succ),
+      apply hall_hard_inductive_step r k.succ,
       { rw le_iff_lt_or_eq,
         right,
         exact heq },
@@ -342,25 +341,26 @@ begin
       { exact @hk } } },
 end
 
+end hall_marriage_theorem
+
 /--
 We combine `hall_easy` and `hall_hard_inductive` into a proof
 of Hall's Marriage Theorem.
 -/
-theorem hall :
+theorem hall {α β : Type*} [fintype α] [decidable_eq β] (r : α → finset β) :
   (∀ (A : finset α), A.card ≤ (A.bind r).card)
-    ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x) :=
+  ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x) :=
 begin
   split,
-  { intros h,
-    apply hall_hard_inductive r (fintype.card α) (le_refl (fintype.card α)) h },
-  { intros h,
-    rcases h with ⟨f, hf, hf2⟩,
+  { exact hall_marriage_theorem.hall_hard_inductive r (fintype.card α) (le_refl _) },
+  { rintro ⟨f, hf, hf2⟩,
     exact card_le_of_matching r f hf hf2 },
 end
 
 
 /-- If `[fintype β]`, then `[∀ (a : α), fintype (rel.image r {a})]` is automatically implied. -/
-theorem hall' {α β : Type*} [fintype α] (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})] :
+theorem hall' {α β : Type*} [fintype α] [decidable_eq β]
+  (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})] :
   (∀ (A : finset α), A.card ≤ fintype.card (rel.image r A))
   ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
 begin

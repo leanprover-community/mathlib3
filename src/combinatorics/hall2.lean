@@ -118,10 +118,10 @@ variables {α : Type u} {β : Type v} [fintype α]
 variables (r : α → finset β)
 
 /-- Base case 0: the cardinality of `α` is ≤ `0` -/
-theorem hall_hard_inductive_zero (hn : fintype.card α ≤ 0) :
+theorem hall_hard_inductive_zero (hn : fintype.card α = 0) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin
-  rw [nonpos_iff_eq_zero, fintype.card_eq_zero_iff] at hn,
+  rw fintype.card_eq_zero_iff at hn,
   refine ⟨λ a, (hn a).elim, by tauto⟩,
 end
 
@@ -148,7 +148,7 @@ end
 and that the statement of Hall's Marriage Theorem
 is true for all `α'` of cardinality ≤ `n`, then it is true for `α`.
 -/
-lemma hall_hard_inductive_step_A [nonempty α] {n : ℕ} (hn : fintype.card α ≤ n.succ)
+lemma hall_hard_inductive_step_A [nonempty α] {n : ℕ} (hn : fintype.card α = n.succ)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
   (ih : ∀ {α' : Type u} [fintype α'] (r' : α' → finset β),
         by exactI fintype.card α' ≤ n →
@@ -170,8 +170,8 @@ begin
   let α' := {a' : α | a' ≠ a},
   let r' : α' → finset β := λ a', (r a').erase b,
   have card_α'_le : fintype.card α' ≤ n,
-  { rw fintype.card_ne_eq,
-    exact nat.sub_le_right_of_le_add hn },
+  { rw [fintype.card_ne_eq, hn],
+    exact le_refl _, },
   have hall_cond : ∀ (A : finset α'), A.card ≤ (A.bind r').card,
   { intro A',
     specialize ha (A'.image coe),
@@ -215,7 +215,7 @@ end
 and that the statement of Hall's Marriage Theorem
 is true for all `α'` of cardinality ≤ `n`, then it is true for `α`.
 -/
-lemma hall_hard_inductive_step_B {n : ℕ} (hn : fintype.card α ≤ n.succ)
+lemma hall_hard_inductive_step_B {n : ℕ} (hn : fintype.card α = n.succ)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
   (ih : ∀ {α' : Type u} [fintype α'] (r' : α' → finset β),
         by exactI fintype.card α' ≤ n →
@@ -232,9 +232,10 @@ begin
   let α' := (A : set α),
   let r' : α' → finset β := λ a', r a',
   have card_α'_le : fintype.card α' ≤ n,
-  { convert_to A.card ≤ n,
-    convert fintype.card_coe _,
-    exact nat.le_of_lt_succ (lt_of_lt_of_le (card_lt_of_ne_univ _ hnA) hn), },
+  { apply nat.le_of_lt_succ,
+    rw ←hn,
+    convert card_lt_of_ne_univ _ hnA,
+    convert fintype.card_coe _ },
   have hall_cond' : ∀ (A' : finset α'), A'.card ≤ (A'.bind r').card,
   { intro A',
     convert hr (A'.image coe) using 1,
@@ -247,10 +248,11 @@ begin
   let α'' := (A : set α)ᶜ,
   let r'' : α'' → finset β := λ a'', r a'' \ A.bind r,
   have card_α''_le : fintype.card α'' ≤ n,
-  { convert_to Aᶜ.card ≤ n,
+  { apply nat.le_of_lt_succ,
+    rw ←hn,
+    convert card_compl_lt_of_nonempty _ hA,
     convert fintype.card_coe _,
-    rw coe_compl,
-    exact nat.le_of_lt_succ (lt_of_lt_of_le (card_compl_lt_of_nonempty _ hA) hn), },
+    rw coe_compl, },
   have hall_cond'' : ∀ (B : finset α''), B.card ≤ (B.bind r'').card,
   { intro B,
     have : B.card = (A ∪ B.image coe).card - A.card,
@@ -309,7 +311,7 @@ end
 If `α` has cardinality `n + 1` and the statement of Hall's Marriage Theorem
 is true for all `α'` of cardinality ≤ `n`, then it is true for `α`.
 -/
-theorem hall_hard_inductive_step [nontrivial α] (n : ℕ) (hn : fintype.card α ≤ n.succ)
+theorem hall_hard_inductive_step [nontrivial α] (n : ℕ) (hn : fintype.card α = n.succ)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
   (ih : ∀ {α' : Type u} [fintype α'] (r' : α' → finset β),
         by exactI fintype.card α' ≤ n →
@@ -330,23 +332,23 @@ Here we combine the two base cases and the inductive step into
 a full strong induction proof, thus completing the proof
 of the second direction.
 -/
-theorem hall_hard_inductive (n : ℕ) (hn : fintype.card α ≤ n)
+theorem hall_hard_inductive (n : ℕ) (hn : fintype.card α = n)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin
   tactic.unfreeze_local_instances,
-  induction n with k hk generalizing α,
-  { apply hall_hard_inductive_zero r hn },
-  { rw le_iff_lt_or_eq at hn,
-    cases hn with hlt heq,
-    { rw nat.lt_succ_iff at hlt,
-      apply hk r hlt hr },
-    cases k,
-    { apply hall_hard_inductive_one r heq hr },
-    { haveI : nontrivial α :=
-      by { rw [←fintype.one_lt_card_iff_nontrivial, heq],
-           exact nat.succ_lt_succ (nat.succ_pos _), },
-      apply hall_hard_inductive_step r k.succ (by rw heq) hr @hk, }, },
+  revert α,
+  refine nat.strong_induction_on n (λ n' ih, _),
+  intros,
+  rcases n' with (_|_|_),
+  { exact hall_hard_inductive_zero r hn },
+  { apply hall_hard_inductive_one r hn hr },
+  { haveI : nontrivial α :=
+    by { rw [←fintype.one_lt_card_iff_nontrivial, hn],
+         exact nat.succ_lt_succ (nat.succ_pos _), },
+    apply hall_hard_inductive_step r n'.succ hn hr,
+    introsI α' _ r' hα',
+    exact ih (fintype.card α') (nat.lt_succ_of_le hα') r' rfl, },
 end
 
 end hall_marriage_theorem
@@ -360,7 +362,7 @@ theorem hall {α β : Type*} [fintype α] [decidable_eq β] (r : α → finset �
   ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x) :=
 begin
   split,
-  { exact hall_marriage_theorem.hall_hard_inductive r (fintype.card α) (le_refl _) },
+  { exact hall_marriage_theorem.hall_hard_inductive r (fintype.card α) rfl },
   { rintro ⟨f, hf, hf2⟩,
     exact card_le_of_matching r f hf hf2 },
 end

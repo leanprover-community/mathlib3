@@ -706,6 +706,8 @@ def apply (v : E) : (E →L[𝕜] F) →L[𝕜] F :=
 
 variables {𝕜 F}
 
+@[simp] lemma apply_apply (v : E) (f : E →L[𝕜] F) : apply 𝕜 F v f = f v := rfl
+
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 

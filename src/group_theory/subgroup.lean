@@ -715,6 +715,18 @@ lemma comap_infi {ι : Sort*} (f : G →* N) (s : ι → subgroup N) :
 @[simp, to_additive] lemma comap_top (f : G →* N) : (⊤ : subgroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
+@[to_additive]
+lemma map_eq_bot_iff {G' : Type*} [group G'] {f : G →* G'} (hf : function.injective f)
+  (H : subgroup G) : H.map f = ⊥ ↔ H = ⊥ :=
+begin
+  split,
+  { rw [eq_bot_iff_forall, eq_bot_iff_forall],
+    intros h x hx,
+    have hfx : f x = 1 := h (f x) ⟨x, hx, rfl⟩,
+    exact hf (show f x = f 1, by simp only [hfx, monoid_hom.map_one]), },
+  { intros h, rw [h, map_bot], },
+end
+
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`
 as an `add_subgroup` of `A × B`."]

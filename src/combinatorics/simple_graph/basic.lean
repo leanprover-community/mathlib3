@@ -345,7 +345,8 @@ We define `complement G` to be the `simple_graph V` such that no two adjacent ve
 are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
 (still ensuring that vertices are not adjacent to themselves.)
 -/
-def complement (G : simple_graph V) : simple_graph V :=
+@[simps]
+def compl (G : simple_graph V) : simple_graph V :=
 { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
   sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa edge_symm⟩,
   loopless := λ v ⟨hne, _⟩, false.elim (hne rfl) }
@@ -353,19 +354,16 @@ def complement (G : simple_graph V) : simple_graph V :=
 /--
 The complement of the complement of `G` is equal to `G`.
 -/
-lemma complement_involutive (G : simple_graph V) : complement (complement G) = G :=
+lemma compl_compl (G : simple_graph V) : compl (compl G) = G :=
 begin
   ext v w,
-  split,
-  { intros h,
-    simp_rw [complement, not_and, not_not] at h,
-    exact h.2 h.1 },
-  { intros h,
-    simp only [complement, not_and, not_not],
-    refine ⟨_, λ h2, h⟩,
-    { rintro rfl,
-      apply G.loopless v h } },
+  split; simp only [compl_adj, not_and, not_not],
+  { exact λ ⟨hne, h⟩, h hne },
+  { intro h,
+    simpa [G.ne_of_adj h], },
 end
+
+lemma compl_involutive : function.involutive (@compl V) := compl_compl
 
 end complement
 

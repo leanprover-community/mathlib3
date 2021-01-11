@@ -1348,24 +1348,24 @@ begin
   exact rpow_le_rpow h (by simp [le_of_lt hz]),
 end
 
-lemma rpow_lt_rpow_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) : x < y ↔ x^z < y^z :=
+lemma rpow_lt_rpow_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) :  x ^ z < y ^ z ↔ x < y :=
 begin
-  refine ⟨λ h, rpow_lt_rpow h hz, λ h_lt, _⟩,
+  refine ⟨λ h_lt, _, λ h, rpow_lt_rpow h hz⟩,
   rw [←rpow_one x, ←rpow_one y,  ←@_root_.mul_inv_cancel _ _ z (ne_of_lt hz).symm, rpow_mul,
     rpow_mul],
   exact rpow_lt_rpow h_lt (by simp [hz]),
 end
 
-lemma rpow_le_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) : x ^ z ≤ y ↔ x ≤ y ^ (1 / z) :=
+lemma rpow_le_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) :  x ≤ y ^ (1 / z) ↔ x ^ z ≤ y :=
 begin
-  nth_rewrite 1 ←rpow_one x,
+  nth_rewrite 0 ←rpow_one x,
   nth_rewrite 0 ←@_root_.mul_inv_cancel _ _ z (ne_of_lt hz).symm,
   rw [rpow_mul, ←one_div, @rpow_le_rpow_iff _ _ (1/z) (by simp [hz])],
 end
 
-lemma rpow_lt_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) : x ^ z < y ↔ x < y ^ (1 / z) :=
+lemma rpow_lt_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) : x < y ^ (1 / z) ↔ x ^ z < y :=
 begin
-  nth_rewrite 1 ←rpow_one x,
+  nth_rewrite 0 ←rpow_one x,
   nth_rewrite 0 ←@_root_.mul_inv_cancel _ _ z (ne_of_lt hz).symm,
   rw [rpow_mul, ←one_div, @rpow_lt_rpow_iff _ _ (1/z) (by simp [hz])],
 end

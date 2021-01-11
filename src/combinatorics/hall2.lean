@@ -148,7 +148,7 @@ end
 and that the statement of Hall's Marriage Theorem
 is true for all `α'` of cardinality ≤ `n`, then it is true for `α`.
 -/
-lemma hall_hard_inductive_step_A [nonempty α] {n : ℕ} (hn : fintype.card α = n.succ)
+lemma hall_hard_inductive_step_A {n : ℕ} (hn : fintype.card α = n.succ)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
   (ih : ∀ {α' : Type u} [fintype α'] (r' : α' → finset β),
         by exactI fintype.card α' ≤ n →
@@ -157,6 +157,9 @@ lemma hall_hard_inductive_step_A [nonempty α] {n : ℕ} (hn : fintype.card α =
   (ha : ∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (A.bind r).card) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin
+  haveI : nonempty α :=
+  by { rw [←fintype.card_pos_iff, hn],
+       exact nat.succ_pos _, },
   haveI : decidable_eq α := by { classical, apply_instance },
   /- Choose an arbitrary element `a : α` and `b : r a`. -/
   let a : α := classical.choice (by apply_instance),
@@ -311,7 +314,7 @@ end
 If `α` has cardinality `n + 1` and the statement of Hall's Marriage Theorem
 is true for all `α'` of cardinality ≤ `n`, then it is true for `α`.
 -/
-theorem hall_hard_inductive_step [nontrivial α] (n : ℕ) (hn : fintype.card α = n.succ)
+theorem hall_hard_inductive_step (n : ℕ) (hn : fintype.card α = n.succ)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
   (ih : ∀ {α' : Type u} [fintype α'] (r' : α' → finset β),
         by exactI fintype.card α' ≤ n →
@@ -343,10 +346,7 @@ begin
   rcases n' with (_|_|_),
   { exact hall_hard_inductive_zero r hn },
   { apply hall_hard_inductive_one r hn hr },
-  { haveI : nontrivial α :=
-    by { rw [←fintype.one_lt_card_iff_nontrivial, hn],
-         exact nat.succ_lt_succ (nat.succ_pos _), },
-    apply hall_hard_inductive_step r n'.succ hn hr,
+  { apply hall_hard_inductive_step r n'.succ hn hr,
     introsI α' _ r' hα',
     exact ih (fintype.card α') (nat.lt_succ_of_le hα') r' rfl, },
 end

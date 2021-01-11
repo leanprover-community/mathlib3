@@ -95,6 +95,10 @@ by simpa only [mem_range, exists_prop] using set.exists_range_iff
 lemma preimage_eq_empty_iff (f : α →ₛ β) (b : β) : f ⁻¹' {b} = ∅ ↔ b ∉ f.range :=
 preimage_singleton_eq_empty.trans $ not_congr mem_range.symm
 
+lemma exists_forall_le [nonempty β] [directed_order β] (f : α →ₛ β) :
+  ∃ C, ∀ x, f x ≤ C :=
+f.range.exists_le.imp $ λ C, forall_range_iff.1
+
 /-- Constant function as a `simple_func`. -/
 def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
 ⟨λ a, b, λ x, is_measurable.const _, finite_range_const⟩
@@ -275,6 +279,10 @@ rfl
 
 lemma const_mul_eq_map [has_mul β] (f : α →ₛ β) (b : β) : const α b * f = f.map (λa, b * a) := rfl
 
+theorem map_add [has_add β] [has_add γ] {g : β → γ}
+  (hg : ∀ x y, g (x + y) = g x + g y) (f₁ f₂ : α →ₛ β) : (f₁ + f₂).map g = f₁.map g + f₂.map g :=
+ext $ λ x, hg _ _
+
 instance [add_monoid β] : add_monoid (α →ₛ β) :=
 function.injective.add_monoid (λ f, show α → β, from f) coe_injective coe_zero coe_add
 
@@ -287,8 +295,10 @@ instance [has_neg β] : has_neg (α →ₛ β) := ⟨λf, f.map (has_neg.neg)⟩
 
 instance [has_sub β] : has_sub (α →ₛ β) := ⟨λf g, (f.map (has_sub.sub)).seq g⟩
 
-@[simp, norm_cast] lemma coe_sub [add_group β] (f g : α →ₛ β) : ⇑(f - g) = f - g :=
+@[simp, norm_cast] lemma coe_sub [has_sub β] (f g : α →ₛ β) : ⇑(f - g) = f - g :=
 rfl
+
+lemma sub_apply [has_sub β] (f g : α →ₛ β) (x : α) : (f - g) x = f x - g x := rfl
 
 instance [add_group β] : add_group (α →ₛ β) :=
 function.injective.add_group_sub (λ f, show α → β, from f) coe_injective
@@ -496,7 +506,7 @@ by rw [ennreal_rat_embed, encodable.encodek]; refl
 def eapprox : (α → ennreal) → ℕ → α →ₛ ennreal :=
 approx ennreal_rat_embed
 
-lemma monotone_eapprox (f : α → ennreal) : monotone (eapprox f) :=
+@[mono] lemma monotone_eapprox (f : α → ennreal) : monotone (eapprox f) :=
 monotone_approx _ f
 
 lemma supr_eapprox_apply (f : α → ennreal) (hf : measurable f) (a : α) :
@@ -916,6 +926,24 @@ begin
     simp only [hx, le_top] }
 end
 
+lemma exists_simple_func_forall_lintegral_sub_lt_of_pos {f : α → ennreal} (h : ∫⁻ x, f x ∂μ < ⊤)
+  {ε : ennreal} (hε : 0 < ε) :
+  ∃ φ : α →ₛ ℝ≥0, (∀ x, ↑(φ x) ≤ f x) ∧ ∀ ψ : α →ₛ ℝ≥0, (∀ x, ↑(ψ x) ≤ f x) →
+    (map coe (ψ - φ)).lintegral μ < ε :=
+begin
+  rw lintegral_eq_nnreal at h,
+  have := ennreal.lt_add_right h hε,
+  erw ennreal.bsupr_add at this; [skip, exact ⟨0, λ x, by simp⟩],
+  simp_rw [lt_supr_iff, supr_lt_iff, supr_le_iff] at this,
+  rcases this with ⟨φ, hle : ∀ x, ↑(φ x) ≤ f x, b, hbφ, hb⟩,
+  refine ⟨φ, hle, λ ψ hψ, _⟩,
+  have : (map coe φ).lintegral μ < ⊤, from (le_bsupr φ hle).trans_lt h,
+  rw [← add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
+  refine (hb _ (λ x, le_trans _ (max_le (hle x) (hψ x)))).trans_lt hbφ,
+  norm_cast,
+  simp only [add_apply, sub_apply, nnreal.add_sub_eq_max]
+end
+
 theorem supr_lintegral_le {ι : Sort*} (f : ι → α → ennreal) :
   (⨆i, ∫⁻ a, f i a ∂μ) ≤ (∫⁻ a, ⨆i, f i a ∂μ) :=
 begin
@@ -1054,11 +1082,57 @@ lemma set_lintegral_congr {f : α → ennreal} {s t : set α} (h : s =ᵐ[μ] t)
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
 by rw [restrict_congr_set h]
 
+/-- If `f` has finite integral, then `∫⁻ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
+to zero as `μ s` tends to zero. This lemma states states this fact in terms of `ε` and `δ`. -/
+lemma exists_pos_set_lintegral_lt_of_measure_lt {f : α → ennreal} (h : ∫⁻ x, f x ∂μ < ⊤)
+  {ε : ennreal} (hε : 0 < ε) :
+  ∃ δ > 0, ∀ s, μ s < δ → ∫⁻ x in s, f x ∂μ < ε :=
+begin
+  rcases exists_between hε with ⟨ε₂, hε₂0, hε₂ε⟩, rcases exists_between hε₂0 with ⟨ε₁, hε₁0, hε₁₂⟩,
+  rcases exists_simple_func_forall_lintegral_sub_lt_of_pos h hε₁0 with ⟨φ, hle, hφ⟩,
+  rcases φ.exists_forall_le with ⟨C, hC⟩,
+  use [(ε₂ - ε₁) / C, ennreal.div_pos_iff.2 ⟨(zero_lt_sub_iff_lt.2 hε₁₂).ne', ennreal.coe_ne_top⟩],
+  intros s hs,
+  simp only [lintegral_eq_nnreal, supr_lt_iff, supr_le_iff],
+  refine ⟨ε₂, hε₂ε, λ ψ hψ, _⟩,
+  calc (map coe ψ).lintegral (μ.restrict s)
+      ≤ (map coe φ).lintegral (μ.restrict s) + (map coe (ψ - φ)).lintegral (μ.restrict s) :
+    begin
+      rw [← simple_func.add_lintegral, ← simple_func.map_add @ennreal.coe_add],
+      refine simple_func.lintegral_mono (λ x, _) le_rfl,
+      simp [-ennreal.coe_add, nnreal.add_sub_eq_max, le_max_right]
+    end
+  ... ≤ (map coe φ).lintegral (μ.restrict s) + ε₁ :
+    begin
+      refine add_le_add le_rfl (le_trans _ (hφ _ hψ).le),
+      exact simple_func.lintegral_mono le_rfl measure.restrict_le_self
+    end
+  ... ≤ (simple_func.const α (C : ennreal)).lintegral (μ.restrict s) + ε₁ :
+    by { mono*, exacts [λ x, coe_le_coe.2 (hC x), le_rfl, le_rfl] }
+  ... = C * μ s + ε₁ : by simp [← simple_func.lintegral_eq_lintegral]
+  ... ≤ C * ((ε₂ - ε₁) / C) + ε₁ : by { mono*, exacts [le_rfl, hs.le, le_rfl] }
+  ... ≤ (ε₂ - ε₁) + ε₁ : add_le_add mul_div_le le_rfl
+  ... = ε₂ : sub_add_cancel_of_le hε₁₂.le,
+end
+
+/-- If `f` has finite integral, then `∫⁻ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
+to zero as `μ s` tends to zero. -/
+lemma tendsto_set_lintegral_zero {ι} {f : α → ennreal} (h : ∫⁻ x, f x ∂μ < ⊤)
+  {l : filter ι} {s : ι → set α} (hl : tendsto (μ ∘ s) l (𝓝 0)) :
+  tendsto (λ i, ∫⁻ x in s i, f x ∂μ) l (𝓝 0) :=
+begin
+  simp only [ennreal.nhds_zero, tendsto_infi, tendsto_principal, mem_Iio, ← pos_iff_ne_zero]
+    at hl ⊢,
+  intros ε ε0,
+  rcases exists_pos_set_lintegral_lt_of_measure_lt h ε0 with ⟨δ, δ0, hδ⟩,
+  exact (hl δ δ0).mono (λ i, hδ _)
+end
+
 @[simp] lemma lintegral_add {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
   (∫⁻ a, f a + g a ∂μ) = (∫⁻ a, f a ∂μ) + (∫⁻ a, g a ∂μ) :=
 calc (∫⁻ a, f a + g a ∂μ) =
     (∫⁻ a, (⨆n, (eapprox f n : α → ennreal) a) + (⨆n, (eapprox g n : α → ennreal) a) ∂μ) :
-    by congr; funext a; rw [supr_eapprox_apply f hf, supr_eapprox_apply g hg]
+    by simp only [supr_eapprox_apply, hf, hg]
   ... = (∫⁻ a, (⨆n, (eapprox f n + eapprox g n : α → ennreal) a) ∂μ) :
   begin
     congr, funext a,

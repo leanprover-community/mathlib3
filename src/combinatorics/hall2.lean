@@ -1,12 +1,51 @@
 import data.fintype.basic
 import data.rel
 
+namespace finset
+
 /-- Given a relation whose images are all finite, construct the `finset` version of `rel.image`. -/
-def finset.rel_image {α β : Type*} [decidable_eq β] (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})]
+def rel_image {α β : Type*} [decidable_eq β]
+  (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})]
   (A : finset α) : finset β :=
 A.bind (λ a, (rel.image r {a}).to_finset)
 
+/-- Given a relation such that the image of every singleton set is finite, then the image of every
+finite set is finite. -/
+instance {α β : Type*} [decidable_eq β]
+  (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})]
+  (A : finset α) : fintype (rel.image r A) :=
+begin
+  have h : rel.image r A = (A.rel_image r : set β),
+  { ext, simp [rel_image, rel.image], },
+  rw [h],
+  apply finset_coe.fintype,
+end
+
+lemma card_image_eq_card_rel_image {α β : Type*} [decidable_eq β]
+  (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})]
+  (A : finset α) : fintype.card (rel.image r A) = (rel_image r A).card :=
+begin
+  apply fintype.card_of_finset',
+  simp [rel_image, rel.image],
+end
+
+/-- A matching is an injective element of the product of an indexed family of sets. -/
+lemma card_le_of_matching {α β : Type*} [decidable_eq β] (ι : α → finset β)
+  (f : α → β) (hf₁ : function.injective f) (hf₂ : ∀ x, f x ∈ ι x) (A : finset α) :
+  A.card ≤ (A.bind ι).card :=
+begin
+  rw ←card_image_of_injective A hf₁,
+  apply card_le_of_subset,
+  intro b,
+  rw [mem_image, mem_bind],
+  rintros ⟨a, ha, rfl⟩,
+  exact ⟨a, ha, hf₂ a⟩,
+end
+
+end finset
+
 open finset
+
 
 universes u v
 
@@ -15,24 +54,6 @@ variables (r : α → finset β)
 
 open_locale classical
 
-/-- Suppose there exists an injective function `f : α → β` where, for all `x` of type `α`,
- `r x (f x)`. Then for all finite sets `A` made up of elements of type `α`,
- `A.card ≤ (image_rel r A).card` -/
-theorem hall_easy (f : α → β) (hf₁ : function.injective f) (hf₂ : ∀ x, f x ∈ r x) (A : finset α) :
-  A.card ≤ (A.bind r).card :=
-begin
-  suffices h : (image f A) ⊆ (A.bind r),
-  { rw ← card_image_of_injective A hf₁,
-    apply card_le_of_subset h },
-  rw subset_iff,
-  intros x h2,
-  simp only [mem_image, exists_prop] at h2,
-  rcases h2 with ⟨a, ha, hfa⟩,
-  specialize hf₂ a,
-  rw hfa at hf₂,
-  simp only [mem_bind, exists_prop],
-  use ⟨a, ha, hf₂⟩,
-end
 
 /-- Base case 0: the cardinality of `α` is ≤ `0` -/
 theorem hall_hard_inductive_zero (hn : fintype.card α ≤ 0) :
@@ -334,13 +355,13 @@ begin
     apply hall_hard_inductive r (fintype.card α) (le_refl (fintype.card α)) h },
   { intros h,
     rcases h with ⟨f, hf, hf2⟩,
-    exact hall_easy r f hf hf2 },
+    exact card_le_of_matching r f hf hf2 },
 end
 
 
 /-- If `[fintype β]`, then `[∀ (a : α), fintype (rel.image r {a})]` is automatically implied. -/
 theorem hall' {α β : Type*} [fintype α] (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})] :
-  (∀ (A : finset α), A.card ≤ (rel_image r A).card)
+  (∀ (A : finset α), A.card ≤ fintype.card (rel.image r A))
   ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
 begin
   let r' := λ a, (rel.image r {a}).to_finset,
@@ -350,6 +371,6 @@ begin
     simp [rel_image], },
   have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
   { simp [rel.image], },
-  simp only [h, h'],
+  simp only [h, h', card_image_eq_card_rel_image],
   apply hall,
 end

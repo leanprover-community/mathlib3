@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import tactic
 import data.polynomial.monomial
-import data.finset.nat_antidiagonal
+import algebra.big_operators.nat_antidiagonal
 
 /-!
 # Theory of univariate polynomials
@@ -62,45 +62,11 @@ lemma coeff_mul (p q : polynomial R) (n : ℕ) :
   coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
 add_monoid_algebra.mul_apply_antidiagonal p q n _ (λ x, nat.mem_antidiagonal)
 
-lemma diag_inj
-  (n : ℕ) (x : ℕ × ℕ) (hx : x ∈ nat.antidiagonal n) (y : ℕ × ℕ) (hy : y ∈ nat.antidiagonal n) :
-  prod.fst x = prod.fst y → x = y :=
-begin
-  intro hg,
-  simp [nat.mem_antidiagonal] at *,
-  ext,
-  exact hg,
-  replace hg : x.fst = y.fst := by exact hg,
-  rw [← hx, hg] at hy,
-  rw add_left_cancel hy,
-end
-
-lemma coeff_mul' (n : ℕ) (p q : polynomial R) :
+lemma coeff_mul' (n : ℕ) (p q : polynomial R) [comm_monoid R] :
   coeff (p * q) n = ∑ i in range (n + 1), coeff p i * coeff q (n - i) :=
 begin
   rw coeff_mul,
-  have hh := sum_image (diag_inj n),
-  symmetry,
-  have h : range (n + 1) = image (λ (x : ℕ × ℕ), prod.fst x) (nat.antidiagonal n) :=
-  begin
-  ext,
-  split,
-  { intro h,
-    rw mem_image,
-    use (a, n - a),
-    split,
-    { simp only [nat.mem_antidiagonal, nat.add_sub_cancel' (mem_range_succ_iff.mp h)] },
-    { refl } },
-  { intro h,
-    rcases (mem_image.mp h) with ⟨x, hx, hxx⟩,
-    replace hxx : x.fst = a := by exact hxx,
-    rw [nat.mem_antidiagonal, hxx] at hx,
-    rw mem_range_succ_iff,
-    linarith },
-  end,
-  rw [h, hh],
-  refine finset.sum_congr rfl (λ x hx, _),
-  rw ← nat.sub_eq_of_eq_add (eq.symm (nat.mem_antidiagonal.mp hx)),
+  convert ← nat.sum_antidiagonal_eq_sum_range_succ (λ a, λ b, coeff p a * coeff q b) n,
 end
 
 @[simp] lemma mul_coeff_zero (p q : polynomial R) : coeff (p * q) 0 = coeff p 0 * coeff q 0 :=

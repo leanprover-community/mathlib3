@@ -58,7 +58,7 @@ by { convert coeff_monomial using 2, simp [eq_comm], }
 @[simp] lemma coeff_C_zero : coeff (C a) 0 = a := coeff_monomial
 
 lemma coeff_C_ne_zero (h : n ≠ 0) : (C a).coeff n = 0 :=
-by finish [coeff_C]
+by rw [coeff_C, if_neg h]
 
 theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
 ⟨⟨0, 1, λ h01 : 0 = 1, h $

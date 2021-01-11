@@ -436,9 +436,24 @@ end is_compl
 
 variables [is_complemented α]
 
+instance is_coatomic_of_is_atomic_of_is_complemented_of_is_modular [is_atomic α] : is_coatomic α :=
+⟨λ x, begin
+  rcases exists_is_compl x with ⟨y, xy⟩,
+  apply (eq_bot_or_exists_atom_le y).imp _ _,
+  { rintro rfl,
+    exact eq_top_of_is_compl_bot xy },
+  { rintro ⟨a, ha, ay⟩,
+    rcases exists_is_compl (xy.symm.Iic_order_iso_Ici ⟨a, ay⟩) with ⟨⟨b, xb⟩, hb⟩,
+    refine ⟨↑(⟨b, xb⟩ : set.Ici x), is_coatom.of_is_coatom_coe_Ici _, xb⟩,
+    rw [← hb.is_atom_iff_is_coatom, order_iso.is_atom_iff],
+    apply ha.Iic }
+end⟩
+
+instance is_atomic_of_is_coatomic_of_is_complemented_of_is_modular [is_coatomic α] : is_atomic α :=
+is_atomic_iff_is_coatomic_dual.2 is_coatomic_of_is_atomic_of_is_complemented_of_is_modular
+
 theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=
-begin
-  sorry
-end
+⟨λ h, @is_coatomic_of_is_atomic_of_is_complemented_of_is_modular _ _ _ _ h,
+  λ h, @is_atomic_of_is_coatomic_of_is_complemented_of_is_modular _ _ _ _ h⟩
 
 end is_modular_lattice

@@ -100,10 +100,16 @@ end distrib_lattice
 
 namespace is_modular_lattice
 
-variables [bounded_lattice α] [is_modular_lattice α]
+variables [bounded_lattice α] [is_modular_lattice α] {a : α}
+
+instance is_modular_lattice_Iic : is_modular_lattice (set.Iic a) :=
+⟨λ x y z xz, (sup_inf_le_assoc_of_le (y : α) xz : (↑x ⊔ ↑y) ⊓ ↑z ≤ ↑x ⊔ ↑y ⊓ ↑z)⟩
+
+instance is_modular_lattice_Ici : is_modular_lattice (set.Ici a) :=
+⟨λ x y z xz, (sup_inf_le_assoc_of_le (y : α) xz : (↑x ⊔ ↑y) ⊓ ↑z ≤ ↑x ⊔ ↑y ⊓ ↑z)⟩
 
 section is_complemented
-variables [is_complemented α] {a : α}
+variables [is_complemented α]
 
 instance is_complemented_Iic : is_complemented (set.Iic a) :=
 ⟨λ ⟨x, hx⟩, ⟨⟨(classical.some (exists_is_compl x)) ⊓ a, set.mem_Iic.2 inf_le_right⟩, begin

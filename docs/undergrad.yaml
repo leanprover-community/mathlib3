@@ -344,9 +344,8 @@ Single Variable Real Analysis:
     change of variable:
     integration by parts:
     improper integrals:
-    absolute convergence of improper integrals:
+    absolute vs conditional convergence of improper integrals:
     comparison test for improper integrals:
-    conditional convergence of improper integrals:
   Sequences and series of functions:
     pointwise convergence:
     uniform convergence: 'tendsto_uniformly'

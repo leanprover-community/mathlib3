@@ -7,7 +7,7 @@ import measure_theory.prod
 import measure_theory.group
 
 /-!
-# The product of groups
+# Measure theory in the product of groups
 
 In this file we show properties about measure theory in products of topological groups
 and properties of iterated integrals in topological groups.
@@ -139,14 +139,13 @@ lemma measure_mul_right_ne_zero (hμ : is_mul_left_invariant μ) {E : set G} (hE
   (h2E : μ E ≠ 0) (y : G) : μ ((λ x, x * y) ⁻¹' E) ≠ 0 :=
 (not_iff_not_of_iff (measure_mul_right_null hμ hE y)).mpr h2E
 
-/-- This is basically [Halmos, §60 Th. A].
+/-- A technical lemma relating two different measures. This is basically [Halmos, §60 Th. A].
   There seems to be a gap in the last step of the proof in [Halmos].
   In the last line, the equality `g(x⁻¹)ν(Ex⁻¹) = f(x)` holds if we can prove that
   `0 < ν(Ex⁻¹) < ∞`. The first inequality follows from §59, Th. D, but I couldn't find the second
   inequality. For this reason, we use a compact `E` instead of a measurable `E` as in [Halmos], and
   additionally assume that `ν` is a regular measure (we only need that it is finite on compact
-  sets).
- -/
+  sets). -/
 lemma measure_lintegral_div_measure [t2_space G] (hμ : is_mul_left_invariant μ)
   (hν : is_mul_left_invariant ν) (h2ν : regular ν) {E : set G} (hE : is_compact E) (h2E : ν E ≠ 0)
   (f : G → ennreal) (hf : measurable f) :
@@ -174,6 +173,8 @@ begin
   exact ((measurable_const.indicator Em).comp measurable_fst).ennreal_mul (hg.comp measurable_snd)
 end
 
+/-- This is roughly the uniqueness (up to a scalar) of left invariant Borel measures on a second
+  countable locally compact group. -/
 lemma measure_mul_measure_eq [t2_space G] (hμ : is_mul_left_invariant μ)
   (hν : is_mul_left_invariant ν) (h2ν : regular ν) {E F : set G}
   (hE : is_compact E) (hF : is_measurable F) (h2E : ν E ≠ 0) : μ E * ν F = ν E * μ F :=

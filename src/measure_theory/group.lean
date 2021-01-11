@@ -4,14 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.integration
+
 /-!
 # Measures on Groups
 
 We develop some properties of measures on (topological) groups
 
 * We define properties on measures: left and right invariant measures.
-* We define the measure `A ↦ μ(A⁻¹)` and show that it is right invariant iff `μ` is left invariant.
+* We define the measure `μ.inv : A ↦ μ(A⁻¹)` and show that it is right invariant iff
+  `μ` is left invariant.
 -/
+
 noncomputable theory
 
 open has_inv set function

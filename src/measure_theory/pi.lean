@@ -44,12 +44,12 @@ finitary product measure
 -/
 
 noncomputable theory
-open function set measure_theory.outer_measure filter
+open function set measure_theory.outer_measure filter topological_space
 open_locale classical big_operators topological_space ennreal
 
 namespace measure_theory
 
-variables {ι : Type*} [fintype ι] {α : ι → Type*} {m : Π i, outer_measure (α i)}
+variables {ι ι' : Type*} [fintype ι] [fintype ι'] {α : ι → Type*} {m : Π i, outer_measure (α i)}
 
 /-- An upper bound for the measure in a finite product space.
   It is defined to by taking the image of the set under all projections, and taking the product
@@ -68,7 +68,7 @@ begin
   cases (pi univ s).eq_empty_or_nonempty with h h,
   { rcases univ_pi_eq_empty_iff.mp h with ⟨i, hi⟩,
     have : ∃ i, m i (s i) = 0 := ⟨i, by simp [hi]⟩,
-    simpa [h, finset.card_univ, zero_pow (fintype.card_pos_iff.mpr _inst_2),
+    simpa [h, finset.card_univ, zero_pow (fintype.card_pos_iff.mpr ‹_›),
       @eq_comm _ (0 : ℝ≥0∞), finset.prod_eq_zero_iff] },
   { simp [h] }
 end
@@ -257,6 +257,23 @@ lemma ae_eval_ne (i : ι) [has_no_atoms (μ i)] (x : α i) :
   ∀ᵐ y : Π i, α i ∂measure.pi μ, y i ≠ x :=
 compl_mem_ae_iff.2 (pi_hyperplane μ i x)
 
+lemma pi_empty_left (h : ι → false) : measure.pi μ = dirac (λ i, (h i).elim) :=
+sorry
+
+/-- Given one value over a subsingleton, we get a dependent function. -/
+def subsingleton_const [subsingleton ι] {i : ι} (x : α i) (j : ι) : α j :=
+by { rw [subsingleton.elim j i], exact x }
+
+@[simp] lemma subsingleton_const_self [subsingleton ι] {i : ι} (x : α i) :
+  subsingleton_const x i = x := rfl
+
+lemma pi_subsingleton_left [subsingleton ι] (i : ι) : measure.pi μ = map subsingleton_const (μ i) :=
+sorry
+
+lemma pi_map_left (f : ι ≃ ι') :
+  map (f.Pi_congr_left' α).symm (measure.pi (λ i', μ (f.symm i'))) = measure.pi μ :=
+sorry
+
 variable {μ}
 
 lemma tendsto_eval_ae_ae {i : ι} : tendsto (eval i) (measure.pi μ).ae (μ i).ae :=
@@ -365,5 +382,74 @@ lemma volume_pi_pi [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : m
   (s : Π i, set (α i)) (hs : ∀ i, measurable_set (s i)) :
   volume (pi univ s) = ∏ i, volume (s i) :=
 measure.pi_pi (λ i, volume) s hs
+
+section integrate_away
+
+open finset
+variables {δ : Type*} {π : δ → Type*} [∀ x, measurable_space (π x)]
+variables {μ : ∀ i, measure (π i)} [∀ i, sigma_finite (μ i)]
+variables {E : Type*} [normed_group E] [second_countable_topology E]
+  [normed_space ℝ E] [complete_space E] [measurable_space E] [borel_space E]
+
+/-- Integrate `f(x₁,…,xₙ)` over all variables `xᵢ` where `i ∈ s`. Return a function in the
+  remaining variables (it will be constant in the `xᵢ` for `i ∈ s`) -/
+-- give better name?
+def integrate_away (μ : ∀ i, measure (π i)) (s : finset δ) (f : (Π i, π i) → E) (x : Π i, π i) :
+  E :=
+∫ y : Π i : {i // i ∈ s}, π i, f (λ i, if hi : i ∈ s then y ⟨i, hi⟩ else x i)
+  ∂(measure.pi (λ i : {i // i ∈ s}, μ i))
+
+/- Note: this notation is not a binder. This is more convenient since it returns a function. -/
+notation `∫⋯∫_` s `, ` f ` ∂` μ:70 := integrate_away μ s f
+notation `∫⋯∫_` s `, ` f := integrate_away volume s f
+
+lemma integrate_away_empty (f : (Π i, π i) → E) : ∫⋯∫_ ∅, f ∂μ = f :=
+begin
+  haveI : subsingleton (Π (i : { i // i ∈ (∅ : finset δ)}), π i) := ⟨λ x y, funext $ λ i, i.2.elim⟩,
+  ext x,
+  simp_rw [integrate_away, measure.pi_empty_left _ (λ i : { i // i ∈ (∅ : finset δ)}, i.prop)],
+  refine (integral_dirac _ _ subsingleton.measurable).trans (by simp)
+end
+
+lemma integrate_away_eq {s : finset δ} {x y : Π i, π i} (f : (Π i, π i) → E)
+  (h : ∀ i ∉ s, x i = y i) : (∫⋯∫_ s, f ∂μ) x = (∫⋯∫_ s, f ∂μ) y :=
+by { dsimp [integrate_away], rcongr, exact h _ ‹_› }
+
+lemma integrate_away_union (f : (Π i, π i) → E) (s t : finset δ) (hst : disjoint s t) :
+  ∫⋯∫_ s ∪ t, f ∂μ = ∫⋯∫_ t, ∫⋯∫_ s, f ∂μ ∂μ :=
+begin
+  let e : { j // j ∈ s ∪ t} ≃ { j // j ∈ s} × { j // j ∈ t} := equiv.subtype_univ_equiv finset.mem_univ,
+  ext x,
+  simp_rw [integrate_away, ← measure.pi_map_left μ e.symm],
+  rw [integral_map], congr' with y, congr' with i, simp [e], dsimp [e], refl,
+  sorry, sorry
+end
+
+
+lemma integrate_away_singleton (f : (Π i, π i) → E) (i : δ) :
+  ∫⋯∫_ {i}, f ∂μ = λ x, ∫ xᵢ, f (function.update x i xᵢ) ∂(μ i) :=
+begin
+  haveI : subsingleton ({ j // j ∈ ({i} : finset δ)}) :=
+  ⟨λ j₁ j₂, subtype.ext $ (finset.mem_singleton.mp j₁.2).trans (finset.mem_singleton.mp j₂.2).symm⟩,
+  ext x,
+  simp_rw [integrate_away,
+    measure.pi_subsingleton_left _ (⟨i, finset.mem_singleton_self i⟩ : { j // j ∈ ({i} : finset δ)})],
+  rw [integral_map], congr' with y, congr' with j,
+  by_cases hij : j = i, { cases hij.symm, simp },
+  simp [hij],
+  sorry, sorry
+end
+
+lemma integrate_away_univ [fintype δ] (f : (Π i, π i) → E) :
+  ∫⋯∫_ finset.univ, f ∂μ = λ _, ∫ x, f x ∂(measure.pi μ) :=
+begin
+  let e : { j // j ∈ finset.univ} ≃ δ := equiv.subtype_univ_equiv finset.mem_univ,
+  ext x,
+  simp_rw [integrate_away, ← measure.pi_map_left μ e.symm],
+  rw [integral_map], congr' with y, congr' with i, simp [e], dsimp [e], refl,
+  sorry, sorry
+end
+
+end integrate_away
 
 end measure_theory

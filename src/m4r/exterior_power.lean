@@ -25,8 +25,10 @@ submodule.span R (tpow.mk' R M n '' exists_same M n)
 
 @[reducible] def epow (n : ℕ) := (epow_ker R M n).quotient
 
-def epow.mk (n : ℕ) : multilinear_map R (λ i : fin n, M) (epow R M n) :=
-(epow_ker R M n).mkq.comp_multilinear_map (tpow.mk' R M n)
+def epow.mk (n : ℕ) : alternating_map R M (epow R M n) (fin n) :=
+{ map_eq_zero_of_eq' := λ v i j h hij, (submodule.quotient.mk_eq_zero _).2 $ submodule.subset_span $
+    set.mem_image_of_mem _ ⟨i, j, h, hij⟩,
+  ..(epow_ker R M n).mkq.comp_multilinear_map (tpow.mk' R M n) }
 
 variables {M} {N : Type} [add_comm_group N] [module R N] {n : ℕ} {p : submodule R M} {q : submodule R N}
 
@@ -277,7 +279,7 @@ begin
   exact f.map_eq_zero_of_eq v hv hij,
 end
 
-lemma epow_lift_mk (f : alternating_map R M N (fin n)) {v : fin n → M} :
+@[simp] lemma epow_lift_mk (f : alternating_map R M N (fin n)) {v : fin n → M} :
   epow_lift R f (epow.mk R M n v) = f v :=
 tpow.lift_mk_apply n f.to_multilinear_map v
 
@@ -347,6 +349,10 @@ lemma perm_succ_subtype_cond {n : ℕ} {σ : equiv.perm (fin n.succ)}
   fin.succ_pred _ _⟩, λ ⟨y, hy⟩,
 ⟨x.pred $ λ h0, by {rw h0 at hy, rw h at hy, exact fin.succ_ne_zero _ hy}, fin.succ_pred _ _⟩⟩
 
+lemma perm_ne_zero_of_succ {n : ℕ} (σ : equiv.perm (fin n.succ)) (h : σ 0 = 0) (x : fin n) :
+  σ x.succ ≠ 0 :=
+λ h0, by {rw ←h at h0, exact fin.succ_ne_zero _ (σ.injective h0)}
+
 def perm_succ_subtype {n : ℕ} (σ : equiv.perm (fin n.succ)) (h : σ 0 = 0) :
   equiv.perm (set.range (fin.succ)) :=
 equiv.perm.subtype_perm σ $ perm_succ_subtype_cond h
@@ -364,21 +370,49 @@ noncomputable def perm_succ_res {n : ℕ} (σ : equiv.perm (fin n.succ)) (h : σ
   equiv.perm (fin n) :=
 equiv.perm_congr (equiv.of_injective _ (fin.succ_injective n)).symm
 (perm_succ_subtype σ h)
-/-{ to_fun := λ i, (σ i.succ).pred $ λ h0, by rw ←h at h0; exact fin.succ_ne_zero _ (σ.injective h0),
-  inv_fun := λ i, (σ⁻¹ i.succ).pred $ λ h0, by {
-    rw ←equiv.perm.eq_inv_iff_eq at h,
-    rw h at h0, exact fin.succ_ne_zero _ (equiv.injective (σ⁻¹) h0) },
-  left_inv := λ x, by {simp only [fin.succ_pred, equiv.perm.inv_apply_self, fin.pred_succ], },
-  right_inv := λ x, by {simp only [fin.succ_pred, fin.pred_succ, equiv.perm.apply_inv_self],} }
--/
+
+lemma of_succ_injective_apply {n : ℕ} (x : fin n) :
+  ((equiv.of_injective _ (fin.succ_injective n)) x : fin n.succ) = x.succ :=
+rfl
+
+lemma of_succ_injective_symm_apply {n : ℕ} (x : fin n) :
+  (equiv.of_injective _ (fin.succ_injective n)).symm ⟨x.succ, set.mem_range_self _⟩ = x :=
+begin
+  symmetry,
+  rw equiv.eq_symm_apply,
+  refl,
+end
+
+lemma of_succ_injective_symm_succ {n : ℕ} (x : set.range (@fin.succ n)) :
+  ((equiv.of_injective _ (fin.succ_injective n)).symm x).succ = x :=
+begin
+  rcases x.2 with ⟨y, hy⟩,
+  rw subtype.val_eq_coe at hy,
+  rw ←hy,
+  congr,
+  symmetry,
+  rw equiv.eq_symm_apply,
+  ext,
+  rw ←hy,
+  refl,
+end
+
 
 lemma perm_res_sign {n : ℕ} (σ : equiv.perm (fin n.succ)) (h : σ 0 = 0) :
   equiv.perm.sign (perm_succ_res σ h) = equiv.perm.sign σ :=
 begin
   rw equiv.perm.sign_eq_sign_of_equiv (perm_succ_res σ h) (perm_succ_subtype σ h) (equiv.of_injective _ (fin.succ_injective n)),
   convert equiv.perm.sign_subtype_perm σ (perm_succ_subtype_cond h) (perm_succ_subtype_prop σ h),
-  sorry, --i cba
+  intro x,
+  unfold perm_succ_subtype perm_succ_res,
+  simp only [equiv.of_injective_apply, equiv.symm_symm, equiv.perm_congr_apply],
+  exact equiv.apply_symm_apply (equiv.of_injective _ (fin.succ_injective n)) _,
 end
+
+lemma subtype_perm_apply {α : Type} (f : equiv.perm α) {p : α → Prop}
+  (h : ∀ (x : α), p x ↔ p (f x)) (x : subtype p) :
+  f.subtype_perm h x = ⟨f (x : α), (h x).1 x.2⟩ :=
+rfl
 
 lemma swap_mul_swap_of_ne {ι : Type} [decidable_eq ι] (i j k l : ι)
   (hik : i ≠ k) (hil : i ≠ l) (hjk : j ≠ k) (hjl : j ≠ l) :
@@ -392,9 +426,9 @@ begin
   rw equiv.swap_apply_of_ne_of_ne hjk hjl,
 end
 
-lemma prod_perm {S : Type} [ring S] (h : ∀ x : S, x * x = 0)
-  {n : ℕ} (v : fin n → S) (σ : equiv.perm (fin n)) :
-  (list.of_fn v).prod = (equiv.perm.sign σ) • (list.of_fn (v ∘ σ)).prod :=
+lemma prod_perm {ι S : Type} [ring S] (f : ι → S) (h : ∀ x : ι, f x * f x = 0)
+  {n : ℕ} (v : fin n → ι) (σ : equiv.perm (fin n)) :
+  (list.of_fn (f ∘ v)).prod = (equiv.perm.sign σ) • (list.of_fn (f ∘ v ∘ σ)).prod :=
 begin
   induction n with n hn,
   simp only [list.of_fn_zero, list.prod_nil],
@@ -413,19 +447,28 @@ begin
     by rw [equiv.perm.sign_swap', if_pos h0.symm],
   rw this,
   rw one_mul,
-  congr' 4,
-  rw h0,
-  ext,
+  congr' 2, exact congr_arg _ h0.symm,
+  congr' 2,
+  ext x,
+  unfold perm_succ_res perm_succ_subtype,
   simp only [function.comp_app],
+  rw equiv.perm_congr_apply,
+  rw subtype_perm_apply,
+  rw equiv.symm_symm,
+  rw equiv.of_injective_apply,
   unfold fin.tail,
   congr,
-  unfold perm_succ_res perm_succ_subtype,
-  simp only [equiv.of_injective_apply, equiv.symm_symm, equiv.perm_congr_apply],
-  sorry, --ugh
+  simp only [function.comp_app, subtype.coe_mk, equiv.perm.coe_mul],
+  rw of_succ_injective_symm_succ,
+  simp only [subtype.coe_mk],
+  rw h0,
+  rw equiv.swap_self,
+  refl,
   rw equiv.perm.sign_swap (ne.symm h0),
+
   sorry,
 end
-
+#exit
 lemma prod_eq_zero_of_ne_eq_aux {S : Type} [ring S] (h : ∀ x : S, x * x = 0)
   {m n : ℕ} (hmn : m = n.succ.succ) (f : fin m → S) (hf : f ⟨0, hmn.symm ▸ nat.succ_pos n.succ⟩ = f ⟨1, by {rw hmn, exact nat.succ_lt_succ (nat.succ_pos _)}⟩) :
   (list.of_fn f).prod = 0 :=

@@ -1356,14 +1356,14 @@ begin
   exact rpow_lt_rpow h_lt (by simp [hz]),
 end
 
-lemma rpow_le_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) :  x ≤ y ^ (1 / z) ↔ x ^ z ≤ y :=
+lemma le_rpow_one_div_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) :  x ≤ y ^ (1 / z) ↔ x ^ z ≤ y :=
 begin
   nth_rewrite 0 ←rpow_one x,
   nth_rewrite 0 ←@_root_.mul_inv_cancel _ _ z (ne_of_lt hz).symm,
   rw [rpow_mul, ←one_div, @rpow_le_rpow_iff _ _ (1/z) (by simp [hz])],
 end
 
-lemma rpow_lt_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) : x < y ^ (1 / z) ↔ x ^ z < y :=
+lemma lt_rpow_one_div_iff {x y : ennreal} {z : ℝ} (hz : 0 < z) : x < y ^ (1 / z) ↔ x ^ z < y :=
 begin
   nth_rewrite 0 ←rpow_one x,
   nth_rewrite 0 ←@_root_.mul_inv_cancel _ _ z (ne_of_lt hz).symm,
@@ -1413,13 +1413,19 @@ begin
           nnreal.rpow_le_rpow_of_exponent_ge (bot_lt_iff_ne_bot.mpr h) hx1 hyz] }
 end
 
-lemma rpow_pos_of_pos {p : ℝ} {x : ennreal} (hx_pos : 0 < x) (hp_pos : 0 < p) : 0 < x^p :=
-by { rw ←zero_rpow_of_pos hp_pos, exact rpow_lt_rpow hx_pos hp_pos }
+lemma rpow_pos_of_nonneg {p : ℝ} {x : ennreal} (hx_pos : 0 < x) (hp_nonneg : 0 ≤ p) : 0 < x^p :=
+begin
+  by_cases hp_zero : p = 0,
+  { simp [hp_zero, ennreal.zero_lt_one], },
+  { rw ←ne.def at hp_zero,
+    have hp_pos := lt_of_le_of_ne hp_nonneg hp_zero.symm,
+    rw ←zero_rpow_of_pos hp_pos, exact rpow_lt_rpow hx_pos hp_pos, },
+end
 
 lemma rpow_pos {p : ℝ} {x : ennreal} (hx_pos : 0 < x) (hx_ne_top : x ≠ ⊤) : 0 < x^p :=
 begin
   cases lt_or_le 0 p with hp_pos hp_nonpos,
-  { exact rpow_pos_of_pos hx_pos hp_pos, },
+  { exact rpow_pos_of_nonneg hx_pos (le_of_lt hp_pos), },
   { rw [←neg_neg p, rpow_neg, inv_pos],
     exact rpow_ne_top_of_nonneg (by simp [hp_nonpos]) hx_ne_top, },
 end

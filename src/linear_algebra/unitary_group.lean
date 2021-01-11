@@ -17,7 +17,8 @@ general linear group `general_linear_group ℂ (n → ℂ)`.
 
 ## Main Definitions
 
- * `matrix.unitary_group` is the type of matrices where the transpose is the inverse
+ * `matrix.conj_transpose` is the conjugate transpose of a matrix
+ * `matrix.unitary_group` is the type of matrices where the conjugate transpose is the inverse
  * `matrix.unitary_group.group` is the group structure (under multiplication)
  * `matrix.unitary_group.embedding_GL` is the embedding `U(n) → GLₙ(ℝ)`
 

@@ -1510,7 +1510,7 @@ end
 lemma to_real_rpow (x : ennreal) (z : ℝ) : (x.to_real) ^ z = (x ^ z).to_real :=
 by rw [ennreal.to_real, ennreal.to_real, ←nnreal.coe_rpow, ennreal.to_nnreal_rpow]
 
-lemma injective_rpow_const_of_ne_zero {x : ℝ} (hx : x ≠ 0) :
+lemma rpow_left_injective {x : ℝ} (hx : x ≠ 0) :
   function.injective (λ y : ennreal, y^x) :=
 begin
   intros y z hyz,
@@ -1518,18 +1518,18 @@ begin
   rw [←rpow_one y, ←rpow_one z, ←_root_.mul_inv_cancel hx, rpow_mul, rpow_mul, hyz],
 end
 
-lemma surjective_rpow_const_of_ne_zero {x : ℝ} (hx : x ≠ 0) :
+lemma rpow_left_surjective {x : ℝ} (hx : x ≠ 0) :
   function.surjective (λ y : ennreal, y^x) :=
 begin
   refine λ y, Exists.intro (y ^ x⁻¹) _,
   simp_rw [←rpow_mul, _root_.inv_mul_cancel hx, rpow_one],
 end
 
-lemma bijective_rpow_const_of_ne_zero {x : ℝ} (hx : x ≠ 0) :
+lemma rpow_left_bijective {x : ℝ} (hx : x ≠ 0) :
   function.bijective (λ y : ennreal, y^x) :=
-⟨injective_rpow_const_of_ne_zero hx, surjective_rpow_const_of_ne_zero hx⟩
+⟨rpow_left_injective hx, rpow_left_surjective hx⟩
 
-lemma monotone_rpow_const_of_nonneg {x : ℝ} (hx : 0 ≤ x) : monotone (λ y : ennreal, y^x) :=
+lemma rpow_left_monotone_of_nonneg {x : ℝ} (hx : 0 ≤ x) : monotone (λ y : ennreal, y^x) :=
 λ y z hyz, rpow_le_rpow hyz hx
 
 end ennreal

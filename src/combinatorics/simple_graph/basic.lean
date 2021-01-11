@@ -332,4 +332,37 @@ finset.max' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty 
 
 end finite
 
+section complement
+
+/-!
+## Complement of a simple graph
+
+This section contains definitions and lemmas concerning the complement of a simple graph.
+
+We define `complement G` to be the `simple_graph V` such that no two adjacent vertices in `G`
+are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
+(still ensuring that vertices are not adjacent to themselves.)
+-/
+
+
+def complement (G : simple_graph V) : simple_graph V :=
+{ adj := λ v w, v ≠ w ∧ ¬G.adj v w,
+  sym := λ v w h,
+    begin
+      cases h with hne hnadj,
+      split,
+      symmetry,
+      exact hne,
+      by_contra,
+      apply hnadj (G.sym h),
+    end,
+  loopless := λ v,
+    begin
+      by_contra,
+      cases h with hne hnadj,
+      apply hne rfl,
+    end }
+
+end complement
+
 end simple_graph

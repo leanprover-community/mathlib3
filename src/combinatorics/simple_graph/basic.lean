@@ -338,13 +338,13 @@ section complement
 ## Complement of a simple graph
 
 This section contains definitions and lemmas concerning the complement of a simple graph.
+-/
 
+/--
 We define `complement G` to be the `simple_graph V` such that no two adjacent vertices in `G`
 are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
 (still ensuring that vertices are not adjacent to themselves.)
 -/
-
-
 def complement (G : simple_graph V) : simple_graph V :=
 { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
   sym := λ v w h,

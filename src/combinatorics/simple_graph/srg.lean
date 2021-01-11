@@ -32,7 +32,7 @@ TODO: Part of this would include defining the complement of a graph
 universes u
 
 namespace simple_graph
-variables {V : Type u} [fintype V]
+variables {V : Type u}
 variables (G : simple_graph V)
 
 /--
@@ -56,7 +56,7 @@ begin
   simp,
 end
 
-variables  [locally_finite G]
+variables  [fintype V] [locally_finite G]
 
 /--
 A graph is strongly regular with parameters `n k l m` if
@@ -177,3 +177,5 @@ end
 
 
 end simple_graph
+
+#lint

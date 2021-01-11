@@ -432,21 +432,28 @@ end algebra
 namespace subalgebra
 open algebra
 
-variables {R : Type u} {A : Type v}
-variables [comm_semiring R] [semiring A] [algebra R A]
+variables {R : Type u} {A : Type v} {B : Type w}
+variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B]
 variables (S : subalgebra R A)
 
 instance [subsingleton A] : subsingleton (subalgebra R A) :=
 ⟨λ B C, ext (λ x, by { simp only [subsingleton.elim x 0, zero_mem] })⟩
 
-instance [subsingleton (subalgebra R A)] : subsingleton (A ≃ₐ[R] A) :=
+instance [subsingleton (subalgebra R A)] : subsingleton (A →ₐ[R] B) :=
 ⟨begin
   intros f g,
   ext a,
   rcases set.mem_range.mp (mem_bot.mp (show a ∈ (⊥ : subalgebra R A), from eq_bot_iff.mp
     (subsingleton.elim (⊤ : subalgebra R A) ⊥) mem_top)) with ⟨x, rfl⟩,
-  rw [alg_equiv.commutes, alg_equiv.commutes],
+  rw [alg_hom.commutes, alg_hom.commutes],
 end⟩
+
+instance alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] : subsingleton (A ≃ₐ[R] B) :=
+⟨λ f g, alg_equiv.ext (λ x, alg_hom.ext_iff.mp (subsingleton.elim f.to_alg_hom g.to_alg_hom) x)⟩
+
+instance alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] : subsingleton (A ≃ₐ[R] B) :=
+⟨λ f g, eq.trans (alg_equiv.symm_symm.symm)
+  (by rw [subsingleton.elim f.symm g.symm, alg_equiv.symm_symm])⟩
 
 lemma range_val : S.val.range = S :=
 ext $ set.ext_iff.1 $ S.val.coe_range.trans subtype.range_val

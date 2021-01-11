@@ -1532,6 +1532,9 @@ lemma rpow_left_bijective {x : ℝ} (hx : x ≠ 0) :
 lemma rpow_left_monotone_of_nonneg {x : ℝ} (hx : 0 ≤ x) : monotone (λ y : ennreal, y^x) :=
 λ y z hyz, rpow_le_rpow hyz hx
 
+lemma rpow_left_strict_mono_of_pos {x : ℝ} (hx : 0 < x) : strict_mono (λ y : ennreal, y^x) :=
+λ y z hyz, rpow_lt_rpow hyz hx
+
 end ennreal
 
 section measurability_ennreal

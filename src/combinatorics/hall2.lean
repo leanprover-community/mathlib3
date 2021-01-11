@@ -384,3 +384,20 @@ begin
   simp only [h, h'],
   apply hall,
 end
+
+/-- A version using `univ.filter` directly. -/
+theorem hall_rel' {α β : Type*} [fintype α] [fintype β] [decidable_eq β]
+  (r : α → β → Prop) [∀ a, decidable_pred (r a)] :
+  (∀ (A : finset α), A.card ≤ (univ.filter (λ (b : β), ∃ a ∈ A, r a b)).card)
+  ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
+begin
+  let r' := λ a, univ.filter (λ b, r a b),
+  have h : ∀ (A : finset α), univ.filter (λ (b : β), ∃ a ∈ A, r a b) = A.bind r',
+  { intro A,
+    ext b,
+    simp, },
+  have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
+  { simp, },
+  simp_rw [h, h'],
+  apply hall,
+end

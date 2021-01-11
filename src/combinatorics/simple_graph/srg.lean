@@ -56,6 +56,13 @@ begin
   simp,
 end
 
+
+lemma common_neighbors_subset_neighbor_set (v w : V) : G.common_neighbors v w ⊆ G.neighbor_set v :=
+begin
+  rw common_neighbors_eq_inter,
+  exact set.inter_subset_left _ _,
+end
+
 variables  [fintype V] [locally_finite G]
 
 /--
@@ -82,24 +89,6 @@ begin
   split,
   { simp },
   { apply finset.subset_univ },
-end
-
-variables [nonempty V]
-
-lemma is_regular_degree_lt_card_verts (G : simple_graph V) (k : ℕ) (h : G.is_regular_of_degree k) :
-  k < fintype.card V :=
-begin
-  rw is_regular_of_degree at h,
-  inhabit V,
-  specialize h (default V),
-  rw ← h,
-  apply degree_lt_card_verts,
-end
-
-lemma common_neighbors_subset_neighbor_set (v w : V) : G.common_neighbors v w ⊆ G.neighbor_set v :=
-begin
-  rw common_neighbors_eq_inter,
-  exact set.inter_subset_left _ _,
 end
 
 lemma set.to_finset_subset_to_finset_iff (α : Type*) (s t : set α) [fintype s] [fintype t] :
@@ -157,6 +146,7 @@ begin
       exact common_neighbors_subset_neighbor_set G v w } },
 end
 
+
 lemma card_common_neighbors_le_regular_degree (v w : V) (k : ℕ) (h : G.is_regular_of_degree k) :
   fintype.card (G.common_neighbors v w) ≤ k :=
 begin
@@ -175,7 +165,15 @@ begin
   exact G.adj_card_common_neighbors_lt_degree v w h,
 end
 
+lemma is_regular_degree_lt_card_verts [nonempty V] (G : simple_graph V) (k : ℕ) (h : G.is_regular_of_degree k) :
+  k < fintype.card V :=
+begin
+  rw is_regular_of_degree at h,
+  inhabit V,
+  specialize h (default V),
+  rw ← h,
+  apply degree_lt_card_verts,
+end
+
 
 end simple_graph
-
-#lint

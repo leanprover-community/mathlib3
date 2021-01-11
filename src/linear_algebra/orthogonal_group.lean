@@ -132,7 +132,7 @@ def to_linear_equiv (A : orthogonal_group n) : (n → ℝ) ≃ₗ[ℝ] (n → �
     ... = x : by rw [mul_right_inv, to_lin'_one, id_apply],
   ..matrix.to_lin' A }
 
-/-- `to_GL` is the map from the special linear group to the general linear group -/
+/-- `to_GL` is the map from the orthogonal group to the general linear group -/
 def to_GL (A : orthogonal_group n) : general_linear_group ℝ (n → ℝ) :=
 general_linear_group.of_linear_equiv (to_linear_equiv A)
 

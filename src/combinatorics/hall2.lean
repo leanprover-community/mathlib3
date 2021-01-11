@@ -8,11 +8,6 @@ import data.rel
 
 namespace finset
 
-/-- Given a relation whose images are all finite, construct the `finset` version of `rel.image`. -/
-def rel_image {α β : Type*} [decidable_eq β]
-  (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})]
-  (A : finset α) : finset β :=
-A.bind (λ a, (rel.image r {a}).to_finset)
 
 /-- Given a relation such that the image of every singleton set is finite, then the image of every
 finite set is finite. -/
@@ -20,24 +15,16 @@ instance {α β : Type*} [decidable_eq β]
   (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})]
   (A : finset α) : fintype (rel.image r A) :=
 begin
-  have h : rel.image r A = (A.rel_image r : set β),
-  { ext, simp [rel_image, rel.image], },
+  have h : rel.image r A = (A.bind (λ a, (rel.image r {a}).to_finset) : set β),
+  { ext, simp [rel.image], },
   rw [h],
   apply finset_coe.fintype,
 end
 
-lemma card_image_eq_card_rel_image {α β : Type*} [decidable_eq β]
-  (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})] (A : finset α) :
-  fintype.card (rel.image r A) = (rel_image r A).card :=
-begin
-  apply fintype.card_of_finset',
-  simp [rel_image, rel.image],
-end
-
 /-- A matching is an injective element of the product of an indexed family of sets. -/
-lemma card_le_of_matching {α β : Type*} [decidable_eq β] (ι : α → finset β)
-  (f : α → β) (hf₁ : function.injective f) (hf₂ : ∀ x, f x ∈ ι x) (A : finset α) :
-  A.card ≤ (A.bind ι).card :=
+lemma card_le_of_matching {α β : Type*} [decidable_eq β] (r : α → finset β)
+  (f : α → β) (hf₁ : function.injective f) (hf₂ : ∀ x, f x ∈ r x) (A : finset α) :
+  A.card ≤ (A.bind r).card :=
 begin
   rw ←card_image_of_injective A hf₁,
   apply card_le_of_subset,
@@ -386,12 +373,14 @@ theorem hall_rel {α β : Type*} [fintype α] [decidable_eq β]
   ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
 begin
   let r' := λ a, (rel.image r {a}).to_finset,
-  have h : ∀ A, rel_image r A = A.bind r',
+  have h : ∀ (A : finset α), fintype.card (rel.image r A) = (A.bind r').card,
   { intro A,
+    rw ←set.to_finset_card,
+    apply congr_arg,
     ext b,
-    simp [rel_image], },
+    simp [rel.image], },
   have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
   { simp [rel.image], },
-  simp only [h, h', card_image_eq_card_rel_image],
+  simp only [h, h'],
   apply hall,
 end

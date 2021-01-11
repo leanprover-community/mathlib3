@@ -17,17 +17,13 @@ import combinatorics.simple_graph.basic
   * The number of common neighbors between any two adjacent vertices in `G` is `l`
   * The number of common neighbors between any two nonadjacent vertices in `G` is `m`
 
-TODO:
+## TODO
+- Define the complement of a graph
 - Prove that the complement of a strongly regular graph is strongly regular
-
 - Prove that the parameters of a strongly regular graph
   obey relation `(n - k - 1) * m = k * (k - l - 1)`
-
 - Prove that if I is the identity matrix and J is the all-one matrix,
   then the adj matrix A of SRG obeys relation A^2 = kI + lA + m(J - I - A)
-
-TODO: Part of this would include defining the complement of a graph
-
 -/
 universes u
 

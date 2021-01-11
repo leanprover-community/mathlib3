@@ -29,7 +29,10 @@ begin
   { intros q hq,
     simp * at *,
     have ε_def : ε = 1 / 2 * (1 - sqrt (p.fst ^ 2 + p.snd ^ 2)) := rfl,
-    rw ε_def at hq,
+    rw [ε_def, prod.dist_eq] at hq,
+    rw [real.dist_eq, real.dist_eq] at hq,
+    simp * at hq,
+    cases hq with hq₁ hq₂,
     sorry,
      },
 end

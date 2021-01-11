@@ -1424,9 +1424,6 @@ begin
     exact rpow_ne_top_of_nonneg (by simp [hp_nonpos]) hx_ne_top, },
 end
 
-lemma rpow_nonneg_of_pos {p : ℝ} {x : ennreal} (hx_nonneg : 0 ≤ x) (hp_pos : 0 < p) : 0 ≤ x^p :=
-by { rw ←zero_rpow_of_pos hp_pos,  exact rpow_le_rpow hx_nonneg (le_of_lt hp_pos) }
-
 lemma rpow_lt_one {x : ennreal} {z : ℝ} (hx : x < 1) (hz : 0 < z) : x^z < 1 :=
 begin
   lift x to ℝ≥0 using ne_of_lt (lt_of_lt_of_le hx le_top),

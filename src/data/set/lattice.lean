@@ -362,6 +362,10 @@ supr_union
   (⋃ (i : s), {i} : set α) = s :=
 ext $ by simp
 
+lemma set.Union_subtype {α β : Type*} (s : set α) (f : α → set β) :
+  (⋃ (i : s), f i) = ⋃ (i ∈ s), f i :=
+(set.bUnion_eq_Union s $ λ x _, f x).symm
+
 -- TODO(Jeremy): once again, simp doesn't do it alone.
 
 @[simp] theorem bUnion_insert (a : α) (s : set α) (t : α → set β) :

@@ -143,7 +143,7 @@ begin
   simp [hx a, hx a'],
 end
 
-lemma hall_cond_of_erase (a : α) (b : β) (hb : b ∈ r a)
+lemma hall_cond_of_erase (a : α) (b : β)
   (ha : ∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (A.bind r).card) :
   ∀ (A : finset {a' : α | a' ≠ a}), A.card ≤ (A.bind (λ a', (r a').erase b)).card :=
 begin
@@ -202,7 +202,7 @@ begin
   have card_α'_le : fintype.card α' ≤ n,
   { rw [fintype.card_ne_eq, hn],
     exact le_refl _, },
-  rcases ih r' card_α'_le (hall_cond_of_erase r a b hb ha) with ⟨f', hfinj, hfr⟩,
+  rcases ih r' card_α'_le (hall_cond_of_erase r a b ha) with ⟨f', hfinj, hfr⟩,
   /- Extend the resulting function. -/
   refine ⟨λ x, if h : x = a then b else f' ⟨x, h⟩, _, _⟩,
   { rintro x₁ x₂,
@@ -220,7 +220,7 @@ begin
       exact hfr.2, }, },
 end
 
-lemma hall_cond_of_restrict (A : finset α)
+lemma hall_cond_of_restrict {α : Type u} (r : α → finset β) (A : finset α)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card) :
   ∀ (A' : finset (A : set α)), A'.card ≤ (A'.bind (λ a', r a')).card :=
 begin
@@ -233,7 +233,7 @@ begin
     simp, },
 end
 
-lemma hall_cond_of_compl (A : finset α)
+lemma hall_cond_of_compl {α : Type u} (r : α → finset β) (A : finset α)
   (huA : A.card = (A.bind r).card)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card) :
   ∀ (B : finset ((A : set α)ᶜ : set α)), B.card ≤ (B.bind (λ a'', r a'' \ A.bind r)).card :=
@@ -410,13 +410,14 @@ begin
 end
 
 /-- A version using `univ.filter` directly. -/
-theorem hall_rel' {α β : Type*} [fintype α] [fintype β] [decidable_eq β]
+theorem hall_rel' {α β : Type*} [fintype α] [fintype β]
   (r : α → β → Prop) [∀ a, decidable_pred (r a)] :
   (∀ (A : finset α), A.card ≤ (univ.filter (λ (b : β), ∃ a ∈ A, r a b)).card)
   ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
 begin
+  haveI : decidable_eq β := by { classical, apply_instance },
   let r' := λ a, univ.filter (λ b, r a b),
-  have h : ∀ (A : finset α), univ.filter (λ (b : β), ∃ a ∈ A, r a b) = A.bind r',
+  have h : ∀ (A : finset α), (univ.filter (λ (b : β), ∃ a ∈ A, r a b)) = (A.bind r'),
   { intro A,
     ext b,
     simp, },

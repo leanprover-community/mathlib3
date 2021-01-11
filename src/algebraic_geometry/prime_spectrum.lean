@@ -262,7 +262,7 @@ lemma zero_locus_Union {ι : Sort*} (s : ι → set R) :
 (gc_set R).l_supr
 
 lemma zero_locus_bUnion {s : set R} :
-  zero_locus ((⋃ i ∈ s, {i}) : set R) = (⋂ i ∈ s, zero_locus ({i})) :=
+  zero_locus (⋃ i ∈ s, {i} : set R) = ⋂ i ∈ s, zero_locus {i} :=
 by ext1;
   simpa only [mem_zero_locus, set.bUnion_of_singleton, set.mem_Inter, set.singleton_subset_iff]
 

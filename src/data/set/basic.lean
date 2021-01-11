@@ -917,10 +917,10 @@ by finish [ext_iff, iff_def, subset_def]
 theorem union_diff_cancel_right {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ t = s :=
 by finish [ext_iff, iff_def, subset_def]
 
-theorem union_diff_left {s t : set α} : (s ∪ t) \ s = t \ s :=
+@[simp] theorem union_diff_left {s t : set α} : (s ∪ t) \ s = t \ s :=
 by finish [ext_iff, iff_def]
 
-theorem union_diff_right {s t : set α} : (s ∪ t) \ t = s \ t :=
+@[simp] theorem union_diff_right {s t : set α} : (s ∪ t) \ t = s \ t :=
 by finish [ext_iff, iff_def]
 
 theorem union_diff_distrib {s t u : set α} : (s ∪ t) \ u = s \ u ∪ t \ u :=
@@ -941,13 +941,13 @@ set.ext $ λ _, or_and_distrib_right
 theorem inter_diff_assoc (a b c : set α) : (a ∩ b) \ c = a ∩ (b \ c) :=
 inter_assoc _ _ _
 
-theorem inter_diff_self (a b : set α) : a ∩ (b \ a) = ∅ :=
+@[simp] theorem inter_diff_self (a b : set α) : a ∩ (b \ a) = ∅ :=
 by finish [ext_iff]
 
-theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
+@[simp] theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
 by finish [ext_iff, iff_def]
 
-theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := inter_union_diff _ _
+@[simp] theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := inter_union_diff _ _
 
 theorem diff_subset (s t : set α) : s \ t ⊆ s :=
 by finish [subset_def]

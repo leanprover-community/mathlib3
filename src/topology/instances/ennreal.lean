@@ -438,7 +438,7 @@ have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
 by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_refl _
 
 lemma supr_eq_zero {ι : Sort*} {f : ι → ennreal} : (⨆ i, f i) = 0 ↔ ∀ i, f i = 0 :=
-by simp_rw [← le_zero_iff_eq, supr_le_iff]
+by simp_rw [← nonpos_iff_eq_zero, supr_le_iff]
 
 end topological_space
 

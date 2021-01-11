@@ -1139,6 +1139,26 @@ end
 
 section quotient_algebra
 
+/-- The `R`-algebra structure on `R/I` -/
+instance {I : ideal R} : algebra R (ideal.quotient I) := ring_hom.to_algebra (ideal.quotient.mk I)
+
+/-- The canonical morphism `R →ₐ[R] I.quotient`, for `I` an ideal of `R`, as morphism of
+`R`-algebras. -/
+def quotient.mk.alg (I : ideal R) : R →ₐ[R] I.quotient :=
+⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl, λ _, rfl⟩
+
+lemma quotient.mk.alg_to_ring_hom (I : ideal R) :
+  (quotient.mk.alg I).to_ring_hom = ideal.quotient.mk I := rfl
+
+/-- The canonical morphism `R →ₐ[R] I.quotient` is surjective. -/
+lemma quotient.mk.alg_surjective (I : ideal R) : function.surjective (quotient.mk.alg I) :=
+λ y, quotient.induction_on' y (λ x, exists.intro x rfl)
+
+/-- The kernel of `R →ₐ[R] I.quotient` is `I`. -/
+@[simp]
+lemma quotient.mk.alg_ker (I : ideal R) : (quotient.mk.alg I).to_ring_hom.ker = I :=
+by rw [quotient.mk.alg_to_ring_hom _, ideal.mk_ker]
+
 /-- The ring hom `R/J →+* S/I` induced by a ring hom `f : R →+* S` with `J ≤ f⁻¹(I)` -/
 def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) :
   I.quotient →+* J.quotient :=

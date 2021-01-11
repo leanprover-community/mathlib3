@@ -440,11 +440,10 @@ instance [subsingleton A] : subsingleton (subalgebra R A) :=
 ⟨λ B C, ext (λ x, by { simp only [subsingleton.elim x 0, zero_mem] })⟩
 
 instance [subsingleton (subalgebra R A)] : subsingleton (A →ₐ[R] B) :=
-⟨λ f g, alg_equiv.ext $ λ a, begin
-  have : a ∈ (⊥ : subalgebra R A) := subsingleton.elim (⊤ : subalgebra R A) ⊥ ▸ mem_top,
-  rcases set.mem_range.mp (mem_bot.mp this) with ⟨x, rfl⟩,
-  rw [alg_hom.commutes, alg_hom.commutes],
-end⟩
+⟨λ f g, alg_hom.ext $ λ a,
+  have a ∈ (⊥ : subalgebra R A) := subsingleton.elim (⊤ : subalgebra R A) ⊥ ▸ mem_top,
+  let ⟨x, hx⟩ := set.mem_range.mp (mem_bot.mp this) in
+  hx ▸ (f.commutes _).trans (g.commutes _).symm⟩
 
 instance alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] : subsingleton (A ≃ₐ[R] B) :=
 ⟨λ f g, alg_equiv.ext (λ x, alg_hom.ext_iff.mp (subsingleton.elim f.to_alg_hom g.to_alg_hom) x)⟩

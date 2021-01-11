@@ -341,7 +341,7 @@ This section contains definitions and lemmas concerning the complement of a simp
 -/
 
 /--
-We define `complement G` to be the `simple_graph V` such that no two adjacent vertices in `G`
+We define `compl G` to be the `simple_graph V` such that no two adjacent vertices in `G`
 are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
 (still ensuring that vertices are not adjacent to themselves.)
 -/

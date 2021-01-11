@@ -622,15 +622,21 @@ local attribute [instance] classical.prop_decidable
 lemma inv_of_maximal_not_top (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
   (hM : ideal.is_maximal M) : (1 / ↑M : fractional_ideal f) ≠ (1 : fractional_ideal f) :=
 begin
-  obtain ⟨a, h_aM, h_nza⟩ : ∃ a :R, a ∈ M ∧ a ≠ 0, sorry,
+  obtain ⟨a, h_nza⟩ : ∃ a : M, a ≠ 0,
+  { have h_nzM : M ≠ ⊥,
+    apply ne_bot_of_is_maximal_of_not_is_field hM hNF,
+    apply submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr h_nzM) },
   let J : (ideal R) := ideal.span {a},
-  have J_nz : J ≠ ⊥ ∧ J ≤ M, sorry,
+  have J_nz : J ≠ ⊥ ∧ J ≤ M,
+  simp only [*, span_singleton_eq_bot, ne.def, not_false_iff, submodule.coe_eq_zero, span_le,
+    submodule.mem_coe, submodule.coe_mem, set.singleton_subset_iff, and_self],
   obtain ⟨Z, h_ZJ,h_nzJ⟩ : ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ J ∧
     multiset.prod (Z.map (coe : subtype _ → ideal R)) ≠ ⊥,
   apply exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF J_nz.left,
   obtain ⟨P, h_ZP, h_JP⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ J, sorry,
-  replace h_JP : P.1 ≤ M, sorry,
+  replace h_JP : P.1 ≤ M, sorry,--facile, J_nz dà J ≤ M e abbiamo P.1 ≤ J,
   replace h_JP : P.1 = M, sorry,
+  -- apply is_maximal.eq_of_le,
   obtain ⟨Z', h_Z'Z, h_Z'P⟩ : ∃ Z' ≤ Z, Z = P ::ₘ Z', sorry,
   let J' : ideal R := multiset.prod (Z'.map (coe : subtype _ → ideal R)),
   have h_MJJ' : M * J' ≤ J, sorry,

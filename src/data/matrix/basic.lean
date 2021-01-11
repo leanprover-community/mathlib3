@@ -52,6 +52,9 @@ lemma map_map {M : matrix m n α} {β γ : Type*} {f : α → β} {g : β → γ
   (M.map f).map g = M.map (g ∘ f) :=
 by { ext, simp, }
 
+@[simp]
+lemma matrix.map_id {α : Type} {M : matrix n m α} : M.map id = M := rfl
+
 /-- The transpose of a matrix. -/
 def transpose (M : matrix m n α) : matrix n m α
 | x y := M y x
@@ -368,7 +371,7 @@ lemma map_mul {L : matrix m n α} {M : matrix n o α}
   (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
 
--- TODO: there should be a way to avoid restating these for each `foo_hom`. 
+-- TODO: there should be a way to avoid restating these for each `foo_hom`.
 /-- A version of `one_map` where `f` is a ring hom. -/
 @[simp] lemma ring_hom_map_one [decidable_eq n]
   {β : Type w} [semiring β] (f : α →+* β) :

@@ -52,9 +52,6 @@ lemma map_map {M : matrix m n α} {β γ : Type*} {f : α → β} {g : β → γ
   (M.map f).map g = M.map (g ∘ f) :=
 by { ext, simp, }
 
-@[simp]
-lemma matrix.map_id {α : Type} {M : matrix n m α} : M.map id = M := rfl
-
 /-- The transpose of a matrix. -/
 def transpose (M : matrix m n α) : matrix n m α
 | x y := M y x

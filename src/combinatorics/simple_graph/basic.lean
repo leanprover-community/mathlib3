@@ -353,7 +353,7 @@ def complement (G : simple_graph V) : simple_graph V :=
 /--
 The complement of the complement of `G` is equal to `G`.
 -/
-lemma complement_invol (G : simple_graph V) : complement (complement G) = G :=
+lemma complement_involutive (G : simple_graph V) : complement (complement G) = G :=
 begin
   ext v w,
   split,

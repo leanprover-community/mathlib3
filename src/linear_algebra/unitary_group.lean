@@ -47,21 +47,20 @@ def conj_transpose (M : matrix n m ℂ) : matrix m n ℂ :=
 
 localized "postfix `†`:1500 := conj_transpose" in matrix
 
-lemma conj_transpose_eq_transpose_map_conj (M : matrix n m ℂ) : M† = (M.map complex.conj).transpose :=
-begin
-  ext; simp only [conj_transpose, map_apply, transpose_apply],
-end
+lemma conj_transpose_eq_transpose_map_conj (M : matrix n m ℂ) :
+  M† = (M.map complex.conj).transpose :=
+by ext; simp only [conj_transpose, map_apply, transpose_apply]
 
 @[simp]
-lemma conj_transpose_mul {p : Type*} [fintype p] [decidable_eq p] (M : matrix n m ℂ) (N : matrix m p ℂ) :
-  (matrix.mul M N)† = matrix.mul N† M† := by simp [conj_transpose]
+lemma conj_transpose_mul {p : Type*} [fintype p] [decidable_eq p] (M : matrix n m ℂ)
+  (N : matrix m p ℂ) : (matrix.mul M N)† = matrix.mul N† M† := by simp [conj_transpose]
 
 @[simp]
 lemma conj_transpose_one : (1 : matrix n n ℂ)† = 1 := by simp [conj_transpose]
 
 @[simp]
 lemma conj_transpose_conj_transpose (M : matrix n m ℂ) : M†† = M :=
-by simp [conj_transpose, matrix.transpose_map, function.involutive.comp_self complex.conj_involutive]
+by simp [conj_transpose, transpose_map, function.involutive.comp_self complex.conj_involutive]
 
 end
 

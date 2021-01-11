@@ -1520,10 +1520,7 @@ end
 
 lemma rpow_left_surjective {x : ℝ} (hx : x ≠ 0) :
   function.surjective (λ y : ennreal, y^x) :=
-begin
-  refine λ y, Exists.intro (y ^ x⁻¹) _,
-  simp_rw [←rpow_mul, _root_.inv_mul_cancel hx, rpow_one],
-end
+λ y, Exists.intro (y ^ x⁻¹) (by simp_rw [←rpow_mul, _root_.inv_mul_cancel hx, rpow_one])
 
 lemma rpow_left_bijective {x : ℝ} (hx : x ≠ 0) :
   function.bijective (λ y : ennreal, y^x) :=

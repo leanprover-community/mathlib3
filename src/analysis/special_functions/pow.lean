@@ -1515,7 +1515,7 @@ lemma injective_rpow_const_of_ne_zero {x : ℝ} (hx : x ≠ 0) :
 begin
   intros y z hyz,
   dsimp only at hyz,
- rw [←rpow_one y, ←rpow_one z, ←_root_.mul_inv_cancel hx, rpow_mul, rpow_mul, hyz],
+  rw [←rpow_one y, ←rpow_one z, ←_root_.mul_inv_cancel hx, rpow_mul, rpow_mul, hyz],
 end
 
 lemma surjective_rpow_const_of_ne_zero {x : ℝ} (hx : x ≠ 0) :

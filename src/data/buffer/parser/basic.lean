@@ -3,7 +3,7 @@ Copyright (c) 2020 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
-import data.list.basic
+import data.string.basic
 
 /-!
 # Parsers
@@ -35,6 +35,38 @@ For some `parse_result α`, give the position at which the result was provided, 
 @[simp] def parse_result.pos {α} : parse_result α → ℕ
 | (done n _) := n
 | (fail n _) := n
+
+section lemmas
+
+-- TODO: place in relevant files
+
+variables {α : Type*} {P Q : α → Prop} {Q' : Prop} {x : α}
+
+@[simp] lemma exists_eq_right_right : (∃ (y : α), P y ∧ Q' ∧ y = x) ↔ P x ∧ Q' :=
+⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨x, hp, hq, rfl⟩⟩
+
+@[simp] lemma exists_eq_right_right' : (∃ (y : α), P y ∧ Q' ∧ x = y) ↔ P x ∧ Q' :=
+⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨x, hp, hq, rfl⟩⟩
+
+@[simp] lemma ne_iff_lt_iff_le {n m : ℕ} : (n ≠ m ↔ n < m) ↔ n ≤ m :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { by_cases H : n = m,
+    { exact le_of_eq H },
+    { exact le_of_lt (h.mp H) } },
+  { rcases eq_or_lt_of_le h with rfl|H,
+    { simp },
+    { simp [H, ne_of_lt] } }
+end
+
+lemma nat.le_of_sub_eq_pos {m n k : ℕ} (h : m - n = k) (hk : 0 < k) : n ≤ m :=
+begin
+  contrapose! hk,
+  rw nat.sub_eq_zero_of_le (le_of_lt hk) at h,
+  rw h
+end
+
+end lemmas
 
 namespace parser
 
@@ -102,6 +134,8 @@ decorate_errors_eq_fail
 @[simp] lemma return_eq_pure : (@return parser _ _ a) = pure a := rfl
 
 lemma pure_eq_done : (@pure parser _ _ a) = λ _ n, done n a := rfl
+
+@[simp] lemma pure_ne_fail : (pure a : parser α) cb n ≠ fail n' err := by simp [pure_eq_done]
 
 section bind
 
@@ -471,6 +505,260 @@ end valid
 
 end valid
 
+@[simp] lemma orelse_pure_eq_fail : (p <|> pure a) cb n = fail n' err ↔
+  p cb n = fail n' err ∧ n ≠ n' :=
+begin
+  by_cases hn : n = n',
+  { simp [hn, pure_eq_done] },
+  { rw [orelse_eq_fail_of_valid_ne valid.pure hn],
+    simp [hn] }
+end
+
 end defn_lemmas
+
+section done
+
+variables {α β : Type}
+  {cb : char_buffer} {n n' : ℕ} (hn : n < cb.size) {a a' : α} {b : β} {c : char}
+include hn
+
+lemma any_char_eq_done : any_char cb n = done n' c ↔ n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
+by simp [any_char, hn, eq_comm]
+
+lemma sat_eq_done {p : char → Prop} [decidable_pred p] : sat p cb n = done n' c ↔
+  p c ∧ n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
+begin
+  by_cases hp : p (cb.read ⟨n, hn⟩),
+  { simp only [sat, hp, hn, dif_pos, if_true],
+    split,
+    { rintro ⟨rfl, rfl⟩, simp [hp] },
+    { rintro ⟨-, rfl, rfl⟩, simp } },
+  { simp [sat, hp, hn, dif_pos, false_iff, not_and, if_false],
+    rintro hc rfl rfl,
+    exact hp hc }
+end
+
+omit hn
+lemma eps_eq_done : eps cb n = done n' () ↔ n = n' := by simp [eps, pure_eq_done]
+
+include hn
+
+lemma ch_eq_done : ch c cb n = done n' () ↔ n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
+by simp [ch, hn, eps_eq_done, sat_eq_done, and.comm, @eq_comm _ n']
+
+-- TODO: add char_buf_eq_done, needs lemmas about matching buffers
+
+lemma one_of_eq_done {cs : list char} : one_of cs cb n = done n' c ↔
+  c ∈ cs ∧ n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
+by simp [one_of, hn, sat_eq_done]
+
+lemma one_of'_eq_done {cs : list char} : one_of' cs cb n = done n' () ↔
+  cb.read ⟨n, hn⟩ ∈ cs ∧ n' = n + 1 :=
+begin
+  have : ∀ {x : char} {p : Prop},
+    (∃ (z : char), z ∈ cs ∧ p ∧ x = z) ↔ x ∈ cs ∧ p,
+    { intros x p,
+      exact ⟨λ ⟨z, hz, hp, rfl⟩, ⟨hz, hp⟩, λ ⟨hx, hp⟩, ⟨x, hx, hp, rfl⟩⟩ },
+  simp [one_of', hn, one_of_eq_done, sat_eq_done, eps_eq_done, this]
+end
+
+omit hn
+lemma remaining_eq_done {r : ℕ} : remaining cb n = done n' r ↔ n = n' ∧ cb.size - n = r :=
+by simp [remaining]
+
+lemma eof_eq_done : eof cb n = done n' () ↔ n = n' ∧ cb.size ≤ n :=
+by simp [eof, guard_eq_done, remaining_eq_done, nat.sub_eq_zero_iff_le, and_comm, and_assoc]
+
+@[simp] lemma foldr_core_zero_eq_done {f : α → β → β} {p : parser α} {b' : β} :
+  foldr_core f p b 0 cb n ≠ done n' b' :=
+by simp [foldr_core]
+
+lemma foldr_core_eq_done {f : α → β → β} {p : parser α} {reps : ℕ} {b' : β} :
+  foldr_core f p b (reps + 1) cb n = done n' b' ↔
+  (∃ (np : ℕ) (a : α) (xs : β), p cb n = done np a ∧ foldr_core f p b reps cb np = done n' xs
+    ∧ f a xs = b') ∨
+  (n = n' ∧ b = b' ∧ ∃ (err), (p cb n = fail n err) ∨
+    (∃ (np : ℕ) (a : α), p cb n = done np a ∧ foldr_core f p b reps cb np = fail n err)) :=
+by simp [foldr_core, and.comm, and.assoc, pure_eq_done]
+
+@[simp] lemma foldr_core_zero_eq_fail {f : α → β → β} {p : parser α} {err : dlist string} :
+  foldr_core f p b 0 cb n = fail n' err ↔ n = n' ∧ err = dlist.empty :=
+by simp [foldr_core, eq_comm]
+
+lemma foldr_core_succ_eq_fail {f : α → β → β} {p : parser α} {reps : ℕ} {err : dlist string} :
+  foldr_core f p b (reps + 1) cb n = fail n' err ↔ n ≠ n' ∧
+  (p cb n = fail n' err ∨
+    ∃ (np : ℕ) (a : α), p cb n = done np a ∧ foldr_core f p b reps cb np = fail n' err) :=
+by simp [foldr_core, and_comm]
+
+lemma foldr_eq_done {f : α → β → β} {p : parser α} {b' : β} :
+  foldr f p b cb n = done n' b' ↔
+  ((∃ (np : ℕ) (a : α) (x : β), p cb n = done np a ∧
+    foldr_core f p b (cb.size - n) cb np = done n' x ∧ f a x = b') ∨
+  (n = n' ∧ b = b' ∧ (∃ (err), p cb n = parse_result.fail n err ∨
+    ∃ (np : ℕ) (x : α), p cb n = done np x ∧ foldr_core f p b (cb.size - n) cb np = fail n err))) :=
+by simp [foldr, foldr_core_eq_done]
+
+lemma foldr_eq_fail_of_valid_at_end {f : α → β → β} {p : parser α} {err : dlist string}
+  (hp : p.valid) (hc : cb.size ≤ n) : foldr f p b cb n = fail n' err ↔
+    n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
+begin
+  have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
+  simp only [foldr, foldr_core_succ_eq_fail, this, and.left_comm, foldr_core_zero_eq_fail,
+            ne_iff_lt_iff_le, exists_and_distrib_right, exists_eq_left, and.congr_left_iff,
+            exists_and_distrib_left],
+  rintro (h | ⟨⟨a, h⟩, rfl⟩),
+  { exact hp.mono_fail h },
+  { exact hp.mono_done h }
+end
+
+lemma foldr_eq_fail {f : α → β → β} {p : parser α} {err : dlist string} :
+  foldr f p b cb n = fail n' err ↔ n ≠ n' ∧ (p cb n = fail n' err ∨
+    ∃ (np : ℕ) (a : α), p cb n = done np a ∧ foldr_core f p b (cb.size - n) cb np = fail n' err) :=
+by simp [foldr, foldr_core_succ_eq_fail]
+
+@[simp] lemma foldl_core_zero_eq_done {f : β → α → β} {p : parser α} {b' : β} :
+  foldl_core f b p 0 cb n = done n' b' ↔ false :=
+by simp [foldl_core]
+
+lemma foldl_core_eq_done {f : β → α → β} {p : parser α} {reps : ℕ} {b' : β} :
+  foldl_core f b p (reps + 1) cb n = done n' b' ↔
+  (∃ (np : ℕ) (a : α), p cb n = done np a ∧ foldl_core f (f b a) p reps cb np = done n' b') ∨
+  (n = n' ∧ b = b' ∧ ∃ (err), (p cb n = fail n err) ∨
+    (∃ (np : ℕ) (a : α), p cb n = done np a ∧ foldl_core f (f b a) p reps cb np = fail n err)) :=
+by simp [foldl_core, and.assoc, pure_eq_done]
+
+@[simp] lemma foldl_core_zero_eq_fail {f : β → α → β} {p : parser α} {err : dlist string} :
+  foldl_core f b p 0 cb n = fail n' err ↔ n = n' ∧ err = dlist.empty :=
+by simp [foldl_core, eq_comm]
+
+lemma foldl_core_succ_eq_fail {f : β → α → β} {p : parser α} {reps : ℕ} {err : dlist string} :
+  foldl_core f b p (reps + 1) cb n = fail n' err ↔ n ≠ n' ∧
+  (p cb n = fail n' err ∨
+    ∃ (np : ℕ) (a : α), p cb n = done np a ∧ foldl_core f (f b a) p reps cb np = fail n' err) :=
+by  simp [foldl_core, and_comm]
+
+lemma foldl_eq_done {f : β → α → β} {p : parser α} {b' : β} :
+  foldl f b p cb n = done n' b' ↔
+  (∃ (np : ℕ) (a : α), p cb n = done np a ∧
+    foldl_core f (f b a) p (cb.size - n) cb np = done n' b') ∨
+  (n = n' ∧ b = b' ∧ ∃ (err), (p cb n = fail n err) ∨
+    (∃ (np : ℕ) (a : α), p cb n = done np a ∧
+      foldl_core f (f b a) p (cb.size - n) cb np = fail n err)) :=
+by simp [foldl, foldl_core_eq_done]
+
+lemma foldl_eq_fail {f : β → α → β} {p : parser α} {err : dlist string} :
+  foldl f b p cb n = fail n' err ↔ n ≠ n' ∧ (p cb n = fail n' err ∨
+    ∃ (np : ℕ) (a : α), p cb n = done np a ∧
+    foldl_core f (f b a) p (cb.size - n) cb np = fail n' err) :=
+by simp [foldl, foldl_core_succ_eq_fail]
+
+lemma many_eq_done_nil {p : parser α} : many p cb n = done n' (@list.nil α) ↔ n = n' ∧
+  ∃ (err), p cb n = fail n err ∨ ∃ (np : ℕ) (a : α), p cb n = done np a ∧
+    foldr_core list.cons p [] (cb.size - n) cb np = fail n err :=
+by simp [many, foldr_eq_done]
+
+lemma many_eq_done {p : parser α} {x : α} {xs : list α} :
+  many p cb n = done n' (x :: xs) ↔ ∃ (np : ℕ), p cb n = done np x
+    ∧ foldr_core list.cons p [] (cb.size - n) cb np = done n' xs :=
+by simp [many, foldr_eq_done, and.comm, and.assoc, and.left_comm]
+
+lemma many_eq_fail {p : parser α} {err : dlist string} :
+  many p cb n = fail n' err ↔ n ≠ n' ∧ (p cb n = fail n' err ∨
+    ∃ (np : ℕ) (a : α), p cb n = done np a ∧
+      foldr_core list.cons p [] (cb.size - n) cb np = fail n' err) :=
+by simp [many, foldr_eq_fail]
+
+lemma many_char_eq_done_empty {p : parser char} : many_char p cb n = done n' string.empty ↔ n = n' ∧
+  ∃ (err), p cb n = fail n err ∨ ∃ (np : ℕ) (c : char), p cb n = done np c ∧
+    foldr_core list.cons p [] (cb.size - n) cb np = fail n err :=
+by simp [many_char, many_eq_done_nil, map_eq_done, list.as_string_eq]
+
+lemma many_char_eq_done_not_empty {p : parser char} {s : string} (h : s ≠ "") :
+  many_char p cb n = done n' s ↔ ∃ (np : ℕ), p cb n = done np s.head ∧
+    foldr_core list.cons p list.nil (buffer.size cb - n) cb np = done n' (s.popn 1).to_list :=
+by simp [many_char, list.as_string_eq, string.to_list_nonempty h, many_eq_done]
+
+lemma many_char_eq_many_of_to_list {p : parser char} {s : string} :
+  many_char p cb n = done n' s ↔ many p cb n = done n' s.to_list :=
+by simp [many_char, list.as_string_eq]
+
+lemma many'_eq_done {p : parser α} : many' p cb n = done n' () ↔
+  many p cb n = done n' [] ∨ ∃ (np : ℕ) (a : α) (l : list α), many p cb n = done n' (a :: l)
+    ∧ p cb n = done np a ∧ foldr_core list.cons p [] (buffer.size cb - n) cb np = done n' l :=
+begin
+  simp only [many', eps_eq_done, many, foldr, and_then_eq_bind, exists_and_distrib_right,
+             bind_eq_done, exists_eq_right],
+  split,
+  { rintro ⟨_ | ⟨hd, tl⟩, hl⟩,
+    { exact or.inl hl },
+    { have hl2 := hl,
+      simp only [foldr_core_eq_done, or_false, exists_and_distrib_left, and_false, false_and,
+                 exists_eq_right_right] at hl,
+      obtain ⟨np, hp, h⟩ := hl,
+      refine or.inr ⟨np, _, _, hl2, hp, h⟩ } },
+  { rintro (h | ⟨np, a, l, hp, h⟩),
+    { exact ⟨[], h⟩ },
+    { refine ⟨a :: l, hp⟩ } }
+end
+
+@[simp] lemma many1_ne_done_nil {p : parser α} : many1 p cb n ≠ done n' [] :=
+by simp [many1, seq_eq_done]
+
+lemma many1_eq_done {p : parser α} {l : list α} : many1 p cb n = done n' (a :: l) ↔
+  ∃ (np : ℕ), p cb n = done np a ∧ many p cb np = done n' l :=
+by simp [many1, seq_eq_done, map_eq_done]
+
+lemma many1_eq_fail {p : parser α} {err : dlist string} : many1 p cb n = fail n' err ↔
+  p cb n = fail n' err ∨ (∃ (np : ℕ) (a : α), p cb n = done np a ∧ many p cb np = fail n' err) :=
+by simp [many1, seq_eq_fail]
+
+@[simp] lemma many_char1_ne_empty {p : parser char} : many_char1 p cb n ≠ done n' "" :=
+by simp [many_char1, ←string.nil_as_string_eq_empty]
+
+lemma many_char1_eq_done {p : parser char} {s : string} (h : s ≠ "") :
+  many_char1 p cb n = done n' s ↔
+  ∃ (np : ℕ), p cb n = done np s.head ∧ many_char p cb np = done n' (s.popn 1) :=
+by simp [many_char1, list.as_string_eq, string.to_list_nonempty h, many1_eq_done,
+         many_char_eq_many_of_to_list]
+
+@[simp] lemma sep_by1_ne_done_nil {sep : parser unit} {p : parser α} :
+  sep_by1 sep p cb n ≠ done n' [] :=
+by simp [sep_by1, seq_eq_done]
+
+lemma sep_by1_eq_done {sep : parser unit} {p : parser α} {l : list α} :
+  sep_by1 sep p cb n = done n' (a :: l) ↔ ∃ (np : ℕ), p cb n = done np a ∧
+    (sep >> p).many cb np  = done n' l :=
+by simp [sep_by1, seq_eq_done]
+
+lemma sep_by_eq_done_nil {sep : parser unit} {p : parser α} :
+  sep_by sep p cb n = done n' [] ↔ n = n' ∧ ∃ (err), sep_by1 sep p cb n = fail n err :=
+by simp [sep_by, pure_eq_done]
+
+@[simp] lemma fix_core_ne_done_zero {F : parser α → parser α} :
+  fix_core F 0 cb n ≠ done n' a :=
+by simp [fix_core]
+
+lemma fix_core_eq_done {F : parser α → parser α} {max_depth : ℕ} :
+  fix_core F (max_depth + 1) cb n = done n' a ↔ F (fix_core F max_depth) cb n = done n' a :=
+by simp [fix_core]
+
+include hn
+
+lemma digit_eq_done {k : ℕ} : digit cb n = done n' k ↔ n' = n + 1 ∧ k ≤ 9 ∧
+  (cb.read ⟨n, hn⟩).to_nat - '0'.to_nat = k ∧ '0' ≤ cb.read ⟨n, hn⟩ ∧ cb.read ⟨n, hn⟩ ≤ '9' :=
+begin
+  have c9 : '9'.to_nat - '0'.to_nat = 9 := rfl,
+  have l09 : '0'.to_nat ≤ '9'.to_nat := dec_trivial,
+  have le_iff_le : ∀ {c c' : char}, c ≤ c' ↔ c.to_nat ≤ c'.to_nat := λ _ _, iff.rfl,
+  simp only [digit, pure_eq_done, sat_eq_done, hn, and.left_comm, exists_eq_left, bind_eq_done,
+             and.congr_right_iff, @eq_comm _ n', decorate_error_eq_done, and.comm,
+             exists_and_distrib_left],
+  simp only [←and.assoc, exists_eq_right', le_iff_le, and.congr_left_iff, ←c9],
+  rintro hn rfl hl,
+  simp [l09, nat.sub_le_sub_right_iff, hl],
+end
+
+end done
 
 end parser

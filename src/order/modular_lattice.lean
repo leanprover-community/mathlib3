@@ -96,3 +96,15 @@ instance [distrib_lattice α] : is_modular_lattice α :=
 ⟨λ x y z xz, by rw [inf_sup_right, inf_eq_left.2 xz]⟩
 
 end distrib_lattice
+
+namespace is_modular_lattice
+
+variables [bounded_lattice α] [is_modular_lattice α] {a : α}
+
+instance is_modular_lattice_Iic : is_modular_lattice (set.Iic a) :=
+⟨λ x y z xz, (sup_inf_le_assoc_of_le (y : α) xz : (↑x ⊔ ↑y) ⊓ ↑z ≤ ↑x ⊔ ↑y ⊓ ↑z)⟩
+
+instance is_modular_lattice_Ici : is_modular_lattice (set.Ici a) :=
+⟨λ x y z xz, (sup_inf_le_assoc_of_le (y : α) xz : (↑x ⊔ ↑y) ⊓ ↑z ≤ ↑x ⊔ ↑y ⊓ ↑z)⟩
+
+end is_modular_lattice

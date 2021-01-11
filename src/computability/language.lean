@@ -15,9 +15,6 @@ over the languages.
 
 universes u v
 
-def list.backwards_rec {α : Type u} {P : list α → Sort v} (hPempty : P [])
-  (hPind : ∀ l x, P l → P (l ++ [x])) : Π l, P l := sorry
-
 variables {α : Type u} [dec : decidable_eq α]
 
 /-- A language is a set of strings over an alphabet. -/

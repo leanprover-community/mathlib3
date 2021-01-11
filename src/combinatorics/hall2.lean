@@ -69,6 +69,39 @@ begin
     exact finset.nonempty.image h f, },
 end
 
+lemma card_eq_iff_eq_univ {α : Type*} [fintype α] (s : finset α) :
+  s.card = fintype.card α ↔ s = finset.univ :=
+begin
+  split,
+  { intro h,
+    exact eq_univ_of_card _ h, },
+  { rintro rfl,
+    exact card_univ, },
+end
+
+lemma card_lt_of_ne_univ {α : Type*} [fintype α]
+  (s : finset α) (hnu : s ≠ finset.univ) : s.card < fintype.card α :=
+begin
+  by_contra h,
+  apply hnu,
+  rw ←card_eq_iff_eq_univ,
+  have h' : s.card ≤ fintype.card α := card_le_univ s,
+  push_neg at h,
+  exact nat.le_antisymm h' h,
+end
+
+lemma card_compl_lt_of_nonempty {α : Type*} [fintype α] [decidable_eq α]
+  (s : finset α) (hne : s.nonempty) :
+  sᶜ.card < fintype.card α :=
+begin
+  apply card_lt_of_ne_univ,
+  cases hne with x hx,
+  intro h,
+  have h' := mem_univ x,
+  rw ←h at h',
+  simpa [hx] using h',
+end
+
 end finset
 
 namespace fintype
@@ -138,6 +171,7 @@ lemma hall_hard_inductive_step_A [nonempty α] {n : ℕ} (hn : fintype.card α �
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin
   haveI : decidable_eq α := by { classical, apply_instance },
+  /- Choose an arbitrary element `a : α` and `b : r a`. -/
   let a : α := classical.choice (by apply_instance),
   have ra_ne : (r a).nonempty,
   { rw ←finset.card_pos,
@@ -145,6 +179,7 @@ begin
     convert hr {a},
     rw finset.singleton_bind, },
   rcases classical.indefinite_description _ ra_ne with ⟨b, hb⟩,
+  /- Restrict to everything except `a` and `b`. -/
   let α' := {a' : α | a' ≠ a},
   let r' : α' → finset β := λ a', (r a').erase b,
   have card_α'_le : fintype.card α' ≤ n,
@@ -171,6 +206,7 @@ begin
       subst A',
       simp }, },
   rcases ih r' card_α'_le hall_cond with ⟨f', hfinj, hfr⟩,
+  /- Extend the resulting function. -/
   refine ⟨λ x, if h : x = a then b else f' ⟨x, h⟩, _, _⟩,
   { rintro x₁ x₂,
     have key : ∀ {x}, b ≠ f' x,
@@ -192,7 +228,7 @@ end
 and that the statement of Hall's Marriage Theorem
 is true for all `α'` of cardinality ≤ `n`, then it is true for `α`.
 -/
-lemma hall_hard_inductive_step_B [nontrivial α] {n : ℕ} (hn : fintype.card α ≤ n.succ)
+lemma hall_hard_inductive_step_B {n : ℕ} (hn : fintype.card α ≤ n.succ)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
   (ih : ∀ {α' : Type u} [fintype α'] (r' : α' → finset β),
         by exactI fintype.card α' ≤ n →
@@ -205,91 +241,79 @@ lemma hall_hard_inductive_step_B [nontrivial α] {n : ℕ} (hn : fintype.card α
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin
   haveI : decidable_eq α := by { classical, apply_instance },
-  let α' := {a' : α // a' ∈ A},
-  let r' : α' → finset β := λ a', r a' ∩ A.bind r,
+  /- Restrict to `A` -/
+  let α' := (A : set α),
+  let r' : α' → finset β := λ a', r a',
   have card_α'_le : fintype.card α' ≤ n,
-  { rw [fintype.card_of_subtype A (λ _, iff.rfl), ← nat.lt_succ_iff],
-    have : A ⊂ univ := ⟨subset_univ _, λ t, hnA (le_antisymm (subset_univ _) t)⟩,
-    apply lt_of_lt_of_le (card_lt_card this) hn },
+  { convert_to A.card ≤ n,
+    convert fintype.card_coe _,
+    exact nat.le_of_lt_succ (lt_of_lt_of_le (card_lt_of_ne_univ _ hnA) hn), },
   have hall_cond' : ∀ (A' : finset α'), A'.card ≤ (A'.bind r').card,
   { intro A',
-    have h₁ := hr (A'.image subtype.val),
-    have h₂ : (image subtype.val A').bind r ⊆ A'.bind r',
-    { intro t,
-      simp only [mem_image, and_imp, mem_bind, exists_prop, exists_and_distrib_right,
-                 exists_eq_right, subtype.exists, subtype.coe_mk, exists_imp_distrib, mem_inter,
-                 subtype.val_eq_coe],
-      intros a hA hA' rat,
-      exact ⟨⟨a, ⟨hA, hA'⟩, rat⟩, ⟨a, hA, rat⟩⟩, },
-    rw card_image_of_injective _ subtype.val_injective at h₁,
-    apply h₁.trans ((card_le_of_subset h₂).trans _),
-    refl, },
-  have h' := ih r' card_α'_le hall_cond',
-  rcases h' with ⟨f', hf', hAf'⟩,
-  let α'' := {a'' : α // a'' ∉ A},
+    convert hr (A'.image coe) using 1,
+    { rw card_image_of_injective _ subtype.coe_injective, },
+    { apply congr_arg,
+      ext y,
+      simp [r'], }, },
+  rcases ih r' card_α'_le hall_cond' with ⟨f', hf', hAf'⟩,
+  /- Restrict to `Aᶜ` in the domain and `(A.bind r)ᶜ` in the codomain. -/
+  let α'' := (A : set α)ᶜ,
   let r'' : α'' → finset β := λ a'', r a'' \ A.bind r,
-  have h5 : fintype.card α'' ≤ n,
-  { have : ¬univ ⊆ Aᶜ,
-    { intro t,
-      rcases hA with ⟨a, ha⟩,
-      simpa [ha] using t (mem_univ a) },
-    have : Aᶜ ⊂ univ := ⟨subset_univ _, this⟩,
-    rw [fintype.card_of_subtype Aᶜ, ← nat.lt_succ_iff],
-    { apply lt_of_lt_of_le (card_lt_card this) hn },
-    { simp } },
-  have h6 : (∀ (B : finset α''), B.card ≤ (B.bind r'').card),
+  have card_α''_le : fintype.card α'' ≤ n,
+  { convert_to Aᶜ.card ≤ n,
+    convert fintype.card_coe _,
+    rw coe_compl,
+    exact nat.le_of_lt_succ (lt_of_lt_of_le (card_compl_lt_of_nonempty _ hA) hn), },
+  have hall_cond'' : ∀ (B : finset α''), B.card ≤ (B.bind r'').card,
   { intro B,
-    have : (A ∪ B.image subtype.val).card - A.card = B.card,
+    have : B.card = (A ∪ B.image coe).card - A.card,
     { rw [card_disjoint_union, nat.add_sub_cancel_left,
-        card_image_of_injective _ (subtype.val_injective)],
+          card_image_of_injective _ subtype.coe_injective],
       rw disjoint_left,
-      simp only [not_exists, mem_image, exists_prop, exists_and_distrib_right, exists_eq_right,
-        subtype.exists, subtype.coe_mk],
-      intros a hA hA',
-      apply (hA' hA).elim },
-    rw ← this,
-    rw huA,
+      simp only [not_exists, mem_image, exists_prop, set_coe.exists, exists_and_distrib_right,
+                 exists_eq_right, subtype.coe_mk],
+      intros a ha hA h,
+      exact (hA ha).elim },
+    rw [this, huA],
     apply (nat.sub_le_sub_right (hr _) _).trans _,
     rw ← card_sdiff,
-    { have :
-        (A ∪ B.image subtype.val).bind r \ A.bind r ⊆ B.bind r'',
+    { have : (A ∪ B.image subtype.val).bind r \ A.bind r ⊆ B.bind r'',
       { intros t,
         simp only [r'', mem_bind, mem_sdiff],
         simp only [not_exists, mem_image, and_imp, exists_prop, mem_union, not_and,
                    exists_and_distrib_right, exists_eq_right, subtype.exists, subtype.coe_mk,
-                   exists_imp_distrib, subtype.val_eq_coe],
-        rintro a (ha | hb) rat hA,
+                   exists_imp_distrib],
+        rintro a (ha | ⟨a', ha', rfl⟩) rat hA,
         { exfalso,
           apply hA a ha rat },
-        { exact ⟨⟨a, hb, rat⟩, hA⟩, } },
-      apply (card_le_of_subset this).trans _,
-      refl, },
+        { exact ⟨⟨a', ha', rat⟩, hA⟩, } },
+      exact (card_le_of_subset this).trans le_rfl, },
     { apply bind_subset_bind_of_subset_left,
       apply subset_union_left } },
-  have h'' := ih r'' h5 h6,
-  rcases h'' with ⟨f'', hf'', hAf''⟩,
+  rcases ih r'' card_α''_le hall_cond'' with ⟨f'', hf'', hAf''⟩,
+  /- Put them together -/
   refine ⟨λ x, if h : x ∈ A then f' ⟨x, h⟩ else f'' ⟨x, h⟩, _, _⟩,
-  { rintro x₁ x₂ (h : dite _ _ _ = dite _ _ _),
-    split_ifs at h with h₁ h₂ h₂ h₁,
-    { injection hf' h },
-    { exfalso,
-      specialize hAf' ⟨x₁, h₁⟩,
+  { have key : ∀ {x}, r' x ⊆ A.bind r,
+    { rintro ⟨a, ha⟩ x h, rw mem_bind, exact ⟨a, ha, h⟩, },
+    rintro x₁ x₂,
+    by_cases h₁ : x₁ ∈ A; by_cases h₂ : x₂ ∈ A,
+    { simp [h₁, h₂, hf'] },
+    { simp only [h₁, h₂, dif_pos, dif_neg, not_false_iff],
+      intro h,
+      exfalso,
       specialize hAf'' ⟨x₂, h₂⟩,
-      rw ←h at hAf'',
-      rw mem_inter at hAf',
-      rw mem_sdiff at hAf'',
-      exact absurd hAf'.2 hAf''.2, },
-    { exfalso,
-      specialize hAf' ⟨x₂, h₂⟩,
+      rw [←h, mem_sdiff] at hAf'',
+      exact hAf''.2 (key (hAf' _)), },
+    { simp only [h₁, h₂, dif_pos, dif_neg, not_false_iff],
+      intro h,
+      exfalso,
       specialize hAf'' ⟨x₁, h₁⟩,
-      rw h at hAf'',
-      rw mem_inter at hAf',
-      rw mem_sdiff at hAf'',
-      exact absurd hAf'.2 hAf''.2, },
-    { injection hf'' h } },
+      rw [h, mem_sdiff] at hAf'',
+      exact hAf''.2 (key (hAf' _)), },
+    { simp [h₁, h₂, hf''] }, },
   { intro x,
     split_ifs,
-    { exact inter_subset_left _ _ (hAf' ⟨x, h⟩) },
+    { exact hAf' ⟨x, h⟩ },
     { exact sdiff_subset _ _ (hAf'' ⟨x, h⟩) } }
 end
 
@@ -356,7 +380,7 @@ end
 
 
 /-- If `[fintype β]`, then `[∀ (a : α), fintype (rel.image r {a})]` is automatically implied. -/
-theorem hall' {α β : Type*} [fintype α] [decidable_eq β]
+theorem hall_rel {α β : Type*} [fintype α] [decidable_eq β]
   (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})] :
   (∀ (A : finset α), A.card ≤ fintype.card (rel.image r A))
   ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=

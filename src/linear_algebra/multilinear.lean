@@ -1042,3 +1042,36 @@ def multilinear_curry_right_equiv :
   right_inv := multilinear_map.uncurry_curry_right }
 
 end currying
+
+section submodule
+
+variables {R M M₂}
+[ring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M'] [add_comm_monoid M₂]
+[∀i, semimodule R (M₁ i)] [semimodule R M'] [semimodule R M₂]
+
+namespace multilinear_map
+
+/-- The pushforward of an indexed collection of submodule `p i ⊆ M₁ i` by `f : M₁ → M₂`.
+
+Note that this is not a submodule - it is not closed under addition. -/
+def map [nonempty ι] (f : multilinear_map R M₁ M₂) (p : Π i, submodule R (M₁ i)) :
+  sub_mul_action R M₂ :=
+{ carrier   := f '' { v | ∀ i, v i ∈ p i},
+  smul_mem' := λ c _ ⟨x, hx, hf⟩, let ⟨i⟩ := ‹nonempty ι› in by {
+    refine ⟨update x i (c • x i), λ j, if hij : j = i then _ else _, hf ▸ _⟩,
+    { rw [hij, update_same], exact (p i).smul_mem _ (hx i) },
+    { rw [update_noteq hij], exact hx j },
+    { rw [f.map_smul, update_eq_self] } } }
+
+/-- The map is always nonempty. This lemma is needed to apply `sub_mul_action.zero_mem`. -/
+lemma map_nonempty [nonempty ι] (f : multilinear_map R M₁ M₂) (p : Π i, submodule R (M₁ i)) :
+  (map f p : set M₂).nonempty :=
+⟨f 0, 0, λ i, (p i).zero_mem, rfl⟩
+
+/-- The range of a multilinear map, closed under scalar multiplication. -/
+def range [nonempty ι] (f : multilinear_map R M₁ M₂) : sub_mul_action R M₂ :=
+f.map (λ i, ⊤)
+
+end multilinear_map
+
+end submodule

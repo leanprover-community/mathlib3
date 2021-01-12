@@ -365,6 +365,24 @@ end
 
 lemma compl_involutive : function.involutive (@compl V) := compl_compl
 
+lemma compl_neighbor_set_disjoint (G : simple_graph V) (v : V) :
+  disjoint (G.neighbor_set v) (G.compl.neighbor_set v) :=
+begin
+  rw set.disjoint_iff,
+  rintro w ⟨h, h'⟩,
+  rw [mem_neighbor_set, compl_adj] at h',
+  exact h'.2 h,
+end
+
+lemma neighbor_set_union_compl_neighbor_set_eq (G : simple_graph V) (v : V) :
+  G.neighbor_set v ∪ G.compl.neighbor_set v = {v}ᶜ :=
+begin
+  ext w,
+  have h := @ne_of_adj _ G,
+  simp_rw [set.mem_union, mem_neighbor_set, compl_adj, set.mem_compl_eq, set.mem_singleton_iff],
+  tauto,
+end
+
 end complement
 
 end simple_graph

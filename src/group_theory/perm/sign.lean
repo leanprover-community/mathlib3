@@ -49,6 +49,39 @@ def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : 
   λ _, by simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk],
   λ _, by simp only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk]⟩
 
+lemma perm_inv_on_of_perm_on_finset {s : finset α} {f : perm α}
+  (h : ∀ x ∈ s, f x ∈ s) {y : α} (hy : y ∈ s) : f⁻¹ y ∈ s :=
+begin
+  have h0 : ∀ y ∈ s, ∃ x (hx : x ∈ s), y = (λ i (hi : i ∈ s), f i) x hx :=
+    finset.surj_on_of_inj_on_of_card_le (λ x hx, (λ i hi, f i) x hx)
+    (λ a ha, h a ha) (λ a₁ a₂ ha₁ ha₂ heq, (equiv.apply_eq_iff_eq f).mp heq) rfl.ge,
+  obtain ⟨y2, hy2, heq⟩ := h0 y hy,
+  convert hy2,
+  rw heq,
+  simp only [inv_apply_self]
+end
+
+lemma perm_inv_on_of_perm_on_fintype  {f : perm α} {p : α → Prop} (hf : fintype {x // p x})
+  (h : ∀ x, p x → p (f x)) {x : α} (hx : p x) : p (f⁻¹ x) :=
+begin
+  let s := @set.to_finset _ {x | p x} hf,
+  have h : ∀ a ∈ s, f a ∈ s :=
+    λ (a : α) (ha : a ∈ s), set.mem_to_finset.mpr (h a (set.mem_to_finset.mp ha)),
+  have h2 : ∀ b ∈ s, f⁻¹ b ∈ s := λ (b : α) (hb : b ∈ s), perm_inv_on_of_perm_on_finset h hb,
+  apply set.mem_to_finset.mp, apply h2,
+  refine set.mem_to_finset.mpr hx
+end
+
+/-- If the permutation `f` maps `{x // p x}` into itself, then this returns the permutation
+  on `{x // p x}` induced by `f`. -/
+def fintype_subtype_perm {f : equiv.perm α} {p : α → Prop} (hf : fintype {x // p x})
+  (h : ∀ x, p x → p (f x)) : equiv.perm {x // p x} :=
+{ to_fun := (λ x, ⟨f x, (h _) x.2⟩),
+  inv_fun := (λ x, ⟨f⁻¹ x, perm_inv_on_of_perm_on_fintype hf h x.prop⟩),
+  left_inv := (λ x, by simp only [equiv.perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk]),
+  right_inv := (λ x, by simp only [equiv.perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk])
+}
+
 @[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) : @subtype_perm α 1 p h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
 

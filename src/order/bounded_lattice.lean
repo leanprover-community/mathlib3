@@ -394,6 +394,10 @@ lemma subsingleton_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ :
   subsingleton α :=
 subsingleton_of_top_le_bot (ge_of_eq hα)
 
+lemma subsingleton_iff_bot_eq_top {α : Type*} [bounded_lattice α] :
+  (⊥ : α) = (⊤ : α) ↔ subsingleton α :=
+⟨subsingleton_of_bot_eq_top, λ h, by exactI subsingleton.elim ⊥ ⊤⟩
+
 /-- Attach `⊥` to a type. -/
 def with_bot (α : Type*) := option α
 

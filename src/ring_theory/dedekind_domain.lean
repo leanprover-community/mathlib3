@@ -26,12 +26,12 @@ We have now shown one side of the equivalence two of these definitions.
 
 ## Main definitions
 
- - `is_dedekind_domain` defines a Dedekind domain as a commutative ring that is not a field,
+ - `is_dedekind_domain` defines a Dedekind domain as an integral domain that is
    Noetherian, integrally closed in its field of fractions and has Krull dimension exactly one.
    `is_dedekind_domain_iff` shows that this does not depend on the choice of field of fractions.
- - `is_dedekind_domain_dvr` alternatively defines a Dedekind domain as an integral domain that is not a field,
+ - `is_dedekind_domain_dvr` alternatively defines a Dedekind domain as an integral domain that is
    Noetherian, and the localization at every nonzero prime ideal is a discrete valuation ring.
- - `is_dedekind_domain_inv` alternatively defines a Dedekind domain as an integral domain that is not a field,
+ - `is_dedekind_domain_inv` alternatively defines a Dedekind domain as an integral domain that is
    and every nonzero fractional ideal is invertible.
  - `is_dedekind_domain_inv_iff` shows that this does not depend on the choice of field of fractions.
 
@@ -122,7 +122,7 @@ class is_dedekind_domain : Prop :=
 
 attribute [instance, priority 100] is_dedekind_domain.to_is_noetherian_ring -- see Note [lower instance priority]
 
-/-- An integral domain is a Dedekind domain iff and only if it is not a field, is Noetherian, has dimension ≤ 1,
+/-- An integral domain is a Dedekind domain iff and only if it is Noetherian, has dimension ≤ 1,
 and is integrally closed in a given fraction field.
 In particular, this definition does not depend on the choice of this fraction field. -/
 lemma is_dedekind_domain_iff (f : fraction_map A K) :
@@ -137,7 +137,7 @@ lemma is_dedekind_domain_iff (f : fraction_map A K) :
          hi, algebra.map_bot]⟩⟩
 
 /--
-A Dedekind domain is an integral domain that is not a field, is Noetherian, and the localization at
+A Dedekind domain is an integral domain that is Noetherian, and the localization at
 every nonzero prime is a discrete valuation ring.
 
 This is equivalent to `is_dedekind_domain`.
@@ -263,7 +263,7 @@ begin
 end
 
 /--
-A Dedekind domain is an integral domain that is not a field such that every fractional ideal has an inverse.
+A Dedekind domain is an integral domain such that every fractional ideal has an inverse.
 
 This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.

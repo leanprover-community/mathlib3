@@ -255,7 +255,11 @@ begin
   rw [add_left_comm, div_add_div_same, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul, mul_comm],
   { sorry }, -- show `0 ≤ 1 - x^2`
   { exact two_ne_zero },
-  { sorry }, -- show `differentiable_at ℝ (λ y, 1 - y ^ 2) x`
+  { apply differentiable_at.sqrt,
+    { simp},
+    { -- 1 - x^2 ≠ 0
+      sorry
+    }}, -- show `differentiable_at ℝ (λ y, 1 - y ^ 2) x`
   { sorry }, -- show `1 - x^2 ≠ 0`
   { sorry }, -- show `differentiable_at ℝ (λ y, sqrt(1 - y ^ 2)) x`
   { sorry }, -- show `differentiable_at ℝ (λ y, y * sqrt(1 - y ^ 2)) x`

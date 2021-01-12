@@ -1,4 +1,4 @@
-import ring_theory.power_series
+import ring_theory.power_series.basic
 import combinatorics.partition
 import data.nat.parity
 import data.finset.nat_antidiagonal
@@ -198,11 +198,11 @@ lemma two_series (i : ℕ) [semiring α] :
   (1 + (X : power_series α)^i.succ) = indicator_series α {0, i.succ} :=
 begin
   ext,
-  simp only [coeff_indicator, coeff_one, add_monoid_hom.map_add, coeff_X_pow,
-             ← @set.mem_def _ _ {0, i.succ}, set.mem_insert_iff, set.mem_singleton_iff],
-  cases n,
-    simp [(nat.succ_ne_zero i).symm],
-  simp [nat.succ_ne_zero n],
+  simp [coeff_indicator, coeff_one, add_monoid_hom.map_add, coeff_X_pow,
+        ← @set.mem_def _ _ {0, i.succ}, set.mem_insert_iff, set.mem_singleton_iff],
+  cases n with d hd,
+    { simp [(nat.succ_ne_zero i).symm, zero_pow] },
+    { simp [(nat.succ_ne_zero d)], },
 end
 
 lemma num_series' [field α] (i : ℕ) :
@@ -212,8 +212,8 @@ begin
   { ext,
     cases n,
     { simp [mul_sub, zero_pow, constant_coeff_indicator] },
-    { rw [coeff_one, if_neg (nat.succ_ne_zero n), mul_sub, mul_one, add_monoid_hom.map_sub,
-          coeff_indicator],
+    { simp only [coeff_one, if_neg n.succ_ne_zero, mul_sub, mul_one,
+                 coeff_indicator, linear_map.map_sub],
       simp_rw [coeff_mul, coeff_X_pow, coeff_indicator, boole_mul, sum_ite, filter_filter,
                sum_const_zero, add_zero, sum_const, nsmul_eq_mul, mul_one, sub_eq_iff_eq_add,
                zero_add, filter_congr_decidable],
@@ -509,7 +509,7 @@ end
 -- TODO: move me to power_series.lean
 lemma coeff_prod_one_sub [comm_ring α] (n : ℕ) {φ ψ : power_series α} (h : ↑n < ψ.order) :
   coeff α n (φ * (1 - ψ)) = coeff α n φ :=
-by rw [mul_sub, mul_one, add_monoid_hom.map_sub, coeff_prod_one_add h, sub_zero]
+by simp only [mul_sub, mul_one, coeff_prod_one_add h, sub_zero, linear_map.map_sub]
 
 -- TODO: move me to power_series.lean
 lemma coeff_big_prod_one_sub {ι : Type*} [comm_ring α] (k : ℕ) (s : finset ι) (φ : power_series α)

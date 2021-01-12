@@ -4,6 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
+/-!
+# generalize_proofs
+
+A tactic to extract proofs in the goal to the context.
+-/
+
 namespace tactic
 
 private meta def collect_proofs_in :
@@ -61,9 +67,36 @@ open interactive interactive.types lean.parser
 local postfix *:9001 := many
 
 namespace interactive
-/-- Generalize proofs in the goal, naming them with the provided list. -/
+/-- Generalize proofs in the goal, naming them with the provided list.
+
+For example:
+```lean
+import tactic
+
+def foo : fin 1 → ℕ
+| ⟨0, _⟩ := 1
+| ⟨n + 1, h⟩ := (n.not_lt_zero $ add_lt_iff_neg_right.mp h).elim
+
+example : ∀ x, foo x > 0 := 
+begin
+  rintro ⟨(x|x), hx⟩; dsimp only [foo],
+  { norm_num, },
+  -- goal is `_.elim > 0`
+  generalize_proofs H,
+  -- `H : false` is now in the context
+  tauto,
+end
+```
+-/
 meta def generalize_proofs : parse ident_* → tactic unit :=
 tactic.generalize_proofs
+
+add_tactic_doc
+{ name := "generalize_proofs",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.generalize_proofs],
+  tags := ["context management", "proof extraction"] }
+
 end interactive
 
 end tactic

@@ -1612,9 +1612,8 @@ lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
   (hμ : ∀ s ∈ S, μ s < ⊤)  (hU : ⋃₀ S = univ) :
   sigma_finite μ :=
 begin
-  have : ∃ S : set (set α), countable S ∧ (∀ s ∈ S, μ s < ⊤) ∧ ⋃₀ S = univ := ⟨S, hc, hμ, hU⟩,
-  rw ← exists_seq_cover_iff_countable at this, swap, by simp,
-  rcases this with ⟨s, hμ, hs⟩,
+  obtain ⟨s, hμ, hs⟩ : ∃ s : ℕ → set α, (∀ n, μ (s n) < ⊤) ∧ (⋃ n, s n) = univ,
+    from (exists_seq_cover_iff_countable ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
   refine ⟨⟨λ n, to_measurable μ (s n), λ n, is_measurable_to_measurable _ _, by simpa, _⟩⟩,
   exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
 end

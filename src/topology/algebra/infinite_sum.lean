@@ -56,7 +56,7 @@ def summable (f : β → α) : Prop := ∃a, has_sum f a
 /-- `∑' i, f i` is the sum of `f` it exists, or 0 otherwise -/
 @[irreducible] def tsum {β} (f : β → α) := if h : summable f then classical.some h else 0
 
--- See the comment on precedence of big operators in `algebra/big_operators/basic.lean`.
+-- see Note [operator precedence of big operators]
 notation `∑'` binders `, ` r:(scoped:67 f, tsum f) := r
 
 variables {f g : β → α} {a b : α} {s : finset β}

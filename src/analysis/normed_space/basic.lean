@@ -1203,13 +1203,13 @@ lemma has_sum_of_subseq_of_summable {f : ι → α} (hf : summable (λa, ∥f a�
   has_sum f a :=
 tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hs ha
 
-/-- If `∑' i, ∥f i∥` is summable, then `∥(∑' i, f i)∥ ≤ (∑' i, ∥f i∥)`. Note that we do not assume
+/-- If `∑' i, ∥f i∥` is summable, then `∥∑' i, f i∥ ≤ (∑' i, ∥f i∥)`. Note that we do not assume
 that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
 lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) :
-  ∥(∑'i, f i)∥ ≤ (∑' i, ∥f i∥) :=
+  ∥∑'i, f i∥ ≤ ∑' i, ∥f i∥ :=
 begin
   by_cases h : summable f,
-  { have h₁ : tendsto (λs:finset ι, ∥∑ i in s, f i∥) at_top (𝓝 ∥(∑' i, f i)∥) :=
+  { have h₁ : tendsto (λs:finset ι, ∥∑ i in s, f i∥) at_top (𝓝 ∥∑' i, f i∥) :=
       (continuous_norm.tendsto _).comp h.has_sum,
     have h₂ : tendsto (λs:finset ι, ∑ i in s, ∥f i∥) at_top (𝓝 (∑' i, ∥f i∥)) :=
       hf.has_sum,
@@ -1231,10 +1231,10 @@ lemma summable_of_norm_bounded
 by { rw summable_iff_cauchy_seq_finset, exact cauchy_seq_finset_of_norm_bounded g hg h }
 
 /-- Quantitative result associated to the direct comparison test for series:  If `∑' i, g i` is
-summable, and for all `i`, `∥f i∥ ≤ g i`, then `∥(∑' i, f i)∥ ≤ (∑' i, g i)`. Note that we do not
+summable, and for all `i`, `∥f i∥ ≤ g i`, then `∥∑' i, f i∥ ≤ ∑' i, g i`. Note that we do not
 assume that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
 lemma tsum_of_norm_bounded {f : ι → α} {g : ι → ℝ} {a : ℝ} (hg : has_sum g a) (h : ∀i, ∥f i∥ ≤ g i) :
-  ∥(∑' (i:ι), f i)∥ ≤ a :=
+  ∥∑' i:ι, f i∥ ≤ a :=
 begin
   have h' : summable (λ (i : ι), ∥f i∥),
   { let f' : ι → ℝ := λ i, ∥f i∥,
@@ -1243,9 +1243,9 @@ begin
       convert h i,
       simp },
     simpa [f'] using summable_of_norm_bounded g hg.summable h'' },
-  have h1 : ∥(∑' (i:ι), f i)∥ ≤ ∑' (i:ι), ∥f i∥ := by simpa using norm_tsum_le_tsum_norm h',
+  have h1 : ∥∑' i:ι, f i∥ ≤ ∑' i:ι, ∥f i∥ := by simpa using norm_tsum_le_tsum_norm h',
   have h2 := tsum_le_tsum h h' hg.summable,
-  have h3 : a = ∑' (i:ι), g i := (has_sum.tsum_eq hg).symm,
+  have h3 : a = ∑' i:ι, g i := (has_sum.tsum_eq hg).symm,
   linarith
 end
 

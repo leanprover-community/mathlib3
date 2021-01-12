@@ -910,7 +910,7 @@ lemma pi_le_four : π ≤ 4 :=
 lemma pi_pos : 0 < π :=
 lt_of_lt_of_le (by norm_num) two_le_pi
 
-lemma pi_ne_zero : pi ≠ 0 :=
+lemma pi_ne_zero : π ≠ 0 :=
 ne_of_gt pi_pos
 
 lemma pi_div_two_pos : 0 < π / 2 :=
@@ -920,11 +920,11 @@ lemma two_pi_pos : 0 < 2 * π :=
 by linarith [pi_pos]
 
 @[simp] lemma sin_pi : sin π = 0 :=
-by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _ _), two_mul, add_div,
+by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), two_mul, add_div,
     sin_add, cos_pi_div_two]; simp
 
 @[simp] lemma cos_pi : cos π = -1 :=
-by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _ _), mul_div_assoc,
+by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), mul_div_assoc,
     cos_two_mul, cos_pi_div_two];
   simp [bit0, pow_add]
 
@@ -1050,6 +1050,9 @@ lemma sin_eq_zero_iff {x : ℝ} : sin x = 0 ↔ ∃ n : ℤ, (n : ℝ) * π = x 
   (sub_nonpos.1 $ le_of_not_gt $ λ h₃, ne_of_lt (sin_pos_of_pos_of_lt_pi h₃ (sub_floor_div_mul_lt _ pi_pos))
     (by simp [sub_eq_add_neg, sin_add, h, sin_int_mul_pi]))⟩,
   λ ⟨n, hn⟩, hn ▸ sin_int_mul_pi _⟩
+
+lemma sin_ne_zero_iff {x : ℝ} : sin x ≠ 0 ↔ ∀ n : ℤ, (n : ℝ) * π ≠ x :=
+by rw [← not_exists, not_iff_not, sin_eq_zero_iff]
 
 lemma sin_eq_zero_iff_cos_eq {x : ℝ} : sin x = 0 ↔ cos x = 1 ∨ cos x = -1 :=
 by rw [← mul_self_eq_one_iff, ← sin_sq_add_cos_sq x,
@@ -2331,7 +2334,8 @@ by cases n; simp only [cos_nat_mul_two_pi, int.of_nat_eq_coe,
 lemma cos_int_mul_two_pi_add_pi (n : ℤ) : cos (n * (2 * π) + π) = -1 :=
 by simp [cos_add, sin_add, cos_int_mul_two_pi]
 
-lemma exp_pi_mul_I : exp (π * I) = -1 := by { rw exp_mul_I, simp, }
+lemma exp_pi_mul_I : exp (π * I) = -1 :=
+by rw exp_mul_I; simp
 
 theorem cos_eq_zero_iff {θ : ℂ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
 begin
@@ -2369,6 +2373,28 @@ end
 theorem sin_ne_zero_iff {θ : ℂ} : sin θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ k * π :=
 by rw [← not_exists, not_iff_not, sin_eq_zero_iff]
 
+lemma sin_eq_zero_iff_cos_eq {z : ℂ} : sin z = 0 ↔ cos z = 1 ∨ cos z = -1 :=
+by rw [← mul_self_eq_one_iff, ← sin_sq_add_cos_sq, pow_two, pow_two, ← sub_eq_iff_eq_add, sub_self];
+  exact ⟨λ h, by rw [h, mul_zero], eq_zero_of_mul_self_eq_zero ∘ eq.symm⟩
+
+lemma tan_eq_zero_iff {θ : ℂ} : tan θ = 0 ↔ ∃ k : ℤ, θ = k * π / 2 :=
+begin
+  have h := (sin_two_mul θ).symm,
+  rw mul_assoc at h,
+  rw [tan, div_eq_zero_iff, ← mul_eq_zero, ← zero_mul ((1/2):ℂ), mul_one_div,
+      cancel_factors.cancel_factors_eq_div h two_ne_zero', mul_comm],
+  simpa only [zero_div, zero_mul, ne.def, not_false_iff] with field_simps using sin_eq_zero_iff,
+end
+
+lemma tan_ne_zero_iff {θ : ℂ} : tan θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ k * π / 2 :=
+by rw [← not_exists, not_iff_not, tan_eq_zero_iff]
+
+lemma tan_int_mul_pi_div_two (n : ℤ) : tan (n * π/2) = 0 :=
+tan_eq_zero_iff.mpr (by use n)
+
+lemma tan_int_mul_pi (n : ℤ) : tan (n * π) = 0 :=
+by rw tan_eq_zero_iff; use (2*n); field_simp [mul_comm ((n:ℂ)*(π:ℂ)) 2, ← mul_assoc]
+
 lemma cos_eq_cos_iff {x y : ℂ} :
   cos x = cos y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x :=
 calc cos x = cos y ↔ cos x - cos y = 0 : sub_eq_zero.symm
@@ -2390,6 +2416,49 @@ begin
   simp only [← complex.cos_sub_pi_div_two, cos_eq_cos_iff, sub_eq_iff_eq_add],
   refine exists_congr (λ k, or_congr _ _); refine eq.congr rfl _; field_simp; ring
 end
+
+lemma tan_add {x y : ℂ}
+  (h : ((∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, y ≠ (2 * l + 1) * π / 2)
+     ∨ ((∃ k : ℤ, x = (2 * k + 1) * π / 2) ∧ ∃ l : ℤ, y = (2 * l + 1) * π / 2)) :
+  tan (x + y) = (tan x + tan y) / (1 - tan x * tan y) :=
+begin
+  rcases h with ⟨h1, h2⟩ | ⟨⟨k, rfl⟩, ⟨l, rfl⟩⟩,
+  { rw [tan, sin_add, cos_add,
+        ← div_div_div_cancel_right (sin x * cos y + cos x * sin y)
+            (mul_ne_zero (cos_ne_zero_iff.mpr h1) (cos_ne_zero_iff.mpr h2)),
+        add_div, sub_div],
+    simp only [←div_mul_div, ←tan, mul_one, one_mul,
+              div_self (cos_ne_zero_iff.mpr h1), div_self (cos_ne_zero_iff.mpr h2)] },
+  { obtain ⟨t, hx, hy, hxy⟩ := ⟨tan_int_mul_pi_div_two, t (2*k+1), t (2*l+1), t (2*k+1+(2*l+1))⟩,
+    simp only [int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one, hx, hy] at hx hy hxy,
+    rw [hx, hy, add_zero, zero_div,
+        mul_div_assoc, mul_div_assoc, ← add_mul (2*(k:ℂ)+1) (2*l+1) (π/2), ← mul_div_assoc, hxy] },
+end
+
+lemma tan_add' {x y : ℂ}
+  (h : ((∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, y ≠ (2 * l + 1) * π / 2)) :
+  tan (x + y) = (tan x + tan y) / (1 - tan x * tan y) :=
+tan_add (or.inl h)
+
+lemma tan_two_mul {z : ℂ} : tan (2 * z) = 2 * tan z / (1 - tan z ^ 2) :=
+begin
+  by_cases h : ∀ k : ℤ, z ≠ (2 * k + 1) * π / 2,
+  { rw [two_mul, two_mul, pow_two, tan_add (or.inl ⟨h, h⟩)] },
+  { rw not_forall_not at h,
+    rw [two_mul, two_mul, pow_two, tan_add (or.inr ⟨h, h⟩)] },
+end
+
+lemma tan_add_mul_I {x y : ℂ}
+  (h : ((∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, y * I ≠ (2 * l + 1) * π / 2)
+     ∨ ((∃ k : ℤ, x = (2 * k + 1) * π / 2) ∧ ∃ l : ℤ, y * I = (2 * l + 1) * π / 2)) :
+  tan (x + y*I) = (tan x + tanh y * I) / (1 - tan x * tanh y * I) :=
+by rw [tan_add h, tan_mul_I, mul_assoc]
+
+lemma tan_eq {z : ℂ}
+  (h : ((∀ k : ℤ, (z.re:ℂ) ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, (z.im:ℂ) * I ≠ (2 * l + 1) * π / 2)
+     ∨ ((∃ k : ℤ, (z.re:ℂ) = (2 * k + 1) * π / 2) ∧ ∃ l : ℤ, (z.im:ℂ) * I = (2 * l + 1) * π / 2)) :
+  tan z = (tan z.re + tanh z.im * I) / (1 - tan z.re * tanh z.im * I) :=
+by convert tan_add_mul_I h; exact (re_add_im z).symm
 
 lemma has_deriv_at_tan {x : ℂ} (h : cos x ≠ 0) :
   has_deriv_at tan (1 / (cos x)^2) x :=
@@ -2510,11 +2579,41 @@ end chebyshev₁
 namespace real
 open_locale real
 
+lemma tan_add {x y : ℝ}
+  (h : ((∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, y ≠ (2 * l + 1) * π / 2)
+     ∨ ((∃ k : ℤ, x = (2 * k + 1) * π / 2) ∧ ∃ l : ℤ, y = (2 * l + 1) * π / 2)) :
+  tan (x + y) = (tan x + tan y) / (1 - tan x * tan y) :=
+by simpa only [← complex.of_real_inj, complex.of_real_sub, complex.of_real_add, complex.of_real_div,
+              complex.of_real_mul, complex.of_real_tan]
+    using @complex.tan_add (x:ℂ) (y:ℂ) (by convert h; norm_cast)
+
+lemma tan_add' {x y : ℝ}
+  (h : ((∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, y ≠ (2 * l + 1) * π / 2)) :
+  tan (x + y) = (tan x + tan y) / (1 - tan x * tan y) :=
+tan_add (or.inl h)
+
+lemma tan_two_mul {x:ℝ} : tan (2 * x) = 2 * tan x / (1 - tan x ^ 2) :=
+by simpa only [← complex.of_real_inj, complex.of_real_sub, complex.of_real_div, complex.of_real_pow,
+              complex.of_real_mul, complex.of_real_tan, complex.of_real_bit0, complex.of_real_one]
+    using complex.tan_two_mul
+
 theorem cos_eq_zero_iff {θ : ℝ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
 by exact_mod_cast @complex.cos_eq_zero_iff θ
 
 theorem cos_ne_zero_iff {θ : ℝ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
 by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
+
+lemma tan_ne_zero_iff {θ : ℝ} : tan θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ k * π / 2 :=
+by rw [← complex.of_real_ne_zero, complex.of_real_tan, complex.tan_ne_zero_iff]; norm_cast
+
+lemma tan_eq_zero_iff {θ : ℝ} : tan θ = 0 ↔ ∃ k : ℤ, θ = k * π / 2 :=
+by rw [← not_iff_not, not_exists, ← ne, tan_ne_zero_iff]
+
+lemma tan_int_mul_pi_div_two (n : ℤ) : tan (n * π/2) = 0 :=
+tan_eq_zero_iff.mpr (by use n)
+
+lemma tan_int_mul_pi (n : ℤ) : tan (n * π) = 0 :=
+by rw tan_eq_zero_iff; use (2*n); field_simp [mul_comm ((n:ℝ)*(π:ℝ)) 2, ← mul_assoc]
 
 lemma cos_eq_cos_iff {x y : ℝ} :
   cos x = cos y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x :=
@@ -2601,7 +2700,7 @@ lemma tendsto_cos_neg_pi_div_two : tendsto cos (𝓝[Ioi (-(π/2))] (-(π/2))) (
 begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
   { convert continuous_cos.continuous_within_at, simp },
-  { filter_upwards [Ioo_mem_nhds_within_Ioi (set.left_mem_Ico.mpr (norm_num.lt_neg_pos
+  { filter_upwards [Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr (norm_num.lt_neg_pos
       _ _ pi_div_two_pos pi_div_two_pos))] λ x hx, cos_pos_of_mem_Ioo hx },
 end
 

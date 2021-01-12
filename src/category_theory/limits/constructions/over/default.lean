@@ -3,11 +3,17 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 -/
-import category_theory.limits.shapes.constructions.over.products
-import category_theory.limits.shapes.constructions.over.connected
-import category_theory.limits.shapes.constructions.limits_of_products_and_equalizers
-import category_theory.limits.shapes.constructions.equalizers
+import category_theory.limits.constructions.over.products
+import category_theory.limits.constructions.over.connected
+import category_theory.limits.constructions.limits_of_products_and_equalizers
+import category_theory.limits.constructions.equalizers
 
+/-!
+# Limits in the over category
+
+Declare instances for limits in the over category: If `C` has finite wide pullbacks, `over B` has
+finite limits, and if `C` has arbitrary wide pullbacks then `over B` has limits.
+-/
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory category_theory.limits

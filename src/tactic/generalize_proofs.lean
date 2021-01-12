@@ -72,7 +72,19 @@ open interactive interactive.types lean.parser
 local postfix *:9001 := many
 
 namespace interactive
-/-- Generalize proofs in the goal, naming them with the provided list. -/
+/-- Generalize proofs in the goal, naming them with the provided list.
+
+For example:
+```lean
+example : list.nth_le [1, 2] 1 dec_trivial = 2 :=
+begin
+  -- ⊢ [1, 2].nth_le 1 _ = 2
+  generalize_proofs h,
+  -- h : 1 < [1, 2].length
+  -- ⊢ [1, 2].nth_le 1 h = 2
+end
+```
+-/
 meta def generalize_proofs : parse ident_* → parse location → tactic unit :=
 tactic.generalize_proofs
 end interactive

@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 import field_theory.adjoin
 import field_theory.minimal_polynomial
+import linear_algebra.free_module
 import ring_theory.adjoin
 import ring_theory.adjoin_root
 import ring_theory.algebraic
@@ -362,6 +363,45 @@ lemma equiv_symm [nontrivial S] [nontrivial S']
   (pb.equiv pb' h).symm = pb'.equiv pb h.symm :=
 rfl
 
+/-- An algebra equivalence induces an equivalence of power bases.
+
+This definition is used for either direction of `power_basis.congr`.
+-/
+def congr_aux {R A A' : Type*} [comm_ring R] [ring A] [ring A']
+  [algebra R A] [algebra R A'] (e : A ≃ₐ[R] A')
+  (pb : power_basis R A) : power_basis R A' :=
+{ gen := e pb.gen,
+  dim := pb.dim,
+  is_basis := begin
+      simp only [← e.map_pow],
+      convert linear_equiv.is_basis pb.is_basis e.to_linear_equiv
+    end }
+
+@[ext]
+lemma ext {R A : Type*} [integral_domain R] [ring A] [algebra R A]
+  {pb pb' : power_basis R A} (h : pb.gen = pb'.gen) : pb = pb' :=
+begin
+  cases pb, cases pb', congr,
+  { exact h },
+  convert le_antisymm
+      (pb'_is_basis.card_le_card_of_linear_independent pb_is_basis.1)
+      (pb_is_basis.card_le_card_of_linear_independent pb'_is_basis.1);
+    rw fintype.card_fin
+end
+
+lemma ext_iff {R A : Type*} [integral_domain R] [ring A] [algebra R A]
+  {pb pb' : power_basis R A} : pb = pb' ↔ pb.gen = pb'.gen :=
+⟨λ h, by rw h, power_basis.ext⟩
+
+/-- An algebra equivalence induces an equivalence of power bases. -/
+def congr {R A A' : Type*} [integral_domain R] [ring A] [ring A']
+  [algebra R A] [algebra R A'] (e : A ≃ₐ[R] A') :
+  power_basis R A ≃ power_basis R A' :=
+{ to_fun := power_basis.congr_aux e,
+  inv_fun := power_basis.congr_aux e.symm,
+  left_inv := λ pb, power_basis.ext (e.symm_apply_apply pb.gen),
+  right_inv := λ pb, power_basis.ext (e.apply_symm_apply pb.gen) }
+
 end equiv
 
 end power_basis
@@ -576,6 +616,12 @@ noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
 
 @[simp] lemma adjoin.power_basis.gen_eq {x : L} (hx : is_integral K x) :
   (adjoin.power_basis hx).gen = adjoin_simple.gen K x := rfl
+
+@[simp] lemma adjoin.power_basis.minpoly_gen_eq {x : L} (hx : is_integral K x) :
+  (adjoin.power_basis hx).minpoly_gen = minimal_polynomial hx :=
+by rw [(adjoin.power_basis hx).minpoly_gen_eq,
+       minimal_polynomial.eq_of_algebra_map_eq (algebra_map K⟮x⟯ L).injective _ hx
+         (adjoin_simple.algebra_map_gen K x).symm]
 
 lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
 power_basis.finite_dimensional (adjoin.power_basis hx)

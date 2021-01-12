@@ -2,12 +2,22 @@
 Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
-
-Nonnegative real numbers.
 -/
 import topology.algebra.infinite_sum
 import topology.algebra.group_with_zero
 
+/-!
+# Topology on ℝ≥0
+
+This file puts the natural topology on ℝ≥0 (the one induced from ℝ),
+and starts by showing that it is a topological semiring with respect to this topology,
+and that subtraction and inversion (away from 0) are continuous.
+
+It goes on to prove various "mathematically trivial" lemmas about the compatibility
+of limits and sums in ℝ≥0 and ℝ, for example
+
+`coe_tsum {f : α → ℝ≥0} : ((∑'a, f a) : ℝ) = (∑'a, (f a : ℝ))`
+-/
 noncomputable theory
 open set topological_space metric
 open_locale topological_space
@@ -107,6 +117,10 @@ begin
   rw [← summable_coe, ← summable_coe],
   exact @summable_nat_add_iff ℝ _ _ _ (λ i, (f i : ℝ)) k,
 end
+
+lemma has_sum_nat_add_iff {f : ℕ → ℝ≥0} (k : ℕ) {a : ℝ≥0} :
+  has_sum (λ n, f (n + k)) a ↔ has_sum f (a + ∑ i in range k, f i) :=
+by simp [← has_sum_coe, coe_sum, nnreal.coe_add, ← has_sum_nat_add_iff k]
 
 lemma sum_add_tsum_nat_add {f : ℕ → ℝ≥0} (k : ℕ) (hf : summable f) :
   (∑' i, f i) = (∑ i in range k, f i) + ∑' i, f (i + k) :=

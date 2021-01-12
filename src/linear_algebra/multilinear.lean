@@ -1057,11 +1057,8 @@ Note that this is not a submodule - it is not closed under addition. -/
 def map [nonempty ι] (f : multilinear_map R M₁ M₂) (p : Π i, submodule R (M₁ i)) :
   sub_mul_action R M₂ :=
 { carrier   := f '' { v | ∀ i, v i ∈ p i},
-  smul_mem' := by {
-    rintro c _ ⟨x, hx, rfl⟩,
-    tactic.unfreeze_local_instances,
-    obtain ⟨i⟩ := ‹nonempty ι›,
-    refine ⟨update x i (c • x i), λ j, if hij : j = i then _ else _, _⟩,
+  smul_mem' := λ c _ ⟨x, hx, hf⟩, let ⟨i⟩ := ‹nonempty ι› in by {
+    refine ⟨update x i (c • x i), λ j, if hij : j = i then _ else _, hf ▸ _⟩,
     { rw [hij, update_same], exact (p i).smul_mem _ (hx i) },
     { rw [update_noteq hij], exact hx j },
     { rw [f.map_smul, update_eq_self] } } }

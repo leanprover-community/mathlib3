@@ -5,111 +5,9 @@ Author: Alena Gusakov, Bhavik Mehta, Kyle Miller
 -/
 import data.fintype.basic
 import data.rel
-
-namespace finset
-
-
-/-- Given a relation such that the image of every singleton set is finite, then the image of every
-finite set is finite. -/
-instance {α β : Type*} [decidable_eq β]
-  (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})]
-  (A : finset α) : fintype (rel.image r A) :=
-begin
-  have h : rel.image r A = (A.bind (λ a, (rel.image r {a}).to_finset) : set β),
-  { ext, simp [rel.image], },
-  rw [h],
-  apply finset_coe.fintype,
-end
-
-/-- A matching is an injective element of the product of an indexed family of sets. -/
-lemma card_le_of_matching {α β : Type*} [decidable_eq β] (r : α → finset β)
-  (f : α → β) (hf₁ : function.injective f) (hf₂ : ∀ x, f x ∈ r x) (A : finset α) :
-  A.card ≤ (A.bind r).card :=
-begin
-  rw ←card_image_of_injective A hf₁,
-  apply card_le_of_subset,
-  intro b,
-  rw [mem_image, mem_bind],
-  rintros ⟨a, ha, rfl⟩,
-  exact ⟨a, ha, hf₂ a⟩,
-end
-
-lemma bind_erase {α β : Type*} [decidable_eq β] (f : α → finset β) (s : finset α) (b : β) :
-  s.bind (λ x, (f x).erase b) = (s.bind f).erase b :=
-begin
-  ext y,
-  simp only [exists_prop, finset.mem_bind, ne.def, finset.mem_erase],
-  tauto,
-end
-
-@[simp]
-lemma nonempty.image_iff {α β: Type*} [decidable_eq β]
-  (f : α → β) (s : finset α) :
-  (s.image f).nonempty ↔ s.nonempty :=
-begin
-  split,
-  { rintro ⟨y, hy⟩,
-    rw finset.mem_image at hy,
-    rcases hy with ⟨x, hx, rfl⟩,
-    exact ⟨x, hx⟩, },
-  { intro h,
-    exact finset.nonempty.image h f, },
-end
-
-lemma card_eq_iff_eq_univ {α : Type*} [fintype α] (s : finset α) :
-  s.card = fintype.card α ↔ s = finset.univ :=
-begin
-  split,
-  { intro h,
-    exact eq_univ_of_card _ h, },
-  { rintro rfl,
-    exact card_univ, },
-end
-
-lemma card_lt_of_ne_univ {α : Type*} [fintype α]
-  (s : finset α) (hnu : s ≠ finset.univ) : s.card < fintype.card α :=
-begin
-  by_contra h,
-  apply hnu,
-  rw ←card_eq_iff_eq_univ,
-  have h' : s.card ≤ fintype.card α := card_le_univ s,
-  push_neg at h,
-  exact nat.le_antisymm h' h,
-end
-
-lemma card_compl_lt_of_nonempty {α : Type*} [fintype α] [decidable_eq α]
-  (s : finset α) (hne : s.nonempty) :
-  sᶜ.card < fintype.card α :=
-begin
-  apply card_lt_of_ne_univ,
-  cases hne with x hx,
-  intro h,
-  have h' := mem_univ x,
-  rw ←h at h',
-  simpa [hx] using h',
-end
-
-end finset
-
-namespace fintype
-
-lemma card_ne_eq {α : Type*} [fintype α] [decidable_eq α] (a : α) :
-  fintype.card {x : α | x ≠ a} = fintype.card α - 1 :=
-begin
-  rw [←set.to_finset_card],
-  convert_to (finset.univ.erase a).card = _,
-  { congr,
-    ext,
-    rw [set.mem_to_finset, finset.mem_erase, set.mem_set_of_eq],
-    simp only [finset.mem_univ, and_true], },
-  { rw [finset.card_erase_of_mem (finset.mem_univ _), finset.card_univ],
-    refl, },
-end
-
-end fintype
+import data.set.finite
 
 open finset
-
 
 universes u v
 
@@ -117,7 +15,6 @@ namespace hall_marriage_theorem
 variables {α : Type u} {β : Type v} [fintype α]
 variables (r : α → finset β)
 
-/-- Base case 0: the cardinality of `α` is ≤ `0` -/
 theorem hall_hard_inductive_zero (hn : fintype.card α = 0) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin
@@ -127,7 +24,6 @@ end
 
 variables [decidable_eq β]
 
-/-- Base case 1: the cardinality of `α` is `1` -/
 theorem hall_hard_inductive_one (hn : fintype.card α = 1)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
@@ -169,11 +65,11 @@ begin
     simp },
 end
 
-
-/-- First case of the inductive step: assuming that
-`∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (image_rel r A).card`
-and that the statement of Hall's Marriage Theorem
-is true for all `α'` of cardinality ≤ `n`, then it is true for `α`.
+/--
+First case of the inductive step: assuming that
+`∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (A.bind r).card`
+and that the statement of Hall's Marriage Theorem is true for all
+`α'` of cardinality ≤ `n`, then it is true for `α` of cardinality n.succ.
 -/
 lemma hall_hard_inductive_step_A {n : ℕ} (hn : fintype.card α = n.succ)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
@@ -184,9 +80,7 @@ lemma hall_hard_inductive_step_A {n : ℕ} (hn : fintype.card α = n.succ)
   (ha : ∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (A.bind r).card) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin
-  haveI : nonempty α :=
-  by { rw [←fintype.card_pos_iff, hn],
-       exact nat.succ_pos _, },
+  haveI : nonempty α := by { rw [←fintype.card_pos_iff, hn], exact nat.succ_pos _, },
   haveI : decidable_eq α := by { classical, apply_instance },
   /- Choose an arbitrary element `a : α` and `b : r a`. -/
   let a : α := classical.choice (by apply_instance),
@@ -200,7 +94,7 @@ begin
   let α' := {a' : α | a' ≠ a},
   let r' : α' → finset β := λ a', (r a').erase b,
   have card_α'_le : fintype.card α' ≤ n,
-  { rw [fintype.card_ne_eq, hn],
+  { rw [set.card_ne_eq, hn],
     exact le_refl _, },
   rcases ih r' card_α'_le (hall_cond_of_erase r a b ha) with ⟨f', hfinj, hfr⟩,
   /- Extend the resulting function. -/
@@ -221,11 +115,11 @@ begin
 end
 
 lemma hall_cond_of_restrict {α : Type u} (r : α → finset β) (A : finset α)
-  (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card) :
-  ∀ (A' : finset (A : set α)), A'.card ≤ (A'.bind (λ a', r a')).card :=
+  (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
+  (A' : finset (A : set α)) :
+  A'.card ≤ (A'.bind (λ a', r a')).card :=
 begin
   haveI : decidable_eq α := by { classical, apply_instance },
-  intro A',
   convert hr (A'.image coe) using 1,
   { rw card_image_of_injective _ subtype.coe_injective, },
   { apply congr_arg,
@@ -235,11 +129,11 @@ end
 
 lemma hall_cond_of_compl {α : Type u} (r : α → finset β) (A : finset α)
   (huA : A.card = (A.bind r).card)
-  (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card) :
-  ∀ (B : finset ((A : set α)ᶜ : set α)), B.card ≤ (B.bind (λ a'', r a'' \ A.bind r)).card :=
+  (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
+  (B : finset ((A : set α)ᶜ : set α)) :
+  B.card ≤ (B.bind (λ a'', r a'' \ A.bind r)).card :=
 begin
   haveI : decidable_eq α := by { classical, apply_instance },
-  intro B,
   have : B.card = (A ∪ B.image coe).card - A.card,
   { rw [card_disjoint_union, nat.add_sub_cancel_left,
         card_image_of_injective _ subtype.coe_injective],
@@ -290,7 +184,7 @@ begin
   have card_α'_le : fintype.card α' ≤ n,
   { apply nat.le_of_lt_succ,
     rw ←hn,
-    convert card_lt_of_ne_univ _ hnA,
+    convert (card_lt_iff_ne_univ _).mpr hnA,
     convert fintype.card_coe _ },
   rcases ih r' card_α'_le (hall_cond_of_restrict r A hr) with ⟨f', hf', hAf'⟩,
   /- Restrict to `Aᶜ` in the domain and `(A.bind r)ᶜ` in the codomain. -/
@@ -299,7 +193,7 @@ begin
   have card_α''_le : fintype.card α'' ≤ n,
   { apply nat.le_of_lt_succ,
     rw ←hn,
-    convert card_compl_lt_of_nonempty _ hA,
+    convert (card_compl_lt_iff_nonempty _).mpr hA,
     convert fintype.card_coe _,
     rw coe_compl, },
   rcases ih r'' card_α''_le (hall_cond_of_compl r A huA hr) with ⟨f'', hf'', hAf''⟩,
@@ -331,7 +225,6 @@ begin
     { exact sdiff_subset _ _ (hAf'' ⟨x, h⟩) } }
 end
 
--- Note the generalisation over types here
 /--
 If `α` has cardinality `n + 1` and the statement of Hall's Marriage Theorem
 is true for all `α'` of cardinality ≤ `n`, then it is true for `α`.
@@ -367,7 +260,7 @@ begin
   intros,
   rcases n' with (_|_|_),
   { exact hall_hard_inductive_zero r hn },
-  { apply hall_hard_inductive_one r hn hr },
+  { exact hall_hard_inductive_one r hn hr },
   { apply hall_hard_inductive_step r n'.succ hn hr,
     introsI α' _ r' hα',
     exact ih (fintype.card α') (nat.lt_succ_of_le hα') r' rfl, },
@@ -376,22 +269,52 @@ end
 end hall_marriage_theorem
 
 /--
-We combine `hall_easy` and `hall_hard_inductive` into a proof
-of Hall's Marriage Theorem.
+This the version of Hall's Marriage Theorem in terms of indexed
+families of finite sets `s : ι → finset α`.  It states that there is
+set of distinct representatives if and only if every union of k of the
+sets has at least k elements.
+
+Recall that `A.bind s` is the union of all the sets `s i` for `i ∈ A`.
 -/
-theorem hall {α β : Type*} [fintype α] [decidable_eq β] (r : α → finset β) :
-  (∀ (A : finset α), A.card ≤ (A.bind r).card)
-  ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x) :=
+theorem all_card_le_bind_card_iff_exists_injective
+  {ι α : Type*} [fintype ι] [decidable_eq α] (s : ι → finset α) :
+  (∀ (A : finset ι), A.card ≤ (A.bind s).card)
+  ↔ (∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ s x) :=
 begin
   split,
-  { exact hall_marriage_theorem.hall_hard_inductive r (fintype.card α) rfl },
-  { rintro ⟨f, hf, hf2⟩,
-    exact card_le_of_matching r f hf hf2 },
+  { exact hall_marriage_theorem.hall_hard_inductive s (fintype.card ι) rfl },
+  { rintro ⟨f, hf₁, hf₂⟩ A,
+    rw ←card_image_of_injective A hf₁,
+    apply card_le_of_subset,
+    intro b,
+    rw [mem_image, mem_bind],
+    rintros ⟨a, ha, rfl⟩,
+    exact ⟨a, ha, hf₂ a⟩, },
 end
 
+/-- Given a relation such that the image of every singleton set is finite, then the image of every
+finite set is finite. -/
+instance {α β : Type*} [decidable_eq β]
+  (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})]
+  (A : finset α) : fintype (rel.image r A) :=
+begin
+  have h : rel.image r A = (A.bind (λ a, (rel.image r {a}).to_finset) : set β),
+  { ext, simp [rel.image], },
+  rw [h],
+  apply finset_coe.fintype,
+end
 
-/-- If `[fintype β]`, then `[∀ (a : α), fintype (rel.image r {a})]` is automatically implied. -/
-theorem hall_rel {α β : Type*} [fintype α] [decidable_eq β]
+/--
+This is a version of Hall's Marriage Theorem in terms of a relation
+between types `α` and `β` such that `α` is finite and the image of
+each `x : α` is finite (it suffices for `β` to be finite).  There is
+an injective function `α → β` respecting the relation iff for every
+`k` terms of `α` there are at least `k` terms of `β` related to them.
+
+If `[fintype β]`, then `[∀ (a : α), fintype (rel.image r {a})]` is automatically implied.
+-/
+theorem all_card_le_rel_image_card_iff_exists_injective
+  {α β : Type*} [fintype α] [decidable_eq β]
   (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})] :
   (∀ (A : finset α), A.card ≤ fintype.card (rel.image r A))
   ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
@@ -406,11 +329,16 @@ begin
   have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
   { simp [rel.image], },
   simp only [h, h'],
-  apply hall,
+  apply all_card_le_bind_card_iff_exists_injective,
 end
 
-/-- A version using `univ.filter` directly. -/
-theorem hall_rel' {α β : Type*} [fintype α] [fintype β]
+/--
+This is a version of Hall's Marriage Theorem in terms of a relation
+between finite types.  It is like `hall_rel` but uses `finset.filter`
+rather than `rel.image`.
+-/
+theorem all_card_le_filter_rel_iff_exists_injective
+  {α β : Type*} [fintype α] [fintype β]
   (r : α → β → Prop) [∀ a, decidable_pred (r a)] :
   (∀ (A : finset α), A.card ≤ (univ.filter (λ (b : β), ∃ a ∈ A, r a b)).card)
   ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
@@ -424,5 +352,5 @@ begin
   have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
   { simp, },
   simp_rw [h, h'],
-  apply hall,
+  apply all_card_le_bind_card_iff_exists_injective,
 end

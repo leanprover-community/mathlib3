@@ -182,6 +182,18 @@ set.fintype_singleton
 theorem finite_pure (a : α) : finite (pure a : set α) :=
 ⟨set.fintype_pure a⟩
 
+lemma card_ne_eq [fintype α] [decidable_eq α] (a : α) :
+  fintype.card {x : α | x ≠ a} = fintype.card α - 1 :=
+begin
+  rw [←to_finset_card],
+  convert_to (finset.univ.erase a).card = _,
+  { congr,
+    ext,
+    rw [mem_to_finset, finset.mem_erase, mem_set_of_eq],
+    simp only [finset.mem_univ, and_true], },
+  { rw [finset.card_erase_of_mem (finset.mem_univ _), finset.card_univ, nat.pred_eq_sub_one], },
+end
+
 instance fintype_univ [fintype α] : fintype (@univ α) :=
 fintype.of_equiv α $ (equiv.set.univ α).symm
 

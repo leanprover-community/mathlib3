@@ -154,7 +154,7 @@ variables {β E F : Type*} [measurable_space E] [normed_group E] {f : ℝ → E}
   {c ca cb : E} {a b z : ℝ} {u v ua ub va vb : β → ℝ} {f' : ℝ → E} [normed_space ℝ E]
   [borel_space E] [complete_space E] [topological_space.second_countable_topology E]
 
--- James' original FTC-2 for open set lemma. Filled in by Ben where able.
+-- James' original FTC-2 for open set lemma. Filled in by Ben where able, one sorry remaining.
 -- Note: I believe measurability assumption will drop when we merge master
 theorem integral_eq_sub_of_has_deriv_at'_mem_Ioo (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_at f (f' x) x)
@@ -168,16 +168,9 @@ begin
   { exact (hderiv y hy).has_deriv_within_at },
   { refine has_deriv_at_interval_left_endpoint_of_tendsto_deriv
       (λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at)
-        ((hcont y (Ico_subset_Icc_self
-        (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self)
+        ((hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self)
           _ _,
-    --{ exact Ioo (min a b) (max a b) },
-    --{ simpa only [differentiable_on] using λ x hx,
-    --(hderiv x hx).has_deriv_within_at.differentiable_within_at },
-    --{ simpa only [continuous_on] using (hcont y (Ico_subset_Icc_self
-    --(mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self },
-    { rw [hy.1, ← nhds_within_Ioc_eq_nhds_within_Ioi hy.2],
-      rw mem_nhds_within_iff_exists_mem_nhds_inter,
+    { rw [hy.1, ← nhds_within_Ioc_eq_nhds_within_Ioi hy.2, mem_nhds_within_iff_exists_mem_nhds_inter],
       use Ico (y-1) (max a b),
       split,
       { exact Ico_mem_nhds (by linarith) hy.2 },
@@ -242,6 +235,7 @@ end
 lemma sqrt_ne_zero {x : ℝ} (hle : 0 ≤ x) : sqrt x ≠ 0 ↔ x ≠ 0 :=
 by rw [not_iff_not, sqrt_eq_zero hle]
 
+-- Added by Ben: A stronger version of James' `aux_sqrt_lemma`.
 lemma div_sqrt {x : ℝ} (hle : 0 ≤ x) : x / sqrt x = sqrt x :=
 begin
   by_cases h : x = 0,
@@ -252,38 +246,35 @@ end
 lemma step5_1 : deriv (λ x : ℝ, 1/2 * (arcsin x + x * sqrt(1 - x^2) ) ) = λ x, sqrt(1 - x^2) :=
 begin
   ext x,
-  have hx : x ≠ -1 ∧ x ≠ 1 := sorry, -- potentially tricky part
-  rw [deriv_const_mul, deriv_add (differentiable_at_arcsin.mpr hx), deriv_mul],
-  rw [differentiable_at_id', deriv_sqrt, deriv_arcsin],
+  have hx : x ≠ -1 ∧ x ≠ 1,
+    sorry, -- potentially tricky part
+  have hlt : 0 < 1 - x^2,
+    sorry, -- show `0 < 1 - x^2`
+  have h1 : differentiable_at ℝ (λ y:ℝ, 1 - y ^ 2) x,
+    sorry, -- show `differentiable_at ℝ (λ y, 1 - y ^ 2) x`
+  have h2 : differentiable_at ℝ (λ y:ℝ, sqrt(1 - y ^ 2)) x := h1.sqrt hlt.ne.symm,
+  have h3 : differentiable_at ℝ (λ y:ℝ, y * sqrt(1 - y ^ 2)) x,
+    sorry, -- show `differentiable_at ℝ (λ y, y * sqrt(1 - y ^ 2)) x`
+  have h4 : differentiable_at ℝ (λ y:ℝ, arcsin y + y * sqrt(1 - y ^ 2)) x,
+    sorry, -- show `differentiable_at ℝ (λ y, arcsin y + y * sqrt(1 - y ^ 2)) x`
+  rw [deriv_const_mul _ h4, deriv_add (differentiable_at_arcsin.mpr hx) h3,
+      deriv_mul differentiable_at_id' h2, deriv_sqrt h1 hlt.ne.symm, deriv_arcsin],
   simp only [one_mul, deriv_id'', differentiable_at_const, mul_one, zero_sub, deriv_sub,
     differentiable_at_id', deriv_pow'', nat.cast_bit0, deriv_id'', deriv_const', pow_one,
     differentiable_at.pow, nat.cast_one, neg_div],
   rw mul_div_mul_left,
   field_simp,
-  rw [add_left_comm, div_add_div_same, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul,
-  rw mul_comm,
-  { sorry }, -- show `0 ≤ 1 - x^2`
-  { exact two_ne_zero },
-  { apply differentiable_at.sqrt,
-    { simp},
-    { -- 1 - x^2 ≠ 0
-      sorry
-    }}, -- show `differentiable_at ℝ (λ y, 1 - y ^ 2) x`
-  { sorry }, -- show `1 - x^2 ≠ 0`
-  { sorry }, -- show `differentiable_at ℝ (λ y, sqrt(1 - y ^ 2)) x`
-  { sorry }, -- show `differentiable_at ℝ (λ y, y * sqrt(1 - y ^ 2)) x`
-  { sorry }, -- show `differentiable_at ℝ (λ y, arcsin y + y * sqrt(1 - y ^ 2)) x`
+  rw [add_left_comm, div_add_div_same, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt hlt.le,
+      ← two_mul, mul_comm],
+  exact two_ne_zero,
 end
 
-lemma step5_2 :
-    ∫ (x : ℝ) in (-1)..1, 2 * deriv (λ y:ℝ, 1/2 * (arcsin y + y * sqrt (1-y^2))) x = pi :=
+lemma step5_2 : ∫ (x : ℝ) in (-1)..1, 2 * deriv (λ y:ℝ, 1/2 * (arcsin y + y * sqrt (1-y^2))) x = pi :=
 begin
-  have H : ∀ (x : ℝ), x ∈ interval (-(1:ℝ)) 1 →
-      differentiable_at ℝ (λ y:ℝ, arcsin y + y * sqrt (1-y^2)) x,
+  have H : ∀ (x : ℝ), x ∈ interval (-(1:ℝ)) 1 → differentiable_at ℝ (λ y:ℝ, arcsin y + y * sqrt (1-y^2)) x,
     sorry,
   have := H _ _,
-  simp only [deriv_const_mul ((1:ℝ)/2) this, ← mul_assoc, mul_div_cancel' (1:ℝ) two_ne_zero],
-  rw one_mul,
+  simp only [deriv_const_mul ((1:ℝ)/2) this, ← mul_assoc, mul_div_cancel' (1:ℝ) two_ne_zero, one_mul],
   convert integral_deriv_eq_sub H _,
   { rw [arcsin_one, arcsin_neg_one, one_pow, neg_one_pow_eq_pow_mod_two, nat.bit0_mod_two, pow_zero,
         sub_self, sqrt_zero, mul_zero, mul_zero, add_zero, add_zero, sub_neg_eq_add, add_halves'] },

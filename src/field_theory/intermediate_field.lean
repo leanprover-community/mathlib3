@@ -382,6 +382,15 @@ eq_of_le_of_findim_le' h_le h_findim.le
 
 end finite_dimensional
 
+section algebraic
+
+lemma intermediate_field.is_algebraic (S : intermediate_field K L)
+  {x : S} (hx : is_algebraic K (x : L)) :
+  is_algebraic K x :=
+is_scalar_tower.is_algebraic (algebra_map S L).injective hx
+
+end algebraic
+
 end intermediate_field
 
 /-- If `L/K` is algebraic, the `K`-subalgebras of `L` are all fields.  -/

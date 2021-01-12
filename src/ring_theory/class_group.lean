@@ -1,9 +1,6 @@
 import group_theory.quotient_group
 import ring_theory.dedekind_domain
 
--- TODO: the following file are separate for faster recompilation, they should be inlined later.
-import algebraic_number_theory.class_number.non_zero_divisors
-
 open ring
 open ring.fractional_ideal
 

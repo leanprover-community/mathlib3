@@ -12,9 +12,7 @@ import ring_theory.fractional_ideal
 -- They should be merged with the appropriate lower-level file when development is finished.
 import algebraic_number_theory.class_number.det
 import algebraic_number_theory.class_number.euclidean_absolute_value
-import algebraic_number_theory.class_number.ideal
 import algebraic_number_theory.class_number.integral_closure
-import algebraic_number_theory.class_number.subalgebra
 
 open ring
 

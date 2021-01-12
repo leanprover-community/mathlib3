@@ -73,6 +73,24 @@ by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
 
 end zero_ne_one
 
+section tower
+
+variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
+
+lemma is_algebraic_algebra_map [nontrivial R] (x : R) : is_algebraic R (algebra_map R S x) :=
+⟨X - C x, X_sub_C_ne_zero _, by rw [alg_hom.map_sub, aeval_X, aeval_C, sub_self]⟩
+
+/-- `x` is algebraic if its image in the ring extension `T` is algebraic. -/
+lemma is_scalar_tower.is_algebraic (inj : function.injective (algebra_map S T))
+  {x : S} (hx : is_algebraic R (algebra_map S T x)) :
+  is_algebraic R x :=
+let ⟨p, hp, hpx⟩ := hx in
+⟨p, hp, inj
+  (by rwa [ring_hom.map_zero, aeval_def, hom_eval₂, ← is_scalar_tower.algebra_map_eq])⟩
+
+end tower
+
 section field
 variables (K : Type u) {A : Type v} [field K] [ring A] [algebra K A]
 

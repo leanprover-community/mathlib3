@@ -2,8 +2,6 @@ import algebra.big_operators.finsupp
 import linear_algebra.free_module
 import ring_theory.dedekind_domain
 import algebraic_number_theory.class_number.euclidean_absolute_value
-import algebraic_number_theory.class_number.basis
-import algebraic_number_theory.class_number.localization
 import algebraic_number_theory.class_number.norm
 
 open_locale big_operators
@@ -119,7 +117,7 @@ begin
              ring_hom.map_sum, ring_hom.map_mul,
              smul_eq_mul, finset.sum_apply', finsupp.smul_apply],
   refine finset.sum_congr rfl (λ j _, _),
-  rw [is_scalar_tower.map_smul (is_basis_coe f hb).repr (hb.repr x j), finsupp.smul_apply',
+  rw [map_smul_eq_smul_map (is_basis_coe f hb).repr (hb.repr x j), finsupp.smul_apply',
       subalgebra.coe_val, this j, algebra.smul_def, f.algebra_map_eq],
 end
 

@@ -1195,6 +1195,41 @@ end
 
 end quotient_algebra
 
+section dvd
+
+/-- If `I` divides `J`, then `I` contains `J`.
+
+In a Dedekind domain, the converse also holds (`ideal.le_iff_dvd`).
+-/
+lemma le_of_dvd {I J : ideal R} : I ∣ J → J ≤ I
+| ⟨H, hH⟩ := le_trans (le_of_eq hH) ideal.mul_le_right
+
+lemma associated_iff_eq {I J : ideal R} :
+  associated I J ↔ I = J :=
+begin
+  split,
+  { intro h,
+    obtain ⟨I_dvd_J, J_dvd_I⟩ := dvd_dvd_of_associated h,
+    exact le_antisymm (le_of_dvd J_dvd_I) (le_of_dvd I_dvd_J) },
+  { intro h,
+    rw h }
+end
+
+/-- Ideals modulo units are just the ideals.
+
+Since `associates.mk` is a nicer function to work with, we'll use that as our "forward" direction.
+-/
+@[simps]
+noncomputable def associates_ideal_equiv : ideal R ≃* associates (ideal R) :=
+{ to_fun := λ I, associates.mk I,
+  inv_fun := λ I, quot.out I,
+  left_inv := λ I, ideal.associated_iff_eq.mp (associates.mk_eq_mk_iff_associated.mp
+    (quot.out_eq (associates.mk I))),
+  right_inv := λ I, quot.out_eq I,
+  map_mul' := λ I J, associates.mk_mul_mk }
+
+end dvd
+
 end ideal
 
 namespace submodule

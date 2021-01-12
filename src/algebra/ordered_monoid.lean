@@ -664,20 +664,14 @@ class canonically_linear_ordered_add_monoid (α : Type*)
 
 /-- A canonically linear-ordered monoid is a canonically ordered monoid
     whose ordering is a linear order. -/
-@[protect_proj, ancestor canonically_ordered_monoid linear_order]
+@[protect_proj, ancestor canonically_ordered_monoid linear_order, to_additive]
 class canonically_linear_ordered_monoid (α : Type*)
       extends canonically_ordered_monoid α, linear_order α
 
 section canonically_linear_ordered_monoid
 variables
 
-@[priority 100]  -- see Note [lower instance priority]
-instance canonically_linear_ordered_add_monoid.semilattice_sup_bot
-  [canonically_linear_ordered_add_monoid α] : semilattice_sup_bot α :=
-{ ..lattice_of_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
-
-@[priority 100, to_additive canonically_linear_ordered_add_monoid.semilattice_sup_bot]
--- see Note [lower instance priority]
+@[priority 100, to_additive]  -- see Note [lower instance priority]
 instance canonically_linear_ordered_monoid.semilattice_sup_bot
   [canonically_linear_ordered_monoid α] : semilattice_sup_bot α :=
 { ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }

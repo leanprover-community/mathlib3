@@ -363,6 +363,7 @@ begin
     simpa [G.ne_of_adj h], },
 end
 
+@[simp]
 lemma compl_involutive : function.involutive (@compl V) := compl_compl
 
 end complement

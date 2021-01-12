@@ -377,7 +377,7 @@ begin
 end
 
 lemma neighbor_set_union_compl_neighbor_set_eq (G : simple_graph V) (v : V) :
-  G.neighbor_set v ∪ G.compl.neighbor_set v = {v}ᶜ :=
+  G.neighbor_set v ∪ Gᶜ.neighbor_set v = {v}ᶜ :=
 begin
   ext w,
   have h := @ne_of_adj _ G,

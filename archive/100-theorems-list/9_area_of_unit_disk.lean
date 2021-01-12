@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Benjamin Davidson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: James Arthur, Benjamin Davidson, Andrew Souther
+-/
 import measure_theory.interval_integral
 import data.real.sqrt
 import data.real.pi

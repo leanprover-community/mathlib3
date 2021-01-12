@@ -350,6 +350,13 @@ The maximum degree of all vertices
 def max_degree (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
 finset.max' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
 
+lemma degree_lt_card_verts (G : simple_graph V) (v : V) : G.degree v < fintype.card V :=
+begin
+  classical,
+  apply finset.card_lt_card,
+  rw finset.ssubset_iff,
+  exact ⟨v, by simp, finset.subset_univ _⟩,
+end
 
 end finite
 

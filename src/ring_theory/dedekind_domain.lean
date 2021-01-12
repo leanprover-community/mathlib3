@@ -908,6 +908,8 @@ section ideal
 
 variables {R : Type*} [integral_domain R] [is_dedekind_domain R]
 
+open ring.fractional_ideal
+
 /-!
 ### `ideal` section
 

@@ -345,7 +345,6 @@ We define `compl G` to be the `simple_graph V` such that no two adjacent vertice
 are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
 (still ensuring that vertices are not adjacent to themselves.)
 -/
-@[simps]
 def compl (G : simple_graph V) : simple_graph V :=
 { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
   sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa edge_symm⟩,
@@ -353,6 +352,9 @@ def compl (G : simple_graph V) : simple_graph V :=
 
 instance has_compl : has_compl (simple_graph V) :=
 { compl := compl }
+
+@[simp]
+lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
 
 @[simp]
 lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=

@@ -1064,8 +1064,7 @@ def map [nonempty ι] (f : multilinear_map R M₁ M₂) (p : Π i, submodule R (
     refine ⟨update x i (c • x i), λ j, if hij : j = i then _ else _, _⟩,
     { rw [hij, update_same], exact (p i).smul_mem _ (hx i) },
     { rw [update_noteq hij], exact hx j },
-    { rw [f.map_smul, update_eq_self] },
-  } }
+    { rw [f.map_smul, update_eq_self] } } }
 
 /-- The map is always nonempty. This lemma is needed to apply `sub_mul_action.zero_mem`. -/
 lemma map_nonempty [nonempty ι] (f : multilinear_map R M₁ M₂) (p : Π i, submodule R (M₁ i)) :

@@ -168,12 +168,16 @@ begin
   { exact (hderiv y hy).has_deriv_within_at },
   { refine has_deriv_at_interval_left_endpoint_of_tendsto_deriv
       (λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at)
-        ((hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self)
+        ((hcont y (Ico_subset_Icc_self
+        (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self)
           _ _,
     --{ exact Ioo (min a b) (max a b) },
-    --{ simpa only [differentiable_on] using λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at },
-    --{ simpa only [continuous_on] using (hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self },
-    { rw [hy.1, ← nhds_within_Ioc_eq_nhds_within_Ioi hy.2, mem_nhds_within_iff_exists_mem_nhds_inter],
+    --{ simpa only [differentiable_on] using λ x hx,
+    --(hderiv x hx).has_deriv_within_at.differentiable_within_at },
+    --{ simpa only [continuous_on] using (hcont y (Ico_subset_Icc_self
+    --(mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self },
+    { rw [hy.1, ← nhds_within_Ioc_eq_nhds_within_Ioi hy.2],
+      rw mem_nhds_within_iff_exists_mem_nhds_inter,
       use Ico (y-1) (max a b),
       split,
       { exact Ico_mem_nhds (by linarith) hy.2 },
@@ -203,10 +207,13 @@ begin
   cases hy,
   { exact (hderiv y hy).mono (Ici_subset_Ici.mpr (le_of_lt hy.1)) },
   { refine has_deriv_at_interval_left_endpoint_of_tendsto_deriv
-      (λ x hx, (hderiv x hx).differentiable_within_at.mono (subset.trans Ioo_subset_Ico_self Ico_subset_Ici_self))
-        ((hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self)
+      (λ x hx, (hderiv x hx).differentiable_within_at.mono (subset.trans Ioo_subset_Ico_self
+      Ico_subset_Ici_self))
+        ((hcont y (Ico_subset_Icc_self
+        (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self)
           _ _,
-    { rw [hy.1, ← nhds_within_Ioc_eq_nhds_within_Ioi hy.2, mem_nhds_within_iff_exists_mem_nhds_inter],
+    { rw [hy.1, ← nhds_within_Ioc_eq_nhds_within_Ioi hy.2],
+      rw mem_nhds_within_iff_exists_mem_nhds_inter,
       use Ico (y-1) (max a b),
       split,
       { exact Ico_mem_nhds (by linarith) hy.2 },
@@ -246,13 +253,15 @@ lemma step5_1 : deriv (λ x : ℝ, 1/2 * (arcsin x + x * sqrt(1 - x^2) ) ) = λ 
 begin
   ext x,
   have hx : x ≠ -1 ∧ x ≠ 1 := sorry, -- potentially tricky part
-  rw [deriv_const_mul, deriv_add (differentiable_at_arcsin.mpr hx), deriv_mul differentiable_at_id', deriv_sqrt, deriv_arcsin],
+  rw [deriv_const_mul, deriv_add (differentiable_at_arcsin.mpr hx), deriv_mul],
+  rw [differentiable_at_id', deriv_sqrt, deriv_arcsin],
   simp only [one_mul, deriv_id'', differentiable_at_const, mul_one, zero_sub, deriv_sub,
     differentiable_at_id', deriv_pow'', nat.cast_bit0, deriv_id'', deriv_const', pow_one,
     differentiable_at.pow, nat.cast_one, neg_div],
   rw mul_div_mul_left,
   field_simp,
-  rw [add_left_comm, div_add_div_same, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul, mul_comm],
+  rw [add_left_comm, div_add_div_same, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul,
+  rw mul_comm,
   { sorry }, -- show `0 ≤ 1 - x^2`
   { exact two_ne_zero },
   { apply differentiable_at.sqrt,
@@ -266,12 +275,15 @@ begin
   { sorry }, -- show `differentiable_at ℝ (λ y, arcsin y + y * sqrt(1 - y ^ 2)) x`
 end
 
-lemma step5_2 : ∫ (x : ℝ) in (-1)..1, 2 * deriv (λ y:ℝ, 1/2 * (arcsin y + y * sqrt (1-y^2))) x = pi :=
+lemma step5_2 :
+    ∫ (x : ℝ) in (-1)..1, 2 * deriv (λ y:ℝ, 1/2 * (arcsin y + y * sqrt (1-y^2))) x = pi :=
 begin
-  have H : ∀ (x : ℝ), x ∈ interval (-(1:ℝ)) 1 → differentiable_at ℝ (λ y:ℝ, arcsin y + y * sqrt (1-y^2)) x,
+  have H : ∀ (x : ℝ), x ∈ interval (-(1:ℝ)) 1 →
+      differentiable_at ℝ (λ y:ℝ, arcsin y + y * sqrt (1-y^2)) x,
     sorry,
   have := H _ _,
-  simp only [deriv_const_mul ((1:ℝ)/2) this, ← mul_assoc, mul_div_cancel' (1:ℝ) two_ne_zero, one_mul],
+  simp only [deriv_const_mul ((1:ℝ)/2) this, ← mul_assoc, mul_div_cancel' (1:ℝ) two_ne_zero],
+  rw one_mul,
   convert integral_deriv_eq_sub H _,
   { rw [arcsin_one, arcsin_neg_one, one_pow, neg_one_pow_eq_pow_mod_two, nat.bit0_mod_two, pow_zero,
         sub_self, sqrt_zero, mul_zero, mul_zero, add_zero, add_zero, sub_neg_eq_add, add_halves'] },
@@ -303,7 +315,8 @@ begin
     simp only [one_mul, deriv_id''],
     rw deriv_sqrt,
     simp only [differentiable_at_const, mul_one, zero_sub, deriv_sub, differentiable_at_id',
-      deriv_pow'', nat.cast_bit0, deriv_id'', deriv_const', pow_one, differentiable_at.pow, nat.cast_one],
+      deriv_pow'', nat.cast_bit0, deriv_id'', deriv_const', pow_one, differentiable_at.pow],
+      rw nat.cast_one,
     rw neg_div,
     rw mul_div_mul_left _ _ (show (2 : ℝ) ≠ 0, by norm_num),
     field_simp,

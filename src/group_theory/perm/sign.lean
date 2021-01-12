@@ -76,11 +76,7 @@ end
   on `{x // p x}` induced by `f`. -/
 def fintype_subtype_perm {f : equiv.perm α} {p : α → Prop} (hf : fintype {x // p x})
   (h : ∀ x, p x → p (f x)) : equiv.perm {x // p x} :=
-{ to_fun := (λ x, ⟨f x, (h _) x.2⟩),
-  inv_fun := (λ x, ⟨f⁻¹ x, perm_inv_on_of_perm_on_fintype hf h x.prop⟩),
-  left_inv := (λ x, by simp only [equiv.perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk]),
-  right_inv := (λ x, by simp only [equiv.perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk])
-}
+f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_perm_on_fintype hf h h₂⟩)
 
 @[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) : @subtype_perm α 1 p h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl

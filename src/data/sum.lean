@@ -95,10 +95,10 @@ protected def elim {α β γ : Sort*} (f : α → γ) (g : β → γ) : α ⊕ �
 
 @[simp] lemma elim_comp_inl {α β γ : Sort*} (f : α → γ) (g : β → γ) :
   sum.elim f g ∘ inl = f := rfl
-  
+
 @[simp] lemma elim_comp_inr {α β γ : Sort*} (f : α → γ) (g : β → γ) :
   sum.elim f g ∘ inr = g := rfl
-  
+
 @[simp] lemma elim_inl_inr {α β : Sort*} :
   @sum.elim α β _ inl inr = id :=
 funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)

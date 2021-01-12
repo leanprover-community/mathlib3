@@ -1,6 +1,5 @@
 /- © E.W.Ayers 2019 -/
 import control.traversable
-import data.list
 
 universes u v
 

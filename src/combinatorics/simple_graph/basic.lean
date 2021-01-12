@@ -351,9 +351,6 @@ def compl (G : simple_graph V) : simple_graph V :=
   sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa edge_symm⟩,
   loopless := λ v ⟨hne, _⟩, false.elim (hne rfl) }
 
-/--
-The complement of the complement of `G` is equal to `G`.
--/
 @[simp]
 lemma compl_compl (G : simple_graph V) : compl (compl G) = G :=
 begin

@@ -146,6 +146,8 @@ faithful_reflects_epi (forget X) hk
 If `k.left` is a monomorphism, then `k` is a monomorphism. In other words, `over.forget X` reflects
 monomorphisms.
 The converse of `category_theory.over.mono_left_of_mono`.
+
+This lemma is not an instance, to avoid loops in type class inference.
 -/
 lemma mono_of_mono_left {f g : over X} (k : f ⟶ g) [hk : mono k.left] : mono k :=
 faithful_reflects_mono (forget X) hk

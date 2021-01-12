@@ -51,8 +51,5 @@ begin
   ring
 end
 
-example (A B : ℕ) : true :=
-begin
-  suffices : A * B = 2, trivial,
-  ring, guard_target B * A = 2, sorry
-end
+-- this proof style is not recommended practice
+example (A B : ℕ) (H : B * A = 2) : A * B = 2 := by {ring, exact H}

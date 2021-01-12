@@ -1113,6 +1113,8 @@ lemma nonpos_iff_eq_zero' : μ ≤ 0 ↔ μ = 0 :=
 @[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
 
+@[simp] lemma ae_zero : (0 : measure α).ae = ⊥ := ae_eq_bot.2 rfl
+
 @[mono] lemma ae_mono {μ ν : measure α} (h : μ ≤ ν) : μ.ae ≤ ν.ae :=
 λ s hs, bot_unique $ trans_rel_left (≤) (measure.le_iff'.1 h _) hs
 
@@ -1240,9 +1242,12 @@ ext $ λ u hu, by simp [*, set.inter_assoc]
 lemma restrict_apply_eq_zero (ht : is_measurable t) : μ.restrict s t = 0 ↔ μ (t ∩ s) = 0 :=
 by rw [restrict_apply ht]
 
+lemma measure_inter_eq_zero_of_restrict (h : μ.restrict s t = 0) : μ (t ∩ s) = 0 :=
+nonpos_iff_eq_zero.1 (h ▸ le_restrict_apply _ _)
+
 lemma restrict_apply_eq_zero' (hs : is_measurable s) : μ.restrict s t = 0 ↔ μ (t ∩ s) = 0 :=
 begin
-  refine ⟨λ h, nonpos_iff_eq_zero.1 (h ▸ le_restrict_apply _ _), λ h, _⟩,
+  refine ⟨measure_inter_eq_zero_of_restrict, λ h, _⟩,
   rcases exists_is_measurable_superset_of_null h with ⟨t', htt', ht', ht'0⟩,
   apply measure_mono_null ((inter_subset _ _ _).1 htt'),
   rw [restrict_apply (hs.compl.union ht'), union_inter_distrib_right, compl_inter_self,
@@ -1638,6 +1643,13 @@ begin
   congr' with x, simp [and_comm]
 end
 
+lemma ae_imp_of_ae_restrict {s : set α} {p : α → Prop} (h : ∀ᵐ x ∂(μ.restrict s), p x) :
+  ∀ᵐ x ∂μ, x ∈ s → p x :=
+begin
+  simp only [ae_iff] at h ⊢,
+  simpa [set_of_and, inter_comm] using  measure_inter_eq_zero_of_restrict h
+end
+
 lemma ae_restrict_iff' {s : set α} {p : α → Prop} (hp : is_measurable s) :
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
 begin
@@ -1663,6 +1675,9 @@ begin
   calc μ {x | g (f x) ≠ g' (f x)} ≤ μ (f⁻¹' t) : measure_mono (λ x hx, ht hx)
   ... = 0 : by rwa ← measure.map_apply hf tmeas
 end
+
+lemma le_ae_restrict : μ.ae ⊓ 𝓟 s ≤ (μ.restrict s).ae :=
+λ s hs, eventually_inf_principal.2 (ae_imp_of_ae_restrict hs)
 
 @[simp] lemma ae_restrict_eq (hs : is_measurable s) : (μ.restrict s).ae = μ.ae ⊓ 𝓟 s :=
 begin
@@ -1938,9 +1953,8 @@ lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
   (hμ : ∀ s ∈ S, μ s < ⊤)  (hU : ⋃₀ S = univ) :
   sigma_finite μ :=
 begin
-  have : ∃ S : set (set α), countable S ∧ (∀ s ∈ S, μ s < ⊤) ∧ ⋃₀ S = univ := ⟨S, hc, hμ, hU⟩,
-  rw ← exists_seq_cover_iff_countable at this, swap, by simp,
-  rcases this with ⟨s, hμ, hs⟩,
+  obtain ⟨s, hμ, hs⟩ : ∃ s : ℕ → set α, (∀ n, μ (s n) < ⊤) ∧ (⋃ n, s n) = univ,
+    from (exists_seq_cover_iff_countable ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
   refine ⟨⟨λ n, to_measurable μ (s n), λ n, is_measurable_to_measurable _ _, by simpa, _⟩⟩,
   exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
 end
@@ -1982,7 +1996,7 @@ by { rw [← sum_cond], refine @sum.sigma_finite _ _ _ _ _ (bool.rec _ _); simpa
 class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=
 (finite_at_nhds : ∀ x, μ.finite_at_filter (𝓝 x))
 
-@[priority 100]
+@[priority 100] -- see Note [lower instance priority]
 instance finite_measure.to_locally_finite_measure [topological_space α] (μ : measure α)
   [finite_measure μ] :
   locally_finite_measure μ :=
@@ -1998,6 +2012,18 @@ lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure
   ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ⊤ :=
 by simpa only [exists_prop, and.assoc]
   using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
+
+@[priority 100] -- see Note [lower instance priority]
+instance sigma_finite_of_locally_finite [topological_space α]
+  [topological_space.second_countable_topology α]
+  {μ : measure α} [locally_finite_measure μ] :
+  sigma_finite μ :=
+begin
+  choose s hsx hsμ using μ.finite_at_nhds,
+  rcases topological_space.countable_cover_nhds hsx with ⟨t, htc, htU⟩,
+  refine measure.sigma_finite_of_countable (htc.image s) (ball_image_iff.2 $ λ x hx, hsμ x) _,
+  rwa sUnion_image
+end
 
 /-- Two finite measures are equal if they are equal on the π-system generating the σ-algebra
   (and `univ`). -/
@@ -2415,6 +2441,15 @@ def ae_measurable (f : α → β) (μ : measure α . measure_theory.volume_tac) 
 lemma measurable.ae_measurable (h : measurable f) : ae_measurable f μ :=
 ⟨f, h, ae_eq_refl f⟩
 
+@[nontriviality] lemma subsingleton.ae_measurable [subsingleton α] : ae_measurable f μ :=
+subsingleton.measurable.ae_measurable
+
+@[simp] lemma ae_measurable_zero : ae_measurable f 0 :=
+begin
+  nontriviality α, inhabit α,
+  exact ⟨λ x, f (default α), measurable_const, rfl⟩
+end
+
 lemma ae_measurable_iff_measurable [μ.is_complete] :
   ae_measurable f μ ↔ measurable f :=
 begin
@@ -2442,6 +2477,18 @@ lemma congr (hf : ae_measurable f μ) (h : f =ᵐ[μ] g) : ae_measurable g μ :=
 
 lemma mono_measure (h : ae_measurable f μ) (h' : ν ≤ μ) : ae_measurable f ν :=
 ⟨h.mk f, h.measurable_mk, eventually.filter_mono (ae_mono h') h.ae_eq_mk⟩
+
+lemma mono_set {s t} (h : s ⊆ t) (ht : ae_measurable f (μ.restrict t)) :
+  ae_measurable f (μ.restrict s) :=
+ht.mono_measure (restrict_mono h le_rfl)
+
+lemma ae_mem_imp_eq_mk {s} (h : ae_measurable f (μ.restrict s)) :
+  ∀ᵐ x ∂μ, x ∈ s → f x = h.mk f x :=
+ae_imp_of_ae_restrict h.ae_eq_mk
+
+lemma ae_inf_principal_eq_mk {s} (h : ae_measurable f (μ.restrict s)) :
+  f =ᶠ[μ.ae ⊓ 𝓟 s] h.mk f :=
+le_ae_restrict h.ae_eq_mk
 
 lemma add_measure {f : α → β} (hμ : ae_measurable f μ) (hν : ae_measurable f ν) :
   ae_measurable f (μ + ν) :=

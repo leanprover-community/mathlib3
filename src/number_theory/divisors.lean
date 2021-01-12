@@ -126,6 +126,19 @@ begin
   exact nat.le_of_dvd (nat.succ_pos m),
 end
 
+lemma divisors_subset_of_dvd {m : ℕ} (hzero : n ≠ 0) (h : m ∣ n) : divisors m ⊆ divisors n :=
+finset.subset_iff.2 $ λ x hx, nat.mem_divisors.mpr (⟨dvd.trans (nat.mem_divisors.mp hx).1 h, hzero⟩)
+
+lemma divisors_subset_proper_divisors {m : ℕ} (hzero : n ≠ 0) (h : m ∣ n) (hdiff : m ≠ n) :
+  divisors m ⊆ proper_divisors n :=
+begin
+  apply finset.subset_iff.2,
+  intros x hx,
+  exact nat.mem_proper_divisors.2 (⟨dvd.trans (nat.mem_divisors.1 hx).1 h,
+    lt_of_le_of_lt (divisor_le hx) (lt_of_le_of_ne (divisor_le (nat.mem_divisors.2
+    ⟨h, hzero⟩)) hdiff)⟩)
+end
+
 @[simp]
 lemma divisors_zero : divisors 0 = ∅ := by { ext, simp }
 
@@ -359,14 +372,14 @@ lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ
 @sum_divisors_prime_pow (additive α) _ _ _ _ h
 
 @[simp]
-lemma filter_dvd_eq_divisors (n : ℕ+) :
-  finset.filter (λ (x : ℕ), x ∣ ↑n) (finset.range (n : ℕ).succ) = (n : ℕ).divisors :=
+lemma filter_dvd_eq_divisors {n : ℕ} (h : n ≠ 0) :
+  finset.filter (λ (x : ℕ), x ∣ n) (finset.range (n : ℕ).succ) = (n : ℕ).divisors :=
 begin
   apply finset.ext,
-  simp only [mem_divisors, mem_filter, mem_range, and_true,
-    and_iff_right_iff_imp, ne.def, pnat.ne_zero, not_false_iff],
+  simp only [h, mem_filter, and_true, and_iff_right_iff_imp, cast_id, mem_range, ne.def,
+  not_false_iff, mem_divisors],
   intros a ha,
-  exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 (and.intro ha (pnat.ne_zero n))))
+  exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 ⟨ha, h⟩))
 end
 
 end nat

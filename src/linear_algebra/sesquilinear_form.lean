@@ -74,10 +74,12 @@ lemma neg_right (x y : M) : S x (-y) = -(S x y) :=
 by { rw [←@neg_one_smul R _ _, smul_right], simp }
 
 lemma sub_left (x y z : M) :
-S (x - y) z = S x z - S y z := by rw [sub_eq_add_neg, add_left, neg_left]; refl
+  S (x - y) z = S x z - S y z :=
+by simp only [sub_eq_add_neg, add_left, neg_left]
 
 lemma sub_right (x y z : M) :
-S x (y - z) = S x y - S x z := by rw [sub_eq_add_neg, add_right, neg_right]; refl
+  S x (y - z) = S x y - S x z :=
+by simp only [sub_eq_add_neg, add_right, neg_right]
 
 variable {D : sesq_form R M I}
 @[ext] lemma ext (H : ∀ (x y : M), S x y = D x y) : S = D :=

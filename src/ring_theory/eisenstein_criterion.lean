@@ -109,7 +109,7 @@ begin
     clear_except hmnd hmp hnq,
     omega },
   obtain rfl | rfl : m = 0 ∨ n = 0,
-  { rwa [nat.pos_iff_ne_zero, nat.pos_iff_ne_zero, imp_false, not_not,
+  { rwa [pos_iff_ne_zero, pos_iff_ne_zero, imp_false, not_not,
       ← or_iff_not_imp_left] at hmn },
   { exact or.inl (is_unit_of_nat_degree_eq_zero_of_forall_dvd_is_unit hu hpmqn.1) },
   { exact or.inr (is_unit_of_nat_degree_eq_zero_of_forall_dvd_is_unit

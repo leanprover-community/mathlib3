@@ -6,7 +6,7 @@ Authors: Kenny Lau
 Direct sum of modules over commutative rings, indexed by a discrete type.
 -/
 import algebra.direct_sum
-import linear_algebra.basic
+import linear_algebra.dfinsupp
 
 /-!
 # Direct sum of modules over commutative rings, indexed by a discrete type.
@@ -46,11 +46,11 @@ include dec_ι
 variables R ι M
 /-- Create the direct sum given a family `M` of `R` semimodules indexed over `ι`. -/
 def lmk : Π s : finset ι, (Π i : (↑s : set ι), M i.val) →ₗ[R] (⨁ i, M i) :=
-dfinsupp.lmk M R
+dfinsupp.lmk
 
 /-- Inclusion of each component into the direct sum. -/
 def lof : Π i : ι, M i →ₗ[R] (⨁ i, M i) :=
-dfinsupp.lsingle M R
+dfinsupp.lsingle
 variables {ι M}
 
 lemma single_eq_lof (i : ι) (b : M i) :
@@ -94,7 +94,7 @@ variables {ψ} {ψ' : (⨁ i, M i) →ₗ[R] N}
 
 theorem to_module.ext (H : ∀ i, ψ.comp (lof R ι M i) = ψ'.comp (lof R ι M i)) (f : ⨁ i, M i) :
   ψ f = ψ' f :=
-by rw dfinsupp.lhom_ext' R H
+by rw dfinsupp.lhom_ext' H
 
 /--
 The inclusion of a subset of the direct summands
@@ -107,7 +107,6 @@ to_module R _ _ $ λ i, lof R T (λ (i : subtype T), M i) ⟨i, H i.prop⟩
 omit dec_ι
 
 /-- The natural linear equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
--- TODO: generalize this to arbitrary index type `ι` with `unique ι`
 protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [semimodule R M]
   [unique ι] :
   (⨁ (_ : ι), M) ≃ₗ M :=
@@ -117,9 +116,7 @@ protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [semimo
 variables (ι M)
 /-- The projection map onto one component, as a linear map. -/
 def component (i : ι) : (⨁ i, M i) →ₗ[R] M i :=
-{ to_fun := λ f, f i,
-  map_add' := λ f g, dfinsupp.add_apply f g i,
-  map_smul' := λ c f, dfinsupp.smul_apply c f i}
+dfinsupp.lapply i
 
 variables {ι M}
 
@@ -137,7 +134,7 @@ lemma ext_iff {f g : ⨁ i, M i} : f = g ↔
 include dec_ι
 
 @[simp] lemma lof_apply (i : ι) (b : M i) : ((lof R ι M i) b) i = b :=
-by rw [lof, dfinsupp.lsingle_apply, dfinsupp.single_apply, dif_pos rfl]
+dfinsupp.single_eq_same
 
 @[simp] lemma component.lof_self (i : ι) (b : M i) :
   component R ι M i ((lof R ι M i) b) = b :=

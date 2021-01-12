@@ -249,7 +249,7 @@ def from_transported (e : C ≌ D) : monoidal_functor (transported e) C :=
   ..lax_from_transported e, }
 
 /-- The unit isomorphism upgrades to a monoidal isomorphism. -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def transported_monoidal_unit_iso (e : C ≌ D) :
   lax_monoidal_functor.id C ≅ lax_to_transported e ⊗⋙ lax_from_transported e :=
 monoidal_nat_iso.of_components (λ X, e.unit_iso.app X) (λ X Y f, e.unit.naturality f)
@@ -263,7 +263,7 @@ monoidal_nat_iso.of_components (λ X, e.unit_iso.app X) (λ X Y f, e.unit.natura
   end)
 
 /-- The counit isomorphism upgrades to a monoidal isomorphism. -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def transported_monoidal_counit_iso (e : C ≌ D) :
   lax_from_transported e ⊗⋙ lax_to_transported e ≅ lax_monoidal_functor.id (transported e) :=
 monoidal_nat_iso.of_components (λ X, e.counit_iso.app X) (λ X Y f, e.counit.naturality f)

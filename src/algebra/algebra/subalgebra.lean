@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import algebra.algebra.basic
+import algebra.algebra.operations
 
 /-!
 # Subalgebras over Commutative Semiring
@@ -87,7 +87,7 @@ neg_one_smul R x ▸ S.smul_mem hx _
 
 theorem sub_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) {x y : A} (hx : x ∈ S) (hy : y ∈ S) : x - y ∈ S :=
-S.add_mem hx $ S.neg_mem hy
+by simpa only [sub_eq_add_neg] using S.add_mem hx (S.neg_mem hy)
 
 theorem nsmul_mem {x : A} (hx : x ∈ S) (n : ℕ) : n •ℕ x ∈ S :=
 subsemiring.nsmul_mem S hx n
@@ -201,6 +201,18 @@ ext $ λ x, by rw [← mem_to_submodule, ← mem_to_submodule, h]
 theorem to_submodule_inj {S U : subalgebra R A} : (S : submodule R A) = U ↔ S = U :=
 ⟨to_submodule_injective, congr_arg _⟩
 
+/-- As submodules, subalgebras are idempotent. -/
+@[simp] theorem mul_self : (S : submodule R A) * (S : submodule R A) = (S : submodule R A) :=
+begin
+  apply le_antisymm,
+  { rw submodule.mul_le,
+    intros y hy z hz,
+    exact mul_mem S hy hz },
+  { intros x hx1,
+    rw ← mul_one x,
+    exact submodule.mul_mem_mul hx1 (one_mem S) }
+end
+
 /-- Linear equivalence between `S : submodule R A` and `S`. Though these types are equal,
 we define it as a `linear_equiv` to avoid type equalities. -/
 def to_submodule_equiv (S : subalgebra R A) : (S : submodule R A) ≃ₗ[R] S :=
@@ -286,6 +298,21 @@ theorem injective_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : �
   function.injective (f.cod_restrict S hf) ↔ function.injective f :=
 ⟨λ H x y hxy, H $ subtype.eq hxy, λ H x y hxy, H (congr_arg subtype.val hxy : _)⟩
 
+/-- Restrict an injective algebra homomorphism to an algebra isomorphism -/
+noncomputable def alg_equiv.of_injective (f : A →ₐ[R] B) (hf : function.injective f) :
+  A ≃ₐ[R] f.range :=
+alg_equiv.of_bijective (f.cod_restrict f.range (λ x, f.mem_range.mpr ⟨x, rfl⟩))
+⟨(f.injective_cod_restrict f.range (λ x, f.mem_range.mpr ⟨x, rfl⟩)).mpr hf,
+  λ x, Exists.cases_on (f.mem_range.mp (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy⟩)⟩
+
+@[simp] lemma alg_equiv.of_injective_apply (f : A →ₐ[R] B) (hf : function.injective f) (x : A) :
+  ↑(alg_equiv.of_injective f hf x) = f x := rfl
+
+/-- Restrict an algebra homomorphism between fields to an algebra isomorphism -/
+noncomputable def alg_equiv.of_injective_field {E F : Type*} [division_ring E] [semiring F]
+  [nontrivial F] [algebra R E] [algebra R F] (f : E →ₐ[R] F) : E ≃ₐ[R] f.range :=
+alg_equiv.of_injective f f.to_ring_hom.injective
+
 /-- The equalizer of two R-algebra homomorphisms -/
 def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 { carrier := {a | ϕ a = ψ a},
@@ -342,7 +369,7 @@ suffices (of_id R A).range = (⊥ : subalgebra R A),
 by { rw [← this, ← subalgebra.mem_coe, alg_hom.coe_range], refl },
 le_bot_iff.mp (λ x hx, subalgebra.range_le _ ((of_id R A).coe_range ▸ hx))
 
-theorem to_submodule_bot : ((⊥ : subalgebra R A) : submodule R A) = submodule.span R {1} :=
+theorem to_submodule_bot : ((⊥ : subalgebra R A) : submodule R A) = R ∙ 1 :=
 by { ext x, simp [mem_bot, -set.singleton_one, submodule.mem_span_singleton, algebra.smul_def] }
 
 @[simp] theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=

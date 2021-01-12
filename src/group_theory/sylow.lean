@@ -51,7 +51,7 @@ begin
         simp only [quotient.eq']; congr)),
   { refine quotient.induction_on' b (λ b _ hb, _),
     have : card (orbit G b) ∣ p ^ n,
-    { rw [← h, fintype.card_congr (orbit_equiv_quotient_stabilizer G b)];
+    { rw [← h, fintype.card_congr (orbit_equiv_quotient_stabilizer G b)],
       exact card_quotient_dvd_card _ },
     rcases (nat.dvd_prime_pow hp).1 this with ⟨k, _, hk⟩,
     have hb' :¬ p ^ 1 ∣ p ^ k,
@@ -207,7 +207,7 @@ let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 have hcard : card (quotient H) = s * p :=
   (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
       ⟨⟨1, H.one_mem⟩⟩)).1
-    (by rwa [← card_eq_card_quotient_mul_card_subgroup, hH2, hs,
+    (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH2, hs,
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
   card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
@@ -217,15 +217,12 @@ have hm' : p ∣ card (quotient (subgroup.comap ((normalizer H).subtype : normal
   nat.dvd_of_mod_eq_zero
     (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm),
 let ⟨x, hx⟩ := @exists_prime_order_of_dvd_card _ (quotient_group.quotient.group _) _ _ hp hm' in
-have hxcard : ∀ {f : fintype (subgroup.gpowers x)}, card (subgroup.gpowers x) = p,
-  from λ f, by rw [← hx, order_eq_card_gpowers]; congr,
-have fintype (subgroup.comap (quotient_group.mk' (comap H.normalizer.subtype H)) (gpowers x)),
-  by apply_instance,
 have hequiv : H ≃ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
   ⟨λ a, ⟨⟨a.1, le_normalizer a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
 -- begin proof of ∃ H : subgroup G, fintype.card H = p ^ n
-⟨subgroup.map ((normalizer H).subtype) (subgroup.comap (quotient_group.mk' _) (gpowers x)),
+⟨subgroup.map ((normalizer H).subtype) (subgroup.comap
+  (quotient_group.mk' (comap H.normalizer.subtype H)) (gpowers x)),
 begin
   show card ↥(map H.normalizer.subtype
     (comap (mk' (comap H.normalizer.subtype H)) (subgroup.gpowers x))) = p ^ (n + 1),
@@ -233,7 +230,8 @@ begin
     (gpowers x)) : set (↥(H.normalizer)))) = p^(n+1),
   { convert this },
   rw [set.card_image_of_injective
-       (subgroup.comap (mk' _) (gpowers x) : set (H.normalizer)) subtype.val_injective,
+        (subgroup.comap (mk' (comap H.normalizer.subtype H)) (gpowers x) : set (H.normalizer))
+        subtype.val_injective,
       pow_succ', ← hH2, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
       ← fintype.card_prod],
   exact @fintype.card_congr _ _ (id _) (id _) (preimage_mk_equiv_subgroup_times_set _ _)

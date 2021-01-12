@@ -58,7 +58,7 @@ Inf_le ((mem_image _ _ _).2 ⟨y, h, by refl⟩)
 
 /-- If a point `x` belongs to `s`, then its edist to `s` vanishes -/
 lemma inf_edist_zero_of_mem (h : x ∈ s) : inf_edist x s = 0 :=
-le_zero_iff_eq.1 $ @edist_self _ _ x ▸ inf_edist_le_edist_of_mem h
+nonpos_iff_eq_zero.1 $ @edist_self _ _ x ▸ inf_edist_le_edist_of_mem h
 
 /-- The edist is monotonous with respect to inclusion -/
 lemma inf_edist_le_inf_edist_of_subset (h : s ⊆ t) : inf_edist x t ≤ inf_edist x s :=
@@ -298,7 +298,7 @@ end
 lemma Hausdorff_edist_self_closure : Hausdorff_edist s (closure s) = 0 :=
 begin
   erw ← le_bot_iff,
-  simp only [Hausdorff_edist, inf_edist_closure, -le_zero_iff_eq, and_imp,
+  simp only [Hausdorff_edist, inf_edist_closure, -nonpos_iff_eq_zero, and_imp,
     set.mem_image, Sup_le_iff, exists_imp_distrib, sup_le_iff,
     set.ball_image_iff, ennreal.bot_eq_zero, -mem_image],
   simp only [inf_edist_zero_of_mem, mem_closure_iff_inf_edist_zero, le_refl, and_self,
@@ -500,20 +500,20 @@ by simp [inf_dist, inf_edist_image hΦ]
 
 /-! ### Distance of a point to a set as a function into `ℝ≥0`. -/
 
-/-- The minimal distance of a point to a set as a `nnreal` -/
+/-- The minimal distance of a point to a set as a `ℝ≥0` -/
 def inf_nndist (x : α) (s : set α) : ℝ≥0 := ennreal.to_nnreal (inf_edist x s)
 @[simp] lemma coe_inf_nndist : (inf_nndist x s : ℝ) = inf_dist x s := rfl
 
-/-- The minimal distance to a set (as `nnreal`) is Lipschitz in point with constant 1 -/
+/-- The minimal distance to a set (as `ℝ≥0`) is Lipschitz in point with constant 1 -/
 lemma lipschitz_inf_nndist_pt (s : set α) : lipschitz_with 1 (λx, inf_nndist x s) :=
 lipschitz_with.of_le_add $ λ x y, inf_dist_le_inf_dist_add_dist
 
-/-- The minimal distance to a set (as `nnreal`) is uniformly continuous in point -/
+/-- The minimal distance to a set (as `ℝ≥0`) is uniformly continuous in point -/
 lemma uniform_continuous_inf_nndist_pt (s : set α) :
   uniform_continuous (λx, inf_nndist x s) :=
 (lipschitz_inf_nndist_pt s).uniform_continuous
 
-/-- The minimal distance to a set (as `nnreal`) is continuous in point -/
+/-- The minimal distance to a set (as `ℝ≥0`) is continuous in point -/
 lemma continuous_inf_nndist_pt (s : set α) : continuous (λx, inf_nndist x s) :=
 (uniform_continuous_inf_nndist_pt s).continuous
 

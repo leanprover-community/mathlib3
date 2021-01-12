@@ -120,6 +120,7 @@ General algebra:
     quadratic reciprocity: 'zmod.quadratic_reciprocity'
     "solutions to Pell's equation": 'pell.pell'
     arithmetic functions: 'arithmetic_function'
+    Bernoulli numbers: 'bernoulli'
     Chevalley-Warning theorem: 'char_dvd_card_solutions'
     "Hensel's lemma (for $\mathbb{Z}_p$)": 'hensels_lemma'
     ring of Witt vectors: 'witt_vector'

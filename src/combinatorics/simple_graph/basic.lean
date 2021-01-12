@@ -368,7 +368,7 @@ end
 lemma compl_involutive : function.involutive (@compl V) := compl_compl
 
 lemma compl_neighbor_set_disjoint (G : simple_graph V) (v : V) :
-  disjoint (G.neighbor_set v) (G.compl.neighbor_set v) :=
+  disjoint (G.neighbor_set v) (Gᶜ.neighbor_set v) :=
 begin
   rw set.disjoint_iff,
   rintro w ⟨h, h'⟩,

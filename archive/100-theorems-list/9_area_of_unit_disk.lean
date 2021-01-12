@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 Benjamin Davidson. All rights reserved.
+Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
@@ -39,10 +39,23 @@ end
 lemma unit_disc_measurable : is_measurable unit_disc :=
 unit_disc_open.is_measurable
 
---Andrew's work : lemma for set eq'ty in second step
-lemma lt_sqrt_of_sqr_lt  {a b : ℝ} : a^2 < b → a < sqrt b :=
+-- Added by Ben: A stronger version of Andrew's `lt_sqrt`
+lemma lt_sqrt {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
+by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), pow_two, mul_self_sqrt hy]
+
+-- Ben's golfed version of `lt_sqrt_of_sqr_lt`
+lemma lt_sqrt_of_sqr_lt  {a b : ℝ} (h : a^2 < b) : a < sqrt b :=
 begin
-  intro h,
+  by_contra hnot,
+  rw not_lt at hnot,
+  have := le_antisymm (le_sqrt_of_sqr_le h.le) hnot,
+  rw [this, sqr_sqrt] at h,
+  exacts [has_lt.lt.false h, (lt_of_le_of_lt (pow_two_nonneg _) h).le],
+end
+
+--Andrew's work : lemma for set eq'ty in second step
+lemma lt_sqrt_of_sqr_lt'  {a b : ℝ} (h : a^2 < b) : a < sqrt b :=
+begin
   have hb : 0 ≤ b := by linarith [pow_two_nonneg a],
   have := le_sqrt_of_sqr_le (le_of_lt h),
   by_contradiction hyp,
@@ -54,16 +67,15 @@ begin
 end
 
 --Andrew's work : another lemma for set eq'ty in second step
-lemma opposite_sqrt_lt_of_sqr_lt {a b : ℝ} : a^2 < b → (-1) * sqrt b < a :=
+lemma opposite_sqrt_lt_of_sqr_lt {a b : ℝ} (h : a^2 < b) : - sqrt b < a :=
 begin
-  intro h,
   have hb : 0 ≤ b := by linarith [pow_two_nonneg a],
   by_contradiction hyp,
   push_neg at hyp,
   by_cases ha : a = 0,
-  {by_cases hb' : b = 0,
-   {  rw [ha, hb'] at h, linarith },
-   {  rw ← ne.def at hb',
+  { by_cases hb' : b = 0,
+    { rw [ha, hb'] at h, linarith },
+    { rw ← ne.def at hb',
       replace hb' := ne.symm hb',
       replace hb' : 0 < b := lt_iff_le_and_ne.2 ⟨hb, hb'⟩,
       have hsqrtb := sqrt_nonneg b,
@@ -72,9 +84,9 @@ begin
       replace hyp : (-1) * sqrt b = 0 := by linarith,
       replace hyp :  sqrt b = 0 := by linarith,
       replace hyp : b = 0 := (sqrt_eq_zero hb).1 hyp,
-      linarith,  }  },
-  {replace ha : a ≠ 0 := by assumption,
-   by_cases ha' : a < 0,
+      linarith }  },
+  { replace ha : a ≠ 0 := by assumption,
+    by_cases ha' : a < 0,
     { let c := - a,
       have hc : c = -a := rfl,
       replace hc : a = -c := by linarith,
@@ -85,17 +97,17 @@ begin
       rw hc at this,
       have hsqrtb := sqrt_nonneg b,
       rw neg_square a at this,
-      linarith,  },
+      linarith },
     { push_neg at ha',
       replace ha : 0 ≠ a := ne.symm ha,
       have a_pos : 0 < a := lt_iff_le_and_ne.2 ⟨ha', ha⟩,
       have hsqrtb := sqrt_nonneg b,
       have : (-1) * sqrt b ≤ 0 := by linarith,
-      linarith,  },  },
+      linarith }  },
 end
 
 --Andrew's work : final lemma for set eq'ty in second step
-lemma lt_sqrt {x y : ℝ} (hx : 0 ≤ x) (hy : 0 < y) : x < sqrt y ↔ x ^ 2 < y :=
+lemma lt_sqrt' {x y : ℝ} (hx : 0 ≤ x) (hy : 0 < y) : x < sqrt y ↔ x ^ 2 < y :=
 by rw [mul_self_lt_mul_self_iff hx (le_of_lt (sqrt_pos.2 hy)), pow_two, mul_self_sqrt (le_of_lt hy)]
 
 --Andrew's work, set equality for the second step
@@ -106,9 +118,10 @@ begin
   intro point, split,
 
   { intro hp,
+    simp only [neg_one_mul],
     have h₁ : (point.1)^2 + (point.2)^2 < 1 := hp,
     have h₂ : (point.2)^2 < 1 - (point.1)^2 := by linarith,
-    exact ⟨opposite_sqrt_lt_of_sqr_lt h₂, lt_sqrt_of_sqr_lt h₂⟩, },
+    exact ⟨opposite_sqrt_lt_of_sqr_lt h₂, lt_sqrt_of_sqr_lt h₂⟩ },
 
   { intro hp,
     cases hp with hp₁ hp₂,
@@ -119,12 +132,12 @@ begin
       have := sqrt_eq_zero_of_nonpos hyp,
       rw this at hp₁, rw this at hp₂,
       simp at hp₁,
-      linarith,},
+      linarith },
     by_cases hyp : 0 ≤ point.snd,
 
     { have h₁ := (lt_sqrt hyp (by linarith)).1 hp₂,
       have h₂ : (point.1)^2 + (point.2)^2 < 1 := by linarith,
-      exact h₂, },
+      exact h₂ },
 
     { push_neg at hyp,
       have h₁ :  - point.snd < sqrt (1 - point.fst ^ 2) := by linarith,
@@ -132,7 +145,7 @@ begin
       have h₂ := (lt_sqrt (le_of_lt neg_point_pos) (by linarith)).1 h₁,
       rw neg_square point.snd at h₂,
       have h₃ : (point.1)^2 + (point.2)^2 < 1 := by linarith,
-      exact h₃, }, },
+      exact h₃ } },
 end
 
 -- # Ben's work:
@@ -142,41 +155,39 @@ variables {β E F : Type*} [measurable_space E] [normed_group E] {f : ℝ → E}
   [borel_space E] [complete_space E] [topological_space.second_countable_topology E]
 
 -- James' original FTC-2 for open set lemma. Filled in by Ben where able.
--- Note that composing `has_deriv_at_interval_left_endpoint_of_tendsto_deriv` with
--- `has_deriv_within_at.has_deriv_at` generates a goal `Ici x ∈ nhds x`, which is false.
+-- Note: I believe measurability assumption will drop when we merge master
 theorem integral_eq_sub_of_has_deriv_at'_mem_Ioo (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_at f (f' x) x)
   (hcont' : continuous_on f' (interval a b)) (hmeas' : ae_measurable f') :
   ∫ y in a..b, f' y = f b - f a :=
-  begin
-    refine integral_eq_sub_of_has_deriv_at' hcont _ hcont' hmeas',
-    intros y hy,
-    rw [Ico, mem_set_of_eq, le_iff_lt_or_eq, or_and_distrib_right, ← mem_Ioo] at hy,
-    cases hy,
-    { exact hderiv y hy },
-    { refine (has_deriv_at_interval_left_endpoint_of_tendsto_deriv
-        (λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at)
-          ((hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self)
-            _ _).has_deriv_at _,
-      --{ exact Ioo (min a b) (max a b) },
-      --{ simpa only [differentiable_on] using λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at },
-      --{ simpa only [continuous_on] using (hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self },
-      { rw [hy.1, ← nhds_within_Ioc_eq_nhds_within_Ioi hy.2, mem_nhds_within_iff_exists_mem_nhds_inter],
-        use Ico (y-1) (max a b),
-        split,
-        { exact Ico_mem_nhds (by linarith) hy.2 },
-        { assume c,
-          rw [inter_def, Ioc, Ico, mem_set_of_eq],
-          intro hc,
-          exact mem_Ioo.mpr ⟨hc.2.1, hc.1.2⟩ } },
-      { rw tendsto_nhds_within_nhds,
-        intros ε hε,
-        use ε,
-        split,
-        exact hε,
-        intros x hx hdist,
-        sorry }, -- show `dist (deriv f x) (f' y) < ε` from `dist x y < ε`
-      { sorry } }, -- show `Ici x ∈ nhds x` (FALSE)
+begin
+  refine integral_eq_sub_of_has_deriv_right hcont _ hcont' hmeas',
+  intros y hy,
+  rw [Ico, mem_set_of_eq, le_iff_lt_or_eq, or_and_distrib_right, ← mem_Ioo] at hy,
+  cases hy,
+  { exact (hderiv y hy).has_deriv_within_at },
+  { refine has_deriv_at_interval_left_endpoint_of_tendsto_deriv
+      (λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at)
+        ((hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self)
+          _ _,
+    --{ exact Ioo (min a b) (max a b) },
+    --{ simpa only [differentiable_on] using λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at },
+    --{ simpa only [continuous_on] using (hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self },
+    { rw [hy.1, ← nhds_within_Ioc_eq_nhds_within_Ioi hy.2, mem_nhds_within_iff_exists_mem_nhds_inter],
+      use Ico (y-1) (max a b),
+      split,
+      { exact Ico_mem_nhds (by linarith) hy.2 },
+      { assume c,
+        rw [inter_def, Ioc, Ico, mem_set_of_eq],
+        intro hc,
+        exact mem_Ioo.mpr ⟨hc.2.1, hc.1.2⟩ } },
+    { rw tendsto_nhds_within_nhds,
+      intros ε hε,
+      use ε,
+      split,
+      exact hε,
+      intros x hx hdist,
+      sorry } } -- show `dist (deriv f x) (f' y) < ε` from `dist x y < ε`
   end
 
 -- Added by Ben: New version of FTC-2 for open set as per Heather's suggestion. One sorry remaining.

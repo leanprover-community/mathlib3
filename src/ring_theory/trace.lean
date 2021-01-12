@@ -11,6 +11,7 @@ import field_theory.galois
 import field_theory.primitive_element
 import linear_algebra.bilinear_form
 import linear_algebra.char_poly.coeff
+import linear_algebra.vandermonde
 import ring_theory.algebra_tower
 import ring_theory.localization
 
@@ -52,344 +53,6 @@ open matrix
 open_locale big_operators
 open_locale matrix
 
-section power_basis
-
-variables {b : ι → S} (hb : is_basis R b)
-
-open algebra field polynomial
-
-variables {x : L} (alg : is_algebraic K x)
-
-lemma sub_mul_sum_pow (a b : R) (n : ℕ) :
-  (a - b) * ∑ i in finset.range (n + 1), a ^ i * b ^ (n - i) = a ^ (n + 1) - b ^ (n + 1) :=
-begin
-  induction n with n ih,
-  { simp },
-  calc (a - b) * ∑ (i : ℕ) in finset.range (n + 2), a ^ i * b ^ (n + 1 - i)
-      = a * ((a - b) * (∑ (x : ℕ) in finset.range (n + 1), a ^ x * b ^ (n - x))) + (a - b) * (b * b ^ n) :
-    by simp [finset.sum_range_succ', pow_succ, mul_assoc, ← finset.mul_sum, mul_add, mul_left_comm]
-  ... = a * (a ^ (n + 1) - b ^ (n + 1)) + (a - b) * (b * b ^ n) : by rw ih
-  ... = a ^ (n + 2) - b ^ (n + 2) : by ring_exp
-end
-
-/-- Multiplying each row with a scalar, scales the determinant with the product of all scales. -/
-lemma det_row_mul {n : ℕ} (v : fin n → R) (M : matrix (fin n) (fin n) R) :
-  det (λ i j, v j * M i j) = (∏ j, v j) * det M :=
-begin
-  induction n with n ih,
-  { rw [det_eq_one_of_card_eq_zero, det_eq_one_of_card_eq_zero, fin.prod_univ_zero, mul_one];
-    exact fintype.card_fin 0 },
-  simp only [det_succ_row, ih (λ j, v j.succ), finset.mul_sum, fin.prod_univ_succ],
-  apply finset.sum_congr rfl,
-  intros x _,
-  ring
-end
-
-lemma prod_filter_zero_lt {M : Type*} [comm_monoid M] {n : ℕ} {v : fin n.succ → M} :
-  ∏ i in finset.univ.filter (λ (i : fin n.succ), 0 < i), v i = ∏ (j : fin n), v j.succ :=
-finset.prod_bij
-  (λ i hi, i.pred (ne_of_lt (finset.mem_filter.mp hi).2).symm)
-  (λ i hi, finset.mem_univ _)
-  (λ i hi, by rw fin.succ_pred)
-  (λ i i' hi hi' h, fin.pred_inj.mp h)
-  (λ j _, ⟨j.succ, finset.mem_filter.mpr ⟨finset.mem_univ _, fin.succ_pos _⟩, by rw fin.pred_succ⟩)
-
-lemma fin.lt_pred {n : ℕ} {i : fin n} {j : fin n.succ} {hj : j ≠ 0} :
-  i < j.pred hj ↔ i.succ < j :=
-by { convert fin.succ_lt_succ_iff.symm, rw fin.succ_pred }
-
-lemma prod_filter_succ_lt {n : ℕ} {v : fin n.succ → R} {i : fin n} :
-  ∏ j in finset.univ.filter (λ (j : fin n.succ), i.succ < j), v j =
-    ∏ j in finset.univ.filter (λ j, i < j), v j.succ :=
-finset.prod_bij
-  (λ j hj, j.pred (ne_of_lt (lt_trans (fin.zero_lt_succ i) (finset.mem_filter.mp hj).2)).symm)
-  (λ j hj, finset.mem_filter.mpr ⟨finset.mem_univ _, fin.lt_pred.mpr (finset.mem_filter.mp hj).2⟩)
-  (λ j hj, by rw fin.succ_pred)
-  (λ j j' hj hj' h, fin.pred_inj.mp h)
-  (λ j hj, ⟨j.succ, finset.mem_filter.mpr ⟨finset.mem_univ _,
-    fin.succ_lt_succ_iff.mpr (finset.mem_filter.mp hj).2⟩, by rw fin.pred_succ⟩)
-
-instance {n : Type*} [unique n] : unique (equiv.perm n) :=
-{ default := 1,
-  uniq := λ σ, equiv.ext (λ i, subsingleton.elim _ _) }
-
-@[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
-
-/-- Although `unique` implies `decidable_eq` and `fintype`, the instances might
-not be syntactically equal. Thus, we need to fill in the args explicitly. -/
-@[simp]
-lemma det_unique {n : Type*} [unique n] [d : decidable_eq n] [f : fintype n] (A : matrix n n R) :
-  @det _ d f _ _ A = A (default n) (default n) :=
-by simp [det, univ_unique]
-
-lemma update_row_self' {R : Type*} {m n : Type*} [fintype m] [fintype n] [decidable_eq m]
-  {M : matrix m n R} (i : m) : M.update_row i (M i) = M :=
-by { ext, rw update_row_apply, split_ifs with h, { rw h }, refl }
-
-lemma det_eq_of_row_eq_add_zero_aux {n : ℕ} {k : fin n.succ} :
-  ∀ {M N : matrix (fin n.succ) (fin n.succ) R} {c : fin n → R}
-    (h0 : M 0 = N 0)
-    (hsucc : ∀ (i : fin n) (hi : i.succ ≤ k), M i.succ = N i.succ + c i • M 0)
-    (hlast : ∀ (i : fin n.succ) (hi : k < i), M i = N i),
-    det M = det N :=
-begin
-  refine fin.induction _ (λ k ih, _) k;
-    intros M N c h0 hsucc hlast,
-  { congr,
-    ext i j,
-    by_cases hi : i = 0,
-    { rw [hi, h0] },
-    rw hlast _ (nat.pos_iff_ne_zero.mpr
-      (mt (λ (h : (i : ℕ) = (0 : fin n.succ)), fin.coe_injective h) hi)) },
-
-  set M' := update_row M k.succ (N k.succ) with hM',
-  have hM : M = update_row M' k.succ (M' k.succ + c k • M 0),
-  { ext i j,
-    by_cases hi : i = k.succ,
-    { rw [hi, update_row_self, hM', update_row_self, hsucc _ (le_refl k.succ)] },
-    rw [update_row_ne hi, hM', update_row_ne hi] },
-
-  have zero_ne_succ : 0 ≠ k.succ := (fin.succ_ne_zero k).symm,
-
-  rw [hM, det_update_row_add, update_row_self', det_update_row_smul,
-    @det_zero_of_row_eq _ _ _ _ _ (M'.update_row _ _) _ _ zero_ne_succ,
-    mul_zero, add_zero, ih],
-  { rw [hM', update_row_ne (fin.succ_ne_zero _).symm, h0] },
-  { intros i hi,
-    have : i.succ < k.succ := lt_of_le_of_lt hi fin.lt_succ,
-    rw [hM', update_row_ne (ne_of_lt this),
-        update_row_ne zero_ne_succ, hsucc _ (le_of_lt this)] },
-  { intros i hi,
-    by_cases hik : i = k.succ,
-    { rw [hik, hM', update_row_self] },
-    { rw [hM', update_row_ne hik, hlast],
-    exact lt_of_le_of_ne (fin.succ_le_iff.mpr hi) (ne.symm hik) } },
-  { rw [update_row_ne zero_ne_succ, update_row_self, hM', update_row_ne zero_ne_succ] },
-end
-
-/-- If `M i j = N i j + c i * M 0 j`, then the determinant of `M` and `N` are the same. -/
-lemma det_eq_of_row_eq_add_zero {n : ℕ} (M N : matrix (fin n.succ) (fin n.succ) R) (c : fin n → R)
-  (h0 : M 0 = N 0) (hsucc : ∀ (i : fin n), M i.succ = N i.succ + c i • M 0) :
-  det M = det N :=
-det_eq_of_row_eq_add_zero_aux h0 (λ i _, hsucc i)
-  (λ i (hi : fin.last n < i), false.elim (not_lt_of_ge (fin.le_last i) hi))
-
-/-- If `M i j = N i j + c i * M i 0`, then the determinant of `M` and `N` are the same. -/
-lemma det_eq_of_column_eq_add_zero {n : ℕ} (M N : matrix (fin n.succ) (fin n.succ) R) (c : fin n → R)
-  (h0 : ∀ i, M i 0 = N i 0) (hsucc : ∀ (i : fin n.succ) (j : fin n), M i j.succ = N i j.succ + c j * M i 0) :
-  det M = det N :=
-begin
-  rw [← det_transpose M, ← det_transpose N, det_eq_of_row_eq_add_zero],
-  { ext i, exact h0 i },
-  { intro j, ext i, rw [transpose_apply, hsucc i j, pi.add_apply, pi.smul_apply, smul_eq_mul], refl },
-end
-
-lemma det_eq_of_row_eq_add_pred_aux {n : ℕ} {k : fin n.succ} :
-  ∀ {M N : matrix (fin n.succ) (fin n.succ) R} {c : fin n → R}
-    (h0 : M 0 = N 0)
-    (hsucc : ∀ (i : fin n) (hi : i.succ ≤ k), M i.succ = N i.succ + c i • M i.cast_succ)
-    (hlast : ∀ (i : fin n.succ) (hi : k < i), M i = N i),
-    det M = det N :=
-begin
-  refine fin.induction _ (λ k ih, _) k;
-    intros M N c h0 hsucc hlast,
-  { congr,
-    ext i j,
-    by_cases hi : i = 0,
-    { rw [hi, h0] },
-    rw hlast _ (nat.pos_iff_ne_zero.mpr
-      (mt (λ (h : (i : ℕ) = (0 : fin n.succ)), fin.coe_injective h) hi)) },
-
-  set M' := update_row M k.succ (N k.succ) with hM',
-  have hM : M = update_row M' k.succ (M' k.succ + c k • M k.cast_succ),
-  { ext i j,
-    by_cases hi : i = k.succ,
-    { rw [hi, update_row_self, hM', update_row_self, hsucc _ (le_refl k.succ)] },
-    rw [update_row_ne hi, hM', update_row_ne hi] },
-
-  have k_ne_succ : k.cast_succ ≠ k.succ := ne_of_lt fin.lt_succ,
-
-  rw [hM, det_update_row_add, update_row_self', det_update_row_smul,
-    @det_zero_of_row_eq _ _ _ _ _ (M'.update_row _ _) _ _ k_ne_succ,
-    mul_zero, add_zero, ih],
-  { rw [hM', update_row_ne (fin.succ_ne_zero _).symm, h0] },
-  { intros i hi,
-    have : i.succ < k.succ := lt_of_le_of_lt hi fin.lt_succ,
-    rw [hM', update_row_ne (ne_of_lt this),
-        update_row_ne (ne_of_lt (lt_trans (@fin.lt_succ _ i) this)), hsucc _ (le_of_lt this)] },
-  { intros i hi,
-    by_cases hik : i = k.succ,
-    { rw [hik, hM', update_row_self] },
-    { rw [hM', update_row_ne hik, hlast],
-    exact lt_of_le_of_ne (fin.succ_le_iff.mpr hi) (ne.symm hik) } },
-  { rw [update_row_ne k_ne_succ, update_row_self, hM', update_row_ne k_ne_succ] },
-end
-
-/-- If `M i j = N i j + c i * M (i - 1) j`, then the determinant of `M` and `N` are the same. -/
-lemma det_eq_of_row_eq_add_pred {n : ℕ} (M N : matrix (fin n.succ) (fin n.succ) R) (c : fin n → R)
-  (h0 : M 0 = N 0) (hsucc : ∀ (i : fin n), M i.succ = N i.succ + c i • M i.cast_succ) :
-  det M = det N :=
-det_eq_of_row_eq_add_pred_aux h0 (λ i _, hsucc i)
-  (λ i (hi : fin.last n < i), false.elim (not_lt_of_ge (fin.le_last i) hi))
-
-/-- If `M i j = N i j + c i * M i (j - 1)`, then the determinant of `M` and `N` are the same. -/
-lemma det_eq_of_column_eq_add_pred {n : ℕ} (M N : matrix (fin n.succ) (fin n.succ) R) (c : fin n → R)
-  (h0 : ∀ i, M i 0 = N i 0) (hsucc : ∀ (i : fin n.succ) (j : fin n), M i j.succ = N i j.succ + c j * M i j.cast_succ) :
-  det M = det N :=
-begin
-  rw [← det_transpose M, ← det_transpose N, det_eq_of_row_eq_add_pred],
-  { ext i, exact h0 i },
-  { intro j, ext i, rw [transpose_apply, hsucc i j, pi.add_apply, pi.smul_apply, smul_eq_mul], refl },
-end
-
-lemma det_vandermonde {n : ℕ} (v : fin n → R) :
-  det (λ i j, v j ^ (i : ℕ)) = ∏ i : fin n, ∏ j in finset.univ.filter (λ j, i < j), (v j - v i) :=
-begin
-  induction n with n ih,
-  { exact det_eq_one_of_card_eq_zero (fintype.card_fin 0) },
-
-  calc det (λ (i j : fin n.succ), v j ^ (i : ℕ))
-      = det (λ (i : fin n.succ), fin.cons (v 0 ^ (i : ℕ)) (λ j, v j.succ ^ (i : ℕ) - v 0 ^ (i : ℕ))) :
-        det_eq_of_column_eq_add_zero _ _ (λ _, 1) _ _
-  ... = det (λ (i j : fin n), @fin.cons _ (λ _, R)
-              (v 0 ^ (i.succ : ℕ))
-              (λ (j : fin n), v j.succ ^ (i.succ : ℕ) - v 0 ^ (i.succ : ℕ))
-              (fin.succ_above 0 j)) :
-    by simp_rw [det_succ_column, fin.sum_univ_succ, fin.cons_zero, fin.cons_succ, fin.coe_zero,
-                pow_zero, sub_self, one_mul, mul_zero, zero_mul, finset.sum_const_zero, add_zero]
-  ... = det (λ (i j : fin n), (v j.succ - v 0) *
-              (∑ k in finset.range (i + 1 : ℕ), v j.succ ^ k * v 0 ^ (i - k : ℕ))) :
-    by { congr, ext i j, rw [fin.succ_above_zero, fin.cons_succ, fin.coe_succ, sub_mul_sum_pow] }
-  ... = (∏ (j : fin n), (v j.succ - v 0)) * det (λ (i j : fin n), (∑ k in finset.range (i + 1 : ℕ), v j.succ ^ k * v 0 ^ (i - k : ℕ))) :
-    det_row_mul (λ j, v j.succ - v 0) _
-  ... = (∏ (j : fin n), (v j.succ - v 0)) * det (λ (i j : fin n), v j.succ ^ (i : ℕ)) :
-    congr_arg ((*) _) _
-  ... = ∏ i : fin n.succ, ∏ j in finset.univ.filter (λ j, i < j), (v j - v i) :
-    by { simp_rw [ih, fin.prod_univ_succ, prod_filter_zero_lt, prod_filter_succ_lt] },
-  { intro i, rw fin.cons_zero },
-  { intros i j, rw [fin.cons_succ, one_mul, sub_add_cancel] },
-  { cases n,
-    { simp [det] },
-    apply det_eq_of_row_eq_add_pred _ _ (λ i, v 0),
-    { ext j,
-      simp },
-    { intro i, ext j,
-      simp only [smul_eq_mul, pi.add_apply, fin.coe_succ, fin.coe_cast_succ, pi.smul_apply],
-      rw [finset.sum_range_succ, nat.sub_self, pow_zero, mul_one, finset.mul_sum],
-      congr' 1,
-      refine finset.sum_congr rfl (λ i' hi', _),
-      rw [mul_left_comm (v 0), nat.succ_sub, pow_succ],
-      exact nat.lt_succ_iff.mp (finset.mem_range.mp hi') } }
-end
-
-/-- A computable specialization of `finsupp.emb_domain` from `fin i` to `ℕ`. -/
-def finsupp.emb_fin_nat {M : Type*} [has_zero M] {i : ℕ} (f : fin i →₀ M) : ℕ →₀ M :=
-{ to_fun := λ n, if h : n < i then f ⟨n, h⟩ else 0,
-  support := f.support.map ⟨subtype.val, subtype.val_injective⟩,
-  mem_support_to_fun := λ n, finset.mem_map.trans begin
-    simp only [function.embedding.coe_fn_mk],
-    split_ifs with h,
-    { refine iff.trans _ finsupp.mem_support_iff,
-      split,
-      { rintros ⟨n', n'_mem, rfl⟩,
-        rw subtype.eta,
-        exact n'_mem },
-      { intro n_mem,
-        exact ⟨⟨n, h⟩, n_mem, rfl⟩ } },
-    { simp only [ne.def, eq_self_iff_true, not_true, iff_false, not_exists],
-      rintros ⟨n', n_lt⟩ _ rfl,
-      exact h n_lt },
-  end }
-
-@[simp] lemma finsupp.emb_fin_nat_apply {M : Type*} [has_zero M] {i : ℕ} (f : fin i →₀ M) (n : ℕ) :
-  f.emb_fin_nat n = if h : n < i then f ⟨n, h⟩ else 0 := rfl
-
-@[simp] lemma finsupp.emb_fin_nat_support {M : Type*} [has_zero M] {i : ℕ} (f : fin i →₀ M) :
-  f.emb_fin_nat.support = f.support.map ⟨subtype.val, subtype.val_injective⟩ := rfl
-
-@[simp] lemma finsupp.emb_fin_nat_sum {M N : Type*} [has_zero M] [add_comm_monoid N]
-  {i : ℕ} (f : fin i →₀ M) (g : ℕ → M → N) :
-  (f.emb_fin_nat).sum g = f.sum (λ i, g i) :=
-begin
-  simp_rw [finsupp.sum, finsupp.emb_fin_nat_support, finset.sum_map, function.embedding.coe_fn_mk],
-  congr, ext j,
-  congr,
-  rw finsupp.emb_fin_nat_apply,
-  split_ifs with h,
-  { rw subtype.eta },
-  { exfalso,
-    exact h j.2 }
-end
-
-@[simp] lemma finsupp.emb_fin_nat_eq_zero {M : Type*} [has_zero M] {i : ℕ} (f : fin i →₀ M) :
-  f.emb_fin_nat = 0 ↔ f = 0 :=
-begin
-  rw [finsupp.ext_iff, finsupp.ext_iff],
-  split; intros h n,
-  { refine trans _ (h n),
-    erw [finsupp.emb_fin_nat_apply, dif_pos n.2, fin.eta] },
-  { by_cases hn : n < i,
-    { exact trans (dif_pos hn) (h ⟨n, hn⟩) },
-    { exact dif_neg hn } }
-end
-
-namespace polynomial
-
-lemma degree_emb_fin_nat_lt {K : Type*} [semiring K] {i : ℕ} (f : fin i →₀ K) :
-  degree (f.emb_fin_nat) < i :=
-begin
-  by_cases hf : f.emb_fin_nat = 0,
-  { rw [hf, degree_zero],
-    apply with_bot.bot_lt_some },
-  erw [degree_eq_nat_degree hf, with_bot.some_lt_some],
-  exact lt_of_not_ge (λ h, hf (leading_coeff_eq_zero.mp (dif_neg (not_lt_of_ge h))))
-end
-
-end polynomial
-
-@[simp] lemma power_basis.total_eq (h : power_basis A S) (f : fin h.dim →₀ S) :
-  finsupp.total _ _ _ (λ (i : fin h.dim), h.gen ^ (i : ℕ)) f =
-    aeval h.gen (finsupp.emb_fin_nat f) :=
-by simp [aeval_def, eval₂_eq_sum, finsupp.total, linear_map.smul_right, algebra.smul_def]
-
-@[simp] lemma total_power_basis_eq {n : ℕ} (f : fin n →₀ K) :
-  finsupp.total _ _ _ (λ i : fin n, x ^ (i : ℕ)) f =
-  aeval x (finsupp.emb_fin_nat f) :=
-by simp_rw [aeval_def, eval₂_eq_sum, finsupp.total_apply, finsupp.emb_fin_nat_sum, algebra.smul_def]
-
-lemma linear_independent_power_basis (hx : is_integral K (adjoin_simple.gen K x)) :
-  linear_independent K (λ (i : fin (minimal_polynomial hx).nat_degree),
-    adjoin_simple.gen K x ^ (i : ℕ)) :=
-begin
-  rw linear_independent_iff,
-  intros p hp,
-  rw total_power_basis_eq at hp,
-  rw ← finsupp.emb_fin_nat_eq_zero,
-  refine minimal_polynomial.eq_zero_of_degree_lt hx _ hp,
-  rw degree_eq_nat_degree (minimal_polynomial.ne_zero _),
-  exact polynomial.degree_emb_fin_nat_lt _,
-  apply_instance
-end
-
-@[simp] lemma mem_span_set_submodule {M : Type*} [add_comm_monoid M] [semimodule R M]
-  (S : submodule R M) (x : S) (s : set S) :
-  x ∈ submodule.span R s ↔ (x : M) ∈ submodule.span R (coe '' s : set M) :=
-show x ∈ submodule.span R s ↔ S.subtype x ∈ submodule.span R (S.subtype '' s),
-by { rw [← submodule.map_span S.subtype, submodule.mem_map],
-     simp only [S.subtype_inj_iff, exists_eq_right] }
-
-@[simp] lemma intermediate_field.coe_eq (S : intermediate_field K L) :
-  (coe : S → L) = algebra_map S L := rfl
-
-lemma nat_degree_lt_nat_degree {p q : polynomial R} (hp : p ≠ 0) (hpq : p.degree < q.degree) :
-  p.nat_degree < q.nat_degree :=
-begin
-  by_cases hq : q = 0, { rw [hq, degree_zero] at hpq, have := not_lt_bot hpq, contradiction },
-  rwa [degree_eq_nat_degree hp, degree_eq_nat_degree hq, with_bot.coe_lt_coe] at hpq
-end
-
-end power_basis
-
 namespace algebra
 
 variables {b : ι → S} (hb : is_basis R b)
@@ -413,8 +76,6 @@ lemma findim_eq_zero_of_not_exists_basis
   (h : ¬ ∃ s : finset L, is_basis K (λ x, x : (↑s : set L) → L)) : findim K L = 0 :=
 dif_neg (mt (λ h, @exists_is_basis_finset K L _ _ _ (finite_dimensional_iff_dim_lt_omega.mpr h)) h)
 
-theorem smul_id (r : R) : r • linear_map.id = lsmul R S r := rfl
-
 @[simp] lemma lmul_algebra_map (x : R) : lmul R S (algebra_map R S x) = lsmul R S x :=
 linear_map.ext (λ s, by simp [smul_def''])
 
@@ -422,20 +83,29 @@ linear_map.ext (λ s, by simp [smul_def''])
   linear_map.to_matrix hb hb (lmul R S x) i j = hb.repr (x * b j) i :=
 by rw [linear_map.to_matrix_apply', lmul_apply]
 
+@[simp] lemma to_matrix_lsmul [decidable_eq ι] (x : R) (i j) :
+  linear_map.to_matrix hb hb (lsmul R S x) i j = if i = j then x else 0 :=
+by { rw [linear_map.to_matrix_apply', algebra.lsmul_coe, linear_map.map_smul, finsupp.smul_apply,
+         hb.repr_self_apply, smul_eq_mul, mul_boole],
+     congr' 1; simp only [eq_comm] }
+
 include hb
 /-- If `x` is in the base field `K`, then the trace is `[L : K] * x`. -/
 lemma trace_algebra_map_of_basis (x : R) :
   trace R S (algebra_map R S x) = fintype.card ι • x :=
 begin
-  classical,
+  haveI := classical.dec_eq ι,
   rw [trace_apply, trace_eq_matrix_trace R hb, trace_diag],
   convert finset.sum_const _,
   ext i,
-  simp [←smul_id]
+  simp,
 end
 omit hb
 
-/-- If `x` is in the base field `K`, then the trace is `[L : K] * x`. -/
+/-- If `x` is in the base field `K`, then the trace is `[L : K] * x`.
+
+(If `L` is not finite-dimensional over `K`, then `trace` and `findim` return `0`.)
+-/
 @[simp]
 lemma trace_algebra_map (x : K) : trace K L (algebra_map K L x) = findim K L • x :=
 begin
@@ -443,13 +113,6 @@ begin
   { rw [trace_algebra_map_of_basis K H.some_spec, findim_eq_card_basis H.some_spec] },
   { simp [trace_eq_zero_of_not_exists_basis K H, findim_eq_zero_of_not_exists_basis H] },
 end
-
-lemma linear_equiv.map_sum {R : Type u} {M : Type v} {M₂ : Type w}
-  [semiring R] [add_comm_monoid M]
-  [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
-  (f : M ≃ₗ[R] M₂) {ι : Type u_1} {t : finset ι} {g : ι → M} :
-  f (t.sum (λ (i : ι), g i)) = t.sum (λ (i : ι), f (g i)) :=
-f.to_linear_map.map_sum
 
 section trace_form
 
@@ -479,16 +142,6 @@ lemma trace_form_to_matrix_power_basis (h : power_basis R S) :
   bilin_form.to_matrix h.is_basis (trace_form R S) = λ i j, (trace R S (h.gen ^ (i + j : ℕ))) :=
 by { ext, rw [trace_form_to_matrix, pow_add] }
 
-open bilin_form
-
-lemma lmul_mul (x y : S) : lmul R S (x * y) = (lmul R S x).comp (lmul R S y) :=
-by { ext z, simp [mul_assoc] }
-
-lemma lmul_one : lmul R S 1 = linear_map.id :=
-by { ext z, rw [lmul_apply, one_mul, linear_map.id_apply] }
-
-lemma matrix.trace_apply (A : matrix ι ι S) : matrix.trace ι R S A = ∑ i, A i i := rfl
-
 end trace_form
 
 end algebra
@@ -502,18 +155,15 @@ open algebra
 
 variables [decidable_eq ι] [algebra S T] [is_scalar_tower R S T]
 
-lemma to_matrix_lsmul (x : R) :
-  linear_map.to_matrix hb hb (algebra.lsmul R S x) = algebra_map _ _ x :=
-by { ext i j, simp [linear_map.to_matrix_apply, algebra_map_matrix_apply, eq_comm] }
-
 /-- If `hb : S ≃ ι → R`, `lmul_matrix` sends `x : S` to the matrix mapping `y : ι → R` to `hb (x * hb⁻¹ y)` -/
 noncomputable def lmul_matrix : S →ₐ[R] matrix ι ι R :=
 { to_fun := λ x, linear_map.to_matrix hb hb (lmul R S x),
   map_zero' := by rw [alg_hom.map_zero, linear_equiv.map_zero],
-  map_one' := by rw [lmul_one, linear_map.to_matrix_id],
+  map_one' := by rw [alg_hom.map_one, linear_map.one_eq_id, linear_map.to_matrix_id],
   map_add' := λ x y, by rw [alg_hom.map_add, linear_equiv.map_add],
-  map_mul' := λ x y, by rw [lmul_mul, linear_map.to_matrix_comp hb hb, matrix.mul_eq_mul],
-  commutes' := λ r, by rw [lmul_algebra_map, to_matrix_lsmul] }
+  map_mul' := λ x y, by rw [alg_hom.map_mul, linear_map.to_matrix_mul, matrix.mul_eq_mul],
+  commutes' := λ r, by { ext, rw [lmul_algebra_map, to_matrix_lsmul R hb r,
+                                  algebra_map_matrix_apply, id.map_eq_self] } }
 
 lemma lmul_matrix_apply (x : S) (i j) :
   lmul_matrix hb x i j = linear_map.to_matrix hb hb (lmul R S x) i j := rfl
@@ -529,42 +179,6 @@ end
 section
 
 open polynomial
-
-lemma ring_hom.map_matrix.map_mul {R S : Type*} [semiring R] [semiring S]
-  {n : Type*} [fintype n] [decidable_eq n]
-  (M N : matrix n n R) (f : R →+* S) :
-  f.map_matrix (M ⬝ N) = f.map_matrix M ⬝ f.map_matrix N :=
-by rw [← mul_eq_mul, ring_hom.map_mul, mul_eq_mul]
-
-@[simp] lemma perm_congr_apply {m n : Type*} (e : m ≃ n) (p : equiv.perm m) (x) :
-  e.perm_congr p x = e (p (e.symm x)) := rfl
-
-@[simp] lemma sign_perm_congr {m n : Type*} [fintype m] [decidable_eq m]
-  [fintype n] [decidable_eq n] (e : m ≃ n) (p : equiv.perm m) :
-  (e.perm_congr p).sign = p.sign :=
-equiv.perm.sign_eq_sign_of_equiv _ _ e.symm (by simp)
-
-lemma det_reindex {m n : Type*} [fintype m] [decidable_eq m]
-  [fintype n] [decidable_eq n] (e : m ≃ n) (A : matrix m m R) :
-  det (reindex_linear_equiv e e A) = det A :=
-begin
-  simp only [det, reindex_linear_equiv_apply],
-  apply finset.sum_bij' (λ σ _, equiv.perm_congr e.symm σ) _ _ (λ σ _, equiv.perm_congr e σ),
-  { intros σ _, ext, simp only [equiv.symm_symm, perm_congr_apply, equiv.apply_symm_apply] },
-  { intros σ _, ext, simp only [equiv.symm_symm, perm_congr_apply, equiv.symm_apply_apply] },
-  { intros σ _, apply finset.mem_univ },
-  { intros σ _, apply finset.mem_univ },
-
-  intros σ _,
-  simp_rw [sign_perm_congr, perm_congr_apply, equiv.symm_symm],
-  congr,
-  apply finset.prod_bij' (λ i _, e.symm i) _ _ (λ i _, e i),
-  { intros, simp_rw equiv.apply_symm_apply },
-  { intros, simp_rw equiv.symm_apply_apply },
-  { intros, apply finset.mem_univ },
-  { intros, apply finset.mem_univ },
-  { intros, simp_rw equiv.apply_symm_apply },
-end
 
 @[simp] lemma reindex_refl_refl {m n : Type*} [fintype m]
   [fintype n] (A : matrix m n R) :
@@ -622,7 +236,7 @@ begin
   have : det (reindex_linear_equiv e (equiv.refl _) M ⬝ N ⬝ reindex_linear_equiv (equiv.refl _) e M') = det N,
   { rw [det_mul, det_mul, mul_comm, ← mul_assoc, ← det_mul, reindex_mul, reindex_refl_refl, hM'M, det_one, one_mul] },
   convert this,
-  rw [← det_reindex e (M ⬝ N ⬝ M'), ← reindex_mul e (equiv.refl n) e, ← reindex_mul e (equiv.refl n) (equiv.refl n), reindex_refl_refl],
+  rw [← det_reindex_linear_equiv_self e (M ⬝ N ⬝ M'), ← reindex_mul e (equiv.refl n) e, ← reindex_mul e (equiv.refl n) (equiv.refl n), reindex_refl_refl],
 end
 
 /-- If `A'` is a two-sided inverse for `A`, `char_poly (A ⬝ B ⬝ A') = char_poly B`. -/
@@ -1544,7 +1158,7 @@ end
 @[simp] lemma det_conjugate_matrix :
   (pb.conjugate_matrix hF).det = ∏ (i : fin pb.dim),
     ∏ j in finset.univ.filter (λ (j : fin pb.dim), i < j), (pb.conjugates hF j - pb.conjugates hF i) :=
-det_vandermonde _
+matrix.det_vandermonde _
 
 lemma sum_repr (x : S) : ∑ i, hb.repr x i • b i = x :=
 begin

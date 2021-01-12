@@ -243,9 +243,8 @@ begin
   { rw [div_eq_iff ((sqrt_ne_zero hle).mpr h), mul_self_sqrt hle] },
 end
 
-lemma step5_1 : deriv (λ x : ℝ, 1/2 * (arcsin x + x * sqrt(1 - x^2) ) ) = λ x, sqrt(1 - x^2) :=
+lemma step5_1 {x : ℝ} : deriv (λ y : ℝ, 1/2 * (arcsin y + y * sqrt (1 - y^2))) x = sqrt (1 - x^2) :=
 begin
-  ext x,
   have hx : x ≠ -1 ∧ x ≠ 1,
     sorry, -- potentially tricky part
   have hlt : 0 < 1 - x^2,
@@ -272,14 +271,21 @@ end
 lemma step5_2 : ∫ (x : ℝ) in (-1)..1, 2 * deriv (λ y:ℝ, 1/2 * (arcsin y + y * sqrt (1-y^2))) x = pi :=
 begin
   have H : ∀ (x : ℝ), x ∈ interval (-(1:ℝ)) 1 → differentiable_at ℝ (λ y:ℝ, arcsin y + y * sqrt (1-y^2)) x,
+    intros x hx,
     sorry,
-  have := H _ _,
-  simp only [deriv_const_mul ((1:ℝ)/2) this, ← mul_assoc, mul_div_cancel' (1:ℝ) two_ne_zero, one_mul],
+  have H' := H _ _,
+  simp only [deriv_const_mul _ H', ← mul_assoc, mul_div_cancel' (1:ℝ) two_ne_zero, one_mul],
   convert integral_deriv_eq_sub H _,
   { rw [arcsin_one, arcsin_neg_one, one_pow, neg_one_pow_eq_pow_mod_two, nat.bit0_mod_two, pow_zero,
         sub_self, sqrt_zero, mul_zero, mul_zero, add_zero, add_zero, sub_neg_eq_add, add_halves'] },
-  { sorry } -- show `continuous_on (deriv (λ y, arcsin y + y * sqrt (1 - y ^ 2))) (interval (-1) 1)`
-
+  -- show `continuous_on (deriv (λ y, arcsin y + y * sqrt (1 - y ^ 2))) (interval (-1) 1)`:
+  { have : (deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2))) = (λ y, sqrt(1 - y^2)) * λ y, 2,
+    { sorry }, -- temporary, hope to replace with following lines
+    -- have s1 := step5_1,
+    -- rw [deriv_const_mul ((1:ℝ)/2) H', mul_comm, ← div_eq_mul_one_div, div_eq_iff] at s1,
+    simp only [this],
+    exact λ x hx, (continuous_within_at_const.sub (continuous_pow 2).continuous_within_at).sqrt.mul
+      continuous_within_at_const },
   -- How we resolve the rest of this proof will depend on how we decide to integrate these substeps
   -- into the final proof. Accordingly, I am leaving it for a later date.
 end

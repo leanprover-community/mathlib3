@@ -125,6 +125,12 @@ theorem sum_mem {ι : Type w} {t : finset ι} {f : ι → A}
   (h : ∀ x ∈ t, f x ∈ S) : ∑ x in t, f x ∈ S :=
 subsemiring.sum_mem S h
 
+@[simp]
+lemma mk_eq_zero_iff {S : subalgebra R A}
+  (x : A) (hx : x ∈ S) :
+  (⟨x, hx⟩ : S) = 0 ↔ x = 0 :=
+subtype.ext_iff
+
 instance {R : Type u} {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
   (S : subalgebra R A) : is_add_submonoid (S : set A) :=
 { zero_mem := S.zero_mem,
@@ -167,6 +173,11 @@ algebra.of_subsemiring A₀
 
 instance nontrivial [nontrivial A] : nontrivial S :=
 subsemiring.nontrivial S
+
+@[simp]
+lemma smul_mk {x : A} (a : R) (hx : x ∈ S) :
+  a • (⟨x, hx⟩ : S) = ⟨a • x, S.smul_mem hx a⟩ :=
+by { ext, refl }
 
 -- todo: standardize on the names these morphisms
 -- compare with submodule.subtype

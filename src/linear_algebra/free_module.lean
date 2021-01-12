@@ -991,4 +991,10 @@ lemma submodule.exists_is_basis_of_le {ι : Type*} [fintype ι]
 let ⟨n, bN', hbN'⟩ := submodule.exists_is_basis hb (N.comap O.subtype)
 in ⟨n, _, (submodule.comap_subtype_equiv_of_le hNO).is_basis hbN'⟩
 
+lemma submodule.exists_is_basis_of_le_span
+  {ι : Type*} [fintype ι] {b : ι → M} (hb : linear_independent R b)
+  {N : submodule R M} (le : N ≤ submodule.span R (set.range b)) :
+  ∃ (n : ℕ) (b : fin n → N), is_basis R b :=
+submodule.exists_is_basis_of_le le (is_basis_span hb)
+
 end principal_ideal_domain

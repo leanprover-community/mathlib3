@@ -1237,6 +1237,9 @@ protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R] [comm_rin
   (φ : fraction_map R K) (x : non_zero_divisors R) : φ.to_map x ≠ 0 :=
 φ.to_map_ne_zero_of_mem_non_zero_divisors (le_of_eq rfl) x
 
+lemma map_ne_zero [comm_ring K] (f : fraction_map R K) {x : R} (hx : x ≠ 0) : f.to_map x ≠ 0 :=
+mt (f.to_map.injective_iff.mp (fraction_map.injective f) _) hx
+
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
 integral domain. -/
 def to_integral_domain [comm_ring K] (φ : fraction_map A K) : integral_domain K :=

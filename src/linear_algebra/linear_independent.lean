@@ -3,6 +3,7 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
+import algebra.algebra.basic
 import linear_algebra.finsupp
 import order.zorn
 import data.finset.order
@@ -914,3 +915,22 @@ have finite s, from u.finite_to_set.subset hsu,
 ⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
 
 end vector_space
+
+section scalar_tower
+
+variables {S : Type*} [comm_ring R] [ring S] [algebra R S]
+variables [add_comm_group M] [module R M] [module S M] [is_scalar_tower R S M]
+
+lemma linear_independent.of_scalar_tower
+  {ι : Type*} {b : ι → M} (hb : linear_independent S b)
+  (h : function.injective (algebra_map R S)) :
+  linear_independent R b :=
+begin
+  rw linear_independent_iff' at hb ⊢,
+  intros s g hg i hi,
+  specialize hb s (algebra_map R S ∘ g) _ i hi,
+  { exact (algebra_map R S).injective_iff.mp h _ hb },
+  simpa using hg
+end
+
+end scalar_tower

@@ -58,20 +58,6 @@ variables {b : ι → S} (hb : is_basis R b)
 
 open algebra field polynomial
 
-lemma is_scalar_tower.is_algebraic [algebra S T] [is_scalar_tower R S T] {x : S}
-  (inj : function.injective (algebra_map S T)) (hx : is_algebraic R (algebra_map S T x)) :
-  is_algebraic R x :=
-let ⟨p, hp, hpx⟩ := hx in ⟨p, hp, inj
-  (by rwa [ring_hom.map_zero, aeval_def, hom_eval₂,
-           ← is_scalar_tower.algebra_map_eq])⟩
-
-lemma intermediate_field.is_algebraic (S : intermediate_field K L) {x : S}
-  (hx : is_algebraic K (x : L)) : is_algebraic K x :=
-is_scalar_tower.is_algebraic (algebra_map S L).injective hx
-
-lemma is_algebraic_algebra_map (x : K) : is_algebraic K (algebra_map K L x) :=
-⟨X - C x, X_sub_C_ne_zero _, by rw [alg_hom.map_sub, aeval_X, aeval_C, sub_self]⟩
-
 variables {x : L} (alg : is_algebraic K x)
 
 lemma sub_mul_sum_pow (a b : R) (n : ℕ) :

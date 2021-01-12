@@ -221,7 +221,9 @@ lemma summable.add (hf : summable f) (hg : summable g) : summable (λb, f b + g 
 
 lemma has_sum_sum {f : γ → β → α} {a : γ → α} {s : finset γ} :
   (∀i∈s, has_sum (f i) (a i)) → has_sum (λb, ∑ i in s, f i b) (∑ i in s, a i) :=
-finset.induction_on s (by simp [has_sum_zero]) (by simp [has_sum.add] {contextual := tt})
+finset.induction_on s (by simp only [has_sum_zero, sum_empty, forall_true_iff])
+  (by simp only [has_sum.add, sum_insert, mem_insert, forall_eq_or_imp,
+        forall_2_true_iff, not_false_iff, forall_true_iff] {contextual := tt})
 
 lemma summable_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, summable (f i)) :
   summable (λb, ∑ i in s, f i b) :=

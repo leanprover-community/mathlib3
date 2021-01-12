@@ -105,6 +105,11 @@ begin
   simp,
 end
 
+@[simp] lemma univ_filter_mem_range (f : α → β) [fintype β]
+  {_ : decidable_pred (λ (b : β), b ∈ set.range f)} [decidable_eq β]:
+  finset.univ.filter (λ y, y ∈ set.range f) = finset.univ.image f :=
+by { ext, simp }
+
 end finset
 
 open finset function

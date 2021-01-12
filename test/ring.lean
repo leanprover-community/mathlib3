@@ -50,3 +50,9 @@ begin
   field_simp,
   ring
 end
+
+example (A B : ℕ) : true :=
+begin
+  suffices : A * B = 2, trivial,
+  ring, guard_target B * A = 2, sorry
+end

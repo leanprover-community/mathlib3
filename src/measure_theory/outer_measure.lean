@@ -52,7 +52,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 noncomputable theory
 
 open set finset function filter encodable
-open_locale classical big_operators nnreal
+open_locale classical big_operators nnreal topological_space
 
 namespace measure_theory
 
@@ -903,22 +903,39 @@ theorem trim_sum_ge {ι} (m : ι → outer_measure α) : sum (λ i, (m i).trim) 
 λ t st ht, ennreal.tsum_le_tsum (λ i,
   infi_le_of_le t $ infi_le_of_le st $ infi_le _ ht)
 
+lemma exists_is_measurable_superset_eq_trim (m : outer_measure α) (s : set α) :
+  ∃ t, s ⊆ t ∧ is_measurable t ∧ m t = m.trim s :=
+begin
+  simp only [trim_eq_infi], set ms := ⨅ (t : set α) (st : s ⊆ t) (ht : is_measurable t), m t,
+  by_cases hs : ms = ⊤,
+  { simp only [hs],
+    simp only [infi_eq_top] at hs,
+    exact ⟨univ, subset_univ s, is_measurable.univ, hs _ (subset_univ s) is_measurable.univ⟩ },
+  { have : ∀ r > ms, ∃ t, s ⊆ t ∧ is_measurable t ∧ m t < r,
+    { intros r hs,
+      simpa [infi_lt_iff] using hs },
+    have : ∀ n : ℕ, ∃ t, s ⊆ t ∧ is_measurable t ∧ m t < ms + n⁻¹,
+    { assume n,
+      refine this _ (ennreal.lt_add_right (lt_top_iff_ne_top.2 hs) _),
+      exact (ennreal.inv_pos.2 $ ennreal.nat_ne_top _) },
+    choose t hsub hm hm',
+    refine ⟨⋂ n, t n, subset_Inter hsub, is_measurable.Inter hm, _⟩,
+    have : tendsto (λ n : ℕ, ms + n⁻¹) at_top (𝓝 (ms + 0)),
+      from tendsto_const_nhds.add ennreal.tendsto_inv_nat_nhds_zero,
+    rw add_zero at this,
+    refine le_antisymm (ge_of_tendsto' this $ λ n, _) _,
+    { exact le_trans (m.mono' $ Inter_subset t n) (hm' n).le },
+    { refine infi_le_of_le (⋂ n, t n) _,
+      refine infi_le_of_le (subset_Inter hsub) _,
+      refine infi_le _ (is_measurable.Inter hm) } }
+end
+
 lemma exists_is_measurable_superset_of_trim_eq_zero
   {m : outer_measure α} {s : set α} (h : m.trim s = 0) :
   ∃t, s ⊆ t ∧ is_measurable t ∧ m t = 0 :=
 begin
-  erw [trim_eq_infi, infi_eq_bot] at h,
-  choose t ht using show ∀n:ℕ, ∃t, s ⊆ t ∧ is_measurable t ∧ m t < n⁻¹,
-  { assume n,
-    have : (0 : ennreal) < n⁻¹ := (ennreal.inv_pos.2 $ ennreal.nat_ne_top _),
-    rcases h _ this with ⟨t, ht⟩,
-    use [t],
-    simpa only [infi_lt_iff, exists_prop] using ht },
-  refine ⟨⋂n, t n, subset_Inter (λn, (ht n).1), is_measurable.Inter (λn, (ht n).2.1), _⟩,
-  refine le_antisymm _ (zero_le _),
-  refine le_of_tendsto_of_tendsto tendsto_const_nhds
-    ennreal.tendsto_inv_nat_nhds_zero (eventually_of_forall $ assume n, _),
-  exact le_trans (m.mono' $ Inter_subset _ _) (le_of_lt (ht n).2.2)
+  rcases exists_is_measurable_superset_eq_trim m s with ⟨t, hst, ht, hm⟩,
+  exact ⟨t, hst, ht, h ▸ hm⟩
 end
 
 theorem trim_smul (c : ennreal) (m : outer_measure α) :

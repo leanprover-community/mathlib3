@@ -197,6 +197,24 @@ nonpos_iff_eq_zero.1 $ h₂ ▸ measure_mono h
 lemma measure_mono_top (h : s₁ ⊆ s₂) (h₁ : μ s₁ = ⊤) : μ s₂ = ⊤ :=
 top_unique $ h₁ ▸ measure_mono h
 
+lemma exists_is_measurable_superset (μ : measure α) (s : set α) :
+  ∃ t, s ⊆ t ∧ is_measurable t ∧ μ t = μ s :=
+by simpa only [← measure_eq_trim] using μ.to_outer_measure.exists_is_measurable_superset_eq_trim s
+
+/-- A measurable set `t ⊇ s` such that `μ t = μ s`. -/
+def to_measurable (μ : measure α) (s : set α) :=
+classical.some (exists_is_measurable_superset μ s)
+
+lemma subset_to_measurable (μ : measure α) (s : set α) : s ⊆ to_measurable μ s :=
+(classical.some_spec (exists_is_measurable_superset μ s)).1
+
+@[simp] lemma is_measurable_to_measurable (μ : measure α) (s : set α) :
+  is_measurable (to_measurable μ s) :=
+(classical.some_spec (exists_is_measurable_superset μ s)).2.1
+
+@[simp] lemma measure_to_measurable (s : set α) : μ (to_measurable μ s) = μ s :=
+(classical.some_spec (exists_is_measurable_superset μ s)).2.2
+
 lemma exists_is_measurable_superset_of_null (h : μ s = 0) :
   ∃ t, s ⊆ t ∧ is_measurable t ∧ μ t = 0 :=
 outer_measure.exists_is_measurable_superset_of_trim_eq_zero (by rw [← measure_eq_trim, h])
@@ -1591,20 +1609,13 @@ lemma sigma_finite_of_not_nonempty (μ : measure α) (hα : ¬ nonempty α) : si
 ⟨⟨λ _, ∅, λ n, is_measurable.empty, λ n, by simp, by simp [eq_empty_of_not_nonempty hα univ]⟩⟩
 
 lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
-  (hm : ∀ s ∈ S, is_measurable s) (hμ : ∀ s ∈ S, μ s < ⊤)  (hU : ⋃₀ S = univ) :
+  (hμ : ∀ s ∈ S, μ s < ⊤)  (hU : ⋃₀ S = univ) :
   sigma_finite μ :=
 begin
-  by_cases hα : nonempty α,
-  { resetI,
-    have : S.nonempty,
-    { clear hc, -- otherwise `rintro rfl` fails. TODO: why?
-      rw ← ne_empty_iff_nonempty,
-      rintro rfl,
-      simpa [eq_comm] using hU },
-    rcases (countable_iff_exists_surjective_to_subtype this).1 hc with ⟨s, hs⟩,
-    refine ⟨⟨λ n, s n, λ n, hm _ (s n).coe_prop, λ n, hμ _ (s n).coe_prop, _⟩⟩,
-    rw [Union, hs.supr_comp, ← hU, sUnion_eq_Union] },
-  { exact sigma_finite_of_not_nonempty μ hα }
+  obtain ⟨s, hμ, hs⟩ : ∃ s : ℕ → set α, (∀ n, μ (s n) < ⊤) ∧ (⋃ n, s n) = univ,
+    from (exists_seq_cover_iff_countable ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
+  refine ⟨⟨λ n, to_measurable μ (s n), λ n, is_measurable_to_measurable _ _, by simpa, _⟩⟩,
+  exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
 end
 
 end measure
@@ -1644,7 +1655,7 @@ by { rw [← sum_cond], refine @sum.sigma_finite _ _ _ _ _ (bool.rec _ _); simpa
 class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=
 (finite_at_nhds : ∀ x, μ.finite_at_filter (𝓝 x))
 
-@[priority 100]
+@[priority 100] -- see Note [lower instance priority]
 instance finite_measure.to_locally_finite_measure [topological_space α] (μ : measure α)
   [finite_measure μ] :
   locally_finite_measure μ :=
@@ -1660,6 +1671,18 @@ lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure
   ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ⊤ :=
 by simpa only [exists_prop, and.assoc]
   using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
+
+@[priority 100] -- see Note [lower instance priority]
+instance sigma_finite_of_locally_finite [topological_space α]
+  [topological_space.second_countable_topology α]
+  {μ : measure α} [locally_finite_measure μ] :
+  sigma_finite μ :=
+begin
+  choose s hsx hsμ using μ.finite_at_nhds,
+  rcases topological_space.countable_cover_nhds hsx with ⟨t, htc, htU⟩,
+  refine measure.sigma_finite_of_countable (htc.image s) (ball_image_iff.2 $ λ x hx, hsμ x) _,
+  rwa sUnion_image
+end
 
 /-- Two finite measures are equal if they are equal on the π-system generating the σ-algebra
   (and `univ`). -/

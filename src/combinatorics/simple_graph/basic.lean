@@ -354,6 +354,7 @@ def compl (G : simple_graph V) : simple_graph V :=
 /--
 The complement of the complement of `G` is equal to `G`.
 -/
+@[simp]
 lemma compl_compl (G : simple_graph V) : compl (compl G) = G :=
 begin
   ext v w,

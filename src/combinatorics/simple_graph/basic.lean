@@ -355,7 +355,7 @@ instance has_compl : has_compl (simple_graph V) :=
 { compl := compl }
 
 @[simp]
-lemma compl_compl (G : simple_graph V) : compl (compl G) = G :=
+lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=
 begin
   ext v w,
   split; simp only [compl_adj, not_and, not_not],

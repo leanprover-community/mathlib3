@@ -154,7 +154,9 @@ begin
         = ∑ l in range (k + 1),
           coeff (∏ (i : ℕ) in range n, (X + C (r i))) l * (X + C (r n)).coeff (k - l) :
     begin
-      rw [nat.succ_eq_add_one, prod_range_succ, mul_comm, coeff_mul'],
+      rw [nat.succ_eq_add_one, prod_range_succ, mul_comm, coeff_mul],
+      rw ← nat.sum_antidiagonal_eq_sum_range_succ
+        (λ a, λ b, coeff (finset.prod (range n) (λ i, X + C (r i))) a * coeff (X + C (r n)) b) k,
     end
     ... = ∑ l in range (k + 1),
           (∑ A in powerset_len (n - l) (range n), ∏ j in A, r j) * (X + C (r n)).coeff (k - l) :

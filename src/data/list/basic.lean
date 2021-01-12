@@ -1994,7 +1994,7 @@ by rw [foldl_cons, hc.comm, foldl_assoc]
 
 end
 
-/-! ### mfoldl, mfoldr -/
+/-! ### mfoldl, mfoldr, mmap -/
 
 section mfoldl_mfoldr
 variables {m : Type v → Type w} [monad m]
@@ -2012,6 +2012,8 @@ variables {m : Type v → Type w} [monad m]
 theorem mfoldr_eq_foldr (f : α → β → m β) (b l) :
   mfoldr f b l = foldr (λ a mb, mb >>= f a) (pure b) l :=
 by induction l; simp *
+
+attribute [simp] mmap mmap'
 
 variables [is_lawful_monad m]
 
@@ -3346,7 +3348,7 @@ begin
   induction m with m IH generalizing L n,
   { simp only [min_eq_left, eq_self_iff_true, nat.zero_le, take] },
   { cases n,
-    { simp only [nat.nat_zero_eq_zero, le_zero_iff_eq, take, take_nil],
+    { simp only [nat.nat_zero_eq_zero, nonpos_iff_eq_zero, take, take_nil],
       split,
       { cases L,
         { exact absurd hm (not_lt_of_le m.succ.zero_le) },

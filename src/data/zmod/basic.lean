@@ -381,7 +381,7 @@ lemma cast_hom_bijective [fintype R] (h : fintype.card R = n) :
 begin
   haveI : fact (0 < n) :=
   begin
-    rw [nat.pos_iff_ne_zero],
+    rw [pos_iff_ne_zero],
     unfreezingI { rintro rfl },
     exact fintype.card_eq_zero_iff.mp h 0
   end,

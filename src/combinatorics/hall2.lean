@@ -24,21 +24,6 @@ end
 
 variables [decidable_eq β]
 
-theorem hall_hard_inductive_one (hn : fintype.card α = 1)
-  (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card) :
-  ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
-begin
-  rcases fintype.card_eq_one_iff.mp hn with ⟨x, hx⟩,
-  have hr' : 0 < (r x).card,
-  { refine lt_of_lt_of_le nat.one_pos _,
-    convert hr {x},
-    simp, },
-  rcases classical.indefinite_description _ (finset.card_pos.mp hr') with ⟨y, hy⟩,
-  refine ⟨(λ _, y), _, (λ x', by rwa hx x')⟩,
-  intros a a',
-  simp [hx a, hx a'],
-end
-
 lemma hall_cond_of_erase (a : α) (b : β)
   (ha : ∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (A.bind r).card) :
   ∀ (A : finset {a' : α | a' ≠ a}), A.card ≤ (A.bind (λ a', (r a').erase b)).card :=
@@ -258,10 +243,9 @@ begin
   revert α,
   refine nat.strong_induction_on n (λ n' ih, _),
   intros,
-  rcases n' with (_|_|_),
+  rcases n' with (_|_),
   { exact hall_hard_inductive_zero r hn },
-  { exact hall_hard_inductive_one r hn hr },
-  { apply hall_hard_inductive_step r n'.succ hn hr,
+  { apply hall_hard_inductive_step r n' hn hr,
     introsI α' _ r' hα',
     exact ih (fintype.card α') (nat.lt_succ_of_le hα') r' rfl, },
 end

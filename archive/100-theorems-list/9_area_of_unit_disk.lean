@@ -149,15 +149,15 @@ theorem integral_eq_sub_of_has_deriv_at'_mem_Ioo (hcont : continuous_on f (inter
   (hcont' : continuous_on f' (interval a b)) (hmeas' : ae_measurable f') :
   ∫ y in a..b, f' y = f b - f a :=
   begin
-    refine integral_eq_sub_of_has_deriv_at' hcont _ hcont' hmeas',
+    refine integral_eq_sub_of_has_deriv_right hcont _ hcont' hmeas',
     intros y hy,
     rw [Ico, mem_set_of_eq, le_iff_lt_or_eq, or_and_distrib_right, ← mem_Ioo] at hy,
     cases hy,
-    { exact hderiv y hy },
-    { refine (has_deriv_at_interval_left_endpoint_of_tendsto_deriv
+    { exact (hderiv y hy).has_deriv_within_at },
+    { refine has_deriv_at_interval_left_endpoint_of_tendsto_deriv
         (λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at)
           ((hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self)
-            _ _).has_deriv_at _,
+            _ _,
       --{ exact Ioo (min a b) (max a b) },
       --{ simpa only [differentiable_on] using λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at },
       --{ simpa only [continuous_on] using (hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self },
@@ -175,8 +175,7 @@ theorem integral_eq_sub_of_has_deriv_at'_mem_Ioo (hcont : continuous_on f (inter
         split,
         exact hε,
         intros x hx hdist,
-        sorry }, -- show `dist (deriv f x) (f' y) < ε` from `dist x y < ε`
-      { sorry } }, -- show `Ici x ∈ nhds x` (FALSE)
+        sorry } } -- show `dist (deriv f x) (f' y) < ε` from `dist x y < ε`
   end
 
 -- Added by Ben: New version of FTC-2 for open set as per Heather's suggestion. One sorry remaining.

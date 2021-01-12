@@ -355,7 +355,7 @@ instance has_compl : has_compl (simple_graph V) :=
 { compl := compl }
 
 @[simp]
-lemma compl_compl (G : simple_graph V) : compl (compl G) = G :=
+lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=
 begin
   ext v w,
   split; simp only [compl_adj, not_and, not_not],
@@ -368,7 +368,7 @@ end
 lemma compl_involutive : function.involutive (@compl V) := compl_compl
 
 lemma compl_neighbor_set_disjoint (G : simple_graph V) (v : V) :
-  disjoint (G.neighbor_set v) (G.compl.neighbor_set v) :=
+  disjoint (G.neighbor_set v) (Gᶜ.neighbor_set v) :=
 begin
   rw set.disjoint_iff,
   rintro w ⟨h, h'⟩,
@@ -377,7 +377,7 @@ begin
 end
 
 lemma neighbor_set_union_compl_neighbor_set_eq (G : simple_graph V) (v : V) :
-  G.neighbor_set v ∪ G.compl.neighbor_set v = {v}ᶜ :=
+  G.neighbor_set v ∪ Gᶜ.neighbor_set v = {v}ᶜ :=
 begin
   ext w,
   have h := @ne_of_adj _ G,

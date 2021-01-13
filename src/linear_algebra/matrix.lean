@@ -3,10 +3,13 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Patrick Massot, Casper Putz
 -/
+import algebra.algebra.tower
 import linear_algebra.finite_dimensional
 import linear_algebra.nonsingular_inverse
 import linear_algebra.multilinear
 import linear_algebra.dual
+import ring_theory.algebra_tower
+import ring_theory.matrix_algebra
 
 /-!
 # Linear maps and matrices
@@ -716,6 +719,10 @@ rfl
   (reindex eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
 rfl
 
+@[simp] lemma reindex_refl_refl (A : matrix m n R) :
+  (reindex (equiv.refl _) (equiv.refl _) A) = A :=
+by { ext, simp only [reindex_apply, equiv.refl_symm, equiv.refl_apply] }
+
 /-- The natural map that reindexes a matrix's rows and columns with equivalent types is a linear
 equivalence. -/
 def reindex_linear_equiv [semiring R] (eₘ : m ≃ m') (eₙ : n ≃ n') :
@@ -733,6 +740,10 @@ rfl
   (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) :
   (reindex_linear_equiv eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
 rfl
+
+@[simp] lemma reindex_linear_equiv_refl_refl [semiring R] (A : matrix m n R) :
+  (reindex_linear_equiv (equiv.refl _) (equiv.refl _) A) = A :=
+reindex_refl_refl A
 
 lemma reindex_mul [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (eₗ : l ≃ l') (M : matrix m n R) (N : matrix n l R) :
@@ -761,6 +772,10 @@ rfl
   (e : m ≃ n) (M : matrix n n R) :
   (reindex_alg_equiv e).symm M = λ i j, M (e i) (e j) :=
 rfl
+
+@[simp] lemma reindex_alg_equiv_refl [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (A : matrix m m R) : (reindex_alg_equiv (equiv.refl m) A) = A :=
+reindex_linear_equiv_refl_refl A
 
 lemma reindex_transpose (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
   (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
@@ -821,6 +836,73 @@ lemma det_reindex_alg_equiv [decidable_eq m] [decidable_eq n] [comm_ring R]
 det_reindex_self' e A
 
 end reindexing
+
+section lmul
+
+variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
+variables {m n : Type*} [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
+variables {b : m → S} (hb : is_basis R b) {c : n → T} (hc : is_basis S c)
+
+open algebra
+
+@[simp] lemma lmul_algebra_map (x : R) :
+  lmul R S (algebra_map R S x) = algebra.lsmul R S x :=
+linear_map.ext (λ s, by simp [smul_def''])
+
+@[simp] lemma to_matrix_lmul (x : S) (i j) :
+  linear_map.to_matrix hb hb (lmul R S x) i j = hb.repr (x * b j) i :=
+by rw [linear_map.to_matrix_apply', lmul_apply]
+
+@[simp] lemma to_matrix_lsmul (x : R) (i j) :
+  linear_map.to_matrix hb hb (algebra.lsmul R S x) i j = if i = j then x else 0 :=
+by { rw [linear_map.to_matrix_apply', algebra.lsmul_coe, linear_map.map_smul, finsupp.smul_apply,
+         hb.repr_self_apply, smul_eq_mul, mul_boole],
+     congr' 1; simp only [eq_comm] }
+
+/-- `matrix.lmul hb x` is the matrix corresponding to the linear map `λ y, x * y` -/
+protected noncomputable def lmul : S →ₐ[R] matrix m m R :=
+{ to_fun := λ x, linear_map.to_matrix hb hb (algebra.lmul R S x),
+  map_zero' := by rw [alg_hom.map_zero, linear_equiv.map_zero],
+  map_one' := by rw [alg_hom.map_one, linear_map.one_eq_id, linear_map.to_matrix_id],
+  map_add' := λ x y, by rw [alg_hom.map_add, linear_equiv.map_add],
+  map_mul' := λ x y, by rw [alg_hom.map_mul, linear_map.to_matrix_mul, matrix.mul_eq_mul],
+  commutes' := λ r, by { ext, rw [lmul_algebra_map, to_matrix_lsmul,
+                                  algebra_map_matrix_apply, id.map_eq_self] } }
+
+lemma lmul_apply (x : S) (i j) :
+  matrix.lmul hb x i j = linear_map.to_matrix hb hb (lmul R S x) i j := rfl
+
+@[simp] lemma to_matrix_lmul_eq (x : S) :
+  linear_map.to_matrix hb hb (lmul R S x) = matrix.lmul hb x :=
+rfl
+
+lemma lmul_injective : function.injective (matrix.lmul hb) :=
+λ x x' h, algebra.lmul_injective ((linear_map.to_matrix hb hb).injective h)
+
+lemma smul_lmul (x) (i j) (k k') :
+  matrix.lmul (hb.smul hc) x (i, k) (j, k') = matrix.lmul hb (matrix.lmul hc x k k') i j :=
+by simp only [matrix.lmul_apply, linear_map.to_matrix_apply, is_basis.equiv_fun_apply, mul_comm,
+              is_basis.smul_repr, finsupp.smul_apply, algebra.lmul_apply, id.smul_eq_mul,
+              map_smul_eq_smul_map, mul_smul_comm]
+
+lemma smul_lmul_algebra_map (x : S) :
+  matrix.lmul (hb.smul hc) (algebra_map _ _ x) = block_diagonal (λ k, matrix.lmul hb x) :=
+begin
+  ext ⟨i, k⟩ ⟨j, k'⟩,
+  rw [smul_lmul, alg_hom.commutes, block_diagonal_apply, algebra_map_matrix_apply],
+  split_ifs with h; simp [h],
+end
+
+lemma smul_lmul_algebra_map_eq (x : S) (i j k) :
+  matrix.lmul (hb.smul hc) (algebra_map _ _ x) (i, k) (j, k) = matrix.lmul hb x i j :=
+by rw [smul_lmul_algebra_map, block_diagonal_apply_eq]
+
+lemma smul_lmul_algebra_map_ne (x : S) (i j) {k k'}
+  (h : k ≠ k') : matrix.lmul (hb.smul hc) (algebra_map _ _ x) (i, k) (j, k') = 0 :=
+by rw [smul_lmul_algebra_map, block_diagonal_apply_ne _ _ _ h]
+
+end lmul
 
 end matrix
 

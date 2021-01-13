@@ -35,6 +35,10 @@ We have now shown one side of the equivalence two of these definitions.
    and every nonzero fractional ideal is invertible.
  - `is_dedekind_domain_inv_iff` shows that this does not depend on the choice of field of fractions.
 
+## Main results
+
+ - `ideal.unique_factorization_monoid`: we have unique factorization of ideals into prime ideals
+
 ## Implementation notes
 
 The definitions that involve a field of fractions choose a canonical field of fractions,

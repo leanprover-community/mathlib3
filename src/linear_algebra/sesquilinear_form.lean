@@ -147,15 +147,9 @@ def comp (S : sesq_form R M I) (f g : M₂ →ₗ[R] M) : sesq_form R M₂ I :=
 def comp_left (S : sesq_form R M I) (f : M →ₗ[R] M) : sesq_form R M I :=
   S.comp f linear_map.id
 
-@[simp] lemma comp_left_eq {f : M →ₗ[R] M} (x y : M) :
-  S.comp_left f x y = S (f x) y := rfl
-
 /-- Apply the linear map `f` to the right argument of the sesquilinear form. -/
 def comp_right (S : sesq_form R M I) (f : M →ₗ[R] M) : sesq_form R M I :=
   S.comp linear_map.id f
-
-@[simp] lemma comp_right_eq {f : M →ₗ[R] M} (x y : M) :
-  S.comp_right f x y = S x (f y) := rfl
 
 lemma comp_left_comp_right (S : sesq_form R M I) (f g : M →ₗ[R] M) :
   (S.comp_left f).comp_right g = S.comp f g := rfl

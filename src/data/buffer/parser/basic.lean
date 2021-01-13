@@ -42,12 +42,6 @@ section lemmas
 
 variables {α : Type*} {P Q : α → Prop} {Q' : Prop} {x : α}
 
-@[simp] lemma exists_eq_right_right : (∃ (y : α), P y ∧ Q' ∧ y = x) ↔ P x ∧ Q' :=
-⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨x, hp, hq, rfl⟩⟩
-
-@[simp] lemma exists_eq_right_right' : (∃ (y : α), P y ∧ Q' ∧ x = y) ↔ P x ∧ Q' :=
-⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨x, hp, hq, rfl⟩⟩
-
 @[simp] lemma ne_iff_lt_iff_le {n m : ℕ} : (n ≠ m ↔ n < m) ↔ n ≤ m :=
 begin
   refine ⟨λ h, _, λ h, _⟩,

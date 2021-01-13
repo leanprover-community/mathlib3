@@ -6,7 +6,7 @@ open_locale big_operators classical
 open submodule finite_dimensional
 
 variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
-variables {ι : Type*} [fintype ι] [decidable_eq ι]
+variables {ι : Type*}
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y -- here work over 𝕜
 
@@ -24,53 +24,37 @@ instance submodule_inner_product_space {W : submodule 𝕜 E} : inner_product_sp
 @[simp] lemma coe_inner (W : submodule 𝕜 E) (x y: W) : ⟪x, y⟫ = ⟪(x:E), ↑y⟫ := rfl
 
 /-- An orthonormal set of vectors in an `inner_product_space` -/
-def orthonormal (v : ι → E) : Prop :=
+def orthonormal [decidable_eq ι] (v : ι → E) : Prop :=
 ∀ i j, ⟪v i, v j⟫ = if i = j then (1:𝕜) else (0:𝕜)
 
-/-- Lemma for `finsupp`, leave as a sorry for now. -/
-lemma finsupp.sum_inner {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :
-  ⟪l.sum (λ (i : ι) (a : 𝕜), a • v i), x⟫ = l.sum (λ (i : ι) (a : 𝕜), a • ⟪v i, x⟫) :=
-sorry
-
-/-- An orthonormal set is linearly independent.  Clean this up later; maybe there's an existing
-theory of the Kronecker delta function to help.  -/
+/-- An orthonormal set is linearly independent. -/
 lemma linear_independent_of_orthonormal (v : ι → E) (he : orthonormal 𝕜 v) :
   linear_independent 𝕜 v :=
 begin
   rw linear_independent_iff,
   intros l hl,
   ext i,
-  have key : ⟪finsupp.total ι E 𝕜 v l, v i⟫ = 0,
-  { rw hl, simp },
-  { rw finsupp.total_apply at key,
-    rw finsupp.sum_inner at key,
-    simp at key,
-    have : (λ j a, a * ⟪v j, v i⟫) = λ j a, a * (if j = i then (1:𝕜) else (0:𝕜)),
-    { ext j,
-      simp [he j i] },
-    rw this at key,
-    simp at key,
-    convert key }
+  have h_fun : (λ j a, a * ⟪v i, v j⟫) = λ j a, a * (if i = j then (1:𝕜) else (0:𝕜)),
+  { ext j,
+    simp [he i j] },
+  have key : ⟪v i, finsupp.total ι E 𝕜 v l⟫ = ⟪v i, 0⟫ := by rw hl,
+  simpa [finsupp.total_apply, finsupp.inner_sum, h_fun] using key
 end
 
-lemma is_basis_of_orthonormal_of_card_eq_findim
-  [nonempty ι] [finite_dimensional 𝕜 E] (v : ι → E) (he : orthonormal 𝕜 v)
-  (card_eq : fintype.card ι = findim 𝕜 E) :
+lemma is_basis_of_orthonormal_of_card_eq_findim [fintype ι] [nonempty ι]
+  [finite_dimensional 𝕜 E]
+  (v : ι → E) (he : orthonormal 𝕜 v) (card_eq : fintype.card ι = findim 𝕜 E) :
   is_basis 𝕜 v :=
 is_basis_of_linear_independent_of_card_eq_findim
 (linear_independent_of_orthonormal 𝕜 v he) card_eq
 
-def is_basis.equiv_fun_euclidean [finite_dimensional 𝕜 E]
+/-- A basis on `ι` for a finite-dimensional inner product space induces a continuous linear
+equivalence with `euclidean_space 𝕜 ι`.  If the basis is orthonormal, this continuous linear
+equivalence is an isometry, but we don't prove that here. -/
+def is_basis.equiv_fun_euclidean [fintype ι] [finite_dimensional 𝕜 E]
   {v : ι → E} (h : is_basis 𝕜 v) :
-  E ≃ₗ[𝕜] (euclidean_space 𝕜 ι) :=
-h.equiv_fun
-
-lemma is_basis.isometry_equiv_fun_euclidean [finite_dimensional 𝕜 E]
-  {v : ι → E} (h : is_basis 𝕜 v) (he : orthonormal 𝕜 v) :
-  isometry (h.equiv_fun_euclidean 𝕜) :=
-sorry
-
-example (P Q : Prop) (a b : ℝ) (h : P ↔ Q) : ite P a b = ite Q a b := if_congr h rfl rfl
+  E ≃L[𝕜] (euclidean_space 𝕜 ι) :=
+h.equiv_fun.to_continuous_linear_equiv
 
 /-- Finite dimensional `inner_product_space`s have nonzero orthonormal sets of maximal size. -/
 theorem exists_max_orthonormal [finite_dimensional 𝕜 E] :
@@ -140,15 +124,22 @@ variables (E)
 def max_orthonormal [finite_dimensional 𝕜 E] : fin (findim 𝕜 E) → E :=
 classical.some (exists_max_orthonormal 𝕜)
 
-variables {E}
 
 lemma max_orthonormal_spec [finite_dimensional 𝕜 E] : orthonormal 𝕜 (max_orthonormal 𝕜 E) :=
 classical.some_spec (exists_max_orthonormal 𝕜)
 
-instance [nontrivial E] : nonempty (fin (findim 𝕜 E)) := sorry
+instance has_one_findim [nontrivial E] [finite_dimensional 𝕜 E] : has_one (fin (findim 𝕜 E)) :=
+begin
+  have h : findim 𝕜 E ≠ 0 := ne_of_gt findim_pos,
+  rw classical.some_spec (nat.exists_eq_succ_of_ne_zero h),
+  exact fin.has_one
+end
 
 variables (E)
 
 lemma is_basis_max_orthonormal [nontrivial E] [finite_dimensional 𝕜 E] :
   is_basis 𝕜 (max_orthonormal 𝕜 E) :=
-is_basis_of_orthonormal_of_card_eq_findim 𝕜 (max_orthonormal 𝕜 E) (max_orthonormal_spec 𝕜) (by simp)
+is_basis_of_orthonormal_of_card_eq_findim 𝕜
+  (max_orthonormal 𝕜 E)
+  (max_orthonormal_spec 𝕜 E)
+  (by simp)

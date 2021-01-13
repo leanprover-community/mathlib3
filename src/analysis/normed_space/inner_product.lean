@@ -448,6 +448,17 @@ lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ :=
 sesq_form.map_sum_left (sesq_form_of_inner) _ _ _
 
+/-- An inner product with a sum on the left, `finsupp` version. -/
+lemma finsupp.sum_inner {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :
+  ⟪l.sum (λ (i : ι) (a : 𝕜), a • v i), x⟫
+  = l.sum (λ (i : ι) (a : 𝕜), (is_R_or_C.conj a) • ⟪v i, x⟫) :=
+by { convert sum_inner l.support (λ a, l a • v a) x, simp [inner_smul_left, finsupp.sum] }
+
+/-- An inner product with a sum on the right, `finsupp` version. -/
+lemma finsupp.inner_sum {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :
+  ⟪x, l.sum (λ (i : ι) (a : 𝕜), a • v i)⟫ = l.sum (λ (i : ι) (a : 𝕜), a • ⟪x, v i⟫) :=
+by { convert inner_sum l.support (λ a, l a • v a) x, simp [inner_smul_right, finsupp.sum] }
+
 @[simp] lemma inner_zero_left {x : E} : ⟪0, x⟫ = 0 :=
 by rw [← zero_smul 𝕜 (0:E), inner_smul_left, ring_hom.map_zero, zero_mul]
 

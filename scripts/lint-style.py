@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from pathlib import Path
 import sys
 
 fns = sys.argv[1:]
@@ -14,9 +15,13 @@ ERR_OPT = 6 # set_option
 
 exceptions = []
 
-with open("scripts/style-exceptions.txt", encoding="utf-8") as f:
-    for line in f.readlines():
+SCRIPTS_DIR = Path(__file__).parent
+ROOT_DIR = SCRIPTS_DIR.parent
+
+with SCRIPTS_DIR.joinpath("style-exceptions.txt").open() as f:
+    for line in f:
         fn, _, _, _, _, errno, *_ = line.split()
+        fn = Path(fn)
         if errno == "ERR_COP":
             exceptions += [(ERR_COP, fn)]
         if errno == "ERR_IMP":
@@ -79,7 +84,7 @@ def small_alpha_vrachy_check(lines, fn):
     return errors
 
 def reserved_notation_check(lines, fn):
-    if fn == 'src/tactic/reserved_notation.lean':
+    if fn.relative_to(ROOT_DIR) == Path('src/tactic/reserved_notation.lean'):
         return []
     errors = []
     for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
@@ -166,7 +171,7 @@ def regular_check(lines, fn):
 def format_errors(errors):
     global new_exceptions
     for (errno, line_nr, fn) in errors:
-        if (errno, fn) in exceptions:
+        if (errno, Path(fn).relative_to(ROOT_DIR)) in exceptions:
             continue
         new_exceptions = True
         # filename first, then line so that we can call "sort" on the output
@@ -186,7 +191,7 @@ def format_errors(errors):
             print("{} : line {} : ERR_OPT : Forbidden set_option command".format(fn, line_nr))
 
 def lint(fn):
-    with open(fn, encoding="utf-8") as f:
+    with fn.open() as f:
         lines = f.readlines()
         errs = long_lines_check(lines, fn)
         format_errors(errs)
@@ -204,7 +209,7 @@ def lint(fn):
         format_errors(errs)
 
 for fn in fns:
-    lint(fn)
+    lint(Path(fn))
 
 # if "exceptions" is empty,
 # we're trying to generate style-exceptions.txt,

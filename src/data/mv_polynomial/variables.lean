@@ -152,7 +152,7 @@ lemma degrees_pow (p : mv_polynomial σ R) :
 
 lemma mem_degrees {p : mv_polynomial σ R} {i : σ} :
   i ∈ p.degrees ↔ ∃ d, p.coeff d ≠ 0 ∧ i ∈ d.support :=
-by simp only [degrees, finset.mem_sup, ← finsupp.mem_support_iff, coeff,
+by simp only [degrees, multiset.mem_sup, ← finsupp.mem_support_iff, coeff,
     finsupp.mem_to_multiset, exists_prop]
 
 lemma le_degrees_add {p q : mv_polynomial σ R} (h : p.degrees.disjoint q.degrees) :

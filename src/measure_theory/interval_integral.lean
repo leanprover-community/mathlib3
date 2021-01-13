@@ -1345,7 +1345,7 @@ theorem integral_eq_sub_of_has_deriv_at' (hcont : continuous_on f (interval a b)
 integral_eq_sub_of_has_deriv_right hcont (λ x hx, (hderiv x hx).has_deriv_within_at) hcont'
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` has a derivative at `f' x` for all `x` in
-  `[a, b)` and `f'` is continuous on `[a, b]` and measurable, then `∫ y in a..b, f' y` equals
+  `[a, b]` and `f'` is continuous on `[a, b]` and measurable, then `∫ y in a..b, f' y` equals
   `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_at (hderiv : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (hcont' : continuous_on f' (interval a b)) :

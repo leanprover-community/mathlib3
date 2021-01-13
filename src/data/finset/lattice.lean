@@ -86,34 +86,16 @@ lemma sup_coe {P : α → Prop}
   (@sup _ _ (subtype.semilattice_sup_bot Pbot Psup) t f : α) = t.sup (λ x, f x) :=
 by { classical, rw [comp_sup_eq_sup_comp coe]; intros; refl }
 
+@[simp] lemma sup_to_finset {α β} [decidable_eq β]
+  (s : finset α) (f : α → multiset β) :
+  (s.sup f).to_finset = s.sup (λ x, (f x).to_finset) :=
+comp_sup_eq_sup_comp multiset.to_finset to_finset_union rfl
+
 theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_sup hn
 
 theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
 ⟨_, s.subset_range_sup_succ⟩
-
-lemma mem_sup {α β} [decidable_eq β] {s : finset α} {f : α → multiset β}
-  {x : β} : x ∈ s.sup f ↔ ∃ v ∈ s, x ∈ f v :=
-begin
-  classical,
-  apply s.induction_on,
-  { simp },
-  { intros a s has hxs,
-    rw [finset.sup_insert, multiset.sup_eq_union, multiset.mem_union],
-    split,
-    { intro hxi,
-      cases hxi with hf hf,
-      { refine ⟨a, _, hf⟩,
-        simp only [true_or, eq_self_iff_true, finset.mem_insert] },
-      { rcases hxs.mp hf with ⟨v, hv, hfv⟩,
-        refine ⟨v, _, hfv⟩,
-        simp only [hv, or_true, finset.mem_insert] } },
-    { rintros ⟨v, hv, hfv⟩,
-      rw [finset.mem_insert] at hv,
-      rcases hv with rfl | hv,
-      { exact or.inl hfv },
-      { refine or.inr (hxs.mpr ⟨v, hv, hfv⟩) } } },
-end
 
 lemma sup_subset {α β} [semilattice_sup_bot β] {s t : finset α} (hst : s ⊆ t) (f : α → β) :
   s.sup f ≤ t.sup f :=
@@ -432,8 +414,46 @@ begin
     refl }
 end
 
+lemma mem_sup {α β} [decidable_eq β] {s : finset α} {f : α → multiset β}
+  {x : β} : x ∈ s.sup f ↔ ∃ v ∈ s, x ∈ f v :=
+begin
+  classical,
+  apply s.induction_on,
+  { simp },
+  { intros a s has hxs,
+    rw [finset.sup_insert, multiset.sup_eq_union, multiset.mem_union],
+    split,
+    { intro hxi,
+      cases hxi with hf hf,
+      { refine ⟨a, _, hf⟩,
+        simp only [true_or, eq_self_iff_true, finset.mem_insert] },
+      { rcases hxs.mp hf with ⟨v, hv, hfv⟩,
+        refine ⟨v, _, hfv⟩,
+        simp only [hv, or_true, finset.mem_insert] } },
+    { rintros ⟨v, hv, hfv⟩,
+      rw [finset.mem_insert] at hv,
+      rcases hv with rfl | hv,
+      { exact or.inl hfv },
+      { refine or.inr (hxs.mpr ⟨v, hv, hfv⟩) } } },
+end
+
 end multiset
 
+namespace finset
+
+lemma mem_sup {α β} [decidable_eq β] {s : finset α} {f : α → finset β}
+  {x : β} : x ∈ s.sup f ↔ ∃ v ∈ s, x ∈ f v :=
+begin
+  change _ ↔ ∃ v ∈ s, x ∈ (f v).val,
+  rw [←multiset.mem_sup, ←multiset.mem_to_finset, sup_to_finset],
+  simp_rw [val_to_finset],
+end
+
+lemma sup_eq_bind {α β} [decidable_eq β] (s : finset α) (t : α → finset β) :
+  s.sup t = s.bind t :=
+by { ext, rw [mem_sup, mem_bind], }
+
+end finset
 
 section lattice
 variables {ι : Type*} {ι' : Sort*} [complete_lattice α]

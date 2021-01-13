@@ -362,34 +362,6 @@ end
 
 end finite
 
-section common_neighbors
-
-/--
-The set of common neighbors between two vertices `v` and `w` in a graph `G` is the
-intersection of the neighbor sets of `v` and `w`.
--/
-def common_neighbors (v w : V) : set V := (G.neighbor_set v) ∩ (G.neighbor_set w)
-
-lemma common_neighbors_eq_inter (v w : V) :
-  G.common_neighbors v w = (G.neighbor_set v) ∩ (G.neighbor_set w) := rfl
-
-lemma not_mem_left_common_neighbors (v w : V) : v ∉ (G.common_neighbors v w) :=
-by simp [irrefl, mem_neighbor_set, common_neighbors_eq_inter]
-
-lemma not_mem_right_common_neighbors (v w : V) : w ∉ (G.common_neighbors v w) :=
-begin
-  rw common_neighbors,
-  simp,
-end
-
-lemma common_neighbors_subset_neighbor_set (v w : V) : G.common_neighbors v w ⊆ G.neighbor_set v :=
-begin
-  rw common_neighbors_eq_inter,
-  exact set.inter_subset_left _ _,
-end
-
-end common_neighbors
-
 section complement
 
 /-!

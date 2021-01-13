@@ -377,7 +377,9 @@ variables [measurable_space α] {μ : measure α} {s t : set α}
 /-- A type tag for `α` with `is_measurable` given by `null_measurable_set`. -/
 def null_measurable (α : Type*) [measurable_space α] (μ : measure α . volume_tac) : Type* := α
 
-instance : measurable_space (null_measurable α μ) :=
+instance [h : inhabited α] : inhabited (null_measurable α μ) := h
+
+instance null_measurable_space : measurable_space (null_measurable α μ) :=
 { is_measurable' := λ s, ∃ t, is_measurable t ∧ s =ᵐ[μ] t,
   is_measurable_empty := ⟨∅, is_measurable.empty, ae_eq_refl _⟩,
   is_measurable_compl := λ s ⟨t, htm, hts⟩, ⟨tᶜ, htm.compl, hts.compl⟩,
@@ -581,7 +583,7 @@ begin
   { exact (classical.some_spec (exists_is_measurable_superset μ s)).1 }
 end
 
-lemma ae_le_to_measurable : s ≤ᵐ[μ] to_measurable s μ := ae_of_all _ subset_to_measurable
+lemma ae_le_to_measurable : s ≤ᵐ[μ] to_measurable s μ := subset_to_measurable.eventually_le
 
 @[simp] lemma is_measurable_to_measurable : is_measurable (to_measurable s μ) :=
 begin
@@ -619,11 +621,11 @@ lemma null_measurable_set_tfae (s : set α) (μ : measure α) :
 begin
   -- Equivalence of 3, 4, and 5
   tfae_have : 3 ↔ 5, by simp only [ae_le_set],
-  tfae_have : 3 → 4, from λ ⟨t, hts, ht, hle⟩, ⟨t, hts, ht, hle.antisymm (ae_of_all μ hts)⟩,
+  tfae_have : 3 → 4, from λ ⟨t, hts, ht, hle⟩, ⟨t, hts, ht, hle.antisymm hts.eventually_le⟩,
   tfae_have : 4 → 3, from λ ⟨t, hts, ht, heq⟩, ⟨t, hts, ht, heq.le⟩,
   -- Equivalence of 6, 7, and 8
   tfae_have : 6 ↔ 8, by simp only [ae_le_set],
-  tfae_have : 6 → 7, from λ ⟨t, hts, ht, hle⟩, ⟨t, hts, ht, (hle.antisymm (ae_of_all μ hts)).symm⟩,
+  tfae_have : 6 → 7, from λ ⟨t, hts, ht, hle⟩, ⟨t, hts, ht, (hle.antisymm hts.eventually_le).symm⟩,
   tfae_have : 7 → 6, from λ ⟨t, hts, ht, heq⟩, ⟨t, hts, ht, heq.symm.le⟩,
   -- Add 1 and 2 to 6 ↔ 7 ↔ 8 using 1 → 2 → 7 → 1
   tfae_have : 1 → 2, from to_measurable_ae_eq,
@@ -857,7 +859,7 @@ end
   μ (s \ t) + μ (s ∩ t) = μ s :=
 (add_comm _ _).trans (measure_inter_add_diff s ht)
 
-lemma measure_union_add_inter (hs : null_measurable_set s μ) (ht : null_measurable_set t μ) :
+lemma measure_union_add_inter (s : set α) (ht : null_measurable_set t μ) :
   μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
 by rw [← measure_inter_add_diff (s ∪ t) ht, set.union_inter_cancel_right, union_diff_right,
   add_assoc, measure_diff_add_inter s ht, add_comm]
@@ -966,6 +968,10 @@ instance : has_zero (measure α) :=
 
 lemma eq_zero_of_not_nonempty (h : ¬nonempty α) (μ : measure α) : μ = 0 :=
 ext $ λ s hs, by simp only [eq_empty_of_not_nonempty h s, measure_empty]
+
+@[simp] lemma to_measure_zero (h : ‹measurable_space α› ≤ outer_measure.caratheodory 0) :
+  outer_measure.to_measure 0 h = 0 :=
+ext $ λ s hs, by simp [hs]
 
 instance : inhabited (measure α) := ⟨0⟩
 
@@ -1104,11 +1110,74 @@ end Inf
 
 protected lemma zero_le (μ : measure α) : 0 ≤ μ := bot_le
 
-lemma nonpos_iff_eq_zero' : μ ≤ 0 ↔ μ = 0 :=
+@[simp] lemma nonpos_iff_eq_zero' : μ ≤ 0 ↔ μ = 0 :=
 μ.zero_le.le_iff_eq
 
 @[simp] lemma measure_univ_eq_zero : μ univ = 0 ↔ μ = 0 :=
 ⟨λ h, bot_unique $ λ s hs, trans_rel_left (≤) (measure_mono (subset_univ s)) h, λ h, h.symm ▸ rfl⟩
+
+/-- The dirac measure. -/
+def dirac (a : α) : measure α :=
+(outer_measure.dirac a).to_measure (by simp)
+
+lemma dirac_apply' (a : α) (hs : is_measurable s) :
+  dirac a s = s.indicator 1 a :=
+to_measure_apply _ _ hs.null_measurable
+
+@[simp] lemma dirac_apply_of_mem {a : α} (h : a ∈ s) :
+  dirac a s = 1 :=
+begin
+  rw [measure_eq_infi, infi_subtype', infi_subtype'],
+  convert infi_const,
+  { ext1 ⟨⟨t, hst⟩, ht⟩,
+    dsimp only [subtype.coe_mk] at *,
+    rw [dirac_apply' _ ht, indicator_of_mem (hst h), pi.one_apply] },
+  { exact ⟨⟨⟨set.univ, subset_univ _⟩, is_measurable.univ⟩⟩ }
+end
+
+@[simp] lemma dirac_apply [measurable_singleton_class α] (a : α) (s : set α) :
+  dirac a s = s.indicator 1 a :=
+begin
+  by_cases h : a ∈ s, by rw [dirac_apply_of_mem h, indicator_of_mem h, pi.one_apply],
+  rw [indicator_of_not_mem h, ← nonpos_iff_eq_zero],
+  calc dirac a s ≤ dirac a {a}ᶜ : measure_mono (subset_compl_comm.1 $ singleton_subset_iff.2 h)
+             ... = 0            : by simp [dirac_apply' _ (is_measurable_singleton _).compl]
+end
+
+@[simp] lemma top_apply (h : s.nonempty) : (⊤ : measure α) s = ⊤ :=
+let ⟨a, ha⟩ := h in
+top_unique $
+  calc ⊤ = ((⊤ : ennreal) • dirac a) s : by simp [ha]
+  ... ≤ (⊤ : measure α) s : le_iff'.1 le_top _
+
+@[simp] lemma top_apply_eq_zero : (⊤ : measure α) s = 0 ↔ s = ∅ :=
+by rcases eq_empty_or_nonempty s with rfl | hs; simp [*, ← ne.def, ne_empty_iff_nonempty]
+
+@[simp] lemma ae_top : (⊤ : measure α).ae = ⊤ :=
+by { ext s, simp [mem_ae_iff] }
+
+@[simp] lemma smul_top {c : ennreal} (hc : c ≠ 0) : c • (⊤ : measure α) = ⊤ :=
+ext $ λ s hs, (eq_empty_or_nonempty s).elim (λ hs, by simp [hs]) (λ hs, by simp [hc, hs])
+
+@[simp] lemma add_top : μ + ⊤ = ⊤ := top_unique $ measure.le_add_left le_rfl
+
+@[simp] lemma top_add : ⊤ + μ = ⊤ := top_unique $ measure.le_add_right le_rfl
+
+end measure
+
+open measure
+
+lemma ae_add_measure_iff {p : α → Prop} : (∀ᵐ x ∂μ + ν, p x) ↔ (∀ᵐ x ∂μ, p x) ∧ ∀ᵐ x ∂ν, p x :=
+add_eq_zero_iff
+
+@[simp] lemma ae_add_measure : (μ + ν).ae = μ.ae ⊔ ν.ae :=
+filter.ext $ λ s, ae_add_measure_iff
+
+lemma ae_smul_le {c : ennreal} : (c • μ).ae ≤ μ.ae :=
+λ s hs, ae_iff.2 $ by rw [smul_apply, ae_iff.1 hs, mul_zero]
+
+@[simp] lemma ae_smul_eq {c : ennreal} (hc : c ≠ 0) : (c • μ).ae = μ.ae :=
+filter.ext $ λ s, by simp [mem_ae_iff, hc]
 
 @[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
@@ -1117,6 +1186,106 @@ by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
 
 @[mono] lemma ae_mono {μ ν : measure α} (h : μ ≤ ν) : μ.ae ≤ ν.ae :=
 λ s hs, bot_unique $ trans_rel_left (≤) (measure.le_iff'.1 h _) hs
+
+end measure_theory
+
+section null_measurable
+
+open measure_theory measure_theory.measure
+
+variables [measurable_space α] [measurable_space β] {μ ν : measure α} {s t : set α} {c : ennreal}
+
+namespace null_measurable_set
+
+protected theorem mono_ae (h : μ.ae ≤ ν.ae) :
+  null_measurable_set s ν → null_measurable_set s μ
+| ⟨t, htm, hts⟩ := ⟨t, htm, hts.filter_mono  h⟩
+
+protected theorem mono (h : μ ≤ ν) (hν : null_measurable_set s ν) :
+  null_measurable_set s μ :=
+hν.mono_ae (ae_mono h)
+
+@[simp] protected theorem smul (h : null_measurable_set s μ) :
+  null_measurable_set s (c • μ) :=
+h.mono_ae ae_smul_le
+
+theorem of_smul (h : null_measurable_set s (c • μ)) (hc : c ≠ 0) : null_measurable_set s μ :=
+h.mono_ae (ae_smul_eq hc).ge
+
+protected theorem add (hμ : null_measurable_set s μ) (hν : null_measurable_set s ν) :
+  null_measurable_set s (μ + ν) :=
+⟨to_measurable s μ ∩ to_measurable s ν,
+  is_measurable_to_measurable.inter is_measurable_to_measurable,
+  eventually_le.antisymm (subset_inter subset_to_measurable subset_to_measurable).eventually_le $
+    ae_add_measure_iff.2 ⟨(inter_subset_left _ _).eventually_le.trans_eq (to_measurable_ae_eq hμ),
+      (inter_subset_right _ _).eventually_le.trans_eq (to_measurable_ae_eq hν)⟩⟩
+
+theorem left_of_add (h : null_measurable_set s (μ + ν)) : null_measurable_set s μ :=
+h.mono (measure.le_add_right le_rfl)
+
+theorem right_of_add (h : null_measurable_set s (μ + ν)) : null_measurable_set s ν :=
+h.mono (measure.le_add_left le_rfl)
+
+end null_measurable_set
+
+@[simp] lemma null_measurable_set_zero : null_measurable_set s 0 :=
+⟨∅, is_measurable.empty, by simp⟩
+
+theorem null_measurable_set_smul (hc : c ≠ 0) :
+  null_measurable_set s (c • μ) ↔ null_measurable_set s μ :=
+⟨λ h, h.of_smul hc, λ h, h.smul⟩
+
+@[simp] theorem null_measurable_set_add :
+  null_measurable_set s (μ + ν) ↔ null_measurable_set s μ ∧ null_measurable_set s ν :=
+⟨λ h, ⟨h.left_of_add, h.right_of_add⟩, λ h, h.1.add h.2⟩
+
+variable {f : α → β}
+
+namespace null_measurable_fun
+
+protected theorem mono_ae (h : μ.ae ≤ ν.ae) (hν : null_measurable_fun f ν) :
+  null_measurable_fun f μ :=
+λ s hs, (hν hs).mono_ae h
+
+protected theorem mono (h : μ ≤ ν) (hν : null_measurable_fun f ν) :
+  null_measurable_fun f μ :=
+hν.mono_ae (ae_mono h)
+
+@[simp] protected theorem smul_measure (h : null_measurable_fun f μ) :
+  null_measurable_fun f (c • μ) :=
+h.mono_ae ae_smul_le
+
+theorem of_smul_measure (h : null_measurable_fun f (c • μ)) (hc : c ≠ 0) :
+  null_measurable_fun f μ :=
+h.mono_ae (ae_smul_eq hc).ge
+
+protected theorem add_measure (hμ : null_measurable_fun f μ) (hν : null_measurable_fun f ν) :
+  null_measurable_fun f (μ + ν) :=
+λ s hs, (hμ hs).add (hν hs)
+
+theorem left_of_add_measure (h : null_measurable_fun f (μ + ν)) : null_measurable_fun f μ :=
+λ s hs, (h hs).left_of_add
+
+theorem right_of_add_measure (h : null_measurable_fun f (μ + ν)) : null_measurable_fun f ν :=
+λ s hs, (h hs).right_of_add
+
+end null_measurable_fun
+
+@[simp] theorem null_measurable_fun_zero_measure : null_measurable_fun f 0 :=
+λ s hs, null_measurable_set_zero
+
+@[simp] theorem null_measurable_fun_add_measure :
+  null_measurable_fun f (μ + ν) ↔ null_measurable_fun f μ ∧ null_measurable_fun f ν :=
+⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
+
+end null_measurable
+
+namespace measure_theory
+
+namespace measure
+
+variables [measurable_space α] [measurable_space β] [measurable_space γ]
+  {μ ν : measure α} {s t : set α} {c : ennreal}
 
 /-! ### Pushforward and pullback -/
 
@@ -1138,62 +1307,102 @@ lemma le_lift_linear_apply {f : outer_measure α →ₗ[ennreal] outer_measure �
   f μ.to_outer_measure s ≤ lift_linear f hf μ s :=
 le_to_measure_apply _ _ s
 
-def lift_linear' (f : outer_measure α →ₗ[ennreal] outer_measure β) (μ : measure α) : measure β :=
-if h : 
-
-/-- The pushforward of a measure. It is defined to be `0` if `f` is not a null-measurable function
-w.r.t. `μ`. -/
-def map (f : α → β) (μ : measure α) : measure β :=
-if hf : null_measurable_fun f μ then
-  lift_linear (outer_measure.map f) $ λ μ s hs t,
-    le_to_outer_measure_caratheodory μ _ (hf hs) (f ⁻¹' t)
-else 0
+/-- The pushforward of a measure. It is defined to be `⊤` if `f` is not a null-measurable function
+w.r.t. `μ`. With this choice of the  -/
+def map (f : α → β) : measure α →ₗ[ennreal] measure β :=
+{ to_fun := λ μ, if hf : null_measurable_fun f μ
+    then (outer_measure.map f μ.to_outer_measure).to_measure $
+      λ s hs t, (measure_inter_add_diff (f ⁻¹' t) (hf hs)).symm
+    else ⊤,
+  map_add' := λ μ ν,
+    begin
+      by_cases hμ : null_measurable_fun f μ,
+      { by_cases hν : null_measurable_fun f ν,
+        { ext1 s hs, simp [hμ, hν, hs.null_measurable] },
+        { have hμν : ¬null_measurable_fun f (μ + ν) := λ h, hν h.right_of_add_measure,
+          simp * } },
+      { have hμν : ¬null_measurable_fun f (μ + ν) := λ h, hμ h.left_of_add_measure,
+        simp * }
+    end,
+  map_smul' := λ c μ,
+    begin
+      by_cases hc : c = 0, { simp [hc] },
+      by_cases hf : null_measurable_fun f μ, { ext1 s hs, simp [hf, hs.null_measurable] },
+      have hcf : ¬null_measurable_fun f (c • μ), from λ h, hf (h.of_smul_measure hc),
+      simp *
+    end
+}
 
 /-- We can evaluate the pushforward on measurable sets. For non-measurable sets, see
   `measure_theory.measure.le_map_apply` and `measurable_equiv.map_apply`. -/
-@[simp] theorem map_apply {f : α → β} (hf : measurable f) {s : set β} (hs : is_measurable s) :
+@[simp] theorem map_apply {f : α → β} (hf : null_measurable_fun f μ)
+  {s : set β} (hs : null_measurable_set s (map f μ)) :
   map f μ s = μ (f ⁻¹' s) :=
-by simp [map, dif_pos hf, hs]
+by { rw [map, linear_map.coe_mk, dif_pos hf] at hs ⊢, exact to_measure_apply _ _ hs }
+
+lemma map_not_measurable {f : α → β} (hf : ¬null_measurable_fun f μ) : map f μ = ⊤ := dif_neg hf
+
+/-- Without any measurability assumptions we can only bound `map f μ s` from below.
+  See also `measurable_equiv.map_apply`. -/
+theorem le_map_apply (f : α → β) (s : set β) :
+  μ (f ⁻¹' s) ≤ map f μ s :=
+begin
+  by_cases hf : null_measurable_fun f μ,
+  { calc μ (f ⁻¹' s) ≤ μ (f ⁻¹' to_measurable s (map f μ)) :
+      measure_mono (preimage_mono $ subset_to_measurable)
+    ... = map f μ s :
+      by rw [← map_apply hf is_measurable_to_measurable.null_measurable, measure_to_measurable] },
+  { rw [map_not_measurable hf],
+    rcases eq_empty_or_nonempty s with rfl | hs; simp * }
+end
+
+lemma tendsto_ae_ae_map {f : α → β} : tendsto f μ.ae (map f μ).ae :=
+λ s hs, nonpos_iff_eq_zero.1 $ (le_map_apply f sᶜ).trans_eq hs
+
+theorem null_measurable_set_preimage_of_map {f : α → β} (hf : null_measurable_fun f μ)
+  {s : set β} (hs : null_measurable_set s (map f μ)) :
+  null_measurable_set (f ⁻¹' s) μ :=
+begin
+  rcases hs with ⟨t, htm, hst⟩,
+  refine (hf htm).congr _,
+  convert tendsto_ae_ae_map hst.symm
+end
+
+alias null_measurable_set_preimage_of_map ← null_measurable_set.preimage_of_map
 
 @[simp] lemma map_id : map id μ = μ :=
-ext $ λ s, map_apply measurable_id
+ext $ λ s hs, map_apply measurable_id.null_measurable hs.null_measurable
 
-lemma map_map {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
+lemma map_map {g : β → γ} {f : α → β}
+  (hg : null_measurable_fun g (map f μ)) (hf : null_measurable_fun f μ) :
   map g (map f μ) = map (g ∘ f) μ :=
+have hgf : null_measurable_fun (g ∘ f) μ, from λ s hs, (hg hs).preimage_of_map hf,
 ext $ λ s hs,
-by simp [hf, hg, hs, hg hs, hg.comp hf, ← preimage_comp]
+by simp [hf, hg, hs, hg hs, hgf, ← preimage_comp]
 
-lemma map_mono {f : α → β} (hf : measurable f) (h : μ ≤ ν) : map f μ ≤ map f ν :=
-λ s hs, by simp [hf, hs, h _ (hf hs)]
-
-/-- Even if `s` is not measurable, we can bound `map f μ s` from below.
-  See also `measurable_equiv.map_apply`. -/
-theorem le_map_apply {f : α → β} (hf : measurable f) (s : set β) : μ (f ⁻¹' s) ≤ map f μ s :=
-begin
-  rw [measure_eq_infi' (map f μ)], refine le_infi _, rintro ⟨t, hst, ht⟩,
-  convert measure_mono (preimage_mono hst),
-  exact map_apply hf ht
-end
+lemma map_mono {f : α → β} (h : μ ≤ ν) : map f μ ≤ map f ν :=
+if hν : null_measurable_fun f ν then λ s hs, by simp [*, le_iff'.1 h, hν.mono h]
+else by simp only [map_not_measurable hν, le_top]
 
 /-- Pullback of a `measure`. If `f` sends each `measurable` set to a `measurable` set, then for each
 measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
-def comap (f : α → β) : measure β →ₗ[ennreal] measure α :=
-if hf : injective f ∧ ∀ s, is_measurable s → is_measurable (f '' s) then
-  lift_linear (outer_measure.comap f) $ λ μ s hs t,
+def comap (f : α → β) (μ : measure β) : measure α :=
+if hf : injective f ∧ ∀ s, is_measurable s → null_measurable_set (f '' s) μ then
+  (outer_measure.comap f μ.to_outer_measure).to_measure (λ s hs t,
   begin
     simp only [coe_to_outer_measure, outer_measure.comap_apply, ← image_inter hf.1,
       image_diff hf.1],
-    apply le_to_outer_measure_caratheodory,
-    exact hf.2 s hs
-  end
+    exact (measure_inter_add_diff _ (hf.2 s hs)).symm
+  end)
 else 0
 
-lemma comap_apply (f : α → β) (hfi : injective f)
-  (hf : ∀ s, is_measurable s → is_measurable (f '' s)) (μ : measure β) (hs : is_measurable s) :
+lemma comap_apply (f : α → β) (μ : measure β) (hfi : injective f)
+  (hf : ∀ s, is_measurable s → null_measurable_set (f '' s) μ)
+  (hs : null_measurable_set s (comap f μ)) :
   comap f μ s = μ (f '' s) :=
 begin
-  rw [comap, dif_pos, lift_linear_apply _ hs, outer_measure.comap_apply, coe_to_outer_measure],
-  exact ⟨hfi, hf⟩
+  rw [comap, dif_pos (and.intro hfi hf)] at hs ⊢,
+  rw [to_measure_apply _ _ hs, outer_measure.comap_apply, coe_to_outer_measure]
 end
 
 /-! ### Restricting a measure -/
@@ -1214,11 +1423,12 @@ def restrict (μ : measure α) (s : set α) : measure α := restrictₗ s μ
   restrictₗ s μ = μ.restrict s :=
 rfl
 
-@[simp] lemma restrict_apply (ht : is_measurable t) : μ.restrict s t = μ (t ∩ s) :=
-by simp [← restrictₗ_apply, restrictₗ, ht]
+@[simp] lemma restrict_apply (ht : null_measurable_set t (μ.restrict s)) :
+  μ.restrict s t = μ (t ∩ s) :=
+(lift_linear_apply _ ht).trans $ outer_measure.restrict_apply _ _ _
 
 lemma restrict_apply_univ (s : set α) : μ.restrict s univ = μ s :=
-by rw [restrict_apply is_measurable.univ, set.univ_inter]
+by rw [restrict_apply null_measurable_set_univ, set.univ_inter]
 
 lemma le_restrict_apply (s t : set α) :
   μ (t ∩ s) ≤ μ.restrict s t :=
@@ -1235,7 +1445,7 @@ by { rw [restrict, restrictₗ], convert le_lift_linear_apply _ t, simp }
   (c • μ).restrict s = c • μ.restrict s :=
 (restrictₗ s).map_smul c μ
 
-@[simp] lemma restrict_restrict (hs : is_measurable s) :
+@[simp] lemma restrict_restrict (hs : null_measurable_set s μ) :
   (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
 ext $ λ u hu, by simp [*, set.inter_assoc]
 
@@ -1510,29 +1720,6 @@ begin
   { rintro _ ⟨i, rfl⟩, apply hμB }
 end
 
-/-- The dirac measure. -/
-def dirac (a : α) : measure α :=
-(outer_measure.dirac a).to_measure (by simp)
-
-lemma dirac_apply' (a : α) (hs : is_measurable s) :
-  dirac a s = ⨆ h : a ∈ s, 1 :=
-to_measure_apply _ _ hs
-
-@[simp] lemma dirac_apply (a : α) (hs : is_measurable s) :
-  dirac a s = s.indicator 1 a :=
-(dirac_apply' a hs).trans $ by { by_cases h : a ∈ s; simp [h] }
-
-lemma dirac_apply_of_mem {a : α} (h : a ∈ s) :
-  dirac a s = 1 :=
-begin
-  rw [measure_eq_infi, infi_subtype', infi_subtype'],
-  convert infi_const,
-  { ext1 ⟨⟨t, hst⟩, ht⟩,
-    dsimp only [subtype.coe_mk] at *,
-    simp only [dirac_apply _ ht, indicator_of_mem (hst h), pi.one_apply] },
-  { exact ⟨⟨⟨set.univ, subset_univ _⟩, is_measurable.univ⟩⟩ }
-end
-
 /-- Sum of an indexed family of measures. -/
 def sum (f : ι → measure α) : measure α :=
 (outer_measure.sum (λ i, (f i).to_outer_measure)).to_measure $
@@ -1656,16 +1843,6 @@ begin
   simp only [ae_iff, ← compl_set_of, restrict_apply_eq_zero' hp],
   congr' with x, simp [and_comm]
 end
-
-lemma ae_smul_measure {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) (c : ennreal) : ∀ᵐ x ∂(c • μ), p x :=
-ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, mul_zero]
-
-lemma ae_smul_measure_iff {p : α → Prop} {c : ennreal} (hc : c ≠ 0) :
-  (∀ᵐ x ∂(c • μ), p x) ↔ ∀ᵐ x ∂μ, p x :=
-by simp [ae_iff, hc]
-
-lemma ae_add_measure_iff {p : α → Prop} {ν} : (∀ᵐ x ∂μ + ν, p x) ↔ (∀ᵐ x ∂μ, p x) ∧ ∀ᵐ x ∂ν, p x :=
-add_eq_zero_iff
 
 lemma ae_eq_comp {f : α → β} {g g' : β → δ} (hf : measurable f)
   (h : g =ᵐ[measure.map f μ] g') : g ∘ f =ᵐ[μ] g' ∘ f :=

@@ -802,40 +802,27 @@ theorem not_mem_of_mem_compl {s : set α} {x : α} (h : x ∈ sᶜ) : x ∉ s :=
 
 theorem mem_compl_iff (s : set α) (x : α) : x ∈ sᶜ ↔ x ∉ s := iff.rfl
 
-@[simp] theorem inter_compl_self (s : set α) : s ∩ sᶜ = ∅ :=
-by finish [ext_iff]
+@[simp] theorem inter_compl_self (s : set α) : s ∩ sᶜ = ∅ := inf_compl_eq_bot
 
-@[simp] theorem compl_inter_self (s : set α) : sᶜ ∩ s = ∅ :=
-by finish [ext_iff]
+@[simp] theorem compl_inter_self (s : set α) : sᶜ ∩ s = ∅ := compl_inf_eq_bot
 
-@[simp] theorem compl_empty : (∅ : set α)ᶜ = univ :=
-by finish [ext_iff]
+@[simp] theorem compl_empty : (∅ : set α)ᶜ = univ := compl_bot
 
-@[simp] theorem compl_union (s t : set α) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ :=
-by finish [ext_iff]
+@[simp] theorem compl_union (s t : set α) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ := compl_sup
 
-local attribute [simp] -- Will be generalized to lattices in `compl_compl'`
-theorem compl_compl (s : set α) : sᶜᶜ = s :=
-by finish [ext_iff]
+theorem compl_inter (s t : set α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ := compl_inf
 
--- ditto
-theorem compl_inter (s t : set α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ :=
-by finish [ext_iff]
+@[simp] theorem compl_univ : (univ : set α)ᶜ = ∅ := compl_top
 
-@[simp] theorem compl_univ : (univ : set α)ᶜ = ∅ :=
-by finish [ext_iff]
+@[simp] lemma compl_empty_iff {s : set α} : sᶜ = ∅ ↔ s = univ := compl_eq_bot
 
-lemma compl_empty_iff {s : set α} : sᶜ = ∅ ↔ s = univ :=
-by { split, intro h, rw [←compl_compl s, h, compl_empty], intro h, rw [h, compl_univ] }
-
-lemma compl_univ_iff {s : set α} : sᶜ = univ ↔ s = ∅ :=
-by rw [←compl_empty_iff, compl_compl]
+@[simp] lemma compl_univ_iff {s : set α} : sᶜ = univ ↔ s = ∅ := compl_eq_top
 
 lemma nonempty_compl {s : set α} : sᶜ.nonempty ↔ s ≠ univ :=
 ne_empty_iff_nonempty.symm.trans $ not_congr $ compl_empty_iff
 
 lemma mem_compl_singleton_iff {a x : α} : x ∈ ({a} : set α)ᶜ ↔ x ≠ a :=
-not_iff_not_of_iff mem_singleton_iff
+not_congr mem_singleton_iff
 
 lemma compl_singleton_eq (a : α) : ({a} : set α)ᶜ = {x | x ≠ a} :=
 ext $ λ x, mem_compl_singleton_iff
@@ -856,11 +843,10 @@ theorem compl_comp_compl : compl ∘ compl = @id (set α) :=
 funext compl_compl
 
 theorem compl_subset_comm {s t : set α} : sᶜ ⊆ t ↔ tᶜ ⊆ s :=
-by haveI := classical.prop_decidable; exact
-forall_congr (λ a, not_imp_comm)
+@compl_le_iff_compl_le _ s t _
 
 lemma compl_subset_compl {s t : set α} : sᶜ ⊆ tᶜ ↔ t ⊆ s :=
-by rw [compl_subset_comm, compl_compl]
+@compl_le_compl_iff_le _ t s _
 
 theorem compl_subset_iff_union {s t : set α} : sᶜ ⊆ t ↔ s ∪ t = univ :=
 iff.symm $ eq_univ_iff_forall.trans $ forall_congr $ λ a,

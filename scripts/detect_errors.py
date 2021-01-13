@@ -12,7 +12,7 @@ def format_msg(msg):
     # Formatted for https://github.com/actions/toolkit/blob/master/docs/commands.md#log-level
     # We include the filename / line number information as both message and metadata, to ensure
     # that github shows it.
-    msg_text = f"{msg['file_name']}:{msg.get('pos_line')}:{msg.get('pos_col')}:{msg.get('text')}"
+    msg_text = f"{msg['file_name']}:{msg.get('pos_line')}:{msg.get('pos_col')}: {msg.get('text')}"
     msg_text = encode_msg_text_for_github(msg_text)
     return f"::{msg.get('severity')} file={msg['file_name']},line={msg.get('pos_line')},col={msg.get('pos_col')}::{msg_text}"
 

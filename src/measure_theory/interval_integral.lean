@@ -1261,7 +1261,7 @@ lemma deriv_within_integral_left
 
 This section contains theorems pertaining to FTC-2 for interval integrals. -/
 
-variables {f' : ℝ → E}
+variable {f' : ℝ → E}
 
 /-- The integral of a continuous function is differentiable on a real set `s`. -/
 theorem differentiable_on_integral_of_continuous {s : set ℝ}
@@ -1320,7 +1320,7 @@ begin
 end
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` and has a derivative
-   `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]` and measurable, then
+  at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]` and measurable, then
   `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_at' (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ico (min a b) (max a b), has_deriv_at f (f' x) x)
@@ -1347,126 +1347,65 @@ integral_eq_sub_of_has_deriv_at (λ x hx, (hderiv x hx).has_deriv_at) hcont'
 
 /-!
 ### Integration by parts
- -/
+-/
+
+variable {g : ℝ → E}
 
 lemma self_mem_ae_restrict {s : set ℝ} (hs : is_measurable s):
   s ∈ (measure.restrict measure_space.volume s).ae :=
-begin
-  rw ae_restrict_eq hs,
-  simp only [exists_prop, filter.mem_principal_sets, filter.mem_inf_sets],
-  exact ⟨univ, filter.univ_mem_sets, s, by simp⟩,
-end
+by simp only [ae_restrict_eq hs, exists_prop, mem_principal_sets, mem_inf_sets];
+  exact ⟨_, univ_mem_sets, s, by rw [univ_inter, and_self]⟩
 
-lemma integral_congr_Ioc {f g : ℝ → ℝ} (h : ∀ x ∈ Ioc a b, f x = g x) :
+lemma integral_congr_Ioc (h : ∀ x ∈ Ioc a b, f x = g x) :
   ∫ x in Ioc a b, f x = ∫ x in Ioc a b, g x :=
 integral_congr_ae (filter.eventually_of_mem (self_mem_ae_restrict is_measurable_Ioc) h)
 
-/--
-If f and g coincide in the relevant integral, their integrals also coincide.
--/
-lemma interval_integral_congr {f g : ℝ → ℝ} (h : ∀ x ∈ interval a b, f x = g x) :
+/-- If two functions are equal in the relevant interval, their interval integrals also equal. -/
+lemma interval_integral_congr (h : ∀ x ∈ interval a b, f x = g x) :
  ∫ x in a..b, f x = ∫ x in a..b, g x :=
 begin
-  unfold interval_integral,
-  unfold interval at h,
   cases le_total a b with hab hab,
-  {
-    simp only [hab, Ioc_eq_empty, measure.restrict_empty,
-      min_eq_left, max_eq_right, integral_zero_measure, sub_zero] at h ⊢,
-    apply integral_congr_Ioc (λ x hx, h x (mem_Icc_of_Ioc hx)),
-  },
-  {
-    simp only [hab, Ioc_eq_empty, measure.restrict_empty,
-      min_eq_right, max_eq_left, integral_zero_measure, sub_zero] at h ⊢,
-    repeat {rw zero_sub},
-    rw [eq_neg_iff_eq_neg, neg_neg],
-    apply eq.symm,
-    exact integral_congr_Ioc (λ x hx, h x (mem_Icc_of_Ioc hx)),
-  }
+  { simpa only [interval_integral, hab, Ioc_eq_empty, measure.restrict_empty, min_eq_left,
+                max_eq_right, integral_zero_measure, sub_zero]
+      using integral_congr_Ioc (λ x hx, h x (mem_Icc_of_Ioc hx)) },
+  { simpa only [interval_integral, interval, hab, Ioc_eq_empty, measure.restrict_empty,
+                min_eq_right, max_eq_left, integral_zero_measure, sub_zero, zero_sub,
+                eq_neg_iff_eq_neg, neg_neg]
+      using (integral_congr_Ioc (λ x hx, h x (mem_Icc_of_Ioc hx))).symm },
 end
 
-lemma integral_deriv_mul_eq_sub {u v : ℝ → ℝ}
-  (hab : a ≤ b)
-  (hu : ∀ x ∈ Icc a b, differentiable_at ℝ u x)
-  (hv : ∀ x ∈ Icc a b, differentiable_at ℝ v x)
-  (hcu : continuous_on (deriv u) (Icc a b) )
-  (hcv : continuous_on (deriv v) (Icc a b) ) :
+lemma integral_deriv_mul_eq_sub {u v : ℝ → ℝ} (hab : a ≤ b)
+  (hu : ∀ x ∈ Icc a b, differentiable_at ℝ u x) (hv : ∀ x ∈ Icc a b, differentiable_at ℝ v x)
+  (hcu : continuous_on (deriv u) (Icc a b)) (hcv : continuous_on (deriv v) (Icc a b)) :
   ∫ x in a..b, deriv u x * v x + u x * deriv v x = u b * v b - u a * v a :=
 begin
-  have hu' : ∀ x ∈ Ioc a b, differentiable_at ℝ u x :=
-    λ x hx, hu x (mem_Icc_of_Ioc hx),
-  have hv' : ∀ x ∈ Ioc a b, differentiable_at ℝ v x :=
-    λ x hx, hv x (mem_Icc_of_Ioc hx),
-  have huv : ∀ x ∈ Icc a b,  deriv (u * v) x = (deriv u) x * v x + u x * (deriv v) x :=
-    λ x hx, deriv_mul (hu x hx) (hv x hx),
-  have huv' :  ∀ x ∈ Ioc a b,  deriv (u * v) x = (deriv u) x * v x + u x * (deriv v) x :=
-    λ x hx, huv x (mem_Icc_of_Ioc hx),
-  have H :  ∫ x in a..b, (deriv (u*v)) x = ∫ x in a..b, deriv u x * v x  + u x * deriv v x,
-  {
-    repeat {rw integral_of_le hab},
-    apply integral_congr_Ioc huv',
-  },
-  rw [← H, integral_deriv_eq_sub],
-  {
-    simp only [pi.mul_apply],
-  },
-  {
-    intros x hx,
-    simp only [interval_of_le, hab, min_eq_left, max_eq_right] at hx,
-    exact differentiable_at.mul (hu x hx) (hv x hx),
-  },
-  {
-    intros x hx,
-    simp only [interval_of_le, hab, min_eq_left, max_eq_right] at hx,
-    specialize hcu x hx,
-    specialize hcv x hx,
-    specialize hu x hx,
-    specialize hv x hx,
-    have G : continuous_within_at (deriv u * v + u * deriv v) (Icc a b) x,
-    {
-      have hucont : continuous_within_at u (Icc a b) x :=
-        continuous_at.continuous_within_at  (differentiable_at.continuous_at hu),
-      have hvcont : continuous_within_at v (Icc a b) x :=
-        continuous_at.continuous_within_at  (differentiable_at.continuous_at hv),
-      exact continuous_within_at.add
-        (continuous_within_at.mul hcu hvcont) (continuous_within_at.mul hucont hcv),
-    },
-    simp only [interval_of_le, hab, min_eq_left, max_eq_right],
-    apply continuous_within_at.congr G huv (huv x hx),
-  },
+  have H : ∫ x in a..b, (deriv (u*v)) x = ∫ x in a..b, deriv u x * v x + u x * deriv v x,
+  { simp only [integral_of_le hab],
+    exact integral_congr_Ioc
+      (λ y hy, deriv_mul (hu y (mem_Icc_of_Ioc hy)) (hv y (mem_Icc_of_Ioc hy))) },
+  rw [← H, integral_deriv_eq_sub];
+  simp only [pi.mul_apply, continuous_on];
+  intros x hx;
+  simp only [interval_of_le, hab, min_eq_left, max_eq_right] at hx,
+  { exact differentiable_at.mul (hu x hx) (hv x hx) },
+  { simpa only [interval_of_le, hab, min_eq_left, max_eq_right] using
+      (((hcu x hx).mul (hv x hx).continuous_at.continuous_within_at).add
+        ((hu x hx).continuous_at.continuous_within_at.mul (hcv x hx))).congr
+          (λ y hy, deriv_mul (hu y hy) (hv y hy)) (deriv_mul (hu x hx) (hv x hx)) },
 end
 
-theorem integral_mul_deriv_eq_deriv_mul {u v : ℝ → ℝ}
-  (hab : a ≤ b)
-  (hu : ∀ x ∈ Icc a b, differentiable_at ℝ u x)
-  (hv : ∀ x ∈ Icc a b, differentiable_at ℝ v x)
-  (hcu : continuous_on (deriv u) (Icc a b) )
-  (hcv : continuous_on (deriv v) (Icc a b) )
-  :
-∫ x in a..b, u x * deriv v x =
-    u b * v b - u a * v a - ∫ x in a..b,  v x * deriv u x :=
+theorem integral_mul_deriv_eq_deriv_mul {u v : ℝ → ℝ} (hab : a ≤ b)
+  (hu : ∀ x ∈ Icc a b, differentiable_at ℝ u x) (hv : ∀ x ∈ Icc a b, differentiable_at ℝ v x)
+  (hcu : continuous_on (deriv u) (Icc a b)) (hcv : continuous_on (deriv v) (Icc a b)) :
+  ∫ x in a..b, u x * deriv v x = u b * v b - u a * v a - ∫ x in a..b, v x * deriv u x :=
 begin
-  have hucont : ∀ x ∈ Icc a b, continuous_within_at u (Icc a b) x :=
-    λ x hx, continuous_at.continuous_within_at  (differentiable_at.continuous_at (hu x hx)),
-  have hvcont : ∀ x ∈ Icc a b, continuous_within_at v (Icc a b) x :=
-    λ x hx, continuous_at.continuous_within_at  (differentiable_at.continuous_at (hv x hx)),
-  have H : ∫ x in a..b, deriv u x * v x + u x * deriv v x =
-    u b * v b - u a * v a := integral_deriv_mul_eq_sub hab hu hv hcu hcv,
-  rw [← H, ← integral_sub],
-  {
-    congr, ext,
-    nth_rewrite_rhs 0 mul_comm,
-    rw [add_comm, add_sub_assoc, sub_self, add_zero],
-  },
-  {
-    exact continuous_on.interval_integrable_of_Icc hab
-      (λ x hx, continuous_within_at.add (continuous_within_at.mul (hcu x hx) (hvcont x hx))
-        (continuous_within_at.mul (hucont x hx) (hcv x hx))),
-  },
-  {
-    exact continuous_on.interval_integrable_of_Icc hab
-      (λ x hx, continuous_within_at.mul (hvcont x hx) (hcu x hx)),
-  }
+  rw [← integral_deriv_mul_eq_sub hab hu hv hcu hcv, ← integral_sub],
+  { simp only [mul_comm, add_comm, add_sub_assoc, sub_self, add_zero] },
+  exacts [continuous_on.interval_integrable_of_Icc hab
+            (λ x hx, ((hcu x hx).mul (hv x hx).continuous_at.continuous_within_at).add
+              ((hu x hx).continuous_at.continuous_within_at.mul (hcv x hx))),
+          continuous_on.interval_integrable_of_Icc hab
+            (λ x hx, (hv x hx).continuous_at.continuous_within_at.mul (hcu x hx))],
 end
 
 end interval_integral

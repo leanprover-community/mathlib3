@@ -122,6 +122,15 @@ begin
   exact (lift R).symm.injective w,
 end
 
+lemma algebra_map_injective : function.injective (algebra_map _ _ : R → tensor_algebra R M) :=
+-- this proof is almost identical to `free_algebra.algebra_map.injective`
+let f : tensor_algebra R M →ₐ[R] R := tensor_algebra.lift R (0 : M →ₗ[R] R) in
+function.injective.of_comp $ show function.injective (f ∘ algebra_map R _), begin
+  convert function.injective_id,
+  ext,
+  simp [f, algebra.of_id]
+end
+
 lemma ι_injective : function.injective (ι R : M → tensor_algebra R M) :=
 -- `triv_sq_zero_ext` has a suitable algebra structure and existing proof of injectivity, which
 -- we can transfer

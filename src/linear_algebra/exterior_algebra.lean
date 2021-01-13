@@ -162,6 +162,15 @@ begin
   simp only [h],
 end
 
+lemma algebra_map_injective : function.injective (algebra_map _ _ : R → exterior_algebra R M) :=
+-- This is essentially the same proof as `tensor_algebra.algebra_map_injective`
+let f : exterior_algebra R M →ₐ[R] R := exterior_algebra.lift R ⟨(0 : M →ₗ[R] R), λ m, by simp⟩ in
+function.injective.of_comp $ show function.injective (f ∘ algebra_map R _), begin
+  convert function.injective_id,
+  ext,
+  simp [f, algebra.of_id]
+end
+
 lemma ι_injective : function.injective (ι R : M → exterior_algebra R M) :=
 -- This is essentially the same proof as `tensor_algebra.ι_injective`
 λ x y hxy,

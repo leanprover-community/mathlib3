@@ -1,9 +1,30 @@
+/-
+Copyright (c) 2020 Bhavik Mehta, Aaron Anderson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Bhavik Mehta, Aaron Anderson.
+-/
 import ring_theory.power_series.basic
 import combinatorics.partition
 import data.nat.parity
 import data.finset.nat_antidiagonal
 import tactic.interval_cases
 import tactic.apply_fun
+
+/-!
+# Euler's Partition Theorem
+
+This file proves Theorem 45 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
+
+The theorem concerns the counting of integer partitions -- ways of
+writing a positive integer `n` as a sum of positive integer parts.
+
+Specifically, Euler proved that the number of integer partitions of `n`
+into *distinct* parts equals the number of partitions of `n` into *odd*
+parts.
+
+## References
+https://en.wikipedia.org/wiki/Partition_(number_theory)#Odd_parts_and_distinct_parts
+-/
 
 open power_series
 noncomputable theory
@@ -33,7 +54,8 @@ natural number `i`: proved in `distinct_gf_prop`.
 It is stated for an arbitrary commutuative semiring `α`, though it usually suffices to use `ℕ`, `ℚ`
 or `ℝ`.
 -/
-def partial_distinct_gf (n : ℕ) [comm_semiring α] := ∏ i in range n, (1 + (X : power_series α)^(i+1))
+def partial_distinct_gf (n : ℕ) [comm_semiring α] :=
+∏ i in range n, (1 + (X : power_series α)^(i+1))
 
 /--
 Functions defined only on `s`, which sum to `n`. In other words, a partition of `n` indexed by `s`.
@@ -102,13 +124,17 @@ begin
 end
 
 lemma cut_insert {ι : Type*} (n : ℕ) (a : ι) (s : finset ι) (h : a ∉ s) :
-  cut (insert a s) n = (nat.antidiagonal n).bind (λ (p : ℕ × ℕ), (cut s p.snd).map ⟨λ f, f + λ t, if t = a then p.fst else 0, add_left_injective _⟩) :=
+  cut (insert a s) n =
+  (nat.antidiagonal n).bind
+    (λ (p : ℕ × ℕ), (cut s p.snd).map
+      ⟨λ f, f + λ t, if t = a then p.fst else 0, add_left_injective _⟩) :=
 begin
   ext f,
   rw [mem_cut, mem_bind, sum_insert h],
   split,
   { rintro ⟨rfl, h₁⟩,
-    simp only [exists_prop, function.embedding.coe_fn_mk, mem_map, nat.mem_antidiagonal, prod.exists],
+    simp only [exists_prop, function.embedding.coe_fn_mk, mem_map,
+               nat.mem_antidiagonal, prod.exists],
     refine ⟨f a, s.sum f, rfl, λ i, if i = a then 0 else f i, _, _⟩,
     { rw [mem_cut],
       refine ⟨_, _⟩,
@@ -136,7 +162,8 @@ begin
       simp [if_neg h₁, hg₂ _ h₂] } }
 end
 
-lemma coeff_prod_range [comm_semiring α] {ι : Type*} (s : finset ι) (f : ι → power_series α) (n : ℕ) :
+lemma coeff_prod_range
+  [comm_semiring α] {ι : Type*} (s : finset ι) (f : ι → power_series α) (n : ℕ) :
   coeff α n (∏ j in s, f j) = ∑ l in cut s n, ∏ i in s, coeff α (l i) (f i) :=
 begin
   revert n,
@@ -147,7 +174,8 @@ begin
   intros a s hi ih n,
   rw [cut_insert _ _ _ hi, prod_insert hi, coeff_mul, sum_bind],
   { apply sum_congr rfl _,
-    simp only [prod.forall, sum_map, pi.add_apply, function.embedding.coe_fn_mk, nat.mem_antidiagonal],
+    simp only [prod.forall, sum_map, pi.add_apply,
+               function.embedding.coe_fn_mk, nat.mem_antidiagonal],
     rintro i j rfl,
     simp only [prod_insert hi, if_pos rfl],
     rw ih,
@@ -219,7 +247,8 @@ begin
                zero_add, filter_congr_decidable],
       symmetry,
       split_ifs,
-      { suffices : ((nat.antidiagonal n.succ).filter (λ (a : ℕ × ℕ), i + 1 ∣ a.fst ∧ a.snd = i + 1)).card = 1,
+      { suffices :
+        ((nat.antidiagonal n.succ).filter (λ (a : ℕ × ℕ), i + 1 ∣ a.fst ∧ a.snd = i + 1)).card = 1,
           rw this, norm_cast,
         rw card_eq_one,
         cases h with p hp,
@@ -235,7 +264,8 @@ begin
             rw mul_zero at hp, cases hp,
           rw hp,
           simp [nat.succ_eq_add_one, mul_add] } },
-      { suffices : (filter (λ (a : ℕ × ℕ), i + 1 ∣ a.fst ∧ a.snd = i + 1) (nat.antidiagonal n.succ)).card = 0,
+      { suffices :
+        (filter (λ (a : ℕ × ℕ), i + 1 ∣ a.fst ∧ a.snd = i + 1) (nat.antidiagonal n.succ)).card = 0,
           rw this, norm_cast,
         rw card_eq_zero,
         apply eq_empty_of_forall_not_mem,
@@ -283,9 +313,13 @@ lemma sum_sum {β : Type*} [add_comm_monoid β] (f : α → multiset β) (s : fi
 (sum_hom s multiset.sum).symm
 
 -- The main workhorse of the partition theorem proof.
-lemma partial_gf_prop (α : Type*) [comm_semiring α] (n : ℕ) (s : finset ℕ) (hs : ∀ i ∈ s, 0 < i) (c : ℕ → set ℕ) (hc : ∀ i ∉ s, 0 ∈ c i) :
-  (finset.card ((univ : finset (partition n)).filter (λ p, (∀ j, p.parts.count j ∈ c j) ∧ ∀ j ∈ p.parts, j ∈ s)) : α) =
-  (coeff α n) (∏ (i : ℕ) in s, indicator_series α ((* i) '' c i)) :=
+lemma partial_gf_prop
+  (α : Type*) [comm_semiring α] (n : ℕ) (s : finset ℕ)
+  (hs : ∀ i ∈ s, 0 < i) (c : ℕ → set ℕ) (hc : ∀ i ∉ s, 0 ∈ c i) :
+  (finset.card 
+    ((univ : finset (partition n)).filter
+      (λ p, (∀ j, p.parts.count j ∈ c j) ∧ ∀ j ∈ p.parts, j ∈ s)) : α) =
+        (coeff α n) (∏ (i : ℕ) in s, indicator_series α ((* i) '' c i)) :=
 begin
   simp_rw [coeff_prod_range, coeff_indicator, prod_boole, sum_boole],
   congr' 1,
@@ -353,8 +387,8 @@ begin
 end
 
 lemma partial_odd_gf_prop [field α] (n m : ℕ) :
-  (finset.card ((univ : finset (partition n)).filter (λ p, ∀ j ∈ p.parts, j ∈ (range m).map mk_odd)) : α) =
-    coeff α n (partial_odd_gf m) :=
+  (finset.card ((univ : finset (partition n)).filter
+    (λ p, ∀ j ∈ p.parts, j ∈ (range m).map mk_odd)) : α) = coeff α n (partial_odd_gf m) :=
 begin
   rw partial_odd_gf,
   convert partial_gf_prop α n ((range m).map mk_odd) _ (λ _, set.univ) (λ _ _, trivial) using 2,
@@ -405,11 +439,14 @@ begin
 end
 
 lemma partial_distinct_gf_prop [comm_semiring α] (n m : ℕ) :
-  (finset.card ((univ : finset (partition n)).filter (λ p, p.parts.nodup ∧ ∀ j ∈ p.parts, j ∈ (range m).map ⟨nat.succ, nat.succ_injective⟩)) : α) =
+  (finset.card
+    ((univ : finset (partition n)).filter
+      (λ p, p.parts.nodup ∧ ∀ j ∈ p.parts, j ∈ (range m).map ⟨nat.succ, nat.succ_injective⟩)) : α) =
   coeff α n (partial_distinct_gf m) :=
 begin
   rw partial_distinct_gf,
-  convert partial_gf_prop α n ((range m).map ⟨nat.succ, nat.succ_injective⟩) _ (λ _, {0, 1}) (λ _ _, or.inl rfl) using 2,
+  convert partial_gf_prop α n
+    ((range m).map ⟨nat.succ, nat.succ_injective⟩) _ (λ _, {0, 1}) (λ _ _, or.inl rfl) using 2,
   { congr' 2,
     ext p,
     congr' 2,
@@ -437,7 +474,9 @@ begin
     apply nat.succ_pos }
 end
 
-/--  If m is big enough, the partial product's coefficient counts the number of distinct partitions -/
+/--
+If m is big enough, the partial product's coefficient counts the number of distinct partitions
+-/
 theorem distinct_gf_prop [comm_semiring α] (n m : ℕ) (h : n < m + 1) :
   ((partition.distincts n).card : α) = coeff α n (partial_distinct_gf m) :=
 begin
@@ -464,7 +503,8 @@ sequences are ultimately the same (since the factor converges to 0 as n tends to
 It's enough to not take the limit though, and just consider large enough `n`.
 -/
 lemma same_gf [field α] (n : ℕ) :
-  partial_odd_gf n * (range n).prod (λ i, (1 - (X : power_series α)^(n+i+1))) = partial_distinct_gf n :=
+  partial_odd_gf n * (range n).prod (λ i, (1 - (X : power_series α)^(n+i+1))) =
+  partial_distinct_gf n :=
 begin
   rw [partial_odd_gf, partial_distinct_gf],
   induction n with n ih,

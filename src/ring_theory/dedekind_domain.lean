@@ -637,6 +637,10 @@ begin
   obtain ⟨P, h_PZ, h_JP, h_Z'P⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M ∧
     ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J,
     { let Ω : list (prime_spectrum R) := multiset.to_list Z,
+      -- let f : (fin 10) → ℕ := λ n, list.nth_le (list.Ico 0 5) 1,
+      --let f : (fin Ω.length) → prime_spectrum R := λ n, list.nth_le Ω n,
+      -- hn else M,
+      --{list.Ico 0 1} → ℕ := λ n, 2,--list.Ico 0 1 → ℕ
 
     sorry
      },-- h_PZ SEMBRA INUTILE; h_Z'P ANCHE???

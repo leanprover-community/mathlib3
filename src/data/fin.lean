@@ -1320,30 +1320,30 @@ rfl
 
 section monoid
 
-@[simp] lemma add_zero (k : fin (n + 1)) : k + 0 = k :=
+@[simp] protected lemma add_zero (k : fin (n + 1)) : k + 0 = k :=
 by simp [eq_iff_veq, add_def, mod_eq_of_lt (is_lt k)]
 
-@[simp] lemma zero_add (k : fin (n + 1)) : (0 : fin (n + 1)) + k = k :=
+@[simp] protected lemma zero_add (k : fin (n + 1)) : (0 : fin (n + 1)) + k = k :=
 by simp [eq_iff_veq, add_def, mod_eq_of_lt (is_lt k)]
 
-@[simp] lemma mul_one (k : fin (n + 1)) : k * 1 = k :=
+@[simp] protected lemma mul_one (k : fin (n + 1)) : k * 1 = k :=
 by { cases n, simp, simp [eq_iff_veq, mul_def, mod_eq_of_lt (is_lt k)] }
 
-@[simp] lemma one_mul (k : fin (n + 1)) : (1 : fin (n + 1)) * k = k :=
+@[simp] protected lemma one_mul (k : fin (n + 1)) : (1 : fin (n + 1)) * k = k :=
 by { cases n, simp, simp [eq_iff_veq, mul_def, mod_eq_of_lt (is_lt k)] }
 
-@[simp] lemma mul_zero (k : fin (n + 1)) : k * 0 = 0 :=
+@[simp] protected lemma mul_zero (k : fin (n + 1)) : k * 0 = 0 :=
 by simp [eq_iff_veq, mul_def]
 
-@[simp] lemma zero_mul (k : fin (n + 1)) : (0 : fin (n + 1)) * k = 0 :=
+@[simp] protected lemma zero_mul (k : fin (n + 1)) : (0 : fin (n + 1)) * k = 0 :=
 by simp [eq_iff_veq, mul_def]
 
 instance add_comm_monoid (n : ℕ) : add_comm_monoid (fin (n + 1)) :=
 { add := (+),
   add_assoc := by simp [eq_iff_veq, add_def, add_assoc],
   zero := 0,
-  zero_add := zero_add,
-  add_zero := add_zero,
+  zero_add := fin.zero_add,
+  add_zero := fin.add_zero,
   add_comm := by simp [eq_iff_veq, add_def, add_comm] }
 
 end monoid

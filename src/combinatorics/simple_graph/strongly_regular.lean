@@ -26,6 +26,12 @@ import data.set.finite
 - Prove that if I is the identity matrix and J is the all-one matrix,
   then the adj matrix A of SRG obeys relation A^2 = kI + lA + m(J - I - A)
 -/
+
+-- CR : depends on
+  -- graph_compl (#5697)
+  -- graph_common_neighbors (#5718)
+  -- to_finset_subset (#5725)
+
 universes u
 
 namespace simple_graph
@@ -46,19 +52,6 @@ structure is_SRG_of (n k l m : ℕ) : Prop :=
 (regular : G.is_regular_of_degree k)
 (adj_common : ∀ (v w : V), G.adj v w → fintype.card (G.common_neighbors v w) = l)
 (nadj_common : ∀ (v w : V), ¬ G.adj v w → fintype.card (G.common_neighbors v w) = m)
-
-lemma degree_lt_card_verts (G : simple_graph V) (v : V) : G.degree v < fintype.card V :=
-begin
-  classical,
-  rw ← finset.card_univ,
-  rw degree,
-  apply finset.card_lt_card,
-  rw finset.ssubset_iff,
-  use v,
-  split,
-  { simp },
-  { apply finset.subset_univ },
-end
 
 lemma card_common_neighbors_le_degree (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree v :=

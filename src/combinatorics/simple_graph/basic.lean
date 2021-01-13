@@ -5,6 +5,7 @@ Author: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov
 -/
 import data.fintype.basic
 import data.sym2
+import data.set.finite
 /-!
 # Simple graphs
 
@@ -358,6 +359,35 @@ begin
   apply finset.card_lt_card,
   rw finset.ssubset_iff,
   exact ⟨v, by simp, finset.subset_univ _⟩,
+end
+
+lemma card_common_neighbors_le_degree (v w : V) :
+  fintype.card (G.common_neighbors v w) ≤ G.degree v :=
+begin
+  rw [←card_neighbor_set_eq_degree],
+  exact set.card_le_of_subset (set.inter_subset_left _ _),
+end
+
+lemma card_common_neighbors_lt_card_verts (v w : V) :
+  fintype.card (G.common_neighbors v w) < fintype.card V :=
+nat.lt_of_le_of_lt (G.card_common_neighbors_le_degree _ _) (G.degree_lt_card_verts v)
+
+lemma card_common_neighbors_lt_degree_of_adj (v w : V) (h : G.adj v w) :
+  fintype.card (G.common_neighbors v w) < G.degree v :=
+begin
+  classical,
+  rw [degree, common_neighbors, ←set.to_finset_card],
+  apply finset.card_lt_card,
+  rw finset.ssubset_iff,
+  use w,
+  split,
+  { rw set.mem_to_finset,
+    apply not_mem_common_neighbors_right },
+  { rw finset.insert_subset,
+    split,
+    { simpa, },
+    { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
+      apply common_neighbors_subset_neighbor_set } },
 end
 
 end finite

@@ -1079,22 +1079,27 @@ def dirac (a : α) : measure α :=
 (outer_measure.dirac a).to_measure (by simp)
 
 lemma dirac_apply' (a : α) (hs : is_measurable s) :
-  dirac a s = ⨆ h : a ∈ s, 1 :=
-to_measure_apply _ _ hs
-
-@[simp] lemma dirac_apply (a : α) (hs : is_measurable s) :
   dirac a s = s.indicator 1 a :=
-(dirac_apply' a hs).trans $ by { by_cases h : a ∈ s; simp [h] }
+to_measure_apply _ _ hs.null_measurable
 
-lemma dirac_apply_of_mem {a : α} (h : a ∈ s) :
+@[simp] lemma dirac_apply_of_mem {a : α} (h : a ∈ s) :
   dirac a s = 1 :=
 begin
   rw [measure_eq_infi, infi_subtype', infi_subtype'],
   convert infi_const,
   { ext1 ⟨⟨t, hst⟩, ht⟩,
     dsimp only [subtype.coe_mk] at *,
-    simp only [dirac_apply _ ht, indicator_of_mem (hst h), pi.one_apply] },
+    rw [dirac_apply' _ ht, indicator_of_mem (hst h), pi.one_apply] },
   { exact ⟨⟨⟨set.univ, subset_univ _⟩, is_measurable.univ⟩⟩ }
+end
+
+@[simp] lemma dirac_apply [measurable_singleton_class α] (a : α) (s : set α) :
+  dirac a s = s.indicator 1 a :=
+begin
+  by_cases h : a ∈ s, by rw [dirac_apply_of_mem h, indicator_of_mem h, pi.one_apply],
+  rw [indicator_of_not_mem h, ← nonpos_iff_eq_zero],
+  calc dirac a s ≤ dirac a {a}ᶜ : measure_mono (subset_compl_comm.1 $ singleton_subset_iff.2 h)
+             ... = 0            : by simp [dirac_apply' _ (is_measurable_singleton _).compl]
 end
 
 /-- Sum of an indexed family of measures. -/

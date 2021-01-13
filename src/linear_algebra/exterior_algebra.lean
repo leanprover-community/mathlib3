@@ -162,6 +162,15 @@ begin
   simp only [h],
 end
 
+lemma ι_injective : function.injective (ι R : M → exterior_algebra R M) :=
+-- This is essentially the same proof as `tensor_algebra.ι_injective`
+λ x y hxy,
+  let f : exterior_algebra R M →ₐ[R] triv_sq_zero_ext R M := lift R
+    ⟨triv_sq_zero_ext.inr_hom R M, λ m, triv_sq_zero_ext.inr_mul_inr R _ m m⟩ in
+  have hfxx : f (ι R x) = triv_sq_zero_ext.inr x := lift_ι_apply _ _ _ _,
+  have hfyy : f (ι R y) = triv_sq_zero_ext.inr y := lift_ι_apply _ _ _ _,
+  triv_sq_zero_ext.inr_injective $ hfxx.symm.trans ((f.congr_arg hxy).trans hfyy)
+
 @[simp]
 lemma ι_add_mul_swap (x y : M) : ι R x * ι R y + ι R y * ι R x = 0 :=
 calc _ = ι R (x + y) * ι R (x + y) : by simp [mul_add, add_mul]

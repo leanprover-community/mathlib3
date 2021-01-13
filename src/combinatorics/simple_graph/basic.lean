@@ -192,7 +192,7 @@ end
 The set of common neighbors between two vertices `v` and `w` in a graph `G` is the
 intersection of the neighbor sets of `v` and `w`.
 -/
-def common_neighbors (v w : V) : set V := (G.neighbor_set v) ∩ (G.neighbor_set w)
+def common_neighbors (v w : V) : set V := G.neighbor_set v ∩ G.neighbor_set w
 
 lemma common_neighbors_eq (v w : V) :
   G.common_neighbors v w = G.neighbor_set v ∩ G.neighbor_set w := rfl

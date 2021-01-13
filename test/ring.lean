@@ -50,3 +50,6 @@ begin
   field_simp,
   ring
 end
+
+-- this proof style is not recommended practice
+example (A B : ℕ) (H : B * A = 2) : A * B = 2 := by {ring, exact H}

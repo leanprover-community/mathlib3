@@ -66,7 +66,7 @@ begin
       (λ y, μ ((F n) ⁻¹' {y})) (λ _ _, (measure_lt_top _ _))],
   rw [← this, simple_func.integral],
   refine hs.center_mass_mem (λ _ _, ennreal.to_real_nonneg) _ _,
-  { rw [this, ennreal.to_real_pos_iff, zero_lt_iff_ne_zero, ne.def, measure.measure_univ_eq_zero],
+  { rw [this, ennreal.to_real_pos_iff, pos_iff_ne_zero, ne.def, measure.measure_univ_eq_zero],
     exact ⟨hμ, measure_ne_top _ _⟩ },
   { simp only [simple_func.mem_range],
     rintros _ ⟨x, rfl⟩,

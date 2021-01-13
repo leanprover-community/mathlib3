@@ -299,7 +299,7 @@ variables [smul_comm_class R R' M] [smul_comm_class R R' N]
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find. The `unused_arguments` is from one of the two comm_classes - while we only make use
 -- of one, it makes sense to make the API symmetric.
-@[priority 900, nolint unused_arguments]
+@[nolint unused_arguments]
 instance has_scalar' : has_scalar R' (M ⊗[R] N) :=
 ⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (smul.aux r : _ →+ M ⊗[R] N) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
@@ -328,7 +328,6 @@ add_monoid_hom.map_add _ _ _
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-@[priority 900]
 instance semimodule' : semimodule R' (M ⊗[R] N) :=
 have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 { smul := (•),

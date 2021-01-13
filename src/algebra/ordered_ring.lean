@@ -948,7 +948,7 @@ mul_le_mul h le_rfl
 lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one
 
 lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
-by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
+by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 end canonically_ordered_semiring
 

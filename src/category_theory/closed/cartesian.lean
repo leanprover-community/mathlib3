@@ -375,44 +375,6 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
         apply adjunction.left_adjoint_of_nat_iso this },
     end } }
 
-variables [cartesian_closed C] [cartesian_closed D]
-variables (F : C ⥤ D) [preserves_limits_of_shape (discrete walking_pair) F]
-
-/--
-The exponential comparison map.
-`F` is a cartesian closed functor if this is an iso for all `A,B`.
--/
-def exp_comparison (A B : C) :
-  F.obj (A ⟹ B) ⟶ F.obj A ⟹ F.obj B :=
-curry (inv (prod_comparison F A _) ≫ F.map ((ev _).app _))
-
-/-- The exponential comparison map is natural in its left argument. -/
-lemma exp_comparison_natural_left (A A' B : C) (f : A' ⟶ A) :
-  exp_comparison F A B ≫ (pre (F.map f)).app (F.obj B) =
-    F.map ((pre f).app B) ≫ exp_comparison F A' B :=
-begin
-  rw [exp_comparison, exp_comparison, ←curry_natural_left, eq_curry_iff, uncurry_natural_left,
-    uncurry_pre, prod.map_swap_assoc, curry_eq, prod.map_id_comp, assoc, ev_naturality],
-  dsimp only [prod.functor_obj_obj],
-  rw [ev_coev_assoc, ← F.map_id, ← F.map_id, ← prod_comparison_inv_natural_assoc,
-      ← prod_comparison_inv_natural_assoc, ← F.map_comp, ← F.map_comp, prod_map_pre_app_comp_ev],
-end
-
-/-- The exponential comparison map is natural in its right argument. -/
-lemma exp_comparison_natural_right (A B B' : C) (f : B ⟶ B') :
-  exp_comparison F A B ≫ (exp (F.obj A)).map (F.map f) =
-    F.map ((exp A).map f) ≫ exp_comparison F A B' :=
-by
-  erw [exp_comparison, ← curry_natural_right, curry_eq_iff, exp_comparison, uncurry_natural_left,
-       uncurry_curry, assoc, ← F.map_comp, ← (ev _).naturality, F.map_comp,
-       prod_comparison_inv_natural_assoc, F.map_id]
-
--- TODO: If F has a left adjoint L, then F is cartesian closed if and only if
--- L (B ⨯ F A) ⟶ L B ⨯ L F A ⟶ L B ⨯ A
--- is an iso for all A ∈ D, B ∈ C.
--- Corollary: If F has a left adjoint L which preserves finite products, F is cartesian closed iff
--- F is full and faithful.
-
 end functor
 
 end category_theory

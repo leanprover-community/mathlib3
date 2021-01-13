@@ -912,6 +912,16 @@ lemma sigma_equiv_prod_sigma_congr_right :
     (prod_congr_right e).trans (sigma_equiv_prod α₁ β₂).symm :=
 by { ext ⟨a, b⟩ : 1, simp }
 
+/-- A variation on `equiv.prod_congr` where the equivalence in the second component can depend
+  on the first component. A typical example is a shear mapping, explaining the name of this
+  declaration. -/
+@[simps {fully_applied := ff}]
+def prod_shear {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ : α₁ → β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
+{ to_fun := λ x : α₁ × β₁, (e₁ x.1, e₂ x.1 x.2),
+  inv_fun := λ y : α₂ × β₂, (e₁.symm y.1, (e₂ $ e₁.symm y.1).symm y.2),
+  left_inv := by { rintro ⟨x₁, y₁⟩, simp only [symm_apply_apply] },
+  right_inv := by { rintro ⟨x₁, y₁⟩, simp only [apply_symm_apply] } }
+
 end prod_congr
 
 namespace perm
@@ -1791,6 +1801,20 @@ def Pi_congr' : (Π a, W a) ≃ (Π b, Z b) :=
 end
 
 end equiv
+
+lemma function.injective.swap_apply [decidable_eq α] [decidable_eq β] {f : α → β}
+  (hf : function.injective f) (x y z : α) :
+  equiv.swap (f x) (f y) (f z) = f (equiv.swap x y z) :=
+begin
+  by_cases hx : z = x, by simp [hx],
+  by_cases hy : z = y, by simp [hy],
+  rw [equiv.swap_apply_of_ne_of_ne hx hy, equiv.swap_apply_of_ne_of_ne (hf.ne hx) (hf.ne hy)]
+end
+
+lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α → β}
+  (hf : function.injective f) (x y : α) :
+  equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
+funext $ λ z, hf.swap_apply _ _ _
 
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
 instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton

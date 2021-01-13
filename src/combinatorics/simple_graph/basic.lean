@@ -332,4 +332,61 @@ finset.max' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty 
 
 end finite
 
+section complement
+
+/-!
+## Complement of a simple graph
+
+This section contains definitions and lemmas concerning the complement of a simple graph.
+-/
+
+/--
+We define `compl G` to be the `simple_graph V` such that no two adjacent vertices in `G`
+are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
+(still ensuring that vertices are not adjacent to themselves.)
+-/
+def compl (G : simple_graph V) : simple_graph V :=
+{ adj := λ v w, v ≠ w ∧ ¬G.adj v w,
+  sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa edge_symm⟩,
+  loopless := λ v ⟨hne, _⟩, false.elim (hne rfl) }
+
+instance has_compl : has_compl (simple_graph V) :=
+{ compl := compl }
+
+@[simp]
+lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
+
+@[simp]
+lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=
+begin
+  ext v w,
+  split; simp only [compl_adj, not_and, not_not],
+  { exact λ ⟨hne, h⟩, h hne },
+  { intro h,
+    simpa [G.ne_of_adj h], },
+end
+
+@[simp]
+lemma compl_involutive : function.involutive (@compl V) := compl_compl
+
+lemma compl_neighbor_set_disjoint (G : simple_graph V) (v : V) :
+  disjoint (G.neighbor_set v) (Gᶜ.neighbor_set v) :=
+begin
+  rw set.disjoint_iff,
+  rintro w ⟨h, h'⟩,
+  rw [mem_neighbor_set, compl_adj] at h',
+  exact h'.2 h,
+end
+
+lemma neighbor_set_union_compl_neighbor_set_eq (G : simple_graph V) (v : V) :
+  G.neighbor_set v ∪ Gᶜ.neighbor_set v = {v}ᶜ :=
+begin
+  ext w,
+  have h := @ne_of_adj _ G,
+  simp_rw [set.mem_union, mem_neighbor_set, compl_adj, set.mem_compl_eq, set.mem_singleton_iff],
+  tauto,
+end
+
+end complement
+
 end simple_graph

@@ -92,7 +92,23 @@ def unit_disc := {point : ℝ × ℝ | (point.1)^2 + (point.2)^2 < 1 }
 def unit_disc_alt := {point : ℝ × ℝ | -1 * sqrt (1 - (point.1)^2) < point.2 ∧
                                        point.2 < sqrt (1 - (point.1)^2)}
 
---Andrew's work , lemma helpful for first step (unfinished)
+--version of the triangle inequality, still need to prove
+lemma real.Lp_add_two_le (f g : ℝ × ℝ) (p : ℝ) (hp : 1 ≤ p) :
+(abs (f.1 + g.1) ^ p + abs (f.2 + g.2) ^ p) ^ (1 / p)
+≤ (abs f.1 ^ p + abs f.2 ^ p) ^ (1 / p) + (abs g.1 ^ p + abs g.2 ^ p) ^ (1 / p) := sorry
+
+--alternate version of triangle inequality, handles p : ℕ
+lemma real.Lp_add_two_le' (f g : ℝ × ℝ) (p : ℕ) (hp : 1 ≤ p) :
+  (abs (f.1 + g.1) ^ p + abs (f.2 + g.2) ^ p) ^ (1 / (p:ℝ))
+  ≤ (abs f.1 ^ p + abs f.2 ^ p) ^ (1 / (p:ℝ)) + (abs g.1 ^ p + abs g.2 ^ p) ^ (1 / (p:ℝ)) :=
+begin
+  have hp' : 1 ≤ (p:ℝ) := by { norm_cast, linarith },
+  convert real.Lp_add_two_le f g p hp' using 3;
+  simp,
+end
+
+/-Lemma helpful for first step.
+Still runs a bit slow. We can probably get it cleaner. -/
 lemma unit_disc_open : is_open unit_disc :=
 begin
   unfold unit_disc,
@@ -103,26 +119,35 @@ begin
   { norm_num,
     rw ← sqrt_one,
     exact (sqrt_lt (add_nonneg (pow_two_nonneg p.1) (pow_two_nonneg p.2))).2 hp },
-  { /-runs super slow, maybe because of the `replace`s and `linarith`s (?),
-      hopefully make it a `calc` block one day-/
-    intros q hq,
+  { intros q hq,
     simp only [dist, mem_ball, mem_set_of_eq, max_lt_iff] at *,
-    replace hq : abs (q.1 - p.1) + abs (q.2 - p.2) < 1 - sqrt (p.1 ^ 2 + p.2 ^ 2) :=
-        by linarith [add_lt_add hq.1 hq.2],
-    have h_tri₁ : sqrt ((q.1 - p.1)^2 + (q.2 - p.2)^2)
-                ≤ abs (q.1 - p.1) + abs (q.2 - p.2) := by rw sqrt_le_iff;
-                  exact ⟨add_nonneg (abs_nonneg _) (abs_nonneg _),
-                  sqr_add_le_add_abs_sqr  (q.1 - p.1) (q.2 - p.2)⟩,
-    replace hq : sqrt ((q.1 - p.1)^2 + (q.2 - p.2)^2)
-               < 1 - sqrt (p.1 ^ 2 + p.2 ^ 2) := by linarith,
-    replace hq : sqrt ((q.1 - p.1)^2 + (q.2 - p.2)^2) + sqrt (p.1 ^ 2 + p.2 ^ 2)
-               < 1 := by linarith,
-    have h_tri₂ : sqrt (q.1^2 + q.2^2)
-                ≤ sqrt ( (q.1 - p.1)^2 + (q.2 - p.2)^2 ) + sqrt (p.1^2 + p.2^2) := sorry,
-    replace hq : sqrt (q.1^2 + q.2^2) < 1 := by linarith,
-    rw ← sqrt_one at hq,
-    exact (sqrt_lt (add_nonneg (pow_two_nonneg q.1) (pow_two_nonneg q.2))).1 hq, },
+
+    have h₁ : sqrt ((q.1 - p.1)^2 + (q.2 - p.2)^2)
+            ≤ abs (q.1 - p.1) + abs (q.2 - p.2) := by rw sqrt_le_iff;
+              exact ⟨add_nonneg (abs_nonneg _) (abs_nonneg _),
+              sqr_add_le_add_abs_sqr  (q.1 - p.1) (q.2 - p.2)⟩,
+
+    have h₂ : sqrt (q.1^2 + q.2^2)
+            ≤ sqrt ( (q.1 - p.1)^2 + (q.2 - p.2)^2 ) + sqrt (p.1^2 + p.2^2),
+      { have := real.Lp_add_two_le' (q.1 - p.1, q.2 - p.2) p 2 one_le_two,
+        simp only [sub_add_cancel] at this,
+        rw [sqrt_eq_rpow,
+            ← abs_of_nonneg (pow_two_nonneg q.1), ← abs_of_nonneg (pow_two_nonneg q.2),
+            ← abs_of_nonneg (pow_two_nonneg (q.1 - p.1)), ← abs_of_nonneg (pow_two_nonneg (q.2 - p.2)),
+            ← abs_of_nonneg (pow_two_nonneg p.1), ← abs_of_nonneg (pow_two_nonneg p.2),
+            abs_pow q.1 2, abs_pow q.2 2, abs_pow p.1 2, abs_pow p.2 2,
+            abs_pow (q.1 - p.1) 2, abs_pow (q.2 - p.2) 2],
+        exact_mod_cast this, },
+
+    rw [← sqrt_lt (add_nonneg (pow_two_nonneg q.1) (pow_two_nonneg q.2)), sqrt_one],
+    calc  sqrt (q.1^2 + q.2^2)
+        ≤ sqrt ( (q.1 - p.1)^2 + (q.2 - p.2)^2 ) + sqrt (p.1^2 + p.2^2) : h₂
+    ... ≤ abs (q.1 - p.1) + abs (q.2 - p.2)      + sqrt (p.1^2 + p.2^2) : add_le_add_right h₁
+                                                                          (sqrt (p.fst ^ 2 + p.snd ^ 2))
+    ... < 1                                                             : by linarith
+                                                                          [add_lt_add hq.1 hq.2], },
 end
+
 
 -- Added by Ben: Once we have the fact that the unit disc is open, we know it is measurable.
 lemma unit_disc_measurable : is_measurable unit_disc :=

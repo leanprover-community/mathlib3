@@ -118,7 +118,7 @@ end
 theorem is_regular_of_not_exists_politician [nonempty V] (hG' : ¬exists_politician G) :
   ∃ (d : ℕ), G.is_regular_of_degree d :=
 begin
-  have v : V := classical.choice infer_instance,
+  have v := classical.arbitrary V,
   use G.degree v,
   intro x,
   by_cases hvx : G.adj v x, swap, { exact eq.symm (degree_eq_of_not_adj hG hvx), },
@@ -165,7 +165,7 @@ end
 lemma card_of_regular [nonempty V] (hd : G.is_regular_of_degree d) :
   d + (fintype.card V - 1) = d * d :=
 begin
-  have v : V := classical.choice infer_instance,
+  have v := classical.arbitrary V,
   transitivity ((G.adj_matrix ℕ) ^ 2).mul_vec (λ _, 1) v,
   { rw [adj_matrix_sq_of_regular hG hd, mul_vec, dot_product, ← insert_erase (mem_univ v)],
     simp only [sum_insert, mul_one, if_true, nat.cast_id, eq_self_iff_true,
@@ -271,7 +271,7 @@ begin
       { rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at h,
         linarith },
       subst n, } },
-  use classical.choice infer_instance, intros w h,
+  use classical.arbitrary V, intros w h,
   exfalso, apply h,
   apply fintype.card_le_one_iff.mp this,
 end
@@ -299,7 +299,7 @@ end
 lemma exists_politician_of_degree_eq_two [nonempty V] (hd : G.is_regular_of_degree 2) :
   exists_politician G :=
 begin
-  have v : V := classical.choice infer_instance,
+  have v := classical.arbitrary V,
   use v, intros w hvw,
   rw [← mem_neighbor_finset, neighbor_finset_eq_of_degree_eq_two hG hd v, finset.mem_erase],
   exact ⟨ne.symm hvw, finset.mem_univ _⟩,

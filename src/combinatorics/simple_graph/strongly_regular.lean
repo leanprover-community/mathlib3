@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Alena Gusakov
 -/
 import combinatorics.simple_graph.basic
+import data.set.finite
 /-!
 # Strongly regular graphs
 
@@ -59,11 +60,6 @@ begin
   { apply finset.subset_univ },
 end
 
-lemma set.to_finset_subset_to_finset_iff (α : Type*) (s t : set α) [fintype s] [fintype t] :
-  s ⊆ t ↔ s.to_finset ⊆ t.to_finset :=
-⟨λ h x hx, set.mem_to_finset.mpr $ h $ set.mem_to_finset.mp hx,
-λ h x hx, set.mem_to_finset.mp $ h $ set.mem_to_finset.mpr hx⟩
-
 lemma card_common_neighbors_le_degree (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree v :=
 begin
@@ -74,7 +70,7 @@ begin
   apply finset.card_le_of_subset,
   rw common_neighbors at h,
   rw neighbor_finset,
-  rw ← set.to_finset_subset_to_finset_iff _ _,
+  rw ← set.subset_iff_to_finset_subset _ _,
   exact h,
 end
 
@@ -110,7 +106,7 @@ begin
     split,
     { simpa },
     { rw neighbor_finset,
-      rw ← set.to_finset_subset_to_finset_iff,
+      rw ← set.subset_iff_to_finset_subset,
       exact common_neighbors_subset_neighbor_set G v w } },
 end
 

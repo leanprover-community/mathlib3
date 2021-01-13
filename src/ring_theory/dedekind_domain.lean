@@ -622,10 +622,8 @@ local attribute [instance] classical.prop_decidable
 lemma inv_of_maximal_not_top (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
   (hM : ideal.is_maximal M) : (1 / ↑M : fractional_ideal f) ≠ (1 : fractional_ideal f) :=
 begin
-  obtain ⟨a, h_nza⟩ : ∃ a : M, a ≠ 0,
-  { have h_nzM : M ≠ ⊥,
-    apply ne_bot_of_is_maximal_of_not_is_field hM hNF,
-    apply submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr h_nzM) },
+  have h_nzM : M ≠ ⊥ := ne_bot_of_is_maximal_of_not_is_field hM hNF,
+  obtain ⟨a, h_nza⟩ : ∃ a : M, a ≠ 0 := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr h_nzM),
   let J : (ideal R) := ideal.span {a},
   have h_J : J ≠ ⊥ ∧ J ≤ M,
   simp only [*, span_singleton_eq_bot, ne.def, not_false_iff, submodule.coe_eq_zero, span_le,
@@ -635,7 +633,8 @@ begin
   --  ∧ ∀ Z' < Z, ¬ multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ J,
   --  split, swap,
   apply exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF h_J.left,
-  obtain ⟨P, h_PZ, h_JP, h_Z'P⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ J ∧ ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J, sorry,
+  obtain ⟨P, h_PZ, h_JP, h_Z'P⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ J ∧
+    ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J, sorry, -- LA CICCIA
   -- have h_ZZ' : ∀ Z' < Z, ¬ multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ J,
   -- { induction hcard : Z.card with n hn generalizing Z,
   --   { sorry },-- usare h_nzZ,
@@ -644,7 +643,7 @@ begin
   --     sorry }},
   -- replace h_ZJ : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ M, sorry,
   -- obtain ⟨P, h_ZP, h_JP⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M, sorry,
-  have h_nebotP : P.1 ≠ ⊥, sorry, --usare che prod Z ≠ ⊥,
+  have h_nebotP : P.1 ≠ ⊥, sorry, --USARE CHE Z.prod ≠ ⊥,
   replace h_JP : P.1 ≤ M,
   { apply le_trans h_JP h_J.right },
   replace h_JP : P.1 = M,
@@ -653,7 +652,7 @@ begin
   -- obtain ⟨Z', h_Z'Z, h_Z'P⟩ : ∃ Z' ≤ Z, Z = P ::ₘ Z', sorry,
   let J' : ideal R := multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)),
   have h_Jprod : P.1 * multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) =
-    multiset.prod (Z.map (coe : subtype _ → ideal R)), sorry,
+    multiset.prod (Z.map (coe : subtype _ → ideal R)), sorry, -- CONTO DI MULTISET SPERO FACILE
   have h₁ : M * J' ≤ J,
   { calc M * J' = P.1 * J' : by rw h_JP
           ...   = P.1 * multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) : by simp only [*] at *
@@ -663,33 +662,37 @@ begin
   { suffices this : ¬ J' ≤ J,
     apply submodule.not_le_iff_exists.mp this,
     assumption },
-  have htemp : (↑M : fractional_ideal f) ≠ (0 : fractional_ideal f), sorry,
+  -- have htemp : (↑M : fractional_ideal f) ≠ (0 : fractional_ideal f) := (fractional_ideal.coe_to_fractional_ideal_ne_zero _).mpr h_nzM,
   have h₂ : (f.to_map b) * (f.to_map a)⁻¹ ∈ ((1 / ↑M) : fractional_ideal f).val,
   { rw [fractional_ideal.val_eq_coe, fractional_ideal.coe_div, submodule.mem_div_iff_forall_mul_mem],
     rintro y hy,
     replace hy : y ∈ (↑M : fractional_ideal f) := hy,
     rw fractional_ideal.mem_coe_ideal at hy,
     rcases hy with ⟨y', hy'_M, hy'_fy⟩,
-    obtain ⟨c, hc⟩ : ∃ c : R, y' * b = c * a, sorry,
-    rw [mul_comm, ← mul_assoc, ← hy'_fy, ← ring_hom.map_mul, hc, ring_hom.map_mul],
-    have hnz_fa : (f.to_map a) ≠ 0 := sorry,--mt (f.to_map.injective_iff.mp f.injective a) h_nza,
-    rw [mul_assoc, mul_inv_cancel hnz_fa, mul_one],
-    apply fractional_ideal.mem_one_iff.mpr,
-    use c,
-    simp only [fractional_ideal.coe_to_fractional_ideal_ne_zero],
+    obtain ⟨c, hc⟩ : ∃ c : R, c * a = y' * b,
+    { suffices  this : y' * b ∈ J,
+      rwa [ideal.mem_span_singleton'] at this,
+      apply submodule.smul_le.mp h₁ y' hy'_M b h_bJ' },
+    rw [mul_comm, ← mul_assoc, ← hy'_fy, ← ring_hom.map_mul, ← hc, ring_hom.map_mul],
+    have hnz_fa : (f.to_map a) ≠ 0 := mt (f.to_map.injective_iff.mp f.injective a) _,
+    { rw [mul_assoc, mul_inv_cancel hnz_fa, mul_one],
+      apply fractional_ideal.mem_one_iff.mpr,
+      use c },
+    simp only [h_nza, not_false_iff, submodule.coe_eq_zero],
+    simpa only [fractional_ideal.coe_to_fractional_ideal_ne_zero] },
+  have h₃ : (f.to_map b) * (f.to_map a)⁻¹ ∉ (1 : fractional_ideal f),
+  { rw [not_iff_not.mpr fractional_ideal.mem_one_iff],
+  --  eq_mul_of_mul_inv_eq, --UN LEMMA
+  -- ← ring_hom.map_mul],-- UTILE?
+    -- rw f.injective,
     sorry },
-  have h₃ : (f.to_map b) * (f.to_map a)⁻¹ ∉ (1 : fractional_ideal f), sorry,
-  sorry,--qui dovrebbe essere semplice
-  -- ext,
-  -- simp * at *,
-    -- have h₂ : (M : fractional_ideal f) * (fractional_ideal.span_singleton (f.to_map a)⁻¹) *
-  --   (fractional_ideal.span_singleton (f.to_map b)) ≤ (1 : fractional_ideal f), sorry,
-  -- replace h_fin : (f.to_map b) * (f.to_map a)⁻¹ ∈ (1 / ↑M : fractional_ideal f), sorry,
-  -- have h_ab : (f.to_map b) * (f.to_map a)⁻¹ ∉ (1 : fractional_ideal f), sorry,
-  -- sorry,
+  apply (not_iff_not_of_iff fractional_ideal.ext_iff).mp,
+  rw not_forall,
+  use (f.to_map b) * (f.to_map a)⁻¹,
+  simpa only [*, not_not, iff_false, fractional_ideal.val_eq_coe],
 end
 
-lemma maximal_ideal_inv_of_dedekind (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
+theorem maximal_ideal_inv_of_dedekind (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
   (hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
 begin
   have hnz_M : M ≠ 0, apply (lt_iff_le_and_ne.mp (ideal.bot_lt_of_maximal M hNF) ).2.symm,

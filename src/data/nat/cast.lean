@@ -79,13 +79,10 @@ begin
   apply binary_rec _ _ n,
   { rw [binary_rec_zero, cast_zero] },
   { intros b k h,
-    rw binary_rec_eq,
-    { cases b,
-      { rw [cond, h, bit, cond, bit0, cast_add] },
-      { rw [cond, h, bit, cond, bit1, bit0, cast_add, cast_add, cast_one] } },
-    { rw [cond, zero_add] } }
+    rw [binary_rec_eq, h],
+    { cases b; simp [bit, bit0, bit1] },
+    { simp } },
 end
-
 
 /-- `coe : ℕ → α` as an `add_monoid_hom`. -/
 def cast_add_monoid_hom (α : Type*) [add_monoid α] [has_one α] : ℕ →+ α :=

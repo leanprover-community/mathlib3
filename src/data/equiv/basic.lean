@@ -129,6 +129,13 @@ def simps.inv_fun (e : α ≃ β) : β → α := e.symm
 
 initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
 
+/-- Two `equiv`s are equal if their inverses coincide at each point. -/
+lemma symm_ext : ∀ {f g : equiv α β} (h : ∀ x, f.symm x = g.symm x), f = g
+| ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ h :=
+  have g₁ = g₂, from funext h,
+  have f₁ = f₂, from r₁.eq_right_inverse (this.symm ▸ l₂),
+  by simp *
+
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm,
@@ -748,6 +755,25 @@ variables (α β) [unique α]
   right_inv := λ b, rfl }
 
 end fun_unique
+
+section unique_instances
+
+variables (α β)
+
+instance subsingleton_right [subsingleton β] : subsingleton (equiv α β) :=
+⟨λ f g, ext (λ i, subsingleton.elim _ _)⟩
+
+instance subsingleton_left [subsingleton α] : subsingleton (equiv α β) :=
+⟨λ f g, symm_ext (λ i, subsingleton.elim _ _)⟩
+
+instance unique_of_unique_of_unique [unique α] [unique β] : unique (equiv α β) :=
+{ default := { to_fun := λ _, default _,
+               inv_fun := λ _, default _,
+               left_inv := λ _, subsingleton.elim _ _,
+               right_inv := λ _, subsingleton.elim _ _ },
+  uniq := λ _, subsingleton.elim _ _ }
+
+end unique_instances
 
 section
 

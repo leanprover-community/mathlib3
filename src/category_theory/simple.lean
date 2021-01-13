@@ -28,10 +28,7 @@ class simple (X : C) : Type (max u v) :=
 @[ext] lemma simple.ext {X : C} {a b : simple X} : a = b :=
 begin
   casesI a, casesI b,
-  congr,
-  funext Y f m,
-  ext,
-  refl,
+  congr
 end
 
 instance subsingleton_simple (X : C) : subsingleton (simple X) :=

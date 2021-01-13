@@ -536,6 +536,8 @@ variables {n} {R} {M}
 
 @[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = ∑ i, diag n R M A i := rfl
 
+lemma trace_apply (A : matrix n n M) : trace n R M A = ∑ i, A i i := rfl
+
 @[simp] lemma trace_one [decidable_eq n] :
   trace n R R 1 = fintype.card n :=
 have h : trace n R R 1 = ∑ i, diag n R R 1 i := rfl,

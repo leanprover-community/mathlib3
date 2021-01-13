@@ -1096,6 +1096,11 @@ instance linear_map.semimodule' (R : Type u) [comm_semiring R]
   add_smul := λ s₁ s₂ f, linear_map.ext $ λ x, add_mul _ _ _,
   zero_smul := λ f, linear_map.ext $ λ x, zero_mul _ }
 
+lemma lmul_injective : function.injective (lmul R A) :=
+λ x x' h, calc x = lmul R A x 1 : by rw [algebra.lmul_apply, mul_one]
+             ... = lmul R A x' 1 : by rw h
+             ... = x' : by rw [algebra.lmul_apply, mul_one]
+
 end algebra
 
 section nat

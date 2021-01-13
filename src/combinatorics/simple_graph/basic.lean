@@ -188,6 +188,27 @@ begin
   { rintro rfl, use [he, h, he], apply sym2.mem_other_mem, },
 end
 
+/--
+The set of common neighbors between two vertices `v` and `w` in a graph `G` is the
+intersection of the neighbor sets of `v` and `w`.
+-/
+def common_neighbors (v w : V) : set V := G.neighbor_set v ∩ G.neighbor_set w
+
+lemma common_neighbors_eq (v w : V) :
+  G.common_neighbors v w = G.neighbor_set v ∩ G.neighbor_set w := rfl
+
+lemma common_neighbors_symm (v w : V) : G.common_neighbors v w = G.common_neighbors w v :=
+by { rw [common_neighbors, set.inter_comm], refl }
+
+lemma not_mem_common_neighbors_left (v w : V) : v ∉ G.common_neighbors v w :=
+by simp [common_neighbors]
+
+lemma not_mem_common_neighbors_right (v w : V) : w ∉ G.common_neighbors v w :=
+by simp [common_neighbors]
+
+lemma common_neighbors_subset_neighbor_set (v w : V) : G.common_neighbors v w ⊆ G.neighbor_set v :=
+by simp [common_neighbors]
+
 section incidence
 variable [decidable_eq V]
 
@@ -292,6 +313,8 @@ A locally finite simple graph is regular of degree `d` if every vertex has degre
 -/
 def is_regular_of_degree (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
+lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d := h v
+
 end locally_finite
 
 section finite
@@ -329,6 +352,13 @@ The maximum degree of all vertices
 def max_degree (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
 finset.max' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
 
+lemma degree_lt_card_verts (G : simple_graph V) (v : V) : G.degree v < fintype.card V :=
+begin
+  classical,
+  apply finset.card_lt_card,
+  rw finset.ssubset_iff,
+  exact ⟨v, by simp, finset.subset_univ _⟩,
+end
 
 end finite
 

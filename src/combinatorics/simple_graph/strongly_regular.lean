@@ -71,7 +71,7 @@ lemma card_common_neighbors_lt_card_verts (G : simple_graph V) (v w : V) :
   fintype.card (G.common_neighbors v w) < fintype.card V :=
 begin
   classical,
-  have h := not_mem_left_common_neighbors G v w,
+  have h := not_mem_common_neighbors_left G v w,
   rw ← set.to_finset_card,
   rw ← finset.card_univ,
   apply finset.card_lt_card,
@@ -94,7 +94,7 @@ begin
   use w,
   split,
   { rw set.mem_to_finset,
-    exact not_mem_right_common_neighbors G v w },
+    exact not_mem_common_neighbors_right G v w },
   { rw finset.insert_subset,
     split,
     { simpa },

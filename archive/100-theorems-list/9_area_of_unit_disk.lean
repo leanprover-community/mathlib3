@@ -32,7 +32,28 @@ begin
     exact (sqrt_lt (add_nonneg (pow_two_nonneg p.1) (pow_two_nonneg p.2))).2 hp },
   { intros q hq,
     simp only [dist, mem_ball, mem_set_of_eq, max_lt_iff] at *,
-    sorry },
+    --have ε_def : ε = 1 / 2 * (1 - sqrt (p.fst ^ 2 + p.snd ^ 2)) := rfl,
+    --rw ε_def at  hq,
+    have hq : abs (q.fst - p.fst) + abs (q.snd - p.snd) < 1 - sqrt (p.fst ^ 2 + p.snd ^ 2) :=
+        by linarith [add_lt_add hq.1 hq.2],
+    have h_tri₁ : sqrt ((q.fst - p.fst)^2 + (q.snd - p.snd)^2)
+                ≤ abs (q.fst - p.fst) + abs (q.snd - p.snd),
+      rw sqrt_le_iff,
+      split,
+      exact add_nonneg (abs_nonneg _) (abs_nonneg _),
+      ring,
+
+      have := add_pow p.1 p.2 2,
+      sorry,
+    replace hq : sqrt ((q.fst - p.fst)^2 + (q.snd - p.snd)^2)
+               < 1 - sqrt (p.fst ^ 2 + p.snd ^ 2) := by linarith,
+    replace hq : sqrt ((q.fst - p.fst)^2 + (q.snd - p.snd)^2) + sqrt (p.fst ^ 2 + p.snd ^ 2)
+               < 1 := by linarith,
+    have h_tri₂ : sqrt (q.fst^2 + q.snd^2)
+                ≤ sqrt ( (q.fst - p.fst)^2 + (q.snd - p.snd)^2 ) + sqrt (p.fst^2 + p.snd^2) := sorry,
+    replace hq : sqrt (q.fst^2 + q.snd^2) < 1 := by linarith,
+    rw ← sqrt_one at hq,
+    exact (sqrt_lt (add_nonneg (pow_two_nonneg q.1) (pow_two_nonneg q.2))).1 hq, },
 end
 
 -- Added by Ben: Once we have the fact that the unit disc is open, we know it is measurable
@@ -50,8 +71,14 @@ begin
   rw not_lt at hnot,
   have := le_antisymm (le_sqrt_of_sqr_le h.le) hnot,
   rw [this, sqr_sqrt] at h,
-  exacts [has_lt.lt.false h, (lt_of_le_of_lt (pow_two_nonneg _) h).le],
+  exacts [h.false, (lt_of_le_of_lt (pow_two_nonneg _) h).le],
 end
+
+-- Added by Ben. Strict version to come.
+lemma neg_le_of_abs_le (a b :ℝ) (h : abs a ≤ b) : -b ≤ a :=
+by { cases le_or_lt 0 a with ha,
+    exacts [le_trans (neg_nonpos.mpr (le_trans (abs_nonneg a) h)) ha,
+            neg_le_of_neg_le (abs_le'.mp h).2] }
 
 --Andrew's work : lemma for set eq'ty in second step
 lemma lt_sqrt_of_sqr_lt'  {a b : ℝ} (h : a^2 < b) : a < sqrt b :=

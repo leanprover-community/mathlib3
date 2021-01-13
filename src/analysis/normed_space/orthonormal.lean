@@ -27,21 +27,27 @@ instance submodule_inner_product_space {W : submodule 𝕜 E} : inner_product_sp
 def orthonormal [decidable_eq ι] (v : ι → E) : Prop :=
 ∀ i j, ⟪v i, v j⟫ = if i = j then (1:𝕜) else (0:𝕜)
 
+lemma mysum [decidable_eq ι] {v : ι → E} (he : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
+  ⟪v i, finsupp.total ι E 𝕜 v l⟫ = l i :=
+begin
+  simp only [finsupp.total_apply, finsupp.inner_sum, he i, mul_boole, algebra.id.smul_eq_mul],
+  convert l.sum_ite_self_eq i,
+  ext j,
+  congr
+end
+
 /-- An orthonormal set is linearly independent. -/
-lemma linear_independent_of_orthonormal (v : ι → E) (he : orthonormal 𝕜 v) :
+lemma linear_independent_of_orthonormal [decidable_eq ι] (v : ι → E) (he : orthonormal 𝕜 v) :
   linear_independent 𝕜 v :=
 begin
   rw linear_independent_iff,
   intros l hl,
   ext i,
-  have h_fun : (λ j a, a * ⟪v i, v j⟫) = λ j a, a * (if i = j then (1:𝕜) else (0:𝕜)),
-  { ext j,
-    simp [he i j] },
   have key : ⟪v i, finsupp.total ι E 𝕜 v l⟫ = ⟪v i, 0⟫ := by rw hl,
-  simpa [finsupp.total_apply, finsupp.inner_sum, h_fun] using key
+  simpa [mysum 𝕜 he] using key
 end
 
-lemma is_basis_of_orthonormal_of_card_eq_findim [fintype ι] [nonempty ι]
+lemma is_basis_of_orthonormal_of_card_eq_findim [fintype ι] [nonempty ι] [decidable_eq ι]
   [finite_dimensional 𝕜 E]
   (v : ι → E) (he : orthonormal 𝕜 v) (card_eq : fintype.card ι = findim 𝕜 E) :
   is_basis 𝕜 v :=

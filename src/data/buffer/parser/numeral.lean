@@ -117,20 +117,20 @@ variable {α}
 lemma numeral : valid (numeral α) := nat.map
 
 lemma numeral.of_fintype [fintype α] : valid (numeral.of_fintype α) :=
-nat.bind (λ _, guard.bind (λ _, pure))
+nat.bind (λ _, (decorate_error (λ _, guard _)).and_then (λ _, pure _))
 
 lemma numeral.from_one : valid (numeral.from_one α) :=
-nat.bind (λ _, guard.bind (λ _, pure))
+nat.bind (λ _, (decorate_error (λ _, guard _)).and_then (λ _, pure _))
 
 lemma numeral.from_one.of_fintype [fintype α] : valid (numeral.from_one.of_fintype α) :=
-nat.bind (λ _, guard.bind (λ _, pure))
+nat.bind (λ _, (decorate_error (λ _, guard _)).and_then (λ _, pure _))
 
 lemma numeral.char {fromc toc : char} : valid (numeral.char α fromc toc) :=
-sat.bind (λ _, pure)
+(decorate_error sat).bind (λ _, pure)
 
 lemma numeral.char.of_fintype [fintype α] {fromc : char} :
   valid (numeral.char.of_fintype α fromc) :=
-sat.bind (λ _, pure)
+(decorate_error sat).bind (λ _, pure)
 
 end valid
 

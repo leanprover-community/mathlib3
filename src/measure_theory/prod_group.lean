@@ -14,7 +14,18 @@ and properties of iterated integrals in topological groups.
 
 These lemmas show the uniqueness of left invariant measures on locally compact groups, up to
 scaling. In this file we follow the proof and refer to the book *Measure Theory* by Paul Halmos.
-The proof seems to contain an omission in §60 Th. A, see
+
+The idea of the proof is to use the translation invariance of measures to prove `μ(F) = c * μ(E)`
+for two sets `E` and `F`, where `c` is a constant that does not depend on `μ`. Let `e` and `f` be
+the characteristic functions of `E` and `F`.
+By translation invariance the map `(x, y) ↦ (y * x, x⁻¹)` is measure-preserving, which means that
+```
+  ∫ x, ∫ y, h x y ∂ν ∂μ = ∫ x, ∫ y, h (y * x) x⁻¹ ∂ν ∂μ
+```
+If we apply this to `h x y := e x * f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E)`, we can rewrite the RHS to
+`μ(F)`, and the LHS to `c * μ(E)`, where `c` does not depend on `μ`.
+
+The proof in [Halmos] seems to contain an omission in §60 Th. A, see
 `measure_theory.measure_lintegral_div_measure` and
 https://math.stackexchange.com/questions/3974485/does-right-translation-preserve-finiteness-for-a-left-invariant-measure
 -/
@@ -102,7 +113,9 @@ lemma measure_inv_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : is_mea
   μ ((λ x, x⁻¹) ⁻¹' E) = 0 ↔ μ E = 0 :=
 begin
   refine ⟨measure_null_of_measure_inv_null hμ hE, _⟩,
-  intro h2E, apply measure_null_of_measure_inv_null hμ (measurable_inv hE), convert h2E using 2,
+  intro h2E,
+  apply measure_null_of_measure_inv_null hμ (measurable_inv hE),
+  convert h2E using 2,
   exact set.inv_inv
 end
 
@@ -151,14 +164,16 @@ lemma measure_lintegral_div_measure [t2_space G] (hμ : is_mul_left_invariant μ
   (f : G → ennreal) (hf : measurable f) :
   μ E * ∫⁻ y, f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E) ∂ν = ∫⁻ x, f x ∂μ :=
 begin
-  let Em := hE.is_measurable,
+  have Em := hE.is_measurable,
   symmetry,
   set g := λ y, f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E),
   have hg : measurable g := (hf.comp measurable_inv).ennreal_div
     ((measurable_measure_mul_right Em).comp measurable_inv),
-  simp_rw [← set_lintegral_one, ← lintegral_indicator _ Em,
-    ← lintegral_lintegral_mul (measurable_const.indicator Em) hg],
-  rw [← lintegral_lintegral_mul_inv hμ hν],
+  rw [← set_lintegral_one, ← lintegral_indicator _ Em,
+    ← lintegral_lintegral_mul (measurable_const.indicator Em) hg,
+    ← lintegral_lintegral_mul_inv hμ hν],
+  swap, { exact ((measurable_const.indicator Em).comp measurable_fst).ennreal_mul
+      (hg.comp measurable_snd) },
   have mE : ∀ x : G, measurable (λ y, ((λ z, z * x) ⁻¹' E).indicator (λ z, (1 : ennreal)) y) :=
   λ x, measurable_const.indicator (measurable_mul_right _ Em),
   have : ∀ x y, E.indicator (λ (z : G), (1 : ennreal)) (y * x) =
@@ -169,12 +184,12 @@ begin
     (homeomorph.mul_right _).compact_preimage.mpr hE),
   simp_rw [this, lintegral_mul_const _ (mE _), lintegral_indicator _ (measurable_mul_right _ Em),
     set_lintegral_one, g, inv_inv,
-    ennreal.mul_div_cancel' (measure_mul_right_ne_zero hν Em h2E _) (h3E _)],
-  exact ((measurable_const.indicator Em).comp measurable_fst).ennreal_mul (hg.comp measurable_snd)
+    ennreal.mul_div_cancel' (measure_mul_right_ne_zero hν Em h2E _) (h3E _)]
 end
 
 /-- This is roughly the uniqueness (up to a scalar) of left invariant Borel measures on a second
-  countable locally compact group. -/
+  countable locally compact group. The uniqueness of Haar measure is proven from this in
+  `measure_theory.measure.haar_measure_unique` -/
 lemma measure_mul_measure_eq [t2_space G] (hμ : is_mul_left_invariant μ)
   (hν : is_mul_left_invariant ν) (h2ν : regular ν) {E F : set G}
   (hE : is_compact E) (hF : is_measurable F) (h2E : ν E ≠ 0) : μ E * ν F = ν E * μ F :=

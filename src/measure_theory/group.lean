@@ -17,7 +17,7 @@ We develop some properties of measures on (topological) groups
 
 noncomputable theory
 
-open has_inv set function
+open has_inv set function measure_theory.measure
 
 namespace measure_theory
 
@@ -108,34 +108,44 @@ by { refine ⟨λ h, _, measure.regular.inv⟩, rw ←μ.inv_inv, exact measure.
 lemma is_mul_right_invariant_inv' (h : is_mul_left_invariant μ) :
   is_mul_right_invariant μ.inv :=
 begin
-  intros g A hA, rw [μ.inv_apply (measurable_mul_right g hA), μ.inv_apply hA],
+  intros g A hA,
+  rw [μ.inv_apply (measurable_mul_right g hA), μ.inv_apply hA],
   convert h g⁻¹ (measurable_inv hA) using 2,
   simp only [←preimage_comp, ← inv_preimage],
-  apply preimage_congr, intro h, simp only [mul_inv_rev, comp_app, inv_inv]
+  apply preimage_congr,
+  intro h,
+  simp only [mul_inv_rev, comp_app, inv_inv]
 end
 
 @[to_additive]
 lemma is_mul_left_invariant_inv' (h : is_mul_right_invariant μ) : is_mul_left_invariant μ.inv :=
 begin
-  intros g A hA, rw [μ.inv_apply (measurable_mul_left g hA), μ.inv_apply hA],
+  intros g A hA,
+  rw [μ.inv_apply (measurable_mul_left g hA), μ.inv_apply hA],
   convert h g⁻¹ (measurable_inv hA) using 2,
   simp only [←preimage_comp, ← inv_preimage],
-  apply preimage_congr, intro h, simp only [mul_inv_rev, comp_app, inv_inv]
+  apply preimage_congr,
+  intro h,
+  simp only [mul_inv_rev, comp_app, inv_inv]
 end
 
 @[simp, to_additive]
 lemma is_mul_right_invariant_inv : is_mul_right_invariant μ.inv ↔ is_mul_left_invariant μ :=
-by { refine ⟨λ h, _, is_mul_right_invariant_inv'⟩, rw ← μ.inv_inv,
-     exact is_mul_left_invariant_inv' h }
+begin
+    refine ⟨λ h, _, is_mul_right_invariant_inv'⟩,
+    rw ← μ.inv_inv,
+    exact is_mul_left_invariant_inv' h
+end
 
 @[simp, to_additive]
 lemma is_mul_left_invariant_inv : is_mul_left_invariant μ.inv ↔ is_mul_right_invariant μ :=
-by { refine ⟨λ h, _, is_mul_left_invariant_inv'⟩, rw ← μ.inv_inv,
-     exact is_mul_right_invariant_inv' h }
+begin
+  refine ⟨λ h, _, is_mul_left_invariant_inv'⟩,
+  rw ← μ.inv_inv,
+  exact is_mul_right_invariant_inv' h
+end
 
 end inv
-
-namespace measure
 
 variables [measurable_space G] [topological_space G] [borel_space G] {μ : measure G}
 
@@ -144,14 +154,14 @@ section group
 variables [group G] [topological_group G]
 
 /-! Properties of regular left invariant measures -/
-
-@[to_additive]
-lemma null_of_is_mul_left_invariant_of_ne_zero (hμ : μ.regular) (h2μ : is_mul_left_invariant μ)
+@[to_additive measure_theory.measure.is_add_left_invariant.null_iff_empty]
+lemma is_mul_left_invariant.null_iff_empty (hμ : μ.regular) (h2μ : is_mul_left_invariant μ)
   (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) : μ s = 0 ↔ s = ∅ :=
 begin
   obtain ⟨K, hK, h2K⟩ := hμ.exists_compact_not_null.mpr h3μ,
   refine ⟨λ h, _, λ h, by simp [h]⟩,
-  by_contradiction h2s, apply h2K,
+  apply classical.by_contradiction, -- `by_contradiction` is very slow
+  refine mt (λ h2s, _) h2K,
   rw [← ne.def, ne_empty_iff_nonempty] at h2s, cases h2s with y hy,
   obtain ⟨t, -, h1t, h2t⟩ := hK.elim_finite_subcover_image
     (show ∀ x ∈ @univ G, is_open ((λ y, x * y) ⁻¹' s),
@@ -160,21 +170,26 @@ begin
     refine (measure_mono h2t).trans _,
     refine (measure_bUnion_le h1t.countable _).trans_eq _,
     simp_rw [h2μ _ hs.is_measurable], rw [h, tsum_zero] },
-  { intros x _, simp_rw [mem_Union, mem_preimage], use [y * x⁻¹, mem_univ _],
+  { intros x _,
+    simp_rw [mem_Union, mem_preimage],
+    use [y * x⁻¹, mem_univ _],
     rwa [inv_mul_cancel_right] }
 end
 
-@[to_additive] lemma null_of_is_mul_left_invariant (hμ : regular μ) (h2μ : is_mul_left_invariant μ)
+@[to_additive measure_theory.measure.is_add_left_invariant.null_iff]
+lemma is_mul_left_invariant.null_iff (hμ : regular μ) (h2μ : is_mul_left_invariant μ)
   {s : set G} (hs : is_open s) : μ s = 0 ↔ s = ∅ ∨ μ = 0 :=
 begin
-  by_cases h3μ : μ = 0, { simp [h3μ] }, simp only [h3μ, or_false],
-  exact null_of_is_mul_left_invariant_of_ne_zero hμ h2μ h3μ hs,
+  by_cases h3μ : μ = 0, { simp [h3μ] },
+  simp only [h3μ, or_false],
+  exact h2μ.null_iff_empty hμ h3μ hs,
 end
 
-@[to_additive]
-lemma measure_ne_zero_of_is_mul_left_invariant (hμ : regular μ) (h2μ : is_mul_left_invariant μ)
-  (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) : μ s ≠ 0 ↔ s.nonempty :=
-by simp_rw [← ne_empty_iff_nonempty, ne.def, null_of_is_mul_left_invariant_of_ne_zero hμ h2μ h3μ hs]
+@[to_additive measure_theory.measure.is_add_left_invariant.measure_ne_zero_iff_nonempty]
+lemma is_mul_left_invariant.measure_ne_zero_iff_nonempty (hμ : regular μ)
+  (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) :
+  μ s ≠ 0 ↔ s.nonempty :=
+by simp_rw [← ne_empty_iff_nonempty, ne.def, h2μ.null_iff_empty hμ h3μ hs]
 
 /-- For nonzero regular left invariant measures, the integral of a continuous nonnegative function
   `f` is 0 iff `f` is 0. -/
@@ -194,8 +209,7 @@ begin
   have : 0 < r * μ (f ⁻¹' Ioi r),
   { rw ennreal.mul_pos,
     refine ⟨h1r, _⟩,
-    rw [pos_iff_ne_zero,
-      measure_ne_zero_of_is_mul_left_invariant hμ h2μ h3μ h3r],
+    rw [pos_iff_ne_zero, h2μ.measure_ne_zero_iff_nonempty hμ h3μ h3r],
     exact ⟨x, h2r⟩ },
   refine this.trans_le _,
   rw [← set_lintegral_const, ← lintegral_indicator _ h3r.is_measurable],
@@ -204,7 +218,5 @@ begin
 end
 
 end group
-
-end measure
 
 end measure_theory

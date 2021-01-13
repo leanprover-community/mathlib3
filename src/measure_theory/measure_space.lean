@@ -1820,10 +1820,10 @@ begin
   exacts [f.measurable, f.measurable_inv_fun ht]
 end
 
-lemma map_symm_map (e : α ≃ᵐ β) : map e.symm (map e μ) = μ :=
+@[simp] lemma map_symm_map (e : α ≃ᵐ β) : map e.symm (map e μ) = μ :=
 by simp [map_map e.symm.measurable e.measurable]
 
-lemma map_map_symm (e : α ≃ᵐ β) : map e (map e.symm ν) = ν :=
+@[simp] lemma map_map_symm (e : α ≃ᵐ β) : map e (map e.symm ν) = ν :=
 by simp [map_map e.measurable e.symm.measurable]
 
 lemma map_measurable_equiv_injective (e : α ≃ᵐ β) : injective (map e) :=

@@ -546,7 +546,8 @@ by { simp only [haar_measure, hs, ennreal.div_def, mul_comm, to_measure_apply,
 lemma is_mul_left_invariant_haar_measure (K₀ : positive_compacts G) :
   is_mul_left_invariant (haar_measure K₀) :=
 begin
-  intros g A hA, rw [haar_measure_apply hA, haar_measure_apply (measurable_mul_left g hA)],
+  intros g A hA,
+  rw [haar_measure_apply hA, haar_measure_apply (measurable_mul_left g hA)],
   congr' 1,
   exact outer_measure.is_mul_left_invariant_of_content echaar_sup_le is_left_invariant_echaar g A
 end
@@ -593,12 +594,12 @@ variables [locally_compact_space G] [second_countable_topology G] {μ : measure 
 
 /-- The Haar measure is unique up to scaling. More precisely: every σ-finite left invariant measure
   is a scalar multiple of the Haar measure. -/
-theorem haar_measure_unqiue (hμ : is_mul_left_invariant μ)
+theorem haar_measure_unique (hμ : is_mul_left_invariant μ)
   (K₀ : positive_compacts G) : μ = μ K₀.1 • haar_measure K₀ :=
 begin
   ext1 s hs,
-  have :=
-  measure_mul_measure_eq hμ (is_mul_left_invariant_haar_measure K₀) regular_haar_measure K₀.2.1 hs,
+  have := measure_mul_measure_eq hμ (is_mul_left_invariant_haar_measure K₀)
+    regular_haar_measure K₀.2.1 hs,
   rw [haar_measure_self, one_mul] at this,
   rw [← this (by norm_num), smul_apply],
 end
@@ -606,8 +607,8 @@ end
 theorem regular_of_left_invariant (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
   (h2K : (interior K).nonempty) (hμK : μ K < ⊤) : regular μ :=
 begin
-  rw [haar_measure_unqiue hμ ⟨K, hK, h2K⟩],
-  refine regular.smul regular_haar_measure hμK
+  rw [haar_measure_unique hμ ⟨K, hK, h2K⟩],
+  exact regular.smul regular_haar_measure hμK
 end
 
 end unique

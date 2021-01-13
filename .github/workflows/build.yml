@@ -66,9 +66,7 @@ jobs:
         id: build
         run: |
           leanpkg configure
-          echo "::add-matcher::${{ github.workspace }}/.github/detect_errors-matcher.json"
           lean --json -T100000 --make src | python scripts/detect_errors.py
-          echo "::remove-matcher owner=lean-build::"
 
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib'
@@ -116,9 +114,7 @@ jobs:
       - name: lint
         run: |
           ./scripts/mk_all.sh
-          echo "::add-matcher::lint-matcher.json"
           lean --run scripts/lint_mathlib.lean
-          echo "::add-matcher::lint-matcher.json"
 
   tests:
     name: Run tests

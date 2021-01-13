@@ -11,18 +11,80 @@ import topology.metric_space.basic
 
 open set interval_integral metric real
 
--- # Andrew's work
 
---Andrew's work, helpful for proving `is_open unit_disc`
-lemma sqr_add_le_add_abs_sqr (a b: ℝ) : a^2 + b^2 ≤ (abs a + abs b)^2 :=
+-- # Ben's assorted sqrt, sqr, and abs lemmas
+
+-- A stronger version of Andrew's `lt_sqrt`.
+lemma lt_sqrt {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
+by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), pow_two, mul_self_sqrt hy]
+
+lemma lt_sqrt_of_sqr_lt  {a b : ℝ} (h : a^2 < b) : a < sqrt b :=
 begin
-  have : (abs a + abs b)^2 = (abs a)^2 + 2* (abs a)*(abs b) + (abs b)^2 := by ring,
-  simp only [this, pow_abs,
-      abs_of_nonneg (pow_two_nonneg a), abs_of_nonneg (pow_two_nonneg b),
-      le_add_iff_nonneg_right, add_le_add_iff_right],
-  exact mul_nonneg (mul_nonneg (zero_le_two) (abs_nonneg a )) (abs_nonneg b),
+  by_contra hnot,
+  rw [le_antisymm (le_sqrt_of_sqr_le _) (not_lt.mp hnot), sqr_sqrt] at h,
+  exacts [h.false, (lt_of_le_of_lt (pow_two_nonneg _) h).le, h.le],
 end
 
+lemma sqrt_ne_zero {x : ℝ} (hle : 0 ≤ x) : sqrt x ≠ 0 ↔ x ≠ 0 :=
+by rw [not_iff_not, sqrt_eq_zero hle]
+
+-- A stronger version of James' `aux_sqrt_lemma`.
+lemma div_sqrt {x : ℝ} (hle : 0 ≤ x) : x / sqrt x = sqrt x :=
+begin
+  by_cases h : x = 0,
+  { rw [h, sqrt_zero, zero_div] },
+  { rw [div_eq_iff ((sqrt_ne_zero hle).mpr h), mul_self_sqrt hle] },
+end
+
+lemma add_sqr {a b : ℝ} : (a + b)^2 = a^2 + b^2 + 2*a*b := by ring
+
+lemma sqr_add_le_of_nonneg {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) : a^2 + b^2 ≤ (a+b)^2 :=
+by simp only [add_sqr, add_mul, add_le_add_iff_right, ← pow_two, le_add_iff_nonneg_right,
+  mul_nonneg (mul_nonneg zero_le_two ha) hb]
+
+lemma sqr_add_le_of_nonpos {a b : ℝ} (ha : a ≤ 0) (hb : b ≤ 0) : a^2 + b^2 ≤ (a+b)^2 :=
+by simp only [add_sqr, add_mul, add_le_add_iff_right, ← pow_two, le_add_iff_nonneg_right,
+  mul_nonneg_of_nonpos_of_nonpos (mul_nonpos_of_nonneg_of_nonpos zero_le_two ha) hb]
+
+lemma sqr_abs {a : ℝ} : (abs a) ^ 2 = a ^ 2 :=
+by rw [← sqrt_sqr_eq_abs, sqr_sqrt (pow_two_nonneg a)]
+
+-- Monotocity of the `L^p` norm for 2 summands.
+lemma sqr_add_le_add_abs_sqr (a b : ℝ) : a^2 + b^2 ≤ (abs a + abs b)^2 :=
+by simpa only [sqr_abs] using sqr_add_le_of_nonneg (abs_nonneg a) (abs_nonneg b)
+
+lemma abs_le_left {a b : ℝ} (h : abs a ≤ b) : -b ≤ a := (abs_le.mp h).1
+
+lemma abs_le_right {a b : ℝ} (h : abs a ≤ b) : a ≤ b := (abs_le.mp h).2
+
+lemma abs_lt_left {a b : ℝ} (h : abs a < b) : -b < a := (abs_lt.mp h).1
+
+lemma abs_lt_right {a b : ℝ} (h : abs a < b) : a < b := (abs_lt.mp h).2
+
+-- For Andrew:
+theorem sqr_le {a b : ℝ} : a^2 ≤ b ↔ -sqrt b ≤ a ∧ a ≤ sqrt b :=
+begin
+  sorry -- use `abs_le` (I think)
+end
+
+-- For Andrew:
+theorem sqr_lt {a b : ℝ} : a^2 < b ↔ -sqrt b < a ∧ a < sqrt b :=
+begin
+  sorry -- use `abs_lt` (I think)
+end
+
+lemma sqr_le_left {a b : ℝ} (h : a^2 ≤ b) : -sqrt b ≤ a := (sqr_le.mp h).1
+
+lemma sqr_le_right {a b : ℝ} (h : a^2 ≤ b) : a ≤ sqrt b := (sqr_le.mp h).2
+
+-- For Andrew for use in step 2:
+-- (originally `opposite_sqrt_lt_of_sqr_lt`)
+lemma sqr_lt_left {a b : ℝ} (h : a^2 < b) : -sqrt b < a := (sqr_lt.mp h).1
+
+lemma sqr_lt_right {a b : ℝ} (h : a^2 < b) : a < sqrt b := (sqr_lt.mp h).2
+
+
+-- # Andrew's work
 
 --Def'n and alternate def'n of the unit disc
 def unit_disc := {point : ℝ × ℝ | (point.1)^2 + (point.2)^2 < 1 }
@@ -62,42 +124,9 @@ begin
     exact (sqrt_lt (add_nonneg (pow_two_nonneg q.1) (pow_two_nonneg q.2))).1 hq, },
 end
 
--- Added by Ben: Once we have the fact that the unit disc is open, we know it is measurable
+-- Added by Ben: Once we have the fact that the unit disc is open, we know it is measurable.
 lemma unit_disc_measurable : is_measurable unit_disc :=
 unit_disc_open.is_measurable
-
--- Added by Ben: A stronger version of Andrew's `lt_sqrt`
-lemma lt_sqrt {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
-by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), pow_two, mul_self_sqrt hy]
-
--- Ben's golfed version of `lt_sqrt_of_sqr_lt`
-lemma lt_sqrt_of_sqr_lt  {a b : ℝ} (h : a^2 < b) : a < sqrt b :=
-begin
-  by_contra hnot,
-  rw not_lt at hnot,
-  have := le_antisymm (le_sqrt_of_sqr_le h.le) hnot,
-  rw [this, sqr_sqrt] at h,
-  exacts [h.false, (lt_of_le_of_lt (pow_two_nonneg _) h).le],
-end
-
--- Added by Ben. Strict version to come.
-lemma neg_le_of_abs_le (a b :ℝ) (h : abs a ≤ b) : -b ≤ a :=
-by { cases le_or_lt 0 a with ha,
-    exacts [le_trans (neg_nonpos.mpr (le_trans (abs_nonneg a) h)) ha,
-            neg_le_of_neg_le (abs_le'.mp h).2] }
-
---Andrew's work : lemma for set eq'ty in second step
-lemma lt_sqrt_of_sqr_lt'  {a b : ℝ} (h : a^2 < b) : a < sqrt b :=
-begin
-  have hb : 0 ≤ b := by linarith [pow_two_nonneg a],
-  have := le_sqrt_of_sqr_le (le_of_lt h),
-  by_contradiction hyp,
-  push_neg at hyp,
-  have heq : a = sqrt b := by linarith,
-  rw heq at h,
-  rw sqr_sqrt hb at h,
-  linarith,
-end
 
 --Andrew's work : another lemma for set eq'ty in second step
 lemma opposite_sqrt_lt_of_sqr_lt {a b : ℝ} (h : a^2 < b) : - sqrt b < a :=
@@ -139,10 +168,6 @@ begin
       linarith }  },
 end
 
---Andrew's work : final lemma for set eq'ty in second step
-lemma lt_sqrt' {x y : ℝ} (hx : 0 ≤ x) (hy : 0 < y) : x < sqrt y ↔ x ^ 2 < y :=
-by rw [mul_self_lt_mul_self_iff hx (le_of_lt (sqrt_pos.2 hy)), pow_two, mul_self_sqrt (le_of_lt hy)]
-
 --Andrew's work, set equality for the second step
 lemma second_step : unit_disc  = unit_disc_alt :=
 begin
@@ -180,6 +205,7 @@ begin
       have h₃ : (point.1)^2 + (point.2)^2 < 1 := by linarith,
       exact h₃ } },
 end
+
 
 -- # Ben's work:
 
@@ -222,6 +248,7 @@ begin
 
 -- Added by Ben: New version of FTC-2 for open set as per Heather's suggestion. One sorry remaining.
 -- Note: I believe measurability assumption will drop when we merge master
+-- Ignore this proof for now
 theorem integral_eq_sub_of_has_deriv_right_of_mem_Ioo (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ici (min a b)) x)
   (hcont' : continuous_on f' (interval a b)) (hmeas' : ae_measurable f') :
@@ -263,17 +290,6 @@ begin
       --have H := metric.eventually_nhds_iff.mpr (by use ε) hε,
       -- rw [← ((hderiv _ _).has_deriv_at _).deriv],
       sorry } },
-end
-
-lemma sqrt_ne_zero {x : ℝ} (hle : 0 ≤ x) : sqrt x ≠ 0 ↔ x ≠ 0 :=
-by rw [not_iff_not, sqrt_eq_zero hle]
-
--- Added by Ben: A stronger version of James' `aux_sqrt_lemma`.
-lemma div_sqrt {x : ℝ} (hle : 0 ≤ x) : x / sqrt x = sqrt x :=
-begin
-  by_cases h : x = 0,
-  { rw [h, sqrt_zero, zero_div] },
-  { rw [div_eq_iff ((sqrt_ne_zero hle).mpr h), mul_self_sqrt hle] },
 end
 
 lemma step5_1 {x : ℝ} : deriv (λ y : ℝ, 1/2 * (arcsin y + y * sqrt (1 - y^2))) x = sqrt (1 - x^2) :=
@@ -322,6 +338,7 @@ begin
   -- How we resolve the rest of this proof will depend on how we decide to integrate these substeps
   -- into the final proof. Accordingly, I am leaving it for a later date.
 end
+
 
 -- # James' work:
 

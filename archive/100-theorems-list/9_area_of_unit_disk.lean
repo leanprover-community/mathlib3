@@ -109,7 +109,7 @@ end
 
 /-Lemma helpful for first step.
 Still runs a bit slow. We can probably get it cleaner. -/
-lemma unit_disc_open : is_open unit_disc :=
+lemma is_open_unit_disc : is_open unit_disc :=
 begin
   unfold unit_disc,
   rw is_open_iff,
@@ -120,38 +120,28 @@ begin
     rw ← sqrt_one,
     exact (sqrt_lt (add_nonneg (pow_two_nonneg p.1) (pow_two_nonneg p.2))).2 hp },
   { intros q hq,
-    simp only [dist, mem_ball, mem_set_of_eq, max_lt_iff] at *,
-
-    have h₁ : sqrt ((q.1 - p.1)^2 + (q.2 - p.2)^2)
-            ≤ abs (q.1 - p.1) + abs (q.2 - p.2) := by rw sqrt_le_iff;
-              exact ⟨add_nonneg (abs_nonneg _) (abs_nonneg _),
-              sqr_add_le_add_abs_sqr  (q.1 - p.1) (q.2 - p.2)⟩,
-
-    have h₂ : sqrt (q.1^2 + q.2^2)
-            ≤ sqrt ( (q.1 - p.1)^2 + (q.2 - p.2)^2 ) + sqrt (p.1^2 + p.2^2),
-      { have := real.Lp_add_two_le' (q.1 - p.1, q.2 - p.2) p 2 one_le_two,
-        simp only [sub_add_cancel] at this,
-        rw [sqrt_eq_rpow,
-            ← abs_of_nonneg (pow_two_nonneg q.1), ← abs_of_nonneg (pow_two_nonneg q.2),
-            ← abs_of_nonneg (pow_two_nonneg (q.1 - p.1)), ← abs_of_nonneg (pow_two_nonneg (q.2 - p.2)),
-            ← abs_of_nonneg (pow_two_nonneg p.1), ← abs_of_nonneg (pow_two_nonneg p.2),
-            abs_pow q.1 2, abs_pow q.2 2, abs_pow p.1 2, abs_pow p.2 2,
-            abs_pow (q.1 - p.1) 2, abs_pow (q.2 - p.2) 2],
-        exact_mod_cast this, },
-
+    simp only [dist, mem_ball, mem_set_of_eq, max_lt_iff] at hp hq ⊢,
     rw [← sqrt_lt (add_nonneg (pow_two_nonneg q.1) (pow_two_nonneg q.2)), sqrt_one],
-    calc  sqrt (q.1^2 + q.2^2)
-        ≤ sqrt ( (q.1 - p.1)^2 + (q.2 - p.2)^2 ) + sqrt (p.1^2 + p.2^2) : h₂
-    ... ≤ abs (q.1 - p.1) + abs (q.2 - p.2)      + sqrt (p.1^2 + p.2^2) : add_le_add_right h₁
-                                                                          (sqrt (p.fst ^ 2 + p.snd ^ 2))
-    ... < 1                                                             : by linarith
-                                                                          [add_lt_add hq.1 hq.2], },
+    calc sqrt (q.fst ^ 2 + q.snd ^ 2) ≤ sqrt ((q.1 - p.1)^2 + (q.2 - p.2)^2) + sqrt (p.1^2 + p.2^2) :
+      by { have := real.Lp_add_two_le' (q.1 - p.1, q.2 - p.2) p 2 one_le_two,
+          simp only [sub_add_cancel] at this,
+          rw [sqrt_eq_rpow,
+              ← abs_of_nonneg (pow_two_nonneg q.1), ← abs_of_nonneg (pow_two_nonneg q.2),
+              ← abs_of_nonneg (pow_two_nonneg (q.1 - p.1)),
+              ← abs_of_nonneg (pow_two_nonneg (q.2 - p.2)),
+              ← abs_of_nonneg (pow_two_nonneg p.1), ← abs_of_nonneg (pow_two_nonneg p.2),
+              abs_pow q.1 2, abs_pow q.2 2, abs_pow p.1 2, abs_pow p.2 2,
+              abs_pow (q.1 - p.1) 2, abs_pow (q.2 - p.2) 2],
+          exact_mod_cast this }
+    ... ≤ abs (q.1 - p.1) + abs (q.2 - p.2) + sqrt (p.1^2 + p.2^2) :
+      add_le_add_right (by rw sqrt_le_iff; exact ⟨add_nonneg (abs_nonneg _) (abs_nonneg _),
+        sqr_add_le_add_abs_sqr (q.1 - p.1) (q.2 - p.2)⟩) (sqrt (p.fst ^ 2 + p.snd ^ 2))
+    ... < 1 : by linarith [add_lt_add hq.1 hq.2] },
 end
 
-
 -- Added by Ben: Once we have the fact that the unit disc is open, we know it is measurable.
-lemma unit_disc_measurable : is_measurable unit_disc :=
-unit_disc_open.is_measurable
+lemma is_measurable_unit_disc : is_measurable unit_disc :=
+is_open_unit_disc.is_measurable
 
 --Andrew's work : another lemma for set eq'ty in second step
 lemma opposite_sqrt_lt_of_sqr_lt {a b : ℝ} (h : a^2 < b) : - sqrt b < a :=
@@ -263,7 +253,7 @@ begin
       { assume c hc,
         simpa only [inter_def, Ioc, Ico, mem_set_of_eq] using mem_Ioo.mpr ⟨hc.2.1, hc.1.2⟩ } },
     { have : ∀ x ∈ Ioo (min a b) (max a b), deriv f x = f' x := λ x hx, (hderiv x hx).deriv, -- currently unused
-      have hcongr : deriv f =ᶠ[nhds_within y (Ioi y)] f',
+      have hcongr : deriv f =ᶠ[𝓝[Ioi y] y] f',
       { sorry },
       have hf := (hcont'.continuous_within_at (left_mem_Icc.mpr min_le_max)),
       rw [interval, hy.1] at hf,

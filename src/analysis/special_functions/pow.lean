@@ -1166,11 +1166,7 @@ begin
 end
 
 lemma rpow_eq_top_iff_of_pos {x : ennreal} {y : ℝ} (hy : 0 < y) : x ^ y = ⊤ ↔ x = ⊤ :=
-begin
-  rw rpow_eq_top_iff,
-  have hy_not_neg : ¬ y < 0, by { push_neg, exact le_of_lt hy, },
-  simp [hy, hy_not_neg],
-end
+by simp [rpow_eq_top_iff, hy, asymm hy]
 
 lemma rpow_eq_top_of_nonneg (x : ennreal) {y : ℝ} (hy0 : 0 ≤ y) : x ^ y = ⊤ → x = ⊤ :=
 begin

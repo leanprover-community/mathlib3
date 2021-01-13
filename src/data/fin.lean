@@ -567,22 +567,6 @@ end
 lemma nat_add_zero {n : ℕ} : fin.nat_add 0 = (fin.cast (zero_add n).symm).to_rel_embedding :=
 by { ext, apply zero_add }
 
-/-- Adding zero on the right to a `k : fin (n + 1)` is equal to `k`. -/
-@[simp] lemma add_zero {n : ℕ} {k : fin (n + 1)} : k + 0 = k :=
-by simp [eq_iff_veq, add_def, mod_eq_of_lt (is_lt k)]
-
-/-- Adding zero on the left to a `k : fin (n + 1)` is equal to `k`. -/
-@[simp] lemma zero_add {n : ℕ} {k : fin (n + 1)} : (0 : fin (n + 1)) + k = k :=
-by simp [eq_iff_veq, add_def, mod_eq_of_lt (is_lt k)]
-
-/-- Multiplying by one on the right to a `k : fin (n + 2)` is equal to `k`. -/
-@[simp] lemma mul_one {n : ℕ} {k : fin (n + 2)} : k * 1 = k :=
-by simp [eq_iff_veq, mul_def, mod_eq_of_lt (is_lt k)]
-
-/-- Multiplying by one on the left to a `k : fin (n + 2)` is equal to `k`. -/
-@[simp] lemma one_mul {n : ℕ} {k : fin (n + 2)} : (1 : fin (n + 2)) * k = k :=
-by simp [eq_iff_veq, mul_def, mod_eq_of_lt (is_lt k)]
-
 /-- `min n m` as an element of `fin (m + 1)` -/
 def clamp (n m : ℕ) : fin (m + 1) := of_nat $ min n m
 
@@ -1333,5 +1317,35 @@ by rw [← of_nat_eq_coe]; refl
 @[simp] lemma coe_of_nat_eq_mod' (m n : ℕ) [I : fact (0 < m)] :
   (@fin.of_nat' _ I n : ℕ) = n % m :=
 rfl
+
+section monoid
+
+@[simp] lemma add_zero (k : fin (n + 1)) : k + 0 = k :=
+by simp [eq_iff_veq, add_def, mod_eq_of_lt (is_lt k)]
+
+@[simp] lemma zero_add (k : fin (n + 1)) : (0 : fin (n + 1)) + k = k :=
+by simp [eq_iff_veq, add_def, mod_eq_of_lt (is_lt k)]
+
+@[simp] lemma mul_one (k : fin (n + 1)) : k * 1 = k :=
+by { cases n, simp, simp [eq_iff_veq, mul_def, mod_eq_of_lt (is_lt k)] }
+
+@[simp] lemma one_mul (k : fin (n + 1)) : (1 : fin (n + 1)) * k = k :=
+by { cases n, simp, simp [eq_iff_veq, mul_def, mod_eq_of_lt (is_lt k)] }
+
+@[simp] lemma mul_zero (k : fin (n + 1)) : k * 0 = 0 :=
+by simp [eq_iff_veq, mul_def]
+
+@[simp] lemma zero_mul (k : fin (n + 1)) : (0 : fin (n + 1)) * k = 0 :=
+by simp [eq_iff_veq, mul_def]
+
+instance add_comm_monoid (n : ℕ) : add_comm_monoid (fin (n + 1)) :=
+{ add := (+),
+  add_assoc := by simp [eq_iff_veq, add_def, add_assoc],
+  zero := 0,
+  zero_add := zero_add,
+  add_zero := add_zero,
+  add_comm := by simp [eq_iff_veq, add_def, add_comm] }
+
+end monoid
 
 end fin

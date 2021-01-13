@@ -4,7 +4,8 @@ from pathlib import Path
 import sys
 
 def format_msg(msg):
-    return f"{msg['file_name']}:{msg.get('pos_line')}:{msg.get('pos_col')}: {msg.get('severity')}: {msg.get('text')}\n"
+    # %0A is encoded for github
+    return f"{msg['file_name']}:{msg.get('pos_line')}:{msg.get('pos_col')}: {msg.get('severity')}: {msg.get('text').replace("\n", "%0A")}\n"
 
 def write_and_print_noisy_files(noisy_files):
     with open('src/.noisy_files', 'w') as f:

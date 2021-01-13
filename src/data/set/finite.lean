@@ -534,7 +534,7 @@ lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
 (eq_or_ssubset_of_subset hsub).elim id
   (λ h, absurd hcard $ not_le_of_lt $ card_lt_card h)
 
-lemma subset_iff_to_finset_subset (α : Type*) (s t : set α) [fintype s] [fintype t] :
+lemma subset_iff_to_finset_subset (s t : set α) [fintype s] [fintype t] :
   s ⊆ t ↔ s.to_finset ⊆ t.to_finset :=
 ⟨λ h x hx, set.mem_to_finset.mpr $ h $ set.mem_to_finset.mp hx,
   λ h x hx, set.mem_to_finset.mp $ h $ set.mem_to_finset.mpr hx⟩

@@ -48,7 +48,7 @@ rfl
 
 end finset
 
-/-
+/--
 ## Operator precedence of `∏` and `∑`
 
 There is no established mathematical convention
@@ -68,6 +68,7 @@ In practice, this means that parentheses should be placed as follows:
 ```
 (Example taken from page 490 of Knuth's *Concrete Mathematics*.)
 -/
+library_note "operator precedence of big operators"
 
 localized "notation `∑` binders `, ` r:(scoped:67 f, finset.sum finset.univ f) := r"
   in big_operators

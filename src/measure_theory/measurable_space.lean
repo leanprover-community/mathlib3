@@ -83,6 +83,8 @@ structure measurable_space (α : Type*) :=
 
 attribute [class] measurable_space
 
+instance [h : measurable_space α] : measurable_space (order_dual α) := h
+
 section
 variable [measurable_space α]
 

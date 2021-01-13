@@ -9,7 +9,7 @@ import data.real.pi
 import measure_theory.measure_space
 import topology.metric_space.basic
 
-open set interval_integral metric real
+open set interval_integral metric real filter
 
 
 -- # Ben's assorted sqrt, sqr, and abs lemmas
@@ -78,7 +78,7 @@ lemma sqr_le_left {a b : ℝ} (h : a^2 ≤ b) : -sqrt b ≤ a := (sqr_le.mp h).1
 lemma sqr_le_right {a b : ℝ} (h : a^2 ≤ b) : a ≤ sqrt b := (sqr_le.mp h).2
 
 -- For Andrew for use in step 2:
--- (originally `opposite_sqrt_lt_of_sqr_lt`)
+-- (originally Andrew's `opposite_sqrt_lt_of_sqr_lt`)
 lemma sqr_lt_left {a b : ℝ} (h : a^2 < b) : -sqrt b < a := (sqr_lt.mp h).1
 
 lemma sqr_lt_right {a b : ℝ} (h : a^2 < b) : a < sqrt b := (sqr_lt.mp h).2
@@ -209,11 +209,13 @@ end
 
 -- # Ben's work:
 
+open_locale topological_space
+
 variables {β E F : Type*} [measurable_space E] [normed_group E] {f : ℝ → E}
   {c ca cb : E} {a b z : ℝ} {u v ua ub va vb : β → ℝ} {f' : ℝ → E} [normed_space ℝ E]
   [borel_space E] [complete_space E] [topological_space.second_countable_topology E]
 
--- James' original FTC-2 for open set lemma. Filled in by Ben where able, one sorry remaining.
+-- FTC-2 for the open set (original version). One sorry remaining.
 -- Note: I believe measurability assumption will drop when we merge master
 theorem integral_eq_sub_of_has_deriv_at'_mem_Ioo (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_at f (f' x) x)
@@ -233,17 +235,16 @@ begin
       use Ico (y-1) (max a b),
       split,
       { exact Ico_mem_nhds (by linarith) hy.2 },
-      { assume c,
-        rw [inter_def, Ioc, Ico, mem_set_of_eq],
-        intro hc,
-        exact mem_Ioo.mpr ⟨hc.2.1, hc.1.2⟩ } },
-    { rw tendsto_nhds_within_nhds,
-      intros ε hε,
-      use ε,
-      split,
-      exact hε,
-      intros x hx hdist,
-      sorry } } -- show `dist (deriv f x) (f' y) < ε` from `dist x y < ε`
+      { assume c hc,
+        simpa only [inter_def, Ioc, Ico, mem_set_of_eq] using mem_Ioo.mpr ⟨hc.2.1, hc.1.2⟩ } },
+    { have : ∀ x ∈ Ioo (min a b) (max a b), deriv f x = f' x := λ x hx, (hderiv x hx).deriv, -- currently unused
+      have hcongr : deriv f =ᶠ[nhds_within y (Ioi y)] f',
+      { sorry },
+      have hf := (hcont'.continuous_within_at (left_mem_Icc.mpr min_le_max)),
+      rw [interval, hy.1] at hf,
+      have hf' : tendsto f' (𝓝[Ici y] y) (𝓝 (f' y)) :=
+        by convert hf using 1; rw ← nhds_within_Icc_eq_nhds_within_Ici hy.2,
+      simpa only [tendsto_congr' hcongr] using hf'.mono_left (nhds_within_mono y Ioi_subset_Ici_self) } },
   end
 
 -- Added by Ben: New version of FTC-2 for open set as per Heather's suggestion. One sorry remaining.
@@ -294,8 +295,7 @@ end
 
 lemma step5_1 {x : ℝ} : deriv (λ y : ℝ, 1/2 * (arcsin y + y * sqrt (1 - y^2))) x = sqrt (1 - x^2) :=
 begin
-  have hx : x ≠ -1 ∧ x ≠ 1,
-    sorry, -- potentially tricky part
+  have hx : x ∈ Ioo (-(1:ℝ)) 1 := sorry, -- must assume this to be true, leave alone for now
   have hlt : 0 < 1 - x^2,
     sorry, -- show `0 < 1 - x^2`
   have h1 : differentiable_at ℝ (λ y:ℝ, 1 - y ^ 2) x,
@@ -305,7 +305,7 @@ begin
     sorry, -- show `differentiable_at ℝ (λ y, y * sqrt(1 - y ^ 2)) x`
   have h4 : differentiable_at ℝ (λ y:ℝ, arcsin y + y * sqrt(1 - y ^ 2)) x,
     sorry, -- show `differentiable_at ℝ (λ y, arcsin y + y * sqrt(1 - y ^ 2)) x`
-  rw [deriv_const_mul _ h4, deriv_add (differentiable_at_arcsin.mpr hx) h3,
+  rw [deriv_const_mul _ h4, deriv_add (differentiable_at_arcsin.mpr ⟨hx.1.ne.symm, hx.2.ne⟩) h3,
       deriv_mul differentiable_at_id' h2, deriv_sqrt h1 hlt.ne.symm, deriv_arcsin],
   simp only [one_mul, deriv_id'', differentiable_at_const, mul_one, zero_sub, deriv_sub,
     differentiable_at_id', deriv_pow'', nat.cast_bit0, deriv_id'', deriv_const', pow_one,

@@ -3,6 +3,7 @@ Copyright (c) 2019 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import data.bracket
 import algebra.algebra.basic
 import linear_algebra.bilinear_form
 import linear_algebra.matrix
@@ -43,17 +44,6 @@ lie bracket, ring commutator, jacobi identity, lie ring, lie algebra
 -/
 
 universes u v w w₁ w₂
-
-/-- The has_bracket class has two intended uses:
-
-  1. for the product `⁅x, y⁆` of two elements `x`, `y` in a Lie algebra
-     (analogous to `has_mul` in the associative setting),
-
-  2. for the action `⁅x, m⁆` of an element `x` of a Lie algebra on an element `m` in one of its
-     modules (analogous to `has_scalar` in the associative setting). -/
-class has_bracket (L : Type v) (M : Type w) := (bracket : L → M → M)
-
-notation `⁅`x`,` y`⁆` := has_bracket.bracket x y
 
 /-- A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. The bracket is not associative unless it is identically zero. -/
@@ -721,6 +711,9 @@ instance has_mem : has_mem M (lie_submodule R L M) := ⟨λ x N, x ∈ (N : set 
 @[simp] lemma mem_carrier (N : lie_submodule R L M) {x : M} : x ∈ N.carrier ↔ x ∈ (N : set M) :=
 iff.rfl
 
+@[simp] lemma mem_coe_submodule (N : lie_submodule R L M) {x : M} :
+  x ∈ (N : submodule R M) ↔ x ∈ N := iff.rfl
+
 @[simp] lemma coe_to_set_mk (S : set M) (h₁ h₂ h₃ h₄) :
   ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_submodule R L M) : set M) = S := rfl
 
@@ -779,6 +772,9 @@ open set
 
 lemma coe_injective : function.injective (coe : lie_submodule R L M → set M) :=
 λ N N' h, by { cases N, cases N', simp only, exact h, }
+
+lemma coe_submodule_injective : function.injective (coe : lie_submodule R L M → submodule R M) :=
+λ N N' h, by { ext, rw [← mem_coe_submodule, h], refl, }
 
 instance : partial_order (lie_submodule R L M) :=
 { le := λ N N', ∀ ⦃x⦄, x ∈ N → x ∈ N', -- Overriding `le` like this gives a better defeq.
@@ -920,6 +916,16 @@ begin
 end
 
 end lie_span
+
+lemma well_founded_of_noetherian [is_noetherian R M] :
+  well_founded ((>) : lie_submodule R L M → lie_submodule R L M → Prop) :=
+begin
+  let f : ((>) : lie_submodule R L M → lie_submodule R L M → Prop) →r
+          ((>) : submodule R M → submodule R M → Prop) :=
+  { to_fun       := coe,
+    map_rel' := λ N N' h, h, },
+  apply f.well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
+end
 
 end lattice_structure
 
@@ -1173,7 +1179,7 @@ def map (f : M →ₗ⁅R,L⁆ M') (N : lie_submodule R L M) : lie_submodule R L
 /-- A morphism of Lie modules `f : M → M'` pulls back Lie submodules of `M'` to Lie submodules of
 `M`. -/
 def comap (f : M →ₗ⁅R,L⁆ M') (N : lie_submodule R L M') : lie_submodule R L M :=
-{ lie_mem := λ x m h, by { suffices : ⁅x, f m⁆ ∈ N, { simpa [this], }, apply N.lie_mem h, },
+{ lie_mem := λ x m h, by { suffices : ⁅x, f m⁆ ∈ N, { simp [this], }, apply N.lie_mem h, },
   ..(N : submodule R M').comap (f : M →ₗ[R] M') }
 
 lemma map_le_iff_le_comap {f : M →ₗ⁅R,L⁆ M'} {N : lie_submodule R L M} {N' : lie_submodule R L M'} :
@@ -1199,7 +1205,7 @@ lie_submodule.lie_span R L' (f '' I)
 Note that `f` makes `L'` into a Lie module over `L` (turning `f` into a morphism of Lie modules)
 and so this is a special case of `lie_submodule.comap` but we do not exploit this fact. -/
 def comap (f : L →ₗ⁅R⁆ L') (I : lie_ideal R L') : lie_ideal R L :=
-{ lie_mem := λ x y h, by { suffices : ⁅f x, f y⁆ ∈ I, { simpa [this], }, apply I.lie_mem h, },
+{ lie_mem := λ x y h, by { suffices : ⁅f x, f y⁆ ∈ I, { simp [this], }, apply I.lie_mem h, },
   ..(I : submodule R L').comap (f : L →ₗ[R] L') }
 
 lemma map_le_iff_le_comap {f : L →ₗ⁅R⁆ L'} {I : lie_ideal R L} {I' : lie_ideal R L'} :

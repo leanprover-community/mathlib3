@@ -715,6 +715,18 @@ lemma comap_infi {ι : Sort*} (f : G →* N) (s : ι → subgroup N) :
 @[simp, to_additive] lemma comap_top (f : G →* N) : (⊤ : subgroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
+@[to_additive]
+lemma map_eq_bot_iff {G' : Type*} [group G'] {f : G →* G'} (hf : function.injective f)
+  (H : subgroup G) : H.map f = ⊥ ↔ H = ⊥ :=
+begin
+  split,
+  { rw [eq_bot_iff_forall, eq_bot_iff_forall],
+    intros h x hx,
+    have hfx : f x = 1 := h (f x) ⟨x, hx, rfl⟩,
+    exact hf (show f x = f 1, by simp only [hfx, monoid_hom.map_one]), },
+  { intros h, rw [h, map_bot], },
+end
+
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`
 as an `add_subgroup` of `A × B`."]
@@ -932,6 +944,9 @@ subset_closure
 theorem subset_normal_closure : s ⊆ normal_closure s :=
 set.subset.trans subset_conjugates_of_set conjugates_of_set_subset_normal_closure
 
+theorem le_normal_closure {H : subgroup G} : H ≤ normal_closure ↑H :=
+λ _ h, subset_normal_closure h
+
 /-- The normal closure of `s` is a normal subgroup. -/
 instance normal_closure_normal : (normal_closure s).normal :=
 ⟨λ n h g,
@@ -969,6 +984,20 @@ le_antisymm
   (le_infi (λ N, le_infi (λ hN, by exactI le_infi (normal_closure_le_normal))))
   (infi_le_of_le (normal_closure s) (infi_le_of_le (by apply_instance)
     (infi_le_of_le subset_normal_closure (le_refl _))))
+
+@[simp] theorem normal_closure_eq_self (H : subgroup G) [H.normal] : normal_closure ↑H = H :=
+le_antisymm (normal_closure_le_normal rfl.subset) (le_normal_closure)
+
+@[simp] theorem normal_closure_idempotent : normal_closure ↑(normal_closure s) = normal_closure s :=
+normal_closure_eq_self _
+
+theorem closure_le_normal_closure {s : set G} : closure s ≤ normal_closure s :=
+by simp only [subset_normal_closure, closure_le]
+
+@[simp] theorem normal_closure_closure_eq_normal_closure {s : set G} :
+  normal_closure ↑(closure s) = normal_closure s :=
+le_antisymm (normal_closure_le_normal closure_le_normal_closure)
+  (normal_closure_mono subset_closure)
 
 end subgroup
 namespace add_subgroup

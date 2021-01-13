@@ -676,10 +676,12 @@ lemma inv_eq_zero {φ : mv_power_series σ k} :
  λ h, ext $ λ n, by { rw coeff_inv, split_ifs;
  simp only [h, mv_power_series.coeff_zero, zero_mul, inv_zero, neg_zero] }⟩
 
-@[simp, priority 1100] lemma inv_of_unit_eq (φ : mv_power_series σ k) (h : constant_coeff σ k φ ≠ 0) :
+@[simp, priority 1100]
+lemma inv_of_unit_eq (φ : mv_power_series σ k) (h : constant_coeff σ k φ ≠ 0) :
   inv_of_unit φ (units.mk0 _ h) = φ⁻¹ := rfl
 
-@[simp] lemma inv_of_unit_eq' (φ : mv_power_series σ k) (u : units k) (h : constant_coeff σ k φ = u) :
+@[simp]
+lemma inv_of_unit_eq' (φ : mv_power_series σ k) (u : units k) (h : constant_coeff σ k φ = u) :
   inv_of_unit φ u = φ⁻¹ :=
 begin
   rw ← inv_of_unit_eq φ (h.symm ▸ u.ne_zero),
@@ -1276,7 +1278,7 @@ multiplicity X φ
 lemma order_finite_of_coeff_ne_zero (φ : power_series R) (h : ∃ n, coeff R n φ ≠ 0) :
   (order φ).dom :=
 begin
-  cases h with n h, refine ⟨n, _⟩,
+  cases h with n h, refine ⟨n, _⟩, dsimp only,
   rw X_pow_dvd_iff, push_neg, exact ⟨n, lt_add_one n, h⟩
 end
 

@@ -90,7 +90,7 @@ is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin
   cases (mem_iff_generator_dvd _).1 h with y hy,
   have : generator S ≠ 0 := mt (eq_bot_iff_generator_eq_zero _).2 hS,
   rw [← mul_one (generator S), hy, mul_left_comm, mul_right_inj' this] at hz,
-  exact hz.symm ▸ ideal.mul_mem_right _ (generator_mem T)
+  exact hz.symm ▸ T.mul_mem_right _ (generator_mem T)
 end⟩
 
 end is_prime
@@ -100,8 +100,8 @@ open euclidean_domain
 variable [euclidean_domain R]
 
 lemma mod_mem_iff {S : ideal R} {x y : R} (hy : y ∈ S) : x % y ∈ S ↔ x ∈ S :=
-⟨λ hxy, div_add_mod x y ▸ ideal.add_mem S (ideal.mul_mem_right S hy) hxy,
-  λ hx, (mod_eq_sub_mul_div x y).symm ▸ ideal.sub_mem S hx (ideal.mul_mem_right S hy)⟩
+⟨λ hxy, div_add_mod x y ▸ S.add_mem (S.mul_mem_right _ hy) hxy,
+  λ hx, (mod_eq_sub_mul_div x y).symm ▸ S.sub_mem hx (S.mul_mem_right _ hy)⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R :=
@@ -120,7 +120,7 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
           from λ h₁, well_founded.not_lt_min wf _ h h₁ (mod_lt x hmin.2),
         have x % well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h = 0, by finish [(mod_mem_iff hmin.1).2 hx],
         by simp *),
-      λ hx, let ⟨y, hy⟩ := ideal.mem_span_singleton.1 hx in hy.symm ▸ ideal.mul_mem_right _ hmin.1⟩⟩
+      λ hx, let ⟨y, hy⟩ := ideal.mem_span_singleton.1 hx in hy.symm ▸ S.mul_mem_right _ hmin.1⟩⟩
     else ⟨0, submodule.ext $ λ a, by rw [← @submodule.bot_coe R R _ _ _, span_eq, submodule.mem_bot]; exact
       ⟨λ haS, by_contradiction $ λ ha0, h ⟨a, ⟨haS, ha0⟩⟩,
       λ h₁, h₁.symm ▸ S.zero_mem⟩⟩⟩ }

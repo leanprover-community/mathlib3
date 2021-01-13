@@ -87,6 +87,20 @@ by cases a; cases b; refl
 lemma bind_assoc (x : option α) (f : α → option β) (g : β → option γ) :
   (x.bind f).bind g = x.bind (λ y, (f y).bind g) := by cases x; refl
 
+lemma join_eq_some {x : option (option α)} {a : α} : x.join = some a ↔ x = some (some a) := by simp
+
+lemma join_ne_none {x : option (option α)} : x.join ≠ none ↔ ∃ z, x = some (some z) := by simp
+
+lemma join_ne_none' {x : option (option α)} : ¬(x.join = none) ↔ ∃ z, x = some (some z) := by simp
+
+lemma bind_id_eq_join {x : option (option α)} : x >>= id = x.join := by simp
+
+lemma join_eq_join : mjoin = @join α :=
+funext (λ x, by rw [mjoin, bind_id_eq_join])
+
+lemma bind_eq_bind {α β : Type*} {f : α → option β} {x : option α} :
+  x >>= f = x.bind f := rfl
+
 @[simp] lemma map_eq_map {α β} {f : α → β} :
   (<$>) f = option.map f := rfl
 
@@ -106,6 +120,18 @@ by cases x; simp
   x.map f = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 
+lemma map_eq_none {α β} {x : option α} {f : α → β} :
+  f <$> x = none ↔ x = none :=
+by { cases x; simp only [map_none, map_some, eq_self_iff_true] }
+
+@[simp] lemma map_eq_none' {x : option α} {f : α → β} :
+  x.map f = none ↔ x = none :=
+by { cases x; simp only [map_none', map_some', eq_self_iff_true] }
+
+lemma map_congr {f g : α → β} {x : option α} (h : ∀ a ∈ x, f a = g a) :
+  option.map f x = option.map g x :=
+by { cases x; simp only [map_none', map_some', h, mem_def] }
+
 @[simp] theorem map_id' : option.map (@id α) = id := map_id
 
 @[simp] lemma map_map (h : β → γ) (g : α → β) (x : option α) :
@@ -118,6 +144,21 @@ lemma comp_map (h : β → γ) (g : α → β) (x : option α) :
 @[simp] lemma map_comp_map (f : α → β) (g : β → γ) :
   option.map g ∘ option.map f = option.map (g ∘ f) :=
 by { ext x, rw comp_map }
+
+lemma bind_map_comm {α β} {x : option (option α) } {f : α → β} :
+  x >>= option.map f = x.map (option.map f) >>= id :=
+by { cases x; simp }
+
+lemma join_map_eq_map_join {f : α → β} {x : option (option α)} :
+  (x.map (option.map f)).join = x.join.map f :=
+by { rcases x with _ | _ | x; simp }
+
+lemma join_join {x : option (option (option α))} :
+  x.join.join = (x.map join).join :=
+by { rcases x with _ | _ | _ | x; simp }
+
+lemma mem_of_mem_join {a : α} {x : option (option α)} (h : a ∈ x.join) : some a ∈ x :=
+mem_def.mpr ((mem_def.mp h).symm ▸ join_eq_some.mp h)
 
 @[simp] theorem seq_some {α β} {a : α} {f : α → β} : some f <*> some a = some (f a) := rfl
 

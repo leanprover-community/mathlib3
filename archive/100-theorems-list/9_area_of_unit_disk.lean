@@ -13,6 +13,17 @@ open set interval_integral metric real
 
 -- # Andrew's work
 
+--Andrew's work, helpful for proving `is_open unit_disc`
+lemma sqr_add_le_add_abs_sqr (a b: ℝ) : a^2 + b^2 ≤ (abs a + abs b)^2 :=
+begin
+  have : (abs a + abs b)^2 = (abs a)^2 + 2* (abs a)*(abs b) + (abs b)^2 := by ring,
+  simp only [this, pow_abs,
+      abs_of_nonneg (pow_two_nonneg a), abs_of_nonneg (pow_two_nonneg b),
+      le_add_iff_nonneg_right, add_le_add_iff_right],
+  exact mul_nonneg (mul_nonneg (zero_le_two) (abs_nonneg a )) (abs_nonneg b),
+end
+
+
 --Def'n and alternate def'n of the unit disc
 def unit_disc := {point : ℝ × ℝ | (point.1)^2 + (point.2)^2 < 1 }
 
@@ -30,28 +41,23 @@ begin
   { norm_num,
     rw ← sqrt_one,
     exact (sqrt_lt (add_nonneg (pow_two_nonneg p.1) (pow_two_nonneg p.2))).2 hp },
-  { intros q hq,
+  { /-runs super slow, maybe because of the `replace`s and `linarith`s (?),
+      hopefully make it a `calc` block one day-/
+    intros q hq,
     simp only [dist, mem_ball, mem_set_of_eq, max_lt_iff] at *,
-    --have ε_def : ε = 1 / 2 * (1 - sqrt (p.fst ^ 2 + p.snd ^ 2)) := rfl,
-    --rw ε_def at  hq,
-    have hq : abs (q.fst - p.fst) + abs (q.snd - p.snd) < 1 - sqrt (p.fst ^ 2 + p.snd ^ 2) :=
+    replace hq : abs (q.1 - p.1) + abs (q.2 - p.2) < 1 - sqrt (p.1 ^ 2 + p.2 ^ 2) :=
         by linarith [add_lt_add hq.1 hq.2],
-    have h_tri₁ : sqrt ((q.fst - p.fst)^2 + (q.snd - p.snd)^2)
-                ≤ abs (q.fst - p.fst) + abs (q.snd - p.snd),
-      rw sqrt_le_iff,
-      split,
-      exact add_nonneg (abs_nonneg _) (abs_nonneg _),
-      ring,
-
-      have := add_pow p.1 p.2 2,
-      sorry,
-    replace hq : sqrt ((q.fst - p.fst)^2 + (q.snd - p.snd)^2)
-               < 1 - sqrt (p.fst ^ 2 + p.snd ^ 2) := by linarith,
-    replace hq : sqrt ((q.fst - p.fst)^2 + (q.snd - p.snd)^2) + sqrt (p.fst ^ 2 + p.snd ^ 2)
+    have h_tri₁ : sqrt ((q.1 - p.1)^2 + (q.2 - p.2)^2)
+                ≤ abs (q.1 - p.1) + abs (q.2 - p.2) := by rw sqrt_le_iff;
+                  exact ⟨add_nonneg (abs_nonneg _) (abs_nonneg _),
+                  sqr_add_le_add_abs_sqr  (q.1 - p.1) (q.2 - p.2)⟩,
+    replace hq : sqrt ((q.1 - p.1)^2 + (q.2 - p.2)^2)
+               < 1 - sqrt (p.1 ^ 2 + p.2 ^ 2) := by linarith,
+    replace hq : sqrt ((q.1 - p.1)^2 + (q.2 - p.2)^2) + sqrt (p.1 ^ 2 + p.2 ^ 2)
                < 1 := by linarith,
-    have h_tri₂ : sqrt (q.fst^2 + q.snd^2)
-                ≤ sqrt ( (q.fst - p.fst)^2 + (q.snd - p.snd)^2 ) + sqrt (p.fst^2 + p.snd^2) := sorry,
-    replace hq : sqrt (q.fst^2 + q.snd^2) < 1 := by linarith,
+    have h_tri₂ : sqrt (q.1^2 + q.2^2)
+                ≤ sqrt ( (q.1 - p.1)^2 + (q.2 - p.2)^2 ) + sqrt (p.1^2 + p.2^2) := sorry,
+    replace hq : sqrt (q.1^2 + q.2^2) < 1 := by linarith,
     rw ← sqrt_one at hq,
     exact (sqrt_lt (add_nonneg (pow_two_nonneg q.1) (pow_two_nonneg q.2))).1 hq, },
 end

@@ -419,6 +419,13 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
 @[simp] lemma lift_mk (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0) :
   lift S f H (mk S a) = f a := rfl
 
+@[simp] lemma lift_comp_mk (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0) :
+  (lift S f H).comp (mk S) = f := ring_hom.ext (λ _, rfl)
+
+lemma lift_surjective (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0)
+  (hf : function.surjective f) : function.surjective (lift S f H) :=
+λ x, let ⟨y, hy⟩ := hf x in ⟨(quotient.mk S) y, by simpa⟩
+
 end quotient
 
 section lattice

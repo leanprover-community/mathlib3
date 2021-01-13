@@ -499,6 +499,18 @@ begin
   rwa [quotient.eq_zero_iff_mem, mem_comap, hIJ, mem_comap, coe_map_ring_hom, map_C],
 end
 
+lemma comp_C_integral_of_surjective_of_jacobson {R : Type*} [integral_domain R] [is_jacobson R]
+  {S : Type*} [field S] (f : (polynomial R) →+* S) (hf : function.surjective f) :
+  (f.comp C).is_integral :=
+begin
+  haveI : (f.ker).is_maximal := @comap_is_maximal_of_surjective _ _ _ _ f ⊥ hf bot_is_maximal,
+  let g : f.ker.quotient →+* S := ideal.quotient.lift f.ker f (λ _ h, h),
+  have hfg : (g.comp (quotient.mk f.ker)) = f := quotient.lift_comp_mk f.ker f _,
+  rw [← hfg, ring_hom.comp_assoc],
+  refine ring_hom.is_integral_trans _ g (quotient_mk_comp_C_is_integral_of_jacobson f.ker)
+    (g.is_integral_of_surjective (quotient.lift_surjective f.ker f _ hf)),
+end
+
 lemma is_maximal_comap_C_of_is_jacobson {R : Type*} [integral_domain R] [is_jacobson R]
   (P : ideal (polynomial R)) [hP : P.is_maximal] : (P.comap (C : R →+* polynomial R)).is_maximal :=
 begin
@@ -573,6 +585,18 @@ begin
     rw [← fin_succ_equiv_comp_C_eq_C n, this],
     refine ring_hom.is_integral_trans (quotient.mk P1) φ _ hφ,
     exact (quotient.mk P1).is_integral_of_surjective (quotient.mk_surjective) }
+end
+
+lemma comp_C_integral_of_surjective_of_jacobson {R : Type*} [integral_domain R] [is_jacobson R]
+  {S : Type*} [field S] {n : ℕ} (f : (mv_polynomial (fin n) R) →+* S) (hf : function.surjective f) :
+  (f.comp C).is_integral :=
+begin
+  haveI : (f.ker).is_maximal := @comap_is_maximal_of_surjective _ _ _ _ f ⊥ hf bot_is_maximal,
+  let g : f.ker.quotient →+* S := ideal.quotient.lift f.ker f (λ _ h, h),
+  have hfg : (g.comp (quotient.mk f.ker)) = f := quotient.lift_comp_mk f.ker f _,
+  rw [← hfg, ring_hom.comp_assoc],
+  refine ring_hom.is_integral_trans _ g (quotient_mk_comp_C_is_integral_of_jacobson f.ker)
+    (g.is_integral_of_surjective (quotient.lift_surjective f.ker f _ hf)),
 end
 
 end mv_polynomial

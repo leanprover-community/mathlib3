@@ -633,8 +633,16 @@ begin
   --  ∧ ∀ Z' < Z, ¬ multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ J,
   --  split, swap,
   apply exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF h_J.left,
-  obtain ⟨P, h_PZ, h_JP, h_Z'P⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ J ∧
-    ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J, sorry, -- LA CICCIA
+  have h_ZM : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ M := le_trans h_ZJ h_J.right,
+  obtain ⟨P, h_PZ, h_JP, h_Z'P⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M ∧
+    ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J,
+    { let Ω : list (prime_spectrum R) := multiset.to_list Z,
+
+    sorry
+     },-- h_PZ SEMBRA INUTILE; h_Z'P ANCHE???
+
+    --  sorry, -- LA CICCIA
+
   -- have h_ZZ' : ∀ Z' < Z, ¬ multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ J,
   -- { induction hcard : Z.card with n hn generalizing Z,
   --   { sorry },-- usare h_nzZ,
@@ -644,8 +652,8 @@ begin
   -- replace h_ZJ : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ M, sorry,
   -- obtain ⟨P, h_ZP, h_JP⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M, sorry,
   have h_nebotP : P.1 ≠ ⊥, sorry, --USARE CHE Z.prod ≠ ⊥,
-  replace h_JP : P.1 ≤ M,
-  { apply le_trans h_JP h_J.right },
+  -- replace h_JP : P.1 ≤ M,
+  -- { apply le_trans h_JP h_J.right },
   replace h_JP : P.1 = M,
   { apply is_maximal.eq_of_le _ hM.1 h_JP,
     apply hR.2, exacts [h_nebotP, P.2] },

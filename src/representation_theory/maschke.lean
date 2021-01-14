@@ -173,7 +173,8 @@ lemma exists_is_compl
 let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective not_dvd p.subtype p.ker_subtype in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
-instance : is_complemented (submodule (monoid_algebra k G) V) := ⟨exists_is_compl⟩
+theorem is_complemented (not_dvd : ¬(ring_char k ∣ fintype.card G)) :
+  is_complemented (submodule (monoid_algebra k G) V) := ⟨exists_is_compl not_dvd⟩
 
 end submodule
 end monoid_algebra

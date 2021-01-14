@@ -1261,7 +1261,7 @@ instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_sp
   ..submodule.normed_space W }
 
 /-- The inner product on submodules is the same as on the ambient space. -/
-@[simp] lemma submodule.coe_inner (W : submodule 𝕜 E) (x y: W) : ⟪x, y⟫ = ⟪(x:E), ↑y⟫ := rfl
+@[simp] lemma submodule.coe_inner (W : submodule 𝕜 E) (x y : W) : ⟪x, y⟫ = ⟪(x:E), ↑y⟫ := rfl
 
 section is_R_or_C_to_real
 

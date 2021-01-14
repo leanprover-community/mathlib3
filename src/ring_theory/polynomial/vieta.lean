@@ -3,15 +3,14 @@ Copyright (c) 2020 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Hanting Zhang
 -/
-import tactic
-import ring_theory.polynomial.basic
 import algebra.polynomial.big_operators
+import algebra.big_operators.nat_antidiagonal
 
 /-!
 # Vieta's Formula
 
-The main result is `coeff_of_prod_X_add_C`, which relates the roots of
-a product of linear terms to the coefficients.
+The main result is `coeff_of_prod_X_add_C`, which shows that the kth coefficient of
+a product of linear terms `X + r i` is the kth symmetric polynomial of the constant terms `r i`.
 -/
 
 universes u v w
@@ -40,13 +39,6 @@ begin
   exact ne_of_gt (lt_of_lt_of_le zero_lt_two h),
 end
 
-lemma degree_X_add_C' (a : α) : degree (X + C a) = 1 :=
-have degree (C a) < degree (X : polynomial α),
-from calc degree (C a) ≤ 0 : degree_C_le
-                   ... < 1 : with_bot.some_lt_some.mpr zero_lt_one
-                   ... = degree X : degree_X.symm,
-by rw [degree_add_eq_left_of_degree_lt this, degree_X]
-
 lemma coeff_top (n : ℕ) (r : ℕ → α) : coeff (∏ i in range n, (X + C (r i))) n = 1 :=
 begin
   have h : nat_degree (∏ i in range n, (X + C (r i))) = n :=
@@ -54,11 +46,9 @@ begin
     rw nat_degree_prod,
     conv { to_rhs, rw [← card_range n, finset.card_eq_sum_ones] },
     congr, ext,
-    rw ← degree_eq_iff_nat_degree_eq,
+    rw ← degree_eq_iff_nat_degree_eq (monic.ne_zero (monic_X_add_C (r x))),
     simp only [degree_X_add_C, with_top.coe_one],
-    exact monic.ne_zero (monic_X_add_C (r x)),
-    intros,
-    exact monic.ne_zero (monic_X_add_C (r i)),
+    exact (λ i, λ H, monic.ne_zero (monic_X_add_C (r i))),
   end,
   conv { to_lhs, congr, skip, rw ← h, },
   rw [coeff_nat_degree, leading_coeff_prod, ← one_mul X, ← C_1],
@@ -75,30 +65,26 @@ lemma sum_prod_mul_X_add_C (n k: ℕ) (h: k ≤ n) : ∑ l in range (k + 1),
 begin
   rw [sum_range_succ, nat.sub_self, coeff_zero_X_add_C],
   cases nat.eq_zero_or_pos k,
-  { rw h_1, simp,
-    have hh : powerset_len (n + 1) (range n) = ∅ :=
-    by { apply finset.card_eq_zero.mp, simp },
-    rw hh, simp },
-  rw [← nat.succ_pred_eq_of_pos h_1, nat.succ_eq_add_one, sum_range_succ,
-      nat.add_sub_cancel_left, coeff_one_X_add_C, mul_one],
+  { have hh : powerset_len (n + 1) (range n) = ∅ :=
+    by { apply finset.card_eq_zero.mp, rw [card_powerset_len, card_range, nat.choose_succ_self]},
+    rw [h_1, nat.sub_zero, hh],
+    simp, },
   have hsum : ∑ x in range k.pred,
               (∑ A in powerset_len (n - x) (range n),
               ∏ j  in A, r j) * (X + C (r n)).coeff (k.pred + 1 - x) = ∑ x in range k.pred, 0 :=
   begin
-    refine finset.sum_congr rfl (λ x hx, _),
+    refine sum_congr rfl (λ x hx, _),
     rw [coeff_ge_two_X_add_C, mul_zero],
     rw add_comm k.pred _,
     exact nat.lt_sub_right_of_add_lt (add_lt_add_left (mem_range.mp hx) 1),
   end,
-  rw hsum,
+  rw [← nat.succ_pred_eq_of_pos h_1, nat.succ_eq_add_one, sum_range_succ,
+      nat.add_sub_cancel_left, coeff_one_X_add_C, mul_one, hsum],
   simp only [hsum, add_zero, sum_const_zero],
   rw add_comm,
-  have h_re : n - (k.pred + 1) + 1 = n - k.pred :=
-  begin
-    rw [nat.pred_eq_sub_one, nat.sub_add_eq_max, max_eq_left],
-    omega nat, exact h_1,
-  end,
-  rwa h_re,
+  congr,
+  rw [nat.pred_eq_sub_one, nat.sub_add_eq_max, max_eq_left],
+  omega nat, exact h_1,
 end
 
 lemma sum_prod_insert (n k : ℕ) : ∑ A in powerset_len (n - k) (range n), (∏ j in A, r j) * r n =
@@ -140,7 +126,8 @@ begin
   exact not_mem_range_self,
 end
 
-/-- A sum version of Vieta's Formulas -/
+/-- A sum version of Vieta's Formulas which shows that the kth coefficient of a product
+of linear terms `X + r i` is the kth symmetric polynomial of the constant terms `r i`. -/
 lemma coeff_of_prod_X_add_C :
   ∀ (k : ℕ), k ≤ n → coeff (∏ i in range n, (X + C (r i))) k
   = ∑ A in (powerset_len (n - k) (range n)), (∏ j in A, r j) :=
@@ -161,11 +148,8 @@ begin
     ... = ∑ l in range (k + 1),
           (∑ A in powerset_len (n - l) (range n), ∏ j in A, r j) * (X + C (r n)).coeff (k - l) :
     begin
-      apply sum_congr, { refl },
-      intros l hl,
-      specialize ih l,
-      have h_ln : l ≤ n := by { rw finset.mem_range_succ_iff at hl, exact le_trans hl h, },
-      rw ih h_ln,
+      refine finset.sum_congr rfl (λ l hl, _),
+      rw ih l (le_trans (mem_range_succ_iff.mp hl) h),
     end
     ... = (∑ A in powerset_len (n - k + 1) (range n), ∏ j in A, r j)
           + (∑ A in powerset_len (n - k) (range n), ∏ j in A, r j) * (r n)  :

@@ -3,9 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import tactic
 import data.polynomial.monomial
-import algebra.big_operators.nat_antidiagonal
+import data.finset.nat_antidiagonal
 
 /-!
 # Theory of univariate polynomials

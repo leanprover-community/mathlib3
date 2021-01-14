@@ -731,12 +731,12 @@ def prod_comparison (F : C ⥤ D) (A B : C)
   F.obj (A ⨯ B) ⟶ F.obj A ⨯ F.obj B :=
 prod.lift (F.map prod.fst) (F.map prod.snd)
 
-@[simp]
+@[simp, reassoc]
 lemma prod_comparison_fst :
   prod_comparison F A B ≫ prod.fst = F.map prod.fst :=
 prod.lift_fst _ _
 
-@[simp]
+@[simp, reassoc]
 lemma prod_comparison_snd :
   prod_comparison F A B ≫ prod.snd = F.map prod.snd :=
 prod.lift_snd _ _

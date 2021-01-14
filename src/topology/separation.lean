@@ -139,6 +139,45 @@ begin
   exact is_closed_bUnion (finite.of_fintype _) (λ y _, is_closed_singleton)
 end
 
+lemma singleton_mem_nhds_within_of_mem_discrete {s : set α} [discrete_topology s]
+  {x : α} (hx : x ∈ s) :
+  {x} ∈ 𝓝[s] x :=
+begin
+  have : ({⟨x, hx⟩} : set s) ∈ 𝓝 (⟨x, hx⟩ : s), by simp [nhds_discrete],
+  simpa only [nhds_within_eq_map_subtype_coe hx, image_singleton]
+    using @image_mem_map _ _ _ (coe : s → α) _ this
+end
+
+lemma nhds_within_of_mem_discrete {s : set α} [discrete_topology s] {x : α} (hx : x ∈ s) :
+  𝓝[s] x = pure x :=
+le_antisymm (le_pure_iff.2 $ singleton_mem_nhds_within_of_mem_discrete hx) (pure_le_nhds_within hx)
+
+lemma filter.has_basis.exists_inter_eq_singleton_of_mem_discrete
+  {ι : Type*} {p : ι → Prop} {t : ι → set α} {s : set α} [discrete_topology s] {x : α}
+  (hb : (𝓝 x).has_basis p t) (hx : x ∈ s) :
+  ∃ i (hi : p i), t i ∩ s = {x} :=
+begin
+  rcases (nhds_within_has_basis hb s).mem_iff.1 (singleton_mem_nhds_within_of_mem_discrete hx)
+    with ⟨i, hi, hix⟩,
+  exact ⟨i, hi, subset.antisymm hix $ singleton_subset_iff.2 ⟨mem_of_nhds $ hb.mem_of_mem hi, hx⟩⟩
+end
+
+/-- A point `x` in a discrete subset `s` of a topological space admits a neighbourhood
+that only meets `s` at `x`.  -/
+lemma nhds_inter_eq_singleton_of_mem_discrete {s : set α} [discrete_topology s] {x : α} (hx : x ∈ s) :
+  ∃ U ∈ 𝓝 x, U ∩ s = {x} :=
+by simpa using (𝓝 x).basis_sets.exists_inter_eq_singleton_of_mem_discrete hx
+
+/-- For point `x` in a discrete subset `s` of a topological space, there is a set `U`
+such that
+1. `U` is a punctured neighborhood of `x` (ie. `U ∪ {x}` is a neighbourhood of `x`),
+2. `U` is disjoint from `s`.
+-/
+lemma disjoint_nhds_within_of_mem_discrete {s : set α} [discrete_topology s] {x : α} (hx : x ∈ s) :
+  ∃ U ∈ 𝓝[{x}ᶜ] x, disjoint U s :=
+let ⟨V, h, h'⟩ := nhds_inter_eq_singleton_of_mem_discrete hx in ⟨{x}ᶜ ∩ V, inter_mem_nhds_within _ h,
+  (disjoint_iff_inter_eq_empty.mpr (by { rw [inter_assoc, h', compl_inter_self] }))⟩
+
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/

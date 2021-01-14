@@ -170,7 +170,7 @@ lemma trailing_degree_one_le : (0 : with_top ℕ) ≤ trailing_degree (1 : polyn
 by rw [← C_1]; exact le_trailing_degree_C
 
 @[simp] lemma nat_trailing_degree_C (a : R) : nat_trailing_degree (C a) = 0 :=
-le_zero_iff_eq.1 nat_trailing_degree_monomial_le
+nonpos_iff_eq_zero.1 nat_trailing_degree_monomial_le
 
 @[simp] lemma nat_trailing_degree_one : nat_trailing_degree (1 : polynomial R) = 0 :=
 nat_trailing_degree_C 1

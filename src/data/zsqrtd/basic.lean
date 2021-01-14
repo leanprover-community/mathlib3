@@ -41,7 +41,7 @@ instance : has_zero ℤ√d := ⟨zsqrtd.zero⟩
 instance : inhabited ℤ√d := ⟨0⟩
 
 /-- The one of the ring -/
-def one : ℤ√d := of_int _
+def one : ℤ√d := of_int 1
 instance : has_one ℤ√d := ⟨zsqrtd.one⟩
 @[simp] theorem one_re : (1 : ℤ√d).re = 1 := rfl
 @[simp] theorem one_im : (1 : ℤ√d).im = 0 := rfl

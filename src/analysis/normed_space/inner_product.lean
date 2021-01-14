@@ -1518,9 +1518,9 @@ instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instanc
 lemma findim_euclidean_space_fin {n : ℕ} :
   finite_dimensional.findim 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
 
-/-- A basis on `ι` for a finite-dimensional inner product space induces a continuous linear
-equivalence with `euclidean_space 𝕜 ι`.  If the basis is orthonormal, this continuous linear
-equivalence is an isometry, but we don't prove that here. -/
+/-- A basis on `ι` for a finite-dimensional space induces a continuous linear equivalence 
+with `euclidean_space 𝕜 ι`.  If the basis is orthonormal in an inner product space, this continuous 
+linear equivalence is an isometry, but we don't prove that here. -/
 def is_basis.equiv_fun_euclidean [finite_dimensional 𝕜 E] {v : ι → E} (h : is_basis 𝕜 v) :
   E ≃L[𝕜] (euclidean_space 𝕜 ι) :=
 h.equiv_fun.to_continuous_linear_equiv

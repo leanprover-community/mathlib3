@@ -111,7 +111,6 @@ end
 Still runs a bit slow. We can probably get it cleaner. -/
 lemma is_open_unit_disc : is_open unit_disc :=
 begin
-  unfold unit_disc,
   rw is_open_iff,
   intros p hp,
   use (1/2) * (1 - sqrt ((p.1) ^ 2 + (p.2) ^ 2)),
@@ -120,19 +119,16 @@ begin
     rw ← sqrt_one,
     exact (sqrt_lt (add_nonneg (pow_two_nonneg p.1) (pow_two_nonneg p.2))).2 hp },
   { intros q hq,
-    simp only [dist, mem_ball, mem_set_of_eq, max_lt_iff] at hp hq ⊢,
-    rw [← sqrt_lt (add_nonneg (pow_two_nonneg q.1) (pow_two_nonneg q.2)), sqrt_one],
+    let h := real.Lp_add_two_le' (q.1 - p.1, q.2 - p.2) p 2 one_le_two,
+    simp only [unit_disc, dist, mem_ball, mem_set_of_eq, max_lt_iff, sqrt_one, sub_add_cancel,
+              ← sqrt_lt (add_nonneg (pow_two_nonneg q.1) (pow_two_nonneg q.2))] at hp hq h ⊢,
     calc sqrt (q.fst ^ 2 + q.snd ^ 2) ≤ sqrt ((q.1 - p.1)^2 + (q.2 - p.2)^2) + sqrt (p.1^2 + p.2^2) :
-      by { have := real.Lp_add_two_le' (q.1 - p.1, q.2 - p.2) p 2 one_le_two,
-          simp only [sub_add_cancel] at this,
-          rw [sqrt_eq_rpow,
-              ← abs_of_nonneg (pow_two_nonneg q.1), ← abs_of_nonneg (pow_two_nonneg q.2),
-              ← abs_of_nonneg (pow_two_nonneg (q.1 - p.1)),
-              ← abs_of_nonneg (pow_two_nonneg (q.2 - p.2)),
-              ← abs_of_nonneg (pow_two_nonneg p.1), ← abs_of_nonneg (pow_two_nonneg p.2),
-              abs_pow q.1 2, abs_pow q.2 2, abs_pow p.1 2, abs_pow p.2 2,
-              abs_pow (q.1 - p.1) 2, abs_pow (q.2 - p.2) 2],
-          exact_mod_cast this }
+      by rw [sqrt_eq_rpow, ← abs_of_nonneg (pow_two_nonneg q.1), ← abs_of_nonneg (pow_two_nonneg q.2),
+            ← abs_of_nonneg (pow_two_nonneg (q.1 - p.1)), ← abs_of_nonneg (pow_two_nonneg (q.2 - p.2)),
+            ← abs_of_nonneg (pow_two_nonneg p.1), ← abs_of_nonneg (pow_two_nonneg p.2),
+            abs_pow q.1 2, abs_pow q.2 2, abs_pow p.1 2, abs_pow p.2 2,
+            abs_pow (q.1 - p.1) 2, abs_pow (q.2 - p.2) 2];
+          exact_mod_cast h
     ... ≤ abs (q.1 - p.1) + abs (q.2 - p.2) + sqrt (p.1^2 + p.2^2) :
       add_le_add_right (by rw sqrt_le_iff; exact ⟨add_nonneg (abs_nonneg _) (abs_nonneg _),
         sqr_add_le_add_abs_sqr (q.1 - p.1) (q.2 - p.2)⟩) (sqrt (p.fst ^ 2 + p.snd ^ 2))
@@ -230,9 +226,9 @@ variables {β E F : Type*} [measurable_space E] [normed_group E] {f : ℝ → E}
   {c ca cb : E} {a b z : ℝ} {u v ua ub va vb : β → ℝ} {f' : ℝ → E} [normed_space ℝ E]
   [borel_space E] [complete_space E] [topological_space.second_countable_topology E]
 
--- FTC-2 for the open set (original version). One sorry remaining.
+-- FTC-2 for the open set. (Solved!)
 -- Note: I believe measurability assumption will drop when we merge master
-theorem integral_eq_sub_of_has_deriv_at'_mem_Ioo (hcont : continuous_on f (interval a b))
+theorem integral_eq_sub_of_has_deriv_at'_of_mem_Ioo (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_at f (f' x) x)
   (hcont' : continuous_on f' (interval a b)) (hmeas' : ae_measurable f') :
   ∫ y in a..b, f' y = f b - f a :=
@@ -244,69 +240,19 @@ begin
   { exact (hderiv y hy).has_deriv_within_at },
   { refine has_deriv_at_interval_left_endpoint_of_tendsto_deriv
       (λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at)
-        ((hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self)
-          _ _,
+        ((hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨hy.1.le, hy.2⟩))).mono Ioo_subset_Icc_self) _ _,
     { rw [hy.1, ← nhds_within_Ioc_eq_nhds_within_Ioi hy.2, mem_nhds_within_iff_exists_mem_nhds_inter],
-      use Ico (y-1) (max a b),
-      split,
-      { exact Ico_mem_nhds (by linarith) hy.2 },
-      { assume c hc,
-        simpa only [inter_def, Ioc, Ico, mem_set_of_eq] using mem_Ioo.mpr ⟨hc.2.1, hc.1.2⟩ } },
-    { have : ∀ x ∈ Ioo (min a b) (max a b), deriv f x = f' x := λ x hx, (hderiv x hx).deriv, -- currently unused
-      have hcongr : deriv f =ᶠ[𝓝[Ioi y] y] f',
-      { sorry },
-      have hf := (hcont'.continuous_within_at (left_mem_Icc.mpr min_le_max)),
+      exact ⟨Ico (y-1) (max a b), Ico_mem_nhds (by linarith) hy.2, by { assume c hc,
+        simpa only [inter_def, Ioc, Ico, mem_set_of_eq] using mem_Ioo.mpr ⟨hc.2.1, hc.1.2⟩ }⟩ },
+    { have hf := (hcont'.continuous_within_at (left_mem_Icc.mpr min_le_max)),
       rw [interval, hy.1] at hf,
       have hf' : tendsto f' (𝓝[Ici y] y) (𝓝 (f' y)) :=
         by convert hf using 1; rw ← nhds_within_Icc_eq_nhds_within_Ici hy.2,
+      have hcongr : deriv f =ᶠ[𝓝[Ioi y] y] f' :=
+        by simpa only [eventually_eq] using eventually_of_mem (Ioo_mem_nhds_within_Ioi
+          (by simpa only [hy.1] using left_mem_Ico.mpr hy.2)) (λ x hx, (hderiv x hx).deriv),
       simpa only [tendsto_congr' hcongr] using hf'.mono_left (nhds_within_mono y Ioi_subset_Ici_self) } },
   end
-
--- Added by Ben: New version of FTC-2 for open set as per Heather's suggestion. One sorry remaining.
--- Note: I believe measurability assumption will drop when we merge master
--- Ignore this proof for now
-theorem integral_eq_sub_of_has_deriv_right_of_mem_Ioo (hcont : continuous_on f (interval a b))
-  (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ici (min a b)) x)
-  (hcont' : continuous_on f' (interval a b)) (hmeas' : ae_measurable f') :
-  ∫ y in a..b, f' y = f b - f a :=
-begin
-  refine integral_eq_sub_of_has_deriv_right hcont _ hcont' hmeas',
-  intros y hy,
-  rw [Ico, mem_set_of_eq, le_iff_lt_or_eq, or_and_distrib_right, ← mem_Ioo] at hy,
-  cases hy,
-  { exact (hderiv y hy).mono (Ici_subset_Ici.mpr (le_of_lt hy.1)) },
-  { refine has_deriv_at_interval_left_endpoint_of_tendsto_deriv
-      (λ x hx, (hderiv x hx).differentiable_within_at.mono (subset.trans Ioo_subset_Ico_self
-      Ico_subset_Ici_self))
-        ((hcont y (Ico_subset_Icc_self
-        (mem_Ico.mpr ⟨le_of_eq hy.1, hy.2⟩))).mono Ioo_subset_Icc_self)
-          _ _,
-    { rw [hy.1, ← nhds_within_Ioc_eq_nhds_within_Ioi hy.2],
-      rw mem_nhds_within_iff_exists_mem_nhds_inter,
-      use Ico (y-1) (max a b),
-      split,
-      { exact Ico_mem_nhds (by linarith) hy.2 },
-      { assume c,
-        rw [inter_def, Ioc, Ico, mem_set_of_eq],
-        intro hc,
-        exact mem_Ioo.mpr ⟨hc.2.1, hc.1.2⟩ } },
-    -- The remainder of the proof is a WIP
-    { simp only,
-      convert (continuous_at_iff_continuous_left'_right'.mp
-        ((hcont'.continuous_within_at _).continuous_at _)).2.tendsto,
-      have := λ u, ((hderiv u _).has_deriv_at _).deriv,
-
-      rw tendsto_nhds_within_nhds,
-      intros ε hε,
-      use ε,
-      split,
-      exact hε,
-      intros x hx hdist,
-      --rw dist_eq_norm,
-      --have H := metric.eventually_nhds_iff.mpr (by use ε) hε,
-      -- rw [← ((hderiv _ _).has_deriv_at _).deriv],
-      sorry } },
-end
 
 lemma step5_1 {x : ℝ} : deriv (λ y : ℝ, 1/2 * (arcsin y + y * sqrt (1 - y^2))) x = sqrt (1 - x^2) :=
 begin

@@ -656,7 +656,7 @@ abs_mul_self a ▸ abs_nonneg _
 by simp [neg_le_iff_add_nonneg, ← two_mul, mul_nonneg_iff, zero_le_one, (@zero_lt_two α _ _).not_le]
 
 @[simp] lemma neg_lt_self_iff : -a < a ↔ 0 < a :=
-by simp [neg_lt_iff_add_pos, ← two_mul, mul_pos_iff, zero_lt_one, (@zero_lt_two α _ _).not_lt]
+by simp [neg_lt_iff_pos_add, ← two_mul, mul_pos_iff, zero_lt_one, (@zero_lt_two α _ _).not_lt]
 
 @[simp] lemma le_neg_self_iff : a ≤ -a ↔ a ≤ 0 :=
 calc a ≤ -a ↔ -(-a) ≤ -a : by rw neg_neg

@@ -155,6 +155,16 @@ set.eq_univ_of_forall e.surjective
 protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
 e.injective.subsingleton
 
+instance equiv_subsingleton {α β : Type*} [subsingleton β] :
+  subsingleton (α ≃ β) :=
+⟨λ f g, equiv.ext $ λ x, by simp⟩
+
+instance perm_subsingleton {α : Type*} [subsingleton α] : subsingleton (perm α) :=
+equiv.equiv_subsingleton
+
+lemma perm.subsingleton_eq_refl {α : Type*} [subsingleton α] (e : perm α) :
+  e = equiv.refl α := subsingleton.elim _ _
+
 /-- Transfer `decidable_eq` across an equivalence. -/
 protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
 e.injective.decidable_eq
@@ -178,6 +188,9 @@ protected def cast {α β : Sort*} (h : α = β) : α ≃ β :=
 rfl
 
 @[simp] theorem coe_refl : ⇑(equiv.refl α) = id := rfl
+
+@[simp] theorem perm.coe_subsingleton {α : Type*} [subsingleton α] (e : perm α) : ⇑(e) = id :=
+by rw [perm.subsingleton_eq_refl e, coe_refl]
 
 theorem refl_apply (x : α) : equiv.refl α x = x := rfl
 

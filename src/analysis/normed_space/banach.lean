@@ -178,7 +178,8 @@ begin
   exact ⟨x, feq, x_ineq⟩
 end
 
-/-- The Banach open mapping theorem: a surjective bounded linear map between Banach spaces is open. -/
+/-- The Banach open mapping theorem: a surjective bounded linear map between Banach spaces is
+open. -/
 theorem open_mapping (surj : surjective f) : is_open_map f :=
 begin
   assume s hs,

@@ -155,14 +155,21 @@ set.eq_univ_of_forall e.surjective
 protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
 e.injective.subsingleton
 
-instance equiv_subsingleton {α β : Type*} [subsingleton β] :
+protected theorem subsingleton.symm (e : α ≃ β) [subsingleton α] : subsingleton β :=
+e.symm.injective.subsingleton
+
+instance equiv_subsingleton_cod [subsingleton β] :
   subsingleton (α ≃ β) :=
-⟨λ f g, equiv.ext $ λ x, by simp⟩
+⟨λ f g, equiv.ext $ λ x, subsingleton.elim _ _⟩
 
-instance perm_subsingleton {α : Type*} [subsingleton α] : subsingleton (perm α) :=
-equiv.equiv_subsingleton
+instance equiv_subsingleton_dom [subsingleton α] :
+  subsingleton (α ≃ β) :=
+⟨λ f g, equiv.ext $ λ x, @subsingleton.elim _ (equiv.subsingleton.symm f) _ _⟩
 
-lemma perm.subsingleton_eq_refl {α : Type*} [subsingleton α] (e : perm α) :
+instance perm_subsingleton [subsingleton α] : subsingleton (perm α) :=
+equiv.equiv_subsingleton_cod
+
+lemma perm.subsingleton_eq_refl [subsingleton α] (e : perm α) :
   e = equiv.refl α := subsingleton.elim _ _
 
 /-- Transfer `decidable_eq` across an equivalence. -/

@@ -358,10 +358,6 @@ theorem bUnion_union (s t : set α) (u : α → set β) :
   (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
 supr_union
 
-@[simp] lemma bUnion_of_singleton_of_coe (s : set α) :
-  (⋃ (i : s), {i} : set α) = s :=
-ext $ by simp
-
 lemma Union_subtype {α β : Type*} (s : set α) (f : α → set β) :
   (⋃ (i : s), f i) = ⋃ (i ∈ s), f i :=
 (set.bUnion_eq_Union s $ λ x _, f x).symm
@@ -544,6 +540,10 @@ lemma Union_subset_Union_const {ι₂ : Sort x} {s : set α} (h : ι → ι₂) 
 
 @[simp] lemma Union_of_singleton (α : Type u) : (⋃(x : α), {x}) = @set.univ α :=
 ext $ λ x, ⟨λ h, ⟨⟩, λ h, ⟨{x}, ⟨⟨x, rfl⟩, mem_singleton x⟩⟩⟩
+
+@[simp] lemma Union_of_singleton_coe (s : set α) :
+  (⋃ (i : s), {i} : set α) = s :=
+ext $ by simp
 
 theorem bUnion_subset_Union (s : set α) (t : α → set β) :
   (⋃ x ∈ s, t x) ⊆ (⋃ x, t x) :=

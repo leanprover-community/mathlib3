@@ -223,7 +223,8 @@ lemma step5_1 {x : ℝ} : deriv (λ y : ℝ, 1/2 * (arcsin y + y * sqrt (1 - y^2
 begin
   have hx : x ∈ Ioo (-(1:ℝ)) 1 := sorry, -- must assume this to be true, leave alone for now
   have hlt : 0 < 1 - x^2,
-    sorry, -- show `0 < 1 - x^2`
+    { rw mem_Ioo at hx,
+      nlinarith}, -- (SOLVED BY JAMES)
   have h1 : differentiable_at ℝ (λ y:ℝ, 1 - y ^ 2) x,
       { simp only [differentiable_at_id', differentiable_at.pow, differentiable_at_const_sub_iff]},
    -- show `differentiable_at ℝ (λ y, 1 - y ^ 2) x` (SOLVED BY JAMES)

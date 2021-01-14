@@ -140,28 +140,24 @@ end complete_linear_order
 
 section ennreal
 
-lemma ennreal.ae_le_of_ess_sup_le {f : α → ennreal} {x : ennreal} (hf : ess_sup f μ ≤ x) :
-  ∀ᵐ y ∂μ, f y ≤ x :=
+lemma ennreal.ae_le_ess_sup (f : α → ennreal) : ∀ᵐ y ∂μ, f y ≤ ess_sup f μ :=
 begin
-  by_cases hx_top : x = ⊤,
+  by_cases hx_top : ess_sup f μ = ⊤,
   { simp_rw hx_top,
     exact ae_of_all _ (λ a, le_top), },
-  have h_forall_le : ∀ᵐ y ∂μ, ∀ n : ℕ, f y < x + (1:ennreal)/n,
+  have h_forall_le : ∀ᵐ y ∂μ, ∀ n : ℕ, f y < ess_sup f μ + (1:ennreal)/n,
   { rw ae_all_iff,
-    refine λ n, ae_lt_of_ess_sup_lt (lt_of_le_of_lt hf _),
-    nth_rewrite 0 ←add_zero x,
+    refine λ n, ae_lt_of_ess_sup_lt _,
+    nth_rewrite 0 ←add_zero (ess_sup f μ),
     exact (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.mpr hx_top)).mpr (by simp), },
   refine h_forall_le.mono (λ y hy, ennreal.le_of_forall_epsilon_le (λ r hr_pos hx_top,_)),
   have hr_ne_zero : (r : ennreal) ≠ 0,
   { rw [ne.def, ennreal.coe_eq_zero],
     exact (ne_of_lt hr_pos).symm, },
   cases (ennreal.exists_inv_nat_lt hr_ne_zero) with i hi,
-  refine le_trans (le_of_lt (hy i)) (add_le_add_left (le_of_lt _) x),
+  refine le_trans (le_of_lt (hy i)) (add_le_add_left (le_of_lt _) (ess_sup f μ)),
   rwa [ennreal.div_def, one_mul],
 end
-
-lemma ennreal.ae_le_ess_sup (f : α → ennreal) : ∀ᵐ x ∂μ, f x ≤ ess_sup f μ :=
-ennreal.ae_le_of_ess_sup_le (le_refl (ess_sup f μ))
 
 lemma ennreal.ess_sup_const_mul {f : α → ennreal} {a : ennreal} (ha_top : a ≠ ⊤) :
   ess_sup (λ (x : α), a * (f x)) μ = a * ess_sup f μ :=

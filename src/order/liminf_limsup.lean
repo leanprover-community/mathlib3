@@ -310,6 +310,22 @@ bot_unique $ Sup_le $
 lemma liminf_le_limsup {f : filter β} [ne_bot f] {u : β → α}  : liminf f u ≤ limsup f u :=
 Liminf_le_Limsup is_bounded_le_of_top is_bounded_ge_of_bot
 
+lemma limsup_mono {f : filter β} {u v : β → α} (h : u ≤ᶠ[f] v) :
+  f.limsup u ≤ f.limsup v :=
+begin
+  simp_rw limsup_eq,
+  refine Inf_le_Inf_of_forall_exists_le (λ x hx, ⟨x, ⟨_, le_refl _⟩⟩),
+  exact h.mp (hx.mono (λ y hy huvy, le_trans huvy hy)),
+end
+
+lemma liminf_mono {f : filter β} {u v : β → α} (h : u ≤ᶠ[f] v) :
+  f.liminf u ≤ f.liminf v :=
+begin
+  simp_rw liminf_eq,
+  refine Sup_le_Sup_of_forall_exists_le (λ x hx, ⟨x, ⟨_, le_refl _⟩⟩),
+  exact h.mp (hx.mono (λ y hy huvy, le_trans hy huvy)),
+end
+
 theorem has_basis.Limsup_eq_infi_Sup {ι} {p : ι → Prop} {s} {f : filter α} (h : f.has_basis p s) :
   f.Limsup = ⨅ i (hi : p i), Sup (s i) :=
 le_antisymm
@@ -379,4 +395,46 @@ lemma eventually_lt_of_limsup_lt {f : filter α} [conditionally_complete_linear_
 
 end conditionally_complete_linear_order
 
+section complete_linear_order
+variable [complete_linear_order β]
+
+lemma eventually_lt_of_limsup_lt' {f : filter α} {u : α → β} {x : β} (hf : f.limsup u < x) :
+  ∀ᶠ y in f, u y < x :=
+begin
+  rw [filter.limsup_eq, Inf_lt_iff] at hf,
+  rcases hf with ⟨y, ⟨hy, hy_lt_x⟩⟩,
+  exact hy.mono (λ z hz, lt_of_le_of_lt hz hy_lt_x),
+end
+
+lemma eventually_lt_of_lt_liminf' {f : filter α} {u : α → β} {x : β} (hf : x < f.liminf u) :
+  ∀ᶠ y in f, x < u y :=
+@eventually_lt_of_limsup_lt' α (order_dual β) _ _ _ _ hf
+
+end complete_linear_order
+
 end filter
+
+lemma order_iso.limsup_le {α β γ} [complete_linear_order β] [complete_lattice γ] {f : filter α}
+  {u : α → β} (g : β ≃o γ) :
+  g (f.limsup u) ≤ f.limsup (λ x, g (u x)) :=
+begin
+  simp_rw [filter.limsup_eq],
+  refine le_Inf (λ x hx, _),
+  rw [(g.symm.symm_apply_apply x).symm, g.symm_symm],
+  refine g.monotone (Inf_le _),
+  refine hx.mono (λ y hy, _),
+  rw (g.symm_apply_apply (u y)).symm,
+  exact g.symm.monotone hy,
+end
+
+lemma order_iso.limsup_apply {γ} [complete_linear_order β] [complete_linear_order γ] {f : filter α}
+  {u : α → β} (g : β ≃o γ) :
+  g (f.limsup u) = f.limsup (λ x, g (u x)) :=
+begin
+  refine le_antisymm (order_iso.limsup_le g) _,
+  rw [←(g.symm.symm_apply_apply (f.limsup (λ (x : α), g (u x)))), g.symm_symm],
+  refine g.monotone _,
+  have hf : u = λ i, g.symm (g (u i)), from funext (λ i, (g.symm_apply_apply (u i)).symm),
+  nth_rewrite 0 hf,
+  exact g.symm.limsup_le,
+end

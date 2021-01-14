@@ -279,7 +279,7 @@ begin
   have i_pos : (0 : ℕ) < i,
   { by_contradiction i_pos,
     push_neg at i_pos,
-    simp [le_zero_iff_eq.mp i_pos, c.size_up_to_zero] at H,
+    simp [nonpos_iff_eq_zero.mp i_pos, c.size_up_to_zero] at H,
     exact nat.not_succ_le_zero j H },
   let i₁ := (i : ℕ).pred,
   have i₁_lt_i : i₁ < i := nat.pred_lt (ne_of_gt i_pos),

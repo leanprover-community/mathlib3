@@ -383,8 +383,6 @@ Single Variable Complex Analysis:
     Cauchy formulas:
     analyticity of a holomorphic function:
     principle of isolated zeros:
-    Cauchy formulas:
-    analyticity of a holomorphic function:
     principle of analytic continuation:
     maximum principle:
     isolated singularities:
@@ -508,8 +506,10 @@ Measures and integral Calculus:
     integrable functions: 'measure_theory.integrable'
     dominated convergence theorem: 'measure_theory.tendsto_integral_of_dominated_convergence'
     finite dimensional vector-valued integrable functions: 'measure_theory.integrable'
-    continuity of integrals with respect to parameters:
-    differentiability of integrals with respect to parameters:
+    continuity of integrals with respect to parameters: 'interval_integral.continuous_on_integral_of_continuous'
+    differentiability of integrals with respect to parameters: 'interval_integral.differentiable_on_integral_of_continuous'
+    fundamental theorem of calculus, part 1: 'interval_integral.integral_has_fderiv_at_of_tendsto_ae'
+    fundamental theorem of calculus, part 2: 'interval_integral.integral_eq_sub_of_has_deriv_right_of_le'
     $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$:
     Completeness of $\mathrm{L}^p$ spaces:
     Holder's inequality:

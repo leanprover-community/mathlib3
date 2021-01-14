@@ -102,7 +102,7 @@ show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mu
 begin
   rcases n_dvd with ⟨k, rfl⟩,
   have : n ≠ 0, {rintro rfl, simpa using n_nonzero},
-  rw nat.mul_div_cancel_left _ (nat.pos_iff_ne_zero.2 this),
+  rw nat.mul_div_cancel_left _ (pos_iff_ne_zero.2 this),
   rw [nat.cast_mul, mul_div_cancel_left _ n_nonzero],
 end
 

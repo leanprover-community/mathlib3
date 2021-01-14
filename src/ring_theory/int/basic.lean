@@ -209,7 +209,7 @@ theorem irreducible_iff_nat_prime : ∀(a : ℕ), irreducible a ↔ nat.prime a
   end
 
 lemma nat.prime_iff_prime {p : ℕ} : p.prime ↔ _root_.prime (p : ℕ) :=
-⟨λ hp, ⟨nat.pos_iff_ne_zero.1 hp.pos, mt is_unit_iff_dvd_one.1 hp.not_dvd_one,
+⟨λ hp, ⟨pos_iff_ne_zero.1 hp.pos, mt is_unit_iff_dvd_one.1 hp.not_dvd_one,
     λ a b, hp.dvd_mul.1⟩,
   λ hp, ⟨nat.one_lt_iff_ne_zero_and_ne_one.2 ⟨hp.1, λ h1, hp.2.1 $ h1.symm ▸ is_unit_one⟩,
     λ a h, let ⟨b, hab⟩ := h in
@@ -320,7 +320,7 @@ lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) 
 begin
   have := int.nat_abs_eq a,
   have := @int.nat_abs_ne_zero_of_ne_zero b,
-  rw [finite_int_iff_nat_abs_finite, finite_nat_iff, nat.pos_iff_ne_zero],
+  rw [finite_int_iff_nat_abs_finite, finite_nat_iff, pos_iff_ne_zero],
   split; finish
 end
 

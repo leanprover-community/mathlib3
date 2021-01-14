@@ -10,7 +10,7 @@ import tactic.norm_num
 /-!
 # `norm_swap`
 
-Evaluating `swap x y z` for numerals `x y z : ℕ`, via a `norm_cast` plugin.
+Evaluating `swap x y z` for numerals `x y z` that are `ℕ`, `ℤ`, or `ℚ`, via a `norm_cast` plugin.
 Terms are passed to `eval`, quickly failing if not of the form `swap x y z`.
 The expressions for numerals `x y z` are converted to `nat`, and then compared.
 Based on equality of these `nat`s, equality proofs are generated using either
@@ -24,7 +24,8 @@ open norm_num
 namespace norm_swap
 
 /--
-A `norm_num` plugin for normalizing `equiv.swap a b c` where `a b c : ℕ` are numerals.
+A `norm_num` plugin for normalizing `equiv.swap a b c`
+where `a b c` are numerals of `ℕ`, `ℤ`, or `ℚ`.
 
 ```
 example : equiv.swap 1 2 1 = 2 := by norm_num

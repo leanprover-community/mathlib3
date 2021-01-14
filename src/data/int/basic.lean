@@ -376,6 +376,22 @@ match lt_trichotomy c 0 with
 | or.inr (or.inr hgt) := this hgt
 end
 
+protected theorem add_mul_div_right' (a b c : ℤ) (H : c ∣ b) :
+  (a + b) / c = a / c + b / c :=
+begin
+by_cases h1 : c=0,
+{simp [h1],},
+cases H with k hk,
+rw hk,
+change c≠0 at h1,
+rw mul_comm c k,
+rw int.add_mul_div_right _ _ h1,
+rw <-zero_add (k*c),
+rw int.add_mul_div_right _ _ h1,
+rw int.zero_div,
+rw zero_add
+end
+
 protected theorem add_mul_div_left (a : ℤ) {b : ℤ} (c : ℤ) (H : b ≠ 0) :
     (a + b * c) / b = a / b + c :=
 by rw [mul_comm, int.add_mul_div_right _ _ H]
@@ -719,18 +735,6 @@ int.div_eq_of_eq_mul_right H1 (by rw [mul_comm, H2])
 theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 | ._ b ⟨c, rfl⟩ := if bz : b = 0 then by simp [bz] else
   by rw [neg_mul_eq_mul_neg, int.mul_div_cancel_left _ bz, int.mul_div_cancel_left _ bz]
-
-lemma add_div_of_dvd {a b c : ℤ} :
-  c ∣ a → c ∣ b → (a + b) / c = a / c + b / c :=
-begin
-  intros h1 h2,
-  by_cases h3 : c = 0,
-  { rw [h3, zero_dvd_iff] at *,
-    rw [h1, h2, h3], refl },
-  { apply mul_right_cancel' h3,
-    rw add_mul, repeat {rw [int.div_mul_cancel]};
-    try {apply dvd_add}; assumption }
-end
 
 theorem div_sign : ∀ a b, a / sign b = a * sign b
 | a (n+1:ℕ) := by unfold sign; simp

@@ -137,7 +137,7 @@ namespace free_algebra
 
 variables {R M}
 
-/- The canonical image of the `free_algebra` in the `tensor_algebra`, which maps
+/-- The canonical image of the `free_algebra` in the `tensor_algebra`, which maps
 `free_algebra.ι R x` to `tensor_algebra.ι R x`. -/
 def to_tensor : free_algebra R M →ₐ[R] tensor_algebra R M :=
 free_algebra.lift R (tensor_algebra.ι R)

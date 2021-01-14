@@ -231,7 +231,7 @@ namespace tensor_algebra
 
 variables {R M}
 
-/- The canonical image of the `tensor_algebra` in the `exterior_algebra`, which maps
+/-- The canonical image of the `tensor_algebra` in the `exterior_algebra`, which maps
 `tensor_algebra.ι R x` to `exterior_algebra.ι R x`. -/
 def to_exterior : tensor_algebra R M →ₐ[R] exterior_algebra R M :=
 tensor_algebra.lift R (exterior_algebra.ι R)

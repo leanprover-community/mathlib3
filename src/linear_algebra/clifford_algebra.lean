@@ -170,7 +170,7 @@ namespace tensor_algebra
 
 variables {Q}
 
-/- The canonical image of the `tensor_algebra` in the `clifford_algebra`, which maps
+/-- The canonical image of the `tensor_algebra` in the `clifford_algebra`, which maps
 `tensor_algebra.ι R x` to `clifford_algebra.ι Q x`. -/
 def to_clifford : tensor_algebra R M →ₐ[R] clifford_algebra Q :=
 tensor_algebra.lift R (clifford_algebra.ι Q)

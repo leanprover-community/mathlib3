@@ -1,6 +1,6 @@
 import data.equiv.basic
 import tactic.norm_swap
-import data.int.cast
+import tactic.fin_meta_defs
 
 
 open equiv tactic
@@ -8,6 +8,26 @@ open equiv tactic
 local attribute [-simp] swap_apply_left
 local attribute [-simp] swap_apply_right
 
+example : true := by do
+  (k : option (fin 1)) ← expr.to_fin <$> to_expr ``(0),
+  trace `(k),
+  admit
+
+example : true := by do
+  (k : option (fin 7)) ← expr.to_fin <$> to_expr ``(fin.succ (8 : fin 2)),
+  trace `(k),
+  admit
+
+example : true := by do
+  (k : option (fin 7)) ← expr.eval_fin <$> pure `(5 + 7),
+  trace `(k),
+  admit
+
+example : true := by do
+  ic ← mk_instance_cache `(ℤ),
+  (_, e) ← ic.of_fin (7 : fin 7).succ,
+  trace e,
+  admit
 /--
 We can check all possibilities of swapping of `0, 1, bit0 _, bit1 _` using the
 64 combinations of `[0, 1, 2, 3]`. This example should execute and complete without error,

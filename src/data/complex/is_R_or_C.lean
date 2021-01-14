@@ -41,7 +41,8 @@ local notation `𝓚` := algebra_map ℝ _
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
-class is_R_or_C (K : Type*) extends nondiscrete_normed_field K, normed_algebra ℝ K, complete_space K :=
+class is_R_or_C (K : Type*)
+  extends nondiscrete_normed_field K, normed_algebra ℝ K, complete_space K :=
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (conj : K →+* K)
@@ -660,12 +661,14 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   re_add_im_ax := λ z, by unfold_coes; simp [add_zero, id.def, mul_zero],
   of_real_re_ax := λ r, by simp only [add_monoid_hom.id_apply, algebra.id.map_eq_self],
   of_real_im_ax := λ r, by simp only [add_monoid_hom.zero_apply],
-  mul_re_ax := λ z w, by simp only [sub_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
+  mul_re_ax := λ z w,
+    by simp only [sub_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_ax := λ z w, by simp only [add_zero, zero_mul, mul_zero, add_monoid_hom.zero_apply],
   conj_re_ax := λ z, by simp only [ring_hom.id_apply],
   conj_im_ax := λ z, by simp only [neg_zero, add_monoid_hom.zero_apply],
   conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
-  norm_sq_eq_def_ax := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
+  norm_sq_eq_def_ax := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero, mul_zero,
+    add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
   inv_def_ax :=
     begin

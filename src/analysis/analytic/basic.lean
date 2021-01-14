@@ -651,7 +651,8 @@ begin
     λ ⟨k, n, s, hs⟩, (p n).restr s hs x (λ(i : fin k), y),
   -- `B` is the terms of the series whose sum gives `p (x + y)`, after expansion by multilinearity.
   let B : (Σ (n : ℕ), finset (fin n)) → F := λ ⟨n, s⟩, (p n).restr s rfl x (λ (i : fin s.card), y),
-  let Bnorm : (Σ (n : ℕ), finset (fin n)) → ℝ := λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * ∥y∥ ^ s.card,
+  let Bnorm : (Σ (n : ℕ), finset (fin n)) → ℝ :=
+    λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * ∥y∥ ^ s.card,
   have SBnorm : summable Bnorm, by convert p.change_origin_summable_aux1 h,
   have SB : summable B,
   { refine summable_of_norm_bounded _ SBnorm _,

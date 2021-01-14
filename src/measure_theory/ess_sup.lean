@@ -31,31 +31,24 @@ open measure_theory
 
 variables {α β : Type*} [measurable_space α] {μ : measure α}
 
-section has_le
-variable [has_le β]
+section conditionally_complete_lattice
+variable [conditionally_complete_lattice β]
 
 /-- Essential supremum of `f` with respect to measure `μ`: the smallest `c : β` such that
 `f x ≤ c` a.e. -/
-def ess_sup [has_Inf β] (f : α → β) (μ : measure α) :=
-Inf {c : β | f ≤ᵐ[μ] (λ x, c)}
+def ess_sup (f : α → β) (μ : measure α) := μ.ae.limsup f
 
 /-- Essential infimum of `f` with respect to measure `μ`: the greatest `c : β` such that
 `c ≤ f x` a.e. -/
-def ess_inf [has_Sup β] (f : α → β) (μ : measure α) :=
-Sup {c : β | (λ x, c) ≤ᵐ[μ] f}
+def ess_inf (f : α → β) (μ : measure α) := μ.ae.liminf f
 
 lemma ess_sup_congr_ae [has_Inf β] {f g : α → β} (hfg : f =ᵐ[μ] g) : ess_sup f μ = ess_sup g μ :=
-begin
-  simp_rw ess_sup,
-  congr,
-  ext c,
-  exact filter.eventually_congr (hfg.mono (λ x hx, by rw hx)),
-end
+filter.limsup_congr hfg
 
-lemma ess_inf_congr_ae [has_Sup β] {f g : α → β} (hfg : f =ᵐ[μ] g) :  ess_inf f μ = ess_inf g μ :=
+lemma ess_inf_congr_ae {f g : α → β} (hfg : f =ᵐ[μ] g) :  ess_inf f μ = ess_inf g μ :=
 @ess_sup_congr_ae α (order_dual β) _ _ _ _ _ _ hfg
 
-end has_le
+end conditionally_complete_lattice
 
 section complete_lattice
 variable [complete_lattice β]
@@ -66,28 +59,17 @@ le_bot_iff.mp (Inf_le (by simp [set.mem_set_of_eq, filter.eventually_le, ae_iff]
 @[simp] lemma ess_inf_measure_zero {f : α → β} : ess_inf f 0 = ⊤ :=
 @ess_sup_measure_zero α (order_dual β) _ _ _
 
-lemma ess_sup_mono {f g : α → β} (hfg : f ≤ g) : ess_sup f μ ≤ ess_sup g μ :=
-Inf_le_Inf_of_forall_exists_le (λ x hx, ⟨x, ⟨hx.mono (λ y hy, le_trans (hfg y) hy), le_refl x⟩⟩)
-
-lemma ess_inf_mono {f g : α → β} (hfg : f ≤ g) : ess_inf f μ ≤ ess_inf g μ :=
-@ess_sup_mono α (order_dual β) _ _ _ _ _ (order_dual.to_dual_le_to_dual.mpr hfg)
-
 lemma ess_sup_mono_ae {f g : α → β} (hfg : f ≤ᵐ[μ] g) :  ess_sup f μ ≤ ess_sup g μ :=
-Inf_le_Inf_of_forall_exists_le (λ x hx, ⟨x, ⟨hfg.trans hx, le_refl x⟩⟩)
+filter.limsup_mono hfg
 
 lemma ess_inf_mono_ae {f g : α → β} (hfg : f ≤ᵐ[μ] g) : ess_inf f μ ≤ ess_inf g μ :=
-Sup_le_Sup_of_forall_exists_le (λ x hx, ⟨x, ⟨hx.trans hfg, le_refl x⟩⟩)
+filter.liminf_mono hfg
 
 lemma ess_sup_const (c : β) (hμ : μ ≠ 0) : ess_sup (λ x : α, c) μ = c :=
 begin
-  rw ess_sup,
-  refine le_antisymm _ _,
-  { refine Inf_le _,
-    rw set.mem_set_of_eq, },
-  { refine le_Inf (λ a ha, _),
-    rw set.mem_set_of_eq at ha,
-    have h_ae_ne_bot : μ.ae.ne_bot, by rwa [filter.ne_bot, ne.def, ae_eq_bot],
-    exact (@filter.eventually.exists _ _ _ h_ae_ne_bot ha).some_spec, },
+  have hμ_ne_bot : μ.ae.ne_bot,
+  { rwa [filter.ne_bot, ne.def, ae_eq_bot], },
+  exact @filter.limsup_const _ _ _ μ.ae hμ_ne_bot c,
 end
 
 lemma ess_inf_const (c : β) (hμ : μ ≠ 0) : ess_inf (λ x : α, c) μ = c :=
@@ -99,37 +81,15 @@ section complete_linear_order
 variable [complete_linear_order β]
 
 lemma ae_lt_of_ess_sup_lt {f : α → β} {x : β} (hf : ess_sup f μ < x) : ∀ᵐ y ∂μ, f y < x :=
-begin
-  rw [ess_sup, Inf_lt_iff] at hf,
-  rcases hf with ⟨y, ⟨hy, hy_lt_x⟩⟩,
-  exact hy.mono (λ z hz, lt_of_le_of_lt hz hy_lt_x),
-end
+filter.eventually_lt_of_limsup_lt' hf
 
 lemma ae_lt_of_lt_ess_inf {f : α → β} {x : β} (hf : x < ess_inf f μ) : ∀ᵐ y ∂μ, x < f y :=
 @ae_lt_of_ess_sup_lt α (order_dual β) _ _ _ _ _ hf
 
-lemma order_iso.ess_sup_le {γ} [complete_lattice γ] {f : α → β} (g : β ≃o γ) :
-  g (ess_sup f μ) ≤ ess_sup (λ x, g (f x)) μ :=
-begin
-  refine le_Inf (λ x hx, _),
-  rw [(g.symm.symm_apply_apply x).symm, g.symm_symm],
-  refine g.monotone (Inf_le _),
-  refine hx.mono (λ y hy, _),
-  rw (g.symm_apply_apply (f y)).symm,
-  exact g.symm.monotone hy,
-end
-
 lemma order_iso.ess_sup_apply {γ} [complete_linear_order γ] (f : α → β) (μ : measure α)
   (g : β ≃o γ) :
   g (ess_sup f μ) = ess_sup (λ x, g (f x)) μ :=
-begin
-  refine le_antisymm (order_iso.ess_sup_le g) _,
-  rw [←(g.symm.symm_apply_apply (ess_sup (λ (x : α), g (f x)) μ)), g.symm_symm],
-  refine g.monotone _,
-  have hf : f = λ i, g.symm (g (f i)), from funext (λ i, (g.symm_apply_apply (f i)).symm),
-  nth_rewrite 0 hf,
-  exact g.symm.ess_sup_le,
-end
+order_iso.limsup_apply g
 
 lemma order_iso.ess_inf_apply {γ} [complete_linear_order γ] (f : α → β) (μ : measure α)
   (g : β ≃o γ) :

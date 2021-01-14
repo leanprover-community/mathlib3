@@ -132,3 +132,17 @@ lemma ι_injective : function.injective (ι R : M → tensor_algebra R M) :=
   triv_sq_zero_ext.inr_injective $ hfxx.symm.trans ((f.congr_arg hxy).trans hfyy)
 
 end tensor_algebra
+
+namespace free_algebra
+
+variables {R M}
+
+/- The canonical image of the `free_algebra` in the `tensor_algebra`, which maps
+`free_algebra.ι R x` to `tensor_algebra.ι R x`. -/
+def to_tensor : free_algebra R M →ₐ[R] tensor_algebra R M :=
+free_algebra.lift R (tensor_algebra.ι R)
+
+@[simp] lemma to_tensor_ι (m : M) : (free_algebra.ι R m).to_tensor = tensor_algebra.ι R m :=
+by simp [to_tensor]
+
+end free_algebra

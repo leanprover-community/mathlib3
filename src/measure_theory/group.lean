@@ -105,7 +105,7 @@ variables [measurable_space G] [group G] [topological_space G] [topological_grou
 by { refine ⟨λ h, _, measure.regular.inv⟩, rw ←μ.inv_inv, exact measure.regular.inv h }
 
 @[to_additive]
-lemma is_mul_right_invariant_inv' (h : is_mul_left_invariant μ) :
+lemma is_mul_left_invariant.inv (h : is_mul_left_invariant μ) :
   is_mul_right_invariant μ.inv :=
 begin
   intros g A hA,
@@ -118,7 +118,7 @@ begin
 end
 
 @[to_additive]
-lemma is_mul_left_invariant_inv' (h : is_mul_right_invariant μ) : is_mul_left_invariant μ.inv :=
+lemma is_mul_right_invariant.inv (h : is_mul_right_invariant μ) : is_mul_left_invariant μ.inv :=
 begin
   intros g A hA,
   rw [μ.inv_apply (measurable_mul_left g hA), μ.inv_apply hA],
@@ -131,19 +131,11 @@ end
 
 @[simp, to_additive]
 lemma is_mul_right_invariant_inv : is_mul_right_invariant μ.inv ↔ is_mul_left_invariant μ :=
-begin
-    refine ⟨λ h, _, is_mul_right_invariant_inv'⟩,
-    rw ← μ.inv_inv,
-    exact is_mul_left_invariant_inv' h
-end
+⟨λ h, by { rw ← μ.inv_inv, exact h.inv }, λ h, h.inv⟩
 
 @[simp, to_additive]
 lemma is_mul_left_invariant_inv : is_mul_left_invariant μ.inv ↔ is_mul_right_invariant μ :=
-begin
-  refine ⟨λ h, _, is_mul_left_invariant_inv'⟩,
-  rw ← μ.inv_inv,
-  exact is_mul_right_invariant_inv' h
-end
+⟨λ h, by { rw ← μ.inv_inv, exact h.inv }, λ h, h.inv⟩
 
 end inv
 

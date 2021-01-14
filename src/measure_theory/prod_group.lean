@@ -18,12 +18,15 @@ scaling. In this file we follow the proof and refer to the book *Measure Theory*
 The idea of the proof is to use the translation invariance of measures to prove `μ(F) = c * μ(E)`
 for two sets `E` and `F`, where `c` is a constant that does not depend on `μ`. Let `e` and `f` be
 the characteristic functions of `E` and `F`.
-By translation invariance the map `(x, y) ↦ (y * x, x⁻¹)` is measure-preserving, which means that
+Assume that `μ` and `ν` are left-invariant measures. Then the map `(x, y) ↦ (y * x, x⁻¹)`
+preserves the measure `μ.prod ν`, which means that
 ```
   ∫ x, ∫ y, h x y ∂ν ∂μ = ∫ x, ∫ y, h (y * x) x⁻¹ ∂ν ∂μ
 ```
 If we apply this to `h x y := e x * f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E)`, we can rewrite the RHS to
-`μ(F)`, and the LHS to `c * μ(E)`, where `c` does not depend on `μ`.
+`μ(F)`, and the LHS to `c * μ(E)`, where `c = c(ν)` does not depend on `μ`.
+Applying this to `μ` and to `ν` gives `μ (F) / μ (E) = ν (F) / ν (E)`, which is the uniqueness up to
+scalar multiplication.
 
 The proof in [Halmos] seems to contain an omission in §60 Th. A, see
 `measure_theory.measure_lintegral_div_measure` and
@@ -153,6 +156,8 @@ lemma measure_mul_right_ne_zero (hμ : is_mul_left_invariant μ) {E : set G} (hE
 (not_iff_not_of_iff (measure_mul_right_null hμ hE y)).mpr h2E
 
 /-- A technical lemma relating two different measures. This is basically [Halmos, §60 Th. A].
+  Note that if `f` is the characteristic function of a measurable set `F` this states that
+  `μ F = c * μ E` for a constant `c` that does not depend on `μ`.
   There seems to be a gap in the last step of the proof in [Halmos].
   In the last line, the equality `g(x⁻¹)ν(Ex⁻¹) = f(x)` holds if we can prove that
   `0 < ν(Ex⁻¹) < ∞`. The first inequality follows from §59, Th. D, but I couldn't find the second

@@ -22,9 +22,9 @@ which are lattices with only two elements, and related ideas.
 
 ### Simple Lattices
   * `is_simple_lattice` indicates that a bounded lattice has only two elements, `⊥` and `⊤`.
+  * `is_simple_lattice.bounded_distrib_lattice`
   * Given an instance of `is_simple_lattice`, we provide the following definitions. These are not
     made global instances as they contain data :
-    * `is_simple_lattice.bounded_distrib_lattice`
     * `is_simple_lattice.boolean_algebra`
     * `is_simple_lattice.complete_lattice`
     * `is_simple_lattice.complete_boolean_algebra`
@@ -110,31 +110,39 @@ namespace is_simple_lattice
 variables [bounded_lattice α] [is_simple_lattice α]
 
 /-- A simple `bounded_lattice` is also distributive. -/
-protected def bounded_distrib_lattice : bounded_distrib_lattice α :=
+@[priority 100]
+instance : bounded_distrib_lattice α :=
 { le_sup_inf := λ x y z, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
-.. (infer_instance : bounded_lattice α) }
+  .. (infer_instance : bounded_lattice α) }
 
 section decidable_eq
 variable [decidable_eq α]
 
+/-- Every simple lattice is order-isomorphic to `bool`. -/
+def order_iso_bool : α ≃o bool :=
+{ to_fun := λ x, x = ⊤,
+  inv_fun := λ x, cond x ⊤ ⊥,
+  left_inv := λ x, by { rcases (eq_bot_or_eq_top x) with rfl | rfl; simp [bot_ne_top] },
+  right_inv := λ x, by { cases x; simp [bot_ne_top] },
+  map_rel_iff' := λ a b, begin
+    rcases (eq_bot_or_eq_top a) with rfl | rfl,
+    { simp [bot_ne_top] },
+    { rcases (eq_bot_or_eq_top b) with rfl | rfl,
+      { simp [bot_ne_top.symm, bot_ne_top, bool.ff_lt_tt] },
+      { simp [bot_ne_top] } }
+  end }
+
 @[priority 200]
-instance : fintype α :=
-{ elems := {⊥, ⊤},
-  complete := λ x, finset.mem_insert.2 (or.imp_right finset.mem_singleton.2 (eq_bot_or_eq_top x)) }
-
-lemma finset_univ : (finset.univ : finset α) = {⊥, ⊤} := rfl
-
-lemma card : fintype.card α = 2 :=
-finset.card_insert_of_not_mem $ λ con, bot_ne_top (finset.mem_singleton.1 con)
+instance : fintype α := fintype.of_equiv bool (order_iso_bool.to_equiv).symm
 
 /-- A simple `bounded_lattice` is also a `boolean_algebra`. -/
 protected def boolean_algebra : boolean_algebra α :=
 { compl := λ x, if x = ⊥ then ⊤ else ⊥,
   sdiff := λ x y, if x = ⊤ ∧ y = ⊥ then ⊤ else ⊥,
-  sdiff_eq := λ x y, by { rcases (eq_bot_or_eq_top x) with rfl | rfl; simp [bot_ne_top] },
-  inf_compl_le_bot := λ x, by { rcases (eq_bot_or_eq_top x) with rfl | rfl; simp },
-  top_le_sup_compl := λ x, by { rcases (eq_bot_or_eq_top x) with rfl | rfl; simp },
-.. (is_simple_lattice.bounded_distrib_lattice) }
+  sdiff_eq := λ x y, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp [bot_ne_top] },
+  inf_compl_le_bot := λ x, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
+  top_le_sup_compl := λ x, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
+  .. is_simple_lattice.bounded_distrib_lattice }
 
 end decidable_eq
 
@@ -144,36 +152,65 @@ open_locale classical
 protected noncomputable def complete_lattice : complete_lattice α :=
 { Sup := λ s, if ⊤ ∈ s then ⊤ else ⊥,
   Inf := λ s, if ⊥ ∈ s then ⊥ else ⊤,
-  le_Sup := λ s x h, by { rcases (eq_bot_or_eq_top x) with rfl | rfl,
+  le_Sup := λ s x h, by { rcases eq_bot_or_eq_top x with rfl | rfl,
     { exact bot_le },
     { rw if_pos h } },
-  Sup_le := λ s x h, by { rcases (eq_bot_or_eq_top x) with rfl | rfl,
+  Sup_le := λ s x h, by { rcases eq_bot_or_eq_top x with rfl | rfl,
     { rw if_neg,
       intro con,
       exact bot_ne_top (eq_top_iff.2 (h ⊤ con)) },
     { exact le_top } },
-  Inf_le := λ s x h, by { rcases (eq_bot_or_eq_top x) with rfl | rfl,
+  Inf_le := λ s x h, by { rcases eq_bot_or_eq_top x with rfl | rfl,
     { rw if_pos h },
     { exact le_top } },
-  le_Inf := λ s x h, by { rcases (eq_bot_or_eq_top x) with rfl | rfl,
+  le_Inf := λ s x h, by { rcases eq_bot_or_eq_top x with rfl | rfl,
     { exact bot_le },
     { rw if_neg,
       intro con,
       exact top_ne_bot (eq_bot_iff.2 (h ⊥ con)) } },
-.. (infer_instance : bounded_lattice α) }
+  .. (infer_instance : bounded_lattice α) }
 
 /-- A simple `bounded_lattice` is also a `complete_boolean_algebra`. -/
 protected noncomputable def complete_boolean_algebra : complete_boolean_algebra α :=
-{ infi_sup_le_sup_Inf := λ x s, by { rcases (eq_bot_or_eq_top x) with rfl | rfl,
+{ infi_sup_le_sup_Inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
     { simp only [bot_sup_eq, ← Inf_eq_infi], apply le_refl },
     { simp only [top_sup_eq, le_top] }, },
-  inf_Sup_le_supr_inf := λ x s, by { rcases (eq_bot_or_eq_top x) with rfl | rfl,
+  inf_Sup_le_supr_inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
     { simp only [bot_inf_eq, bot_le] },
     { simp only [top_inf_eq, ← Sup_eq_supr], apply le_refl } },
-  .. (is_simple_lattice.complete_lattice),
-  .. (is_simple_lattice.boolean_algebra) }
+  .. is_simple_lattice.complete_lattice,
+  .. is_simple_lattice.boolean_algebra }
 
 end is_simple_lattice
+
+namespace fintype
+namespace is_simple_lattice
+variables [bounded_lattice α] [is_simple_lattice α] [decidable_eq α]
+
+lemma univ : (finset.univ : finset α) = {⊤, ⊥} :=
+begin
+  change finset.map _ (finset.univ : finset bool) = _,
+  rw fintype.univ_bool,
+  simp only [finset.map_insert, function.embedding.coe_fn_mk, finset.map_singleton],
+  refl,
+end
+
+lemma card : fintype.card α = 2 :=
+(fintype.of_equiv_card _).trans fintype.card_bool
+
+end is_simple_lattice
+end fintype
+
+namespace bool
+
+instance : is_simple_lattice bool :=
+⟨λ a, begin
+  rw [← finset.mem_singleton, or.comm, ← finset.mem_insert,
+      top_eq_tt, bot_eq_ff, ← fintype.univ_bool],
+  apply finset.mem_univ,
+end⟩
+
+end bool
 
 theorem is_simple_lattice_iff_is_atom_top [bounded_lattice α] :
   is_simple_lattice α ↔ is_atom (⊤ : α) :=
@@ -183,7 +220,7 @@ theorem is_simple_lattice_iff_is_atom_top [bounded_lattice α] :
 
 theorem is_simple_lattice_iff_is_coatom_bot [bounded_lattice α] :
   is_simple_lattice α ↔ is_coatom (⊥ : α) :=
-iff.trans is_simple_lattice_iff_is_simple_lattice_order_dual is_simple_lattice_iff_is_atom_top
+is_simple_lattice_iff_is_simple_lattice_order_dual.trans is_simple_lattice_iff_is_atom_top
 
 namespace set
 
@@ -206,21 +243,24 @@ namespace order_iso
 variables [bounded_lattice α] {β : Type*} [bounded_lattice β] (f : α ≃o β)
 include f
 
-lemma is_atom_iff (a : α) : is_atom a ↔ is_atom (f a) :=
-and_congr (not_congr ⟨λ h, f.map_bot ▸ (congr rfl h), λ h, (f.injective (f.map_bot.symm ▸ h))⟩)
-  ⟨λ h b hb, f.symm.injective begin
+@[simp] lemma is_atom_iff (a : α) : is_atom (f a) ↔ is_atom a :=
+and_congr (not_congr ⟨λ h, f.injective (f.map_bot.symm ▸ h), λ h, f.map_bot ▸ (congr rfl h)⟩)
+  ⟨λ h b hb, f.injective ((h (f b) ((f : α ↪o β).map_lt_iff.1 hb)).trans f.map_bot.symm),
+  λ h b hb, f.symm.injective begin
     rw f.symm.map_bot,
     apply h,
     rw [← f.symm_apply_apply a],
-    exact (order_embedding.map_lt_iff ↑f.symm).1 hb,
-  end,
-  λ h b hb, f.injective (eq.trans (h (f b) ((order_embedding.map_lt_iff ↑f).1 hb)) f.map_bot.symm) ⟩
+    exact (f.symm : β ↪o α).map_lt_iff.1 hb,
+  end⟩
 
-lemma is_coatom_iff (a : α) : is_coatom a ↔ is_coatom (f a) := f.dual.is_atom_iff a
+@[simp] lemma is_coatom_iff (a : α) : is_coatom (f a) ↔ is_coatom a := f.dual.is_atom_iff a
 
 lemma is_simple_lattice_iff (f : α ≃o β) : is_simple_lattice α ↔ is_simple_lattice β :=
 by rw [is_simple_lattice_iff_is_atom_top, is_simple_lattice_iff_is_atom_top,
-  f.is_atom_iff ⊤, f.map_top]
+  ← f.is_atom_iff ⊤, f.map_top]
+
+lemma is_simple_lattice [h : is_simple_lattice β] (f : α ≃o β) : is_simple_lattice α :=
+f.is_simple_lattice_iff.mpr h
 
 end order_iso
 

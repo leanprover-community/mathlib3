@@ -357,9 +357,10 @@ lemma zero_lt_coe_iff : 0 < (↑p : ennreal) ↔ 0 < p := coe_lt_coe
 @[simp, norm_cast] lemma coe_le_one_iff : ↑r ≤ (1:ennreal) ↔ r ≤ 1 := coe_le_coe
 @[simp, norm_cast] lemma coe_lt_one_iff : (↑p : ennreal) < 1 ↔ p < 1 := coe_lt_coe
 @[simp, norm_cast] lemma one_lt_coe_iff : 1 < (↑p : ennreal) ↔ 1 < p := coe_lt_coe
-@[simp, norm_cast] lemma coe_nat (n : nat) : ((n : ℝ≥0) : ennreal) = n := with_top.coe_nat n
-@[simp] lemma nat_ne_top (n : nat) : (n : ennreal) ≠ ∞ := with_top.nat_ne_top n
-@[simp] lemma top_ne_nat (n : nat) : ∞ ≠ n := with_top.top_ne_nat n
+@[simp, norm_cast] lemma coe_nat (n : ℕ) : ((n : ℝ≥0) : ennreal) = n := with_top.coe_nat n
+@[simp] lemma of_real_coe_nat (n : ℕ) : ennreal.of_real n = n := by simp [ennreal.of_real]
+@[simp] lemma nat_ne_top (n : ℕ) : (n : ennreal) ≠ ∞ := with_top.nat_ne_top n
+@[simp] lemma top_ne_nat (n : ℕ) : ∞ ≠ n := with_top.top_ne_nat n
 @[simp] lemma one_lt_top : 1 < ∞ := coe_lt_top
 
 lemma le_coe_iff : a ≤ ↑r ↔ (∃p:ℝ≥0, a = p ∧ p ≤ r) := with_top.le_coe_iff

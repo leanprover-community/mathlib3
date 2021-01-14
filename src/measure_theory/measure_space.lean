@@ -97,7 +97,7 @@ extension of the restricted measure. -/
 structure measure (α : Type*) [measurable_space α] extends outer_measure α :=
 (m_Union ⦃f : ℕ → set α⦄ :
   (∀ i, is_measurable (f i)) → pairwise (disjoint on f) →
-  measure_of (⋃ i, f i) = (∑' i, measure_of (f i)))
+  measure_of (⋃ i, f i) = ∑' i, measure_of (f i))
 (trimmed : to_outer_measure.trim = to_outer_measure)
 
 /-- Measure projections for a measure space.
@@ -121,7 +121,7 @@ namespace measure
 def of_measurable (m : Π (s : set α), is_measurable s → ennreal)
   (m0 : m ∅ is_measurable.empty = 0)
   (mU : ∀ {{f : ℕ → set α}} (h : ∀ i, is_measurable (f i)), pairwise (disjoint on f) →
-    m (⋃ i, f i) (is_measurable.Union h) = (∑' i, m (f i) (h i))) : measure α :=
+    m (⋃ i, f i) (is_measurable.Union h) = ∑' i, m (f i) (h i)) : measure α :=
 { m_Union := λ f hf hd,
   show induced_outer_measure m _ m0 (Union f) =
       ∑' i, induced_outer_measure m _ m0 (f i), begin
@@ -139,7 +139,7 @@ def of_measurable (m : Π (s : set α), is_measurable s → ennreal)
 lemma of_measurable_apply {m : Π (s : set α), is_measurable s → ennreal}
   {m0 : m ∅ is_measurable.empty = 0}
   {mU : ∀ {{f : ℕ → set α}} (h : ∀ i, is_measurable (f i)), pairwise (disjoint on f) →
-    m (⋃ i, f i) (is_measurable.Union h) = (∑' i, m (f i) (h i))}
+    m (⋃ i, f i) (is_measurable.Union h) = ∑' i, m (f i) (h i)}
   (s : set α) (hs : is_measurable s) : of_measurable m m0 mU s = m s hs :=
 induced_outer_measure_eq m0 mU hs
 
@@ -223,7 +223,7 @@ lemma exists_is_measurable_superset_iff_measure_eq_zero :
   (∃ t, s ⊆ t ∧ is_measurable t ∧ μ t = 0) ↔ μ s = 0 :=
 ⟨λ ⟨t, hst, _, ht⟩, measure_mono_null hst ht, exists_is_measurable_superset_of_null⟩
 
-theorem measure_Union_le [encodable β] (s : β → set α) : μ (⋃ i, s i) ≤ (∑' i, μ (s i)) :=
+theorem measure_Union_le [encodable β] (s : β → set α) : μ (⋃ i, s i) ≤ ∑' i, μ (s i) :=
 μ.to_outer_measure.Union _
 
 lemma measure_bUnion_le {s : set β} (hs : countable s) (f : β → set α) :
@@ -269,7 +269,7 @@ lemma measure_union_null_iff : μ (s₁ ∪ s₂) = 0 ↔ μ s₁ = 0 ∧ μ s�
 
 lemma measure_Union [encodable β] {f : β → set α}
   (hn : pairwise (disjoint on f)) (h : ∀ i, is_measurable (f i)) :
-  μ (⋃ i, f i) = (∑' i, μ (f i)) :=
+  μ (⋃ i, f i) = ∑' i, μ (f i) :=
 begin
   rw [measure_eq_extend (is_measurable.Union h),
     extend_Union is_measurable.empty _ is_measurable.Union _ hn h],
@@ -311,7 +311,7 @@ end
 of the fibers `f ⁻¹' {y}`. -/
 lemma tsum_measure_preimage_singleton {s : set β} (hs : countable s) {f : α → β}
   (hf : ∀ y ∈ s, is_measurable (f ⁻¹' {y})) :
-  (∑' b : s, μ (f ⁻¹' {↑b})) = μ (f ⁻¹' s) :=
+  ∑' b : s, μ (f ⁻¹' {↑b}) = μ (f ⁻¹' s) :=
 by rw [← set.bUnion_preimage_singleton, measure_bUnion hs (pairwise_on_disjoint_fiber _ _) hf]
 
 /-- If `s` is a `finset`, then the measure of its preimage can be found as the sum of measures
@@ -340,7 +340,7 @@ by { rw ← measure_bUnion_finset H h, exact measure_mono (subset_univ _) }
 
 lemma tsum_measure_le_measure_univ {s : ι → set α} (hs : ∀ i, is_measurable (s i))
   (H : pairwise (disjoint on s)) :
-  (∑' i, μ (s i)) ≤ μ (univ : set α) :=
+  ∑' i, μ (s i) ≤ μ (univ : set α) :=
 begin
   rw [ennreal.tsum_eq_supr_sum],
   exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
@@ -459,7 +459,7 @@ end
 /-- One direction of the Borel-Cantelli lemma: if (sᵢ) is a sequence of measurable sets such that
   ∑ μ sᵢ exists, then the limit superior of the sᵢ is a null set. -/
 lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, is_measurable (s i))
-  (hs' : (∑' i, μ (s i)) ≠ ⊤) : μ (limsup at_top s) = 0 :=
+  (hs' : ∑' i, μ (s i) ≠ ⊤) : μ (limsup at_top s) = 0 :=
 begin
   rw limsup_eq_infi_supr_of_nat',
   -- We will show that both `μ (⨅ n, ⨆ i, s (i + n))` and `0` are the limit of `μ (⊔ i, s (i + n))`
@@ -553,7 +553,7 @@ instance : has_add (measure α) :=
 ⟨λ μ₁ μ₂, {
   to_outer_measure := μ₁.to_outer_measure + μ₂.to_outer_measure,
   m_Union := λ s hs hd,
-    show μ₁ (⋃ i, s i) + μ₂ (⋃ i, s i) = ∑' i, μ₁ (s i) + μ₂ (s i),
+    show μ₁ (⋃ i, s i) + μ₂ (⋃ i, s i) = ∑' i, (μ₁ (s i) + μ₂ (s i)),
     by rw [ennreal.tsum_add, measure_Union hd hs, measure_Union hd hs],
   trimmed := by rw [outer_measure.trim_add, μ₁.trimmed, μ₂.trimmed] }⟩
 
@@ -1342,7 +1342,7 @@ ae_eq_bot.trans restrict_eq_zero
 /-- A version of the Borel-Cantelli lemma: if sᵢ is a sequence of measurable sets such that
 ∑ μ sᵢ exists, then for almost all x, x does not belong to almost all sᵢ. -/
 lemma ae_eventually_not_mem {s : ℕ → set α} (hs : ∀ i, is_measurable (s i))
-  (hs' : (∑' i, μ (s i)) ≠ ⊤) : ∀ᵐ x ∂ μ, ∀ᶠ n in at_top, x ∉ s n :=
+  (hs' : ∑' i, μ (s i) ≠ ⊤) : ∀ᵐ x ∂ μ, ∀ᶠ n in at_top, x ∉ s n :=
 begin
   refine measure_mono_null _ (measure_limsup_eq_zero hs hs'),
   rw ←set.le_eq_subset,

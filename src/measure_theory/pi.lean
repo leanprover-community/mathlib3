@@ -357,11 +357,11 @@ end measure
 instance measure_space.pi [Π i, measure_space (α i)] : measure_space (Π i, α i) :=
 ⟨measure.pi (λ i, volume)⟩
 
-lemma measure_space.pi_def [Π i, measure_space (α i)] :
+lemma volume_pi [Π i, measure_space (α i)] :
   (volume : measure (Π i, α i)) = measure.pi (λ i, volume) :=
 rfl
 
-lemma volume_pi [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
+lemma volume_pi_pi [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
   (s : Π i, set (α i)) (hs : ∀ i, is_measurable (s i)) :
   volume (pi univ s) = ∏ i, volume (s i) :=
 measure.pi_pi (λ i, volume) s hs

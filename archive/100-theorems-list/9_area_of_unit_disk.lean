@@ -62,20 +62,32 @@ lemma abs_lt_left {a b : ℝ} (h : abs a < b) : -b < a := (abs_lt.mp h).1
 lemma abs_lt_right {a b : ℝ} (h : abs a < b) : a < b := (abs_lt.mp h).2
 
 -- For Andrew:
-theorem sqr_le {a b : ℝ} : a^2 ≤ b ↔ -sqrt b ≤ a ∧ a ≤ sqrt b :=
+theorem sqr_le {a b : ℝ} : a^2 ≤ b → -sqrt b ≤ a ∧ a ≤ sqrt b :=
 begin
-  sorry -- use `abs_le` (I think)
+  intro h,
+  have := sqrt_le_sqrt h,
+  rw sqrt_sqr_eq_abs a at this,
+  exact abs_le.1 this,
 end
 
 -- For Andrew:
 theorem sqr_lt {a b : ℝ} : a^2 < b ↔ -sqrt b < a ∧ a < sqrt b :=
 begin
-  sorry -- use `abs_lt` (I think)
+  split,
+  {intro h,
+   rw [← sqrt_lt (pow_two_nonneg a), sqrt_sqr_eq_abs a] at h,
+   exact abs_lt.1 (h),},
+  {intro h,
+   rw ← abs_lt at h,
+   rw ← sqr_abs,
+   exact (lt_sqrt (abs_nonneg a) (sqrt_pos.1 (lt_of_le_of_lt (abs_nonneg a) h)).le).1 h,},
 end
 
-lemma sqr_le_left {a b : ℝ} (h : a^2 ≤ b) : -sqrt b ≤ a := (sqr_le.mp h).1
 
-lemma sqr_le_right {a b : ℝ} (h : a^2 ≤ b) : a ≤ sqrt b := (sqr_le.mp h).2
+
+lemma sqr_le_left {a b : ℝ} (h : a^2 ≤ b) : -sqrt b ≤ a := (sqr_le h).1
+
+lemma sqr_le_right {a b : ℝ} (h : a^2 ≤ b) : a ≤ sqrt b := (sqr_le h).2
 
 -- For Andrew for use in step 2:
 -- (originally Andrew's `opposite_sqrt_lt_of_sqr_lt`)

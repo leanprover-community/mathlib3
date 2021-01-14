@@ -1092,3 +1092,22 @@ lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
 lemma top_ne_bot : (⊤ : α) ≠ ⊥ := ne.symm bot_ne_top
 
 end nontrivial
+
+namespace bool
+
+instance : bounded_lattice bool :=
+{ top := tt,
+  le_top := λ x, le_tt,
+  bot := ff,
+  bot_le := λ x, ff_le,
+  .. (infer_instance : lattice bool)}
+
+end bool
+
+section bool
+
+@[simp] lemma top_eq_tt : ⊤ = tt := rfl
+
+@[simp] lemma bot_eq_ff : ⊥ = ff := rfl
+
+end bool

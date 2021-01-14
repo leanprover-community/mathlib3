@@ -1501,10 +1501,16 @@ let g := hfm.mk f in calc
 ... = ∫ x, g (φ x) ∂μ : integral_map_of_measurable hφ hfm.measurable_mk
 ... = ∫ x, f (φ x) ∂μ : integral_congr_ae $ ae_eq_comp hφ (hfm.ae_eq_mk).symm
 
-lemma integral_dirac (f : α → E) (a : α) (hfm : measurable f) :
+lemma integral_dirac' (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
-  integral_congr_ae $ eventually_eq_dirac hfm
+  integral_congr_ae $ ae_eq_dirac' hfm
+... = f a : by simp [measure.dirac_apply_of_mem]
+
+lemma integral_dirac [measurable_singleton_class α] (f : α → E) (a : α) :
+  ∫ x, f x ∂(measure.dirac a) = f a :=
+calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
+  integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
 end properties

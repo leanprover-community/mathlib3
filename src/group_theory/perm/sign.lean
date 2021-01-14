@@ -61,15 +61,22 @@ begin
   simp only [inv_apply_self]
 end
 
+lemma perm_inv_maps_to_of_maps_to (f : perm α) {s : set α} [fintype s]
+  (h : set.maps_to f s s) : set.maps_to (f⁻¹ : _) s s :=
+λ x hx, set.mem_to_finset.mp $
+  perm_inv_on_of_perm_on_finset
+   (λ a ha, set.mem_to_finset.mpr (h (set.mem_to_finset.mp ha)))
+   (set.mem_to_finset.mpr hx)
+
+lemma perm_inv_maps_to_iff_maps_to {f : perm α} {s : set α} [fintype s] :
+  set.maps_to f s s ↔ set.maps_to (f⁻¹ : _) s s :=
+  ⟨perm_inv_maps_to_of_maps_to f, perm_inv_maps_to_of_maps_to f⁻¹⟩
+
 lemma perm_inv_on_of_perm_on_fintype  {f : perm α} {p : α → Prop} (hf : fintype {x // p x})
   (h : ∀ x, p x → p (f x)) {x : α} (hx : p x) : p (f⁻¹ x) :=
 begin
-  let s := @set.to_finset _ {x | p x} hf,
-  have h : ∀ a ∈ s, f a ∈ s :=
-    λ (a : α) (ha : a ∈ s), set.mem_to_finset.mpr (h a (set.mem_to_finset.mp ha)),
-  have h2 : ∀ b ∈ s, f⁻¹ b ∈ s := λ (b : α) (hb : b ∈ s), perm_inv_on_of_perm_on_finset h hb,
-  apply set.mem_to_finset.mp, apply h2,
-  refine set.mem_to_finset.mpr hx
+  letI : fintype ↥(show set α, from p) := ‹fintype {x // p x}›,
+  exact perm_inv_maps_to_of_maps_to f h hx
 end
 
 /-- If the permutation `f` maps `{x // p x}` into itself, then this returns the permutation

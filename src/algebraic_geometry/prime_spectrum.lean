@@ -261,6 +261,12 @@ lemma zero_locus_Union {ι : Sort*} (s : ι → set R) :
   zero_locus (⋃ i, s i) = (⋂ i, zero_locus (s i)) :=
 (gc_set R).l_supr
 
+/-  Eric's suggestion that I am not able to implement
+lemma zero_locus_bUnion (s : set (set R)) :
+  zero_locus (⋃ i : s, i) = ⋂ i ∈ s, zero_locus {i} :=
+(gc_set R).l_Sup
+-/
+
 lemma zero_locus_bUnion {s : set R} :
   zero_locus (⋃ i ∈ s, {i} : set R) = ⋂ i ∈ s, zero_locus {i} :=
 by ext1;

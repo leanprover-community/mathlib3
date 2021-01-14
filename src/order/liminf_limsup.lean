@@ -414,7 +414,7 @@ end complete_linear_order
 
 end filter
 
-lemma order_iso.limsup_le {α β γ} [complete_linear_order β] [complete_lattice γ] {f : filter α}
+lemma order_iso.limsup_le {α β γ} [complete_lattice β] [complete_lattice γ] {f : filter α}
   {u : α → β} (g : β ≃o γ) :
   g (f.limsup u) ≤ f.limsup (λ x, g (u x)) :=
 begin
@@ -427,7 +427,7 @@ begin
   exact g.symm.monotone hy,
 end
 
-lemma order_iso.limsup_apply {γ} [complete_linear_order β] [complete_linear_order γ] {f : filter α}
+lemma order_iso.limsup_apply {γ} [complete_lattice β] [complete_lattice γ] {f : filter α}
   {u : α → β} (g : β ≃o γ) :
   g (f.limsup u) = f.limsup (λ x, g (u x)) :=
 begin
@@ -438,3 +438,8 @@ begin
   nth_rewrite 0 hf,
   exact g.symm.limsup_le,
 end
+
+lemma order_iso.liminf_apply {γ} [complete_lattice β] [complete_lattice γ] {f : filter α}
+  {u : α → β} (g : β ≃o γ) :
+  g (f.liminf u) = f.liminf (λ x, g (u x)) :=
+@order_iso.limsup_apply α (order_dual β) (order_dual γ) _ _ f u g.dual

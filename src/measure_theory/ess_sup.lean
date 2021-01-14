@@ -75,6 +75,16 @@ end
 lemma ess_inf_const (c : β) (hμ : μ ≠ 0) : ess_inf (λ x : α, c) μ = c :=
 @ess_sup_const α (order_dual β) _ _ _ _ hμ
 
+lemma order_iso.ess_sup_apply {γ} [complete_lattice γ] (f : α → β) (μ : measure α)
+  (g : β ≃o γ) :
+  g (ess_sup f μ) = ess_sup (λ x, g (f x)) μ :=
+order_iso.limsup_apply g
+
+lemma order_iso.ess_inf_apply {γ} [complete_lattice γ] (f : α → β) (μ : measure α)
+  (g : β ≃o γ) :
+  g (ess_inf f μ) = ess_inf (λ x, g (f x)) μ :=
+@order_iso.ess_sup_apply α (order_dual β) _ _  (order_dual γ) _ _ _ g.dual
+
 end complete_lattice
 
 section complete_linear_order
@@ -85,16 +95,6 @@ filter.eventually_lt_of_limsup_lt' hf
 
 lemma ae_lt_of_lt_ess_inf {f : α → β} {x : β} (hf : x < ess_inf f μ) : ∀ᵐ y ∂μ, x < f y :=
 @ae_lt_of_ess_sup_lt α (order_dual β) _ _ _ _ _ hf
-
-lemma order_iso.ess_sup_apply {γ} [complete_linear_order γ] (f : α → β) (μ : measure α)
-  (g : β ≃o γ) :
-  g (ess_sup f μ) = ess_sup (λ x, g (f x)) μ :=
-order_iso.limsup_apply g
-
-lemma order_iso.ess_inf_apply {γ} [complete_linear_order γ] (f : α → β) (μ : measure α)
-  (g : β ≃o γ) :
-  g (ess_inf f μ) = ess_inf (λ x, g (f x)) μ :=
-@order_iso.ess_sup_apply α (order_dual β) _ _  (order_dual γ) _ _ _ g.dual
 
 end complete_linear_order
 

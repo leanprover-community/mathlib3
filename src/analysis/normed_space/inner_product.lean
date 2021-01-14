@@ -1252,7 +1252,7 @@ def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
 
 /-- Induced inner product on a submodule. -/
 instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_space 𝕜 W :=
-{ inner             := λ x y, ⟪(x:E), ↑y⟫,
+{ inner             := λ x y, ⟪(x:E), (y:E)⟫,
   conj_sym          := λ _ _, inner_conj_sym _ _ ,
   nonneg_im         := λ _, inner_self_nonneg_im,
   norm_sq_eq_inner  := λ _, norm_sq_eq_inner _,
@@ -2321,11 +2321,12 @@ section orthonormal_basis
 
 /-! ### Existence of an orthonormal basis for a finite-dimensional inner product space -/
 
-variables (𝕜)
+variables (𝕜 E)
 
 open finite_dimensional
 
-/-- A finite dimensional `inner_product_space` has a nonzero orthonormal sets of maximal size. -/
+/-- A finite-dimensional `inner_product_space` has an orthonormal set whose cardinality is the
+dimension. -/
 theorem exists_max_orthonormal [finite_dimensional 𝕜 E] :
   ∃ (v : fin (findim 𝕜 E) → E), orthonormal 𝕜 v :=
 begin
@@ -2349,8 +2350,7 @@ begin
     { rw [← norm_pos_iff, he],
       norm_num },
     apply IH,
-    simp [findim_orthogonal_span_singleton he', hk],
-    apply_instance },
+    simp [findim_orthogonal_span_singleton he', hk] },
   -- put these together to provide a candidate orthonormal basis `v` for the whole space
   let v : fin (k + 1) → E := λ i, if h : i ≠ 0 then coe (w (i.pred h)) else e,
   refine ⟨v, _, _⟩,
@@ -2378,18 +2378,13 @@ begin
     simpa [v, hi, hj] using this }
 end
 
-variables (E)
-
-/-- A default choice of a maximal orthonormal set, in a finite-dimensional inner product space. -/
-def maximal_orthonormal [finite_dimensional 𝕜 E] : fin (findim 𝕜 E) → E :=
-classical.some (exists_max_orthonormal 𝕜)
-
-lemma maximal_orthonormal_spec [finite_dimensional 𝕜 E] :
-  orthonormal 𝕜 (maximal_orthonormal 𝕜 E) :=
-classical.some_spec (exists_max_orthonormal 𝕜)
-
+/-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
 lemma is_basis_max_orthonormal [nontrivial E] [finite_dimensional 𝕜 E] :
-  is_basis 𝕜 (maximal_orthonormal 𝕜 E) :=
-is_basis_of_orthonormal_of_card_eq_findim (maximal_orthonormal_spec 𝕜 E) (by simp)
+  ∃ (v : fin (findim 𝕜 E) → E), orthonormal 𝕜 v ∧ is_basis 𝕜 v :=
+begin
+  let v := classical.some (exists_max_orthonormal 𝕜 E),
+  let hv := classical.some_spec (exists_max_orthonormal 𝕜 E),
+  exact ⟨v, hv, is_basis_of_orthonormal_of_card_eq_findim hv (by simp)⟩
+end
 
 end orthonormal_basis

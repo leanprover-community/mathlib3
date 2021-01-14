@@ -622,6 +622,7 @@ local attribute [instance] classical.prop_decidable
 lemma inv_of_maximal_not_top (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
   (hM : ideal.is_maximal M) : (1 / ↑M : fractional_ideal f) ≠ (1 : fractional_ideal f) :=
 begin
+  have h_Spec : inhabited (ideal R), sorry,
   have h_nzM : M ≠ ⊥ := ne_bot_of_is_maximal_of_not_is_field hM hNF,
   obtain ⟨a, h_nza⟩ : ∃ a : M, a ≠ 0 := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr h_nzM),
   let J : (ideal R) := ideal.span {a},
@@ -634,15 +635,42 @@ begin
   --  split, swap,
   apply exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF h_J.left,
   have h_ZM : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ M := le_trans h_ZJ h_J.right,
-  obtain ⟨P, h_PZ, h_JP, h_Z'P⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M ∧
-    ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J,
-    { let Ω : list (prime_spectrum R) := multiset.to_list Z,
-      -- let f : (fin 10) → ℕ := λ n, list.nth_le (list.Ico 0 5) 1,
-      --let f : (fin Ω.length) → prime_spectrum R := λ n, list.nth_le Ω n,
+  let Ω : list (ideal R) := multiset.to_list (Z.map (coe : subtype _ → ideal R)),
+  let f : ℕ → ideal R := λ n, if hn : n < Ω.length then list.nth_le Ω n hn else @list.head _ h_Spec Ω,
+  let s := finset.Ico 0 Ω.length,
+  have hne: s.nonempty, sorry,
+  have h_Mprime : is_prime M, sorry,
+  have h_fs : s.prod f = multiset.prod (Z.map (coe : subtype _ → ideal R)), sorry,
+  have h_fsM : s.prod f ≤ M, sorry,
+  obtain ⟨P, h_PZ, h_JP⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M, --∧
+    -- ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J,
+    { convert (ideal.is_prime.prod_le h_Mprime hne).mp h_fsM,
+      rw ← iff_eq_eq,
+      split,
+      { rintros ⟨P, h_PZ, h_PM⟩,
+        replace h_PZ : P.1 ∈ Ω, sorry,
+        obtain ⟨m, hm₁, hm₂⟩ : ∃ (n : ℕ) (h : n < Ω.length), Ω.nth_le n h = P.val,
+        apply list.nth_le_of_mem h_PZ,
+        use m,
+        have uno : multiset.card Z = Ω.length := sorry, --multiset.length_to_list,
+        split,
+        { simp only [true_and, multiset.length_to_list, multiset.card_map,
+            finset.Ico.mem, zero_le],
+          rwa ← uno at hm₁ },
+        { convert h_PM,
+          rw ← hm₂,
+          dsimp [f],
+          by_cases m < Ω.length,
+          simp only [*, dif_pos],
+          exact absurd hm₁ h } },
+      { rintros ⟨m, hm₁, hm₂⟩,
+        rw finset.Ico.mem at hm₁,
+        sorry},--QUI LA SERA DEL 14: NON SIAMO LONTANI, VA GOLFATA LA COSA SOPRA COMUNQUE
+      -- let f : ℕ → ideal : R := λ n, if hn : n < Ω.length then (list.nth_le Ω n hn).1 else ⊤,
       -- hn else M,
       --{list.Ico 0 1} → ℕ := λ n, 2,--list.Ico 0 1 → ℕ
 
-    sorry
+    -- sorry
      },-- h_PZ SEMBRA INUTILE; h_Z'P ANCHE???
 
     --  sorry, -- LA CICCIA

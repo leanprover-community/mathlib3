@@ -169,7 +169,8 @@ section comm_ring
 
 variables {α : Type*} [comm_ring α] (E : linear_recurrence α)
 
-/-- The characteristic polynomial of `E` is `X ^ E.order - ∑ i : fin E.order, (E.coeffs i) * X ^ i`. -/
+/-- The characteristic polynomial of `E` is
+`X ^ E.order - ∑ i : fin E.order, (E.coeffs i) * X ^ i`. -/
 def char_poly : polynomial α :=
   polynomial.monomial E.order 1 - (∑ i : fin E.order, polynomial.monomial i (E.coeffs i))
 

@@ -164,7 +164,8 @@ end
 
 /-- A point `x` in a discrete subset `s` of a topological space admits a neighbourhood
 that only meets `s` at `x`.  -/
-lemma nhds_inter_eq_singleton_of_mem_discrete {s : set α} [discrete_topology s] {x : α} (hx : x ∈ s) :
+lemma nhds_inter_eq_singleton_of_mem_discrete {s : set α} [discrete_topology s]
+  {x : α} (hx : x ∈ s) :
   ∃ U ∈ 𝓝 x, U ∩ s = {x} :=
 by simpa using (𝓝 x).basis_sets.exists_inter_eq_singleton_of_mem_discrete hx
 
@@ -175,8 +176,9 @@ such that
 -/
 lemma disjoint_nhds_within_of_mem_discrete {s : set α} [discrete_topology s] {x : α} (hx : x ∈ s) :
   ∃ U ∈ 𝓝[{x}ᶜ] x, disjoint U s :=
-let ⟨V, h, h'⟩ := nhds_inter_eq_singleton_of_mem_discrete hx in ⟨{x}ᶜ ∩ V, inter_mem_nhds_within _ h,
-  (disjoint_iff_inter_eq_empty.mpr (by { rw [inter_assoc, h', compl_inter_self] }))⟩
+let ⟨V, h, h'⟩ := nhds_inter_eq_singleton_of_mem_discrete hx in
+  ⟨{x}ᶜ ∩ V, inter_mem_nhds_within _ h,
+    (disjoint_iff_inter_eq_empty.mpr (by { rw [inter_assoc, h', compl_inter_self] }))⟩
 
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
@@ -486,8 +488,8 @@ end
 section
 open finset function
 /-- For every finite open cover `Uᵢ` of a compact set, there exists a compact cover `Kᵢ ⊆ Uᵢ`. -/
-lemma is_compact.finite_compact_cover [t2_space α] {s : set α} (hs : is_compact s) {ι} (t : finset ι)
-  (U : ι → set α) (hU : ∀ i ∈ t, is_open (U i)) (hsC : s ⊆ ⋃ i ∈ t, U i) :
+lemma is_compact.finite_compact_cover [t2_space α] {s : set α} (hs : is_compact s)
+  {ι} (t : finset ι) (U : ι → set α) (hU : ∀ i ∈ t, is_open (U i)) (hsC : s ⊆ ⋃ i ∈ t, U i) :
   ∃ K : ι → set α, (∀ i, is_compact (K i)) ∧ (∀i, K i ⊆ U i) ∧ s = ⋃ i ∈ t, K i :=
 begin
   classical,
@@ -552,8 +554,8 @@ lemma exists_compact_superset [locally_compact_space α] [t2_space α] {K : set 
   (hK : is_compact K) : ∃ (K' : set α), is_compact K' ∧ K ⊆ interior K' :=
 begin
   choose U hU using λ x : K, exists_open_with_compact_closure (x : α),
-  rcases hK.elim_finite_subcover U (λ x, (hU x).1) (λ x hx, ⟨_, ⟨⟨x, hx⟩, rfl⟩, (hU ⟨x, hx⟩).2.1⟩) with
-    ⟨s, hs⟩,
+  rcases hK.elim_finite_subcover U (λ x, (hU x).1) (λ x hx, ⟨_, ⟨⟨x, hx⟩, rfl⟩, (hU ⟨x, hx⟩).2.1⟩)
+    with ⟨s, hs⟩,
   refine ⟨⋃ (i : K) (H : i ∈ s), closure (U i), _, _⟩,
   exact (finite_mem_finset s).compact_bUnion (λ x hx, (hU x).2.2),
   refine subset.trans hs _, rw subset_interior_iff_subset_of_open,
@@ -639,10 +641,12 @@ normal_space.normal s t H1 H2 H3
 
 @[priority 100] -- see Note [lower instance priority]
 instance normal_space.regular_space [normal_space α] : regular_space α :=
-{ regular := λ s x hs hxs, let ⟨u, v, hu, hv, hsu, hxv, huv⟩ := normal_separation s {x} hs is_closed_singleton
+{ regular := λ s x hs hxs, let ⟨u, v, hu, hv, hsu, hxv, huv⟩ :=
+    normal_separation s {x} hs is_closed_singleton
       (λ _ ⟨hx, hy⟩, hxs $ mem_of_eq_of_mem (eq_of_mem_singleton hy).symm hx) in
     ⟨u, hu, hsu, filter.empty_in_sets_eq_bot.1 $ filter.mem_inf_sets.2
-      ⟨v, mem_nhds_sets hv (singleton_subset_iff.1 hxv), u, filter.mem_principal_self u, inter_comm u v ▸ huv⟩⟩ }
+      ⟨v, mem_nhds_sets hv (singleton_subset_iff.1 hxv), u, filter.mem_principal_self u,
+        inter_comm u v ▸ huv⟩⟩ }
 
 -- We can't make this an instance because it could cause an instance loop.
 lemma normal_of_compact_t2 [compact_space α] [t2_space α] : normal_space α :=

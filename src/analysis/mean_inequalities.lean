@@ -124,8 +124,8 @@ variables {ι : Type u} (s : finset ι)
 
 namespace real
 
-/-- AM-GM inequality: the geometric mean is less than or equal to the arithmetic mean, weighted version
-for real-valued nonnegative functions. -/
+/-- AM-GM inequality: the geometric mean is less than or equal to the arithmetic mean, weighted
+version for real-valued nonnegative functions. -/
 theorem geom_mean_le_arith_mean_weighted (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) :
   (∏ i in s, (z i) ^ (w i)) ≤ ∑ i in s, w i * z i :=
@@ -335,8 +335,8 @@ nnreal.geom_mean_le_arith_mean2_weighted ⟨w₁, hw₁⟩ ⟨w₂, hw₂⟩ ⟨
 theorem geom_mean_le_arith_mean3_weighted {w₁ w₂ w₃ p₁ p₂ p₃ : ℝ} (hw₁ : 0 ≤ w₁) (hw₂ : 0 ≤ w₂)
   (hw₃ : 0 ≤ w₃) (hp₁ : 0 ≤ p₁) (hp₂ : 0 ≤ p₂) (hp₃ : 0 ≤ p₃) (hw : w₁ + w₂ + w₃ = 1) :
   p₁ ^ w₁ * p₂ ^ w₂ * p₃ ^ w₃ ≤ w₁ * p₁ + w₂ * p₂ + w₃ * p₃ :=
-nnreal.geom_mean_le_arith_mean3_weighted ⟨w₁, hw₁⟩ ⟨w₂, hw₂⟩ ⟨w₃, hw₃⟩ ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ ⟨p₃, hp₃⟩ $
-  nnreal.coe_eq.1 $ by assumption
+nnreal.geom_mean_le_arith_mean3_weighted
+  ⟨w₁, hw₁⟩ ⟨w₂, hw₂⟩ ⟨w₃, hw₃⟩ ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ ⟨p₃, hp₃⟩ $ nnreal.coe_eq.1 hw
 
 theorem geom_mean_le_arith_mean4_weighted {w₁ w₂ w₃ w₄ p₁ p₂ p₃ p₄ : ℝ} (hw₁ : 0 ≤ w₁)
   (hw₂ : 0 ≤ w₂) (hw₃ : 0 ≤ w₃) (hw₄ : 0 ≤ w₄) (hp₁ : 0 ≤ p₁) (hp₂ : 0 ≤ p₂) (hp₃ : 0 ≤ p₃)
@@ -634,8 +634,9 @@ begin
   begin
     simp_rw [div_def],
     rw lintegral_add',
-    { rw [lintegral_mul_const'' _ hf.ennreal_rpow_const, lintegral_mul_const'' _ hg.ennreal_rpow_const,
-        hf_norm, hg_norm, ←ennreal.div_def, ←ennreal.div_def, hpq.inv_add_inv_conj_ennreal], },
+    { rw [lintegral_mul_const'' _ hf.ennreal_rpow_const,
+        lintegral_mul_const'' _ hg.ennreal_rpow_const, hf_norm, hg_norm, ← ennreal.div_def,
+        ← ennreal.div_def, hpq.inv_add_inv_conj_ennreal], },
     { exact hf.ennreal_rpow_const.ennreal_mul ae_measurable_const, },
     { exact hg.ennreal_rpow_const.ennreal_mul ae_measurable_const, },
   end

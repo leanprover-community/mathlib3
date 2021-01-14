@@ -1079,6 +1079,28 @@ lemma integral_eq_zero_of_ae {f : α → E} (hf : f =ᵐ[μ] 0) : ∫ a, f a ∂
 if hfm : ae_measurable f μ then by simp [integral_congr_ae hf, integral_zero]
 else integral_non_ae_measurable hfm
 
+/-- If `f` has finite integral, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
+to zero as `μ s` tends to zero. -/
+lemma has_finite_integral.tendsto_set_integral_nhds_zero {ι} {f : α → E}
+  (hf : has_finite_integral f μ) {l : filter ι} {s : ι → set α}
+  (hs : tendsto (μ ∘ s) l (𝓝 0)) :
+  tendsto (λ i, ∫ x in s i, f x ∂μ) l (𝓝 0) :=
+begin
+  rw [tendsto_zero_iff_norm_tendsto_zero],
+  simp_rw [← coe_nnnorm, ← nnreal.coe_zero, nnreal.tendsto_coe, ← ennreal.tendsto_coe,
+    ennreal.coe_zero],
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+    (tendsto_set_lintegral_zero hf hs) (λ i, zero_le _)
+    (λ i, ennnorm_integral_le_lintegral_ennnorm _)
+end
+
+/-- If `f` is integrable, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
+to zero as `μ s` tends to zero. -/
+lemma integrable.tendsto_set_integral_nhds_zero {ι} {f : α → E}
+  (hf : integrable f μ) {l : filter ι} {s : ι → set α} (hs : tendsto (μ ∘ s) l (𝓝 0)) :
+  tendsto (λ i, ∫ x in s i, f x ∂μ) l (𝓝 0) :=
+hf.2.tendsto_set_integral_nhds_zero hs
+
 /-- If `F i → f` in `L1`, then `∫ x, F i x ∂μ → ∫ x, f x∂μ`. -/
 lemma tendsto_integral_of_l1 {ι} (f : α → E) (hfi : integrable f μ)
   {F : ι → α → E} {l : filter ι} (hFi : ∀ᶠ i in l, integrable (F i) μ)

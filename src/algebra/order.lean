@@ -134,6 +134,16 @@ alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
 
+@[simp] lemma ne_iff_lt_iff_le [partial_order α] {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { by_cases H : a = b,
+    { exact le_of_eq H },
+    { exact le_of_lt (h.mp H) } },
+  { cases eq_or_lt_of_le h with H H;
+    simp [H, not_lt_of_ge, ne_of_lt] }
+end
+
 lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 ((le_total _ _).resolve_right h).lt_of_not_le h
 

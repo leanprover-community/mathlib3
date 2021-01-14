@@ -8,8 +8,9 @@ import data.real.sqrt
 import data.real.pi
 import measure_theory.measure_space
 import topology.metric_space.basic
+import analysis.mean_inequalities
 
-open set interval_integral metric real filter
+open set interval_integral metric real filter finset
 
 
 -- # Ben's assorted sqrt, sqr, and abs lemmas
@@ -98,10 +99,21 @@ def unit_disc := {point : ℝ × ℝ | (point.1)^2 + (point.2)^2 < 1 }
 
 def unit_disc_alt := {point : ℝ × ℝ | -sqrt (1 - (point.1)^2) < point.2 ∧ point.2 < sqrt (1 - (point.1)^2)}
 
---version of the triangle inequality, still need to prove
+/--goofy function, turns term of type ℝ × ℝ into term of type fin 2 → ℝ.
+used in the triangle inequality below-/
+def fin_from_prod (p : ℝ × ℝ) : fin 2 → ℝ := λ (a : fin 2),
+  if h : (a = 0) then p.1 else p.2
+
+--"the triangle inequality" (Minowski inequality for two summands?)
 lemma real.Lp_add_two_le (f g : ℝ × ℝ) (p : ℝ) (hp : 1 ≤ p) :
 (abs (f.1 + g.1) ^ p + abs (f.2 + g.2) ^ p) ^ (1 / p)
-≤ (abs f.1 ^ p + abs f.2 ^ p) ^ (1 / p) + (abs g.1 ^ p + abs g.2 ^ p) ^ (1 / p) := sorry
+≤ (abs f.1 ^ p + abs f.2 ^ p) ^ (1 / p) + (abs g.1 ^ p + abs g.2 ^ p) ^ (1 / p) :=
+by simpa [fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod f i + fin_from_prod g i) ^ p),
+          fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod f i) ^ p),
+          fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod g i) ^ p),
+          univ_unique, sum_singleton]
+          using (real.Lp_add_le (univ : finset (fin 2)) (fin_from_prod f) (fin_from_prod g) hp)
+
 
 --alternate version of triangle inequality, handles p : ℕ
 lemma real.Lp_add_two_le' (f g : ℝ × ℝ) (p : ℕ) (hp : 1 ≤ p) :

@@ -277,11 +277,7 @@ theorem inv_def (z : ℂ) : z⁻¹ = conj z * ((norm_sq z)⁻¹:ℝ) := rfl
 @[simp] lemma inv_im (z : ℂ) : (z⁻¹).im = -z.im / norm_sq z := by simp [inv_def, division_def]
 
 @[simp, norm_cast] lemma of_real_inv (r : ℝ) : ((r⁻¹ : ℝ) : ℂ) = r⁻¹ :=
-ext_iff.2 $ begin
-  simp,
-  by_cases r = 0, { simp [h] },
-  { rw [← div_div_eq_div_mul, div_self h, one_div] },
-end
+ext_iff.2 $ by simp
 
 protected lemma inv_zero : (0⁻¹ : ℂ) = 0 :=
 by rw [← of_real_zero, ← of_real_inv, inv_zero]

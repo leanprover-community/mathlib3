@@ -122,22 +122,22 @@ begin
   exact (lift R).symm.injective w,
 end
 
-lemma algebra_map_injective : function.injective (algebra_map _ _ : R → tensor_algebra R M) :=
--- this proof is almost identical to `free_algebra.algebra_map.injective`
-let f : tensor_algebra R M →ₐ[R] R := tensor_algebra.lift R (0 : M →ₗ[R] R) in
-function.injective.of_comp $ show function.injective (f ∘ algebra_map R _), begin
-  convert function.injective_id,
-  ext,
-  simp [f, algebra.of_id]
-end
+/-- The left-inverse of `algebra_map`. -/
+def algebra_map_inv : tensor_algebra R M →ₐ[R] R :=
+lift R (0 : M →ₗ[R] R)
 
-lemma ι_injective : function.injective (ι R : M → tensor_algebra R M) :=
--- `triv_sq_zero_ext` has a suitable algebra structure and existing proof of injectivity, which
--- we can transfer
-λ x y hxy,
-  let f : tensor_algebra R M →ₐ[R] triv_sq_zero_ext R M := lift R (triv_sq_zero_ext.inr_hom R M) in
-  have hfxx : f (ι R x) = triv_sq_zero_ext.inr x := lift_ι_apply _ _,
-  have hfyy : f (ι R y) = triv_sq_zero_ext.inr y := lift_ι_apply _ _,
-  triv_sq_zero_ext.inr_injective $ hfxx.symm.trans ((f.congr_arg hxy).trans hfyy)
+lemma algebra_map_left_inverse :
+  function.left_inverse algebra_map_inv (algebra_map R $ tensor_algebra R M) :=
+λ x, by simp [algebra_map_inv]
+
+/-- The left-inverse of `ι`.
+
+As an implementation detail, we implement this using `triv_sq_zero_ext` which has a suitable
+algebra structure. -/
+def ι_inv : tensor_algebra R M →ₗ[R] M :=
+(triv_sq_zero_ext.snd_hom R M).comp (lift R (triv_sq_zero_ext.inr_hom R M)).to_linear_map
+
+lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → tensor_algebra R M) :=
+λ x, by simp [ι_inv]
 
 end tensor_algebra

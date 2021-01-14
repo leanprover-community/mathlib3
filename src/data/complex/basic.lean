@@ -50,6 +50,7 @@ instance : has_coe ℝ ℂ := ⟨λ r, ⟨r, 0⟩⟩
 
 @[simp, norm_cast] lemma of_real_re (r : ℝ) : (r : ℂ).re = r := rfl
 @[simp, norm_cast] lemma of_real_im (r : ℝ) : (r : ℂ).im = 0 := rfl
+lemma of_real_def (r : ℝ) : (r : ℂ) = ⟨r, 0⟩ := rfl
 
 @[simp, norm_cast] theorem of_real_inj {z w : ℝ} : (z : ℂ) = w ↔ z = w :=
 ⟨congr_arg re, congr_arg _⟩

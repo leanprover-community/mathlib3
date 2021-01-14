@@ -1318,6 +1318,8 @@ iff.intro
 @[simp] lemma map_id : filter.map id f = f :=
 filter_eq $ rfl
 
+@[simp] lemma map_id' : filter.map (λ x, x) f = f := map_id
+
 @[simp] lemma map_compose : filter.map m' ∘ filter.map m = filter.map (m' ∘ m) :=
 funext $ assume _, filter_eq $ rfl
 

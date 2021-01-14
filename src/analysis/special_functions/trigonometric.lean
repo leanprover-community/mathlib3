@@ -2171,9 +2171,19 @@ else have hx : x ≠ 0, from λ hx, by simp [*, eq_comm] at *,
 lemma arg_of_real_of_nonneg {x : ℝ} (hx : 0 ≤ x) : arg x = 0 :=
 by simp [arg, hx]
 
+lemma arg_eq_pi_iff {z : ℂ} : arg z = π ↔ z.re < 0 ∧ z.im = 0 :=
+begin
+  by_cases h₀ : z = 0, { simp [h₀, lt_irrefl, real.pi_ne_zero.symm] },
+  have h₀' : (abs z : ℂ) ≠ 0, by simpa,
+  rw [← arg_neg_one, arg_eq_arg_iff h₀ (neg_ne_zero.2 one_ne_zero), abs_neg, abs_one,
+    of_real_one, one_div, ← div_eq_inv_mul, div_eq_iff_mul_eq h₀', neg_one_mul,
+    ext_iff, neg_im, of_real_im, neg_zero, @eq_comm _ z.im, and.congr_left_iff],
+  rcases z with ⟨x, y⟩, simp only, rintro rfl, simp only [← of_real_def, of_real_eq_zero] at *,
+  simp [← ne.le_iff_lt h₀, @neg_eq_iff_neg_eq _ _ _ x, @eq_comm _ (-x)]
+end
+
 lemma arg_of_real_of_neg {x : ℝ} (hx : x < 0) : arg x = π :=
-by rw [arg_eq_arg_neg_add_pi_of_im_nonneg_of_re_neg, ← of_real_neg, arg_of_real_of_nonneg];
-  simp [*, le_iff_eq_or_lt, lt_neg]
+arg_eq_pi_iff.2 ⟨hx, rfl⟩
 
 /-- Inverse of the `exp` function. Returns values such that `(log x).im > - π` and `(log x).im ≤ π`.
   `log 0 = 0`-/
@@ -2271,6 +2281,22 @@ by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]
 lemma exp_eq_exp_iff_exists_int {x y : ℂ} : exp x = exp y ↔ ∃ n : ℤ, x = y + n * ((2 * π) * I) :=
 by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 
+def exp_local_homeomorph : local_homeomorph ℂ ℂ :=
+{ to_fun := exp,
+  inv_fun := log,
+  source := {z : ℂ | - π < z.im ∧ z.im < π},
+  target := {z : ℂ | 0 < z.re ∨ z.im ≠ 0},
+  map_source' := λ z ⟨h₁, h₂⟩, if h : z.im = 0
+    then or.inl $ by rw [exp_eq_exp_re_mul_sin_add_cos, h]; simp [exp_of_real_re, real.exp_pos]
+    else or.inr $ by rw [exp_eq_exp_re_mul_sin_add_cos]; simp [*, exp_of_real_re, sin_of_real_re,
+      (real.exp_pos z.re).ne', real.sin_eq_zero_iff_of_lt_of_lt],
+  map_target' := λ z h,
+    suffices 0 ≤ z.re ∨ z.im ≠ 0,
+      by simpa [log, neg_pi_lt_arg, (arg_le_pi _).lt_iff_ne, arg_eq_pi_iff, not_and_distrib],
+    h.imp le_of_lt id,
+  
+}
+
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
 calc cos (π / 2) = real.cos (π / 2) : by rw [of_real_cos]; simp
 ... = 0 : by simp
@@ -2295,10 +2321,10 @@ lemma sin_add_pi (x : ℂ) : sin (x + π) = -sin x :=
 by simp [sin_add]
 
 lemma sin_add_two_pi (x : ℂ) : sin (x + 2 * π) = sin x :=
-by simp [sin_add_pi, sin_add, sin_two_pi, cos_two_pi]
+by simp [sin_add]
 
 lemma cos_add_two_pi (x : ℂ) : cos (x + 2 * π) = cos x :=
-by simp [cos_add, cos_two_pi, sin_two_pi]
+by simp [cos_add]
 
 lemma sin_pi_sub (x : ℂ) : sin (π - x) = sin x :=
 by simp [sub_eq_add_neg, sin_add]

@@ -1078,24 +1078,35 @@ end
 def dirac (a : α) : measure α :=
 (outer_measure.dirac a).to_measure (by simp)
 
-lemma dirac_apply' (a : α) (hs : is_measurable s) :
-  dirac a s = ⨆ h : a ∈ s, 1 :=
+lemma le_dirac_apply {a} : s.indicator 1 a ≤ dirac a s :=
+outer_measure.dirac_apply a s ▸ le_to_measure_apply _ _ _
+
+@[simp] lemma dirac_apply' (a : α) (hs : is_measurable s) :
+  dirac a s = s.indicator 1 a :=
 to_measure_apply _ _ hs
 
-@[simp] lemma dirac_apply (a : α) (hs : is_measurable s) :
-  dirac a s = s.indicator 1 a :=
-(dirac_apply' a hs).trans $ by { by_cases h : a ∈ s; simp [h] }
-
-lemma dirac_apply_of_mem {a : α} (h : a ∈ s) :
+@[simp] lemma dirac_apply_of_mem {a : α} (h : a ∈ s) :
   dirac a s = 1 :=
 begin
-  rw [measure_eq_infi, infi_subtype', infi_subtype'],
-  convert infi_const,
-  { ext1 ⟨⟨t, hst⟩, ht⟩,
-    dsimp only [subtype.coe_mk] at *,
-    simp only [dirac_apply _ ht, indicator_of_mem (hst h), pi.one_apply] },
-  { exact ⟨⟨⟨set.univ, subset_univ _⟩, is_measurable.univ⟩⟩ }
+  have : ∀ t : set α, a ∈ t → t.indicator (1 : α → ennreal) a = 1,
+    from λ t ht, indicator_of_mem ht 1,
+  refine le_antisymm (this univ trivial ▸ _) (this s h ▸ le_dirac_apply),
+  rw [← dirac_apply' a is_measurable.univ],
+  exact measure_mono (subset_univ s)
 end
+
+@[simp] lemma dirac_apply [measurable_singleton_class α] (a : α) (s : set α) :
+  dirac a s = s.indicator 1 a :=
+begin
+  by_cases h : a ∈ s, by rw [dirac_apply_of_mem h, indicator_of_mem h, pi.one_apply],
+  rw [indicator_of_not_mem h, ← nonpos_iff_eq_zero],
+  calc dirac a s ≤ dirac a {a}ᶜ : measure_mono (subset_compl_comm.1 $ singleton_subset_iff.2 h)
+             ... = 0            : by simp [dirac_apply' _ (is_measurable_singleton _).compl]
+end
+
+lemma map_dirac {f : α → β} (hf : measurable f) (a : α) :
+  map f (dirac a) = dirac (f a) :=
+ext $ assume s hs, by simp [hs, map_apply hf hs, hf hs, indicator_apply]
 
 /-- Sum of an indexed family of measures. -/
 def sum (f : ι → measure α) : measure α :=
@@ -1103,6 +1114,10 @@ def sum (f : ι → measure α) : measure α :=
 le_trans
   (by exact le_infi (λ i, le_to_outer_measure_caratheodory _))
   (outer_measure.le_sum_caratheodory _)
+
+lemma le_sum_apply (f : ι → measure α) (s : set α) :
+  (∑' i, f i s) ≤ sum f s :=
+le_to_measure_apply _ _ _
 
 @[simp] lemma sum_apply (f : ι → measure α) {s : set α} (hs : is_measurable s) :
   sum f s = ∑' i, f i s :=
@@ -1137,12 +1152,17 @@ ext $ λ t ht, by simp only [sum_apply, restrict_apply, ht, ht.inter hs]
 /-- Counting measure on any measurable space. -/
 def count : measure α := sum dirac
 
+lemma le_count_apply : (∑' i : s, 1 : ennreal) ≤ count s :=
+calc (∑' i : s, 1 : ennreal) = ∑' i, indicator s 1 i : tsum_subtype s 1
+... ≤ ∑' i, dirac i s : ennreal.tsum_le_tsum $ λ x, le_dirac_apply
+... ≤ count s : le_sum_apply _ _
+
 lemma count_apply (hs : is_measurable s) : count s = ∑' i : s, 1 :=
-by simp only [count, sum_apply, hs, dirac_apply, ← tsum_subtype s 1, pi.one_apply]
+by simp only [count, sum_apply, hs, dirac_apply', ← tsum_subtype s 1, pi.one_apply]
 
 @[simp] lemma count_apply_finset [measurable_singleton_class α] (s : finset α) :
   count (↑s : set α) = s.card :=
-calc count (↑s : set α) = ∑' i : (↑s : set α), (1 : α → ennreal) i : count_apply s.is_measurable
+calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s.is_measurable
                     ... = ∑ i in s, 1 : s.tsum_subtype 1
                     ... = s.card : by simp
 
@@ -1151,13 +1171,14 @@ lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : fini
 by rw [← count_apply_finset, finite.coe_to_finset]
 
 /-- `count` measure evaluates to infinity at infinite sets. -/
-lemma count_apply_infinite [measurable_singleton_class α] (hs : s.infinite) : count s = ⊤ :=
+lemma count_apply_infinite (hs : s.infinite) : count s = ⊤ :=
 begin
-  by_contra H,
-  rcases ennreal.exists_nat_gt H with ⟨n, hn⟩,
+  refine top_unique (le_of_tendsto' ennreal.tendsto_nat_nhds_top $ λ n, _),
   rcases hs.exists_subset_card_eq n with ⟨t, ht, rfl⟩,
-  have := lt_of_le_of_lt (measure_mono ht) hn,
-  simpa [lt_irrefl] using this
+  calc (t.card : ennreal) = ∑ i in t, 1 : by simp
+  ... = ∑' i : (t : set α), 1 : (t.tsum_subtype 1).symm
+  ... ≤ count (t : set α) : le_count_apply
+  ... ≤ count s : measure_mono ht
 end
 
 @[simp] lemma count_apply_eq_top [measurable_singleton_class α] : count s = ⊤ ↔ s.infinite :=
@@ -1339,8 +1360,8 @@ ae_eq_bot.trans restrict_eq_zero
 @[simp] lemma ae_restrict_ne_bot {s} : (μ.restrict s).ae.ne_bot ↔ 0 < μ s :=
 (not_congr ae_restrict_eq_bot).trans pos_iff_ne_zero.symm
 
-/-- A version of the Borel-Cantelli lemma: if sᵢ is a sequence of measurable sets such that
-∑ μ sᵢ exists, then for almost all x, x does not belong to almost all sᵢ. -/
+/-- A version of the Borel-Cantelli lemma: if `sᵢ` is a sequence of measurable sets such that
+`∑ μ sᵢ` exists, then for almost all `x`, `x` does not belong to almost all `s`ᵢ. -/
 lemma ae_eventually_not_mem {s : ℕ → set α} (hs : ∀ i, is_measurable (s i))
   (hs' : ∑' i, μ (s i) ≠ ⊤) : ∀ᵐ x ∂ μ, ∀ᶠ n in at_top, x ∉ s n :=
 begin
@@ -1354,33 +1375,23 @@ begin
   exact hi j hj hj'
 end
 
-lemma mem_dirac_ae_iff {a : α} (hs : is_measurable s) : s ∈ (dirac a).ae ↔ a ∈ s :=
-by by_cases a ∈ s; simp [mem_ae_iff, dirac_apply, hs.compl, indicator_apply, *]
+lemma mem_ae_dirac_iff {a : α} (hs : is_measurable s) : s ∈ (dirac a).ae ↔ a ∈ s :=
+by by_cases a ∈ s; simp [mem_ae_iff, dirac_apply', hs.compl, indicator_apply, *]
 
-lemma eventually_dirac {a : α} {p : α → Prop} (hp : is_measurable {x | p x}) :
+lemma ae_dirac_iff {a : α} {p : α → Prop} (hp : is_measurable {x | p x}) :
   (∀ᵐ x ∂(dirac a), p x) ↔ p a :=
-mem_dirac_ae_iff hp
+mem_ae_dirac_iff hp
 
-lemma eventually_eq_dirac [measurable_singleton_class β] {a : α} {f : α → β} (hf : measurable f) :
+@[simp] lemma ae_dirac_eq [measurable_singleton_class α] (a : α) : (dirac a).ae = pure a :=
+by { ext s, simp [mem_ae_iff, imp_false] }
+
+lemma ae_eq_dirac' [measurable_singleton_class β] {a : α} {f : α → β} (hf : measurable f) :
   f =ᵐ[dirac a] const α (f a) :=
-(eventually_dirac $ show is_measurable (f ⁻¹' {f a}), from hf $ is_measurable_singleton _).2 rfl
+(ae_dirac_iff $ show is_measurable (f ⁻¹' {f a}), from hf $ is_measurable_singleton _).2 rfl
 
-lemma dirac_ae_eq [measurable_singleton_class α] (a : α) : (dirac a).ae = pure a :=
-begin
-  ext s,
-  simp only [mem_ae_iff, mem_pure_sets],
-  by_cases ha : a ∈ s,
-  { simp only [ha, iff_true],
-    rw [← set.singleton_subset_iff, ← compl_subset_compl] at ha,
-    refine measure_mono_null ha _,
-    simp [dirac_apply a (is_measurable_singleton a).compl] },
-  { simp only [ha, iff_false, dirac_apply_of_mem (mem_compl ha)],
-    exact one_ne_zero }
-end
-
-lemma eventually_eq_dirac' [measurable_singleton_class α] {a : α} (f : α → δ) :
+lemma ae_eq_dirac [measurable_singleton_class α] {a : α} (f : α → δ) :
   f =ᵐ[dirac a] const α (f a) :=
-by { rw [dirac_ae_eq], show f a = f a, refl }
+by simp [filter.eventually_eq]
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
 lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=

@@ -238,15 +238,18 @@ instance : is_lawful_functor outer_measure :=
 
 /-- The dirac outer measure. -/
 def dirac (a : α) : outer_measure α :=
-{ measure_of := λs, ⨆ h : a ∈ s, 1,
+{ measure_of := λs, indicator s (λ _, 1) a,
   empty := by simp,
-  mono := λ s t h, supr_le_supr2 (λ h', ⟨h h', le_refl _⟩),
-  Union_nat := λ s, supr_le $ λ h,
-    let ⟨i, h⟩ := mem_Union.1 h in
-    le_trans (by exact le_supr _ h) (ennreal.le_tsum i) }
+  mono := λ s t h, indicator_le_indicator_of_subset h (λ _, zero_le _) a,
+  Union_nat := λ s,
+    if hs : a ∈ ⋃ n, s n then let ⟨i, hi⟩ := mem_Union.1 hs in
+      calc indicator (⋃ n, s n) (λ _, (1 : ennreal)) a = 1 : indicator_of_mem hs _
+      ... = indicator (s i) (λ _, 1) a : (indicator_of_mem hi _).symm
+      ... ≤ ∑' n, indicator (s n) (λ _, 1) a : ennreal.le_tsum _
+    else by simp only [indicator_of_not_mem hs, zero_le]}
 
 @[simp] theorem dirac_apply (a : α) (s : set α) :
-  dirac a s = ⨆ h : a ∈ s, 1 := rfl
+  dirac a s = indicator s (λ _, 1) a := rfl
 
 /-- The sum of an (arbitrary) collection of outer measures. -/
 def sum {ι} (f : ι → outer_measure α) : outer_measure α :=
@@ -260,8 +263,8 @@ def sum {ι} (f : ι → outer_measure α) : outer_measure α :=
   sum f s = ∑' i, f i s := rfl
 
 theorem smul_dirac_apply (a : ennreal) (b : α) (s : set α) :
-  (a • dirac b) s = ⨆ h : b ∈ s, a :=
-by by_cases b ∈ s; simp [h]
+  (a • dirac b) s = indicator s (λ _, a) b :=
+by simp
 
 /-- Pullback of an `outer_measure`: `comap f μ s = μ (f '' s)`. -/
 def comap {β} (f : α → β) : outer_measure β →ₗ[ennreal] outer_measure α :=
@@ -559,8 +562,8 @@ theorem le_smul_caratheodory (a : ennreal) (m : outer_measure α) :
 
 @[simp] theorem dirac_caratheodory (a : α) : (dirac a).caratheodory = ⊤ :=
 top_unique $ λ s _ t, begin
-  by_cases a ∈ t; simp [h],
-  by_cases a ∈ s; simp [h]
+  by_cases ht : a ∈ t, swap, by simp [ht],
+  by_cases hs : a ∈ s; simp*
 end
 
 section Inf_gen

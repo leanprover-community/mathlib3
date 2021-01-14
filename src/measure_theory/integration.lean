@@ -1550,9 +1550,13 @@ lemma set_lintegral_map [measurable_space β] {f : β → ennreal} {g : α → �
   ∫⁻ y in s, f y ∂(map g μ) = ∫⁻ x in g ⁻¹' s, f (g x) ∂μ :=
 by rw [restrict_map hg hs, lintegral_map hf hg]
 
-lemma lintegral_dirac (a : α) {f : α → ennreal} (hf : measurable f) :
+lemma lintegral_dirac' (a : α) {f : α → ennreal} (hf : measurable f) :
   ∫⁻ a, f a ∂(dirac a) = f a :=
-by simp [lintegral_congr_ae (eventually_eq_dirac hf)]
+by simp [lintegral_congr_ae (ae_eq_dirac' hf)]
+
+lemma lintegral_dirac [measurable_singleton_class α] (a : α) (f : α → ennreal) :
+  ∫⁻ a, f a ∂(dirac a) = f a :=
+by simp [lintegral_congr_ae (ae_eq_dirac f)]
 
 lemma ae_lt_top {f : α → ennreal} (hf : measurable f) (h2f : ∫⁻ x, f x ∂μ < ⊤) :
   ∀ᵐ x ∂μ, f x < ⊤ :=

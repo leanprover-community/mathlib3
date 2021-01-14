@@ -417,6 +417,7 @@ namespace conditionally_complete_linear_ordered_field
 variables {F : Type*} [conditionally_complete_linear_ordered_field F]
 
 /-- Any conditionally complete linearly ordered field is archimedean. -/
+@[priority 100] -- see Note [lower instance priority]
 instance : archimedean F := archimedean_iff_nat_lt.mpr
 begin
   by_contra h,
@@ -552,14 +553,82 @@ def induced_add_map (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] : F →+ K :=
 { to_fun := induced_map F K,
   map_zero' := by exact_mod_cast induced_map_rat F K 0,
-  map_add' := induced_map_add F K}
+  map_add' := induced_map_add F K }
+
+/-- Preparatory lemma for `induced_add_mul_map` -/
+lemma le_induced_mul_self_of_mem_cut_image (F K : Type*) [linear_ordered_field F] [archimedean F]
+  [conditionally_complete_linear_ordered_field K] (x : F) (hpos : 0 < x) (a : K)
+  (ha : a ∈ cut_image F K (x * x)) : a ≤ induced_add_map F K x * induced_add_map F K x :=
+begin
+  rw mem_cut_image_iff at ha,
+  rcases ha with ⟨q, rfl, ha⟩,
+  by_cases hq : 0 ≤ (q : K),
+  { have : 0 ≤ (q : F) := by exact_mod_cast hq,
+    obtain ⟨q2, hqpos, hq21, hq22⟩ := exists_rat_sqr_btwn ha this,
+    rw pow_two at hq22,
+    have : (q2 : F) < x := lt_of_mul_self_lt_mul_self (rat.cast_nonneg.mpr hqpos) hpos hq22,
+    rw ← @mem_cut_image_iff' F K at this,
+    have : (q2 : K) ≤ induced_map F K x := le_cSup _ _ (cut_image_bdd_above F K x) this,
+    transitivity (q2 : K)^2,
+    apply le_of_lt,
+    assumption_mod_cast,
+    rw pow_two,
+    have q2pos : (0 : K) ≤ q2 := by exact_mod_cast hqpos,
+    exact mul_le_mul this this q2pos (le_trans _ _ _ q2pos this), },
+  { transitivity (0 : K),
+    push_neg at hq,
+    exact le_of_lt hq,
+    exact mul_self_nonneg (Sup (cut_image F K x)), },
+end
+
+/-- Preparatory lemma for `induced_add_mul_map` -/
+lemma exists_mem_cut_image_mul_self_of_lt_induced_map_mul_self (F K : Type*)
+  [linear_ordered_field F] [archimedean F] [conditionally_complete_linear_ordered_field K] (x : F)
+  (hpos : 0 < x) (y : K) (hy : y < induced_add_map F K x * induced_add_map F K x) :
+∃ a ∈ cut_image F K (x * x), y < a :=
+begin
+  by_cases hypos : 0 ≤ y,
+  { obtain ⟨q2, hqpos, hq21, hq22⟩ := exists_rat_sqr_btwn hy hypos,
+    rw pow_two at hq22,
+    have : (q2 : K) < _ := lt_of_mul_self_lt_mul_self _ _ hq22,
+    use (q2 : K)^2,
+    split,
+    norm_cast,
+    rw mem_cut_image_iff',
+    erw [induced_add_map, lt_induced_map_iff] at this,
+    obtain ⟨q3, hq23, hh⟩ := this,
+    rw pow_two,
+    push_cast,
+    have : (q2 : F) < x :=
+    begin
+      transitivity (q3 : F),
+      assumption_mod_cast,
+    end,
+    apply mul_lt_mul'' this this,
+    assumption_mod_cast,
+    assumption_mod_cast,
+    exact hq21,
+    exact_mod_cast hqpos,
+    simp only [induced_add_map, add_monoid_hom.coe_mk],
+    rw lt_induced_map_iff,
+    obtain ⟨q3, q30, q3x⟩ := exists_rat_btwn hpos,
+    use q3,
+    split,
+    assumption_mod_cast, },
+  { use ((0 : ℚ) : K),
+    split,
+    rw [mem_cut_image_iff', rat.cast_zero],
+    exact linear_ordered_field.mul_pos _ _ hpos hpos,
+    push_neg at hypos,
+    rw [rat.cast_zero],
+    exact hypos, },
+end
 
 /-- `induced_map` as a `ring_hom` -/
 def induced_add_mul_map (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] :
-  F →+* K := ring_hom.mk_mul_self_of_two_ne_zero (induced_add_map F K)
+F →+* K := ring_hom.mk_mul_self_of_two_ne_zero (induced_add_map F K) -- reduce to the case of x = y
 begin
-  -- reduce to the case of x = y
   intro x,
   -- reduce to the case of 0 < x
   suffices : ∀ (x : F) (hpos : 0 < x),
@@ -574,66 +643,13 @@ begin
     { simp only [mul_zero, add_monoid_hom.map_zero], },
     { exact this x h, },
   end,
+  clear x,
   intros x hpos,
   -- prove that the (Sup of rationals less than x) ^ 2 is the Sup of the set of rationals less than
   -- (x ^ 2) by showing it is an upper bound and any smaller number is not an upper bound
   apply cSup_intro (cut_image_nonempty F K _),
-  { rintros a ha,
-    rw mem_cut_image_iff at ha,
-    rcases ha with ⟨q, rfl, ha⟩,
-    by_cases hq : 0 ≤ (q : K),
-    { have : 0 ≤ (q : F) := by exact_mod_cast hq,
-      obtain ⟨q2, hqpos, hq21, hq22⟩ := exists_rat_sqr_btwn ha this,
-      rw pow_two at hq22,
-      have : (q2 : F) < x := lt_of_mul_self_lt_mul_self (rat.cast_nonneg.mpr hqpos) hpos hq22,
-      rw ← @mem_cut_image_iff' F K at this,
-      have : (q2 : K) ≤ induced_map F K x := le_cSup _ _ (cut_image_bdd_above F K x) this,
-      transitivity (q2 : K)^2,
-      apply le_of_lt,
-      assumption_mod_cast,
-      rw pow_two,
-      have q2pos : (0 : K) ≤ q2 := by exact_mod_cast hqpos,
-      exact mul_le_mul this this q2pos (le_trans _ _ _ q2pos this), },
-    { transitivity (0 : K),
-      push_neg at hq,
-      exact le_of_lt hq,
-      exact mul_self_nonneg (Sup (cut_image F K x)), }, },
-  { intros y hy,
-    by_cases hypos : 0 ≤ y,
-    { obtain ⟨q2, hqpos, hq21, hq22⟩ := exists_rat_sqr_btwn hy hypos,
-      rw pow_two at hq22,
-      have : (q2 : K) < _ := lt_of_mul_self_lt_mul_self _ _ hq22,
-      use (q2 : K)^2,
-      split,
-      norm_cast,
-      rw mem_cut_image_iff',
-      erw [induced_add_map, lt_induced_map_iff] at this,
-      obtain ⟨q3, hq23, hh⟩ := this,
-      rw pow_two,
-      push_cast,
-      have : (q2 : F) < x :=
-      begin
-        transitivity (q3 : F),
-        assumption_mod_cast,
-      end,
-      apply mul_lt_mul'' this this,
-      assumption_mod_cast,
-      assumption_mod_cast,
-      exact hq21,
-      exact_mod_cast hqpos,
-      simp only [induced_add_map, add_monoid_hom.coe_mk],
-      rw lt_induced_map_iff,
-      obtain ⟨q3, q30, q3x⟩ := exists_rat_btwn hpos,
-      use q3,
-      split,
-      assumption_mod_cast, },
-    { use ((0 : ℚ) : K),
-      split,
-      rw [mem_cut_image_iff', rat.cast_zero],
-      exact linear_ordered_field.mul_pos _ _ hpos hpos,
-      push_neg at hypos,
-      rw [rat.cast_zero],
-      exact hypos, }, }
+  exact le_induced_mul_self_of_mem_cut_image F K x hpos,
+  exact exists_mem_cut_image_mul_self_of_lt_induced_map_mul_self F K x hpos,
 end two_ne_zero begin convert induced_map_rat F K 1; rw [rat.cast_one], refl, end
 
 @[simp]
@@ -708,9 +724,9 @@ begin
     refine ⟨q, ⟨hqx, mem_range_self _⟩, hyq⟩, }
 end
 
-@[simp] lemma cut_ordered_equiv_rat (F K : Type*) (q : ℚ)
-  [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
-  (cut_ordered_ring_equiv F K) q = q := induced_map_rat F K q
+-- @[simp] lemma cut_ordered_equiv_rat (F K : Type*) (q : ℚ)
+--   [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
+--   (cut_ordered_ring_equiv F K) q = q := induced_map_rat F K q
 
 @[simp] lemma ring_equiv_rat {F K : Type*}
   [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K]
@@ -733,7 +749,7 @@ begin
   rw le_antisymm_iff, rw [← not_lt, ← not_lt],
   split; intro h;
   rcases exists_rat_btwn h with ⟨q, hq, hq₂⟩;
-  rw ← cut_ordered_equiv_rat F K at hq hq₂,
+  rw ← ordered_ring_equiv_rat (cut_ordered_ring_equiv F K) at hq hq₂,
   all_goals {simp only [ordered_ring_equiv_rat] at *,},
   linarith,
   -- rw [← ordered_ring_equiv.map_rel_iff' (cut_ordered_ring_equiv F K)] at hq₂,

@@ -151,14 +151,13 @@ end
 lemma ext_iff {f g : R ≃+*o S} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, ext⟩
 
-@[norm_cast] lemma coe_add_mul_equiv (f : R ≃+*o S) (a : R) :
-  (f : R ≃+* S) a = f a := rfl
+@[norm_cast] lemma coe_ring_equiv (f : R ≃+*o S) (a : R) : (f : R ≃+* S) a = f a := rfl
 
--- @[norm_cast] lemma coe_mul_equiv (f : R ≃+*o S) (a : R) :
---   (f : R ≃* S) a = f a := rfl
+@[norm_cast] lemma coe_mul_equiv (f : R ≃+*o S) (a : R) :
+  (f : R ≃* S) a = f a := rfl
 
--- @[norm_cast] lemma coe_add_equiv (f : R ≃+*o S) (a : R) :
---   (f : R ≃+ S) a = f a := rfl
+@[norm_cast] lemma coe_add_equiv (f : R ≃+*o S) (a : R) :
+  (f : R ≃+ S) a = f a := rfl
 
 variable (R)
 

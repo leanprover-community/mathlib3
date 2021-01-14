@@ -28,7 +28,24 @@ example : true := by do
   repeat $ tactic.norm_num norm_swap.eval [] (interactive.loc.ns [none]),
   done
 
--- norm_swap does not yet handle non-ℕ types
+example : true := by do
+  let l : list ℤ := [0, 1, 2, 3],
+  let l' : list ((ℤ × ℤ) × ℤ) := (do a ← l, b ← l, c ← l, pure ((a, b), c)),
+  (lhs : list expr) ← mmap (λ (tup : (ℤ × ℤ) × ℤ),
+    to_expr ``(equiv.swap %%tup.fst.fst %%tup.fst.snd %%tup.snd)) l',
+  (rhs : list expr) ← mmap (λ (tup : (ℤ × ℤ) × ℤ),
+    if tup.snd = tup.fst.fst then to_expr ``(%%tup.fst.snd)
+    else if tup.snd = tup.fst.snd then to_expr ``(%%tup.fst.fst)
+    else to_expr ``(%%tup.snd)) l',
+  let eqs : list expr := list.zip_with (λ L R, `(@eq.{1} ℤ %%L %%R)) lhs rhs,
+  g ← get_goals,
+  gls ← mmap mk_meta_var eqs,
+  set_goals $ g ++ gls,
+  triv, -- to discharge the starting `true` goal
+  repeat $ tactic.norm_num norm_swap.eval [] (interactive.loc.ns [none]),
+  done
+
+-- norm_swap does not yet handle `Π n, fin n`
 example : swap (3 : fin 7) 5 0 = 0 :=
 begin
   success_if_fail {norm_num},
@@ -36,12 +53,8 @@ begin
   dec_trivial
 end
 
-example : swap (-3 : ℤ) 5 0 = 0 :=
-begin
-  success_if_fail {norm_num},
-  rw swap_apply_of_ne_of_ne;
-  dec_trivial
-end
+example : swap (0 : ℤ) (0 : ℤ) (-1 : ℤ) = (-1 : ℤ) := by norm_num
+example : swap ((1 : ℚ) / 2) ((3 : ℚ) / -2) ((-6 : ℚ) / 4) = ((-4 : ℚ) / -8) := by norm_num
 
 -- norm_swap doesn't generate trace output on non-swap expressions
 example : (1 : ℤ) = (1 : ℕ) := by norm_num

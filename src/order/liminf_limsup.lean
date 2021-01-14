@@ -414,7 +414,7 @@ end complete_linear_order
 
 end filter
 
-lemma order_iso.limsup_le {α β γ} [conditionally_complete_lattice β] [complete_lattice γ]
+lemma order_iso.limsup_le {α β γ} [complete_lattice β] [complete_lattice γ]
   {f : filter α} {u : α → β} (g : β ≃o γ) :
   g (f.limsup u) ≤ f.limsup (λ x, g (u x)) :=
 begin

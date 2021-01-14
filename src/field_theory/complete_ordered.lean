@@ -9,6 +9,7 @@ import algebra.pointwise
 import order.conditionally_complete_lattice
 import topology.instances.real
 import analysis.special_functions.pow
+import data.real.sqrt
 
 /-!
 # Conditionally complete linear ordered fields
@@ -206,28 +207,24 @@ instance : conditionally_complete_linear_ordered_field ℝ := {
   ..real.linear_ordered_field,
   ..real.conditionally_complete_linear_order }
 
+open real
 /- TODO does this follow from intermediate_value_Icc -/
 lemma exists_rat_sqr_btwn_rat_aux (x y : ℝ) (h : x < y) (hx : 0 ≤ x) :
   ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ ↑q^2 < y :=
 begin
-  have : x.sqrt < y.sqrt :=
-  begin
-    rw real.sqrt_eq_rpow,
-    apply real.rpow_lt_rpow hx h one_half_pos,
-  end,
-  obtain ⟨q, hqx, hqy⟩ := exists_rat_btwn this,
   have hy : (0 : ℝ) ≤ y := by linarith,
+  rw ← sqrt_lt hx at h,
+  obtain ⟨q, hqx, hqy⟩ := exists_rat_btwn h,
   have hq : (0 : ℝ) ≤ q :=
   begin
     transitivity x.sqrt,
     exact real.sqrt_nonneg x,
     exact le_of_lt hqx,
   end,
-  have hq2 := pow_nonneg hq 2,
   refine ⟨q, _, _, _⟩,
   { assumption_mod_cast, },
   { rw [← real.sqrt_lt hx, real.sqrt_sqr hq], exact hqx },
-  { rw [← real.sqrt_lt hq2, real.sqrt_sqr hq], exact hqy },
+  { rw [← real.sqrt_lt (pow_nonneg hq 2), real.sqrt_sqr hq], exact hqy },
 end
 
 theorem exists_rat_sqr_btwn_rat {x y : ℚ} (h : x < y) (hx : 0 ≤ x) :

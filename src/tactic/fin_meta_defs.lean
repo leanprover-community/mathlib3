@@ -44,7 +44,7 @@ meta def fin.mk_numeral (type has_zero has_one has_add : expr) : fin n → expr
 as a numeral expression of type `fin (n + 1)`. -/
 protected meta def fin.reflect : fin (n + 1) → expr :=
 fin.mk_numeral `(fin (n + 1)) `((by apply_instance : has_zero (fin (n + 1))))
-         `((by apply_instance : has_one (fin (n + 1))))`((by apply_instance : has_add (fin (n + 1))))
+  `((by apply_instance : has_one (fin (n + 1))))`((by apply_instance : has_add (fin (n + 1))))
 
 section
 local attribute [semireducible] reflected

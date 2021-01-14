@@ -7,6 +7,39 @@ import data.fintype.basic
 import data.rel
 import data.set.finite
 
+/-!
+# Hall's Marriage Theorem
+
+Given a list of finite subsets $$X_1,X_2,\dots,X_n$$ of some given set
+$$S$$, Hall in [Hall1935] gave a necessary and sufficient condition
+for there to be a list of distinct elements $$x_1,x_2,\dots,x_n$$ with
+$$x_i∈ X_i$$ for each $$i$$: it is when the union of any $$k$$ of
+these subsets has at least $$k$$ elements.
+
+This file proves this for an indexed family `s : ι → finset α` of
+finite sets, with `[fintype ι]`, along with some variants of the
+statement.  The list of distinct representatives is given by an
+injective function `f : ι → α` such that `∀ i, f i ∈ s i`.
+
+## Main statements
+* `all_card_le_bind_card_iff_exists_injective` is in terms of `s : ι → finset α`.
+* `all_card_le_rel_image_card_iff_exists_injective` is in terms of a relation
+  `r : α → β → Prop` such that `rel.image r {a}` is a finite set for all `a : α`.
+* `all_card_le_filter_rel_iff_exists_injective` is in terms of a relation
+  `r : α → β → Prop` on finite types, with the Hall condition given in terms of
+  `finset.univ.filter`.
+
+## Todo
+
+* The theorem is still true even if `ι` is not a finite type.  The infinite case
+  follows from a compactness argument.
+* The statement of the theorem in terms of bipartite graphs is in preparation.
+
+## Tags
+
+Hall's Marriage Theorem, indexed families
+-/
+
 open finset
 
 universes u v
@@ -230,7 +263,7 @@ begin
 end
 
 /--
-Here we combine the two base cases and the inductive step into
+Here we combine the base case and the inductive step into
 a full strong induction proof, thus completing the proof
 of the second direction.
 -/

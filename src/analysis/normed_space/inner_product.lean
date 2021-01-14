@@ -704,7 +704,7 @@ by simp [finsupp.total_apply, finsupp.inner_sum, orthonormal_iff_ite.mp he]
 vectors picks out the coefficient of that vector. -/
 lemma inner_left_finsupp_orthonormal {v : ι → E} (he : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
   ⟪finsupp.total ι E 𝕜 v l, v i⟫ = conj (l i) :=
-by simp [finsupp.total_apply, finsupp.sum_inner, orthonormal_iff_ite.mp he, ← conj_eq_zero]
+by rw [← inner_conj_sym, inner_right_finsupp_orthonormal he]
 
 /-- An orthonormal set is linearly independent. -/
 lemma linear_independent_of_orthonormal {v : ι → E} (he : orthonormal 𝕜 v) :

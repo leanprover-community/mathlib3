@@ -562,8 +562,8 @@ theorem le_smul_caratheodory (a : ennreal) (m : outer_measure α) :
 
 @[simp] theorem dirac_caratheodory (a : α) : (dirac a).caratheodory = ⊤ :=
 top_unique $ λ s _ t, begin
-  by_cases a ∈ t; simp [h],
-  by_cases a ∈ s; simp [h]
+  by_cases ht : a ∈ t, swap, by simp [ht],
+  by_cases hs : a ∈ s; simp*
 end
 
 section Inf_gen

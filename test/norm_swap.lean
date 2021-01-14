@@ -8,26 +8,14 @@ open equiv tactic
 local attribute [-simp] swap_apply_left
 local attribute [-simp] swap_apply_right
 
-example : true := by do
-  (k : option (fin 1)) ← expr.to_fin <$> to_expr ``(0),
-  trace `(k),
-  admit
+example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
+example : fin.succ (5 : fin 7) = fin.succ (fin.succ (fin.succ 3)) := by norm_num
+example : fin.succ (4 : fin 6) = 5 := by norm_num
 
-example : true := by do
-  (k : option (fin 7)) ← expr.to_fin <$> to_expr ``(fin.succ (8 : fin 2)),
-  trace `(k),
-  admit
+-- overflow not yet supported
+example : fin.succ (6 : fin 6) = 1 := by success_if_fail { norm_num }; refl
+example : (5 : fin 7) = (12 : fin 7) := by success_if_fail { norm_num }; refl
 
-example : true := by do
-  (k : option (fin 7)) ← expr.eval_fin <$> pure `(5 + 7),
-  trace `(k),
-  admit
-
-example : true := by do
-  ic ← mk_instance_cache `(ℤ),
-  (_, e) ← ic.of_fin (7 : fin 7).succ,
-  trace e,
-  admit
 /--
 We can check all possibilities of swapping of `0, 1, bit0 _, bit1 _` using the
 64 combinations of `[0, 1, 2, 3]`. This example should execute and complete without error,

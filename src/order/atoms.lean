@@ -267,7 +267,7 @@ variable [decidable_eq α]
 /-- Every simple lattice is order-isomorphic to `bool`. -/
 def order_iso_bool : α ≃o bool :=
 { to_fun := λ x, x = ⊤,
-  inv_fun := λ x, if x then ⊤ else ⊥,
+  inv_fun := λ x, cond x ⊤ ⊥,
   left_inv := λ x, by { rcases (eq_bot_or_eq_top x) with rfl | rfl; simp [bot_ne_top] },
   right_inv := λ x, by { cases x; simp [bot_ne_top] },
   map_rel_iff' := λ a b, begin

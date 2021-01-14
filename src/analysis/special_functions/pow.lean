@@ -775,8 +775,7 @@ begin
       congr,
       norm_num },
     rw [sub_eq_add_neg, rpow_add H, B, rpow_neg (le_of_lt H)],
-    field_simp [hx, ne_of_gt A],
-    ring }
+    field_simp }
 end
 
 lemma has_deriv_at.sqrt (hf : has_deriv_at f f' x) (hx : f x ≠ 0) :

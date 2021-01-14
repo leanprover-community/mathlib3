@@ -45,6 +45,23 @@ example : true := by do
   repeat $ tactic.norm_num norm_swap.eval [] (interactive.loc.ns [none]),
   done
 
+example : true := by do
+  let l : list ℤ := [0, -1, 2, -3],
+  let l' : list ((ℤ × ℤ) × ℤ) := (do a ← l, b ← l, c ← l, pure ((a, b), c)),
+  (lhs : list expr) ← mmap (λ (tup : (ℤ × ℤ) × ℤ),
+    to_expr ``(equiv.swap %%tup.fst.fst %%tup.fst.snd %%tup.snd)) l',
+  (rhs : list expr) ← mmap (λ (tup : (ℤ × ℤ) × ℤ),
+    if tup.snd = tup.fst.fst then to_expr ``(%%tup.fst.snd)
+    else if tup.snd = tup.fst.snd then to_expr ``(%%tup.fst.fst)
+    else to_expr ``(%%tup.snd)) l',
+  let eqs : list expr := list.zip_with (λ L R, `(@eq.{1} ℤ %%L %%R)) lhs rhs,
+  g ← get_goals,
+  gls ← mmap mk_meta_var eqs,
+  set_goals $ g ++ gls,
+  triv, -- to discharge the starting `true` goal
+  repeat $ `[norm_num],
+  done
+
 -- norm_swap does not yet handle `Π n, fin n`
 example : swap (3 : fin 7) 5 0 = 0 :=
 begin

@@ -366,6 +366,10 @@ by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 theorem re_eq_add_conj (z : ℂ) : (z.re : ℂ) = (z + conj z) / 2 :=
 by rw [add_conj]; simp; rw [mul_div_cancel_left (z.re:ℂ) two_ne_zero']
 
+theorem im_eq_sub_conj (z : ℂ) : (z.im : ℂ) = (z - conj(z))/(2 * I) :=
+by rw sub_conj; simp; rw [mul_right_comm, mul_div_cancel_left _
+  (mul_ne_zero two_ne_zero' I_ne_zero : 2 * I ≠ 0)]
+
 /-! ### Absolute value -/
 
 /-- The complex absolute value function, defined as the square root of the norm squared. -/

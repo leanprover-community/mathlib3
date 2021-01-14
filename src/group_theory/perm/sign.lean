@@ -482,6 +482,9 @@ variable [fintype α]
 @[simp] lemma sign_mul (f g : perm α) : sign (f * g) = sign f * sign g :=
 monoid_hom.map_mul sign f g
 
+@[simp] lemma sign_trans (f g : perm α) : sign (f.trans g) = sign g * sign f :=
+by rw [←mul_def, sign_mul]
+
 @[simp] lemma sign_one : (sign (1 : perm α)) = 1 :=
 monoid_hom.map_one sign
 
@@ -490,6 +493,9 @@ monoid_hom.map_one sign
 
 @[simp] lemma sign_inv (f : perm α) : sign f⁻¹ = sign f :=
 by rw [monoid_hom.map_inv sign f, int.units_inv_eq_self]
+
+@[simp] lemma sign_symm (e : perm α) : sign e.symm = sign e :=
+sign_inv e
 
 lemma sign_swap {x y : α} (h : x ≠ y) : sign (swap x y) = -1 :=
 (sign_aux3_mul_and_swap 1 1 _ mem_univ).2 x y h
@@ -514,9 +520,13 @@ quotient.induction_on₂ t s
         (equiv.ext (λ x, by simp only [equiv.coe_trans, apply_eq_iff_eq, symm_trans_apply])))
   ht hs
 
-lemma sign_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α)
-  (e : α ≃ β) : sign ((e.symm.trans f).trans e) = sign f :=
+@[simp] lemma sign_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α) (e : α ≃ β) :
+  sign ((e.symm.trans f).trans e) = sign f :=
 sign_aux3_symm_trans_trans f e mem_univ mem_univ
+
+@[simp] lemma sign_trans_trans_symm [decidable_eq β] [fintype β] (f : perm β) (e : α ≃ β) :
+  sign ((e.trans f).trans e.symm) = sign f :=
+sign_symm_trans_trans f e.symm
 
 lemma sign_prod_list_swap {l : list (perm α)}
   (hl : ∀ g ∈ l, is_swap g) : sign l.prod = (-1) ^ l.length :=
@@ -787,7 +797,7 @@ end
 
 @[simp] lemma sign_perm_congr (e : α ≃ β) (p : perm α) :
   (e.perm_congr p).sign = p.sign :=
-equiv.perm.sign_eq_sign_of_equiv _ _ e.symm (by simp)
+sign_eq_sign_of_equiv _ _ e.symm (by simp)
 
 @[simp] lemma sign_sum_congr (σa : perm α) (σb : perm β) :
   (sum_congr σa σb).sign = σa.sign * σb.sign :=

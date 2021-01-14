@@ -87,7 +87,7 @@ to the identity functor.
 /--
 The equivalence, given by swapping factors, between `C × D` and `D × C`.
 -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def braiding : C × D ≌ D × C :=
 equivalence.mk (swap C D) (swap D C)
   (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))

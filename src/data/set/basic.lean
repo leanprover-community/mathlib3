@@ -46,7 +46,7 @@ Definitions in the file:
 * `range f : set β` : the image of `univ` under `f`.
   Also works for `{p : Prop} (f : p → α)` (unlike `image`)
 
-* `prod s t : set (α × β)` : the subset `s × t`.
+* `s.prod t : set (α × β)` : the subset `s × t`.
 
 * `inclusion s₁ s₂ : ↥s₁ → ↥s₂` : the map `↥s₁ → ↥s₂` induced by an inclusion `s₁ ⊆ s₂`.
 
@@ -753,6 +753,15 @@ lemma eq_singleton_iff_unique_mem {s : set α} {a : α} :
   s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
 by simp [ext_iff, @iff_def (_ ∈ s), forall_and_distrib, and_comm]
 
+lemma eq_singleton_iff_nonempty_unique_mem {s : set α} {a : α} :
+  s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
+begin
+  split,
+  { intros h, subst h, simp, },
+  { rintros ⟨hne, h_uniq⟩, rw eq_singleton_iff_unique_mem, refine ⟨_, h_uniq⟩,
+    rw ← h_uniq hne.some hne.some_spec, apply hne.some_spec, },
+end
+
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
 theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
@@ -908,10 +917,10 @@ by finish [ext_iff, iff_def, subset_def]
 theorem union_diff_cancel_right {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ t = s :=
 by finish [ext_iff, iff_def, subset_def]
 
-theorem union_diff_left {s t : set α} : (s ∪ t) \ s = t \ s :=
+@[simp] theorem union_diff_left {s t : set α} : (s ∪ t) \ s = t \ s :=
 by finish [ext_iff, iff_def]
 
-theorem union_diff_right {s t : set α} : (s ∪ t) \ t = s \ t :=
+@[simp] theorem union_diff_right {s t : set α} : (s ∪ t) \ t = s \ t :=
 by finish [ext_iff, iff_def]
 
 theorem union_diff_distrib {s t u : set α} : (s ∪ t) \ u = s \ u ∪ t \ u :=
@@ -932,13 +941,13 @@ set.ext $ λ _, or_and_distrib_right
 theorem inter_diff_assoc (a b c : set α) : (a ∩ b) \ c = a ∩ (b \ c) :=
 inter_assoc _ _ _
 
-theorem inter_diff_self (a b : set α) : a ∩ (b \ a) = ∅ :=
+@[simp] theorem inter_diff_self (a b : set α) : a ∩ (b \ a) = ∅ :=
 by finish [ext_iff]
 
-theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
+@[simp] theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
 by finish [ext_iff, iff_def]
 
-theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := inter_union_diff _ _
+@[simp] theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := inter_union_diff _ _
 
 theorem diff_subset (s t : set α) : s \ t ⊆ s :=
 by finish [subset_def]
@@ -1955,7 +1964,14 @@ theorem prod_insert {b : β} : s.prod (insert b t) = ((λa, (a, b)) '' s) ∪ s.
 by { ext ⟨x, y⟩, simp [image, iff_def, or_imp_distrib, imp.swap] {contextual := tt} }
 
 theorem prod_preimage_eq {f : γ → α} {g : δ → β} :
-  (preimage f s).prod (preimage g t) = preimage (λp, (f p.1, g p.2)) (s.prod t) := rfl
+  (f ⁻¹' s).prod (g ⁻¹' t) = (λ p, (f p.1, g p.2)) ⁻¹' s.prod t := rfl
+
+lemma prod_preimage_left {f : γ → α} : (f ⁻¹' s).prod t = (λp, (f p.1, p.2)) ⁻¹' (s.prod t) := rfl
+
+lemma prod_preimage_right {g : δ → β} : s.prod (g ⁻¹' t) = (λp, (p.1, g p.2)) ⁻¹' (s.prod t) := rfl
+
+lemma mk_preimage_prod (f : γ → α) (g : γ → β) :
+  (λ x, (f x, g x)) ⁻¹' s.prod t = f ⁻¹' s ∩ g ⁻¹' t := rfl
 
 @[simp] lemma mk_preimage_prod_left {y : β} (h : y ∈ t) : (λ x, (x, y)) ⁻¹' s.prod t = s :=
 by { ext x, simp [h] }
@@ -1978,6 +1994,14 @@ by { split_ifs; simp [h] }
 lemma mk_preimage_prod_right_eq_if {x : α} [decidable_pred (∈ s)] :
   prod.mk x ⁻¹' s.prod t = if x ∈ s then t else ∅ :=
 by { split_ifs; simp [h] }
+
+lemma mk_preimage_prod_left_fn_eq_if {y : β} [decidable_pred (∈ t)] (f : γ → α) :
+  (λ x, (f x, y)) ⁻¹' s.prod t = if y ∈ t then f ⁻¹' s else ∅ :=
+by rw [← mk_preimage_prod_left_eq_if, prod_preimage_left, preimage_preimage]
+
+lemma mk_preimage_prod_right_fn_eq_if {x : α} [decidable_pred (∈ s)] (g : δ → β) :
+  (λ y, (x, g y)) ⁻¹' s.prod t = if x ∈ s then g ⁻¹' t else ∅ :=
+by rw [← mk_preimage_prod_right_eq_if, prod_preimage_right, preimage_preimage]
 
 theorem image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
 image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse
@@ -2082,7 +2106,7 @@ end prod
 /-! ### Lemmas about set-indexed products of sets -/
 
 section pi
-variables {ι : Type*} {α : ι → Type*} {s : set ι} {t t₁ t₂ : Π i, set (α i)}
+variables {ι : Type*} {α : ι → Type*} {s s₁ : set ι} {t t₁ t₂ : Π i, set (α i)}
 
 /-- Given an index set `i` and a family of sets `s : Π i, set (α i)`, `pi i s`
 is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `π a`
@@ -2097,8 +2121,17 @@ by simp
 
 @[simp] lemma empty_pi (s : Π i, set (α i)) : pi ∅ s = univ := by { ext, simp [pi] }
 
+@[simp] lemma pi_univ (s : set ι) : pi s (λ i, (univ : set (α i))) = univ :=
+eq_univ_of_forall $ λ f i hi, mem_univ _
+
 lemma pi_mono (h : ∀ i ∈ s, t₁ i ⊆ t₂ i) : pi s t₁ ⊆ pi s t₂ :=
 λ x hx i hi, (h i hi $ hx i hi)
+
+lemma pi_inter_distrib : s.pi (λ i, t i ∩ t₁ i) = s.pi t ∩ s.pi t₁ :=
+ext $ λ x, by simp only [forall_and_distrib, mem_pi, mem_inter_eq]
+
+lemma pi_congr (h : s = s₁) (h' : ∀ i ∈ s, t i = t₁ i) : pi s t = pi s₁ t₁ :=
+h ▸ (ext $ λ x, forall_congr $ λ i, forall_congr $ λ hi, h' i hi ▸ iff.rfl)
 
 lemma pi_eq_empty {i : ι} (hs : i ∈ s) (ht : t i = ∅) : s.pi t = ∅ :=
 by { ext f, simp only [mem_empty_eq, not_forall, iff_false, mem_pi, not_imp],
@@ -2134,6 +2167,9 @@ by { ext, simp [pi, or_imp_distrib, forall_and_distrib] }
   pi {i} t = (eval i ⁻¹' t i) :=
 by { ext, simp [pi] }
 
+lemma singleton_pi' (i : ι) (t : Π i, set (α i)) : pi {i} t = {x | x i ∈ t i} :=
+singleton_pi i t
+
 lemma pi_if {p : ι → Prop} [h : decidable_pred p] (s : set ι) (t₁ t₂ : Π i, set (α i)) :
   pi s (λ i, if p i then t₁ i else t₂ i) = pi {i ∈ s | p i} t₁ ∩ pi {i ∈ s | ¬ p i} t₂ :=
 begin
@@ -2143,6 +2179,34 @@ begin
   { rintros ⟨ht₁, ht₂⟩ i his,
     by_cases p i; simp * at * }
 end
+
+lemma union_pi : (s ∪ s₁).pi t = s.pi t ∩ s₁.pi t :=
+by simp [pi, or_imp_distrib, forall_and_distrib, set_of_and]
+
+@[simp] lemma pi_inter_compl (s : set ι) : pi s t ∩ pi sᶜ t = pi univ t :=
+by rw [← union_pi, union_compl_self]
+
+lemma pi_update_of_not_mem [decidable_eq ι] {β : Π i, Type*} {i : ι} (hi : i ∉ s) (f : Π j, α j)
+  (a : α i) (t : Π j, α j → set (β j)) :
+  s.pi (λ j, t j (update f i a j)) = s.pi (λ j, t j (f j)) :=
+pi_congr rfl $ λ j hj, by { rw update_noteq, exact λ h, hi (h ▸ hj) }
+
+lemma pi_update_of_mem [decidable_eq ι] {β : Π i, Type*} {i : ι} (hi : i ∈ s) (f : Π j, α j)
+  (a : α i) (t : Π j, α j → set (β j)) :
+  s.pi (λ j, t j (update f i a j)) = {x | x i ∈ t i a} ∩ (s \ {i}).pi (λ j, t j (f j)) :=
+calc s.pi (λ j, t j (update f i a j)) = ({i} ∪ s \ {i}).pi (λ j, t j (update f i a j)) :
+  by rw [union_diff_self, union_eq_self_of_subset_left (singleton_subset_iff.2 hi)]
+... = {x | x i ∈ t i a} ∩ (s \ {i}).pi (λ j, t j (f j)) :
+  by { rw [union_pi, singleton_pi', update_same, pi_update_of_not_mem], simp }
+
+lemma univ_pi_update [decidable_eq ι] {β : Π i, Type*} (i : ι) (f : Π j, α j)
+  (a : α i) (t : Π j, α j → set (β j)) :
+  pi univ (λ j, t j (update f i a j)) = {x | x i ∈ t i a} ∩ pi {i}ᶜ (λ j, t j (f j)) :=
+by rw [compl_eq_univ_diff, ← pi_update_of_mem (mem_univ _)]
+
+lemma univ_pi_update_univ [decidable_eq ι] (i : ι) (s : set (α i)) :
+  pi univ (update (λ j : ι, (univ : set (α j))) i s) = eval i ⁻¹' s :=
+by rw [univ_pi_update i (λ j, (univ : set (α j))) s (λ j t, t), pi_univ, inter_univ, preimage]
 
 open_locale classical
 

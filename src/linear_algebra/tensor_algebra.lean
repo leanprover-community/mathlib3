@@ -5,6 +5,7 @@ Author: Adam Topaz.
 -/
 import algebra.free_algebra
 import algebra.ring_quot
+import algebra.triv_sq_zero_ext
 
 /-!
 # Tensor Algebras
@@ -120,5 +121,14 @@ begin
   rw [←lift_symm_apply, ←lift_symm_apply] at w,
   exact (lift R).symm.injective w,
 end
+
+lemma ι_injective : function.injective (ι R : M → tensor_algebra R M) :=
+-- `triv_sq_zero_ext` has a suitable algebra structure and existing proof of injectivity, which
+-- we can transfer
+λ x y hxy,
+  let f : tensor_algebra R M →ₐ[R] triv_sq_zero_ext R M := lift R (triv_sq_zero_ext.inr_hom R M) in
+  have hfxx : f (ι R x) = triv_sq_zero_ext.inr x := lift_ι_apply _ _,
+  have hfyy : f (ι R y) = triv_sq_zero_ext.inr y := lift_ι_apply _ _,
+  triv_sq_zero_ext.inr_injective $ hfxx.symm.trans ((f.congr_arg hxy).trans hfyy)
 
 end tensor_algebra

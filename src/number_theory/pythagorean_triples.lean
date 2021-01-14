@@ -162,7 +162,7 @@ begin
   obtain ⟨k, x0, y0, k0, h2, rfl, rfl⟩ :
     ∃ (k : ℕ) x0 y0, 0 < k ∧ int.gcd x0 y0 = 1 ∧ x = x0 * k ∧ y = y0 * k :=
     int.exists_gcd_one' (nat.pos_of_ne_zero h0),
-  have hk : (k : ℤ) ≠ 0, { norm_cast, rwa nat.pos_iff_ne_zero at k0 },
+  have hk : (k : ℤ) ≠ 0, { norm_cast, rwa pos_iff_ne_zero at k0 },
   rw [int.gcd_mul_right, h2, int.nat_abs_of_nat, one_mul] at h ⊢,
   rw [mul_comm x0, mul_comm y0, mul_iff k hk] at h,
   rwa [int.mul_div_cancel _ hk, int.mul_div_cancel _ hk, int.mul_div_cancel_left _ hk],

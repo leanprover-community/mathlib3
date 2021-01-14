@@ -49,5 +49,5 @@ rfl
 end  CompHaus
 
 /-- The fully faithful embedding of `CompHaus` in `Top`. -/
-@[simps {rhs_md := semireducible}, derive [full, faithful]]
+@[simps, derive [full, faithful]]
 def CompHaus_to_Top : CompHaus ⥤ Top := induced_functor _

@@ -33,17 +33,20 @@ comes from a polynomial with integer coefficients.
 * `prod_cyclotomic_eq_X_pow_sub_one` : `X ^ n - 1 = ∏ (cyclotomic i)`, where `i` divides `n`.
 * `cyclotomic_eq_prod_X_pow_sub_one_pow_moebius` : The Möbius inversion formula for
   `cyclotomic n R` over an abstract fraction field for `polynomial R`.
+* `cyclotomic.irreducible` : `cyclotomic n ℤ` is irreducible.
 
 ## Implementation details
 
 Our definition of `cyclotomic' n R` makes sense in any integral domain `R`, but the interesting
-results hold if there is a primitive `n`th root of unity in `R`. In particular, our definition is
+results hold if there is a primitive `n`-th root of unity in `R`. In particular, our definition is
 not the standard one unless there is a primitive `n`th root of unity in `R`. For example,
 `cyclotomic' 3 ℤ = 1`, since there are no primitive cube roots of unity in `ℤ`. The main example is
 `R = ℂ`, we decided to work in general since the difficulties are essentially the same.
 To get the standard cyclotomic polynomials, we use `int_coeff_of_cycl`, with `R = ℂ`, to get a
 polynomial with integer coefficients and then we map it to `polynomial R`, for any ring `R`.
-
+To prove `cyclotomic.irreducible`, the irreducibility of `cyclotomic n ℤ`, we show in
+`minimal_polynomial_primitive_root_eq_cyclotomic` that `cyclotomic n ℤ` is the minimal polynomial of
+any `n`-th primitive root of unity `μ : K`, where `K` is a field of characteristic `0`.
 -/
 
 open_locale classical big_operators
@@ -497,6 +500,15 @@ begin
   cyclotomic'_eq_X_pow_sub_one_div hpos hz, finset.prod_congr (refl k.proper_divisors) h]
 end
 
+/-- Any `n`-th primitive root of unity is a root of `cyclotomic n ℤ`.-/
+lemma is_root_cyclotomic {n : ℕ} {K : Type*} [field K] (hpos : 0 < n) {μ : K}
+  (h : is_primitive_root μ n) : is_root (cyclotomic n K) μ :=
+begin
+  rw [← mem_roots (cyclotomic_ne_zero n K),
+  cyclotomic_eq_prod_X_sub_primitive_roots h, roots_prod_X_sub_C, ← finset.mem_def],
+  rwa [← mem_primitive_roots hpos] at h,
+end
+
 lemma eq_cyclotomic_iff {R : Type*} [comm_ring R] [nontrivial R] {n : ℕ} (hpos: 0 < n)
   (P : polynomial R) :
   P = cyclotomic n R ↔ P * (∏ i in nat.proper_divisors n, polynomial.cyclotomic i R) = X ^ n - 1 :=
@@ -647,3 +659,36 @@ end
 end order
 
 end polynomial
+
+section minimial_polynomial
+
+open is_primitive_root polynomial complex
+
+/-- The minimal polynomial of a primitive `n`-th root of unity `μ` divides `cyclotomic n ℤ`. -/
+lemma minimal_polynomial_primitive_root_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
+  (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
+  minimal_polynomial (is_integral h hpos) ∣ cyclotomic n ℤ :=
+begin
+  apply minimal_polynomial.integer_dvd (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
+  simpa [aeval_def, eval₂_eq_eval_map, is_root.def] using is_root_cyclotomic hpos h
+end
+
+/-- `cyclotomic n ℤ` is the minimal polynomial of a primitive `n`-th root of unity `μ`. -/
+lemma minimal_polynomial_primitive_root_eq_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
+  (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
+  cyclotomic n ℤ = minimal_polynomial (is_integral h hpos) :=
+begin
+  refine eq_of_monic_of_dvd_of_nat_degree_le (minimal_polynomial.monic (is_integral h hpos))
+    (cyclotomic.monic n ℤ) (minimal_polynomial_primitive_root_dvd_cyclotomic h hpos) _,
+  simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minimal_polynomial h hpos
+end
+
+/-- `cyclotomic n ℤ` is irreducible. -/
+lemma cyclotomic.irreducible {n : ℕ} (hpos : 0 < n) : irreducible (cyclotomic n ℤ) :=
+begin
+  have h0 := (ne_of_lt hpos).symm,
+  rw [minimal_polynomial_primitive_root_eq_cyclotomic (is_primitive_root_exp n h0) hpos],
+  exact minimal_polynomial.irreducible (is_integral (is_primitive_root_exp n h0) hpos)
+end
+
+end minimial_polynomial

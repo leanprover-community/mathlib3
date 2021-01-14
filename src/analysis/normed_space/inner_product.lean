@@ -2382,8 +2382,7 @@ end
 lemma is_basis_max_orthonormal [nontrivial E] [finite_dimensional 𝕜 E] :
   ∃ (v : fin (findim 𝕜 E) → E), orthonormal 𝕜 v ∧ is_basis 𝕜 v :=
 begin
-  let v := classical.some (exists_max_orthonormal 𝕜 E),
-  let hv := classical.some_spec (exists_max_orthonormal 𝕜 E),
+  let ⟨v, hv⟩ := exists_max_orthonormal 𝕜 E,
   exact ⟨v, hv, is_basis_of_orthonormal_of_card_eq_findim hv (by simp)⟩
 end
 

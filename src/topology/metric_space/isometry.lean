@@ -67,7 +67,8 @@ lemma isometry_id : isometry (id : α → α) :=
 λx y, rfl
 
 /-- The composition of isometries is an isometry -/
-theorem isometry.comp {g : β → γ} {f : α → β} (hg : isometry g) (hf : isometry f) : isometry (g ∘ f) :=
+theorem isometry.comp {g : β → γ} {f : α → β} (hg : isometry g) (hf : isometry f) :
+  isometry (g ∘ f) :=
 assume x y, calc
   edist ((g ∘ f) x) ((g ∘ f) y) = edist (f x) (f y) : hg _ _
                             ... = edist x y : hf _ _
@@ -323,7 +324,8 @@ variables {f g : ℓ_infty_ℝ} {n : ℕ} {C : ℝ} [metric_space α] (x : ℕ �
 a fixed countable set, if this set is dense. This map is given in the next definition,
 without density assumptions. -/
 def embedding_of_subset : ℓ_infty_ℝ :=
-of_normed_group_discrete (λn, dist a (x n) - dist (x 0) (x n)) (dist a (x 0)) (λ_, abs_dist_sub_le _ _ _)
+of_normed_group_discrete (λn, dist a (x n) - dist (x 0) (x n)) (dist a (x 0))
+  (λ_, abs_dist_sub_le _ _ _)
 
 lemma embedding_of_subset_coe : embedding_of_subset x a n = dist a (x n) - dist (x 0) (x n) := rfl
 
@@ -341,7 +343,7 @@ end
 lemma embedding_of_subset_isometry (H : dense_range x) : isometry (embedding_of_subset x) :=
 begin
   refine isometry_emetric_iff_metric.2 (λa b, _),
-  refine le_antisymm (embedding_of_subset_dist_le x a b) (real.le_of_forall_epsilon_le (λe epos, _)),
+  refine (embedding_of_subset_dist_le x a b).antisymm (real.le_of_forall_epsilon_le (λe epos, _)),
   /- First step: find n with dist a (x n) < e -/
   rcases metric.mem_closure_range_iff.1 (H a) (e/2) (half_pos epos) with ⟨n, hn⟩,
   /- Second step: use the norm control at index n to conclude -/
@@ -353,9 +355,9 @@ begin
     ...    ≤ 2 * dist a (x n) + abs (dist b (x n) - dist a (x n)) :
       by apply_rules [add_le_add_left, le_abs_self]
     ...    ≤ 2 * (e/2) + abs (embedding_of_subset x b n - embedding_of_subset x a n) :
-      begin rw [C], apply_rules [add_le_add, mul_le_mul_of_nonneg_left, le_of_lt hn, le_refl], norm_num end
+      begin rw C, apply_rules [add_le_add, mul_le_mul_of_nonneg_left, hn.le, le_refl], norm_num end
     ...    ≤ 2 * (e/2) + dist (embedding_of_subset x b) (embedding_of_subset x a) :
-      begin rw [← sub_apply], apply add_le_add_left, rw [sub_apply, ←real.dist_eq], apply dist_coe_le_dist end
+      by simp [← real.dist_eq, dist_coe_le_dist]
     ...    = dist (embedding_of_subset x b) (embedding_of_subset x a) + e : by ring,
   simpa [dist_comm] using this
 end
@@ -389,7 +391,8 @@ protected lemma Kuratowski_embedding.isometry (α : Type u) [metric_space α] [s
 classical.some_spec (exists_isometric_embedding α)
 
 /-- Version of the Kuratowski embedding for nonempty compacts -/
-def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [compact_space α] [nonempty α] :
+def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [compact_space α]
+  [nonempty α] :
   nonempty_compacts ℓ_infty_ℝ :=
 ⟨range (Kuratowski_embedding α), range_nonempty _,
   compact_range (Kuratowski_embedding.isometry α).continuous⟩

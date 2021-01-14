@@ -43,7 +43,8 @@ is equivalent to asking that the uniform structure induced on `s` is separated.
 
 ## Main results
 
-* `separated_iff_t2`: the equivalence between being separated and being Hausdorff for uniform spaces.
+* `separated_iff_t2`: the equivalence between being separated and being Hausdorff for uniform
+  spaces.
 * `separation_quotient.uniform_continuous_lift`: factoring a uniformly continuous map through the
   separation quotient gives a uniformly continuous map.
 * `separation_quotient.uniform_continuous_map`: maps induced between separation quotients are
@@ -122,7 +123,8 @@ begin
   exact λ t, refl_mem_uniformity,
 end
 
-lemma separation_rel_comap  {f : α → β} (h : ‹uniform_space α› = uniform_space.comap f ‹uniform_space β›) :
+lemma separation_rel_comap  {f : α → β}
+  (h : ‹uniform_space α› = uniform_space.comap f ‹uniform_space β›) :
   𝓢 α = (prod.map f f) ⁻¹' 𝓢 β :=
 begin
   dsimp [separation_rel],
@@ -247,7 +249,8 @@ begin
     rintro rfl,
     exact id_rel_sub_separation_relation α rfl },
   { rintros ⟨x, y⟩ ⟨⟨x_in, y_in⟩, hS⟩,
-    have A : (⟨⟨x, x_in⟩, ⟨y, y_in⟩⟩ : ↥s × ↥s) ∈ prod.map (coe : s → α) (coe : s → α) ⁻¹' 𝓢 α := hS,
+    have A : (⟨⟨x, x_in⟩, ⟨y, y_in⟩⟩ : ↥s × ↥s) ∈ prod.map (coe : s → α) (coe : s → α) ⁻¹' 𝓢 α,
+      from hS,
     simpa using h.subset A }
 end
 
@@ -264,7 +267,8 @@ begin
   simpa [separation_rel_eq_inter_closure],
 end
 
-lemma eq_of_uniformity_inf_nhds [separated_space α] : ∀ {x y : α}, cluster_pt (x, y) (𝓤 α) → x = y :=
+lemma eq_of_uniformity_inf_nhds [separated_space α] :
+  ∀ {x y : α}, cluster_pt (x, y) (𝓤 α) → x = y :=
 begin
   have : is_separated (univ : set α),
   { rw univ_separated_iff,
@@ -400,7 +404,8 @@ def separation_quotient (α : Type*) [uniform_space α] := quotient (separation_
 
 namespace separation_quotient
 instance : uniform_space (separation_quotient α) := by dunfold separation_quotient ; apply_instance
-instance : separated_space (separation_quotient α) := by dunfold separation_quotient ; apply_instance
+instance : separated_space (separation_quotient α) :=
+  by dunfold separation_quotient ; apply_instance
 instance [inhabited α] : inhabited (separation_quotient α) :=
 by unfold separation_quotient; apply_instance
 

@@ -132,7 +132,8 @@ Multisets of cardinality n are equivalent to length-n vectors up to permutations
 def sym_equiv_sym' {α : Type u} {n : ℕ} : sym α n ≃ sym' α n :=
 equiv.subtype_quotient_equiv_quotient_subtype _ _ (λ _, by refl) (λ _ _, by refl)
 
-lemma cons_equiv_eq_equiv_cons (α : Type u) (n : ℕ) (a : α) (s : sym α n) : a :: sym_equiv_sym' s = sym_equiv_sym' (a :: s) :=
+lemma cons_equiv_eq_equiv_cons (α : Type u) (n : ℕ) (a : α) (s : sym α n) :
+  a :: sym_equiv_sym' s = sym_equiv_sym' (a :: s) :=
 by tidy
 
 section inhabited

@@ -216,3 +216,32 @@ pure $ "should not be marked simp"
   no_errors_found := "No commutativity lemma is marked simp",
   errors_found := "COMMUTATIVITY LEMMA IS SIMP.\n" ++
     "Some commutativity lemmas are simp lemmas" }
+
+private meta def simp_subterm (d : declaration) : tactic (option string) := do
+tt ← pure d.is_theorem | pure none,
+ff ← is_simp_lemma d.to_name | pure none,
+tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
+ff ← simp_is_conditional d.type | pure none,
+try_for 200000 $ retrieve $ do
+mk_meta_var d.type >>= set_goals ∘ pure,
+unfreezing intros,
+(lhs, rhs) ← target >>= simp_lhs_rhs,
+ff ← is_proof lhs | pure none,
+tt ← lhs.get_app_args.many (λ a, kdepends_on a rhs) | pure none,
+sls ← simp_lemmas.mk_default,
+(lhs', prf1) ← decorate_error "simplify fails on left-hand side:" $
+  simplify sls [] lhs {
+    fail_if_unchanged := ff,
+    proj := ff, -- many _proof_1 lemmas are of the form a * @has_one.one foo {one := foo.one} = a
+  },
+tt ← is_simp_eq lhs lhs' | pure none, -- lhs must be in simp-nf
+lhs_rhs ← target >>= pp,
+pure $ format.to_string $ "This would be a great simp lemma: " ++ lhs_rhs
+
+/-- A linter for lemmas of the form `f x = x` (etc.) that are not marked simp. -/
+@[linter] meta def linter.simp_subterm : linter :=
+{ test := simp_subterm,
+  auto_decls := tt,
+  no_errors_found := "All lemmas simplifying to subterms are marked simp",
+  errors_found := "SUBTERM SIMPLIFICATION LEMMA IS NOT SIMP.\n" ++
+    "You should mark these simp" }

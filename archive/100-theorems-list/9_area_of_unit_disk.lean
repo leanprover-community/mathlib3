@@ -231,8 +231,13 @@ begin
   have h3 : differentiable_at ℝ (λ y:ℝ, y * sqrt(1 - y ^ 2)) x := differentiable_at.mul differentiable_at_id' h2,
     -- show `differentiable_at ℝ (λ y, y * sqrt(1 - y ^ 2)) x` (SOLVED BY JAMES)
   have h4 : differentiable_at ℝ (λ y:ℝ, arcsin y + y * sqrt(1 - y ^ 2)) x,
-    { apply differentiable_at.add _ h3, dsimp only,
-      all_goals{sorry}}, -- show `differentiable_at ℝ (λ y, arcsin y + y * sqrt(1 - y ^ 2)) x` (WIP JAMES)
+      { apply differentiable_at.add _ h3,
+        rw differentiable_at_arcsin,
+        rw mem_Ioo at hx,
+        cases hx with hnx hpx,
+        split,
+        { linarith},
+        { linarith}}, -- show `differentiable_at ℝ (λ y, arcsin y + y * sqrt(1 - y ^ 2)) x` (SOLVED BY JAMES)
   rw [deriv_const_mul _ h4, deriv_add (differentiable_at_arcsin.mpr ⟨hx.1.ne.symm, hx.2.ne⟩) h3,
       deriv_mul differentiable_at_id' h2, deriv_sqrt h1 hlt.ne.symm, deriv_arcsin],
   simp only [one_mul, deriv_id'', differentiable_at_const, mul_one, zero_sub, deriv_sub,

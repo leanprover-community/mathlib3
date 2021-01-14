@@ -34,23 +34,22 @@ example : equiv.swap 1 2 1 = 2 := by norm_num
   (swapt, coe_fn_inst, fexpr, c) ← e.match_app_coe_fn <|> fail "did not get an app coe_fn expr",
   guard (fexpr.get_app_fn.const_name = ``equiv.swap) <|> fail "coe_fn not of equiv.swap",
   [α, deceq_inst, a, b] ← pure fexpr.get_app_args <|> fail "swap did not have exactly two args applied",
-  unify α `(ℕ) <|> fail "currently, norm_swap supports only ℕ",
-  na ← a.to_nat,
-  nb ← b.to_nat,
-  nc ← c.to_nat,
+  na ← a.to_rat,
+  nb ← b.to_rat,
+  nc ← c.to_rat,
   if ha : nc = na
     then do
-      let p : expr := `(@swap_apply_left.{0} %%α %%deceq_inst %%a %%b),
+      let p : expr := `(@swap_apply_left.{1} %%α %%deceq_inst %%a %%b),
       pure (b, p)
   else if hb : nc = nb
     then do
-      let p : expr := `(@swap_apply_right.{0} %%α %%deceq_inst %%a %%b),
+      let p : expr := `(@swap_apply_right.{1} %%α %%deceq_inst %%a %%b),
       pure (a, p)
   else do
-    nic ← mk_instance_cache `(ℕ), -- our `na, nb, nc` are now in Nat
-    (_, hca) ← (prove_ne nic c a nc na),
+    nic ← mk_instance_cache α,
+    (_, hca) ← (prove_ne nic c a nc na), -- this will fail on `fin n`
     (_, hcb) ← (prove_ne nic c b nc nb),
-    let p : expr := `(@swap_apply_of_ne_of_ne.{0} %%α %%deceq_inst %%a %%b %%c %%hca %%hcb),
+    let p : expr := `(@swap_apply_of_ne_of_ne.{1} %%α %%deceq_inst %%a %%b %%c %%hca %%hcb),
     pure (c, p)
 
 end norm_swap

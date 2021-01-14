@@ -713,10 +713,10 @@ end
 
 open finite_dimensional
 
-lemma is_basis_of_orthonormal_of_card_eq_findim [fintype ι] [nonempty ι] [finite_dimensional 𝕜 E]
-  {v : ι → E} (he : orthonormal 𝕜 v) (card_eq : fintype.card ι = findim 𝕜 E) :
+lemma is_basis_of_orthonormal_of_card_eq_findim [fintype ι] [nonempty ι] {v : ι → E}
+  (hv : orthonormal 𝕜 v) (card_eq : fintype.card ι = findim 𝕜 E) :
   is_basis 𝕜 v :=
-is_basis_of_linear_independent_of_card_eq_findim (linear_independent_of_orthonormal he) card_eq
+is_basis_of_linear_independent_of_card_eq_findim (linear_independent_of_orthonormal hv) card_eq
 
 end orthonormal_sets
 

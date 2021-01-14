@@ -1414,6 +1414,13 @@ by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
 
 end multiset
 
+namespace finset
+
+@[simp] lemma val_to_finset [decidable_eq α] (s : finset α) : s.val.to_finset = s :=
+by { ext, rw [multiset.mem_to_finset, ←mem_def] }
+
+end finset
+
 namespace list
 variable [decidable_eq α]
 

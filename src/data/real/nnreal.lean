@@ -187,6 +187,12 @@ protected lemma of_real_mono : monotone nnreal.of_real :=
 @[simp] lemma of_real_coe {r : ℝ≥0} : nnreal.of_real r = r :=
 nnreal.eq $ max_eq_left r.2
 
+@[simp] lemma mk_coe_nat (n : ℕ) : @eq ℝ≥0 (⟨(n : ℝ), n.cast_nonneg⟩ : ℝ≥0) n :=
+nnreal.eq (nnreal.coe_nat_cast n).symm
+
+@[simp] lemma of_real_coe_nat (n : ℕ) : nnreal.of_real n = n :=
+nnreal.eq $ by simp [coe_of_real]
+
 /-- `nnreal.of_real` and `coe : ℝ≥0 → ℝ` form a Galois insertion. -/
 protected def gi : galois_insertion nnreal.of_real coe :=
 galois_insertion.monotone_intro nnreal.coe_mono nnreal.of_real_mono

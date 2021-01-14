@@ -510,6 +510,10 @@ end sub
 
 section inv
 
+lemma sum_div {ι} (s : finset ι) (f : ι → ℝ≥0) (b : ℝ≥0) :
+  (∑ i in s, f i) / b = ∑ i in s, (f i / b) :=
+by simp only [div_eq_mul_inv, finset.sum_mul]
+
 @[simp] lemma inv_pos {r : ℝ≥0} : 0 < r⁻¹ ↔ 0 < r :=
 by simp [pos_iff_ne_zero]
 

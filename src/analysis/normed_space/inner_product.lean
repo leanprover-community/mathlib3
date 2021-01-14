@@ -696,9 +696,15 @@ end
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
-lemma inner_finsupp_orthonormal {v : ι → E} (he : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
+lemma inner_right_finsupp_orthonormal {v : ι → E} (he : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
   ⟪v i, finsupp.total ι E 𝕜 v l⟫ = l i :=
 by simp [finsupp.total_apply, finsupp.inner_sum, orthonormal_iff_ite.mp he]
+
+/-- The inner product of a linear combination of a set of orthonormal vectors with one of those
+vectors picks out the coefficient of that vector. -/
+lemma inner_left_finsupp_orthonormal {v : ι → E} (he : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
+  ⟪finsupp.total ι E 𝕜 v l, v i⟫ = conj (l i) :=
+by simp [finsupp.total_apply, finsupp.sum_inner, orthonormal_iff_ite.mp he, ← conj_eq_zero]
 
 /-- An orthonormal set is linearly independent. -/
 lemma linear_independent_of_orthonormal {v : ι → E} (he : orthonormal 𝕜 v) :
@@ -708,7 +714,7 @@ begin
   intros l hl,
   ext i,
   have key : ⟪v i, finsupp.total ι E 𝕜 v l⟫ = ⟪v i, 0⟫ := by rw hl,
-  simpa [inner_finsupp_orthonormal he] using key
+  simpa [inner_right_finsupp_orthonormal he] using key
 end
 
 open finite_dimensional
@@ -1518,8 +1524,8 @@ instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instanc
 lemma findim_euclidean_space_fin {n : ℕ} :
   finite_dimensional.findim 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
 
-/-- A basis on `ι` for a finite-dimensional space induces a continuous linear equivalence 
-with `euclidean_space 𝕜 ι`.  If the basis is orthonormal in an inner product space, this continuous 
+/-- A basis on `ι` for a finite-dimensional space induces a continuous linear equivalence
+with `euclidean_space 𝕜 ι`.  If the basis is orthonormal in an inner product space, this continuous
 linear equivalence is an isometry, but we don't prove that here. -/
 def is_basis.equiv_fun_euclidean [finite_dimensional 𝕜 E] {v : ι → E} (h : is_basis 𝕜 v) :
   E ≃L[𝕜] (euclidean_space 𝕜 ι) :=
@@ -2382,7 +2388,7 @@ end
 lemma is_basis_max_orthonormal [nontrivial E] [finite_dimensional 𝕜 E] :
   ∃ (v : fin (findim 𝕜 E) → E), orthonormal 𝕜 v ∧ is_basis 𝕜 v :=
 begin
-  let ⟨v, hv⟩ := exists_max_orthonormal 𝕜 E,
+  obtain ⟨v, hv⟩ := exists_max_orthonormal 𝕜 E,
   exact ⟨v, hv, is_basis_of_orthonormal_of_card_eq_findim hv (by simp)⟩
 end
 

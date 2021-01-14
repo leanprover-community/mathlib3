@@ -1581,7 +1581,7 @@ by { unfold swap_core, split_ifs; cc }
 def swap (a b : α) : perm α :=
 ⟨swap_core a b, swap_core a b, λr, swap_core_swap_core r a b, λr, swap_core_swap_core r a b⟩
 
-theorem swap_self (a : α) : swap a a = equiv.refl _ :=
+@[simp] theorem swap_self (a : α) : swap a a = equiv.refl _ :=
 ext $ λ r, swap_core_self r a
 
 theorem swap_comm (a b : α) : swap a b = swap b a :=
@@ -1614,14 +1614,18 @@ lemma comp_swap_eq_update (i j : α) (f : α → β) :
   f ∘ equiv.swap i j = update (update f j (f i)) i (f j) :=
 by rw [swap_eq_update, comp_update, comp_update, comp.right_id]
 
-@[simp] lemma symm_trans_swap_trans [decidable_eq β] (a b : α)
-  (e : α ≃ β) : (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
+@[simp] lemma symm_trans_swap_trans [decidable_eq β] (a b : α) (e : α ≃ β) :
+  (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
 equiv.ext (λ x, begin
   have : ∀ a, e.symm x = a ↔ x = e a :=
     λ a, by { rw @eq_comm _ (e.symm x), split; intros; simp * at * },
   simp [swap_apply_def, this],
   split_ifs; simp
 end)
+
+@[simp] lemma trans_swap_trans_symm [decidable_eq β] (a b : β)
+  (e : α ≃ β) : (e.trans (swap a b)).trans e.symm = swap (e.symm a) (e.symm b) :=
+symm_trans_swap_trans a b e.symm
 
 @[simp] lemma swap_apply_self (i j a : α) :
   swap i j (swap i j a) = a :=

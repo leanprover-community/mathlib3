@@ -1344,27 +1344,24 @@ theorem integral_eq_sub_of_has_deriv_at' (hcont : continuous_on f (interval a b)
   ∫ y in a..b, f' y = f b - f a :=
 begin
   refine integral_eq_sub_of_has_deriv_right hcont _ hcont',
-  intros y hy,
-  rw [Ico, mem_set_of_eq, le_iff_lt_or_eq, or_and_distrib_right, ← mem_Ioo] at hy,
-  cases hy,
+  intros y hy',
+  obtain (hy | hy) : y ∈ Ioo (min a b) (max a b) ∨ min a b = y ∧ y < max a b,
+  { simpa only [le_iff_lt_or_eq, or_and_distrib_right, mem_Ioo, mem_Ico] using hy' },
   { exact (hderiv y hy).has_deriv_within_at },
   { refine has_deriv_at_interval_left_endpoint_of_tendsto_deriv
       (λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at)
-        ((hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨hy.1.le, hy.2⟩))).mono Ioo_subset_Icc_self)
-          _ _,
+        ((hcont y (Ico_subset_Icc_self hy')).mono Ioo_subset_Icc_self) _ _,
     { rw [hy.1, ← nhds_within_Ioc_eq_nhds_within_Ioi hy.2,
           mem_nhds_within_iff_exists_mem_nhds_inter],
-      exact ⟨Ico (y-1) (max a b), Ico_mem_nhds (by linarith) hy.2, by { assume c hc,
-        simpa only [inter_def, Ioc, Ico, mem_set_of_eq] using mem_Ioo.mpr ⟨hc.2.1, hc.1.2⟩ }⟩ },
-    { have hf := (hcont'.continuous_within_at (left_mem_Icc.mpr min_le_max)),
-      rw [interval, hy.1] at hf,
-      have hf' : tendsto f' (𝓝[Ici y] y) (𝓝 (f' y)) :=
-        by convert hf using 1; rw ← nhds_within_Icc_eq_nhds_within_Ici hy.2,
-      have hcongr : deriv f =ᶠ[𝓝[Ioi y] y] f' :=
-        by simpa only [eventually_eq] using eventually_of_mem (Ioo_mem_nhds_within_Ioi
-          (by simpa only [hy.1] using left_mem_Ico.mpr hy.2)) (λ x hx, (hderiv x hx).deriv),
-      simpa only [tendsto_congr' hcongr]
-        using hf'.mono_left (nhds_within_mono y Ioi_subset_Ici_self) } },
+      refine ⟨Ico (y-1) (max a b), Ico_mem_nhds (by linarith) hy.2, _⟩,
+      { assume c hc,
+        simpa only [inter_def, Ioc, Ico, mem_set_of_eq] using mem_Ioo.mpr ⟨hc.2.1, hc.1.2⟩ } },
+    { have h : tendsto f' (𝓝[Ici y] y) (𝓝 (f' y)),
+      { simpa only [← nhds_within_Icc_eq_nhds_within_Ici hy.2, interval, hy.1]
+          using hcont'.continuous_within_at (left_mem_Icc.mpr min_le_max) },
+      simpa only [tendsto_congr'
+                    (eventually_of_mem (Ioo_mem_nhds_within_Ioi hy') (λ x hx, (hderiv x hx).deriv))]
+        using h.mono_left (nhds_within_mono y Ioi_subset_Ici_self) } },
   end
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` has a derivative at `f' x` for all `x` in

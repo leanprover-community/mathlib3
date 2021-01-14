@@ -61,33 +61,28 @@ lemma abs_lt_left {a b : ℝ} (h : abs a < b) : -b < a := (abs_lt.mp h).1
 
 lemma abs_lt_right {a b : ℝ} (h : abs a < b) : a < b := (abs_lt.mp h).2
 
--- For Andrew:
-theorem sqr_le {a b : ℝ} : a^2 ≤ b → -sqrt b ≤ a ∧ a ≤ sqrt b :=
-begin
-  intro h,
-  have := sqrt_le_sqrt h,
-  rw sqrt_sqr_eq_abs a at this,
-  exact abs_le.1 this,
-end
+theorem sqr_le {a b : ℝ} (h : a^2 ≤ b) : -sqrt b ≤ a ∧ a ≤ sqrt b :=
+abs_le.mp (by simpa [← sqrt_sqr_eq_abs] using sqrt_le_sqrt h)
 
 -- For Andrew:
-theorem sqr_lt {a b : ℝ} : a^2 < b ↔ -sqrt b < a ∧ a < sqrt b :=
+theorem sqr_le_of_nonneg {a b : ℝ} (h : 0 ≤ b) : a^2 ≤ b ↔ -sqrt b ≤ a ∧ a ≤ sqrt b :=
 begin
   split,
-  {intro h,
-   rw [← sqrt_lt (pow_two_nonneg a), sqrt_sqr_eq_abs a] at h,
-   exact abs_lt.1 (h),},
-  {intro h,
-   rw ← abs_lt at h,
-   rw ← sqr_abs,
-   exact (lt_sqrt (abs_nonneg a) (sqrt_pos.1 (lt_of_le_of_lt (abs_nonneg a) h)).le).1 h,},
+  { exact sqr_le },
+  { sorry },
 end
-
-
 
 lemma sqr_le_left {a b : ℝ} (h : a^2 ≤ b) : -sqrt b ≤ a := (sqr_le h).1
 
 lemma sqr_le_right {a b : ℝ} (h : a^2 ≤ b) : a ≤ sqrt b := (sqr_le h).2
+
+theorem sqr_lt {a b : ℝ} : a^2 < b ↔ -sqrt b < a ∧ a < sqrt b :=
+begin
+  split,
+  { simpa only [← sqrt_lt (pow_two_nonneg a), sqrt_sqr_eq_abs] using abs_lt.mp },
+  { rw [← abs_lt, ← sqr_abs],
+    exact λ h, (lt_sqrt (abs_nonneg a) (sqrt_pos.mp (lt_of_le_of_lt (abs_nonneg a) h)).le).mp h },
+end
 
 -- For Andrew for use in step 2:
 -- (originally Andrew's `opposite_sqrt_lt_of_sqr_lt`)
@@ -101,8 +96,7 @@ lemma sqr_lt_right {a b : ℝ} (h : a^2 < b) : a < sqrt b := (sqr_lt.mp h).2
 --Def'n and alternate def'n of the unit disc
 def unit_disc := {point : ℝ × ℝ | (point.1)^2 + (point.2)^2 < 1 }
 
-def unit_disc_alt := {point : ℝ × ℝ | -1 * sqrt (1 - (point.1)^2) < point.2 ∧
-                                       point.2 < sqrt (1 - (point.1)^2)}
+def unit_disc_alt := {point : ℝ × ℝ | -sqrt (1 - (point.1)^2) < point.2 ∧ point.2 < sqrt (1 - (point.1)^2)}
 
 --version of the triangle inequality, still need to prove
 lemma real.Lp_add_two_le (f g : ℝ × ℝ) (p : ℝ) (hp : 1 ≤ p) :
@@ -151,58 +145,17 @@ end
 lemma is_measurable_unit_disc : is_measurable unit_disc :=
 is_open_unit_disc.is_measurable
 
---Andrew's work : another lemma for set eq'ty in second step
-lemma opposite_sqrt_lt_of_sqr_lt {a b : ℝ} (h : a^2 < b) : - sqrt b < a :=
-begin
-  have hb : 0 ≤ b := by linarith [pow_two_nonneg a],
-  by_contradiction hyp,
-  push_neg at hyp,
-  by_cases ha : a = 0,
-  { by_cases hb' : b = 0,
-    { rw [ha, hb'] at h, linarith },
-    { rw ← ne.def at hb',
-      replace hb' := ne.symm hb',
-      replace hb' : 0 < b := lt_iff_le_and_ne.2 ⟨hb, hb'⟩,
-      have hsqrtb := sqrt_nonneg b,
-      have : (-1) * sqrt b ≤ 0 := by linarith,
-      rw ha at hyp,
-      replace hyp : (-1) * sqrt b = 0 := by linarith,
-      replace hyp :  sqrt b = 0 := by linarith,
-      replace hyp : b = 0 := (sqrt_eq_zero hb).1 hyp,
-      linarith }  },
-  { replace ha : a ≠ 0 := by assumption,
-    by_cases ha' : a < 0,
-    { let c := - a,
-      have hc : c = -a := rfl,
-      replace hc : a = -c := by linarith,
-      rw hc at hyp,
-      have hbc : sqrt b ≤ c := by linarith,
-      have := (sqrt_le_iff.1 hbc).2,
-      replace hc : c = -a := rfl,
-      rw hc at this,
-      have hsqrtb := sqrt_nonneg b,
-      rw neg_square a at this,
-      linarith },
-    { push_neg at ha',
-      replace ha : 0 ≠ a := ne.symm ha,
-      have a_pos : 0 < a := lt_iff_le_and_ne.2 ⟨ha', ha⟩,
-      have hsqrtb := sqrt_nonneg b,
-      have : (-1) * sqrt b ≤ 0 := by linarith,
-      linarith }  },
-end
-
 --Andrew's work, set equality for the second step
-lemma second_step : unit_disc  = unit_disc_alt :=
+lemma second_step : unit_disc = unit_disc_alt :=
 begin
   unfold unit_disc, unfold unit_disc_alt,
   apply set.ext,
   intro point, split,
 
   { intro hp,
-    simp only [neg_one_mul],
     have h₁ : (point.1)^2 + (point.2)^2 < 1 := hp,
     have h₂ : (point.2)^2 < 1 - (point.1)^2 := by linarith,
-    exact ⟨opposite_sqrt_lt_of_sqr_lt h₂, lt_sqrt_of_sqr_lt h₂⟩ },
+    exact ⟨sqr_lt_left h₂, lt_sqrt_of_sqr_lt h₂⟩ },
 
   { intro hp,
     cases hp with hp₁ hp₂,

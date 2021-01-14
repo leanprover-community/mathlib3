@@ -38,14 +38,10 @@ example : equiv.swap 1 2 1 = 2 := by norm_num
   na ← a.to_rat,
   nb ← b.to_rat,
   nc ← c.to_rat,
-  if ha : nc = na
-    then do
-      let p : expr := `(@swap_apply_left.{1} %%α %%deceq_inst %%a %%b),
-      pure (b, p)
-  else if hb : nc = nb
-    then do
-      let p : expr := `(@swap_apply_right.{1} %%α %%deceq_inst %%a %%b),
-      pure (a, p)
+  if nc = na
+    then let p : expr := `(@swap_apply_left.{1} %%α %%deceq_inst %%a %%b) in pure (b, p)
+  else if nc = nb
+    then let p : expr := `(@swap_apply_right.{1} %%α %%deceq_inst %%a %%b) in pure (a, p)
   else do
     nic ← mk_instance_cache α,
     (_, hca) ← (prove_ne nic c a nc na), -- this will fail on `fin n`

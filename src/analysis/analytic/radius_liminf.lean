@@ -33,7 +33,7 @@ begin
     ((r : ennreal) ≤ 1 / ↑(nnnorm (p n) ^ (1 / (n : ℝ))) ↔ nnnorm (p n) * r ^ n ≤ 1),
   { intros r n hn,
     have : 0 < (n : ℝ) := nat.cast_pos.2 hn,
-    conv_lhs {rw [ennreal.div_def, one_mul, ennreal.le_inv_iff_mul_le, ← ennreal.coe_mul,
+    conv_lhs {rw [one_div, ennreal.le_inv_iff_mul_le, ← ennreal.coe_mul,
       ennreal.coe_le_one_iff, one_div, ← nnreal.rpow_one r, ← mul_inv_cancel this.ne',
       nnreal.rpow_mul, ← nnreal.mul_rpow, ← nnreal.one_rpow (n⁻¹),
       nnreal.rpow_le_rpow_iff (inv_pos.2 this), mul_comm, nnreal.rpow_nat_cast] } },

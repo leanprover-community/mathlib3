@@ -34,6 +34,8 @@ universes u v w x y
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 
+variables {Sα Sβ Sγ : Type*} [has_mem α Sα] [has_mem β Sβ] [has_mem γ Sγ]
+
 open function
 
 namespace set
@@ -60,26 +62,27 @@ def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s 
   (cod_restrict f s h x : β) = f x :=
 rfl
 
-variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g : β → γ}
-  {f' f₁' f₂' : β → α} {g' : γ → β}
+variables {s s₁ s₂ : set α} {s' s₁' s₂' : Sα}
+variables {t t₁ t₂ : set β} {t' t₁' t₂' : Sβ}
+variables {p : set γ} {p' : Sγ} {f f₁ f₂ f₃ : α → β} {g : β → γ} {f' f₁' f₂' : β → α} {g' : γ → β}
 
 /-! ### Equality on a set -/
 
 /-- Two functions `f₁ f₂ : α → β` are equal on `s`
   if `f₁ x = f₂ x` for all `x ∈ a`. -/
-@[reducible] def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
+@[reducible] def eq_on (f₁ f₂ : α → β) (s : Sα) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f₁ x = f₂ x
 
-@[symm] lemma eq_on.symm (h : eq_on f₁ f₂ s) : eq_on f₂ f₁ s :=
+@[symm] lemma eq_on.symm (h : eq_on f₁ f₂ s') : eq_on f₂ f₁ s' :=
 λ x hx, (h hx).symm
 
-lemma eq_on_comm : eq_on f₁ f₂ s ↔ eq_on f₂ f₁ s :=
+lemma eq_on_comm : eq_on f₁ f₂ s' ↔ eq_on f₂ f₁ s' :=
 ⟨eq_on.symm, eq_on.symm⟩
 
-@[refl] lemma eq_on_refl (f : α → β) (s : set α) : eq_on f f s :=
+@[refl] lemma eq_on_refl (f : α → β) (s : Sα) : eq_on f f s' :=
 λ _ _, rfl
 
-@[trans] lemma eq_on.trans (h₁ : eq_on f₁ f₂ s) (h₂ : eq_on f₂ f₃ s) : eq_on f₁ f₃ s :=
+@[trans] lemma eq_on.trans (h₁ : eq_on f₁ f₂ s') (h₂ : eq_on f₂ f₃ s') : eq_on f₁ f₃ s' :=
 λ x hx, (h₁ hx).trans (h₂ hx)
 
 theorem eq_on.image_eq (heq : eq_on f₁ f₂ s) : f₁ '' s = f₂ '' s :=
@@ -95,7 +98,7 @@ funext $ λ x, h $ mem_range_self _
 /-! ### maps to -/
 
 /-- `maps_to f a b` means that the image of `a` is contained in `b`. -/
-@[reducible] def maps_to (f : α → β) (s : set α) (t : set β) : Prop := ∀ ⦃x⦄, x ∈ s → f x ∈ t
+@[reducible] def maps_to (f : α → β) (s : Sα) (t : Sβ) : Prop := ∀ ⦃x⦄, x ∈ s → f x ∈ t
 
 /-- Given a map `f` sending `s : set α` into `t : set β`, restrict domain of `f` to `s`
 and the codomain to `t`. Same as `subtype.map`. -/
@@ -113,24 +116,24 @@ lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x 
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
 
-theorem maps_to_empty (f : α → β) (t : set β) : maps_to f ∅ t := empty_subset _
+theorem maps_to_empty (f : α → β) (t : set β) : maps_to f (∅ : set α) t := empty_subset _
 
 theorem maps_to.image_subset (h : maps_to f s t) : f '' s ⊆ t :=
 maps_to'.1 h
 
-theorem maps_to.congr (h₁ : maps_to f₁ s t) (h : eq_on f₁ f₂ s) :
-  maps_to f₂ s t :=
+theorem maps_to.congr (h₁ : maps_to f₁ s' t') (h : eq_on f₁ f₂ s') :
+  maps_to f₂ s' t' :=
 λ x hx, h hx ▸ h₁ hx
 
-theorem eq_on.maps_to_iff (H : eq_on f₁ f₂ s) : maps_to f₁ s t ↔ maps_to f₂ s t :=
+theorem eq_on.maps_to_iff (H : eq_on f₁ f₂ s') : maps_to f₁ s' t' ↔ maps_to f₂ s' t' :=
 ⟨λ h, h.congr H, λ h, h.congr H.symm⟩
 
-theorem maps_to.comp (h₁ : maps_to g t p) (h₂ : maps_to f s t) : maps_to (g ∘ f) s p :=
+theorem maps_to.comp (h₁ : maps_to g t' p') (h₂ : maps_to f s' t') : maps_to (g ∘ f) s' p' :=
 λ x h, h₁ (h₂ h)
 
-theorem maps_to_id (s : set α) : maps_to id s s := λ x, id
+theorem maps_to_id (s : Sα) : maps_to (id : α → α) s s := λ x, id
 
-theorem maps_to.iterate {f : α → α} {s : set α} (h : maps_to f s s) :
+theorem maps_to.iterate {f : α → α} {s : Sα} (h : maps_to f s s) :
   ∀ n, maps_to (f^[n]) s s
 | 0 := λ _, id
 | (n+1) := (maps_to.iterate n).comp h
@@ -173,7 +176,7 @@ theorem maps_to.inter_inter (h₁ : maps_to f s₁ t₁) (h₂ : maps_to f s₂ 
 ⟨λ h, ⟨h.mono (subset.refl s) (inter_subset_left t₁ t₂),
   h.mono (subset.refl s) (inter_subset_right t₁ t₂)⟩, λ h, h.1.inter h.2⟩
 
-theorem maps_to_univ (f : α → β) (s : set α) : maps_to f s univ := λ x h, trivial
+theorem maps_to_univ (f : α → β) (s : set α) : maps_to f s (univ : set β) := λ x h, trivial
 
 theorem maps_to_image (f : α → β) (s : set α) : maps_to f s (f '' s) := by rw maps_to'
 
@@ -192,21 +195,21 @@ theorem maps_to.mem_iff (h : maps_to f s t) (hc : maps_to f sᶜ tᶜ) {x} : f x
 /-! ### Injectivity on a set -/
 
 /-- `f` is injective on `a` if the restriction of `f` to `a` is injective. -/
-@[reducible] def inj_on (f : α → β) (s : set α) : Prop :=
+@[reducible] def inj_on (f : α → β) (s : Sα) : Prop :=
 ∀ ⦃x₁ : α⦄, x₁ ∈ s → ∀ ⦃x₂ : α⦄, x₂ ∈ s → f x₁ = f x₂ → x₁ = x₂
 
-theorem inj_on_empty (f : α → β) : inj_on f ∅ :=
+theorem inj_on_empty (f : α → β) : inj_on f (∅ : set α) :=
 λ _ h₁, false.elim h₁
 
-theorem inj_on.eq_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+theorem inj_on.eq_iff {x y} (h : inj_on f s') (hx : x ∈ s') (hy : y ∈ s') :
   f x = f y ↔ x = y :=
 ⟨h hx hy, λ h, h ▸ rfl⟩
 
-theorem inj_on.congr (h₁ : inj_on f₁ s) (h : eq_on f₁ f₂ s) :
-  inj_on f₂ s :=
+theorem inj_on.congr (h₁ : inj_on f₁ s') (h : eq_on f₁ f₂ s') :
+  inj_on f₂ s' :=
 λ x hx y hy, h hx ▸ h hy ▸ h₁ hx hy
 
-theorem eq_on.inj_on_iff (H : eq_on f₁ f₂ s) : inj_on f₁ s ↔ inj_on f₂ s :=
+theorem eq_on.inj_on_iff (H : eq_on f₁ f₂ s') : inj_on f₁ s' ↔ inj_on f₂ s' :=
 ⟨λ h, h.congr H, λ h, h.congr H.symm⟩
 
 theorem inj_on.mono (h : s₁ ⊆ s₂) (ht : inj_on f s₂) : inj_on f s₁ :=
@@ -224,16 +227,16 @@ theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
     (λ hya : y = a, h2.elim ⟨x, hxs, hya ▸ hfxy⟩)
     (λ hys : y ∈ s, h1 hxs hys hfxy))⟩
 
-lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
+lemma injective_iff_inj_on_univ : injective f ↔ inj_on f (univ : set α) :=
 ⟨λ h x hx y hy hxy, h hxy, λ h _ _ heq, h trivial trivial heq⟩
 
-lemma inj_on_of_injective (h : injective f) (s : set α) : inj_on f s :=
+lemma inj_on_of_injective (h : injective f) (s : Sα) : inj_on f s :=
 λ x hx y hy hxy, h hxy
 
 alias inj_on_of_injective ← function.injective.inj_on
 
-theorem inj_on.comp (hg : inj_on g t) (hf: inj_on f s) (h : maps_to f s t) :
-  inj_on (g ∘ f) s :=
+theorem inj_on.comp (hg : inj_on g t') (hf: inj_on f s') (h : maps_to f s' t') :
+  inj_on (g ∘ f) s' :=
 λ x hx y hy heq, hf hx hy $ hg (h hx) (h hy) heq
 
 lemma inj_on_iff_injective : inj_on f s ↔ injective (restrict f s) :=
@@ -389,22 +392,22 @@ lemma bij_on.compl (hst : bij_on f s t) (hf : bijective f) : bij_on f sᶜ tᶜ 
 /-! ### left inverse -/
 
 /-- `g` is a left inverse to `f` on `a` means that `g (f x) = x` for all `x ∈ a`. -/
-@[reducible] def left_inv_on (f' : β → α) (f : α → β) (s : set α) : Prop :=
+@[reducible] def left_inv_on (f' : β → α) (f : α → β) (s : Sα) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f' (f x) = x
 
-lemma left_inv_on.eq_on (h : left_inv_on f' f s) : eq_on (f' ∘ f) id s := h
+lemma left_inv_on.eq_on (h : left_inv_on f' f s') : eq_on (f' ∘ f) id s' := h
 
-lemma left_inv_on.eq (h : left_inv_on f' f s) {x} (hx : x ∈ s) : f' (f x) = x := h hx
+lemma left_inv_on.eq (h : left_inv_on f' f s') {x} (hx : x ∈ s') : f' (f x) = x := h hx
 
-lemma left_inv_on.congr_left (h₁ : left_inv_on f₁' f s)
-  {t : set β} (h₁' : maps_to f s t) (heq : eq_on f₁' f₂' t) : left_inv_on f₂' f s :=
+lemma left_inv_on.congr_left (h₁ : left_inv_on f₁' f s')
+  {t : Sβ} (h₁' : maps_to f s' t) (heq : eq_on f₁' f₂' t) : left_inv_on f₂' f s' :=
 λ x hx, heq (h₁' hx) ▸ h₁ hx
 
-theorem left_inv_on.congr_right (h₁ : left_inv_on f₁' f₁ s) (heq : eq_on f₁ f₂ s) :
-  left_inv_on f₁' f₂ s :=
+theorem left_inv_on.congr_right (h₁ : left_inv_on f₁' f₁ s') (heq : eq_on f₁ f₂ s') :
+  left_inv_on f₁' f₂ s' :=
 λ x hx, heq hx ▸ h₁ hx
 
-theorem left_inv_on.inj_on (h : left_inv_on f₁' f s) : inj_on f s :=
+theorem left_inv_on.inj_on (h : left_inv_on f₁' f s') : inj_on f s' :=
 λ x₁ h₁ x₂ h₂ heq,
 calc
   x₁    = f₁' (f x₁) : eq.symm $ h h₁
@@ -417,8 +420,9 @@ theorem left_inv_on.surj_on (h : left_inv_on f' f s) (hf : maps_to f s t) : surj
 theorem left_inv_on.maps_to (h : left_inv_on f' f s) (hf : surj_on f s t) : maps_to f' t s :=
 λ y hy, let ⟨x, hs, hx⟩ := hf hy in by rwa [← hx, h hs]
 
-theorem left_inv_on.comp (hf' : left_inv_on f' f s) (hg' : left_inv_on g' g t) (hf : maps_to f s t) :
-  left_inv_on (f' ∘ g') (g ∘ f) s :=
+theorem left_inv_on.comp (hf' : left_inv_on f' f s') (hg' : left_inv_on g' g t')
+  (hf : maps_to f s' t') :
+  left_inv_on (f' ∘ g') (g ∘ f) s' :=
 λ x h,
 calc
   (f' ∘ g') ((g ∘ f) x) = f' (f x) : congr_arg f' (hg' (hf h))
@@ -430,19 +434,19 @@ theorem left_inv_on.mono (hf : left_inv_on f' f s) (ht : s₁ ⊆ s) : left_inv_
 /-! ### Right inverse -/
 
 /-- `g` is a right inverse to `f` on `b` if `f (g x) = x` for all `x ∈ b`. -/
-@[reducible] def right_inv_on (f' : β → α) (f : α → β) (t : set β) : Prop :=
+@[reducible] def right_inv_on (f' : β → α) (f : α → β) (t : Sβ) : Prop :=
 left_inv_on f f' t
 
-lemma right_inv_on.eq_on (h : right_inv_on f' f t) : eq_on (f ∘ f') id t := h
+lemma right_inv_on.eq_on (h : right_inv_on f' f t') : eq_on (f ∘ f') id t' := h
 
 lemma right_inv_on.eq (h : right_inv_on f' f t) {y} (hy : y ∈ t) : f (f' y) = y := h hy
 
-theorem right_inv_on.congr_left (h₁ : right_inv_on f₁' f t) (heq : eq_on f₁' f₂' t) :
-  right_inv_on f₂' f t :=
+theorem right_inv_on.congr_left (h₁ : right_inv_on f₁' f t') (heq : eq_on f₁' f₂' t') :
+  right_inv_on f₂' f t' :=
 h₁.congr_right heq
 
-theorem right_inv_on.congr_right (h₁ : right_inv_on f' f₁ t) (hg : maps_to f' t s)
-  (heq : eq_on f₁ f₂ s) : right_inv_on f' f₂ t :=
+theorem right_inv_on.congr_right (h₁ : right_inv_on f' f₁ t') (hg : maps_to f' t' s')
+  (heq : eq_on f₁ f₂ s') : right_inv_on f' f₂ t' :=
 left_inv_on.congr_left h₁ hg heq
 
 theorem right_inv_on.surj_on (hf : right_inv_on f' f t) (hf' : maps_to f' t s) :
@@ -452,16 +456,16 @@ hf.surj_on hf'
 theorem right_inv_on.maps_to (h : right_inv_on f' f t) (hf : surj_on f' t s) : maps_to f s t :=
 h.maps_to hf
 
-theorem right_inv_on.comp (hf : right_inv_on f' f t) (hg : right_inv_on g' g p)
-  (g'pt : maps_to g' p t) : right_inv_on (f' ∘ g') (g ∘ f) p :=
+theorem right_inv_on.comp (hf : right_inv_on f' f t') (hg : right_inv_on g' g p')
+  (g'pt : maps_to g' p' t') : right_inv_on (f' ∘ g') (g ∘ f) p' :=
 hg.comp hf g'pt
 
 theorem right_inv_on.mono (hf : right_inv_on f' f t) (ht : t₁ ⊆ t) : right_inv_on f' f t₁ :=
 hf.mono ht
 
-theorem inj_on.right_inv_on_of_left_inv_on (hf : inj_on f s) (hf' : left_inv_on f f' t)
-    (h₁ : maps_to f s t) (h₂ : maps_to f' t s) :
-  right_inv_on f f' s :=
+theorem inj_on.right_inv_on_of_left_inv_on (hf : inj_on f s') (hf' : left_inv_on f f' t')
+    (h₁ : maps_to f s' t') (h₂ : maps_to f' t' s') :
+  right_inv_on f f' s' :=
 λ x h, hf (h₂ $ h₁ h) h (hf' (h₁ h))
 
 theorem eq_on_of_left_inv_on_of_right_inv_on (h₁ : left_inv_on f₁' f s) (h₂ : right_inv_on f₂' f t)
@@ -477,7 +481,7 @@ theorem surj_on.left_inv_on_of_right_inv_on (hf : surj_on f s t) (hf' : right_in
 /-! ### Two-side inverses -/
 
 /-- `g` is an inverse to `f` viewed as a map from `a` to `b` -/
-@[reducible] def inv_on (g : β → α) (f : α → β) (s : set α) (t : set β) : Prop :=
+@[reducible] def inv_on (g : β → α) (f : α → β) (s : Sα) (t : Sβ) : Prop :=
 left_inv_on g f s ∧ right_inv_on g f t
 
 lemma inv_on.symm (h : inv_on f' f s t) : inv_on f f' t s := ⟨h.right, h.left⟩
@@ -649,12 +653,12 @@ end set
 
 lemma strict_mono_incr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
   (H : strict_mono_incr_on f s) :
-  s.inj_on f :=
+  set.inj_on f s :=
 λ x hx y hy hxy, show ordering.eq.compares x y, from (H.compares hx hy).1 hxy
 
 lemma strict_mono_decr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
   (H : strict_mono_decr_on f s) :
-  s.inj_on f :=
+  set.inj_on f s :=
 @strict_mono_incr_on.inj_on α (order_dual β) _ _ f s H
 
 lemma strict_mono_incr_on.comp [preorder α] [preorder β] [preorder γ]
@@ -680,7 +684,7 @@ open set
 
 variables {fa : α → α} {fb : β → β} {f : α → β} {g : β → γ} {s t : set α}
 
-lemma injective.comp_inj_on (hg : injective g) (hf : s.inj_on f) : s.inj_on (g ∘ f) :=
+lemma injective.comp_inj_on (hg : injective g) (hf : set.inj_on f s) : set.inj_on (g ∘ f) s :=
 (hg.inj_on univ).comp hf (maps_to_univ _ _)
 
 lemma surjective.surj_on (hf : surjective f) (s : set β) :

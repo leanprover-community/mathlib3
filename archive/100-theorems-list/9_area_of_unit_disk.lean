@@ -225,12 +225,14 @@ begin
   have hlt : 0 < 1 - x^2,
     sorry, -- show `0 < 1 - x^2`
   have h1 : differentiable_at ℝ (λ y:ℝ, 1 - y ^ 2) x,
-    sorry, -- show `differentiable_at ℝ (λ y, 1 - y ^ 2) x`
+      { simp only [differentiable_at_id', differentiable_at.pow, differentiable_at_const_sub_iff]},
+   -- show `differentiable_at ℝ (λ y, 1 - y ^ 2) x` (SOLVED BY JAMES)
   have h2 : differentiable_at ℝ (λ y:ℝ, sqrt(1 - y ^ 2)) x := h1.sqrt hlt.ne.symm,
-  have h3 : differentiable_at ℝ (λ y:ℝ, y * sqrt(1 - y ^ 2)) x,
-    sorry, -- show `differentiable_at ℝ (λ y, y * sqrt(1 - y ^ 2)) x`
+  have h3 : differentiable_at ℝ (λ y:ℝ, y * sqrt(1 - y ^ 2)) x := differentiable_at.mul differentiable_at_id' h2,
+    -- show `differentiable_at ℝ (λ y, y * sqrt(1 - y ^ 2)) x` (SOLVED BY JAMES)
   have h4 : differentiable_at ℝ (λ y:ℝ, arcsin y + y * sqrt(1 - y ^ 2)) x,
-    sorry, -- show `differentiable_at ℝ (λ y, arcsin y + y * sqrt(1 - y ^ 2)) x`
+    { apply differentiable_at.add _ h3, dsimp only,
+      all_goals{sorry}}, -- show `differentiable_at ℝ (λ y, arcsin y + y * sqrt(1 - y ^ 2)) x` (WIP JAMES)
   rw [deriv_const_mul _ h4, deriv_add (differentiable_at_arcsin.mpr ⟨hx.1.ne.symm, hx.2.ne⟩) h3,
       deriv_mul differentiable_at_id' h2, deriv_sqrt h1 hlt.ne.symm, deriv_arcsin],
   simp only [one_mul, deriv_id'', differentiable_at_const, mul_one, zero_sub, deriv_sub,

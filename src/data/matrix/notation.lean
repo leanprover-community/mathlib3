@@ -216,6 +216,9 @@ end
 @[simp] lemma vec_head_vec_alt0 (hm : (m + 2) = (n + 1) + (n + 1)) (v : fin (m + 2) → α) :
   vec_head (vec_alt0 hm v) = v 0 := rfl
 
+@[simp] lemma vec_head_vec_alt1 (hm : (m + 2) = (n + 1) + (n + 1)) (v : fin (m + 2) → α) :
+  vec_head (vec_alt1 hm v) = v 1 := rfl
+
 @[simp] lemma cons_vec_bit0_eq_alt0 (x : α) (u : fin n → α) (i : fin (n + 1)) :
   vec_cons x u (bit0 i) = vec_alt0 rfl (fin.append rfl (vec_cons x u) (vec_cons x u)) i :=
 by rw vec_alt0_append

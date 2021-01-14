@@ -372,6 +372,9 @@ supr_le $ le_supr _ ∘ h
 @[simp] theorem supr_le_iff : supr s ≤ a ↔ (∀i, s i ≤ a) :=
 (is_lub_le_iff is_lub_supr).trans forall_range_iff
 
+theorem supr_lt_iff : supr s < a ↔ ∃ b < a, ∀ i, s i ≤ b :=
+⟨λ h, ⟨supr s, h, λ i, le_supr s i⟩, λ ⟨b, hba, hsb⟩, (supr_le hsb).trans_lt hba⟩
+
 theorem Sup_eq_supr {s : set α} : Sup s = (⨆a ∈ s, a) :=
 le_antisymm
   (Sup_le $ assume b h, le_supr_of_le b $ le_supr _ h)

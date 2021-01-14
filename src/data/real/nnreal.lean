@@ -481,8 +481,15 @@ nnreal.eq $ by rw [nnreal.coe_sub, nnreal.coe_add, add_sub_cancel]; exact le_add
 lemma add_sub_cancel' {r p : ℝ≥0} : (r + p) - r = p :=
 by rw [add_comm, add_sub_cancel]
 
+lemma sub_add_eq_max {r p : ℝ≥0} : (r - p) + p = max r p :=
+nnreal.eq $ by rw [sub_def, nnreal.coe_add, coe_max, nnreal.of_real, coe_mk,
+  ← max_add_add_right, zero_add, sub_add_cancel]
+
+lemma add_sub_eq_max {r p : ℝ≥0} : p + (r - p) = max p r :=
+by rw [add_comm, sub_add_eq_max, max_comm]
+
 @[simp] lemma sub_add_cancel_of_le {a b : ℝ≥0} (h : b ≤ a) : (a - b) + b = a :=
-nnreal.eq $ by rw [nnreal.coe_add, nnreal.coe_sub h, sub_add_cancel]
+by rw [sub_add_eq_max, max_eq_left h]
 
 lemma sub_sub_cancel_of_le {r p : ℝ≥0} (h : r ≤ p) : p - (p - r) = r :=
 by rw [nnreal.sub_def, nnreal.sub_def, nnreal.coe_of_real _ $ sub_nonneg.2 h,

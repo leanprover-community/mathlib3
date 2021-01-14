@@ -525,10 +525,10 @@ end complete_lattice
 
 section mul
 
-lemma mul_le_mul : a ≤ b → c ≤ d → a * c ≤ b * d :=
+@[mono] lemma mul_le_mul : a ≤ b → c ≤ d → a * c ≤ b * d :=
 canonically_ordered_semiring.mul_le_mul
 
-lemma mul_lt_mul (ac : a < c) (bd : b < d) : a * b < c * d :=
+@[mono] lemma mul_lt_mul (ac : a < c) (bd : b < d) : a * b < c * d :=
 begin
   rcases lt_iff_exists_nnreal_btwn.1 ac with ⟨a', aa', a'c⟩,
   lift a to ℝ≥0 using ne_top_of_lt aa',
@@ -648,9 +648,7 @@ iff.intro
   (assume h : a - b ≤ c,
     calc a ≤ (a - b) + b : le_sub_add_self
       ... ≤ c + b : add_le_add_right h _)
-  (assume h : a ≤ c + b,
-    calc a - b ≤ (c + b) - b : sub_le_sub h (le_refl _)
-      ... ≤ c : Inf_le (le_refl (c + b)))
+  (assume h : a ≤ c + b, Inf_le h)
 
 protected lemma sub_le_iff_le_add' : a - b ≤ c ↔ a ≤ b + c :=
 add_comm c b ▸ ennreal.sub_le_iff_le_add
@@ -661,7 +659,7 @@ lemma sub_eq_of_add_eq : b ≠ ∞ → a + b = c → c - b = a :=
 protected lemma sub_le_of_sub_le (h : a - b ≤ c) : a - c ≤ b :=
 ennreal.sub_le_iff_le_add.2 $ by { rw add_comm, exact ennreal.sub_le_iff_le_add.1 h }
 
-protected lemma sub_lt_sub_self : a ≠ ∞ → a ≠ 0 → 0 < b → a - b < a :=
+protected lemma sub_lt_self : a ≠ ∞ → a ≠ 0 → 0 < b → a - b < a :=
 match a, b with
 | none, _ := by { have := none_eq_top, assume h, contradiction }
 | (some a), none := by {intros, simp only [none_eq_top, sub_infty, pos_iff_ne_zero], assumption}
@@ -803,7 +801,7 @@ assume x0, by simp [x0]
 
 lemma mem_Ioo_self_sub_add : x ≠ ∞ → x ≠ 0 → 0 < ε₁ → 0 < ε₂ → x ∈ Ioo (x - ε₁) (x + ε₂) :=
 assume xt x0 ε0 ε0',
-  ⟨ennreal.sub_lt_sub_self xt x0 ε0, lt_add_right (by rwa [lt_top_iff_ne_top]) ε0'⟩
+  ⟨ennreal.sub_lt_self xt x0 ε0, lt_add_right (by rwa [lt_top_iff_ne_top]) ε0'⟩
 
 end interval
 
@@ -1067,6 +1065,13 @@ by rw [div_def, mul_assoc, inv_mul_cancel h0 hI, mul_one]
 
 lemma mul_div_cancel' (h0 : a ≠ 0) (hI : a ≠ ∞) : a * (b / a) = b :=
 by rw [mul_comm, mul_div_cancel h0 hI]
+
+lemma mul_div_le : a * (b / a) ≤ b :=
+begin
+  by_cases h0 : a = 0, { simp [h0] },
+  by_cases hI : a = ∞, { simp [hI] },
+  rw mul_div_cancel' h0 hI, exact le_refl b
+end
 
 lemma inv_two_add_inv_two : (2:ennreal)⁻¹ + 2⁻¹ = 1 :=
 by rw [← two_mul, ← div_def, div_self two_ne_zero two_ne_top]

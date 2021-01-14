@@ -368,7 +368,7 @@ theorem re_eq_add_conj (z : ℂ) : (z.re : ℂ) = (z + conj z) / 2 :=
 by {rw add_conj, simp only [of_real_mul, of_real_one, of_real_bit0],
   rw [mul_div_cancel_left (z.re:ℂ) two_ne_zero']}
 
-/-- A complex number `z` minus its conjuagate `conj z` is `2i` times it's imaginary part -/
+/-- A complex number `z` minus its conjugate `conj z` is `2i` times its imaginary part. -/
 theorem im_eq_sub_conj (z : ℂ) : (z.im : ℂ) = (z - conj(z))/(2 * I) :=
 by { rw sub_conj, simp only [of_real_mul, of_real_one, of_real_bit0],
   rw [mul_right_comm, mul_div_cancel_left _ (mul_ne_zero two_ne_zero' I_ne_zero : 2 * I ≠ 0)] }

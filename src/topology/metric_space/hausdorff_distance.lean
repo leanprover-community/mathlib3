@@ -58,7 +58,7 @@ Inf_le ((mem_image _ _ _).2 ⟨y, h, by refl⟩)
 
 /-- If a point `x` belongs to `s`, then its edist to `s` vanishes -/
 lemma inf_edist_zero_of_mem (h : x ∈ s) : inf_edist x s = 0 :=
-le_zero_iff_eq.1 $ @edist_self _ _ x ▸ inf_edist_le_edist_of_mem h
+nonpos_iff_eq_zero.1 $ @edist_self _ _ x ▸ inf_edist_le_edist_of_mem h
 
 /-- The edist is monotonous with respect to inclusion -/
 lemma inf_edist_le_inf_edist_of_subset (h : s ⊆ t) : inf_edist x t ≤ inf_edist x s :=
@@ -298,7 +298,7 @@ end
 lemma Hausdorff_edist_self_closure : Hausdorff_edist s (closure s) = 0 :=
 begin
   erw ← le_bot_iff,
-  simp only [Hausdorff_edist, inf_edist_closure, -le_zero_iff_eq, and_imp,
+  simp only [Hausdorff_edist, inf_edist_closure, -nonpos_iff_eq_zero, and_imp,
     set.mem_image, Sup_le_iff, exists_imp_distrib, sup_le_iff,
     set.ball_image_iff, ennreal.bot_eq_zero, -mem_image],
   simp only [inf_edist_zero_of_mem, mem_closure_iff_inf_edist_zero, le_refl, and_self,

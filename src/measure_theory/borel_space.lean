@@ -271,6 +271,12 @@ begin
   exact hu.is_measurable.prod hv.is_measurable
 end
 
+section
+
+open measure_theory
+
+end
+
 section preorder
 variables [preorder α] [order_closed_topology α] {a b : α}
 

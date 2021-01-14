@@ -142,7 +142,7 @@ lemma lt_radius_of_is_O (h₀ : r ≠ 0) {a : ℝ} (ha : a ∈ Ioo (-1 : ℝ) 1)
 begin
   rcases ((tfae_exists_lt_is_o_pow (λ n, ∥p n∥ * r ^ n) 1).out 2 5).mp ⟨a, ha, hp⟩
     with ⟨a, ha, C, hC, hp⟩,
-  replace h₀ : 0 < r := zero_lt_iff_ne_zero.2 h₀,
+  replace h₀ : 0 < r := pos_iff_ne_zero.2 h₀,
   lift a to ℝ≥0 using ha.1.le,
   have : (r : ℝ) < r / a :=
     (lt_div_iff ha.1).2 (by simpa only [mul_one] using mul_lt_mul_of_pos_left ha.2 h₀),
@@ -301,7 +301,7 @@ begin
   have zero_mem : (0 : E) ∈ emetric.ball (0 : E) r, by simp [hf.r_pos],
   have : ∀ i ≠ 0, pf i (λ j, 0) = 0,
   { assume i hi,
-    have : 0 < i := zero_lt_iff_ne_zero.2 hi,
+    have : 0 < i := pos_iff_ne_zero.2 hi,
     exact continuous_multilinear_map.map_coord_zero _ (⟨0, this⟩ : fin i) rfl },
   have A := (hf.has_sum zero_mem).unique (has_sum_single _ this),
   simpa [v_eq] using A.symm,

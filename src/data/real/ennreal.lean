@@ -326,7 +326,7 @@ begin
 end
 
 @[simp] lemma mul_pos : 0 < a * b ↔ 0 < a ∧ 0 < b :=
-by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
+by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 lemma pow_eq_top : ∀ n:ℕ, a^n=∞ → a=∞
 | 0 := by simp
@@ -384,7 +384,7 @@ begin
 end
 
 @[simp] lemma max_eq_zero_iff : max a b = 0 ↔ a = 0 ∧ b = 0 :=
-by simp only [le_zero_iff_eq.symm, max_le_iff]
+by simp only [nonpos_iff_eq_zero.symm, max_le_iff]
 
 @[simp] lemma max_zero_left : max 0 a = a := max_eq_right (zero_le a)
 @[simp] lemma max_zero_right : max a 0 = a := max_eq_left (zero_le a)
@@ -397,7 +397,7 @@ protected lemma pow_pos : 0 < a → ∀ n : ℕ, 0 < a^n :=
   canonically_ordered_semiring.pow_pos
 
 protected lemma pow_ne_zero : a ≠ 0 → ∀ n : ℕ, a^n ≠ 0 :=
-by simpa only [zero_lt_iff_ne_zero] using ennreal.pow_pos
+by simpa only [pos_iff_ne_zero] using ennreal.pow_pos
 
 @[simp] lemma not_lt_zero : ¬ a < 0 := by simp
 
@@ -564,7 +564,7 @@ lemma mul_le_mul_left : a ≠ 0 → a ≠ ∞ → (a * b ≤ a * c ↔ b ≤ c) 
 begin
   cases a; cases b; cases c;
     simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul, coe_mul.symm] {contextual := tt},
-  assume h, exact mul_le_mul_left (zero_lt_iff_ne_zero.2 h)
+  assume h, exact mul_le_mul_left (pos_iff_ne_zero.2 h)
 end
 
 lemma mul_le_mul_right : c ≠ 0 → c ≠ ∞ → (a * c ≤ b * c ↔ a ≤ b) :=
@@ -663,11 +663,11 @@ ennreal.sub_le_iff_le_add.2 $ by { rw add_comm, exact ennreal.sub_le_iff_le_add.
 protected lemma sub_lt_sub_self : a ≠ ∞ → a ≠ 0 → 0 < b → a - b < a :=
 match a, b with
 | none, _ := by { have := none_eq_top, assume h, contradiction }
-| (some a), none := by {intros, simp only [none_eq_top, sub_infty, zero_lt_iff_ne_zero], assumption}
+| (some a), none := by {intros, simp only [none_eq_top, sub_infty, pos_iff_ne_zero], assumption}
 | (some a), (some b) :=
   begin
     simp only [some_eq_coe, coe_sub.symm, coe_pos, coe_eq_zero, coe_lt_coe, ne.def],
-    assume h₁ h₂, apply nnreal.sub_lt_self, exact zero_lt_iff_ne_zero.2 h₂
+    assume h₁ h₂, apply nnreal.sub_lt_self, exact pos_iff_ne_zero.2 h₂
   end
 end
 
@@ -885,7 +885,7 @@ begin
     zero_pow, top_pow, nat.zero_lt_succ] at *,
   rw [← coe_inv h, ← coe_pow, ← coe_inv, nnreal.inv_pow, coe_pow],
   rw [← ne.def] at h,
-  rw [← zero_lt_iff_ne_zero] at *,
+  rw [← pos_iff_ne_zero] at *,
   apply pow_pos h
 end
 
@@ -907,7 +907,7 @@ inv_zero ▸ inv_eq_inv
 lemma inv_ne_top : a⁻¹ ≠ ∞ ↔ a ≠ 0 := by simp
 
 @[simp] lemma inv_lt_top {x : ennreal} : x⁻¹ < ∞ ↔ 0 < x :=
-by { simp only [lt_top_iff_ne_top, inv_ne_top, zero_lt_iff_ne_zero] }
+by { simp only [lt_top_iff_ne_top, inv_ne_top, pos_iff_ne_zero] }
 
 lemma div_lt_top {x y : ennreal} (h1 : x < ∞) (h2 : 0 < y) : x / y < ∞ :=
 mul_lt_top h1 (inv_lt_top.mpr h2)
@@ -918,7 +918,7 @@ inv_top ▸ inv_eq_inv
 lemma inv_ne_zero : a⁻¹ ≠ 0 ↔ a ≠ ∞ := by simp
 
 @[simp] lemma inv_pos : 0 < a⁻¹ ↔ a ≠ ∞ :=
-zero_lt_iff_ne_zero.trans inv_ne_zero
+pos_iff_ne_zero.trans inv_ne_zero
 
 @[simp] lemma inv_lt_inv : a⁻¹ < b⁻¹ ↔ b < a :=
 begin
@@ -930,7 +930,7 @@ begin
       cases eq_or_lt_of_le (zero_le b) with hb hb,
     { subst a, subst b, simp },
     { subst a, simp },
-    { subst b, simp [zero_lt_iff_ne_zero, lt_top_iff_ne_top, inv_ne_top] },
+    { subst b, simp [pos_iff_ne_zero, lt_top_iff_ne_top, inv_ne_top] },
     { rw [← coe_inv (ne_of_gt ha), ← coe_inv (ne_of_gt hb), coe_lt_coe, coe_lt_coe],
       simp only [nnreal.coe_lt_coe.symm] at *,
       exact inv_lt_inv ha hb } }
@@ -1077,7 +1077,7 @@ by rw [div_def, ← mul_add, inv_two_add_inv_two, mul_one]
 by simp [div_def, mul_eq_zero]
 
 @[simp] lemma div_pos_iff : 0 < a / b ↔ a ≠ 0 ∧ b ≠ ∞ :=
-by simp [zero_lt_iff_ne_zero, not_or_distrib]
+by simp [pos_iff_ne_zero, not_or_distrib]
 
 lemma half_pos {a : ennreal} (h : 0 < a) : 0 < a / 2 :=
 by simp [ne_of_gt h]

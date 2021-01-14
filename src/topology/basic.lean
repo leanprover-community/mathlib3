@@ -301,7 +301,7 @@ lemma is_closed.closure_subset_iff {s t : set α} (h₁ : is_closed t) :
   closure s ⊆ t ↔ s ⊆ t :=
 ⟨subset.trans subset_closure, assume h, closure_minimal h h₁⟩
 
-lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
+@[mono] lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_minimal (subset.trans h subset_closure) is_closed_closure
 
 lemma monotone_closure (α : Type*) [topological_space α] : monotone (@closure α _) :=
@@ -919,13 +919,7 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
     by simp only [mem_nhds_sets_iff]; exact assume i, ⟨(f i)ᶜ, subset.refl _, h₂ i, this i⟩,
   let ⟨t, h_sets, (h_fin : finite {i | (f i ∩ t).nonempty })⟩ := h₁ a in
 
-  calc 𝓝 a ≤ 𝓟 (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, (f i)ᶜ)) :
-  begin
-    rw [le_principal_iff],
-    apply @filter.inter_mem_sets _ (𝓝 a) _ _ h_sets,
-    apply @filter.Inter_mem_sets _ (𝓝 a) _ _ _ h_fin,
-    exact assume i h, this i
-  end
+  calc 𝓝 a ≤ 𝓟 (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, (f i)ᶜ)) : by simp *
   ... ≤ 𝓟 (⋃i, f i)ᶜ :
   begin
     simp only [principal_mono, subset_def, mem_compl_eq, mem_inter_eq,

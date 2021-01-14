@@ -362,7 +362,7 @@ theorem dvd_one_iff (n : ℕ+) : n ∣ 1 ↔ n = 1 :=
 
 lemma pos_of_div_pos {n : ℕ+} {a : ℕ} (h : a ∣ n) : 0 < a :=
 begin
-  apply zero_lt_iff_ne_zero.2,
+  apply pos_iff_ne_zero.2,
   intro hzero,
   rw hzero at h,
   exact pnat.ne_zero n (eq_zero_of_zero_dvd h)

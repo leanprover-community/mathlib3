@@ -363,7 +363,7 @@ instance char_zero_complex : char_zero ℂ :=
 char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
-/-- A complex number `z` plus its conjuagate `conj z` is `2` times it's real part -/
+/-- A complex number `z` plus its conjugate `conj z` is `2` times its real part. -/
 theorem re_eq_add_conj (z : ℂ) : (z.re : ℂ) = (z + conj z) / 2 :=
 by {rw add_conj, simp only [of_real_mul, of_real_one, of_real_bit0],
   rw [mul_div_cancel_left (z.re:ℂ) two_ne_zero']}

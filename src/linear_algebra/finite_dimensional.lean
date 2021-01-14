@@ -318,8 +318,8 @@ vector space.  This is primarily useful so that `nonempty` can be deduced, by ty
 noncomputable instance has_zero_findim [nontrivial V] [finite_dimensional K V] :
   has_zero (fin (findim K V)) :=
 begin
-  have h : findim K V ≠ 0 := ne_of_gt findim_pos,
-  rw classical.some_spec (nat.exists_eq_succ_of_ne_zero h),
+  cases h : findim K V,
+  exact false.elim (ne_of_gt findim_pos h),
   apply_instance
 end
 

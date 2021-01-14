@@ -107,8 +107,10 @@ variables {R S : Type*} [has_mul R] [has_add R] [has_le R] [has_mul S] [has_add 
 def to_order_iso (f : R ≃+*o S) : R ≃o S := { ..f }
 
 instance has_coe_to_ring_equiv : has_coe (R ≃+*o S) (R ≃+* S) := ⟨ordered_ring_equiv.to_ring_equiv⟩
-instance has_coe_to_mul_equiv : has_coe (R ≃+*o S) (R ≃* S) := ⟨λ f, (ordered_ring_equiv.to_ring_equiv f).to_mul_equiv⟩
-instance has_coe_to_add_equiv : has_coe (R ≃+*o S) (R ≃+ S) := ⟨λ f, (ordered_ring_equiv.to_ring_equiv f).to_add_equiv⟩
+instance has_coe_to_mul_equiv : has_coe (R ≃+*o S) (R ≃* S) :=
+⟨λ f, (ordered_ring_equiv.to_ring_equiv f).to_mul_equiv⟩
+instance has_coe_to_add_equiv : has_coe (R ≃+*o S) (R ≃+ S) :=
+⟨λ f, (ordered_ring_equiv.to_ring_equiv f).to_add_equiv⟩
 instance has_coe_to_order_iso : has_coe (R ≃+*o S) (R ≃o S) := ⟨to_order_iso⟩
 
 instance : has_coe_to_fun (R ≃+*o S) := ⟨_, λ f, f.to_fun⟩
@@ -172,8 +174,10 @@ variable {R}
 @[simp] lemma coe_add_equiv_refl : (ordered_ring_equiv.refl R : R ≃+ R) = add_equiv.refl R := rfl
 
 @[simp] lemma coe_mul_equiv_refl : (ordered_ring_equiv.refl R : R ≃* R) = mul_equiv.refl R := rfl
-@[simp] lemma coe_add_mul_equiv_refl : (ordered_ring_equiv.refl R : R ≃+* R) = ring_equiv.refl R := rfl
-@[simp] lemma coe_order_iso_refl : (ordered_ring_equiv.refl R : R ≃o R) = rel_iso.refl ((≤) : R → R → Prop) := rfl
+@[simp] lemma coe_add_mul_equiv_refl :
+(ordered_ring_equiv.refl R : R ≃+* R) = ring_equiv.refl R := rfl
+@[simp] lemma coe_order_iso_refl :
+(ordered_ring_equiv.refl R : R ≃o R) = rel_iso.refl ((≤) : R → R → Prop) := rfl
 
 instance : inhabited (R ≃+*o R) := ⟨ordered_ring_equiv.refl R⟩
 
@@ -722,10 +726,6 @@ begin
     obtain ⟨q, hyq, hqx⟩ := exists_rat_btwn hlt,
     refine ⟨q, ⟨hqx, mem_range_self _⟩, hyq⟩, }
 end
-
--- @[simp] lemma cut_ordered_equiv_rat (F K : Type*) (q : ℚ)
---   [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
---   (cut_ordered_ring_equiv F K) q = q := induced_map_rat F K q
 
 @[simp] lemma ring_equiv_rat {F K : Type*}
   [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K]

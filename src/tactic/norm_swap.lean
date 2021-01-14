@@ -24,7 +24,7 @@ open norm_num
 namespace norm_swap
 
 /--
-A tactic for normalizing `equiv.swap a b c` where `a b c : ℕ` are numerals.
+A `norm_num` plugin for normalizing `equiv.swap a b c` where `a b c : ℕ` are numerals.
 
 ```
 example : equiv.swap 1 2 1 = 2 := by norm_num

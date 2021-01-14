@@ -324,7 +324,7 @@ by simp only [@eq_comm _ Uᶜ]; refl
 
 lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
   is_closed Z ↔ ∃ s, Z = zero_locus s :=
-by rw [is_closed, is_open_iff, set.compl_compl]
+by rw [is_closed, is_open_iff, compl_compl]
 
 lemma is_closed_zero_locus (s : set R) :
   is_closed (zero_locus s) :=

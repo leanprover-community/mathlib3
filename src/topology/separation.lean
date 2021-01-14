@@ -722,7 +722,7 @@ begin
     (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) (λ Z, Z.2.1.2)),
   rw [←not_imp_not, not_forall, not_nonempty_iff_eq_empty, inter_comm] at H1,
   have huv_union := subset.trans hab (union_subset_union hau hbv),
-  rw [←set.compl_compl (u ∪ v), subset_compl_iff_disjoint] at huv_union,
+  rw [← compl_compl (u ∪ v), subset_compl_iff_disjoint] at huv_union,
   cases H1 huv_union with Zi H2,
   refine ⟨(⋂ (U ∈ Zi), subtype.val U), _, _, _⟩,
   { exact is_clopen_bInter (λ Z hZ, Z.2.1) },

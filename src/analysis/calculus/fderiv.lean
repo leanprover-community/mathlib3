@@ -309,7 +309,7 @@ begin
     ∥x' - x₀∥ < δ → ∥x' - x₀∥⁻¹ * ∥f x' - f x₀ - f' (x' - x₀)∥ < ε,
     by simpa [has_fderiv_at_iff_tendsto, normed_group.tendsto_nhds_nhds] using hf,
   obtain ⟨ε, ε_pos, hε⟩ : ∃ ε > 0, ball x₀ ε ⊆ s := mem_nhds_iff.mp hs,
-  apply real.le_of_forall_epsilon_le,
+  apply le_of_forall_pos_le_add,
   intros η η_pos,
   rcases hf η η_pos with ⟨δ, δ_pos, h⟩, clear hf,
   apply op_norm_le_of_ball (lt_min ε_pos δ_pos) (by linarith [C.coe_nonneg]: (0 : ℝ) ≤ C + η),

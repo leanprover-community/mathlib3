@@ -531,7 +531,7 @@ theorem GH_dist_le_of_approx_subsets {s : set α} (Φ : s → β) {ε₁ ε₂ �
   (H : ∀x y : s, abs (dist x y - dist (Φ x) (Φ y)) ≤ ε₂) :
   GH_dist α β ≤ ε₁ + ε₂ / 2 + ε₃ :=
 begin
-  refine real.le_of_forall_epsilon_le (λδ δ0, _),
+  refine le_of_forall_pos_le_add (λδ δ0, _),
   rcases exists_mem_of_nonempty α with ⟨xα, _⟩,
   rcases hs xα with ⟨xs, hxs, Dxs⟩,
   have sne : s.nonempty := ⟨xs, hxs⟩,

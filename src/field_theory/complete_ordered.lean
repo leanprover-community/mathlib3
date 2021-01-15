@@ -727,9 +727,8 @@ begin
     refine ⟨q, ⟨hqx, mem_range_self _⟩, hyq⟩, }
 end
 
-@[simp] lemma ring_equiv_rat {F K : Type*}
-  [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K]
-  (f : F ≃+* K) (q : ℚ) : f q = q :=
+@[simp] lemma ring_equiv_rat {F K : Type*} [division_ring F] [division_ring K]
+  [char_zero F] [char_zero K] (f : F ≃+* K) (q : ℚ) : f q = q :=
 begin
   suffices : (f.to_ring_hom.comp (rat.cast_hom F)) q = q,
   { simpa, },

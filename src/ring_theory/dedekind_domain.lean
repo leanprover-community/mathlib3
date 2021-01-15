@@ -648,30 +648,47 @@ begin
       rw ← iff_eq_eq,
       split,
       { rintros ⟨P, h_PZ, h_PM⟩,
-        replace h_PZ : P.1 ∈ Ω, sorry,
+        replace h_PZ : P.1 ∈ Z.map (coe : subtype _ → ideal R),
+        { rw multiset.mem_map,
+          use P,
+          exacts ⟨h_PZ, subtype.val_eq_coe⟩ },
+        replace h_PZ : P.1 ∈ Ω, -- multilist.forall_mem_map_iff ???
+        { rw multiset.mem_to_list,
+          exact h_PZ },
         obtain ⟨m, hm₁, hm₂⟩ : ∃ (n : ℕ) (h : n < Ω.length), Ω.nth_le n h = P.val,
         apply list.nth_le_of_mem h_PZ,
         use m,
-        have uno : multiset.card Z = Ω.length := sorry, --multiset.length_to_list,
+        have h_cardlength : multiset.card Z = Ω.length,
+        { dsimp [Ω],
+          have this : multiset.card Z = multiset.card (Z.map (coe : subtype _ → ideal R)),
+          apply (multiset.card_map _ Z).symm,
+          rw this,
+          apply (multiset.length_to_list _).symm },
         split,
-        { simp only [true_and, multiset.length_to_list, multiset.card_map,
-            finset.Ico.mem, zero_le],
-          rwa ← uno at hm₁ },
+        { simp only [true_and, multiset.card_map, Finset.Ico.mem, zero_le],
+          rwa ← h_cardlength at hm₁ },
         { convert h_PM,
           rw ← hm₂,
           dsimp [f],
           by_cases m < Ω.length,
           simp only [*, dif_pos],
-          exact absurd hm₁ h } },
+          exact absurd hm₁ h } },--VA GOLFATA QUESTA PARENTESI CHE INIZIA A RIGA 650
       { rintros ⟨m, hm₁, hm₂⟩,
         rw finset.Ico.mem at hm₁,
-        sorry},--QUI LA SERA DEL 14: NON SIAMO LONTANI, VA GOLFATA LA COSA SOPRA COMUNQUE
+        dsimp [f] at hm₂,
+        let Q := f m,
+        have h_pQ : is_prime Q, sorry,
+        use Q,
+        exact h_pQ,
+
+
+        sorry} },
       -- let f : ℕ → ideal : R := λ n, if hn : n < Ω.length then (list.nth_le Ω n hn).1 else ⊤,
       -- hn else M,
       --{list.Ico 0 1} → ℕ := λ n, 2,--list.Ico 0 1 → ℕ
 
     -- sorry
-     },-- h_PZ SEMBRA INUTILE; h_Z'P ANCHE???
+    --  },-- h_PZ SEMBRA INUTILE; h_Z'P ANCHE???
 
     --  sorry, -- LA CICCIA
 
@@ -701,7 +718,7 @@ begin
   obtain ⟨b, h_bJ', h_bJ⟩ : ∃ (b : R) (H : b ∈ J'), b ∉ J,
   { suffices this : ¬ J' ≤ J,
     apply submodule.not_le_iff_exists.mp this,
-    assumption },
+    assumption },--NON FUNZIONA PERCHE' HO COMMENTATO ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J
   -- have htemp : (↑M : fractional_ideal f) ≠ (0 : fractional_ideal f) := (fractional_ideal.coe_to_fractional_ideal_ne_zero _).mpr h_nzM,
   have h₂ : (f.to_map b) * (f.to_map a)⁻¹ ∈ ((1 / ↑M) : fractional_ideal f).val,
   { rw [fractional_ideal.val_eq_coe, fractional_ideal.coe_div, submodule.mem_div_iff_forall_mul_mem],

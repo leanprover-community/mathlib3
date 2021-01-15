@@ -216,6 +216,12 @@ if h : c = 0 then by simp [h] else add_div_eq_of_add_mod_lt begin
   exact nat.mod_lt _ (pos_iff_ne_zero.mpr h),
 end
 
+protected lemma add_div_of_dvd_left {a b c : ℕ} (hca : c ∣ b) :
+  (a + b) / c = a / c + b / c :=
+begin
+  rwa [add_comm, nat.add_div_of_dvd_right, add_comm]
+end
+
 lemma add_div_eq_of_le_mod_add_mod {a b c : ℕ} (hc : c ≤ a % c + b % c) (hc0 : 0 < c) :
   (a + b) / c = a / c + b / c + 1 :=
 by rw [add_div hc0, if_pos hc]

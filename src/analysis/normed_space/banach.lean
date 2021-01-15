@@ -148,8 +148,8 @@ begin
   have su : summable u := summable_of_summable_norm sNu,
   let x := tsum u,
   have x_ineq : ∥x∥ ≤ (2 * C + 1) * ∥y∥ := calc
-    ∥x∥ ≤ (∑'n, ∥u n∥) : norm_tsum_le_tsum_norm sNu
-    ... ≤ (∑'n, (1/2)^n * (C * ∥y∥)) :
+    ∥x∥ ≤ ∑'n, ∥u n∥ : norm_tsum_le_tsum_norm sNu
+    ... ≤ ∑'n, (1/2)^n * (C * ∥y∥) :
       tsum_le_tsum ule sNu (summable.mul_right _ summable_geometric_two)
     ... = (∑'n, (1/2)^n) * (C * ∥y∥) : tsum_mul_right
     ... = 2 * C * ∥y∥ : by rw [tsum_geometric_two, mul_assoc]
@@ -178,7 +178,8 @@ begin
   exact ⟨x, feq, x_ineq⟩
 end
 
-/-- The Banach open mapping theorem: a surjective bounded linear map between Banach spaces is open. -/
+/-- The Banach open mapping theorem: a surjective bounded linear map between Banach spaces is
+open. -/
 theorem open_mapping (surj : surjective f) : is_open_map f :=
 begin
   assume s hs,

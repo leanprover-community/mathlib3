@@ -47,7 +47,7 @@
 15:
   title  : Fundamental Theorem of Integral Calculus
   decls  :
-    - interval_integral.measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae
+    - interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right 
     - interval_integral.integral_eq_sub_of_has_deriv_right_of_le
   author : Yury G. Kudryashov (first) and Benjamin Davidson (second)
 16:

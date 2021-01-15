@@ -379,14 +379,14 @@ end
 protected theorem add_div_of_dvd_right (a b c : ℤ) (H : c ∣ b) :
   (a + b) / c = a / c + b / c :=
 begin
-  by_cases h1 : c=0,
+  by_cases h1 : c = 0,
   {simp [h1],},
   cases H with k hk,
   rw hk,
-  change c≠0 at h1,
+  change c ≠ 0 at h1,
   rw mul_comm c k,
   rw int.add_mul_div_right _ _ h1,
-  rw <-zero_add (k*c),
+  rw <-zero_add (k * c),
   rw int.add_mul_div_right _ _ h1,
   rw int.zero_div,
   rw zero_add

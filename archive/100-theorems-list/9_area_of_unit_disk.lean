@@ -9,8 +9,10 @@ import data.real.pi
 import measure_theory.measure_space
 import topology.metric_space.basic
 import analysis.mean_inequalities
+import measure_theory.prod
+import measure_theory.lebesgue_measure
 
-open set interval_integral metric real filter finset
+open set interval_integral metric real filter finset measure_theory
 
 
 -- # Ben's assorted sqrt, sqr, and abs lemmas
@@ -368,4 +370,14 @@ begin
     --apply integral_deriv_eq_sub,
     sorry
   }
+end
+
+/-The Grand Finale!!!!!-/
+
+example : (volume unit_disc).to_real = pi :=
+begin
+  have := integral_indicator_const (1 : ℝ) (is_measurable_unit_disc),
+  simp only [mul_one, algebra.id.smul_eq_mul] at this,
+  rw [← this, second_step],
+  sorry,
 end

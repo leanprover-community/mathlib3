@@ -395,23 +395,6 @@ lemma eventually_lt_of_limsup_lt {f : filter α} [conditionally_complete_linear_
 
 end conditionally_complete_linear_order
 
-section complete_linear_order
-variable [complete_linear_order β]
-
-lemma eventually_lt_of_limsup_lt' {f : filter α} {u : α → β} {x : β} (hf : f.limsup u < x) :
-  ∀ᶠ y in f, u y < x :=
-begin
-  rw [filter.limsup_eq, Inf_lt_iff] at hf,
-  rcases hf with ⟨y, ⟨hy, hy_lt_x⟩⟩,
-  exact hy.mono (λ z hz, lt_of_le_of_lt hz hy_lt_x),
-end
-
-lemma eventually_lt_of_lt_liminf' {f : filter α} {u : α → β} {x : β} (hf : x < f.liminf u) :
-  ∀ᶠ y in f, x < u y :=
-@eventually_lt_of_limsup_lt' α (order_dual β) _ _ _ _ hf
-
-end complete_linear_order
-
 end filter
 
 lemma order_iso.limsup_le {α β γ} [complete_lattice β] [complete_lattice γ]

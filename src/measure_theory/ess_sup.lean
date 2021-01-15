@@ -67,8 +67,7 @@ filter.liminf_mono hfg
 
 lemma ess_sup_const (c : β) (hμ : μ ≠ 0) : ess_sup (λ x : α, c) μ = c :=
 begin
-  have hμ_ne_bot : μ.ae.ne_bot,
-  { rwa [filter.ne_bot, ne.def, ae_eq_bot], },
+  have hμ_ne_bot : μ.ae.ne_bot, by rwa [filter.ne_bot, ne.def, ae_eq_bot],
   exact @filter.limsup_const _ _ _ μ.ae hμ_ne_bot c,
 end
 
@@ -147,8 +146,7 @@ lemma ennreal.ess_sup_const_mul {f : α → ennreal} {a : ennreal} (ha_top : a �
 begin
   by_cases hμ : μ = 0,
   { simp [hμ], },
-  have hμ_ne_bot : μ.ae.ne_bot,
-  { rwa [filter.ne_bot, ne.def, ae_eq_bot], },
+  have hμ_ne_bot : μ.ae.ne_bot, by rwa [filter.ne_bot, ne.def, ae_eq_bot],
   exact @ennreal.limsup_const_mul α μ.ae hμ_ne_bot f a ha_top,
 end
 

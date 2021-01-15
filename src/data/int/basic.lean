@@ -386,7 +386,7 @@ begin
   change c ≠ 0 at h1,
   rw mul_comm c k,
   rw int.add_mul_div_right _ _ h1,
-  rw <-zero_add (k * c),
+  rw ←zero_add (k * c),
   rw int.add_mul_div_right _ _ h1,
   rw int.zero_div,
   rw zero_add

@@ -84,7 +84,6 @@ begin
   exact add_le_add (hbA hxa) (hbB hxb),
 end
 
-
 /-- Equivalence commuting with multiplicative, additive and order structure. -/
 @[nolint has_inhabited_instance]
 structure ordered_ring_equiv (R S : Type*) [has_mul R] [has_add R] [has_mul S] [has_add S]
@@ -106,11 +105,7 @@ variables {R S : Type*} [has_mul R] [has_add R] [has_le R] [has_mul S] [has_add 
 /-- Reinterpret an ordered ring equivalence as an order isomorphism. -/
 def to_order_iso (f : R ≃+*o S) : R ≃o S := { ..f }
 
-instance has_coe_to_ring_equiv : has_coe (R ≃+*o S) (R ≃+* S) := ⟨ordered_ring_equiv.to_ring_equiv⟩
-instance has_coe_to_mul_equiv : has_coe (R ≃+*o S) (R ≃* S) :=
-⟨λ f, (ordered_ring_equiv.to_ring_equiv f).to_mul_equiv⟩
-instance has_coe_to_add_equiv : has_coe (R ≃+*o S) (R ≃+ S) :=
-⟨λ f, (ordered_ring_equiv.to_ring_equiv f).to_add_equiv⟩
+instance has_coe_to_ring_equiv : has_coe (R ≃+*o S) (R ≃+* S) := ⟨to_ring_equiv⟩
 instance has_coe_to_order_iso : has_coe (R ≃+*o S) (R ≃o S) := ⟨to_order_iso⟩
 
 instance : has_coe_to_fun (R ≃+*o S) := ⟨_, λ f, f.to_fun⟩
@@ -150,8 +145,7 @@ begin
   convert h x,
 end
 
-lemma ext_iff {f g : R ≃+*o S} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, ext⟩
+lemma ext_iff {f g : R ≃+*o S} : f = g ↔ ∀ x, f x = g x := ⟨λ h x, h ▸ rfl, ext⟩
 
 @[norm_cast] lemma coe_ring_equiv (f : R ≃+*o S) (a : R) : (f : R ≃+* S) a = f a := rfl
 
@@ -172,12 +166,9 @@ variable {R}
 @[simp] lemma refl_apply (x : R) : ordered_ring_equiv.refl R x = x := rfl
 
 @[simp] lemma coe_add_equiv_refl : (ordered_ring_equiv.refl R : R ≃+ R) = add_equiv.refl R := rfl
-
 @[simp] lemma coe_mul_equiv_refl : (ordered_ring_equiv.refl R : R ≃* R) = mul_equiv.refl R := rfl
-@[simp] lemma coe_add_mul_equiv_refl :
-(ordered_ring_equiv.refl R : R ≃+* R) = ring_equiv.refl R := rfl
-@[simp] lemma coe_order_iso_refl :
-(ordered_ring_equiv.refl R : R ≃o R) = rel_iso.refl ((≤) : R → R → Prop) := rfl
+@[simp] lemma coe_ring_equiv_refl : (ordered_ring_equiv.refl R : R ≃+* R) = ring_equiv.refl R := rfl
+@[simp] lemma coe_order_iso_refl : (ordered_ring_equiv.refl R : R ≃o R) = rel_iso.refl _ := rfl
 
 instance : inhabited (R ≃+*o R) := ⟨ordered_ring_equiv.refl R⟩
 
@@ -232,11 +223,7 @@ end
 
 theorem exists_rat_sqr_btwn_rat {x y : ℚ} (h : x < y) (hx : 0 ≤ x) :
   ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ q^2 < y :=
-begin
-  have := exists_rat_sqr_btwn_rat_aux x y,
-  norm_cast at this,
-  apply this; assumption,
-end
+by apply_mod_cast exists_rat_sqr_btwn_rat_aux x y; assumption
 
 /-- There is a rational square between any two elements of an archimedean ordered field -/
 theorem exists_rat_sqr_btwn {F : Type*} [linear_ordered_field F] [archimedean F] {x y : F}
@@ -558,7 +545,7 @@ def induced_add_map (F K : Type*) [linear_ordered_field F] [archimedean F]
   map_zero' := by exact_mod_cast induced_map_rat F K 0,
   map_add' := induced_map_add F K }
 
-/-- Preparatory lemma for `induced_add_mul_map` -/
+/-- Preparatory lemma for `induced_ring_map` -/
 lemma le_induced_mul_self_of_mem_cut_image (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] (x : F) (hpos : 0 < x) (a : K)
   (ha : a ∈ cut_image F K (x * x)) : a ≤ induced_add_map F K x * induced_add_map F K x :=
@@ -584,7 +571,7 @@ begin
     exact mul_self_nonneg (Sup (cut_image F K x)), },
 end
 
-/-- Preparatory lemma for `induced_add_mul_map` -/
+/-- Preparatory lemma for `induced_ring_map` -/
 lemma exists_mem_cut_image_mul_self_of_lt_induced_map_mul_self (F K : Type*)
   [linear_ordered_field F] [archimedean F] [conditionally_complete_linear_ordered_field K] (x : F)
   (hpos : 0 < x) (y : K) (hy : y < induced_add_map F K x * induced_add_map F K x) :
@@ -628,7 +615,7 @@ begin
 end
 
 /-- `induced_map` as a `ring_hom` -/
-def induced_add_mul_map (F K : Type*) [linear_ordered_field F] [archimedean F]
+def induced_ring_map (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] :
 F →+* K := ring_hom.mk_mul_self_of_two_ne_zero (induced_add_map F K) -- reduce to the case of x = y
 begin
@@ -693,10 +680,10 @@ def cut_ordered_ring_equiv (F K : Type*)
   right_inv := induced_map_inv_self K F,
   map_rel_iff' := λ x y, begin
     refine ⟨λ h, _, induced_map_le _ _⟩,
-    simpa [induced_add_mul_map, ring_hom.mk_mul_self_of_two_ne_zero, induced_add_map]
+    simpa [induced_ring_map, ring_hom.mk_mul_self_of_two_ne_zero, induced_add_map]
       using induced_map_le K F h,
   end,
-  ..induced_add_mul_map F K }
+  ..induced_ring_map F K }
 
 lemma cut_ordered_equiv (F K : Type*)
   [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :

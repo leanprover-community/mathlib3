@@ -392,7 +392,7 @@ protected theorem add_mul_div_left (a : ℤ) {b : ℤ} (c : ℤ) (H : b ≠ 0) :
     (a + b * c) / b = a / b + c :=
 by rw [mul_comm, int.add_mul_div_right _ _ H]
 
-protected theorem add_div_of_dvd_left (a b c : ℤ) (H : c ∣ a) :
+protected theorem add_div_of_dvd_left {a b c : ℤ} (H : c ∣ a) :
   (a + b) / c = a / c + b / c :=
 begin
   rw [add_comm, int.add_div_of_dvd_right _ _ _ H, add_comm]

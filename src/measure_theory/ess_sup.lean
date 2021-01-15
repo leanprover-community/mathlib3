@@ -90,7 +90,7 @@ section complete_linear_order
 variable [complete_linear_order β]
 
 lemma ae_lt_of_ess_sup_lt {f : α → β} {x : β} (hf : ess_sup f μ < x) : ∀ᵐ y ∂μ, f y < x :=
-filter.eventually_lt_of_limsup_lt' hf
+filter.eventually_lt_of_limsup_lt hf
 
 lemma ae_lt_of_lt_ess_inf {f : α → β} {x : β} (hf : x < ess_inf f μ) : ∀ᵐ y ∂μ, x < f y :=
 @ae_lt_of_ess_sup_lt α (order_dual β) _ _ _ _ _ hf

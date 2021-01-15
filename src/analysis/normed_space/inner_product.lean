@@ -673,8 +673,8 @@ omit 𝕜
 
 variables {𝕜}
 
-/-- `if ... then ... else` characterization of a set of vectors being orthonormal.  (Inner product
-equals Kronecker delta.) -/
+/-- `if ... then ... else` characterization of an indexed set of vectors being orthonormal.  (Inner
+product equals Kronecker delta.) -/
 lemma orthonormal_iff_ite {v : ι → E} :
   orthonormal 𝕜 v ↔ ∀ i j, ⟪v i, v j⟫ = if i = j then (1:𝕜) else (0:𝕜) :=
 begin
@@ -692,6 +692,22 @@ begin
       rwa eq_of_pow_two_eq_pow_two h₁ h₂ at h' },
     { intros i j hij,
       simpa [hij] using h i j } }
+end
+
+/-- `if ... then ... else` characterization of a set of vectors being orthonormal.  (Inner product
+equals Kronecker delta.) -/
+theorem orthonormal_subtype_iff_ite {s : set E} :
+  orthonormal 𝕜 (coe : s → E) ↔
+  (∀ v ∈ s, ∀ w ∈ s, ⟪v, w⟫ = if v = w then 1 else 0) :=
+begin
+  rw orthonormal_iff_ite,
+  split,
+  { intros h v hv w hw, --i hi j hj,
+    convert h ⟨v, hv⟩ ⟨w, hw⟩ using 1,
+    simp },
+  { rintros h ⟨v, hv⟩ ⟨w, hw⟩,
+    convert h v hv w hw using 1,
+    simp }
 end
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
@@ -717,47 +733,41 @@ begin
   simpa [inner_right_finsupp_orthonormal hv] using key
 end
 
-/-- A nonempty Zorn chain of orthonormal sets has an upper bound. -/
-lemma zorn_chain_orthonormal_upper
-  {s : set (set E)} (hs : ∀ {v : set E}, v ∈ s → orthonormal 𝕜 (coe : v → E))
-  (hs_zorn : zorn.chain has_le.le s) (hs' : s.nonempty) :
-  ∃ w : set E, orthonormal 𝕜 (coe : w → E) ∧ ∀ u ∈ s, u ⊆ w :=
+/- The material that follows, culminating in the existence of a maximal orthonormal subset, is
+adapted from the corresponding development of the theory of linearly independents sets.  See
+`exists_linear_independent` in particular. -/
+
+lemma orthonormal_Union_of_directed {η : Type*}
+  {s : η → set E} (hs : directed (⊆) s)
+  (h : ∀ i, orthonormal 𝕜 (λ x, x : s i → E)) :
+  orthonormal 𝕜 (λ x, x : (⋃ i, s i) → E) :=
 begin
-  refine ⟨set.sUnion s, _, λ u, set.subset_sUnion_of_mem⟩,
-  rw orthonormal_iff_ite,
-  rintros ⟨x₁, hx₁⟩ ⟨x₂, hx₂⟩,
-  obtain ⟨v₁, hsv₁, hxv₁⟩ : ∃ v ∈ s, x₁ ∈ v := set.mem_sUnion.mp hx₁,
-  obtain ⟨v₂, hsv₂, hxv₂⟩ : ∃ v ∈ s, x₂ ∈ v := set.mem_sUnion.mp hx₂,
-  by_cases hv : v₁ = v₂,
-  { rw hv at hxv₁,
-    have : orthonormal 𝕜 (coe : v₂ → E) := hs hsv₂,
-    rw orthonormal_iff_ite at this,
-    convert this ⟨x₁, hxv₁⟩ ⟨x₂, hxv₂⟩ using 1,
-    simp },
-  cases hs_zorn v₁ hsv₁ v₂ hsv₂ hv with hv hv,
-  { have : orthonormal 𝕜 (coe : v₂ → E) := hs hsv₂,
-    rw orthonormal_iff_ite at this,
-    convert this ⟨x₁, hv hxv₁⟩ ⟨x₂, hxv₂⟩ using 1,
-    simp },
-  { have : orthonormal 𝕜 (coe : v₁ → E) := hs hsv₁,
-    rw orthonormal_iff_ite at this,
-    convert this ⟨x₁, hxv₁⟩ ⟨x₂, hv hxv₂⟩ using 1,
-    simp }
+  rw orthonormal_subtype_iff_ite,
+  rintros x ⟨_, ⟨i, rfl⟩, hxi⟩ y ⟨_, ⟨j, rfl⟩, hyj⟩,
+  obtain ⟨k, hik, hjk⟩ := hs i j,
+  have h_orth : orthonormal 𝕜 (λ x, x : (s k) → E) := h k,
+  rw orthonormal_subtype_iff_ite at h_orth,
+  exact h_orth x (hik hxi) y (hjk hyj)
 end
+
+lemma orthonormal_sUnion_of_directed {s : set (set E)}
+  (hs : directed_on (⊆) s)
+  (h : ∀ a ∈ s, orthonormal 𝕜 (λ x, x : (a : set E) → E)) :
+  orthonormal 𝕜 (λ x, x : (⋃₀ s) → E) :=
+by rw set.sUnion_eq_Union; exact
+orthonormal_Union_of_directed hs.directed_coe (by simpa using h)
 
 /-- Given an orthonormal set `v` of vectors in `E`, there exists a maximal orthonormal set
 containing it. -/
-lemma exists_maximal_orthonormal {v : set E} (hv : orthonormal 𝕜 (coe : v → E)) :
-  ∃ w ⊇ v, orthonormal 𝕜 (coe : w → E) ∧ ∀ u ⊇ w, orthonormal 𝕜 (coe : u → E) → u = w :=
+lemma exists_maximal_orthonormal {s : set E} (hs : orthonormal 𝕜 (coe : s → E)) :
+  ∃ w ⊇ s, orthonormal 𝕜 (coe : w → E) ∧ ∀ u ⊇ w, orthonormal 𝕜 (coe : u → E) → u = w :=
 begin
-  let s : set (set E) := {w | orthonormal 𝕜 (coe : w → E)},
-  obtain ⟨w, hw, hvw, hw_max⟩ := zorn.zorn_partial_order₀ s _ v hv,
-  { refine ⟨w, hvw, hw, _⟩,
-    intros u huw hu,
-    exact hw_max u hu huw },
-  { intros s hs hs_zorn u hus,
-    obtain ⟨w, hw, hws⟩ := zorn_chain_orthonormal_upper hs hs_zorn ⟨u, hus⟩,
-    refine ⟨w, hw, hws⟩ }
+  rcases zorn.zorn_subset₀ {b | orthonormal 𝕜 (coe : b → E)} _ _ hs  with ⟨b, bi, sb, h⟩,
+  { refine ⟨b, sb, bi, _⟩,
+    exact λ u hus hu, h u hu hus },
+  { refine λ c hc cc c0, ⟨⋃₀ c, _, _⟩,
+    { exact orthonormal_sUnion_of_directed cc.directed_on (λ x xc, hc xc) },
+    { exact λ _, set.subset_sUnion_of_mem } }
 end
 
 open finite_dimensional

@@ -28,6 +28,8 @@ namespace pi
 ⟨λ _, 1⟩
 @[simp, to_additive] lemma one_apply [∀ i, has_one $ f i] : (1 : Π i, f i) i = 1 := rfl
 
+@[to_additive] lemma one_def [Π i, has_one $ f i] : (1 : Π i, f i) = λ i, 1 := rfl
+
 @[to_additive]
 instance has_mul [∀ i, has_mul $ f i] :
   has_mul (Π i : I, f i) :=

@@ -107,8 +107,8 @@ begin
     mul_pos (lt_of_lt_of_le zero_lt_one (by simp))
       (prod_pos (λi hi, mul_pos (inv_pos.2 δ_pos) (lt_of_le_of_lt zero_le_one hc))),
   refine ⟨C, C_pos, λm, _⟩,
-  /- Given a general point `m`, rescale each coordinate to bring it to `[δ/∥c∥, δ]` by multiplication
-  by a power of a scalar `c` with norm `∥c∥ > 1`.-/
+  /- Given a general point `m`, rescale each coordinate to bring it to `[δ/∥c∥, δ]` by
+  multiplication by a power of a scalar `c` with norm `∥c∥ > 1`.-/
   by_cases h : ∃i, m i = 0,
   { rcases h with ⟨i, hi⟩,
     rw [f.map_coord_zero i hi, norm_zero],
@@ -140,7 +140,8 @@ end
 /-- If `f` satisfies a boundedness property around `0`, one can deduce a bound on `f m₁ - f m₂`
 using the multilinearity. Here, we give a precise but hard to use version. See
 `norm_image_sub_le_of_bound` for a less precise but more usable version. The bound reads
-`∥f m - f m'∥ ≤ C * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
+`∥f m - f m'∥ ≤
+  C * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
 where the other terms in the sum are the same products where `1` is replaced by any `i`. -/
 lemma norm_image_sub_le_of_bound' {C : ℝ} (hC : 0 ≤ C)
   (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (m₁ m₂ : Πi, E₁ i) :
@@ -253,12 +254,12 @@ lemma restr_norm_le {k n : ℕ} (f : (multilinear_map 𝕜 (λ i : fin n, G) E�
   (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (v : fin k → G) :
   ∥f.restr s hk z v∥ ≤ C * ∥z∥ ^ (n - k) * ∏ i, ∥v i∥ :=
 begin
-  rw mul_assoc,
+  rw [mul_right_comm, mul_assoc],
   convert H _ using 2,
   simp only [apply_dite norm, fintype.prod_dite, prod_const (∥z∥), finset.card_univ,
     fintype.card_of_subtype sᶜ (λ x, mem_compl), card_compl, fintype.card_fin, hk, mk_coe,
-    (s.mono_equiv_of_fin hk).symm.prod_comp (λ x, ∥v x∥)],
-  apply mul_comm
+    ← (s.order_iso_of_fin hk).symm.bijective.prod_comp (λ x, ∥v x∥)],
+  refl
 end
 
 end multilinear_map
@@ -329,8 +330,8 @@ lemma unit_le_op_norm (h : ∥m∥ ≤ 1) : ∥f m∥ ≤ ∥f∥ :=
 calc
   ∥f m∥ ≤ ∥f∥ * ∏ i, ∥m i∥ : f.le_op_norm m
   ... ≤ ∥f∥ * ∏ i : ι, 1 :
-    mul_le_mul_of_nonneg_left (prod_le_prod (λi hi, norm_nonneg _) (λi hi, le_trans (norm_le_pi_norm _ _) h))
-      (op_norm_nonneg f)
+    mul_le_mul_of_nonneg_left (prod_le_prod (λi hi, norm_nonneg _)
+      (λi hi, le_trans (norm_le_pi_norm _ _) h)) (op_norm_nonneg f)
   ... = ∥f∥ : by simp
 
 /-- If one controls the norm of every `f x`, then one controls the norm of `f`. -/
@@ -406,7 +407,8 @@ end restrict_scalars
 
 /-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, precise version.
 For a less precise but more usable version, see `norm_image_sub_le_of_bound`. The bound reads
-`∥f m - f m'∥ ≤ ∥f∥ * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
+`∥f m - f m'∥ ≤
+  ∥f∥ * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
 where the other terms in the sum are the same products where `1` is replaced by any `i`.-/
 lemma norm_image_sub_le_of_bound' (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤
@@ -681,7 +683,8 @@ variables (𝕜 ι)
 protected def mk_pi_field (z : E₂) : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) E₂ :=
 @multilinear_map.mk_continuous 𝕜 ι (λ(i : ι), 𝕜) E₂ _ _ _ _ _ _ _
   (multilinear_map.mk_pi_ring 𝕜 ι z) (∥z∥)
-  (λ m, by simp only [multilinear_map.mk_pi_ring_apply, norm_smul, normed_field.norm_prod, mul_comm])
+  (λ m, by simp only [multilinear_map.mk_pi_ring_apply, norm_smul, normed_field.norm_prod,
+    mul_comm])
 
 variables {𝕜 ι}
 
@@ -758,7 +761,8 @@ calc
   ... = ∥f∥ * ∏ i, ∥m i∥ : by { rw prod_univ_succ, refl }
 
 lemma continuous_multilinear_map.norm_map_init_le
-  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) (m : Πi, E i) :
+  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂))
+  (m : Πi, E i) :
   ∥f (init m) (m (last n))∥ ≤ ∥f∥ * ∏ i, ∥m i∥ :=
 calc
   ∥f (init m) (m (last n))∥ ≤ ∥f (init m)∥ * ∥m (last n)∥ : (f (init m)).le_op_norm _
@@ -924,7 +928,8 @@ let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →ₗ[
   (∥f∥) (λm, f.norm_map_init_le m)
 
 @[simp] lemma continuous_multilinear_map.uncurry_right_apply
-  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) (m : Πi, E i) :
+  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂))
+  (m : Πi, E i) :
   f.uncurry_right m = f (init m) (m (last n)) := rfl
 
 /-- Given a continuous multilinear map `f` in `n+1` variables, split the last variable to obtain

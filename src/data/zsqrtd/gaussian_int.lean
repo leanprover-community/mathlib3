@@ -132,7 +132,7 @@ local notation `abs'` := _root_.abs
 
 lemma norm_sq_le_norm_sq_of_re_le_of_im_le {x y : ℂ} (hre : abs' x.re ≤ abs' y.re)
   (him : abs' x.im ≤ abs' y.im) : x.norm_sq ≤ y.norm_sq :=
-by rw [norm_sq, norm_sq, ← _root_.abs_mul_self, _root_.abs_mul,
+by rw [norm_sq_apply, norm_sq_apply, ← _root_.abs_mul_self, _root_.abs_mul,
   ← _root_.abs_mul_self y.re, _root_.abs_mul y.re,
   ← _root_.abs_mul_self x.im, _root_.abs_mul x.im,
   ← _root_.abs_mul_self y.im, _root_.abs_mul y.im]; exact

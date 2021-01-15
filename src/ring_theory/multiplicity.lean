@@ -384,7 +384,7 @@ lemma multiplicity_eq_zero_of_coprime {p a b : ℕ} (hp : p ≠ 1)
   (hab : nat.coprime a b) : multiplicity p a = 0 :=
 begin
   rw [multiplicity_le_multiplicity_iff] at hle,
-  rw [← le_zero_iff_eq, ← not_lt, enat.pos_iff_one_le, ← enat.coe_one,
+  rw [← nonpos_iff_eq_zero, ← not_lt, enat.pos_iff_one_le, ← enat.coe_one,
     ← pow_dvd_iff_le_multiplicity],
   assume h,
   have := nat.dvd_gcd h (hle _ h),

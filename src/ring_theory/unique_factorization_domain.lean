@@ -1073,7 +1073,7 @@ end
 theorem le_of_count_ne_zero {m p : associates α} (h0 : m ≠ 0)
   (hp : irreducible p) : count p m.factors ≠ 0 → p ≤ m :=
 begin
-  rw [← nat.pos_iff_ne_zero],
+  rw [← pos_iff_ne_zero],
   intro h,
   rw [← pow_one p],
   apply (prime_pow_dvd_iff_le h0 hp).2,

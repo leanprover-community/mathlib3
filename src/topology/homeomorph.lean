@@ -30,6 +30,12 @@ rfl
 
 lemma coe_eq_to_equiv (h : α ≃ₜ β) (a : α) : h a = h.to_equiv a := rfl
 
+lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α ≃ β)
+| ⟨e, h₁, h₂⟩ ⟨e', h₁', h₂'⟩ rfl := rfl
+
+@[ext] lemma ext {h h' : α ≃ₜ β} (H : ∀ x, h x = h' x) : h = h' :=
+to_equiv_injective $ equiv.ext H
+
 /-- Identity map as a homeomorphism. -/
 protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=
 { continuous_to_fun := continuous_id, continuous_inv_fun := continuous_id, .. equiv.refl α }

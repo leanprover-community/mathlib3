@@ -161,6 +161,12 @@ instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, morphism.to_fun⟩
 @[simp, norm_cast] lemma coe_to_linear_map (f : L₁ →ₗ⁅R⁆ L₂) : ((f : L₁ →ₗ[R] L₂) : L₁ → L₂) = f :=
 rfl
 
+@[simp] lemma morphism.map_smul (f : L₁ →ₗ⁅R⁆ L₂) (c : R) (x : L₁) : f (c • x) = c • f x :=
+linear_map.map_smul (f : L₁ →ₗ[R] L₂) c x
+
+@[simp] lemma morphism.map_add (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f (x + y) = (f x) + (f y) :=
+linear_map.map_add (f : L₁ →ₗ[R] L₂) x y
+
 @[simp] lemma map_lie (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f
 
 /-- The constant 0 map is a Lie algebra morphism. -/
@@ -592,6 +598,7 @@ def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
   ..A'.to_submodule }
 
 variables {R L} {L₂ : Type w} [lie_ring L₂] [lie_algebra R L₂]
+variables (f : L →ₗ⁅R⁆ L₂)
 
 /-- The embedding of a Lie subalgebra into the ambient space as a Lie morphism. -/
 def lie_subalgebra.incl (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
@@ -599,19 +606,22 @@ def lie_subalgebra.incl (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
   ..L'.to_submodule.subtype }
 
 /-- The range of a morphism of Lie algebras is a Lie subalgebra. -/
-def lie_algebra.morphism.range (f : L →ₗ⁅R⁆ L₂) : lie_subalgebra R L₂ :=
+def lie_algebra.morphism.range : lie_subalgebra R L₂ :=
 { lie_mem := λ x y,
     show x ∈ f.to_linear_map.range → y ∈ f.to_linear_map.range → ⁅x, y⁆ ∈ f.to_linear_map.range,
     by { repeat { rw linear_map.mem_range }, rintros ⟨x', hx⟩ ⟨y', hy⟩, refine ⟨⁅x', y'⁆, _⟩,
          rw [←hx, ←hy], change f ⁅x', y'⁆ = ⁅f x', f y'⁆, rw lie_algebra.map_lie, },
   ..f.to_linear_map.range }
 
-@[simp] lemma lie_algebra.morphism.range_bracket (f : L →ₗ⁅R⁆ L₂) (x y : f.range) :
+@[simp] lemma lie_algebra.morphism.range_bracket (x y : f.range) :
   (↑⁅x, y⁆ : L₂) = ⁅(↑x : L₂), ↑y⁆ := rfl
+
+@[simp] lemma lie_algebra.morphism.range_coe : (f.range : set L₂) = set.range f :=
+linear_map.range_coe ↑f
 
 /-- The image of a Lie subalgebra under a Lie algebra morphism is a Lie subalgebra of the
 codomain. -/
-def lie_subalgebra.map (f : L →ₗ⁅R⁆ L₂) (L' : lie_subalgebra R L) : lie_subalgebra R L₂ :=
+def lie_subalgebra.map (L' : lie_subalgebra R L) : lie_subalgebra R L₂ :=
 { lie_mem := λ x y hx hy, by {
     erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
     erw submodule.mem_map at hy, rcases hy with ⟨y', hy', hy⟩, rw ←hy,
@@ -729,6 +739,14 @@ by { cases p, refl, }
 @[ext] lemma ext (N N' : lie_submodule R L M) (h : ∀ m, m ∈ N ↔ m ∈ N') : N = N' :=
 by { cases N, cases N', simp only [], ext m, exact h m, }
 
+@[simp] lemma coe_to_submodule_eq_iff (N N' : lie_submodule R L M) :
+  (N : submodule R M) = (N' : submodule R M) ↔ N = N' :=
+begin
+  split; intros h,
+  { ext, rw [← mem_coe_submodule, h], simp, },
+  { rw h, },
+end
+
 instance (N : lie_submodule R L M) : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
   add_lie     := by { intros x y m, apply set_coe.ext, apply add_lie, },
@@ -759,6 +777,9 @@ def lie_ideal_subalgebra (I : lie_ideal R L) : lie_subalgebra R L :=
   ..I.to_submodule, }
 
 instance : has_coe (lie_ideal R L) (lie_subalgebra R L) := ⟨λ I, lie_ideal_subalgebra R L I⟩
+
+@[norm_cast] lemma coe_to_subalgebra (I : lie_ideal R L) :
+  ((I : lie_subalgebra R L) : set L) = I := rfl
 
 end lie_ideal
 
@@ -794,6 +815,8 @@ instance : has_bot (lie_submodule R L M) := ⟨0⟩
 
 @[simp] lemma bot_coe : ((⊥ : lie_submodule R L M) : set M) = {0} := rfl
 
+@[simp] lemma bot_coe_submodule : ((⊥ : lie_submodule R L M) : submodule R M) = ⊥ := rfl
+
 @[simp] lemma mem_bot (x : M) : x ∈ (⊥ : lie_submodule R L M) ↔ x = 0 := mem_singleton_iff
 
 instance : has_top (lie_submodule R L M) :=
@@ -801,6 +824,8 @@ instance : has_top (lie_submodule R L M) :=
    ..(⊤ : submodule R M) }⟩
 
 @[simp] lemma top_coe : ((⊤ : lie_submodule R L M) : set M) = univ := rfl
+
+@[simp] lemma top_coe_submodule : ((⊤ : lie_submodule R L M) : submodule R M) = ⊤ := rfl
 
 lemma mem_top (x : M) : x ∈ (⊤ : lie_submodule R L M) := mem_univ x
 
@@ -814,6 +839,8 @@ instance : has_Inf (lie_submodule R L M) :=
             forall_apply_eq_imp_iff₂, exists_imp_distrib] at *,
           intros N hN, apply N.lie_mem (h N hN), },
         ..Inf {(s : submodule R M) | s ∈ S} }⟩
+
+@[simp] theorem inf_coe : (↑(N ⊓ N') : set M) = N ∩ N' := rfl
 
 @[simp] lemma Inf_coe_to_submodule (S : set (lie_submodule R L M)) :
   (↑(Inf S) : submodule R M) = Inf {(s : submodule R M) | s ∈ S} := rfl
@@ -856,7 +883,7 @@ instance : add_comm_monoid (lie_submodule R L M) :=
 
 @[simp] lemma add_eq_sup : N + N' = N ⊔ N' := rfl
 
-@[norm_cast] lemma coe_sup :
+@[norm_cast, simp] lemma sup_coe_to_submodule :
   (↑(N ⊔ N') : submodule R M) = (N : submodule R M) ⊔ (N' : submodule R M) :=
 begin
   have aux : ∀ (x : L) m, m ∈ (N ⊔ N' : submodule R M) → ⁅x,m⁆ ∈ (N ⊔ N' : submodule R M),
@@ -869,8 +896,15 @@ begin
   { simp, },
 end
 
+@[norm_cast, simp] lemma inf_coe_to_submodule :
+  (↑(N ⊓ N') : submodule R M) = (N : submodule R M) ⊓ (N' : submodule R M) := rfl
+
+@[simp] lemma mem_inf (x : M) : x ∈ N ⊓ N' ↔ x ∈ N ∧ x ∈ N' :=
+by rw [← mem_coe_submodule, ← mem_coe_submodule, ← mem_coe_submodule, inf_coe_to_submodule,
+  submodule.mem_inf]
+
 lemma mem_sup (x : M) : x ∈ N ⊔ N' ↔ ∃ (y ∈ N) (z ∈ N'), y + z = x :=
-by { erw [← submodule.mem_sup, ← coe_sup], refl, }
+by { rw [← mem_coe_submodule, sup_coe_to_submodule, submodule.mem_sup], exact iff.rfl, }
 
 lemma eq_bot_iff : N = ⊥ ↔ ∀ (m : M), m ∈ N → m = 0 :=
 by { rw eq_bot_iff, exact iff.rfl, }
@@ -925,6 +959,9 @@ end
 
 lemma lie_span_mono {t : set M} (h : s ⊆ t) : lie_span R L s ≤ lie_span R L t :=
 by { rw lie_span_le, exact subset.trans h subset_lie_span, }
+
+lemma lie_span_eq : lie_span R L (N : set M) = N :=
+le_antisymm (lie_span_le.mpr rfl.subset) subset_lie_span
 
 end lie_span
 
@@ -1039,6 +1076,12 @@ begin
   use ⁅((⟨x₂, hx₂⟩ : J) : L), (n : N)⁆, split, { apply lie_mem_lie, },
   simp [← h, ← hx'],
 end
+
+@[simp] lemma lie_inf : ⁅I, N ⊓ N'⁆ ≤ ⁅I, N⁆ ⊓ ⁅I, N'⁆ :=
+by { rw le_inf_iff, split; apply mono_lie_right; [exact inf_le_left, exact inf_le_right], }
+
+@[simp] lemma inf_lie : ⁅I ⊓ J, N⁆ ≤ ⁅I, N⁆ ⊓ ⁅J, N⁆ :=
+by { rw le_inf_iff, split; apply mono_lie_left; [exact inf_le_left, exact inf_le_right], }
 
 @[simp] lemma trivial_lie_oper_zero [lie_module.is_trivial L M] : ⁅I, N⁆ = ⊥ :=
 begin

@@ -36,14 +36,16 @@ variables {C : Type u} [small_category C]
 variables {P : Cᵒᵖ ⥤ Type u}
 variables (J₁ J₂ : grothendieck_topology C)
 
+namespace grothendieck_topology
+
 /-- The `J`-closure of a sieve is the collection of arrows which it covers. -/
 @[simps]
-def grothendieck_topology.close {X : C} (S : sieve X) : sieve X :=
+def close {X : C} (S : sieve X) : sieve X :=
 { arrows := λ Y f, J₁.covers S f,
   downward_closed' := λ Y Z f hS, J₁.arrow_stable _ _ hS }
 
 /-- Any sieve is smaller than its closure. -/
-lemma grothendieck_topology.le_close {X : C} (S : sieve X) : S ≤ J₁.close S :=
+lemma le_close {X : C} (S : sieve X) : S ≤ J₁.close S :=
 λ Y g hg, J₁.covering_of_eq_top (S.pullback_eq_top_of_mem hg)
 
 /--
@@ -53,17 +55,17 @@ every open set which it covers.
 
 Note this has no relation to a closed subset of a topological space.
 -/
-def grothendieck_topology.is_closed {X : C} (S : sieve X) : Prop :=
+def is_closed {X : C} (S : sieve X) : Prop :=
 ∀ ⦃Y : C⦄ (f : Y ⟶ X), J₁.covers S f → S f
 
 /-- If `S` is `J₁`-closed, then `S` covers exactly the arrows it contains. -/
-lemma grothendieck_topology.covers_iff_mem_of_closed {X : C} {S : sieve X}
+lemma covers_iff_mem_of_closed {X : C} {S : sieve X}
   (h : J₁.is_closed S) {Y : C} (f : Y ⟶ X) :
   J₁.covers S f ↔ S f :=
 ⟨h _, J₁.arrow_max _ _⟩
 
 /-- Being `J`-closed is stable under pullback. -/
-lemma grothendieck_topology.is_closed_pullback {X Y : C} (f : Y ⟶ X) (S : sieve X) :
+lemma is_closed_pullback {X Y : C} (f : Y ⟶ X) (S : sieve X) :
   J₁.is_closed S → J₁.is_closed (S.pullback f) :=
 λ hS Z g hg, hS (g ≫ f) (by rwa [J₁.covers_iff, sieve.pullback_comp])
 
@@ -71,17 +73,17 @@ lemma grothendieck_topology.is_closed_pullback {X Y : C} (f : Y ⟶ X) (S : siev
 The closure of a sieve `S` is the largest closed sieve which contains `S` (justifying the name
 "closure").
 -/
-lemma grothendieck_topology.le_close_of_is_closed {X : C} {S T : sieve X}
+lemma le_close_of_is_closed {X : C} {S T : sieve X}
   (h : S ≤ T) (hT : J₁.is_closed T) :
   J₁.close S ≤ T :=
 λ Y f hf, hT _ (J₁.superset_covering (sieve.pullback_monotone f h) hf)
 
 /-- The closure of a sieve is closed. -/
-lemma grothendieck_topology.close_is_closed {X : C} (S : sieve X) : J₁.is_closed (J₁.close S) :=
+lemma close_is_closed {X : C} (S : sieve X) : J₁.is_closed (J₁.close S) :=
 λ Y g hg, J₁.arrow_trans g _ S hg (λ Z h hS, hS)
 
 /-- The sieve `S` is closed iff its closure is equal to itself. -/
-lemma grothendieck_topology.is_closed_iff_close_eq_self {X : C} (S : sieve X) :
+lemma is_closed_iff_close_eq_self {X : C} (S : sieve X) :
   J₁.is_closed S ↔ J₁.close S = S :=
 begin
   split,
@@ -96,8 +98,12 @@ begin
     apply J₁.close_is_closed }
 end
 
+lemma close_eq_self_of_is_closed {X : C} {S : sieve X} (hS : J₁.is_closed S) :
+  J₁.close S = S :=
+(J₁.is_closed_iff_close_eq_self S).1 hS
+
 /-- Closing under `J` is stable under pullback. -/
-lemma grothendieck_topology.pullback_close {X Y : C} (f : Y ⟶ X) (S : sieve X) :
+lemma pullback_close {X Y : C} (f : Y ⟶ X) (S : sieve X) :
   J₁.close (S.pullback f) = (J₁.close S).pullback f :=
 begin
   apply le_antisymm,
@@ -109,11 +115,23 @@ begin
     apply hg }
 end
 
+@[mono]
+lemma monotone_close {X : C} :
+  monotone (J₁.close : sieve X → sieve X) :=
+λ S₁ S₂ h, J₁.le_close_of_is_closed (h.trans (J₁.le_close _)) (J₁.close_is_closed S₂)
+
+@[simp]
+lemma close_close {X : C} (S : sieve X) :
+  J₁.close (J₁.close S) = J₁.close S :=
+le_antisymm
+  (J₁.le_close_of_is_closed (le_refl _) (J₁.close_is_closed S))
+  (J₁.monotone_close (J₁.le_close _))
+
 /--
 The sieve `S` is in the topology iff its closure is the maximal sieve. This shows that the closure
 operator determines the topology.
 -/
-lemma grothendieck_topology.close_eq_top_iff_mem {X : C} (S : sieve X) :
+lemma close_eq_top_iff_mem {X : C} (S : sieve X) :
   J₁.close S = ⊤ ↔ S ∈ J₁ X :=
 begin
   split,
@@ -130,7 +148,7 @@ end
 
 /-- A Grothendieck topology induces a natural family of closure operators on sieves. -/
 @[simps {rhs_md := semireducible}]
-def grothendieck_topology.closure_operator (X : C) : closure_operator (sieve X) :=
+def closure_operator (X : C) : closure_operator (sieve X) :=
 closure_operator.mk'
   J₁.close
   (λ S₁ S₂ h, J₁.le_close_of_is_closed (h.trans (J₁.le_close _)) (J₁.close_is_closed S₂))
@@ -138,9 +156,11 @@ closure_operator.mk'
   (λ S, J₁.le_close_of_is_closed (le_refl _) (J₁.close_is_closed S))
 
 @[simp]
-lemma grothendieck_topology.closed_iff_closed {X : C} (S : sieve X) :
+lemma closed_iff_closed {X : C} (S : sieve X) :
   S ∈ (J₁.closure_operator X).closed ↔ J₁.is_closed S :=
 (J₁.is_closed_iff_close_eq_self S).symm
+
+end grothendieck_topology
 
 /--
 The presheaf sending each object to the set of `J`-closed sieves on it. This presheaf is a `J`-sheaf

@@ -90,7 +90,7 @@ begin
   refine le_trans (degrees_pow _ _) (nsmul_le_nsmul_of_le_right _ _),
   refine le_trans (degrees_sub _ _) _,
   rw [degrees_C, ← bot_eq_zero, sup_bot_eq],
-  exact degrees_X _
+  exact degrees_X' _
 end
 
 lemma indicator_mem_restrict_degree (c : σ → K) :

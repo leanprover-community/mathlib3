@@ -1318,6 +1318,8 @@ iff.intro
 @[simp] lemma map_id : filter.map id f = f :=
 filter_eq $ rfl
 
+@[simp] lemma map_id' : filter.map (λ x, x) f = f := map_id
+
 @[simp] lemma map_compose : filter.map m' ∘ filter.map m = filter.map (m' ∘ m) :=
 funext $ assume _, filter_eq $ rfl
 
@@ -1773,7 +1775,7 @@ le_antisymm
 lemma map_swap_eq_comap_swap {f : filter (α × β)} : prod.swap <$> f = comap prod.swap f :=
 map_eq_comap_of_inverse prod.swap_swap_eq prod.swap_swap_eq
 
-lemma le_map {f : filter α} {m : α → β} {g : filter β} (h : ∀s∈ f, m '' s ∈ g) :
+lemma le_map {f : filter α} {m : α → β} {g : filter β} (h : ∀ s ∈ f, m '' s ∈ g) :
   g ≤ f.map m :=
 assume s hs, mem_sets_of_superset (h _ hs) $ image_preimage_subset _ _
 
@@ -2023,6 +2025,11 @@ mt hf.eventually h
 
 @[simp] lemma tendsto_bot {f : α → β} {l : filter β} : tendsto f ⊥ l := by simp [tendsto]
 @[simp] lemma tendsto_top {f : α → β} {l : filter α} : tendsto f l ⊤ := le_top
+
+lemma le_map_of_right_inverse {mab : α → β} {mba : β → α} {f : filter α} {g : filter β}
+  (h₁ : mab ∘ mba =ᶠ[g] id) (h₂ : tendsto mba g f) :
+  g ≤ map mab f :=
+by { rw [← @map_id _ g, ← map_congr h₁, ← map_map], exact map_mono h₂ }
 
 lemma tendsto_of_not_nonempty {f : α → β} {la : filter α} {lb : filter β} (h : ¬nonempty α) :
   tendsto f la lb :=

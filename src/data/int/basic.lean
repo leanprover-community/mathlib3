@@ -384,12 +384,8 @@ begin
   cases H with k hk,
   rw hk,
   change c ≠ 0 at h1,
-  rw mul_comm c k,
-  rw int.add_mul_div_right _ _ h1,
-  rw ←zero_add (k * c),
-  rw int.add_mul_div_right _ _ h1,
-  rw int.zero_div,
-  rw zero_add
+  rw [mul_comm c k, int.add_mul_div_right _ _ h1, ←zero_add (k * c), int.add_mul_div_right _ _ h1,
+      int.zero_div, zero_add]
 end
 
 protected theorem add_mul_div_left (a : ℤ) {b : ℤ} (c : ℤ) (H : b ≠ 0) :

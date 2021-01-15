@@ -267,12 +267,12 @@ include f
 
 @[simp] lemma is_atom_iff (a : α) : is_atom (f a) ↔ is_atom a :=
 and_congr (not_congr ⟨λ h, f.injective (f.map_bot.symm ▸ h), λ h, f.map_bot ▸ (congr rfl h)⟩)
-  ⟨λ h b hb, f.injective ((h (f b) ((f : α ↪o β).map_lt_iff.1 hb)).trans f.map_bot.symm),
+  ⟨λ h b hb, f.injective ((h (f b) ((f : α ↪o β).lt_iff_lt.2 hb)).trans f.map_bot.symm),
   λ h b hb, f.symm.injective begin
     rw f.symm.map_bot,
     apply h,
     rw [← f.symm_apply_apply a],
-    exact (f.symm : β ↪o α).map_lt_iff.1 hb,
+    exact (f.symm : β ↪o α).lt_iff_lt.2 hb,
   end⟩
 
 @[simp] lemma is_coatom_iff (a : α) : is_coatom (f a) ↔ is_coatom a := f.dual.is_atom_iff a

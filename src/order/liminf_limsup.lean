@@ -381,7 +381,9 @@ end conditionally_complete_linear_order
 
 end filter
 
+section order
 open filter
+
 lemma galois_connection.l_limsup_le {α β γ} [conditionally_complete_lattice β]
   [conditionally_complete_lattice γ] {f : filter α} {v : α → β}
   {l : β → γ} {u : γ → β} (gc : galois_connection l u)
@@ -421,3 +423,5 @@ lemma order_iso.liminf_apply {γ} [conditionally_complete_lattice β]
   (hgu_co : f.is_cobounded_under (≥) (λ x, g (u x)) . is_bounded_default) :
   g (f.liminf u) = f.liminf (λ x, g (u x)) :=
 @order_iso.limsup_apply α (order_dual β) (order_dual γ) _ _ f u g.dual hu hu_co hgu hgu_co
+
+end order

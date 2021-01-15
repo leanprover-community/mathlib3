@@ -77,7 +77,10 @@ lemma ess_inf_const (c : β) (hμ : μ ≠ 0) : ess_inf (λ x : α, c) μ = c :=
 lemma order_iso.ess_sup_apply {γ} [complete_lattice γ] (f : α → β) (μ : measure α)
   (g : β ≃o γ) :
   g (ess_sup f μ) = ess_sup (λ x, g (f x)) μ :=
-order_iso.limsup_apply g
+begin
+  refine order_iso.limsup_apply g _ _ _ _,
+  all_goals { by filter.is_bounded_default},
+end
 
 lemma order_iso.ess_inf_apply {γ} [complete_lattice γ] (f : α → β) (μ : measure α)
   (g : β ≃o γ) :
@@ -138,7 +141,8 @@ begin
   from strict_mono_of_monotone_of_injective
     (λ _ _ _, by rwa ennreal.mul_le_mul_left ha_zero ha_top) hg_bij.1,
   let g_iso := strict_mono.order_iso_of_surjective g hg_mono hg_bij.2,
-  exact (order_iso.limsup_apply g_iso).symm,
+  refine (order_iso.limsup_apply g_iso _ _ _ _).symm,
+  all_goals { by is_bounded_default},
 end
 
 lemma ennreal.ess_sup_const_mul {f : α → ennreal} {a : ennreal} (ha_top : a ≠ ⊤) :

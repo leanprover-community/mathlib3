@@ -381,29 +381,27 @@ end conditionally_complete_linear_order
 
 end filter
 
-lemma order_iso.limsup_le {α β γ} [complete_lattice β] [complete_lattice γ]
-  {f : filter α} {u : α → β} (g : β ≃o γ) :
-  g (f.limsup u) ≤ f.limsup (λ x, g (u x)) :=
+open filter
+lemma galois_connection.l_limsup_le {α β γ} [complete_lattice β] [complete_lattice γ]
+  {f : filter α} {v : α → β} {l : β → γ} {u : γ → β} (gc : galois_connection l u) :
+  l (f.limsup v) ≤ f.limsup (λ x, l (v x)) :=
 begin
   simp_rw [filter.limsup_eq],
   refine le_Inf (λ x hx, _),
-  rw [(g.symm.symm_apply_apply x).symm, g.symm_symm],
-  refine g.monotone (Inf_le _),
-  refine hx.mono (λ y hy, _),
-  rw (g.symm_apply_apply (u y)).symm,
-  exact g.symm.monotone hy,
+  have hx': ∀ᶠ (n : α) in f, v n ≤ u x, from hx.mono (λ y hy, gc.le_u hy),
+  exact gc.l_le (Inf_le (hx.mono (λ y hy, gc.le_u hy))),
 end
 
 lemma order_iso.limsup_apply {γ} [complete_lattice β] [complete_lattice γ] {f : filter α}
   {u : α → β} (g : β ≃o γ) :
   g (f.limsup u) = f.limsup (λ x, g (u x)) :=
 begin
-  refine le_antisymm (order_iso.limsup_le g) _,
+  refine le_antisymm g.to_galois_connection.l_limsup_le _,
   rw [←(g.symm.symm_apply_apply (f.limsup (λ (x : α), g (u x)))), g.symm_symm],
   refine g.monotone _,
   have hf : u = λ i, g.symm (g (u i)), from funext (λ i, (g.symm_apply_apply (u i)).symm),
   nth_rewrite 0 hf,
-  exact g.symm.limsup_le,
+  exact g.symm.to_galois_connection.l_limsup_le,
 end
 
 lemma order_iso.liminf_apply {γ} [complete_lattice β] [complete_lattice γ] {f : filter α}

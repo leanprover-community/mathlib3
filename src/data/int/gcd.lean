@@ -47,10 +47,10 @@ def gcd_a (x y : ℕ) : ℤ := (xgcd x y).1
 def gcd_b (x y : ℕ) : ℤ := (xgcd x y).2
 
 @[simp] theorem gcd_a_zero_left {s : ℕ} : gcd_a 0 s = 0 :=
-by {unfold gcd_a, rw [xgcd, xgcd_zero_left]}
+by { unfold gcd_a, rw [xgcd, xgcd_zero_left] }
 
 @[simp] theorem gcd_b_zero_left {s : ℕ} : gcd_b 0 s = 1 :=
-by {unfold gcd_b, rw [xgcd, xgcd_zero_left]}
+by { unfold gcd_b, rw [xgcd, xgcd_zero_left] }
 
 @[simp] theorem gcd_a_zero_right {s : ℕ} (h : s ≠ 0) : gcd_a s 0 = 1 :=
 begin

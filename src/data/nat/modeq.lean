@@ -218,9 +218,7 @@ end
 
 protected lemma add_div_of_dvd_left {a b c : ℕ} (hca : c ∣ b) :
   (a + b) / c = a / c + b / c :=
-begin
-  rwa [add_comm, nat.add_div_of_dvd_right, add_comm]
-end
+by rwa [add_comm, nat.add_div_of_dvd_right, add_comm]
 
 lemma add_div_eq_of_le_mod_add_mod {a b c : ℕ} (hc : c ≤ a % c + b % c) (hc0 : 0 < c) :
   (a + b) / c = a / c + b / c + 1 :=

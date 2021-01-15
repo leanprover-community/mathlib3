@@ -209,24 +209,18 @@ theorem integral_eq_sub_of_has_deriv_at'_of_mem_Ioo (hcont : continuous_on f (in
   ∫ y in a..b, f' y = f b - f a :=
 begin
   refine integral_eq_sub_of_has_deriv_right hcont _ hcont' hmeas',
-  intros y hy,
-  rw [Ico, mem_set_of_eq, le_iff_lt_or_eq, or_and_distrib_right, ← mem_Ioo] at hy,
-  cases hy,
+  intros y hy',
+  obtain (hy | hy) : y ∈ Ioo (min a b) (max a b) ∨ min a b = y ∧ y < max a b :=
+    by simpa only [le_iff_lt_or_eq, or_and_distrib_right, mem_Ioo, mem_Ico] using hy',
   { exact (hderiv y hy).has_deriv_within_at },
-  { refine has_deriv_at_interval_left_endpoint_of_tendsto_deriv
+  { have : tendsto f' (𝓝[Ioi y] y) (𝓝 (f' y)) :=
+      tendsto.mono_left (by simpa only [← nhds_within_Icc_eq_nhds_within_Ici hy.2, interval, hy.1]
+                          using hcont'.continuous_within_at (left_mem_Icc.mpr min_le_max))
+        (nhds_within_mono y Ioi_subset_Ici_self),
+    exact has_deriv_at_interval_left_endpoint_of_tendsto_deriv
       (λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at)
-        ((hcont y (Ico_subset_Icc_self (mem_Ico.mpr ⟨hy.1.le, hy.2⟩))).mono Ioo_subset_Icc_self) _ _,
-    { rw [hy.1, ← nhds_within_Ioc_eq_nhds_within_Ioi hy.2, mem_nhds_within_iff_exists_mem_nhds_inter],
-      exact ⟨Ico (y-1) (max a b), Ico_mem_nhds (by linarith) hy.2, by { assume c hc,
-        simpa only [inter_def, Ioc, Ico, mem_set_of_eq] using mem_Ioo.mpr ⟨hc.2.1, hc.1.2⟩ }⟩ },
-    { have hf := (hcont'.continuous_within_at (left_mem_Icc.mpr min_le_max)),
-      rw [interval, hy.1] at hf,
-      have hf' : tendsto f' (𝓝[Ici y] y) (𝓝 (f' y)) :=
-        by convert hf using 1; rw ← nhds_within_Icc_eq_nhds_within_Ici hy.2,
-      have hcongr : deriv f =ᶠ[𝓝[Ioi y] y] f' :=
-        by simpa only [eventually_eq] using eventually_of_mem (Ioo_mem_nhds_within_Ioi
-          (by simpa only [hy.1] using left_mem_Ico.mpr hy.2)) (λ x hx, (hderiv x hx).deriv),
-      simpa only [tendsto_congr' hcongr] using hf'.mono_left (nhds_within_mono y Ioi_subset_Ici_self) } },
+        ((hcont y (Ico_subset_Icc_self hy')).mono Ioo_subset_Icc_self) (Ioo_mem_nhds_within_Ioi hy')
+          (by rwa tendsto_congr' (eventually_of_mem (Ioo_mem_nhds_within_Ioi hy') (λ x hx, (hderiv x hx).deriv))) },
   end
 
 lemma step5_1 {x : ℝ} : deriv (λ y : ℝ, 1/2 * (arcsin y + y * sqrt (1 - y^2))) x = sqrt (1 - x^2) :=
@@ -368,15 +362,22 @@ end
 
 -- # The Grand Finale!!!!!
 
-example : (volume unit_disc).to_real = pi :=
+lemma s_eq : (λ x y, set.indicator  unit_disc_alt                       (λ p, 1) (x, y))
+            = λ x y, set.indicator (Ioo (-sqrt (1-x^2)) (sqrt (1-x^2))) (λ t, 1)     y  :=
+by ring
+
+example [normed_group (ℝ → ℝ)]: (volume unit_disc).to_real = pi :=
 begin
-  let s := {x : ℝ | x ∈ Ioo (-sqrt (1-x^2)) (sqrt (1-x^2))},
   have h1 := integral_indicator_const (1:ℝ) is_measurable_unit_disc,
   rw [algebra.id.smul_eq_mul, mul_one] at h1,
   rw [← h1, second_step],
-  have hintg : integrable (set.indicator unit_disc_alt (λ (x : ℝ × ℝ), (1:ℝ))) _ := sorry,
-  rw [unit_disc_alt],
-  convert integral_prod (set.indicator unit_disc_alt (λ (x : ℝ × ℝ), (1:ℝ))) hintg,
+  let χ₁ := set.indicator unit_disc_alt (λ p, (1:ℝ)),
+  let χ₂ := λ x, set.indicator (Ioo (-sqrt (1-x^2)) (sqrt (1-x^2))) (λ t, (1:ℝ)),
+  have χ_eq : (λ x y, χ₁ (x, y)) = λ y, χ₂ y := by ring,
+  ring at χ_eq,
+  simp only [← χ₁, χ_eq],
+  have hintg : integrable χ₂ _ := sorry,
+  have := integral_prod χ₂ hintg,
   --have hintg : integrable (set.indicator s (λ (x : ℝ), (1:ℝ))) (volume) := sorry,
   --convert integral_prod (set.indicator s (λ (x : ℝ), (1:ℝ))) hintg,
   have hmeas : is_measurable {x : ℝ | x ∈ Ioo (-sqrt (1-x^2)) (sqrt (1-x^2))} := sorry,

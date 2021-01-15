@@ -41,6 +41,8 @@ structure closure_operator extends α →ₘ α :=
 instance : has_coe_to_fun (closure_operator α) :=
 { F := _, coe := λ c, c.to_fun }
 
+initialize_simps_projections closure_operator (to_fun → apply)
+
 namespace closure_operator
 
 /-- The identity function as a closure operator. -/

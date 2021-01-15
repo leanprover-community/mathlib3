@@ -209,8 +209,8 @@ lemma add_div_eq_of_add_mod_lt {a b c : ℕ} (hc : a % c + b % c < c) :
 if hc0 : c = 0 then by simp [hc0]
 else by rw [add_div (nat.pos_of_ne_zero hc0), if_neg (not_le_of_lt hc), add_zero]
 
-lemma add_div_eq_of_dvd {a b c : ℕ} (hca : c ∣ a) :
-  (a + b)/c = a/c + b/c :=
+protected lemma add_div_of_dvd_right {a b c : ℕ} (hca : c ∣ a) :
+  (a + b) / c = a / c + b / c :=
 if h : c = 0 then by simp [h] else add_div_eq_of_add_mod_lt begin
   rw [nat.mod_eq_zero_of_dvd hca, zero_add],
   exact nat.mod_lt _ (pos_iff_ne_zero.mpr h),

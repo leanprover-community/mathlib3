@@ -282,11 +282,11 @@ lemma inv_le_iff_one_le_mul : a⁻¹ ≤ b ↔ 1 ≤ b * a :=
 lemma inv_le_iff_one_le_mul' : a⁻¹ ≤ b ↔ 1 ≤ a * b :=
 (mul_le_mul_iff_left a).symm.trans $ by rw mul_inv_self
 
-@[to_additive neg_lt_iff_add_nonneg]
+@[to_additive]
 lemma inv_lt_iff_one_lt_mul : a⁻¹ < b ↔ 1 < b * a :=
 (mul_lt_mul_iff_right a).symm.trans $ by rw inv_mul_self
 
-@[to_additive neg_lt_iff_add_nonneg']
+@[to_additive]
 lemma inv_lt_iff_one_lt_mul' : a⁻¹ < b ↔ 1 < a * b :=
 (mul_lt_mul_iff_left a).symm.trans $ by rw mul_inv_self
 

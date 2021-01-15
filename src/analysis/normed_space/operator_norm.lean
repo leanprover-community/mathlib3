@@ -847,7 +847,7 @@ protected lemma continuous_linear_equiv.summable {f : ι → M} (e : M ≃L[R] M
 ⟨λ hf, (e.has_sum.1 hf.has_sum).summable, (e : M →L[R] M₂).summable⟩
 
 lemma continuous_linear_equiv.tsum_eq_iff [t2_space M] [t2_space M₂] {f : ι → M}
-  (e : M ≃L[R] M₂) {y : M₂} : (∑' z, e (f z)) = y ↔ (∑' z, f z) = e.symm y :=
+  (e : M ≃L[R] M₂) {y : M₂} : ∑' z, e (f z) = y ↔ ∑' z, f z = e.symm y :=
 begin
   by_cases hf : summable f,
   { exact ⟨λ h, (e.has_sum.mp ((e.summable.mpr hf).has_sum_iff.mpr h)).tsum_eq,

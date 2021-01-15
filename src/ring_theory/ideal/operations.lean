@@ -1140,7 +1140,7 @@ end
 section quotient_algebra
 
 /-- The `R`-algebra structure on `R/I` -/
-instance {I : ideal R} : algebra R (ideal.quotient I) := ring_hom.to_algebra (ideal.quotient.mk I)
+instance {I : ideal R} : algebra R (ideal.quotient I) := (ideal.quotient.mk I).to_algebra
 
 /-- The canonical morphism `R →ₐ[R] I.quotient`, for `I` an ideal of `R`, as morphism of
 `R`-algebras. -/

@@ -169,10 +169,10 @@ of these variables, one gets a new multilinear map on `fin k` by varying these v
 the other ones equal to a given value `z`. It is denoted by `f.restr s hk z`, where `hk` is a
 proof that the cardinality of `s` is `k`. The implicit identification between `fin k` and `s` that
 we use is the canonical (increasing) bijection. -/
-noncomputable def restr {k n : ℕ} (f : multilinear_map R (λ i : fin n, M') M₂) (s : finset (fin n))
+def restr {k n : ℕ} (f : multilinear_map R (λ i : fin n, M') M₂) (s : finset (fin n))
   (hk : s.card = k) (z : M') :
   multilinear_map R (λ i : fin k, M') M₂ :=
-{ to_fun    := λ v, f (λ j, if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z),
+{ to_fun    := λ v, f (λ j, if h : j ∈ s then v ((s.order_iso_of_fin hk).symm ⟨j, h⟩) else z),
   map_add'  := λ v i x y,
     by { erw [dite_comp_equiv_update, dite_comp_equiv_update, dite_comp_equiv_update], simp },
   map_smul' := λ v i c x, by { erw [dite_comp_equiv_update, dite_comp_equiv_update], simp } }
@@ -276,7 +276,7 @@ by simpa using f.map_piecewise_add m m' finset.univ
 
 section apply_sum
 
-variables {α : ι → Type*} [fintype ι] (g : Π i, α i → M₁ i) (A : Π i, finset (α i))
+variables {α : ι → Type*} (g : Π i, α i → M₁ i) (A : Π i, finset (α i))
 
 open_locale classical
 open fintype finset
@@ -286,7 +286,7 @@ open fintype finset
 `r n ∈ Aₙ`. This follows from multilinearity by expanding successively with respect to each
 coordinate. Here, we give an auxiliary statement tailored for an inductive proof. Use instead
 `map_sum_finset`. -/
-lemma map_sum_finset_aux {n : ℕ} (h : ∑ i, (A i).card = n) :
+lemma map_sum_finset_aux [fintype ι] {n : ℕ} (h : ∑ i, (A i).card = n) :
   f (λ i, ∑ j in A i, g i j) = ∑ r in pi_finset A, f (λ i, g i (r i)) :=
 begin
   induction n using nat.strong_induction_on with n IH generalizing A,
@@ -422,16 +422,24 @@ end
 `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions with `r 1 ∈ A₁`, ...,
 `r n ∈ Aₙ`. This follows from multilinearity by expanding successively with respect to each
 coordinate. -/
-lemma map_sum_finset :
+lemma map_sum_finset [fintype ι] :
   f (λ i, ∑ j in A i, g i j) = ∑ r in pi_finset A, f (λ i, g i (r i)) :=
 f.map_sum_finset_aux _ _ rfl
 
 /-- If `f` is multilinear, then `f (Σ_{j₁} g₁ j₁, ..., Σ_{jₙ} gₙ jₙ)` is the sum of
 `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions `r`. This follows from
 multilinearity by expanding successively with respect to each coordinate. -/
-lemma map_sum [∀ i, fintype (α i)] :
+lemma map_sum [fintype ι] [∀ i, fintype (α i)] :
   f (λ i, ∑ j, g i j) = ∑ r : Π i, α i, f (λ i, g i (r i)) :=
 f.map_sum_finset g (λ i, finset.univ)
+
+lemma map_update_sum {α : Type*} (t : finset α) (i : ι) (g : α → M₁ i) (m : Π i, M₁ i):
+  f (update m i (∑ a in t, g a)) = ∑ a in t, f (update m i (g a)) :=
+begin
+  induction t using finset.induction with a t has ih h,
+  { simp },
+  { simp [finset.sum_insert has, ih] }
+end
 
 end apply_sum
 
@@ -1034,3 +1042,36 @@ def multilinear_curry_right_equiv :
   right_inv := multilinear_map.uncurry_curry_right }
 
 end currying
+
+section submodule
+
+variables {R M M₂}
+[ring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M'] [add_comm_monoid M₂]
+[∀i, semimodule R (M₁ i)] [semimodule R M'] [semimodule R M₂]
+
+namespace multilinear_map
+
+/-- The pushforward of an indexed collection of submodule `p i ⊆ M₁ i` by `f : M₁ → M₂`.
+
+Note that this is not a submodule - it is not closed under addition. -/
+def map [nonempty ι] (f : multilinear_map R M₁ M₂) (p : Π i, submodule R (M₁ i)) :
+  sub_mul_action R M₂ :=
+{ carrier   := f '' { v | ∀ i, v i ∈ p i},
+  smul_mem' := λ c _ ⟨x, hx, hf⟩, let ⟨i⟩ := ‹nonempty ι› in by {
+    refine ⟨update x i (c • x i), λ j, if hij : j = i then _ else _, hf ▸ _⟩,
+    { rw [hij, update_same], exact (p i).smul_mem _ (hx i) },
+    { rw [update_noteq hij], exact hx j },
+    { rw [f.map_smul, update_eq_self] } } }
+
+/-- The map is always nonempty. This lemma is needed to apply `sub_mul_action.zero_mem`. -/
+lemma map_nonempty [nonempty ι] (f : multilinear_map R M₁ M₂) (p : Π i, submodule R (M₁ i)) :
+  (map f p : set M₂).nonempty :=
+⟨f 0, 0, λ i, (p i).zero_mem, rfl⟩
+
+/-- The range of a multilinear map, closed under scalar multiplication. -/
+def range [nonempty ι] (f : multilinear_map R M₁ M₂) : sub_mul_action R M₂ :=
+f.map (λ i, ⊤)
+
+end multilinear_map
+
+end submodule

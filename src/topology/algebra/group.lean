@@ -174,13 +174,31 @@ protected def homeomorph.inv : G ≃ₜ G :=
 
 @[to_additive]
 lemma nhds_one_symm : comap has_inv.inv (𝓝 (1 : G)) = 𝓝 (1 : G) :=
-begin
-  have lim : tendsto has_inv.inv (𝓝 (1 : G)) (𝓝 1),
-  { simpa only [one_inv] using tendsto_inv (1 : G) },
-  exact comap_eq_of_inverse _ inv_involutive.comp_self lim lim,
-end
+((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds one_inv)
+
+/-- The map `(x, y) ↦ (x, xy)` as a homeomorphism. This is a shear mapping. -/
+@[to_additive "The map `(x, y) ↦ (x, x + y)` as a homeomorphism.
+This is a shear mapping."]
+protected def homeomorph.shear_mul_right : G × G ≃ₜ G × G :=
+{ continuous_to_fun  := continuous_fst.prod_mk continuous_mul,
+  continuous_inv_fun := continuous_fst.prod_mk $ continuous_fst.inv.mul continuous_snd,
+  .. equiv.prod_shear (equiv.refl _) equiv.mul_left }
+
+@[simp, to_additive]
+lemma homeomorph.shear_mul_right_coe :
+  ⇑(homeomorph.shear_mul_right G) = λ z : G × G, (z.1, z.1 * z.2) :=
+rfl
+
+@[simp, to_additive]
+lemma homeomorph.shear_mul_right_symm_coe :
+  ⇑(homeomorph.shear_mul_right G).symm = λ z : G × G, (z.1, z.1⁻¹ * z.2) :=
+rfl
 
 variable {G}
+
+@[to_additive]
+lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
+(homeomorph.inv G).preimage_closure s
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :
@@ -192,14 +210,7 @@ by simpa only [div_eq_mul_inv, nhds_prod_eq, mem_prod_self_iff, prod_subset_iff,
 
 @[to_additive]
 lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) = 𝓝 x :=
-begin
-  refine comap_eq_of_inverse (λ y : G, y * x) _ _ _,
-  { funext x, simp },
-  { rw ← mul_right_inv x,
-    exact tendsto_id.mul tendsto_const_nhds },
-  { suffices : tendsto (λ y : G, y * x) (𝓝 1) (𝓝 (1 * x)), { simpa },
-    exact tendsto_id.mul tendsto_const_nhds }
-end
+((homeomorph.mul_right x⁻¹).comap_nhds_eq 1).trans $ show 𝓝 (1 * x⁻¹⁻¹) = 𝓝 x, by simp
 
 @[to_additive]
 lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
@@ -551,7 +562,27 @@ begin
     rwa [mem_preimage, inv_mul_cancel_right] }
 end
 
+
+/-- Every locally compact separable topological group is σ-compact.
+  Note: this is not true if we drop the topological group hypothesis. -/
+@[priority 100] instance separable_locally_compact_group.sigma_compact_space
+  [separable_space G] [locally_compact_space G] : sigma_compact_space G :=
+begin
+  obtain ⟨L, h1L, h2L, h3L⟩ := exists_compact_subset is_open_univ (mem_univ (1 : G)),
+  refine ⟨⟨λ n, (λ x, x * dense_seq G n) ⁻¹' L, _, _⟩⟩,
+  { intro n, exact (homeomorph.mul_right _).compact_preimage.mpr h1L },
+  { rw [eq_univ_iff_forall],
+    intro x,
+    obtain ⟨_, hn, ⟨n, rfl⟩⟩ : ((λ y, x * y) ⁻¹' L ∩ range (dense_seq G)).nonempty :=
+    (dense_iff_inter_open.mp (dense_range_dense_seq G) _
+      ((homeomorph.mul_left _).continuous.is_open_preimage _ is_open_interior)
+      ⟨x⁻¹, by simp [homeomorph.mul_left, h2L]⟩).mono
+      (inter_subset_inter_left _ $ preimage_mono $ interior_subset),
+    exact mem_Union.mpr ⟨n, hn⟩ }
 end
+
+end
+
 
 section
 variables [topological_space G] [comm_group G] [topological_group G]
@@ -585,3 +616,11 @@ lemma nhds_is_mul_hom : is_mul_hom (λx:G, 𝓝 x) := ⟨λ_ _, nhds_mul _ _⟩
 end
 
 end filter_mul
+
+instance additive.topological_add_group {G} [h : topological_space G]
+  [group G] [topological_group G] : @topological_add_group (additive G) h _ :=
+{ continuous_neg := @continuous_inv G _ _ _ }
+
+instance multiplicative.topological_group {G} [h : topological_space G]
+  [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
+{ continuous_inv := @continuous_neg G _ _ _ }

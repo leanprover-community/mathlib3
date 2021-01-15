@@ -706,6 +706,8 @@ def apply (v : E) : (E →L[𝕜] F) →L[𝕜] F :=
 
 variables {𝕜 F}
 
+@[simp] lemma apply_apply (v : E) (f : E →L[𝕜] F) : apply 𝕜 F v f = f v := rfl
+
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
@@ -795,6 +797,17 @@ end extend_scalars
 
 end continuous_linear_map
 
+/-- The continuous linear map of inclusion from a submodule of `K` into `E`. -/
+def submodule.subtype_continuous (K : submodule 𝕜 E) : K →L[𝕜] E :=
+linear_map.mk_continuous
+  K.subtype
+  1
+  (λ x, by { simp only [one_mul, submodule.subtype_apply], refl })
+
+@[simp] lemma submodule.subtype_continuous_apply (K : submodule 𝕜 E) (v : K) :
+  submodule.subtype_continuous K v = (v : E) :=
+rfl
+
 section has_sum
 
 -- Results in this section hold for continuous additive monoid homomorphisms or equivalences but we
@@ -834,7 +847,7 @@ protected lemma continuous_linear_equiv.summable {f : ι → M} (e : M ≃L[R] M
 ⟨λ hf, (e.has_sum.1 hf.has_sum).summable, (e : M →L[R] M₂).summable⟩
 
 lemma continuous_linear_equiv.tsum_eq_iff [t2_space M] [t2_space M₂] {f : ι → M}
-  (e : M ≃L[R] M₂) {y : M₂} : (∑' z, e (f z)) = y ↔ (∑' z, f z) = e.symm y :=
+  (e : M ≃L[R] M₂) {y : M₂} : ∑' z, e (f z) = y ↔ ∑' z, f z = e.symm y :=
 begin
   by_cases hf : summable f,
   { exact ⟨λ h, (e.has_sum.mp ((e.summable.mpr hf).has_sum_iff.mpr h)).tsum_eq,
@@ -929,7 +942,7 @@ continuous_linear_map.to_span_singleton_homothety _ _ _
 
 /-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural
     continuous linear equivalence from `E` to the span of `x`.-/
-def to_span_nonzero_singleton (x : E) (h : x ≠ 0) : 𝕜 ≃L[𝕜] (submodule.span 𝕜 ({x} : set E)) :=
+def to_span_nonzero_singleton (x : E) (h : x ≠ 0) : 𝕜 ≃L[𝕜] (𝕜 ∙ x) :=
 of_homothety 𝕜
   (linear_equiv.to_span_nonzero_singleton 𝕜 E x h)
   ∥x∥
@@ -938,19 +951,19 @@ of_homothety 𝕜
 
 /-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural continuous
     linear map from the span of `x` to `𝕜`.-/
-abbreviation coord (x : E) (h : x ≠ 0) : (submodule.span 𝕜 ({x} : set E)) →L[𝕜] 𝕜 :=
+abbreviation coord (x : E) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 :=
   (to_span_nonzero_singleton 𝕜 x h).symm
 
 lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
 begin
   have hx : 0 < ∥x∥ := (norm_pos_iff.mpr h),
-  haveI : nontrivial (submodule.span 𝕜 ({x} : set E)) := submodule.nontrivial_span_singleton h,
+  haveI : nontrivial (𝕜 ∙ x) := submodule.nontrivial_span_singleton h,
   exact continuous_linear_map.homothety_norm _
         (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
 end
 
 lemma coord_self (x : E) (h : x ≠ 0) :
-  (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span 𝕜 ({x} : set E)) = 1 :=
+  (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
 linear_equiv.coord_self 𝕜 E x h
 
 end continuous_linear_equiv

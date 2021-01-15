@@ -5,6 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.adjunction
 import category_theory.adjunction.limits
+import category_theory.limits.preserves.shapes.terminal
 
 namespace category_theory
 open category
@@ -180,7 +181,7 @@ algebra T :=
   begin
     apply is_colimit.hom_ext (preserves_colimit.preserves (preserves_colimit.preserves t)),
     intro j,
-    erw [← category.assoc, nat_trans.naturality (μ_ T), ← functor.map_cocone_ι, category.assoc,
+    erw [← category.assoc, nat_trans.naturality (μ_ T), ← functor.map_cocone_ι_app, category.assoc,
          is_colimit.fac _ (new_cocone c) j],
     rw ← category.assoc,
     erw [← functor.map_comp, commuting],
@@ -316,10 +317,37 @@ def monadic_creates_colimits_of_preserves_colimits (R : D ⥤ C) [monadic_right_
 
 section
 
-/-- If C has limits then any reflective subcategory has limits. -/
+lemma has_limit_of_reflective (F : J ⥤ D) (R : D ⥤ C) [has_limit (F ⋙ R)] [reflective R] :
+  has_limit F :=
+by { haveI := monadic_creates_limits R, exact has_limit_of_created F R }
+
+/-- If `C` has limits of shape `J` then any reflective subcategory has limits of shape `J`. -/
+lemma has_limits_of_shape_of_reflective [has_limits_of_shape J C] (R : D ⥤ C) [reflective R] :
+  has_limits_of_shape J D :=
+{ has_limit := λ F, has_limit_of_reflective F R }
+
+/-- If `C` has limits then any reflective subcategory has limits. -/
 lemma has_limits_of_reflective (R : D ⥤ C) [has_limits C] [reflective R] : has_limits D :=
-{ has_limits_of_shape := λ J 𝒥, by have := monadic_creates_limits R; exactI
-  { has_limit := λ F, has_limit_of_created F R } }
+{ has_limits_of_shape := λ J 𝒥₁, by exactI has_limits_of_shape_of_reflective R }
+
+/--
+The reflector always preserves terminal objects. Note this in general doesn't apply to any other
+limit.
+-/
+noncomputable def left_adjoint_preserves_terminal_of_reflective
+  (R : D ⥤ C) [reflective R] [has_terminal C] :
+  preserves_limits_of_shape (discrete pempty) (left_adjoint R) :=
+{ preserves_limit := λ K,
+  begin
+    letI : has_terminal D := has_limits_of_shape_of_reflective R,
+    letI := monadic_creates_limits R,
+    letI := category_theory.preserves_limit_of_creates_limit_and_has_limit (functor.empty _) R,
+    letI : preserves_limit (functor.empty _) (left_adjoint R),
+    { apply preserves_terminal_of_iso,
+      apply _ ≪≫ as_iso ((adjunction.of_right_adjoint R).counit.app (⊤_ D)),
+      apply (left_adjoint R).map_iso (preserves_terminal.iso R).symm },
+    apply preserves_limit_of_iso_diagram (left_adjoint R) (functor.unique_from_empty _).symm,
+  end }
 
 end
 end category_theory

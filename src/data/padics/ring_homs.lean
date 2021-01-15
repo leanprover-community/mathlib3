@@ -237,9 +237,7 @@ def to_zmod_hom (v : ℕ) (f : ℤ_[p] → ℕ) (f_spec : ∀ x, x - f x ∈ (id
     rw [f_congr (x * y) _ (f x * f y), cast_mul],
     { exact f_spec _ },
     { let I : ideal ℤ_[p] := ideal.span {v},
-      have A : x * (y - f y) ∈ I := I.mul_mem_left (f_spec _),
-      have B : (x - f x) * (f y) ∈ I := I.mul_mem_right (f_spec _),
-      convert I.add_mem A B,
+      convert I.add_mem (I.mul_mem_left x (f_spec y)) (I.mul_mem_right (f y) (f_spec x)),
       rw cast_mul,
       ring, }
   end, }

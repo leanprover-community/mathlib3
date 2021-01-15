@@ -15,6 +15,12 @@ We define (bundled) closure operators on a partial order as an monotone (increas
 (inflationary) and idempotent function.
 We define closed elements for the operator as elements which are fixed by it.
 
+Note that there is close connection to Galois connections and Galois insertions: every closure
+operator induces a Galois insertion (from the set of closed elements to the underlying type), and
+every Galois connection induces a closure operator (namely the composition). In particular,
+a Galois insertion can be seen as a general case of a closure operator, where the inclusion is given
+by coercion, see `closure_operator.gi`.
+
 ## References
 
 * https://en.wikipedia.org/wiki/Closure_operator#Closure_operators_on_partially_ordered_sets
@@ -25,18 +31,15 @@ universe u
 variables (α : Type u) [partial_order α]
 
 /--
-A closure operator on the partial order `α` is a monotone function which is extensive (every x
+A closure operator on the partial order `α` is a monotone function which is extensive (every `x`
 is less than its closure) and idempotent.
 -/
-@[ext]
 structure closure_operator extends α →ₘ α :=
 (le_closure' : ∀ x, x ≤ to_fun x)
 (idempotent' : ∀ x, to_fun (to_fun x) = to_fun x)
 
 instance : has_coe_to_fun (closure_operator α) :=
 { F := _, coe := λ c, c.to_fun }
-
-initialize_simps_projections closure_operator (to_fun → apply)
 
 namespace closure_operator
 
@@ -51,6 +54,10 @@ def id : closure_operator α :=
 instance : inhabited (closure_operator α) := ⟨id α⟩
 
 variables {α} (c : closure_operator α)
+
+@[ext] lemma ext :
+  ∀ (c₁ c₂ : closure_operator α), (c₁ : α → α) = (c₂ : α → α) → c₁ = c₂
+| ⟨⟨c₁, _⟩, _, _⟩ ⟨⟨c₂, _⟩, _, _⟩ h := by { congr, exact h }
 
 /-- Constructor for a closure operator using the weaker idempotency axiom: `f (f x) ≤ f x`. -/
 @[simps]

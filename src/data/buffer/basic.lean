@@ -3,7 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 
-Traversable instance for buffers.
+General utility functions for buffers.
 -/
 import data.buffer
 import data.array.lemmas
@@ -61,5 +61,12 @@ equiv.traversable list_equiv_buffer
 
 instance : is_lawful_traversable buffer :=
 equiv.is_lawful_traversable list_equiv_buffer
+
+/--
+A convenience wrapper around `read` that just fails if the index is out of bounds.
+-/
+meta def read_t (b : buffer α) (i : ℕ) : tactic α :=
+if h : i < b.size then return $ b.read (fin.mk i h)
+else tactic.fail "invalid buffer access"
 
 end buffer

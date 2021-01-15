@@ -382,29 +382,42 @@ end conditionally_complete_linear_order
 end filter
 
 open filter
-lemma galois_connection.l_limsup_le {α β γ} [complete_lattice β] [complete_lattice γ]
-  {f : filter α} {v : α → β} {l : β → γ} {u : γ → β} (gc : galois_connection l u) :
+lemma galois_connection.l_limsup_le {α β γ} [conditionally_complete_lattice β]
+  [conditionally_complete_lattice γ] {f : filter α} {v : α → β}
+  {l : β → γ} {u : γ → β} (gc : galois_connection l u)
+  (hlv : f.is_bounded_under (≤) (λ x, l (v x)) . is_bounded_default)
+  (hv_co : f.is_cobounded_under (≤) v . is_bounded_default) :
   l (f.limsup v) ≤ f.limsup (λ x, l (v x)) :=
 begin
-  simp_rw [filter.limsup_eq],
-  refine le_Inf (λ x hx, _),
-  have hx': ∀ᶠ (n : α) in f, v n ≤ u x, from hx.mono (λ y hy, gc.le_u hy),
-  exact gc.l_le (Inf_le (hx.mono (λ y hy, gc.le_u hy))),
+  refine le_Limsup_of_le hlv (λ c hc, _),
+  rw filter.eventually_map at hc,
+  simp_rw (gc _ _) at hc ⊢,
+  exact Limsup_le_of_le hv_co hc,
 end
 
-lemma order_iso.limsup_apply {γ} [complete_lattice β] [complete_lattice γ] {f : filter α}
-  {u : α → β} (g : β ≃o γ) :
+lemma order_iso.limsup_apply {γ} [conditionally_complete_lattice β]
+  [conditionally_complete_lattice γ] {f : filter α} {u : α → β} (g : β ≃o γ)
+  (hu : f.is_bounded_under (≤) u . is_bounded_default)
+  (hu_co : f.is_cobounded_under (≤) u . is_bounded_default)
+  (hgu : f.is_bounded_under (≤) (λ x, g (u x)) . is_bounded_default)
+  (hgu_co : f.is_cobounded_under (≤) (λ x, g (u x)) . is_bounded_default) :
   g (f.limsup u) = f.limsup (λ x, g (u x)) :=
 begin
-  refine le_antisymm g.to_galois_connection.l_limsup_le _,
+  refine le_antisymm (g.to_galois_connection.l_limsup_le hgu hu_co) _,
   rw [←(g.symm.symm_apply_apply (f.limsup (λ (x : α), g (u x)))), g.symm_symm],
   refine g.monotone _,
   have hf : u = λ i, g.symm (g (u i)), from funext (λ i, (g.symm_apply_apply (u i)).symm),
   nth_rewrite 0 hf,
-  exact g.symm.to_galois_connection.l_limsup_le,
+  refine g.symm.to_galois_connection.l_limsup_le _ hgu_co,
+  simp_rw g.symm_apply_apply,
+  exact hu,
 end
 
-lemma order_iso.liminf_apply {γ} [complete_lattice β] [complete_lattice γ] {f : filter α}
-  {u : α → β} (g : β ≃o γ) :
+lemma order_iso.liminf_apply {γ} [conditionally_complete_lattice β]
+  [conditionally_complete_lattice γ] {f : filter α} {u : α → β} (g : β ≃o γ)
+  (hu : f.is_bounded_under (≥) u . is_bounded_default)
+  (hu_co : f.is_cobounded_under (≥) u . is_bounded_default)
+  (hgu : f.is_bounded_under (≥) (λ x, g (u x)) . is_bounded_default)
+  (hgu_co : f.is_cobounded_under (≥) (λ x, g (u x)) . is_bounded_default) :
   g (f.liminf u) = f.liminf (λ x, g (u x)) :=
-@order_iso.limsup_apply α (order_dual β) (order_dual γ) _ _ f u g.dual
+@order_iso.limsup_apply α (order_dual β) (order_dual γ) _ _ f u g.dual hu hu_co hgu hgu_co

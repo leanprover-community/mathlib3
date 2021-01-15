@@ -251,7 +251,7 @@ begin
 end
 
 /-- If being a sheaf for `J₁` is equivalent to being a sheaf for `J₂`, then `J₁ = J₂`. -/
-lemma same_topology_iff_same_sheaves {J₁ J₂ : grothendieck_topology C} :
+lemma topology_eq_iff_same_sheaves {J₁ J₂ : grothendieck_topology C} :
   J₁ = J₂ ↔ (∀ P, presieve.is_sheaf J₁ P ↔ presieve.is_sheaf J₂ P) :=
 begin
   split,
@@ -297,14 +297,14 @@ def topology_of_closure_operator
 /--
 The topology given by the closure operator `J.close` on a Grothendieck topology is the same as `J`.
 -/
-lemma same_topology :
+lemma topology_of_closure_operator_self :
   topology_of_closure_operator J₁.closure_operator (λ X Y, J₁.pullback_close) = J₁ :=
 begin
   ext X S,
   apply grothendieck_topology.close_eq_top_iff_mem,
 end
 
-lemma same_operator
+lemma topology_of_closure_operator_close
   (c : Π (X : C), closure_operator (sieve X))
   (pb : Π ⦃X Y : C⦄ (f : Y ⟶ X) (S : sieve X), c Y (S.pullback f) = (c X S).pullback f)
   (X : C) (S : sieve X) :

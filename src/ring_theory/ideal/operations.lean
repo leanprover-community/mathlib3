@@ -1150,6 +1150,9 @@ def quotient.mk.alg (I : ideal R) : R →ₐ[R] I.quotient :=
 lemma quotient.mk.alg_to_ring_hom (I : ideal R) :
   (quotient.mk.alg I).to_ring_hom = ideal.quotient.mk I := rfl
 
+lemma quotient.mk.alg_eq_mk (I : ideal R) :
+  ⇑(quotient.mk.alg I) = ideal.quotient.mk I := rfl
+
 /-- The canonical morphism `R →ₐ[R] I.quotient` is surjective. -/
 lemma quotient.mk.alg_surjective (I : ideal R) : function.surjective (quotient.mk.alg I) :=
 λ y, quotient.induction_on' y (λ x, exists.intro x rfl)

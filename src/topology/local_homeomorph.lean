@@ -186,8 +186,7 @@ by simpa only [continuous_at, e.left_inv hx] using e.continuous_at_symm (e.map_s
 lemma map_nhds_eq (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
   map e (𝓝 x) = 𝓝 (e x) :=
 le_antisymm (e.continuous_at hx) $
-calc 𝓝 (e x) = map e (map e.symm (𝓝 (e x))) : by simp [map_congr (e.eventually_right_inverse' hx)]
-... ≤ map e (𝓝 x) : map_mono (e.tendsto_symm hx)
+  le_map_of_right_inverse (e.eventually_right_inverse' hx) (e.tendsto_symm hx)
 
 /-- Preimage of interior or interior of preimage coincide for local homeomorphisms, when restricted
 to the source. -/

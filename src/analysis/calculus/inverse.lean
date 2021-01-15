@@ -505,6 +505,9 @@ variables (f f' a)
 
 variables {f f' a}
 
+lemma map_nhds_eq : map f (𝓝 a) = 𝓝 (f a) :=
+(hf.has_strict_fderiv_at_equiv hf').map_nhds_eq
+
 theorem to_local_inverse : has_strict_deriv_at (hf.local_inverse f f' a hf') f'⁻¹ (f a) :=
 (hf.has_strict_fderiv_at_equiv hf').to_local_inverse
 
@@ -518,10 +521,7 @@ end has_strict_deriv_at
 lemma open_map_of_strict_deriv [complete_space 𝕜] {f f' : 𝕜 → 𝕜}
   (hf : ∀ x, has_strict_deriv_at f (f' x) x) (h0 : ∀ x, f' x ≠ 0) :
   is_open_map f :=
-begin
-  refine open_map_of_strict_fderiv (λ x, (hf x).has_strict_fderiv_at_equiv _),
-  sorry -- Why there is no `x` in the context?
-end
+is_open_map_iff_nhds_le.2 $ λ x, ((hf x).map_nhds_eq (h0 x)).ge
 
 /-!
 ### Inverse function theorem, smooth case

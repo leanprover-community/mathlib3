@@ -380,7 +380,7 @@ protected theorem add_div_of_dvd_right (a b c : ℤ) (H : c ∣ b) :
   (a + b) / c = a / c + b / c :=
 begin
   by_cases h1 : c = 0,
-  {simp [h1],},
+  { simp [h1] },
   cases H with k hk,
   rw hk,
   change c ≠ 0 at h1,

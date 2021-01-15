@@ -376,6 +376,10 @@ match lt_trichotomy c 0 with
 | or.inr (or.inr hgt) := this hgt
 end
 
+protected theorem add_mul_div_left (a : ℤ) {b : ℤ} (c : ℤ) (H : b ≠ 0) :
+    (a + b * c) / b = a / b + c :=
+by rw [mul_comm, int.add_mul_div_right _ _ H]
+
 protected theorem add_div_of_dvd_right {a b c : ℤ} (H : c ∣ b) :
   (a + b) / c = a / c + b / c :=
 begin
@@ -387,10 +391,6 @@ begin
   rw [mul_comm c k, int.add_mul_div_right _ _ h1, ←zero_add (k * c), int.add_mul_div_right _ _ h1,
       int.zero_div, zero_add]
 end
-
-protected theorem add_mul_div_left (a : ℤ) {b : ℤ} (c : ℤ) (H : b ≠ 0) :
-    (a + b * c) / b = a / b + c :=
-by rw [mul_comm, int.add_mul_div_right _ _ H]
 
 protected theorem add_div_of_dvd_left {a b c : ℤ} (H : c ∣ a) :
   (a + b) / c = a / c + b / c :=

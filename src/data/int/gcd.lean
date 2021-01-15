@@ -62,7 +62,7 @@ end
 
 @[simp] theorem gcd_b_zero_right {s : ℕ} (h : s ≠ 0) : gcd_b s 0 = 0 :=
 begin
-  unfold gcd_b, unfold xgcd,
+  unfold gcd_b xgcd,
   induction s,
   { exact absurd rfl h, },
   { simp [xgcd_aux], }

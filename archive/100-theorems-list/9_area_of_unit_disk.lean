@@ -12,7 +12,7 @@ import analysis.mean_inequalities
 import measure_theory.prod
 import measure_theory.lebesgue_measure
 
-open set interval_integral metric real filter finset measure_theory
+open set interval_integral metric real filter measure_theory
 
 
 -- # Ben's assorted sqrt, sqr, and abs lemmas
@@ -102,22 +102,22 @@ def unit_disc := {point : ℝ × ℝ | (point.1)^2 + (point.2)^2 < 1 }
 def unit_disc_alt := {point : ℝ × ℝ | -sqrt (1 - (point.1)^2) < point.2 ∧ point.2 < sqrt (1 - (point.1)^2)}
 
 /--goofy function, turns term of type ℝ × ℝ into term of type fin 2 → ℝ.
-used in the triangle inequality below-/
+used in Minkowski's inequality below-/
 def fin_from_prod (p : ℝ × ℝ) : fin 2 → ℝ := λ (a : fin 2),
   if h : (a = 0) then p.1 else p.2
 
---"the triangle inequality" (Minowski inequality for two summands?)
+-- Minkowski's inequality for two summands.
 lemma real.Lp_add_two_le (f g : ℝ × ℝ) (p : ℝ) (hp : 1 ≤ p) :
 (abs (f.1 + g.1) ^ p + abs (f.2 + g.2) ^ p) ^ (1 / p)
 ≤ (abs f.1 ^ p + abs f.2 ^ p) ^ (1 / p) + (abs g.1 ^ p + abs g.2 ^ p) ^ (1 / p) :=
 by simpa [fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod f i + fin_from_prod g i) ^ p),
           fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod f i) ^ p),
           fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod g i) ^ p),
-          univ_unique, sum_singleton]
-          using (real.Lp_add_le (univ : finset (fin 2)) (fin_from_prod f) (fin_from_prod g) hp)
+          univ_unique, finset.sum_singleton]
+    using real.Lp_add_le (finset.univ : finset (fin 2)) (fin_from_prod f) (fin_from_prod g) hp
 
 
---alternate version of triangle inequality, handles p : ℕ
+--alternate version of Minkowski's inequality, handles p : ℕ
 lemma real.Lp_add_two_le' (f g : ℝ × ℝ) (p : ℕ) (hp : 1 ≤ p) :
   (abs (f.1 + g.1) ^ p + abs (f.2 + g.2) ^ p) ^ (1 / (p:ℝ))
   ≤ (abs f.1 ^ p + abs f.2 ^ p) ^ (1 / (p:ℝ)) + (abs g.1 ^ p + abs g.2 ^ p) ^ (1 / (p:ℝ)) :=
@@ -165,12 +165,10 @@ begin
   unfold unit_disc, unfold unit_disc_alt,
   apply set.ext,
   intro point, split,
-
   { intro hp,
     have h₁ : (point.1)^2 + (point.2)^2 < 1 := hp,
     have h₂ : (point.2)^2 < 1 - (point.1)^2 := by linarith,
     exact ⟨sqr_lt_left h₂, lt_sqrt_of_sqr_lt h₂⟩ },
-
   { intro hp,
     cases hp with hp₁ hp₂,
     have h₁ : 0 ≤ sqrt (1 - point.fst ^ 2) := sqrt_nonneg (1 - point.fst ^ 2),
@@ -182,11 +180,9 @@ begin
       simp at hp₁,
       linarith },
     by_cases hyp : 0 ≤ point.snd,
-
     { have h₁ := (lt_sqrt hyp (by linarith)).1 hp₂,
       have h₂ : (point.1)^2 + (point.2)^2 < 1 := by linarith,
       exact h₂ },
-
     { push_neg at hyp,
       have h₁ :  - point.snd < sqrt (1 - point.fst ^ 2) := by linarith,
       have neg_point_pos : 0 < - point.snd := by linarith,
@@ -205,8 +201,8 @@ variables {β E F : Type*} [measurable_space E] [normed_group E] {f : ℝ → E}
   {c ca cb : E} {a b z : ℝ} {u v ua ub va vb : β → ℝ} {f' : ℝ → E} [normed_space ℝ E]
   [borel_space E] [complete_space E] [topological_space.second_countable_topology E]
 
--- FTC-2 for the open set. (Solved!)
--- Note: I believe measurability assumption will drop when we merge master
+-- FTC-2 for the open set. **(PR #5733)**
+-- Note: Measurability assumption will drop when we merge master
 theorem integral_eq_sub_of_has_deriv_at'_of_mem_Ioo (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_at f (f' x) x)
   (hcont' : continuous_on f' (interval a b)) (hmeas' : ae_measurable f') :
@@ -240,7 +236,7 @@ begin
     { rw mem_Ioo at hx,
       nlinarith}, -- (SOLVED BY JAMES)
   have h1 : differentiable_at ℝ (λ y:ℝ, 1 - y ^ 2) x,
-      { simp only [differentiable_at_id', differentiable_at.pow, differentiable_at_const_sub_iff]},
+      { simp only [differentiable_at_id', differentiable_at.pow, differentiable_at_const_sub_iff] },
    -- show `differentiable_at ℝ (λ y, 1 - y ^ 2) x` (SOLVED BY JAMES)
   have h2 : differentiable_at ℝ (λ y:ℝ, sqrt(1 - y ^ 2)) x := h1.sqrt hlt.ne.symm,
   have h3 : differentiable_at ℝ (λ y:ℝ, y * sqrt(1 - y ^ 2)) x := differentiable_at.mul differentiable_at_id' h2,
@@ -251,18 +247,15 @@ begin
         rw mem_Ioo at hx,
         cases hx with hnx hpx,
         split,
-        { linarith},
-        { linarith}}, -- show `differentiable_at ℝ (λ y, arcsin y + y * sqrt(1 - y ^ 2)) x` (SOLVED BY JAMES)
+        { linarith },
+        { linarith } }, -- show `differentiable_at ℝ (λ y, arcsin y + y * sqrt(1 - y ^ 2)) x` (SOLVED BY JAMES)
   rw [deriv_const_mul _ h4, deriv_add (differentiable_at_arcsin.mpr ⟨hx.1.ne.symm, hx.2.ne⟩) h3,
       deriv_mul differentiable_at_id' h2, deriv_sqrt h1 hlt.ne.symm, deriv_arcsin],
   simp only [one_mul, deriv_id'', differentiable_at_const, mul_one, zero_sub, deriv_sub,
     differentiable_at_id', deriv_pow'', nat.cast_bit0, deriv_id'', deriv_const', pow_one,
     differentiable_at.pow, nat.cast_one, neg_div],
-  rw mul_div_mul_left,
-  field_simp,
-  rw [add_left_comm, div_add_div_same, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt hlt.le,
-      ← two_mul, mul_comm],
-  exact two_ne_zero,
+  rw mul_div_mul_left;
+  field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt hlt.le],
 end
 
 lemma step5_2 : ∫ (x : ℝ) in (-1)..1, 2 * deriv (λ y:ℝ, 1/2 * (arcsin y + y * sqrt (1-y^2))) x = pi :=
@@ -372,12 +365,25 @@ begin
   }
 end
 
-/-The Grand Finale!!!!!-/
+
+-- # The Grand Finale!!!!!
 
 example : (volume unit_disc).to_real = pi :=
 begin
-  have := integral_indicator_const (1 : ℝ) (is_measurable_unit_disc),
-  simp only [mul_one, algebra.id.smul_eq_mul] at this,
-  rw [← this, second_step],
+  let s := {x : ℝ | x ∈ Ioo (-sqrt (1-x^2)) (sqrt (1-x^2))},
+  have h1 := integral_indicator_const (1:ℝ) is_measurable_unit_disc,
+  rw [algebra.id.smul_eq_mul, mul_one] at h1,
+  rw [← h1, second_step],
+  have hintg : integrable (set.indicator unit_disc_alt (λ (x : ℝ × ℝ), (1:ℝ))) _ := sorry,
+  rw [unit_disc_alt],
+  convert integral_prod (set.indicator unit_disc_alt (λ (x : ℝ × ℝ), (1:ℝ))) hintg,
+  --have hintg : integrable (set.indicator s (λ (x : ℝ), (1:ℝ))) (volume) := sorry,
+  --convert integral_prod (set.indicator s (λ (x : ℝ), (1:ℝ))) hintg,
+  have hmeas : is_measurable {x : ℝ | x ∈ Ioo (-sqrt (1-x^2)) (sqrt (1-x^2))} := sorry,
+  have := integral_indicator_const (1:ℝ) hmeas,
+
   sorry,
 end
+
+
+#check volume_Ioo -- for step 4(ii)

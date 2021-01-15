@@ -707,14 +707,57 @@ lemma inner_left_finsupp_orthonormal {v : ι → E} (he : orthonormal 𝕜 v) (l
 by rw [← inner_conj_sym, inner_right_finsupp_orthonormal he]
 
 /-- An orthonormal set is linearly independent. -/
-lemma linear_independent_of_orthonormal {v : ι → E} (he : orthonormal 𝕜 v) :
+lemma linear_independent_of_orthonormal {v : ι → E} (hv : orthonormal 𝕜 v) :
   linear_independent 𝕜 v :=
 begin
   rw linear_independent_iff,
   intros l hl,
   ext i,
   have key : ⟪v i, finsupp.total ι E 𝕜 v l⟫ = ⟪v i, 0⟫ := by rw hl,
-  simpa [inner_right_finsupp_orthonormal he] using key
+  simpa [inner_right_finsupp_orthonormal hv] using key
+end
+
+/-- A nonempty Zorn chain of orthonormal sets has an upper bound. -/
+lemma zorn_chain_orthonormal_upper
+  {s : set (set E)} (hs : ∀ {v : set E}, v ∈ s → orthonormal 𝕜 (coe : v → E))
+  (hs_zorn : zorn.chain has_le.le s) (hs' : s.nonempty) :
+  ∃ w : set E, orthonormal 𝕜 (coe : w → E) ∧ ∀ u ∈ s, u ⊆ w :=
+begin
+  refine ⟨set.sUnion s, _, λ u, set.subset_sUnion_of_mem⟩,
+  rw orthonormal_iff_ite,
+  rintros ⟨x₁, hx₁⟩ ⟨x₂, hx₂⟩,
+  obtain ⟨v₁, hsv₁, hxv₁⟩ : ∃ v ∈ s, x₁ ∈ v := set.mem_sUnion.mp hx₁,
+  obtain ⟨v₂, hsv₂, hxv₂⟩ : ∃ v ∈ s, x₂ ∈ v := set.mem_sUnion.mp hx₂,
+  by_cases hv : v₁ = v₂,
+  { rw hv at hxv₁,
+    have : orthonormal 𝕜 (coe : v₂ → E) := hs hsv₂,
+    rw orthonormal_iff_ite at this,
+    convert this ⟨x₁, hxv₁⟩ ⟨x₂, hxv₂⟩ using 1,
+    simp },
+  cases hs_zorn v₁ hsv₁ v₂ hsv₂ hv with hv hv,
+  { have : orthonormal 𝕜 (coe : v₂ → E) := hs hsv₂,
+    rw orthonormal_iff_ite at this,
+    convert this ⟨x₁, hv hxv₁⟩ ⟨x₂, hxv₂⟩ using 1,
+    simp },
+  { have : orthonormal 𝕜 (coe : v₁ → E) := hs hsv₁,
+    rw orthonormal_iff_ite at this,
+    convert this ⟨x₁, hxv₁⟩ ⟨x₂, hv hxv₂⟩ using 1,
+    simp }
+end
+
+/-- Given an orthonormal set `v` of vectors in `E`, there exists a maximal orthonormal set
+containing it. -/
+lemma exists_maximal_orthonormal {v : set E} (hv : orthonormal 𝕜 (coe : v → E)) :
+  ∃ w ⊇ v, orthonormal 𝕜 (coe : w → E) ∧ ∀ u ⊇ w, orthonormal 𝕜 (coe : u → E) → u = w :=
+begin
+  let s : set (set E) := {w | orthonormal 𝕜 (coe : w → E)},
+  obtain ⟨w, hw, hvw, hw_max⟩ := zorn.zorn_partial_order₀ s _ v hv,
+  { refine ⟨w, hvw, hw, _⟩,
+    intros u huw hu,
+    exact hw_max u hu huw },
+  { intros s hs hs_zorn u hus,
+    obtain ⟨w, hw, hws⟩ := zorn_chain_orthonormal_upper hs hs_zorn ⟨u, hus⟩,
+    refine ⟨w, hw, hws⟩ }
 end
 
 open finite_dimensional

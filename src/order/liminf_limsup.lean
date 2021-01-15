@@ -310,22 +310,6 @@ bot_unique $ Sup_le $
 lemma liminf_le_limsup {f : filter β} [ne_bot f] {u : β → α}  : liminf f u ≤ limsup f u :=
 Liminf_le_Limsup is_bounded_le_of_top is_bounded_ge_of_bot
 
-lemma limsup_mono {f : filter β} {u v : β → α} (h : u ≤ᶠ[f] v) :
-  f.limsup u ≤ f.limsup v :=
-begin
-  simp_rw limsup_eq,
-  refine Inf_le_Inf_of_forall_exists_le (λ x hx, ⟨x, ⟨_, le_refl _⟩⟩),
-  exact h.mp (hx.mono (λ y hy huvy, le_trans huvy hy)),
-end
-
-lemma liminf_mono {f : filter β} {u v : β → α} (h : u ≤ᶠ[f] v) :
-  f.liminf u ≤ f.liminf v :=
-begin
-  simp_rw liminf_eq,
-  refine Sup_le_Sup_of_forall_exists_le (λ x hx, ⟨x, ⟨_, le_refl _⟩⟩),
-  exact h.mp (hx.mono (λ y hy huvy, le_trans hy huvy)),
-end
-
 theorem has_basis.Limsup_eq_infi_Sup {ι} {p : ι → Prop} {s} {f : filter α} (h : f.has_basis p s) :
   f.Limsup = ⨅ i (hi : p i), Sup (s i) :=
 le_antisymm

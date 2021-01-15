@@ -60,10 +60,10 @@ le_bot_iff.mp (Inf_le (by simp [set.mem_set_of_eq, filter.eventually_le, ae_iff]
 @ess_sup_measure_zero α (order_dual β) _ _ _
 
 lemma ess_sup_mono_ae {f g : α → β} (hfg : f ≤ᵐ[μ] g) :  ess_sup f μ ≤ ess_sup g μ :=
-filter.limsup_mono hfg
+filter.limsup_le_limsup hfg
 
 lemma ess_inf_mono_ae {f g : α → β} (hfg : f ≤ᵐ[μ] g) : ess_inf f μ ≤ ess_inf g μ :=
-filter.liminf_mono hfg
+filter.liminf_le_liminf hfg
 
 lemma ess_sup_const (c : β) (hμ : μ ≠ 0) : ess_sup (λ x : α, c) μ = c :=
 begin

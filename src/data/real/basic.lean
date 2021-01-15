@@ -138,15 +138,22 @@ noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : domain ℝ                     :=
 { .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.to_domain }
 
+noncomputable instance : has_inv ℝ := Cauchy.has_inv
+
+noncomputable instance : has_div ℝ := ⟨λ a b, a * b⁻¹⟩
+
+noncomputable instance field : field ℝ :=
+{ inv := has_inv.inv,
+  div := has_div.div,
+  .. cau_seq.completion.field }
+
 noncomputable instance : linear_ordered_field ℝ :=
 { ..real.linear_ordered_comm_ring,
-  ..real.domain,
-  ..cau_seq.completion.field }
+  ..real.field }
 
 /- Extra instances to short-circuit type class resolution -/
 
 noncomputable instance : linear_ordered_add_comm_group ℝ := by apply_instance
-noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
 noncomputable instance : distrib_lattice ℝ := by apply_instance
@@ -208,6 +215,9 @@ since users rarely want to consider real numbers as Cauchy sequences.
 Marking `comm_ring_aux` `irreducible` is done to ensure that there are no problems
 with non definitionally equal instances, caused by making `real` irreducible-/
 attribute [irreducible] real comm_ring_aux
+
+-- Make sure that we didn't break defeq `a / b = a * b⁻¹` by our irreducibility settings
+example (a b : ℝ) : a / b = a * b⁻¹ := rfl
 
 noncomputable instance : floor_ring ℝ := archimedean.floor_ring _
 

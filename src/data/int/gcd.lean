@@ -54,7 +54,7 @@ by {unfold gcd_b, rw [xgcd, xgcd_zero_left]}
 
 @[simp] theorem gcd_a_zero_right {s : ℕ} (h : s ≠ 0) : gcd_a s 0 = 1 :=
 begin
-  unfold gcd_a, unfold xgcd,
+  unfold gcd_a xgcd,
   induction s,
   { exact absurd rfl h, },
   { simp [xgcd_aux], }

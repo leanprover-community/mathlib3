@@ -68,7 +68,7 @@ lemma measurable_dirac :
   measurable (measure.dirac : α → measure α) :=
 measurable_of_measurable_coe _ $ assume s hs,
   begin
-    simp only [dirac_apply, hs],
+    simp only [dirac_apply', hs],
     exact measurable_one.indicator hs
   end
 
@@ -177,15 +177,11 @@ begin
 end
 
 lemma bind_dirac {f : α → measure β} (hf : measurable f) (a : α) : bind (dirac a) f = f a :=
-measure.ext $ assume s hs, by rw [bind_apply hs hf, lintegral_dirac a ((measurable_coe hs).comp hf)]
+measure.ext $ λ s hs, by rw [bind_apply hs hf, lintegral_dirac' a ((measurable_coe hs).comp hf)]
 
 lemma dirac_bind {m : measure α} : bind m dirac = m :=
 measure.ext $ assume s hs,
-by simp [bind_apply hs measurable_dirac, dirac_apply _ hs, lintegral_indicator 1 hs]
-
-lemma map_dirac {f : α → β} (hf : measurable f) (a : α) :
-  map f (dirac a) = dirac (f a) :=
-measure.ext $ assume s hs, by simp [hs, map_apply hf hs, hf hs, indicator_apply]
+by simp [bind_apply hs measurable_dirac, dirac_apply' _ hs, lintegral_indicator 1 hs]
 
 lemma join_eq_bind (μ : measure (measure α)) : join μ = bind μ id :=
 by rw [bind, map_id]

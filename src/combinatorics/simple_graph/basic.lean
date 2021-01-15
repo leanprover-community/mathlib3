@@ -197,6 +197,9 @@ def common_neighbors (v w : V) : set V := G.neighbor_set v ∩ G.neighbor_set w
 lemma common_neighbors_eq (v w : V) :
   G.common_neighbors v w = G.neighbor_set v ∩ G.neighbor_set w := rfl
 
+lemma mem_common_neighbors {u v w : V} : u ∈ G.common_neighbors v w ↔ G.adj v u ∧ G.adj w u :=
+by simp [common_neighbors]
+
 lemma common_neighbors_symm (v w : V) : G.common_neighbors v w = G.common_neighbors w v :=
 by { rw [common_neighbors, set.inter_comm], refl }
 

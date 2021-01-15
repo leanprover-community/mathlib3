@@ -621,8 +621,8 @@ local attribute [instance] classical.prop_decidable
 
 lemma inv_of_maximal_not_top (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
   (hM : ideal.is_maximal M) : (1 / ↑M : fractional_ideal f) ≠ (1 : fractional_ideal f) :=
-begin
-  have h_Spec : inhabited (ideal R), sorry,
+begin--PER GOLFARE, CONSIDERARE TUTTE LE HP SOLO LOCALI E METTERLE TRA PARENTESI
+  have h_Spec : inhabited (ideal R), sorry, --UTILE IN DEFINITIVA?
   have h_nzM : M ≠ ⊥ := ne_bot_of_is_maximal_of_not_is_field hM hNF,
   obtain ⟨a, h_nza⟩ : ∃ a : M, a ≠ 0 := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr h_nzM),
   let J : (ideal R) := ideal.span {a},
@@ -638,7 +638,10 @@ begin
   let Ω : list (ideal R) := multiset.to_list (Z.map (coe : subtype _ → ideal R)),
   let φ : ℕ → ideal R := λ n, if hn : n < Ω.length then list.nth_le Ω n hn else @list.head _ h_Spec Ω,
   let s := finset.Ico 0 Ω.length,
-  have hne: s.nonempty, sorry,
+  have hne : s.nonempty,
+  { apply finset.nonempty_of_ne_empty,
+    apply mt((@finset.Ico.eq_empty_iff 0 Ω.length).mp),
+    sorry },
   have h_Mprime : is_prime M, sorry,
   have h_φs : s.prod φ = multiset.prod (Z.map (coe : subtype _ → ideal R)), sorry,
   have h_φsM : s.prod φ ≤ M, sorry,

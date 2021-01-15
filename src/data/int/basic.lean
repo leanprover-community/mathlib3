@@ -376,7 +376,7 @@ match lt_trichotomy c 0 with
 | or.inr (or.inr hgt) := this hgt
 end
 
-protected theorem add_div_of_dvd_right (a b c : ℤ) (H : c ∣ b) :
+protected theorem add_div_of_dvd_right {a b c : ℤ} (H : c ∣ b) :
   (a + b) / c = a / c + b / c :=
 begin
   by_cases h1 : c = 0,

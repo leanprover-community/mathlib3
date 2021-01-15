@@ -276,6 +276,12 @@ def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃
   (ab.equiv_congr de).trans (bc.equiv_congr ef) = (ab.trans bc).equiv_congr (de.trans ef) :=
 by { ext, refl }
 
+@[simp] lemma equiv_congr_refl_left {α β γ} (bg : β ≃ γ) (e : α ≃ β) :
+  (equiv.refl α).equiv_congr bg e = e.trans bg := rfl
+
+@[simp] lemma equiv_congr_refl_right {α β} (ab e : α ≃ β) :
+  ab.equiv_congr (equiv.refl β) e = ab.symm.trans e := rfl
+
 @[simp] lemma equiv_congr_apply_apply {δ} (ab : α ≃ β) (cd : γ ≃ δ) (e : α ≃ γ) (x) :
   ab.equiv_congr cd e x = cd (e (ab.symm x)) := rfl
 
@@ -283,8 +289,17 @@ by { ext, refl }
 def perm_congr {α : Type*} {β : Type*} (e : α ≃ β) : perm α ≃ perm β :=
 equiv_congr e e
 
+lemma perm_congr_def {α β : Type*} (e : α ≃ β) (p : equiv.perm α) :
+  e.perm_congr p = (e.symm.trans p).trans e := rfl
+
+@[simp] lemma perm_congr_symm {α β : Type*} (e : α ≃ β) :
+  e.perm_congr.symm = e.symm.perm_congr := rfl
+
 @[simp] lemma perm_congr_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm α) (x) :
-e.perm_congr p x = e (p (e.symm x)) := rfl
+  e.perm_congr p x = e (p (e.symm x)) := rfl
+
+lemma perm_congr_symm_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm β) (x) :
+  e.perm_congr.symm p x = e.symm (p (e x)) := rfl
 
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv

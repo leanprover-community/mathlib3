@@ -212,8 +212,8 @@ Bilinear and Quadratic Forms Over a Vector Space:
     Gram-Schmidt orthogonalisation:
   Euclidean and Hermitian spaces:
     Euclidean vector spaces: 'inner_product_space'
-    Hermitian vector spaces:
-    dual isomorphism in the euclidean case:
+    Hermitian vector spaces: 'inner_product_space'
+    dual isomorphism in the euclidean case: 'inner_product_space.isometric.to_dual'
     orthogonal complement: 'submodule.orthogonal'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
     norm: 'inner_product_space.of_core.to_has_norm'
@@ -340,13 +340,12 @@ Single Variable Real Analysis:
     integral over a segment of piecewise continuous functions:
     antiderivatives:
     Riemann sums:
-    antiderivative of a continuous function:
+    antiderivative of a continuous function: interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right
     change of variable:
     integration by parts:
-    generalized integrals:
-    absolutely convergent integrals:
-    integration of asymptotic comparison relationships:
-    semi-convergent integrals:
+    improper integrals:
+    absolute vs conditional convergence of improper integrals:
+    comparison test for improper integrals:
   Sequences and series of functions:
     pointwise convergence:
     uniform convergence: 'tendsto_uniformly'
@@ -383,8 +382,6 @@ Single Variable Complex Analysis:
     Cauchy formulas:
     analyticity of a holomorphic function:
     principle of isolated zeros:
-    Cauchy formulas:
-    analyticity of a holomorphic function:
     principle of analytic continuation:
     maximum principle:
     isolated singularities:
@@ -512,7 +509,7 @@ Measures and integral Calculus:
     differentiability of integrals with respect to parameters:
     $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$:
     Completeness of $\mathrm{L}^p$ spaces:
-    Holder's inequality:
+    Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'
     change of variables for multiple integrals:
     integration by parts:

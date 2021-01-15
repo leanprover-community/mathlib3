@@ -54,6 +54,7 @@ The relation describes which pairs of vertices are adjacent.
 There is exactly one edge for every pair of adjacent edges;
 see `simple_graph.edge_set` for the corresponding edge set.
 -/
+@[ext]
 structure simple_graph (V : Type u) :=
 (adj : V → V → Prop)
 (sym : symmetric adj . obviously)
@@ -67,6 +68,9 @@ def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :
 { adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
   sym := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
+
+noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
+by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
 
 @[simp]
 lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
@@ -184,6 +188,30 @@ begin
   { rintro rfl, use [he, h, he], apply sym2.mem_other_mem, },
 end
 
+/--
+The set of common neighbors between two vertices `v` and `w` in a graph `G` is the
+intersection of the neighbor sets of `v` and `w`.
+-/
+def common_neighbors (v w : V) : set V := G.neighbor_set v ∩ G.neighbor_set w
+
+lemma common_neighbors_eq (v w : V) :
+  G.common_neighbors v w = G.neighbor_set v ∩ G.neighbor_set w := rfl
+
+lemma mem_common_neighbors {u v w : V} : u ∈ G.common_neighbors v w ↔ G.adj v u ∧ G.adj w u :=
+by simp [common_neighbors]
+
+lemma common_neighbors_symm (v w : V) : G.common_neighbors v w = G.common_neighbors w v :=
+by { rw [common_neighbors, set.inter_comm], refl }
+
+lemma not_mem_common_neighbors_left (v w : V) : v ∉ G.common_neighbors v w :=
+by simp [common_neighbors]
+
+lemma not_mem_common_neighbors_right (v w : V) : w ∉ G.common_neighbors v w :=
+by simp [common_neighbors]
+
+lemma common_neighbors_subset_neighbor_set (v w : V) : G.common_neighbors v w ⊆ G.neighbor_set v :=
+by simp [common_neighbors]
+
 section incidence
 variable [decidable_eq V]
 
@@ -288,6 +316,8 @@ A locally finite simple graph is regular of degree `d` if every vertex has degre
 -/
 def is_regular_of_degree (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
+lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d := h v
+
 end locally_finite
 
 section finite
@@ -325,7 +355,71 @@ The maximum degree of all vertices
 def max_degree (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
 finset.max' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
 
+lemma degree_lt_card_verts (G : simple_graph V) (v : V) : G.degree v < fintype.card V :=
+begin
+  classical,
+  apply finset.card_lt_card,
+  rw finset.ssubset_iff,
+  exact ⟨v, by simp, finset.subset_univ _⟩,
+end
 
 end finite
+
+section complement
+
+/-!
+## Complement of a simple graph
+
+This section contains definitions and lemmas concerning the complement of a simple graph.
+-/
+
+/--
+We define `compl G` to be the `simple_graph V` such that no two adjacent vertices in `G`
+are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
+(still ensuring that vertices are not adjacent to themselves.)
+-/
+def compl (G : simple_graph V) : simple_graph V :=
+{ adj := λ v w, v ≠ w ∧ ¬G.adj v w,
+  sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa edge_symm⟩,
+  loopless := λ v ⟨hne, _⟩, false.elim (hne rfl) }
+
+instance has_compl : has_compl (simple_graph V) :=
+{ compl := compl }
+
+@[simp]
+lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
+
+@[simp]
+lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=
+begin
+  ext v w,
+  split; simp only [compl_adj, not_and, not_not],
+  { exact λ ⟨hne, h⟩, h hne },
+  { intro h,
+    simpa [G.ne_of_adj h], },
+end
+
+@[simp]
+lemma compl_involutive : function.involutive (@compl V) := compl_compl
+
+lemma compl_neighbor_set_disjoint (G : simple_graph V) (v : V) :
+  disjoint (G.neighbor_set v) (Gᶜ.neighbor_set v) :=
+begin
+  rw set.disjoint_iff,
+  rintro w ⟨h, h'⟩,
+  rw [mem_neighbor_set, compl_adj] at h',
+  exact h'.2 h,
+end
+
+lemma neighbor_set_union_compl_neighbor_set_eq (G : simple_graph V) (v : V) :
+  G.neighbor_set v ∪ Gᶜ.neighbor_set v = {v}ᶜ :=
+begin
+  ext w,
+  have h := @ne_of_adj _ G,
+  simp_rw [set.mem_union, mem_neighbor_set, compl_adj, set.mem_compl_eq, set.mem_singleton_iff],
+  tauto,
+end
+
+end complement
 
 end simple_graph

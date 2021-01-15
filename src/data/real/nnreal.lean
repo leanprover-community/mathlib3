@@ -177,6 +177,12 @@ protected lemma of_real_mono : monotone nnreal.of_real :=
 @[simp] lemma of_real_coe {r : ℝ≥0} : nnreal.of_real r = r :=
 nnreal.eq $ max_eq_left r.2
 
+@[simp] lemma mk_coe_nat (n : ℕ) : @eq ℝ≥0 (⟨(n : ℝ), n.cast_nonneg⟩ : ℝ≥0) n :=
+nnreal.eq (nnreal.coe_nat_cast n).symm
+
+@[simp] lemma of_real_coe_nat (n : ℕ) : nnreal.of_real n = n :=
+nnreal.eq $ by simp [coe_of_real]
+
 /-- `nnreal.of_real` and `coe : ℝ≥0 → ℝ` form a Galois insertion. -/
 protected def gi : galois_insertion nnreal.of_real coe :=
 galois_insertion.monotone_intro nnreal.coe_mono nnreal.of_real_mono
@@ -464,8 +470,15 @@ nnreal.eq $ by rw [nnreal.coe_sub, nnreal.coe_add, add_sub_cancel]; exact le_add
 lemma add_sub_cancel' {r p : ℝ≥0} : (r + p) - r = p :=
 by rw [add_comm, add_sub_cancel]
 
+lemma sub_add_eq_max {r p : ℝ≥0} : (r - p) + p = max r p :=
+nnreal.eq $ by rw [sub_def, nnreal.coe_add, coe_max, nnreal.of_real, coe_mk,
+  ← max_add_add_right, zero_add, sub_add_cancel]
+
+lemma add_sub_eq_max {r p : ℝ≥0} : p + (r - p) = max p r :=
+by rw [add_comm, sub_add_eq_max, max_comm]
+
 @[simp] lemma sub_add_cancel_of_le {a b : ℝ≥0} (h : b ≤ a) : (a - b) + b = a :=
-nnreal.eq $ by rw [nnreal.coe_add, nnreal.coe_sub h, sub_add_cancel]
+by rw [sub_add_eq_max, max_eq_left h]
 
 lemma sub_sub_cancel_of_le {r p : ℝ≥0} (h : r ≤ p) : p - (p - r) = r :=
 by rw [nnreal.sub_def, nnreal.sub_def, nnreal.coe_of_real _ $ sub_nonneg.2 h,
@@ -494,7 +507,7 @@ end sub
 section inv
 
 @[simp] lemma inv_pos {r : ℝ≥0} : 0 < r⁻¹ ↔ 0 < r :=
-by simp [zero_lt_iff_ne_zero]
+by simp [pos_iff_ne_zero]
 
 lemma div_pos {r p : ℝ≥0} (hr : 0 < r) (hp : 0 < p) : 0 < r / p :=
 by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
@@ -505,16 +518,16 @@ lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 :=
 if h : r = 0 then by simp [h] else by rw [div_self h]
 
 @[simp] lemma inv_le {r p : ℝ≥0} (h : r ≠ 0) : r⁻¹ ≤ p ↔ 1 ≤ r * p :=
-by rw [← mul_le_mul_left (zero_lt_iff_ne_zero.2 h), mul_inv_cancel h]
+by rw [← mul_le_mul_left (pos_iff_ne_zero.2 h), mul_inv_cancel h]
 
 lemma inv_le_of_le_mul {r p : ℝ≥0} (h : 1 ≤ r * p) : r⁻¹ ≤ p :=
 by by_cases r = 0; simp [*, inv_le]
 
 @[simp] lemma le_inv_iff_mul_le {r p : ℝ≥0} (h : p ≠ 0) : (r ≤ p⁻¹ ↔ r * p ≤ 1) :=
-by rw [← mul_le_mul_left (zero_lt_iff_ne_zero.2 h), mul_inv_cancel h, mul_comm]
+by rw [← mul_le_mul_left (pos_iff_ne_zero.2 h), mul_inv_cancel h, mul_comm]
 
 @[simp] lemma lt_inv_iff_mul_lt {r p : ℝ≥0} (h : p ≠ 0) : (r < p⁻¹ ↔ r * p < 1) :=
-by rw [← mul_lt_mul_left (zero_lt_iff_ne_zero.2 h), mul_inv_cancel h, mul_comm]
+by rw [← mul_lt_mul_left (pos_iff_ne_zero.2 h), mul_inv_cancel h, mul_comm]
 
 lemma mul_le_iff_le_inv {a b r : ℝ≥0} (hr : r ≠ 0) : r * a ≤ b ↔ a ≤ r⁻¹ * b :=
 have 0 < r, from lt_of_le_of_ne (zero_le r) hr.symm,
@@ -525,7 +538,7 @@ by rw [div_eq_inv_mul, ← mul_le_iff_le_inv hr, mul_comm]
 
 lemma div_le_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a / r ≤ b ↔ a ≤ b * r :=
 by rw [← nnreal.coe_le_coe, nnreal.coe_div,
-  div_le_iff (nnreal.coe_pos.2 $ zero_lt_iff_ne_zero.2 hr), ← nnreal.coe_mul, nnreal.coe_le_coe]
+  div_le_iff (nnreal.coe_pos.2 $ pos_iff_ne_zero.2 hr), ← nnreal.coe_mul, nnreal.coe_le_coe]
 
 lemma lt_div_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a < b / r ↔ a * r < b :=
 lt_iff_lt_of_le_iff_le (div_le_iff hr)
@@ -539,7 +552,7 @@ end
 
 lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x ≤ y :=
 le_of_forall_ge_of_dense $ assume a ha,
-  have hx : x ≠ 0 := zero_lt_iff_ne_zero.1 (lt_of_le_of_lt (zero_le _) ha),
+  have hx : x ≠ 0 := pos_iff_ne_zero.1 (lt_of_le_of_lt (zero_le _) ha),
   have hx' : x⁻¹ ≠ 0, by rwa [(≠), inv_eq_zero],
   have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv'],
   have (a * x⁻¹) * x ≤ y, from h _ this,
@@ -559,7 +572,7 @@ by simpa using half_lt_self zero_ne_one.symm
 lemma div_lt_iff {a b c : ℝ≥0} (hc : c ≠ 0) : b / c < a ↔ b < a * c :=
 begin
   rw [← nnreal.coe_lt_coe, ← nnreal.coe_lt_coe, nnreal.coe_div, nnreal.coe_mul],
-  exact div_lt_iff (zero_lt_iff_ne_zero.mpr hc)
+  exact div_lt_iff (pos_iff_ne_zero.mpr hc)
 end
 
 lemma div_lt_one_of_lt {a b : ℝ≥0} (h : a < b) : a / b < 1 :=

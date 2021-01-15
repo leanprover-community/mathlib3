@@ -394,6 +394,10 @@ lemma subsingleton_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ :
   subsingleton α :=
 subsingleton_of_top_le_bot (ge_of_eq hα)
 
+lemma subsingleton_iff_bot_eq_top {α : Type*} [bounded_lattice α] :
+  (⊥ : α) = (⊤ : α) ↔ subsingleton α :=
+⟨subsingleton_of_bot_eq_top, λ h, by exactI subsingleton.elim ⊥ ⊤⟩
+
 /-- Attach `⊥` to a type. -/
 def with_bot (α : Type*) := option α
 
@@ -650,6 +654,11 @@ by simp [(≤)]
 @[simp] theorem some_lt_none [has_lt α] {a : α} :
   @has_lt.lt (with_top α) _ (some a) none :=
 by simp [(<)]; existsi a; refl
+
+instance : can_lift (with_top α) α :=
+{ coe := coe,
+  cond := λ r, r ≠ ⊤,
+  prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
 
 instance [preorder α] : preorder (with_top α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₂, ∃ b ∈ o₁, b ≤ a,

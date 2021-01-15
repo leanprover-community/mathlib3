@@ -49,6 +49,21 @@ class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_o
 
 attribute [to_additive] ordered_comm_monoid
 
+/-- A linearly ordered commutative monoid with a zero element. -/
+class linear_ordered_comm_monoid_with_zero (α : Type*)
+  extends linear_order α, comm_monoid_with_zero α, ordered_comm_monoid α :=
+(zero_le_one : (0:α) ≤ 1)
+(lt_of_mul_lt_mul_left := λ x y z, by {
+  apply imp_of_not_imp_not,
+  intro h,
+  apply not_lt_of_le,
+  apply mul_le_mul_left,
+  -- type-class inference uses `a : linear_order α` which it can't unfold, unless we provide this!
+  -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide that field.
+  letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
+  exact le_of_not_lt h })
+
+
 section ordered_comm_monoid
 variables [ordered_comm_monoid α] {a b c d : α}
 
@@ -558,6 +573,14 @@ variables [canonically_ordered_monoid α] {a b c d : α}
 lemma le_iff_exists_mul : a ≤ b ↔ ∃c, b = a * c :=
 canonically_ordered_monoid.le_iff_exists_mul a b
 
+@[to_additive]
+lemma self_le_mul_right (a b : α) : a ≤ a * b :=
+le_iff_exists_mul.mpr ⟨b, rfl⟩
+
+@[to_additive]
+lemma self_le_mul_left (a b : α) : a ≤ b * a :=
+by { rw [mul_comm], exact self_le_mul_right a b }
+
 @[simp, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a := le_iff_exists_mul.mpr ⟨a, by simp⟩
 
 @[simp, to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
@@ -566,14 +589,12 @@ le_antisymm bot_le (one_le ⊥)
 @[simp, to_additive] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
 mul_eq_one_iff' (one_le _) (one_le _)
 
--- TODO -- global replace le_zero_iff_eq by n nonpos_iff_eq_zero?
-@[simp, to_additive le_zero_iff_eq] lemma le_one_iff_eq : a ≤ 1 ↔ a = 1 :=
+@[simp, to_additive] lemma le_one_iff_eq_one : a ≤ 1 ↔ a = 1 :=
 iff.intro
   (assume h, le_antisymm h (one_le a))
   (assume h, h ▸ le_refl a)
 
--- TODO -- global replace zero_lt_iff_ne_zero by pos_iff_ne_zero?
-@[to_additive zero_lt_iff_ne_zero] lemma one_lt_iff_ne_one : 1 < a ↔ a ≠ 1 :=
+@[to_additive] lemma one_lt_iff_ne_one : 1 < a ↔ a ≠ 1 :=
 iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (one_le _) hne.symm
 
 @[to_additive] lemma exists_pos_mul_of_lt (h : a < b) : ∃ c > 1, a * c = b :=

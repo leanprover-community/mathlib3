@@ -491,7 +491,7 @@ lemma card_order_of_eq_totient_aux₂ {d : ℕ} (hd : d ∣ fintype.card α) :
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
 by_contradiction $ λ h,
 have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0 :=
-  not_not.1 (mt nat.pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁ hn hd) h)),
+  not_not.1 (mt pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁ hn hd) h)),
 let c := fintype.card α in
 have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
 lt_irrefl c $
@@ -513,7 +513,7 @@ lt_irrefl c $
         (λ h, by rw h))
   ... < φ d + ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
     lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
-      (λ h, nat.pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
+      (λ h, pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
   ... = ∑ m in insert d (((range c.succ).filter (∣ c)).erase d), φ m : eq.symm (sum_insert (by simp))
   ... = ∑ m in (range c.succ).filter (∣ c), φ m : finset.sum_congr
       (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩)) (λ _ _, rfl)

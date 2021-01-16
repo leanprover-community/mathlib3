@@ -67,7 +67,7 @@ def inf_Icc_order_iso_Icc_sup (a b : α) : set.Icc (a ⊓ b) a ≃o set.Icc b (a
   map_rel_iff' := λ x y, begin
     simp only [subtype.mk_le_mk, equiv.coe_fn_mk, and_true, le_sup_right],
     rw [← subtype.coe_le_coe],
-    refine ⟨λ h, sup_le_sup_right h _, λ h, _⟩,
+    refine ⟨λ h, _, λ h, sup_le_sup_right h _⟩,
     rw [← sup_eq_right.2 x.prop.1, inf_sup_assoc_of_le _ x.prop.2, sup_comm,
       ← sup_eq_right.2 y.prop.1, inf_sup_assoc_of_le _ y.prop.2, @sup_comm _ _ b],
     exact inf_le_inf_left _ h

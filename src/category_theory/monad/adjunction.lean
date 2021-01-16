@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.algebra
-import category_theory.adjunction.fully_faithful
+import category_theory.adjunction
 
 namespace category_theory
 open category
@@ -54,15 +54,8 @@ def comparison_forget [is_right_adjoint R] : comparison R ⋙ forget (left_adjoi
 
 end monad
 
-/--
-A functor is *reflective*, or *a reflective inclusion*, if it is fully faithful and right adjoint.
--/
-class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
-
-/--
-A right adjoint functor `R : D ⥤ C` is *monadic* if the comparison functor `monad.comparison R`
-from `D` to the category of Eilenberg-Moore algebras for the adjunction is an equivalence.
--/
+/-- A right adjoint functor `R : D ⥤ C` is *monadic* if the comparison function `monad.comparison R` from `D` to the
+category of Eilenberg-Moore algebras for the adjunction is an equivalence. -/
 class monadic_right_adjoint (R : D ⥤ C) extends is_right_adjoint R :=
 (eqv : is_equivalence (monad.comparison R))
 

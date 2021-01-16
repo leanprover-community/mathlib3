@@ -410,7 +410,7 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] {α : E}
 variables {K : Type*} [field K] [algebra F K]
 
 lemma aeval_gen_minimal_polynomial (h : is_integral F α) :
-  aeval (adjoin_simple.gen F α) (minimal_polynomial h)  = 0 :=
+  aeval (adjoin_simple.gen F α) (minimal_polynomial h) = 0 :=
 begin
   ext,
   convert minimal_polynomial.aeval h,

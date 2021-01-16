@@ -312,28 +312,70 @@ lemma has_fpower_series_at.coeff_zero (hf : has_fpower_series_at f pf x) (v : fi
 let ⟨rf, hrf⟩ := hf in hrf.coeff_zero v
 
 /-- If a function admits a power series expansion, then it is exponentially close to the partial
-sums of this power series on strict subdisks of the disk of convergence. -/
-lemma has_fpower_series_on_ball.uniform_geometric_approx {r' : ℝ≥0}
+sums of this power series on strict subdisks of the disk of convergence.
+
+This version provides an upper estimate that decreases both in `∥y∥` and `n`. See also
+`has_fpower_series_on_ball.uniform_geometric_approx` for a weaker version. -/
+lemma has_fpower_series_on_ball.uniform_geometric_approx' {r' : ℝ≥0}
   (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
   ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0), (∀ y ∈ metric.ball (0 : E) r', ∀ n,
-  ∥f (x + y) - p.partial_sum n y∥ ≤ C * a ^ n) :=
+    ∥f (x + y) - p.partial_sum n y∥ ≤ C * (a * (∥y∥ / r')) ^ n) :=
 begin
   obtain ⟨a, ha, C, hC, hp⟩ : ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0), ∀ n, ∥p n∥ * r' ^n ≤ C * a^n :=
     p.norm_mul_pow_le_mul_pow_of_lt_radius (h.trans_le hf.r_le),
   refine ⟨a, ha, C / (1 - a), div_pos hC (sub_pos.2 ha.2), λ y hy n, _⟩,
   have yr' : ∥y∥ < r', by { rw ball_0_eq at hy, exact hy },
+  have hr'0 : 0 < (r' : ℝ), from (norm_nonneg _).trans_lt yr',
   have : y ∈ emetric.ball (0 : E) r,
   { refine mem_emetric_ball_0_iff.2 (lt_trans _ h),
     exact_mod_cast yr' },
   rw [norm_sub_rev, ← mul_div_right_comm],
-  apply norm_sub_le_of_geometric_bound_of_has_sum ha.2 _ (hf.has_sum this),
+  have ya : a * (∥y∥ / ↑r') ≤ a,
+    from mul_le_of_le_one_right ha.1.le (div_le_one_of_le yr'.le r'.coe_nonneg),
+  suffices : ∥p.partial_sum n y - f (x + y)∥ ≤ C * (a * (∥y∥ / r')) ^ n / (1 - a * (∥y∥ / r')),
+  { refine this.trans _,
+    apply_rules [div_le_div_of_le_left, sub_pos.2, div_nonneg, mul_nonneg, pow_nonneg, hC.lt.le,
+      ha.1.le, norm_nonneg, nnreal.coe_nonneg, ha.2, (sub_le_sub_iff_left _).2] },
+  apply norm_sub_le_of_geometric_bound_of_has_sum (ya.trans_lt ha.2) _ (hf.has_sum this),
   assume n,
   calc ∥(p n) (λ (i : fin n), y)∥ ≤ ∥p n∥ * (∏ i : fin n, ∥y∥) :
       continuous_multilinear_map.le_op_norm _ _
-    ... = ∥p n∥ * ∥y∥ ^ n : by simp
-    ... ≤ ∥p n∥ * r' ^ n :
-      mul_le_mul_of_nonneg_left (pow_le_pow_of_le_left (norm_nonneg _) yr'.le _) (norm_nonneg _)
-    ... ≤ C * a ^ n : hp n
+    ... = (∥p n∥ * r' ^ n) * (∥y∥ / r') ^ n : by field_simp [hr'0.ne', mul_right_comm]
+    ... ≤ (C * a ^ n) * (∥y∥ / r') ^ n :
+      mul_le_mul_of_nonneg_right (hp n) (pow_nonneg (div_nonneg (norm_nonneg _) r'.coe_nonneg) _)
+    ... ≤ C * (a * (∥y∥ / r')) ^ n : by rw [mul_pow, mul_assoc]
+end
+
+/-- If a function admits a power series expansion, then it is exponentially close to the partial
+sums of this power series on strict subdisks of the disk of convergence. -/
+lemma has_fpower_series_on_ball.uniform_geometric_approx {r' : ℝ≥0}
+  (hf : has_fpower_series_on_ball f p x r) (h : (r' : ennreal) < r) :
+  ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0), (∀ y ∈ metric.ball (0 : E) r', ∀ n,
+    ∥f (x + y) - p.partial_sum n y∥ ≤ C * a ^ n) :=
+begin
+  obtain ⟨a, ha, C, hC, hp⟩ : ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0),
+    (∀ y ∈ metric.ball (0 : E) r', ∀ n, ∥f (x + y) - p.partial_sum n y∥ ≤ C * (a * (∥y∥ / r')) ^ n),
+    from hf.uniform_geometric_approx' h,
+  refine ⟨a, ha, C, hC, λ y hy n, (hp y hy n).trans _⟩,
+  have yr' : ∥y∥ < r', by rwa ball_0_eq at hy,
+  refine mul_le_mul_of_nonneg_left (pow_le_pow_of_le_left _ _ _) hC.lt.le,
+  exacts [mul_nonneg ha.1.le (div_nonneg (norm_nonneg y) r'.coe_nonneg),
+    mul_le_of_le_one_right ha.1.le (div_le_one_of_le yr'.le r'.coe_nonneg)]
+end
+
+/-- Taylor formula for an analytic function, `is_O` version. -/
+lemma has_fpower_series_at.is_O_sub_partial_sum_pow (hf : has_fpower_series_at f p x) (n : ℕ) :
+  is_O (λ y : E, f (x + y) - p.partial_sum n y) (λ y, ∥y∥ ^ n) (𝓝 0) :=
+begin
+  rcases hf with ⟨r, hf⟩,
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 hf.r_pos with ⟨r', r'0, h⟩,
+  obtain ⟨a, ha, C, hC, hp⟩ : ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0),
+    (∀ y ∈ metric.ball (0 : E) r', ∀ n, ∥f (x + y) - p.partial_sum n y∥ ≤ C * (a * (∥y∥ / r')) ^ n),
+    from hf.uniform_geometric_approx' h,
+  refine is_O_iff.2 ⟨C * (a / r') ^ n, _⟩,
+  replace r'0 : 0 < (r' : ℝ), by exact_mod_cast r'0,
+  filter_upwards [metric.ball_mem_nhds (0 : E) r'0], intros y hy,
+  simpa [mul_pow, mul_div_assoc, mul_assoc, div_mul_eq_mul_div] using hp y hy n
 end
 
 /-- If a function admits a power series expansion at `x`, then it is the uniform limit of the
@@ -344,7 +386,9 @@ lemma has_fpower_series_on_ball.tendsto_uniformly_on {r' : ℝ≥0}
   tendsto_uniformly_on (λ n y, p.partial_sum n y)
     (λ y, f (x + y)) at_top (metric.ball (0 : E) r') :=
 begin
-  rcases hf.uniform_geometric_approx h with ⟨a, ha, C, hC, hp⟩,
+  obtain ⟨a, ha, C, hC, hp⟩ : ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0),
+    (∀ y ∈ metric.ball (0 : E) r', ∀ n, ∥f (x + y) - p.partial_sum n y∥ ≤ C * a ^ n),
+    from hf.uniform_geometric_approx h,
   refine metric.tendsto_uniformly_on_iff.2 (λ ε εpos, _),
   have L : tendsto (λ n, (C : ℝ) * a^n) at_top (𝓝 ((C : ℝ) * 0)) :=
     tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 ha.1.le ha.2),

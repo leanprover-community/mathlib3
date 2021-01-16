@@ -15,7 +15,7 @@ its basic properties. In particular, show that this space is itself a normed spa
 -/
 
 noncomputable theory
-open_locale classical nnreal
+open_locale classical nnreal topological_space
 
 
 variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
@@ -288,7 +288,7 @@ lipschitz_with.of_dist_le_mul $ λ x y,
   by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
 
 lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
-div_le_iff_of_nonneg_of_le (norm_nonneg _) f.op_norm_nonneg (le_op_norm _ _)
+div_le_of_nonneg_of_le_mul (norm_nonneg _) f.op_norm_nonneg (le_op_norm _ _)
 
 /-- The image of the unit ball under a continuous linear map is bounded. -/
 lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
@@ -315,6 +315,10 @@ begin
   refine op_norm_le_of_shell ε_pos hC hc (λ x _ hx, hf x _),
   rwa ball_0_eq
 end
+
+lemma op_norm_le_of_nhds_zero {f : E →L[𝕜] F} {C : ℝ} (hC : 0 ≤ C)
+  (hf : ∀ᶠ x in 𝓝 (0 : E), ∥f x∥ ≤ C * ∥x∥) : ∥f∥ ≤ C :=
+let ⟨ε, ε0, hε⟩ := metric.eventually_nhds_iff_ball.1 hf in op_norm_le_of_ball ε0 hC hε
 
 lemma op_norm_le_of_shell' {f : E →L[𝕜] F} {ε C : ℝ} (ε_pos : 0 < ε) (hC : 0 ≤ C)
   {c : 𝕜} (hc : ∥c∥ < 1) (hf : ∀ x, ε * ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) :

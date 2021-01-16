@@ -237,7 +237,9 @@ noncomputable def cocone (F : J ⥤ C) : cocone F :=
 
 variables {D : Type u₁} [category.{v₁} D]
 
-/-- If `C` is filtered, and we have a right adjoint functor `C ⥤ D`, then `D` is filtered. -/
+/--
+If `C` is filtered, and we have a functor `R : C ⥤ D` with a left adjoint, then `D` is filtered.
+-/
 lemma of_right_adjoint {L : D ⥤ C} {R : C ⥤ D} (h : L ⊣ R) : is_filtered D :=
 { cocone_objs := λ X Y,
     ⟨_, h.hom_equiv _ _ (left_to_max _ _), h.hom_equiv _ _ (right_to_max _ _), ⟨⟩⟩,
@@ -245,6 +247,10 @@ lemma of_right_adjoint {L : D ⥤ C} {R : C ⥤ D} (h : L ⊣ R) : is_filtered D
     ⟨_, h.hom_equiv _ _ (coeq_hom _ _),
      by rw [← h.hom_equiv_naturality_left, ← h.hom_equiv_naturality_left, coeq_condition]⟩,
   nonempty := is_filtered.nonempty.map R.obj }
+
+/-- If `C` is filtered, and we have a right adjoint functor `R : C ⥤ D`, then `D` is filtered. -/
+lemma of_is_right_adjoint (R : C ⥤ D) [is_right_adjoint R] : is_filtered D :=
+of_right_adjoint (adjunction.of_right_adjoint R)
 
 /-- Being filtered is preserved by equivalence of categories. -/
 lemma of_equivalence (h : C ≌ D) : is_filtered D :=

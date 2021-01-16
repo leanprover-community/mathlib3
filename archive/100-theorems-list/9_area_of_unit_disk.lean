@@ -6,7 +6,6 @@ Authors: James Arthur, Benjamin Davidson, Andrew Souther
 import measure_theory.interval_integral
 import data.real.sqrt
 import data.real.pi
-import measure_theory.measure_space
 import topology.metric_space.basic
 import analysis.mean_inequalities
 import measure_theory.prod
@@ -223,7 +222,7 @@ begin
           (by rwa tendsto_congr' (eventually_of_mem (Ioo_mem_nhds_within_Ioi hy') (λ x hx, (hderiv x hx).deriv))) },
   end
 
-lemma step5_1 {x : ℝ} : deriv (λ y : ℝ, 1/2 * (arcsin y + y * sqrt (1 - y^2))) x = sqrt (1 - x^2) :=
+lemma step5_1 {x : ℝ} : deriv (λ y : ℝ, (arcsin y + y * sqrt (1 - y^2))) x = 2 * sqrt (1 - x^2) :=
 begin
   have hx : x ∈ Ioo (-(1:ℝ)) 1 := sorry, -- must assume this to be true, leave alone for now
   have hlt : 0 < 1 - x^2,
@@ -235,30 +234,20 @@ begin
   have h2 : differentiable_at ℝ (λ y:ℝ, sqrt(1 - y ^ 2)) x := h1.sqrt hlt.ne.symm,
   have h3 : differentiable_at ℝ (λ y:ℝ, y * sqrt(1 - y ^ 2)) x := differentiable_at.mul differentiable_at_id' h2,
     -- show `differentiable_at ℝ (λ y, y * sqrt(1 - y ^ 2)) x` (SOLVED BY JAMES)
-  have h4 : differentiable_at ℝ (λ y:ℝ, arcsin y + y * sqrt(1 - y ^ 2)) x,
-      { apply differentiable_at.add _ h3,
-        rw differentiable_at_arcsin,
-        rw mem_Ioo at hx,
-        cases hx with hnx hpx,
-        split,
-        { linarith },
-        { linarith } }, -- show `differentiable_at ℝ (λ y, arcsin y + y * sqrt(1 - y ^ 2)) x` (SOLVED BY JAMES)
-  rw [deriv_const_mul _ h4, deriv_add (differentiable_at_arcsin.mpr ⟨hx.1.ne.symm, hx.2.ne⟩) h3,
+  rw [deriv_add (differentiable_at_arcsin.mpr ⟨hx.1.ne.symm, hx.2.ne⟩) h3,
       deriv_mul differentiable_at_id' h2, deriv_sqrt h1 hlt.ne.symm, deriv_arcsin],
   simp only [one_mul, deriv_id'', differentiable_at_const, mul_one, zero_sub, deriv_sub,
     differentiable_at_id', deriv_pow'', nat.cast_bit0, deriv_id'', deriv_const', pow_one,
     differentiable_at.pow, nat.cast_one, neg_div],
   rw mul_div_mul_left;
-  field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt hlt.le],
+  field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt hlt.le, ← two_mul],
 end
 
-lemma step5_2 : ∫ (x : ℝ) in (-1)..1, 2 * deriv (λ y:ℝ, 1/2 * (arcsin y + y * sqrt (1-y^2))) x = pi :=
+lemma step5_2 : ∫ (x : ℝ) in (-1)..1, deriv (λ y:ℝ, arcsin y + y * sqrt (1-y^2)) x = pi :=
 begin
   have H : ∀ (x : ℝ), x ∈ interval (-(1:ℝ)) 1 → differentiable_at ℝ (λ y:ℝ, arcsin y + y * sqrt (1-y^2)) x,
-    intros x hx,
-    sorry,
-  have H' := H _ _,
-  simp only [deriv_const_mul _ H', ← mul_assoc, mul_div_cancel' (1:ℝ) two_ne_zero, one_mul],
+  { intros x hx,
+    sorry },
   convert integral_deriv_eq_sub H _,
   { rw [arcsin_one, arcsin_neg_one, one_pow, neg_one_pow_eq_pow_mod_two, nat.bit0_mod_two, pow_zero,
         sub_self, sqrt_zero, mul_zero, mul_zero, add_zero, add_zero, sub_neg_eq_add, add_halves'] },
@@ -270,8 +259,6 @@ begin
     simp only [this],
     exact λ x hx, (continuous_within_at_const.sub (continuous_pow 2).continuous_within_at).sqrt.mul
       continuous_within_at_const },
-  -- How we resolve the rest of this proof will depend on how we decide to integrate these substeps
-  -- into the final proof. Accordingly, I am leaving it for a later date.
 end
 
 
@@ -362,11 +349,40 @@ end
 
 -- # The Grand Finale!!!!!
 
+theorem area_of_unit_disc : volume.prod volume unit_disc = ennreal.of_real pi :=
+begin
+  rw measure.prod_apply is_measurable_unit_disc,
+  rw second_step,
+  simp only [unit_disc_alt, preimage_set_of_eq, Ioo_def, volume_Ioo, neg_mul_eq_neg_mul_symm,
+             one_mul, sub_neg_eq_add, (two_mul _).symm],
+  simp only [← step5_1],
+  let f := λ x, nnreal.of_real (deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2)) x),
+  --have f_eq : (λ x, ((f x):ℝ)) = λ x, (deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2)) x) := sorry,
+  --simp only at f_eq,
+  have hintg : integrable (λ x, ((f x):ℝ)) volume := sorry,
+  convert lintegral_coe_eq_integral f hintg,
+  rw ← step5_2,
+  rw integral_of_le,
+  rw ← integral_indicator,
+  apply integral_congr_ae,
+  ring,
+
+
+  sorry,
+  { sorry },
+  { exact neg_le_self zero_le_one },
+  { apply_instance },
+end
+
+
+
+-- Old stuff:
+
 lemma s_eq : (λ x y, set.indicator  unit_disc_alt                       (λ p, 1) (x, y))
             = λ x y, set.indicator (Ioo (-sqrt (1-x^2)) (sqrt (1-x^2))) (λ t, 1)     y  :=
 by ring
 
-example [normed_group (ℝ → ℝ)]: (volume unit_disc).to_real = pi :=
+example [normed_group (ℝ → ℝ)] : (volume unit_disc).to_real = pi :=
 begin
   have h1 := integral_indicator_const (1:ℝ) is_measurable_unit_disc,
   rw [algebra.id.smul_eq_mul, mul_one] at h1,
@@ -386,5 +402,4 @@ begin
   sorry,
 end
 
-
-#check volume_Ioo -- for step 4(ii)
+--#check volume_Ioo -- for step 4(ii)

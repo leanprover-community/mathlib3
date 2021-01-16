@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.algebra
-import category_theory.adjunction.fully_faithful
+import category_theory.adjunction
 
 namespace category_theory
 open category

@@ -294,7 +294,7 @@ on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by
 lemma has_fderiv_at.le_of_lip {f : E → F} {f' : E →L[𝕜] F} {x₀ : E} (hf : has_fderiv_at f f' x₀)
   {s : set E} (hs : s ∈ 𝓝 x₀) {C : ℝ≥0} (hlip : lipschitz_on_with C f s) : ∥f'∥ ≤ C :=
 begin
-  refine real.le_of_forall_epsilon_le (λ ε ε0, op_norm_le_of_nhds_zero _ _),
+  refine le_of_forall_pos_le_add (λ ε ε0, op_norm_le_of_nhds_zero _ _),
   exact add_nonneg C.coe_nonneg ε0.le,
   have hs' := hs, rw [← map_add_left_nhds_zero x₀, mem_map] at hs',
   filter_upwards [is_o_iff.1 (has_fderiv_at_iff_is_o_nhds_zero.1 hf) ε0, hs'], intros y hy hys,

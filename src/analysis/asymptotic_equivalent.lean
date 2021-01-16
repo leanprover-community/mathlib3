@@ -297,3 +297,11 @@ lemma is_equivalent.tendsto_at_bot_iff [order_topology β] (huv : u ~[l] v) :
 end normed_linear_ordered_field
 
 end asymptotics
+
+open filter asymptotics
+open_locale asymptotics
+
+variables {α β : Type*} [normed_group β]
+
+lemma filter.eventually_eq.is_equivalent {u v : α → β} {l : filter α} (h : u =ᶠ[l] v) : u ~[l] v :=
+is_o.congr' h.sub_eq.symm (eventually_eq.refl _ _) (is_o_zero v l)

@@ -45,7 +45,7 @@ def component (j : connected_components J) : Type u₁ := {k : J // quotient.mk'
 
 /-- The inclusion functor from a connected component to the whole category. -/
 @[derive [full, faithful], simps {rhs_md := semireducible}]
-def include_component (j) : component j ⥤ J :=
+def component.ι (j) : component j ⥤ J :=
 full_subcategory_inclusion _
 
 /-- Each connected component of the category is nonempty. -/
@@ -80,7 +80,7 @@ begin
   -- Now lift the zigzag from `j₁` to `j₂` in `J` to the same thing in `component j`.
   refine ⟨l.pmap f hf, _, _⟩,
   { refine @@list.chain_pmap_of_chain _ _ _ f (λ x y _ _ h, _) hl₁ h₁₂ _,
-    exact zag_of_zag_obj (include_component _) h },
+    exact zag_of_zag_obj (component.ι _) h },
   { erw list.last_pmap _ f (j₁ :: l) (by simpa [h₁₂] using hf) (list.cons_ne_nil _ _),
     exact subtype.ext hl₂ },
 end
@@ -95,7 +95,7 @@ abbreviation decomposed (J : Type u₁) [category.{v₁} J] :=
 
 /--
 The inclusion of each component into the decomposed category. This is just `sigma.incl` but having
-this abbreviation helps guide typeclass search get the right category instance on `decomposed J`.
+this abbreviation helps guide typeclass search to get the right category instance on `decomposed J`.
 -/
 abbreviation inclusion (j : connected_components J) : component j ⥤ decomposed J :=
 sigma.incl _
@@ -103,11 +103,11 @@ sigma.incl _
 /-- The forward direction of the equivalence between the decomposed category and the original. -/
 @[simps {rhs_md := semireducible}]
 def decomposed_to (J : Type u₁) [category.{v₁} J] : decomposed J ⥤ J :=
-sigma.desc include_component
+sigma.desc component.ι
 
 @[simp]
 lemma inclusion_comp_decomposed_to (j : connected_components J) :
-  inclusion j ⋙ decomposed_to J = include_component j :=
+  inclusion j ⋙ decomposed_to J = component.ι j :=
 rfl
 
 instance : full (decomposed_to J) :=

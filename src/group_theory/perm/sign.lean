@@ -5,9 +5,8 @@ Authors: Chris Hughes
 -/
 import data.fintype.basic
 import data.finset.sort
-import algebra.group.conj
-import algebra.big_operators.basic
 import group_theory.perm.basic
+import group_theory.order_of_element
 
 /-!
 # Sign of a permutation
@@ -604,132 +603,12 @@ calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
       (λ ⟨x, _⟩, subtype.eq (h x _ _))
 ... = sign g : sign_subtype_perm _ _ (λ _, id)
 
-/-- A permutation is a cycle when any two nonfixed points of the permutation are related by repeated
-  application of the permutation. -/
-def is_cycle (f : perm β) := ∃ x, f x ≠ x ∧ ∀ y, f y ≠ y → ∃ i : ℤ, (f ^ i) x = y
-
-lemma is_cycle_swap {α : Type*} [decidable_eq α] {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=
-⟨y, by rwa swap_apply_right,
-  λ a (ha : ite (a = x) y (ite (a = y) x a) ≠ a),
-    if hya : y = a then ⟨0, hya⟩
-    else ⟨1, by rw [gpow_one, swap_apply_def]; split_ifs at *; cc⟩⟩
-
-lemma is_cycle_inv {f : perm β} (hf : is_cycle f) : is_cycle (f⁻¹) :=
-let ⟨x, hx⟩ := hf in
-⟨x, by simp only [inv_eq_iff_eq, *, forall_prop_of_true, ne.def] at *; cc,
-  λ y hy, let ⟨i, hi⟩ := hx.2 y (by simp only [inv_eq_iff_eq, *, forall_prop_of_true, ne.def] at *; cc) in
-    ⟨-i, by rwa [gpow_neg, inv_gpow, inv_inv]⟩⟩
-
-lemma exists_gpow_eq_of_is_cycle {f : perm β} (hf : is_cycle f) {x y : β}
-  (hx : f x ≠ x) (hy : f y ≠ y) : ∃ i : ℤ, (f ^ i) x = y :=
-let ⟨g, hg⟩ := hf in
-let ⟨a, ha⟩ := hg.2 x hx in
-let ⟨b, hb⟩ := hg.2 y hy in
-⟨b - a, by rw [← ha, ← mul_apply, ← gpow_add, sub_add_cancel, hb]⟩
-
-lemma is_cycle_swap_mul_aux₁ {α : Type*} [decidable_eq α] : ∀ (n : ℕ) {b x : α} {f : perm α}
-  (hb : (swap x (f x) * f) b ≠ b) (h : (f ^ n) (f x) = b),
-  ∃ i : ℤ, ((swap x (f x) * f) ^ i) (f x) = b
-| 0         := λ b x f hb h, ⟨0, h⟩
-| (n+1 : ℕ) := λ b x f hb h,
-  if hfbx : f x = b then ⟨0, hfbx⟩
-  else
-    have f b ≠ b ∧ b ≠ x, from ne_and_ne_of_swap_mul_apply_ne_self hb,
-    have hb' : (swap x (f x) * f) (f⁻¹ b) ≠ f⁻¹ b,
-      by rw [mul_apply, apply_inv_self, swap_apply_of_ne_of_ne this.2 (ne.symm hfbx),
-          ne.def, ← injective.eq_iff f.injective, apply_inv_self];
-        exact this.1,
-    let ⟨i, hi⟩ := is_cycle_swap_mul_aux₁ n hb'
-      (f.injective $
-        by rw [apply_inv_self];
-        rwa [pow_succ, mul_apply] at h) in
-    ⟨i + 1, by rw [add_comm, gpow_add, mul_apply, hi, gpow_one, mul_apply, apply_inv_self,
-        swap_apply_of_ne_of_ne (ne_and_ne_of_swap_mul_apply_ne_self hb).2 (ne.symm hfbx)]⟩
-
-lemma is_cycle_swap_mul_aux₂ {α : Type*} [decidable_eq α] : ∀ (n : ℤ) {b x : α} {f : perm α}
-  (hb : (swap x (f x) * f) b ≠ b) (h : (f ^ n) (f x) = b),
-  ∃ i : ℤ, ((swap x (f x) * f) ^ i) (f x) = b
-| (n : ℕ) := λ b x f, is_cycle_swap_mul_aux₁ n
-| -[1+ n] := λ b x f hb h,
-  if hfbx : f⁻¹ x = b then ⟨-1, by rwa [gpow_neg, gpow_one, mul_inv_rev, mul_apply, swap_inv, swap_apply_right]⟩
-  else if hfbx' : f x = b then ⟨0, hfbx'⟩
-  else
-  have f b ≠ b ∧ b ≠ x := ne_and_ne_of_swap_mul_apply_ne_self hb,
-  have hb : (swap x (f⁻¹ x) * f⁻¹) (f⁻¹ b) ≠ f⁻¹ b,
-    by rw [mul_apply, swap_apply_def];
-      split_ifs;
-      simp only [inv_eq_iff_eq, perm.mul_apply, gpow_neg_succ_of_nat, ne.def, perm.apply_inv_self] at *; cc,
-  let ⟨i, hi⟩ := is_cycle_swap_mul_aux₁ n hb
-    (show (f⁻¹ ^ n) (f⁻¹ x) = f⁻¹ b, by
-      rw [← gpow_coe_nat, ← h, ← mul_apply, ← mul_apply, ← mul_apply, gpow_neg_succ_of_nat, ← inv_pow, pow_succ', mul_assoc,
-        mul_assoc, inv_mul_self, mul_one, gpow_coe_nat, ← pow_succ', ← pow_succ]) in
-  have h : (swap x (f⁻¹ x) * f⁻¹) (f x) = f⁻¹ x, by rw [mul_apply, inv_apply_self, swap_apply_left],
-  ⟨-i, by rw [← add_sub_cancel i 1, neg_sub, sub_eq_add_neg, gpow_add, gpow_one, gpow_neg, ← inv_gpow,
-      mul_inv_rev, swap_inv, mul_swap_eq_swap_mul, inv_apply_self, swap_comm _ x, gpow_add, gpow_one,
-      mul_apply, mul_apply (_ ^ i), h, hi, mul_apply, apply_inv_self, swap_apply_of_ne_of_ne this.2 (ne.symm hfbx')]⟩
-
-lemma eq_swap_of_is_cycle_of_apply_apply_eq_self {α : Type*} [decidable_eq α]
-  {f : perm α} (hf : is_cycle f) {x : α}
-  (hfx : f x ≠ x) (hffx : f (f x) = x) : f = swap x (f x) :=
-equiv.ext $ λ y,
-let ⟨z, hz⟩ := hf in
-let ⟨i, hi⟩ := hz.2 x hfx in
-if hyx : y = x then by simp [hyx]
-else if hfyx : y = f x then by simp [hfyx, hffx]
-else begin
-  rw [swap_apply_of_ne_of_ne hyx hfyx],
-  refine by_contradiction (λ hy, _),
-  cases hz.2 y hy with j hj,
-  rw [← sub_add_cancel j i, gpow_add, mul_apply, hi] at hj,
-  cases gpow_apply_eq_of_apply_apply_eq_self hffx (j - i) with hji hji,
-  { rw [← hj, hji] at hyx, cc },
-  { rw [← hj, hji] at hfyx, cc }
-end
-
-lemma is_cycle_swap_mul {α : Type*} [decidable_eq α] {f : perm α} (hf : is_cycle f) {x : α}
-  (hx : f x ≠ x) (hffx : f (f x) ≠ x) : is_cycle (swap x (f x) * f) :=
-⟨f x, by simp only [swap_apply_def, mul_apply];
-        split_ifs; simp [injective.eq_iff f.injective] at *; cc,
-  λ y hy,
-  let ⟨i, hi⟩ := exists_gpow_eq_of_is_cycle hf hx (ne_and_ne_of_swap_mul_apply_ne_self hy).1 in
-  have hi : (f ^ (i - 1)) (f x) = y, from
-    calc (f ^ (i - 1)) (f x) = (f ^ (i - 1) * f ^ (1 : ℤ)) x : by rw [gpow_one, mul_apply]
-    ... =  y : by rwa [← gpow_add, sub_add_cancel],
-  is_cycle_swap_mul_aux₂ (i - 1) hy hi⟩
-
 @[simp] lemma support_swap {x y : α} (hxy : x ≠ y) : (swap x y).support = {x, y} :=
 finset.ext $ λ a, by simp [swap_apply_def]; split_ifs; cc
 
 lemma card_support_swap {x y : α} (hxy : x ≠ y) : (swap x y).support.card = 2 :=
 show (swap x y).support.card = finset.card ⟨x ::ₘ y ::ₘ 0, by simp [hxy]⟩,
 from congr_arg card $ by rw [support_swap hxy]; simp [*, finset.ext_iff]; cc
-
-lemma sign_cycle : ∀ {f : perm α} (hf : is_cycle f),
-  sign f = -(-1) ^ f.support.card
-| f := λ hf,
-let ⟨x, hx⟩ := hf in
-calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
-  by rw [← mul_assoc, mul_def, mul_def, swap_swap, trans_refl]
-... = -(-1) ^ f.support.card :
-  if h1 : f (f x) = x
-  then
-    have h : swap x (f x) * f = 1,
-      begin
-        rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
-        simp only [perm.mul_def, perm.one_def, swap_apply_left, swap_swap]
-      end,
-    by rw [sign_mul, sign_swap hx.1.symm, h, sign_one,
-        eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1, card_support_swap hx.1.symm]; refl
-  else
-    have h : card (support (swap x (f x) * f)) + 1 = card (support f),
-      by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_eq h1,
-        card_insert_of_not_mem (not_mem_erase _ _)],
-    have wf : card (support (swap x (f x) * f)) < card (support f),
-      from card_support_swap_mul hx.1,
-    by rw [sign_mul, sign_swap hx.1.symm, sign_cycle (is_cycle_swap_mul hf hx.1 h1), ← h];
-      simp only [pow_add, mul_one, units.neg_neg, one_mul, units.mul_neg, eq_self_iff_true,
-      pow_one, units.neg_mul_neg]
-using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support.card)⟩]}
 
 /-- If we apply `prod_extend_right a (σ a)` for all `a : α` in turn,
 we get `prod_congr_right σ`. -/

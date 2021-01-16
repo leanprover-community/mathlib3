@@ -409,6 +409,57 @@ theorem norm_image_sub_le_of_norm_deriv_le_segment_01 {C : ℝ}
 by simpa only [sub_zero, mul_one]
   using norm_image_sub_le_of_norm_deriv_le_segment hf bound 1 (right_mem_Icc.2 zero_le_one)
 
+theorem constant_of_has_deriv_right_zero (hcont : continuous_on f (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at f 0 (Ici x) x) :
+  ∀ x ∈ Icc a b, f x = f a :=
+by simpa only [zero_mul, norm_le_zero_iff, sub_eq_zero] using
+  λ x hx, norm_image_sub_le_of_norm_deriv_right_le_segment
+    hcont hderiv (λ y hy, by rw norm_le_zero_iff) x hx
+
+theorem constant_of_deriv_within_zero (hdiff : differentiable_on ℝ f (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, deriv_within f (Icc a b) x = 0) :
+  ∀ x ∈ Icc a b, f x = f a :=
+begin
+  have H : ∀ x ∈ Ico a b, ∥deriv_within f (Icc a b) x∥ ≤ 0 :=
+    by simpa only [norm_le_zero_iff] using λ x hx, hderiv x hx,
+  simpa only [zero_mul, norm_le_zero_iff, sub_eq_zero] using
+    λ x hx, norm_image_sub_le_of_norm_deriv_le_segment hdiff H x hx,
+end
+
+variables {f' g : ℝ → E}
+
+/-- If two continuous functions on `[a, b]` have the same right derivative and are equal at `a`,
+  then they are equal everywhere on `[a, b]`. -/
+theorem eq_of_has_deriv_right_eq
+  (derivf : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
+  (derivg : ∀ x ∈ Ico a b, has_deriv_within_at g (f' x) (Ici x) x)
+  (fcont : continuous_on f (Icc a b)) (gcont : continuous_on g (Icc a b))
+  (hi : f a = g a) :
+  ∀ y ∈ Icc a b, f y = g y :=
+begin
+  simp only [← @sub_eq_zero _ _ (f _)] at hi ⊢,
+  exact hi ▸ constant_of_has_deriv_right_zero (fcont.sub gcont)
+    (λ y hy, by simpa only [sub_self] using (derivf y hy).sub (derivg y hy)),
+end
+
+/-- If two differentiable functions on `[a, b]` have the same derivative within `[a, b]` everywhere
+  on `[a, b)` and are equal at `a`, then they are equal everywhere on `[a, b]`. -/
+theorem eq_of_deriv_within_eq (fdiff : differentiable_on ℝ f (Icc a b))
+  (gdiff : differentiable_on ℝ g (Icc a b))
+  (hderiv : eq_on (deriv_within f (Icc a b)) (deriv_within g (Icc a b)) (Ico a b))
+  (hi : f a = g a) :
+  ∀ y ∈ Icc a b, f y = g y :=
+begin
+  have A : ∀ y ∈ Ico a b, has_deriv_within_at f (deriv_within f (Icc a b) y) (Ici y) y :=
+    λ y hy, (fdiff y (mem_Icc_of_Ico hy)).has_deriv_within_at.nhds_within
+      (Icc_mem_nhds_within_Ici hy),
+  have B : ∀ y ∈ Ico a b, has_deriv_within_at g (deriv_within g (Icc a b) y) (Ici y) y :=
+    λ y hy, (gdiff y (mem_Icc_of_Ico hy)).has_deriv_within_at.nhds_within
+      (Icc_mem_nhds_within_Ici hy),
+  exact eq_of_has_deriv_right_eq A (λ y hy, (hderiv hy).symm ▸ B y hy) fdiff.continuous_on
+    gdiff.continuous_on hi
+end
+
 end
 
 /-! ### Vector-valued functions `f : E → F` -/
@@ -447,8 +498,9 @@ begin
   exact bound (g t) (segm $ Ico_subset_Icc_self ht)
 end
 
-/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on `s`,
-then the function is `C`-Lipschitz on `s`. Version with `has_fderiv_within` and `lipschitz_on_with`. -/
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on
+`s`, then the function is `C`-Lipschitz on `s`. Version with `has_fderiv_within` and
+`lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_has_fderiv_within_le
   {f : E → F} {C : ℝ} {s : set E} {f' : E → (E →L[ℝ] F)}
   (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C)
@@ -468,8 +520,9 @@ theorem convex.norm_image_sub_le_of_norm_fderiv_within_le {f : E → F} {C : ℝ
 hs.norm_image_sub_le_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
 bound xs ys
 
-/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on `s`,
-then the function is `C`-Lipschitz on `s`. Version with `fderiv_within` and `lipschitz_on_with`. -/
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on
+`s`, then the function is `C`-Lipschitz on `s`. Version with `fderiv_within` and
+`lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_fderiv_within_le {f : E → F} {C : ℝ} {s : set E}
   (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥fderiv_within ℝ f s x∥ ≤ C)
   (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s:=
@@ -483,8 +536,8 @@ theorem convex.norm_image_sub_le_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : 
 hs.norm_image_sub_le_of_norm_has_fderiv_within_le
 (λ x hx, (hf x hx).has_fderiv_at.has_fderiv_within_at) bound xs ys
 
-/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on `s`,
-then the function is `C`-Lipschitz on `s`. Version with `fderiv` and `lipschitz_on_with`. -/
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on
+`s`, then the function is `C`-Lipschitz on `s`. Version with `fderiv` and `lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : set E}
   (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥fderiv ℝ f x∥ ≤ C)
   (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s :=
@@ -674,7 +727,8 @@ lemma exists_ratio_deriv_eq_ratio_slope :
   ∃ c ∈ Ioo a b, (g b - g a) * (deriv f c) = (f b - f a) * (deriv g c) :=
 exists_ratio_has_deriv_at_eq_ratio_slope f (deriv f) hab hfc
   (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
-  g (deriv g) hgc (λ x hx, ((hgd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
+  g (deriv g) hgc $
+    λ x hx, ((hgd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at
 
 omit hfc
 
@@ -922,8 +976,8 @@ theorem concave_on_univ_of_deriv_antimono {f : ℝ → ℝ} (hf : differentiable
 concave_on_of_deriv_antimono convex_univ hf.continuous.continuous_on hf.differentiable_on
   (λ x y _ _ h, hf'_antimono h)
 
-/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its interior,
-and `f''` is nonnegative on the interior, then `f` is convex on `D`. -/
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its
+interior, and `f''` is nonnegative on the interior, then `f` is convex on `D`. -/
 theorem convex_on_of_deriv2_nonneg {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'' : differentiable_on ℝ (deriv f) (interior D))
@@ -934,8 +988,8 @@ assume x y hx hy hxy,
 hD.interior.mono_of_deriv_nonneg hf''.continuous_on (by rwa [interior_interior])
   (by rwa [interior_interior]) _ _ hx hy hxy
 
-/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its interior,
-and `f''` is nonpositive on the interior, then `f` is concave on `D`. -/
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its
+interior, and `f''` is nonpositive on the interior, then `f` is concave on `D`. -/
 theorem concave_on_of_deriv2_nonpos {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'' : differentiable_on ℝ (deriv f) (interior D))

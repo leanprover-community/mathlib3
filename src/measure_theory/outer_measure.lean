@@ -52,7 +52,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 noncomputable theory
 
 open set finset function filter encodable
-open_locale classical big_operators nnreal
+open_locale classical big_operators nnreal topological_space
 
 namespace measure_theory
 
@@ -61,7 +61,7 @@ structure outer_measure (α : Type*) :=
 (measure_of : set α → ennreal)
 (empty : measure_of ∅ = 0)
 (mono : ∀{s₁ s₂}, s₁ ⊆ s₂ → measure_of s₁ ≤ measure_of s₂)
-(Union_nat : ∀(s:ℕ → set α), measure_of (⋃i, s i) ≤ (∑'i, measure_of (s i)))
+(Union_nat : ∀(s:ℕ → set α), measure_of (⋃i, s i) ≤ ∑'i, measure_of (s i))
 
 namespace outer_measure
 
@@ -80,7 +80,7 @@ theorem mono' (m : outer_measure α) {s₁ s₂}
 
 protected theorem Union (m : outer_measure α)
   {β} [encodable β] (s : β → set α) :
-  m (⋃i, s i) ≤ (∑'i, m (s i)) :=
+  m (⋃i, s i) ≤ ∑'i, m (s i) :=
 rel_supr_tsum m m.empty (≤) m.Union_nat s
 
 lemma Union_null (m : outer_measure α)
@@ -180,11 +180,11 @@ section supremum
 instance : has_Sup (outer_measure α) :=
 ⟨λms, {
   measure_of := λs, ⨆ m ∈ ms, (m : outer_measure α) s,
-  empty      := le_zero_iff_eq.1 $ bsupr_le $ λ m h, le_of_eq m.empty,
+  empty      := nonpos_iff_eq_zero.1 $ bsupr_le $ λ m h, le_of_eq m.empty,
   mono       := assume s₁ s₂ hs, bsupr_le_bsupr $ assume m hm, m.mono hs,
   Union_nat  := assume f, bsupr_le $ assume m hm,
-    calc m (⋃i, f i) ≤ (∑' (i : ℕ), m (f i)) : m.Union_nat _
-      ... ≤ (∑'i, ⨆ m ∈ ms, (m : outer_measure α) (f i)) :
+    calc m (⋃i, f i) ≤ ∑' (i : ℕ), m (f i) : m.Union_nat _
+      ... ≤ ∑'i, (⨆ m ∈ ms, (m : outer_measure α) (f i)) :
         ennreal.tsum_le_tsum $ assume i, le_bsupr m hm }⟩
 
 instance : complete_lattice (outer_measure α) :=
@@ -238,15 +238,18 @@ instance : is_lawful_functor outer_measure :=
 
 /-- The dirac outer measure. -/
 def dirac (a : α) : outer_measure α :=
-{ measure_of := λs, ⨆ h : a ∈ s, 1,
+{ measure_of := λs, indicator s (λ _, 1) a,
   empty := by simp,
-  mono := λ s t h, supr_le_supr2 (λ h', ⟨h h', le_refl _⟩),
-  Union_nat := λ s, supr_le $ λ h,
-    let ⟨i, h⟩ := mem_Union.1 h in
-    le_trans (by exact le_supr _ h) (ennreal.le_tsum i) }
+  mono := λ s t h, indicator_le_indicator_of_subset h (λ _, zero_le _) a,
+  Union_nat := λ s,
+    if hs : a ∈ ⋃ n, s n then let ⟨i, hi⟩ := mem_Union.1 hs in
+      calc indicator (⋃ n, s n) (λ _, (1 : ennreal)) a = 1 : indicator_of_mem hs _
+      ... = indicator (s i) (λ _, 1) a : (indicator_of_mem hi _).symm
+      ... ≤ ∑' n, indicator (s n) (λ _, 1) a : ennreal.le_tsum _
+    else by simp only [indicator_of_not_mem hs, zero_le]}
 
 @[simp] theorem dirac_apply (a : α) (s : set α) :
-  dirac a s = ⨆ h : a ∈ s, 1 := rfl
+  dirac a s = indicator s (λ _, 1) a := rfl
 
 /-- The sum of an (arbitrary) collection of outer measures. -/
 def sum {ι} (f : ι → outer_measure α) : outer_measure α :=
@@ -260,8 +263,8 @@ def sum {ι} (f : ι → outer_measure α) : outer_measure α :=
   sum f s = ∑' i, f i s := rfl
 
 theorem smul_dirac_apply (a : ennreal) (b : α) (s : set α) :
-  (a • dirac b) s = ⨆ h : b ∈ s, a :=
-by by_cases b ∈ s; simp [h]
+  (a • dirac b) s = indicator s (λ _, a) b :=
+by simp
 
 /-- Pullback of an `outer_measure`: `comap f μ s = μ (f '' s)`. -/
 def comap {β} (f : α → β) : outer_measure β →ₗ[ennreal] outer_measure α :=
@@ -308,12 +311,12 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
   mono       := assume s₁ s₂ hs, infi_le_infi $ assume f,
     infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_refl _⟩,
   Union_nat := assume s, ennreal.le_of_forall_epsilon_le $ begin
-    assume ε hε (hb : (∑'i, μ (s i)) < ⊤),
+    assume ε hε (hb : ∑'i, μ (s i) < ⊤),
     rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_lt_coe.2 hε) ℕ with ⟨ε', hε', hl⟩,
     refine le_trans _ (add_le_add_left (le_of_lt hl) _),
     rw ← ennreal.tsum_add,
     choose f hf using show
-      ∀i, ∃f:ℕ → set α, s i ⊆ (⋃i, f i) ∧ (∑'i, m (f i)) < μ (s i) + ε' i,
+      ∀i, ∃f:ℕ → set α, s i ⊆ (⋃i, f i) ∧ ∑'i, m (f i) < μ (s i) + ε' i,
     { intro,
       have : μ (s i) < μ (s i) + ε' i :=
         ennreal.lt_add_right
@@ -337,12 +340,12 @@ variables {m m_empty}
 theorem of_function_le (s : set α) : outer_measure.of_function m m_empty s ≤ m s :=
 let f : ℕ → set α := λi, nat.rec_on i s (λn s, ∅) in
 infi_le_of_le f $ infi_le_of_le (subset_Union f 0) $ le_of_eq $
-calc (∑'i, m (f i)) = ∑ i in {0}, m (f i) :
+calc ∑'i, m (f i) = ∑ i in {0}, m (f i) :
     tsum_eq_sum $ by intro i; cases i; simp [m_empty]
   ... = m s : by simp; refl
 
 theorem of_function_eq (s : set α) (m_mono : ∀ ⦃t : set α⦄, s ⊆ t → m s ≤ m t)
-  (m_subadd : ∀ (s : ℕ → set α), m (⋃i, s i) ≤ (∑'i, m (s i))) :
+  (m_subadd : ∀ (s : ℕ → set α), m (⋃i, s i) ≤ ∑'i, m (s i)) :
   outer_measure.of_function m m_empty s = m s :=
 le_antisymm (of_function_le s) $ le_infi $ λ f, le_infi $ λ hf, le_trans (m_mono hf) (m_subadd f)
 
@@ -381,7 +384,7 @@ theorem bounded_by_apply (s : set α) :
 by simp [bounded_by, of_function_apply]
 
 theorem bounded_by_eq (s : set α) (m_empty : m ∅ = 0) (m_mono : ∀ ⦃t : set α⦄, s ⊆ t → m s ≤ m t)
-  (m_subadd : ∀ (s : ℕ → set α), m (⋃i, s i) ≤ (∑'i, m (s i))) : bounded_by m s = m s :=
+  (m_subadd : ∀ (s : ℕ → set α), m (⋃i, s i) ≤ ∑'i, m (s i)) : bounded_by m s = m s :=
 by rw [bounded_by_eq_of_function m_empty, of_function_eq s m_mono m_subadd]
 
 theorem le_bounded_by {μ : outer_measure α} : μ ≤ bounded_by m ↔ ∀ s, μ s ≤ m s :=
@@ -559,8 +562,8 @@ theorem le_smul_caratheodory (a : ennreal) (m : outer_measure α) :
 
 @[simp] theorem dirac_caratheodory (a : α) : (dirac a).caratheodory = ⊤ :=
 top_unique $ λ s _ t, begin
-  by_cases a ∈ t; simp [h],
-  by_cases a ∈ s; simp [h]
+  by_cases ht : a ∈ t, swap, by simp [ht],
+  by_cases hs : a ∈ s; simp*
 end
 
 section Inf_gen
@@ -586,7 +589,7 @@ begin
 end
 
 lemma supr_Inf_gen_nonempty {m : set (outer_measure α)} (h : m.nonempty) (t : set α) :
-   (⨆ (h : t.nonempty), Inf_gen m t) = (⨅ (μ : outer_measure α) (h : μ ∈ m), μ t) :=
+  (⨆ (h : t.nonempty), Inf_gen m t) = (⨅ (μ : outer_measure α) (h : μ ∈ m), μ t) :=
 begin
   rcases t.eq_empty_or_nonempty with rfl|ht,
   { rcases h with ⟨μ, hμ⟩,
@@ -673,9 +676,9 @@ variables {m : Π (s : set α), P s → ennreal}
 variables (P0 : P ∅) (m0 : m ∅ P0 = 0)
 variables (PU : ∀{{f : ℕ → set α}} (hm : ∀i, P (f i)), P (⋃i, f i))
 variables (mU : ∀ {{f : ℕ → set α}} (hm : ∀i, P (f i)), pairwise (disjoint on f) →
-  m (⋃i, f i) (PU hm) = (∑'i, m (f i) (hm i)))
+  m (⋃i, f i) (PU hm) = ∑'i, m (f i) (hm i))
 variables (msU : ∀ {{f : ℕ → set α}} (hm : ∀i, P (f i)),
-  m (⋃i, f i) (PU hm) ≤ (∑'i, m (f i) (hm i)))
+  m (⋃i, f i) (PU hm) ≤ ∑'i, m (f i) (hm i))
 variables (m_mono : ∀⦃s₁ s₂ : set α⦄ (hs₁ : P s₁) (hs₂ : P s₂), s₁ ⊆ s₂ → m s₁ hs₁ ≤ m s₂ hs₂)
 
 lemma extend_empty : extend m ∅ = 0 :=
@@ -683,14 +686,14 @@ lemma extend_empty : extend m ∅ = 0 :=
 
 lemma extend_Union_nat
   {f : ℕ → set α} (hm : ∀i, P (f i))
-  (mU : m (⋃i, f i) (PU hm) = (∑'i, m (f i) (hm i))) :
-  extend m (⋃i, f i) = (∑'i, extend m (f i)) :=
+  (mU : m (⋃i, f i) (PU hm) = ∑'i, m (f i) (hm i)) :
+  extend m (⋃i, f i) = ∑'i, extend m (f i) :=
 (extend_eq _ _).trans $ mU.trans $ by { congr' with i, rw extend_eq }
 
 section subadditive
 include PU msU
 lemma extend_Union_le_tsum_nat'
-  (s : ℕ → set α) : extend m (⋃i, s i) ≤ (∑'i, extend m (s i)) :=
+  (s : ℕ → set α) : extend m (⋃i, s i) ≤ ∑'i, extend m (s i) :=
 begin
   by_cases h : ∀i, P (s i),
   { rw [extend_eq _ (PU h), congr_arg tsum _],
@@ -712,7 +715,7 @@ section unions
 include P0 m0 PU mU
 lemma extend_Union {β} [encodable β] {f : β → set α}
   (hd : pairwise (disjoint on f)) (hm : ∀i, P (f i)) :
-  extend m (⋃i, f i) = (∑'i, extend m (f i)) :=
+  extend m (⋃i, f i) = ∑'i, extend m (f i) :=
 begin
   rw [← encodable.Union_decode2, ← tsum_Union_decode2],
   { exact extend_Union_nat PU
@@ -813,7 +816,7 @@ variables {α : Type*} [measurable_space α]
 variables {m : Π (s : set α), is_measurable s → ennreal}
 variables (m0 : m ∅ is_measurable.empty = 0)
 variable (mU : ∀ {{f : ℕ → set α}} (hm : ∀i, is_measurable (f i)), pairwise (disjoint on f) →
-  m (⋃i, f i) (is_measurable.Union hm) = (∑'i, m (f i) (hm i)))
+  m (⋃i, f i) (is_measurable.Union hm) = ∑'i, m (f i) (hm i))
 include m0 mU
 
 lemma extend_mono {s₁ s₂ : set α} (h₁ : is_measurable s₁) (hs : s₁ ⊆ s₂) :
@@ -826,7 +829,7 @@ begin
   exact le_iff_exists_add.2 ⟨_, this⟩,
 end
 
-lemma extend_Union_le_tsum_nat : ∀ (s : ℕ → set α), extend m (⋃i, s i) ≤ (∑'i, extend m (s i)) :=
+lemma extend_Union_le_tsum_nat : ∀ (s : ℕ → set α), extend m (⋃i, s i) ≤ ∑'i, extend m (s i) :=
 begin
   refine extend_Union_le_tsum_nat' is_measurable.Union _, intros f h,
   simp [Union_disjointed.symm] {single_pass := tt},
@@ -903,22 +906,39 @@ theorem trim_sum_ge {ι} (m : ι → outer_measure α) : sum (λ i, (m i).trim) 
 λ t st ht, ennreal.tsum_le_tsum (λ i,
   infi_le_of_le t $ infi_le_of_le st $ infi_le _ ht)
 
+lemma exists_is_measurable_superset_eq_trim (m : outer_measure α) (s : set α) :
+  ∃ t, s ⊆ t ∧ is_measurable t ∧ m t = m.trim s :=
+begin
+  simp only [trim_eq_infi], set ms := ⨅ (t : set α) (st : s ⊆ t) (ht : is_measurable t), m t,
+  by_cases hs : ms = ⊤,
+  { simp only [hs],
+    simp only [infi_eq_top] at hs,
+    exact ⟨univ, subset_univ s, is_measurable.univ, hs _ (subset_univ s) is_measurable.univ⟩ },
+  { have : ∀ r > ms, ∃ t, s ⊆ t ∧ is_measurable t ∧ m t < r,
+    { intros r hs,
+      simpa [infi_lt_iff] using hs },
+    have : ∀ n : ℕ, ∃ t, s ⊆ t ∧ is_measurable t ∧ m t < ms + n⁻¹,
+    { assume n,
+      refine this _ (ennreal.lt_add_right (lt_top_iff_ne_top.2 hs) _),
+      exact (ennreal.inv_pos.2 $ ennreal.nat_ne_top _) },
+    choose t hsub hm hm',
+    refine ⟨⋂ n, t n, subset_Inter hsub, is_measurable.Inter hm, _⟩,
+    have : tendsto (λ n : ℕ, ms + n⁻¹) at_top (𝓝 (ms + 0)),
+      from tendsto_const_nhds.add ennreal.tendsto_inv_nat_nhds_zero,
+    rw add_zero at this,
+    refine le_antisymm (ge_of_tendsto' this $ λ n, _) _,
+    { exact le_trans (m.mono' $ Inter_subset t n) (hm' n).le },
+    { refine infi_le_of_le (⋂ n, t n) _,
+      refine infi_le_of_le (subset_Inter hsub) _,
+      refine infi_le _ (is_measurable.Inter hm) } }
+end
+
 lemma exists_is_measurable_superset_of_trim_eq_zero
   {m : outer_measure α} {s : set α} (h : m.trim s = 0) :
   ∃t, s ⊆ t ∧ is_measurable t ∧ m t = 0 :=
 begin
-  erw [trim_eq_infi, infi_eq_bot] at h,
-  choose t ht using show ∀n:ℕ, ∃t, s ⊆ t ∧ is_measurable t ∧ m t < n⁻¹,
-  { assume n,
-    have : (0 : ennreal) < n⁻¹ := (ennreal.inv_pos.2 $ ennreal.nat_ne_top _),
-    rcases h _ this with ⟨t, ht⟩,
-    use [t],
-    simpa only [infi_lt_iff, exists_prop] using ht },
-  refine ⟨⋂n, t n, subset_Inter (λn, (ht n).1), is_measurable.Inter (λn, (ht n).2.1), _⟩,
-  refine le_antisymm _ (zero_le _),
-  refine le_of_tendsto_of_tendsto tendsto_const_nhds
-    ennreal.tendsto_inv_nat_nhds_zero (eventually_of_forall $ assume n, _),
-  exact le_trans (m.mono' $ Inter_subset _ _) (le_of_lt (ht n).2.2)
+  rcases exists_is_measurable_superset_eq_trim m s with ⟨t, hst, ht, hm⟩,
+  exact ⟨t, hst, ht, h ▸ hm⟩
 end
 
 theorem trim_smul (c : ennreal) (m : outer_measure α) :

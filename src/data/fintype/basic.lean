@@ -90,6 +90,11 @@ by rw [inter_comm, univ_inter]
   {δ : α → Sort*} (f g : Πi, δ i) : univ.piecewise f g = f :=
 by { ext i, simp [piecewise] }
 
+lemma piecewise_compl [decidable_eq α] (s : finset α) [Π i : α, decidable (i ∈ s)]
+  [Π i : α, decidable (i ∈ sᶜ)] {δ : α → Sort*} (f g : Π i, δ i) :
+  sᶜ.piecewise f g = s.piecewise g f :=
+by { ext i, simp [piecewise] }
+
 lemma univ_map_equiv_to_embedding {α β : Type*} [fintype α] [fintype β] (e : α ≃ β) :
   univ.map e.to_embedding = univ :=
 begin
@@ -220,7 +225,8 @@ def of_bijective [fintype α] (f : α → β) (H : function.bijective f) : finty
 λ b, let ⟨a, e⟩ := H.2 b in e ▸ mem_map_of_mem _ (mem_univ _)⟩
 
 /-- If `f : α → β` is a surjection and `α` is a fintype, then `β` is also a fintype. -/
-def of_surjective [decidable_eq β] [fintype α] (f : α → β) (H : function.surjective f) : fintype β :=
+def of_surjective [decidable_eq β] [fintype α] (f : α → β) (H : function.surjective f) :
+  fintype β :=
 ⟨univ.image f, λ b, let ⟨a, e⟩ := H b in e ▸ mem_image_of_mem _ (mem_univ _)⟩
 
 /-- Given an injective function to a fintype, the domain is also a
@@ -287,7 +293,8 @@ multiset.card_map subtype.val finset.univ.val
 @[simp] theorem coe_to_finset (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
 set.ext $ λ _, mem_to_finset
 
-@[simp] theorem to_finset_inj {s t : set α} [fintype s] [fintype t] : s.to_finset = t.to_finset ↔ s = t :=
+@[simp] theorem to_finset_inj {s t : set α} [fintype s] [fintype t] :
+  s.to_finset = t.to_finset ↔ s = t :=
 ⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩
 
 end set
@@ -949,7 +956,8 @@ begin
           swap_swap, ← equiv.perm.one_def, one_mul] } }
 end
 
-lemma mem_of_mem_perms_of_list : ∀ {l : list α} {f : perm α}, f ∈ perms_of_list l → ∀ {x}, f x ≠ x → x ∈ l
+lemma mem_of_mem_perms_of_list :
+  ∀ {l : list α} {f : perm α}, f ∈ perms_of_list l → ∀ {x}, f x ≠ x → x ∈ l
 | []     f h := have f = 1 := by simpa [perms_of_list] using h, by rw this; simp
 | (a::l) f h :=
 (mem_append.1 h).elim
@@ -964,7 +972,8 @@ lemma mem_of_mem_perms_of_list : ∀ {l : list α} {f : perm α}, f ∈ perms_of
       by rw [eq_inv_mul_iff_mul_eq.2 hg₂, mul_apply, swap_inv, swap_apply_def];
         split_ifs; cc)
 
-lemma mem_perms_of_list_iff {l : list α} {f : perm α} : f ∈ perms_of_list l ↔ ∀ {x}, f x ≠ x → x ∈ l :=
+lemma mem_perms_of_list_iff {l : list α} {f : perm α} :
+  f ∈ perms_of_list l ↔ ∀ {x}, f x ≠ x → x ∈ l :=
 ⟨mem_of_mem_perms_of_list, mem_perms_of_list_of_mem⟩
 
 lemma nodup_perms_of_list : ∀ {l : list α} (hl : l.nodup), (perms_of_list l).nodup

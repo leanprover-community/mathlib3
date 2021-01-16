@@ -129,9 +129,7 @@ begin
     equivariant_of_linear_of_comm_apply, sum_of_conjugates],
   rw [linear_map.sum_apply],
   simp only [conjugate_i π i h],
-  rw [finset.sum_const, finset.card_univ,
-    @semimodule.nsmul_eq_smul k _
-      V _ _ (fintype.card G) v,
+  rw [finset.sum_const, finset.card_univ, nsmul_eq_smul_cast k,
     ←mul_smul, invertible.inv_of_mul_self, one_smul],
 end
 end

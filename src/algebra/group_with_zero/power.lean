@@ -25,7 +25,7 @@ by { contrapose!, rintro rfl, exact zero_pow' n hn }
 @[simp] lemma zero_pow_eq_zero [nontrivial M] {n : ℕ} : (0 : M) ^ n = 0 ↔ 0 < n :=
 begin
   split; intro h,
-  { rw [nat.pos_iff_ne_zero], rintro rfl, simpa using h },
+  { rw [pos_iff_ne_zero], rintro rfl, simpa using h },
   { exact zero_pow' n h.ne.symm }
 end
 

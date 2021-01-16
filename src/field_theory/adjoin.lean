@@ -565,8 +565,8 @@ begin
 end
 
 lemma alg_hom_mk_adjoin_splits' (hS : adjoin F (S : set E) = ⊤)
-(hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
-nonempty (E →ₐ[F] K) :=
+  (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
+  nonempty (E →ₐ[F] K) :=
 begin
   cases alg_hom_mk_adjoin_splits hK with ϕ,
   rw hS at ϕ,

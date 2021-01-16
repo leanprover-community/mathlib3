@@ -410,7 +410,7 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] {α : E}
 variables {K : Type*} [field K] [algebra F K]
 
 lemma aeval_gen_minimal_polynomial (h : is_integral F α) :
-  aeval (adjoin_simple.gen F α) (minimal_polynomial h)  = 0 :=
+  aeval (adjoin_simple.gen F α) (minimal_polynomial h) = 0 :=
 begin
   ext,
   convert minimal_polynomial.aeval h,
@@ -539,8 +539,8 @@ section alg_hom_mk_adjoin_splits
 variables {F E K : Type*} [field F] [field E] [field K] [algebra F E] [algebra F K] {S : finset E}
 
 lemma alg_hom_mk_adjoin_splits
-(hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
-nonempty ((adjoin F (S : set E)) →ₐ[F] K) :=
+  (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
+  nonempty ((adjoin F (S : set E)) →ₐ[F] K) :=
 begin
   let P : intermediate_field F E → Prop := λ L, nonempty (L →ₐ[F] K),
   change P (adjoin F ↑S),
@@ -565,8 +565,8 @@ begin
 end
 
 lemma alg_hom_mk_adjoin_splits' (hS : adjoin F (S : set E) = ⊤)
-(hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
-nonempty (E →ₐ[F] K) :=
+  (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
+  nonempty (E →ₐ[F] K) :=
 begin
   cases alg_hom_mk_adjoin_splits hK with ϕ,
   rw hS at ϕ,

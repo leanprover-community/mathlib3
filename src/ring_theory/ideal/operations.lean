@@ -1154,15 +1154,20 @@ lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J �
   (quotient_map I f H).comp (quotient.mk J) = (quotient.mk I).comp f :=
 ring_hom.ext (λ x, by simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient_map_mk])
 
-/-- If we take `J = I.comap f` then `quotient_map` is injective. -/
+/-- `H` and `h` are kept as seperate hypothesis since H is used in constructing the quotient map -/
+lemma quotient_map_injective' {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
+  (h : I.comap f ≤ J) : function.injective (quotient_map I f H) :=
+begin
+  refine (quotient_map I f H).injective_iff.2 (λ a ha, _),
+  obtain ⟨r, rfl⟩ := quotient.mk_surjective a,
+  rw [quotient_map_mk, quotient.eq_zero_iff_mem] at ha,
+  exact (quotient.eq_zero_iff_mem).mpr (h ha),
+end
+
+/-- If we take `J = I.comap f` then `quotient_map` is injective automatically. -/
 lemma quotient_map_injective {I : ideal S} {f : R →+* S} :
   function.injective (quotient_map I f le_rfl) :=
-begin
-  refine (quotient_map I f le_rfl).injective_iff.2 (λ a ha, _),
-  obtain ⟨r, rfl⟩ := quotient.mk_surjective a,
-  rw quotient_map_mk at ha,
-  rwa quotient.eq_zero_iff_mem at ha ⊢
-end
+quotient_map_injective' le_rfl
 
 lemma quotient_map_surjective {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
   (hf : function.surjective f) : function.surjective (quotient_map I f H) :=

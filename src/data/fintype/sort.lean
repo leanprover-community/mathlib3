@@ -10,14 +10,10 @@ variables {α : Type*}
 
 open finset
 
-/-- Given a linearly ordered fintype `α` of cardinal `k`, the equiv `mono_equiv_of_fin α h`
-is the increasing bijection between `fin k` and `α`. Here, `h` is a proof that
-the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
+/-- Given a linearly ordered fintype `α` of cardinal `k`, the order isomorphism
+`mono_equiv_of_fin α h` is the increasing bijection between `fin k` and `α`. Here, `h` is a proof
+that the cardinality of `s` is `k`. We use this instead of an isomorphism `fin s.card ≃o α` to avoid
 casting issues in further uses of this function. -/
-noncomputable def mono_equiv_of_fin (α) [fintype α] [linear_order α] {k : ℕ}
-  (h : fintype.card α = k) : fin k ≃ α :=
-equiv.of_bijective (mono_of_fin univ h) begin
-  apply set.bijective_iff_bij_on_univ.2,
-  rw ← @coe_univ α _,
-  exact mono_of_fin_bij_on (univ : finset α) h
-end
+def mono_equiv_of_fin (α) [fintype α] [linear_order α] {k : ℕ}
+  (h : fintype.card α = k) : fin k ≃o α :=
+(univ.order_iso_of_fin h).trans $ (order_iso.set_congr _ _ coe_univ).trans order_iso.set.univ

@@ -42,7 +42,7 @@ lemma antilipschitz_with.mul_le_dist [metric_space α] [metric_space β] {K : �
 begin
   by_cases hK : K = 0, by simp [hK, dist_nonneg],
   rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  rw div_le_iff' (nnreal.coe_pos.2 $ zero_lt_iff_ne_zero.2 hK),
+  rw div_le_iff' (nnreal.coe_pos.2 $ pos_iff_ne_zero.2 hK),
   exact hf.le_mul_dist x y
 end
 
@@ -63,7 +63,7 @@ lemma mul_le_edist (hf : antilipschitz_with K f) (x y : α) :
   ↑K⁻¹ * edist x y ≤ edist (f x) (f y) :=
 begin
   by_cases hK : K = 0, by simp [hK],
-  rw [ennreal.coe_inv hK, mul_comm, ← ennreal.div_def],
+  rw [ennreal.coe_inv hK, mul_comm, ← div_eq_mul_inv],
   apply ennreal.div_le_of_le_mul,
   rw mul_comm,
   exact hf x y
@@ -116,7 +116,7 @@ begin
     simpa only [hK, ennreal.coe_zero, zero_mul] using hf x y },
   { refine ⟨K⁻¹ * δ, _, λ x y hxy, lt_of_le_of_lt (hf x y) _⟩,
     { exact canonically_ordered_semiring.mul_pos.2 ⟨ennreal.inv_pos.2 ennreal.coe_ne_top, δ0⟩ },
-    { rw [mul_comm, ← ennreal.div_def] at hxy,
+    { rw [mul_comm, ← div_eq_mul_inv] at hxy,
       have := ennreal.mul_lt_of_lt_div hxy,
       rwa mul_comm } }
 end

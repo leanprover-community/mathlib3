@@ -59,7 +59,7 @@ def coalgebra_equiv_over :
 { functor := coalgebra_to_over X,
   inverse := over_to_coalgebra X,
   unit_iso := nat_iso.of_components
-                (λ A, coalgebra.mk_iso (iso.refl _)
+                (λ A, coalgebra.iso_mk (iso.refl _)
                         (prod.hom_ext (by { dsimp, simp }) (by { dsimp, simpa using A.counit })))
               (λ A₁ A₂ f, by { ext, simp }),
   counit_iso := nat_iso.of_components (λ f, over.iso_mk (iso.refl _)) (λ f g k, by tidy) }.

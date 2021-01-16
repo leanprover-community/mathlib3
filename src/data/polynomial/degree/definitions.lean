@@ -405,7 +405,8 @@ begin
     exact_mod_cast h }
 end
 
-lemma nat_degree_lt_nat_degree_iff (hp : p ≠ 0) : nat_degree p < nat_degree q ↔ degree p < degree q :=
+lemma nat_degree_lt_nat_degree_iff (hp : p ≠ 0) :
+  nat_degree p < nat_degree q ↔ degree p < degree q :=
 ⟨degree_lt_degree, begin
   intro h,
   have hq : q ≠ 0 := ne_zero_of_degree_gt h,

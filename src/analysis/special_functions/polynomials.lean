@@ -72,9 +72,9 @@ begin
     exact tendsto_abs_at_bot_at_top.comp (P.tendsto_at_bot_of_leading_coeff_nonpos hdeg hP.le)}
 end
 
-lemma is_equivalent_at_top_div [normed_linear_ordered_field α]
-  [order_topology α] {P Q : polynomial α} :
-   (λ x, (eval x P)/(eval x Q)) ~[at_top] λ x, P.leading_coeff/Q.leading_coeff * x^(P.nat_degree - Q.nat_degree : ℤ) :=
+lemma is_equivalent_at_top_div {P Q : polynomial α} :
+   (λ x, (eval x P)/(eval x Q)) ~[at_top]
+     λ x, P.leading_coeff/Q.leading_coeff * x^(P.nat_degree - Q.nat_degree : ℤ) :=
 begin
   by_cases hP : P = 0,
   { simp [hP] },

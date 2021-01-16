@@ -99,7 +99,8 @@ end
 
 /-- If `L/K` is a ring extension, and `x` is an element of `L` in the image of `K`,
 then the minimal polynomial of `x` is `X - C x`. -/
-lemma eq_X_sub_C_of_algebra_map_inj [nontrivial α] (a : α) (hf : function.injective (algebra_map α β)) :
+lemma eq_X_sub_C_of_algebra_map_inj [nontrivial α] (a : α)
+  (hf : function.injective (algebra_map α β)) :
   minpoly (@is_integral_algebra_map α β _ _ _ a) = X - C a :=
 begin
   have hdegle : (minpoly (@is_integral_algebra_map α β _ _ _ a)).nat_degree ≤ 1,
@@ -316,7 +317,8 @@ as root. -/
 -- TODO use `gcd_domain_dvd` directly when localizations are defined in terms of algebras
 -- instead of `ring_hom`s
 lemma integer_dvd {α : Type u} [integral_domain α] [algebra ℚ α] {x : α} (hx : is_integral ℤ x)
-  {P : polynomial ℤ} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) : minpoly hx ∣ P :=
+  {P : polynomial ℤ} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
+  minpoly hx ∣ P :=
 begin
   apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast _ _
     (monic.is_primitive (monic hx)) hprim ).2,

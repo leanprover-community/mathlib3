@@ -5,6 +5,7 @@ Author: Adam Topaz.
 -/
 import algebra.free_algebra
 import algebra.ring_quot
+import algebra.triv_sq_zero_ext
 
 /-!
 # Tensor Algebras
@@ -120,5 +121,23 @@ begin
   rw [←lift_symm_apply, ←lift_symm_apply] at w,
   exact (lift R).symm.injective w,
 end
+
+/-- The left-inverse of `algebra_map`. -/
+def algebra_map_inv : tensor_algebra R M →ₐ[R] R :=
+lift R (0 : M →ₗ[R] R)
+
+lemma algebra_map_left_inverse :
+  function.left_inverse algebra_map_inv (algebra_map R $ tensor_algebra R M) :=
+λ x, by simp [algebra_map_inv]
+
+/-- The left-inverse of `ι`.
+
+As an implementation detail, we implement this using `triv_sq_zero_ext` which has a suitable
+algebra structure. -/
+def ι_inv : tensor_algebra R M →ₗ[R] M :=
+(triv_sq_zero_ext.snd_hom R M).comp (lift R (triv_sq_zero_ext.inr_hom R M)).to_linear_map
+
+lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → tensor_algebra R M) :=
+λ x, by simp [ι_inv]
 
 end tensor_algebra

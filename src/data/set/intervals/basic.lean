@@ -303,6 +303,16 @@ lemma Icc_subset_Ici_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Ici a₂ ↔ a₂ ≤ a₁ :=
 ⟨λ h, h ⟨le_refl _, h₁⟩, λ h x ⟨hx, hx'⟩, le_trans h hx⟩
 
+lemma Icc_ssubset_Icc_left (hI : a₂ ≤ b₂) (ha : a₂ < a₁) (hb : b₁ ≤ b₂) :
+  Icc a₁ b₁ ⊂ Icc a₂ b₂ :=
+(ssubset_iff_of_subset (Icc_subset_Icc (le_of_lt ha) hb)).mpr
+  ⟨a₂, left_mem_Icc.mpr hI, not_and.mpr (λ f g, lt_irrefl a₂ (lt_of_lt_of_le ha f))⟩
+
+lemma Icc_ssubset_Icc_right (hI : a₂ ≤ b₂) (ha : a₂ ≤ a₁) (hb : b₁ < b₂) :
+  Icc a₁ b₁ ⊂ Icc a₂ b₂ :=
+(ssubset_iff_of_subset (Icc_subset_Icc ha (le_of_lt hb))).mpr
+  ⟨b₂, right_mem_Icc.mpr hI, (λ f, lt_irrefl b₁ (lt_of_lt_of_le hb f.2))⟩
+
 /-- If `a ≤ b`, then `(b, +∞) ⊆ (a, +∞)`. In preorders, this is just an implication. If you need
 the equivalence in linear orders, use `Ioi_subset_Ioi_iff`. -/
 lemma Ioi_subset_Ioi (h : a ≤ b) : Ioi b ⊆ Ioi a :=

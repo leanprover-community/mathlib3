@@ -6,7 +6,6 @@ Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 import category_theory.over
 import category_theory.limits.preserves.basic
 import category_theory.limits.creates
-import category_theory.limits.shapes.binary_products
 
 /-!
 # Limits and colimits in the over and under categories

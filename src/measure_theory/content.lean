@@ -90,7 +90,7 @@ begin
   have h'ε := ennreal.zero_lt_coe_iff.2 hε,
   cases le_or_lt (inner_content μ U) ε,
   { exact ⟨⊥, empty_subset _, le_trans h (le_add_of_nonneg_left (zero_le _))⟩ },
-  have := ennreal.sub_lt_sub_self (ne_of_lt hU) (ne_of_gt $ lt_trans h'ε h) h'ε,
+  have := ennreal.sub_lt_self (ne_of_lt hU) (ne_of_gt $ lt_trans h'ε h) h'ε,
   conv at this {to_rhs, rw inner_content }, simp only [lt_supr_iff] at this,
   rcases this with ⟨U, h1U, h2U⟩, refine ⟨U, h1U, _⟩,
   rw [← ennreal.sub_le_iff_le_add], exact le_of_lt h2U

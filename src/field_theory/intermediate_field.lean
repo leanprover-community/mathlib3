@@ -260,6 +260,10 @@ lemma field_range_le : (algebra_map K L).field_range ≤ S.to_subfield :=
 @[simp] lemma to_subalgebra_le_to_subalgebra {S S' : intermediate_field K L} :
   S.to_subalgebra ≤ S'.to_subalgebra ↔ S ≤ S' := iff.rfl
 
+@[simp] lemma to_subalgebra_eq_to_subalgebra {S S' : intermediate_field K L} :
+  S.to_subalgebra = S'.to_subalgebra ↔ S = S' :=
+by simp only [le_antisymm_iff, to_subalgebra_le_to_subalgebra]
+
 @[simp] lemma to_subalgebra_lt_to_subalgebra {S S' : intermediate_field K L} :
   S.to_subalgebra < S'.to_subalgebra ↔ S < S' := iff.rfl
 
@@ -335,12 +339,6 @@ right K F L
   findim K F.to_subalgebra = findim K F := rfl
 
 variables {F} {E}
-
-@[simp] lemma to_subalgebra_le_iff : F.to_subalgebra ≤ E.to_subalgebra ↔ F ≤ E :=
-⟨λ h1 x h2, h1 h2, λ h1 x h2, h1 h2⟩
-
-@[simp] lemma to_subalgebra_eq_iff : F.to_subalgebra = E.to_subalgebra ↔ F = E :=
-by rw [le_antisymm_iff, le_antisymm_iff, to_subalgebra_le_iff, to_subalgebra_le_iff]
 
 lemma eq_of_le_of_findim_le [finite_dimensional K L] (h_le : F ≤ E)
   (h_findim : findim K E ≤ findim K F) : F = E :=

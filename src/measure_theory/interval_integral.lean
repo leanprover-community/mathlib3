@@ -1384,16 +1384,13 @@ lemma integral_deriv_mul_eq_sub' {u v u' v' : ℝ → ℝ} (hab : a ≤ b)
   (hcu' : continuous_on u' (Icc a b)) (hcv' : continuous_on v' (Icc a b)) :
   ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a :=
 begin
-  have hcu : continuous_on u (Icc a b) := λ x hx, continuous_at.continuous_within_at
-      (has_deriv_at.continuous_at (hu x hx)),
-  have hcv : continuous_on v (Icc a b) := λ x hx, continuous_at.continuous_within_at
-      (has_deriv_at.continuous_at (hv x hx)),
   rw integral_eq_sub_of_has_deriv_at,
   intros x hx;
-  simp only [interval_of_le, hab, min_eq_left, max_eq_right] at hx,
+  simp only [interval_of_le hab, min_eq_left, max_eq_right] at hx,
   { exact (hu x hx).mul (hv x hx) },
-  { simp only [interval_of_le, hab, min_eq_left, max_eq_right],
-    exact (hcu'.mul hcv).add (hcu.mul hcv') }
+  { simp only [interval_of_le hab, min_eq_left,max_eq_right],
+    exact (hcu'.mul (has_deriv_at.continuous_on (hv x hx))).add
+    ((has_deriv_at.continuous_on (hu x hx)).mul hcv') }
 end
 
 lemma integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
@@ -1403,10 +1400,9 @@ lemma integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
   ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a :=
 begin
   cases le_total a b with hab hab,
-  { simp only [hab, and_imp, max_eq_right, min_eq_left, interval_of_le]
-      at hu hv hcu hcv ⊢,
+  { simp only [interval_of_le hab] at hu hv hcu hcv ⊢,
     exact integral_deriv_mul_eq_sub' hab hu hv hcu hcv },
-  { simp only [hab, max_eq_left, min_eq_right, interval_of_ge] at hu hv hcu hcv ⊢,
+  { simp only [interval_of_ge hab] at hu hv hcu hcv ⊢,
     rw [integral_symm,integral_deriv_mul_eq_sub' hab hu hv hcu hcv, neg_sub] }
 end
 

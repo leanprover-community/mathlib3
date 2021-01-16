@@ -902,6 +902,10 @@ has_deriv_at_filter.tendsto_nhds inf_le_left h
 theorem has_deriv_at.continuous_at (h : has_deriv_at f f' x) : continuous_at f x :=
 has_deriv_at_filter.tendsto_nhds (le_refl _) h
 
+theorem has_deriv_at.continuous_on (h : ∀ x ∈ s, has_deriv_at f f' x) :
+  continuous_on f s :=
+λ x hx, continuous_at.continuous_within_at (has_deriv_at.continuous_at (h x hx))
+
 end continuous
 
 section cartesian_product

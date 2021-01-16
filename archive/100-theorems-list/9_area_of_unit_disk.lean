@@ -341,7 +341,60 @@ end
 
 -- **The Grand Finale!!**
 
+lemma le_abs {a b : ℝ} : a ≤ abs b ↔ a ≤ b ∨ a ≤ -b  := le_max_iff
+
 theorem area_of_unit_disc : volume.prod volume unit_disc = ennreal.of_real pi :=
+begin
+  rw measure.prod_apply is_measurable_unit_disc,
+  rw second_step,
+  simp only [unit_disc_alt, preimage_set_of_eq, Ioo_def, volume_Ioo, neg_mul_eq_neg_mul_symm,
+             one_mul, sub_neg_eq_add, (two_mul _).symm],
+  simp only [← step5_1],
+  let f := λ x, nnreal.of_real ((deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2))) x),
+  have  f_def : f = λ x, nnreal.of_real ((deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2))) x) := rfl,
+  --have f_eq : (λ x, ((f x):ℝ)) = λ x, (deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2)) x) := sorry,
+  --simp only at f_eq,
+  have hintg : integrable (λ x, ((f x):ℝ)) volume := sorry,
+  convert lintegral_coe_eq_integral f hintg,
+  rw f_def,
+  rw ← step5_2,
+  rw integral_of_le,
+  rw ← integral_indicator,
+  have indic_eq_self :
+        (Ioc (-1) 1).indicator (deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2)))
+        = (deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2)) ),
+    {ext a,
+     rw [indicator_apply_eq_self, step5_1],
+     intros a_out,
+     simp only [mem_Ioc, not_and_distrib, not_lt, not_le] at a_out,
+     rw ← mul_zero (2 : ℝ),
+     simp only [mul_zero, mul_eq_zero], right,
+     apply sqrt_eq_zero_of_nonpos,
+     norm_num,
+     rw [← sqrt_le (pow_two_nonneg a), sqrt_one, sqrt_sqr_eq_abs, le_abs],
+     cases a_out,
+    { right,
+      linarith, },
+    { left,
+      exact a_out.le, }, },
+  rw indic_eq_self,
+  { simp only [step5_1],
+    have : (λ x : ℝ, 2 * sqrt (1 - x ^ 2) )=
+               (λ x : ℝ, ↑(nnreal.of_real (2 * sqrt (1 - x ^ 2)))),
+      {ext x,
+      have le_two_sqrt : 0 ≤ 2 * sqrt (1 - x ^ 2) := by linarith [sqrt_nonneg (1 - x ^ 2)],
+      rw nnreal.coe_of_real (2 * sqrt (1 - x ^ 2)) le_two_sqrt, },
+    simp only [this], },
+  { exact is_measurable_Ioc, },
+  { exact neg_le_self zero_le_one },
+  { apply_instance },
+end
+
+
+
+-- Old stuff:
+
+theorem area_of_unit_disc' : volume.prod volume unit_disc = ennreal.of_real pi :=
 begin
   rw measure.prod_apply is_measurable_unit_disc,
   rw second_step,
@@ -367,8 +420,6 @@ begin
 end
 
 
-
--- Old stuff:
 
 lemma s_eq : (λ x y, set.indicator  unit_disc_alt                       (λ p, 1) (x, y))
             = λ x y, set.indicator (Ioo (-sqrt (1-x^2)) (sqrt (1-x^2))) (λ t, 1)     y  :=

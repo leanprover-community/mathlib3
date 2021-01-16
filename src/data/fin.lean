@@ -938,6 +938,10 @@ def append {α : Type*} {o : ℕ} (ho : o = m + n) (u : fin m → α) (v : fin n
   then u ⟨i, h⟩
   else v ⟨(i : ℕ) - m, (nat.sub_lt_left_iff_lt_add (le_of_not_lt h)).2 (ho ▸ i.property)⟩
 
+@[simp] lemma fin_append_apply_zero {α : Type*} {o : ℕ} (ho : (o + 1) = (m + 1) + n)
+  (u : fin (m + 1) → α) (v : fin n → α) :
+  fin.append ho u v 0 = u 0 := rfl
+
 end tuple
 
 section tuple_right

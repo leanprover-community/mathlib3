@@ -58,6 +58,37 @@ instance decidable_le : @decidable_rel string (≤) := by apply_instance -- shor
 theorem to_list_inj : ∀ {s₁ s₂}, to_list s₁ = to_list s₂ ↔ s₁ = s₂
 | ⟨s₁⟩ ⟨s₂⟩ := ⟨congr_arg _, congr_arg _⟩
 
+lemma nil_as_string_eq_empty : [].as_string = "" := rfl
+
+@[simp] lemma to_list_empty : "".to_list = [] := rfl
+
+lemma as_string_inv_to_list (s : string) : s.to_list.as_string = s :=
+by { cases s, refl }
+
+@[simp] lemma to_list_singleton (c : char) : (string.singleton c).to_list = [c] := rfl
+
+lemma to_list_nonempty {s : string} (h : s ≠ string.empty) :
+  s.to_list = s.head :: (s.popn 1).to_list :=
+begin
+  rcases s with ⟨_ | ⟨hd, tl⟩⟩,
+  { simpa only using h },
+  { simp [to_list, popn, iterator.nextn, mk_iterator, head, iterator.next,
+          iterator.next_to_string, iterator.curr] }
+end
+
+@[simp] lemma head_empty : "".head = default _ := rfl
+
+@[simp] lemma popn_empty {n : ℕ} : "".popn n = "" :=
+begin
+  induction n with n hn,
+  { refl },
+  { rcases hs : "" with ⟨_ | ⟨hd, tl⟩⟩,
+    { rw hs at hn,
+      conv_rhs { rw ←hn },
+      simp only [popn, mk_iterator, iterator.nextn, iterator.next] },
+    { simpa only [←to_list_inj] using hs } }
+end
+
 instance : linear_order string :=
 by refine_struct {
     lt := (<), le := (≤),
@@ -68,3 +99,16 @@ by refine_struct {
     apply_field }
 
 end string
+
+open string
+
+lemma list.to_list_inv_as_string (l : list char) : l.as_string.to_list = l :=
+by { cases hl : l.as_string, exact string_imp.mk.inj hl.symm }
+
+@[simp] lemma list.as_string_inj {l l' : list char} : l.as_string = l'.as_string ↔ l = l' :=
+⟨λ h, by rw [←list.to_list_inv_as_string l, ←list.to_list_inv_as_string l', to_list_inj, h],
+ λ h, h ▸ rfl⟩
+
+lemma list.as_string_eq {l : list char} {s : string} :
+  l.as_string = s ↔ l = s.to_list :=
+by rw [←as_string_inv_to_list s, list.as_string_inj, as_string_inv_to_list s]

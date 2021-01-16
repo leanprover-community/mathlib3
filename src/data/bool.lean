@@ -160,6 +160,12 @@ instance : linear_order bool :=
 
 namespace bool
 
+@[simp] lemma ff_le {x : bool} : ff ≤ x := or.intro_left _ rfl
+
+@[simp] lemma le_tt {x : bool} : x ≤ tt := or.intro_right _ rfl
+
+@[simp] lemma ff_lt_tt : ff < tt := lt_of_le_of_ne ff_le ff_ne_tt
+
 /-- convert a `bool` to a `ℕ`, `false -> 0`, `true -> 1` -/
 def to_nat (b : bool) : ℕ :=
 cond b 1 0

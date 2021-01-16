@@ -73,6 +73,12 @@ lemma is_subterminal_of_mono_terminal_from [has_terminal C] [mono (terminal.from
   is_subterminal A :=
 λ Z f g, by { rw ← cancel_mono (terminal.from A), apply subsingleton.elim }
 
+lemma is_subterminal_of_is_terminal {T : C} (hT : is_terminal T) : is_subterminal T :=
+λ Z f g, hT.hom_ext _ _
+
+lemma is_subterminal_of_terminal [has_terminal C] : is_subterminal (⊤_ C) :=
+λ Z f g, subsingleton.elim _ _
+
 /--
 If `A` is subterminal, its diagonal morphism is an isomorphism.
 The converse of `is_subterminal_of_is_iso_diag`.
@@ -114,6 +120,9 @@ to the lattice of open subsets of `X`. More generally, if `C` is a topos, this i
 @[derive category]
 def subterminals (C : Type u₁) [category.{v₁} C] :=
 {A : C // is_subterminal A}
+
+instance [has_terminal C] : inhabited (subterminals C) :=
+⟨⟨⊤_ C, is_subterminal_of_terminal⟩⟩
 
 /-- The inclusion of the subterminal objects into the original category. -/
 @[derive [full, faithful]]

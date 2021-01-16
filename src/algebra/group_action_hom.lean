@@ -267,7 +267,8 @@ local attribute [instance] subset.ring
 def is_invariant_subring.subtype_hom : U →+*[M] R' :=
 { map_smul' := λ m s, rfl, .. is_subring.subtype U }
 
-@[simp] theorem is_invariant_subring.coe_subtype_hom : (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
+@[simp] theorem is_invariant_subring.coe_subtype_hom :
+  (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
 
 @[simp] theorem is_invariant_subring.coe_subtype_hom' :
   (is_invariant_subring.subtype_hom M U : U →+* R') = is_subring.subtype U := rfl

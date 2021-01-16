@@ -9,12 +9,33 @@ import data.finset.order
 /-!
 # Properties of subsets of topological spaces
 
+In this file we define various properties of subsets of a topological space, and some classes on
+topological spaces.
+
 ## Main definitions
 
-`compact`, `is_clopen`, `is_irreducible`, `is_connected`, `is_totally_disconnected`,
-`is_totally_separated`
+We define the following properties for sets in a topological space:
 
-TODO: write better docs
+* `is_compact`: each open cover has a finite subcover. This is defined in mathlib using filters.
+  The main property of a compact set is `is_compact.elim_finite_subcover`.
+* `is_clopen`: a set that is both open and closed.
+* `is_irreducible`: a nonempty set that has contains no non-trivial pair of disjoint opens.
+  See also the section below in the module doc.
+* `is_connected`: a nonempty set that has no non-trivial open partition.
+  See also the section below in the module doc.
+  `connected_component` is the connected component of an element in the space.
+* `is_totally_disconnected`: all of its connected components are singletons.
+* `is_totally_separated`: any two points can be separated by two disjoint opens that cover the set.
+
+For each of these definitions (except for `is_clopen`), we also have a class stating that the whole
+space satisfies that property:
+`compact_space`, `irreducible_space`, `connected_space`, `totally_disconnected_space`,
+`totally_separated_space`.
+
+Furthermore, we have two more classes:
+* `locally_compact_space`: for every point `x`, every open neighborhood of `x` contains a compact
+  neighborhood of `x`. The definition is formulated in terms of the neighborhood filter.
+* `sigma_compact_space`: a space that is the union of a countably many compact subspaces.
 
 ## On the definition of irreducible and connected sets/spaces
 
@@ -66,8 +87,8 @@ begin
   exact h₂ (h₁ hs)
 end
 
-/-- If `p : set α → Prop` is stable under restriction and union, and each point `x of a compact set `s`
-  has a neighborhood `t` within `s` such that `p t`, then `p s` holds. -/
+/-- If `p : set α → Prop` is stable under restriction and union, and each point `x`
+  of a compact set `s` has a neighborhood `t` within `s` such that `p t`, then `p s` holds. -/
 @[elab_as_eliminator]
 lemma is_compact.induction_on {s : set α} (hs : is_compact s) {p : set α → Prop} (he : p ∅)
   (hmono : ∀ ⦃s t⦄, s ⊆ t → p t → p s) (hunion : ∀ ⦃s t⦄, p s → p t → p (s ∪ t))
@@ -249,7 +270,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, cluster_pt
   let ⟨t, ht⟩ := h (λ i : f.sets, closure i.1) (λ i, is_closed_closure)
     (by simpa [eq_empty_iff_forall_not_mem, not_exists]) in
   have (⋂i∈t, subtype.val i) ∈ f,
-    from Inter_mem_sets t.finite_to_set $ assume i hi, i.2,
+    from t.Inter_mem_sets.2 $ assume i hi, i.2,
   have s ∩ (⋂i∈t, subtype.val i) ∈ f,
     from inter_mem_sets (le_principal_iff.1 hfs) this,
   have ∅ ∈ f,
@@ -618,6 +639,26 @@ begin
   exact le_nhds_Lim ⟨x,h⟩,
 end
 
+variables (α)
+/-- A σ-compact space is a space that is the union of a countable collection of compact subspaces.
+  Note that a locally compact separable T₂ space need not be σ-compact.
+  The sequence can be extracted using `topological_space.compact_covering`. -/
+class sigma_compact_space (α : Type*) [topological_space α] : Prop :=
+(exists_compact_covering : ∃ K : ℕ → set α, (∀ n, is_compact (K n)) ∧ (⋃ n, K n) = univ)
+
+variables [sigma_compact_space α]
+open sigma_compact_space
+
+/-- An arbitrary compact covering of a σ-compact space. -/
+def compact_covering : ℕ → set α :=
+classical.some exists_compact_covering
+
+lemma is_compact_compact_covering (n : ℕ) : is_compact (compact_covering α n) :=
+(classical.some_spec sigma_compact_space.exists_compact_covering).1 n
+
+lemma Union_compact_covering : (⋃ n, compact_covering α n) = univ :=
+(classical.some_spec sigma_compact_space.exists_compact_covering).2
+
 end compact
 
 section clopen
@@ -660,7 +701,8 @@ lemma is_clopen_bInter {β : Type*} {s : finset β} {f : β → set α} (h : ∀
 lemma continuous_on.preimage_clopen_of_clopen {β: Type*} [topological_space β]
   {f : α → β} {s : set α} {t : set β} (hf : continuous_on f s) (hs : is_clopen s)
   (ht : is_clopen t) : is_clopen (s ∩ f⁻¹' t) :=
-⟨continuous_on.preimage_open_of_open hf hs.1 ht.1, continuous_on.preimage_closed_of_closed hf hs.2 ht.2⟩
+⟨continuous_on.preimage_open_of_open hf hs.1 ht.1,
+  continuous_on.preimage_closed_of_closed hf hs.2 ht.2⟩
 
 /-- The intersection of a disjoint covering by two open sets of a clopen set will be clopen. -/
 theorem is_clopen_inter_of_disjoint_cover_clopen {Z a b : set α} (h : is_clopen Z)
@@ -1120,7 +1162,8 @@ lemma connected_space_iff_connected_component :
 begin
   split,
   { rintros ⟨h, ⟨x⟩⟩,
-    exactI ⟨x, eq_univ_of_univ_subset $ subset_connected_component is_preconnected_univ (mem_univ x)⟩ },
+    exactI ⟨x, eq_univ_of_univ_subset $
+      subset_connected_component is_preconnected_univ (mem_univ x)⟩ },
   { rintros ⟨x, h⟩,
     haveI : preconnected_space α := ⟨by {rw ← h, exact is_connected_connected_component.2 }⟩,
     exact ⟨⟨x⟩⟩ }
@@ -1292,10 +1335,11 @@ end
 /-- A set `s` is preconnected if and only if
 for every cover by two closed sets that are disjoint on `s`,
 it is contained in one of the two covering sets. -/
-theorem is_preconnected_iff_subset_of_disjoint_closed {α : Type*} {s : set α} [topological_space α] :
+theorem is_preconnected_iff_subset_of_disjoint_closed {α : Type*} {s : set α}
+  [topological_space α] :
   is_preconnected s ↔
-  ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
-  s ⊆ u ∨ s ⊆ v :=
+    ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
+      s ⊆ u ∨ s ⊆ v :=
 begin
   split; intro h,
   { intros u v hu hv hs huv,
@@ -1381,8 +1425,9 @@ from (eq_of_mem_singleton (ht hp)).symm ▸ (eq_of_mem_singleton (ht hq)).symm�
 class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_disconnected_univ : is_totally_disconnected (univ : set α))
 
-instance pi.totally_disconnected_space {α : Type*} {β : α → Type*} [t₂ : Πa, topological_space (β a)]
-  [∀a, totally_disconnected_space (β a)] : totally_disconnected_space (Π (a : α), β a) :=
+instance pi.totally_disconnected_space {α : Type*} {β : α → Type*}
+  [t₂ : Πa, topological_space (β a)] [∀a, totally_disconnected_space (β a)] :
+  totally_disconnected_space (Π (a : α), β a) :=
 ⟨λ t h1 h2, ⟨λ a b, subtype.ext $ funext $ λ x, subtype.mk_eq_mk.1 $
   (totally_disconnected_space.is_totally_disconnected_univ
     ((λ (c : Π (a : α), β a), c x) '' t) (set.subset_univ _)

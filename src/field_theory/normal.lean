@@ -12,7 +12,7 @@ import ring_theory.power_basis
 # Normal field extensions
 
 In this file we define normal field extensions and prove that for a finite extension, being normal
-is the same as being a splitting field (TODO).
+is the same as being a splitting field.
 
 ## Main Definitions
 

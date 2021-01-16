@@ -538,7 +538,7 @@ section alg_hom_mk_adjoin_splits
 
 variables {F E K : Type*} [field F] [field E] [field K] [algebra F E] [algebra F K] {S : finset E}
 
-theorem alg_hom_mk_adjoin_splits
+lemma alg_hom_mk_adjoin_splits
 (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
 nonempty ((adjoin F (S : set E)) →ₐ[F] K) :=
 begin
@@ -564,7 +564,7 @@ begin
     exact is_scalar_tower.of_algebra_map_eq (λ x, rfl) },
 end
 
-theorem alg_hom_mk_adjoin_splits' (hS : adjoin F (S : set E) = ⊤)
+lemma alg_hom_mk_adjoin_splits' (hS : adjoin F (S : set E) = ⊤)
 (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
 nonempty (E →ₐ[F] K) :=
 begin

@@ -84,7 +84,7 @@ measure, almost everywhere, measure space, completion, null set, null measurable
 
 noncomputable theory
 
-open classical set filter function measurable_space
+open classical set filter (hiding map) function measurable_space
 open_locale classical topological_space big_operators filter
 
 variables {α β γ δ ι : Type*}
@@ -1831,13 +1831,15 @@ open measure_theory measure_theory.measure
 
 namespace measurable_equiv
 
-open equiv
+/-! Interactions of measurable equivalences and measures -/
+
+open equiv measure_theory.measure
 
 variables [measurable_space α] [measurable_space β] {μ : measure α} {ν : measure β}
 
 /-- If we map a measure along a measurable equivalence, we can compute the measure on all sets
   (not just the measurable ones). -/
-protected theorem map_apply (f : α ≃ᵐ β) (s : set β) : measure.map f μ s = μ (f ⁻¹' s) :=
+protected theorem map_apply (f : α ≃ᵐ β) (s : set β) : map f μ s = μ (f ⁻¹' s) :=
 begin
   refine le_antisymm _ (le_map_apply f.measurable s),
   rw [measure_eq_infi' μ],
@@ -1851,6 +1853,19 @@ begin
   { refine congr_arg μ (eq.symm _), convert preimage_id, exact funext f.left_inv },
   exacts [f.measurable, f.measurable_inv_fun ht]
 end
+
+@[simp] lemma map_symm_map (e : α ≃ᵐ β) : map e.symm (map e μ) = μ :=
+by simp [map_map e.symm.measurable e.measurable]
+
+@[simp] lemma map_map_symm (e : α ≃ᵐ β) : map e (map e.symm ν) = ν :=
+by simp [map_map e.measurable e.symm.measurable]
+
+lemma map_measurable_equiv_injective (e : α ≃ᵐ β) : injective (map e) :=
+by { intros μ₁ μ₂ hμ, apply_fun map e.symm at hμ, simpa [map_symm_map e] using hμ }
+
+lemma map_apply_eq_iff_map_symm_apply_eq (e : α ≃ᵐ β) : map e μ = ν ↔ map e.symm ν = μ :=
+by rw [← (map_measurable_equiv_injective e).eq_iff, map_map_symm, eq_comm]
+
 
 end measurable_equiv
 

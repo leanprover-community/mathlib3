@@ -83,18 +83,6 @@ lemma closure_union_closure_le {α : Type u} [semilattice_sup α] (c : closure_o
   c x ⊔ c y ≤ c (x ⊔ y) :=
 sup_le (c.monotone le_sup_left) (c.monotone le_sup_right)
 
-/--
-Every Galois connection induces a closure operator given by the composition. This is the partial
-order version of the statement that every adjunction induces a monad.
--/
-def closure_operator_of_galois_connection {β : Type u} [preorder β]
-  {l : α → β} {u : β → α} (gc : galois_connection l u) :
-  closure_operator α :=
-{ to_fun := λ x, u (l x),
-  monotone' := λ x y h, gc.monotone_u (gc.monotone_l h),
-  le_closure' := gc.le_u_l,
-  idempotent' := λ x, le_antisymm (gc.monotone_u (gc.l_u_le _)) (gc.le_u_l _) }
-
 /-- An element `x` is closed for the closure operator `c` if it is a fixed point for it. -/
 def closed : set α := λ x, c x = x
 
@@ -118,20 +106,35 @@ c.closure_top
 lemma closure_le_closed_iff_le {x y : α} (hy : c.closed y) : x ≤ y ↔ c x ≤ y :=
 by rw [← c.closure_eq_self_of_mem_closed hy, le_closure_iff]
 
-/-- The set of closed elements has a galois insertion to the underlying type. -/
+/-- The set of closed elements has a Galois insertion to the underlying type. -/
 def gi : galois_insertion c.to_closed coe :=
 { choice := λ x hx, ⟨x, le_antisymm hx (c.le_closure x)⟩,
   gc := λ x y, (c.closure_le_closed_iff_le y.2).symm,
   le_l_u := λ x, c.le_closure _,
   choice_eq := λ x hx, le_antisymm (c.le_closure x) hx }
 
+end closure_operator
+
+variables {α} (c : closure_operator α)
+
 /--
-The galois insertion associated to a closure operator can be used to reconstruct the closure
+Every Galois connection induces a closure operator given by the composition. This is the partial
+order version of the statement that every adjunction induces a monad.
+-/
+def galois_connection.closure_operator {β : Type u} [preorder β]
+  {l : α → β} {u : β → α} (gc : galois_connection l u) :
+  closure_operator α :=
+{ to_fun := λ x, u (l x),
+  monotone' := λ x y h, gc.monotone_u (gc.monotone_l h),
+  le_closure' := gc.le_u_l,
+  idempotent' := λ x, le_antisymm (gc.monotone_u (gc.l_u_le _)) (gc.le_u_l _) }
+
+/--
+The Galois insertion associated to a closure operator can be used to reconstruct the closure
 operator.
 
 Note that the inverse in the opposite direction does not hold in general.
 -/
-lemma closure_operator_gi_self : closure_operator_of_galois_connection (gi c).gc = c :=
+@[simp]
+lemma closure_operator_gi_self : c.gi.gc.closure_operator = c :=
 by { ext x, refl }
-
-end closure_operator

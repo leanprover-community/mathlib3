@@ -45,7 +45,7 @@ begin
   let B : ℕ → ennreal := λn, 1/2^n,
   have Bpos : ∀n, 0 < B n,
   { intro n,
-    simp only [B, div_def, one_mul, ennreal.inv_pos],
+    simp only [B, one_div, one_mul, ennreal.inv_pos],
     exact pow_ne_top two_ne_top },
   /- Translate the density assumption into two functions `center` and `radius` associating
   to any n, x, δ, δpos a center and a positive radius such that

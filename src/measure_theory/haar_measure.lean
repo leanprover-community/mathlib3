@@ -537,7 +537,7 @@ def haar_measure (K₀ : positive_compacts G) : measure G :=
 
 lemma haar_measure_apply {K₀ : positive_compacts G} {s : set G} (hs : is_measurable s) :
   haar_measure K₀ s = haar_outer_measure K₀ s / haar_outer_measure K₀ K₀.1 :=
-by { simp only [haar_measure, hs, ennreal.div_def, mul_comm, to_measure_apply,
+by { simp only [haar_measure, hs, div_eq_mul_inv, mul_comm, to_measure_apply,
       algebra.id.smul_eq_mul, pi.smul_apply, measure.coe_smul] }
 
 lemma is_left_invariant_haar_measure (K₀ : positive_compacts G) :

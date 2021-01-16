@@ -539,8 +539,8 @@ section alg_hom_mk_adjoin_splits
 variables {F E K : Type*} [field F] [field E] [field K] [algebra F E] [algebra F K] {S : finset E}
 
 lemma alg_hom_mk_adjoin_splits
-(hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
-nonempty ((adjoin F (S : set E)) →ₐ[F] K) :=
+  (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
+  nonempty ((adjoin F (S : set E)) →ₐ[F] K) :=
 begin
   let P : intermediate_field F E → Prop := λ L, nonempty (L →ₐ[F] K),
   change P (adjoin F ↑S),

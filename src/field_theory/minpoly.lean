@@ -11,15 +11,13 @@ import ring_theory.polynomial.gauss_lemma
 # Minimal polynomials
 
 This file defines the minimal polynomial of an element `x` of an `A`-algebra `B`,
-under the assumption that `x` is integral over `A`.
+under the assumption that x is integral over `Az.
 
 After stating the defining property we specialize to the setting of field extensions
 and derive some well-known properties, amongst which the fact that minimal polynomials
 are irreducible, and uniquely determined by their defining property.
 
 -/
-
-universes u v w
 
 open_locale classical
 open polynomial set function
@@ -263,16 +261,16 @@ section gcd_domain
 
 /-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
 over the fraction field. -/
-lemma gcd_domain_eq_field_fractions {A : Type u} {B : Type v} {γ : Type w} [integral_domain A]
-  [gcd_monoid A] [field B] [integral_domain γ] (f : fraction_map A B) [algebra f.codomain γ]
-  [algebra A γ] [is_scalar_tower A f.codomain γ] {x : γ} (hx : is_integral A x) :
-  minpoly (@is_integral_of_is_scalar_tower A f.codomain γ _ _ _ _ _ _ _ x hx) =
+lemma gcd_domain_eq_field_fractions {A K R : Type*} [integral_domain A]
+  [gcd_monoid A] [field K] [integral_domain R] (f : fraction_map A K) [algebra f.codomain R]
+  [algebra A R] [is_scalar_tower A f.codomain R] {x : R} (hx : is_integral A x) :
+  minpoly (@is_integral_of_is_scalar_tower A f.codomain R _ _ _ _ _ _ _ x hx) =
     ((minpoly hx).map (localization_map.to_ring_hom f)) :=
 begin
-  refine (unique' (@is_integral_of_is_scalar_tower A f.codomain γ _ _ _ _ _ _ _ x hx) _ _ _).symm,
+  refine (unique' (@is_integral_of_is_scalar_tower A f.codomain R _ _ _ _ _ _ _ x hx) _ _ _).symm,
   { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map f
   (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
-  { have htower := is_scalar_tower.aeval_apply A f.codomain γ x (minpoly hx),
+  { have htower := is_scalar_tower.aeval_apply A f.codomain R x (minpoly hx),
     simp only [localization_map.algebra_map_eq, aeval] at htower,
     exact htower.symm },
   { exact monic_map _ (monic hx) }
@@ -281,7 +279,7 @@ end
 /-- The minimal polynomial over `ℤ` is the same as the minimal polynomial over `ℚ`. -/
 --TODO use `gcd_domain_eq_field_fractions` directly when localizations are defined
 -- in terms of algebras instead of `ring_hom`s
-lemma over_int_eq_over_rat {A : Type u} [integral_domain A] {x : A} [algebra ℚ A]
+lemma over_int_eq_over_rat {A : Type*} [integral_domain A] {x : A} [algebra ℚ A]
   (hx : is_integral ℤ x) :
   minpoly (@is_integral_of_is_scalar_tower ℤ ℚ A _ _ _ _ _ _ _ x hx) =
     map (int.cast_ring_hom ℚ) (minpoly hx) :=
@@ -297,10 +295,10 @@ end
 
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
 element as root. -/
-lemma gcd_domain_dvd {A : Type u} {B : Type v} {γ : Type w}
-  [integral_domain A] [gcd_monoid A] [field B] [integral_domain γ]
-  (f : fraction_map A B) [algebra f.codomain γ] [algebra A γ] [is_scalar_tower A f.codomain γ]
-  {x : γ} (hx : is_integral A x)
+lemma gcd_domain_dvd {A K R : Type*}
+  [integral_domain A] [gcd_monoid A] [field K] [integral_domain R]
+  (f : fraction_map A K) [algebra f.codomain R] [algebra A R] [is_scalar_tower A f.codomain R]
+  {x : R} (hx : is_integral A x)
   {P : polynomial A} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
   minpoly hx ∣ P :=
 begin
@@ -315,7 +313,7 @@ end
 as root. -/
 -- TODO use `gcd_domain_dvd` directly when localizations are defined in terms of algebras
 -- instead of `ring_hom`s
-lemma integer_dvd {A : Type u} [integral_domain A] [algebra ℚ A] {x : A} (hx : is_integral ℤ x)
+lemma integer_dvd {A : Type*} [integral_domain A] [algebra ℚ A] {x : A} (hx : is_integral ℤ x)
   {P : polynomial ℤ} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) : minpoly hx ∣ P :=
 begin
   apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast _ _

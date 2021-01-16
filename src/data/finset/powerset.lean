@@ -72,7 +72,7 @@ end powerset
 section powerset_len
 
 /-- Given an integer `n` and a finset `s`, then `powerset_len n s` is the finset of subsets of `s`
-of cardinality `n`.-/
+of cardinality `n`. -/
 def powerset_len (n : ℕ) (s : finset α) : finset (finset α) :=
 ⟨(s.1.powerset_len n).pmap finset.mk
   (λ t h, nodup_of_le (mem_powerset_len.1 h).1 s.2),
@@ -101,6 +101,9 @@ begin
   exact ⟨empty_subset s, rfl⟩,
 end
 
+@[simp] theorem powerset_len_empty (n : ℕ) {s : finset α} (h : s.card ≤ n) :
+  powerset_len (n + 1) s = ∅ :=
+finset.card_eq_zero.mp (by rw [card_powerset_len, nat.choose_eq_zero_of_lt (nat.succ_le_succ h)])
 
 theorem powerset_len_eq_filter {n} {s : finset α} :
   powerset_len n s = (powerset s).filter (λ x, x.card = n) :=

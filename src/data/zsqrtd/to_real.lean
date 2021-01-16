@@ -22,8 +22,8 @@ If the negative root is desired, use `to_real h a.conj`. -/
 noncomputable def to_real {d : ℤ} (h : 0 ≤ d) : ℤ√d →+* ℝ :=
 lift (real.sqrt d) (real.mul_self_sqrt (int.cast_nonneg.mpr h))
 
-lemma to_real_injective {d : ℤ} (h : 0 ≤ d) (h_nonsquare : ∀ n : ℤ, d ≠ n*n) :
-  function.injective (to_real h) :=
-lift_injective _ _ h_nonsquare int.cast_injective
+lemma to_real_injective {d : ℤ} (h0d : 0 ≤ d) (hd : ∀ n : ℤ, d ≠ n*n) :
+  function.injective (to_real h0d) :=
+lift_injective _ _ hd
 
 end zsqrtd

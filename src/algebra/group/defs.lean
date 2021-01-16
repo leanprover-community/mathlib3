@@ -285,7 +285,7 @@ class add_cancel_comm_monoid (M : Type u)
   extends add_left_cancel_comm_monoid M, add_right_cancel_comm_monoid M
 
 /-- Commutative version of cancel_monoid. -/
-@[protect_proj, ancestor right_cancel_comm_monoid left_cancel_comm_monoid,
+@[protect_proj, ancestor left_cancel_comm_monoid right_cancel_comm_monoid,
   to_additive add_cancel_comm_monoid]
 class cancel_comm_monoid (M : Type u) extends left_cancel_comm_monoid M, right_cancel_comm_monoid M
 

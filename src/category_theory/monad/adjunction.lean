@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.algebra
 import category_theory.adjunction.fully_faithful
@@ -16,13 +16,11 @@ variables (R : D ⥤ C)
 
 namespace adjunction
 
-instance monad (R : D ⥤ C) [is_right_adjoint R] : monad ((left_adjoint R) ⋙ R) :=
-let L := left_adjoint R in
-let h : L ⊣ R := is_right_adjoint.adj in
+instance monad (R : D ⥤ C) [is_right_adjoint R] : monad (left_adjoint R ⋙ R) :=
 { η := is_right_adjoint.adj.unit,
-  μ := whisker_right (whisker_left L is_right_adjoint.adj.counit) R,
-  assoc' := λ X, by { dsimp, rw [←R.map_comp, h.counit_naturality, R.map_comp], refl },
-  right_unit' := λ X, by { dsimp, rw [←R.map_comp], simp }, }
+  μ := whisker_right (whisker_left (left_adjoint R) is_right_adjoint.adj.counit) R,
+  assoc' := λ X, by { dsimp, rw [←R.map_comp, adjunction.counit_naturality, R.map_comp], refl },
+  right_unit' := λ X, by { dsimp, rw [←R.map_comp], simp } }
 
 @[simp] lemma monad_η_app [is_right_adjoint R] (X) :
   (η_ (left_adjoint R ⋙ R)).app X = is_right_adjoint.adj.unit.app X := rfl
@@ -80,21 +78,19 @@ attribute [instance] monadic_right_adjoint.eqv
 
 namespace reflective
 
-lemma comparison_ess_surj_aux [reflective R] (X : monad.algebra ((left_adjoint R) ⋙ R)) :
-  ((is_right_adjoint.adj).unit).app (R.obj ((left_adjoint R).obj (X.A)))
-    = R.map ((left_adjoint R).map ((is_right_adjoint.adj).unit.app X.A)) :=
+lemma comparison_ess_surj_aux [reflective R] (X : C) :
+  is_right_adjoint.adj.unit.app (R.obj ((left_adjoint R).obj X))
+    = R.map ((left_adjoint R).map (is_right_adjoint.adj.unit.app X)) :=
 begin
- -- both are left inverses to μ_X.
- apply (cancel_mono ((μ_ ((left_adjoint R) ⋙ R)).app _)).1,
- { dsimp, erw [adjunction.right_triangle_components, ←R.map_comp], simp, },
- { apply is_iso.mono_of_iso _,
-   apply nat_iso.is_iso_app_of_is_iso }
+ rw [←cancel_mono (R.map (is_right_adjoint.adj.counit.app ((left_adjoint R).obj X))), ←R.map_comp],
+ { simp },
+ { apply_instance },
 end
 
-instance [reflective R] (X : monad.algebra ((left_adjoint R) ⋙ R)) :
+instance [reflective R] (X : monad.algebra (left_adjoint R ⋙ R)) :
   is_iso ((is_right_adjoint.adj : _ ⊣ R).unit.app X.A) :=
 let L := left_adjoint R in
-let h : L ⊣ R := (is_right_adjoint.adj) in
+let h : L ⊣ R := is_right_adjoint.adj in
 { inv := X.a,
   hom_inv_id' := X.unit,
   inv_hom_id' :=
@@ -130,15 +126,14 @@ let h : L ⊣ R := is_right_adjoint.adj in
         apply (cancel_epi ((h.unit).app (X.A))).1,
         conv { to_rhs, erw [←category.assoc, X.unit] },
         erw [comp_id, id_comp],
-      end },
-    hom_inv_id' := by { ext, exact (as_iso (h.unit.app X.A)).inv_hom_id, },
-    inv_hom_id' := by { ext, exact (as_iso (h.unit.app X.A)).hom_inv_id, }, }
+      end } }
 ⟩⟩⟩
 
 instance comparison_full [full R] [is_right_adjoint R] : full (monad.comparison R) :=
 { preimage := λ X Y f, R.preimage f.f }
 instance comparison_faithful [faithful R] [is_right_adjoint R] : faithful (monad.comparison R) :=
-{ map_injective' := λ X Y f g w, by { have w' := (congr_arg monad.algebra.hom.f w), exact R.map_injective w' } }
+{ map_injective' := λ X Y f g w,
+    by { have w' := congr_arg monad.algebra.hom.f w, exact R.map_injective w' } }
 
 end reflective
 

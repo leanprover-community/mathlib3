@@ -112,20 +112,20 @@ end
 
 section minpoly
 
-variables [finite_dimensional K V] (f : End K V)
-
-protected theorem is_integral : is_integral K f :=
-is_integral_of_noetherian (by apply_instance) f
-
-variables {f} {μ : K}
-
-theorem is_root_of_has_eigenvalue (h : f.has_eigenvalue μ) :
+theorem is_root_of_has_eigenvalue {f : End K V} {μ : K} (h : f.has_eigenvalue μ) :
   (minpoly K f).is_root μ :=
 begin
   rcases (submodule.ne_bot_iff _).1 h with ⟨w, ⟨H, ne0⟩⟩,
   refine or.resolve_right (smul_eq_zero.1 _) ne0,
   simp [← aeval_apply_of_has_eigenvector ⟨ne0, H⟩, minpoly.aeval K f],
 end
+
+variables [finite_dimensional K V] (f : End K V)
+
+protected theorem is_integral : is_integral K f :=
+is_integral_of_noetherian (by apply_instance) f
+
+variables {f} {μ : K}
 
 theorem has_eigenvalue_of_is_root (h : (minpoly K f).is_root μ) :
   f.has_eigenvalue μ :=

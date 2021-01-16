@@ -14,7 +14,7 @@ import analysis.asymptotics
 # Sub/sup-additive functions on boxes
 
 Let `s` be a set in `ι → ℝ`. A subbox of `s` is a product of closed intervals which is included
-by `s`.
+in `s`.
 
 A function `f : (ι → ℝ) → (ι → ℝ) → M` is called
 `box_subadditive_on`/`box_additive_on`/`box_supadditive_on` a set `s` if for any `l u : ι → ℝ`, `l ≤
@@ -42,7 +42,7 @@ prove some basic properties.
 
 /-- A function `f : (ι → α) → (ι → α) → M` is called `box_subadditive_on` a set `s : set (ι → α)`
 if for any rectangular box `[l, u] ⊆ s` and a hyperplane `x i = c`, `l i ≤ c ≤ u i`,
-we have `f l u ≤ f' (I ∩ {x | x i ≤ c}) + f' (I ∩ {x | c ≤ x i})`, where `I = [l, u]`, and
+we have `f' I ≤ f' (I ∩ {x | x i ≤ c}) + f' (I ∩ {x | c ≤ x i})`, where `I = [l, u]`, and
 `f' [a, b]` means `f a b`. -/
 def box_subadditive_on [decidable_eq ι] [preorder α] [ordered_add_comm_monoid M]
   (f : (ι → α) → (ι → α) → M) (s : set (ι → α)) :=
@@ -51,7 +51,7 @@ def box_subadditive_on [decidable_eq ι] [preorder α] [ordered_add_comm_monoid 
 
 /-- A function `f : (ι → α) → (ι → α) → M` is called `box_additive_on` a set `s : set (ι → α)`
 if for any rectangular box `[l, u] ⊆ s` and a hyperplane `x i = c`, `l i ≤ c ≤ u i`,
-we have `f' (I ∩ {x | x i ≤ c}) + f' (I ∩ {x | c ≤ x i}) = f l u`, where `I = [l, u]`, and
+we have `f' (I ∩ {x | x i ≤ c}) + f' (I ∩ {x | c ≤ x i}) = f' I`, where `I = [l, u]`, and
 `f' [a, b]` means `f a b`. -/
 def box_additive_on [decidable_eq ι] [preorder α] [has_add M] (f : (ι → α) → (ι → α) → M)
   (s : set (ι → α)) :=
@@ -60,7 +60,7 @@ def box_additive_on [decidable_eq ι] [preorder α] [has_add M] (f : (ι → α)
 
 /-- A function `f : (ι → α) → (ι → α) → M` is called `box_supadditive_on` a set `s : set (ι → α)`
 if for any rectangular box `[l, u] ⊆ s` and a hyperplane `x i = c`, `l i ≤ c ≤ u i`,
-we have `f' (I ∩ {x | x i ≤ c}) + f' (I ∩ {x | c ≤ x i}) ≤ f l u`, where `I = [l, u]`, and
+we have `f' (I ∩ {x | x i ≤ c}) + f' (I ∩ {x | c ≤ x i}) ≤ f' I`, where `I = [l, u]`, and
 `f' [a, b]` means `f a b`. -/
 def box_supadditive_on [decidable_eq ι] [preorder α] [ordered_add_comm_monoid M]
   (f : (ι → α) → (ι → α) → M) (s : set (ι → α)) :=
@@ -486,7 +486,7 @@ lemma eq_zero_of_forall_eventually_le_mul (hle : l ≤ u) (hf : box_subadditive_
   (hg : box_supadditive_on g (Icc l u)) (h_inf : g l u ≠ ⊤)
   (Hc : ∀ (b ∈ Icc l u) (c : ℝ≥0), 0 < c →
     ∀ᶠ (p : ((ι → ℝ) × (ι → ℝ)) × ℝ) in 𝓝[Icc l b] b ×ᶠ 𝓝[Icc b u] b ×ᶠ 𝓝[Ioi 0] 0,
-    (p.1.2 - p.1.1 = p.2 • (u - l)) → f (p.1.1) p.1.2 ≤ (c : ℝ≥0) * g p.1.1 p.1.2) :
+    (p.1.2 - p.1.1 = p.2 • (u - l)) → f p.1.1 p.1.2 ≤ (c : ℝ≥0) * g p.1.1 p.1.2) :
   f l u = 0 :=
 begin
   by_contra h0,
@@ -519,7 +519,7 @@ begin
     using (Hc b hb).def hc
 end
 
-/-- Let `Icc l u` (a.k.a. `[l, u]`) be a non-trivial interval in a finite-dimensional space
+/-- Let `Icc l u` (a.k.a. `[l, u]`) be a non-trivial box in a finite-dimensional space
 `ι → ℝ`. Suppose that `box_subadditive_on f [l, u]` and for any `p ∈ [l, u]` we have
 `f l' u' = o(volume [l', u'])` as `l'` tends to `p` along `[l, p]`, `u'` tends to `p`
 along `[p, u]`, and the subbox `[l', u']` is homothetic to `[l, u]`. Then `f l u = 0`. -/

@@ -79,7 +79,7 @@ end
 
 lemma fib_le_fib_succ {n : ℕ} : fib n ≤ fib (n + 1) := by { cases n; simp [fib_succ_succ] }
 
-lemma fib_mono : monotone fib :=
+@[mono] lemma fib_mono : monotone fib :=
 monotone_of_monotone_nat $ λ _, fib_le_fib_succ
 
 lemma le_fib_self {n : ℕ} (five_le_n : 5 ≤ n) : n ≤ fib n :=

@@ -92,7 +92,7 @@ end
 lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
 ⟨λ h, by exactI normal.of_alg_equiv f, λ h, by exactI normal.of_alg_equiv f.symm⟩
 
-instance normal.of_is_splitting_field {p : polynomial F} [hFEp : is_splitting_field F E p] :
+lemma normal.of_is_splitting_field {p : polynomial F} [hFEp : is_splitting_field F E p] :
   normal F E :=
 begin
   by_cases hp : p = 0,

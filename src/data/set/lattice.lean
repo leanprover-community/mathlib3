@@ -439,6 +439,19 @@ subset_sInter $ λ s hs, sInter_subset_of_mem (h hs)
 
 @[simp] theorem sInter_singleton (s : set α) : ⋂₀ {s} = s := Inf_singleton
 
+@[simp] theorem sUnion_eq_empty {S : set (set α)} : (⋃₀ S) = ∅ ↔ ∀ s ∈ S, s = ∅ := Sup_eq_bot
+
+@[simp] theorem sInter_eq_univ {S : set (set α)} : (⋂₀ S) = univ ↔ ∀ s ∈ S, s = univ := Inf_eq_top
+
+@[simp] theorem nonempty_sUnion {S : set (set α)} : (⋃₀ S).nonempty ↔ ∃ s ∈ S, set.nonempty s :=
+by simp [← ne_empty_iff_nonempty]
+
+lemma nonempty.of_sUnion {s : set (set α)} (h : (⋃₀ s).nonempty) : s.nonempty :=
+let ⟨s, hs, _⟩ := nonempty_sUnion.1 h in ⟨s, hs⟩
+
+lemma nonempty.of_sUnion_eq_univ [nonempty α] {s : set (set α)} (h : ⋃₀ s = univ) : s.nonempty :=
+nonempty.of_sUnion $ h.symm ▸ univ_nonempty
+
 theorem sUnion_union (S T : set (set α)) : ⋃₀ (S ∪ T) = ⋃₀ S ∪ ⋃₀ T := Sup_union
 
 theorem sInter_union (S T : set (set α)) : ⋂₀ (S ∪ T) = ⋂₀ S ∩ ⋂₀ T := Inf_union
@@ -475,13 +488,7 @@ lemma sUnion_eq_univ_iff {c : set (set α)} :
 
 theorem compl_sUnion (S : set (set α)) :
   (⋃₀ S)ᶜ = ⋂₀ (compl '' S) :=
-set.ext $ assume x,
-  ⟨assume : ¬ (∃s∈S, x ∈ s), assume s h,
-    match s, h with
-    ._, ⟨t, hs, rfl⟩ := assume h, this ⟨t, hs, h⟩
-    end,
-    assume : ∀s, s ∈ compl '' S → x ∈ s,
-    assume ⟨t, tS, xt⟩, this (compl t) (mem_image_of_mem _ tS) xt⟩
+ext $ λ x, by simp
 
 -- classical
 theorem sUnion_eq_compl_sInter_compl (S : set (set α)) :
@@ -832,9 +839,18 @@ variables {p : Prop} {μ : p → set α}
 
 @[simp] lemma Union_neg (hp : ¬ p) : (⋃h:p, μ h) = ∅ := supr_neg hp
 
-@[simp] lemma Union_empty {ι : Sort*} : (⋃i:ι, ∅:set α) = ∅ := supr_bot
+@[simp] lemma Union_empty : (⋃i:ι, ∅:set α) = ∅ := supr_bot
 
-@[simp] lemma Inter_univ {ι : Sort*} : (⋂i:ι, univ:set α) = univ := infi_top
+@[simp] lemma Inter_univ : (⋂i:ι, univ:set α) = univ := infi_top
+
+variables {s : ι → set α}
+
+@[simp] lemma Union_eq_empty : (⋃ i, s i) = ∅ ↔ ∀ i, s i = ∅ := supr_eq_bot
+
+@[simp] lemma Inter_eq_univ : (⋂ i, s i) = univ ↔ ∀ i, s i = univ := infi_eq_top
+
+@[simp] lemma nonempty_Union : (⋃ i, s i).nonempty ↔ ∃ i, (s i).nonempty :=
+by simp [← ne_empty_iff_nonempty]
 
 end
 
@@ -1050,15 +1066,26 @@ instance : is_comm_applicative (set : Type u → Type u) :=
 
 section pi
 
-lemma pi_def {α : Type*} {π : α → Type*} (i : set α) (s : Πa, set (π a)) :
-  pi i s = (⋂ a∈i, ((λf:(Πa, π a), f a) ⁻¹' (s a))) :=
-by ext; simp [pi]
+variables {π : α → Type*}
+
+lemma pi_def (i : set α) (s : Πa, set (π a)) :
+  pi i s = (⋂ a ∈ i, eval a ⁻¹' s a) :=
+by { ext, simp }
+
+lemma pi_diff_pi_subset (i : set α) (s t : Πa, set (π a)) :
+  pi i s \ pi i t ⊆ ⋃ a ∈ i, (eval a ⁻¹' (s a \ t a)) :=
+begin
+  refine diff_subset_comm.2 (λ x hx a ha, _),
+  simp only [mem_diff, mem_pi, mem_Union, not_exists, mem_preimage, not_and, not_not, eval_apply]
+    at hx,
+  exact hx.2 _ ha (hx.1 _ ha)
+end
 
 end pi
 
 end set
 
-/- disjoint sets -/
+/-! ### Disjoint sets -/
 
 section disjoint
 

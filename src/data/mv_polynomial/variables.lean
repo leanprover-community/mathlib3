@@ -98,13 +98,16 @@ le_antisymm (degrees_monomial s a) $ finset.le_sup $
 lemma degrees_C (a : R) : degrees (C a : mv_polynomial σ R) = 0 :=
 multiset.le_zero.1 $ degrees_monomial _ _
 
-lemma degrees_X (n : σ) : degrees (X n : mv_polynomial σ R) ≤ {n} :=
+lemma degrees_X' (n : σ) : degrees (X n : mv_polynomial σ R) ≤ {n} :=
 le_trans (degrees_monomial _ _) $ le_of_eq $ to_multiset_single _ _
 
-lemma degrees_zero : degrees (0 : mv_polynomial σ R) = 0 :=
+@[simp] lemma degrees_X [nontrivial R] (n : σ) : degrees (X n : mv_polynomial σ R) = {n} :=
+(degrees_monomial_eq _ _ one_ne_zero).trans (to_multiset_single _ _)
+
+@[simp] lemma degrees_zero : degrees (0 : mv_polynomial σ R) = 0 :=
 by { rw ← C_0, exact degrees_C 0 }
 
-lemma degrees_one : degrees (1 : mv_polynomial σ R) = 0 := degrees_C 1
+@[simp] lemma degrees_one : degrees (1 : mv_polynomial σ R) = 0 := degrees_C 1
 
 lemma degrees_add (p q : mv_polynomial σ R) : (p + q).degrees ≤ p.degrees ⊔ q.degrees :=
 begin
@@ -152,7 +155,7 @@ lemma degrees_pow (p : mv_polynomial σ R) :
 
 lemma mem_degrees {p : mv_polynomial σ R} {i : σ} :
   i ∈ p.degrees ↔ ∃ d, p.coeff d ≠ 0 ∧ i ∈ d.support :=
-by simp only [degrees, finset.mem_sup, ← finsupp.mem_support_iff, coeff,
+by simp only [degrees, multiset.mem_sup, ← finsupp.mem_support_iff, coeff,
     finsupp.mem_to_multiset, exists_prop]
 
 lemma le_degrees_add {p q : mv_polynomial σ R} (h : p.degrees.disjoint q.degrees) :

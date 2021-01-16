@@ -538,6 +538,29 @@ begin
   exact hrew.symm
 end
 
+lemma eq_of_monic_of_dvd_of_nat_degree_le (hp : p.monic) (hq : q.monic) (hdiv : p ∣ q)
+  (hdeg : q.nat_degree ≤ p.nat_degree) : q = p :=
+begin
+  obtain ⟨r, hr⟩ := hdiv,
+  have rzero : r ≠ 0,
+  { intro h,
+    simpa [h, monic.ne_zero hq] using hr },
+  rw [hr, nat_degree_mul (monic.ne_zero hp) rzero] at hdeg,
+  have hdegeq : p.nat_degree + r.nat_degree = p.nat_degree,
+  { suffices hdegle : p.nat_degree ≤ p.nat_degree + r.nat_degree,
+    { exact le_antisymm hdeg hdegle },
+    exact nat.le.intro rfl },
+  replace hdegeq := eq_C_of_nat_degree_eq_zero (((@add_right_inj _ _ p.nat_degree) _ 0).1 hdegeq),
+  suffices hlead : 1 = r.leading_coeff,
+  { have hcoeff := leading_coeff_C (r.coeff 0),
+    rw [← hdegeq, ← hlead] at hcoeff,
+    rw [← hcoeff, C_1] at hdegeq,
+    rwa [hdegeq, mul_one] at hr },
+  have hprod : q.leading_coeff = p.leading_coeff * r.leading_coeff,
+  { simp only [hr, leading_coeff_mul] },
+  rwa [monic.leading_coeff hp, monic.leading_coeff hq, one_mul] at hprod
+end
+
 end integral_domain
 
 section

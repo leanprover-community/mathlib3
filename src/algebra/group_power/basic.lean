@@ -411,7 +411,8 @@ by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
 theorem sq_sub_sq [comm_ring R] (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
 by rw [pow_two, pow_two, mul_self_sub_mul_self]
 
-theorem pow_eq_zero [monoid_with_zero R] [no_zero_divisors R] {x : R} {n : ℕ} (H : x^n = 0) : x = 0 :=
+theorem pow_eq_zero [monoid_with_zero R] [no_zero_divisors R] {x : R} {n : ℕ} (H : x^n = 0) :
+  x = 0 :=
 begin
   induction n with n ih,
   { rw pow_zero at H,
@@ -433,8 +434,7 @@ end
 mt pow_eq_zero h
 
 lemma pow_abs [linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
-by induction n with n ih; [exact (abs_one).symm,
-  rw [pow_succ, pow_succ, ih, abs_mul]]
+(abs_hom.to_monoid_hom.map_pow a n).symm
 
 lemma abs_neg_one_pow [linear_ordered_comm_ring R] (n : ℕ) : abs ((-1 : R)^n) = 1 :=
 by rw [←pow_abs, abs_neg, abs_one, one_pow]
@@ -498,7 +498,8 @@ section comm_semiring
 
 variables [comm_semiring R]
 
-lemma min_pow_dvd_add {n m : ℕ} {a b c : R} (ha : c ^ n ∣ a) (hb : c ^ m ∣ b) : c ^ (min n m) ∣ a + b :=
+lemma min_pow_dvd_add {n m : ℕ} {a b c : R} (ha : c ^ n ∣ a) (hb : c ^ m ∣ b) :
+  c ^ (min n m) ∣ a + b :=
 begin
   replace ha := dvd.trans (pow_dvd_pow c (min_le_left n m)) ha,
   replace hb := dvd.trans (pow_dvd_pow c (min_le_right n m)) hb,

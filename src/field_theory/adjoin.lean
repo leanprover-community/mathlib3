@@ -6,7 +6,7 @@ Authors: Thomas Browning and Patrick Lutz
 
 import field_theory.intermediate_field
 import field_theory.splitting_field
-import field_theory.fixed
+import field_theory.separable
 
 /-!
 # Adjoining Elements to Fields
@@ -26,7 +26,7 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
  - `F⟮α⟯`: adjoin a single element `α` to `F`.
 -/
 
-open finite_dimensional
+open finite_dimensional polynomial
 open_locale classical
 
 namespace intermediate_field
@@ -410,11 +410,11 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] {α : E}
 variables {K : Type*} [field K] [algebra F K]
 
 lemma aeval_gen_minimal_polynomial (h : is_integral F α) :
-  polynomial.aeval (adjoin_simple.gen F α) (minimal_polynomial h)  = 0 :=
+  aeval (adjoin_simple.gen F α) (minimal_polynomial h) = 0 :=
 begin
   ext,
   convert minimal_polynomial.aeval h,
-  conv in (polynomial.aeval α) { rw [← adjoin_simple.algebra_map_gen F α] },
+  conv in (aeval α) { rw [← adjoin_simple.algebra_map_gen F α] },
   exact is_scalar_tower.algebra_map_aeval F F⟮α⟯ E _ _
 end
 
@@ -474,8 +474,8 @@ begin
   let s := ((minimal_polynomial h).map (algebra_map F K)).roots.to_finset,
   have H := λ x, multiset.mem_to_finset,
   rw [fintype.card_congr (alg_hom_adjoin_integral_equiv F h), fintype.card_of_subtype s H,
-      polynomial.nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
-  exact polynomial.nodup_roots ((polynomial.separable_map (algebra_map F K)).mpr h_sep),
+      nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
+  exact nodup_roots ((separable_map (algebra_map F K)).mpr h_sep),
 end
 
 end adjoin_integral_element
@@ -533,5 +533,46 @@ lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field 
 induction_on_adjoin_fg P base ih K K.fg_of_noetherian
 
 end induction
+
+section alg_hom_mk_adjoin_splits
+
+variables {F E K : Type*} [field F] [field E] [field K] [algebra F E] [algebra F K] {S : finset E}
+
+lemma alg_hom_mk_adjoin_splits
+  (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
+  nonempty ((adjoin F (S : set E)) →ₐ[F] K) :=
+begin
+  let P : intermediate_field F E → Prop := λ L, nonempty (L →ₐ[F] K),
+  change P (adjoin F ↑S),
+  apply induction_on_adjoin_finset,
+  { exact ⟨(algebra.of_id F K).comp bot_equiv.to_alg_hom⟩ },
+  { rintros L x hx ⟨f⟩,
+    cases hK x hx with H hH,
+    have H' : is_integral L x := is_integral_of_is_scalar_tower x H,
+    letI : algebra L K := f.to_ring_hom.to_algebra,
+    have key : (minimal_polynomial H').splits (algebra_map L K),
+    { refine splits_of_splits_of_dvd _ (map_ne_zero (minimal_polynomial.ne_zero H)) _
+        (minimal_polynomial.dvd_map_of_is_scalar_tower L H),
+      rwa [splits_map_iff, ←is_scalar_tower.algebra_map_eq F L K] },
+    apply nonempty.intro,
+    apply alg_hom_equiv_sigma.inv_fun,
+    use f,
+    apply (alg_hom_adjoin_integral_equiv L H').inv_fun,
+    use root_of_splits (algebra_map L K) key (ne_of_gt (minimal_polynomial.degree_pos H')),
+    simp_rw [mem_roots (map_ne_zero (minimal_polynomial.ne_zero H')), is_root, ←eval₂_eq_eval_map],
+    exact map_root_of_splits (algebra_map L K) key (ne_of_gt (minimal_polynomial.degree_pos H')),
+    exact is_scalar_tower.of_algebra_map_eq (λ x, rfl) },
+end
+
+lemma alg_hom_mk_adjoin_splits' (hS : adjoin F (S : set E) = ⊤)
+  (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
+  nonempty (E →ₐ[F] K) :=
+begin
+  cases alg_hom_mk_adjoin_splits hK with ϕ,
+  rw hS at ϕ,
+  exact ⟨ϕ.comp top_equiv.symm.to_alg_hom⟩,
+end
+
+end alg_hom_mk_adjoin_splits
 
 end intermediate_field

@@ -670,20 +670,7 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   norm_sq_eq_def_ax := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero, mul_zero,
     add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
-  inv_def_ax :=
-    begin
-      intro z,
-      unfold_coes,
-      have H : z ≠ 0 → 1 / z = z / (z * z) := λ h,
-        calc
-          1 / z = 1 * (1 / z)           : (one_mul (1 / z)).symm
-            ... = (z / z) * (1 / z)     : congr_arg (λ x, x * (1 / z)) (div_self h).symm
-            ... = z / (z * z)           : by field_simp,
-      rcases lt_trichotomy z 0 with hlt|heq|hgt,
-      { field_simp [norm, abs, max_eq_right_of_lt (show z < -z, by linarith), pow_two, mul_inv', ←H (ne_of_lt hlt)] },
-      { simp [heq] },
-      { field_simp [norm, abs, max_eq_left_of_lt (show -z < z, by linarith), pow_two, mul_inv', ←H (ne_of_gt hgt)] },
-    end,
+  inv_def_ax := λ z, by simp [pow_two, real.norm_eq_abs, abs_mul_abs_self, ← div_eq_mul_inv],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
 
 noncomputable instance complex.is_R_or_C : is_R_or_C ℂ :=

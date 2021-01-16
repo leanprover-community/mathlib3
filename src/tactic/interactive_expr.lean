@@ -117,8 +117,7 @@ and `P x` obeys `collapse_restricted_quantifiers_pred`
 then replace it with `∀ (P x), Q`, mapping the addresses properly
 so interactive rendering still works. -/
 meta def sf.collapse_restricted_quantifiers_core : sf → tactic sf
-| s@(sf.tag_expr addr e@(expr.pi x xbi xy (expr.pi p pbi py b)) a) :=
-  do
+| s@(sf.tag_expr addr e@(expr.pi x xbi xy (expr.pi p pbi py b)) a) := (do
   should_collapse ← sf.collapse_restricted_quantifiers_pred py,
   if ¬ should_collapse then pure s else do
   a1 ← pure $ [pi_body, pi_var_type],
@@ -126,6 +125,7 @@ meta def sf.collapse_restricted_quantifiers_core : sf → tactic sf
   (e1, s1) ← sf.follow a1 a,
   (e2, s2) ← sf.follow a2 a,
   pure (sf.tag_expr addr e $ "∀ (" ++ (sf.tag_expr (addr ++ a1) e1 s1) ++ "), " ++ (sf.tag_expr (addr ++ a2) e2 s2))
+  ) <|> pure s
 | s@(sf.tag_expr addr e a) := (do
   `(Exists %%pred) ← pure e,
   expr.lam _ _ α pred ← pure pred,
@@ -138,7 +138,7 @@ meta def sf.collapse_restricted_quantifiers_core : sf → tactic sf
   (e1, s1) ← sf.follow a1 a,
   (e2, s2) ← sf.follow a2 a,
   pure (sf.tag_expr addr e $ "∃ (" ++ (sf.tag_expr (addr ++ a1) e1 s1) ++ "), " ++ (sf.tag_expr (addr ++ a2) e2 s2))
-  )
+  ) <|> pure s
 | x := pure x
 
 /-- Flattens an `sf`, i.e. merges adjacent `of_string` constructors. -/
@@ -561,3 +561,8 @@ end widget_override
 
 attribute [vm_override widget_override.term_goal_widget] widget.term_goal_widget
 attribute [vm_override widget_override.tactic_state_widget] widget.tactic_state_widget
+example (N : ℕ) : ∃ k : ℕ, ∀ n ≥ N, true :=
+begin
+
+  sorry
+end

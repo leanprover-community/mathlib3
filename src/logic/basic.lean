@@ -797,6 +797,14 @@ by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
 @[simp] theorem exists_eq_right {a' : α} : (∃ a, p a ∧ a = a') ↔ p a' :=
 (exists_congr $ by exact λ a, and.comm).trans exists_eq_left
 
+@[simp] theorem exists_eq_right_right {a' : α} :
+  (∃ (a : α), p a ∧ b ∧ a = a') ↔ p a' ∧ b :=
+⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
+
+@[simp] theorem exists_eq_right_right' {a' : α} :
+  (∃ (a : α), p a ∧ b ∧ a' = a) ↔ p a' ∧ b :=
+⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
+
 @[simp] theorem exists_apply_eq_apply {α β : Type*} (f : α → β) (a' : α) : ∃ a, f a = f a' :=
 ⟨a', rfl⟩
 

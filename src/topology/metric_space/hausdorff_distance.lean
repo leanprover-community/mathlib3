@@ -34,7 +34,8 @@ namespace emetric
 
 section inf_edist
 open_locale ennreal
-variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β] {x y : α} {s t : set α} {Φ : α → β}
+variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β] {x y : α} {s t : set α}
+  {Φ : α → β}
 
 /-! ### Distance of a point to a set as a function into `ennreal`. -/
 
@@ -58,7 +59,7 @@ Inf_le ((mem_image _ _ _).2 ⟨y, h, by refl⟩)
 
 /-- If a point `x` belongs to `s`, then its edist to `s` vanishes -/
 lemma inf_edist_zero_of_mem (h : x ∈ s) : inf_edist x s = 0 :=
-le_zero_iff_eq.1 $ @edist_self _ _ x ▸ inf_edist_le_edist_of_mem h
+nonpos_iff_eq_zero.1 $ @edist_self _ _ x ▸ inf_edist_le_edist_of_mem h
 
 /-- The edist is monotonous with respect to inclusion -/
 lemma inf_edist_le_inf_edist_of_subset (h : s ⊆ t) : inf_edist x t ≤ inf_edist x s :=
@@ -208,7 +209,8 @@ end
 
 /-- If the Hausdorff distance is `<r`, then any point in one of the sets has
 a corresponding point at distance `<r` in the other set -/
-lemma exists_edist_lt_of_Hausdorff_edist_lt {r : ennreal} (h : x ∈ s) (H : Hausdorff_edist s t < r) :
+lemma exists_edist_lt_of_Hausdorff_edist_lt {r : ennreal} (h : x ∈ s)
+  (H : Hausdorff_edist s t < r) :
   ∃y∈t, edist x y < r :=
 exists_edist_lt_of_inf_edist_lt $ calc
   inf_edist x t ≤ Sup ((λx, inf_edist x t) '' s) : le_Sup (mem_image_of_mem _ h)
@@ -231,8 +233,9 @@ ennreal.le_of_forall_epsilon_le $ λε εpos h, begin
   -- z : α,  zt : z ∈ t,  dyz : edist y z < Hausdorff_edist s t + ↑ε / 2
   calc inf_edist x t ≤ edist x z : inf_edist_le_edist_of_mem zt
     ... ≤ edist x y + edist y z : edist_triangle _ _ _
-    ... ≤ (inf_edist x s + ε/2) + (Hausdorff_edist s t + ε/2) : add_le_add (le_of_lt dxy) (le_of_lt dyz)
-    ... = inf_edist x s + Hausdorff_edist s t + ε : by simp [ennreal.add_halves, add_comm, add_left_comm]
+    ... ≤ (inf_edist x s + ε/2) + (Hausdorff_edist s t + ε/2) : add_le_add dxy.le dyz.le
+    ... = inf_edist x s + Hausdorff_edist s t + ε :
+      by simp [ennreal.add_halves, add_comm, add_left_comm]
 end
 
 /-- The Hausdorff edistance is invariant under eisometries -/
@@ -266,13 +269,16 @@ begin
 end
 
 /-- The Hausdorff distance is controlled by the diameter of the union -/
-lemma Hausdorff_edist_le_ediam (hs : s.nonempty) (ht : t.nonempty) : Hausdorff_edist s t ≤ diam (s ∪ t) :=
+lemma Hausdorff_edist_le_ediam (hs : s.nonempty) (ht : t.nonempty) :
+  Hausdorff_edist s t ≤ diam (s ∪ t) :=
 begin
   rcases hs with ⟨x, xs⟩,
   rcases ht with ⟨y, yt⟩,
   refine Hausdorff_edist_le_of_mem_edist _ _,
-  { exact λz hz, ⟨y, yt, edist_le_diam_of_mem (subset_union_left _ _ hz) (subset_union_right _ _ yt)⟩ },
-  { exact λz hz, ⟨x, xs, edist_le_diam_of_mem (subset_union_right _ _ hz) (subset_union_left _ _ xs)⟩ }
+  { intros z hz,
+    exact ⟨y, yt, edist_le_diam_of_mem (subset_union_left _ _ hz) (subset_union_right _ _ yt)⟩ },
+  { intros z hz,
+    exact ⟨x, xs, edist_le_diam_of_mem (subset_union_right _ _ hz) (subset_union_left _ _ xs)⟩ }
 end
 
 /-- The Hausdorff distance satisfies the triangular inequality -/
@@ -298,7 +304,7 @@ end
 lemma Hausdorff_edist_self_closure : Hausdorff_edist s (closure s) = 0 :=
 begin
   erw ← le_bot_iff,
-  simp only [Hausdorff_edist, inf_edist_closure, -le_zero_iff_eq, and_imp,
+  simp only [Hausdorff_edist, inf_edist_closure, -nonpos_iff_eq_zero, and_imp,
     set.mem_image, Sup_le_iff, exists_imp_distrib, sup_le_iff,
     set.ball_image_iff, ennreal.bot_eq_zero, -mem_image],
   simp only [inf_edist_zero_of_mem, mem_closure_iff_inf_edist_zero, le_refl, and_self,
@@ -311,7 +317,8 @@ begin
   refine le_antisymm _ _,
   { calc  _ ≤ Hausdorff_edist (closure s) s + Hausdorff_edist s t : Hausdorff_edist_triangle
     ... = Hausdorff_edist s t : by simp [Hausdorff_edist_comm] },
-  { calc _ ≤ Hausdorff_edist s (closure s) + Hausdorff_edist (closure s) t : Hausdorff_edist_triangle
+  { calc _ ≤ Hausdorff_edist s (closure s) + Hausdorff_edist (closure s) t :
+      Hausdorff_edist_triangle
     ... = Hausdorff_edist (closure s) t : by simp }
 end
 
@@ -320,11 +327,13 @@ end
 by simp [@Hausdorff_edist_comm _ _ s _]
 
 /-- The Hausdorff edistance between sets or their closures is the same -/
-@[simp] lemma Hausdorff_edist_closure : Hausdorff_edist (closure s) (closure t) = Hausdorff_edist s t :=
+@[simp] lemma Hausdorff_edist_closure :
+  Hausdorff_edist (closure s) (closure t) = Hausdorff_edist s t :=
 by simp
 
 /-- Two sets are at zero Hausdorff edistance if and only if they have the same closure -/
-lemma Hausdorff_edist_zero_iff_closure_eq_closure : Hausdorff_edist s t = 0 ↔ closure s = closure t :=
+lemma Hausdorff_edist_zero_iff_closure_eq_closure :
+  Hausdorff_edist s t = 0 ↔ closure s = closure t :=
 ⟨begin
   assume h,
   refine subset.antisymm _ _,
@@ -386,7 +395,8 @@ modulo some tedious rewriting of inequalities from one to the other. -/
 
 namespace metric
 section
-variables {α : Type u} {β : Type v} [metric_space α] [metric_space β] {s t u : set α} {x y : α} {Φ : α → β}
+variables {α : Type u} {β : Type v} [metric_space α] [metric_space β]
+  {s t u : set α} {x y : α} {Φ : α → β}
 open emetric
 
 /-! ### Distance of a point to a set as a function into `ℝ`. -/
@@ -422,7 +432,8 @@ by simp [inf_dist, inf_edist, dist_edist]
 /-- The minimal distance to a set is bounded by the distance to any point in this set -/
 lemma inf_dist_le_dist_of_mem (h : y ∈ s) : inf_dist x s ≤ dist x y :=
 begin
-  rw [dist_edist, inf_dist, ennreal.to_real_le_to_real (inf_edist_ne_top ⟨_, h⟩) (edist_ne_top _ _)],
+  rw [dist_edist, inf_dist,
+    ennreal.to_real_le_to_real (inf_edist_ne_top ⟨_, h⟩) (edist_ne_top _ _)],
   exact inf_edist_le_edist_of_mem h
 end
 
@@ -441,7 +452,8 @@ lemma exists_dist_lt_of_inf_dist_lt {r : real} (h : inf_dist x s < r) (hs : s.no
 begin
   have rpos : 0 < r := lt_of_le_of_lt inf_dist_nonneg h,
   have : inf_edist x s < ennreal.of_real r,
-  { rwa [inf_dist, ← ennreal.to_real_of_real (le_of_lt rpos), ennreal.to_real_lt_to_real (inf_edist_ne_top hs)] at h,
+  { rwa [inf_dist, ← ennreal.to_real_of_real (le_of_lt rpos),
+      ennreal.to_real_lt_to_real (inf_edist_ne_top hs)] at h,
     simp },
   rcases exists_edist_lt_of_inf_edist_lt this with ⟨y, ys, hy⟩,
   rw [edist_dist, ennreal.of_real_lt_of_real_iff rpos] at hy,
@@ -454,7 +466,8 @@ lemma inf_dist_le_inf_dist_add_dist : inf_dist x s ≤ inf_dist y s + dist x y :
 begin
   cases s.eq_empty_or_nonempty with hs hs,
   { by simp [hs, dist_nonneg] },
-  { rw [inf_dist, inf_dist, dist_edist, ← ennreal.to_real_add (inf_edist_ne_top hs) (edist_ne_top _ _),
+  { rw [inf_dist, inf_dist, dist_edist,
+        ← ennreal.to_real_add (inf_edist_ne_top hs) (edist_ne_top _ _),
         ennreal.to_real_le_to_real (inf_edist_ne_top hs)],
     { apply inf_edist_le_inf_edist_add_edist },
     { simp [ennreal.add_eq_top, inf_edist_ne_top hs, edist_ne_top] }}
@@ -528,7 +541,8 @@ def Hausdorff_dist (s t : set α) : ℝ := ennreal.to_real (Hausdorff_edist s t)
 lemma Hausdorff_dist_nonneg : 0 ≤ Hausdorff_dist s t :=
 by simp [Hausdorff_dist]
 
-/-- If two sets are nonempty and bounded in a metric space, they are at finite Hausdorff edistance -/
+/-- If two sets are nonempty and bounded in a metric space, they are at finite Hausdorff
+edistance. -/
 lemma Hausdorff_edist_ne_top_of_nonempty_of_bounded (hs : s.nonempty) (ht : t.nonempty)
   (bs : bounded s) (bt : bounded t) : Hausdorff_edist s t ≠ ⊤ :=
 begin
@@ -701,7 +715,8 @@ lemma Hausdorff_dist_triangle' (fin : Hausdorff_edist t u ≠ ⊤) :
   Hausdorff_dist s u ≤ Hausdorff_dist s t + Hausdorff_dist t u :=
 begin
   rw Hausdorff_edist_comm at fin,
-  have I : Hausdorff_dist u s ≤ Hausdorff_dist u t + Hausdorff_dist t s := Hausdorff_dist_triangle fin,
+  have I : Hausdorff_dist u s ≤ Hausdorff_dist u t + Hausdorff_dist t s :=
+    Hausdorff_dist_triangle fin,
   simpa [add_comm, Hausdorff_dist_comm] using I
 end
 
@@ -719,7 +734,8 @@ by simp [Hausdorff_dist]
 by simp [Hausdorff_dist]
 
 /-- The Hausdorff distance between two sets and their closures coincide -/
-@[simp] lemma Hausdorff_dist_closure : Hausdorff_dist (closure s) (closure t) = Hausdorff_dist s t :=
+@[simp] lemma Hausdorff_dist_closure :
+  Hausdorff_dist (closure s) (closure t) = Hausdorff_dist s t :=
 by simp [Hausdorff_dist]
 
 /-- Two sets are at zero Hausdorff distance if and only if they have the same closures -/

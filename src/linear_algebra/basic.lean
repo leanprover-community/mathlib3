@@ -919,6 +919,9 @@ lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
   s ≤ (R ∙ v₀) ↔ ∀ v ∈ s, ∃ r : R, r • v₀ = v :=
 by simp_rw [le_def', mem_span_singleton]
 
+@[simp] lemma span_zero_singleton : (R ∙ (0:M)) = ⊥ :=
+by { ext, simp [mem_span_singleton, eq_comm] }
+
 lemma span_singleton_eq_range (y : M) : ↑(R ∙ y) = range ((• y) : R → M) :=
 set.ext $ λ x, mem_span_singleton
 
@@ -1374,6 +1377,9 @@ theorem ker_eq_top {f : M →ₗ[R] M₂} : ker f = ⊤ ↔ f = 0 :=
 lemma range_le_bot_iff (f : M →ₗ[R] M₂) : range f ≤ ⊥ ↔ f = 0 :=
 by rw [range_le_iff_comap]; exact ker_eq_top
 
+theorem range_eq_bot {f : M →ₗ[R] M₂} : range f = ⊥ ↔ f = 0 :=
+by rw [← range_le_bot_iff, le_bot_iff]
+
 lemma range_le_ker_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} : range f ≤ ker g ↔ g.comp f = 0 :=
 ⟨λ h, ker_eq_top.1 $ eq_top_iff'.2 $ λ x, h $ mem_map_of_mem trivial,
  λ h x hx, mem_ker.2 $ exists.elim hx $ λ y ⟨_, hy⟩, by rw [←hy, ←comp_apply, h, zero_apply]⟩
@@ -1658,7 +1664,7 @@ def map_subtype.rel_iso :
   inv_fun   := λ q, comap p.subtype q,
   left_inv  := λ p', comap_map_eq_self $ by simp,
   right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simp [map_comap_subtype p, inf_of_le_right hq],
-  map_rel_iff'      := λ p₁ p₂, (map_le_map_iff' (ker_subtype p)).symm }
+  map_rel_iff'      := λ p₁ p₂, map_le_map_iff' (ker_subtype p) }
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
 submodules of `M`. -/
@@ -1747,7 +1753,7 @@ def comap_mkq.rel_iso :
   inv_fun   := λ q, map p.mkq q,
   left_inv  := λ p', map_comap_eq_self $ by simp,
   right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simpa [comap_map_mkq p],
-  map_rel_iff'      := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
+  map_rel_iff'      := λ p₁ p₂, comap_le_comap_iff $ range_mkq _ }
 
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
 of `M`. -/

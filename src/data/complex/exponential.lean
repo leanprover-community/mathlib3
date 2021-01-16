@@ -434,7 +434,7 @@ have hj : ∀ j : ℕ, ∑ m in range j, (x + y) ^ m / m! =
       rw [add_pow, div_eq_mul_inv, sum_mul],
       refine finset.sum_congr rfl (λ i hi, _),
       have h₁ : (m.choose i : ℂ) ≠ 0 := nat.cast_ne_zero.2
-        (nat.pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
+        (pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
       have h₂ := nat.choose_mul_factorial_mul_factorial (nat.le_of_lt_succ $ finset.mem_range.1 hi),
       rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv', mul_inv'],
       simp only [mul_left_comm (m.choose i : ℂ), mul_assoc, mul_left_comm (m.choose i : ℂ)⁻¹,
@@ -667,6 +667,20 @@ lemma cosh_mul_I : cosh (x * I) = cos x :=
 by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_cosh,
        two_cos, neg_mul_eq_neg_mul]
 
+lemma tanh_mul_I : tanh (x * I) = tan x * I :=
+by rw [tanh_eq_sinh_div_cosh, cosh_mul_I, sinh_mul_I, mul_div_right_comm, tan]
+
+lemma cos_mul_I : cos (x * I) = cosh x :=
+by rw ← cosh_mul_I; ring; simp
+
+lemma sin_mul_I : sin (x * I) = sinh x * I :=
+have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring, simp },
+by simpa only [neg_mul_eq_neg_mul_symm, div_I, neg_neg]
+  using cancel_factors.cancel_factors_eq_div h I_ne_zero
+
+lemma tan_mul_I : tan (x * I) = tanh x * I :=
+by rw [tan, sin_mul_I, cos_mul_I, mul_div_right_comm, tanh_eq_sinh_div_cosh]
+
 lemma sin_add : sin (x + y) = sin x * cos y + cos x * sin y :=
 by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
        add_mul, add_mul, mul_right_comm, ← sinh_mul_I,
@@ -691,6 +705,18 @@ by simp [sub_eq_add_neg, sin_add, sin_neg, cos_neg]
 
 lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
+
+lemma sin_add_mul_I (x y : ℂ) : sin (x + y*I) = sin x * cosh y + cos x * sinh y * I :=
+by rw [sin_add, cos_mul_I, sin_mul_I, mul_assoc]
+
+lemma sin_eq (z : ℂ) : sin z = sin z.re * cosh z.im + cos z.re * sinh z.im * I :=
+by convert sin_add_mul_I z.re z.im; exact (re_add_im z).symm
+
+lemma cos_add_mul_I (x y : ℂ) : cos (x + y*I) = cos x * cosh y - sin x * sinh y * I :=
+by rw [cos_add, cos_mul_I, sin_mul_I, mul_assoc]
+
+lemma cos_eq (z : ℂ) : cos z = cos z.re * cosh z.im - sin z.re * sinh z.im * I :=
+by convert cos_add_mul_I z.re z.im; exact (re_add_im z).symm
 
 theorem sin_sub_sin : sin x - sin y = 2 * sin((x - y)/2) * cos((x + y)/2) :=
 begin
@@ -1188,11 +1214,11 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
   by simp [mul_inv', mul_sum.symm, sum_mul.symm, -nat.factorial_succ, mul_comm, inv_pow']
 ... = (n.succ - n.succ * n.succ⁻¹ ^ (j - n)) / (n! * n) :
   have h₁ : (n.succ : α) ≠ 1, from @nat.cast_one α _ _ ▸ mt nat.cast_inj.1
-        (mt nat.succ.inj (nat.pos_iff_ne_zero.1 hn)),
+        (mt nat.succ.inj (pos_iff_ne_zero.1 hn)),
   have h₂ : (n.succ : α) ≠ 0, from nat.cast_ne_zero.2 (nat.succ_ne_zero _),
   have h₃ : (n! * n : α) ≠ 0,
-    from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.factorial_pos _)))
-    (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 hn)),
+    from mul_ne_zero (nat.cast_ne_zero.2 (pos_iff_ne_zero.1 (nat.factorial_pos _)))
+    (nat.cast_ne_zero.2 (pos_iff_ne_zero.1 hn)),
   have h₄ : (n.succ - 1 : α) = n, by simp,
   by rw [← geom_series_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq h₃,
       mul_comm _ (n! * n : α), ← mul_assoc (n!⁻¹ : α), ← mul_inv_rev', h₄,
@@ -1277,8 +1303,8 @@ def exp_near (n : ℕ) (x r : ℝ) : ℝ := ∑ m in range n, x ^ m / m! + x ^ n
 @[simp] theorem exp_near_zero (x r) : exp_near 0 x r = r := by simp [exp_near]
 
 @[simp] theorem exp_near_succ (n x r) : exp_near (n + 1) x r = exp_near n x (1 + x / (n+1) * r) :=
-by { simp [exp_near, range_succ, mul_add, add_left_comm, add_assoc, pow_succ],
-     field_simp [mul_assoc, mul_left_comm] }
+by simp [exp_near, range_succ, mul_add, add_left_comm, add_assoc, pow_succ, div_eq_mul_inv,
+  mul_inv']; ac_refl
 
 theorem exp_near_sub (n x r₁ r₂) : exp_near n x r₁ - exp_near n x r₂ = x ^ n / n! * (r₁ - r₂) :=
 by simp [exp_near, mul_sub]
@@ -1294,12 +1320,11 @@ lemma exp_approx_succ {n} {x a₁ b₁ : ℝ} (m : ℕ)
   (h : abs' (exp x - exp_near m x a₂) ≤ abs' x ^ m / m! * b₂) :
   abs' (exp x - exp_near n x a₁) ≤ abs' x ^ n / n! * b₁ :=
 begin
-  refine le_trans (_root_.abs_sub_le _ _ _)
-    (le_trans (add_le_add_right h _) _),
+  refine (_root_.abs_sub_le _ _ _).trans ((add_le_add_right h _).trans _),
   subst e₁, rw [exp_near_succ, exp_near_sub, _root_.abs_mul],
   convert mul_le_mul_of_nonneg_left (le_sub_iff_add_le'.1 e) _,
-  { simp [mul_add, pow_succ', _root_.abs_div, ← pow_abs],
-    field_simp [mul_assoc] },
+  { simp [mul_add, pow_succ', div_eq_mul_inv, _root_.abs_mul, _root_.abs_inv, ← pow_abs, mul_inv'],
+    ac_refl },
   { simp [_root_.div_nonneg, _root_.abs_nonneg] }
 end
 

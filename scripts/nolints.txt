@@ -825,9 +825,6 @@ apply_nolint auto.preprocess_goal doc_blame
 apply_nolint auto.whnf_reducible doc_blame
 apply_nolint tactic.interactive.revert_all doc_blame
 
--- tactic/generalize_proofs.lean
-apply_nolint tactic.generalize_proofs doc_blame
-
 -- tactic/interactive.lean
 apply_nolint tactic.interactive.collect_struct doc_blame
 apply_nolint tactic.interactive.collect_struct' doc_blame

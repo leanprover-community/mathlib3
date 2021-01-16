@@ -277,11 +277,7 @@ theorem inv_def (z : ℂ) : z⁻¹ = conj z * ((norm_sq z)⁻¹:ℝ) := rfl
 @[simp] lemma inv_im (z : ℂ) : (z⁻¹).im = -z.im / norm_sq z := by simp [inv_def, division_def]
 
 @[simp, norm_cast] lemma of_real_inv (r : ℝ) : ((r⁻¹ : ℝ) : ℂ) = r⁻¹ :=
-ext_iff.2 $ begin
-  simp,
-  by_cases r = 0, { simp [h] },
-  { rw [← div_div_eq_div_mul, div_self h, one_div] },
-end
+ext_iff.2 $ by simp
 
 protected lemma inv_zero : (0⁻¹ : ℂ) = 0 :=
 by rw [← of_real_zero, ← of_real_inv, inv_zero]
@@ -363,8 +359,15 @@ instance char_zero_complex : char_zero ℂ :=
 char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
+/-- A complex number `z` plus its conjugate `conj z` is `2` times its real part. -/
 theorem re_eq_add_conj (z : ℂ) : (z.re : ℂ) = (z + conj z) / 2 :=
-by rw [add_conj]; simp; rw [mul_div_cancel_left (z.re:ℂ) two_ne_zero']
+by simp only [add_conj, of_real_mul, of_real_one, of_real_bit0, 
+     mul_div_cancel_left (z.re:ℂ) two_ne_zero']
+
+/-- A complex number `z` minus its conjugate `conj z` is `2i` times its imaginary part. -/
+theorem im_eq_sub_conj (z : ℂ) : (z.im : ℂ) = (z - conj(z))/(2 * I) :=
+by simp only [sub_conj, of_real_mul, of_real_one, of_real_bit0, mul_right_comm, 
+     mul_div_cancel_left _ (mul_ne_zero two_ne_zero' I_ne_zero : 2 * I ≠ 0)]
 
 /-! ### Absolute value -/
 

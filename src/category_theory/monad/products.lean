@@ -97,7 +97,8 @@ def algebra_equiv_under :
                  (λ A, monad.algebra.mk_iso (iso.refl _)
                          (coprod.hom_ext (by tidy) (by { dsimp, simpa using A.unit.symm })))
                  (λ A₁ A₂ f, by { ext, simp }),
-  counit_iso := nat_iso.of_components (λ f, under.iso_mk (iso.refl _) (by tidy)) (λ f g k, by tidy) }.
+  counit_iso :=
+    nat_iso.of_components (λ f, under.iso_mk (iso.refl _) (by tidy)) (λ f g k, by tidy) }.
 
 end
 

@@ -692,7 +692,13 @@ begin--PER GOLFARE, CONSIDERARE TUTTE LE HP SOLO LOCALI E METTERLE TRA PARENTESI
         exact h_ZP₃,
         rw ← h_MP₃ at h_MP₂,
         exact h_MP₂ },--fine di (suffices @ l. 687)==> (tesi = 2nd split @ l. 675); ora lo si deve provare
-      { sorry } },--qst la prova del suffices usando m ∈ ℕ di l. 685
+      { use φ m,
+        split,--RIUNIRLI!
+        dsimp [φ],
+        rw [dif_pos, list.mem_iff_nth_le],
+        use m,
+        use hm₁.right,--SI POSSONO UNIRE I DUE USE?
+        exact hm₂ } },--qst la prova del suffices usando m ∈ ℕ di l. 685 DA GOLFARE
         },--qst è la fine dell'obtain di l. 655
       -- let f : ℕ → ideal : R := λ n, if hn : n < Ω.length then (list.nth_le Ω n hn).1 else ⊤,
       -- hn else M,

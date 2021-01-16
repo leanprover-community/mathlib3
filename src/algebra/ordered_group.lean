@@ -576,6 +576,11 @@ lemma linear_ordered_add_comm_group.add_lt_add_left
   (a b : α) (h : a < b) (c : α) : c + a < c + b :=
 ordered_add_comm_group.add_lt_add_left a b h c
 
+lemma le_of_forall_pos_le_add [densely_ordered α] (h : ∀ ε : α, 0 < ε → a ≤ b + ε) : a ≤ b :=
+le_of_forall_le_of_dense $ λ c hc,
+calc a ≤ b + (c - b) : h _ (sub_pos_of_lt hc)
+   ... = c           : add_sub_cancel'_right _ _
+
 lemma min_neg_neg (a b : α) : min (-a) (-b) = -max a b :=
 eq.symm $ @monotone.map_max α (order_dual α) _ _ has_neg.neg a b $ λ a b, neg_le_neg
 

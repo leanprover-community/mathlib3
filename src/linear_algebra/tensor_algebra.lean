@@ -141,3 +141,17 @@ lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → tensor_algebr
 λ x, by simp [ι_inv]
 
 end tensor_algebra
+
+namespace free_algebra
+
+variables {R M}
+
+/-- The canonical image of the `free_algebra` in the `tensor_algebra`, which maps
+`free_algebra.ι R x` to `tensor_algebra.ι R x`. -/
+def to_tensor : free_algebra R M →ₐ[R] tensor_algebra R M :=
+free_algebra.lift R (tensor_algebra.ι R)
+
+@[simp] lemma to_tensor_ι (m : M) : (free_algebra.ι R m).to_tensor = tensor_algebra.ι R m :=
+by simp [to_tensor]
+
+end free_algebra

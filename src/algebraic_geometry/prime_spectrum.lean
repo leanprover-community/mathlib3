@@ -261,16 +261,9 @@ lemma zero_locus_Union {ι : Sort*} (s : ι → set R) :
   zero_locus (⋃ i, s i) = (⋂ i, zero_locus (s i)) :=
 (gc_set R).l_supr
 
-/-  Eric's suggestion that I am not able to implement
 lemma zero_locus_bUnion (s : set (set R)) :
-  zero_locus (⋃ i : s, i) = ⋂ i ∈ s, zero_locus {i} :=
-(gc_set R).l_Sup
--/
-
-lemma zero_locus_bUnion {s : set R} :
-  zero_locus (⋃ i ∈ s, {i} : set R) = ⋂ i ∈ s, zero_locus {i} :=
-by ext1;
-  simpa only [mem_zero_locus, set.bUnion_of_singleton, set.mem_Inter, set.singleton_subset_iff]
+  zero_locus (⋃ s' ∈ s, s' : set R) = ⋂ s' ∈ s, zero_locus s' :=
+by rw [set.bUnion_eq_Union, zero_locus_Union, set.bInter_eq_Inter]
 
 lemma vanishing_ideal_Union {ι : Sort*} (t : ι → set (prime_spectrum R)) :
   vanishing_ideal (⋃ i, t i) = (⨅ i, vanishing_ideal (t i)) :=

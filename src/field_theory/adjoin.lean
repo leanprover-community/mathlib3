@@ -539,7 +539,7 @@ section alg_hom_mk_adjoin_splits
 variables {F E K : Type*} [field F] [field E] [field K] [algebra F E] [algebra F K] {S : finset E}
 
 lemma alg_hom_mk_adjoin_splits
-  (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minpoly H).splits (algebra_map F K)) :
+  (hK : ∀ x ∈ S, is_integral F (x : E) ∧ (minpoly F x).splits (algebra_map F K)) :
   nonempty ((adjoin F (S : set E)) →ₐ[F] K) :=
 begin
   let P : intermediate_field F E → Prop := λ L, nonempty (L →ₐ[F] K),
@@ -550,9 +550,9 @@ begin
     cases hK x hx with H hH,
     have H' : is_integral L x := is_integral_of_is_scalar_tower x H,
     letI : algebra L K := f.to_ring_hom.to_algebra,
-    have key : (minpoly H').splits (algebra_map L K),
+    have key : (minpoly L x).splits (algebra_map L K),
     { refine splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero H)) _
-        (minpoly.dvd_map_of_is_scalar_tower L H),
+        (minpoly.dvd_map_of_is_scalar_tower _ _ _),
       rwa [splits_map_iff, ←is_scalar_tower.algebra_map_eq F L K] },
     apply nonempty.intro,
     apply alg_hom_equiv_sigma.inv_fun,
@@ -565,7 +565,7 @@ begin
 end
 
 lemma alg_hom_mk_adjoin_splits' (hS : adjoin F (S : set E) = ⊤)
-  (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minpoly H).splits (algebra_map F K)) :
+  (hK : ∀ x ∈ S, is_integral F (x : E) ∧ (minpoly F x).splits (algebra_map F K)) :
   nonempty (E →ₐ[F] K) :=
 begin
   cases alg_hom_mk_adjoin_splits hK with ϕ,

@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
 import measure_theory.interval_integral
-import data.real.sqrt
-import data.real.pi
+import analysis.special_functions.trigonometric
 import topology.metric_space.basic
 import analysis.mean_inequalities
 import measure_theory.prod
@@ -14,7 +13,7 @@ import measure_theory.lebesgue_measure
 open set interval_integral metric real filter measure_theory
 
 
--- # Ben's assorted sqrt, sqr, and abs lemmas
+-- **Ben's assorted sqrt, sqr, and abs lemmas**
 
 -- A stronger version of Andrew's `lt_sqrt`.
 lemma lt_sqrt {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
@@ -27,18 +26,21 @@ begin
   exacts [h.false, (lt_of_le_of_lt (pow_two_nonneg _) h).le, h.le],
 end
 
-lemma sqrt_ne_zero {x : ℝ} (hle : 0 ≤ x) : sqrt x ≠ 0 ↔ x ≠ 0 :=
+lemma sqrt_ne_zero_iff {x : ℝ} (hle : 0 ≤ x) : sqrt x ≠ 0 ↔ x ≠ 0 :=
 by rw [not_iff_not, sqrt_eq_zero hle]
 
+lemma sqrt_ne_zero {x : ℝ} (hlt : 0 < x) : sqrt x ≠ 0 :=
+(sqrt_pos.mpr hlt).ne.symm
+
 -- A stronger version of James' `aux_sqrt_lemma`.
-lemma div_sqrt {x : ℝ} (hle : 0 ≤ x) : x / sqrt x = sqrt x :=
+lemma div_sqrt {x : ℝ} : x / sqrt x = sqrt x :=
 begin
-  by_cases h : x = 0,
-  { rw [h, sqrt_zero, zero_div] },
-  { rw [div_eq_iff ((sqrt_ne_zero hle).mpr h), mul_self_sqrt hle] },
+  cases le_or_lt x 0,
+  { rw [sqrt_eq_zero'.mpr h, div_zero] },
+  { rw [div_eq_iff (sqrt_ne_zero h), mul_self_sqrt h.le] },
 end
 
-lemma add_sqr {a b : ℝ} : (a + b)^2 = a^2 + b^2 + 2*a*b := by ring
+lemma add_sqr {a b : ℝ} : (a + b)^2 = a^2 + b^2 + 2 * a * b := by ring
 
 lemma sqr_add_le_of_nonneg {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) : a^2 + b^2 ≤ (a+b)^2 :=
 by simp only [add_sqr, add_mul, add_le_add_iff_right, ← pow_two, le_add_iff_nonneg_right,
@@ -66,13 +68,8 @@ lemma abs_lt_right {a b : ℝ} (h : abs a < b) : a < b := (abs_lt.mp h).2
 theorem sqr_le {a b : ℝ} (h : a^2 ≤ b) : -sqrt b ≤ a ∧ a ≤ sqrt b :=
 abs_le.mp (by simpa [← sqrt_sqr_eq_abs] using sqrt_le_sqrt h)
 
--- For Andrew:
 theorem sqr_le_of_nonneg {a b : ℝ} (h : 0 ≤ b) : a^2 ≤ b ↔ -sqrt b ≤ a ∧ a ≤ sqrt b :=
-begin
-  split,
-  { exact sqr_le },
-  { sorry },
-end
+⟨sqr_le, (by rw [← abs_le, ← sqr_abs]; exact (le_sqrt (abs_nonneg a) h).mp)⟩
 
 lemma sqr_le_left {a b : ℝ} (h : a^2 ≤ b) : -sqrt b ≤ a := (sqr_le h).1
 
@@ -93,20 +90,19 @@ lemma sqr_lt_left {a b : ℝ} (h : a^2 < b) : -sqrt b < a := (sqr_lt.mp h).1
 lemma sqr_lt_right {a b : ℝ} (h : a^2 < b) : a < sqrt b := (sqr_lt.mp h).2
 
 
--- # Andrew's work
+-- **Andrew's work**
 
 --Def'n and alternate def'n of the unit disc
 def unit_disc := {point : ℝ × ℝ | (point.1)^2 + (point.2)^2 < 1 }
 
 def unit_disc_alt := {point : ℝ × ℝ | -sqrt (1 - (point.1)^2) < point.2 ∧ point.2 < sqrt (1 - (point.1)^2)}
 
-/--goofy function, turns term of type ℝ × ℝ into term of type fin 2 → ℝ.
-used in Minkowski's inequality below-/
+-- Turns term of type `ℝ × ℝ` into term of type `fin 2 → ℝ`. Used in Minkowski's inequality below.
 def fin_from_prod (p : ℝ × ℝ) : fin 2 → ℝ := λ (a : fin 2),
-  if h : (a = 0) then p.1 else p.2
+  if h : a = 0 then p.1 else p.2
 
--- Minkowski's inequality for two summands.
-lemma real.Lp_add_two_le (f g : ℝ × ℝ) (p : ℝ) (hp : 1 ≤ p) :
+-- Minkowski's inequality for two summands and real power `p`.
+lemma real.Lp_add_two_le (f g : ℝ × ℝ) {p : ℝ} (hp : 1 ≤ p) :
 (abs (f.1 + g.1) ^ p + abs (f.2 + g.2) ^ p) ^ (1 / p)
 ≤ (abs f.1 ^ p + abs f.2 ^ p) ^ (1 / p) + (abs g.1 ^ p + abs g.2 ^ p) ^ (1 / p) :=
 by simpa [fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod f i + fin_from_prod g i) ^ p),
@@ -116,15 +112,11 @@ by simpa [fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod f i + fin_from_p
     using real.Lp_add_le (finset.univ : finset (fin 2)) (fin_from_prod f) (fin_from_prod g) hp
 
 
---alternate version of Minkowski's inequality, handles p : ℕ
-lemma real.Lp_add_two_le' (f g : ℝ × ℝ) (p : ℕ) (hp : 1 ≤ p) :
+-- Minkowski's inequality for two summands and natural power `p`.
+lemma real.Lp_add_two_le' (f g : ℝ × ℝ) {p : ℕ} (hp : 1 ≤ p) :
   (abs (f.1 + g.1) ^ p + abs (f.2 + g.2) ^ p) ^ (1 / (p:ℝ))
   ≤ (abs f.1 ^ p + abs f.2 ^ p) ^ (1 / (p:ℝ)) + (abs g.1 ^ p + abs g.2 ^ p) ^ (1 / (p:ℝ)) :=
-begin
-  have hp' : 1 ≤ (p:ℝ) := by { norm_cast, linarith },
-  convert real.Lp_add_two_le f g p hp' using 3;
-  simp,
-end
+by convert real.Lp_add_two_le f g (by exact_mod_cast hp : 1 ≤ (p:ℝ)) using 3; simp
 
 /-Lemma helpful for first step.
 Still runs a bit slow. We can probably get it cleaner. -/
@@ -138,7 +130,7 @@ begin
     rw ← sqrt_one,
     exact (sqrt_lt (add_nonneg (pow_two_nonneg p.1) (pow_two_nonneg p.2))).2 hp },
   { intros q hq,
-    let h := real.Lp_add_two_le' (q.1 - p.1, q.2 - p.2) p 2 one_le_two,
+    let h := real.Lp_add_two_le' (q.1 - p.1, q.2 - p.2) p one_le_two,
     simp only [unit_disc, dist, mem_ball, mem_set_of_eq, max_lt_iff, sqrt_one, sub_add_cancel,
               ← sqrt_lt (add_nonneg (pow_two_nonneg q.1) (pow_two_nonneg q.2))] at hp hq h ⊢,
     calc sqrt (q.fst ^ 2 + q.snd ^ 2) ≤ sqrt ((q.1 - p.1)^2 + (q.2 - p.2)^2) + sqrt (p.1^2 + p.2^2) :
@@ -192,7 +184,7 @@ begin
 end
 
 
--- # Ben's work:
+-- **Ben's work**
 
 open_locale topological_space
 
@@ -240,7 +232,7 @@ begin
     differentiable_at_id', deriv_pow'', nat.cast_bit0, deriv_id'', deriv_const', pow_one,
     differentiable_at.pow, nat.cast_one, neg_div],
   rw mul_div_mul_left;
-  field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt hlt.le, ← two_mul],
+  field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul],
 end
 
 lemma step5_2 : ∫ (x : ℝ) in (-1)..1, deriv (λ y:ℝ, arcsin y + y * sqrt (1-y^2)) x = pi :=
@@ -262,7 +254,7 @@ begin
 end
 
 
--- # James' work:
+-- **James' work**
 
 lemma aux_sqrt_lemma (x : ℝ) (h : 0 < x) : x / real.sqrt x = real.sqrt x :=
 begin
@@ -347,7 +339,7 @@ begin
 end
 
 
--- # The Grand Finale!!!!!
+-- **The Grand Finale!!**
 
 theorem area_of_unit_disc : volume.prod volume unit_disc = ennreal.of_real pi :=
 begin

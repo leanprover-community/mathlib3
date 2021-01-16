@@ -236,3 +236,17 @@ lemma ι_multi_apply {n : ℕ} (v : fin n → M) :
   ι_multi R n v = (list.of_fn $ λ i, ι R (v i)).prod := rfl
 
 end exterior_algebra
+
+namespace tensor_algebra
+
+variables {R M}
+
+/-- The canonical image of the `tensor_algebra` in the `exterior_algebra`, which maps
+`tensor_algebra.ι R x` to `exterior_algebra.ι R x`. -/
+def to_exterior : tensor_algebra R M →ₐ[R] exterior_algebra R M :=
+tensor_algebra.lift R (exterior_algebra.ι R)
+
+@[simp] lemma to_exterior_ι (m : M) : (tensor_algebra.ι R m).to_exterior = exterior_algebra.ι R m :=
+by simp [to_exterior]
+
+end tensor_algebra

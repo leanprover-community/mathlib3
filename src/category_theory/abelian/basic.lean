@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 
-import category_theory.limits.shapes.constructions.pullbacks
+import category_theory.limits.constructions.pullbacks
 import category_theory.limits.shapes.biproducts
 import category_theory.limits.shapes.images
 import category_theory.abelian.non_preadditive

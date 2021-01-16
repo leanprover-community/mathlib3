@@ -8,7 +8,7 @@ import data.set.countable
 import data.indicator_function
 import data.equiv.encodable.lattice
 import data.tprod
-import order.filter.basic
+import order.filter.lift
 
 /-!
 # Measurable spaces and measurable functions
@@ -83,6 +83,8 @@ structure measurable_space (α : Type*) :=
 
 attribute [class] measurable_space
 
+instance [h : measurable_space α] : measurable_space (order_dual α) := h
+
 section
 variable [measurable_space α]
 
@@ -96,7 +98,7 @@ lemma is_measurable.compl : is_measurable s → is_measurable sᶜ :=
 ‹measurable_space α›.is_measurable_compl s
 
 lemma is_measurable.of_compl (h : is_measurable sᶜ) : is_measurable s :=
-s.compl_compl ▸ h.compl
+compl_compl s ▸ h.compl
 
 @[simp] lemma is_measurable.compl_iff : is_measurable sᶜ ↔ is_measurable s :=
 ⟨is_measurable.of_compl, is_measurable.compl⟩
@@ -104,7 +106,7 @@ s.compl_compl ▸ h.compl
 @[simp] lemma is_measurable.univ : is_measurable (univ : set α) :=
 by simpa using (@is_measurable.empty α _).compl
 
-lemma subsingleton.is_measurable [subsingleton α] {s : set α} : is_measurable s :=
+@[nontriviality] lemma subsingleton.is_measurable [subsingleton α] {s : set α} : is_measurable s :=
 subsingleton.set_cases is_measurable.empty is_measurable.univ s
 
 lemma is_measurable.congr {s t : set α} (hs : is_measurable s) (h : s = t) :
@@ -508,7 +510,7 @@ lemma measurable.comp {g : β → γ} {f : α → β} (hg : measurable g) (hf : 
   measurable (g ∘ f) :=
 λ t ht, hf (hg ht)
 
-lemma subsingleton.measurable [subsingleton α] {f : α → β} : measurable f :=
+@[nontriviality] lemma subsingleton.measurable [subsingleton α] {f : α → β} : measurable f :=
 λ s hs, @subsingleton.is_measurable α _ _ _
 
 lemma measurable.piecewise {s : set α} {_ : decidable_pred s} {f g : α → β}
@@ -937,6 +939,10 @@ instance : inhabited (α ≃ᵐ α) := ⟨refl α⟩
 @[simp] lemma coe_symm_mk (e : α ≃ β) (h1 : measurable e) (h2 : measurable e.symm) :
   ((⟨e, h1, h2⟩ : α ≃ᵐ β).symm : β → α) = e.symm := rfl
 
+@[simp] theorem symm_comp_self (e : α ≃ᵐ β) : e.symm ∘ e = id := funext e.left_inv
+
+@[simp] theorem self_comp_symm (e : α ≃ᵐ β) : e ∘ e.symm = id := funext e.right_inv
+
 /-- Equal measurable spaces are equivalent. -/
 protected def cast {α β} [i₁ : measurable_space α] [i₂ : measurable_space β]
   (h : α = β) (hi : i₁ == i₂) : α ≃ᵐ β :=
@@ -1332,6 +1338,13 @@ lemma eventually.exists_measurable_mem {f : filter α} [is_measurably_generated 
   {p : α → Prop} (h : ∀ᶠ x in f, p x) :
   ∃ s ∈ f, is_measurable s ∧ ∀ x ∈ s, p x :=
 is_measurably_generated.exists_measurable_subset h
+
+lemma eventually.exists_measurable_mem_of_lift' {f : filter α} [is_measurably_generated f]
+  {p : set α → Prop} (h : ∀ᶠ s in f.lift' powerset, p s) :
+  ∃ s ∈ f, is_measurable s ∧ p s :=
+let ⟨s, hsf, hs⟩ := eventually_lift'_powerset.1 h,
+  ⟨t, htf, htm, hts⟩ := is_measurably_generated.exists_measurable_subset hsf
+in ⟨t, htf, htm, hs t hts⟩
 
 instance inf_is_measurably_generated (f g : filter α) [is_measurably_generated f]
   [is_measurably_generated g] :

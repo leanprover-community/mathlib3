@@ -235,22 +235,16 @@ begin
     rw ←inter_Inter,
     exact subset.trans (inter_subset_right _ _) hn₂,
   end,
-  rcases hk.elim_finite_subcover_image hj₁ hj₂ with ⟨g, hg₁, hg₂, hg₃⟩,
+  rcases hk.elim_finite_subcover_image hj₁ hj₂ with ⟨g, hg₁ : ∀ u ∈ g, u ∈ f, hg₂, hg₃⟩,
   let w := (⋂ u ∈ g, u) ∩ v,
-  have hw₂ : w ∈ f, begin
-    apply inter_mem_sets _ hv₁,
-    rw ←sInter_eq_bInter,
-    exact sInter_mem_sets_of_finite hg₂ (λ _ hu, hg₁ hu),
-  end,
+  have hw₂ : w ∈ f, by simpa *,
   have hw₃ : k \ n ⊆ (closure (image2 ϕ w s))ᶜ, from
-    calc _ ⊆ _ : hg₃
+    calc k \ n ⊆ ⋃ u ∈ g, j u : hg₃
     ... ⊆ (closure (image2 ϕ w s))ᶜ :
     begin
-      rw Union_subset_iff, intro u,
-      rw Union_subset_iff, intro hu,
-      rw compl_subset_compl,
-      apply closure_mono (image2_subset _ subset.rfl),
-      apply inter_subset_inter _ subset.rfl,
+      simp only [Union_subset_iff, compl_subset_compl],
+      intros u hu,
+      mono* using [w],
       exact Inter_subset_of_subset u (Inter_subset_of_subset hu subset.rfl),
     end,
   have hw₄ : kᶜ ⊆ (closure (image2 ϕ w s))ᶜ, begin

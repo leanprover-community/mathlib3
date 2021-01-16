@@ -346,7 +346,8 @@ def to_normed_space : normed_space 𝕜 F :=
 { norm_smul_le := assume r x,
   begin
     rw [norm_eq_sqrt_inner, inner_smul_left, inner_smul_right, ←mul_assoc],
-    rw [conj_mul_eq_norm_sq_left, of_real_mul_re, sqrt_mul, ←inner_norm_sq_eq_inner_self, of_real_re],
+    rw [conj_mul_eq_norm_sq_left, of_real_mul_re, sqrt_mul, ←inner_norm_sq_eq_inner_self,
+        of_real_re],
     { simp [sqrt_norm_sq_eq_norm, is_R_or_C.sqrt_norm_sq_eq_norm] },
     { exact norm_sq_nonneg r }
   end }
@@ -816,7 +817,8 @@ begin
   { change 0 ≠ absR (∥x∥ * ∥y∥) at h,
     rw div_le_iff' (lt_of_le_of_ne (ge_iff_le.mp (_root_.abs_nonneg (∥x∥ * ∥y∥))) h),
     convert abs_real_inner_le_norm x y using 1,
-    rw [_root_.abs_mul, _root_.abs_of_nonneg (norm_nonneg x), _root_.abs_of_nonneg (norm_nonneg y), mul_one] }
+    rw [_root_.abs_mul, _root_.abs_of_nonneg (norm_nonneg x), _root_.abs_of_nonneg (norm_nonneg y),
+        mul_one] }
 end
 
 /-- The inner product of a vector with a multiple of itself. -/
@@ -835,7 +837,8 @@ lemma abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
 begin
   have hx' : ∥x∥ ≠ 0 := by simp [norm_eq_zero, hx],
   have hr' : abs r ≠ 0 := by simp [is_R_or_C.abs_eq_zero, hr],
-  rw [inner_smul_right, is_R_or_C.abs_mul, ←inner_self_re_abs, inner_self_eq_norm_square, norm_smul],
+  rw [inner_smul_right, is_R_or_C.abs_mul, ←inner_self_re_abs, inner_self_eq_norm_square,
+      norm_smul],
   rw [is_R_or_C.norm_eq_abs, ←mul_assoc, ←div_div_eq_div_mul, mul_div_cancel _ hx',
      ←div_div_eq_div_mul, mul_comm, mul_div_cancel _ hr', div_self hx'],
 end
@@ -1120,7 +1123,7 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
       simp [←rpow_nat_cast] },
     have h₂ : 0 ≤ ∑ (i : ι), ∥x i∥ ^ (2 : ℝ),
     { rw [←h₁],
-      exact finset.sum_nonneg (λ (j : ι) (hj : j ∈ finset.univ), pow_nonneg (norm_nonneg (x j)) 2) },
+      exact finset.sum_nonneg (λ j (hj : j ∈ finset.univ), pow_nonneg (norm_nonneg (x j)) 2) },
     simp [norm, add_monoid_hom.map_sum, ←norm_sq_eq_inner],
     rw [←rpow_nat_cast ((∑ (i : ι), ∥x i∥ ^ (2 : ℝ)) ^ (2 : ℝ)⁻¹) 2],
     rw [←rpow_mul h₂],
@@ -1486,18 +1489,18 @@ begin
     calc
       4 * ∥u - half•(wq + wp)∥ * ∥u - half•(wq + wp)∥ + ∥wp - wq∥ * ∥wp - wq∥
           = (2*∥u - half•(wq + wp)∥) * (2 * ∥u - half•(wq + wp)∥) + ∥wp-wq∥*∥wp-wq∥ : by ring
-      ... = (absR ((2:ℝ)) * ∥u - half•(wq + wp)∥) * (absR ((2:ℝ)) * ∥u - half•(wq+wp)∥) + ∥wp-wq∥*∥wp-wq∥ :
-      by { rw _root_.abs_of_nonneg, exact add_nonneg zero_le_one zero_le_one }
-      ... = ∥(2:ℝ) • (u - half • (wq + wp))∥ * ∥(2:ℝ) • (u - half • (wq + wp))∥ + ∥wp-wq∥ * ∥wp-wq∥ :
+      ... = (absR ((2:ℝ)) * ∥u - half•(wq + wp)∥) * (absR ((2:ℝ)) * ∥u - half•(wq+wp)∥) +
+            ∥wp-wq∥*∥wp-wq∥ :
+      by { rw _root_.abs_of_nonneg, exact zero_le_two }
+      ... = ∥(2:ℝ) • (u - half • (wq + wp))∥ * ∥(2:ℝ) • (u - half • (wq + wp))∥ +
+            ∥wp-wq∥ * ∥wp-wq∥ :
       by simp [norm_smul]
       ... = ∥a + b∥ * ∥a + b∥ + ∥a - b∥ * ∥a - b∥ :
       begin
         rw [smul_sub, smul_smul, mul_one_div_cancel (_root_.two_ne_zero : (2 : ℝ) ≠ 0),
             ← one_add_one_eq_two, add_smul],
         simp only [one_smul],
-        have eq₁ : wp - wq = a - b := calc
-            wp - wq = (u - wq) - (u - wp)    : by rw [sub_sub_assoc_swap, add_sub_assoc, sub_add_sub_cancel']
-                ... = a - b                  : rfl,
+        have eq₁ : wp - wq = a - b, from (sub_sub_sub_cancel_left _ _ _).symm,
         have eq₂ : u + u - (wq + wp) = a + b, show u + u - (wq + wp) = (u - wq) + (u - wp), abel,
         rw [eq₁, eq₂],
       end
@@ -1520,14 +1523,15 @@ begin
     apply nonneg_le_nonneg_of_squares_le, { exact sqrt_nonneg _ },
     rw mul_self_sqrt,
     exact calc
-      ∥wp - wq∥ * ∥wp - wq∥ = 2 * (∥a∥*∥a∥ + ∥b∥*∥b∥) - 4 * ∥u - half • (wq+wp)∥ * ∥u - half • (wq+wp)∥ :
-        by { rw ← this, simp }
+      ∥wp - wq∥ * ∥wp - wq∥ = 2 * (∥a∥*∥a∥ + ∥b∥*∥b∥) -
+        4 * ∥u - half • (wq+wp)∥ * ∥u - half • (wq+wp)∥ : by { rw ← this, simp }
       ... ≤ 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) - 4 * δ * δ : sub_le_sub_left eq₁ _
       ... ≤ 2 * ((δ + div) * (δ + div) + (δ + div) * (δ + div)) - 4 * δ * δ :
         sub_le_sub_right (mul_le_mul_of_nonneg_left (add_le_add eq₂ eq₂') (by norm_num)) _
       ... = 8 * δ * div + 4 * div * div : by ring,
-    exact add_nonneg (mul_nonneg (mul_nonneg (by norm_num) zero_le_δ) (le_of_lt nat.one_div_pos_of_nat))
-      (mul_nonneg (mul_nonneg (by norm_num) (le_of_lt nat.one_div_pos_of_nat)) (le_of_lt nat.one_div_pos_of_nat)),
+    exact add_nonneg
+      (mul_nonneg (mul_nonneg (by norm_num) zero_le_δ) (le_of_lt nat.one_div_pos_of_nat))
+      (mul_nonneg (mul_nonneg (by norm_num) nat.one_div_pos_of_nat.le) nat.one_div_pos_of_nat.le),
     -- third goal : `tendsto (λ (n : ℕ), sqrt (b n)) at_top (𝓝 0)`
     apply tendsto.comp,
     { convert continuous_sqrt.continuous_at, exact sqrt_zero.symm },
@@ -1593,7 +1597,8 @@ begin
                 ∥u-v∥*∥u-v∥-2*θ*inner(u-v)(w-v)+θ*θ*(∥w-v∥*∥w-v∥),
         rw abs_of_pos hθ₁, ring
       end,
-    have eq₁ : ∥u-v∥^2-2*θ*inner(u-v)(w-v)+θ*θ*∥w-v∥^2=∥u-v∥^2+(θ*θ*∥w-v∥^2-2*θ*inner(u-v)(w-v)), abel,
+    have eq₁ : ∥u-v∥^2-2*θ*inner(u-v)(w-v)+θ*θ*∥w-v∥^2=∥u-v∥^2+(θ*θ*∥w-v∥^2-2*θ*inner(u-v)(w-v)),
+      by abel,
     rw [eq₁, le_add_iff_nonneg_right] at this,
     have eq₂ : θ*θ*∥w-v∥^2-2*θ*inner(u-v)(w-v)=θ*(θ*∥w-v∥^2-2*inner(u-v)(w-v)), ring,
     rw eq₂ at this,
@@ -1744,7 +1749,8 @@ variables {K}
 This lemma is only intended for use in setting up the bundled version
 and should not be used once that is defined. -/
 lemma orthogonal_projection_fn_mem (v : E) : orthogonal_projection_fn K v ∈ K :=
-(exists_norm_eq_infi_of_complete_subspace K (complete_space_coe_iff_is_complete.mp ‹_›) v).some_spec.some
+(exists_norm_eq_infi_of_complete_subspace K
+  (complete_space_coe_iff_is_complete.mp ‹_›) v).some_spec.some
 
 /-- The characterization of the unbundled orthogonal projection.  This
 lemma is only intended for use in setting up the bundled version
@@ -1753,7 +1759,8 @@ lemma orthogonal_projection_fn_inner_eq_zero (v : E) :
   ∀ w ∈ K, ⟪v - orthogonal_projection_fn K v, w⟫ = 0 :=
 begin
   rw ←norm_eq_infi_iff_inner_eq_zero K (orthogonal_projection_fn_mem v),
-  exact (exists_norm_eq_infi_of_complete_subspace K (complete_space_coe_iff_is_complete.mp ‹_›) v).some_spec.some_spec
+  exact (exists_norm_eq_infi_of_complete_subspace K
+    (complete_space_coe_iff_is_complete.mp ‹_›) v).some_spec.some_spec
 end
 
 /-- The unbundled orthogonal projection is the unique point in `K`

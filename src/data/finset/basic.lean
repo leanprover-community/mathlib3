@@ -1414,6 +1414,13 @@ by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
 
 end multiset
 
+namespace finset
+
+@[simp] lemma val_to_finset [decidable_eq α] (s : finset α) : s.val.to_finset = s :=
+by { ext, rw [multiset.mem_to_finset, ←mem_def] }
+
+end finset
+
 namespace list
 variable [decidable_eq α]
 
@@ -1850,7 +1857,7 @@ card_image_of_inj_on $ λ x _ y _ h, H h
 
 lemma fiber_card_ne_zero_iff_mem_image (s : finset α) (f : α → β) [decidable_eq β] (y : β) :
   (s.filter (λ x, f x = y)).card ≠ 0 ↔ y ∈ s.image f :=
-by { rw [←zero_lt_iff_ne_zero, card_pos, fiber_nonempty_iff_mem_image] }
+by { rw [←pos_iff_ne_zero, card_pos, fiber_nonempty_iff_mem_image] }
 
 @[simp] lemma card_map {α β} (f : α ↪ β) {s : finset α} : (s.map f).card = s.card :=
 multiset.card_map _ _

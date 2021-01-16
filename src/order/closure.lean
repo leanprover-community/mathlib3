@@ -121,6 +121,7 @@ variables {α} (c : closure_operator α)
 Every Galois connection induces a closure operator given by the composition. This is the partial
 order version of the statement that every adjunction induces a monad.
 -/
+@[simps]
 def galois_connection.closure_operator {β : Type u} [preorder β]
   {l : α → β} {u : β → α} (gc : galois_connection l u) :
   closure_operator α :=

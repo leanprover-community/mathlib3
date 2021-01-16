@@ -312,12 +312,18 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
   This theorem shows `I'` will not contain any non-zero constant polynomials
   -/
 lemma eq_zero_of_polynomial_mem_map_range (I : ideal (polynomial R))
-  (hi' : (polynomial.map_ring_hom ((quotient.mk I).comp C).range_restrict).ker ≤ I)
   (x : ((quotient.mk I).comp C).range)
   (hx : C x ∈ (I.map (polynomial.map_ring_hom ((quotient.mk I).comp C).range_restrict))) :
   x = 0 :=
 begin
   let i := ((quotient.mk I).comp C).range_restrict,
+  have hi' : (polynomial.map_ring_hom i).ker ≤ I,
+  { refine λ f hf, polynomial_mem_ideal_of_coeff_mem_ideal I f (λ n, _),
+    rw [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply],
+    rw [ring_hom.mem_ker, coe_map_ring_hom] at hf,
+    replace hf := congr_arg (λ (f : polynomial _), f.coeff n) hf,
+    simp only [coeff_map, coeff_zero] at hf,
+    rwa [subtype.ext_iff, ring_hom.coe_range_restrict] at hf },
   obtain ⟨x, hx'⟩ := x,
   obtain ⟨y, rfl⟩ := (ring_hom.mem_range).1 hx',
   refine subtype.eq _,

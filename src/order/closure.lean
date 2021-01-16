@@ -83,6 +83,18 @@ lemma closure_union_closure_le {α : Type u} [semilattice_sup α] (c : closure_o
   c x ⊔ c y ≤ c (x ⊔ y) :=
 sup_le (c.monotone le_sup_left) (c.monotone le_sup_right)
 
+/--
+Every Galois connection induces a closure operator given by the composition. This is the partial
+order version of the statement that every adjunction induces a monad.
+-/
+def closure_operator_of_galois_connection {β : Type u} [preorder β]
+  {l : α → β} {u : β → α} (gc : galois_connection l u) :
+  closure_operator α :=
+{ to_fun := λ x, u (l x),
+  monotone' := λ x y h, gc.monotone_u (gc.monotone_l h),
+  le_closure' := gc.le_u_l,
+  idempotent' := λ x, le_antisymm (gc.monotone_u (gc.l_u_le _)) (gc.le_u_l _) }
+
 /-- An element `x` is closed for the closure operator `c` if it is a fixed point for it. -/
 def closed : set α := λ x, c x = x
 
@@ -112,5 +124,14 @@ def gi : galois_insertion c.to_closed coe :=
   gc := λ x y, (c.closure_le_closed_iff_le y.2).symm,
   le_l_u := λ x, c.le_closure _,
   choice_eq := λ x hx, le_antisymm (c.le_closure x) hx }
+
+/--
+The galois insertion associated to a closure operator can be used to reconstruct the closure
+operator.
+
+Note that the inverse in the opposite direction does not hold in general.
+-/
+lemma closure_operator_gi_self : closure_operator_of_galois_connection (gi c).gc = c :=
+by { ext x, refl }
 
 end closure_operator

@@ -48,7 +48,8 @@ lemma is_integer_eval_add (N : ℕ) (a b : R) :
 lemma exists_integer_eval_div (N : ℕ) (a b : R) {bi : K} (bu : bi * i b = 1) :
   ∀ (f : polynomial R), f.nat_degree ≤ N →
   (∃ D : R, i D = (i b ^ N * eval (i a * bi) (polynomial.map i f))) :=
-induction_with_nat_degree_le N (is_integer_eval_zero N a b)
+induction_with_nat_degree_le N
+  (is_integer_eval_zero N a b)
   (λ N_1 r r0, is_integer_eval_C_mul_X_pow N a b bu N_1 r)
   (λ f g fN gN, is_integer_eval_add N a b f g)
 

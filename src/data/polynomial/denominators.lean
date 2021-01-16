@@ -61,7 +61,7 @@ lemma denoms_clearable_of_nat_degree_le (N : ℕ) (a b : R) {bi : K} (bu : bi * 
 induction_with_nat_degree_le N
   (denoms_clearable_zero N a b bu)
   (λ N_1 r r0, denoms_clearable_C_mul_X_pow N a b bu N_1 r)
-  (λ f g fN gN df dg, denoms_clearable_add df dg)
+  (λ f g fN gN df dg, df.add dg)
 
 /-- If `i : R → K` is a ring homomorphism, `f` is a polynomial with coefficients in `R`,
 `a, b` are elements of `R`, with `i b` invertible, then there is a `D ∈ R` such that

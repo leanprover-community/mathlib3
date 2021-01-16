@@ -8,7 +8,6 @@ import analysis.special_functions.trigonometric
 import topology.metric_space.basic
 import analysis.mean_inequalities
 import measure_theory.prod
-import measure_theory.lebesgue_measure
 
 open set interval_integral metric real filter measure_theory
 
@@ -341,7 +340,7 @@ end
 
 -- **The Grand Finale!!**
 
-lemma le_abs {a b : ℝ} : a ≤ abs b ↔ a ≤ b ∨ a ≤ -b  := le_max_iff
+lemma le_abs {a b : ℝ} : a ≤ abs b ↔ a ≤ b ∨ a ≤ -b := le_max_iff
 
 theorem area_of_unit_disc : volume.prod volume unit_disc = ennreal.of_real pi :=
 begin
@@ -351,37 +350,35 @@ begin
              one_mul, sub_neg_eq_add, (two_mul _).symm],
   simp only [← step5_1],
   let f := λ x, nnreal.of_real ((deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2))) x),
-  have  f_def : f = λ x, nnreal.of_real ((deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2))) x) := rfl,
+  --have  f_def : f = λ x, nnreal.of_real ((deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2))) x) := rfl,
   --have f_eq : (λ x, ((f x):ℝ)) = λ x, (deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2)) x) := sorry,
   --simp only at f_eq,
   have hintg : integrable (λ x, ((f x):ℝ)) volume := sorry,
   convert lintegral_coe_eq_integral f hintg,
-  rw f_def,
+  simp only [f],
   rw ← step5_2,
   rw integral_of_le,
   rw ← integral_indicator,
-  have indic_eq_self :
-        (Ioc (-1) 1).indicator (deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2)))
-        = (deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2)) ),
-    {ext a,
-     rw [indicator_apply_eq_self, step5_1],
-     intros a_out,
-     simp only [mem_Ioc, not_and_distrib, not_lt, not_le] at a_out,
-     rw ← mul_zero (2 : ℝ),
-     simp only [mul_zero, mul_eq_zero], right,
-     apply sqrt_eq_zero_of_nonpos,
-     norm_num,
-     rw [← sqrt_le (pow_two_nonneg a), sqrt_one, sqrt_sqr_eq_abs, le_abs],
-     cases a_out,
+  have indic_eq_self : (Ioc (-1) 1).indicator (deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2)))
+                     = deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2)),
+  { ext a,
+    rw [indicator_apply_eq_self, step5_1],
+    intros a_out,
+    simp only [mem_Ioc, not_and_distrib, not_lt, not_le] at a_out,
+    rw ← mul_zero (2:ℝ),
+    simp only [mul_zero, mul_eq_zero], right,
+    apply sqrt_eq_zero_of_nonpos,
+    norm_num,
+    rw [← sqrt_le (pow_two_nonneg a), sqrt_one, sqrt_sqr_eq_abs, le_abs],
+    cases a_out,
     { right,
       linarith, },
     { left,
-      exact a_out.le, }, },
+      exact a_out.le } },
   rw indic_eq_self,
   { simp only [step5_1],
-    have : (λ x : ℝ, 2 * sqrt (1 - x ^ 2) )=
-               (λ x : ℝ, ↑(nnreal.of_real (2 * sqrt (1 - x ^ 2)))),
-      {ext x,
+    have : (λ x : ℝ, 2 * sqrt (1 - x ^ 2) ) = λ x : ℝ, ↑(nnreal.of_real (2 * sqrt (1 - x ^ 2))),
+    { ext x,
       have le_two_sqrt : 0 ≤ 2 * sqrt (1 - x ^ 2) := by linarith [sqrt_nonneg (1 - x ^ 2)],
       rw nnreal.coe_of_real (2 * sqrt (1 - x ^ 2)) le_two_sqrt, },
     simp only [this], },
@@ -414,7 +411,7 @@ begin
 
 
   sorry,
-  { sorry },
+  { exact is_measurable_Ioc },
   { exact neg_le_self zero_le_one },
   { apply_instance },
 end

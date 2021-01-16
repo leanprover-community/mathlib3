@@ -56,7 +56,7 @@ reflection of `A`, with the isomorphism as `η_A`.
 
 (For any `B` in the reflective subcategory, we automatically have that `ε_B` is an iso.)
 -/
-def functor.ess_image.unit_iso [reflective i] {A : C} (h : A ∈ i.ess_image) :
+def functor.ess_image.unit_is_iso [reflective i] {A : C} (h : A ∈ i.ess_image) :
   is_iso ((adjunction.of_right_adjoint i).unit.app A) :=
 begin
   suffices : (adjunction.of_right_adjoint i).unit.app A =
@@ -78,7 +78,7 @@ lemma mem_ess_image_of_unit_split_mono [reflective i] {A : C}
   [split_mono ((adjunction.of_right_adjoint i).unit.app A)] : A ∈ i.ess_image :=
 begin
   let η : 𝟭 C ⟶ left_adjoint i ⋙ i := (adjunction.of_right_adjoint i).unit,
-  haveI : is_iso (η.app (i.obj ((left_adjoint i).obj A))) := (i.obj_mem_ess_image _).unit_iso,
+  haveI : is_iso (η.app (i.obj ((left_adjoint i).obj A))) := (i.obj_mem_ess_image _).unit_is_iso,
   have : epi (η.app A),
   { apply epi_of_epi (retraction (η.app A)) _,
     rw (show retraction _ ≫ η.app A = _, from η.naturality (retraction (η.app A))),

@@ -15,28 +15,11 @@ local attribute [instance] classical.prop_decidable
 
 variables {R : Type*} [comm_ring R] {P : ideal R}
 
-/-- If `P` is a prime ideal of `R`, then `R[x]/(P)` is an integral domain. -/
-lemma is_integral_domain_C_map_quotient (H : is_prime P) :
-  is_integral_domain (quotient (map C P : ideal (polynomial R))) :=
-ring_equiv.is_integral_domain (polynomial (quotient P))
-  (to_is_integral_domain (polynomial (quotient P)))
-  (polynomial_quotient_equiv_quotient_polynomial P).symm
-
-/-- If `P` is a prime ideal of `R`, then `P.R[x]` is a prime ideal of `R[x]`. -/
-lemma is_prime_C_map_of_is_prime (H : is_prime P) : is_prime (map C P : ideal (polynomial R)) :=
-(quotient.is_integral_domain_iff_prime (map C P : ideal (polynomial R))).mp
-  (is_integral_domain_C_map_quotient H)
-
 /-- Given a polynomial `f ∈ R[x]`, `image_of_Df` is the subset of `Spec R` where at least one
 of the coefficients of `f` does not vanish.  We will prove that `image_of_Df` is the image of
 `(zero_locus {f})ᶜ` under the morphism `comap C : Spec R[x] → Spec R`. -/
-def image_of_Df (f : polynomial R) := {p : prime_spectrum R | ∃ i : ℕ , (coeff f i) ∉ p.1}
-
-lemma std_aff_is_open (a : R) : is_open ({p : prime_spectrum R | a ∉ p.1 }) :=
-begin
-  refine ⟨{a} , ext (λ x, ⟨λ xh, _,λ xh,  _⟩)⟩;
-  simpa only [mem_zero_locus, not_not, mem_set_of_eq, singleton_subset_iff, mem_compl_eq] using xh,
-end
+def image_of_Df (f : polynomial R) : set (prime_spectrum R) :=
+  {p : prime_spectrum R | ∃ i : ℕ , (coeff f i) ∉ p.as_ideal}
 
 lemma is_open_image_of_Df (f : polynomial R) : is_open (image_of_Df f) :=
 begin
@@ -53,9 +36,9 @@ begin
   exact submodule.smul_mem _ _ (submodule.subset_span ⟨i, rfl⟩),
 end
 
-lemma span_subset_of_coeff_mem_comap {f : polynomial R} {I : ideal (polynomial R)}
+lemma span_le_of_coeff_mem_comap {f : polynomial R} {I : ideal (polynomial R)}
   (hfi : ∀ (i : ℕ), f.coeff i ∈ (comap (C : R →+* polynomial R) I)) :
-  (span {tt : polynomial R | ∃ (i : ℕ), tt = C (f.coeff i)}).carrier ⊆ I :=
+  (span {g : polynomial R | ∃ (i : ℕ), g = C (f.coeff i)}) ≤ I :=
 begin
   refine bInter_subset_of_mem _,
   rintros _ ⟨i, rfl⟩,
@@ -64,10 +47,10 @@ end
 
 /-- The image of `Df` is contained in an open set (with which it actually coincides). -/
 lemma exists_coeff_not_mem_C_comap {f : polynomial R} {I : prime_spectrum (polynomial R)} :
-  f ∉ I.1 → ∃ i : ℕ , coeff f i ∉ (comap (C : R →+* polynomial R) I).1 :=
+  f ∉ I.as_ideal → ∃ i : ℕ , coeff f i ∉ (comap (C : R →+* polynomial R) I).as_ideal :=
 begin
   contrapose!,
-  exact λ hfi, (span_subset_of_coeff_mem_comap hfi) (mem_span_C_coeff f),
+  exact λ hfi, (span_le_of_coeff_mem_comap hfi) (mem_span_C_coeff f),
 end
 
 /-- If a point of `Spec R[x]` is not contained in the vanishing set of `f`,

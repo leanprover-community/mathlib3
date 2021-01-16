@@ -306,6 +306,19 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
   end,
 }
 
+/-- If `P` is a prime ideal of `R`, then `R[x]/(P)` is an integral domain. -/
+lemma is_integral_domain_C_map_quotient {P : ideal R} (H : is_prime P) :
+  is_integral_domain (quotient (map C P : ideal (polynomial R))) :=
+ring_equiv.is_integral_domain (polynomial (quotient P))
+  (integral_domain.to_is_integral_domain (polynomial (quotient P)))
+  (polynomial_quotient_equiv_quotient_polynomial P).symm
+
+/-- If `P` is a prime ideal of `R`, then `P.R[x]` is a prime ideal of `R[x]`. -/
+lemma is_prime_C_map_of_is_prime {P : ideal R} (H : is_prime P) :
+  is_prime (map C P : ideal (polynomial R)) :=
+(quotient.is_integral_domain_iff_prime (map C P : ideal (polynomial R))).mp
+  (is_integral_domain_C_map_quotient H)
+
 /-- Given any ring `R` and an ideal `I` of `polynomial R`, we get a map `R → R[x] → R[x]/I`.
   If we let `R` be the image of `R` in `R[x]/I` then we also have a map `R[x] → R'[x]`.
   In particular we can map `I` across this map, to get `I'` and a new map `R' → R'[x] → R'[x]/I`.

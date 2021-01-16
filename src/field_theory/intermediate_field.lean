@@ -262,7 +262,7 @@ lemma field_range_le : (algebra_map K L).field_range ≤ S.to_subfield :=
 
 @[simp] lemma to_subalgebra_eq_to_subalgebra {S S' : intermediate_field K L} :
   S.to_subalgebra = S'.to_subalgebra ↔ S = S' :=
-by simp only [le_antisymm_iff, to_subalgebra_le_to_subalgebra]
+by { rw [subalgebra.ext_iff, intermediate_field.ext'_iff, set.ext_iff], refl }
 
 @[simp] lemma to_subalgebra_lt_to_subalgebra {S S' : intermediate_field K L} :
   S.to_subalgebra < S'.to_subalgebra ↔ S < S' := iff.rfl

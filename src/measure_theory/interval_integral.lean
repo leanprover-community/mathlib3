@@ -1381,38 +1381,19 @@ integral_eq_sub_of_has_deriv_at (λ x hx, (hderiv x hx).has_deriv_at) hcont'
 lemma integral_deriv_mul_eq_sub' {u v u' v' : ℝ → ℝ} (hab : a ≤ b)
   (hu : ∀ x ∈ Icc a b, has_deriv_at u (u' x) x)
   (hv : ∀ x ∈ Icc a b, has_deriv_at v (v' x) x)
-  (hcu : continuous_on u' (Icc a b)) (hcv : continuous_on v' (Icc a b)) :
+  (hcu' : continuous_on u' (Icc a b)) (hcv' : continuous_on v' (Icc a b)) :
   ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a :=
 begin
-  have hu' : ∀ x ∈ Icc a b, (deriv u) x = u' x :=  λ x hx, has_deriv_at.deriv $ hu x hx,
-  have hv' : ∀ x ∈ Icc a b, (deriv v) x = v' x := λ x hx, has_deriv_at.deriv $ hv x hx,
-  have hcu2 : continuous_on (deriv u) (Icc a b) := continuous_on.congr hcu hu',
-  have hcv2 : continuous_on (deriv v) (Icc a b) := continuous_on.congr hcv hv',
-  have hudiff : ∀ x ∈ Icc a b, differentiable_at ℝ u x :=
-    λ x hx, has_deriv_at.differentiable_at $ hu x hx,
-  have hvdiff : ∀ x ∈ Icc a b, differentiable_at ℝ v x :=
-    λ x hx, has_deriv_at.differentiable_at $ hv x hx,
-  have huv := (λ y hy, deriv_mul (hudiff y hy) (hvdiff y hy)),
-  have H : ∫ x in a..b, (deriv (u*v)) x = ∫ x in a..b, deriv u x * v x + u x * deriv v x,
-  { simp only [integral_of_le hab],
-    exact set_integral_congr is_measurable_Ioc
-    (λ y hy, deriv_mul (hudiff y (mem_Icc_of_Ioc hy)) (hvdiff y (mem_Icc_of_Ioc hy))),
-    },
-  have hh : ∫ x in a..b, (deriv u) x * v x + u x * (deriv v) x =
-    ∫ x in a..b, u' x * v x + u x * v' x,
-  { apply integral_congr,
-    intros x hx,
-    simp only [interval_of_le hab] at hx,
-    rw [hu' x hx, hv' x hx] },
-  rw [← hh, ← H, integral_deriv_eq_sub];
-  simp only [pi.mul_apply, continuous_on];
+  have hcu : continuous_on u (Icc a b) := λ x hx, continuous_at.continuous_within_at
+      (has_deriv_at.continuous_at (hu x hx)),
+  have hcv : continuous_on v (Icc a b) := λ x hx, continuous_at.continuous_within_at
+      (has_deriv_at.continuous_at (hv x hx)),
+  rw integral_eq_sub_of_has_deriv_at,
   intros x hx;
   simp only [interval_of_le, hab, min_eq_left, max_eq_right] at hx,
-  { exact differentiable_at.mul (hudiff x hx) (hvdiff x hx) },
+  { exact (hu x hx).mul (hv x hx) },
   { simp only [interval_of_le, hab, min_eq_left, max_eq_right],
-    apply (((hcu2 x hx).mul (hvdiff x hx).continuous_at.continuous_within_at).add
-      ((hudiff x hx).continuous_at.continuous_within_at.mul (hcv2 x hx))).congr
-      huv (huv x hx) },
+    exact (hcu'.mul hcv).add (hcu.mul hcv') }
 end
 
 lemma integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}

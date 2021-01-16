@@ -1306,6 +1306,10 @@ ae_eq_bot.trans restrict_eq_zero
 @[simp] lemma ae_restrict_ne_bot {s} : (μ.restrict s).ae.ne_bot ↔ 0 < μ s :=
 (not_congr ae_restrict_eq_bot).trans pos_iff_ne_zero.symm
 
+lemma self_mem_ae_restrict {s} (hs : is_measurable s) : s ∈ (μ.restrict s).ae :=
+by simp only [ae_restrict_eq hs, exists_prop, mem_principal_sets, mem_inf_sets];
+  exact ⟨_, univ_mem_sets, s, by rw [univ_inter, and_self]⟩
+
 /-- A version of the Borel-Cantelli lemma: if sᵢ is a sequence of measurable sets such that
 ∑ μ sᵢ exists, then for almost all x, x does not belong to almost all sᵢ. -/
 lemma ae_eventually_not_mem {s : ℕ → set α} (hs : ∀ i, is_measurable (s i))

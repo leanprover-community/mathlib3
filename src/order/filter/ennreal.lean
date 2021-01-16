@@ -11,7 +11,7 @@ import order.liminf_limsup
 /-!
 # Order properties of extended non-negative reals
 
-This file compiles order-related results about `ennreal` (see data/real/ennreal.lean).
+This file compiles filter-related results about `ennreal` (see data/real/ennreal.lean).
 -/
 
 open filter

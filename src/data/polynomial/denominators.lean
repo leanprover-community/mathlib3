@@ -21,6 +21,10 @@ variables {R K : Type*} [semiring R] [comm_semiring K] {i : R →+* K}
 variables {a b : R} {bi : K}
 -- TODO: use hypothesis (ub : is_unit (i b)) to work with localizations.
 
+/-- `denoms_clearable` formalizes the property that `b ^ N f (a / b)`
+does not have denominators, if the inequality `f.nat_degree ≤ N` holds.  In the
+implementation, we also use provide an inverse in the existential.
+-/
 def denoms_clearable (a b : R) (N : ℕ) (f : polynomial R) (i : R →+* K) :=
   ∃ D : R, ∃ bi : K, bi * i b = 1 ∧ i D = i b ^ N * eval (i a * bi) (polynomial.map i f)
 

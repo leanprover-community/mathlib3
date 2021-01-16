@@ -742,8 +742,7 @@ end
 variables [char_zero K]
 
 /--The minimal polynomial of a root of unity `μ` divides `X ^ n - 1`. -/
-lemma minpoly_dvd_X_pow_sub_one :
-  minpoly (is_integral h hpos) ∣ X ^ n - 1 :=
+lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
   apply integer_dvd (is_integral h hpos) (polynomial.monic.is_primitive
   (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)),
@@ -753,10 +752,10 @@ end
 
 /-- The reduction modulo `p` of the minimal polynomial of a root of unity `μ` is separable. -/
 lemma separable_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬p ∣ n) :
-  separable (map (int.cast_ring_hom (zmod p)) (minpoly (is_integral h hpos))) :=
+  separable (map (int.cast_ring_hom (zmod p)) (minpoly ℤ μ)) :=
 begin
   have hdvd : (map (int.cast_ring_hom (zmod p))
-    (minpoly (is_integral h hpos))) ∣ X ^ n - 1,
+    (minpoly ℤ μ)) ∣ X ^ n - 1,
   { simpa [map_pow, map_X, map_one, ring_hom.coe_of, map_sub] using
       ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p))))
         (minpoly_dvd_X_pow_sub_one h hpos) },
@@ -767,33 +766,32 @@ end
 
 /-- The reduction modulo `p` of the minimal polynomial of a root of unity `μ` is squarefree. -/
 lemma squarefree_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬ p ∣ n) :
-  squarefree (map (int.cast_ring_hom (zmod p)) (minpoly (is_integral h hpos))) :=
+  squarefree (map (int.cast_ring_hom (zmod p)) (minpoly ℤ μ)) :=
 (separable_minpoly_mod h hpos hdiv).squarefree
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
 `μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `expand ℤ p Q`. -/
 lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
-  minpoly (is_integral h hpos) ∣
-  expand ℤ p (minpoly (is_integral (pow_of_prime h hprime hdiv) hpos)) :=
+  minpoly ℤ μ ∣
+  expand ℤ p (minpoly ℤ (μ ^ p)) :=
 begin
-  apply minpoly.integer_dvd,
+  apply minpoly.integer_dvd (h.is_integral hpos),
   { apply monic.is_primitive,
     rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
         (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
     exact minpoly.monic (is_integral (pow_of_prime h hprime hdiv) hpos) },
   { rw [aeval_def, coe_expand, ← comp, eval₂_eq_eval_map, map_comp, map_pow, map_X, eval_comp,
       eval_pow, eval_X, ← eval₂_eq_eval_map, ← aeval_def],
-    exact minpoly.aeval (is_integral (pow_of_prime h hprime hdiv) hpos) }
+    exact minpoly.aeval _ _ }
 end
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
 `μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `Q ^ p` modulo `p`. -/
 lemma minpoly_dvd_pow_mod {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
-  map (int.cast_ring_hom (zmod p)) (minpoly (is_integral h hpos)) ∣
-  map (int.cast_ring_hom (zmod p)) (minpoly (is_integral
-    (pow_of_prime h hprime hdiv) hpos)) ^ p :=
+  map (int.cast_ring_hom (zmod p)) (minpoly ℤ μ) ∣
+  map (int.cast_ring_hom (zmod p)) (minpoly ℤ (μ ^ p)) ^ p :=
 begin
-  set Q := minpoly (is_integral (pow_of_prime h hprime hdiv) hpos),
+  set Q := minpoly ℤ (μ ^ p),
   have hfrob : map (int.cast_ring_hom (zmod p)) Q ^ p =
     map (int.cast_ring_hom (zmod p)) (expand ℤ p Q),
   by rw [← zmod.expand_card, map_expand (nat.prime.pos hprime)],
@@ -805,9 +803,8 @@ end
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
 `μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `Q` modulo `p`. -/
 lemma minpoly_dvd_mod_p {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
-  map (int.cast_ring_hom (zmod p)) (minpoly (is_integral h hpos)) ∣
-  map (int.cast_ring_hom (zmod p)) (minpoly (is_integral
-    (pow_of_prime h hprime hdiv) hpos)) :=
+  map (int.cast_ring_hom (zmod p)) (minpoly ℤ μ) ∣
+  map (int.cast_ring_hom (zmod p)) (minpoly ℤ (μ ^ p)) :=
 (unique_factorization_monoid.dvd_pow_iff_dvd_of_squarefree (squarefree_minpoly_mod h
   hpos hdiv) (nat.prime.ne_zero hprime)).1 (minpoly_dvd_pow_mod h hpos hdiv)
 
@@ -815,16 +812,15 @@ lemma minpoly_dvd_mod_p {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
 then the minimal polynomials of a primitive `n`-th root of unity `μ`
 and of `μ ^ p` are the same. -/
 lemma minpoly_eq_pow {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
-  minpoly (is_integral h hpos) =
-  minpoly (is_integral (pow_of_prime h hprime hdiv) hpos) :=
+  minpoly ℤ μ = minpoly ℤ (μ ^ p) :=
 begin
   by_contra hdiff,
-  set P := minpoly (is_integral h hpos),
-  set Q := minpoly (is_integral (pow_of_prime h hprime hdiv) hpos),
-  have Pmonic : P.monic := minpoly.monic _,
-  have Qmonic : Q.monic := minpoly.monic _,
-  have Pirr : irreducible P := minpoly.irreducible _,
-  have Qirr : irreducible Q := minpoly.irreducible _,
+  set P := minpoly ℤ μ,
+  set Q := minpoly ℤ (μ ^ p),
+  have Pmonic : P.monic := minpoly.monic (h.is_integral hpos),
+  have Qmonic : Q.monic := minpoly.monic ((h.pow_of_prime hprime hdiv).is_integral hpos),
+  have Pirr : irreducible P := minpoly.irreducible (h.is_integral hpos),
+  have Qirr : irreducible Q := minpoly.irreducible ((h.pow_of_prime hprime hdiv).is_integral hpos),
   have PQprim : is_primitive (P * Q) := Pmonic.is_primitive.mul Qmonic.is_primitive,
   have prod : P * Q ∣ X ^ n - 1,
   { apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
@@ -860,15 +856,14 @@ begin
     rw degree_map_eq_of_leading_coeff_ne_zero _ _ at hunit,
     { exact (ne_of_lt (minpoly.degree_pos (is_integral h hpos))).symm hunit },
     simp only [Pmonic, ring_hom.eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
-      not_false_iff, one_ne_zero] }
+      not_false_iff, one_ne_zero] },
 end
 
 /-- If `m : ℕ` is coprime with `n`,
 then the minimal polynomials of a primitive `n`-th root of unity `μ`
 and of `μ ^ m` are the same. -/
 lemma minpoly_eq_pow_coprime {m : ℕ} (hcop : nat.coprime m n) :
-  minpoly (is_integral h hpos) = minpoly
-  (is_integral (h.pow_of_coprime m hcop) hpos) :=
+  minpoly ℤ μ = minpoly ℤ (μ ^ m) :=
 begin
   revert n hcop,
   refine unique_factorization_monoid.induction_on_prime m _ _ _,
@@ -893,14 +888,14 @@ end
 then the minimal polynomial of a primitive `n`-th root of unity `μ`
 has `μ ^ m` as root. -/
 lemma pow_is_root_minpoly {m : ℕ} (hcop : nat.coprime m n) :
-  is_root (map (int.cast_ring_hom K) (minpoly (is_integral h hpos))) (μ ^ m) :=
+  is_root (map (int.cast_ring_hom K) (minpoly ℤ μ)) (μ ^ m) :=
 by simpa [minpoly_eq_pow_coprime h hpos hcop, eval_map, aeval_def (μ ^ m) _]
-  using minpoly.aeval (is_integral (h.pow_of_coprime m hcop) hpos)
+  using minpoly.aeval ℤ (μ ^ m)
 
 /-- `primitive_roots n K` is a subset of the roots of the minimal polynomial of a primitive
 `n`-th root of unity `μ`. -/
 lemma is_roots_of_minpoly : primitive_roots n K ⊆ (map (int.cast_ring_hom K)
-  (minpoly (is_integral h hpos))).roots.to_finset :=
+  (minpoly ℤ μ)).roots.to_finset :=
 begin
   intros x hx,
   obtain ⟨m, hle, hcop, rfl⟩ := (is_primitive_root_iff h hpos).1 ((mem_primitive_roots hpos).1 hx),
@@ -910,9 +905,8 @@ begin
 end
 
 /-- The degree of the minimal polynomial of `μ` is at least `totient n`. -/
-lemma totient_le_degree_minpoly : nat.totient n ≤ (minpoly
-  (is_integral h hpos)).nat_degree :=
-let P : polynomial ℤ := minpoly (is_integral h hpos),-- minimal polynomial of `μ`
+lemma totient_le_degree_minpoly : nat.totient n ≤ (minpoly ℤ μ).nat_degree :=
+let P : polynomial ℤ := minpoly ℤ μ,-- minimal polynomial of `μ`
     P_K : polynomial K := map (int.cast_ring_hom K) P -- minimal polynomial of `μ` sent to `K[X]`
 in calc
 n.totient = (primitive_roots n K).card : (h.card_primitive_roots hpos).symm

@@ -18,6 +18,20 @@ predicate.
 Finally we show that a natural closure operator on sieves induces a Grothendieck topology, and hence
 that natural closure operators are in bijection with Grothendieck topologies.
 
+## Main definitions
+
+* A Grothendieck topology `J` induces a closure operator on the set of sieves on `X` for each `X`,
+  in `category_theory.grothendieck_topology.close`, which sends a sieve `S` to the set of arrows
+  which it covers. This also gives a `closure_operator`, in
+  `category_theory.grothendieck_topology.closure_operator`.
+* A sieve `S` on `X` is said to be closed for the topology `J` if it contains every arrow it covers.
+* The presheaf sending `X` to the collection of `J`-closed sieves on `X` is defined in
+  `category_theory.functor.closed_sieves`, which is additionally shown to be a sheaf for `J`.
+  Further, if this is a sheaf for a different topology `J'`, then `J' ≤ J`.
+* A closure operator on the set of sieves on every object which commutes with pullback additionally
+  induces a Grothendieck topology, giving a bijection with
+  `category_theory.grothendieck_topology.close`.
+
 ## Tags
 
 closed sieve, closure, Grothendieck topology

@@ -3,6 +3,7 @@ Copyright (c) 2019 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import data.bracket
 import algebra.algebra.basic
 import linear_algebra.bilinear_form
 import linear_algebra.matrix
@@ -44,17 +45,6 @@ lie bracket, ring commutator, jacobi identity, lie ring, lie algebra
 
 universes u v w w₁ w₂
 
-/-- The has_bracket class has two intended uses:
-
-  1. for the product `⁅x, y⁆` of two elements `x`, `y` in a Lie algebra
-     (analogous to `has_mul` in the associative setting),
-
-  2. for the action `⁅x, m⁆` of an element `x` of a Lie algebra on an element `m` in one of its
-     modules (analogous to `has_scalar` in the associative setting). -/
-class has_bracket (L : Type v) (M : Type w) := (bracket : L → M → M)
-
-notation `⁅`x`,` y`⁆` := has_bracket.bracket x y
-
 /-- A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. The bracket is not associative unless it is identically zero. -/
 @[protect_proj] class lie_ring (L : Type v) extends add_comm_group L, has_bracket L L :=
@@ -65,7 +55,8 @@ Jacobi identity. The bracket is not associative unless it is identically zero. -
 
 /-- A Lie algebra is a module with compatible product, known as the bracket, satisfying the Jacobi
 identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring. -/
-@[protect_proj] class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] extends semimodule R L :=
+@[protect_proj] class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L]
+  extends semimodule R L :=
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
 
 /-- A Lie ring module is an additive group, together with an additive action of a
@@ -80,7 +71,8 @@ Lie ring on this group, such that the Lie bracket acts as the commutator of endo
 /-- A Lie module is a module over a commutative ring, together with a linear action of a Lie
 algebra on this module, such that the Lie bracket acts as the commutator of endomorphisms. -/
 @[protect_proj] class lie_module (R : Type u) (L : Type v) (M : Type w)
-  [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M] [lie_ring_module L M] :=
+  [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
+  [lie_ring_module L M] :=
 (smul_lie : ∀ (t : R) (x : L) (m : M), ⁅t • x, m⁆ = t • ⁅x, m⁆)
 (lie_smul : ∀ (t : R) (x : L) (m : M), ⁅x, t • m⁆ = t • ⁅x, m⁆)
 
@@ -169,6 +161,12 @@ instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, morphism.to_fun⟩
 @[simp, norm_cast] lemma coe_to_linear_map (f : L₁ →ₗ⁅R⁆ L₂) : ((f : L₁ →ₗ[R] L₂) : L₁ → L₂) = f :=
 rfl
 
+@[simp] lemma morphism.map_smul (f : L₁ →ₗ⁅R⁆ L₂) (c : R) (x : L₁) : f (c • x) = c • f x :=
+linear_map.map_smul (f : L₁ →ₗ[R] L₂) c x
+
+@[simp] lemma morphism.map_add (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f (x + y) = (f x) + (f y) :=
+linear_map.map_add (f : L₁ →ₗ[R] L₂) x y
+
 @[simp] lemma map_lie (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f
 
 /-- The constant 0 map is a Lie algebra morphism. -/
@@ -238,11 +236,12 @@ instance : has_coe_to_fun (L₁ ≃ₗ⁅R⁆ L₂) := ⟨_, to_fun⟩
 @[simp, norm_cast] lemma coe_to_lie_equiv (e : L₁ ≃ₗ⁅R⁆ L₂) : ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = e :=
   rfl
 
-@[simp, norm_cast] lemma coe_to_linear_equiv (e : L₁ ≃ₗ⁅R⁆ L₂) : ((e : L₁ ≃ₗ[R] L₂) : L₁ → L₂) = e :=
-  rfl
+@[simp, norm_cast] lemma coe_to_linear_equiv (e : L₁ ≃ₗ⁅R⁆ L₂) :
+  ((e : L₁ ≃ₗ[R] L₂) : L₁ → L₂) = e := rfl
 
 instance : has_one (L₁ ≃ₗ⁅R⁆ L₁) :=
-⟨{ map_lie := λ x y, by { change ((1 : L₁→ₗ[R] L₁) ⁅x, y⁆) = ⁅(1 : L₁→ₗ[R] L₁) x, (1 : L₁→ₗ[R] L₁) y⁆, simp, },
+⟨{ map_lie := λ x y,
+    by { change ((1 : L₁→ₗ[R] L₁) ⁅x, y⁆) = ⁅(1 : L₁→ₗ[R] L₁) x, (1 : L₁→ₗ[R] L₁) y⁆, simp, },
   ..(1 : L₁ ≃ₗ[R] L₁)}⟩
 
 @[simp] lemma one_apply (x : L₁) : (1 : (L₁ ≃ₗ⁅R⁆ L₁)) x = x := rfl
@@ -382,11 +381,11 @@ instance has_coe_to_linear_equiv : has_coe (M ≃ₗ⁅R,L⁆ N) (M ≃ₗ[R] N)
 /-- see Note [function coercion] -/
 instance : has_coe_to_fun (M ≃ₗ⁅R,L⁆ N) := ⟨_, to_fun⟩
 
-@[simp, norm_cast] lemma coe_to_lie_module_hom (e : M ≃ₗ⁅R,L⁆ N) : ((e : M →ₗ⁅R,L⁆ N) : M → N) = e :=
-  rfl
+@[simp, norm_cast] lemma coe_to_lie_module_hom (e : M ≃ₗ⁅R,L⁆ N) :
+  ((e : M →ₗ⁅R,L⁆ N) : M → N) = e := rfl
 
 @[simp, norm_cast] lemma coe_to_linear_equiv (e : M ≃ₗ⁅R,L⁆ N) : ((e : M ≃ₗ[R] N) : M → N) = e :=
-  rfl
+rfl
 
 instance : has_one (M ≃ₗ⁅R,L⁆ M) := ⟨{ map_lie := λ x m, rfl, ..(1 : M ≃ₗ[R] M) }⟩
 
@@ -459,9 +458,17 @@ lemma of_associative_ring_bracket (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
 
 end lie_ring
 
-/-- An Abelian Lie algebra is one in which all brackets vanish. -/
-class is_lie_abelian (L : Type v) [has_bracket L L] [has_zero L] : Prop :=
-(abelian : ∀ (x y : L), ⁅x, y⁆ = 0)
+/-- A Lie (ring) module is trivial iff all brackets vanish. -/
+class lie_module.is_trivial (L : Type v) (M : Type w) [has_bracket L M] [has_zero M] : Prop :=
+(trivial : ∀ (x : L) (m : M), ⁅x, m⁆ = 0)
+
+@[simp] lemma trivial_lie_zero (L : Type v) (M : Type w)
+  [has_bracket L M] [has_zero M] [lie_module.is_trivial L M] (x : L) (m : M) : ⁅x, m⁆ = 0 :=
+lie_module.is_trivial.trivial x m
+
+/-- A Lie algebra is Abelian iff it is trivial as a Lie module over itself. -/
+abbreviation is_lie_abelian (L : Type v) [has_bracket L L] [has_zero L] : Prop :=
+lie_module.is_trivial L L
 
 lemma commutative_ring_iff_abelian_lie_ring : is_commutative A (*) ↔ is_lie_abelian A :=
 begin
@@ -560,8 +567,7 @@ instance lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' :=
   leibniz_lie  := by { intros, apply set_coe.ext, apply leibniz_lie, } }
 
 /-- A Lie subalgebra forms a new Lie algebra. -/
-instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
-    @lie_algebra R L' _ (lie_subalgebra_lie_ring _ _ _) :=
+instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) : lie_algebra R L' :=
 { lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
 
 @[simp] lemma lie_subalgebra.mem_coe {L' : lie_subalgebra R L} {x : L} :
@@ -592,6 +598,7 @@ def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
   ..A'.to_submodule }
 
 variables {R L} {L₂ : Type w} [lie_ring L₂] [lie_algebra R L₂]
+variables (f : L →ₗ⁅R⁆ L₂)
 
 /-- The embedding of a Lie subalgebra into the ambient space as a Lie morphism. -/
 def lie_subalgebra.incl (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
@@ -599,19 +606,22 @@ def lie_subalgebra.incl (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
   ..L'.to_submodule.subtype }
 
 /-- The range of a morphism of Lie algebras is a Lie subalgebra. -/
-def lie_algebra.morphism.range (f : L →ₗ⁅R⁆ L₂) : lie_subalgebra R L₂ :=
+def lie_algebra.morphism.range : lie_subalgebra R L₂ :=
 { lie_mem := λ x y,
     show x ∈ f.to_linear_map.range → y ∈ f.to_linear_map.range → ⁅x, y⁆ ∈ f.to_linear_map.range,
     by { repeat { rw linear_map.mem_range }, rintros ⟨x', hx⟩ ⟨y', hy⟩, refine ⟨⁅x', y'⁆, _⟩,
          rw [←hx, ←hy], change f ⁅x', y'⁆ = ⁅f x', f y'⁆, rw lie_algebra.map_lie, },
   ..f.to_linear_map.range }
 
-@[simp] lemma lie_algebra.morphism.range_bracket (f : L →ₗ⁅R⁆ L₂) (x y : f.range) :
+@[simp] lemma lie_algebra.morphism.range_bracket (x y : f.range) :
   (↑⁅x, y⁆ : L₂) = ⁅(↑x : L₂), ↑y⁆ := rfl
+
+@[simp] lemma lie_algebra.morphism.range_coe : (f.range : set L₂) = set.range f :=
+linear_map.range_coe ↑f
 
 /-- The image of a Lie subalgebra under a Lie algebra morphism is a Lie subalgebra of the
 codomain. -/
-def lie_subalgebra.map (f : L →ₗ⁅R⁆ L₂) (L' : lie_subalgebra R L) : lie_subalgebra R L₂ :=
+def lie_subalgebra.map (L' : lie_subalgebra R L) : lie_subalgebra R L₂ :=
 { lie_mem := λ x y hx hy, by {
     erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
     erw submodule.mem_map at hy, rcases hy with ⟨y', hy', hy⟩, rw ←hy,
@@ -685,47 +695,71 @@ section lie_submodule
 
 variables (R : Type u) (L : Type v) (M : Type w)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
+variables [lie_ring_module L M] [lie_module R L M]
 
+set_option old_structure_cmd true
 /-- A Lie submodule of a Lie module is a submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie module. -/
-structure lie_submodule [lie_ring_module L M] [lie_module R L M] extends submodule R M :=
+structure lie_submodule extends submodule R M :=
 (lie_mem : ∀ {x : L} {m : M}, m ∈ carrier → ⁅x, m⁆ ∈ carrier)
 
+attribute [nolint doc_blame] lie_submodule.to_submodule
+
+namespace lie_submodule
+
 /-- The zero module is a Lie submodule of any Lie module. -/
-instance [lie_ring_module L M] [lie_module R L M] : has_zero (lie_submodule R L M) :=
+instance : has_zero (lie_submodule R L M) :=
 ⟨{ lie_mem := λ x m h, by { rw ((submodule.mem_bot R).1 h), apply lie_zero, },
    ..(0 : submodule R M)}⟩
 
-instance [lie_ring_module L M] [lie_module R L M] : inhabited (lie_submodule R L M) := ⟨0⟩
+instance : inhabited (lie_submodule R L M) := ⟨0⟩
 
-instance lie_submodule_coe_submodule [lie_ring_module L M] [lie_module R L M] :
-  has_coe (lie_submodule R L M) (submodule R M) :=
-⟨lie_submodule.to_submodule⟩
+instance coe_submodule : has_coe (lie_submodule R L M) (submodule R M) := ⟨to_submodule⟩
 
-instance lie_submodule_has_mem [lie_ring_module L M] [lie_module R L M] :
-  has_mem M (lie_submodule R L M) :=
-⟨λ x N, x ∈ (N : set M)⟩
+@[norm_cast]
+lemma coe_to_submodule (N : lie_submodule R L M) : ((N : submodule R M) : set M) = N := rfl
 
-instance lie_submodule_act [lie_ring_module L M] [lie_module R L M] (N : lie_submodule R L M) :
-  lie_ring_module L N :=
+instance has_mem : has_mem M (lie_submodule R L M) := ⟨λ x N, x ∈ (N : set M)⟩
+
+@[simp] lemma mem_carrier (N : lie_submodule R L M) {x : M} : x ∈ N.carrier ↔ x ∈ (N : set M) :=
+iff.rfl
+
+@[simp] lemma mem_coe_submodule (N : lie_submodule R L M) {x : M} :
+  x ∈ (N : submodule R M) ↔ x ∈ N := iff.rfl
+
+lemma mem_coe (N : lie_submodule R L M) {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
+
+@[simp] lemma coe_to_set_mk (S : set M) (h₁ h₂ h₃ h₄) :
+  ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_submodule R L M) : set M) = S := rfl
+
+@[simp] lemma coe_to_submodule_mk (p : submodule R M) (h) :
+  (({lie_mem := h, ..p} : lie_submodule R L M) : submodule R M) = p :=
+by { cases p, refl, }
+
+@[ext] lemma ext (N N' : lie_submodule R L M) (h : ∀ m, m ∈ N ↔ m ∈ N') : N = N' :=
+by { cases N, cases N', simp only [], ext m, exact h m, }
+
+@[simp] lemma coe_to_submodule_eq_iff (N N' : lie_submodule R L M) :
+  (N : submodule R M) = (N' : submodule R M) ↔ N = N' :=
+begin
+  split; intros h,
+  { ext, rw [← mem_coe_submodule, h], simp, },
+  { rw h, },
+end
+
+instance (N : lie_submodule R L M) : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
   add_lie     := by { intros x y m, apply set_coe.ext, apply add_lie, },
   lie_add     := by { intros x m n, apply set_coe.ext, apply lie_add, },
   leibniz_lie := by { intros x y m, apply set_coe.ext, apply leibniz_lie, }, }
 
-instance lie_submodule_lie_module
-  [lie_ring_module L M] [lie_module R L M] (N : lie_submodule R L M) : lie_module R L N :=
+instance (N : lie_submodule R L M) : lie_module R L N :=
 { lie_smul := by { intros t x y, apply set_coe.ext, apply lie_smul, },
   smul_lie := by { intros t x y, apply set_coe.ext, apply smul_lie, }, }
 
-/-- A Lie module is irreducible if its only non-trivial Lie submodule is itself. -/
-class lie_module.is_irreducible [lie_ring_module L M] [lie_module R L M] : Prop :=
-(irreducible : ∀ (M' : lie_submodule R L M), (∃ (m : M'), m ≠ 0) → (∀ (m : M), m ∈ M'))
+end lie_submodule
 
-/-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
-action, and it is non-Abelian. -/
-class lie_algebra.is_simple : Prop :=
-(simple : lie_module.is_irreducible R L L ∧ ¬is_lie_abelian L)
+section lie_ideal
 
 variables (L)
 
@@ -742,14 +776,321 @@ def lie_ideal_subalgebra (I : lie_ideal R L) : lie_subalgebra R L :=
 { lie_mem := by { intros x y hx hy, apply lie_mem_right, exact hy, },
   ..I.to_submodule, }
 
+instance : has_coe (lie_ideal R L) (lie_subalgebra R L) := ⟨λ I, lie_ideal_subalgebra R L I⟩
+
+@[norm_cast] lemma coe_to_subalgebra (I : lie_ideal R L) :
+  ((I : lie_subalgebra R L) : set L) = I := rfl
+
+end lie_ideal
+
 end lie_submodule
 
 namespace lie_submodule
 
-variables {R : Type u} {L : Type v} {M : Type v}
+variables {R : Type u} {L : Type v} {M : Type w}
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
 variables [lie_ring_module L M] [lie_module R L M]
-variables (N : lie_submodule R L M) (I : lie_ideal R L)
+variables (N N' : lie_submodule R L M) (I J : lie_ideal R L)
+
+section lattice_structure
+
+open set
+
+lemma coe_injective : function.injective (coe : lie_submodule R L M → set M) :=
+λ N N' h, by { cases N, cases N', simp only, exact h, }
+
+lemma coe_submodule_injective : function.injective (coe : lie_submodule R L M → submodule R M) :=
+λ N N' h, by { ext, rw [← mem_coe_submodule, h], refl, }
+
+instance : partial_order (lie_submodule R L M) :=
+{ le := λ N N', ∀ ⦃x⦄, x ∈ N → x ∈ N', -- Overriding `le` like this gives a better defeq.
+  ..partial_order.lift (coe : lie_submodule R L M → set M) coe_injective }
+
+lemma le_def : N ≤ N' ↔ (N : set M) ⊆ N' := iff.rfl
+
+@[simp, norm_cast] lemma coe_submodule_le_coe_submodule : (N : submodule R M) ≤ N' ↔ N ≤ N' :=
+iff.rfl
+
+instance : has_bot (lie_submodule R L M) := ⟨0⟩
+
+@[simp] lemma bot_coe : ((⊥ : lie_submodule R L M) : set M) = {0} := rfl
+
+@[simp] lemma bot_coe_submodule : ((⊥ : lie_submodule R L M) : submodule R M) = ⊥ := rfl
+
+@[simp] lemma mem_bot (x : M) : x ∈ (⊥ : lie_submodule R L M) ↔ x = 0 := mem_singleton_iff
+
+instance : has_top (lie_submodule R L M) :=
+⟨{ lie_mem := λ x m h, mem_univ ⁅x, m⁆,
+   ..(⊤ : submodule R M) }⟩
+
+@[simp] lemma top_coe : ((⊤ : lie_submodule R L M) : set M) = univ := rfl
+
+@[simp] lemma top_coe_submodule : ((⊤ : lie_submodule R L M) : submodule R M) = ⊤ := rfl
+
+lemma mem_top (x : M) : x ∈ (⊤ : lie_submodule R L M) := mem_univ x
+
+instance : has_inf (lie_submodule R L M) :=
+⟨λ N N', { lie_mem := λ x m h, mem_inter (N.lie_mem h.1) (N'.lie_mem h.2),
+            ..(N ⊓ N' : submodule R M) }⟩
+
+instance : has_Inf (lie_submodule R L M) :=
+⟨λ S, { lie_mem := λ x m h, by
+        { simp only [submodule.mem_carrier, mem_Inter, submodule.Inf_coe, mem_set_of_eq,
+            forall_apply_eq_imp_iff₂, exists_imp_distrib] at *,
+          intros N hN, apply N.lie_mem (h N hN), },
+        ..Inf {(s : submodule R M) | s ∈ S} }⟩
+
+@[simp] theorem inf_coe : (↑(N ⊓ N') : set M) = N ∩ N' := rfl
+
+@[simp] lemma Inf_coe_to_submodule (S : set (lie_submodule R L M)) :
+  (↑(Inf S) : submodule R M) = Inf {(s : submodule R M) | s ∈ S} := rfl
+
+@[simp] lemma Inf_coe (S : set (lie_submodule R L M)) : (↑(Inf S) : set M) = ⋂ s ∈ S, (s : set M) :=
+begin
+  rw [← lie_submodule.coe_to_submodule, Inf_coe_to_submodule, submodule.Inf_coe],
+  ext m,
+  simpa only [mem_Inter, mem_set_of_eq, forall_apply_eq_imp_iff₂, exists_imp_distrib],
+end
+
+lemma Inf_glb (S : set (lie_submodule R L M)) : is_glb S (Inf S) :=
+begin
+  have h : ∀ (N N' : lie_submodule R L M), (N : set M) ≤ N' ↔ N ≤ N', { intros, apply iff.rfl, },
+  simp only [is_glb.of_image h, Inf_coe, is_glb_binfi],
+end
+
+/-- The set of Lie submodules of a Lie module form a complete lattice.
+
+We provide explicit values for the fields `bot`, `top`, `inf` to get more convenient definitions
+than we would otherwise obtain from `complete_lattice_of_Inf`.  -/
+instance : complete_lattice (lie_submodule R L M) :=
+{ bot          := ⊥,
+  bot_le       := λ N _ h, by { rw mem_bot at h, rw h, exact N.zero_mem', },
+  top          := ⊤,
+  le_top       := λ _ _ _, trivial,
+  inf          := (⊓),
+  le_inf       := λ N₁ N₂ N₃ h₁₂ h₁₃ m hm, ⟨h₁₂ hm, h₁₃ hm⟩,
+  inf_le_left  := λ _ _ _, and.left,
+  inf_le_right := λ _ _ _, and.right,
+  ..complete_lattice_of_Inf _ Inf_glb }
+
+instance : add_comm_monoid (lie_submodule R L M) :=
+{ add       := (⊔),
+  add_assoc := λ _ _ _, sup_assoc,
+  zero      := ⊥,
+  zero_add  := λ _, bot_sup_eq,
+  add_zero  := λ _, sup_bot_eq,
+  add_comm  := λ _ _, sup_comm, }
+
+@[simp] lemma add_eq_sup : N + N' = N ⊔ N' := rfl
+
+@[norm_cast, simp] lemma sup_coe_to_submodule :
+  (↑(N ⊔ N') : submodule R M) = (N : submodule R M) ⊔ (N' : submodule R M) :=
+begin
+  have aux : ∀ (x : L) m, m ∈ (N ⊔ N' : submodule R M) → ⁅x,m⁆ ∈ (N ⊔ N' : submodule R M),
+  { simp only [submodule.mem_sup],
+    rintro x m ⟨y, hy, z, hz, rfl⟩,
+    refine ⟨⁅x, y⁆, N.lie_mem hy, ⁅x, z⁆, N'.lie_mem hz, (lie_add _ _ _).symm⟩ },
+  refine le_antisymm (Inf_le ⟨{ lie_mem := aux, ..(N ⊔ N' : submodule R M) }, _⟩) _,
+  { simp only [exists_prop, and_true, mem_set_of_eq, eq_self_iff_true, coe_to_submodule_mk,
+      ← coe_submodule_le_coe_submodule, and_self, le_sup_left, le_sup_right] },
+  { simp, },
+end
+
+@[norm_cast, simp] lemma inf_coe_to_submodule :
+  (↑(N ⊓ N') : submodule R M) = (N : submodule R M) ⊓ (N' : submodule R M) := rfl
+
+@[simp] lemma mem_inf (x : M) : x ∈ N ⊓ N' ↔ x ∈ N ∧ x ∈ N' :=
+by rw [← mem_coe_submodule, ← mem_coe_submodule, ← mem_coe_submodule, inf_coe_to_submodule,
+  submodule.mem_inf]
+
+lemma mem_sup (x : M) : x ∈ N ⊔ N' ↔ ∃ (y ∈ N) (z ∈ N'), y + z = x :=
+by { rw [← mem_coe_submodule, sup_coe_to_submodule, submodule.mem_sup], exact iff.rfl, }
+
+lemma eq_bot_iff : N = ⊥ ↔ ∀ (m : M), m ∈ N → m = 0 :=
+by { rw eq_bot_iff, exact iff.rfl, }
+
+section inclusion_maps
+
+/-- The inclusion of a Lie submodule into its ambient space is a morphism of Lie modules. -/
+def incl : N →ₗ⁅R,L⁆ M :=
+{ map_lie := λ x m, rfl,
+  ..submodule.subtype (N : submodule R M) }
+
+@[simp] lemma incl_apply (m : N) : N.incl m = m := rfl
+
+lemma incl_eq_val : (N.incl : N → M) = subtype.val := rfl
+
+variables {N N'} (h : N ≤ N')
+
+/-- Given two nested Lie submodules `N ⊆ N'`, the inclusion `N ↪ N'` is a morphism of Lie modules.-/
+def hom_of_le : N →ₗ⁅R,L⁆ N' :=
+{ map_lie := λ x m, rfl,
+  ..submodule.of_le h }
+
+@[simp] lemma coe_hom_of_le (m : N) : (hom_of_le h m : M) = m := rfl
+
+lemma hom_of_le_apply (m : N) : hom_of_le h m = ⟨m.1, h m.2⟩ := rfl
+
+end inclusion_maps
+
+section lie_span
+
+variables (R L) (s : set M)
+/-- The `lie_span` of a set `s ⊆ M` is the smallest Lie submodule of `M` that contains `s`. -/
+def lie_span : lie_submodule R L M := Inf {N | s ⊆ N}
+
+variables {R L s}
+
+lemma mem_lie_span {x : M} : x ∈ lie_span R L s ↔ ∀ N : lie_submodule R L M, s ⊆ N → x ∈ N :=
+by { change x ∈ (lie_span R L s : set M) ↔ _, erw Inf_coe, exact mem_bInter_iff, }
+
+lemma subset_lie_span : s ⊆ lie_span R L s :=
+by { intros m hm, erw mem_lie_span, intros N hN, exact hN hm, }
+
+lemma submodule_span_le_lie_span : submodule.span R s ≤ lie_span R L s :=
+by { rw [submodule.span_le, coe_to_submodule], apply subset_lie_span, }
+
+lemma lie_span_le {N} : lie_span R L s ≤ N ↔ s ⊆ N :=
+begin
+  split,
+  { exact subset.trans subset_lie_span, },
+  { intros hs m hm, rw mem_lie_span at hm, exact hm _ hs, },
+end
+
+lemma lie_span_mono {t : set M} (h : s ⊆ t) : lie_span R L s ≤ lie_span R L t :=
+by { rw lie_span_le, exact subset.trans h subset_lie_span, }
+
+lemma lie_span_eq : lie_span R L (N : set M) = N :=
+le_antisymm (lie_span_le.mpr rfl.subset) subset_lie_span
+
+end lie_span
+
+lemma well_founded_of_noetherian [is_noetherian R M] :
+  well_founded ((>) : lie_submodule R L M → lie_submodule R L M → Prop) :=
+begin
+  let f : ((>) : lie_submodule R L M → lie_submodule R L M → Prop) →r
+          ((>) : submodule R M → submodule R M → Prop) :=
+  { to_fun       := coe,
+    map_rel' := λ N N' h, h, },
+  apply f.well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
+end
+
+end lattice_structure
+
+section lie_ideal_operations
+
+/-- Given a Lie module `M` over a Lie algebra `L`, the set of Lie ideals of `L` acts on the set
+of submodules of `M`. -/
+instance : has_bracket (lie_ideal R L) (lie_submodule R L M) :=
+⟨λ I N, lie_span R L { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m }⟩
+
+lemma lie_ideal_oper_eq_span :
+  ⁅I, N⁆ = lie_span R L { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m } := rfl
+
+lemma lie_ideal_oper_eq_linear_span :
+  (↑⁅I, N⁆ : submodule R M) = submodule.span R { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m } :=
+begin
+  apply le_antisymm,
+  { let s := {m : M | ∃ (x : ↥I) (n : ↥N), ⁅(x : L), (n : M)⁆ = m},
+    have aux : ∀ (y : L) (m' ∈ submodule.span R s), ⁅y, m'⁆ ∈ submodule.span R s,
+    { intros y m' hm', apply submodule.span_induction hm',
+      { rintros m'' ⟨x, n, hm''⟩, rw [← hm'', leibniz_lie],
+        refine submodule.add_mem _ _ _; apply submodule.subset_span,
+        { use [⟨⁅y, ↑x⁆, I.lie_mem x.property⟩, n], refl, },
+        { use [x, ⟨⁅y, ↑n⁆, N.lie_mem n.property⟩], refl, }, },
+      { simp only [lie_zero, submodule.zero_mem], },
+      { intros m₁ m₂ hm₁ hm₂, rw lie_add, exact submodule.add_mem _ hm₁ hm₂, },
+      { intros t m'' hm'', rw lie_smul, exact submodule.smul_mem _ t hm'', }, },
+    change _ ≤ ↑({ lie_mem := aux, ..submodule.span R s } : lie_submodule R L M),
+    rw [coe_submodule_le_coe_submodule, lie_ideal_oper_eq_span, lie_span_le],
+    exact submodule.subset_span, },
+  { rw lie_ideal_oper_eq_span, apply submodule_span_le_lie_span, },
+end
+
+lemma lie_mem_lie (x : I) (m : N) : ⁅(x : L), (m : M)⁆ ∈ ⁅I, N⁆ :=
+by { rw lie_ideal_oper_eq_span, apply subset_lie_span, use [x, m], }
+
+lemma lie_comm : ⁅I, J⁆ = ⁅J, I⁆ :=
+begin
+  suffices : ∀ (I J : lie_ideal R L), ⁅I, J⁆ ≤ ⁅J, I⁆, { exact le_antisymm (this I J) (this J I), },
+  clear I J, intros I J,
+  rw [lie_ideal_oper_eq_span, lie_span_le], rintros x ⟨y, z, h⟩, rw ← h,
+  rw [← lie_skew, ← lie_neg, ← submodule.coe_neg],
+  apply lie_mem_lie,
+end
+
+lemma lie_le_right : ⁅I, N⁆ ≤ N :=
+begin
+  rw [lie_ideal_oper_eq_span, lie_span_le], rintros m ⟨x, n, hn⟩, rw ← hn,
+  exact N.lie_mem n.property,
+end
+
+lemma lie_le_left : ⁅I, J⁆ ≤ I :=
+by { rw lie_comm, exact lie_le_right I J, }
+
+lemma lie_le_inf : ⁅I, J⁆ ≤ I ⊓ J :=
+by { rw le_inf_iff, exact ⟨lie_le_left I J, lie_le_right J I⟩, }
+
+@[simp] lemma lie_bot : ⁅I, (⊥ : lie_submodule R L M)⁆ = ⊥ :=
+by { rw eq_bot_iff, apply lie_le_right, }
+
+@[simp] lemma bot_lie : ⁅(⊥ : lie_ideal R L), N⁆ = ⊥ :=
+begin
+  suffices : ⁅(⊥ : lie_ideal R L), N⁆ ≤ ⊥, { exact le_bot_iff.mp this, },
+  rw [lie_ideal_oper_eq_span, lie_span_le], rintros m ⟨⟨x, hx⟩, n, hn⟩, rw ← hn,
+  change x ∈ (⊥ : lie_ideal R L) at hx, rw mem_bot at hx, simp [hx],
+end
+
+lemma mono_lie (h₁ : I ≤ J) (h₂ : N ≤ N') : ⁅I, N⁆ ≤ ⁅J, N'⁆ :=
+begin
+  intros m h,
+  rw [lie_ideal_oper_eq_span, mem_lie_span] at h, rw [lie_ideal_oper_eq_span, mem_lie_span],
+  intros N hN, apply h, rintros m' ⟨⟨x, hx⟩, ⟨n, hn⟩, hm⟩, rw ← hm, apply hN,
+  use [⟨x, h₁ hx⟩, ⟨n, h₂ hn⟩], refl,
+end
+
+lemma mono_lie_left (h : I ≤ J) : ⁅I, N⁆ ≤ ⁅J, N⁆ := mono_lie _ _ _ _ h (le_refl N)
+
+lemma mono_lie_right (h : N ≤ N') : ⁅I, N⁆ ≤ ⁅I, N'⁆ := mono_lie _ _ _ _ (le_refl I) h
+
+@[simp] lemma lie_sup : ⁅I, N ⊔ N'⁆ = ⁅I, N⁆ ⊔ ⁅I, N'⁆ :=
+begin
+  have h : ⁅I, N⁆ ⊔ ⁅I, N'⁆ ≤ ⁅I, N ⊔ N'⁆,
+  { rw sup_le_iff, split; apply mono_lie_right; [exact le_sup_left, exact le_sup_right], },
+  suffices : ⁅I, N ⊔ N'⁆ ≤ ⁅I, N⁆ ⊔ ⁅I, N'⁆, { exact le_antisymm this h, }, clear h,
+  rw [lie_ideal_oper_eq_span, lie_span_le], rintros m ⟨x, ⟨n, hn⟩, h⟩, erw lie_submodule.mem_sup,
+  erw lie_submodule.mem_sup at hn, rcases hn with ⟨n₁, hn₁, n₂, hn₂, hn'⟩,
+  use ⁅(x : L), (⟨n₁, hn₁⟩ : N)⁆, split, { apply lie_mem_lie, },
+  use ⁅(x : L), (⟨n₂, hn₂⟩ : N')⁆, split, { apply lie_mem_lie, },
+  simp [← h, ← hn'],
+end
+
+@[simp] lemma sup_lie : ⁅I ⊔ J, N⁆ = ⁅I, N⁆ ⊔ ⁅J, N⁆ :=
+begin
+  have h : ⁅I, N⁆ ⊔ ⁅J, N⁆ ≤ ⁅I ⊔ J, N⁆,
+  { rw sup_le_iff, split; apply mono_lie_left; [exact le_sup_left, exact le_sup_right], },
+  suffices : ⁅I ⊔ J, N⁆ ≤ ⁅I, N⁆ ⊔ ⁅J, N⁆, { exact le_antisymm this h, }, clear h,
+  rw [lie_ideal_oper_eq_span, lie_span_le], rintros m ⟨⟨x, hx⟩, n, h⟩, erw lie_submodule.mem_sup,
+  erw lie_submodule.mem_sup at hx, rcases hx with ⟨x₁, hx₁, x₂, hx₂, hx'⟩,
+  use ⁅((⟨x₁, hx₁⟩ : I) : L), (n : N)⁆, split, { apply lie_mem_lie, },
+  use ⁅((⟨x₂, hx₂⟩ : J) : L), (n : N)⁆, split, { apply lie_mem_lie, },
+  simp [← h, ← hx'],
+end
+
+@[simp] lemma lie_inf : ⁅I, N ⊓ N'⁆ ≤ ⁅I, N⁆ ⊓ ⁅I, N'⁆ :=
+by { rw le_inf_iff, split; apply mono_lie_right; [exact inf_le_left, exact inf_le_right], }
+
+@[simp] lemma inf_lie : ⁅I ⊓ J, N⁆ ≤ ⁅I, N⁆ ⊓ ⁅J, N⁆ :=
+by { rw le_inf_iff, split; apply mono_lie_left; [exact inf_le_left, exact inf_le_right], }
+
+@[simp] lemma trivial_lie_oper_zero [lie_module.is_trivial L M] : ⁅I, N⁆ = ⊥ :=
+begin
+  suffices : ⁅I, N⁆ ≤ ⊥, { exact le_bot_iff.mp this, },
+  rw [lie_ideal_oper_eq_span, lie_span_le],
+  rintros m ⟨x, n, h⟩, rw trivial_lie_zero at h, simp [← h],
+end
+
+end lie_ideal_operations
 
 /-- The quotient of a Lie module by a Lie submodule. It is a Lie module. -/
 abbreviation quotient := N.to_submodule.quotient
@@ -805,7 +1146,8 @@ instance lie_quotient_has_bracket : has_bracket (quotient I) (quotient I) :=
   apply quotient.lift_on₂' x y (λ x' y', mk ⁅x', y'⁆),
   intros x₁ x₂ y₁ y₂ h₁ h₂,
   apply (submodule.quotient.eq I.to_submodule).2,
-  have h : ⁅x₁, x₂⁆ - ⁅y₁, y₂⁆ = ⁅x₁, x₂ - y₂⁆ + ⁅x₁ - y₁, y₂⁆ := by simp [-lie_skew, sub_eq_add_neg, add_assoc],
+  have h : ⁅x₁, x₂⁆ - ⁅y₁, y₂⁆ = ⁅x₁, x₂ - y₂⁆ + ⁅x₁ - y₁, y₂⁆,
+    by simp [-lie_skew, sub_eq_add_neg, add_assoc],
   rw h,
   apply submodule.add_mem,
   { apply lie_mem_right R L I x₁ (x₂ - y₂) h₂, },
@@ -845,6 +1187,156 @@ instance lie_quotient_lie_algebra : lie_algebra R (quotient I) :=
 end quotient
 
 end lie_submodule
+
+section lie_module
+
+variables (R : Type u) (L : Type v) (M : Type w)
+variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
+variables [lie_ring_module L M] [lie_module R L M]
+
+namespace lie_algebra
+
+/-- The derived series of Lie ideals of a Lie algebra. -/
+def derived_series : ℕ → lie_ideal R L
+| 0       := ⊤
+| (k + 1) := ⁅derived_series k, derived_series k⁆
+
+end lie_algebra
+
+namespace lie_module
+
+/-- The lower central series of Lie submodules of a Lie module. -/
+def lower_central_series : ℕ → lie_submodule R L M
+| 0       := ⊤
+| (k + 1) := ⁅(⊤ : lie_ideal R L), lower_central_series k⁆
+
+lemma trivial_iff_derived_eq_bot : is_trivial L M ↔ lower_central_series R L M 1 = ⊥ :=
+begin
+  split; intros h,
+  { erw [eq_bot_iff, lie_submodule.lie_span_le], rintros m ⟨x, n, hn⟩, rw [← hn, h.trivial], simp,},
+  { rw lie_submodule.eq_bot_iff at h, apply is_trivial.mk, intros x m, apply h,
+    apply lie_submodule.subset_lie_span, use [x, m], refl, },
+end
+
+open lie_algebra
+
+lemma derived_series_le_lower_central_series (k : ℕ) :
+  derived_series R L k ≤ lower_central_series R L L k :=
+begin
+  induction k with k h,
+  { exact le_refl _, },
+  { have h' : derived_series R L k ≤ ⊤, { by simp only [le_top], },
+    exact lie_submodule.mono_lie _ _ _ _ h' h, },
+end
+
+end lie_module
+
+end lie_module
+
+section lie_submodule_map_and_comap
+
+variables {R : Type u} {L : Type v} {L' : Type w₂} {M : Type w} {M' : Type w₁}
+variables [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
+variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables [add_comm_group M'] [module R M'] [lie_ring_module L M'] [lie_module R L M']
+
+namespace lie_submodule
+
+/-- A morphism of Lie modules `f : M → M'` pushes forward Lie submodules of `M` to Lie submodules
+of `M'`. -/
+def map (f : M →ₗ⁅R,L⁆ M') (N : lie_submodule R L M) : lie_submodule R L M' :=
+{ lie_mem := λ x m' h, by
+  { rcases h with ⟨m, hm, hfm⟩, use ⁅x, m⁆, split,
+    { apply N.lie_mem hm, },
+    { norm_cast at hfm, simp [hfm], }, },
+  ..(N : submodule R M).map (f : M →ₗ[R] M') }
+
+/-- A morphism of Lie modules `f : M → M'` pulls back Lie submodules of `M'` to Lie submodules of
+`M`. -/
+def comap (f : M →ₗ⁅R,L⁆ M') (N : lie_submodule R L M') : lie_submodule R L M :=
+{ lie_mem := λ x m h, by { suffices : ⁅x, f m⁆ ∈ N, { simp [this], }, apply N.lie_mem h, },
+  ..(N : submodule R M').comap (f : M →ₗ[R] M') }
+
+lemma map_le_iff_le_comap {f : M →ₗ⁅R,L⁆ M'} {N : lie_submodule R L M} {N' : lie_submodule R L M'} :
+  map f N ≤ N' ↔ N ≤ comap f N' := set.image_subset_iff
+
+lemma gc_map_comap (f : M →ₗ⁅R,L⁆ M') : galois_connection (map f) (comap f) :=
+λ N N', map_le_iff_le_comap
+
+end lie_submodule
+
+namespace lie_ideal
+
+/-- A morphism of Lie algebras `f : L → L'` pushes forward Lie ideals of `L` to Lie ideals of `L'`.
+
+Note that unlike `lie_submodule.map`, we must take the `lie_span` of the image. Mathematically
+this is because although `f` makes `L'` into a Lie module over `L`, in general the `L` submodules of
+`L'` are not the same as the ideals of `L'`. -/
+def map (f : L →ₗ⁅R⁆ L') (I : lie_ideal R L) : lie_ideal R L' :=
+lie_submodule.lie_span R L' (f '' I)
+
+/-- A morphism of Lie algebras `f : L → L'` pulls back Lie ideals of `L'` to Lie ideals of `L`.
+
+Note that `f` makes `L'` into a Lie module over `L` (turning `f` into a morphism of Lie modules)
+and so this is a special case of `lie_submodule.comap` but we do not exploit this fact. -/
+def comap (f : L →ₗ⁅R⁆ L') (I : lie_ideal R L') : lie_ideal R L :=
+{ lie_mem := λ x y h, by { suffices : ⁅f x, f y⁆ ∈ I, { simp [this], }, apply I.lie_mem h, },
+  ..(I : submodule R L').comap (f : L →ₗ[R] L') }
+
+lemma map_le_iff_le_comap {f : L →ₗ⁅R⁆ L'} {I : lie_ideal R L} {I' : lie_ideal R L'} :
+  map f I ≤ I' ↔ I ≤ comap f I' :=
+by { erw lie_submodule.lie_span_le, exact set.image_subset_iff, }
+
+lemma gc_map_comap (f : L →ₗ⁅R⁆ L') : galois_connection (map f) (comap f) :=
+λ I I', map_le_iff_le_comap
+
+/-- Regarding an ideal `I` as a subalgebra, the inclusion map into its ambient space is a morphism
+of Lie algebras. -/
+def incl (I : lie_ideal R L) : I →ₗ⁅R⁆ L := (I : lie_subalgebra R L).incl
+
+@[simp] lemma incl_apply (I : lie_ideal R L) (x : I) : I.incl x = x := rfl
+
+end lie_ideal
+
+end lie_submodule_map_and_comap
+
+section lie_algebra_properties
+
+variables (R : Type u) (L : Type v) (M : Type w)
+variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
+variables [lie_ring_module L M] [lie_module R L M]
+
+/-- A Lie module is irreducible if it is zero or its only non-trivial Lie submodule is itself. -/
+class lie_module.is_irreducible : Prop :=
+(irreducible : ∀ (N : lie_submodule R L M), N ≠ ⊥ → N = ⊤)
+
+/-- A Lie module is nilpotent if its lower central series reaches 0 (in a finite number of steps).-/
+class lie_module.is_nilpotent : Prop :=
+(nilpotent : ∃ k, lie_module.lower_central_series R L M k = ⊥)
+
+@[priority 100]
+instance trivial_is_nilpotent [lie_module.is_trivial L M] : lie_module.is_nilpotent R L M :=
+⟨by { use 1, change ⁅⊤, ⊤⁆ = ⊥, simp, }⟩
+
+/-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
+action, and it is non-Abelian. -/
+class lie_algebra.is_simple extends lie_module.is_irreducible R L L : Prop :=
+(non_abelian : ¬is_lie_abelian L)
+
+/-- A Lie algebra is solvable if its derived series reaches 0 (in a finite number of steps). -/
+class lie_algebra.is_solvable : Prop :=
+(solvable : ∃ k, lie_algebra.derived_series R L k = ⊥)
+
+@[priority 100]
+instance is_solvable_of_is_nilpotent [hL : lie_module.is_nilpotent R L L] :
+  lie_algebra.is_solvable R L :=
+begin
+  obtain ⟨k, h⟩ : ∃ k, lie_module.lower_central_series R L L k = ⊥ := hL.nilpotent,
+  use k, rw ← le_bot_iff at h ⊢,
+  exact le_trans (lie_module.derived_series_le_lower_central_series R L k) h,
+end
+
+end lie_algebra_properties
 
 namespace linear_equiv
 

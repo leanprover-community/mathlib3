@@ -172,7 +172,7 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
         ... = dist x (Φ p) + dist y (Ψ p) + dist y z : by ring },
     linarith
   end
-| (inl x) (inr y) (inl z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
+| (inl x) (inr y) (inl z) := le_of_forall_pos_le_add $ λδ δpos, begin
     have : ∃a ∈ range (λp, dist x (Φ p) + dist y (Ψ p)), a < infi (λp, dist x (Φ p) + dist y (Ψ p)) + δ/2 :=
       exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨a, arange, ha⟩,
@@ -192,7 +192,7 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
       ... ≤ (infi (λp, dist x (Φ p) + dist y (Ψ p)) + ε) + (infi (λp, dist z (Φ p) + dist y (Ψ p)) + ε) + δ :
         by linarith
   end
-| (inr x) (inl y) (inr z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
+| (inr x) (inl y) (inr z) := le_of_forall_pos_le_add $ λδ δpos, begin
     have : ∃a ∈ range (λp, dist y (Φ p) + dist x (Ψ p)), a < infi (λp, dist y (Φ p) + dist x (Ψ p)) + δ/2 :=
       exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
     rcases this with ⟨a, arange, ha⟩,
@@ -408,7 +408,7 @@ lemma inductive_limit_dist_eq_dist (I : ∀n, isometry (f n))
 begin
   induction m with m hm,
   { assume hx hy,
-    have A : max x.1 y.1 = 0, { rw [le_zero_iff_eq.1 hx, le_zero_iff_eq.1 hy], simp },
+    have A : max x.1 y.1 = 0, { rw [nonpos_iff_eq_zero.1 hx, nonpos_iff_eq_zero.1 hy], simp },
     unfold inductive_limit_dist,
     congr; simp only [A] },
   { assume hx hy,

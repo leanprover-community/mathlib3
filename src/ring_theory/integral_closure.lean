@@ -29,8 +29,8 @@ open_locale big_operators
 open polynomial submodule
 
 section ring
-variables {R A : Type*}
-variables [comm_ring R] [ring A]
+variables {R S A : Type*}
+variables [comm_ring R] [ring A] [ring S] (f : R →+* S)
 
 /-- An element `x` of `A` is said to be integral over `R` with respect to `f`
 if it is a root of a monic polynomial `p : polynomial R` evaluated under `f` -/
@@ -58,9 +58,11 @@ def algebra.is_integral : Prop :=
 
 variables {R A}
 
+lemma ring_hom.is_integral_map {x : R} : f.is_integral_elem (f x) :=
+⟨X - C x, monic_X_sub_C _, by simp⟩
+
 theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
-⟨X - C x, monic_X_sub_C _,
-by simp⟩
+(algebra_map R A).is_integral_map
 
 theorem is_integral_of_noetherian (H : is_noetherian R A) (x : A) :
   is_integral R x :=
@@ -108,9 +110,9 @@ end
 end ring
 
 section
-variables {R : Type*} {A : Type*} {B : Type*}
-variables [comm_ring R] [comm_ring A] [comm_ring B]
-variables [algebra R A] [algebra R B]
+variables {R A B S : Type*}
+variables [comm_ring R] [comm_ring A] [comm_ring B] [comm_ring S]
+variables [algebra R A] [algebra R B] (f : R →+* S)
 
 theorem is_integral_alg_hom (f : A →ₐ[R] B) {x : A} (hx : is_integral R x) : is_integral R (f x) :=
 let ⟨p, hp, hpx⟩ := hx in ⟨p, hp, by rw [← aeval_def, aeval_alg_hom_apply, aeval_def, hpx, f.map_zero]⟩
@@ -232,43 +234,72 @@ begin
   exact subalgebra.smul_mem _ (algebra.subset_adjoin $ hlx1 hr) _
 end
 
+lemma ring_hom.is_integral_of_mem_closure {x y z : S}
+  (hx : f.is_integral_elem x) (hy : f.is_integral_elem y)
+  (hz : z ∈ ring.closure ({x, y} : set S)) :
+  f.is_integral_elem z :=
+begin
+  letI : algebra R S := f.to_algebra,
+  have := fg_mul _ _ (fg_adjoin_singleton_of_integral x hx) (fg_adjoin_singleton_of_integral y hy),
+  rw [← algebra.adjoin_union_coe_submodule, set.singleton_union] at this,
+  exact is_integral_of_mem_of_fg (algebra.adjoin R {x, y}) this z
+    (algebra.mem_adjoin_iff.2  $ ring.closure_mono (set.subset_union_right _ _) hz),
+end
+
 theorem is_integral_of_mem_closure {x y z : A}
   (hx : is_integral R x) (hy : is_integral R y)
   (hz : z ∈ ring.closure ({x, y} : set A)) :
   is_integral R z :=
-begin
-  have := fg_mul _ _ (fg_adjoin_singleton_of_integral x hx) (fg_adjoin_singleton_of_integral y hy),
-  rw [← algebra.adjoin_union_coe_submodule, set.singleton_union] at this,
-  exact is_integral_of_mem_of_fg (algebra.adjoin R {x, y}) this z
-    (algebra.mem_adjoin_iff.2  $ ring.closure_mono (set.subset_union_right _ _) hz)
-end
+(algebra_map R A).is_integral_of_mem_closure hx hy hz
+
+lemma ring_hom.is_integral_zero : f.is_integral_elem 0 :=
+f.map_zero ▸ f.is_integral_map
 
 theorem is_integral_zero : is_integral R (0:A) :=
-(algebra_map R A).map_zero ▸ is_integral_algebra_map
+(algebra_map R A).is_integral_zero
+
+lemma ring_hom.is_integral_one : f.is_integral_elem 1 :=
+f.map_one ▸ f.is_integral_map
 
 theorem is_integral_one : is_integral R (1:A) :=
-(algebra_map R A).map_one ▸ is_integral_algebra_map
+(algebra_map R A).is_integral_one
+
+lemma ring_hom.is_integral_add {x y : S}
+  (hx : f.is_integral_elem x) (hy : f.is_integral_elem y) :
+  f.is_integral_elem (x + y) :=
+f.is_integral_of_mem_closure hx hy (is_add_submonoid.add_mem
+  (ring.subset_closure (or.inl rfl)) (ring.subset_closure (or.inr rfl)))
 
 theorem is_integral_add {x y : A}
   (hx : is_integral R x) (hy : is_integral R y) :
   is_integral R (x + y) :=
-is_integral_of_mem_closure hx hy (is_add_submonoid.add_mem
-  (ring.subset_closure (or.inl rfl)) (ring.subset_closure (or.inr rfl)))
+(algebra_map R A).is_integral_add hx hy
+
+lemma ring_hom.is_integral_neg {x : S}
+  (hx : f.is_integral_elem x) : f.is_integral_elem (-x) :=
+f.is_integral_of_mem_closure hx hx (is_add_subgroup.neg_mem
+  (ring.subset_closure (or.inl rfl)))
 
 theorem is_integral_neg {x : A}
   (hx : is_integral R x) : is_integral R (-x) :=
-is_integral_of_mem_closure hx hx (is_add_subgroup.neg_mem
-  (ring.subset_closure (or.inl rfl)))
+(algebra_map R A).is_integral_neg hx
+
+lemma ring_hom.is_integral_sub {x y : S}
+  (hx : f.is_integral_elem x) (hy : f.is_integral_elem y) : f.is_integral_elem (x - y) :=
+by simpa only [sub_eq_add_neg] using f.is_integral_add hx (f.is_integral_neg hy)
 
 theorem is_integral_sub {x y : A}
   (hx : is_integral R x) (hy : is_integral R y) : is_integral R (x - y) :=
-is_integral_add hx (is_integral_neg hy)
+(algebra_map R A).is_integral_sub hx hy
+
+lemma ring_hom.is_integral_mul {x y : S}
+  (hx : f.is_integral_elem x) (hy : f.is_integral_elem y) : f.is_integral_elem (x * y) :=
+f.is_integral_of_mem_closure hx hy (is_submonoid.mul_mem
+  (ring.subset_closure (or.inl rfl)) (ring.subset_closure (or.inr rfl)))
 
 theorem is_integral_mul {x y : A}
-  (hx : is_integral R x) (hy : is_integral R y) :
-  is_integral R (x * y) :=
-is_integral_of_mem_closure hx hy (is_submonoid.mul_mem
-  (ring.subset_closure (or.inl rfl)) (ring.subset_closure (or.inr rfl)))
+  (hx : is_integral R x) (hy : is_integral R y) : is_integral R (x * y) :=
+(algebra_map R A).is_integral_mul hx hy
 
 variables (R A)
 
@@ -306,18 +337,18 @@ lemma integral_closure.is_integral (x : integral_closure R A) : is_integral R x 
 let ⟨p, hpm, hpx⟩ := x.2 in ⟨p, hpm, subtype.eq $
 by rwa [← aeval_def, subtype.val_eq_coe, ← subalgebra.val_apply, aeval_alg_hom_apply] at hpx⟩
 
-theorem is_integral_of_is_integral_mul_unit {x y : A} {r : R} (hr : algebra_map R A r * y = 1)
-  (hx : is_integral R (x * y)) : is_integral R x :=
+lemma ring_hom.is_integral_of_is_integral_mul_unit (x y : S) (r : R) (hr : f r * y = 1)
+  (hx : f.is_integral_elem (x * y)) : f.is_integral_elem x :=
 begin
   obtain ⟨p, ⟨p_monic, hp⟩⟩ := hx,
   refine ⟨scale_roots p r, ⟨(monic_scale_roots_iff r).2 p_monic, _⟩⟩,
-  convert scale_roots_aeval_eq_zero hp,
+  convert scale_roots_eval₂_eq_zero f hp,
   rw [mul_comm x y, ← mul_assoc, hr, one_mul],
 end
 
-theorem is_integral_of_is_integral_mul_unit' {R S : Type*} [comm_ring R] [comm_ring S] {f : R →+* S}
-  (x y : S) (r : R) (hr : f r * y = 1) (hx : f.is_integral_elem (x * y)) : f.is_integral_elem x :=
-@is_integral_of_is_integral_mul_unit R S _ _ f.to_algebra x y r hr hx
+theorem is_integral_of_is_integral_mul_unit {x y : A} {r : R} (hr : algebra_map R A r * y = 1)
+  (hx : is_integral R (x * y)) : is_integral R x :=
+(algebra_map R A).is_integral_of_is_integral_mul_unit x y r hr hx
 
 /-- Generalization of `is_integral_of_mem_closure` bootstrapped up from that lemma -/
 lemma is_integral_of_mem_closure' (G : set A) (hG : ∀ x ∈ G, is_integral R x) :
@@ -333,9 +364,9 @@ end
 
 section algebra
 open algebra
-variables {R : Type*} {A : Type*} {B : Type*}
-variables [comm_ring R] [comm_ring A] [comm_ring B]
-variables [algebra A B] [algebra R B]
+variables {R A B S T : Type*}
+variables [comm_ring R] [comm_ring A] [comm_ring B] [comm_ring S] [comm_ring T]
+variables [algebra A B] [algebra R B] (f : R →+* S) (g : S →+* T)
 
 lemma is_integral_trans_aux (x : B) {p : polynomial A} (pmonic : monic p) (hp : aeval x p = 0) :
   is_integral (adjoin R (↑(p.map $ algebra_map A B).frange : set B)) x :=
@@ -383,18 +414,17 @@ then all elements of B are integral over R.-/
 lemma algebra.is_integral_trans (hA : is_integral R A) (hB : is_integral A B) : is_integral R B :=
 λ x, is_integral_trans hA x (hB x)
 
-lemma ring_hom.is_integral_trans {R A B : Type*} [comm_ring R] [comm_ring A] [comm_ring B]
-  {f : R →+* A} {g : A →+* B} (hf : f.is_integral) (hg : g.is_integral) : (g.comp f).is_integral :=
-@algebra.is_integral_trans R A B _ _ _ g.to_algebra (g.comp f).to_algebra f.to_algebra
-  (@is_scalar_tower.of_algebra_map_eq R A B _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra
+lemma ring_hom.is_integral_trans (hf : f.is_integral) (hg : g.is_integral) :
+  (g.comp f).is_integral :=
+@algebra.is_integral_trans R S T _ _ _ g.to_algebra (g.comp f).to_algebra f.to_algebra
+  (@is_scalar_tower.of_algebra_map_eq R S T _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra
   (ring_hom.comp_apply g f)) hf hg
 
-lemma is_integral_of_surjective (h : function.surjective (algebra_map R A)) : is_integral R A :=
-λ x, (h x).rec_on (λ y hy, (hy ▸ is_integral_algebra_map : is_integral R x))
+lemma ring_hom.is_integral_of_surjective (hf : function.surjective f) : f.is_integral :=
+λ x, (hf x).rec_on (λ y hy, (hy ▸ f.is_integral_map : f.is_integral_elem x))
 
-lemma is_integral_of_surjective' {R A : Type*} [comm_ring R] [comm_ring A] {f : R →+* A}
-  (hf : function.surjective f) : f.is_integral :=
-@is_integral_of_surjective R A _ _ f.to_algebra hf
+lemma is_integral_of_surjective (h : function.surjective (algebra_map R A)) : is_integral R A :=
+(algebra_map R A).is_integral_of_surjective h
 
 /-- If `R → A → B` is an algebra tower with `A → B` injective,
 then if the entire tower is an integral extension so is `R → A` -/
@@ -409,10 +439,10 @@ begin
   exact H hp',
 end
 
-lemma is_integral_tower_bot_of_is_integral' {R A B : Type*} [comm_ring R] [comm_ring A] [comm_ring B]
-  (f : R →+* A) (g : A →+* B) (hg : function.injective g) (hfg : (g.comp f).is_integral) : f.is_integral :=
-λ x, @is_integral_tower_bot_of_is_integral R A B _ _ _ g.to_algebra (g.comp f).to_algebra f.to_algebra
-  (@is_scalar_tower.of_algebra_map_eq R A B _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra
+lemma ring_hom.is_integral_tower_bot_of_is_integral (hg : function.injective g)
+  (hfg : (g.comp f).is_integral) : f.is_integral :=
+λ x, @is_integral_tower_bot_of_is_integral R S T _ _ _ g.to_algebra (g.comp f).to_algebra f.to_algebra
+  (@is_scalar_tower.of_algebra_map_eq R S T _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra
   (ring_hom.comp_apply g f))  hg x (hfg (g x))
 
 lemma is_integral_tower_bot_of_is_integral_field {R A B : Type*} [comm_ring R] [field A]
@@ -420,8 +450,15 @@ lemma is_integral_tower_bot_of_is_integral_field {R A B : Type*} [comm_ring R] [
   {x : A} (h : is_integral R (algebra_map A B x)) : is_integral R x :=
 is_integral_tower_bot_of_is_integral (algebra_map A B).injective h
 
+lemma ring_hom.is_integral_elem_of_is_integral_elem_comp {x : T}
+  (h : (g.comp f).is_integral_elem x) : g.is_integral_elem x :=
+let ⟨p, ⟨hp, hp'⟩⟩ := h in ⟨p.map f, monic_map f hp, by rwa ← eval₂_map at hp'⟩
+
+lemma ring_hom.is_integral_tower_top_of_is_integral (h : (g.comp f).is_integral) : g.is_integral :=
+λ x, ring_hom.is_integral_elem_of_is_integral_elem_comp f g (h x)
+
 /-- If `R → A → B` is an algebra tower,
-then if the entire tower is an integral extension so is `A → B` -/
+then if the entire tower is an integral extension so is `A → B`. -/
 lemma is_integral_tower_top_of_is_integral {x : B} (h : is_integral R x) : is_integral A x :=
 begin
   rcases h with ⟨p, ⟨hp, hp'⟩⟩,
@@ -430,20 +467,31 @@ begin
   exact hp',
 end
 
-lemma is_integral_quotient_of_is_integral {I : ideal A} (hRA : is_integral R A) :
-  is_integral (I.comap (algebra_map R A)).quotient I.quotient :=
+lemma ring_hom.is_integral_quotient_of_is_integral {I : ideal S} (hf : f.is_integral) :
+  (ideal.quotient_map I f le_rfl).is_integral :=
 begin
   rintros ⟨x⟩,
-  obtain ⟨p, ⟨p_monic, hpx⟩⟩ := hRA x,
+  obtain ⟨p, ⟨p_monic, hpx⟩⟩ := hf x,
   refine ⟨p.map (ideal.quotient.mk _), ⟨monic_map _ p_monic, _⟩⟩,
-  simpa only [aeval_def, hom_eval₂, eval₂_map] using congr_arg (ideal.quotient.mk I) hpx
+  simpa only [hom_eval₂, eval₂_map] using congr_arg (ideal.quotient.mk I) hpx
 end
 
-lemma is_integral_quotient_of_is_integral' {R S : Type*} [comm_ring R] [comm_ring S]
-  {f : R →+* S} {I : ideal S} (hf : f.is_integral) : (ideal.quotient_map I f le_rfl).is_integral :=
-@is_integral_quotient_of_is_integral R S _ _ f.to_algebra I hf
+lemma is_integral_quotient_of_is_integral {I : ideal A} (hRA : is_integral R A) :
+  is_integral (I.comap (algebra_map R A)).quotient I.quotient :=
+(algebra_map R A).is_integral_quotient_of_is_integral hRA
 
-/-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field -/
+lemma is_integral_quotient_map_iff {I : ideal S} :
+  (ideal.quotient_map I f le_rfl).is_integral ↔
+    ((ideal.quotient.mk I).comp f : R →+* I.quotient).is_integral :=
+begin
+  let g := ideal.quotient.mk (I.comap f),
+  have := @ideal.quotient_map_comp_mk R S _ _ _ I f le_rfl,
+  refine ⟨λ h, _, λ h, ring_hom.is_integral_tower_top_of_is_integral g _ (this ▸ h)⟩,
+  refine this ▸ ring_hom.is_integral_trans g (ideal.quotient_map I f le_rfl) _ h,
+  exact ring_hom.is_integral_of_surjective g ideal.quotient.mk_surjective,
+end
+
+/-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field. -/
 lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [integral_domain S]
   [algebra R S] (H : is_integral R S) (hRS : function.injective (algebra_map R S))
   (hS : is_field S) : is_field R :=

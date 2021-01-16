@@ -309,8 +309,13 @@ instance : comm_ring (poly α) := by refine
   zero := 0,
   neg  := has_neg.neg,
   mul  := (*),
-  one  := 1, .. };
-  {intros, exact ext (λx, by simp [mul_add, mul_left_comm, mul_comm, add_comm, add_assoc])}
+  one  := 1,
+  sub  := has_sub.sub,
+  sub_eq_add_neg := _,
+  .. };
+  { intros,
+    refine ext (λ _, _),
+    simp [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc] }
 
 lemma induction {C : poly α → Prop}
   (H1 : ∀i, C (proj i)) (H2 : ∀n, C (const n))

@@ -209,7 +209,7 @@ section comm_ring
 variables {R : Type u} [comm_ring R]
 
 lemma separable_X_sub_C {x : R} : separable (X - C x) :=
-by simpa only [C_neg] using separable_X_add_C (-x)
+by simpa only [sub_eq_add_neg, C_neg] using separable_X_add_C (-x)
 
 lemma separable.mul {f g : polynomial R} (hf : f.separable) (hg : g.separable)
   (h : is_coprime f g) : (f * g).separable :=
@@ -459,6 +459,39 @@ begin
   exact or.inl (multiplicity_le_one_of_separable hunit hsep)
 end
 
+/--If `n ≠ 0` in `F`, then ` X ^ n - a` is separable for any `a ≠ 0`. -/
+lemma separable_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 0) :
+  separable (X ^ n - C a) :=
+begin
+  cases nat.eq_zero_or_pos n with hzero hpos,
+  { exfalso,
+    rw hzero at hn,
+    exact hn (refl 0) },
+  apply (separable_def' (X ^ n - C a)).2,
+  use [-C (a⁻¹), (C ((a⁻¹) * (↑n)⁻¹) *  X)],
+  have mul_pow_sub : X * X ^ (n - 1) = X ^ n,
+  { nth_rewrite 0 [←pow_one X],
+    rw pow_mul_pow_sub X (nat.succ_le_iff.mpr hpos) },
+  rw [derivative_sub, derivative_C, sub_zero, derivative_pow X n, derivative_X, mul_one],
+  have hcalc : C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) = C a⁻¹ * (X ^ n),
+  { calc C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n))
+       = C a⁻¹ * C ((↑n)⁻¹) * (C ↑n * (X ^ n)) : by rw [C_mul, C_eq_nat_cast]
+   ... = C a⁻¹ * (C ((↑n)⁻¹) * C ↑n) * (X ^ n) : by ring
+   ... = C a⁻¹ * C ((↑n)⁻¹ * ↑n) * (X ^ n) : by rw [← C_mul]
+   ... = C a⁻¹ * C 1 * (X ^ n) : by field_simp [hn]
+   ... = C a⁻¹ * (X ^ n) : by rw [C_1, mul_one] },
+  calc -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * X * (↑n * X ^ (n - 1))
+      = -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X * X ^ (n - 1))) : by ring
+  ... = -C a⁻¹ * (X ^ n - C a) + C a⁻¹ * (X ^ n) : by rw [mul_pow_sub, hcalc]
+  ... = C a⁻¹ * C a : by ring
+  ... = (1 : polynomial F) : by rw [← C_mul, inv_mul_cancel ha, C_1]
+end
+
+/--If `n ≠ 0` in `F`, then ` X ^ n - a` is squarefree for any `a ≠ 0`. -/
+lemma squarefree_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 0) :
+  squarefree (X ^ n - C a) :=
+(separable_X_pow_sub_C a hn ha).squarefree
+
 lemma root_multiplicity_le_one_of_separable {p : polynomial F} (hp : p ≠ 0)
   (hsep : separable p) (x : F) : root_multiplicity x p ≤ 1 :=
 begin
@@ -505,18 +538,21 @@ end polynomial
 open polynomial
 
 theorem irreducible.separable {F : Type u} [field F] [char_zero F] {f : polynomial F}
-  (hf : irreducible f) (hf0 : f ≠ 0) : f.separable :=
+  (hf : irreducible f) : f.separable :=
 begin
   rw [separable_iff_derivative_ne_zero hf, ne, ← degree_eq_bot, degree_derivative_eq], rintro ⟨⟩,
-  rw [nat.pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],
+  rw [pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],
   refine λ hf1, hf.1 _, rw [hf1, is_unit_C, is_unit_iff_ne_zero],
-  intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf0
+  intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf.ne_zero
 end
 
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
 the minimal polynomial of every `x : K` is separable. -/
 @[class] def is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
 ∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable
+
+instance is_separable_self (F : Type*) [field F] : is_separable F F :=
+λ x, ⟨is_integral_algebra_map, by { rw minimal_polynomial.eq_X_sub_C, exact separable_X_sub_C }⟩
 
 section is_separable_tower
 variables {F E : Type*} (K : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
@@ -538,6 +574,14 @@ begin
   apply polynomial.separable.of_mul_left,
   rw ← hq,
   exact hs,
+end
+
+lemma is_separable.of_alg_hom {E' : Type*} [field E'] [algebra F E']
+  (f : E →ₐ[F] E') (h : is_separable F E') : is_separable F E :=
+begin
+  letI : algebra E E' := ring_hom.to_algebra f.to_ring_hom,
+  haveI : is_scalar_tower F E E' := is_scalar_tower.of_algebra_map_eq (λ x, (f.commutes x).symm),
+  exact is_separable_tower_bot_of_is_separable E h,
 end
 
 end is_separable_tower

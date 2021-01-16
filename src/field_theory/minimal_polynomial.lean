@@ -64,6 +64,13 @@ le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩
 lemma ne_zero [nontrivial α] : (minimal_polynomial hx) ≠ 0 :=
 ne_zero_of_monic (monic hx)
 
+/-- If an element `x` is a root of a nonzero monic polynomial `p`,
+then the degree of `p` is at least the degree of the minimal polynomial of `x`. -/
+lemma degree_le_of_monic
+  {p : polynomial α} (hmonic : p.monic) (hp : polynomial.aeval x p = 0) :
+  degree (minimal_polynomial hx) ≤ degree p :=
+min _ hmonic (by simp [hp])
+
 end ring
 
 section integral_domain
@@ -90,7 +97,36 @@ begin
   simpa only [eq_one, alg_hom.map_one, one_ne_zero] using aeval hx
 end
 
-/--A minimal polynomial is not a unit.-/
+/-- If `L/K` is a ring extension, and `x` is an element of `L` in the image of `K`,
+then the minimal polynomial of `x` is `X - C x`. -/
+lemma eq_X_sub_C_of_algebra_map_inj [nontrivial α] (a : α) (hf : function.injective (algebra_map α β)) :
+  minimal_polynomial (@is_integral_algebra_map α β _ _ _ a) = X - C a :=
+begin
+  have hdegle : (minimal_polynomial (@is_integral_algebra_map α β _ _ _ a)).nat_degree ≤ 1,
+  { apply with_bot.coe_le_coe.1,
+    rw [←degree_eq_nat_degree (ne_zero (@is_integral_algebra_map α β _ _ _ a)),
+      with_top.coe_one, ←degree_X_sub_C a],
+    refine degree_le_of_monic (@is_integral_algebra_map α β _ _ _ a) (monic_X_sub_C a) _,
+    simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self] },
+  have hdeg : (minimal_polynomial (@is_integral_algebra_map α β _ _ _ a)).degree = 1,
+  { apply (degree_eq_iff_nat_degree_eq (ne_zero (@is_integral_algebra_map α β _ _ _ a))).2,
+    exact (has_le.le.antisymm hdegle (nat.succ_le_of_lt (with_bot.coe_lt_coe.1
+    (lt_of_lt_of_le (degree_pos (@is_integral_algebra_map α β _ _ _ a)) degree_le_nat_degree)))) },
+  have hrw := eq_X_add_C_of_degree_eq_one hdeg,
+  simp only [monic (@is_integral_algebra_map α β _ _ _ a), one_mul,
+    monic.leading_coeff, ring_hom.map_one] at hrw,
+  have h0 : (minimal_polynomial (@is_integral_algebra_map α β _ _ _ a)).coeff 0 = -a,
+  { have hroot := aeval (@is_integral_algebra_map α β _ _ _ a),
+    rw [hrw, add_comm] at hroot,
+    simp only [aeval_C, aeval_X, aeval_add] at hroot,
+    replace hroot := eq_neg_of_add_eq_zero hroot,
+    rw [←ring_hom.map_neg _ a] at hroot,
+    exact (hf hroot) },
+  rw hrw,
+  simp only [h0, ring_hom.map_neg, sub_eq_add_neg],
+end
+
+/-- A minimal polynomial is not a unit. -/
 lemma not_is_unit : ¬ is_unit (minimal_polynomial hx) :=
 assume H, (ne_of_lt (degree_pos hx)).symm $ degree_eq_zero_of_is_unit H
 
@@ -223,7 +259,11 @@ eq_of_monic_of_associated hp3 (monic hx) $
 mul_one (minimal_polynomial hx) ▸ hq.symm ▸ associated_mul_mul (associated.refl _) $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit hx
 
-lemma gcd_domain_eq_field_fractions {α : Type u} {β : Type v} {γ : Type v} [integral_domain α]
+section gcd_domain
+
+/-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
+over the fraction field. -/
+lemma gcd_domain_eq_field_fractions {α : Type u} {β : Type v} {γ : Type w} [integral_domain α]
   [gcd_monoid α] [field β] [integral_domain γ] (f : fraction_map α β) [algebra f.codomain γ]
   [algebra α γ] [is_scalar_tower α f.codomain γ] {x : γ} (hx : is_integral α x) :
   minimal_polynomial (@is_integral_of_is_scalar_tower α f.codomain γ _ _ _ _ _ _ _ x hx) =
@@ -238,33 +278,76 @@ begin
   { exact monic_map _ (monic hx) }
 end
 
-/--If L/K is a field extension, and x is an element of L in the image of K,
-then the minimal polynomial of x is X - C x.-/
-@[simp] protected lemma algebra_map (a : α) (ha : is_integral α (algebra_map α β a)) :
-  minimal_polynomial ha = X - C a :=
-eq.symm $ unique' ha (irreducible_X_sub_C a)
-  (by rw [alg_hom.map_sub, aeval_X, aeval_C, sub_self]) (monic_X_sub_C a)
+/-- The minimal polynomial over `ℤ` is the same as the minimal polynomial over `ℚ`. -/
+--TODO use `gcd_domain_eq_field_fractions` directly when localizations are defined
+-- in terms of algebras instead of `ring_hom`s
+lemma over_int_eq_over_rat {α : Type u} [integral_domain α] {x : α} [algebra ℚ α]
+  (hx : is_integral ℤ x) :
+  minimal_polynomial (@is_integral_of_is_scalar_tower ℤ ℚ α _ _ _ _ _ _ _ x hx) =
+    map (int.cast_ring_hom ℚ) (minimal_polynomial hx) :=
+begin
+  refine (unique' (@is_integral_of_is_scalar_tower ℤ ℚ α _ _ _ _ _ _ _ x hx) _ _ _).symm,
+  { exact (is_primitive.int.irreducible_iff_irreducible_map_cast
+  (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
+  { have htower := is_scalar_tower.aeval_apply ℤ ℚ α x (minimal_polynomial hx),
+    simp only [localization_map.algebra_map_eq, aeval] at htower,
+    exact htower.symm },
+  { exact monic_map _ (monic hx) }
+end
+
+/-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
+element as root. -/
+lemma gcd_domain_dvd {α : Type u} {β : Type v} {γ : Type w}
+  [integral_domain α] [gcd_monoid α] [field β] [integral_domain γ]
+  (f : fraction_map α β) [algebra f.codomain γ] [algebra α γ] [is_scalar_tower α f.codomain γ]
+  {x : γ} (hx : is_integral α x)
+  {P : polynomial α} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
+  minimal_polynomial hx ∣ P :=
+begin
+  apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map f
+    (monic.is_primitive (monic hx)) hprim ).2,
+  rw [← gcd_domain_eq_field_fractions f hx],
+  refine dvd (is_integral_of_is_scalar_tower x hx) _,
+  rwa [← localization_map.algebra_map_eq, ← is_scalar_tower.aeval_apply]
+end
+
+/-- The minimal polynomial over `ℤ` divides any primitive polynomial that has the integral element
+as root. -/
+-- TODO use `gcd_domain_dvd` directly when localizations are defined in terms of algebras
+-- instead of `ring_hom`s
+lemma integer_dvd {α : Type u} [integral_domain α] [algebra ℚ α] {x : α} (hx : is_integral ℤ x)
+  {P : polynomial ℤ} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) : minimal_polynomial hx ∣ P :=
+begin
+  apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast _ _
+    (monic.is_primitive (monic hx)) hprim ).2,
+  rw [← over_int_eq_over_rat hx],
+  refine dvd (is_integral_of_is_scalar_tower x hx) _,
+  rwa [(int.cast_ring_hom ℚ).ext_int (algebra_map ℤ ℚ), ← is_scalar_tower.aeval_apply]
+end
+
+end gcd_domain
 
 variable (β)
 /--If L/K is a field extension, and x is an element of L in the image of K,
 then the minimal polynomial of x is X - C x.-/
-lemma algebra_map' (a : α) :
+lemma eq_X_sub_C (a : α) :
   minimal_polynomial (@is_integral_algebra_map α β _ _ _ a) =
   X - C a :=
-minimal_polynomial.algebra_map _ _
+eq.symm $ unique' (@is_integral_algebra_map α β _ _ _ a) (irreducible_X_sub_C a)
+  (by rw [alg_hom.map_sub, aeval_X, aeval_C, sub_self]) (monic_X_sub_C a)
 variable {β}
 
 /--The minimal polynomial of 0 is X.-/
 @[simp] lemma zero {h₀ : is_integral α (0:β)} :
   minimal_polynomial h₀ = X :=
 by simpa only [add_zero, C_0, sub_eq_add_neg, neg_zero, ring_hom.map_zero]
-  using algebra_map' β (0:α)
+  using eq_X_sub_C β (0:α)
 
 /--The minimal polynomial of 1 is X - 1.-/
 @[simp] lemma one {h₁ : is_integral α (1:β)} :
   minimal_polynomial h₁ = X - 1 :=
 by simpa only [ring_hom.map_one, C_1, sub_eq_add_neg]
-  using algebra_map' β (1:α)
+  using eq_X_sub_C β (1:α)
 
 end ring
 

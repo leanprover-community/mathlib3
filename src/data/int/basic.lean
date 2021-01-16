@@ -31,6 +31,7 @@ instance : comm_ring int :=
   one            := int.one,
   one_mul        := int.one_mul,
   mul_one        := int.mul_one,
+  sub            := int.sub,
   left_distrib   := int.distrib_left,
   right_distrib  := int.distrib_right,
   mul_comm       := int.mul_comm }
@@ -379,6 +380,22 @@ protected theorem add_mul_div_left (a : ℤ) {b : ℤ} (c : ℤ) (H : b ≠ 0) :
     (a + b * c) / b = a / b + c :=
 by rw [mul_comm, int.add_mul_div_right _ _ H]
 
+protected theorem add_div_of_dvd_right {a b c : ℤ} (H : c ∣ b) :
+  (a + b) / c = a / c + b / c :=
+begin
+  by_cases h1 : c = 0,
+  { simp [h1] },
+  cases H with k hk,
+  rw hk,
+  change c ≠ 0 at h1,
+  rw [mul_comm c k, int.add_mul_div_right _ _ h1, ←zero_add (k * c), int.add_mul_div_right _ _ h1,
+      int.zero_div, zero_add]
+end
+
+protected theorem add_div_of_dvd_left {a b c : ℤ} (H : c ∣ a) :
+  (a + b) / c = a / c + b / c :=
+by rw [add_comm, int.add_div_of_dvd_right H, add_comm]
+
 @[simp] protected theorem mul_div_cancel (a : ℤ) {b : ℤ} (H : b ≠ 0) : a * b / b = a :=
 by have := int.add_mul_div_right 0 a H;
    rwa [zero_add, int.zero_div, zero_add] at this
@@ -586,8 +603,8 @@ by rw [mul_comm, mul_comm c, mul_div_mul_of_pos _ _ H]
 by rw [mod_def, mod_def, mul_div_mul_of_pos _ _ H, mul_sub_left_distrib, mul_assoc]
 
 theorem lt_div_add_one_mul_self (a : ℤ) {b : ℤ} (H : 0 < b) : a < (a / b + 1) * b :=
-by rw [add_mul, one_mul, mul_comm]; apply lt_add_of_sub_left_lt;
-   rw [← mod_def]; apply mod_lt_of_pos _ H
+by { rw [add_mul, one_mul, mul_comm, ← sub_lt_iff_lt_add', ← mod_def],
+  exact mod_lt_of_pos _ H }
 
 theorem abs_div_le_abs : ∀ (a b : ℤ), abs (a / b) ≤ abs a :=
 suffices ∀ (a : ℤ) (n : ℕ), abs (a / n) ≤ abs a, from
@@ -718,18 +735,6 @@ int.div_eq_of_eq_mul_right H1 (by rw [mul_comm, H2])
 theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 | ._ b ⟨c, rfl⟩ := if bz : b = 0 then by simp [bz] else
   by rw [neg_mul_eq_mul_neg, int.mul_div_cancel_left _ bz, int.mul_div_cancel_left _ bz]
-
-lemma add_div_of_dvd {a b c : ℤ} :
-  c ∣ a → c ∣ b → (a + b) / c = a / c + b / c :=
-begin
-  intros h1 h2,
-  by_cases h3 : c = 0,
-  { rw [h3, zero_dvd_iff] at *,
-    rw [h1, h2, h3], refl },
-  { apply mul_right_cancel' h3,
-    rw add_mul, repeat {rw [int.div_mul_cancel]};
-    try {apply dvd_add}; assumption }
-end
 
 theorem div_sign : ∀ a b, a / sign b = a * sign b
 | a (n+1:ℕ) := by unfold sign; simp

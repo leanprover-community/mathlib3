@@ -317,14 +317,13 @@ theorem is_noetherian_iff_well_founded
   {R M} [ring R] [add_comm_group M] [module R M] :
   is_noetherian R M ↔ well_founded ((>) : submodule R M → submodule R M → Prop) :=
 ⟨λ h, begin
-  apply rel_embedding.well_founded_iff_no_descending_seq.2,
-  swap, { apply is_strict_order.swap },
+  refine rel_embedding.well_founded_iff_no_descending_seq.2 _,
   rintro ⟨⟨N, hN⟩⟩,
   let Q := ⨆ n, N n,
   resetI,
   rcases submodule.fg_def.1 (noetherian Q) with ⟨t, h₁, h₂⟩,
   have hN' : ∀ {a b}, a ≤ b → N a ≤ N b :=
-    λ a b, (strict_mono.le_iff_le (λ _ _, hN.1)).2,
+    λ a b, (strict_mono.le_iff_le (λ _ _, hN.2)).2,
   have : t ⊆ ⋃ i, (N i : set M),
   { rw [← submodule.coe_supr_of_directed N _],
     { show t ⊆ Q, rw ← h₂,
@@ -340,7 +339,7 @@ theorem is_noetherian_iff_well_founded
   { rw ← h₂, apply submodule.span_le.2,
     exact λ x h, hN' (finset.le_sup (@finset.mem_univ t h₁ _))
       (hf ⟨x, h⟩) },
-  exact not_le_of_lt (hN.1 (nat.lt_succ_self A))
+  exact not_le_of_lt (hN.2 (nat.lt_succ_self A))
     (le_trans (le_supr _ _) this)
   end,
   begin
@@ -543,12 +542,9 @@ begin
     rw m_eq,
     exact mem_sup_right (mem_span_singleton_self z) },
   obtain ⟨x, hx, y, hy, hxy⟩ := (ideal.not_is_prime_iff.mp h_prM).resolve_left htop,
-  let Jx := M + span R {x},
-  let Jy := M + span R {y},
   obtain ⟨Wx, h_Wx⟩ := hgt (M + span R {x}) (lt_add _ hx),
   obtain ⟨Wy, h_Wy⟩ := hgt (M + span R {y}) (lt_add _ hy),
   use Wx + Wy,
-  let W := Wx + Wy,
   rw [multiset.map_add, multiset.prod_add],
   apply le_trans (submodule.mul_le_mul h_Wx h_Wy),
   rw add_mul,

@@ -196,8 +196,10 @@ instance : inhabited (R ≃+*o R) := ⟨ordered_ring_equiv.refl R⟩
   [has_mul T] [has_add T] [has_le T]
     (f₁ : R ≃+*o S) (f₂ : S ≃+*o T) (a : R) : f₁.trans f₂ a = f₂ (f₁ a) := rfl
 
-@[simp] theorem trans_symm (e : R ≃+*o S) : e.trans e.symm = ordered_ring_equiv.refl R := ext (e : R ≃ S).3
-@[simp] theorem symm_trans (e : R ≃+*o S) : e.symm.trans e = ordered_ring_equiv.refl S := ext (e : R ≃ S).4
+@[simp]
+lemma trans_symm (e : R ≃+*o S) : e.trans e.symm = ordered_ring_equiv.refl R := ext (e : R ≃ S).3
+@[simp]
+lemma symm_trans (e : R ≃+*o S) : e.symm.trans e = ordered_ring_equiv.refl S := ext (e : R ≃ S).4
 
 end ordered_ring_equiv
 

@@ -450,10 +450,9 @@ section
 local attribute [reducible] monoid_algebra
 
 variables (k)
--- TODO: generalise from groups `G` to monoids
 /-- When `V` is a `k[G]`-module, multiplication by a group element `g` is a `k`-linear map. -/
-def group_smul.linear_map [group G] [comm_ring k]
-  (V : Type u₃) [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+def group_smul.linear_map [monoid G] [comm_semiring k]
+  (V : Type u₃) [add_comm_monoid V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V] (g : G) :
   V →ₗ[k] V :=
 { to_fun    := λ v, (single g (1 : k) • v : V),
@@ -461,24 +460,23 @@ def group_smul.linear_map [group G] [comm_ring k]
   map_smul' := λ c x, smul_algebra_smul_comm _ _ _ }
 
 @[simp]
-lemma group_smul.linear_map_apply [group G] [comm_ring k]
-  (V : Type u₃) [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+lemma group_smul.linear_map_apply [monoid G] [comm_semiring k]
+  (V : Type u₃) [add_comm_monoid V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V] (g : G) (v : V) :
   (group_smul.linear_map k V g) v = (single g (1 : k) • v : V) :=
 rfl
 
 section
 variables {k}
-variables [group G] [comm_ring k] {V W : Type u₃}
-  [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+variables [monoid G] [comm_semiring k] {V W : Type u₃}
+  [add_comm_monoid V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V]
-  [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
+  [add_comm_monoid W] [semimodule k W] [semimodule (monoid_algebra k G) W]
   [is_scalar_tower k (monoid_algebra k G) W]
   (f : V →ₗ[k] W)
   (h : ∀ (g : G) (v : V), f (single g (1 : k) • v : V) = (single g (1 : k) • (f v) : W))
 include h
 
--- TODO generalise from groups `G` to monoids??
 /-- Build a `k[G]`-linear map from a `k`-linear map and evidence that it is `G`-equivariant. -/
 def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
 { to_fun := f,

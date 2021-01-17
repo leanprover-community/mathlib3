@@ -28,9 +28,10 @@ import data.set.finite
 -/
 
 -- CR : depends on
-  -- graph_compl (#5697)
-  -- graph_common_neighbors (#5718)
-  -- to_finset_subset (#5725)
+  -- graph_compl (#5697) `done`
+  -- common_neighbor_card `PRed`
+    -- graph_common_neighbors (#5718) `done`
+  -- to_finset_subset (#5725) `done`
 
 universes u
 
@@ -38,7 +39,7 @@ namespace simple_graph
 variables {V : Type u}
 variables (G : simple_graph V)
 
-variables  [fintype V] [locally_finite G]
+variables  [fintype V]
 
 /--
 A graph is strongly regular with parameters `n k l m` if
@@ -66,6 +67,7 @@ begin
   rw ← set.subset_iff_to_finset_subset _ _,
   exact h,
 end
+-- done
 
 lemma card_common_neighbors_lt_card_verts (G : simple_graph V) (v w : V) :
   fintype.card (G.common_neighbors v w) < fintype.card V :=
@@ -82,6 +84,7 @@ begin
     exact h },
   { apply finset.subset_univ },
 end
+-- done
 
 lemma adj_card_common_neighbors_lt_degree (v w : V) (h : G.adj v w) :
   fintype.card (G.common_neighbors v w) < G.degree v :=
@@ -102,8 +105,10 @@ begin
       rw ← set.subset_iff_to_finset_subset,
       exact common_neighbors_subset_neighbor_set G v w } },
 end
+-- done and renamed `card_common_neighbors_lt_degree_of_adj`
 
 
+-- these aren't necessary i guess?
 lemma card_common_neighbors_le_regular_degree (v w : V) (k : ℕ) (h : G.is_regular_of_degree k) :
   fintype.card (G.common_neighbors v w) ≤ k :=
 begin

@@ -110,10 +110,10 @@ begin
   by_cases hμ : μ = 0,
   { simp [hμ], },
   have hμ_ne_bot : μ.ae.ne_bot, by rwa [filter.ne_bot, ne.def, ae_eq_bot],
-  exact @ennreal.limsup_const_mul α μ.ae hμ_ne_bot f a ha_top,
+  exact @ennreal.limsup_const_mul α μ.ae hμ_ne_bot _ f a,
 end
 
 lemma ennreal.ess_sup_add_le (f g : α → ennreal) : ess_sup (f + g) μ ≤ ess_sup f μ + ess_sup g μ :=
-ennreal.limsup_add_le μ.ae f g
+ennreal.limsup_add_le f g
 
 end ennreal

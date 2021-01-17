@@ -1160,7 +1160,7 @@ lemma quotient.mk.alg_surjective (I : ideal R) : function.surjective (quotient.m
 /-- The kernel of `R →ₐ[R] I.quotient` is `I`. -/
 @[simp]
 lemma quotient.mk.alg_ker (I : ideal R) : (quotient.mk.alg I).to_ring_hom.ker = I :=
-by rw [quotient.mk.alg_to_ring_hom _, ideal.mk_ker]
+ideal.mk_ker I
 
 /-- The ring hom `R/J →+* S/I` induced by a ring hom `f : R →+* S` with `J ≤ f⁻¹(I)` -/
 def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) :

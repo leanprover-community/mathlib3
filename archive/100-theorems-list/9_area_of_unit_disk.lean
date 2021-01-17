@@ -52,10 +52,6 @@ by simp only [add_sqr, add_mul, add_le_add_iff_right, ← pow_two, le_add_iff_no
 lemma sqr_abs {a : ℝ} : (abs a) ^ 2 = a ^ 2 :=
 by rw [← sqrt_sqr_eq_abs, sqr_sqrt (pow_two_nonneg a)]
 
--- Monotocity of the `L^p` norm for 2 summands.
-lemma sqr_add_le_add_abs_sqr (a b : ℝ) : a^2 + b^2 ≤ (abs a + abs b)^2 :=
-by simpa only [sqr_abs] using sqr_add_le_of_nonneg (abs_nonneg a) (abs_nonneg b)
-
 -- By Andrew:
 lemma le_abs {a b : ℝ} : a ≤ abs b ↔ a ≤ b ∨ a ≤ -b := le_max_iff
 
@@ -92,66 +88,7 @@ lemma sqr_lt_left {a b : ℝ} (h : a^2 < b) : -sqrt b < a := (sqr_lt.mp h).1
 lemma sqr_lt_right {a b : ℝ} (h : a^2 < b) : a < sqrt b := (sqr_lt.mp h).2
 
 
--- **Andrew's work**
-
---Def'n and alternate def'n of the unit disc
-def unit_disc := {point : ℝ × ℝ | (point.1)^2 + (point.2)^2 < 1 }
-
--- Turns term of type `ℝ × ℝ` into term of type `fin 2 → ℝ`. Used in Minkowski's inequality below.
-def fin_from_prod (p : ℝ × ℝ) : fin 2 → ℝ :=
-λ (a : fin 2), if h : a = 0 then p.1 else p.2
-
--- Minkowski's inequality for two summands and real power `p`.
-lemma real.Lp_add_two_le (f g : ℝ × ℝ) {p : ℝ} (hp : 1 ≤ p) :
-    (abs (f.1 + g.1) ^ p + abs (f.2 + g.2) ^ p) ^ (1 / p)
-  ≤ (abs f.1 ^ p + abs f.2 ^ p) ^ (1 / p) + (abs g.1 ^ p + abs g.2 ^ p) ^ (1 / p) :=
-by simpa [fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod f i + fin_from_prod g i) ^ p),
-          fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod f i) ^ p),
-          fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod g i) ^ p),
-          univ_unique, finset.sum_singleton]
-    using real.Lp_add_le (finset.univ : finset (fin 2)) (fin_from_prod f) (fin_from_prod g) hp
-
-
--- Minkowski's inequality for two summands and natural power `p`.
-lemma real.Lp_add_two_le' (f g : ℝ × ℝ) {p : ℕ} (hp : 1 ≤ p) :
-    (abs (f.1 + g.1) ^ p + abs (f.2 + g.2) ^ p) ^ (1 / (p:ℝ))
-  ≤ (abs f.1 ^ p + abs f.2 ^ p) ^ (1 / (p:ℝ)) + (abs g.1 ^ p + abs g.2 ^ p) ^ (1 / (p:ℝ)) :=
-by convert real.Lp_add_two_le f g (by exact_mod_cast hp : 1 ≤ (p:ℝ)) using 3; simp
-
-/-Lemma helpful for first step.
-Still runs a bit slow. We can probably get it cleaner. -/
-lemma is_open_unit_disc : is_open unit_disc :=
-begin
-  rw is_open_iff,
-  intros p hp,
-  use (1/2) * (1 - sqrt ((p.1) ^ 2 + (p.2) ^ 2)),
-  split,
-  { norm_num,
-    rw ← sqrt_one,
-    exact (sqrt_lt (add_nonneg (pow_two_nonneg p.1) (pow_two_nonneg p.2))).2 hp },
-  { intros q hq,
-    let h := real.Lp_add_two_le' (q.1 - p.1, q.2 - p.2) p one_le_two,
-    simp only [unit_disc, dist, mem_ball, mem_set_of_eq, max_lt_iff, sqrt_one, sub_add_cancel,
-              ← sqrt_lt (add_nonneg (pow_two_nonneg q.1) (pow_two_nonneg q.2))] at hp hq h ⊢,
-    calc sqrt (q.fst ^ 2 + q.snd ^ 2) ≤ sqrt ((q.1 - p.1)^2 + (q.2 - p.2)^2) + sqrt (p.1^2 + p.2^2) :
-      by rw [sqrt_eq_rpow, ← abs_of_nonneg (pow_two_nonneg q.1), ← abs_of_nonneg (pow_two_nonneg q.2),
-            ← abs_of_nonneg (pow_two_nonneg (q.1 - p.1)), ← abs_of_nonneg (pow_two_nonneg (q.2 - p.2)),
-            ← abs_of_nonneg (pow_two_nonneg p.1), ← abs_of_nonneg (pow_two_nonneg p.2),
-            abs_pow q.1 2, abs_pow q.2 2, abs_pow p.1 2, abs_pow p.2 2,
-            abs_pow (q.1 - p.1) 2, abs_pow (q.2 - p.2) 2];
-          exact_mod_cast h
-    ... ≤ abs (q.1 - p.1) + abs (q.2 - p.2) + sqrt (p.1^2 + p.2^2) :
-      add_le_add_right (by rw sqrt_le_iff; exact ⟨add_nonneg (abs_nonneg _) (abs_nonneg _),
-        sqr_add_le_add_abs_sqr (q.1 - p.1) (q.2 - p.2)⟩) (sqrt (p.fst ^ 2 + p.snd ^ 2))
-    ... < 1 : by linarith [add_lt_add hq.1 hq.2] },
-end
-
--- Added by Ben: Once we have the fact that the unit disc is open, we know it is measurable.
-lemma is_measurable_unit_disc : is_measurable unit_disc :=
-is_open_unit_disc.is_measurable
-
-
--- **Ben's work**
+-- **FTC-2 Stuff**
 
 open_locale topological_space
 
@@ -178,178 +115,19 @@ begin
     exact has_deriv_at_interval_left_endpoint_of_tendsto_deriv
       (λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at)
         ((hcont y (Ico_subset_Icc_self hy')).mono Ioo_subset_Icc_self) (Ioo_mem_nhds_within_Ioi hy')
-          (by rwa tendsto_congr' (eventually_of_mem (Ioo_mem_nhds_within_Ioi hy') (λ x hx, (hderiv x hx).deriv))) },
+          (by rwa tendsto_congr' (eventually_of_mem (Ioo_mem_nhds_within_Ioi hy')
+            (λ x hx, (hderiv x hx).deriv))) },
   end
 
-theorem integral_eq_sub_of_has_deriv_at'_of_le (hab : a ≤ b) (hcont : continuous_on f (interval a b))
+theorem integral_eq_sub_of_has_deriv_at'_of_le (hab : a ≤ b)
+  (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
-integral_eq_sub_of_has_deriv_at'' hcont (by rwa [min_eq_left hab, max_eq_right hab]) hcont' (by sorry)
-                                                              -- WILL DROP WHEN WE MERGE MASTER ↑↑↑↑↑
-
--- Old Step 5:
-
-  lemma step5_1 {x : ℝ} : deriv (λ y : ℝ, (arcsin y + y * sqrt (1 - y^2))) x = 2 * sqrt (1 - x^2) :=
-  begin
-    have hx : x ∈ Ioo (-(1:ℝ)) 1 := sorry, -- must assume this to be true, leave alone for now
-    have hlt : 0 < 1 - x^2,
-      { rw mem_Ioo at hx,
-        nlinarith}, -- (SOLVED BY JAMES)
-    have h1 : differentiable_at ℝ (λ y:ℝ, 1 - y ^ 2) x,
-        { simp only [differentiable_at_id', differentiable_at.pow, differentiable_at_const_sub_iff] },
-    -- show `differentiable_at ℝ (λ y, 1 - y ^ 2) x` (SOLVED BY JAMES)
-    have h2 : differentiable_at ℝ (λ y:ℝ, sqrt(1 - y ^ 2)) x := h1.sqrt hlt.ne.symm,
-    have h3 : differentiable_at ℝ (λ y:ℝ, y * sqrt(1 - y ^ 2)) x := differentiable_at.mul differentiable_at_id' h2,
-      -- show `differentiable_at ℝ (λ y, y * sqrt(1 - y ^ 2)) x` (SOLVED BY JAMES)
-    rw [deriv_add (differentiable_at_arcsin.mpr ⟨hx.1.ne.symm, hx.2.ne⟩) h3,
-        deriv_mul differentiable_at_id' h2, deriv_sqrt h1 hlt.ne.symm, deriv_arcsin],
-    simp only [one_mul, deriv_id'', differentiable_at_const, mul_one, zero_sub, deriv_sub,
-      differentiable_at_id', deriv_pow'', nat.cast_bit0, deriv_id'', deriv_const', pow_one,
-      differentiable_at.pow, nat.cast_one, neg_div],
-    rw mul_div_mul_left;
-    field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul],
-  end
-
-  lemma step5_2 : ∫ (x : ℝ) in (-1)..1, deriv (λ y:ℝ, arcsin y + y * sqrt (1-y^2)) x = pi :=
-  begin
-    have H : ∀ (x : ℝ), x ∈ interval (-(1:ℝ)) 1 → differentiable_at ℝ (λ y:ℝ, arcsin y + y * sqrt (1-y^2)) x,
-    { intros x hx,
-      sorry },
-    convert integral_deriv_eq_sub H _,
-    { rw [arcsin_one, arcsin_neg_one, one_pow, neg_one_pow_eq_pow_mod_two, nat.bit0_mod_two, pow_zero,
-          sub_self, sqrt_zero, mul_zero, mul_zero, add_zero, add_zero, sub_neg_eq_add, add_halves'] },
-    -- show `continuous_on (deriv (λ y, arcsin y + y * sqrt (1 - y ^ 2))) (interval (-1) 1)`:
-    { have : (deriv (λ (y : ℝ), arcsin y + y * sqrt (1 - y ^ 2))) = (λ y, sqrt(1 - y^2)) * λ y, 2,
-      { sorry }, -- temporary, hope to replace with following lines
-      -- have s1 := step5_1,
-      -- rw [deriv_const_mul ((1:ℝ)/2) H', mul_comm, ← div_eq_mul_one_div, div_eq_iff] at s1,
-      simp only [this],
-      exact λ x hx, (continuous_within_at_const.sub (continuous_pow 2).continuous_within_at).sqrt.mul
-        continuous_within_at_const },
-  end
---
-
--- **James' work**
-
-lemma aux_sqrt_lemma (x : ℝ) (h : 0 < x) : x / real.sqrt x = real.sqrt x :=
-begin
-  rw div_eq_iff,
-  exact (real.mul_self_sqrt (le_of_lt h)).symm,
-  { intro Hx,
-    rw real.sqrt_eq_zero' at Hx,
-    linarith }
-end
-
-example : 4 * ∫ (x : ℝ) in (0:ℝ)..1, sqrt(1 - x^2) = pi :=
-begin
-  have derivH : deriv (λ x : ℝ, 1/2 * (arcsin x + x * sqrt(1 - x^2) ) ) = λ x, sqrt(1 - x^2),
-  { ext,
-    rw deriv_const_mul,
-    rw deriv_add,
-    simp only [one_div, deriv_arcsin],
-    rw deriv_mul,
-    simp only [one_mul, deriv_id''],
-    rw deriv_sqrt,
-    simp only [differentiable_at_const, mul_one, zero_sub, deriv_sub, differentiable_at_id',
-      deriv_pow'', nat.cast_bit0, deriv_id'', deriv_const', pow_one, differentiable_at.pow],
-      rw nat.cast_one,
-    rw neg_div,
-    rw mul_div_mul_left _ _ (show (2 : ℝ) ≠ 0, by norm_num),
-    field_simp,
-    rw add_left_comm,
-    rw div_add_div_same,
-    rw ← pow_two,
-    rw tactic.ring.add_neg_eq_sub,
-    rw aux_sqrt_lemma,
-    rw ← two_mul,
-    rw mul_comm,
-    { -- 0 < 1 - x^2
-      sorry
-    },
-    { -- differentiable_at ℝ (λ (x : ℝ), 1 - x ^ 2) x
-      simp,
-    },
-    { -- 1 - x^2 ≠ 0
-      sorry
-    },
-    { simp},
-    { -- differentiable_at ℝ (λ (y : ℝ), real.sqrt (1 - y ^ 2)) x
-      apply differentiable_at.sqrt,
-      { simp},
-      { -- 1 - x^2 ≠ 0
-        sorry
-      },
-    },
-    { -- differentiable_at ℝ (λ (y : ℝ), real.arcsin y) x
-      sorry
-    },
-    { apply differentiable_at.mul,
-      { simp},
-      { apply differentiable_at.sqrt,
-        simp,
-        { -- 1 - x^2 ≠ 0
-          sorry
-        },
-      },
-    },
-    { apply differentiable_at.add,
-      { -- differentiable_at ℝ (λ (y : ℝ), real.arcsin y) x
-        sorry
-      },
-      { apply differentiable_at.mul,
-        { simp},
-        { apply differentiable_at.sqrt,
-          simp,
-          { -- 1 - x^2 ≠ 0
-            sorry
-          },
-        },
-      },
-    },
-  },
-  { -- the actual goal
-    --apply integral_deriv_eq_sub,
-    sorry
-  }
-end
+integral_eq_sub_of_has_deriv_at'' hcont (by rwa [min_eq_left hab, max_eq_right hab]) hcont'
+  (by sorry) -- ← ← WILL DROP WHEN WE MERGE MASTER
 
 
 -- **The Grand Finale!!**
-
-def unit_disc_alt := {point : ℝ × ℝ | -sqrt (1 - (point.1)^2) < point.2 ∧ point.2 < sqrt (1 - (point.1)^2)}
-
---Andrew's work, set equality for the second step
-lemma second_step : unit_disc = unit_disc_alt :=
-begin
-  unfold unit_disc, unfold unit_disc_alt,
-  apply set.ext,
-  intro point, split,
-  { intro hp,
-    have h₁ : (point.1)^2 + (point.2)^2 < 1 := hp,
-    have h₂ : (point.2)^2 < 1 - (point.1)^2 := by linarith,
-    exact ⟨sqr_lt_left h₂, lt_sqrt_of_sqr_lt h₂⟩ },
-  { intro hp,
-    cases hp with hp₁ hp₂,
-    have h₁ : 0 ≤ sqrt (1 - point.fst ^ 2) := sqrt_nonneg (1 - point.fst ^ 2),
-    have term_pos : (1 - point.fst ^ 2) > 0,
-      {by_contradiction hyp,
-      push_neg at hyp,
-      have := sqrt_eq_zero_of_nonpos hyp,
-      rw this at hp₁, rw this at hp₂,
-      simp at hp₁,
-      linarith },
-    by_cases hyp : 0 ≤ point.snd,
-    { have h₁ := (lt_sqrt hyp (by linarith)).1 hp₂,
-      have h₂ : (point.1)^2 + (point.2)^2 < 1 := by linarith,
-      exact h₂ },
-    { push_neg at hyp,
-      have h₁ :  - point.snd < sqrt (1 - point.fst ^ 2) := by linarith,
-      have neg_point_pos : 0 < - point.snd := by linarith,
-      have h₂ := (lt_sqrt (le_of_lt neg_point_pos) (by linarith)).1 h₁,
-      rw neg_square point.snd at h₂,
-      have h₃ : (point.1)^2 + (point.2)^2 < 1 := by linarith,
-      exact h₃ } },
-end
 
 lemma indicator_eq_self_of_subset {S s : set ℝ} {f: ℝ → ℝ} (h: s ⊆ S) (H: s.indicator f = f) :
   S.indicator f = f :=
@@ -358,51 +136,95 @@ begin
   exact subset.trans H h,
 end
 
-lemma indicator_of_subset_eq_self {a:ℝ} {S s : set ℝ} {f: ℝ → ℝ} (h: s ⊆ S) (H: S.indicator f a = f a) :
-  s.indicator f a = f a :=
+-- Monotocity of the `L^p` norm for 2 summands.
+lemma sqr_add_le_add_abs_sqr (a b : ℝ) : a^2 + b^2 ≤ (abs a + abs b)^2 :=
+by simpa only [sqr_abs] using sqr_add_le_of_nonneg (abs_nonneg a) (abs_nonneg b)
+
+-- Turns term of type `ℝ × ℝ` into term of type `fin 2 → ℝ`. Used in Minkowski's inequality below.
+def fin_from_prod (p : ℝ × ℝ) : fin 2 → ℝ :=
+λ a : fin 2, if a = 0 then p.1 else p.2
+
+-- Minkowski's inequality for two summands and real power `p`.
+lemma real.Lp_add_two_le (f g : ℝ × ℝ) {p : ℝ} (hp : 1 ≤ p) :
+    (abs (f.1 + g.1) ^ p + abs (f.2 + g.2) ^ p) ^ (1 / p)
+  ≤ (abs f.1 ^ p + abs f.2 ^ p) ^ (1 / p) + (abs g.1 ^ p + abs g.2 ^ p) ^ (1 / p) :=
+by simpa [fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod f i + fin_from_prod g i) ^ p),
+          fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod f i) ^ p),
+          fin.sum_univ_succ (λ (i : fin 2), abs (fin_from_prod g i) ^ p),
+          univ_unique, finset.sum_singleton]
+    using real.Lp_add_le (finset.univ : finset (fin 2)) (fin_from_prod f) (fin_from_prod g) hp
+
+-- Minkowski's inequality for two summands and natural power `p`.
+lemma real.Lp_add_two_le' (f g : ℝ × ℝ) {p : ℕ} (hp : 1 ≤ p) :
+    (abs (f.1 + g.1) ^ p + abs (f.2 + g.2) ^ p) ^ (1 / (p:ℝ))
+  ≤ (abs f.1 ^ p + abs f.2 ^ p) ^ (1 / (p:ℝ)) + (abs g.1 ^ p + abs g.2 ^ p) ^ (1 / (p:ℝ)) :=
+by convert real.Lp_add_two_le f g (by exact_mod_cast hp : 1 ≤ (p:ℝ)) using 3; simp
+
+--Definition of the unit disc.
+def unit_disc := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < 1}
+
+/-- The unit disc is open. -/
+lemma is_open_unit_disc : is_open unit_disc :=
 begin
-  rw indicator_apply_eq_self at H ⊢,
-  intro ha,
-  apply H,
-  -- NOT PROVABLE!
+  rw is_open_iff,
+  intros p hp,
+  use (1/2) * (1 - sqrt ((p.1) ^ 2 + (p.2) ^ 2)),
+  split,
+  { norm_num,
+    rw ← sqrt_one,
+    exact (sqrt_lt (add_nonneg (pow_two_nonneg p.1) (pow_two_nonneg p.2))).2 hp },
+  { intros q hq,
+    let h := real.Lp_add_two_le' (q.1 - p.1, q.2 - p.2) p one_le_two,
+    simp only [unit_disc, dist, mem_ball, mem_set_of_eq, max_lt_iff, sqrt_one, sub_add_cancel,
+              ← sqrt_lt (add_nonneg (pow_two_nonneg q.1) (pow_two_nonneg q.2))] at hp hq h ⊢,
+    calc  sqrt (q.1 ^ 2 + q.2 ^ 2)
+        ≤ sqrt ((q.1 - p.1) ^ 2 + (q.2 - p.2) ^ 2) + sqrt (p.1 ^ 2 + p.2 ^ 2) :
+          by rw [sqrt_eq_rpow,
+                ← abs_of_nonneg (pow_two_nonneg q.1), ← abs_of_nonneg (pow_two_nonneg q.2),
+                ← abs_of_nonneg (pow_two_nonneg (q.1 - p.1)),
+                ← abs_of_nonneg (pow_two_nonneg (q.2 - p.2)),
+                ← abs_of_nonneg (pow_two_nonneg p.1), ← abs_of_nonneg (pow_two_nonneg p.2),
+                abs_pow q.1 2, abs_pow q.2 2, abs_pow p.1 2, abs_pow p.2 2,
+                abs_pow (q.1 - p.1) 2, abs_pow (q.2 - p.2) 2];
+            exact_mod_cast h
+    ... ≤ abs (q.1 - p.1) + abs (q.2 - p.2) + sqrt (p.1 ^ 2 + p.2 ^ 2) :
+          add_le_add_right (by rw sqrt_le_iff; exact ⟨add_nonneg (abs_nonneg _) (abs_nonneg _),
+            sqr_add_le_add_abs_sqr (q.1 - p.1) (q.2 - p.2)⟩) (sqrt (p.1 ^ 2 + p.2 ^ 2))
+    ... < 1 : by linarith [add_lt_add hq.1 hq.2] },
 end
+
+/-- Once we know that the unit disc is open, we know it is measurable. -/
+lemma is_measurable_unit_disc : is_measurable unit_disc :=
+is_open_unit_disc.is_measurable
 
 theorem area_of_unit_disc : volume.prod volume unit_disc = ennreal.of_real pi :=
 begin
--- Derive h₁ from h₂; symmetry of statements
-  have h₂ : (Icc (-1) 1).indicator (λ y, 2 * sqrt (1 - y^2)) = λ y, 2 * sqrt (1 - y^2),
+  have h1 : unit_disc = {p : ℝ × ℝ | -sqrt (1 - p.1^2) < p.2 ∧ p.2 < sqrt (1 - p.1^2)},
+  { ext p,
+    split;
+    simp_intros hp only [unit_disc, mem_set_of_eq],
+    { rw [add_comm, ← lt_sub_iff_add_lt] at hp,
+      exact ⟨sqr_lt_left hp, lt_sqrt_of_sqr_lt hp⟩ },
+    { rw [add_comm, ← lt_sub_iff_add_lt],
+      exact sqr_lt.mpr hp } },
+  have h2 : (Ioc (-1) 1).indicator (λ y, 2 * sqrt (1 - y^2)) = λ y, 2 * sqrt (1 - y^2),
   { ext a,
-    rw indicator_apply_eq_self,
-    intros a_out,
-    simp only [mem_Icc, not_and_distrib, not_le] at a_out,
-    rw [← mul_zero (2:ℝ), mul_zero, mul_eq_zero],
+    rw [indicator_apply_eq_self, mul_eq_zero],
+    intros ha,
     right,
     apply sqrt_eq_zero_of_nonpos,
     rw [sub_nonpos, ← sqrt_le (pow_two_nonneg a), sqrt_one, sqrt_sqr_eq_abs, le_abs],
-    cases a_out,
-    { exact or.inr (by linarith) },
-    { exact or.inl a_out.le } },
-  have h₁ : (Ioc (-1) 1).indicator (λ y, 2 * sqrt (1 - y^2)) = λ y, 2 * sqrt (1 - y^2),
-  { ext a,
-    rw indicator_apply_eq_self,
-    intros a_out,
-    simp only [mem_Ioc, not_and_distrib, not_lt, not_le, ← mul_zero (2:ℝ)] at a_out,
-    rw mul_eq_zero,
-    right,
-    apply sqrt_eq_zero_of_nonpos,
-    rw [sub_nonpos, ← sqrt_le (pow_two_nonneg a), sqrt_one, sqrt_sqr_eq_abs, le_abs],
-    cases a_out,
-    { exact or.inr (by linarith) },
-    { exact or.inl a_out.le } },
-  have hdummy := indicator_eq_self_of_subset Ioc_subset_Icc_self h₁,
-  have h₃ : (λ x, ((nnreal.of_real (2 * sqrt (1 - x ^ 2))):ℝ)) = λ x, 2 * sqrt (1 - x ^ 2) :=
-    by simp only [nnreal.coe_of_real _ (mul_nonneg zero_le_two (sqrt_nonneg _))],
+    simp only [mem_Ioc, not_and_distrib, not_lt, not_le, ← mul_zero (2:ℝ)] at ha,
+    cases ha,
+    { exact or.inr (le_neg.mp ha) },
+    { exact or.inl ha.le } },
   obtain ⟨hc1, hc2⟩ := ⟨(continuous_const.sub (continuous_pow 2)).sqrt, continuous_const.mul hc1⟩,
-  rw [measure.prod_apply is_measurable_unit_disc, second_step], -- IMPORT `second_step`
-  { simp only [unit_disc_alt, preimage_set_of_eq, Ioo_def, volume_Ioo, neg_mul_eq_neg_mul_symm,
-              one_mul, sub_neg_eq_add, ← two_mul],
-    convert lintegral_coe_eq_integral (λ x, nnreal.of_real ((λ y, 2 * sqrt (1 - y^2)) x)) _,
-    { rw [h₃, ← h₁, integral_indicator, ← integral_of_le,
+  rw [measure.prod_apply is_measurable_unit_disc, h1],
+  { simp only [preimage_set_of_eq, Ioo_def, volume_Ioo, neg_mul_eq_neg_mul_symm, one_mul,
+              sub_neg_eq_add, ← two_mul],
+    convert lintegral_coe_eq_integral (λ x, nnreal.of_real ((λ y, 2 * sqrt (1 - y^2)) x)) _;
+    simp only [nnreal.coe_of_real _ (mul_nonneg zero_le_two (sqrt_nonneg _))],
+    { rw [← h2, integral_indicator, ← integral_of_le,
           integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self zero_le_one)
             ((continuous_arcsin.add (continuous_id.mul hc1)).continuous_on) _ hc2.continuous_on],
       { simp only [arcsin_one, arcsin_neg_one, one_pow, neg_one_pow_eq_pow_mod_two, nat.bit0_mod_two,
@@ -415,7 +237,7 @@ begin
         rw mul_div_mul_left;
         field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul] },
       exacts [neg_le_self zero_le_one, is_measurable_Ioc] },
-    { rw [h₃, ← h₂],
+    { rw ← indicator_eq_self_of_subset Ioc_subset_Icc_self h2,
       exact (hc2.integrable_on_compact compact_Icc).indicator is_measurable_Icc } },
   { apply_instance },
 end

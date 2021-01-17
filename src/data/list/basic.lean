@@ -4658,26 +4658,4 @@ begin
       apply lt_of_succ_lt_succ hi, } },
 end
 
-/-- Backwards recursor on lists, inducts by appending elements to the end of the list -/
-@[elab_as_eliminator]
-def backwards_rec {α : Type u} {P : list α → Sort v} (hPempty : P [])
-  (hPind : ∀ l x, P l → P (l ++ [x])) : Π l, P l :=
-begin
-  suffices : Π l : list α, P l.reverse,
-  { intro l,
-    convert this l.reverse,
-    exact l.reverse_reverse.symm },
-  intro l,
-  induction l with h t ih,
-  { exact hPempty },
-  { rw list.reverse_cons,
-    apply hPind,
-    exact ih }
-end
-
-/-- Backwards recursor on lists, inducts by appending elements to the end of the list -/
-@[elab_as_eliminator]
-def backwards_rec_on {α : Type u} {P : list α → Sort v} (l : list α) (hPempty : P [])
-  (hPind : ∀ l x, P l → P (l ++ [x])) : P l := backwards_rec hPempty hPind l
-
 end list

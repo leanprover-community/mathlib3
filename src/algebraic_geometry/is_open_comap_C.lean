@@ -46,7 +46,7 @@ begin
 end
 
 /-- The image of `Df` is contained in an open set (with which it actually coincides). -/
-lemma exists_coeff_not_mem_C_comap {f : polynomial R} {I : ideal (polynomial R)} (hI : is_prime I) :
+lemma exists_coeff_not_mem_C_comap {f : polynomial R} {I : ideal (polynomial R)} :
   f ∉ I → ∃ i : ℕ , coeff f i ∉ (comap (C : R →+* polynomial R) I) :=
 begin
   contrapose!,
@@ -60,7 +60,7 @@ lemma C_comap_mem_image_of_Df {f : polynomial R} {I : prime_spectrum (polynomial
   (H : I ∈ (prime_spectrum.zero_locus {f} : set (prime_spectrum (polynomial R)))ᶜ ) :
   prime_spectrum.comap (polynomial.C : R →+* polynomial R) I ∈ image_of_Df f :=
 begin
-  refine exists_coeff_not_mem_C_comap I.property (λ h, (H ((I.mem_zero_locus {f}).mp _))),
+  refine exists_coeff_not_mem_C_comap (λ h, (H ((I.mem_zero_locus {f}).mp _))),
   rintro _ ⟨rfl⟩,
   exact h,
 end

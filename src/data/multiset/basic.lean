@@ -1573,6 +1573,38 @@ begin
       apply has_le.le.trans h_s's₀b (erase_le _ _) } }
 end
 
+-- lemma can_assume_min_nonempty [decidable_eq α] (p : multiset α → Prop) [decidable_pred p]
+--   (s₀ : multiset α) (H : p s₀) (hne : s₀ ≠ 0):  ∃ s : multiset α, s ≠ 0 ∧ p s  ∧
+--   (∀ a ∈ s, ¬ p (s.erase a)) :=
+-- begin
+--   induction h : s₀.card with n hn generalizing s₀,
+--   { use s₀,
+--     rwa card_eq_zero at h,
+--     tauto },
+--   { let q : α → Prop := λ a, p (s₀.erase a),
+--     let A := filter q s₀,
+--     by_cases hA : A = 0,
+--     repeat { rw filter_eq_nil at hA },
+--     { use s₀,
+--       exact ⟨hne, H, hA⟩ },
+--     { rw not_forall at hA,
+--       rcases hA with ⟨b, hb⟩,
+--       rw [not_imp, not_not] at hb,
+--       dsimp [q] at hb,
+--       have : (s₀.erase b).card = n := by rwa [card_erase_of_mem hb.1, h, nat.pred_succ],
+--       by_cases h_succA : A.card = 1,--O ZERO? O ≥ 1?
+--       {sorry},
+--       { have hne_b : s₀.erase b ≠ 0,
+--         rw ← (not_iff_not_of_iff card_pos),
+--         rw ← card_pos_iff_exists_mem,
+--          sorry,
+--         specialize hn (s₀.erase b) hb.2 hne_b this,
+--         rcases hn with ⟨s', h_s's₀b, h_ps', h_nps'a⟩,
+--         use s',
+--         split, swap,
+--         exacts [and.intro h_ps' h_nps'a, h_s's₀b] }}}
+-- end
+
 /-! ### Simultaneously filter and map elements of a multiset -/
 
 /-- `filter_map f s` is a combination filter/map operation on `s`.

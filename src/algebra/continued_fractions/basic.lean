@@ -51,7 +51,7 @@ open generalized_continued_fraction as gcf
 
 variable {α}
 
-/-- Make a gcf.pair printable. -/
+/-- Make a `gcf.pair` printable. -/
 instance [has_repr α] : has_repr (gcf.pair α) :=
 ⟨λ p, "(a : " ++ (repr p.a) ++ ", b : " ++ (repr p.b) ++ ")"⟩
 

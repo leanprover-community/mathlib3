@@ -301,9 +301,6 @@ lemma perm_congr_def {α β : Type*} (e : α ≃ β) (p : equiv.perm α) :
 lemma perm_congr_symm_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm β) (x) :
   e.perm_congr.symm p x = e.symm (p (e x)) := rfl
 
-lemma perm_congr_symm_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm β) (x) :
-e.perm_congr.symm p x = e.symm (p (e x)) := rfl
-
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
 

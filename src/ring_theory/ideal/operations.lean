@@ -367,6 +367,35 @@ lemma mul_eq_bot {R : Type*} [integral_domain R] {I J : ideal R} :
     or.resolve_left (mul_eq_zero.mp ((I * J).eq_bot_iff.mp hij _ (mul_mem_mul hi hj))) ne0)),
  λ h, by cases h; rw [← ideal.mul_bot, h, ideal.mul_comm]⟩
 
+lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
+  {s : multiset (ideal R)} : s.prod = ⊥ → ∃ I ∈ s, I = ⊥ :=
+begin
+  induction hcard : s.card with n hn generalizing s,
+  { rw multiset.card_eq_zero at hcard,
+    rw hcard,
+    erw [multiset.prod_zero, submodule.one_eq_map_top, submodule.map_id],
+    sorry },
+  { have hne : s ≠ 0,
+    { apply (not_iff_not_of_iff multiset.card_eq_zero).mp,
+      rw hcard,
+      apply nat.succ_ne_zero },
+    obtain ⟨J, hJ⟩ := multiset.exists_mem_of_ne_zero hne,
+    let t := s.erase J,
+    have h_tcard : t.card = n := by rwa [multiset.card_erase_of_mem, hcard, nat.pred_succ],
+    intro h_prod,
+    have h_ts : t.prod * J = s.prod, sorry,
+    replace h_ts : t.prod * J = ⊥ := by rwa h_prod at h_ts,
+    have h_or : t.prod = ⊥ ∨ J = ⊥ :=  mul_eq_bot.mp h_ts,
+    cases h_or,
+    { specialize hn h_tcard h_or,
+      rcases hn with ⟨I, h_It, h_zI⟩,
+      use I,
+      exact ⟨multiset.mem_of_mem_erase h_It, h_zI⟩ },
+    { use J,
+      exact ⟨hJ, h_or⟩ } },
+end
+
+
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },

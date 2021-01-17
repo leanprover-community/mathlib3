@@ -117,9 +117,16 @@ instance : has_coe_to_fun (R ≃+*o S) := ⟨_, λ f, f.to_fun⟩
 @[simp] lemma to_ring_equiv_coe_fun_eq_coe_fun {f : R ≃+*o S} : ((f : R ≃+* S) : R → S) = f := rfl
 @[simp] lemma to_order_iso_to_fun_eq_to_equiv {f : R ≃+*o S} : (f : R ≃o S).to_fun = f := rfl
 @[simp] lemma to_order_iso_coe_fun_eq_to_equiv {f : R ≃+*o S} : ((f : R ≃o S) : R → S) = f := rfl
-@[simp] lemma to_mul_equiv_to_fun_eq_to_equiv {f : R ≃+*o S} : ((f : R ≃* S) : R → S) = f := rfl
-@[simp] lemma to_add_equiv_to_fun_eq_to_equiv {f : R ≃+*o S} : (f : R ≃+ S).to_fun = f := rfl
-#lint
+@[simp]
+lemma coe_mul_equiv_to_fun_eq_coe_fun {f : R ≃+*o S} : ((f : R ≃+* S) : R ≃* S).to_fun = f := rfl
+@[simp]
+lemma coe_mul_equiv_coe_fun_eq_coe_fun {f : R ≃+*o S} : (((f : R ≃+* S) : R ≃* S) : R → S) = f :=
+rfl
+@[simp]
+lemma coe_add_equiv_to_fun_eq_coe_fun {f : R ≃+*o S} : ((f : R ≃+* S) : R ≃+ S).to_fun = f := rfl
+@[simp]
+lemma coe_add_equiv_coe_fun_eq_coe_fun {f : R ≃+*o S} : (((f : R ≃+* S) : R ≃+ S) : R → S) = f :=
+rfl
 
 /-- A ring isomorphism preserves multiplication. -/
 @[simp] lemma map_mul (e : R ≃+*o S) (x y : R) : e (x * y) = e x * e y := e.map_mul' x y
@@ -729,17 +736,17 @@ begin
     refine ⟨q, ⟨hqx, mem_range_self _⟩, hyq⟩, }
 end
 
-@[simp] lemma ring_equiv_rat {F K : Type*} [division_ring F] [division_ring K]
-  [char_zero F] [char_zero K] (f : F ≃+* K) (q : ℚ) : f q = q :=
+@[simp] lemma ring_hom_rat {F K : Type*} [division_ring F] [division_ring K]
+  [char_zero F] (f : F →+* K) (q : ℚ) : f q = q :=
 begin
-  suffices : (f.to_ring_hom.comp (rat.cast_hom F)) q = q,
+  suffices : (f.comp (rat.cast_hom F)) q = q,
   { simpa, },
   exact ring_hom.map_rat_cast _ q,
 end
 
 @[simp] lemma ordered_ring_equiv_rat {F K : Type*}
   [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K]
-  (f : F ≃+*o K) (q : ℚ) : f q = q := ring_equiv_rat f.to_ring_equiv q
+  (f : F ≃+*o K) (q : ℚ) : f q = q := ring_hom_rat (f : F →+* K) q
 
 open ordered_ring_equiv
 
@@ -763,5 +770,12 @@ begin
       trans_symm, refl_apply] at hq hq₂,
     linarith, },
 end
+
+instance {F K : Type*}
+  [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
+  unique (F ≃+*o K) := { default := cut_ordered_ring_equiv F K,
+  uniq := ordered_ring_equiv_eq_cut_ordered_ring_equiv }
+
+#lint
 
 end conditionally_complete_linear_ordered_field

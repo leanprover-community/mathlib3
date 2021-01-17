@@ -104,7 +104,7 @@ section ennreal
 lemma ennreal.ae_le_ess_sup (f : α → ennreal) : ∀ᵐ y ∂μ, f y ≤ ess_sup f μ :=
 ennreal.eventually_le_limsup f
 
-lemma ennreal.ess_sup_const_mul {f : α → ennreal} {a : ennreal} (ha_top : a ≠ ⊤) :
+lemma ennreal.ess_sup_const_mul {f : α → ennreal} {a : ennreal} :
   ess_sup (λ (x : α), a * (f x)) μ = a * ess_sup f μ :=
 begin
   by_cases hμ : μ = 0,

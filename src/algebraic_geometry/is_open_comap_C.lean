@@ -11,8 +11,6 @@ The morphism `Spec R[x] --> Spec R` induced by the natural inclusion `R --> R[x]
 
 open ideal polynomial prime_spectrum set
 
-local attribute [instance] classical.prop_decidable
-
 variables {R : Type*} [comm_ring R]
 
 /-- Given a polynomial `f ∈ R[x]`, `image_of_Df` is the subset of `Spec R` where at least one
@@ -57,8 +55,8 @@ end
 then its image in `Spec R` is contained in the open where at least one of the coefficients
 of `f` is non-zero. This lemma is a reformulation of `exists_coeff_not_mem_comap_C`. -/
 lemma C_comap_mem_image_of_Df {f : polynomial R} {I : prime_spectrum (polynomial R)}
-  (H : I ∈ (prime_spectrum.zero_locus {f} : set (prime_spectrum (polynomial R)))ᶜ ) :
-  prime_spectrum.comap (polynomial.C : R →+* polynomial R) I ∈ image_of_Df f :=
+  (H : I ∈ (zero_locus {f} : set (prime_spectrum (polynomial R)))ᶜ ) :
+  comap (polynomial.C : R →+* polynomial R) I ∈ image_of_Df f :=
 begin
   refine exists_coeff_not_mem_C_comap (λ h, (H ((I.mem_zero_locus {f}).mp _))),
   rintro _ ⟨rfl⟩,

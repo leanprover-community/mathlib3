@@ -3,11 +3,12 @@ Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
-import measure_theory.interval_integral
-import analysis.special_functions.trigonometric
+
 import topology.metric_space.basic
-import analysis.mean_inequalities
+import measure_theory.interval_integral
 import measure_theory.prod
+import analysis.special_functions.trigonometric
+import analysis.mean_inequalities
 
 open set interval_integral metric real filter measure_theory
 
@@ -18,7 +19,7 @@ open set interval_integral metric real filter measure_theory
 lemma lt_sqrt {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
 by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), pow_two, mul_self_sqrt hy]
 
-lemma lt_sqrt_of_sqr_lt  {a b : ℝ} (h : a^2 < b) : a < sqrt b :=
+lemma lt_sqrt_of_sqr_lt {a b : ℝ} (h : a^2 < b) : a < sqrt b :=
 begin
   by_contra hnot,
   rw [le_antisymm (le_sqrt_of_sqr_le _) (not_lt.mp hnot), sqr_sqrt] at h,
@@ -52,7 +53,6 @@ by simp only [add_sqr, add_mul, add_le_add_iff_right, ← pow_two, le_add_iff_no
 lemma sqr_abs {a : ℝ} : (abs a) ^ 2 = a ^ 2 :=
 by rw [← sqrt_sqr_eq_abs, sqr_sqrt (pow_two_nonneg a)]
 
--- By Andrew:
 lemma le_abs {a b : ℝ} : a ≤ abs b ↔ a ≤ b ∨ a ≤ -b := le_max_iff
 
 lemma abs_le_left {a b : ℝ} (h : abs a ≤ b) : -b ≤ a := (abs_le.mp h).1
@@ -81,14 +81,13 @@ begin
     exact λ h, (lt_sqrt (abs_nonneg a) (sqrt_pos.mp (lt_of_le_of_lt (abs_nonneg a) h)).le).mp h },
 end
 
--- For Andrew for use in step 2:
--- (originally Andrew's `opposite_sqrt_lt_of_sqr_lt`)
+-- Originally Andrew's `opposite_sqrt_lt_of_sqr_lt`.
 lemma sqr_lt_left {a b : ℝ} (h : a^2 < b) : -sqrt b < a := (sqr_lt.mp h).1
 
 lemma sqr_lt_right {a b : ℝ} (h : a^2 < b) : a < sqrt b := (sqr_lt.mp h).2
 
 
--- **FTC-2 Stuff**
+-- **FTC-2 stuff**
 
 open_locale topological_space
 
@@ -193,7 +192,7 @@ begin
     ... < 1 : by linarith [add_lt_add hq.1 hq.2] },
 end
 
-/-- Once we know that the unit disc is open, we know it is measurable. -/
+/-- Once we know that the unit disc is open, we know that it is measurable. -/
 lemma is_measurable_unit_disc : is_measurable unit_disc :=
 is_open_unit_disc.is_measurable
 
@@ -201,12 +200,9 @@ theorem area_of_unit_disc : volume.prod volume unit_disc = ennreal.of_real pi :=
 begin
   have h1 : unit_disc = {p : ℝ × ℝ | -sqrt (1 - p.1^2) < p.2 ∧ p.2 < sqrt (1 - p.1^2)},
   { ext p,
-    split;
-    simp_intros hp only [unit_disc, mem_set_of_eq],
-    { rw [add_comm, ← lt_sub_iff_add_lt] at hp,
-      exact ⟨sqr_lt_left hp, lt_sqrt_of_sqr_lt hp⟩ },
-    { rw [add_comm, ← lt_sub_iff_add_lt],
-      exact sqr_lt.mpr hp } },
+    dsimp only [unit_disc, mem_set_of_eq],
+    rw [add_comm, ← lt_sub_iff_add_lt],
+    exact sqr_lt },
   have h2 : (Ioc (-1) 1).indicator (λ y, 2 * sqrt (1 - y^2)) = λ y, 2 * sqrt (1 - y^2),
   { ext a,
     rw [indicator_apply_eq_self, mul_eq_zero],
@@ -214,13 +210,13 @@ begin
     right,
     apply sqrt_eq_zero_of_nonpos,
     rw [sub_nonpos, ← sqrt_le (pow_two_nonneg a), sqrt_one, sqrt_sqr_eq_abs, le_abs],
-    simp only [mem_Ioc, not_and_distrib, not_lt, not_le, ← mul_zero (2:ℝ)] at ha,
+    simp only [mem_Ioc, not_and_distrib, not_lt, not_le, ← mul_zero] at ha,
     cases ha,
     { exact or.inr (le_neg.mp ha) },
     { exact or.inl ha.le } },
   obtain ⟨hc1, hc2⟩ := ⟨(continuous_const.sub (continuous_pow 2)).sqrt, continuous_const.mul hc1⟩,
-  rw [measure.prod_apply is_measurable_unit_disc, h1],
-  { simp only [preimage_set_of_eq, Ioo_def, volume_Ioo, neg_mul_eq_neg_mul_symm, one_mul,
+  rw measure.prod_apply is_measurable_unit_disc,
+  { simp only [h1, preimage_set_of_eq, Ioo_def, volume_Ioo, neg_mul_eq_neg_mul_symm, one_mul,
               sub_neg_eq_add, ← two_mul],
     convert lintegral_coe_eq_integral (λ x, nnreal.of_real ((λ y, 2 * sqrt (1 - y^2)) x)) _;
     simp only [nnreal.coe_of_real _ (mul_nonneg zero_le_two (sqrt_nonneg _))],
@@ -229,13 +225,13 @@ begin
             ((continuous_arcsin.add (continuous_id.mul hc1)).continuous_on) _ hc2.continuous_on],
       { simp only [arcsin_one, arcsin_neg_one, one_pow, neg_one_pow_eq_pow_mod_two, nat.bit0_mod_two,
                   pow_zero, sub_self, sqrt_zero, mul_zero, add_zero, sub_neg_eq_add, add_halves'] },
-      { intros x hx,
-        have h : 1 - x^2 ≠ 0 := by nlinarith [hx.1, hx.2],
-        convert (has_deriv_at_arcsin hx.1.ne.symm hx.2.ne).add ((has_deriv_at_id' x).mul
-                  (((has_deriv_at_id' x).pow.const_sub (1:ℝ)).sqrt h)),
-        simp only [one_mul, mul_one, zero_sub, nat.cast_bit0, pow_one, nat.cast_one, neg_div],
-        rw mul_div_mul_left;
-        field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul] },
+      { rintros x ⟨hx1, hx2⟩,
+        convert (has_deriv_at_arcsin hx1.ne.symm hx2.ne).add ((has_deriv_at_id' x).mul
+                  (((has_deriv_at_id' x).pow.const_sub 1).sqrt _)),
+        { simp only [one_mul, mul_one, zero_sub, nat.cast_bit0, pow_one, nat.cast_one, neg_div],
+          rw mul_div_mul_left;
+          field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul] },
+        { nlinarith } },
       exacts [neg_le_self zero_le_one, is_measurable_Ioc] },
     { rw ← indicator_eq_self_of_subset Ioc_subset_Icc_self h2,
       exact (hc2.integrable_on_compact compact_Icc).indicator is_measurable_Icc } },

@@ -84,7 +84,8 @@ def subtype_perm_of_fintype(f : equiv.perm α) {p : α → Prop} [fintype {x // 
   (h : ∀ x, p x → p (f x)) : equiv.perm {x // p x} :=
 f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_perm_on_fintype h h₂⟩)
 
-@[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) : @subtype_perm α 1 p h = 1 :=
+@[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) :
+  @subtype_perm α 1 p h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
 
 /-- The inclusion map of permutations on a subtype of `α` into permutations of `α`,

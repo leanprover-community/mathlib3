@@ -115,7 +115,7 @@ def algebra_equiv_under :
 { functor := algebra_to_under X,
   inverse := under_to_algebra X,
   unit_iso := nat_iso.of_components
-                 (λ A, monad.algebra.mk_iso (iso.refl _)
+                 (λ A, monad.algebra.iso_mk (iso.refl _)
                          (coprod.hom_ext (by tidy) (by { dsimp, simpa using A.unit.symm })))
                  (λ A₁ A₂ f, by { ext, simp }),
   counit_iso :=

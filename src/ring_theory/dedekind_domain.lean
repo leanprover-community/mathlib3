@@ -650,8 +650,20 @@ begin--PER GOLFARE, CONSIDERARE TUTTE LE HP SOLO LOCALI E METTERLE TRA PARENTESI
     rw multiset.prod_zero at habs,
     rw [habs, ideal.one_eq_top, ← eq_top_iff] at h_ZM,
     exact absurd h_ZM hM.1 },
-  have h_φs : s.prod φ = multiset.prod (Z.map (coe : subtype _ → ideal R)), sorry,
-  have h_φsM : s.prod φ ≤ M, sorry, --PURE QST DUE SU h_φ... SEMBRANO LOCALI
+  have h_φs : s.prod φ = multiset.prod (Z.map (coe : subtype _ → ideal R)),
+  -- { simp only [*, multiset.length_to_list, list.head, multiset.card_map, list.length,
+  --   list.nth_le],
+  --   -- cases,
+  --   -- dif_pos,
+  --   rw multiset.prod_eq_foldr,
+  --   rw finset.prod_eq_fold,
+  --   simp *,
+  --   rw multiset.coe_map,
+
+  -- },
+  sorry,
+  have h_φsM : s.prod φ ≤ M := by rwa h_φs,
+  --PURE QST DUE SU h_φ... SEMBRANO LOCALI
   obtain ⟨P, h_PZ, h_JP⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M, --∧
     -- ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J,
   { convert (ideal.is_prime.prod_le (ideal.is_maximal.is_prime hM) hne_s).mp h_φsM,

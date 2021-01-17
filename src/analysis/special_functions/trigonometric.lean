@@ -2582,6 +2582,35 @@ lemma cos_nat_mul (n : ℕ) (θ : ℂ) :
 
 end chebyshev₁
 
+section chebyshev₂
+
+open polynomial complex
+
+/-- the `n`-th Chebyshev polynomial evaluates on `cos θ` to the value `sin ((n+1) * θ) / sin θ`. -/
+lemma chebyshev₂_complex_cos (θ : ℂ) :
+  ∀ n, sin θ * (chebyshev₂ ℂ n).eval (cos θ) = sin ((n+1) * θ)
+| 0       := by simp only [chebyshev₂_zero, eval_one, nat.cast_zero, mul_one, zero_add, one_mul]
+| 1       := begin simp only [chebyshev₂_one, chebyshev₂_one], norm_num, rw sin_two_mul, ring end
+| (n + 2) :=
+begin
+  have aux : eval (cos θ) 2 = 2,
+  { change eval (cos θ) (1+1) = 2,
+  rw eval_add,
+  rw eval_one,
+  refl },
+  simp only [chebyshev₂_add_two, eval_sub, mul_sub, eval_mul, eval_X, aux],
+  rw chebyshev₂_complex_cos n,/-simp only [eval_X, eval_one, chebyshev₁_add_two, eval_sub, eval_bit0, nat.cast_succ, eval_mul],
+  rw [chebyshev₂_complex_cos (n + 1), chebyshev₂_complex_cos n],
+  have aux : sin θ * sin θ = 1 - cos θ * cos θ,
+  { rw ← sin_sq_add_cos_sq θ, ring, },
+  simp only [nat.cast_add, nat.cast_one, add_mul, cos_add, one_mul, sin_add, mul_assoc, aux],
+  ring,-/
+  sorry
+end
+
+
+end chebyshev₂
+
 namespace real
 open_locale real
 

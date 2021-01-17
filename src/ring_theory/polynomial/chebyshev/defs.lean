@@ -11,13 +11,13 @@ import data.polynomial.eval
 
 The Chebyshev polynomials are two families of polynomials indexed by `ℕ`,
 with integral coefficients.
-In this file, we only consider Chebyshev polynomials of the first kind.
 
 See the file `ring_theory.polynomial.chebyshev.basic` for more properties.
 
 ## Main declarations
 
 * `polynomial.chebyshev₁`: the Chebyshev polynomials of the first kind.
+* `polynomial.chebyshev₂`: the Chebyshev polynomials of the second kind.
 * `polynomial.lambdashev`: a variant on the Chebyshev polynomials that define a Lambda structure
   on `polynomial ℤ`.
 
@@ -29,7 +29,8 @@ and import that file in turn, in `ring_theory.polynomial.chebyshev.basic`.
 
 ## TODO
 
-Add Chebyshev polynomials of the second kind.
+Add basic properties of Chebyshev polynomials of the second kind in
+`ring_theory.polynomial.chebyshev.basic`.
 -/
 
 
@@ -109,6 +110,63 @@ lemma map_lambdashev (f : R →+* S) :
 begin
   simp only [lambdashev_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
   rw [map_lambdashev (n + 1), map_lambdashev n],
+end
+
+
+end polynomial
+
+namespace polynomial
+
+variables (R S : Type*) [comm_ring R] [comm_ring S]
+
+/-- `chebyshev₂ n` is the `n`-th Chebyshev polynomial of the second kind -/
+noncomputable def chebyshev₂ : ℕ → polynomial R
+| 0       := 1
+| 1       := 2 * X
+| (n + 2) := 2 * X * chebyshev₂ (n + 1) - chebyshev₂ n
+
+@[simp] lemma chebyshev₂_zero : chebyshev₂ R 0 = 1 := rfl
+@[simp] lemma chebyshev₂_one : chebyshev₂ R 1 = 2 * X := rfl
+lemma chebyshev₂_two : chebyshev₂ R 2 = 4 * X ^ 2 - 1 :=
+begin
+  simp only [chebyshev₂, sub_left_inj],
+  rw [←mul_assoc, mul_comm 2 X, ←mul_comm, mul_assoc, ←mul_assoc, mul_comm (X * X), pow_two],
+  norm_num,
+end
+
+@[simp] lemma chebyshev₂_add_two (n : ℕ) :
+  chebyshev₂ R (n + 2) = 2 * X * chebyshev₂ R (n + 1) - chebyshev₂ R n :=
+by rw chebyshev₂
+
+lemma chebyshev₂_of_two_le (n : ℕ) (h : 2 ≤ n) :
+  chebyshev₂ R n = 2 * X * chebyshev₂ R (n - 1) - chebyshev₂ R (n - 2) :=
+begin
+  obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
+  rw add_comm,
+  exact chebyshev₂_add_two R n
+end
+
+variables {R S}
+
+lemma some_fact (f : R →+* S) :
+map f 2 = 2 :=
+begin
+  change map f (1+1) = 2,
+  simp only [map_add, map_one],
+  refl,
+end
+
+lemma map_chebyshev₂ (f : R →+* S) :
+  ∀ (n : ℕ), map f (chebyshev₂ R n) = chebyshev₂ S n
+| 0       := by simp only [chebyshev₂_zero, map_one]
+| 1       := begin simp only [chebyshev₂_one, map_X, map_mul, map_add, map_one],
+                   change map f (1+1) * X = 2 * X,
+                   simp only [map_add, map_one],
+                   refl end
+| (n + 2) :=
+begin
+  simp only [chebyshev₂_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
+  rw [map_chebyshev₂ (n + 1), map_chebyshev₂ n],
 end
 
 

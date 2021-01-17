@@ -25,13 +25,12 @@ archimedean, and define equivalences between these fields. We also construct the
 
 ## Main definitions
 
-* `conditionally_complete_linear_ordered_field` :
-* `ordered_ring_equiv`      :
+* `conditionally_complete_linear_ordered_field` : A field satisfying t
 * `cut_map`      :
 
 ## Main results
 
-* `ring_equiv_eq_cut_ordered_ring_equiv`:
+* `ordered_ring_equiv_eq_cut_ordered_ring_equiv` : Uniqueness of the `ordered_ring_equiv`
 
 ## Notation
 
@@ -509,32 +508,6 @@ begin
       exact_mod_cast hq2q, }, },
 end
 
--- lemma induced_map_lt_iff {F K : Type*} [linear_ordered_field F] [archimedean F]
---   [conditionally_complete_linear_ordered_field K] {x : F} {t : K} :
---   induced_map F K x < t ↔ ∃ (q : ℚ) (h : (q : K) < t), x < q :=
--- begin
---   split,
---   { intro h,
---     obtain ⟨q, hqt, hqi⟩ := exists_rat_btwn h,
---     use [q, hqi],
---     rw induced_map at hqi,
---     by_contra hx,
---     push_neg at hx,
---     have hs := cSup_le_cSup (cut_image_bdd_above F K _)
---                 (cut_image_nonempty F K x) (cut_image_subset F K hx),
---     change _ ≤ induced_map F K q at hs,
---     rw induced_map_rat at hs,
---     apply lt_irrefl (q : K) (lt_of_lt_of_le hqi hs), },
---   { rintro ⟨q, hqt, hqx⟩,
---     transitivity (q : K),
---     { exact hqt },
---     { obtain ⟨q2, hq2q, hq2x⟩ := exists_rat_btwn hqx,
---       rw induced_map,
---       have : (q2 : K) ∈ cut_image F K x := mem_cut_image_iff'.mpr hq2x,
---       apply lt_cSup_of_lt (cut_image_bdd_above F K x) this,
---       exact_mod_cast hq2q, }, },
--- end
-
 lemma pointwise_add_Sup (A B : set F) (hA : A.nonempty) (hB : B.nonempty)
   (hbA : bdd_above A) (hbB : bdd_above B) : Sup (A + B) = Sup A + Sup B :=
 begin
@@ -562,16 +535,16 @@ begin
 end
 
 /-- induced_map as an additive homomorphism -/
-def induced_add_map (F K : Type*) [linear_ordered_field F] [archimedean F]
+def induced_add_hom (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] : F →+ K :=
 { to_fun := induced_map F K,
   map_zero' := by exact_mod_cast induced_map_rat F K 0,
   map_add' := induced_map_add F K }
 
-/-- Preparatory lemma for `induced_ring_map` -/
+/-- Preparatory lemma for `induced_ring_hom` -/
 lemma le_induced_mul_self_of_mem_cut_image (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] (x : F) (hpos : 0 < x) (a : K)
-  (ha : a ∈ cut_image F K (x * x)) : a ≤ induced_add_map F K x * induced_add_map F K x :=
+  (ha : a ∈ cut_image F K (x * x)) : a ≤ induced_add_hom F K x * induced_add_hom F K x :=
 begin
   rw mem_cut_image_iff at ha,
   rcases ha with ⟨q, rfl, ha⟩,
@@ -594,10 +567,10 @@ begin
     exact mul_self_nonneg (Sup (cut_image F K x)), },
 end
 
-/-- Preparatory lemma for `induced_ring_map` -/
+/-- Preparatory lemma for `induced_ring_hom` -/
 lemma exists_mem_cut_image_mul_self_of_lt_induced_map_mul_self (F K : Type*)
   [linear_ordered_field F] [archimedean F] [conditionally_complete_linear_ordered_field K] (x : F)
-  (hpos : 0 < x) (y : K) (hy : y < induced_add_map F K x * induced_add_map F K x) :
+  (hpos : 0 < x) (y : K) (hy : y < induced_add_hom F K x * induced_add_hom F K x) :
 ∃ a ∈ cut_image F K (x * x), y < a :=
 begin
   by_cases hypos : 0 ≤ y,
@@ -608,7 +581,7 @@ begin
     split,
     norm_cast,
     rw mem_cut_image_iff',
-    erw [induced_add_map, lt_induced_map_iff] at this,
+    erw [induced_add_hom, lt_induced_map_iff] at this,
     obtain ⟨q3, hq23, hh⟩ := this,
     rw pow_two,
     push_cast,
@@ -622,7 +595,7 @@ begin
     assumption_mod_cast,
     exact hq21,
     exact_mod_cast hqpos,
-    simp only [induced_add_map, add_monoid_hom.coe_mk],
+    simp only [induced_add_hom, add_monoid_hom.coe_mk],
     rw lt_induced_map_iff,
     obtain ⟨q3, q30, q3x⟩ := exists_rat_btwn hpos,
     use q3,
@@ -638,14 +611,14 @@ begin
 end
 
 /-- `induced_map` as a `ring_hom` -/
-def induced_ring_map (F K : Type*) [linear_ordered_field F] [archimedean F]
+def induced_ring_hom (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] :
-F →+* K := ring_hom.mk_mul_self_of_two_ne_zero (induced_add_map F K) -- reduce to the case of x = y
+F →+* K := ring_hom.mk_mul_self_of_two_ne_zero (induced_add_hom F K) -- reduce to the case of x = y
 begin
   intro x,
   -- reduce to the case of 0 < x
   suffices : ∀ (x : F) (hpos : 0 < x),
-    induced_add_map F K (x * x) = induced_add_map F K x * induced_add_map F K x,
+    induced_add_hom F K (x * x) = induced_add_hom F K x * induced_add_hom F K x,
   begin
     rcases lt_trichotomy x 0 with h|rfl|h,
     { rw ← neg_pos at h,
@@ -703,12 +676,12 @@ def cut_ordered_ring_equiv (F K : Type*)
   right_inv := induced_map_inv_self K F,
   map_rel_iff' := λ x y, begin
     refine ⟨λ h, _, induced_map_le _ _⟩,
-    simpa [induced_ring_map, ring_hom.mk_mul_self_of_two_ne_zero, induced_add_map]
+    simpa [induced_ring_hom, ring_hom.mk_mul_self_of_two_ne_zero, induced_add_hom]
       using induced_map_le K F h,
   end,
-  ..induced_ring_map F K }
+  ..induced_ring_hom F K }
 
-lemma cut_ordered_equiv (F K : Type*)
+lemma cut_ordered_equiv_coe_fun (F K : Type*)
   [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
   (cut_ordered_ring_equiv F K : F → K) = induced_map F K := rfl
 
@@ -775,7 +748,5 @@ instance {F K : Type*}
   [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
   unique (F ≃+*o K) := { default := cut_ordered_ring_equiv F K,
   uniq := ordered_ring_equiv_eq_cut_ordered_ring_equiv }
-
-#lint
 
 end conditionally_complete_linear_ordered_field

@@ -18,8 +18,9 @@ open filter
 open_locale filter
 
 namespace ennreal
+variables {α : Type*} {f : filter α}
 
-lemma eventually_le_limsup {α} {f : filter α} [countable_Inter_filter f] (u : α → ennreal) :
+lemma eventually_le_limsup [countable_Inter_filter f] (u : α → ennreal) :
   ∀ᶠ y in f, u y ≤ f.limsup u :=
 begin
   by_cases hx_top : f.limsup u = ⊤,
@@ -39,8 +40,19 @@ begin
   rwa [div_def, one_mul],
 end
 
-lemma limsup_const_mul {α} {f : filter α} [ne_bot f] {u : α → ennreal} {a : ennreal}
-  (ha_top : a ≠ ⊤) :
+lemma limsup_eq_zero_iff [ne_bot f] [countable_Inter_filter f] {u : α → ennreal} :
+  f.limsup u = 0 ↔ u =ᶠ[f] 0 :=
+begin
+  split; intro h,
+  { have hu_zero := eventually_le.trans (eventually_le_limsup u)
+      (eventually_of_forall (λ _, le_of_eq h)),
+    exact hu_zero.mono (λ x hx, le_antisymm hx (zero_le _)), },
+  { rw limsup_congr h,
+    simp_rw pi.zero_apply,
+    rw limsup_const, },
+end
+
+lemma limsup_const_mul_of_ne_top [ne_bot f] {u : α → ennreal} {a : ennreal} (ha_top : a ≠ ⊤):
   f.limsup (λ (x : α), a * (u x)) = a * f.limsup u :=
 begin
   by_cases ha_zero : a = 0,
@@ -58,7 +70,32 @@ begin
   all_goals { by is_bounded_default},
 end
 
-lemma limsup_add_le {α} (f : filter α) [countable_Inter_filter f] (u v : α → ennreal) :
+lemma limsup_const_mul [ne_bot f] [countable_Inter_filter f] {u : α → ennreal} {a : ennreal} :
+  f.limsup (λ (x : α), a * (u x)) = a * f.limsup u :=
+begin
+  by_cases ha_top : a = ⊤,
+  { by_cases hu : u =ᶠ[f] 0,
+    { have hau : (λ x, a * (u x)) =ᶠ[f] 0,
+      { refine hu.mono (λ x hx, _),
+        rw pi.zero_apply at hx,
+        simp [hx], },
+      rw [limsup_congr hu, limsup_congr hau],
+      simp_rw [pi.zero_apply, limsup_const],
+      simp, },
+    { simp_rw [ha_top, top_mul],
+      have hu_mul : ∃ᶠ (x : α) in f, ⊤ ≤ ite (u x = 0) (0 : ennreal) ⊤,
+      { rw [eventually_eq, not_eventually] at hu,
+        refine hu.mono (λ x hx, _),
+        rw pi.zero_apply at hx,
+        simp [hx], },
+      have h_top_le : f.limsup (λ (x : α), ite (u x = 0) (0 : ennreal) ⊤) = ⊤,
+      from eq_top_iff.mpr (le_limsup_of_frequently_le hu_mul),
+      have hfu : f.limsup u ≠ 0, from mt limsup_eq_zero_iff.1 hu,
+      simp only [h_top_le, hfu, if_false], }, },
+  exact limsup_const_mul_of_ne_top ha_top,
+end
+
+lemma limsup_add_le [countable_Inter_filter f] (u v : α → ennreal) :
   f.limsup (u + v) ≤ f.limsup u + f.limsup v :=
 Inf_le ((eventually_le_limsup u).mp ((eventually_le_limsup v).mono
   (λ _ hxg hxf, add_le_add hxf hxg)))

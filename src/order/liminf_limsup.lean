@@ -377,6 +377,23 @@ lemma eventually_lt_of_limsup_lt {f : filter α} [conditionally_complete_linear_
   ∀ᶠ a in f, u a < b :=
 @eventually_lt_of_lt_liminf _ (order_dual β) _ _ _ _ h hu
 
+lemma le_limsup_of_frequently_le {α β} [conditionally_complete_linear_order β] {f : filter α}
+  {u : α → β}  {b : β} (hu_le : ∃ᶠ x in f, b ≤ u x)
+  (hu : f.is_bounded_under (≤) u . is_bounded_default) :
+  b ≤ f.limsup u :=
+begin
+  revert hu_le,
+  rw [←not_imp_not, not_frequently],
+  simp_rw ←lt_iff_not_ge,
+  exact λ h, eventually_lt_of_limsup_lt h hu,
+end
+
+lemma liminf_le_of_frequently_le  {α β} [conditionally_complete_linear_order β] {f : filter α}
+  {u : α → β}  {b : β} (hu_le : ∃ᶠ x in f, u x ≤ b)
+  (hu : f.is_bounded_under (≥) u . is_bounded_default) :
+  f.liminf u ≤ b :=
+@le_limsup_of_frequently_le _ (order_dual β) _ f u b hu_le hu
+
 end conditionally_complete_linear_order
 
 end filter

@@ -1403,9 +1403,8 @@ begin
   rw [← integral_deriv_mul_eq_sub hu hv hcu' hcv', ← integral_sub],
   { apply integral_congr,
     exact λ x hx, by simp [mul_comm] },
-  exacts [continuous_on.interval_integrable
-      (λ x hx, ((hcu' x hx).mul (hcv x hx)).add ((hcu x hx).mul (hcv' x hx))),
-      continuous_on.interval_integrable (λ x hx, (hcv x hx).mul (hcu' x hx))],
+ { exact ((hcu'.mul hcv).add (hcu.mul hcv')).interval_integrable },
+  { exact (hcv.mul hcu').interval_integrable },
 end
 
 end interval_integral

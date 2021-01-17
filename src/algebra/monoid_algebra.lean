@@ -461,7 +461,7 @@ def group_smul.linear_map [monoid G] [comm_semiring k]
 
 @[simp]
 lemma group_smul.linear_map_apply [monoid G] [comm_semiring k]
-  (V : Type u₃) [add_comm_group V] [semimodule k V] [semimodule (monoid_algebra k G) V]
+  (V : Type u₃) [add_comm_monoid V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V] (g : G) (v : V) :
   (group_smul.linear_map k V g) v = (single g (1 : k) • v : V) :=
 rfl

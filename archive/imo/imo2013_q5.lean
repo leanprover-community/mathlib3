@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2020 David Renshaw. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: David Renshaw
+-/
+
 import algebra.geom_sum
 import data.rat.basic
 import data.rat.order
@@ -145,14 +151,15 @@ begin
     { exfalso, exact nat.lt_asymm hn hn },
     induction n with pn hpn,
     { simp only [one_mul, nat.cast_one] },
-    calc (↑pn + 1 + 1) * f x = ((pn : ℝ) + 1) * f x + 1 * f x : add_mul (↑pn + 1) 1 (f x)
-        ... = (↑pn + 1) * f x + f x : by rw one_mul
-        ... = (↑pn.succ) * f x + f x : by norm_cast
-        ... ≤ f ((↑pn.succ) * x) + f x : add_le_add_right (hpn (nat.succ_pos pn)) (f x)
-        ... ≤ f ((↑pn + 1) * x) + f x : by norm_cast
-        ... ≤ f ((↑pn + 1) * x + x) : H2 ((↑pn + 1) * x) x (mul_pos (nat.cast_add_one_pos pn) hx) hx
-        ... = f ((↑pn + 1) * x + 1 * x) : by rw one_mul
-        ... = f ((↑pn + 1 + 1) * x) : congr_arg f (add_mul (↑pn + 1) 1 x).symm
+    calc (↑pn + 1 + 1) * f x
+          = ((pn : ℝ) + 1) * f x + 1 * f x : add_mul (↑pn + 1) 1 (f x)
+      ... = (↑pn + 1) * f x + f x : by rw one_mul
+      ... = (↑pn.succ) * f x + f x : by norm_cast
+      ... ≤ f ((↑pn.succ) * x) + f x : add_le_add_right (hpn (nat.succ_pos pn)) (f x)
+      ... ≤ f ((↑pn + 1) * x) + f x : by norm_cast
+      ... ≤ f ((↑pn + 1) * x + x) : H2 ((↑pn + 1) * x) x (mul_pos (nat.cast_add_one_pos pn) hx) hx
+      ... = f ((↑pn + 1) * x + 1 * x) : by rw one_mul
+      ... = f ((↑pn + 1 + 1) * x) : congr_arg f (add_mul (↑pn + 1) 1 x).symm
   },
   have H4: (∀ n : ℕ, 0 < n → (n: ℝ) ≤ f n),
   {
@@ -354,7 +361,8 @@ begin
       { simp only [one_mul, nat.cast_one] },
       have hfneq : f (n.succ.succ) = n.succ.succ,
       {
-        have := h_fixed_point_of_gt_1 (n.succ.succ:ℚ) (nat.one_lt_cast.mpr (nat.succ_lt_succ (nat.succ_pos n))),
+        have := h_fixed_point_of_gt_1 (n.succ.succ:ℚ)
+                                      (nat.one_lt_cast.mpr (nat.succ_lt_succ (nat.succ_pos n))),
         rwa (rat.cast_coe_nat n.succ.succ) at this,
       },
       rw ← hfneq,

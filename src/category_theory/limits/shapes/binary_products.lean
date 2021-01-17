@@ -391,6 +391,10 @@ def prod.map_iso {W X Y Z : C} [has_binary_product W X] [has_binary_product Y Z]
 { hom := prod.map f.hom g.hom,
   inv := prod.map f.inv g.inv }
 
+instance is_iso_prod {W X Y Z : C} [has_binary_product W X] [has_binary_product Y Z]
+  (f : W ⟶ Y) (g : X ⟶ Z) [is_iso f] [is_iso g] : is_iso (prod.map f g) :=
+is_iso.of_iso (prod.map_iso (as_iso f) (as_iso g))
+
 @[simp, reassoc]
 lemma prod.diag_map {X Y : C} (f : X ⟶ Y) [has_binary_product X X] [has_binary_product Y Y] :
   diag X ≫ prod.map f f = f ≫ diag Y :=
@@ -490,6 +494,10 @@ def coprod.map_iso {W X Y Z : C} [has_binary_coproduct W X] [has_binary_coproduc
   (f : W ≅ Y) (g : X ≅ Z) : W ⨿ X ≅ Y ⨿ Z :=
 { hom := coprod.map f.hom g.hom,
   inv := coprod.map f.inv g.inv }
+
+instance is_iso_coprod {W X Y Z : C} [has_binary_coproduct W X] [has_binary_coproduct Y Z]
+  (f : W ⟶ Y) (g : X ⟶ Z) [is_iso f] [is_iso g] : is_iso (coprod.map f g) :=
+is_iso.of_iso (coprod.map_iso (as_iso f) (as_iso g))
 
 -- The simp linter says simp can prove the reassoc version of this lemma.
 @[reassoc, simp]
@@ -693,7 +701,6 @@ end
 section prod_functor
 variables {C} [has_binary_products C]
 
--- FIXME deterministic timeout with `-T50000`
 /-- The binary product functor. -/
 @[simps]
 def prod.functor : C ⥤ C ⥤ C :=
@@ -706,6 +713,22 @@ def prod.functor_left_comp (X Y : C) :
 nat_iso.of_components (prod.associator _ _) (by tidy)
 
 end prod_functor
+
+section coprod_functor
+variables {C} [has_binary_coproducts C]
+
+/-- The binary coproduct functor. -/
+@[simps]
+def coprod.functor : C ⥤ C ⥤ C :=
+{ obj := λ X, { obj := λ Y, X ⨿ Y, map := λ Y Z, coprod.map (𝟙 X) },
+  map := λ Y Z f, { app := λ T, coprod.map f (𝟙 T) }}
+
+/-- The coproduct functor can be decomposed. -/
+def coprod.functor_left_comp (X Y : C) :
+  coprod.functor.obj (X ⨿ Y) ≅ coprod.functor.obj Y ⋙ coprod.functor.obj X :=
+nat_iso.of_components (coprod.associator _ _) (by tidy)
+
+end coprod_functor
 
 section prod_comparison
 
@@ -723,12 +746,12 @@ def prod_comparison (F : C ⥤ D) (A B : C)
   F.obj (A ⨯ B) ⟶ F.obj A ⨯ F.obj B :=
 prod.lift (F.map prod.fst) (F.map prod.snd)
 
-@[simp]
+@[simp, reassoc]
 lemma prod_comparison_fst :
   prod_comparison F A B ≫ prod.fst = F.map prod.fst :=
 prod.lift_fst _ _
 
-@[simp]
+@[simp, reassoc]
 lemma prod_comparison_snd :
   prod_comparison F A B ≫ prod.snd = F.map prod.snd :=
 prod.lift_snd _ _
@@ -740,6 +763,17 @@ begin
   rw [prod_comparison, prod_comparison, prod.lift_map, ← F.map_comp, ← F.map_comp,
       prod.comp_lift, ← F.map_comp, prod.map_fst, ← F.map_comp, prod.map_snd]
 end
+
+/--
+The product comparison morphism from `F(A ⨯ -)` to `FA ⨯ F-`, whose components are given by
+`prod_comparison`.
+-/
+@[simps]
+def prod_comparison_nat_trans [has_binary_products C] [has_binary_products D]
+  (F : C ⥤ D) (A : C) :
+  prod.functor.obj A ⋙ F ⟶ F ⋙ prod.functor.obj (F.obj A) :=
+{ app := λ B, prod_comparison F A B,
+  naturality' := λ B B' f, by simp [prod_comparison_natural] }
 
 @[reassoc]
 lemma inv_prod_comparison_map_fst [is_iso (prod_comparison F A B)] :
@@ -758,6 +792,17 @@ lemma prod_comparison_inv_natural (f : A ⟶ A') (g : B ⟶ B')
   inv (prod_comparison F A B) ≫ F.map (prod.map f g) =
     prod.map (F.map f) (F.map g) ≫ inv (prod_comparison F A' B') :=
 by rw [is_iso.eq_comp_inv, category.assoc, is_iso.inv_comp_eq, prod_comparison_natural]
+
+/--
+The natural isomorphism `F(A ⨯ -) ≅ FA ⨯ F-`, provided each `prod_comparison F A B` is an
+isomorphism (as `B` changes).
+-/
+@[simps {rhs_md := semireducible}]
+def prod_comparison_nat_iso [has_binary_products C] [has_binary_products D]
+  (A : C) [∀ B, is_iso (prod_comparison F A B)] :
+  prod.functor.obj A ⋙ F ≅ F ⋙ prod.functor.obj (F.obj A) :=
+{ hom := prod_comparison_nat_trans F A
+  ..nat_iso.is_iso_of_is_iso_app ⟨_, _⟩ }
 
 end prod_comparison
 

@@ -314,7 +314,7 @@ namespace measure
 
 /-- The binary product of measures. They are defined for arbitrary measures, but we basically
   prove all properties under the assumption that at least one of them is σ-finite. -/
-protected def prod (μ : measure α) (ν : measure β) : measure (α × β) :=
+@[irreducible] protected def prod (μ : measure α) (ν : measure β) : measure (α × β) :=
 bind μ $ λ x : α, map (prod.mk x) ν
 
 instance prod.measure_space {α β} [measure_space α] [measure_space β] : measure_space (α × β) :=
@@ -338,7 +338,7 @@ local attribute [instance] nonempty_measurable_superset
 lemma prod_prod_le (s : set α) (t : set β) : μ.prod ν (s.prod t) ≤ μ s * ν t :=
 begin
   by_cases hs0 : μ s = 0,
-  { rcases (exists_is_measurable_superset_of_measure_eq_zero hs0) with ⟨s', hs', h2s', h3s'⟩,
+  { rcases (exists_is_measurable_superset_of_null hs0) with ⟨s', hs', h2s', h3s'⟩,
     convert measure_mono (prod_mono hs' (subset_univ _)),
     simp_rw [hs0, prod_prod h2s' is_measurable.univ, h3s', zero_mul] },
   by_cases hti : ν t = ⊤,
@@ -349,7 +349,7 @@ begin
   rintro ⟨s', h1s', h2s'⟩,
   rw [subtype.coe_mk],
   by_cases ht0 : ν t = 0,
-  { rcases (exists_is_measurable_superset_of_measure_eq_zero ht0) with ⟨t', ht', h2t', h3t'⟩,
+  { rcases (exists_is_measurable_superset_of_null ht0) with ⟨t', ht', h2t', h3t'⟩,
     convert measure_mono (prod_mono (subset_univ _) ht'),
     simp_rw [ht0, prod_prod is_measurable.univ h2t', h3t', mul_zero] },
   by_cases hsi : μ s' = ⊤,
@@ -388,7 +388,7 @@ by simp_rw [prod_apply hs, lintegral_eq_zero_iff (measurable_measure_prod_mk_lef
 lemma measure_ae_null_of_prod_null {s : set (α × β)}
   (h : μ.prod ν s = 0) : (λ x, ν (prod.mk x ⁻¹' s)) =ᵐ[μ] 0 :=
 begin
-  obtain ⟨t, hst, mt, ht⟩ := exists_is_measurable_superset_of_measure_eq_zero h,
+  obtain ⟨t, hst, mt, ht⟩ := exists_is_measurable_superset_of_null h,
   simp_rw [measure_prod_null mt] at ht,
   rw [eventually_le_antisymm_iff],
   exact ⟨eventually_le.trans_eq
@@ -487,14 +487,14 @@ lemma prod_dirac (y : β) : μ.prod (dirac y) = map (λ x, (x, y)) μ :=
 begin
   refine prod_eq (λ s t hs ht, _),
   simp_rw [map_apply measurable_prod_mk_right (hs.prod ht), mk_preimage_prod_left_eq_if, measure_if,
-    dirac_apply _ ht, ← indicator_mul_right _ (λ x, μ s), pi.one_apply, mul_one]
+    dirac_apply' _ ht, ← indicator_mul_right _ (λ x, μ s), pi.one_apply, mul_one]
 end
 
 lemma dirac_prod (x : α) : (dirac x).prod ν = map (prod.mk x) ν :=
 begin
   refine prod_eq (λ s t hs ht, _),
   simp_rw [map_apply measurable_prod_mk_left (hs.prod ht), mk_preimage_prod_right_eq_if, measure_if,
-    dirac_apply _ hs, ← indicator_mul_left _ _ (λ x, ν t), pi.one_apply, one_mul]
+    dirac_apply' _ hs, ← indicator_mul_left _ _ (λ x, ν t), pi.one_apply, one_mul]
 end
 
 lemma dirac_prod_dirac {x : α} {y : β} : (dirac x).prod (dirac y) = dirac (x, y) :=
@@ -637,6 +637,11 @@ lemma lintegral_lintegral_swap [sigma_finite μ] ⦃f : α → β → ennreal⦄
   (hf : measurable (uncurry f)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ y, ∫⁻ x, f x y ∂μ ∂ν :=
 (lintegral_lintegral hf).trans (lintegral_prod_symm _ hf)
+
+lemma lintegral_prod_mul {f : α → ennreal} {g : β → ennreal} (hf : measurable f)
+  (hg : measurable g) : ∫⁻ z, f z.1 * g z.2 ∂(μ.prod ν) = ∫⁻ x, f x ∂μ * ∫⁻ y, g y ∂ν :=
+by simp [lintegral_prod _ ((hf.comp measurable_fst).ennreal_mul $ hg.comp measurable_snd),
+  lintegral_lintegral_mul hf hg]
 
 /-! ### Integrability on a product -/
 section

@@ -251,6 +251,18 @@ theorem is_o.comp_tendsto (hfg : is_o f g l) {k : β → α} {l' : filter β} (h
   is_o (f ∘ k) (g ∘ k) l' :=
 λ c cpos, (hfg cpos).comp_tendsto hk
 
+@[simp] theorem is_O_with_map {k : β → α} {l : filter β} :
+  is_O_with c f g (map k l) ↔ is_O_with c (f ∘ k) (g ∘ k) l :=
+mem_map
+
+@[simp] theorem is_O_map {k : β → α} {l : filter β} :
+  is_O f g (map k l) ↔ is_O (f ∘ k) (g ∘ k) l :=
+by simp only [is_O, is_O_with_map]
+
+@[simp] theorem is_o_map {k : β → α} {l : filter β} :
+  is_o f g (map k l) ↔ is_o (f ∘ k) (g ∘ k) l :=
+by simp only [is_o, is_O_with_map]
+
 theorem is_O_with.mono (h : is_O_with c f g l') (hl : l ≤ l') : is_O_with c f g l :=
 hl h
 
@@ -1129,7 +1141,7 @@ begin
   { intro h,
     use (λ x, u x / v x),
     refine ⟨eventually.mono h (λ y hy, _), h.eventually_mul_div_cancel.symm⟩,
-    simpa using div_le_iff_of_nonneg_of_le (norm_nonneg _) hc hy },
+    simpa using div_le_of_nonneg_of_le_mul (norm_nonneg _) hc hy },
   { rintros ⟨φ, hφ, h⟩,
     exact is_O_with_of_eq_mul φ hφ h }
 end
@@ -1180,9 +1192,17 @@ begin
   exact (zero_pow (nat.sub_pos_of_lt h)).symm
 end
 
+theorem is_o_norm_pow_norm_pow {m n : ℕ} (h : m < n) :
+  is_o (λ(x : E'), ∥x∥^n) (λx, ∥x∥^m) (𝓝 (0 : E')) :=
+(is_o_pow_pow h).comp_tendsto tendsto_norm_zero
+
 theorem is_o_pow_id {n : ℕ} (h : 1 < n) :
   is_o (λ(x : 𝕜), x^n) (λx, x) (𝓝 0) :=
 by { convert is_o_pow_pow h, simp only [pow_one] }
+
+theorem is_o_norm_pow_id {n : ℕ} (h : 1 < n) :
+  is_o (λ(x : E'), ∥x∥^n) (λx, x) (𝓝 0) :=
+by simpa only [pow_one, is_o_norm_right] using is_o_norm_pow_norm_pow h
 
 theorem is_O_with.right_le_sub_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c f₁ f₂ l) (hc : c < 1) :
   is_O_with (1 / (1 - c)) f₂ (λx, f₂ x - f₁ x) l :=

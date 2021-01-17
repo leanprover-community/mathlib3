@@ -1079,6 +1079,28 @@ lemma integral_eq_zero_of_ae {f : α → E} (hf : f =ᵐ[μ] 0) : ∫ a, f a ∂
 if hfm : ae_measurable f μ then by simp [integral_congr_ae hf, integral_zero]
 else integral_non_ae_measurable hfm
 
+/-- If `f` has finite integral, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
+to zero as `μ s` tends to zero. -/
+lemma has_finite_integral.tendsto_set_integral_nhds_zero {ι} {f : α → E}
+  (hf : has_finite_integral f μ) {l : filter ι} {s : ι → set α}
+  (hs : tendsto (μ ∘ s) l (𝓝 0)) :
+  tendsto (λ i, ∫ x in s i, f x ∂μ) l (𝓝 0) :=
+begin
+  rw [tendsto_zero_iff_norm_tendsto_zero],
+  simp_rw [← coe_nnnorm, ← nnreal.coe_zero, nnreal.tendsto_coe, ← ennreal.tendsto_coe,
+    ennreal.coe_zero],
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+    (tendsto_set_lintegral_zero hf hs) (λ i, zero_le _)
+    (λ i, ennnorm_integral_le_lintegral_ennnorm _)
+end
+
+/-- If `f` is integrable, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
+to zero as `μ s` tends to zero. -/
+lemma integrable.tendsto_set_integral_nhds_zero {ι} {f : α → E}
+  (hf : integrable f μ) {l : filter ι} {s : ι → set α} (hs : tendsto (μ ∘ s) l (𝓝 0)) :
+  tendsto (λ i, ∫ x in s i, f x ∂μ) l (𝓝 0) :=
+hf.2.tendsto_set_integral_nhds_zero hs
+
 /-- If `F i → f` in `L1`, then `∫ x, F i x ∂μ → ∫ x, f x∂μ`. -/
 lemma tendsto_integral_of_l1 {ι} (f : α → E) (hfi : integrable f μ)
   {F : ι → α → E} {l : filter ι} (hFi : ∀ᶠ i in l, integrable (F i) μ)
@@ -1269,7 +1291,7 @@ integral_eq_zero_iff_of_nonneg_ae (eventually_of_forall hf) hfi
 
 lemma integral_pos_iff_support_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hfi : integrable f μ) :
   (0 < ∫ x, f x ∂μ) ↔ 0 < μ (function.support f) :=
-by simp_rw [(integral_nonneg_of_ae hf).lt_iff_ne, zero_lt_iff_ne_zero, ne.def, @eq_comm ℝ 0,
+by simp_rw [(integral_nonneg_of_ae hf).lt_iff_ne, pos_iff_ne_zero, ne.def, @eq_comm ℝ 0,
   integral_eq_zero_iff_of_nonneg_ae hf hfi, filter.eventually_eq, ae_iff, pi.zero_apply,
   function.support]
 
@@ -1501,10 +1523,16 @@ let g := hfm.mk f in calc
 ... = ∫ x, g (φ x) ∂μ : integral_map_of_measurable hφ hfm.measurable_mk
 ... = ∫ x, f (φ x) ∂μ : integral_congr_ae $ ae_eq_comp hφ (hfm.ae_eq_mk).symm
 
-lemma integral_dirac (f : α → E) (a : α) (hfm : measurable f) :
+lemma integral_dirac' (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
-  integral_congr_ae $ eventually_eq_dirac hfm
+  integral_congr_ae $ ae_eq_dirac' hfm
+... = f a : by simp [measure.dirac_apply_of_mem]
+
+lemma integral_dirac [measurable_singleton_class α] (f : α → E) (a : α) :
+  ∫ x, f x ∂(measure.dirac a) = f a :=
+calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
+  integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
 end properties

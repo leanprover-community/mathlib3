@@ -155,14 +155,21 @@ set.eq_univ_of_forall e.surjective
 protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
 e.injective.subsingleton
 
-instance equiv_subsingleton {α β : Type*} [subsingleton β] :
+protected theorem subsingleton.symm (e : α ≃ β) [subsingleton α] : subsingleton β :=
+e.symm.injective.subsingleton
+
+instance equiv_subsingleton_cod [subsingleton β] :
   subsingleton (α ≃ β) :=
-⟨λ f g, equiv.ext $ λ x, by simp⟩
+⟨λ f g, equiv.ext $ λ x, subsingleton.elim _ _⟩
 
-instance perm_subsingleton {α : Type*} [subsingleton α] : subsingleton (perm α) :=
-equiv.equiv_subsingleton
+instance equiv_subsingleton_dom [subsingleton α] :
+  subsingleton (α ≃ β) :=
+⟨λ f g, equiv.ext $ λ x, @subsingleton.elim _ (equiv.subsingleton.symm f) _ _⟩
 
-lemma perm.subsingleton_eq_refl {α : Type*} [subsingleton α] (e : perm α) :
+instance perm_subsingleton [subsingleton α] : subsingleton (perm α) :=
+equiv.equiv_subsingleton_cod
+
+lemma perm.subsingleton_eq_refl [subsingleton α] (e : perm α) :
   e = equiv.refl α := subsingleton.elim _ _
 
 /-- Transfer `decidable_eq` across an equivalence. -/
@@ -269,8 +276,8 @@ def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃
   (ab.equiv_congr de).trans (bc.equiv_congr ef) = (ab.trans bc).equiv_congr (de.trans ef) :=
 by { ext, refl }
 
-@[simp] lemma equiv_congr_refl_left {α β γ} (ab : β ≃ γ) (e : α ≃ β) :
-  (equiv.refl α).equiv_congr ab e = e.trans ab := rfl
+@[simp] lemma equiv_congr_refl_left {α β γ} (bg : β ≃ γ) (e : α ≃ β) :
+  (equiv.refl α).equiv_congr bg e = e.trans bg := rfl
 
 @[simp] lemma equiv_congr_refl_right {α β} (ab e : α ≃ β) :
   ab.equiv_congr (equiv.refl β) e = ab.symm.trans e := rfl
@@ -289,7 +296,10 @@ lemma perm_congr_def {α β : Type*} (e : α ≃ β) (p : equiv.perm α) :
   e.perm_congr.symm = e.symm.perm_congr := rfl
 
 @[simp] lemma perm_congr_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm α) (x) :
-e.perm_congr p x = e (p (e.symm x)) := rfl
+  e.perm_congr p x = e (p (e.symm x)) := rfl
+
+lemma perm_congr_symm_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm β) (x) :
+  e.perm_congr.symm p x = e.symm (p (e x)) := rfl
 
 lemma perm_congr_symm_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm β) (x) :
 e.perm_congr.symm p x = e.symm (p (e x)) := rfl
@@ -939,6 +949,16 @@ lemma sigma_equiv_prod_sigma_congr_right :
   (sigma_equiv_prod α₁ β₁).symm.trans (sigma_congr_right e) =
     (prod_congr_right e).trans (sigma_equiv_prod α₁ β₂).symm :=
 by { ext ⟨a, b⟩ : 1, simp }
+
+/-- A variation on `equiv.prod_congr` where the equivalence in the second component can depend
+  on the first component. A typical example is a shear mapping, explaining the name of this
+  declaration. -/
+@[simps {fully_applied := ff}]
+def prod_shear {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ : α₁ → β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
+{ to_fun := λ x : α₁ × β₁, (e₁ x.1, e₂ x.1 x.2),
+  inv_fun := λ y : α₂ × β₂, (e₁.symm y.1, (e₂ $ e₁.symm y.1).symm y.2),
+  left_inv := by { rintro ⟨x₁, y₁⟩, simp only [symm_apply_apply] },
+  right_inv := by { rintro ⟨x₁, y₁⟩, simp only [apply_symm_apply] } }
 
 end prod_congr
 
@@ -1823,6 +1843,20 @@ def Pi_congr' : (Π a, W a) ≃ (Π b, Z b) :=
 end
 
 end equiv
+
+lemma function.injective.swap_apply [decidable_eq α] [decidable_eq β] {f : α → β}
+  (hf : function.injective f) (x y z : α) :
+  equiv.swap (f x) (f y) (f z) = f (equiv.swap x y z) :=
+begin
+  by_cases hx : z = x, by simp [hx],
+  by_cases hy : z = y, by simp [hy],
+  rw [equiv.swap_apply_of_ne_of_ne hx hy, equiv.swap_apply_of_ne_of_ne (hf.ne hx) (hf.ne hy)]
+end
+
+lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α → β}
+  (hf : function.injective f) (x y : α) :
+  equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
+funext $ λ z, hf.swap_apply _ _ _
 
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
 instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton

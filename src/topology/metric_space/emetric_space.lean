@@ -114,7 +114,7 @@ iff.intro (assume h, eq_of_edist_eq_zero (h.symm))
           (assume : x = y, this ▸ (edist_self _).symm)
 
 theorem edist_le_zero {x y : α} : (edist x y ≤ 0) ↔ x = y :=
-le_zero_iff_eq.trans edist_eq_zero
+nonpos_iff_eq_zero.trans edist_eq_zero
 
 /-- Triangle inequality for the extended distance -/
 theorem edist_triangle_left (x y z : α) : edist x y ≤ edist z x + edist z y :=
@@ -713,7 +713,7 @@ diam_le_iff_forall_edist_le.2 h
 
 /-- The diameter of a subsingleton vanishes. -/
 lemma diam_subsingleton (hs : s.subsingleton) : diam s = 0 :=
-le_zero_iff_eq.1 $ diam_le_of_forall_edist_le $
+nonpos_iff_eq_zero.1 $ diam_le_of_forall_edist_le $
 λ x hx y hy, (hs hx hy).symm ▸ edist_self y ▸ le_refl _
 
 /-- The diameter of the empty set vanishes -/
@@ -732,7 +732,7 @@ begin
   have := not_congr (@diam_eq_zero_iff _ _ s),
   dunfold set.subsingleton at this,
   push_neg at this,
-  simpa only [zero_lt_iff_ne_zero, exists_prop] using this
+  simpa only [pos_iff_ne_zero, exists_prop] using this
 end
 
 lemma diam_insert : diam (insert x s) = max (⨆ y ∈ s, edist x y) (diam s) :=

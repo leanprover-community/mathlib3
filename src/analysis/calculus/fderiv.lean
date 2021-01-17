@@ -203,9 +203,9 @@ section derivative_uniqueness
 We prove that the definitions `unique_diff_within_at` and `unique_diff_on` indeed imply the
 uniqueness of the derivative. -/
 
-/-- If a function f has a derivative f' at x, a rescaled version of f around x converges to f', i.e.,
-`n (f (x + (1/n) v) - f x)` converges to `f' v`. More generally, if `c n` tends to infinity and
-`c n * d n` tends to `v`, then `c n * (f (x + d n) - f x)` tends to `f' v`. This lemma expresses
+/-- If a function f has a derivative f' at x, a rescaled version of f around x converges to f',
+i.e., `n (f (x + (1/n) v) - f x)` converges to `f' v`. More generally, if `c n` tends to infinity
+and `c n * d n` tends to `v`, then `c n * (f (x + d n) - f x)` tends to `f' v`. This lemma expresses
 this fact, for functions having a derivative within a set. Its specific formulation is useful for
 tangent cone related discussions. -/
 theorem has_fderiv_within_at.lim (h : has_fderiv_within_at f f' s x) {α : Type*} (l : filter α)
@@ -285,19 +285,8 @@ has_fderiv_at_filter_iff_tendsto
 theorem has_fderiv_at_iff_is_o_nhds_zero : has_fderiv_at f f' x ↔
   is_o (λh, f (x + h) - f x - f' h) (λh, h) (𝓝 0) :=
 begin
-  split,
-  { assume H,
-    have : tendsto (λ (z : E), z + x) (𝓝 0) (𝓝 (0 + x)),
-      from tendsto_id.add tendsto_const_nhds,
-    rw [zero_add] at this,
-    refine (H.comp_tendsto this).congr _ _;
-      intro z; simp only [function.comp, add_sub_cancel', add_comm z] },
-  { assume H,
-    have : tendsto (λ (z : E), z - x) (𝓝 x) (𝓝 (x - x)),
-      from tendsto_id.sub tendsto_const_nhds,
-    rw [sub_self] at this,
-    refine (H.comp_tendsto this).congr _ _;
-      intro z; simp only [function.comp, add_sub_cancel'_right] }
+  rw [has_fderiv_at, has_fderiv_at_filter, ← map_add_left_nhds_zero x, is_o_map],
+  simp [(∘)]
 end
 
 /-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
@@ -305,27 +294,14 @@ on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by
 lemma has_fderiv_at.le_of_lip {f : E → F} {f' : E →L[𝕜] F} {x₀ : E} (hf : has_fderiv_at f f' x₀)
   {s : set E} (hs : s ∈ 𝓝 x₀) {C : ℝ≥0} (hlip : lipschitz_on_with C f s) : ∥f'∥ ≤ C :=
 begin
-  replace hf : ∀ ε > 0, ∃ δ > 0, ∀ x', ∥x' - x₀∥ < δ → ∥x' - x₀∥⁻¹ * ∥f x' - f x₀ - f' (x' - x₀)∥ < ε,
-    by simpa [has_fderiv_at_iff_tendsto, normed_group.tendsto_nhds_nhds] using hf,
-  obtain ⟨ε, ε_pos, hε⟩ : ∃ ε > 0, ball x₀ ε ⊆ s := mem_nhds_iff.mp hs,
-  apply real.le_of_forall_epsilon_le,
-  intros η η_pos,
-  rcases hf η η_pos with ⟨δ, δ_pos, h⟩, clear hf,
-  apply op_norm_le_of_ball (lt_min ε_pos δ_pos) (by linarith [C.coe_nonneg]: (0 : ℝ) ≤ C + η),
-  intros u u_in,
-  let x := x₀ + u,
-  rw show u = x - x₀, by rw [add_sub_cancel'],
-  have xε : x ∈ ball x₀ ε,
-    by simpa [dist_eq_norm] using ball_subset_ball (min_le_left ε δ) u_in,
-  have xδ : ∥x - x₀∥ < δ,
-    by simpa [dist_eq_norm] using ball_subset_ball (min_le_right ε δ) u_in,
-  replace h : ∥f x - f x₀ - f' (x - x₀)∥ ≤ η*∥x - x₀∥,
-  { by_cases H : x - x₀ = 0,
-    { simp [eq_of_sub_eq_zero H] },
-    { exact (inv_mul_le_iff' $ norm_pos_iff.mpr H).mp (le_of_lt $ h x xδ) } },
-  have := hlip.norm_sub_le (hε xε) (hε $ mem_ball_self ε_pos),
-  calc ∥f' (x - x₀)∥ ≤ ∥f x - f x₀∥ + ∥f x - f x₀ - f' (x - x₀)∥ : norm_le_insert _ _
-  ... ≤ (C + η) * ∥x - x₀∥ : by linarith,
+  refine le_of_forall_pos_le_add (λ ε ε0, op_norm_le_of_nhds_zero _ _),
+  exact add_nonneg C.coe_nonneg ε0.le,
+  have hs' := hs, rw [← map_add_left_nhds_zero x₀, mem_map] at hs',
+  filter_upwards [is_o_iff.1 (has_fderiv_at_iff_is_o_nhds_zero.1 hf) ε0, hs'], intros y hy hys,
+  have := hlip.norm_sub_le hys (mem_of_nhds hs), rw add_sub_cancel' at this,
+  calc ∥f' y∥ ≤ ∥f (x₀ + y) - f x₀∥ + ∥f (x₀ + y) - f x₀ - f' y∥ : norm_le_insert _ _
+          ... ≤ C * ∥y∥ + ε * ∥y∥                                : add_le_add this hy
+          ... = (C + ε) * ∥y∥                                    : (add_mul _ _ _).symm
 end
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
@@ -402,7 +378,8 @@ lemma has_fderiv_within_at_inter (h : t ∈ 𝓝 x) :
   has_fderiv_within_at f f' (s ∩ t) x ↔ has_fderiv_within_at f f' s x :=
 by simp [has_fderiv_within_at, nhds_within_restrict' s h]
 
-lemma has_fderiv_within_at.union (hs : has_fderiv_within_at f f' s x) (ht : has_fderiv_within_at f f' t x) :
+lemma has_fderiv_within_at.union (hs : has_fderiv_within_at f f' s x)
+  (ht : has_fderiv_within_at f f' t x) :
   has_fderiv_within_at f f' (s ∪ t) x :=
 begin
   simp only [has_fderiv_within_at, nhds_within_union],
@@ -549,13 +526,17 @@ begin
         fderiv_within_zero_of_not_differentiable_within_at this] }
 end
 
-lemma fderiv_within_of_open (hs : is_open s) (hx : x ∈ s) :
+lemma fderiv_within_of_mem_nhds (h : s ∈ 𝓝 x) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
 begin
   have : s = univ ∩ s, by simp only [univ_inter],
   rw [this, ← fderiv_within_univ],
-  exact fderiv_within_inter (mem_nhds_sets hs hx) (unique_diff_on_univ _ (mem_univ _))
+  exact fderiv_within_inter h (unique_diff_on_univ _ (mem_univ _))
 end
+
+lemma fderiv_within_of_open (hs : is_open s) (hx : x ∈ s) :
+  fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
+fderiv_within_of_mem_nhds (mem_nhds_sets hs hx)
 
 lemma fderiv_within_eq_fderiv (hs : unique_diff_within_at 𝕜 s x) (h : differentiable_at 𝕜 f x) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
@@ -872,7 +853,7 @@ e.has_fderiv_at.differentiable_at
 protected lemma continuous_linear_map.differentiable_within_at : differentiable_within_at 𝕜 e s x :=
 e.differentiable_at.differentiable_within_at
 
-protected lemma continuous_linear_map.fderiv : fderiv 𝕜 e x = e :=
+@[simp] protected lemma continuous_linear_map.fderiv : fderiv 𝕜 e x = e :=
 e.has_fderiv_at.fderiv
 
 protected lemma continuous_linear_map.fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
@@ -882,7 +863,7 @@ begin
   exact e.fderiv
 end
 
-@[simp]protected lemma continuous_linear_map.differentiable : differentiable 𝕜 e :=
+@[simp] protected lemma continuous_linear_map.differentiable : differentiable 𝕜 e :=
 λx, e.differentiable_at
 
 protected lemma continuous_linear_map.differentiable_on : differentiable_on 𝕜 e s :=
@@ -972,7 +953,8 @@ begin
 end
 
 theorem has_fderiv_within_at.comp {g : F → G} {g' : F →L[𝕜] G} {t : set F}
-  (hg : has_fderiv_within_at g g' t (f x)) (hf : has_fderiv_within_at f f' s x) (hst : s ⊆ f ⁻¹' t) :
+  (hg : has_fderiv_within_at g g' t (f x)) (hf : has_fderiv_within_at f f' s x)
+  (hst : s ⊆ f ⁻¹' t) :
   has_fderiv_within_at (g ∘ f) (g'.comp f') s x :=
 begin
   apply has_fderiv_at_filter.comp _ (has_fderiv_at_filter.mono hg _) hf,
@@ -1925,7 +1907,8 @@ begin
   apply is_bounded_bilinear_map_apply.is_O_comp.trans_is_o,
   refine is_o.trans_is_O _ (is_O_const_mul_self 1 _ _).of_norm_right,
   refine is_o.mul_is_O _ (is_O_refl _ _),
-  exact (((h.is_bounded_linear_map_deriv.is_O_id ⊤).comp_tendsto le_top : _).trans_is_o this).norm_left
+  exact (((h.is_bounded_linear_map_deriv.is_O_id ⊤).comp_tendsto le_top : _).trans_is_o
+    this).norm_left
 end
 
 lemma is_bounded_bilinear_map.has_fderiv_at (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :
@@ -2349,7 +2332,8 @@ begin
   refine ⟨λ H, _, λ H, iso.has_fderiv_at.comp_has_fderiv_within_at x H⟩,
   have A : f = iso.symm ∘ (iso ∘ f), by { rw [← function.comp.assoc, iso.symm_comp_self], refl },
   have B : f' = (iso.symm : F →L[𝕜] E).comp ((iso : E →L[𝕜] F).comp f'),
-    by rw [← continuous_linear_map.comp_assoc, iso.coe_symm_comp_coe, continuous_linear_map.id_comp],
+    by rw [← continuous_linear_map.comp_assoc, iso.coe_symm_comp_coe,
+             continuous_linear_map.id_comp],
   rw [A, B],
   exact iso.symm.has_fderiv_at.comp_has_fderiv_within_at x H
 end
@@ -2533,7 +2517,8 @@ lemma has_fderiv_within_at.maps_to_tangent_cone {x : E} (h : has_fderiv_within_a
   maps_to f' (tangent_cone_at 𝕜 s x) (tangent_cone_at 𝕜 (f '' s) (f x)) :=
 begin
   rintros v ⟨c, d, dtop, clim, cdlim⟩,
-  refine ⟨c, (λn, f (x + d n) - f x), mem_sets_of_superset dtop _, clim, h.lim at_top dtop clim cdlim⟩,
+  refine ⟨c, (λn, f (x + d n) - f x), mem_sets_of_superset dtop _, clim,
+    h.lim at_top dtop clim cdlim⟩,
   simp [-mem_image, mem_image_of_mem] {contextual := tt}
 end
 

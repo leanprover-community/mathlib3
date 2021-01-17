@@ -9,11 +9,11 @@ import ring_theory.polynomial.basic
 The morphism `Spec R[x] --> Spec R` induced by the natural inclusion `R --> R[x]` is an open map.
 -/
 
-open ideal polynomial prime_spectrum set integral_domain
+open ideal polynomial prime_spectrum set
 
 local attribute [instance] classical.prop_decidable
 
-variables {R : Type*} [comm_ring R] {P : ideal R}
+variables {R : Type*} [comm_ring R]
 
 /-- Given a polynomial `f ∈ R[x]`, `image_of_Df` is the subset of `Spec R` where at least one
 of the coefficients of `f` does not vanish.  We will prove that `image_of_Df` is the image of
@@ -65,20 +65,14 @@ begin
   exact h,
 end
 
--- to src/data/set/lattice, PR#5691.
--- If this PR is merged into master, then this lemma can be removed
-lemma bUnion_of_singleton_of_coe {α : Type*} (s : set α) :
-  (⋃ (i : s), {i} : set α) = s :=
-ext $ by simp
-
 theorem is_open_map_C_comap :
   is_open_map (comap (C : R →+* polynomial R)) :=
 begin
   rintros U ⟨fs, cl⟩,
-  rw [← compl_compl U, ← cl, ← bUnion_of_singleton_of_coe fs, zero_locus_Union, compl_Inter,
+  rw [← compl_compl U, ← cl, ← Union_of_singleton_coe fs, zero_locus_Union, compl_Inter,
     image_Union],
   refine is_open_Union (λ f, _),
-  convert is_open_image_of_Df f.val,
+  convert is_open_image_of_Df f.1,
   refine ext (λ x, ⟨_, λ hx, ⟨⟨map C x.val, (is_prime_C_map_of_is_prime x.property)⟩, ⟨_, _⟩⟩⟩),
   { rintro ⟨xli, complement, rfl⟩,
     exact C_comap_mem_image_of_Df complement },

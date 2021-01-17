@@ -99,7 +99,7 @@ begin
   have := h x y,
   rw [mul_comm] at this,
   replace := ennreal.div_le_of_le_mul this,
-  rwa [ennreal.div_def, mul_comm] at this
+  rwa [div_eq_mul_inv, mul_comm] at this
 end
 
 protected lemma of_edist_le (h : ∀ x y, edist (f x) (f y) ≤ edist x y) :

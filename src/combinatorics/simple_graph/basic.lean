@@ -192,10 +192,13 @@ end
 The set of common neighbors between two vertices `v` and `w` in a graph `G` is the
 intersection of the neighbor sets of `v` and `w`.
 -/
-def common_neighbors (v w : V) : set V := (G.neighbor_set v) ∩ (G.neighbor_set w)
+def common_neighbors (v w : V) : set V := G.neighbor_set v ∩ G.neighbor_set w
 
 lemma common_neighbors_eq (v w : V) :
   G.common_neighbors v w = G.neighbor_set v ∩ G.neighbor_set w := rfl
+
+lemma mem_common_neighbors {u v w : V} : u ∈ G.common_neighbors v w ↔ G.adj v u ∧ G.adj w u :=
+by simp [common_neighbors]
 
 lemma common_neighbors_symm (v w : V) : G.common_neighbors v w = G.common_neighbors w v :=
 by { rw [common_neighbors, set.inter_comm], refl }
@@ -313,7 +316,7 @@ A locally finite simple graph is regular of degree `d` if every vertex has degre
 -/
 def is_regular_of_degree (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
-lemma is_regular_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d := h v
+lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d := h v
 
 end locally_finite
 

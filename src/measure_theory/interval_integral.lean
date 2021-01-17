@@ -1378,49 +1378,34 @@ integral_eq_sub_of_has_deriv_at (λ x hx, (hderiv x hx).has_deriv_at) hcont'
 ### Integration by parts
 -/
 
-lemma integral_deriv_mul_eq_sub' {u v u' v' : ℝ → ℝ} (hab : a ≤ b)
-  (hu : ∀ x ∈ Icc a b, has_deriv_at u (u' x) x)
-  (hv : ∀ x ∈ Icc a b, has_deriv_at v (v' x) x)
-  (hcu' : continuous_on u' (Icc a b)) (hcv' : continuous_on v' (Icc a b)) :
-  ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a :=
-begin
-  rw integral_eq_sub_of_has_deriv_at,
-  intros x hx;
-  simp only [interval_of_le hab, min_eq_left, max_eq_right] at hx,
-  { exact (hu x hx).mul (hv x hx) },
-  { simp only [interval_of_le hab, min_eq_left,max_eq_right],
-    exact (hcu'.mul (has_deriv_at.continuous_on (hv x hx))).add
-    ((has_deriv_at.continuous_on (hu x hx)).mul hcv') }
-end
-
 lemma integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
   (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
   (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
-  (hcu : continuous_on u' (interval a b)) (hcv : continuous_on v' (interval a b)) :
+  (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
   ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a :=
 begin
-  cases le_total a b with hab hab,
-  { simp only [interval_of_le hab] at hu hv hcu hcv ⊢,
-    exact integral_deriv_mul_eq_sub' hab hu hv hcu hcv },
-  { simp only [interval_of_ge hab] at hu hv hcu hcv ⊢,
-    rw [integral_symm,integral_deriv_mul_eq_sub' hab hu hv hcu hcv, neg_sub] }
+  have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
+  have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
+  rw integral_eq_sub_of_has_deriv_at,
+  intros x hx;
+  { exact (hu x hx).mul (hv x hx) },
+  { exact (hcu'.mul hcv).add (hcu.mul hcv') }
 end
 
 theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
   (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
   (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
-  (hcu : continuous_on u' (interval a b)) (hcv : continuous_on v' (interval a b)) :
+  (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
   ∫ x in a..b, u x * v' x = u b * v b - u a * v a - ∫ x in a..b, v x * u' x :=
 begin
-  rw [← integral_deriv_mul_eq_sub hu hv hcu hcv, ← integral_sub],
+  have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
+  have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
+  rw [← integral_deriv_mul_eq_sub hu hv hcu' hcv', ← integral_sub],
   { apply integral_congr,
-    intros x hx,
-    simp only [mul_comm, add_comm, add_sub_assoc, sub_self, add_zero] },
+    exact λ x hx, by simp [mul_comm] },
   exacts [continuous_on.interval_integrable
-      (λ x hx, ((hcu x hx).mul (hv x hx).continuous_at.continuous_within_at).add
-      ((hu x hx).continuous_at.continuous_within_at.mul (hcv x hx))),
-      continuous_on.interval_integrable
-      (λ x hx, (hv x hx).continuous_at.continuous_within_at.mul (hcu x hx))],
+      (λ x hx, ((hcu' x hx).mul (hcv x hx)).add ((hcu x hx).mul (hcv' x hx))),
+      continuous_on.interval_integrable (λ x hx, (hcv x hx).mul (hcu' x hx))],
 end
 
 end interval_integral

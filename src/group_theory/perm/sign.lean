@@ -72,7 +72,7 @@ lemma perm_inv_maps_to_iff_maps_to {f : perm α} {s : set α} [fintype s] :
   set.maps_to f s s ↔ set.maps_to (f⁻¹ : _) s s :=
   ⟨perm_inv_maps_to_of_maps_to f, perm_inv_maps_to_of_maps_to f⁻¹⟩
 
-lemma perm_inv_on_of_perm_on_fintype  {f : perm α} {p : α → Prop} (hf : fintype {x // p x})
+lemma perm_inv_on_of_perm_on_fintype {f : perm α} {p : α → Prop} [fintype {x // p x}]
   (h : ∀ x, p x → p (f x)) {x : α} (hx : p x) : p (f⁻¹ x) :=
 begin
   letI : fintype ↥(show set α, from p) := ‹fintype {x // p x}›,
@@ -81,9 +81,9 @@ end
 
 /-- If the permutation `f` maps `{x // p x}` into itself, then this returns the permutation
   on `{x // p x}` induced by `f`. -/
-def fintype_subtype_perm {f : equiv.perm α} {p : α → Prop} (hf : fintype {x // p x})
+def subtype_perm_of_fintype(f : equiv.perm α) {p : α → Prop} [fintype {x // p x}]
   (h : ∀ x, p x → p (f x)) : equiv.perm {x // p x} :=
-f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_perm_on_fintype hf h h₂⟩)
+f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_perm_on_fintype h h₂⟩)
 
 @[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) : @subtype_perm α 1 p h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl

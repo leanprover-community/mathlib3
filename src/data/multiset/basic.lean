@@ -608,7 +608,6 @@ theorem card_erase_lt_of_mem {a : α} {s : multiset α} : a ∈ s → card (s.er
 theorem card_erase_le {a : α} {s : multiset α} : card (s.erase a) ≤ card s :=
 card_le_of_le (erase_le a s)
 
-
 end erase
 
 @[simp] theorem coe_reverse (l : list α) : (reverse l : multiset α) = l :=

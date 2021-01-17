@@ -248,10 +248,9 @@ lemma zero_locus_Union {ι : Sort*} (s : ι → set R) :
   zero_locus (⋃ i, s i) = (⋂ i, zero_locus (s i)) :=
 (gc_set R).l_supr
 
-lemma zero_locus_bUnion {s : set R} :
-  zero_locus ((⋃ i ∈ s, {i}) : set R) = (⋂ i ∈ s, zero_locus ({i})) :=
-by ext1;
-  simpa only [mem_zero_locus, set.bUnion_of_singleton, set.mem_Inter, set.singleton_subset_iff]
+lemma zero_locus_bUnion (s : set (set R)) :
+  zero_locus (⋃ s' ∈ s, s' : set R) = ⋂ s' ∈ s, zero_locus s' :=
+by simp only [zero_locus_Union]
 
 lemma vanishing_ideal_Union {ι : Sort*} (t : ι → set (prime_spectrum R)) :
   vanishing_ideal (⋃ i, t i) = (⨅ i, vanishing_ideal (t i)) :=
@@ -316,7 +315,7 @@ by simp only [@eq_comm _ Uᶜ]; refl
 
 lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
   is_closed Z ↔ ∃ s, Z = zero_locus s :=
-by rw [is_closed, is_open_iff, set.compl_compl]
+by rw [is_closed, is_open_iff, compl_compl]
 
 lemma is_closed_zero_locus (s : set R) :
   is_closed (zero_locus s) :=

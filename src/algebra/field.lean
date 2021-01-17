@@ -72,8 +72,28 @@ by rw [div_neg_eq_neg_div, neg_div, neg_neg]
 @[field_simps] lemma div_add_div_same (a b c : K) : a / c + b / c = (a + b) / c :=
 by simpa only [div_eq_mul_inv] using (right_distrib a b (c⁻¹)).symm
 
+lemma same_add_div {a b : K} (h : b ≠ 0) : (b + a) / b = 1 + a / b :=
+by simpa only [← @div_self _ _ b h] using (div_add_div_same b a b).symm
+
+lemma one_add_div {a b : K} (h : b ≠ 0 ) : 1 + a / b = (b + a) / b := (same_add_div h).symm
+
+lemma div_add_same {a b : K} (h : b ≠ 0) : (a + b) / b = a / b + 1 :=
+by simpa only [← @div_self _ _ b h] using (div_add_div_same a b b).symm
+
+lemma div_add_one {a b : K} (h : b ≠ 0) : a / b + 1 = (a + b) / b := (div_add_same h).symm
+
 lemma div_sub_div_same (a b c : K) : (a / c) - (b / c) = (a - b) / c :=
 by rw [sub_eq_add_neg, ← neg_div, div_add_div_same, sub_eq_add_neg]
+
+lemma same_sub_div {a b : K} (h : b ≠ 0) : (b - a) / b = 1 - a / b :=
+by simpa only [← @div_self _ _ b h] using (div_sub_div_same b a b).symm
+
+lemma one_sub_div {a b : K} (h : b ≠ 0) : 1 - a / b = (b - a) / b := (same_sub_div h).symm
+
+lemma div_sub_same {a b : K} (h : b ≠ 0) : (a - b) / b = a / b - 1 :=
+by simpa only [← @div_self _ _ b h] using (div_sub_div_same a b b).symm
+
+lemma div_sub_one {a b : K} (h : b ≠ 0) : a / b - 1 = (a - b) / b := (div_sub_same h).symm
 
 lemma neg_inv : - a⁻¹ = (- a)⁻¹ :=
 by rw [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]

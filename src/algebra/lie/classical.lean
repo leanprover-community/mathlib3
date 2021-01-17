@@ -121,7 +121,7 @@ begin
   let A := Eb R i j hij,
   let B := Eb R j i hij.symm,
   intros c,
-  have c' : A.val ⬝ B.val = B.val ⬝ A.val := by { rw [←sub_eq_zero, ←sl_bracket, c.trivial], refl, },
+  have c' : A.val ⬝ B.val = B.val ⬝ A.val, by { rw [← sub_eq_zero, ← sl_bracket, c.trivial], refl },
   have : (1 : R) = 0 := by simpa [matrix.mul_apply, hij] using (congr_fun (congr_fun c' i) i),
   exact one_ne_zero this,
 end
@@ -212,7 +212,8 @@ begin
 end
 
 lemma so_indefinite_equiv_apply {i : R} (hi : i*i = -1) (A : so' p q R) :
-  (so_indefinite_equiv p q R hi A : matrix (p ⊕ q) (p ⊕ q) R) = (Pso p q R i)⁻¹ ⬝ (A : matrix (p ⊕ q) (p ⊕ q) R) ⬝ (Pso p q R i) :=
+  (so_indefinite_equiv p q R hi A : matrix (p ⊕ q) (p ⊕ q) R) =
+    (Pso p q R i)⁻¹ ⬝ (A : matrix (p ⊕ q) (p ⊕ q) R) ⬝ (Pso p q R i) :=
 by erw [lie_algebra.equiv.trans_apply, lie_algebra.equiv.of_eq_apply,
         skew_adjoint_matrices_lie_subalgebra_equiv_apply]
 
@@ -360,8 +361,8 @@ begin
     (matrix.reindex_alg_equiv (equiv.sum_assoc punit l l)) (matrix.reindex_transpose _ _)).trans,
   apply lie_algebra.equiv.of_eq,
   ext A,
-  rw [JB_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe, lie_subalgebra.mem_coe,
-      mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
+  rw [JB_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe,
+      lie_subalgebra.mem_coe, mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
   simpa [indefinite_diagonal_assoc],
 end
 

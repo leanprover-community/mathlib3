@@ -261,3 +261,9 @@ add_tactic_doc
   tags                     := ["logic", "type class"] }
 
 end tactic.interactive
+
+namespace bool
+
+instance : nontrivial bool := ⟨⟨tt,ff, tt_eq_ff_eq_false⟩⟩
+
+end bool

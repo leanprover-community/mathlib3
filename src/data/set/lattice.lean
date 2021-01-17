@@ -358,6 +358,10 @@ theorem bUnion_union (s t : set α) (u : α → set β) :
   (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
 supr_union
 
+@[simp] lemma Union_subtype {α β : Type*} (s : set α) (f : α → set β) :
+  (⋃ (i : s), f i) = ⋃ (i ∈ s), f i :=
+(set.bUnion_eq_Union s $ λ x _, f x).symm
+
 -- TODO(Jeremy): once again, simp doesn't do it alone.
 
 @[simp] theorem bUnion_insert (a : α) (s : set α) (t : α → set β) :
@@ -543,6 +547,10 @@ lemma Union_subset_Union_const {ι₂ : Sort x} {s : set α} (h : ι → ι₂) 
 
 @[simp] lemma Union_of_singleton (α : Type u) : (⋃(x : α), {x}) = @set.univ α :=
 ext $ λ x, ⟨λ h, ⟨⟩, λ h, ⟨{x}, ⟨⟨x, rfl⟩, mem_singleton x⟩⟩⟩
+
+@[simp] lemma Union_of_singleton_coe (s : set α) :
+  (⋃ (i : s), {i} : set α) = s :=
+ext $ by simp
 
 theorem bUnion_subset_Union (s : set α) (t : α → set β) :
   (⋃ x ∈ s, t x) ⊆ (⋃ x, t x) :=
@@ -1066,15 +1074,26 @@ instance : is_comm_applicative (set : Type u → Type u) :=
 
 section pi
 
-lemma pi_def {α : Type*} {π : α → Type*} (i : set α) (s : Πa, set (π a)) :
-  pi i s = (⋂ a∈i, ((λf:(Πa, π a), f a) ⁻¹' (s a))) :=
-by ext; simp [pi]
+variables {π : α → Type*}
+
+lemma pi_def (i : set α) (s : Πa, set (π a)) :
+  pi i s = (⋂ a ∈ i, eval a ⁻¹' s a) :=
+by { ext, simp }
+
+lemma pi_diff_pi_subset (i : set α) (s t : Πa, set (π a)) :
+  pi i s \ pi i t ⊆ ⋃ a ∈ i, (eval a ⁻¹' (s a \ t a)) :=
+begin
+  refine diff_subset_comm.2 (λ x hx a ha, _),
+  simp only [mem_diff, mem_pi, mem_Union, not_exists, mem_preimage, not_and, not_not, eval_apply]
+    at hx,
+  exact hx.2 _ ha (hx.1 _ ha)
+end
 
 end pi
 
 end set
 
-/- disjoint sets -/
+/-! ### Disjoint sets -/
 
 section disjoint
 

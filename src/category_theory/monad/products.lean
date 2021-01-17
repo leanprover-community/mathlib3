@@ -7,7 +7,7 @@ import category_theory.over
 import category_theory.limits.preserves.basic
 import category_theory.limits.creates
 import category_theory.limits.shapes.binary_products
-import category_theory.monad.algebra
+import category_theory.monad.adjunction
 
 /-!
 # Algebras for the coproduct monad
@@ -74,6 +74,18 @@ def coalgebra_equiv_over :
               (λ A₁ A₂ f, by { ext, simp }),
   counit_iso := nat_iso.of_components (λ f, over.iso_mk (iso.refl _)) (λ f g k, by tidy) }.
 
+lemma coalgebra_equiv_over_functor_forget :
+  (coalgebra_equiv_over X).functor ⋙ over.forget _ = comonad.forget _ :=
+rfl
+
+lemma coalgebra_equiv_over_inverse_forget :
+  (coalgebra_equiv_over X).inverse ⋙ comonad.forget _ = over.forget _ :=
+rfl
+
+instance : is_left_adjoint (over.forget X) :=
+{ right := _,
+  adj := adjunction.comp _ _ (coalgebra_equiv_over X).symm.to_adjunction (comonad.adj _) }
+
 end
 
 section
@@ -122,6 +134,22 @@ def algebra_equiv_under :
                  (λ A₁ A₂ f, by { ext, simp }),
   counit_iso :=
     nat_iso.of_components (λ f, under.iso_mk (iso.refl _) (by tidy)) (λ f g k, by tidy) }.
+
+lemma algebra_equiv_under_functor_forget :
+  (algebra_equiv_under X).functor ⋙ under.forget _ = monad.forget _ :=
+rfl
+
+instance : is_right_adjoint (under.forget X) :=
+{ left := monad.free (coprod.functor.obj X) ⋙ (algebra_equiv_under X).functor,
+  adj := adjunction.comp _ _ (monad.adj _) (algebra_equiv_under X).to_adjunction }
+
+instance : monadic_right_adjoint (under.forget X) :=
+{ eqv :=
+  begin
+
+  end
+
+}
 
 end
 

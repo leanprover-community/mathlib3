@@ -115,6 +115,10 @@ variables (T : monad C)
   { f := T.map f,
     h' := T.μ.naturality _ } }
 
+@[simps {rhs_md := semireducible}]
+def free_forget : free T ⋙ forget T ≅ T :=
+nat_iso.of_components (λ X, iso.refl _) (λ X Y f, by simp)
+
 instance [inhabited C] : inhabited (algebra T) :=
 ⟨(free T).obj (default C)⟩
 

@@ -283,7 +283,7 @@ alias compl_mem_hyperfilter_of_finite ← set.finite.compl_mem_hyperfilter
 
 theorem mem_hyperfilter_of_finite_compl {s : set α} (hf : set.finite sᶜ) :
   s ∈ hyperfilter α :=
-s.compl_compl ▸ hf.compl_mem_hyperfilter
+compl_compl s ▸ hf.compl_mem_hyperfilter
 
 end hyperfilter
 

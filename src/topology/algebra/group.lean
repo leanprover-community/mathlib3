@@ -54,6 +54,12 @@ protected def homeomorph.mul_left (a : G) : G ≃ₜ G :=
   continuous_inv_fun := continuous_const.mul continuous_id,
   .. equiv.mul_left a }
 
+@[simp, to_additive]
+lemma homeomorph.coe_mul_left (a : G) : ⇑(homeomorph.mul_left a) = (*) a := rfl
+
+@[to_additive]
+lemma homeomorph.mul_left_symm (a : G) : (homeomorph.mul_left a).symm = homeomorph.mul_left a⁻¹ :=
+by { ext, refl }
 
 @[to_additive]
 lemma is_open_map_mul_left (a : G) : is_open_map (λ x, a * x) :=
@@ -211,6 +217,11 @@ by simpa only [div_eq_mul_inv, nhds_prod_eq, mem_prod_self_iff, prod_subset_iff,
 @[to_additive]
 lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) = 𝓝 x :=
 ((homeomorph.mul_right x⁻¹).comap_nhds_eq 1).trans $ show 𝓝 (1 * x⁻¹⁻¹) = 𝓝 x, by simp
+
+@[simp, to_additive] lemma map_mul_left_nhds (x y : G) : map ((*) x) (𝓝 y) = 𝓝 (x * y) :=
+(homeomorph.mul_left x).map_nhds_eq y
+
+@[to_additive] lemma map_mul_left_nhds_one (x : G) : map ((*) x) (𝓝 1) = 𝓝 x := by simp
 
 @[to_additive]
 lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}

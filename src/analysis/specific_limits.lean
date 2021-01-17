@@ -384,7 +384,7 @@ lemma edist_le_of_edist_le_geometric_of_tendsto {a : α} (ha : tendsto f at_top 
   edist (f n) a ≤ (C * r^n) / (1 - r) :=
 begin
   convert edist_le_tsum_of_edist_le_of_tendsto _ hu ha _,
-  simp only [pow_add, ennreal.tsum_mul_left, ennreal.tsum_geometric, ennreal.div_def, mul_assoc]
+  simp only [pow_add, ennreal.tsum_mul_left, ennreal.tsum_geometric, div_eq_mul_inv, mul_assoc]
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, then the distance from
@@ -405,7 +405,7 @@ include hC hu
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then `f` is a Cauchy sequence.-/
 lemma cauchy_seq_of_edist_le_geometric_two : cauchy_seq f :=
 begin
-  simp only [ennreal.div_def, ennreal.inv_pow] at hu,
+  simp only [div_eq_mul_inv, ennreal.inv_pow] at hu,
   refine cauchy_seq_of_edist_le_geometric 2⁻¹ C _ hC hu,
   simp [ennreal.one_lt_two]
 end
@@ -418,8 +418,8 @@ include ha
 lemma edist_le_of_edist_le_geometric_two_of_tendsto (n : ℕ) :
   edist (f n) a ≤ 2 * C / 2^n :=
 begin
-  simp only [ennreal.div_def, ennreal.inv_pow] at hu,
-  rw [ennreal.div_def, mul_assoc, mul_comm, ennreal.inv_pow],
+  simp only [div_eq_mul_inv, ennreal.inv_pow] at *,
+  rw [mul_assoc, mul_comm],
   convert edist_le_of_edist_le_geometric_of_tendsto 2⁻¹ C hu ha n,
   rw [ennreal.one_sub_inv_two, ennreal.inv_inv]
 end
@@ -427,7 +427,7 @@ end
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from
 `f 0` to the limit of `f` is bounded above by `2 * C`. -/
 lemma edist_le_of_edist_le_geometric_two_of_tendsto₀: edist (f 0) a ≤ 2 * C :=
-by simpa only [pow_zero, ennreal.div_def, ennreal.inv_one, mul_one]
+by simpa only [pow_zero, div_eq_mul_inv, ennreal.inv_one, mul_one]
   using edist_le_of_edist_le_geometric_two_of_tendsto C hu ha 0
 
 end edist_le_geometric_two
@@ -495,9 +495,9 @@ lemma dist_le_of_le_geometric_two_of_tendsto {a : α} (ha : tendsto f at_top (�
   dist (f n) a ≤ C / 2^n :=
 begin
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu₂ (summable_geometric_two' C) ha n,
-  simp only [add_comm n, pow_add, (div_div_eq_div_mul _ _ _).symm],
+  simp only [add_comm n, pow_add, ← div_div_eq_div_mul],
   symmetry,
-  exact ((has_sum_geometric_two' C).mul_right _).tsum_eq
+  exact ((has_sum_geometric_two' C).div_const _).tsum_eq
 end
 
 end le_geometric

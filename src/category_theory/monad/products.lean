@@ -18,7 +18,8 @@ over category of `X`.
 
 ## TODO
 
-If `X` is an internal monoid, then `Y ↦ X ⨯ Y` has a monad structure as well (the writer monad).
+Show that `over.forget X : over X ⥤ C` is a comonadic left adjoint and `under.forget : under X ⥤ C`
+is a monadic right adjoint.
 -/
 
 noncomputable theory
@@ -41,19 +42,27 @@ instance : comonad (prod.functor.obj X) :=
 { ε := { app := λ Y, limits.prod.snd },
   δ := { app := λ Y, prod.lift limits.prod.fst (𝟙 _) } }
 
+/--
+The forward direction of the equivalence from coalgebras for the product comonad to the over
+category.
+-/
 @[simps]
 def coalgebra_to_over :
   coalgebra (prod.functor.obj X) ⥤ over X :=
 { obj := λ A, over.mk (A.a ≫ limits.prod.fst),
   map := λ A₁ A₂ f, over.hom_mk f.f (by simp [←f.h_assoc]) }
 
+/--
+The backward direction of the equivalence from coalgebras for the product comonad to the over
+category.
+-/
 @[simps]
 def over_to_coalgebra :
   over X ⥤ coalgebra (prod.functor.obj X) :=
 { obj := λ f, { A := f.left, a := prod.lift f.hom (𝟙 _) },
   map := λ f₁ f₂ g, { f := g.left } }
 
-@[simps {rhs_md := semireducible}]
+/-- The equivalence from coalgebras for the product comonad to the over category. -/
 def coalgebra_equiv_over :
   coalgebra (prod.functor.obj X) ≌ over X :=
 { functor := coalgebra_to_over X,
@@ -71,24 +80,36 @@ section
 open monad
 variable [has_binary_coproducts C]
 
+/-- `X ⨿ -` has a monad structure. This is sometimes called the either monad. -/
 @[simps]
 instance : monad (coprod.functor.obj X) :=
 { η := { app := λ Y, coprod.inr },
   μ := { app := λ Y, coprod.desc coprod.inl (𝟙 _) } }
 
+/--
+The forward direction of the equivalence from algebras for the coproduct monad to the under
+category.
+-/
 @[simps]
 def algebra_to_under :
   monad.algebra (coprod.functor.obj X) ⥤ under X :=
 { obj := λ A, under.mk (coprod.inl ≫ A.a),
   map := λ A₁ A₂ f, under.hom_mk f.f (by { dsimp, simp [←f.h] }) }
 
+/--
+The backward direction of the equivalence from algebras for the coproduct monad to the under
+category.
+-/
 @[simps]
 def under_to_algebra :
   under X ⥤ monad.algebra (coprod.functor.obj X) :=
 { obj := λ f, { A := f.right, a := coprod.desc f.hom (𝟙 _) },
   map := λ f₁ f₂ g, { f := g.right } }
 
-@[simps {rhs_md := semireducible}]
+/--
+The equivalence from algebras for the coproduct monad to the under category.
+-/
+@[simps]
 def algebra_equiv_under :
   monad.algebra (coprod.functor.obj X) ≌ under X :=
 { functor := algebra_to_under X,

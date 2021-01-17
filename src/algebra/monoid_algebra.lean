@@ -469,7 +469,7 @@ rfl
 section
 variables {k}
 variables [monoid G] [comm_semiring k] {V W : Type u₃}
-  [add_comm_group V] [semimodule k V] [semimodule (monoid_algebra k G) V]
+  [add_comm_monoid V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V]
   [add_comm_monoid W] [semimodule k W] [semimodule (monoid_algebra k G) W]
   [is_scalar_tower k (monoid_algebra k G) W]

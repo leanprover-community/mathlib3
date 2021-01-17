@@ -349,32 +349,51 @@ begin
     {ext a,
      rw [indicator_apply_eq_self],
      intros a_out,
-     simp only [mem_Ioc, not_and_distrib, not_lt, not_le] at a_out,
+     simp only [mem_Ioc, not_and_distrib, not_lt, not_le, ← mul_zero (2 : ℝ)] at a_out,
+     simp only [mul_zero, mul_eq_zero], right,
+     apply sqrt_eq_zero_of_nonpos,
+     norm_num,
+     rw [← sqrt_le (pow_two_nonneg a), sqrt_one, sqrt_sqr_eq_abs, le_abs],
+     cases a_out,
+    { right, linarith, },
+    { left, exact a_out.le, }, },
+
+  have h₂ : (Icc (-1) 1).indicator (λ y:ℝ, 2 * sqrt (1 - y^2))
+           = (λ y:ℝ, 2 * sqrt (1 - y^2)) ,
+    {ext a,
+     rw [indicator_apply_eq_self],
+     intros a_out,
+     simp only [mem_Icc, not_and_distrib, not_le] at a_out,
      rw ← mul_zero (2 : ℝ),
      simp only [mul_zero, mul_eq_zero], right,
      apply sqrt_eq_zero_of_nonpos,
      norm_num,
      rw [← sqrt_le (pow_two_nonneg a), sqrt_one, sqrt_sqr_eq_abs, le_abs],
      cases a_out,
-    { right,
-      linarith, },
-    { left,
-      exact a_out.le, }, },
-  have h₂ : (λ x : ℝ, 2 * sqrt (1 - x ^ 2) )
-          = (λ x : ℝ, ↑(nnreal.of_real (2 * sqrt (1 - x ^ 2)))),
-    { ext x,
-      have le_two_sqrt : 0 ≤ 2 * sqrt (1 - x ^ 2) := by linarith [sqrt_nonneg (1 - x ^ 2)],
-      rw nnreal.coe_of_real (2 * sqrt (1 - x ^ 2)) le_two_sqrt, },
+     { right, linarith, },
+     { left, exact a_out.le, }, },
+
+  have h₃ : (λ x : ℝ, 2 * sqrt (1 - x ^ 2) )
+          = (λ x : ℝ, ↑(nnreal.of_real (2 * sqrt (1 - x ^ 2)))) :=
+    by ext x;
+    rw nnreal.coe_of_real (2 * sqrt (1 - x ^ 2)) (by linarith [sqrt_nonneg (1 - x ^ 2)]),
+
+  have h₄ : continuous (λ x : ℝ, 2 * sqrt (1 - x ^ 2) ) :=
+    by refine continuous_const.mul _;
+    exact continuous.comp continuous_sqrt (continuous_const.sub (continuous_pow 2)),
+
   let f := λ x, nnreal.of_real ((λ y:ℝ, 2 * sqrt (1 - y^2)) x ),
   have f_def : f = λ x, nnreal.of_real ((λ y:ℝ, 2 * sqrt (1 - y^2)) x ) := rfl,
-  have hintg : integrable (λ x, ((f x):ℝ)) volume := sorry,
-  rw measure.prod_apply is_measurable_unit_disc,
-  rw second_step,
+  have hintg : integrable (λ x, ((f x):ℝ)) volume,
+    { rw [f_def, ← h₃ , ← h₂],
+      apply integrable_on.indicator,
+      exact continuous.integrable_on_compact compact_Icc h₄ ,
+      exact is_measurable_Icc, },
+  rw [measure.prod_apply is_measurable_unit_disc, second_step],
   simp only [unit_disc_alt, preimage_set_of_eq, Ioo_def, volume_Ioo, neg_mul_eq_neg_mul_symm,
              one_mul, sub_neg_eq_add, (two_mul _).symm],
   convert lintegral_coe_eq_integral f hintg,
-  rw [f_def, ← h₂, ← h₁, integral_indicator, ← integral_of_le],
-
+  rw [f_def, ← h₃ , ← h₁, integral_indicator, ← integral_of_le],
   { sorry, },
   { exact neg_le_self zero_le_one },
   { exact is_measurable_Ioc, },

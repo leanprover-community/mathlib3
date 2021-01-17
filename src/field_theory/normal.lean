@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
+import field_theory.minpoly
 import field_theory.splitting_field
 import field_theory.tower
 import ring_theory.power_basis
@@ -30,30 +31,30 @@ variables (F : Type u) (K : Type v) [field F] [field K] [algebra F K]
 /-- Typeclass for normal field extension: `K` is a normal extension of `F` iff the minimal
 polynomial of every element `x` in `K` splits in `K`, i.e. every conjugate of `x` is in `K`. -/
 @[class] def normal : Prop :=
-∀ x : K, ∃ H : is_integral F x, splits (algebra_map F K) (minimal_polynomial H)
+∀ x : K, ∃ H : is_integral F x, splits (algebra_map F K) (minpoly H)
 
 instance normal_self : normal F F :=
-λ x, ⟨is_integral_algebra_map, by { rw minimal_polynomial.eq_X_sub_C, exact splits_X_sub_C _ }⟩
+λ x, ⟨is_integral_algebra_map, by { rw minpoly.eq_X_sub_C, exact splits_X_sub_C _ }⟩
 
 theorem normal.is_integral [h : normal F K] (x : K) : is_integral F x := (h x).fst
 
 theorem normal.splits [h : normal F K] (x : K) :
-  splits (algebra_map F K) (minimal_polynomial $ normal.is_integral F K x) := (h x).snd
+  splits (algebra_map F K) (minpoly $ normal.is_integral F K x) := (h x).snd
 
 theorem normal.exists_is_splitting_field [normal F K] [finite_dimensional F K] :
   ∃ p : polynomial F, is_splitting_field F K p :=
 begin
   obtain ⟨s, hs⟩ := finite_dimensional.exists_is_basis_finset F K,
-  refine ⟨s.prod $ λ x, minimal_polynomial $ normal.is_integral F K x,
+  refine ⟨s.prod $ λ x, minpoly $ normal.is_integral F K x,
     splits_prod _ $ λ x hx, normal.splits F K x,
     subalgebra.to_submodule_injective _⟩,
   rw [algebra.coe_top, eq_top_iff, ← hs.2, submodule.span_le, set.range_subset_iff],
   refine λ x, algebra.subset_adjoin (multiset.mem_to_finset.mpr $
     (mem_roots $ mt (map_eq_zero $ algebra_map F K).1 $
     finset.prod_ne_zero_iff.2 $ λ x hx, _).2 _),
-  { exact minimal_polynomial.ne_zero _ },
+  { exact minpoly.ne_zero _ },
   rw [is_root.def, eval_map, ← aeval_def, alg_hom.map_prod],
-  exact finset.prod_eq_zero x.2 (minimal_polynomial.aeval _)
+  exact finset.prod_eq_zero x.2 (minpoly.aeval _)
 end
 
 section normal_tower
@@ -66,9 +67,9 @@ begin
   cases h x with hx hhx,
   rw is_scalar_tower.algebra_map_eq F K E at hhx,
   exact ⟨is_integral_of_is_scalar_tower x hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
-    (polynomial.map_ne_zero (minimal_polynomial.ne_zero hx))
+    (polynomial.map_ne_zero (minpoly.ne_zero hx))
     ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx)
-    (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩,
+    (minpoly.dvd_map_of_is_scalar_tower K hx)⟩,
 end
 
 variables {F} {E} {E' : Type*} [field E'] [algebra F E']
@@ -80,13 +81,13 @@ begin
   have H := is_integral_alg_hom f.to_alg_hom hx,
   rw [alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom, alg_equiv.apply_symm_apply] at H,
   use H,
-  apply polynomial.splits_of_splits_of_dvd (algebra_map F E') (minimal_polynomial.ne_zero hx),
+  apply polynomial.splits_of_splits_of_dvd (algebra_map F E') (minpoly.ne_zero hx),
   { rw ← alg_hom.comp_algebra_map f.to_alg_hom,
     exact polynomial.splits_comp_of_splits (algebra_map F E) f.to_alg_hom.to_ring_hom hhx },
-  { apply minimal_polynomial.dvd H,
+  { apply minpoly.dvd H,
     rw ← add_equiv.map_eq_zero_iff f.symm.to_add_equiv,
     exact eq.trans (polynomial.aeval_alg_hom_apply f.symm.to_alg_hom x
-      (minimal_polynomial hx)).symm (minimal_polynomial.aeval hx) },
+      (minpoly hx)).symm (minpoly.aeval hx) },
 end
 
 lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
@@ -119,13 +120,13 @@ begin
     exact nat_lemma _ _ _ (finite_dimensional.findim_mul_findim F E D)
       (linear_map.findim_le_findim_of_injective (show function.injective ϕ.to_linear_map,
         from ϕ.to_ring_hom.injective)) finite_dimensional.findim_pos },
-  let C := adjoin_root (minimal_polynomial Hx),
-  have Hx_irred := minimal_polynomial.irreducible Hx,
+  let C := adjoin_root (minpoly Hx),
+  have Hx_irred := minpoly.irreducible Hx,
   letI : algebra C D := ring_hom.to_algebra (adjoin_root.lift
     (algebra_map F D) (adjoin_root.root q) (by rw [is_scalar_tower.algebra_map_eq F E D,
       ←eval₂_map, hr, adjoin_root.algebra_map_eq, eval₂_mul, adjoin_root.eval₂_root, zero_mul])),
   letI : algebra C E := ring_hom.to_algebra
-    (adjoin_root.lift (algebra_map F E) x (minimal_polynomial.aeval Hx)),
+    (adjoin_root.lift (algebra_map F E) x (minpoly.aeval Hx)),
   haveI : is_scalar_tower F C D :=
     is_scalar_tower.of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
   haveI : is_scalar_tower F C E :=
@@ -138,14 +139,14 @@ begin
     rcases multiset.mem_map.mp (multiset.mem_to_finset.mp hy) with ⟨z, hz1, hz2⟩,
     have Hz : is_integral F z := is_integral_of_noetherian hFE z,
     use (show is_integral C y, from is_integral_of_noetherian (finite_dimensional.right F C D) y),
-    apply splits_of_splits_of_dvd (algebra_map C E) (map_ne_zero (minimal_polynomial.ne_zero Hz)),
+    apply splits_of_splits_of_dvd (algebra_map C E) (map_ne_zero (minpoly.ne_zero Hz)),
     { rw [splits_map_iff, ←is_scalar_tower.algebra_map_eq F C E],
-      exact splits_of_splits_of_dvd _ hp hFEp.splits (minimal_polynomial.dvd Hz
+      exact splits_of_splits_of_dvd _ hp hFEp.splits (minpoly.dvd Hz
         (eq.trans (eval₂_eq_eval_map _) ((mem_roots (map_ne_zero hp)).mp hz1))) },
-    { apply minimal_polynomial.dvd,
+    { apply minpoly.dvd,
       rw [←hz2, aeval_def, eval₂_map, ←is_scalar_tower.algebra_map_eq F C D,
           is_scalar_tower.algebra_map_eq F E D, ←hom_eval₂, ←aeval_def,
-          minimal_polynomial.aeval Hz, ring_hom.map_zero] } },
+          minpoly.aeval Hz, ring_hom.map_zero] } },
   rw [←intermediate_field.to_subalgebra_le_to_subalgebra, intermediate_field.top_to_subalgebra],
   apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C ↑S),
   suffices : (algebra.adjoin C (S : set D)).res F = (algebra.adjoin E {adjoin_root.root q}).res F,

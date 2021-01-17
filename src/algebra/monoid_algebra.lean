@@ -452,7 +452,7 @@ local attribute [reducible] monoid_algebra
 variables (k)
 /-- When `V` is a `k[G]`-module, multiplication by a group element `g` is a `k`-linear map. -/
 def group_smul.linear_map [monoid G] [comm_semiring k]
-  (V : Type u₃) [add_comm_group V] [semimodule k V] [semimodule (monoid_algebra k G) V]
+  (V : Type u₃) [add_comm_monoid V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V] (g : G) :
   V →ₗ[k] V :=
 { to_fun    := λ v, (single g (1 : k) • v : V),

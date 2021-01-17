@@ -608,6 +608,7 @@ theorem card_erase_lt_of_mem {a : α} {s : multiset α} : a ∈ s → card (s.er
 theorem card_erase_le {a : α} {s : multiset α} : card (s.erase a) ≤ card s :=
 card_le_of_le (erase_le a s)
 
+
 end erase
 
 @[simp] theorem coe_reverse (l : list α) : (reverse l : multiset α) = l :=
@@ -1538,6 +1539,39 @@ by by_cases p a; by_cases q a; simp *
 theorem filter_add_not (s : multiset α) :
   filter p s + filter (λ a, ¬ p a) s = s :=
 by rw [filter_add_filter, filter_eq_self.2, filter_eq_nil.2]; simp [decidable.em]
+
+/-- Given a (decidable) property p on mutlisets and a multiset satisfying it,
+we can assume that this multiset has minimal cardinality -/
+
+lemma can_assume_min [decidable_eq α] (p : multiset α → Prop) [decidable_pred p]
+  (s₀ : multiset α) (H : p s₀) :  ∃ s ≤ s₀,  p s  ∧ (∀ a ∈ s, ¬ p (s.erase a)) :=
+begin
+  induction h : s₀.card with n hn generalizing s₀,
+  { use s₀,
+    rw ← and_assoc,
+    split,
+    exact and.intro (le_of_eq (refl s₀)) H,
+    intros a ha,
+    rw [card_eq_zero, eq_zero_iff_forall_not_mem] at h,
+    tauto },
+  { let q : α → Prop := λ a, p (s₀.erase a),
+    let A := filter q s₀,
+    by_cases hA : A = 0,
+    repeat { rw filter_eq_nil at hA },
+    { use s₀,
+      exact ⟨le_of_eq rfl, H, hA⟩ },
+    { rw not_forall at hA,
+      rcases hA with ⟨b, hb⟩,
+      rw [not_imp, not_not] at hb,
+      dsimp [q] at hb,
+      have : (s₀.erase b).card = n := by rwa [card_erase_of_mem hb.1, h, nat.pred_succ],
+      specialize hn (s₀.erase b) hb.2 this,
+      rcases hn with ⟨s', h_s's₀b, h_ps', h_nps'a⟩,
+      use s',
+      split, swap,
+      exact and.intro h_ps' h_nps'a,
+      apply has_le.le.trans h_s's₀b (erase_le _ _) } }
+end
 
 /-! ### Simultaneously filter and map elements of a multiset -/
 

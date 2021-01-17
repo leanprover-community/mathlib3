@@ -300,8 +300,8 @@ begin
   by_cases x = 0,
   { rw [h, inv_zero], exact subalgebra.zero_mem (algebra.adjoin F {α}) },
 
-  let ϕ := alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial F α hα,
-  haveI := minimal_polynomial.irreducible hα,
+  let ϕ := alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly F α hα,
+  haveI := minpoly.irreducible hα,
   suffices : ϕ ⟨x, hx⟩ * (ϕ ⟨x, hx⟩)⁻¹ = 1,
   { convert subtype.mem (ϕ.symm (ϕ ⟨x, hx⟩)⁻¹),
     refine (eq_inv_of_mul_right_eq_one _).symm,
@@ -409,56 +409,56 @@ section adjoin_integral_element
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] {α : E}
 variables {K : Type*} [field K] [algebra F K]
 
-lemma aeval_gen_minimal_polynomial (h : is_integral F α) :
-  aeval (adjoin_simple.gen F α) (minimal_polynomial h) = 0 :=
+lemma aeval_gen_minpoly (h : is_integral F α) :
+  aeval (adjoin_simple.gen F α) (minpoly h) = 0 :=
 begin
   ext,
-  convert minimal_polynomial.aeval h,
+  convert minpoly.aeval h,
   conv in (aeval α) { rw [← adjoin_simple.algebra_map_gen F α] },
   exact is_scalar_tower.algebra_map_aeval F F⟮α⟯ E _ _
 end
 
 /-- algebra isomorphism between `adjoin_root` and `F⟮α⟯` -/
 noncomputable def adjoin_root_equiv_adjoin (h : is_integral F α) :
-  adjoin_root (minimal_polynomial h) ≃ₐ[F] F⟮α⟯ :=
+  adjoin_root (minpoly h) ≃ₐ[F] F⟮α⟯ :=
 alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
-  (adjoin_simple.gen F α) (aeval_gen_minimal_polynomial F h)) (ring_hom.map_one _)
+  (adjoin_simple.gen F α) (aeval_gen_minpoly F h)) (ring_hom.map_one _)
   (λ x y, ring_hom.map_mul _ x y) (ring_hom.map_zero _) (λ x y, ring_hom.map_add _ x y)
   (by { exact λ _, adjoin_root.lift_of })) (begin
-    set f := adjoin_root.lift _ _ (aeval_gen_minimal_polynomial F h),
-    haveI := minimal_polynomial.irreducible h,
+    set f := adjoin_root.lift _ _ (aeval_gen_minpoly F h),
+    haveI := minpoly.irreducible h,
     split,
     { exact ring_hom.injective f },
     { suffices : F⟮α⟯.to_subfield ≤ ring_hom.field_range ((F⟮α⟯.to_subfield.subtype).comp f),
       { exact λ x, Exists.cases_on (this (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy.2⟩) },
       exact subfield.closure_le.mpr (set.union_subset (λ x hx, Exists.cases_on hx (λ y hy, ⟨y,
         ⟨subfield.mem_top y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩⟩))
-        (set.singleton_subset_iff.mpr ⟨adjoin_root.root (minimal_polynomial h),
-        ⟨subfield.mem_top (adjoin_root.root (minimal_polynomial h)),
+        (set.singleton_subset_iff.mpr ⟨adjoin_root.root (minpoly h),
+        ⟨subfield.mem_top (adjoin_root.root (minpoly h)),
         by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩⟩)) } end)
 
 lemma adjoin_root_equiv_adjoin_apply_root (h : is_integral F α) :
-  adjoin_root_equiv_adjoin F h (adjoin_root.root (minimal_polynomial h)) =
+  adjoin_root_equiv_adjoin F h (adjoin_root.root (minpoly h)) =
     adjoin_simple.gen F α :=
 begin
   refine adjoin_root.lift_root,
-  { exact minimal_polynomial h },
-  { exact aeval_gen_minimal_polynomial F h }
+  { exact minpoly h },
+  { exact aeval_gen_minpoly F h }
 end
 
 /-- Algebra homomorphism `F⟮α⟯ →ₐ[F] K` are in bijection with the set of roots
-of `minimal_polynomial α` in `K`. -/
+of `minpoly α` in `K`. -/
 noncomputable def alg_hom_adjoin_integral_equiv (h : is_integral F α) :
-  (F⟮α⟯ →ₐ[F] K) ≃ {x // x ∈ ((minimal_polynomial h).map (algebra_map F K)).roots} :=
+  (F⟮α⟯ →ₐ[F] K) ≃ {x // x ∈ ((minpoly h).map (algebra_map F K)).roots} :=
 let ϕ := adjoin_root_equiv_adjoin F h,
-  swap1 : (F⟮α⟯ →ₐ[F] K) ≃ (adjoin_root (minimal_polynomial h) →ₐ[F] K) :=
+  swap1 : (F⟮α⟯ →ₐ[F] K) ≃ (adjoin_root (minpoly h) →ₐ[F] K) :=
   { to_fun := λ f, f.comp ϕ.to_alg_hom,
     inv_fun := λ f, f.comp ϕ.symm.to_alg_hom,
     left_inv := λ _, by { ext, simp only [alg_equiv.coe_alg_hom,
       alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply]},
     right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
       alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
-  swap2 := adjoin_root.equiv F K (minimal_polynomial h) (minimal_polynomial.ne_zero h) in
+  swap2 := adjoin_root.equiv F K (minpoly h) (minpoly.ne_zero h) in
 swap1.trans swap2
 
 /-- Fintype of algebra homomorphism `F⟮α⟯ →ₐ[F] K` -/
@@ -466,12 +466,12 @@ noncomputable def fintype_of_alg_hom_adjoin_integral (h : is_integral F α) :
   fintype (F⟮α⟯ →ₐ[F] K) :=
 fintype.of_equiv _ (alg_hom_adjoin_integral_equiv F h).symm
 
-lemma card_alg_hom_adjoin_integral (h : is_integral F α) (h_sep : (minimal_polynomial h).separable)
-  (h_splits : (minimal_polynomial h).splits (algebra_map F K)) :
+lemma card_alg_hom_adjoin_integral (h : is_integral F α) (h_sep : (minpoly h).separable)
+  (h_splits : (minpoly h).splits (algebra_map F K)) :
   @fintype.card (F⟮α⟯ →ₐ[F] K) (fintype_of_alg_hom_adjoin_integral F h) =
-    (minimal_polynomial h).nat_degree :=
+    (minpoly h).nat_degree :=
 begin
-  let s := ((minimal_polynomial h).map (algebra_map F K)).roots.to_finset,
+  let s := ((minpoly h).map (algebra_map F K)).roots.to_finset,
   have H := λ x, multiset.mem_to_finset,
   rw [fintype.card_congr (alg_hom_adjoin_integral_equiv F h), fintype.card_of_subtype s H,
       nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
@@ -539,7 +539,7 @@ section alg_hom_mk_adjoin_splits
 variables {F E K : Type*} [field F] [field E] [field K] [algebra F E] [algebra F K] {S : finset E}
 
 lemma alg_hom_mk_adjoin_splits
-  (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
+  (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minpoly H).splits (algebra_map F K)) :
   nonempty ((adjoin F (S : set E)) →ₐ[F] K) :=
 begin
   let P : intermediate_field F E → Prop := λ L, nonempty (L →ₐ[F] K),
@@ -550,22 +550,22 @@ begin
     cases hK x hx with H hH,
     have H' : is_integral L x := is_integral_of_is_scalar_tower x H,
     letI : algebra L K := f.to_ring_hom.to_algebra,
-    have key : (minimal_polynomial H').splits (algebra_map L K),
-    { refine splits_of_splits_of_dvd _ (map_ne_zero (minimal_polynomial.ne_zero H)) _
-        (minimal_polynomial.dvd_map_of_is_scalar_tower L H),
+    have key : (minpoly H').splits (algebra_map L K),
+    { refine splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero H)) _
+        (minpoly.dvd_map_of_is_scalar_tower L H),
       rwa [splits_map_iff, ←is_scalar_tower.algebra_map_eq F L K] },
     apply nonempty.intro,
     apply alg_hom_equiv_sigma.inv_fun,
     use f,
     apply (alg_hom_adjoin_integral_equiv L H').inv_fun,
-    use root_of_splits (algebra_map L K) key (ne_of_gt (minimal_polynomial.degree_pos H')),
-    simp_rw [mem_roots (map_ne_zero (minimal_polynomial.ne_zero H')), is_root, ←eval₂_eq_eval_map],
-    exact map_root_of_splits (algebra_map L K) key (ne_of_gt (minimal_polynomial.degree_pos H')),
+    use root_of_splits (algebra_map L K) key (ne_of_gt (minpoly.degree_pos H')),
+    simp_rw [mem_roots (map_ne_zero (minpoly.ne_zero H')), is_root, ←eval₂_eq_eval_map],
+    exact map_root_of_splits (algebra_map L K) key (ne_of_gt (minpoly.degree_pos H')),
     exact is_scalar_tower.of_algebra_map_eq (λ x, rfl) },
 end
 
 lemma alg_hom_mk_adjoin_splits' (hS : adjoin F (S : set E) = ⊤)
-  (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minimal_polynomial H).splits (algebra_map F K)) :
+  (hK : ∀ x ∈ S, ∃ H : is_integral F (x : E), (minpoly H).splits (algebra_map F K)) :
   nonempty (E →ₐ[F] K) :=
 begin
   cases alg_hom_mk_adjoin_splits hK with ϕ,

@@ -731,9 +731,6 @@ src/field_theory/fixed.lean : line 27 : ERR_LIN : Line has more than 100 charact
 src/field_theory/fixed.lean : line 77 : ERR_LIN : Line has more than 100 characters
 src/field_theory/intermediate_field.lean : line 150 : ERR_LIN : Line has more than 100 characters
 src/field_theory/intermediate_field.lean : line 155 : ERR_LIN : Line has more than 100 characters
-src/field_theory/minimal_polynomial.lean : line 102 : ERR_LIN : Line has more than 100 characters
-src/field_theory/minimal_polynomial.lean : line 250 : ERR_LIN : Line has more than 100 characters
-src/field_theory/minimal_polynomial.lean : line 319 : ERR_LIN : Line has more than 100 characters
 src/field_theory/mv_polynomial.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/field_theory/primitive_element.lean : line 29 : ERR_LIN : Line has more than 100 characters
 src/field_theory/splitting_field.lean : line 16 : ERR_MOD : Module docstring missing, or too late

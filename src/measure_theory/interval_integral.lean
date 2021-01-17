@@ -394,7 +394,7 @@ begin
     preimage_neg_Ioc, neg_neg, restrict_congr_set Ico_ae_eq_Ioc]
 end
 
-/-- If two functions are equal in the relevant interval, their interval integrals also equal. -/
+/-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
 lemma integral_congr (a b : ℝ) (f g : ℝ → E) (h : ∀ x ∈ interval a b, f x = g x) :
   ∫ x in a..b, f x = ∫ x in a..b, g x :=
 begin

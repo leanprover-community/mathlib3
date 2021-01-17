@@ -624,7 +624,8 @@ lift_add_hom (λ x : G, (add_monoid_hom.mul_right (g $ multiplicative.of_add x))
   lift_nc f g (single a b) = f b * g (multiplicative.of_add a) :=
 lift_add_hom_apply_single _ _ _
 
-@[simp] lemma lift_nc_one (f : k →+* R) (g : multiplicative G →* R) : lift_nc (f : k →+ R) g 1 = 1 :=
+@[simp] lemma lift_nc_one (f : k →+* R) (g : multiplicative G →* R) :
+  lift_nc (f : k →+ R) g 1 = 1 :=
 @monoid_algebra.lift_nc_one k (multiplicative G) _ _ _ _ f g
 
 lemma lift_nc_mul (f : k →+* R) (g : multiplicative G →* R) (a b : add_monoid_algebra k G)
@@ -773,7 +774,8 @@ While we were not able to define `add_monoid_algebra k G = monoid_algebra k (mul
 to definitional inconveniences, we can still show the types are isomorphic.
 -/
 
-/-- The equivalence between `add_monoid_algebra` and `monoid_algebra` in terms of `multiplicative` -/
+/-- The equivalence between `add_monoid_algebra` and `monoid_algebra` in terms of
+`multiplicative` -/
 protected def add_monoid_algebra.to_multiplicative [semiring k] [add_monoid G] :
   add_monoid_algebra k G ≃+* monoid_algebra k (multiplicative G) :=
 { map_mul' := λ x y, by convert add_monoid_algebra.map_domain_mul (add_hom.id G),
@@ -828,7 +830,8 @@ In particular this provides the instance `algebra k (add_monoid_algebra k G)`.
 instance [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
   algebra R (add_monoid_algebra k G) :=
 { smul_def' := λ r a, by { ext, simp [single_zero_mul_apply, algebra.smul_def''], },
-  commutes' := λ r f, by { ext, simp [single_zero_mul_apply, mul_single_zero_apply, algebra.commutes], },
+  commutes' := λ r f, by { ext, simp [single_zero_mul_apply, mul_single_zero_apply,
+                                      algebra.commutes], },
   ..single_zero_ring_hom.comp (algebra_map R k) }
 
 /-- `finsupp.single 0` as a `alg_hom` -/
@@ -837,7 +840,8 @@ instance [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
 { commutes' := λ r, by { ext, simp, refl, }, ..single_zero_ring_hom}
 
 @[simp] lemma coe_algebra_map [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
-  (algebra_map R (add_monoid_algebra k G) : R → add_monoid_algebra k G) = single 0 ∘ (algebra_map R k) :=
+  (algebra_map R (add_monoid_algebra k G) : R → add_monoid_algebra k G) =
+    single 0 ∘ (algebra_map R k) :=
 rfl
 
 end algebra
@@ -848,7 +852,8 @@ variables {k G} [comm_semiring k] [add_monoid G]
 variables {A : Type u₃} [semiring A] [algebra k A] {B : Type*} [semiring B] [algebra k B]
 
 /-- `lift_nc_ring_hom` as a `alg_hom`, for when `f` is an `alg_hom` -/
-def lift_nc_alg_hom (f : A →ₐ[k] B) (g : multiplicative G →* B) (h_comm : ∀ x y, commute (f x) (g y)) :
+def lift_nc_alg_hom (f : A →ₐ[k] B) (g : multiplicative G →* B)
+  (h_comm : ∀ x y, commute (f x) (g y)) :
   add_monoid_algebra A G →ₐ[k] B :=
 { to_fun := lift_nc_ring_hom (f : A →+* B) g h_comm,
   commutes' := by simp [lift_nc_ring_hom],

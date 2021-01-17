@@ -165,7 +165,7 @@ lemma is_closed_union : is_closed s₁ → is_closed s₂ → is_closed (s₁ �
 λ h₁ h₂, by unfold is_closed; rw compl_union; exact is_open_inter h₁ h₂
 
 lemma is_closed_sInter {s : set (set α)} : (∀t ∈ s, is_closed t) → is_closed (⋂₀ s) :=
-by simp only [is_closed, compl_sInter, sUnion_image]; exact assume h, is_open_Union $ assume t, is_open_Union $ assume ht, h t ht
+by simpa only [is_closed, compl_sInter, sUnion_image] using is_open_bUnion
 
 lemma is_closed_Inter {f : ι → set α} (h : ∀i, is_closed (f i)) : is_closed (⋂i, f i ) :=
 is_closed_sInter $ assume t ⟨i, (heq : f i = t)⟩, heq ▸ h i
@@ -254,9 +254,11 @@ is_open_interior.interior_eq
 @[simp] lemma interior_inter {s t : set α} : interior (s ∩ t) = interior s ∩ interior t :=
 subset.antisymm
   (subset_inter (interior_mono $ inter_subset_left s t) (interior_mono $ inter_subset_right s t))
-  (interior_maximal (inter_subset_inter interior_subset interior_subset) $ is_open_inter is_open_interior is_open_interior)
+  (interior_maximal (inter_subset_inter interior_subset interior_subset) $
+    is_open_inter is_open_interior is_open_interior)
 
-lemma interior_union_is_closed_of_interior_empty {s t : set α} (h₁ : is_closed s) (h₂ : interior t = ∅) :
+lemma interior_union_is_closed_of_interior_empty {s t : set α} (h₁ : is_closed s)
+  (h₂ : interior t = ∅) :
   interior (s ∪ t) = interior s :=
 have interior (s ∪ t) ⊆ s, from
   assume x ⟨u, ⟨(hu₁ : is_open u), (hu₂ : u ⊆ s ∪ t)⟩, (hx₁ : x ∈ u)⟩,
@@ -338,7 +340,8 @@ is_closed_closure.closure_eq
 
 @[simp] lemma closure_union {s t : set α} : closure (s ∪ t) = closure s ∪ closure t :=
 subset.antisymm
-  (closure_minimal (union_subset_union subset_closure subset_closure) $ is_closed_union is_closed_closure is_closed_closure)
+  (closure_minimal (union_subset_union subset_closure subset_closure) $
+    is_closed_union is_closed_closure is_closed_closure)
   ((monotone_closure α).le_map_sup s t)
 
 lemma interior_subset_closure {s : set α} : interior s ⊆ closure s :=

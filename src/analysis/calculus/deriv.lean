@@ -323,7 +323,8 @@ lemma has_deriv_within_at_inter (h : t ∈ 𝓝 x) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
 has_fderiv_within_at_inter h
 
-lemma has_deriv_within_at.union (hs : has_deriv_within_at f f' s x) (ht : has_deriv_within_at f f' t x) :
+lemma has_deriv_within_at.union (hs : has_deriv_within_at f f' s x)
+  (ht : has_deriv_within_at f f' t x) :
   has_deriv_within_at f f' (s ∪ t) x :=
 begin
   simp only [has_deriv_within_at, nhds_within_union],
@@ -1412,7 +1413,7 @@ by simp [div_eq_inv_mul, differentiable_within_at.const_mul, hc]
 
 @[simp] lemma differentiable_at.div_const (hc : differentiable_at 𝕜 c x) {d : 𝕜} :
   differentiable_at 𝕜 (λ x, c x / d) x :=
-by simp [div_eq_inv_mul, hc]
+(hc.has_deriv_at.mul_const d⁻¹).differentiable_at
 
 lemma differentiable_on.div_const (hc : differentiable_on 𝕜 c s) {d : 𝕜} :
   differentiable_on 𝕜 (λx, c x / d) s :=

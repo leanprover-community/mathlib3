@@ -339,18 +339,22 @@ by { apply tendsto.mul_const hm, simp [ha] }
 protected lemma tendsto_inv_nat_nhds_zero : tendsto (λ n : ℕ, (n : ennreal)⁻¹) at_top (𝓝 0) :=
 ennreal.inv_top ▸ ennreal.tendsto_inv_iff.2 tendsto_nat_nhds_top
 
+lemma bsupr_add {ι} {s : set ι} (hs : s.nonempty) {f : ι → ennreal} :
+  (⨆ i ∈ s, f i) + a = ⨆ i ∈ s, f i + a :=
+begin
+  simp only [← Sup_image], symmetry,
+  rw [image_comp (+ a)],
+  refine is_lub.Sup_eq (is_lub_of_is_lub_of_tendsto _ (is_lub_Sup _) (hs.image _) _),
+  exacts [λ x _ y _ hxy, add_le_add hxy le_rfl,
+    tendsto.add (tendsto_id' inf_le_left) tendsto_const_nhds]
+end
+
 lemma Sup_add {s : set ennreal} (hs : s.nonempty) : Sup s + a = ⨆b∈s, b + a :=
-have Sup ((λb, b + a) '' s) = Sup s + a,
-  from is_lub.Sup_eq (is_lub_of_is_lub_of_tendsto
-    (assume x _ y _ h, add_le_add h (le_refl _))
-    (is_lub_Sup s)
-    hs
-    (tendsto.add (tendsto_id' inf_le_left) tendsto_const_nhds)),
-by simp [Sup_image, -add_comm] at this; exact this.symm
+by rw [Sup_eq_supr, bsupr_add hs]
 
 lemma supr_add {ι : Sort*} {s : ι → ennreal} [h : nonempty ι] : supr s + a = ⨆b, s b + a :=
 let ⟨x⟩ := h in
-calc supr s + a = Sup (range s) + a : by simp [Sup_range]
+calc supr s + a = Sup (range s) + a : by rw Sup_range
   ... = (⨆b∈range s, b + a) : Sup_add ⟨s x, x, rfl⟩
   ... = _ : supr_range
 
@@ -459,15 +463,7 @@ protected lemma coe_tsum {f : α → ℝ≥0} : summable f → ↑(tsum f) = ∑
 | ⟨r, hr⟩ := by rw [hr.tsum_eq, ennreal.tsum_coe_eq hr]
 
 protected lemma has_sum : has_sum f (⨆s:finset α, ∑ a in s, f a) :=
-tendsto_order.2
-  ⟨assume a' ha',
-    let ⟨s, hs⟩ := lt_supr_iff.mp ha' in
-    mem_at_top_sets.mpr ⟨s, assume t ht, lt_of_lt_of_le hs $ finset.sum_le_sum_of_subset ht⟩,
-  assume a' ha',
-    univ_mem_sets' $ assume s,
-    have ∑ a in s, f a ≤ ⨆(s : finset α), ∑ a in s, f a,
-      from le_supr (λ(s : finset α), ∑ a in s, f a) s,
-    lt_of_le_of_lt this ha'⟩
+tendsto_at_top_supr $ λ s t, finset.sum_le_sum_of_subset
 
 @[simp] protected lemma summable : summable f := ⟨_, ennreal.has_sum⟩
 

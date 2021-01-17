@@ -29,7 +29,8 @@ We define the following properties for sets in a topological space:
 
 For each of these definitions (except for `is_clopen`), we also have a class stating that the whole
 space satisfies that property:
-`compact_space`, `irreducible_space`, `connected_space`, `totally_disconnected_space`, `totally_separated_space`.
+`compact_space`, `irreducible_space`, `connected_space`, `totally_disconnected_space`,
+`totally_separated_space`.
 
 Furthermore, we have two more classes:
 * `locally_compact_space`: for every point `x`, every open neighborhood of `x` contains a compact
@@ -700,7 +701,8 @@ lemma is_clopen_bInter {β : Type*} {s : finset β} {f : β → set α} (h : ∀
 lemma continuous_on.preimage_clopen_of_clopen {β: Type*} [topological_space β]
   {f : α → β} {s : set α} {t : set β} (hf : continuous_on f s) (hs : is_clopen s)
   (ht : is_clopen t) : is_clopen (s ∩ f⁻¹' t) :=
-⟨continuous_on.preimage_open_of_open hf hs.1 ht.1, continuous_on.preimage_closed_of_closed hf hs.2 ht.2⟩
+⟨continuous_on.preimage_open_of_open hf hs.1 ht.1,
+  continuous_on.preimage_closed_of_closed hf hs.2 ht.2⟩
 
 /-- The intersection of a disjoint covering by two open sets of a clopen set will be clopen. -/
 theorem is_clopen_inter_of_disjoint_cover_clopen {Z a b : set α} (h : is_clopen Z)
@@ -1160,7 +1162,8 @@ lemma connected_space_iff_connected_component :
 begin
   split,
   { rintros ⟨h, ⟨x⟩⟩,
-    exactI ⟨x, eq_univ_of_univ_subset $ subset_connected_component is_preconnected_univ (mem_univ x)⟩ },
+    exactI ⟨x, eq_univ_of_univ_subset $
+      subset_connected_component is_preconnected_univ (mem_univ x)⟩ },
   { rintros ⟨x, h⟩,
     haveI : preconnected_space α := ⟨by {rw ← h, exact is_connected_connected_component.2 }⟩,
     exact ⟨⟨x⟩⟩ }
@@ -1332,10 +1335,11 @@ end
 /-- A set `s` is preconnected if and only if
 for every cover by two closed sets that are disjoint on `s`,
 it is contained in one of the two covering sets. -/
-theorem is_preconnected_iff_subset_of_disjoint_closed {α : Type*} {s : set α} [topological_space α] :
+theorem is_preconnected_iff_subset_of_disjoint_closed {α : Type*} {s : set α}
+  [topological_space α] :
   is_preconnected s ↔
-  ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
-  s ⊆ u ∨ s ⊆ v :=
+    ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
+      s ⊆ u ∨ s ⊆ v :=
 begin
   split; intro h,
   { intros u v hu hv hs huv,
@@ -1421,8 +1425,9 @@ from (eq_of_mem_singleton (ht hp)).symm ▸ (eq_of_mem_singleton (ht hq)).symm�
 class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_disconnected_univ : is_totally_disconnected (univ : set α))
 
-instance pi.totally_disconnected_space {α : Type*} {β : α → Type*} [t₂ : Πa, topological_space (β a)]
-  [∀a, totally_disconnected_space (β a)] : totally_disconnected_space (Π (a : α), β a) :=
+instance pi.totally_disconnected_space {α : Type*} {β : α → Type*}
+  [t₂ : Πa, topological_space (β a)] [∀a, totally_disconnected_space (β a)] :
+  totally_disconnected_space (Π (a : α), β a) :=
 ⟨λ t h1 h2, ⟨λ a b, subtype.ext $ funext $ λ x, subtype.mk_eq_mk.1 $
   (totally_disconnected_space.is_totally_disconnected_univ
     ((λ (c : Π (a : α), β a), c x) '' t) (set.subset_univ _)

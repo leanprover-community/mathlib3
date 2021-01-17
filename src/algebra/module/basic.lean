@@ -114,7 +114,8 @@ end add_comm_monoid
 
 variables (R)
 
-/-- An `add_comm_monoid` that is a `semimodule` over a `ring` carries a natural `add_comm_group` structure. -/
+/-- An `add_comm_monoid` that is a `semimodule` over a `ring` carries a natural `add_comm_group`
+structure. -/
 def semimodule.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [semimodule R M] :
   add_comm_group M :=
 { neg          := λ a, (-1 : R) • a,

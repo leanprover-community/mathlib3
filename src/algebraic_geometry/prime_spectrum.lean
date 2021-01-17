@@ -403,12 +403,8 @@ def basic_open (r : R) : topological_space.opens (prime_spectrum R) :=
 { val := { x | r ∉ x.as_ideal },
   property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
 
-lemma std_aff_is_open (a : R) : is_open ({p : prime_spectrum R | a ∉ p.as_ideal }) :=
-begin
-  refine ⟨{a} , set.ext (λ (x : prime_spectrum R), ⟨λ xh, _,λ xh,  _⟩)⟩;
-  simpa only [mem_zero_locus, not_not, set.mem_set_of_eq, set.singleton_subset_iff,
-    set.mem_compl_eq] using xh,
-end
+lemma is_open_basic_open {a : R} : is_open ((basic_open a).val) :=
+(basic_open a).property
 
 end basic_open
 

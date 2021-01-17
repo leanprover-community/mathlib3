@@ -24,7 +24,7 @@ def image_of_Df (f : polynomial R) : set (prime_spectrum R) :=
 lemma is_open_image_of_Df (f : polynomial R) : is_open (image_of_Df f) :=
 begin
   rw [image_of_Df, set_of_exists (λ i (x : prime_spectrum R), coeff f i ∉ x.val)],
-  exact is_open_Union (λ i, std_aff_is_open (coeff f i)),
+  exact is_open_Union (λ i, is_open_basic_open),
 end
 
 lemma mem_span_C_coeff (f : polynomial R) :
@@ -78,8 +78,8 @@ begin
   rw [← compl_compl U, ← cl, ← bUnion_of_singleton_of_coe fs, zero_locus_Union, compl_Inter,
     image_Union],
   refine is_open_Union (λ f, _),
-  convert is_open_image_of_Df f.1,
-  refine ext (λ x, ⟨_, λ hx, ⟨⟨map C x.1, (is_prime_C_map_of_is_prime x.2)⟩, ⟨_, _⟩⟩⟩),
+  convert is_open_image_of_Df f.val,
+  refine ext (λ x, ⟨_, λ hx, ⟨⟨map C x.val, (is_prime_C_map_of_is_prime x.property)⟩, ⟨_, _⟩⟩⟩),
   { rintro ⟨xli, complement, rfl⟩,
     exact C_comap_mem_image_of_Df complement },
   { rw [mem_compl_eq, mem_zero_locus, singleton_subset_iff],

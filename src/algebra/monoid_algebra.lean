@@ -471,7 +471,7 @@ variables {k}
 variables [monoid G] [comm_semiring k] {V W : Type u₃}
   [add_comm_group V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V]
-  [add_comm_group W] [semimodule k W] [semimodule (monoid_algebra k G) W]
+  [add_comm_monoid W] [semimodule k W] [semimodule (monoid_algebra k G) W]
   [is_scalar_tower k (monoid_algebra k G) W]
   (f : V →ₗ[k] W)
   (h : ∀ (g : G) (v : V), f (single g (1 : k) • v : V) = (single g (1 : k) • (f v) : W))

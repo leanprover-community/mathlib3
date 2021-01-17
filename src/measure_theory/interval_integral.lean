@@ -395,18 +395,10 @@ begin
 end
 
 /-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
-lemma integral_congr {a b : ℝ} (f g : ℝ → E) (h : ∀ x ∈ interval a b, f x = g x) :
+lemma integral_congr {a b : ℝ} (f g : ℝ → E) (h : eq_on f g (interval a b)) :
   ∫ x in a..b, f x = ∫ x in a..b, g x :=
-begin
-  cases le_total a b with hab hab,
-  { simpa only [interval_integral, hab, Ioc_eq_empty, measure.restrict_empty, min_eq_left,
-                max_eq_right, integral_zero_measure, sub_zero]
-      using set_integral_congr is_measurable_Ioc (λ x hx, h x (mem_Icc_of_Ioc hx)) },
-  { simpa only [interval_integral, interval, hab, Ioc_eq_empty, measure.restrict_empty,
-                min_eq_right, max_eq_left, integral_zero_measure, sub_zero, zero_sub,
-                eq_neg_iff_eq_neg, neg_neg]
-      using (set_integral_congr is_measurable_Ioc (λ x hx, h x (mem_Icc_of_Ioc hx))).symm },
-end
+by cases le_total a b with hab hab; simpa [hab, integral_of_le, integral_of_ge]
+  using set_integral_congr is_measurable_Ioc (h.mono Ioc_subset_Icc_self)
 
 /-!
 ### Integral is an additive function of the interval
@@ -1403,7 +1395,7 @@ begin
   rw [← integral_deriv_mul_eq_sub hu hv hcu' hcv', ← integral_sub],
   { apply integral_congr,
     exact λ x hx, by simp [mul_comm] },
- { exact ((hcu'.mul hcv).add (hcu.mul hcv')).interval_integrable },
+  { exact ((hcu'.mul hcv).add (hcu.mul hcv')).interval_integrable },
   { exact (hcv.mul hcu').interval_integrable },
 end
 

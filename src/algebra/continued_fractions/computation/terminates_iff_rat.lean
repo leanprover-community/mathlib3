@@ -18,7 +18,7 @@ rational number, that is `↑v = q` for some `q : ℚ`.
 
 - `gcf.coe_of_rat` shows that `gcf.of v = gcf.of q` for `v : α` given that `↑v = q` and `q : ℚ`.
 - `gcf.terminates_iff_rat` shows that `gcf.of v` terminates if and only if `↑v = q` for some
-`q : ℚ`.
+  `q : ℚ`.
 
 ## Tags
 
@@ -31,8 +31,8 @@ open generalized_continued_fraction as gcf
 variables {K : Type*} [linear_ordered_field K] [floor_ring K]
 
 /-
-We constantly will have to coerce along our structures in below proofs using their provided map
-functions.
+We will have to constantly coerce along our structures in the following proofs using their provided
+map functions.
 -/
 local attribute [simp] gcf.pair.map
 local attribute [simp] gcf.int_fract_pair.mapFr

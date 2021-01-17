@@ -175,7 +175,7 @@ by { cases x; refl }
 
 lemma mem_pmem {a : α} (h : ∀ a ∈ x, p a) (ha : a ∈ x) :
   f a (h a ha) ∈ pmap f x h :=
-by { rw mem_def at ha, rw mem_def, subst ha, refl }
+by { rw mem_def at ha ⊢, subst ha, refl }
 
 lemma pmap_map (g : γ → α) (x : option γ) (H) :
   pmap f (x.map g) H = pmap (λ a h, f (g a) h) x (λ a h, H _ (mem_map_of_mem _ h)) :=

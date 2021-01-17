@@ -340,10 +340,10 @@ def subtype (p : α → Prop) : subtype p ↪o α :=
 end order_embedding
 
 /-- A relation isomorphism is an equivalence that is also a relation embedding. -/
-structure rel_iso (α β : Type*) (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=
+structure rel_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=
 (map_rel_iff' : ∀ {a b}, s (to_equiv a) (to_equiv b) ↔ r a b)
 
-infix ` ≃r `:25 := rel_iso _ _
+infix ` ≃r `:25 := rel_iso
 
 /-- An order isomorphism is an equivalence such that `a ≤ b ↔ (f a) ≤ (f b)`.
 This definition is an abbreviation of `rel_iso (≤) (≤)`. -/

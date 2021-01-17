@@ -395,7 +395,7 @@ begin
 end
 
 /-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
-lemma integral_congr (a b : ℝ) (f g : ℝ → E) (h : ∀ x ∈ interval a b, f x = g x) :
+lemma integral_congr {a b : ℝ} (f g : ℝ → E) (h : ∀ x ∈ interval a b, f x = g x) :
   ∫ x in a..b, f x = ∫ x in a..b, g x :=
 begin
   cases le_total a b with hab hab,

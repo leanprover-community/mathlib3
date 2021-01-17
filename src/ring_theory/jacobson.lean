@@ -587,9 +587,9 @@ begin
     exact (quotient.mk P1).is_integral_of_surjective (quotient.mk_surjective) }
 end
 
-lemma comp_C_integral_of_surjective_of_jacobson {R : Type*} [integral_domain R] [is_jacobson R]
-  {S : Type*} [field S] {n : ℕ} (f : (mv_polynomial (fin n) R) →+* S) (hf : function.surjective f) :
-  (f.comp C).is_integral :=
+private lemma comp_C_integral_of_surjective_of_jacobson' {R : Type*} [integral_domain R]
+  [is_jacobson R] {S : Type*} [field S] {n : ℕ} (f : mv_polynomial (fin n) R →+* S)
+  (hf : function.surjective f) : (f.comp C).is_integral :=
 begin
   haveI : (f.ker).is_maximal := @comap_is_maximal_of_surjective _ _ _ _ f ⊥ hf bot_is_maximal,
   let g : f.ker.quotient →+* S := ideal.quotient.lift f.ker f (λ _ h, h),
@@ -597,6 +597,19 @@ begin
   rw [← hfg, ring_hom.comp_assoc],
   refine ring_hom.is_integral_trans _ g (quotient_mk_comp_C_is_integral_of_jacobson f.ker)
     (g.is_integral_of_surjective (quotient.lift_surjective f.ker f _ hf)),
+end
+
+lemma comp_C_integral_of_surjective_of_jacobson {R : Type*} [integral_domain R] [is_jacobson R]
+  {σ : Type*} [fintype σ] {S : Type*} [field S] (f : mv_polynomial σ R →+* S)
+  (hf : function.surjective f) : (f.comp C).is_integral :=
+begin
+  haveI := classical.dec_eq σ,
+  obtain ⟨e⟩ := fintype.equiv_fin σ,
+  have := comp_C_integral_of_surjective_of_jacobson' (f.comp ↑(ring_equiv_of_equiv R e.symm))
+    (function.surjective.comp hf (ring_equiv_of_equiv R e.symm).surjective),
+  rw ring_hom.comp_assoc at this,
+  convert this,
+  refine ring_hom.ext (λ x, (rename_C _ _).symm),
 end
 
 end mv_polynomial

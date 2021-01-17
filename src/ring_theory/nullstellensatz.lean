@@ -85,16 +85,16 @@ end
 lemma is_maximal_iff_eq_vanishing_ideal_singleton (I : ideal (mv_polynomial σ k)) :
   I.is_maximal ↔ ∃ (x : σ → k), I = vanishing_ideal {x} :=
 begin
-  refine ⟨_, λ h, let ⟨x, hx⟩ := h in hx.symm ▸ vanishing_ideal_singleton_maximal x⟩,
-  introsI hI,
+  refine ⟨λ hI, _, λ h, let ⟨x, hx⟩ := h in hx.symm ▸ vanishing_ideal_singleton_maximal x⟩,
+  letI : I.is_maximal := hI,
+  letI : field I.quotient := quotient.field I,
   let ϕ : k →+* I.quotient := (ideal.quotient.mk I).comp C,
-  -- Sorry half is from other PR #5520, proven using facts about Jacobson rings
-  have hϕ : function.bijective ϕ := ⟨quotient_mk_comp_C_injective _ _ I hI.1, sorry⟩,
+  have hϕ : function.bijective ϕ := ⟨quotient_mk_comp_C_injective _ _ I hI.1,
+    is_alg_closed.algebra_map_surjective_of_is_integral' ϕ
+      (mv_polynomial.comp_C_integral_of_surjective_of_jacobson _ quotient.mk_surjective)⟩,
   obtain ⟨φ, hφ⟩ := function.surjective.has_right_inverse hϕ.2,
-
   let x : σ → k := λ s, φ ((ideal.quotient.mk I) (X s)),
-  have hx : ∀ s : σ, ϕ (x s) = (ideal.quotient.mk I) (X s) :=
-    λ s, hφ ((ideal.quotient.mk I) (X s)),
+  have hx : ∀ s : σ, ϕ (x s) = (ideal.quotient.mk I) (X s) := λ s, hφ ((ideal.quotient.mk I) (X s)),
   have : vanishing_ideal {x} ≤ I,
   { intros p hp,
     rw [← quotient.eq_zero_iff_mem, map_mv_polynomial_eq_eval₂ (ideal.quotient.mk I) p, eval₂_eq'],
@@ -108,16 +108,14 @@ end
 theorem vanishing_ideal_zero_locus_eq_radical (I : ideal (mv_polynomial σ k)) :
   vanishing_ideal (zero_locus (I)) = I.radical :=
 begin
-  rw (radical_eq_jacobson I),
-  refine le_antisymm _ _,
-  { refine le_Inf _,
-    rintros J ⟨hJI, hJ⟩,
+  rw I.radical_eq_jacobson,
+  refine le_antisymm (le_Inf _) (λ p hp x hx, _),
+  { rintros J ⟨hJI, hJ⟩,
     obtain ⟨x, hx⟩ := (is_maximal_iff_eq_vanishing_ideal_singleton J).1 hJ,
     refine hx.symm ▸ vanishing_ideal_anti_mono (λ y hy p hp, _),
     rw [← mem_vanishing_ideal_singleton_iff, set.mem_singleton_iff.1 hy, ← hx],
     refine hJI hp },
-  { refine λ p hp x hx, _,
-    rw ← mem_vanishing_ideal_singleton_iff x p,
+  { rw ← mem_vanishing_ideal_singleton_iff x p,
     refine (mem_Inf.mp hp) ⟨le_trans (le_vanishing_ideal_zero_locus I)
       (vanishing_ideal_anti_mono (λ y hy, hy.symm ▸ hx)), vanishing_ideal_singleton_maximal x⟩ },
 end

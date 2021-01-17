@@ -70,7 +70,7 @@ begin
   rw is_regular_of_degree at h2,
   specialize h2 v,
   rw ← h2,
-  exact G.adj_card_common_neighbors_lt_degree v w h,
+  exact G.card_common_neighbors_lt_degree_of_adj v w h,
 end
 
 lemma is_regular_degree_lt_card_verts [nonempty V] (G : simple_graph V) (k : ℕ) (h : G.is_regular_of_degree k) :

@@ -358,7 +358,7 @@ theorem bUnion_union (s t : set α) (u : α → set β) :
   (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
 supr_union
 
-lemma Union_subtype {α β : Type*} (s : set α) (f : α → set β) :
+@[simp] lemma Union_subtype {α β : Type*} (s : set α) (f : α → set β) :
   (⋃ (i : s), f i) = ⋃ (i ∈ s), f i :=
 (set.bUnion_eq_Union s $ λ x _, f x).symm
 

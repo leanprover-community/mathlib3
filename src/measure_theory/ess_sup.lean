@@ -66,8 +66,8 @@ filter.liminf_le_liminf hfg
 
 lemma ess_sup_const (c : β) (hμ : μ ≠ 0) : ess_sup (λ x : α, c) μ = c :=
 begin
-  have hμ_ne_bot : μ.ae.ne_bot, by rwa [filter.ne_bot, ne.def, ae_eq_bot],
-  exact @filter.limsup_const _ _ _ μ.ae hμ_ne_bot c,
+  haveI hμ_ne_bot : μ.ae.ne_bot := by rwa [filter.ne_bot, ne.def, ae_eq_bot],
+  exact filter.limsup_const c,
 end
 
 lemma ess_inf_const (c : β) (hμ : μ ≠ 0) : ess_inf (λ x : α, c) μ = c :=
@@ -104,13 +104,20 @@ section ennreal
 lemma ennreal.ae_le_ess_sup (f : α → ennreal) : ∀ᵐ y ∂μ, f y ≤ ess_sup f μ :=
 ennreal.eventually_le_limsup f
 
+lemma ess_sup_eq_zero_iff {f : α → ennreal} (hμ : μ ≠ 0) :
+  ess_sup f μ = 0 ↔ f =ᵐ[μ] 0 :=
+begin
+  haveI hμ_ne_bot : μ.ae.ne_bot := by rwa [filter.ne_bot, ne.def, ae_eq_bot],
+  exact ennreal.limsup_eq_zero_iff,
+end
+
 lemma ennreal.ess_sup_const_mul {f : α → ennreal} {a : ennreal} :
   ess_sup (λ (x : α), a * (f x)) μ = a * ess_sup f μ :=
 begin
   by_cases hμ : μ = 0,
   { simp [hμ], },
-  have hμ_ne_bot : μ.ae.ne_bot, by rwa [filter.ne_bot, ne.def, ae_eq_bot],
-  exact @ennreal.limsup_const_mul α μ.ae hμ_ne_bot _ f a,
+  haveI hμ_ne_bot : μ.ae.ne_bot := by rwa [filter.ne_bot, ne.def, ae_eq_bot],
+  exact ennreal.limsup_const_mul,
 end
 
 lemma ennreal.ess_sup_add_le (f g : α → ennreal) : ess_sup (f + g) μ ≤ ess_sup f μ + ess_sup g μ :=

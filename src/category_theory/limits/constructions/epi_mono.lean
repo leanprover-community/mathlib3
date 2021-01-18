@@ -36,7 +36,7 @@ begin
 end
 
 /-- If `F` reflects pullbacks, then it reflects monomorphisms. -/
-def reflects_mono {X Y : C} (f : X ⟶ Y) [reflects_limit (cospan f f) F] [mono (F.map f)] :
+lemma reflects_mono {X Y : C} (f : X ⟶ Y) [reflects_limit (cospan f f) F] [mono (F.map f)] :
   mono f :=
 begin
   have := pullback_cone.is_limit_mk_id_id (F.map f),

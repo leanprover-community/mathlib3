@@ -11,7 +11,7 @@ import ring_theory.polynomial.gauss_lemma
 # Minimal polynomials
 
 This file defines the minimal polynomial of an element `x` of an `A`-algebra `B`,
-under the assumption that x is integral over `Az.
+under the assumption that x is integral over `A`.
 
 After stating the defining property we specialize to the setting of field extensions
 and derive some well-known properties, amongst which the fact that minimal polynomials
@@ -91,7 +91,7 @@ section ring
 variables [ring B] [algebra A B] [nontrivial B]
 variables {x : B}
 
-/--The degree of a minimal polynomial is positive. -/
+/-- The degree of a minimal polynomial is positive. -/
 lemma degree_pos [nontrivial A] (hx : is_integral A x) : 0 < degree (minpoly A x) :=
 begin
   apply lt_of_le_of_ne,
@@ -224,8 +224,8 @@ variables {x : B}
 
 variables (A x)
 
-/--If an element x is a root of a nonzero polynomial p,
-then the degree of p is at least the degree of the minimal polynomial of x.-/
+/-- If an element `x` is a root of a nonzero polynomial `p`,
+then the degree of `p` is at least the degree of the minimal polynomial of `x`. -/
 lemma degree_le_of_ne_zero
   {p : polynomial A} (pnz : p ≠ 0) (hp : polynomial.aeval x p = 0) :
   degree (minpoly A x) ≤ degree p :=
@@ -233,9 +233,9 @@ calc degree (minpoly A x) ≤ degree (p * C (leading_coeff p)⁻¹) :
     min A x (monic_mul_leading_coeff_inv pnz) (by simp [hp])
   ... = degree p : degree_mul_leading_coeff_inv p pnz
 
-/--The minimal polynomial of an element x is uniquely characterized by its defining property:
+/-- The minimal polynomial of an element x is uniquely characterized by its defining property:
 if there is another monic polynomial of minimal degree that has x as a root,
-then this polynomial is equal to the minimal polynomial of x.-/
+then this polynomial is equal to the minimal polynomial of x. -/
 lemma unique {p : polynomial A}
   (pmonic : p.monic) (hp : polynomial.aeval x p = 0)
   (pmin : ∀ q : polynomial A, q.monic → polynomial.aeval x q = 0 → degree p ≤ degree q) :
@@ -252,9 +252,9 @@ begin
       (pmin (minpoly A x) (monic hx) (aeval A x)) }
 end
 
-/--If an element x is a root of a polynomial p, then the minimal polynomial of x divides p.-/
-lemma dvd {p : polynomial A} (hp : polynomial.aeval x p = 0) :
-  minpoly A x ∣ p :=
+/-- If an element x is a root of a polynomial p,
+then the minimal polynomial of x divides p. -/
+lemma dvd {p : polynomial A} (hp : polynomial.aeval x p = 0) : minpoly A x ∣ p :=
 begin
   by_cases hp0 : p = 0,
   { simp only [hp0, dvd_zero] },
@@ -378,12 +378,12 @@ lemma eq_X_sub_C' (a : A) : minpoly A a = X - C a := eq_X_sub_C A a
 
 variables (A)
 
-/--The minimal polynomial of `0` is `X`. -/
+/-- The minimal polynomial of `0` is `X`. -/
 @[simp] lemma zero : minpoly A (0:B) = X :=
 by simpa only [add_zero, C_0, sub_eq_add_neg, neg_zero, ring_hom.map_zero]
   using eq_X_sub_C B (0:A)
 
-/--The minimal polynomial of `1` is `X - 1`. -/
+/-- The minimal polynomial of `1` is `X - 1`. -/
 @[simp] lemma one : minpoly A (1:B) = X - 1 :=
 by simpa only [ring_hom.map_one, C_1, sub_eq_add_neg] using eq_X_sub_C B (1:A)
 
@@ -393,7 +393,7 @@ section domain
 variables [domain B] [algebra A B]
 variables {x : B}
 
-/--A minimal polynomial is prime. -/
+/-- A minimal polynomial is prime. -/
 lemma prime (hx : is_integral A x) : prime (minpoly A x) :=
 begin
   refine ⟨ne_zero hx, not_is_unit A x, _⟩,
@@ -403,8 +403,8 @@ begin
   exact or.imp (dvd A x) (dvd A x) this
 end
 
-/--If L/K is a field extension and an element y of K is a root of the minimal polynomial
-of an element x ∈ L, then y maps to x under the field embedding. -/
+/-- If `L/K` is a field extension and an element `y` of `K` is a root of the minimal polynomial
+of an element `x ∈ L`, then `y` maps to `x` under the field embedding. -/
 lemma root {x : B} (hx : is_integral A x) {y : A} (h : is_root (minpoly A x) y) :
   algebra_map A B y = x :=
 have key : minpoly A x = X - C y :=

@@ -219,36 +219,36 @@ by { cases n; refl }
 
 end
 
-lemma nat_cast_surjective [fact (0 < n)] :
-  function.surjective (coe : ℕ → zmod n) :=
+lemma nat_cast_right_inverse [fact (0 < n)] :
+  function.right_inverse val (coe : ℕ → zmod n) :=
 begin
   assume i,
   casesI n,
   { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
   { change fin (n + 1) at i,
-    refine ⟨i, _⟩,
-    rw [fin.ext_iff, fin.coe_coe_eq_self] }
+    rw [val, fin.ext_iff, fin.coe_coe_eq_self] }
+end
+
+lemma nat_cast_surjective [fact (0 < n)] :
+  function.surjective (coe : ℕ → zmod n) :=
+nat_cast_right_inverse.surjective
+
+lemma int_cast_right_inverse :
+  function.right_inverse (coe : zmod n → ℤ) (coe : ℤ → zmod n) :=
+begin
+  assume i,
+  cases n,
+  { rw [int.cast_id i, int.cast_id i], },
+  { rw [coe_coe, int.nat_cast_eq_coe_nat, int.cast_coe_nat, fin.coe_coe_eq_self] }
 end
 
 lemma int_cast_surjective :
   function.surjective (coe : ℤ → zmod n) :=
-begin
-  assume i,
-  cases n,
-  { exact ⟨i, int.cast_id i⟩ },
-  { rcases nat_cast_surjective i with ⟨k, rfl⟩,
-    refine ⟨k, _⟩, norm_cast }
-end
+int_cast_right_inverse.surjective
 
 lemma cast_val {n : ℕ} [fact (0 < n)] (a : zmod n) :
   (a.val : zmod n) = a :=
-begin
-  rcases nat_cast_surjective a with ⟨k, rfl⟩,
-  symmetry,
-  rw [val_cast_nat, ← sub_eq_zero, ← nat.cast_sub, char_p.cast_eq_zero_iff (zmod n) n],
-  { apply nat.dvd_sub_mod },
-  { apply nat.mod_le }
-end
+nat_cast_right_inverse a
 
 @[simp, norm_cast]
 lemma cast_id : ∀ n (i : zmod n), ↑i = i
@@ -814,18 +814,20 @@ instance subsingleton_ring_hom [semiring R] : subsingleton ((zmod n) →+* R) :=
 instance subsingleton_ring_equiv [semiring R] : subsingleton (zmod n ≃+* R) :=
 ⟨λ f g, by { rw ring_equiv.coe_ring_hom_inj_iff, apply ring_hom.ext_zmod _ _ }⟩
 
+lemma ring_hom_right_inverse [ring R] (f : R →+* (zmod n)) :
+  function.right_inverse (coe : zmod n → R) f :=
+by { intros k, cases n; simp }
+
 lemma ring_hom_surjective [ring R] (f : R →+* (zmod n)) :
   function.surjective f :=
-begin
-  intros k,
-  rcases zmod.int_cast_surjective k with ⟨n, rfl⟩,
-  refine ⟨n, f.map_int_cast n⟩
-end
+(ring_hom_right_inverse f).surjective
 
 lemma ring_hom_eq_of_ker_eq [comm_ring R] (f g : R →+* (zmod n))
   (h : f.ker = g.ker) : f = g :=
-by rw [← f.lift_of_surjective_comp (zmod.ring_hom_surjective f) g (le_of_eq h),
-      ring_hom.ext_zmod (f.lift_of_surjective _ _ _) (ring_hom.id _),
-      ring_hom.id_comp]
+begin
+  have := f.lift_of_right_inverse_comp _ (zmod.ring_hom_right_inverse f) ⟨g, le_of_eq h⟩,
+  rw subtype.coe_mk at this,
+  rw [←this, ring_hom.ext_zmod (f.lift_of_right_inverse _ _ _) (ring_hom.id _), ring_hom.id_comp],
+end
 
 end zmod

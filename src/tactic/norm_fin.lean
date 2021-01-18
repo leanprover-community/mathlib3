@@ -100,7 +100,8 @@ namespace instance_cache
 Lean will try to infer the correct type classes on `c.α`, and the tactic will fail if it cannot.
 This function is similar to `fin.mk_numeral` but it takes fewer hypotheses and is tactic valued.
 -/
-protected meta def of_fin {n : ℕ} (c : instance_cache) : fin (n + 1) → tactic (instance_cache × expr)
+protected meta def of_fin {n : ℕ} (c : instance_cache) :
+  fin (n + 1) → tactic (instance_cache × expr)
 | ⟨k, hk⟩ := c.of_nat k
 
 end instance_cache

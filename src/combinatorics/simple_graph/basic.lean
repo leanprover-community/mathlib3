@@ -374,9 +374,8 @@ end
 lemma card_common_neighbors_le_degree_right (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree w :=
 begin
-  rw [←card_neighbor_set_eq_degree],
-  sorry,
-  --exact set.card_le_of_subset (set.inter_subset_left _ _),
+  rw common_neighbors_symm,
+  exact G.card_common_neighbors_le_degree_left w v,
 end
 
 lemma card_common_neighbors_lt_card_verts (v w : V) :

@@ -66,15 +66,12 @@ by { rw [← C_0], exact is_symmetric.C 0 }
 lemma one : is_symmetric (1 : mv_polynomial σ R) :=
 by { rw [← C_1], exact is_symmetric.C 1 }
 
-@[simp]
 lemma add (hφ : is_symmetric φ) (hψ : is_symmetric ψ) : is_symmetric (φ + ψ) :=
 λ e, by rw [alg_hom.map_add, hφ, hψ]
 
-@[simp]
 lemma mul (hφ : is_symmetric φ) (hψ : is_symmetric ψ) : is_symmetric (φ * ψ) :=
 λ e, by rw [alg_hom.map_mul, hφ, hψ]
 
-@[simp]
 lemma smul (r : R) (hφ : is_symmetric φ) : is_symmetric (r • φ) :=
 λ e, by rw [alg_hom.map_smul, hφ]
 
@@ -88,11 +85,9 @@ namespace is_symmetric
 
 variables [comm_ring R] {φ ψ : mv_polynomial σ R}
 
-@[simp]
 lemma neg (hφ : is_symmetric φ) : is_symmetric (-φ) :=
 λ e, by rw [alg_hom.map_neg, hφ]
 
-@[simp]
 lemma sub (hφ : is_symmetric φ) (hψ : is_symmetric ψ) : is_symmetric (φ - ψ) :=
 λ e, by rw [alg_hom.map_sub, hφ, hψ]
 

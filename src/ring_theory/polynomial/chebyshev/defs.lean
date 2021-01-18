@@ -20,6 +20,8 @@ See the file `ring_theory.polynomial.chebyshev.basic` for more properties.
 * `polynomial.chebyshev₂`: the Chebyshev polynomials of the second kind.
 * `polynomial.lambdashev`: a variant on the Chebyshev polynomials that define a Lambda structure
   on `polynomial ℤ`.
+* The formal derivative of the Chebyshev polynomials of the first kind is a scalar multiple of the
+  Chebyshev polynomials of the second kind.
 
 ## Implementation details
 
@@ -32,6 +34,7 @@ and import that file in turn, in `ring_theory.polynomial.chebyshev.basic`.
 * Add explicit formula involving square roots for chebyshev polynomials
   `ring_theory.polynomial.chebyshev.basic`.
 * compute zeroes and extrema of chebyshev polynomials
+* prove that the roots of the chebyshev polynomials (except 0) are irrational
 * prove minimax properties of chebyshev polynomials
 * define a variant of chebyshev polynomials of the second kind removing the 2
   (sometimes called Dickson polynomials of the second kind)
@@ -155,23 +158,34 @@ end
 lemma chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ :
 ∀ (n : ℕ), chebyshev₂ R (n+1) = X * chebyshev₂ R n + chebyshev₁ R (n+1)
 |0        := by simp only [chebyshev₂_zero, chebyshev₂_one, chebyshev₁_one, two_mul, mul_one]
-|1        := by simpa only [chebyshev₂_one, chebyshev₁_two, chebyshev₂_two, ←mul_assoc, pow_two, mul_comm, add_sub, ←mul_add]
+|1        := by simpa only [chebyshev₂_one, chebyshev₁_two, chebyshev₂_two, ←mul_assoc, pow_two,
+                            mul_comm, add_sub, ←mul_add]
 |(n + 2)  := begin
-  calc chebyshev₂ R (n + 2 + 1) = 2 * X * chebyshev₂ R (n + 1 + 1) - chebyshev₂ R (n + 1) : by rw chebyshev₂_add_two
-  ... = 2 * X * (X * chebyshev₂ R (n + 1) + chebyshev₁ R (n + 2)) - (X * chebyshev₂ R n + chebyshev₁ R (n+1)) : by simp only [chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ n, chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ (n+1)]
-  ... = (2 * X * (X * chebyshev₂ R (n + 1)) + 2 * X * chebyshev₁ R (n+2)) - X * chebyshev₂ R n - chebyshev₁ R (n+1) : by rw [mul_add, sub_add_eq_sub_sub]
-  ... = (2 * X * (X * chebyshev₂ R (n + 1))) - X * chebyshev₂ R n + 2 * X * chebyshev₁ R (n+2) - chebyshev₁ R (n+1) : by simp only [sub_add_eq_add_sub]
-  ... =  X * (2 * (X * chebyshev₂ R (n + 1)) - chebyshev₂ R n) + (2 * X * chebyshev₁ R (n + 1 + 1) - chebyshev₁ R (n + 1)) : by simp only [add_sub_assoc, mul_comm, mul_assoc, mul_sub]
-  ... = X * chebyshev₂ R (n + 2) + chebyshev₁ R (n + 2 + 1) : by simp only [mul_assoc, chebyshev₂_add_two, chebyshev₁_add_two]
+  calc chebyshev₂ R (n + 2 + 1) = 2 * X * chebyshev₂ R (n + 1 + 1) - chebyshev₂ R (n + 1)
+                : by rw chebyshev₂_add_two
+  ... = 2 * X * (X * chebyshev₂ R (n + 1) + chebyshev₁ R (n + 2)) - (X * chebyshev₂ R n + chebyshev₁ R (n+1))
+                : by simp only [chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ n,
+                                chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ (n+1)]
+  ... = (2 * X * (X * chebyshev₂ R (n + 1)) + 2 * X * chebyshev₁ R (n+2)) - X * chebyshev₂ R n - chebyshev₁ R (n+1)
+                : by rw [mul_add, sub_add_eq_sub_sub]
+  ... = (2 * X * (X * chebyshev₂ R (n + 1))) - X * chebyshev₂ R n + 2 * X * chebyshev₁ R (n+2) - chebyshev₁ R (n+1)
+                : by simp only [sub_add_eq_add_sub]
+  ... =  X * (2 * (X * chebyshev₂ R (n + 1)) - chebyshev₂ R n) + (2 * X * chebyshev₁ R (n + 1 + 1) - chebyshev₁ R (n + 1))
+                : by simp only [add_sub_assoc, mul_comm, mul_assoc, mul_sub]
+  ... = X * chebyshev₂ R (n + 2) + chebyshev₁ R (n + 2 + 1)
+                : by simp only [mul_assoc, chebyshev₂_add_two, chebyshev₁_add_two]
 end
 
 lemma chebyshev₁_eq_chebyshev₂_sub_X_mul_chebyshev₂ :
 ∀ (n : ℕ), chebyshev₁ R (n+1) = chebyshev₂ R (n+1) - X * chebyshev₂ R n :=
 begin
   intro n,
-  calc chebyshev₁ R (n+1) = chebyshev₁ R (n+1) + X * chebyshev₂ R n - X * chebyshev₂ R n : by rw add_sub_cancel
-  ...                     = X * chebyshev₂ R n + chebyshev₁ R (n+1) - X * chebyshev₂ R n : by rw add_comm
-  ...                     = chebyshev₂ R (n+1) - X * chebyshev₂ R n: by rw chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁
+  calc chebyshev₁ R (n+1) = chebyshev₁ R (n+1) + X * chebyshev₂ R n - X * chebyshev₂ R n
+                                      : by rw add_sub_cancel
+  ...                     = X * chebyshev₂ R n + chebyshev₁ R (n+1) - X * chebyshev₂ R n
+                                      : by rw add_comm
+  ...                     = chebyshev₂ R (n+1) - X * chebyshev₂ R n
+                                      : by rw chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁
 end
 
 lemma chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ :
@@ -179,7 +193,18 @@ lemma chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ :
 |0        := by simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero, mul_one,
                  sub_sub_assoc_swap, pow_two, two_mul]
 |1        := begin simp only [chebyshev₁_add_two, chebyshev₁_zero, chebyshev₁_add_two, chebyshev₂_one, chebyshev₁_one, sub_mul, mul_sub, mul_one, one_mul], sorry end
-|(n + 2)  := begin rw chebyshev₁_add_two, sorry end
+|(n + 2)  := begin
+calc chebyshev₁ R (n + 2 + 2) = 2 * X * chebyshev₁ R (n + 2 + 1) - chebyshev₁ R (n + 2)
+                                : chebyshev₁_add_two _ _
+... = 2 * X * (X * chebyshev₁ R (n + 2) - (1 - X ^ 2) * chebyshev₂ R (n + 1)) - (X * chebyshev₁ R (n + 1) - (1 - X ^ 2) * chebyshev₂ R n)
+                                : by simp only [chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂]
+... = 2 * X * (X * chebyshev₁ R (n + 2)) - 2 * X * ((1 - X ^ 2) * chebyshev₂ R (n + 1)) - X * chebyshev₁ R (n + 1) + (1 - X ^ 2) * chebyshev₂ R n
+                                : by rw [mul_sub, sub_add]
+... = X * (2 * X * chebyshev₁ R (n + 2) - chebyshev₁ R (n + 1)) - (1 - X ^ 2) * (2 * X * chebyshev₂ R (n + 1) - chebyshev₂ R n)
+                                : by sorry
+... = X * chebyshev₁ R (n + 2 + 1) - (1 - X ^ 2) * chebyshev₂ R (n + 2)
+                                : by simp only [chebyshev₁_add_two, chebyshev₂_add_two]
+ end
 
 variables {R S}
 
@@ -198,9 +223,12 @@ end
 
 lemma chebyshev₂_derivative_eq_chebyshev₁ :
 ∀ (n : ℕ), derivative (chebyshev₁ R (n + 1)) = (n + 1) * chebyshev₂ R n
-|0        := begin simp only [chebyshev₁_one, chebyshev₂_zero, derivative_X], norm_num end
-|1        := begin simp only [chebyshev₁_two, chebyshev₂_one, derivative_sub, derivative_one,
-                              derivative_mul, derivative_X_pow, sub_zero], norm_num end
+|0        := by simp only [chebyshev₁_one, chebyshev₂_zero, derivative_X, nat.cast_zero, zero_add,
+                           mul_one]
+|1        := begin  simp only [chebyshev₁_two, chebyshev₂_one, derivative_sub, derivative_one,
+                              derivative_mul, derivative_X_pow, sub_zero, nat.cast_one,
+                              nat.cast_two],
+                    norm_num end
 |(n + 2)  := begin simp only [chebyshev₁_add_two, chebyshev₂_add_two, derivative_sub,
                               derivative_mul, chebyshev₂_derivative_eq_chebyshev₁,
                               derivative_bit0,

@@ -7,14 +7,14 @@ import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.pullbacks
 
-universes v u
-
 /-!
 # Constructing pullbacks from binary products and equalizers
 
 If a category as binary products and equalizers, then it has pullbacks.
 Also, if a category has binary coproducts and coequalizers, then it has pushouts
 -/
+
+universes v u
 
 open category_theory
 

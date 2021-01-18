@@ -113,6 +113,16 @@ lemma polar_smul_left (a : R) (x y : M) :
 Q.polar_smul_left' a x y
 
 @[simp]
+lemma polar_neg_left (x y : M) :
+  polar Q (-x) y = -polar Q x y :=
+by rw [←neg_one_smul R x, polar_smul_left, neg_one_mul]
+
+@[simp]
+lemma polar_sub_left (x x' y : M) :
+  polar Q (x - x') y = polar Q x y - polar Q x' y :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, polar_add_left, polar_neg_left]
+
+@[simp]
 lemma polar_add_right (x y y' : M) :
   polar Q x (y + y') = polar Q x y + polar Q x y' :=
 Q.polar_add_right' x y y'
@@ -122,15 +132,25 @@ lemma polar_smul_right (a : R) (x y : M) :
   polar Q x (a • y) = a * polar Q x y :=
 Q.polar_smul_right' a x y
 
+@[simp]
+lemma polar_neg_right (x y : M) :
+  polar Q x (-y) = -polar Q x y :=
+by rw [←neg_one_smul R y, polar_smul_right, neg_one_mul]
+
+@[simp]
+lemma polar_sub_right (x y y' : M) :
+  polar Q x (y - y') = polar Q x y - polar Q x y' :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, polar_add_right, polar_neg_right]
+
 lemma map_smul (a : R) (x : M) : Q (a • x) = a * a * Q x := Q.to_fun_smul a x
 
 lemma map_add_self (x : M) : Q (x + x) = 4 * Q x :=
 by { rw [←one_smul R x, ←add_smul, map_smul], norm_num }
 
-lemma map_zero : Q 0 = 0 :=
+@[simp] lemma map_zero : Q 0 = 0 :=
 by rw [←@zero_smul R _ _ _ _ (0 : M), map_smul, zero_mul, zero_mul]
 
-lemma map_neg (x : M) : Q (-x) = Q x :=
+@[simp] lemma map_neg (x : M) : Q (-x) = Q x :=
 by rw [←@neg_one_smul R _ _ _ _ x, map_smul, neg_one_mul, neg_neg, one_mul]
 
 lemma map_sub (x y : M) : Q (x - y) = Q (y - x) :=

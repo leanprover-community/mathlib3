@@ -160,9 +160,10 @@ example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
 -/
 @[norm_num] meta def eval : expr → tactic (expr × expr)
 | `(@fin.succ %%en %%e) := do
-  n ← en.to_nat,
-  fk ← e.to_fin n,
   ic ← mk_instance_cache `(ℕ),
+  n ← en.to_nat,
+  (_, en) ← ic.of_nat n,
+  fk ← e.to_fin n,
   (_, ek) ← ic.of_nat fk,
   (_, ltkn) ← prove_lt_nat ic ek en,
   (_, _, en', pn) ← prove_nat_succ ic `(nat.succ %%en),
@@ -173,9 +174,10 @@ example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
   pure (fk', `(fin.prove_succ %%en' %%en %%ek' %%ek %%ltkn %%ltkn' %%pn %%pk))
 | (app `(@coe_fn (fin %%en ↪o fin %%en') %%inst %%fexpr) e) := do
   guard (fexpr.get_app_fn.const_name = ``fin.cast_succ),
-  n ← en.to_nat,
-  fk ← e.to_fin n,
   ic ← mk_instance_cache `(ℕ),
+  n ← en.to_nat,
+  (_, en) ← ic.of_nat n, -- we launder en because it is of the form `n + 1`
+  fk ← e.to_fin n,
   (_, ek) ← ic.of_nat fk,
   (_, ltkn) ← prove_lt_nat ic ek en,
   (_, _, en', pn) ← prove_nat_succ ic `(nat.succ %%en),

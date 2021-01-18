@@ -619,6 +619,10 @@ end
 
 local attribute [instance] classical.prop_decidable
 
+lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
+  {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ := by sorry
+
+
 lemma inv_of_maximal_not_top (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
   (hM : ideal.is_maximal M) : (1 / ↑M : fractional_ideal f) ≠ (1 : fractional_ideal f) :=
 begin--PER GOLFARE, CONSIDERARE TUTTE LE HP SOLO LOCALI E METTERLE TRA PARENTESI
@@ -729,7 +733,16 @@ begin--PER GOLFARE, CONSIDERARE TUTTE LE HP SOLO LOCALI E METTERLE TRA PARENTESI
   --     sorry }},
   -- replace h_ZJ : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ M, sorry,
   -- obtain ⟨P, h_ZP, h_JP⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M, sorry,
-  have h_nebotP : P.1 ≠ ⊥, sorry, --USARE CHE Z.prod ≠ ⊥,
+  have h_nebotP : ¬ ∃ (Q : ideal R) (hQ : Q ∈ multiset.map coe Z), Q = ⊥,
+  apply (mt prod_eq_bot.mpr) h_nzZ,
+  rw not_exists at h_nebotP,
+  specialize h_nebotP P.1,
+  rw not_exists at h_nebotP,
+  -- replace h_nebotP : ∀ (Q : ideal R) (hQ : Q ∈ multiset.map coe Z), ¬ Q = ⊥,
+  -- sorry, --apply not_exists.mp h_nebotP,
+  -- have : P.1 ∈ (multiset.map coe Z),
+  -- specialize h_nebotP P.1 h_PZ,
+  -- sorry, --USARE CHE Z.prod ≠ ⊥,
   -- replace h_JP : P.1 ≤ M,
   -- { apply le_trans h_JP h_J.right },
   replace h_JP : P.1 = M,

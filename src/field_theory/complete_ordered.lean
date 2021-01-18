@@ -109,13 +109,13 @@ instance has_coe_to_rel_hom : has_coe (R →+*o S) (((≤) : R → R → Prop) �
 
 instance : has_coe_to_fun (R →+*o S) := ⟨_, λ f, f.to_fun⟩
 
-@[simp] lemma to_ring_equiv_eq_coe {f : R →+*o S} : f.to_ring_hom = f := rfl
+@[simp] lemma to_ring_hom_eq_coe {f : R →+*o S} : f.to_ring_hom = f := rfl
 @[simp] lemma to_order_iso_eq_coe {f : R →+*o S} : f.to_rel_hom = f := rfl
-@[simp] lemma to_ring_equiv_to_fun_eq_coe_fun {f : R →+*o S} : (f : R →+* S).to_fun = f := rfl
-@[simp] lemma to_ring_equiv_coe_fun_eq_coe_fun {f : R →+*o S} : ((f : R →+* S) : R → S) = f := rfl
-@[simp] lemma to_rel_hom_to_fun_eq_to_equiv {f : R →+*o S} :
+@[simp] lemma coe_ring_hom_to_fun_eq_coe_fun {f : R →+*o S} : (f : R →+* S).to_fun = f := rfl
+@[simp] lemma coe_ring_hom_coe_fun_eq_coe_fun {f : R →+*o S} : ((f : R →+* S) : R → S) = f := rfl
+@[simp] lemma coe_rel_hom_to_fun_eq_to_equiv {f : R →+*o S} :
 (f : ((≤) : R → R → Prop) →r ((≤) : S → S → Prop)).to_fun = f := rfl
-@[simp] lemma to_rel_hom_coe_fun_eq_to_equiv {f : R →+*o S} :
+@[simp] lemma coe_rel_hom_coe_fun_eq_to_equiv {f : R →+*o S} :
 ((f : ((≤) : R → R → Prop) →r ((≤) : S → S → Prop)) : R → S) = f := rfl
 @[simp]
 lemma coe_mul_equiv_to_fun_eq_coe_fun {f : R →+*o S} : ((f : R →+* S) : R →* S).to_fun = f := rfl
@@ -229,8 +229,8 @@ instance : has_coe_to_fun (R ≃+*o S) := ⟨_, λ f, f.to_fun⟩
 
 @[simp] lemma to_ring_equiv_eq_coe {f : R ≃+*o S} : f.to_ring_equiv = f := rfl
 @[simp] lemma to_order_iso_eq_coe {f : R ≃+*o S} : f.to_order_iso = f := rfl
-@[simp] lemma to_ring_equiv_to_fun_eq_coe_fun {f : R ≃+*o S} : (f : R ≃+* S).to_fun = f := rfl
-@[simp] lemma to_ring_equiv_coe_fun_eq_coe_fun {f : R ≃+*o S} : ((f : R ≃+* S) : R → S) = f := rfl
+@[simp] lemma coe_ring_equiv_to_fun_eq_coe_fun {f : R ≃+*o S} : (f : R ≃+* S).to_fun = f := rfl
+@[simp] lemma coe_ring_equiv_coe_fun_eq_coe_fun {f : R ≃+*o S} : ((f : R ≃+* S) : R → S) = f := rfl
 @[simp] lemma to_order_iso_to_fun_eq_to_equiv {f : R ≃+*o S} : (f : R ≃o S).to_fun = f := rfl
 @[simp] lemma to_order_iso_coe_fun_eq_to_equiv {f : R ≃+*o S} : ((f : R ≃o S) : R → S) = f := rfl
 @[simp]

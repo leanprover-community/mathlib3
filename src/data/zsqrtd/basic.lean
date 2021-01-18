@@ -610,9 +610,8 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
     map_add' := λ a b, by { simp, ring, },
     map_one' := by simp,
     map_mul' := λ a b, by {
-      have : (↑a.re + ↑a.im * r : R) * (↑b.re + ↑b.im * r) =
-              ↑a.re * ↑b.re + (↑a.re * ↑b.im + ↑a.im * ↑b.re) * r
-                            + ↑a.im * ↑b.im * (r * r) := by ring,
+      have : (a.re + a.im * r : R) * (b.re + b.im * r) =
+              a.re * b.re + (a.re * b.im + a.im * b.re) * r + a.im * b.im * (r * r) := by ring,
       simp [this, r.prop],
       ring, } },
   inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, ring_hom.map_int_cast]⟩,

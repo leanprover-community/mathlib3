@@ -88,6 +88,10 @@ begin
   simp [fin.eq_iff_veq, bit1, bit0, fin.add_def, ←h', ←h]
 end
 
+lemma fin.prove_lt (n a b : ℕ) (ha : a < n) (hb : b < n) (h : a < b) :
+  (⟨a, ha⟩ : fin n) < ⟨b, hb⟩ :=
+fin.lt_iff_coe_lt_coe.mpr h
+
 section
 local attribute [semireducible] reflected
 meta instance {n : ℕ} : has_reflect (fin (n + 1)) := fin.reflect
@@ -141,6 +145,35 @@ protected meta def of_fin {n : ℕ} (c : instance_cache) :
   fin (n + 1) → tactic (instance_cache × expr)
 | ⟨k, hk⟩ := c.of_nat k
 
+open norm_num
+
+/-- Given `a`,`b` `fin n` numerals, proves `⊢ a < b`. -/
+meta def prove_lt_fin (ic : instance_cache) : expr → expr → tactic (instance_cache × expr)
+| a b := do
+  `(fin %%en) ← pure ic.α,
+  nty ← en.to_nat,
+  en ← pure `(nty),
+  na ← expr.eval_fin nty a,
+  nb ← expr.eval_fin nty b,
+  nic ← mk_instance_cache `(ℕ),
+  (_, ena) ← nic.of_nat na,
+  (_, pna) ← prove_lt_nat nic ena en,
+  (_, enb) ← nic.of_nat nb,
+  (_, pnb) ← prove_lt_nat nic enb en,
+  (_, pnlt) ← prove_lt_nat nic ena enb,
+  p ← to_expr ``(fin.prove_lt %%en %%ena %%enb %%pna %%pnb %%pnlt),
+  pure (ic, p)
+
+/-- Given `a`,`b` `fin n` numerals, proves `⊢ a ≠ b`. -/
+meta def prove_ne_fin (ic : instance_cache) (a b : expr) (na nb : ℚ) :
+  tactic (instance_cache × expr) :=
+if na < nb then do
+  (ic, p) ← prove_lt_fin ic a b,
+  ic.mk_app ``ne_of_lt [a, b, p]
+else do
+  (ic, p) ← prove_lt_fin ic b a,
+  ic.mk_app ``ne_of_gt [a, b, p]
+
 end instance_cache
 end tactic
 
@@ -149,43 +182,6 @@ open tactic expr
 open norm_num
 
 namespace norm_fin
-
-lemma fin.prove_succ (m n k l : ℕ) (hl : l < n) (hk : k < m) (h : m = n + 1) (h' : k = l + 1) :
-  fin.succ (⟨l, hl⟩ : fin n) = (⟨k, hk⟩ : fin m) :=
-begin
-  cases n,
-  { exact absurd hl (not_lt_of_le l.zero_le) },
-  subst h,
-  subst h',
-  simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hk],
-end
-
-lemma fin.prove_cast_succ (m n l : ℕ) (hl : l < n) (hl' : l < m) (h : m = n + 1) :
-  fin.cast_succ (⟨l, hl⟩ : fin n) = (⟨l, hl'⟩ : fin m) :=
-begin
-  cases n,
-  { exact absurd hl (not_lt_of_le l.zero_le) },
-  subst h,
-  simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hl'],
-end
-
-lemma fin.prove_mod_bit0 (n k l m : ℕ) (hk : k < n) (hl : l < n)
-  (h : l + l = m) (h' : m % n = k) :
-  (bit0 ⟨l, hl⟩ : fin n) = (⟨k, hk⟩ : fin n) :=
-begin
-  cases n,
-  { exact absurd hl (not_lt_of_le l.zero_le) },
-  simp [fin.eq_iff_veq, bit0, fin.add_def, ←h', ←h]
-end
-
-lemma fin.prove_mod_bit1 (n k l m : ℕ) (hk : k < (n + 1)) (hl : l < (n + 1))
-  (h : l + l + 1 = m) (h' : m % (n + 1) = k) :
-  (bit1 ⟨l, hl⟩ : fin (n + 1)) = (⟨k, hk⟩ : fin (n + 1)) :=
-begin
-  cases n,
-  { simp },
-  simp [fin.eq_iff_veq, bit1, bit0, fin.add_def, ←h', ←h]
-end
 
 /--
 A `norm_num` plugin for normalizing `(k : fin n)` where `k` is numeral.

@@ -111,31 +111,6 @@ begin
   exact le_of_all_pow_lt_succ x y hx hy' h
 end
 
-/--
-  Linear lower bound on the growth of (1 + ε)^n.
-  TODO: put something like this into mathlib proper.
--/
-lemma power_bound {R: Type} [linear_ordered_comm_ring R]
-     (n: ℕ) (ε:R) (ha: 0 < ε) : 1 + (n:R) * ε ≤ (1 + ε)^n :=
-begin
-  induction n with pn hpn,
-  { simp only [add_zero, nat.cast_zero, zero_mul, pow_zero] },
-
-  have h_pn_mul_eps: 0 ≤ (pn:R) * ε := (zero_le_mul_right ha).mpr (nat.cast_nonneg pn),
-  have hpp := calc 1 ≤ 1 + (pn:R) * ε : le_add_of_nonneg_right h_pn_mul_eps
-                ...  ≤ (1 + ε)^pn     : hpn,
-  have hppe : ε ≤ ε * (1+ ε)^pn := (le_mul_iff_one_le_right ha).mpr hpp,
-
-  calc 1 + ↑(pn.succ) * ε
-      = 1 + (↑pn * ε + 1 * ε)         : by simp only [one_mul, nat.cast_succ, add_right_inj]; ring
-  ... = (1 + ↑pn * ε) + 1 * ε         : (add_assoc 1 (↑pn * ε) (1 * ε)).symm
-  ... = (1 + ↑pn * ε) + ε             : by rw one_mul
-  ... ≤ (1 + ε) ^ pn + ε              : add_le_add_right hpn ε
-  ... ≤ (1 + ε) ^ pn + ε * (1 + ε)^pn : add_le_add_left hppe ((1 + ε) ^ pn)
-  ... = (1 + ε) * (1 + ε) ^ pn        : by ring
-  ... = (1 + ε) ^ (pn.succ)           : (pow_succ (1+ε) pn).symm,
-end
-
 lemma twice_pos_int_gt_one (z: ℤ) (hpos: 0 < z) : (1:ℚ) < (((2 * z):ℤ):ℚ) :=
 by { norm_cast, linarith }
 
@@ -305,9 +280,9 @@ begin
     have hbound: (∀m:ℕ, 1 + (m:ℚ) * (a - 1) ≤ a^m),
     {
       intros m,
-      have haa: (1 + (a - 1)) = a := by ring,
-      have := power_bound m (a - 1) (sub_pos.mpr ha1),
-      rwa haa at this,
+      have ha: -1 ≤ a := by linarith,
+      have := one_add_sub_mul_le_pow ha m,
+      rwa [nsmul_eq_mul] at this,
     },
 
     -- Choose n greater than x / (a - 1).

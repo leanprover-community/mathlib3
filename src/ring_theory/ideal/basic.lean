@@ -84,6 +84,16 @@ theorem eq_top_iff_one : I = ⊤ ↔ (1:α) ∈ I :=
 theorem ne_top_iff_one : I ≠ ⊤ ↔ (1:α) ∉ I :=
 not_congr I.eq_top_iff_one
 
+lemma exists_mem_ne_zero_iff_ne_bot : (∃ p ∈ I, p ≠ (0 : α)) ↔ I ≠ ⊥ :=
+begin
+  refine ⟨λ h, let ⟨p, hp, hp0⟩ := h in λ h, absurd (h ▸ hp : p ∈ (⊥ : ideal α)) hp0,  λ h, _⟩,
+  contrapose! h,
+  exact eq_bot_iff.2 (λ x hx, (h x hx).symm ▸ (ideal.zero_mem ⊥)),
+end
+
+lemma exists_mem_ne_zero_of_ne_bot (hI : I ≠ ⊥) : ∃ p ∈ I, p ≠ (0 : α) :=
+(exists_mem_ne_zero_iff_ne_bot I).mpr hI
+
 @[simp]
 theorem unit_mul_mem_iff_mem {x y : α} (hy : is_unit y) : y * x ∈ I ↔ x ∈ I :=
 begin
@@ -412,6 +422,13 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
 
 @[simp] lemma lift_mk (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0) :
   lift S f H (mk S a) = f a := rfl
+
+@[simp] lemma lift_comp_mk (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0) :
+  (lift S f H).comp (mk S) = f := ring_hom.ext (λ _, rfl)
+
+lemma lift_surjective (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0)
+  (hf : function.surjective f) : function.surjective (lift S f H) :=
+λ x, let ⟨y, hy⟩ := hf x in ⟨(quotient.mk S) y, by simpa⟩
 
 end quotient
 

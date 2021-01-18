@@ -285,19 +285,8 @@ has_fderiv_at_filter_iff_tendsto
 theorem has_fderiv_at_iff_is_o_nhds_zero : has_fderiv_at f f' x ↔
   is_o (λh, f (x + h) - f x - f' h) (λh, h) (𝓝 0) :=
 begin
-  split,
-  { assume H,
-    have : tendsto (λ (z : E), z + x) (𝓝 0) (𝓝 (0 + x)),
-      from tendsto_id.add tendsto_const_nhds,
-    rw [zero_add] at this,
-    refine (H.comp_tendsto this).congr _ _;
-      intro z; simp only [function.comp, add_sub_cancel', add_comm z] },
-  { assume H,
-    have : tendsto (λ (z : E), z - x) (𝓝 x) (𝓝 (x - x)),
-      from tendsto_id.sub tendsto_const_nhds,
-    rw [sub_self] at this,
-    refine (H.comp_tendsto this).congr _ _;
-      intro z; simp only [function.comp, add_sub_cancel'_right] }
+  rw [has_fderiv_at, has_fderiv_at_filter, ← map_add_left_nhds_zero x, is_o_map],
+  simp [(∘)]
 end
 
 /-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
@@ -305,28 +294,14 @@ on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by
 lemma has_fderiv_at.le_of_lip {f : E → F} {f' : E →L[𝕜] F} {x₀ : E} (hf : has_fderiv_at f f' x₀)
   {s : set E} (hs : s ∈ 𝓝 x₀) {C : ℝ≥0} (hlip : lipschitz_on_with C f s) : ∥f'∥ ≤ C :=
 begin
-  replace hf : ∀ ε > 0, ∃ δ > 0, ∀ x',
-    ∥x' - x₀∥ < δ → ∥x' - x₀∥⁻¹ * ∥f x' - f x₀ - f' (x' - x₀)∥ < ε,
-    by simpa [has_fderiv_at_iff_tendsto, normed_group.tendsto_nhds_nhds] using hf,
-  obtain ⟨ε, ε_pos, hε⟩ : ∃ ε > 0, ball x₀ ε ⊆ s := mem_nhds_iff.mp hs,
-  apply real.le_of_forall_epsilon_le,
-  intros η η_pos,
-  rcases hf η η_pos with ⟨δ, δ_pos, h⟩, clear hf,
-  apply op_norm_le_of_ball (lt_min ε_pos δ_pos) (by linarith [C.coe_nonneg]: (0 : ℝ) ≤ C + η),
-  intros u u_in,
-  let x := x₀ + u,
-  rw show u = x - x₀, by rw [add_sub_cancel'],
-  have xε : x ∈ ball x₀ ε,
-    by simpa [dist_eq_norm] using ball_subset_ball (min_le_left ε δ) u_in,
-  have xδ : ∥x - x₀∥ < δ,
-    by simpa [dist_eq_norm] using ball_subset_ball (min_le_right ε δ) u_in,
-  replace h : ∥f x - f x₀ - f' (x - x₀)∥ ≤ η*∥x - x₀∥,
-  { by_cases H : x - x₀ = 0,
-    { simp [eq_of_sub_eq_zero H] },
-    { exact (inv_mul_le_iff' $ norm_pos_iff.mpr H).mp (le_of_lt $ h x xδ) } },
-  have := hlip.norm_sub_le (hε xε) (hε $ mem_ball_self ε_pos),
-  calc ∥f' (x - x₀)∥ ≤ ∥f x - f x₀∥ + ∥f x - f x₀ - f' (x - x₀)∥ : norm_le_insert _ _
-  ... ≤ (C + η) * ∥x - x₀∥ : by linarith,
+  refine le_of_forall_pos_le_add (λ ε ε0, op_norm_le_of_nhds_zero _ _),
+  exact add_nonneg C.coe_nonneg ε0.le,
+  have hs' := hs, rw [← map_add_left_nhds_zero x₀, mem_map] at hs',
+  filter_upwards [is_o_iff.1 (has_fderiv_at_iff_is_o_nhds_zero.1 hf) ε0, hs'], intros y hy hys,
+  have := hlip.norm_sub_le hys (mem_of_nhds hs), rw add_sub_cancel' at this,
+  calc ∥f' y∥ ≤ ∥f (x₀ + y) - f x₀∥ + ∥f (x₀ + y) - f x₀ - f' y∥ : norm_le_insert _ _
+          ... ≤ C * ∥y∥ + ε * ∥y∥                                : add_le_add this hy
+          ... = (C + ε) * ∥y∥                                    : (add_mul _ _ _).symm
 end
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :

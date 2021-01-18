@@ -1203,7 +1203,7 @@ end normed_space
 namespace measure_theory
 namespace measure
 
-variables [topological_space α]
+variables [topological_space α] {μ : measure α}
 
 /-- A measure `μ` is regular if
   - it is finite on all compact sets;
@@ -1218,16 +1218,20 @@ structure regular (μ : measure α) : Prop :=
 
 namespace regular
 
-lemma outer_regular_eq {μ : measure α} (hμ : μ.regular) {{A : set α}}
+lemma outer_regular_eq (hμ : μ.regular) {{A : set α}}
   (hA : is_measurable A) : (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) = μ A :=
 le_antisymm (hμ.outer_regular hA) $ le_infi $ λ s, le_infi $ λ hs, le_infi $ λ h2s, μ.mono h2s
 
-lemma inner_regular_eq {μ : measure α} (hμ : μ.regular) {{U : set α}}
+lemma inner_regular_eq (hμ : μ.regular) {{U : set α}}
   (hU : is_open U) : (⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), μ K) = μ U :=
 le_antisymm (supr_le $ λ s, supr_le $ λ hs, supr_le $ λ h2s, μ.mono h2s) (hμ.inner_regular hU)
 
+lemma exists_compact_not_null (hμ : regular μ) : (∃ K, is_compact K ∧ μ K ≠ 0) ↔ μ ≠ 0 :=
+by simp_rw [ne.def, ← measure_univ_eq_zero, ← hμ.inner_regular_eq is_open_univ,
+    ennreal.supr_eq_zero, not_forall, exists_prop, subset_univ, true_and]
+
 protected lemma map [opens_measurable_space α] [measurable_space β] [topological_space β]
-  [t2_space β] [borel_space β] {μ : measure α} (hμ : μ.regular) (f : α ≃ₜ β) :
+  [t2_space β] [borel_space β] (hμ : μ.regular) (f : α ≃ₜ β) :
   (measure.map f μ).regular :=
 begin
   have hf := f.continuous.measurable,
@@ -1249,7 +1253,7 @@ begin
     rw [map_apply hf hK.is_measurable] }
 end
 
-protected lemma smul {μ : measure α} (hμ : μ.regular) {x : ennreal} (hx : x < ⊤) :
+protected lemma smul (hμ : μ.regular) {x : ennreal} (hx : x < ⊤) :
   (x • μ).regular :=
 begin
   split,
@@ -1263,6 +1267,15 @@ begin
     simp only [supr_and'], simp only [supr_subtype'],
     rw [ennreal.mul_supr], refl' }
 end
+
+/-- A regular measure in a σ-compact space is σ-finite. -/
+protected lemma sigma_finite [opens_measurable_space α] [t2_space α] [sigma_compact_space α]
+  (hμ : regular μ) : sigma_finite μ :=
+⟨{ set := compact_covering α,
+  set_mem := λ n, (is_compact_compact_covering α n).is_measurable,
+  finite := λ n, hμ.lt_top_of_is_compact $ is_compact_compact_covering α n,
+  spanning := Union_compact_covering α }⟩
+
 
 end regular
 

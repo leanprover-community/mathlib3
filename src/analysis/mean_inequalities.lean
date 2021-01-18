@@ -538,7 +538,7 @@ theorem young_inequality (a b : ennreal) {p q : ℝ} (hpq : p.is_conjugate_expon
 begin
   by_cases h : a = ⊤ ∨ b = ⊤,
   { refine le_trans le_top (le_of_eq _),
-    repeat {rw ennreal.div_def},
+    repeat { rw div_eq_mul_inv },
     cases h; rw h; simp [h, hpq.pos, hpq.symm.pos], },
   push_neg at h, -- if a ≠ ⊤ and b ≠ ⊤, use the nnreal version: nnreal.young_inequality_real
   rw [←coe_to_nnreal h.left, ←coe_to_nnreal h.right, ←coe_mul,
@@ -632,11 +632,11 @@ begin
     lintegral_mono (λ a, young_inequality (f a) (g a) hpq)
   ... = 1 :
   begin
-    simp_rw [div_def],
+    simp only [div_eq_mul_inv],
     rw lintegral_add',
     { rw [lintegral_mul_const'' _ hf.ennreal_rpow_const,
-        lintegral_mul_const'' _ hg.ennreal_rpow_const, hf_norm, hg_norm, ← ennreal.div_def,
-        ← ennreal.div_def, hpq.inv_add_inv_conj_ennreal], },
+        lintegral_mul_const'' _ hg.ennreal_rpow_const, hf_norm, hg_norm, ← div_eq_mul_inv,
+        ← div_eq_mul_inv, hpq.inv_add_inv_conj_ennreal], },
     { exact hf.ennreal_rpow_const.ennreal_mul ae_measurable_const, },
     { exact hg.ennreal_rpow_const.ennreal_mul ae_measurable_const, },
   end
@@ -776,7 +776,7 @@ begin
       exact ennreal.rpow_lt_rpow (by simp [zero_lt_one]) hp0_lt, },
     have h_rw : (1 / 2) ^ p * (2:ennreal) ^ (p - 1) = 1 / 2,
     { rw [sub_eq_add_neg, ennreal.rpow_add _ _ ennreal.two_ne_zero ennreal.coe_ne_top,
-        ←mul_assoc, ←ennreal.mul_rpow_of_nonneg _ _ hp0, ennreal.div_def, one_mul,
+        ←mul_assoc, ←ennreal.mul_rpow_of_nonneg _ _ hp0, one_div,
         ennreal.inv_mul_cancel ennreal.two_ne_zero ennreal.coe_ne_top, ennreal.one_rpow,
         one_mul, ennreal.rpow_neg_one], },
     rw ←ennreal.mul_le_mul_left (ne_of_lt h_zero_lt_half_rpow).symm _,
@@ -787,7 +787,7 @@ begin
         ennreal.div_self ennreal.two_ne_zero ennreal.coe_ne_top], },
     { rw ←ennreal.lt_top_iff_ne_top,
       refine ennreal.rpow_lt_top_of_nonneg hp0 _,
-      rw [ennreal.div_def, one_mul, ennreal.inv_ne_top],
+      rw [one_div, ennreal.inv_ne_top],
       exact ennreal.two_ne_zero, },
   end
   ... < ⊤ :

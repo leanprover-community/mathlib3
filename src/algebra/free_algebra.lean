@@ -326,6 +326,14 @@ equiv_monoid_algebra_free_monoid.to_equiv.nontrivial
 section
 open_locale classical
 
+/-- The left-inverse of `algebra_map`. -/
+def algebra_map_inv : free_algebra R X →ₐ[R] R :=
+lift R (0 : X → R)
+
+lemma algebra_map_left_inverse :
+  function.left_inverse algebra_map_inv (algebra_map R $ free_algebra R X) :=
+λ x, by simp [algebra_map_inv]
+
 -- this proof is copied from the approach in `free_abelian_group.of_injective`
 lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebra R X) :=
 λ x y hoxy, classical.by_contradiction $ assume hxy : x ≠ y,

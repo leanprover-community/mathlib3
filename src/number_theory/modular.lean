@@ -413,10 +413,18 @@ end
 instance : mul_action (special_linear_group (fin 2) ℝ) H :=
 { smul := λ g, λ z, ⟨smul_aux g z, GactsHtoH g z.2 ⟩ ,
   one_smul := λ z, by {apply subtype.ext, simp [smul_aux, top, bottom]},
-  mul_smul := _ -- λ g1, (λ g2, (λ z, by GactGpactH g1 g2 z)),
-  -- ALEX
-  }
+  mul_smul := λ g1 g2 z, by simpa using GactGpactH g1 g2 z.property }
 
+def fundamental_domain : set ℂ :=
+{ z | 1 ≤ (complex.norm_sq z) ∧ (-1:ℝ) / 2 ≤ (complex.re z) ∧ (complex.re z) ≤ (1 :ℝ)/ 2 }
+
+def D : set ℂ := fundamental_domain
+
+lemma is_fundom {z : ℂ} (hz : z ∈ H) : ∃ g : special_linear_group (fin 2) ℝ,  (g • z) ∈ D :=
+begin
+
+  sorry
+end
 
 -- define fundamental domain
 -- open region, g.z=w -> g=1
@@ -448,7 +456,6 @@ instance : mul_action (special_linear_group (fin 2) ℝ) H :=
   sum _{(c,d)∈ Z^2\ {0,0}}  ( 1/(cz+d)^k -  1/(cw+d)^k)
 
 -/
-
 
 /- define Ramanujan delta
 

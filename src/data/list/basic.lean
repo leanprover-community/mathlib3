@@ -2690,23 +2690,21 @@ lemma nth_pmap {p : α → Prop} (f : Π a, p a → β) {l : list α} (h : ∀ a
   nth (pmap f l h) n = option.pmap f (nth l n) (λ x H, h x (nth_mem H)) :=
 begin
   induction l with hd tl hl generalizing n,
-  { simp only [nth, pmap, option.pmap_none] },
-  { cases n,
-    { simp only [nth, pmap, option.pmap] },
-    { simp only [hl, nth, pmap] } }
+  { simp },
+  { cases n; simp [hl] }
 end
 
 lemma nth_le_pmap {p : α → Prop} (f : Π a, p a → β) {l : list α} (h : ∀ a ∈ l, p a) {n : ℕ}
-  (hn : n < (pmap f l h).length):
-  nth_le (pmap f l h) n hn =
-    f (nth_le l n (@length_pmap _ _ p f l h ▸ hn)) (h _ (nth_le_mem l n (@length_pmap _ _ p f l h ▸ hn))) :=
+  (hn : n < (pmap f l h).length) :
+  nth_le (pmap f l h) n hn = f (nth_le l n (@length_pmap _ _ p f l h ▸ hn))
+    (h _ (nth_le_mem l n (@length_pmap _ _ p f l h ▸ hn))) :=
 begin
   induction l with hd tl hl generalizing n,
   { simp only [length, pmap] at hn,
     exact absurd hn (not_lt_of_le n.zero_le) },
   { cases n,
-    { simp only [pmap, nth_le] },
-    { simpa only [hl, pmap, nth_le] } }
+    { simp },
+    { simpa [hl] } }
 end
 
 /-! ### find -/

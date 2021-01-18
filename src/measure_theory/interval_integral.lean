@@ -770,7 +770,7 @@ begin
   refine
     ((measure_integral_sub_linear_is_o_of_tendsto_ae hmeas_a ha_lim hua hva).neg_left.add_add
     (measure_integral_sub_linear_is_o_of_tendsto_ae hmeas_b hb_lim hub hvb)).congr'
-      _ (eventually_eq.refl _ _),
+      _ eventually_eq.rfl,
   have A : ∀ᶠ t in lt, interval_integrable f μ (ua t) (va t) :=
     ha_lim.eventually_interval_integrable_ae hmeas_a (FTC_filter.finite_at_inner la) hua hva,
   have A' : ∀ᶠ t in lt, interval_integrable f μ a (ua t) :=

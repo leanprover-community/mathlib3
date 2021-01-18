@@ -574,6 +574,8 @@ instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) : lie_algebra R L'
 
 namespace lie_subalgebra
 
+variables {R L}
+
 @[simp] lemma zero_mem {L' : lie_subalgebra R L} : (0 : L) ∈ L' := (L' : submodule R L).zero_mem
 
 @[simp] lemma mem_coe {L' : lie_subalgebra R L} {x : L} :
@@ -590,18 +592,24 @@ namespace lie_subalgebra
 by { cases L₁', cases L₂', simp only [], ext x, exact h x, }
 
 lemma ext_iff (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x ∈ L₁' ↔ x ∈ L₂' :=
-⟨λ h x, by rw h, ext R L L₁' L₂'⟩
+⟨λ h x, by rw h, ext L₁' L₂'⟩
 
 @[simp] lemma mk_coe (S : set L) (h₁ h₂ h₃ h₄) :
   ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_subalgebra R L) : set L) = S := rfl
 
-@[simp, norm_cast] theorem coe_set_eq_iff (L₁' L₂' : lie_subalgebra R L) :
-  (L₁' : set L) = L₂' ↔ L₁' = L₂' :=
-by { cases L₁'; cases L₂'; simp, }
+lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
+λ L₁' L₂' h, by cases L₁'; cases L₂'; congr'
 
-@[simp] lemma coe_to_submodule_eq_iff (L₁' L₂' : lie_subalgebra R L) :
+@[simp, norm_cast] theorem coe_set_eq (L₁' L₂' : lie_subalgebra R L) :
+  (L₁' : set L) = L₂' ↔ L₁' = L₂' := coe_injective.eq_iff
+
+lemma to_submodule_injective :
+  function.injective (coe : lie_subalgebra R L → submodule R L) :=
+λ L₁' L₂' h, by { rw submodule.ext'_iff at h, rw ← coe_set_eq, exact h, }
+
+@[simp] lemma coe_to_submodule_eq (L₁' L₂' : lie_subalgebra R L) :
   (L₁' : submodule R L) = (L₂' : submodule R L) ↔ L₁' = L₂' :=
-by { rw [← coe_set_eq_iff, submodule.ext'_iff], exact iff.rfl, }
+to_submodule_injective.eq_iff
 
 end lie_subalgebra
 
@@ -639,7 +647,7 @@ def lie_algebra.morphism.range : lie_subalgebra R L₂ :=
 linear_map.range_coe ↑f
 
 @[simp] lemma lie_subalgebra.range_incl (L' : lie_subalgebra R L) : L'.incl.range = L' :=
-by { rw ← lie_subalgebra.coe_to_submodule_eq_iff, exact (L' : submodule R L).range_subtype, }
+by { rw ← lie_subalgebra.coe_to_submodule_eq, exact (L' : submodule R L).range_subtype, }
 
 /-- The image of a Lie subalgebra under a Lie algebra morphism is a Lie subalgebra of the
 codomain. -/
@@ -1370,11 +1378,12 @@ by { rw map_le_iff_le_comap, apply le_refl _, }
 lemma comap_map_le : I ≤ comap f (map f I) :=
 by { rw ← map_le_iff_le_comap, apply le_refl _, }
 
-lemma map_mono {I₁ I₂ : lie_ideal R L} (h : I₁ ≤ I₂) : map f I₁ ≤ map f I₂ :=
+@[mono] lemma map_mono : monotone (map f) :=
+λ I₁ I₂ h,
 by { rw lie_submodule.le_def at h, apply lie_submodule.lie_span_mono (set.image_subset ⇑f h), }
 
-lemma comap_mono {J₁ J₂ : lie_ideal R L'} (h : J₁ ≤ J₂) : comap f J₁ ≤ comap f J₂ :=
-by { rw lie_submodule.le_def at h ⊢, exact set.preimage_mono h, }
+@[mono] lemma comap_mono : monotone (comap f) :=
+λ J₁ J₂ h, by { rw lie_submodule.le_def at h ⊢, exact set.preimage_mono h, }
 
 lemma map_of_image (h : f '' I = J) : I.map f = J :=
 begin

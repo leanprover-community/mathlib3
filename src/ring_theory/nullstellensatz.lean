@@ -33,7 +33,7 @@ variables {σ : Type*} [fintype σ]
 def zero_locus (I : ideal (mv_polynomial σ k)) : set (σ → k) :=
   {x : σ → k | ∀ p ∈ I, eval x p = 0}
 
-lemma zero_locus_anti_mono (I J : ideal (mv_polynomial σ k)) (h : I ≤ J) :
+lemma zero_locus_anti_mono {I J : ideal (mv_polynomial σ k)} (h : I ≤ J) :
   zero_locus J ≤ zero_locus I :=
 λ x hx p hp, hx p $ h hp
 
@@ -62,6 +62,16 @@ le_antisymm le_top (λ p hp x hx, absurd hx (set.not_mem_empty x))
 lemma le_vanishing_ideal_zero_locus (I : ideal (mv_polynomial σ k)) :
   I ≤ vanishing_ideal (zero_locus I) :=
 λ p hp x hx, hx p hp
+
+lemma zero_locus_vanishing_ideal_le (A : set (σ → k)) :
+  A ≤ zero_locus (vanishing_ideal A) :=
+λ A hA p hp, hp A hA
+
+def zero_locus_vanishing_ideal_galois_connection :
+  @galois_connection (ideal (mv_polynomial σ k)) (order_dual (set (σ → k))) _ _
+    zero_locus vanishing_ideal :=
+λ I A, ⟨λ h, le_trans (le_vanishing_ideal_zero_locus I) (vanishing_ideal_anti_mono h),
+  λ h, le_trans (zero_locus_anti_mono h) (zero_locus_vanishing_ideal_le A)⟩
 
 lemma mem_vanishing_ideal_singleton_iff (x : σ → k) (p : mv_polynomial σ k) :
   p ∈ (vanishing_ideal {x} : ideal (mv_polynomial σ k)) ↔ (eval x p = 0) :=

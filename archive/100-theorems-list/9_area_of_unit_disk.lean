@@ -99,10 +99,10 @@ variables {β E F : Type*} [measurable_space E] [normed_group E] {f : ℝ → E}
 -- Note: Measurability assumption will drop when we merge master
 theorem integral_eq_sub_of_has_deriv_at'' (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_at f (f' x) x)
-  (hcont' : continuous_on f' (interval a b)) (hmeas' : ae_measurable f') :
+  (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
 begin
-  refine integral_eq_sub_of_has_deriv_right hcont _ hcont' hmeas',
+  refine integral_eq_sub_of_has_deriv_right hcont _ hcont',
   intros y hy',
   obtain (hy | hy) : y ∈ Ioo (min a b) (max a b) ∨ min a b = y ∧ y < max a b :=
     by simpa only [le_iff_lt_or_eq, or_and_distrib_right, mem_Ioo, mem_Ico] using hy',
@@ -123,7 +123,6 @@ theorem integral_eq_sub_of_has_deriv_at'_of_le (hab : a ≤ b)
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
 integral_eq_sub_of_has_deriv_at'' hcont (by rwa [min_eq_left hab, max_eq_right hab]) hcont'
-  (by sorry) -- ← ← WILL DROP WHEN WE MERGE MASTER
 
 
 -- **The Grand Finale!!**
@@ -237,3 +236,6 @@ begin
       exact (hc2.integrable_on_compact compact_Icc).indicator is_measurable_Icc } },
   { apply_instance },
 end
+
+
+-- **Area Under the Curve**

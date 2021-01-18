@@ -29,8 +29,13 @@ and import that file in turn, in `ring_theory.polynomial.chebyshev.basic`.
 
 ## TODO
 
-Add basic properties of Chebyshev polynomials of the second kind in
-`ring_theory.polynomial.chebyshev.basic`.
+* Add explicit formula involving square roots for chebyshev polynomials
+  `ring_theory.polynomial.chebyshev.basic`.
+* compute zeroes and extrema of chebyshev polynomials
+* define a variant of chebyshev polynomials of the second kind removing the 2
+  (sometimes called Dickson polynomials of the second kind)
+* prove that the adjacency matrices of simply laced Dynkin diagrams are precisely the matrix zeroes
+  of these polynomials
 -/
 
 

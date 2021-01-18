@@ -2,6 +2,51 @@ import linear_algebra.special_linear_group
 import data.complex.basic
 import group_theory.group_action.defs
 
+namespace tactic.interactive
+
+meta def show_nonzero := `[
+  apply_rules [
+    mul_ne_zero,
+    sub_ne_zero_of_ne,
+    pow_ne_zero,
+    ne_of_gt,
+    ne_of_lt,
+    bottomNonZ
+    ] 10,
+  all_goals {try {norm_cast}, try {norm_num}}
+]
+
+meta def show_pos := `[
+  apply_rules [
+    nat.succ_pos,
+    mul_pos,
+    div_pos,
+    inv_pos.mpr,
+    pow_pos
+    ] 10,
+  all_goals {try {norm_cast}, try {norm_num}, try {nlinarith}}
+]
+
+
+meta def clear_denoms := `[
+  try {rw div_eq_div_iff},
+  try {rw eq_div_iff},
+  try {symmetry, rw eq_div_iff},
+  try { ring_exp },
+  all_goals {show_nonzero}
+]
+
+meta def discrete_field := `[
+  try {ext},
+  try {field_simp *},
+  try {clear_denoms},
+  try {ring_exp},
+  try {norm_num},
+  try {linarith}
+]
+
+end tactic.interactive
+
 noncomputable theory
 
 open matrix
@@ -14,19 +59,19 @@ open_locale big_operators
 
 def H : set ℂ := {z | 0< z.im}
 
---def SL2R := special_linear_group (fin 2) ℝ
+--def SL2R := SL(2, ℝ)
 
+notation `SL(` n `,` R `)`:= special_linear_group (fin n) R
 
 def top : --SL2R --
-(special_linear_group (fin 2) ℝ)
- → ℂ → ℂ :=
+SL(2, ℝ)  → ℂ → ℂ :=
 λ g, λ z,
 (
   ((g : matrix (fin 2) (fin 2) ℝ) 0 0 ) * z + ((g : matrix (fin 2) (fin 2) ℝ) 0 1 )
 )
 
 def bottom : --SL2R --
-(special_linear_group (fin 2) ℝ)
+SL(2, ℝ)
  → ℂ → ℂ :=
 λ g, λ z,
 (
@@ -35,8 +80,7 @@ def bottom : --SL2R --
 --λ g, λ z, ((special_linear_group.coe_matrix g) 0 0 )
 
 def smul_aux : --SL2R --
-(special_linear_group (fin 2) ℝ)
- → ℂ → ℂ :=
+SL(2, ℝ) → ℂ → ℂ :=
 λ g, λ z,
 (top g z)/(bottom g z)
 
@@ -54,85 +98,11 @@ begin
     exact this },
 end
 
-
-lemma det2 (g: matrix (fin 2) (fin 2) ℝ) :
-g.det = (g 0 0 )*(g 1 1)-
-(g 1 0 ) * (g  0 1 )
-:=
-begin
-
-  refine (finset.sum_eq_single 1 _ _).trans _,
+lemma det2 {F : Type*} [comm_ring F] (g: matrix (fin 2) (fin 2) F) :
+g.det = (g 0 0 )*(g 1 1)- (g 1 0 ) * (g  0 1 ) := sorry
 
 
-  simp only [det],
-
-
---  rw finset.prod_sum,
-  --rw det,
-
-  let s : finset (fin 2) := {(1 : fin 2) }ᶜ,
-
-  have univIs : finset.univ = insert (1: fin 2) s,
-  {
-    ext x,
-    simp,
-    cases split_fin2 x,
-    rw h,
-    simp,
-    rw h,
-    simp,
-    -- ALEX HOMEWORK
-  },
-
-
-  have eachPerm : ∀ (σ : equiv.perm (fin 2)),
-  ∏ i in finset.univ, g (σ i) i = g (σ 1) 1 * ∏ i in  s , g (σ i) i,
-  {
-    intros,
-    rw univIs,
-    refine finset.prod_insert _,
-    simp [s],
-  },
-
---  rw sum_add_distrib
-
-/-
-  rw this,
-
-  have sIs : s = {(0 : fin 2)},
-  {
-    simp [s],
-    ext x,
-    simp,
-    cases split_fin2 x,
-    rw h,
-    simp,
-    rw h,
-    simp,
-    -- ALEX HOMEWORK
---    rw eq_zero_of_ne_one,
-  },
-
-  rw sIs,
-
-  rw finset.prod_singleton,
-  ring,
-
--/
-
-
---  library_search,
---  rw det,
-  sorry,
-end
-/-
-lemma junk (z: ℂ ) : (complex.norm_sq z :ℂ ) = z * (complex.conj z) :=
-begin
-  exact (complex.mul_conj z).symm,
-end
--/
-
-lemma ImOfGaction (g : special_linear_group (fin 2) ℝ) (z: ℂ) :
+lemma ImOfGaction (g : SL(2, ℝ)) (z: ℂ) :
 (smul_aux g z).im = z.im / (complex.norm_sq (bottom g z)) :=
 begin
   by_cases bot_zero : bottom g z = 0,
@@ -184,7 +154,7 @@ begin
   exact complex.zero_im,
 end
 
-lemma bottomRowNonZ (g : special_linear_group (fin 2) ℝ) :
+lemma bottomRowNonZ (g : SL(2, ℝ)) :
 g.val 1 0 = 0 → g.val 1 1 = 0 → false :=
 begin
   intros h1 h2,
@@ -196,7 +166,7 @@ begin
 end
 
 
-lemma czPd_nonZ (z:ℂ ) (g : special_linear_group (fin 2) ℝ) :
+lemma czPd_nonZ (z:ℂ ) (g : SL(2, ℝ)) :
 bottom g z = 0 → z.im = 0 :=
 begin
   intros h,
@@ -214,7 +184,7 @@ begin
   exact hIm,
 end
 
-lemma czPd_nonZ_CP (z:ℂ ) (g : special_linear_group (fin 2) ℝ) :
+lemma czPd_nonZ_CP (z:ℂ ) (g : SL(2, ℝ)) :
  z.im ≠  0 →  bottom g z ≠  0 :=
 begin
   intros h1,
@@ -224,9 +194,7 @@ begin
   exact h1 h2,
 end
 
-
-
-lemma bottomNonZ  (g : special_linear_group (fin 2) ℝ) {z:ℂ} (h : z ∈ H) :
+lemma bottomNonZ  (g : SL(2, ℝ)) {z:ℂ} (h : z ∈ H) :
   bottom g z ≠  0 :=
 begin
   have : z.im ≠ 0,
@@ -235,11 +203,10 @@ begin
     simp at h,
     linarith,
   },
-
   exact czPd_nonZ_CP z g this,
 end
 
-lemma im_nonZ_then_nonZ (z : ℂ  ) : z.im ≠ 0 → z≠ 0
+lemma im_nonZ_then_nonZ (z : ℂ) : z.im ≠ 0 → z≠ 0
 :=
 begin
   intros h,
@@ -263,13 +230,13 @@ begin
   exact (ne.symm h2).le_iff_lt.mp h1,
 end
 
-lemma GactsHtoH (g : special_linear_group (fin 2) ℝ) {z: ℂ} (hz : z ∈ H ) :
+lemma GactsHtoH (g : SL(2, ℝ)) {z : ℂ} (hz : z ∈ H):
 smul_aux g z ∈ H :=
 begin
   rw H,
   simp,
   rw ImOfGaction,
-  have imZpos : 0<z.im,
+  have imZpos : 0 < z.im,
   {
     refine hz,
   },
@@ -297,33 +264,7 @@ begin
     },
     exact (ne.symm norm2Z).le_iff_lt.mp norm2NonNeg,
   },
-  exact div_pos imZpos norm2Pos,
-/-
-  let czPd2 := bottom g z,
-
-  have : norm_sq (bottom g z) = norm_sq czPd2,
-  {
-    refl,
-  },
-  rw this,
-  clear this,
-
-  have : 0 <  norm_sq (czPd2),
-  {
-    rw complex.norm_sq_pos,
-    suffices : (czPd2).im ≠ 0,
-    refine im_nonZ_then_nonZ _ _,
-    exact this,
-    have : czPd2.im = (bottom g z).im,
-    { refl,},
-    rw this,
-    have zZero := czPd_nonZ_CP _ _ _,
-
-
-    sorry,
-  },
-  refine div_pos imZpos this,
--/
+  exact div_pos imZpos norm2Pos
 end
 
 --lemma OneActsHtoH  (z: ℂ) : smul_aux 1 z = z :=  by {rw [smul_aux, top, bottom], simp}
@@ -335,29 +276,37 @@ begin
   sorry,
 end
 
-lemma GactGpactH (x y : special_linear_group (fin 2) ℝ) {z: ℂ} (hz : z ∈ H ) :
+lemma GactGpactH (x y : SL(2, ℝ)) {z: ℂ} (hz : z ∈ H ) :
 smul_aux (x * y) z = smul_aux x (smul_aux y z) :=
 begin
-
   have bot1NonZ : bottom (x * y) z ≠ 0,
   {
-    refine bottomNonZ _ _,
-    exact hz,
+    show_nonzero,
+    --refine bottomNonZ _ _,
+    --exact hz,
   },
   have bot2NonZ : bottom y z ≠ 0,
   {
-    refine bottomNonZ _ _,
-    exact hz,
+    show_nonzero,
+    --refine bottomNonZ _ _,
+    --exact hz,
   },
+  have bot_x_prime_NonZ : bottom x (top y z / bottom y z) ≠ 0,
+  {
 
+    sorry
+  },
   rw smul_aux,
   simp,
+  field_simp,
 /-
   rw (_ : top (x * y) z
   =  bottom (x * y) z  * top x (top y z / bottom y z) / bottom x (top y z / bottom y z)),
 
   ring,
 -/
+  set B := bottom y z,
+  --set T := top y z,
   rw top,
   rw bottom,
   simp,
@@ -366,61 +315,43 @@ begin
   repeat {rw dot_product},
   simp,
   repeat {rw sumIs01},
-  --simp,
-  --field_simp,
-  --ring,
-  rw bottom at bot2NonZ,
-  simp at bot2NonZ,
-  rw bottom at bot1NonZ,
-  simp at bot1NonZ,
-  rw matrix.mul at bot1NonZ,
-  simp at bot1NonZ,
-  rw dot_product at bot1NonZ,
-  rw dot_product at bot1NonZ,
-  simp at bot1NonZ,
-  rw sumIs01 at bot1NonZ,
-  rw sumIs01 at bot1NonZ,
---  simp at bot1NonZ,
-/-
-= (↑(⇑x 0 0) * ((↑(⇑y 0 0) * z + ↑(⇑y 0 1)) / (↑(⇑y 1 0) * z + ↑(⇑y 1 1))) + ↑(⇑x 0 1)) / (↑(⇑x 1 0) * ((↑(⇑y 0 0) * z + ↑(⇑y 0 1)) / (↑(⇑y 1 0) * z + ↑(⇑y 1 1))) + ↑(⇑x 1 1))
-  (↑(⇑x 0 0) * ((↑(⇑y 0 0) * z + ↑(⇑y 0 1)) / (↑(⇑y 1 0) * z + ↑(⇑y 1 1))) + ↑(⇑x 0 1)) / (↑(⇑x 1 0) * ((↑(⇑y 0 0) * z + ↑(⇑y 0 1)) / (↑(⇑y 1 0) * z + ↑(⇑y 1 1))) + ↑(⇑x 1 1))
--/
-/-
-  rw (_ :
-  (((x 0 0 : ℂ ) * (((y 0 0 : ℂ ) * z + (y 0 1)) /
-  ((y 1 0 : ℂ ) * z + (y 1 1)))
-  + (x 0 1))
-  /
-  ((x 1 0 : ℂ ) * (((y 0 0) * z + (y 0 1)) / ((y 1 0 : ℂ ) * z + (y 1 1))) + (x 1 1)))
-  =
-  ((x 0 0 : ℂ ) * (((y 0 0) * z + (y 0 1))  / ((x 1 0 : ℂ ) * (((y 0 0) * z + (y 0 1))))))),
-  {
-    sorry,
-  },
-
+  field_simp,
+  left,
+  dsimp [B],
+  rw bottom,
+  norm_num,
   ring,
--/
-
-
-
-
-
-  sorry,
 end
 
-
-
-instance : mul_action (special_linear_group (fin 2) ℝ) H :=
-{ smul := λ g, λ z, ⟨smul_aux g z, GactsHtoH g z.2 ⟩ ,
+instance : mul_action (SL(2, ℝ)) H :=
+{ smul := λ g, λ z, ⟨smul_aux g z, GactsHtoH g z.property ⟩ ,
   one_smul := λ z, by {apply subtype.ext, simp [smul_aux, top, bottom]},
   mul_smul := λ g1 g2 z, by simpa using GactGpactH g1 g2 z.property }
 
 def fundamental_domain : set ℂ :=
 { z | 1 ≤ (complex.norm_sq z) ∧ (-1:ℝ) / 2 ≤ (complex.re z) ∧ (complex.re z) ≤ (1 :ℝ)/ 2 }
 
-def D : set ℂ := fundamental_domain
+notation `𝒟` := fundamental_domain
 
-lemma is_fundom {z : ℂ} (hz : z ∈ H) : ∃ g : special_linear_group (fin 2) ℝ,  (g • z) ∈ D :=
+notation `𝒟°` := interior 𝒟
+
+def T : SL(2,ℤ) := { val :=  λ i j, if (i = 1 ∧ j = 0) then 0 else 1,
+  property := by simp [det2] }
+
+def S : SL(2,ℤ) := { val :=  λ i j, i - j,
+  property := by simp [det2] }
+
+def subgroup_SL {R : Type*} [comm_ring R] {S : subring R} {n : ℕ} : subgroup SL(n,R) :=
+begin
+  sorry
+end
+
+lemma T_action {z : H} {n : ℤ} : ((T^n) : SL(2,ℝ)) • z = (z:ℂ) + (n:ℂ) :=
+begin
+  sorry
+end
+
+lemma is_fundom {z : H} : ∃ g : SL(2, ℤ),  (g • z) ∈ 𝒟 :=
 begin
 
   sorry

@@ -2600,23 +2600,6 @@ begin
   simp only [add_mul, one_mul] }
 end
 
-/-begin
-  have aux : eval (cos θ) 2 = 2,
-  { change eval (cos θ) (1+1) = 2,
-  rw eval_add,
-  rw eval_one,
-  refl },
-  simp only [chebyshev₂_add_two, eval_sub, mul_sub, eval_mul, eval_X, aux],
-  rw chebyshev₂_complex_cos n,/-simp only [eval_X, eval_one, chebyshev₁_add_two, eval_sub, eval_bit0, nat.cast_succ, eval_mul],
-  rw [chebyshev₂_complex_cos (n + 1), chebyshev₂_complex_cos n],
-  have aux : sin θ * sin θ = 1 - cos θ * cos θ,
-  { rw ← sin_sq_add_cos_sq θ, ring, },
-  simp only [nat.cast_add, nat.cast_one, add_mul, cos_add, one_mul, sin_add, mul_assoc, aux],
-  ring,-/
-  sorry
-end-/
-
-
 end chebyshev₂
 
 namespace real

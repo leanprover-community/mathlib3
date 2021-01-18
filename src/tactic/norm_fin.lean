@@ -123,14 +123,13 @@ begin
   simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hk],
 end
 
-lemma fin.prove_cast_succ (m n k l : ℕ) (hl : l < n) (hk : k < m) (h : m = n + 1) (h' : k = l) :
-  fin.cast_succ (⟨l, hl⟩ : fin n) = (⟨k, hk⟩ : fin m) :=
+lemma fin.prove_cast_succ (m n l : ℕ) (hl : l < n) (hl' : l < m) (h : m = n + 1) :
+  fin.cast_succ (⟨l, hl⟩ : fin n) = (⟨l, hl'⟩ : fin m) :=
 begin
   cases n,
   { exact absurd hl (not_lt_of_le l.zero_le) },
   subst h,
-  subst h',
-  simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hk],
+  simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hl'],
 end
 
 lemma fin.prove_mod_bit0 (n k l m : ℕ) (hk : k < n) (hl : l < n)
@@ -180,11 +179,10 @@ example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
   (_, ek) ← ic.of_nat fk,
   (_, ltkn) ← prove_lt_nat ic ek en,
   (_, _, en', pn) ← prove_nat_succ ic `(nat.succ %%en),
-  (ek', pk) ← refl_conv ek,
-  (_, ltkn') ← prove_lt_nat ic ek' en',
+  (_, ltkn') ← prove_lt_nat ic ek en',
   ty ← to_expr ``(fin %%en'),
   fk' ← ty.of_fin fk,
-  pure (fk', `(fin.prove_cast_succ %%en' %%en %%ek' %%ek %%ltkn %%ltkn' %%pn %%pk))
+  pure (fk', `(fin.prove_cast_succ %%en' %%en %%ek %%ltkn %%ltkn' %%pn))
 | `(bit0 %%e) := do
   ty ← infer_type e,
   `(fin %%en) ← pure ty,

@@ -612,7 +612,7 @@ end
 
 lemma lt_induced_map_iff {F K : Type*} [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] {x : F} {t : K} :
-  t < induced_map F K x ↔ ∃ (q : ℚ) (h : t < q), (q : F) < x :=
+t < induced_map F K x ↔ ∃ (q : ℚ) (h : t < q), (q : F) < x :=
 begin
   split,
   { intro h,
@@ -653,14 +653,11 @@ end
 
 lemma induced_map_add (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] (x y : F) :
-  induced_map F K (x + y) = induced_map F K x + induced_map F K y :=
+induced_map F K (x + y) = induced_map F K x + induced_map F K y :=
 begin
   simp only [induced_map],
-  rw [cut_image_add, pointwise_add_Sup],
-  exact cut_image_nonempty F K x,
-  exact cut_image_nonempty F K y,
-  exact cut_image_bdd_above F K x,
-  exact cut_image_bdd_above F K y
+  rw [cut_image_add, pointwise_add_Sup _ _ (cut_image_nonempty F K x) (cut_image_nonempty F K y)
+   (cut_image_bdd_above F K x) (cut_image_bdd_above F K y)],
 end
 
 /-- induced_map as an additive homomorphism -/
@@ -732,11 +729,11 @@ begin
     assumption_mod_cast, },
   { use ((0 : ℚ) : K),
     split,
-    rw [mem_cut_image_iff', rat.cast_zero],
-    exact linear_ordered_field.mul_pos _ _ hpos hpos,
-    push_neg at hypos,
-    rw [rat.cast_zero],
-    exact hypos, },
+    { rw [mem_cut_image_iff', rat.cast_zero],
+      exact linear_ordered_field.mul_pos _ _ hpos hpos, },
+    { push_neg at hypos,
+      rw [rat.cast_zero],
+      exact hypos, }, },
 end
 
 /-- `induced_map` as an `ordered_ring_hom` -/
@@ -825,19 +822,16 @@ lemma cut_ordered_ring_equiv_self (F : Type*) [conditionally_complete_linear_ord
   cut_ordered_ring_equiv F F = ordered_ring_equiv.refl F :=
 begin
   ext,
-  simp,
-  change induced_map F F x = x,
-  rw induced_map,
-  dsimp,
-  rw cut_image_self,
+  change induced_map F F x = _,
+  simp only [ordered_ring_equiv.refl_apply, induced_map, cut_image_self],
   apply cSup_intro,
   { obtain ⟨q, h⟩ := exists_rat_lt x,
-    refine ⟨q, h, mem_range_self _⟩, },
+    exact ⟨q, h, mem_range_self _⟩, },
   { rintro y ⟨hlt, _⟩,
     exact le_of_lt hlt, },
   { rintro y hlt,
     obtain ⟨q, hyq, hqx⟩ := exists_rat_btwn hlt,
-    refine ⟨q, ⟨hqx, mem_range_self _⟩, hyq⟩, }
+    exact ⟨q, ⟨hqx, mem_range_self _⟩, hyq⟩, }
 end
 
 @[simp] lemma ring_hom_rat {F K : Type*} [division_ring F] [division_ring K] [char_zero F]
@@ -871,20 +865,20 @@ begin
   exact le_total (f x) (g x),
   rw le_iff_lt_or_eq at h,
   rcases h with h | h,
-  swap, exact h,
-  rcases exists_rat_btwn h with ⟨q, hqf, hqg⟩,
-  rw ← ring_hom_rat (f : F →+* K) at hqf,
-  rw ← ring_hom_rat (g : F →+* K) at hqg,
-  rcases lt_trichotomy x q with h' | rfl | h',
-  swap, { simp, },
-  all_goals { replace h' := le_of_lt h', },
-  { replace h' := g.map_le h', simp only [ring_hom_rat, ordered_ring_hom_rat] at *, linarith, },
-  { replace h' := f.map_le h', simp only [ring_hom_rat, ordered_ring_hom_rat] at *, linarith, },
+  { rcases exists_rat_btwn h with ⟨q, hqf, hqg⟩,
+    rw ← ring_hom_rat (f : F →+* K) at hqf,
+    rw ← ring_hom_rat (g : F →+* K) at hqg,
+    rcases lt_trichotomy x q with h' | rfl | h',
+    swap, { simp, },
+    all_goals { replace h' := le_of_lt h', },
+    { replace h' := g.map_le h', simp only [ring_hom_rat, ordered_ring_hom_rat] at *, linarith, },
+    { replace h' := f.map_le h', simp only [ring_hom_rat, ordered_ring_hom_rat] at *, linarith, } },
+  { exact h },
 end
 
-instance {F K : Type*}
-  [linear_ordered_field F] [archimedean F] [conditionally_complete_linear_ordered_field K] :
-unique (F →+*o K) := { default := induced_ordered_ring_hom F K,
+instance {F K : Type*} [linear_ordered_field F] [archimedean F]
+  [conditionally_complete_linear_ordered_field K] : unique (F →+*o K) :=
+{ default := induced_ordered_ring_hom F K,
   uniq := λ f, ordered_ring_hom_unique f _ }
 
 theorem ordered_ring_equiv_unique {F K : Type*}
@@ -896,9 +890,9 @@ begin
   exact_mod_cast this,
 end
 
-instance {F K : Type*}
-  [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
-unique (F ≃+*o K) := { default := cut_ordered_ring_equiv F K,
+instance {F K : Type*} [conditionally_complete_linear_ordered_field F]
+  [conditionally_complete_linear_ordered_field K] : unique (F ≃+*o K) :=
+{ default := cut_ordered_ring_equiv F K,
   uniq := λ f, ordered_ring_equiv_unique f _ }
 
 end conditionally_complete_linear_ordered_field

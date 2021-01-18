@@ -97,7 +97,8 @@ end
 
 /-- If `L/K` is a ring extension, and `x` is an element of `L` in the image of `K`,
 then the minimal polynomial of `x` is `X - C x`. -/
-lemma eq_X_sub_C_of_algebra_map_inj [nontrivial A] (a : A) (hf : function.injective (algebra_map A B)) :
+lemma eq_X_sub_C_of_algebra_map_inj [nontrivial A] (a : A)
+  (hf : function.injective (algebra_map A B)) :
   minpoly (@is_integral_algebra_map A B _ _ _ a) = X - C a :=
 begin
   have hdegle : (minpoly (@is_integral_algebra_map A B _ _ _ a)).nat_degree ≤ 1,
@@ -314,7 +315,8 @@ as root. -/
 -- TODO use `gcd_domain_dvd` directly when localizations are defined in terms of algebras
 -- instead of `ring_hom`s
 lemma integer_dvd {A : Type*} [integral_domain A] [algebra ℚ A] {x : A} (hx : is_integral ℤ x)
-  {P : polynomial ℤ} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) : minpoly hx ∣ P :=
+  {P : polynomial ℤ} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
+  minpoly hx ∣ P :=
 begin
   apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast _ _
     (monic.is_primitive (monic hx)) hprim ).2,
@@ -365,8 +367,8 @@ end
 
 /--If L/K is a field extension and an element y of K is a root of the minimal polynomial
 of an element x ∈ L, then y maps to x under the field embedding.-/
-lemma root {x : B} (hx : is_integral A x) {y : A}
-  (h : is_root (minpoly hx) y) : algebra_map A B y = x :=
+lemma root {x : B} (hx : is_integral A x) {y : A} (h : is_root (minpoly hx) y) :
+  algebra_map A B y = x :=
 have key : minpoly hx = X - C y :=
 eq_of_monic_of_associated (monic hx) (monic_X_sub_C y) (associated_of_dvd_dvd
   (dvd_symm_of_irreducible (irreducible_X_sub_C y) (irreducible hx) (dvd_iff_is_root.2 h))

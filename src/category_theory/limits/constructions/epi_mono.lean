@@ -7,6 +7,17 @@ import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.preserves.shapes.pullbacks
 
+/-!
+# Relating monomorphisms and epimorphisms to limits and colimits
+
+If `F` preserves (resp. reflects) pullbacks, then it preserves (resp. reflects) monomorphisms.
+
+## TODO
+
+Dualise and apply to functor categories.
+
+-/
+
 universes v u₁ u₂
 
 namespace category_theory

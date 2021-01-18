@@ -199,8 +199,8 @@ possible.
 It works for any function `f` for which an `is_associative f` instance can be found.
 
 ```
-example {α : Type*} (r : α → α → α) [is_associative α r] (a b c d  x: α) :
-  let infix `~` := r in
+example {α : Type*} (f : α → α → α) [is_associative α f] (a b c d  x: α) :
+  let infix `~` := f in
   b ~ c = x → (a ~ b ~ c ~ d) = (a ~ x ~ d) :=
 begin
   intro h,

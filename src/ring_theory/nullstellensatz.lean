@@ -6,32 +6,38 @@ Authors: Devon Tuma
 import ring_theory.jacobson
 import field_theory.algebraic_closure
 import field_theory.mv_polynomial
+import algebraic_geometry.prime_spectrum
 
 /-!
-  # Nullstellensatz
-  This file establishes a version of Hilbert's classical Nullstellensatz for `mv_polynomial`s.
-  The main statement of the theorem is `vanishing_ideal_zero_locus_eq_radical`.
+# Nullstellensatz
+This file establishes a version of Hilbert's classical Nullstellensatz for `mv_polynomial`s.
+The main statement of the theorem is `vanishing_ideal_zero_locus_eq_radical`.
 
-  The statement is in terms of new definitions `vanishing_ideal` and `zero_locus`.
-  Mathlib already has versions of these in terms of the prime spectrum of a ring,
-    but those are not well-suited for expressing this result.
-  Suggestions for better ways to state this theorem or organize things are welcome.
+The statement is in terms of new definitions `vanishing_ideal` and `zero_locus`.
+Mathlib already has versions of these in terms of the prime spectrum of a ring,
+  but those are not well-suited for expressing this result.
+Suggestions for better ways to state this theorem or organize things are welcome.
 
-  The machinery around `vanishing_ideal` and `zero_locus` is also minimal, I only added lemmas
-    directly needed in this proof, since I'm not sure if they are the right approach.
+The machinery around `vanishing_ideal` and `zero_locus` is also minimal, I only added lemmas
+  directly needed in this proof, since I'm not sure if they are the right approach.
 -/
 
 open ideal
-open mv_polynomial
 
 noncomputable theory
 
+namespace mv_polynomial
+open mv_polynomial
+
 variables {k : Type*} [field k]
-variables {σ : Type*} [fintype σ]
+variables {σ : Type*}
 
 /-- Set of points that are zeroes of all polynomials in an ideal -/
 def zero_locus (I : ideal (mv_polynomial σ k)) : set (σ → k) :=
-  {x : σ → k | ∀ p ∈ I, eval x p = 0}
+{x : σ → k | ∀ p ∈ I, eval x p = 0}
+
+@[simp] lemma mem_zero_locus_iff {I : ideal (mv_polynomial σ k)} {x : σ → k} :
+  x ∈ zero_locus I ↔ ∀ p ∈ I, eval x p = 0 := ⟨λ hx p hp, hx p hp, λ hx p hp, hx p hp⟩
 
 lemma zero_locus_anti_mono {I J : ideal (mv_polynomial σ k)} (h : I ≤ J) :
   zero_locus J ≤ zero_locus I :=
@@ -52,6 +58,9 @@ def vanishing_ideal (V : set (σ → k)) : ideal (mv_polynomial σ k) :=
   smul_mem' := λ p q hq x hx,
     by simp only [hq x hx, algebra.id.smul_eq_mul, mul_zero, ring_hom.map_mul] }
 
+@[simp] lemma mem_vanishing_ideal_iff {V : set (σ → k)} {p : mv_polynomial σ k} :
+  p ∈ vanishing_ideal V ↔ ∀ x ∈ V, eval x p = 0 := ⟨λ hp x hx, hp x hx, λ hp x hx, hp x hx⟩
+
 lemma vanishing_ideal_anti_mono {A B : set (σ → k)} (h : A ≤ B) :
   vanishing_ideal B ≤ vanishing_ideal A :=
 λ p hp x hx, hp x $ h hx
@@ -63,15 +72,15 @@ lemma le_vanishing_ideal_zero_locus (I : ideal (mv_polynomial σ k)) :
   I ≤ vanishing_ideal (zero_locus I) :=
 λ p hp x hx, hx p hp
 
-lemma zero_locus_vanishing_ideal_le (A : set (σ → k)) :
-  A ≤ zero_locus (vanishing_ideal A) :=
-λ A hA p hp, hp A hA
+lemma zero_locus_vanishing_ideal_le (V : set (σ → k)) :
+  V ≤ zero_locus (vanishing_ideal V) :=
+λ V hV p hp, hp V hV
 
 theorem zero_locus_vanishing_ideal_galois_connection :
   @galois_connection (ideal (mv_polynomial σ k)) (order_dual (set (σ → k))) _ _
     zero_locus vanishing_ideal :=
-λ I A, ⟨λ h, le_trans (le_vanishing_ideal_zero_locus I) (vanishing_ideal_anti_mono h),
-  λ h, le_trans (zero_locus_anti_mono h) (zero_locus_vanishing_ideal_le A)⟩
+λ I V, ⟨λ h, le_trans (le_vanishing_ideal_zero_locus I) (vanishing_ideal_anti_mono h),
+  λ h, le_trans (zero_locus_anti_mono h) (zero_locus_vanishing_ideal_le V)⟩
 
 lemma mem_vanishing_ideal_singleton_iff (x : σ → k) (p : mv_polynomial σ k) :
   p ∈ (vanishing_ideal {x} : ideal (mv_polynomial σ k)) ↔ (eval x p = 0) :=
@@ -92,8 +101,10 @@ begin
   exact bot_is_maximal,
 end
 
-lemma is_maximal_iff_eq_vanishing_ideal_singleton [is_alg_closed k]
-  (I : ideal (mv_polynomial σ k)) : I.is_maximal ↔ ∃ (x : σ → k), I = vanishing_ideal {x} :=
+variables [is_alg_closed k] [fintype σ]
+
+lemma is_maximal_iff_eq_vanishing_ideal_singleton (I : ideal (mv_polynomial σ k)) :
+  I.is_maximal ↔ ∃ (x : σ → k), I = vanishing_ideal {x} :=
 begin
   refine ⟨λ hI, _, λ h, let ⟨x, hx⟩ := h in hx.symm ▸ vanishing_ideal_singleton_maximal x⟩,
   letI : I.is_maximal := hI,
@@ -115,7 +126,7 @@ begin
 end
 
 /-- Main statement of the Nullstellensatz -/
-theorem vanishing_ideal_zero_locus_eq_radical [is_alg_closed k] (I : ideal (mv_polynomial σ k)) :
+theorem vanishing_ideal_zero_locus_eq_radical (I : ideal (mv_polynomial σ k)) :
   vanishing_ideal (zero_locus (I)) = I.radical :=
 begin
   rw I.radical_eq_jacobson,
@@ -129,3 +140,5 @@ begin
     refine (mem_Inf.mp hp) ⟨le_trans (le_vanishing_ideal_zero_locus I)
       (vanishing_ideal_anti_mono (λ y hy, hy.symm ▸ hx)), vanishing_ideal_singleton_maximal x⟩ },
 end
+
+end mv_polynomial

@@ -297,6 +297,9 @@ calc 1 + (n + 1) •ℕ a ≤ (1 + a) * (1 + n •ℕ a) :
     using nsmul_nonneg Hsqr n
 ... ≤ (1 + a)^(n+1) : mul_le_mul_of_nonneg_left (one_add_mul_le_pow' n) H
 
+theorem nat.cast_succ_le_two_pow (n : ℕ) : (n + 1 : R) ≤ 2 ^ n :=
+by { norm_cast, exact nat.mono_cast n.succ_le_two_pow }
+
 private lemma pow_lt_pow_of_lt_one_aux {a : R} (h : 0 < a) (ha : a < 1) (i : ℕ) :
   ∀ k : ℕ, a ^ (i + k + 1) < a ^ i
 | 0 :=

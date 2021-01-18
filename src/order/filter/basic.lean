@@ -1128,6 +1128,8 @@ h₂ h₁
   f =ᶠ[l] f :=
 eventually_of_forall $ λ x, rfl
 
+lemma eventually_eq.rfl {l : filter α} {f : α → β} : f =ᶠ[l] f := eventually_eq.refl l f
+
 @[symm] lemma eventually_eq.symm {f g : α → β} {l : filter α} (H : f =ᶠ[l] g) :
   g =ᶠ[l] f :=
 H.mono $ λ _, eq.symm

@@ -160,6 +160,12 @@ let ⟨a, ha, C, hC, h⟩ := p.norm_mul_pow_le_mul_pow_of_lt_radius h
 in ⟨C, hC, λ n, (h n).trans $ mul_le_of_le_one_right hC.lt.le (pow_le_one _ ha.1.le ha.2.le)⟩
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` is bounded. -/
+lemma norm_le_div_pow_of_pos_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
+  (h0 : 0 < r) (h : (r : ennreal) < p.radius) : ∃ C > 0, ∀ n, ∥p n∥ ≤ C / r ^ n :=
+let ⟨C, hC, hp⟩ := p.norm_mul_pow_le_of_lt_radius h in
+⟨C, hC, λ n, iff.mpr (le_div_iff (pow_pos h0 _)) (hp n)⟩
+
+/-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` is bounded. -/
 lemma nnnorm_mul_pow_le_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
   (h : (r : ennreal) < p.radius) : ∃ C > 0, ∀ n, nnnorm (p n) * r^n ≤ C :=
 let ⟨C, hC, hp⟩ := p.norm_mul_pow_le_of_lt_radius h
@@ -376,6 +382,64 @@ begin
   replace r'0 : 0 < (r' : ℝ), by exact_mod_cast r'0,
   filter_upwards [metric.ball_mem_nhds (0 : E) r'0], intros y hy,
   simpa [mul_pow, mul_div_assoc, mul_assoc, div_mul_eq_mul_div] using hp y hy n
+end
+
+lemma has_fpower_series_at.is_O_image_sub_norm_mul_norm_sub (hf : has_fpower_series_at f p x) :
+  is_O (λ y : E × E, f (x + y.1) - f (x + y.2) - (p 1 (λ _, y.1) - p 1 (λ _, y.2)))
+    (λ y, ∥y∥ * ∥y.1 - y.2∥) (𝓝 0) :=
+begin
+  rcases hf with ⟨r, hf⟩,
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 hf.r_pos with ⟨r', r'0, h⟩,
+  replace r'0 : 0 < r' := by exact_mod_cast r'0,
+  obtain ⟨C, hC, hp⟩ : ∃ (C > 0), ∀ n, ∥p n∥ ≤ C / r' ^ n,
+    from p.norm_le_div_pow_of_pos_of_lt_radius r'0 (h.trans_le hf.r_le),
+  set a : E × E → ℕ → F := λ y n, p n (λ _, y.1) - p n (λ _, y.2),
+  -- We have no formula for `∑' n, n * r ^ n` at this stage, so we use a very
+  -- rough upper estimate instead.
+  set b : E × E → ℕ → ℝ := λ y n, (2 * C / r' ^ 2) * (∥y∥ * ∥y.1 - y.2∥) * (2 * ∥y∥ / r') ^ n,
+  have A : ∀ᶠ y : E × E in 𝓝 0, has_sum (λ n, a y (n + 2))
+    (f (x + y.1) - f (x + y.2) - (p 1 (λ _, y.1) - p 1 (λ _, y.2))),
+  { have : emetric.ball (0 : E) r ∈ 𝓝 (0 : E), from emetric.ball_mem_nhds _ hf.r_pos,
+    filter_upwards [prod_mem_nhds_sets this this],
+    intros y hy,
+    simpa [finset.sum_range_one, finset.sum_range_succ, hf.coeff_zero]
+      using (has_sum_nat_add_iff' 2).2 ((hf.has_sum hy.1).sub (hf.has_sum hy.2)) },
+  have hab : ∀ (y : E × E) n, ∥a y (n + 2)∥ ≤ b y n,
+  { intros y n,
+    calc ∥a y (n + 2)∥ ≤ ∥p (n + 2)∥ * ↑(n + 2) * ∥y∥ ^ (n + 2 - 1) *
+      ∥(λ (_ : fin (n + 2)), y.fst) - (λ _, y.snd)∥ :
+      by simpa only [fintype.card_fin, pi_norm_const, ← prod.norm_def]
+        using (p $ n + 2).norm_image_sub_le (λ _, y.1) (λ _, y.2)
+    ... = ∥p (n + 2)∥ * ↑(n + 2) * ∥y∥ ^ (n + 2 - 1) * ∥(λ (_ : fin (n + 2)), y.fst - y.snd)∥ : rfl
+    ... = ∥p (n + 2)∥ * (↑(n + 1) + 1) * (∥y∥ ^ (n + 2 - 1) * ∥y.fst - y.snd∥) :
+      by simp [mul_assoc, ← bit0, ← add_assoc]
+    ... ≤ (C / r' ^ (n + 2)) * 2 ^ (n + 1) * (∥y∥ ^ (n + 2 - 1) * ∥y.fst - y.snd∥) :
+      mul_le_mul_of_nonneg_right
+        (mul_le_mul (hp _) (n + 1).cast_succ_le_two_pow (n + 1).cast_add_one_pos.le
+          ((norm_nonneg _).trans (hp $ n + 2)))
+        (mul_nonneg (pow_nonneg (norm_nonneg _) _) (norm_nonneg _))
+    ... = b y n :
+      by simp [b, pow_succ, div_eq_mul_inv, mul_inv', mul_pow, inv_pow']; ac_refl },
+  set c := λ y : E × E, (2 * C / r' ^ 2) * (1 - 2 * ∥y∥ / r')⁻¹ * (∥y∥ * ∥y.1 - y.2∥),
+  have hb : ∀ᶠ y in 𝓝 0, has_sum (b y) (c y),
+  { filter_upwards [metric.ball_mem_nhds _ (div_pos (nnreal.coe_pos.2 r'0) zero_lt_two)],
+    intros y hy,
+    rw [ball_0_eq, mem_set_of_eq] at hy,
+    simp only [c], rw mul_right_comm,
+    refine (has_sum_geometric_of_lt_1 _ _).mul_left _,
+    exact div_nonneg (mul_nonneg zero_le_two $ norm_nonneg _) r'.coe_nonneg,
+    rwa [div_lt_one, ← lt_div_iff'],
+    exacts [zero_lt_two, nnreal.coe_pos.2 r'0] },
+  suffices : is_O c (λ y, ∥y∥ * ∥y.1 - y.2∥) (𝓝 0),
+  { refine (is_O_iff.2 ⟨1, _⟩).trans this,
+    filter_upwards [A, hb], intros y ha hb, rw one_mul,
+    exact (ha.norm_le_of_bounded hb (hab _)).trans (le_abs_self _) },
+  have : tendsto (λ y : E × E, 2 * C / r' ^ 2 * (1 - 2 * ∥y∥ / r')⁻¹) (𝓝 0)
+    (𝓝 $ 2 * C / r' ^ 2 * (1 - 2 * 0 / r')⁻¹),
+  { refine tendsto_const_nhds.mul
+      ((tendsto_const_nhds.sub (tendsto_const_nhds.mul tendsto_norm_zero).div_const).inv' _),
+    simp },
+  exact ((is_O_one_of_tendsto ℝ this).mul (is_O_refl _ _)).congr (λ _, rfl) (λ _, one_mul _)
 end
 
 /-- If a function admits a power series expansion at `x`, then it is the uniform limit of the

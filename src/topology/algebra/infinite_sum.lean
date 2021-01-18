@@ -570,6 +570,14 @@ lemma has_sum_nat_add_iff' {f : ℕ → α} (k : ℕ) {a : α} :
   has_sum (λ n, f (n + k)) (a - ∑ i in range k, f i) ↔ has_sum f a :=
 by simp [has_sum_nat_add_iff]
 
+lemma has_sum_nat_add_one_iff {f : ℕ → α} {a : α} :
+  has_sum (λ n, f (n + 1)) a ↔ has_sum f (a + f 0) :=
+sum_range_one f ▸ has_sum_nat_add_iff 1
+
+lemma has_sum_nat_add_one_iff' {f : ℕ → α} {a : α} :
+  has_sum (λ n, f (n + 1)) (a - f 0) ↔ has_sum f a :=
+sum_range_one f ▸ has_sum_nat_add_iff' 1
+
 lemma sum_add_tsum_nat_add [t2_space α] {f : ℕ → α} (k : ℕ) (h : summable f) :
   (∑ i in range k, f i) + (∑' i, f (i + k)) = ∑' i, f i :=
 by simpa [add_comm] using
@@ -577,7 +585,7 @@ by simpa [add_comm] using
 
 lemma tsum_eq_zero_add [t2_space α] {f : ℕ → α} (hf : summable f) :
   ∑'b, f b = f 0 + ∑'b, f (b + 1) :=
-by simpa only [range_one, sum_singleton] using (sum_add_tsum_nat_add 1 hf).symm
+by simpa only [sum_range_one] using (sum_add_tsum_nat_add 1 hf).symm
 
 /-- For `f : ℕ → α`, then `∑' k, f (k + i)` tends to zero. This does not require a summability
 assumption on `f`, as otherwise all sums are zero. -/

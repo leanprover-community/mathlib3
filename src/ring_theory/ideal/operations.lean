@@ -7,6 +7,7 @@ import data.nat.choose.sum
 import data.equiv.ring
 import algebra.algebra.operations
 import ring_theory.ideal.basic
+import algebra.algebra.tower
 /-!
 # More operations on modules and ideals
 -/
@@ -1149,6 +1150,16 @@ instance {I : ideal A} : algebra R (ideal.quotient I) :=
 `A`, where `A` is an `R`-algebra. -/
 def quotient.mkₐ (I : ideal A) : A →ₐ[R] I.quotient :=
 ⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl, λ _, rfl⟩
+
+lemma quotient.alg_map (I : ideal A) : algebra_map R I.quotient =
+  (algebra_map A I.quotient).comp (algebra_map R A) :=
+begin
+  repeat {rw [ring_hom.algebra_map_to_algebra]},
+  rw [ring_hom.comp_id]
+end
+
+instance {I : ideal A} : is_scalar_tower R A (ideal.quotient I) :=
+is_scalar_tower.of_algebra_map_eq' (quotient.alg_map R I)
 
 lemma quotient.mkₐ_to_ring_hom (I : ideal A) :
   (quotient.mkₐ R I).to_ring_hom = ideal.quotient.mk I := rfl

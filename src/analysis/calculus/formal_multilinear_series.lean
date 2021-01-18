@@ -31,6 +31,7 @@ open_locale topological_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
+{G : Type*} [normed_group G] [normed_space 𝕜 G]
 
 /-- A formal multilinear series over a field `𝕜`, from `E` to `F`, is given by a family of
 multilinear maps from `E^n` to `F` for all `n`. -/
@@ -81,6 +82,12 @@ lemma congr (p : formal_multilinear_series 𝕜 E F) {m n : ℕ} {v : fin m → 
   (h1 : m = n) (h2 : ∀ (i : ℕ) (him : i < m) (hin : i < n), v ⟨i, him⟩ = w ⟨i, hin⟩) :
   p m v = p n w :=
 by { cases h1, congr' with ⟨i, hi⟩, exact h2 i hi hi }
+
+/-- Composing each term `pₙ` in a formal multilinear series with `(u, ..., u)` where `u` is a fixed
+continuous linear map, gives a new formal multilinear series `p.comp_continuous_linear_map u`. -/
+lemma comp_continuous_linear_map (p : formal_multilinear_series 𝕜 F G) (u : E →L[𝕜] F) :
+  formal_multilinear_series 𝕜 E G :=
+λ n, (p n).comp_continuous_linear_map (λ i, u)
 
 variables (𝕜) {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]

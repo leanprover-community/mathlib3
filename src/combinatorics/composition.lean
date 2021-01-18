@@ -128,7 +128,7 @@ lemma blocks_length : c.blocks.length = c.length := rfl
 
 /-- The blocks of a composition, seen as a function on `fin c.length`. When composing analytic
 functions using compositions, this is the main player. -/
-def blocks_fun : fin c.length → ℕ := λ i, nth_le c.blocks i.1 i.2
+def blocks_fun : fin c.length → ℕ := λ i, nth_le c.blocks i i.2
 
 lemma of_fn_blocks_fun : of_fn c.blocks_fun = c.blocks :=
 of_fn_nth_le _
@@ -623,8 +623,7 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
   left_inv := begin
     assume c,
     ext i,
-    simp only [exists_prop, add_comm, set.mem_to_finset, true_or, or_true, set.mem_set_of_eq,
-               fin.last_val],
+    simp only [exists_prop, add_comm, set.mem_to_finset, true_or, or_true, set.mem_set_of_eq],
     split,
     { rintro (rfl | rfl | ⟨j, hj1, hj2⟩),
       { exact c.zero_mem },
@@ -728,7 +727,7 @@ begin
     simp [blocks, nat.lt_of_succ_lt_succ h] },
   have B : i < c.boundaries.card := lt_of_lt_of_le A (by simp [blocks, length, nat.sub_le]),
   rw [sum_take_succ _ _ A, IH B],
-  simp only [blocks, blocks_fun, fin.coe_eq_val, nth_le_of_fn'],
+  simp only [blocks, blocks_fun, nth_le_of_fn'],
   apply nat.add_sub_cancel',
   simp
 end

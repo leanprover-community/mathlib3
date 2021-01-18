@@ -1102,6 +1102,7 @@ def nondegenerate [add_comm_group M] [semimodule R₁ M] (B : bilin_form R₁ M)
 variables {n : Type w} [fintype n]
 
 section matrix
+
 lemma matrix.to_lin'_apply' (A : matrix n n R₃) (v w : n → R₃) :
   (matrix.to_bilin' A) v w = matrix.dot_product v (A.mul_vec w) :=
 begin
@@ -1418,7 +1419,7 @@ begin
     apply_instance }
 end .
 
-/-- Given a nondegenerate symmetric basis `B` on some vector space `V` over the
+/-- Given a nondegenerate symmetric bilinear form `B` on some vector space `V` over the
   field `K` with invertible `2`, there exists a orthogonal basis. -/
 theorem exists_orthogonal_basis [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :

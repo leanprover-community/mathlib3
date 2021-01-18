@@ -1321,6 +1321,9 @@ by { apply lie_submodule.subset_lie_span, use x, exact ⟨hx, rfl⟩, }
 lemma map_le_iff_le_comap : map f I ≤ J ↔ I ≤ comap f J :=
 by { rw map_le, exact set.image_subset_iff, }
 
+lemma gc_map_comap : galois_connection (map f) (comap f) :=
+λ I I', map_le_iff_le_comap
+
 lemma map_comap_le : map f (comap f J) ≤ J :=
 by { rw map_le_iff_le_comap, apply le_refl _, }
 
@@ -1413,9 +1416,6 @@ by rw [← lie_submodule.coe_to_submodule_eq_iff, comap_coe_submodule, I.map_coe
   lie_submodule.sup_coe_to_submodule, f.ker_coe_submodule, linear_map.comap_map_eq]
 
 variables (f I J)
-
-lemma gc_map_comap : galois_connection (map f) (comap f) :=
-λ I I', map_le_iff_le_comap
 
 /-- Regarding an ideal `I` as a subalgebra, the inclusion map into its ambient space is a morphism
 of Lie algebras. -/

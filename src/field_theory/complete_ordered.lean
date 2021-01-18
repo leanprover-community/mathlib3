@@ -762,8 +762,8 @@ F →+*o K := {
       end,
       clear x,
       intros x hpos,
-      -- prove that the (Sup of rationals less than x) ^ 2 is the Sup of the set of rationals less than
-      -- (x ^ 2) by showing it is an upper bound and any smaller number is not an upper bound
+      -- prove that the (Sup of rationals less than x) ^ 2 is the Sup of the set of rationals less
+      -- than (x ^ 2) by showing it is an upper bound and any smaller number is not an upper bound
       apply cSup_intro (cut_image_nonempty F K _),
       exact le_induced_mul_self_of_mem_cut_image F K x hpos,
       exact exists_mem_cut_image_mul_self_of_lt_induced_map_mul_self F K x hpos,

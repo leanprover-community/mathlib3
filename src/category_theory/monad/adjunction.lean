@@ -9,7 +9,8 @@ import category_theory.adjunction
 namespace category_theory
 open category
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ u₁ u₂ u₃
+  -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 variables (L : C ⥤ D) (R : D ⥤ C)

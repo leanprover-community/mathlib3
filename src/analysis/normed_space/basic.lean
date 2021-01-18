@@ -414,7 +414,13 @@ instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (�
 component is. -/
 lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] {r : ℝ} (hr : 0 ≤ r)
   {x : Πi, π i} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
-by { simp only [(dist_zero_right _).symm, dist_pi_le_iff hr], refl }
+by simp only [← dist_zero_right, dist_pi_le_iff hr, pi.zero_apply]
+
+/-- The norm of an element in a product space is `< r` if and only if the norm of each
+component is. -/
+lemma pi_norm_lt_iff {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] {r : ℝ} (hr : 0 < r)
+  {x : Πi, π i} : ∥x∥ < r ↔ ∀i, ∥x i∥ < r :=
+by simp only [← dist_zero_right, dist_pi_lt_iff hr, pi.zero_apply]
 
 lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] (x : Πi, π i) (i : ι) :
   ∥x i∥ ≤ ∥x∥ :=

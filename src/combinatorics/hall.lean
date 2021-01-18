@@ -45,6 +45,21 @@ open finset
 universes u v
 
 namespace hall_marriage_theorem
+
+lemma inj_of_dite_disjoint_inj {α β : Type*} (s : set α) [decidable_pred s]
+  (f : s → β) (f' : sᶜ → β)
+  (hf : function.injective f) (hf' : function.injective f')
+  (im_disj : ∀ {x x' : α} {hx : x ∈ s} {hx' : ¬ x' ∈ s}, f ⟨x, hx⟩ ≠ f' ⟨x', hx'⟩) :
+  function.injective (λ x, if h : x ∈ s then f ⟨x, h⟩ else f' ⟨x, h⟩) :=
+begin
+  { rintros x₁ x₂ (h : dite _ _ _ = dite _ _ _),
+    split_ifs at h,
+    { injection (hf h), },
+    { exact (im_disj h).elim, },
+    { exact (im_disj h.symm).elim, },
+    { injection (hf' h), }, },
+end
+
 variables {α : Type u} {β : Type v} [fintype α]
 variables (r : α → finset β)
 
@@ -176,20 +191,6 @@ begin
     apply subset_union_left }
 end
 
-lemma inj_of_dite_disjoint_inj (p : α → Prop) [decidable_pred p]
-  (f : {a : α // p a} → β) (f' : {a : α // ¬ p a} → β)
-  (hf : function.injective f) (hf' : function.injective f')
-  (im_disj : ∀ {x x' : α} {hx : p x} {hx' : ¬ p x'}, f ⟨x, hx⟩ ≠ f' ⟨x', hx'⟩) :
-  function.injective (λ x, if h : p x then f ⟨x, h⟩ else f' ⟨x, h⟩) :=
-begin
-  { rintros x₁ x₂ (h : dite _ _ _ = dite _ _ _),
-    split_ifs at h,
-    { injection (hf h), },
-    { exact (im_disj h).elim, },
-    { exact (im_disj h.symm).elim, },
-    { injection (hf' h), }, },
-end
-
 /--
 Second case of the inductive step: assuming that
 `∃ (A : finset α), A ≠ univ → A.card = (A.bind r).card`
@@ -244,7 +245,7 @@ begin
     rw ←h,
     apply f'_mem_bind, },
   refine ⟨λ x, if h : x ∈ A then f' ⟨x, h⟩ else f'' ⟨x, h⟩, _, _⟩,
-  refine inj_of_dite_disjoint_inj (λ x, x ∈ A) f' f'' hf' hf'' @im_disj,
+  exact inj_of_dite_disjoint_inj A f' f'' hf' hf'' @im_disj,
   { intro x,
     split_ifs,
     { exact hAf' ⟨x, h⟩ },

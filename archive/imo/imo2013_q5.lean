@@ -111,26 +111,29 @@ begin
   exact le_of_all_pow_lt_succ x y hx hy' h
 end
 
-lemma power_bound (n: ℕ) (ε:ℚ) (ha: 0 < ε) : 1 + (n:ℚ) * ε ≤ (1 + ε)^n :=
+/--
+  Linear lower bound on the growth of (1 + ε)^n.
+  TODO: put something like this into mathlib proper.
+-/
+lemma power_bound {R: Type} [linear_ordered_comm_ring R]
+     (n: ℕ) (ε:R) (ha: 0 < ε) : 1 + (n:R) * ε ≤ (1 + ε)^n :=
 begin
   induction n with pn hpn,
   { simp only [add_zero, nat.cast_zero, zero_mul, pow_zero] },
 
-  have hpnp : 0 ≤ (pn:ℚ) := nat.cast_nonneg pn,
-  have hpnep: 0 ≤ (pn:ℚ) * ε := (zero_le_mul_right ha).mpr hpnp,
-  have hpp := calc 1 ≤ 1 + (pn:ℚ) * ε : le_add_of_nonneg_right hpnep
-                ...  ≤ (1+ε)^pn : hpn,
+  have h_pn_mul_eps: 0 ≤ (pn:R) * ε := (zero_le_mul_right ha).mpr (nat.cast_nonneg pn),
+  have hpp := calc 1 ≤ 1 + (pn:R) * ε : le_add_of_nonneg_right h_pn_mul_eps
+                ...  ≤ (1 + ε)^pn     : hpn,
   have hppe : ε ≤ ε * (1+ ε)^pn := (le_mul_iff_one_le_right ha).mpr hpp,
 
   calc 1 + ↑(pn.succ) * ε
-       = 1 + (↑pn * ε + 1 * ε) : by simp only [one_mul, nat.cast_succ, add_right_inj]; ring
-   ... = (1 + ↑pn * ε) + 1 * ε : (add_assoc 1 (↑pn * ε) (1 * ε)).symm
-   ... = (1 + ↑pn * ε) + ε : by rw one_mul
-   ... ≤ (1 + ε) ^ pn + ε : add_le_add_right hpn ε
-   ... ≤ (1 + ε) ^ pn + ε * (1 + ε)^pn : add_le_add_left hppe ((1 + ε) ^ pn)
-   ... = 1 * (1 + ε) ^ pn + ε * (1 + ε)^pn : by ring
-   ... = (1 + ε) * (1 + ε) ^ pn : by ring
-   ... = (1 + ε) ^ (pn.succ) : (pow_succ (1+ε) pn).symm,
+      = 1 + (↑pn * ε + 1 * ε)         : by simp only [one_mul, nat.cast_succ, add_right_inj]; ring
+  ... = (1 + ↑pn * ε) + 1 * ε         : (add_assoc 1 (↑pn * ε) (1 * ε)).symm
+  ... = (1 + ↑pn * ε) + ε             : by rw one_mul
+  ... ≤ (1 + ε) ^ pn + ε              : add_le_add_right hpn ε
+  ... ≤ (1 + ε) ^ pn + ε * (1 + ε)^pn : add_le_add_left hppe ((1 + ε) ^ pn)
+  ... = (1 + ε) * (1 + ε) ^ pn        : by ring
+  ... = (1 + ε) ^ (pn.succ)           : (pow_succ (1+ε) pn).symm,
 end
 
 lemma twice_pos_int_gt_one (z: ℤ) (hpos: 0 < z) : (1:ℚ) < (((2 * z):ℤ):ℚ) :=
@@ -153,13 +156,13 @@ begin
     { simp only [one_mul, nat.cast_one] },
     calc (↑pn + 1 + 1) * f x
           = ((pn : ℝ) + 1) * f x + 1 * f x : add_mul (↑pn + 1) 1 (f x)
-      ... = (↑pn + 1) * f x + f x : by rw one_mul
-      ... = (↑pn.succ) * f x + f x : by norm_cast
-      ... ≤ f ((↑pn.succ) * x) + f x : add_le_add_right (hpn (nat.succ_pos pn)) (f x)
-      ... ≤ f ((↑pn + 1) * x) + f x : by norm_cast
-      ... ≤ f ((↑pn + 1) * x + x) : H2 ((↑pn + 1) * x) x (mul_pos (nat.cast_add_one_pos pn) hx) hx
-      ... = f ((↑pn + 1) * x + 1 * x) : by rw one_mul
-      ... = f ((↑pn + 1 + 1) * x) : congr_arg f (add_mul (↑pn + 1) 1 x).symm
+      ... = (↑pn + 1) * f x + f x          : by rw one_mul
+      ... = (↑pn.succ) * f x + f x         : by norm_cast
+      ... ≤ f ((↑pn.succ) * x) + f x       : add_le_add_right (hpn (nat.succ_pos pn)) (f x)
+      ... ≤ f ((↑pn + 1) * x) + f x        : by norm_cast
+      ... ≤ f ((↑pn + 1) * x + x)          : H2 _ _ (mul_pos (nat.cast_add_one_pos pn) hx) hx
+      ... = f ((↑pn + 1) * x + 1 * x)      : by rw one_mul
+      ... = f ((↑pn + 1 + 1) * x)          : congr_arg f (add_mul (↑pn + 1) 1 x).symm
   },
   have H4: (∀ n : ℕ, 0 < n → (n: ℝ) ≤ f n),
   {
@@ -274,8 +277,8 @@ begin
       intros n hn,
       calc (x:ℝ)^n - 1
            = (((x^n - 1):ℚ):ℝ) : by norm_cast
-       ... < f (x^n) : hfx_gt_xm1 (x^n) (one_le_pow_of_one_le (le_of_lt hx) n)
-       ... ≤ (f x)^n : hfxn n hn x hx
+       ... < f (x^n)           : hfx_gt_xm1 (x^n) (one_le_pow_of_one_le (le_of_lt hx) n)
+       ... ≤ (f x)^n           : hfxn n hn x hx
     },
     have hx': 1 < (x:ℝ) := by { norm_cast, exact hx },
     have hxp := calc 0 < 1 : zero_lt_one
@@ -350,7 +353,7 @@ begin
     linarith [H5 x hx, H5 _ h_big_enough],
   },
 
-  have h_fixed_point_of_pos_nat_mul : (∀n:ℕ, 0 < n → ∀x:ℚ, 0 < x → f (n * x) = n * f x),
+  have h_f_commutes_with_pos_nat_mul : (∀n:ℕ, 0 < n → ∀x:ℚ, 0 < x → f (n * x) = n * f x),
   {
     intros n hn x hx,
     have h2: f (n * x) ≤ n * f x,
@@ -399,7 +402,7 @@ begin
   have h_denom_times_fx := calc
                (x2denom:ℝ) * f x
              = f (x2denom * x)
-                    : (h_fixed_point_of_pos_nat_mul x2denom hx2pos x hx).symm
+                    : (h_f_commutes_with_pos_nat_mul x2denom hx2pos x hx).symm
          ... = f (x2denom * (x2num / x2denom)) : by rw hrat_expand2
          ... = f ((x2denom * x2num) / x2denom) : by rw mul_div_assoc
          ... = f ((x2num * x2denom) / x2denom) : by rw mul_comm

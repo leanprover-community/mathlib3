@@ -402,7 +402,7 @@ def basic_open (r : R) : topological_space.opens (prime_spectrum R) :=
 { val := { x | r ∉ x.as_ideal },
   property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
 
-lemma is_open_basic_open {a : R} : is_open ((basic_open a).val) :=
+lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum R)) :=
 (basic_open a).property
 
 end basic_open

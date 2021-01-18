@@ -176,7 +176,7 @@ example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
   guard (fexpr.get_app_fn.const_name = ``fin.cast_succ),
   ic ← mk_instance_cache `(ℕ),
   n ← en.to_nat,
-  (_, en) ← ic.of_nat n, -- we launder en because it is of the form `n + 1`
+  (_, en) ← ic.of_nat n, -- we launder `en` because it is of the form `n + 1`
   fk ← e.to_fin n,
   (_, ek) ← ic.of_nat fk,
   (_, ltkn) ← prove_lt_nat ic ek en,

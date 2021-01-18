@@ -307,6 +307,17 @@ top_unique $ le_Inf $
 bot_unique $ Sup_le $
   by simp [eq_univ_iff_forall]; exact assume b hb, (bot_unique $ hb _)
 
+/-- Same as limsup_const applied to `⊥` but without the `ne_bot f` assumption -/
+lemma limsup_const_bot {f : filter β} : limsup f (λ x : β, (⊥ : α)) = (⊥ : α) :=
+begin
+  rw [limsup_eq, eq_bot_iff],
+  exact Inf_le (eventually_of_forall (λ x, le_refl _)),
+end
+
+/-- Same as limsup_const applied to `⊤` but without the `ne_bot f` assumption -/
+lemma liminf_const_top {f : filter β} : liminf f (λ x : β, (⊤ : α)) = (⊤ : α) :=
+@limsup_const_bot (order_dual α) β _ _
+
 lemma liminf_le_limsup {f : filter β} [ne_bot f] {u : β → α}  : liminf f u ≤ limsup f u :=
 Liminf_le_Limsup is_bounded_le_of_top is_bounded_ge_of_bot
 

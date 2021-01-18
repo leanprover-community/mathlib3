@@ -43,28 +43,21 @@ end
 lemma limsup_eq_zero_iff [countable_Inter_filter f] {u : α → ennreal} :
   f.limsup u = 0 ↔ u =ᶠ[f] 0 :=
 begin
-  by_cases hf_bot: f.ne_bot,
-  swap,
-  { simp [not_ne_bot.mp hf_bot, limsup], },
-  haveI : ne_bot f := hf_bot,
   split; intro h,
   { have hu_zero := eventually_le.trans (eventually_le_limsup u)
       (eventually_of_forall (λ _, le_of_eq h)),
     exact hu_zero.mono (λ x hx, le_antisymm hx (zero_le _)), },
   { rw limsup_congr h,
-    simp_rw pi.zero_apply,
-    rw limsup_const, },
+    simp_rw [pi.zero_apply, ←ennreal.bot_eq_zero],
+    rw limsup_const_bot, },
 end
 
 lemma limsup_const_mul_of_ne_top {u : α → ennreal} {a : ennreal} (ha_top : a ≠ ⊤) :
   f.limsup (λ (x : α), a * (u x)) = a * f.limsup u :=
 begin
-  by_cases hf_bot: f.ne_bot,
-  swap,
-  { simp [not_ne_bot.mp hf_bot, limsup], },
-  haveI : ne_bot f := hf_bot,
   by_cases ha_zero : a = 0,
-  { simp [ha_zero, limsup_const (0 : ennreal)], },
+  { simp_rw [ha_zero, zero_mul, ←ennreal.bot_eq_zero],
+    exact limsup_const_bot, },
   let g := λ x : ennreal, a * x,
   have hg_bij : function.bijective g,
   from function.bijective_iff_has_inverse.mpr ⟨(λ x, a⁻¹ * x),
@@ -81,10 +74,6 @@ end
 lemma limsup_const_mul [countable_Inter_filter f] {u : α → ennreal} {a : ennreal} :
   f.limsup (λ (x : α), a * (u x)) = a * f.limsup u :=
 begin
-  by_cases hf_bot: f.ne_bot,
-  swap,
-  { simp [not_ne_bot.mp hf_bot, limsup], },
-  haveI : ne_bot f := hf_bot,
   by_cases ha_top : a ≠ ⊤,
   { exact limsup_const_mul_of_ne_top ha_top, },
   push_neg at ha_top,
@@ -93,7 +82,9 @@ begin
     { refine hu.mono (λ x hx, _),
       rw pi.zero_apply at hx,
       simp [hx], },
-    simp [limsup_congr hu, limsup_congr hau, pi.zero_apply, limsup_const], },
+    simp only [limsup_congr hu, limsup_congr hau, pi.zero_apply],
+    simp_rw [←ennreal.bot_eq_zero, limsup_const_bot],
+    simp, },
   { simp_rw [ha_top, top_mul],
     have hu_mul : ∃ᶠ (x : α) in f, ⊤ ≤ ite (u x = 0) (0 : ennreal) ⊤,
     { rw [eventually_eq, not_eventually] at hu,

@@ -2588,11 +2588,19 @@ open polynomial complex
 
 /-- the `n`-th Chebyshev polynomial of the second kind evaluates on `cos θ` to the value `sin ((n+1) * θ) / sin θ`. -/
 lemma chebyshev₂_complex_cos (θ : ℂ) :
-  ∀ n, sin θ * (chebyshev₂ ℂ n).eval (cos θ) = sin ((n+1) * θ)
-| 0       := by simp only [chebyshev₂_zero, eval_one, nat.cast_zero, mul_one, zero_add, one_mul]
-| 1       := begin simp only [chebyshev₂_one, chebyshev₂_one], norm_num, rw sin_two_mul, ring end
-| (n + 2) :=
+  ∀ n, (chebyshev₂ ℂ n).eval (cos θ) * sin θ = sin ((n+1) * θ) :=
 begin
+  intro n,
+  induction n with d hd,
+  { simp only [chebyshev₂_zero, nat.cast_zero, eval_one, mul_one, zero_add, one_mul] },
+  { rw chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁,
+  simp only [eval_add, eval_mul, eval_X, chebyshev₁_complex_cos, add_mul, mul_assoc, hd, one_mul],
+  conv_rhs { rw [sin_add, mul_comm] },
+  push_cast,
+  simp only [add_mul, one_mul] }
+end
+
+/-begin
   have aux : eval (cos θ) 2 = 2,
   { change eval (cos θ) (1+1) = 2,
   rw eval_add,
@@ -2606,7 +2614,7 @@ begin
   simp only [nat.cast_add, nat.cast_one, add_mul, cos_add, one_mul, sin_add, mul_assoc, aux],
   ring,-/
   sorry
-end
+end-/
 
 
 end chebyshev₂

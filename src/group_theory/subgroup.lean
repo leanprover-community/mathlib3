@@ -1228,6 +1228,17 @@ noncomputable def lift_of_surjective
     simp only [classical.some_spec (hf _)],
   end }
 
+noncomputable def lift_of_surjective_equiv
+  (hf : function.surjective f) : {g : G₁ →* G₃ // f.ker ≤ g.ker} ≃ (G₂ →* G₃) :=
+{ to_fun := λ g, f.lift_of_surjective hf g.1 g.2,
+  inv_fun := λ φ, ⟨φ.comp f, begin
+
+  end,
+  left_inv := sorry,
+  right_inv := sorry }
+
+#exit
+
 @[simp, to_additive]
 lemma lift_of_surjective_comp_apply
   (hf : function.surjective f) (g : G₁ →* G₃) (hg : f.ker ≤ g.ker) (x : G₁) :

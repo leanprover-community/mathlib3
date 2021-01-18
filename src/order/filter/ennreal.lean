@@ -31,13 +31,13 @@ begin
     refine λ n, eventually_lt_of_limsup_lt _,
     nth_rewrite 0 ←add_zero (f.limsup u),
     exact (add_lt_add_iff_left (lt_top_iff_ne_top.mpr hx_top)).mpr (by simp), },
-  refine h_forall_le.mono (λ y hy, le_of_forall_epsilon_le (λ r hr_pos hx_top,_)),
+  refine h_forall_le.mono (λ y hy, le_of_forall_pos_le_add (λ r hr_pos hx_top, _)),
   have hr_ne_zero : (r : ennreal) ≠ 0,
   { rw [ne.def, coe_eq_zero],
     exact (ne_of_lt hr_pos).symm, },
   cases (exists_inv_nat_lt hr_ne_zero) with i hi,
-  refine le_trans (le_of_lt (hy i)) (add_le_add_left (le_of_lt _) (f.limsup u)),
-  rwa [div_def, one_mul],
+  rw inv_eq_one_div at hi,
+  exact le_trans (le_of_lt (hy i)) (add_le_add_left hi.le (f.limsup u)),
 end
 
 lemma limsup_eq_zero_iff [countable_Inter_filter f] {u : α → ennreal} :

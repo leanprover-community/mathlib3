@@ -29,7 +29,7 @@ variables (A) [comm_ring A] [ring B] [algebra A B]
 
 /-- Let `B` be an `A`-algebra, and `x` an element of `B` that is integral over `A`
 so we have some term `hx : is_integral A x`.
-The minimal polynomial `minpoly hx` of `x` is a monic polynomial of smallest degree
+The minimal polynomial `minpoly A x` of `x` is a monic polynomial of smallest degree
 that has `x` as its root.
 For instance, if `V` is a `K`-vector space for some field `K`, and `f : V →ₗ[K] V` then
 the minimal polynomial of `f` is `minpoly f.is_integral`. -/
@@ -355,7 +355,8 @@ as root. -/
 -- TODO use `gcd_domain_dvd` directly when localizations are defined in terms of algebras
 -- instead of `ring_hom`s
 lemma integer_dvd {A : Type*} [integral_domain A] [algebra ℚ A] {x : A} (hx : is_integral ℤ x)
-  {P : polynomial ℤ} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) : minpoly ℤ x ∣ P :=
+  {P : polynomial ℤ} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
+  minpoly ℤ x ∣ P :=
 begin
   apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast _ _
     (monic.is_primitive (monic hx)) hprim ).2,

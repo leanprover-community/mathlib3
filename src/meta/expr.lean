@@ -307,7 +307,7 @@ namespace expr
 
 /--
 Turns an expression into a natural number, assuming it is only built up from
-`has_one.one`, `bit0`, `bit1`, `has_zero.zero`, `nat.zero`, and `nat.succ`.
+`has_one.one`, `bit0`, `bit1`, `has_zero.zero`, `nat.zero`, `nat.succ`, or `(+ 1)`.
 -/
 protected meta def to_nat : expr → option ℕ
 | `(has_zero.zero) := some 0
@@ -315,6 +315,7 @@ protected meta def to_nat : expr → option ℕ
 | `(bit0 %%e) := bit0 <$> e.to_nat
 | `(bit1 %%e) := bit1 <$> e.to_nat
 | `(nat.succ %%e) := (+1) <$> e.to_nat
+| `(%%e + 1) := (+1) <$> e.to_nat -- a different form for `nat.succ`
 | `(nat.zero) := some 0
 | _ := none
 

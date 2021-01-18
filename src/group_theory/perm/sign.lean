@@ -67,9 +67,9 @@ lemma perm_inv_maps_to_of_maps_to (f : perm α) {s : set α} [fintype s]
    (λ a ha, set.mem_to_finset.mpr (h (set.mem_to_finset.mp ha)))
    (set.mem_to_finset.mpr hx)
 
-lemma perm_inv_maps_to_iff_maps_to {f : perm α} {s : set α} [fintype s] :
+@[simp] lemma perm_inv_maps_to_iff_maps_to {f : perm α} {s : set α} [fintype s] :
   set.maps_to (f⁻¹ : _) s s ↔ set.maps_to f s s :=
-  ⟨perm_inv_maps_to_of_maps_to f⁻¹, perm_inv_maps_to_of_maps_to f⟩
+⟨perm_inv_maps_to_of_maps_to f⁻¹, perm_inv_maps_to_of_maps_to f⟩
 
 lemma perm_inv_on_of_perm_on_fintype {f : perm α} {p : α → Prop} [fintype {x // p x}]
   (h : ∀ x, p x → p (f x)) {x : α} (hx : p x) : p (f⁻¹ x) :=
@@ -79,8 +79,8 @@ begin
 end
 
 /-- If the permutation `f` maps `{x // p x}` into itself, then this returns the permutation
-  on `{x // p x}` induced by `f`. -/
-def subtype_perm_of_fintype(f : perm α) {p : α → Prop} [fintype {x // p x}]
+  on `{x // p x}` induced by `f`. Note that the `h` hypothesis is weaker than for `equiv.perm.subtype.perm`. -/
+def subtype_perm_of_fintype (f : perm α) {p : α → Prop} [fintype {x // p x}]
   (h : ∀ x, p x → p (f x)) : perm {x // p x} :=
 f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_perm_on_fintype h h₂⟩)
 

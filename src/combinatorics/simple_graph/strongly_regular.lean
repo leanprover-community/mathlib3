@@ -19,8 +19,8 @@ import data.set.finite
   * The number of common neighbors between any two nonadjacent vertices in `G` is `m`
 
 ## TODO
-- Define the complement of a graph
-- Prove that the complement of a strongly regular graph is strongly regular
+- Prove that the complement of a strongly regular graph is strongly regular with parameters
+  `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (v - 2k + l)`
 - Prove that the parameters of a strongly regular graph
   obey relation `(n - k - 1) * m = k * (k - l - 1)`
 - Prove that if I is the identity matrix and J is the all-one matrix,
@@ -61,7 +61,7 @@ begin
   rw is_regular_of_degree at h,
   specialize h v,
   rw ← h,
-  exact card_common_neighbors_le_degree G v w
+  exact card_common_neighbors_le_degree_left G v w
 end
 
 lemma adj_card_common_neighbors_lt_regular_degree (v w : V) (h : G.adj v w) (k : ℕ)

@@ -465,6 +465,34 @@ begin
   tauto,
 end
 
+lemma neighbor_set_union_compl_neighbor_set_card [fintype V] (G : simple_graph V) (v : V) :
+  (G.neighbor_set v ∪ Gᶜ.neighbor_set v).to_finset.card = fintype.card V - 1 :=
+begin
+  rw neighbor_set_union_compl_neighbor_set_eq,
+  --rw finset.card_compl,
+  rw ← card_univ,
+  simp,
+
+  sorry,
+end
+
+lemma compl_regular_is_regular [fintype V] (G : simple_graph V) [nonempty V] (k : ℕ) (h : G.is_regular_of_degree k) :
+  Gᶜ.is_regular_of_degree (fintype.card V - k - 1) :=
+begin
+  rw is_regular_of_degree,
+  intros v,
+  specialize h v,
+  have h2 := degree_lt_card_verts G v,
+  have h3 := neighbor_set_union_compl_neighbor_set_card G v,
+  rw nat.sub_sub,
+  rw add_comm,
+  rw ← nat.sub_sub,
+  rw ← h3,
+  rw ← h,
+  --rw set.to_finset_union,
+  sorry,
+end
+
 end complement
 
 end simple_graph

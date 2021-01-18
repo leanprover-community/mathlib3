@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.polynomial.eval
+import data.polynomial.derivative
 
 /-!
 # Chebyshev polynomials
@@ -32,6 +32,7 @@ and import that file in turn, in `ring_theory.polynomial.chebyshev.basic`.
 * Add explicit formula involving square roots for chebyshev polynomials
   `ring_theory.polynomial.chebyshev.basic`.
 * compute zeroes and extrema of chebyshev polynomials
+* prove minimax properties of chebyshev polynomials
 * define a variant of chebyshev polynomials of the second kind removing the 2
   (sometimes called Dickson polynomials of the second kind)
 * prove that the adjacency matrices of simply laced Dynkin diagrams are precisely the matrix zeroes
@@ -153,9 +154,9 @@ end
 
 lemma chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ :
 ∀ (n : ℕ), chebyshev₂ R (n+1) = X * chebyshev₂ R n + chebyshev₁ R (n+1)
-|0      := by simp only [chebyshev₂_zero, chebyshev₂_one, chebyshev₁_one, two_mul, mul_one]
-|1      := by simpa only [chebyshev₂_one, chebyshev₁_two, chebyshev₂_two, ←mul_assoc, pow_two, mul_comm, add_sub, ←mul_add]
-|(n+2)  := begin
+|0        := by simp only [chebyshev₂_zero, chebyshev₂_one, chebyshev₁_one, two_mul, mul_one]
+|1        := by simpa only [chebyshev₂_one, chebyshev₁_two, chebyshev₂_two, ←mul_assoc, pow_two, mul_comm, add_sub, ←mul_add]
+|(n + 2)  := begin
   calc chebyshev₂ R (n + 2 + 1) = 2 * X * chebyshev₂ R (n + 1 + 1) - chebyshev₂ R (n + 1) : by rw chebyshev₂_add_two
   ... = 2 * X * (X * chebyshev₂ R (n + 1) + chebyshev₁ R (n + 2)) - (X * chebyshev₂ R n + chebyshev₁ R (n+1)) : by simp only [chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ n, chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ (n+1)]
   ... = (2 * X * (X * chebyshev₂ R (n + 1)) + 2 * X * chebyshev₁ R (n+2)) - X * chebyshev₂ R n - chebyshev₁ R (n+1) : by rw [mul_add, sub_add_eq_sub_sub]
@@ -175,10 +176,10 @@ end
 
 lemma chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ :
 ∀ (n : ℕ), chebyshev₁ R (n+2) = X * chebyshev₁ R (n+1) - (1 - X ^ 2) * chebyshev₂ R n
-|0      := by simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero, mul_one,
+|0        := by simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero, mul_one,
                  sub_sub_assoc_swap, pow_two, two_mul]
-|1      := begin simp only [chebyshev₁_add_two, chebyshev₁_zero, chebyshev₁_add_two, chebyshev₂_one, chebyshev₁_one, sub_mul, mul_sub, mul_one, one_mul], sorry end
-|(n+2)  := begin rw chebyshev₁_add_two, sorry end
+|1        := begin simp only [chebyshev₁_add_two, chebyshev₁_zero, chebyshev₁_add_two, chebyshev₂_one, chebyshev₁_one, sub_mul, mul_sub, mul_one, one_mul], sorry end
+|(n + 2)  := begin rw chebyshev₁_add_two, sorry end
 
 variables {R S}
 
@@ -195,5 +196,15 @@ begin
   rw [map_chebyshev₂ (n + 1), map_chebyshev₂ n],
 end
 
+lemma chebyshev₂_derivative_eq_chebyshev₁ :
+∀ (n : ℕ), derivative (chebyshev₁ R (n + 1)) = (n + 1) * chebyshev₂ R n
+|0        := begin simp only [chebyshev₁_one, chebyshev₂_zero, derivative_X], norm_num end
+|1        := begin simp only [chebyshev₁_two, chebyshev₂_one, derivative_sub, derivative_one,
+                              derivative_mul, derivative_X_pow, sub_zero], norm_num end
+|(n + 2)  := begin simp only [chebyshev₁_add_two, chebyshev₂_add_two, derivative_sub,
+                              derivative_mul, chebyshev₂_derivative_eq_chebyshev₁,
+                              derivative_bit0,
+                              derivative_one, bit0_zero, zero_mul, zero_add, derivative_X, mul_one],
+                              sorry end
 
 end polynomial

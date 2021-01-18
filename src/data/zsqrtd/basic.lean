@@ -611,7 +611,8 @@ def lift {d : ℤ} (r : R) (hr : r * r = ↑d) : ℤ√d →+* R := {
     simp [this, hr],
     ring, } }
 
-/-- `lift` is injective if `d` is non-square, and the map from `ℤ` into `R` is injective. -/
+/-- `lift` is injective if `d` is non-square, and R has characteristic zero (that is, the map from
+`ℤ` into `R` is injective). -/
 lemma lift_injective [char_zero R] {d : ℤ} (r : R) (hr : r * r = ↑d) (hd : ∀ n : ℤ, d ≠ n*n) :
   function.injective (lift r hr) :=
 (lift r hr).injective_iff.mpr $ λ a ha,

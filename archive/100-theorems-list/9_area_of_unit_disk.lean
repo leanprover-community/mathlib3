@@ -10,6 +10,10 @@ import measure_theory.prod
 import analysis.special_functions.trigonometric
 import analysis.mean_inequalities
 
+/-!
+Docstring!
+Freek № 9
+-/
 open set interval_integral metric real filter measure_theory
 
 
@@ -222,9 +226,9 @@ begin
     { rw [← h2, integral_indicator, ← integral_of_le,
           integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self zero_le_one)
             ((continuous_arcsin.add (continuous_id.mul hc1)).continuous_on) _ hc2.continuous_on],
-      { simp only [arcsin_one, arcsin_neg_one, one_pow, neg_one_pow_eq_pow_mod_two, nat.bit0_mod_two,
-                  pow_zero, sub_self, sqrt_zero, mul_zero, add_zero, sub_neg_eq_add, add_halves'] },
-      { rintros x ⟨hx1, hx2⟩,
+      { simp only [arcsin_one, arcsin_neg_one, one_pow, add_zero, nat.neg_one_pow_two, sub_self,
+                  sqrt_zero, mul_zero, sub_neg_eq_add, add_halves'] },
+        { rintros x ⟨hx1, hx2⟩,
         convert (has_deriv_at_arcsin hx1.ne.symm hx2.ne).add ((has_deriv_at_id' x).mul
                   (((has_deriv_at_id' x).pow.const_sub 1).sqrt _)),
         { simp only [one_mul, mul_one, zero_sub, nat.cast_bit0, pow_one, nat.cast_one, neg_div],

@@ -54,6 +54,7 @@ def comparison [is_right_adjoint R] : D ⥤ algebra (left_adjoint R ⋙ R) :=
 /--
 The underlying object of `(monad.comparison R).obj X` is just `R.obj X`.
 -/
+@[simps]
 def comparison_forget [is_right_adjoint R] : comparison R ⋙ forget (left_adjoint R ⋙ R) ≅ R :=
 { hom := { app := λ X, 𝟙 _, },
   inv := { app := λ X, 𝟙 _, } }

@@ -93,7 +93,7 @@ begin
     use λx, f x,
     split,
     { apply isometry_subtype_coe.comp f.isometry },
-    { rw [range_comp, f.range_coe, set.image_univ, subtype.range_coe] } },
+    { rw [range_comp, f.range_eq_univ, set.image_univ, subtype.range_coe] } },
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
     have f := ((Kuratowski_embedding.isometry α).isometric_on_range.symm.trans
                isomΨ.isometric_on_range).symm,

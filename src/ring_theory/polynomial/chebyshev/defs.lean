@@ -146,11 +146,10 @@ begin
   exact chebyshev₂_add_two R n
 end
 
-lemma some (a b c : ℤ) : a - (b + c) = a - b - c :=
+lemma some : ∀(n : ℕ), X * (2 * (X * chebyshev₂ R (n + 1)) - chebyshev₂ R n) + (2 * X * chebyshev₁ R (n + 1 + 1) - chebyshev₁ R (n + 1)) :=
 begin
-library_search
+  library_search
 end
-
 
 lemma chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ :
 ∀ (n : ℕ), chebyshev₂ R (n+1) = X * chebyshev₂ R n + chebyshev₁ R (n+1)
@@ -158,10 +157,11 @@ lemma chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ :
 |1      := by simpa only [chebyshev₂_one, chebyshev₁_two, chebyshev₂_two, ←mul_assoc, pow_two, mul_comm, add_sub, ←mul_add]
 |(n+2)  := begin
   calc chebyshev₂ R (n + 2 + 1) = 2 * X * chebyshev₂ R (n + 1 + 1) - chebyshev₂ R (n + 1) : by rw chebyshev₂_add_two
-  ... = 2 * X * (X * chebyshev₂ R (n + 1) + chebyshev₁ R (n + 2)) - (X * chebyshev₂ R n + chebyshev₁ R (n+1)) : by simp [chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ n, chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ (n+1)]
+  ... = 2 * X * (X * chebyshev₂ R (n + 1) + chebyshev₁ R (n + 2)) - (X * chebyshev₂ R n + chebyshev₁ R (n+1)) : by simp only [chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ n, chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ (n+1)]
   ... = (2 * X * (X * chebyshev₂ R (n + 1)) + 2 * X * chebyshev₁ R (n+2)) - X * chebyshev₂ R n - chebyshev₁ R (n+1) : by rw [mul_add, sub_add_eq_sub_sub]
-  ... = X * (2 * X * chebyshev₂ R (n + 1) - chebyshev₂ R n) + (2 * X * chebyshev₁ R (n + 1 + 1) - chebyshev₁ R (n + 1)) : by sorry
-  ... = X * chebyshev₂ R (n + 2) + chebyshev₁ R (n + 2 + 1) : by simp [chebyshev₂_add_two, chebyshev₁_add_two]
+  ... = (2 * X * (X * chebyshev₂ R (n + 1))) - X * chebyshev₂ R n + 2 * X * chebyshev₁ R (n+2) - chebyshev₁ R (n+1) : by simp only [sub_add_eq_add_sub]
+  ... =  X * (2 * (X * chebyshev₂ R (n + 1)) - chebyshev₂ R n) + (2 * X * chebyshev₁ R (n + 1 + 1) - chebyshev₁ R (n + 1)) : by simp only [add_sub_assoc, mul_comm, mul_assoc, mul_sub]
+  ... = X * chebyshev₂ R (n + 2) + chebyshev₁ R (n + 2 + 1) : by simp only [mul_assoc, chebyshev₂_add_two, chebyshev₁_add_two]
 end
 
 lemma chebyshev₁_eq_chebyshev₂_sub_X_mul_chebyshev₂ :

@@ -34,7 +34,11 @@ finitely many vertices.
 * A locally finite graph is one with instances `∀ v, fintype (G.neighbor_set v)`.
 
 * Given instances `decidable_rel G.adj` and `fintype V`, then the graph
-is locally finite, too.
+  is locally finite, too.
+
+## Naming Conventions
+
+* If the vertex type of a graph is finite, we refer to its cardinality as `card_verts`
 
 TODO: This is the simplest notion of an unoriented graph.  This should
 eventually fit into a more complete combinatorics hierarchy which

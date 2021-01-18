@@ -48,8 +48,7 @@ begin
       (eventually_of_forall (λ _, le_of_eq h)),
     exact hu_zero.mono (λ x hx, le_antisymm hx (zero_le _)), },
   { rw limsup_congr h,
-    simp_rw [pi.zero_apply, ←ennreal.bot_eq_zero],
-    rw limsup_const_bot, },
+    simp_rw [pi.zero_apply, ←ennreal.bot_eq_zero, limsup_const_bot] },
 end
 
 lemma limsup_const_mul_of_ne_top {u : α → ennreal} {a : ennreal} (ha_top : a ≠ ⊤) :
@@ -64,11 +63,11 @@ begin
     ⟨λ x, by simp [←mul_assoc, inv_mul_cancel ha_zero ha_top],
     λ x, by simp [g, ←mul_assoc, mul_inv_cancel ha_zero ha_top]⟩⟩,
   have hg_mono : strict_mono g,
-  from strict_mono_of_monotone_of_injective
-    (λ _ _ _, by rwa mul_le_mul_left ha_zero ha_top) hg_bij.1,
+    from strict_mono_of_monotone_of_injective
+      (λ _ _ _, by rwa mul_le_mul_left ha_zero ha_top) hg_bij.1,
   let g_iso := strict_mono.order_iso_of_surjective g hg_mono hg_bij.2,
   refine (order_iso.limsup_apply g_iso _ _ _ _).symm,
-  all_goals { by is_bounded_default},
+  all_goals { by is_bounded_default },
 end
 
 lemma limsup_const_mul [countable_Inter_filter f] {u : α → ennreal} {a : ennreal} :
@@ -82,8 +81,7 @@ begin
     { refine hu.mono (λ x hx, _),
       rw pi.zero_apply at hx,
       simp [hx], },
-    simp only [limsup_congr hu, limsup_congr hau, pi.zero_apply],
-    simp_rw [←ennreal.bot_eq_zero, limsup_const_bot],
+    simp only [limsup_congr hu, limsup_congr hau, pi.zero_apply, ← bot_eq_zero, limsup_const_bot],
     simp, },
   { simp_rw [ha_top, top_mul],
     have hu_mul : ∃ᶠ (x : α) in f, ⊤ ≤ ite (u x = 0) (0 : ennreal) ⊤,
@@ -92,7 +90,7 @@ begin
       rw pi.zero_apply at hx,
       simp [hx], },
     have h_top_le : f.limsup (λ (x : α), ite (u x = 0) (0 : ennreal) ⊤) = ⊤,
-    from eq_top_iff.mpr (le_limsup_of_frequently_le hu_mul),
+      from eq_top_iff.mpr (le_limsup_of_frequently_le hu_mul),
     have hfu : f.limsup u ≠ 0, from mt limsup_eq_zero_iff.1 hu,
     simp only [h_top_le, hfu, if_false], },
 end

@@ -144,7 +144,7 @@ open submodule polynomial set
 
 variables {f : polynomial R} {I : submodule (polynomial R) (polynomial R)}
 
-lemma span_le_of_coeff_mem_comap (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹' I.carrier)) :
+lemma span_le_of_coeff_mem_C_inverse (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹' I.carrier)) :
   (span (polynomial R) {g | ∃ i, g = C (f.coeff i)}) ≤ I :=
 begin
   refine bInter_subset_of_mem _,
@@ -165,6 +165,6 @@ end
 lemma exists_coeff_not_mem_C_inverse :
   f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
 imp_of_not_imp_not _ _
-  (λ cf, not_not.mpr ((span_le_of_coeff_mem_comap (not_exists_not.mp cf)) mem_span_C_coeff))
+  (λ cf, not_not.mpr ((span_le_of_coeff_mem_C_inverse (not_exists_not.mp cf)) mem_span_C_coeff))
 
 end polynomial

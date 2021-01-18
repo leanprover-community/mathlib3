@@ -1,7 +1,7 @@
-import m4r.tpow_to_talg linear_algebra.exterior_algebra
+import m4r.tpow_to_talg linear_algebra.exterior_algebra m4r.sq_zero
 
-universe u
-variables (R : Type) [comm_ring R] (M : Type) [add_comm_group M] [module R M]
+universes u v
+variables (R : Type u) [comm_ring R] (M : Type u) [add_comm_group M] [module R M]
 
 open exterior_algebra
 
@@ -30,7 +30,7 @@ def epow.mk (n : ℕ) : alternating_map R M (epow R M n) (fin n) :=
     set.mem_image_of_mem _ ⟨i, j, h, hij⟩,
   ..(epow_ker R M n).mkq.comp_multilinear_map (tpow.mk' R M n) }
 
-variables {M} {N : Type} [add_comm_group N] [module R N] {n : ℕ} {p : submodule R M} {q : submodule R N}
+variables {M} {N : Type u} [add_comm_group N] [module R N] {n : ℕ} {p : submodule R M} {q : submodule R N}
 
 def quot_prod_to_quot :
   (p.quotient × q.quotient) →ₗ[R] (p.prod q).quotient :=
@@ -73,7 +73,7 @@ linear_equiv.of_linear (quot_prod_to_quot R)
   (quot_to_quot_prod R) (linear_map.ext $ quot_prod_to_quot_left_inv R)
   (linear_map.ext $ quot_prod_to_quot_right_inv R)
 
-def submodule.pi {ι : Type} (M : ι → Type) [Π i, add_comm_group (M i)]
+def submodule.pi {ι : Type v} (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) :
   submodule R (direct_sum ι M) :=
 { carrier := { f | ∀ i, f i ∈ p i},
@@ -83,7 +83,7 @@ def submodule.pi {ι : Type} (M : ι → Type) [Π i, add_comm_group (M i)]
   smul_mem' := λ c x hx i, by {rw dfinsupp.smul_apply,
     exact (p i).smul_mem c (hx i)} }
 
-lemma lof_mem_pi {ι : Type} [decidable_eq ι] {M : ι → Type} [Π i, add_comm_group (M i)]
+lemma lof_mem_pi {ι : Type v} [decidable_eq ι] {M : ι → Type u} [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] {p : Π i, submodule R (M i)} {i : ι} {x : M i} :
   direct_sum.lof R ι M i x ∈ submodule.pi R M p ↔ x ∈ p i :=
 begin
@@ -100,7 +100,7 @@ begin
 end
 open_locale classical
 
-lemma mem_direct_sum {ι : Type} [decidable_eq ι] {M : ι → Type} [Π i, add_comm_group (M i)]
+lemma mem_direct_sum {ι : Type v} [decidable_eq ι] {M : ι → Type u} [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (S : submodule R (direct_sum ι M)) (x : direct_sum ι M)
   (H : ∀ i, direct_sum.lof R ι M i (x i) ∈ S) :
   x ∈ S :=
@@ -111,7 +111,7 @@ begin
   exact H i,
 end
 
-lemma pi_eq_span {ι : Type} [decidable_eq ι] {M : ι → Type} [Π i, add_comm_group (M i)]
+lemma pi_eq_span {ι : Type v} [decidable_eq ι] {M : ι → Type u} [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] {p : Π i, submodule R (M i)} :
   submodule.pi R M p = submodule.span R (set.Union (λ i, (p i).map (direct_sum.lof R ι M i))) :=
 begin
@@ -136,20 +136,20 @@ begin
   exact submodule.zero_mem _,
 end
 
-def direct_sum.map_range {ι : Type} [decidable_eq ι] {M : ι → Type} [Π i, add_comm_group (M i)]
+def direct_sum.map_range {ι : Type v} [decidable_eq ι] {M : ι → Type u} [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] {N : ι → Type u} [Π i, add_comm_group (N i)] [Π i, module R (N i)]
   (f : Π i, M i →ₗ[R] N i) : direct_sum ι M →ₗ[R] direct_sum ι N :=
 { to_fun := dfinsupp.map_range (λ i, f i) (λ i, linear_map.map_zero _),
   map_add' := λ x y, by {ext, simp only [linear_map.map_add, dfinsupp.map_range_apply, direct_sum.add_apply],},
   map_smul' := λ r x, by {ext, simp only [dfinsupp.smul_apply, dfinsupp.map_range_apply, linear_map.map_smul]} }
 
-@[simp] lemma direct_sum.map_range_apply {ι : Type} [decidable_eq ι] (M : ι → Type) [Π i, add_comm_group (M i)]
-  [Π i, module R (M i)] (N : ι → Type) [Π i, add_comm_group (N i)] [Π i, module R (N i)]
+@[simp] lemma direct_sum.map_range_apply {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
+  [Π i, module R (M i)] (N : ι → Type u) [Π i, add_comm_group (N i)] [Π i, module R (N i)]
   (f : Π i, M i →ₗ[R] N i) (g : direct_sum ι M) (i : ι) :
   direct_sum.map_range R f g i = f i (g i) :=
 dfinsupp.map_range_apply (λ i, f i) (λ i, linear_map.map_zero _) _ _
 
-lemma quot_pi_to_quot_aux {ι : Type} [decidable_eq ι] (M : ι → Type) [Π i, add_comm_group (M i)]
+lemma quot_pi_to_quot_aux {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) (i : ι) :
   p i ≤ ((submodule.pi R M p).mkq.comp (direct_sum.lof R ι M i)).ker :=
 begin
@@ -162,7 +162,7 @@ begin
   exact dfinsupp.single_eq_of_ne (ne.symm h)
 end
 
-def quot_pi_to_quot {ι : Type} [decidable_eq ι] (M : ι → Type) [Π i, add_comm_group (M i)]
+def quot_pi_to_quot {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) :
   direct_sum ι (λ i, (p i).quotient) →ₗ[R] (submodule.pi R M p).quotient :=
 (direct_sum.to_module R ι (submodule.pi R M p).quotient
@@ -170,20 +170,20 @@ def quot_pi_to_quot {ι : Type} [decidable_eq ι] (M : ι → Type) [Π i, add_c
   ((submodule.pi R M p).mkq.comp (direct_sum.lof R ι M i)) $
   quot_pi_to_quot_aux R M p i))
 
-lemma quot_to_quot_pi_aux {ι : Type} [decidable_eq ι] (M : ι → Type) [Π i, add_comm_group (M i)]
+lemma quot_to_quot_pi_aux {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) :
   submodule.pi R M p ≤ (direct_sum.map_range R (λ (i : ι), (p i).mkq)).ker :=
 λ x hx, by {rw linear_map.mem_ker, ext,
     rw direct_sum.map_range_apply,
     refine linear_map.mem_ker.1 (by rw submodule.ker_mkq; exact hx i)}
 
-def quot_to_quot_pi {ι : Type} [decidable_eq ι] (M : ι → Type) [Π i, add_comm_group (M i)]
+def quot_to_quot_pi {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) :
   (submodule.pi R M p).quotient →ₗ[R] direct_sum ι (λ i, (p i).quotient) :=
 (submodule.pi R M p).liftq (direct_sum.map_range R $ λ i, (p i).mkq) $
 quot_to_quot_pi_aux R M p
 
-lemma quot_pi_to_quot_right_inv {ι : Type} [decidable_eq ι] (M : ι → Type) [Π i, add_comm_group (M i)]
+lemma quot_pi_to_quot_right_inv {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) (x : direct_sum ι (λ i, (p i).quotient)) :
   quot_to_quot_pi R M p (quot_pi_to_quot R M p x) = x :=
 begin
@@ -214,7 +214,7 @@ begin
   erw hz, erw hw,
 end
 
-lemma quot_pi_to_quot_left_inv {ι : Type} [decidable_eq ι] (M : ι → Type) [Π i, add_comm_group (M i)]
+lemma quot_pi_to_quot_left_inv {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) (x : (submodule.pi R M p).quotient) :
   quot_pi_to_quot R M p (quot_to_quot_pi R M p x) = x :=
 begin
@@ -231,14 +231,14 @@ begin
   refl,
 end
 
-def quot_pi_equiv {ι : Type} [decidable_eq ι] (M : ι → Type) [Π i, add_comm_group (M i)]
+def quot_pi_equiv {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) :
   direct_sum ι (λ i, (p i).quotient) ≃ₗ[R] (submodule.pi R M p).quotient :=
 linear_equiv.of_linear (quot_pi_to_quot R M p) (quot_to_quot_pi R M p)
 (linear_map.ext $ quot_pi_to_quot_left_inv R M p)
 (linear_map.ext $ quot_pi_to_quot_right_inv R M p)
 
-lemma quot_pi_equiv_apply {ι : Type} [decidable_eq ι] (M : ι → Type) [Π i, add_comm_group (M i)]
+lemma quot_pi_equiv_apply {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) (i : ι) (x : M i) :
   quot_pi_equiv R M p (direct_sum.lof R ι _ i ((p i).mkq x)) =
     (submodule.pi R M p).mkq (direct_sum.lof R ι _ i x) :=
@@ -248,7 +248,7 @@ begin
   erw (p i).liftq_apply,
 end
 
-lemma quot_pi_equiv_symm_apply {ι : Type} [decidable_eq ι] (M : ι → Type) [Π i, add_comm_group (M i)]
+lemma quot_pi_equiv_symm_apply {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) (i : ι) (x : M i) :
   (quot_pi_equiv R M p).symm ((submodule.pi R M p).mkq (direct_sum.lof R ι _ i x)) =
     (direct_sum.lof R ι _ i ((p i).mkq x)) :=
@@ -324,13 +324,124 @@ begin
   exact set.mem_image_of_mem _ hzm,
 end
 
-lemma antisymm_of_square_eq_zero {S : Type} [ring S] (h : ∀ x : S, x * x = 0) (x y : S) :
-  x * y = -(y * x) :=
+lemma antisymm_of_square_eq_zero {ι : Type v} [add_comm_monoid ι] {S : Type u} [ring S]
+  (f : ι →+ S) (h : ∀ x : ι, f x * f x = 0) (x y : ι) :
+  f x * f y = -(f y * f x) :=
 begin
  refine add_eq_zero_iff_eq_neg.1 _,
- suffices : (x + y) * (x + y) = 0, by
+ suffices : (f x + f y) * (f x + f y) = 0, by
     simpa [h, mul_add, add_mul],
+ rw ←f.map_add,
  exact h _,
+end
+
+lemma of_fn_prod_add {ι : Type v} [add_comm_monoid ι] {S : Type u} [ring S]
+  (f : ι →+ S) {n : ℕ} (v : fin n → ι) {x y : ι} :
+  (list.of_fn (f ∘ fin.cons x v)).prod + (list.of_fn (f ∘ fin.cons y v)).prod =
+    (list.of_fn (f ∘ fin.cons (x + y) v)).prod :=
+begin
+  simp only [fin.comp_cons, list.of_fn_succ, list.prod_cons],
+  convert (add_mul _ _ _).symm,
+  ext z,
+  simp only [fin.cons_succ],
+  simp only [fin.cons_zero, f.map_add],
+  ext z,
+  simp only [fin.cons_succ],
+end
+
+lemma neg_one_pow_commutes {S : Type u} [ring S] {n : ℕ} (x : S) :
+  (-1 : S) ^ n * x = x * (-1 : S) ^ n :=
+begin
+    cases neg_one_pow_eq_or n,
+    rw h,
+    rw mul_one, rw one_mul,
+    rw h,
+    simp only [neg_mul_eq_neg_mul_symm, mul_one, one_mul, mul_neg_eq_neg_mul_symm],
+end
+
+lemma swap_prod {ι : Type v} [add_comm_monoid ι] {S : Type u} [ring S]
+  (f : ι →+ S) (h : ∀ x : ι, f x * f x = 0) {n : ℕ} (v : fin n.succ → ι) {x : ι} :
+  (list.of_fn (f ∘ fin.cons x v)).prod = (-1 : S) ^ (n.succ) * (list.of_fn (f ∘ fin.snoc v x)).prod :=
+begin
+  revert v,
+  induction n with n hn,
+  intros,
+  simp only [neg_mul_eq_neg_mul_symm, mul_one, one_mul, fin.cons_zero, list.of_fn_zero, function.comp_app, pow_one, fin.cons_succ,
+  list.of_fn_succ, list.prod_cons, list.prod_nil],
+  exact antisymm_of_square_eq_zero f h _ _,
+  intros,
+  conv_rhs {rw list.of_fn_succ},
+  rw list.prod_cons,
+  have huh : (λ (i : fin n.succ.succ), (f ∘ fin.snoc v x) i.succ) = f ∘ (fin.snoc (fin.tail v) x) :=
+  begin
+    ext i,
+    simp only [function.comp_app],
+    congr' 1,
+    rcases classical.em (i = fin.last n.succ) with ⟨rfl, hi⟩,
+    erw fin.snoc_last, erw fin.snoc_last,
+    have : i = fin.cast_succ ⟨i, by {contrapose h_1, rw not_not, exact fin.eq_last_of_not_lt h_1}⟩ := fin.ext (rfl),
+    rw this,
+    rw fin.snoc_cast_succ,
+    rw ←fin.cast_succ_fin_succ,
+    rw fin.snoc_cast_succ,
+    refl,
+  end,
+  simp only [function.comp_app],
+  rw huh,
+  rw pow_succ, rw mul_assoc, rw ←mul_assoc ((-1 : S) ^ n.succ),
+  rw neg_one_pow_commutes,
+  rw mul_assoc,
+  rw ←hn (fin.tail v),
+  rw list.of_fn_succ,
+  rw list.prod_cons,
+  rw function.comp_app,
+  rw fin.cons_zero,
+  show _ = (-1) * (f (v 0) * _),
+  rw list.of_fn_succ,
+  rw list.prod_cons,
+  rw function.comp_app,
+  rw fin.cons_succ,
+  conv_rhs {rw list.of_fn_succ},
+  rw list.prod_cons,
+  rw function.comp_app,
+  rw fin.cons_zero,
+  rw ←mul_assoc,
+  rw antisymm_of_square_eq_zero f h,
+  rw ←neg_one_mul,
+  rw mul_assoc,
+  rw mul_assoc,
+  congr,
+  ext,
+  simp only [function.comp_app, fin.cons_succ],
+  refl,
+end
+
+lemma list.swap_prod {ι : Type v} [add_comm_monoid ι] {S : Type u} [ring S]
+  (f : ι →+ S) (h : ∀ x : ι, f x * f x = 0) (v : list ι) (hv : v ≠ []) {x : ι} :
+   (f x :: list.map f v).prod = (-1 : S) ^ v.length * (list.map f v ++ [f x]).prod :=
+begin
+  induction v with y t ht,
+  exact false.elim (hv rfl),
+  intros,
+  rcases classical.em (t = []) with ⟨rfl, ht0⟩,
+  simp only [neg_mul_eq_neg_mul_symm, mul_one, one_mul, list.length, pow_one, list.prod_cons, list.prod_nil, list.singleton_append,
+  list.map],
+  exact antisymm_of_square_eq_zero f h _ _,
+  intros,
+  conv_rhs {rw list.map_cons},
+  rw list.prod_cons,
+  rw list.cons_append,
+  rw list.prod_cons,
+  rw list.length_cons,
+  rw pow_succ, rw mul_assoc, rw ←mul_assoc ((-1 : S) ^ t.length),
+  rw neg_one_pow_commutes,
+  rw mul_assoc,
+  rw ←ht h_1,
+  rw list.prod_cons,
+  rw list.map_cons, rw list.prod_cons,
+  rw ←mul_assoc,
+  rw antisymm_of_square_eq_zero f h,
+  simp only [neg_mul_eq_neg_mul_symm, one_mul, neg_inj, mul_assoc],
 end
 
 instance : subsingleton (equiv.perm (fin 0)) :=
@@ -409,12 +520,12 @@ begin
   exact equiv.apply_symm_apply (equiv.of_injective _ (fin.succ_injective n)) _,
 end
 
-lemma subtype_perm_apply {α : Type} (f : equiv.perm α) {p : α → Prop}
+lemma subtype_perm_apply {α : Type u} (f : equiv.perm α) {p : α → Prop}
   (h : ∀ (x : α), p x ↔ p (f x)) (x : subtype p) :
   f.subtype_perm h x = ⟨f (x : α), (h x).1 x.2⟩ :=
 rfl
 
-lemma swap_mul_swap_of_ne {ι : Type} [decidable_eq ι] (i j k l : ι)
+lemma swap_mul_swap_of_ne {ι : Type v} [decidable_eq ι] (i j k l : ι)
   (hik : i ≠ k) (hil : i ≠ l) (hjk : j ≠ k) (hjl : j ≠ l) :
   (equiv.swap i j) * (equiv.swap k l) = (equiv.swap k l) * (equiv.swap i j) :=
 begin
@@ -426,121 +537,98 @@ begin
   rw equiv.swap_apply_of_ne_of_ne hjk hjl,
 end
 
-lemma prod_perm {ι S : Type} [ring S] (f : ι → S) (h : ∀ x : ι, f x * f x = 0)
-  {n : ℕ} (v : fin n → ι) (σ : equiv.perm (fin n)) :
-  (list.of_fn (f ∘ v)).prod = (equiv.perm.sign σ) • (list.of_fn (f ∘ v ∘ σ)).prod :=
+lemma tail_comp_perm_succ_res_apply {ι : Type v} {n : ℕ} (σ : equiv.perm (fin n.succ)) (h : σ 0 = 0)
+  (v : fin n.succ → ι) {m : fin n} : fin.tail v (perm_succ_res σ h m) = v (σ m.succ) :=
 begin
-  induction n with n hn,
-  simp only [list.of_fn_zero, list.prod_nil],
-  rw subsingleton.elim σ 1,
-  simp only [equiv.perm.sign_one, one_smul],
-  rw list.of_fn_succ,
-  rw list.prod_cons,
-  rw list.of_fn_succ,
-  rw list.prod_cons,
-  erw hn (fin.tail v) (perm_succ_res (equiv.swap 0 (σ 0) * σ) $ swap_zero_eq σ),
-  erw algebra.mul_smul_comm,
-  rw perm_res_sign _ (swap_zero_eq σ),
-  rw equiv.perm.sign_mul,
-  cases classical.em (σ 0 = 0) with h0 h0,
-  have : equiv.perm.sign (equiv.swap 0 (σ 0)) = 1 :=
-    by rw [equiv.perm.sign_swap', if_pos h0.symm],
-  rw this,
-  rw one_mul,
-  congr' 2, exact congr_arg _ h0.symm,
-  congr' 2,
-  ext x,
-  unfold perm_succ_res perm_succ_subtype,
-  simp only [function.comp_app],
-  rw equiv.perm_congr_apply,
-  rw subtype_perm_apply,
-  rw equiv.symm_symm,
-  rw equiv.of_injective_apply,
   unfold fin.tail,
-  congr,
-  simp only [function.comp_app, subtype.coe_mk, equiv.perm.coe_mul],
-  rw of_succ_injective_symm_succ,
-  simp only [subtype.coe_mk],
-  rw h0,
-  rw equiv.swap_self,
+  erw of_succ_injective_symm_succ,
   refl,
-  rw equiv.perm.sign_swap (ne.symm h0),
-
-  sorry,
-end
-#exit
-lemma prod_eq_zero_of_ne_eq_aux {S : Type} [ring S] (h : ∀ x : S, x * x = 0)
-  {m n : ℕ} (hmn : m = n.succ.succ) (f : fin m → S) (hf : f ⟨0, hmn.symm ▸ nat.succ_pos n.succ⟩ = f ⟨1, by {rw hmn, exact nat.succ_lt_succ (nat.succ_pos _)}⟩) :
-  (list.of_fn f).prod = 0 :=
-begin
-  rw fin.list.of_fn_succ_of_eq,
-  rw list.of_fn_succ,
-  rw list.prod_cons,
-  rw list.prod_cons,
-  rw ←mul_assoc,
-  rw hf,
-  erw h,
-  rw zero_mul,
 end
 
-lemma prod_eq_zero_of_ne_eq {S : Type} [ring S] (h : ∀ x : S, x * x = 0)
-  {i : ℕ} (f : fin i → S) (j k : fin i) (hjk : j ≠ k) (hf : f j = f k) :
-  (list.of_fn f).prod = 0 :=
+lemma tail_comp_perm_succ_res {ι : Type v} {n : ℕ} (σ : equiv.perm (fin n.succ)) (h : σ 0 = 0)
+  (v : fin n.succ → ι) {m : fin n} : fin.tail v ∘ perm_succ_res σ h = v ∘ σ ∘ fin.succ :=
 begin
-  have : 2 ≤ i := sorry,
-  have hi : i = i.pred.pred.succ.succ := sorry,
-  sorry, --this is extremely boring, should use wlog
- /- rcases classical.em (j = ⟨0, by linarith⟩) with (rfl | hj),
-  rcases classical.em (k = ⟨1, by linarith⟩) with (rfl | hk),
-    rw prod_eq_zero_of_ne_eq_aux h hi f hf,
-  suffices : (list.of_fn (f ∘ (equiv.swap k ⟨1, by linarith⟩))).prod = 0, by
-    {rw prod_perm h f, rw this, convert smul_zero _ },
-  rw fin.list.of_fn_succ_of_eq hi,
-  rw list.of_fn_succ,
-  simp only [function.comp_app],
-  rw equiv.swap_apply_of_ne_of_ne hjk sorry,
-  rw list.prod_cons,
-  rw list.prod_cons,
-  unfold fin.tail,
-  rw hf,
-  rw ←mul_assoc,
-  convert zero_mul _,
-  convert h _,
-  convert equiv.swap_apply_right k _,
-  rcases classical.em (j = ⟨1, by linarith⟩) with (rfl | hj),
-  rcases classical.em (k = ⟨0, by linarith⟩) with (rfl | hk),
-    rw prod_eq_zero_of_ne_eq_aux h hi f hf.symm,
-  suffices : (list.of_fn (f ∘ (equiv.swap k ⟨0, by linarith⟩))).prod = 0, by
-    {rw prod_perm h f, rw this, convert smul_zero _ },
-  rw fin.list.of_fn_succ_of_eq hi,
-  rw list.of_fn_succ,
-  simp only [function.comp_app],
-  rw equiv.swap_apply_right,
-  rw list.prod_cons,
-  rw list.prod_cons,
-  unfold fin.tail,
-  rw ←hf,
-  rw ←mul_assoc,
-  convert zero_mul _,
-  convert h _,
-  convert equiv.swap_apply_of_ne_of_ne sorry sorry,
-  -/
+  ext,
+  exact tail_comp_perm_succ_res_apply _ h _,
 end
 
-lemma prod_eq_zero_map {ι S : Type} [ring S] (f : ι → S) (h : ∀ x : ι, f x * f x = 0)
-  {i : ℕ} (v : fin i → ι) (j k : fin i) (hjk : j ≠ k) (hv : v j = v k) :
-  (list.of_fn (f ∘ v)).prod = 0 :=
+lemma take_drop_prod {S : Type u} [ring S] (l : list S) (n : ℕ) :
+  l.prod = (l.take n).prod * (l.drop n).prod :=
 begin
-  sorry, --damnit
+  revert n,
+  induction l with x t ht,
+  intro n,
+  simp only [list.take_nil, mul_one, list.drop_nil, list.split_at_eq_take_drop, list.prod_nil],
+  intro n,
+  induction n with n hn,
+  simp only [one_mul, list.take_zero, list.split_at_eq_take_drop, list.prod_nil, list.drop],
+  rw list.prod_cons,
+  rw @ht n,
+  rw ←mul_assoc,
+  congr' 1,
+  rw ←list.prod_cons,
+  congr,
+end
+
+lemma take_of_eq_succ {ι : Type v} {m n : ℕ} (v : fin n → ι) (h : 0 < n) :
+   (list.of_fn v).take m.succ = v (⟨0, h⟩) :: (list.of_fn (fin.tail $ v ∘ fin.cast (nat.succ_pred_eq_of_pos h))).take m :=
+begin
+  rw ←list.take_cons,
+  congr,
+  convert list.of_fn_succ _,
+  exact (nat.succ_pred_eq_of_pos h).symm,
+  rw fin.heq_fun_iff (nat.succ_pred_eq_of_pos h).symm,
+  intro i, cases i, refl,
+  refl,
+end
+
+lemma fin.nat_succ_eq_succ {n : ℕ} (m : fin n) :
+  (m.succ : ℕ) = nat.succ m :=
+begin
+  simp only [fin.coe_succ]
+end
+
+lemma drop_eq_cons {ι : Type v} (v : list ι) {n : ℕ} (h : n < v.length) :
+  v.drop n = v.nth_le n h :: v.drop n.succ :=
+begin
+  revert n h,
+  induction v with x t ht,
+  intros,
+  simp only [list.drop_nil],
+  exact nat.not_lt_zero _ h,
+  intros,
+  rcases classical.em (n = 0) with ⟨rfl, h0⟩,
+  refl,
+  have := @ht (nat.pred n),
+  have H : list.drop n (x :: t) = list.drop n.pred t := by {rw ←nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero h_1), refl},
+  rw H,
+  have ffs : n.pred < t.length := by {rw ←nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero h_1) at h, exact nat.lt_of_succ_lt_succ h},
+  rw this ffs,
+  simp only [list.drop],
+  split,
+  show (x :: t).nth_le n.pred.succ (nat.succ_lt_succ ffs) = _,
+  congr,
+  rw nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero h_1),
+  rw nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero h_1),
+end
+
+lemma drop_of_fn_eq_cons {ι : Type v} {n : ℕ} (v : fin n → ι) (m : fin n) :
+  (list.of_fn v).drop m = v m :: (list.of_fn v).drop m.succ :=
+begin
+  have := drop_eq_cons (list.of_fn v) (show (m : ℕ) < (list.of_fn v).length, by {rw list.length_of_fn, exact m.2}),
+  rw this,
+  rw list.nth_le_of_fn',
+  congr, ext, refl,
+  rw fin.nat_succ_eq_succ,
 end
 
 variables {R M}
 
-lemma submodule.sum_mem' {ι : Type} {t : multiset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (multiset.map f t).sum ∈ p :=
+lemma submodule.sum_mem' {ι : Type v} {t : multiset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (multiset.map f t).sum ∈ p :=
 λ H, p.to_add_submonoid.multiset_sum_mem (multiset.map f t) $ λ x hx, by
   rcases multiset.mem_map.1 hx with ⟨y, hmy, rfl⟩; exact H y hmy
 
-lemma submodule.sum_smul_mem' {ι : Type} {t : multiset ι} {f : ι → M} (r : ι → R)
+lemma submodule.sum_smul_mem' {ι : Type v} {t : multiset ι} {f : ι → M} (r : ι → R)
     (hyp : ∀ c ∈ t, f c ∈ p) : (multiset.map (λ i, r i • f i) t).sum ∈ p :=
 submodule.sum_mem' (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
 
@@ -677,25 +765,22 @@ def ealg_mul : ealg R M →ₗ[R] ealg R M →ₗ[R] ealg R M :=
 (ealg_ker R M).liftq
 ({ to_fun := λ x, (ealg_ker R M).liftq (ealg_mul_aux R M x) $
      ealg_mul_aux_cond x,
-  map_add' := sorry,/-λ x y, by {
+  map_add' := λ x y, by {
     ext z,
     refine quotient.induction_on' z _,
     intro w,
     unfold ealg_mul_aux,
     simp only [linear_map.add_apply, linear_map.map_add, linear_map.comp_add],
     refl,
-  },-/
-  map_smul' := sorry, /-λ r x, by
+  },
+  map_smul' := λ r x, by
     {ext z, refine quotient.induction_on' z _,
     intro w,
     unfold ealg_mul_aux,
     simp only [linear_map.smul_apply, linear_map.map_smul, linear_map.comp_smul],
-    refl}, }) -/
-
-})$
+    refl}, }) $
   begin
-    sorry,
-    /-intros x hx,
+    intros x hx,
     rw linear_map.mem_ker,
     ext y,
     rw linear_map.zero_apply,
@@ -705,7 +790,7 @@ def ealg_mul : ealg R M →ₗ[R] ealg R M →ₗ[R] ealg R M :=
     unfold ealg_mul_aux,
     rw linear_map.comp_apply,
     erw submodule.quotient.mk_eq_zero,
-    exact mul_right_mem _ _ _ hx,-/
+    exact mul_left_mem_apply hx,
   end
 
 instance ealg.has_mul : has_mul (ealg R M) :=
@@ -725,12 +810,11 @@ instance : has_one (ealg R M) :=
 lemma ealg_mul_apply {m n : ℕ} (f : fin m → M) (g : fin n → M) :
   ealg_mk R M f * ealg_mk R M g = ealg_mk R M (fin.append rfl f g) :=
 begin
-  sorry,
-  /-rw ←ealg.mul_def,
+  rw ←ealg.mul_def,
   erw submodule.liftq_apply,
   erw linear_map.comp_apply, congr,
   rw mul_def,
-  rw mul_apply-/
+  rw mul_apply
 end
 
 @[simp] lemma zero_eq_ealg_mk : ealg_mk R M (λ i : fin 1, 0) = 0 :=
@@ -766,7 +850,7 @@ linear_map.map_smul₂ _ _ _ _
 lemma ealg.mul_assoc (x y z : ealg R M) :
   x * y * z = x * (y * z) :=
 begin
-  sorry,/-refine quotient.induction_on' x _,
+  refine quotient.induction_on' x _,
   refine quotient.induction_on' y _,
   refine quotient.induction_on' z _,
   intros a b c,
@@ -778,12 +862,12 @@ begin
   rw mul_def,
   rw talg.mul_assoc,
   refl,
-  all_goals {rw submodule.ker_mkq, exact le_refl _},-/
+  all_goals {rw submodule.ker_mkq, exact le_refl _},
 end
 
 lemma ealg.mul_one (x : ealg R M) : x * 1 = x :=
 begin
-  sorry, /-refine quotient.induction_on' x _,
+  refine quotient.induction_on' x _,
   intro y,
   rw ←one_eq_ealg_mk,
   rw ←ealg.mul_def,
@@ -793,12 +877,12 @@ begin
   rw linear_map.comp_apply,
   rw mul_def,
   rw talg.mul_one,
-  refl,-/
+  refl,
 end
 
 lemma ealg.one_mul (x : ealg R M) : 1 * x = x :=
 begin
-  sorry,/-refine quotient.induction_on' x _,
+  refine quotient.induction_on' x _,
   intro y,
   rw ←one_eq_ealg_mk,
   rw ←ealg.mul_def,
@@ -808,7 +892,7 @@ begin
   rw linear_map.comp_apply,
   rw mul_def,
   rw talg.one_mul,
-  refl,-/
+  refl,
 end
 
 instance ealg.monoid : monoid (ealg R M) :=
@@ -880,7 +964,7 @@ def talg.to_ealg : talg R M →ₐ[R] ealg R M :=
 @[simp] lemma talg.to_ealg_apply (x) :
   talg.to_ealg R M x = quotient.mk' x := rfl
 
-lemma multiset.sum_eq_zero {ι : Type} [add_comm_monoid ι] (s : multiset ι) :
+lemma multiset.sum_eq_zero {ι : Type v} [add_comm_monoid ι] (s : multiset ι) :
   (∀ (x : ι), x ∈ s → x = 0) → s.sum = 0 :=
 begin
   refine multiset.induction_on s _ _,
@@ -932,19 +1016,19 @@ begin
   exact H _,
 end
 
-lemma talg.lift_comp_ι {A : Type} [ring A] [algebra R A]
+lemma talg.lift_comp_ι {A : Type u} [ring A] [algebra R A]
   (f : M →ₗ[R] A) : (talg.lift R M f).to_linear_map.comp (ι R M) = f :=
 by ext; exact talg.lift_ι_apply _ _ _
 
-lemma wtf {α β γ δ: Type} (f : α → β) (g : β → γ) (h : γ → δ) :
+lemma wtf {α β γ δ: Type u} (f : α → β) (g : β → γ) (h : γ → δ) :
   (h ∘ g) ∘ f = h ∘ (g ∘ f) :=
 rfl
 
-lemma ealg.lift_cond {A : Type} [ring A] [algebra R A]
+lemma ealg.lift_cond {A : Type u} [ring A] [algebra R A]
   (f : M →ₗ[R] A) (h : ∀ m, f m * f m = 0) :
   ealg_ker R M ≤ (talg.lift R M f).to_linear_map.ker :=
 begin
-  sorry,/-rw ealg_ker_eq,
+  rw ealg_ker_eq,
   rw submodule.span_le,
   intros x hx,
   rw set.mem_Union at hx,
@@ -962,10 +1046,10 @@ begin
   show (list.of_fn (((talg.lift R M f) ∘ ι R M) ∘ y)).prod = 0,
   rw this,
   rw talg.lift_comp_ι,
-  exact prod_eq_zero_map _ h _ _ _ hjk hf,-/
+  exact prod_eq_zero_map f.to_add_monoid_hom h _ _ _ hjk hf,
 end
 
-def ealg.lift {A : Type} [ring A] [algebra R A]
+def ealg.lift {A : Type u} [ring A] [algebra R A]
   (f : M →ₗ[R] A) (h : ∀ m, f m * f m = 0) :
   ealg R M →ₐ[R] A :=
 { to_fun := (ealg_ker R M).liftq (talg.lift R M f).to_linear_map $
@@ -981,7 +1065,7 @@ def ealg.lift {A : Type} [ring A] [algebra R A]
     { erw submodule.liftq_apply,
       erw (talg.lift R M f).commutes,}, }
 
-@[simp] lemma ealg.lift_ι_apply {A : Type} [ring A] [algebra R A]
+@[simp] lemma ealg.lift_ι_apply {A : Type u} [ring A] [algebra R A]
   (f : M →ₗ[R] A) (h : ∀ m, f m * f m = 0) (x : M) :
   ealg.lift R M f h ((ealg_ker R M).mkq (ι R M x)) = f x :=
 talg.lift_ι_apply R M f
@@ -1011,11 +1095,19 @@ end
 def to_ealg : exterior_algebra R M →ₐ[R] ealg R M :=
 exterior_algebra.lift R ⟨(ealg_ker R M).mkq.comp (ι R M), ealg_ι_square_zero R M⟩
 
+local attribute [semireducible] ring_quot ring_quot.mk_alg_hom
+  ring_quot.mk_ring_hom tensor_algebra.mk tensor_algebra.mk_aux exterior_algebra.ι
+
+lemma tensor_algebra.mk_apply {n : ℕ} (v : fin n → M) :
+  tensor_algebra.mk R M v = ((list.fin_range n).map (λ i, tensor_algebra.ι R (v i))).prod :=
+rfl
+
 lemma ealg_left_inverse (x : exterior_algebra R M) :
   to_ext_alg R M (to_ealg R M x) = x :=
 begin
   refine quot.induction_on x _,
   intro y,
+  show _ = ring_quot.mk_alg_hom R (exterior_algebra.rel R M) y,
   unfold to_ealg,
   unfold exterior_algebra.lift ring_quot.lift_alg_hom,
   simp only [equiv.coe_fn_mk, subtype.coe_mk, alg_hom.coe_mk],
@@ -1026,7 +1118,25 @@ begin
   rw alg_hom.map_prod',
   rw list.map_map,
   rw list.map_map,
-  sorry, sorry, sorry, sorry,
+  unfold to_ext_alg,
+  rw tensor_algebra.mk_apply,
+  rw alg_hom.map_prod' R (ring_quot.mk_alg_hom R (exterior_algebra.rel R M)) (list.map (λ (i_1 : fin n), (tensor_algebra.ι R) (i i_1)) (list.fin_range n)),
+  rw list.map_map,
+  congr' 2,
+  ext j,
+  simp only [function.comp_app, submodule.mkq_apply, linear_map.comp_apply, tensor_algebra.lift_ι_apply],
+  erw (ealg_ker R M).liftq_apply,
+  erw submodule.liftq_apply,
+  erw talg.lift_ι_apply,
+  refl,
+  exact ealg.lift_cond R M _ (ι_square_zero),
+  exact ealg.lift_cond R M _ (ι_square_zero),
+  intros x y hx hy,
+  simp only [hx, hy, alg_hom.map_add],
+  intros x c hx,
+  simp only [hx, alg_hom.map_smul],
+  intros x y hx hy,
+  simp only [hx, hy, alg_hom.map_mul],
 end
 
 lemma ealg_right_inverse (x : ealg R M) :

@@ -217,7 +217,7 @@ end
 
 variables (m n : ℕ)
 
-@[reducible] def talg : Type* := direct_sum ℕ (tpow R M)
+@[reducible] def talg : Type u := direct_sum ℕ (tpow R M)
 
 def lof_add {m n : ℕ} (f : fin m → M) : multilinear_map R (λ x : fin n, M) (talg R M) :=
 { to_fun := λ g, direct_sum.lof R ℕ (tpow R M) (m + n) (tpow.mk' R M (m + n) $ fin.append rfl f g),

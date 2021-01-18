@@ -38,7 +38,7 @@ finitely many vertices.
 
 ## Naming Conventions
 
-* If the vertex type of a graph is finite, we refer to its cardinality as `card_verts`
+* If the vertex type of a graph is finite, we refer to its cardinality as `card_verts`.
 
 TODO: This is the simplest notion of an unoriented graph.  This should
 eventually fit into a more complete combinatorics hierarchy which

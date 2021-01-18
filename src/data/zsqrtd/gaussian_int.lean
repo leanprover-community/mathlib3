@@ -52,7 +52,7 @@ local attribute [-instance] complex.field -- Avoid making things noncomputable u
 
 /-- The embedding of the Gaussian integers into the complex numbers, as a ring homomorphism. -/
 def to_complex : ℤ[i] →+* ℂ :=
-zsqrtd.lift I (by simp)
+zsqrtd.lift ⟨I, by simp⟩
 end
 
 instance : has_coe (ℤ[i]) ℂ := ⟨to_complex⟩

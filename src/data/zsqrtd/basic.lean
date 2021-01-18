@@ -145,6 +145,9 @@ by simp [ext]
 @[simp] theorem muld_val (x y : ℤ) : sqrtd * ⟨x, y⟩ = ⟨d * y, x⟩ :=
 by simp [ext]
 
+@[simp] theorem dmuld : sqrtd * sqrtd = d :=
+by simp [ext]
+
 @[simp] theorem smuld_val (n x y : ℤ) : sqrtd * (n : ℤ√d) * ⟨x, y⟩ = ⟨d * n * y, n * x⟩ :=
 by simp [ext]
 
@@ -597,29 +600,34 @@ end
 
 variables {R : Type} [comm_ring R]
 
-/-- A `ring_hom` from `ℤ√d` to a ring `R`, constructed by replacing `√d` with the provided root. -/
+/-- The unique `ring_hom` from `ℤ√d` to a ring `R`, constructed by replacing `√d` with the provided
+root. Conversely, this associates to every mapping `ℤ√d →+* R` a value of `√d` in `R`. -/
 @[simps]
-def lift {d : ℤ} (r : R) (hr : r * r = ↑d) : ℤ√d →+* R := {
-  to_fun := λ a, a.1 + a.2*r,
-  map_zero' := by simp,
-  map_add' := λ a b, by { simp, ring, },
-  map_one' := by simp,
-  map_mul' := λ a b, by {
-    have : (↑a.re + ↑a.im * r) * (↑b.re + ↑b.im * r) =
-             ↑a.re * ↑b.re + (↑a.re * ↑b.im + ↑a.im * ↑b.re) * r
-                           + ↑a.im * ↑b.im * (r * r) := by ring,
-    simp [this, hr],
-    ring, } }
+def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
+{ to_fun := λ r,
+  { to_fun := λ a, a.1 + a.2*(r : R),
+    map_zero' := by simp,
+    map_add' := λ a b, by { simp, ring, },
+    map_one' := by simp,
+    map_mul' := λ a b, by {
+      have : (↑a.re + ↑a.im * r : R) * (↑b.re + ↑b.im * r) =
+              ↑a.re * ↑b.re + (↑a.re * ↑b.im + ↑a.im * ↑b.re) * r
+                            + ↑a.im * ↑b.im * (r * r) := by ring,
+      simp [this, r.prop],
+      ring, } },
+  inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, ring_hom.map_int_cast]⟩,
+  left_inv := λ r, by { ext, simp },
+  right_inv := λ f, by { ext x, cases x, simp [decompose], } }
 
-/-- `lift` is injective if `d` is non-square, and R has characteristic zero (that is, the map from
+/-- `lift r` is injective if `d` is non-square, and R has characteristic zero (that is, the map from
 `ℤ` into `R` is injective). -/
-lemma lift_injective [char_zero R] {d : ℤ} (r : R) (hr : r * r = ↑d) (hd : ∀ n : ℤ, d ≠ n*n) :
-  function.injective (lift r hr) :=
-(lift r hr).injective_iff.mpr $ λ a ha,
+lemma lift_injective [char_zero R] {d : ℤ} (r : {r : R // r * r = ↑d}) (hd : ∀ n : ℤ, d ≠ n*n) :
+  function.injective (lift r) :=
+(lift r).injective_iff.mpr $ λ a ha,
 begin
   have h_inj : function.injective (coe : ℤ → R) := int.cast_injective,
-  suffices : lift r hr a.norm = 0,
-  { simp only [coe_int_re, add_zero, lift_apply, coe_int_im, int.cast_zero, zero_mul] at this,
+  suffices : lift r a.norm = 0,
+  { simp only [coe_int_re, add_zero, lift_apply_apply, coe_int_im, int.cast_zero, zero_mul] at this,
     rwa [← int.cast_zero, h_inj.eq_iff, norm_eq_zero hd] at this },
   rw [norm_eq_mul_conj, ring_hom.map_mul, ha, zero_mul]
 end

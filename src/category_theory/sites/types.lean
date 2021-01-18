@@ -5,7 +5,7 @@ Authors: Kenny Lau
 -/
 
 import category_theory.sites.canonical
-import category_theory.sites.sheaf
+import category_theory.sites.sheaf_of_types
 
 /-!
 # Grothendieck Topology and Sheaves on the Category of Types
@@ -55,7 +55,7 @@ theorem is_sheaf_yoneda' {α : Type u} : is_sheaf types_grothendieck_topology (y
 λ f hf, funext $ λ y, by convert congr_fun (hf _ (hs y)) punit.star⟩
 
 /-- The yoneda functor that sends a type to a sheaf over the category of types -/
-@[simps] def yoneda' : Type u ⥤ Sheaf types_grothendieck_topology :=
+@[simps] def yoneda' : Type u ⥤ SheafOfTypes types_grothendieck_topology :=
 { obj := λ α, ⟨yoneda.obj α, is_sheaf_yoneda'⟩,
   map := λ α β f, yoneda.map f }
 
@@ -105,7 +105,7 @@ lemma eval_map (S : (Type u)ᵒᵖ ⥤ Type u) (α β) (f : β ⟶ α) (s x) :
 by { simp_rw [eval, ← functor_to_types.map_comp_apply, ← op_comp], refl }
 
 /-- Given a sheaf `S`, construct an isomorphism `S ≅ [-, S(*)]`. -/
-@[simps {rhs_md := semireducible}] noncomputable def equiv_yoneda (S : (Type u)ᵒᵖ ⥤ Type u)
+@[simps] noncomputable def equiv_yoneda (S : (Type u)ᵒᵖ ⥤ Type u)
   (hs : is_sheaf types_grothendieck_topology S) :
   S ≅ yoneda.obj (S.obj (op punit)) :=
 nat_iso.of_components (λ α, equiv.to_iso $ eval_equiv S hs $ unop α) $ λ α β f,
@@ -113,22 +113,22 @@ funext $ λ s, funext $ λ x, eval_map S (unop α) (unop β) f.unop _ _
 
 /-- Given a sheaf `S`, construct an isomorphism `S ≅ [-, S(*)]`. -/
 @[simps] noncomputable def equiv_yoneda'
-  (S : Sheaf types_grothendieck_topology) :
+  (S : SheafOfTypes types_grothendieck_topology) :
   S ≅ yoneda'.obj (S.1.obj (op punit)) :=
 { hom := (equiv_yoneda S.1 S.2).hom,
   inv := (equiv_yoneda S.1 S.2).inv,
   hom_inv_id' := (equiv_yoneda S.1 S.2).hom_inv_id,
   inv_hom_id' := (equiv_yoneda S.1 S.2).inv_hom_id }
 
-lemma eval_app (S₁ S₂ : Sheaf.{u} types_grothendieck_topology)
+lemma eval_app (S₁ S₂ : SheafOfTypes.{u} types_grothendieck_topology)
   (f : S₁ ⟶ S₂) (α : Type u) (s : S₁.1.obj (op α)) (x : α) :
   eval S₂.1 α (f.app (op α) s) x = f.app (op punit) (eval S₁.1 α s x) :=
 (congr_fun (f.2 (↾λ _ : punit, x).op) s).symm
 
 /-- `yoneda'` induces an equivalence of category between `Type u` and
 `Sheaf types_grothendieck_topology`. -/
-@[simps {rhs_md := semireducible}] noncomputable def type_equiv :
-  Type u ≌ Sheaf types_grothendieck_topology :=
+@[simps] noncomputable def type_equiv :
+  Type u ≌ SheafOfTypes types_grothendieck_topology :=
 equivalence.mk
   yoneda'
   (induced_functor _ ⋙ (evaluation _ _).obj (op punit))

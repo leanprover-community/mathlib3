@@ -87,37 +87,20 @@ by cases a; cases b; refl
 lemma bind_assoc (x : option α) (f : α → option β) (g : β → option γ) :
   (x.bind f).bind g = x.bind (λ y, (f y).bind g) := by cases x; refl
 
-/--
-Flatten an `option` of `option`, a specialization of `mjoin`.
--/
-@[simp] def join : option (option α) → option α
-| none            := none
-| (some (none))   := none
-| (some (some x)) := some x
+lemma join_eq_some {x : option (option α)} {a : α} : x.join = some a ↔ x = some (some a) := by simp
 
-@[simp] lemma join_eq_some {x : option (option α)} {a : α} :
-  x.join = some a ↔ x = some (some a) :=
-by { rcases x with _ | _ | x; simp }
+lemma join_ne_none {x : option (option α)} : x.join ≠ none ↔ ∃ z, x = some (some z) := by simp
 
-lemma join_ne_none {x : option (option α)} :
-  x.join ≠ none ↔ ∃ z, x = some (some z) :=
-by { rcases x with _ | _ | x; simp }
+lemma join_ne_none' {x : option (option α)} : ¬(x.join = none) ↔ ∃ z, x = some (some z) := by simp
 
-@[simp] lemma join_ne_none' {x : option (option α)} :
-  ¬(x.join = none) ↔ ∃ z, x = some (some z) :=
-by { rcases x with _ | _ | x; simp }
+lemma bind_id_eq_join {x : option (option α)} : x >>= id = x.join := by simp
 
-lemma bind_id_eq_join {x : option (option α)} :
-  x >>= id = x.join :=
-by { rcases x with _ | _ | x; simp }
-
-lemma join_eq_join : @join α = mjoin :=
+lemma join_eq_join : mjoin = @join α :=
 funext (λ x, by rw [mjoin, bind_id_eq_join])
 
 lemma bind_eq_bind {α β : Type*} {f : α → option β} {x : option α} :
-  x.bind f = x >>= f := rfl
+  x >>= f = x.bind f := rfl
 
--- TODO: flip lemmas like this to go in functor-generalized direction
 @[simp] lemma map_eq_map {α β} {f : α → β} :
   (<$>) f = option.map f := rfl
 
@@ -137,6 +120,18 @@ by cases x; simp
   x.map f = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 
+lemma map_eq_none {α β} {x : option α} {f : α → β} :
+  f <$> x = none ↔ x = none :=
+by { cases x; simp only [map_none, map_some, eq_self_iff_true] }
+
+@[simp] lemma map_eq_none' {x : option α} {f : α → β} :
+  x.map f = none ↔ x = none :=
+by { cases x; simp only [map_none', map_some', eq_self_iff_true] }
+
+lemma map_congr {f g : α → β} {x : option α} (h : ∀ a ∈ x, f a = g a) :
+  option.map f x = option.map g x :=
+by { cases x; simp only [map_none', map_some', h, mem_def] }
+
 @[simp] theorem map_id' : option.map (@id α) = id := map_id
 
 @[simp] lemma map_map (h : β → γ) (g : α → β) (x : option α) :
@@ -150,35 +145,79 @@ lemma comp_map (h : β → γ) (g : α → β) (x : option α) :
   option.map g ∘ option.map f = option.map (g ∘ f) :=
 by { ext x, rw comp_map }
 
+lemma mem_map_of_mem {α β : Type*} {a : α} {x : option α} (g : α → β) (h : a ∈ x) : g a ∈ x.map g :=
+mem_def.mpr ((mem_def.mp h).symm ▸ map_some')
+
 lemma bind_map_comm {α β} {x : option (option α) } {f : α → β} :
   x >>= option.map f = x.map (option.map f) >>= id :=
 by { cases x; simp }
-
-lemma map_bind {α β γ} {x : option α} {g : α → option β} {f : β → γ} :
-  option.map f (x >>= g) = (x >>= λ a, option.map f (g a)) :=
-by simp_rw [←map_eq_map, ←bind_pure_comp_eq_map, is_lawful_monad.bind_assoc]
-
-lemma map_bind' {x : option α} {g : α → option β} {f : β → γ} :
-  option.map f (x.bind g) = x.bind (λ a, option.map f (g a)) :=
-by { cases x; simp only [map_none', none_bind', some_bind'] }
 
 lemma join_map_eq_map_join {f : α → β} {x : option (option α)} :
   (x.map (option.map f)).join = x.join.map f :=
 by { rcases x with _ | _ | x; simp }
 
-@[simp] lemma join_join {x : option (option (option α))} :
+lemma join_join {x : option (option (option α))} :
   x.join.join = (x.map join).join :=
 by { rcases x with _ | _ | _ | x; simp }
 
 lemma mem_of_mem_join {a : α} {x : option (option α)} (h : a ∈ x.join) : some a ∈ x :=
 mem_def.mpr ((mem_def.mp h).symm ▸ join_eq_some.mp h)
 
-lemma mem_map_of_mem {α β : Type*} {a : α} {x : option α} (g : α → β) (h : a ∈ x) : g a ∈ x.map g :=
-mem_def.mpr ((mem_def.mp h).symm ▸ map_some')
-
 section pmap
 
-variables {p : α → Prop} {x : option α} {f : Π (a : α), p a → β}
+variables {p : α → Prop} (f : Π (a : α), p a → β) (x : option α)
+
+@[simp] lemma pbind_eq_bind (f : α → option β) (x : option α) :
+  x.pbind (λ a _, f a) = x.bind f :=
+by { cases x; simp only [pbind, none_bind', some_bind'] }
+
+lemma map_bind {α β γ} (f : β → γ) (x : option α) (g : α → option β) :
+  option.map f (x >>= g) = (x >>= λ a, option.map f (g a)) :=
+by simp_rw [←map_eq_map, ←bind_pure_comp_eq_map,is_lawful_monad.bind_assoc]
+
+lemma map_bind' (f : β → γ) (x : option α) (g : α → option β) :
+  option.map f (x.bind g) = x.bind (λ a, option.map f (g a)) :=
+by { cases x; simp }
+
+lemma map_pbind (f : β → γ) (x : option α) (g : Π a, a ∈ x → option β) :
+  option.map f (x.pbind g) = (x.pbind (λ a H, option.map f (g a H))) :=
+by { cases x; simp only [pbind, map_none'] }
+
+lemma pbind_map (f : α → β) (x : option α) (g : Π (b : β), b ∈ x.map f → option γ) :
+  pbind (option.map f x) g = x.pbind (λ a h, g (f a) (mem_map_of_mem _ h)) :=
+by { cases x; refl }
+
+@[simp] lemma pmap_none (f : Π (a : α), p a → β) {H} : pmap f (@none α) H = none := rfl
+
+@[simp] lemma pmap_some (f : Π (a : α), p a → β) {x : α} (h : p x) :
+  pmap f (some x) = λ _, some (f x h) := rfl
+
+lemma mem_pmem {a : α} (h : ∀ a ∈ x, p a) (ha : a ∈ x) :
+  f a (h a ha) ∈ pmap f x h :=
+by { rw mem_def at ha ⊢, subst ha, refl }
+
+lemma pmap_map (g : γ → α) (x : option γ) (H) :
+  pmap f (x.map g) H = pmap (λ a h, f (g a) h) x (λ a h, H _ (mem_map_of_mem _ h)) :=
+by { cases x; simp only [map_none', map_some', pmap] }
+
+lemma map_pmap (g : β → γ) (f : Π a, p a → β) (x H) :
+  option.map g (pmap f x H) = pmap (λ a h, g (f a h)) x H :=
+by { cases x; simp only [map_none', map_some', pmap] }
+
+@[simp] lemma pmap_eq_map (p : α → Prop) (f : α → β) (x H) :
+  @pmap _ _ p (λ a _, f a) x H = option.map f x :=
+by { cases x; simp only [map_none', map_some', pmap] }
+
+lemma pmap_bind {α β γ} {x : option α} {g : α → option β} {p : β → Prop} {f : Π b, p b → γ}
+  (H) (H' : ∀ (a : α) b ∈ g a, b ∈ x >>= g) :
+  pmap f (x >>= g) H = (x >>= λa, pmap f (g a) (λ b h, H _ (H' a _ h))) :=
+by { cases x; simp only [pmap, none_bind, some_bind] }
+
+lemma bind_pmap {α β γ} {p : α → Prop} (f : Π a, p a → β) (x : option α) (g : β → option γ) (H) :
+  (pmap f x H) >>= g = x.pbind (λ a h, g (f a (H _ h))) :=
+by { cases x; simp only [pmap, none_bind, some_bind, pbind] }
+
+variables {f x}
 
 lemma pbind_eq_none {f : Π (a : α), a ∈ x → option β}
   (h' : ∀ a ∈ x, f a H = none → x = none) :
@@ -188,12 +227,10 @@ begin
   { simp },
   { simp only [pbind, iff_false],
     intro h,
-    specialize h' x rfl h,
-    contradiction }
+    cases h' x rfl h }
 end
 
-lemma pbind_eq_some {f : Π (a : α), a ∈ x → option β} {y : β}
-   :
+lemma pbind_eq_some {f : Π (a : α), a ∈ x → option β} {y : β} :
   x.pbind f = some y ↔ ∃ (z ∈ x), f z H = some y :=
 begin
   cases x,
@@ -207,22 +244,6 @@ begin
       simp only [mem_def] at H,
       simpa only [H] using hz } }
 end
-
-@[simp] lemma pbind_eq_bind {f : α → option β} :
-  x.pbind (λ a _, f a) = x.bind f :=
-by { cases x; simp only [pbind, none_bind', some_bind'] }
-
-lemma map_pbind {f : β → γ} {g : Π a, a ∈ x → option β} :
-  option.map f (x.pbind g) = (x.pbind (λ a H, option.map f (g a H))) :=
-by { cases x; simp only [pbind, map_none'] }
-
-lemma pbind_map {f : α → β} {g : Π (b : β), b ∈ x.map f → option γ} :
-  pbind (option.map f x) g = x.pbind (λ a h, g (f a) (mem_map_of_mem _ h)) :=
-by { cases x; refl }
-
-@[simp] lemma pmap_none {H} : pmap f (@none α) H = none := rfl
-
-@[simp] lemma pmap_some {x : α} {h : p x} : pmap f (some x) = λ _, some (f x h) := rfl
 
 @[simp] lemma pmap_eq_none_iff {h} :
   pmap f x h = none ↔ x = none :=
@@ -241,31 +262,6 @@ begin
       simp only [mem_def] at H,
       simp only [H, pmap] } }
 end
-
-lemma mem_pmem {a : α} (h : ∀ a ∈ x, p a) (ha : a ∈ x) :
-  f a (h a ha) ∈ pmap f x h :=
-by { rw mem_def at ha, rw mem_def, subst ha, refl }
-
-lemma pmap_map (g : γ → α) (x : option γ) (H) :
-  pmap f (x.map g) H = pmap (λ a h, f (g a) h) x (λ a h, H _ (mem_map_of_mem _ h)) :=
-by { cases x; simp only [map_none', map_some', pmap] }
-
-lemma map_pmap (g : β → γ) (f : Π a, p a → β) (x H) :
-  option.map g (pmap f x H) = pmap (λ a h, g (f a h)) x H :=
-by { cases x; simp only [map_none', map_some', pmap] }
-
-@[simp] lemma pmap_eq_map (p : α → Prop) (f : α → β) (x : option α) (H) :
-  @pmap _ _ p (λ a _, f a) x H = option.map f x :=
-by { cases x; simp only [map_none', map_some', pmap] }
-
-lemma pmap_bind {α β γ} {x : option α} {g : α → option β} {p : β → Prop} {f : Π b, p b → γ}
-  (H) (H' : ∀ (a : α) b ∈ g a, b ∈ x >>= g) :
-  pmap f (x >>= g) H = (x >>= λa, pmap f (g a) (λ b h, H _ (H' a _ h))) :=
-by { cases x; simp only [pmap, none_bind, some_bind] }
-
-lemma bind_pmap {α β γ} {x : option α} {p : α → Prop} {f : Π a, p a → β} {g : β → option γ} (H) :
-  (pmap f x H) >>= g = x.pbind (λ a h, g (f a (H _ h))) :=
-by { cases x; simp only [pmap, none_bind, some_bind, pbind] }
 
 @[simp] lemma join_pmap_eq_pmap_join {f : Π a, p a → β} {x : option (option α)} (H) :
   (pmap (pmap f) x H).join = pmap f x.join (λ a h, H (some a) (mem_of_mem_join h) _ rfl) :=

@@ -6,6 +6,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 import algebra.associated
 import linear_algebra.basic
 import order.zorn
+import order.atoms
 /-!
 
 # Ideals over a ring
@@ -48,9 +49,13 @@ lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.add_mem_iff
 
 protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := I.sub_mem
 
-lemma mul_mem_left : b ∈ I → a * b ∈ I := I.smul_mem _
+variables (a)
+lemma mul_mem_left : b ∈ I → a * b ∈ I := I.smul_mem a
+variables {a}
 
-lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_left h
+variables (b)
+lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_left b h
+variables {b}
 end ideal
 
 variables {a b : α}
@@ -67,7 +72,7 @@ theorem eq_top_of_unit_mem
 eq_top_iff.2 $ λ z _, calc
     z = z * (y * x) : by simp [h]
   ... = (z * y) * x : eq.symm $ mul_assoc z y x
-  ... ∈ I : I.mul_mem_left hx
+  ... ∈ I : I.mul_mem_left _ hx
 
 theorem eq_top_of_is_unit_mem {x} (hx : x ∈ I) (h : is_unit x) : I = ⊤ :=
 let ⟨y, hy⟩ := is_unit_iff_exists_inv'.1 h in eq_top_of_unit_mem I x y hx hy
@@ -79,13 +84,23 @@ theorem eq_top_iff_one : I = ⊤ ↔ (1:α) ∈ I :=
 theorem ne_top_iff_one : I ≠ ⊤ ↔ (1:α) ∉ I :=
 not_congr I.eq_top_iff_one
 
+lemma exists_mem_ne_zero_iff_ne_bot : (∃ p ∈ I, p ≠ (0 : α)) ↔ I ≠ ⊥ :=
+begin
+  refine ⟨λ h, let ⟨p, hp, hp0⟩ := h in λ h, absurd (h ▸ hp : p ∈ (⊥ : ideal α)) hp0,  λ h, _⟩,
+  contrapose! h,
+  exact eq_bot_iff.2 (λ x hx, (h x hx).symm ▸ (ideal.zero_mem ⊥)),
+end
+
+lemma exists_mem_ne_zero_of_ne_bot (hI : I ≠ ⊥) : ∃ p ∈ I, p ≠ (0 : α) :=
+(exists_mem_ne_zero_iff_ne_bot I).mpr hI
+
 @[simp]
 theorem unit_mul_mem_iff_mem {x y : α} (hy : is_unit y) : y * x ∈ I ↔ x ∈ I :=
 begin
-  refine ⟨λ h, _, λ h,  I.smul_mem y h⟩,
+  refine ⟨λ h, _, λ h, I.mul_mem_left y h⟩,
   obtain ⟨y', hy'⟩ := is_unit_iff_exists_inv.1 hy,
-  have := I.smul_mem y' h,
-  rwa [smul_eq_mul, ← mul_assoc, mul_comm y' y, hy', one_mul] at this,
+  have := I.mul_mem_left y' h,
+  rwa [← mul_assoc, mul_comm y' y, hy', one_mul] at this,
 end
 
 @[simp]
@@ -197,8 +212,7 @@ lemma bot_prime {R : Type*} [integral_domain R] : (⊥ : ideal R).is_prime :=
  λ x y h, mul_eq_zero.mp (by simpa only [submodule.mem_bot] using h)⟩
 
 /-- An ideal is maximal if it is maximal in the collection of proper ideals. -/
-@[class] def is_maximal (I : ideal α) : Prop :=
-I ≠ ⊤ ∧ ∀ J, I < J → J = ⊤
+@[class] def is_maximal (I : ideal α) : Prop := is_coatom I
 
 theorem is_maximal_iff {I : ideal α} : I.is_maximal ↔
   (1:α) ∉ I ∧ ∀ (J : ideal α) x, I ≤ J → x ∉ I → x ∈ J → (1:α) ∈ J :=
@@ -227,9 +241,9 @@ end
 theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
 ⟨H.1, λ x y hxy, or_iff_not_imp_left.2 $ λ hx, begin
   cases H.exists_inv hx with z hz,
-  have := I.mul_mem_left hz,
+  have := I.mul_mem_left _ hz,
   rw [mul_sub, mul_one, mul_comm, mul_assoc, sub_eq_add_neg] at this,
-  exact I.neg_mem_iff.1 ((I.add_mem_iff_right $ I.mul_mem_left hxy).1 this)
+  exact I.neg_mem_iff.1 ((I.add_mem_iff_right $ I.mul_mem_left _ hxy).1 this)
 end⟩
 
 @[priority 100] -- see Note [lower instance priority]
@@ -293,7 +307,7 @@ instance (I : ideal α) : has_mul I.quotient :=
 ⟨λ a b, quotient.lift_on₂' a b (λ a b, submodule.quotient.mk (a * b)) $
  λ a₁ a₂ b₁ b₂ h₁ h₂, quot.sound $ begin
   refine calc a₁ * a₂ - b₁ * b₂ = a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁ : _
-  ... ∈ I : I.add_mem (I.mul_mem_left h₁) (I.mul_mem_right h₂),
+  ... ∈ I : I.add_mem (I.mul_mem_left _ h₁) (I.mul_mem_right _ h₂),
   rw [mul_sub, sub_mul, sub_add_sub_cancel, mul_comm, mul_comm b₁]
  end⟩
 
@@ -380,11 +394,11 @@ begin
   split,
   { intro h,
     rcases hqf.exists_pair_ne with ⟨⟨x⟩, ⟨y⟩, hxy⟩,
-    exact hxy (ideal.quotient.eq.2 (mul_one (x - y) ▸ I.mul_mem_left h)) },
+    exact hxy (ideal.quotient.eq.2 (mul_one (x - y) ▸ I.mul_mem_left _ h)) },
   { intros J x hIJ hxnI hxJ,
     rcases hqf.mul_inv_cancel (mt ideal.quotient.eq_zero_iff_mem.1 hxnI) with ⟨⟨y⟩, hy⟩,
     rw [← zero_add (1 : α), ← sub_self (x * y), sub_add],
-    refine J.sub_mem (J.mul_mem_right hxJ) (hIJ (ideal.quotient.eq.1 hy)) }
+    refine J.sub_mem (J.mul_mem_right _ hxJ) (hIJ (ideal.quotient.eq.1 hy)) }
 end
 
 /-- The quotient of a ring by an ideal is a field iff the ideal is maximal. -/
@@ -408,6 +422,13 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
 
 @[simp] lemma lift_mk (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0) :
   lift S f H (mk S a) = f a := rfl
+
+@[simp] lemma lift_comp_mk (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0) :
+  (lift S f H).comp (mk S) = f := ring_hom.ext (λ _, rfl)
+
+lemma lift_surjective (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0)
+  (hf : function.surjective f) : function.surjective (lift S f H) :=
+λ x, let ⟨y, hy⟩ := hf x in ⟨(quotient.mk S) y, by simpa⟩
 
 end quotient
 
@@ -453,7 +474,7 @@ begin
   rw eq_bot_iff,
   intros r hr,
   by_cases H : r = 0, {simpa},
-  simpa [H, h1] using submodule.smul_mem I r⁻¹ hr,
+  simpa [H, h1] using I.mul_mem_left r⁻¹ hr,
 end
 
 lemma eq_bot_of_prime {K : Type u} [field K] (I : ideal K) [h : I.is_prime] :
@@ -470,9 +491,9 @@ variables (ι : Type v)
 /-- `I^n` as an ideal of `R^n`. -/
 def pi : ideal (ι → α) :=
 { carrier := { x | ∀ i, x i ∈ I },
-  zero_mem' := λ i, submodule.zero_mem _,
-  add_mem' := λ a b ha hb i, submodule.add_mem _ (ha i) (hb i),
-  smul_mem' := λ a b hb i, ideal.mul_mem_left _ (hb i) }
+  zero_mem' := λ i, I.zero_mem,
+  add_mem' := λ a b ha hb i, I.add_mem (ha i) (hb i),
+  smul_mem' := λ a b hb i, I.mul_mem_left (a i) (hb i) }
 
 lemma mem_pi (x : ι → α) : x ∈ I.pi ι ↔ ∀ i, x i ∈ I := iff.rfl
 
@@ -493,7 +514,7 @@ begin
       simpa only [neg_sub] using hm i },
     rw [←ideal.add_mem_iff_left (I.pi ι) this, sub_eq_add_neg, add_comm, ←add_assoc, ←smul_add,
       sub_add_cancel, ←sub_eq_add_neg, ←sub_smul, ideal.mem_pi],
-    exact λ i, ideal.mul_mem_right _ hc },
+    exact λ i, I.mul_mem_right _ hc },
   all_goals { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ <|> rintro ⟨a⟩,
     simp only [(•), submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk],
     change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
@@ -528,7 +549,7 @@ lemma map_pi {ι} [fintype ι] {ι' : Type w} (x : ι → α) (hi : ∀ i, x i �
 begin
   rw pi_eq_sum_univ x,
   simp only [finset.sum_apply, smul_eq_mul, linear_map.map_sum, pi.smul_apply, linear_map.map_smul],
-  exact submodule.sum_mem _ (λ j hj, ideal.mul_mem_right _ (hi j))
+  exact I.sum_mem (λ j hj, I.mul_mem_right _ (hi j))
 end
 
 end pi
@@ -566,7 +587,7 @@ begin
     rw submodule.mem_bot at ne_zero,
     obtain ⟨y, hy⟩ := hf.mul_inv_cancel ne_zero,
     rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ← hy] at lt_top,
-    exact lt_top (ideal.mul_mem_right _ mem), }
+    exact lt_top (I.mul_mem_right _ mem), }
 end
 
 lemma not_is_field_iff_exists_prime [nontrivial R] :
@@ -684,7 +705,7 @@ begin
   { intros I x hI hx H,
     erw not_not at hx,
     rcases hx with ⟨u,rfl⟩,
-    simpa using I.smul_mem ↑u⁻¹ H }
+    simpa using I.mul_mem_left ↑u⁻¹ H }
 end
 
 lemma maximal_ideal_unique :

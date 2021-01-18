@@ -73,6 +73,12 @@ end
 lemma ess_inf_const (c : β) (hμ : μ ≠ 0) : ess_inf (λ x : α, c) μ = c :=
 @ess_sup_const α (order_dual β) _ _ _ _ hμ
 
+lemma ess_sup_const_bot : ess_sup (λ x : α, (⊥ : β)) μ = (⊥ : β) :=
+filter.limsup_const_bot
+
+lemma ess_inf_const_top : ess_inf (λ x : α, (⊤ : β)) μ = (⊤ : β) :=
+filter.liminf_const_top
+
 lemma order_iso.ess_sup_apply {γ} [complete_lattice γ] (f : α → β) (μ : measure α)
   (g : β ≃o γ) :
   g (ess_sup f μ) = ess_sup (λ x, g (f x)) μ :=

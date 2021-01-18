@@ -367,37 +367,42 @@ lemma mul_eq_bot {R : Type*} [integral_domain R] {I J : ideal R} :
     or.resolve_left (mul_eq_zero.mp ((I * J).eq_bot_iff.mp hij _ (mul_mem_mul hi hj))) ne0)),
  λ h, by cases h; rw [← ideal.mul_bot, h, ideal.mul_comm]⟩
 
+/-- A product of ideals in an integral domain is zero if and only if one of the terms
+is zero. Decidability is required for mutliset.erase-/
 lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
-  {s : multiset (ideal R)} : s.prod = ⊥ → ∃ I ∈ s, I = ⊥ :=
+  {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
 begin
   induction hcard : s.card with n hn generalizing s,
   { rw multiset.card_eq_zero at hcard,
-    rw hcard,
-    erw [multiset.prod_zero, submodule.one_eq_map_top, submodule.map_id],
-    -- apply top_ne_bot,
-    intro this,
-    -- simp [false.elim, top_ne_bot],
-    exact absurd top_ne_bot (not_not.mpr this),
-    intro,
-    sorry },
+    erw [hcard, multiset.prod_zero, submodule.one_eq_map_top, submodule.map_id],
+    have : ¬ (⊤ : ideal R) = (⊥ : ideal R) := (@submodule.bot_ne_top _ _ _ _ _ _).symm,
+    split,
+    repeat {intro habs},
+    { exact absurd habs this },
+    { rcases habs with ⟨I, hI, -⟩,
+      exact absurd hI (multiset.not_mem_zero I) } },
   { have hne : s ≠ 0,
     { apply (not_iff_not_of_iff multiset.card_eq_zero).mp,
       rw hcard,
       apply nat.succ_ne_zero },
-    obtain ⟨J, hJ⟩ := multiset.exists_mem_of_ne_zero hne,
-    let t := s.erase J,
-    have h_tcard : t.card = n := by rwa [multiset.card_erase_of_mem, hcard, nat.pred_succ],
-    intro h_prod,
-    have h_ts : t.prod * J = s.prod, sorry,
-    replace h_ts : t.prod * J = ⊥ := by rwa h_prod at h_ts,
-    have h_or : t.prod = ⊥ ∨ J = ⊥ :=  mul_eq_bot.mp h_ts,
-    cases h_or,
-    { specialize hn h_tcard h_or,
-      rcases hn with ⟨I, h_It, h_zI⟩,
-      use I,
-      exact ⟨multiset.mem_of_mem_erase h_It, h_zI⟩ },
-    { use J,
-      exact ⟨hJ, h_or⟩ } },
+    split,
+    { obtain ⟨J, hJ⟩ := multiset.exists_mem_of_ne_zero hne,
+      let t := s.erase J,
+      have h_tcard : t.card = n := by rwa [multiset.card_erase_of_mem, hcard, nat.pred_succ],
+      intro h_prod,
+      have h_ts : t.prod * J = ⊥ := by rwa [mul_comm, ← multiset.prod_cons, multiset.cons_erase, h_prod],
+      have h_or : t.prod = ⊥ ∨ J = ⊥ :=  mul_eq_bot.mp h_ts,
+      cases h_or,
+      { suffices h_fort : ∃ (I : ideal R) (H : I ∈ t), I = ⊥,
+        rcases h_fort with ⟨I, h_It, h_zI⟩,
+        exact ⟨I, multiset.mem_of_mem_erase h_It, h_zI⟩,
+        apply (hn h_tcard).mp h_or },
+      { exact ⟨J, hJ, h_or⟩ } },
+    { rintros ⟨I, hI, h_zI⟩,
+      let J := (s.erase I).prod,
+      have : I * J = ⊥ := by rw [mul_comm, h_zI, mul_bot J],
+      rwa [← multiset.prod_cons, multiset.cons_erase] at this,
+      assumption, } }
 end
 
 

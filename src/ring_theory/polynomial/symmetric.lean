@@ -25,18 +25,15 @@ We also prove some basic facts about them.
 
 As in other polynomial files, we typically use the notation:
 
-+ `σ τ α : Type*` (indexing the variables)
++ `σ τ : Type*` (indexing the variables)
 
 + `R S : Type*` `[comm_semiring R]` `[comm_semiring S]` (the coefficients)
-
-+ `s : σ →₀ ℕ`, a function from `σ` to `ℕ` which is zero away from a finite set.
-This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call `X^s`
 
 + `r : R` elements of the coefficient ring
 
 + `i : σ`, with corresponding monomial `X i`, often denoted `X_i` by mathematicians
 
-+ `p : mv_polynomial σ α`
++ `φ ψ : mv_polynomial σ R`
 
 -/
 
@@ -111,8 +108,7 @@ variables (σ R) [comm_semiring R] [comm_semiring S] [fintype σ] [fintype τ]
 def esymm (n : ℕ) : mv_polynomial σ R :=
 ∑ t in powerset_len n univ, ∏ i in t, X i
 
-/-- A second definition of `esymm σ R n` that ranges over a subtype instead of `powerset_len`.
-  Sometimes it's easier to reason with subtypes. -/
+/-- A second definition of `esymm σ R n` that ranges over a subtype instead of `powerset_len`. -/
 lemma esymm₂ (n : ℕ) : (esymm σ R n) =
   ∑ t : {s : finset σ // s.card = n}, ∏ i in (t : finset σ), X i :=
 begin
@@ -131,8 +127,7 @@ end
 @[simp] lemma esymm_zero : esymm σ R 0 = 1 :=
 by simp only [esymm, powerset_len_zero, sum_singleton, prod_empty]
 
-lemma map_esymm (n : ℕ) (f : R →+* S) :
-  map f (esymm σ R n) = esymm σ S n :=
+lemma map_esymm (n : ℕ) (f : R →+* S) : map f (esymm σ R n) = esymm σ S n :=
 begin
   rw [esymm, (map f).map_sum],
   refine sum_congr rfl (λ x hx, _),
@@ -140,8 +135,7 @@ begin
   simp,
 end
 
-lemma rename_esymm (n : ℕ) (e : σ ≃ τ) :
-  rename e (esymm σ R n) = esymm τ R n :=
+lemma rename_esymm (n : ℕ) (e : σ ≃ τ) : rename e (esymm σ R n) = esymm τ R n :=
 begin
   simp [esymm, esymm₂, (rename e).map_sum],
   let e' : {s : finset σ // s.card = n} ≃ {s : finset τ // s.card = n} :=

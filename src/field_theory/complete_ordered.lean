@@ -333,6 +333,7 @@ end general
 
 variables {R S : Type*} [ordered_semiring R] [ordered_semiring S]
 
+/-- Reinterpret an ordered ring isomorphism as an ordered ring homomorphism. -/
 def to_ordered_ring_hom (f : R ≃+*o S) : R →+*o S := { ..f.to_ring_equiv.to_ring_hom,
   ..f.to_order_iso.to_rel_embedding.to_rel_hom }
 instance has_coe_to_ordered_ring_hom : has_coe (R ≃+*o S) (R →+*o S) := ⟨to_ordered_ring_hom⟩
@@ -554,11 +555,10 @@ by { rw [pow_two, pow_two] at h, exact lt_of_mul_self_lt_mul_self ha hb h}
 
 namespace conditionally_complete_linear_ordered_field
 
-variables {F : Type*} [conditionally_complete_linear_ordered_field F]
-
 /-- Any conditionally complete linearly ordered field is archimedean. -/
 @[priority 100] -- see Note [lower instance priority]
-instance : archimedean F := archimedean_iff_nat_lt.mpr
+instance {F : Type*} [conditionally_complete_linear_ordered_field F] :
+archimedean F := archimedean_iff_nat_lt.mpr
 begin
   by_contra h,
   push_neg at h,
@@ -636,8 +636,9 @@ begin
       exact_mod_cast hq2q, }, },
 end
 
-lemma pointwise_add_Sup (A B : set F) (hA : A.nonempty) (hB : B.nonempty)
-  (hbA : bdd_above A) (hbB : bdd_above B) : Sup (A + B) = Sup A + Sup B :=
+lemma pointwise_add_Sup {F : Type*} [conditionally_complete_linear_ordered_field F] (A B : set F)
+  (hA : A.nonempty) (hB : B.nonempty) (hbA : bdd_above A) (hbB : bdd_above B) :
+Sup (A + B) = Sup A + Sup B :=
 begin
   apply cSup_intro (nonempty.add hA hB),
   { rintros f ⟨a, b, ha, hb, rfl⟩,
@@ -883,7 +884,7 @@ end
 
 instance {F K : Type*}
   [linear_ordered_field F] [archimedean F] [conditionally_complete_linear_ordered_field K] :
-  unique (F →+*o K) := { default := induced_ordered_ring_hom F K,
+unique (F →+*o K) := { default := induced_ordered_ring_hom F K,
   uniq := λ f, ordered_ring_hom_unique f _ }
 
 theorem ordered_ring_equiv_unique {F K : Type*}
@@ -897,7 +898,7 @@ end
 
 instance {F K : Type*}
   [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
-  unique (F ≃+*o K) := { default := cut_ordered_ring_equiv F K,
+unique (F ≃+*o K) := { default := cut_ordered_ring_equiv F K,
   uniq := λ f, ordered_ring_equiv_unique f _ }
 
 end conditionally_complete_linear_ordered_field

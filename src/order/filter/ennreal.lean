@@ -40,9 +40,13 @@ begin
   rwa [div_def, one_mul],
 end
 
-lemma limsup_eq_zero_iff [ne_bot f] [countable_Inter_filter f] {u : α → ennreal} :
+lemma limsup_eq_zero_iff [countable_Inter_filter f] {u : α → ennreal} :
   f.limsup u = 0 ↔ u =ᶠ[f] 0 :=
 begin
+  by_cases hf_bot: f.ne_bot,
+  swap,
+  { simp [not_ne_bot.mp hf_bot, limsup], },
+  haveI : ne_bot f := hf_bot,
   split; intro h,
   { have hu_zero := eventually_le.trans (eventually_le_limsup u)
       (eventually_of_forall (λ _, le_of_eq h)),
@@ -52,9 +56,13 @@ begin
     rw limsup_const, },
 end
 
-lemma limsup_const_mul_of_ne_top [ne_bot f] {u : α → ennreal} {a : ennreal} (ha_top : a ≠ ⊤):
+lemma limsup_const_mul_of_ne_top {u : α → ennreal} {a : ennreal} (ha_top : a ≠ ⊤) :
   f.limsup (λ (x : α), a * (u x)) = a * f.limsup u :=
 begin
+  by_cases hf_bot: f.ne_bot,
+  swap,
+  { simp [not_ne_bot.mp hf_bot, limsup], },
+  haveI : ne_bot f := hf_bot,
   by_cases ha_zero : a = 0,
   { simp [ha_zero, limsup_const (0 : ennreal)], },
   let g := λ x : ennreal, a * x,
@@ -70,9 +78,13 @@ begin
   all_goals { by is_bounded_default},
 end
 
-lemma limsup_const_mul [ne_bot f] [countable_Inter_filter f] {u : α → ennreal} {a : ennreal} :
+lemma limsup_const_mul [countable_Inter_filter f] {u : α → ennreal} {a : ennreal} :
   f.limsup (λ (x : α), a * (u x)) = a * f.limsup u :=
 begin
+  by_cases hf_bot: f.ne_bot,
+  swap,
+  { simp [not_ne_bot.mp hf_bot, limsup], },
+  haveI : ne_bot f := hf_bot,
   by_cases ha_top : a ≠ ⊤,
   { exact limsup_const_mul_of_ne_top ha_top, },
   push_neg at ha_top,

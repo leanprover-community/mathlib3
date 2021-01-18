@@ -104,21 +104,12 @@ section ennreal
 lemma ennreal.ae_le_ess_sup (f : α → ennreal) : ∀ᵐ y ∂μ, f y ≤ ess_sup f μ :=
 ennreal.eventually_le_limsup f
 
-lemma ess_sup_eq_zero_iff {f : α → ennreal} (hμ : μ ≠ 0) :
-  ess_sup f μ = 0 ↔ f =ᵐ[μ] 0 :=
-begin
-  haveI hμ_ne_bot : μ.ae.ne_bot := by rwa [filter.ne_bot, ne.def, ae_eq_bot],
-  exact ennreal.limsup_eq_zero_iff,
-end
+lemma ess_sup_eq_zero_iff {f : α → ennreal} : ess_sup f μ = 0 ↔ f =ᵐ[μ] 0 :=
+ennreal.limsup_eq_zero_iff
 
 lemma ennreal.ess_sup_const_mul {f : α → ennreal} {a : ennreal} :
   ess_sup (λ (x : α), a * (f x)) μ = a * ess_sup f μ :=
-begin
-  by_cases hμ : μ = 0,
-  { simp [hμ], },
-  haveI hμ_ne_bot : μ.ae.ne_bot := by rwa [filter.ne_bot, ne.def, ae_eq_bot],
-  exact ennreal.limsup_const_mul,
-end
+ennreal.limsup_const_mul
 
 lemma ennreal.ess_sup_add_le (f g : α → ennreal) : ess_sup (f + g) μ ≤ ess_sup f μ + ess_sup g μ :=
 ennreal.limsup_add_le f g

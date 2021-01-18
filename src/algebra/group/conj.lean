@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
 import algebra.group.hom
+import data.equiv.mul_add
 
 /-!
 # Conjugacy of group elements
@@ -43,6 +44,18 @@ begin
   assoc_rw inv_mul_cancel_right,
   repeat {rw mul_assoc},
 end
+
+/-- `b * a * b⁻¹` as a bundled equiv. -/
+@[simps apply]
+def conj_hom (b : α) : α ≃* α :=
+{ to_fun := λ a, b * a * b⁻¹,
+  inv_fun := λ a, b⁻¹ * a * b,
+  left_inv := λ a, by simp [←mul_assoc],
+  right_inv := λ a, by simp [←mul_assoc],
+  map_mul' := λ a b, conj_mul.symm }
+
+lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
+(conj_hom x).injective
 
 @[simp] lemma is_conj_iff_eq {α : Type*} [comm_group α] {a b : α} : is_conj a b ↔ a = b :=
 ⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩

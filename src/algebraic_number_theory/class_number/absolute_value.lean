@@ -64,6 +64,10 @@ def to_monoid_hom [nontrivial R] (f : absolute_value R S) : R →* S :=
 @[simp] lemma coe_fn_to_monoid_hom [nontrivial R] (f : absolute_value R S) :
   ⇑f.to_monoid_hom = f := rfl
 
+@[simp]
+lemma map_pow [nontrivial R] (f : absolute_value R S) (x : R) (n : ℕ) : f (x ^ n) = f x ^ n :=
+f.to_monoid_hom.map_pow x n
+
 end linear_ordered_ring
 
 end semiring

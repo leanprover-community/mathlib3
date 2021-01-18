@@ -156,6 +156,19 @@ begin
   simp
 end
 
+@[simp] lemma abs_norm_mul [decidable_eq L] (x y : integral_closure R L) :
+  abs_norm f abs (x * y) = abs_norm f abs x * abs_norm f abs y :=
+by simp only [abs_norm, monoid_hom.map_mul, absolute_value.map_mul]
+
+@[simp]
+lemma abs_norm_algebra_map [decidable_eq L] (x : R) :
+  abs_norm f abs (algebra_map R (integral_closure R L) x) = (abs x) ^ (integral_closure.dim L f) :=
+begin
+  rw [← abs.map_pow, abs_norm, algebra.norm, monoid_hom.coe_mk, ← mul_one (algebra_map _ _ x),
+     ← algebra.smul_def, alg_hom.map_smul, linear_equiv.map_smul, matrix.det_smul,
+     lmul_one, linear_map.to_matrix_id, matrix.det_one, mul_one, fintype.card_fin]
+end
+
 end is_principal_ideal_ring
 
 end integral_domain

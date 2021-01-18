@@ -26,7 +26,7 @@ open mv_polynomial
 
 noncomputable theory
 
-variables {k : Type*} [field k] [is_alg_closed k]
+variables {k : Type*} [field k]
 variables {σ : Type*} [fintype σ]
 
 /-- Set of points that are zeroes of all polynomials in an ideal -/
@@ -67,7 +67,7 @@ lemma zero_locus_vanishing_ideal_le (A : set (σ → k)) :
   A ≤ zero_locus (vanishing_ideal A) :=
 λ A hA p hp, hp A hA
 
-def zero_locus_vanishing_ideal_galois_connection :
+theorem zero_locus_vanishing_ideal_galois_connection :
   @galois_connection (ideal (mv_polynomial σ k)) (order_dual (set (σ → k))) _ _
     zero_locus vanishing_ideal :=
 λ I A, ⟨λ h, le_trans (le_vanishing_ideal_zero_locus I) (vanishing_ideal_anti_mono h),
@@ -92,8 +92,8 @@ begin
   exact bot_is_maximal,
 end
 
-lemma is_maximal_iff_eq_vanishing_ideal_singleton (I : ideal (mv_polynomial σ k)) :
-  I.is_maximal ↔ ∃ (x : σ → k), I = vanishing_ideal {x} :=
+lemma is_maximal_iff_eq_vanishing_ideal_singleton [is_alg_closed k]
+  (I : ideal (mv_polynomial σ k)) : I.is_maximal ↔ ∃ (x : σ → k), I = vanishing_ideal {x} :=
 begin
   refine ⟨λ hI, _, λ h, let ⟨x, hx⟩ := h in hx.symm ▸ vanishing_ideal_singleton_maximal x⟩,
   letI : I.is_maximal := hI,
@@ -115,7 +115,7 @@ begin
 end
 
 /-- Main statement of the Nullstellensatz -/
-theorem vanishing_ideal_zero_locus_eq_radical (I : ideal (mv_polynomial σ k)) :
+theorem vanishing_ideal_zero_locus_eq_radical [is_alg_closed k] (I : ideal (mv_polynomial σ k)) :
   vanishing_ideal (zero_locus (I)) = I.radical :=
 begin
   rw I.radical_eq_jacobson,

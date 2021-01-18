@@ -2605,7 +2605,7 @@ end
 
 /-- `sin ((n + 1) * θ)` is equal to `sin θ` multiplied with the `n`-th Chebyshev polynomial of the
 second kind evaluated on `cos θ`. -/
-lemma cos_nat_mul (n : ℕ) (θ : ℂ) :
+lemma sin_nat_succ_mul (n : ℕ) (θ : ℂ) :
   sin ((n + 1) * θ) = (chebyshev₂ ℂ n).eval (cos θ) * sin θ :=
 (chebyshev₂_complex_cos θ n).symm
 

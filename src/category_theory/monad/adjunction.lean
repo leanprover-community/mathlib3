@@ -91,11 +91,6 @@ def comparison_forget [is_left_adjoint L] : comparison L ⋙ forget (right_adjoi
 end comonad
 
 /--
-A functor is *reflective*, or *a reflective inclusion*, if it is fully faithful and right adjoint.
--/
-class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
-
-/--
 A right adjoint functor `R : D ⥤ C` is *monadic* if the comparison functor `monad.comparison R`
 from `D` to the category of Eilenberg-Moore algebras for the adjunction is an equivalence.
 -/

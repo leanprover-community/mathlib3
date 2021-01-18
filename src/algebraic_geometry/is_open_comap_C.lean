@@ -9,36 +9,6 @@ import ring_theory.polynomial.basic
 The morphism `Spec R[x] --> Spec R` induced by the natural inclusion `R --> R[x]` is an open map.
 -/
 
-namespace submod
-
-open submodule polynomial set finset finsupp function
-
-variables {R : Type*} [semiring R] {f : polynomial R} {I : submodule (polynomial R) (polynomial R)}
-
-lemma mem_span_C_coeff :
-  f ∈ span (polynomial R) {g | ∃ i, g = (C (coeff f i))} :=
-begin
-  conv_lhs {rw as_sum_support f},
-  refine sum_mem _ (λ i hi, _),
-  rw [← C_mul_X_pow_eq_monomial, ← X_pow_mul],
-  exact smul_mem _ _ (subset_span ⟨i, rfl⟩),
-end
-
-lemma span_le_of_coeff_mem_comap (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹' I.carrier)) :
-  (span (polynomial R) {g | ∃ i, g = C (f.coeff i)}) ≤ I :=
-begin
-  refine set.bInter_subset_of_mem _,
-  rintros _ ⟨i, rfl⟩,
-  exact (submodule.mem_coe _).mpr (cf i),
-end
-
-lemma exists_coeff_not_mem_C_inverse :
-  f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
-imp_of_not_imp_not _ _
-  (λ cf, not_not.mpr ((span_le_of_coeff_mem_comap (not_exists_not.mp cf)) mem_span_C_coeff))
-
-end submod
-
 open ideal polynomial prime_spectrum set
 
 namespace algebraic_geometry
@@ -71,7 +41,7 @@ This lemma is a reformulation of `exists_coeff_not_mem_C_inverse`. -/
 lemma C_comap_mem_image_of_Df {f : polynomial R} {I : prime_spectrum (polynomial R)}
   (H : I ∈ (zero_locus {f} : set (prime_spectrum (polynomial R)))ᶜ ) :
   comap (polynomial.C : R →+* polynomial R) I ∈ image_of_Df f :=
-submod.exists_coeff_not_mem_C_inverse (mem_compl_zero_locus_iff_not_mem.mp H)
+exists_coeff_not_mem_C_inverse (mem_compl_zero_locus_iff_not_mem.mp H)
 
 theorem is_open_map_C_comap :
   is_open_map (comap (C : R →+* polynomial R)) :=
@@ -87,7 +57,7 @@ begin
   { rw [mem_compl_eq, mem_zero_locus, singleton_subset_iff],
     cases hx with i hi,
     exact λ a, hi (mem_map_C_iff.mp a i) },
-  { refine subtype.ext (ext (λ x, ⟨λ h, _, λ h, submodule.subset_span (mem_image_of_mem C.1 h)⟩)),
+  { refine subtype.ext (ext (λ x, ⟨λ h, _, λ h, subset_span (mem_image_of_mem C.1 h)⟩)),
     rw ← @coeff_C_zero R x _,
     exact mem_map_C_iff.mp h 0 }
 end
@@ -95,21 +65,3 @@ end
 end polynomial
 
 end algebraic_geometry
-
-#exit
-
-/-
-lemma mem_compl_zero_locus_iff_not_mem {R : Type*} [semiring R] {f : R} {I : submodule R R} :
-  I ∈ ({ J : submodule R R | f ∈ J.carrier })ᶜ ↔ f ∉ I := by refl
-
-lemma mem_compl_zero_locus_iff_not_mem_prime {R : Type*} [comm_ring R] {f : R} {I : ideal R}
-  {h : ideal.is_prime I }:
-  I ∈ ({ J : ideal R | f ∈ J.carrier ∧ ideal.is_prime J })ᶜ ↔ f ∉ I :=
-begin
-  dsimp at *, simp at *, fsplit, work_on_goal 0 { intros ᾰ ᾰ_1, solve_by_elim }, intros ᾰ ᾰ_1 ᾰ_2, cases ᾰ_2, dsimp at *, solve_by_elim,
-end
-
-lemma C_comap_mem_image_of_Df (H : f ∉ I) :
-  ∃ i : ℕ, f.coeff i ∉ C ⁻¹' I.carrier :=
-exists_coeff_not_mem_C_comap H
--/

@@ -26,7 +26,7 @@ begin
 end
 
 lemma mem_span_C_coeff (f : polynomial R) :
-  f ∈ span {tt : polynomial R | ∃ i : ℕ ,tt = (C (coeff f i))} :=
+  f ∈ span {g : polynomial R | ∃ i : ℕ, g = (C (coeff f i))} :=
 begin
   conv_lhs {rw as_sum_support f},
   refine submodule.sum_mem _ (λ i hi, _),

@@ -1154,9 +1154,8 @@ end matrix
 
 /-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
   `R₁` with invertible `2`. Then, there exists some `x : M` such that `B x x ≠ 0`. -/
-lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R₃)]
-  {B : bilin_form R₃ M₃} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B)
-  (hK : ∃ x : M₃, x ≠ 0) : ∃ x, B x x ≠ 0 :=
+lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R₃)] [hM : nontrivial M₃]
+  {B : bilin_form R₃ M₃} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) : ∃ x, B x x ≠ 0 :=
 begin
   by_contra, push_neg at h,
   have : ∀ u v, 2 * B u v = 0,
@@ -1168,7 +1167,7 @@ begin
   have hcon : ∀ u v, B u v = 0,
   { intros u v,
     rw [show 0 = htwo.inv_of * (2 * B u v), by rw this; ring], simp [← mul_assoc] },
-  exact let ⟨v, hv⟩ := hK in hv $ hB₁ v (hcon v),
+  exact let ⟨v, hv⟩ := exists_ne (0 : M₃) in hv $ hB₁ v (hcon v),
 end
 
 variables {V : Type u} {K : Type v}
@@ -1357,13 +1356,16 @@ begin
   tactic.unfreeze_local_instances,
   induction hd : findim K V with d hi generalizing V,
   { refine ⟨λ _, 0, λ _ _ _, zero_left _, is_basis.trivial hd, fin.elim0⟩ },
-  { cases exists_bilin_form_self_neq_zero hB₁ hB₂ _ with x hx,
+  { haveI : nontrivial V :=
+    by { apply (@findim_pos_iff K _ _ _ _ _).1,
+          rw hd, exact nat.succ_pos _,
+          apply_instance },
+    cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
     { have hd' := hd,
       rw findim_ortho_span_singleton hB₂ hx at hd,
       rcases @hi (B.ortho (submodule.span K ({x} : set V))) _ _ _
         (B.restrict _) (B.restrict_ortho_singleton_nondegenerate hB₁ hB₂ hx)
         (B.restrict_sym hB₂ _) (nat.succ.inj hd) with ⟨v', hv₁, hv₂, hv₃⟩,
-      -- We now have a orthogonal basis on the orthogonal space
       refine ⟨λ i, if h : i ≠ 0 then coe (v' (i.pred h)) else x, λ i j hij, _, _, _⟩,
       { by_cases hi : i = 0,
         { subst i,
@@ -1408,15 +1410,7 @@ begin
           by_cases hi : i ≠ 0,
           { rw dif_pos hi,
             exact hv₃ (i.pred hi) },
-          { rw dif_neg hi, exact hx } } },
-    suffices : nontrivial V,
-    { rcases nontrivial_iff.1 this with ⟨x, y, hxy⟩,
-      by_cases (x = 0),
-      { exact ⟨y, h ▸ hxy.symm⟩ },
-      { exact ⟨x, h⟩ } },
-    apply (@findim_pos_iff K _ _ _ _ _).1,
-    rw hd, exact nat.succ_pos _,
-    apply_instance }
+          { rw dif_neg hi, exact hx } } } }
 end .
 
 /-- Given a nondegenerate symmetric bilinear form `B` on some vector space `V` over the

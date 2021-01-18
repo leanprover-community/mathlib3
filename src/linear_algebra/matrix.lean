@@ -731,14 +731,24 @@ def reindex_linear_equiv [semiring R] (eₘ : m ≃ m') (eₙ : n ≃ n') :
   map_smul' := λ M N, rfl,
 ..(reindex eₘ eₙ)}
 
-@[simp] lemma reindex_linear_equiv_apply [semiring R]
+@[simp] lemma coe_reindex_linear_equiv [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
   reindex_linear_equiv eₘ eₙ M = λ i j, M (eₘ.symm i) (eₙ.symm j) :=
 rfl
 
-@[simp] lemma reindex_linear_equiv_symm_apply [semiring R]
+lemma reindex_linear_equiv_apply [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) (i j) :
+  reindex_linear_equiv eₘ eₙ M i j = M (eₘ.symm i) (eₙ.symm j) :=
+rfl
+
+@[simp] lemma coe_reindex_linear_equiv_symm [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) :
   (reindex_linear_equiv eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
+rfl
+
+lemma reindex_linear_equiv_symm_apply [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) (i j) :
+  (reindex_linear_equiv eₘ eₙ).symm M i j = M (eₘ i) (eₙ j) :=
 rfl
 
 @[simp] lemma reindex_linear_equiv_refl_refl [semiring R] (A : matrix m n R) :

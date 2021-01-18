@@ -739,14 +739,7 @@ theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 | ._ b ⟨c, rfl⟩ := if bz : b = 0 then by simp [bz] else
   by rw [neg_mul_eq_mul_neg, int.mul_div_cancel_left _ bz, int.mul_div_cancel_left _ bz]
 
-lemma sub_div_of_dvd_left {a b c : ℤ} (hca : c ∣ a) : (a - b) / c = a / c - b / c :=
-begin
-  rw [sub_eq_add_neg, sub_eq_add_neg, int.add_div_of_dvd_left hca],
-  congr,
-  exact neg_div_of_dvd hcb,
-end
-
-lemma sub_div_of_dvd_right {a b c : ℤ} (hcb : c ∣ b) : (a - b) / c = a / c - b / c :=
+lemma sub_div_of_dvd {a b c : ℤ} (hcb : c ∣ b) : (a - b) / c = a / c - b / c :=
 begin
   rw [sub_eq_add_neg, sub_eq_add_neg, int.add_div_of_dvd_right ((dvd_neg c b).mpr hcb)],
   congr,

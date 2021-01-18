@@ -146,6 +146,25 @@ begin
   exact chebyshev₂_add_two R n
 end
 
+lemma chebyshev₁_eq_chebyshev₂_sub_X_mul_chebyshev₂ :
+∀ (n : ℕ), chebyshev₁ R (n+1) = chebyshev₂ R (n+1) - X * chebyshev₂ R n
+|0      := begin simp only [mul_one, chebyshev₂_one, chebyshev₁_one, chebyshev₂_zero], sorry end
+|1      := begin simp [chebyshev₂_two, chebyshev₁_two, chebyshev₂_one], sorry end
+|(n+2)  := begin rw chebyshev₁_add_two, rw chebyshev₂_add_two, sorry end
+
+
+lemma some (a b c : ℤ) : 2 * a = a + a :=
+begin
+  library_search
+end
+
+lemma chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ :
+∀ (n : ℕ), chebyshev₁ R (n+2) = X * chebyshev₁ R (n+1) - (1 - X ^ 2) * chebyshev₂ R n
+|0      := by simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero, mul_one,
+                 sub_sub_assoc_swap, pow_two, two_mul]
+|1      := begin rw chebyshev₁_add_two, simp only [chebyshev₁_zero, chebyshev₁_add_two, chebyshev₂_one, chebyshev₁_one, sub_mul, mul_sub, mul_one, one_mul], sorry end
+|(n+2)  := begin rw chebyshev₁_add_two,sorry end
+
 variables {R S}
 
 lemma some_fact (f : R →+* S) :

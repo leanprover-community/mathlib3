@@ -600,6 +600,12 @@ end
 
 variables {R : Type} [comm_ring R]
 
+@[ext] lemma hom_ext {d : ℤ} (f g : ℤ√d →+* R) (h : f sqrtd = g sqrtd) : f = g :=
+begin
+  ext ⟨x_re, x_im⟩,
+  simp [decompose, h],
+end
+
 /-- The unique `ring_hom` from `ℤ√d` to a ring `R`, constructed by replacing `√d` with the provided
 root. Conversely, this associates to every mapping `ℤ√d →+* R` a value of `√d` in `R`. -/
 @[simps]
@@ -616,7 +622,7 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
       ring, } },
   inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, ring_hom.map_int_cast]⟩,
   left_inv := λ r, by { ext, simp },
-  right_inv := λ f, by { ext x, cases x, simp [decompose], } }
+  right_inv := λ f, by { ext, simp } }
 
 /-- `lift r` is injective if `d` is non-square, and R has characteristic zero (that is, the map from
 `ℤ` into `R` is injective). -/

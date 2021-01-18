@@ -629,11 +629,11 @@ lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
 
 lemma inv_of_maximal_not_top (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
   (hM : ideal.is_maximal M) : (1 / ↑M : fractional_ideal f) ≠ (1 : fractional_ideal f) :=
-begin--PER GOLFARE, CONSIDERARE TUTTE LE HP SOLO LOCALI E METTERLE TRA PARENTESI
-  have h_Spec : inhabited (ideal R), sorry, --UTILE IN DEFINITIVA?
-  -- have h_nzM : M ≠ ⊥ := ne_bot_of_is_maximal_of_not_is_field hM hNF,
+begin
+  have h_Spec : inhabited (ideal R) := ⟨⊥⟩,
+  have h_nzM : M ≠ ⊥ := ne_bot_of_is_maximal_of_not_is_field hM hNF,
   obtain ⟨a, h_nza⟩ : ∃ a : M, a ≠ 0 := submodule.nonzero_mem_of_bot_lt
-    (bot_lt_iff_ne_bot.mpr (ne_bot_of_is_maximal_of_not_is_field hM hNF)),
+    (bot_lt_iff_ne_bot.mpr h_nzM),
   let J : (ideal R) := ideal.span {a},
   have h_J : J ≠ ⊥ ∧ J ≤ M,
   simp only [*, span_singleton_eq_bot, ne.def, not_false_iff, submodule.coe_eq_zero, span_le,
@@ -774,13 +774,12 @@ begin--PER GOLFARE, CONSIDERARE TUTTE LE HP SOLO LOCALI E METTERLE TRA PARENTESI
       apply fractional_ideal.mem_one_iff.mpr,
       use c },
     simp only [h_nza, not_false_iff, submodule.coe_eq_zero],
-    -- apply fractional_ideal.coe_to_fractional_ideal_ne_zero,
-      -- fractional_ideal.coe_to_fractional_ideal_ne_zero],
-    -- simpa only [fractional_ideal.coe_to_fractional_ideal_ne_zero]
-    sorry },
+    apply (fractional_ideal.coe_to_fractional_ideal_ne_zero _).mpr h_nzM,
+    tauto },
   have h₂ : (f.to_map b) * (f.to_map a)⁻¹ ∉ (1 : fractional_ideal f),
-  { rw [not_iff_not.mpr fractional_ideal.mem_one_iff],
-  --  eq_mul_of_mul_inv_eq, --UN LEMMA
+  { --bisogna usare che b ∉ J = span R {a} e quindi b/a non sta in R
+    --rw [not_iff_not.mpr fractional_ideal.mem_one_iff],
+    -- rw eq_mul_of_mul_inv_eq, --bis
   -- ← ring_hom.map_mul],-- UTILE?
     -- rw f.injective,
     sorry },

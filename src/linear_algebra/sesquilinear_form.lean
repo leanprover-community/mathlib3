@@ -172,7 +172,7 @@ lemma comp_comp {M₃ : Type*} [add_comm_group M₃] [module R M₃]
 
 /-- Let `l`, `r` be surjective linear maps, then two sesquilinear forms are equal if and only if
   the sesquilinear forms resulted from composing with `l` and `r` are equal. -/
-lemma comp_injective (S₁ S₂ : sesq_form R M₂ I) (l r : M →ₗ[R] M₂)
+lemma comp_injective (S₁ S₂ : sesq_form R M₂ I) {l r : M →ₗ[R] M₂}
   (hl : function.surjective l) (hr : function.surjective r) :
   S₁.comp l r = S₂.comp l r ↔ S₁ = S₂ :=
 begin

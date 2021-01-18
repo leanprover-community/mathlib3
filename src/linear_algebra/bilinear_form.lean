@@ -270,7 +270,7 @@ lemma comp_comp {M'' : Type*} [add_comm_monoid M''] [semimodule R M'']
 @[simp] lemma comp_right_apply (B : bilin_form R M) (f : M →ₗ[R] M) (v w) :
   B.comp_right f v w = B v (f w) := rfl
 
-lemma comp_injective (B₁ B₂ : bilin_form R M') (l r : M →ₗ[R] M')
+lemma comp_injective (B₁ B₂ : bilin_form R M') {l r : M →ₗ[R] M'}
   (hₗ : function.surjective l) (hᵣ : function.surjective r) :
   B₁.comp l r = B₂.comp l r ↔ B₁ = B₂ :=
 begin

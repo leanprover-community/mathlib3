@@ -258,6 +258,11 @@ variables {I J K L: ideal R}
 
 instance : has_mul (ideal R) := ⟨(•)⟩
 
+@[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
+@[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
+@[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
+by erw [submodule.one_eq_map_top, submodule.map_id]
+
 theorem mul_mem_mul {r s} (hr : r ∈ I) (hs : s ∈ J) : r * s ∈ I * J :=
 submodule.smul_mem_smul hr hs
 
@@ -367,34 +372,41 @@ lemma mul_eq_bot {R : Type*} [integral_domain R] {I J : ideal R} :
     or.resolve_left (mul_eq_zero.mp ((I * J).eq_bot_iff.mp hij _ (mul_mem_mul hi hj))) ne0)),
  λ h, by cases h; rw [← ideal.mul_bot, h, ideal.mul_comm]⟩
 
-/-- A product of ideals in an integral domain is zero if and only if one of the terms
-is zero. Decidability is required for mutliset.erase-/
-lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
-  {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
+instance {R : Type*} [integral_domain R] : no_zero_divisors (ideal R) :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ I J, mul_eq_bot.1 }
+
+lemma move_this {R : Type*} [comm_semiring R] [no_zero_divisors R] {s : multiset R} :
+  s.prod = 0 ↔ ∃ (r : R) (hr : r ∈ s), r = 0 :=
 begin
-  refine multiset.induction _ (λ J s ih, _) s,
-    have : ¬ (⊤ : ideal R) = (⊥ : ideal R) := (@submodule.bot_ne_top _ _ _ _ _ _).symm,
-    split,
-    repeat {intro habs},
-    { erw [multiset.prod_zero, submodule.one_eq_map_top, submodule.map_id] at habs,
-      exact absurd habs this },
-    { rcases habs with ⟨I, hI, -⟩,
-      exact absurd hI (multiset.not_mem_zero I) },
-  { rw [multiset.prod_cons, mul_eq_bot],
-    split,
-    { intro H,
-      cases H with hzJ,
-      { exact ⟨J, multiset.mem_cons_self J s, hzJ⟩ },
-      { suffices h_fors : ∃ (I₁ : ideal R) (H : I₁ ∈ s), I₁ = ⊥,
-        rcases h_fors with ⟨I₁, h_I₁, h_zI₁⟩,
-        exacts [⟨I₁, multiset.mem_cons_of_mem h_I₁, h_zI₁⟩, ih.mp H] } },
-    { rintros ⟨I, hI, h_zI⟩,
-      rw [multiset.mem_cons, h_zI] at hI,
-      cases hI,
-      exact or.inl hI.symm,
-      apply or.inr (ih.mpr ⟨⊥, hI, rfl⟩) } },
+  sorry
+  -- refine multiset.induction _ (λ J s ih, _) s,
+  --   have : ¬ (⊤ : ideal R) = (⊥ : ideal R) := (@submodule.bot_ne_top _ _ _ _ _ _).symm,
+  --   split,
+  --   repeat {intro habs},
+  --   { erw [multiset.prod_zero, submodule.one_eq_map_top, submodule.map_id] at habs,
+  --     exact absurd habs this },
+  --   { rcases habs with ⟨I, hI, -⟩,
+  --     exact absurd hI (multiset.not_mem_zero I) },
+  -- { rw [multiset.prod_cons, mul_eq_bot],
+  --   split,
+  --   { intro H,
+  --     cases H with hzJ,
+  --     { exact ⟨J, multiset.mem_cons_self J s, hzJ⟩ },
+  --     { suffices h_fors : ∃ (I₁ : ideal R) (H : I₁ ∈ s), I₁ = ⊥,
+  --       rcases h_fors with ⟨I₁, h_I₁, h_zI₁⟩,
+  --       exacts [⟨I₁, multiset.mem_cons_of_mem h_I₁, h_zI₁⟩, ih.mp H] } },
+  --   { rintros ⟨I, hI, h_zI⟩,
+  --     rw [multiset.mem_cons, h_zI] at hI,
+  --     cases hI,
+  --     exact or.inl hI.symm,
+  --     apply or.inr (ih.mpr ⟨⊥, hI, rfl⟩) } },
 end
 
+/-- A product of ideals in an integral domain is zero if and only if one of the terms
+is zero. Decidability is required for multiset.erase-/
+lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
+  {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
+move_this
 
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
@@ -478,11 +490,6 @@ hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J
 eq_bot_iff.2 (λ x hx, hx.rec_on (λ n hn, pow_eq_zero hn))
 
 instance : comm_semiring (ideal R) := submodule.comm_semiring
-
-@[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
-@[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
-@[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
-by erw [submodule.one_eq_map_top, submodule.map_id]
 
 variables (R)
 theorem top_pow (n : ℕ) : (⊤ ^ n : ideal R) = ⊤ :=

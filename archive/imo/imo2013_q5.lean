@@ -11,7 +11,19 @@ import data.real.basic
 
 /-!
 # IMO 2013 Q5
-This is a direct translation of the solution found in
+
+Let ℚ>₀ be the set of positive rational numbers. Let f: ℚ>₀ → ℝ be a function satisfying
+the conditions
+
+  (1) f(x) * f(y) ≥ f(x * y)
+  (2) f(x + y)    ≥ f(x) + f(y)
+
+for all x,y ∈ ℚ>₀. Given that f(a) = a for some rational a > 1, prove that f(x) = x for
+all x ∈ ℚ>₀.
+
+# Solution
+
+We provide a direct translation of the solution found in
 https://www.imo-official.org/problems/IMO2013SL.pdf
 -/
 

@@ -525,7 +525,7 @@ begin
     { intro x,
       have A : (x, N x) = (x, 0) + (0, N x), by simp,
       have B := g_nonneg ⟨x, N x⟩ (le_refl (N x)),
-      rw [A, map_add, ← neg_le_iff_add_nonneg] at B,
+      rw [A, map_add, ← neg_le_iff_add_nonneg'] at B,
       have C := g_eq 0 (N x),
       simp only [submodule.coe_zero, f.map_zero, sub_zero] at C,
       rwa ← C } },

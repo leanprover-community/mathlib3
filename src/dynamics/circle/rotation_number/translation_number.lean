@@ -193,7 +193,7 @@ def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
       inv_fun := ⇑(f⁻¹),
       left_inv := units_inv_apply_apply f,
       right_inv := units_apply_inv_apply f,
-      map_rel_iff' := λ x y, ⟨mono f, λ h, by simpa using mono ↑(f⁻¹) h⟩ },
+      map_rel_iff' := λ x y, ⟨λ h, by simpa using mono ↑(f⁻¹) h, mono f⟩ },
   map_one' := rfl,
   map_mul' := λ f g, rfl }
 
@@ -432,8 +432,7 @@ tendsto_at_top_mono f.le_map_of_map_zero $ tendsto_at_top_add_const_left _ _ $
     by simpa [sub_eq_add_neg] using tendsto_at_top_add_const_right _ _ tendsto_id
 
 lemma continuous_iff_surjective : continuous f ↔ function.surjective f :=
-⟨λ h, surjective_of_continuous h f.tendsto_at_top f.tendsto_at_bot,
-  f.monotone.continuous_of_surjective⟩
+⟨λ h, h.surjective f.tendsto_at_top f.tendsto_at_bot, f.monotone.continuous_of_surjective⟩
 
 /-!
 ### Estimates on `(f^n) x`

@@ -9,9 +9,10 @@ import category_theory.limits.shapes.types
 import category_theory.full_subcategory
 
 /-!
-# Sheaves on a Grothendieck topology
+# Sheaves of types on a Grothendieck topology
 
-Defines the notion of a sheaf on a Grothendieck topology, as well as a range of equivalent
+Defines the notion of a sheaf of types (usually called a sheaf of sets by mathematicians)
+on a category equipped with a Grothendieck topology, as well as a range of equivalent
 conditions useful in different situations.
 
 First define what it means for a presheaf `P : Cᵒᵖ ⥤ Type v` to be a sheaf *for* a particular
@@ -686,6 +687,10 @@ begin
     exact PK (pullback_arrows f R) (K.pullbacks f R hR) }
 end
 
+/-- Any presheaf is a sheaf for the bottom (trivial) grothendieck topology. -/
+lemma is_sheaf_bot : is_sheaf (⊥ : grothendieck_topology C) P :=
+λ X, by simp [is_sheaf_for_top_sieve]
+
 end presieve
 
 namespace equalizer
@@ -885,21 +890,30 @@ variables (J : grothendieck_topology C)
 
 /-- The category of sheaves on a grothendieck topology. -/
 @[derive category]
-def Sheaf (J : grothendieck_topology C) : Type (max u (v+1)) :=
+def SheafOfTypes (J : grothendieck_topology C) : Type (max u (v+1)) :=
 {P : Cᵒᵖ ⥤ Type v // presieve.is_sheaf J P}
 
-instance : inhabited (Sheaf (⊥ : grothendieck_topology C)) :=
-⟨⟨(functor.const _).obj punit,
-  λ X S hS,
-  begin
-    simp only [grothendieck_topology.bot_covering] at hS,
-    subst hS,
-    apply presieve.is_sheaf_for_top_sieve,
-  end⟩⟩
-
 /-- The inclusion functor from sheaves to presheaves. -/
-@[simps {rhs_md := semireducible}, derive [full, faithful]]
-def Sheaf_to_presheaf : Sheaf J ⥤ (Cᵒᵖ ⥤ Type v) :=
+@[simps, derive [full, faithful]]
+def SheafOfTypes_to_presheaf : SheafOfTypes J ⥤ (Cᵒᵖ ⥤ Type v) :=
 full_subcategory_inclusion (presieve.is_sheaf J)
+
+/--
+The category of sheaves on the bottom (trivial) grothendieck topology is equivalent to the category
+of presheaves.
+-/
+@[simps]
+def SheafOfTypes_bot_equiv : SheafOfTypes (⊥ : grothendieck_topology C) ≌ (Cᵒᵖ ⥤ Type v) :=
+{ functor := SheafOfTypes_to_presheaf _,
+  inverse :=
+  { obj := λ P, ⟨P, presieve.is_sheaf_bot⟩,
+    map := λ P₁ P₂ f, (SheafOfTypes_to_presheaf _).preimage f },
+  unit_iso :=
+  { hom := { app := λ _, 𝟙 _ },
+    inv := { app := λ _, 𝟙 _ } },
+  counit_iso := iso.refl _ }
+
+instance : inhabited (SheafOfTypes (⊥ : grothendieck_topology C)) :=
+⟨SheafOfTypes_bot_equiv.inverse.obj ((functor.const _).obj punit)⟩
 
 end category_theory

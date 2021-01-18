@@ -145,6 +145,7 @@ begin
   refl,
 end
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext]
 theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : clifford_algebra Q →ₐ[R] A} :
   f.to_linear_map.comp (ι Q) = g.to_linear_map.comp (ι Q) → f = g :=
@@ -164,3 +165,17 @@ alg_equiv.of_alg_hom
   (by { ext, simp, })
 
 end clifford_algebra
+
+namespace tensor_algebra
+
+variables {Q}
+
+/-- The canonical image of the `tensor_algebra` in the `clifford_algebra`, which maps
+`tensor_algebra.ι R x` to `clifford_algebra.ι Q x`. -/
+def to_clifford : tensor_algebra R M →ₐ[R] clifford_algebra Q :=
+tensor_algebra.lift R (clifford_algebra.ι Q)
+
+@[simp] lemma to_clifford_ι (m : M) : (tensor_algebra.ι R m).to_clifford = clifford_algebra.ι Q m :=
+by simp [to_clifford]
+
+end tensor_algebra

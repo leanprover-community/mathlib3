@@ -5,7 +5,7 @@ Authors: Kenny Lau.
 -/
 
 import algebra.polynomial.big_operators
-import field_theory.minimal_polynomial
+import field_theory.minpoly
 import field_theory.splitting_field
 import field_theory.tower
 import algebra.squarefree
@@ -538,18 +538,21 @@ end polynomial
 open polynomial
 
 theorem irreducible.separable {F : Type u} [field F] [char_zero F] {f : polynomial F}
-  (hf : irreducible f) (hf0 : f ≠ 0) : f.separable :=
+  (hf : irreducible f) : f.separable :=
 begin
   rw [separable_iff_derivative_ne_zero hf, ne, ← degree_eq_bot, degree_derivative_eq], rintro ⟨⟩,
-  rw [nat.pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],
+  rw [pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],
   refine λ hf1, hf.1 _, rw [hf1, is_unit_C, is_unit_iff_ne_zero],
-  intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf0
+  intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf.ne_zero
 end
 
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
 the minimal polynomial of every `x : K` is separable. -/
 @[class] def is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
-∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable
+∀ x : K, ∃ H : is_integral F x, (minpoly H).separable
+
+instance is_separable_self (F : Type*) [field F] : is_separable F F :=
+λ x, ⟨is_integral_algebra_map, by { rw minpoly.eq_X_sub_C, exact separable_X_sub_C }⟩
 
 section is_separable_tower
 variables {F E : Type*} (K : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
@@ -557,16 +560,16 @@ variables {F E : Type*} (K : Type*) [field F] [field K] [field E] [algebra F K] 
 
 lemma is_separable_tower_top_of_is_separable (h : is_separable F E) : is_separable K E :=
 λ x, Exists.cases_on (h x) (λ hx hs, ⟨is_integral_of_is_scalar_tower x hx,
-  hs.map.of_dvd (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩)
+  hs.map.of_dvd (minpoly.dvd_map_of_is_scalar_tower K hx)⟩)
 
 lemma is_separable_tower_bot_of_is_separable (h : is_separable F E) : is_separable F K :=
 begin
   intro x,
   obtain ⟨hx, hs⟩ := h (algebra_map K E x),
   have hx' : is_integral F x := is_integral_tower_bot_of_is_integral_field hx,
-  obtain ⟨q, hq⟩ := minimal_polynomial.dvd hx'
+  obtain ⟨q, hq⟩ := minpoly.dvd hx'
     (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field
-      (minimal_polynomial.aeval hx)),
+      (minpoly.aeval hx)),
   use hx',
   apply polynomial.separable.of_mul_left,
   rw ← hq,

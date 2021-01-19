@@ -247,10 +247,10 @@ variables {α : Type*} [measure_space α] [sigma_finite (volume : measure α)]
 open_locale classical
 
 def volume_under (u : α → ℝ) (s : set α) : set (α × ℝ) :=
-{ p : α × ℝ |  p.1 ∈ s ∧ p.2 ∈ Ico 0 (u p.1) }
+{ p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ico 0 (u p.1) }
 
 def volume_between (u v : α → ℝ) (s : set α) : set (α × ℝ) :=
-{ p : α × ℝ |  p.1 ∈ s ∧ p.2 ∈ Ico (u p.1) (v p.1) }
+{ p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ico (u p.1) (v p.1) }
 
 variables {u v : α → ℝ} {s : set α}
 
@@ -270,13 +270,13 @@ begin
       λ x hx, by simp only [set_of_and, hx, Ico, mem_set_of_eq, set_of_true, univ_inter, mem_inter_eq],
     have x_out : ∀ x : α, x ∉ s → {a : ℝ | x ∈ s ∧ a ∈ Ico 0 (u x)} = ∅ :=
       λ x hx, by simp only [mem_Ico, hx, set_of_false, false_and],
-    have : (λ x, volume {a : ℝ | x ∈ s ∧ a ∈ Ico 0 (u x)}) = s.indicator (λ y, ennreal.of_real (u y)),
+    have h : (λ x, volume {a : ℝ | x ∈ s ∧ a ∈ Ico 0 (u x)}) = s.indicator (λ y, ennreal.of_real (u y)),
     { funext x,
       rw indicator_apply,
       split_ifs,
       { simp only [x_in x h, volume_Ico, sub_zero], },
       { simp only [x_out x h, measure_empty] } },
-    rwa [this, lintegral_indicator] },
+    rwa [h, lintegral_indicator] },
   { apply_instance },
 end
 
@@ -287,8 +287,22 @@ begin
 end
 
 /-- "Area between two curves" as a left integral -/
-theorem lintegral_volume_between (hu : measurable u) (hv : measurable v) (hs : is_measurable s) :
+theorem volume_between_eq_lintegral (hu : measurable u) (hv : measurable v) (hs : is_measurable s) :
   (volume.prod volume (volume_between u v s)) = ∫⁻ y in s, ennreal.of_real (u y) :=
 begin
   sorry,
 end
+
+theorem area_of_unit_disc' : volume.prod volume unit_disc = ennreal.of_real pi :=
+begin
+  let g := λ x, sqrt (1 - x^2),
+  have hg : measurable g := sorry,
+  have h1 : unit_disc = volume_between (-g) g (Ioo (-(1:ℝ)) 1),
+  { ext p,
+    simp only [unit_disc, volume_between, g, mem_set_of_eq, mem_Ioo, mem_Ico, pi.neg_apply],
+    rw [add_comm, ← lt_sub_iff_add_lt],
+    exact sqr_lt },
+  have H := volume_between_eq_lintegral hg hg.neg is_measurable_Ioo,
+end
+
+#check measurable.neg

@@ -1089,7 +1089,7 @@ def nondegenerate [add_comm_group M] [semimodule R₁ M] (B : bilin_form R₁ M)
 
 variables {n : Type w} [fintype n]
 
-/-- A symmetric bilinear form is nondegenerate if and only if it has a trivial kernel -/
+/-- A bilinear form is nondegenerate if and only if it has a trivial kernel -/
 theorem nondegenerate_iff_ker_eq_bot {B : bilin_form R₃ M₃} :
   B.nondegenerate ↔ B.to_lin.ker = ⊥ :=
 begin
@@ -1103,7 +1103,7 @@ end
 
 /-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
   `R₁` with invertible `2`. Then, there exists some `x : M` such that `B x x ≠ 0`. -/
-lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R₃)] [hM : nontrivial M₃]
+lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R₃)] [nontrivial M₃]
   {B : bilin_form R₃ M₃} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) : ∃ x, B x x ≠ 0 :=
 begin
   by_contra, push_neg at h,

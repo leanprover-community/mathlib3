@@ -30,7 +30,7 @@ https://www.imo-official.org/problems/IMO2013SL.pdf
 open_locale big_operators
 
 lemma factor_xn_minus_yn (x : ℝ) (y : ℝ) (n : ℕ) :
-    x^n - y^n = (x - y) * (∑ (i:ℕ) in finset.range n, (x ^(i) * y ^(n - 1 - i))) :=
+    x^n - y^n = (x - y) * (∑ (i : ℕ) in finset.range n, (x ^(i) * y ^(n - 1 - i))) :=
 begin
   have := geom_sum₂_mul_add (x-y) y n,
   rw [sub_add_cancel x y, geom_series₂_def] at this,
@@ -38,15 +38,15 @@ begin
 end
 
 lemma le_of_all_pow_lt_succ (x y : ℝ) (hx : 1 < x) (hy : 1 < y)
-      (h : ∀n:ℕ, 0 < n → x^n - 1 < y^n) :
+      (h : ∀n : ℕ, 0 < n → x^n - 1 < y^n) :
       x ≤ y :=
 begin
   by_contra hxy,
   push_neg at hxy,
   have hxmy : 0 < x - y := sub_pos.mpr hxy,
-  have hn: (∀n:ℕ, 0 < n → (x - y) * (n:ℝ) ≤ x^n - y^n),
+  have hn: (∀n : ℕ, 0 < n → (x - y) * (n:ℝ) ≤ x^n - y^n),
   { intros n hn,
-    have hterm : (∀i:ℕ, i ∈ finset.range n → 1 ≤ x^i * y^(n - 1 - i)),
+    have hterm : (∀i : ℕ, i ∈ finset.range n → 1 ≤ x^i * y^(n - 1 - i)),
     { intros i hi,
       have hx' : 1 ≤ x ^ i := one_le_pow_of_one_le (le_of_lt hx) i,
       have hy' : 1 ≤ y ^ (n - 1 - i) := one_le_pow_of_one_le (le_of_lt hy) (n - 1 - i),
@@ -97,8 +97,7 @@ begin
     { have hh': 1 * 2 / 2 < (x + 1) / 2 := by linarith,
       calc 1 = 1 * 2 / 2 : by field_simp
          ... < y' : hh' },
-    have h_y_lt_y' := calc y ≤ 1 : hy''
-                         ... < y': h1_lt_y',
+    have h_y_lt_y' : y < y' := lt_of_le_of_lt hy'' h1_lt_y',
     have hh: (∀ n, 0 < n → x^n - 1 < y'^n),
     { intros n hn,
       calc x^n - 1 < y^n : h n hn
@@ -114,13 +113,11 @@ lemma pos_on_pos_rats {f : ℚ → ℝ} {q : ℚ} (hq : 0 < q)
      (H4 : ∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n) :
       0 < f q :=
 begin
-  have hqn : (q.num: ℚ) = q * (q.denom : ℚ) := rat.mul_denom_eq_num.symm,
   have hfqn : f q.num ≤ f q * f q.denom,
   { have := H1 q q.denom hq (nat.cast_pos.mpr q.pos),
-    rwa hqn },
-  have hqd: (q.denom: ℝ) ≤ f q.denom := H4 q.denom q.pos,
-  have hqnp: 0 < q.num := rat.num_pos_iff_pos.mpr hq,
-  have hqna: ((int.nat_abs q.num):ℤ) = q.num := int.nat_abs_of_nonneg (le_of_lt hqnp),
+    rwa ←rat.mul_denom_eq_num },
+  have hqnp : 0 < q.num := rat.num_pos_iff_pos.mpr hq,
+  have hqna : ((int.nat_abs q.num):ℤ) = q.num := int.nat_abs_of_nonneg (le_of_lt hqnp),
   have hqfn': (q.num: ℝ) ≤ f q.num,
   { rw ←hqna at hqnp,
     have := H4 q.num.nat_abs (int.coe_nat_pos.mp hqnp),
@@ -130,7 +127,7 @@ begin
                       ... ≤ f q.num : hqfn',
   have hqdz :=
     calc (0:ℝ) < q.denom : nat.cast_pos.mpr q.pos
-           ... ≤ f q.denom : hqd,
+           ... ≤ f q.denom : H4 q.denom q.pos,
   nlinarith
 end
 
@@ -141,18 +138,11 @@ lemma fx_gt_xm1 {f : ℚ → ℝ} (x : ℚ) (hx : 1 ≤ x)
   (((x - 1):ℚ):ℝ) < f x :=
 begin
   have hfe : ((⌊x⌋).nat_abs : ℤ) = ⌊x⌋,
-  { have hzx := calc 0 ≤ 1 : zero_le_one
-                   ... ≤ x: hx,
-    exact int.nat_abs_of_nonneg (floor_nonneg.mpr hzx) },
-  have hfe' : ((⌊x⌋).nat_abs : ℚ) = ⌊x⌋,
-  { conv begin to_rhs, rw ← hfe end,
-    simp only [int.cast_coe_nat] },
+  { exact int.nat_abs_of_nonneg (floor_nonneg.mpr (le_trans zero_le_one hx)) },
+  have hfe' : ((⌊x⌋).nat_abs : ℚ) = ⌊x⌋ := by { norm_cast, exact hfe },
   have h_nab_abs_floor_pos : 0 < (⌊x⌋).nat_abs,
-  { suffices: 0 < ⌊x⌋,
-    { exact int.nat_abs_pos_of_ne_zero (ne_of_gt this) },
-    have := calc 0 ≤ x - 1 : by linarith
-               ... < ⌊x⌋   : sub_one_lt_floor x,
-    exact int.cast_pos.mp this,
+  { have : 0 < ⌊x⌋ := int.cast_pos.mp (lt_of_le_of_lt (sub_nonneg.mpr hx) (sub_one_lt_floor x)),
+    exact int.nat_abs_pos_of_ne_zero (ne_of_gt this)
   },
   have hx0 := calc (((x - 1):ℚ):ℝ)
                  < ⌊x⌋   : by norm_cast; exact sub_one_lt_floor x
@@ -165,15 +155,14 @@ begin
   cases ho,
   { rwa ho at hx0 },
 
-  have hxmfx : 0 < (x - ⌊x⌋) := by linarith,
   have h0fx := calc (0:ℚ) < 1 : zero_lt_one
                       ... = (int.has_one.one : ℚ) : by simp only [int.cast_one]
                       ... ≤ ⌊x⌋ : int.cast_le.mpr (le_floor.mpr hx),
   calc (((x - 1):ℚ):ℝ) < f ⌊x⌋ : hx0
                ... < f (x - ⌊x⌋) + f ⌊x⌋
                       : lt_add_of_pos_left (f ↑⌊x⌋)
-                                           (pos_on_pos_rats hxmfx H1 H4)
-               ... ≤ f ((x - ⌊x⌋) + ⌊x⌋) : H2 (x - ⌊x⌋) ⌊x⌋ hxmfx h0fx
+                                           (pos_on_pos_rats (sub_pos.mpr ho) H1 H4)
+               ... ≤ f ((x - ⌊x⌋) + ⌊x⌋) : H2 (x - ⌊x⌋) ⌊x⌋ (sub_pos.mpr ho) h0fx
                ... = f x : by simp only [sub_add_cancel]
 end
 
@@ -188,8 +177,7 @@ begin
   { simp only [pow_one] },
   have hpn' := hpn (nat.succ_pos pn),
   rw [pow_succ' x (nat.succ pn), pow_succ' (f x) (nat.succ pn)],
-  have hxp := calc 0 < 1 : zero_lt_one
-                 ... < x : hx,
+  have hxp : 0 < x := lt_trans zero_lt_one hx,
   have hfnp: 0 < f x := pos_on_pos_rats hxp H1 H4,
   calc f ((x ^ pn.succ) * x)
        ≤ f (x ^ pn.succ) * f x : H1 (x ^ pn.succ) x (pow_pos hxp pn.succ) hxp
@@ -232,8 +220,7 @@ begin
                            ... < N : hN,
   have h_big_enough :=
     calc (1:ℚ)
-        = 1 + 0                           : rfl
-    ... = (1 + N * (a - 1)) - N * (a - 1) : by ring
+        = (1 + N * (a - 1)) - N * (a - 1) : by ring
     ... ≤ a^N - N * (a - 1)               : sub_le_sub_right (hbound N) (↑N * (a - 1))
     ... < a^N - (x / (a - 1)) * (a - 1)   : sub_lt_sub_left
                                             ((mul_lt_mul_right (sub_pos.mpr ha1)).mpr hN') (a^N)
@@ -243,11 +230,8 @@ begin
                     ≤ f x + (((a^N - x):ℚ):ℝ) : add_le_add_right (H5 x hx) _
                 ... ≤ f x + f (a^N - x)       : add_le_add_left (H5 _ h_big_enough) _,
 
-  have haNxp := calc (0:ℚ) < 1       : zero_lt_one
-                       ... < a^N - x : h_big_enough,
+  have hxp : 0 < x := lt_trans zero_lt_one hx,
 
-  have hxp := calc (0:ℚ) < 1 : zero_lt_one
-                     ... < x : hx,
   have hNp : 0 < N,
   { have hh:= calc (0:ℚ) ≤ max 0 (x / (a - 1)) : le_max_left 0 _
                      ... < N                   : hN,
@@ -257,7 +241,7 @@ begin
     exact hh },
 
   have h2 := calc f x + f (a^N - x)
-          ≤ f (x + (a^N - x)) : H2 x (a^N - x) hxp haNxp
+          ≤ f (x + (a^N - x)) : H2 x (a^N - x) hxp (lt_trans zero_lt_one h_big_enough)
       ... = f (a^N) : by ring
       ... = a^N : fixed_point_of_pos_nat_pow N hNp H1 H4 H5 a ha1 hae
       ... = x + (a^N - x): by ring
@@ -317,8 +301,7 @@ begin
        ... < f (x^n)           : fx_gt_xm1 (x^n) (one_le_pow_of_one_le (le_of_lt hx) n) H1 H2 H4
        ... ≤ (f x)^n           : pow_f_le_f_pow n hn x hx H1 H4},
     have hx': 1 < (x:ℝ) := by { norm_cast, exact hx },
-    have hxp := calc 0 < 1 : zero_lt_one
-                   ... < x : hx,
+    have hxp : 0 < x := lt_trans zero_lt_one hx,
     exact le_of_all_pow_lt_succ' x (f x) hx' (pos_on_pos_rats hxp H1 H4) hxnm1 },
 
   have h_f_commutes_with_pos_nat_mul : (∀n:ℕ, 0 < n → ∀x:ℚ, 0 < x → f (n * x) = n * f x),

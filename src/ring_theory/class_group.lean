@@ -220,7 +220,7 @@ begin
 end
 .
 
-lemma class_group.mk_surjective [is_dedekind_domain R] : function.surjective (class_group.mk0 f) :=
+lemma class_group.mk0_surjective [is_dedekind_domain R] : function.surjective (class_group.mk0 f) :=
 begin
   rintros ⟨I⟩,
   obtain ⟨a, a_ne_zero', ha⟩ := I.1.2,

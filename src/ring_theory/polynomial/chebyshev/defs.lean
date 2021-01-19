@@ -187,11 +187,6 @@ begin
   rw [chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁, add_comm (X * chebyshev₂ R n), add_sub_cancel]
 end
 
-example (a b c d : ℤ) : a * b * (c * d) = a * b * c * d :=
-begin
-  rw ←mul_assoc
-end
-
 lemma chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ :
 ∀ (n : ℕ), chebyshev₁ R (n+2) = X * chebyshev₁ R (n+1) - (1 - X ^ 2) * chebyshev₂ R n
 |0        := by simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero, mul_one,
@@ -301,49 +296,18 @@ begin
   have h : derivative (chebyshev₁ R (n+2))
   = derivative ( X * chebyshev₁ R (n+1) - (1 - X ^ 2) * chebyshev₂ R n),
   by rw chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂,
-  rw derivative_sub at h,
-  rw derivative_mul at h,
-  rw derivative_mul at h,
-  rw derivative_X at h,
-  rw derivative_sub at h,
-  rw derivative_one at h,
-  rw derivative_X_pow at h,
-  rw one_mul at h,
-  rw chebyshev₂_derivative_eq_chebyshev₁ at h,
-  rw chebyshev₂_derivative_eq_chebyshev₁ at h,
+  simp only [derivative_sub, derivative_mul, derivative_X, derivative_one, derivative_X_pow,
+  one_mul, chebyshev₂_derivative_eq_chebyshev₁] at h,
   norm_cast at h,
-  rw zero_sub at h,
-  simp only [neg_mul_eq_neg_mul_symm, pow_one, nat.cast_add, nat.cast_one] at h,
+  simp only [zero_sub, neg_mul_eq_neg_mul_symm, pow_one, nat.cast_add, nat.cast_one] at h,
   rw chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ at h,
-  rw mul_add at h,
-  rw add_comm (chebyshev₁ R (n + 1)) at h,
-  rw add_mul at h,
-  rw ←mul_assoc at h,
-  rw mul_comm _ X at h,
-  rw add_assoc at h,
-  rw add_sub_assoc at h,
-  rw mul_assoc at h,
-  rw add_right_inj at h,
-  rw one_mul at h,
-  rw add_mul at h,
-  rw one_mul at h,
-  rw add_comm at h,
-  rw add_comm _ (chebyshev₁ R (n + 1)) at h,
-  rw sub_eq_add_neg at h,
-  rw add_assoc at h,
-  rw add_right_inj at h,
-  rw neg_add at h,
-  rw neg_neg at h,
-  rw ←add_sub_cancel ((↑n + 1) * chebyshev₁ R (n + 1)) (X * chebyshev₂ R n),
-  rw h,
-  rw ←sub_eq_add_neg,
-  rw sub_right_comm,
-  rw ←sub_mul,
-  rw ←one_mul X,
-  rw ←mul_assoc,
-  rw mul_one,
-  rw ←sub_mul,
-  norm_num,
+  rw [mul_add, add_comm (chebyshev₁ R (n + 1)), add_mul, ←mul_assoc, mul_comm _ X, add_assoc,
+      add_sub_assoc, mul_assoc, add_right_inj, one_mul, add_mul, one_mul, add_comm,
+      add_comm _ (chebyshev₁ R (n + 1)), sub_eq_add_neg, add_assoc, add_right_inj, neg_add,
+      neg_neg] at h,
+  rw [←add_sub_cancel ((↑n + 1) * chebyshev₁ R (n + 1)) (X * chebyshev₂ R n), h, ←sub_eq_add_neg,
+      sub_right_comm, ←sub_mul, ←one_mul X, ←mul_assoc, mul_one, ←sub_mul],
+  norm_num
 end
 
 end polynomial

@@ -52,7 +52,7 @@ end
 /-- Evaluates an expression as a finite number
 if that expression represents a `fin 1`, which always gives back `0`. -/
 private meta def expr.to_fin_one : expr → option (fin 1)
-| e := do k ← e.to_nat, pure (fin.of_nat 0)
+| e := do guardb e.is_numeral, pure (fin.of_nat 0)
 
 /-- Evaluates an expression as a finite number,
 if that expression represents a numeral of a `fin (n + 2)`,

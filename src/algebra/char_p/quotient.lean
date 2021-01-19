@@ -26,7 +26,7 @@ hp2 $ is_unit_iff_dvd_one.2 $ ideal.mem_span_singleton.1 $ ideal.quotient.eq_zer
 
 /-- If an ideal does not contain any coercions of natural numbers other than zero, then its quotient
 inherits the characteristic of the underlying ring. -/
-lemma quotient' (R : Type*) [comm_ring R] (p : ℕ) [char_p R p] (I : ideal R)
+lemma quotient' {R : Type*} [comm_ring R] (p : ℕ) [char_p R p] (I : ideal R)
   (h : ∀ x : ℕ, (x : R) ∈ I → (x : R) = 0) :
   char_p I.quotient p :=
 ⟨λ x, begin

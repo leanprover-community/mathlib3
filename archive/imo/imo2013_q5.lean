@@ -211,6 +211,62 @@ begin
   exact le_antisymm hh1 hh0
 end
 
+lemma fixed_point_of_gt_1 {f : ℚ → ℝ} {x : ℚ} (hx : 1 < x)
+  (H1 : ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
+  (H2 : ∀ x y, 0 < x → 0 < y → f x + f y ≤ f (x + y))
+  (H4 : ∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n)
+  (H5 : ∀x:ℚ, 1 < x → (x:ℝ) ≤ f x)
+  (a : ℚ) (ha1 : 1 < a) (hae : f a = a) :
+  f x = x :=
+begin
+  -- choose n such that 1 + x < a^n.
+  have hbound: (∀m:ℕ, 1 + (m:ℚ) * (a - 1) ≤ a^m),
+  { intros m,
+    have ha: -1 ≤ a := by linarith,
+    have := one_add_sub_mul_le_pow ha m,
+    rwa [nsmul_eq_mul] at this },
+
+  -- Choose n greater than x / (a - 1).
+  obtain ⟨N, hN⟩ := exists_nat_gt (max 0 (x / (a - 1))),
+  have hN' := calc x / (a - 1) ≤ max 0 (x / (a - 1)) : le_max_right _ _
+                           ... < N : hN,
+  have h_big_enough :=
+    calc (1:ℚ)
+        = 1 + 0                           : rfl
+    ... = (1 + N * (a - 1)) - N * (a - 1) : by ring
+    ... ≤ a^N - N * (a - 1)               : sub_le_sub_right (hbound N) (↑N * (a - 1))
+    ... < a^N - (x / (a - 1)) * (a - 1)   : sub_lt_sub_left
+                                            ((mul_lt_mul_right (sub_pos.mpr ha1)).mpr hN') (a^N)
+    ... = a^N - x                         : by field_simp [ne_of_gt (sub_pos.mpr ha1)],
+
+  have h1 := calc (x:ℝ) + (((a^N - x):ℚ):ℝ)
+                    ≤ f x + (((a^N - x):ℚ):ℝ) : add_le_add_right (H5 x hx) _
+                ... ≤ f x + f (a^N - x)       : add_le_add_left (H5 _ h_big_enough) _,
+
+  have haNxp := calc (0:ℚ) < 1       : zero_lt_one
+                       ... < a^N - x : h_big_enough,
+
+  have hxp := calc (0:ℚ) < 1 : zero_lt_one
+                     ... < x : hx,
+  have hNp : 0 < N,
+  { have hh:= calc (0:ℚ) ≤ max 0 (x / (a - 1)) : le_max_left 0 _
+                     ... < N                   : hN,
+    have : (0:ℚ) = ((0:ℕ):ℚ) := nat.cast_zero.symm,
+    rw this at hh,
+    norm_cast at hh,
+    exact hh },
+
+  have h2 := calc f x + f (a^N - x)
+          ≤ f (x + (a^N - x)) : H2 x (a^N - x) hxp haNxp
+      ... = f (a^N) : by ring
+      ... = a^N : fixed_point_of_pos_nat_pow N hNp H1 H4 H5 a ha1 hae
+      ... = x + (a^N - x): by ring
+      ... = x + (((a^N - x):ℚ):ℝ): by norm_cast,
+
+  have heq := le_antisymm h1 h2,
+  linarith [H5 x hx, H5 _ h_big_enough]
+end
+
 lemma twice_pos_int_gt_one (z: ℤ) (hpos: 0 < z) : (1:ℚ) < (((2 * z):ℤ):ℚ) :=
 by { norm_cast, linarith }
 
@@ -264,54 +320,6 @@ begin
     have hxp := calc 0 < 1 : zero_lt_one
                    ... < x : hx,
     exact le_of_all_pow_lt_succ' x (f x) hx' (pos_on_pos_rats hxp H1 H4) hxnm1 },
-  have h_fixed_point_of_gt_1: (∀x:ℚ, 1 < x → f x = x),
-  { intros x hx,
-    -- choose n such that 1 + x < a^n.
-    have hbound: (∀m:ℕ, 1 + (m:ℚ) * (a - 1) ≤ a^m),
-    { intros m,
-      have ha: -1 ≤ a := by linarith,
-      have := one_add_sub_mul_le_pow ha m,
-      rwa [nsmul_eq_mul] at this },
-
-    -- Choose n greater than x / (a - 1).
-    obtain ⟨N, hN⟩ := exists_nat_gt (max 0 (x / (a - 1))),
-    have hN' := calc x / (a - 1) ≤ max 0 (x / (a - 1)) : le_max_right _ _
-                             ... < N : hN,
-    have h_big_enough :=
-      calc (1:ℚ)
-          = 1 + 0                           : rfl
-      ... = (1 + N * (a - 1)) - N * (a - 1) : by ring
-      ... ≤ a^N - N * (a - 1)               : sub_le_sub_right (hbound N) (↑N * (a - 1))
-      ... < a^N - (x / (a - 1)) * (a - 1)   : sub_lt_sub_left
-                                              ((mul_lt_mul_right (sub_pos.mpr ha1)).mpr hN') (a^N)
-      ... = a^N - x                         : by field_simp [ne_of_gt (sub_pos.mpr ha1)],
-
-    have h1 := calc (x:ℝ) + (((a^N - x):ℚ):ℝ)
-                      ≤ f x + (((a^N - x):ℚ):ℝ) : add_le_add_right (H5 x hx) _
-                  ... ≤ f x + f (a^N - x)       : add_le_add_left (H5 _ h_big_enough) _,
-
-    have haNxp := calc (0:ℚ) < 1       : zero_lt_one
-                         ... < a^N - x : h_big_enough,
-
-    have hxp := calc (0:ℚ) < 1 : zero_lt_one
-                       ... < x : hx,
-    have hNp : 0 < N,
-    { have hh:= calc (0:ℚ) ≤ max 0 (x / (a - 1)) : le_max_left 0 _
-                       ... < N                   : hN,
-      have : (0:ℚ) = ((0:ℕ):ℚ) := nat.cast_zero.symm,
-      rw this at hh,
-      norm_cast at hh,
-      exact hh },
-
-    have h2 := calc f x + f (a^N - x)
-            ≤ f (x + (a^N - x)) : H2 x (a^N - x) hxp haNxp
-        ... = f (a^N) : by ring
-        ... = a^N : fixed_point_of_pos_nat_pow N hNp H1 H4 H5 a ha1 hae
-        ... = x + (a^N - x): by ring
-        ... = x + (((a^N - x):ℚ):ℝ): by norm_cast,
-
-    have heq := le_antisymm h1 h2,
-    linarith [H5 x hx, H5 _ h_big_enough] },
 
   have h_f_commutes_with_pos_nat_mul : (∀n:ℕ, 0 < n → ∀x:ℚ, 0 < x → f (n * x) = n * f x),
   { intros n hn x hx,
@@ -321,8 +329,8 @@ begin
       cases n,
       { simp only [one_mul, nat.cast_one] },
       have hfneq : f (n.succ.succ) = n.succ.succ,
-      { have := h_fixed_point_of_gt_1 (n.succ.succ:ℚ)
-                                      (nat.one_lt_cast.mpr (nat.succ_lt_succ (nat.succ_pos n))),
+      { have := fixed_point_of_gt_1
+                 (nat.one_lt_cast.mpr (nat.succ_lt_succ (nat.succ_pos n))) H1 H2 H4 H5 a ha1 hae,
         rwa (rat.cast_coe_nat n.succ.succ) at this },
       rw ← hfneq,
       exact H1 (n.succ.succ:ℚ) x (nat.cast_pos.mpr hn) hx },
@@ -336,7 +344,7 @@ begin
 
   -- For the final calculation, we expand x as (2*x.num) / (2*x.denom), because
   -- we need the top of the fraction to be strictly greater than 1 in order
-  -- to apply h_fixed_point_of_gt_1.
+  -- to apply fixed_point_of_gt_1.
 
   let x2denom := 2 * x.denom,
   let x2num := 2 * x.num,
@@ -365,7 +373,7 @@ begin
          ... = f (x2num)                       : by rw mul_one,
 
   have h_fx2num_fixed : f x2num = x2num,
-  { have hh := h_fixed_point_of_gt_1 x2num hx2num_gt_one,
+  { have hh := fixed_point_of_gt_1 hx2num_gt_one H1 H2 H4 H5 a ha1 hae,
     rwa (rat.cast_coe_int x2num) at hh },
 
   calc f x = f x * 1                           : (mul_one (f x)).symm

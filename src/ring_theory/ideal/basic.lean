@@ -306,10 +306,12 @@ instance (I : ideal α) : has_one I.quotient := ⟨submodule.quotient.mk 1⟩
 instance (I : ideal α) : has_mul I.quotient :=
 ⟨λ a b, quotient.lift_on₂' a b (λ a b, submodule.quotient.mk (a * b)) $
  λ a₁ a₂ b₁ b₂ h₁ h₂, quot.sound $ begin
-  refine calc a₁ * a₂ - b₁ * b₂ = a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁ : _
-  ... ∈ I : I.add_mem (I.mul_mem_left _ h₁) (I.mul_mem_right _ h₂),
-  rw [mul_sub, sub_mul, sub_add_sub_cancel, mul_comm, mul_comm b₁]
- end⟩
+  obtain F := I.add_mem (I.mul_mem_left a₂ h₁) (I.mul_mem_right b₁ h₂),
+  have : a₁ * a₂ - b₁ * b₂ = a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁,
+  { rw [mul_sub, sub_mul, sub_add_sub_cancel, mul_comm, mul_comm b₁] },
+  rw ← this at F,
+  convert F
+end⟩
 
 instance (I : ideal α) : comm_ring I.quotient :=
 { mul := (*),

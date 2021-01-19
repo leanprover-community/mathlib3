@@ -583,6 +583,8 @@ lemma smul_mem {t : R} {x : L} (h : x ∈ L') : t • x ∈ L' := (L' : submodul
 lemma add_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x + y : L) ∈ L' :=
 (L' : submodule R L).add_mem hx hy
 
+lemma lie_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (⁅x, y⁆ : L) ∈ L' := L'.lie_mem' hx hy
+
 @[simp] lemma mem_coe {x : L} : x ∈ (L' : set L) ↔ x ∈ L' := iff.rfl
 
 @[simp] lemma mem_coe' {x : L} : x ∈ (L' : submodule R L) ↔ x ∈ L' := iff.rfl

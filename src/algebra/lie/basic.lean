@@ -1250,7 +1250,7 @@ def derived_series_of_ideal : ℕ → lie_ideal R L
 /-- The derived series of Lie ideals of a Lie algebra. -/
 abbreviation derived_series : ℕ → lie_ideal R L := derived_series_of_ideal R L ⊤
 
-@[simp] lemma derived_series_def (k : ℕ) :
+lemma derived_series_def (k : ℕ) :
   derived_series R L k = derived_series_of_ideal R L ⊤ k := rfl
 
 variables {R L}
@@ -1582,7 +1582,7 @@ lemma derived_series_eq_derived_series_of_ideal_comap (k : ℕ) :
   derived_series R I k = (derived_series_of_ideal R L I k).comap I.incl :=
 begin
   induction k with k ih,
-  { simp, },
+  { simp only [derived_series_def, comap_incl_self, derived_series_of_ideal_zero], },
   { simp only [derived_series_def, derived_series_of_ideal_succ] at ⊢ ih, rw ih,
     exact comap_bracket_incl_of_le I
       (derived_series_of_ideal_le I k) (derived_series_of_ideal_le I k), },

@@ -27,7 +27,14 @@ example : equiv.swap (0 : fin 3) 1 (fin.succ 1) = 2 :=
 begin
   success_if_fail {guard_target ((equiv.swap (0 : fin 3) 1) 2 = 2)},
   norm_num,
-  guard_target ((equiv.swap (0 : fin 3) 1) 2 = 2),
+  guard_target (equiv.swap (0 : fin 3) 1 2 = 2),
+  exact equiv.swap_apply_of_ne_of_ne (by dec_trivial) (by dec_trivial)
+end
+example : equiv.swap (0 : fin (1 + 2)) (1 : fin (nat.succ (1 + 1))) (fin.succ 1) = 2 :=
+begin
+  success_if_fail {guard_target ((equiv.swap (0 : fin 3) 1) 2 = 2)},
+  norm_num,
+  guard_target' (equiv.swap (0 : fin 3) 1 2 = 2),
   exact equiv.swap_apply_of_ne_of_ne (by dec_trivial) (by dec_trivial)
 end
 example : equiv.swap (0 : fin 3) 1 (fin.cast_succ 1) = 0 := by norm_num

@@ -96,7 +96,7 @@ meta def prove_lt_fin : expr → expr → tactic expr
   `(fin %%en) ← infer_type a,
   nic ← mk_instance_cache `(ℕ),
   en ← prod.fst <$> eval_field en <|> pure en,
-  nty ← en.to_nat,
+  nty ← eval_expr ℕ en,
   en ← pure `(nty),
   na ← expr.eval_fin nty a,
   nb ← expr.eval_fin nty b,

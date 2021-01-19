@@ -44,47 +44,6 @@ fin.mk_numeral `(fin (n + 1)) `((by apply_instance : has_zero (fin (n + 1))))
   `((by apply_instance : has_one (fin (n + 1))))`((by apply_instance : has_add (fin (n + 1))))
   (n + 1)
 
-lemma fin.prove_succ (m n k l : ℕ) (hl : l < n) (hk : k < m) (h : m = n + 1) (h' : k = l + 1) :
-  fin.succ (⟨l, hl⟩ : fin n) = (⟨k, hk⟩ : fin m) :=
-begin
-  cases n,
-  { exact absurd hl (not_lt_of_le l.zero_le) },
-  subst h,
-  subst h',
-  simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hk],
-end
-
-lemma fin.prove_cast_succ (m n l : ℕ) (hl : l < n) (hl' : l < m) (h : m = n + 1) :
-  fin.cast_succ (⟨l, hl⟩ : fin n) = (⟨l, hl'⟩ : fin m) :=
-begin
-  cases n,
-  { exact absurd hl (not_lt_of_le l.zero_le) },
-  subst h,
-  simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hl'],
-end
-
-lemma fin.prove_mod_bit0 (n k l m : ℕ) (hk : k < n) (hl : l < n)
-  (h : l + l = m) (h' : m % n = k) :
-  (bit0 ⟨l, hl⟩ : fin n) = (⟨k, hk⟩ : fin n) :=
-begin
-  cases n,
-  { exact absurd hl (not_lt_of_le l.zero_le) },
-  simp [fin.eq_iff_veq, bit0, fin.add_def, ←h', ←h]
-end
-
-lemma fin.prove_mod_bit1 (n k l m : ℕ) (hk : k < n + 1) (hl : l < n + 1)
-  (h : l + l + 1 = m) (h' : m % (n + 1) = k) :
-  (bit1 ⟨l, hl⟩ : fin (n + 1)) = (⟨k, hk⟩ : fin (n + 1)) :=
-begin
-  cases n,
-  { simp },
-  simp [fin.eq_iff_veq, bit1, bit0, fin.add_def, ←h', ←h]
-end
-
-lemma fin.prove_lt (n a b : ℕ) (ha : a < n) (hb : b < n) (h : a < b) :
-  (⟨a, ha⟩ : fin n) < ⟨b, hb⟩ :=
-fin.lt_iff_coe_lt_coe.mpr h
-
 section
 local attribute [semireducible] reflected
 meta instance {n : ℕ} : has_reflect (fin (n + 1)) := fin.reflect
@@ -172,6 +131,51 @@ end instance_cache
 end tactic
 
 open tactic expr
+
+namespace norm_num
+
+lemma fin.prove_succ (m n k l : ℕ) (hl : l < n) (hk : k < m) (h : m = n + 1) (h' : k = l + 1) :
+  fin.succ (⟨l, hl⟩ : fin n) = (⟨k, hk⟩ : fin m) :=
+begin
+  cases n,
+  { exact absurd hl (not_lt_of_le l.zero_le) },
+  subst h,
+  subst h',
+  simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hk],
+end
+
+lemma fin.prove_cast_succ (m n l : ℕ) (hl : l < n) (hl' : l < m) (h : m = n + 1) :
+  fin.cast_succ (⟨l, hl⟩ : fin n) = (⟨l, hl'⟩ : fin m) :=
+begin
+  cases n,
+  { exact absurd hl (not_lt_of_le l.zero_le) },
+  subst h,
+  simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hl'],
+end
+
+lemma fin.prove_mod_bit0 (n k l m : ℕ) (hk : k < n) (hl : l < n)
+  (h : l + l = m) (h' : m % n = k) :
+  (bit0 ⟨l, hl⟩ : fin n) = (⟨k, hk⟩ : fin n) :=
+begin
+  cases n,
+  { exact absurd hl (not_lt_of_le l.zero_le) },
+  simp [fin.eq_iff_veq, bit0, fin.add_def, ←h', ←h]
+end
+
+lemma fin.prove_mod_bit1 (n k l m : ℕ) (hk : k < n + 1) (hl : l < n + 1)
+  (h : l + l + 1 = m) (h' : m % (n + 1) = k) :
+  (bit1 ⟨l, hl⟩ : fin (n + 1)) = (⟨k, hk⟩ : fin (n + 1)) :=
+begin
+  cases n,
+  { simp },
+  simp [fin.eq_iff_veq, bit1, bit0, fin.add_def, ←h', ←h]
+end
+
+lemma fin.prove_lt (n a b : ℕ) (ha : a < n) (hb : b < n) (h : a < b) :
+  (⟨a, ha⟩ : fin n) < ⟨b, hb⟩ :=
+fin.lt_iff_coe_lt_coe.mpr h
+
+end norm_num
 
 open norm_num
 

@@ -933,85 +933,93 @@ multiset.induction_on S (by simp) $
 @[simp] theorem card_join (S) : card (@join α S) = sum (map card S) :=
 multiset.induction_on S (by simp) (by simp)
 
-/-! ### `multiset.bind` -/
+/-!
+### `multiset.bUnion`
 
-/-- `bind s f` is the monad bind operation, defined as `join (map f s)`.
-  It is the union of `f a` as `a` ranges over `s`. -/
-def bind (s : multiset α) (f : α → multiset β) : multiset β :=
+The bounded union of an indexed family `f : α → multiset β` of multisets with bound
+`s : multiset α` is the union of all `f a` for `a` in `s` with multiplicity.
+-/
+
+/-- `bUnion s f` is the monad bind operation, defined as `join (map f s)` (hence it was formerly
+called `bind`).  It is the union of `f a` as `a` ranges over `s`. -/
+def bUnion (s : multiset α) (f : α → multiset β) : multiset β :=
 join (map f s)
 
-@[simp] theorem coe_bind (l : list α) (f : α → list β) :
-  @bind α β l (λ a, f a) = l.bind f :=
+protected structure Canary' := (bird : ℕ)
+def bind : Canary' := Canary'.mk 22
+
+@[simp] theorem coe_bUnion (l : list α) (f : α → list β) :
+  @bUnion α β l (λ a, f a) = l.bind f :=
 by rw [list.bind, ← coe_join, list.map_map]; refl
 
-@[simp] theorem zero_bind (f : α → multiset β) : bind 0 f = 0 := rfl
+@[simp] theorem zero_bUnion (f : α → multiset β) : bUnion 0 f = 0 := rfl
 
-@[simp] theorem cons_bind (a s) (f : α → multiset β) : bind (a ::ₘ s) f = f a + bind s f :=
-by simp [bind]
+@[simp] theorem cons_bUnion (a s) (f : α → multiset β) : bUnion (a ::ₘ s) f = f a + bUnion s f :=
+by simp [bUnion]
 
-@[simp] theorem add_bind (s t) (f : α → multiset β) : bind (s + t) f = bind s f + bind t f :=
-by simp [bind]
+@[simp] theorem add_bUnion (s t) (f : α → multiset β) : bUnion (s + t) f = bUnion s f + bUnion t f :=
+by simp [bUnion]
 
-@[simp] theorem bind_zero (s : multiset α) : bind s (λa, 0 : α → multiset β) = 0 :=
-by simp [bind, join]
+@[simp] theorem bUnion_zero (s : multiset α) : bUnion s (λa, 0 : α → multiset β) = 0 :=
+by simp [bUnion, join]
 
-@[simp] theorem bind_add (s : multiset α) (f g : α → multiset β) :
-  bind s (λa, f a + g a) = bind s f + bind s g :=
-by simp [bind, join]
+@[simp] theorem bUnion_add (s : multiset α) (f g : α → multiset β) :
+  bUnion s (λa, f a + g a) = bUnion s f + bUnion s g :=
+by simp [bUnion, join]
 
-@[simp] theorem bind_cons (s : multiset α) (f : α → β) (g : α → multiset β) :
-  bind s (λa, f a ::ₘ g a) = map f s + bind s g :=
+@[simp] theorem bUnion_cons (s : multiset α) (f : α → β) (g : α → multiset β) :
+  bUnion s (λa, f a ::ₘ g a) = map f s + bUnion s g :=
 multiset.induction_on s (by simp) (by simp [add_comm, add_left_comm] {contextual := tt})
 
-@[simp] theorem mem_bind {b s} {f : α → multiset β} : b ∈ bind s f ↔ ∃ a ∈ s, b ∈ f a :=
-by simp [bind]; simp [-exists_and_distrib_right, exists_and_distrib_right.symm];
+@[simp] theorem mem_bUnion {b s} {f : α → multiset β} : b ∈ bUnion s f ↔ ∃ a ∈ s, b ∈ f a :=
+by simp [bUnion]; simp [-exists_and_distrib_right, exists_and_distrib_right.symm];
    rw exists_swap; simp [and_assoc]
 
-@[simp] theorem card_bind (s) (f : α → multiset β) : card (bind s f) = sum (map (card ∘ f) s) :=
-by simp [bind]
+@[simp] theorem card_bUnion (s) (f : α → multiset β) : card (bUnion s f) = sum (map (card ∘ f) s) :=
+by simp [bUnion]
 
-lemma bind_congr {f g : α → multiset β} {m : multiset α} : (∀a∈m, f a = g a) → bind m f = bind m g :=
-by simp [bind] {contextual := tt}
+lemma bUnion_congr {f g : α → multiset β} {m : multiset α} : (∀a∈m, f a = g a) → bUnion m f = bUnion m g :=
+by simp [bUnion] {contextual := tt}
 
-lemma bind_hcongr {β' : Type*} {m : multiset α} {f : α → multiset β} {f' : α → multiset β'}
-  (h : β = β') (hf : ∀a∈m, f a == f' a) : bind m f == bind m f' :=
-begin subst h, simp at hf, simp [bind_congr hf] end
+lemma bUnion_hcongr {β' : Type*} {m : multiset α} {f : α → multiset β} {f' : α → multiset β'}
+  (h : β = β') (hf : ∀a∈m, f a == f' a) : bUnion m f == bUnion m f' :=
+begin subst h, simp at hf, simp [bUnion_congr hf] end
 
-lemma map_bind (m : multiset α) (n : α → multiset β) (f : β → γ) :
-  map f (bind m n) = bind m (λa, map f (n a)) :=
+lemma map_bUnion (m : multiset α) (n : α → multiset β) (f : β → γ) :
+  map f (bUnion m n) = bUnion m (λa, map f (n a)) :=
 multiset.induction_on m (by simp) (by simp {contextual := tt})
 
-lemma bind_map (m : multiset α) (n : β → multiset γ) (f : α → β) :
-  bind (map f m) n = bind m (λa, n (f a)) :=
+lemma bUnion_map (m : multiset α) (n : β → multiset γ) (f : α → β) :
+  bUnion (map f m) n = bUnion m (λa, n (f a)) :=
 multiset.induction_on m (by simp) (by simp {contextual := tt})
 
-lemma bind_assoc {s : multiset α} {f : α → multiset β} {g : β → multiset γ} :
-  (s.bind f).bind g = s.bind (λa, (f a).bind g) :=
+lemma bUnion_assoc {s : multiset α} {f : α → multiset β} {g : β → multiset γ} :
+  (s.bUnion f).bUnion g = s.bUnion (λa, (f a).bUnion g) :=
 multiset.induction_on s (by simp) (by simp {contextual := tt})
 
-lemma bind_bind (m : multiset α) (n : multiset β) {f : α → β → multiset γ} :
-  (bind m $ λa, bind n $ λb, f a b) = (bind n $ λb, bind m $ λa, f a b) :=
+lemma bUnion_bUnion (m : multiset α) (n : multiset β) {f : α → β → multiset γ} :
+  (bUnion m $ λa, bUnion n $ λb, f a b) = (bUnion n $ λb, bUnion m $ λa, f a b) :=
 multiset.induction_on m (by simp) (by simp {contextual := tt})
 
-lemma bind_map_comm (m : multiset α) (n : multiset β) {f : α → β → γ} :
-  (bind m $ λa, n.map $ λb, f a b) = (bind n $ λb, m.map $ λa, f a b) :=
+lemma bUnion_map_comm (m : multiset α) (n : multiset β) {f : α → β → γ} :
+  (bUnion m $ λa, n.map $ λb, f a b) = (bUnion n $ λb, m.map $ λa, f a b) :=
 multiset.induction_on m (by simp) (by simp {contextual := tt})
 
 @[simp, to_additive]
-lemma prod_bind [comm_monoid β] (s : multiset α) (t : α → multiset β) :
-  prod (bind s t) = prod (s.map $ λa, prod (t a)) :=
-multiset.induction_on s (by simp) (assume a s ih, by simp [ih, cons_bind])
+lemma prod_bUnion [comm_monoid β] (s : multiset α) (t : α → multiset β) :
+  prod (bUnion s t) = prod (s.map $ λa, prod (t a)) :=
+multiset.induction_on s (by simp) (assume a s ih, by simp [ih, cons_bUnion])
 
 /-! ### Product of two `multiset`s -/
 
 /-- The multiplicity of `(a, b)` in `product s t` is
   the product of the multiplicity of `a` in `s` and `b` in `t`. -/
 def product (s : multiset α) (t : multiset β) : multiset (α × β) :=
-s.bind $ λ a, t.map $ prod.mk a
+s.bUnion $ λ a, t.map $ prod.mk a
 
 @[simp] theorem coe_product (l₁ : list α) (l₂ : list β) :
   @product α β l₁ l₂ = l₁.product l₂ :=
-by rw [product, list.product, ← coe_bind]; simp
+by rw [product, list.product, ← coe_bUnion]; simp
 
 @[simp] theorem zero_product (t) : @product α β 0 t = 0 := rfl
 
@@ -1043,11 +1051,11 @@ variable {σ : α → Type*}
 /-- `sigma s t` is the dependent version of `product`. It is the sum of
   `(a, b)` as `a` ranges over `s` and `b` ranges over `t a`. -/
 protected def sigma (s : multiset α) (t : Π a, multiset (σ a)) : multiset (Σ a, σ a) :=
-s.bind $ λ a, (t a).map $ sigma.mk a
+s.bUnion $ λ a, (t a).map $ sigma.mk a
 
 @[simp] theorem coe_sigma (l₁ : list α) (l₂ : Π a, list (σ a)) :
   @multiset.sigma α σ l₁ (λ a, l₂ a) = l₁.sigma l₂ :=
-by rw [multiset.sigma, list.sigma, ← coe_bind]; simp
+by rw [multiset.sigma, list.sigma, ← coe_bUnion]; simp
 
 @[simp] theorem zero_sigma (t) : @multiset.sigma α σ 0 t = 0 := rfl
 
@@ -1762,8 +1770,8 @@ lemma count_sum {m : multiset β} {f : β → multiset α} {a : α} :
   count a (map f m).sum = sum (m.map $ λb, count a $ f b) :=
 multiset.induction_on m (by simp) ( by simp)
 
-lemma count_bind {m : multiset β} {f : β → multiset α} {a : α} :
-  count a (bind m f) = sum (m.map $ λb, count a $ f b) := count_sum
+lemma count_bUnion {m : multiset β} {f : β → multiset α} {a : α} :
+  count a (bUnion m f) = sum (m.map $ λb, count a $ f b) := count_sum
 
 theorem le_count_iff_repeat_le {a : α} {s : multiset α} {n : ℕ} : n ≤ count a s ↔ repeat a n ≤ s :=
 quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm
@@ -1932,9 +1940,9 @@ lemma rel_map {p : γ → δ → Prop} {s t} {f : α → γ} {g : β → δ} (h 
   rel p (s.map f) (t.map g) :=
 by rw [rel_map_left, rel_map_right]; exact hst.mono h
 
-lemma rel_bind {p : γ → δ → Prop} {s t} {f : α → multiset γ} {g : β → multiset δ}
+lemma rel_bUnion {p : γ → δ → Prop} {s t} {f : α → multiset γ} {g : β → multiset δ}
   (h : (r ⇒ rel p) f g) (hst : rel r s t) :
-  rel p (s.bind f) (t.bind g) :=
+  rel p (s.bUnion f) (t.bUnion g) :=
 by apply rel_join; apply rel_map; assumption
 
 lemma card_eq_card_of_rel {r : α → β → Prop} {s : multiset α} {t : multiset β} (h : rel r s t) :

@@ -22,7 +22,7 @@ is the same as being a splitting field.
 
 noncomputable theory
 open_locale classical
-open polynomial
+open polynomial is_scalar_tower
 
 universes u v
 
@@ -65,7 +65,7 @@ lemma normal.tower_top_of_normal (h : normal F E) : normal K E :=
 begin
   intros x,
   cases h x with hx hhx,
-  rw is_scalar_tower.algebra_map_eq F K E at hhx,
+  rw algebra_map_eq F K E at hhx,
   exact ⟨is_integral_of_is_scalar_tower x hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
     (polynomial.map_ne_zero (minpoly.ne_zero hx))
     ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx)
@@ -110,29 +110,27 @@ begin
   haveI : finite_dimensional E D := power_basis.finite_dimensional pbED,
   have findimED : finite_dimensional.findim E D = q.nat_degree := power_basis.findim pbED,
   letI : algebra F D := ring_hom.to_algebra ((algebra_map E D).comp (algebra_map F E)),
-  haveI : is_scalar_tower F E D := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
+  haveI : is_scalar_tower F E D := of_algebra_map_eq (λ _, rfl),
   haveI : finite_dimensional F D := finite_dimensional.trans F E D,
   suffices : nonempty (D →ₐ[F] E),
   { cases this with ϕ,
     rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←findimED],
     have nat_lemma : ∀ a b c : ℕ, a * b = c → c ≤ a → 0 < c → b = 1,
     { intros a b c h1 h2 h3, nlinarith },
-    exact nat_lemma _ _ _ (finite_dimensional.findim_mul_findim F E D)
+    exact nat_lemma _ _ _ (finite_dimensional.findim_mul_findim F E K)
       (linear_map.findim_le_findim_of_injective (show function.injective ϕ.to_linear_map,
-        from ϕ.to_ring_hom.injective)) finite_dimensional.findim_pos },
+        from ϕ.to_ring_hom.injective)) finite_dimensional.findim_pos, },
   let C := adjoin_root (minpoly Hx),
   have Hx_irred := minpoly.irreducible Hx,
   letI : algebra C D := ring_hom.to_algebra (adjoin_root.lift
-    (algebra_map F D) (adjoin_root.root q) (by rw [is_scalar_tower.algebra_map_eq F E D,
-      ←eval₂_map, hr, adjoin_root.algebra_map_eq, eval₂_mul, adjoin_root.eval₂_root, zero_mul])),
-  letI : algebra C E := ring_hom.to_algebra
-    (adjoin_root.lift (algebra_map F E) x (minpoly.aeval Hx)),
-  haveI : is_scalar_tower F C D :=
-    is_scalar_tower.of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
-  haveI : is_scalar_tower F C E :=
-    is_scalar_tower.of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
+    (algebra_map F D) (adjoin_root.root q) (by rw [algebra_map_eq F E D, ←eval₂_map, hr,
+      adjoin_root.algebra_map_eq, eval₂_mul, adjoin_root.eval₂_root, zero_mul])),
+  letI : algebra C E := ring_hom.to_algebra (adjoin_root.lift
+    (algebra_map F E) x (minpoly.aeval Hx)),
+  haveI : is_scalar_tower F C D := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
+  haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
   suffices : nonempty (D →ₐ[C] E),
-  { exact nonempty.map (is_scalar_tower.restrict_base F) this },
+  { exact nonempty.map (restrict_base F) this },
   let S : finset D := ((p.map (algebra_map F E)).roots.map (algebra_map E D)).to_finset,
   suffices : ⊤ ≤ intermediate_field.adjoin C ↑S,
   { refine intermediate_field.alg_hom_mk_adjoin_splits' (top_le_iff.mp this) (λ y hy, _),
@@ -140,13 +138,12 @@ begin
     have Hz : is_integral F z := is_integral_of_noetherian hFE z,
     use (show is_integral C y, from is_integral_of_noetherian (finite_dimensional.right F C D) y),
     apply splits_of_splits_of_dvd (algebra_map C E) (map_ne_zero (minpoly.ne_zero Hz)),
-    { rw [splits_map_iff, ←is_scalar_tower.algebra_map_eq F C E],
+    { rw [splits_map_iff, ←algebra_map_eq F C E],
       exact splits_of_splits_of_dvd _ hp hFEp.splits (minpoly.dvd Hz
         (eq.trans (eval₂_eq_eval_map _) ((mem_roots (map_ne_zero hp)).mp hz1))) },
     { apply minpoly.dvd,
-      rw [←hz2, aeval_def, eval₂_map, ←is_scalar_tower.algebra_map_eq F C D,
-          is_scalar_tower.algebra_map_eq F E D, ←hom_eval₂, ←aeval_def,
-          minpoly.aeval Hz, ring_hom.map_zero] } },
+      rw [←hz2, aeval_def, eval₂_map, ←algebra_map_eq F C D, algebra_map_eq F E D, ←hom_eval₂,
+          ←aeval_def, minpoly.aeval Hz, ring_hom.map_zero] } },
   rw [←intermediate_field.to_subalgebra_le_to_subalgebra, intermediate_field.top_to_subalgebra],
   apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C ↑S),
   suffices : (algebra.adjoin C (S : set D)).res F = (algebra.adjoin E {adjoin_root.root q}).res F,

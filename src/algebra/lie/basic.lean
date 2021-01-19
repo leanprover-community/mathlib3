@@ -169,6 +169,8 @@ linear_map.map_add (f : L₁ →ₗ[R] L₂) x y
 
 @[simp] lemma map_lie (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f
 
+@[simp] lemma map_zero (f : L₁ →ₗ⁅R⁆ L₂) : f 0 = 0 := (f : L₁ →ₗ[R] L₂).map_zero
+
 /-- The constant 0 map is a Lie algebra morphism. -/
 instance : has_zero (L₁ →ₗ⁅R⁆ L₂) := ⟨{ map_lie := by simp, ..(0 : L₁ →ₗ[R] L₂)}⟩
 
@@ -541,13 +543,13 @@ set_option old_structure_cmd true
 /-- A Lie subalgebra of a Lie algebra is submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie algebra. -/
 structure lie_subalgebra extends submodule R L :=
-(lie_mem : ∀ {x y}, x ∈ carrier → y ∈ carrier → ⁅x, y⁆ ∈ carrier)
+(lie_mem' : ∀ {x y}, x ∈ carrier → y ∈ carrier → ⁅x, y⁆ ∈ carrier)
 
 attribute [nolint doc_blame] lie_subalgebra.to_submodule
 
 /-- The zero algebra is a subalgebra of any Lie algebra. -/
 instance : has_zero (lie_subalgebra R L) :=
-⟨{ lie_mem := λ x y hx hy, by { rw [((submodule.mem_bot R).1 hx), zero_lie],
+⟨{ lie_mem' := λ x y hx hy, by { rw [((submodule.mem_bot R).1 hx), zero_lie],
                                 exact submodule.zero_mem (0 : submodule R L), },
    ..(0 : submodule R L) }⟩
 
@@ -560,7 +562,7 @@ instance lie_subalgebra_coe_submodule : has_coe (lie_subalgebra R L) (submodule 
 
 /-- A Lie subalgebra forms a new Lie ring. -/
 instance lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' :=
-{ bracket      := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem x.property y.property⟩,
+{ bracket      := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem' x.property y.property⟩,
   lie_add      := by { intros, apply set_coe.ext, apply lie_add, },
   add_lie      := by { intros, apply set_coe.ext, apply add_lie, },
   lie_self     := by { intros, apply set_coe.ext, apply lie_self, },
@@ -572,39 +574,53 @@ instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) : lie_algebra R L'
 
 namespace lie_subalgebra
 
-@[simp] lemma mem_coe {L' : lie_subalgebra R L} {x : L} :
-  x ∈ (L' : set L) ↔ x ∈ L' := iff.rfl
+variables {R L} (L' : lie_subalgebra R L)
 
-@[simp] lemma mem_coe' {L' : lie_subalgebra R L} {x : L} :
-  x ∈ (L' : submodule R L) ↔ x ∈ L' := iff.rfl
+@[simp] lemma zero_mem : (0 : L) ∈ L' := (L' : submodule R L).zero_mem
 
-@[simp, norm_cast] lemma coe_bracket (L' : lie_subalgebra R L) (x y : L') :
-  (↑⁅x, y⁆ : L) = ⁅(↑x : L), ↑y⁆ := rfl
+lemma smul_mem (t : R) {x : L} (h : x ∈ L') : t • x ∈ L' := (L' : submodule R L).smul_mem t h
+
+lemma add_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x + y : L) ∈ L' :=
+(L' : submodule R L).add_mem hx hy
+
+lemma lie_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (⁅x, y⁆ : L) ∈ L' := L'.lie_mem' hx hy
+
+@[simp] lemma mem_coe {x : L} : x ∈ (L' : set L) ↔ x ∈ L' := iff.rfl
+
+@[simp] lemma mem_coe' {x : L} : x ∈ (L' : submodule R L) ↔ x ∈ L' := iff.rfl
+
+@[simp, norm_cast] lemma coe_bracket (x y : L') : (↑⁅x, y⁆ : L) = ⁅(↑x : L), ↑y⁆ := rfl
 
 @[ext] lemma ext (L₁' L₂' : lie_subalgebra R L) (h : ∀ x, x ∈ L₁' ↔ x ∈ L₂') :
   L₁' = L₂' :=
 by { cases L₁', cases L₂', simp only [], ext x, exact h x, }
 
 lemma ext_iff (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x ∈ L₁' ↔ x ∈ L₂' :=
-⟨λ h x, by rw h, ext R L L₁' L₂'⟩
+⟨λ h x, by rw h, ext L₁' L₂'⟩
 
-@[simp] lemma coe_to_set_mk (S : set L) (h₁ h₂ h₃ h₄) :
+@[simp] lemma mk_coe (S : set L) (h₁ h₂ h₃ h₄) :
   ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_subalgebra R L) : set L) = S := rfl
 
-@[simp, norm_cast] theorem coe_set_eq_iff (L₁' L₂' : lie_subalgebra R L) :
-  (L₁' : set L) = L₂' ↔ L₁' = L₂' :=
-by { cases L₁'; cases L₂'; simp, }
+lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
+λ L₁' L₂' h, by cases L₁'; cases L₂'; congr'
 
-@[simp] lemma coe_to_submodule_eq_iff (L₁' L₂' : lie_subalgebra R L) :
+@[simp, norm_cast] theorem coe_set_eq (L₁' L₂' : lie_subalgebra R L) :
+  (L₁' : set L) = L₂' ↔ L₁' = L₂' := coe_injective.eq_iff
+
+lemma to_submodule_injective :
+  function.injective (coe : lie_subalgebra R L → submodule R L) :=
+λ L₁' L₂' h, by { rw submodule.ext'_iff at h, rw ← coe_set_eq, exact h, }
+
+@[simp] lemma coe_to_submodule_eq (L₁' L₂' : lie_subalgebra R L) :
   (L₁' : submodule R L) = (L₂' : submodule R L) ↔ L₁' = L₂' :=
-by { rw [← coe_set_eq_iff, submodule.ext'_iff], exact iff.rfl, }
+to_submodule_injective.eq_iff
 
 end lie_subalgebra
 
 /-- A subalgebra of an associative algebra is a Lie subalgebra of the associated Lie algebra. -/
 def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
   (A' : subalgebra R A) : lie_subalgebra R A :=
-{ lie_mem := λ x y hx hy, by {
+{ lie_mem' := λ x y hx hy, by {
     change ⁅x, y⁆ ∈ A', change x ∈ A' at hx, change y ∈ A' at hy,
     rw lie_ring.of_associative_ring_bracket,
     have hxy := A'.mul_mem hx hy,
@@ -622,7 +638,7 @@ def lie_subalgebra.incl (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
 
 /-- The range of a morphism of Lie algebras is a Lie subalgebra. -/
 def lie_algebra.morphism.range : lie_subalgebra R L₂ :=
-{ lie_mem := λ x y,
+{ lie_mem' := λ x y,
     show x ∈ f.to_linear_map.range → y ∈ f.to_linear_map.range → ⁅x, y⁆ ∈ f.to_linear_map.range,
     by { repeat { rw linear_map.mem_range }, rintros ⟨x', hx⟩ ⟨y', hy⟩, refine ⟨⁅x', y'⁆, _⟩,
          rw [←hx, ←hy], change f ⁅x', y'⁆ = ⁅f x', f y'⁆, rw lie_algebra.map_lie, },
@@ -635,12 +651,12 @@ def lie_algebra.morphism.range : lie_subalgebra R L₂ :=
 linear_map.range_coe ↑f
 
 @[simp] lemma lie_subalgebra.range_incl (L' : lie_subalgebra R L) : L'.incl.range = L' :=
-by { rw ← lie_subalgebra.coe_to_submodule_eq_iff, exact (L' : submodule R L).range_subtype, }
+by { rw ← lie_subalgebra.coe_to_submodule_eq, exact (L' : submodule R L).range_subtype, }
 
 /-- The image of a Lie subalgebra under a Lie algebra morphism is a Lie subalgebra of the
 codomain. -/
 def lie_subalgebra.map (L' : lie_subalgebra R L) : lie_subalgebra R L₂ :=
-{ lie_mem := λ x y hx hy, by {
+{ lie_mem' := λ x y hx hy, by {
     erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
     erw submodule.mem_map at hy, rcases hy with ⟨y', hy', hy⟩, rw ←hy,
     erw submodule.mem_map,
@@ -791,7 +807,7 @@ lemma lie_mem_left (I : lie_ideal R L) (x y : L) (h : x ∈ I) : ⁅x, y⁆ ∈ 
 
 /-- An ideal of a Lie algebra is a Lie subalgebra. -/
 def lie_ideal_subalgebra (I : lie_ideal R L) : lie_subalgebra R L :=
-{ lie_mem := by { intros x y hx hy, apply lie_mem_right, exact hy, },
+{ lie_mem' := by { intros x y hx hy, apply lie_mem_right, exact hy, },
   ..I.to_submodule, }
 
 instance : has_coe (lie_ideal R L) (lie_subalgebra R L) := ⟨λ I, lie_ideal_subalgebra R L I⟩
@@ -1214,10 +1230,45 @@ variables [lie_ring_module L M] [lie_module R L M]
 
 namespace lie_algebra
 
+variables (I : lie_ideal R L)
+
+/-- A generalisation of the derived series of a Lie algebra, whose zeroth term is a specified ideal.
+
+It can be more convenient to work with this generalisation when considering the derived series of
+an ideal since it provides a type-theoretic expression of the fact that the terms of the ideal's
+derived series are also ideals of the enclosing algebra.
+
+See also `lie_ideal.derived_series_eq_derived_series_of_ideal_comap` and
+`lie_ideal.derived_series_eq_derived_series_of_ideal_map` below. -/
+def derived_series_of_ideal : ℕ → lie_ideal R L
+| 0       := I
+| (k + 1) := ⁅derived_series_of_ideal k, derived_series_of_ideal k⁆
+
+@[simp] lemma derived_series_of_ideal_zero :
+  derived_series_of_ideal R L I 0 = I := rfl
+
+@[simp] lemma derived_series_of_ideal_succ (k : ℕ) :
+  derived_series_of_ideal R L I (k + 1) =
+  ⁅derived_series_of_ideal R L I k, derived_series_of_ideal R L I k⁆ := rfl
+
 /-- The derived series of Lie ideals of a Lie algebra. -/
-def derived_series : ℕ → lie_ideal R L
-| 0       := ⊤
-| (k + 1) := ⁅derived_series k, derived_series k⁆
+abbreviation derived_series : ℕ → lie_ideal R L := derived_series_of_ideal R L ⊤
+
+lemma derived_series_def (k : ℕ) :
+  derived_series R L k = derived_series_of_ideal R L ⊤ k := rfl
+
+variables {R L}
+
+lemma derived_series_of_ideal_succ_le (k : ℕ) :
+  derived_series_of_ideal R L I (k + 1) ≤ derived_series_of_ideal R L I k :=
+by { rw derived_series_of_ideal_succ, exact lie_submodule.lie_le_left _ _, }
+
+lemma derived_series_of_ideal_le (k : ℕ) : derived_series_of_ideal R L I k ≤ I :=
+begin
+  induction k with k ih,
+  { rw derived_series_of_ideal_zero, apply le_refl _, },
+  { exact le_trans (derived_series_of_ideal_succ_le I k) ih, },
+end
 
 end lie_algebra
 
@@ -1331,11 +1382,12 @@ by { rw map_le_iff_le_comap, apply le_refl _, }
 lemma comap_map_le : I ≤ comap f (map f I) :=
 by { rw ← map_le_iff_le_comap, apply le_refl _, }
 
-lemma map_mono {I₁ I₂ : lie_ideal R L} (h : I₁ ≤ I₂) : map f I₁ ≤ map f I₂ :=
+@[mono] lemma map_mono : monotone (map f) :=
+λ I₁ I₂ h,
 by { rw lie_submodule.le_def at h, apply lie_submodule.lie_span_mono (set.image_subset ⇑f h), }
 
-lemma comap_mono {J₁ J₂ : lie_ideal R L'} (h : J₁ ≤ J₂) : comap f J₁ ≤ comap f J₂ :=
-by { rw lie_submodule.le_def at h ⊢, exact set.preimage_mono h, }
+@[mono] lemma comap_mono : monotone (comap f) :=
+λ J₁ J₂ h, by { rw lie_submodule.le_def at h ⊢, exact set.preimage_mono h, }
 
 lemma map_of_image (h : f '' I = J) : I.map f = J :=
 begin
@@ -1368,11 +1420,11 @@ lemma map_le_ideal_range : I.map f ≤ f.ideal_range := lie_ideal.map_mono le_to
 
 lemma ker_le_comap : f.ker ≤ J.comap f := lie_ideal.comap_mono bot_le
 
-@[simp] lemma mem_ker {x : L} (h : x ∈ ker f) : f x = 0 :=
-begin
-  change x ∈ lie_ideal.comap f ⊥ at h,
-  rw [lie_ideal.mem_comap, lie_submodule.mem_bot] at h, exact h,
-end
+@[simp] lemma ker_coe_submodule : (ker f : submodule R L) = (f : L →ₗ[R] L').ker := rfl
+
+@[simp] lemma mem_ker {x : L} : x ∈ ker f ↔ f x = 0 :=
+show x ∈ (f.ker : submodule R L) ↔ _,
+by simp only [ker_coe_submodule, linear_map.mem_ker, lie_algebra.coe_to_linear_map]
 
 lemma mem_ideal_range {x : L} : f x ∈ ideal_range f := lie_ideal.mem_map (lie_submodule.mem_top x)
 
@@ -1383,8 +1435,23 @@ begin
   rw [← lie_submodule.mem_coe, ← lie_ideal.coe_to_subalgebra, h, f.range_coe, set.mem_range],
 end
 
+lemma le_ker_iff : I ≤ f.ker ↔ ∀ x, x ∈ I → f x = 0 :=
+begin
+  split; intros h x hx,
+  { specialize h hx, rw mem_ker at h, exact h, },
+  { rw mem_ker, apply h x hx, },
+end
 
-@[simp] lemma ker_coe_submodule : (ker f : submodule R L) = (f : L →ₗ[R] L').ker := rfl
+@[simp] lemma map_bot_iff : I.map f = ⊥ ↔ I ≤ f.ker :=
+begin
+  rw le_ker_iff, unfold lie_ideal.map, split; intros h,
+  { rwa [eq_bot_iff, lie_submodule.lie_span_le, set.image_subset_iff, lie_submodule.bot_coe] at h,},
+  { suffices : f '' I = ↑(⊥ : lie_ideal R L'), { rw [this, lie_submodule.lie_span_eq], },
+    ext x, rw [lie_submodule.bot_coe, set.mem_singleton_iff, set.mem_image],
+    split,
+    { rintros ⟨y, hy, hx⟩, rw ← hx, exact h y hy, },
+    { intros hx, use 0, simp [hx], }, },
+end
 
 end lie_algebra.morphism
 
@@ -1399,7 +1466,7 @@ begin
   apply lie_submodule.lie_span_mono,
   rintros x ⟨y, hy₁, hy₂⟩, rw ← hy₂,
   erw lie_submodule.mem_sup at hy₁, obtain ⟨z₁, hz₁, z₂, hz₂, hy⟩ := hy₁, rw ← hy,
-  rw [f.map_add, f.mem_ker hz₂, add_zero], exact ⟨z₁, hz₁, rfl⟩,
+  rw [f.map_add, f.mem_ker.mp hz₂, add_zero], exact ⟨z₁, hz₁, rfl⟩,
 end
 
 @[simp] lemma map_comap_eq (h : f.is_ideal_morphism) : map f (comap f J) = f.ideal_range ⊓ J :=
@@ -1514,6 +1581,25 @@ Lie bracket operation on ideals, subject to the conditions shown. -/
 lemma comap_bracket_incl_of_le {I₁ I₂ : lie_ideal R L} (h₁ : I₁ ≤ I) (h₂ : I₂ ≤ I) :
   ⁅comap I.incl I₁, comap I.incl I₂⁆ = comap I.incl ⁅I₁, I₂⁆ :=
 by { rw comap_bracket_incl, rw ← inf_eq_right at h₁ h₂, rw [h₁, h₂], }
+
+lemma derived_series_eq_derived_series_of_ideal_comap (k : ℕ) :
+  derived_series R I k = (derived_series_of_ideal R L I k).comap I.incl :=
+begin
+  induction k with k ih,
+  { simp only [derived_series_def, comap_incl_self, derived_series_of_ideal_zero], },
+  { simp only [derived_series_def, derived_series_of_ideal_succ] at ⊢ ih, rw ih,
+    exact comap_bracket_incl_of_le I
+      (derived_series_of_ideal_le I k) (derived_series_of_ideal_le I k), },
+end
+
+lemma derived_series_eq_derived_series_of_ideal_map (k : ℕ) :
+  (derived_series R I k).map I.incl = derived_series_of_ideal R L I k :=
+by { rw [derived_series_eq_derived_series_of_ideal_comap, map_comap_incl, inf_eq_right],
+     apply derived_series_of_ideal_le, }
+
+lemma derived_series_eq_bot_iff (k : ℕ) :
+  derived_series R I k = ⊥ ↔ derived_series_of_ideal R L I k = ⊥ :=
+by rw [← derived_series_eq_derived_series_of_ideal_map, I.incl.map_bot_iff, ker_incl, eq_bot_iff]
 
 end lie_ideal
 

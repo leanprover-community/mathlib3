@@ -3,6 +3,7 @@ Copyright (c) 2020 Kenji Nakagawa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
+import algebra.group_with_zero.basic
 import field_theory.minimal_polynomial
 import linear_algebra.finite_dimensional
 import logic.function.basic
@@ -758,6 +759,8 @@ begin
     apply submodule.not_le_iff_exists.mp h_incl,
     sorry },--assumption },--NON FUNZIONA PERCHE' HO COMMENTATO ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J
   -- have htemp : (↑M : fractional_ideal f) ≠ (0 : fractional_ideal f) := (fractional_ideal.coe_to_fractional_ideal_ne_zero _).mpr h_nzM,
+  have hnz_fa : (f.to_map a) ≠ 0 := mt (f.to_map.injective_iff.mp f.injective a) _,
+  swap, simp only [h_nza, not_false_iff, submodule.coe_eq_zero],
   have h₁ : (f.to_map b) * (f.to_map a)⁻¹ ∈ ((1 / ↑M) : fractional_ideal f).val,
   { rw [fractional_ideal.val_eq_coe, fractional_ideal.coe_div, submodule.mem_div_iff_forall_mul_mem],
     rintro y hy,
@@ -769,20 +772,18 @@ begin
       rwa [ideal.mem_span_singleton'] at h_y'b,
       apply submodule.smul_le.mp h_MJ'J y' hy'_M b h_bJ' },
     rw [mul_comm, ← mul_assoc, ← hy'_fy, ← ring_hom.map_mul, ← hc, ring_hom.map_mul],
-    have hnz_fa : (f.to_map a) ≠ 0 := mt (f.to_map.injective_iff.mp f.injective a) _,
     { rw [mul_assoc, mul_inv_cancel hnz_fa, mul_one],
       apply fractional_ideal.mem_one_iff.mpr,
       use c },
-    simp only [h_nza, not_false_iff, submodule.coe_eq_zero],
     apply (fractional_ideal.coe_to_fractional_ideal_ne_zero _).mpr h_nzM,
     tauto },
   have h₂ : (f.to_map b) * (f.to_map a)⁻¹ ∉ (1 : fractional_ideal f),
-  { --bisogna usare che b ∉ J = span R {a} e quindi b/a non sta in R
-    --rw [not_iff_not.mpr fractional_ideal.mem_one_iff],
-    -- rw eq_mul_of_mul_inv_eq, --bis
-  -- ← ring_hom.map_mul],-- UTILE?
-    -- rw f.injective,
-    sorry },
+  { rw not_iff_not.mpr fractional_ideal.mem_one_iff,
+    rintros ⟨x', h₂_abs⟩,
+    rw [← div_eq_mul_inv, eq_div_iff_mul_eq hnz_fa, ← ring_hom.map_mul] at h₂_abs,
+    replace h₂_abs : x' * ↑a = b := f.injective h₂_abs,
+    replace h₂_abs : b ∈ J := ideal.mem_span_singleton'.mpr ⟨x', h₂_abs⟩,
+    tauto },
   apply (not_iff_not_of_iff fractional_ideal.ext_iff).mp,
   rw not_forall,
   use (f.to_map b) * (f.to_map a)⁻¹,

@@ -161,6 +161,18 @@ by rw [mul_comm, inv_mul_lt_iff h]
 lemma mul_inv_lt_iff' (h : 0 < b) : a * b⁻¹ < c ↔ a < c * b :=
 by rw [mul_comm, inv_mul_lt_iff' h]
 
+lemma inv_pos_le_iff_one_le_mul (ha : 0 < a) : a⁻¹ ≤ b ↔ 1 ≤ b * a :=
+by { rw [inv_eq_one_div], exact div_le_iff ha }
+
+lemma inv_pos_le_iff_one_le_mul' (ha : 0 < a) : a⁻¹ ≤ b ↔ 1 ≤ a * b :=
+by { rw [inv_eq_one_div], exact div_le_iff' ha }
+
+lemma inv_pos_lt_iff_one_lt_mul (ha : 0 < a) : a⁻¹ < b ↔ 1 < b * a :=
+by { rw [inv_eq_one_div], exact div_lt_iff ha }
+
+lemma inv_pos_lt_iff_one_lt_mul' (ha : 0 < a) : a⁻¹ < b ↔ 1 < a * b :=
+by { rw [inv_eq_one_div], exact div_lt_iff' ha }
+
 lemma div_le_iff_of_neg (hc : c < 0) : b / c ≤ a ↔ a * c ≤ b :=
 ⟨λ h, div_mul_cancel b (ne_of_lt hc) ▸ mul_le_mul_of_nonpos_right h hc.le,
   λ h, calc
@@ -191,8 +203,11 @@ lemma lt_div_iff_of_neg' (hc : c < 0) : a < b / c ↔ b < c * a :=
 by rw [mul_comm, lt_div_iff_of_neg hc]
 
 /-- One direction of `div_le_iff` where `b` is allowed to be `0` (but `c` must be nonnegative) -/
-lemma div_le_iff_of_nonneg_of_le (hb : 0 ≤ b) (hc : 0 ≤ c) (h : a ≤ c * b) : a / b ≤ c :=
+lemma div_le_of_nonneg_of_le_mul (hb : 0 ≤ b) (hc : 0 ≤ c) (h : a ≤ c * b) : a / b ≤ c :=
 by { rcases eq_or_lt_of_le hb with rfl|hb', simp [hc], rwa [div_le_iff hb'] }
+
+lemma div_le_one_of_le (h : a ≤ b) (hb : 0 ≤ b) : a / b ≤ 1 :=
+div_le_of_nonneg_of_le_mul hb zero_le_one $ by rwa one_mul
 
 /-!
 ### Bi-implications of inequalities using inversions
@@ -606,12 +621,12 @@ lemma max_div_div_right_of_nonpos {c : α} (hc : c ≤ 0) (a b : α) :
 eq.symm $ @monotone.map_min α (order_dual α) _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
 
 lemma abs_div (a b : α) : abs (a / b) = abs a / abs b :=
-(abs_hom : α →* α).map_div abs_zero a b
+(abs_hom : monoid_with_zero_hom α α).map_div a b
 
 lemma abs_one_div (a : α) : abs (1 / a) = 1 / abs a :=
-by rw [abs_div, abs_of_nonneg (zero_le_one : 1 ≥ (0 : α))]
+by rw [abs_div, abs_one]
 
 lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
-by rw [inv_eq_one_div, abs_one_div, inv_eq_one_div]
+(abs_hom : monoid_with_zero_hom α α).map_inv' a
 
 end linear_ordered_field

@@ -5,6 +5,7 @@ Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module.basic
 import data.set.finite
+import group_theory.submonoid.basic
 
 /-!
 # Pointwise addition, multiplication, and scalar multiplication of sets.
@@ -351,9 +352,9 @@ end monoid
 
 end set
 
-section
-
 open set
+
+section
 
 variables {α : Type*} {β : Type*}
 
@@ -365,7 +366,7 @@ by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zer
 
 lemma mem_inv_smul_set_iff [field α] [mul_action α β] {a : α} (ha : a ≠ 0) (A : set β) (x : β) :
   x ∈ a⁻¹ • A ↔ a • x ∈ A :=
-by simp only [← image_smul, mem_image, inv_smul_eq_iff ha, exists_eq_right]
+by simp only [← image_smul, mem_image, inv_smul_eq_iff' ha, exists_eq_right]
 
 lemma mem_smul_set_iff_inv_smul_mem [field α] [mul_action α β] {a : α} (ha : a ≠ 0) (A : set β)
   (x : β) : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
@@ -410,3 +411,20 @@ lemma mul_card_le [has_mul α] {s t : finset α} : (s * t).card ≤ s.card * t.c
 by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
 
 end finset
+
+/-! Some lemmas about pointwise multiplication and submonoids. Ideally we put these in
+  `group_theory.submonoid.basic`, but currently we cannot because that file is imported by this. -/
+namespace submonoid
+
+variables {M : Type*} [monoid M]
+
+@[to_additive]
+lemma mul_subset {s t : set M} {S : submonoid M} (hs : s ⊆ S) (ht : t ⊆ S) : s * t ⊆ S :=
+by { rintro _ ⟨p, q, hp, hq, rfl⟩, exact submonoid.mul_mem _ (hs hp) (ht hq) }
+
+@[to_additive]
+lemma mul_subset_closure {s t u : set M} (hs : s ⊆ u) (ht : t ⊆ u) :
+  s * t ⊆ submonoid.closure u :=
+mul_subset (subset.trans hs submonoid.subset_closure) (subset.trans ht submonoid.subset_closure)
+
+end submonoid

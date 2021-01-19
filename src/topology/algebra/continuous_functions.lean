@@ -9,7 +9,7 @@ import topology.continuous_map
 /-!
 # Algebraic structures over continuous functions
 
-In this file we define instances of algebraic sturctures over continuous functions. Instances are
+In this file we define instances of algebraic structures over continuous functions. Instances are
 present both in the case of the subtype of continuous functions and the type of continuous bundled
 functions. Both implementations have advantages and disadvantages, but many experienced people in
 Zulip have expressed a preference towards continuous bundled maps, so when there is no particular
@@ -23,7 +23,7 @@ namespace continuous_functions
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 variables {f g : {f : α → β | continuous f }}
 
-instance : has_coe_to_fun {f : α → β | continuous f } :=  ⟨_, subtype.val⟩
+instance : has_coe_to_fun {f : α → β | continuous f} :=  ⟨_, subtype.val⟩
 
 end continuous_functions
 
@@ -32,7 +32,7 @@ namespace continuous_map
 @[to_additive]
 instance has_mul {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
-⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous)⟩⟩
+⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous : _)⟩⟩
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
@@ -56,12 +56,12 @@ instance continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [
   [monoid β] [has_continuous_mul β] : is_submonoid { f : α → β | continuous f } :=
 { one_mem := @continuous_const _ _ _ _ 1,
   mul_mem := λ f g fc gc, continuous.comp
-  has_continuous_mul.continuous_mul (continuous.prod_mk fc gc) }.
+  has_continuous_mul.continuous_mul (continuous.prod_mk fc gc : _) }
 
 @[to_additive]
 instance continuous_subgroup (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   [group β] [topological_group β] : is_subgroup { f : α → β | continuous f } :=
-{ inv_mem := λ f fc, continuous.comp topological_group.continuous_inv fc,
+{ inv_mem := λ f fc, continuous.comp (@topological_group.continuous_inv β _ _ _) fc,
   ..continuous_submonoid α β, }.
 
 @[to_additive]

@@ -81,6 +81,30 @@ lemma midpoint_eq_iff {x y z : P} : midpoint R x y = z ↔ point_reflection R z 
 eq_comm.trans ((injective_point_reflection_left_of_module R x).eq_iff'
   (affine_equiv.point_reflection_midpoint_left x y)).symm
 
+@[simp] lemma midpoint_vsub_left (p₁ p₂ : P) : midpoint R p₁ p₂ -ᵥ p₁ = (⅟2:R) • (p₂ -ᵥ p₁) :=
+line_map_vsub_left _ _ _
+
+@[simp] lemma midpoint_vsub_right (p₁ p₂ : P) : midpoint R p₁ p₂ -ᵥ p₂ = (⅟2:R) • (p₁ -ᵥ p₂) :=
+by rw [midpoint_comm, midpoint_vsub_left]
+
+@[simp] lemma left_vsub_midpoint (p₁ p₂ : P) : p₁ -ᵥ midpoint R p₁ p₂ = (⅟2:R) • (p₁ -ᵥ p₂) :=
+left_vsub_line_map _ _ _
+
+@[simp] lemma right_vsub_midpoint (p₁ p₂ : P) : p₂ -ᵥ midpoint R p₁ p₂ = (⅟2:R) • (p₂ -ᵥ p₁) :=
+by rw [midpoint_comm, left_vsub_midpoint]
+
+@[simp] lemma midpoint_sub_left (v₁ v₂ : V) : midpoint R v₁ v₂ - v₁ = (⅟2:R) • (v₂ - v₁) :=
+midpoint_vsub_left v₁ v₂
+
+@[simp] lemma midpoint_sub_right (v₁ v₂ : V) : midpoint R v₁ v₂ - v₂ = (⅟2:R) • (v₁ - v₂) :=
+midpoint_vsub_right v₁ v₂
+
+@[simp] lemma left_sub_midpoint (v₁ v₂ : V) : v₁ - midpoint R v₁ v₂ = (⅟2:R) • (v₁ - v₂) :=
+left_vsub_midpoint v₁ v₂
+
+@[simp] lemma right_sub_midpoint (v₁ v₂ : V) : v₂ - midpoint R v₁ v₂ = (⅟2:R) • (v₂ - v₁) :=
+right_vsub_midpoint v₁ v₂
+
 variable (R)
 
 lemma midpoint_eq_midpoint_iff_vsub_eq_vsub {x x' y y' : P} :
@@ -132,6 +156,11 @@ lemma homothety_one_half {k : Type*} {V P : Type*} [field k] [char_zero k]
   [add_comm_group V] [semimodule k V] [add_torsor V P] (a b : P) :
   homothety a (1/2:k) b = midpoint k a b :=
 by rw [one_div, homothety_inv_two]
+
+@[simp] lemma pi_midpoint_apply {k ι : Type*} {V : Π i : ι, Type*} {P : Π i : ι, Type*} [field k]
+  [invertible (2:k)] [Π i, add_comm_group (V i)] [Π i, semimodule k (V i)]
+  [Π i, add_torsor (V i) (P i)] (f g : Π i, P i) (i : ι) :
+  midpoint k f g i = midpoint k (f i) (g i) := rfl
 
 namespace add_monoid_hom
 

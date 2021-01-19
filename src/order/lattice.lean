@@ -23,8 +23,6 @@ section
 end
 
 /- TODO: automatic construction of dual definitions / theorems -/
-reserve infixl ` ⊓ `:70
-reserve infixl ` ⊔ `:65
 
 /-- Typeclass for the `⊔` (`\lub`) notation -/
 class has_sup (α : Type u) := (sup : α → α → α)
@@ -150,6 +148,15 @@ suffices (∃b, ¬b ≤ a) → (∃b, a < b),
   by rwa [or_iff_not_imp_left, not_forall],
 assume ⟨b, hb⟩,
 ⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
+
+/-- If `f` is a monotonically increasing sequence, `g` is a monotonically decreasing
+sequence, and `f n ≤ g n` for all `n`, then for all `m`, `n` we have `f m ≤ g n`. -/
+theorem forall_le_of_monotone_of_mono_decr {β : Type*} [preorder β]
+  {f g : α → β} (hf : monotone f) (hg : ∀ ⦃m n⦄, m ≤ n → g n ≤ g m)
+  (h : ∀ n, f n ≤ g n) (m n : α) : f m ≤ g n :=
+calc f m ≤ f (m ⊔ n) : hf le_sup_left
+     ... ≤ g (m ⊔ n) : h _
+     ... ≤ g n       : hg le_sup_right
 
 theorem semilattice_sup.ext_sup {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
@@ -358,7 +365,8 @@ by simp only [sup_inf_left, λy:α, @sup_comm α _ y x, eq_self_iff_true]
 
 theorem inf_sup_left : x ⊓ (y ⊔ z) = (x ⊓ y) ⊔ (x ⊓ z) :=
 calc x ⊓ (y ⊔ z) = (x ⊓ (x ⊔ z)) ⊓ (y ⊔ z)       : by rw [inf_sup_self]
-             ... = x ⊓ ((x ⊓ y) ⊔ z)             : by simp only [inf_assoc, sup_inf_right, eq_self_iff_true]
+             ... = x ⊓ ((x ⊓ y) ⊔ z)             : by simp only [inf_assoc, sup_inf_right,
+                                                                 eq_self_iff_true]
              ... = (x ⊔ (x ⊓ y)) ⊓ ((x ⊓ y) ⊔ z) : by rw [sup_inf_self]
              ... = ((x ⊓ y) ⊔ x) ⊓ ((x ⊓ y) ⊔ z) : by rw [sup_comm]
              ... = (x ⊓ y) ⊔ (x ⊓ z)             : by rw [sup_inf_left]
@@ -472,3 +480,31 @@ instance [distrib_lattice α] [distrib_lattice β] : distrib_lattice (α × β) 
   .. prod.lattice α β }
 
 end prod
+
+namespace subtype
+
+/-- A subtype forms a `⊔`-semilattice if `⊔` preserves the property. -/
+protected def semilattice_sup [semilattice_sup α] {P : α → Prop}
+  (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) : semilattice_sup {x : α // P x} :=
+{ sup := λ x y, ⟨x.1 ⊔ y.1, Psup x.2 y.2⟩,
+  le_sup_left := λ x y, @le_sup_left _ _ (x : α) y,
+  le_sup_right := λ x y, @le_sup_right _ _ (x : α) y,
+  sup_le := λ x y z h1 h2, @sup_le α _ _ _ _ h1 h2,
+  ..subtype.partial_order P }
+
+/-- A subtype forms a `⊓`-semilattice if `⊓` preserves the property. -/
+protected def semilattice_inf [semilattice_inf α] {P : α → Prop}
+  (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) : semilattice_inf {x : α // P x} :=
+{ inf := λ x y, ⟨x.1 ⊓ y.1, Pinf x.2 y.2⟩,
+  inf_le_left := λ x y, @inf_le_left _ _ (x : α) y,
+  inf_le_right := λ x y, @inf_le_right _ _ (x : α) y,
+  le_inf := λ x y z h1 h2, @le_inf α _ _ _ _ h1 h2,
+  ..subtype.partial_order P }
+
+/-- A subtype forms a lattice if `⊔` and `⊓` preserve the property. -/
+protected def lattice [lattice α] {P : α → Prop}
+  (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) :
+  lattice {x : α // P x} :=
+{ ..subtype.semilattice_inf Pinf, ..subtype.semilattice_sup Psup }
+
+end subtype

@@ -5,6 +5,7 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.group_power.basic
 import algebra.order_functions
+import algebra.ordered_monoid
 
 /-!
 # Basic operations on the natural numbers
@@ -63,6 +64,11 @@ instance : linear_ordered_cancel_add_comm_monoid ℕ :=
 { add_left_cancel := @nat.add_left_cancel,
   ..nat.linear_ordered_semiring }
 
+instance : linear_ordered_comm_monoid_with_zero ℕ :=
+{ mul_le_mul_left := λ a b h c, nat.mul_le_mul_left c h,
+  ..nat.linear_ordered_semiring,
+  ..(infer_instance : comm_monoid_with_zero ℕ)}
+
 /-! Extra instances to short-circuit type class resolution -/
 instance : add_comm_monoid nat    := by apply_instance
 instance : add_monoid nat         := by apply_instance
@@ -116,8 +122,8 @@ lt_trans zero_lt_one h
 
 end facts
 
-namespace nat
 variables {m n k : ℕ}
+namespace nat
 
 /-!
 ### Recursion and `set.range`
@@ -167,9 +173,6 @@ iff.intro
   (assume h, h.symm ▸ ⟨1, rfl⟩)
 
 /-! ### Equalities and inequalities involving zero and one -/
-
-theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
-⟨ne_of_gt, nat.pos_of_ne_zero⟩
 
 lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠ 1
 | 0     := dec_trivial
@@ -264,6 +267,9 @@ by simp only [add_comm, add_one_le_iff]
 
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 (lt_or_eq_of_le H).imp le_of_lt_succ id
+
+lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
+⟨lt_of_succ_lt_succ, succ_lt_succ⟩
 
 /-! ### `add` -/
 
@@ -586,6 +592,12 @@ protected theorem mul_left_inj {a b c : ℕ} (ha : 0 < a) : b * a = c * a ↔ b 
 protected theorem mul_right_inj {a b c : ℕ} (ha : 0 < a) : a * b = a * c ↔ b = c :=
 ⟨nat.eq_of_mul_eq_mul_left ha, λ e, e ▸ rfl⟩
 
+lemma mul_left_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, x * a) :=
+λ _ _, eq_of_mul_eq_mul_right ha
+
+lemma mul_right_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, a * x) :=
+λ _ _, eq_of_mul_eq_mul_left ha
+
 lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
 nat.mul_right_inj ha
@@ -872,15 +884,23 @@ protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k 
 @[simp] protected theorem not_two_dvd_bit1 (n : ℕ) : ¬ 2 ∣ bit1 n :=
 mt (nat.dvd_add_right two_dvd_bit0).1 dec_trivial
 
-/-- A natural number m divides the sum m + n if and only if m divides b.-/
+/-- A natural number `m` divides the sum `m + n` if and only if `m` divides `n`.-/
 @[simp] protected lemma dvd_add_self_left {m n : ℕ} :
   m ∣ m + n ↔ m ∣ n :=
 nat.dvd_add_right (dvd_refl m)
 
-/-- A natural number m divides the sum n + m if and only if m divides b.-/
+/-- A natural number `m` divides the sum `n + m` if and only if `m` divides `n`.-/
 @[simp] protected lemma dvd_add_self_right {m n : ℕ} :
   m ∣ n + m ↔ m ∣ n :=
 nat.dvd_add_left (dvd_refl m)
+
+lemma not_dvd_of_pos_of_lt {a b : ℕ} (h1 : 0 < b) (h2 : b < a) : ¬ a ∣ b :=
+begin
+  rintros ⟨c, rfl⟩,
+  rcases eq_zero_or_pos c with (rfl | hc),
+  { exact lt_irrefl 0 h1 },
+  { exact not_lt.2 (le_mul_of_pos_right hc) h2 },
+end
 
 protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : 0 < a) : a * b ∣ a * c ↔ b ∣ c :=
 exists_congr $ λ d, by rw [mul_assoc, nat.mul_right_inj ha]
@@ -982,7 +1002,6 @@ else
   have ha : 0 < a, from nat.pos_of_ne_zero ha,
   have h1 : ∃ d, c = a * b * d, from h,
   let ⟨d, hd⟩ := h1 in
-  have hac : a ∣ c, from dvd_of_mul_right_dvd h,
   have h2 : c / a = b * d, from nat.div_eq_of_eq_mul_right ha (by simpa [mul_assoc] using hd),
   show ∃ d, c / a = b * d, from ⟨d, h2⟩
 
@@ -1136,6 +1155,14 @@ strict_mono.injective (pow_right_strict_mono k)
 lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
 λ _ _ h, pow_lt_pow_of_lt_left h k
 
+end nat
+
+lemma strict_mono.nat_pow {n : ℕ} (hn : 1 ≤ n) {f : ℕ → ℕ} (hf : strict_mono f) :
+  strict_mono (λ m, (f m) ^ n) :=
+(nat.pow_left_strict_mono hn).comp hf
+
+namespace nat
+
 lemma pow_le_iff_le_left {m x y : ℕ} (k : 1 ≤ m) : x^m ≤ y^m ↔ x ≤ y :=
 strict_mono.le_iff_le (pow_left_strict_mono k)
 
@@ -1247,7 +1274,7 @@ by simp [find_eq_iff]
 
 @[simp] lemma find_pos {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) :
   0 < nat.find h ↔ ¬ p 0 :=
-by rw [nat.pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
+by rw [pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
 
 end find
 
@@ -1277,7 +1304,7 @@ lemma find_greatest_eq_iff {b m} :
 begin
   induction b with b ihb generalizing m,
   { rw [eq_comm, iff.comm],
-    simp only [le_zero_iff_eq, ne.def, and_iff_left_iff_imp, find_greatest_zero],
+    simp only [nonpos_iff_eq_zero, ne.def, and_iff_left_iff_imp, find_greatest_zero],
     rintro rfl,
     exact ⟨λ h, (h rfl).elim, λ n hlt heq, (hlt.ne heq.symm).elim⟩ },
   { by_cases hb : P (b + 1),
@@ -1573,5 +1600,12 @@ instance decidable_lo_hi_le (lo hi : ℕ) (P : ℕ → Prop) [H : decidable_pred
   decidable (∀x, lo ≤ x → x ≤ hi → P x) :=
 decidable_of_iff (∀x, lo ≤ x → x < hi + 1 → P x) $
 ball_congr $ λ x hl, imp_congr lt_succ_iff iff.rfl
+
+/-! ### find -/
+
+theorem find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
+  (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
+  nat.find hp ≤ nat.find hq :=
+nat.find_min' _ ((h _) (nat.find_spec hq))
 
 end nat

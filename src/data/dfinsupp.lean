@@ -313,6 +313,28 @@ by simp only [single_apply, dif_neg h]
 lemma single_injective {i} : function.injective (single i : β i → Π₀ i, β i) :=
 λ x y H, congr_fun (mk_injective _ H) ⟨i, by simp⟩
 
+/-- Like `finsupp.single_eq_single_iff`, but with a `heq` due to dependent types -/
+lemma single_eq_single_iff (i j : ι) (xi : β i) (xj : β j) :
+  dfinsupp.single i xi = dfinsupp.single j xj ↔ i = j ∧ xi == xj ∨ xi = 0 ∧ xj = 0 :=
+begin
+  split,
+  { intro h,
+    by_cases hij : i = j,
+    { subst hij,
+      exact or.inl ⟨rfl, heq_of_eq (dfinsupp.single_injective h)⟩, },
+    { have h_coe : ⇑(dfinsupp.single i xi) = dfinsupp.single j xj := congr_arg coe_fn h,
+      have hci := congr_fun h_coe i,
+      have hcj := congr_fun h_coe j,
+      rw dfinsupp.single_eq_same at hci hcj,
+      rw dfinsupp.single_eq_of_ne (ne.symm hij) at hci,
+      rw dfinsupp.single_eq_of_ne (hij) at hcj,
+      exact or.inr ⟨hci, hcj.symm⟩, }, },
+  { rintros (⟨hi, hxi⟩ | ⟨hi, hj⟩),
+    { subst hi,
+      rw eq_of_heq hxi, },
+    { rw [hi, hj, dfinsupp.single_zero, dfinsupp.single_zero], }, },
+end
+
 /-- Redefine `f i` to be `0`. -/
 def erase (i : ι) (f : Π₀ i, β i) : Π₀ i, β i :=
 quotient.lift_on f (λ x, ⟦(⟨λ j, if j = i then 0 else x.1 j, x.2,
@@ -441,9 +463,7 @@ end
 /-- If two additive homomorphisms from `Π₀ i, β i` are equal on each `single a b`, then
 they are equal.
 
-We formulate this using equality of `add_monoid_hom`s so that `ext` tactic can apply a type-specific
-extensionality lemma after this one.  E.g., if the fiber `M` is `ℕ` or `ℤ`, then it suffices to
-verify `f (single a 1) = g (single a 1)`. -/
+See note [partially-applied ext lemmas]. -/
 @[ext] lemma add_hom_ext' {γ : Type w} [add_monoid γ] ⦃f g : (Π₀ i, β i) →+ γ⦄
   (H : ∀ x, f.comp (single_add_hom β x) = g.comp (single_add_hom β x)) :
   f = g :=
@@ -482,16 +502,6 @@ ext $ λ i, by simp only [smul_apply, mk_apply]; split_ifs; [refl, rw smul_zero]
   single i (c • x) = c • single i x :=
 ext $ λ i, by simp only [smul_apply, single_apply]; split_ifs; [cases h, rw smul_zero]; refl
 
-variable β
-/-- `dfinsupp.mk` as a `linear_map`. -/
-def lmk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →ₗ[γ] Π₀ i, β i :=
-⟨mk s, λ _ _, mk_add, λ c x, by rw [mk_smul γ x]⟩
-
-/-- `dfinsupp.single` as a `linear_map` -/
-def lsingle (i) : β i →ₗ[γ] Π₀ i, β i :=
-⟨single i, λ _ _, single_add, λ _ _, single_smul _⟩
-variable {β}
-
 @[simp]
 def lsingle_to_add_monoid_hom (i) : (lsingle β γ i).to_add_monoid_hom = single_add_hom β i := rfl
 
@@ -511,9 +521,6 @@ maps. E.g., if `M = R`, then it suffices to verify `φ (single a 1) = ψ (single
   φ = ψ :=
 lhom_ext γ $ λ i, linear_map.congr_fun (h i)
 
-@[simp] lemma lmk_apply {s : finset ι} {x} : lmk β γ s x = mk s x := rfl
-
-@[simp] lemma lsingle_apply {i : ι} {x : β i} : lsingle β γ i x = single i x := rfl
 end
 
 section support_basic

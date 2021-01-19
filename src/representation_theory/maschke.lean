@@ -5,7 +5,7 @@ Author: Scott Morrison
 -/
 import algebra.monoid_algebra
 import algebra.invertible
-import algebra.char_p
+import algebra.char_p.basic
 import linear_algebra.basis
 
 /-!
@@ -125,13 +125,11 @@ include h
 
 lemma equivariant_projection_condition (v : V) : (π.equivariant_projection G) (i v) = v :=
 begin
-  rw [equivariant_projection, linear_map.algebra_module.smul_apply, sum_of_conjugates_equivariant,
+  rw [equivariant_projection, smul_apply, sum_of_conjugates_equivariant,
     equivariant_of_linear_of_comm_apply, sum_of_conjugates],
   rw [linear_map.sum_apply],
   simp only [conjugate_i π i h],
-  rw [finset.sum_const, finset.card_univ,
-    @semimodule.nsmul_eq_smul k _
-      V _ _ (fintype.card G) v,
+  rw [finset.sum_const, finset.card_univ, nsmul_eq_smul_cast k,
     ←mul_smul, invertible.inv_of_mul_self, one_smul],
 end
 end

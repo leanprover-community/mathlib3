@@ -127,6 +127,13 @@ If `coyoneda.map f` is an isomorphism, so was `f`.
 def is_iso {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso (coyoneda.map f)] : is_iso f :=
 is_iso_of_fully_faithful coyoneda f
 
+-- No need to use Cᵒᵖ here, works with any category
+/-- A Type-valued presheaf `P` is isomorphic to the composition of `P` with the
+  coyoneda functor coming from `punit`. -/
+@[simps] def iso_comp_punit (P : C ⥤ Type v₁) : (P ⋙ coyoneda.obj (op punit.{v₁+1})) ≅ P :=
+{ hom := { app := λ X f, f punit.star},
+  inv := { app := λ X a _, a } }
+
 end coyoneda
 
 /--
@@ -235,6 +242,33 @@ given by the Yoneda lemma.
 @[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) :
   (yoneda.obj X ⟶ F) ≅ ulift.{u₁} (F.obj (op X)) :=
 (yoneda_lemma C).app (op X, F)
+
+/--
+We have a type-level equivalence between natural transformations from the yoneda embedding
+and elements of `F.obj X`, without any universe switching.
+-/
+def yoneda_equiv {X : C} {F : Cᵒᵖ ⥤ Type v₁} : (yoneda.obj X ⟶ F) ≃ F.obj (op X) :=
+(yoneda_sections X F).to_equiv.trans equiv.ulift
+
+lemma yoneda_equiv_naturality {X Y : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) (g : Y ⟶ X) :
+  F.map g.op (yoneda_equiv f) = yoneda_equiv (yoneda.map g ≫ f) :=
+begin
+  change (f.app (op X) ≫ F.map g.op) (𝟙 X) = f.app (op Y) (𝟙 Y ≫ g),
+  rw ← f.naturality,
+  dsimp,
+  simp,
+end
+
+@[simp]
+lemma yoneda_equiv_apply {X : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) :
+  yoneda_equiv f = f.app (op X) (𝟙 X) :=
+rfl
+
+@[simp]
+lemma yoneda_equiv_symm_app_apply {X : C} {F : Cᵒᵖ ⥤ Type v₁} (x : F.obj (op X))
+  (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
+  (yoneda_equiv.symm x).app Y f = F.map f.op x :=
+rfl
 
 /--
 When `C` is a small category, we can restate the isomorphism from `yoneda_sections`

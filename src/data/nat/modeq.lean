@@ -39,6 +39,8 @@ variables {n m a b c d : ℕ}
 
 @[trans] protected theorem trans : a ≡ b [MOD n] → b ≡ c [MOD n] → a ≡ c [MOD n] := eq.trans
 
+protected theorem comm : a ≡ b [MOD n] ↔ b ≡ a [MOD n] := ⟨nat.modeq.symm, nat.modeq.symm⟩
+
 theorem modeq_zero_iff : a ≡ 0 [MOD n] ↔ n ∣ a :=
 by rw [modeq, zero_mod, dvd_iff_mod_eq_zero]
 
@@ -72,6 +74,13 @@ by rw [mul_comm a, mul_comm b]; exact modeq_mul_left c h
 
 theorem modeq_mul (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a * c ≡ b * d [MOD n] :=
 (modeq_mul_left _ h₂).trans (modeq_mul_right _ h₁)
+
+theorem modeq_pow (m : ℕ) (h : a ≡ b [MOD n]) : a ^ m ≡ b ^ m [MOD n] :=
+begin
+  induction m with d hd, {refl},
+  rw [pow_succ, pow_succ],
+  exact modeq_mul h hd,
+end
 
 theorem modeq_add (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a + c ≡ b + d [MOD n] :=
 modeq_of_dvd begin
@@ -200,6 +209,17 @@ lemma add_div_eq_of_add_mod_lt {a b c : ℕ} (hc : a % c + b % c < c) :
 if hc0 : c = 0 then by simp [hc0]
 else by rw [add_div (nat.pos_of_ne_zero hc0), if_neg (not_le_of_lt hc), add_zero]
 
+protected lemma add_div_of_dvd_right {a b c : ℕ} (hca : c ∣ a) :
+  (a + b) / c = a / c + b / c :=
+if h : c = 0 then by simp [h] else add_div_eq_of_add_mod_lt begin
+  rw [nat.mod_eq_zero_of_dvd hca, zero_add],
+  exact nat.mod_lt _ (pos_iff_ne_zero.mpr h),
+end
+
+protected lemma add_div_of_dvd_left {a b c : ℕ} (hca : c ∣ b) :
+  (a + b) / c = a / c + b / c :=
+by rwa [add_comm, nat.add_div_of_dvd_right, add_comm]
+
 lemma add_div_eq_of_le_mod_add_mod {a b c : ℕ} (hc : c ≤ a % c + b % c) (hc0 : 0 < c) :
   (a + b) / c = a / c + b / c + 1 :=
 by rw [add_div hc0, if_pos hc]
@@ -260,7 +280,6 @@ have h₃ : m < list.length (l ++ [a]), by simpa using hml,
       add_assoc m n 1 ▸ nat.modeq.modeq_add
         (hml'.trans (nat.mod_eq_of_lt (nat.lt_succ_self _)).symm) rfl
     ... = 0 : by simp,
-  have h₂ : l.length < (l ++ [a]).length, by simp [nat.lt_succ_self],
   by rw [list.length, list.rotate_cons_succ, nth_rotate h₃, list.length_append,
     list.length_cons, list.length, zero_add, hml', h₁, list.nth_concat_length]; refl)
 

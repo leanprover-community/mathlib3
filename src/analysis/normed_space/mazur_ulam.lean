@@ -120,10 +120,12 @@ def to_real_linear_equiv_of_map_zero (f : E ≃ᵢ F) (h0 : f 0 = 0) :
 /-- Mazur-Ulam Theorem: if `f` is an isometric bijection between two normed vector spaces
 over `ℝ`, then `x ↦ f x - f 0` is a linear equivalence. -/
 def to_real_linear_equiv (f : E ≃ᵢ F) : E ≃L[ℝ] F :=
-(f.trans (isometric.add_right (f 0)).symm).to_real_linear_equiv_of_map_zero (sub_self $ f 0)
+(f.trans (isometric.add_right (f 0)).symm).to_real_linear_equiv_of_map_zero
+  (by simpa only [sub_eq_add_neg] using sub_self (f 0))
 
 @[simp] lemma to_real_linear_equiv_apply (f : E ≃ᵢ F) (x : E) :
-  (f.to_real_linear_equiv : E → F) x = f x - f 0 := rfl
+  (f.to_real_linear_equiv : E → F) x = f x - f 0 :=
+(sub_eq_add_neg (f x) (f 0)).symm
 
 @[simp] lemma to_real_linear_equiv_symm_apply (f : E ≃ᵢ F) (y : F) :
   (f.to_real_linear_equiv.symm : F → E) y = f.symm (y + f 0) := rfl

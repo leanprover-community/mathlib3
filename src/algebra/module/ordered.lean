@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 
-import linear_algebra.basic
+import algebra.module.pi
+import algebra.ordered_pi
+import algebra.module.prod
 import algebra.ordered_field
 
 /-!
@@ -147,6 +149,22 @@ instance prod.ordered_semimodule : ordered_semimodule k (M × N) :=
 ordered_semimodule.mk' $ λ v u c h hc,
   ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
 
+instance pi.ordered_semimodule {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
+  [Π i, semimodule k (M i)] [∀ i, ordered_semimodule k (M i)] :
+  ordered_semimodule k (Π i : ι, M i) :=
+begin
+  refine (ordered_semimodule.mk' $ λ v u c h hc i, _),
+  change c • v i ≤ c • u i,
+  exact smul_le_smul_of_nonneg (h.le i) hc.le,
+end
+
+-- Sometimes Lean fails to apply the dependent version to non-dependent functions,
+-- so we define another instance
+instance pi.ordered_semimodule' {ι : Type*} {M : Type*} [ordered_add_comm_group M]
+  [semimodule k M] [ordered_semimodule k M] :
+  ordered_semimodule k (ι → M) :=
+pi.ordered_semimodule
+
 end field
 
 
@@ -161,7 +179,8 @@ instance [semiring R] [ordered_add_comm_monoid M] [semimodule R M] : mul_action 
 { one_smul := @mul_action.one_smul R M _ _,
   mul_smul := @mul_action.mul_smul R M _ _ }
 
-instance [semiring R] [ordered_add_comm_monoid M] [semimodule R M] : distrib_mul_action R (order_dual M) :=
+instance [semiring R] [ordered_add_comm_monoid M] [semimodule R M] :
+  distrib_mul_action R (order_dual M) :=
 { smul_add := @distrib_mul_action.smul_add R M _ _ _,
   smul_zero := @distrib_mul_action.smul_zero R M _ _ _ }
 
@@ -169,9 +188,11 @@ instance [semiring R] [ordered_add_comm_monoid M] [semimodule R M] : semimodule 
 { add_smul := @semimodule.add_smul R M _ _ _,
   zero_smul := @semimodule.zero_smul R M _ _ _ }
 
-instance [ordered_semiring R] [ordered_add_comm_monoid M] [semimodule R M] [ordered_semimodule R M] :
+instance [ordered_semiring R] [ordered_add_comm_monoid M] [semimodule R M]
+  [ordered_semimodule R M] :
   ordered_semimodule R (order_dual M) :=
 { smul_lt_smul_of_pos := λ a b, @ordered_semimodule.smul_lt_smul_of_pos R M _ _ _ _ b a,
-  lt_of_smul_lt_smul_of_pos := λ a b, @ordered_semimodule.lt_of_smul_lt_smul_of_pos R M _ _ _ _ b a }
+  lt_of_smul_lt_smul_of_pos := λ a b,
+    @ordered_semimodule.lt_of_smul_lt_smul_of_pos R M _ _ _ _ b a }
 
 end order_dual

@@ -5,7 +5,7 @@ Author: Chris Hughes
 -/
 
 import data.int.modeq
-import algebra.char_p
+import algebra.char_p.basic
 import data.nat.totient
 import ring_theory.ideal.operations
 
@@ -381,7 +381,7 @@ lemma cast_hom_bijective [fintype R] (h : fintype.card R = n) :
 begin
   haveI : fact (0 < n) :=
   begin
-    rw [nat.pos_iff_ne_zero],
+    rw [pos_iff_ne_zero],
     unfreezingI { rintro rfl },
     exact fintype.card_eq_zero_iff.mp h 0
   end,

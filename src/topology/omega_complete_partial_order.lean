@@ -127,7 +127,7 @@ lemma Scott_continuous_of_continuous {α β}
   (f : Scott α → Scott β) (hf : continuous f) :
   omega_complete_partial_order.continuous' f :=
 begin
-  dsimp [_root_.continuous, (⁻¹')] at hf,
+  simp only [continuous_def, (⁻¹')] at hf,
   have h : monotone f,
   { intros x y h,
     cases (hf {x | ¬ x ≤ f y} (not_below_is_open _)) with hf hf', clear hf',
@@ -150,6 +150,7 @@ lemma continuous_of_Scott_continuous {α β}
   (f : Scott α → Scott β) (hf : omega_complete_partial_order.continuous' f) :
   continuous f :=
 begin
+  rw continuous_def,
   intros s hs,
   change continuous' (s ∘ f),
   cases hs with hs hs',

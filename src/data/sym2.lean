@@ -173,6 +173,15 @@ begin
   cases hx; subst x; cases hy; subst y; cases hx'; try { subst x' }; cases hy'; try { subst y' }; cc,
 end
 
+instance mem.decidable [decidable_eq α] (x : α) (z : sym2 α) : decidable (x ∈ z) :=
+begin
+  refine quotient.rec_on_subsingleton z (λ w, _),
+  cases w with y₁ y₂,
+  by_cases h₁ : x = y₁, subst x, exact is_true (mk_has_mem _ _),
+  by_cases h₂ : x = y₂, subst x, exact is_true (mk_has_mem_right _ _),
+  apply is_false, intro h, rw mem_iff at h, cases h, exact h₁ h, exact h₂ h,
+end
+
 end membership
 
 /--

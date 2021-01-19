@@ -56,6 +56,11 @@ lemma prod_congr (f g : α → M) (h : ∀ a, f a = g a) :
 finset.prod_congr rfl $ λ a ha, h a
 
 @[to_additive]
+lemma prod_eq_single {f : α → M} (a : α) (h : ∀ x ≠ a, f x = 1) :
+  (∏ x, f x) = f a :=
+finset.prod_eq_single a (λ x _ hx, h x hx) $ λ ha, (ha (finset.mem_univ a)).elim
+
+@[to_additive]
 lemma prod_unique [unique β] (f : β → M) :
   (∏ x, f x) = f (default β) :=
 by simp only [finset.prod_singleton, univ_unique]
@@ -73,6 +78,27 @@ end
 end fintype
 
 open finset
+
+section
+
+variables {M : Type*} [fintype α] [decidable_eq α] [comm_monoid M]
+
+@[to_additive]
+lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → M) :
+  (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
+(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+
+@[to_additive]
+lemma finset.prod_mul_prod_compl (s : finset α) (f : α → M) :
+  (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
+is_compl_compl.prod_mul_prod f
+
+@[to_additive]
+lemma finset.prod_compl_mul_prod (s : finset α) (f : α → M) :
+  (∏ i in sᶜ, f i) * (∏ i in s, f i) = ∏ i, f i :=
+is_compl_compl.symm.prod_mul_prod f
+
+end
 
 @[to_additive]
 theorem fin.prod_univ_def [comm_monoid β] {n : ℕ} (f : fin n → β) :
@@ -215,15 +241,16 @@ lemma fin.sum_pow_mul_eq_add_pow {n : ℕ} {R : Type*} [comm_semiring R] (a b : 
 by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
 
 @[to_additive]
+lemma function.bijective.prod_comp [fintype α] [fintype β] [comm_monoid γ] {f : α → β}
+  (hf : function.bijective f) (g : β → γ) :
+  ∏ i, g (f i) = ∏ i, g i :=
+prod_bij (λ i hi, f i) (λ i hi, mem_univ _) (λ i hi, rfl) (λ i j _ _ h, hf.1 h) $
+  λ i hi, (hf.2 i).imp $ λ j hj, ⟨mem_univ _, hj.symm⟩
+
+@[to_additive]
 lemma equiv.prod_comp [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :
   ∏ i, f (e i) = ∏ i, f i :=
-begin
-  apply prod_bij (λ i hi, e i) (λ i hi, mem_univ _) _ (λ a b _ _ h, e.injective h),
-  { assume b hb,
-    rcases e.surjective b with ⟨a, ha⟩,
-    exact ⟨a, mem_univ _, ha.symm⟩, },
-  { simp }
-end
+e.bijective.prod_comp f
 
 /-- It is equivalent to sum a function over `fin n` or `finset.range n`. -/
 @[to_additive]
@@ -357,12 +384,12 @@ begin
   rw [fin.sum_univ_succ], simp,
 end
 | (g :: h :: L) :=
-calc g - h + L.alternating_sum
-    = g - h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2 :
+calc g + -h + L.alternating_sum
+    = g + -h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2 :
       congr_arg _ (alternating_sum_eq_finset_sum _)
 ... = ∑ i : fin (L.length + 2), (-1 : ℤ) ^ (i : ℕ) •ℤ list.nth_le (g :: h :: L) i _ :
 begin
-  rw [fin.sum_univ_succ, fin.sum_univ_succ, sub_eq_add_neg, add_assoc],
+  rw [fin.sum_univ_succ, fin.sum_univ_succ, add_assoc],
   unfold_coes,
   simp [nat.succ_eq_add_one, pow_add],
   refl,

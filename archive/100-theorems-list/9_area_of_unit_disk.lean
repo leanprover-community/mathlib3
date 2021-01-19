@@ -330,6 +330,7 @@ begin
   --rw [← lintegral_indicator],
   --rw [h2],
   --simp only,
+  symmetry,
   convert lintegral_coe_eq_integral (λ x, g' x) _,
   simp only [g', nnreal.coe_of_real _ (mul_nonneg zero_le_two (sqrt_nonneg _))],
 end

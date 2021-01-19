@@ -196,6 +196,21 @@ begin
    ... ≤ (f x) ^ pn.succ * f x : (mul_le_mul_right hfnp).mpr hpn'
 end
 
+lemma fixed_point_of_pos_nat_pow {f : ℚ → ℝ} (n : ℕ) (hn : 0 < n)
+  (H1 : ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
+  (H4 : ∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n)
+  (H5 : ∀x:ℚ, 1 < x → (x:ℝ) ≤ f x)
+  (a : ℚ) (ha1 : 1 < a) (hae : f a = a) :
+  f (a^n) = a^n :=
+begin
+  have hh0: (a:ℝ)^n ≤ f (a^n),
+  { have := H5 (a^n) (one_lt_pow ha1 (nat.succ_le_iff.mpr hn)),
+    norm_cast,
+    exact this },
+  have hh1: f (a^n) ≤ a^n := by { rw ← hae, exact pow_f_le_f_pow n hn a ha1 H1 H4},
+  exact le_antisymm hh1 hh0
+end
+
 lemma twice_pos_int_gt_one (z: ℤ) (hpos: 0 < z) : (1:ℚ) < (((2 * z):ℤ):ℚ) :=
 by { norm_cast, linarith }
 
@@ -248,16 +263,7 @@ begin
     have hx': 1 < (x:ℝ) := by { norm_cast, exact hx },
     have hxp := calc 0 < 1 : zero_lt_one
                    ... < x : hx,
-
     exact le_of_all_pow_lt_succ' x (f x) hx' (pos_on_pos_rats hxp H1 H4) hxnm1 },
-  have h_fixed_point_of_pos_nat_pow : (∀n, 0 < n → f (a^n) = a^n),
-  { intros n hn,
-    have hh0: (a:ℝ)^n ≤ f (a^n),
-    { have := H5 (a^n) (one_lt_pow ha1 (nat.succ_le_iff.mpr hn)),
-      norm_cast,
-      exact this },
-    have hh1: f (a^n) ≤ a^n := by { rw ← hae, exact pow_f_le_f_pow n hn a ha1 H1 H4},
-    exact le_antisymm hh1 hh0 },
   have h_fixed_point_of_gt_1: (∀x:ℚ, 1 < x → f x = x),
   { intros x hx,
     -- choose n such that 1 + x < a^n.
@@ -300,7 +306,7 @@ begin
     have h2 := calc f x + f (a^N - x)
             ≤ f (x + (a^N - x)) : H2 x (a^N - x) hxp haNxp
         ... = f (a^N) : by ring
-        ... = a^N : h_fixed_point_of_pos_nat_pow N hNp
+        ... = a^N : fixed_point_of_pos_nat_pow N hNp H1 H4 H5 a ha1 hae
         ... = x + (a^N - x): by ring
         ... = x + (((a^N - x):ℚ):ℝ): by norm_cast,
 

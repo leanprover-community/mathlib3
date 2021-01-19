@@ -166,35 +166,37 @@ calc map f.to_linear_map (M * N)
 
 open_locale classical
 
+namespace finset
+/-- A finite set `U` contained in the product of two sets `S * S'` is also contained in the product
+of two finite sets `T * T' ⊆ S * S'`. -/
+lemma subset_mul {M : Type*} [monoid M] {S : set M} {S' : set M} {U : finset M} (f : ↑U ⊆ S * S') :
+  ∃ (T T' : finset M), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ U ⊆ T * T' :=
+begin
+  apply finset.induction_on' U,
+  { use [∅, ∅], simp only [finset.empty_subset, finset.coe_empty, empty_subset, and_self], },
+  rintros a s haU hs has ⟨T, T', hS, hS', h⟩,
+  obtain ⟨x, y, hx, hy, ha⟩ := mem_mul.1 (f haU),
+  use [insert x T, insert y T'], simp only [finset.coe_insert],
+  repeat {rw [set.insert_subset], }, use [hx, hS, hy, hS'],
+  refine finset.insert_subset.mpr _,
+  split, rw finset.mem_mul, use [x,y],
+  simp only [true_and, true_or, eq_self_iff_true, finset.mem_insert], assumption,
+  suffices g : (s : set M) ⊆ insert x T * insert y T', norm_cast at g, assumption,
+  transitivity ↑(T * T'), apply h, rw finset.coe_mul,
+  apply set.mul_subset_mul (set.subset_insert x T) (set.subset_insert y T'),
+end
+
+end finset
+
 lemma mem_span_mul_finite_of_mem_span_mul {S : set A} {S' : set A} {x : A}
   (hx : x ∈ span R (S * S')) :
   ∃ (T T' : finset A), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ x ∈ span R (T * T' : set A) :=
 begin
-  apply span_induction hx,
-  { rintros x hx,
-    obtain ⟨y, z, hy, hz, h'⟩ := set.mem_mul.mp hx,
-    have hy' := submodule.subset_span hy,
-    have hz' := submodule.subset_span hz,
-    obtain ⟨T, hT, fy⟩ := submodule.mem_span_finite_of_mem_span hy',
-    obtain ⟨T', hT', fz⟩ := submodule.mem_span_finite_of_mem_span hz',
-    use [T, T', hT, hT'],
-    rw [←h', ←submodule.span_mul_span],
-    apply mul_mem_mul fy fz, },
-  { use [∅, ∅], simp, },
-  { rintros x y ⟨T, T', hT, hT', h1⟩ ⟨U, U', hU, hU', h2⟩,
-    use [T ∪ U, T' ∪ U'],
-    simp only [finset.coe_union],
-    use [set.union_subset hT hU, set.union_subset hT' hU'],
-    suffices f : x + y ∈ span R ((T * T') ∪ (U * U') : set A),
-    { have f' : ((T * T') ∪ (U * U') : set A) ⊆ ((T ∪ U) * (T' ∪ U') : set A),
-      { convert set.subset_union_left (T * T' ∪ U * U' : set A) (T * U' ∪ U * T'),
-        simp only [set.mul_union, set.union_mul, set.union_mul],
-        ac_refl },
-      apply span_mono f' f, },
-    rw [span_union, mem_sup],
-    exact ⟨x, h1, y, h2, rfl⟩ },
-  rintros a x ⟨T, T', hT, hT', h⟩,
-  exact ⟨T, T', hT, hT', smul_mem _ _ h⟩,
+  obtain ⟨U, h, hU⟩ := mem_span_finite_of_mem_span hx,
+  obtain ⟨T, T', hS, hS', h⟩ := finset.subset_mul h,
+  use [T, T', hS, hS'],
+  have h' : (U : set A) ⊆ T * T', norm_cast, assumption,
+  have h'' := span_mono h' hU, assumption,
 end
 
 lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :

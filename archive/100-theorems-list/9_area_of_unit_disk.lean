@@ -11,8 +11,7 @@ import analysis.special_functions.trigonometric
 import analysis.mean_inequalities
 
 /-!
-Docstring!
-Freek № 9
+Freek № 9: The area of the unit disc is `π`.
 -/
 open set interval_integral metric real filter measure_theory
 
@@ -95,12 +94,11 @@ lemma sqr_lt_right {a b : ℝ} (h : a^2 < b) : a < sqrt b := (sqr_lt.mp h).2
 
 open_locale topological_space
 
-variables {β E F : Type*} [measurable_space E] [normed_group E] {f : ℝ → E}
-  {c ca cb : E} {a b z : ℝ} {u v ua ub va vb : β → ℝ} {f' : ℝ → E} [normed_space ℝ E]
+variables {E : Type*} [measurable_space E] [normed_group E] [normed_space ℝ E]
   [borel_space E] [complete_space E] [topological_space.second_countable_topology E]
+  {a b : ℝ} {f f' : ℝ → E}
 
 -- FTC-2 for the open set. **(PR #5733)**
--- Note: Measurability assumption will drop when we merge master
 theorem integral_eq_sub_of_has_deriv_at'' (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_at f (f' x) x)
   (hcont' : continuous_on f' (interval a b)) :
@@ -127,75 +125,6 @@ theorem integral_eq_sub_of_has_deriv_at'_of_le (hab : a ≤ b)
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
 integral_eq_sub_of_has_deriv_at'' hcont (by rwa [min_eq_left hab, max_eq_right hab]) hcont'
-
-
--- **Volume Under and Volume Between**
-
-section volume_under
-
-variables {α : Type*} [measure_space α] [sigma_finite (volume : measure α)]
-
-open_locale classical
-
-def volume_under (f : α → ℝ) (s : set α) : set (α × ℝ) :=
-{ p : α × ℝ |  p.1 ∈ s ∧ p.2 ∈ Ico 0 (f p.1) }
-
-lemma is_measurable_volume_under {f : α → ℝ } {s : set α} (hf : measurable f)
-(hs : is_measurable s) :
-is_measurable (volume_under f s) :=
-begin
-  sorry,
-end
-
-/-Integral as the "area under a curve"-/
-theorem lintegral_volume_under {f : α → ℝ } {s : set α} (hf : measurable f) (hs : is_measurable s) :
-(volume.prod volume) (volume_under f s) = ∫⁻ y in s, ennreal.of_real (f y)  :=
-begin
-  rw measure.prod_apply (is_measurable_volume_under hf hs),
-  simp only [volume_under, preimage_set_of_eq],
-  have x_in : ∀ x : α, x ∈ s →
-             {a : ℝ | x ∈ s ∧ a ∈ Ico 0 (f x)} = Ico 0 (f x) := λ x hx,
-             by rw set_of_and;
-             simp only [hx, Ico, mem_set_of_eq, set_of_true, univ_inter],
-
-  have x_out : ∀ x : α, x ∉ s →
-             {a : ℝ | x ∈ s ∧ a ∈ Ico 0 (f x)} = ∅ := λ x hx,
-             by simp only [mem_Ico, hx, set_of_false, false_and],
-
-  have : (λ x, volume {a : ℝ | x ∈ s ∧ a ∈ Ico 0 (f x)})
-        = set.indicator s (λ y, ennreal.of_real (f y)),
-        { funext x,
-          rw indicator_apply,
-          split_ifs,
-          { rw x_in x h,
-            simp only [volume_Ico, sub_zero], },
-          { rw x_out x h,
-            simp only [measure_empty], },  },
-
-  rw [this, lintegral_indicator],
-  exact hs,
-  apply_instance,
-end
-
-def volume_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
-{ p : α × ℝ |  p.1 ∈ s ∧ p.2 ∈ Ico (f p.1) (g p.1)  }
-
-lemma is_measurable_volume_between {f g : α → ℝ } {s : set α}
-(hf : measurable f) (hg: measurable g) (hs : is_measurable s) :
-is_measurable (volume_between f g s) :=
-begin
-  sorry
-end
-
-/-Integral as the "area between two curves"-/
-theorem lintegral_volume_between {f g : α → ℝ } {s : set α}
-(hf : measurable f) (hg : measurable g) (hs : is_measurable s) :
-(volume.prod volume (volume_between f g s)) = ∫⁻ y in s, ennreal.of_real (f y) :=
-begin
-  sorry,
-end
-
-end volume_under
 
 
 -- **The Grand Finale!!**
@@ -297,7 +226,7 @@ begin
             ((continuous_arcsin.add (continuous_id.mul hc1)).continuous_on) _ hc2.continuous_on],
       { simp only [arcsin_one, arcsin_neg_one, one_pow, add_zero, nat.neg_one_pow_two, sub_self,
                   sqrt_zero, mul_zero, sub_neg_eq_add, add_halves'] },
-        { rintros x ⟨hx1, hx2⟩,
+      { rintros x ⟨hx1, hx2⟩,
         convert (has_deriv_at_arcsin hx1.ne.symm hx2.ne).add ((has_deriv_at_id' x).mul
                   (((has_deriv_at_id' x).pow.const_sub 1).sqrt _)),
         { simp only [one_mul, mul_one, zero_sub, nat.cast_bit0, pow_one, nat.cast_one, neg_div],
@@ -311,4 +240,55 @@ begin
 end
 
 
--- **Area Under the Curve**
+-- **Volume Under and Volume Between**
+
+variables {α : Type*} [measure_space α] [sigma_finite (volume : measure α)]
+
+open_locale classical
+
+def volume_under (u : α → ℝ) (s : set α) : set (α × ℝ) :=
+{ p : α × ℝ |  p.1 ∈ s ∧ p.2 ∈ Ico 0 (u p.1) }
+
+def volume_between (u v : α → ℝ) (s : set α) : set (α × ℝ) :=
+{ p : α × ℝ |  p.1 ∈ s ∧ p.2 ∈ Ico (u p.1) (v p.1) }
+
+variables {u v : α → ℝ} {s : set α}
+
+lemma is_measurable_volume_under (hu : measurable u) (hs : is_measurable s) :
+  is_measurable (volume_under u s) :=
+begin
+  sorry,
+end
+
+/-- "Area under the curve" as a left integral -/
+theorem volume_under_eq_lintegral (hu : measurable u) (hs : is_measurable s) :
+  (volume.prod volume) (volume_under u s) = ∫⁻ y in s, ennreal.of_real (u y)  :=
+begin
+  rw measure.prod_apply (is_measurable_volume_under hu hs),
+  { dsimp only [volume_under, preimage_set_of_eq],
+    have x_in : ∀ x : α, x ∈ s → {a : ℝ | x ∈ s ∧ a ∈ Ico 0 (u x)} = Ico 0 (u x) :=
+      λ x hx, by simp only [set_of_and, hx, Ico, mem_set_of_eq, set_of_true, univ_inter, mem_inter_eq],
+    have x_out : ∀ x : α, x ∉ s → {a : ℝ | x ∈ s ∧ a ∈ Ico 0 (u x)} = ∅ :=
+      λ x hx, by simp only [mem_Ico, hx, set_of_false, false_and],
+    have : (λ x, volume {a : ℝ | x ∈ s ∧ a ∈ Ico 0 (u x)}) = s.indicator (λ y, ennreal.of_real (u y)),
+    { funext x,
+      rw indicator_apply,
+      split_ifs,
+      { simp only [x_in x h, volume_Ico, sub_zero], },
+      { simp only [x_out x h, measure_empty] } },
+    rwa [this, lintegral_indicator] },
+  { apply_instance },
+end
+
+lemma is_measurable_volume_between (hu : measurable u) (hv: measurable v) (hs : is_measurable s) :
+  is_measurable (volume_between u v s) :=
+begin
+  sorry,
+end
+
+/-- "Area between two curves" as a left integral -/
+theorem lintegral_volume_between (hu : measurable u) (hv : measurable v) (hs : is_measurable s) :
+  (volume.prod volume (volume_between u v s)) = ∫⁻ y in s, ennreal.of_real (u y) :=
+begin
+  sorry,
+end

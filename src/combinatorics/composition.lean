@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import data.fintype.card
 import data.finset.sort
 import tactic.omega
+import algebra.big_operators.order
 
 /-!
 # Compositions
@@ -459,6 +460,33 @@ begin
   have : ∀ j ∈ c.blocks, j = 1 ↔ j ≤ 1 := λ j hj, by simp [le_antisymm_iff, c.one_le_blocks hj],
   simp [this] {contextual := tt}
 end
+
+lemma eq_ones_iff_length {c : composition n} :
+  c = ones n ↔ c.length = n :=
+begin
+  split,
+  { rintro rfl,
+    exact ones_length n },
+  { assume H,
+    contrapose H,
+    assume length_n,
+    apply lt_irrefl n,
+    calc
+      n = ∑ (i : fin c.length), 1 : by simp [length_n]
+      ... < ∑ (i : fin c.length), c.blocks_fun i :
+      begin
+        obtain ⟨i, hi, i_blocks⟩ : ∃ i ∈ c.blocks, 1 < i := ne_ones_iff.1 H,
+        rw [← of_fn_blocks_fun, mem_of_fn c.blocks_fun, set.mem_range] at hi,
+        obtain ⟨j : fin c.length, hj : c.blocks_fun j = i⟩ := hi,
+        rw ← hj at i_blocks,
+        exact finset.sum_lt_sum (λ i hi, by simp [blocks_fun]) ⟨j, finset.mem_univ _, i_blocks⟩,
+      end
+      ... = n : c.sum_blocks_fun }
+end
+
+lemma eq_ones_iff_le_length {c : composition n} :
+  c = ones n ↔ n ≤ c.length :=
+by simp [eq_ones_iff_length, le_antisymm_iff, c.length_le]
 
 /-- The composition made of a single block of size `n`. -/
 def single (n : ℕ) (h : 0 < n) : composition n :=

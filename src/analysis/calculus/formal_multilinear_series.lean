@@ -85,9 +85,13 @@ by { cases h1, congr' with ⟨i, hi⟩, exact h2 i hi hi }
 
 /-- Composing each term `pₙ` in a formal multilinear series with `(u, ..., u)` where `u` is a fixed
 continuous linear map, gives a new formal multilinear series `p.comp_continuous_linear_map u`. -/
-lemma comp_continuous_linear_map (p : formal_multilinear_series 𝕜 F G) (u : E →L[𝕜] F) :
+def comp_continuous_linear_map (p : formal_multilinear_series 𝕜 F G) (u : E →L[𝕜] F) :
   formal_multilinear_series 𝕜 E G :=
-λ n, (p n).comp_continuous_linear_map (λ i, u)
+λ n, (p n).comp_continuous_linear_map (λ (i : fin n), u)
+
+@[simp] lemma comp_continuous_linear_map_apply
+  (p : formal_multilinear_series 𝕜 F G) (u : E →L[𝕜] F) (n : ℕ) (v : fin n → E) :
+  (p.comp_continuous_linear_map u) n v = p n (u ∘ v) := rfl
 
 variables (𝕜) {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]

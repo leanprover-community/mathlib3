@@ -135,6 +135,13 @@ begin
     rwa c.mem_range_embedding_iff' }
 end
 
+@[simp] lemma comp_continuous_linear_map_apply_composition {n : ℕ}
+  (p : formal_multilinear_series 𝕜 F G) (f : E →L[𝕜] F)
+  (c : composition n) (v : fin n → E) :
+  (p.comp_continuous_linear_map f).apply_composition c v
+  = p.apply_composition c (f ∘ v) :=
+by simp [apply_composition]
+
 end formal_multilinear_series
 
 namespace continuous_multilinear_map
@@ -192,6 +199,11 @@ def comp_along_composition {n : ℕ}
   continuous_multilinear_map 𝕜 (λ i : fin n, E) G :=
 (f.comp_along_composition_multilinear p c).mk_continuous _
   (f.comp_along_composition_multilinear_bound p c)
+
+@[simp] lemma comp_along_composition_apply {n : ℕ}
+  (p : formal_multilinear_series 𝕜 E F) (c : composition n)
+  (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) (v : fin n → E) :
+  (f.comp_along_composition p c) v = f (p.apply_composition c v) := rfl
 
 end continuous_multilinear_map
 

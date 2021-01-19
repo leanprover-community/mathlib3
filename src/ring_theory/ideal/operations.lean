@@ -1151,8 +1151,8 @@ instance {I : ideal A} : algebra R (ideal.quotient I) :=
 def quotient.mkₐ (I : ideal A) : A →ₐ[R] I.quotient :=
 ⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl, λ _, rfl⟩
 
-lemma quotient.alg_map (I : ideal A) : algebra_map R I.quotient =
-  (algebra_map A I.quotient).comp (algebra_map R A) :=
+lemma quotient.alg_map (I : ideal A) :
+  algebra_map R I.quotient = (algebra_map A I.quotient).comp (algebra_map R A) :=
 by simp only [ring_hom.algebra_map_to_algebra, ring_hom.comp_id]
 
 instance {I : ideal A} : is_scalar_tower R A (ideal.quotient I) :=

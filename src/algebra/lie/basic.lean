@@ -574,11 +574,11 @@ instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) : lie_algebra R L'
 
 namespace lie_subalgebra
 
-variables {R L} {L' : lie_subalgebra R L}
+variables {R L} (L' : lie_subalgebra R L)
 
 @[simp] lemma zero_mem : (0 : L) ∈ L' := (L' : submodule R L).zero_mem
 
-lemma smul_mem {t : R} {x : L} (h : x ∈ L') : t • x ∈ L' := (L' : submodule R L).smul_mem t h
+lemma smul_mem (t : R) {x : L} (h : x ∈ L') : t • x ∈ L' := (L' : submodule R L).smul_mem t h
 
 lemma add_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x + y : L) ∈ L' :=
 (L' : submodule R L).add_mem hx hy
@@ -660,7 +660,7 @@ def lie_subalgebra.map (L' : lie_subalgebra R L) : lie_subalgebra R L₂ :=
     erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
     erw submodule.mem_map at hy, rcases hy with ⟨y', hy', hy⟩, rw ←hy,
     erw submodule.mem_map,
-    exact ⟨⁅x', y'⁆, L'.lie_mem' hx' hy', lie_algebra.map_lie f x' y'⟩, },
+    exact ⟨⁅x', y'⁆, L'.lie_mem hx' hy', lie_algebra.map_lie f x' y'⟩, },
 ..((L' : submodule R L).map (f : L →ₗ[R] L₂))}
 
 @[simp] lemma lie_subalgebra.mem_map_submodule (e : L ≃ₗ⁅R⁆ L₂) (L' : lie_subalgebra R L) (x : L₂) :

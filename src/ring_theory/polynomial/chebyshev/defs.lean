@@ -184,12 +184,7 @@ lemma chebyshev₁_eq_chebyshev₂_sub_X_mul_chebyshev₂ :
 ∀ (n : ℕ), chebyshev₁ R (n+1) = chebyshev₂ R (n+1) - X * chebyshev₂ R n :=
 begin
   intro n,
-  calc chebyshev₁ R (n+1) = chebyshev₁ R (n+1) + X * chebyshev₂ R n - X * chebyshev₂ R n
-                                      : by rw add_sub_cancel
-  ...                     = X * chebyshev₂ R n + chebyshev₁ R (n+1) - X * chebyshev₂ R n
-                                      : by rw add_comm
-  ...                     = chebyshev₂ R (n+1) - X * chebyshev₂ R n
-                                      : by rw chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁
+  rw [chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁, add_comm (X * chebyshev₂ R n), add_sub_cancel]
 end
 
 lemma chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ :
@@ -208,6 +203,15 @@ calc chebyshev₁ R (n + 2 + 2) = 2 * X * chebyshev₁ R (n + 2 + 1) - chebyshev
 ... = 2 * X * (X * chebyshev₁ R (n + 2)) - 2 * X * ((1 - X ^ 2) * chebyshev₂ R (n + 1))
                                          - X * chebyshev₁ R (n + 1) + (1 - X ^ 2) * chebyshev₂ R n
                                 : by rw [mul_sub, sub_add]
+... = 2 * X * (X * chebyshev₁ R (n + 2)) - X * chebyshev₁ R (n + 1)
+                    - 2 * X * (1 - X ^ 2) * chebyshev₂ R (n + 1) + (1 - X ^ 2) * chebyshev₂ R n
+                                : by rw [sub_right_comm, ←mul_assoc, ←mul_assoc]
+... = 2 * X * (X * chebyshev₁ R (n + 2)) - X * chebyshev₁ R (n + 1)
+                    - (1 - X ^ 2) * 2 * X * chebyshev₂ R (n + 1) + (1 - X ^ 2) * chebyshev₂ R n
+                                : by simp only [mul_assoc, mul_comm]
+... = 2 * X * (X * chebyshev₁ R (n + 2)) - X * chebyshev₁ R (n + 1)
+                    - (1 - X ^ 2) * (2 * X  * chebyshev₂ R (n + 1)) + (1 - X ^ 2) * chebyshev₂ R n
+                                : by simp only [mul_assoc]
 ... = X * (2 * X * chebyshev₁ R (n + 2) - chebyshev₁ R (n + 1))
                                     - (1 - X ^ 2) * (2 * X * chebyshev₂ R (n + 1) - chebyshev₂ R n)
                                 : by sorry
@@ -267,6 +271,12 @@ begin
       ←sub_mul],
   norm_num,
   rw sub_eq_add_neg,
+end
+
+lemma add_one_mul_chebyshev₁_eq_poly_in_chebyshev₂ :
+∀ (n : ℕ), (n + 1) * chebyshev₁ R (n+1) = X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n) :=
+begin
+  sorry
 end
 
 end polynomial

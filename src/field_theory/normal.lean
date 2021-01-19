@@ -13,7 +13,7 @@ import ring_theory.power_basis
 # Normal field extensions
 
 In this file we define normal field extensions and prove that for a finite extension, being normal
-is the same as being a splitting field.
+is the same as being a splitting field (`normal.of_is_splitting_field` and `normal.exists_is_splitting_field`).
 
 ## Main Definitions
 

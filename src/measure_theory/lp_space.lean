@@ -56,8 +56,7 @@ lemma snorm_eq_snorm' (hq_ne_zero : q ≠ 0) (hq_ne_top : q ≠ ⊤) {f : α →
   snorm f q μ = snorm' f (ennreal.to_real q) μ :=
 by simp [snorm, hq_ne_zero, hq_ne_top]
 
-@[simp] lemma snorm_exponent_top {f : α → F} : snorm f ⊤ μ = snorm_inf f μ :=
-by simp [snorm]
+@[simp] lemma snorm_exponent_top {f : α → F} : snorm f ⊤ μ = snorm_inf f μ := by simp [snorm]
 
 /-- The property that `f:α→E` is ae_measurable and `(∫ ∥f a∥^p ∂μ)^(1/p)` is finite -/
 def mem_ℒp (f : α → E) (p : ennreal) (μ : measure α) : Prop :=
@@ -132,11 +131,7 @@ begin
 end
 
 lemma zero_mem_ℒp : mem_ℒp (0 : α → E) q μ :=
-begin
-  refine ⟨measurable_zero.ae_measurable, _⟩,
-  rw snorm_zero,
-  exact ennreal.coe_lt_top,
-end
+⟨measurable_zero.ae_measurable, by { rw snorm_zero, exact ennreal.coe_lt_top, } ⟩
 
 lemma snorm'_measure_zero_of_pos {f : α → F} (hp_pos : 0 < p) : snorm' f p 0 = 0 :=
 by simp [snorm', hp_pos]
@@ -146,8 +141,7 @@ lemma snorm'_measure_zero_of_exponent_zero {f : α → F} : snorm' f 0 0 = 1 := 
 lemma snorm'_measure_zero_of_neg {f : α → F} (hp_neg : p < 0) : snorm' f p 0 = ⊤ :=
 by simp [snorm', hp_neg]
 
-@[simp] lemma snorm_inf_measure_zero {f : α → F} : snorm_inf f 0 = 0 :=
-by simp [snorm_inf]
+@[simp] lemma snorm_inf_measure_zero {f : α → F} : snorm_inf f 0 = 0 := by simp [snorm_inf]
 
 @[simp] lemma snorm_measure_zero {f : α → F} : snorm f q 0 = 0 :=
 begin
@@ -227,20 +221,17 @@ end
 
 end const
 
-lemma snorm'_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) :
-  snorm' f p μ = snorm' g p μ :=
+lemma snorm'_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) : snorm' f p μ = snorm' g p μ :=
 begin
   suffices h_no_pow : ∫⁻ a, (nnnorm (f a)) ^ p ∂μ = ∫⁻ a, (nnnorm (g a)) ^ p ∂μ,
   { simp_rw [snorm', h_no_pow], },
   exact lintegral_congr_ae (hfg.mono (λ x hx, by simp [*])),
 end
 
-lemma snorm_inf_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) :
-  snorm_inf f μ = snorm_inf g μ :=
+lemma snorm_inf_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) : snorm_inf f μ = snorm_inf g μ :=
 ess_sup_congr_ae (hfg.mono (λ x hx, by rw hx))
 
-lemma snorm_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) :
-  snorm f q μ = snorm g q μ :=
+lemma snorm_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) : snorm f q μ = snorm g q μ :=
 begin
   by_cases h0 : q = 0,
   { simp [h0], },
@@ -251,8 +242,7 @@ begin
   exact snorm'_congr_ae hfg,
 end
 
-lemma mem_ℒp.ae_eq {f g : α → E} (hfg : f =ᵐ[μ] g) (hf_Lp : mem_ℒp f q μ) :
-  mem_ℒp g q μ :=
+lemma mem_ℒp.ae_eq {f g : α → E} (hfg : f =ᵐ[μ] g) (hf_Lp : mem_ℒp f q μ) : mem_ℒp g q μ :=
 begin
   split,
   { cases hf_Lp.1 with f' hf',
@@ -391,10 +381,7 @@ end
 
 lemma snorm'_le_snorm_inf (hp_pos : 0 < p) {f : α → F} [probability_measure μ] :
   snorm' f p μ ≤ snorm_inf f μ :=
-begin
-  refine le_trans (snorm'_le_snorm_inf_mul_rpow_measure_univ hp_pos) (le_of_eq _),
-  simp [measure_univ],
-end
+le_trans (snorm'_le_snorm_inf_mul_rpow_measure_univ hp_pos) (le_of_eq (by simp [measure_univ]))
 
 lemma snorm_le_snorm_of_exponent_le {p q : ennreal} (hpq : p ≤ q) [probability_measure μ]
   {f : α → E} (hf : ae_measurable f μ) :
@@ -500,8 +487,7 @@ end
 ... ≤ snorm' f p μ + snorm' g p μ :
   ennreal.lintegral_Lp_add_le hf.nnnorm.ennreal_coe hg.nnnorm.ennreal_coe hp1
 
-lemma snorm_inf_add_le {f g : α → F} :
-  snorm_inf (f + g) μ ≤ snorm_inf f μ + snorm_inf g μ :=
+lemma snorm_inf_add_le {f g : α → F} : snorm_inf (f + g) μ ≤ snorm_inf f μ + snorm_inf g μ :=
 begin
   refine le_trans (ess_sup_mono_ae (filter.eventually_of_forall (λ x, _)))
     (ennreal.ess_sup_add_le _ _),

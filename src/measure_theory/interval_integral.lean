@@ -394,12 +394,6 @@ begin
     preimage_neg_Ioc, neg_neg, restrict_congr_set Ico_ae_eq_Ioc]
 end
 
-/-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
-lemma integral_congr {a b : ℝ} (f g : ℝ → E) (h : eq_on f g (interval a b)) :
-  ∫ x in a..b, f x = ∫ x in a..b, g x :=
-by cases le_total a b with hab hab; simpa [hab, integral_of_le, integral_of_ge]
-  using set_integral_congr is_measurable_Ioc (h.mono Ioc_subset_Icc_self)
-
 /-!
 ### Integral is an additive function of the interval
 
@@ -413,6 +407,12 @@ variables [topological_space α] [opens_measurable_space α]
 section order_closed_topology
 
 variables [order_closed_topology α]
+
+/-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
+lemma integral_congr {a b : α} {f g : α → E} (h : eq_on f g (interval a b)) :
+  ∫ x in a..b, f x ∂μ = ∫ x in a..b, g x ∂μ :=
+by cases le_total a b with hab hab; simpa [hab, integral_of_le, integral_of_ge]
+  using set_integral_congr is_measurable_Ioc (h.mono Ioc_subset_Icc_self)
 
 lemma integral_add_adjacent_intervals_cancel (hab : interval_integrable f μ a b)
   (hbc : interval_integrable f μ b c) :

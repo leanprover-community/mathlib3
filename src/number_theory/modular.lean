@@ -341,10 +341,41 @@ def T : SL(2,ℤ) := { val :=  λ i j, if (i = 1 ∧ j = 0) then 0 else 1,
 def S : SL(2,ℤ) := { val :=  λ i j, i - j,
   property := by simp [det2] }
 
-def subgroup_SL {R : Type*} [comm_ring R] {S : subring R} {n : ℕ} : subgroup SL(n,R) :=
+lemma det1_hom_det1 {R S : Type*} [comm_ring R] [comm_ring S] {n: ℕ } (g : matrix (fin n) (fin n) S )
+(f : ring_hom S R) (h : det g = 1):
+(f.map_matrix g).det = 1 :=
 begin
+  rw ← matrix.ring_hom.map_det,
+  simp [h],
+end
+
+def SL_n_insertion  {R S : Type*} [comm_ring R] [comm_ring S] (f : ring_hom S R) {n : ℕ } :
+monoid_hom (SL(n,S)) (SL(n,R)) :=
+{ to_fun := λ g, ⟨f.map_matrix g, det1_hom_det1 g f g.2⟩,
+  map_one' := _,
+  map_mul' := _ }
+
+lemma coe_to_det {R : Type*} [comm_ring R] {S : subring R} {n: ℕ } (g : matrix (fin n) (fin n) S ):
+(g.det : R) = det (λ i j , (g i j : R )) :=
+begin
+  rw det,
+  rw det,
   sorry
 end
+
+def subgroup_SL {R : Type*} [comm_ring R] {S : subring R} {n : ℕ} : subgroup SL(n,R) :=
+{ carrier := _, -- λ g, ⟨g, ⟩, --{ a: matrix (fin n) (fin n) S | ∃ (b : SL(n,S)), a=b.val } ,
+  one_mem' := _,
+  mul_mem' := _,
+  inv_mem' := _ }
+
+
+
+
+
+--begin
+ -- sorry
+--end
 
 lemma T_action {z : H} {n : ℤ} : ((T^n) : SL(2,ℝ)) • z = (z:ℂ) + (n:ℂ) :=
 begin

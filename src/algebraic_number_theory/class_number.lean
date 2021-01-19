@@ -20,18 +20,136 @@ open ring
 
 open_locale big_operators
 
+namespace finset
+
+lemma map_max' {α β : Type*} [linear_order α] [linear_order β]
+  {f : α → β} (hf : monotone f) (s : finset α) (h : s.nonempty) :
+  f (s.max' h) = (s.image f).max' (h.image f) :=
+begin
+  obtain mem := finset.max'_mem s h,
+  refine le_antisymm
+    (finset.le_max' _ _ (finset.mem_image.mpr ⟨_, mem, rfl⟩))
+    (finset.max'_le _ _ _ (λ y hy, _)),
+  obtain ⟨x, hx, rfl⟩ := finset.mem_image.mp hy,
+  exact hf (finset.le_max' _ _ hx)
+end
+
+lemma max'_lt {α : Type*} [linear_order α] (s : finset α) (h : s.nonempty)
+  {x : α} (hx : ∀ y ∈ s, y < x) :
+  s.max' h < x :=
+lt_of_le_of_ne
+  (finset.max'_le _ h _ (λ y hy, le_of_lt (hx y hy)))
+  (ne_of_lt (hx _ (s.max'_mem h)))
+
+lemma exists_eq_insert_of_lt_card {α : Type*} [decidable_eq α] (n : ℕ) (s : finset α)
+  (h : n < s.card) : ∃ (x : α) (t : finset α), s = insert x t ∧ n ≤ t.card :=
+begin
+  have : 0 < s.card := by linarith,
+  obtain ⟨x, hx⟩ := card_pos.mp this,
+  use [x, s.erase x, (insert_erase hx).symm],
+  rw card_erase_of_mem hx,
+  exact nat.le_pred_of_lt h
+end
+
+lemma nonempty_of_lt_card {α : Type*}
+  (s : finset α) {n : ℕ} (hn : n < card s) :
+  s.nonempty :=
+card_pos.mp (by linarith)
+
+lemma le_card_erase_of_lt {α : Type*} [decidable_eq α]
+  (s : finset α) {n : ℕ} (hn : n < card s) {x} (hx : x ∈ s) :
+  n ≤ (s.erase x).card :=
+by { rw card_erase_of_mem hx, exact nat.le_pred_of_lt hn }
+
+/-- `finset.to_vec` noncomputably gives a vector of `n` distinct elements in `s` -/
+noncomputable def to_vec {α : Type*} [decidable_eq α] :
+  ∀ (s : finset α) {n : ℕ} (hn : n ≤ card s), fin n → α
+| s 0       hn i := fin_zero_elim i
+| s (n + 1) hn i := let h : ∃ x, x ∈ s := nonempty_of_lt_card s hn
+in @fin.cons _ (λ _, α) (classical.some h) ((s.erase (classical.some h)).to_vec
+  (le_card_erase_of_lt s hn (classical.some_spec h))) i
+
+/-- Auxiliary lemma for proving `to_vec_mem`. -/
+lemma to_vec_zero_mem {α : Type*} [decidable_eq α]
+  (s : finset α) {n : ℕ} (hn : n.succ ≤ card s) :
+  to_vec s hn 0 ∈ s :=
+let h : ∃ x, x ∈ s := nonempty_of_lt_card s hn
+in show classical.some h ∈ s, from classical.some_spec h
+
+lemma to_vec_succ {α : Type*} [decidable_eq α]
+  (s : finset α) {n : ℕ} (hn : n.succ ≤ card s) (i : fin n) :
+  to_vec s hn i.succ =
+    to_vec (s.erase (to_vec s hn 0))
+                  (le_card_erase_of_lt s hn (to_vec_zero_mem s hn))
+                  i :=
+by simp only [to_vec, fin.cons_succ, fin.cons_zero]
+
+lemma to_vec_mem {α : Type*} [decidable_eq α] :
+  ∀ (s : finset α) {n : ℕ} (hn : n ≤ card s) (i : fin n),
+  to_vec s hn i ∈ s
+| s 0       hn i := fin_zero_elim i
+| s (n + 1) hn i := let h : ∃ x, x ∈ s := nonempty_of_lt_card s hn
+in fin.cases
+  (show classical.some h ∈ s, from classical.some_spec h)
+  (λ i, by { rw to_vec_succ,
+             exact erase_subset _ _ (to_vec_mem (erase _ _) _ i) })
+  i
+
+lemma to_vec_succ_ne_to_vec_zero {α : Type*} [decidable_eq α] :
+  ∀ (s : finset α) {n : ℕ} (hn : n.succ ≤ card s) (i : fin n),
+  to_vec s hn i.succ ≠ to_vec s hn 0
+| s 0       hn i := fin_zero_elim i
+| s (n + 1) hn i :=
+by { rw to_vec_succ, exact ne_of_mem_erase (to_vec_mem _ _ _) }
+
+lemma to_vec_injective {α : Type*} [decidable_eq α] :
+  ∀ (s : finset α) {n : ℕ} (hn : n ≤ card s),
+  function.injective (to_vec s hn) :=
+begin
+  intros s n hn a b,
+  induction n with n ih generalizing s hn,
+  { rcases a with ⟨_, ⟨⟩⟩ },
+  { refine fin.cases _ (λ a, _) a; refine fin.cases _ (λ b, _) b; intro h,
+    { refl },
+    { have := (to_vec_succ_ne_to_vec_zero s hn b).symm,
+      contradiction },
+    { have := to_vec_succ_ne_to_vec_zero s hn a,
+      contradiction },
+    { rw [to_vec_succ, to_vec_succ] at h,
+      rw ih (s.erase _) _ h } }
+end
+
+end finset
+
 section euclidean_domain
 
 variables {R K L : Type*} [euclidean_domain R] [field K] [field L]
 variables (f : fraction_map R K)
 variables [algebra f.codomain L] [finite_dimensional f.codomain L] [is_separable f.codomain L]
 variables [algebra R L] [is_scalar_tower R f.codomain L]
-variables [decidable_eq L]
 
 variables (L)
 
+lemma is_basis.repr_injective {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+  {ι : Type*} {b : ι → M} (hb : is_basis R b) :
+  function.injective hb.repr :=
+function.left_inverse.injective hb.total_repr
+
+lemma is_basis.nonempty_of_nontrivial {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+  {ι : Type*} {b : ι → M} (hb : is_basis R b) [hM : nontrivial M] :
+  nonempty ι :=
+begin
+  tactic.unfreeze_local_instances,
+  obtain ⟨x, y, hxy⟩ := hM,
+  have := hb.repr_injective.ne hxy,
+  contrapose! this,
+  ext i,
+  cases this ⟨i⟩
+end
+
 lemma integral_closure.dim_pos : 0 < integral_closure.dim L f :=
-sorry
+by { rw [← fintype.card_fin (integral_closure.dim L f), fintype.card_pos_iff],
+     exact is_basis.nonempty_of_nontrivial (integral_closure.is_basis L f) }
 
 /-- If `a : integral_closure R L` has coordinates `≤ y`, `norm a ≤ norm_bound L f abs * y ^ n`. -/
 noncomputable def norm_bound (abs : absolute_value R ℤ) : ℤ :=
@@ -59,6 +177,9 @@ begin
   exact finset.mem_image.mpr ⟨⟨i, j, k⟩, finset.mem_univ _, rfl⟩
 end
 
+lemma norm_bound_ne_zero (abs : absolute_value R ℤ) : norm_bound L f abs ≠ 0 :=
+ne_of_gt (norm_bound_pos L f abs)
+
 lemma norm_le (a : integral_closure R L) {abs : absolute_value R ℤ}
   {y : ℤ} (hy : ∀ k, abs ((integral_closure.is_basis L f).repr a k) ≤ y) :
   abs_norm f abs a ≤ norm_bound L f abs * y ^ (integral_closure.dim L f) :=
@@ -75,25 +196,6 @@ begin
     apply finset.le_max',
     exact finset.mem_image.mpr ⟨⟨i, j, k⟩, finset.mem_univ _, rfl⟩ },
 end
-
-lemma finset.map_max' {α β : Type*} [linear_order α] [linear_order β]
-  {f : α → β} (hf : monotone f) (s : finset α) (h : s.nonempty) :
-  f (s.max' h) = (s.image f).max' (h.image f) :=
-begin
-  obtain mem := finset.max'_mem s h,
-  refine le_antisymm
-    (finset.le_max' _ _ (finset.mem_image.mpr ⟨_, mem, rfl⟩))
-    (finset.max'_le _ _ _ (λ y hy, _)),
-  obtain ⟨x, hx, rfl⟩ := finset.mem_image.mp hy,
-  exact hf (finset.le_max' _ _ hx)
-end
-
-lemma finset.max'_lt {α : Type*} [linear_order α] (s : finset α) (h : s.nonempty)
-  {x : α} (hx : ∀ y ∈ s, y < x) :
-  s.max' h < x :=
-lt_of_le_of_ne
-  (finset.max'_le _ h _ (λ y hy, le_of_lt (hx y hy)))
-  (ne_of_lt (hx _ (s.max'_mem h)))
 
 lemma norm_lt {S : Type*} [linear_ordered_comm_ring S]
   (a : integral_closure R L) {abs : absolute_value R ℤ}
@@ -125,7 +227,8 @@ end
 
 section admissible
 
-/-- TODO: is this the right abstraction? -/
+/-- An `admissible_absolute_value R` is a Euclidean absolute value `R → ℤ`,
+such that a large enough set will have a pair of close together remainders. -/
 structure admissible_absolute_value (R : Type*) [euclidean_domain R]
   extends euclidean_absolute_value R ℤ :=
 (card : ℝ → ℕ)
@@ -159,11 +262,6 @@ abs.to_euclidean_absolute_value.map_zero
 lemma map_ne_zero {x : R} : abs x ≠ 0 ↔ x ≠ 0 :=
 abs.to_euclidean_absolute_value.map_ne_zero
 
-/-- `simp`-normal form version of `f.map_ne_zero` -/
-@[simp]
-lemma map_ne_zero' {x : R} : ¬ (abs x = 0) ↔ ¬ (x = 0) :=
-abs.to_euclidean_absolute_value.map_ne_zero'
-
 lemma pos {x : R} (hx : x ≠ 0) : 0 < abs x :=
 abs.to_euclidean_absolute_value.pos hx
 
@@ -187,45 +285,13 @@ lemma map_sub_eq_zero_iff (a b : R) :
   abs (a - b) = 0 ↔ a = b :=
 abs.to_euclidean_absolute_value.map_sub_eq_zero_iff a b
 
+/-- If `A` is a family of enough elements, there is a pair of elements in `A`
+(not necessarily distinct), such that their remainders are close together. -/
 lemma exists_approx {ε : ℝ} (hε : 0 < ε) (b : R) (A : fin (abs.card ε).succ → R) :
   ∃ i₀ i₁, i₀ ≠ i₁ ∧ (abs (A i₁ % b - A i₀ % b) : ℝ) < abs b • ε :=
 abs.exists_approx' _ hε b A
 
-lemma finset.exists_eq_insert_of_lt_card {α : Type*} [decidable_eq α] (n : ℕ) (s : finset α)
-  (h : n < s.card) : ∃ (x : α) (t : finset α), s = insert x t ∧ n ≤ t.card :=
-begin
-  have : 0 < s.card := by linarith,
-  obtain ⟨x, hx⟩ := finset.card_pos.mp this,
-  use [x, s.erase x, (finset.insert_erase hx).symm],
-  rw finset.card_erase_of_mem hx,
-  exact nat.le_pred_of_lt h
-end
-
-lemma finset.card_le_one_of_subsingleton {α : Type*} [subsingleton α]
-  (s : finset α) : s.card ≤ 1 :=
-finset.card_le_one_iff.mpr (λ x y _ _, subsingleton.elim x y)
-
-noncomputable def finset.to_vec {α : Type*} [decidable_eq α] :
-  ∀ (s : finset α) {n : ℕ} (hn : n ≤ finset.card s), fin n → α
-| s 0       hn i := fin_zero_elim i
-| s (n + 1) hn i := let h : ∃ x, x ∈ s := finset.card_pos.mp (by linarith)
-in @fin.cons _ (λ _, α) (classical.some h) ((s.erase (classical.some h)).to_vec
-  (by { rw finset.card_erase_of_mem (show classical.some h ∈ s, from classical.some_spec h),
-        exact nat.le_pred_of_lt hn })) i
-
-lemma finset.to_vec_injective {α : Type*} [decidable_eq α] :
-  ∀ (s : finset α) {n : ℕ} (hn : n ≤ finset.card s),
-  function.injective (finset.to_vec s hn) := sorry
-
-lemma finset.to_vec_mem {α : Type*} [decidable_eq α] :
-  ∀ (s : finset α) {n : ℕ} (hn : n ≤ finset.card s) (i : fin n),
-  finset.to_vec s hn i ∈ s
-| s 0       hn i := fin_zero_elim i
-| s (n + 1) hn i :=
-let h : ∃ x, x ∈ s := finset.card_pos.mp (by linarith)
-in fin.cases (show classical.some h ∈ s, from classical.some_spec h) sorry i
-
-/-- We can partition a finite family into `M` sets, such that the remainders
+/-- We can partition a finite family into `card ε` sets, such that the remainders
 in each set are close together. -/
 lemma exists_partition (n : ℕ) {ε : ℝ} (hε : 0 < ε) (b : R) (A : fin n → R) :
   ∃ (t : fin n → fin (abs.card ε)),
@@ -297,23 +363,6 @@ open admissible_absolute_value
 
 include L f abs
 
-/-- A fraction `a / b : L` can be given as `c : integral_closure R L` divided by `d : R`. -/
-lemma exists_eq_mul (a b : integral_closure R L) (hb : b ≠ 0) :
-  ∃ (c : integral_closure R L) (d ≠ (0 : R)), d • a = b * c :=
-begin
-  have : function.injective (algebra_map R L),
-  { rw is_scalar_tower.algebra_map_eq R f.codomain L,
-    exact function.injective.comp (ring_hom.injective _) f.injective },
-  obtain ⟨c, d, d_ne, hx⟩ := exists_integral_multiple
-    (f.comap_is_algebraic_iff.mpr algebra.is_algebraic_of_finite (a / b : L))
-    this,
-  use [c, d, d_ne],
-  apply subtype.coe_injective,
-  push_cast,
-  have hb' : (b : L) ≠ 0 := λ h, hb (subtype.coe_injective h),
-  rw [← hx, algebra.mul_smul_comm, mul_div_cancel' (a : L) hb'],
-end
-
 /-- The `M` from the proof of thm 5.4.
 
 Should really be `abs.card (nat.ceil_nth_root _ _)`, but nth_root _ x ≤ x so this works too.
@@ -326,7 +375,8 @@ variables [infinite R]
 noncomputable def distinct_elems : fin (cardM L f abs ^ integral_closure.dim L f).succ ↪ R :=
 function.embedding.trans (fin.coe_embedding _).to_embedding (infinite.nat_embedding R)
 
-/-- `finset_approx` is a finite set that approximates the elements of each fractional ideal. -/
+/-- `finset_approx` is a finite set such that each fractional ideal in the integral closure
+contains an element close to `finset_approx`. -/
 noncomputable def finset_approx [decidable_eq R] : finset R :=
 ((finset.univ.product finset.univ)
   .image (λ (xy : fin _ × fin _), distinct_elems L f abs xy.1 - distinct_elems L f abs xy.2))
@@ -351,6 +401,10 @@ begin
     exact λ h, hij ((distinct_elems L f abs).injective h) }
 end
 
+section
+
+open real
+
 local attribute [-instance] real.decidable_eq
 
 -- Theorem 5.4
@@ -361,6 +415,16 @@ theorem exists_mem_finset_approx [decidable_eq R]
 begin
   set ε : ℝ := norm_bound L f abs ^ (-1 / (integral_closure.dim L f) : ℝ) with ε_eq,
   have hε : 0 < ε := real.rpow_pos_of_pos (int.cast_pos.mpr (norm_bound_pos L f abs)) _,
+  have ε_le : (norm_bound L f abs : ℝ) * (abs b • ε) ^ integral_closure.dim L f ≤ (abs b ^ integral_closure.dim L f),
+  { have := integral_closure.dim_pos L f,
+    have := norm_bound_pos L f abs,
+    have := abs.nonneg b,
+    rw [ε_eq, algebra.smul_def, ring_hom.eq_int_cast, ← rpow_nat_cast, mul_rpow, ← rpow_mul,
+        div_mul_cancel, rpow_neg_one, mul_left_comm, mul_inv_cancel, mul_one, rpow_nat_cast];
+      try { norm_cast, linarith },
+    { apply rpow_nonneg_of_nonneg,
+      norm_cast,
+      linarith } },
   let μ : fin (cardM L f abs ^ integral_closure.dim L f).succ ↪ R := distinct_elems L f abs,
   set s := (integral_closure.is_basis L f).repr a,
   have s_eq : ∀ i, s i = (integral_closure.is_basis L f).repr a i := λ i, rfl,
@@ -401,17 +465,16 @@ begin
              finset.sum_apply', finsupp.sub_apply, finsupp.smul_apply',
              finset.sum_sub_distrib, is_basis.repr_self_apply, smul_eq_mul, mul_boole,
              finset.sum_ite_eq', finset.mem_univ, if_true] },
-  { sorry },
+  { exact_mod_cast ε_le },
 end
-.
 
 -- Theorem 5.4
 theorem exists_mem_finset_approx' [decidable_eq R]
   (a : integral_closure R L) {b} (hb : b ≠ (0 : integral_closure R L)) :
   ∃ (q : integral_closure R L) (r ∈ finset_approx L f abs),
-  abs_norm f abs (r • a - b * q) < abs_norm f abs b :=
+  abs_norm f abs (r • a - q * b) < abs_norm f abs b :=
 begin
-  obtain ⟨a', b', hb', h⟩ := exists_eq_mul L f abs a b hb,
+  obtain ⟨a', b', hb', h⟩ := exists_eq_mul f a b hb,
   obtain ⟨q, r, hr, hqr⟩ := exists_mem_finset_approx L f abs a' hb',
   refine ⟨q, r, hr, _⟩,
   apply lt_of_mul_lt_mul_left _
@@ -419,7 +482,9 @@ begin
   refine lt_of_le_of_lt (le_of_eq _) (mul_lt_mul hqr (le_refl (abs_norm f abs b))
     (abs.pos ((algebra.norm_ne_zero _).mpr hb)) (abs.nonneg _)),
   rw [← abs_norm_mul, ← abs_norm_mul, ← algebra.smul_def, smul_sub b', sub_mul, smul_comm, h,
-      mul_comm b a', algebra.smul_mul_assoc r a' b, mul_comm b q, algebra.smul_mul_assoc b' q b]
+      mul_comm b a', algebra.smul_mul_assoc r a' b, algebra.smul_mul_assoc b' q b]
+end
+
 end
 
 end
@@ -433,17 +498,18 @@ lemma monoid_hom.range_eq_top {G H : Type*} [group G] [group H] (f : G →* H) :
 
 section euclidean_domain
 
-variables {R K L : Type*} [euclidean_domain R] [is_dedekind_domain R]
-variables [field K] [field L] [decidable_eq L]
+variables {R K L : Type*} [euclidean_domain R]
+variables [field K] [field L]
 variables (f : fraction_map R K)
-variables [algebra f.codomain L] [finite_dimensional f.codomain L] [is_separable f.codomain L]
+variables [algebra f.codomain L]
 variables [algebra R L] [is_scalar_tower R f.codomain L]
 variables (abs : admissible_absolute_value R)
 
--- Lemma 5.1
-lemma exists_min (I : nonzero_ideal (integral_closure R L)) :
+-- Lemma 6.1
+lemma exists_min [finite_dimensional f.codomain L] [is_separable f.codomain L] (I : nonzero_ideal (integral_closure R L)) :
   ∃ b ∈ I.1, b ≠ 0 ∧ ∀ c ∈ I.1, abs_norm f abs c < abs_norm f abs b → c = 0 :=
 begin
+  haveI := classical.dec_eq L,
   obtain ⟨_, ⟨b, b_mem, b_ne_zero, rfl⟩, min⟩ :=
     @int.exists_least_of_bdd (λ a, ∃ b ∈ I.1, b ≠ 0 ∧ abs_norm f abs b = a) _ _,
   { use [b, b_mem, b_ne_zero],
@@ -510,30 +576,48 @@ lemma finset.dvd_prod {ι M : Type*} [comm_monoid M] {x : ι} {s : finset ι}
   f x ∣ ∏ i in s, f i :=
 multiset.dvd_prod (multiset.mem_map.mpr ⟨x, hx, rfl⟩)
 
--- TODO: how should we make this instance? It depends on `f.codomain`.
-instance : is_dedekind_domain (integral_closure R L) := sorry
+lemma prod_finset_approx_ne_zero
+  [finite_dimensional f.codomain L] [is_separable f.codomain L] [infinite R] [decidable_eq R] :
+  algebra_map R (integral_closure R L) (∏ m in finset_approx L f abs, m) ≠ 0 :=
+begin
+  refine mt ((algebra_map R _).injective_iff.mp (integral_closure.algebra_map_injective f) _) _,
+  simp only [finset.prod_eq_zero_iff, not_exists],
+  rintros x hx rfl,
+  exact finset_approx.zero_not_mem L f abs hx
+end
 
--- Theorem 5.2
-theorem exists_mul_eq_mul [infinite R] [decidable_eq R] (I : nonzero_ideal (integral_closure R L)) :
+lemma ne_zero_of_dvd_prod_finset_approx
+  [finite_dimensional f.codomain L] [is_separable f.codomain L] [infinite R] [decidable_eq R]
+  (J : ideal (integral_closure R L))
+  (h : J ∣ ideal.span {algebra_map _ _ (∏ m in finset_approx L f abs, m)}) :
+  J ≠ 0 :=
+begin
+  simp only [ne.def, ideal.zero_eq_bot, submodule.eq_bot_iff, not_forall, not_imp],
+  refine ⟨(algebra_map _ _) (∏ (m : R) in finset_approx L f abs, m), _, _⟩,
+  { exact ideal.le_of_dvd h (ideal.subset_span (set.mem_singleton _)) },
+  apply prod_finset_approx_ne_zero
+end
+
+-- Theorem 6.2
+theorem exists_mk0_eq_mk0 [finite_dimensional f.codomain L] [is_separable f.codomain L]
+  [infinite R] [decidable_eq R] (I : nonzero_ideal (integral_closure R L))
+  [is_dedekind_domain (integral_closure R L)] :
   ∃ (J : nonzero_ideal (integral_closure R L)),
   class_group.mk0 (integral_closure.fraction_map_of_finite_extension L f) I =
   class_group.mk0 (integral_closure.fraction_map_of_finite_extension L f) J ∧
     J.1 ∣ ideal.span {algebra_map _ _ (∏ m in finset_approx L f abs, m)} :=
 begin
   set m := ∏ m in finset_approx L f abs, m with m_eq,
+  have hm : algebra_map R (integral_closure R L) m ≠ 0 := prod_finset_approx_ne_zero f abs,
   obtain ⟨b, b_mem, b_ne_zero, b_min⟩ := exists_min f abs I,
   suffices : ideal.span {b} ∣ ideal.span {algebra_map _ _ m} * I.1,
   { obtain ⟨J, hJ⟩ := this,
     refine ⟨⟨J, _⟩, _, _⟩,
-    { sorry },
+    { rintro rfl,
+      rw [ideal.mul_bot, ideal.mul_eq_bot] at hJ,
+      exact I.2 (hJ.resolve_left (mt ideal.span_singleton_eq_bot.mp hm)) },
     { rw class_group.mk0_eq_mk0_iff,
-      refine ⟨algebra_map _ _ m, b, _, b_ne_zero, hJ⟩,
-      refine mt ((algebra_map R _).injective_iff.mp (integral_closure.algebra_map_injective f) _) _,
-      rw finset.prod_eq_zero_iff,
-      push_neg,
-      intros a ha a_eq,
-      rw a_eq at ha,
-      exact finset_approx.zero_not_mem L f abs ha },
+      exact ⟨algebra_map _ _ m, b, hm, b_ne_zero, hJ⟩ },
     apply ideal.dvd_of_mul_dvd_mul_left (ideal.span_singleton_ne_bot b_ne_zero),
     rw [ideal.dvd_iff_le, ← hJ, mul_comm, m_eq],
     apply ideal.mul_mono le_rfl,
@@ -551,8 +635,44 @@ begin
 end
 .
 
+variables (L)
+
+/-- `class_group.mk_dvd` is a specialization of `class_group.mk0` to (the finite set of)
+ideals that contain `∏ m in finset_approx L f abs, m` -/
+noncomputable def class_group.mk_dvd [finite_dimensional f.codomain L] [is_separable f.codomain L]
+  [infinite R] [decidable_eq R] [is_dedekind_domain (integral_closure R L)]
+  (J : {J : ideal (integral_closure R L) // J ∣
+    ideal.span {algebra_map _ _ (∏ m in finset_approx L f abs, m)}}) :
+  class_group (integral_closure.fraction_map_of_finite_extension L f) :=
+class_group.mk0 _ ⟨J.1, ne_zero_of_dvd_prod_finset_approx f abs J.1 J.2⟩
+.
+
+lemma class_group.mk_dvd_surjective
+  [finite_dimensional f.codomain L] [is_separable f.codomain L]
+  [infinite R] [decidable_eq R] [is_dedekind_domain (integral_closure R L)] :
+  function.surjective (class_group.mk_dvd L f abs) :=
+begin
+  intro I',
+  obtain ⟨⟨I, hI⟩, rfl⟩ := class_group.mk0_surjective _ I',
+  obtain ⟨J, mk0_eq_mk0, J_dvd⟩ := exists_mk0_eq_mk0 f abs ⟨I, hI⟩,
+  exact ⟨⟨J, J_dvd⟩, mk0_eq_mk0.symm⟩
+end
+
+include abs
+
 -- Theorem 5.3
-instance : fintype (class_group f) :=
-_
+noncomputable instance [infinite R] [finite_dimensional f.codomain L] [is_separable f.codomain L]
+  [is_dedekind_domain (integral_closure R L)] :
+  fintype (class_group (integral_closure.fraction_map_of_finite_extension L f)) :=
+by { haveI := classical.dec_eq (class_group (integral_closure.fraction_map_of_finite_extension L f)),
+     haveI := classical.dec_eq R,
+     refine @fintype.of_surjective _ _ _
+       (ideal.finite_divisors _ _)
+       (class_group.mk_dvd L f abs)
+       (class_group.mk_dvd_surjective L f abs),
+     rw [ne.def, ideal.span_singleton_eq_bot],
+     exact prod_finset_approx_ne_zero f abs }
 
 end euclidean_domain
+
+#lint

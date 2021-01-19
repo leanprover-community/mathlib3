@@ -99,11 +99,12 @@ lemma integral_closure.is_basis
   is_basis R (integral_closure.basis L f) :=
 classical.some_spec (classical.some_spec (integral_closure.exists_is_basis L f))
 
-lemma is_basis_coe_repr_apply {ι : Type*} [decidable_eq ι] [fintype ι]
+lemma is_basis_coe_repr_apply {ι : Type*} [fintype ι]
   {b : ι → integral_closure R L} (hb : is_basis R b)
   (x : integral_closure R L) (i : ι) :
   (is_basis_coe f hb).repr x i = f.to_map (hb.repr x i) :=
 begin
+  haveI := classical.dec_eq ι,
   have : ∀ j, (is_basis_coe f hb).repr (b j) i = f.to_map (hb.repr (b j) i),
   { intro j,
     calc (is_basis_coe f hb).repr ((coe ∘ b) j) i = if j = i then 1 else 0 :
@@ -137,13 +138,13 @@ section is_principal_ideal_ring
 
 variables [is_principal_ideal_ring R] [is_separable f.codomain L] (abs : absolute_value R ℤ)
 
-noncomputable def abs_norm [decidable_eq L] (x : integral_closure R L) : ℤ :=
+noncomputable def abs_norm (x : integral_closure R L) : ℤ :=
 abs (@algebra.norm R (integral_closure R L) _ _ _ _ _ _ _ (integral_closure.is_basis L f) x)
 
-noncomputable def abs_frac_norm [decidable_eq L] (x : L) : ℚ :=
+noncomputable def abs_frac_norm (x : L) : ℚ :=
 abs.to_frac f (algebra.norm (is_basis_coe f (integral_closure.is_basis L f)) x)
 
-lemma abs_frac_norm_coe [decidable_eq L] (x : integral_closure R L) :
+lemma abs_frac_norm_coe (x : integral_closure R L) :
   abs_frac_norm f abs (x : L) = abs_norm f abs x :=
 begin
   unfold abs_frac_norm abs_norm algebra.norm,
@@ -156,12 +157,12 @@ begin
   simp
 end
 
-@[simp] lemma abs_norm_mul [decidable_eq L] (x y : integral_closure R L) :
+@[simp] lemma abs_norm_mul (x y : integral_closure R L) :
   abs_norm f abs (x * y) = abs_norm f abs x * abs_norm f abs y :=
 by simp only [abs_norm, monoid_hom.map_mul, absolute_value.map_mul]
 
 @[simp]
-lemma abs_norm_algebra_map [decidable_eq L] (x : R) :
+lemma abs_norm_algebra_map (x : R) :
   abs_norm f abs (algebra_map R (integral_closure R L) x) = (abs x) ^ (integral_closure.dim L f) :=
 begin
   rw [← abs.map_pow, abs_norm, algebra.norm, monoid_hom.coe_mk, ← mul_one (algebra_map _ _ x),
@@ -178,11 +179,30 @@ section euclidean_domain
 variables {R K L : Type*} [euclidean_domain R] [field K] [field L]
 variables (f : fraction_map R K)
 variables [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
-variables [finite_dimensional f.codomain L] [is_separable f.codomain L]
+variables [finite_dimensional f.codomain L] 
 
 /-- If `L` is a finite dimensional extension of the field of fractions of a Euclidean domain `R`,
 there is a function mapping each `x : L` to the "closest" value that is integral over `R`. -/
-noncomputable def integral_part (x : L) : integral_closure R L :=
+noncomputable def integral_part [is_separable f.codomain L] (x : L) : integral_closure R L :=
 ∑ i, f.integral_part ((is_basis_coe f (integral_closure.is_basis L f)).repr x i) • i
+
+include f
+
+/-- A fraction `a / b : L` can be given as `c : integral_closure R L` divided by `d : R`. -/
+lemma exists_eq_mul (a b : integral_closure R L) (hb : b ≠ 0) :
+  ∃ (c : integral_closure R L) (d ≠ (0 : R)), d • a = b * c :=
+begin
+  have : function.injective (algebra_map R L),
+  { rw is_scalar_tower.algebra_map_eq R f.codomain L,
+    exact function.injective.comp (ring_hom.injective _) f.injective },
+  obtain ⟨c, d, d_ne, hx⟩ := exists_integral_multiple
+  (f.comap_is_algebraic_iff.mpr algebra.is_algebraic_of_finite (a / b : L))
+  this,
+  use [c, d, d_ne],
+  apply subtype.coe_injective,
+  push_cast,
+  have hb' : (b : L) ≠ 0 := λ h, hb (subtype.coe_injective h),
+  rw [← hx, algebra.mul_smul_comm, mul_div_cancel' (a : L) hb'],
+end
 
 end euclidean_domain

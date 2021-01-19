@@ -301,15 +301,19 @@ iff.intro has_sum.tsum_eq (assume eq, eq ▸ h.has_sum)
 @[simp] lemma tsum_zero : ∑'b:β, (0:α) = 0 := has_sum_zero.tsum_eq
 
 lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
-  ∑'b, f b = ∑ b in s, f b :=
+  ∑' b, f b = ∑ b in s, f b :=
 (has_sum_sum_of_ne_finset_zero hf).tsum_eq
 
 lemma tsum_fintype [fintype β] (f : β → α) : ∑'b, f b = ∑ b, f b :=
 (has_sum_fintype f).tsum_eq
 
 @[simp] lemma finset.tsum_subtype (s : finset β) (f : β → α) :
-  ∑'x : {x // x ∈ s}, f x = ∑ x in s, f x :=
+  ∑' x : {x // x ∈ s}, f x = ∑ x in s, f x :=
 (s.has_sum f).tsum_eq
+
+@[simp] lemma finset.tsum_subtype' (s : finset β) (f : β → α) :
+  ∑' x : (s : set β), f x = ∑ x in s, f x :=
+s.tsum_subtype f
 
 lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   ∑'b, f b = f b :=
@@ -646,6 +650,9 @@ section division_ring
 
 variables [division_ring α] [topological_space α] [topological_semiring α]
 {f g : β → α} {a a₁ a₂ : α}
+
+lemma has_sum.div_const (h : has_sum f a) (b : α) : has_sum (λ x, f x / b) (a / b) :=
+by simp only [div_eq_mul_inv, h.mul_right b⁻¹]
 
 lemma has_sum_mul_left_iff (h : a₂ ≠ 0) : has_sum f a₁ ↔ has_sum (λb, a₂ * f b) (a₂ * a₁) :=
 ⟨has_sum.mul_left _, λ H, by simpa only [inv_mul_cancel_left' h] using H.mul_left a₂⁻¹⟩

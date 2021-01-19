@@ -158,7 +158,8 @@ lemma comp_along_composition_multilinear_bound {n : ℕ}
     ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :=
 calc ∥q.comp_along_composition_multilinear p c v∥ = ∥q c.length (p.apply_composition c v)∥ : rfl
 ... ≤ ∥q c.length∥ * ∏ i, ∥p.apply_composition c v i∥ : continuous_multilinear_map.le_op_norm _ _
-... ≤ ∥q c.length∥ * ∏ i, ∥p (c.blocks_fun i)∥ * ∏ j : fin (c.blocks_fun i), ∥(v ∘ (c.embedding i)) j∥ :
+... ≤ ∥q c.length∥ * ∏ i, ∥p (c.blocks_fun i)∥ *
+        ∏ j : fin (c.blocks_fun i), ∥(v ∘ (c.embedding i)) j∥ :
   begin
     apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
     refine finset.prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, _),
@@ -239,7 +240,8 @@ q.comp_coeff_zero p v _
 
 /-- The `0`-th coefficient of `q.comp p` is `q 0`. When `p` goes from `E` to `E`, this can be
 expressed as a direct equality -/
-lemma comp_coeff_zero'' (q : formal_multilinear_series 𝕜 E F) (p : formal_multilinear_series 𝕜 E E) :
+lemma comp_coeff_zero'' (q : formal_multilinear_series 𝕜 E F)
+  (p : formal_multilinear_series 𝕜 E E) :
   (q.comp p) 0 = q 0 :=
 by { ext v, exact q.comp_coeff_zero p _ _ }
 
@@ -847,13 +849,16 @@ def sigma_composition_aux (a : composition n) (b : composition a.length)
 { blocks := nth_le (a.blocks.split_wrt_composition b) i
     (by { rw [length_split_wrt_composition, ← length_gather], exact i.2 }),
   blocks_pos := assume i hi, a.blocks_pos
-    (by { rw ← a.blocks.join_split_wrt_composition b, exact mem_join_of_mem (nth_le_mem _ _ _) hi }),
-  blocks_sum := by simp only [composition.blocks_fun, nth_le_map', composition.gather, fin.val_eq_coe] }
+    (by { rw ← a.blocks.join_split_wrt_composition b,
+          exact mem_join_of_mem (nth_le_mem _ _ _) hi }),
+  blocks_sum := by simp only [composition.blocks_fun, nth_le_map', composition.gather,
+    fin.val_eq_coe] }
   /- Where did the fin.val come from in the proof on the preceding line? -/
 
-lemma length_sigma_composition_aux (a : composition n) (b : composition a.length) (i : fin b.length) :
+lemma length_sigma_composition_aux (a : composition n) (b : composition a.length)
+  (i : fin b.length) :
   composition.length (composition.sigma_composition_aux a b ⟨i, (length_gather a b).symm ▸ i.2⟩) =
-  composition.blocks_fun b i :=
+    composition.blocks_fun b i :=
 show list.length (nth_le (split_wrt_composition a.blocks b) i _) = blocks_fun b i,
 by { rw [nth_le_map_rev list.length, nth_le_of_eq (map_length_split_wrt_composition _ _)], refl }
 
@@ -891,8 +896,8 @@ begin
       { rw [take_take, min_eq_left],
         apply monotone_sum_take _ (nat.le_succ _) },
       rw [this, nth_le_map', nth_le_split_wrt_composition,
-        ← take_append_drop (sum (take i b.blocks)) ((take (sum (take (nat.succ i) b.blocks)) a.blocks)),
-        sum_append],
+        ← take_append_drop (sum (take i b.blocks))
+          ((take (sum (take (nat.succ i) b.blocks)) a.blocks)), sum_append],
       congr,
       rw [take_append_drop] } },
   { have A : j < blocks_fun b ⟨i, hi⟩ := lt_trans (lt_add_one j) hj,

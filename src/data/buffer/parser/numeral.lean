@@ -55,7 +55,7 @@ is within the cardinality of the type `α`.
 def numeral.of_fintype [fintype α] : parser α :=
 do
   c ← nat,
-  decorate_error ("<numeral less than " ++ to_string (fintype.card α) ++ ">")
+  decorate_error (sformat!"<numeral less than {to_string (fintype.card α)}>")
     (guard (c < fintype.card α)),
   pure $ nat.bin_cast c
 
@@ -79,7 +79,7 @@ at "1", so `"1"` is parsed in as `nat.cast 0`. Providing `"0"` to the parser cau
 def numeral.from_one.of_fintype [fintype α] : parser α :=
 do
   c ← nat,
-  decorate_error ("<positive numeral less than or equal to " ++ to_string (fintype.card α) ++ ">")
+  decorate_error (sformat!"<positive numeral less than or equal to {to_string (fintype.card α)}>")
     (guard (0 < c ∧ c ≤ fintype.card α)),
   pure $ nat.bin_cast (c - 1)
 
@@ -91,7 +91,7 @@ and subtracts the value of `fromc` from the parsed in character.
 def numeral.char (fromc toc : char) : parser α :=
 do
   c ← decorate_error
-    ("<char between '" ++ fromc.to_string ++ "' to '" ++ toc.to_string ++ "' inclusively>")
+    (sformat!"<char between '{fromc.to_string}' to '{toc.to_string}' inclusively>")
     (sat (λ c, fromc ≤ c ∧ c ≤ toc)),
   pure $ nat.bin_cast (c.to_nat - fromc.to_nat)
 
@@ -105,8 +105,8 @@ that the resulting value is within the cardinality of the type `α`.
 def numeral.char.of_fintype [fintype α] (fromc : char) : parser α :=
 do
   c ← decorate_error
-    ("<char from '" ++ fromc.to_string ++ "' to '" ++
-      (char.of_nat (fromc.to_nat + fintype.card α - 1)).to_string ++ "' inclusively>")
+    (sformat!"<char from '{fromc.to_string}' to '{
+      (char.of_nat (fromc.to_nat + fintype.card α - 1)).to_string}' inclusively>")
     (sat (λ c, fromc ≤ c ∧ c.to_nat - fintype.card α < fromc.to_nat)),
   pure $ nat.bin_cast (c.to_nat - fromc.to_nat)
 

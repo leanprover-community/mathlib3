@@ -261,6 +261,10 @@ lemma zero_locus_Union {ι : Sort*} (s : ι → set R) :
   zero_locus (⋃ i, s i) = (⋂ i, zero_locus (s i)) :=
 (gc_set R).l_supr
 
+lemma zero_locus_bUnion (s : set (set R)) :
+  zero_locus (⋃ s' ∈ s, s' : set R) = ⋂ s' ∈ s, zero_locus s' :=
+by simp only [zero_locus_Union]
+
 lemma vanishing_ideal_Union {ι : Sort*} (t : ι → set (prime_spectrum R)) :
   vanishing_ideal (⋃ i, t i) = (⨅ i, vanishing_ideal (t i)) :=
 (gc R).u_infi
@@ -324,7 +328,7 @@ by simp only [@eq_comm _ Uᶜ]; refl
 
 lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
   is_closed Z ↔ ∃ s, Z = zero_locus s :=
-by rw [is_closed, is_open_iff, set.compl_compl]
+by rw [is_closed, is_open_iff, compl_compl]
 
 lemma is_closed_zero_locus (s : set R) :
   is_closed (zero_locus s) :=
@@ -345,11 +349,11 @@ variables (f : R →+* S)
 rfl
 
 @[simp] lemma comap_id : comap (ring_hom.id R) = id :=
-funext $ λ x, ext.mpr $ by { rw [comap_as_ideal], apply ideal.ext, intros r, simp }
+funext $ λ _, subtype.ext $ ideal.ext $ λ _, iff.rfl
 
 @[simp] lemma comap_comp (f : R →+* S) (g : S →+* S') :
   comap (g.comp f) = comap f ∘ comap g :=
-funext $ λ x, ext.mpr $ by { simp, refl }
+funext $ λ _, subtype.ext $ ideal.ext $ λ _, iff.rfl
 
 @[simp] lemma preimage_comap_zero_locus (s : set R) :
   (comap f) ⁻¹' (zero_locus s) = zero_locus (f '' s) :=

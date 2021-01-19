@@ -129,6 +129,75 @@ theorem integral_eq_sub_of_has_deriv_at'_of_le (hab : a ≤ b)
 integral_eq_sub_of_has_deriv_at'' hcont (by rwa [min_eq_left hab, max_eq_right hab]) hcont'
 
 
+-- **Volume Under and Volume Between**
+
+section volume_under
+
+variables {α : Type*} [measure_space α] [sigma_finite (volume : measure α)]
+
+open_locale classical
+
+def volume_under (f : α → ℝ) (s : set α) : set (α × ℝ) :=
+{ p : α × ℝ |  p.1 ∈ s ∧ p.2 ∈ Ico 0 (f p.1) }
+
+lemma is_measurable_volume_under {f : α → ℝ } {s : set α} (hf : measurable f)
+(hs : is_measurable s) :
+is_measurable (volume_under f s) :=
+begin
+  sorry,
+end
+
+/-Integral as the "area under a curve"-/
+theorem lintegral_volume_under {f : α → ℝ } {s : set α} (hf : measurable f) (hs : is_measurable s) :
+(volume.prod volume) (volume_under f s) = ∫⁻ y in s, ennreal.of_real (f y)  :=
+begin
+  rw measure.prod_apply (is_measurable_volume_under hf hs),
+  simp only [volume_under, preimage_set_of_eq],
+  have x_in : ∀ x : α, x ∈ s →
+             {a : ℝ | x ∈ s ∧ a ∈ Ico 0 (f x)} = Ico 0 (f x) := λ x hx,
+             by rw set_of_and;
+             simp only [hx, Ico, mem_set_of_eq, set_of_true, univ_inter],
+
+  have x_out : ∀ x : α, x ∉ s →
+             {a : ℝ | x ∈ s ∧ a ∈ Ico 0 (f x)} = ∅ := λ x hx,
+             by simp only [mem_Ico, hx, set_of_false, false_and],
+
+  have : (λ x, volume {a : ℝ | x ∈ s ∧ a ∈ Ico 0 (f x)})
+        = set.indicator s (λ y, ennreal.of_real (f y)),
+        { funext x,
+          rw indicator_apply,
+          split_ifs,
+          { rw x_in x h,
+            simp only [volume_Ico, sub_zero], },
+          { rw x_out x h,
+            simp only [measure_empty], },  },
+
+  rw [this, lintegral_indicator],
+  exact hs,
+  apply_instance,
+end
+
+def volume_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
+{ p : α × ℝ |  p.1 ∈ s ∧ p.2 ∈ Ico (f p.1) (g p.1)  }
+
+lemma is_measurable_volume_between {f g : α → ℝ } {s : set α}
+(hf : measurable f) (hg: measurable g) (hs : is_measurable s) :
+is_measurable (volume_between f g s) :=
+begin
+  sorry
+end
+
+/-Integral as the "area between two curves"-/
+theorem lintegral_volume_between {f g : α → ℝ } {s : set α}
+(hf : measurable f) (hg : measurable g) (hs : is_measurable s) :
+(volume.prod volume (volume_between f g s)) = ∫⁻ y in s, ennreal.of_real (f y) :=
+begin
+  sorry,
+end
+
+end volume_under
+
+
 -- **The Grand Finale!!**
 
 lemma indicator_eq_self_of_subset {S s : set ℝ} {f: ℝ → ℝ} (h: s ⊆ S) (H: s.indicator f = f) :

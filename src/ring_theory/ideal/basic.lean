@@ -32,7 +32,7 @@ open_locale classical big_operators
 
 /-- Ideal in a commutative ring is an additive subgroup `s` such that
 `a * b ∈ s` whenever `b ∈ s`. -/
-@[reducible] def ideal (R : Type u) [comm_ring R] := submodule R R
+@[reducible] def ideal (R : Type u) [comm_semiring R] := submodule R R
 
 namespace ideal
 variables [comm_ring α] (I : ideal α) {a b : α}

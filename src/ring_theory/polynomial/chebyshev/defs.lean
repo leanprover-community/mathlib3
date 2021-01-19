@@ -31,12 +31,12 @@ and import that file in turn, in `ring_theory.polynomial.chebyshev.basic`.
 
 ## TODO
 
-* Add explicit formula involving square roots for chebyshev polynomials
+* Add explicit formula involving square roots for Chebyshev polynomials
   `ring_theory.polynomial.chebyshev.basic`.
-* compute zeroes and extrema of chebyshev polynomials
-* prove that the roots of the chebyshev polynomials (except 0) are irrational
-* prove minimax properties of chebyshev polynomials
-* define a variant of chebyshev polynomials of the second kind removing the 2
+* compute zeroes and extrema of Chebyshev polynomials
+* prove that the roots of the Chebyshev polynomials (except 0) are irrational
+* prove minimax properties of Chebyshev polynomials
+* define a variant of Chebyshev polynomials of the second kind removing the 2
   (sometimes Dickson polynomials of the second kind) or even more general Dickson polynomials
 * prove that the adjacency matrices of simply laced Dynkin diagrams are precisely the matrix zeroes
   of these polynomials
@@ -212,12 +212,21 @@ calc chebyshev₁ R (n + 2 + 2) = 2 * X * chebyshev₁ R (n + 2 + 1) - chebyshev
 ... = 2 * X * (X * chebyshev₁ R (n + 2)) - X * chebyshev₁ R (n + 1)
                     - (1 - X ^ 2) * (2 * X  * chebyshev₂ R (n + 1)) + (1 - X ^ 2) * chebyshev₂ R n
                                 : by simp only [mul_assoc]
+... = 2 * X * (X * chebyshev₁ R (n + 2)) - X * chebyshev₁ R (n + 1)
+                    - (1 - X ^ 2) * (chebyshev₂ R (n + 2))
+                                : by rw [sub_add, ←mul_sub, chebyshev₂_add_two]
+... = X * 2 * (X * chebyshev₁ R (n + 2)) - X * chebyshev₁ R (n + 1)
+                    - (1 - X ^ 2) * (chebyshev₂ R (n + 2))
+                                : by rw [mul_comm X 2]
+... = X * (2 * (X * chebyshev₁ R (n + 2)) - chebyshev₁ R (n + 1))
+                    - (1 - X ^ 2) * (chebyshev₂ R (n + 2))
+                                : by rw [mul_assoc, mul_sub]
 ... = X * (2 * X * chebyshev₁ R (n + 2) - chebyshev₁ R (n + 1))
-                                    - (1 - X ^ 2) * (2 * X * chebyshev₂ R (n + 1) - chebyshev₂ R n)
-                                : by sorry
+                    - (1 - X ^ 2) * (chebyshev₂ R (n + 2))
+                                : by rw mul_assoc
 ... = X * chebyshev₁ R (n + 2 + 1) - (1 - X ^ 2) * chebyshev₂ R (n + 2)
-                                : by simp only [chebyshev₁_add_two, chebyshev₂_add_two]
- end
+                                : by rw chebyshev₁_add_two R (n+1)
+end
 
 lemma one_sub_X_pow_two_mul_chebyshev₂_eq_pol_in_chebyshev₁ :
   ∀ (n : ℕ), (1 - X ^ 2) * chebyshev₂ R n = X * chebyshev₁ R (n + 1) - chebyshev₁ R (n + 2) :=
@@ -274,7 +283,7 @@ begin
 end
 
 lemma add_one_mul_chebyshev₁_eq_poly_in_chebyshev₂ :
-∀ (n : ℕ), (n + 1) * chebyshev₁ R (n+1) = X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n) :=
+∀ (n : ℕ), ((n : polynomial R)  + 1) * chebyshev₁ R (n+1) = X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n) :=
 begin
   sorry
 end

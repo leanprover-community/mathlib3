@@ -543,13 +543,13 @@ set_option old_structure_cmd true
 /-- A Lie subalgebra of a Lie algebra is submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie algebra. -/
 structure lie_subalgebra extends submodule R L :=
-(lie_mem : ∀ {x y}, x ∈ carrier → y ∈ carrier → ⁅x, y⁆ ∈ carrier)
+(lie_mem' : ∀ {x y}, x ∈ carrier → y ∈ carrier → ⁅x, y⁆ ∈ carrier)
 
 attribute [nolint doc_blame] lie_subalgebra.to_submodule
 
 /-- The zero algebra is a subalgebra of any Lie algebra. -/
 instance : has_zero (lie_subalgebra R L) :=
-⟨{ lie_mem := λ x y hx hy, by { rw [((submodule.mem_bot R).1 hx), zero_lie],
+⟨{ lie_mem' := λ x y hx hy, by { rw [((submodule.mem_bot R).1 hx), zero_lie],
                                 exact submodule.zero_mem (0 : submodule R L), },
    ..(0 : submodule R L) }⟩
 
@@ -562,7 +562,7 @@ instance lie_subalgebra_coe_submodule : has_coe (lie_subalgebra R L) (submodule 
 
 /-- A Lie subalgebra forms a new Lie ring. -/
 instance lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' :=
-{ bracket      := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem x.property y.property⟩,
+{ bracket      := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem' x.property y.property⟩,
   lie_add      := by { intros, apply set_coe.ext, apply lie_add, },
   add_lie      := by { intros, apply set_coe.ext, apply add_lie, },
   lie_self     := by { intros, apply set_coe.ext, apply lie_self, },
@@ -618,7 +618,7 @@ end lie_subalgebra
 /-- A subalgebra of an associative algebra is a Lie subalgebra of the associated Lie algebra. -/
 def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
   (A' : subalgebra R A) : lie_subalgebra R A :=
-{ lie_mem := λ x y hx hy, by {
+{ lie_mem' := λ x y hx hy, by {
     change ⁅x, y⁆ ∈ A', change x ∈ A' at hx, change y ∈ A' at hy,
     rw lie_ring.of_associative_ring_bracket,
     have hxy := A'.mul_mem hx hy,
@@ -636,7 +636,7 @@ def lie_subalgebra.incl (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
 
 /-- The range of a morphism of Lie algebras is a Lie subalgebra. -/
 def lie_algebra.morphism.range : lie_subalgebra R L₂ :=
-{ lie_mem := λ x y,
+{ lie_mem' := λ x y,
     show x ∈ f.to_linear_map.range → y ∈ f.to_linear_map.range → ⁅x, y⁆ ∈ f.to_linear_map.range,
     by { repeat { rw linear_map.mem_range }, rintros ⟨x', hx⟩ ⟨y', hy⟩, refine ⟨⁅x', y'⁆, _⟩,
          rw [←hx, ←hy], change f ⁅x', y'⁆ = ⁅f x', f y'⁆, rw lie_algebra.map_lie, },
@@ -654,11 +654,11 @@ by { rw ← lie_subalgebra.coe_to_submodule_eq, exact (L' : submodule R L).range
 /-- The image of a Lie subalgebra under a Lie algebra morphism is a Lie subalgebra of the
 codomain. -/
 def lie_subalgebra.map (L' : lie_subalgebra R L) : lie_subalgebra R L₂ :=
-{ lie_mem := λ x y hx hy, by {
+{ lie_mem' := λ x y hx hy, by {
     erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
     erw submodule.mem_map at hy, rcases hy with ⟨y', hy', hy⟩, rw ←hy,
     erw submodule.mem_map,
-    exact ⟨⁅x', y'⁆, L'.lie_mem hx' hy', lie_algebra.map_lie f x' y'⟩, },
+    exact ⟨⁅x', y'⁆, L'.lie_mem' hx' hy', lie_algebra.map_lie f x' y'⟩, },
 ..((L' : submodule R L).map (f : L →ₗ[R] L₂))}
 
 @[simp] lemma lie_subalgebra.mem_map_submodule (e : L ≃ₗ⁅R⁆ L₂) (L' : lie_subalgebra R L) (x : L₂) :
@@ -805,7 +805,7 @@ lemma lie_mem_left (I : lie_ideal R L) (x y : L) (h : x ∈ I) : ⁅x, y⁆ ∈ 
 
 /-- An ideal of a Lie algebra is a Lie subalgebra. -/
 def lie_ideal_subalgebra (I : lie_ideal R L) : lie_subalgebra R L :=
-{ lie_mem := by { intros x y hx hy, apply lie_mem_right, exact hy, },
+{ lie_mem' := by { intros x y hx hy, apply lie_mem_right, exact hy, },
   ..I.to_submodule, }
 
 instance : has_coe (lie_ideal R L) (lie_subalgebra R L) := ⟨λ I, lie_ideal_subalgebra R L I⟩

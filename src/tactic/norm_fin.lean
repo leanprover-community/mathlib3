@@ -11,12 +11,6 @@ import tactic.norm_num
 
 This file defines functions for dealing with `fin n` numbers as expressions.
 
-Evaluating `swap x y z` for numerals `x y z` that are `ℕ`, `ℤ`, or `ℚ`, via a `norm_num` plugin.
-Terms are passed to `eval`, quickly failing if not of the form `swap x y z`.
-The expressions for numerals `x y z` are converted to `nat`, and then compared.
-Based on equality of these `nat`s, equality proofs are generated using either
-`equiv.swap_apply_left`, `equiv.swap_apply_right`, or `swap_apply_of_ne_of_ne`.
-
 ## Main definitions
 
 * `fin.mk_numeral` embeds a `fin n` as a numeral expression into a type supporting the needed

@@ -28,7 +28,7 @@ optionally preceded by `fin.succ` or `fin.cast_succ`.
 -/
 
 /--
-`fin.mk_numeral i` embeds `i` as a numeral expression inside a type with 0, 1, +
+`fin.mk_numeral i` embeds `i` as a numeral expression inside a type with `0`, `1`, `+`
 
 * `type`: an expression representing the target type. This must live in Type 0.
 * `has_zero`, `has_one`, `has_add`: expressions of the type `has_zero %%type`, etc.

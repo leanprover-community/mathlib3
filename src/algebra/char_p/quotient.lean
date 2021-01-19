@@ -31,8 +31,7 @@ lemma quotient' (R : Type*) [comm_ring R] (p : ℕ) [char_p R p] (I : ideal R)
   char_p I.quotient p :=
 ⟨λ x, begin
   rw [←cast_eq_zero_iff R p x, ←(ideal.quotient.mk I).map_nat_cast],
-  refine quotient.eq'.trans _,
-  change (↑x - 0 : R) ∈ I ↔ _,
+  refine quotient.eq'.trans (_ : ↑x - 0 ∈ I ↔ _),
   rw sub_zero,
   exact ⟨h x, λ h', h'.symm ▸ I.zero_mem⟩,
 end⟩

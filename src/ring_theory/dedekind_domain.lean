@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Kenji Nakagawa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio, Ashvni Narayanan
+Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
 import algebra.group_with_zero.basic
 import field_theory.minimal_polynomial
@@ -624,8 +624,8 @@ end
 
 local attribute [instance] classical.prop_decidable
 
-lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
-  {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ := by sorry
+-- lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
+--   {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ := by sorry
 
 
 lemma inv_of_maximal_not_top (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
@@ -741,7 +741,7 @@ begin
   -- replace h_ZJ : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ M, sorry,
   -- obtain ⟨P, h_ZP, h_JP⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M, sorry,
   have h_nebotP : ¬ ∃ (Q : ideal R) (hQ : Q ∈ multiset.map coe Z), Q = ⊥,
-  apply (mt prod_eq_bot.mpr) h_nzZ,
+  apply (mt ideal.prod_eq_bot.mpr) h_nzZ,
   rw not_exists at h_nebotP,
   specialize h_nebotP P.1,
   rw not_exists at h_nebotP,

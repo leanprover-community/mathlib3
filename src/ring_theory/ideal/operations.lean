@@ -365,6 +365,32 @@ lemma mul_eq_bot {R : Type*} [integral_domain R] {I J : ideal R} :
     or.resolve_left (mul_eq_zero.mp ((I * J).eq_bot_iff.mp hij _ (mul_mem_mul hi hj))) ne0)),
  λ h, by cases h; rw [← ideal.mul_bot, h, ideal.mul_comm]⟩
 
+lemma prod_eq_bot {R : Type*} [comm_semiring R] [no_zero_divisors R] {s : multiset R} :
+  s.prod = 0 ↔ ∃ (r : R) (hr : r ∈ s), r = 0 :=
+begin
+  refine multiset.induction _ (λ J s ih, _) s,
+    have : ¬ (⊤ : ideal R) = (⊥ : ideal R) := (@submodule.bot_ne_top _ _ _ _ _ _).symm,
+    split,
+    repeat {intro habs},
+    { erw [multiset.prod_zero, submodule.one_eq_map_top, submodule.map_id] at habs,
+      exact absurd habs this },
+    { rcases habs with ⟨I, hI, -⟩,
+      exact absurd hI (multiset.not_mem_zero I) },
+  { rw [multiset.prod_cons, mul_eq_bot],
+    split,
+    { intro H,
+      cases H with hzJ,
+      { exact ⟨J, multiset.mem_cons_self J s, hzJ⟩ },
+      { suffices h_fors : ∃ (I₁ : ideal R) (H : I₁ ∈ s), I₁ = ⊥,
+        rcases h_fors with ⟨I₁, h_I₁, h_zI₁⟩,
+        exacts [⟨I₁, multiset.mem_cons_of_mem h_I₁, h_zI₁⟩, ih.mp H] } },
+    { rintros ⟨I, hI, h_zI⟩,
+      rw [multiset.mem_cons, h_zI] at hI,
+      cases hI,
+      exact or.inl hI.symm,
+      apply or.inr (ih.mpr ⟨⊥, hI, rfl⟩) } },
+end
+
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },

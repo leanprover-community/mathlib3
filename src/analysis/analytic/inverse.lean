@@ -14,18 +14,28 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 
-(p : formal_multilinear_series 𝕜 E F)
-(i : F →L[𝕜] E)
+/-- The left inverse of a formal multilinear series, where the `n`-th term is defined inductively
+in terms of the previous ones to make sure that `(left_inv p i) ∘ p = id`. For this, the linear term
+`p 1` in `p` should be invertible. In the definition, `i` is a linear isomorphism that should
+coincide with `p 1`, so that one can use its inverse in the construction. The definition does not
+use that `i = p 1`, but proofs that the definition is well-behaved do.
 
-noncomputable def left_inv (p : formal_multilinear_series 𝕜 E F)
-(i : E ≃L[𝕜] F) : formal_multilinear_series 𝕜 F E
+The `n`-th term in `q ∘ p` is `∑ qₖ (p_{j₁}, ..., p_{jₖ})` over `j₁ + ... + jₖ = n`. In this
+expression, `qₙ` appears only once, in `qₙ (p₁, ..., p₁)`. We adjust the definition so that this
+term compensates the rest of the sum, using `i⁻¹` as inverse to `p₁`.
+-/
+
+noncomputable def left_inv (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) :
+  formal_multilinear_series 𝕜 F E
 | 0 := 0
 | 1 := (continuous_multilinear_curry_fin1 𝕜 F E).symm i.symm
 | (n+2) := - ∑ c : {c : composition (n+2) // c.length < n + 2},
-    (have (c : composition (n+2)).length < n+2 := c.2,
+      have (c : composition (n+2)).length < n+2 := c.2,
       (left_inv (c : composition (n+2)).length).comp_along_composition
-        (p.comp_continuous_linear_map i.symm) c)
+        (p.comp_continuous_linear_map i.symm) c
 
+/-- The left inverse to a formal multilinear series is indeed a left inverse, provided its linear
+term is invertible. -/
 lemma left_inv_comp (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
   (h : p 1 = (continuous_multilinear_curry_fin1 𝕜 E F).symm i) :
   (left_inv p i).comp p = id 𝕜 E :=
@@ -46,7 +56,7 @@ begin
   have B : disjoint ({c | composition.length c < n + 2} : set (composition (n + 2))).to_finset
     {composition.ones (n+2)}, by simp,
   have C : (p.left_inv i (composition.ones (n + 2)).length)
-    (λ (j : fin (composition.ones n.succ.succ).length), p 1 (λ (k : fin 1),
+    (λ (j : fin (composition.ones n.succ.succ).length), p 1 (λ k,
       v ((fin.cast_le (composition.length_le _)) j)))
     = p.left_inv i (n+2) (λ (j : fin (n+2)), p 1 (λ k, v j)),
   { apply formal_multilinear_series.congr _ (composition.ones_length _) (λ j hj1 hj2, _),
@@ -56,7 +66,7 @@ begin
         (p.left_inv i c.length) (p.apply_composition c v),
   { simp only [left_inv, continuous_multilinear_map.neg_apply, neg_inj,
       continuous_multilinear_map.sum_apply],
-    convert (sum_subtype_to_finset (λ (c : composition (n+2)), c.length < n+2)
+    convert (sum_to_finset_eq_subtype (λ (c : composition (n+2)), c.length < n+2)
       (λ (c : composition (n+2)), (continuous_multilinear_map.comp_along_composition
         (p.comp_continuous_linear_map ↑(i.symm)) c (p.left_inv i c.length))
           (λ (j : fin (n + 2)), p 1 (λ (k : fin 1), v j)))).symm.trans _,
@@ -67,8 +77,6 @@ begin
     congr,
     ext k,
     simp [h] },
-
-
   simp [formal_multilinear_series.comp, show n + 2 ≠ 1, by dec_trivial, A, finset.sum_union B,
     apply_composition_ones, C, D],
 end

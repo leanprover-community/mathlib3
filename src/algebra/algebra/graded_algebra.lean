@@ -32,10 +32,13 @@ variables
 
 open_locale direct_sum
 
+
+lemma linear_map.idem_iff_id {M : Type*} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) :
+  (∀ a, f a = a) ↔ f = linear_map.id :=
+⟨λ hm, linear_map.ext hm, λ h, h.symm ▸ λ a, rfl⟩
+
 lemma add_monoid_hom.mk_coe {P : Type*} {Q : Type*} [add_monoid P] [add_monoid Q] (f : P →+ Q) (h₁ h₂) :
   add_monoid_hom.mk (f : P → Q) h₁ h₂ = f := by  {ext, simp}
-
-#check add_monoid_hom.mk_coe
 
 
 @[simp]
@@ -130,42 +133,18 @@ instance : has_one G :=
 
 /-! These proofs are very slow, so these lemmas are defined separately -/
 
-private lemma one_mul : ∀ (a : G), 1 * a = a :=
+private lemma one_mul (a : G) : 1 * a = a :=
 begin
   suffices : ∀ i xi, dfinsupp.single (0 + i) (G.lmul G.lone xi) = dfinsupp.single i xi,
   {
     simp_rw [has_mul_mul, has_one_one],
-
-    -- reduce from linear_map to add_monoid_hom
-    simp_rw ←linear_map.to_add_monoid_hom_coe,
-    simp_rw [dfinsupp.lsum_apply_to_add_monoid_hom, dfinsupp.lsingle_to_add_monoid_hom],
-
-    -- maybe a missing lemma?
-    conv in (_ = _) { to_rhs, rw ←add_monoid_hom.id_apply a},
-    rw ←add_monoid_hom.ext_iff,
-    convert dfinsupp.lift_add_hom_single_add_hom,
-
-    -- solved
+    revert a,
+    rw linear_map.idem_iff_id,
+    rw ←dfinsupp.lsum_lsingle,
+    congr' 1,
     ext1 i, ext1 xi,
-    simpa using (this i xi),
-  },
-  intros i xi,
-  have := zero_add i,
-  congr,
-  exact this,
-  exact one_lmul G xi,
-end
-
-private lemma one_mul' (a : G) : 1 * a = a :=
-begin
-  suffices : ∀ i xi, dfinsupp.single (0 + i) (G.lmul G.lone xi) = dfinsupp.single i xi,
-  {
-    simp_rw [has_mul_mul, has_one_one],
-    ext,
-
-    simp [dfinsupp.lsum, dfinsupp.lift_add_hom_apply, dfinsupp.sum_add_hom_apply, dfinsupp.sum_apply],
-
-    sorry
+    rw [dfinsupp.lsingle_apply, dfinsupp.lsum_apply_single],
+    exact this _ _,
   },
   intros i xi,
   have := zero_add i,
@@ -180,22 +159,32 @@ begin
   suffices : ∀ i xi, dfinsupp.single (i + 0) (G.lmul xi G.lone) = dfinsupp.single i xi,
   {
     simp_rw [has_mul_mul, has_one_one],
-
-    -- -- reduce from linear_map to add_monoid_hom
-    -- simp_rw ←linear_map.to_add_monoid_hom_coe,
-    -- simp_rw [dfinsupp.lsum_apply_to_add_monoid_hom, dfinsupp.lsingle_to_add_monoid_hom],
-
-    -- maybe a missing lemma?
-    simp only [dfinsupp.lsingle_apply, dfinsupp.sum_add_hom_single, linear_map.to_add_monoid_hom_coe],
+    simp_rw [dfinsupp.lsingle_apply, dfinsupp.lsum_apply_single],
     intro a,
-    rw [← linear_map.flip_apply],
-    conv in (_ = _) { to_rhs, rw ←add_monoid_hom.id_apply a},
-    rw ←add_monoid_hom.ext_iff,
-    convert dfinsupp.lift_add_hom_single_add_hom,
+    rw [← linear_map.lflip_apply],
+    rw ←(linear_map.lflip _ _ _ _).to_add_monoid_hom_coe,
+    rw ←add_equiv.coe_to_add_monoid_hom,
+    rw ←add_monoid_hom.comp_apply,
+    revert a,
+    rw linear_map.idem_iff_id,
+    simp,
+    -- rw dfinsupp.comp_lsum,
+    -- sorry,
+    -- -- -- reduce from linear_map to add_monoid_hom
+    -- -- simp_rw ←linear_map.to_add_monoid_hom_coe,
+    -- -- simp_rw [dfinsupp.lsum_apply_to_add_monoid_hom, dfinsupp.lsingle_to_add_monoid_hom],
 
-    -- solved
-    ext1 i, ext1 xi,
-    simpa using (this i xi),
+    -- -- maybe a missing lemma?
+    -- simp only [dfinsupp.lsingle_apply, dfinsupp.sum_add_hom_single, linear_map.to_add_monoid_hom_coe],
+    -- intro a,
+    -- rw [← linear_map.flip_apply],
+    -- conv in (_ = _) { to_rhs, rw ←add_monoid_hom.id_apply a},
+    -- rw ←add_monoid_hom.ext_iff,
+    -- convert dfinsupp.lift_add_hom_single_add_hom,
+
+    -- -- solved
+    -- ext1 i, ext1 xi,
+    -- simpa using (this i xi),
   },
   intros i xi,
   have := add_zero i,
@@ -203,6 +192,8 @@ begin
   exact this,
   exact lmul_one G xi,
 end
+
+#print linear_map.flip
 
 -- private lemma mul_one (a : G) : a * 1 = a := begin
 --   simp only [has_mul_mul, has_one_one, direct_sum.of, add_monoid_hom.coe_mk],

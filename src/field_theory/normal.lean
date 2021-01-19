@@ -13,7 +13,8 @@ import ring_theory.power_basis
 # Normal field extensions
 
 In this file we define normal field extensions and prove that for a finite extension, being normal
-is the same as being a splitting field (`normal.of_is_splitting_field` and `normal.exists_is_splitting_field`).
+is the same as being a splitting field (`normal.of_is_splitting_field` and
+`normal.exists_is_splitting_field`).
 
 ## Main Definitions
 
@@ -117,7 +118,7 @@ begin
     rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←findimED],
     have nat_lemma : ∀ a b c : ℕ, a * b = c → c ≤ a → 0 < c → b = 1,
     { intros a b c h1 h2 h3, nlinarith },
-    exact nat_lemma _ _ _ (finite_dimensional.findim_mul_findim F E K)
+    exact nat_lemma _ _ _ (finite_dimensional.findim_mul_findim F E D)
       (linear_map.findim_le_findim_of_injective (show function.injective ϕ.to_linear_map,
         from ϕ.to_ring_hom.injective)) finite_dimensional.findim_pos, },
   let C := adjoin_root (minpoly Hx),

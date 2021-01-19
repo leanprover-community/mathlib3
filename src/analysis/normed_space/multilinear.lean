@@ -400,15 +400,6 @@ lemma norm_image_sub_le (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤ ∥f∥ * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :=
 f.to_multilinear_map.norm_image_sub_le_of_bound (norm_nonneg _) f.le_op_norm _ _
 
-/-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, less precise
-version, formulated in terms of `nnnorm`. For a version with `norm`, see `norm_image_sub_le`, and
-for a more precise but less usable version, see `norm_image_sub_le'`.  The bound is
-`∥f m - f m'∥ ≤ ∥f∥ * card ι * ∥m - m'∥ * (max ∥m∥ ∥m'∥) ^ (card ι - 1)`.-/
-lemma nnnorm_image_sub_le (m₁ m₂ : Πi, E₁ i) :
-  nnnorm (f m₁ - f m₂) ≤ nnnorm f * (fintype.card ι) *
-    (max (nnnorm m₁) (nnnorm m₂)) ^ (fintype.card ι - 1) * nnnorm (m₁ - m₂) :=
-nnreal.coe_le_coe.1 $ by { push_cast, exact f.norm_image_sub_le m₁ m₂ }
-
 /-- Applying a multilinear map to a vector is continuous in both coordinates. -/
 lemma continuous_eval :
   continuous (λ (p : (continuous_multilinear_map 𝕜 E₁ E₂ × (Πi, E₁ i))), p.1 p.2) :=

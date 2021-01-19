@@ -15,15 +15,10 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 lemma has_fpower_series_at.has_strict_fderiv_at (h : has_fpower_series_at f p x) :
   has_strict_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p 1)) x :=
 begin
-  rw [has_strict_fderiv_at, ← map_add_left_nhds_zero, is_o_map],
-  have : ∀ y, (fin.snoc 0 y : fin 1 → E) = λ _, y,
-  { intro y, ext i,
-    rw [show i = fin.last 0, from subsingleton.elim _ _, fin.snoc_last] },
-  simp_rw [(∘), prod.fst_add, prod.snd_add, add_sub_add_left_eq_sub,
-    continuous_linear_map.map_sub, continuous_multilinear_curry_fin1_apply,
-    this],
   refine h.is_O_image_sub_norm_mul_norm_sub.trans_is_o (is_o.of_norm_right _),
-  refine is_o_iff_exists_eq_mul.2 ⟨_, tendsto_norm_zero, eventually_eq.rfl⟩
+  refine is_o_iff_exists_eq_mul.2 ⟨λ y, ∥y - (x, x)∥, _, eventually_eq.rfl⟩,
+  refine (continuous_id.sub continuous_const).norm.tendsto' _ _ _,
+  rw [id, sub_self, norm_zero]
 end
 
 lemma has_fpower_series_at.has_fderiv_at (h : has_fpower_series_at f p x) :

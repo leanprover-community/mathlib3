@@ -239,6 +239,12 @@ lemma has_fpower_series_on_ball.analytic_at (hf : has_fpower_series_on_ball f p 
   analytic_at 𝕜 f x :=
 hf.has_fpower_series_at.analytic_at
 
+lemma has_fpower_series_on_ball.has_sum_sub (hf : has_fpower_series_on_ball f p x r) {y : E}
+  (hy : y ∈ emetric.ball x r) :
+  has_sum (λ n : ℕ, p n (λ i, y - x)) (f y) :=
+have y - x ∈ emetric.ball (0 : E) r, by simpa [edist_eq_coe_nnnorm_sub] using hy,
+by simpa only [add_sub_cancel'_right] using hf.has_sum this
+
 lemma has_fpower_series_on_ball.radius_pos (hf : has_fpower_series_on_ball f p x r) :
   0 < p.radius :=
 lt_of_lt_of_le hf.r_pos hf.r_le
@@ -252,6 +258,12 @@ lemma has_fpower_series_on_ball.mono
   has_fpower_series_on_ball f p x r' :=
 ⟨le_trans hr hf.1, r'_pos, λ y hy, hf.has_sum (emetric.ball_subset_ball hr hy)⟩
 
+protected lemma has_fpower_series_at.eventually (hf : has_fpower_series_at f p x) :
+  ∀ᶠ r : ennreal in 𝓝[Ioi 0] 0, has_fpower_series_on_ball f p x r :=
+let ⟨r, hr⟩ := hf in
+mem_sets_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
+  λ r' hr', hr.mono hr'.1 hr'.2.le
+
 lemma has_fpower_series_on_ball.add
   (hf : has_fpower_series_on_ball f pf x r) (hg : has_fpower_series_on_ball g pg x r) :
   has_fpower_series_on_ball (f + g) (pf + pg) x r :=
@@ -263,10 +275,8 @@ lemma has_fpower_series_at.add
   (hf : has_fpower_series_at f pf x) (hg : has_fpower_series_at g pg x) :
   has_fpower_series_at (f + g) (pf + pg) x :=
 begin
-  rcases hf with ⟨rf, hrf⟩,
-  rcases hg with ⟨rg, hrg⟩,
-  have P : 0 < min rf rg, by simp [hrf.r_pos, hrg.r_pos],
-  exact ⟨min rf rg, (hrf.mono P (min_le_left _ _)).add (hrg.mono P (min_le_right _ _))⟩
+  rcases (hf.eventually.and hg.eventually).exists with ⟨r, hr⟩,
+  exact ⟨r, hr.1.add hr.2⟩
 end
 
 lemma analytic_at.add (hf : analytic_at 𝕜 f x) (hg : analytic_at 𝕜 g x) :
@@ -385,60 +395,63 @@ begin
 end
 
 lemma has_fpower_series_at.is_O_image_sub_norm_mul_norm_sub (hf : has_fpower_series_at f p x) :
-  is_O (λ y : E × E, f (x + y.1) - f (x + y.2) - (p 1 (λ _, y.1) - p 1 (λ _, y.2)))
-    (λ y, ∥y∥ * ∥y.1 - y.2∥) (𝓝 0) :=
+  is_O (λ y : E × E, f (y.1) - f (y.2) - (p 1 (λ _, y.1 - y.2)))
+    (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓝 (x, x)) :=
 begin
   rcases hf with ⟨r, hf⟩,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hf.r_pos with ⟨r', r'0, h⟩,
   replace r'0 : 0 < r' := by exact_mod_cast r'0,
   obtain ⟨C, hC, hp⟩ : ∃ (C > 0), ∀ n, ∥p n∥ ≤ C / r' ^ n,
     from p.norm_le_div_pow_of_pos_of_lt_radius r'0 (h.trans_le hf.r_le),
-  set a : E × E → ℕ → F := λ y n, p n (λ _, y.1) - p n (λ _, y.2),
-  -- We have no formula for `∑' n, n * r ^ n` at this stage, so we use a very
-  -- rough upper estimate instead.
-  set b : E × E → ℕ → ℝ := λ y n, (2 * C / r' ^ 2) * (∥y∥ * ∥y.1 - y.2∥) * (2 * ∥y∥ / r') ^ n,
-  have A : ∀ᶠ y : E × E in 𝓝 0, has_sum (λ n, a y (n + 2))
-    (f (x + y.1) - f (x + y.2) - (p 1 (λ _, y.1) - p 1 (λ _, y.2))),
-  { have : emetric.ball (0 : E) r ∈ 𝓝 (0 : E), from emetric.ball_mem_nhds _ hf.r_pos,
+  set a : E × E → ℕ → F := λ y n, p n (λ _, y.1 - x) - p n (λ _, y.2 - x),
+  -- We have no formula for `∑' n, n * r ^ n` at this stage, so we estimate `n + 2` by `2 ^ (n + 1)`
+  set b : E × E → ℕ → ℝ :=
+    λ y n, (2 * C / r' ^ 2) * (∥y - (x, x)∥ * ∥y.1 - y.2∥) * (2 * ∥y - (x, x)∥ / r') ^ n,
+  have A : ∀ᶠ y : E × E in 𝓝 (x, x), has_sum (λ n, a y (n + 2))
+    (f (y.1) - f (y.2) - (p 1 (λ _, y.1 - y.2))),
+  { have : emetric.ball x r ∈ 𝓝 x, from emetric.ball_mem_nhds _ hf.r_pos,
     filter_upwards [prod_mem_nhds_sets this this],
     intros y hy,
-    simpa [finset.sum_range_one, finset.sum_range_succ, hf.coeff_zero]
-      using (has_sum_nat_add_iff' 2).2 ((hf.has_sum hy.1).sub (hf.has_sum hy.2)) },
+    convert (has_sum_nat_add_iff' 2).2 ((hf.has_sum_sub hy.1).sub (hf.has_sum_sub hy.2)),
+    rw [finset.sum_range_succ, finset.sum_range_one, hf.coeff_zero, hf.coeff_zero, sub_self,
+      add_zero, ← subsingleton.pi_single_eq (0 : fin 1) (y.1 - x), pi.single,
+      ← subsingleton.pi_single_eq (0 : fin 1) (y.2 - x), pi.single, ← (p 1).map_sub, ← pi.single,
+      subsingleton.pi_single_eq, sub_sub_sub_cancel_right] },
   have hab : ∀ (y : E × E) n, ∥a y (n + 2)∥ ≤ b y n,
   { intros y n,
-    calc ∥a y (n + 2)∥ ≤ ∥p (n + 2)∥ * ↑(n + 2) * ∥y∥ ^ (n + 2 - 1) *
-      ∥(λ (_ : fin (n + 2)), y.fst) - (λ _, y.snd)∥ :
-      by simpa only [fintype.card_fin, pi_norm_const, ← prod.norm_def]
-        using (p $ n + 2).norm_image_sub_le (λ _, y.1) (λ _, y.2)
-    ... = ∥p (n + 2)∥ * ↑(n + 2) * ∥y∥ ^ (n + 2 - 1) * ∥(λ (_ : fin (n + 2)), y.fst - y.snd)∥ : rfl
-    ... = ∥p (n + 2)∥ * (↑(n + 1) + 1) * (∥y∥ ^ (n + 2 - 1) * ∥y.fst - y.snd∥) :
-      by simp [mul_assoc, ← bit0, ← add_assoc]
-    ... ≤ (C / r' ^ (n + 2)) * 2 ^ (n + 1) * (∥y∥ ^ (n + 2 - 1) * ∥y.fst - y.snd∥) :
+    calc ∥a y (n + 2)∥ ≤ ∥p (n + 2)∥ * ↑(n + 2) * ∥y - (x, x)∥ ^ (n + 2 - 1) * ∥y.1 - y.2∥ :
+      by simpa only [fintype.card_fin, pi_norm_const, prod.norm_def, pi.sub_def, prod.fst_sub,
+        prod.snd_sub, sub_sub_sub_cancel_right]
+        using (p $ n + 2).norm_image_sub_le (λ _, y.1 - x) (λ _, y.2 - x)
+    ... ≤ ∥p (n + 2)∥ * (↑(n + 1) + 1) * (∥y - (x, x)∥ ^ (n + 2 - 1) * ∥y.1 - y.2∥) :
+      by simp only [mul_assoc, bit0, ← add_assoc, nat.cast_add_one]
+    ... ≤ (C / r' ^ (n + 2)) * 2 ^ (n + 1) * (∥y - (x, x)∥ ^ (n + 2 - 1) * ∥y.1 - y.2∥) :
       mul_le_mul_of_nonneg_right
         (mul_le_mul (hp _) (n + 1).cast_succ_le_two_pow (n + 1).cast_add_one_pos.le
-          ((norm_nonneg _).trans (hp $ n + 2)))
-        (mul_nonneg (pow_nonneg (norm_nonneg _) _) (norm_nonneg _))
+          ((norm_nonneg $ p (n + 2)).trans (hp $ n + 2)))
+        (mul_nonneg (pow_nonneg (norm_nonneg $ y - (x, x)) _) (norm_nonneg $ y.1 - y.2))
     ... = b y n :
       by simp [b, pow_succ, div_eq_mul_inv, mul_inv', mul_pow, inv_pow']; ac_refl },
-  set c := λ y : E × E, (2 * C / r' ^ 2) * (1 - 2 * ∥y∥ / r')⁻¹ * (∥y∥ * ∥y.1 - y.2∥),
-  have hb : ∀ᶠ y in 𝓝 0, has_sum (b y) (c y),
+  set c := λ y : E × E, (2 * C / r' ^ 2) * (1 - 2 * ∥y - (x, x)∥ / r')⁻¹ *
+    (∥y - (x, x)∥ * ∥y.1 - y.2∥),
+  have hb : ∀ᶠ y in 𝓝 (x, x), has_sum (b y) (c y),
   { filter_upwards [metric.ball_mem_nhds _ (div_pos (nnreal.coe_pos.2 r'0) zero_lt_two)],
     intros y hy,
-    rw [ball_0_eq, mem_set_of_eq] at hy,
+    rw [mem_ball_iff_norm] at hy,
     simp only [c], rw mul_right_comm,
     refine (has_sum_geometric_of_lt_1 _ _).mul_left _,
     exact div_nonneg (mul_nonneg zero_le_two $ norm_nonneg _) r'.coe_nonneg,
     rwa [div_lt_one, ← lt_div_iff'],
     exacts [zero_lt_two, nnreal.coe_pos.2 r'0] },
-  suffices : is_O c (λ y, ∥y∥ * ∥y.1 - y.2∥) (𝓝 0),
+  suffices : is_O c (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓝 (x, x)),
   { refine (is_O_iff.2 ⟨1, _⟩).trans this,
     filter_upwards [A, hb], intros y ha hb, rw one_mul,
     exact (ha.norm_le_of_bounded hb (hab _)).trans (le_abs_self _) },
-  have : tendsto (λ y : E × E, 2 * C / r' ^ 2 * (1 - 2 * ∥y∥ / r')⁻¹) (𝓝 0)
-    (𝓝 $ 2 * C / r' ^ 2 * (1 - 2 * 0 / r')⁻¹),
-  { refine tendsto_const_nhds.mul
-      ((tendsto_const_nhds.sub (tendsto_const_nhds.mul tendsto_norm_zero).div_const).inv' _),
-    simp },
+  have : tendsto (λ y : E × E, 2 * C / r' ^ 2 * (1 - 2 * ∥y - (x, x)∥ / r')⁻¹) (𝓝 (x, x))
+    (𝓝 $ 2 * C / r' ^ 2 * (1 - 2 * ∥(x, x) - (x, x)∥ / r')⁻¹),
+  { refine tendsto_const_nhds.mul ((tendsto_const_nhds.sub
+      (tendsto_const_nhds.mul (tendsto_id.sub tendsto_const_nhds).norm).div_const).inv' _),
+    simp [prod.norm_def] },
   exact ((is_O_one_of_tendsto ℝ this).mul (is_O_refl _ _)).congr (λ _, rfl) (λ _, one_mul _)
 end
 

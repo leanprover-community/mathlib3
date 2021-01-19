@@ -2017,17 +2017,20 @@ subtype.ext_iff_val.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha�
 
 end card
 
-/-! ### bUnion -/
 section bUnion
+/-!
+### bUnion
+
+This section is about the bounded union of an indexed family `t : α → finset β` of finite sets
+over a finite set `s : finset α`.
+-/
+
 variables [decidable_eq β] {s : finset α} {t : α → finset β}
 
 /-- `bUnion s t` is the union of `t x` over `x ∈ s`.
 (This was formerly `bind` due to the monad structure on types with `decidable_eq`.) -/
 protected def bUnion (s : finset α) (t : α → finset β) : finset β :=
 (s.1.bUnion (λ a, (t a).1)).to_finset
-
---protected structure Canary := (bird : ℕ)
---protected def bind : Canary := Canary.mk 22
 
 @[simp] theorem bUnion_val (s : finset α) (t : α → finset β) :
   (s.bUnion t).1 = (s.1.bUnion (λ a, (t a).1)).erase_dup := rfl

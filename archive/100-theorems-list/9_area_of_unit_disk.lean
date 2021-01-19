@@ -250,7 +250,7 @@ def volume_under (u : α → ℝ) (s : set α) : set (α × ℝ) :=
 { p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ico 0 (u p.1) }
 
 def volume_between (u v : α → ℝ) (s : set α) : set (α × ℝ) :=
-{ p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ico (u p.1) (v p.1) }
+{ p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (u p.1) (v p.1) }
 
 variables {u v : α → ℝ} {s : set α}
 
@@ -288,7 +288,7 @@ end
 
 /-- "Area between two curves" as a left integral -/
 theorem volume_between_eq_lintegral (hu : measurable u) (hv : measurable v) (hs : is_measurable s) :
-  (volume.prod volume (volume_between u v s)) = ∫⁻ y in s, ennreal.of_real (u y) :=
+  (volume.prod volume (volume_between u v s)) = ∫⁻ y in s, ennreal.of_real ((v - u) y) :=
 begin
   sorry,
 end
@@ -296,13 +296,40 @@ end
 theorem area_of_unit_disc' : volume.prod volume unit_disc = ennreal.of_real pi :=
 begin
   let g := λ x, sqrt (1 - x^2),
-  have hg : measurable g := sorry,
   have h1 : unit_disc = volume_between (-g) g (Ioo (-(1:ℝ)) 1),
   { ext p,
     simp only [unit_disc, volume_between, g, mem_set_of_eq, mem_Ioo, mem_Ico, pi.neg_apply],
-    rw [add_comm, ← lt_sub_iff_add_lt],
-    exact sqr_lt },
-  have H := volume_between_eq_lintegral hg hg.neg is_measurable_Ioo,
+    split;
+    intro h,
+    { split,
+      { rw ← sqrt_one,
+        exact sqr_lt.mp (by linarith [pow_two_nonneg p.2]) },
+      { rw [add_comm, ← lt_sub_iff_add_lt] at h,
+        exact sqr_lt.mp h } },
+    { rw [add_comm, ← lt_sub_iff_add_lt],
+      exact sqr_lt.mpr h.2 } },
+  have h2 : (Ioo (-1) 1).indicator (λ y, 2 * sqrt (1 - y^2)) = λ y, 2 * sqrt (1 - y^2),
+  { ext a,
+    rw [indicator_apply_eq_self, mul_eq_zero],
+    intros ha,
+    right,
+    apply sqrt_eq_zero_of_nonpos,
+    rw [sub_nonpos, ← sqrt_le (pow_two_nonneg a), sqrt_one, sqrt_sqr_eq_abs, le_abs],
+    simp only [mem_Ioo, not_and_distrib, not_lt, not_le, ← mul_zero] at ha,
+    cases ha,
+    { exact or.inr (le_neg.mp ha) },
+    { exact or.inl ha } },
+  have hg : measurable g := sorry,
+  rw h1,
+  convert volume_between_eq_lintegral hg.neg hg is_measurable_Ioo,
+  simp only [pi.sub_apply, sub_neg_eq_add, g, ← two_mul],
+  -- EVERYTHING IS GROOVY UNTIL THIS POINT
+  let g' := λ x, nnreal.of_real (2 * sqrt (1 - x^2)),
+  --convert ← integral_eq_lintegral_of_nonneg_ae _ _,
+  --have := (nnreal.coe_of_real _ (mul_nonneg zero_le_two (sqrt_nonneg _))).symm,
+  --rw [← lintegral_indicator],
+  --rw [h2],
+  --simp only,
+  convert lintegral_coe_eq_integral (λ x, g' x) _,
+  simp only [g', nnreal.coe_of_real _ (mul_nonneg zero_le_two (sqrt_nonneg _))],
 end
-
-#check measurable.neg

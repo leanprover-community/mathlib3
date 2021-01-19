@@ -345,38 +345,38 @@ by rw [count_roots h, count_zero, root_multiplicity_eq_zero not_root]
 roots_C 1
 
 lemma roots_list_prod (L : list (polynomial R)) :
-  (∀ p ∈ L, (p : _) ≠ 0) → L.prod.roots = (L : multiset (polynomial R)).bind roots :=
+  (∀ p ∈ L, (p : _) ≠ 0) → L.prod.roots = (L : multiset (polynomial R)).bUnion roots :=
 list.rec_on L (λ _, roots_one) $ λ hd tl ih H,
 begin
   rw list.forall_mem_cons at H,
   rw [list.prod_cons, roots_mul (mul_ne_zero H.1 $ list.prod_ne_zero H.2),
-      ← multiset.cons_coe, multiset.cons_bind, ih H.2]
+      ← multiset.cons_coe, multiset.cons_bUnion, ih H.2]
 end
 
 lemma roots_multiset_prod (m : multiset (polynomial R)) :
-  (∀ p ∈ m, (p : _) ≠ 0) → m.prod.roots = m.bind roots :=
+  (∀ p ∈ m, (p : _) ≠ 0) → m.prod.roots = m.bUnion roots :=
 multiset.induction_on m (λ _, roots_one) $ λ hd tl ih H,
 begin
   rw multiset.forall_mem_cons at H,
   rw [multiset.prod_cons, roots_mul (mul_ne_zero H.1 $ multiset.prod_ne_zero H.2),
-      multiset.cons_bind, ih H.2]
+      multiset.cons_bUnion, ih H.2]
 end
 
 lemma roots_prod {ι : Type*} (f : ι → polynomial R) (s : finset ι) :
-  s.prod f ≠ 0 → (s.prod f).roots = s.val.bind (λ i, roots (f i)) :=
+  s.prod f ≠ 0 → (s.prod f).roots = s.val.bUnion (λ i, roots (f i)) :=
 begin
   refine s.induction_on _ _,
   { intros, exact roots_one },
   intros i s hi ih ne_zero,
   rw prod_insert hi at ⊢ ne_zero,
   rw [roots_mul ne_zero, ih (right_ne_zero_of_mul ne_zero), insert_val,
-      ndinsert_of_not_mem hi, cons_bind]
+      ndinsert_of_not_mem hi, cons_bUnion]
 end
 
 lemma roots_prod_X_sub_C (s : finset R) :
   (s.prod (λ a, X - C a)).roots = s.val :=
 (roots_prod (λ a, X - C a) s (prod_ne_zero_iff.mpr (λ a _, X_sub_C_ne_zero a))).trans
-  (by simp_rw [roots_X_sub_C, bind_cons, bind_zero, add_zero, multiset.map_id'])
+  (by simp_rw [roots_X_sub_C, bUnion_cons, bUnion_zero, add_zero, multiset.map_id'])
 
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
   (roots ((X : polynomial R) ^ n - C a)).card ≤ n :=

@@ -78,10 +78,10 @@ lemma primitive_element_inf_aux_exists_c (f g : polynomial F) :
 begin
   let sf := (f.map ϕ).roots,
   let sg := (g.map ϕ).roots,
-  let s := (sf.bind (λ α', sg.map (λ β', -(α' - α) / (β' - β)))).to_finset,
+  let s := (sf.bUnion (λ α', sg.map (λ β', -(α' - α) / (β' - β)))).to_finset,
   let s' := s.preimage ϕ (λ x hx y hy h, ϕ.injective h),
   obtain ⟨c, hc⟩ := infinite.exists_not_mem_finset s',
-  simp_rw [finset.mem_preimage, multiset.mem_to_finset, multiset.mem_bind, multiset.mem_map] at hc,
+  simp_rw [finset.mem_preimage, multiset.mem_to_finset, multiset.mem_bUnion, multiset.mem_map] at hc,
   push_neg at hc,
   exact ⟨c, hc⟩,
 end

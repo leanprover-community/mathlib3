@@ -708,7 +708,7 @@ variables [measurable_space α] [has_zero β] [has_zero γ] {μ : measure α}
 open finset ennreal function
 
 lemma support_eq (f : α →ₛ β) : support f = ⋃ y ∈ f.range.filter (λ y, y ≠ 0), f ⁻¹' {y} :=
-set.ext $ λ x, by simp only [finset.bUnion_preimage_singleton, mem_support, set.mem_preimage,
+set.ext $ λ x, by simp only [finset.set_bUnion_preimage_singleton, mem_support, set.mem_preimage,
   finset.mem_coe, mem_filter, mem_range_self, true_and]
 
 /-- A `simple_func` has finite measure support if it is equal to `0` outside of a set of finite

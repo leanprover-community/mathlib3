@@ -281,7 +281,8 @@ lemma chebyshev₂_derivative_eq_chebyshev₁ :
               end
 
 lemma one_sub_X_pow_two_mul_derivative_chebyshev₁_eq_poly_in_chebyshev₁ :
-∀ (n : ℕ), (1 - X ^ 2)  * (derivative (chebyshev₁ R (n+1))) = (n + 1) * (chebyshev₁ R n - X * chebyshev₁ R (n+1)) :=
+∀ (n : ℕ), (1 - X ^ 2)  * (derivative (chebyshev₁ R (n+1)))
+= (n + 1) * (chebyshev₁ R n - X * chebyshev₁ R (n+1)) :=
 begin
   intro n,
   rw [chebyshev₂_derivative_eq_chebyshev₁, ←mul_assoc, mul_comm (1 - X ^ 2), mul_assoc,
@@ -293,7 +294,8 @@ begin
 end
 
 lemma add_one_mul_chebyshev₁_eq_poly_in_chebyshev₂ :
-∀ (n : ℕ), ((n : polynomial R)  + 1) * chebyshev₁ R (n+1) = X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n) :=
+∀ (n : ℕ), ((n : polynomial R)  + 1) * chebyshev₁ R (n+1)
+= X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n) :=
 begin
   sorry
 end

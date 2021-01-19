@@ -35,6 +35,8 @@ open_locale direct_sum
 lemma add_monoid_hom.mk_coe {P : Type*} {Q : Type*} [add_monoid P] [add_monoid Q] (f : P →+ Q) (h₁ h₂) :
   add_monoid_hom.mk (f : P → Q) h₁ h₂ = f := by  {ext, simp}
 
+#check add_monoid_hom.mk_coe
+
 
 @[simp]
 lemma dfinsupp.lsum_apply_to_add_monoid_hom
@@ -63,6 +65,7 @@ namespace grading
 
 variables {R A ι} (G : grading R A ι)
 
+
 @[reducible]
 def submodule_types (i : ι) := ↥(G.submodules i)
 
@@ -70,21 +73,16 @@ local notation g `[`:max i `]`:max := submodule_types g i
 
 instance : has_coe_to_sort (grading R A ι) := ⟨_, λ g, ⨁ i, g[i]⟩
 
+instance : add_comm_monoid G := infer_instance
+instance : semimodule R G := infer_instance
+instance : add_comm_monoid (Π₀ (i : ι), G[i]) := (@dfinsupp.add_comm_monoid ι G.submodule_types _)
+instance : semimodule R (Π₀ (i : ι), G[i]) := (@dfinsupp.semimodule ι G.submodule_types R _ _ _)
+
 -- TODO: move, or use classical
 instance (S : submodule R A) (x : S) : decidable (x ≠ 0) :=
 decidable.rec_on (infer_instance : decidable ((x : A) ≠ 0))
   (λ hfalse, decidable.is_false $ by simp * at *)
   (λ htrue, decidable.is_true $ by simp * at *)
-
--- #4810
-lemma subtype.ext_iff_heq {α : Sort*} {p : α → Prop} {q : α → Prop} (h' : ∀ x, p x ↔ q x)
-  {a1 : {x // p x}} {a2 : {x // q x}} :
-  a1 == a2 ↔ (a1 : α) = (a2 : α) :=
-begin
-  have : p = q := funext (λ x, propext (h' x)),
-  subst this,
-  exact heq_iff_eq.trans subtype.ext_iff,
-end
 
 section semiring
 
@@ -99,19 +97,19 @@ def lone : G[0] := ⟨1, G.one_mem⟩
 
 lemma one_lmul {i} (a : G[i]) : G.lmul (lone G) a == a := begin
   have : ∀ x, x ∈ G.submodules (0 + i) ↔ x ∈ G.submodules i := λ x, by rw zero_add,
-  rw subtype.ext_iff_heq this,
+  rw subtype.heq_iff_coe_eq this,
   simp only [lmul, lone, linear_map.mk₂_apply, submodule.coe_mk,  one_mul],
 end
 
 lemma lmul_one {i} (a : G[i]) : G.lmul a (lone G) == a := begin
   have : ∀ x, x ∈ G.submodules (i + 0) ↔ x ∈ G.submodules i := λ x, by rw add_zero,
-  rw subtype.ext_iff_heq this,
+  rw subtype.heq_iff_coe_eq this,
   simp only [lmul, lone, linear_map.mk₂_apply, submodule.coe_mk, mul_one],
 end
 
 lemma lmul_assoc {i j k} (a : G[i]) (b : G[j]) (c : G[k]) : G.lmul a (G.lmul b c) == G.lmul (G.lmul a b) c := begin
   have : ∀ x, x ∈ G.submodules (i + (j + k)) ↔ x ∈ G.submodules (i + j + k) := λ x, by rw add_assoc,
-  rw subtype.ext_iff_heq this,
+  rw subtype.heq_iff_coe_eq this,
   simp only [lmul, linear_map.mk₂_apply, submodule.coe_mk, mul_assoc],
 end
 
@@ -120,7 +118,7 @@ instance : has_mul G :=
 ⟨λ x y,
   (dfinsupp.lsum $ λ j,
     (dfinsupp.lsum $ λ i,
-      (G.lmul : G[i] →ₗ[R] G[j] →ₗ[R] G[_]).compr₂ (dfinsupp.lsingle (λ i, G[i]) R _))
+      (G.lmul : G[i] →ₗ[R] G[j] →ₗ[R] G[_]).compr₂ (dfinsupp.lsingle _ : G[_] →ₗ[R] _))
     x)
   y⟩
 
@@ -128,7 +126,7 @@ instance : has_mul G :=
 
 @[simps one]
 instance : has_one G :=
-⟨dfinsupp.lsingle (λ i, G[i]) R 0 (lone G)⟩
+⟨(dfinsupp.lsingle 0 : _ →ₗ[R] _) (lone G)⟩
 
 /-! These proofs are very slow, so these lemmas are defined separately -/
 
@@ -212,7 +210,7 @@ end
 --   ext1 i, ext1,
 --   rw dfinsupp.sum_single_index,
 --   { congr, exact add_zero i,
---     rw subtype.ext_iff_heq,
+--     rw subtype.heq_iff_coe_eq,
 --     { rw [submodule.coe_mk, submodule.coe_mk, mul_one], },
 --     { intro x, rw add_zero }, },
 --   { convert @dfinsupp.single_zero ι _ _ _ _,
@@ -239,7 +237,7 @@ end
 --             rw dfinsupp.sum_single_index,
 --             { congr' 1,
 --               exact (add_assoc ai bi ci).symm,
---               rw subtype.ext_iff_heq,
+--               rw subtype.heq_iff_coe_eq,
 --               { simp [mul_assoc], },
 --               { intro x, simp [add_assoc] }, },
 --             { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, }, },

@@ -85,7 +85,7 @@ Composition, partition
 -/
 
 open list
-open_locale classical big_operators
+open_locale big_operators
 
 variable {n : ℕ}
 
@@ -504,7 +504,7 @@ by simp [blocks_fun, single, blocks, i.2]
   (single n h).embedding ⟨0, single_length h ▸ zero_lt_one⟩ i = i :=
 by { ext, simp }
 
-lemma eq_single_iff {n : ℕ} {h : 0 < n} {c : composition n } :
+lemma eq_single_iff_length {n : ℕ} (h : 0 < n) {c : composition n} :
   c = single n h ↔ c.length = 1 :=
 begin
   split,
@@ -517,6 +517,34 @@ begin
     have B : c.blocks.sum = n := c.blocks_sum,
     rw eq_cons_of_length_one A at B ⊢,
     simpa [single_blocks] using B }
+end
+
+lemma ne_single_iff {n : ℕ} (hn : 0 < n) {c : composition n} :
+  c ≠ single n hn ↔ ∀ i, c.blocks_fun i < n :=
+begin
+  rw ← not_iff_not,
+  push_neg,
+  split,
+  { rintros rfl,
+    exact ⟨⟨0, by simp⟩, by simp⟩ },
+  { rintros ⟨i, hi⟩,
+    rw eq_single_iff_length,
+    have : ∀ j : fin c.length, j = i,
+    { by_contradiction h,
+      push_neg at h,
+      rcases h with ⟨j, ji⟩,
+      apply lt_irrefl n,
+      calc n ≤ ∑ k in {i}, c.blocks_fun k : by simp [hi]
+      ... < ∑ k, c.blocks_fun k : begin
+        have : j ∈ finset.univ \ {i}, by { rw [finset.mem_sdiff, finset.mem_singleton], simp [ji] },
+        apply finset.sum_lt_sum_of_subset (finset.subset_univ _) this,
+
+
+      end
+      ... = n : sorry
+    }
+
+  }
 end
 
 end composition

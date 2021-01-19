@@ -24,13 +24,13 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 /-- The left inverse of a formal multilinear series, where the `n`-th term is defined inductively
 in terms of the previous ones to make sure that `(left_inv p i) ∘ p = id`. For this, the linear term
-`p 1` in `p` should be invertible. In the definition, `i` is a linear isomorphism that should
-coincide with `p 1`, so that one can use its inverse in the construction. The definition does not
-use that `i = p 1`, but proofs that the definition is well-behaved do.
+`p₁` in `p` should be invertible. In the definition, `i` is a linear isomorphism that should
+coincide with `p₁`, so that one can use its inverse in the construction. The definition does not
+use that `i = p₁`, but proofs that the definition is well-behaved do.
 
 The `n`-th term in `q ∘ p` is `∑ qₖ (p_{j₁}, ..., p_{jₖ})` over `j₁ + ... + jₖ = n`. In this
 expression, `qₙ` appears only once, in `qₙ (p₁, ..., p₁)`. We adjust the definition so that this
-term compensates the rest of the sum, using `i⁻¹` as inverse to `p₁`.
+term compensates the rest of the sum, using `i⁻¹` as an inverse to `p₁`.
 -/
 
 noncomputable def left_inv (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) :
@@ -89,5 +89,80 @@ begin
     apply_composition_ones, C, D],
 end
 
+/-- The right inverse of a formal multilinear series, where the `n`-th term is defined inductively
+in terms of the previous ones to make sure that `p ∘ (right_inv p i) = id`. For this, the linear
+term `p₁` in `p` should be invertible. In the definition, `i` is a linear isomorphism that should
+coincide with `p₁`, so that one can use its inverse in the construction. The definition does not
+use that `i = p₁`, but proofs that the definition is well-behaved do.
+
+The `n`-th term in `p ∘ q` is `∑ pₖ (q_{j₁}, ..., q_{jₖ})` over `j₁ + ... + jₖ = n`. In this
+expression, `qₙ` appears only once, in `p₁ (qₙ)`. We adjust the definition so that this
+term compensates the rest of the sum, using `i⁻¹` as an inverse to `p₁`.
+-/
+noncomputable def right_inv (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) :
+  formal_multilinear_series 𝕜 F E
+| 0 := 0
+| 1 := (continuous_multilinear_curry_fin1 𝕜 F E).symm i.symm
+| (n+2) :=
+    let q : formal_multilinear_series 𝕜 F E := λ k, if h : k < n + 2 then right_inv k else 0 in
+    - (i.symm : F →L[𝕜] E).comp_continuous_multilinear_map ((p.comp q) (n+2))
+
+/-- The right inverse to a formal multilinear series is indeed a right inverse, provided its linear
+term is invertible and its constant term vanishes. -/
+lemma right_inv_comp (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
+  (h : p 1 = (continuous_multilinear_curry_fin1 𝕜 E F).symm i) (h0 : p 0 = 0) :
+  p.comp (right_inv p i) = id 𝕜 F :=
+begin
+  ext n v,
+  cases n,
+  { simp only [h0, continuous_multilinear_map.zero_apply, id_apply_ne_one, ne.def, not_false_iff,
+      zero_ne_one, comp_coeff_zero']},
+  cases n,
+  { simp only [comp_coeff_one, h, right_inv, continuous_linear_equiv.apply_symm_apply, id_apply_one,
+      continuous_linear_equiv.coe_apply, continuous_multilinear_curry_fin1_symm_apply] },
+  have N : 0 < n+2, by dec_trivial,
+  have : ∀ q : formal_multilinear_series 𝕜 F E,
+    p.comp q (n + 2) v =
+    ∑ (c : composition (n + 2)) in {c : composition (n + 2) | 1 < c.length}.to_finset,
+      p c.length (q.apply_composition c v)
+    + p 1 (λ i, q (n+2) v), sorry,
+  /-{ assume q,
+    have A : (finset.univ : finset (composition (n+2)))
+      = {c | 1 < composition.length c}.to_finset ∪ {composition.single (n+2) N},
+    { refine subset.antisymm (λ c hc, _) (subset_univ _),
+      by_cases h : 1 < c.length,
+      { simp [h] },
+      { have : c.length = 1,
+          by { refine (eq_iff_le_not_lt.2 ⟨ _, h⟩).symm, exact c.length_pos_of_pos N },
+        rw ← composition.eq_single_iff N at this,
+        simp [this] } },
+    have B : disjoint ({c | 1 < composition.length c} : set (composition (n+2))).to_finset
+      {composition.single (n+2) N}, by simp,
+    have C : p (composition.single (n + 2) N).length
+               (q.apply_composition (composition.single (n + 2) N) v)
+             = p 1 (λ (i : fin 1), q (n + 2) v),
+    { apply p.congr (composition.single_length N) (λ j hj1 hj2, _),
+      simp [apply_composition_single] },
+    simp [formal_multilinear_series.comp, show n + 2 ≠ 1, by dec_trivial, A,
+          finset.sum_union B, C], } -/
+  suffices H : ∑ (c : composition (n + 2)) in {c : composition (n + 2) | 1 < c.length}.to_finset,
+        p c.length ((p.right_inv i).apply_composition c v) =
+      ∑ (c : composition (n + 2)) in {c : composition (n + 2) | 1 < c.length}.to_finset,
+        p c.length (apply_composition (λ (k : ℕ), ite (k < n + 2) (p.right_inv i k) 0) c v), sorry,
+    -- by simpa [this, h, right_inv, lt_irrefl n, show n + 2 ≠ 1, by dec_trivial, ← sub_eq_add_neg,
+    --  sub_eq_zero],
+  refine sum_congr rfl (λ c hc, p.congr rfl (λ j hj1 hj2, _)),
+  have : ∀ k, c.blocks_fun k < n + 2, sorry,
+  simp [apply_composition, this],
+
+end
+
 
 end formal_multilinear_series
+
+#exit
+
+∑ (x : composition (n + 2)) in {c : composition (n + 2) | 1 < c.length}.to_finset, ⇑(p x.length)
+  ((p.right_inv i).apply_composition x v)
+
++ ⇑(p (composition.single (n + 2) N).length) ((p.right_inv i).apply_composition (composition.single (n + 2) N) v) = 0

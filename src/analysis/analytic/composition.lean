@@ -93,7 +93,7 @@ def apply_composition
 λ v i, p (c.blocks_fun i) (v ∘ (c.embedding i))
 
 lemma apply_composition_ones (p : formal_multilinear_series 𝕜 E F) (n : ℕ) :
-  apply_composition p (composition.ones n) =
+  p.apply_composition (composition.ones n) =
     λ v i, p 1 (λ _, v (fin.cast_le (composition.length_le _) i)) :=
 begin
   funext v i,
@@ -102,6 +102,20 @@ begin
   obtain rfl : j = 0, { linarith },
   refine congr_arg v _,
   rw [fin.ext_iff, fin.coe_cast_le, composition.ones_embedding, fin.coe_mk],
+end
+
+lemma apply_composition_single (p : formal_multilinear_series 𝕜 E F) {n : ℕ} (hn : 0 < n)
+  (v : fin n → E) : p.apply_composition (composition.single n hn) v = λ j, p n v :=
+begin
+  ext j,
+  refine p.congr (by simp) (λ i hi1 hi2, _),
+  dsimp,
+  congr' 1,
+  convert composition.single_embedding hn ⟨i, hi2⟩,
+  cases j,
+  have : j_val = 0 := le_bot_iff.1 (nat.lt_succ_iff.1 j_property),
+  unfold_coes,
+  congr; try { assumption <|> simp },
 end
 
 /-- Technical lemma stating how `p.apply_composition` commutes with updating variables. This

@@ -508,6 +508,44 @@ begin
   exact ⟨i, finset.mem_insert_of_mem hi, ih⟩
 end
 
+theorem is_prime.prod_le_fil {s : multiset ι} {f : ι → ideal R} {P : ideal R}
+  (hp : is_prime P) (hne: s ≠ 0) :
+  multiset.prod (s.map f) ≤ P → ∃ i ∈ s, f i ≤ P :=
+-- suffices s.prod f ≤ P → ∃ i ∈ s, f i ≤ P,
+--   from ⟨this, λ ⟨i, his, hip⟩, le_trans prod_le_inf $ le_trans (finset.inf_le his) hip⟩,
+begin --sorry,
+  classical,
+  obtain ⟨b, hb⟩ : ∃ b, b ∈ s := sorry, --easy hne.bex,
+  let t := s.erase b,
+  -- obtain ⟨t, hbt, rfl⟩ : ∃ t, b ∉ t ∧ s = insert b t,
+  -- from ⟨s.erase b, s.not_mem_erase b, (finset.insert_erase hb).symm⟩,
+  -- revert hbt,
+  refine multiset.induction _ (λ J s ih, _) s, sorry, -- anche facile
+  -- { simp only [finset.not_mem_empty, insert_emptyc_eq, exists_prop, finset.prod_singleton,
+  --     imp_self, exists_eq_left, not_false_iff, finset.mem_singleton] },
+  rw [multiset.map_cons, multiset.prod_cons],
+  intro h_ind,
+  rw is_prime.mul_le hp at h_ind,
+  cases h_ind,
+  { use J, sorry },
+  refine ih,
+  -- replace h_ind : is_prime.mul_le.mp hp h_ind,
+  -- rintro ⟨h_fJ, h_fprod⟩,
+  -- convert f J ≤ P ∨ (multiset.map f s).prod ≤ P → (∃ (i : ι) (H : i ∈ J ::ₘ s), f i ≤ P),
+  -- intros a s has ih hbs h,
+  -- have : a ∉ insert b s,
+  -- { contrapose! has,
+  --   apply finset.mem_of_mem_insert_of_ne has,
+  --   rintro rfl,
+  --   contradiction },
+  -- rw [finset.insert.comm, finset.prod_insert this, hp.mul_le] at h,
+  -- rw finset.insert.comm,
+  -- cases h,
+  -- { exact ⟨a, finset.mem_insert_self a _, h⟩ },
+  -- obtain ⟨i, hi, ih⟩ : ∃ i ∈ insert b s, f i ≤ P := ih (mt finset.mem_insert_of_mem hbs) h,
+  -- exact ⟨i, finset.mem_insert_of_mem hi, ih⟩
+end
+
 theorem is_prime.inf_le' {s : finset ι} {f : ι → ideal R} {P : ideal R} (hp : is_prime P)
   (hsne: s.nonempty) :
   s.inf f ≤ P ↔ ∃ i ∈ s, f i ≤ P :=

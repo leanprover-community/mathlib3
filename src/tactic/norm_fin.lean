@@ -86,23 +86,14 @@ This function is similar to `fin.mk_numeral` but it takes fewer hypotheses and i
 protected meta def expr.of_fin {n : ℕ} (α : expr) : fin (n + 1) → tactic expr
 | ⟨k, _⟩ := expr.of_nat α k
 
-namespace tactic
-namespace instance_cache
-
-/-- `c.of_nat q` embeds `q` as a numeral expression inside the type `α`.
-Lean will try to infer the correct type classes on `c.α`, and the tactic will fail if it cannot.
-This function is similar to `fin.mk_numeral` but it takes fewer hypotheses and is tactic valued.
--/
-protected meta def of_fin {n : ℕ} (c : instance_cache) :
-  fin (n + 1) → tactic (instance_cache × expr)
-| ⟨k, hk⟩ := c.of_nat k
-
 open norm_num
 
+namespace tactic
+
 /-- Given `a`,`b` `fin n` numerals, proves `⊢ a < b`. -/
-meta def prove_lt_fin (ic : instance_cache) : expr → expr → tactic (instance_cache × expr)
+meta def prove_lt_fin : expr → expr → tactic expr
 | a b := do
-  `(fin %%en) ← pure ic.α,
+  `(fin %%en) ← infer_type a,
   nic ← mk_instance_cache `(ℕ),
   en ← prod.fst <$> eval_field en <|> pure en,
   nty ← en.to_nat,
@@ -114,20 +105,30 @@ meta def prove_lt_fin (ic : instance_cache) : expr → expr → tactic (instance
   (_, enb) ← nic.of_nat nb,
   (_, pnb) ← prove_lt_nat nic enb en,
   (_, pnlt) ← prove_lt_nat nic ena enb,
-  p ← to_expr ``(fin.prove_lt %%en %%ena %%enb %%pna %%pnb %%pnlt),
-  pure (ic, p)
+  to_expr ``(fin.prove_lt %%en %%ena %%enb %%pna %%pnb %%pnlt)
+
+namespace instance_cache
+
+/-- `c.of_nat q` embeds `q` as a numeral expression inside the type `α`.
+Lean will try to infer the correct type classes on `c.α`, and the tactic will fail if it cannot.
+This function is similar to `fin.mk_numeral` but it takes fewer hypotheses and is tactic valued.
+-/
+protected meta def of_fin {n : ℕ} (c : instance_cache) :
+  fin (n + 1) → tactic (instance_cache × expr)
+| ⟨k, hk⟩ := c.of_nat k
 
 /-- Given `a`,`b` `fin n` numerals, proves `⊢ a ≠ b`. -/
 meta def prove_ne_fin (ic : instance_cache) (a b : expr) (na nb : ℚ) :
   tactic (instance_cache × expr) :=
 if na < nb then do
-  (ic, p) ← prove_lt_fin ic a b,
+  p ← prove_lt_fin a b,
   ic.mk_app ``ne_of_lt [a, b, p]
 else do
-  (ic, p) ← prove_lt_fin ic b a,
+  p ← prove_lt_fin b a,
   ic.mk_app ``ne_of_gt [a, b, p]
 
 end instance_cache
+
 end tactic
 
 open tactic expr

@@ -109,14 +109,39 @@ begin
   exact le_of_all_pow_lt_succ x y hx hy' h
 end
 
+lemma pos_on_pos_rats (q : ℚ) {f : ℚ → ℝ} (hq : 0 < q)
+     (H1:  ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
+     (H4: ∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n) :
+      0 < f q :=
+begin
+    have hqn : (q.num: ℚ) = q * (q.denom : ℚ) := rat.mul_denom_eq_num.symm,
+    have hfqn : f q.num ≤ f q * f q.denom,
+    { have := H1 q q.denom hq (nat.cast_pos.mpr q.pos),
+      rwa hqn },
+    have hqd: (q.denom: ℝ) ≤ f q.denom := H4 q.denom q.pos,
+    have hqnp: 0 < q.num := rat.num_pos_iff_pos.mpr hq,
+    have hqna: ((int.nat_abs q.num):ℤ) = q.num := int.nat_abs_of_nonneg (le_of_lt hqnp),
+    have hqfn': (q.num: ℝ) ≤ f q.num,
+    { rw ←hqna at hqnp,
+      have := H4 q.num.nat_abs (int.coe_nat_pos.mp hqnp),
+      rw ←hqna,
+      rwa [int.cast_coe_nat q.num.nat_abs] },
+    have hqnz := calc (0:ℝ) < q.num : int.cast_pos.mpr hqnp
+                        ... ≤ f q.num : hqfn',
+    have hqdz :=
+      calc (0:ℝ) < q.denom : nat.cast_pos.mpr q.pos
+         ... ≤ f q.denom : hqd,
+    nlinarith
+end
+
 lemma twice_pos_int_gt_one (z: ℤ) (hpos: 0 < z) : (1:ℚ) < (((2 * z):ℤ):ℚ) :=
 by { norm_cast, linarith }
 
 theorem imo2013_q5
-  (f: ℚ → ℝ)
-  (H1:  ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
-  (H2: ∀ x y, 0 < x → 0 < y → f x + f y ≤ f (x + y))
-  (H_fixed_point: ∃ a, 1 < a ∧ f a = a) :
+  (f : ℚ → ℝ)
+  (H1 : ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
+  (H2 : ∀ x y, 0 < x → 0 < y → f x + f y ≤ f (x + y))
+  (H_fixed_point : ∃ a, 1 < a ∧ f a = a) :
   ∀ x, 0 < x → f x = x :=
 begin
   obtain ⟨a, ha1, hae⟩ := H_fixed_point,
@@ -135,7 +160,7 @@ begin
       ... ≤ f ((↑pn + 1) * x + x)          : H2 _ _ (mul_pos (nat.cast_add_one_pos pn) hx) hx
       ... = f ((↑pn + 1) * x + 1 * x)      : by rw one_mul
       ... = f ((↑pn + 1 + 1) * x)          : congr_arg f (add_mul (↑pn + 1) 1 x).symm },
-  have H4: (∀ n : ℕ, 0 < n → (n: ℝ) ≤ f n),
+  have H4: (∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n),
   { intros n hn,
     have hf1: 1 ≤ f 1,
     { have := (H1 a 1) (lt_trans zero_lt_one ha1) zero_lt_one,
@@ -150,26 +175,6 @@ begin
             ... ≤ (n: ℝ) * f 1 : (mul_le_mul_left (nat.cast_pos.mpr hn)).mpr hf1
             ... ≤ f (n * 1)    : H3 1 zero_lt_one n hn
             ... = f n          : by rw mul_one },
-  have hqp: ∀ q: ℚ, 0 < q → 0 < f q,
-  { intros q hq,
-    have hqn : (q.num: ℚ) = q * (q.denom : ℚ) := rat.mul_denom_eq_num.symm,
-    have hfqn : f q.num ≤ f q * f q.denom,
-    { have := H1 q q.denom hq (nat.cast_pos.mpr q.pos),
-      rwa hqn },
-    have hqd: (q.denom: ℝ) ≤ f q.denom := H4 q.denom q.pos,
-    have hqnp: 0 < q.num := rat.num_pos_iff_pos.mpr hq,
-    have hqna: ((int.nat_abs q.num):ℤ) = q.num := int.nat_abs_of_nonneg (le_of_lt hqnp),
-    have hqfn': (q.num: ℝ) ≤ f q.num,
-    { rw ←hqna at hqnp,
-      have := H4 q.num.nat_abs (int.coe_nat_pos.mp hqnp),
-      rw ←hqna,
-      rwa [int.cast_coe_nat q.num.nat_abs] },
-    have hqnz := calc (0:ℝ) < q.num : int.cast_pos.mpr hqnp
-                        ... ≤ f q.num : hqfn',
-    have hqdz :=
-      calc (0:ℝ) < q.denom : nat.cast_pos.mpr q.pos
-         ... ≤ f q.denom : hqd,
-    nlinarith },
   have hfx_gt_xm1 : (∀x:ℚ, 1 ≤ x → ((((x - 1): ℚ)):ℝ) < f x),
   { intros x hx,
     have hfe : ((⌊x⌋).nat_abs : ℤ) = ⌊x⌋,
@@ -202,7 +207,9 @@ begin
                         ... = (int.has_one.one : ℚ) : by simp only [int.cast_one]
                         ... ≤ ⌊x⌋ : int.cast_le.mpr (le_floor.mpr hx),
     calc (((x - 1):ℚ):ℝ) < f ⌊x⌋ : hx0
-                 ... < f (x - ⌊x⌋) + f ⌊x⌋ : lt_add_of_pos_left (f ↑⌊x⌋) (hqp (x - ↑⌊x⌋) hxmfx)
+                 ... < f (x - ⌊x⌋) + f ⌊x⌋
+                        : lt_add_of_pos_left (f ↑⌊x⌋)
+                                             (pos_on_pos_rats (x - ↑⌊x⌋) hxmfx H1 H4)
                  ... ≤ f ((x - ⌊x⌋) + ⌊x⌋) : H2 (x - ⌊x⌋) ⌊x⌋ hxmfx h0fx
                  ... = f x : by simp only [sub_add_cancel] },
   have hfxn : (∀n:ℕ, 0 < n → ∀ x:ℚ, 1 < x → f (x^n) ≤ (f x)^n),
@@ -215,7 +222,7 @@ begin
     rw [pow_succ' x (nat.succ pn), pow_succ' (f x) (nat.succ pn)],
     have hxp := calc 0 < 1 : zero_lt_one
                    ... < x : hx,
-    have hfnp: 0 < f x := hqp x hxp,
+    have hfnp: 0 < f x := pos_on_pos_rats x hxp H1 H4,
     calc f ((x ^ pn.succ) * x)
          ≤ f (x ^ pn.succ) * f x : H1 (x ^ pn.succ) x (pow_pos hxp pn.succ) hxp
      ... ≤ (f x) ^ pn.succ * f x : (mul_le_mul_right hfnp).mpr hpn' },
@@ -231,7 +238,7 @@ begin
     have hxp := calc 0 < 1 : zero_lt_one
                    ... < x : hx,
 
-    exact le_of_all_pow_lt_succ' x (f x) hx' (hqp x hxp) hxnm1 },
+    exact le_of_all_pow_lt_succ' x (f x) hx' (pos_on_pos_rats x hxp H1 H4) hxnm1 },
   have h_fixed_point_of_pos_nat_pow : (∀n, 0 < n → f (a^n) = a^n),
   { intros n hn,
     have hh0: (a:ℝ)^n ≤ f (a^n),

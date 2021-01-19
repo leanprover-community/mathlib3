@@ -45,7 +45,7 @@ variables (p q : parser α) (cb : char_buffer) (n n' : ℕ) {err : dlist string}
 variables {a : α} {b : β}
 
 /--
-A `parser α` is defined to be `mono` if the result `p cb n` it gives,
+A `p : parser α` is defined to be `mono` if the result `p cb n` it gives,
 for some `cb : char_buffer` and `n : ℕ`, (whether `done` or `fail`),
 is always at a `parse_result.pos` that is at least `n`.
 -/

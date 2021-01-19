@@ -1259,16 +1259,37 @@ lemma derived_series_def (k : ℕ) :
 
 variables {R L}
 
-lemma derived_series_of_ideal_succ_le (k : ℕ) :
-  derived_series_of_ideal R L I (k + 1) ≤ derived_series_of_ideal R L I k :=
-by { rw derived_series_of_ideal_succ, exact lie_submodule.lie_le_left _ _, }
+local notation `D` := derived_series_of_ideal R L
 
-lemma derived_series_of_ideal_le (k : ℕ) : derived_series_of_ideal R L I k ≤ I :=
+lemma derived_series_of_ideal_add (k l : ℕ) : D I (k + l) = D (D I l) k :=
 begin
   induction k with k ih,
-  { rw derived_series_of_ideal_zero, apply le_refl _, },
-  { exact le_trans (derived_series_of_ideal_succ_le I k) ih, },
+  { rw [zero_add, derived_series_of_ideal_zero], },
+  { rw [nat.succ_add k l, derived_series_of_ideal_succ, derived_series_of_ideal_succ, ih], },
 end
+
+lemma derived_series_of_ideal_le {I J : lie_ideal R L} {k l : ℕ} (h₁ : I ≤ J) (h₂ : l ≤ k) :
+  D I k ≤ D J l :=
+begin
+  revert l, induction k with k ih; intros l h₂,
+  { rw nat.le_zero_iff at h₂, rw [h₂, derived_series_of_ideal_zero], exact h₁, },
+  { have h : l = k.succ ∨ l ≤ k, { omega, },
+    cases h,
+    { rw h, exact lie_submodule.mono_lie _ _ _ _ (ih (le_refl k)) (ih (le_refl k)), },
+    { exact le_trans (lie_submodule.lie_le_left _ _) (ih h), }, },
+end
+
+lemma derived_series_of_ideal_succ_le (k : ℕ) : D I (k + 1) ≤ D I k :=
+derived_series_of_ideal_le (le_refl I) k.le_succ
+
+lemma derived_series_of_ideal_le_self (k : ℕ) : D I k ≤ I :=
+derived_series_of_ideal_le (le_refl I) (zero_le k)
+
+lemma derived_series_of_ideal_mono {I J : lie_ideal R L} (h : I ≤ J) (k : ℕ) : D I k ≤ D J k :=
+derived_series_of_ideal_le h (le_refl k)
+
+lemma derived_series_of_ideal_antimono {k l : ℕ} (h : l ≤ k) : D I k ≤ D I l :=
+derived_series_of_ideal_le (le_refl I) h
 
 end lie_algebra
 
@@ -1589,13 +1610,13 @@ begin
   { simp only [derived_series_def, comap_incl_self, derived_series_of_ideal_zero], },
   { simp only [derived_series_def, derived_series_of_ideal_succ] at ⊢ ih, rw ih,
     exact comap_bracket_incl_of_le I
-      (derived_series_of_ideal_le I k) (derived_series_of_ideal_le I k), },
+      (derived_series_of_ideal_le_self I k) (derived_series_of_ideal_le_self I k), },
 end
 
 lemma derived_series_eq_derived_series_of_ideal_map (k : ℕ) :
   (derived_series R I k).map I.incl = derived_series_of_ideal R L I k :=
 by { rw [derived_series_eq_derived_series_of_ideal_comap, map_comap_incl, inf_eq_right],
-     apply derived_series_of_ideal_le, }
+     apply derived_series_of_ideal_le_self, }
 
 lemma derived_series_eq_bot_iff (k : ℕ) :
   derived_series R I k = ⊥ ↔ derived_series_of_ideal R L I k = ⊥ :=

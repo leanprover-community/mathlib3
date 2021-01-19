@@ -574,18 +574,20 @@ instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) : lie_algebra R L'
 
 namespace lie_subalgebra
 
-variables {R L}
+variables {R L} {L' : lie_subalgebra R L}
 
-@[simp] lemma zero_mem {L' : lie_subalgebra R L} : (0 : L) ∈ L' := (L' : submodule R L).zero_mem
+@[simp] lemma zero_mem : (0 : L) ∈ L' := (L' : submodule R L).zero_mem
 
-@[simp] lemma mem_coe {L' : lie_subalgebra R L} {x : L} :
-  x ∈ (L' : set L) ↔ x ∈ L' := iff.rfl
+lemma smul_mem {t : R} {x : L} (h : x ∈ L') : t • x ∈ L' := (L' : submodule R L).smul_mem t h
 
-@[simp] lemma mem_coe' {L' : lie_subalgebra R L} {x : L} :
-  x ∈ (L' : submodule R L) ↔ x ∈ L' := iff.rfl
+lemma add_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x + y : L) ∈ L' :=
+(L' : submodule R L).add_mem hx hy
 
-@[simp, norm_cast] lemma coe_bracket (L' : lie_subalgebra R L) (x y : L') :
-  (↑⁅x, y⁆ : L) = ⁅(↑x : L), ↑y⁆ := rfl
+@[simp] lemma mem_coe {x : L} : x ∈ (L' : set L) ↔ x ∈ L' := iff.rfl
+
+@[simp] lemma mem_coe' {x : L} : x ∈ (L' : submodule R L) ↔ x ∈ L' := iff.rfl
+
+@[simp, norm_cast] lemma coe_bracket (x y : L') : (↑⁅x, y⁆ : L) = ⁅(↑x : L), ↑y⁆ := rfl
 
 @[ext] lemma ext (L₁' L₂' : lie_subalgebra R L) (h : ∀ x, x ∈ L₁' ↔ x ∈ L₂') :
   L₁' = L₂' :=

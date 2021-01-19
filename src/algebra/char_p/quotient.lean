@@ -32,7 +32,7 @@ lemma quotient' (R : Type*) [comm_ring R] (p : ℕ) [char_p R p] (I : ideal R)
 ⟨λ x, begin
   rw [←cast_eq_zero_iff R p x, ←(ideal.quotient.mk I).map_nat_cast],
   change quotient.mk' _ = quotient.mk' _ ↔ _,
-  rw iff.intro quotient.exact' quotient.sound',
+  rw quotient.eq',
   change (↑x - 0 : R) ∈ I ↔ ↑x = (0 : R),
   rw sub_zero,
   exact ⟨h x, λ h', h'.symm ▸ I.zero_mem⟩,

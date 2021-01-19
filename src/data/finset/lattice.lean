@@ -617,10 +617,12 @@ rfl
   (⋂ x ∈ (↑s : set α), t x) = ⋂ x ∈ s, t x :=
 rfl
 
-@[simp] theorem set_bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : finset α), s x) = s a :=
+@[simp] theorem set_bUnion_singleton (a : α) (s : α → set β) :
+  (⋃ x ∈ ({a} : finset α), s x) = s a :=
 supr_singleton a s
 
-@[simp] theorem set_bInter_singleton (a : α) (s : α → set β) : (⋂ x ∈ ({a} : finset α), s x) = s a :=
+@[simp] theorem set_bInter_singleton (a : α) (s : α → set β) :
+  (⋂ x ∈ ({a} : finset α), s x) = s a :=
 infi_singleton a s
 
 @[simp] lemma set_bUnion_preimage_singleton (f : α → β) (s : finset β) :

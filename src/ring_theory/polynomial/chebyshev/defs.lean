@@ -215,6 +215,13 @@ calc chebyshev₁ R (n + 2 + 2) = 2 * X * chebyshev₁ R (n + 2 + 1) - chebyshev
                                 : by simp only [chebyshev₁_add_two, chebyshev₂_add_two]
  end
 
+lemma one_sub_X_pow_two_mul_chebyshev₂_eq_pol_in_chebyshev₁ :
+  ∀ (n : ℕ), (1 - X ^ 2) * chebyshev₂ R n = X * chebyshev₁ R (n + 1) - chebyshev₁ R (n + 2) :=
+begin
+  intro n,
+  rw [chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂, ←sub_add, sub_self, zero_add],
+end
+
 variables {R S}
 
 lemma map_chebyshev₂ (f : R →+* S) :
@@ -249,5 +256,17 @@ lemma chebyshev₂_derivative_eq_chebyshev₁ :
                     rw [mul_assoc, ←mul_sub, ←chebyshev₂_add_two, ←add_mul],
                     norm_cast,
               end
+
+lemma one_sub_X_pow_two_mul_derivative_chebyshev₁_eq_poly_in_chebyshev₁ :
+∀ (n : ℕ), (1 - X ^ 2)  * (derivative (chebyshev₁ R (n+1))) = (n + 1) * (chebyshev₁ R n - X * chebyshev₁ R (n+1)) :=
+begin
+  intro n,
+  rw [chebyshev₂_derivative_eq_chebyshev₁, ←mul_assoc, mul_comm (1 - X ^ 2), mul_assoc,
+      one_sub_X_pow_two_mul_chebyshev₂_eq_pol_in_chebyshev₁, ←one_mul (chebyshev₁ R (n+1)),
+      chebyshev₁_add_two, ←sub_add, add_comm _ (chebyshev₁ R n), mul_comm 2 X, mul_assoc, ←mul_sub,
+      ←sub_mul],
+  norm_num,
+  rw sub_eq_add_neg,
+end
 
 end polynomial

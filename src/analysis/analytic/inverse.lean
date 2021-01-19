@@ -5,6 +5,14 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.analytic.composition
 
+/-!
+
+# Inverse of analytic functions
+
+We construct the left and right inverse of a formal multilinear series with invertible linear term,
+and we prove that they coincide.
+-/
+
 open_locale big_operators classical
 open finset
 

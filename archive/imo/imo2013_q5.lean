@@ -80,12 +80,12 @@ end
  Like le_of_all_pow_lt_succ, but with a weaker assumption for y.
 -/
 lemma le_of_all_pow_lt_succ' (x y : ℝ) (hx : 1 < x) (hy : 0 < y)
-      (h : ∀n:ℕ, 0 < n → x^n - 1 < y^n) :
+      (h : ∀n : ℕ, 0 < n → x^n - 1 < y^n) :
       x ≤ y :=
 begin
   have hy': 1 < y,
   { by_contra hy'',
-    push_neg at hy'', -- hy'' :  y ≤ 1.
+    push_neg at hy'', -- hy'' : y ≤ 1.
 
     -- Then there exists y' such that 0 < y ≤ 1 < y' < x.
     let y' := (x + 1) / 2,
@@ -109,7 +109,7 @@ begin
   exact le_of_all_pow_lt_succ x y hx hy' h
 end
 
-lemma pos_on_pos_rats (q : ℚ) {f : ℚ → ℝ} (hq : 0 < q)
+lemma pos_on_pos_rats {f : ℚ → ℝ} {q : ℚ} (hq : 0 < q)
      (H1 : ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
      (H4 : ∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n) :
       0 < f q :=
@@ -172,9 +172,28 @@ begin
   calc (((x - 1):ℚ):ℝ) < f ⌊x⌋ : hx0
                ... < f (x - ⌊x⌋) + f ⌊x⌋
                       : lt_add_of_pos_left (f ↑⌊x⌋)
-                                           (pos_on_pos_rats (x - ↑⌊x⌋) hxmfx H1 H4)
+                                           (pos_on_pos_rats hxmfx H1 H4)
                ... ≤ f ((x - ⌊x⌋) + ⌊x⌋) : H2 (x - ⌊x⌋) ⌊x⌋ hxmfx h0fx
                ... = f x : by simp only [sub_add_cancel]
+end
+
+lemma pow_f_le_f_pow {f : ℚ → ℝ} (n : ℕ) (hn : 0 < n) (x : ℚ) (hx : 1 < x)
+  (H1 : ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
+  (H4 : ∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n) :
+  f (x^n) ≤ (f x)^n :=
+begin
+  induction n with pn hpn,
+  { exfalso, exact nat.lt_asymm hn hn },
+  cases pn,
+  { simp only [pow_one] },
+  have hpn' := hpn (nat.succ_pos pn),
+  rw [pow_succ' x (nat.succ pn), pow_succ' (f x) (nat.succ pn)],
+  have hxp := calc 0 < 1 : zero_lt_one
+                 ... < x : hx,
+  have hfnp: 0 < f x := pos_on_pos_rats hxp H1 H4,
+  calc f ((x ^ pn.succ) * x)
+       ≤ f (x ^ pn.succ) * f x : H1 (x ^ pn.succ) x (pow_pos hxp pn.succ) hxp
+   ... ≤ (f x) ^ pn.succ * f x : (mul_le_mul_right hfnp).mpr hpn'
 end
 
 lemma twice_pos_int_gt_one (z: ℤ) (hpos: 0 < z) : (1:ℚ) < (((2 * z):ℤ):ℚ) :=
@@ -218,20 +237,6 @@ begin
             ... ≤ (n: ℝ) * f 1 : (mul_le_mul_left (nat.cast_pos.mpr hn)).mpr hf1
             ... ≤ f (n * 1)    : H3 1 zero_lt_one n hn
             ... = f n          : by rw mul_one },
-  have hfxn : (∀n:ℕ, 0 < n → ∀ x:ℚ, 1 < x → f (x^n) ≤ (f x)^n),
-  { intros n hn x hx,
-    induction n with pn hpn,
-    { exfalso, exact nat.lt_asymm hn hn },
-    cases pn,
-    { simp only [pow_one] },
-    have hpn' := hpn (nat.succ_pos pn),
-    rw [pow_succ' x (nat.succ pn), pow_succ' (f x) (nat.succ pn)],
-    have hxp := calc 0 < 1 : zero_lt_one
-                   ... < x : hx,
-    have hfnp: 0 < f x := pos_on_pos_rats x hxp H1 H4,
-    calc f ((x ^ pn.succ) * x)
-         ≤ f (x ^ pn.succ) * f x : H1 (x ^ pn.succ) x (pow_pos hxp pn.succ) hxp
-     ... ≤ (f x) ^ pn.succ * f x : (mul_le_mul_right hfnp).mpr hpn' },
   have H5 : (∀x:ℚ, 1 < x → (x:ℝ) ≤ f x),
   { intros x hx,
     have hxnm1: (∀ n : ℕ, 0 < n → (x:ℝ)^n - 1 < (f x)^n),
@@ -239,19 +244,19 @@ begin
       calc (x:ℝ)^n - 1
            = (((x^n - 1):ℚ):ℝ) : by norm_cast
        ... < f (x^n)           : fx_gt_xm1 (x^n) (one_le_pow_of_one_le (le_of_lt hx) n) H1 H2 H4
-       ... ≤ (f x)^n           : hfxn n hn x hx },
+       ... ≤ (f x)^n           : pow_f_le_f_pow n hn x hx H1 H4},
     have hx': 1 < (x:ℝ) := by { norm_cast, exact hx },
     have hxp := calc 0 < 1 : zero_lt_one
                    ... < x : hx,
 
-    exact le_of_all_pow_lt_succ' x (f x) hx' (pos_on_pos_rats x hxp H1 H4) hxnm1 },
+    exact le_of_all_pow_lt_succ' x (f x) hx' (pos_on_pos_rats hxp H1 H4) hxnm1 },
   have h_fixed_point_of_pos_nat_pow : (∀n, 0 < n → f (a^n) = a^n),
   { intros n hn,
     have hh0: (a:ℝ)^n ≤ f (a^n),
     { have := H5 (a^n) (one_lt_pow ha1 (nat.succ_le_iff.mpr hn)),
       norm_cast,
       exact this },
-    have hh1: f (a^n) ≤ a^n := by { rw ← hae, exact hfxn n hn a ha1 },
+    have hh1: f (a^n) ≤ a^n := by { rw ← hae, exact pow_f_le_f_pow n hn a ha1 H1 H4},
     exact le_antisymm hh1 hh0 },
   have h_fixed_point_of_gt_1: (∀x:ℚ, 1 < x → f x = x),
   { intros x hx,

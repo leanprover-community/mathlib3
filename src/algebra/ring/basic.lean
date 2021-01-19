@@ -285,6 +285,9 @@ coe_inj (funext h)
 theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
+@[simp] lemma mk_coe (f : α →+* β) (h₁ h₂ h₃ h₄) : ring_hom.mk f h₁ h₂ h₃ h₄ = f :=
+ext $ λ _, rfl
+
 theorem coe_add_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →+ β)) :=
 λ f g h, ext (λ x, add_monoid_hom.congr_fun h x)
 

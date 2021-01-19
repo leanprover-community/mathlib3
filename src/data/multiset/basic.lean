@@ -945,8 +945,8 @@ called `bind`).  It is the union of `f a` as `a` ranges over `s`. -/
 def bUnion (s : multiset α) (f : α → multiset β) : multiset β :=
 join (map f s)
 
-protected structure Canary' := (bird : ℕ)
-def bind : Canary' := Canary'.mk 22
+--protected structure Canary' := (bird : ℕ)
+--def bind : Canary' := Canary'.mk 22
 
 @[simp] theorem coe_bUnion (l : list α) (f : α → list β) :
   @bUnion α β l (λ a, f a) = l.bind f :=

@@ -49,15 +49,15 @@ end
 
 /-- `pi m t` constructs the Cartesian product over `t` indexed by `m`. -/
 def pi (m : multiset α) (t : Πa, multiset (δ a)) : multiset (Πa∈m, δ a) :=
-m.rec_on {pi.empty δ} (λa m (p : multiset (Πa∈m, δ a)), (t a).bind $ λb, p.map $ pi.cons m a b)
+m.rec_on {pi.empty δ} (λa m (p : multiset (Πa∈m, δ a)), (t a).bUnion $ λb, p.map $ pi.cons m a b)
 begin
   intros a a' m n,
   by_cases eq : a = a',
   { subst eq },
-  { simp [map_bind, bind_bind (t a') (t a)],
-    apply bind_hcongr, { rw [cons_swap a a'] },
+  { simp [map_bUnion, bUnion_bUnion (t a') (t a)],
+    apply bUnion_hcongr, { rw [cons_swap a a'] },
     intros b hb,
-    apply bind_hcongr, { rw [cons_swap a a'] },
+    apply bUnion_hcongr, { rw [cons_swap a a'] },
     intros b' hb',
     apply map_hcongr, { rw [cons_swap a a'] },
     intros f hf,
@@ -67,7 +67,7 @@ end
 @[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = pi.empty δ ::ₘ 0 := rfl
 
 @[simp] lemma pi_cons (m : multiset α) (t : Πa, multiset (δ a)) (a : α) :
-  pi (a ::ₘ m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=
+  pi (a ::ₘ m) t = ((t a).bUnion $ λb, (pi m t).map $ pi.cons m a b) :=
 rec_on_cons a m
 
 lemma pi_cons_injective {a : α} {b : δ a} {s : multiset α} (hs : a ∉ s) :

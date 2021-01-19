@@ -2026,8 +2026,8 @@ variables [decidable_eq β] {s : finset α} {t : α → finset β}
 protected def bUnion (s : finset α) (t : α → finset β) : finset β :=
 (s.1.bUnion (λ a, (t a).1)).to_finset
 
-protected structure Canary := (bird : ℕ)
-protected def bind : Canary := Canary.mk 22
+--protected structure Canary := (bird : ℕ)
+--protected def bind : Canary := Canary.mk 22
 
 @[simp] theorem bUnion_val (s : finset α) (t : α → finset β) :
   (s.bUnion t).1 = (s.1.bUnion (λ a, (t a).1)).erase_dup := rfl

@@ -160,8 +160,8 @@ theorem nodup_powerset_len {n : ℕ} {s : multiset α}
   (h : nodup s) : nodup (powerset_len n s) :=
 nodup_of_le (powerset_len_le_powerset _ _) (nodup_powerset.2 h)
 
-@[simp] lemma nodup_bind {s : multiset α} {t : α → multiset β} :
-  nodup (bind s t) ↔ ((∀a∈s, nodup (t a)) ∧ (s.pairwise (λa b, disjoint (t a) (t b)))) :=
+@[simp] lemma nodup_bUnion {s : multiset α} {t : α → multiset β} :
+  nodup (bUnion s t) ↔ ((∀a∈s, nodup (t a)) ∧ (s.pairwise (λa b, disjoint (t a) (t b)))) :=
 have h₁ : ∀a, ∃l:list β, t a = l, from
   assume a, quot.induction_on (t a) $ assume l, ⟨l, rfl⟩,
 let ⟨t', h'⟩ := classical.axiom_of_choice h₁ in

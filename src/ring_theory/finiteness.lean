@@ -41,6 +41,12 @@ over the base ring as algebra. -/
 @[class]
 def algebra.finite_type : Prop := (⊤ : subalgebra R A).fg
 
+/-- An algebra over a commutative ring is `finitely_presented` if it is the quotient of a
+polynomial ring in `n` variables by a finitely generated ideal. -/
+def algebra.finitely_presented : Prop :=
+∃ (n : ℕ) (f : mv_polynomial (fin n) R →ₐ[R] A),
+  surjective f ∧ f.to_ring_hom.ker.fg
+
 namespace module
 
 variables {R M N}
@@ -182,7 +188,58 @@ begin
     exact finite_type.of_surjective (finite_type.mv_polynomial R (fin n)) f hsur }
 end
 
+/-- A finitely presented algebra is of finite type. -/
+lemma of_finitely_presented : finitely_presented R A → finite_type R A :=
+begin
+  rintro ⟨n, f, hf⟩,
+  apply (finite_type.iff_quotient_mv_polynomial'').2,
+  exact ⟨n, f, hf.1⟩
+end
+
 end finite_type
+
+namespace finitely_presented
+
+/-- If `e : A ≃ₐ[R] B` and `A` is finitely presented, then so is `B`. -/
+lemma equiv (hfp : finitely_presented R A) (e : A ≃ₐ[R] B) : finitely_presented R B :=
+begin
+  obtain ⟨n, f, hf⟩ := hfp,
+  use [n, alg_hom.comp ↑e f],
+  split,
+  { exact function.surjective.comp e.surjective hf.1 },
+  suffices hker : (alg_hom.comp ↑e f).to_ring_hom.ker = f.to_ring_hom.ker,
+  { rw hker, exact hf.2 },
+  { have hco : (alg_hom.comp ↑e f).to_ring_hom = ring_hom.comp ↑e.to_ring_equiv f.to_ring_hom,
+    { have h : (alg_hom.comp ↑e f).to_ring_hom = e.to_alg_hom.to_ring_hom.comp f.to_ring_hom := rfl,
+      have h1 : ↑(e.to_ring_equiv) = (e.to_alg_hom).to_ring_hom := rfl,
+      rw [h, h1] },
+    rw [ring_hom.ker_eq_comap_bot, hco, ← ideal.comap_comap, ← ring_hom.ker_eq_comap_bot,
+      ring_hom.ker_coe_equiv (alg_equiv.to_ring_equiv e), ring_hom.ker_eq_comap_bot] }
+end
+
+/-- The ring of polynomials in finitely many variables is finitely presented. -/
+lemma mv_polynomial (ι : Type u_2) [fintype ι] : finitely_presented R (mv_polynomial ι R) :=
+begin
+  obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι _,
+  replace equiv := mv_polynomial.alg_equiv_of_equiv R (nonempty.some equiv),
+  use [n, alg_equiv.to_alg_hom equiv.symm],
+  split,
+  { exact (alg_equiv.symm equiv).surjective },
+  suffices hinj : function.injective equiv.symm.to_alg_hom.to_ring_hom,
+  { rw [(ring_hom.injective_iff_ker_eq_bot _).1 hinj],
+    exact submodule.fg_bot },
+  exact (alg_equiv.symm equiv).injective
+end
+
+/-- `R` is finitely presented as `R`-algebra. -/
+lemma self : finitely_presented R R :=
+begin
+  letI hempty := mv_polynomial R pempty,
+  exact @equiv R (_root_.mv_polynomial pempty R) R _ _ _ _ _ hempty
+    (mv_polynomial.pempty_alg_equiv R)
+end
+
+end finitely_presented
 
 end algebra
 

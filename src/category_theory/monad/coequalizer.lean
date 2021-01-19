@@ -34,7 +34,7 @@ Show that any algebra is a coequalizer of free algebras.
 -/
 
 /-- The top map in the coequalizer diagram we will construct. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def free_coequalizer.top_map : (monad.free T).obj (T.obj X.A) ⟶ (monad.free T).obj X.A :=
 (monad.free T).map X.a
 
@@ -70,7 +70,7 @@ end
 Construct the Beck cofork in the category of algebras. This cofork is reflexive as well as a
 coequalizer.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def beck_algebra_cofork : cofork (free_coequalizer.top_map X) (free_coequalizer.bottom_map X) :=
 cofork.of_π _ (free_coequalizer.condition X)
 
@@ -101,7 +101,7 @@ def beck_split_coequalizer : is_split_coequalizer (T.map X.a) ((μ_ T).app _) X.
 ⟨(η_ T).app _, (η_ T).app _, X.assoc.symm, X.unit, monad.left_unit _, ((η_ T).naturality _).symm⟩
 
 /-- This is the Beck cofork. It is a split coequalizer, in particular a coequalizer. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def beck_cofork : cofork (T.map X.a) ((μ_ T).app _) :=
 (beck_split_coequalizer X).as_cofork
 

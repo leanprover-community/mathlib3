@@ -153,7 +153,7 @@ begin
 end
 
 lemma linear_independent.ne_zero [nontrivial R]
-  {i : ι} (hv : linear_independent R v) : v i ≠ 0 :=
+  (i : ι) (hv : linear_independent R v) : v i ≠ 0 :=
 λ h, @zero_ne_one R _ _ $ eq.symm begin
   suffices : (finsupp.single i 1 : ι →₀ R) i = 0, {simpa},
   rw linear_independent_iff.1 hv (finsupp.single i 1),
@@ -462,7 +462,7 @@ begin
         simp only at hxy,
         rw hxy,
         exact (subset_span (mem_range_self y₂)) },
-      exact false.elim ((hindep x₁).ne_zero h0) } },
+      exact false.elim ((hindep x₁).ne_zero _ h0) } },
   rw range_sigma_eq_Union_range,
   apply linear_independent_Union_finite_subtype (λ j, (hindep j).to_subtype_range) hd,
 end

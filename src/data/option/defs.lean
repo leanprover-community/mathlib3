@@ -105,10 +105,9 @@ inductive rel (r : α → β → Prop) : option α → option β → Prop
 | none       : rel none none
 
 /-- Partial bind. If for some `x : option α`, `f : Π (a : α), a ∈ x → option β` is a
-  partial function defined on `a : α` satisfying `p` giving an `option β`,
+  partial function defined on `a : α` giving an `option β`, where `some a = x`,
   then `pbind x f h` is essentially the same as `bind x f`
-  but is defined only when all `x = some a` and the `a` satisfy `p`, using the proof
-  to apply `f`. -/
+  but is defined only when all `x = some a`, using the proof to apply `f`. -/
 @[simp] def pbind : Π (x : option α), (Π (a : α), a ∈ x → option β) → option β
 | none     _ := none
 | (some a) f := f a rfl
@@ -121,6 +120,12 @@ inductive rel (r : α → β → Prop) : option α → option β → Prop
   Π x : option α, (∀ a ∈ x, p a) → option β
 | none     _ := none
 | (some a) H := some (f a (H a (mem_def.mpr rfl)))
+
+/--
+Flatten an `option` of `option`, a specialization of `mjoin`.
+-/
+@[simp] def join : option (option α) → option α :=
+λ x, bind x id
 
 protected def {u v} traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
   option α → F (option β)

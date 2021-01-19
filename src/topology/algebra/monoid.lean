@@ -42,12 +42,13 @@ variables [topological_space M] [has_mul M] [has_continuous_mul M]
 lemma continuous_mul : continuous (λp:M×M, p.1 * p.2) :=
 has_continuous_mul.continuous_mul
 
-@[to_additive, continuity]
+@[continuity, to_additive]
 lemma continuous.mul [topological_space α] {f : α → M} {g : α → M}
   (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=
 continuous_mul.comp (hf.prod_mk hg : _)
 
+-- should `to_additive` be doing this?
 attribute [continuity] continuous.add
 
 @[to_additive]
@@ -101,7 +102,7 @@ instance [topological_space N] [has_mul N] [has_continuous_mul N] : has_continuo
 ⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
  ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
 
-@[to_additive, priority 100]
+@[priority 100, to_additive]
 instance has_continuous_mul_of_discrete_topology [topological_space N]
   [has_mul N] [discrete_topology N] : has_continuous_mul N :=
 ⟨continuous_of_discrete_topology⟩
@@ -247,11 +248,20 @@ by { rcases s with ⟨l⟩, simp, exact continuous_list_prod l }
 
 attribute [continuity] continuous_multiset_sum
 
-@[to_additive, continuity]
+@[continuity, to_additive]
 lemma continuous_finset_prod [topological_space α] {f : β → α → M} (s : finset β) :
   (∀c∈s, continuous (f c)) → continuous (λa, ∏ c in s, f c a) :=
 continuous_multiset_prod _
 
+-- should `to_additive` be doing this?
 attribute [continuity] continuous_finset_sum
 
 end
+
+instance additive.has_continuous_add {M} [h : topological_space M] [has_mul M]
+  [has_continuous_mul M] : @has_continuous_add (additive M) h _ :=
+{ continuous_add := @continuous_mul M _ _ _  }
+
+instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_add M]
+  [has_continuous_add M] : @has_continuous_mul (multiplicative M) h _ :=
+{ continuous_mul := @continuous_add M _ _ _  }

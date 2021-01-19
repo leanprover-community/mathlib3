@@ -82,10 +82,16 @@ end
 
 open_locale classical big_operators
 
-@[norm_cast] lemma coe_tsum {f : α → ℝ≥0} : ↑(∑'a, f a) = (∑'a, (f a : ℝ)) :=
+@[norm_cast] lemma coe_tsum {f : α → ℝ≥0} : ↑∑'a, f a = ∑'a, (f a : ℝ) :=
 if hf : summable f
 then (eq.symm $ (has_sum_coe.2 $ hf.has_sum).tsum_eq)
 else by simp [tsum, hf, mt summable_coe.1 hf]
+
+lemma tsum_mul_left (a : ℝ≥0) (f : α → ℝ≥0) : ∑' x, a * f x = a * ∑' x, f x :=
+nnreal.eq $ by simp only [coe_tsum, nnreal.coe_mul, tsum_mul_left]
+
+lemma tsum_mul_right (f : α → ℝ≥0) (a : ℝ≥0) : (∑' x, f x * a) = (∑' x, f x) * a :=
+nnreal.eq $ by simp only [coe_tsum, nnreal.coe_mul, tsum_mul_right]
 
 lemma summable_comp_injective {β : Type*} {f : α → ℝ≥0} (hf : summable f)
   {i : β → α} (hi : function.injective i) :
@@ -103,7 +109,7 @@ begin
 end
 
 lemma sum_add_tsum_nat_add {f : ℕ → ℝ≥0} (k : ℕ) (hf : summable f) :
-  (∑' i, f i) = (∑ i in range k, f i) + ∑' i, f (i + k) :=
+  ∑' i, f i = (∑ i in range k, f i) + ∑' i, f (i + k) :=
 by rw [←nnreal.coe_eq, coe_tsum, nnreal.coe_add, coe_sum, coe_tsum,
   sum_add_tsum_nat_add k (nnreal.summable_coe.2 hf)]
 

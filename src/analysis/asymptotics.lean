@@ -251,6 +251,18 @@ theorem is_o.comp_tendsto (hfg : is_o f g l) {k : β → α} {l' : filter β} (h
   is_o (f ∘ k) (g ∘ k) l' :=
 λ c cpos, (hfg cpos).comp_tendsto hk
 
+@[simp] theorem is_O_with_map {k : β → α} {l : filter β} :
+  is_O_with c f g (map k l) ↔ is_O_with c (f ∘ k) (g ∘ k) l :=
+mem_map
+
+@[simp] theorem is_O_map {k : β → α} {l : filter β} :
+  is_O f g (map k l) ↔ is_O (f ∘ k) (g ∘ k) l :=
+by simp only [is_O, is_O_with_map]
+
+@[simp] theorem is_o_map {k : β → α} {l : filter β} :
+  is_o f g (map k l) ↔ is_o (f ∘ k) (g ∘ k) l :=
+by simp only [is_o, is_O_with_map]
+
 theorem is_O_with.mono (h : is_O_with c f g l') (hl : l ≤ l') : is_O_with c f g l :=
 hl h
 
@@ -670,15 +682,15 @@ theorem is_o_refl_left : is_o (λ x, f' x - f' x) g' l :=
 
 variables {g g' l}
 
-theorem is_O_with_zero_right_iff :
+@[simp] theorem is_O_with_zero_right_iff :
   is_O_with c f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
 by simp only [is_O_with, exists_prop, true_and, norm_zero, mul_zero, norm_le_zero_iff]
 
-theorem is_O_zero_right_iff : is_O f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
+@[simp] theorem is_O_zero_right_iff : is_O f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
 ⟨λ h, let ⟨c, hc⟩ := h in  (is_O_with_zero_right_iff).1 hc,
   λ h, (is_O_with_zero_right_iff.2 h : is_O_with 1 _ _ _).is_O⟩
 
-theorem is_o_zero_right_iff :
+@[simp] theorem is_o_zero_right_iff :
   is_o f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
 ⟨λ h, is_O_zero_right_iff.1 h.is_O,
   λ h c hc, is_O_with_zero_right_iff.2 h⟩
@@ -697,6 +709,21 @@ theorem is_O_const_const (c : E) {c' : F'} (hc' : c' ≠ 0) (l : filter α) :
 (is_O_with_const_const c hc' l).is_O
 
 end zero_const
+
+@[simp] lemma is_O_with_top : is_O_with c f g ⊤ ↔ ∀ x, ∥f x∥ ≤ c * ∥g x∥ := iff.rfl
+
+@[simp] lemma is_O_top : is_O f g ⊤ ↔ ∃ C, ∀ x, ∥f x∥ ≤ C * ∥g x∥ := iff.rfl
+
+@[simp] lemma is_o_top : is_o f' g' ⊤ ↔ ∀ x, f' x = 0 :=
+begin
+  refine ⟨_, λ h, (is_o_zero g' ⊤).congr (λ x, (h x).symm) (λ x, rfl)⟩,
+  simp only [is_o_iff, eventually_top],
+  refine λ h x, norm_le_zero_iff.1 _,
+  have : tendsto (λ c : ℝ, c * ∥g' x∥) (𝓝[Ioi 0] 0) (𝓝 0) :=
+    ((continuous_id.mul continuous_const).tendsto' _ _ (zero_mul _)).mono_left inf_le_left,
+  exact le_of_tendsto_of_tendsto tendsto_const_nhds this
+    (eventually_nhds_within_iff.2 $ eventually_of_forall $ λ c hc, h hc x)
+end
 
 theorem is_O_with_const_one (c : E) (l : filter α) : is_O_with ∥c∥ (λ x : α, c) (λ x, (1 : 𝕜)) l :=
 begin
@@ -1046,48 +1073,20 @@ have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : 𝕜)) l,
   from is_O_of_le _ (λ x, by by_cases h : ∥g x∥ = 0; simp [h, zero_le_one]),
 (is_o_one_iff 𝕜).mp (eq₁.trans_is_O eq₂)
 
-private theorem is_o_of_tendsto {f g : α → 𝕜} {l : filter α}
-    (hgf : ∀ x, g x = 0 → f x = 0) (h : tendsto (λ x, f x / (g x)) l (𝓝 0)) :
-  is_o f g l :=
-have eq₁ : is_o (λ x, f x / (g x)) (λ x, (1 : 𝕜)) l,
-  from (is_o_one_iff _).mpr h,
-have eq₂ : is_o (λ x, f x / g x * g x) g l,
-  by convert eq₁.mul_is_O (is_O_refl _ _); simp,
-have eq₃ : is_O f (λ x, f x / g x * g x) l,
-  begin
-    refine is_O_of_le _ (λ x, _),
-    by_cases H : g x = 0,
-    { simp only [H, hgf _ H, mul_zero] },
-    { simp only [div_mul_cancel _ H] }
-  end,
-eq₃.trans_is_o eq₂
-
-private theorem is_o_of_tendsto' {f g : α → 𝕜} {l : filter α}
-    (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) (h : tendsto (λ x, f x / (g x)) l (𝓝 0)) :
-  is_o f g l :=
-let ⟨u, hu, himp⟩ := hgf.exists_mem in
-have key : u.indicator f =ᶠ[l] f,
-  from eventually_eq_of_mem hu eq_on_indicator,
-have himp : ∀ x, g x = 0 → (u.indicator f) x = 0,
-  from λ x hgx,
-    begin
-      by_cases h : x ∈ u,
-      { exact (indicator_of_mem h f).symm ▸ himp x h hgx },
-      { exact indicator_of_not_mem h f }
-    end,
-suffices h : is_o (u.indicator f) g l,
-  from is_o.congr' key (by refl) h,
-is_o_of_tendsto himp (h.congr' (key.symm.div (by refl)))
+theorem is_o_iff_tendsto' {f g : α → 𝕜} {l : filter α}
+    (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) :
+  is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
+iff.intro is_o.tendsto_0 $ λ h,
+  (((is_o_one_iff _).mpr h).mul_is_O (is_O_refl g l)).congr'
+    (hgf.mono $ λ x, div_mul_cancel_of_imp) (eventually_of_forall $ λ x, one_mul _)
 
 theorem is_o_iff_tendsto {f g : α → 𝕜} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) :
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
-iff.intro is_o.tendsto_0 (is_o_of_tendsto hgf)
+⟨λ h, h.tendsto_0, (is_o_iff_tendsto' (eventually_of_forall hgf)).2⟩
 
-theorem is_o_iff_tendsto' {f g : α → 𝕜} {l : filter α}
-    (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) :
-  is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
-iff.intro is_o.tendsto_0 (is_o_of_tendsto' hgf)
+alias is_o_iff_tendsto' ↔ _ asymptotics.is_o_of_tendsto'
+alias is_o_iff_tendsto ↔ _ asymptotics.is_o_of_tendsto
 
 /-!
 ### Eventually (u / v) * v = u
@@ -1142,7 +1141,7 @@ begin
   { intro h,
     use (λ x, u x / v x),
     refine ⟨eventually.mono h (λ y hy, _), h.eventually_mul_div_cancel.symm⟩,
-    simpa using div_le_iff_of_nonneg_of_le (norm_nonneg _) hc hy },
+    simpa using div_le_of_nonneg_of_le_mul (norm_nonneg _) hc hy },
   { rintros ⟨φ, hφ, h⟩,
     exact is_O_with_of_eq_mul φ hφ h }
 end
@@ -1193,9 +1192,17 @@ begin
   exact (zero_pow (nat.sub_pos_of_lt h)).symm
 end
 
+theorem is_o_norm_pow_norm_pow {m n : ℕ} (h : m < n) :
+  is_o (λ(x : E'), ∥x∥^n) (λx, ∥x∥^m) (𝓝 (0 : E')) :=
+(is_o_pow_pow h).comp_tendsto tendsto_norm_zero
+
 theorem is_o_pow_id {n : ℕ} (h : 1 < n) :
   is_o (λ(x : 𝕜), x^n) (λx, x) (𝓝 0) :=
 by { convert is_o_pow_pow h, simp only [pow_one] }
+
+theorem is_o_norm_pow_id {n : ℕ} (h : 1 < n) :
+  is_o (λ(x : E'), ∥x∥^n) (λx, x) (𝓝 0) :=
+by simpa only [pow_one, is_o_norm_right] using is_o_norm_pow_norm_pow h
 
 theorem is_O_with.right_le_sub_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c f₁ f₂ l) (hc : c < 1) :
   is_O_with (1 / (1 - c)) f₂ (λx, f₂ x - f₁ x) l :=
@@ -1219,6 +1226,39 @@ theorem is_o.right_is_O_sub {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
 theorem is_o.right_is_O_add {f₁ f₂ : α → E'} (h : is_o f₁ f₂ l) :
   is_O f₂ (λx, f₁ x + f₂ x) l :=
 ((h.def' one_half_pos).right_le_add_of_lt_1 one_half_lt_one).is_O
+
+/-- If `f x = O(g x)` along `cofinite`, then there exists a positive constant `C` such that
+`∥f x∥ ≤ C * ∥g x∥` whenever `g x ≠ 0`. -/
+theorem bound_of_is_O_cofinite (h : is_O f g' cofinite) :
+  ∃ C > 0, ∀ ⦃x⦄, g' x ≠ 0 → ∥f x∥ ≤ C * ∥g' x∥ :=
+begin
+  rcases h.exists_pos with ⟨C, C₀, hC⟩,
+  rw [is_O_with, eventually_cofinite] at hC,
+  rcases (hC.to_finset.image (λ x, ∥f x∥ / ∥g' x∥)).exists_le with ⟨C', hC'⟩,
+  have : ∀ x, C * ∥g' x∥ < ∥f x∥ → ∥f x∥ / ∥g' x∥ ≤ C', by simpa using hC',
+  refine ⟨max C C', lt_max_iff.2 (or.inl C₀), λ x h₀, _⟩,
+  rw [max_mul_of_nonneg _ _ (norm_nonneg _), le_max_iff, or_iff_not_imp_left, not_le],
+  exact λ hx, (div_le_iff (norm_pos_iff.2 h₀)).1 (this _ hx)
+end
+
+theorem is_O_cofinite_iff (h : ∀ x, g' x = 0 → f' x = 0) :
+  is_O f' g' cofinite ↔ ∃ C, ∀ x, ∥f' x∥ ≤ C * ∥g' x∥ :=
+⟨λ h', let ⟨C, C₀, hC⟩ := bound_of_is_O_cofinite h' in
+  ⟨C, λ x, if hx : g' x = 0 then by simp [h _ hx, hx] else hC hx⟩,
+  λ h, (is_O_top.2 h).mono le_top⟩
+
+theorem bound_of_is_O_nat_at_top {f : ℕ → E} {g' : ℕ → E'} (h : is_O f g' at_top) :
+  ∃ C > 0, ∀ ⦃x⦄, g' x ≠ 0 → ∥f x∥ ≤ C * ∥g' x∥ :=
+bound_of_is_O_cofinite $ by rwa nat.cofinite_eq_at_top
+
+theorem is_O_nat_at_top_iff {f : ℕ → E'} {g : ℕ → F'} (h : ∀ x, g x = 0 → f x = 0) :
+  is_O f g at_top ↔ ∃ C, ∀ x, ∥f x∥ ≤ C * ∥g x∥ :=
+by rw [← nat.cofinite_eq_at_top, is_O_cofinite_iff h]
+
+theorem is_O_one_nat_at_top_iff {f : ℕ → E'} :
+  is_O f (λ n, 1 : ℕ → ℝ) at_top ↔ ∃ C, ∀ n, ∥f n∥ ≤ C :=
+iff.trans (is_O_nat_at_top_iff (λ n h, (one_ne_zero h).elim)) $
+  by simp only [norm_one, mul_one]
 
 end asymptotics
 

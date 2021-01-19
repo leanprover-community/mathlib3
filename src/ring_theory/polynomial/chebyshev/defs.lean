@@ -187,13 +187,23 @@ begin
   rw [chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁, add_comm (X * chebyshev₂ R n), add_sub_cancel]
 end
 
+example (a b c d : ℤ) : a * b * (c * d) = a * b * c * d :=
+begin
+  rw ←mul_assoc
+end
+
 lemma chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ :
 ∀ (n : ℕ), chebyshev₁ R (n+2) = X * chebyshev₁ R (n+1) - (1 - X ^ 2) * chebyshev₂ R n
 |0        := by simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero, mul_one,
                  sub_sub_assoc_swap, pow_two, two_mul]
 |1        := begin simp only [chebyshev₁_add_two, chebyshev₁_zero, chebyshev₁_add_two,
                               chebyshev₂_one, chebyshev₁_one, sub_mul, mul_sub, mul_one, one_mul],
-                              sorry end
+                    rw [sub_right_comm _ X, sub_left_inj, ←sub_add, sub_add_eq_add_sub,
+                        sub_left_inj, pow_two, mul_comm (X * X), mul_comm X (2 * X * X),
+                        mul_assoc, mul_comm X, ←mul_assoc, ←mul_assoc, ←mul_assoc, ←mul_assoc,
+                        ←two_mul],
+                    simp only [mul_assoc],
+              end
 |(n + 2)  := begin
 calc chebyshev₁ R (n + 2 + 2) = 2 * X * chebyshev₁ R (n + 2 + 1) - chebyshev₁ R (n + 2)
                                 : chebyshev₁_add_two _ _
@@ -217,7 +227,7 @@ calc chebyshev₁ R (n + 2 + 2) = 2 * X * chebyshev₁ R (n + 2 + 1) - chebyshev
                                 : by rw [sub_add, ←mul_sub, chebyshev₂_add_two]
 ... = X * 2 * (X * chebyshev₁ R (n + 2)) - X * chebyshev₁ R (n + 1)
                     - (1 - X ^ 2) * (chebyshev₂ R (n + 2))
-                                : by rw [mul_comm X 2]
+                                : by rw mul_comm X 2
 ... = X * (2 * (X * chebyshev₁ R (n + 2)) - chebyshev₁ R (n + 1))
                     - (1 - X ^ 2) * (chebyshev₂ R (n + 2))
                                 : by rw [mul_assoc, mul_sub]
@@ -254,10 +264,10 @@ lemma chebyshev₂_derivative_eq_chebyshev₁ :
 ∀ (n : ℕ), derivative (chebyshev₁ R (n + 1)) = (n + 1) * chebyshev₂ R n
 |0        := by simp only [chebyshev₁_one, chebyshev₂_zero, derivative_X, nat.cast_zero, zero_add,
                            mul_one]
-|1        := begin  simp only [chebyshev₁_two, chebyshev₂_one, derivative_sub, derivative_one,
+|1        := by { simp only [chebyshev₁_two, chebyshev₂_one, derivative_sub, derivative_one,
                               derivative_mul, derivative_X_pow, sub_zero, nat.cast_one,
                               nat.cast_two],
-                    norm_num end
+                    norm_num }
 |(n + 2)  := begin rw [chebyshev₁_add_two, derivative_sub, chebyshev₂_derivative_eq_chebyshev₁,
                        derivative_mul, chebyshev₂_derivative_eq_chebyshev₁, derivative_mul,
                        derivative_X, derivative_bit0, derivative_one, bit0_zero, zero_mul,

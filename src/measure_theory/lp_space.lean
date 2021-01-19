@@ -10,8 +10,9 @@ import analysis.mean_inequalities
 /-!
 # ℒp space
 
-This file describes properties of almost everywhere measurable functions with finite seminorm
-`(∫ ∥f a∥^p ∂μ) ^ (1/p)` for `p:ennreal`.
+This file describes properties of almost everywhere measurable functions with finite seminorm,
+defined for `p:ennreal` as `0` if `p=0`, `(∫ ∥f a∥^p ∂μ) ^ (1/p)` for `0 < p < ∞` and
+`ess_sup ∥f∥ μ` for `p=∞`.
 
 ## Main definitions
 
@@ -524,6 +525,8 @@ end
 section second_countable_topology
 variable [topological_space.second_countable_topology E]
 
+/-- TODO: prove mem_ℒp.add for all `q:ennreal`. `snorm_add_le` cannot be used for `q < 1` but the
+result still holds. -/
 lemma mem_ℒp.add {f g : α → E} (hf : mem_ℒp f q μ) (hg : mem_ℒp g q μ) (hq1 : 1 ≤ q) :
   mem_ℒp (f + g) q μ :=
 begin

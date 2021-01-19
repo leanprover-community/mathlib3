@@ -940,7 +940,7 @@ lemma restrict_finset_bUnion_congr {s : finset ι} {t : ι → set α}
 begin
   induction s using finset.induction_on with i s hi hs, { simp },
   simp only [finset.mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at htm ⊢,
-  simp only [finset.bUnion_insert, ← hs htm.2],
+  simp only [finset.set_bUnion_insert, ← hs htm.2],
   exact restrict_union_congr htm.1 (s.is_measurable_bUnion htm.2)
 end
 

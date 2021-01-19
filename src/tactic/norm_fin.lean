@@ -105,7 +105,7 @@ meta def prove_lt_fin : expr → expr → tactic expr
   (_, enb) ← nic.of_nat nb,
   (_, pnb) ← prove_lt_nat nic enb en,
   (_, pnlt) ← prove_lt_nat nic ena enb,
-  to_expr ``(fin.prove_lt %%en %%ena %%enb %%pna %%pnb %%pnlt)
+  to_expr ``(fin.lt_num %%en %%ena %%enb %%pna %%pnb %%pnlt)
 
 namespace instance_cache
 
@@ -135,7 +135,7 @@ open tactic expr
 
 namespace norm_num
 
-lemma fin.prove_succ (m n k l : ℕ) (hl : l < n) (hk : k < m) (h : m = n + 1) (h' : k = l + 1) :
+lemma fin.succ_num_eq (m n k l : ℕ) (hl : l < n) (hk : k < m) (h : m = n + 1) (h' : k = l + 1) :
   fin.succ (⟨l, hl⟩ : fin n) = (⟨k, hk⟩ : fin m) :=
 begin
   cases n,
@@ -145,7 +145,7 @@ begin
   simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hk],
 end
 
-lemma fin.prove_cast_succ (m n l : ℕ) (hl : l < n) (hl' : l < m) (h : m = n + 1) :
+lemma fin.cast_succ_num_eq (m n l : ℕ) (hl : l < n) (hl' : l < m) (h : m = n + 1) :
   fin.cast_succ (⟨l, hl⟩ : fin n) = (⟨l, hl'⟩ : fin m) :=
 begin
   cases n,
@@ -154,7 +154,7 @@ begin
   simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hl'],
 end
 
-lemma fin.prove_mod_bit0 (n k l m : ℕ) (hk : k < n) (hl : l < n)
+lemma fin.bit0_of_mod (n k l m : ℕ) (hk : k < n) (hl : l < n)
   (h : l + l = m) (h' : m % n = k) :
   (bit0 ⟨l, hl⟩ : fin n) = (⟨k, hk⟩ : fin n) :=
 begin
@@ -163,7 +163,7 @@ begin
   simp [fin.eq_iff_veq, bit0, fin.add_def, ←h', ←h]
 end
 
-lemma fin.prove_mod_bit1 (n k l m : ℕ) (hk : k < n + 1) (hl : l < n + 1)
+lemma fin.bit1_of_mod (n k l m : ℕ) (hk : k < n + 1) (hl : l < n + 1)
   (h : l + l + 1 = m) (h' : m % (n + 1) = k) :
   (bit1 ⟨l, hl⟩ : fin (n + 1)) = (⟨k, hk⟩ : fin (n + 1)) :=
 begin
@@ -172,7 +172,7 @@ begin
   simp [fin.eq_iff_veq, bit1, bit0, fin.add_def, ←h', ←h]
 end
 
-lemma fin.prove_lt (n a b : ℕ) (ha : a < n) (hb : b < n) (h : a < b) :
+lemma fin.lt_num (n a b : ℕ) (ha : a < n) (hb : b < n) (h : a < b) :
   (⟨a, ha⟩ : fin n) < ⟨b, hb⟩ :=
 fin.lt_iff_coe_lt_coe.mpr h
 
@@ -204,7 +204,7 @@ example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
   (_, ltkn') ← prove_lt_nat ic ek' en',
   ty ← to_expr ``(fin %%en'),
   fk' ← ty.of_fin (fk + 1),
-  pure (fk', `(fin.prove_succ %%en' %%en %%ek' %%ek %%ltkn %%ltkn' %%pn %%pk))
+  pure (fk', `(fin.succ_num_eq %%en' %%en %%ek' %%ek %%ltkn %%ltkn' %%pn %%pk))
 | (app `(@coe_fn (fin %%en ↪o fin %%en') %%inst %%fexpr) e) := do
   guard (fexpr.get_app_fn.const_name = ``fin.cast_succ),
   en ← prod.fst <$> eval_field en <|> pure en,
@@ -218,7 +218,7 @@ example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
   (_, ltkn') ← prove_lt_nat ic ek en',
   ty ← to_expr ``(fin %%en'),
   fk' ← ty.of_fin fk,
-  pure (fk', `(fin.prove_cast_succ %%en' %%en %%ek %%ltkn %%ltkn' %%pn))
+  pure (fk', `(fin.cast_succ_num_eq %%en' %%en %%ek %%ltkn %%ltkn' %%pn))
 | `(bit0 %%e) := do
   ty ← infer_type e,
   `(fin %%en) ← pure ty,
@@ -236,7 +236,7 @@ example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
   (_, ltkl) ← prove_lt_nat ic enat en,
   modf ← mode.to_fin nty,
   fk' ← ty.of_fin modf,
-  pure (fk', `(fin.prove_mod_bit0 %%en %%mode %%enat %%benat %%ltkn %%ltkl %%pbit0 %%pmod))
+  pure (fk', `(fin.bit0_of_mod %%en %%mode %%enat %%benat %%ltkn %%ltkl %%pbit0 %%pmod))
 | `(bit1 %%e) := do
   ty ← infer_type e,
   `(fin %%en) ← pure ty,
@@ -257,7 +257,7 @@ example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
   (_, ltkl) ← prove_lt_nat ic enat en,
   modf ← mode.to_fin nty,
   fk' ← ty.of_fin modf,
-  pure (fk', `(fin.prove_mod_bit1 %%en' %%mode %%enat %%benat %%ltkn %%ltkl %%pbit1 %%pmod))
+  pure (fk', `(fin.bit1_of_mod %%en' %%mode %%enat %%benat %%ltkn %%ltkl %%pbit1 %%pmod))
 | _ := failed
 
 end norm_fin

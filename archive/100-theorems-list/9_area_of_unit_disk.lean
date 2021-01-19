@@ -257,7 +257,19 @@ variables {u v : α → ℝ} {s : set α}
 lemma is_measurable_volume_under (hu : measurable u) (hs : is_measurable s) :
   is_measurable (volume_under u s) :=
 begin
-  sorry,
+  unfold volume_under Ico,
+  simp only [mem_set_of_eq],
+  rw [set_of_and, set_of_and],
+  apply is_measurable.inter,
+  { have h₁ : {a : α × ℝ | a.fst ∈ s}
+             = {a : α × ℝ | a.fst ∈ s ∧ a.snd ∈ (univ : set ℝ)}
+             := by simp only [and_true, mem_univ],
+    have h₂ : {a : α × ℝ | a.fst ∈ s ∧ a.snd ∈ (univ : set ℝ)}
+             = s.prod (univ : set ℝ) := by refl,
+    simpa [h₁, h₂] using is_measurable.prod hs is_measurable.univ, },
+  apply is_measurable.inter,
+  exacts [ is_measurable_le measurable_const measurable_snd,
+           is_measurable_lt measurable_snd (hu.comp measurable_fst)],
 end
 
 /-- "Area under the curve" as a left integral -/
@@ -283,14 +295,42 @@ end
 lemma is_measurable_volume_between (hu : measurable u) (hv: measurable v) (hs : is_measurable s) :
   is_measurable (volume_between u v s) :=
 begin
-  sorry,
+  unfold volume_between Ioo,
+  simp only [mem_set_of_eq],
+  rw [set_of_and, set_of_and],
+  apply is_measurable.inter,
+  { have h₁ : {a : α × ℝ | a.fst ∈ s}
+             = {a : α × ℝ | a.fst ∈ s ∧ a.snd ∈ (univ : set ℝ)}
+             := by simp only [and_true, mem_univ],
+    have h₂ : {a : α × ℝ | a.fst ∈ s ∧ a.snd ∈ (univ : set ℝ)}
+             = s.prod (univ : set ℝ) := by refl,
+    simpa [h₁, h₂] using is_measurable.prod hs is_measurable.univ, },
+  apply is_measurable.inter,
+  exacts [ is_measurable_lt (hu.comp measurable_fst) measurable_snd,
+           is_measurable_lt measurable_snd (hv.comp measurable_fst)],
 end
 
 /-- "Area between two curves" as a left integral -/
 theorem volume_between_eq_lintegral (hu : measurable u) (hv : measurable v) (hs : is_measurable s) :
   (volume.prod volume (volume_between u v s)) = ∫⁻ y in s, ennreal.of_real ((v - u) y) :=
 begin
-  sorry,
+  rw measure.prod_apply (is_measurable_volume_between hu hv hs),
+  { dsimp only [volume_between, preimage_set_of_eq],
+    have x_in : ∀ x : α, x ∈ s → {a : ℝ | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = Ioo (u x) (v x) :=
+      λ x hx, by simp only [set_of_and, hx, Ioo, mem_set_of_eq, set_of_true, univ_inter, mem_inter_eq],
+    have x_out : ∀ x : α, x ∉ s → {a : ℝ | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = ∅ :=
+      λ x hx, by simp only [mem_Ico, hx, set_of_false, false_and],
+    have h : (λ x, volume {a : ℝ | x ∈ s ∧ a ∈ Ioo (u x) (v x)})
+           = s.indicator (λ y, ennreal.of_real (v y - u y)),
+    { funext x,
+      rw indicator_apply,
+      split_ifs,
+      { simp only [x_in x h, volume_Ioo], },
+      { simp only [x_out x h, measure_empty] } },
+    rwa [h, lintegral_indicator],
+    refl,
+    exact hs, },
+  { apply_instance },
 end
 
 theorem volume_unit_disc : volume.prod volume unit_disc = ennreal.of_real pi :=
@@ -309,10 +349,8 @@ begin
         exact sqr_lt.mp h} },
     { rw [add_comm, ← lt_sub_iff_add_lt],
       exact sqr_lt.mpr h.2 } },
-  have hg : measurable g,
-    { sorry },
   obtain ⟨hc1, hc2⟩ := ⟨(continuous_const.sub (continuous_pow 2)).sqrt, continuous_const.mul hc1⟩,
-  convert volume_between_eq_lintegral hg.neg hg is_measurable_Ioc,
+  convert volume_between_eq_lintegral (hc1.measurable).neg (hc1.measurable) is_measurable_Ioc,
   simp only [pi.sub_apply, sub_neg_eq_add, g, ← two_mul],
   symmetry,
   convert lintegral_coe_eq_integral (λ x, (λ y, nnreal.of_real (2 * sqrt (1 - y^2))) x) _,
@@ -329,5 +367,9 @@ begin
         field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul] },
       { nlinarith } },
     { exact neg_le_self zero_le_one } },
-  { sorry },
+  { simp only,
+    apply integrable_on.integrable,
+    refine integrable_on.mono_set _ Ioc_subset_Icc_self,
+    refine continuous.integrable_on_compact compact_Icc _,
+    exact continuous.max hc2 continuous_const, },
 end

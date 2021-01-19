@@ -32,11 +32,12 @@ much more developed, but many lemmas in that file should be eligible to copy ove
 function with finite support, semimodule, linear algebra
 -/
 
-variables {ι : Type*} {R : Type*} {M : ι → Type*} {N : Type*}
+variables {ι : Type*} {R : Type*} {M : ι → Type*} {N : Type*} {N' : Type*}
 
 variables [dec_ι : decidable_eq ι]
 variables [semiring R] [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
 variables [add_comm_monoid N] [semimodule R N]
+variables [add_comm_monoid N'] [semimodule R N']
 
 namespace dfinsupp
 
@@ -65,6 +66,10 @@ After apply this lemma, if `M = R` then it suffices to verify `φ (single a 1) =
   φ = ψ :=
 lhom_ext $ λ i, linear_map.congr_fun (h i)
 
+@[simp]
+lemma lsingle_to_add_monoid_hom (i) :
+  (lsingle i : _ →ₗ[R] _).to_add_monoid_hom = single_add_hom M i := rfl
+
 omit dec_ι
 
 /-- Interpret `λ (f : Π₀ i, M i), f i` as a linear map. -/
@@ -86,7 +91,7 @@ omit dec_ι
 include dec_ι
 
 /-- The `dfinsupp` version of `finsupp.lsum`. -/
-@[simps apply symm_apply]
+@[simps symm_apply]
 def lsum : (Π i, M i →ₗ[R] N) ≃+ ((Π₀ i, M i) →ₗ[R] N) :=
 { to_fun := λ F, {
     to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
@@ -102,5 +107,25 @@ def lsum : (Π i, M i →ₗ[R] N) ≃+ ((Π₀ i, M i) →ₗ[R] N) :=
   left_inv := λ F, by { ext x y, simp },
   right_inv := λ F, by { ext x y, simp },
   map_add' := λ F G, by { ext x y, simp } }
+
+/-- The `lsum` version of `dfinsupp.lift_add_hom_single_add_hom`,-/
+@[simp] lemma lsum_lsingle :
+  lsum (lsingle : Π i, M i →ₗ[R] _) = linear_map.id :=
+lsum.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
+
+/-- The `lsum` version of `dfinsupp.lift_add_hom_apply_single`,-/
+@[simp] lemma lsum_apply_single (f : Π i, M i →ₗ[R] N) (i : ι) (x : M i) :
+  lsum f (single i x) = f i x :=
+lift_add_hom_apply_single _ i x
+
+/-- The `lsum` version of `dfinsupp.lift_add_hom_comp_single`,-/
+@[simp] lemma lsum_comp_lsingle (f : Π i, M i →ₗ[R] N) (i : ι) :
+  (lsum f).comp (lsingle i) = f i :=
+linear_map.ext $ add_monoid_hom.congr_fun (lift_add_hom_comp_single _ i)
+
+/-- The `lsum` version of `dfinsupp.comp_lift_add_hom`,-/
+lemma comp_lsum (g : N →ₗ[R] N') (f : Π i, M i →ₗ[R] N) :
+  g.comp (lsum f) = lsum (λ a, g.comp (f a)) :=
+linear_map.ext $ add_monoid_hom.congr_fun (comp_lift_add_hom g.to_add_monoid_hom _)
 
 end dfinsupp

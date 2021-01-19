@@ -238,10 +238,16 @@ lemma chebyshev₂_derivative_eq_chebyshev₁ :
                               derivative_mul, derivative_X_pow, sub_zero, nat.cast_one,
                               nat.cast_two],
                     norm_num end
-|(n + 2)  := begin simp only [chebyshev₁_add_two, chebyshev₂_add_two, derivative_sub,
-                              derivative_mul, chebyshev₂_derivative_eq_chebyshev₁,
-                              derivative_bit0,
-                              derivative_one, bit0_zero, zero_mul, zero_add, derivative_X, mul_one],
-                              sorry end
+|(n + 2)  := begin rw [chebyshev₁_add_two, derivative_sub, chebyshev₂_derivative_eq_chebyshev₁,
+                       derivative_mul, chebyshev₂_derivative_eq_chebyshev₁, derivative_mul,
+                       derivative_X, derivative_bit0, derivative_one, bit0_zero, zero_mul,
+                       zero_add, mul_one, add_mul, mul_add, one_mul, add_comm, add_assoc,
+                       mul_assoc 2 X (chebyshev₂ R (n + 1)), ←mul_add,
+                       ←chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁, ←sub_add_eq_add_sub,
+                       ←mul_assoc, mul_comm (2 * X)],
+                    push_cast,
+                    rw [mul_assoc, ←mul_sub, ←chebyshev₂_add_two, ←add_mul],
+                    norm_cast,
+              end
 
 end polynomial

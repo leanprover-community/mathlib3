@@ -508,27 +508,27 @@ begin
   exact ⟨i, finset.mem_insert_of_mem hi, ih⟩
 end
 
-theorem is_prime.prod_le_fil {s : multiset ι} {f : ι → ideal R} {P : ideal R}
+theorem is_prime.multiset.prod_le {s : multiset ι} {f : ι → ideal R} {P : ideal R}
   (hp : is_prime P) (hne: s ≠ 0) :
   multiset.prod (s.map f) ≤ P → ∃ i ∈ s, f i ≤ P :=
--- suffices s.prod f ≤ P → ∃ i ∈ s, f i ≤ P,
+-- suffices multiset.prod (s.map f) ≤ P → ∃ i ∈ s, f i ≤ P,
 --   from ⟨this, λ ⟨i, his, hip⟩, le_trans prod_le_inf $ le_trans (finset.inf_le his) hip⟩,
-begin --sorry,
+begin
   classical,
-  obtain ⟨b, hb⟩ : ∃ b, b ∈ s := sorry, --easy hne.bex,
+  obtain ⟨b, hb⟩ : ∃ b, b ∈ s := multiset.exists_mem_of_ne_zero hne,
   let t := s.erase b,
-  -- obtain ⟨t, hbt, rfl⟩ : ∃ t, b ∉ t ∧ s = insert b t,
-  -- from ⟨s.erase b, s.not_mem_erase b, (finset.insert_erase hb).symm⟩,
-  -- revert hbt,
-  refine multiset.induction _ (λ J s ih, _) s, sorry, -- anche facile
-  -- { simp only [finset.not_mem_empty, insert_emptyc_eq, exists_prop, finset.prod_singleton,
-  --     imp_self, exists_eq_left, not_false_iff, finset.mem_singleton] },
-  rw [multiset.map_cons, multiset.prod_cons],
-  intro h_ind,
-  rw is_prime.mul_le hp at h_ind,
-  cases h_ind,
-  { use J, sorry },
-  { sorry },
+  refine multiset.induction _ (λ J s ih, _) s,
+  intro h_sz,
+  { erw [multiset.prod_zero, ideal.one_eq_top, top_le_iff] at h_sz,
+    exact absurd h_sz hp.1 },
+  { rw [multiset.map_cons, multiset.prod_cons],
+    intro h_ind,
+    rw is_prime.mul_le hp at h_ind,
+    cases h_ind,
+    { exact ⟨J, multiset.mem_cons_self J s, h_ind⟩ },
+    { suffices h₄s : ∃ (i : ι) (H : i ∈ s), f i ≤ P,
+      rcases h₄s with ⟨i, hi, h_incl⟩,
+      exacts [⟨i, multiset.mem_cons_of_mem hi, h_incl⟩, (ih h_ind)] } },
 end
 
 theorem is_prime.inf_le' {s : finset ι} {f : ι → ideal R} {P : ideal R} (hp : is_prime P)

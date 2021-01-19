@@ -663,7 +663,13 @@ begin
       rw multiset.prod_zero at habs,
       rw [habs, ideal.one_eq_top, ← eq_top_iff] at h_ZM,
       exact absurd h_ZM hM.1 },
-    have h_φs : s.prod φ = multiset.prod (Z.map (coe : subtype _ → ideal R)), sorry,
+    -- have h'_φs : φ s.prod = multiset.prod (Z.map (coe : subtype _ → ideal R)),
+    have h_φs : s.prod φ = multiset.prod (Z.map (coe : subtype _ → ideal R)),
+      -- rw ← multiset.prod_hom,
+
+
+    -- },
+
       -- { simp only [*, multiset.length_to_list, list.head, multiset.card_map, list.length,
       --   list.nth_le],
       --   -- cases,
@@ -673,6 +679,7 @@ begin
       --   simp *,
       --   rw multiset.coe_map,
       -- },
+    sorry,
     have h_φsM : s.prod φ ≤ M := by rwa h_φs,
     convert (ideal.is_prime.prod_le (ideal.is_maximal.is_prime hM) hne_s).mp h_φsM,
     rw ← iff_eq_eq,

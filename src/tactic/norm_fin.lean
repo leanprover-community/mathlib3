@@ -30,16 +30,15 @@ optionally preceded by `fin.succ` or `fin.cast_succ`.
 /--
 `fin.mk_numeral i` embeds `i` as a numeral expression inside a type with 0, 1, +
 
-`type`: an expression representing the target type. This must live in Type 0.
-`has_zero`, `has_one`, `has_add`: expressions of the type `has_zero %%type`, etc.
+* `type`: an expression representing the target type. This must live in Type 0.
+* `has_zero`, `has_one`, `has_add`: expressions of the type `has_zero %%type`, etc.
 
 This function is similar to `expr.of_fin` but takes more hypotheses and is not tactic valued.
  -/
 meta def fin.mk_numeral (type has_zero has_one has_add : expr) (n : ℕ) : fin n → expr
 | ⟨i, _⟩ := nat.mk_numeral type has_zero has_one has_add i
 
-/-- `fin.reflect i` represents the finite number `i`
-as a numeral expression of type `fin (n + 1)`. -/
+/-- `fin.reflect i` represents the finite number `i : fin (n + 1)`. -/
 protected meta def fin.reflect {n : ℕ} : fin (n + 1) → expr :=
 fin.mk_numeral `(fin (n + 1)) `((by apply_instance : has_zero (fin (n + 1))))
   `((by apply_instance : has_one (fin (n + 1))))`((by apply_instance : has_add (fin (n + 1))))

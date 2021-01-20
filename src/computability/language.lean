@@ -192,26 +192,10 @@ begin
 end
 
 lemma supr_add {ι : Type v} [nonempty ι] (l : ι → language α) (m : language α) :
-  (⨆ i, l i) + m = ⨆ i, l i + m :=
-begin
-  ext x,
-  simp only [mem_add, set.mem_Union],
-  split,
-  { rintro (⟨ i, h ⟩ | h),
-    { use i,
-      exact or.inl h },
-    { finish } },
-  { finish }
-end
+  (⨆ i, l i) + m = ⨆ i, l i + m := supr_sup
 
 lemma add_supr {ι : Type v} [nonempty ι] (l : ι → language α) (m : language α) :
-  m + (⨆ i, l i) = ⨆ i, m + l i :=
-begin
-  rw add_comm,
-  convert supr_add l m,
-  ext x,
-  rw add_comm
-end
+  m + (⨆ i, l i) = ⨆ i, m + l i := sup_supr
 
 lemma star_eq_supr_pow (l : language α) : l.star = ⨆ i : ℕ, l ^ i :=
 begin

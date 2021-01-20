@@ -158,10 +158,8 @@ begin
 end
 
 @[simp] lemma comp_continuous_linear_map_apply_composition {n : ℕ}
-  (p : formal_multilinear_series 𝕜 F G) (f : E →L[𝕜] F)
-  (c : composition n) (v : fin n → E) :
-  (p.comp_continuous_linear_map f).apply_composition c v
-  = p.apply_composition c (f ∘ v) :=
+  (p : formal_multilinear_series 𝕜 F G) (f : E →L[𝕜] F) (c : composition n) (v : fin n → E) :
+  (p.comp_continuous_linear_map f).apply_composition c v = p.apply_composition c (f ∘ v) :=
 by simp [apply_composition]
 
 end formal_multilinear_series
@@ -175,7 +173,6 @@ the right coefficient of `p` to each block of the composition, and then applying
 resulting vector. It is called `f.comp_along_composition_multilinear p c`.
 This function admits a version as a continuous multilinear map, called
 `f.comp_along_composition p c` below. -/
-
 def comp_along_composition_multilinear {n : ℕ}
   (p : formal_multilinear_series 𝕜 E F) (c : composition n)
   (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) :

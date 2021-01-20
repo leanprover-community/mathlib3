@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Yakov Pechersky All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yakov Pechersky
+Authors: Yakov Pechersky, Mario Carneiro
 -/
 
 import tactic.norm_num
@@ -27,160 +27,415 @@ optionally preceded by `fin.succ` or `fin.cast_succ`.
 
 -/
 
-/--
-`fin.mk_numeral i` embeds `i` as a numeral expression inside a type with `0`, `1`, `+`
+namespace tactic
+namespace norm_fin
+open norm_num
 
-* `type`: an expression representing the target type. This must live in Type 0.
-* `has_zero`, `has_one`, `has_add`: expressions of the type `has_zero %%type`, etc.
+def normalize_fin (n : ℕ) (a : fin n) (b : ℕ) := a.1 = b % n
+def normalize_fin_lt (n : ℕ) (a : fin n) (b : ℕ) := a.1 = b
 
-This function is similar to `expr.of_fin` but takes more hypotheses and is not tactic valued.
- -/
-meta def fin.mk_numeral (type has_zero has_one has_add : expr) (n : ℕ) : fin n → expr
-| ⟨i, _⟩ := nat.mk_numeral type has_zero has_one has_add i
+theorem normalize_fin_lt.coe {n} {a : fin n} {b : ℕ} (h : normalize_fin_lt n a b) : ↑a = b := h
 
-/-- `fin.reflect i` represents the finite number `i : fin (n + 1)`. -/
-protected meta def fin.reflect {n : ℕ} : fin (n + 1) → expr :=
-fin.mk_numeral `(fin (n + 1)) `((by apply_instance : has_zero (fin (n + 1))))
-  `((by apply_instance : has_one (fin (n + 1))))`((by apply_instance : has_add (fin (n + 1))))
-  (n + 1)
+theorem normalize_fin_iff {n} [fact (0 < n)] {a b} :
+  normalize_fin n a b ↔ a = fin.of_nat' b :=
+iff.symm (fin.eq_iff_veq _ _)
+
+theorem normalize_fin_lt.mk {n a b n'} (hn : n = n')
+  (h : normalize_fin n a b) (h2 : b < n') : normalize_fin_lt n a b :=
+h.trans $ nat.mod_eq_of_lt $ by rw hn; exact h2
+
+theorem normalize_fin_lt.lt {n a b} (h : normalize_fin_lt n a b) : b < n :=
+by rw ← h.coe; exact a.2
+
+theorem normalize_fin_lt.of {n a b} (h : normalize_fin_lt n a b) : normalize_fin n a b :=
+h.trans $ eq.symm $ nat.mod_eq_of_lt h.lt
+
+theorem normalize_fin.zero (n) : normalize_fin (n+1) 0 0 := refl _
+theorem normalize_fin_lt.zero (n) : normalize_fin_lt (n+1) 0 0 := refl _
+theorem normalize_fin.one (n) : normalize_fin (n+1) 1 1 := refl _
+theorem normalize_fin.add {n} {a b : fin n} {a' b' c' : ℕ}
+  (ha : normalize_fin n a a') (hb : normalize_fin n b b')
+  (h : a' + b' = c') : normalize_fin n (a + b) c' :=
+by simp only [normalize_fin, ← h] at *; rw [nat.add_mod, ← ha, ← hb, fin.add_def]
+theorem normalize_fin.mul {n} {a b : fin n} {a' b' c' : ℕ}
+  (ha : normalize_fin n a a') (hb : normalize_fin n b b')
+  (h : a' * b' = c') : normalize_fin n (a * b) c' :=
+by simp only [normalize_fin, ← h] at *; rw [nat.mul_mod, ← ha, ← hb, fin.mul_def]
+theorem normalize_fin.bit0 {n} {a : fin n} {a' : ℕ}
+  (h : normalize_fin n a a') : normalize_fin n (bit0 a) (bit0 a') := h.add h rfl
+theorem normalize_fin.bit1 {n} {a : fin (n+1)} {a' : ℕ}
+  (h : normalize_fin (n+1) a a') : normalize_fin (n+1) (bit1 a) (bit1 a') :=
+h.bit0.add (normalize_fin.one _) rfl
+
+theorem normalize_fin_lt.succ {n} {a : fin n} {a' b : ℕ}
+  (h : normalize_fin_lt n a a') (e : a' + 1 = b) : normalize_fin_lt n.succ (fin.succ a) b :=
+by simpa [normalize_fin_lt, ← e] using h
+
+theorem normalize_fin_lt.cast_lt {n m} {a : fin m} {ha} {a' : ℕ}
+  (h : normalize_fin_lt m a a') : normalize_fin_lt n (fin.cast_lt a ha) a' :=
+by simpa [normalize_fin_lt] using h
+
+theorem normalize_fin_lt.cast_le {n m} {nm} {a : fin m} {a' : ℕ}
+  (h : normalize_fin_lt m a a') : normalize_fin_lt n (fin.cast_le nm a) a' :=
+by simpa [normalize_fin_lt] using h
+
+theorem normalize_fin_lt.cast {n m} {nm} {a : fin m} {a' : ℕ}
+  (h : normalize_fin_lt m a a') : normalize_fin_lt n (fin.cast nm a) a' :=
+by simpa [normalize_fin_lt] using h
+
+theorem normalize_fin.cast {n m} {nm} {a : fin m} {a' : ℕ}
+  (h : normalize_fin m a a') : normalize_fin n (fin.cast nm a) a' :=
+by convert ← normalize_fin_lt.cast h
+
+theorem normalize_fin_lt.cast_add {n m} {a : fin n} {a' : ℕ}
+  (h : normalize_fin_lt n a a') : normalize_fin_lt (n + m) (fin.cast_add m a) a' :=
+by simpa [normalize_fin_lt] using h
+
+theorem normalize_fin_lt.cast_succ {n} {a : fin n} {a' : ℕ}
+  (h : normalize_fin_lt n a a') : normalize_fin_lt (n+1) (fin.cast_succ a) a' :=
+normalize_fin_lt.cast_add h
+
+theorem normalize_fin_lt.add_nat {n m m'} (hm : m = m') {a : fin n} {a' b : ℕ}
+  (h : normalize_fin_lt n a a') (e : a' + m' = b) :
+  normalize_fin_lt (n+m) (@fin.add_nat n m a) b :=
+by simpa [normalize_fin_lt, ← e, ← hm] using h
+
+theorem normalize_fin_lt.nat_add {n m n'} (hn : n = n') {a : fin m} {a' b : ℕ}
+  (h : normalize_fin_lt m a a') (e : n' + a' = b) :
+  normalize_fin_lt (n+m) (@fin.nat_add n m a) b :=
+by simpa [normalize_fin_lt, ← e, ← hn] using h
+
+theorem normalize_fin.reduce {n} {a : fin n} {n' a' b k nk : ℕ}
+  (hn : n = n') (h : normalize_fin n a a') (e1 : n' * k = nk) (e2 : nk + b = a') :
+  normalize_fin n a b :=
+by rwa [← e2, ← e1, ← hn, normalize_fin, add_comm, nat.add_mul_mod_self_left] at h
+
+theorem normalize_fin_lt.reduce {n} {a : fin n} {n' a' b k nk : ℕ}
+  (hn : n = n') (h : normalize_fin n a a') (e1 : n' * k = nk) (e2 : nk + b = a') (hl : b < n') :
+  normalize_fin_lt n a b :=
+normalize_fin_lt.mk hn (h.reduce hn e1 e2) hl
+
+theorem normalize_fin.eq {n} {a b : fin n} {c : ℕ}
+  (ha : normalize_fin n a c) (hb : normalize_fin n b c) : a = b := fin.eq_of_veq $ ha.trans hb.symm
+theorem normalize_fin.lt {n} {a b : fin n} {a' b' : ℕ}
+  (ha : normalize_fin n a a') (hb : normalize_fin_lt n b b') (h : a' < b') : a < b :=
+by have ha' := normalize_fin_lt.mk rfl ha (h.trans hb.lt); rwa [← hb.coe, ← ha'.coe] at h
+theorem normalize_fin.le {n} {a b : fin n} {a' b' : ℕ}
+  (ha : normalize_fin n a a') (hb : normalize_fin_lt n b b') (h : a' ≤ b') : a ≤ b :=
+by have ha' := normalize_fin_lt.mk rfl ha (h.trans_lt hb.lt); rwa [← hb.coe, ← ha'.coe] at h
+
+meta inductive fin_result | new | fail | evaled (nn : ℕ) (n' : expr) (p : expr)
+
+meta def fin_result.get (n : expr) : fin_result → tactic (ℕ × expr × expr)
+| fin_result.new := do
+  (n', p) ← or_refl_conv norm_num.derive n,
+  nn ← n'.to_nat,
+  pure (nn, n', p)
+| fin_result.fail := failed
+| (fin_result.evaled nn n' p) := pure (nn, n', p)
+
+meta def fin_result.mk : option (ℕ × expr × expr) → fin_result
+| none := fin_result.fail
+| (some (nn, n', p)) := fin_result.evaled nn n' p
+
+@[derive [monad, alternative]]
+meta def eval_fin_m (α : Type) : Type :=
+state_t (instance_cache × fin_result) tactic α
+
+@[inline] meta def eval_fin_m.lift {α} (m : tactic α) : eval_fin_m α :=
+⟨λ ⟨ic, r⟩, do a ← m, pure (a, ic, r)⟩
+
+meta instance {α} : has_coe (tactic α) (eval_fin_m α) := ⟨eval_fin_m.lift⟩
+
+@[inline] meta def eval_fin_m.lift_ic {α}
+  (m : instance_cache → tactic (instance_cache × α)) : eval_fin_m α :=
+⟨λ ⟨ic, r⟩, do (ic, a) ← m ic, pure (a, ic, r)⟩
+
+@[inline] meta def eval_fin_m.reset {α} (m : eval_fin_m α) : eval_fin_m (fin_result × α) :=
+⟨λ ⟨ic, r'⟩, do (a, ic, r) ← m.run ⟨ic, fin_result.new⟩, pure ((r, a), ic, r')⟩
+
+@[inline] meta def eval_fin_m.eval_n (n : expr) : eval_fin_m (ℕ × expr × expr) :=
+⟨λ ⟨ic, r⟩, do np@(nn, n', p) ← fin_result.get n r, pure (np, ic, fin_result.evaled nn n' p)⟩
+
+@[inline] meta def eval_fin_m.try_eval_n (n : expr) : eval_fin_m (option (ℕ × expr × expr)) :=
+⟨λ ⟨ic, r⟩, do o ← try_core (fin_result.get n r), pure (o, ic, fin_result.mk o)⟩
+
+@[inline] meta def eval_fin_m.run {α} (m : eval_fin_m α) : tactic α :=
+do ic ← mk_instance_cache `(ℕ), (a, _) ← state_t.run m (ic, fin_result.new), pure a
+
+meta inductive match_fin_result
+| zero (n : expr)
+| one (n : expr)
+| add (n a b : expr)
+| mul (n a b : expr)
+| bit0 (n a : expr)
+| bit1 (n a : expr)
+| succ (n a : expr)
+| cast_lt (n m a h : expr)
+| cast_le (n m h a : expr)
+| cast (n m h a : expr)
+| cast_add (n m a : expr)
+| cast_succ (n a : expr)
+| add_nat (n m a : expr)
+| nat_add (n m a : expr)
 
 section
-local attribute [semireducible] reflected
-meta instance {n : ℕ} : has_reflect (fin (n + 1)) := fin.reflect
-end
-
-/-- Evaluates an expression as a finite number
-if that expression represents a `fin 1`, which always gives back `0`. -/
-private meta def expr.to_fin_one : expr → option (fin 1)
-| e := do guardb e.is_numeral, pure (fin.of_nat 0)
-
-/-- Evaluates an expression as a finite number,
-if that expression represents a numeral of a `fin (n + 2)`,
-or `fin.succ` of a numeral.cast_succ` of a numeral. -/
-private meta def expr.to_fin_succ {n : ℕ} : expr → option (fin (n + 2))
-| `(@fin.succ %%t %%e) := do k ← e.to_nat, m ← t.to_nat, pure (fin.succ (@fin.of_nat n (k % m)))
-| e := do k ← e.to_nat, pure (fin.of_nat k)
-
-/-- Evaluates an expression as a finite number,
-if that expression represents a numeral of a `fin (n + 1)`,
-or `fin.succ` of a numeral.cast_succ` of a numeral. -/
-protected meta def expr.to_fin : Π (n : ℕ), expr → option (fin (n + 1))
-| 0       := expr.to_fin_one
-| (n + 1) := expr.to_fin_succ
-
-/-- Evaluates an expression into a finite `fin (n + 1)` number, if that expression is built up from
-  numerals, +, *, /, ⁻¹  -/
-protected meta def expr.eval_fin (n : ℕ) : expr → option (fin (n + 1))
-| `(has_zero.zero) := some 0
-| `(has_one.one) := some 1
-| `(bit0 %%q) := (*) 2 <$> q.eval_fin
-| `(bit1 %%q) := (+) 1 <$> (*) 2 <$> q.eval_fin
-| `(%%a + %%b) := (+) <$> a.eval_fin <*> b.eval_fin
-| `(%%a * %%b) := (*) <$> a.eval_fin <*> b.eval_fin
+open match_fin_result
+meta def match_fin_coe_fn (a : expr) : expr → option match_fin_result
+| `(@fin.cast_le %%n %%m %%h) := some (cast_le n m h a)
+| `(@fin.cast %%m %%n %%h) := some (cast n m h a)
+| `(@fin.cast_add %%n %%m) := some (cast_add n m a)
+| `(@fin.cast_succ %%n) := some (cast_succ n a)
+| `(@fin.add_nat %%n %%m) := some (add_nat n m a)
+| `(@fin.nat_add %%n %%m) := some (nat_add n m a)
 | _ := none
 
-/-- `expr.of_fin α q` embeds `q` as a numeral expression inside the type `α`.
-Lean will try to infer the correct type classes on `α`, and the tactic will fail if it cannot.
-This function is similar to `fin.mk_numeral` but it takes fewer hypotheses and is tactic valued.
--/
-protected meta def expr.of_fin {n : ℕ} (α : expr) : fin (n + 1) → tactic expr
-| ⟨k, _⟩ := expr.of_nat α k
-
-open norm_num
-
-namespace tactic
-
-/-- Given `a`,`b` `fin n` numerals, proves `⊢ a < b`. -/
-meta def prove_lt_fin : expr → expr → tactic expr
-| a b := do
-  `(fin %%en) ← infer_type a,
-  nic ← mk_instance_cache `(ℕ),
-  en ← prod.fst <$> eval_field en <|> pure en,
-  nty ← eval_expr ℕ en,
-  en ← pure `(nty),
-  na ← expr.eval_fin nty a,
-  nb ← expr.eval_fin nty b,
-  (_, ena) ← nic.of_nat na,
-  (_, pna) ← prove_lt_nat nic ena en,
-  (_, enb) ← nic.of_nat nb,
-  (_, pnb) ← prove_lt_nat nic enb en,
-  (_, pnlt) ← prove_lt_nat nic ena enb,
-  to_expr ``(fin.lt_num %%en %%ena %%enb %%pna %%pnb %%pnlt)
-
-namespace instance_cache
-
-/-- `c.of_nat q` embeds `q` as a numeral expression inside the type `α`.
-Lean will try to infer the correct type classes on `c.α`, and the tactic will fail if it cannot.
-This function is similar to `fin.mk_numeral` but it takes fewer hypotheses and is tactic valued.
--/
-protected meta def of_fin {n : ℕ} (c : instance_cache) :
-  fin (n + 1) → tactic (instance_cache × expr)
-| ⟨k, hk⟩ := c.of_nat k
-
-/-- Given `a`,`b` `fin n` numerals, proves `⊢ a ≠ b`. -/
-meta def prove_ne_fin (ic : instance_cache) (a b : expr) (na nb : ℚ) :
-  tactic (instance_cache × expr) :=
-if na < nb then do
-  p ← prove_lt_fin a b,
-  ic.mk_app ``ne_of_lt [a, b, p]
-else do
-  p ← prove_lt_fin b a,
-  ic.mk_app ``ne_of_gt [a, b, p]
-
-end instance_cache
-
-end tactic
-
-open tactic expr
-
-namespace norm_num
-
-lemma fin.succ_num_eq (m n k l : ℕ) (hl : l < n) (hk : k < m) (h : m = n + 1) (h' : k = l + 1) :
-  fin.succ (⟨l, hl⟩ : fin n) = (⟨k, hk⟩ : fin m) :=
-begin
-  cases n,
-  { exact absurd hl (not_lt_of_le l.zero_le) },
-  subst h,
-  subst h',
-  simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hk],
+meta def match_fin : expr → option match_fin_result
+| `(@has_zero.zero ._ (@fin.has_zero %%n)) := some (zero n)
+| `(@has_one.one ._ (@fin.has_one %%n)) := some (one n)
+| `(@has_add.add (fin %%n) ._ %%a %%b) := some (add n a b)
+| `(@has_mul.mul (fin %%n) ._ %%a %%b) := some (mul n a b)
+| `(@_root_.bit0 (fin %%n) ._ %%a) := some (bit0 n a)
+| `(@_root_.bit1 ._ (@fin.has_one %%n) ._ %%a) := some (bit1 n a)
+| `(@fin.succ %%n %%a) := some (succ n a)
+| `(@fin.cast_lt %%n %%m %%a %%h) := some (cast_lt n m a h)
+| (expr.app `(@coe_fn ._ ._ %%f) a) := match_fin_coe_fn a f
+| _ := none
 end
 
-lemma fin.cast_succ_num_eq (m n l : ℕ) (hl : l < n) (hl' : l < m) (h : m = n + 1) :
-  fin.cast_succ (⟨l, hl⟩ : fin n) = (⟨l, hl'⟩ : fin m) :=
-begin
-  cases n,
-  { exact absurd hl (not_lt_of_le l.zero_le) },
-  subst h,
-  simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hl'],
+meta def reduce_fin' : bool → expr → expr → expr × expr → eval_fin_m (expr × expr)
+| lt n a (a', pa) := do
+  (nn, n', pn) ← eval_fin_m.eval_n n,
+  na ← expr.to_nat a',
+  if na < nn then
+    if lt then do
+      p ← eval_fin_m.lift_ic (λ ic, prove_lt_nat ic a' n'),
+      pure (a', `(@normalize_fin_lt.mk).mk_app [n, a, a', n', pn, pa, p])
+    else pure (a', pa)
+  else
+    let nb := na % nn, nk := (na - nb) / nn in
+    eval_fin_m.lift_ic $ λ ic, do
+      (ic, k) ← ic.of_nat nk,
+      (ic, b) ← ic.of_nat nb,
+      (ic, nk, pe1) ← prove_mul_nat ic n' k,
+      (ic, pe2) ← prove_add_nat ic nk b a',
+      if lt then do
+        (ic, p) ← prove_lt_nat ic b n',
+        pure (ic, b,
+          `(@normalize_fin_lt.reduce).mk_app [n, a, n', a', b, k, nk, pn, pa, pe1, pe2, p])
+      else pure (ic, b,
+          `(@normalize_fin.reduce).mk_app [n, a, n', a', b, k, nk, pn, pa, pe1, pe2])
+
+meta def eval_fin_lt' (eval_fin : expr → eval_fin_m (expr × expr)) :
+  expr → expr → eval_fin_m (expr × expr)
+| n a := do
+  e ← match_fin a,
+  match e with
+  | match_fin_result.succ n a := do
+    (_, a', pa) ← (eval_fin_lt' n a).reset,
+    (b, pb) ← eval_fin_m.lift_ic (λ ic, prove_succ' ic a'),
+    pure (b, `(@normalize_fin_lt.succ).mk_app [n, a, a', b, pa, pb])
+  | match_fin_result.cast_lt _ m a h := do
+    (_, a', pa) ← (eval_fin_lt' m a).reset,
+    pure (a', `(@normalize_fin_lt.cast_lt).mk_app [n, m, a, h, a', pa])
+  | match_fin_result.cast_le _ m nm a := do
+    (_, a', pa) ← (eval_fin_lt' m a).reset,
+    pure (a', `(@normalize_fin_lt.cast_le).mk_app [n, m, nm, a, a', pa])
+  | match_fin_result.cast m _ nm a := do
+    (_, a', pa) ← (eval_fin_lt' m a).reset,
+    pure (a', `(@normalize_fin_lt.cast).mk_app [n, m, nm, a, a', pa])
+  | match_fin_result.cast_add n m a := do
+    (_, a', pa) ← (eval_fin_lt' m a).reset,
+    pure (a', `(@normalize_fin_lt.cast_add).mk_app [n, m, a, a', pa])
+  | match_fin_result.cast_succ n a := do
+    (_, a', pa) ← (eval_fin_lt' n a).reset,
+    pure (a', `(@normalize_fin_lt.cast_succ).mk_app [n, a, a', pa])
+  | match_fin_result.add_nat n m a := do
+    (_, a', pa) ← (eval_fin_lt' n a).reset,
+    (m', pm) ← or_refl_conv norm_num.derive m,
+    (b, pb) ← eval_fin_m.lift_ic (λ ic, prove_add_nat' ic a' m'),
+    pure (b, `(@normalize_fin_lt.add_nat).mk_app [n, m, m', pm, a, a', b, pa, pb])
+  | match_fin_result.nat_add n m a := do
+    (_, a', pa) ← (eval_fin_lt' m a).reset,
+    (n', pn) ← or_refl_conv norm_num.derive n,
+    (b, pb) ← eval_fin_m.lift_ic (λ ic, prove_add_nat' ic n' a'),
+    pure (b, `(@normalize_fin_lt.nat_add).mk_app [n, m, n', pn, a, a', b, pa, pb])
+  | _ := do
+    (_, n', pn) ← eval_fin_m.eval_n n,
+    (a', pa) ← eval_fin a >>= reduce_fin' tt n a,
+    p ← eval_fin_m.lift_ic (λ ic, prove_lt_nat ic a' n'),
+    pure (a', `(@normalize_fin_lt.mk).mk_app [n, a, a', n', pn, pa, p])
+  end
+
+meta def get_fin_type (a : expr) : tactic expr :=
+do `(fin %%n) ← infer_type a, pure n
+
+meta def eval_fin : expr → eval_fin_m (expr × expr)
+| a := do
+  m ← match_fin a,
+  match m with
+  | match_fin_result.zero n := pure (`(0 : ℕ), `(normalize_fin.zero).mk_app [n])
+  | match_fin_result.one n := pure (`(1 : ℕ), `(normalize_fin.one).mk_app [n])
+  | match_fin_result.add n a b := do
+    (a', pa) ← eval_fin a,
+    (b', pb) ← eval_fin b,
+    (c, pc) ← eval_fin_m.lift_ic (λ ic, prove_add_nat' ic a' b'),
+    pure (c, `(@normalize_fin.add).mk_app [n, a, b, a', b', c, pa, pb, pc])
+  | match_fin_result.mul n a b := do
+    (a', pa) ← eval_fin a,
+    (b', pb) ← eval_fin b,
+    (c, pc) ← eval_fin_m.lift_ic (λ ic, prove_mul_nat ic a' b'),
+    pure (c, `(@normalize_fin.mul).mk_app [n, a, b, a', b', c, pa, pb, pc])
+  | match_fin_result.bit0 n a := do
+    (a', pa) ← eval_fin a,
+    pure (`(@bit0 ℕ _).mk_app [a'], `(@normalize_fin.bit0).mk_app [n, a, a', pa])
+  | match_fin_result.bit1 n a := do
+    (a', pa) ← eval_fin a,
+    pure (`(@bit1 ℕ _ _).mk_app [a'], `(@normalize_fin.bit1).mk_app [n, a, a', pa])
+  | match_fin_result.cast m n nm a := do
+    (_, a', pa) ← (eval_fin a).reset,
+    pure (a', `(@normalize_fin.cast).mk_app [n, m, nm, a, a', pa])
+  | _ := do
+    n ← get_fin_type a,
+    (a', pa) ← eval_fin_lt' eval_fin n a,
+    pure (a', `(@normalize_fin_lt.of).mk_app [n, a, a', pa])
+  end
+
+meta def eval_fin_lt : expr → expr → eval_fin_m (expr × expr) := eval_fin_lt' eval_fin
+
+meta def reduce_fin (lt : bool) (n a : expr) : eval_fin_m (expr × expr) :=
+eval_fin a >>= reduce_fin' lt n a
+
+meta def prove_lt_fin' : expr → expr → expr → expr × expr → expr × expr → eval_fin_m expr
+| n a b a' b' := do
+  (a', pa) ← reduce_fin' ff n a a',
+  (b', pb) ← reduce_fin' tt n b b',
+  p ← eval_fin_m.lift_ic (λ ic, prove_lt_nat ic a' b'),
+  pure (`(@normalize_fin.lt).mk_app [n, a, b, a', b', pa, pb, p])
+
+meta def prove_le_fin' : expr → expr → expr → expr × expr → expr × expr → eval_fin_m expr
+| n a b a' b' := do
+  (a', pa) ← reduce_fin' ff n a a',
+  (b', pb) ← reduce_fin' tt n b b',
+  p ← eval_fin_m.lift_ic (λ ic, prove_le_nat ic a' b'),
+  pure (`(@normalize_fin.le).mk_app [n, a, b, a', b', pa, pb, p])
+
+meta def prove_eq_fin' : expr → expr → expr → expr × expr → expr × expr → eval_fin_m expr
+| n a b (a', pa) (b', pb) :=
+  if a' =ₐ b' then do
+    pure (`(@normalize_fin.eq).mk_app [n, a, b, a', pa, pb])
+  else do
+    (a', pa) ← reduce_fin' ff n a (a', pa),
+    (b', pb) ← reduce_fin' ff n b (b', pb),
+    guard (a' =ₐ b'),
+    pure (`(@normalize_fin.eq).mk_app [n, a, b, a', pa, pb])
+
+meta def eval_prove_fin
+  (f : expr → expr → expr → expr × expr → expr × expr → eval_fin_m expr)
+  (a b : expr) : tactic expr :=
+do n ← get_fin_type a, eval_fin_m.run $ eval_fin a >>= λ a', eval_fin b >>= f n a b a'
+
+meta def prove_eq_fin : expr → expr → tactic expr := eval_prove_fin prove_eq_fin'
+meta def prove_lt_fin : expr → expr → tactic expr := eval_prove_fin prove_lt_fin'
+meta def prove_le_fin : expr → expr → tactic expr := eval_prove_fin prove_le_fin'
+
+section
+open norm_num.match_numeral_result
+
+/-- Given expressions `n` and `m` such that `n` is definitionally equal to `m.succ`, and
+a natural numeral `a`, proves `(b, ⊢ normalize_fin n b a)`, where `n` and `m` are both used
+in the construction of the numeral `b : fin n`. -/
+meta def mk_fin_numeral (n m : expr) : expr → option (expr × expr)
+| a := match match_numeral a with
+  | zero := some (
+    expr.app `(@has_zero.zero (fin %%n)) `(@fin.has_zero %%m),
+    expr.app `(normalize_fin.zero) m)
+  | one := some (
+    expr.app `(@has_one.one (fin %%n)) `(@fin.has_one %%m),
+    expr.app `(normalize_fin.one) m)
+  | bit0 a := do
+    (a', p) ← mk_fin_numeral a,
+    some (`(bit0 %%a' : fin %%n), `(@normalize_fin.bit0).mk_app [n, a', a, p])
+  | bit1 a := do
+    (a', p) ← mk_fin_numeral a,
+    some (
+      `(@_root_.bit1 (fin %%n)).mk_app [`(@fin.has_one %%m), `(@fin.has_add %%n), a'],
+      `(@normalize_fin.bit1).mk_app [m, a', a, p])
+  | _ := none
+  end
 end
 
-lemma fin.bit0_of_mod (n k l m : ℕ) (hk : k < n) (hl : l < n)
-  (h : l + l = m) (h' : m % n = k) :
-  (bit0 ⟨l, hl⟩ : fin n) = (⟨k, hk⟩ : fin n) :=
-begin
-  cases n,
-  { exact absurd hl (not_lt_of_le l.zero_le) },
-  simp [fin.eq_iff_veq, bit0, fin.add_def, ←h', ←h]
+meta def eval_rel {α} (a b : expr)
+  (f : expr → expr × expr → expr × expr → ℕ → ℕ → eval_fin_m α) :
+  tactic α :=
+do n ← get_fin_type a,
+  eval_fin_m.run $ do
+    (nn, n', pn) ← eval_fin_m.eval_n n,
+    (a', pa) ← eval_fin a,
+    (b', pb) ← eval_fin b,
+    na ← eval_fin_m.lift a'.to_nat,
+    nb ← eval_fin_m.lift b'.to_nat,
+    f n (a', pa) (b', pb) (na % nn) (nb % nn)
+
+@[norm_num] meta def eval_ineq : expr → tactic (expr × expr)
+| `(%%a < %%b) := eval_rel a b $ λ n a' b' na nb,
+  if na < nb then do
+    p ← prove_lt_fin' n a b a' b',
+    true_intro p
+  else do
+    p ← prove_le_fin' n b a b' a',
+    eval_fin_m.lift_ic $ λ ic, do
+      (ic, p) ← ic.mk_app ``not_lt_of_ge [a, b, p],
+      p ← false_intro p,
+      pure (ic, p)
+| `(%%a ≤ %%b) := eval_rel a b $ λ n a' b' na nb,
+  if na ≤ nb then do
+    p ← prove_le_fin' n a b a' b',
+    true_intro p
+  else do
+    p ← prove_lt_fin' n b a b' a',
+    eval_fin_m.lift_ic $ λ ic, do
+      (ic, p) ← ic.mk_app ``not_le_of_gt [a, b, p],
+      p ← false_intro p,
+      pure (ic, p)
+| `(%%a = %%b) := eval_rel a b $ λ n a' b' na nb,
+  if na = nb then do
+    p ← prove_eq_fin' n a b a' b',
+    true_intro p
+  else do
+    p ← (if na < nb then do
+      p ← prove_lt_fin' n a b a' b',
+      eval_fin_m.lift_ic $ λ ic, ic.mk_app ``ne_of_lt [a, b, p]
+    else do
+      p ← prove_lt_fin' n b a b' a',
+      eval_fin_m.lift_ic $ λ ic, ic.mk_app ``ne_of_gt [a, b, p]),
+    false_intro p
+| `(%%a > %%b) := mk_app ``has_lt.lt [b, a] >>= eval_ineq
+| `(%%a ≥ %%b) := mk_app ``has_le.le [b, a] >>= eval_ineq
+| `(%%a ≠ %%b) := eval_rel a b $ λ n a' b' na nb,
+  if na = nb then do
+    p ← prove_eq_fin' n a b a' b',
+    ↑(mk_app ``not_not_intro [p] >>= false_intro)
+  else do
+    p ← (if na < nb then do
+      p ← prove_lt_fin' n a b a' b',
+      eval_fin_m.lift_ic $ λ ic, ic.mk_app ``ne_of_lt [a, b, p]
+    else do
+      p ← prove_lt_fin' n b a b' a',
+      eval_fin_m.lift_ic $ λ ic, ic.mk_app ``ne_of_gt [a, b, p]),
+    true_intro p
+| _ := failed
+
+meta def as_numeral (n e : expr) : eval_fin_m (option ℕ) :=
+match e.to_nat with
+| none := pure none
+| some ne := do
+  o ← eval_fin_m.try_eval_n n,
+  pure $ match o with
+  | none := some ne
+  | some (nn, _) := if ne < nn then some ne else none
+  end
 end
-
-lemma fin.bit1_of_mod (n k l m : ℕ) (hk : k < n + 1) (hl : l < n + 1)
-  (h : l + l + 1 = m) (h' : m % (n + 1) = k) :
-  (bit1 ⟨l, hl⟩ : fin (n + 1)) = (⟨k, hk⟩ : fin (n + 1)) :=
-begin
-  cases n,
-  { simp },
-  simp [fin.eq_iff_veq, bit1, bit0, fin.add_def, ←h', ←h]
-end
-
-lemma fin.lt_num (n a b : ℕ) (ha : a < n) (hb : b < n) (h : a < b) :
-  (⟨a, ha⟩ : fin n) < ⟨b, hb⟩ :=
-fin.lt_iff_coe_lt_coe.mpr h
-
-end norm_num
-
-open norm_num
-
-namespace norm_fin
 
 /--
 A `norm_num` plugin for normalizing `(k : fin n)` where `k` is numeral.
@@ -190,74 +445,26 @@ It also handles `fin.succ k` and `fin.cast_succ k`.
 example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
 ```
 -/
-@[norm_num] meta def eval : expr → tactic (expr × expr)
-| `(@fin.succ %%en %%e) := do
-  ic ← mk_instance_cache `(ℕ),
-  en ← prod.fst <$> eval_field en <|> pure en,
-  n ← eval_expr ℕ en,
-  en ← pure `(n),
-  fk ← e.to_fin n,
-  (_, ek) ← ic.of_nat fk,
-  (_, ltkn) ← prove_lt_nat ic ek en,
-  (_, _, en', pn) ← prove_nat_succ ic `(nat.succ %%en),
-  (_, _, ek', pk) ← prove_nat_succ ic `(nat.succ %%ek),
-  (_, ltkn') ← prove_lt_nat ic ek' en',
-  ty ← to_expr ``(fin %%en'),
-  fk' ← ty.of_fin (fk + 1),
-  pure (fk', `(fin.succ_num_eq %%en' %%en %%ek' %%ek %%ltkn %%ltkn' %%pn %%pk))
-| (app `(@coe_fn (fin %%en ↪o fin %%en') %%inst %%fexpr) e) := do
-  guard (fexpr.get_app_fn.const_name = ``fin.cast_succ),
-  en ← prod.fst <$> eval_field en <|> pure en,
-  ic ← mk_instance_cache `(ℕ),
-  n ← eval_expr ℕ en,
-  en ← pure `(n),
-  fk ← e.to_fin n,
-  (_, ek) ← ic.of_nat fk,
-  (_, ltkn) ← prove_lt_nat ic ek en,
-  (_, _, en', pn) ← prove_nat_succ ic `(nat.succ %%en),
-  (_, ltkn') ← prove_lt_nat ic ek en',
-  ty ← to_expr ``(fin %%en'),
-  fk' ← ty.of_fin fk,
-  pure (fk', `(fin.cast_succ_num_eq %%en' %%en %%ek %%ltkn %%ltkn' %%pn))
-| `(bit0 %%e) := do
-  ty ← infer_type e,
-  `(fin %%en) ← pure ty,
-  en ← prod.fst <$> eval_field en <|> pure en,
-  nty ← eval_expr ℕ en,
-  en ← pure `(nty),
-  vale ← expr.eval_fin nty e,
-  ic ← mk_instance_cache `(ℕ),
-  (_, enat) ← ic.of_nat vale,
-  (_, benat, pbit0) ← prove_add_nat' ic enat enat,
-  beval ← benat.to_nat,
-  guard (nty ≤ beval),
-  (_, mode, pmod) ← prove_div_mod ic benat en tt,
-  (_, ltkn) ← prove_lt_nat ic mode en,
-  (_, ltkl) ← prove_lt_nat ic enat en,
-  modf ← mode.to_fin nty,
-  fk' ← ty.of_fin modf,
-  pure (fk', `(fin.bit0_of_mod %%en %%mode %%enat %%benat %%ltkn %%ltkl %%pbit0 %%pmod))
-| `(bit1 %%e) := do
-  ty ← infer_type e,
-  `(fin %%en) ← pure ty,
-  en ← prod.fst <$> eval_field en <|> pure en,
-  nty ← eval_expr ℕ en,
-  en ← pure `(nty),
-  vale ← expr.eval_fin nty e,
-  ic ← mk_instance_cache `(ℕ),
-  (_, enat) ← ic.of_nat vale,
-  (_, benat) ← ic.mk_bit1 enat,
-  beval ← benat.to_nat,
-  guard (nty ≤ beval),
-  (en', pn) ← prove_sub_nat ic en `(1),
-  (_, _, en'', pn) ← prove_nat_succ ic `(nat.succ %%en'),
-  (_, pbit1) ← prove_adc_nat ic enat enat benat,
-  (_, mode, pmod) ← prove_div_mod ic benat en tt,
-  (_, ltkn) ← prove_lt_nat ic mode en,
-  (_, ltkl) ← prove_lt_nat ic enat en,
-  modf ← mode.to_fin nty,
-  fk' ← ty.of_fin modf,
-  pure (fk', `(fin.bit1_of_mod %%en' %%mode %%enat %%benat %%ltkn %%ltkl %%pbit1 %%pmod))
-| _ := failed
+meta def eval_fin_num (a : expr) : tactic (expr × expr) :=
+do n ← get_fin_type a,
+  eval_fin_m.run $ do
+    as_numeral n a >>= (λ o, guardb o.is_none),
+    (a', pa) ← eval_fin a,
+    (a', pa) ← reduce_fin' ff n a (a', pa) <|> pure (a', pa),
+    (nm + 1, _) ← eval_fin_m.eval_n n | failure,
+    m' ← eval_fin_m.lift_ic (λ ic, ic.of_nat nm),
+    n' ← eval_fin_m.lift_ic (λ ic, ic.of_nat (nm+1)),
+    (b, pb) ← mk_fin_numeral n' m' a',
+    pure (b, `(@normalize_fin.eq).mk_app [n, a, b, a', pa, pb])
 
 end norm_fin
+
+
+namespace interactive
+open interactive interactive.types
+
+meta def norm_fin (hs : parse simp_arg_list) : tactic unit :=
+try (simp_top_down tactic.norm_fin.eval_fin_num) >> try (norm_num hs (loc.ns [none]))
+
+end interactive
+end tactic

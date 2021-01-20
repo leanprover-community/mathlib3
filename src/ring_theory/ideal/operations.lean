@@ -365,8 +365,8 @@ lemma mul_eq_bot {R : Type*} [integral_domain R] {I J : ideal R} :
     or.resolve_left (mul_eq_zero.mp ((I * J).eq_bot_iff.mp hij _ (mul_mem_mul hi hj))) ne0)),
  λ h, by cases h; rw [← ideal.mul_bot, h, ideal.mul_comm]⟩
 
-lemma prod_eq_bot {R : Type*} [comm_semiring R] [no_zero_divisors R] {s : multiset R} :
-  s.prod = 0 ↔ ∃ (r : R) (hr : r ∈ s), r = 0 :=
+lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
+  {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
 begin
   refine multiset.induction _ (λ J s ih, _) s,
     have : ¬ (⊤ : ideal R) = (⊥ : ideal R) := (@submodule.bot_ne_top _ _ _ _ _ _).symm,

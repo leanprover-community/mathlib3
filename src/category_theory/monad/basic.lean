@@ -10,7 +10,7 @@ open category
 
 universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [category.{v₁} C]
+variables (C : Type u₁) [category.{v₁} C]
 
 /--
 The data of a monad on C consists of an endofunctor T together with natural transformations
@@ -19,7 +19,8 @@ The data of a monad on C consists of an endofunctor T together with natural tran
 - η_(TX) ≫ μ_X = 1_X (left unit)
 - Tη_X ≫ μ_X = 1_X (right unit)
 -/
-class monad (T : C ⥤ C) :=
+structure monad :=
+(T : C ⥤ C)
 (η [] : 𝟭 _ ⟶ T)
 (μ [] : T ⋙ T ⟶ T)
 (assoc' : ∀ X : C, T.map (nat_trans.app μ X) ≫ μ.app _ = μ.app (T.obj X) ≫ μ.app _ . obviously)
@@ -41,7 +42,8 @@ The data of a comonad on C consists of an endofunctor G together with natural tr
 - δ_X ≫ ε_(GX) = 1_X (left counit)
 - δ_X ≫ G ε_X = 1_X (right counit)
 -/
-class comonad (G : C ⥤ C) :=
+class comonad :=
+(G : C ⥤ C)
 (ε [] : G ⟶ 𝟭 _)
 (δ [] : G ⟶ (G ⋙ G))
 (coassoc' : ∀ X : C, nat_trans.app δ _ ≫ G.map (δ.app X) = δ.app _ ≫ δ.app _ . obviously)
@@ -56,84 +58,111 @@ attribute [simp, reassoc] comonad.left_counit comonad.right_counit
 notation `ε_` := comonad.ε
 notation `δ_` := comonad.δ
 
-/-- A morphisms of monads is a natural transformation compatible with η and μ. -/
-structure monad_hom (M N : C ⥤ C) [monad M] [monad N] extends nat_trans M N :=
-(app_η' : ∀ {X}, (η_ M).app X ≫ app X = (η_ N).app X . obviously)
-(app_μ' : ∀ {X}, (μ_ M).app X ≫ app X = (M.map (app X) ≫ app (N.obj X)) ≫ (μ_ N).app X . obviously)
+instance coe_monad : has_coe (monad C) (C ⥤ C) := ⟨λ T, T.T⟩
+instance coe_comonad : has_coe (comonad C) (C ⥤ C) := ⟨λ G, G.G⟩
 
-restate_axiom monad_hom.app_η'
-restate_axiom monad_hom.app_μ'
-attribute [simp, reassoc] monad_hom.app_η monad_hom.app_μ
+variables {C}
+abbreviation monad.obj (M : monad C) := M.T.obj
+abbreviation monad.map (M : monad C) := M.T.map
 
-/-- A morphisms of comonads is a natural transformation compatible with η and μ. -/
-structure comonad_hom (M N : C ⥤ C) [comonad M] [comonad N] extends nat_trans M N :=
-(app_ε' : ∀ {X}, app X ≫ (ε_ N).app X = (ε_ M).app X . obviously)
-(app_δ' : ∀ {X}, app X ≫ (δ_ N).app X = (δ_ M).app X ≫ app (M.obj X) ≫ N.map (app X) . obviously)
+abbreviation comonad.obj (M : comonad C) := M.G.obj
+abbreviation comonad.map (M : comonad C) := M.G.map
 
-restate_axiom comonad_hom.app_ε'
-restate_axiom comonad_hom.app_δ'
-attribute [simp, reassoc] comonad_hom.app_ε comonad_hom.app_δ
+-- /-- A morphisms of monads is a natural transformation compatible with η and μ. -/
+-- structure monad_hom (M N : C ⥤ C) [monad M] [monad N] extends nat_trans M N :=
+-- (app_η' : ∀ {X}, (η_ M).app X ≫ app X = (η_ N).app X . obviously)
+-- (app_μ' : ∀ {X}, (μ_ M).app X ≫ app X = (M.map (app X) ≫ app (N.obj X)) ≫ (μ_ N).app X . obviously)
 
-namespace monad_hom
-variables {M N L K : C ⥤ C} [monad M] [monad N] [monad L] [monad K]
+-- restate_axiom monad_hom.app_η'
+-- restate_axiom monad_hom.app_μ'
+-- attribute [simp, reassoc] monad_hom.app_η monad_hom.app_μ
 
-@[ext]
-theorem ext (f g : monad_hom M N) :
-  f.to_nat_trans = g.to_nat_trans → f = g := by {cases f, cases g, simp}
+-- /-- A morphisms of comonads is a natural transformation compatible with η and μ. -/
+-- structure comonad_hom (M N : C ⥤ C) [comonad M] [comonad N] extends nat_trans M N :=
+-- (app_ε' : ∀ {X}, app X ≫ (ε_ N).app X = (ε_ M).app X . obviously)
+-- (app_δ' : ∀ {X}, app X ≫ (δ_ N).app X = (δ_ M).app X ≫ app (M.obj X) ≫ N.map (app X) . obviously)
 
-variable (M)
-/-- The identity natural transformations is a morphism of monads. -/
-def id : monad_hom M M := { ..𝟙 M }
-variable {M}
+-- restate_axiom comonad_hom.app_ε'
+-- restate_axiom comonad_hom.app_δ'
+-- attribute [simp, reassoc] comonad_hom.app_ε comonad_hom.app_δ
 
-instance : inhabited (monad_hom M M) := ⟨id _⟩
+-- namespace monad_hom
+-- variables {M N L K : C ⥤ C} [monad M] [monad N] [monad L] [monad K]
 
-/-- The composition of two morphisms of monads. -/
-def comp (f : monad_hom M N) (g : monad_hom N L) : monad_hom M L :=
-{ app := λ X, f.app X ≫ g.app X }
+-- @[ext]
+-- theorem ext (f g : monad_hom M N) :
+--   f.to_nat_trans = g.to_nat_trans → f = g := by {cases f, cases g, simp}
 
-@[simp] lemma id_comp (f : monad_hom M N) : (monad_hom.id M).comp f = f :=
-by {ext, apply id_comp}
-@[simp] lemma comp_id (f : monad_hom M N) : f.comp (monad_hom.id N) = f :=
-by {ext, apply comp_id}
-/-- Note: `category_theory.monad.bundled` provides a category instance for bundled monads.-/
-@[simp] lemma assoc (f : monad_hom M N) (g : monad_hom N L) (h : monad_hom L K) :
-  (f.comp g).comp h = f.comp (g.comp h) := by {ext, apply assoc}
+-- variable (M)
+-- /-- The identity natural transformations is a morphism of monads. -/
+-- def id : monad_hom M M := { ..𝟙 M }
+-- variable {M}
 
-end monad_hom
+-- instance : inhabited (monad_hom M M) := ⟨id _⟩
 
-namespace comonad_hom
-variables {M N L K : C ⥤ C} [comonad M] [comonad N] [comonad L] [comonad K]
+-- /-- The composition of two morphisms of monads. -/
+-- def comp (f : monad_hom M N) (g : monad_hom N L) : monad_hom M L :=
+-- { app := λ X, f.app X ≫ g.app X }
 
-@[ext]
-theorem ext (f g : comonad_hom M N) :
-  f.to_nat_trans = g.to_nat_trans → f = g := by {cases f, cases g, simp}
+-- @[simp] lemma id_comp (f : monad_hom M N) : (monad_hom.id M).comp f = f :=
+-- by {ext, apply id_comp}
+-- @[simp] lemma comp_id (f : monad_hom M N) : f.comp (monad_hom.id N) = f :=
+-- by {ext, apply comp_id}
+-- /-- Note: `category_theory.monad.bundled` provides a category instance for bundled monads.-/
+-- @[simp] lemma assoc (f : monad_hom M N) (g : monad_hom N L) (h : monad_hom L K) :
+--   (f.comp g).comp h = f.comp (g.comp h) := by {ext, apply assoc}
 
-variable (M)
-/-- The identity natural transformations is a morphism of comonads. -/
-def id : comonad_hom M M := { ..𝟙 M }
-variable {M}
+-- end monad_hom
 
-instance : inhabited (comonad_hom M M) := ⟨id _⟩
+-- namespace comonad_hom
+-- variables {M N L K : C ⥤ C} [comonad M] [comonad N] [comonad L] [comonad K]
 
-/-- The composition of two morphisms of comonads. -/
-def comp (f : comonad_hom M N) (g : comonad_hom N L) : comonad_hom M L :=
-{ app := λ X, f.app X ≫ g.app X }
+-- @[ext]
+-- theorem ext (f g : comonad_hom M N) :
+--   f.to_nat_trans = g.to_nat_trans → f = g := by {cases f, cases g, simp}
 
-@[simp] lemma id_comp (f : comonad_hom M N) : (comonad_hom.id M).comp f = f :=
-by {ext, apply id_comp}
-@[simp] lemma comp_id (f : comonad_hom M N) : f.comp (comonad_hom.id N) = f :=
-by {ext, apply comp_id}
-/-- Note: `category_theory.monad.bundled` provides a category instance for bundled comonads.-/
-@[simp] lemma assoc (f : comonad_hom M N) (g : comonad_hom N L) (h : comonad_hom L K) :
-  (f.comp g).comp h = f.comp (g.comp h) := by {ext, apply assoc}
+-- variable (M)
+-- /-- The identity natural transformations is a morphism of comonads. -/
+-- def id : comonad_hom M M := { ..𝟙 M }
+-- variable {M}
 
-end comonad_hom
+-- instance : inhabited (comonad_hom M M) := ⟨id _⟩
+
+-- /-- The composition of two morphisms of comonads. -/
+-- def comp (f : comonad_hom M N) (g : comonad_hom N L) : comonad_hom M L :=
+-- { app := λ X, f.app X ≫ g.app X }
+
+-- @[simp] lemma id_comp (f : comonad_hom M N) : (comonad_hom.id M).comp f = f :=
+-- by {ext, apply id_comp}
+-- @[simp] lemma comp_id (f : comonad_hom M N) : f.comp (comonad_hom.id N) = f :=
+-- by {ext, apply comp_id}
+-- /-- Note: `category_theory.monad.bundled` provides a category instance for bundled comonads.-/
+-- @[simp] lemma assoc (f : comonad_hom M N) (g : comonad_hom N L) (h : comonad_hom L K) :
+--   (f.comp g).comp h = f.comp (g.comp h) := by {ext, apply assoc}
+
+-- end comonad_hom
 
 namespace monad
-instance : monad (𝟭 C) :=
-{ η := 𝟙 _,
+
+@[simps]
+def id : monad C :=
+{ T := 𝟭 _,
+  η := 𝟙 _,
   μ := 𝟙 _ }
+
+instance : has_coe (monad C) (C ⥤ C) := ⟨monad.T⟩
+
+variables {C}
+abbreviation obj (M : monad C) := M.T.obj
+
+example (X : C) : (monad.id C).obj X = X :=
+begin
+
+end
+
+-- instance : monad (𝟭 C) :=
+-- { η := 𝟙 _,
+--   μ := 𝟙 _ }
 end monad
 
 namespace comonad

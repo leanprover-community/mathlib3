@@ -267,7 +267,7 @@ end
 
 /-- The volume between two functions can be respresented as a left integral -/
 theorem volume_between_eq_lintegral (hu : measurable u) (hv : measurable v) (hs : is_measurable s) :
-  (volume.prod volume (volume_between u v s)) = ∫⁻ y in s, ennreal.of_real ((v - u) y) :=
+  volume.prod volume (volume_between u v s) = ∫⁻ y in s, ennreal.of_real ((v - u) y) :=
 begin
   rw measure.prod_apply (is_measurable_volume_between hu hv hs),
   { have h : (λ x, volume {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)}) = s.indicator (λ x, ennreal.of_real (v x - u x)),
@@ -357,18 +357,18 @@ end
 
 /-- The volume between two functions can be respresented as an integral -/
 theorem volume_between_eq_integral (u_int : integrable_on u s) (v_int : integrable_on v s)
-  (u_meas : measurable u) (v_meas : measurable v)
-  (huv : ∀ x, u x ≤ v x) (hs : is_measurable s) :
-  (volume.prod volume (volume_between u v s)) = ennreal.of_real (∫ y in s, ((v - u) y)) :=
+  (u_meas : measurable u) (v_meas : measurable v) (hs : is_measurable s)
+  (huv : ∀ x, u x ≤ v x) :
+  volume.prod volume (volume_between u v s) = ennreal.of_real (∫ y in s, (v - u) y) :=
 begin
   rw measure.prod_apply (is_measurable_volume_between u_meas v_meas hs),
   { dsimp only [volume_between, preimage_set_of_eq],
-    have x_in : ∀ x : α, x ∈ s → {a : ℝ | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = Ioo (u x) (v x) :=
+    have x_in : ∀ x : α, x ∈ s → {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = Ioo (u x) (v x) :=
       λ x hx, by simp only [set_of_and, hx, Ioo, mem_set_of_eq, set_of_true, univ_inter, mem_inter_eq],
-    have x_out : ∀ x : α, x ∉ s → {a : ℝ | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = ∅ :=
+    have x_out : ∀ x : α, x ∉ s → {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = ∅ :=
       λ x hx, by simp only [mem_Ico, hx, set_of_false, false_and],
-    have h : (λ x, volume {a : ℝ | x ∈ s ∧ a ∈ Ioo (u x) (v x)})
-           = s.indicator (λ y, ennreal.of_real (v y - u y)),
+    have h : (λ x, volume {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)})
+           = s.indicator (λ x, ennreal.of_real (v x - u x)),
     { funext x,
       rw indicator_apply,
       split_ifs,
@@ -377,10 +377,10 @@ begin
     rw [h, lintegral_indicator],
     convert ← lintegral_coe_eq_integral (λ (y : α), nnreal.of_real (v y - u y)) _,
     { funext a,
-      simp [nnreal.coe_of_real (v a - u a) (by linarith [huv a])], },
-    { have := v_int.sub u_int,
-      sorry,
-     },
-    {exact hs},
-  },
+      simp only [pi.sub_apply, nnreal.coe_of_real (v a - u a) (by linarith [huv a])] },
+    { convert v_int.sub u_int,
+      funext a,
+      simp only [pi.sub_apply, nnreal.coe_of_real (v a - u a) (by linarith [huv a])] },
+    {exact hs } },
+  { apply_instance },
 end

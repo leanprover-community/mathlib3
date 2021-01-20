@@ -9,7 +9,7 @@ import data.equiv.mul_add_aut
 /-!
 # Conjugacy of group elements
 
-See also `mul_aut.conj`.
+See also `mul_aut.conj` and `quandle.conj`.
 -/
 
 universes u v

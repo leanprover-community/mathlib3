@@ -43,8 +43,6 @@ begin
       have hx' : 1 ≤ x ^ i := one_le_pow_of_one_le (le_of_lt hx) i,
       have hy' : 1 ≤ y ^ (n - 1 - i) := one_le_pow_of_one_le (le_of_lt hy) (n - 1 - i),
       nlinarith },
-    have : ((n:ℝ) = (∑ (i : ℕ) in finset.range n, (1:ℝ))),
-    { simp only [mul_one, finset.sum_const, nsmul_eq_mul, finset.card_range] },
 
     calc (x - y) * (n:ℝ)
             =  (n:ℝ) * (x - y) : mul_comm _ _
@@ -170,10 +168,9 @@ begin
   have hpn' := hpn (nat.succ_pos pn),
   rw [pow_succ' x (nat.succ pn), pow_succ' (f x) (nat.succ pn)],
   have hxp : 0 < x := lt_trans zero_lt_one hx,
-  have hfnp: 0 < f x := pos_on_pos_rats hxp H1 H4,
   calc f ((x ^ pn.succ) * x)
        ≤ f (x ^ pn.succ) * f x : H1 (x ^ pn.succ) x (pow_pos hxp pn.succ) hxp
-   ... ≤ (f x) ^ pn.succ * f x : (mul_le_mul_right hfnp).mpr hpn'
+   ... ≤ (f x) ^ pn.succ * f x : (mul_le_mul_right (pos_on_pos_rats hxp H1 H4)).mpr hpn'
 end
 
 lemma fixed_point_of_pos_nat_pow {f : ℚ → ℝ} (n : ℕ) (hn : 0 < n)
@@ -200,9 +197,9 @@ lemma fixed_point_of_gt_1 {f : ℚ → ℝ} {x : ℚ} (hx : 1 < x)
   f x = x :=
 begin
   -- choose n such that 1 + x < a^n.
-  have hbound: (∀m:ℕ, 1 + (m:ℚ) * (a - 1) ≤ a^m),
+  have hbound: (∀m : ℕ, 1 + (m:ℚ) * (a - 1) ≤ a^m),
   { intros m,
-    have ha: -1 ≤ a := by linarith,
+    have ha: -1 ≤ a := le_of_lt (lt_trans (lt_trans neg_one_lt_zero zero_lt_one) ha1),
     have := one_add_sub_mul_le_pow ha m,
     rwa [nsmul_eq_mul] at this },
 

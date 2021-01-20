@@ -29,14 +29,6 @@ https://www.imo-official.org/problems/IMO2013SL.pdf
 
 open_locale big_operators
 
-lemma factor_xn_minus_yn (x : ℝ) (y : ℝ) (n : ℕ) :
-    x^n - y^n = (x - y) * (∑ (i : ℕ) in finset.range n, (x ^(i) * y ^(n - 1 - i))) :=
-begin
-  have := geom_sum₂_mul_add (x-y) y n,
-  rw [sub_add_cancel x y, geom_series₂_def] at this,
-  nlinarith,
-end
-
 lemma le_of_all_pow_lt_succ (x y : ℝ) (hx : 1 < x) (hy : 1 < y)
       (h : ∀n : ℕ, 0 < n → x^n - 1 < y^n) :
       x ≤ y :=
@@ -55,11 +47,12 @@ begin
     { simp only [mul_one, finset.sum_const, nsmul_eq_mul, finset.card_range] },
 
     calc (x - y) * (n:ℝ)
-            = (x - y) *  (∑ (i : ℕ) in finset.range n, (1:ℝ))
+            =  (n:ℝ) * (x - y) : mul_comm _ _
+        ... = (∑ (i : ℕ) in finset.range n, (1:ℝ)) * (x - y)
               : by simp only [mul_one, finset.sum_const, nsmul_eq_mul, finset.card_range]
-        ... ≤ (x-y) * (∑ (i : ℕ) in finset.range n, x ^ i * y ^ (n - 1 - i))
-              : (mul_le_mul_left hxmy).mpr (finset.sum_le_sum hterm)
-        ... = x^n - y^n : (factor_xn_minus_yn x y n).symm,
+        ... ≤  (∑ (i : ℕ) in finset.range n, x ^ i * y ^ (n - 1 - i)) * (x-y)
+              : (mul_le_mul_right hxmy).mpr (finset.sum_le_sum hterm)
+        ... = x^n - y^n : geom_sum₂_mul x y n,
   },
 
   -- Choose n larger than 1 / (x - y).

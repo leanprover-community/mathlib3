@@ -119,6 +119,34 @@ begin
     { rw [finset.sup_insert, id.def], exact h h_subset.1 (h₁ htne h_subset.2), }, },
 end
 
+lemma sup_le_of_le_directed {α : Type*} [complete_lattice α] (s : set α)
+  (hdir : directed_on (≤) s) (t : finset α) :
+  t.nonempty → (∀ x ∈ t, ∃ y ∈ s, x ≤ y) → ∃ x, x ∈ s ∧ t.sup id ≤ x :=
+begin
+  classical,
+  apply finset.induction_on t,
+  { simp only [forall_prop_of_false, not_nonempty_empty, not_false_iff], },
+  { intros a s has ih,
+    by_cases hs : s.nonempty,
+    { intros _ as_below,
+      have incs : ↑s ⊆ ↑(insert a s), by { rw finset.coe_subset, apply finset.subset_insert, },
+      rcases (ih hs (set.subset.trans incs as_below)) with ⟨x, ⟨hxs, hsx_sup⟩⟩,
+      rcases (as_below a (finset.mem_insert_self a s)) with ⟨y, hys, hsy⟩,
+      rcases (hdir x hxs y hys) with ⟨z, hzs, ⟨hxz, hyz⟩⟩,
+      use z,
+      simp only [id.def, _root_.sup_le_iff, sup_le_iff, sup_insert],
+      refine ⟨hzs, ⟨le_trans hsy hyz, _⟩⟩,
+      intros b hb,
+      transitivity (s.sup id),
+      { exact le_sup hb },
+      { exact le_trans hsx_sup hxz }, },
+    { rw finset.nonempty_iff_ne_empty at hs,
+      push_neg at hs,
+      simp only [hs, and_imp, insert_emptyc_eq, forall_prop_of_true, exists_prop, id.def, forall_eq, singleton_nonempty, sup_singleton,
+        exists_imp_distrib, mem_singleton],
+      exact λ x hx hax, ⟨x, ⟨hx, hax⟩⟩, }, },
+end
+
 end sup
 
 lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 import data.string.basic
+import data.buffer.basic
 
 /-!
 # Parsers
@@ -51,6 +52,13 @@ is always at a `parse_result.pos` that is at least `n`.
 -/
 def mono : Prop :=
 ∀ (cb : char_buffer) (n : ℕ), n ≤ (p cb n).pos
+
+/--
+A `p : parser α` is defined to be `bounded` if `p cb n` always fails
+whenever `cb.size ≤ n`, for any `cb : char_buffer` and `n : ℕ`.
+-/
+def bounded : Prop :=
+∀ (cb : char_buffer) (n : ℕ), cb.size ≤ n → ∃ (n' : ℕ) (err : dlist string), p cb n = fail n' err
 
 lemma fail_iff :
   (∀ pos' result, p cb n ≠ done pos' result) ↔
@@ -721,5 +729,269 @@ begin
 end
 
 end done
+
+section bounded
+
+variables {α β : Type} {msgs : thunk (list string)} {msg : thunk string}
+variables {p q : parser α} {cb : char_buffer} {n n' : ℕ} {err : dlist string}
+variables {a : α} {b : β}
+
+namespace bounded
+
+lemma done_of_unbounded (h : ¬ p.bounded) : ∃ (cb : char_buffer) (n n' : ℕ) (a : α),
+  p cb n = done n' a ∧ cb.size ≤ n :=
+begin
+  simp [bounded, success_iff] at h,
+  obtain ⟨cb, n, hn, n', a, ha⟩ := h,
+  exact ⟨cb, n, n', a, ha, hn⟩
+end
+
+lemma pure : ¬ bounded (pure a) :=
+begin
+  suffices : ∃ (x : char_buffer), Exists (has_le.le (buffer.size x)),
+    { simpa [bounded] using this },
+  exact ⟨buffer.nil, 0, le_refl 0⟩
+end
+
+@[simp] lemma bind {f : α → parser β} (hp : p.bounded) :
+  (p >>= f).bounded :=
+begin
+  intros cb n hn,
+  cases hx : (p >>= f) cb n,
+  { obtain ⟨n', a, h, h'⟩ := bind_eq_done.mp hx,
+    simpa [h] using hp _ _ hn },
+  { simp }
+end
+
+lemma bind_unbounded_imp_fail {f : α → parser β} (hf : (p >>= f).bounded) (hp : ¬ p.bounded) :
+  (∃ (a : α) (cb : char_buffer) (n n' : ℕ) (err), f a cb n = fail n' err) :=
+begin
+  obtain ⟨cb, n, n', a, ha, hn⟩ := done_of_unbounded hp,
+  specialize hf cb n hn,
+  simp only [bind_eq_fail, ha, and.assoc, false_or, exists_and_distrib_left,
+             exists_eq_left'] at hf,
+  exact ⟨a, cb, n', hf⟩
+end
+
+lemma and_then {q : parser β} (hp : p.bounded) : (p >> q).bounded :=
+hp.bind
+
+@[simp] lemma map (hp : p.bounded) {f : α → β} : (f <$> p).bounded :=
+hp.bind
+
+@[simp] lemma seq {f : parser (α → β)} (hf : f.bounded) : (f <*> p).bounded :=
+hf.bind
+
+@[simp] lemma mmap {a : α} {l : list α} {f : α → parser β} (hf : (f a).bounded) :
+  ((a :: l).mmap f).bounded :=
+hf.bind
+
+@[simp] lemma mmap' {a : α} {l : list α} {f : α → parser β} (hf : (f a).bounded) :
+  ((a :: l).mmap' f).bounded :=
+hf.and_then
+
+@[simp] lemma failure : @parser.bounded α failure :=
+by simp [bounded, le_refl]
+
+@[simp] lemma guard_iff {p : Prop} [decidable p] : bounded (guard p) ↔ ¬ p :=
+by simp [guard, apply_ite bounded, pure, failure]
+
+@[simp] lemma orelse (hp : p.bounded) (hq : q.bounded) : (p <|> q).bounded :=
+begin
+  intros cb n hn,
+  cases hx : (p <|> q) cb n with posx resx posx errx,
+  { obtain h | ⟨h, -, -⟩ := orelse_eq_done.mp hx,
+    { simpa [h] using hp cb n },
+    { simpa [h] using hq cb n } },
+  { simp }
+end
+
+lemma orelse_unbounded_of_not_prog_err (hp : p.bounded) (hq : ¬ q.bounded)
+  (hne : ∀ {cb n n' err}, p cb n = fail n' err → n' = n) :
+  ¬ (p <|> q).bounded :=
+begin
+  obtain ⟨cb, n, n', a, h, hn⟩ := done_of_unbounded hq,
+  obtain ⟨np, errp, hnp⟩ := hp cb n hn,
+  specialize hne hnp,
+  subst hne,
+  simp [bounded, success_iff],
+  use [cb, np],
+  simp [hn, hnp, h]
+end
+
+lemma orelse_bounded_of_prog_err (hp : p.bounded)
+  (hne : ∀ {cb n n' err}, p cb n = fail n' err → n' ≠ n) :
+  (p <|> q).bounded :=
+begin
+  intros cb n hn,
+  obtain ⟨np, errp, hnp⟩ := hp cb n hn,
+  specialize hne hnp,
+  simp [←orelse_eq_orelse, parser.orelse, hnp, hne]
+end
+
+@[simp] lemma decorate_errors (hp : p.bounded) :
+  (@decorate_errors α msgs p).bounded :=
+begin
+  intros cb n,
+  cases h : p cb n,
+  { simpa [decorate_errors, h] using hp cb n },
+  { simp [decorate_errors, h] }
+end
+
+lemma decorate_errors_iff : (@parser.decorate_errors α msgs p).bounded ↔ p.bounded :=
+begin
+  refine ⟨λ H cb n hn, _, decorate_errors⟩,
+  cases h : p cb n,
+  { simpa [parser.decorate_errors, h] using H cb n hn },
+  { simp }
+end
+
+@[simp] lemma decorate_error (hp : p.bounded) : (@decorate_error α msg p).bounded :=
+decorate_errors hp
+
+lemma decorate_error_iff : (@parser.decorate_error α msg p).bounded ↔ p.bounded :=
+decorate_errors_iff
+
+@[simp] lemma any_char : bounded any_char :=
+λ cb n hn, by simp [any_char, hn]
+
+@[simp] lemma sat {p : char → Prop} [decidable_pred p] : bounded (sat p) :=
+λ cb n hn, by simp [sat, hn]
+
+@[simp] lemma eps : ¬ bounded eps := pure
+
+lemma ch {c : char} : bounded (ch c) := decorate_error (sat.and_then)
+
+lemma char_buf_iff {s : char_buffer} : bounded (char_buf s) ↔ s.to_list ≠ [] :=
+begin
+  rw [char_buf, decorate_error_iff],
+  cases s.to_list;
+  simp [pure, ch],
+end
+
+lemma one_of {cs : list char} : (one_of cs).bounded :=
+decorate_errors sat
+
+lemma one_of' {cs : list char} : (one_of' cs).bounded :=
+one_of.and_then
+
+lemma str_iff {s : string} : (str s).bounded ↔ s ≠ "" :=
+begin
+  rw [str, decorate_error_iff],
+  cases hs : s.to_list,
+  { have : s = "",
+      { cases s, rw [string.to_list] at hs, simpa [hs] },
+    simp [pure, this] },
+  { have : s ≠ "",
+      { intro H, simpa [H] using hs },
+    simp [ch, this] }
+end
+
+lemma remaining : ¬ remaining.bounded :=
+begin
+  suffices : ∃ (x : char_buffer), Exists (has_le.le (buffer.size x)),
+    { simpa [remaining, bounded] using this },
+  exact ⟨buffer.nil, 0, le_refl 0⟩
+end
+
+lemma eof : ¬ eof.bounded :=
+begin
+  rw [eof, decorate_error_iff],
+  intro H,
+  simpa [parser.remaining, and.assoc] using H buffer.nil 0
+end
+
+section fold
+
+lemma foldr_core_zero {f : α → β → β} : (foldr_core f p b 0).bounded :=
+failure
+
+lemma foldl_core_zero {f : β → α → β} {b : β} : (foldl_core f b p 0).bounded :=
+failure
+
+variables {reps : ℕ} (hp : p.bounded) (he : ∀ cb n n' err, p cb n = fail n' err → n ≠ n')
+include hp he
+
+lemma foldr_core {f : α → β → β} : (foldr_core f p b reps).bounded :=
+begin
+  cases reps,
+  { exact foldr_core_zero },
+  intros cb n hn,
+  obtain ⟨n', err, h⟩ := hp cb n hn,
+  simpa [foldr_core, h] using he cb n n' err
+end
+
+lemma foldr {f : α → β → β} : bounded (foldr f p b) :=
+λ _ _ hn, foldr_core hp he _ _ hn
+
+lemma foldl_core {f : β → α → β} :
+  (foldl_core f b p reps).bounded :=
+begin
+  cases reps,
+  { exact foldl_core_zero },
+  intros cb n hn,
+  obtain ⟨n', err, h⟩ := hp cb n hn,
+  simpa [foldl_core, h] using he cb n n' err
+end
+
+lemma foldl {f : β → α → β} : bounded (foldl f b p) :=
+λ _ _ hn, foldl_core hp he _ _ hn
+
+lemma many : p.many.bounded :=
+hp.foldr he
+
+lemma many_char {p : parser char} (hp : p.bounded)
+  (he : ∀ cb n n' err, p cb n = fail n' err → n ≠ n'): p.many_char.bounded :=
+(hp.many he).map
+
+lemma many' (hp : p.bounded) : p.many'.bounded :=
+(hp.many he).and_then
+
+end fold
+
+lemma many1 (hp : p.bounded) : p.many1.bounded :=
+hp.map.seq
+
+lemma many_char1 {p : parser char} (hp : p.bounded) : p.many_char1.bounded :=
+hp.many1.map
+
+lemma sep_by1 {sep : parser unit} (hp : p.bounded) : bounded (sep_by1 sep p) :=
+hp.map.seq
+
+lemma sep_by_of_prog_err {sep : parser unit} (hp : p.bounded) (hm : p.mono) (hs : sep.mono)
+  (hne : ∀ {cb n n' err}, p cb n = fail n' err → n' ≠ n) : bounded (sep_by sep p) :=
+begin
+  have : ∀ {cb n n' err}, sep.sep_by1 p cb n = fail n' err → n' ≠ n,
+    { intros cb n n' err h,
+      have : n ≤ n' := (hm.sep_by1 hs).of_fail h,
+      rcases eq_or_lt_of_le this with rfl|H,
+      { simp [parser.sep_by1, seq_eq_fail] at h,
+        rcases h with (h | ⟨nf, ⟨a, ha⟩, h⟩),
+        { exact hne h },
+        { have : n = nf := le_antisymm (hm.of_done ha) ((hs.and_then hm).many.of_fail h),
+          simpa [this, many_eq_fail] using h } },
+      { exact ne_of_gt H } },
+  rw sep_by,
+  exact orelse_bounded_of_prog_err hp.sep_by1 (λ _ _ _ _, this)
+end
+
+lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.bounded → (F p).bounded) :
+  ∀ (max_depth : ℕ), bounded (fix_core F max_depth)
+| 0               := failure
+| (max_depth + 1) := hF _ (fix_core _)
+
+lemma digit : digit.bounded :=
+decorate_error sat.bind
+
+lemma nat : nat.bounded :=
+decorate_error digit.many1.bind
+
+lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.bounded → (F p).bounded) :
+  bounded (fix F) :=
+λ _ _, fix_core hF _ _ _
+
+end bounded
+
+end bounded
 
 end parser

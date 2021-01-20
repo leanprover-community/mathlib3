@@ -1216,8 +1216,11 @@ end
 
 /-- Given a bilinear form `B` on the modual `M`, `to_dual' B` is the linear map
   from `M` to its dual such that `to_dual B m` is the functional `λ x, B m x`. -/
-def to_dual' (B : bilin_form R₃ M₃) : M₃ ≃ₗ[R₃] module.dual R₃ M₃ :=
-B.to_lin
+def to_dual' (B : bilin_form R₃ M₃) : M₃ →ₗ[R₃] module.dual R₃ M₃ :=
+  B.to_lin
+
+@[simp] lemma to_dual'_def {B : bilin_form R₃ M₃} {m n : M₃} :
+  B.to_dual' m n = B m n := rfl
 
 lemma to_dual'_injective (B : bilin_form R₃ M₃) (hB : B.nondegenerate) :
   function.injective (to_dual' B) :=
@@ -1247,6 +1250,9 @@ noncomputable def to_dual (B : bilin_form K V) (hB : B.nondegenerate) :
   V ≃ₗ[K] module.dual K V :=
 { map_smul' := B.to_dual'.map_smul',
   .. add_equiv.of_bijective B.to_dual'.to_add_monoid_hom (to_dual'_bijective B hB) }
+
+lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
+  B.to_dual hB m n = B m n := rfl
 
 -- We start proving that symmetric nondegenerat bilinear forms are diagonalisable, or equivilently
 -- there exists a orthogonal basis with respect to any symmetric nondegenerate bilinear form.

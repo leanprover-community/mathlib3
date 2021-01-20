@@ -43,7 +43,7 @@ lemma comap_C_mem_image_of_Df {f : polynomial R} {I : prime_spectrum (polynomial
   comap (polynomial.C : R →+* polynomial R) I ∈ image_of_Df f :=
 exists_coeff_not_mem_C_inverse (mem_compl_zero_locus_iff_not_mem.mp H)
 
-theorem is_open_map_C_comap :
+theorem is_open_map_comap_C :
   is_open_map (comap (C : R →+* polynomial R)) :=
 begin
   rintros U ⟨fs, cl⟩,

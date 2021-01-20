@@ -126,13 +126,13 @@ begin
     exact nat_lemma _ _ _ (finite_dimensional.findim_mul_findim F E D)
       (linear_map.findim_le_findim_of_injective (show function.injective ϕ.to_linear_map,
         from ϕ.to_ring_hom.injective)) finite_dimensional.findim_pos, },
-  let C := adjoin_root (minpoly Hx),
+  let C := adjoin_root (minpoly F x),
   have Hx_irred := minpoly.irreducible Hx,
   letI : algebra C D := ring_hom.to_algebra (adjoin_root.lift
     (algebra_map F D) (adjoin_root.root q) (by rw [algebra_map_eq F E D, ←eval₂_map, hr,
       adjoin_root.algebra_map_eq, eval₂_mul, adjoin_root.eval₂_root, zero_mul])),
   letI : algebra C E := ring_hom.to_algebra (adjoin_root.lift
-    (algebra_map F E) x (minpoly.aeval Hx)),
+    (algebra_map F E) x (minpoly.aeval F x)),
   haveI : is_scalar_tower F C D := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
   haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
   suffices : nonempty (D →ₐ[C] E),
@@ -145,11 +145,11 @@ begin
     use (show is_integral C y, from is_integral_of_noetherian (finite_dimensional.right F C D) y),
     apply splits_of_splits_of_dvd (algebra_map C E) (map_ne_zero (minpoly.ne_zero Hz)),
     { rw [splits_map_iff, ←algebra_map_eq F C E],
-      exact splits_of_splits_of_dvd _ hp hFEp.splits (minpoly.dvd Hz
+      exact splits_of_splits_of_dvd _ hp hFEp.splits (minpoly.dvd F z
         (eq.trans (eval₂_eq_eval_map _) ((mem_roots (map_ne_zero hp)).mp hz1))) },
     { apply minpoly.dvd,
       rw [←hz2, aeval_def, eval₂_map, ←algebra_map_eq F C D, algebra_map_eq F E D, ←hom_eval₂,
-          ←aeval_def, minpoly.aeval Hz, ring_hom.map_zero] } },
+          ←aeval_def, minpoly.aeval F z, ring_hom.map_zero] } },
   rw [←intermediate_field.to_subalgebra_le_to_subalgebra, intermediate_field.top_to_subalgebra],
   apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C ↑S),
   suffices : (algebra.adjoin C (S : set D)).res F = (algebra.adjoin E {adjoin_root.root q}).res F,

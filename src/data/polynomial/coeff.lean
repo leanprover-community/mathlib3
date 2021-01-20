@@ -169,4 +169,31 @@ lemma exists_coeff_not_mem_C_inverse :
 imp_of_not_imp_not _ _
   (λ cf, not_not.mpr ((span_le_of_coeff_mem_C_inverse (not_exists_not.mp cf)) mem_span_C_coeff))
 
+/-
+lemma span_le_of_coeff_mem_C_inverse_1 (s : set R) (sI : ∀ r ∈ s, r ∈ (C ⁻¹' I.carrier)) :
+  (span (polynomial R) {g | ∃ r ∈ s, g = C r}) ≤ I :=
+begin
+  refine bInter_subset_of_mem _,
+  rintros _ ⟨x, xs, rfl⟩,
+  exact sI x xs,
+end
+
+
+lemma exists_coeff_not_mem_C_inverse_1 :
+  f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
+begin
+sorry
+end
+
+imp_of_not_imp_not _ _
+  (λ cf, not_not.mpr (begin
+    refine span_le_of_coeff_mem_C_inverse {c : R | ∃ (i : ℕ), f.coeff i = c} _ _,
+    rintros _ ⟨i, rfl⟩,
+    apply not_exists_not.mp cf,
+--    simp only [exists_prop, mem_set_of_eq, exists_exists_eq_and],
+    exact mem_span_C_coeff,
+--  ((span_le_of_coeff_mem_C_inverse_1 (not_exists_not.mp cf)) mem_span_C_coeff)
+end))
+-/
+
 end polynomial

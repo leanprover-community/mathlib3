@@ -76,6 +76,18 @@ def unshift (q : formal_multilinear_series 𝕜 E (E →L[𝕜] F)) (z : F) :
 | 0       := (continuous_multilinear_curry_fin0 𝕜 E F).symm z
 | (n + 1) := continuous_multilinear_curry_right_equiv' 𝕜 n E F (q n)
 
+/-- Killing the zeroth coefficient in a formal multilinear series -/
+def remove_zero (p : formal_multilinear_series 𝕜 E F) : formal_multilinear_series 𝕜 E F
+| 0       := 0
+| (n + 1) := p (n + 1)
+
+@[simp] lemma remove_zero_coeff_zero : p.remove_zero 0 = 0 := rfl
+
+@[simp] lemma remove_zero_coeff_succ (n : ℕ) : p.remove_zero (n+1) = p (n+1) := rfl
+
+lemma remove_zero_of_pos {n : ℕ} (h : 0 < n) : p.remove_zero n = p n :=
+by { rw ← nat.succ_pred_eq_of_pos h, refl }
+
 /-- Convenience congruence lemma stating in a dependent setting that, if the arguments to a formal
 multilinear series are equal, then the values are also equal. -/
 lemma congr (p : formal_multilinear_series 𝕜 E F) {m n : ℕ} {v : fin m → E} {w : fin n → E}

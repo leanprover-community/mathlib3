@@ -45,6 +45,9 @@ Let `c : composition n` be a composition of `n`. Then
   `fin n`;
 * `c.index j`, for `j : fin n`, is the index of the block containing `j`.
 
+* `composition.ones n` is the composition of `n` made of ones, i.e., `[1, ..., 1]`.
+* `composition.single n (hn : 0 < n)` is the composition of `n` made of a single block of size `n`.
+
 Compositions can also be used to split lists. Let `l` be a list of length `n` and `c` a composition
 of `n`.
 * `l.split_wrt_composition c` is a list of lists, made of the slices of `l` corresponding to the
@@ -103,7 +106,7 @@ get a finset of `{0, ..., n}` containing `0` and `n`. This is the data in the st
 @[ext] structure composition_as_set (n : ℕ) :=
 (boundaries : finset (fin n.succ))
 (zero_mem   : (0 : fin n.succ) ∈ boundaries)
-(last_mem   : (fin.last n ∈ boundaries))
+(last_mem   : fin.last n ∈ boundaries)
 
 instance {n : ℕ} : inhabited (composition_as_set n) :=
 ⟨⟨finset.univ, finset.mem_univ _, finset.mem_univ _⟩⟩
@@ -137,6 +140,9 @@ of_fn_nth_le _
 lemma sum_blocks_fun : ∑ i, c.blocks_fun i = n :=
 by conv_rhs { rw [← c.blocks_sum, ← of_fn_blocks_fun, sum_of_fn] }
 
+lemma blocks_fun_mem_blocks (i : fin c.length) : c.blocks_fun i ∈ c.blocks :=
+nth_le_mem _ _ _
+
 @[simp] lemma one_le_blocks {i : ℕ} (h : i ∈ c.blocks) : 1 ≤ i :=
 c.blocks_pos h
 
@@ -145,6 +151,9 @@ c.one_le_blocks (nth_le_mem (blocks c) i h)
 
 @[simp] lemma blocks_pos' (i : ℕ) (h : i < c.length) : 0 < nth_le c.blocks i h:=
 c.one_le_blocks' h
+
+lemma one_le_blocks_fun (i : fin c.length) : 1 ≤ c.blocks_fun i :=
+c.one_le_blocks (c.blocks_fun_mem_blocks i)
 
 lemma length_le : c.length ≤ n :=
 begin
@@ -251,8 +260,8 @@ calc c.size_up_to i + c.blocks_fun i = c.size_up_to (i + 1) : (c.size_up_to_succ
   (c.embedding i j : ℕ) = c.size_up_to i + j := rfl
 
 /--
-`index_exists` asserts there is some `i` so `j < c.size_up_to (i+1)`.
-In the next definition we use `nat.find` to produce the minimal such index.
+`index_exists` asserts there is some `i` with `j < c.size_up_to (i+1)`.
+In the next definition `index` we use `nat.find` to produce the minimal such index.
 -/
 lemma index_exists {j : ℕ} (h : j < n) :
   ∃ i : ℕ, j < c.size_up_to i.succ ∧ i < c.length :=
@@ -417,6 +426,8 @@ begin
   exact H
 end
 
+/-! ### The composition `composition.ones` -/
+
 /-- The composition made of blocks all of size `1`. -/
 def ones (n : ℕ) : composition n :=
 ⟨repeat (1 : ℕ) n, λ i hi, by simp [list.eq_of_mem_repeat hi], by simp⟩
@@ -488,6 +499,8 @@ lemma eq_ones_iff_le_length {c : composition n} :
   c = ones n ↔ n ≤ c.length :=
 by simp [eq_ones_iff_length, le_antisymm_iff, c.length_le]
 
+/-! ### The composition `composition.single` -/
+
 /-- The composition made of a single block of size `n`. -/
 def single (n : ℕ) (h : 0 < n) : composition n :=
 ⟨[n], by simp [h], by simp⟩
@@ -537,14 +550,11 @@ begin
       calc n ≤ ∑ k in {i}, c.blocks_fun k : by simp [hi]
       ... < ∑ k, c.blocks_fun k : begin
         have : j ∈ finset.univ \ {i}, by { rw [finset.mem_sdiff, finset.mem_singleton], simp [ji] },
-        apply finset.sum_lt_sum_of_subset (finset.subset_univ _) this,
-
-
+        refine finset.sum_lt_sum_of_subset (finset.subset_univ _) this (c.one_le_blocks_fun j) _,
+        exact λ k hk, zero_le_one.trans (c.one_le_blocks_fun k)
       end
-      ... = n : sorry
-    }
-
-  }
+      ... = n : c.sum_blocks_fun },
+    simpa using fintype.card_eq_one_of_forall_eq this }
 end
 
 end composition

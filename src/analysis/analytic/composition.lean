@@ -118,6 +118,14 @@ begin
   congr; try { assumption <|> simp },
 end
 
+@[simp] lemma remove_zero_apply_composition
+  (p : formal_multilinear_series 𝕜 E F) {n : ℕ} (c : composition n) :
+  p.remove_zero.apply_composition c = p.apply_composition c :=
+begin
+  ext v i,
+  simp [apply_composition, zero_lt_one.trans_le (c.one_le_blocks_fun i), remove_zero_of_pos],
+end
+
 /-- Technical lemma stating how `p.apply_composition` commutes with updating variables. This
 will be the key point to show that functions constructed from `apply_composition` retain
 multilinearity. -/
@@ -309,6 +317,22 @@ begin
   exact p.congr rfl (λ j hj1 hj2, by congr)
 end
 
+lemma remove_zero_comp_of_pos (q : formal_multilinear_series 𝕜 F G)
+  (p : formal_multilinear_series 𝕜 E F) {n : ℕ} (hn : 0 < n) :
+  q.remove_zero.comp p n = q.comp p n :=
+begin
+  ext v,
+  simp only [formal_multilinear_series.comp, comp_along_composition,
+    continuous_multilinear_map.comp_along_composition_apply, continuous_multilinear_map.sum_apply],
+  apply finset.sum_congr rfl (λ c hc, _),
+  rw remove_zero_of_pos _ (c.length_pos_of_pos hn)
+end
+
+@[simp] lemma comp_remove_zero (q : formal_multilinear_series 𝕜 F G)
+  (p : formal_multilinear_series 𝕜 E F) :
+  q.comp p.remove_zero = q.comp p :=
+by { ext n, simp [formal_multilinear_series.comp] }
+
 /-!
 ### The identity formal power series
 
@@ -375,7 +399,7 @@ begin
   { simp }
 end
 
-theorem id_comp (p : formal_multilinear_series 𝕜 E F) (h : p 0 = 0) : (id 𝕜 F).comp p = p :=
+@[simp] theorem id_comp (p : formal_multilinear_series 𝕜 E F) (h : p 0 = 0) : (id 𝕜 F).comp p = p :=
 begin
   ext1 n,
   by_cases hn : n = 0,
@@ -395,7 +419,7 @@ begin
     show ∀ (b : composition n),
       b ∈ finset.univ → b ≠ composition.single n n_pos → comp_along_composition (id 𝕜 F) p b = 0,
     { assume b _ hb,
-      have A : b.length ≠ 1, by simpa [composition.eq_single_iff] using hb,
+      have A : b.length ≠ 1, by simpa [composition.eq_single_iff_length] using hb,
       ext v,
       rw [comp_along_composition_apply, id_apply_ne_one _ _ A],
       refl },

@@ -1090,7 +1090,7 @@ def nondegenerate (B : bilin_form R M) : Prop :=
 variables {n : Type w} [fintype n]
 
 /-- A bilinear form is nondegenerate if and only if it has a trivial kernel -/
-theorem nondegenerate_iff_ker_eq_bot {B : bilin_form R₃ M₃} :
+theorem nondegenerate_iff_ker_eq_bot {B : bilin_form R₂ M₂} :
   B.nondegenerate ↔ B.to_lin.ker = ⊥ :=
 begin
   rw linear_map.ker_eq_bot',

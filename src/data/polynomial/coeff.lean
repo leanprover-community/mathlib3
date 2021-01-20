@@ -144,7 +144,18 @@ open submodule polynomial set
 
 variables {f : polynomial R} {I : submodule (polynomial R) (polynomial R)}
 
-lemma span_le_of_coeff_mem_C_inverse (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹' I.carrier)) :
+/--  If the coefficients of a polynomial belong to n ideal contains the submodule span of the coefficients of a polynomial. -/
+lemma span_le_of_coeff_mem_C_inverse (s : set R) (sI : ∀ r ∈ s, r ∈ (C ⁻¹' I.carrier)) :
+  (span (polynomial R) {g | ∃ r ∈ s, g = C r}) ≤ I :=
+begin
+  refine bInter_subset_of_mem _,
+  rintros _ ⟨x, xs, rfl⟩,
+  exact sI x xs,
+end
+
+
+
+lemma span_le_of_coeff_mem_C_inverse_1 (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹' I.carrier)) :
   (span (polynomial R) {g | ∃ i, g = C (f.coeff i)}) ≤ I :=
 begin
   refine bInter_subset_of_mem _,
@@ -165,6 +176,18 @@ end
 lemma exists_coeff_not_mem_C_inverse :
   f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
 imp_of_not_imp_not _ _
-  (λ cf, not_not.mpr ((span_le_of_coeff_mem_C_inverse (not_exists_not.mp cf)) mem_span_C_coeff))
+  (λ cf, not_not.mpr (begin
+    refine span_le_of_coeff_mem_C_inverse {c : R | ∃ (i : ℕ), f.coeff i = c} _ _,
+    rintros _ ⟨i, rfl⟩,
+    apply not_exists_not.mp cf,
+--    simp only [exists_prop, mem_set_of_eq, exists_exists_eq_and],
+    exact mem_span_C_coeff,
+--  ((span_le_of_coeff_mem_C_inverse_1 (not_exists_not.mp cf)) mem_span_C_coeff)
+end))
+
+lemma exists_coeff_not_mem_C_inverse_1 :
+  f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
+imp_of_not_imp_not _ _
+  (λ cf, not_not.mpr ((span_le_of_coeff_mem_C_inverse_1 (not_exists_not.mp cf)) mem_span_C_coeff))
 
 end polynomial

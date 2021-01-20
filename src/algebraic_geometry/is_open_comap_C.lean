@@ -18,12 +18,13 @@ namespace polynomial
 variables {R : Type*} [comm_ring R]
 
 /-- Given a polynomial `f ∈ R[x]`, `image_of_Df` is the subset of `Spec R` where at least one
-of the coefficients of `f` does not vanish.  We will prove that `image_of_Df` is the image of
-`(zero_locus {f})ᶜ` under the morphism `comap C : Spec R[x] → Spec R`. -/
+of the coefficients of `f` does not vanish.  Lemma `image_of_Df_eq_comap_C_compl_zero_locus`
+proves that `image_of_Df` is the image of `(zero_locus {f})ᶜ` under the morphism
+`comap C : Spec R[x] → Spec R`. -/
 def image_of_Df (f : polynomial R) : set (prime_spectrum R) :=
   {p : prime_spectrum R | ∃ i : ℕ , (coeff f i) ∉ p.as_ideal}
 
-lemma is_open_image_of_Df (f : polynomial R) : is_open (image_of_Df f) :=
+lemma is_open_image_of_Df {f : polynomial R} : is_open (image_of_Df f) :=
 begin
   rw [image_of_Df, set_of_exists (λ i (x : prime_spectrum R), coeff f i ∉ x.val)],
   exact is_open_Union (λ i, is_open_basic_open),
@@ -43,23 +44,28 @@ lemma comap_C_mem_image_of_Df {f : polynomial R} {I : prime_spectrum (polynomial
   comap (polynomial.C : R →+* polynomial R) I ∈ image_of_Df f :=
 exists_coeff_not_mem_C_inverse (mem_compl_zero_locus_iff_not_mem.mp H)
 
-theorem is_open_map_comap_C :
-  is_open_map (comap (C : R →+* polynomial R)) :=
+lemma image_of_Df_eq_comap_C_compl_zero_locus {f : polynomial R} :
+  image_of_Df f = comap C '' (zero_locus {f})ᶜ :=
 begin
-  rintros U ⟨fs, cl⟩,
-  rw [← compl_compl U, ← cl, ← Union_of_singleton_coe fs, zero_locus_Union, compl_Inter,
-    image_Union],
-  refine is_open_Union (λ f, _),
-  convert is_open_image_of_Df f.1,
-  refine ext (λ x, ⟨_, λ hx, ⟨⟨map C x.val, (is_prime_C_map_of_is_prime x.property)⟩, ⟨_, _⟩⟩⟩),
-  { rintro ⟨xli, complement, rfl⟩,
-    exact C_comap_mem_image_of_Df complement },
+  refine ext (λ x, ⟨λ hx, ⟨⟨map C x.val, (is_prime_map_C_of_is_prime x.property)⟩, ⟨_, _⟩⟩, _⟩),
   { rw [mem_compl_eq, mem_zero_locus, singleton_subset_iff],
     cases hx with i hi,
     exact λ a, hi (mem_map_C_iff.mp a i) },
   { refine subtype.ext (ext (λ x, ⟨λ h, _, λ h, subset_span (mem_image_of_mem C.1 h)⟩)),
     rw ← @coeff_C_zero R x _,
-    exact mem_map_C_iff.mp h 0 }
+    exact mem_map_C_iff.mp h 0 },
+  { rintro ⟨xli, complement, rfl⟩,
+    exact comap_C_mem_image_of_Df complement }
+end
+
+/--  The morphism `C⁺ : Spec R[x] → Spec R` is open. -/
+theorem is_open_map_comap_C :
+  is_open_map (comap (C : R →+* polynomial R)) :=
+begin
+  rintros U ⟨s, z⟩,
+  rw [← compl_compl U, ← z, ← Union_of_singleton_coe s, zero_locus_Union, compl_Inter, image_Union],
+  simp_rw [← image_of_Df_eq_comap_C_compl_zero_locus],
+  exact is_open_Union (λ f, is_open_image_of_Df),
 end
 
 end polynomial

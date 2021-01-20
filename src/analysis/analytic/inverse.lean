@@ -14,10 +14,10 @@ and we prove that they coincide.
 
 ## Main statements
 
-* `p.left_inv i`: the formal left inverse of the formal multilinear series `p`, for `i : E ≃L[𝕜] F`
-  which coincides with `p₁`.
-* `p.right_inv i`: the formal right inverse of the formal multilinear series `p`, for `i : E ≃L[𝕜] F`
-  which coincides with `p₁`.
+* `p.left_inv i`: the formal left inverse of the formal multilinear series `p`,
+  for `i : E ≃L[𝕜] F` which coincides with `p₁`.
+* `p.right_inv i`: the formal right inverse of the formal multilinear series `p`,
+  for `i : E ≃L[𝕜] F` which coincides with `p₁`.
 * `p.left_inv_comp` says that `p.left_inv i` is indeed a left inverse to `p` when `p₁ = i`.
 * `p.right_inv_comp` says that `p.right_inv i` is indeed a right inverse to `p` when `p₁ = i`.
 * `p.left_inv_eq_right_inv` states that the two inverses coincide.

@@ -1102,8 +1102,6 @@ begin
 end
 
 /-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
-  `R₁` with invertible `2`. Then, there exists some `x : M` such that `B x x ≠ 0`. -/
-/-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
   `R` with invertible `2`. Then, there exists some `x : M` such that `B x x ≠ 0`. -/
 lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
   {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) : ∃ x, B x x ≠ 0 :=

@@ -177,8 +177,8 @@ theorem is_integral : is_integral (fixed_points G F) x :=
 ⟨minpoly G F x, minpoly.monic G F x, minpoly.eval₂ G F x⟩
 
 theorem minpoly_eq_minpoly :
-  minpoly G F x = _root_.minpoly (is_integral G F x) :=
-minpoly.unique' _ (minpoly.irreducible G F x)
+  minpoly G F x = _root_.minpoly (fixed_points G F) x :=
+minpoly.unique' (is_integral G F x) (minpoly.irreducible G F x)
   (minpoly.eval₂ G F x) (minpoly.monic G F x)
 
 instance normal : normal (fixed_points G F) F :=

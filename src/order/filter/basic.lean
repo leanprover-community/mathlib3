@@ -1228,7 +1228,9 @@ lemma eventually_eq.le (h : f =ᶠ[l] g) : f ≤ᶠ[l] g := h.mono $ λ x, le_of
 
 @[refl] lemma eventually_le.refl (l : filter α) (f : α → β) :
   f ≤ᶠ[l] f :=
-(eventually_eq.refl l f).le
+eventually_eq.rfl.le
+
+lemma eventually_le.rfl : f ≤ᶠ[l] f := eventually_le.refl l f
 
 @[trans] lemma eventually_le.trans (H₁ : f ≤ᶠ[l] g) (H₂ : g ≤ᶠ[l] h) : f ≤ᶠ[l] h :=
 H₂.mp $ H₁.mono $ λ x, le_trans

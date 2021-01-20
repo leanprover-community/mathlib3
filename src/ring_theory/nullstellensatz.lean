@@ -105,7 +105,7 @@ instance vanishing_ideal_singleton_is_maximal' {x : σ → k} :
   (vanishing_ideal {x} : ideal (mv_polynomial σ k)).is_maximal :=
 vanishing_ideal_singleton_is_maximal x
 
-lemma radical_le_vanishing_ideal_zero_locus [fintype σ] (I : ideal (mv_polynomial σ k)) :
+lemma radical_le_vanishing_ideal_zero_locus (I : ideal (mv_polynomial σ k)) :
   I.radical ≤ vanishing_ideal (zero_locus I) :=
 begin
   intros p hp x hx,

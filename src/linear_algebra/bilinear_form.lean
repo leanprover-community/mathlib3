@@ -1068,10 +1068,10 @@ def is_ortho' {n : Type w} (B : bilin_form R M) (v : n → M) : Prop :=
 /-- The restriction of a bilinear form on a submodule. -/
 def restrict (B : bilin_form R M) (W : submodule R M) : bilin_form R W :=
 { bilin := λ a b, B a.1 b.1,
-  bilin_add_left := by simp,
-  bilin_smul_left := by simp,
-  bilin_add_right := by simp,
-  bilin_smul_right := by simp }.
+  bilin_add_left := λ _ _ _, add_left _ _ _,
+  bilin_smul_left := λ _ _ _, smul_left _ _ _,
+  bilin_add_right := λ _ _ _, add_right _ _ _,
+  bilin_smul_right := λ _ _ _, smul_right _ _ _}
 
 @[simp] lemma restrict_def (B : bilin_form R M) (W : submodule R M) (x y : W) :
   B.restrict W x y = B x.1 y.1 := rfl

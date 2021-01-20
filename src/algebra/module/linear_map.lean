@@ -117,6 +117,9 @@ protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl }, ext⟩
 
+@[simp] lemma mk_coe (f : M →ₗ[R] M₂) (h₁ h₂) :
+  (linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) = f := ext $ λ _, rfl
+
 variables (f g)
 
 @[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y

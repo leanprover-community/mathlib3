@@ -1267,7 +1267,7 @@ lemma ae_ball_iff {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S), Pr
   (∀ᵐ x ∂ μ, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᵐ x ∂ μ, p x i ‹_› :=
 eventually_countable_ball hS
 
-lemma ae_eq_refl (f : α → δ) : f =ᵐ[μ] f := eventually_eq.refl _ _
+lemma ae_eq_refl (f : α → δ) : f =ᵐ[μ] f := eventually_eq.rfl
 
 lemma ae_eq_symm {f g : α → δ} (h : f =ᵐ[μ] g) : g =ᵐ[μ] f :=
 h.symm

@@ -426,6 +426,13 @@ lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, normed_group (π i
   ∥x i∥ ≤ ∥x∥ :=
 (pi_norm_le_iff (norm_nonneg x)).1 (le_refl _) i
 
+@[simp] lemma pi_norm_const [nonempty ι] [fintype ι] (a : α) : ∥(λ i : ι, a)∥ = ∥a∥ :=
+by simpa only [← dist_zero_right] using dist_pi_const a 0
+
+@[simp] lemma pi_nnnorm_const [nonempty ι] [fintype ι] (a : α) :
+  nnnorm (λ i : ι, a) = nnnorm a :=
+nnreal.eq $ pi_norm_const a
+
 lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=
 by { convert tendsto_iff_dist_tendsto_zero, simp [dist_eq_norm] }

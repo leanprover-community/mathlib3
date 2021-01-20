@@ -2033,15 +2033,15 @@ variables [decidable_eq β] {s : finset α} {t : α → finset β}
 /-- `bUnion s t` is the union of `t x` over `x ∈ s`.
 (This was formerly `bind` due to the monad structure on types with `decidable_eq`.) -/
 protected def bUnion (s : finset α) (t : α → finset β) : finset β :=
-(s.1.bUnion (λ a, (t a).1)).to_finset
+(s.1.bind (λ a, (t a).1)).to_finset
 
 @[simp] theorem bUnion_val (s : finset α) (t : α → finset β) :
-  (s.bUnion t).1 = (s.1.bUnion (λ a, (t a).1)).erase_dup := rfl
+  (s.bUnion t).1 = (s.1.bind (λ a, (t a).1)).erase_dup := rfl
 
 @[simp] theorem bUnion_empty : finset.bUnion ∅ t = ∅ := rfl
 
 @[simp] theorem mem_bUnion {b : β} : b ∈ s.bUnion t ↔ ∃a∈s, b ∈ t a :=
-by simp only [mem_def, bUnion_val, mem_erase_dup, mem_bUnion, exists_prop]
+by simp only [mem_def, bUnion_val, mem_erase_dup, mem_bind, exists_prop]
 
 @[simp] theorem bUnion_insert [decidable_eq α] {a : α} : (insert a s).bUnion t = t a ∪ s.bUnion t :=
 ext $ λ x, by simp only [mem_bUnion, exists_prop, mem_union, mem_insert,
@@ -2078,9 +2078,9 @@ by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
   by simp only [bUnion_insert, image_union, ih])
 
-theorem bUnion_to_finset [decidable_eq α] (s : multiset α) (t : α → multiset β) :
-  (s.bUnion t).to_finset = s.to_finset.bUnion (λa, (t a).to_finset) :=
-ext $ λ x, by simp only [multiset.mem_to_finset, mem_bUnion, multiset.mem_bUnion, exists_prop]
+theorem bind_to_finset [decidable_eq α] (s : multiset α) (t : α → multiset β) :
+  (s.bind t).to_finset = s.to_finset.bUnion (λa, (t a).to_finset) :=
+ext $ λ x, by simp only [multiset.mem_to_finset, mem_bUnion, multiset.mem_bind, exists_prop]
 
 lemma bUnion_mono {t₁ t₂ : α → finset β} (h : ∀a∈s, t₁ a ⊆ t₂ a) : s.bUnion t₁ ⊆ s.bUnion t₂ :=
 have ∀b a, a ∈ s → b ∈ t₁ a → (∃ (a : α), a ∈ s ∧ b ∈ t₂ a),

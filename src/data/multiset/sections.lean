@@ -19,14 +19,14 @@ The sections of a multiset of multisets `s` consists of all those multisets
 which can be put in bijection with `s`, so each element is an member of the corresponding multiset.
 -/
 def sections (s : multiset (multiset α)) : multiset (multiset α) :=
-multiset.rec_on s {0} (λs _ c, s.bUnion $ λa, c.map (multiset.cons a))
-  (assume a₀ a₁ s pi, by simp [map_bUnion, bUnion_bUnion a₀ a₁, cons_swap])
+multiset.rec_on s {0} (λs _ c, s.bind $ λa, c.map (multiset.cons a))
+  (assume a₀ a₁ s pi, by simp [map_bind, bind_bind a₀ a₁, cons_swap])
 
 @[simp] lemma sections_zero : sections (0 : multiset (multiset α)) = 0 ::ₘ 0 :=
 rfl
 
 @[simp] lemma sections_cons (s : multiset (multiset α)) (m : multiset α) :
-  sections (m ::ₘ s) = m.bUnion (λa, (sections s).map (multiset.cons a)) :=
+  sections (m ::ₘ s) = m.bind (λa, (sections s).map (multiset.cons a)) :=
 rec_on_cons m s
 
 lemma coe_sections : ∀(l : list (list α)),
@@ -36,14 +36,14 @@ lemma coe_sections : ∀(l : list (list α)),
 | (a :: l) :=
   begin
     simp,
-    rw [← cons_coe, sections_cons, bUnion_map_comm, coe_sections l],
+    rw [← cons_coe, sections_cons, bind_map_comm, coe_sections l],
     simp [list.sections, (∘), list.bind]
   end
 
 @[simp] lemma sections_add (s t : multiset (multiset α)) :
-  sections (s + t) = (sections s).bUnion (λm, (sections t).map ((+) m)) :=
+  sections (s + t) = (sections s).bind (λm, (sections t).map ((+) m)) :=
 multiset.induction_on s (by simp)
-  (assume a s ih, by simp [ih, bUnion_assoc, map_bUnion, bUnion_map, -add_comm])
+  (assume a s ih, by simp [ih, bind_assoc, map_bind, bind_map, -add_comm])
 
 lemma mem_sections {s : multiset (multiset α)} :
   ∀{a}, a ∈ sections s ↔ s.rel (λs a, a ∈ s) a :=
@@ -57,7 +57,7 @@ multiset.induction_on s (by simp) (by simp {contextual := tt})
 lemma prod_map_sum [comm_semiring α] {s : multiset (multiset α)} :
   prod (s.map sum) = sum ((sections s).map prod) :=
 multiset.induction_on s (by simp)
-  (assume a s ih, by simp [ih, map_bUnion, sum_map_mul_left, sum_map_mul_right])
+  (assume a s ih, by simp [ih, map_bind, sum_map_mul_left, sum_map_mul_right])
 
 end sections
 

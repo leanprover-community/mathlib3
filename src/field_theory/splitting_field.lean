@@ -196,11 +196,11 @@ begin
   rw map_id at hm, rw hm at hf0 hmf0 ⊢, rw map_mul at hmf0 ⊢,
   rw [roots_mul hf0, roots_mul hmf0, map_C, roots_C, zero_add, roots_C, zero_add,
       map_multiset_prod, multiset.map_map], simp_rw [(∘), map_sub, map_X, map_C],
-  rw [roots_multiset_prod _ h2, multiset.bUnion_map,
-      roots_multiset_prod _ h1, multiset.bUnion_map],
+  rw [roots_multiset_prod _ h2, multiset.bind_map,
+      roots_multiset_prod _ h1, multiset.bind_map],
   simp_rw roots_X_sub_C,
-  rw [multiset.bUnion_cons, multiset.bUnion_zero, add_zero,
-      multiset.bUnion_cons, multiset.bUnion_zero, add_zero, multiset.map_id']
+  rw [multiset.bind_cons, multiset.bind_zero, add_zero,
+      multiset.bind_cons, multiset.bind_zero, add_zero, multiset.map_id']
 end
 
 lemma eq_prod_roots_of_splits {p : polynomial α} {i : α →+* β}
@@ -219,15 +219,15 @@ begin
   { intros p mem,
     obtain ⟨a, _, rfl⟩ := multiset.mem_map.mp mem,
     apply X_sub_C_ne_zero },
-  have map_bUnion_roots_eq : (s.map (λ a, X - C a)).bUnion (λ a, a.roots) = s,
-  { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bUnion]) _,
+  have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots) = s,
+  { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
     intros a s ih,
-    rw [multiset.map_cons, multiset.cons_bUnion, ih, roots_X_sub_C,
+    rw [multiset.map_cons, multiset.cons_bind, ih, roots_X_sub_C,
         multiset.cons_add, zero_add] },
 
   rw [hs, roots_mul prod_ne_zero, roots_C, zero_add,
       roots_multiset_prod _ ne_zero_of_mem,
-      map_bUnion_roots_eq]
+      map_bind_roots_eq]
 end
 
 lemma eq_X_sub_C_of_splits_of_single_root {x : α} {h : polynomial α} (h_splits : splits i h)

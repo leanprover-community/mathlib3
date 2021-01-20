@@ -145,17 +145,7 @@ open submodule polynomial set
 variables {f : polynomial R} {I : submodule (polynomial R) (polynomial R)}
 
 /--  If the coefficients of a polynomial belong to n ideal contains the submodule span of the coefficients of a polynomial. -/
-lemma span_le_of_coeff_mem_C_inverse (s : set R) (sI : ∀ r ∈ s, r ∈ (C ⁻¹' I.carrier)) :
-  (span (polynomial R) {g | ∃ r ∈ s, g = C r}) ≤ I :=
-begin
-  refine bInter_subset_of_mem _,
-  rintros _ ⟨x, xs, rfl⟩,
-  exact sI x xs,
-end
-
-
-
-lemma span_le_of_coeff_mem_C_inverse_1 (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹' I.carrier)) :
+lemma span_le_of_coeff_mem_C_inverse (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹' I.carrier)) :
   (span (polynomial R) {g | ∃ i, g = C (f.coeff i)}) ≤ I :=
 begin
   refine bInter_subset_of_mem _,
@@ -176,6 +166,25 @@ end
 lemma exists_coeff_not_mem_C_inverse :
   f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
 imp_of_not_imp_not _ _
+  (λ cf, not_not.mpr ((span_le_of_coeff_mem_C_inverse (not_exists_not.mp cf)) mem_span_C_coeff))
+
+/-
+lemma span_le_of_coeff_mem_C_inverse_1 (s : set R) (sI : ∀ r ∈ s, r ∈ (C ⁻¹' I.carrier)) :
+  (span (polynomial R) {g | ∃ r ∈ s, g = C r}) ≤ I :=
+begin
+  refine bInter_subset_of_mem _,
+  rintros _ ⟨x, xs, rfl⟩,
+  exact sI x xs,
+end
+
+
+lemma exists_coeff_not_mem_C_inverse_1 :
+  f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
+begin
+sorry
+end
+
+imp_of_not_imp_not _ _
   (λ cf, not_not.mpr (begin
     refine span_le_of_coeff_mem_C_inverse {c : R | ∃ (i : ℕ), f.coeff i = c} _ _,
     rintros _ ⟨i, rfl⟩,
@@ -184,10 +193,6 @@ imp_of_not_imp_not _ _
     exact mem_span_C_coeff,
 --  ((span_le_of_coeff_mem_C_inverse_1 (not_exists_not.mp cf)) mem_span_C_coeff)
 end))
-
-lemma exists_coeff_not_mem_C_inverse_1 :
-  f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
-imp_of_not_imp_not _ _
-  (λ cf, not_not.mpr ((span_le_of_coeff_mem_C_inverse_1 (not_exists_not.mp cf)) mem_span_C_coeff))
+-/
 
 end polynomial

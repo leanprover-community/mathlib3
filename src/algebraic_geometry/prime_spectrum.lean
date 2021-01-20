@@ -293,6 +293,10 @@ begin
   apply submodule.add_mem; solve_by_elim
 end
 
+lemma mem_compl_zero_locus_iff_not_mem {f : R} {I : prime_spectrum R} :
+  I ∈ (zero_locus {f} : set (prime_spectrum R))ᶜ ↔ f ∉ I.as_ideal :=
+by rw [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]; refl
+
 /-- The Zariski topology on the prime spectrum of a commutative ring
 is defined via the closed sets of the topology:
 they are exactly those sets that are the zero locus of a subset of the ring. -/

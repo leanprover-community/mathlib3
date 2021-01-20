@@ -30,10 +30,6 @@ begin
   exact is_open_Union (λ i, is_open_basic_open),
 end
 
-lemma mem_compl_zero_locus_iff_not_mem {f : R} {I : prime_spectrum R} :
-  I ∈ (zero_locus {f} : set (prime_spectrum R))ᶜ ↔ f ∉ I.as_ideal :=
-by rw [mem_compl_eq, mem_zero_locus, singleton_subset_iff]; refl
-
 /-- If a point of `Spec R[x]` is not contained in the vanishing set of `f`,
 then its image in `Spec R` is contained in the open where at least one of the coefficients
 of `f` is non-zero.  Such an open set is called `image_of_Df f` and actually coincides

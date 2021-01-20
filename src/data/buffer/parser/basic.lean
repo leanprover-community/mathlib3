@@ -200,7 +200,7 @@ begin
     { simp [hp, hn, ←orelse_eq_orelse, parser.orelse] } }
 end
 
-lemma orelse_eq_fail_inmono_lt (hn : n' < n) : (p <|> q) cb n = fail n' err ↔
+lemma orelse_eq_fail_not_mono_lt (hn : n' < n) : (p <|> q) cb n = fail n' err ↔
   (p cb n = fail n' err) ∨
   (q cb n = fail n' err ∧ (∃ (errp), p cb n = fail n errp)) :=
 begin

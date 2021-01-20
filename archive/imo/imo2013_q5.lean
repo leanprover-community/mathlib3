@@ -42,7 +42,9 @@ begin
     { intros i hi,
       have hx' : 1 ≤ x ^ i := one_le_pow_of_one_le (le_of_lt hx) i,
       have hy' : 1 ≤ y ^ (n - 1 - i) := one_le_pow_of_one_le (le_of_lt hy) (n - 1 - i),
-      nlinarith },
+      calc 1 ≤ x^i             : hx'
+         ... = x^i * 1         : (mul_one _).symm
+         ... ≤ x^i * y^(n-1-i) : mul_le_mul_of_nonneg_left hy' (le_trans zero_le_one hx') },
 
     calc (x - y) * (n:ℝ)
             =  (n:ℝ) * (x - y) : mul_comm _ _
@@ -93,8 +95,7 @@ begin
     { intros n hn,
       calc x^n - 1 < y^n : h n hn
               ...  ≤ y'^n : pow_le_pow_of_le_left (le_of_lt hy) (le_of_lt h_y_lt_y') n },
-    have : x ≤ y' := le_of_all_pow_lt_succ x y' hx h1_lt_y' hh,
-    linarith, -- contradiction
+    exact (not_le.mpr h_y'_lt_x) (le_of_all_pow_lt_succ x y' hx h1_lt_y' hh)
   },
   exact le_of_all_pow_lt_succ x y hx hy' h
 end
@@ -107,8 +108,8 @@ begin
   have hfqn := calc f q.num = f (q * q.denom) : by rw ←rat.mul_denom_eq_num
                         ... ≤ f q * f q.denom : H1 q q.denom hq (nat.cast_pos.mpr q.pos),
 
-  -- Now we just need to show that `f q.num` and `f q.denom` are positive,
-  -- and then nlinarith will be able to close the goal.
+  -- Now we just need to show that `f q.num` and `f q.denom` are positive.
+  -- Then nlinarith will be able to close the goal.
 
   have num_pos : 0 < q.num := rat.num_pos_iff_pos.mpr hq,
   have hqna : (q.num.nat_abs:ℤ) = q.num := int.nat_abs_of_nonneg (le_of_lt num_pos),
@@ -228,10 +229,9 @@ begin
   have hxp : 0 < x := lt_trans zero_lt_one hx,
 
   have hNp : 0 < N,
-  { have hh:= calc (0:ℚ) ≤ max 0 (x / (a - 1)) : le_max_left 0 _
-                     ... < N                   : hN,
-    have : (0:ℚ) = ((0:ℕ):ℚ) := nat.cast_zero.symm,
-    rw this at hh,
+  { have hh := calc ((0:ℕ):ℚ) = (0:ℚ)               : nat.cast_zero
+                          ... ≤ max 0 (x / (a - 1)) : le_max_left 0 _
+                          ... < N                   : hN,
     norm_cast at hh,
     exact hh },
 
@@ -245,9 +245,6 @@ begin
   have heq := le_antisymm h1 h2,
   linarith [H5 x hx, H5 _ h_big_enough]
 end
-
-lemma twice_pos_int_gt_one (z: ℤ) (hpos: 0 < z) : (1:ℚ) < (((2 * z):ℤ):ℚ) :=
-by { norm_cast, linarith }
 
 theorem imo2013_q5
   (f : ℚ → ℝ)
@@ -314,31 +311,24 @@ begin
       rw ← hfneq,
       exact H1 (n.succ.succ:ℚ) x (nat.cast_pos.mpr hn) hx },
     exact le_antisymm h2 (H3 x hx n hn) },
-  intros x hx,
-  have hrat_expand: x = x.num / x.denom,
-  { norm_cast, exact rat.num_denom.symm },
-
-  have hxcnez: (x.denom:ℚ) ≠ (0:ℚ) := ne_of_gt (nat.cast_pos.mpr x.pos),
-  have hxcnezr: (x.denom:ℝ) ≠ (0:ℝ) := ne_of_gt (nat.cast_pos.mpr x.pos),
 
   -- For the final calculation, we expand x as (2*x.num) / (2*x.denom), because
   -- we need the top of the fraction to be strictly greater than 1 in order
   -- to apply fixed_point_of_gt_1.
-
+  intros x hx,
   let x2denom := 2 * x.denom,
   let x2num := 2 * x.num,
-
-  have hx2num_gt_one : (1:ℚ) < x2num := twice_pos_int_gt_one x.num (rat.num_pos_iff_pos.mpr hx),
 
   have hx2pos := calc 0 < x.denom           : x.pos
                     ... < x.denom + x.denom : lt_add_of_pos_left x.denom x.pos
                     ... = 2 * x.denom       : by ring,
 
-  have hx2cnez: (x2denom:ℚ) ≠ (0:ℚ) := by field_simp,
-  have hx2cnezr: (x2denom:ℝ) ≠ (0:ℝ) := by field_simp,
+  have hxcnez   : (x.denom:ℚ) ≠ (0:ℚ) := ne_of_gt (nat.cast_pos.mpr x.pos),
+  have hx2cnez  : (x2denom:ℚ) ≠ (0:ℚ) := nat.cast_ne_zero.mpr (ne_of_gt hx2pos),
+  have hx2cnezr : (x2denom:ℝ) ≠ (0:ℝ) := nat.cast_ne_zero.mpr (ne_of_gt hx2pos),
 
-  have hrat_expand2 := calc x = x.num / x.denom : hrat_expand
-                          ... = x2num / x2denom : by field_simp; linarith,
+  have hrat_expand2 := calc x = x.num / x.denom : by { norm_cast, exact rat.num_denom.symm }
+                          ... = x2num / x2denom : by { field_simp, linarith [hxcnez] },
 
   have h_denom_times_fx := calc
                (x2denom:ℝ) * f x
@@ -352,7 +342,9 @@ begin
          ... = f (x2num)                       : by rw mul_one,
 
   have h_fx2num_fixed : f x2num = x2num,
-  { have hh := fixed_point_of_gt_1 hx2num_gt_one H1 H2 H4 H5 a ha1 hae,
+  { have hx2num_gt_one : (1:ℚ) < ((2 * x.num):ℤ),
+    { norm_cast, linarith [rat.num_pos_iff_pos.mpr hx] },
+    have hh := fixed_point_of_gt_1 hx2num_gt_one H1 H2 H4 H5 a ha1 hae,
     rwa (rat.cast_coe_int x2num) at hh },
 
   calc f x = f x * 1                           : (mul_one (f x)).symm

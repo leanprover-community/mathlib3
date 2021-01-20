@@ -440,7 +440,31 @@ by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
   v + vec_cons y w = vec_cons (vec_head v + y) (vec_tail v + w) :=
 by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
 
+@[simp] lemma head_add (a b : fin n.succ → α) : vec_head (a + b) = vec_head a + vec_head b := rfl
+
+@[simp] lemma tail_add (a b : fin n.succ → α) : vec_tail (a + b) = vec_tail a + vec_tail b := rfl
+
 end add
+
+section sub
+
+variables [has_sub α]
+
+@[simp] lemma empty_sub_empty (v w : fin 0 → α) : v - w = ![] := empty_eq _
+
+@[simp] lemma cons_sub (x : α) (v : fin n → α) (w : fin n.succ → α) :
+  vec_cons x v - w = vec_cons (x - vec_head w) (v - vec_tail w) :=
+by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+
+@[simp] lemma sub_cons (v : fin n.succ → α) (y : α) (w : fin n → α) :
+  v - vec_cons y w = vec_cons (vec_head v - y) (vec_tail v - w) :=
+by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+
+@[simp] lemma head_sub (a b : fin n.succ → α) : vec_head (a - b) = vec_head a - vec_head b := rfl
+
+@[simp] lemma tail_sub (a b : fin n.succ → α) : vec_tail (a - b) = vec_tail a - vec_tail b := rfl
+
+end sub
 
 section zero
 
@@ -479,6 +503,10 @@ variables [has_neg α]
 @[simp] lemma neg_cons (x : α) (v : fin n → α) :
   -(vec_cons x v) = vec_cons (-x) (-v) :=
 by { ext i, refine fin.cases _ _ i; simp }
+
+@[simp] lemma head_neg (a : fin n.succ → α) : vec_head (-a) = -vec_head a := rfl
+
+@[simp] lemma tail_neg (a : fin n.succ → α) : vec_tail (-a) = -vec_tail a := rfl
 
 end neg
 

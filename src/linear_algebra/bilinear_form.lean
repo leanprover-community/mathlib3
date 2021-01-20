@@ -1103,20 +1103,22 @@ end
 
 /-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
   `R₁` with invertible `2`. Then, there exists some `x : M` such that `B x x ≠ 0`. -/
-lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R₃)] [nontrivial M₃]
-  {B : bilin_form R₃ M₃} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) : ∃ x, B x x ≠ 0 :=
+/-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
+  `R` with invertible `2`. Then, there exists some `x : M` such that `B x x ≠ 0`. -/
+lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
+  {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) : ∃ x, B x x ≠ 0 :=
 begin
   by_contra, push_neg at h,
   have : ∀ u v, 2 * B u v = 0,
   { intros u v,
     rw [show 2 * B u v = B u u + B v u + B u v + B v v,
-          by rw [h u, h v, hB₂ v u]; ring,
+          by rw [h u, h v, hB₂ v u, two_mul, zero_add]; ring,
         show B u u + B v u + B u v + B v v = B (u + v) (u + v),
           by simp [← add_assoc], h _] },
   have hcon : ∀ u v, B u v = 0,
   { intros u v,
-    rw [show 0 = htwo.inv_of * (2 * B u v), by rw this; ring], simp [← mul_assoc] },
-  exact let ⟨v, hv⟩ := exists_ne (0 : M₃) in hv $ hB₁ v (hcon v),
+    rw [show 0 = htwo.inv_of * (2 * B u v), by rw [this, mul_zero]], simp [← mul_assoc] },
+  exact let ⟨v, hv⟩ := exists_ne (0 : M) in hv $ hB₁ v (hcon v),
 end
 
 variables {V : Type u} {K : Type v}

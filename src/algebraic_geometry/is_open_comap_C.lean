@@ -38,7 +38,7 @@ then its image in `Spec R` is contained in the open where at least one of the co
 of `f` is non-zero.  Such an open set is called `image_of_Df f` and actually coincides
 with the image of `basic_open f`.
 This lemma is a reformulation of `exists_coeff_not_mem_C_inverse`. -/
-lemma C_comap_mem_image_of_Df {f : polynomial R} {I : prime_spectrum (polynomial R)}
+lemma comap_C_mem_image_of_Df {f : polynomial R} {I : prime_spectrum (polynomial R)}
   (H : I ∈ (zero_locus {f} : set (prime_spectrum (polynomial R)))ᶜ ) :
   comap (polynomial.C : R →+* polynomial R) I ∈ image_of_Df f :=
 exists_coeff_not_mem_C_inverse (mem_compl_zero_locus_iff_not_mem.mp H)

@@ -697,6 +697,9 @@ def smul_rightₗ (c : M →L[R] R) : M₂ →ₗ[R] (M →L[R] M₂) :=
   map_add' := λ x y, by { ext e, apply smul_add },
   map_smul' := λ a x, by { ext e, apply smul_comm } }
 
+@[simp] lemma coe_smul_rightₗ (c : M →L[R] R) :
+  ⇑(smul_rightₗ c : M₂ →ₗ[R] (M →L[R] M₂)) = c.smul_right := rfl
+
 end comm_ring
 
 end continuous_linear_map

@@ -6,6 +6,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 import linear_algebra.finite_dimensional
 import analysis.normed_space.riesz_lemma
 import analysis.asymptotics
+import algebra.algebra.tower
 
 /-!
 # Operator norm on the space of continuous linear maps
@@ -16,7 +17,6 @@ its basic properties. In particular, show that this space is itself a normed spa
 
 noncomputable theory
 open_locale classical nnreal topological_space
-
 
 variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
 [normed_group E] [normed_group F] [normed_group G]
@@ -106,7 +106,7 @@ lemma linear_map.continuous_iff_is_closed_ker {f : E →ₗ[𝕜] 𝕜} :
   continuous f ↔ is_closed (f.ker : set E) :=
 begin
   -- the continuity of f obviously implies that its kernel is closed
-  refine ⟨λh, (continuous_iff_is_closed.1 h) {0} (t1_space.t1 0), λh, _⟩,
+  refine ⟨λh, (t1_space.t1 (0 : 𝕜)).preimage h, λh, _⟩,
   -- for the other direction, we assume that the kernel is closed
   by_cases hf : ∀x, x ∈ f.ker,
   { -- if `f = 0`, its continuity is obvious
@@ -158,16 +158,18 @@ end
 
 end normed_field
 
-section add_monoid_hom
+namespace add_monoid_hom
 
-lemma add_monoid_hom.isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+/-- An additive group homomorphism between two normed groupsis an isometry if and only if it
+preserves the norm. -/
+lemma isometry_iff_norm (f : E →+ F) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
 begin
-  intros x y,
-  simp_rw [edist_dist],
-  congr',
-  simp_rw [dist_eq_norm, ←add_monoid_hom.map_sub],
-  exact hf (x - y),
+  simp only [isometry_emetric_iff_metric, dist_eq_norm, ← f.map_sub],
+  exact ⟨λ h x, by simpa only [sub_zero] using h x 0, λ h x y, h _⟩,
 end
+
+lemma isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+f.isometry_iff_norm.2 hf
 
 end add_monoid_hom
 
@@ -409,40 +411,44 @@ instance to_normed_algebra [nontrivial E] : normed_algebra 𝕜 (E →L[𝕜] E)
     by {rw [norm_smul, norm_id], simp},
   .. continuous_linear_map.algebra }
 
+theorem le_op_norm₂ (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) :
+  ∥f x y∥ ≤ ∥f∥ * ∥x∥ * ∥y∥ :=
+(f x).le_of_op_norm_le (f.le_op_norm x) y
+
+theorem op_norm_le_bound₂ (f : E →L[𝕜] F →L[𝕜] G) {C : ℝ} (h0 : 0 ≤ C)
+  (hC : ∀ x y, ∥f x y∥ ≤ C * ∥x∥ * ∥y∥) :
+  ∥f∥ ≤ C :=
+f.op_norm_le_bound h0 $ λ x,
+  (f x).op_norm_le_bound (mul_nonneg h0 (norm_nonneg _)) $ hC x
+
+lemma op_norm_prod (f : E →L[𝕜] F) (g : E →L[𝕜] G) : ∥f.prod g∥ = ∥(f, g)∥ :=
+le_antisymm
+  (op_norm_le_bound _ (norm_nonneg _) $ λ x,
+    by simpa only [prod_apply, prod.norm_def, max_mul_of_nonneg, norm_nonneg]
+      using max_le_max (le_op_norm f x) (le_op_norm g x)) $
+  max_le
+    (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_left _ _).trans ((f.prod g).le_op_norm x))
+    (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_right _ _).trans ((f.prod g).le_op_norm x))
+
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
 f.lipschitz.uniform_continuous
 
 variable {f}
+
 /-- A continuous linear map is an isometry if and only if it preserves the norm. -/
-lemma isometry_iff_norm_image_eq_norm :
+lemma isometry_iff_norm :
   isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
-begin
-  rw isometry_emetric_iff_metric,
-  split,
-  { assume H x,
-    have := H x 0,
-    rwa [dist_eq_norm, dist_eq_norm, f.map_zero, sub_zero, sub_zero] at this },
-  { assume H x y,
-    rw [dist_eq_norm, dist_eq_norm, ← f.map_sub, H] }
-end
+f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
 
 lemma homothety_norm [nontrivial E] (f : E →L[𝕜] F) {a : ℝ} (hf : ∀x, ∥f x∥ = a * ∥x∥) :
   ∥f∥ = a :=
 begin
   obtain ⟨x, hx⟩ : ∃ (x : E), x ≠ 0 := exists_ne 0,
-  have ha : 0 ≤ a,
-  { apply nonneg_of_mul_nonneg_right,
-    rw ← hf x,
-    apply norm_nonneg,
-    exact norm_pos_iff.mpr hx },
-  refine le_antisymm_iff.mpr ⟨_, _⟩,
-  { exact continuous_linear_map.op_norm_le_bound f ha (λ y, le_of_eq (hf y)) },
-  { rw continuous_linear_map.norm_def,
-    apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
-    intros c h, rw mem_set_of_eq at h,
-    apply (mul_le_mul_right (norm_pos_iff.mpr hx)).mp,
-    rw ← hf x, exact h.2 x }
+  rw ← norm_pos_iff at hx,
+  have ha : 0 ≤ a, by simpa [hf, hx] using norm_nonneg (f x),
+  apply le_antisymm (f.op_norm_le_bound ha (λ y, le_of_eq (hf y))),
+  simpa [hf, hx] using f.le_op_norm x,
 end
 
 lemma to_span_singleton_norm (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
@@ -644,11 +650,50 @@ end op_norm
 
 end continuous_linear_map
 
+namespace linear_map
+
+/-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
+then its norm is bounded by the bound given to the constructor, or zero if this bound is negative. -/
+lemma mk_continuous_norm_le' (f : E →ₗ[𝕜] F) {C : ℝ} (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ∥f.mk_continuous C h∥ ≤ max C 0 :=
+continuous_linear_map.op_norm_le_bound _ (le_max_iff.2 $ or.inr le_rfl) $
+  λ x, (h x).trans $ mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg x)
+
 /-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
 then its norm is bounded by the bound given to the constructor if it is nonnegative. -/
-lemma linear_map.mk_continuous_norm_le (f : E →ₗ[𝕜] F) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+lemma mk_continuous_norm_le (f : E →ₗ[𝕜] F) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ∥f.mk_continuous C h∥ ≤ C :=
 continuous_linear_map.op_norm_le_bound _ hC h
+
+/-- Create a bilinear map (represented as a map `E →L[𝕜] F →L[𝕜] G`) from the corresponding linear
+map and a bound on the norm of the image. The linear map can be constructed using
+`linear_map.mk₂`. -/
+def mk_continuous₂ (f : E →ₗ[𝕜] F →ₗ[𝕜] G) (C : ℝ)
+  (hC : ∀ x y, ∥f x y∥ ≤ C * ∥x∥ * ∥y∥) :
+  E →L[𝕜] F →L[𝕜] G :=
+linear_map.mk_continuous
+  { to_fun := λ x, (f x).mk_continuous (C * ∥x∥) (hC x),
+    map_add' := λ x y, by { ext z, simp },
+    map_smul' := λ c x, by { ext z, simp } }
+  (max C 0) $ λ x, (mk_continuous_norm_le' _ _).trans_eq $
+    by rw [max_mul_of_nonneg _ _ (norm_nonneg x), zero_mul]
+
+@[simp] lemma mk_continuous₂_apply (f : E →ₗ[𝕜] F →ₗ[𝕜] G) {C : ℝ}
+  (hC : ∀ x y, ∥f x y∥ ≤ C * ∥x∥ * ∥y∥) (x : E) (y : F) :
+  f.mk_continuous₂ C hC x y = f x y :=
+rfl
+
+lemma mk_continuous₂_norm_le' (f : E →ₗ[𝕜] F →ₗ[𝕜] G) {C : ℝ}
+  (hC : ∀ x y, ∥f x y∥ ≤ C * ∥x∥ * ∥y∥) :
+  ∥f.mk_continuous₂ C hC∥ ≤ max C 0 :=
+mk_continuous_norm_le _ (le_max_iff.2 $ or.inr le_rfl) _
+
+lemma mk_continuous₂_norm_le (f : E →ₗ[𝕜] F →ₗ[𝕜] G) {C : ℝ} (h0 : 0 ≤ C)
+  (hC : ∀ x y, ∥f x y∥ ≤ C * ∥x∥ * ∥y∥) :
+  ∥f.mk_continuous₂ C hC∥ ≤ C :=
+(f.mk_continuous₂_norm_le' hC).trans_eq $ max_eq_left h0
+
+end linear_map
 
 namespace continuous_linear_map
 
@@ -664,78 +709,121 @@ begin
      ... ≤ (∥c∥ * ∥x∥) * ∥f∥ :
        mul_le_mul_of_nonneg_right (le_op_norm _ _) (norm_nonneg _)
      ... = ∥c∥ * ∥f∥ * ∥x∥ : by ring },
-  { by_cases h : ∥f∥ = 0,
-    { rw h, simp [norm_nonneg] },
-    { have : 0 < ∥f∥ := lt_of_le_of_ne (norm_nonneg _) (ne.symm h),
+  { by_cases h : f = 0,
+    { rw h, simp },
+    { have : 0 < ∥f∥ := norm_pos_iff.2 h,
       rw ← le_div_iff this,
       apply op_norm_le_bound _ (div_nonneg (norm_nonneg _) (norm_nonneg f)) (λx, _),
       rw [div_mul_eq_mul_div, le_div_iff this],
       calc ∥c x∥ * ∥f∥ = ∥c x • f∥ : (norm_smul _ _).symm
-      ... = ∥((smul_right c f) : E → F) x∥ : rfl
+      ... = ∥smul_right c f x∥ : rfl
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
 
-/-- Given `c : c : E →L[𝕜] 𝕜`, `c.smul_rightL` is the continuous linear map from `F` to `E →L[𝕜] F`
+variables (𝕜 E F)
+-- TODO: rewrite docstring
+/-- Given `c : E →L[𝕜] 𝕜`, `c.smul_rightL` is the continuous linear map from `F` to `E →L[𝕜] F`
 sending `f` to `λ e, c e • f`. -/
-def smul_rightL (c : E →L[𝕜] 𝕜) : F →L[𝕜] (E →L[𝕜] F) :=
-(c.smul_rightₗ : F →ₗ[𝕜] (E →L[𝕜] F)).mk_continuous _ (λ f, le_of_eq $ c.norm_smul_right_apply f)
+def smul_rightL : (E →L[𝕜] 𝕜) →L[𝕜] F →L[𝕜] (E →L[𝕜] F) :=
+linear_map.mk_continuous₂
+  { to_fun := smul_rightₗ,
+    map_add' := λ c₁ c₂, by { ext x, simp [add_smul] },
+    map_smul' := λ m c, by { ext x, simp [smul_smul] } }
+  1 $ λ c x, by simp
+
+variables {𝕜 E F}
 
 @[simp] lemma norm_smul_rightL_apply (c : E →L[𝕜] 𝕜) (f : F) :
-  ∥c.smul_rightL f∥ = ∥c∥ * ∥f∥ :=
+  ∥smul_rightL 𝕜 E F c f∥ = ∥c∥ * ∥f∥ :=
 by simp [continuous_linear_map.smul_rightL, continuous_linear_map.smul_rightₗ]
 
 @[simp] lemma norm_smul_rightL (c : E →L[𝕜] 𝕜) [nontrivial F] :
-  ∥(c.smul_rightL : F →L[𝕜] (E →L[𝕜] F))∥ = ∥c∥ :=
+  ∥smul_rightL 𝕜 E F c∥ = ∥c∥ :=
 continuous_linear_map.homothety_norm _ c.norm_smul_right_apply
 
 variables (𝕜 F)
 
-/-- The linear map obtained by applying a continuous linear map at a given vector. -/
-def applyₗ (v : E) : (E →L[𝕜] F) →ₗ[𝕜] F :=
-{ to_fun := λ f, f v,
-  map_add' := λ f g, f.add_apply g v,
-  map_smul' := λ x f, f.smul_apply x v }
-
-lemma continuous_applyₗ (v : E) : continuous (continuous_linear_map.applyₗ 𝕜 F v) :=
-begin
-  apply (continuous_linear_map.applyₗ 𝕜 F v).continuous_of_bound,
-  intro f,
-  rw mul_comm,
-  exact f.le_op_norm v,
-end
-
-/-- The continuous linear map obtained by applying a continuous linear map at a given vector. -/
-def apply (v : E) : (E →L[𝕜] F) →L[𝕜] F :=
-⟨continuous_linear_map.applyₗ 𝕜 F v, continuous_linear_map.continuous_applyₗ _ _ _⟩
+/-- Evaluation of a `continuous_linear_map` at a point as a continuous bilinear map. -/
+def apply : E →L[𝕜] (E →L[𝕜] F) →L[𝕜] F :=
+linear_map.mk_continuous₂
+  (linear_map.mk₂ 𝕜 (λ x f, f x) (λ x y f, f.map_add x y) (λ c x f, f.map_smul c x)
+    (λ x f g, rfl) (λ c x f, rfl)) 
+  1 $ λ x f, by simpa [mul_comm] using f.le_op_norm x
 
 variables {𝕜 F}
 
 @[simp] lemma apply_apply (v : E) (f : E →L[𝕜] F) : apply 𝕜 F v f = f v := rfl
 
+variables (𝕜 E F G)
+
+/-- Composition of continuous linear maps as a continuous bilinear map. -/
+def compL : (F →L[𝕜] G) →L[𝕜] (E →L[𝕜] F) →L[𝕜] (E →L[𝕜] G) :=
+linear_map.mk_continuous₂
+  (linear_map.mk₂ _ comp add_comp smul_comp comp_add (λ c f g, comp_smul _ _ _))
+  1 $ λ f g, by simpa only [one_mul] using op_norm_comp_le f g
+
+variables {𝕜 E F G}
+
+@[simp] lemma compL_apply (f : F →L[𝕜] G) (g : E →L[𝕜] F) : compL 𝕜 E F G f g = f.comp g := rfl
+
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
+/-- Multiplication in normed algebra as a continuous bilinear map. -/
+def lmul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+(algebra.lmul 𝕜 𝕜').to_linear_map.mk_continuous₂ 1 $
+  λ x y, by simpa using norm_mul_le x y
+
+@[simp] lemma lmul_apply (x y : 𝕜') : lmul 𝕜 𝕜' x y = x * y := rfl
+
+@[simp] lemma op_norm_lmul_apply (x : 𝕜') : ∥lmul 𝕜 𝕜' x∥ = ∥x∥ :=
+le_antisymm
+  (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
+  (by simpa [normed_algebra.norm_one 𝕜 𝕜'] using (lmul 𝕜 𝕜' x).le_op_norm 1)
+
+@[simp] lemma op_norm_lmul : ∥lmul 𝕜 𝕜'∥ = 1 :=
+le_antisymm (linear_map.mk_continuous₂_norm_le _ zero_le_one _)
+  (by simpa [normed_algebra.norm_one 𝕜 𝕜'] using (lmul 𝕜 𝕜').le_op_norm 1)
+
 /-- Left-multiplication in a normed algebra, considered as a continuous linear map. -/
-def lmul_left : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
-λ x, (algebra.lmul_left 𝕜 x).mk_continuous ∥x∥
-(λ y, by {rw algebra.lmul_left_apply, exact norm_mul_le x y})
+def lmul_left (x : 𝕜') : (𝕜' →L[𝕜] 𝕜') :=
+lmul 𝕜 𝕜' x
+
+@[simp] lemma lmul_left_apply (x y : 𝕜') : lmul_left 𝕜 𝕜' x y = x * y := rfl
+@[simp] lemma op_norm_lmul_left (x : 𝕜') : ∥lmul_left 𝕜 𝕜' x∥ = ∥x∥ :=
+op_norm_lmul_apply _ _ _
 
 /-- Right-multiplication in a normed algebra, considered as a continuous linear map. -/
 def lmul_right : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
 λ x, (algebra.lmul_right 𝕜 x).mk_continuous ∥x∥
 (λ y, by {rw [algebra.lmul_right_apply, mul_comm], exact norm_mul_le y x})
 
+@[simp] lemma lmul_right_apply (x y : 𝕜') : lmul_right 𝕜 𝕜' x y = y * x := rfl
+
+@[simp] lemma op_norm_lmul_right (x : 𝕜') : ∥lmul_right 𝕜 𝕜' x∥ = ∥x∥ :=
+le_antisymm (linear_map.mk_continuous_norm_le _ (norm_nonneg _) _)
+  (by simpa [normed_algebra.norm_one 𝕜 𝕜'] using (lmul_right 𝕜 𝕜' x).le_op_norm 1)
+
 /-- Simultaneous left- and right-multiplication in a normed algebra, considered as a continuous
 linear map. -/
 def lmul_left_right (vw : 𝕜' × 𝕜') : 𝕜' →L[𝕜] 𝕜' :=
 (lmul_right 𝕜 𝕜' vw.2).comp (lmul_left 𝕜 𝕜' vw.1)
 
-@[simp] lemma lmul_left_apply (x y : 𝕜') : lmul_left 𝕜 𝕜' x y = x * y := rfl
-@[simp] lemma lmul_right_apply (x y : 𝕜') : lmul_right 𝕜 𝕜' x y = y * x := rfl
 @[simp] lemma lmul_left_right_apply (vw : 𝕜' × 𝕜') (x : 𝕜') :
   lmul_left_right 𝕜 𝕜' vw x = vw.1 * x * vw.2 := rfl
 
 end multiplication_linear
+
+section smul_linear
+
+variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+  [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
+
+def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
+((algebra.lsmul 𝕜 E).to_linear_map : 𝕜' →ₗ[𝕜] E →ₗ[𝕜] E).mk_continuous₂ 1 $
+  λ c x, by simpa only [one_mul] using (norm_smul c x).le
+
+end smul_linear
 
 section restrict_scalars
 
@@ -931,14 +1019,21 @@ begin
   rw [← mul_assoc, inv_mul_cancel (ne_of_lt ha).symm, one_mul],
 end
 
-variable (𝕜)
-
 /-- A linear equivalence which is a homothety is a continuous linear equivalence. -/
 def of_homothety (f : E ≃ₗ[𝕜] F) (a : ℝ) (ha : 0 < a) (hf : ∀x, ∥f x∥ = a * ∥x∥) : E ≃L[𝕜] F :=
 { to_linear_equiv := f,
   continuous_to_fun := f.to_linear_map.continuous_of_bound a (λ x, le_of_eq (hf x)),
   continuous_inv_fun := f.symm.to_linear_map.continuous_of_bound a⁻¹
     (λ x, le_of_eq (homothety_inverse a ha f hf x)) }
+
+def of_linear_isometry (f : E ≃ₗ[𝕜] F) (h : ∀ x, ∥f x∥ = ∥x∥) : E ≃L[𝕜] F :=
+of_homothety f 1 zero_lt_one $ λ x, by simpa only [one_mul] using h x
+
+lemma of_linear_isometry_isometry (f : E ≃ₗ[𝕜] F) (h) :
+  isometry (of_linear_isometry f h) :=
+add_monoid_hom.isometry_of_norm ⟨f, f.map_zero, f.map_add⟩ h
+
+variable (𝕜)
 
 lemma to_span_nonzero_singleton_homothety (x : E) (h : x ≠ 0) (c : 𝕜) :
   ∥linear_equiv.to_span_nonzero_singleton 𝕜 E x h c∥ = ∥x∥ * ∥c∥ :=
@@ -947,7 +1042,7 @@ continuous_linear_map.to_span_singleton_homothety _ _ _
 /-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural
     continuous linear equivalence from `E` to the span of `x`.-/
 def to_span_nonzero_singleton (x : E) (h : x ≠ 0) : 𝕜 ≃L[𝕜] (𝕜 ∙ x) :=
-of_homothety 𝕜
+of_homothety
   (linear_equiv.to_span_nonzero_singleton 𝕜 E x h)
   ∥x∥
   (norm_pos_iff.mpr h)
@@ -990,13 +1085,6 @@ def linear_equiv.to_continuous_linear_equiv_of_bounds (e : E ≃ₗ[𝕜] F) (C_
 namespace continuous_linear_map
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
-@[simp] lemma lmul_left_norm (v : 𝕜') : ∥lmul_left 𝕜 𝕜' v∥ = ∥v∥ :=
-begin
-  refine le_antisymm _ _,
-  { exact linear_map.mk_continuous_norm_le _ (norm_nonneg v) _ },
-  { simpa [@normed_algebra.norm_one 𝕜 _ 𝕜' _ _] using le_op_norm (lmul_left 𝕜 𝕜' v) (1:𝕜') }
-end
-
 @[simp] lemma lmul_right_norm (v : 𝕜') : ∥lmul_right 𝕜 𝕜' v∥ = ∥v∥ :=
 begin
   refine le_antisymm _ _,
@@ -1007,5 +1095,72 @@ end
 lemma lmul_left_right_norm_le (vw : 𝕜' × 𝕜') :
   ∥lmul_left_right 𝕜 𝕜' vw∥ ≤ ∥vw.1∥ * ∥vw.2∥ :=
 by simpa [mul_comm] using op_norm_comp_le (lmul_right 𝕜 𝕜' vw.2) (lmul_left 𝕜 𝕜' vw.1)
+
+variables {𝕜}
+
+
+/-- Flip the order of arguments of a continuous bilinear map. This is an auxiliary definition,
+the public API is `continuous_linear_map.flip`. -/
+def flip_aux (f : E →L[𝕜] F →L[𝕜] G) : F →L[𝕜] E →L[𝕜] G :=
+linear_map.mk_continuous₂
+  (linear_map.mk₂ 𝕜 (λ y x, f x y) (λ x y z, (f z).map_add x y) (λ c y x, (f x).map_smul c y)
+    (λ z x y, by rw [f.map_add, add_apply]) (λ c y x, by rw [map_smul, smul_apply]))
+  ∥f∥ (λ y x, (f.le_op_norm₂ x y).trans_eq $ by rw mul_right_comm)
+
+private lemma le_norm_flip_aux (f : E →L[𝕜] F →L[𝕜] G) : ∥f∥ ≤ ∥flip_aux f∥ :=
+f.op_norm_le_bound₂ (norm_nonneg _) $ λ x y,
+  by { rw mul_right_comm, exact (flip_aux f).le_op_norm₂ y x }
+
+lemma norm_flip_aux (f : E →L[𝕜] F →L[𝕜] G) : ∥flip_aux f∥ = ∥f∥ :=
+le_antisymm (le_norm_flip_aux $ flip_aux f) (le_norm_flip_aux f)
+
+lemma flip_aux_add (f g : E →L[𝕜] F →L[𝕜] G) : flip_aux (f + g) = flip_aux f + flip_aux g := rfl
+
+lemma flip_aux_smul (c : 𝕜) (f : E →L[𝕜] F →L[𝕜] G) : flip_aux (c • f) = c • flip_aux f := rfl
+
+variables (𝕜 E F G)
+
+/-- Flip the order of arguments of a continuous bilinear map. -/
+def flip : (E →L[𝕜] F →L[𝕜] G) ≃L[𝕜] (F →L[𝕜] E →L[𝕜] G) :=
+continuous_linear_equiv.of_linear_isometry
+  { to_fun := flip_aux,
+    inv_fun := flip_aux,
+    map_add' := λ f g, rfl,
+    map_smul' := λ c f, rfl,
+    left_inv := λ f, by { ext, refl },
+    right_inv := λ f, by { ext, refl } }
+  norm_flip_aux
+
+variables {𝕜 E F G}
+
+@[simp] lemma flip_symm : (flip 𝕜 E F G).symm = flip 𝕜 F E G := rfl
+
+@[simp] lemma flip_apply (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) :
+  flip 𝕜 E F G f y x = f x y := rfl
+
+@[simp] lemma norm_flip (f : E →L[𝕜] F →L[𝕜] G) : ∥flip 𝕜 E F G f∥ = ∥f∥ := norm_flip_aux f
+
+/-
+def arrow_prod_equiv_prod_arrow : (E →L[𝕜] (F × G)) ≃L[𝕜] ((E →L[𝕜] F) × (E →L[𝕜] G)) :=
+continuous_linear_equiv.symm $ continuous_linear_equiv.of_linear_isometry
+  (linear_equiv.symm
+    { inv_fun := λ f, f.1.prod f.2,
+      left_inv := λ f, by ext x; dsimp; refl,
+      right_inv := λ ⟨f, g⟩, by { ext1; ext1 x; refl },
+      .. (compL 𝕜 E (F × G) F (fst 𝕜 F G)).prod (compL 𝕜 E (F × G) G (snd 𝕜 F G)) }) $
+  λ ⟨f, g⟩, op_norm_prod f g
+-/
+
+/-- Derivative of a continuous bilinear map `f : E →L[𝕜] F →L[𝕜] G` interpreted as a map `E × F → G`
+at point `p : E × F` evaluated at `q : E × F`, as a continuous trilinear map. -/
+def deriv₂ (f : E →L[𝕜] F →L[𝕜] G) (p : E × F) : E × F →L[𝕜] G :=
+(f p.1).comp (snd 𝕜 E F) + (flip 𝕜 E F G f p.2).comp (fst 𝕜 E F)
+
+@[simp] lemma coe_deriv₂ (f : E →L[𝕜] F →L[𝕜] G) (p : E × F) :
+  ⇑(f.deriv₂ p) = λ q : E × F, f p.1 q.2 + f q.1 p.2 := rfl
+
+lemma map_add₂ (f : E →L[𝕜] F →L[𝕜] G) (x x' : E) (y y' : F) :
+  f (x + x') (y + y') = f x y + f.deriv₂ (x, y) (x', y') + f x' y' :=
+by simp only [map_add, add_apply, coe_deriv₂, add_assoc]
 
 end continuous_linear_map

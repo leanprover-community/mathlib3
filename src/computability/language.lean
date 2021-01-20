@@ -261,7 +261,7 @@ begin
   refl
 end
 
-@[simp] lemma one_add_star_mul_self_eq_star (l : language α) : 1 + l.star*l = l.star :=
+@[simp] lemma one_add_star_mul_self_eq_star (l : language α) : 1 + l.star * l = l.star :=
 begin
   rw [star_eq_supr_pow, supr_mul, add_def, supr_split_single (λ i, l ^ i) 0],
   have h : (⨆ (i : ℕ), l ^ i * l) = ⨆ (i : ℕ) (h : i ≠ 0), (λ (i : ℕ), l ^ i) i,
@@ -279,7 +279,7 @@ begin
   refl
 end
 
-lemma star_mul_le_right_of_mul_le_right (l m : language α) : l*m ≤ m → l.star*m ≤ m :=
+lemma star_mul_le_right_of_mul_le_right (l m : language α) : l * m ≤ m → l.star * m ≤ m :=
 begin
   intro h,
   rw [star_eq_supr_pow, supr_mul],
@@ -291,7 +291,7 @@ begin
   exact le_trans (le_mul_congr (le_refl _) h) ih,
 end
 
-lemma star_mul_le_left_of_mul_le_left (l m : language α) : m*l ≤ m → m*l.star ≤ m :=
+lemma star_mul_le_left_of_mul_le_left (l m : language α) : m * l ≤ m → m * l.star ≤ m :=
 begin
   intro h,
   rw [star_eq_supr_pow, mul_supr],

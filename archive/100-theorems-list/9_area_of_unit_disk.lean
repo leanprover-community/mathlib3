@@ -358,29 +358,24 @@ end
 /-- The volume between two functions can be respresented as an integral -/
 theorem volume_between_eq_integral (u_int : integrable_on u s) (v_int : integrable_on v s)
   (u_meas : measurable u) (v_meas : measurable v) (hs : is_measurable s)
-  (huv : ∀ x, u x ≤ v x) :
+  (huv : ∀ x ∈ s, u x ≤ v x) :
   volume.prod volume (volume_between u v s) = ennreal.of_real (∫ y in s, (v - u) y) :=
 begin
   rw measure.prod_apply (is_measurable_volume_between u_meas v_meas hs),
-  { dsimp only [volume_between, preimage_set_of_eq],
-    have x_in : ∀ x : α, x ∈ s → {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = Ioo (u x) (v x) :=
+  { have x_in : ∀ x : α, x ∈ s → {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = Ioo (u x) (v x) :=
       λ x hx, by simp only [set_of_and, hx, Ioo, mem_set_of_eq, set_of_true, univ_inter, mem_inter_eq],
     have x_out : ∀ x : α, x ∉ s → {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = ∅ :=
       λ x hx, by simp only [mem_Ico, hx, set_of_false, false_and],
-    have h : (λ x, volume {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)})
-           = s.indicator (λ x, ennreal.of_real (v x - u x)),
-    { funext x,
-      rw indicator_apply,
-      split_ifs,
-      { simp only [x_in x h, volume_Ioo], },
-      { simp only [x_out x h, measure_empty] } },
+    let g : α → nnreal := λ x, if h : x ∈ s then ⟨v x - u x, by linarith [huv _ h]⟩ else 0,
+    have h : (λ x, volume (prod.mk x ⁻¹' volume_between u v s)) = s.indicator (λ x, ↑(g x)),
+    { simp only [volume_between, preimage_set_of_eq],
+      sorry },
     rw [h, lintegral_indicator],
-    { convert ← lintegral_coe_eq_integral (λ y, nnreal.of_real (v y - u y)) _,
-      { funext a,
-        simp only [pi.sub_apply, nnreal.coe_of_real (v a - u a) (by linarith [huv a])] },
-      { convert v_int.sub u_int,
-        funext a,
-        simp only [pi.sub_apply, nnreal.coe_of_real (v a - u a) (by linarith [huv a])] } },
+    have h₂ : v - u =ᵐ[volume.restrict s] (λ x, ↑(g x)),
+    { sorry },
+    rw integral_congr_ae h₂,
+    rw lintegral_coe_eq_integral,
+    sorry,
     { exact hs } },
   { apply_instance },
 end

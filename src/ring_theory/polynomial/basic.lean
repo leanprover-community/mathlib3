@@ -307,7 +307,7 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
 }
 
 /-- If `P` is a prime ideal of `R`, then `R[x]/(P)` is an integral domain. -/
-lemma is_integral_domain_C_map_quotient {P : ideal R} (H : is_prime P) :
+lemma is_integral_domain_map_C_quotient {P : ideal R} (H : is_prime P) :
   is_integral_domain (quotient (map C P : ideal (polynomial R))) :=
 ring_equiv.is_integral_domain (polynomial (quotient P))
   (integral_domain.to_is_integral_domain (polynomial (quotient P)))

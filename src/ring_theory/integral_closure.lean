@@ -129,6 +129,15 @@ theorem is_integral_of_subring {x : A} (T : set R) [is_subring T]
   (hx : is_integral T x) : is_integral R x :=
 is_integral_of_is_scalar_tower x hx
 
+lemma is_integral_algebra_map_iff [algebra A B] [is_scalar_tower R A B]
+  {x : A} (hAB : function.injective (algebra_map A B)) :
+  is_integral R (algebra_map A B x) ↔ is_integral R x :=
+begin
+  split; rintros ⟨f, hf, hx⟩; use [f, hf],
+  { exact is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero R A B hAB hx },
+  { rw [is_scalar_tower.algebra_map_eq R A B, ← hom_eval₂, hx, ring_hom.map_zero] }
+end
+
 theorem is_integral_iff_is_integral_closure_finite {r : A} :
   is_integral R r ↔ ∃ s : set R, s.finite ∧ is_integral (ring.closure s) r :=
 begin

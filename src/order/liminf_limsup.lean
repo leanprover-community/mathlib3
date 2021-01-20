@@ -277,12 +277,7 @@ lemma liminf_congr {α : Type*} [conditionally_complete_lattice β] {f : filter 
 
 lemma limsup_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} [ne_bot f]
   (b : β) : limsup f (λ x, b) = b :=
-begin
-  rw limsup_eq,
-  apply le_antisymm,
-  { exact cInf_le ⟨b, λ a, eventually_const.1⟩ (eventually_le.refl _ _) },
-  { exact le_cInf ⟨b, eventually_le.refl _ _⟩ (λ a, eventually_const.1) }
-end
+by simpa only [limsup_eq, eventually_const] using cInf_Ici
 
 lemma liminf_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} [ne_bot f]
   (b : β) : liminf f (λ x, b) = b :=

@@ -1199,6 +1199,12 @@ subtype.eta _ _
 lemma dist_pi_def (f g : Πb, π b) :
   dist f g = (sup univ (λb, nndist (f b) (g b)) : ℝ≥0) := rfl
 
+@[simp] lemma dist_pi_const [nonempty β] (a b : α) : dist (λ x : β, a) (λ _, b) = dist a b :=
+by simpa only [dist_edist] using congr_arg ennreal.to_real (edist_pi_const a b)
+
+@[simp] lemma nndist_pi_const [nonempty β] (a b : α) : nndist (λ x : β, a) (λ _, b) = nndist a b :=
+nnreal.eq $ dist_pi_const a b
+
 lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
   dist f g < r ↔ ∀b, dist (f b) (g b) < r :=
 begin

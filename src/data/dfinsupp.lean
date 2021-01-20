@@ -722,6 +722,14 @@ lemma prod_neg_index [Π i, add_group (β i)] [Π i (x : β i), decidable (x ≠
 prod_map_range_index h0
 
 omit dec
+@[to_additive]
+lemma prod_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ → Type*}
+  [decidable_eq ι₁] [decidable_eq ι₂] [Π i, has_zero (β₁ i)] [Π i, has_zero (β₂ i)]
+  [Π i (x : β₁ i), decidable (x ≠ 0)] [Π i (x : β₂ i), decidable (x ≠ 0)] [comm_monoid γ]
+  (f₁ : Π₀ i, β₁ i) (f₂ : Π₀ i, β₂ i) (h : Π i, β₁ i → Π i, β₂ i → γ) :
+  f₁.prod (λ i₁ x₁, f₂.prod $ λ i₂ x₂, h i₁ x₁ i₂ x₂) =
+  f₂.prod (λ i₂ x₂, f₁.prod $ λ i₁ x₁, h i₁ x₁ i₂ x₂) := finset.prod_comm
+
 @[simp] lemma sum_apply {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
   [Π i₁, has_zero (β₁ i₁)] [Π i (x : β₁ i), decidable (x ≠ 0)]
   [Π i, add_comm_monoid (β i)]

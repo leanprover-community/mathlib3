@@ -55,7 +55,7 @@ def conj_equiv (b : α) : α ≃* α :=
   map_mul' := λ a b, conj_mul.symm }
 
 lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
-(conj_hom x).injective
+(conj_equiv x).injective
 
 @[simp] lemma is_conj_iff_eq {α : Type*} [comm_group α] {a b : α} : is_conj a b ↔ a = b :=
 ⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩

@@ -794,15 +794,10 @@ lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
-@[protect_proj] class domain (α : Type u) extends ring α, nontrivial α :=
-(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
+@[protect_proj] class domain (α : Type u) extends ring α, nontrivial α, no_zero_divisors α
 
 section domain
 variable [domain α]
-
-@[priority 100] -- see Note [lower instance priority]
-instance domain.to_no_zero_divisors : no_zero_divisors α :=
-⟨domain.eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=

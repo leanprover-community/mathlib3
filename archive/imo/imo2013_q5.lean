@@ -104,19 +104,23 @@ lemma pos_on_pos_rats {f : ℚ → ℝ} {q : ℚ} (hq : 0 < q)
      (H4 : ∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n) :
       0 < f q :=
 begin
-  have hfqn : f q.num ≤ f q * f q.denom,
-  { have := H1 q q.denom hq (nat.cast_pos.mpr q.pos),
-    rwa ←rat.mul_denom_eq_num },
-  have hqnp : 0 < q.num := rat.num_pos_iff_pos.mpr hq,
-  have hqna : ((int.nat_abs q.num):ℤ) = q.num := int.nat_abs_of_nonneg (le_of_lt hqnp),
-  have hqfn': (q.num: ℝ) ≤ f q.num,
-  { rw ←hqna at hqnp,
-    have := H4 q.num.nat_abs (int.coe_nat_pos.mp hqnp),
-    rw ←hqna,
-    rwa [int.cast_coe_nat q.num.nat_abs] },
-  have hqnz := calc (0:ℝ) < q.num : int.cast_pos.mpr hqnp
-                      ... ≤ f q.num : hqfn',
-  have hqdz :=
+  have hfqn := calc f q.num = f (q * q.denom) : by rw ←rat.mul_denom_eq_num
+                        ... ≤ f q * f q.denom : H1 q q.denom hq (nat.cast_pos.mpr q.pos),
+
+  -- Now we just need to show that `f q.num` and `f q.denom` are positive,
+  -- and then nlinarith will be able to close the goal.
+
+  have num_pos : 0 < q.num := rat.num_pos_iff_pos.mpr hq,
+  have hqna : (q.num.nat_abs:ℤ) = q.num := int.nat_abs_of_nonneg (le_of_lt num_pos),
+  have hqfn' := calc (q.num:ℝ)
+             = ((q.num.nat_abs:ℤ):ℝ) : congr_arg coe (eq.symm hqna)
+         ... ≤ f q.num.nat_abs : H4 q.num.nat_abs (int.nat_abs_pos_of_ne_zero (ne_of_gt num_pos))
+         ... = f (q.num.nat_abs:ℤ) : by norm_cast
+         ... = f q.num : congr_arg f (congr_arg coe hqna),
+
+  have f_num_pos := calc (0:ℝ) < q.num : int.cast_pos.mpr num_pos
+                          ... ≤ f q.num : hqfn',
+  have f_denom_pos :=
     calc (0:ℝ) < q.denom : nat.cast_pos.mpr q.pos
            ... ≤ f q.denom : H4 q.denom q.pos,
   nlinarith

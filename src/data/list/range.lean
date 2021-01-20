@@ -134,8 +134,10 @@ by simp only [succ_pos', lt_add_iff_pos_right, mem_range]
 theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
 by simp only [range_eq_range', nth_range' _ h, zero_add]
 
-theorem range_concat (n : ℕ) : range (succ n) = range n ++ [n] :=
+theorem range_succ (n : ℕ) : range (succ n) = range n ++ [n] :=
 by simp only [range_eq_range', range'_concat, zero_add]
+
+@[simp] lemma range_zero : range 0 = [] := rfl
 
 theorem iota_eq_reverse_range' : ∀ n : ℕ, iota n = reverse (range' 1 n)
 | 0     := rfl
@@ -184,7 +186,7 @@ by rw [← length_eq_zero, length_fin_range]
 @[to_additive]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
   ((range n.succ).map f).prod = ((range n).map f).prod * f n :=
-by rw [range_concat, map_append, map_singleton,
+by rw [range_succ, map_append, map_singleton,
   prod_append, prod_cons, prod_nil, mul_one]
 
 /-- A variant of `prod_range_succ` which pulls off the first

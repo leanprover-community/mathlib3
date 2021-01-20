@@ -178,7 +178,7 @@ lemma to_frac_to_map {R K : Type*} [nontrivial R] [comm_ring R] [field K]
   f.to_frac g (g.to_map a) = f a :=
 by { rw ← g.mk'_one, simp }
 
-def absolute_value.abs {R : Type*} [linear_ordered_ring R] : absolute_value R R :=
+def abs {R : Type*} [linear_ordered_ring R] : absolute_value R R :=
 { to_fun := λ x, abs x,
   map_add_le' := λ x y, abs_add x y,
   map_eq_zero_iff' := λ x, abs_eq_zero,
@@ -193,7 +193,7 @@ le_max_iff.mpr
   ((le_max_iff.mp (polynomial.degree_add_le p q)).imp
     nat_degree_le_nat_degree nat_degree_le_nat_degree)
 
-noncomputable def absolute_value.pow_degree {R : Type*} [integral_domain R] [decidable_eq R]
+noncomputable def pow_degree {R : Type*} [integral_domain R] [decidable_eq R]
   {c : ℤ} (hc : 1 < c) :
   absolute_value (polynomial R) ℤ :=
 { to_fun := λ p, if p = 0 then 0 else c ^ p.nat_degree,

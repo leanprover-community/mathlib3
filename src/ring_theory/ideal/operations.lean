@@ -537,24 +537,19 @@ end
 theorem is_prime.multiset.prod_le {s : multiset ι} {f : ι → ideal R} {P : ideal R}
   (hp : is_prime P) (hne: s ≠ 0) :
   multiset.prod (s.map f) ≤ P → ∃ i ∈ s, f i ≤ P :=
--- suffices multiset.prod (s.map f) ≤ P → ∃ i ∈ s, f i ≤ P,
---   from ⟨this, λ ⟨i, his, hip⟩, le_trans prod_le_inf $ le_trans (finset.inf_le his) hip⟩,
 begin
   classical,
-  obtain ⟨b, hb⟩ : ∃ b, b ∈ s := multiset.exists_mem_of_ne_zero hne,
-  let t := s.erase b,
   refine multiset.induction _ (λ J s ih, _) s,
-  intro h_sz,
-  { erw [multiset.prod_zero, ideal.one_eq_top, top_le_iff] at h_sz,
-    exact absurd h_sz hp.1 },
-  { rw [multiset.map_cons, multiset.prod_cons],
-    intro h_ind,
-    rw is_prime.mul_le hp at h_ind,
-    cases h_ind,
-    { exact ⟨J, multiset.mem_cons_self J s, h_ind⟩ },
-    { suffices h₄s : ∃ (i : ι) (H : i ∈ s), f i ≤ P,
-      rcases h₄s with ⟨i, hi, h_incl⟩,
-      exacts [⟨i, multiset.mem_cons_of_mem hi, h_incl⟩, (ih h_ind)] } },
+  { simpa using hp.1 },
+  rw [multiset.map_cons, multiset.prod_cons],
+  intro h_ind,
+  rw is_prime.mul_le hp at h_ind,
+  cases h_ind,
+  { use J,
+    use multiset.mem_cons_self J s,
+    exact h_ind },
+  { obtain ⟨i, hi, hi'⟩ := ih h_ind,
+    exact ⟨i, multiset.mem_cons_of_mem hi, hi'⟩ },
 end
 
 theorem is_prime.inf_le' {s : finset ι} {f : ι → ideal R} {P : ideal R} (hp : is_prime P)

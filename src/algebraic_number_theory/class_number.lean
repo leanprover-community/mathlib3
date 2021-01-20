@@ -2,6 +2,7 @@ import algebra.big_operators.finsupp
 import algebra.floor
 import analysis.special_functions.pow
 import combinatorics.pigeonhole
+import data.polynomial.field_division
 import group_theory.quotient_group
 import linear_algebra.determinant
 import linear_algebra.free_module
@@ -228,12 +229,18 @@ end
 section admissible
 
 /-- An `admissible_absolute_value R` is a Euclidean absolute value `R → ℤ`,
-such that a large enough set will have a pair of close together remainders. -/
+such that a large enough set of elements in `R^n` will contain a pair of elements
+whose remainders are pointwise close together. -/
 structure admissible_absolute_value (R : Type*) [euclidean_domain R]
   extends euclidean_absolute_value R ℤ :=
 (card : ℝ → ℕ)
-(exists_approx' : ∀ (ε : ℝ) (hε : 0 < ε) (b : R) (A : fin (card ε).succ → R),
-  ∃ i₀ i₁, (i₀ ≠ i₁) ∧ (to_fun (A i₁ % b - A i₀ % b) : ℝ) < to_fun b • ε)
+(exists_partition' : ∀ (n : ℕ) {ε : ℝ} (hε : 0 < ε) (b : R) (hb : b ≠ 0) (A : fin n → R),
+                     ∃ (t : fin n → fin (card ε)),
+                     ∀ i₀ i₁, t i₀ = t i₁ → (to_fun (A i₁ % b - A i₀ % b) : ℝ) < to_fun b • ε)
+/-
+(exists_approx' : ∀ (ε : ℝ) (hε : 0 < ε) (n : ℕ) (b : R) (A : fin (card ε n).succ → fin n → R),
+  ∃ i₀ i₁, (i₀ ≠ i₁) ∧ ∀ j, (to_fun (A i₁ j % b - A i₀ j % b) : ℝ) < to_fun b • ε)
+-/
 
 variables (abs : admissible_absolute_value R)
 
@@ -285,25 +292,16 @@ lemma map_sub_eq_zero_iff (a b : R) :
   abs (a - b) = 0 ↔ a = b :=
 abs.to_euclidean_absolute_value.map_sub_eq_zero_iff a b
 
-/-- If `A` is a family of enough elements, there is a pair of elements in `A`
-(not necessarily distinct), such that their remainders are close together. -/
-lemma exists_approx {ε : ℝ} (hε : 0 < ε) (b : R) (A : fin (abs.card ε).succ → R) :
-  ∃ i₀ i₁, i₀ ≠ i₁ ∧ (abs (A i₁ % b - A i₀ % b) : ℝ) < abs b • ε :=
-abs.exists_approx' _ hε b A
-
 /-- We can partition a finite family into `card ε` sets, such that the remainders
 in each set are close together. -/
-lemma exists_partition (n : ℕ) {ε : ℝ} (hε : 0 < ε) (b : R) (A : fin n → R) :
+lemma exists_partition (n : ℕ) {ε : ℝ} (hε : 0 < ε) {b : R} (hb : b ≠ 0) (A : fin n → R) :
   ∃ (t : fin n → fin (abs.card ε)),
-    ∀ i₀ i₁, t i₀ = t i₁ → (abs (A i₁ % b - A i₀ % b) : ℝ) < abs b • ε :=
-begin
-  induction n with n ih,
-  { sorry },
-  obtain ⟨t', ht'⟩ := ih (fin.tail A),
-  sorry,
-end
+  ∀ i₀ i₁, t i₀ = t i₁ → (abs (A i₁ % b - A i₀ % b) : ℝ) < abs b • ε :=
+abs.exists_partition' n hε b hb A
 
-lemma exists_approx_vec (n : ℕ) :
+/-- Any large enough family of vectors in `R^n` has a pair of elements
+whose remainders are close together, pointwise. -/
+lemma exists_approx (n : ℕ) :
   ∀ {ε : ℝ} (hε : 0 < ε) {b : R} (hb : b ≠ 0) (A : fin (abs.card ε ^ n).succ → (fin n → R)),
   ∃ (i₀ i₁), (i₀ ≠ i₁) ∧ ∀ k, (abs (A i₁ k % b - A i₀ k % b) : ℝ) < abs b • ε :=
 begin
@@ -332,7 +330,7 @@ begin
     -- the first components lie close together:
     obtain ⟨t, ht⟩ : ∃ (t : fin (M ^ n.succ).succ → fin M),
       ∀ i₀ i₁, t i₀ = t i₁ → (abs (A i₁ 0 % b - A i₀ 0 % b) : ℝ) < abs b • ε :=
-      abs.exists_partition _ hε b (λ x, A x 0),
+      abs.exists_partition _ hε hb (λ x, A x 0),
     -- Since the `M` subsets contain more than `M * M^n` elements total,
     -- there must be a subset that contains more than `M^n` elements.
     obtain ⟨s, hs⟩ := @fintype.exists_lt_card_fiber_of_mul_lt_card _ _ _ _ _ t (M ^ n)
@@ -367,12 +365,13 @@ include L f abs
 
 Should really be `abs.card (nat.ceil_nth_root _ _)`, but nth_root _ x ≤ x so this works too.
 -/
-noncomputable def cardM : ℕ := abs.card (norm_bound L f abs ^ (-1 / (integral_closure.dim L f) : ℝ))
+noncomputable def cardM : ℕ :=
+(abs.card (norm_bound L f abs ^ (-1 / (integral_closure.dim L f) : ℝ)))^(integral_closure.dim L f)
 
 variables [infinite R]
 
 /-- In the following results, we need a large set of distinct elements of `R`. -/
-noncomputable def distinct_elems : fin (cardM L f abs ^ integral_closure.dim L f).succ ↪ R :=
+noncomputable def distinct_elems : fin (cardM L f abs).succ ↪ R :=
 function.embedding.trans (fin.coe_embedding _).to_embedding (infinite.nat_embedding R)
 
 /-- `finset_approx` is a finite set such that each fractional ideal in the integral closure
@@ -415,7 +414,8 @@ theorem exists_mem_finset_approx [decidable_eq R]
 begin
   set ε : ℝ := norm_bound L f abs ^ (-1 / (integral_closure.dim L f) : ℝ) with ε_eq,
   have hε : 0 < ε := real.rpow_pos_of_pos (int.cast_pos.mpr (norm_bound_pos L f abs)) _,
-  have ε_le : (norm_bound L f abs : ℝ) * (abs b • ε) ^ integral_closure.dim L f ≤ (abs b ^ integral_closure.dim L f),
+  have ε_le : (norm_bound L f abs : ℝ) * (abs b • ε) ^ integral_closure.dim L f ≤
+                (abs b ^ integral_closure.dim L f),
   { have := integral_closure.dim_pos L f,
     have := norm_bound_pos L f abs,
     have := abs.nonneg b,
@@ -425,7 +425,7 @@ begin
     { apply rpow_nonneg_of_nonneg,
       norm_cast,
       linarith } },
-  let μ : fin (cardM L f abs ^ integral_closure.dim L f).succ ↪ R := distinct_elems L f abs,
+  let μ : fin (cardM L f abs).succ ↪ R := distinct_elems L f abs,
   set s := (integral_closure.is_basis L f).repr a,
   have s_eq : ∀ i, s i = (integral_closure.is_basis L f).repr a i := λ i, rfl,
   set qs := λ j i, (μ j * s i) / b,
@@ -444,7 +444,7 @@ begin
     refine finset.sum_congr rfl (λ i _, _),
     rw [← c_eq, ← s_eq, ← mul_smul, μ_eq, add_smul, mul_smul] },
 
-  obtain ⟨j, k, j_ne_k, hjk⟩ := abs.exists_approx_vec (integral_closure.dim L f) hε hb (λ j i, μ j * s i),
+  obtain ⟨j, k, j_ne_k, hjk⟩ := abs.exists_approx (integral_closure.dim L f) hε hb (λ j i, μ j * s i),
   have hjk' : ∀ i, (abs (rs k i - rs j i) : ℝ) < abs b • ε,
   { simpa only [r_eq] using hjk },
   set q := ∑ i, (qs k i - qs j i) • c i with q_eq,
@@ -506,7 +506,8 @@ variables [algebra R L] [is_scalar_tower R f.codomain L]
 variables (abs : admissible_absolute_value R)
 
 -- Lemma 6.1
-lemma exists_min [finite_dimensional f.codomain L] [is_separable f.codomain L] (I : nonzero_ideal (integral_closure R L)) :
+lemma exists_min [finite_dimensional f.codomain L] [is_separable f.codomain L]
+  (I : nonzero_ideal (integral_closure R L)) :
   ∃ b ∈ I.1, b ≠ 0 ∧ ∀ c ∈ I.1, abs_norm f abs c < abs_norm f abs b → c = 0 :=
 begin
   haveI := classical.dec_eq L,
@@ -633,7 +634,6 @@ begin
   refine mul_dvd_mul_right (dvd_trans (ring_hom.map_dvd _ _) hr') _,
   exact finset.dvd_prod r_mem (λ x, x)
 end
-.
 
 variables (L)
 
@@ -645,7 +645,6 @@ noncomputable def class_group.mk_dvd [finite_dimensional f.codomain L] [is_separ
     ideal.span {algebra_map _ _ (∏ m in finset_approx L f abs, m)}}) :
   class_group (integral_closure.fraction_map_of_finite_extension L f) :=
 class_group.mk0 _ ⟨J.1, ne_zero_of_dvd_prod_finset_approx f abs J.1 J.2⟩
-.
 
 lemma class_group.mk_dvd_surjective
   [finite_dimensional f.codomain L] [is_separable f.codomain L]
@@ -660,8 +659,9 @@ end
 
 include abs
 
--- Theorem 5.3
-noncomputable instance [infinite R] [finite_dimensional f.codomain L] [is_separable f.codomain L]
+/-- The main theorem: the class group of an integral closure is finite. -/
+noncomputable def class_group.finite_of_admissible [infinite R]
+  [finite_dimensional f.codomain L] [is_separable f.codomain L]
   [is_dedekind_domain (integral_closure R L)] :
   fintype (class_group (integral_closure.fraction_map_of_finite_extension L f)) :=
 by { haveI := classical.dec_eq (class_group (integral_closure.fraction_map_of_finite_extension L f)),
@@ -675,4 +675,74 @@ by { haveI := classical.dec_eq (class_group (integral_closure.fraction_map_of_fi
 
 end euclidean_domain
 
-#lint
+namespace int
+
+/-- We can partition a finite family of integers between `0` and `b` into `partition_card ε` sets,
+such that the elements of each set are within `b * ε` of each other.  -/
+noncomputable def partition_card (ε : ℝ) : ℕ := nat_ceil (1 / ε)
+
+lemma le_partition_card (ε : ℝ) : 1 / ε ≤ partition_card ε :=
+le_nat_ceil _
+
+/-- We can partition a finite family into `partition_card ε` sets, such that the remainders
+in each set are close together. -/
+lemma exists_partition (n : ℕ) {ε : ℝ} (hε : 0 < ε) {b : ℤ} (hb : b ≠ 0) (A : fin n → ℤ) :
+  ∃ (t : fin n → fin (partition_card ε)),
+  ∀ i₀ i₁, t i₀ = t i₁ → ↑(abs (A i₁ % b - A i₀ % b)) < abs b • ε :=
+begin
+  have hb' : (0 : ℝ) < ↑(abs b) := int.cast_pos.mpr (abs_pos.mpr hb),
+  have hbε : 0 < abs b • ε,
+  { rw algebra.smul_def,
+    exact mul_pos hb' hε },
+  have hfloor : ∀ i, 0 ≤ floor ((A i % b : ℤ) / (abs b • ε) : ℝ),
+  { intro i,
+    exact floor_nonneg.mpr (div_nonneg (cast_nonneg.mpr (mod_nonneg _ hb)) hbε.le) },
+  refine ⟨λ i, ⟨nat_abs (floor ((A i % b : ℤ) / (abs b • ε) : ℝ)), _⟩, _⟩,
+  { rw [← coe_nat_lt, nat_abs_of_nonneg (hfloor i), floor_lt],
+    apply lt_of_lt_of_le _ (le_partition_card _),
+    rw [algebra.smul_def, ring_hom.eq_int_cast, ← div_div_eq_div_mul, div_lt_div_right hε,
+        div_lt_iff hb', one_mul, cast_lt],
+    exact mod_lt _ hb },
+  intros i₀ i₁ hi,
+  have hi : (⌊↑(A i₀ % b) / abs b • ε⌋.nat_abs : ℤ) = ⌊↑(A i₁ % b) / abs b • ε⌋.nat_abs :=
+    congr_arg (coe : ℕ → ℤ) (subtype.mk_eq_mk.mp hi),
+  rw [nat_abs_of_nonneg (hfloor i₀), nat_abs_of_nonneg (hfloor i₁)] at hi,
+  have hi := abs_sub_lt_one_of_floor_eq_floor hi,
+  rw [abs_sub, ← sub_div, abs_div, abs_of_nonneg hbε.le, div_lt_iff hbε, one_mul] at hi,
+  rwa [int.cast_abs, int.cast_sub]
+end
+
+/-- `abs : ℤ → ℤ` is an admissible absolute value -/
+noncomputable def admissible_abs : admissible_absolute_value ℤ :=
+{ map_lt_map_iff' := λ x y, show abs x < abs y ↔ nat_abs x < nat_abs y,
+    by rw [abs_eq_nat_abs, abs_eq_nat_abs, coe_nat_lt],
+  card := partition_card,
+  exists_partition' := λ n ε hε b hb, exists_partition n hε hb,
+  .. absolute_value.abs }
+
+end int
+
+namespace polynomial
+
+variables {K : Type*} [field K] [decidable_eq K] {c : ℤ} (hc : 1 < c)
+
+/-- If `A` is a family of enough elements, there is a pair of elements in `A`
+(not necessarily distinct), such that their remainders are close together. -/
+lemma exists_approx {ε : ℝ} (hε : 0 < ε) (b : R) (A : fin (abs.card ε).succ → R) :
+  ∃ i₀ i₁, i₀ ≠ i₁ ∧ (abs (A i₁ % b - A i₀ % b) : ℝ) < abs b • ε :=
+abs.exists_approx' _ hε b A
+
+include hc
+
+#check polynomial.degree_lt_wf
+
+noncomputable def admissible_degree : admissible_absolute_value (polynomial K) :=
+{ map_lt_map_iff' := λ p q, begin
+    by_cases hp : p = 0; by_cases hq : q = 0,
+    { simp [hp, hq] },
+  end,
+  card := _,
+  exists_approx' := _,
+  .. absolute_value.pow_degree hc }
+
+end polynomial

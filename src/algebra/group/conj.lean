@@ -47,7 +47,7 @@ end
 
 /-- `b * a * b⁻¹` as a bundled equiv. -/
 @[simps apply]
-def conj_hom (b : α) : α ≃* α :=
+def conj_equiv (b : α) : α ≃* α :=
 { to_fun := λ a, b * a * b⁻¹,
   inv_fun := λ a, b⁻¹ * a * b,
   left_inv := λ a, by simp [←mul_assoc],

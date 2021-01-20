@@ -314,7 +314,7 @@ ring_equiv.is_integral_domain (polynomial (quotient P))
   (polynomial_quotient_equiv_quotient_polynomial P).symm
 
 /-- If `P` is a prime ideal of `R`, then `P.R[x]` is a prime ideal of `R[x]`. -/
-lemma is_prime_C_map_of_is_prime {P : ideal R} (H : is_prime P) :
+lemma is_prime_map_C_of_is_prime {P : ideal R} (H : is_prime P) :
   is_prime (map C P : ideal (polynomial R)) :=
 (quotient.is_integral_domain_iff_prime (map C P : ideal (polynomial R))).mp
   (is_integral_domain_C_map_quotient H)

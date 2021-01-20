@@ -1084,7 +1084,7 @@ open_locale classical
 
 /-- A nondegenerate bilinear form is a bilinear form such that the only element that is orthogonal
   to every other element is `0`. -/
-def nondegenerate [add_comm_group M] [semimodule R₁ M] (B : bilin_form R₁ M) :=
+def nondegenerate (B : bilin_form R M) : Prop :=
   ∀ m : M, (∀ n : M, B m n = 0) → m = 0
 
 variables {n : Type w} [fintype n]

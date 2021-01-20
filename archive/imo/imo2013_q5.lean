@@ -279,14 +279,14 @@ begin
       ... = f ((↑pn + 1 + 1) * x)          : congr_arg f (add_mul (↑pn + 1) 1 x).symm },
   have H4 : (∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n),
   { intros n hn,
-    have hf1: 1 ≤ f 1,
-    { have := (H1 a 1) (lt_trans zero_lt_one ha1) zero_lt_one,
-      rw [mul_one, hae] at this,
-      have haz := calc 0 < 1     : zero_lt_one
-                     ... < (a:ℝ) : by {norm_cast, exact ha1},
-
-      have h11 : ↑a * 1 ≤ ↑a * f 1 := by simpa only [mul_one],
-      exact (mul_le_mul_left haz).mp h11 },
+    have hf1 : 1 ≤ f 1,
+    { have a_pos : (0:ℝ) < a := rat.cast_pos.mpr (lt_trans zero_lt_one ha1),
+      suffices : ↑a * 1 ≤ ↑a * f 1, from (mul_le_mul_left a_pos).mp this,
+      calc ↑a * 1 = ↑a        : mul_one ↑a
+              ... = f a       : hae.symm
+              ... = f (a * 1) : by rw mul_one
+              ... ≤ f a * f 1 : (H1 a 1) (lt_trans zero_lt_one ha1) zero_lt_one
+              ... = ↑a * f 1  : by rw hae },
 
     calc (n: ℝ) = (n: ℝ) * 1   : by simp only [mul_one]
             ... ≤ (n: ℝ) * f 1 : (mul_le_mul_left (nat.cast_pos.mpr hn)).mpr hf1

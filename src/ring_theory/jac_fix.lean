@@ -1,47 +1,5 @@
 import ring_theory.jacobson
 
-/-
-def R' := ((quotient.mk I).comp C).range
-
-lemma factor :
-  function.surjective ((((quotient.mk I).comp C).range_restrict) →
-    (map_ring_hom (((quotient.mk I).comp C).range_restrict)).ker : R → subring I.quotient) ≤ I :=
-begin
-sorry
-  intros R' i hi,
-  refine λ f hf, polynomial_mem_ideal_of_coeff_mem_ideal I f (λ n, _),
-  rw [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply],
-  rw [ring_hom.mem_ker, coe_map_ring_hom] at hf,
-  replace hf := congr_arg (λ (f : polynomial R'), f.coeff n) hf,
-  simp only [coeff_map, coeff_zero] at hf,
-  rwa [subtype.ext_iff, ring_hom.coe_range_restrict] at hf,
-end
--/
-
-/-
-lemma problem {R : Type*} [comm_ring R]
-  (I : ideal (polynomial R))
-  (R' : subring I.quotient) :
-  comm_ring.to_ring ↥R' = R'.to_ring :=
-begin
-  refl,
-end
-
-lemma soln {R : Type*} [comm_ring R]
-  (I : ideal (polynomial R))
-  (R' : subring I.quotient) :
-  let i : R →+* ↥R' := ((quotient.mk I).comp C).range_restrict,
-      j : polynomial R →+* polynomial ↥R' := map_ring_hom i
-  in function.surjective ⇑i →
-     (map_ring_hom i).ker ≤ I →
-     comm_ring.to_ring (polynomial ↥R') = add_monoid_algebra.ring :=
-begin
-  intros i j hi hi',
-  admit,
-end
--/
-
-
 namespace ideal
 
 section comm_ring
@@ -57,30 +15,7 @@ begin
   have hi : function.surjective (i : R → R') := ((quotient.mk I).comp C).surjective_onto_range,
   have hi' : (polynomial.map_ring_hom i : polynomial R →+* polynomial R').ker ≤ I :=
     ideal.polynomial.factor R I,
---    apply factor,
---  sorry,
-/-
-    haveI cR'' : comm_ring ↥R' := by apply_instance,
-    haveI hR'' : is_jacobson ↥R' := @is_jacobson_of_surjective R _inst_3 _ _ H
-    begin
-      refine ⟨_, _⟩,
-      convert i,
-      rotate,
-      convert hi,
-      rotate,rotate,
-      exact eq_mpr_heq _ _,
-      convert problem I R',
-      --all_goals {refl},
-      sorry,
-      sorry,
-      sorry,
---      ⟨↑i, hi⟩,
-    end,
--/
---    haveI cpR' : comm_ring (polynomial R') := by apply_instance,
---    haveI cpR'' : comm_ring (polynomial ↥R') := by apply_instance,
   let j : polynomial R →+* polynomial R' := @polynomial.map_ring_hom R R' _ _ i,
---  let I' : ideal (polynomial R') := ideal.map (map_ring_hom i) I,
   haveI : (ideal.map (map_ring_hom i) I).is_prime := begin
     apply map_is_prime_of_surjective _ _,
     apply (polynomial.map_surjective i hi),

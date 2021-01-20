@@ -1214,22 +1214,10 @@ end
 
   Furthermore, the map, φ : M → M* : m ↦ f_m is an isomorphism. -/
 
-/-- Given a bilinear form `B`, `to_dual_aux` maps elements `m` of the module `M`
-  to the functional `λ x, B m x` in the dual space. -/
-def to_dual_aux (B : bilin_form R₃ M₃) (m : M₃) : module.dual R₃ M₃ :=
-{ to_fun := λ n, B m n,
-  map_add' := add_right m,
-  map_smul' := λ _ _, by simp only [algebra.id.smul_eq_mul, smul_right] }
-
-@[simp] lemma to_dual_aux_def {B : bilin_form R₃ M₃} {m n : M₃} :
-  B.to_dual_aux m n = B m n := rfl
-
 /-- Given a bilinear form `B` on the modual `M`, `to_dual' B` is the linear map
   from `M` to its dual such that `to_dual B m` is the functional `λ x, B m x`. -/
-def to_dual' (B : bilin_form R₃ M₃) : M₃ →ₗ[R₃] module.dual R₃ M₃ :=
-{ to_fun := λ m, to_dual_aux B m,
-  map_add' := by { intros, ext, simp },
-  map_smul' := by { intros, ext, simp } }
+def to_dual' (B : bilin_form R₃ M₃) : M₃ ≃ₗ[R₃] module.dual R₃ M₃ :=
+B.to_lin
 
 lemma to_dual'_injective (B : bilin_form R₃ M₃) (hB : B.nondegenerate) :
   function.injective (to_dual' B) :=

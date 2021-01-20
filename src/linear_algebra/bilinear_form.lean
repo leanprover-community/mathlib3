@@ -1110,15 +1110,16 @@ end
 /-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
   `R` with invertible `2`. Then, there exists some `x : M` such that `B x x ≠ 0`. -/
 lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
-  {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) : ∃ x, B x x ≠ 0 :=
+  {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
+  ∃ x, ¬ B.is_ortho x x :=
 begin
   by_contra, push_neg at h,
   have : ∀ u v, 2 * B u v = 0,
   { intros u v,
     rw [show 2 * B u v = B u u + B v u + B u v + B v v,
-          by rw [h u, h v, hB₂ v u, two_mul, zero_add]; ring,
+          by rw [is_ortho_def.1 (h u), is_ortho_def.1 (h v), hB₂ v u, two_mul, zero_add]; ring,
         show B u u + B v u + B u v + B v v = B (u + v) (u + v),
-          by simp [← add_assoc], h _] },
+          by simp [← add_assoc], is_ortho_def.1 (h _)] },
   have hcon : ∀ u v, B u v = 0,
   { intros u v,
     rw [show 0 = htwo.inv_of * (2 * B u v), by rw [this, mul_zero]], simp [← mul_assoc] },
@@ -1132,7 +1133,7 @@ variables [field K] [add_comm_group V] [vector_space K V]
   if for all `i`, `B (v i) (v i) ≠ 0`. -/
 lemma is_ortho_linear_independent
   {n : Type w} (B : bilin_form K V) {v : n → V}
-  (hv₁ : B.is_ortho' v) (hv₂ : ∀ i, B (v i) (v i) ≠ 0) : linear_independent K v :=
+  (hv₁ : B.is_ortho' v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) : linear_independent K v :=
 begin
   rw linear_independent_iff',
   intros s w hs i hi,
@@ -1151,7 +1152,7 @@ begin
 end
 
 -- ↓ This lemma only applies in fields as we require `a * b = 0 → a = 0 ∨ b = 0`
-lemma span_inf_ortho_eq_bot {B : bilin_form K V} {x : V} (hx : B x x ≠ 0) :
+lemma span_inf_ortho_eq_bot {B : bilin_form K V} {x : V} (hx : ¬ B.is_ortho x x) :
   submodule.span K ({x} : set V) ⊓ B.orthogonal (submodule.span K ({x} : set V)) = ⊥ :=
 begin
   rw ← finset.coe_singleton,
@@ -1168,7 +1169,7 @@ end
 
 -- ↓ This lemma only applies in field since we use the inverse
 lemma span_sup_ortho_eq_top {B : bilin_form K V}
-  (hB : sym_bilin_form.is_sym B) {x : V} (hx : B x x ≠ 0) :
+  (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
   submodule.span K ({x} : set V) ⊔ B.orthogonal (submodule.span K ({x} : set V)) = ⊤ :=
 begin
   refine eq_top_iff.2 (λ y _, _), rw submodule.mem_sup,
@@ -1183,7 +1184,7 @@ end
 /-- Given a bilinear form `B` and some `x` such that `B x x ≠ 0`, the span of the singleton of `x`
   is complement to its orthogonal complement. -/
 lemma is_compl_singleton {B : bilin_form K V}
-  (hB : sym_bilin_form.is_sym B) {x : V} (hx : B x x ≠ 0) :
+  (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
   is_compl (submodule.span K ({x} : set V))
     (B.orthogonal (submodule.span K ({x} : set V))) :=
 { inf_le_bot := eq_bot_iff.1 $ span_inf_ortho_eq_bot hx,
@@ -1191,17 +1192,17 @@ lemma is_compl_singleton {B : bilin_form K V}
 
 /-- The natural isomorphism between a singleton and the quotient by its orthogonal complement. -/
 noncomputable def quotient_equiv_of_ortho_singleton
-{B : bilin_form K V} (hB : sym_bilin_form.is_sym B) {x : V} (hx : B x x ≠ 0) :=
+{B : bilin_form K V} (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :=
 submodule.quotient_equiv_of_is_compl _ _ (is_compl_singleton hB hx)
 
 /-- The natural isomorphism from the product between a singleton and its orthogonal component
   and the whole space. -/
 noncomputable def prod_equiv_of_ortho_singleton
-  {B : bilin_form K V} (hB : sym_bilin_form.is_sym B) {x : V} (hx : B x x ≠ 0) :=
+  {B : bilin_form K V} (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :=
   submodule.prod_equiv_of_is_compl _ _ (is_compl_singleton hB hx)
 
 lemma restrict_ortho_singleton_nondegenerate (B : bilin_form K V) (hB₁ : nondegenerate B)
-  (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : B x x ≠ 0) :
+  (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
   nondegenerate $ B.restrict $ B.orthogonal (submodule.span K ({x} : set V)) :=
 begin
   refine λ m hm, submodule.coe_eq_zero.1 (hB₁ m.1 (λ n, _)),
@@ -1274,7 +1275,7 @@ end
 
 lemma findim_ortho_span_singleton
   {B : bilin_form K V} (hB : sym_bilin_form.is_sym B)
-  {x : V} (hx : B x x ≠ 0) : findim K V =
+  {x : V} (hx : ¬ B.is_ortho x x) : findim K V =
     findim K (B.orthogonal (submodule.span K ({x} : set V))) + 1 :=
 begin
   rw [← submodule.findim_quotient_add_findim (submodule.span K ({x} : set V)),

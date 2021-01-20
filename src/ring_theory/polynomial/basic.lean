@@ -317,7 +317,7 @@ ring_equiv.is_integral_domain (polynomial (quotient P))
 lemma is_prime_map_C_of_is_prime {P : ideal R} (H : is_prime P) :
   is_prime (map C P : ideal (polynomial R)) :=
 (quotient.is_integral_domain_iff_prime (map C P : ideal (polynomial R))).mp
-  (is_integral_domain_C_map_quotient H)
+  (is_integral_domain_map_C_quotient H)
 
 /-- Given any ring `R` and an ideal `I` of `polynomial R`, we get a map `R → R[x] → R[x]/I`.
   If we let `R` be the image of `R` in `R[x]/I` then we also have a map `R[x] → R'[x]`.
@@ -401,7 +401,8 @@ def leading_coeff_nth (n : ℕ) : ideal R :=
 theorem mem_leading_coeff_nth (n : ℕ) (x) :
   x ∈ I.leading_coeff_nth n ↔ ∃ p ∈ I, degree p ≤ n ∧ leading_coeff p = x :=
 begin
-  simp only [leading_coeff_nth, degree_le, submodule.mem_map, lcoeff_apply, submodule.mem_inf, mem_degree_le],
+  simp only [leading_coeff_nth, degree_le, submodule.mem_map, lcoeff_apply, submodule.mem_inf,
+    mem_degree_le],
   split,
   { rintro ⟨p, ⟨hpdeg, hpI⟩, rfl⟩,
     cases lt_or_eq_of_le hpdeg with hpdeg hpdeg,

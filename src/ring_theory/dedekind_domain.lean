@@ -639,17 +639,21 @@ begin
   have h_J : J ≠ ⊥ ∧ J ≤ M,
   simp only [*, span_singleton_eq_bot, ne.def, not_false_iff, submodule.coe_eq_zero, span_le,
     submodule.mem_coe, submodule.coe_mem, set.singleton_subset_iff, and_self],
-  obtain ⟨Z₀, h_Z₀⟩ : ∃ (Z₀ : multiset (prime_spectrum R)),
-    multiset.prod (Z₀.map (coe : subtype _ → ideal R)) ≤ J
-    ∧ multiset.prod (Z₀.map (coe : subtype _ → ideal R)) ≠ ⊥,
+  obtain ⟨Z, h_Z⟩ : ∃ (Z : multiset (prime_spectrum R)),
+    multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ J
+    ∧ multiset.prod (Z.map (coe : subtype _ → ideal R)) ≠ ⊥,
   apply exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF h_J.left,
+  -- obtain ⟨Z₀, h_Z₀⟩ : ∃ (Z₀ : multiset (prime_spectrum R)),
+  --   multiset.prod (Z₀.map (coe : subtype _ → ideal R)) ≤ J
+  --   ∧ multiset.prod (Z₀.map (coe : subtype _ → ideal R)) ≠ ⊥,
+  -- apply exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF h_J.left,
   -- obtain ⟨Z, h_ZJ, h_nzZ, h_eraseZ⟩ : ∃ (Z : multiset (prime_spectrum R)),
   --   Z ≤ Z₀
   --   ∧ multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ J
   --   ∧ multiset.prod (Z.map (coe : subtype _ → ideal R)) ≠ ⊥
   --   ∧ ∀ P ∈ Z, ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J, --sorry,
   -- apply multiset.can_assume_min  Z₀ h_Z₀,
-  have h_ZM : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ M := le_trans h_ZJ h_J.right,
+  have h_ZM : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ M := le_trans h_Z.1 h_J.right,
   -- Get P with its properties
   -- obtain ⟨P, h_PZ, h_JP⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M,
   -- apply ideal.is_prime.multiset.prod_le (ideal.is_maximal.is_prime hM) h_nzM h_ZM,
@@ -749,7 +753,7 @@ begin
   -- replace h_ZJ : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ M, sorry,
   -- obtain ⟨P, h_ZP, h_JP⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M, sorry,
   have h_nebotP : ¬ ∃ (Q : ideal R) (hQ : Q ∈ multiset.map coe Z), Q = ⊥,
-  apply (mt ideal.prod_eq_bot.mpr) h_nzZ,
+  apply (mt ideal.prod_eq_bot.mpr) h_Z.2,
   rw not_exists at h_nebotP,
   specialize h_nebotP P.1,
   rw not_exists at h_nebotP,
@@ -768,7 +772,7 @@ begin
   { calc M * J' = P.1 * J' : by rw h_JP
           ...   = P.1 * multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) : by simp only [*] at *
           ...   = multiset.prod (Z.map (coe : subtype _ → ideal R)) : by exact h_Jprod
-          ...   ≤ J : by exact h_ZJ },
+          ...   ≤ J : by exact h_Z.1 },
   obtain ⟨b, h_bJ', h_bJ⟩ : ∃ (b : R) (H : b ∈ J'), b ∉ J,
   { suffices h_incl : ¬ J' ≤ J,
     apply submodule.not_le_iff_exists.mp h_incl,
@@ -804,6 +808,89 @@ begin
   use (f.to_map b) * (f.to_map a)⁻¹,
   simpa only [*, not_not, iff_false, fractional_ideal.val_eq_coe],
 end
+
+example (W : Type*) [group_with_zero W] (a b c d : W) (hd : d ≠ 0)
+  (H : a = b * c * d⁻¹) : a * d = b * c :=
+
+begin
+  simp only [*, ne.def, not_false_iff, inv_mul_cancel_right'],
+
+end
+
+
+lemma exists_nonint_of_nebot (hR : is_dedekind_domain R) (hNF : ¬ is_field R) (I : ideal R)
+  (hnbot : I ≠ ⊥) (hntop : I ≠ ⊤) :
+  ∃ x : f.codomain, x ∈ (1 / ↑I : fractional_ideal f) ∧ x ∉ (1 : fractional_ideal f) :=
+begin
+  obtain ⟨M, hM⟩ : ∃ (M : ideal R), is_maximal M ∧ I ≤ M := ideal.exists_le_maximal I hntop,
+  obtain ⟨a, h_nza⟩ : ∃ a : I, a ≠ 0 := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr hnbot),
+  let A : (ideal R) := ideal.span {a},
+  have hA : A ≠ ⊥ ∧ A ≤ M,
+  { rwa [ne.def, span_singleton_eq_bot, submodule.coe_eq_zero, span_le, set.singleton_subset_iff],
+    split,
+    { exact h_nza },
+    { apply submodule.le_def'.mp hM.2,
+      apply submodule.coe_mem } },
+  obtain ⟨Z₀, h_Z₀⟩ := exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF hA.1,
+  obtain ⟨Z, -, hZ, h_eraseZ⟩ := multiset.can_assume_min Z₀ h_Z₀,
+  have hZ_M : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ M := le_trans hZ.1 hA.2,
+  have hZ_nz : Z ≠ 0,
+  { by_contra,
+      rw [ne.def, not_not] at h,
+      have : multiset.prod (Z.map (coe : subtype _ → ideal R)) = ⊤,
+      { rw [h, multiset.map_zero, ← one_eq_top],
+        exact multiset.prod_zero },
+      rw [this, top_le_iff] at hZ_M,
+      exact absurd hZ_M hM.1.1 },
+  obtain ⟨P, h_PZ, -⟩ := is_prime.multiset.prod_le (ideal.is_maximal.is_prime hM.1) hZ_nz hZ_M,
+  obtain ⟨b, hb⟩ : ∃ (b : R) (H : b ∈ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R))), b ∉ A,
+  { have hZP_nz : multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≠ ⊥,
+    { suffices this : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≠ ⊥,
+      rw [← (multiset.cons_erase h_PZ), multiset.map_cons, multiset.prod_cons, ne.def,
+      ideal.mul_eq_bot, not_or_distrib] at this,
+      exacts [this.2, hZ.2] },
+    specialize h_eraseZ P h_PZ,
+    dsimp at h_eraseZ,
+    rw [not_and, not_not] at h_eraseZ,
+    replace h_eraseZ : ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ A := mt h_eraseZ hZP_nz,
+    rwa ← submodule.not_le_iff_exists },
+  have hnz_fa : (f.to_map a) ≠ 0 := mt (f.to_map.injective_iff.mp f.injective a) _,
+  swap, simp only [h_nza, not_false_iff, submodule.coe_eq_zero],
+  use (f.to_map b) * (f.to_map a)⁻¹,
+  split,
+  { rw fractional_ideal.mem_div_iff_of_nonzero,
+    { rintro y hy,
+      replace hy : y ∈ (↑I : fractional_ideal f) := hy,
+      -- rw fractional_ideal.mem_coe_ideal at hy,
+      -- rw fractional_ideal.mem_one_iff,
+      -- rw mul_comm,
+      -- esiste mul_comm_div'
+      suffices this : ∃ (x' : R), (f.to_map x') * (f.to_map ↑a) = (f.to_map b) * y,
+      rcases this with ⟨x', this⟩,
+      rw ← ring_hom.map_mul at this,
+      -- replace this : x' * ↑a -
+      rw f.injective at this,
+      -- rw ← (ring_hom.map_mul f.to_map _ _) at this,
+      -- rw mul_div_assoc,
+      -- rw ← div_eq_mul_inv,
+      --rw mul_div_assoc',
+      sorry,
+      --1) ridursi a (f.to_map x') * (f.to_map ↑a) = (f.to_map b) * y,
+      --2) ridursi (f.to_map b) * y ∈ A,
+      --3) dedurre 2) dal fatto che (f.to_map b) b ∈ (multiset.map coe (Z.erase P)).prod
+          -- e y ∈ I ≤ M e quindi il loro prodotto sta in
+          -- (multiset.map coe Z).prod ≤ A
+                                },
+    { apply (fractional_ideal.coe_to_fractional_ideal_ne_zero _).mpr hnbot,
+      tauto } },
+  { rw not_iff_not.mpr fractional_ideal.mem_one_iff,
+    rintros ⟨x', h₂_abs⟩,
+    rw [← div_eq_mul_inv, eq_div_iff_mul_eq hnz_fa, ← ring_hom.map_mul] at h₂_abs,
+    replace h₂_abs : x' * ↑a = b := f.injective h₂_abs,
+    replace h₂_abs : b ∈ A := ideal.mem_span_singleton'.mpr ⟨x', h₂_abs⟩,
+    tauto },
+end
+
 
 theorem maximal_ideal_inv_of_dedekind (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
   (hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=

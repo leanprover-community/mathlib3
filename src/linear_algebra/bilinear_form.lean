@@ -357,6 +357,9 @@ end lin_mul_lin
 def is_ortho (B : bilin_form R M) (x y : M) : Prop :=
 B x y = 0
 
+lemma is_ortho_def {B : bilin_form R M} {x y : M} :
+  B.is_ortho x y ↔ B x y = 0 := iff.rfl
+
 lemma is_ortho_zero_left (x : M) : is_ortho B (0 : M) x :=
 zero_left x
 
@@ -1063,7 +1066,10 @@ end orthogonal
 /-- A set of vectors `v` is orthogonal with respect to some bilinear form `B` if and only if for
   all `i ≠ j`, `B (v i) (v j) = 0`. -/
 def is_ortho' {n : Type w} (B : bilin_form R M) (v : n → M) : Prop :=
-  ∀ i j : n, i ≠ j → B (v j) (v i) = 0
+  ∀ i j : n, i ≠ j → B.is_ortho (v j) (v i)
+
+lemma is_ortho'_def {n : Type w} {B : bilin_form R M} {v : n → M} :
+  B.is_ortho' v ↔ ∀ i j : n, i ≠ j → B (v j) (v i) = 0 := iff.rfl
 
 /-- The restriction of a bilinear form on a submodule. -/
 def restrict (B : bilin_form R M) (W : submodule R M) : bilin_form R W :=
@@ -1137,7 +1143,7 @@ begin
   { refine finset.sum_congr rfl (λ j hj, _),
     by_cases (i = j),
     { rw [if_pos h] },
-    { rw [if_neg h, hv₁ _ _ h, mul_zero] } },
+    { rw [if_neg h, is_ortho'_def.1 hv₁ _ _ h, mul_zero] } },
   simp_rw [map_sum_left, smul_left, hsum, finset.sum_ite_eq, if_pos hi, mul_eq_zero] at this,
   cases this,
   { assumption },
@@ -1283,7 +1289,7 @@ lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
     B.is_ortho' v ∧ is_basis K v ∧ ∀ i, B (v i) (v i) ≠ 0 :=
 begin
   tactic.unfreeze_local_instances,
-  induction hd : findim K V with d hi generalizing V,
+  induction hd : findim K V with d ih generalizing V,
   { refine ⟨λ _, 0, λ _ _ _, zero_left _, is_basis.trivial hd, fin.elim0⟩ },
   { haveI : nontrivial V :=
     by { apply (@findim_pos_iff K _ _ _ _ _).1,
@@ -1292,7 +1298,7 @@ begin
     cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
     { have hd' := hd,
       rw findim_ortho_span_singleton hB₂ hx at hd,
-      rcases @hi (B.orthogonal (submodule.span K ({x} : set V))) _ _ _
+      rcases @ih (B.orthogonal (submodule.span K ({x} : set V))) _ _ _
         (B.restrict _) (B.restrict_ortho_singleton_nondegenerate hB₁ hB₂ hx)
         (B.restrict_sym hB₂ _) (nat.succ.inj hd) with ⟨v', hv₁, hv₂, hv₃⟩,
       refine ⟨λ i, if h : i ≠ 0 then coe (v' (i.pred h)) else x, λ i j hij, _, _, _⟩,
@@ -1306,11 +1312,11 @@ begin
         { subst j,
           simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
             not_false_iff, dite_not],
-          rw [dif_neg hi, hB₂],
+          rw [is_ortho, dif_neg hi, hB₂],
           exact (v' (i.pred hi)).2 _ (submodule.mem_span_singleton_self x) },
         { simp_rw [dif_pos hi, dif_pos hj],
-          { rw [hB₂, ← hv₁ (j.pred hj) (i.pred hi) _], refl,
-            simpa using hij.symm } } },
+          rw [is_ortho, hB₂],
+          exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
       { refine is_basis_of_linear_independent_of_card_eq_findim
           (B.is_ortho_linear_independent _ _)
           (by rw [hd', fintype.card_fin]),
@@ -1325,11 +1331,11 @@ begin
           { subst j,
             simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
               not_false_iff, dite_not],
-            rw [dif_neg hi, hB₂],
+            rw [is_ortho, dif_neg hi, hB₂],
             exact (v' (i.pred hi)).2 _ (submodule.mem_span_singleton_self x) },
           { simp_rw [dif_pos hi, dif_pos hj],
-            { rw [hB₂, ← hv₁ (j.pred hj) (i.pred hi) _], refl,
-              simpa using hij.symm } } },
+            rw [is_ortho, hB₂],
+            exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
         { intro i,
           by_cases hi : i ≠ 0,
           { rw dif_pos hi,

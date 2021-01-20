@@ -145,12 +145,11 @@ begin
     exact int.nat_abs_pos_of_ne_zero (ne_of_gt this)
   },
   have hx0 := calc (((x - 1):ℚ):ℝ)
-                 < ⌊x⌋   : by norm_cast; exact sub_one_lt_floor x
-             ... ≤ f ⌊x⌋ : begin have := H4 (⌊x⌋).nat_abs h_nab_abs_floor_pos,
-                                 rw ←(rat.cast_coe_nat (⌊x⌋).nat_abs) at this,
-                                 rw hfe' at this,
-                                 rwa (rat.cast_coe_int ⌊x⌋) at this,
-                            end,
+                 < ⌊x⌋            : by norm_cast; exact sub_one_lt_floor x
+             ... = ↑(⌊x⌋.nat_abs) : by norm_cast; exact hfe.symm
+             ... ≤ f ⌊x⌋.nat_abs  : H4 (⌊x⌋).nat_abs h_nab_abs_floor_pos
+             ... = f ⌊x⌋          : by rw hfe',
+
   have ho: (⌊x⌋:ℚ) = x ∨ (⌊x⌋:ℚ) < x := eq_or_lt_of_le (floor_le x),
   cases ho,
   { rwa ho at hx0 },
@@ -195,7 +194,7 @@ begin
   { have := H5 (a^n) (one_lt_pow ha1 (nat.succ_le_iff.mpr hn)),
     norm_cast,
     exact this },
-  have hh1: f (a^n) ≤ a^n := by { rw ← hae, exact pow_f_le_f_pow n hn a ha1 H1 H4},
+  have hh1 : f (a^n) ≤ a^n := by { rw ← hae, exact pow_f_le_f_pow n hn a ha1 H1 H4 },
   exact le_antisymm hh1 hh0
 end
 
@@ -288,19 +287,20 @@ begin
               ... ≤ f a * f 1 : (H1 a 1) (lt_trans zero_lt_one ha1) zero_lt_one
               ... = ↑a * f 1  : by rw hae },
 
-    calc (n: ℝ) = (n: ℝ) * 1   : by simp only [mul_one]
+    calc (n: ℝ) = (n: ℝ) * 1   : (mul_one _).symm
             ... ≤ (n: ℝ) * f 1 : (mul_le_mul_left (nat.cast_pos.mpr hn)).mpr hf1
             ... ≤ f (n * 1)    : H3 1 zero_lt_one n hn
             ... = f n          : by rw mul_one },
+
   have H5 : (∀x:ℚ, 1 < x → (x:ℝ) ≤ f x),
   { intros x hx,
-    have hxnm1: (∀ n : ℕ, 0 < n → (x:ℝ)^n - 1 < (f x)^n),
+    have hxnm1 : (∀ n : ℕ, 0 < n → (x:ℝ)^n - 1 < (f x)^n),
     { intros n hn,
       calc (x:ℝ)^n - 1
            = (((x^n - 1):ℚ):ℝ) : by norm_cast
        ... < f (x^n)           : fx_gt_xm1 (x^n) (one_le_pow_of_one_le (le_of_lt hx) n) H1 H2 H4
        ... ≤ (f x)^n           : pow_f_le_f_pow n hn x hx H1 H4},
-    have hx': 1 < (x:ℝ) := by { norm_cast, exact hx },
+    have hx' : 1 < (x:ℝ) := by { norm_cast, exact hx },
     have hxp : 0 < x := lt_trans zero_lt_one hx,
     exact le_of_all_pow_lt_succ' x (f x) hx' (pos_on_pos_rats hxp H1 H4) hxnm1 },
 

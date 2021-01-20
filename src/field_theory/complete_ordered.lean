@@ -3,13 +3,7 @@ Copyright (c) 2020 Alex J. Best. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
-import algebra.archimedean
-import data.equiv.ring
-import algebra.pointwise
-import order.conditionally_complete_lattice
-import topology.instances.real
 import analysis.special_functions.pow
-import data.real.sqrt
 
 /-!
 # Conditionally complete linear ordered fields

@@ -191,7 +191,7 @@ begin
   tauto
 end
 
-lemma supr_add {ι : Type v} [inhabited ι] (l : ι → language α) (m : language α) :
+lemma supr_add {ι : Type v} [nonempty ι] (l : ι → language α) (m : language α) :
   (⨆ i, l i) + m = ⨆ i, l i + m :=
 begin
   ext x,
@@ -200,12 +200,11 @@ begin
   { rintro (⟨ i, h ⟩ | h),
     { use i,
       exact or.inl h },
-    { use default ι,
-      exact or.inr h } },
+    { finish } },
   { finish }
 end
 
-lemma add_supr {ι : Type v} [inhabited ι] (l : ι → language α) (m : language α) :
+lemma add_supr {ι : Type v} [nonempty ι] (l : ι → language α) (m : language α) :
   m + (⨆ i, l i) = ⨆ i, m + l i :=
 begin
   rw add_comm,

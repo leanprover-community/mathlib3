@@ -184,11 +184,13 @@ lemma fixed_point_of_pos_nat_pow {f : ℚ → ℝ} (n : ℕ) (hn : 0 < n)
   (a : ℚ) (ha1 : 1 < a) (hae : f a = a) :
   f (a^n) = a^n :=
 begin
-  have hh0: (a:ℝ)^n ≤ f (a^n),
-  { have := H5 (a^n) (one_lt_pow ha1 (nat.succ_le_iff.mpr hn)),
-    norm_cast,
-    exact this },
-  have hh1 : f (a^n) ≤ a^n := by { rw ← hae, exact pow_f_le_f_pow n hn a ha1 H1 H4 },
+  have hh0 := calc (a:ℝ)^n
+                 = (((a^n):ℚ):ℝ) : by norm_cast
+             ... ≤ f (a^n)       : H5 (a^n) (one_lt_pow ha1 (nat.succ_le_iff.mpr hn)),
+
+  have hh1 := calc f (a^n) ≤ (f a)^n : pow_f_le_f_pow n hn a ha1 H1 H4
+                       ... = (a:ℝ)^n : by rw ← hae,
+
   exact le_antisymm hh1 hh0
 end
 

@@ -243,7 +243,7 @@ begin
       finish } }
 end
 
-lemma one_add_self_mul_star_eq_star (l : language α) : 1 + l * l.star = l.star :=
+@[simp] lemma one_add_self_mul_star_eq_star (l : language α) : 1 + l * l.star = l.star :=
 begin
   rw [star_eq_supr_pow, mul_supr, add_def, supr_split_single (λ i, l ^ i) 0],
   have h : (⨆ (i : ℕ), l * l ^ i) = ⨆ (i : ℕ) (h : i ≠ 0), (λ (i : ℕ), l ^ i) i,
@@ -261,7 +261,7 @@ begin
   refl
 end
 
-lemma one_add_star_mul_self_eq_star (l : language α) : 1 + l.star*l = l.star :=
+@[simp] lemma one_add_star_mul_self_eq_star (l : language α) : 1 + l.star*l = l.star :=
 begin
   rw [star_eq_supr_pow, supr_mul, add_def, supr_split_single (λ i, l ^ i) 0],
   have h : (⨆ (i : ℕ), l ^ i * l) = ⨆ (i : ℕ) (h : i ≠ 0), (λ (i : ℕ), l ^ i) i,

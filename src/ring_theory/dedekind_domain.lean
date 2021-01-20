@@ -639,12 +639,20 @@ begin
   have h_J : J ≠ ⊥ ∧ J ≤ M,
   simp only [*, span_singleton_eq_bot, ne.def, not_false_iff, submodule.coe_eq_zero, span_le,
     submodule.mem_coe, submodule.coe_mem, set.singleton_subset_iff, and_self],
-  obtain ⟨Z, h_ZJ, h_nzZ⟩ : ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ J
-   ∧ multiset.prod (Z.map (coe : subtype _ → ideal R)) ≠ ⊥,
-  --  ∧ ∀ Z' < Z, ¬ multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ J,
-  --  split, swap,
+  obtain ⟨Z₀, h_Z₀⟩ : ∃ (Z₀ : multiset (prime_spectrum R)),
+    multiset.prod (Z₀.map (coe : subtype _ → ideal R)) ≤ J
+    ∧ multiset.prod (Z₀.map (coe : subtype _ → ideal R)) ≠ ⊥,
   apply exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF h_J.left,
+  -- obtain ⟨Z, h_ZJ, h_nzZ, h_eraseZ⟩ : ∃ (Z : multiset (prime_spectrum R)),
+  --   Z ≤ Z₀
+  --   ∧ multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ J
+  --   ∧ multiset.prod (Z.map (coe : subtype _ → ideal R)) ≠ ⊥
+  --   ∧ ∀ P ∈ Z, ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J, --sorry,
+  -- apply multiset.can_assume_min  Z₀ h_Z₀,
   have h_ZM : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ M := le_trans h_ZJ h_J.right,
+  -- Get P with its properties
+  -- obtain ⟨P, h_PZ, h_JP⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M,
+  -- apply ideal.is_prime.multiset.prod_le (ideal.is_maximal.is_prime hM) h_nzM h_ZM,
   -- Get P with its properties
   obtain ⟨P, h_PZ, h_JP⟩ : ∃ P : (prime_spectrum R), P ∈ Z ∧ P.1 ≤ M, --∧
     -- ¬ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≤ J,

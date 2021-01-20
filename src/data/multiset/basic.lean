@@ -1539,7 +1539,7 @@ theorem filter_add_not (s : multiset α) :
   filter p s + filter (λ a, ¬ p a) s = s :=
 by rw [filter_add_filter, filter_eq_self.2, filter_eq_nil.2]; simp [decidable.em]
 
-lemma can_assume_min [decidable_eq α] (p : multiset α → Prop) [decidable_pred p]
+lemma can_assume_min [decidable_eq α] {p : multiset α → Prop} [decidable_pred p]
   (s₀ : multiset α) (H : p s₀) :  ∃ s ≤ s₀,  p s  ∧ (∀ a ∈ s, ¬ p (s.erase a)) :=
 begin
   induction h : s₀.card with n hn generalizing s₀,

@@ -242,6 +242,14 @@ begin
       finish } }
 end
 
+lemma mul_self_star_comm (l : language α) : l.star * l = l * l.star :=
+begin
+  rw [star_eq_supr_pow, mul_supr, supr_mul],
+  congr,
+  ext i,
+  rw [←pow_succ, ←pow_succ']
+end
+
 @[simp] lemma one_add_self_mul_star_eq_star (l : language α) : 1 + l * l.star = l.star :=
 begin
   rw [star_eq_supr_pow, mul_supr, add_def, supr_split_single (λ i, l ^ i) 0],
@@ -261,22 +269,7 @@ begin
 end
 
 @[simp] lemma one_add_star_mul_self_eq_star (l : language α) : 1 + l.star * l = l.star :=
-begin
-  rw [star_eq_supr_pow, supr_mul, add_def, supr_split_single (λ i, l ^ i) 0],
-  have h : (⨆ (i : ℕ), l ^ i * l) = ⨆ (i : ℕ) (h : i ≠ 0), (λ (i : ℕ), l ^ i) i,
-  { ext x,
-    simp only [exists_prop, set.mem_Union, ne.def],
-    split,
-    { rintro ⟨ i, hi ⟩,
-      use [i.succ, nat.succ_ne_zero i],
-      rwa pow_succ' },
-    { rintro ⟨ (_ | i), h0, hi ⟩,
-      { contradiction },
-      use i,
-      rwa ←pow_succ' } },
-  rw h,
-  refl
-end
+by rw [mul_self_star_comm, one_add_self_mul_star_eq_star]
 
 lemma star_mul_le_right_of_mul_le_right (l m : language α) : l * m ≤ m → l.star * m ≤ m :=
 begin

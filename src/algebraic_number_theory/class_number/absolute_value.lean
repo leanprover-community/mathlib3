@@ -42,6 +42,10 @@ lemma pos (f : absolute_value R S) {x : R} (hx : x ≠ 0) : 0 < f x :=
 lt_of_le_of_ne (f.nonneg x) (f.map_ne_zero.mpr hx).symm
 
 @[simp]
+lemma pos_iff (f : absolute_value R S) {x : R} : 0 < f x ↔ x ≠ 0 :=
+⟨λ hx, f.map_ne_zero.mp (ne_of_gt hx), f.pos⟩
+
+@[simp]
 lemma map_mul (f : absolute_value R S) (x y : R) : f (x * y) = f x * f y := f.map_mul' x y
 
 lemma le_add (f : absolute_value R S) (x y : R) : f (x + y) ≤ f x + f y := f.map_add_le' x y
@@ -91,6 +95,9 @@ begin
   have : 0 < f (-x) := f.pos (neg_ne_zero.mpr hx),
   linarith
 end
+
+lemma sub_comm (f : absolute_value R S) (a b : R) : f (a - b) = f (b - a) :=
+by rw [← f.map_neg, neg_sub]
 
 @[simp]
 lemma map_sub_eq_zero_iff (f : absolute_value R S) (a b : R) :

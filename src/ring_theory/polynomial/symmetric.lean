@@ -10,7 +10,7 @@ import data.mv_polynomial.comm_ring
 /-!
 # Symmetric Polynomials and Elementary Symmetric Polynomials
 
-This file defines symmetric polynomials and elementary symmetric polynomials.
+This file defines symmetric `mv_polynomial`s and elementary symmetric `mv_polynomial`s.
 We also prove some basic facts about them.
 
 ## Main declarations
@@ -52,6 +52,8 @@ def is_symmetric [comm_semiring R] (φ : mv_polynomial σ R) : Prop :=
 ∀ e : perm σ, rename e φ = φ
 
 namespace is_symmetric
+
+section comm_semiring
 variables [comm_semiring R] [comm_semiring S] {φ ψ : mv_polynomial σ R}
 
 @[simp]
@@ -79,10 +81,9 @@ lemma smul (r : R) (hφ : is_symmetric φ) : is_symmetric (r • φ) :=
 lemma map (hφ : is_symmetric φ) (f : R →+* S) : is_symmetric (map f φ) :=
 λ e, by rw [← map_rename, hφ]
 
-end is_symmetric
+end comm_semiring
 
-namespace is_symmetric
-
+section comm_ring
 variables [comm_ring R] {φ ψ : mv_polynomial σ R}
 
 lemma neg (hφ : is_symmetric φ) : is_symmetric (-φ) :=
@@ -91,25 +92,25 @@ lemma neg (hφ : is_symmetric φ) : is_symmetric (-φ) :=
 lemma sub (hφ : is_symmetric φ) (hψ : is_symmetric ψ) : is_symmetric (φ - ψ) :=
 λ e, by rw [alg_hom.map_sub, hφ, hψ]
 
+end comm_ring
+
 end is_symmetric
 
 section elementary_symmetric
-
 open finset
-
 variables (σ R) [comm_semiring R] [comm_semiring S] [fintype σ] [fintype τ]
 
-/-- Define `esymm σ R n` as the `n`th elementary symmetric polynomial in `mv_polynomial σ R`. -/
+/-- The `n`th elementary symmetric `mv_polynomial σ R`. -/
 def esymm (n : ℕ) : mv_polynomial σ R :=
 ∑ t in powerset_len n univ, ∏ i in t, X i
 
-/-- A second definition of `esymm σ R n` that ranges over a subtype instead of `powerset_len`. -/
-lemma esymm₂ (n : ℕ) : (esymm σ R n) =
+/-- We can define `esymm σ R n` by summing over a subtype instead of over `powerset_len`. -/
+lemma esymm_eq_sum_subtype (n : ℕ) : esymm σ R n =
   ∑ t : {s : finset σ // s.card = n}, ∏ i in (t : finset σ), X i :=
 begin
   rw esymm,
   let i : Π (a : finset σ), a ∈ powerset_len n univ → {s : finset σ // s.card = n} :=
-  by {intros a ha, split, exact (mem_powerset_len.mp ha).2, apply_instance },
+    λ a ha, ⟨_, (mem_powerset_len.mp ha).2⟩,
   refine sum_bij i (λ a ha, mem_univ (i a ha)) _ (λ _ _ _ _ hi, subtype.ext_iff_val.mp hi) _,
   { intros,
     apply prod_congr,
@@ -117,6 +118,27 @@ begin
     intros, refl,},
   { refine (λ b H, ⟨b.val, mem_powerset_len.mpr ⟨subset_univ b.val, b.property⟩, _⟩),
     simp [i] },
+end
+
+/-- We can define `esymm σ R n` as a sum over explicit monomials -/
+lemma esymm_eq_sum_monomial (n : ℕ) : esymm σ R n =
+  ∑ t in powerset_len n univ, monomial (∑ i in t, finsupp.single i 1) 1 :=
+begin
+  refine sum_congr rfl (λ x hx, _),
+  rw monic_monomial_eq,
+  rw finsupp.prod_pow,
+  rw ← prod_subset (λ y _, finset.mem_univ y : x ⊆ univ) (λ y _ hy, _),
+  { refine prod_congr rfl (λ x' hx', _),
+    convert (pow_one _).symm,
+    convert (finsupp.apply_add_hom x' : (σ →₀ ℕ) →+ ℕ).map_sum _ x,
+    classical,
+    simp [finsupp.single_apply, finset.filter_eq', apply_ite, apply_ite finset.card],
+    rw if_pos hx', },
+  { convert pow_zero _,
+    convert (finsupp.apply_add_hom y : (σ →₀ ℕ) →+ ℕ).map_sum _ x,
+    classical,
+    simp [finsupp.single_apply, finset.filter_eq', apply_ite, apply_ite finset.card],
+    rw if_neg hy, }
 end
 
 @[simp] lemma esymm_zero : esymm σ R 0 = 1 :=
@@ -132,7 +154,7 @@ end
 
 lemma rename_esymm (n : ℕ) (e : σ ≃ τ) : rename e (esymm σ R n) = esymm τ R n :=
 begin
-  simp [esymm, esymm₂, (rename e).map_sum],
+  rw [esymm_eq_sum_subtype, esymm_eq_sum_subtype, (rename ⇑e).map_sum],
   let e' : {s : finset σ // s.card = n} ≃ {s : finset τ // s.card = n} :=
   equiv.subtype_congr (equiv.finset_congr e)
     (by { intro, rw [equiv.finset_congr_apply, card_map] }),

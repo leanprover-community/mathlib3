@@ -219,7 +219,9 @@ begin
       rcases hx with ⟨ a, b, ha, hb, hx ⟩,
       rcases ih b hb with ⟨ S, hb, hS ⟩,
       use a :: S,
-      finish } }
+      rw list.join,
+      refine ⟨hb ▸ hx.symm, λ y, or.rec (λ hy, _) (hS _)⟩,
+      exact hy.symm ▸ ha } }
 end
 
 lemma mul_self_star_comm (l : language α) : l.star * l = l * l.star :=

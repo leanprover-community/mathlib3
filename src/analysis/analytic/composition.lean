@@ -225,12 +225,8 @@ begin
   dsimp [formal_multilinear_series.comp],
   have : {c} = (finset.univ : finset (composition 0)),
   { apply finset.eq_of_subset_of_card_le; simp [finset.card_univ, composition_card 0] },
-  rw ← this,
-  simp only [finset.sum_singleton, continuous_multilinear_map.sum_apply],
-  change q c.length (p.apply_composition c v) = q 0 v',
-  congr' with i,
-  simp only [composition.ones_length] at i,
-  exact fin_zero_elim i
+  rw [← this, finset.sum_singleton, comp_along_composition_apply],
+  symmetry, congr'
 end
 
 @[simp] lemma comp_coeff_zero'

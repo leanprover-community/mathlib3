@@ -83,8 +83,6 @@ class_group.finite_of_admissible K int.fraction_map int.admissible_abs
 /-- The class number of a number ring is the (finite) cardinality of the class group. -/
 noncomputable def class_number : ℕ := fintype.card (class_group (number_ring.fraction_map K))
 
-#check 1 + 1
-
 end number_ring
 
 end number_field

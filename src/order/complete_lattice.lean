@@ -266,8 +266,16 @@ iff.intro
   (assume h a ha, top_unique $ h ▸ Inf_le ha)
   (assume h, top_unique $ le_Inf $ assume a ha, top_le_iff.2 $ h a ha)
 
+lemma eq_singleton_top_of_Inf_eq_top_of_nonempty {s : set α}
+  (h_inf : Inf s = ⊤) (hne : s.nonempty) : s = {⊤} :=
+by { rw set.eq_singleton_iff_nonempty_unique_mem, rw Inf_eq_top at h_inf, exact ⟨hne, h_inf⟩, }
+
 @[simp] theorem Sup_eq_bot : Sup s = ⊥ ↔ (∀a∈s, a = ⊥) :=
 @Inf_eq_top (order_dual α) _ _
+
+lemma eq_singleton_bot_of_Sup_eq_bot_of_nonempty {s : set α}
+  (h_sup : Sup s = ⊥) (hne : s.nonempty) : s = {⊥} :=
+by { rw set.eq_singleton_iff_nonempty_unique_mem, rw Sup_eq_bot at h_sup, exact ⟨hne, h_sup⟩, }
 
 end
 
@@ -642,6 +650,12 @@ by simpa only [inf_comm] using binfi_inf h
 
 theorem supr_sup_eq {f g : β → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
 @infi_inf_eq (order_dual α) β _ _ _
+
+lemma supr_sup [h : nonempty ι] {f : ι → α} {a : α} : (⨆ x, f x) ⊔ a = (⨆ x, f x ⊔ a) :=
+@infi_inf (order_dual α) _ _ _ _ _
+
+lemma sup_supr [nonempty ι] {f : ι → α} {a : α} : a ⊔ (⨆ x, f x) = (⨆ x, a ⊔ f x) :=
+@inf_infi (order_dual α) _ _ _ _ _
 
 /- supr and infi under Prop -/
 

@@ -227,6 +227,38 @@ instance : semimodule S (alternating_map R M N ι) :=
 
 end semimodule
 
+end alternating_map
+
+/-!
+### Composition with linear maps
+-/
+
+namespace linear_map
+
+variables {N₂ : Type*} [add_comm_monoid N₂] [semimodule R N₂]
+
+/-- Composing a alternating map with a linear map gives again a alternating map. -/
+def comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
+  alternating_map R M N₂ ι :=
+{ map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+  ..(g.comp_multilinear_map (f : multilinear_map R (λ _ : ι, M) N)) }
+
+@[simp] lemma coe_comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
+  ⇑(g.comp_alternating_map f) = g ∘ f := rfl
+
+lemma comp_alternating_map_apply (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) (m : ι → M) :
+  g.comp_alternating_map f m = g (f m) := rfl
+
+end linear_map
+
+namespace alternating_map
+
+variables (f f' : alternating_map R M N ι)
+variables (g g₂ : alternating_map R M N' ι)
+variables (g' : alternating_map R M' N' ι)
+variables (v : ι → M) (v' : ι → M')
+open function
+
 /-!
 ### Other lemmas from `multilinear_map`
 -/
@@ -376,10 +408,22 @@ lemma coe_alternatization [fintype ι] (a : alternating_map R M N' ι) :
   (↑a : multilinear_map R (λ ι, M) N').alternatization = nat.factorial (fintype.card ι) • a :=
 begin
   ext,
-  simp only [multilinear_map.alternatization_apply, map_perm, smul_smul, ←nat.smul_def, coe_mk,
+  simp only [multilinear_map.alternatization_apply, map_perm, smul_smul, nsmul_eq_smul, coe_mk,
     smul_apply, add_monoid_hom.coe_mk, finset.sum_const, coe_multilinear_map, one_smul,
     multilinear_map.dom_dom_congr_apply, int.units_coe_mul_self,
     finset.card_univ, fintype.card_perm],
 end
 
 end alternating_map
+
+namespace linear_map
+
+variables {N'₂ : Type*} [add_comm_group N'₂] [semimodule R N'₂] [fintype ι]
+
+/-- Composition with a linear map before and after alternatization are equivalent. -/
+lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
+  (f : multilinear_map R (λ _ : ι, M) N') :
+  (g.comp_multilinear_map f).alternatization = g.comp_alternating_map (f.alternatization) :=
+by { ext, simp [multilinear_map.alternatization_apply] }
+
+end linear_map

@@ -539,6 +539,13 @@ hf.piecewise hs measurable_const
 @[to_additive]
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
+lemma measurable_of_not_nonempty  (h : ¬ nonempty α) (f : α → β) : measurable f :=
+begin
+  assume s hs,
+  convert is_measurable.empty,
+  exact eq_empty_of_not_nonempty h _,
+end
+
 end measurable_functions
 
 section constructions
@@ -929,6 +936,10 @@ instance : inhabited (α ≃ᵐ α) := ⟨refl α⟩
 
 @[simp] lemma coe_symm_mk (e : α ≃ β) (h1 : measurable e) (h2 : measurable e.symm) :
   ((⟨e, h1, h2⟩ : α ≃ᵐ β).symm : β → α) = e.symm := rfl
+
+@[simp] theorem symm_comp_self (e : α ≃ᵐ β) : e.symm ∘ e = id := funext e.left_inv
+
+@[simp] theorem self_comp_symm (e : α ≃ᵐ β) : e ∘ e.symm = id := funext e.right_inv
 
 /-- Equal measurable spaces are equivalent. -/
 protected def cast {α β} [i₁ : measurable_space α] [i₂ : measurable_space β]

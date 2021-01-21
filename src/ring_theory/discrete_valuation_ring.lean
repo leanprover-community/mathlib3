@@ -246,7 +246,7 @@ begin
   have ex : ∃ n : ℕ, p ^ n ∈ I,
   { obtain ⟨n, u, rfl⟩ := H hx0,
     refine ⟨n, _⟩,
-    simpa only [units.mul_inv_cancel_right] using @ideal.mul_mem_right _ _ I _ ↑u⁻¹ hxI, },
+    simpa only [units.mul_inv_cancel_right] using I.mul_mem_right ↑u⁻¹ hxI, },
   constructor,
   use p ^ (nat.find ex),
   show I = ideal.span _,
@@ -258,7 +258,7 @@ begin
     simp only [mem_span_singleton, is_unit_unit, is_unit.dvd_mul_right],
     apply pow_dvd_pow,
     apply nat.find_min',
-    simpa only [units.mul_inv_cancel_right] using @ideal.mul_mem_right _ _ I _ ↑u⁻¹ hr, },
+    simpa only [units.mul_inv_cancel_right] using I.mul_mem_right ↑u⁻¹ hr, },
   { erw submodule.span_singleton_le_iff_mem,
     exact nat.find_spec ex, },
 end

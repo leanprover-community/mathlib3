@@ -246,6 +246,16 @@ def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃
 ⟨ λac, (ab.symm.trans ac).trans cd, λbd, ab.trans $ bd.trans $ cd.symm,
   assume ac, by { ext x, simp }, assume ac, by { ext x, simp } ⟩
 
+@[simp] lemma equiv_congr_refl {α β} :
+  (equiv.refl α).equiv_congr (equiv.refl β) = equiv.refl (α ≃ β) := by { ext, refl }
+
+@[simp] lemma equiv_congr_symm {δ} (ab : α ≃ β) (cd : γ ≃ δ) :
+  (ab.equiv_congr cd).symm = ab.symm.equiv_congr cd.symm := by { ext, refl }
+
+@[simp] lemma equiv_congr_trans {δ ε ζ} (ab : α ≃ β) (de : δ ≃ ε) (bc : β ≃ γ) (ef : ε ≃ ζ) :
+  (ab.equiv_congr de).trans (bc.equiv_congr ef) = (ab.trans bc).equiv_congr (de.trans ef) :=
+by { ext, refl }
+
 @[simp] lemma equiv_congr_apply_apply {δ} (ab : α ≃ β) (cd : γ ≃ δ) (e : α ≃ γ) (x) :
   ab.equiv_congr cd e x = cd (e (ab.symm x)) := rfl
 
@@ -364,7 +374,7 @@ A version of `equiv.arrow_congr` in `Type`, rather than `Sort`.
 The `equiv_rw` tactic is not able to use the default `Sort` level `equiv.arrow_congr`,
 because Lean's universe rules will not unify `?l_1` with `imax (1 ?m_1)`.
 -/
-@[congr, simps apply {rhs_md := semireducible, simp_rhs := tt}]
+@[congr, simps apply]
 def arrow_congr' {α₁ β₁ α₂ β₂ : Type*} (hα : α₁ ≃ α₂) (hβ : β₁ ≃ β₂) : (α₁ → β₁) ≃ (α₂ → β₂) :=
 equiv.arrow_congr hα hβ
 
@@ -381,7 +391,7 @@ rfl
 rfl
 
 /-- Conjugate a map `f : α → α` by an equivalence `α ≃ β`. -/
-@[simps apply {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply]
 def conj (e : α ≃ β) : (α → α) ≃ (β → β) := arrow_congr e e
 
 @[simp] lemma conj_refl : conj (equiv.refl α) = equiv.refl (α → α) := rfl
@@ -487,7 +497,7 @@ section
 ⟨λ p, p.1, λ a, (a, punit.star), λ ⟨_, punit.star⟩, rfl, λ a, rfl⟩
 
 /-- `punit` is a left identity for type product up to an equivalence. -/
-@[simps apply {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply]
 def punit_prod (α : Type*) : punit.{u+1} × α ≃ α :=
 calc punit × α ≃ α × punit : prod_comm _ _
            ... ≃ α         : prod_punit _
@@ -1073,7 +1083,7 @@ rfl
 
 /-- If two predicates `p` and `q` are pointwise equivalent, then `{x // p x}` is equivalent to
 `{x // q x}`. -/
-@[simps {rhs_md := semireducible, simp_rhs := tt}]
+@[simps]
 def subtype_congr_right {p q : α → Prop} (e : ∀x, p x ↔ q x) : {x // p x} ≃ {x // q x} :=
 subtype_congr (equiv.refl _) e
 
@@ -1094,7 +1104,7 @@ def subtype_congr_prop {α : Type*} {p q : α → Prop} (h : p = q) : subtype p 
 subtype_congr (equiv.refl α) (assume a, h ▸ iff.rfl)
 
 /-- The subtypes corresponding to equal sets are equivalent. -/
-@[simps apply {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply]
 def set_congr {α : Type*} {s t : set α} (h : s = t) : s ≃ t :=
 subtype_congr_prop h
 
@@ -1457,7 +1467,7 @@ protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α)
  λ ⟨y, h⟩, subtype.eq (classical.some_spec h).2⟩
 
 /-- If `f` is an injective function, then `s` is equivalent to `f '' s`. -/
-@[simps apply {rhs_md := semireducible}]
+@[simps apply]
 protected noncomputable def image {α β} (f : α → β) (s : set α) (H : injective f) : s ≃ (f '' s) :=
 equiv.set.image_of_inj_on f s (H.inj_on s)
 
@@ -1504,7 +1514,7 @@ protected def powerset {α} (S : set α) : 𝒫 S ≃ set S :=
 end set
 
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
-@[simps apply {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply]
 noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α ≃ β :=
 (equiv.set.range f hf.1).trans $ (set_congr hf.2.range_eq).trans $ equiv.set.univ β
 
@@ -1517,7 +1527,7 @@ lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (
 (of_bijective f hf).symm_apply_apply x
 
 /-- If `f` is an injective function, then its domain is equivalent to its range. -/
-@[simps apply {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply]
 noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=
 of_bijective (λ x, ⟨f x, set.mem_range_self x⟩)
   ⟨λ x y hxy, hf $ by injections, λ ⟨_, x, rfl⟩, ⟨x, rfl⟩⟩

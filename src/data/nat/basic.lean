@@ -1117,9 +1117,6 @@ lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
 lemma lt_two_pow (n : ℕ) : n < 2^n :=
 lt_pow_self dec_trivial n
 
-lemma succ_le_two_pow (n : ℕ) : n + 1 ≤ 2^n :=
-lt_two_pow n
-
 lemma one_le_pow (n m : ℕ) (h : 0 < m) : 1 ≤ m^n :=
 by { rw ←one_pow n, exact nat.pow_le_pow_of_le_left h n }
 lemma one_le_pow' (n m : ℕ) : 1 ≤ (m+1)^n := one_le_pow n (m+1) (succ_pos m)

@@ -6,7 +6,7 @@ Author: Yury G. Kudryashov
 import measure_theory.set_integral
 import measure_theory.lebesgue_measure
 import analysis.calculus.fderiv_measurable
-import analysis.calculus.mean_value
+import analysis.calculus.extend_deriv
 
 /-!
 # Integral over an interval
@@ -1291,8 +1291,8 @@ theorem continuous_on_integral_of_continuous {s : set ℝ}
 (differentiable_on_integral_of_continuous hintg hcont).continuous_on
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` and has a right
-  derivative at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]` and measurable,
-  then `∫ y in a..b, f' y` equals `f b - f a`. -/
+  derivative at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]`, then
+  `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuous_on f (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   (hcont' : continuous_on f' (Icc a b)) :
@@ -1321,8 +1321,8 @@ begin
 end
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` (where `a ≤ b`) and
-  has a right derivative at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]` and
-  measurable, then `∫ y in a..b, f' y` equals `f b - f a`. -/
+  has a right derivative at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]` then
+  `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_right (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ico (min a b) (max a b), has_deriv_within_at f (f' x) (Ici x) x)
   (hcont' : continuous_on f' (interval a b)) :
@@ -1336,22 +1336,37 @@ begin
 end
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` and has a derivative
-  at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]` and measurable, then
-  `∫ y in a..b, f' y` equals `f b - f a`. -/
+  at `f' x` for all `x` in `(a, b)`, and `f'` is continuous on `[a, b]`, then `∫ y in a..b, f' y`
+  equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_at' (hcont : continuous_on f (interval a b))
-  (hderiv : ∀ x ∈ Ico (min a b) (max a b), has_deriv_at f (f' x) x)
+  (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_at f (f' x) x)
   (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
-integral_eq_sub_of_has_deriv_right hcont (λ x hx, (hderiv x hx).has_deriv_within_at) hcont'
+begin
+  refine integral_eq_sub_of_has_deriv_right hcont _ hcont',
+  intros y hy',
+  obtain (hy | hy) : y ∈ Ioo (min a b) (max a b) ∨ min a b = y ∧ y < max a b,
+  { simpa only [le_iff_lt_or_eq, or_and_distrib_right, mem_Ioo, mem_Ico] using hy' },
+  { exact (hderiv y hy).has_deriv_within_at },
+  { refine has_deriv_at_interval_left_endpoint_of_tendsto_deriv
+      (λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at) _ _ _,
+    { exact (hcont y (Ico_subset_Icc_self hy')).mono Ioo_subset_Icc_self },
+    { exact Ioo_mem_nhds_within_Ioi hy' },
+    { have : tendsto f' (𝓝[Ioi y] y) (𝓝 (f' y)),
+      { refine tendsto.mono_left _ (nhds_within_mono y Ioi_subset_Ici_self),
+        have h := hcont'.continuous_within_at (left_mem_Icc.mpr min_le_max),
+        simpa only [← nhds_within_Icc_eq_nhds_within_Ici hy.2, interval, hy.1] using h },
+      have h := eventually_of_mem (Ioo_mem_nhds_within_Ioi hy') (λ x hx, (hderiv x hx).deriv),
+      rwa tendsto_congr' h } },
+  end
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` has a derivative at `f' x` for all `x` in
-  `[a, b]` and `f'` is continuous on `[a, b]` and measurable, then `∫ y in a..b, f' y` equals
-  `f b - f a`. -/
+  `[a, b]` and `f'` is continuous on `[a, b]`, then `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_at (hderiv : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
 integral_eq_sub_of_has_deriv_at' (λ x hx, (hderiv x hx).continuous_at.continuous_within_at)
-  (λ x hx, hderiv _ (mem_Icc_of_Ico hx)) hcont'
+  (λ x hx, hderiv _ (mem_Icc_of_Ioo hx)) hcont'
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is differentiable at every `x` in `[a, b]` and
   its derivative is continuous on `[a, b]`, then `∫ y in a..b, deriv f y` equals `f b - f a`. -/

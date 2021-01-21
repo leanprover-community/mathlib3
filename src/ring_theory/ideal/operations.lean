@@ -7,6 +7,7 @@ import data.nat.choose.sum
 import data.equiv.ring
 import algebra.algebra.operations
 import ring_theory.ideal.basic
+import algebra.algebra.tower
 /-!
 # More operations on modules and ideals
 -/
@@ -1139,28 +1140,40 @@ end
 
 section quotient_algebra
 
-/-- The `R`-algebra structure on `R/I` -/
-instance {I : ideal R} : algebra R (ideal.quotient I) := (ideal.quotient.mk I).to_algebra
+variables (R) {A : Type*} [comm_ring A] [algebra R A]
 
-/-- The canonical morphism `R →ₐ[R] I.quotient`, for `I` an ideal of `R`, as morphism of
-`R`-algebras. -/
-def quotient.mkₐ (I : ideal R) : R →ₐ[R] I.quotient :=
+/-- The `R`-algebra structure on `A/I` for an `R`-algebra `A` -/
+instance {I : ideal A} : algebra R (ideal.quotient I) :=
+(ring_hom.comp (ideal.quotient.mk I) (algebra_map R A)).to_algebra
+
+/-- The canonical morphism `A →ₐ[R] I.quotient` as morphism of `R`-algebras, for `I` an ideal of
+`A`, where `A` is an `R`-algebra. -/
+def quotient.mkₐ (I : ideal A) : A →ₐ[R] I.quotient :=
 ⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl, λ _, rfl⟩
 
-lemma quotient.mkₐ_to_ring_hom (I : ideal R) :
-  (quotient.mkₐ I).to_ring_hom = ideal.quotient.mk I := rfl
+lemma quotient.alg_map_eq (I : ideal A) :
+  algebra_map R I.quotient = (algebra_map A I.quotient).comp (algebra_map R A) :=
+by simp only [ring_hom.algebra_map_to_algebra, ring_hom.comp_id]
 
-@[simp] lemma quotient.mkₐ_eq_mk (I : ideal R) :
-  ⇑(quotient.mkₐ I) = ideal.quotient.mk I := rfl
+instance {I : ideal A} : is_scalar_tower R A (ideal.quotient I) :=
+is_scalar_tower.of_algebra_map_eq' (quotient.alg_map_eq R I)
 
-/-- The canonical morphism `R →ₐ[R] I.quotient` is surjective. -/
-lemma quotient.mkₐ_surjective (I : ideal R) : function.surjective (quotient.mkₐ I) :=
+lemma quotient.mkₐ_to_ring_hom (I : ideal A) :
+  (quotient.mkₐ R I).to_ring_hom = ideal.quotient.mk I := rfl
+
+@[simp] lemma quotient.mkₐ_eq_mk (I : ideal A) :
+  ⇑(quotient.mkₐ R I) = ideal.quotient.mk I := rfl
+
+/-- The canonical morphism `A →ₐ[R] I.quotient` is surjective. -/
+lemma quotient.mkₐ_surjective (I : ideal A) : function.surjective (quotient.mkₐ R I) :=
 surjective_quot_mk _
 
-/-- The kernel of `R →ₐ[R] I.quotient` is `I`. -/
+/-- The kernel of `A →ₐ[R] I.quotient` is `I`. -/
 @[simp]
-lemma quotient.mkₐ_ker (I : ideal R) : (quotient.mkₐ I).to_ring_hom.ker = I :=
+lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R I).to_ring_hom.ker = I :=
 ideal.mk_ker
+
+variable {R}
 
 /-- The ring hom `R/J →+* S/I` induced by a ring hom `f : R →+* S` with `J ≤ f⁻¹(I)` -/
 def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) :

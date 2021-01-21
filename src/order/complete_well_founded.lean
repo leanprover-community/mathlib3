@@ -69,7 +69,7 @@ begin
     -- Any nonempty directed set certainly sups above ⊥
     { rintros _ _ ⟨x, hx⟩ _ _, use x, by simp only [hx, hbot, bot_le, and_self], },
     { intros hk s hne hdir hsup,
-      cases (hk s hsup) with t ht,
+      obtain ⟨t, ht⟩ := hk s hsup,
       -- If t were empty, it would sup to ⊥, which is not above k ≠ ⊥.
       have tne : t.nonempty,
       { by_contradiction n,
@@ -78,16 +78,14 @@ begin
         exact absurd ht hbot, },
       -- certainly ↑t ⊆ s, so every element of t is below something in s, to apply finset_sup_of_directed_on
       have t_below_s : ∀ x ∈ t, ∃ y ∈ s, x ≤ y, from λ x hxt, ⟨x, ht.left hxt, by refl⟩,
-      rcases (finset.sup_le_of_le_directed s hne hdir t t_below_s) with ⟨x, ⟨hxs, hsupx⟩⟩,
+      obtain ⟨x, ⟨hxs, hsupx⟩⟩ := finset.sup_le_of_le_directed s hne hdir t t_below_s,
       exact ⟨x, ⟨hxs, le_trans k (t.sup id) x ht.right hsupx⟩⟩, }, },
   { intros hk s hsup,
     -- Consider the set of finite joins of elements of the (plain) set s.
     let S : set α := { x | ∃ t : finset α, ↑t ⊆ s ∧ x = t.sup id },
     -- S is directed, nonempty, and still sups above k.
     have dir_US : directed_on (≤) S,
-    { intros x hx y hy,
-      cases hx with c hc,
-      cases hy with d hd,
+    { rintros x ⟨c, hc⟩ y ⟨d, hd⟩,
       use x ⊔ y,
       split,
       { use c ∪ d,
@@ -105,8 +103,8 @@ begin
       use ∅,
       simp only [set.empty_subset, finset.coe_empty, finset.sup_empty, eq_self_iff_true, and_self], },
     -- Now apply the defn of compact and finish.
-    rcases (hk S Sne dir_US (le_trans k (Sup s) (Sup S) hsup sup_S)) with ⟨j, ⟨hjS, hjk⟩⟩,
-    rcases hjS with ⟨t, ⟨htS, htsup⟩⟩,
+    obtain ⟨j, ⟨hjS, hjk⟩⟩ := hk S Sne dir_US (le_trans k (Sup s) (Sup S) hsup sup_S),
+    obtain ⟨t, ⟨htS, htsup⟩⟩ := hjS,
     use t, exact ⟨htS, by rwa ←htsup⟩, },
 end
 

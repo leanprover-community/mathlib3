@@ -937,7 +937,7 @@ def alg_equiv_matrix {R : Type v} {M : Type w} {n : Type*} [fintype n]
   module.End R M ≃ₐ[R] matrix n n R :=
 h.equiv_fun.alg_conj.trans alg_equiv_matrix'
 
-/-- `std_basis` is the standard basis for vectors. -/
+/-- `std_basis_vec` is the standard basis for the free module `n → R`. -/
 def std_basis_vec {R : Type v} [ring R] {n : Type w} [decidable_eq n]
   (i : n) : n → R := λ j, if j = i then 1 else 0
 

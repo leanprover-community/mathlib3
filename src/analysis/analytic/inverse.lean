@@ -21,12 +21,10 @@ and we prove that they coincide.
 * `p.left_inv_comp` says that `p.left_inv i` is indeed a left inverse to `p` when `p₁ = i`.
 * `p.right_inv_comp` says that `p.right_inv i` is indeed a right inverse to `p` when `p₁ = i`.
 * `p.left_inv_eq_right_inv` states that the two inverses coincide.
-
-
 -/
 
-open_locale big_operators classical
-open finset
+open_locale big_operators classical topological_space
+open finset filter
 
 namespace formal_multilinear_series
 
@@ -166,6 +164,46 @@ begin
   by_cases hk : k < n+2; simp [hk, IH]
 end
 
+lemma comp_right_inv_aux1 {n : ℕ} (hn : 0 < n)
+  (p : formal_multilinear_series 𝕜 E F) (q : formal_multilinear_series 𝕜 F E) (v : fin n → F) :
+  p.comp q n v =
+    (∑ (c : composition n) in {c : composition n | 1 < c.length}.to_finset,
+      p c.length (q.apply_composition c v)) + p 1 (λ i, q n v) :=
+begin
+  have A : (finset.univ : finset (composition n))
+    = {c | 1 < composition.length c}.to_finset ∪ {composition.single n hn},
+  { refine subset.antisymm (λ c hc, _) (subset_univ _),
+    by_cases h : 1 < c.length,
+    { simp [h] },
+    { have : c.length = 1,
+        by { refine (eq_iff_le_not_lt.2 ⟨ _, h⟩).symm, exact c.length_pos_of_pos hn },
+      rw ← composition.eq_single_iff_length hn at this,
+      simp [this] } },
+  have B : disjoint ({c | 1 < composition.length c} : set (composition n)).to_finset
+    {composition.single n hn}, by simp,
+  have C : p (composition.single n hn).length
+              (q.apply_composition (composition.single n hn) v)
+            = p 1 (λ (i : fin 1), q n v),
+  { apply p.congr (composition.single_length hn) (λ j hj1 hj2, _),
+    simp [apply_composition_single] },
+  simp [formal_multilinear_series.comp, A, finset.sum_union B, C],
+end
+
+lemma comp_right_inv_aux2
+  (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) (n : ℕ) (v : fin (n + 2) → F) :
+  ∑ (c : composition (n + 2)) in {c : composition (n + 2) | 1 < c.length}.to_finset,
+    p c.length (apply_composition (λ (k : ℕ), ite (k < n + 2) (p.right_inv i k) 0) c v) =
+  ∑ (c : composition (n + 2)) in {c : composition (n + 2) | 1 < c.length}.to_finset,
+    p c.length ((p.right_inv i).apply_composition c v) :=
+begin
+  have N : 0 < n + 2, by dec_trivial,
+  refine sum_congr rfl (λ c hc, p.congr rfl (λ j hj1 hj2, _)),
+  have : ∀ k, c.blocks_fun k < n + 2,
+  { simp only [set.mem_to_finset, set.mem_set_of_eq] at hc,
+    simp [← composition.ne_single_iff N, composition.eq_single_iff_length, ne_of_gt hc] },
+  simp [apply_composition, this],
+end
+
 /-- The right inverse to a formal multilinear series is indeed a right inverse, provided its linear
 term is invertible and its constant term vanishes. -/
 lemma comp_right_inv (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
@@ -180,39 +218,8 @@ begin
   { simp only [comp_coeff_one, h, right_inv, continuous_linear_equiv.apply_symm_apply, id_apply_one,
       continuous_linear_equiv.coe_apply, continuous_multilinear_curry_fin1_symm_apply] },
   have N : 0 < n+2, by dec_trivial,
-  have : ∀ q : formal_multilinear_series 𝕜 F E, p.comp q (n + 2) v =
-    (∑ (c : composition (n + 2)) in {c : composition (n + 2) | 1 < c.length}.to_finset,
-      p c.length (q.apply_composition c v)) + p 1 (λ i, q (n+2) v),
-  { assume q,
-    have A : (finset.univ : finset (composition (n+2)))
-      = {c | 1 < composition.length c}.to_finset ∪ {composition.single (n+2) N},
-    { refine subset.antisymm (λ c hc, _) (subset_univ _),
-      by_cases h : 1 < c.length,
-      { simp [h] },
-      { have : c.length = 1,
-          by { refine (eq_iff_le_not_lt.2 ⟨ _, h⟩).symm, exact c.length_pos_of_pos N },
-        rw ← composition.eq_single_iff_length N at this,
-        simp [this] } },
-    have B : disjoint ({c | 1 < composition.length c} : set (composition (n+2))).to_finset
-      {composition.single (n+2) N}, by simp,
-    have C : p (composition.single (n + 2) N).length
-               (q.apply_composition (composition.single (n + 2) N) v)
-             = p 1 (λ (i : fin 1), q (n + 2) v),
-    { apply p.congr (composition.single_length N) (λ j hj1 hj2, _),
-      simp [apply_composition_single] },
-    simp [formal_multilinear_series.comp, show n + 2 ≠ 1, by dec_trivial, A,
-          finset.sum_union B, C], },
-  suffices H : ∑ (c : composition (n + 2)) in {c : composition (n + 2) | 1 < c.length}.to_finset,
-        p c.length ((p.right_inv i).apply_composition c v) =
-      ∑ (c : composition (n + 2)) in {c : composition (n + 2) | 1 < c.length}.to_finset,
-        p c.length (apply_composition (λ (k : ℕ), ite (k < n + 2) (p.right_inv i k) 0) c v),
-    by simpa [this, h, right_inv, lt_irrefl n, show n + 2 ≠ 1, by dec_trivial, ← sub_eq_add_neg,
-              sub_eq_zero],
-  refine sum_congr rfl (λ c hc, p.congr rfl (λ j hj1 hj2, _)),
-  have : ∀ k, c.blocks_fun k < n + 2,
-  { simp only [set.mem_to_finset, set.mem_set_of_eq] at hc,
-    simp [← composition.ne_single_iff N, composition.eq_single_iff_length, ne_of_gt hc] },
-  simp [apply_composition, this],
+  simp [comp_right_inv_aux1 N, h, right_inv, lt_irrefl n, show n + 2 ≠ 1, by dec_trivial,
+        ← sub_eq_add_neg, sub_eq_zero, comp_right_inv_aux2],
 end
 
 private lemma left_inv_eq_right_inv_aux (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
@@ -233,5 +240,214 @@ theorem left_inv_eq_right_inv (p : formal_multilinear_series 𝕜 E F) (i : E �
 left_inv p i = left_inv p.remove_zero i : by rw left_inv_remove_zero
 ... = right_inv p.remove_zero i : by { apply left_inv_eq_right_inv_aux; simp [h] }
 ... = right_inv p i : by rw right_inv_remove_zero
+
+lemma right_inv_coeff (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) (n : ℕ) (hn : 2 ≤ n) :
+  p.right_inv i n = - (i.symm : F →L[𝕜] E).comp_continuous_multilinear_map
+    (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition n)),
+      p.comp_along_composition (p.right_inv i) c) :=
+begin
+  cases n, { exact false.elim (zero_lt_two.not_le hn) },
+  cases n, { exact false.elim (one_lt_two.not_le hn) },
+  simp only [right_inv, neg_inj],
+  congr' 1,
+  ext v,
+  have N : 0 < n + 2, by dec_trivial,
+  have : (p 1) (λ (i : fin 1), 0) = 0 := continuous_multilinear_map.map_zero _,
+  simp [comp_right_inv_aux1 N, lt_irrefl n, this, comp_right_inv_aux2]
+end
+
+lemma sum_Ico_add_one (f : ℕ → ℝ) (n : ℕ) : ∑ i in Ico n (n+1), f i = f n :=
+by simp
+
+@[simp] lemma sum_Ico_add_two (f : ℕ → ℝ) (n : ℕ) : ∑ i in Ico n (n+2), f i = f n + f (n+1) :=
+by simp [Ico.succ_top, add_comm]
+
+@[simp] lemma sum_Ico_add_three (f : ℕ → ℝ) (n : ℕ) :
+  ∑ i in Ico n (n+3), f i = f n + f (n+1) + f (n+2) :=
+begin
+  rw [Ico.succ_top, sum_insert, sum_Ico_add_two],
+  { abel },
+  { simp },
+  { simp }
+end
+
+lemma glouk (n : ℕ) (p : ℕ → ℝ) (hp : ∀ k, 0 ≤ p k) (r a : ℝ) (hr : 0 ≤ r) (ha : 0 ≤ a) :
+  ∑ k in Ico 2 (n + 1), a ^ k *
+      (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
+          r ^ c.length * ∏ j, p (c.blocks_fun j))
+  ≤ ∑ j in Ico 2 (n + 1), r ^ j * (∑ k in Ico 1 n, a ^ k * p k) ^ j :=
+calc
+∑ k in Ico 2 (n + 1), a ^ k *
+  (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
+      r ^ c.length * ∏ j, p (c.blocks_fun j))
+= ∑ k in Ico 2 (n + 1),
+  (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
+      ∏ j, r * (a ^ (c.blocks_fun j) * p (c.blocks_fun j))) :
+begin
+  simp_rw [mul_sum],
+  apply sum_congr rfl (λ k hk, _),
+  apply sum_congr rfl (λ c hc, _),
+  rw [prod_mul_distrib, prod_mul_distrib, prod_pow_eq_pow_sum, composition.sum_blocks_fun,
+      prod_const, card_fin],
+  ring,
+end
+... ≤ ∑ d in comp_partial_sum_target 2 (n + 1) n,
+        ∏ (j : fin d.2.length), r * (a ^ d.2.blocks_fun j * p (d.2.blocks_fun j)) :
+begin
+  rw sum_sigma',
+  refine sum_le_sum_of_subset_of_nonneg _ (λ x hx1 hx2,
+    prod_nonneg (λ j hj, mul_nonneg hr (mul_nonneg (pow_nonneg ha _) (hp _)))),
+  rintros ⟨k, c⟩ hd,
+  simp only [set.mem_to_finset, Ico.mem, mem_sigma, set.mem_set_of_eq] at hd,
+  simp only [mem_comp_partial_sum_target_iff],
+  refine ⟨hd.2, c.length_le.trans_lt hd.1.2, λ j, _⟩,
+  have : c ≠ composition.single k (zero_lt_two.trans_le hd.1.1),
+    by simp [composition.eq_single_iff_length, ne_of_gt hd.2],
+  rw composition.ne_single_iff at this,
+  exact (this j).trans_le (nat.lt_succ_iff.mp hd.1.2)
+end
+... = ∑ e in comp_partial_sum_source 2 (n+1) n, ∏ (j : fin e.1), r * (a ^ e.2 j * p (e.2 j)) :
+begin
+  symmetry,
+  apply comp_change_of_variables_sum,
+  rintros ⟨k, blocks_fun⟩ H,
+  have K : (comp_change_of_variables 2 (n + 1) n ⟨k, blocks_fun⟩ H).snd.length = k, by simp,
+  congr' 2; try { rw K },
+  rw fin.heq_fun_iff K.symm,
+  assume j,
+  rw comp_change_of_variables_blocks_fun,
+end
+... = ∑ j in Ico 2 (n+1), r ^ j * (∑ k in Ico 1 n, a ^ k * p k) ^ j :
+begin
+  rw [comp_partial_sum_source, ← sum_sigma' (Ico 2 (n + 1))
+    (λ (k : ℕ), (fintype.pi_finset (λ (i : fin k), Ico 1 n) : finset (fin k → ℕ)))
+    (λ n e, ∏ (j : fin n), r * (a ^ e j * p (e j)))],
+  apply sum_congr rfl (λ j hj, _),
+  simp only [← @multilinear_map.mk_pi_algebra_apply ℝ (fin j) _ _ ℝ],
+  simp only [← multilinear_map.map_sum_finset (multilinear_map.mk_pi_algebra ℝ (fin j) ℝ)
+    (λ k (m : ℕ), r * (a ^ m * p m))],
+  simp only [multilinear_map.mk_pi_algebra_apply],
+  dsimp,
+  simp [prod_const, ← mul_sum, mul_pow],
+end
+
+lemma glouk2 {n : ℕ} (hn : 2 ≤ n + 1) (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
+  {r a C : ℝ} (hr : 0 ≤ r) (ha : 0 ≤ a) (hC : 0 ≤ C) (hp : ∀ n, ∥p n∥ ≤ C * r ^ n) :
+   (∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥) ≤
+     ∥(i.symm : F →L[𝕜] E)∥ * a + ∥(i.symm : F →L[𝕜] E)∥ * C * ∑ k in Ico 2 (n + 1),
+      (r * ((∑ j in Ico 1 n, a ^ j * ∥p.right_inv i j∥))) ^ k :=
+let I := ∥(i.symm : F →L[𝕜] E)∥ in calc
+∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥
+    = a * I + ∑ k in Ico 2 (n + 1), a ^ k * ∥p.right_inv i k∥ :
+by simp only [continuous_multilinear_curry_fin1_symm_apply_norm, pow_one, right_inv_coeff_one,
+              Ico.succ_singleton, sum_singleton, ← sum_Ico_consecutive _ one_le_two hn]
+... = a * I + ∑ k in Ico 2 (n + 1), a ^ k *
+        ∥(i.symm : F →L[𝕜] E).comp_continuous_multilinear_map
+          (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
+            p.comp_along_composition (p.right_inv i) c)∥ :
+begin
+  congr' 1,
+  apply sum_congr rfl (λ j hj, _),
+  rw [right_inv_coeff _ _ _ (Ico.mem.1 hj).1, norm_neg],
+end
+... ≤ a * ∥(i.symm : F →L[𝕜] E)∥ + ∑ k in Ico 2 (n + 1), a ^ k * (I *
+      (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
+        C * r ^ c.length * ∏ j, ∥p.right_inv i (c.blocks_fun j)∥)) :
+begin
+  apply_rules [add_le_add, le_refl, sum_le_sum (λ j hj, _), mul_le_mul_of_nonneg_left,
+    pow_nonneg, ha],
+  apply (continuous_linear_map.norm_comp_continuous_multilinear_map_le _ _).trans,
+  apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
+  apply (norm_sum_le _ _).trans,
+  apply sum_le_sum (λ c hc, _),
+  apply (comp_along_composition_norm _ _ _).trans,
+  apply mul_le_mul_of_nonneg_right (hp _),
+  exact prod_nonneg (λ j hj, norm_nonneg _),
+end
+... = I * a + I * C * ∑ k in Ico 2 (n + 1), a ^ k *
+  (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
+      r ^ c.length * ∏ j, ∥p.right_inv i (c.blocks_fun j)∥) :
+begin
+  simp_rw [mul_assoc C, ← mul_sum, ← mul_assoc, mul_comm _ (∥↑i.symm∥), mul_assoc, ← mul_sum,
+    ← mul_assoc, mul_comm _ C, mul_assoc, ← mul_sum],
+  ring,
+end
+... ≤ I * a + I * C * ∑ k in Ico 2 (n+1), (r * ((∑ j in Ico 1 n, a ^ j * ∥p.right_inv i j∥))) ^ k :
+begin
+  apply_rules [add_le_add, le_refl, mul_le_mul_of_nonneg_left, norm_nonneg, hC, mul_nonneg],
+  simp_rw [mul_pow],
+  apply glouk n (λ k, ∥p.right_inv i k∥) (λ k, norm_nonneg _) r a hr ha,
+end
+
+theorem norm_right_inv (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
+  (hp : 0 < p.radius) : 0 < (p.right_inv i).radius :=
+begin
+  obtain ⟨C, r, Cpos, rpos, ple⟩ : ∃ C r (hC : 0 < C) (hr : 0 < r), ∀ (n : ℕ), ∥p n∥ ≤ C * r ^ n :=
+    le_mul_pow_of_radius_pos p hp,
+  let I := ∥(i.symm : F →L[𝕜] E)∥,
+  obtain ⟨a, apos, ha1, ha2⟩ : ∃ a (apos : 0 < a),
+    (2 * I * C * r^2 * (I + 1) ^ 2 * a ≤ 1) ∧ (r * (I + 1) * a ≤ 1/2),
+  { have : tendsto (λ a, 2 * I * C * r^2 * (I + 1) ^ 2 * a) (𝓝 0)
+      (𝓝 (2 * I * C * r^2 * (I + 1) ^ 2 * 0)) := tendsto_const_nhds.mul tendsto_id,
+    have A : ∀ᶠ a in 𝓝 0, 2 * I * C * r^2 * (I + 1) ^ 2 * a < 1,
+      by { apply (tendsto_order.1 this).2, simp [zero_lt_one] },
+    have : tendsto (λ a, r * (I + 1) * a) (𝓝 0)
+      (𝓝 (r * (I + 1) * 0)) := tendsto_const_nhds.mul tendsto_id,
+    have B : ∀ᶠ a in 𝓝 0, r * (I + 1) * a < 1/2,
+      by { apply (tendsto_order.1 this).2, simp [zero_lt_one] },
+    have C : ∀ᶠ a in 𝓝[set.Ioi (0 : ℝ)] (0 : ℝ), (0 : ℝ) < a,
+      by { filter_upwards [self_mem_nhds_within], exact λ a ha, ha },
+    rcases (C.and ((A.and B).filter_mono inf_le_left)).exists with ⟨a, ha⟩,
+    exact ⟨a, ha.1, ha.2.1.le, ha.2.2.le⟩ },
+  let S := λ n, ∑ k in Ico 1 n, a ^ k * ∥p.right_inv i k∥,
+  have IRec : ∀ n, 1 ≤ n → S n ≤ (I + 1) * a,
+  { apply nat.le_induction,
+    { simp only [S],
+      rw [Ico.eq_empty_of_le (le_refl 1), sum_empty],
+      exact mul_nonneg (add_nonneg (norm_nonneg _) zero_le_one) apos.le },
+    { assume n one_le_n hn,
+      have In : 2 ≤ n + 1, by linarith,
+      have Snonneg : 0 ≤ S n :=
+        sum_nonneg (λ x hx, mul_nonneg (pow_nonneg apos.le _) (norm_nonneg _)),
+      have rSn : r * S n ≤ 1/2 := calc
+        r * S n ≤ r * ((I+1) * a) : mul_le_mul_of_nonneg_left hn rpos.le
+        ... ≤ 1/2 : by rwa [← mul_assoc],
+      calc S (n + 1) ≤ I * a + I * C * ∑ k in Ico 2 (n + 1), (r * S n)^k :
+         glouk2 In p i rpos.le apos.le Cpos.le ple
+      ... = I * a + I * C * (((r * S n) ^ 2 - (r * S n) ^ (n + 1)) / (1 - r * S n)) :
+        by { rw geom_sum_Ico' _ In, exact ne_of_lt (rSn.trans_lt (by norm_num)) }
+      ... ≤ I * a + I * C * ((r * S n) ^ 2 / (1/2)) :
+        begin
+          apply_rules [add_le_add, le_refl, mul_le_mul_of_nonneg_left, mul_nonneg, norm_nonneg,
+            Cpos.le],
+          refine div_le_div (pow_two_nonneg _) _ (by norm_num) (by linarith),
+          simp only [sub_le_self_iff],
+          apply pow_nonneg (mul_nonneg rpos.le Snonneg),
+        end
+      ... = I * a + 2 * I * C * (r * S n) ^ 2 : by ring
+      ... ≤ I * a + 2 * I * C * (r * ((I + 1) * a)) ^ 2 :
+        by apply_rules [add_le_add, le_refl, mul_le_mul_of_nonneg_left, mul_nonneg, norm_nonneg,
+            Cpos.le, zero_le_two, pow_le_pow_of_le_left, rpos.le]
+      ... = (I + 2 * I * C * r^2 * (I + 1) ^ 2 * a) * a : by ring
+      ... ≤ (I + 1) * a :
+        by apply_rules [mul_le_mul_of_nonneg_right, apos.le, add_le_add, le_refl] } },
+  let a' : nnreal := ⟨a, apos.le⟩,
+  suffices H : (a' : ennreal) ≤ (p.right_inv i).radius,
+    by { apply lt_of_lt_of_le _ H, exact_mod_cast apos },
+  apply le_radius_of_bound _ ((I + 1) * a) (λ n, _),
+  by_cases hn : n = 0,
+  { have : ∥p.right_inv i n∥ = ∥p.right_inv i 0∥, by congr; try { rw hn },
+    simp only [this, norm_zero, zero_mul, right_inv_coeff_zero],
+    apply_rules [mul_nonneg, add_nonneg, norm_nonneg, zero_le_one, apos.le] },
+  { have one_le_n : 1 ≤ n := bot_lt_iff_ne_bot.2 hn,
+    calc ∥p.right_inv i n∥ * ↑a' ^ n = a ^ n * ∥p.right_inv i n∥ : mul_comm _ _
+    ... ≤ ∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥ :
+      begin
+        have : ∀ k ∈ Ico 1 (n + 1), 0 ≤ a ^ k * ∥p.right_inv i k∥ :=
+          λ k hk, mul_nonneg (pow_nonneg apos.le _) (norm_nonneg _),
+        exact single_le_sum this (by simp [one_le_n]),
+      end
+    ... ≤ (I + 1) * a : IRec (n + 1) (by dec_trivial) }
+end
 
 end formal_multilinear_series

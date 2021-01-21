@@ -165,6 +165,22 @@ lemma nnnorm_mul_pow_le_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r
 let ⟨C, hC, hp⟩ := p.norm_mul_pow_le_of_lt_radius h
 in ⟨⟨C, hC.lt.le⟩, hC, by exact_mod_cast hp⟩
 
+/-- If the radius of `p` is positive, then `∥pₙ∥` grows at most geometrically. -/
+lemma le_mul_pow_of_radius_pos (p : formal_multilinear_series 𝕜 E F) (h : 0 < p.radius) :
+  ∃ C r (hC : 0 < C) (hr : 0 < r), ∀ n, ∥p n∥ ≤ C * r ^ n :=
+begin
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 h with ⟨r, r0, rlt⟩,
+  have rpos : 0 < (r : ℝ), by simp [ennreal.coe_pos.1 r0],
+  obtain ⟨C, Cpos, hCp⟩ : ∃ (C : ℝ) (H : C > 0), ∀ (n : ℕ), ∥p n∥ * ↑r ^ n ≤ C :=
+    norm_mul_pow_le_of_lt_radius p rlt,
+  refine ⟨C, 1/r, Cpos, by simp [rpos], λ n, _⟩,
+  have := hCp n,
+  rw ← le_div_iff (pow_pos rpos n) at this,
+  convert this,
+  rw inv_eq_one_div,
+  field_simp [ne_of_gt rpos]
+end
+
 /-- The radius of the sum of two formal series is at least the minimum of their two radii. -/
 lemma min_radius_le_radius_add (p q : formal_multilinear_series 𝕜 E F) :
   min p.radius q.radius ≤ (p + q).radius :=

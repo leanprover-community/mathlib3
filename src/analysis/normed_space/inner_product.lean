@@ -31,6 +31,11 @@ We define both the real and complex cases at the same time using the `is_R_or_C`
   Let `u` be a point in an inner product space, and let `K` be a nonempty complete subspace.
   Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
   The point `v` is usually called the orthogonal projection of `u` onto `K`.
+- We define `orthonormal`, a predicate on a function `v : ι → E`.  We prove the existence of a
+  maximal orthonormal set, `exists_maximal_orthonormal`, and also prove that a maximal orthonormal
+  set is a basis (`maximal_orthonormal_iff_is_basis_of_finite_dimensional`), if `E` is finite-
+  dimensional, or in general (`maximal_orthonormal_iff_dense_span`) a set whose span is dense
+  (i.e., a Hilbert basis, although we do not make that definition).
 
 ## Notation
 
@@ -2490,7 +2495,7 @@ by simp [submodule.eq_top_iff', set.eq_univ_iff_forall]
 
 /-- An orthonormal set in an `inner_product_space` is maximal, if and only if the closure of its
 span is the whole space. -/
-lemma maximal_orthonormal_iff_closure_span_eq_top (hv : orthonormal 𝕜 (coe : v → E)) :
+lemma maximal_orthonormal_iff_dense_span (hv : orthonormal 𝕜 (coe : v → E)) :
   (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ closure (span 𝕜 v : set E) = ⊤ :=
 by rw [maximal_orthonormal_iff_orthogonal_complement_eq_bot hv, ← submodule.orthogonal_eq_top_iff,
   ← (span 𝕜 v).orthogonal_orthogonal_eq_closure, baz]
@@ -2500,15 +2505,17 @@ lemma exists_subset_is_orthonormal_dense_span (hv : orthonormal 𝕜 (coe : v �
   ∃ u ⊇ v, orthonormal 𝕜 (coe : u → E) ∧ closure (span 𝕜 u : set E) = ⊤ :=
 begin
   obtain ⟨u, hus, hu, hu_max⟩ := exists_maximal_orthonormal hv,
-  rw maximal_orthonormal_iff_closure_span_eq_top hu at hu_max,
+  rw maximal_orthonormal_iff_dense_span hu at hu_max,
   exact ⟨u, hus, hu, hu_max⟩
 end
 
+variables (𝕜 E)
 /-- An inner product space admits an orthonormal set whose span is dense. -/
 lemma exists_is_orthonormal_dense_span :
   ∃ u : set E, orthonormal 𝕜 (coe : u → E) ∧ closure (span 𝕜 u : set E) = ⊤ :=
 let ⟨u, hus, hu, hu_max⟩ := exists_subset_is_orthonormal_dense_span (orthonormal_empty 𝕜 E) in
 ⟨u, hu, hu_max⟩
+variables {𝕜 E}
 
 /-- A finite orthonormal set in an `inner_product_space` is maximal, if and only if it is a basis.
 -/
@@ -2538,10 +2545,12 @@ begin
   exact ⟨u, hus, hu, hu_max⟩
 end
 
+variables (𝕜 E)
 /-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
 lemma exists_is_orthonormal_basis [finite_dimensional 𝕜 E] :
   ∃ u : set E, orthonormal 𝕜 (coe : u → E) ∧ is_basis 𝕜 (coe : u → E) :=
 let ⟨u, hus, hu, hu_max⟩ := exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E) in
 ⟨u, hu, hu_max⟩
+variables {𝕜 E}
 
 end orthonormal_basis

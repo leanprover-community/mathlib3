@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.shift
 import category_theory.concrete_category
 import category_theory.pi.basic
+import algebra.group.basic
 
 /-!
 # The category of graded objects
@@ -44,7 +45,8 @@ A type synonym for `β → C`, used for `β`-graded objects in a category `C`
 with a shift functor given by translation by `s`.
 -/
 @[nolint unused_arguments] -- `s` is here to distinguish type synonyms asking for different shifts
-abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β) (C : Type u) : Type (max w u) := graded_object β C
+abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β) (C : Type u) :
+  Type (max w u) := graded_object β C
 
 namespace graded_object
 

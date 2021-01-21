@@ -147,7 +147,8 @@ lemma uniform_inducing_pure_cauchy : uniform_inducing (pure_cauchy : α → Cauc
       from funext $ assume s, set.ext $ assume ⟨a₁, a₂⟩,
         by simp [preimage, gen, pure_cauchy, prod_principal_principal],
     calc comap (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ((𝓤 α).lift' gen)
-          = (𝓤 α).lift' (preimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) :
+          = (𝓤 α).lift'
+              (preimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) :
         comap_lift'_eq monotone_gen
       ... = 𝓤 α : by simp [this]⟩
 
@@ -254,8 +255,8 @@ end extend
 
 end
 
-theorem Cauchy_eq
-  {α : Type*} [inhabited α] [uniform_space α] [complete_space α] [separated_space α] {f g : Cauchy α} :
+theorem Cauchy_eq {α : Type*} [inhabited α] [uniform_space α] [complete_space α]
+  [separated_space α] {f g : Cauchy α} :
   Lim f.1 = Lim g.1 ↔ (f, g) ∈ separation_rel (Cauchy α) :=
 begin
   split,
@@ -292,7 +293,8 @@ lemma separated_pure_cauchy_injective {α : Type*} [uniform_space α] [s : separ
   function.injective (λa:α, ⟦pure_cauchy a⟧) | a b h :=
 separated_def.1 s _ _ $ assume s hs,
 let ⟨t, ht, hts⟩ :=
-  by rw [← (@uniform_embedding_pure_cauchy α _).comap_uniformity, filter.mem_comap_sets] at hs; exact hs in
+  by rw [← (@uniform_embedding_pure_cauchy α _).comap_uniformity, filter.mem_comap_sets] at hs;
+    exact hs in
 have (pure_cauchy a, pure_cauchy b) ∈ t, from quotient.exact h t ht,
 @hts (a, b) this
 
@@ -413,7 +415,8 @@ lemma dense_range_coe₂ :
 dense_range_coe.prod_map dense_range_coe
 
 lemma dense_range_coe₃ :
-  dense_range (λx:α × (β × γ), ((x.1 : completion α), ((x.2.1 : completion β), (x.2.2 : completion γ)))) :=
+  dense_range (λx:α × (β × γ),
+    ((x.1 : completion α), ((x.2.1 : completion β), (x.2.2 : completion γ)))) :=
 dense_range_coe.prod_map dense_range_coe₂
 
 @[elab_as_eliminator]
@@ -453,7 +456,8 @@ cpkg.extend f
 
 variables [separated_space β]
 
-@[simp] lemma extension_coe (hf : uniform_continuous f) (a : α) : (completion.extension f) a = f a :=
+@[simp]lemma extension_coe (hf : uniform_continuous f) (a : α) :
+  (completion.extension f) a = f a :=
 cpkg.extend_coe hf a
 
 variables [complete_space β]
@@ -464,8 +468,9 @@ cpkg.uniform_continuous_extend
 lemma continuous_extension : continuous (completion.extension f) :=
 cpkg.continuous_extend
 
-lemma extension_unique (hf : uniform_continuous f) {g : completion α → β} (hg : uniform_continuous g)
-  (h : ∀ a : α, f a = g (a : completion α)) : completion.extension f = g :=
+lemma extension_unique (hf : uniform_continuous f) {g : completion α → β}
+  (hg : uniform_continuous g) (h : ∀ a : α, f a = g (a : completion α)) :
+  completion.extension f = g :=
 cpkg.extend_unique hf hg h
 
 @[simp] lemma extension_comp_coe {f : completion α → β} (hf : uniform_continuous f) :
@@ -520,13 +525,14 @@ begin
   { assume a,
     refine induction_on a (is_closed_eq (continuous_map.comp continuous_extension) continuous_id) _,
     rintros ⟨a⟩,
-    show completion.map quotient.mk (completion.extension (separation_quotient.lift coe) ↑⟦a⟧) = ↑⟦a⟧,
+    show completion.map quotient.mk
+      (completion.extension (separation_quotient.lift coe) ↑⟦a⟧) = ↑⟦a⟧,
     rw [extension_coe (separation_quotient.uniform_continuous_lift _),
       separation_quotient.lift_mk (uniform_continuous_coe α),
       completion.map_coe uniform_continuous_quotient_mk] ; apply_instance },
   { assume a,
-    refine completion.induction_on a (is_closed_eq (continuous_extension.comp continuous_map) continuous_id) _,
-    assume a,
+    refine completion.induction_on a
+      (is_closed_eq (continuous_extension.comp continuous_map) continuous_id) (λ a, _),
     rw [map_coe uniform_continuous_quotient_mk,
       extension_coe (separation_quotient.uniform_continuous_lift _),
       separation_quotient.lift_mk (uniform_continuous_coe α) _] ; apply_instance }

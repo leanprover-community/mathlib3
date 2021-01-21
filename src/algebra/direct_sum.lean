@@ -93,9 +93,11 @@ begin
 end
 
 variables {γ : Type u₁} [add_comm_monoid γ]
-variables (φ : Π i, β i →+ γ)
 
-variables (φ)
+section to_add_monoid
+
+variables (φ : Π i, β i →+ γ) (ψ : (⨁ i, β i) →+ γ)
+
 /-- `to_add_monoid φ` is the natural homomorphism from `⨁ i, β i` to `γ`
 induced by a family `φ` of homomorphisms `β i → γ`. -/
 def to_add_monoid : (⨁ i, β i) →+ γ :=
@@ -104,11 +106,30 @@ def to_add_monoid : (⨁ i, β i) →+ γ :=
 @[simp] lemma to_add_monoid_of (i) (x : β i) : to_add_monoid φ (of β i x) = φ i x :=
 dfinsupp.lift_add_hom_apply_single φ i x
 
-variables (ψ : (⨁ i, β i) →+ γ)
-
 theorem to_add_monoid.unique (f : ⨁ i, β i) :
   ψ f = to_add_monoid (λ i, ψ.comp (of β i)) f :=
 by {congr, ext, simp [to_add_monoid, of]}
+
+end to_add_monoid
+
+section from_add_monoid
+
+/-- `from_add_monoid φ` is the natural homomorphism from `γ` to `⨁ i, β i`
+induced by a family `φ` of homomorphisms `γ → β i`.
+
+Note that this is not an isomorphism. Not every homomorphism `γ →+ ⨁ i, β i` arises in this way. -/
+def from_add_monoid : (⨁ i, γ →+ β i) →+ (γ →+ ⨁ i, β i) :=
+to_add_monoid $ λ i, add_monoid_hom.comp_hom (of β i)
+
+@[simp] lemma from_add_monoid_of (i : ι) (f : γ →+ β i) :
+  from_add_monoid (of _ i f) = (of _ i).comp f :=
+by { rw [from_add_monoid, to_add_monoid_of], refl }
+
+lemma from_add_monoid_of_apply (i : ι) (f : γ →+ β i) (x : γ) :
+  from_add_monoid (of _ i f) x = of _ i (f x) :=
+by rw [from_add_monoid_of, add_monoid_hom.coe_comp]
+
+end from_add_monoid
 
 variables (β)
 /-- `set_to_set β S T h` is the natural homomorphism `⨁ (i : S), β i → ⨁ (i : T), β i`,

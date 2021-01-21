@@ -74,12 +74,18 @@ instance [has_zero α] : has_zero (matrix m n α) := pi.has_zero
 instance [add_monoid α] : add_monoid (matrix m n α) := pi.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (matrix m n α) := pi.add_comm_monoid
 instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
+instance [has_sub α] : has_sub (matrix m n α) := pi.has_sub
 instance [add_group α] : add_group (matrix m n α) := pi.add_group
 instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_group
 
 @[simp] theorem zero_apply [has_zero α] (i j) : (0 : matrix m n α) i j = 0 := rfl
 @[simp] theorem neg_apply [has_neg α] (M : matrix m n α) (i j) : (- M) i j = - M i j := rfl
-@[simp] theorem add_apply [has_add α] (M N : matrix m n α) (i j) : (M + N) i j = M i j + N i j := rfl
+@[simp] theorem add_apply [has_add α] (M N : matrix m n α) (i j) :
+  (M + N) i j = M i j + N i j :=
+rfl
+@[simp] theorem sub_apply [has_sub α] (M N : matrix m n α) (i j) :
+  (M - N) i j = M i j - N i j :=
+rfl
 
 @[simp] lemma map_zero [has_zero α] {β : Type w} [has_zero β] {f : α → β} (h : f 0 = 0) :
   (0 : matrix m n α).map f = 0 :=
@@ -656,18 +662,15 @@ begin
   split_ifs with h; simp [h],
 end
 
-
 lemma matrix_eq_sum_std_basis (x : matrix n m α) :
-x = ∑ (i : n) (j : m), std_basis_matrix i j (x i j) :=
+  x = ∑ (i : n) (j : m), std_basis_matrix i j (x i j) :=
 begin
-  ext, iterate 2 {rw finset.sum_apply},
-  rw ← finset.sum_subset, swap 4, exact {i},
-  { norm_num [std_basis_matrix] },
-  { simp },
-  intros y _ hyi, norm_num,
-  convert finset.sum_const_zero,
-  ext, norm_num [std_basis_matrix],
-  rw if_neg, contrapose! hyi, simp [hyi]
+  ext, symmetry,
+  iterate 2 { rw finset.sum_apply },
+  convert fintype.sum_eq_single i _,
+  { simp [std_basis_matrix] },
+  { intros j hj,
+    simp [std_basis_matrix, hj.symm] }
 end
 
 -- TODO: tie this up with the `basis` machinery of linear algebra

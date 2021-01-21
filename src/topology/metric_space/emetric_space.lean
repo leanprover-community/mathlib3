@@ -26,7 +26,7 @@ The class `emetric_space` therefore extends `uniform_space` (and `topological_sp
 open set filter classical
 noncomputable theory
 
-open_locale uniformity topological_space big_operators filter
+open_locale uniformity topological_space big_operators filter nnreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -114,7 +114,7 @@ iff.intro (assume h, eq_of_edist_eq_zero (h.symm))
           (assume : x = y, this ▸ (edist_self _).symm)
 
 theorem edist_le_zero {x y : α} : (edist x y ≤ 0) ↔ x = y :=
-le_zero_iff_eq.trans edist_eq_zero
+nonpos_iff_eq_zero.trans edist_eq_zero
 
 /-- Triangle inequality for the extended distance -/
 theorem edist_triangle_left (x y z : α) : edist x y ≤ edist z x + edist z y :=
@@ -238,7 +238,7 @@ emetric.mk_uniformity_basis_le (λ _, and.left)
     ⟨min ε δ, ⟨lt_min ε₀ hδ.1, lt_of_le_of_lt (min_le_right _ _) hδ.2⟩, min_le_left _ _⟩)
 
 theorem uniformity_basis_edist_nnreal :
-  (𝓤 α).has_basis (λ ε : nnreal, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
+  (𝓤 α).has_basis (λ ε : ℝ≥0, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
 emetric.mk_uniformity_basis (λ _, ennreal.coe_pos.2)
   (λ ε ε₀, let ⟨δ, hδ⟩ := ennreal.lt_iff_exists_nnreal_btwn.1 ε₀ in
   ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
@@ -484,6 +484,9 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
 lemma edist_pi_def [Π b, emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
+@[simp] lemma edist_pi_const [nonempty β] (a b : α) : edist (λ x : β, a) (λ _, b) = edist a b :=
+finset.sup_const univ_nonempty (edist a b)
+
 end pi
 
 namespace emetric
@@ -610,9 +613,9 @@ theorem cauchy_seq_iff' [nonempty β] [semilattice_sup β] {u : β → α} :
 uniformity_basis_edist.cauchy_seq_iff'
 
 /-- A variation of the emetric characterization of Cauchy sequences that deals with
-`nnreal` upper bounds. -/
+`ℝ≥0` upper bounds. -/
 theorem cauchy_seq_iff_nnreal [nonempty β] [semilattice_sup β] {u : β → α} :
-  cauchy_seq u ↔ ∀ ε : nnreal, 0 < ε → ∃ N, ∀ n, N ≤ n → edist (u n) (u N) < ε :=
+  cauchy_seq u ↔ ∀ ε : ℝ≥0, 0 < ε → ∃ N, ∀ n, N ≤ n → edist (u n) (u N) < ε :=
 uniformity_basis_edist_nnreal.cauchy_seq_iff'
 
 theorem totally_bounded_iff {s : set α} :
@@ -713,7 +716,7 @@ diam_le_iff_forall_edist_le.2 h
 
 /-- The diameter of a subsingleton vanishes. -/
 lemma diam_subsingleton (hs : s.subsingleton) : diam s = 0 :=
-le_zero_iff_eq.1 $ diam_le_of_forall_edist_le $
+nonpos_iff_eq_zero.1 $ diam_le_of_forall_edist_le $
 λ x hx y hy, (hs hx hy).symm ▸ edist_self y ▸ le_refl _
 
 /-- The diameter of the empty set vanishes -/
@@ -732,7 +735,7 @@ begin
   have := not_congr (@diam_eq_zero_iff _ _ s),
   dunfold set.subsingleton at this,
   push_neg at this,
-  simpa only [zero_lt_iff_ne_zero, exists_prop] using this
+  simpa only [pos_iff_ne_zero, exists_prop] using this
 end
 
 lemma diam_insert : diam (insert x s) = max (⨆ y ∈ s, edist x y) (diam s) :=

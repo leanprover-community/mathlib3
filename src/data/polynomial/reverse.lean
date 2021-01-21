@@ -194,9 +194,20 @@ begin
   { simp only [f0, zero_mul, reverse_zero], },
   by_cases g0 : g=0,
   { rw [g0, mul_zero, reverse_zero, mul_zero], },
-  apply reverse_mul,
-  apply mul_ne_zero;
-    rwa [← leading_coeff_eq_zero] at *
+  simp [reverse_mul, *],
+end
+
+@[simp] lemma coeff_zero_reverse (f : polynomial R) : coeff (reverse f) 0 = leading_coeff f :=
+by simp [reverse, coeff_reflect]
+
+@[simp] lemma coeff_one_reverse (f : polynomial R) : coeff (reverse f) 1 = next_coeff f :=
+begin
+  rw [reverse, coeff_reflect, next_coeff],
+  split_ifs with hf,
+  { have : coeff f 1 = 0 := coeff_eq_zero_of_nat_degree_lt (by simp only [hf, zero_lt_one]),
+    simp [*, rev_at] },
+  { rw rev_at_le,
+    exact nat.succ_le_iff.2 (pos_iff_ne_zero.2 hf) }
 end
 
 end polynomial

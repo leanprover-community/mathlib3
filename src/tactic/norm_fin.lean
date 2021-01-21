@@ -439,52 +439,36 @@ example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
     true_intro p
   else do
     p ← prove_le_fin' n b a b' a',
-    eval_fin_m.lift_ic $ λ ic, do
-      (ic, p) ← ic.mk_app ``not_lt_of_ge [a, b, p],
-      p ← false_intro p,
-      pure (ic, p)
+    false_intro $ `(@not_lt_of_ge (fin %%n) _).mk_app [a, b, p]
 | `(%%a ≤ %%b) := eval_rel a b $ λ n a' b' na nb,
   if na ≤ nb then do
     p ← prove_le_fin' n a b a' b',
     true_intro p
   else do
     p ← prove_lt_fin' n b a b' a',
-    eval_fin_m.lift_ic $ λ ic, do
-      (ic, p) ← ic.mk_app ``not_le_of_gt [a, b, p],
-      p ← false_intro p,
-      pure (ic, p)
+    false_intro $ `(@not_le_of_gt (fin %%n) _).mk_app [a, b, p]
 | `(%%a = %%b) := eval_rel a b $ λ n a' b' na nb,
   if na = nb then do
     p ← prove_eq_fin' n a b a' b',
     true_intro p
+  else if na < nb then do
+    p ← prove_lt_fin' n a b a' b',
+    false_intro $ `(@ne_of_lt (fin %%n) _).mk_app [a, b, p]
   else do
-    p ← (if na < nb then do
-      p ← prove_lt_fin' n a b a' b',
-      eval_fin_m.lift_ic $ λ ic, ic.mk_app ``ne_of_lt [a, b, p]
-    else do
-      p ← prove_lt_fin' n b a b' a',
-      eval_fin_m.lift_ic $ λ ic, ic.mk_app ``ne_of_gt [a, b, p]),
-    false_intro p
+    p ← prove_lt_fin' n b a b' a',
+    false_intro $ `(@ne_of_gt (fin %%n) _).mk_app [a, b, p]
 | `(%%a > %%b) := mk_app ``has_lt.lt [b, a] >>= eval_ineq
 | `(%%a ≥ %%b) := mk_app ``has_le.le [b, a] >>= eval_ineq
 | `(%%a ≠ %%b) := eval_rel a b $ λ n a' b' na nb,
   if na = nb then do
     p ← prove_eq_fin' n a b a' b',
-    ↑(mk_app ``not_not_intro [p] >>= false_intro)
+    false_intro `(not_not_intro (%%p : (%%a : fin %%n) = %%b))
+  else if na < nb then do
+    p ← prove_lt_fin' n a b a' b',
+    true_intro $ `(@ne_of_lt (fin %%n) _).mk_app [a, b, p]
   else do
-    p ← (if na < nb then do
-      p ← prove_lt_fin' n a b a' b',
-      ty ← infer_type a,
-      ic ← mk_instance_cache ty,
-      (_, p) ← ic.mk_app ``ne_of_lt [a, b, p],
-      pure p
-    else do
-      p ← prove_lt_fin' n b a b' a',
-      ty ← infer_type a,
-      ic ← mk_instance_cache ty,
-      (_, p) ← ic.mk_app ``ne_of_gt [a, b, p],
-      pure p),
-    true_intro p
+    p ← prove_lt_fin' n b a b' a',
+    true_intro $ `(@ne_of_gt (fin %%n) _).mk_app [a, b, p]
 | _ := failed
 
 /-- Evaluates `e : fin n` to a natural number less than `n`. Returns `none` if it is not a natural
@@ -548,3 +532,8 @@ add_tactic_doc
 
 end interactive
 end tactic
+
+set_option trace.app_builder true
+#eval do
+  tactic.norm_fin.eval_ineq `((5 : fin 7) ≠ fin.succ (fin.succ 9))
+example : (5 : fin 7) ≠ fin.succ (fin.succ 9) := by norm_num

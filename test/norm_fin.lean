@@ -22,6 +22,7 @@ example : fin.cast_succ (fin.cast_succ (4 : fin 5)) = 4 := by norm_num
 example : fin.cast_succ (4 : fin 6) = 11 := by norm_num
 example : fin.cast_succ (3 : fin 6) = 10 := by norm_num
 example : fin.cast_succ (fin.cast_succ (3 : fin 5)) = 10 := by norm_num
+example : ¬ fin.cast_succ (fin.cast_succ (3 : fin 5)) ≠ 10 := by norm_num
 
 example : equiv.swap (0 : fin 3) 1 (fin.succ 1) = 2 :=
 begin
@@ -85,5 +86,4 @@ example : (5 : fin 7) ≠ fin.succ (fin.succ 9) :=
 begin
   intro H,
   norm_num at H,
-  exact H
 end

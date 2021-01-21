@@ -305,9 +305,6 @@ calc 1 + (↑(n + 2) : R) * a ≤ 1 + ↑(n + 2) * a + (n * (a * a * (2 + a)) + 
   mul_le_mul_of_nonneg_left (one_add_mul_le_pow' n) Hsqr'
 ... = (1 + a)^(n + 2) : by simp only [pow_succ, mul_assoc]
 
-theorem nat.cast_succ_le_two_pow (n : ℕ) : (n + 1 : R) ≤ 2 ^ n :=
-by { norm_cast, exact nat.mono_cast n.succ_le_two_pow }
-
 private lemma pow_lt_pow_of_lt_one_aux {a : R} (h : 0 < a) (ha : a < 1) (i : ℕ) :
   ∀ k : ℕ, a ^ (i + k + 1) < a ^ i
 | 0 :=

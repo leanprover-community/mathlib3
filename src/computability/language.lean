@@ -176,7 +176,7 @@ begin
   tauto
 end
 
-lemma supr_mul {ι : Type v} (l : ι → language α) (m : language α) :
+lemma supr_mul {ι : Sort v} (l : ι → language α) (m : language α) :
   (⨆ i, l i) * m = ⨆ i, l i * m :=
 begin
   ext x,
@@ -184,7 +184,7 @@ begin
   tauto
 end
 
-lemma mul_supr {ι : Type v} (l : ι → language α) (m : language α) :
+lemma mul_supr {ι : Sort v} (l : ι → language α) (m : language α) :
   m * (⨆ i, l i) = ⨆ i, m * l i :=
 begin
   ext x,
@@ -192,10 +192,10 @@ begin
   tauto
 end
 
-lemma supr_add {ι : Type v} [nonempty ι] (l : ι → language α) (m : language α) :
+lemma supr_add {ι : Sort v} [nonempty ι] (l : ι → language α) (m : language α) :
   (⨆ i, l i) + m = ⨆ i, l i + m := supr_sup
 
-lemma add_supr {ι : Type v} [nonempty ι] (l : ι → language α) (m : language α) :
+lemma add_supr {ι : Sort v} [nonempty ι] (l : ι → language α) (m : language α) :
   m + (⨆ i, l i) = ⨆ i, m + l i := sup_supr
 
 lemma star_eq_supr_pow (l : language α) : l.star = ⨆ i : ℕ, l ^ i :=

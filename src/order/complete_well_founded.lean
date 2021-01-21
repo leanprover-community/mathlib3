@@ -147,26 +147,22 @@ begin
   { rintros x y ⟨m, hm⟩ ⟨n, hn⟩, use m ⊔ n, rw [← hm, ← hn], apply a.to_rel_hom.map_sup, },
 end
 
-lemma all_elements_compact.is_Sup_finite_compact (h : ∀ k : α, is_compact_element k) :
-  is_Sup_finite_compact α :=
+lemma is_Sup_finite_compact_iff_all_elements_compact :
+  is_Sup_finite_compact α ↔ (∀ k : α, is_compact_element k) :=
 begin
-  intro s,
-  rcases (h (Sup s) s (by refl)) with ⟨t, ⟨hts, htsup⟩⟩,
-  have : Sup s = t.sup id,
-  { suffices : t.sup id ≤ Sup s, by { apply le_antisymm; assumption },
-    simp only [id.def, finset.sup_le_iff],
-    intros x hx,
-    apply le_Sup, exact hts hx, },
-  use [t, hts], assumption,
-end
-
-lemma is_Sup_finite_compact.all_elements_compact (h : is_Sup_finite_compact α) :
-  ∀ k : α, is_compact_element k :=
-begin
-  intros k s hs,
-  rcases (h s) with ⟨t, ⟨hts, htsup⟩⟩,
-  use [t, hts],
-  rwa ←htsup,
+  split,
+  { intros h k s hs,
+    rcases (h s) with ⟨t, ⟨hts, htsup⟩⟩,
+    use [t, hts],
+    rwa ←htsup, },
+  { intros h s,
+    rcases (h (Sup s) s (by refl)) with ⟨t, ⟨hts, htsup⟩⟩,
+    have : Sup s = t.sup id,
+    { suffices : t.sup id ≤ Sup s, by { apply le_antisymm; assumption },
+      simp only [id.def, finset.sup_le_iff],
+      intros x hx,
+      apply le_Sup, exact hts hx, },
+    use [t, hts], assumption, },
 end
 
 lemma well_founded_characterisations :
@@ -175,8 +171,7 @@ begin
   tfae_have : 1 → 2, by { exact well_founded.is_Sup_finite_compact α, },
   tfae_have : 2 → 3, by { exact is_Sup_finite_compact.is_sup_closed_compact α, },
   tfae_have : 3 → 1, by { exact is_sup_closed_compact.well_founded α, },
-  tfae_have : 2 → 4, by { exact is_Sup_finite_compact.all_elements_compact α },
-  tfae_have : 4 → 2, by { exact all_elements_compact.is_Sup_finite_compact α },
+  tfae_have : 2 ↔ 4, by { exact is_Sup_finite_compact_iff_all_elements_compact α },
   tfae_finish,
 end
 
@@ -192,14 +187,9 @@ lemma is_sup_closed_compact_iff_well_founded :
   is_sup_closed_compact α ↔ well_founded ((>) : α → α → Prop) :=
 (well_founded_characterisations α).out 2 0
 
-lemma is_Sup_finite_compact_iff_all_elements_compact :
-  is_Sup_finite_compact α ↔ ∀ k : α, is_compact_element k :=
-(well_founded_characterisations α).out 1 3
-
 alias well_founded_iff_is_Sup_finite_compact ↔ _ is_Sup_finite_compact.well_founded
 alias is_Sup_finite_compact_iff_is_sup_closed_compact ↔
       _ is_sup_closed_compact.is_Sup_finite_compact
 alias is_sup_closed_compact_iff_well_founded ↔ _ well_founded.is_sup_closed_compact
-alias is_Sup_finite_compact_iff_all_elements_compact ↔ _ all_elements_compact.is_Sup_finite_compact
 
 end complete_lattice

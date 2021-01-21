@@ -156,7 +156,7 @@ begin
     use [t, hts],
     rwa ←htsup, },
   { intros h s,
-    rcases (h (Sup s) s (by refl)) with ⟨t, ⟨hts, htsup⟩⟩,
+    obtain ⟨t, ⟨hts, htsup⟩⟩ := h (Sup s) s (by refl),
     have : Sup s = t.sup id,
     { suffices : t.sup id ≤ Sup s, by { apply le_antisymm; assumption },
       simp only [id.def, finset.sup_le_iff],

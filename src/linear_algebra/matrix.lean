@@ -936,3 +936,53 @@ def alg_equiv_matrix {R : Type v} {M : Type w} {n : Type*} [fintype n]
   [comm_ring R] [add_comm_group M] [module R M] [decidable_eq n] {b : n → M} (h : is_basis R b) :
   module.End R M ≃ₐ[R] matrix n n R :=
 h.equiv_fun.alg_conj.trans alg_equiv_matrix'
+
+/-- `std_basis` is the standard basis for vectors. -/
+def std_basis_vec {R : Type v} [ring R] {n : Type w} [decidable_eq n]
+  (i : n) : n → R := λ j, if j = i then 1 else 0
+
+namespace std_basis_vec
+
+open_locale classical
+
+variables {R : Type v} [ring R] {n : Type w}
+
+lemma eq_update (m : n) : std_basis_vec m = function.update 0 m (1 : R) :=
+by { ext, rw function.update_apply, refl }
+
+lemma linear_map.eq_std_basis (m : n) :
+  (std_basis_vec m : n → R) = linear_map.std_basis R (λ _, R) m 1 :=
+by { rw linear_map.std_basis_apply, exact eq_update m }
+
+@[simp] lemma neq_eq_zero {i j : n} (h : i ≠ j) : std_basis_vec i j = (0 : R) :=
+  if_neg h.symm
+
+@[simp] lemma eq_eq_one {i j : n} (h : i = j) : std_basis_vec i j = (1 : R) :=
+  if_pos h.symm
+
+lemma is_basis [fintype n] : @is_basis n R (n → R) std_basis_vec _ _ _ :=
+begin
+  convert pi.is_basis_fun R n,
+  ext1 m, exact linear_map.eq_std_basis m,
+end
+
+lemma dot_product_eq_val (v : n → R) (i : n) [fintype n]:
+  v i = matrix.dot_product v (std_basis_vec i) :=
+begin
+  rw [matrix.dot_product, finset.sum_eq_single i, eq_eq_one rfl, mul_one],
+  exact λ _ _ hb, by rw [neq_eq_zero hb.symm, mul_zero],
+  exact λ hi, false.elim (hi $ finset.mem_univ _)
+end
+
+end std_basis_vec
+
+lemma matrix.dot_product_eq_zero {R : Type v} [ring R] {n : Type w} [fintype n]
+  (v : n → R) (h : ∀ w, matrix.dot_product v w = 0) : v = 0 :=
+begin
+  refine funext (λ x, _),
+  rw [std_basis_vec.dot_product_eq_val v x, h _], refl,
+end
+
+lemma matrix.dot_product_eq_zero_iff {R : Type v} [ring R] {n : Type w} [fintype n]
+  {v : n → R} : (∀ w, matrix.dot_product v w = 0) ↔ v = 0 :=
+⟨λ h, matrix.dot_product_eq_zero v h, λ h w, h.symm ▸ zero_dot_product w⟩

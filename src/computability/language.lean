@@ -228,12 +228,7 @@ begin
 end
 
 lemma mul_self_star_comm (l : language α) : l.star * l = l * l.star :=
-begin
-  rw [star_eq_supr_pow, mul_supr, supr_mul],
-  congr,
-  ext i,
-  rw [←pow_succ, ←pow_succ']
-end
+by simp [star_eq_supr_pow, mul_supr, supr_mul, ← pow_succ, ← pow_succ']
 
 @[simp] lemma one_add_self_mul_star_eq_star (l : language α) : 1 + l * l.star = l.star :=
 begin

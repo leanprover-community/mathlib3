@@ -80,3 +80,10 @@ example : fin.cast_succ (fin.cast_succ (4 : fin 5)) ≠ fin.cast_succ (fin.succ 
 example : fin.cast_succ (4 : fin 6) ≠ fin.succ 11 := by norm_num
 example : fin.cast_succ (3 : fin 6) ≠ fin.cast_succ 10 := by norm_num
 example : fin.cast_succ (fin.cast_succ (3 : fin 5)) ≠ fin.succ (fin.cast_succ 9) := by norm_num
+
+example : (5 : fin 7) ≠ fin.succ (fin.succ 9) :=
+begin
+  intro H,
+  norm_num at H,
+  exact H
+end

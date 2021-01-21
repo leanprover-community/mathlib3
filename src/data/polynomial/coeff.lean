@@ -48,7 +48,7 @@ by { rw [mem_support_to_fun, not_not], refl, }
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
-finsupp.leval n
+finsupp.lapply n
 variable {R}
 
 @[simp] lemma lcoeff_apply (n : ℕ) (f : polynomial R) : lcoeff R n f = coeff f n := rfl
@@ -86,7 +86,7 @@ add_monoid_algebra.mul_single_zero_apply p a n
 
 lemma coeff_X_pow (k n : ℕ) :
   coeff (X^k : polynomial R) n = if n = k then 1 else 0 :=
-by rw [← monomial_one_eq_X_pow]; simp [monomial, single, eq_comm, coeff]; congr
+by { simp only [X_pow_eq_monomial, monomial, single, eq_comm], congr }
 
 @[simp]
 lemma coeff_X_pow_self (n : ℕ) :

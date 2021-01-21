@@ -8,6 +8,7 @@ import algebra.polynomial.big_operators
 import field_theory.minimal_polynomial
 import field_theory.splitting_field
 import field_theory.tower
+import algebra.squarefree
 
 /-!
 
@@ -147,9 +148,7 @@ theorem coeff_expand {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
   (expand R p f).coeff n = if p ∣ n then f.coeff (n / p) else 0 :=
 begin
   simp only [expand_eq_sum],
-  change (show ℕ →₀ R, from (f.sum (λ e a, C a * (X ^ p) ^ e) : polynomial R)) n = _,
-  simp_rw [finsupp.sum_apply, finsupp.sum, ← pow_mul, C_mul', ← monomial_eq_smul_X,
-    monomial, finsupp.single_apply],
+  simp_rw [coeff_sum, ← pow_mul, C_mul_X_pow_eq_monomial, coeff_monomial, finsupp.sum],
   split_ifs with h,
   { rw [finset.sum_eq_single (n/p), nat.mul_div_cancel' h, if_pos rfl], refl,
     { intros b hb1 hb2, rw if_neg, intro hb3, apply hb2, rw [← hb3, nat.mul_div_cancel_left b hp] },
@@ -167,9 +166,8 @@ by rw [mul_comm, coeff_expand_mul hp]
 
 theorem expand_eq_map_domain (p : ℕ) (f : polynomial R) :
   expand R p f = f.map_domain (*p) :=
-finsupp.induction f (by { simp only [expand_eq_sum], refl }) $ λ n r f hf hr ih,
-by rw [finsupp.map_domain_add, finsupp.map_domain_single, alg_hom.map_add, ← monomial,
-  expand_monomial, ← monomial, ih]
+polynomial.induction_on' f (λ p q hp hq, by simp [*, finsupp.map_domain_add]) $
+  λ n a, by simp_rw [expand_monomial, monomial_def, finsupp.map_domain_single]
 
 theorem expand_inj {p : ℕ} (hp : 0 < p) {f g : polynomial R} :
   expand R p f = expand R p g ↔ f = g :=
@@ -219,7 +217,8 @@ by { rw [separable_def, derivative_mul], exact ((hf.mul_right h).add_mul_left_ri
   ((h.symm.mul_right hg).mul_add_right_right _) }
 
 lemma separable_prod' {ι : Sort*} {f : ι → polynomial R} {s : finset ι} :
-  (∀x∈s, ∀y∈s, x ≠ y → is_coprime (f x) (f y)) → (∀x∈s, (f x).separable) → (∏ x in s, f x).separable :=
+  (∀x∈s, ∀y∈s, x ≠ y → is_coprime (f x) (f y)) → (∀x∈s, (f x).separable) →
+  (∏ x in s, f x).separable :=
 finset.induction_on s (λ _ _, separable_one) $ λ a s has ih h1 h2, begin
   simp_rw [finset.forall_mem_insert, forall_and_distrib] at h1 h2, rw prod_insert has,
   exact h2.1.mul (ih h1.2.2 h2.2) (is_coprime.prod_right $ λ i his, h1.1.2 i his $
@@ -404,7 +403,8 @@ begin
     { rw is_unit_iff at h, rcases h with ⟨r, hr, rfl⟩,
       simp_rw expand_C at hf, exact absurd (is_unit_C.2 hr) hf.1 },
     { rw [add_zero, pow_zero, expand_one], split; refl } },
-  exact λ g₁ g₂ hg₁ hgf₁ hg₂ hgf₂, let ⟨hn, hg⟩ := this g₂ g₁ hg₂ hgf₂ hg₁ hgf₁ in ⟨hn.symm, hg.symm⟩
+  exact λ g₁ g₂ hg₁ hgf₁ hg₂ hgf₂, let ⟨hn, hg⟩ :=
+    this g₂ g₁ hg₂ hgf₂ hg₁ hgf₁ in ⟨hn.symm, hg.symm⟩
 end
 
 end char_p
@@ -440,7 +440,7 @@ begin
   simpa only [multiset.map_cons, multiset.prod_cons] using mul_dvd_mul_left _ (dvd_mul_right _ _)
 end
 
-lemma multiplicity_le_one_of_seperable {p q : polynomial F} (hq : ¬ is_unit q)
+lemma multiplicity_le_one_of_separable {p q : polynomial F} (hq : ¬ is_unit q)
   (hsep : separable p) : multiplicity q p ≤ 1 :=
 begin
   contrapose! hq,
@@ -450,11 +450,53 @@ begin
   exact_mod_cast (enat.add_one_le_of_lt hq)
 end
 
-lemma root_multiplicity_le_one_of_seperable {p : polynomial F} (hp : p ≠ 0)
+lemma separable.squarefree {p : polynomial F}  (hsep : separable p) : squarefree p :=
+begin
+  rw multiplicity.squarefree_iff_multiplicity_le_one p,
+  intro f,
+  by_cases hunit : is_unit f,
+  { exact or.inr hunit },
+  exact or.inl (multiplicity_le_one_of_separable hunit hsep)
+end
+
+/--If `n ≠ 0` in `F`, then ` X ^ n - a` is separable for any `a ≠ 0`. -/
+lemma separable_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 0) :
+  separable (X ^ n - C a) :=
+begin
+  cases nat.eq_zero_or_pos n with hzero hpos,
+  { exfalso,
+    rw hzero at hn,
+    exact hn (refl 0) },
+  apply (separable_def' (X ^ n - C a)).2,
+  use [-C (a⁻¹), (C ((a⁻¹) * (↑n)⁻¹) *  X)],
+  have mul_pow_sub : X * X ^ (n - 1) = X ^ n,
+  { nth_rewrite 0 [←pow_one X],
+    rw pow_mul_pow_sub X (nat.succ_le_iff.mpr hpos) },
+  rw [derivative_sub, derivative_C, sub_zero, derivative_pow X n, derivative_X, mul_one],
+  have hcalc : C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) = C a⁻¹ * (X ^ n),
+  { calc C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n))
+       = C a⁻¹ * C ((↑n)⁻¹) * (C ↑n * (X ^ n)) : by rw [C_mul, C_eq_nat_cast]
+   ... = C a⁻¹ * (C ((↑n)⁻¹) * C ↑n) * (X ^ n) : by ring
+   ... = C a⁻¹ * C ((↑n)⁻¹ * ↑n) * (X ^ n) : by rw [← C_mul]
+   ... = C a⁻¹ * C 1 * (X ^ n) : by field_simp [hn]
+   ... = C a⁻¹ * (X ^ n) : by rw [C_1, mul_one] },
+  calc -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * X * (↑n * X ^ (n - 1))
+      = -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X * X ^ (n - 1))) : by ring
+  ... = -C a⁻¹ * (X ^ n - C a) + C a⁻¹ * (X ^ n) : by rw [mul_pow_sub, hcalc]
+  ... = C a⁻¹ * C a : by ring
+  ... = (1 : polynomial F) : by rw [← C_mul, inv_mul_cancel ha, C_1]
+end
+
+/--If `n ≠ 0` in `F`, then ` X ^ n - a` is squarefree for any `a ≠ 0`. -/
+lemma squarefree_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 0) :
+  squarefree (X ^ n - C a) :=
+(separable_X_pow_sub_C a hn ha).squarefree
+
+lemma root_multiplicity_le_one_of_separable {p : polynomial F} (hp : p ≠ 0)
   (hsep : separable p) (x : F) : root_multiplicity x p ≤ 1 :=
 begin
   rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get],
-  exact multiplicity_le_one_of_seperable (not_unit_X_sub_C _) hsep
+  exact multiplicity_le_one_of_separable (not_unit_X_sub_C _) hsep
 end
 
 lemma count_roots_le_one {p : polynomial F} (hsep : separable p) (x : F) :
@@ -463,7 +505,7 @@ begin
   by_cases hp : p = 0,
   { simp [hp] },
   rw count_roots hp,
-  exact root_multiplicity_le_one_of_seperable hp hsep x
+  exact root_multiplicity_le_one_of_separable hp hsep x
 end
 
 lemma nodup_roots {p : polynomial F} (hsep : separable p) :
@@ -523,7 +565,8 @@ begin
   obtain ⟨hx, hs⟩ := h (algebra_map K E x),
   have hx' : is_integral F x := is_integral_tower_bot_of_is_integral_field hx,
   obtain ⟨q, hq⟩ := minimal_polynomial.dvd hx'
-    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field (minimal_polynomial.aeval hx)),
+    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field
+      (minimal_polynomial.aeval hx)),
   use hx',
   apply polynomial.separable.of_mul_left,
   rw ← hq,

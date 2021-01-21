@@ -56,7 +56,7 @@ def galois_connection [preorder α] [preorder β] (l : α → β) (u : β → α
 /-- Makes a Galois connection from an order-preserving bijection. -/
 theorem order_iso.to_galois_connection [preorder α] [preorder β] (oi : α ≃o β) :
   galois_connection oi oi.symm :=
-λ b g, by rw [oi.map_rel_iff, rel_iso.apply_symm_apply]
+λ b g, by rw [oi.map_rel_iff, oi.apply_symm_apply]
 
 namespace galois_connection
 
@@ -547,3 +547,12 @@ def lift_complete_lattice [complete_lattice β] (gi : galois_coinsertion l u) : 
 end lift
 
 end galois_coinsertion
+
+/-- If `α` is a partial order with bottom element (e.g., `ℕ`, `ℝ≥0`), then
+`λ o : with_bot α, o.get_or_else ⊥` and coercion form a Galois insertion. -/
+def with_bot.gi_get_or_else_bot [order_bot α] :
+  galois_insertion (λ o : with_bot α, o.get_or_else ⊥) coe :=
+{ gc := λ a b, with_bot.get_or_else_bot_le_iff,
+  le_l_u := λ a, le_rfl,
+  choice := λ o ho, _,
+  choice_eq := λ _ _, rfl }

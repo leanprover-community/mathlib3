@@ -12,24 +12,24 @@ This consists of two user-commands which allow you to declare notation and comma
 namespace.
 
 * Declare notation which is localized to a namespace using:
-  ```lean
-  localized "infix ` ⊹ `:60 := my_add" in my.add
-  ```
+```lean
+localized "infix ` ⊹ `:60 := my_add" in my.add
+```
 * After this command it will be available in the same section/namespace/file, just as if you wrote
   `local infix ` ⊹ `:60 := my_add`
 * You can open it in other places. The following command will declare the notation again as local
   notation in that section/namespace/files:
-  ```lean
-  open_locale my.add
-  ```
+```lean
+open_locale my.add
+```
 * More generally, the following will declare all localized notation in the specified namespaces.
-  ```lean
-  open_locale namespace1 namespace2 ...
-  ```
+```lean
+open_locale namespace1 namespace2 ...
+```
 * You can also declare other localized commands, like local attributes
-  ```lean
-  localized "attribute [simp] le_refl" in le
-  ```
+```lean
+localized "attribute [simp] le_refl" in le
+```
 The code is inspired by code from Gabriel Ebner from the
 [hott3 repository](https://github.com/gebner/hott3).
 -/
@@ -81,41 +81,41 @@ This consists of two user-commands which allow you to declare notation and comma
 namespace.
 
 * Declare notation which is localized to a namespace using:
-  ```lean
-  localized "infix ` ⊹ `:60 := my_add" in my.add
-  ```
+```lean
+localized "infix ` ⊹ `:60 := my_add" in my.add
+```
 
 * After this command it will be available in the same section/namespace/file, just as if you wrote
   `local infix ` ⊹ `:60 := my_add`
 
 * You can open it in other places. The following command will declare the notation again as local
   notation in that section/namespace/files:
-  ```lean
-  open_locale my.add
-  ```
+```lean
+open_locale my.add
+```
 
 * More generally, the following will declare all localized notation in the specified namespaces.
-  ```lean
-  open_locale namespace1 namespace2 ...
-  ```
+```lean
+open_locale namespace1 namespace2 ...
+```
 
 * You can also declare other localized commands, like local attributes
-  ```lean
-  localized "attribute [simp] le_refl" in le
-  ```
+```lean
+localized "attribute [simp] le_refl" in le
+```
 
 * To see all localized commands in a given namespace, run:
-  ```lean
-  run_cmd print_localized_commands [`my.add].
-  ```
+```lean
+run_cmd print_localized_commands [`my.add].
+```
 
 * To see a list of all namespaces with localized commands, run:
-  ```lean
-  run_cmd do
-    m ← localized_attr.get_cache,
-    tactic.trace m.keys -- change to `tactic.trace m.to_list`
-    -- to list all the commands in each namespace
-  ```
+```lean
+run_cmd do
+  m ← localized_attr.get_cache,
+  tactic.trace m.keys -- change to `tactic.trace m.to_list`
+  -- to list all the commands in each namespace
+```
 
 * Warning 1: as a limitation on user commands, you cannot put `open_locale` directly after your
   imports. You have to write another command first (e.g. `open`, `namespace`, `universe variables`,

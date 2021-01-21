@@ -319,7 +319,7 @@ instance : ordered_cancel_add_comm_monoid num :=
   le_of_add_le_add_left      := by {intros a b c, transfer_rw, apply le_of_add_le_add_left},
   ..num.comm_semiring }
 
-instance : decidable_linear_ordered_semiring num :=
+instance : linear_ordered_semiring num :=
 { le_total                   := by {intros a b, transfer_rw, apply le_total},
   zero_le_one                := dec_trivial,
   mul_lt_mul_of_pos_left     := by {intros a b c, transfer_rw, apply mul_lt_mul_of_pos_left},
@@ -422,7 +422,7 @@ by refine {mul := (*), one := 1, ..}; transfer
 instance : distrib pos_num :=
 by refine {add := (+), mul := (*), ..}; {transfer, simp [mul_add, mul_comm]}
 
-instance : decidable_linear_order pos_num :=
+instance : linear_order pos_num :=
 { lt              := (<),
   lt_iff_le_not_le := by {intros a b, transfer_rw, apply lt_iff_le_not_le},
   le              := (≤),
@@ -806,7 +806,7 @@ theorem bit1_of_bit1 : ∀ n : znum, _root_.bit1 n = n.bit1
 | (pos p) := by rw [znum.bit1, cast_pos, cast_pos]; refl
 | (neg p) := begin
     rw [znum.bit1, cast_neg, cast_neg],
-    cases e : pred' p;
+    cases e : pred' p with a;
     have : p = _ := (succ'_pred' p).symm.trans
       (congr_arg num.succ' e),
     { change p=1 at this, subst p,
@@ -1057,7 +1057,7 @@ end
 meta def transfer : tactic unit :=
 `[intros, transfer_rw, try {simp [add_comm, add_left_comm, mul_comm, mul_left_comm]}]
 
-instance : decidable_linear_order znum :=
+instance : linear_order znum :=
 { lt               := (<),
   lt_iff_le_not_le := by {intros a b, transfer_rw, apply lt_iff_le_not_le},
   le               := (≤),
@@ -1079,7 +1079,7 @@ instance : add_comm_group znum :=
   neg              := has_neg.neg,
   add_left_neg     := by transfer }
 
-instance : decidable_linear_ordered_comm_ring znum :=
+instance : linear_ordered_comm_ring znum :=
 { mul              := (*),
   mul_assoc        := by transfer,
   one              := 1,
@@ -1092,7 +1092,7 @@ instance : decidable_linear_ordered_comm_ring znum :=
   add_le_add_left  := by {intros a b h c, revert h, transfer_rw, exact λ h, add_le_add_left h c},
   mul_pos          := λ a b, show 0 < a → 0 < b → 0 < a * b, by {transfer_rw, apply mul_pos},
   zero_le_one      := dec_trivial,
-  ..znum.decidable_linear_order, ..znum.add_comm_group }
+  ..znum.linear_order, ..znum.add_comm_group }
 
 @[simp, norm_cast] theorem dvd_to_int (m n : znum) : (m : ℤ) ∣ n ↔ m ∣ n :=
 ⟨λ ⟨k, e⟩, ⟨k, by rw [← of_to_int n, e]; simp⟩,

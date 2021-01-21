@@ -769,12 +769,12 @@ summable_iff_vanishing.2 $
           finset.sum_congr rfl (assume b hb, (finset.mem_filter.1 hb).2.symm)
         ... = ∑ b in t, g b :
         begin
-          refine finset.sum_subset (finset.filter_subset _) _,
+          refine finset.sum_subset (finset.filter_subset _ _) _,
           assume b hbt hb,
           simp only [(∉), finset.mem_filter, and_iff_right hbt] at hb,
           exact (h b).resolve_right hb
         end,
-    eq ▸ hs _ $ finset.disjoint_of_subset_left (finset.filter_subset _) ht⟩
+    eq ▸ hs _ $ finset.disjoint_of_subset_left (finset.filter_subset _ _) ht⟩
 
 protected lemma summable.indicator (hf : summable f) (s : set β) :
   summable (s.indicator f) :=
@@ -848,7 +848,7 @@ end
 
 end topological_group
 
-lemma summable_abs_iff [decidable_linear_ordered_add_comm_group β] [uniform_space β]
+lemma summable_abs_iff [linear_ordered_add_comm_group β] [uniform_space β]
   [uniform_add_group β] [complete_space β] {f : α → β} :
   summable (λ x, abs (f x)) ↔ summable f :=
 have h1 : ∀ x : {x | 0 ≤ f x}, abs (f x) = f x := λ x, abs_of_nonneg x.2,

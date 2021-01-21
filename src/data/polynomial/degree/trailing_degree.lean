@@ -3,7 +3,7 @@ Copyright (c) 2020 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import data.polynomial.degree.basic
+import data.polynomial.degree.definitions
 
 /-!
 # Trailing degree of univariate polynomials
@@ -42,7 +42,8 @@ lemma trailing_degree_lt_wf : well_founded
 (λp q : polynomial R, trailing_degree p < trailing_degree q) :=
 inv_image.wf trailing_degree (with_top.well_founded_lt nat.lt_wf)
 
-/-- `nat_trailing_degree p` forces `trailing_degree p` to ℕ, by defining nat_trailing_degree 0 = 0. -/
+/-- `nat_trailing_degree p` forces `trailing_degree p` to `ℕ`, by defining
+`nat_trailing_degree ⊤ = 0`. -/
 def nat_trailing_degree (p : polynomial R) : ℕ := (trailing_degree p).get_or_else 0
 
 /-- `trailing_coeff p` gives the coefficient of the smallest power of `X` in `p`-/
@@ -68,7 +69,8 @@ lemma trailing_degree_eq_top : trailing_degree p = ⊤ ↔ p = 0 :=
   exact support_eq_empty.1 (min_eq_none.1 h),
 λ h, h.symm ▸ rfl⟩
 
-lemma trailing_degree_eq_nat_trailing_degree (hp : p ≠ 0) : trailing_degree p = (nat_trailing_degree p : with_top ℕ) :=
+lemma trailing_degree_eq_nat_trailing_degree (hp : p ≠ 0) :
+  trailing_degree p = (nat_trailing_degree p : with_top ℕ) :=
 let ⟨n, hn⟩ :=
   not_forall.1 (mt option.eq_none_iff_forall_not_mem.2 (mt trailing_degree_eq_top.1 hp)) in
 have hn : trailing_degree p = some n := not_not.1 hn,
@@ -94,14 +96,16 @@ have hp0 : p ≠ 0, from λ hp0, by rw hp0 at h; exact option.no_confusion h,
 option.some_inj.1 $ show (nat_trailing_degree p : with_top ℕ) = n,
   by rwa [← trailing_degree_eq_nat_trailing_degree hp0]
 
-@[simp] lemma nat_trailing_degree_le_trailing_degree : ↑(nat_trailing_degree p) ≤ trailing_degree p :=
+@[simp] lemma nat_trailing_degree_le_trailing_degree :
+  ↑(nat_trailing_degree p) ≤ trailing_degree p :=
 begin
   by_cases hp : p = 0, { rw hp, exact le_top },
   rw [trailing_degree_eq_nat_trailing_degree hp],
   exact le_refl _
 end
 
-lemma nat_trailing_degree_eq_of_trailing_degree_eq [semiring S] {q : polynomial S} (h : trailing_degree p = trailing_degree q) :
+lemma nat_trailing_degree_eq_of_trailing_degree_eq [semiring S] {q : polynomial S}
+  (h : trailing_degree p = trailing_degree q) :
 nat_trailing_degree p = nat_trailing_degree q :=
 by unfold nat_trailing_degree; rw h
 
@@ -116,7 +120,8 @@ begin
   { assume h, subst h, exact h rfl }
 end
 
-lemma trailing_degree_le_trailing_degree (h : coeff q (nat_trailing_degree p) ≠ 0) : trailing_degree q ≤ trailing_degree p :=
+lemma trailing_degree_le_trailing_degree (h : coeff q (nat_trailing_degree p) ≠ 0) :
+  trailing_degree q ≤ trailing_degree p :=
 begin
   by_cases hp : p = 0,
   { rw hp, exact le_top },
@@ -125,53 +130,68 @@ end
 
 lemma trailing_degree_ne_of_nat_trailing_degree_ne {n : ℕ} :
   p.nat_trailing_degree ≠ n → trailing_degree p ≠ n :=
-@option.cases_on _ (λ d, d.get_or_else 0 ≠ n → d ≠ n) p.trailing_degree
-  (λ _ h, option.no_confusion h)
-  (λ n' h, mt option.some_inj.mp h)
+mt $ λ h, by rw [nat_trailing_degree, h, option.get_or_else_coe]
 
-theorem nat_trailing_degree_le_of_trailing_degree_le {n : ℕ} {hp : p ≠ 0} (H : (n : with_top ℕ) ≤ trailing_degree p) : n ≤ nat_trailing_degree p :=
+theorem nat_trailing_degree_le_of_trailing_degree_le {n : ℕ} {hp : p ≠ 0}
+  (H : (n : with_top ℕ) ≤ trailing_degree p) : n ≤ nat_trailing_degree p :=
 begin
   rw trailing_degree_eq_nat_trailing_degree hp at H,
   exact with_top.coe_le_coe.mp H,
 end
 
-lemma nat_trailing_degree_le_nat_trailing_degree {hq : q ≠ 0} (hpq : p.trailing_degree ≤ q.trailing_degree) : p.nat_trailing_degree ≤ q.nat_trailing_degree :=
+lemma nat_trailing_degree_le_nat_trailing_degree {hq : q ≠ 0}
+  (hpq : p.trailing_degree ≤ q.trailing_degree) :
+  p.nat_trailing_degree ≤ q.nat_trailing_degree :=
 begin
   by_cases hp : p = 0, { rw [hp, nat_trailing_degree_zero], exact zero_le _ },
-  rwa [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq, with_top.coe_le_coe] at hpq
+  rwa [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq,
+    with_top.coe_le_coe] at hpq
 end
 
+@[simp] lemma trailing_degree_monomial (ha : a ≠ 0) : trailing_degree (monomial n a) = n :=
+by rw [trailing_degree, support_monomial _ _ ha, inf_singleton, with_top.some_eq_coe]
+
+lemma nat_trailing_degree_monomial (ha : a ≠ 0) : nat_trailing_degree (monomial n a) = n :=
+by rw [nat_trailing_degree, trailing_degree_monomial ha]; refl
+
+lemma nat_trailing_degree_monomial_le : nat_trailing_degree (monomial n a) ≤ n :=
+if ha : a = 0 then by simp [ha] else (nat_trailing_degree_monomial ha).le
+
+lemma le_trailing_degree_monomial : ↑n ≤ trailing_degree (monomial n a) :=
+if ha : a = 0 then by simp [ha] else (trailing_degree_monomial ha).ge
+
 @[simp] lemma trailing_degree_C (ha : a ≠ 0) : trailing_degree (C a) = (0 : with_top ℕ) :=
-show inf (ite (a = 0) ∅ {0}) some = 0, by rw if_neg ha; refl
+trailing_degree_monomial ha
 
 lemma le_trailing_degree_C : (0 : with_top ℕ) ≤ trailing_degree (C a) :=
-by by_cases h : a = 0; [rw [h, C_0], rw [trailing_degree_C h]]; [exact bot_le, exact le_refl _]
+le_trailing_degree_monomial
 
 lemma trailing_degree_one_le : (0 : with_top ℕ) ≤ trailing_degree (1 : polynomial R) :=
 by rw [← C_1]; exact le_trailing_degree_C
 
 @[simp] lemma nat_trailing_degree_C (a : R) : nat_trailing_degree (C a) = 0 :=
-begin
-  by_cases ha : a = 0,
-  { rw [ha, C_0, nat_trailing_degree_zero], },
-  { rw [nat_trailing_degree, trailing_degree_C ha], refl }
-end
+le_zero_iff_eq.1 nat_trailing_degree_monomial_le
 
-@[simp] lemma nat_trailing_degree_one : nat_trailing_degree (1 : polynomial R) = 0 := nat_trailing_degree_C 1
+@[simp] lemma nat_trailing_degree_one : nat_trailing_degree (1 : polynomial R) = 0 :=
+nat_trailing_degree_C 1
 
 @[simp] lemma nat_trailing_degree_nat_cast (n : ℕ) : nat_trailing_degree (n : polynomial R) = 0 :=
 by simp only [←C_eq_nat_cast, nat_trailing_degree_C]
 
-@[simp] lemma trailing_degree_monomial (n : ℕ) (ha : a ≠ 0) : trailing_degree (C a * X ^ n) = n :=
-by rw [← single_eq_C_mul_X, trailing_degree, monomial, support_single_ne_zero ha]; refl
+@[simp] lemma trailing_degree_C_mul_X_pow (n : ℕ) (ha : a ≠ 0) :
+  trailing_degree (C a * X ^ n) = n :=
+by rw [C_mul_X_pow_eq_monomial, trailing_degree_monomial ha]
 
-lemma monomial_le_trailing_degree (n : ℕ) (a : R) : (n : with_top ℕ) ≤ trailing_degree (C a * X ^ n) :=
-if h : a = 0 then by rw [h, C_0, zero_mul]; exact le_top else le_of_eq (trailing_degree_monomial n h).symm
+lemma le_trailing_degree_C_mul_X_pow (n : ℕ) (a : R) :
+  (n : with_top ℕ) ≤ trailing_degree (C a * X ^ n) :=
+by { rw C_mul_X_pow_eq_monomial, exact le_trailing_degree_monomial }
 
-lemma coeff_eq_zero_of_trailing_degree_lt (h : (n : with_top ℕ) < trailing_degree p) : coeff p n = 0 :=
+lemma coeff_eq_zero_of_trailing_degree_lt (h : (n : with_top ℕ) < trailing_degree p) :
+  coeff p n = 0 :=
 not_not.1 (mt le_trailing_degree_of_ne_zero (not_le_of_gt h))
 
-lemma coeff_eq_zero_of_lt_nat_trailing_degree {p : polynomial R} {n : ℕ} (h : n < p.nat_trailing_degree) :
+lemma coeff_eq_zero_of_lt_nat_trailing_degree {p : polynomial R} {n : ℕ}
+  (h : n < p.nat_trailing_degree) :
   p.coeff n = 0 :=
 begin
   apply coeff_eq_zero_of_trailing_degree_lt,
@@ -180,36 +200,20 @@ begin
   { rwa [trailing_degree_eq_nat_trailing_degree hp, with_top.coe_lt_coe] },
 end
 
-@[simp] lemma coeff_nat_trailing_degree_pred_eq_zero {p : polynomial R} {hp : (0 : with_top ℕ) < nat_trailing_degree p} : p.coeff (p.nat_trailing_degree - 1) = 0 :=
+@[simp] lemma coeff_nat_trailing_degree_pred_eq_zero {p : polynomial R}
+  {hp : (0 : with_top ℕ) < nat_trailing_degree p} : p.coeff (p.nat_trailing_degree - 1) = 0 :=
 coeff_eq_zero_of_lt_nat_trailing_degree $ nat.sub_lt
   ((with_top.zero_lt_coe (nat_trailing_degree p)).mp hp) nat.one_pos
 
-theorem le_trailing_degree_C_mul_X_pow (r : R) (n : ℕ) : (n : with_top ℕ) ≤ trailing_degree (C r * X^n) :=
-begin
-  rw [← single_eq_C_mul_X],
-  refine finset.le_inf (λ b hb, _),
-  rw list.eq_of_mem_singleton (finsupp.support_single_subset hb),
-  exact le_refl _,
-end
-
-theorem le_trailing_degree_X_pow (n : ℕ) : (n : with_top ℕ) ≤ trailing_degree (X^n : polynomial R) :=
-by simpa only [C_1, one_mul] using le_trailing_degree_C_mul_X_pow (1:R) n
+theorem le_trailing_degree_X_pow (n : ℕ) :
+  (n : with_top ℕ) ≤ trailing_degree (X^n : polynomial R) :=
+by simpa only [C_1, one_mul] using le_trailing_degree_C_mul_X_pow n (1:R)
 
 theorem le_trailing_degree_X : (1 : with_top ℕ) ≤ trailing_degree (X : polynomial R) :=
-by simpa only [C_1, one_mul, pow_one] using le_trailing_degree_C_mul_X_pow (1:R) 1
+le_trailing_degree_monomial
 
 lemma nat_trailing_degree_X_le : (X : polynomial R).nat_trailing_degree ≤ 1 :=
-begin
-  by_cases h : X = 0,
-  { rw [h, nat_trailing_degree_zero],
-    exact zero_le 1, },
-  { unfold nat_trailing_degree,
-    unfold trailing_degree,
-    rw [support_X, inf_singleton, option.get_or_else_some],
-    intro,
-    apply h,
-    rw [← mul_one X, ← C_1, a, C_0, mul_zero], },
-end
+nat_trailing_degree_monomial_le
 
 @[simp] lemma trailing_coeff_eq_zero : trailing_coeff p = 0 ↔ p = 0 :=
 ⟨λ h, by_contradiction $ λ hp, mt mem_support_iff.1
@@ -244,20 +248,15 @@ section nonzero_semiring
 variables [semiring R] [nontrivial R] {p q : polynomial R}
 
 @[simp] lemma trailing_degree_one : trailing_degree (1 : polynomial R) = (0 : with_top ℕ) :=
-trailing_degree_C (show (1 : R) ≠ 0, from zero_ne_one.symm)
+trailing_degree_C one_ne_zero
 
 @[simp] lemma trailing_degree_X : trailing_degree (X : polynomial R) = 1 :=
-begin
-  unfold X trailing_degree monomial single finsupp.support,
-  rw if_neg (one_ne_zero : (1 : R) ≠ 0),
-  refl
-end
+trailing_degree_monomial one_ne_zero
 
 @[simp] lemma nat_trailing_degree_X : (X : polynomial R).nat_trailing_degree = 1 :=
-nat_trailing_degree_eq_of_trailing_degree_eq_some trailing_degree_X
+nat_trailing_degree_monomial one_ne_zero
 
 end nonzero_semiring
-
 
 section ring
 variables [ring R]
@@ -265,7 +264,8 @@ variables [ring R]
 @[simp] lemma trailing_degree_neg (p : polynomial R) : trailing_degree (-p) = trailing_degree p :=
 by unfold trailing_degree; rw support_neg
 
-@[simp] lemma nat_trailing_degree_neg (p : polynomial R) : nat_trailing_degree (-p) = nat_trailing_degree p :=
+@[simp] lemma nat_trailing_degree_neg (p : polynomial R) :
+  nat_trailing_degree (-p) = nat_trailing_degree p :=
 by simp [nat_trailing_degree]
 
 @[simp] lemma nat_trailing_degree_int_cast (n : ℤ) : nat_trailing_degree (n : polynomial R) = 0 :=
@@ -293,26 +293,13 @@ end semiring
 section semiring
 variables [semiring R] {p q : polynomial R} {ι : Type*}
 
-
-lemma coeff_nat_trailing_degree_eq_zero_of_trailing_degree_lt (h : trailing_degree p < trailing_degree q) :
+lemma coeff_nat_trailing_degree_eq_zero_of_trailing_degree_lt
+  (h : trailing_degree p < trailing_degree q) :
   coeff q (nat_trailing_degree p) = 0 :=
-begin
-  refine coeff_eq_zero_of_trailing_degree_lt _,
-  rcases h with ⟨n, hn, hq⟩,
-  rw option.mem_def at hn,
-  simp_rw [option.mem_def] at hq,
-  unfold nat_trailing_degree,
-  rw [hn, option.get_or_else_some],
-  exact ⟨n, ⟨rfl, hq⟩⟩,
-end
+coeff_eq_zero_of_trailing_degree_lt $ nat_trailing_degree_le_trailing_degree.trans_lt h
 
 lemma ne_zero_of_trailing_degree_lt {n : with_top ℕ} (h : trailing_degree p < n) : p ≠ 0 :=
-begin
-  intro p0,
-  rw (trailing_degree_eq_top.mpr p0) at h,
-  revert h,
-  exact dec_trivial,
-end
+λ h₀, h.not_le (by simp [h₀])
 
 end semiring
 end polynomial

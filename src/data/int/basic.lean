@@ -50,13 +50,13 @@ instance : semiring int           := by apply_instance
 instance : ring int               := by apply_instance
 instance : distrib int            := by apply_instance
 
-instance : decidable_linear_ordered_comm_ring int :=
+instance : linear_ordered_comm_ring int :=
 { add_le_add_left := @int.add_le_add_left,
   mul_pos         := @int.mul_pos,
   zero_le_one     := le_of_lt int.zero_lt_one,
-  .. int.comm_ring, .. int.decidable_linear_order, .. int.nontrivial }
+  .. int.comm_ring, .. int.linear_order, .. int.nontrivial }
 
-instance : decidable_linear_ordered_add_comm_group int :=
+instance : linear_ordered_add_comm_group int :=
 by apply_instance
 
 theorem abs_eq_nat_abs : ∀ a : ℤ, abs a = nat_abs a
@@ -183,11 +183,11 @@ protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ) :
 λ H0 Hs Hp,
 begin
   rw ←sub_add_cancel z b,
-  induction (z - b),
-  { induction a with n ih, { rwa [of_nat_zero, zero_add] },
+  induction (z - b) with n n,
+  { induction n with n ih, { rwa [of_nat_zero, zero_add] },
     rw [of_nat_succ, add_assoc, add_comm 1 b, ←add_assoc],
     exact Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih },
-  { induction a with n ih,
+  { induction n with n ih,
     { rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub],
       exact Hp _ (le_refl _) H0 },
     { rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub],
@@ -220,6 +220,10 @@ theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
 by cases a; cases b;
   simp only [← int.mul_def, int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
 
+lemma nat_abs_mul_nat_abs_eq {a b : ℤ} {c : ℕ} (h : a * b = (c : ℤ)) :
+  a.nat_abs * b.nat_abs = c :=
+by rw [← nat_abs_mul, h, nat_abs_of_nat]
+
 @[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
 by rw [← int.coe_nat_mul, nat_abs_mul_self]
 
@@ -239,6 +243,33 @@ begin
   lift a to ℕ using w₁,
   simpa using w₂,
 end
+
+lemma nat_abs_eq_iff_mul_self_eq {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a * a = b * b :=
+begin
+  rw [← abs_eq_iff_mul_self_eq, abs_eq_nat_abs, abs_eq_nat_abs],
+  exact int.coe_nat_inj'.symm
+end
+
+lemma nat_abs_lt_iff_mul_self_lt {a b : ℤ} : a.nat_abs < b.nat_abs ↔ a * a < b * b :=
+begin
+  rw [← abs_lt_iff_mul_self_lt, abs_eq_nat_abs, abs_eq_nat_abs],
+  exact int.coe_nat_lt.symm
+end
+
+lemma nat_abs_le_iff_mul_self_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a * a ≤ b * b :=
+begin
+  rw [← abs_le_iff_mul_self_le, abs_eq_nat_abs, abs_eq_nat_abs],
+  exact int.coe_nat_le.symm
+end
+
+lemma nat_abs_eq_iff_sq_eq {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a ^ 2 = b ^ 2 :=
+by { rw [pow_two, pow_two], exact nat_abs_eq_iff_mul_self_eq }
+
+lemma nat_abs_lt_iff_sq_lt {a b : ℤ} : a.nat_abs < b.nat_abs ↔ a ^ 2 < b ^ 2 :=
+by { rw [pow_two, pow_two], exact nat_abs_lt_iff_mul_self_lt }
+
+lemma nat_abs_le_iff_sq_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a ^ 2 ≤ b ^ 2 :=
+by { rw [pow_two, pow_two], exact nat_abs_le_iff_mul_self_le }
 
 /-! ### `/`  -/
 
@@ -492,6 +523,13 @@ begin
     rw [←mod_add_div a n, ←mod_add_div b n, right_distrib, left_distrib, left_distrib,
         mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left,
         mul_comm _ (n * (b / n)), mul_assoc, add_mul_mod_self_left] }
+end
+
+@[simp] lemma neg_mod_two (i : ℤ) : (-i) % 2 = i % 2 :=
+begin
+  apply int.mod_eq_mod_iff_mod_sub_eq_zero.mpr,
+  convert int.mul_mod_right 2 (-i),
+  simp only [two_mul, sub_eq_add_neg]
 end
 
 local attribute [simp] -- Will be generalized to Euclidean domains.
@@ -969,6 +1007,13 @@ by simpa only [units.ext_iff, units_nat_abs] using nat_abs_eq u
 
 lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 (units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+
+@[simp] lemma units_mul_self (u : units ℤ) : u * u = 1 :=
+(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+
+-- `units.coe_mul` is a "wrong turn" for the simplifier, this undoes it and simplifies further
+@[simp] lemma units_coe_mul_self (u : units ℤ) : (u * u : ℤ) = 1 :=
+by rw [←units.coe_mul, units_mul_self, units.coe_one]
 
 /-! ### bitwise ops -/
 

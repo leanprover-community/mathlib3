@@ -45,7 +45,8 @@ universe u
 
 open ideal local_ring
 
-/-- An integral domain is a discrete valuation ring if it's a local PID which is not a field -/
+/-- An integral domain is a *discrete valuation ring* (DVR) if it's a local PID which
+  is not a field. -/
 class discrete_valuation_ring (R : Type u) [integral_domain R]
   extends is_principal_ideal_ring R, local_ring R : Prop :=
 (not_a_field' : maximal_ideal R ≠ ⊥)
@@ -169,13 +170,13 @@ begin
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
 end
 
-/-- Implementation detail: an integral domain in which there is a unit `p`
+/-- An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p` is a unique factorization domain.
 See `discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization`. -/
-theorem ufd : unique_factorization_monoid R :=
+theorem to_unique_factorization_monoid : unique_factorization_monoid R :=
 let p := classical.some hR in
 let spec := classical.some_spec hR in
-unique_factorization_monoid_of_exists_prime_of_factor $ λ x hx,
+unique_factorization_monoid.of_exists_prime_factors $ λ x hx,
 begin
   use multiset.repeat p (classical.some (spec.2 hx)),
   split,
@@ -286,7 +287,7 @@ begin
 end
 
 /--
-An integral domain in which there is a unit `p`
+An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p`
 is a discrete valuation ring.
 -/
@@ -294,7 +295,7 @@ lemma of_has_unit_mul_pow_irreducible_factorization {R : Type u} [integral_domai
   (hR : has_unit_mul_pow_irreducible_factorization R) :
   discrete_valuation_ring R :=
 begin
-  letI : unique_factorization_monoid R := hR.ufd,
+  letI : unique_factorization_monoid R := hR.to_unique_factorization_monoid,
   apply of_ufd_of_unique_irreducible _ hR.unique_irreducible,
   unfreezingI { obtain ⟨p, hp, H⟩ := hR, exact ⟨p, hp⟩, },
 end

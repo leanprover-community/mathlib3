@@ -58,6 +58,18 @@ private meta def instance_priority (d : declaration) : tactic (option string) :=
   if always_applies then return $ some "set priority below 1000" else return none
 
 /--
+There are places where typeclass arguments are specified with implicit `{}` brackets instead of
+the usual `[]` brackets. This is done when the instances can be inferred because they are implicit
+arguments to the type of one of the other arguments. When they can be inferred from these other
+arguments,  it is faster to use this method than to use type class inference.
+
+For example, when writing lemmas about `(f : α →+* β)`, it is faster to specify the fact that `α`
+and `β` are `semiring`s as `{rα : semiring α} {rβ : semiring β}` rather than the usual
+`[semiring α] [semiring β]`.
+-/
+library_note "implicit instance arguments"
+
+/--
 Certain instances always apply during type-class resolution. For example, the instance
 `add_comm_group.to_add_group {α} [add_comm_group α] : add_group α` applies to all type-class
 resolution problems of the form `add_group _`, and type-class inference will then do an

@@ -54,7 +54,7 @@ inductive rel (α : Type u) : (α × α) → (α × α) → Prop
 attribute [refl] rel.refl
 
 @[symm] lemma rel.symm {x y : α × α} : rel α x y → rel α y x :=
-by { rintro ⟨_,_⟩, exact a, apply rel.swap }
+by rintro ⟨_, _⟩; constructor
 
 @[trans] lemma rel.trans {x y z : α × α} : rel α x y → rel α y z → rel α x z :=
 by { intros a b, cases_matching* rel _ _ _; apply rel.refl <|> apply rel.swap }

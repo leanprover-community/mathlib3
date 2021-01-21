@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 import topology.algebra.continuous_functions
-import linear_algebra.affine_space.basic
+import linear_algebra.affine_space.affine_map
 
 /-!
 # Topological properties of affine spaces and maps
@@ -31,10 +31,12 @@ begin
   split,
   { intro hc,
     rw decomp' f,
-    exact hc.sub continuous_const },
+    have := hc.sub continuous_const,
+    exact this, },
   { intro hc,
     rw decomp f,
-    exact hc.add continuous_const }
+    have := hc.add continuous_const,
+    exact this }
 end
 
 /-- The line map is continuous. -/

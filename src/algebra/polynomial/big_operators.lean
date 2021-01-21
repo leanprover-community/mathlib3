@@ -90,6 +90,15 @@ begin
   rw prod_eq_one, intros, apply h, assumption,
 end
 
+lemma coeff_zero_prod :
+  (∏ i in s, f i).coeff 0 = ∏ i in s, (f i).coeff 0 :=
+begin
+  classical,
+  induction s using finset.induction with a s ha hs,
+  { simp only [coeff_one_zero, prod_empty] },
+  { simp only [ha, hs, mul_coeff_zero, not_false_iff, prod_insert] }
+end
+
 end comm_semiring
 
 section comm_ring

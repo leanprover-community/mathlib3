@@ -122,7 +122,8 @@ lemma ring_hom.map_multiset_sum [semiring β] [semiring γ] (f : β →+* γ) (s
   f s.sum = (s.map f).sum :=
 f.to_add_monoid_hom.map_multiset_sum s
 
-lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) (f : α → β) (s : finset α) :
+lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) (f : α → β)
+  (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
 g.to_monoid_hom.map_prod f s
 
@@ -272,7 +273,7 @@ calc (∏ x in s.sigma t, f x) =
        ∏ x in s.bind (λa, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bind
   ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
     prod_bind $ assume a₁ ha a₂ ha₂ h x hx,
-    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_to_fun] at hx,
+    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_apply] at hx,
       rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
   ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
     prod_congr rfl $ λ _ _, prod_map _ _ _
@@ -334,7 +335,7 @@ by rw [←prod_sdiff h]; simp only [this, prod_const_one, one_mul]
 @[to_additive]
 lemma prod_filter_of_ne {p : α → Prop} [decidable_pred p] (hp : ∀ x ∈ s, f x ≠ 1 → p x) :
   (∏ x in (s.filter p), f x) = (∏ x in s, f x) :=
-prod_subset (filter_subset _) $ λ x,
+prod_subset (filter_subset _ _) $ λ x,
   by { classical, rw [not_imp_comm, mem_filter], exact λ h₁ h₂, ⟨h₁, hp _ h₁ h₂⟩ }
 
 -- If we use `[decidable_eq β]` here, some rewrites fail because they find a wrong `decidable`
@@ -351,7 +352,7 @@ calc (∏ a in s.filter p, f a) = ∏ a in s.filter p, if p a then f a else 1 :
     prod_congr rfl (assume a h, by rw [if_pos (mem_filter.1 h).2])
   ... = ∏ a in s, if p a then f a else 1 :
     begin
-      refine prod_subset (filter_subset s) (assume x hs h, _),
+      refine prod_subset (filter_subset _ s) (assume x hs h, _),
       rw [mem_filter, not_and] at h,
       exact if_neg (h hs)
     end
@@ -952,6 +953,11 @@ lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α →
   ↑(∑ x in s, f x : ℕ) = (∑ x in s, (f x : β)) :=
 (nat.cast_add_monoid_hom β).map_sum f s
 
+@[norm_cast]
+lemma sum_int_cast [add_comm_group β] [has_one β] (s : finset α) (f : α → ℤ) :
+  ↑(∑ x in s, f x : ℤ) = (∑ x in s, (f x : β)) :=
+(int.cast_add_hom β).map_sum f s
+
 lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
   ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card •ℕ (f b) :=
 @prod_comp _ (multiplicative β) _ _ _ _ _ _
@@ -967,6 +973,21 @@ lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
   (∑ i in range (n + 1), f (n - i)) = (∑ i in range (n + 1), f i) :=
 @prod_flip (multiplicative β) _ _ _
 attribute [to_additive] prod_flip
+
+section opposite
+
+open opposite
+
+/-- Moving to the opposite additive commutative monoid commutes with summing. -/
+@[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
+  op (∑ x in s, f x) = ∑ x in s, op (f x) :=
+(op_add_equiv : β ≃+ βᵒᵖ).map_sum _ _
+
+@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵒᵖ) :
+  unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
+(op_add_equiv : β ≃+ βᵒᵖ).symm.map_sum _ _
+
+end opposite
 
 section comm_group
 variables [comm_group β]

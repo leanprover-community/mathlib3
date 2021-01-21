@@ -303,28 +303,49 @@ variables {α : Sort u} {β : α → Sort v} {α' : Sort w} [decidable_eq α] [d
 def update (f : Πa, β a) (a' : α) (v : β a') (a : α) : β a :=
 if h : a = a' then eq.rec v h.symm else f a
 
+/-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
+lemma update_apply {β : Sort*} (f : α → β) (a' : α) (b : β) (a : α) :
+  update f a' b a = if a = a' then b else f a :=
+begin
+  dunfold update,
+  congr,
+  funext,
+  rw eq_rec_constant,
+end
+
 @[simp] lemma update_same (a : α) (v : β a) (f : Πa, β a) : update f a v a = v :=
 dif_pos rfl
+
+lemma update_injective (f : Πa, β a) (a' : α) : injective (update f a') :=
+λ v v' h, have _ := congr_fun h a', by rwa [update_same, update_same] at this
 
 @[simp] lemma update_noteq {a a' : α} (h : a ≠ a') (v : β a') (f : Πa, β a) : update f a' v a = f a :=
 dif_neg h
 
+lemma rel_update_iff {β' : α → Sort*} {a : α} {b : β a} {f : Π a, β a} {g : Π a, β' a}
+  (r : Π a, β a → β' a → Prop) :
+  (∀ x, r x (update f a b x) (g x)) ↔ r a b (g a) ∧ ∀ x ≠ a, r x (f x) (g x) :=
+calc (∀ x, r x (update f a b x) (g x)) ↔ ∀ x, (x = a ∨ x ≠ a) → r x (update f a b x) (g x) :
+  by simp only [ne.def, classical.em, forall_prop_of_true]
+... ↔ r a b (g a) ∧ ∀ x ≠ a, r x (update f a b x) (g x) :
+  by simp only [or_imp_distrib, forall_and_distrib, forall_eq, update_same]
+... ↔ r a b (g a) ∧ ∀ x ≠ a, r x (f x) (g x) :
+  and_congr iff.rfl $ forall_congr $ λ x, forall_congr $ λ hx, by rw [update_noteq hx]
+
+lemma update_eq_iff {a : α} {b : β a} {f g : Π a, β a} :
+  update f a b = g ↔ b = g a ∧ ∀ x ≠ a, f x = g x :=
+funext_iff.trans $ rel_update_iff (λ a x y, x = y)
+
+lemma eq_update_iff {a : α} {b : β a} {f g : Π a, β a} :
+  g = update f a b ↔ g a = b ∧ ∀ x ≠ a, g x = f x :=
+eq_comm.trans $ update_eq_iff.trans $ by simp only [eq_comm]
+
 @[simp] lemma update_eq_self (a : α) (f : Πa, β a) : update f a (f a) = f :=
-begin
-  refine funext (λi, _),
-  by_cases h : i = a,
-  { rw h, simp },
-  { simp [h] }
-end
+update_eq_iff.2 ⟨rfl, λ _ _, rfl⟩
 
 lemma update_comp {β : Sort v} (f : α → β) {g : α' → α} (hg : injective g) (a : α') (v : β) :
   (update f (g a) v) ∘ g = update (f ∘ g) a v :=
-begin
-  refine funext (λi, _),
-  by_cases h : i = a,
-  { rw h, simp },
-  { simp [h, hg.ne] }
-end
+eq_update_iff.2 ⟨update_same _ _ _, λ x hx, update_noteq (hg.ne hx) _ _⟩
 
 lemma apply_update {ι : Sort*} [decidable_eq ι] {α β : ι → Sort*}
   (f : Π i, α i → β i) (g : Π i, α i) (i : ι) (v : α i) (j : ι) :
@@ -343,7 +364,7 @@ theorem update_comm {α} [decidable_eq α] {β : α → Sort*}
   {a b : α} (h : a ≠ b) (v : β a) (w : β b) (f : Πa, β a) :
   update (update f a v) b w = update (update f b w) a v :=
 begin
-  funext c, simp [update],
+  funext c, simp only [update],
   by_cases h₁ : c = b; by_cases h₂ : c = a; try {simp [h₁, h₂]},
   cases h (h₂.symm.trans h₁),
 end

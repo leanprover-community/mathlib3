@@ -46,7 +46,7 @@ begin
       simpa [-sub_nonneg, -continuous_linear_map.map_sub]
         using hc.localize.has_fderiv_within_at_nonneg (hg a (left_mem_Icc.2 hab)) this },
     cases eq_or_lt_of_le cmem.2 with hbc hbc,
-    -- Show that `c` can't be equal to `a`
+    -- Show that `c` can't be equal to `b`
     { subst c,
       refine absurd (sub_nonpos.1 $ nonpos_of_mul_nonneg_right _ (sub_lt_zero.2 hab'))
         (not_le_of_lt hmb),

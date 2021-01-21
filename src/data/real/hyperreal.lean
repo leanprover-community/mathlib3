@@ -22,8 +22,8 @@ notation `ℝ*` := hyperreal
 
 private def U : is_ultrafilter (@hyperfilter ℕ) := is_ultrafilter_hyperfilter
 
-noncomputable instance : discrete_linear_ordered_field ℝ* :=
-germ.discrete_linear_ordered_field U
+noncomputable instance : linear_ordered_field ℝ* :=
+germ.linear_ordered_field U
 
 noncomputable instance : inhabited ℝ* := ⟨0⟩
 
@@ -51,9 +51,9 @@ germ.const_inj
 @[simp, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x :=
 coe_lt_coe
 @[simp, norm_cast] lemma coe_le_coe {x y : ℝ} : (x : ℝ*) ≤ y ↔ x ≤ y := germ.const_le_iff
-@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((abs x : ℝ) : ℝ*) = abs x := germ.const_abs _ _
-@[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _ _
-@[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _ _
+@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((abs x : ℝ) : ℝ*) = abs x := germ.const_abs U _
+@[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max U _ _
+@[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min U _ _
 
 /-- Construct a hyperreal number from a sequence of real numbers. -/
 noncomputable def of_seq (f : ℕ → ℝ) : ℝ* := (↑f : germ (@hyperfilter ℕ) ℝ)
@@ -642,8 +642,7 @@ lemma infinite_neg_iff_infinitesimal_inv_neg {x : ℝ*} :
 ⟨ λ hin, have hin' : _ := infinite_pos_iff_infinitesimal_inv_pos.mp
   (infinite_pos_neg_of_infinite_neg hin),
   by rwa [infinitesimal_neg_iff, ←neg_pos, neg_inv],
-  λ hin, have h0 : x ≠ 0 := λ h0, (lt_irrefl (0 : ℝ*) (by convert hin.2; rw [h0, inv_zero])),
-  by rwa [←neg_pos, infinitesimal_neg_iff, neg_inv,
+  λ hin, by rwa [←neg_pos, infinitesimal_neg_iff, neg_inv,
     ←infinite_pos_iff_infinitesimal_inv_pos, ←infinite_neg_iff_infinite_pos_neg] at hin ⟩
 
 theorem infinitesimal_inv_of_infinite {x : ℝ*} : infinite x → infinitesimal x⁻¹ :=

@@ -446,6 +446,34 @@ begin
   rwa [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply],
 end
 
+theorem is_jacobson_polynomial_of_is_jacobson {R : Type*} [integral_domain R] (H : is_jacobson R) :
+  is_jacobson (polynomial R) :=
+begin
+  rw is_jacobson_iff_prime_eq,
+  intros I hI,
+  let R' : subring I.quotient := ((quotient.mk I).comp C).range,
+  let i : R →+* R' := ((quotient.mk I).comp C).range_restrict,
+  have hi : function.surjective (i : R → R') := ((quotient.mk I).comp C).surjective_onto_range,
+  have hi' : (polynomial.map_ring_hom i : polynomial R →+* polynomial R').ker ≤ I :=
+    ideal.polynomial.factor R I,
+  let j : polynomial R →+* polynomial R' := @polynomial.map_ring_hom R R' _ _ i,
+  haveI : (ideal.map (map_ring_hom i) I).is_prime := begin
+    apply map_is_prime_of_surjective _ _,
+    apply (polynomial.map_surjective i hi),
+    exact hI,
+    exact hi',
+  end,
+  suffices : (I.map (polynomial.map_ring_hom i)).jacobson = (I.map (polynomial.map_ring_hom i)),
+  { replace this := congr_arg (comap (polynomial.map_ring_hom i)) this,
+    rw [← map_jacobson_of_surjective _ hi',
+      comap_map_of_surjective _ _, comap_map_of_surjective _ _] at this,
+    refine le_antisymm (le_trans (le_sup_left_of_le le_rfl)
+      (le_trans (le_of_eq this) (sup_le le_rfl hi'))) le_jacobson,
+    all_goals {exact polynomial.map_surjective i hi} },
+  exact @polynomial.is_jacobson_polynomial_of_domain R' _ (is_jacobson_of_surjective ⟨i, hi⟩)
+    (ideal.map (map_ring_hom i) I) _ (eq_zero_of_polynomial_mem_map_range I),
+end
+
 end polynomial
 
 end ideal

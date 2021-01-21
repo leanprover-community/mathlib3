@@ -1052,7 +1052,7 @@ def orthogonal (B : bilin_form R M) (N : submodule R M) : submodule R M :=
 
 variables {N L : submodule R M}
 
-@[simp] lemma mem_ortho_iff {N : submodule R M} {m : M} :
+@[simp] lemma mem_orthogonal_iff {N : submodule R M} {m : M} :
   m ∈ B.orthogonal N ↔ ∀ n ∈ N, is_ortho B m n := iff.rfl
 
 lemma orthogonal_le (h : N ≤ L) : B.orthogonal L ≤ B.orthogonal N :=

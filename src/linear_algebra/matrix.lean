@@ -954,10 +954,10 @@ lemma linear_map.eq_std_basis (m : n) :
   (std_basis_vec m : n → R) = linear_map.std_basis R (λ _, R) m 1 :=
 by { rw linear_map.std_basis_apply, exact eq_update m }
 
-@[simp] lemma neq_eq_zero {i j : n} (h : i ≠ j) : std_basis_vec i j = (0 : R) :=
+lemma neq_eq_zero {i j : n} (h : i ≠ j) : std_basis_vec i j = (0 : R) :=
   if_neg h.symm
 
-@[simp] lemma eq_eq_one {i j : n} (h : i = j) : std_basis_vec i j = (1 : R) :=
+lemma eq_eq_one {i j : n} (h : i = j) : std_basis_vec i j = (1 : R) :=
   if_pos h.symm
 
 lemma is_basis [fintype n] : @is_basis n R (n → R) std_basis_vec _ _ _ :=

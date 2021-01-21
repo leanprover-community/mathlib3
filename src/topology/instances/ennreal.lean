@@ -164,6 +164,12 @@ by rw [tendsto_nhds_top_iff_nnreal, at_top_basis_Ioi.tendsto_right_iff];
 lemma nhds_zero : 𝓝 (0 : ennreal) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
 
+@[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[Ioi r] (r : ennreal)).ne_bot :=
+nhds_within_Ioi_self_ne_bot' ennreal.coe_lt_top
+
+@[instance] lemma nhds_within_Ioi_zero_ne_bot : (𝓝[Ioi 0] (0 : ennreal)).ne_bot :=
+nhds_within_Ioi_coe_ne_bot
+
 -- using Icc because
 -- • don't have 'Ioo (x - ε) (x + ε) ∈ 𝓝 x' unless x > 0
 -- • (x - y ≤ ε ↔ x ≤ ε + y) is true, while (x - y < ε ↔ x < ε + y) is not

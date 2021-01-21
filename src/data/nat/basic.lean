@@ -619,6 +619,14 @@ This section is here due to dependencies -- the lemmas here require some of the 
 proved above, and some of the results in later sections depend on the definitions in this section.
 -/
 
+@[simp] lemma rec_zero {C : ℕ → Sort u} (h0 : C 0) (h : ∀ n, C n → C (n + 1)) :
+  (nat.rec h0 h : Π n, C n) 0 = h0 :=
+rfl
+
+@[simp] lemma rec_add_one {C : ℕ → Sort u} (h0 : C 0) (h : ∀ n, C n → C (n + 1)) (n : ℕ) :
+  (nat.rec h0 h : Π n, C n) (n + 1) = h n ((nat.rec h0 h : Π n, C n) n) :=
+rfl
+
 /-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k`,
 there is a map from `C n` to each `C m`, `n ≤ m`. -/
 @[elab_as_eliminator]

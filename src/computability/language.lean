@@ -169,12 +169,7 @@ begin
   tauto
 end
 
-lemma le_add_congr {l₁ l₂ m₁ m₂ : language α} : l₁ ≤ m₁ → l₂ ≤ m₂ → l₁ + l₂ ≤ m₁ + m₂ :=
-begin
-  intros h₁ h₂ x hx,
-  simp only [add_def, set.mem_union_eq] at hx ⊢,
-  tauto
-end
+lemma le_add_congr {l₁ l₂ m₁ m₂ : language α} : l₁ ≤ m₁ → l₂ ≤ m₂ → l₁ + l₂ ≤ m₁ + m₂ := sup_le_sup
 
 lemma supr_mul {ι : Sort v} (l : ι → language α) (m : language α) :
   (⨆ i, l i) * m = ⨆ i, l i * m :=

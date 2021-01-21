@@ -213,3 +213,20 @@ protected lemma surjection.surjective (e : α ↠ β) : surjective e :=
 e.right_inv.surjective
 
 end aliases
+
+/-! ### Classical constructions -/
+
+section classical
+
+/-- Construct a `α ↬ β` from a proof of injectivity of a function. -/
+noncomputable def function.injective.to_injection {α} [nonempty α]
+  {f : α → β} (hf : injective f) :
+  α ↬ β :=
+⟨f, inv_fun f, left_inverse_inv_fun hf⟩
+
+/-- Construct a `α ↬ β` from a proof of surjectivity of a function. -/
+noncomputable def function.surjective.to_surjection {f : α → β} (hf : surjective f) :
+  α ↠ β :=
+⟨f, surj_inv hf, right_inverse_surj_inv hf⟩
+
+end classical

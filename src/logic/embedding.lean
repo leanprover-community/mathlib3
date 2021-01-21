@@ -44,7 +44,7 @@ namespace embedding
 
 /-- Convert an `α ↪ β` to `α ↬ β` by using `function.inv_fun` as the left-inverse. -/
 noncomputable def to_injection {α β} [nonempty α] (f : α ↪ β) : α ↬ β :=
-⟨f, inv_fun f, left_inverse_inv_fun f.inj'⟩
+{ to_fun := f, ..f.inj'.to_injection }
 
 @[ext] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; simpa using funext h

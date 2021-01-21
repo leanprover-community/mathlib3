@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.set.function
+import data.equiv.one_sided
 
 /-!
 # Equivalence between types
@@ -58,13 +59,11 @@ open function
 universes u v w z
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
+set_option old_structure_cmd true
+
 /-- `α ≃ β` is the type of functions from `α → β` with a two-sided inverse. -/
 @[nolint has_inhabited_instance]
-structure equiv (α : Sort*) (β : Sort*) :=
-(to_fun    : α → β)
-(inv_fun   : β → α)
-(left_inv  : left_inverse inv_fun to_fun)
-(right_inv : right_inverse inv_fun to_fun)
+structure equiv (α : Sort*) (β : Sort*) extends α ↬ β, α ↠ β
 
 infix ` ≃ `:25 := equiv
 

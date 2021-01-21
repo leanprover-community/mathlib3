@@ -8,6 +8,7 @@ import algebra.algebra.basic
 import linear_algebra.bilinear_form
 import linear_algebra.matrix
 import order.preorder_hom
+import order.complete_well_founded
 import tactic.noncomm_ring
 
 /-!
@@ -944,6 +945,13 @@ by { rw [← mem_coe_submodule, sup_coe_to_submodule, submodule.mem_sup], exact 
 lemma eq_bot_iff : N = ⊥ ↔ ∀ (m : M), m ∈ N → m = 0 :=
 by { rw eq_bot_iff, exact iff.rfl, }
 
+lemma top_of_bot_eq_bot : (⊤ : lie_submodule R L ↥(⊥ : lie_submodule R L M)) = ⊥ :=
+begin
+  ext ⟨x, hx⟩, split; intros h,
+  { rw [lie_submodule.mem_bot, submodule.mk_eq_zero], exact hx, },
+  { exact lie_submodule.mem_top ⟨x, hx⟩, },
+end
+
 section inclusion_maps
 
 /-- The inclusion of a Lie submodule into its ambient space is a morphism of Lie modules. -/
@@ -999,6 +1007,8 @@ lemma lie_span_eq : lie_span R L (N : set M) = N :=
 le_antisymm (lie_span_le.mpr rfl.subset) subset_lie_span
 
 end lie_span
+
+variables (R L M)
 
 lemma well_founded_of_noetherian [is_noetherian R M] :
   well_founded ((>) : lie_submodule R L M → lie_submodule R L M → Prop) :=
@@ -1435,6 +1445,19 @@ begin
   { rw [lie_submodule.le_def, ← h], exact lie_submodule.subset_lie_span, },
 end
 
+/-- Note that this is not a special case of `lie_submodule.top_of_bot_eq_bot`. Indeed, given
+`I : lie_ideal R L`, in general the two lattices `lie_ideal R I` and `lie_submodule R L I` are
+different (though the latter does naturally inject into the former).
+
+In other words, in general, ideals of `I`, regarded as a Lie algebra in its own right, are not the
+same as ideals of `L` contained in `I`. -/
+lemma top_of_bot_eq_bot : (⊤ : lie_ideal R ↥(⊥ : lie_ideal R L)) = ⊥ :=
+begin
+  ext ⟨x, hx⟩, split; intros h,
+  { rw [lie_submodule.mem_bot, submodule.mk_eq_zero], exact hx, },
+  { exact lie_submodule.mem_top ⟨x, hx⟩, },
+end
+
 end lie_ideal
 
 namespace lie_algebra.morphism
@@ -1661,30 +1684,37 @@ variables (R : Type u) (L : Type v) (M : Type w)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
 variables [lie_ring_module L M] [lie_module R L M]
 
+namespace lie_module
+
 /-- A Lie module is irreducible if it is zero or its only non-trivial Lie submodule is itself. -/
-class lie_module.is_irreducible : Prop :=
+class is_irreducible : Prop :=
 (irreducible : ∀ (N : lie_submodule R L M), N ≠ ⊥ → N = ⊤)
 
 /-- A Lie module is nilpotent if its lower central series reaches 0 (in a finite number of steps).-/
-class lie_module.is_nilpotent : Prop :=
+class is_nilpotent : Prop :=
 (nilpotent : ∃ k, lie_module.lower_central_series R L M k = ⊥)
 
 @[priority 100]
 instance trivial_is_nilpotent [lie_module.is_trivial L M] : lie_module.is_nilpotent R L M :=
 ⟨by { use 1, change ⁅⊤, ⊤⁆ = ⊥, simp, }⟩
 
+end lie_module
+
+namespace lie_algebra
+
 /-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
 action, and it is non-Abelian. -/
-class lie_algebra.is_simple extends lie_module.is_irreducible R L L : Prop :=
+class is_simple extends lie_module.is_irreducible R L L : Prop :=
 (non_abelian : ¬is_lie_abelian L)
 
 /-- A Lie algebra is solvable if its derived series reaches 0 (in a finite number of steps). -/
-class lie_algebra.is_solvable : Prop :=
-(solvable : ∃ k, lie_algebra.derived_series R L k = ⊥)
+class is_solvable : Prop :=
+(solvable : ∃ k, derived_series R L k = ⊥)
 
-instance lie_algebra.is_solvable_add {I J : lie_ideal R L}
-  [hI : lie_algebra.is_solvable R I] [hJ : lie_algebra.is_solvable R J] :
-  lie_algebra.is_solvable R ↥(I + J) :=
+instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) := ⟨⟨0, lie_ideal.top_of_bot_eq_bot⟩⟩
+
+instance is_solvable_add {I J : lie_ideal R L} [hI : is_solvable R I] [hJ : is_solvable R J] :
+  is_solvable R ↥(I + J) :=
 begin
   tactic.unfreeze_local_instances,
   obtain ⟨k, hk⟩ := hI,
@@ -1692,14 +1722,28 @@ begin
   exact ⟨⟨k+l, lie_ideal.derived_series_add_eq_bot k l I J hk hl⟩⟩,
 end
 
+/-- The (solvable) radical of Lie algebra is the `Sup` of all solvable ideals. -/
+def radical := Sup { I : lie_ideal R L | is_solvable R I }
+
+/-- The radical of a Noetherian Lie algebra is solvable. -/
+instance radical_is_solvable [is_noetherian R L] : is_solvable R (radical R L) :=
+begin
+  have hwf := lie_submodule.well_founded_of_noetherian R L L,
+  rw ← complete_lattice.is_sup_closed_compact_iff_well_founded at hwf,
+  refine hwf { I : lie_ideal R L | is_solvable R I } _ _,
+  { use ⊥, exact lie_algebra.is_solvable_bot R L, },
+  { intros I J hI hJ, apply lie_algebra.is_solvable_add R L; [exact hI, exact hJ], },
+end
+
 @[priority 100]
-instance lie_algebra.is_solvable_of_is_nilpotent [hL : lie_module.is_nilpotent R L L] :
-  lie_algebra.is_solvable R L :=
+instance is_solvable_of_is_nilpotent [hL : lie_module.is_nilpotent R L L] : is_solvable R L :=
 begin
   obtain ⟨k, h⟩ : ∃ k, lie_module.lower_central_series R L L k = ⊥ := hL.nilpotent,
   use k, rw ← le_bot_iff at h ⊢,
   exact le_trans (lie_module.derived_series_le_lower_central_series R L k) h,
 end
+
+end lie_algebra
 
 end lie_algebra_properties
 

@@ -213,7 +213,7 @@ begin
         use i.succ,
         rw [pow_succ, mem_mul],
         exact ⟨ x, S.join, hS x (list.mem_cons_self _ _), ih, rfl ⟩ },
-      { finish } } },
+      { exact λ y hy, hS _ (list.mem_cons_of_mem _ hy) } } },
   { rintro ⟨ i, hx ⟩,
     induction i with i ih generalizing x,
     { rw [pow_zero, mem_one] at hx,

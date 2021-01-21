@@ -948,8 +948,8 @@ by { rw eq_bot_iff, exact iff.rfl, }
 lemma top_of_bot_eq_bot : (⊤ : lie_submodule R L ↥(⊥ : lie_submodule R L M)) = ⊥ :=
 begin
   ext ⟨x, hx⟩, split; intros h,
-  { rw [lie_submodule.mem_bot, submodule.mk_eq_zero], exact hx, },
-  { exact lie_submodule.mem_top ⟨x, hx⟩, },
+  { rw [mem_bot, submodule.mk_eq_zero], exact hx, },
+  { exact mem_top ⟨x, hx⟩, },
 end
 
 section inclusion_maps
@@ -1663,7 +1663,7 @@ lemma derived_series_eq_bot_iff (k : ℕ) :
   derived_series R I k = ⊥ ↔ derived_series_of_ideal R L k I = ⊥ :=
 by rw [← derived_series_eq_derived_series_of_ideal_map, I.incl.map_bot_iff, ker_incl, eq_bot_iff]
 
-lemma derived_series_add_eq_bot (k l : ℕ) (I J : lie_ideal R L)
+lemma derived_series_add_eq_bot {k l : ℕ} {I J : lie_ideal R L}
   (hI : derived_series R I k = ⊥) (hJ : derived_series R J l = ⊥) :
   derived_series R ↥(I + J) (k + l) = ⊥ :=
 begin
@@ -1719,7 +1719,7 @@ begin
   tactic.unfreeze_local_instances,
   obtain ⟨k, hk⟩ := hI,
   obtain ⟨l, hl⟩ := hJ,
-  exact ⟨⟨k+l, lie_ideal.derived_series_add_eq_bot k l I J hk hl⟩⟩,
+  exact ⟨⟨k+l, lie_ideal.derived_series_add_eq_bot hk hl⟩⟩,
 end
 
 /-- The (solvable) radical of Lie algebra is the `Sup` of all solvable ideals. -/

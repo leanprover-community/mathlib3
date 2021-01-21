@@ -134,9 +134,24 @@ lemma lsum_apply
   (F : Π i, M i →ₗ[R] N) (g : Π₀ i, M i) : lsum F g = g.sum (λ i gi, F i gi) :=
 sum_add_hom_apply (λ i, (F i).to_add_monoid_hom) g
 
+@[simp]
+lemma dfinsupp_sum_hom {β : ι → Type*} [∀ i, has_zero (β i)]
+  [Π (i : ι) (x : β i), decidable (x ≠ 0)]
+  (F : Π i, β i → N →ₗ[R] N') (g : Π₀ i, β i) (x : N) :
+  g.sum (λ i gi, F i gi) x = g.sum (λ i gi, F i gi x) :=
+finset.sum_hom
 
-@[simp] lemma finsupp_sum {γ} [has_zero γ]
-  (f : M →ₗ[R] M₂) {t : ι →₀ γ} {g : ι → γ → M} :
-  f (t.sum g) = t.sum (λi d, f (g i d)) := f.map_sum
+namespace linear_map
+
+#check dfinsupp.
+
+@[simp]
+lemma dfinsupp_sum_apply {β : ι → Type*} [∀ i, has_zero (β i)]
+  [Π (i : ι) (x : β i), decidable (x ≠ 0)]
+  (F : Π i, β i → N →ₗ[R] N') (g : Π₀ i, β i) (x : N) :
+  g.sum (λ i gi, F i gi) x = g.sum (λ i gi, F i gi x) :=
+linear_map.sum_apply _ _ _
+
+end linear_map
 
 end dfinsupp

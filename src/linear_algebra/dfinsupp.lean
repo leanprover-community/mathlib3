@@ -128,4 +128,15 @@ lemma comp_lsum (g : N →ₗ[R] N') (f : Π i, M i →ₗ[R] N) :
   g.comp (lsum f) = lsum (λ a, g.comp (f a)) :=
 linear_map.ext $ add_monoid_hom.congr_fun (comp_lift_add_hom g.to_add_monoid_hom _)
 
+/-- The `lsum` version of `dfinsupp.sum_add_hom_apply`. -/
+lemma lsum_apply
+  [Π (i : ι) (x : M i), decidable (x ≠ 0)]
+  (F : Π i, M i →ₗ[R] N) (g : Π₀ i, M i) : lsum F g = g.sum (λ i gi, F i gi) :=
+sum_add_hom_apply (λ i, (F i).to_add_monoid_hom) g
+
+
+@[simp] lemma finsupp_sum {γ} [has_zero γ]
+  (f : M →ₗ[R] M₂) {t : ι →₀ γ} {g : ι → γ → M} :
+  f (t.sum g) = t.sum (λi d, f (g i d)) := f.map_sum
+
 end dfinsupp

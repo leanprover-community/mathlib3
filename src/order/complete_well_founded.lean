@@ -166,7 +166,10 @@ begin
 end
 
 lemma well_founded_characterisations :
-  tfae [well_founded ((>) : α → α → Prop), is_Sup_finite_compact α, is_sup_closed_compact α, ∀ k : α, is_compact_element k] :=
+  tfae [well_founded ((>) : α → α → Prop),
+        is_Sup_finite_compact α,
+        is_sup_closed_compact α,
+        ∀ k : α, is_compact_element k] :=
 begin
   tfae_have : 1 → 2, by { exact well_founded.is_Sup_finite_compact α, },
   tfae_have : 2 → 3, by { exact is_Sup_finite_compact.is_sup_closed_compact α, },

@@ -120,7 +120,7 @@ instance : semiring (language α) :=
   left_distrib := left_distrib_lang,
   right_distrib := right_distrib_lang }
 
-@[simp] lemma add_self (l : language α) : l + l = l := by finish [add_def]
+@[simp] lemma add_self (l : language α) : l + l = l := sup_idem
 
 lemma star_def_nonempty (l : language α) :
   l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l ∧ y ≠ []} :=

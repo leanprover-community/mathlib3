@@ -532,8 +532,3 @@ add_tactic_doc
 
 end interactive
 end tactic
-
-set_option trace.app_builder true
-#eval do
-  tactic.norm_fin.eval_ineq `((5 : fin 7) ≠ fin.succ (fin.succ 9))
-example : (5 : fin 7) ≠ fin.succ (fin.succ 9) := by norm_num

@@ -474,10 +474,16 @@ example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
   else do
     p ← (if na < nb then do
       p ← prove_lt_fin' n a b a' b',
-      eval_fin_m.lift_ic $ λ ic, ic.mk_app ``ne_of_lt [a, b, p]
+      ty ← infer_type a,
+      ic ← mk_instance_cache ty,
+      (_, p) ← ic.mk_app ``ne_of_lt [a, b, p],
+      pure p
     else do
       p ← prove_lt_fin' n b a b' a',
-      eval_fin_m.lift_ic $ λ ic, ic.mk_app ``ne_of_gt [a, b, p]),
+      ty ← infer_type a,
+      ic ← mk_instance_cache ty,
+      (_, p) ← ic.mk_app ``ne_of_gt [a, b, p],
+      pure p),
     true_intro p
 | _ := failed
 

@@ -545,6 +545,11 @@ by apply_instance -- short-circuit type class inference
 instance normed_top_group : topological_add_group α :=
 by apply_instance -- short-circuit type class inference
 
+lemma nat.norm_cast_le [has_one α] : ∀ n : ℕ, ∥(n : α)∥ ≤ n * ∥(1 : α)∥
+| 0 := by simp
+| (n + 1) := by { rw [n.cast_succ, n.cast_succ, add_mul, one_mul],
+                  exact norm_add_le_of_le (nat.norm_cast_le n) le_rfl }
+
 end normed_group
 
 section normed_ring

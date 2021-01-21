@@ -540,20 +540,22 @@ open finsupp polynomial
 
 variables {M : ideal R} [is_maximal M]
 
-lemma if_inv_then_int { I : ideal R } (hR : is_dedekind_domain R) (x : f.codomain) (h_nzI : I ≠ 0)
-  (h_prod : (↑I : fractional_ideal f) * (1 / ↑I : fractional_ideal f) = ↑I) :
-  x ∈ (1/↑I : fractional_ideal f) → (f.to_map).is_integral_elem x :=
+lemma mem_if_not_inv_then_int { I : ideal R } (hR : is_dedekind_domain R) (x : f.codomain) (h_nzI : I ≠ 0)
+  (h_prod : (↑I : fractional_ideal f) * (1 / ↑I : fractional_ideal f) < 1) :
+  x ∈ (1 / ↑I : fractional_ideal f) → (f.to_map).is_integral_elem x :=
 begin
   intro hx,
   let h_RalgK := ring_hom.to_algebra f.to_map,
   have h_prod_mem : ∀ a ∈ I, ∀ t ∈ (1 / ↑I : fractional_ideal f), f.to_map a * t ∈ (↑I : fractional_ideal f),
-  { intros a ha t ht,
-    rw ← h_prod,
-    have hfa : f.to_map a ∈ (↑I : fractional_ideal f),
-    apply fractional_ideal.mem_coe_ideal.mpr,
-    use a,
-    apply and.intro ha rfl,
-    apply fractional_ideal.mul_mem_mul hfa ht },
+  { sorry,
+    -- intros a ha t ht,
+    -- rw ← h_prod,
+    -- have hfa : f.to_map a ∈ (↑I : fractional_ideal f),
+    -- apply fractional_ideal.mem_coe_ideal.mpr,
+    -- use a,
+    -- apply and.intro ha rfl,
+    -- apply fractional_ideal.mul_mem_mul hfa ht
+    },
   have h_Samuel : ∀ n : ℕ, ∀ y ∈ I, f.to_map y * x ^ n ∈ (↑I : fractional_ideal f).val,
   { intro n,
     induction n with n hn,
@@ -809,14 +811,6 @@ begin
   simpa only [*, not_not, iff_false, fractional_ideal.val_eq_coe],
 end
 
-example (W : Type*) [group_with_zero W] (a b c d : W) (hd : d ≠ 0)
-  (H : a = b * c * d⁻¹) : a * d = b * c :=
-
-begin
-  simp only [*, ne.def, not_false_iff, inv_mul_cancel_right'],
-
-end
-
 
 lemma exists_nonint_of_nebot (hR : is_dedekind_domain R) (hNF : ¬ is_field R) (I : ideal R)
   (hnbot : I ≠ ⊥) (hntop : I ≠ ⊤) :
@@ -890,83 +884,179 @@ begin
     tauto },
 end
 
+-- lemma mem_if_inv_then_int { I : ideal R } (hR : is_dedekind_domain R) (x : f.codomain) (h_nzI : I ≠ 0)
+--   (h_prod : (↑I : fractional_ideal f) * (1 / ↑I : fractional_ideal f) = ↑I) :
+--   x ∈ (1 / ↑I : fractional_ideal f) → (f.to_map).is_integral_elem x :=
 
-theorem maximal_ideal_inv_of_dedekind (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
-  (hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
+lemma int_ideal_inv_of_dedekind (hR : is_dedekind_domain R) (hNF : ¬ is_field R) (I : ideal R)
+  (hne : I ≠ ⊥) : is_unit (I : fractional_ideal f) :=
 begin
-  have hnz_M : M ≠ 0, apply (lt_iff_le_and_ne.mp (ideal.bot_lt_of_maximal M hNF) ).2.symm,
-  have hnz_Mf : (↑M : fractional_ideal f) ≠ (⊥ : fractional_ideal f),
-  { exact (fractional_ideal.coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors R))).mpr hnz_M },
-  have h_MfinR : (↑M : fractional_ideal f) ≤ (1 : fractional_ideal f),
-  apply fractional_ideal.coe_ideal_le_one,
-  have hM_inclMinv : (↑M : fractional_ideal f) ≤ (↑M : fractional_ideal f) * (1 / (↑M : fractional_ideal f)),
-  from fractional_ideal.le_self_mul_one_div h_MfinR,
-  have h_self : (↑M : fractional_ideal f) ≤ (1 : fractional_ideal f) * ↑M,
-  ring, exact le_refl ↑M,
-  have hMMinv_inclR : ↑M * (1 / ↑M) ≤ (1 : fractional_ideal f),
-    from fractional_ideal.mul_one_div_le_one,
-  suffices hprod : ↑M * ((1: fractional_ideal f) / ↑M) = (1 : fractional_ideal f),
-  apply is_unit_of_mul_eq_one ↑M ((1 : fractional_ideal f) / ↑M) hprod,
-  obtain ⟨I, hI⟩ : ∃ (I : ideal R), ↑I = ↑M * ((1 : fractional_ideal f) / ↑M),
-  ring, apply (fractional_ideal.le_one_iff_exists_coe_ideal.mp hMMinv_inclR),
-  have h_Iincl : M ≤ I,
-  { suffices h_Iincl_f : (↑M : fractional_ideal f) ≤ (↑I : fractional_ideal f),
-    { intros x hx,
-      let y := f.to_map x,
-      have defy : f.to_map x = y, refl,
-      have hy : y ∈  (↑M : fractional_ideal f),
-      { simp only [exists_prop, fractional_ideal.mem_coe_ideal], use x, exact ⟨hx, defy⟩ },
-      replace hy : y ∈ (↑I : fractional_ideal f),
-      apply fractional_ideal.le_iff_mem.mp h_Iincl_f, assumption,
-      obtain ⟨a, ⟨ ha, hfa ⟩ ⟩ : ∃ (x' ∈ I), f.to_map x' = y,
-      apply fractional_ideal.mem_coe_ideal.mp hy,
-      have hax : a = x,
-      { suffices haxf : f.to_map a = f.to_map x,
-        apply fraction_map.injective f haxf, rw hfa },
-      subst hax, assumption },
-    { rw hI, assumption } },
-  have h_top : I= ⊤,
-  { by_contradiction h_abs,
-    have h_IM : I = M, apply (is_maximal.eq_of_le hM h_abs h_Iincl).symm,
-    have h_inveqR : 1 / ↑M = (1 : fractional_ideal f),
-    { have h_MMinvI : ↑M * (1 / ↑M : fractional_ideal f) = ↑M, rw [← hI, h_IM],
-      suffices h_invR_dbl : 1 / ↑M ≤ (1 : fractional_ideal f) ∧ (1 : fractional_ideal f) ≤ 1 / ↑M,
-      apply (has_le.le.le_iff_eq h_invR_dbl.right).mp (h_invR_dbl.left),
-      split,
-      { intros x hx,
-         have h_integralfx : (f.to_map).is_integral_elem x,
-         apply if_inv_then_int _ hR x hnz_M h_MMinvI hx,
-         have h_intxR : x ∈ (integral_closure R f.codomain), apply h_integralfx,
-         have h_xint : x ∈ ((⊥  : subalgebra R f.codomain) : submodule R f.codomain),
-         { rw ← ((is_dedekind_domain_iff _ _ f).mp hR).right.right, exact h_intxR },
-        rw [algebra.to_submodule_bot, ← (fractional_ideal.coe_span_singleton 1)] at h_xint,
-        rw [← fractional_ideal.span_singleton_one,
-          (fractional_ideal.val_eq_coe (fractional_ideal.span_singleton 1))],
-        exact h_xint },
-      { apply (fractional_ideal.le_div_iff_mul_le hnz_Mf).mpr,
-        ring, exact h_MfinR } },
-    apply inv_of_maximal_not_top K hR hNF hM,
-    assumption },
-  have h_okfI : ↑I = (1 : fractional_ideal f), apply fractional_ideal.ext_iff.mp,
-  intros x, split, repeat {intro hx},
-  { replace hx : ∃ (x' ∈  (I : ideal R)), f.to_map x' = x,
-    apply fractional_ideal.mem_coe_ideal.mp hx,
-    apply fractional_ideal.mem_one_iff.mpr,
-    rcases hx with ⟨a, ⟨ha, hfa⟩⟩,
-    use a, exact hfa },
-  { replace hx : ∃ x' ∈ (1 : ideal R),  f.to_map x' = x,
-    apply fractional_ideal.mem_coe_ideal.mp hx,
-    rw h_top, simp only [submodule.mem_top, fractional_ideal.mem_coe_ideal, exists_prop_of_true],
-    rcases hx with ⟨a, ⟨ha,hfa⟩⟩,
-    use a, exact hfa },
-  rw ← hI, exact h_okfI,
+  by_cases hntop : I = ⊤,
+  { sorry},
+  { suffices hprod : ↑I * ((1: fractional_ideal f) / ↑I) = (1 : fractional_ideal f),
+    { apply is_unit_of_mul_eq_one ↑I ((1 : fractional_ideal f) / ↑I) hprod },
+    { by_contradiction h_abs,
+      obtain ⟨x, h1, h2⟩ : ∃ (x : f.codomain), x ∈ (1 / I : fractional_ideal f) ∧ x ∉ (1 : fractional_ideal f),
+      { apply exists_nonint_of_nebot,
+        exacts [hR, hNF, hne, hntop] },
+      replace h_abs : (↑I : fractional_ideal f) * (1 / ↑I) < 1 := lt_of_le_of_ne (fractional_ideal.mul_one_div_le_one) h_abs,
+      have h_xint : (f.to_map).is_integral_elem x,
+      { apply mem_if_not_inv_then_int, exacts [hR, hne, h_abs, h1] },
+      replace h_xint : x ∈ ((⊥  : subalgebra R f.codomain) : submodule R f.codomain),
+      rw ← ((is_dedekind_domain_iff _ _ f).mp hR).right.right, exact h_xint,
+      rw [algebra.to_submodule_bot, ← fractional_ideal.coe_span_singleton 1,
+        fractional_ideal.span_singleton_one] at h_xint,
+      tauto } },
 end
 
 
-lemma fractional_ideal_invertible_of_dedekind (h : is_dedekind_domain R) (I : fractional_ideal f) :
-  I * (1 / I) = 1 :=
-begin
-  sorry
+-- theorem maximal_ideal_inv_of_dedekind (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
+--   (hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
+-- begin
+--   have hnz_M : M ≠ 0, apply (lt_iff_le_and_ne.mp (ideal.bot_lt_of_maximal M hNF) ).2.symm,
+--   have hnz_Mf : (↑M : fractional_ideal f) ≠ (⊥ : fractional_ideal f),
+--   { exact (fractional_ideal.coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors R))).mpr hnz_M },
+--   have h_MfinR : (↑M : fractional_ideal f) ≤ (1 : fractional_ideal f),
+--   apply fractional_ideal.coe_ideal_le_one,
+--   have hM_inclMinv : (↑M : fractional_ideal f) ≤ (↑M : fractional_ideal f) * (1 / (↑M : fractional_ideal f)),
+--   from fractional_ideal.le_self_mul_one_div h_MfinR,
+--   have h_self : (↑M : fractional_ideal f) ≤ (1 : fractional_ideal f) * ↑M,
+--   ring, exact le_refl ↑M,
+--   have hMMinv_inclR : ↑M * (1 / ↑M) ≤ (1 : fractional_ideal f),
+--     from fractional_ideal.mul_one_div_le_one,
+--   suffices hprod : ↑M * ((1: fractional_ideal f) / ↑M) = (1 : fractional_ideal f),
+--   apply is_unit_of_mul_eq_one ↑M ((1 : fractional_ideal f) / ↑M) hprod,
+--   obtain ⟨I, hI⟩ : ∃ (I : ideal R), ↑I = ↑M * ((1 : fractional_ideal f) / ↑M),
+--   ring, apply (fractional_ideal.le_one_iff_exists_coe_ideal.mp hMMinv_inclR),
+--   have h_Iincl : M ≤ I,
+--   { suffices h_Iincl_f : (↑M : fractional_ideal f) ≤ (↑I : fractional_ideal f),
+--     { intros x hx,
+--       let y := f.to_map x,
+--       have defy : f.to_map x = y, refl,
+--       have hy : y ∈  (↑M : fractional_ideal f),
+--       { simp only [exists_prop, fractional_ideal.mem_coe_ideal], use x, exact ⟨hx, defy⟩ },
+--       replace hy : y ∈ (↑I : fractional_ideal f),
+--       apply fractional_ideal.le_iff_mem.mp h_Iincl_f, assumption,
+--       obtain ⟨a, ⟨ ha, hfa ⟩ ⟩ : ∃ (x' ∈ I), f.to_map x' = y,
+--       apply fractional_ideal.mem_coe_ideal.mp hy,
+--       have hax : a = x,
+--       { suffices haxf : f.to_map a = f.to_map x,
+--         apply fraction_map.injective f haxf, rw hfa },
+--       subst hax, assumption },
+--     { rw hI, assumption } },
+--   have h_top : I= ⊤,
+--   { by_contradiction h_abs,
+--     have h_IM : I = M, apply (is_maximal.eq_of_le hM h_abs h_Iincl).symm,
+--     have h_inveqR : 1 / ↑M = (1 : fractional_ideal f),
+--     { have h_MMinvI : ↑M * (1 / ↑M : fractional_ideal f) = ↑M, rw [← hI, h_IM],
+--       suffices h_invR_dbl : 1 / ↑M ≤ (1 : fractional_ideal f) ∧ (1 : fractional_ideal f) ≤ 1 / ↑M,
+--       apply (has_le.le.le_iff_eq h_invR_dbl.right).mp (h_invR_dbl.left),
+--       split,
+--       { intros x hx,
+--          have h_integralfx : (f.to_map).is_integral_elem x,
+--          sorry, --apply mem_if_not_inv_then_int _ hR x hnz_M h_MMinvI hx,
+--          have h_intxR : x ∈ (integral_closure R f.codomain), apply h_integralfx,
+--          have h_xint : x ∈ ((⊥  : subalgebra R f.codomain) : submodule R f.codomain),
+--          { rw ← ((is_dedekind_domain_iff _ _ f).mp hR).right.right, exact h_intxR },
+--         rw [algebra.to_submodule_bot, ← (fractional_ideal.coe_span_singleton 1)] at h_xint,
+--         rw [← fractional_ideal.span_singleton_one,
+--           (fractional_ideal.val_eq_coe (fractional_ideal.span_singleton 1))],
+--         exact h_xint, },
+--       { apply (fractional_ideal.le_div_iff_mul_le hnz_Mf).mpr,
+--         ring, exact h_MfinR } },
+--     apply inv_of_maximal_not_top K hR hNF hM,
+--     assumption },
+--   have h_okfI : ↑I = (1 : fractional_ideal f), apply fractional_ideal.ext_iff.mp,
+--   intros x, split, repeat {intro hx},
+--   { replace hx : ∃ (x' ∈  (I : ideal R)), f.to_map x' = x,
+--     apply fractional_ideal.mem_coe_ideal.mp hx,
+--     apply fractional_ideal.mem_one_iff.mpr,
+--     rcases hx with ⟨a, ⟨ha, hfa⟩⟩,
+--     use a, exact hfa },
+--   { replace hx : ∃ x' ∈ (1 : ideal R),  f.to_map x' = x,
+--     apply fractional_ideal.mem_coe_ideal.mp hx,
+--     rw h_top, simp only [submodule.mem_top, fractional_ideal.mem_coe_ideal, exists_prop_of_true],
+--     rcases hx with ⟨a, ⟨ha,hfa⟩⟩,
+--     use a, exact hfa },
+--   rw ← hI, exact h_okfI,
+-- end
+
+
+
+-- lemma smul_singleton_div (h : is_dedekind_domain R) (I : fractional_ideal f)
+--   (a : f.codomain)-- (hnz_I : I ≠ ⊥) (hnz_a : a ≠ 0)
+--   : 1 / (fractional_ideal.span_singleton a * I)
+--   = (1 / I) * (1 / (fractional_ideal.span_singleton a)) :=
+--   begin sorry,
+--   end
+
+
+lemma fractional_ideal_invertible_of_dedekind (h : is_dedekind_domain R) --(hNF : ¬ is_field R)
+(I : fractional_ideal f) (hnzI : I ≠ ⊥): I * (1 / I) = 1 :=
+begin sorry,
+  -- suffices h_forInt : ∀ (J : ideal R), (↑J : fractional_ideal f) * (1 / J) = 1,
+  -- obtain ⟨a, ⟨J, hnza, hinv⟩⟩ := fractional_ideal.exists_eq_span_singleton_mul I,
+  -- rw hinv,
+  -- rw [mul_comm] {occs := occurrences.pos [1]},
+  -- rw ← mul_assoc,
+  -- rw [mul_comm] {occs := occurrences.pos [1]},
+  -- rw smul_singleton_div,
+  -- -- rw h_forInt,
+  -- rw ← mul_assoc,
+  -- rw h_forInt,
+  -- -- have temp : fractional_ideal.span_singleton ((f.to_map a)⁻¹) = (fractional_ideal.span_singleton (f.to_map a))⁻¹, sorry,
+
+  -- rw smul_singleton_div _ h ↑J (f.to_map a)⁻¹,
+  -- rw ← mul_assoc,
+  -- rw ← smul_singleton_div _ h ↑J (f.to_map a)⁻¹,
+  -- rw h_forInt,
+  -- -- rw temp,
+  -- -- rw mul_assoc,
+  -- -- rw [mul_comm],
+  -- rw [mul_comm] {occs := occurrences.pos [1]},
+  -- rw ← mul_assoc,
+  -- rw [mul_comm] {occs := occurrences.pos [1]},
+  -- -- rw mul_comm,-- _ _ _,-- _ _,-- (↑J : fractional_ideal f) _ _ _),
+  -- rw (smul_singleton_div (↑J : fractional_ideal f) _ _ _),
+  -- -- rw ← fractional_ideal.div_span_singleton,
+
+
+  -- -- obtain ⟨a, ⟨h_nza, ha⟩⟩ : ∃ (a : R) (h_nza : a ≠ 0),
+  -- --     (fractional_ideal.span_singleton (f.to_map a)) * I ≤ 1,
+  -- --   rcases hI : I with ⟨I₀, ⟨a, ⟨ha₁, ha₂⟩⟩⟩,--riunire un po' di cose?
+  -- --   use a,
+  -- --   split,
+  -- --   { sorry },--easy: 0 is a zero-divisor
+  -- --   { have ha₃ : (f.to_map a) ∈ (1 / I : fractional_ideal f),
+  -- --     { apply (fractional_ideal.mem_div_iff_of_nonzero hnzI).mpr _,
+  -- --       dsimp [localization_map.is_integer] at ha₂,
+  -- --       intros y hy,
+  -- --       rw fractional_ideal.mem_one_iff,
+  -- --       specialize ha₂ y _,
+  -- --       rwa set.mem_range at ha₂,
+  -- --       rwa [← fractional_ideal.mem_coe,← fractional_ideal.val_eq_coe, hI] at hy, },
+  -- --     rw ← hI,
+  -- --     rw ← fractional_ideal.mem_coe at ha₃,
+  -- --     rw ← fractional_ideal.val_eq_coe at ha₃,
+  -- --     rw ← submodule.span_singleton_le_iff_mem (f.to_map a) (1 / I).val at ha₃,--mettere insieme
+  -- --     rw fractional_ideal.val_eq_coe at ha₃,
+  -- --     -- rw fractional_ideal.coe_div _ at ha₃,
+
+
+  -- --   sorry },--mi sono fermato perché non sono sicuro che la migliore formulazione dell'obtain sia con
+  -- --         --span_singleton
+  -- --   let J' := (fractional_ideal.span_singleton (f.to_map a)) * I,
+  -- --   obtain ⟨J, hJ⟩ := (fractional_ideal.le_one_iff_exists_coe_ideal.mp ha),
+  -- --   calc I * (1 / I) = 1 * (I * (1 / I)) : by exact (one_mul _).symm
+  -- --               ...  = (fractional_ideal.span_singleton (f.to_map a)) *
+  -- --                       (fractional_ideal.span_singleton (f.to_map a))⁻¹ * I * (1 / I) : by sorry
+  -- --               ...  = J * (1 / J) : by sorry
+  -- --               ...  = 1 : by sorry,
+
+
+
+
+
 end
 
 lemma mul_one_div (h : is_dedekind_domain R) {I J : fractional_ideal f} : I * (1 / J) = I / J :=
@@ -977,7 +1067,7 @@ noncomputable instance [h : is_dedekind_domain R] : comm_group_with_zero (fracti
   div := λ I J, I / J,
   div_eq_mul_inv := λ I J, by rw [inv_eq, mul_one_div _ h],
   inv_zero := fractional_ideal.div_zero,
-  mul_inv_cancel := λ I hI, by rw [inv_eq, fractional_ideal_invertible_of_dedekind _ h I],
+  mul_inv_cancel := λ I hI, by rw [inv_eq, fractional_ideal_invertible_of_dedekind _ _ I hI],
   .. fractional_ideal.nontrivial,
   .. fractional_ideal.comm_semiring }
 

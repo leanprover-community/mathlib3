@@ -1084,7 +1084,6 @@ begin
     from mt (g.to_map.injective_iff.mp (fraction_map.injective g) x) hx,
   have h_spanx : span_singleton (g.to_map x) ≠ (0 : fractional_ideal g),
     from span_singleton_ne_zero_iff.mpr h_gx,
-
   rw is_noetherian_iff at ⊢ hI,
   intros J hJ,
   rw [← div_span_singleton, le_div_iff_mul_le h_spanx] at hJ,

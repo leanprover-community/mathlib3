@@ -63,7 +63,7 @@ begin
   split,
   { by_cases hbot : k = ⊥,
     -- Any nonempty directed set certainly sups above ⊥
-    { rintros _ _ ⟨x, hx⟩ _ _, use x, by simp[hx, hbot], },
+    { rintros _ _ ⟨x, hx⟩ _ _, use x, by simp only [hx, hbot, bot_le, and_self], },
     { intros hk s hne hdir hsup,
       cases (hk s hsup) with t ht,
       -- If t were empty, it would sup to ⊥, which is not above k ≠ ⊥.

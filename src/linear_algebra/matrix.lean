@@ -939,7 +939,7 @@ h.equiv_fun.alg_conj.trans alg_equiv_matrix'
 
 /-- `std_basis_vec` is the standard basis for the free module `n → R`. -/
 def std_basis_vec {R : Type v} [ring R] {n : Type w} [decidable_eq n]
-  (i : n) : n → R := λ j, if j = i then 1 else 0
+  (i : n) : n → R := linear_map.std_basis R (λ _, R) i 1
 
 namespace std_basis_vec
 
@@ -947,24 +947,14 @@ open_locale classical
 
 variables {R : Type v} [ring R] {n : Type w}
 
-lemma eq_update (m : n) : std_basis_vec m = function.update 0 m (1 : R) :=
-by { ext, rw function.update_apply, refl }
-
-lemma linear_map.eq_std_basis (m : n) :
-  (std_basis_vec m : n → R) = linear_map.std_basis R (λ _, R) m 1 :=
-by { rw linear_map.std_basis_apply, exact eq_update m }
-
 lemma neq_eq_zero {i j : n} (h : i ≠ j) : std_basis_vec i j = (0 : R) :=
-  if_neg h.symm
+by { rw [std_basis_vec, linear_map.std_basis_ne], exact h.symm }
 
 lemma eq_eq_one {i j : n} (h : i = j) : std_basis_vec i j = (1 : R) :=
-  if_pos h.symm
+by { convert linear_map.std_basis_same _ (λ _, R) j 1 }
 
 lemma is_basis [fintype n] : @is_basis n R (n → R) std_basis_vec _ _ _ :=
-begin
-  convert pi.is_basis_fun R n,
-  ext1 m, exact linear_map.eq_std_basis m,
-end
+  pi.is_basis_fun R n
 
 lemma dot_product_eq_val (v : n → R) (i : n) [fintype n]:
   v i = matrix.dot_product v (std_basis_vec i) :=

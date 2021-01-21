@@ -74,7 +74,7 @@ begin
         exact absurd ht hbot, },
       -- certainly ↑t ⊆ s, so every element of t is below something in s, to apply finset_sup_of_directed_on
       have t_below_s : ∀ x ∈ t, ∃ y ∈ s, x ≤ y, from λ x hxt, ⟨x, ht.left hxt, by refl⟩,
-      rcases (finset.sup_le_of_le_directed s hdir t tne t_below_s) with ⟨x, ⟨hxs, hsupx⟩⟩,
+      rcases (finset.sup_le_of_le_directed s hne hdir t t_below_s) with ⟨x, ⟨hxs, hsupx⟩⟩,
       exact ⟨x, ⟨hxs, le_trans k (t.sup id) x ht.right hsupx⟩⟩, }, },
   { intros hk s hsup,
     -- Consider the set of finite joins of elements of the (plain) set s.

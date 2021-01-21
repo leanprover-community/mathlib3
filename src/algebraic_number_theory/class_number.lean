@@ -1,7 +1,5 @@
 import algebra.big_operators.finsupp
 import algebra.floor
-import analysis.special_functions.pow
-import combinatorics.pigeonhole
 import data.polynomial.field_division
 import group_theory.quotient_group
 import linear_algebra.determinant
@@ -13,114 +11,13 @@ import ring_theory.fractional_ideal
 
 -- These results are in separate files for faster re-compiling.
 -- They should be merged with the appropriate lower-level file when development is finished.
+import algebraic_number_theory.class_number.admissible_absolute_value
 import algebraic_number_theory.class_number.det
-import algebraic_number_theory.class_number.euclidean_absolute_value
 import algebraic_number_theory.class_number.integral_closure
 
 open ring
 
 open_locale big_operators
-
-namespace finset
-
-lemma map_max' {α β : Type*} [linear_order α] [linear_order β]
-  {f : α → β} (hf : monotone f) (s : finset α) (h : s.nonempty) :
-  f (s.max' h) = (s.image f).max' (h.image f) :=
-begin
-  obtain mem := finset.max'_mem s h,
-  refine le_antisymm
-    (finset.le_max' _ _ (finset.mem_image.mpr ⟨_, mem, rfl⟩))
-    (finset.max'_le _ _ _ (λ y hy, _)),
-  obtain ⟨x, hx, rfl⟩ := finset.mem_image.mp hy,
-  exact hf (finset.le_max' _ _ hx)
-end
-
-lemma max'_lt {α : Type*} [linear_order α] (s : finset α) (h : s.nonempty)
-  {x : α} (hx : ∀ y ∈ s, y < x) :
-  s.max' h < x :=
-lt_of_le_of_ne
-  (finset.max'_le _ h _ (λ y hy, le_of_lt (hx y hy)))
-  (ne_of_lt (hx _ (s.max'_mem h)))
-
-lemma exists_eq_insert_of_lt_card {α : Type*} [decidable_eq α] (n : ℕ) (s : finset α)
-  (h : n < s.card) : ∃ (x : α) (t : finset α), s = insert x t ∧ n ≤ t.card :=
-begin
-  have : 0 < s.card := by linarith,
-  obtain ⟨x, hx⟩ := card_pos.mp this,
-  use [x, s.erase x, (insert_erase hx).symm],
-  rw card_erase_of_mem hx,
-  exact nat.le_pred_of_lt h
-end
-
-lemma nonempty_of_lt_card {α : Type*}
-  (s : finset α) {n : ℕ} (hn : n < card s) :
-  s.nonempty :=
-card_pos.mp (by linarith)
-
-lemma le_card_erase_of_lt {α : Type*} [decidable_eq α]
-  (s : finset α) {n : ℕ} (hn : n < card s) {x} (hx : x ∈ s) :
-  n ≤ (s.erase x).card :=
-by { rw card_erase_of_mem hx, exact nat.le_pred_of_lt hn }
-
-/-- `finset.to_vec` noncomputably gives a vector of `n` distinct elements in `s` -/
-noncomputable def to_vec {α : Type*} [decidable_eq α] :
-  ∀ (s : finset α) {n : ℕ} (hn : n ≤ card s), fin n → α
-| s 0       hn i := fin_zero_elim i
-| s (n + 1) hn i := let h : ∃ x, x ∈ s := nonempty_of_lt_card s hn
-in @fin.cons _ (λ _, α) (classical.some h) ((s.erase (classical.some h)).to_vec
-  (le_card_erase_of_lt s hn (classical.some_spec h))) i
-
-/-- Auxiliary lemma for proving `to_vec_mem`. -/
-lemma to_vec_zero_mem {α : Type*} [decidable_eq α]
-  (s : finset α) {n : ℕ} (hn : n.succ ≤ card s) :
-  to_vec s hn 0 ∈ s :=
-let h : ∃ x, x ∈ s := nonempty_of_lt_card s hn
-in show classical.some h ∈ s, from classical.some_spec h
-
-lemma to_vec_succ {α : Type*} [decidable_eq α]
-  (s : finset α) {n : ℕ} (hn : n.succ ≤ card s) (i : fin n) :
-  to_vec s hn i.succ =
-    to_vec (s.erase (to_vec s hn 0))
-                  (le_card_erase_of_lt s hn (to_vec_zero_mem s hn))
-                  i :=
-by simp only [to_vec, fin.cons_succ, fin.cons_zero]
-
-lemma to_vec_mem {α : Type*} [decidable_eq α] :
-  ∀ (s : finset α) {n : ℕ} (hn : n ≤ card s) (i : fin n),
-  to_vec s hn i ∈ s
-| s 0       hn i := fin_zero_elim i
-| s (n + 1) hn i := let h : ∃ x, x ∈ s := nonempty_of_lt_card s hn
-in fin.cases
-  (show classical.some h ∈ s, from classical.some_spec h)
-  (λ i, by { rw to_vec_succ,
-             exact erase_subset _ _ (to_vec_mem (erase _ _) _ i) })
-  i
-
-lemma to_vec_succ_ne_to_vec_zero {α : Type*} [decidable_eq α] :
-  ∀ (s : finset α) {n : ℕ} (hn : n.succ ≤ card s) (i : fin n),
-  to_vec s hn i.succ ≠ to_vec s hn 0
-| s 0       hn i := fin_zero_elim i
-| s (n + 1) hn i :=
-by { rw to_vec_succ, exact ne_of_mem_erase (to_vec_mem _ _ _) }
-
-lemma to_vec_injective {α : Type*} [decidable_eq α] :
-  ∀ (s : finset α) {n : ℕ} (hn : n ≤ card s),
-  function.injective (to_vec s hn) :=
-begin
-  intros s n hn a b,
-  induction n with n ih generalizing s hn,
-  { rcases a with ⟨_, ⟨⟩⟩ },
-  { refine fin.cases _ (λ a, _) a; refine fin.cases _ (λ b, _) b; intro h,
-    { refl },
-    { have := (to_vec_succ_ne_to_vec_zero s hn b).symm,
-      contradiction },
-    { have := to_vec_succ_ne_to_vec_zero s hn a,
-      contradiction },
-    { rw [to_vec_succ, to_vec_succ] at h,
-      rw ih (s.erase _) _ h } }
-end
-
-end finset
 
 section euclidean_domain
 
@@ -226,131 +123,6 @@ begin
   { apply_instance }
 end
 
-section admissible
-
-/-- An `admissible_absolute_value R` is a Euclidean absolute value `R → ℤ`,
-such that a large enough set of elements in `R^n` will contain a pair of elements
-whose remainders are pointwise close together. -/
-structure admissible_absolute_value (R : Type*) [euclidean_domain R]
-  extends euclidean_absolute_value R ℤ :=
-(card : ℝ → ℕ)
-(exists_partition' : ∀ (n : ℕ) {ε : ℝ} (hε : 0 < ε) (b : R) (hb : b ≠ 0) (A : fin n → R),
-                     ∃ (t : fin n → fin (card ε)),
-                     ∀ i₀ i₁, t i₀ = t i₁ → (to_fun (A i₁ % b - A i₀ % b) : ℝ) < to_fun b • ε)
-/-
-(exists_approx' : ∀ (ε : ℝ) (hε : 0 < ε) (n : ℕ) (b : R) (A : fin (card ε n).succ → fin n → R),
-  ∃ i₀ i₁, (i₀ ≠ i₁) ∧ ∀ j, (to_fun (A i₁ j % b - A i₀ j % b) : ℝ) < to_fun b • ε)
--/
-
-variables (abs : admissible_absolute_value R)
-
-namespace admissible_absolute_value
-
-instance : has_coe_to_fun (admissible_absolute_value R) :=
-{ F := _,
-  coe := λ abs, abs.to_fun }
-
-instance : has_coe (admissible_absolute_value R) (euclidean_absolute_value R ℤ) :=
-⟨λ abs, abs.to_euclidean_absolute_value⟩
-
-instance : has_coe (admissible_absolute_value R) (absolute_value R ℤ) :=
-⟨λ abs, abs.to_euclidean_absolute_value.to_absolute_value⟩
-
-lemma nonneg (x : R) : 0 ≤ abs x := abs.to_euclidean_absolute_value.nonneg x
-
-@[simp]
-lemma eq_zero_iff {x : R} : abs x = 0 ↔ x = 0 :=
-abs.to_euclidean_absolute_value.map_eq_zero_iff' x
-
-@[simp]
-lemma map_zero : abs 0 = 0 :=
-abs.to_euclidean_absolute_value.map_zero
-
-lemma map_ne_zero {x : R} : abs x ≠ 0 ↔ x ≠ 0 :=
-abs.to_euclidean_absolute_value.map_ne_zero
-
-lemma pos {x : R} (hx : x ≠ 0) : 0 < abs x :=
-abs.to_euclidean_absolute_value.pos hx
-
-@[simp]
-lemma map_mul (x y : R) : abs (x * y) = abs x * abs y :=
-abs.to_euclidean_absolute_value.map_mul x y
-
-lemma le_add (x y : R) : abs (x + y) ≤ abs x + abs y :=
-abs.to_euclidean_absolute_value.le_add x y
-
-@[simp]
-lemma map_lt_map_iff {x y : R} : abs x < abs y ↔ euclidean_domain.r x y :=
-abs.to_euclidean_absolute_value.map_lt_map_iff
-
-lemma mod_lt (a : R) {b : R} (hb : b ≠ 0) :
-  abs (a % b) < abs b :=
-abs.to_euclidean_absolute_value.sub_mod_lt a hb
-
-@[simp]
-lemma map_sub_eq_zero_iff (a b : R) :
-  abs (a - b) = 0 ↔ a = b :=
-abs.to_euclidean_absolute_value.map_sub_eq_zero_iff a b
-
-/-- We can partition a finite family into `card ε` sets, such that the remainders
-in each set are close together. -/
-lemma exists_partition (n : ℕ) {ε : ℝ} (hε : 0 < ε) {b : R} (hb : b ≠ 0) (A : fin n → R) :
-  ∃ (t : fin n → fin (abs.card ε)),
-  ∀ i₀ i₁, t i₀ = t i₁ → (abs (A i₁ % b - A i₀ % b) : ℝ) < abs b • ε :=
-abs.exists_partition' n hε b hb A
-
-/-- Any large enough family of vectors in `R^n` has a pair of elements
-whose remainders are close together, pointwise. -/
-lemma exists_approx (n : ℕ) :
-  ∀ {ε : ℝ} (hε : 0 < ε) {b : R} (hb : b ≠ 0) (A : fin (abs.card ε ^ n).succ → (fin n → R)),
-  ∃ (i₀ i₁), (i₀ ≠ i₁) ∧ ∀ k, (abs (A i₁ k % b - A i₀ k % b) : ℝ) < abs b • ε :=
-begin
-  haveI := classical.dec_eq R,
-  induction n with n ih,
-  { intros ε hε b hb A,
-    refine ⟨0, 1, _, _⟩,
-    { simp },
-    rintros ⟨i, ⟨⟩⟩ },
-  intros ε hε b hb A,
-  by_cases hA : ∃ i₀ i₁, i₀ ≠ i₁ ∧ A i₀ = A i₁,
-  { obtain ⟨i₀, i₁, h, eq⟩ := hA,
-    refine ⟨i₀, i₁, h, λ k, _⟩,
-    rw [eq, sub_self, abs.map_zero, algebra.smul_def, int.cast_zero, ring_hom.eq_int_cast],
-    exact mul_pos (int.cast_pos.mpr (abs.pos hb)) hε },
-  have A_inj : function.injective A,
-  { simp only [not_exists, not_and, ne.def, not_imp_not] at hA,
-    exact λ x y h, hA x y h },
-  set M := abs.card ε with hM,
-  -- By the "nicer" pigeonhole principle, we can find a collection `s`
-  -- of more than `M^n` elements where the first components lie close together:
-  obtain ⟨s, s_inj, hs⟩ : ∃ s : fin (M ^ n).succ → fin (M ^ n.succ).succ,
-    function.injective s ∧
-    ∀ i₀ i₁, (abs (A (s i₁) 0 % b - A (s i₀) 0 % b) : ℝ) < abs b • ε,
-  { -- We can partition the `A`s into `m` subsets where
-    -- the first components lie close together:
-    obtain ⟨t, ht⟩ : ∃ (t : fin (M ^ n.succ).succ → fin M),
-      ∀ i₀ i₁, t i₀ = t i₁ → (abs (A i₁ 0 % b - A i₀ 0 % b) : ℝ) < abs b • ε :=
-      abs.exists_partition _ hε hb (λ x, A x 0),
-    -- Since the `M` subsets contain more than `M * M^n` elements total,
-    -- there must be a subset that contains more than `M^n` elements.
-    obtain ⟨s, hs⟩ := @fintype.exists_lt_card_fiber_of_mul_lt_card _ _ _ _ _ t (M ^ n)
-      (by simpa only [fintype.card_fin, pow_succ] using nat.lt_succ_self (M ^ n.succ) ),
-    refine ⟨finset.to_vec _ hs, finset.to_vec_injective _ hs, λ i₀ i₁, ht _ _ _⟩,
-    have := finset.to_vec_mem (finset.univ.filter (λ x, t x = s)) hs,
-    obtain ⟨_, h₀⟩ := finset.mem_filter.mp (this i₀),
-    obtain ⟨_, h₁⟩ := finset.mem_filter.mp (this i₁),
-    exact h₀.trans h₁.symm },
-  -- Since `s` is large enough, there are two elements of `A ∘ s`
-  -- where the second components lie close together.
-  obtain ⟨k₀, k₁, hk, h⟩ := ih hε hb (λ x, fin.tail (A (s x))),
-  refine ⟨s k₀, s k₁, λ h, hk (s_inj h), λ i, fin.cases _ (λ i, _) i⟩,
-  { exact hs k₀ k₁ },
-  { exact h i },
-end
-
-end admissible_absolute_value
-
-end admissible
 
 section
 
@@ -659,7 +431,11 @@ end
 
 include abs
 
-/-- The main theorem: the class group of an integral closure is finite. -/
+/-- The main theorem: the class group of an integral closure is finite.
+
+Requires you to provide an "admissible absolute value", see `admissible_absolute_value.lean`
+for a few constructions of those.
+-/
 noncomputable def class_group.finite_of_admissible [infinite R]
   [finite_dimensional f.codomain L] [is_separable f.codomain L]
   [is_dedekind_domain (integral_closure R L)] :
@@ -674,75 +450,3 @@ by { haveI := classical.dec_eq (class_group (integral_closure.fraction_map_of_fi
      exact prod_finset_approx_ne_zero f abs }
 
 end euclidean_domain
-
-namespace int
-
-/-- We can partition a finite family of integers between `0` and `b` into `partition_card ε` sets,
-such that the elements of each set are within `b * ε` of each other.  -/
-noncomputable def partition_card (ε : ℝ) : ℕ := nat_ceil (1 / ε)
-
-lemma le_partition_card (ε : ℝ) : 1 / ε ≤ partition_card ε :=
-le_nat_ceil _
-
-/-- We can partition a finite family into `partition_card ε` sets, such that the remainders
-in each set are close together. -/
-lemma exists_partition (n : ℕ) {ε : ℝ} (hε : 0 < ε) {b : ℤ} (hb : b ≠ 0) (A : fin n → ℤ) :
-  ∃ (t : fin n → fin (partition_card ε)),
-  ∀ i₀ i₁, t i₀ = t i₁ → ↑(abs (A i₁ % b - A i₀ % b)) < abs b • ε :=
-begin
-  have hb' : (0 : ℝ) < ↑(abs b) := int.cast_pos.mpr (abs_pos.mpr hb),
-  have hbε : 0 < abs b • ε,
-  { rw algebra.smul_def,
-    exact mul_pos hb' hε },
-  have hfloor : ∀ i, 0 ≤ floor ((A i % b : ℤ) / (abs b • ε) : ℝ),
-  { intro i,
-    exact floor_nonneg.mpr (div_nonneg (cast_nonneg.mpr (mod_nonneg _ hb)) hbε.le) },
-  refine ⟨λ i, ⟨nat_abs (floor ((A i % b : ℤ) / (abs b • ε) : ℝ)), _⟩, _⟩,
-  { rw [← coe_nat_lt, nat_abs_of_nonneg (hfloor i), floor_lt],
-    apply lt_of_lt_of_le _ (le_partition_card _),
-    rw [algebra.smul_def, ring_hom.eq_int_cast, ← div_div_eq_div_mul, div_lt_div_right hε,
-        div_lt_iff hb', one_mul, cast_lt],
-    exact mod_lt _ hb },
-  intros i₀ i₁ hi,
-  have hi : (⌊↑(A i₀ % b) / abs b • ε⌋.nat_abs : ℤ) = ⌊↑(A i₁ % b) / abs b • ε⌋.nat_abs :=
-    congr_arg (coe : ℕ → ℤ) (subtype.mk_eq_mk.mp hi),
-  rw [nat_abs_of_nonneg (hfloor i₀), nat_abs_of_nonneg (hfloor i₁)] at hi,
-  have hi := abs_sub_lt_one_of_floor_eq_floor hi,
-  rw [abs_sub, ← sub_div, abs_div, abs_of_nonneg hbε.le, div_lt_iff hbε, one_mul] at hi,
-  rwa [int.cast_abs, int.cast_sub]
-end
-
-/-- `abs : ℤ → ℤ` is an admissible absolute value -/
-noncomputable def admissible_abs : admissible_absolute_value ℤ :=
-{ map_lt_map_iff' := λ x y, show abs x < abs y ↔ nat_abs x < nat_abs y,
-    by rw [abs_eq_nat_abs, abs_eq_nat_abs, coe_nat_lt],
-  card := partition_card,
-  exists_partition' := λ n ε hε b hb, exists_partition n hε hb,
-  .. absolute_value.abs }
-
-end int
-
-namespace polynomial
-
-variables {K : Type*} [field K] [decidable_eq K] {c : ℤ} (hc : 1 < c)
-
-/-- If `A` is a family of enough elements, there is a pair of elements in `A`
-(not necessarily distinct), such that their remainders are close together. -/
-lemma exists_approx {ε : ℝ} (hε : 0 < ε) (b : R) (A : fin (abs.card ε).succ → R) :
-  ∃ i₀ i₁, i₀ ≠ i₁ ∧ (abs (A i₁ % b - A i₀ % b) : ℝ) < abs b • ε :=
-abs.exists_approx' _ hε b A
-
-include hc
-
-#check polynomial.degree_lt_wf
-
-noncomputable def admissible_degree : admissible_absolute_value (polynomial K) :=
-{ map_lt_map_iff' := λ p q, begin
-    by_cases hp : p = 0; by_cases hq : q = 0,
-    { simp [hp, hq] },
-  end,
-  card := _,
-  exists_approx' := _,
-  .. absolute_value.pow_degree hc }
-
-end polynomial

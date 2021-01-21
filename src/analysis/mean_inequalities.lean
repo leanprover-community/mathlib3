@@ -964,6 +964,74 @@ begin
   exact lintegral_Lp_add_le_aux hpq hf hf_top hg hg_top h0 htop,
 end
 
+lemma rpow_add_rpow_le_add {p : ℝ} (a b : ennreal) (hp1 : 1 ≤ p) :
+  (a ^ p + b ^ p) ^ (1/p) ≤ a + b :=
+begin
+  let f : bool → ennreal := λ x, ite (x = tt) a 0,
+  let g : bool → ennreal := λ x, ite (x = ff) b 0,
+  let μ := @measure.count bool ⊤,
+  have h_left : (a ^ p + b ^ p) ^ (1 / p) = (∫⁻ a, (f + g) a ^ p ∂μ) ^ (1 / p),
+  { simp_rw lintegral_count,
+    have hfg_sum : (∑' x, (f + g) x ^ p) = a^p + b^p,
+    { rw [tsum_fintype, fintype.sum_bool],
+      congr;
+      { rw pi.add_apply,
+        simp only [f, g],
+        simp, }, },
+    rw hfg_sum, },
+  have h_right : a + b = (∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p),
+  { simp_rw lintegral_count,
+    have hf_sum : (∑' x, f x ^ p) = a^p,
+    { rw [tsum_fintype, fintype.sum_bool],
+      change ite (tt = tt) a 0 ^ p + ite (ff = tt) a 0 ^ p = a ^ p,
+      simp [ennreal.zero_rpow_of_pos (lt_of_lt_of_le zero_lt_one hp1)], },
+    have hg_sum : (∑' x, g x ^ p) = b^p,
+    { rw [tsum_fintype, fintype.sum_bool],
+      change ite (tt = ff) b 0 ^ p + ite (ff = ff) b 0 ^ p = b ^ p,
+      simp [ennreal.zero_rpow_of_pos (lt_of_lt_of_le zero_lt_one hp1)], },
+    rw [hf_sum, hg_sum, one_div, ←ennreal.rpow_mul, ←ennreal.rpow_mul,
+      _root_.mul_inv_cancel (ne_of_lt (lt_of_lt_of_le zero_lt_one hp1)).symm, ennreal.rpow_one,
+      ennreal.rpow_one], },
+  rw [h_left, h_right],
+  have hf : measurable f, from λ s hs, measurable_space.is_measurable_top,
+  have hg : measurable g, from λ s hs, measurable_space.is_measurable_top,
+  exact ennreal.lintegral_Lp_add_le hf.ae_measurable hg.ae_measurable hp1,
+end
+
+lemma add_rpow_le_rpow_add {p : ℝ} (a b : ennreal) (hp1 : 1 ≤ p) :
+  a ^ p + b ^ p ≤ (a + b) ^ p :=
+begin
+  have h := rpow_add_rpow_le_add a b hp1,
+  rw [←ennreal.rpow_one (a ^ p + b ^ p),
+    ←@_root_.inv_mul_cancel _ _ p (lt_of_lt_of_le zero_lt_one hp1).ne.symm, ennreal.rpow_mul,
+    ennreal.rpow_le_rpow_iff (lt_of_lt_of_le zero_lt_one hp1)],
+  simpa using h,
+end
+
+theorem rpow_add_rpow_le {p q : ℝ} (a b : ennreal) (hp_pos : 0 < p) (hpq : p ≤ q) :
+  (a ^ q + b ^ q) ^ (1/q) ≤ (a ^ p + b ^ p) ^ (1/p) :=
+begin
+  have h_rpow : ∀ a : ennreal, a^q = (a^p)^(q/p),
+    from λ a, by rw [←ennreal.rpow_mul, div_eq_inv_mul, ←mul_assoc,
+      _root_.mul_inv_cancel hp_pos.ne.symm, one_mul],
+  nth_rewrite 0 (h_rpow a),
+  nth_rewrite 0 (h_rpow b),
+  have h_rpow_add_rpow_le_add : ((a^p)^(q/p) + (b^p)^(q/p)) ^ (1/(q/p)) ≤ a^p + b^p,
+  { refine rpow_add_rpow_le_add (a^p) (b^p) _,
+    rwa one_le_div hp_pos, },
+  rw [ennreal.le_rpow_one_div_iff hp_pos, ←ennreal.rpow_mul, mul_comm, mul_one_div],
+  rwa one_div_div at h_rpow_add_rpow_le_add,
+end
+
+lemma rpow_add_le_add_rpow {p : ℝ} (a b : ennreal) (hp_pos : 0 < p) (hp1 : p ≤ 1) :
+  (a + b) ^ p ≤ a ^ p + b ^ p :=
+begin
+  have h := rpow_add_rpow_le a b hp_pos hp1,
+  rw one_div_one at h,
+  repeat { rw ennreal.rpow_one at h },
+  exact (ennreal.le_rpow_one_div_iff hp_pos).mp h,
+end
+
 end ennreal
 
 /-- Hölder's inequality for functions `α → ℝ≥0`. The integral of the product of two functions

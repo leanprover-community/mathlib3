@@ -64,11 +64,9 @@ end monad
 namespace comonad
 
 /--
-Gven any adjunction `L ⊣ R`, there is a comparison functor `category_theory.monad.comparison R`
-sending objects `Y : D` to Eilenberg-Moore algebras for `L ⋙ R` with underlying object `R.obj X`.
-
-We later show that this is full when `R` is full, faithful when `R` is faithful,
-and essentially surjective when `R` is reflective.
+Gven any adjunction `L ⊣ R`, there is a comparison functor `category_theory.comonad.comparison L`
+sending objects `X : C` to Eilenberg-Moore coalgebras for `L ⋙ R` with underlying object 
+`L.obj X`.
 -/
 @[simps]
 def comparison [is_left_adjoint L] : C ⥤ coalgebra (right_adjoint L ⋙ L) :=
@@ -81,7 +79,7 @@ def comparison [is_left_adjoint L] : C ⥤ coalgebra (right_adjoint L ⋙ L) :=
     h' := by { dsimp, rw ← L.map_comp, simp } } }
 
 /--
-The underlying object of `(monad.comparison R).obj X` is just `R.obj X`.
+The underlying object of `(comonad.comparison L).obj X` is just `L.obj X`.
 -/
 @[simps]
 def comparison_forget [is_left_adjoint L] : comparison L ⋙ forget (right_adjoint L ⋙ L) ≅ L :=

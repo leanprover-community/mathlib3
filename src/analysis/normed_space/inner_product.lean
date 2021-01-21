@@ -2490,15 +2490,12 @@ begin
       exact inner_finsupp_orthonormal_eq_zero hu hxv' hl }
 end
 
-@[simp] lemma baz (K : submodule 𝕜 E) : (K : set E) = ⊤ ↔ K = ⊤ :=
-by simp [submodule.eq_top_iff', set.eq_univ_iff_forall]
-
 /-- An orthonormal set in an `inner_product_space` is maximal, if and only if the closure of its
 span is the whole space. -/
 lemma maximal_orthonormal_iff_dense_span (hv : orthonormal 𝕜 (coe : v → E)) :
   (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ closure (span 𝕜 v : set E) = ⊤ :=
 by rw [maximal_orthonormal_iff_orthogonal_complement_eq_bot hv, ← submodule.orthogonal_eq_top_iff,
-  ← (span 𝕜 v).orthogonal_orthogonal_eq_closure, baz]
+  ← (span 𝕜 v).orthogonal_orthogonal_eq_closure, submodule.coe_eq_top_iff_eq_top]
 
 /-- Any orthonormal subset can be extended to an orthonormal set whose span is dense. -/
 lemma exists_subset_is_orthonormal_dense_span (hv : orthonormal 𝕜 (coe : v → E)) :

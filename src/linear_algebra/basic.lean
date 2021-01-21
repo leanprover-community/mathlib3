@@ -620,6 +620,9 @@ instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
 
+@[simp] lemma coe_eq_top_iff_eq_top (K : submodule 𝕜 E) : (K : set E) = ⊤ ↔ K = ⊤ :=
+by simp [submodule.eq_top_iff', set.eq_univ_iff_forall]
+
 lemma bot_ne_top [nontrivial M] : (⊥ : submodule R M) ≠ ⊤ :=
 λ h, let ⟨a, ha⟩ := exists_ne (0 : M) in ha $ (mem_bot R).1 $ (eq_top_iff.1 h) trivial
 

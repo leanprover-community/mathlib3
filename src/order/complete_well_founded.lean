@@ -152,7 +152,7 @@ lemma is_Sup_finite_compact_iff_all_elements_compact :
 begin
   split,
   { intros h k s hs,
-    rcases (h s) with ⟨t, ⟨hts, htsup⟩⟩,
+    obtain ⟨t, ⟨hts, htsup⟩⟩ := h s,
     use [t, hts],
     rwa ←htsup, },
   { intros h s,

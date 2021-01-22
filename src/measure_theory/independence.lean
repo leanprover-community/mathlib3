@@ -11,19 +11,19 @@ import data.finset.intervals
 # Independence of sets of sets and measure spaces (σ-algebras)
 
 * A family of sets of sets `π : ι → set (set α)` is independent with respect to measure `μ` if for
-any finite set of indices `s = {i_1, ..., i_n}`, for any sets
-`f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. It will be used
-for families of pi_systems.
+  any finite set of indices `s = {i_1, ..., i_n}`, for any sets
+  `f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. It will be used
+  for families of pi_systems.
 * A family of measurable spaces (or σ-algebras) is independent if the family of sets of measurable
-sets they define is independent. `m : ι → measurable_space α` is independent with
-respect to measure `μ` if for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
-`f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `.
+  sets they define is independent. `m : ι → measurable_space α` is independent with
+  respect to measure `μ` if for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
+  `f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `.
 * Independence of sets (or events in probabilistic parlance) is defined as independence of the
-measurable spaces they generate: a set `s` generates the measurable space with measurable sets
-`∅, s, sᶜ, univ`.
+  measurable spaces they generate: a set `s` generates the measurable space with measurable sets
+  `∅, s, sᶜ, univ`.
 * Independence of functions (or random variables) is also defined as independence of the measurable
-spaces they generate : a function `f` for which we have a measurable space `m` on the codomain
-generates `measurable_space.comap f m`.
+  spaces they generate : a function `f` for which we have a measurable space `m` on the codomain
+  generates `measurable_space.comap f m`.
 
 ## Main statements
 

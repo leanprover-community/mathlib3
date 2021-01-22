@@ -600,7 +600,8 @@ begin
   { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi] }
 end
 
-lemma add_rpow_le_one_of_add_le_one {p : ℝ} (a b : ennreal) (hab : a + b ≤ 1) (hp1 : 1 ≤ p) :
+private lemma add_rpow_le_one_of_add_le_one {p : ℝ} (a b : ennreal) (hab : a + b ≤ 1)
+  (hp1 : 1 ≤ p) :
   a ^ p + b ^ p ≤ 1 :=
 begin
   have h_le_one : ∀ x : ennreal, x ≤ 1 → x ^ p ≤ x, from λ x hx, rpow_le_self_of_le_one hx hp1,

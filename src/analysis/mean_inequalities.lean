@@ -964,48 +964,71 @@ begin
   exact lintegral_Lp_add_le_aux hpq hf hf_top hg hg_top h0 htop,
 end
 
-lemma rpow_add_rpow_le_add {p : ℝ} (a b : ennreal) (hp1 : 1 ≤ p) :
-  (a ^ p + b ^ p) ^ (1/p) ≤ a + b :=
+lemma add_rpow_le_one_of_add_le_one {p : ℝ} (a b : ennreal) (hab : a + b ≤ 1) (hp1 : 1 ≤ p) :
+  a ^ p + b ^ p ≤ 1 :=
 begin
-  let f : bool → ennreal := λ x, ite (x = tt) a 0,
-  let g : bool → ennreal := λ x, ite (x = ff) b 0,
-  let μ := @measure.count bool ⊤,
-  have h_left : (a ^ p + b ^ p) ^ (1 / p) = (∫⁻ a, (f + g) a ^ p ∂μ) ^ (1 / p),
-  { simp_rw lintegral_count,
-    have hfg_sum : (∑' x, (f + g) x ^ p) = a^p + b^p,
-    { rw [tsum_fintype, fintype.sum_bool],
-      congr;
-      { rw pi.add_apply,
-        simp only [f, g],
-        simp, }, },
-    rw hfg_sum, },
-  have h_right : a + b = (∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p),
-  { simp_rw lintegral_count,
-    have hf_sum : (∑' x, f x ^ p) = a^p,
-    { rw [tsum_fintype, fintype.sum_bool],
-      change ite (tt = tt) a 0 ^ p + ite (ff = tt) a 0 ^ p = a ^ p,
-      simp [ennreal.zero_rpow_of_pos (lt_of_lt_of_le zero_lt_one hp1)], },
-    have hg_sum : (∑' x, g x ^ p) = b^p,
-    { rw [tsum_fintype, fintype.sum_bool],
-      change ite (tt = ff) b 0 ^ p + ite (ff = ff) b 0 ^ p = b ^ p,
-      simp [ennreal.zero_rpow_of_pos (lt_of_lt_of_le zero_lt_one hp1)], },
-    rw [hf_sum, hg_sum, one_div, ←ennreal.rpow_mul, ←ennreal.rpow_mul,
-      _root_.mul_inv_cancel (ne_of_lt (lt_of_lt_of_le zero_lt_one hp1)).symm, ennreal.rpow_one,
-      ennreal.rpow_one], },
-  rw [h_left, h_right],
-  have hf : measurable f, from λ s hs, measurable_space.is_measurable_top,
-  have hg : measurable g, from λ s hs, measurable_space.is_measurable_top,
-  exact ennreal.lintegral_Lp_add_le hf.ae_measurable hg.ae_measurable hp1,
+  have h_le_one : ∀ x : ennreal, x ≤ 1 → x ^ p ≤ x,
+  { intros x hx,
+    nth_rewrite 1 ←ennreal.rpow_one x,
+    exact ennreal.rpow_le_rpow_of_exponent_ge hx hp1, },
+  have ha : a ≤ 1,
+  { calc a ≤ a + b : self_le_add_right a b
+      ...  ≤ 1     : hab, },
+  have hb : b ≤ 1,
+  { calc b ≤ a + b : self_le_add_left b a
+      ...  ≤ 1     : hab, },
+  calc a ^ p + b ^ p ≤ a + b     : add_le_add (h_le_one a ha) (h_le_one b hb)
+                ...  ≤ 1         : hab,
 end
 
 lemma add_rpow_le_rpow_add {p : ℝ} (a b : ennreal) (hp1 : 1 ≤ p) :
   a ^ p + b ^ p ≤ (a + b) ^ p :=
 begin
-  have h := rpow_add_rpow_le_add a b hp1,
-  rw [←ennreal.rpow_one (a ^ p + b ^ p),
-    ←@_root_.inv_mul_cancel _ _ p (lt_of_lt_of_le zero_lt_one hp1).ne.symm, ennreal.rpow_mul,
-    ennreal.rpow_le_rpow_iff (lt_of_lt_of_le zero_lt_one hp1)],
-  simpa using h,
+  by_cases h_top : a + b = ⊤,
+  { rw ←@ennreal.rpow_eq_top_iff_of_pos (a + b) p (lt_of_lt_of_le zero_lt_one hp1) at h_top,
+    rw h_top,
+    exact le_top, },
+  have ha_top : a ≠ ⊤,
+  { by_contra ha,
+    push_neg at ha,
+    rw [ha, top_add] at h_top,
+    exact h_top rfl, },
+  have hb_top : b ≠ ⊤,
+  { by_contra hb,
+    push_neg at hb,
+    rw [hb, add_top] at h_top,
+    exact h_top rfl, },
+  by_cases h_zero : a + b = 0,
+  { have ha : a = 0,
+      from le_antisymm (calc a ≤ a+b : self_le_add_right a b ... = 0 : h_zero) (zero_le _),
+    have hb : b = 0,
+      from le_antisymm (calc b ≤ a+b : self_le_add_left b a ... = 0 : h_zero) (zero_le _),
+    simp [ha, hb, ennreal.zero_rpow_of_pos (lt_of_lt_of_le zero_lt_one hp1)], },
+  have h_nonzero : ¬(a = 0 ∧ b = 0),
+  { by_contra,
+    rw [h.1, h.2, zero_add] at h_zero,
+    exact h_zero rfl, },
+  have h_add : a/(a+b) + b/(a+b) = 1, by rw [div_add_div_same, div_self h_zero h_top],
+  have h := add_rpow_le_one_of_add_le_one (a/(a+b)) (b/(a+b)) h_add.le hp1,
+  rw div_rpow_of_nonneg a (a+b) (zero_le_one.trans hp1) at h,
+  rw div_rpow_of_nonneg b (a+b) (zero_le_one.trans hp1) at h,
+  have h_mul : (a + b)^p * (a ^ p / (a + b) ^ p + b ^ p / (a + b) ^ p) ≤ (a + b)^p,
+  { nth_rewrite 3 ←mul_one ((a + b)^p),
+    refine (mul_le_mul_left _ _).mpr h,
+    { simp [ha_top, hb_top, lt_of_lt_of_le zero_lt_one hp1, h_nonzero], },
+    { simp [ha_top, hb_top, lt_of_lt_of_le zero_lt_one hp1, h_nonzero], }, },
+  rwa [div_eq_mul_inv, div_eq_mul_inv, mul_add, mul_comm (a^p), mul_comm (b^p), ←mul_assoc,
+    ←mul_assoc, mul_inv_cancel, one_mul, one_mul] at h_mul,
+  { simp [ha_top, hb_top, lt_of_lt_of_le zero_lt_one hp1, h_nonzero], },
+  { simp [ha_top, hb_top, lt_of_lt_of_le zero_lt_one hp1, h_nonzero], },
+end
+
+lemma rpow_add_rpow_le_add {p : ℝ} (a b : ennreal) (hp1 : 1 ≤ p) :
+  (a ^ p + b ^ p) ^ (1/p) ≤ a + b :=
+begin
+  rw ←@ennreal.le_rpow_one_div_iff _ _ (1/p) (by simp [lt_of_lt_of_le zero_lt_one hp1]),
+  rw one_div_one_div,
+  exact add_rpow_le_rpow_add _ _ hp1,
 end
 
 theorem rpow_add_rpow_le {p q : ℝ} (a b : ennreal) (hp_pos : 0 < p) (hpq : p ≤ q) :

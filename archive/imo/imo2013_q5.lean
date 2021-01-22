@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 David Renshaw. All rights reserved.
+Copyright (c) 2021 David Renshaw. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Renshaw
 -/
@@ -36,9 +36,9 @@ begin
   by_contra hxy,
   push_neg at hxy,
   have hxmy : 0 < x - y := sub_pos.mpr hxy,
-  have hn: (∀n : ℕ, 0 < n → (x - y) * (n:ℝ) ≤ x^n - y^n),
+  have hn : ∀n : ℕ, 0 < n → (x - y) * (n:ℝ) ≤ x^n - y^n,
   { intros n hn,
-    have hterm : (∀i : ℕ, i ∈ finset.range n → 1 ≤ x^i * y^(n - 1 - i)),
+    have hterm : ∀i : ℕ, i ∈ finset.range n → 1 ≤ x^i * y^(n - 1 - i),
     { intros i hi,
       have hx' : 1 ≤ x ^ i := one_le_pow_of_one_le (le_of_lt hx) i,
       have hy' : 1 ≤ y ^ (n - 1 - i) := one_le_pow_of_one_le (le_of_lt hy) (n - 1 - i),
@@ -87,11 +87,11 @@ begin
       calc y' < (x * 2) / 2 : hh
           ... = x : by field_simp },
     have h1_lt_y' : 1 < y',
-    { have hh': 1 * 2 / 2 < (x + 1) / 2 := by linarith,
+    { have hh' : 1 * 2 / 2 < (x + 1) / 2 := by linarith,
       calc 1 = 1 * 2 / 2 : by field_simp
          ... < y' : hh' },
     have h_y_lt_y' : y < y' := lt_of_le_of_lt hy'' h1_lt_y',
-    have hh: (∀ n, 0 < n → x^n - 1 < y'^n),
+    have hh : ∀ n, 0 < n → x^n - 1 < y'^n,
     { intros n hn,
       calc x^n - 1 < y^n : h n hn
               ...  ≤ y'^n : pow_le_pow_of_le_left (le_of_lt hy) (le_of_lt h_y_lt_y') n },
@@ -146,9 +146,8 @@ begin
              ... ≤ f ⌊x⌋.nat_abs  : H4 (⌊x⌋).nat_abs h_nab_abs_floor_pos
              ... = f ⌊x⌋          : by rw hfe',
 
-  have ho: (⌊x⌋:ℚ) = x ∨ (⌊x⌋:ℚ) < x := eq_or_lt_of_le (floor_le x),
-  cases ho,
-  { rwa ho at hx0 },
+  obtain (h_eq : (⌊x⌋:ℚ) = x) | (h_lt :(⌊x⌋:ℚ) < x) := eq_or_lt_of_le (floor_le x),
+  { rwa h_eq at hx0 },
 
   have h0fx := calc (0:ℚ) < 1 : zero_lt_one
                       ... = (int.has_one.one : ℚ) : by simp only [int.cast_one]
@@ -156,8 +155,8 @@ begin
   calc (((x - 1):ℚ):ℝ) < f ⌊x⌋ : hx0
                ... < f (x - ⌊x⌋) + f ⌊x⌋
                       : lt_add_of_pos_left (f ↑⌊x⌋)
-                                           (pos_on_pos_rats (sub_pos.mpr ho) H1 H4)
-               ... ≤ f ((x - ⌊x⌋) + ⌊x⌋) : H2 (x - ⌊x⌋) ⌊x⌋ (sub_pos.mpr ho) h0fx
+                                           (pos_on_pos_rats (sub_pos.mpr h_lt) H1 H4)
+               ... ≤ f ((x - ⌊x⌋) + ⌊x⌋) : H2 (x - ⌊x⌋) ⌊x⌋ (sub_pos.mpr h_lt) h0fx
                ... = f x : by simp only [sub_add_cancel]
 end
 
@@ -181,7 +180,7 @@ end
 lemma fixed_point_of_pos_nat_pow {f : ℚ → ℝ} (n : ℕ) (hn : 0 < n)
   (H1 : ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
   (H4 : ∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n)
-  (H5 : ∀x:ℚ, 1 < x → (x:ℝ) ≤ f x)
+  (H5 : ∀ x : ℚ, 1 < x → (x:ℝ) ≤ f x)
   (a : ℚ) (ha1 : 1 < a) (hae : f a = a) :
   f (a^n) = a^n :=
 begin
@@ -199,12 +198,12 @@ lemma fixed_point_of_gt_1 {f : ℚ → ℝ} {x : ℚ} (hx : 1 < x)
   (H1 : ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
   (H2 : ∀ x y, 0 < x → 0 < y → f x + f y ≤ f (x + y))
   (H4 : ∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n)
-  (H5 : ∀x:ℚ, 1 < x → (x:ℝ) ≤ f x)
+  (H5 : ∀ x : ℚ, 1 < x → (x:ℝ) ≤ f x)
   (a : ℚ) (ha1 : 1 < a) (hae : f a = a) :
   f x = x :=
 begin
   -- choose n such that 1 + x < a^n.
-  have hbound: (∀m : ℕ, 1 + (m:ℚ) * (a - 1) ≤ a^m),
+  have hbound: ∀ m : ℕ, 1 + (m:ℚ) * (a - 1) ≤ a^m,
   { intros m,
     have ha: -1 ≤ a := le_of_lt (lt_trans (lt_trans neg_one_lt_zero zero_lt_one) ha1),
     have := one_add_sub_mul_le_pow ha m,
@@ -254,7 +253,7 @@ theorem imo2013_q5
   ∀ x, 0 < x → f x = x :=
 begin
   obtain ⟨a, ha1, hae⟩ := H_fixed_point,
-  have H3 : ∀x: ℚ, (0 < x → ∀ n: ℕ, 0 < n → ↑n * f x ≤ f (n * x)),
+  have H3 : ∀x : ℚ, 0 < x → ∀ n: ℕ, 0 < n → ↑n * f x ≤ f (n * x),
   { intros x hx n hn,
     cases n,
     { exfalso, exact nat.lt_asymm hn hn },
@@ -269,7 +268,7 @@ begin
       ... ≤ f ((↑pn + 1) * x + x)          : H2 _ _ (mul_pos (nat.cast_add_one_pos pn) hx) hx
       ... = f ((↑pn + 1) * x + 1 * x)      : by rw one_mul
       ... = f ((↑pn + 1 + 1) * x)          : congr_arg f (add_mul (↑pn + 1) 1 x).symm },
-  have H4 : (∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n),
+  have H4 : ∀ n : ℕ, 0 < n → (n:ℝ) ≤ f n,
   { intros n hn,
     have hf1 : 1 ≤ f 1,
     { have a_pos : (0:ℝ) < a := rat.cast_pos.mpr (lt_trans zero_lt_one ha1),
@@ -285,9 +284,9 @@ begin
             ... ≤ f (n * 1)    : H3 1 zero_lt_one n hn
             ... = f n          : by rw mul_one },
 
-  have H5 : (∀x:ℚ, 1 < x → (x:ℝ) ≤ f x),
+  have H5 : ∀x : ℚ, 1 < x → (x:ℝ) ≤ f x,
   { intros x hx,
-    have hxnm1 : (∀ n : ℕ, 0 < n → (x:ℝ)^n - 1 < (f x)^n),
+    have hxnm1 : ∀ n : ℕ, 0 < n → (x:ℝ)^n - 1 < (f x)^n,
     { intros n hn,
       calc (x:ℝ)^n - 1
            = (((x^n - 1):ℚ):ℝ) : by norm_cast
@@ -297,9 +296,9 @@ begin
     have hxp : 0 < x := lt_trans zero_lt_one hx,
     exact le_of_all_pow_lt_succ' x (f x) hx' (pos_on_pos_rats hxp H1 H4) hxnm1 },
 
-  have h_f_commutes_with_pos_nat_mul : (∀n:ℕ, 0 < n → ∀x:ℚ, 0 < x → f (n * x) = n * f x),
+  have h_f_commutes_with_pos_nat_mul : ∀n : ℕ, 0 < n → ∀x : ℚ, 0 < x → f (n * x) = n * f x,
   { intros n hn x hx,
-    have h2: f (n * x) ≤ n * f x,
+    have h2 : f (n * x) ≤ n * f x,
     { cases n,
       { exfalso, exact nat.lt_asymm hn hn },
       cases n,

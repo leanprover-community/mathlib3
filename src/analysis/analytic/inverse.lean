@@ -10,7 +10,7 @@ import analysis.analytic.composition
 # Inverse of analytic functions
 
 We construct the left and right inverse of a formal multilinear series with invertible linear term,
-and we prove that they coincide.
+we prove that they coincide and study their properties (notably convergence).
 
 ## Main statements
 
@@ -20,7 +20,10 @@ and we prove that they coincide.
   for `i : E ≃L[𝕜] F` which coincides with `p₁`.
 * `p.left_inv_comp` says that `p.left_inv i` is indeed a left inverse to `p` when `p₁ = i`.
 * `p.right_inv_comp` says that `p.right_inv i` is indeed a right inverse to `p` when `p₁ = i`.
-* `p.left_inv_eq_right_inv` states that the two inverses coincide.
+* `p.left_inv_eq_right_inv`: the two inverses coincide.
+* `p.radius_right_inv_pos_of_radius_pos`: if a power series has a positive radius of convergence,
+  then so does its inverse.
+
 -/
 
 open_locale big_operators classical topological_space
@@ -32,6 +35,8 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 
+/-! ### The left inverse of a formal multilinear series -/
+
 /-- The left inverse of a formal multilinear series, where the `n`-th term is defined inductively
 in terms of the previous ones to make sure that `(left_inv p i) ∘ p = id`. For this, the linear term
 `p₁` in `p` should be invertible. In the definition, `i` is a linear isomorphism that should
@@ -42,7 +47,6 @@ The `n`-th term in `q ∘ p` is `∑ qₖ (p_{j₁}, ..., p_{jₖ})` over `j₁ 
 expression, `qₙ` appears only once, in `qₙ (p₁, ..., p₁)`. We adjust the definition so that this
 term compensates the rest of the sum, using `i⁻¹` as an inverse to `p₁`.
 -/
-
 noncomputable def left_inv (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) :
   formal_multilinear_series 𝕜 F E
 | 0     := 0
@@ -121,6 +125,8 @@ begin
   simp [formal_multilinear_series.comp, show n + 2 ≠ 1, by dec_trivial, A, finset.sum_union B,
     apply_composition_ones, C, D],
 end
+
+/-! ### The right inverse of a formal multilinear series -/
 
 /-- The right inverse of a formal multilinear series, where the `n`-th term is defined inductively
 in terms of the previous ones to make sure that `p ∘ (right_inv p i) = id`. For this, the linear
@@ -222,6 +228,8 @@ begin
         ← sub_eq_add_neg, sub_eq_zero, comp_right_inv_aux2],
 end
 
+/-! ### Coincidence of the left and the right inverse -/
+
 private lemma left_inv_eq_right_inv_aux (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
   (h : p 1 = (continuous_multilinear_curry_fin1 𝕜 E F).symm i) (h0 : p 0 = 0) :
   left_inv p i = right_inv p i := calc
@@ -256,22 +264,15 @@ begin
   simp [comp_right_inv_aux1 N, lt_irrefl n, this, comp_right_inv_aux2]
 end
 
-lemma sum_Ico_add_one (f : ℕ → ℝ) (n : ℕ) : ∑ i in Ico n (n+1), f i = f n :=
-by simp
+/-!
+### Convergence of the inverse power series
 
-@[simp] lemma sum_Ico_add_two (f : ℕ → ℝ) (n : ℕ) : ∑ i in Ico n (n+2), f i = f n + f (n+1) :=
-by simp [Ico.succ_top, add_comm]
 
-@[simp] lemma sum_Ico_add_three (f : ℕ → ℝ) (n : ℕ) :
-  ∑ i in Ico n (n+3), f i = f n + f (n+1) + f (n+2) :=
-begin
-  rw [Ico.succ_top, sum_insert, sum_Ico_add_two],
-  { abel },
-  { simp },
-  { simp }
-end
 
-lemma glouk (n : ℕ) (p : ℕ → ℝ) (hp : ∀ k, 0 ≤ p k) (r a : ℝ) (hr : 0 ≤ r) (ha : 0 ≤ a) :
+-/
+
+lemma radius_right_inv_pos_of_radius_pos_aux1
+  (n : ℕ) (p : ℕ → ℝ) (hp : ∀ k, 0 ≤ p k) {r a : ℝ} (hr : 0 ≤ r) (ha : 0 ≤ a) :
   ∑ k in Ico 2 (n + 1), a ^ k *
       (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
           r ^ c.length * ∏ j, p (c.blocks_fun j))
@@ -331,7 +332,8 @@ begin
   simp [prod_const, ← mul_sum, mul_pow],
 end
 
-lemma glouk2 {n : ℕ} (hn : 2 ≤ n + 1) (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
+lemma radius_right_inv_pos_of_radius_pos_aux2
+  {n : ℕ} (hn : 2 ≤ n + 1) (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
   {r a C : ℝ} (hr : 0 ≤ r) (ha : 0 ≤ a) (hC : 0 ≤ C) (hp : ∀ n, ∥p n∥ ≤ C * r ^ n) :
    (∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥) ≤
      ∥(i.symm : F →L[𝕜] E)∥ * a + ∥(i.symm : F →L[𝕜] E)∥ * C * ∑ k in Ico 2 (n + 1),
@@ -376,10 +378,13 @@ end
 begin
   apply_rules [add_le_add, le_refl, mul_le_mul_of_nonneg_left, norm_nonneg, hC, mul_nonneg],
   simp_rw [mul_pow],
-  apply glouk n (λ k, ∥p.right_inv i k∥) (λ k, norm_nonneg _) r a hr ha,
+  apply radius_right_inv_pos_of_radius_pos_aux1 n (λ k, ∥p.right_inv i k∥)
+    (λ k, norm_nonneg _) hr ha,
 end
 
-theorem norm_right_inv (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
+/-- If a a formal multilinear series has a positive radius of convergence, then its right inverse
+has also a positive radius of convergence. -/
+theorem radius_right_inv_pos_of_radius_pos (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
   (hp : 0 < p.radius) : 0 < (p.right_inv i).radius :=
 begin
   obtain ⟨C, r, Cpos, rpos, ple⟩ : ∃ C r (hC : 0 < C) (hr : 0 < r), ∀ (n : ℕ), ∥p n∥ ≤ C * r ^ n :=
@@ -413,7 +418,7 @@ begin
         r * S n ≤ r * ((I+1) * a) : mul_le_mul_of_nonneg_left hn rpos.le
         ... ≤ 1/2 : by rwa [← mul_assoc],
       calc S (n + 1) ≤ I * a + I * C * ∑ k in Ico 2 (n + 1), (r * S n)^k :
-         glouk2 In p i rpos.le apos.le Cpos.le ple
+         radius_right_inv_pos_of_radius_pos_aux2 In p i rpos.le apos.le Cpos.le ple
       ... = I * a + I * C * (((r * S n) ^ 2 - (r * S n) ^ (n + 1)) / (1 - r * S n)) :
         by { rw geom_sum_Ico' _ In, exact ne_of_lt (rSn.trans_lt (by norm_num)) }
       ... ≤ I * a + I * C * ((r * S n) ^ 2 / (1/2)) :

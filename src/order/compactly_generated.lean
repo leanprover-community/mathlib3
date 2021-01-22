@@ -83,9 +83,10 @@ begin
       have tne : t.nonempty,
       { by_contradiction n,
         rw [finset.nonempty_iff_ne_empty, not_not] at n,
-        simp only [n, true_and, set.empty_subset, finset.coe_empty, finset.sup_empty, le_bot_iff] at ht,
+        simp only [n, true_and, set.empty_subset, finset.coe_empty,
+          finset.sup_empty, le_bot_iff] at ht,
         exact absurd ht hbot, },
-      -- certainly ↑t ⊆ s, so every element of t is below something in s, to apply finset_sup_of_directed_on
+      -- certainly every element of t is below something in s, since ↑t ⊆ s.
       have t_below_s : ∀ x ∈ t, ∃ y ∈ s, x ≤ y, from λ x hxt, ⟨x, ht.left hxt, by refl⟩,
       obtain ⟨x, ⟨hxs, hsupx⟩⟩ := finset.sup_le_of_le_directed s hne hdir t t_below_s,
       exact ⟨x, ⟨hxs, le_trans k (t.sup id) x ht.right hsupx⟩⟩, }, },
@@ -110,7 +111,8 @@ begin
     have Sne : S.nonempty,
     { suffices : ⊥ ∈ S, from set.nonempty_of_mem this,
       use ∅,
-      simp only [set.empty_subset, finset.coe_empty, finset.sup_empty, eq_self_iff_true, and_self], },
+      simp only [set.empty_subset, finset.coe_empty, finset.sup_empty,
+        eq_self_iff_true, and_self], },
     -- Now apply the defn of compact and finish.
     obtain ⟨j, ⟨hjS, hjk⟩⟩ := hk S Sne dir_US (le_trans k (Sup s) (Sup S) hsup sup_S),
     obtain ⟨t, ⟨htS, htsup⟩⟩ := hjS,

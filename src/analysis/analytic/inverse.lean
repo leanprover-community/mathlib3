@@ -228,6 +228,21 @@ begin
         ← sub_eq_add_neg, sub_eq_zero, comp_right_inv_aux2],
 end
 
+lemma right_inv_coeff (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) (n : ℕ) (hn : 2 ≤ n) :
+  p.right_inv i n = - (i.symm : F →L[𝕜] E).comp_continuous_multilinear_map
+    (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition n)),
+      p.comp_along_composition (p.right_inv i) c) :=
+begin
+  cases n, { exact false.elim (zero_lt_two.not_le hn) },
+  cases n, { exact false.elim (one_lt_two.not_le hn) },
+  simp only [right_inv, neg_inj],
+  congr' 1,
+  ext v,
+  have N : 0 < n + 2, by dec_trivial,
+  have : (p 1) (λ (i : fin 1), 0) = 0 := continuous_multilinear_map.map_zero _,
+  simp [comp_right_inv_aux1 N, lt_irrefl n, this, comp_right_inv_aux2]
+end
+
 /-! ### Coincidence of the left and the right inverse -/
 
 private lemma left_inv_eq_right_inv_aux (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
@@ -249,32 +264,78 @@ left_inv p i = left_inv p.remove_zero i : by rw left_inv_remove_zero
 ... = right_inv p.remove_zero i : by { apply left_inv_eq_right_inv_aux; simp [h] }
 ... = right_inv p i : by rw right_inv_remove_zero
 
-lemma right_inv_coeff (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) (n : ℕ) (hn : 2 ≤ n) :
-  p.right_inv i n = - (i.symm : F →L[𝕜] E).comp_continuous_multilinear_map
-    (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition n)),
-      p.comp_along_composition (p.right_inv i) c) :=
-begin
-  cases n, { exact false.elim (zero_lt_two.not_le hn) },
-  cases n, { exact false.elim (one_lt_two.not_le hn) },
-  simp only [right_inv, neg_inj],
-  congr' 1,
-  ext v,
-  have N : 0 < n + 2, by dec_trivial,
-  have : (p 1) (λ (i : fin 1), 0) = 0 := continuous_multilinear_map.map_zero _,
-  simp [comp_right_inv_aux1 N, lt_irrefl n, this, comp_right_inv_aux2]
-end
-
 /-!
 ### Convergence of the inverse of a power series
 
 Assume that `p` is a convergent multilinear series, and let `q` be its (left or right) inverse.
 Using the left-inverse formula gives
 $$
-q_n = - \sum_{k=0}^{n-1} \sum_{i_1 + \dotsc + i_k = n} q_k(p_{i_1}, \dotsc, p_{i_k})
+q_n = - (p_1)^{-n} \sum_{k=0}^{n-1} \sum_{i_1 + \dotsc + i_k = n} q_k (p_{i_1}, \dotsc, p_{i_k}).
+$$
+Assume for simplicity that we are in dimension `1` and `p₁ = 1`. In the formula for `qₙ`, the term
+`q_{n-1}` appears with a multiplicity of `n-1` (choosing the index `i_j` for which `i_j = 2` while
+all the other indices are equal to `1`), which indicates that `qₙ` might frow like `n!`. This is
+bad for summability properties.
 
+It turns out that the right-inverse formula is better behaved, and should instead be used for this
+kind of estimate. It reads
+$$
+q_n = - (p_1)^{-1} \sum_{k=2}^n \sum_{i_1 + \dotsc + i_k = n} p_k (q_{i_1}, \dotsc, q_{i_k}).
+$$
+Here, `q_{n-1}` can only appear in the term with `k = 2`, and it only appears twice, so there is
+hope this formula can lead to an at most geometric behavior.
 
+Let `Qₙ = ∥qₙ∥`. Bounding `∥pₖ∥` with `C r^k` gives an inequality
+$$
+Q_n ≤ C' \sum_{k=2}^n r^k \sum_{i_1 + \dotsc + i_k = n} Q_{i_1} \dotsm Q_{i_k}.
+$$
+
+This formula is not enough to prove by naive induction on `n` a bound of the form `Qₙ ≤ D R^n`.
+However, assuming that the inequality above were an equality, one could get a formula for the
+generating series of the `Qₙ`:
+
+$$
+\begin{align*}
+Q(z) & := \sum Q_n z^n = Q_1 z + C' \sum_{2 \leq k \leq n} \sum_{i_1 + \dotsc + i_k = n}
+  (r z^{i_1} Q_{i_1}) \dotsm (r z^{i_k} Q_{i_k})
+\\& = Q_1 z + C' \sum_{k = 2}^\infty (\sum_{i_1 \geq 1} r z^{i_1} Q_{i_1})
+  \dotsm (\sum_{i_k \geq 1} r z^{i_k} Q_{i_k})
+\\& = Q_1 z + C' \sum_{k = 2}^\infty (r Q(z))^k
+= Q_1 z + C' (r Q(z))^2 / (1 - r Q(z)).
+\end{align*}
+$$
+
+One can solve this formula explicitly. The solution is analytic in a neighborhood of `0` in `ℂ`,
+hence its coefficients grow at most geometrically (by a contour integral argument), and therefore
+the original `Qₙ`, which are bounded by these ones, are also at most geometric.
+
+This classical argument is not really satisfactory, as it requires an a priori bound on a complex
+analytic function. Another option would be to compute explicitly its terms (with binomial
+coefficients) to obtain an explicit geometric bound, but this would be very painful.
+
+Instead, we will use the above intuition, but in a slightly different form, with finite sums and an
+induction. I learnt this trick in [pöschel2017siegelsternberg]. Let
+$$S_n = \sum_{k=1}^n Q_k a^k$$ (where `a` is a positive real parameter to be chosen suitably small).
+The above computation but with finite sums shows that
+
+$$
+S_n \leq Q_1 a + C' \sum_{k=2}^n (r S_{n-1})^k.
+$$
+
+In particular, $$S_n \leq Q_1 a + C' (r S_{n-1})^2 / (1- r S_{n-1})$$.
+Assume that $$S_{n-1} \leq K a$$, where `K > Q₁` is fixed and `a` is small enough so that
+`r K a ≤ 1/2` (to control the denominator). Then this equation gives a bound
+$$S_n \leq Q_1 a + 2 C' r^2 K^2 a^2$$.
+If `a` is small enough, this is bounded by `K a` as the second term is quadratic in `a`, and
+therefore negligible.
+
+By induction, we deduce `S_n ≤ K a` for all `n`, which gives in particular the fact that `a^n Qₙ`
+remains bounded.
 -/
 
+/-- First technical lemma to control the growth of coefficients of the inverse. Bound the explicit
+expression for `∑_{k<n+1} a^k Q_k^` in terms of a sum of powers of the same sum one step before,
+in a general abstract setup. -/
 lemma radius_right_inv_pos_of_radius_pos_aux1
   (n : ℕ) (p : ℕ → ℝ) (hp : ∀ k, 0 ≤ p k) {r a : ℝ} (hr : 0 ≤ r) (ha : 0 ≤ a) :
   ∑ k in Ico 2 (n + 1), a ^ k *
@@ -336,6 +397,10 @@ begin
   simp [prod_const, ← mul_sum, mul_pow],
 end
 
+/-- Second technical lemma to control the growth of coefficients of the inverse. Bound the explicit
+expression for `∑_{k<n+1} a^k Q_k^` in terms of a sum of powers of the same sum one step before,
+in the specific setup we are interesting in, by reducing to the general bound in
+`radius_right_inv_pos_of_radius_pos_aux1`. -/
 lemma radius_right_inv_pos_of_radius_pos_aux2
   {n : ℕ} (hn : 2 ≤ n + 1) (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
   {r a C : ℝ} (hr : 0 ≤ r) (ha : 0 ≤ a) (hC : 0 ≤ C) (hp : ∀ n, ∥p n∥ ≤ C * r ^ n) :
@@ -387,13 +452,15 @@ begin
 end
 
 /-- If a a formal multilinear series has a positive radius of convergence, then its right inverse
-has also a positive radius of convergence. -/
+also has a positive radius of convergence. -/
 theorem radius_right_inv_pos_of_radius_pos (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
   (hp : 0 < p.radius) : 0 < (p.right_inv i).radius :=
 begin
   obtain ⟨C, r, Cpos, rpos, ple⟩ : ∃ C r (hC : 0 < C) (hr : 0 < r), ∀ (n : ℕ), ∥p n∥ ≤ C * r ^ n :=
     le_mul_pow_of_radius_pos p hp,
   let I := ∥(i.symm : F →L[𝕜] E)∥,
+  -- choose `a` small enough to make sure that `∑_{k ≤ n} a^k Q_k` will be controllable by
+  -- induction
   obtain ⟨a, apos, ha1, ha2⟩ : ∃ a (apos : 0 < a),
     (2 * I * C * r^2 * (I + 1) ^ 2 * a ≤ 1) ∧ (r * (I + 1) * a ≤ 1/2),
   { have : tendsto (λ a, 2 * I * C * r^2 * (I + 1) ^ 2 * a) (𝓝 0)
@@ -408,6 +475,8 @@ begin
       by { filter_upwards [self_mem_nhds_within], exact λ a ha, ha },
     rcases (C.and ((A.and B).filter_mono inf_le_left)).exists with ⟨a, ha⟩,
     exact ⟨a, ha.1, ha.2.1.le, ha.2.2.le⟩ },
+  -- check by induction that the partial sums are suitably bounded, using the choice of `a` and the
+  -- inductive control from Lemma `radius_right_inv_pos_of_radius_pos_aux1`.
   let S := λ n, ∑ k in Ico 1 n, a ^ k * ∥p.right_inv i k∥,
   have IRec : ∀ n, 1 ≤ n → S n ≤ (I + 1) * a,
   { apply nat.le_induction,
@@ -440,6 +509,7 @@ begin
       ... = (I + 2 * I * C * r^2 * (I + 1) ^ 2 * a) * a : by ring
       ... ≤ (I + 1) * a :
         by apply_rules [mul_le_mul_of_nonneg_right, apos.le, add_le_add, le_refl] } },
+  -- conclude that all coefficients satisfy `a^n Qₙ ≤ (I + 1) a`.
   let a' : nnreal := ⟨a, apos.le⟩,
   suffices H : (a' : ennreal) ≤ (p.right_inv i).radius,
     by { apply lt_of_lt_of_le _ H, exact_mod_cast apos },

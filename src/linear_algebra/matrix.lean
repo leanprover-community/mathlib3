@@ -939,7 +939,7 @@ h.equiv_fun.alg_conj.trans alg_equiv_matrix'
 
 section
 
-variables {R : Type v} [ring R] {n : Type w} [fintype n]
+variables {R : Type v} [semiring R] {n : Type w} [fintype n]
 
 @[simp] lemma matrix.dot_product_std_basis_one [decidable_eq n] (v : n → R) (i : n) :
   matrix.dot_product v (linear_map.std_basis R (λ _, R) i 1) = v i :=

@@ -17,6 +17,32 @@ begin
   exact ne_of_lt h rfl,
 end
 
+lemma top_eq_span_singleton_of_findim_eq_one : findim K V = 1 → (∃ (v : V) (hv : v ≠ 0), ⊤ = (K ∙ v)) :=
+begin
+  intro h,
+  have : finite_dimensional K V,
+  { apply finite_dimensional_of_findim_pos,
+    simp [h] },
+  resetI,
+  obtain ⟨b,hb⟩ := exists_is_basis_finset K V,
+  have := findim_eq_card_finset_basis hb,
+  rw h at this,
+  replace this := this.symm,
+  obtain ⟨a,ha⟩ := finset.card_eq_one.mp this,
+  have hbset : (b : set V) = {a}, by simp [ha],
+  cases hb with hb1 hb2,
+  refine ⟨a,_,_⟩,
+  let ι : (b : set V) → V := λ x, x,
+  let x : ↥(b : set V) := ⟨a,_⟩,
+  change ι x ≠ 0,
+  refine @linear_independent.ne_zero (b : set V) K V ι _ _ _ _ x hb1,
+  simp [hbset],
+  rw ← hbset,
+  symmetry,
+  convert hb2,
+  simp,
+end
+
 def proj := { H : submodule K V // findim K H = 1 }
 
 namespace proj
@@ -64,55 +90,17 @@ end
 
 lemma exists_rep (A : proj K V) : ∃ (v : V) (hv : v ≠ 0), A = mk v hv :=
 begin
-  --cases A with A hA,
-  obtain ⟨S,hS1,hS2⟩ := exists_is_basis_finite K A,
-  have := @findim_eq_card_finset_basis K A _ _ _ (set.finite.to_finset hS2) ⟨_,_⟩,
-  simp at this, -- nonterminal
-  replace this := this.symm,
-  rw finset.card_eq_one at this,
-  rcases this with ⟨a,ha⟩,
-  have hSsing : S = {a},
-  { rw finset.eq_singleton_iff_unique_mem at ha,
-    cases ha with ha1 ha2,
-    rw set.eq_singleton_iff_unique_mem,
-    refine ⟨_,_⟩,
-    rwa set.finite.mem_to_finset at ha1,
-    intros b hb,
-    apply ha2,
-    rwa set.finite.mem_to_finset },
-  cases hS1 with hS1 hS2,
-  let b : ↥S := ⟨a,by simp [hSsing]⟩,
-  have : (coe b : A) ≠ 0 := linear_independent.ne_zero _ hS1,
-  simp at this,
-  refine ⟨a,_,_⟩,
-  { cases a, simpa using this, },
-  simp [mk],
-  ext1,
-  dsimp,
-  rw eq_span_singleton_iff,
-  refine ⟨a.2,_⟩,
-  intros v hv,
-  simp [hSsing] at hS2,
-  replace hS2 := hS2.symm,
-  rw eq_span_singleton_iff at hS2,
-  rcases hS2 with ⟨_,hh⟩,
-  obtain ⟨r,hr⟩ := hh ⟨v,hv⟩ (by tauto),
-  refine ⟨r,_⟩,
-  change ↑(r • a) = v,
-  rw hr,
-  refl,
-  convert hS1.1,
-  ext,
-  erw set.finite.mem_to_finset,
-  ext,
-  erw set.finite.mem_to_finset,
-  convert hS1.2,
-  ext,
-  erw set.finite.mem_to_finset,
-  ext,
-  erw set.finite.mem_to_finset,
-  -- THIS PROOF IS TERRIBLE.
-  -- TODO: Break it up into smaller usable parts.
+  cases A with A hA,
+  obtain ⟨v,hv,h⟩ := top_eq_span_singleton_of_findim_eq_one _ _ hA,
+  refine ⟨v,_,_⟩,
+  simp [hv],
+  simp [eq_span_singleton_iff] at *,
+  intros w hw,
+  specialize h ⟨w,hw⟩,
+  convert h,
+  funext,
+  simp,
+  tidy,
 end
 
 end proj

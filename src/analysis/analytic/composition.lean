@@ -588,7 +588,7 @@ begin
     by simpa only [formal_multilinear_series.partial_sum,
                    continuous_multilinear_map.map_sum_finset] using H,
   -- rewrite the first sum as a big sum over a sigma type, in the finset
-  -- `comp_partial_sum_target M N`
+  -- `comp_partial_sum_target 0 N N`
   rw [finset.range_eq_Ico, finset.sum_sigma'],
   -- use `comp_change_of_variables_sum`, saying that this change of variables respects sums
   apply comp_change_of_variables_sum 0 N N,

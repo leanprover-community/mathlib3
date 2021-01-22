@@ -27,8 +27,7 @@ open polynomial is_scalar_tower
 
 universes u v w
 
-variables (F : Type u) (E : Type v) [field F] [field E] [algebra F E] (ϕ ψ : E →ₐ[F] E)
-  (χ ω : E ≃ₐ[F] E) (K : Type w) [field K][algebra F K] [algebra K E] [is_scalar_tower F K E]
+variables (F : Type u) (E : Type v) [field F] [field E] [algebra F E]
 
 --TODO(Commelin): refactor normal to extend `is_algebraic`??
 
@@ -66,18 +65,20 @@ end
 
 section normal_tower
 
-lemma normal.tower_top_of_normal [h : normal F E] : normal K E :=
+variables (K : Type w) [field K] [algebra F K] [algebra E K] [is_scalar_tower F E K]
+
+lemma normal.tower_top_of_normal [h : normal F K] : normal E K :=
 begin
   intros x,
   cases h x with hx hhx,
-  rw algebra_map_eq F K E at hhx,
-  exact ⟨is_integral_of_is_scalar_tower x hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
+  rw algebra_map_eq F E K at hhx,
+  exact ⟨is_integral_of_is_scalar_tower x hx, polynomial.splits_of_splits_of_dvd (algebra_map E K)
     (polynomial.map_ne_zero (minpoly.ne_zero hx))
-    ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx)
-    (minpoly.dvd_map_of_is_scalar_tower F K x)⟩,
+    ((polynomial.splits_map_iff (algebra_map F E) (algebra_map E K)).mpr hhx)
+    (minpoly.dvd_map_of_is_scalar_tower F E x)⟩,
 end
 
-variables {F} {E} {E' : Type*} [field E'] [algebra F E']
+variables {F} {E} {E' : Type w} [field E'] [algebra F E']
 
 lemma normal.of_alg_equiv [h : normal F E] (f : E ≃ₐ[F] E') : normal F E' :=
 begin
@@ -97,6 +98,8 @@ end
 
 lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
 ⟨λ h, by exactI normal.of_alg_equiv f, λ h, by exactI normal.of_alg_equiv f.symm⟩
+
+end normal_tower
 
 lemma normal.of_is_splitting_field {p : polynomial F} [hFEp : is_splitting_field F E p] :
   normal F E :=
@@ -161,6 +164,9 @@ begin
   rw [set.image_singleton, ring_hom.algebra_map_to_algebra, adjoin_root.lift_root]
 end
 
+variables {F} {E} (ϕ ψ : E →ₐ[F] E) (χ ω : E ≃ₐ[F] E)
+  (K : Type w) [field K] [algebra F K] [algebra K E] [is_scalar_tower F K E]
+
 /-- Restrict algebra homomorphism to range -/
 def alg_hom.restrict_normal_aux [h : normal F K] :
   (to_alg_hom F K E).range →ₐ[F] (to_alg_hom F K E).range :=
@@ -219,5 +225,3 @@ alg_equiv.ext (λ _, (algebra_map K E).injective
 /-- Restriction to an is_splitting_field as a group homomorphism -/
 def alg_equiv.restict_normal_hom [normal F K] : (E ≃ₐ[F] E) →* (K ≃ₐ[F] K) :=
 monoid_hom.mk' (λ χ, χ.restrict_normal K) (λ ω χ, (χ.restrict_normal_trans ω K))
-
-end normal_tower

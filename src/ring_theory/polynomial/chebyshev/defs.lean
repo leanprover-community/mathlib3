@@ -212,32 +212,40 @@ begin
   rw [map_chebyshev₂ (n + 1), map_chebyshev₂ n],
 end
 
-lemma chebyshev₂_derivative_eq_chebyshev₁ :
+lemma chebyshev₁_derivative_eq_chebyshev₂ :
 ∀ (n : ℕ), derivative (chebyshev₁ R (n + 1)) = (n + 1) * chebyshev₂ R n
 |0        := by simp only [chebyshev₁_one, chebyshev₂_zero, derivative_X, nat.cast_zero, zero_add,
                            mul_one]
 |1        := by { simp only [chebyshev₁_two, chebyshev₂_one, derivative_sub, derivative_one,
-                              derivative_mul, derivative_X_pow, sub_zero, nat.cast_one,
+                              derivative_mul, derivative_X_pow, nat.cast_one,
                               nat.cast_two],
                     norm_num }
-|(n + 2)  := begin rw [chebyshev₁_add_two, derivative_sub, chebyshev₂_derivative_eq_chebyshev₁,
-                       derivative_mul, chebyshev₂_derivative_eq_chebyshev₁, derivative_mul,
-                       derivative_X, derivative_bit0, derivative_one, bit0_zero],
-                   rw [zero_mul,
-                       zero_add, mul_one, add_mul, mul_add, one_mul, add_comm, add_assoc,
-                       mul_assoc 2 X (chebyshev₂ R (n + 1)), ←mul_add,
-                       ←chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁, ←sub_add_eq_add_sub,
-                       ←mul_assoc, mul_comm (2 * X)],
-                    push_cast,
-                    rw [mul_assoc, ←mul_sub, ←chebyshev₂_add_two, ←add_mul],
-                    norm_cast
-              end
+|(n + 2)  := begin
+  calc derivative (chebyshev₁ R (n + 2 + 1))
+      = 2 * chebyshev₁ R (n + 2) + 2 * X * derivative (chebyshev₁ R (n + 1 + 1))
+                                 - derivative (chebyshev₁ R (n + 1))
+              : by simp only [chebyshev₁_add_two _ (n + 1), derivative_sub, derivative_mul,
+                                      derivative_X, derivative_bit0, derivative_one, bit0_zero,
+                                      zero_mul, zero_add, mul_one]
+  ... = 2 * (chebyshev₂ R (n + 1 + 1) - X * chebyshev₂ R (n + 1))
+        + 2 * X * ((n + 1 + 1) * chebyshev₂ R (n + 1)) - (n + 1) * chebyshev₂ R n
+              : by rw_mod_cast [chebyshev₁_derivative_eq_chebyshev₂,
+                chebyshev₁_derivative_eq_chebyshev₂, chebyshev₁_eq_chebyshev₂_sub_X_mul_chebyshev₂]
+  ... = (n + 1) * (2 * X * chebyshev₂ R (n + 1) - chebyshev₂ R n) + 2 * chebyshev₂ R (n + 2)
+              : by ring
+  ... = (n + 1) * chebyshev₂ R (n + 2) + 2 * chebyshev₂ R (n + 2)
+              : by rw chebyshev₂_add_two
+  ... = (n + 2 + 1) * chebyshev₂ R (n + 2)
+              : by ring
+  ... = (↑(n + 2) + 1) * chebyshev₂ R (n + 2)
+              : by norm_cast,
+  end
 
 lemma one_sub_X_pow_two_mul_derivative_chebyshev₁_eq_poly_in_chebyshev₁ (n : ℕ) :
 (1 - X ^ 2)  * (derivative (chebyshev₁ R (n+1)))
 = (n + 1) * (chebyshev₁ R n - X * chebyshev₁ R (n+1)) :=
 begin
-  rw [chebyshev₂_derivative_eq_chebyshev₁, ←mul_assoc, mul_comm (1 - X ^ 2), mul_assoc,
+  rw [chebyshev₁_derivative_eq_chebyshev₂, ←mul_assoc, mul_comm (1 - X ^ 2), mul_assoc,
       one_sub_X_pow_two_mul_chebyshev₂_eq_pol_in_chebyshev₁, ←one_mul (chebyshev₁ R (n+1)),
       chebyshev₁_add_two, ←sub_add, add_comm _ (chebyshev₁ R n), mul_comm 2 X, mul_assoc, ←mul_sub,
       ←sub_mul],
@@ -253,7 +261,7 @@ begin
   = derivative ( X * chebyshev₁ R (n+1) - (1 - X ^ 2) * chebyshev₂ R n),
   by rw chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂,
   simp only [derivative_sub, derivative_mul, derivative_X, derivative_one, derivative_X_pow,
-  one_mul, chebyshev₂_derivative_eq_chebyshev₁, zero_sub, neg_mul_eq_neg_mul_symm, pow_one,
+  one_mul, chebyshev₁_derivative_eq_chebyshev₂, zero_sub, neg_mul_eq_neg_mul_symm, pow_one,
   nat.cast_add, nat.cast_one] at h,
   rw chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ at h,
   rw [mul_add, add_comm (chebyshev₁ R (n + 1)), add_mul, ←mul_assoc, mul_comm _ X, add_assoc,

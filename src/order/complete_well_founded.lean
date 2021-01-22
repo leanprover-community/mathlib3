@@ -54,14 +54,12 @@ above k has a finite subset that Sups above k -/
 def is_compact_element {α : Type*} [complete_lattice α] (k : α) :=
 ∀ s : set α, k ≤ Sup s → ∃ t : finset α, ↑t ⊆ s ∧ k ≤ t.sup id
 
-/-- An element k of a lattice is said to be finite if any directed
-set that Sups above k already got above k at some point in the set. -/
-def is_finite_element {α : Type*} [complete_lattice α] (k : α) :=
-∀ s : set α, s.nonempty → directed_on (≤) s → k ≤ Sup s → ∃ x : α, x ∈ s ∧ k ≤ x
-
-/-- For complete lattices, finite and compact elements are equivalent -/
-theorem is_compact_element_iff_is_finite_element (k : α) :
-  is_compact_element k ↔ is_finite_element k :=
+/-- Equivalently, an element k compact when any directed set that Sups above
+k already got above k at some point in the set. Such an element is also called
+"finite" or "S-compact" -/
+theorem is_compact_element_iff_le_of_directed_Sup_le (k : α) :
+  is_compact_element k ↔
+  ∀ s : set α, s.nonempty → directed_on (≤) s → k ≤ Sup s → ∃ x : α, x ∈ s ∧ k ≤ x :=
 begin
   classical,
   split,

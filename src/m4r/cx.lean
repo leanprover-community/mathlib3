@@ -58,6 +58,7 @@ begin
     {intro h01, exact zero_ne_one ((fin.ext_iff _ _).1 h01) }),
 end
 
+variables (M)
 def Koszul : cochain_complex (Module R) :=
 { X := λ n, int.cases_on n (λ m, Module.of R (epow R M m)) (λ m, Module.of R punit),
   d := λ n, int.cases_on n (λ m, wedge_d R x m) (λ m, 0),
@@ -68,6 +69,7 @@ def Koszul : cochain_complex (Module R) :=
     dec_trivial,
   end}
 
+variables {M}
 instance aux_acg (n : ℤ) (F G : cochain_complex (Module R)) :
   add_comm_group (direct_sum ({i : ℤ × ℤ // i.1 + i.2 = n})
   (λ i, tensor_product R (F.X i.1.1) (G.X i.1.2))) :=
@@ -251,3 +253,14 @@ def cochain_complex.tensor_product (F G : cochain_complex.{u u+1} (Module.{u u} 
     (λ i, tensor_product R (F.X i.1.1) (G.X i.1.2))),
   d := λ n, tensor_d R F G n,
   d_squared' := by {ext1 n, dsimp, convert tensor_d_squared R F G n} }
+
+def cochain_complex.tensor_single (F : cochain_complex.{u u+1} (Module.{u u} R))
+  (M : Module R) : cochain_complex (Module R) :=
+{ X := λ i, Module.of R (tensor_product R (F.X i) M),
+  d := λ i, tensor_product.map (F.d i) linear_map.id,
+  d_squared' := by {ext i x,
+    simp only [category_theory.graded_object.zero_apply, linear_map.zero_apply],
+    erw tensor_product.map_tmul,
+    simp only [linear_map.id_coe, id.def],
+    convert tensor_product.zero_tmul _ _,
+    exact linear_map.ext_iff.1 (F.d_squared i) _,  } }

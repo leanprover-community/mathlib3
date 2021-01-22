@@ -1,9 +1,9 @@
 import m4r.cx
 
 universes u v
-variables {R : Type u} [comm_ring R] (n : ℕ) (x : fin n → R)
+variables {R : Type u} [comm_ring R]
 (F : cochain_complex.{u u+1} (Module.{u u} R))
-
+/-
 def cx_cast (j k : ℤ) (h : j = k) : F.X j ⟶ F.X k :=
 { to_fun := λ x, eq.rec x h,
   map_add' := λ x y, by cases h; refl,
@@ -23,8 +23,125 @@ begin
   refl,
 end
 
-def shift (F : cochain_complex (Module R)) (i : ℤ) :
+lemma d_squared_cast (j k : ℤ) (h : j + 1 = k) (x : F.X j) :
+    (F.d j ≫ cx_cast F (j + 1) k (h ▸ rfl) ≫ F.d k) x = 0 :=
+begin
+  have := (cast_d_eq_d_cast F (j + 1) k h (F.d j x)).symm,
+  simp only [function.comp_app, Module.coe_comp] at *,
+  erw ←this,
+  erw linear_map.ext_iff.1 (F.d_squared j),
+  rw linear_map.zero_apply, rw linear_map.map_zero,
+end
+
+lemma shift_d_squared (j k : ℤ) (x : F.X (j - k)) :
+  (F.d (j - k) ≫ cx_cast F (j - k + 1) (j + 1 - k) (sub_add_eq_add_sub _ _ _)
+    ≫ F.d (j + 1 - k) ≫
+  cx_cast F (j + 1 - k + 1) (j + 1 + 1 - k) (by conv_rhs {rw ←sub_add_eq_add_sub}; refl)) x = 0 :=
+begin
+  have := d_squared_cast F (j - k) (j + 1 - k) (sub_add_eq_add_sub _ _ _) x,
+  simp only [function.comp_app, Module.coe_comp] at *,
+  erw this,
+  rw linear_map.map_zero,
+end
+
+def shift (F : cochain_complex.{u u+1} (Module.{u u} R)) (i : ℤ) :
   cochain_complex (Module R) :=
 { X := λ m, F.X (m - i),
   d := λ m, F.d (m - i) ≫ cx_cast F (m - i + 1) (m + 1 - i) (sub_add_eq_add_sub _ _ _),
-  d_squared' := by {sorry } }
+  d_squared' := by {ext m y,  exact shift_d_squared _ _ _ _ } }
+-/
+variables (R)
+
+def smul_cx_X : ℤ → Module.{u u} R
+| 0 := Module.of R R
+| 1 := Module.of R R
+| (int.of_nat n) := Module.of R punit
+| -[1+ n] := Module.of R punit
+
+variables {R}
+
+def smul_cx_d (x : R) : Π i : ℤ, smul_cx_X R i ⟶ smul_cx_X R (i + 1)
+| 0 := linear_map.lsmul R R x
+| (int.of_nat n) := 0
+| -[1+ n] := 0
+
+theorem smul_cx_d_squared (x : R) (i : ℤ) :
+  smul_cx_d x i ≫ smul_cx_d x (i + 1) = 0 :=
+int.rec_on i (λ j, linear_map.zero_comp _) (λ j, linear_map.comp_zero _)
+
+variables (R)
+
+def smul_cx (x : R) : cochain_complex.{u u+1} (Module.{u u} R) :=
+{ X := smul_cx_X R,
+  d := smul_cx_d x,
+  d_squared' := by ext1 i; exact smul_cx_d_squared x i }
+
+def free_Koszul : Π (n : ℕ) (x : fin n.succ → R),
+  cochain_complex.{u u+1} (Module.{u u} R)
+| 0 x := smul_cx R (x 0)
+| (n + 1) x := cochain_complex.tensor_product R
+  (smul_cx R (x 0)) (free_Koszul n (fin.init x))
+
+def Koszul_isom_20 (x : fin 2 → R) :
+  (free_Koszul R 1 x).X 0 ≅ Module.of R R :=
+{ hom := direct_sum.to_module R _ (Module.of R R) $ λ i,
+    subtype.cases_on i $ λ i, prod.cases_on i $ λ i j hij,
+    int.cases_on i (λ a, nat.rec_on a (int.cases_on j
+      (λ b, nat.rec_on b ((tensor_product.rid R R).to_linear_map)
+      (λ c, 0)) (λ b, 0)) (λ b, 0)) (λ a, 0),
+  inv := (direct_sum.lof R ({ i : ℤ × ℤ // i.1 + i.2 = 0}) _ (⟨(0, 0), zero_add _⟩)).comp (tensor_product.rid R R).symm.to_linear_map,
+  hom_inv_id' := by {ext1 i, cases i with i1 i2, cases i1 with i j, induction i with i hi,
+    induction i with i hi, induction j with j hj, induction j with j hj, ext1 x,
+      ext,
+      rcases classical.em (i = ⟨(0, 0), zero_add _⟩) with ⟨rfl, hi⟩,
+      simp only,
+      erw dfinsupp.single_eq_same,
+      erw direct_sum.to_module_lof,
+      erw tensor_product.rid_symm_apply,
+      erw dfinsupp.single_eq_same,
+      erw tensor_product.rid_tmul,
+      rw tensor_product.smul_tmul,
+      rw algebra.id.smul_eq_mul, rw mul_one,
+      simp only,
+      erw dfinsupp.single_eq_of_ne h,
+       },
+  inv_hom_id' := _ }
+
+def Koszul_isom_21 (x : fin 2 → R) :
+  (free_Koszul R 1 x).X 1 ≅ (Module.of R (R × R)) :=
+{ hom := _,
+  inv := _,
+  hom_inv_id' := _,
+  inv_hom_id' := _ }
+
+def Koszul_isom_22 (x : fin 2 → R) :
+  (free_Koszul R 1 x).X 2 ≅ Module.of R R :=
+{ hom := _,
+  inv := _,
+  hom_inv_id' := _,
+  inv_hom_id' := _ }
+
+def free_Koszul_isom_choose {n : ℕ} (x : fin n.succ → R) (i : ℕ) :
+  (free_Koszul R n x).X (int.of_nat i) ≅ Module.of R (fin (n.succ.choose i) → R) :=
+{ hom := _,
+  inv := _,
+  hom_inv_id' := _,
+  inv_hom_id' := _ }
+
+variables (n : ℕ)
+
+def free_Koszul_isom_Koszul {n : ℕ} (x : fin n.succ → R) :
+  free_Koszul R n x ≅ Koszul R (fin n.succ → R) x :=
+{ hom := _,
+  inv := _,
+  hom_inv_id' := _,
+  inv_hom_id' := _ }
+
+def free_exterior_power (n i : ℕ) :
+  epow R (fin n.succ → R) i ≃ₗ[R] (fin (n.succ.choose i) → R) :=
+{ to_fun := _,
+  map_add' := _,
+  map_smul' := _,
+  inv_fun := _,
+  left_inv := _,
+  right_inv := _ }

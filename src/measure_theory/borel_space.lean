@@ -1299,7 +1299,7 @@ lemma measurable_of_tendsto_metric {f : ℕ → α → β} {g : α → β}
   measurable g :=
 measurable_of_tendsto_metric' at_top hf lim at_top_countable_basis (λ i, countable_encodable _)
 
-lemma ae_measurable_of_tendsto_ae {μ : measure α} {f : ℕ → α → β} {g : α → β}
+lemma ae_measurable_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, ae_measurable (f n) μ)
   (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (nhds (g x))) :
   ae_measurable g μ :=
@@ -1322,14 +1322,14 @@ begin
     exact mt (nonempty.map g), },
 end
 
-lemma measurable_of_tendsto_ae {μ : measure α} [μ.is_complete] {f : ℕ → α → β} {g : α → β}
+lemma measurable_of_tendsto_metric_ae {μ : measure α} [μ.is_complete] {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, measurable (f n))
   (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (nhds (g x))) :
   measurable g :=
 ae_measurable_iff_measurable.mp
-  (ae_measurable_of_tendsto_ae (λ i, (hf i).ae_measurable) h_ae_tendsto)
+  (ae_measurable_of_tendsto_metric_ae (λ i, (hf i).ae_measurable) h_ae_tendsto)
 
-lemma measurable_limit_of_tendsto_ae [hβ : nonempty β] {μ : measure α} {f : ℕ → α → β}
+lemma measurable_limit_of_tendsto_metric_ae [hβ : nonempty β] {μ : measure α} {f : ℕ → α → β}
   (hf : ∀ n, ae_measurable (f n) μ)
   (h_ae_tendsto : ∀ᵐ x ∂μ, ∃ l : β, filter.at_top.tendsto (λ n, f n x) (nhds l)) :
   ∃ (f_lim : α → β) (hf_lim_meas : measurable f_lim),

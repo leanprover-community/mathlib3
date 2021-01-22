@@ -9,26 +9,32 @@ import data.set.finite
 import tactic.tfae
 
 /-!
-# Well-foundedness for complete lattices
+# Compactness properties for complete lattices
 
 For complete lattices, there are numerous equivalent ways to express the fact that the relation `>`
-is well-founded. In this file we define two especially-useful characterisations and provide
+is well-founded. In this file we define three especially-useful characterisations and provide
 proofs that they are indeed equivalent to well-foundedness.
 
 ## Main definitions
  * `is_sup_closed_compact`
  * `is_Sup_finite_compact`
+ * `is_compact_element`
+ * `is_compactly_generated`
 
 ## Main results
-The main result is that the following three conditions are equivalent for a complete lattice:
+The main result is that the following four conditions are equivalent for a complete lattice:
  * `well_founded (>)`
  * `is_sup_closed_compact`
  * `is_Sup_finite_compact`
+ * `∀ k, is_compact_element k`
 
-This is demonstrated by means of the following three lemmas:
+This is demonstrated by means of the following four lemmas:
  * `well_founded.is_Sup_finite_compact`
  * `is_Sup_finite_compact.is_sup_closed_compact`
  * `is_sup_closed_compact.well_founded`
+ * `is_Sup_finite_compact_iff_all_elements_compact`
+
+ We also show well-founded lattices are compactly generated.
 
 ## Tags
 

@@ -628,7 +628,7 @@ begin
   have hab_top : (a + b)^p ≠ ⊤, by simp [ha_top, hb_top, lt_of_lt_of_le zero_lt_one hp1, h_nonzero],
   have h_mul : (a + b)^p * (a ^ p / (a + b) ^ p + b ^ p / (a + b) ^ p) ≤ (a + b)^p,
   { nth_rewrite 3 ←mul_one ((a + b)^p),
-    refine (mul_le_mul_left hab_0 hab_top).mpr h, },
+    exact (mul_le_mul_left hab_0 hab_top).mpr h, },
   rwa [div_eq_mul_inv, div_eq_mul_inv, mul_add, mul_comm (a^p), mul_comm (b^p), ←mul_assoc,
     ←mul_assoc, mul_inv_cancel hab_0 hab_top, one_mul, one_mul] at h_mul,
 end

@@ -7,14 +7,6 @@ open equiv tactic
 local attribute [-simp] swap_apply_left
 local attribute [-simp] swap_apply_right
 
-example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
-example : fin.succ (5 : fin 7) = fin.succ (fin.succ (fin.succ 3)) := by norm_num
-example : fin.succ (4 : fin 6) = 5 := by norm_num
-
--- overflow not yet supported
-example : fin.succ (6 : fin 6) = 1 := by success_if_fail { norm_num }; refl
-example : (5 : fin 7) = (12 : fin 7) := by success_if_fail { norm_num }; refl
-
 /--
 We can check all possibilities of swapping of `0, 1, bit0 _, bit1 _` using the
 64 combinations of `[0, 1, 2, 3]`. This example should execute and complete without error,
@@ -89,13 +81,15 @@ example : true := by do
   done
 
 example : swap (3 : fin 7) 5 0 = 0 := by norm_num
+example : swap (fin.succ 2 : fin 7) 5 0 = 0 := by norm_num
 example : swap (3 : fin 7) 5 3 = 5 := by norm_num
 example : swap (3 : fin 1) 5 0 = 0 := by norm_num
-example : swap (3 : fin 7) 5 10 = 12 := by norm_num
-example : swap (2 : fin 7) 4 9 = 11 := by norm_num
+example : swap (3 : fin 7) 5 10 = 12 := by norm_fin
+example : swap (2 : fin 7) 4 9 = 11 := by norm_fin
 example : swap (3 : fin 7) 5 0 = 0 := by norm_num
 example : swap (3 : fin 7) 12 9 = 2 := by norm_num
-example : swap (0 : fin (1 + 2)) (1 : fin (nat.succ (1 + 1))) (2 : fin 3) = 2 := by norm_num
+example : swap (0 : fin (1 + 2)) (1 : fin (nat.succ (1 + 1))) ((fin.succ 1) : fin 3) = 2 :=
+by norm_num
 
 -- norm_swap doesn't generate trace output on non-swap expressions
 example : (1 : ℤ) = (1 : ℕ) := by norm_num

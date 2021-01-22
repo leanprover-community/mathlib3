@@ -969,7 +969,7 @@ end std_basis_vec
 lemma matrix.dot_product_eq_zero {R : Type v} [ring R] {n : Type w} [fintype n]
   (v : n → R) (h : ∀ w, matrix.dot_product v w = 0) : v = 0 :=
 begin
-  refine funext (λ x, _),
+  funext x,
   rw [std_basis_vec.dot_product_eq_val v x, h], refl,
 end
 

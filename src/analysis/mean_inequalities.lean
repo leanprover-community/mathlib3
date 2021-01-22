@@ -612,7 +612,7 @@ end
 lemma add_rpow_le_rpow_add {p : ℝ} (a b : ennreal) (hp1 : 1 ≤ p) :
   a ^ p + b ^ p ≤ (a + b) ^ p :=
 begin
-  have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
+  have hp_pos : 0 < p := lt_of_lt_of_le zero_lt_one hp1,
   by_cases h_top : a + b = ⊤,
   { rw ←@ennreal.rpow_eq_top_iff_of_pos (a + b) p hp_pos at h_top,
     rw h_top,

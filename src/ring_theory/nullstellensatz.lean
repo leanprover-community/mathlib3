@@ -110,18 +110,22 @@ begin
     (vanishing_ideal_anti_mono (λ y hy, hy.symm ▸ hx)), is_maximal.is_prime' _⟩,
 end
 
-/-- Transfer a set of points into the language of the prime spectrum,
-  `vanishing_ideal_points_to_points` and `points_to_points_zero_locus` give the computation rules -/
-def points_to_points : set (σ → k) → set (prime_spectrum (mv_polynomial σ k)) :=
-λ V, {J | vanishing_ideal V ≤ J.as_ideal}
+/-- The point in the prime spectrum assosiated to a given point -/
+def point_to_point (x : σ → k) : prime_spectrum (mv_polynomial σ k) :=
+⟨vanishing_ideal {x}, mv_polynomial.vanishing_ideal_singleton_is_maximal.is_prime⟩
 
-@[simp] lemma vanishing_ideal_points_to_points (V : set (σ → k)) :
-  prime_spectrum.vanishing_ideal (points_to_points V) = mv_polynomial.vanishing_ideal V :=
+@[simp] lemma vanishing_ideal_point_to_point (V : set (σ → k)) :
+  prime_spectrum.vanishing_ideal (point_to_point '' V) = mv_polynomial.vanishing_ideal V :=
 le_antisymm
-  (λ p hp x hx, (mem_vanishing_ideal_singleton_iff x p).1
-    (((prime_spectrum.mem_vanishing_ideal _ _).1 hp) ⟨vanishing_ideal {x}, is_maximal.is_prime' _⟩
-    (λ p hp, (vanishing_ideal_anti_mono (λ _ hx', hx'.symm ▸ hx : {x} ≤ V) hp))))
-  (λ p hp, (prime_spectrum.mem_vanishing_ideal _ _).2 (λ I hI, hI hp))
+  (λ p hp x hx, (((prime_spectrum.mem_vanishing_ideal _ _).1 hp)
+    ⟨vanishing_ideal {x}, by apply_instance⟩ ⟨x, ⟨hx, rfl⟩⟩) x rfl)
+  (λ p hp, (prime_spectrum.mem_vanishing_ideal _ _).2
+    (λ I hI, let ⟨x, hx⟩ := hI in hx.2 ▸ λ x' hx', (set.mem_singleton_iff.1 hx').symm ▸ hp x hx.1))
+
+lemma point_to_point_zero_locus_le (I : ideal (mv_polynomial σ k)) :
+  point_to_point '' (mv_polynomial.zero_locus I) ≤ prime_spectrum.zero_locus ↑I :=
+λ J hJ, let ⟨x, hx⟩ := hJ in (le_trans (le_vanishing_ideal_zero_locus I)
+  (hx.2 ▸ vanishing_ideal_anti_mono (set.singleton_subset_iff.2 hx.1)) : I ≤ J.as_ideal)
 
 variables [is_alg_closed k] [fintype σ]
 
@@ -168,14 +172,5 @@ end
 lemma is_prime.vanishing_ideal_zero_locus (P : ideal (mv_polynomial σ k)) [hP : P.is_prime] :
   vanishing_ideal (zero_locus P) = P :=
 trans (vanishing_ideal_zero_locus_eq_radical P) hP.radical
-
-@[simp] lemma points_to_points_zero_locus (I : ideal (mv_polynomial σ k)) :
-  points_to_points (mv_polynomial.zero_locus I) = prime_spectrum.zero_locus ↑I :=
-le_antisymm (λ J hJ p hp, hJ $ le_vanishing_ideal_zero_locus I hp)
-begin
-  refine λ J hJ p hp, _,
-  rw ← is_prime.vanishing_ideal_zero_locus J.as_ideal,
-  refine vanishing_ideal_anti_mono (zero_locus_anti_mono hJ) hp,
-end
 
 end mv_polynomial

@@ -1318,6 +1318,16 @@ begin
   { simp [h], },
 end
 
+lemma div_rpow_of_nonneg (x y : ennreal) {z : ℝ} (hz : 0 ≤ z) :
+  (x / y) ^ z = x ^ z / y ^ z :=
+begin
+  by_cases h0 : z = 0,
+  { simp [h0], },
+  rw ←ne.def at h0,
+  have hz_pos : 0 < z, from lt_of_le_of_ne hz h0.symm,
+  rw [div_eq_mul_inv, mul_rpow_of_nonneg x y⁻¹ hz, inv_rpow_of_pos hz_pos, ←div_eq_mul_inv],
+end
+
 lemma rpow_le_rpow {x y : ennreal} {z : ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
 begin
   rcases le_iff_eq_or_lt.1 h₂ with H|H, { simp [← H, le_refl] },

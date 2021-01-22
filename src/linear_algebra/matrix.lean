@@ -961,11 +961,7 @@ lemma matrix.dot_product_eq_iff {v w : n → R} :
 ⟨λ h, matrix.dot_product_eq v w h, λ h _, h ▸ rfl⟩
 
 lemma matrix.dot_product_eq_zero (v : n → R) (h : ∀ w, matrix.dot_product v w = 0) : v = 0 :=
-begin
-  funext x,
-  classical,
-  rw [← matrix.dot_product_std_basis_one v x, h], refl,
-end
+matrix.dot_product_eq _ _ $ λ u, (h u).symm ▸ (zero_dot_product u).symm
 
 lemma matrix.dot_product_eq_zero_iff {v : n → R} : (∀ w, matrix.dot_product v w = 0) ↔ v = 0 :=
 ⟨λ h, matrix.dot_product_eq_zero v h, λ h w, h.symm ▸ zero_dot_product w⟩

@@ -936,57 +936,38 @@ def alg_equiv_matrix {R : Type v} {M : Type w} {n : Type*} [fintype n]
   [comm_ring R] [add_comm_group M] [module R M] [decidable_eq n] {b : n → M} (h : is_basis R b) :
   module.End R M ≃ₐ[R] matrix n n R :=
 h.equiv_fun.alg_conj.trans alg_equiv_matrix'
+section
 
-/-- `std_basis_vec` is the standard basis for the free module `n → R`. -/
-def std_basis_vec {R : Type v} [ring R] {n : Type w} [decidable_eq n]
-  (i : n) : n → R := linear_map.std_basis R (λ _, R) i 1
+variables {R : Type v} [ring R] {n : Type w} [fintype n]
 
-namespace std_basis_vec
-
-open_locale classical
-
-variables {R : Type v} [ring R] {n : Type w}
-
-lemma eq_zero_of_ne {i j : n} (h : i ≠ j) : std_basis_vec i j = (0 : R) :=
-by { rw [std_basis_vec, linear_map.std_basis_ne], exact h.symm }
-
-lemma eq_one_of_eq {i j : n} (h : i = j) : std_basis_vec i j = (1 : R) :=
-by { convert linear_map.std_basis_same _ (λ _, R) j 1 }
-
-@[simp] lemma eq_one {i : n} : std_basis_vec i i = (1 : R) :=
-eq_one_of_eq rfl
-
-lemma is_basis [fintype n] : @is_basis n R (n → R) std_basis_vec _ _ _ :=
-pi.is_basis_fun R n
-
-@[simp] lemma dot_product_eq_val (v : n → R) (i : n) [fintype n]:
-  matrix.dot_product v (std_basis_vec i) = v i :=
+@[simp] lemma matrix.dot_product_std_basis_one [decidable_eq n] (v : n → R) (i : n) :
+  matrix.dot_product v (linear_map.std_basis R (λ _, R) i 1) = v i :=
 begin
-  rw [matrix.dot_product, finset.sum_eq_single i, eq_one_of_eq rfl, mul_one],
-  exact λ _ _ hb, by rw [eq_zero_of_ne hb.symm, mul_zero],
+  rw [matrix.dot_product, finset.sum_eq_single i, linear_map.std_basis_same, mul_one],
+  exact λ _ _ hb, by rw [linear_map.std_basis_ne _ _ _ _ hb, mul_zero],
   exact λ hi, false.elim (hi $ finset.mem_univ _)
 end
 
-end std_basis_vec
-
-lemma matrix.dot_product_eq {R : Type*} [ring R] {n : Type*} [fintype n]
+lemma matrix.dot_product_eq
   (v w : n → R) (h : ∀ u, matrix.dot_product v u = matrix.dot_product w u) : v = w :=
 begin
   funext x,
-  rw [← std_basis_vec.dot_product_eq_val v x, ← std_basis_vec.dot_product_eq_val w x, h],
+  classical,
+  rw [← matrix.dot_product_std_basis_one v x, ← matrix.dot_product_std_basis_one w x, h],
 end
 
-lemma matrix.dot_product_eq_iff{R : Type*} [ring R] {n : Type*} [fintype n]
-  {v w : n → R} : (∀ u, matrix.dot_product v u = matrix.dot_product w u) ↔ v = w :=
+lemma matrix.dot_product_eq_iff {v w : n → R} :
+  (∀ u, matrix.dot_product v u = matrix.dot_product w u) ↔ v = w :=
 ⟨λ h, matrix.dot_product_eq v w h, λ h _, h ▸ rfl⟩
 
-lemma matrix.dot_product_eq_zero {R : Type*} [ring R] {n : Type*} [fintype n]
-  (v : n → R) (h : ∀ w, matrix.dot_product v w = 0) : v = 0 :=
+lemma matrix.dot_product_eq_zero (v : n → R) (h : ∀ w, matrix.dot_product v w = 0) : v = 0 :=
 begin
   funext x,
-  rw [← std_basis_vec.dot_product_eq_val v x, h], refl,
+  classical,
+  rw [← matrix.dot_product_std_basis_one v x, h], refl,
 end
 
-lemma matrix.dot_product_eq_zero_iff {R : Type*} [ring R] {n : Type*} [fintype n]
-  {v : n → R} : (∀ w, matrix.dot_product v w = 0) ↔ v = 0 :=
+lemma matrix.dot_product_eq_zero_iff {v : n → R} : (∀ w, matrix.dot_product v w = 0) ↔ v = 0 :=
 ⟨λ h, matrix.dot_product_eq_zero v h, λ h w, h.symm ▸ zero_dot_product w⟩
+
+end

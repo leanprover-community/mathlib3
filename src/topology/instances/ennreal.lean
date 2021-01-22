@@ -728,6 +728,27 @@ begin
   exact exists_congr (λ hr, nnreal.has_sum_iff_tendsto_nat)
 end
 
+lemma nnreal.has_sum_of_real {f : ℕ → ℝ} (hf_nonneg : ∀ n, 0 ≤ f n) (hf : summable f) :
+  has_sum (λ n, nnreal.of_real (f n)) (nnreal.of_real (tsum f)) :=
+begin
+  rw nnreal.has_sum_iff_tendsto_nat,
+  have h_of_real_sum : ∀ n,
+    ∑ i in finset.range n, nnreal.of_real (f i) = nnreal.of_real ((finset.range n).sum f),
+  { intro n,
+    rw nnreal.of_real_sum,
+    exact λ a ha, hf_nonneg a, },
+  simp_rw h_of_real_sum,
+  exact nnreal.tendsto_of_real ((has_sum_iff_tendsto_nat_of_nonneg hf_nonneg _).mp hf.has_sum),
+end
+
+lemma ennreal.of_real_tsum {f : ℕ → ℝ} (hf_nonneg : ∀ n, 0 ≤ f n) (hf : summable f) :
+  ennreal.of_real (∑' n, f n) = ∑' n, ennreal.of_real (f n) :=
+begin
+  simp_rw ennreal.of_real,
+  rw ennreal.tsum_coe_eq,
+  exact nnreal.has_sum_of_real hf_nonneg hf,
+end
+
 lemma not_summable_iff_tendsto_nat_at_top_of_nonneg {f : ℕ → ℝ} (hf : ∀ n, 0 ≤ f n) :
   ¬ summable f ↔ tendsto (λ n : ℕ, ∑ i in finset.range n, f i) at_top at_top :=
 begin

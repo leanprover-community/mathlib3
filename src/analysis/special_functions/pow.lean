@@ -1418,6 +1418,18 @@ begin
           nnreal.rpow_le_rpow_of_exponent_ge (bot_lt_iff_ne_bot.mpr h) hx1 hyz] }
 end
 
+lemma rpow_le_self_of_le_one {x : ennreal} {z : ℝ} (hx : x ≤ 1) (h_one_le : 1 ≤ z) : x ^ z ≤ x :=
+begin
+  nth_rewrite 1 ←ennreal.rpow_one x,
+  exact ennreal.rpow_le_rpow_of_exponent_ge hx h_one_le,
+end
+
+lemma le_rpow_self_of_one_le {x : ennreal} {z : ℝ} (hx : 1 ≤ x) (h_one_le : 1 ≤ z) : x ≤ x ^ z :=
+begin
+  nth_rewrite 0 ←ennreal.rpow_one x,
+  exact ennreal.rpow_le_rpow_of_exponent_le hx h_one_le,
+end
+
 lemma rpow_pos_of_nonneg {p : ℝ} {x : ennreal} (hx_pos : 0 < x) (hp_nonneg : 0 ≤ p) : 0 < x^p :=
 begin
   by_cases hp_zero : p = 0,

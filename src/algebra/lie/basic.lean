@@ -7,6 +7,8 @@ import data.bracket
 import algebra.algebra.basic
 import linear_algebra.bilinear_form
 import linear_algebra.matrix
+import order.preorder_hom
+import order.complete_well_founded
 import tactic.noncomm_ring
 
 /-!
@@ -741,6 +743,8 @@ attribute [nolint doc_blame] lie_submodule.to_submodule
 
 namespace lie_submodule
 
+variables {R L M} (N N' : lie_submodule R L M)
+
 /-- The zero module is a Lie submodule of any Lie module. -/
 instance : has_zero (lie_submodule R L M) :=
 ⟨{ lie_mem := λ x m h, by { rw ((submodule.mem_bot R).1 h), apply lie_zero, },
@@ -751,17 +755,18 @@ instance : inhabited (lie_submodule R L M) := ⟨0⟩
 instance coe_submodule : has_coe (lie_submodule R L M) (submodule R M) := ⟨to_submodule⟩
 
 @[norm_cast]
-lemma coe_to_submodule (N : lie_submodule R L M) : ((N : submodule R M) : set M) = N := rfl
+lemma coe_to_submodule : ((N : submodule R M) : set M) = N := rfl
 
 instance has_mem : has_mem M (lie_submodule R L M) := ⟨λ x N, x ∈ (N : set M)⟩
 
-@[simp] lemma mem_carrier (N : lie_submodule R L M) {x : M} : x ∈ N.carrier ↔ x ∈ (N : set M) :=
+@[simp] lemma mem_carrier {x : M} : x ∈ N.carrier ↔ x ∈ (N : set M) :=
 iff.rfl
 
-@[simp] lemma mem_coe_submodule (N : lie_submodule R L M) {x : M} :
-  x ∈ (N : submodule R M) ↔ x ∈ N := iff.rfl
+@[simp] lemma mem_coe_submodule {x : M} : x ∈ (N : submodule R M) ↔ x ∈ N := iff.rfl
 
-lemma mem_coe (N : lie_submodule R L M) {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
+lemma mem_coe {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
+
+@[simp] lemma zero_mem : (0 : M) ∈ N := (N : submodule R M).zero_mem
 
 @[simp] lemma coe_to_set_mk (S : set M) (h₁ h₂ h₃ h₄) :
   ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_submodule R L M) : set M) = S := rfl
@@ -770,24 +775,23 @@ lemma mem_coe (N : lie_submodule R L M) {x : M} : x ∈ (N : set M) ↔ x ∈ N 
   (({lie_mem := h, ..p} : lie_submodule R L M) : submodule R M) = p :=
 by { cases p, refl, }
 
-@[ext] lemma ext (N N' : lie_submodule R L M) (h : ∀ m, m ∈ N ↔ m ∈ N') : N = N' :=
+@[ext] lemma ext (h : ∀ m, m ∈ N ↔ m ∈ N') : N = N' :=
 by { cases N, cases N', simp only [], ext m, exact h m, }
 
-@[simp] lemma coe_to_submodule_eq_iff (N N' : lie_submodule R L M) :
-  (N : submodule R M) = (N' : submodule R M) ↔ N = N' :=
+@[simp] lemma coe_to_submodule_eq_iff : (N : submodule R M) = (N' : submodule R M) ↔ N = N' :=
 begin
   split; intros h,
   { ext, rw [← mem_coe_submodule, h], simp, },
   { rw h, },
 end
 
-instance (N : lie_submodule R L M) : lie_ring_module L N :=
+instance : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
   add_lie     := by { intros x y m, apply set_coe.ext, apply add_lie, },
   lie_add     := by { intros x m n, apply set_coe.ext, apply lie_add, },
   leibniz_lie := by { intros x y m, apply set_coe.ext, apply leibniz_lie, }, }
 
-instance (N : lie_submodule R L M) : lie_module R L N :=
+instance : lie_module R L N :=
 { lie_smul := by { intros t x y, apply set_coe.ext, apply lie_smul, },
   smul_lie := by { intros t x y, apply set_coe.ext, apply smul_lie, }, }
 
@@ -943,6 +947,16 @@ by { rw [← mem_coe_submodule, sup_coe_to_submodule, submodule.mem_sup], exact 
 lemma eq_bot_iff : N = ⊥ ↔ ∀ (m : M), m ∈ N → m = 0 :=
 by { rw eq_bot_iff, exact iff.rfl, }
 
+lemma of_bot_eq_bot (N : lie_submodule R L ↥(⊥ : lie_submodule R L M)) : N = ⊥ :=
+begin
+  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
+  rw [mem_bot, submodule.mk_eq_zero, eq_self_iff_true, iff_true],
+  exact N.zero_mem,
+end
+
+lemma unique_of_bot (N N' : lie_submodule R L ↥(⊥ : lie_submodule R L M)) : N = N' :=
+by rw [N.of_bot_eq_bot, N'.of_bot_eq_bot]
+
 section inclusion_maps
 
 /-- The inclusion of a Lie submodule into its ambient space is a morphism of Lie modules. -/
@@ -998,6 +1012,8 @@ lemma lie_span_eq : lie_span R L (N : set M) = N :=
 le_antisymm (lie_span_le.mpr rfl.subset) subset_lie_span
 
 end lie_span
+
+variables (R L M)
 
 lemma well_founded_of_noetherian [is_noetherian R M] :
   well_founded ((>) : lie_submodule R L M → lie_submodule R L M → Prop) :=
@@ -1240,34 +1256,67 @@ derived series are also ideals of the enclosing algebra.
 
 See also `lie_ideal.derived_series_eq_derived_series_of_ideal_comap` and
 `lie_ideal.derived_series_eq_derived_series_of_ideal_map` below. -/
-def derived_series_of_ideal : ℕ → lie_ideal R L
-| 0       := I
-| (k + 1) := ⁅derived_series_of_ideal k, derived_series_of_ideal k⁆
+def derived_series_of_ideal (k : ℕ) : lie_ideal R L → lie_ideal R L := (λ I, ⁅I, I⁆)^[k]
 
 @[simp] lemma derived_series_of_ideal_zero :
-  derived_series_of_ideal R L I 0 = I := rfl
+  derived_series_of_ideal R L 0 I = I := rfl
 
 @[simp] lemma derived_series_of_ideal_succ (k : ℕ) :
-  derived_series_of_ideal R L I (k + 1) =
-  ⁅derived_series_of_ideal R L I k, derived_series_of_ideal R L I k⁆ := rfl
+  derived_series_of_ideal R L (k + 1) I =
+  ⁅derived_series_of_ideal R L k I, derived_series_of_ideal R L k I⁆ :=
+function.iterate_succ_apply' (λ I, ⁅I, I⁆) k I
 
 /-- The derived series of Lie ideals of a Lie algebra. -/
-abbreviation derived_series : ℕ → lie_ideal R L := derived_series_of_ideal R L ⊤
+abbreviation derived_series (k : ℕ) : lie_ideal R L := derived_series_of_ideal R L k ⊤
 
 lemma derived_series_def (k : ℕ) :
-  derived_series R L k = derived_series_of_ideal R L ⊤ k := rfl
+  derived_series R L k = derived_series_of_ideal R L k ⊤ := rfl
 
 variables {R L}
 
-lemma derived_series_of_ideal_succ_le (k : ℕ) :
-  derived_series_of_ideal R L I (k + 1) ≤ derived_series_of_ideal R L I k :=
-by { rw derived_series_of_ideal_succ, exact lie_submodule.lie_le_left _ _, }
+local notation `D` := derived_series_of_ideal R L
 
-lemma derived_series_of_ideal_le (k : ℕ) : derived_series_of_ideal R L I k ≤ I :=
+lemma derived_series_of_ideal_add (k l : ℕ) : D (k + l) I = D k (D l I) :=
 begin
   induction k with k ih,
-  { rw derived_series_of_ideal_zero, apply le_refl _, },
-  { exact le_trans (derived_series_of_ideal_succ_le I k) ih, },
+  { rw [zero_add, derived_series_of_ideal_zero], },
+  { rw [nat.succ_add k l, derived_series_of_ideal_succ, derived_series_of_ideal_succ, ih], },
+end
+
+lemma derived_series_of_ideal_le {I J : lie_ideal R L} {k l : ℕ} (h₁ : I ≤ J) (h₂ : l ≤ k) :
+  D k I ≤ D l J :=
+begin
+  revert l, induction k with k ih; intros l h₂,
+  { rw nat.le_zero_iff at h₂, rw [h₂, derived_series_of_ideal_zero], exact h₁, },
+  { have h : l = k.succ ∨ l ≤ k, { omega, },
+    cases h,
+    { rw [h, derived_series_of_ideal_succ, derived_series_of_ideal_succ],
+      exact lie_submodule.mono_lie _ _ _ _ (ih (le_refl k)) (ih (le_refl k)), },
+    { rw derived_series_of_ideal_succ, exact le_trans (lie_submodule.lie_le_left _ _) (ih h), }, },
+end
+
+lemma derived_series_of_ideal_succ_le (k : ℕ) : D (k + 1) I ≤ D k I :=
+derived_series_of_ideal_le (le_refl I) k.le_succ
+
+lemma derived_series_of_ideal_le_self (k : ℕ) : D k I ≤ I :=
+derived_series_of_ideal_le (le_refl I) (zero_le k)
+
+lemma derived_series_of_ideal_mono {I J : lie_ideal R L} (h : I ≤ J) (k : ℕ) : D k I ≤ D k J :=
+derived_series_of_ideal_le h (le_refl k)
+
+lemma derived_series_of_ideal_antimono {k l : ℕ} (h : l ≤ k) : D k I ≤ D l I :=
+derived_series_of_ideal_le (le_refl I) h
+
+lemma derived_series_of_ideal_add_le_add (J : lie_ideal R L) (k l : ℕ) :
+  D (k + l) (I + J) ≤ (D k I) + (D l J) :=
+begin
+  let D₁ : lie_ideal R L →ₘ lie_ideal R L :=
+  { to_fun    := λ I, ⁅I, I⁆,
+    monotone' := λ I J h, lie_submodule.mono_lie I J I J h h, },
+  have h₁ : ∀ (I J : lie_ideal R L), D₁ (I ⊔ J) ≤ (D₁ I) ⊔ J,
+  { simp [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_right_of_le], },
+  rw ← D₁.iterate_sup_le_sup_iff at h₁,
+  exact h₁ k l I J,
 end
 
 end lie_algebra
@@ -1275,9 +1324,13 @@ end lie_algebra
 namespace lie_module
 
 /-- The lower central series of Lie submodules of a Lie module. -/
-def lower_central_series : ℕ → lie_submodule R L M
-| 0       := ⊤
-| (k + 1) := ⁅(⊤ : lie_ideal R L), lower_central_series k⁆
+def lower_central_series (k : ℕ) : lie_submodule R L M := (λ I, ⁅(⊤ : lie_ideal R L), I⁆)^[k] ⊤
+
+@[simp] lemma lower_central_series_zero : lower_central_series R L M 0 = ⊤ := rfl
+
+@[simp] lemma lower_central_series_succ (k : ℕ) :
+  lower_central_series R L M (k + 1) = ⁅(⊤ : lie_ideal R L), lower_central_series R L M k⁆ :=
+function.iterate_succ_apply' (λ I, ⁅(⊤ : lie_ideal R L), I⁆) k ⊤
 
 lemma trivial_iff_derived_eq_bot : is_trivial L M ↔ lower_central_series R L M 1 = ⊥ :=
 begin
@@ -1295,6 +1348,7 @@ begin
   induction k with k h,
   { exact le_refl _, },
   { have h' : derived_series R L k ≤ ⊤, { by simp only [le_top], },
+    rw [derived_series_def, derived_series_of_ideal_succ, lower_central_series_succ],
     exact lie_submodule.mono_lie _ _ _ _ h' h, },
 end
 
@@ -1395,6 +1449,22 @@ begin
   { erw [lie_submodule.lie_span_le, h], },
   { rw [lie_submodule.le_def, ← h], exact lie_submodule.subset_lie_span, },
 end
+
+/-- Note that this is not a special case of `lie_submodule.of_bot_eq_bot`. Indeed, given
+`I : lie_ideal R L`, in general the two lattices `lie_ideal R I` and `lie_submodule R L I` are
+different (though the latter does naturally inject into the former).
+
+In other words, in general, ideals of `I`, regarded as a Lie algebra in its own right, are not the
+same as ideals of `L` contained in `I`. -/
+lemma of_bot_eq_bot (I : lie_ideal R ↥(⊥ : lie_ideal R L)) : I = ⊥ :=
+begin
+  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
+  rw [lie_submodule.mem_bot, submodule.mk_eq_zero, eq_self_iff_true, iff_true],
+  exact I.zero_mem,
+end
+
+lemma unique_of_bot (I J : lie_submodule R L ↥(⊥ : lie_submodule R L M)) : I = J :=
+by rw [I.of_bot_eq_bot, J.of_bot_eq_bot]
 
 end lie_ideal
 
@@ -1583,23 +1653,34 @@ lemma comap_bracket_incl_of_le {I₁ I₂ : lie_ideal R L} (h₁ : I₁ ≤ I) (
 by { rw comap_bracket_incl, rw ← inf_eq_right at h₁ h₂, rw [h₁, h₂], }
 
 lemma derived_series_eq_derived_series_of_ideal_comap (k : ℕ) :
-  derived_series R I k = (derived_series_of_ideal R L I k).comap I.incl :=
+  derived_series R I k = (derived_series_of_ideal R L k I).comap I.incl :=
 begin
   induction k with k ih,
   { simp only [derived_series_def, comap_incl_self, derived_series_of_ideal_zero], },
   { simp only [derived_series_def, derived_series_of_ideal_succ] at ⊢ ih, rw ih,
     exact comap_bracket_incl_of_le I
-      (derived_series_of_ideal_le I k) (derived_series_of_ideal_le I k), },
+      (derived_series_of_ideal_le_self I k) (derived_series_of_ideal_le_self I k), },
 end
 
 lemma derived_series_eq_derived_series_of_ideal_map (k : ℕ) :
-  (derived_series R I k).map I.incl = derived_series_of_ideal R L I k :=
+  (derived_series R I k).map I.incl = derived_series_of_ideal R L k I :=
 by { rw [derived_series_eq_derived_series_of_ideal_comap, map_comap_incl, inf_eq_right],
-     apply derived_series_of_ideal_le, }
+     apply derived_series_of_ideal_le_self, }
 
 lemma derived_series_eq_bot_iff (k : ℕ) :
-  derived_series R I k = ⊥ ↔ derived_series_of_ideal R L I k = ⊥ :=
+  derived_series R I k = ⊥ ↔ derived_series_of_ideal R L k I = ⊥ :=
 by rw [← derived_series_eq_derived_series_of_ideal_map, I.incl.map_bot_iff, ker_incl, eq_bot_iff]
+
+lemma derived_series_add_eq_bot {k l : ℕ} {I J : lie_ideal R L}
+  (hI : derived_series R I k = ⊥) (hJ : derived_series R J l = ⊥) :
+  derived_series R ↥(I + J) (k + l) = ⊥ :=
+begin
+  rw lie_ideal.derived_series_eq_bot_iff at hI hJ ⊢,
+  rw ← le_bot_iff,
+  let D := derived_series_of_ideal R L, change D k I = ⊥ at hI, change D l J = ⊥ at hJ,
+  calc D (k + l) (I + J) ≤ (D k I) + (D l J) : derived_series_of_ideal_add_le_add I J k l
+                     ... ≤ ⊥ : by { rw [hI, hJ], simp, },
+end
 
 end lie_ideal
 
@@ -1611,35 +1692,66 @@ variables (R : Type u) (L : Type v) (M : Type w)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
 variables [lie_ring_module L M] [lie_module R L M]
 
+namespace lie_module
+
 /-- A Lie module is irreducible if it is zero or its only non-trivial Lie submodule is itself. -/
-class lie_module.is_irreducible : Prop :=
+class is_irreducible : Prop :=
 (irreducible : ∀ (N : lie_submodule R L M), N ≠ ⊥ → N = ⊤)
 
 /-- A Lie module is nilpotent if its lower central series reaches 0 (in a finite number of steps).-/
-class lie_module.is_nilpotent : Prop :=
+class is_nilpotent : Prop :=
 (nilpotent : ∃ k, lie_module.lower_central_series R L M k = ⊥)
 
 @[priority 100]
 instance trivial_is_nilpotent [lie_module.is_trivial L M] : lie_module.is_nilpotent R L M :=
 ⟨by { use 1, change ⁅⊤, ⊤⁆ = ⊥, simp, }⟩
 
+end lie_module
+
+namespace lie_algebra
+
 /-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
 action, and it is non-Abelian. -/
-class lie_algebra.is_simple extends lie_module.is_irreducible R L L : Prop :=
+class is_simple extends lie_module.is_irreducible R L L : Prop :=
 (non_abelian : ¬is_lie_abelian L)
 
 /-- A Lie algebra is solvable if its derived series reaches 0 (in a finite number of steps). -/
-class lie_algebra.is_solvable : Prop :=
-(solvable : ∃ k, lie_algebra.derived_series R L k = ⊥)
+class is_solvable : Prop :=
+(solvable : ∃ k, derived_series R L k = ⊥)
+
+instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) := ⟨⟨0, lie_ideal.of_bot_eq_bot ⊤⟩⟩
+
+instance is_solvable_add {I J : lie_ideal R L} [hI : is_solvable R I] [hJ : is_solvable R J] :
+  is_solvable R ↥(I + J) :=
+begin
+  tactic.unfreeze_local_instances,
+  obtain ⟨k, hk⟩ := hI,
+  obtain ⟨l, hl⟩ := hJ,
+  exact ⟨⟨k+l, lie_ideal.derived_series_add_eq_bot hk hl⟩⟩,
+end
+
+/-- The (solvable) radical of Lie algebra is the `Sup` of all solvable ideals. -/
+def radical := Sup { I : lie_ideal R L | is_solvable R I }
+
+/-- The radical of a Noetherian Lie algebra is solvable. -/
+instance radical_is_solvable [is_noetherian R L] : is_solvable R (radical R L) :=
+begin
+  have hwf := lie_submodule.well_founded_of_noetherian R L L,
+  rw ← complete_lattice.is_sup_closed_compact_iff_well_founded at hwf,
+  refine hwf { I : lie_ideal R L | is_solvable R I } _ _,
+  { use ⊥, exact lie_algebra.is_solvable_bot R L, },
+  { intros I J hI hJ, apply lie_algebra.is_solvable_add R L; [exact hI, exact hJ], },
+end
 
 @[priority 100]
-instance is_solvable_of_is_nilpotent [hL : lie_module.is_nilpotent R L L] :
-  lie_algebra.is_solvable R L :=
+instance is_solvable_of_is_nilpotent [hL : lie_module.is_nilpotent R L L] : is_solvable R L :=
 begin
   obtain ⟨k, h⟩ : ∃ k, lie_module.lower_central_series R L L k = ⊥ := hL.nilpotent,
   use k, rw ← le_bot_iff at h ⊢,
   exact le_trans (lie_module.derived_series_le_lower_central_series R L k) h,
 end
+
+end lie_algebra
 
 end lie_algebra_properties
 

@@ -748,33 +748,14 @@ lemma div_lt_self' (n b : ℕ) : (n+1)/(b+2) < n+1 :=
 nat.div_lt_self (nat.succ_pos n) (nat.succ_lt_succ (nat.succ_pos _))
 
 theorem le_div_iff_mul_le' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y :=
-begin
-  revert x, refine nat.strong_rec' _ y,
-  clear y, intros y IH x,
-  cases decidable.lt_or_le y k with h h,
-  { rw [div_eq_of_lt h],
-    cases x with x,
-    { simp [zero_mul, zero_le] },
-    { rw succ_mul,
-      exact iff_of_false (not_succ_le_zero _)
-        (not_le_of_lt $ lt_of_lt_of_le h (le_add_left _ _)) } },
-  { rw [div_eq_sub_div k0 h],
-    cases x with x,
-    { simp [zero_mul, zero_le] },
-    { rw [← add_one, nat.add_le_add_iff_le_right, succ_mul,
-        IH _ (sub_lt_of_pos_le _ _ k0 h), add_le_to_le_sub _ h] } }
-end
-
-theorem div_mul_le_self' (m n : ℕ) : m / n * n ≤ m :=
-(nat.eq_zero_or_pos n).elim (λ n0, by simp [n0, zero_le]) $ λ n0,
-(le_div_iff_mul_le' n0).1 (le_refl _)
+le_div_iff_mul_le x y k0
 
 theorem div_lt_iff_lt_mul' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x / k < y ↔ x < y * k :=
 lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le' k0
 
 protected theorem div_le_div_right {n m : ℕ} (h : n ≤ m) {k : ℕ} : n / k ≤ m / k :=
 (nat.eq_zero_or_pos k).elim (λ k0, by simp [k0]) $ λ hk,
-(le_div_iff_mul_le' hk).2 $ le_trans (nat.div_mul_le_self' _ _) h
+(le_div_iff_mul_le' hk).2 $ le_trans (nat.div_mul_le_self _ _) h
 
 lemma lt_of_div_lt_div {m n k : ℕ} (h : m / k < n / k) : m < n :=
 by_contradiction $ λ h₁, absurd h (not_lt_of_ge (nat.div_le_div_right (not_lt.1 h₁)))

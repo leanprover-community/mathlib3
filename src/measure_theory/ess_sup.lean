@@ -105,19 +105,19 @@ lemma ae_lt_of_lt_ess_inf {f : α → β} {x : β} (hf : x < ess_inf f μ) : ∀
 
 end complete_linear_order
 
-section ennreal
+namespace ennreal
 
-lemma ennreal.ae_le_ess_sup (f : α → ennreal) : ∀ᵐ y ∂μ, f y ≤ ess_sup f μ :=
-ennreal.eventually_le_limsup f
+lemma ae_le_ess_sup (f : α → ennreal) : ∀ᵐ y ∂μ, f y ≤ ess_sup f μ :=
+eventually_le_limsup f
 
 lemma ess_sup_eq_zero_iff {f : α → ennreal} : ess_sup f μ = 0 ↔ f =ᵐ[μ] 0 :=
-ennreal.limsup_eq_zero_iff
+limsup_eq_zero_iff
 
-lemma ennreal.ess_sup_const_mul {f : α → ennreal} {a : ennreal} :
+lemma ess_sup_const_mul {f : α → ennreal} {a : ennreal} :
   ess_sup (λ (x : α), a * (f x)) μ = a * ess_sup f μ :=
-ennreal.limsup_const_mul
+limsup_const_mul
 
-lemma ennreal.ess_sup_add_le (f g : α → ennreal) : ess_sup (f + g) μ ≤ ess_sup f μ + ess_sup g μ :=
-ennreal.limsup_add_le f g
+lemma ess_sup_add_le (f g : α → ennreal) : ess_sup (f + g) μ ≤ ess_sup f μ + ess_sup g μ :=
+limsup_add_le f g
 
 end ennreal

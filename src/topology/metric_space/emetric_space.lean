@@ -585,6 +585,14 @@ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subset_compl_iff_disjoint.2
 theorem ball_mem_nhds (x : α) {ε : ennreal} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
+theorem ball_prod_same [emetric_space β] (x : α) (y : β) (r : ennreal) :
+  (ball x r).prod (ball y r) = ball (x, y) r :=
+ext $ λ z, max_lt_iff.symm
+
+theorem closed_ball_prod_same [emetric_space β] (x : α) (y : β) (r : ennreal) :
+  (closed_ball x r).prod (closed_ball y r) = closed_ball (x, y) r :=
+ext $ λ z, max_le_iff.symm
+
 /-- ε-characterization of the closure in emetric spaces -/
 theorem mem_closure_iff :
   x ∈ closure s ↔ ∀ε>0, ∃y ∈ s, edist x y < ε :=

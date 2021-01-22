@@ -66,11 +66,11 @@ lemma lt_length_right_of_zip {i : ℕ} {l : list α} {l' : list β} (h : i < (zi
   i < l'.length :=
 lt_length_right_of_zip_with h
 
-theorem zip_append : ∀ {l₁ l₂ r₁ r₂ : list α} (h : length l₁ = length l₂),
+theorem zip_append : ∀ {l₁ r₁ : list α} {l₂ r₂ : list β} (h : length l₁ = length l₂),
    zip (l₁ ++ r₁) (l₂ ++ r₂) = zip l₁ l₂ ++ zip r₁ r₂
-| []      l₂      r₁ r₂ h := by simp only [eq_nil_of_length_eq_zero h.symm]; refl
-| l₁      []      r₁ r₂ h := by simp only [eq_nil_of_length_eq_zero h]; refl
-| (a::l₁) (b::l₂) r₁ r₂ h := by simp only [cons_append, zip_cons_cons, zip_append (succ.inj h)];
+| []      r₁ l₂      r₂ h := by simp only [eq_nil_of_length_eq_zero h.symm]; refl
+| l₁      r₁ []      r₂ h := by simp only [eq_nil_of_length_eq_zero h]; refl
+| (a::l₁) r₁ (b::l₂) r₂ h := by simp only [cons_append, zip_cons_cons, zip_append (succ.inj h)];
     split; refl
 
 theorem zip_map (f : α → γ) (g : β → δ) : ∀ (l₁ : list α) (l₂ : list β),

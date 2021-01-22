@@ -79,7 +79,7 @@ lemma edist_nearest_pt_le (e : ℕ → α) (x : α) {k N : ℕ} (hk : k ≤ N) :
   edist (nearest_pt e N x) x ≤ edist (e k) x :=
 begin
   induction N with N ihN generalizing k,
-  { simp [le_zero_iff_eq.1 hk, le_refl] },
+  { simp [nonpos_iff_eq_zero.1 hk, le_refl] },
   { simp only [nearest_pt, nearest_pt_ind_succ, map_apply],
     split_ifs,
     { rcases hk.eq_or_lt with rfl|hk,

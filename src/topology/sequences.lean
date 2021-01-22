@@ -180,7 +180,8 @@ variables [topological_space α]
 /-- A set `s` is sequentially compact if every sequence taking values in `s` has a
 converging subsequence. -/
 def is_seq_compact (s : set α) :=
-  ∀ ⦃u : ℕ → α⦄, (∀ n, u n ∈ s) → ∃ (x ∈ s) (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (u ∘ φ) at_top (𝓝 x)
+  ∀ ⦃u : ℕ → α⦄, (∀ n, u n ∈ s) →
+    ∃ (x ∈ s) (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (u ∘ φ) at_top (𝓝 x)
 
 /-- A space `α` is sequentially compact if every sequence in `α` has a
 converging subsequence. -/
@@ -207,7 +208,8 @@ lemma is_compact.is_seq_compact {s : set α} (hs : is_compact s) : is_seq_compac
 let ⟨x, x_in, hx⟩ := @hs (map u at_top) _
   (le_principal_iff.mpr (univ_mem_sets' u_in : _)) in ⟨x, x_in, tendsto_subseq hx⟩
 
-lemma is_compact.tendsto_subseq' {s : set α} {u : ℕ → α} (hs : is_compact s) (hu : ∃ᶠ n in at_top, u n ∈ s) :
+lemma is_compact.tendsto_subseq' {s : set α} {u : ℕ → α} (hs : is_compact s)
+  (hu : ∃ᶠ n in at_top, u n ∈ s) :
 ∃ (x ∈ s) (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (u ∘ φ) at_top (𝓝 x) :=
 hs.is_seq_compact.subseq_of_frequently_in hu
 
@@ -271,7 +273,7 @@ begin
       exact subset.trans (hV.decreasing trivial trivial $  φ_mono.id_le _) hN },
     have : φ N₂ ≤ φ (max N₁ N₂),
       from φ_mono.le_iff_le.mpr (le_max_right _ _),
-    exact ⟨max N₁ N₂, h₁ _ (le_max_left _ _), subset.trans (hV.decreasing trivial trivial this) h₂⟩ },
+    exact ⟨max N₁ N₂, h₁ _ (le_max_left _ _), trans (hV.decreasing trivial trivial this) h₂⟩ },
   suffices : ball (x (φ N)) (V (φ N)) ⊆ c i₀,
     from hx (φ N) i₀ this,
   calc
@@ -309,8 +311,9 @@ begin
   exact hu hN,
 end
 
-protected lemma is_seq_compact.is_compact (h : is_countably_generated $ 𝓤 β) (hs : is_seq_compact s) :
-is_compact s :=
+protected lemma is_seq_compact.is_compact (h : is_countably_generated $ 𝓤 β)
+  (hs : is_seq_compact s) :
+  is_compact s :=
 begin
   classical,
   rw compact_iff_finite_subcover,

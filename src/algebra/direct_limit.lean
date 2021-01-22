@@ -239,7 +239,8 @@ module.direct_limit.induction_on z ih
 
 /-- A component that corresponds to zero in the direct limit is already zero in some
 bigger module in the directed system. -/
-theorem of.zero_exact [directed_system G (λ i j h, f i j h)] (i x) (h : of G f i x = 0) : ∃ j hij, f i j hij x = 0 :=
+theorem of.zero_exact [directed_system G (λ i j h, f i j h)] (i x) (h : of G f i x = 0) :
+  ∃ j hij, f i j hij x = 0 :=
 module.direct_limit.of.zero_exact h
 
 variables (P : Type u₁) [add_comm_group P]
@@ -461,7 +462,8 @@ end
 
 /-- A component that corresponds to zero in the direct limit is already zero in some
 bigger module in the directed system. -/
-lemma of.zero_exact {i x} (hix : of G (λ i j h, f' i j h) i x = 0) : ∃ j, ∃ hij : i ≤ j, f' i j hij x = 0 :=
+lemma of.zero_exact {i x} (hix : of G (λ i j h, f' i j h) i x = 0) :
+  ∃ j (hij : i ≤ j), f' i j hij x = 0 :=
 by haveI : nonempty ι := ⟨i⟩; exact
 let ⟨j, s, H, hxs, hx⟩ := of.zero_exact_aux hix in
 have hixs : (⟨i, x⟩ : Σ i, G i) ∈ s, from is_supported_of.1 hxs,

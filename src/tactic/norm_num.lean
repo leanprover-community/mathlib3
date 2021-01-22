@@ -20,6 +20,11 @@ namespace tactic
 meta def refl_conv (e : expr) : tactic (expr × expr) :=
 do p ← mk_eq_refl e, return (e, p)
 
+/-- Turns a conversion tactic into one that always succeeds, where failure is interpreted as a
+proof by reflexivity. -/
+meta def or_refl_conv (tac : expr → tactic (expr × expr))
+  (e : expr) : tactic (expr × expr) := tac e <|> refl_conv e
+
 /-- Transitivity conversion: given two conversions (which take an
 expression `e` and returns `(e', ⊢ e = e')`), produces another
 conversion that combines them with transitivity, treating failures
@@ -100,6 +105,13 @@ meta def prove_succ : instance_cache → expr → expr → tactic (instance_cach
   | _ := failed
   end
 end
+
+/-- Given `a` natural numeral, returns `(b, ⊢ a + 1 = b)`. -/
+meta def prove_succ' (c : instance_cache) (a : expr) : tactic (instance_cache × expr × expr) :=
+do na ← a.to_nat,
+  (c, b) ← c.of_nat (na + 1),
+  (c, p) ← prove_succ c a b,
+  return (c, b, p)
 
 theorem zero_adc {α} [semiring α] (a b : α) (h : a + 1 = b) : 0 + a + 1 = b := by rwa zero_add
 theorem adc_zero {α} [semiring α] (a b : α) (h : a + 1 = b) : a + 0 + 1 = b := by rwa add_zero

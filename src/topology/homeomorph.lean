@@ -30,6 +30,12 @@ rfl
 
 lemma coe_eq_to_equiv (h : α ≃ₜ β) (a : α) : h a = h.to_equiv a := rfl
 
+lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α ≃ β)
+| ⟨e, h₁, h₂⟩ ⟨e', h₁', h₂'⟩ rfl := rfl
+
+@[ext] lemma ext {h h' : α ≃ₜ β} (H : ∀ x, h x = h' x) : h = h' :=
+to_equiv_injective $ equiv.ext H
+
 /-- Identity map as a homeomorphism. -/
 protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=
 { continuous_to_fun := continuous_id, continuous_inv_fun := continuous_id, .. equiv.refl α }
@@ -170,17 +176,15 @@ def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : 
 
 @[simp] lemma comp_continuous_on_iff (h : α ≃ₜ β) (f : γ → α) (s : set γ) :
   continuous_on (h ∘ f) s ↔ continuous_on f s :=
-⟨λ H, by simpa only [(∘), h.symm_apply_apply] using h.symm.continuous.comp_continuous_on H,
-  λ H, h.continuous.comp_continuous_on H⟩
+h.inducing.continuous_on_iff.symm
 
 @[simp] lemma comp_continuous_iff (h : α ≃ₜ β) {f : γ → α} :
   continuous (h ∘ f) ↔ continuous f :=
-by simp [continuous_iff_continuous_on_univ, comp_continuous_on_iff]
+h.inducing.continuous_iff.symm
 
 @[simp] lemma comp_continuous_iff' (h : α ≃ₜ β) {f : β → γ} :
   continuous (f ∘ h) ↔ continuous f :=
-⟨λ H, by simpa only [(∘), h.apply_symm_apply] using H.comp h.symm.continuous,
-  λ H, H.comp h.continuous⟩
+h.quotient_map.continuous_iff.symm
 
 /-- If two sets are equal, then they are homeomorphic. -/
 def set_congr {s t : set α} (h : s = t) : s ≃ₜ t :=

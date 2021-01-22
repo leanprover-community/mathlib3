@@ -287,7 +287,7 @@ by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm
 
 theorem dim_quotient_le (p : submodule K V) :
   dim K p.quotient ≤ dim K V :=
-by { rw ← dim_quotient_add_dim p, exact cardinal.le_add_right _ _ }
+by { rw ← dim_quotient_add_dim p, exact self_le_add_right _ _ }
 
 /-- rank-nullity theorem -/
 theorem dim_range_add_dim_ker (f : V →ₗ[K] V₁) : dim K f.range + dim K f.ker = dim K V :=
@@ -297,7 +297,7 @@ begin
 end
 
 lemma dim_range_le (f : V →ₗ[K] V₁) : dim K f.range ≤ dim K V :=
-by rw ← dim_range_add_dim_ker f; exact le_add_right (le_refl _)
+by { rw ← dim_range_add_dim_ker f, exact self_le_add_right _ _ }
 
 lemma dim_map_le (f : V →ₗ V₁) (p : submodule K V) : dim K (p.map f) ≤ dim K p :=
 begin
@@ -316,13 +316,13 @@ lemma dim_eq_of_surjective (f : V →ₗ[K] V₁) (h : surjective f) : dim K V =
 by rw [← dim_range_add_dim_ker f, ← dim_range_of_surjective f h]
 
 lemma dim_le_of_surjective (f : V →ₗ[K] V₁) (h : surjective f) : dim K V₁ ≤ dim K V :=
-by rw [dim_eq_of_surjective f h]; refine le_add_right (le_refl _)
+by { rw [dim_eq_of_surjective f h], refine self_le_add_right _ _ }
 
 lemma dim_eq_of_injective (f : V →ₗ[K] V₁) (h : injective f) : dim K V = dim K f.range :=
 by rw [← dim_range_add_dim_ker f, linear_map.ker_eq_bot.2 h]; simp [dim_bot]
 
 lemma dim_submodule_le (s : submodule K V) : dim K s ≤ dim K V :=
-by { rw ← dim_quotient_add_dim s, exact cardinal.le_add_left _ _ }
+by { rw ← dim_quotient_add_dim s, exact self_le_add_left _ _ }
 
 lemma dim_le_of_injective (f : V →ₗ[K] V₁) (h : injective f) :
   dim K V ≤ dim K V₁ :=
@@ -406,7 +406,7 @@ dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (
 
 lemma dim_add_le_dim_add_dim (s t : submodule K V) :
   dim K (s ⊔ t : submodule K V) ≤ dim K s + dim K t :=
-by rw [← dim_sup_add_dim_inf_eq]; exact le_add_right (le_refl _)
+by { rw [← dim_sup_add_dim_inf_eq], exact self_le_add_right _ _ }
 
 end
 
@@ -469,7 +469,7 @@ section rank
 def rank (f : V →ₗ[K] V') : cardinal := dim K f.range
 
 lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ dim K V :=
-by rw [← dim_range_add_dim_ker f]; exact le_add_right (le_refl _)
+by { rw [← dim_range_add_dim_ker f], exact self_le_add_right _ _ }
 
 lemma rank_le_range (f : V →ₗ[K] V₁) : rank f ≤ dim K V₁ :=
 dim_submodule_le _

@@ -146,7 +146,7 @@ calc ((x / y : ℂ) - ((x / y : ℤ[i]) : ℂ)).norm_sq =
     ((x / y : ℂ).im - ((x / y : ℤ[i]) : ℂ).im) * I : ℂ).norm_sq :
       congr_arg _ $ by apply complex.ext; simp
   ... ≤ (1 / 2 + 1 / 2 * I).norm_sq :
-  have abs' (2 / (2 * 2) : ℝ) = 1 / 2, by rw _root_.abs_of_nonneg; norm_num,
+  have abs' (2⁻¹ : ℝ) = 2⁻¹, from _root_.abs_of_nonneg (by norm_num),
   norm_sq_le_norm_sq_of_re_le_of_im_le
     (by rw [to_complex_div_re]; simp [norm_sq, this];
       simpa using abs_sub_round (x / y : ℂ).re)

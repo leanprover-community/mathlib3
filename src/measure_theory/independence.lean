@@ -188,12 +188,12 @@ end indep2
 
 section from_indep_to_indep2
 
-lemma indep2_sets_of_indep_sets {α ι} {m : ι → set (set α)} [measurable_space α] {μ : measure α}
-  (h_indep : indep_sets m μ) {i j : ι} (hij : i ≠ j) :
-  indep2_sets (m i) (m j) μ :=
+lemma indep2_sets_of_indep_sets {α ι} {s : ι → set (set α)} [measurable_space α] {μ : measure α}
+  (h_indep : indep_sets s μ) {i j : ι} (hij : i ≠ j) :
+  indep2_sets (s i) (s j) μ :=
 begin
   intros t₁ t₂ ht₁ ht₂,
-  have hf_m : ∀ (x : ι), x ∈ {i, j} → (ite (x=i) t₁ t₂) ∈ m x,
+  have hf_m : ∀ (x : ι), x ∈ {i, j} → (ite (x=i) t₁ t₂) ∈ s x,
   { intros x hx,
     cases finset.mem_insert.mp hx with hx hx,
     { simp [hx, ht₁], },

@@ -1070,7 +1070,9 @@ begin
     end
 end
 
-theorem ae_lintegral_supr {f : ℕ → α → ennreal} (hf : ∀n, ae_measurable (f n) μ)
+/-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence. Version with
+ae_measurable functions. -/
+theorem lintegral_supr' {f : ℕ → α → ennreal} (hf : ∀n, ae_measurable (f n) μ)
   (h_mono : monotone f) :
   (∫⁻ a, ⨆n, f n a ∂μ) = (⨆n, ∫⁻ a, f n a ∂μ) :=
 begin
@@ -1450,13 +1452,13 @@ lemma lintegral_infi
 lintegral_infi_ae h_meas (λ n, ae_of_all _ $ h_mono $ le_of_lt n.lt_succ_self) h_fin
 
 /-- Known as Fatou's lemma, version with `ae_measurable` functions -/
-lemma ae_lintegral_liminf_le {f : ℕ → α → ennreal} (h_meas : ∀n, ae_measurable (f n) μ) :
+lemma lintegral_liminf_le' {f : ℕ → α → ennreal} (h_meas : ∀n, ae_measurable (f n) μ) :
   ∫⁻ a, at_top.liminf (λ n, f n a) ∂μ ≤ at_top.liminf (λ n, ∫⁻ a, f n a ∂μ) :=
 calc
   ∫⁻ a, at_top.liminf (λ n, f n a) ∂μ = ∫⁻ a, ⨆n:ℕ, ⨅i≥n, f i a ∂μ :
      by simp only [filter.liminf_eq_supr_infi_of_nat]
   ... = ⨆n:ℕ, ∫⁻ a, ⨅i≥n, f i a ∂μ :
-    ae_lintegral_supr
+    lintegral_supr'
       (assume n, ae_measurable_binfi _ (set.countable_encodable _) h_meas)
       (assume n m hnm a, infi_le_infi_of_subset $ λ i hi, le_trans hnm hi)
   ... ≤ ⨆n:ℕ, ⨅i≥n, ∫⁻ a, f i a ∂μ :
@@ -1466,7 +1468,7 @@ calc
 /-- Known as Fatou's lemma -/
 lemma lintegral_liminf_le {f : ℕ → α → ennreal} (h_meas : ∀n, measurable (f n)) :
   ∫⁻ a, liminf at_top (λ n, f n a) ∂μ ≤ liminf at_top (λ n, ∫⁻ a, f n a ∂μ) :=
-ae_lintegral_liminf_le (λ n, (h_meas n).ae_measurable)
+lintegral_liminf_le' (λ n, (h_meas n).ae_measurable)
 
 lemma limsup_lintegral_le {f : ℕ → α → ennreal} {g : α → ennreal}
   (hf_meas : ∀ n, measurable (f n)) (h_bound : ∀n, f n ≤ᵐ[μ] g) (h_fin : ∫⁻ a, g a ∂μ < ⊤) :

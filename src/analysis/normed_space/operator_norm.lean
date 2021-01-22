@@ -687,26 +687,28 @@ continuous_linear_map.homothety_norm _ c.norm_smul_right_apply
 variables (𝕜 F)
 
 /-- The linear map obtained by applying a continuous linear map at a given vector. -/
-def applyₗ (v : E) : (E →L[𝕜] F) →ₗ[𝕜] F :=
+def evalₗ (v : E) : (E →L[𝕜] F) →ₗ[𝕜] F :=
 { to_fun := λ f, f v,
   map_add' := λ f g, f.add_apply g v,
   map_smul' := λ x f, f.smul_apply x v }
 
-lemma continuous_applyₗ (v : E) : continuous (continuous_linear_map.applyₗ 𝕜 F v) :=
+lemma continuous_evalₗ (v : E) : continuous (continuous_linear_map.eval 𝕜 F v) :=
 begin
-  apply (continuous_linear_map.applyₗ 𝕜 F v).continuous_of_bound,
+  apply (continuous_linear_map.eval 𝕜 F v).continuous_of_bound,
   intro f,
   rw mul_comm,
   exact f.le_op_norm v,
 end
 
-/-- The continuous linear map obtained by applying a continuous linear map at a given vector. -/
-def apply (v : E) : (E →L[𝕜] F) →L[𝕜] F :=
-⟨continuous_linear_map.applyₗ 𝕜 F v, continuous_linear_map.continuous_applyₗ _ _ _⟩
+/-- The continuous linear map obtained by applying a continuous linear map at a given vector.
+
+This is the continuous version of `linear_map.eval`. -/
+def eval (v : E) : (E →L[𝕜] F) →L[𝕜] F :=
+⟨continuous_linear_map.eval 𝕜 F v, continuous_linear_map.continuous_eval _ _ _⟩
 
 variables {𝕜 F}
 
-@[simp] lemma apply_apply (v : E) (f : E →L[𝕜] F) : apply 𝕜 F v f = f v := rfl
+@[simp] lemma eval_apply (v : E) (f : E →L[𝕜] F) : eval 𝕜 F v f = f v := rfl
 
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']

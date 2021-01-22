@@ -176,20 +176,20 @@ end minpoly
 theorem is_integral : is_integral (fixed_points G F) x :=
 ⟨minpoly G F x, minpoly.monic G F x, minpoly.eval₂ G F x⟩
 
-theorem minpoly.minimal_polynomial :
-  minpoly G F x = minimal_polynomial (is_integral G F x) :=
-minimal_polynomial.unique' _ (minpoly.irreducible G F x)
+theorem minpoly_eq_minpoly :
+  minpoly G F x = _root_.minpoly (fixed_points G F) x :=
+minpoly.unique' (is_integral G F x) (minpoly.irreducible G F x)
   (minpoly.eval₂ G F x) (minpoly.monic G F x)
 
 instance normal : normal (fixed_points G F) F :=
 λ x, ⟨is_integral G F x, (polynomial.splits_id_iff_splits _).1 $
-by { rw [← minpoly.minimal_polynomial, minpoly,
+by { rw [← minpoly_eq_minpoly, minpoly,
     coe_algebra_map, polynomial.map_to_subring, prod_X_sub_smul],
   exact polynomial.splits_prod _ (λ _ _, polynomial.splits_X_sub_C _) }⟩
 
 instance separable : is_separable (fixed_points G F) F :=
 λ x, ⟨is_integral G F x,
-by { rw [← minpoly.minimal_polynomial,
+by { rw [← minpoly_eq_minpoly,
         ← polynomial.separable_map (is_subring.subtype (fixed_points G F)),
         minpoly, polynomial.map_to_subring],
   exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
@@ -212,25 +212,27 @@ by exact_mod_cast trans_rel_right (≤) (findim_eq_dim _ _) (dim_le_card G F)
 
 end fixed_points
 
-lemma linear_independent_to_linear_map (R : Type u) (A : Type v)
-  [comm_semiring R] [integral_domain A] [algebra R A] :
-  linear_independent A (alg_hom.to_linear_map : (A →ₐ[R] A) → (A →ₗ[R] A)) :=
-have linear_independent A (linear_map.lto_fun R A A ∘ alg_hom.to_linear_map),
-from ((linear_independent_monoid_hom A A).comp
-  (coe : (A →ₐ[R] A) → (A →* A))
+lemma linear_independent_to_linear_map (R : Type u) (A : Type v) (B : Type w)
+  [comm_semiring R] [integral_domain A] [algebra R A] [integral_domain B] [algebra R B] :
+  linear_independent B (alg_hom.to_linear_map : (A →ₐ[R] B) → (A →ₗ[R] B)) :=
+have linear_independent B (linear_map.lto_fun R A B ∘ alg_hom.to_linear_map),
+from ((linear_independent_monoid_hom A B).comp
+  (coe : (A →ₐ[R] B) → (A →* B))
   (λ f g hfg, alg_hom.ext $ monoid_hom.ext_iff.1 hfg) : _),
 this.of_comp _
 
-lemma cardinal_mk_alg_hom (K : Type u) (V : Type v)
-  [field K] [field V] [algebra K V] [finite_dimensional K V] :
-  cardinal.mk (V →ₐ[K] V) ≤ findim V (V →ₗ[K] V) :=
-cardinal_mk_le_findim_of_linear_independent $ linear_independent_to_linear_map K V
+lemma cardinal_mk_alg_hom (K : Type u) (V : Type v) (W : Type w)
+  [field K] [field V] [algebra K V] [finite_dimensional K V]
+            [field W] [algebra K W] [finite_dimensional K W] :
+  cardinal.mk (V →ₐ[K] W) ≤ findim W (V →ₗ[K] W) :=
+cardinal_mk_le_findim_of_linear_independent $ linear_independent_to_linear_map K V W
 
-noncomputable instance alg_hom.fintype (K : Type u) (V : Type v)
-  [field K] [field V] [algebra K V] [finite_dimensional K V] :
-  fintype (V →ₐ[K] V) :=
+noncomputable instance alg_hom.fintype (K : Type u) (V : Type v) (W : Type w)
+  [field K] [field V] [algebra K V] [finite_dimensional K V]
+            [field W] [algebra K W] [finite_dimensional K W] :
+  fintype (V →ₐ[K] W) :=
 classical.choice $ cardinal.lt_omega_iff_fintype.1 $
-lt_of_le_of_lt (cardinal_mk_alg_hom K V) (cardinal.nat_lt_omega _)
+lt_of_le_of_lt (cardinal_mk_alg_hom K V W) (cardinal.nat_lt_omega _)
 
 noncomputable instance alg_equiv.fintype (K : Type u) (V : Type v)
   [field K] [field V] [algebra K V] [finite_dimensional K V] :
@@ -240,7 +242,7 @@ fintype.of_equiv (V →ₐ[K] V) (alg_equiv_equiv_alg_hom K V).symm
 lemma findim_alg_hom (K : Type u) (V : Type v)
   [field K] [field V] [algebra K V] [finite_dimensional K V] :
   fintype.card (V →ₐ[K] V) ≤ findim V (V →ₗ[K] V) :=
-fintype_card_le_findim_of_linear_independent $ linear_independent_to_linear_map K V
+fintype_card_le_findim_of_linear_independent $ linear_independent_to_linear_map K V V
 
 namespace fixed_points
 /-- Embedding produced from a faithful action. -/

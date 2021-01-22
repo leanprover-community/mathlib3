@@ -154,7 +154,7 @@ begin
   have : ∀ i, (monomial (finsupp.single i (p ^ (n - i))) (p ^ i : R)).vars = {i},
   { intro i,
     rw vars_monomial_single,
-    { rw ← nat.pos_iff_ne_zero,
+    { rw ← pos_iff_ne_zero,
       apply pow_pos hp.pos },
     { rw [← nat.cast_pow, nat.cast_ne_zero],
       apply ne_of_gt,

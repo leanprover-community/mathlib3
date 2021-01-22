@@ -462,9 +462,7 @@ end
 /-- If two additive homomorphisms from `Π₀ i, β i` are equal on each `single a b`, then
 they are equal.
 
-We formulate this using equality of `add_monoid_hom`s so that `ext` tactic can apply a type-specific
-extensionality lemma after this one.  E.g., if the fiber `M` is `ℕ` or `ℤ`, then it suffices to
-verify `f (single a 1) = g (single a 1)`. -/
+See note [partially-applied ext lemmas]. -/
 @[ext] lemma add_hom_ext' {γ : Type w} [add_monoid γ] ⦃f g : (Π₀ i, β i) →+ γ⦄
   (H : ∀ x, f.comp (single_add_hom β x) = g.comp (single_add_hom β x)) :
   f = g :=
@@ -724,6 +722,14 @@ lemma prod_neg_index [Π i, add_group (β i)] [Π i (x : β i), decidable (x ≠
 prod_map_range_index h0
 
 omit dec
+@[to_additive]
+lemma prod_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ → Type*}
+  [decidable_eq ι₁] [decidable_eq ι₂] [Π i, has_zero (β₁ i)] [Π i, has_zero (β₂ i)]
+  [Π i (x : β₁ i), decidable (x ≠ 0)] [Π i (x : β₂ i), decidable (x ≠ 0)] [comm_monoid γ]
+  (f₁ : Π₀ i, β₁ i) (f₂ : Π₀ i, β₂ i) (h : Π i, β₁ i → Π i, β₂ i → γ) :
+  f₁.prod (λ i₁ x₁, f₂.prod $ λ i₂ x₂, h i₁ x₁ i₂ x₂) =
+  f₂.prod (λ i₂ x₂, f₁.prod $ λ i₁ x₁, h i₁ x₁ i₂ x₂) := finset.prod_comm
+
 @[simp] lemma sum_apply {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
   [Π i₁, has_zero (β₁ i₁)] [Π i (x : β₁ i), decidable (x ≠ 0)]
   [Π i, add_comm_monoid (β i)]

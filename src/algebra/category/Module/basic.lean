@@ -55,7 +55,8 @@ lemma coe_of (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = 
 
 variables {R}
 
-/-- Forgetting to the underlying type and then building the bundled object returns the original module. -/
+/-- Forgetting to the underlying type and then building the bundled object returns the original
+module. -/
 @[simps]
 def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }
@@ -93,7 +94,8 @@ def Module.as_hom [add_comm_group X₁] [module R X₁] [add_comm_group X₂] [m
 /-- Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s. -/
 @[simps]
 def linear_equiv.to_Module_iso
-  {g₁ : add_comm_group X₁} {g₂ : add_comm_group X₂} {m₁ : module R X₁} {m₂ : module R X₂} (e : X₁ ≃ₗ[R] X₂) :
+  {g₁ : add_comm_group X₁} {g₂ : add_comm_group X₂} {m₁ : module R X₁} {m₂ : module R X₂}
+  (e : X₁ ≃ₗ[R] X₂) :
   Module.of R X₁ ≅ Module.of R X₂ :=
 { hom := (e : X₁ →ₗ[R] X₂),
   inv := (e.symm : X₂ →ₗ[R] X₁),
@@ -103,8 +105,8 @@ def linear_equiv.to_Module_iso
 /--
 Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s.
 
-This version is better than `linear_equiv_to_Module_iso` when applicable, because Lean can't see `Module.of R M` is defeq to `M` when `M : Module R`.
-  -/
+This version is better than `linear_equiv_to_Module_iso` when applicable, because Lean can't see
+`Module.of R M` is defeq to `M` when `M : Module R`. -/
 @[simps]
 def linear_equiv.to_Module_iso' {M N : Module.{v} R} (i : M ≃ₗ[R] N) : M ≅ N :=
 { hom := i,
@@ -126,9 +128,11 @@ def to_linear_equiv {X Y : Module R} (i : X ≅ Y) : X ≃ₗ[R] Y :=
 
 end category_theory.iso
 
-/-- linear equivalences between `module`s are the same as (isomorphic to) isomorphisms in `Module` -/
+/-- linear equivalences between `module`s are the same as (isomorphic to) isomorphisms
+in `Module` -/
 @[simps]
-def linear_equiv_iso_Module_iso {X Y : Type u} [add_comm_group X] [add_comm_group Y] [module R X] [module R Y] :
+def linear_equiv_iso_Module_iso {X Y : Type u} [add_comm_group X] [add_comm_group Y] [module R X]
+  [module R Y] :
   (X ≃ₗ[R] Y) ≅ (Module.of R X ≅ Module.of R Y) :=
 { hom := λ e, e.to_Module_iso,
   inv := λ i, i.to_linear_equiv, }

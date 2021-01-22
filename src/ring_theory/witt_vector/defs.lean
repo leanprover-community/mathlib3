@@ -104,10 +104,7 @@ witt_structure_int p 1
 def witt_add : ℕ → mv_polynomial (fin 2 × ℕ) ℤ :=
 witt_structure_int p (X 0 + X 1)
 
-/-- The polynomials used for describing the subtraction of the ring of Witt vectors.
-Note that `a - b` is defined as `a + -b`.
-See `witt_vector.sub_coeff` for a proof that subtraction is precisely
-given by these polynomials `witt_vector.witt_sub` -/
+/-- The polynomials used for describing the subtraction of the ring of Witt vectors. -/
 def witt_sub : ℕ → mv_polynomial (fin 2 × ℕ) ℤ :=
 witt_structure_int p (X 0 - X 1)
 
@@ -152,6 +149,9 @@ instance : has_one (𝕎 R) :=
 
 instance : has_add (𝕎 R) :=
 ⟨λ x y, eval (witt_add p) ![x, y]⟩
+
+instance : has_sub (𝕎 R) :=
+⟨λ x y, eval (witt_sub p) ![x, y]⟩
 
 instance : has_mul (𝕎 R) :=
 ⟨λ x y, eval (witt_mul p) ![x, y]⟩
@@ -281,6 +281,9 @@ variables {p R}
 lemma add_coeff (x y : 𝕎 R) (n : ℕ) :
   (x + y).coeff n = peval (witt_add p n) ![x.coeff, y.coeff] := rfl
 
+lemma sub_coeff (x y : 𝕎 R) (n : ℕ) :
+  (x - y).coeff n = peval (witt_sub p n) ![x.coeff, y.coeff] := rfl
+
 lemma mul_coeff (x y : 𝕎 R) (n : ℕ) :
   (x * y).coeff n = peval (witt_mul p n) ![x.coeff, y.coeff] := rfl
 
@@ -291,6 +294,10 @@ end coeff
 
 lemma witt_add_vars (n : ℕ) :
   (witt_add p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
+lemma witt_sub_vars (n : ℕ) :
+  (witt_sub p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
 witt_structure_int_vars _ _ _
 
 lemma witt_mul_vars (n : ℕ) :

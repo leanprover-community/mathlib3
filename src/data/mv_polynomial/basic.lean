@@ -73,7 +73,6 @@ the polynomial being represented.
 
 polynomial, multivariate polynomial, multivariable polynomial
 
-S₁ S₂ S₃
 -/
 
 noncomputable theory
@@ -110,7 +109,7 @@ finsupp.has_coe_to_fun
 
 local attribute [instance] coeff_coe_to_fun
 
-/-- `monomial s a` is the monomial `a * X^s` -/
+/-- `monomial s a` is the monomial with coefficient `a` and exponents given by `s`  -/
 def monomial (s : σ →₀ ℕ) (a : R) : mv_polynomial σ R := single s a
 
 lemma single_eq_monomial (s : σ →₀ ℕ) (a : R) : single s a = monomial s a := rfl
@@ -147,6 +146,17 @@ by induction n; simp [pow_succ, *]
 lemma C_injective (σ : Type*) (R : Type*) [comm_semiring R] :
   function.injective (C : R → mv_polynomial σ R) :=
 finsupp.single_injective _
+
+lemma C_surjective {R : Type*} [comm_semiring R] (σ : Type*) (hσ : ¬ nonempty σ) :
+  function.surjective (C : R → mv_polynomial σ R) :=
+begin
+  refine λ p, ⟨p.to_fun 0, finsupp.ext (λ a, _)⟩,
+  simpa [(finsupp.ext (λ x, absurd (nonempty.intro x) hσ) : a = 0), C, monomial],
+end
+
+lemma C_surjective_fin_0 {R : Type*} [comm_ring R] :
+  function.surjective (mv_polynomial.C : R → mv_polynomial (fin 0) R) :=
+C_surjective (fin 0) (λ h, let ⟨n⟩ := h in fin_zero_elim n)
 
 @[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_semiring R] (r s : R) :
   (C r : mv_polynomial σ R) = C s ↔ r = s :=
@@ -297,7 +307,7 @@ local attribute [reducible] mv_polynomial
 def coeff (m : σ →₀ ℕ) (p : mv_polynomial σ R) : R := p m
 end
 
-lemma ext (p q : mv_polynomial σ R) :
+@[ext] lemma ext (p q : mv_polynomial σ R) :
   (∀ m, coeff m p = coeff m q) → p = q := ext
 
 lemma ext_iff (p q : mv_polynomial σ R) :
@@ -932,7 +942,7 @@ begin
   obtain ⟨i, hi, hgi⟩ : ∃ i ∈ d.support, g i = 0 := h d (finsupp.mem_support_iff.mp hd),
   rw [eval₂_hom_monomial, finsupp.prod, finset.prod_eq_zero hi, mul_zero],
   rw [hgi, zero_pow],
-  rwa [nat.pos_iff_ne_zero, ← finsupp.mem_support_iff]
+  rwa [pos_iff_ne_zero, ← finsupp.mem_support_iff]
 end
 
 lemma aeval_eq_zero [algebra R S₂] (f : σ → S₂) (φ : mv_polynomial σ R)

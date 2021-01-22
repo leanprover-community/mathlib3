@@ -25,26 +25,26 @@ theorem imo2011_q3
   : ∀ x ≤ 0, f x = 0 :=
 begin
   -- reparameterize
-  have hxt : (∀ x t, f t ≤ t * f x - x * f x + f (f x)),
+  have hxt : ∀ x t, f t ≤ t * f x - x * f x + f (f x),
   { intros x t,
     calc f t = f (x + (t - x))             : by rw (add_eq_of_eq_sub' rfl)
          ... ≤ (t - x) * f x + f (f x)     : hf x (t - x)
          ... = t * f x - x * f x + f (f x) : by rw sub_mul },
 
-  have h_ab_combined : (∀ a b, a * f a + b * f b ≤ 2 * f a * f b),
+  have h_ab_combined : ∀ a b, a * f a + b * f b ≤ 2 * f a * f b,
   { intros a b,
     linarith [hxt b (f a), hxt a (f b)] },
 
-  have h_a : (∀ a < 0, 0 ≤ f a),
+  have h_a : ∀ a < 0, 0 ≤ f a,
   { intros a han,
     suffices : a * f a ≤ 0, from nonneg_of_mul_nonpos_right this han,
     exact add_le_iff_nonpos_left.mp (h_ab_combined a (2 * f a)) },
 
-  have h_fx_nonpos : (∀ x, f x ≤ 0),
+  have h_fx_nonpos : ∀ x, f x ≤ 0,
   { intros x,
     by_contra h_suppose_not,
     -- If we choose a small enough argument for f, then we get a contradiction.
-    let s := ((x * f x - f (f x)) / (f x)),
+    let s := (x * f x - f (f x)) / (f x),
     have hm : min 0 s - 1 < s := lt_of_lt_of_le (sub_one_lt _) (min_le_right 0 s),
     have hml : min 0 s - 1 < 0 := lt_of_lt_of_le (sub_one_lt _) (min_le_left 0 s),
 
@@ -56,7 +56,7 @@ begin
       ...  < s * f x - x * f x + f (f x) : by linarith [(mul_lt_mul_right hp).mpr hm]
       ...  = 0 : by rw ((eq_div_iff (ne.symm (ne_of_lt hp))).mp rfl); linarith },
 
-  have h_fx_zero_of_neg : (∀ x < 0, f x = 0),
+  have h_fx_zero_of_neg : ∀ x < 0, f x = 0,
   { intros x hxz,
     exact le_antisymm (h_fx_nonpos x) (h_a x hxz) },
 
@@ -68,10 +68,7 @@ begin
     linarith },
 
   intros x hx,
-  have hcases : x < 0 ∨ x = 0 := lt_or_eq_of_le hx,
-
-  cases hcases,
-  { exact h_fx_zero_of_neg x hcases },
-  rw hcases,
-  exact h_zero_of_zero
+  obtain (h_x_neg : x < 0) | (h_x_zero : x = 0) := lt_or_eq_of_le hx,
+  { exact h_fx_zero_of_neg x h_x_neg },
+  rwa h_x_zero,
 end

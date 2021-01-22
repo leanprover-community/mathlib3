@@ -1,6 +1,5 @@
 import data.equiv.basic
 import tactic.norm_swap
-import tactic.fin_meta_defs
 
 
 open equiv tactic

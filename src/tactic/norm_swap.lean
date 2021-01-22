@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 import data.equiv.basic
-import meta.expr
 import tactic.norm_num
-import tactic.fin_meta_defs
 
 /-!
 # `norm_swap`
@@ -21,42 +19,6 @@ Based on equality of these `nat`s, equality proofs are generated using either
 open equiv tactic expr
 
 open norm_num
-
-namespace norm_fin
-
-lemma fin.prove_succ (m n k l : ℕ) (hl : l < n) (hk : k < m) (h : m = n + 1) (h' : k = l + 1) :
-  fin.succ (⟨l, hl⟩ : fin n) = (⟨k, hk⟩ : fin m) :=
-begin
-  cases n,
-  { exact absurd hl (not_lt_of_le l.zero_le) },
-  subst h,
-  subst h',
-  simp [fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt hk],
-end
-
-/--
-A `norm_num` plugin for normalizing `fin.succ k` where `k` are numerals.
-
-```
-example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
-```
--/
-@[norm_num] meta def eval : expr → tactic (expr × expr)
-| `(@fin.succ %%en %%e) := do
-  n ← en.to_nat,
-  fk ← e.to_fin n,
-  ic ← mk_instance_cache `(ℕ),
-  (_, ek) ← ic.of_nat fk,
-  (_, ltkn) ← prove_lt_nat ic ek en,
-  (_, _, en', pn) ← prove_nat_succ ic `(nat.succ %%en),
-  (_, _, ek', pk) ← prove_nat_succ ic `(nat.succ %%ek),
-  (_, ltkn') ← prove_lt_nat ic ek' en',
-  ty ← to_expr ``(fin %%en'),
-  fk' ← ty.of_fin (fk + 1),
-  pure (fk', `(fin.prove_succ %%en' %%en %%ek' %%ek %%ltkn %%ltkn' %%pn %%pk))
-| _ := failed
-
-end norm_fin
 
 namespace norm_swap
 

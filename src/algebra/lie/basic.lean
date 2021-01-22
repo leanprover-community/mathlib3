@@ -954,6 +954,9 @@ begin
   exact N.zero_mem,
 end
 
+lemma unique_of_bot (N N' : lie_submodule R L ↥(⊥ : lie_submodule R L M)) : N = N' :=
+by rw [N.of_bot_eq_bot, N'.of_bot_eq_bot]
+
 section inclusion_maps
 
 /-- The inclusion of a Lie submodule into its ambient space is a morphism of Lie modules. -/
@@ -1459,6 +1462,9 @@ begin
   rw [lie_submodule.mem_bot, submodule.mk_eq_zero, eq_self_iff_true, iff_true],
   exact I.zero_mem,
 end
+
+lemma unique_of_bot (I J : lie_submodule R L ↥(⊥ : lie_submodule R L M)) : I = J :=
+by rw [I.of_bot_eq_bot, J.of_bot_eq_bot]
 
 end lie_ideal
 

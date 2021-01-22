@@ -127,7 +127,7 @@ theorem integral_eq_sub_of_has_deriv_at'_of_le (hab : a ≤ b)
 integral_eq_sub_of_has_deriv_at'' hcont (by rwa [min_eq_left hab, max_eq_right hab]) hcont'
 
 
--- **The Grand Finale!!**
+-- **Attempt I - via `is_measurable_unit_disc`**
 
 lemma indicator_eq_self_of_subset {S s : set ℝ} {f: ℝ → ℝ} (h: s ⊆ S) (H: s.indicator f = f) :
   S.indicator f = f :=
@@ -240,7 +240,7 @@ begin
 end
 
 
--- **Volume Under and Volume Between - `lintegral`**
+-- **Attempt II - via `volume_under` and `volume_between`, `lintegral` version**
 
 variables {α : Type*} [measure_space α] [sigma_finite (volume : measure α)]
 
@@ -315,7 +315,7 @@ end
 
 /-- The area of the unit disc, which can be represented as the area between the two curves
     `λ x, -sqrt (1 - x^2)` and `λ x, sqrt (1 - x^2)`, is `π`. -/
-theorem volume_unit_disc : volume.prod volume unit_disc = ennreal.of_real pi :=
+theorem volume_unit_disc' : volume.prod volume unit_disc = ennreal.of_real pi :=
 begin
   have : unit_disc = volume_between (λ x, -sqrt (1 - x^2)) (λ x, sqrt (1 - x^2)) (Ioc (-(1:ℝ)) 1),
   { ext p,
@@ -354,6 +354,8 @@ end
 
 def disc {r : ℝ} (h : 0 < r) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
 
+/-- The area of a disc with radius `r`, which can be represented as the region between the two
+    curves `λ x, - sqrt (r ^ 2 - x ^ 2)` and `λ x, sqrt (r ^ 2 - x ^ 2)`, is `π * r ^ 2`. -/
 theorem volume_disc {r : ℝ} (hr : 0 < r) :
   volume.prod volume (disc hr) = ennreal.of_real (pi * r ^ 2) :=
 begin
@@ -412,8 +414,12 @@ begin
       Ioc_subset_Icc_self).integrable },
 end
 
+/-- The area of the unit disc is `π`. -/
+theorem volume_unit_disc : volume.prod volume (disc zero_lt_one) = ennreal.of_real pi :=
+by simpa only [one_pow, mul_one] using volume_disc zero_lt_one
 
--- **Volume Under and Volume Between - `integral`**
+
+-- **Attempt III - via `volume_under` and `volume_between`, `integral` version**
 
 /-- The volume between two functions can be respresented as an integral -/
 theorem volume_between_eq_integral (u_int : integrable_on u s) (v_int : integrable_on v s)

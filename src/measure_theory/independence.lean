@@ -72,8 +72,7 @@ any finite set of indices `s = {i_1, ..., i_n}`, for any sets
 `f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `.
 It will be used for families of pi_systems. -/
 def indep_sets {α ι} [measurable_space α] (π : ι → set (set α)) (μ : measure α) : Prop :=
-∀ (s : finset ι) {f : ι → set α} (H : ∀ i, i ∈ s → f i ∈ π i),
-  μ (⋂ i ∈ s, f i) = ∏ i in s, μ (f i)
+∀ (s : finset ι) {f : ι → set α} (H : ∀ i, i ∈ s → f i ∈ π i), μ (⋂ i ∈ s, f i) = ∏ i in s, μ (f i)
 
 /-- Two sets of sets `s₁, s₂` are independent with respect to
 measure `μ` if for any sets `t₁ ∈ p₁, t₂ ∈ s₂`, `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
@@ -88,9 +87,7 @@ indep_sets (λ x, (m x).is_measurable') μ
 
 /-- Two measurable spaces (or σ-algebras) `m₁, m₂` are independent with respect to
 measure `μ` if for any sets `t₁ ∈ m₁, t₂ ∈ m₂`, `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
-def indep2 {α} (m₁ : measurable_space α) (m₂ : measurable_space α) [measurable_space α]
-  (μ : measure α) :
-  Prop :=
+def indep2 {α} (m₁ m₂ : measurable_space α) [measurable_space α] (μ : measure α) : Prop :=
 indep2_sets (m₁.is_measurable') (m₂.is_measurable') μ
 
 /-- A family of sets is independent if the family of measurable spaces they generate is

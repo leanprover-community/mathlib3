@@ -6,6 +6,17 @@ variables (K : Type*) [field K] (V : Type*) [add_comm_group V] [vector_space K V
 
 open vector_space submodule finite_dimensional
 
+lemma finite_dimensional_of_findim_pos : 0 < findim K V → finite_dimensional K V :=
+begin
+  intro h,
+  rw finite_dimensional_iff_dim_lt_omega,
+  unfold findim at h,
+  split_ifs at h,
+  assumption,
+  exfalso,
+  exact ne_of_lt h rfl,
+end
+
 def proj := { H : submodule K V // findim K H = 1 }
 
 namespace proj
@@ -16,20 +27,14 @@ instance : has_coe (proj K V) (submodule K V) := ⟨subtype.val⟩
 instance : has_mem V (proj K V) := ⟨λ v H, v ∈ (H : submodule K V)⟩
 instance : has_coe_to_sort (proj K V) := ⟨Type*, λ H, ↥(H : submodule K V)⟩
 
-instance {H : proj K V} : finite_dimensional K H :=
-begin
-  -- TODO: generalize and move this.
-  cases H with H hH,
-  change finite_dimensional K H,
-  rw finite_dimensional_iff_dim_lt_omega,
-  unfold findim at hH,
-  by_contra c,
-  split_ifs at hH,
-  finish,
-end
-
 @[simp]
 lemma dim_eq_one {H : proj K V} : findim K H = 1 := H.2
+
+instance {H : proj K V} : finite_dimensional K H :=
+begin
+  apply finite_dimensional_of_findim_pos,
+  simp,
+end
 
 @[ext]
 lemma ext (A B : proj K V) : (A : submodule K V) = B → A = B := subtype.ext

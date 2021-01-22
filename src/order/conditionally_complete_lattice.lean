@@ -483,6 +483,29 @@ end
 protected lemma Inf_le {s : set ℕ} {m : ℕ} (hm : m ∈ s) : Inf s ≤ m :=
 by { rw [nat.Inf_def ⟨m, hm⟩], exact nat.find_min' ⟨m, hm⟩ hm }
 
+lemma nonempty_of_pos_Inf {s : set ℕ} (h : 0 < Inf s) : s.nonempty :=
+begin
+  by_contradiction contra, rw set.not_nonempty_iff_eq_empty at contra,
+  have h' : Inf s ≠ 0, { exact ne_of_gt h, }, apply h',
+  rw nat.Inf_eq_zero, right, assumption,
+end
+
+lemma Inf_interval_above_eq_succ_iff {s : set ℕ}
+  (hs : ∀ (k₁ k₂ : ℕ), k₁ ≤ k₂ → k₁ ∈ s → k₂ ∈ s) (k : ℕ) :
+  Inf s = k + 1 ↔ k + 1 ∈ s ∧ k ∉ s :=
+begin
+  split,
+  { intros h, rw ← h,
+    have hne : s.nonempty, { apply nonempty_of_pos_Inf, rw h, exact nat.succ_pos', },
+    have hlt : k < Inf s, { rw [h, lt_add_iff_pos_right], exact nat.one_pos, },
+    exact ⟨nat.Inf_mem hne, nat.not_mem_of_lt_Inf hlt⟩, },
+  { rintros ⟨h₁, h₂⟩,
+    refine le_antisymm (nat.Inf_le h₁) _,
+    by_contradiction h, rw [not_le, nat.lt_succ_iff] at h,
+    have hne : s.nonempty, { exact ⟨k+1, h₁⟩, },
+    apply h₂, exact hs (Inf s) k h (nat.Inf_mem hne), },
+end
+
 /-- This instance is necessary, otherwise the lattice operations would be derived via
 conditionally_complete_linear_order_bot and marked as noncomputable. -/
 instance : lattice ℕ := lattice_of_linear_order

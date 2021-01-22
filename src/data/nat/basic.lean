@@ -750,14 +750,12 @@ nat.div_lt_self (nat.succ_pos n) (nat.succ_lt_succ (nat.succ_pos _))
 theorem le_div_iff_mul_le' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y :=
 le_div_iff_mul_le x y k0
 
-theorem div_mul_le_self' (m n : ℕ) : m / n * n ≤ m := nat.div_mul_le_self m n
-
 theorem div_lt_iff_lt_mul' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x / k < y ↔ x < y * k :=
 lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le' k0
 
 protected theorem div_le_div_right {n m : ℕ} (h : n ≤ m) {k : ℕ} : n / k ≤ m / k :=
 (nat.eq_zero_or_pos k).elim (λ k0, by simp [k0]) $ λ hk,
-(le_div_iff_mul_le' hk).2 $ le_trans (nat.div_mul_le_self' _ _) h
+(le_div_iff_mul_le' hk).2 $ le_trans (nat.div_mul_le_self _ _) h
 
 lemma lt_of_div_lt_div {m n k : ℕ} (h : m / k < n / k) : m < n :=
 by_contradiction $ λ h₁, absurd h (not_lt_of_ge (nat.div_le_div_right (not_lt.1 h₁)))

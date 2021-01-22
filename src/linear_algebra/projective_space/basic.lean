@@ -4,7 +4,7 @@ open_locale classical
 
 variables (K : Type*) [field K] (V : Type*) [add_comm_group V] [vector_space K V]
 
-open vector_space submodule finite_dimensional
+open vector_space finite_dimensional
 
 lemma finite_dimensional_of_findim_pos : 0 < findim K V → finite_dimensional K V :=
 begin
@@ -72,18 +72,18 @@ lemma mk_eq_iff {v w : V} {hv : v ≠ 0} {hw : w ≠ 0} :
   (mk v hv : proj K V) = mk w hw ↔ ∃ a : K, a • v = w :=
 begin
   simp only [subtype.mk_eq_mk, mk],
-  rw eq_span_singleton_iff,
+  rw submodule.eq_span_singleton_iff,
   split,
   { rintro ⟨h1,h2⟩,
-    rcases h2 v (mem_span_singleton_self _) with ⟨r,rfl⟩,
+    rcases h2 v (submodule.mem_span_singleton_self _) with ⟨r,rfl⟩,
     have : r ≠ 0, by {intro c, finish},
     refine ⟨r⁻¹,_⟩,
     simp [← mul_smul, inv_mul_cancel this] },
   { rintros ⟨a,rfl⟩,
     have : a ≠ 0, by {intro c, finish},
-    refine ⟨smul_mem _ _ (mem_span_singleton_self _), _ ⟩,
+    refine ⟨submodule.smul_mem _ _ (submodule.mem_span_singleton_self _), _ ⟩,
     intros w hw,
-    obtain ⟨r,rfl⟩ := mem_span_singleton.mp hw,
+    obtain ⟨r,rfl⟩ := submodule.mem_span_singleton.mp hw,
     use r * a⁻¹,
     simp [← mul_smul, mul_assoc, inv_mul_cancel this] }
 end
@@ -94,12 +94,10 @@ begin
   obtain ⟨v,hv,h⟩ := top_eq_span_singleton_of_findim_eq_one _ _ hA,
   refine ⟨v,_,_⟩,
   simp [hv],
-  simp [eq_span_singleton_iff] at *,
+  simp [submodule.eq_span_singleton_iff] at *,
   intros w hw,
   specialize h ⟨w,hw⟩,
   convert h,
-  funext,
-  simp,
   tidy,
 end
 

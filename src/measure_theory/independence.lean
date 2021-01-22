@@ -44,9 +44,8 @@ Three other independence notions are defined using `indep_sets`:
 Additionally, we provide four corresponding statements for two measurable spaces (resp. sets of
 sets, sets, functions) instead of a family.
 
-The definition of independence for `indep_sets` uses finite sets (`finset`): it is a statement of
-the form "for all finite sets...". An alternative and equivalent way of defining independence
-would have been to use countable sets.
+The definition of independence for `indep_sets` uses finite sets (`finset`). An alternative and
+equivalent way of defining independence would have been to use countable sets.
 TODO: prove that equivalence.
 
 Most of the definitions and lemma in this file list all variables instead of using the `variables`

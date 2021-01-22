@@ -408,6 +408,12 @@ section order_closed_topology
 
 variables [order_closed_topology α]
 
+/-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
+lemma integral_congr {a b : α} {f g : α → E} (h : eq_on f g (interval a b)) :
+  ∫ x in a..b, f x ∂μ = ∫ x in a..b, g x ∂μ :=
+by cases le_total a b with hab hab; simpa [hab, integral_of_le, integral_of_ge]
+  using set_integral_congr is_measurable_Ioc (h.mono Ioc_subset_Icc_self)
+
 lemma integral_add_adjacent_intervals_cancel (hab : interval_integrable f μ a b)
   (hbc : interval_integrable f μ b c) :
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ + ∫ x in c..a, f x ∂μ = 0 :=
@@ -1273,7 +1279,7 @@ lemma deriv_within_integral_left
 
 This section contains theorems pertaining to FTC-2 for interval integrals. -/
 
-variables {f' : ℝ → E}
+variable {f' : ℝ → E}
 
 /-- The integral of a continuous function is differentiable on a real set `s`. -/
 theorem differentiable_on_integral_of_continuous {s : set ℝ}
@@ -1374,5 +1380,38 @@ theorem integral_deriv_eq_sub (hderiv : ∀ x ∈ interval a b, differentiable_a
   (hcont' : continuous_on (deriv f) (interval a b)) :
   ∫ y in a..b, deriv f y = f b - f a :=
 integral_eq_sub_of_has_deriv_at (λ x hx, (hderiv x hx).has_deriv_at) hcont'
+
+/-!
+### Integration by parts
+-/
+
+lemma integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
+  (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
+  (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
+  (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
+  ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a :=
+begin
+  have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
+  have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
+  rw integral_eq_sub_of_has_deriv_at,
+  intros x hx;
+  { exact (hu x hx).mul (hv x hx) },
+  { exact (hcu'.mul hcv).add (hcu.mul hcv') }
+end
+
+theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
+  (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
+  (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
+  (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
+  ∫ x in a..b, u x * v' x = u b * v b - u a * v a - ∫ x in a..b, v x * u' x :=
+begin
+  have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
+  have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
+  rw [← integral_deriv_mul_eq_sub hu hv hcu' hcv', ← integral_sub],
+  { apply integral_congr,
+    exact λ x hx, by simp [mul_comm] },
+  { exact ((hcu'.mul hcv).add (hcu.mul hcv')).interval_integrable },
+  { exact (hcv.mul hcu').interval_integrable },
+end
 
 end interval_integral

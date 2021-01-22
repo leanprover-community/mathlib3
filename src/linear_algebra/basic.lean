@@ -2715,3 +2715,18 @@ by {ext, refl}
 end general_linear_group
 
 end linear_map
+
+namespace submodule
+variables [ring R] [add_comm_group M] [module R M]
+
+instance : is_modular_lattice (submodule R M) :=
+⟨λ x y z xz a ha, begin
+  rw [mem_inf, mem_sup] at ha,
+  rcases ha with ⟨⟨b, hb, c, hc, rfl⟩, haz⟩,
+  rw mem_sup,
+  refine ⟨b, hb, c, mem_inf.2 ⟨hc, _⟩, rfl⟩,
+  rw [← add_sub_cancel c b, add_comm],
+  apply z.sub_mem haz (xz hb),
+end⟩
+
+end submodule

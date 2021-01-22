@@ -687,7 +687,7 @@ begin
     split_ifs,
     { have h_set_eq : {a : α | ∃ (i : ι), (hf i).some b = a} = {a : α | ∃ (i : ι), f i b = a},
       { ext x,
-        simp_rw [set.mem_set_of_eq, measurable_fun_eq_fun_of_mem_ae_seq_set hf h], },
+        simp_rw [set.mem_set_of_eq, ae_seq.measurable_fun_eq_fun_of_mem_ae_seq_set hf h], },
       rw h_set_eq,
       exact hg b, },
     { have h_singleton : {a : α | ∃ (i : ι), hα.some = a} = {hα.some},
@@ -697,7 +697,7 @@ begin
       exact is_lub_singleton, }, },
   refine ⟨g_seq, measurable.is_lub (ae_seq.measurable hf p) hg_seq, _⟩,
   exact (ite_ae_eq_of_measure_compl_zero g (λ x, hα.some) (ae_seq_set hf p)
-    (measure_compl_ae_seq_set_eq_zero hf (ae_of_all _ hg))).symm,
+    (ae_seq.measure_compl_ae_seq_set_eq_zero hf (ae_of_all _ hg))).symm,
 end
 
 lemma ae_measurable.is_lub {ι} {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
@@ -752,7 +752,7 @@ begin
     split_ifs,
     { have h_set_eq : {a : α | ∃ (i : ι), (hf i).some b = a} = {a : α | ∃ (i : ι), f i b = a},
       { ext x,
-        simp_rw [set.mem_set_of_eq, measurable_fun_eq_fun_of_mem_ae_seq_set hf h], },
+        simp_rw [set.mem_set_of_eq, ae_seq.measurable_fun_eq_fun_of_mem_ae_seq_set hf h], },
       rw h_set_eq,
       exact hg b, },
     { have h_singleton : {a : α | ∃ (i : ι), hα.some = a} = {hα.some},
@@ -762,7 +762,7 @@ begin
       exact is_glb_singleton, }, },
   refine ⟨g_seq, measurable.is_glb (ae_seq.measurable hf p) hg_seq, _⟩,
   exact (ite_ae_eq_of_measure_compl_zero g (λ x, hα.some) (ae_seq_set hf p)
-    (measure_compl_ae_seq_set_eq_zero hf (ae_of_all _ hg))).symm,
+    (ae_seq.measure_compl_ae_seq_set_eq_zero hf (ae_of_all _ hg))).symm,
 end
 
 lemma ae_measurable.is_glb {ι} {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
@@ -1309,12 +1309,12 @@ begin
     let hp : ∀ᵐ x ∂μ, p x (λ n, f n x), from h_ae_tendsto,
     let ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) hβ.some,
     refine ⟨ae_seq_lim, _, (ite_ae_eq_of_measure_compl_zero g (λ x, hβ.some)
-      (ae_seq_set hf p) (measure_compl_ae_seq_set_eq_zero hf hp)).symm⟩,
+      (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm⟩,
     refine measurable_of_tendsto_metric (@ae_seq.measurable α β _ _ _ f μ hβ hf p) _,
     refine tendsto_pi.mpr (λ x, _),
     simp_rw [ae_seq, ae_seq_lim],
     split_ifs with hx,
-    { simp_rw measurable_fun_eq_fun_of_mem_ae_seq_set hf hx,
+    { simp_rw ae_seq.measurable_fun_eq_fun_of_mem_ae_seq_set hf hx,
       exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hβ hf x hx, },
     { exact tendsto_const_nhds, }, },
   { refine ⟨g, measurable_of_not_nonempty _ g, ae_eq_refl _⟩,
@@ -1338,7 +1338,8 @@ begin
   let p : α → (ℕ → β) → Prop := λ x f', ∃ l : β, filter.at_top.tendsto (λ n, f' n) (nhds l),
   have hp_mem : ∀ x, x ∈ ae_seq_set hf p → p x (λ n, f n x),
     from λ x hx, ae_seq.fun_prop_of_mem_ae_seq_set hf hx,
-  have hμ_compl : μ (ae_seq_set hf p)ᶜ = 0, from measure_compl_ae_seq_set_eq_zero hf h_ae_tendsto,
+  have hμ_compl : μ (ae_seq_set hf p)ᶜ = 0,
+    from ae_seq.measure_compl_ae_seq_set_eq_zero hf h_ae_tendsto,
   let f_lim : α → β := λ x, dite (x ∈ ae_seq_set hf p) (λ h, (hp_mem x h).some) (λ h, hβ.some),
   have hf_lim_conv : ∀ x, x ∈ ae_seq_set hf p → filter.at_top.tendsto (λ n, f n x) (nhds (f_lim x)),
   { intros x hx_conv,
@@ -1348,7 +1349,7 @@ begin
   { intros x,
     simp only [f_lim, ae_seq],
     split_ifs,
-    { rw funext (λ n, measurable_fun_eq_fun_of_mem_ae_seq_set hf h n),
+    { rw funext (λ n, ae_seq.measurable_fun_eq_fun_of_mem_ae_seq_set hf h n),
       exact (hp_mem x h).some_spec, },
     { exact tendsto_const_nhds, }, },
   have h_ae_tendsto_f_lim : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (nhds (f_lim x)),

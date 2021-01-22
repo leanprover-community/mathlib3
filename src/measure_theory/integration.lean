@@ -1077,11 +1077,11 @@ begin
   simp_rw ←supr_apply,
   let p : α → (ℕ → ennreal) → Prop := λ x f', true,
   have hp : ∀ᵐ x ∂μ, p x (λ i, f i x), by simp,
-  rw lintegral_congr_ae (ae_seq_supr hf hp).symm,
+  rw lintegral_congr_ae (ae_seq.supr hf hp).symm,
   simp_rw supr_apply,
-  rw @lintegral_supr _ _ μ _ (ae_seq.measurable hf p) (ae_seq_monotone hf p h_mono),
+  rw @lintegral_supr _ _ μ _ (ae_seq.measurable hf p) (ae_seq.monotone hf p h_mono),
   congr,
-  exact funext (λ n, lintegral_congr_ae (ae_seq_n_eq_fun_n_ae hf hp n).symm),
+  exact funext (λ n, lintegral_congr_ae (ae_seq.ae_seq_n_eq_fun_n_ae hf hp n).symm),
 end
 
 lemma lintegral_eq_supr_eapprox_lintegral {f : α → ennreal} (hf : measurable f) :

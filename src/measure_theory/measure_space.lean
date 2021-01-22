@@ -2279,11 +2279,13 @@ whose complement has measure 0 such that for all `x ∈ ae_seq_set`, `f i x` is 
 def ae_seq_set (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop) : set α :=
 (to_measurable μ {x | (∀ i, f i x = (hf i).some x) ∧ p x (λ n, f n x)}ᶜ)ᶜ
 
-/-- A sequence of measurable functions that agree with `f` and verify property `p` on the
+/-- A sequence of measurable functions that are equal to `f` and verify property `p` on the
 measurable set `ae_seq_set hf p`. -/
 def ae_seq [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop) :
   ι → α → β :=
 λ i x, ite (x ∈ ae_seq_set hf p) ((hf i).some x) hβ.some
+
+namespace ae_seq
 
 lemma measurable_fun_eq_fun_of_mem_ae_seq_set (hf : ∀ i, ae_measurable (f i) μ) {x : α}
   (hx : x ∈ ae_seq_set hf p) (i : ι) :
@@ -2301,14 +2303,14 @@ lemma ae_seq_eq_fun_of_mem_ae_seq_set [hβ : nonempty β] (hf : ∀ i, ae_measur
   ae_seq hf p i x = f i x :=
 by simp only [ae_seq, hx, if_true, measurable_fun_eq_fun_of_mem_ae_seq_set hf hx i]
 
-lemma ae_seq_set.is_measurable {hf : ∀ i, ae_measurable (f i) μ} :
+lemma set_is_measurable {hf : ∀ i, ae_measurable (f i) μ} :
   is_measurable (ae_seq_set hf p) :=
 (is_measurable_to_measurable _ _).compl
 
-lemma ae_seq.measurable [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop)
+lemma measurable [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop)
   (i : ι) :
   measurable (ae_seq hf p i) :=
-measurable.ite ae_seq_set.is_measurable (hf i).some_spec.1 measurable_const
+measurable.ite set_is_measurable (hf i).some_spec.1 measurable_const
 
 lemma measure_compl_ae_seq_set_eq_zero [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
@@ -2344,7 +2346,7 @@ lemma ae_seq_n_eq_fun_n_ae [hβ : nonempty β] [encodable ι] (hf : ∀ i, ae_me
   f i =ᵐ[μ] ae_seq hf p i :=
 ae_all_iff.mp (ae_seq_eq_fun_ae hf hp) i
 
-lemma ae_seq_supr [hβ : nonempty β] [complete_lattice β] [encodable ι]
+lemma supr [hβ : nonempty β] [complete_lattice β] [encodable ι]
   (hf : ∀ i, ae_measurable (f i) μ) (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
   (⨆ n, ae_seq hf p n) =ᵐ[μ] ⨆ n, f n :=
 begin
@@ -2357,7 +2359,7 @@ begin
     (measure_compl_ae_seq_set_eq_zero hf hp),
 end
 
-lemma ae_seq_monotone [hβ : nonempty β] [preorder β] [preorder ι]
+lemma monotone [hβ : nonempty β] [preorder β] [preorder ι]
   (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop) (h_mono : monotone f) :
   monotone (ae_seq hf p) :=
 begin
@@ -2369,7 +2371,7 @@ begin
   { simp [ae_seq, hx], },
 end
 
-lemma ae_seq_prop_of_mem_ae_seq_set [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ)
+lemma prop_of_mem_ae_seq_set [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ)
   {x : α} (hx : x ∈ ae_seq_set hf p) :
   p x (λ n, ae_seq hf p n x) :=
 begin
@@ -2383,15 +2385,17 @@ begin
   exact hx',
 end
 
-lemma ae_seq.fun_prop_of_mem_ae_seq_set [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ)
+lemma fun_prop_of_mem_ae_seq_set [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ)
   {x : α} (hx : x ∈ ae_seq_set hf p) :
   p x (λ n, f n x) :=
 begin
   have h_eq : (λ n, f n x) = λ n, ae_seq hf p n x,
   from funext (λ n, (ae_seq_eq_fun_of_mem_ae_seq_set hf hx n).symm),
   rw h_eq,
-  exact ae_seq_prop_of_mem_ae_seq_set hf hx,
+  exact prop_of_mem_ae_seq_set hf hx,
 end
+
+end ae_seq
 
 lemma ite_ae_eq_of_measure_zero {γ} (f : α → γ) (g : α → γ) (s : set α) (hs_zero : μ s = 0) :
   (λ x, ite (x ∈ s) (f x) (g x)) =ᵐ[μ] g :=

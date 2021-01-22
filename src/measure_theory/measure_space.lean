@@ -2303,14 +2303,14 @@ lemma ae_seq_eq_fun_of_mem_ae_seq_set [hβ : nonempty β] (hf : ∀ i, ae_measur
   ae_seq hf p i x = f i x :=
 by simp only [ae_seq, hx, if_true, measurable_fun_eq_fun_of_mem_ae_seq_set hf hx i]
 
-lemma set_is_measurable {hf : ∀ i, ae_measurable (f i) μ} :
+lemma ae_seq_set_is_measurable {hf : ∀ i, ae_measurable (f i) μ} :
   is_measurable (ae_seq_set hf p) :=
 (is_measurable_to_measurable _ _).compl
 
 lemma measurable [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop)
   (i : ι) :
   measurable (ae_seq hf p i) :=
-measurable.ite set_is_measurable (hf i).some_spec.1 measurable_const
+measurable.ite ae_seq_set_is_measurable (hf i).some_spec.1 measurable_const
 
 lemma measure_compl_ae_seq_set_eq_zero [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :

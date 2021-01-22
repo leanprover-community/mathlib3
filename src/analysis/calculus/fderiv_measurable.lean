@@ -84,7 +84,7 @@ instance : borel_space (E →L[𝕜] F) := ⟨rfl⟩
 
 lemma measurable_apply [measurable_space F] [borel_space F] (x : E) :
   measurable (λ f : E →L[𝕜] F, f x) :=
-(apply 𝕜 F x).continuous.measurable
+(eval 𝕜 F x).continuous.measurable
 
 lemma measurable_apply' [measurable_space E] [opens_measurable_space E]
   [measurable_space F] [borel_space F] :

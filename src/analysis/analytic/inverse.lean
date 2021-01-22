@@ -274,7 +274,7 @@ q_n = - (p_1)^{-n} \sum_{k=0}^{n-1} \sum_{i_1 + \dotsc + i_k = n} q_k (p_{i_1}, 
 $$
 Assume for simplicity that we are in dimension `1` and `p₁ = 1`. In the formula for `qₙ`, the term
 `q_{n-1}` appears with a multiplicity of `n-1` (choosing the index `i_j` for which `i_j = 2` while
-all the other indices are equal to `1`), which indicates that `qₙ` might frow like `n!`. This is
+all the other indices are equal to `1`), which indicates that `qₙ` might grow like `n!`. This is
 bad for summability properties.
 
 It turns out that the right-inverse formula is better behaved, and should instead be used for this
@@ -315,26 +315,26 @@ coefficients) to obtain an explicit geometric bound, but this would be very pain
 
 Instead, we will use the above intuition, but in a slightly different form, with finite sums and an
 induction. I learnt this trick in [pöschel2017siegelsternberg]. Let
-$$S_n = \sum_{k=1}^n Q_k a^k$$ (where `a` is a positive real parameter to be chosen suitably small).
+\(S_n = \sum_{k=1}^n Q_k a^k\) (where `a` is a positive real parameter to be chosen suitably small).
 The above computation but with finite sums shows that
 
 $$
 S_n \leq Q_1 a + C' \sum_{k=2}^n (r S_{n-1})^k.
 $$
 
-In particular, $$S_n \leq Q_1 a + C' (r S_{n-1})^2 / (1- r S_{n-1})$$.
+In particular, \(S_n \leq Q_1 a + C' (r S_{n-1})^2 / (1- r S_{n-1})\).
 Assume that $$S_{n-1} \leq K a$$, where `K > Q₁` is fixed and `a` is small enough so that
 `r K a ≤ 1/2` (to control the denominator). Then this equation gives a bound
-$$S_n \leq Q_1 a + 2 C' r^2 K^2 a^2$$.
+\(S_n \leq Q_1 a + 2 C' r^2 K^2 a^2\).
 If `a` is small enough, this is bounded by `K a` as the second term is quadratic in `a`, and
 therefore negligible.
 
-By induction, we deduce `S_n ≤ K a` for all `n`, which gives in particular the fact that `a^n Qₙ`
+By induction, we deduce `Sₙ ≤ K a` for all `n`, which gives in particular the fact that `aⁿ Qₙ`
 remains bounded.
 -/
 
 /-- First technical lemma to control the growth of coefficients of the inverse. Bound the explicit
-expression for `∑_{k<n+1} a^k Q_k^` in terms of a sum of powers of the same sum one step before,
+expression for `∑_{k<n+1} aᵏ Qₖ` in terms of a sum of powers of the same sum one step before,
 in a general abstract setup. -/
 lemma radius_right_inv_pos_of_radius_pos_aux1
   (n : ℕ) (p : ℕ → ℝ) (hp : ∀ k, 0 ≤ p k) {r a : ℝ} (hr : 0 ≤ r) (ha : 0 ≤ a) :
@@ -398,7 +398,7 @@ begin
 end
 
 /-- Second technical lemma to control the growth of coefficients of the inverse. Bound the explicit
-expression for `∑_{k<n+1} a^k Q_k^` in terms of a sum of powers of the same sum one step before,
+expression for `∑_{k<n+1} aᵏ Qₖ` in terms of a sum of powers of the same sum one step before,
 in the specific setup we are interesting in, by reducing to the general bound in
 `radius_right_inv_pos_of_radius_pos_aux1`. -/
 lemma radius_right_inv_pos_of_radius_pos_aux2
@@ -459,7 +459,7 @@ begin
   obtain ⟨C, r, Cpos, rpos, ple⟩ : ∃ C r (hC : 0 < C) (hr : 0 < r), ∀ (n : ℕ), ∥p n∥ ≤ C * r ^ n :=
     le_mul_pow_of_radius_pos p hp,
   let I := ∥(i.symm : F →L[𝕜] E)∥,
-  -- choose `a` small enough to make sure that `∑_{k ≤ n} a^k Q_k` will be controllable by
+  -- choose `a` small enough to make sure that `∑_{k ≤ n} aᵏ Qₖ` will be controllable by
   -- induction
   obtain ⟨a, apos, ha1, ha2⟩ : ∃ a (apos : 0 < a),
     (2 * I * C * r^2 * (I + 1) ^ 2 * a ≤ 1) ∧ (r * (I + 1) * a ≤ 1/2),
@@ -509,7 +509,7 @@ begin
       ... = (I + 2 * I * C * r^2 * (I + 1) ^ 2 * a) * a : by ring
       ... ≤ (I + 1) * a :
         by apply_rules [mul_le_mul_of_nonneg_right, apos.le, add_le_add, le_refl] } },
-  -- conclude that all coefficients satisfy `a^n Qₙ ≤ (I + 1) a`.
+  -- conclude that all coefficients satisfy `aⁿ Qₙ ≤ (I + 1) a`.
   let a' : nnreal := ⟨a, apos.le⟩,
   suffices H : (a' : ennreal) ≤ (p.right_inv i).radius,
     by { apply lt_of_lt_of_le _ H, exact_mod_cast apos },

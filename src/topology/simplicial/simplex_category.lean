@@ -39,6 +39,7 @@ TODO: prove the remaining simplicial identities
 TODO: prove that these generate the category
 -/
 
+/-- The `i`-th face map from `[n]` to `[n+1]` -/
 def δ {n} (i : fin (n+2)) :
   @has_hom.hom simplex_category _ n (n+1 : ℕ) :=
 { to_fun := fin.succ_above i,
@@ -53,7 +54,7 @@ def δ {n} (i : fin (n+2)) :
       linarith },
   end }
 
-/-- The i-th degeneracy map from [n+1] to [n] -/
+/-- The `i`-th degeneracy map from `[n+1]` to `[n]` -/
 def σ {n} (i : fin (n+1)) :
   @has_hom.hom simplex_category _ (n+1 : ℕ) n :=
 { to_fun := λ a, if h : a.val ≤ i.val
@@ -83,6 +84,24 @@ begin
   show (j.succ.succ_above (i.succ_above k)).val = (i.cast_succ.succ_above (j.succ_above k)).val,
   dsimp [fin.succ_above],
   split_ifs; { simp [nat.succ_eq_add_one] at *, try { linarith } },
+end
+
+/-- The second simplicial identity -/
+lemma δ_comp_σ {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
+  δ i.cast_succ ≫ σ j.succ = σ j ≫ δ i :=
+begin
+  change i.val ≤ j.val at H,
+  ext k,
+  sorry
+end
+
+/-- The fifth simplicial identity -/
+lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
+  σ i.cast_succ ≫ σ j = σ j.succ ≫ σ i :=
+begin
+  change i.val ≤ j.val at H,
+  ext k,
+  sorry
 end
 
 end generators

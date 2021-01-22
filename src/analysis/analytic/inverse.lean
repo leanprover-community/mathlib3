@@ -323,7 +323,7 @@ S_n \leq Q_1 a + C' \sum_{k=2}^n (r S_{n-1})^k.
 $$
 
 In particular, $S_n \leq Q_1 a + C' (r S_{n-1})^2 / (1- r S_{n-1})$.
-Assume that $$S_{n-1} \leq K a$$, where `K > Q₁` is fixed and `a` is small enough so that
+Assume that $S_{n-1} \leq K a$, where `K > Q₁` is fixed and `a` is small enough so that
 `r K a ≤ 1/2` (to control the denominator). Then this equation gives a bound
 $S_n \leq Q_1 a + 2 C' r^2 K^2 a^2$.
 If `a` is small enough, this is bounded by `K a` as the second term is quadratic in `a`, and

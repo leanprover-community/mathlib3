@@ -352,56 +352,66 @@ begin
       Ioc_subset_Icc_self).integrable },
 end
 
-def disc (r : nnreal) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
+def disc {r : ℝ} (h : 0 < r) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
 
-theorem volume_disc {r : nnreal} (hr : (r:ℝ) ≠ 0): volume.prod volume (disc r) = ennreal.of_real (pi * r ^ 2) :=
+theorem volume_disc {r : ℝ} (hr : 0 < r) :
+  volume.prod volume (disc hr) = ennreal.of_real (pi * r ^ 2) :=
 begin
-  have : disc r = volume_between (λ x, -sqrt (r^2 - x^2)) (λ x, sqrt (r^2 - x^2)) (Ioc (-r) r),
+  have : disc hr = volume_between (λ x, -sqrt (r^2 - x^2)) (λ x, sqrt (r^2 - x^2)) (Ioc (-r) r),
   { ext p,
     simp only [disc, volume_between, mem_set_of_eq, mem_Ioo, mem_Ioc, pi.neg_apply],
     split;
     intro h,
     { split,
-      { rw ← sqrt_sqr (zero_le r),
+      { rw ← sqrt_sqr hr.le,
         have h' : p.1^2 < r^2 := by linarith [pow_two_nonneg p.2],
         exact ⟨sqr_lt_left h', (sqr_lt_right h').le⟩ },
       { rw [add_comm, ← lt_sub_iff_add_lt] at h,
         exact sqr_lt.mp h} },
     { rw [add_comm, ← lt_sub_iff_add_lt],
       exact sqr_lt.mpr h.2 } },
-  have hc0 := @continuous_const _ _ _ _ ((r:ℝ)^2),
-  have hc1 := continuous_id.div (@continuous_const _ _ _ _ (r:ℝ)) _,
-  have hc2 := hc0.mul (continuous_arcsin.comp hc1),
-  obtain ⟨hc3, hc4⟩ := ⟨(hc0.sub (continuous_pow 2)).sqrt, continuous_const.mul hc3⟩,
-  have hc5 := hc2.add (continuous_id.mul hc3),
-  convert volume_between_eq_lintegral (hc3.measurable).neg (hc3.measurable) is_measurable_Ioc,
+  obtain ⟨hc1, hc2⟩ := ⟨(continuous_const.sub (continuous_pow 2)).sqrt, continuous_const.mul hc1⟩,
+  convert volume_between_eq_lintegral (hc1.measurable).neg (hc1.measurable) is_measurable_Ioc,
   simp only [pi.sub_apply, sub_neg_eq_add, ← two_mul],
   symmetry,
   convert lintegral_coe_eq_integral (λ x, (λ y, nnreal.of_real (2 * sqrt (r^2 - y^2))) x) _,
   { simp only [nnreal.coe_of_real _ (mul_nonneg zero_le_two (sqrt_nonneg _))],
-    rw [← integral_of_le, integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self (zero_le r))
-        (hc5.continuous_on) _ hc4.continuous_on],
+    rw [← integral_of_le,
+        integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self hr.le) (((continuous_const.mul
+          (continuous_arcsin.comp (continuous_id.div continuous_const (λ x, hr.ne.symm)))).add
+            (continuous_id.mul hc1)).continuous_on) _ hc2.continuous_on],
     { simp only [id.def, add_zero, sqrt_zero, arcsin_neg, pi.div_apply, function.comp_app,
-                neg_square, mul_zero, sub_self, neg_div, div_self hr, arcsin_one],
+                neg_square, mul_zero, sub_self, neg_div, div_self hr.ne.symm, arcsin_one],
       rw [mul_neg_eq_neg_mul_symm, sub_neg_eq_add, ← mul_div_assoc, add_halves', mul_comm] },
     { rintros x ⟨hx1, hx2⟩,
-      convert (has_deriv_at_arcsin hx1.ne.symm hx2.ne).add ((has_deriv_at_id' x).mul
-                (((has_deriv_at_id' x).pow.const_sub 1).sqrt _)),
-      { simp only [one_mul, mul_one, zero_sub, nat.cast_bit0, pow_one, nat.cast_one, neg_div],
-        rw mul_div_mul_left;
-        field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul] },
-      { nlinarith } },
-    { exact neg_le_self zero_le_one } },
+      convert ((has_deriv_at_const x (r^2)).mul ((has_deriv_at_arcsin _ _).comp x
+        ((has_deriv_at_id' x).div (has_deriv_at_const x r) hr.ne.symm))).add
+          ((has_deriv_at_id' x).mul (((has_deriv_at_id' x).pow.const_sub (r^2)).sqrt _)),
+      { have h : sqrt (1 - x ^ 2 / r ^ 2) * r ^ 2 = r * sqrt (r ^ 2 - x ^ 2),
+        { rw [← sqrt_sqr (pow_nonneg hr.le 2), ← sqrt_mul, sub_mul, sqrt_sqr (pow_nonneg hr.le 2),
+              div_mul_eq_mul_div_comm, pow_two, mul_div_cancel_left _ (pow_ne_zero 2 hr.ne.symm),
+              ← mul_assoc, ← sub_mul, mul_comm, sqrt_mul (pow_nonneg hr.le 2), sqrt_sqr hr.le,
+              one_mul],
+          simpa only [sub_nonneg, sqrt_sqr (pow_nonneg hr.le 2), div_le_one (pow_pos hr 2), sqr_abs]
+            using pow_le_pow_of_le_left (abs_nonneg x) (abs_le.mpr ⟨hx1.le, hx2.le⟩) 2 },
+        field_simp,
+        rw [h, mul_div_assoc, ← div_div_eq_div_mul, div_self hr.ne.symm, mul_one_div, mul_left_comm,
+            ← pow_two, neg_div, mul_div_mul_left (x^2) (sqrt (r^2-x^2)) two_ne_zero, ← add_assoc,
+            add_right_comm, tactic.ring.add_neg_eq_sub, div_sub_div_same, div_sqrt, two_mul] },
+      { by_contra hnot,
+        rw [not_not, eq_neg_iff_eq_neg, ← div_neg, eq_comm,
+            div_eq_one_iff_eq (neg_ne_zero.mpr hr.ne.symm)] at hnot,
+        exact hx1.ne.symm hnot },
+      { by_contra hnot,
+        rw [not_not, div_eq_one_iff_eq hr.ne.symm] at hnot,
+        exact hx2.ne hnot },
+      { simpa only [sub_ne_zero, sqr_abs] using
+          (pow_lt_pow_of_lt_left (abs_lt.mpr ⟨hx1, hx2⟩) (abs_nonneg x) zero_lt_two).ne.symm } },
+    { exact neg_le_self hr.le } },
   { exact (((hc2.max continuous_const).integrable_on_compact compact_Icc).mono_set
       Ioc_subset_Icc_self).integrable },
 end
 
-#check sqrt_sqr
-#check continuous.pow
-#check continuous.div
---example (a b:ℝ) : -(a*b) = -a/b := by library_search
-#check neg_div
-#check mul_div_assoc
 
 -- **Volume Under and Volume Between - `integral`**
 

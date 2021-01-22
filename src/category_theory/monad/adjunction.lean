@@ -59,21 +59,13 @@ category of Eilenberg-Moore algebras for the adjunction is an equivalence. -/
 class monadic_right_adjoint (R : D ⥤ C) extends is_right_adjoint R :=
 (eqv : is_equivalence (monad.comparison R))
 
+-- TODO: This holds more generally for idempotent adjunctions, not just reflective adjunctions.
 instance μ_iso_of_reflective [reflective R] : is_iso (μ_ (left_adjoint R ⋙ R)) :=
 by { dsimp [adjunction.monad], apply_instance }
 
 attribute [instance] monadic_right_adjoint.eqv
 
 namespace reflective
-
-lemma comparison_ess_surj_aux [reflective R] (X : C) :
-  (adjunction.of_right_adjoint R).unit.app (R.obj ((left_adjoint R).obj X))
-    = R.map ((left_adjoint R).map ((adjunction.of_right_adjoint R).unit.app X)) :=
-begin
- rw [←cancel_mono (R.map ((adjunction.of_right_adjoint R).counit.app ((left_adjoint R).obj X))),
-     ←R.map_comp],
- simp,
-end
 
 instance [reflective R] (X : monad.algebra (left_adjoint R ⋙ R)) :
   is_iso ((adjunction.of_right_adjoint R).unit.app X.A) :=
@@ -84,7 +76,7 @@ instance [reflective R] (X : monad.algebra (left_adjoint R ⋙ R)) :
     dsimp only [functor.id_obj],
     rw ← (adjunction.of_right_adjoint R).unit_naturality,
     dsimp only [functor.comp_obj],
-    rw [comparison_ess_surj_aux, ←functor.map_comp, ←functor.map_comp],
+    rw [unit_obj_eq_map_unit, ←functor.map_comp, ←functor.map_comp],
     erw X.unit,
     simp,
   end }

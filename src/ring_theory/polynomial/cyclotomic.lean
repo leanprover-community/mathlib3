@@ -660,23 +660,23 @@ end order
 
 end polynomial
 
-section minimial_polynomial
+section minpoly
 
 open is_primitive_root polynomial complex
 
 /-- The minimal polynomial of a primitive `n`-th root of unity `μ` divides `cyclotomic n ℤ`. -/
 lemma minpoly_primitive_root_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
   (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
-  minpoly (is_integral h hpos) ∣ cyclotomic n ℤ :=
+  minpoly ℤ μ ∣ cyclotomic n ℤ :=
 begin
   apply minpoly.integer_dvd (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
   simpa [aeval_def, eval₂_eq_eval_map, is_root.def] using is_root_cyclotomic hpos h
 end
 
 /-- `cyclotomic n ℤ` is the minimal polynomial of a primitive `n`-th root of unity `μ`. -/
-lemma minpoly_primitive_root_eq_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
+lemma cyclotomic_eq_minpoly {n : ℕ} {K : Type*} [field K] {μ : K}
   (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
-  cyclotomic n ℤ = minpoly (is_integral h hpos) :=
+  cyclotomic n ℤ = minpoly ℤ μ :=
 begin
   refine eq_of_monic_of_dvd_of_nat_degree_le (minpoly.monic (is_integral h hpos))
     (cyclotomic.monic n ℤ) (minpoly_primitive_root_dvd_cyclotomic h hpos) _,
@@ -687,8 +687,8 @@ end
 lemma cyclotomic.irreducible {n : ℕ} (hpos : 0 < n) : irreducible (cyclotomic n ℤ) :=
 begin
   have h0 := (ne_of_lt hpos).symm,
-  rw [minpoly_primitive_root_eq_cyclotomic (is_primitive_root_exp n h0) hpos],
+  rw [cyclotomic_eq_minpoly (is_primitive_root_exp n h0) hpos],
   exact minpoly.irreducible (is_integral (is_primitive_root_exp n h0) hpos)
 end
 
-end minimial_polynomial
+end minpoly

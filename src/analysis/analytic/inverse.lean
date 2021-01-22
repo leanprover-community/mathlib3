@@ -265,8 +265,12 @@ begin
 end
 
 /-!
-### Convergence of the inverse power series
+### Convergence of the inverse of a power series
 
+Assume that `p` is a convergent multilinear series, and let `q` be its (left or right) inverse.
+Using the left-inverse formula gives
+$$
+q_n = - \sum_{k=0}^{n-1} \sum_{i_1 + \dotsc + i_k = n} q_k(p_{i_1}, \dotsc, p_{i_k})
 
 
 -/

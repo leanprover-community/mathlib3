@@ -120,6 +120,12 @@ the arrow. -/
 localized "infixr  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
 localized "infixr  ` ≫ `:100 := local_equiv.trans" in manifold
 
+/- `simp` looks for subsingleton instances at every call. This turns out to be very
+inefficient, especially in `simp`-heavy parts of the library such as the manifold code.
+Disable two such instances to speed up things.
+NB: this is just a hack. TODO: fix `simp` properly. -/
+localized "attribute [-instance] unique.subsingleton pi.subsingleton" in manifold
+
 open set local_homeomorph
 
 /-! ### Structure groupoids-/
@@ -647,11 +653,16 @@ end charted_space_core
 section has_groupoid
 variables [topological_space H] [topological_space M] [charted_space H M]
 
+section
+set_option old_structure_cmd true
+
 /-- A charted space has an atlas in a groupoid `G` if the change of coordinates belong to the
 groupoid -/
 class has_groupoid {H : Type*} [topological_space H] (M : Type*) [topological_space M]
   [charted_space H M] (G : structure_groupoid H) : Prop :=
 (compatible [] : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M → e.symm ≫ₕ e' ∈ G)
+
+end
 
 /-- Reformulate in the `structure_groupoid` namespace the compatibility condition of charts in a
 charted space admitting a structure groupoid, to make it more easily accessible with dot

@@ -38,9 +38,9 @@ namespace subsemiring
 
 instance : has_coe (subsemiring R) (set R) := ⟨subsemiring.carrier⟩
 
-instance : has_coe_to_sort (subsemiring R) := ⟨Type*, λ S, S.carrier⟩
-
 instance : has_mem R (subsemiring R) := ⟨λ m S, m ∈ (S:set R)⟩
+
+instance : has_coe_to_sort (subsemiring R) := ⟨Type*, λ S, {x : R // x ∈ S}⟩
 
 /-- Construct a `subsemiring R` from a set `s`, a submonoid `sm`, and an additive
 submonoid `sa` such that `x ∈ s ↔ x ∈ sm ↔ x ∈ sa`. -/
@@ -160,7 +160,7 @@ instance to_semiring : semiring s :=
   .. s.to_submonoid.to_monoid, .. s.to_add_submonoid.to_add_comm_monoid }
 
 instance nontrivial [nontrivial R] : nontrivial s :=
-nontrivial_of_ne 0 1 $ λ H, zero_ne_one (congr_arg subtype.val H : _)
+@nontrivial_of_ne s 0 1 (λ H, zero_ne_one (congr_arg subtype.val H : _))
 
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl

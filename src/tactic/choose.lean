@@ -52,7 +52,7 @@ The second value returned by `choose1` is the result of nondep elimination:
 meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) :
   tactic (expr × option (option expr)) := do
   t ← infer_type h,
-  (ctxt, t) ← mk_local_pis_whnf t,
+  (ctxt, t) ← whnf t >>= open_pis,
   t ← whnf t transparency.all,
   match t with
   | `(@Exists %%α %%p) := do
@@ -60,7 +60,15 @@ meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) :
     expr.sort u ← whnf α_t transparency.all,
     (ne_fail, nonemp) ← if nondep then do
       let ne := expr.const ``nonempty [u] α,
-      nonemp ← try_core (mk_instance ne),
+      nonemp ← try_core (mk_instance ne <|> retrieve' (do
+        m ← mk_meta_var ne,
+        set_goals [m],
+        ctxt.mmap' (λ e, do
+          b ← is_proof e,
+          monad.unlessb b $
+            (mk_app ``nonempty.intro [e] >>= note_anon none) $> ()),
+        unfreeze_local_instances >> apply_instance,
+        instantiate_mvars m)),
       pure (some (option.guard (λ _, nonemp.is_none) ne), nonemp)
     else pure (none, none),
     ctxt' ← if nonemp.is_some then ctxt.mfilter (λ e, bnot <$> is_proof e) else pure ctxt,
@@ -125,7 +133,7 @@ into context a function `a : X → Y → A`, `b : X → Y → B` and two assumpt
 
 `choose! a b h h' using hyp` does the same, except that it will remove dependency of
 the functions on propositional arguments if possible. For example if `Y` is a proposition
-and `A` and `B` are inhabited in the above example then we will instead get
+and `A` and `B` are nonempty in the above example then we will instead get
 `a : X → A`, `b : X → B`, and the assumptions
 `h : ∀ (x : X) (y : Y), P x y (a x) (b x)` and
 `h' : ∀ (x : X) (y : Y), Q x y (a x) (b x)`.
@@ -136,9 +144,9 @@ Examples:
 example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
 begin
   choose i j h using h,
-  guard_hyp i := ℕ → ℕ → ℕ,
-  guard_hyp j := ℕ → ℕ → ℕ,
-  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
+  guard_hyp i : ℕ → ℕ → ℕ,
+  guard_hyp j : ℕ → ℕ → ℕ,
+  guard_hyp h : ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
   trivial
 end
 ```
@@ -147,9 +155,9 @@ end
 example (h : ∀ i : ℕ, i < 7 → ∃ j, i < j ∧ j < i+i) : true :=
 begin
   choose! f h h' using h,
-  guard_hyp f := ℕ → ℕ,
-  guard_hyp h := ∀ (i : ℕ), i < 7 → i < f i,
-  guard_hyp h' := ∀ (i : ℕ), i < 7 → f i < i + i,
+  guard_hyp f : ℕ → ℕ,
+  guard_hyp h : ∀ (i : ℕ), i < 7 → i < f i,
+  guard_hyp h' : ∀ (i : ℕ), i < 7 → f i < i + i,
   trivial,
 end
 ```

@@ -93,6 +93,14 @@ begin
 end
 /- Inf -/ _ rfl
 
+lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) :=
+by refl
+
+@[simp] lemma mk_inf_mk {U V : set α} {hU : is_open U} {hV : is_open V} :
+  (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open_inter hU hV⟩ := rfl
+@[simp,norm_cast] lemma coe_inf {U V : opens α} :
+  ((U ⊓ V : opens α) : set α) = (U : set α) ⊓ (V : set α) := rfl
+
 instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
 instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
 instance : has_emptyc (opens α) := ⟨⊥⟩
@@ -111,6 +119,10 @@ end
 lemma supr_def {ι} (s : ι → opens α) : (⨆ i, s i) = ⟨⋃ i, s i, is_open_Union $ λ i, (s i).2⟩ :=
 by { ext, simp only [supr, opens.Sup_s, sUnion_image, bUnion_range], refl }
 
+@[simp] lemma supr_mk {ι} (s : ι → set α) (h : Π i, is_open (s i)) :
+  (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⨆ i, s i, is_open_Union h⟩ :=
+by { rw supr_def, simp }
+
 @[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
 by simp [supr_def]
 
@@ -124,7 +136,7 @@ lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
   open_range :=
   begin
     rw set.range_inclusion i,
-    exact continuous_subtype_val U.val U.property
+    exact U.property.preimage continuous_subtype_val
   end, }
 
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
@@ -155,8 +167,7 @@ begin
     { intros U hU, exact hU.left },
     { apply ext,
       rw [Sup_s, hU],
-      congr,
-      ext s; split; intro hs,
+      congr' with s; split; intro hs,
       { rcases H hs with ⟨V, hV⟩,
         rw ← hV.right at hs,
         refine ⟨V, ⟨⟨hV.left, hs⟩, hV.right⟩⟩ },
@@ -181,7 +192,7 @@ end
 
 /-- The preimage of an open set, as an open set. -/
 def comap {f : α → β} (hf : continuous f) (V : opens β) : opens α :=
-⟨f ⁻¹' V.1, hf V.1 V.2⟩
+⟨f ⁻¹' V.1, V.2.preimage hf⟩
 
 @[simp] lemma comap_id (U : opens α) : U.comap continuous_id = U := by { ext, refl }
 

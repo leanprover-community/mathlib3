@@ -271,7 +271,7 @@ do decl ← get_decl n,
    -- incrementally build up target expression `Π (hp : p) [cls hp] ..., cls (n.{ls} hp ...)`
    -- where `p ...` are the inductive parameter types of `n`
    let tgt : expr := expr.const n ls,
-   ⟨params, _⟩ ← mk_local_pis (decl.type.instantiate_univ_params (decl.univ_params.zip ls)),
+   ⟨params, _⟩ ← open_pis (decl.type.instantiate_univ_params (decl.univ_params.zip ls)),
    let params := params.init,
    let tgt := tgt.mk_app params,
    tgt ← mk_inst cls tgt,

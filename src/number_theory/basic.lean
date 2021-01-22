@@ -16,8 +16,8 @@ lemma dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ}
   (p^(k+1) : R) ∣ a^(p^k) - b^(p^k) :=
 begin
   induction k with k ih,
-  { rwa [pow_one, nat.pow_zero, pow_one, pow_one] },
-  rw [nat.pow_succ, pow_mul, pow_mul, ← geom_sum₂_mul, pow_succ],
+  { rwa [pow_one, pow_zero, pow_one, pow_one] },
+  rw [pow_succ' p k, pow_mul, pow_mul, ← geom_sum₂_mul, pow_succ],
   refine mul_dvd_mul _ ih,
   let I : ideal R := span {p},
   let f : R →+* ideal.quotient I := mk I,

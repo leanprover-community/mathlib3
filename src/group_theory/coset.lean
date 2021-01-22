@@ -162,6 +162,10 @@ def left_rel [group α] (s : subgroup α) : setoid α :=
   have x⁻¹ * y * (y⁻¹ * z) ∈ s, from s.mul_mem hxy hyz,
   by simpa [mul_assoc] using this⟩
 
+@[to_additive]
+instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
+  decidable_rel (left_rel s).r := λ _ _, d _
+
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
   If `s` is a normal subgroup, `quotient s` is a group -/
 def quotient [group α] (s : subgroup α) : Type* := quotient (left_rel s)
@@ -180,12 +184,16 @@ attribute [to_additive quotient_add_group.quotient] quotient_group.quotient
 
 namespace quotient_group
 
-
 variables [group α] {s : subgroup α}
+
+@[to_additive]
+instance fintype [fintype α] (s : subgroup α) [decidable_rel (left_rel s).r] :
+  fintype (quotient_group.quotient s) :=
+quotient.fintype (left_rel s)
 
 /-- The canonical map from a group `α` to the quotient `α/s`. -/
 @[to_additive "The canonical map from an `add_group` `α` to the quotient `α/s`."]
-def mk (a : α) : quotient s :=
+abbreviation mk (a : α) : quotient s :=
 quotient.mk' a
 
 @[elab_as_eliminator, to_additive]
@@ -213,6 +221,16 @@ quotient.eq'
 lemma eq_class_eq_left_coset (s : subgroup α) (g : α) :
   {x : α | (x : quotient s) = g} = left_coset g s :=
 set.ext $ λ z, by { rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq], simp }
+
+@[to_additive]
+lemma preimage_image_coe (N : subgroup α) (s : set α) :
+  coe ⁻¹' ((coe : α → quotient N) '' s) = ⋃ x : N, (λ y : α, y * x) '' s :=
+begin
+  ext x,
+  simp only [quotient_group.eq, subgroup.exists, exists_prop, set.mem_preimage, set.mem_Union,
+    set.mem_image, subgroup.coe_mk, ← eq_inv_mul_iff_mul_eq],
+  exact ⟨λ ⟨y, hs, hN⟩, ⟨_, hN, y, hs, rfl⟩, λ ⟨z, hN, y, hs, hyz⟩, ⟨y, hs, hyz ▸ hN⟩⟩
+end
 
 end quotient_group
 

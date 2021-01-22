@@ -34,11 +34,15 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 namespace category_theory
 open category
 
-/-- An isomorphism (a.k.a. an invertible morphism) between two objects of a category.
+/--
+An isomorphism (a.k.a. an invertible morphism) between two objects of a category.
 The inverse morphism is bundled.
 
 See also `category_theory.core` for the category with the same objects and isomorphisms playing
-the role of morphisms. -/
+the role of morphisms.
+
+See https://stacks.math.columbia.edu/tag/0017.
+-/
 structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
@@ -182,19 +186,19 @@ is_iso.inv_hom_id'
   inv f ≫ f ≫ g = g :=
 (as_iso f).inv_hom_id_assoc g
 
-instance (X : C) : is_iso (𝟙 X) :=
+instance id (X : C) : is_iso (𝟙 X) :=
 { inv := 𝟙 X }
 
 instance of_iso (f : X ≅ Y) : is_iso f.hom :=
 { .. f }
 
-instance of_iso_inverse (f : X ≅ Y) : is_iso f.inv :=
+instance of_iso_inv (f : X ≅ Y) : is_iso f.inv :=
 is_iso.of_iso f.symm
 
 variables {f g : X ⟶ Y} {h : Y ⟶ Z}
 
 instance inv_is_iso [is_iso f] : is_iso (inv f) :=
-is_iso.of_iso_inverse (as_iso f)
+is_iso.of_iso_inv (as_iso f)
 
 instance comp_is_iso [is_iso f] [is_iso h] : is_iso (f ≫ h) :=
 is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
@@ -204,6 +208,22 @@ is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 @[simp] lemma inv_inv [is_iso f] : inv (inv f) = f := rfl
 @[simp] lemma iso.inv_inv (f : X ≅ Y) : inv (f.inv) = f.hom := rfl
 @[simp] lemma iso.inv_hom (f : X ≅ Y) : inv (f.hom) = f.inv := rfl
+
+@[simp]
+lemma inv_comp_eq (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : inv α ≫ f = g ↔ f = α ≫ g :=
+(as_iso α).inv_comp_eq
+
+@[simp]
+lemma eq_inv_comp (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : g = inv α ≫ f ↔ α ≫ g = f :=
+(as_iso α).eq_inv_comp
+
+@[simp]
+lemma comp_inv_eq (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫ inv α = g ↔ f = g ≫ α :=
+(as_iso α).comp_inv_eq
+
+@[simp]
+lemma eq_comp_inv (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ inv α ↔ g ≫ α = f :=
+(as_iso α).eq_comp_inv
 
 @[priority 100] -- see Note [lower instance priority]
 instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
@@ -233,6 +253,12 @@ instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
 
 lemma is_iso.inv_eq_inv {f g : X ⟶ Y} [is_iso f] [is_iso g] : inv f = inv g ↔ f = g :=
 iso.inv_eq_inv (as_iso f) (as_iso g)
+
+lemma hom_comp_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : g ≫ f = 𝟙 X ↔ f = inv g :=
+(as_iso g).hom_comp_eq_id
+
+lemma comp_hom_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y ↔ f = inv g :=
+(as_iso g).comp_hom_eq_id
 
 namespace iso
 

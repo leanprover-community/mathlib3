@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.natural_isomorphism
+import data.equiv.basic
 
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -15,6 +16,8 @@ variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D
 A functor `F : C ⥤ D` is full if for each `X Y : C`, `F.map` is surjective.
 In fact, we use a constructive definition, so the `full F` typeclass contains data,
 specifying a particular preimage of each `f : F.obj X ⟶ F.obj Y`.
+
+See https://stacks.math.columbia.edu/tag/001C.
 -/
 class full (F : C ⥤ D) :=
 (preimage : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), X ⟶ Y)
@@ -23,7 +26,11 @@ class full (F : C ⥤ D) :=
 restate_axiom full.witness'
 attribute [simp] full.witness
 
-/-- A functor `F : C ⥤ D` is faithful if for each `X Y : C`, `F.map` is injective.-/
+/--
+A functor `F : C ⥤ D` is faithful if for each `X Y : C`, `F.map` is injective.
+
+See https://stacks.math.columbia.edu/tag/001C.
+-/
 class faithful (F : C ⥤ D) : Prop :=
 (map_injective' [] : ∀ {X Y : C}, function.injective (@functor.map _ _ _ _ F X Y) . obviously)
 
@@ -77,6 +84,20 @@ def is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
 { inv := F.preimage (inv (F.map f)),
   hom_inv_id' := F.map_injective (by simp),
   inv_hom_id' := F.map_injective (by simp) }
+
+/-- If `F` is fully faithful, we have an equivalence of hom-sets `X ⟶ Y` and `F X ⟶ F Y`. -/
+def equiv_of_fully_faithful {X Y} : (X ⟶ Y) ≃ (F.obj X ⟶ F.obj Y) :=
+{ to_fun := λ f, F.map f,
+  inv_fun := λ f, F.preimage f,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by simp }
+
+@[simp]
+lemma equiv_of_fully_faithful_apply {X Y : C} (f : X ⟶ Y) :
+  equiv_of_fully_faithful F f = F.map f := rfl
+@[simp]
+lemma equiv_of_fully_faithful_symm_apply {X Y} (f : F.obj X ⟶ F.obj Y) :
+  (equiv_of_fully_faithful F).symm f = F.preimage f := rfl
 
 end category_theory
 
@@ -179,5 +200,26 @@ lemma faithful.div_faithful (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G
 
 instance full.comp [full F] [full G] : full (F ⋙ G) :=
 { preimage := λ _ _ f, F.preimage (G.preimage f) }
+
+/--
+Given a natural isomorphism between `F ⋙ H` and `G ⋙ H` for a fully faithful functor `H`, we
+can 'cancel' it to give a natural iso between `F` and `G`.
+-/
+def fully_faithful_cancel_right {F G : C ⥤ D} (H : D ⥤ E)
+  [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) : F ≅ G :=
+nat_iso.of_components
+  (λ X, preimage_iso (comp_iso.app X))
+  (λ X Y f, H.map_injective (by simpa using comp_iso.hom.naturality f))
+
+@[simp]
+lemma fully_faithful_cancel_right_hom_app {F G : C ⥤ D} {H : D ⥤ E}
+  [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) (X : C) :
+  (fully_faithful_cancel_right H comp_iso).hom.app X = H.preimage (comp_iso.hom.app X) :=
+rfl
+@[simp]
+lemma fully_faithful_cancel_right_inv_app {F G : C ⥤ D} {H : D ⥤ E}
+  [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) (X : C) :
+  (fully_faithful_cancel_right H comp_iso).inv.app X = H.preimage (comp_iso.inv.app X) :=
+rfl
 
 end category_theory

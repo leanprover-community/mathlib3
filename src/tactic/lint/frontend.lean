@@ -47,11 +47,6 @@ omits it from only the specified linter checks.
 sanity check, lint, cleanup, command, tactic
 -/
 
-reserve notation `#lint`
-reserve notation `#lint_mathlib`
-reserve notation `#lint_all`
-reserve notation `#list_linters`
-
 open tactic expr native
 setup_tactic_parser
 
@@ -76,7 +71,8 @@ meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
   list.append default <$> get_linters extra
 
 /--
-`lint_core all_decls non_auto_decls checks` applies the linters `checks` to the list of declarations.
+`lint_core all_decls non_auto_decls checks` applies the linters `checks` to the list of
+declarations.
 If `auto_decls` is false for a linter (default) the linter is applied to `non_auto_decls`.
 If `auto_decls` is true, then it is applied to `all_decls`.
 The resulting list has one element for each linter, containing the linter as
@@ -183,7 +179,7 @@ meta def lint (slow : bool := tt) (verbose : lint_verbosity := lint_verbosity.me
   (extra : list name := []) (use_only : bool := ff) : tactic (name_set × format) := do
   checks ← get_checks slow extra use_only,
   e ← get_env,
-  let l := e.filter (λ d, e.in_current_file' d.to_name),
+  let l := e.filter (λ d, e.in_current_file d.to_name),
   lint_aux l none "in the current file" slow verbose checks
 
 /-- Returns the declarations considered by the mathlib linter. -/
@@ -225,11 +221,13 @@ tk "+" >> return lint_verbosity.high <|>
 return none
 
 /-- The common denominator of `lint_cmd`, `lint_mathlib_cmd`, `lint_all_cmd` -/
-private meta def lint_cmd_aux (scope : bool → lint_verbosity → list name → bool → tactic (name_set × format)) :
+private meta def lint_cmd_aux
+  (scope : bool → lint_verbosity → list name → bool → tactic (name_set × format)) :
   parser unit :=
 do verbosity ← parse_verbosity,
    fast_only ← optional (tk "*"),
-   verbosity ← if verbosity.is_some then return verbosity else parse_verbosity, -- allow either order of *-
+   -- allow either order of *-
+   verbosity ← if verbosity.is_some then return verbosity else parse_verbosity,
    let verbosity := verbosity.get_or_else lint_verbosity.medium,
    (use_only, extra) ← parse_lint_additions,
    (failed, s) ← scope fast_only.is_none verbosity extra use_only,

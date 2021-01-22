@@ -1,28 +1,31 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import measure_theory.measure_space
-import measure_theory.borel_space
+import measure_theory.pi
 
 /-!
-# Lebesgue measure on the real line
+# Lebesgue measure on the real line and on `ℝⁿ`
 -/
 
 noncomputable theory
 open classical set filter
 open ennreal (of_real)
-open_locale big_operators
+open_locale big_operators ennreal
 
 namespace measure_theory
+
+/-!
+### Preliminary definitions
+-/
 
 /-- Length of an interval. This is the largest monotonic function which correctly
   measures all intervals. -/
 def lebesgue_length (s : set ℝ) : ennreal := ⨅a b (h : s ⊆ Ico a b), of_real (b - a)
 
 @[simp] lemma lebesgue_length_empty : lebesgue_length ∅ = 0 :=
-le_zero_iff_eq.1 $ infi_le_of_le 0 $ infi_le_of_le 0 $ by simp
+nonpos_iff_eq_zero.1 $ infi_le_of_le 0 $ infi_le_of_le 0 $ by simp
 
 @[simp] lemma lebesgue_length_Ico (a b : ℝ) :
   lebesgue_length (Ico a b) = of_real (b - a) :=
@@ -46,7 +49,7 @@ begin
     (infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h,
       ⟨subset.trans h Ioo_subset_Ico_self, le_refl _⟩) _,
   refine le_infi (λ a, le_infi $ λ b, le_infi $ λ h, _),
-  refine ennreal.le_of_forall_epsilon_le (λ ε ε0 _, _),
+  refine ennreal.le_of_forall_pos_le_add (λ ε ε0 _, _),
   refine infi_le_of_le (a - ε) (infi_le_of_le b $ infi_le_of_le
     (subset.trans h $ Ico_subset_Ioo_left $ (sub_lt_self_iff _).2 ε0) _),
   rw ← sub_add,
@@ -74,7 +77,7 @@ begin
     (infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h,
       ⟨subset.trans h Ico_subset_Icc_self, le_refl _⟩),
   refine le_infi (λ a, le_infi $ λ b, le_infi $ λ h, _),
-  refine ennreal.le_of_forall_epsilon_le (λ ε ε0 _, _),
+  refine ennreal.le_of_forall_pos_le_add (λ ε ε0 _, _),
   refine infi_le_of_le a (infi_le_of_le (b + ε) $ infi_le_of_le
     (subset.trans h $ Icc_subset_Ico_right $ (lt_add_iff_pos_right _).2 ε0) _),
   rw [← sub_add_eq_add_sub],
@@ -134,13 +137,14 @@ end
   lebesgue_outer (Icc a b) = of_real (b - a) :=
 begin
   refine le_antisymm (by rw ← lebesgue_length_Icc; apply lebesgue_outer_le_length)
-    (le_binfi $ λ f hf, ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
+    (le_binfi $ λ f hf, ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,
   choose g hg using show
-    ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ennreal) < lebesgue_length (f i) + ε' i,
+    ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ennreal) <
+      lebesgue_length (f i) + ε' i,
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
@@ -168,7 +172,7 @@ by rw [← Ico_diff_left, lebesgue_outer.diff_null _ (lebesgue_outer_singleton _
 by rw [← Icc_diff_left, lebesgue_outer.diff_null _ (lebesgue_outer_singleton _), lebesgue_outer_Icc]
 
 lemma is_lebesgue_measurable_Iio {c : ℝ} :
-  lebesgue_outer.caratheodory.is_measurable (Iio c) :=
+  lebesgue_outer.caratheodory.is_measurable' (Iio c) :=
 outer_measure.of_function_caratheodory $ λ t,
 le_infi $ λ a, le_infi $ λ b, le_infi $ λ h, begin
   refine le_trans (add_le_add
@@ -185,7 +189,7 @@ begin
   refine le_antisymm (λ s, _) (outer_measure.le_trim _),
   rw outer_measure.trim_eq_infi,
   refine le_infi (λ f, le_infi $ λ hf,
-    ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
+    ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),
@@ -214,6 +218,10 @@ begin
   simp [is_lebesgue_measurable_Iio] { contextual := tt }
 end
 
+/-!
+### Definition of the Lebesgue measure and lengths of intervals
+-/
+
 /-- Lebesgue measure on the Borel sets
 
 The outer Lebesgue measure is the completion of this measure. (TODO: proof this)
@@ -231,40 +239,145 @@ end measure_theory
 
 open measure_theory
 
-section volume
+namespace real
 
-open_locale interval
+variables {ι : Type*} [fintype ι]
 
-theorem real.volume_val (s) : volume s = lebesgue_outer s := rfl
+open_locale topological_space
 
-@[simp]
-lemma real.volume_Ico {a b : ℝ} : volume (Ico a b) = of_real (b - a) := lebesgue_outer_Ico a b
+theorem volume_val (s) : volume s = lebesgue_outer s := rfl
 
-@[simp]
-lemma real.volume_Icc {a b : ℝ} : volume (Icc a b) = of_real (b - a) := lebesgue_outer_Icc a b
+instance has_no_atoms_volume : has_no_atoms (volume : measure ℝ) :=
+⟨lebesgue_outer_singleton⟩
 
-@[simp]
-lemma real.volume_Ioo {a b : ℝ} : volume (Ioo a b) = of_real (b - a) := lebesgue_outer_Ioo a b
+@[simp] lemma volume_Ico {a b : ℝ} : volume (Ico a b) = of_real (b - a) := lebesgue_outer_Ico a b
 
-@[simp]
-lemma real.volume_Ioc {a b : ℝ} : volume (Ioc a b) = of_real (b - a) := lebesgue_outer_Ioc a b
+@[simp] lemma volume_Icc {a b : ℝ} : volume (Icc a b) = of_real (b - a) := lebesgue_outer_Icc a b
 
-@[simp]
-lemma real.volume_singleton {a : ℝ} : volume ({a} : set ℝ) = 0 := lebesgue_outer_singleton a
+@[simp] lemma volume_Ioo {a b : ℝ} : volume (Ioo a b) = of_real (b - a) := lebesgue_outer_Ioo a b
 
-@[simp] lemma real.volume_interval {a b : ℝ} : volume [a, b] = of_real (abs (b - a)) :=
-begin
-  rw [interval, real.volume_Icc],
-  congr,
-  exact max_sub_min_eq_abs _ _
-end
+@[simp] lemma volume_Ioc {a b : ℝ} : volume (Ioc a b) = of_real (b - a) := lebesgue_outer_Ioc a b
 
-instance real.locally_finite_volume : locally_finite_measure (volume : measure ℝ) :=
+@[simp] lemma volume_singleton {a : ℝ} : volume ({a} : set ℝ) = 0 := lebesgue_outer_singleton a
+
+@[simp] lemma volume_interval {a b : ℝ} : volume (interval a b) = of_real (abs (b - a)) :=
+by rw [interval, volume_Icc, max_sub_min_eq_abs]
+
+@[simp] lemma volume_Ioi {a : ℝ} : volume (Ioi a) = ∞ :=
+top_unique $ le_of_tendsto' ennreal.tendsto_nat_nhds_top $ λ n,
+calc (n : ennreal) = volume (Ioo a (a + n)) : by simp
+... ≤ volume (Ioi a) : measure_mono Ioo_subset_Ioi_self
+
+@[simp] lemma volume_Ici {a : ℝ} : volume (Ici a) = ∞ :=
+by simp [← measure_congr Ioi_ae_eq_Ici]
+
+@[simp] lemma volume_Iio {a : ℝ} : volume (Iio a) = ∞ :=
+top_unique $ le_of_tendsto' ennreal.tendsto_nat_nhds_top $ λ n,
+calc (n : ennreal) = volume (Ioo (a - n) a) : by simp
+... ≤ volume (Iio a) : measure_mono Ioo_subset_Iio_self
+
+@[simp] lemma volume_Iic {a : ℝ} : volume (Iic a) = ∞ :=
+by simp [← measure_congr Iio_ae_eq_Iic]
+
+instance locally_finite_volume : locally_finite_measure (volume : measure ℝ) :=
 ⟨λ x, ⟨Ioo (x - 1) (x + 1),
   mem_nhds_sets is_open_Ioo ⟨sub_lt_self _ zero_lt_one, lt_add_of_pos_right _ zero_lt_one⟩,
   by simp only [real.volume_Ioo, ennreal.of_real_lt_top]⟩⟩
 
-end volume
+/-!
+### Volume of a box in `ℝⁿ`
+-/
+
+lemma volume_Icc_pi {a b : ι → ℝ} : volume (Icc a b) = ∏ i, ennreal.of_real (b i - a i) :=
+begin
+  rw [← pi_univ_Icc, volume_pi_pi],
+  { simp only [real.volume_Icc] },
+  { exact λ i, is_measurable_Icc }
+end
+
+@[simp] lemma volume_Icc_pi_to_real {a b : ι → ℝ} (h : a ≤ b) :
+  (volume (Icc a b)).to_real = ∏ i, (b i - a i) :=
+by simp only [volume_Icc_pi, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+
+lemma volume_pi_Ioo {a b : ι → ℝ} :
+  volume (pi univ (λ i, Ioo (a i) (b i))) = ∏ i, ennreal.of_real (b i - a i) :=
+(measure_congr measure.univ_pi_Ioo_ae_eq_Icc).trans volume_Icc_pi
+
+@[simp] lemma volume_pi_Ioo_to_real {a b : ι → ℝ} (h : a ≤ b) :
+  (volume (pi univ (λ i, Ioo (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
+by simp only [volume_pi_Ioo, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+
+lemma volume_pi_Ioc {a b : ι → ℝ} :
+  volume (pi univ (λ i, Ioc (a i) (b i))) = ∏ i, ennreal.of_real (b i - a i) :=
+(measure_congr measure.univ_pi_Ioc_ae_eq_Icc).trans volume_Icc_pi
+
+@[simp] lemma volume_pi_Ioc_to_real {a b : ι → ℝ} (h : a ≤ b) :
+  (volume (pi univ (λ i, Ioc (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
+by simp only [volume_pi_Ioc, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+
+lemma volume_pi_Ico {a b : ι → ℝ} :
+  volume (pi univ (λ i, Ico (a i) (b i))) = ∏ i, ennreal.of_real (b i - a i) :=
+(measure_congr measure.univ_pi_Ico_ae_eq_Icc).trans volume_Icc_pi
+
+@[simp] lemma volume_pi_Ico_to_real {a b : ι → ℝ} (h : a ≤ b) :
+  (volume (pi univ (λ i, Ico (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
+by simp only [volume_pi_Ico, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+
+/-!
+### Images of the Lebesgue measure under translation/multiplication/...
+-/
+
+lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
+eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
+  by simp [measure.map_apply (measurable_add_left a) is_measurable_Ioo, sub_sub_sub_cancel_right]
+
+lemma map_volume_add_right (a : ℝ) : measure.map (+ a) volume = volume :=
+by simpa only [add_comm] using real.map_volume_add_left a
+
+lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
+  ennreal.of_real (abs a) • measure.map ((*) a) volume = volume :=
+begin
+  refine (real.measure_ext_Ioo_rat $ λ p q, _).symm,
+  cases lt_or_gt_of_ne h with h h,
+  { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
+      measure.map_apply (measurable_mul_left a) is_measurable_Ioo, neg_sub_neg,
+      ← neg_mul_eq_neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub,
+      mul_div_cancel' _ (ne_of_lt h)] },
+  { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt h),
+      measure.map_apply (measurable_mul_left a) is_measurable_Ioo, preimage_const_mul_Ioo _ _ h,
+      abs_of_pos h, mul_sub, mul_div_cancel' _ (ne_of_gt h)] }
+end
+
+lemma map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
+  measure.map ((*) a) volume = ennreal.of_real (abs a⁻¹) • volume :=
+by conv_rhs { rw [← real.smul_map_volume_mul_left h, smul_smul,
+  ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, inv_mul_cancel h, abs_one, ennreal.of_real_one,
+  one_smul] }
+
+lemma smul_map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
+  ennreal.of_real (abs a) • measure.map (* a) volume = volume :=
+by simpa only [mul_comm] using real.smul_map_volume_mul_left h
+
+lemma map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
+  measure.map (* a) volume = ennreal.of_real (abs a⁻¹) • volume :=
+by simpa only [mul_comm] using real.map_volume_mul_left h
+
+@[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
+eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
+  by simp [measure.map_apply measurable_neg is_measurable_Ioo]
+
+end real
+
+open_locale topological_space
+
+lemma filter.eventually.volume_pos_of_nhds_real {p : ℝ → Prop} {a : ℝ} (h : ∀ᶠ x in 𝓝 a, p x) :
+  (0 : ennreal) < volume {x | p x} :=
+begin
+  rcases h.exists_Ioo_subset with ⟨l, u, hx, hs⟩,
+  refine lt_of_lt_of_le _ (measure_mono hs),
+  simpa [-mem_Ioo] using hx.1.trans hx.2
+end
+
 /-
 section vitali
 

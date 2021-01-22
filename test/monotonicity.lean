@@ -21,7 +21,10 @@ example
   (h : 3 ≤ (4 : ℤ))
   (h' : 5 ≤ (6 : ℤ))
 : (1 + 3 + 2) - 6 ≤ (4 + 2 + 1 : ℤ) - 5 :=
-by ac_mono
+begin
+  ac_mono,
+  mono,
+end
 
 example
   (h : 3 ≤ (4 : ℤ))
@@ -402,7 +405,7 @@ begin
   exact 3
 end
 
-example {α} [decidable_linear_order α]
+example {α} [linear_order α]
   (a b c d e : α) :
   max a b ≤ e → b ≤ e :=
 by { mono, apply le_max_right }

@@ -6,6 +6,8 @@ Authors: Scott Morrison
 import algebra.category.Group
 import category_theory.limits.shapes.kernels
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 

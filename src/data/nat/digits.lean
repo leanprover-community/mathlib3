@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Shing Tak Lam
+Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
 import tactic.interval_cases
@@ -15,7 +15,12 @@ and reconstructing numbers from their digits.
 
 We also prove some divisibility tests based on digits, in particular completing
 Theorem #85 from https://www.cs.ru.nl/~freek/100/.
+
+A basic `norm_digits` tactic is also provided for proving goals of the form
+`nat.digits a b = l` where `a` and `b` are numerals.
 -/
+
+namespace nat
 
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
 def digits_aux_0 : ℕ → list ℕ
@@ -72,12 +77,22 @@ end
 
 @[simp] lemma digits_zero_succ (n : ℕ) : digits 0 (n.succ) = [n+1] := rfl
 
+theorem digits_zero_succ' : ∀ {n : ℕ} (w : 0 < n), digits 0 n = [n]
+| 0 h := absurd h dec_trivial
+| (n+1) _ := rfl
+
 @[simp] lemma digits_one (n : ℕ) : digits 1 n = list.repeat 1 n := rfl
 
 @[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n := rfl
 
 @[simp] lemma digits_add_two_add_one (b n : ℕ) :
   digits (b+2) (n+1) = (((n+1) % (b+2)) :: digits (b+2) ((n+1) / (b+2))) := rfl
+
+theorem digits_def' : ∀ {b : ℕ} (h : 2 ≤ b) {n : ℕ} (w : 0 < n),
+  digits b n = n % b :: digits b (n/b)
+| 0 h := absurd h dec_trivial
+| 1 h := absurd h dec_trivial
+| (b+2) h := digits_aux_def _ _
 
 @[simp]
 lemma digits_of_lt (b x : ℕ) (w₁ : 0 < x) (w₂ : x < b) : digits b x = [x] :=
@@ -144,7 +159,7 @@ lemma of_digits_append {b : ℕ} {l1 l2 : list ℕ} :
 begin
   induction l1 with hd tl IH,
   { simp [of_digits] },
-  { rw [of_digits, list.cons_append, of_digits, IH, list.length_cons, nat.pow_succ],
+  { rw [of_digits, list.cons_append, of_digits, IH, list.length_cons, pow_succ'],
     ring }
 end
 
@@ -287,10 +302,10 @@ begin
   have hnpos : 0 < n := nat.pos_of_ne_zero hn,
   by_cases hnb : n < b + 2,
   { simp_rw [digits_of_lt b.succ.succ n hnpos hnb],
-    exact nat.pos_iff_ne_zero.mp hnpos },
+    exact pos_iff_ne_zero.mp hnpos },
   { rw digits_last (show 2 ≤ b + 2, from dec_trivial) hnpos,
     refine IH _ (nat.div_lt_self hnpos dec_trivial) _,
-    { rw ←nat.pos_iff_ne_zero,
+    { rw ←pos_iff_ne_zero,
       exact nat.div_pos (le_of_not_lt hnb) dec_trivial } },
 end
 
@@ -321,7 +336,7 @@ lemma of_digits_lt_base_pow_length' {b : ℕ} {l : list ℕ} (hl : ∀ x ∈ l, 
 begin
   induction l with hd tl IH,
   { simp [of_digits], },
-  { rw [of_digits, list.length_cons, nat.pow_succ, mul_comm],
+  { rw [of_digits, list.length_cons, pow_succ],
     have : (of_digits (b + 2) tl + 1) * (b+2) ≤ (b + 2) ^ tl.length * (b+2) :=
       mul_le_mul (IH (λ x hx, hl _ (list.mem_cons_of_mem _ hx)))
                  (by refl) dec_trivial (nat.zero_le _),
@@ -388,10 +403,10 @@ lemma pow_length_le_mul_of_digits {b : ℕ} {l : list ℕ} (hl : l ≠ []) (hl2 
 begin
   rw [←list.init_append_last hl],
   simp only [list.length_append, list.length, zero_add, list.length_init, of_digits_append,
-    list.length_init, of_digits_singleton, add_comm (l.length - 1), nat.pow_add, nat.pow_one],
+    list.length_init, of_digits_singleton, add_comm (l.length - 1), pow_add, pow_one],
   apply nat.mul_le_mul_left,
   refine le_trans _ (nat.le_add_left _ _),
-  have : 0 < l.last hl, { rwa [nat.pos_iff_ne_zero] },
+  have : 0 < l.last hl, { rwa [pos_iff_ne_zero] },
   convert nat.mul_le_mul_left _ this, rw [mul_one]
 end
 
@@ -541,3 +556,87 @@ begin
   rw of_digits_neg_one at t,
   exact t,
 end
+
+/-! ### `norm_digits` tactic -/
+
+namespace norm_digits
+
+theorem digits_succ
+  (b n m r l)
+  (e : r + b * m = n)
+  (hr : r < b)
+  (h : nat.digits b m = l ∧ 2 ≤ b ∧ 0 < m) :
+  nat.digits b n = r :: l ∧ 2 ≤ b ∧ 0 < n :=
+begin
+  rcases h with ⟨h, b2, m0⟩,
+  have b0 : 0 < b := by linarith,
+  have n0 : 0 < n := by linarith [mul_pos b0 m0],
+  refine ⟨_, b2, n0⟩,
+  obtain ⟨rfl, rfl⟩ := (nat.div_mod_unique b0).2 ⟨e, hr⟩,
+  subst h, exact nat.digits_def' b2 n0,
+end
+
+theorem digits_one
+  (b n) (n0 : 0 < n) (nb : n < b) :
+  nat.digits b n = [n] ∧ 2 ≤ b ∧ 0 < n :=
+begin
+  have b2 : 2 ≤ b := by linarith,
+  refine ⟨_, b2, n0⟩,
+  rw [nat.digits_def' b2 n0, nat.mod_eq_of_lt nb,
+    (nat.div_eq_zero_iff (by linarith : 0 < b)).2 nb, nat.digits_zero],
+end
+
+open tactic
+
+/-- Helper function for the `norm_digits` tactic. -/
+meta def eval_aux (eb : expr) (b : ℕ) :
+  expr → ℕ → instance_cache → tactic (instance_cache × expr × expr)
+| en n ic := do
+  let m := n / b,
+  let r := n % b,
+  (ic, er) ← ic.of_nat r,
+  (ic, pr) ← norm_num.prove_lt_nat ic er eb,
+  if m = 0 then do
+    (_, pn0) ← norm_num.prove_pos ic en,
+    return (ic, `([%%en] : list nat), `(digits_one %%eb %%en %%pn0 %%pr))
+  else do
+    em ← expr.of_nat `(ℕ) m,
+    (_, pe) ← norm_num.derive `(%%er + %%eb * %%em : ℕ),
+    (ic, el, p) ← eval_aux em m ic,
+    return (ic, `(@list.cons ℕ %%er %%el),
+      `(digits_succ %%eb %%en %%em %%er %%el %%pe %%pr %%p))
+
+/--
+A tactic for normalizing expressions of the form `nat.digits a b = l` where
+`a` and `b` are numerals.
+
+```
+example : nat.digits 10 123 = [3,2,1] := by norm_num
+```
+-/
+@[norm_num] meta def eval : expr → tactic (expr × expr)
+| `(nat.digits %%eb %%en) := do
+  b ← expr.to_nat eb,
+  n ← expr.to_nat en,
+  if n = 0 then return (`([] : list ℕ), `(nat.digits_zero %%eb))
+  else if b = 0 then do
+    ic ← mk_instance_cache `(ℕ),
+    (_, pn0) ← norm_num.prove_pos ic en,
+    return (`([%%en] : list ℕ), `(@nat.digits_zero_succ' %%en %%pn0))
+  else if b = 1 then do
+    ic ← mk_instance_cache `(ℕ),
+    (_, pn0) ← norm_num.prove_pos ic en,
+    s ← simp_lemmas.add_simp simp_lemmas.mk `list.repeat,
+    (rhs, p2) ← simplify s [] `(list.repeat 1 %%en),
+    p ← mk_eq_trans `(nat.digits_one %%en) p2,
+    return (rhs, p)
+  else do
+    ic ← mk_instance_cache `(ℕ),
+    (_, l, p) ← eval_aux eb b en n ic,
+    p ← mk_app ``and.left [p],
+    return (l, p)
+| _ := failed
+
+end norm_digits
+
+end nat

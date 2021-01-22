@@ -26,7 +26,7 @@ variable {n : ℕ}
   neither endpoint of `J` coincides with an endpoint of `I`, `¬ (K ⊆ J)` and
   `K` does not lie completely to the left nor completely to the right of `J`.
   Then `I ∩ K \ J` is nonempty. -/
-lemma Ico_lemma {α} [decidable_linear_order α] {x₁ x₂ y₁ y₂ z₁ z₂ w : α}
+lemma Ico_lemma {α} [linear_order α] {x₁ x₂ y₁ y₂ z₁ z₂ w : α}
   (h₁ : x₁ < y₁) (hy : y₁ < y₂) (h₂ : y₂ < x₂)
   (hz₁ : z₁ ≤ y₂) (hz₂ : y₁ ≤ z₂) (hw : w ∉ Ico y₁ y₂ ∧ w ∈ Ico z₁ z₂) :
   ∃w, w ∈ Ico x₁ x₂ ∧ w ∉ Ico y₁ y₂ ∧ w ∈ Ico z₁ z₂ :=
@@ -264,7 +264,7 @@ begin
   rcases v.1 c.b_mem_bottom with ⟨_, ⟨i, rfl⟩, hi⟩,
   have h2i : i ∈ bcubes cs c := ⟨hi.1.symm, v.2.1 i hi.1.symm ⟨tail c.b, hi.2, λ j, c.b_mem_side j.succ⟩⟩,
   let j : fin (n+1) := ⟨2, h.2.2.2.2⟩,
-  have hj : 0 ≠ j := by { intro h', have := congr_arg fin.val h', contradiction },
+  have hj : 0 ≠ j := by { simp only [fin.ext_iff, ne.def], contradiction },
   let p : fin (n+1) → ℝ := λ j', if j' = j then c.b j + (cs i).w else c.b j',
   have hp : p ∈ c.bottom,
   { split, { simp only [bottom, p, if_neg hj] },

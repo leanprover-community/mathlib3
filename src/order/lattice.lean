@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Defines the inf/sup (semi)-lattice with optionally top/bot type class hierarchy.
 -/
-import order.basic
+import order.rel_classes
 
 set_option old_structure_cmd true
 
@@ -23,8 +23,6 @@ section
 end
 
 /- TODO: automatic construction of dual definitions / theorems -/
-reserve infixl ` ⊓ `:70
-reserve infixl ` ⊔ `:65
 
 /-- Typeclass for the `⊔` (`\lub`) notation -/
 class has_sup (α : Type u) := (sup : α → α → α)
@@ -34,8 +32,6 @@ class has_inf (α : Type u) := (inf : α → α → α)
 infix ⊔ := has_sup.sup
 infix ⊓ := has_inf.inf
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_sup` is a join-semilattice, that is, a partial order
   with a join (a.k.a. lub / least upper bound, sup / supremum) operation
   `⊔` which is the least element larger than both factors. -/
@@ -43,7 +39,9 @@ class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
 (sup_le : ∀ a b c : α, a ≤ c → b ≤ c → a ⊔ b ≤ c)
-end prio
+
+instance (α : Type*) [has_inf α] : has_sup (order_dual α) := ⟨((⊓) : α → α → α)⟩
+instance (α : Type*) [has_sup α] : has_inf (order_dual α) := ⟨((⊔) : α → α → α)⟩
 
 section semilattice_sup
 variables [semilattice_sup α] {a b c d : α}
@@ -107,8 +105,13 @@ lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : 
 (is_total.total a b).elim (λ h : a ≤ b, by rwa sup_eq_right.2 h) (λ h, by rwa sup_eq_left.2 h)
 
 @[simp] lemma sup_lt_iff [is_total α (≤)] {a b c : α} : b ⊔ c < a ↔ b < a ∧ c < a :=
-⟨λ h, ⟨lt_of_le_of_lt le_sup_left h, lt_of_le_of_lt le_sup_right h⟩,
-  λ h, sup_ind b c h.1 h.2⟩
+⟨λ h, ⟨le_sup_left.trans_lt h, le_sup_right.trans_lt h⟩, λ h, sup_ind b c h.1 h.2⟩
+
+@[simp] lemma le_sup_iff [is_total α (≤)] {a b c : α} : a ≤ b ⊔ c ↔ a ≤ b ∨ a ≤ c :=
+by rw [← not_iff_not]; simp only [not_or_distrib, @sup_lt_iff α, @not_le (as_linear_order α)]
+
+@[simp] lemma lt_sup_iff [is_total α (≤)] {a b c : α} : a < b ⊔ c ↔ a < b ∨ a < c :=
+by { rw ← not_iff_not, simp only [not_or_distrib, @not_lt (as_linear_order α), sup_le_iff] }
 
 @[simp] theorem sup_idem : a ⊔ a = a :=
 by apply le_antisymm; simp
@@ -142,9 +145,18 @@ by rw [← sup_assoc, ← sup_assoc, @sup_comm α _ a]
 
 lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
-  by rwa [classical.or_iff_not_imp_left, classical.not_forall],
+  by rwa [or_iff_not_imp_left, not_forall],
 assume ⟨b, hb⟩,
 ⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
+
+/-- If `f` is a monotonically increasing sequence, `g` is a monotonically decreasing
+sequence, and `f n ≤ g n` for all `n`, then for all `m`, `n` we have `f m ≤ g n`. -/
+theorem forall_le_of_monotone_of_mono_decr {β : Type*} [preorder β]
+  {f g : α → β} (hf : monotone f) (hg : ∀ ⦃m n⦄, m ≤ n → g n ≤ g m)
+  (h : ∀ n, f n ≤ g n) (m n : α) : f m ≤ g n :=
+calc f m ≤ f (m ⊔ n) : hf le_sup_left
+     ... ≤ g (m ⊔ n) : h _
+     ... ≤ g n       : hg le_sup_right
 
 theorem semilattice_sup.ext_sup {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
@@ -163,8 +175,6 @@ end
 
 end semilattice_sup
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
   with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
   `⊓` which is the greatest element smaller than both factors. -/
@@ -172,7 +182,18 @@ class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_left : ∀ a b : α, a ⊓ b ≤ a)
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
 (le_inf : ∀ a b c : α, a ≤ b → a ≤ c → a ≤ b ⊓ c)
-end prio
+
+instance (α) [semilattice_inf α] : semilattice_sup (order_dual α) :=
+{ le_sup_left  := semilattice_inf.inf_le_left,
+  le_sup_right := semilattice_inf.inf_le_right,
+  sup_le := assume a b c hca hcb, @semilattice_inf.le_inf α _ _ _ _ hca hcb,
+  .. order_dual.partial_order α, .. order_dual.has_sup α }
+
+instance (α) [semilattice_sup α] : semilattice_inf (order_dual α) :=
+{ inf_le_left  := @le_sup_left α _,
+  inf_le_right := @le_sup_right α _,
+  le_inf := assume a b c hca hcb, @sup_le α _ _ _ _ hca hcb,
+  .. order_dual.partial_order α, .. order_dual.has_inf α }
 
 section semilattice_inf
 variables [semilattice_inf α] {a b c d : α}
@@ -199,8 +220,7 @@ theorem inf_le_right_of_le (h : b ≤ c) : a ⊓ b ≤ c :=
 le_trans inf_le_right h
 
 @[simp] theorem le_inf_iff : a ≤ b ⊓ c ↔ a ≤ b ∧ a ≤ c :=
-⟨assume h : a ≤ b ⊓ c, ⟨le_trans h inf_le_left, le_trans h inf_le_right⟩,
-  assume ⟨h₁, h₂⟩, le_inf h₁ h₂⟩
+@sup_le_iff (order_dual α) _ _ _ _
 
 @[simp] theorem inf_eq_left : a ⊓ b = a ↔ a ≤ b :=
 le_antisymm_iff.trans $ by simp [le_refl]
@@ -233,48 +253,40 @@ theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
 by { rw ← h, simp }
 
 lemma inf_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊓ b) :=
-(is_total.total a b).elim (λ h : a ≤ b, by rwa inf_eq_left.2 h) (λ h, by rwa inf_eq_right.2 h)
+@sup_ind (order_dual α) _ _ _ _ _ ha hb
 
 @[simp] lemma lt_inf_iff [is_total α (≤)] {a b c : α} : a < b ⊓ c ↔ a < b ∧ a < c :=
-⟨λ h, ⟨lt_of_lt_of_le h inf_le_left, lt_of_lt_of_le h inf_le_right⟩,
-  λ h, inf_ind b c h.1 h.2⟩
+@sup_lt_iff (order_dual α) _ _ _ _ _
+
+@[simp] lemma inf_le_iff [is_total α (≤)] {a b c : α} : b ⊓ c ≤ a ↔ b ≤ a ∨ c ≤ a :=
+@le_sup_iff (order_dual α) _ _ _ _ _
 
 @[simp] theorem inf_idem : a ⊓ a = a :=
-by apply le_antisymm; simp
+@sup_idem (order_dual α) _ _
 
 instance inf_is_idempotent : is_idempotent α (⊓) := ⟨@inf_idem _ _⟩
 
 theorem inf_comm : a ⊓ b = b ⊓ a :=
-by apply le_antisymm; simp
+@sup_comm (order_dual α) _ _ _
 
 instance inf_is_commutative : is_commutative α (⊓) := ⟨@inf_comm _ _⟩
 
 theorem inf_assoc : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) :=
-le_antisymm
-  (le_inf
-    (inf_le_left_of_le inf_le_left)
-    (le_inf (inf_le_left_of_le inf_le_right) inf_le_right))
-  (le_inf
-    (le_inf inf_le_left (inf_le_right_of_le inf_le_left))
-    (inf_le_right_of_le inf_le_right))
+@sup_assoc (order_dual α) _ a b c
 
 instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
 
 @[simp] lemma inf_left_idem : a ⊓ (a ⊓ b) = a ⊓ b :=
-by rw [← inf_assoc, inf_idem]
+@sup_left_idem (order_dual α) _ a b
 
 @[simp] lemma inf_right_idem : (a ⊓ b) ⊓ b = a ⊓ b :=
-by rw [inf_assoc, inf_idem]
+@sup_right_idem (order_dual α) _ a b
 
 lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
-by rw [← inf_assoc, ← inf_assoc, @inf_comm α _ a]
+@sup_left_comm (order_dual α) _ a b c
 
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
-suffices (∃b, ¬a ≤ b) → (∃b, b < a),
-  by rwa [classical.or_iff_not_imp_left, classical.not_forall],
-assume ⟨b, hb⟩,
-have a ⊓ b ≠ a, from assume eq, hb $ eq ▸ inf_le_right,
-⟨a ⊓ b, lt_of_le_of_ne inf_le_left ‹a ⊓ b ≠ a›⟩
+@forall_le_or_exists_lt_sup (order_dual α) _ a
 
 theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
@@ -293,13 +305,13 @@ end
 
 end semilattice_inf
 
-/- Lattices -/
+/-! ### Lattices -/
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
 class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
-end prio
+
+instance (α) [lattice α] : lattice (order_dual α) :=
+{ .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
 
 section lattice
 variables [lattice α] {a b c d : α}
@@ -330,8 +342,6 @@ end
 
 end lattice
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A distributive lattice is a lattice that satisfies any of four
   equivalent distribution properties (of sup over inf or inf over sup,
   on the left or right). A classic example of a distributive lattice
@@ -340,7 +350,6 @@ set_option default_priority 100 -- see Note [default priority]
   as a sublattice of a powerset lattice. -/
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
-end prio
 
 section distrib_lattice
 variables [distrib_lattice α] {x y z : α}
@@ -356,10 +365,15 @@ by simp only [sup_inf_left, λy:α, @sup_comm α _ y x, eq_self_iff_true]
 
 theorem inf_sup_left : x ⊓ (y ⊔ z) = (x ⊓ y) ⊔ (x ⊓ z) :=
 calc x ⊓ (y ⊔ z) = (x ⊓ (x ⊔ z)) ⊓ (y ⊔ z)       : by rw [inf_sup_self]
-             ... = x ⊓ ((x ⊓ y) ⊔ z)             : by simp only [inf_assoc, sup_inf_right, eq_self_iff_true]
+             ... = x ⊓ ((x ⊓ y) ⊔ z)             : by simp only [inf_assoc, sup_inf_right,
+                                                                 eq_self_iff_true]
              ... = (x ⊔ (x ⊓ y)) ⊓ ((x ⊓ y) ⊔ z) : by rw [sup_inf_self]
              ... = ((x ⊓ y) ⊔ x) ⊓ ((x ⊓ y) ⊔ z) : by rw [sup_comm]
              ... = (x ⊓ y) ⊔ (x ⊓ z)             : by rw [sup_inf_left]
+
+instance (α : Type*) [distrib_lattice α] : distrib_lattice (order_dual α) :=
+{ le_sup_inf := assume x y z, le_of_eq inf_sup_left.symm,
+  .. order_dual.lattice α }
 
 theorem inf_sup_right : (y ⊔ z) ⊓ x = (y ⊓ x) ⊔ (z ⊓ x) :=
 by simp only [inf_sup_left, λy:α, @inf_comm α _ y x, eq_self_iff_true]
@@ -380,10 +394,13 @@ le_antisymm
 
 end distrib_lattice
 
-/- Lattices derived from linear orders -/
+/-!
+### Lattices derived from linear orders
+-/
 
 @[priority 100] -- see Note [lower instance priority]
-instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : lattice α :=
+instance lattice_of_linear_order {α : Type u} [o : linear_order α] :
+  lattice α :=
 { sup          := max,
   le_sup_left  := le_max_left,
   le_sup_right := le_max_right,
@@ -395,18 +412,18 @@ instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_o
   le_inf       := assume a b c, le_min,
   ..o }
 
-theorem sup_eq_max [decidable_linear_order α] {x y : α} : x ⊔ y = max x y := rfl
-theorem inf_eq_min [decidable_linear_order α] {x y : α} : x ⊓ y = min x y := rfl
+theorem sup_eq_max [linear_order α] {x y : α} : x ⊔ y = max x y := rfl
+theorem inf_eq_min [linear_order α] {x y : α} : x ⊓ y = min x y := rfl
 
 @[priority 100] -- see Note [lower instance priority]
-instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] :
+instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
   distrib_lattice α :=
 { le_sup_inf := assume a b c,
     match le_total b c with
     | or.inl h := inf_le_left_of_le $ sup_le_sup_left (le_inf (le_refl b) h) _
     | or.inr h := inf_le_right_of_le $ sup_le_sup_left (le_inf h (le_refl c)) _
     end,
-  ..lattice_of_decidable_linear_order }
+  ..lattice_of_linear_order }
 
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
@@ -433,38 +450,9 @@ le_inf (h inf_le_left) (h inf_le_right)
 lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_inf β] {f : α → β}
   (hf : monotone f) (x y : α) :
   f (x ⊓ y) = f x ⊓ f y :=
-(is_total.total x y).elim
-  (λ h : x ≤ y, by simp only [h, hf h, inf_of_le_left])
-  (λ h, by simp only [h, hf h, inf_of_le_right])
+@monotone.map_sup (order_dual α) _ _ _ _ _ hf.order_dual x y
 
 end monotone
-
-namespace order_dual
-variable (α)
-
-instance [has_inf α] : has_sup (order_dual α) := ⟨((⊓) : α → α → α)⟩
-instance [has_sup α] : has_inf (order_dual α) := ⟨((⊔) : α → α → α)⟩
-
-instance [semilattice_inf α] : semilattice_sup (order_dual α) :=
-{ le_sup_left  := @inf_le_left α _,
-  le_sup_right := @inf_le_right α _,
-  sup_le := assume a b c hca hcb, @le_inf α _ _ _ _ hca hcb,
-  .. order_dual.partial_order α, .. order_dual.has_sup α }
-
-instance [semilattice_sup α] : semilattice_inf (order_dual α) :=
-{ inf_le_left  := @le_sup_left α _,
-  inf_le_right := @le_sup_right α _,
-  le_inf := assume a b c hca hcb, @sup_le α _ _ _ _ hca hcb,
-  .. order_dual.partial_order α, .. order_dual.has_inf α }
-
-instance [lattice α] : lattice (order_dual α) :=
-{ .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
-
-instance [distrib_lattice α] : distrib_lattice (order_dual α) :=
-{ le_sup_inf := assume x y z, le_of_eq inf_sup_left.symm,
-  .. order_dual.lattice α }
-
-end order_dual
 
 namespace prod
 variables (α β)
@@ -492,3 +480,31 @@ instance [distrib_lattice α] [distrib_lattice β] : distrib_lattice (α × β) 
   .. prod.lattice α β }
 
 end prod
+
+namespace subtype
+
+/-- A subtype forms a `⊔`-semilattice if `⊔` preserves the property. -/
+protected def semilattice_sup [semilattice_sup α] {P : α → Prop}
+  (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) : semilattice_sup {x : α // P x} :=
+{ sup := λ x y, ⟨x.1 ⊔ y.1, Psup x.2 y.2⟩,
+  le_sup_left := λ x y, @le_sup_left _ _ (x : α) y,
+  le_sup_right := λ x y, @le_sup_right _ _ (x : α) y,
+  sup_le := λ x y z h1 h2, @sup_le α _ _ _ _ h1 h2,
+  ..subtype.partial_order P }
+
+/-- A subtype forms a `⊓`-semilattice if `⊓` preserves the property. -/
+protected def semilattice_inf [semilattice_inf α] {P : α → Prop}
+  (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) : semilattice_inf {x : α // P x} :=
+{ inf := λ x y, ⟨x.1 ⊓ y.1, Pinf x.2 y.2⟩,
+  inf_le_left := λ x y, @inf_le_left _ _ (x : α) y,
+  inf_le_right := λ x y, @inf_le_right _ _ (x : α) y,
+  le_inf := λ x y z h1 h2, @le_inf α _ _ _ _ h1 h2,
+  ..subtype.partial_order P }
+
+/-- A subtype forms a lattice if `⊔` and `⊓` preserve the property. -/
+protected def lattice [lattice α] {P : α → Prop}
+  (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) :
+  lattice {x : α // P x} :=
+{ ..subtype.semilattice_inf Pinf, ..subtype.semilattice_sup Psup }
+
+end subtype

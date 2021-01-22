@@ -51,11 +51,11 @@ begin
 end
 
 instance : monad multiset :=
-{ pure := λ α x, x::0,
+{ pure := λ α x, x ::ₘ 0,
   bind := @bind,
   .. multiset.functor }
 
-@[simp] lemma pure_def {α} : (pure : α → multiset α) = (λ x, x::0) := rfl
+@[simp] lemma pure_def {α} : (pure : α → multiset α) = (λ x, x ::ₘ 0) := rfl
 @[simp] lemma bind_def {α β} : (>>=) = @bind α β := rfl
 
 instance : is_lawful_monad multiset :=
@@ -102,7 +102,7 @@ lemma map_traverse {G : Type* → Type*}
   traverse (functor.map h ∘ g) x :=
 quotient.induction_on x
 (by intro; simp [traverse] with functor_norm;
-    rw [comp_map,map_traverse])
+    rw [is_lawful_functor.comp_map, map_traverse])
 
 lemma traverse_map {G : Type* → Type*}
                [applicative G] [is_comm_applicative G]

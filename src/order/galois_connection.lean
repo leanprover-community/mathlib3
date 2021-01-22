@@ -54,9 +54,9 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a a₁ a₂ :
 def galois_connection [preorder α] [preorder β] (l : α → β) (u : β → α) := ∀a b, l a ≤ b ↔ a ≤ u b
 
 /-- Makes a Galois connection from an order-preserving bijection. -/
-theorem rel_iso.to_galois_connection [preorder α] [preorder β] (ri : @rel_iso α β (≤) (≤)) :
-  galois_connection ri ri.symm :=
-λ b g, by rw [ri.map_rel_iff, rel_iso.apply_symm_apply]
+theorem order_iso.to_galois_connection [preorder α] [preorder β] (oi : α ≃o β) :
+  galois_connection oi oi.symm :=
+λ b g, oi.rel_symm_apply.symm
 
 namespace galois_connection
 
@@ -241,7 +241,7 @@ def galois_insertion.monotone_intro {α β : Type*} [preorder α] [preorder β] 
   choice_eq := λ _ _, rfl }
 
 /-- Makes a Galois insertion from an order-preserving bijection. -/
-protected def rel_iso.to_galois_insertion [preorder α] [preorder β] (oi : @rel_iso α β (≤) (≤)) :
+protected def rel_iso.to_galois_insertion [preorder α] [preorder β] (oi : α ≃o β) :
 @galois_insertion α β _ _ (oi) (oi.symm) :=
 { choice := λ b h, oi b,
   gc := oi.to_galois_connection,
@@ -411,7 +411,7 @@ def galois_insertion.of_dual {α β : Type*} [preorder α] [preorder β] {l : α
 λ x, ⟨x.1, x.2.dual, x.3, x.4⟩
 
 /-- Makes a Galois coinsertion from an order-preserving bijection. -/
-protected def rel_iso.to_galois_coinsertion [preorder α] [preorder β] (oi : @rel_iso α β (≤) (≤)) :
+protected def rel_iso.to_galois_coinsertion [preorder α] [preorder β] (oi : α ≃o β) :
 @galois_coinsertion α β _ _ (oi) (oi.symm) :=
 { choice := λ b h, oi.symm b,
   gc := oi.to_galois_connection,
@@ -547,3 +547,12 @@ def lift_complete_lattice [complete_lattice β] (gi : galois_coinsertion l u) : 
 end lift
 
 end galois_coinsertion
+
+/-- If `α` is a partial order with bottom element (e.g., `ℕ`, `ℝ≥0`), then
+`λ o : with_bot α, o.get_or_else ⊥` and coercion form a Galois insertion. -/
+def with_bot.gi_get_or_else_bot [order_bot α] :
+  galois_insertion (λ o : with_bot α, o.get_or_else ⊥) coe :=
+{ gc := λ a b, with_bot.get_or_else_bot_le_iff,
+  le_l_u := λ a, le_rfl,
+  choice := λ o ho, _,
+  choice_eq := λ _ _, rfl }

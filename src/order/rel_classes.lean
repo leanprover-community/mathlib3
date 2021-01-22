@@ -3,7 +3,7 @@ Copyright (c) 2020 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yury G. Kudryashov
 -/
-import data.set.basic
+import order.basic
 
 /-!
 # Unbundled relation classes
@@ -50,49 +50,41 @@ protected theorem is_asymm.is_irrefl [is_asymm α r] : is_irrefl α r :=
 
 /- Convert algebraic structure style to explicit relation style typeclasses -/
 instance [preorder α] : is_refl α (≤) := ⟨le_refl⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_refl α (≥) := is_refl.swap _
 instance [preorder α] : is_trans α (≤) := ⟨@le_trans _ _⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_trans α (≥) := is_trans.swap _
 instance [preorder α] : is_preorder α (≤) := {}
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_preorder α (≥) := {}
 instance [preorder α] : is_irrefl α (<) := ⟨lt_irrefl⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_irrefl α (>) := is_irrefl.swap _
 instance [preorder α] : is_trans α (<) := ⟨@lt_trans _ _⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_trans α (>) := is_trans.swap _
 instance [preorder α] : is_asymm α (<) := ⟨@lt_asymm _ _⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_asymm α (>) := is_asymm.swap _
 instance [preorder α] : is_antisymm α (<) := is_asymm.is_antisymm _
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_antisymm α (>) := is_asymm.is_antisymm _
 instance [preorder α] : is_strict_order α (<) := {}
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_strict_order α (>) := {}
 instance preorder.is_total_preorder [preorder α] [is_total α (≤)] : is_total_preorder α (≤) := {}
 instance [partial_order α] : is_antisymm α (≤) := ⟨@le_antisymm _ _⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [partial_order α] : is_antisymm α (≥) := is_antisymm.swap _
 instance [partial_order α] : is_partial_order α (≤) := {}
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [partial_order α] : is_partial_order α (≥) := {}
 instance [linear_order α] : is_total α (≤) := ⟨le_total⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_total α (≥) := is_total.swap _
 instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) :=
   by apply_instance
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_total_preorder α (≥) := {}
 instance [linear_order α] : is_linear_order α (≤) := {}
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_linear_order α (≥) := {}
 instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_trichotomous α (>) := is_trichotomous.swap _
+
+instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total (order_dual α) (≤) :=
+@is_total.swap α _ _
+
+lemma ne_of_irrefl {r} [is_irrefl α r] : ∀ {x y : α}, r x y → x ≠ y
+| _ _ h rfl := irrefl _ h
 
 lemma trans_trichotomous_left [is_trans α r] [is_trichotomous α r] {a b c : α} :
   ¬r b a → r b c → r a c :=
@@ -131,30 +123,24 @@ def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
       (asymm h)⟩,
     λ ⟨h₁, h₂⟩, h₁.resolve_left (λ e, h₂ $ e ▸ or.inl rfl)⟩ }
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- This is basically the same as `is_strict_total_order`, but that definition is
   in Type (probably by mistake) and also has redundant assumptions. -/
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop)
   extends is_trichotomous α lt, is_strict_order α lt : Prop.
-end prio
 
-/-- Construct a linear order from a `is_strict_total_order'` relation -/
-def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
+/-- Construct a linear order from an `is_strict_total_order'` relation -/
+def linear_order_of_STO' (r) [is_strict_total_order' α r] [Π x y, decidable (¬ r x y)] :
+  linear_order α :=
 { le_total := λ x y,
     match y, trichotomous_of r x y with
     | y, or.inl h := or.inl (or.inr h)
     | _, or.inr (or.inl rfl) := or.inl (or.inl rfl)
     | _, or.inr (or.inr h) := or.inr (or.inr h)
     end,
+  decidable_le := λ x y, decidable_of_iff (¬ r y x)
+    ⟨λ h, ((trichotomous_of r y x).resolve_left h).imp eq.symm id,
+      λ h, h.elim (λ h, h ▸ irrefl_of _ _) (asymm_of r)⟩,
   ..partial_order_of_SO r }
-
-/-- Construct a decidable linear order from a `is_strict_total_order'` relation -/
-def decidable_linear_order_of_STO' (r) [is_strict_total_order' α r] [decidable_rel r] :
-  decidable_linear_order α :=
-by letI LO := linear_order_of_STO' r; exact
-{ decidable_le := λ x y, decidable_of_iff (¬ r y x) (@not_lt _ _ y x),
-  ..LO }
 
 theorem is_strict_total_order'.swap (r) [is_strict_total_order' α r] :
   is_strict_total_order' α (swap r) :=
@@ -209,13 +195,10 @@ instance is_extensional_of_is_strict_total_order'
   .resolve_left $ mt (H _).2 (irrefl a))
   .resolve_right $ mt (H _).1 (irrefl b)⟩
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
   extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
-end prio
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
@@ -237,9 +220,9 @@ instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α 
   is_asymm α r := by apply_instance
 
 /-- Construct a decidable linear order from a well-founded linear order. -/
-noncomputable def is_well_order.decidable_linear_order (r : α → α → Prop) [is_well_order α r] :
-  decidable_linear_order α :=
-by { haveI := linear_order_of_STO' r, exact classical.DLO α }
+noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_order α r] :
+  linear_order α :=
+by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO' r }
 
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,
@@ -293,62 +276,3 @@ end
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
 by { classical, rw [not_iff_comm, not_bounded_iff] }
-
-namespace well_founded
-/-- If `r` is a well-founded relation, then any nonempty set has a minimal element
-with respect to `r`. -/
-theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
-  (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
-| ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, classical.not_imp_not.1 $ λ hne hx, hne $
-  ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
-
-/-- A minimal element of a nonempty set in a well-founded order -/
-noncomputable def min {α} {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p.nonempty) : α :=
-classical.some (H.has_min p h)
-
-theorem min_mem {α} {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p.nonempty) : H.min p h ∈ p :=
-let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
-
-theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
-let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
-
-open set
-/-- The supremum of a bounded, well-founded order -/
-protected noncomputable def sup {α} {r : α → α → Prop} (wf : well_founded r) (s : set α)
-  (h : bounded r s) : α :=
-wf.min { x | ∀a ∈ s, r a x } h
-
-protected lemma lt_sup {α} {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
-  {x} (hx : x ∈ s) : r x (wf.sup s h) :=
-min_mem wf { x | ∀a ∈ s, r a x } h x hx
-
-section
-open_locale classical
-/-- A successor of an element `x` in a well-founded order is a minimal element `y` such that
-`x < y` if one exists. Otherwise it is `x` itself. -/
-protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
-if h : ∃y, r x y then wf.min { y | r x y } h else x
-
-protected lemma lt_succ {α} {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
-  r x (wf.succ x) :=
-by { rw [well_founded.succ, dif_pos h], apply min_mem }
-end
-
-protected lemma lt_succ_iff {α} {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃y, r x y)
-  (y : α) : r y (wo.wf.succ x) ↔ r y x ∨ y = x :=
-begin
-  split,
-  { intro h', have : ¬r x y,
-    { intro hy, rw [well_founded.succ, dif_pos] at h',
-      exact wo.wf.not_lt_min _ h hy h' },
-    rcases trichotomous_of r x y with hy | hy | hy,
-    exfalso, exact this hy,
-    right, exact hy.symm,
-    left, exact hy },
-  rintro (hy | rfl), exact trans hy (wo.wf.lt_succ h), exact wo.wf.lt_succ h
-end
-
-end well_founded

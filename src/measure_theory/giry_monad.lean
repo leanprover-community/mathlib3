@@ -50,8 +50,12 @@ measurable.of_comap_le $ le_supr_of_le s $ le_supr_of_le hs $ le_refl _
 lemma measurable_of_measurable_coe (f : β → measure α)
   (h : ∀(s : set α) (hs : is_measurable s), measurable (λb, f b s)) :
   measurable f :=
-measurable.of_le_map $ supr_le $ assume s, supr_le $ assume hs, measurable_space.comap_le_iff_le_map.2 $
+measurable.of_le_map $ bsupr_le $ assume s hs, measurable_space.comap_le_iff_le_map.2 $
   by rw [measurable_space.map_comp]; exact h s hs
+
+lemma measurable_measure {μ : α → measure β} :
+  measurable μ ↔ ∀(s : set β) (hs : is_measurable s), measurable (λb, μ b s) :=
+⟨λ hμ s hs, (measurable_coe hs).comp hμ, measurable_of_measurable_coe μ⟩
 
 lemma measurable_map (f : α → β) (hf : measurable f) :
   measurable (λμ : measure α, map f μ) :=
@@ -64,7 +68,7 @@ lemma measurable_dirac :
   measurable (measure.dirac : α → measure α) :=
 measurable_of_measurable_coe _ $ assume s hs,
   begin
-    simp only [dirac_apply, hs],
+    simp only [dirac_apply', hs],
     exact measurable_one.indicator hs
   end
 
@@ -173,15 +177,11 @@ begin
 end
 
 lemma bind_dirac {f : α → measure β} (hf : measurable f) (a : α) : bind (dirac a) f = f a :=
-measure.ext $ assume s hs, by rw [bind_apply hs hf, lintegral_dirac a ((measurable_coe hs).comp hf)]
+measure.ext $ λ s hs, by rw [bind_apply hs hf, lintegral_dirac' a ((measurable_coe hs).comp hf)]
 
 lemma dirac_bind {m : measure α} : bind m dirac = m :=
 measure.ext $ assume s hs,
-by simp [bind_apply hs measurable_dirac, dirac_apply _ hs, lintegral_indicator 1 hs]
-
-lemma map_dirac {f : α → β} (hf : measurable f) (a : α) :
-  map f (dirac a) = dirac (f a) :=
-measure.ext $ assume s hs, by simp [hs, map_apply hf hs, hf hs, indicator_apply]
+by simp [bind_apply hs measurable_dirac, dirac_apply' _ hs, lintegral_indicator 1 hs]
 
 lemma join_eq_bind (μ : measure (measure α)) : join μ = bind μ id :=
 by rw [bind, map_id]

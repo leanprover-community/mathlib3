@@ -6,7 +6,13 @@ Authors: Johannes Hölzl
 import logic.relator
 
 /-!
-# Quotients -- extends the core library
+# Quotient types
+
+This module extends the core library's treatment of quotient types (`init.data.quot`).
+
+## Tags
+
+quotient
 -/
 
 variables {α : Sort*} {β : Sort*}
@@ -151,6 +157,10 @@ quotient.lift₂ (λ x y, ⟦f x y⟧) (λ x₁ y₁ x₂ y₂ h₁ h₂, quot.s
 
 end quotient
 
+lemma quot.eq {α : Type*} {r : α → α → Prop} {x y : α} :
+  quot.mk r x = quot.mk r y ↔ eqv_gen r x y :=
+⟨quot.exact r, quot.eqv_gen_sound⟩
+
 @[simp] theorem quotient.eq [r : setoid α] {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ x ≈ y :=
 ⟨quotient.exact, quotient.sound⟩
 
@@ -166,9 +176,18 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
   (x : α) :
   quotient.lift_on (quotient.mk x) f h = f x := rfl
 
-@[simp] theorem quotient.lift_on_beta₂ {α : Type} {β : Type} [setoid α] (f : α → α → β)
+@[simp] theorem quotient.lift_on_beta₂ {α : Sort*} {β : Sort*} [setoid α] (f : α → α → β)
   (h : ∀ (a₁ a₂ b₁ b₂ : α), a₁ ≈ b₁ → a₂ ≈ b₂ → f a₁ a₂ = f b₁ b₂) (x y : α) :
   quotient.lift_on₂ (quotient.mk x) (quotient.mk y) f h = f x y := rfl
+
+/-- `quot.mk r` is a surjective function. -/
+lemma surjective_quot_mk (r : α → α → Prop) : function.surjective (quot.mk r) :=
+quot.exists_rep
+
+/-- `quotient.mk` is a surjective function. -/
+lemma surjective_quotient_mk (α : Sort*) [s : setoid α] :
+  function.surjective (quotient.mk : α → quotient s) :=
+quot.exists_rep
 
 /-- Choose an element of the equivalence class using the axiom of choice.
   Sound but noncomputable. -/
@@ -257,6 +276,7 @@ trunc.induction_on₂ a b (λ x y, quot.sound trivial)
 
 instance : subsingleton (trunc α) := ⟨trunc.eq⟩
 
+/-- The `bind` operator for the `trunc` monad. -/
 def bind (q : trunc α) (f : α → trunc β) : trunc β :=
 trunc.lift_on q f (λ a b, trunc.eq _ _)
 
@@ -315,11 +335,19 @@ several different quotient relations on a type, for example quotient groups, rin
 instance argument. -/
 protected def mk' (a : α) : quotient s₁ := quot.mk s₁.1 a
 
+/-- `quotient.mk'` is a surjective function. -/
+lemma surjective_quotient_mk' : function.surjective (quotient.mk' : α → quotient s₁) :=
+quot.exists_rep
+
 /-- A version of `quotient.lift_on` taking `{s : setoid α}` as an implicit argument instead of an
 instance argument. -/
 @[elab_as_eliminator, reducible]
 protected def lift_on' (q : quotient s₁) (f : α → φ)
   (h : ∀ a b, @setoid.r α s₁ a b → f a = f b) : φ := quotient.lift_on q f h
+
+@[simp]
+protected lemma lift_on'_beta (f : α → φ) (h) (x : α) :
+  quotient.lift_on' (@quotient.mk' _ s₁ x) f h = f x := rfl
 
 /-- A version of `quotient.lift_on₂` taking `{s₁ : setoid α} {s₂ : setoid β}` as implicit arguments
 instead of instance arguments. -/
@@ -327,6 +355,10 @@ instead of instance arguments. -/
 protected def lift_on₂' (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α → β → γ)
   (h : ∀ a₁ a₂ b₁ b₂, @setoid.r α s₁ a₁ b₁ → @setoid.r β s₂ a₂ b₂ → f a₁ a₂ = f b₁ b₂) : γ :=
 quotient.lift_on₂ q₁ q₂ f h
+
+@[simp]
+protected lemma lift_on₂'_beta (f : α → β → γ) (h) (a : α) (b : β) :
+  quotient.lift_on₂' (@quotient.mk' _ s₁ a) (@quotient.mk' _ s₂ b) f h = f a b := rfl
 
 /-- A version of `quotient.ind` taking `{s : setoid α}` as an implicit argument instead of an
 instance argument. -/

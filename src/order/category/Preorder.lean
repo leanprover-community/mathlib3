@@ -1,8 +1,9 @@
 /-
-Copyleft 2020 Johan Commelin. No rights reserved.
+Copyright (c) 2020 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
+import order.preorder_hom
 import category_theory.concrete_category
 import algebra.punit_instances
 
@@ -71,5 +72,7 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] Preorder
 def of (α : Type*) [preorder α] : Preorder := bundled.of α
 
 instance : inhabited Preorder := ⟨of punit⟩
+
+instance (α : Preorder) : preorder α := α.str
 
 end Preorder

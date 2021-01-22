@@ -18,10 +18,10 @@ Relations.
 -/
 
 def rmap (r : rel α β) (f : filter α) : filter β :=
-{ sets             := r.core ⁻¹' f.sets,
-  univ_sets        := by { simp [rel.core], apply univ_mem_sets },
+{ sets             := {s | r.core s ∈ f},
+  univ_sets        := by simp,
   sets_of_superset := assume s t hs st, mem_sets_of_superset hs $ rel.core_mono _ st,
-  inter_sets       := by { simp [set.preimage, rel.core_inter], exact λ s t, inter_mem_sets } }
+  inter_sets       := λ s t hs ht, by simp [rel.core_inter, inter_mem_sets hs ht] }
 
 theorem rmap_sets (r : rel α β) (f : filter α) : (rmap r f).sets = r.core ⁻¹' f.sets := rfl
 

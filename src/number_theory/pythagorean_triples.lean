@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Paul van Wamelen.
 -/
 import algebra.field
-import algebra.gcd_monoid
-import algebra.group_with_zero_power
-import tactic
+import ring_theory.int.basic
+import algebra.group_with_zero.power
+import tactic.ring
+import tactic.ring_exp
+import tactic.field_simp
 
 /-!
 # Pythagorean Triples
@@ -80,7 +82,7 @@ include h
 
 /-- A pythogorean triple `x, y, z` is “classified” if there exist integers `k, m, n` such that either
  * `x = k * (m ^ 2 - n ^ 2)` and `y = k * (2 * m * n)`, or
- * `(x = k * (2 * m * n)` and `y = k * (m ^ 2 - n ^ 2)`. -/
+ * `x = k * (2 * m * n)` and `y = k * (m ^ 2 - n ^ 2)`. -/
 @[nolint unused_arguments] def is_classified := ∃ (k m n : ℤ),
   ((x = k * (m ^ 2 - n ^ 2) ∧ y = k * (2 * m * n))
     ∨ (x = k * (2 * m * n) ∧ y = k * (m ^ 2 - n ^ 2)))
@@ -160,7 +162,7 @@ begin
   obtain ⟨k, x0, y0, k0, h2, rfl, rfl⟩ :
     ∃ (k : ℕ) x0 y0, 0 < k ∧ int.gcd x0 y0 = 1 ∧ x = x0 * k ∧ y = y0 * k :=
     int.exists_gcd_one' (nat.pos_of_ne_zero h0),
-  have hk : (k : ℤ) ≠ 0, { norm_cast, rwa nat.pos_iff_ne_zero at k0 },
+  have hk : (k : ℤ) ≠ 0, { norm_cast, rwa pos_iff_ne_zero at k0 },
   rw [int.gcd_mul_right, h2, int.nat_abs_of_nat, one_mul] at h ⊢,
   rw [mul_comm x0, mul_comm y0, mul_iff k hk] at h,
   rwa [int.mul_div_cancel _ hk, int.mul_div_cancel _ hk, int.mul_div_cancel_left _ hk],
@@ -188,7 +190,7 @@ end
 
 lemma ne_zero_of_coprime (hc : int.gcd x y = 1) : z ≠ 0 :=
 begin
-  suffices : 0 < z * z, { rintro rfl, simpa only [] },
+  suffices : 0 < z * z, { rintro rfl, norm_num at this },
   rw [← h.eq, ← pow_two, ← pow_two],
   have hc' : int.gcd x y ≠ 0, { rw hc, exact one_ne_zero },
   cases int.ne_zero_of_gcd hc' with hxz hyz,
@@ -246,7 +248,7 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
   begin
     have h2 : (1 + 1 : K) = 2 := rfl,
     have h3 : (2 : K) ≠ 0, { convert hk 1, rw [one_pow 2, h2] },
-    field_simp [hk x, h2, h3, add_assoc, add_comm, add_sub_cancel'_right, mul_comm],
+    field_simp [hk x, h2, add_assoc, add_comm, add_sub_cancel'_right, mul_comm],
   end,
   right_inv := λ ⟨⟨x, y⟩, hxy, hy⟩,
   begin
@@ -257,8 +259,8 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
     have h4 : (2 : K) ≠ 0, { convert hk 1, rw one_pow 2, refl },
     simp only [prod.mk.inj_iff, subtype.mk_eq_mk],
     split,
-    { field_simp [h2, h3, h4], ring },
-    { field_simp [h2, h3, h4], rw [← add_neg_eq_iff_eq_add.mpr hxy.symm], ring }
+    { field_simp [h3], ring },
+    { field_simp [h3], rw [← add_neg_eq_iff_eq_add.mpr hxy.symm], ring }
   end }
 
 @[simp] lemma circle_equiv_apply (hk : ∀ x : K, 1 + x^2 ≠ 0) (x : K) :
@@ -311,7 +313,7 @@ begin
   cases int.prime.dvd_mul hp hp2 with hp2m hpn,
   { rw int.nat_abs_mul at hp2m,
     cases (nat.prime.dvd_mul hp).mp hp2m with hp2 hpm,
-    { have hp2' : p = 2, { exact le_antisymm (nat.le_of_dvd two_pos hp2) (nat.prime.two_le hp) },
+    { have hp2' : p = 2, { exact le_antisymm (nat.le_of_dvd zero_lt_two hp2) (nat.prime.two_le hp) },
       revert hp1, rw hp2',
       apply mt int.mod_eq_zero_of_dvd,
       norm_num [pow_two, int.sub_mod, int.mul_mod, hm, hn],
@@ -531,6 +533,54 @@ begin
     { split, { ring }, exact coprime_pow_two_sub_mul co pp }
     <|>
     { split, { ring }, rw int.gcd_comm, exact coprime_pow_two_sub_mul co pp } }
+end
+
+/-- by assuming `x` is odd and `z` is positive we get a slightly more precise classification of
+the pythagorean triple `x ^ 2 + y ^ 2 = z ^ 2`-/
+theorem coprime_classification' {x y z : ℤ} (h : pythagorean_triple x y z)
+  (h_coprime : int.gcd x y = 1) (h_parity : x % 2 = 1) (h_pos : 0 < z) :
+  ∃ m n,  x = m ^ 2 - n ^ 2
+        ∧ y = 2 * m * n
+        ∧ z = m ^ 2 + n ^ 2
+        ∧ int.gcd m n = 1
+        ∧ ((m % 2 = 0 ∧ n % 2 = 1) ∨ (m % 2 = 1 ∧ n % 2 = 0))
+        ∧ 0 ≤ m :=
+begin
+  obtain ⟨m, n, ht1, ht2, ht3, ht4⟩ :=
+    pythagorean_triple.coprime_classification.mp (and.intro h h_coprime),
+  cases le_or_lt 0 m with hm hm,
+  { use [m, n],
+    cases ht1 with h_odd h_even,
+    { apply and.intro h_odd.1,
+      apply and.intro h_odd.2,
+      cases ht2 with h_pos h_neg,
+      { apply and.intro h_pos (and.intro ht3 (and.intro ht4 hm)) },
+      { exfalso, revert h_pos, rw h_neg,
+        exact imp_false.mpr (not_lt.mpr (neg_nonpos.mpr (add_nonneg (pow_two_nonneg m)
+          (pow_two_nonneg n)))) } },
+    exfalso,
+    rcases h_even with ⟨rfl, -⟩,
+    rw [mul_assoc, int.mul_mod_right] at h_parity,
+    exact zero_ne_one h_parity },
+  { use [-m, -n],
+    cases ht1 with h_odd h_even,
+    { rw [neg_square m],
+      rw [neg_square n],
+      apply and.intro h_odd.1,
+      split, { rw h_odd.2, ring },
+      cases ht2 with h_pos h_neg,
+      { apply and.intro h_pos,
+        split,
+        { delta int.gcd, rw [int.nat_abs_neg, int.nat_abs_neg], exact ht3 },
+        { rw [int.neg_mod_two, int.neg_mod_two],
+          apply and.intro ht4, linarith } },
+      { exfalso, revert h_pos, rw h_neg,
+        exact imp_false.mpr (not_lt.mpr (neg_nonpos.mpr (add_nonneg (pow_two_nonneg m)
+          (pow_two_nonneg n)))) } },
+    exfalso,
+    rcases h_even with ⟨rfl, -⟩,
+    rw [mul_assoc, int.mul_mod_right] at h_parity,
+    exact zero_ne_one h_parity }
 end
 
 theorem classification :

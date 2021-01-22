@@ -93,14 +93,13 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
-instance : linear_order cardinal.{u} :=
+noncomputable instance : linear_order cardinal.{u} :=
 { le          := (≤),
   le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
   le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
   le_antisymm := by rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩; exact quotient.sound (e₁.antisymm e₂),
-  le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total }
-
-noncomputable instance : decidable_linear_order cardinal.{u} := classical.DLO _
+  le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total,
+  decidable_le := classical.dec_rel _ }
 
 noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance -- short-circuit type class inference
 
@@ -154,6 +153,18 @@ quotient.induction_on a $ assume α, quotient.sound ⟨equiv.punit_prod α⟩
 
 private theorem left_distrib (a b c : cardinal.{u}) : a * (b + c) = a * b + a * c :=
 quotient.induction_on₃ a b c $ assume α β γ, quotient.sound ⟨equiv.prod_sum_distrib α β γ⟩
+
+protected theorem eq_zero_or_eq_zero_of_mul_eq_zero  {a b : cardinal.{u}} :
+  a * b = 0 → a = 0 ∨ b = 0 :=
+begin
+  refine quotient.induction_on b _,
+  refine quotient.induction_on a _,
+  intros a b h,
+  contrapose h,
+  simp_rw [not_or_distrib, ← ne.def] at h,
+  have := @prod.nonempty a b (ne_zero_iff_nonempty.mp h.1) (ne_zero_iff_nonempty.mp h.2),
+  exact ne_zero_iff_nonempty.mpr this
+end
 
 instance : comm_semiring cardinal.{u} :=
 { zero          := 0,
@@ -232,44 +243,40 @@ from (quotient.induction_on₃ a b c $ assume α β γ,
 section order_properties
 open sum
 
-theorem zero_le : ∀(a : cardinal), 0 ≤ a :=
+protected theorem zero_le : ∀(a : cardinal), 0 ≤ a :=
 by rintro ⟨α⟩; exact ⟨embedding.of_not_nonempty $ λ ⟨a⟩, a.elim⟩
 
-theorem le_zero (a : cardinal) : a ≤ 0 ↔ a = 0 :=
-by simp [le_antisymm_iff, zero_le]
+protected theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
+by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩
 
-theorem pos_iff_ne_zero {o : cardinal} : 0 < o ↔ o ≠ 0 :=
-by simp [lt_iff_le_and_ne, eq_comm, zero_le]
+protected theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
+cardinal.add_le_add (le_refl _)
+
+
+protected theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
+⟨quotient.induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
+  have (α ⊕ ((range f)ᶜ : set β)) ≃ β, from
+    (equiv.sum_congr (equiv.set.range f hf) (equiv.refl _)).trans $
+    (equiv.set.sum_compl (range f)),
+  ⟨⟦↥(range f)ᶜ⟧, quotient.sound ⟨this.symm⟩⟩,
+ λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ cardinal.add_le_add_left _ (cardinal.zero_le _)⟩
+
+instance : order_bot cardinal.{u} :=
+{ bot := 0, bot_le := cardinal.zero_le, ..cardinal.linear_order }
+
+instance : canonically_ordered_comm_semiring cardinal.{u} :=
+{ add_le_add_left       := λ a b h c, cardinal.add_le_add_left _ h,
+  lt_of_add_lt_add_left := λ a b c, lt_imp_lt_of_le_imp_le (cardinal.add_le_add_left _),
+  le_iff_exists_add     := @cardinal.le_iff_exists_add,
+  eq_zero_or_eq_zero_of_mul_eq_zero := @cardinal.eq_zero_or_eq_zero_of_mul_eq_zero,
+  ..cardinal.order_bot,
+  ..cardinal.comm_semiring, ..cardinal.linear_order }
 
 @[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
 
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
-
-theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
-by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩
-
-theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
-add_le_add (le_refl _)
-
-theorem add_le_add_right {a b : cardinal} (c) (h : a ≤ b) : a + c ≤ b + c :=
-add_le_add h (le_refl _)
-
-theorem le_add_right (a b : cardinal) : a ≤ a + b :=
-by simpa using add_le_add_left a (zero_le b)
-
-theorem le_add_left (a b : cardinal) : a ≤ b + a :=
-by simpa using add_le_add_right a (zero_le b)
-
-theorem mul_le_mul : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a * c ≤ b * d :=
-by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.prod_map e₂⟩
-
-theorem mul_le_mul_left (a) {b c : cardinal} : b ≤ c → a * b ≤ a * c :=
-mul_le_mul (le_refl _)
-
-theorem mul_le_mul_right {a b : cardinal} (c) (h : a ≤ b) : a * c ≤ b * c :=
-mul_le_mul h (le_refl _)
 
 theorem power_le_power_left : ∀{a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ hα ⟨e⟩; exact
@@ -286,25 +293,9 @@ end
 theorem power_le_power_right {a b c : cardinal} : a ≤ b → a ^ c ≤ b ^ c :=
 quotient.induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_congr_left e⟩
 
-theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
-⟨quotient.induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
-  have (α ⊕ ((range f)ᶜ : set β)) ≃ β, from
-    (equiv.sum_congr (equiv.set.range f hf) (equiv.refl _)).trans $
-    (equiv.set.sum_compl (range f)),
-  ⟨⟦↥(range f)ᶜ⟧, quotient.sound ⟨this.symm⟩⟩,
- λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ add_le_add_left _ (zero_le _)⟩
-
 end order_properties
 
-instance : order_bot cardinal.{u} :=
-{ bot := 0, bot_le := zero_le, ..cardinal.linear_order }
 
-instance : canonically_ordered_add_monoid cardinal.{u} :=
-{ add_le_add_left       := λ a b h c, add_le_add_left _ h,
-  lt_of_add_lt_add_left := λ a b c, lt_imp_lt_of_le_imp_le (add_le_add_left _),
-  le_iff_exists_add     := @le_iff_exists_add,
-  ..cardinal.order_bot,
-  ..cardinal.comm_semiring, ..cardinal.linear_order }
 
 theorem cantor : ∀(a : cardinal.{u}), a < 2 ^ a :=
 by rw ← prop_eq_two; rintros ⟨a⟩; exact ⟨
@@ -369,7 +360,7 @@ begin
   cases h.left with f,
   have : ¬ surjective f := λ hn,
     ne_of_lt h (quotient.sound ⟨equiv.of_bijective f ⟨f.injective, hn⟩⟩),
-  cases classical.not_forall.1 this with b nex,
+  cases not_forall.1 this with b nex,
   refine ⟨⟨sum.rec (by exact f) _, _⟩⟩,
   { exact λ _, b },
   { intros a b h, rcases a with a|⟨⟨⟨⟩⟩⟩; rcases b with b|⟨⟨⟨⟩⟩⟩,
@@ -424,7 +415,7 @@ theorem sum_le_sup {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ mk ι * s
 by rw ← sum_const; exact sum_le_sum _ _ (le_sup _)
 
 theorem sup_eq_zero {ι} {f : ι → cardinal} (h : ι → false) : sup f = 0 :=
-by { rw [←le_zero, sup_le], intro x, exfalso, exact h x }
+by { rw [← nonpos_iff_eq_zero, sup_le], intro x, exfalso, exact h x }
 
 /-- The indexed product of cardinals is the cardinality of the Pi type
   (dependent product). -/
@@ -443,9 +434,9 @@ theorem prod_le_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : pro
 
 theorem prod_ne_zero {ι} (f : ι → cardinal) : prod f ≠ 0 ↔ ∀ i, f i ≠ 0 :=
 begin
-  conv in (f _) {rw ← mk_out (f i)},
-  simp [prod, ne_zero_iff_nonempty, -mk_out, -ne.def],
-  exact ⟨λ ⟨F⟩ i, ⟨F i⟩, λ h, ⟨λ i, classical.choice (h i)⟩⟩,
+  suffices : nonempty (Π i, (f i).out) ↔ ∀ i, nonempty (f i).out,
+  { simpa [← ne_zero_iff_nonempty, prod] },
+  exact classical.nonempty_pi
 end
 
 theorem prod_eq_zero {ι} (f : ι → cardinal) : prod f = 0 ↔ ∃ i, f i = 0 :=
@@ -615,7 +606,7 @@ begin
 end
 
 @[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
-by induction n; simp [nat.pow_succ, -_root_.add_comm, power_add, *]
+by induction n; simp [pow_succ', -_root_.add_comm, power_add, *]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 by rw [← lift_mk_fin, ← lift_mk_fin, lift_le]; exact
@@ -640,6 +631,17 @@ le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _)
 @[simp] theorem succ_zero : succ 0 = 1 :=
 by norm_cast
 
+theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) :
+  # α ≤ n :=
+begin
+  refine lt_succ.1 (lt_of_not_ge $ λ hn, _),
+  rw [← cardinal.nat_succ, ← cardinal.lift_mk_fin n.succ] at hn,
+  cases hn with f,
+  refine not_lt_of_le (H $ finset.univ.map f) _,
+  rw [finset.card_map, ← fintype.card, fintype.card_ulift, fintype.card_fin],
+  exact n.lt_succ_self
+end
+
 theorem cantor' (a) {b : cardinal} (hb : 1 < b) : a < b ^ a :=
 by rw [← succ_le, (by norm_cast : succ 1 = 2)] at hb;
    exact lt_of_lt_of_le (cantor _) (power_le_power_right hb)
@@ -652,7 +654,7 @@ by rw [one_le_iff_pos, pos_iff_ne_zero]
 
 theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
 succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
-⟨⟨fin.val, λ a b, fin.eq_of_veq⟩⟩
+⟨⟨coe, λ a b, fin.ext⟩⟩
 
 @[simp] theorem one_lt_omega : 1 < omega :=
 by simpa using nat_lt_omega 1
@@ -669,7 +671,7 @@ theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
   have P : ∀ (n : ℕ) (IH : ∀ i<n, S), ∃ a : S, ¬ ∃ y h, IH y h = a :=
     λ n IH,
     let g : {i | i < n} → S := λ ⟨i, h⟩, IH i h in
-    classical.not_forall.1 (λ h, nf
+    not_forall.1 (λ h, nf
       ⟨fintype.of_surjective g (λ a, subtype.exists.2 (h a))⟩),
   let F : ℕ → S := nat.lt_wf.fix (λ n IH, classical.some (P n IH)),
   refine not_le_of_lt h' ⟨⟨F, _⟩⟩,
@@ -712,7 +714,7 @@ match a, b, lt_omega.1 ha, lt_omega.1 hb with
 end
 
 lemma add_lt_omega_iff {a b : cardinal} : a + b < omega ↔ a < omega ∧ b < omega :=
-⟨λ h, ⟨lt_of_le_of_lt (le_add_right _ _) h, lt_of_le_of_lt (le_add_left _ _) h⟩,
+⟨λ h, ⟨lt_of_le_of_lt (self_le_add_right _ _) h, lt_of_le_of_lt (self_le_add_left _ _) h⟩,
   λ⟨h1, h2⟩, add_lt_omega h1 h2⟩
 
 theorem mul_lt_omega {a b : cardinal} (ha : a < omega) (hb : b < omega) : a * b < omega :=
@@ -726,8 +728,10 @@ begin
   { intro h, by_cases ha : a = 0, { left, exact ha },
     right, by_cases hb : b = 0, { left, exact hb },
     right, rw [← ne, ← one_le_iff_ne_zero] at ha hb, split,
-    { rw [← mul_one a], refine lt_of_le_of_lt (mul_le_mul (le_refl a) hb) h },
-    { rw [← _root_.one_mul b], refine lt_of_le_of_lt (mul_le_mul ha (le_refl b)) h }},
+    { rw [← mul_one a],
+      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul (le_refl a) hb) h },
+    { rw [← _root_.one_mul b],
+      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul ha (le_refl b)) h }},
   rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_omega, omega_pos, _root_.zero_mul, mul_zero]
 end
 
@@ -799,7 +803,7 @@ lt_of_not_ge $ λ ⟨F⟩, begin
   have sG : surjective G := inv_fun_surjective F.2,
   choose C hc using show ∀ i, ∃ b, ∀ a, G ⟨i, a⟩ i ≠ b,
   { assume i,
-    simp only [- not_exists, not_exists.symm, classical.not_forall.symm],
+    simp only [- not_exists, not_exists.symm, not_forall.symm],
     refine λ h, not_le_of_lt (H i) _,
     rw [← mk_out (f i), ← mk_out (g i)],
     exact ⟨embedding.of_surjective _ h⟩ },
@@ -832,6 +836,12 @@ quotient.sound ⟨equiv.bool_equiv_punit_sum_punit⟩
 
 @[simp] theorem mk_Prop : mk Prop = 2 :=
 (quotient.sound ⟨equiv.Prop_equiv_bool⟩ : mk Prop = mk bool).trans mk_bool
+
+@[simp] theorem mk_set {α : Type u} : mk (set α) = 2 ^ mk α :=
+begin
+  rw [← prop_eq_two, cardinal.power_def (ulift Prop) α, cardinal.eq],
+  exact ⟨equiv.arrow_congr (equiv.refl _) equiv.ulift.symm⟩,
+end
 
 @[simp] theorem mk_option {α : Type u} : mk (option α) = mk α + 1 :=
 quotient.sound ⟨equiv.option_equiv_sum_punit α⟩
@@ -938,7 +948,7 @@ quot.sound ⟨equiv.set.union_sum_inter S T⟩
 /-- The cardinality of a union is at most the sum of the cardinalities
 of the two sets. -/
 lemma mk_union_le {α : Type u} (S T : set α) : mk (S ∪ T : set α) ≤ mk S + mk T :=
-@mk_union_add_mk_inter α S T ▸ le_add_right (mk (S ∪ T : set α)) (mk (S ∩ T : set α))
+@mk_union_add_mk_inter α S T ▸ self_le_add_right (mk (S ∪ T : set α)) (mk (S ∩ T : set α))
 
 theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
   mk (S ∪ T : set α) = mk S + mk T :=

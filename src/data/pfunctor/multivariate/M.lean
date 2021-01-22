@@ -228,7 +228,7 @@ begin
     rcases M.bisim_lemma P e₂ with ⟨g₂', e₂', _, rfl⟩,
     rw [e₁', e₂'],
     exact ⟨_, _, _, rfl, rfl, λ b, ⟨_, _, h' b, rfl, rfl⟩⟩ },
-  subst this, congr, ext i p,
+  subst this, congr' with i p,
   induction p with x a f h' i c x a f h' i c p IH generalizing f₁ f₂;
   try {
     rcases h _ _ r with ⟨a', f', f₁', f₂', e₁, e₂, h''⟩,

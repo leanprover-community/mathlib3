@@ -148,7 +148,7 @@ lemma aeval_comp {A : Type*} [comm_semiring A] [algebra R A] (x : A) :
   aeval x (p.comp q) = (aeval (aeval x q) p) :=
 eval₂_comp (algebra_map R A)
 
-lemma aeval_map {A : Type*} [comm_semiring A] [algebra R A] [algebra A B]
+@[simp] lemma aeval_map {A : Type*} [comm_semiring A] [algebra R A] [algebra A B]
   [is_scalar_tower R A B] (b : B) (p : polynomial R) :
   aeval b (p.map (algebra_map R A)) = aeval b p :=
 by rw [aeval_def, eval₂_map, ←is_scalar_tower.algebra_map_eq, ←aeval_def]

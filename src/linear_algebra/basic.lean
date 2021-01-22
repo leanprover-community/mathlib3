@@ -924,6 +924,23 @@ lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
   s ≤ (R ∙ v₀) ↔ ∀ v ∈ s, ∃ r : R, r • v₀ = v :=
 by simp_rw [le_def', mem_span_singleton]
 
+lemma eq_span_singleton_iff {s : submodule R M} {v₀ : M} :
+  s = (R ∙ v₀) ↔ v₀ ∈ s ∧ ∀ v ∈ s, ∃ r : R, r • v₀ = v :=
+begin
+  split,
+  { intro h,
+    have h1 := le_of_eq h,
+    rw le_span_singleton_iff at h1,
+    refine ⟨_,h1⟩,
+    rw h,
+    exact mem_span_singleton_self _ },
+  { intro h,
+    refine le_antisymm (le_span_singleton_iff.mpr (λ v hv, (h.2 v hv))) _,
+    rw span_le,
+    rintro v ⟨rfl⟩,
+    exact h.1 }
+end
+
 @[simp] lemma span_zero_singleton : (R ∙ (0:M)) = ⊥ :=
 by { ext, simp [mem_span_singleton, eq_comm] }
 

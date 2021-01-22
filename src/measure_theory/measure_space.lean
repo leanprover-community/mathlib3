@@ -2327,7 +2327,7 @@ lemma ae_seq_eq_measurable_fun_ae [hβ : nonempty β] [encodable ι] (hf : ∀ i
   ∀ᵐ (a : α) ∂μ, ∀ (i : ι), (hf i).some a = ae_seq hf p i a :=
 begin
   have h_ss : ae_seq_set hf p ⊆ {a : α | ∀ i, (hf i).some a = ae_seq hf p i a},
-  from λ x hx i, by simp only [ae_seq, hx, if_true],
+    from λ x hx i, by simp only [ae_seq, hx, if_true],
   exact le_antisymm (le_trans (measure_mono (set.compl_subset_compl.mpr h_ss))
     (le_of_eq (measure_compl_ae_seq_set_eq_zero hf hp))) (zero_le _),
 end
@@ -2337,7 +2337,7 @@ lemma ae_seq_eq_fun_ae [hβ : nonempty β] [encodable ι] (hf : ∀ i, ae_measur
   ∀ᵐ (a : α) ∂μ, ∀ (i : ι), f i a = ae_seq hf p i a :=
 begin
   have h_ss : {a : α | ¬∀ (i : ι), f i a = ae_seq hf p i a} ⊆ (ae_seq_set hf p)ᶜ,
-  from λ x, mt (λ hx i, (ae_seq_eq_fun_of_mem_ae_seq_set hf hx i).symm),
+    from λ x, mt (λ hx i, (ae_seq_eq_fun_of_mem_ae_seq_set hf hx i).symm),
   exact measure_mono_null h_ss (measure_compl_ae_seq_set_eq_zero hf hp),
 end
 
@@ -2365,8 +2365,7 @@ lemma monotone [hβ : nonempty β] [preorder β] [preorder ι]
 begin
   intros i j hij x,
   by_cases hx : x ∈ ae_seq_set hf p,
-  { simp only [ae_seq, hx, if_true],
-    simp_rw measurable_fun_eq_fun_of_mem_ae_seq_set hf hx,
+  { simp only [ae_seq, hx, if_true, measurable_fun_eq_fun_of_mem_ae_seq_set hf hx],
     exact h_mono hij x, },
   { simp [ae_seq, hx], },
 end
@@ -2390,7 +2389,7 @@ lemma fun_prop_of_mem_ae_seq_set [hβ : nonempty β] (hf : ∀ i, ae_measurable 
   p x (λ n, f n x) :=
 begin
   have h_eq : (λ n, f n x) = λ n, ae_seq hf p n x,
-  from funext (λ n, (ae_seq_eq_fun_of_mem_ae_seq_set hf hx n).symm),
+    from funext (λ n, (ae_seq_eq_fun_of_mem_ae_seq_set hf hx n).symm),
   rw h_eq,
   exact prop_of_mem_ae_seq_set hf hx,
 end
@@ -2401,7 +2400,7 @@ lemma ite_ae_eq_of_measure_zero {γ} (f : α → γ) (g : α → γ) (s : set α
   (λ x, ite (x ∈ s) (f x) (g x)) =ᵐ[μ] g :=
 begin
   have h_ss : sᶜ ⊆ {a : α | ite (a ∈ s) (f a) (g a) = g a},
-  from λ x hx, by simp [(set.mem_compl_iff _ _).mp hx],
+    from λ x hx, by simp [(set.mem_compl_iff _ _).mp hx],
   refine measure_mono_null _ hs_zero,
   nth_rewrite 0 ←compl_compl s,
   rwa set.compl_subset_compl,

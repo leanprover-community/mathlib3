@@ -1728,10 +1728,8 @@ lemma ext_of_generate_finite (C : set (set α)) (hA : _inst_1 = generate_from C)
   (hC : is_pi_system C) {μ ν : measure α}
   [finite_measure μ] [finite_measure ν] (hμν : ∀ s ∈ C, μ s = ν s) (h_univ : μ univ = ν univ) :
   μ = ν :=
-begin
-  ext1 s hs,
-  exact ext_on_measurable_space_of_generate_finite _inst_1 C hμν (le_refl _inst_1) hA hC h_univ hs,
-end
+measure.ext (λ s hs,
+  ext_on_measurable_space_of_generate_finite _inst_1 C hμν (le_refl _inst_1) hA hC h_univ hs)
 
 namespace measure
 

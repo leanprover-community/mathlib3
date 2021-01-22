@@ -743,6 +743,8 @@ attribute [nolint doc_blame] lie_submodule.to_submodule
 
 namespace lie_submodule
 
+variables {R L M} (N N' : lie_submodule R L M)
+
 /-- The zero module is a Lie submodule of any Lie module. -/
 instance : has_zero (lie_submodule R L M) :=
 ⟨{ lie_mem := λ x m h, by { rw ((submodule.mem_bot R).1 h), apply lie_zero, },
@@ -753,17 +755,18 @@ instance : inhabited (lie_submodule R L M) := ⟨0⟩
 instance coe_submodule : has_coe (lie_submodule R L M) (submodule R M) := ⟨to_submodule⟩
 
 @[norm_cast]
-lemma coe_to_submodule (N : lie_submodule R L M) : ((N : submodule R M) : set M) = N := rfl
+lemma coe_to_submodule : ((N : submodule R M) : set M) = N := rfl
 
 instance has_mem : has_mem M (lie_submodule R L M) := ⟨λ x N, x ∈ (N : set M)⟩
 
-@[simp] lemma mem_carrier (N : lie_submodule R L M) {x : M} : x ∈ N.carrier ↔ x ∈ (N : set M) :=
+@[simp] lemma mem_carrier {x : M} : x ∈ N.carrier ↔ x ∈ (N : set M) :=
 iff.rfl
 
-@[simp] lemma mem_coe_submodule (N : lie_submodule R L M) {x : M} :
-  x ∈ (N : submodule R M) ↔ x ∈ N := iff.rfl
+@[simp] lemma mem_coe_submodule {x : M} : x ∈ (N : submodule R M) ↔ x ∈ N := iff.rfl
 
-lemma mem_coe (N : lie_submodule R L M) {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
+lemma mem_coe {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
+
+@[simp] lemma zero_mem : (0 : M) ∈ N := (N : submodule R M).zero_mem
 
 @[simp] lemma coe_to_set_mk (S : set M) (h₁ h₂ h₃ h₄) :
   ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_submodule R L M) : set M) = S := rfl
@@ -772,24 +775,23 @@ lemma mem_coe (N : lie_submodule R L M) {x : M} : x ∈ (N : set M) ↔ x ∈ N 
   (({lie_mem := h, ..p} : lie_submodule R L M) : submodule R M) = p :=
 by { cases p, refl, }
 
-@[ext] lemma ext (N N' : lie_submodule R L M) (h : ∀ m, m ∈ N ↔ m ∈ N') : N = N' :=
+@[ext] lemma ext (h : ∀ m, m ∈ N ↔ m ∈ N') : N = N' :=
 by { cases N, cases N', simp only [], ext m, exact h m, }
 
-@[simp] lemma coe_to_submodule_eq_iff (N N' : lie_submodule R L M) :
-  (N : submodule R M) = (N' : submodule R M) ↔ N = N' :=
+@[simp] lemma coe_to_submodule_eq_iff : (N : submodule R M) = (N' : submodule R M) ↔ N = N' :=
 begin
   split; intros h,
   { ext, rw [← mem_coe_submodule, h], simp, },
   { rw h, },
 end
 
-instance (N : lie_submodule R L M) : lie_ring_module L N :=
+instance : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
   add_lie     := by { intros x y m, apply set_coe.ext, apply add_lie, },
   lie_add     := by { intros x m n, apply set_coe.ext, apply lie_add, },
   leibniz_lie := by { intros x y m, apply set_coe.ext, apply leibniz_lie, }, }
 
-instance (N : lie_submodule R L M) : lie_module R L N :=
+instance : lie_module R L N :=
 { lie_smul := by { intros t x y, apply set_coe.ext, apply lie_smul, },
   smul_lie := by { intros t x y, apply set_coe.ext, apply smul_lie, }, }
 
@@ -945,11 +947,11 @@ by { rw [← mem_coe_submodule, sup_coe_to_submodule, submodule.mem_sup], exact 
 lemma eq_bot_iff : N = ⊥ ↔ ∀ (m : M), m ∈ N → m = 0 :=
 by { rw eq_bot_iff, exact iff.rfl, }
 
-lemma top_of_bot_eq_bot : (⊤ : lie_submodule R L ↥(⊥ : lie_submodule R L M)) = ⊥ :=
+lemma of_bot_eq_bot (N : lie_submodule R L ↥(⊥ : lie_submodule R L M)) : N = ⊥ :=
 begin
-  ext ⟨x, hx⟩, split; intros h,
-  { rw [mem_bot, submodule.mk_eq_zero], exact hx, },
-  { exact mem_top ⟨x, hx⟩, },
+  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
+  rw [mem_bot, submodule.mk_eq_zero, eq_self_iff_true, iff_true],
+  exact N.zero_mem,
 end
 
 section inclusion_maps
@@ -1445,17 +1447,17 @@ begin
   { rw [lie_submodule.le_def, ← h], exact lie_submodule.subset_lie_span, },
 end
 
-/-- Note that this is not a special case of `lie_submodule.top_of_bot_eq_bot`. Indeed, given
+/-- Note that this is not a special case of `lie_submodule.of_bot_eq_bot`. Indeed, given
 `I : lie_ideal R L`, in general the two lattices `lie_ideal R I` and `lie_submodule R L I` are
 different (though the latter does naturally inject into the former).
 
 In other words, in general, ideals of `I`, regarded as a Lie algebra in its own right, are not the
 same as ideals of `L` contained in `I`. -/
-lemma top_of_bot_eq_bot : (⊤ : lie_ideal R ↥(⊥ : lie_ideal R L)) = ⊥ :=
+lemma of_bot_eq_bot (I : lie_ideal R ↥(⊥ : lie_ideal R L)) : I = ⊥ :=
 begin
-  ext ⟨x, hx⟩, split; intros h,
-  { rw [lie_submodule.mem_bot, submodule.mk_eq_zero], exact hx, },
-  { exact lie_submodule.mem_top ⟨x, hx⟩, },
+  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
+  rw [lie_submodule.mem_bot, submodule.mk_eq_zero, eq_self_iff_true, iff_true],
+  exact I.zero_mem,
 end
 
 end lie_ideal
@@ -1711,7 +1713,7 @@ class is_simple extends lie_module.is_irreducible R L L : Prop :=
 class is_solvable : Prop :=
 (solvable : ∃ k, derived_series R L k = ⊥)
 
-instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) := ⟨⟨0, lie_ideal.top_of_bot_eq_bot⟩⟩
+instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) := ⟨⟨0, lie_ideal.of_bot_eq_bot ⊤⟩⟩
 
 instance is_solvable_add {I J : lie_ideal R L} [hI : is_solvable R I] [hJ : is_solvable R J] :
   is_solvable R ↥(I + J) :=

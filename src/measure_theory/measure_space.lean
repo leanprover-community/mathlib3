@@ -1704,7 +1704,7 @@ begin
   rwa sUnion_image
 end
 
-lemma ext_on_sigma_algebra_of_generate_finite {α} (m₀ : measurable_space α)
+lemma ext_on_measurable_space_of_generate_finite {α} (m₀ : measurable_space α)
   {μ ν : measure α} [finite_measure μ] [finite_measure ν]
   (C : set (set α)) (hμν : ∀ s ∈ C, μ s = ν s) {m : measurable_space α}
   (h : m ≤ m₀) (hA : m = measurable_space.generate_from C) (hC : is_pi_system C)
@@ -1730,7 +1730,7 @@ lemma ext_of_generate_finite (C : set (set α)) (hA : _inst_1 = generate_from C)
   μ = ν :=
 begin
   ext1 s hs,
-  exact ext_on_sigma_algebra_of_generate_finite _inst_1 C hμν (le_refl _inst_1) hA hC h_univ hs,
+  exact ext_on_measurable_space_of_generate_finite _inst_1 C hμν (le_refl _inst_1) hA hC h_univ hs,
 end
 
 namespace measure

@@ -274,7 +274,7 @@ begin
     rw [measure.restrict_apply ht2, measure.smul_apply, set.inter_comm],
     exact hyp t1 t ht1 ht, },
   have hμν : ∀ (t : set α), m2.is_measurable' t → μ_inter t = ν t,
-  from λ t ht, ext_on_sigma_algebra_of_generate_finite m p2 h_agree h2 hpm2 hp2 h_univ ht,
+  from λ t ht, ext_on_measurable_space_of_generate_finite m p2 h_agree h2 hpm2 hp2 h_univ ht,
   rw [set.inter_comm, ←@measure.restrict_apply α _ μ t1 t2 (h2 t2 ht2m)],
   exact hμν t2 ht2m,
 end
@@ -301,7 +301,7 @@ begin
     rw [measure.restrict_apply ht1, measure.smul_apply, mul_comm],
     exact indep2_of_indep2_sets_aux h2 hp2 hpm2 hyp ht ht2, },
   have hμν : ∀ (t : set α), m1.is_measurable' t → μ_inter t = ν t,
-  from λ t ht, ext_on_sigma_algebra_of_generate_finite m p1 h_agree h1 hpm1 hp1 h_univ ht,
+  from λ t ht, ext_on_measurable_space_of_generate_finite m p1 h_agree h1 hpm1 hp1 h_univ ht,
   rw [mul_comm, ←@measure.restrict_apply α _ μ t2 t1 (h1 t1 ht1)],
   exact hμν t1 ht1,
 end

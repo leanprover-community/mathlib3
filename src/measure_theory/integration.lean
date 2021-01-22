@@ -1453,13 +1453,13 @@ lintegral_infi_ae h_meas (λ n, ae_of_all _ $ h_mono $ le_of_lt n.lt_succ_self) 
 
 /-- Known as Fatou's lemma, version with `ae_measurable` functions -/
 lemma lintegral_liminf_le' {f : ℕ → α → ennreal} (h_meas : ∀n, ae_measurable (f n) μ) :
-  ∫⁻ a, at_top.liminf (λ n, f n a) ∂μ ≤ at_top.liminf (λ n, ∫⁻ a, f n a ∂μ) :=
+  ∫⁻ a, liminf at_top (λ n, f n a) ∂μ ≤ liminf at_top (λ n, ∫⁻ a, f n a ∂μ) :=
 calc
-  ∫⁻ a, at_top.liminf (λ n, f n a) ∂μ = ∫⁻ a, ⨆n:ℕ, ⨅i≥n, f i a ∂μ :
-     by simp only [filter.liminf_eq_supr_infi_of_nat]
+  ∫⁻ a, liminf at_top (λ n, f n a) ∂μ = ∫⁻ a, ⨆n:ℕ, ⨅i≥n, f i a ∂μ :
+     by simp only [liminf_eq_supr_infi_of_nat]
   ... = ⨆n:ℕ, ∫⁻ a, ⨅i≥n, f i a ∂μ :
     lintegral_supr'
-      (assume n, ae_measurable_binfi _ (set.countable_encodable _) h_meas)
+      (assume n, ae_measurable_binfi _ (countable_encodable _) h_meas)
       (assume n m hnm a, infi_le_infi_of_subset $ λ i hi, le_trans hnm hi)
   ... ≤ ⨆n:ℕ, ⨅i≥n, ∫⁻ a, f i a ∂μ :
     supr_le_supr $ λ n, le_infi2_lintegral _

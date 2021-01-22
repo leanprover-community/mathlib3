@@ -54,6 +54,11 @@ above k has a finite subset that Sups above k -/
 def is_compact_element {α : Type*} [complete_lattice α] (k : α) :=
 ∀ s : set α, k ≤ Sup s → ∃ t : finset α, ↑t ⊆ s ∧ k ≤ t.sup id
 
+/-- A complete lattice is said to be compactly generated if any
+element is the Sup of compact elements-/
+def is_compactly_generated : Prop :=
+∀ (x : α), ∃ (s : set α), (∀ x ∈ s, is_compact_element x) ∧ Sup s = x
+
 /-- Equivalently, an element k compact when any directed set that Sups above
 k already got above k at some point in the set. Such an element is also called
 "finite" or "S-compact" -/
@@ -192,5 +197,13 @@ alias well_founded_iff_is_Sup_finite_compact ↔ _ is_Sup_finite_compact.well_fo
 alias is_Sup_finite_compact_iff_is_sup_closed_compact ↔
       _ is_sup_closed_compact.is_Sup_finite_compact
 alias is_sup_closed_compact_iff_well_founded ↔ _ well_founded.is_sup_closed_compact
+
+lemma compactly_generated_of_well_founded (h : well_founded ((>) : α → α → Prop)) :
+  is_compactly_generated α :=
+begin
+  rw [well_founded_iff_is_Sup_finite_compact, is_Sup_finite_compact_iff_all_elements_compact] at h,
+  -- x is the join of the set of compact elements {x}
+  exact λ x, ⟨{x}, ⟨λ x _, h x, Sup_singleton⟩⟩,
+end
 
 end complete_lattice

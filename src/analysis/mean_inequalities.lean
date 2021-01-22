@@ -647,12 +647,11 @@ begin
   have h_rpow : ∀ a : ennreal, a^q = (a^p)^(q/p),
     from λ a, by rw [←ennreal.rpow_mul, div_eq_inv_mul, ←mul_assoc,
       _root_.mul_inv_cancel hp_pos.ne.symm, one_mul],
-  nth_rewrite 0 (h_rpow a),
-  nth_rewrite 0 (h_rpow b),
   have h_rpow_add_rpow_le_add : ((a^p)^(q/p) + (b^p)^(q/p)) ^ (1/(q/p)) ≤ a^p + b^p,
   { refine rpow_add_rpow_le_add (a^p) (b^p) _,
     rwa one_le_div hp_pos, },
-  rw [ennreal.le_rpow_one_div_iff hp_pos, ←ennreal.rpow_mul, mul_comm, mul_one_div],
+  rw [h_rpow a, h_rpow b, ennreal.le_rpow_one_div_iff hp_pos, ←ennreal.rpow_mul, mul_comm,
+    mul_one_div],
   rwa one_div_div at h_rpow_add_rpow_le_add,
 end
 

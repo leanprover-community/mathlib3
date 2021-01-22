@@ -11,7 +11,7 @@ import logic.embedding
 /-!
 # Definitions of group actions
 
-This file defines a heirarchy of group action type-classes:
+This file defines a hierarchy of group action type-classes:
 
 * `has_scalar α β`
 * `mul_action α β`

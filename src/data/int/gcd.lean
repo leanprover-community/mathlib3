@@ -46,6 +46,28 @@ def gcd_a (x y : ℕ) : ℤ := (xgcd x y).1
 /-- The extended GCD `b` value in the equation `gcd x y = x * a + y * b`. -/
 def gcd_b (x y : ℕ) : ℤ := (xgcd x y).2
 
+@[simp] theorem gcd_a_zero_left {s : ℕ} : gcd_a 0 s = 0 :=
+by { unfold gcd_a, rw [xgcd, xgcd_zero_left] }
+
+@[simp] theorem gcd_b_zero_left {s : ℕ} : gcd_b 0 s = 1 :=
+by { unfold gcd_b, rw [xgcd, xgcd_zero_left] }
+
+@[simp] theorem gcd_a_zero_right {s : ℕ} (h : s ≠ 0) : gcd_a s 0 = 1 :=
+begin
+  unfold gcd_a xgcd,
+  induction s,
+  { exact absurd rfl h, },
+  { simp [xgcd_aux], }
+end
+
+@[simp] theorem gcd_b_zero_right {s : ℕ} (h : s ≠ 0) : gcd_b s 0 = 0 :=
+begin
+  unfold gcd_b xgcd,
+  induction s,
+  { exact absurd rfl h, },
+  { simp [xgcd_aux], }
+end
+
 @[simp] theorem xgcd_aux_fst (x y) : ∀ s t s' t',
   (xgcd_aux x s t y s' t').1 = gcd x y :=
 gcd.induction x y (by simp) (λ x y h IH s t s' t', by simp [xgcd_aux_rec, h, IH]; rw ← gcd_rec)

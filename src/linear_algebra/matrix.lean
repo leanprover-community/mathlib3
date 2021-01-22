@@ -957,7 +957,7 @@ by { convert linear_map.std_basis_same _ (λ _, R) j 1 }
 eq_one_of_eq rfl
 
 lemma is_basis [fintype n] : @is_basis n R (n → R) std_basis_vec _ _ _ :=
-  pi.is_basis_fun R n
+pi.is_basis_fun R n
 
 @[simp] lemma dot_product_eq_val (v : n → R) (i : n) [fintype n]:
   matrix.dot_product v (std_basis_vec i) = v i :=

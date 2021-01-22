@@ -165,6 +165,16 @@ by { ext v i, rw [coe_to_GL, to_lin'_mul], refl }
 def embedding_GL : (special_linear_group n R) →* (general_linear_group R (n → R)) :=
 ⟨λ A, to_GL A, by simp, by simp⟩
 
+variables {S : Type*} [comm_ring S]
+
+/-- A ring homomorphism from `R` to `S` induces a group homomorphism from
+`special_linear_group n R` to `special_linear_group n S`. -/
+def SL_n_insertion (f : R →+* S) :
+monoid_hom (special_linear_group n R) (special_linear_group n S) :=
+{ to_fun := λ g, ⟨f.map_matrix g, ring_hom.map_det_one f g.2⟩,
+  map_one' := sorry,
+  map_mul' := sorry }
+
 end special_linear_group
 
 end matrix

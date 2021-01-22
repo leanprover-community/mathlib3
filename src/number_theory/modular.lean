@@ -323,51 +323,34 @@ begin
   ring,
 end
 
-instance : mul_action (SL(2, ℝ)) H :=
+/-- The action of `SL(2, ℝ)` on the upper half-plane by fractional linear transformations. -/
+instance SL2R_action : mul_action SL(2, ℝ) H :=
 { smul := λ g, λ z, ⟨smul_aux g z, GactsHtoH g z.property ⟩ ,
   one_smul := λ z, by {apply subtype.ext, simp [smul_aux, top, bottom]},
   mul_smul := λ g1 g2 z, by simpa using GactGpactH g1 g2 z.property }
 
-def fundamental_domain : set ℂ :=
-{ z | 1 ≤ (complex.norm_sq z) ∧ (-1:ℝ) / 2 ≤ (complex.re z) ∧ (complex.re z) ≤ (1 :ℝ)/ 2 }
+/-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action. -/
+instance SL2Z_action : mul_action SL(2, ℤ) H :=
+mul_action.comp_hom H (SL_n_insertion (int.cast_ring_hom ℝ))
 
-notation `𝒟` := fundamental_domain
 
-notation `𝒟°` := interior 𝒟
 
-def T : SL(2,ℤ) := { val :=  λ i j, if (i = 1 ∧ j = 0) then 0 else 1,
-  property := by simp [det2] }
+/-- HM:  On second thoughts, I don't think `ℤ` is literally a subring of `ℝ` (instead there's a
+cast from one to the other).  So this subring stuff is not needed. -/
 
-def S : SL(2,ℤ) := { val :=  λ i j, i - j,
-  property := by simp [det2] }
+-- lemma coe_to_det {R : Type*} [comm_ring R] {S : subring R} {n: ℕ } (g : matrix (fin n) (fin n) S ):
+-- (g.det : R) = det (λ i j , (g i j : R )) :=
+-- begin
+--   rw det,
+--   rw det,
+--   sorry
+-- end
 
-lemma det1_hom_det1 {R S : Type*} [comm_ring R] [comm_ring S] {n: ℕ } (g : matrix (fin n) (fin n) S )
-(f : ring_hom S R) (h : det g = 1):
-(f.map_matrix g).det = 1 :=
-begin
-  rw ← matrix.ring_hom.map_det,
-  simp [h],
-end
-
-def SL_n_insertion  {R S : Type*} [comm_ring R] [comm_ring S] (f : ring_hom S R) {n : ℕ } :
-monoid_hom (SL(n,S)) (SL(n,R)) :=
-{ to_fun := λ g, ⟨f.map_matrix g, det1_hom_det1 g f g.2⟩,
-  map_one' := _,
-  map_mul' := _ }
-
-lemma coe_to_det {R : Type*} [comm_ring R] {S : subring R} {n: ℕ } (g : matrix (fin n) (fin n) S ):
-(g.det : R) = det (λ i j , (g i j : R )) :=
-begin
-  rw det,
-  rw det,
-  sorry
-end
-
-def subgroup_SL {R : Type*} [comm_ring R] {S : subring R} {n : ℕ} : subgroup SL(n,R) :=
-{ carrier := _, -- λ g, ⟨g, ⟩, --{ a: matrix (fin n) (fin n) S | ∃ (b : SL(n,S)), a=b.val } ,
-  one_mem' := _,
-  mul_mem' := _,
-  inv_mem' := _ }
+-- def subgroup_SL {R : Type*} [comm_ring R] {S : subring R} {n : ℕ} : subgroup SL(n,R) :=
+-- { carrier := _, -- λ g, ⟨g, ⟩, --{ a: matrix (fin n) (fin n) S | ∃ (b : SL(n,S)), a=b.val } ,
+--   one_mem' := _,
+--   mul_mem' := _,
+--   inv_mem' := _ }
 
 
 
@@ -377,16 +360,42 @@ def subgroup_SL {R : Type*} [comm_ring R] {S : subring R} {n : ℕ} : subgroup S
  -- sorry
 --end
 
-lemma T_action {z : H} {n : ℤ} : ((T^n) : SL(2,ℝ)) • z = (z:ℂ) + (n:ℂ) :=
+def T : SL(2,ℤ) := { val :=  λ i j, if (i = 1 ∧ j = 0) then 0 else 1,
+  property := by simp [det2] }
+
+def S : SL(2,ℤ) := { val :=  λ i j, i - j,
+  property := by simp [det2] }
+
+
+
+lemma T_action {z : H} : ((T • z : H) : ℂ) = 1 + z :=
 begin
   sorry
 end
+
+lemma Tn_action {z : H} {n : ℤ} : ((T^n • z : H) : ℂ) = n + z :=
+begin
+  sorry
+end
+
+lemma S_action (z : H) : ((S • z : H) : ℂ) = z⁻¹ :=
+begin
+  sorry
+end
+
+
+def fundamental_domain : set H :=
+{ z | 1 ≤ (complex.norm_sq z) ∧ (-1:ℝ) / 2 ≤ (complex.re z) ∧ (complex.re z) ≤ (1 :ℝ)/ 2 }
+
+notation `𝒟` := fundamental_domain
+
+notation `𝒟°` := interior 𝒟
 
 lemma is_fundom {z : H} : ∃ g : SL(2, ℤ),  (g • z) ∈ 𝒟 :=
 begin
-
   sorry
 end
+
 
 -- define fundamental domain
 -- open region, g.z=w -> g=1

@@ -72,7 +72,6 @@ def inf_Icc_order_iso_Icc_sup (a b : α) : set.Icc (a ⊓ b) a ≃o set.Icc b (a
       ← sup_eq_right.2 y.prop.1, inf_sup_assoc_of_le _ y.prop.2, @sup_comm _ _ b],
     exact inf_le_inf_left _ h
   end }
-
 end is_modular_lattice
 
 namespace is_compl

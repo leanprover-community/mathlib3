@@ -274,6 +274,18 @@ end
     (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) p :=
 by { rw ← fin_succ_equiv_eq, refl }
 
+lemma fin_succ_equiv_comp_C_eq_C {R : Type u} [comm_semiring R] (n : ℕ) :
+  ((mv_polynomial.fin_succ_equiv R n).symm.to_ring_hom).comp
+    ((polynomial.C).comp (mv_polynomial.C))
+    = (mv_polynomial.C : R →+* mv_polynomial (fin n.succ) R) :=
+begin
+  refine ring_hom.ext (λ x, _),
+  rw ring_hom.comp_apply,
+  refine (mv_polynomial.fin_succ_equiv R n).injective
+    (trans ((mv_polynomial.fin_succ_equiv R n).apply_symm_apply _) _),
+  simp only [mv_polynomial.fin_succ_equiv_apply, mv_polynomial.eval₂_hom_C],
+end
+
 end
 
 end equiv

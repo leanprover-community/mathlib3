@@ -139,6 +139,9 @@ h.isometry.dist_eq x y
 
 protected lemma continuous (h : α ≃ᵢ β) : continuous h := h.isometry.continuous
 
+@[simp] lemma ediam_image (h : α ≃ᵢ β) (s : set α) : emetric.diam (h '' s) = emetric.diam s :=
+h.isometry.ediam_image s
+
 lemma to_equiv_inj : ∀ ⦃h₁ h₂ : α ≃ᵢ β⦄, (h₁.to_equiv = h₂.to_equiv) → h₁ = h₂
 | ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ H := by { dsimp at H, subst e₁ }
 
@@ -192,7 +195,7 @@ funext $ assume a, h.to_equiv.left_inv a
 lemma self_comp_symm (h : α ≃ᵢ β) : ⇑h ∘ ⇑h.symm = id :=
 funext $ assume a, h.to_equiv.right_inv a
 
-lemma range_coe (h : α ≃ᵢ β) : range h = univ :=
+@[simp] lemma range_eq_univ (h : α ≃ᵢ β) : range h = univ :=
 eq_univ_of_forall $ assume b, ⟨h.symm b, congr_fun h.self_comp_symm b⟩
 
 lemma image_symm (h : α ≃ᵢ β) : image h.symm = preimage h :=
@@ -203,6 +206,12 @@ lemma preimage_symm (h : α ≃ᵢ β) : preimage h.symm = image h :=
 
 @[simp] lemma symm_trans_apply (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) (x : γ) :
   (h₁.trans h₂).symm x = h₁.symm (h₂.symm x) := rfl
+
+lemma ediam_univ (h : α ≃ᵢ β) : emetric.diam (univ : set α) = emetric.diam (univ : set β) :=
+by rw [← h.range_eq_univ, h.isometry.ediam_range]
+
+@[simp] lemma ediam_preimage (h : α ≃ᵢ β) (s : set β) : emetric.diam (h ⁻¹' s) = emetric.diam s :=
+by rw [← image_symm, ediam_image]
 
 /-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
 protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
@@ -217,6 +226,19 @@ protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 @[simp] lemma to_homeomorph_to_equiv (h : α ≃ᵢ β) :
   h.to_homeomorph.to_equiv = h.to_equiv :=
 rfl
+
+@[simp] lemma comp_continuous_on_iff {γ} [topological_space γ] (h : α ≃ᵢ β)
+  {f : γ → α} {s : set γ} :
+  continuous_on (h ∘ f) s ↔ continuous_on f s :=
+h.to_homeomorph.comp_continuous_on_iff _ _
+
+@[simp] lemma comp_continuous_iff {γ} [topological_space γ] (h : α ≃ᵢ β) {f : γ → α} :
+  continuous (h ∘ f) ↔ continuous f :=
+h.to_homeomorph.comp_continuous_iff
+
+@[simp] lemma comp_continuous_iff' {γ} [topological_space γ] (h : α ≃ᵢ β) {f : β → γ} :
+  continuous (f ∘ h) ↔ continuous f :=
+h.to_homeomorph.comp_continuous_iff'
 
 /-- The group of isometries. -/
 instance : group (α ≃ᵢ α) :=
@@ -291,6 +313,21 @@ end normed_group
 
 end isometric
 
+namespace isometric
+
+variables [metric_space α] [metric_space β] (h : α ≃ᵢ β)
+
+@[simp] lemma diam_image (s : set α) : metric.diam (h '' s) = metric.diam s :=
+h.isometry.diam_image s
+
+@[simp] lemma diam_preimage (s : set β) : metric.diam (h ⁻¹' s) = metric.diam s :=
+by rw [← image_symm, diam_image]
+
+lemma diam_univ : metric.diam (univ : set α) = metric.diam (univ : set β) :=
+congr_arg ennreal.to_real h.ediam_univ
+
+end isometric
+
 /-- An isometry induces an isometric isomorphism between the source space and the
 range of the isometry. -/
 def isometry.isometric_on_range [emetric_space α] [emetric_space β] {f : α → β} (h : isometry f) :
@@ -343,7 +380,7 @@ end
 lemma embedding_of_subset_isometry (H : dense_range x) : isometry (embedding_of_subset x) :=
 begin
   refine isometry_emetric_iff_metric.2 (λa b, _),
-  refine (embedding_of_subset_dist_le x a b).antisymm (real.le_of_forall_epsilon_le (λe epos, _)),
+  refine (embedding_of_subset_dist_le x a b).antisymm (le_of_forall_pos_le_add (λe epos, _)),
   /- First step: find n with dist a (x n) < e -/
   rcases metric.mem_closure_range_iff.1 (H a) (e/2) (half_pos epos) with ⟨n, hn⟩,
   /- Second step: use the norm control at index n to conclude -/

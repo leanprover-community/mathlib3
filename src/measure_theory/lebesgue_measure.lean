@@ -49,7 +49,7 @@ begin
     (infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h,
       ⟨subset.trans h Ioo_subset_Ico_self, le_refl _⟩) _,
   refine le_infi (λ a, le_infi $ λ b, le_infi $ λ h, _),
-  refine ennreal.le_of_forall_epsilon_le (λ ε ε0 _, _),
+  refine ennreal.le_of_forall_pos_le_add (λ ε ε0 _, _),
   refine infi_le_of_le (a - ε) (infi_le_of_le b $ infi_le_of_le
     (subset.trans h $ Ico_subset_Ioo_left $ (sub_lt_self_iff _).2 ε0) _),
   rw ← sub_add,
@@ -77,7 +77,7 @@ begin
     (infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h,
       ⟨subset.trans h Ico_subset_Icc_self, le_refl _⟩),
   refine le_infi (λ a, le_infi $ λ b, le_infi $ λ h, _),
-  refine ennreal.le_of_forall_epsilon_le (λ ε ε0 _, _),
+  refine ennreal.le_of_forall_pos_le_add (λ ε ε0 _, _),
   refine infi_le_of_le a (infi_le_of_le (b + ε) $ infi_le_of_le
     (subset.trans h $ Icc_subset_Ico_right $ (lt_add_iff_pos_right _).2 ε0) _),
   rw [← sub_add_eq_add_sub],
@@ -137,7 +137,7 @@ end
   lebesgue_outer (Icc a b) = of_real (b - a) :=
 begin
   refine le_antisymm (by rw ← lebesgue_length_Icc; apply lebesgue_outer_le_length)
-    (le_binfi $ λ f hf, ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
+    (le_binfi $ λ f hf, ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),
@@ -189,7 +189,7 @@ begin
   refine le_antisymm (λ s, _) (outer_measure.le_trim _),
   rw outer_measure.trim_eq_infi,
   refine le_infi (λ f, le_infi $ λ hf,
-    ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
+    ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),

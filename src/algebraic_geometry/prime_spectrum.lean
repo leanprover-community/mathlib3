@@ -146,21 +146,8 @@ by rw [← submodule.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
 
 lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (prime_spectrum R)) (I : ideal R) :
   t ⊆ zero_locus I ↔ I ≤ vanishing_ideal t :=
-begin
-  split; intro h,
-  { intros f hf,
-    rw [mem_vanishing_ideal],
-    intros x hx,
-    have hxI := h hx,
-    rw mem_zero_locus at hxI,
-    exact hxI hf },
-  { intros x hx,
-    rw mem_zero_locus,
-    refine le_trans h _,
-    intros f hf,
-    rw [mem_vanishing_ideal] at hf,
-    exact hf x hx }
-end
+⟨λ h f k, (mem_vanishing_ideal _ _).mpr (λ x j, (mem_zero_locus _ _).mpr (h j) k), λ h,
+  λ x j, (mem_zero_locus _ _).mpr (le_trans h (λ f h, ((mem_vanishing_ideal _ _).mp h) x j))⟩
 
 section gc
 variable (R)
@@ -261,6 +248,10 @@ lemma zero_locus_Union {ι : Sort*} (s : ι → set R) :
   zero_locus (⋃ i, s i) = (⋂ i, zero_locus (s i)) :=
 (gc_set R).l_supr
 
+lemma zero_locus_bUnion (s : set (set R)) :
+  zero_locus (⋃ s' ∈ s, s' : set R) = ⋂ s' ∈ s, zero_locus s' :=
+by simp only [zero_locus_Union]
+
 lemma vanishing_ideal_Union {ι : Sort*} (t : ι → set (prime_spectrum R)) :
   vanishing_ideal (⋃ i, t i) = (⨅ i, vanishing_ideal (t i)) :=
 (gc R).u_infi
@@ -301,6 +292,10 @@ begin
   rw mem_vanishing_ideal at hf hg,
   apply submodule.add_mem; solve_by_elim
 end
+
+lemma mem_compl_zero_locus_iff_not_mem {f : R} {I : prime_spectrum R} :
+  I ∈ (zero_locus {f} : set (prime_spectrum R))ᶜ ↔ f ∉ I.as_ideal :=
+by rw [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]; refl
 
 /-- The Zariski topology on the prime spectrum of a commutative ring
 is defined via the closed sets of the topology:
@@ -345,11 +340,11 @@ variables (f : R →+* S)
 rfl
 
 @[simp] lemma comap_id : comap (ring_hom.id R) = id :=
-funext $ λ x, ext.mpr $ by { rw [comap_as_ideal], apply ideal.ext, intros r, simp }
+funext $ λ _, subtype.ext $ ideal.ext $ λ _, iff.rfl
 
 @[simp] lemma comap_comp (f : R →+* S) (g : S →+* S') :
   comap (g.comp f) = comap f ∘ comap g :=
-funext $ λ x, ext.mpr $ by { simp, refl }
+funext $ λ _, subtype.ext $ ideal.ext $ λ _, iff.rfl
 
 @[simp] lemma preimage_comap_zero_locus (s : set R) :
   (comap f) ⁻¹' (zero_locus s) = zero_locus (f '' s) :=
@@ -410,6 +405,9 @@ section basic_open
 def basic_open (r : R) : topological_space.opens (prime_spectrum R) :=
 { val := { x | r ∉ x.as_ideal },
   property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
+
+lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum R)) :=
+(basic_open a).property
 
 end basic_open
 

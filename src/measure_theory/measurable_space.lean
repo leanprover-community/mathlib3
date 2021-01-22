@@ -83,6 +83,8 @@ structure measurable_space (α : Type*) :=
 
 attribute [class] measurable_space
 
+instance [h : measurable_space α] : measurable_space (order_dual α) := h
+
 section
 variable [measurable_space α]
 
@@ -96,7 +98,7 @@ lemma is_measurable.compl : is_measurable s → is_measurable sᶜ :=
 ‹measurable_space α›.is_measurable_compl s
 
 lemma is_measurable.of_compl (h : is_measurable sᶜ) : is_measurable s :=
-s.compl_compl ▸ h.compl
+compl_compl s ▸ h.compl
 
 @[simp] lemma is_measurable.compl_iff : is_measurable sᶜ ↔ is_measurable s :=
 ⟨is_measurable.of_compl, is_measurable.compl⟩

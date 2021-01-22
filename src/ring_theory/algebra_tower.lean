@@ -104,6 +104,32 @@ theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
+lemma adjoin_res (C D E : Type*) [comm_semiring C] [comm_semiring D] [comm_semiring E]
+  [algebra C D] [algebra C E] [algebra D E] [is_scalar_tower C D E] (S : set E) :
+(algebra.adjoin D S).res C = ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)).under
+  (algebra.adjoin ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S) :=
+begin
+  suffices : set.range (algebra_map D E) =
+    set.range (algebra_map ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) E),
+  { ext x, change x ∈ subsemiring.closure (_ ∪ S) ↔ x ∈ subsemiring.closure (_ ∪ S), rw this },
+  ext x,
+  split,
+  { rintros ⟨y, hy⟩,
+    exact ⟨⟨algebra_map D E y, ⟨y, ⟨algebra.mem_top, rfl⟩⟩⟩, hy⟩ },
+  { rintros ⟨⟨y, ⟨z, ⟨h0, h1⟩⟩⟩, h2⟩,
+    exact ⟨z, eq.trans h1 h2⟩ },
+end
+
+lemma adjoin_res_eq_adjoin_res (C D E F : Type*) [comm_semiring C] [comm_semiring D]
+  [comm_semiring E] [comm_semiring F] [algebra C D] [algebra C E] [algebra C F] [algebra D F]
+  [algebra E F] [is_scalar_tower C D F] [is_scalar_tower C E F] {S : set D} {T : set E}
+  (hS : algebra.adjoin C S = ⊤) (hT : algebra.adjoin C T = ⊤) :
+(algebra.adjoin E (algebra_map D F '' S)).res C =
+  (algebra.adjoin D (algebra_map E F '' T)).res C :=
+by { rw [adjoin_res, adjoin_res, ←hS, ←hT, ←algebra.adjoin_image, ←algebra.adjoin_image,
+  ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom, is_scalar_tower.coe_to_alg_hom,
+  is_scalar_tower.coe_to_alg_hom, ←algebra.adjoin_union, ←algebra.adjoin_union, set.union_comm] }
+
 end algebra
 
 namespace subalgebra

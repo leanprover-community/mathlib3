@@ -36,7 +36,7 @@ end
 /-- Given an `R`-module `M`, equipped with a bilinear form, the skew-adjoint endomorphisms form a
 Lie subalgebra of the Lie algebra of endomorphisms. -/
 def skew_adjoint_lie_subalgebra : lie_subalgebra R (module.End R M) :=
-{ lie_mem := B.is_skew_adjoint_bracket, ..B.skew_adjoint_submodule }
+{ lie_mem' := B.is_skew_adjoint_bracket, ..B.skew_adjoint_submodule }
 
 variables {N : Type w} [add_comm_group N] [module R N] (e : N ≃ₗ[R] M)
 
@@ -87,7 +87,7 @@ end
 
 /-- The Lie subalgebra of skew-adjoint square matrices corresponding to a square matrix `J`. -/
 def skew_adjoint_matrices_lie_subalgebra : lie_subalgebra R (matrix n n R) :=
-{ lie_mem := J.is_skew_adjoint_bracket, ..(skew_adjoint_matrices_submodule J) }
+{ lie_mem' := J.is_skew_adjoint_bracket, ..(skew_adjoint_matrices_submodule J) }
 
 @[simp] lemma mem_skew_adjoint_matrices_lie_subalgebra (A : matrix n n R) :
   A ∈ skew_adjoint_matrices_lie_subalgebra J ↔ A ∈ skew_adjoint_matrices_submodule J :=

@@ -147,7 +147,8 @@ lemma uniform_inducing_pure_cauchy : uniform_inducing (pure_cauchy : α → Cauc
       from funext $ assume s, set.ext $ assume ⟨a₁, a₂⟩,
         by simp [preimage, gen, pure_cauchy, prod_principal_principal],
     calc comap (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ((𝓤 α).lift' gen)
-          = (𝓤 α).lift' (preimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) :
+          = (𝓤 α).lift'
+              (preimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) :
         comap_lift'_eq monotone_gen
       ... = 𝓤 α : by simp [this]⟩
 

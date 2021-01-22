@@ -68,7 +68,7 @@ end
 lemma mem_range_of_degree_eq_one (hx : (minpoly A x).degree = 1) : x ∈ (algebra_map A B).range :=
 begin
   have h : is_integral A x,
-  { by_contra,
+  { by_contra h,
     rw [eq_zero h, degree_zero, ←with_bot.coe_one] at hx,
     exact (ne_of_lt (show ⊥ < ↑1, from with_bot.bot_lt_coe 1) hx) },
   have key := minpoly.aeval A x,

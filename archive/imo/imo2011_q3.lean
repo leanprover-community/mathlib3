@@ -34,12 +34,12 @@ begin
   { intros a b,
     linarith [hxt b (f a), hxt a (f b)] },
 
-  have h_a : ∀ a < 0, 0 ≤ f a,
+  have h_f_nonneg_of_pos : ∀ a < 0, 0 ≤ f a,
   { intros a han,
     suffices : a * f a ≤ 0, from nonneg_of_mul_nonpos_right this han,
     exact add_le_iff_nonpos_left.mp (h_ab_combined a (2 * f a)) },
 
-  have h_fx_nonpos : ∀ x, f x ≤ 0,
+  have h_f_nonpos : ∀ x, f x ≤ 0,
   { intros x,
     by_contra h_suppose_not,
     -- If we choose a small enough argument for f, then we get a contradiction.
@@ -47,7 +47,7 @@ begin
     have hm : min 0 s - 1 < s := lt_of_lt_of_le (sub_one_lt _) (min_le_right 0 s),
     have hml : min 0 s - 1 < 0 := lt_of_lt_of_le (sub_one_lt _) (min_le_left 0 s),
 
-    suffices : f (min 0 s - 1) < 0, from not_le.mpr this (h_a (min 0 s - 1) hml),
+    suffices : f (min 0 s - 1) < 0, from not_le.mpr this (h_f_nonneg_of_pos (min 0 s - 1) hml),
 
     have hp : 0 < f x := not_le.mp h_suppose_not,
     calc f (min 0 s - 1)
@@ -57,17 +57,15 @@ begin
 
   have h_fx_zero_of_neg : ∀ x < 0, f x = 0,
   { intros x hxz,
-    exact le_antisymm (h_fx_nonpos x) (h_a x hxz) },
+    exact le_antisymm (h_f_nonpos x) (h_f_nonneg_of_pos x hxz) },
 
   have h_zero_of_zero : f 0 = 0,
-  { suffices : 0 ≤ f 0, from le_antisymm (h_fx_nonpos 0) this,
+  { suffices : 0 ≤ f 0, from le_antisymm (h_f_nonpos 0) this,
     have hno : f (-1) = 0 := h_fx_zero_of_neg (-1) neg_one_lt_zero,
     have hp := hxt (-1) (-1),
     rw hno at hp,
     linarith },
 
   intros x hx,
-  obtain (h_x_neg : x < 0) | (h_x_zero : x = 0) := lt_or_eq_of_le hx,
-  { exact h_fx_zero_of_neg x h_x_neg },
-  rwa h_x_zero,
+  obtain (h_x_neg : x < 0) | (rfl : x = 0) := lt_or_eq_of_le hx; solve_by_elim
 end

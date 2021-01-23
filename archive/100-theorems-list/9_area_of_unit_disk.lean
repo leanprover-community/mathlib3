@@ -254,7 +254,7 @@ def region_under (v : α → ℝ) (s : set α) : set (α × ℝ) :=
 
 variables {u v : α → ℝ} {s : set α}
 
-/-- The volume between two functions is measurable. -/
+/-- The region between two functions is measurable. -/
 lemma is_measurable_region_between (hu : measurable u) (hv: measurable v) (hs : is_measurable s) :
   is_measurable (region_between u v s) :=
 begin
@@ -265,7 +265,7 @@ begin
   convert hs.prod is_measurable.univ,
 end
 
-/-- The volume between two functions can be respresented as a left integral -/
+/-- The region between two functions can be respresented as a left integral -/
 theorem volume_region_between_eq_lintegral (hu : measurable u) (hv : measurable v) (hs : is_measurable s) :
   volume.prod volume (region_between u v s) = ∫⁻ y in s, ennreal.of_real ((v - u) y) :=
 begin
@@ -313,9 +313,9 @@ begin
   { apply_instance },
 end
 
-/-- The area of the unit disc, which can be represented as the area between the two curves
+/-- The area of the unit disc, which can be represented as the region between the two curves
     `λ x, -sqrt (1 - x^2)` and `λ x, sqrt (1 - x^2)`, is `π`. -/
-theorem volume_unit_disc' : volume.prod volume unit_disc = ennreal.of_real pi :=
+theorem volume_unit_disc'' : volume.prod volume unit_disc = ennreal.of_real pi :=
 begin
   have : unit_disc = region_between (λ x, -sqrt (1 - x^2)) (λ x, sqrt (1 - x^2)) (Ioc (-(1:ℝ)) 1),
   { ext p,
@@ -417,48 +417,48 @@ begin
 end
 
 /-- The area of the unit disc is `π`. -/
-theorem volume_unit_disc : volume.prod volume (disc zero_lt_one) = ennreal.of_real pi :=
+theorem volume_unit_disc' : volume.prod volume (disc zero_lt_one) = ennreal.of_real pi :=
 by simpa only [one_pow, mul_one] using volume_disc zero_lt_one
 
 
 -- **Attempt III - via `region_under` and `region_between`, `integral` version**
 
-/-- The volume between two functions can be respresented as an integral -/
+/-- The volume of the region between two functions can be respresented as an integral. -/
 theorem volume_region_between_eq_integral (u_int : integrable_on u s) (v_int : integrable_on v s)
   (u_meas : measurable u) (v_meas : measurable v) (hs : is_measurable s)
   (huv : ∀ x ∈ s, u x ≤ v x) :
   volume.prod volume (region_between u v s) = ennreal.of_real (∫ y in s, (v - u) y) :=
 begin
-  rw measure.prod_apply (is_measurable_region_between u_meas v_meas hs),
-  { let g : α → nnreal := λ x, if h : x ∈ s then ⟨v x - u x, by linarith [huv _ h]⟩ else 0,
-    have h1 : (λ x, volume (prod.mk x ⁻¹' region_between u v s)) = s.indicator (λ x, ↑(g x)),
-    { simp only [region_between, preimage_set_of_eq],
-      funext x,
-      rw indicator_apply,
+  let g : α → nnreal := λ x, if h : x ∈ s then ⟨v x - u x, by linarith [huv _ h]⟩ else 0,
+  have h1 : (λ x, volume (prod.mk x ⁻¹' region_between u v s)) = s.indicator (λ x, ((g x):ennreal)),
+  { simp only [region_between, preimage_set_of_eq],
+    funext x,
+    rw indicator_apply,
+    split_ifs,
+    { have hx : {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = Ioo (u x) (v x) := by simp [h, Ioo],
+      simp only [g, hx, volume_Ioo, sub_zero],
       split_ifs,
-      { have hx : {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = Ioo (u x) (v x) := by simp [h, Ioo],
-        simp only [g, hx, volume_Ioo, sub_zero],
-        split_ifs,
-        rw ennreal.of_real_eq_coe_nnreal },
-      { have hx : {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = ∅ := by simp [h],
-        simp only [hx, measure_empty] } },
-    have h2 : v - u =ᵐ[volume.restrict s] (λ x, ((g x):ℝ)),
-    { rw eventually_eq_iff_exists_mem,
-      use s,
-      simp only [measure.ae, mem_set_of_eq, filter.mem_mk, measure.restrict_apply hs.compl,
-                measure_empty, compl_inter_self, eq_self_iff_true, true_and],
-      intros x hx,
-      simp only [g, pi.sub_apply],
-      split_ifs,
-      rw subtype.coe_mk },
-    rw [h1, lintegral_indicator, integral_congr_ae h2, lintegral_coe_eq_integral],
-    exacts [(integrable_congr h2).mp (v_int.sub u_int), hs] },
-  { apply_instance },
+      rw ennreal.of_real_eq_coe_nnreal },
+    { have hx : {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = ∅ := by simp [h],
+      simp only [hx, measure_empty] } },
+  have h2 : v - u =ᵐ[volume.restrict s] (λ x, ((g x):ℝ)),
+  { rw eventually_eq_iff_exists_mem,
+    use s,
+    simp only [measure.ae, mem_set_of_eq, filter.mem_mk, measure.restrict_apply hs.compl,
+              measure_empty, compl_inter_self, eq_self_iff_true, true_and],
+    intros x hx,
+    simp only [g, pi.sub_apply],
+    split_ifs,
+    rw subtype.coe_mk },
+  rw [measure.prod_apply, h1, lintegral_indicator, integral_congr_ae h2, lintegral_coe_eq_integral],
+  exacts [(integrable_congr h2).mp (v_int.sub u_int), hs,
+          is_measurable_region_between u_meas v_meas hs],
 end
 
 
-/-Alternate proof for area of the unit disc, now featuring `eq_integral` theorem-/
-theorem volume_unit_disc'' : volume.prod volume unit_disc = ennreal.of_real pi :=
+/-- The area of the unit disc, which can be represented as the region between the two curves
+    `λ x, -sqrt (1 - x^2)` and `λ x, sqrt (1 - x^2)`, is `π`. -/
+theorem volume_unit_disc : volume.prod volume unit_disc = ennreal.of_real pi :=
 begin
   have : unit_disc = region_between (λ x, -sqrt (1 - x^2)) (λ x, sqrt (1 - x^2)) (Ioc (-(1:ℝ)) 1),
   { ext p,
@@ -473,24 +473,22 @@ begin
         exact sqr_lt.mp h} },
     { rw [add_comm, ← lt_sub_iff_add_lt],
       exact sqr_lt.mpr h.2 } },
+  have h : ∀ {f : ℝ → ℝ}, continuous f → integrable_on f (Ioc (-(1:ℝ)) 1) :=
+    λ f hc, (hc.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
   obtain ⟨hc1, hc2⟩ := ⟨(continuous_const.sub (continuous_pow 2)).sqrt, continuous_const.mul hc1⟩,
-  have u_int  : integrable_on (λ x : ℝ, -sqrt (1 - x^2)) (Ioc (-(1:ℝ)) 1) :=
-      ((hc1.neg).integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
-  have v_int : integrable_on (λ x : ℝ, sqrt (1 - x^2)) (Ioc (-(1:ℝ)) 1) :=
-      (hc1.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
-  convert volume_region_between_eq_integral u_int v_int (hc1.neg).measurable hc1.measurable
-        is_measurable_Ioc (λ x hx, le_trans (neg_nonpos.mpr (sqrt_nonneg _)) (sqrt_nonneg _)),
+  convert volume_region_between_eq_integral (h hc1.neg) (h hc1) (hc1.neg).measurable hc1.measurable
+    is_measurable_Ioc (λ x hx, le_trans (neg_nonpos.mpr (sqrt_nonneg _)) (sqrt_nonneg _)),
   simp only [sub_neg_eq_add, pi.sub_apply, ← two_mul],
   rw [← integral_of_le, integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self zero_le_one)
       ((continuous_arcsin.add (continuous_id.mul hc1)).continuous_on) _ hc2.continuous_on],
   { simp only [arcsin_one, arcsin_neg_one, one_pow, add_zero, nat.neg_one_pow_two, sub_self,
-                  sqrt_zero, mul_zero, sub_neg_eq_add, add_halves'] },
+              sqrt_zero, mul_zero, sub_neg_eq_add, add_halves'] },
   { rintros x ⟨hx1, hx2⟩,
     convert (has_deriv_at_arcsin hx1.ne.symm hx2.ne).add ((has_deriv_at_id' x).mul
-            (((has_deriv_at_id' x).pow.const_sub 1).sqrt _)),
-      { simp only [one_mul, mul_one, zero_sub, nat.cast_bit0, pow_one, nat.cast_one, neg_div],
-        rw mul_div_mul_left;
-        field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul] },
-      { nlinarith } },
+      (((has_deriv_at_id' x).pow.const_sub 1).sqrt _)),
+    { simp only [one_mul, mul_one, zero_sub, nat.cast_bit0, pow_one, nat.cast_one, neg_div],
+      rw mul_div_mul_left;
+      field_simp [add_left_comm, ← pow_two, tactic.ring.add_neg_eq_sub, div_sqrt, ← two_mul] },
+    { nlinarith } },
   { exact neg_le_self zero_le_one },
 end

@@ -273,8 +273,8 @@ begin
   rw [chebyshev₁_eq_chebyshev₂_sub_X_mul_chebyshev₂, nat.cast_bit0, nat.cast_one],
   ring},
   calc ((n : polynomial R) + 1) * chebyshev₁ R (n + 1)
-      = ((n : polynomial R) + 1 + 1) * (X * chebyshev₂ R n + chebyshev₁ R (n + 1)) - X * ((n + 1) * chebyshev₂ R n)
-                                    - (X * chebyshev₂ R n + chebyshev₁ R (n + 1))
+      = ((n : polynomial R) + 1 + 1) * (X * chebyshev₂ R n + chebyshev₁ R (n + 1))
+        - X * ((n + 1) * chebyshev₂ R n) - (X * chebyshev₂ R n + chebyshev₁ R (n + 1))
                         : by ring
   ... = derivative (chebyshev₁ R (n + 2)) - X * derivative (chebyshev₁ R (n + 1))
                                           - chebyshev₂ R (n + 1)

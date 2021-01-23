@@ -674,11 +674,12 @@ begin
   exact is_measurable.Union (λ i, hf i (is_open_lt' _).is_measurable)
 end
 
-lemma ae_measurable.is_lub_of_nonempty {ι} (hα : nonempty α) (hι : nonempty ι)
+private lemma ae_measurable.is_lub_of_nonempty {ι} (hδ : nonempty δ) (hι : nonempty ι)
   {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ b, is_lub {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
+  haveI hα : nonempty α := nonempty.map g hδ,
   let p : δ → (ι → α) → Prop := λ x f', is_lub {a | ∃ i, f' i = a} (g x),
   let g_seq := λ x, ite (x ∈ ae_seq_set hf p) (g x) hα.some,
   have hg_seq : ∀ b, is_lub {a | ∃ i, ae_seq hf p i b = a} (g_seq b),
@@ -704,27 +705,15 @@ lemma ae_measurable.is_lub {ι} {μ : measure δ} [encodable ι] {f : ι → δ 
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ b, is_lub {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
-  by_cases h : nonempty α ∧ nonempty ι,
-  { exact ae_measurable.is_lub_of_nonempty h.1 h.2 hf hg, },
-  refine ⟨g, _, ae_eq_refl g⟩,
-  rw auto.not_and_eq at h,
-  cases h,
-  { have h_δ : ¬ nonempty δ, by { revert h, exact mt (nonempty.map g), },
-    exact measurable_of_not_nonempty h_δ g, },
-  have h_set_empty : ∀ b, {a : α | ∃ (i : ι), f i b = a} = ∅,
-  { intros b,
-    ext a,
-    rw [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
-    exact λ hi, h (nonempty_of_exists hi), },
-  by_cases h_δ : ¬ nonempty δ,
-  { exact measurable_of_not_nonempty h_δ g, },
-  rw not_not at h_δ,
-  have hg_const : g = λ x, g h_δ.some,
-  { simp_rw [h_set_empty, is_lub, upper_bounds_empty, is_least, set.mem_univ, true_and,
-      lower_bounds, set.mem_set_of_eq] at hg,
-    exact funext (λ x, le_antisymm (hg x (set.mem_univ _)) (hg h_δ.some (set.mem_univ _)) ), },
-  rw hg_const,
-  exact measurable_const,
+  by_cases hδ : nonempty δ, swap, { exact (measurable_of_not_nonempty hδ g).ae_measurable },
+  by_cases hι : nonempty ι, { exact ae_measurable.is_lub_of_nonempty hδ hι hf hg, },
+  suffices : g = λ y, g hδ.some, by { rw this, exact ae_measurable_const },
+  suffices L : ∀ y, is_lub ∅ (g y), by { ext y, apply is_lub.unique (L y) (L hδ.some) },
+  assume y,
+  convert hg y,
+  ext a,
+  simp only [not_exists, mem_empty_eq, false_iff, mem_set_of_eq],
+  exact λ i, (hι ⟨i⟩).elim ,
 end
 
 lemma measurable.is_glb {ι} [encodable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ i, measurable (f i))
@@ -739,11 +728,12 @@ begin
   exact is_measurable.Union (λ i, hf i (is_open_gt' _).is_measurable)
 end
 
-lemma ae_measurable.is_glb_of_nonempty {ι} (hα : nonempty α) (hι : nonempty ι)
+private lemma ae_measurable.is_glb_of_nonempty {ι} (hδ : nonempty δ) (hι : nonempty ι)
   {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ b, is_glb {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
+  haveI hα : nonempty α := nonempty.map g hδ,
   let p : δ → (ι → α) → Prop := λ x f', is_glb {a | ∃ i, f' i = a} (g x),
   let g_seq := λ x, ite (x ∈ ae_seq_set hf p) (g x) hα.some,
   have hg_seq : ∀ b, is_glb {a | ∃ i, ae_seq hf p i b = a} (g_seq b),
@@ -769,27 +759,15 @@ lemma ae_measurable.is_glb {ι} {μ : measure δ} [encodable ι] {f : ι → δ 
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ b, is_glb {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
-  by_cases h : nonempty α ∧ nonempty ι,
-  { exact ae_measurable.is_glb_of_nonempty h.1 h.2 hf hg, },
-  refine ⟨g, _, ae_eq_refl g⟩,
-  rw auto.not_and_eq at h,
-  cases h,
-  { have h_δ : ¬ nonempty δ, by { revert h, exact mt (nonempty.map g), },
-    exact measurable_of_not_nonempty h_δ g, },
-  have h_set_empty : ∀ b, {a : α | ∃ (i : ι), f i b = a} = ∅,
-  { intros b,
-    ext a,
-    rw [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
-    exact λ hi, h (nonempty_of_exists hi), },
-  by_cases h_δ : ¬ nonempty δ,
-  { exact measurable_of_not_nonempty h_δ g, },
-  rw not_not at h_δ,
-  have hg_const : g = λ x, g h_δ.some,
-  { simp_rw [h_set_empty, is_glb, lower_bounds_empty, is_greatest, set.mem_univ, true_and,
-      upper_bounds, set.mem_set_of_eq] at hg,
-    exact funext (λ x, le_antisymm (hg h_δ.some (set.mem_univ _)) (hg x (set.mem_univ _))), },
-  rw hg_const,
-  exact measurable_const,
+  by_cases hδ : nonempty δ, swap, { exact (measurable_of_not_nonempty hδ g).ae_measurable },
+  by_cases hι : nonempty ι, { exact ae_measurable.is_glb_of_nonempty hδ hι hf hg, },
+  suffices : g = λ y, g hδ.some, by { rw this, exact ae_measurable_const },
+  suffices L : ∀ y, is_glb ∅ (g y), by { ext y, apply is_glb.unique (L y) (L hδ.some) },
+  assume y,
+  convert hg y,
+  ext a,
+  simp only [not_exists, mem_empty_eq, false_iff, mem_set_of_eq],
+  exact λ i, (hι ⟨i⟩).elim ,
 end
 
 end linear_order

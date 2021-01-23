@@ -15,12 +15,15 @@ with integral coefficients.
 
 See the file `ring_theory.polynomial.chebyshev.basic` for more properties.
 
-## Main declarations
+## Main definitions
 
 * `polynomial.chebyshev₁`: the Chebyshev polynomials of the first kind.
 * `polynomial.chebyshev₂`: the Chebyshev polynomials of the second kind.
 * `polynomial.lambdashev`: a variant on the Chebyshev polynomials that define a Lambda structure
   on `polynomial ℤ`.
+
+## Main statements
+
 * The formal derivative of the Chebyshev polynomials of the first kind is a scalar multiple of the
   Chebyshev polynomials of the second kind.
 
@@ -261,20 +264,29 @@ lemma add_one_mul_chebyshev₁_eq_poly_in_chebyshev₂ (n : ℕ) :
 ((n : polynomial R)  + 1) * chebyshev₁ R (n+1)
 = X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n) :=
 begin
-  have h : derivative (chebyshev₁ R (n+2))
-  = derivative ( X * chebyshev₁ R (n+1) - (1 - X ^ 2) * chebyshev₂ R n),
-  by rw chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂,
+  have h : derivative (chebyshev₁ R (n + 2)) = (chebyshev₂ R (n + 1) - X * chebyshev₂ R n)
+  + X * derivative (chebyshev₁ R (n + 1)) + 2 * X * chebyshev₂ R n
+  - (1 - X ^ 2) * derivative ( chebyshev₂ R n),
+  {conv_lhs {rw chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂},
   simp only [derivative_sub, derivative_mul, derivative_X, derivative_one, derivative_X_pow,
-  one_mul, chebyshev₁_derivative_eq_chebyshev₂, zero_sub, neg_mul_eq_neg_mul_symm, pow_one,
-  nat.cast_add, nat.cast_one] at h,
-  rw chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ at h,
-  rw [mul_add, add_comm (chebyshev₁ R (n + 1)), add_mul, ←mul_assoc, mul_comm _ X, add_assoc,
-      add_sub_assoc, mul_assoc, add_right_inj, one_mul, add_mul, one_mul, add_comm,
-      add_comm _ (chebyshev₁ R (n + 1)), sub_eq_add_neg, add_assoc, add_right_inj, neg_add,
-      neg_neg] at h,
-  rw [←add_sub_cancel ((↑n + 1) * chebyshev₁ R (n + 1)) (X * chebyshev₂ R n), h, ←sub_eq_add_neg,
-      sub_right_comm, ←sub_mul, ←one_mul X, ←mul_assoc, mul_one, ←sub_mul],
-  norm_num
+  one_mul, chebyshev₁_derivative_eq_chebyshev₂],
+  rw [chebyshev₁_eq_chebyshev₂_sub_X_mul_chebyshev₂, nat.cast_bit0, nat.cast_one],
+  ring},
+  calc ((n : polynomial R) + 1) * chebyshev₁ R (n + 1)
+      = ((n : polynomial R) + 1 + 1) * (X * chebyshev₂ R n + chebyshev₁ R (n + 1)) - X * ((n + 1) * chebyshev₂ R n)
+                                    - (X * chebyshev₂ R n + chebyshev₁ R (n + 1))
+                        : by ring
+  ... = derivative (chebyshev₁ R (n + 2)) - X * derivative (chebyshev₁ R (n + 1))
+                                          - chebyshev₂ R (n + 1)
+                        : by rw [←chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁,
+                                ←chebyshev₁_derivative_eq_chebyshev₂, ←nat.cast_one, ←nat.cast_add,
+                                nat.cast_one, ←chebyshev₁_derivative_eq_chebyshev₂ (n + 1)]
+  ... = (chebyshev₂ R (n + 1) - X * chebyshev₂ R n) + X * derivative (chebyshev₁ R (n + 1))
+        + 2 * X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n)
+        - X * derivative (chebyshev₁ R (n + 1)) - chebyshev₂ R (n + 1)
+                        : by rw h
+  ... = X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n)
+                        : by ring,
 end
 
 end polynomial

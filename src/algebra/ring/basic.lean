@@ -7,7 +7,6 @@ Neil Strickland
 import algebra.divisibility
 import data.set.basic
 
-
 /-!
 # Properties and homomorphisms of semirings and rings
 

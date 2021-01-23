@@ -1,4 +1,29 @@
+/-
+Copyright (c) 2020 Thomas Browning and Patrick Lutz. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Thomas Browning and Patrick Lutz
+-/
+
 import field_theory.galois
+
+/-!
+# Galois Groups of Polynomials
+
+In this file we introduce the Galois group of a polynomial, defined as
+the automorphism group of the splitting field.
+
+## Main definitions
+
+- `gal p`: the Galois group of a polynomial p.
+- `restrict p E`: the restriction homomorphism `(E ≃ₐ[F] E) → gal p`.
+- `gal_action p E`: the action of `gal p` on the roots of `p` in `E`.
+
+## Main results
+
+- `restrict_smul`: `restrict p E` is compatible with `gal_action p E`.
+- `gal_action_hom_injective`: the action of `gal p` on the roots of `p` in `E` is faithful.
+- `restrict_prod_inj`: `gal (p * q)` embeds as a subgroup of `gal p × gal q`.
+-/
 
 noncomputable theory
 open_locale classical
@@ -34,7 +59,7 @@ is_scalar_tower.of_algebra_map_eq
   (λ x, ((is_splitting_field.lift p.splitting_field p h).commutes x).symm)
 
 def restrict [h : fact (p.splits (algebra_map F E))] : (E ≃ₐ[F] E) →* p.gal :=
-alg_equiv.restict_normal_hom p.splitting_field
+alg_equiv.restrict_normal_hom p.splitting_field
 
 section roots_action
 
@@ -127,8 +152,6 @@ begin
 end
 
 end roots_action
-
-/- Define root action, and prove compatible with restrict -/
 
 variables {p q}
 

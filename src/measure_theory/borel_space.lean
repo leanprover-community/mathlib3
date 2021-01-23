@@ -719,8 +719,7 @@ begin
     ext1 y,
     rw [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
     exact λ hi, hι (nonempty_of_exists hi), },
-  rw h_empty x at hx,
-  rw h_empty y at hy,
+  rw h_empty at hx hy,
   exact (is_lub.unique hx hy).symm,
 end
 
@@ -781,8 +780,7 @@ begin
     ext1 y,
     rw [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
     exact λ hi, hι (nonempty_of_exists hi), },
-  rw h_empty x at hx,
-  rw h_empty y at hy,
+  rw h_empty at hx hy,
   exact (is_glb.unique hx hy).symm,
 end
 

@@ -1321,12 +1321,16 @@ lemma measurable_of_tendsto_metric_ae {μ : measure α} [μ.is_complete] {f : �
 ae_measurable_iff_measurable.mp
   (ae_measurable_of_tendsto_metric_ae (λ i, (hf i).ae_measurable) h_ae_tendsto)
 
-lemma measurable_limit_of_tendsto_metric_ae [hβ : nonempty β] {μ : measure α} {f : ℕ → α → β}
+lemma measurable_limit_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α → β}
   (hf : ∀ n, ae_measurable (f n) μ)
   (h_ae_tendsto : ∀ᵐ x ∂μ, ∃ l : β, filter.at_top.tendsto (λ n, f n x) (𝓝 l)) :
   ∃ (f_lim : α → β) (hf_lim_meas : measurable f_lim),
     ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)) :=
 begin
+  by_cases hα : nonempty α,
+  swap, { exact ⟨λ a, (hα ⟨a⟩).elim,
+    ⟨measurable_of_not_nonempty hα _, ae_of_all _ (λ a, (hα ⟨a⟩).elim)⟩⟩, },
+  haveI hβ : nonempty β := nonempty.map (f 0) hα,
   let p : α → (ℕ → β) → Prop := λ x f', ∃ l : β, filter.at_top.tendsto (λ n, f' n) (𝓝 l),
   have hp_mem : ∀ x, x ∈ ae_seq_set hf p → p x (λ n, f n x),
     from λ x hx, ae_seq.fun_prop_of_mem_ae_seq_set hf hx,

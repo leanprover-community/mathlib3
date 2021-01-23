@@ -266,11 +266,13 @@ begin
 end
 
 /-- The region between two functions can be respresented as a left integral -/
-theorem volume_region_between_eq_lintegral (hu : measurable u) (hv : measurable v) (hs : is_measurable s) :
+theorem volume_region_between_eq_lintegral
+  (hu : measurable u) (hv : measurable v) (hs : is_measurable s) :
   volume.prod volume (region_between u v s) = ∫⁻ y in s, ennreal.of_real ((v - u) y) :=
 begin
   rw measure.prod_apply (is_measurable_region_between hu hv hs),
-  { have h : (λ x, volume {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)}) = s.indicator (λ x, ennreal.of_real (v x - u x)),
+  { have h : (λ x, volume {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)})
+            = s.indicator (λ x, ennreal.of_real (v x - u x)),
     { funext x,
       rw indicator_apply,
       split_ifs,

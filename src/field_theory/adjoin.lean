@@ -152,7 +152,7 @@ lemma subset_adjoin : S ⊆ adjoin F S :=
 λ x hx, subfield.subset_closure (or.inr hx)
 
 instance adjoin.set_coe : has_coe_t S (adjoin F S) :=
-{coe := λ x, ⟨x,subset_adjoin F S (subtype.mem x)⟩}
+{coe := λ x, ⟨x, subset_adjoin F S x.mem⟩}
 
 @[mono] lemma adjoin.mono (T : set E) (h : S ⊆ T) : adjoin F S ≤ adjoin F T :=
 galois_connection.monotone_l gc h
@@ -303,7 +303,7 @@ begin
   let ϕ := alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly F α,
   haveI := minpoly.irreducible hα,
   suffices : ϕ ⟨x, hx⟩ * (ϕ ⟨x, hx⟩)⁻¹ = 1,
-  { convert subtype.mem (ϕ.symm (ϕ ⟨x, hx⟩)⁻¹),
+  { convert (ϕ.symm (ϕ ⟨x, hx⟩)⁻¹).mem,
     refine (eq_inv_of_mul_right_eq_one _).symm,
     apply_fun ϕ.symm at this,
     rw [alg_equiv.map_one, alg_equiv.map_mul, alg_equiv.symm_apply_apply] at this,
@@ -430,7 +430,7 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
     split,
     { exact ring_hom.injective f },
     { suffices : F⟮α⟯.to_subfield ≤ ring_hom.field_range ((F⟮α⟯.to_subfield.subtype).comp f),
-      { exact λ x, Exists.cases_on (this (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy.2⟩) },
+      { exact λ x, Exists.cases_on (this x.mem) (λ y hy, ⟨y, subtype.ext hy.2⟩) },
       exact subfield.closure_le.mpr (set.union_subset (λ x hx, Exists.cases_on hx (λ y hy, ⟨y,
         ⟨subfield.mem_top y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩⟩))
         (set.singleton_subset_iff.mpr ⟨adjoin_root.root (minpoly F α),
@@ -547,7 +547,7 @@ noncomputable instance : order_bot (lifts F E K) :=
 { le := λ x y, x.1 ≤ y.1 ∧ (∀ (s : x.1) (t : y.1), (s : E) = t → x.2 s = y.2 t),
   le_refl := λ x, ⟨le_refl x.1, λ s t hst, congr_arg x.2 (subtype.ext hst)⟩,
   le_trans := λ x y z hxy hyz, ⟨le_trans hxy.1 hyz.1, λ s u hsu, eq.trans
-    (hxy.2 s ⟨s, hxy.1 (subtype.mem s)⟩ rfl) (hyz.2 ⟨s, hxy.1 (subtype.mem s)⟩ u hsu)⟩,
+    (hxy.2 s ⟨s, hxy.1 s.mem⟩ rfl) (hyz.2 ⟨s, hxy.1 s.mem⟩ u hsu)⟩,
   le_antisymm :=
   begin
     rintros ⟨x1, x2⟩ ⟨y1, y2⟩ ⟨hxy1, hxy2⟩ ⟨hyx1, hyx2⟩,
@@ -559,13 +559,13 @@ noncomputable instance : order_bot (lifts F E K) :=
   bot := ⟨⊥, (algebra.of_id F K).comp bot_equiv.to_alg_hom⟩,
   bot_le := λ x, ⟨bot_le, λ s t hst,
   begin
-    cases intermediate_field.mem_bot.mp (subtype.mem s) with u hu,
+    cases intermediate_field.mem_bot.mp s.mem with u hu,
     rw [show s = (algebra_map F _) u, from subtype.ext hu.symm, alg_hom.commutes],
     rw [show t = (algebra_map F _) u, from subtype.ext (eq.trans hu hst).symm, alg_hom.commutes],
   end⟩ }
 
 lemma lifts.eq_of_le {x y : lifts F E K} (hxy : x ≤ y) (s : x.1) :
-  x.2 s = y.2 ⟨s, hxy.1 (subtype.mem s)⟩ := hxy.2 s ⟨s, hxy.1 (subtype.mem s)⟩ rfl
+  x.2 s = y.2 ⟨s, hxy.1 s.mem⟩ := hxy.2 s ⟨s, hxy.1 s.mem⟩ rfl
 
 lemma lifts.exists_max_two {c : set (lifts F E K)} {x y : lifts F E K} (hc : zorn.chain (≤) c)
   (hx : x ∈ set.insert ⊥ c) (hy : y ∈ set.insert ⊥ c) :
@@ -606,27 +606,28 @@ def lifts.upper_bound_intermediate_field {c : set (lifts F E K)} (hc : zorn.chai
 /-- The lift on the upper bound on a chain of lifts -/
 noncomputable def lifts.upper_bound_alg_hom {c : set (lifts F E K)} (hc : zorn.chain (≤) c) :
   lifts.upper_bound_intermediate_field hc →ₐ[F] K :=
-{ to_fun := λ s, (classical.some (subtype.mem s)).2 ⟨s, (classical.some_spec (subtype.mem s)).2⟩,
+{ to_fun := λ s, (classical.some s.mem).2 ⟨s, (classical.some_spec s.mem).2⟩,
   map_zero' := alg_hom.map_zero _,
   map_one' := alg_hom.map_one _,
   map_add' := λ s t, begin
     obtain ⟨w, hw, hxw, hyw, hzw⟩ := lifts.exists_max_three hc
-      (classical.some_spec (subtype.mem s)).1 (classical.some_spec (subtype.mem t)).1
-      (classical.some_spec (subtype.mem (s + t))).1,
+      (classical.some_spec s.mem).1 (classical.some_spec t.mem).1
+      (classical.some_spec (s + t).mem).1,
     rw [lifts.eq_of_le hxw, lifts.eq_of_le hyw, lifts.eq_of_le hzw, ←w.2.map_add],
     refl,
   end,
   map_mul' := λ s t, begin
     obtain ⟨w, hw, hxw, hyw, hzw⟩ := lifts.exists_max_three hc
-      (classical.some_spec (subtype.mem s)).1 (classical.some_spec (subtype.mem t)).1
-      (classical.some_spec (subtype.mem (s * t))).1,
+      (classical.some_spec s.mem).1 (classical.some_spec t.mem).1
+      (classical.some_spec (s * t).mem).1,
     rw [lifts.eq_of_le hxw, lifts.eq_of_le hyw, lifts.eq_of_le hzw, ←w.2.map_mul],
     refl,
   end,
   commutes' := λ _, alg_hom.commutes _ _ }
 
 /-- An upper bound on a chain of lifts -/
-noncomputable def lifts.upper_bound {c : set (lifts F E K)} (hc : zorn.chain (≤) c) : lifts F E K :=
+noncomputable def lifts.upper_bound {c : set (lifts F E K)} (hc : zorn.chain (≤) c) :
+  lifts F E K :=
 ⟨lifts.upper_bound_intermediate_field hc, lifts.upper_bound_alg_hom hc⟩
 
 lemma lifts.exists_upper_bound (c : set (lifts F E K)) (hc : zorn.chain (≤) c) :
@@ -637,9 +638,9 @@ begin
   split,
   { exact λ s hs, ⟨x, set.mem_insert_of_mem ⊥ hx, hs⟩ },
   { intros s t hst,
-    change x.2 s = (classical.some (subtype.mem t)).2 ⟨t, (classical.some_spec (subtype.mem t)).2⟩,
+    change x.2 s = (classical.some t.mem).2 ⟨t, (classical.some_spec t.mem).2⟩,
     obtain ⟨z, hz, hxz, hyz⟩ := lifts.exists_max_two hc (set.mem_insert_of_mem ⊥ hx)
-      (classical.some_spec (subtype.mem t)).1,
+      (classical.some_spec t.mem).1,
     rw [lifts.eq_of_le hxz, lifts.eq_of_le hyz],
     exact congr_arg z.2 (subtype.ext hst) },
 end⟩
@@ -680,8 +681,8 @@ lemma alg_hom_mk_adjoin_splits
   nonempty (adjoin F S →ₐ[F] K) :=
 begin
   obtain ⟨x : lifts F E K, hx⟩ := zorn.zorn_partial_order lifts.exists_upper_bound,
-  refine ⟨alg_hom.mk (λ s, x.2 ⟨s, adjoin_le_iff.mpr (λ s hs, _) (subtype.mem s)⟩) x.2.map_one
-    (λ s t, x.2.map_mul ⟨s, _⟩ ⟨t, _⟩) x.2.map_zero (λ s t, x.2.map_add ⟨s, _⟩ ⟨t, _⟩) x.2.commutes⟩,
+  refine ⟨alg_hom.mk (λ s, x.2 ⟨s, adjoin_le_iff.mpr (λ s hs, _) s.mem⟩) x.2.map_one (λ s t,
+    x.2.map_mul ⟨s, _⟩ ⟨t, _⟩) x.2.map_zero (λ s t, x.2.map_add ⟨s, _⟩ ⟨t, _⟩) x.2.commutes⟩,
   rcases (x.exists_lift_of_splits (hK s hs).1 (hK s hs).2) with ⟨y, h1, h2⟩,
   rwa hx y h1 at h2
 end

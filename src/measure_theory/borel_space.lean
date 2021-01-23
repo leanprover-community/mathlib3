@@ -1293,11 +1293,11 @@ measurable_of_tendsto_metric' at_top hf lim at_top_countable_basis (λ i, counta
 
 lemma ae_measurable_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, ae_measurable (f n) μ)
-  (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (nhds (g x))) :
+  (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (g x))) :
   ae_measurable g μ :=
 begin
   by_cases hβ : nonempty β,
-  { let p : α → (ℕ → β) → Prop := λ x f', filter.at_top.tendsto (λ n, f' n) (nhds (g x)),
+  { let p : α → (ℕ → β) → Prop := λ x f', filter.at_top.tendsto (λ n, f' n) (𝓝 (g x)),
     let hp : ∀ᵐ x ∂μ, p x (λ n, f n x), from h_ae_tendsto,
     let ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) hβ.some,
     refine ⟨ae_seq_lim, _, (ite_ae_eq_of_measure_compl_zero g (λ x, hβ.some)
@@ -1316,35 +1316,35 @@ end
 
 lemma measurable_of_tendsto_metric_ae {μ : measure α} [μ.is_complete] {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, measurable (f n))
-  (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (nhds (g x))) :
+  (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (g x))) :
   measurable g :=
 ae_measurable_iff_measurable.mp
   (ae_measurable_of_tendsto_metric_ae (λ i, (hf i).ae_measurable) h_ae_tendsto)
 
 lemma measurable_limit_of_tendsto_metric_ae [hβ : nonempty β] {μ : measure α} {f : ℕ → α → β}
   (hf : ∀ n, ae_measurable (f n) μ)
-  (h_ae_tendsto : ∀ᵐ x ∂μ, ∃ l : β, filter.at_top.tendsto (λ n, f n x) (nhds l)) :
+  (h_ae_tendsto : ∀ᵐ x ∂μ, ∃ l : β, filter.at_top.tendsto (λ n, f n x) (𝓝 l)) :
   ∃ (f_lim : α → β) (hf_lim_meas : measurable f_lim),
-    ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (nhds (f_lim x)) :=
+    ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)) :=
 begin
-  let p : α → (ℕ → β) → Prop := λ x f', ∃ l : β, filter.at_top.tendsto (λ n, f' n) (nhds l),
+  let p : α → (ℕ → β) → Prop := λ x f', ∃ l : β, filter.at_top.tendsto (λ n, f' n) (𝓝 l),
   have hp_mem : ∀ x, x ∈ ae_seq_set hf p → p x (λ n, f n x),
     from λ x hx, ae_seq.fun_prop_of_mem_ae_seq_set hf hx,
   have hμ_compl : μ (ae_seq_set hf p)ᶜ = 0,
     from ae_seq.measure_compl_ae_seq_set_eq_zero hf h_ae_tendsto,
   let f_lim : α → β := λ x, dite (x ∈ ae_seq_set hf p) (λ h, (hp_mem x h).some) (λ h, hβ.some),
-  have hf_lim_conv : ∀ x, x ∈ ae_seq_set hf p → filter.at_top.tendsto (λ n, f n x) (nhds (f_lim x)),
+  have hf_lim_conv : ∀ x, x ∈ ae_seq_set hf p → filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)),
   { intros x hx_conv,
     simp only [f_lim, hx_conv, dif_pos],
     exact (hp_mem x hx_conv).some_spec, },
-  have hf_lim : ∀ x, filter.at_top.tendsto (λ n, ae_seq hf p n x) (nhds (f_lim x)),
+  have hf_lim : ∀ x, filter.at_top.tendsto (λ n, ae_seq hf p n x) (𝓝 (f_lim x)),
   { intros x,
     simp only [f_lim, ae_seq],
     split_ifs,
     { rw funext (λ n, ae_seq.measurable_fun_eq_fun_of_mem_ae_seq_set hf h n),
       exact (hp_mem x h).some_spec, },
     { exact tendsto_const_nhds, }, },
-  have h_ae_tendsto_f_lim : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (nhds (f_lim x)),
+  have h_ae_tendsto_f_lim : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)),
   { refine le_antisymm (le_of_eq (measure_mono_null _ hμ_compl)) (zero_le _),
     exact set.compl_subset_compl.mpr (λ x hx, hf_lim_conv x hx), },
   have h_f_lim_meas : measurable f_lim,

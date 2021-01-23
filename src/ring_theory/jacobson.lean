@@ -51,8 +51,6 @@ universes u v
 
 namespace ideal
 section is_jacobson
-variables {R : Type*} [comm_ring R] {I : ideal R}
-variables {S : Type*} [comm_ring S]
 
 
 /-- A ring is a Jacobson ring if for every radical ideal `I`,
@@ -60,6 +58,9 @@ variables {S : Type*} [comm_ring S]
  See `is_jacobson_iff_prime_eq` and `is_jacobson_iff_Inf_maximal` for equivalent definitions. -/
 @[class] def is_jacobson (R : Type u) [comm_ring R] :=
     ∀ (I : ideal R), I.radical = I → I.jacobson = I
+
+variables {R : Type*} [comm_ring R] {I : ideal R}
+variables {S : Type*} [comm_ring S]
 
 /--  A ring is a Jacobson ring if and only if for all prime ideals `P`,
  the Jacobson radical of `P` is equal to `P`. -/
@@ -156,7 +157,7 @@ variables {R : Type*} [comm_ring R] {I : ideal R}
 variables {S : Type*} [comm_ring S]
 variables {y : R} (f : away_map y S)
 
-lemma disjoint_powers_iff_not_mem {I : ideal R} (hI : I.radical = I) :
+lemma disjoint_powers_iff_not_mem (hI : I.radical = I) :
   disjoint ((submonoid.powers y) : set R) ↑I ↔ y ∉ I.1 :=
 begin
   refine ⟨λ h, set.disjoint_left.1 h (submonoid.mem_powers _), λ h, _⟩,
@@ -263,13 +264,14 @@ end localization
 
 namespace polynomial
 open polynomial
+section integral_domain
+variables {R S Rₘ Sₘ : Type*} [integral_domain R] [integral_domain S] [comm_ring Rₘ] [comm_ring Sₘ]
 
 /-- If `I` is a prime ideal of `polynomial R` and `pX ∈ I` is a non-constant polynomial,
   then the map `R →+* R[x]/I` descends to an integral map when localizing at `pX.leading_coeff`.
   In particular `X` is integral because it satisfies `pX`, and constants are trivially integral,
   so integrality of the entire extension follows by closure under addition and multiplication -/
-lemma is_integral_localization_map_polynomial_quotient {R : Type*} [integral_domain R]
-  {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
+lemma is_integral_localization_map_polynomial_quotient
   (P : ideal (polynomial R)) [P.is_prime] (pX : polynomial R) (hpX : pX ∈ P)
   (ϕ : localization_map (submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff) Rₘ)
   (ϕ' : localization_map ((submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff).map
@@ -314,8 +316,7 @@ end
 
 /-- If `f : R → S` descends to an integral map in the localization at `x`,
   and `R` is a jacobson ring, then the intersection of all maximal ideals in `S` is trivial -/
-lemma jacobson_bot_of_integral_localization {R S : Type*} [integral_domain R] [integral_domain S]
-  {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ] [is_jacobson R]
+lemma jacobson_bot_of_integral_localization [is_jacobson R]
   (φ : R →+* S) (hφ : function.injective φ) (x : R) (hx : x ≠ 0)
   (ϕ : localization_map (submonoid.powers x) Rₘ)
   (ϕ' : localization_map ((submonoid.powers x).map φ : submonoid S) Sₘ)
@@ -359,7 +360,7 @@ end
 /-- Used to bootstrap the proof of `is_jacobson_polynomial_iff_is_jacobson`.
   That theorem is more general and should be used instead of this one -/
 --was private
- lemma is_jacobson_polynomial_of_domain (R : Type*) [integral_domain R] [hR : is_jacobson R]
+ lemma is_jacobson_polynomial_of_domain [hR : is_jacobson R]
   (P : ideal (polynomial R)) [P.is_prime] (hP : ∀ (x : R), C x ∈ P → x = 0) : P.jacobson = P :=
 begin
   by_cases hP : (P = ⊥),
@@ -382,7 +383,8 @@ begin
 end
 
 /-- Used to bootstrap the more general `quotient_mk_comp_C_is_integral_of_jacobson` -/
-private lemma quotient_mk_comp_C_is_integral_of_jacobson' {R : Type*} [integral_domain R]
+-- was private
+lemma quotient_mk_comp_C_is_integral_of_jacobson'
   [is_jacobson R] (P : ideal (polynomial R)) [hP : P.is_maximal]
   (hP' : ∀ (x : R), C x ∈ P → x = 0) : ((quotient.mk P).comp C : R →+* P.quotient).is_integral :=
 begin
@@ -436,6 +438,7 @@ begin
   refine ϕ'.injective (le_non_zero_divisors_of_domain hM'),
 end
 
+end integral_domain
 end polynomial
 
 end ideal

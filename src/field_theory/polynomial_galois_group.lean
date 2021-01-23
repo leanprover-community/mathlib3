@@ -87,9 +87,12 @@ begin
   split,
   { exact λ _ _ h, subtype.ext (ring_hom.injective _ (subtype.ext_iff.mp h)) },
   { intro y,
-    have key := roots_map (is_scalar_tower.to_alg_hom F p.splitting_field E : p.splitting_field →+* E)
-      ((splits_id_iff_splits (algebra_map F p.splitting_field)).mpr (is_splitting_field.splits p.splitting_field p)),
-    rw [map_map, alg_hom.comp_algebra_map (is_scalar_tower.to_alg_hom F p.splitting_field E)] at key,
+    have key := roots_map
+      (is_scalar_tower.to_alg_hom F p.splitting_field E : p.splitting_field →+* E)
+      ((splits_id_iff_splits (algebra_map F p.splitting_field)).mpr
+        (is_splitting_field.splits p.splitting_field p)),
+    rw [map_map,
+        alg_hom.comp_algebra_map (is_scalar_tower.to_alg_hom F p.splitting_field E)] at key,
     have hy := subtype.mem y,
     simp only [roots, finset.mem_coe, multiset.mem_to_finset, key, multiset.mem_map] at hy,
     rcases hy with ⟨x, hx1, hx2⟩,

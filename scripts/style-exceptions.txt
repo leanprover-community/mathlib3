@@ -57,7 +57,8 @@ src/algebra/group/prod.lean : line 255 : ERR_LIN : Line has more than 100 charac
 src/algebra/group/prod.lean : line 256 : ERR_LIN : Line has more than 100 characters
 src/algebra/group/prod.lean : line 261 : ERR_LIN : Line has more than 100 characters
 src/algebra/group/with_one.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/algebra/group_power/lemmas.lean : line 582 : ERR_LIN : Line has more than 100 characters
+src/algebra/group_power/lemmas.lean : line 410 : ERR_LIN : Line has more than 100 characters
+src/algebra/group_power/lemmas.lean : line 587 : ERR_LIN : Line has more than 100 characters
 src/algebra/group_with_zero/power.lean : line 153 : ERR_LIN : Line has more than 100 characters
 src/algebra/module/submodule.lean : line 14 : ERR_LIN : Line has more than 100 characters
 src/algebra/ordered_group.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -77,7 +78,7 @@ src/algebraic_geometry/sheafed_space.lean : line 50 : ERR_LIN : Line has more th
 src/algebraic_geometry/sheafed_space.lean : line 82 : ERR_LIN : Line has more than 100 characters
 src/algebraic_geometry/stalks.lean : line 47 : ERR_LIN : Line has more than 100 characters
 src/algebraic_geometry/stalks.lean : line 48 : ERR_LIN : Line has more than 100 characters
-src/analysis/analytic/basic.lean : line 779 : ERR_LIN : Line has more than 100 characters
+src/analysis/analytic/basic.lean : line 790 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 205 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/deriv.lean : line 1105 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/local_extr.lean : line 22 : ERR_LIN : Line has more than 100 characters
@@ -110,7 +111,7 @@ src/analysis/normed_space/operator_norm.lean : line 34 : ERR_LIN : Line has more
 src/analysis/normed_space/operator_norm.lean : line 645 : ERR_LIN : Line has more than 100 characters
 src/analysis/normed_space/operator_norm.lean : line 91 : ERR_LIN : Line has more than 100 characters
 src/analysis/special_functions/arsinh.lean : line 7 : ERR_MOD : Module docstring missing, or too late
-src/analysis/special_functions/pow.lean : line 1389 : ERR_LIN : Line has more than 100 characters
+src/analysis/special_functions/pow.lean : line 1399 : ERR_LIN : Line has more than 100 characters
 src/analysis/special_functions/pow.lean : line 295 : ERR_LIN : Line has more than 100 characters
 src/analysis/special_functions/pow.lean : line 296 : ERR_LIN : Line has more than 100 characters
 src/analysis/special_functions/pow.lean : line 548 : ERR_LIN : Line has more than 100 characters
@@ -563,7 +564,7 @@ src/data/mv_polynomial/variables.lean : line 31 : ERR_LIN : Line has more than 1
 src/data/mv_polynomial/variables.lean : line 34 : ERR_LIN : Line has more than 100 characters
 src/data/mv_polynomial/variables.lean : line 624 : ERR_LIN : Line has more than 100 characters
 src/data/nat/basic.lean : line 109 : ERR_LIN : Line has more than 100 characters
-src/data/nat/basic.lean : line 870 : ERR_LIN : Line has more than 100 characters
+src/data/nat/basic.lean : line 851 : ERR_LIN : Line has more than 100 characters
 src/data/nat/cast.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/cast.lean : line 118 : ERR_LIN : Line has more than 100 characters
 src/data/nat/dist.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -634,7 +635,7 @@ src/data/pnat/intervals.lean : line 9 : ERR_MOD : Module docstring missing, or t
 src/data/pnat/xgcd.lean : line 25 : ERR_MOD : Module docstring missing, or too late
 src/data/pnat/xgcd.lean : line 327 : ERR_LIN : Line has more than 100 characters
 src/data/pnat/xgcd.lean : line 328 : ERR_LIN : Line has more than 100 characters
-src/data/polynomial/algebra_map.lean : line 54 : ERR_LIN : Line has more than 100 characters
+src/data/polynomial/algebra_map.lean : line 55 : ERR_LIN : Line has more than 100 characters
 src/data/polynomial/derivative.lean : line 183 : ERR_LIN : Line has more than 100 characters
 src/data/polynomial/derivative.lean : line 184 : ERR_LIN : Line has more than 100 characters
 src/data/polynomial/derivative.lean : line 220 : ERR_LIN : Line has more than 100 characters
@@ -835,9 +836,9 @@ src/group_theory/presented_group.lean : line 11 : ERR_MOD : Module docstring mis
 src/group_theory/presented_group.lean : line 51 : ERR_LIN : Line has more than 100 characters
 src/group_theory/quotient_group.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/group_theory/semidirect_product.lean : line 52 : ERR_LIN : Line has more than 100 characters
-src/group_theory/subgroup.lean : line 377 : ERR_LIN : Line has more than 100 characters
-src/group_theory/subgroup.lean : line 845 : ERR_LIN : Line has more than 100 characters
-src/group_theory/subgroup.lean : line 880 : ERR_LIN : Line has more than 100 characters
+src/group_theory/subgroup.lean : line 378 : ERR_LIN : Line has more than 100 characters
+src/group_theory/subgroup.lean : line 846 : ERR_LIN : Line has more than 100 characters
+src/group_theory/subgroup.lean : line 881 : ERR_LIN : Line has more than 100 characters
 src/group_theory/submonoid/operations.lean : line 560 : ERR_LIN : Line has more than 100 characters
 src/group_theory/sylow.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/linear_algebra/basis.lean : line 291 : ERR_LIN : Line has more than 100 characters
@@ -881,7 +882,7 @@ src/logic/relation.lean : line 10 : ERR_MOD : Module docstring missing, or too l
 src/logic/relator.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/measure_theory/category/Meas.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/measure_theory/decomposition.lean : line 14 : ERR_MOD : Module docstring missing, or too late
-src/measure_theory/measure_space.lean : line 1809 : ERR_LIN : Line has more than 100 characters
+src/measure_theory/measure_space.lean : line 1813 : ERR_LIN : Line has more than 100 characters
 src/measure_theory/measure_space.lean : line 65 : ERR_LIN : Line has more than 100 characters
 src/meta/coinductive_predicates.lean : line 115 : ERR_LIN : Line has more than 100 characters
 src/meta/coinductive_predicates.lean : line 12 : ERR_LIN : Line has more than 100 characters
@@ -1490,9 +1491,9 @@ src/topology/local_extr.lean : line 267 : ERR_LIN : Line has more than 100 chara
 src/topology/local_homeomorph.lean : line 508 : ERR_LIN : Line has more than 100 characters
 src/topology/local_homeomorph.lean : line 519 : ERR_LIN : Line has more than 100 characters
 src/topology/metric_space/basic.lean : line 109 : ERR_LIN : Line has more than 100 characters
-src/topology/metric_space/basic.lean : line 1327 : ERR_LIN : Line has more than 100 characters
+src/topology/metric_space/basic.lean : line 1335 : ERR_LIN : Line has more than 100 characters
 src/topology/metric_space/basic.lean : line 15 : ERR_MOD : Module docstring missing, or too late
-src/topology/metric_space/basic.lean : line 1690 : ERR_LIN : Line has more than 100 characters
+src/topology/metric_space/basic.lean : line 1698 : ERR_LIN : Line has more than 100 characters
 src/topology/metric_space/basic.lean : line 332 : ERR_LIN : Line has more than 100 characters
 src/topology/metric_space/basic.lean : line 450 : ERR_LIN : Line has more than 100 characters
 src/topology/metric_space/basic.lean : line 788 : ERR_LIN : Line has more than 100 characters
@@ -1505,8 +1506,8 @@ src/topology/metric_space/closeds.lean : line 265 : ERR_LIN : Line has more than
 src/topology/metric_space/emetric_space.lean : line 19 : ERR_LIN : Line has more than 100 characters
 src/topology/metric_space/emetric_space.lean : line 318 : ERR_LIN : Line has more than 100 characters
 src/topology/metric_space/emetric_space.lean : line 36 : ERR_LIN : Line has more than 100 characters
-src/topology/metric_space/emetric_space.lean : line 760 : ERR_LIN : Line has more than 100 characters
-src/topology/metric_space/emetric_space.lean : line 770 : ERR_LIN : Line has more than 100 characters
+src/topology/metric_space/emetric_space.lean : line 768 : ERR_LIN : Line has more than 100 characters
+src/topology/metric_space/emetric_space.lean : line 778 : ERR_LIN : Line has more than 100 characters
 src/topology/metric_space/emetric_space.lean : line 93 : ERR_LIN : Line has more than 100 characters
 src/topology/metric_space/gromov_hausdorff.lean : line 61 : ERR_LIN : Line has more than 100 characters
 src/topology/metric_space/gromov_hausdorff_realized.lean : line 103 : ERR_LIN : Line has more than 100 characters

@@ -737,6 +737,8 @@ lemma coe_fn_sub {f g : Lp E p μ} : ⇑(f - g) =ᵐ[μ] f - g := ae_eq_fun.coe_
 
 instance : has_dist (Lp E p μ) := { dist := λ f g, Lp_norm (f - g) }
 
+@[simp] lemma dist_eq_Lp_norm_sub {f g : Lp E p μ} : dist f g = Lp_norm (f - g) := rfl
+
 private lemma dist_triangle' [hp : fact (1 ≤ p)] (f g h : Lp E p μ) :
   dist f h ≤ dist f g + dist g h :=
 begin
@@ -751,11 +753,11 @@ begin
 end
 
 instance [hp : fact (1 ≤ p)] : metric_space (Lp E p μ) :=
-{ dist_self := λ _, by simp [dist, Lp_norm_zero],
+{ dist_self := λ _, by simp,
   dist_comm := λ _ _, by { simp only [dist], rw [←Lp_norm_neg, neg_sub] },
   dist_triangle := dist_triangle',
-  eq_of_dist_eq_zero := λ _ _ h, by simpa [dist,
-    Lp_norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp), sub_eq_zero] using h, }
+  eq_of_dist_eq_zero := λ _ _ h, by simpa [Lp_norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp),
+    sub_eq_zero] using h, }
 
 instance [fact (1 ≤ p)] : normed_group (Lp E p μ) := { dist_eq := λ _ _, by simp [dist, norm] }
 

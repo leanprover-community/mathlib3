@@ -5,6 +5,7 @@ Author: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov
 -/
 import data.fintype.basic
 import data.sym2
+import data.set.finite
 /-!
 # Simple graphs
 
@@ -33,7 +34,11 @@ finitely many vertices.
 * A locally finite graph is one with instances `∀ v, fintype (G.neighbor_set v)`.
 
 * Given instances `decidable_rel G.adj` and `fintype V`, then the graph
-is locally finite, too.
+  is locally finite, too.
+
+## Naming Conventions
+
+* If the vertex type of a graph is finite, we refer to its cardinality as `card_verts`.
 
 TODO: This is the simplest notion of an unoriented graph.  This should
 eventually fit into a more complete combinatorics hierarchy which
@@ -361,6 +366,46 @@ begin
   apply finset.card_lt_card,
   rw finset.ssubset_iff,
   exact ⟨v, by simp, finset.subset_univ _⟩,
+end
+
+lemma card_common_neighbors_le_degree_left (v w : V) :
+  fintype.card (G.common_neighbors v w) ≤ G.degree v :=
+begin
+  rw [←card_neighbor_set_eq_degree],
+  exact set.card_le_of_subset (set.inter_subset_left _ _),
+end
+
+lemma card_common_neighbors_le_degree_right (v w : V) :
+  fintype.card (G.common_neighbors v w) ≤ G.degree w :=
+begin
+  rw common_neighbors_symm,
+  exact G.card_common_neighbors_le_degree_left w v,
+end
+
+lemma card_common_neighbors_lt_card_verts (v w : V) :
+  fintype.card (G.common_neighbors v w) < fintype.card V :=
+nat.lt_of_le_of_lt (G.card_common_neighbors_le_degree_left _ _) (G.degree_lt_card_verts v)
+
+/--
+If the condition `G.adj v w` fails, then `card_common_neighbors_le_degree` is
+the best we can do in general.
+-/
+lemma adj.card_common_neighbors_lt_degree {G : simple_graph V} {v w : V} (h : G.adj v w) :
+  fintype.card (G.common_neighbors v w) < G.degree v :=
+begin
+  classical,
+  rw [degree, common_neighbors, ←set.to_finset_card],
+  apply finset.card_lt_card,
+  rw finset.ssubset_iff,
+  use w,
+  split,
+  { rw set.mem_to_finset,
+    apply not_mem_common_neighbors_right },
+  { rw finset.insert_subset,
+    split,
+    { simpa, },
+    { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
+      apply common_neighbors_subset_neighbor_set } },
 end
 
 end finite

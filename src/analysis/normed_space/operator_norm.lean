@@ -192,18 +192,14 @@ norm control for the original element follows by rescaling. -/
 lemma linear_map.bound_of_continuous (f : E →ₗ[𝕜] F) (hf : continuous f) :
   ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
 begin
-  have : continuous_at f 0 := continuous_iff_continuous_at.1 hf _,
-  rcases (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).1 this 1 zero_lt_one
-    with ⟨ε, ε_pos, hε⟩,
-  simp only [mem_closed_ball, dist_zero_right, f.map_zero] at hε,
+  rcases normed_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
+  simp only [sub_zero, f.map_zero] at hε,
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨ε⁻¹ * ∥c∥, mul_pos (inv_pos.2 ε_pos) (lt_trans zero_lt_one hc), _⟩,
-  suffices : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
-    from f.bound_of_shell ε_pos hc this,
-  intros x hle hlt,
-  refine (hε _ hlt.le).trans _,
-  rwa [mul_assoc, ← div_le_iff' (inv_pos.2 ε_pos), div_eq_mul_inv, inv_inv', one_mul,
-    ← div_le_iff' (zero_lt_one.trans hc)]
+  have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
+  refine ⟨∥c∥ / ε, this, _⟩,
+  refine f.bound_of_shell ε_pos hc (λ x hle hlt, _),
+  refine (hε _ hlt).le.trans _,
+  rwa [← div_le_iff' this, one_div_div]
 end
 
 namespace continuous_linear_map

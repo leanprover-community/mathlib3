@@ -62,11 +62,13 @@ end
 lemma add_one_pow_unbounded_of_pos [ordered_semiring α] [nontrivial α] [archimedean α]
   (x : α) {y : α} (hy : 0 < y) :
   ∃ n : ℕ, x < (y + 1) ^ n :=
+have 0 ≤ 1 + y, from add_nonneg zero_le_one hy.le,
 let ⟨n, h⟩ := archimedean.arch x hy in
 ⟨n, calc x ≤ n •ℕ y : h
-       ... < 1 + n •ℕ y : lt_one_add _
-       ... ≤ (1 + y) ^ n : one_add_mul_le_pow' (mul_nonneg (le_of_lt hy) (le_of_lt hy))
-                             (le_of_lt $ lt_trans hy (lt_one_add y)) _
+       ... = n * y : nsmul_eq_mul _ _
+       ... < 1 + n * y : lt_one_add _
+       ... ≤ (1 + y) ^ n : one_add_mul_le_pow' (mul_nonneg hy.le hy.le) (mul_nonneg this this)
+                             (add_nonneg zero_le_two hy.le) _
        ... = (y + 1) ^ n : by rw [add_comm]⟩
 
 section linear_ordered_ring

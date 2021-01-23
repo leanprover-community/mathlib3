@@ -573,7 +573,7 @@ end
 
 /-- Given two ordinals `α = β`, then `rel_iso_out α β` is the order isomorphism between two
 model types for `α` and `β`. -/
-def rel_iso_out {α β : ordinal} (h : α = β) : rel_iso α.out.r β.out.r :=
+def rel_iso_out {α β : ordinal} (h : α = β) : α.out.r ≃r β.out.r :=
 begin
   rw [←quotient.out_eq α, ←quotient.out_eq β] at h, revert h,
   cases quotient.out α, cases quotient.out β, exact classical.choice ∘ quotient.exact
@@ -670,7 +670,7 @@ by rw [← typein_lt_typein r, typein_enum, typein_enum]
 
 lemma rel_iso_enum' {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s]
-  (f : rel_iso r s) (o : ordinal) : ∀(hr : o < type r) (hs : o < type s),
+  (f : r ≃r s) (o : ordinal) : ∀(hr : o < type r) (hs : o < type s),
   f (enum r o hr) = enum s o hs :=
 begin
   refine induction_on o _, rintros γ t wo ⟨g⟩ ⟨h⟩,
@@ -679,7 +679,7 @@ end
 
 lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s]
-  (f : rel_iso r s) (o : ordinal) (hr : o < type r) :
+  (f : r ≃r s) (o : ordinal) (hr : o < type r) :
   f (enum r o hr) =
   enum s o (by {convert hr using 1, apply quotient.sound, exact ⟨f.symm⟩ }) :=
 rel_iso_enum' _ _ _ _

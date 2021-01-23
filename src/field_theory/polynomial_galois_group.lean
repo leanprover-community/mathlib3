@@ -34,8 +34,8 @@ namespace polynomial
 
 variables {F : Type*} [field F] (p q : polynomial F) (E : Type*) [field E] [algebra F E]
 
-@[reducible]
-def gal := p.splitting_field ≃ₐ[F] p.splitting_field
+/-- The Galois group of a polynomial -/
+@[reducible] def gal := p.splitting_field ≃ₐ[F] p.splitting_field
 
 namespace gal
 
@@ -58,15 +58,19 @@ instance [h : fact (p.splits (algebra_map F E))] : is_scalar_tower F p.splitting
 is_scalar_tower.of_algebra_map_eq
   (λ x, ((is_splitting_field.lift p.splitting_field p h).commutes x).symm)
 
+/-- The restriction homomorphism -/
 def restrict [h : fact (p.splits (algebra_map F E))] : (E ≃ₐ[F] E) →* p.gal :=
 alg_equiv.restrict_normal_hom p.splitting_field
 
 section roots_action
 
+/-- The roots of `p` in `E` -/
 def roots : set E := (p.map (algebra_map F E)).roots.to_finset
 
+/-- The roots of `p` in `p.splitting_field` -/
 def roots_aux := roots p p.splitting_field
 
+/-- The function from `roots_aux p` to `roots p E` -/
 def map_roots_aux [h : fact (p.splits (algebra_map F E))] : roots_aux p → roots p E :=
 λ x, ⟨is_scalar_tower.to_alg_hom F p.splitting_field E x, begin
   have key := subtype.mem x,
@@ -93,6 +97,7 @@ begin
     exact ⟨⟨x, hx1⟩, subtype.ext hx2⟩ }
 end
 
+/-- The bijection between `roots_aux p` and `roots p E` -/
 def roots_aux_equiv_roots [h : fact (p.splits (algebra_map F E))] : (roots_aux p) ≃ (roots p E) :=
 equiv.of_bijective (map_roots_aux p E) (map_roots_aux_bijective p E)
 
@@ -128,6 +133,7 @@ end
 
 variables (p E)
 
+/-- `gal_action` as a permutation representation -/
 def gal_action_hom [h : fact (p.splits (algebra_map F E))] : p.gal →* equiv.perm (roots p E) :=
 { to_fun := λ ϕ, equiv.mk (λ x, ϕ • x) (λ x, ϕ⁻¹ • x)
   (λ x, inv_smul_smul ϕ x) (λ x, smul_inv_smul ϕ x),
@@ -155,20 +161,16 @@ end roots_action
 
 variables {p q}
 
+/-- The restriction homomorphism between Galois groups -/
 def restrict_dvd (hpq : p ∣ q) : q.gal →* p.gal :=
 if hq : q = 0 then 1 else @restrict F _ p _ _ _
   (splits_of_splits_of_dvd (algebra_map F q.splitting_field) hq (splitting_field.splits q) hpq)
 
 variables (p q)
 
-def restrict_mul_left : (p * q).gal →* p.gal :=
-restrict_dvd (dvd_mul_right p q)
-
-def restrict_mul_right : (p * q).gal →* q.gal :=
-restrict_dvd (dvd_mul_left q p)
-
+/-- The Galois group of a product embeds into the product of the Galois groups  -/
 def restrict_prod : (p * q).gal →* p.gal × q.gal :=
-monoid_hom.prod (restrict_mul_left p q) (restrict_mul_right p q)
+monoid_hom.prod (restrict_dvd (dvd_mul_right p q)) (restrict_dvd (dvd_mul_left q p))
 
 lemma restrict_prod_inj : function.injective (restrict_prod p q) :=
 begin
@@ -176,7 +178,7 @@ begin
   { haveI : unique (gal (p * q)) := by { rw hpq, apply_instance },
     exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
-  dsimp only [restrict_prod, restrict_mul_left, restrict_mul_right, restrict_dvd] at hfg,
+  dsimp only [restrict_prod, restrict_dvd] at hfg,
   simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
   suffices : alg_hom.equalizer f.to_alg_hom g.to_alg_hom = ⊤,
   { exact alg_equiv.ext (λ x, (subalgebra.ext_iff.mp this x).mpr algebra.mem_top) },
@@ -205,14 +207,14 @@ end
 
 variables {p q}
 
-lemma gal.card_of_separable (hp : p.separable) :
+lemma card_of_separable (hp : p.separable) :
   fintype.card p.gal = findim F p.splitting_field :=
 begin
   haveI : is_galois F p.splitting_field := is_galois.of_separable_splitting_field hp,
   exact is_galois.card_aut_eq_findim F p.splitting_field,
 end
 
-lemma gal.prime_degree_dvd_card [char_zero F] (p_irr : irreducible p) (p_deg : p.nat_degree.prime) :
+lemma prime_degree_dvd_card [char_zero F] (p_irr : irreducible p) (p_deg : p.nat_degree.prime) :
   p.nat_degree ∣ fintype.card p.gal :=
 begin
   rw gal.card_of_separable p_irr.separable,

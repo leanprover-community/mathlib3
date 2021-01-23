@@ -564,6 +564,8 @@ noncomputable instance : order_bot (lifts F E K) :=
     rw [show t = (algebra_map F _) u, from subtype.ext (eq.trans hu hst).symm, alg_hom.commutes],
   end⟩ }
 
+noncomputable instance : inhabited (lifts F E K) := ⟨⊥⟩
+
 lemma lifts.eq_of_le {x y : lifts F E K} (hxy : x ≤ y) (s : x.1) :
   x.2 s = y.2 ⟨s, hxy.1 s.mem⟩ := hxy.2 s ⟨s, hxy.1 s.mem⟩ rfl
 

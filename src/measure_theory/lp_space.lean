@@ -35,11 +35,9 @@ TODO: prove that Lp is complete.
 
 -/
 
-open measure_theory
-
 noncomputable theory
 
-namespace Lp_space
+namespace measure_theory
 
 section ℒp
 
@@ -843,4 +841,4 @@ end borel_space
 
 end Lp
 
-end Lp_space
+end measure_theory

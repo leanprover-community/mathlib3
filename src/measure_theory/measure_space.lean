@@ -2359,17 +2359,6 @@ begin
     (measure_compl_ae_seq_set_eq_zero hf hp),
 end
 
-lemma monotone [hβ : nonempty β] [preorder β] [preorder ι]
-  (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop) (h_mono : monotone f) :
-  monotone (ae_seq hf p) :=
-begin
-  intros i j hij x,
-  by_cases hx : x ∈ ae_seq_set hf p,
-  { simp only [ae_seq, hx, if_true, measurable_fun_eq_fun_of_mem_ae_seq_set hf hx],
-    exact h_mono hij x, },
-  { simp [ae_seq, hx], },
-end
-
 lemma prop_of_mem_ae_seq_set [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ)
   {x : α} (hx : x ∈ ae_seq_set hf p) :
   p x (λ n, ae_seq hf p n x) :=

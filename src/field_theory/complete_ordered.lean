@@ -135,7 +135,8 @@ end
 The lower cut of rationals inside a linear ordered field that are less than a given element of
 another linear ordered field.
 -/
-def cut_image {F : Type*} (K : Type*) [linear_ordered_field F] [linear_ordered_field K] (x : F) : set K :=
+def cut_image {F : Type*} (K : Type*) [linear_ordered_field F] [linear_ordered_field K] (x : F) :
+  set K :=
 λ k : K, k ∈ subtype.val '' ((cut_map F K) (λ t, t.val < x : set (set.range (coe : ℚ → F))))
 
 lemma cut_image_nonempty (F K : Type*) [linear_ordered_field F] [archimedean F]
@@ -319,8 +320,8 @@ def induced_map (F K : Type*) [linear_ordered_field F]
 λ x, Sup (cut_image K x)
 
 lemma induced_map_le (F K : Type*) [linear_ordered_field F] [archimedean F]
-[conditionally_complete_linear_ordered_field K]
-  {x y : F} (h : x ≤ y) : induced_map F K x ≤ induced_map F K y :=
+  [conditionally_complete_linear_ordered_field K] {x y : F} (h : x ≤ y) :
+  induced_map F K x ≤ induced_map F K y :=
 cSup_le_cSup (cut_image_bdd_above F K _) (cut_image_nonempty F K _) (cut_image_subset F K h)
 
 lemma induced_map_rat (F K : Type*) [linear_ordered_field F] [archimedean F]
@@ -582,8 +583,7 @@ begin
 end
 
 @[simp] lemma ordered_ring_equiv_rat {F K : Type*} [division_ring F] [char_zero F] [has_le F]
-  [has_le K] [division_ring K] (f : F ≃+*o K) (q : ℚ) : f q = q :=
-ring_hom_rat (f : F →+* K) q
+  [has_le K] [division_ring K] (f : F ≃+*o K) (q : ℚ) : f q = q :=ring_hom_rat (f : F →+* K) q
 
 open ordered_ring_equiv
 
@@ -591,7 +591,7 @@ open ordered_ring_equiv
 There is a unique ordered ring homomorphism from an archimedean linear ordered field to a
 conditionally complete linear ordered field.
 -/
-theorem ordered_ring_hom_unique {F K : Type*} [linear_ordered_field F] [archimedean F]
+theorem ordered_ring_hom_unique {F K : Type*} [linear_ordered_field F]
   [conditionally_complete_linear_ordered_field K] (f g : F →+*o K) : f = g :=
 begin
   ext,
@@ -610,14 +610,16 @@ begin
   { exact h },
 end
 
+instance {F K : Type*} [linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
+  subsingleton (F →+*o K) := ⟨λ f g, ordered_ring_hom_unique f g⟩
+
 instance {F K : Type*} [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] : unique (F →+*o K) :=
 { default := induced_ordered_ring_hom F K,
   uniq := λ f, ordered_ring_hom_unique f _ }
 
-theorem ordered_ring_equiv_unique {F K : Type*}
-  [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K]
-  (f g : F ≃+*o K) : f = g :=
+theorem ordered_ring_equiv_unique {F K : Type*} [linear_ordered_field F]
+  [conditionally_complete_linear_ordered_field K] (f g : F ≃+*o K) : f = g :=
 begin
   ext,
   have := ordered_ring_hom.congr_fun (ordered_ring_hom_unique (f : F →+*o K) (g : F →+*o K)) x,

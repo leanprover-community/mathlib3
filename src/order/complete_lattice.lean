@@ -654,6 +654,12 @@ by simpa only [inf_comm] using binfi_inf h
 theorem supr_sup_eq {f g : β → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
 @infi_inf_eq (order_dual α) β _ _ _
 
+lemma supr_sup [h : nonempty ι] {f : ι → α} {a : α} : (⨆ x, f x) ⊔ a = (⨆ x, f x ⊔ a) :=
+@infi_inf (order_dual α) _ _ _ _ _
+
+lemma sup_supr [nonempty ι] {f : ι → α} {a : α} : a ⊔ (⨆ x, f x) = (⨆ x, a ⊔ f x) :=
+@inf_infi (order_dual α) _ _ _ _ _
+
 /- supr and infi under Prop -/
 
 @[simp] theorem infi_false {s : false → α} : infi s = ⊤ :=

@@ -682,6 +682,12 @@ variables {α E F : Type*} [measurable_space α] {μ : measure α} [measurable_s
 
 instance : add_comm_group (Lp E p μ) := add_subgroup.to_add_comm_group (Lp E p μ)
 
+lemma mem_Lp_iff_snorm_lt_top {f : α →ₘ[μ] E} : f ∈ Lp E p μ ↔ snorm f p μ < ⊤ :=
+by split; intro h; exact h
+
+lemma antimono [finite_measure μ] {p q : ennreal} (hpq : p ≤ q) : Lp E q μ ≤ Lp E p μ :=
+λ f hf, (mem_ℒp.mem_ℒp_of_exponent_le ⟨f.ae_measurable, hf⟩ hpq).2
+
 @[simp] lemma mk_coe_fn {f : Lp E p μ} : (⟨f.val, f.prop⟩ : Lp E p μ) = f := subtype.eq rfl
 
 lemma coe_fn_mk {f : α →ₘ[μ] E} (hf : snorm f p μ < ⊤) : ⇑(⟨f, hf⟩ : Lp E p μ) =ᵐ[μ] f :=
@@ -767,8 +773,8 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
 lemma mem_Lp_const_smul (c : 𝕜) (f : Lp E p μ) : c • f.val ∈ Lp E p μ :=
 begin
-  suffices h : snorm ⇑(c • f.val) p μ < ⊤, from h,
-  rw [snorm_congr_ae (ae_eq_fun.coe_fn_smul _ _), snorm_const_smul, ennreal.mul_lt_top_iff],
+  rw [mem_Lp_iff_snorm_lt_top, snorm_congr_ae (ae_eq_fun.coe_fn_smul _ _), snorm_const_smul,
+    ennreal.mul_lt_top_iff],
   exact or.inl ⟨ennreal.coe_lt_top, f.prop⟩,
 end
 

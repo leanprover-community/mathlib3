@@ -226,5 +226,5 @@ alg_equiv.ext (λ _, (algebra_map E K).injective
 (by simp only [alg_equiv.trans_apply, alg_equiv.restrict_normal_commutes]))
 
 /-- Restriction to an normal subfield as a group homomorphism -/
-def alg_equiv.restict_normal_hom [normal F E] : (K ≃ₐ[F] K) →* (E ≃ₐ[F] E) :=
+def alg_equiv.restrict_normal_hom [normal F E] : (K ≃ₐ[F] K) →* (E ≃ₐ[F] E) :=
 monoid_hom.mk' (λ χ, χ.restrict_normal E) (λ ω χ, (χ.restrict_normal_trans ω E))

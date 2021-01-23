@@ -40,28 +40,16 @@ begin
 end
 
 lemma tendsto_at_top_of_leading_coeff_nonneg (P : polynomial α) (hdeg : 1 ≤ P.degree)
-  (hnng : 0 ≤ P.leading_coeff) :
-  tendsto (λ x, eval x P) at_top at_top :=
-begin
-  have hP : P ≠ 0,
-  { rw ← degree_nonneg_iff_ne_zero, refine trans (by exact_mod_cast zero_le_one) hdeg },
-  rw degree_eq_nat_degree hP at hdeg,
-  exact P.is_equivalent_at_top_lead.symm.tendsto_at_top
-    (tendsto.const_mul_at_top (lt_of_le_of_ne hnng $ λ h, hP $ leading_coeff_eq_zero.mp h.symm)
-      (tendsto_pow_at_top $ by exact_mod_cast hdeg))
-end
+  (hnng : 0 ≤ P.leading_coeff) : tendsto (λ x, eval x P) at_top at_top :=
+P.is_equivalent_at_top_lead.symm.tendsto_at_top
+  (tendsto_const_mul_pow_at_top (nat_degree_ge_of_degree_ge_coe hdeg)
+    (lt_of_le_of_ne hnng $ ne.symm $ mt leading_coeff_eq_zero.mp $ ne_zero_of_degree_ge_coe hdeg))
 
 lemma tendsto_at_bot_of_leading_coeff_nonpos (P : polynomial α) (hdeg : 1 ≤ P.degree)
-  (hnps : P.leading_coeff ≤ 0) :
-  tendsto (λ x, eval x P) at_top at_bot :=
-begin
-  have hP : P ≠ 0,
-  { rw ← degree_nonneg_iff_ne_zero, refine trans (by exact_mod_cast zero_le_one) hdeg },
-  rw degree_eq_nat_degree hP at hdeg,
-  exact P.is_equivalent_at_top_lead.symm.tendsto_at_bot
-    (tendsto.neg_const_mul_at_top (lt_of_le_of_ne hnps $ λ h, hP $ leading_coeff_eq_zero.mp h)
-      (tendsto_pow_at_top $ by exact_mod_cast hdeg)),
-end
+  (hnps : P.leading_coeff ≤ 0) : tendsto (λ x, eval x P) at_top at_bot :=
+P.is_equivalent_at_top_lead.symm.tendsto_at_bot
+  (tendsto_neg_const_mul_pow_at_top (nat_degree_ge_of_degree_ge_coe hdeg)
+    (lt_of_le_of_ne hnps $ mt leading_coeff_eq_zero.mp $ ne_zero_of_degree_ge_coe hdeg))
 
 lemma abs_tendsto_at_top (P : polynomial α) (hdeg : 1 ≤ P.degree) :
   tendsto (λ x, abs $ eval x P) at_top at_top :=

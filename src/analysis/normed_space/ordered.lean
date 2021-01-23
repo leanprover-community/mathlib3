@@ -99,6 +99,14 @@ begin
   linarith
 end
 
+lemma tendsto_const_mul_pow_at_top {c : 𝕜} {n : ℕ} (hn : 1 ≤ n) (hc : 0 < c) :
+  tendsto (λ x, c * x^n) at_top at_top :=
+tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
+
+lemma tendsto_neg_const_mul_pow_at_top {c : 𝕜} {n : ℕ} (hn : 1 ≤ n) (hc : c < 0) :
+  tendsto (λ x, c * x^n) at_top at_bot :=
+tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
+
 lemma asymptotics.is_o_pow_pow_at_top_of_lt
   [order_topology 𝕜] {p q : ℕ} (hpq : p < q) :
   is_o (λ x : 𝕜, x^p) (λ x, x^q) at_top :=

@@ -863,8 +863,8 @@ by { rw inv_eq_iff_mul_eq_one, simp only [units.ext_iff], push_cast, exact mul_s
 Makes a ring homomorphism from a additive group homomorphism from a commutative ring to an integral
 domain that commutes with self multiplication, assumes that two is nonzero and one is sent to one.
 -/
-def ring_hom.mk_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α) (h : ∀ x, f (x * x) = f x * f x)
-  (h2 : (2 : α) ≠ 0) (h_one : f 1 = 1) : β →+* α :=
+def add_monoid_hom.mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
+  (h : ∀ x, f (x * x) = f x * f x) (h_two : (2 : α) ≠ 0) (h_one : f 1 = 1) : β →+* α :=
 { map_one' := h_one,
   map_mul' := begin
     intros x y,
@@ -875,14 +875,14 @@ def ring_hom.mk_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α) (h : ∀
     simp only [add_assoc, add_sub_assoc, add_sub_cancel'_right] at hxy,
     rw [sub_sub, ← two_mul, ← add_sub_assoc, ← two_mul, ← mul_sub, mul_eq_zero, sub_eq_zero_iff_eq,
       or_iff_not_imp_left] at hxy,
-    exact hxy h2,
+    exact hxy h_two,
   end,
   ..f }
 
 @[simp]
-lemma ring_hom.coe_fn_mk_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
-  (h : ∀ x, f (x * x) = f x * f x) (h2 : (2 : α) ≠ 0) (h_one : f 1 = 1) :
-  (ring_hom.mk_mul_self_of_two_ne_zero f h h2 h_one : β → α) = f := rfl
+lemma add_monoid_hom.coe_fn_mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
+  (h : ∀ x, f (x * x) = f x * f x) (h_two : (2 : α) ≠ 0) (h_one : f 1 = 1) :
+  (f.mk_ring_hom_of_mul_self_of_two_ne_zero h h_two h_one : β → α) = f := rfl
 
 end integral_domain
 

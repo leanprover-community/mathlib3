@@ -1073,15 +1073,21 @@ end
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence. Version with
 ae_measurable functions. -/
 theorem lintegral_supr' {f : ℕ → α → ennreal} (hf : ∀n, ae_measurable (f n) μ)
-  (h_mono : monotone f) :
+  (h_mono : ∀ᵐ x ∂μ, monotone (λ n, f n x)) :
   (∫⁻ a, ⨆n, f n a ∂μ) = (⨆n, ∫⁻ a, f n a ∂μ) :=
 begin
   simp_rw ←supr_apply,
-  let p : α → (ℕ → ennreal) → Prop := λ x f', true,
-  have hp : ∀ᵐ x ∂μ, p x (λ i, f i x), by simp,
+  let p : α → (ℕ → ennreal) → Prop := λ x f', monotone f',
+  have hp : ∀ᵐ x ∂μ, p x (λ i, f i x), from h_mono,
+  have h_ae_seq_mono : monotone (ae_seq hf p),
+  { intros n m hnm x,
+    by_cases hx : x ∈ ae_seq_set hf p,
+    { exact ae_seq.prop_of_mem_ae_seq_set hf hx hnm, },
+    { simp only [ae_seq, hx, if_false],
+      exact le_refl _, }, },
   rw lintegral_congr_ae (ae_seq.supr hf hp).symm,
   simp_rw supr_apply,
-  rw @lintegral_supr _ _ μ _ (ae_seq.measurable hf p) (ae_seq.monotone hf p h_mono),
+  rw @lintegral_supr _ _ μ _ (ae_seq.measurable hf p) h_ae_seq_mono,
   congr,
   exact funext (λ n, lintegral_congr_ae (ae_seq.ae_seq_n_eq_fun_n_ae hf hp n).symm),
 end
@@ -1460,7 +1466,7 @@ calc
   ... = ⨆n:ℕ, ∫⁻ a, ⨅i≥n, f i a ∂μ :
     lintegral_supr'
       (assume n, ae_measurable_binfi _ (countable_encodable _) h_meas)
-      (assume n m hnm a, infi_le_infi_of_subset $ λ i hi, le_trans hnm hi)
+      (ae_of_all μ (assume a n m hnm, infi_le_infi_of_subset $ λ i hi, le_trans hnm hi))
   ... ≤ ⨆n:ℕ, ⨅i≥n, ∫⁻ a, f i a ∂μ :
     supr_le_supr $ λ n, le_infi2_lintegral _
   ... = at_top.liminf (λ n, ∫⁻ a, f n a ∂μ) : filter.liminf_eq_supr_infi_of_nat.symm

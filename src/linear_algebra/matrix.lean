@@ -941,7 +941,7 @@ section
 
 variables {R : Type v} [semiring R] {n : Type w} [fintype n]
 
-lemma matrix.dot_product_std_basis_eq_mul [decidable_eq n] (v : n → R) (c : R) (i : n) :
+@[simp] lemma matrix.dot_product_std_basis_eq_mul [decidable_eq n] (v : n → R) (c : R) (i : n) :
   matrix.dot_product v (linear_map.std_basis R (λ _, R) i c) = v i * c :=
 begin
   rw [matrix.dot_product, finset.sum_eq_single i, linear_map.std_basis_same],

@@ -14,19 +14,22 @@ axioms of the reals (field, conditionally complete, linearly ordered) that there
 preserving these properties to the reals. This is `cut_ordered_ring_equiv`. Moreover this
 equivalence is unique.
 
-We introduce definitions of conditionally complete linear ordered fields, show all such are
-archimedean, and define equivalences between these fields. We also construct the natural map from a
-`linear_ordered_field` to such a field.
+We introduce definitions of conditionally complete linear ordered fields, and show all such are
+archimedean. We also construct the natural map from a `linear_ordered_field` to such a field.
 
 ## Main definitions
 
 * `conditionally_complete_linear_ordered_field` : A field satisfying the standard axiomatization of
-  the real numbers
+  the real numbers, being a Dedekind complete and linear ordered field.
+* `induced_map` : A (unique) map from any archimedean linear ordered field to a conditionally
+  complete linear ordered field
 * `cut_map` :
 
 ## Main results
 
-* `ordered_ring_equiv_eq_cut_ordered_ring_equiv` : Uniqueness of the `ordered_ring_equiv`
+* `ordered_ring_equiv_eq_cut_ordered_ring_equiv` : Uniqueness of `ordered_ring_equiv`s between two
+  conditionally
+* `ordered_ring_hom_unique` : Uniqueness of `ordered_ring_hom`s from
 
 ## References
 
@@ -59,21 +62,13 @@ lemma range_rat_equiv_apply {F K : Type*} {q : ℚ}
 by simp only [range_rat_equiv, rat_equiv_of_char_zero, equiv.set.range_apply,
   function.comp_app, subtype.mk_eq_mk, equiv.coe_trans, rat.cast_inj, equiv.symm_apply_eq]
 
-/-- The function sending subsets of the rationals embedded inside of one characteristic zero
-    division ring to the corresponding subset of a second such ring. -/
+/--
+The function sending subsets of the rationals embedded inside of one characteristic zero
+division ring to the corresponding subset of a second such ring.
+-/
 def cut_map (F K : Type*) [division_ring F] [char_zero F] [division_ring K] [char_zero K] :
   set (set.range (coe : ℚ → F)) → set (set.range (coe : ℚ → K)) :=
 λ c, (range_rat_equiv F K) '' c
-
-/- No longer used -/
-lemma bdd_above_add {F : Type*} [ordered_add_comm_monoid F] {A B : set F} :
-  bdd_above A → bdd_above B → bdd_above (A + B) :=
-begin
-  rintros ⟨bA, hbA⟩ ⟨bB, hbB⟩,
-  use bA + bB,
-  rintros x ⟨xa, xb, hxa, hxb, rfl⟩,
-  exact add_le_add (hbA hxa) (hbB hxb),
-end
 
 set_option old_structure_cmd true
 
@@ -136,13 +131,15 @@ begin
     exact hq1y, }
 end
 
-/-- The lower cut of rationals inside a linear ordered field that are less than a given element of
-    another linear ordered field. -/
-def cut_image (F K : Type*) [linear_ordered_field F] [linear_ordered_field K] (x : F) : set K :=
+/--
+The lower cut of rationals inside a linear ordered field that are less than a given element of
+another linear ordered field.
+-/
+def cut_image {F : Type*} (K : Type*) [linear_ordered_field F] [linear_ordered_field K] (x : F) : set K :=
 λ k : K, k ∈ subtype.val '' ((cut_map F K) (λ t, t.val < x : set (set.range (coe : ℚ → F))))
 
 lemma cut_image_nonempty (F K : Type*) [linear_ordered_field F] [archimedean F]
-  [linear_ordered_field K] (x : F) : (cut_image F K x).nonempty :=
+  [linear_ordered_field K] (x : F) : (cut_image K x).nonempty :=
 begin
   obtain ⟨q, hq⟩ := exists_rat_lt x,
   simp only [cut_image, mem_image, exists_and_distrib_right, exists_eq_right, subtype.exists,
@@ -153,7 +150,7 @@ begin
 end
 
 lemma cut_image_bdd_above (F K : Type*) [linear_ordered_field F] [archimedean F]
-  [linear_ordered_field K] (x : F) : bdd_above (cut_image F K x) :=
+  [linear_ordered_field K] (x : F) : bdd_above (cut_image K x) :=
 begin
   obtain ⟨q, hq⟩ := exists_rat_gt x,
   use q,
@@ -170,7 +167,7 @@ begin
 end
 
 lemma cut_image_subset (F K : Type*) [linear_ordered_field F] [linear_ordered_field K] {x y : F}
-  (h : x ≤ y) : cut_image F K x ⊆ cut_image F K y :=
+  (h : x ≤ y) : cut_image K x ⊆ cut_image K y :=
 begin
   rintros t ⟨⟨y, ⟨q, rfl⟩⟩, ⟨⟨q2, ⟨q3, rfl⟩⟩, ht2, ht3⟩, rfl⟩,
   erw range_rat_equiv_apply at ht3,
@@ -181,7 +178,7 @@ begin
 end
 
 lemma mem_cut_image_iff {F K : Type*} [linear_ordered_field F] [linear_ordered_field K] {x : F}
-  {t : K} : t ∈ cut_image F K x ↔ ∃ (q : ℚ) (h : (q : K) = t), (q : F) < x :=
+  {t : K} : t ∈ cut_image K x ↔ ∃ (q : ℚ) (h : (q : K) = t), (q : F) < x :=
 begin
   rw cut_image,
   simp only [mem_image, exists_and_distrib_right, exists_eq_right, subtype.exists, subtype.coe_mk,
@@ -198,7 +195,7 @@ begin
 end
 
 lemma mem_cut_image_iff' {F K : Type*} [linear_ordered_field F] [linear_ordered_field K] {x : F}
-  {q : ℚ} : (q : K) ∈ cut_image F K x ↔ (q : F) < x :=
+  {q : ℚ} : (q : K) ∈ cut_image K x ↔ (q : F) < x :=
 begin
   rw mem_cut_image_iff,
   split,
@@ -210,14 +207,14 @@ begin
 end
 
 lemma cut_image_ssubset (F K : Type*) [linear_ordered_field F] [archimedean F]
-  [linear_ordered_field K] {x y : F} (h : x < y) : cut_image F K x ⊂ cut_image F K y :=
+  [linear_ordered_field K] {x y : F} (h : x < y) : cut_image K x ⊂ cut_image K y :=
 begin
   rw ssubset_iff_subset_ne,
   split,
   { exact cut_image_subset F K (le_of_lt h), },
   { obtain ⟨q, hqx, hqy⟩ := exists_rat_btwn h,
-    have hy : (q : K) ∈ cut_image F K y := mem_cut_image_iff'.mpr hqy,
-    have hx : (q : K) ∉ cut_image F K x := begin
+    have hy : (q : K) ∈ cut_image K y := mem_cut_image_iff'.mpr hqy,
+    have hx : (q : K) ∉ cut_image K x := begin
       intro hh,
       rw mem_cut_image_iff' at hh,
       apply lt_irrefl x,
@@ -230,7 +227,7 @@ begin
     exact hx hy, }, -- TODO couldn't get ne_of_mem_of_not_mem to work ?
 end
 
-lemma cut_image_self (F : Type*) [linear_ordered_field F] (x : F) : cut_image F F x =
+lemma cut_image_self (F : Type*) [linear_ordered_field F] (x : F) : cut_image F x =
   set.Iio x ∩ set.range (coe : ℚ → F) :=
 begin
   ext y,
@@ -241,7 +238,7 @@ begin
 end
 
 lemma cut_image_rat {F K : Type*} [linear_ordered_field F] [linear_ordered_field K] {q : ℚ} :
-  cut_image F K (q : F) = subtype.val '' (λ t, t.val < q : set (set.range (coe : ℚ → K))) :=
+  cut_image K (q : F) = subtype.val '' (λ t, t.val < q : set (set.range (coe : ℚ → K))) :=
 begin
   ext x,
   simp only [mem_cut_image_iff, mem_image, exists_prop, rat.cast_lt, exists_and_distrib_right,
@@ -254,7 +251,7 @@ begin
 end
 
 lemma cut_image_add (F K : Type*) [linear_ordered_field F] [archimedean F] [linear_ordered_field K]
-  (x y : F) : cut_image F K (x + y) = cut_image F K x + cut_image F K y :=
+  (x y : F) : cut_image K (x + y) = cut_image K x + cut_image K y :=
 begin
   ext t,
   split; intro h,
@@ -319,7 +316,7 @@ archimedean_iff_nat_lt.mpr
     the input. -/
 def induced_map (F K : Type*) [linear_ordered_field F]
   [conditionally_complete_linear_ordered_field K] : F → K :=
-λ x, Sup (cut_image F K x)
+λ x, Sup (cut_image K x)
 
 lemma induced_map_le (F K : Type*) [linear_ordered_field F] [archimedean F]
 [conditionally_complete_linear_ordered_field K]
@@ -366,7 +363,7 @@ begin
     { exact hqt },
     { obtain ⟨q2, hq2q, hq2x⟩ := exists_rat_btwn hqx,
       rw induced_map,
-      have : (q2 : K) ∈ cut_image F K x := mem_cut_image_iff'.mpr hq2x,
+      have : (q2 : K) ∈ cut_image K x := mem_cut_image_iff'.mpr hq2x,
       apply lt_cSup_of_lt (cut_image_bdd_above F K x) this,
       exact_mod_cast hq2q, }, },
 end
@@ -405,7 +402,7 @@ def induced_add_hom (F K : Type*) [linear_ordered_field F] [archimedean F]
 /-- Preparatory lemma for `induced_ring_hom` -/
 lemma le_induced_mul_self_of_mem_cut_image (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] (x : F) (hpos : 0 < x) (a : K)
-  (ha : a ∈ cut_image F K (x * x)) : a ≤ induced_add_hom F K x * induced_add_hom F K x :=
+  (ha : a ∈ cut_image K (x * x)) : a ≤ induced_add_hom F K x * induced_add_hom F K x :=
 begin
   rw mem_cut_image_iff at ha,
   rcases ha with ⟨q, rfl, ha⟩,
@@ -425,14 +422,14 @@ begin
   { transitivity (0 : K),
     push_neg at hq,
     exact le_of_lt hq,
-    exact mul_self_nonneg (Sup (cut_image F K x)), },
+    exact mul_self_nonneg (Sup (cut_image K x)), },
 end
 
 /-- Preparatory lemma for `induced_ring_hom` -/
 lemma exists_mem_cut_image_mul_self_of_lt_induced_map_mul_self (F K : Type*)
   [linear_ordered_field F] [archimedean F] [conditionally_complete_linear_ordered_field K] (x : F)
   (hpos : 0 < x) (y : K) (hy : y < induced_add_hom F K x * induced_add_hom F K x) :
-  ∃ a ∈ cut_image F K (x * x), y < a :=
+  ∃ a ∈ cut_image K (x * x), y < a :=
 begin
   by_cases hypos : 0 ≤ y,
   { obtain ⟨q2, hqpos, hq21, hq22⟩ := exists_rat_sqr_btwn hy hypos,
@@ -590,9 +587,12 @@ ring_hom_rat (f : F →+* K) q
 
 open ordered_ring_equiv
 
-theorem ordered_ring_hom_unique {F K : Type*}
-  [linear_ordered_field F] [archimedean F] [conditionally_complete_linear_ordered_field K]
-  (f g : F →+*o K) : f = g :=
+/--
+There is a unique ordered ring homomorphism from an archimedean linear ordered field to a
+conditionally complete linear ordered field.
+-/
+theorem ordered_ring_hom_unique {F K : Type*} [linear_ordered_field F] [archimedean F]
+  [conditionally_complete_linear_ordered_field K] (f g : F →+*o K) : f = g :=
 begin
   ext,
   wlog h : f x ≤ g x using [f g, g f],

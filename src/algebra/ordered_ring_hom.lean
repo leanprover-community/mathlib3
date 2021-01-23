@@ -9,12 +9,12 @@ import algebra.ordered_ring
 /-!
 # Ordered ring homomorphisms
 
-Homomorphisms between ordered rings that respect the ordering
+Homomorphisms between ordered rings that respect the ordering.
 
 ## Main definitions
 
-* `conditionally_complete_linear_ordered_field` : A field satisfying the standard axiomatization of
-  the real numbers
+* `ordered_ring_hom` : A homomorphism `f` between two `ordered_semiring`s that has the property that
+  `x ≤ y → f x ≤ f y`.
 
 ## Main results
 
@@ -22,10 +22,10 @@ Homomorphisms between ordered rings that respect the ordering
 
 ## Notation
 
-* `≃+*o`: equivalence of ordered rings.
+* `→+*o`: equivalence of ordered rings.
 
 ## Tags
-ordered ring, equivalence, order isomorphism
+ordered ring, equivalence, order homomorphism
 -/
 
 /-- Homomorphism commuting with multiplicative, additive and order structure. -/

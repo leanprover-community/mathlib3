@@ -688,8 +688,6 @@ by split; intro h; exact h
 lemma antimono [finite_measure μ] {p q : ennreal} (hpq : p ≤ q) : Lp E q μ ≤ Lp E p μ :=
 λ f hf, (mem_ℒp.mem_ℒp_of_exponent_le ⟨f.ae_measurable, hf⟩ hpq).2
 
-@[simp] lemma mk_coe_fn {f : Lp E p μ} : (⟨f.val, f.prop⟩ : Lp E p μ) = f := subtype.eq rfl
-
 lemma coe_fn_mk {f : α →ₘ[μ] E} (hf : snorm f p μ < ⊤) : ⇑(⟨f, hf⟩ : Lp E p μ) =ᵐ[μ] f :=
 by simp only [coe_fn_coe_base, subtype.coe_mk]
 

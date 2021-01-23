@@ -110,33 +110,12 @@ variables {E : Type*} [measurable_space E] [normed_group E] [normed_space ℝ E]
   [borel_space E] [complete_space E] [topological_space.second_countable_topology E]
   {a b : ℝ} {f f' : ℝ → E}
 
--- FTC-2 for the open set. **(PR #5733)**
-theorem integral_eq_sub_of_has_deriv_at'' (hcont : continuous_on f (interval a b))
-  (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_at f (f' x) x)
-  (hcont' : continuous_on f' (interval a b)) :
-  ∫ y in a..b, f' y = f b - f a :=
-begin
-  refine integral_eq_sub_of_has_deriv_right hcont _ hcont',
-  intros y hy',
-  obtain (hy | hy) : y ∈ Ioo (min a b) (max a b) ∨ min a b = y ∧ y < max a b :=
-    by simpa only [le_iff_lt_or_eq, or_and_distrib_right, mem_Ioo, mem_Ico] using hy',
-  { exact (hderiv y hy).has_deriv_within_at },
-  { have : tendsto f' (𝓝[Ioi y] y) (𝓝 (f' y)) :=
-      tendsto.mono_left (by simpa only [← nhds_within_Icc_eq_nhds_within_Ici hy.2, interval, hy.1]
-                          using hcont'.continuous_within_at (left_mem_Icc.mpr min_le_max))
-        (nhds_within_mono y Ioi_subset_Ici_self),
-    exact has_deriv_at_interval_left_endpoint_of_tendsto_deriv
-      (λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at)
-        ((hcont y (Ico_subset_Icc_self hy')).mono Ioo_subset_Icc_self) (Ioo_mem_nhds_within_Ioi hy')
-          (by rwa tendsto_congr' (eventually_of_mem (Ioo_mem_nhds_within_Ioi hy')
-            (λ x hx, (hderiv x hx).deriv))) },
-  end
-
+-- Corollary of FTC-2 for the open set.
 theorem integral_eq_sub_of_has_deriv_at'_of_le (hab : a ≤ b)
   (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
-integral_eq_sub_of_has_deriv_at'' hcont (by rwa [min_eq_left hab, max_eq_right hab]) hcont'
+integral_eq_sub_of_has_deriv_at' hcont (by rwa [min_eq_left hab, max_eq_right hab]) hcont'
 
 
 -- **Attempt I - via `is_measurable_unit_disc`**

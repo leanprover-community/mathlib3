@@ -687,9 +687,6 @@ instance : add_comm_group (Lp E p μ) := add_subgroup.to_add_comm_group (Lp E p 
 lemma coe_fn_mk {f : α →ₘ[μ] E} (hf : snorm f p μ < ⊤) : ⇑(⟨f, hf⟩ : Lp E p μ) =ᵐ[μ] f :=
 by simp only [coe_fn_coe_base, subtype.coe_mk]
 
-lemma coe_fn_to_Lp {f : α → E} (hf : mem_ℒp f p μ) : hf.to_Lp =ᵐ[μ] f :=
-ae_eq_fun.coe_fn_mk _ _
-
 lemma snorm_lt_top (f : Lp E p μ) : snorm f p μ < ⊤ := f.prop
 
 lemma snorm_ne_top (f : Lp E p μ) : snorm f p μ ≠ ⊤ := (snorm_lt_top f).ne

@@ -701,7 +701,6 @@ end
 section prod_functor
 variables {C} [has_binary_products C]
 
--- FIXME deterministic timeout with `-T50000`
 /-- The binary product functor. -/
 @[simps]
 def prod.functor : C ⥤ C ⥤ C :=
@@ -714,6 +713,22 @@ def prod.functor_left_comp (X Y : C) :
 nat_iso.of_components (prod.associator _ _) (by tidy)
 
 end prod_functor
+
+section coprod_functor
+variables {C} [has_binary_coproducts C]
+
+/-- The binary coproduct functor. -/
+@[simps]
+def coprod.functor : C ⥤ C ⥤ C :=
+{ obj := λ X, { obj := λ Y, X ⨿ Y, map := λ Y Z, coprod.map (𝟙 X) },
+  map := λ Y Z f, { app := λ T, coprod.map f (𝟙 T) }}
+
+/-- The coproduct functor can be decomposed. -/
+def coprod.functor_left_comp (X Y : C) :
+  coprod.functor.obj (X ⨿ Y) ≅ coprod.functor.obj Y ⋙ coprod.functor.obj X :=
+nat_iso.of_components (coprod.associator _ _) (by tidy)
+
+end coprod_functor
 
 section prod_comparison
 

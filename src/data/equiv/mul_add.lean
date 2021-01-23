@@ -102,7 +102,9 @@ def symm (h : M ≃* N) : N ≃* M :=
   .. h.to_equiv.symm}
 
 /-- See Note [custom simps projection] -/
-@[to_additive add_equiv.simps.inv_fun "See Note [custom simps projection]"]
+-- we don't hyperlink the note in the additive version, since that breaks syntax highlighting
+-- in the whole file.
+@[to_additive add_equiv.simps.inv_fun "See Note custom simps projection"]
 def simps.inv_fun (e : M ≃* N) : N → M := e.symm
 
 initialize_simps_projections add_equiv (to_fun → apply, inv_fun → symm_apply)
@@ -337,6 +339,10 @@ protected def mul_left (a : G) : perm G := (to_units a).mul_left
 @[simp, to_additive]
 lemma coe_mul_left (a : G) : ⇑(equiv.mul_left a) = (*) a := rfl
 
+/-- extra simp lemma that `dsimp` can use. `simp` will never use this. -/
+@[simp, nolint simp_nf, to_additive]
+lemma mul_left_symm_apply (a : G) : ((equiv.mul_left a).symm : G → G) = (*) a⁻¹ := rfl
+
 @[simp, to_additive]
 lemma mul_left_symm (a : G) : (equiv.mul_left a).symm = equiv.mul_left a⁻¹ :=
 ext $ λ x, rfl
@@ -351,6 +357,12 @@ lemma coe_mul_right (a : G) : ⇑(equiv.mul_right a) = λ x, x * a := rfl
 @[simp, to_additive]
 lemma mul_right_symm (a : G) : (equiv.mul_right a).symm = equiv.mul_right a⁻¹ :=
 ext $ λ x, rfl
+
+/-- extra simp lemma that `dsimp` can use. `simp` will never use this.  -/
+@[simp, nolint simp_nf, to_additive]
+lemma mul_right_symm_apply (a : G) : ((equiv.mul_right a).symm : G → G) = λ x, x * a⁻¹ := rfl
+
+attribute [nolint simp_nf] add_left_symm_apply add_right_symm_apply
 
 variable (G)
 

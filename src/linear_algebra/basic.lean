@@ -787,6 +787,11 @@ lemma map_span (f : M →ₗ[R] M₂) (s : set M) :
 eq.symm $ span_eq_of_le _ (set.image_subset f subset_span) $
 map_le_iff_le_comap.2 $ span_le.2 $ λ x hx, subset_span ⟨x, hx, rfl⟩
 
+/- See also `span_preimage_eq` below. -/
+lemma span_preimage_le (f : M →ₗ[R] M₂) (s : set M₂) :
+  span R (f ⁻¹' s) ≤ (span R s).comap f :=
+by { rw [span_le, comap_coe], exact preimage_mono (subset_span), }
+
 /-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is
 preserved under addition and scalar multiplication, then `p` holds for all elements of the span of
 `s`. -/
@@ -1478,29 +1483,43 @@ section ring
 
 variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
 variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
+variables {f : M →ₗ[R] M₂}
 include R
 open submodule
 
-theorem sub_mem_ker_iff {f : M →ₗ[R] M₂} {x y} : x - y ∈ f.ker ↔ f x = f y :=
+theorem sub_mem_ker_iff {x y} : x - y ∈ f.ker ↔ f x = f y :=
 by rw [mem_ker, map_sub, sub_eq_zero]
 
-theorem disjoint_ker' {f : M →ₗ[R] M₂} {p : submodule R M} :
+theorem disjoint_ker' {p : submodule R M} :
   disjoint p (ker f) ↔ ∀ x y ∈ p, f x = f y → x = y :=
 disjoint_ker.trans
 ⟨λ H x y hx hy h, eq_of_sub_eq_zero $ H _ (sub_mem _ hx hy) (by simp [h]),
  λ H x h₁ h₂, H x 0 h₁ (zero_mem _) (by simpa using h₂)⟩
 
-theorem inj_of_disjoint_ker {f : M →ₗ[R] M₂} {p : submodule R M}
+theorem inj_of_disjoint_ker {p : submodule R M}
   {s : set M} (h : s ⊆ p) (hd : disjoint p (ker f)) :
   ∀ x y ∈ s, f x = f y → x = y :=
 λ x y hx hy, disjoint_ker'.1 hd _ _ (h hx) (h hy)
 
-theorem ker_eq_bot {f : M →ₗ[R] M₂} : ker f = ⊥ ↔ injective f :=
+theorem ker_eq_bot : ker f = ⊥ ↔ injective f :=
 by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ f ⊤
+
+lemma ker_le_iff {p : submodule R M} : ker f ≤ p ↔ ∃ (y ∈ range f), f ⁻¹' {y} ⊆ p :=
+begin
+  split,
+  { intros h, use 0, rw [← mem_coe, f.range_coe], exact ⟨⟨0, map_zero f⟩, h⟩, },
+  { rintros ⟨y, h₁, h₂⟩,
+    rw le_def, intros z hz, simp only [mem_ker, mem_coe] at hz,
+    rw [← mem_coe, f.range_coe, set.mem_range] at h₁, obtain ⟨x, hx⟩ := h₁,
+    have hx' : x ∈ p, { exact h₂ hx, },
+    have hxz : z + x ∈ p, { apply h₂, simp [hx, hz], },
+    suffices : z + x - x ∈ p, { simpa only [this, add_sub_cancel],  },
+    exact p.sub_mem hxz hx', },
+end
 
 /-- If the union of the kernels `ker f` and `ker g` spans the domain, then the range of
 `prod f g` is equal to the product of `range f` and `range g`. -/
-lemma range_prod_eq {f : M →ₗ[R] M₂} {g : M →ₗ[R] M₃} (h : ker f ⊔ ker g = ⊤) :
+lemma range_prod_eq {g : M →ₗ[R] M₃} (h : ker f ⊔ ker g = ⊤) :
   range (prod f g) = (range f).prod (range g) :=
 begin
   refine le_antisymm (f.range_prod_le g) _,
@@ -1763,6 +1782,20 @@ def comap_mkq.order_embedding :
 
 @[simp] lemma comap_mkq_embedding_eq (p' : submodule R p.quotient) :
   comap_mkq.order_embedding p p' = comap p.mkq p' := rfl
+
+lemma span_preimage_eq {f : M →ₗ[R] M₂} {s : set M₂} (h₀ : s.nonempty) (h₁ : s ⊆ range f) :
+  span R (f ⁻¹' s) = (span R s).comap f :=
+begin
+  suffices : (span R s).comap f ≤ span R (f ⁻¹' s),
+  { exact le_antisymm (span_preimage_le f s) this, },
+  have hk : ker f ≤ span R (f ⁻¹' s),
+  { let y := classical.some h₀, have hy : y ∈ s, { exact classical.some_spec h₀, },
+    rw ker_le_iff, use [y, h₁ hy], rw ← set.singleton_subset_iff at hy,
+    exact set.subset.trans subset_span (span_mono (set.preimage_mono hy)), },
+  rw ← left_eq_sup at hk, rw f.range_coe at h₁,
+  rw [hk, ← map_le_map_iff, map_span, map_comap_eq, set.image_preimage_eq_of_subset h₁],
+  exact inf_le_right,
+end
 
 end ring
 
@@ -2682,3 +2715,18 @@ by {ext, refl}
 end general_linear_group
 
 end linear_map
+
+namespace submodule
+variables [ring R] [add_comm_group M] [module R M]
+
+instance : is_modular_lattice (submodule R M) :=
+⟨λ x y z xz a ha, begin
+  rw [mem_inf, mem_sup] at ha,
+  rcases ha with ⟨⟨b, hb, c, hc, rfl⟩, haz⟩,
+  rw mem_sup,
+  refine ⟨b, hb, c, mem_inf.2 ⟨hc, _⟩, rfl⟩,
+  rw [← add_sub_cancel c b, add_comm],
+  apply z.sub_mem haz (xz hb),
+end⟩
+
+end submodule

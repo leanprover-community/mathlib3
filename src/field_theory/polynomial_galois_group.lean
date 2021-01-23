@@ -14,7 +14,17 @@ def gal := p.splitting_field ≃ₐ[F] p.splitting_field
 
 namespace gal
 
-instance : unique (0 : polynomial F).gal := sorry
+instance [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
+{ default := 1,
+  uniq := λ f, alg_equiv.ext (λ x, by { obtain ⟨y, rfl⟩ := algebra.mem_bot.mp
+    ((subalgebra.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h) x).mp algebra.mem_top),
+    rw [alg_equiv.commutes, alg_equiv.commutes] }) }
+
+instance : unique (0 : polynomial F).gal :=
+begin
+  haveI : fact ((0 : polynomial F).splits (ring_hom.id F)) := splits_zero _,
+  apply_instance,
+end
 
 instance [h : fact (p.splits (algebra_map F E))] : algebra p.splitting_field E :=
 (is_splitting_field.lift p.splitting_field p h).to_ring_hom.to_algebra

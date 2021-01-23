@@ -672,7 +672,7 @@ def Lp {α} (E : Type*) [measurable_space α] [measurable_space E] [normed_group
 def mem_ℒp.to_Lp {α E} [measurable_space α] [measurable_space E] [normed_group E]
   [borel_space E] [topological_space.second_countable_topology E]
   {f : α → E} {p : ennreal} {μ : measure α} (h_mem_ℒp : mem_ℒp f p μ) : Lp E p μ :=
-⟨@ae_eq_fun.mk α E _ μ _ f h_mem_ℒp.1, h_mem_ℒp.snorm_mk_lt_top⟩
+⟨ae_eq_fun.mk f h_mem_ℒp.1, h_mem_ℒp.snorm_mk_lt_top⟩
 
 namespace Lp
 

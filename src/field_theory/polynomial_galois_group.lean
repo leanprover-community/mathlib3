@@ -16,10 +16,6 @@ namespace gal
 
 instance : unique (0 : polynomial F).gal := sorry
 
---instance : group p.gal := alg_equiv.aut
-
---instance : fintype p.gal := alg_equiv.fintype F p.splitting_field
-
 instance [h : fact (p.splits (algebra_map F E))] : algebra p.splitting_field E :=
 (is_splitting_field.lift p.splitting_field p h).to_ring_hom.to_algebra
 
@@ -144,8 +140,8 @@ monoid_hom.prod (restrict_mul_left p q) (restrict_mul_right p q)
 lemma restrict_prod_inj : function.injective (restrict_prod p q) :=
 begin
   by_cases hpq : (p * q) = 0,
-  { /- unique implies injective -/
-    sorry, },
+  { haveI : unique (gal (p * q)) := by { rw hpq, apply_instance },
+    exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
   dsimp only [restrict_prod, restrict_mul_left, restrict_mul_right, restrict_dvd] at hfg,
   simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,

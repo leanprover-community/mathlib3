@@ -647,43 +647,58 @@ end ℒp
 The space of equivalence classes of measurable functions for which `snorm f p μ < ⊤`.
 -/
 
-variables {α E F : Type*} [measurable_space α] {μ : measure α} [measurable_space E] [normed_group E]
-  [normed_group F] {p : ennreal}
+@[simp] lemma snorm_ae_eq_fun {α E : Type*} [measurable_space α] {μ : measure α}
+  [measurable_space E] [normed_group E] {p : ennreal} {f : α → E} (hf : ae_measurable f μ) :
+  snorm (ae_eq_fun.mk f hf) p μ = snorm f p μ :=
+snorm_congr_ae (ae_eq_fun.coe_fn_mk _ _)
 
-lemma mem_ℒp.snorm_mk_lt_top {f : α → E} (hfp : mem_ℒp f p μ) :
-  snorm (@ae_eq_fun.mk α E _ μ _ f hfp.1) p μ < ⊤ :=
-by { rw snorm_congr_ae (ae_eq_fun.coe_fn_mk _ _), exact hfp.2 }
+lemma mem_ℒp.snorm_mk_lt_top {α E : Type*} [measurable_space α] {μ : measure α}
+  [measurable_space E] [normed_group E] {p : ennreal} {f : α → E} (hfp : mem_ℒp f p μ) :
+  snorm (ae_eq_fun.mk f hfp.1) p μ < ⊤ :=
+by simp [hfp.2]
 
 /-- Lp space -/
 def Lp {α} (E : Type*) [measurable_space α] [measurable_space E] [normed_group E]
-  (p : ennreal) (μ : measure α) :=
-{f : α →ₘ[μ] E // snorm f p μ < ⊤}
+  [borel_space E] [topological_space.second_countable_topology E]
+  (p : ennreal) (μ : measure α) : add_subgroup (α →ₘ[μ] E) :=
+{ carrier := {f | snorm f p μ < ⊤},
+  zero_mem' := by simp [snorm_congr_ae ae_eq_fun.coe_fn_zero, snorm_zero],
+  add_mem' := λ f g hf hg, by simp [snorm_congr_ae (ae_eq_fun.coe_fn_add _ _),
+    snorm_add_lt_top ⟨f.ae_measurable, hf⟩ ⟨g.ae_measurable, hg⟩],
+  neg_mem' := λ f hf,
+    by rwa [set.mem_set_of_eq, snorm_congr_ae (ae_eq_fun.coe_fn_neg _), snorm_neg] }
+
+/-- make an element of Lp from a function verifying `mem_ℒp` -/
+def mem_ℒp.to_Lp {α E} [measurable_space α] [measurable_space E] [normed_group E]
+  [borel_space E] [topological_space.second_countable_topology E]
+  {f : α → E} {p : ennreal} {μ : measure α} (h_mem_ℒp : mem_ℒp f p μ) : Lp E p μ :=
+⟨@ae_eq_fun.mk α E _ μ _ f h_mem_ℒp.1, h_mem_ℒp.snorm_mk_lt_top⟩
 
 namespace Lp
 
-lemma mk_coe_fn {f : Lp E p μ} : (⟨f.val, f.prop⟩ : Lp E p μ) = f := subtype.eq rfl
+variables {α E F : Type*} [measurable_space α] {μ : measure α} [measurable_space E] [normed_group E]
+  [borel_space E] [topological_space.second_countable_topology E]
+  [normed_group F] {p : ennreal}
 
-/-- make an element of Lp from a function verifying `mem_ℒp` -/
-def mk_of_fun {f : α → E} (h_mem_ℒp : mem_ℒp f p μ) : Lp E p μ :=
-⟨@ae_eq_fun.mk α E _ μ _ f h_mem_ℒp.1, h_mem_ℒp.snorm_mk_lt_top⟩
+instance : add_comm_group (Lp E p μ) := add_subgroup.to_add_comm_group (Lp E p μ)
 
-instance : has_coe_to_fun (Lp E p μ) := ⟨_, λ f, (f.val : α → E)⟩
+@[simp] lemma mk_coe_fn {f : Lp E p μ} : (⟨f.val, f.prop⟩ : Lp E p μ) = f := subtype.eq rfl
 
-lemma coe_fn_mk {f : α →ₘ[μ] E} (hf : snorm f p μ < ⊤) : (⟨f, hf⟩ : Lp E p μ) =ᵐ[μ] f :=
-by refl
+lemma coe_fn_mk {f : α →ₘ[μ] E} (hf : snorm f p μ < ⊤) : ⇑(⟨f, hf⟩ : Lp E p μ) =ᵐ[μ] f :=
+by simp only [coe_fn_coe_base, subtype.coe_mk]
 
-lemma coe_fn_mk_of_fun {f : α → E} (hf : mem_ℒp f p μ) : mk_of_fun hf =ᵐ[μ] f :=
+lemma coe_fn_to_Lp {f : α → E} (hf : mem_ℒp f p μ) : hf.to_Lp =ᵐ[μ] f :=
 ae_eq_fun.coe_fn_mk _ _
 
 lemma snorm_lt_top (f : Lp E p μ) : snorm f p μ < ⊤ := f.prop
 
-lemma snorm_ne_top (f : Lp E p μ) : snorm f p μ ≠ ⊤ := f.prop.ne
+lemma snorm_ne_top (f : Lp E p μ) : snorm f p μ ≠ ⊤ := (snorm_lt_top f).ne
 
 lemma measurable (f : Lp E p μ) : measurable f := f.val.measurable
 
 lemma ae_measurable (f : Lp E p μ) : ae_measurable f μ := f.val.ae_measurable
 
-lemma mem_ℒp (f : Lp E p μ) : mem_ℒp f p μ := ⟨f.ae_measurable, f.prop⟩
+lemma mem_ℒp (f : Lp E p μ) : mem_ℒp f p μ := ⟨ae_measurable f, f.prop⟩
 
 /-- The norm in Lp space (which verifies the triangle inequality only for `1 ≤ p`) -/
 def Lp_norm (f : Lp E p μ) : ℝ := ennreal.to_real (snorm f p μ)
@@ -692,79 +707,31 @@ instance : has_norm (Lp E p μ) := { norm := λ f, Lp_norm f }
 
 @[simp] lemma norm_eq_Lp_norm {f : Lp E p μ} : ∥f∥ = Lp_norm f := rfl
 
-lemma zero_mem_Lp : snorm (0 : α →ₘ[μ] E) p μ < ⊤ :=
-by { rw snorm_congr_ae ae_eq_fun.coe_fn_zero, simp, }
-
-instance : has_zero (Lp E p μ) := { zero := ⟨0, zero_mem_Lp⟩ }
-
-@[simp] lemma coe_zero : (0 : Lp E p μ).val = (0 : α →ₘ[μ] E) := rfl
-
-lemma coe_fn_zero : ⇑(0 : Lp E p μ) =ᵐ[μ] 0 :=
-ae_eq_fun.coe_fn_zero
-
-instance : inhabited (Lp E p μ) := ⟨0⟩
+lemma coe_fn_zero : ⇑(0 : Lp E p μ) =ᵐ[μ] 0 := ae_eq_fun.coe_fn_zero
 
 @[simp] lemma Lp_norm_zero : Lp_norm (0 : Lp E p μ) = 0 :=
-by simp [Lp_norm, snorm_congr_ae coe_fn_zero, snorm_zero]
+by simp [Lp_norm, snorm_congr_ae ae_eq_fun.coe_fn_zero, snorm_zero]
 
 lemma mem_Lp_const (α) [measurable_space α] (μ : measure α) (c : E) [finite_measure μ] :
-  snorm (@ae_eq_fun.const α _ _ μ _ c) p μ < ⊤ :=
+  @ae_eq_fun.const α _ _ μ _ c ∈ Lp E p μ :=
 (mem_ℒp_const c).snorm_mk_lt_top
-
-/-- Constant function, as an element of Lp -/
-def const (c : E) [finite_measure μ] : Lp E p μ := ⟨ae_eq_fun.const α c, mem_Lp_const α μ c⟩
-
-section opens_measurable_space
-variables [opens_measurable_space E]
 
 lemma Lp_norm_eq_zero_iff {f : Lp E p μ} (hp : 0 < p) : Lp_norm f = 0 ↔ f = 0 :=
 begin
   refine ⟨λ hf, _, λ hf, by simp [hf]⟩,
   rw [Lp_norm, ennreal.to_real_eq_zero_iff] at hf,
   cases hf,
-  { rw snorm_eq_zero_iff f.ae_measurable hp.ne.symm at hf,
+  { rw snorm_eq_zero_iff (ae_measurable f) hp.ne.symm at hf,
     exact subtype.eq (ae_eq_fun.ext (hf.trans ae_eq_fun.coe_fn_zero.symm)), },
-  { exact absurd hf f.prop.ne, },
+  { exact absurd hf (snorm_ne_top f), },
 end
-
-end opens_measurable_space
-
-section borel_space
-variables [borel_space E]
-
-instance : has_neg (Lp E p μ) :=
-{ neg := λ f,
-    ⟨-f.val, by { rw [snorm_congr_ae (ae_eq_fun.coe_fn_neg _), snorm_neg], exact f.prop }⟩ }
-
-@[simp] lemma coe_neg {f : Lp E p μ} : (-f).val = -f.val := rfl
 
 lemma coe_fn_neg {f : Lp E p μ} : ⇑(-f) =ᵐ[μ] -f := ae_eq_fun.coe_fn_neg _
 
 @[simp] lemma Lp_norm_neg {f : Lp E p μ} : Lp_norm (-f) = Lp_norm f :=
 by rw [Lp_norm, Lp_norm, snorm_congr_ae coe_fn_neg, snorm_neg]
 
-section second_countable_topology
-variable [topological_space.second_countable_topology E]
-
-instance : has_add (Lp E p μ) :=
-{ add := λ f g, ⟨f.val + g.val,
-  by { rw snorm_congr_ae (ae_eq_fun.coe_fn_add _ _), exact snorm_add_lt_top f.mem_ℒp g.mem_ℒp }⟩ }
-
-@[simp] lemma coe_add {f g : Lp E p μ} : (f + g).val = f.val + g.val := rfl
-
 lemma coe_fn_add {f g : Lp E p μ} : ⇑(f + g) =ᵐ[μ] f + g := ae_eq_fun.coe_fn_add _ _
-
-instance : add_comm_group (Lp E p μ) :=
-{ add := (+),
-  neg := has_neg.neg,
-  zero := 0,
-  add_assoc := λ _ _ _ , subtype.eq (add_assoc _ _ _),
-  zero_add := λ _, subtype.eq (zero_add _),
-  add_zero := λ _, subtype.eq (add_zero _),
-  add_comm := λ _ _, subtype.eq (add_comm _ _),
-  add_left_neg := λ _, subtype.eq (add_left_neg _), }
-
-@[simp] lemma coe_sub {f g : Lp E p μ} : (f - g).val = f.val - g.val := rfl
 
 lemma coe_fn_sub {f g : Lp E p μ} : ⇑(f - g) =ᵐ[μ] f - g := ae_eq_fun.coe_fn_sub _ _
 
@@ -774,13 +741,13 @@ private lemma dist_triangle' [hp : fact (1 ≤ p)] (f g h : Lp E p μ) :
   dist f h ≤ dist f g + dist g h :=
 begin
   simp only [dist, Lp_norm],
-  rw ←ennreal.to_real_add (f - g).snorm_ne_top (g - h).snorm_ne_top,
+  rw ←ennreal.to_real_add (snorm_ne_top (f - g)) (snorm_ne_top (g - h)),
   suffices h_snorm : snorm ⇑(f - h) p μ ≤ snorm ⇑(f - g) p μ + snorm ⇑(g - h) p μ,
-  { rwa ennreal.to_real_le_to_real (f - h).snorm_ne_top,
-    exact ennreal.add_ne_top.mpr ⟨(f - g).snorm_ne_top, (g - h).snorm_ne_top⟩, },
+  { rwa ennreal.to_real_le_to_real (snorm_ne_top (f - h)),
+    exact ennreal.add_ne_top.mpr ⟨snorm_ne_top (f - g), snorm_ne_top (g - h)⟩, },
   have h_add : (f - h) = f - g + (g - h), by abel,
   rw [h_add, snorm_congr_ae coe_fn_add],
-  exact snorm_add_le (f - g).ae_measurable (g - h).ae_measurable hp,
+  exact snorm_add_le (ae_measurable (f - g)) (ae_measurable (g - h)) hp,
 end
 
 instance [hp : fact (1 ≤ p)] : metric_space (Lp E p μ) :=
@@ -792,29 +759,24 @@ instance [hp : fact (1 ≤ p)] : metric_space (Lp E p μ) :=
 
 instance [fact (1 ≤ p)] : normed_group (Lp E p μ) := { dist_eq := λ _ _, by simp [dist, norm] }
 
-end second_countable_topology
-
 section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
-lemma mem_Lp_const_smul (c : 𝕜) (f : Lp E p μ) : snorm (⇑(c • f.val)) p μ < ⊤ :=
+lemma mem_Lp_const_smul (c : 𝕜) (f : Lp E p μ) : c • f.val ∈ Lp E p μ :=
 begin
+  suffices h : snorm ⇑(c • f.val) p μ < ⊤, from h,
   rw [snorm_congr_ae (ae_eq_fun.coe_fn_smul _ _), snorm_const_smul, ennreal.mul_lt_top_iff],
   exact or.inl ⟨ennreal.coe_lt_top, f.prop⟩,
 end
 
 instance : has_scalar 𝕜 (Lp E p μ) := { smul := λ c f, ⟨c • f.val, mem_Lp_const_smul c f⟩ }
 
-@[simp] lemma coe_smul {f : Lp E p μ} {c : 𝕜} : (c • f).val = c • f.val := rfl
-
 lemma coe_fn_smul {f : Lp E p μ} {c : 𝕜} : ⇑(c • f) =ᵐ[μ] c • f := ae_eq_fun.coe_fn_smul _ _
 
-lemma Lp_norm_const_smul (c : 𝕜) (f : Lp E p μ) : Lp_norm (c • f) = ∥c∥ * Lp_norm f :=
-by simp [Lp_norm, snorm_congr_ae coe_fn_smul, snorm_const_smul c, ennreal.to_real_mul]
-
-section normed_space_second_countable_topology
-variable [topological_space.second_countable_topology E]
+@[simp] lemma Lp_norm_const_smul (c : 𝕜) (f : Lp E p μ) : Lp_norm (c • f) = ∥c∥ * Lp_norm f :=
+by rw [Lp_norm, snorm_congr_ae coe_fn_smul, snorm_const_smul c, ennreal.to_real_mul,  Lp_norm,
+    ennreal.coe_to_real, coe_nnnorm]
 
 instance : mul_action 𝕜 (Lp E p μ) :=
 { one_smul := λ _, subtype.eq (one_smul 𝕜 _),
@@ -830,14 +792,9 @@ instance : semimodule 𝕜 (Lp E p μ) :=
 
 instance : vector_space 𝕜 (Lp E p μ) := infer_instance
 
-instance [fact (1 ≤ p)] : normed_space 𝕜 (Lp E p μ) :=
-{ norm_smul_le := λ _ _, by simp only [norm, Lp_norm_const_smul] }
-
-end normed_space_second_countable_topology
+instance [fact (1 ≤ p)] : normed_space 𝕜 (Lp E p μ) := { norm_smul_le := λ _ _, by simp }
 
 end normed_space
-
-end borel_space
 
 end Lp
 

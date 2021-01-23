@@ -2265,7 +2265,7 @@ We define here tools to prove statements about limits (infi, supr...) of sequenc
 Given a sequence of a.e.-measurable functions `f : ι → α → β` with hypothesis
 `hf : ∀ i, ae_measurable (f i) μ`, and a pointwise property `p : α → (ι → β) → Prop` such that we
 have `hp : ∀ᵐ x ∂μ, p x (λ n, f n x)`, we define a sequence of measurable functions `ae_seq hf p`
-and a set `ae_seq_set hf p`, such that
+and a measurable set `ae_seq_set hf p`, such that
 * `μ (ae_seq_set hf p)ᶜ = 0`
 * `x ∈ ae_seq_set hf p → ∀ i : ι, ae_seq hf hp i x = f i x`
 * `x ∈ ae_seq_set hf p → p x (λ n, f n x)`

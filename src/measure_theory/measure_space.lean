@@ -2275,24 +2275,24 @@ variables {α β ι} [measurable_space α] [measurable_space β] {f : ι → α 
 
 /-- If we have the additional hypothesis `∀ᵐ x ∂μ, p x (λ n, f n x)`, this is a measurable set
 whose complement has measure 0 such that for all `x ∈ ae_seq_set`, `f i x` is equal to
-`(hf i).some x` for all `i` and we have the pointwise property `p x (λ n, f n x)`. -/
+`(hf i).mk (f i) x` for all `i` and we have the pointwise property `p x (λ n, f n x)`. -/
 def ae_seq_set (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop) : set α :=
-(to_measurable μ {x | (∀ i, f i x = (hf i).some x) ∧ p x (λ n, f n x)}ᶜ)ᶜ
+(to_measurable μ {x | (∀ i, f i x = (hf i).mk (f i) x) ∧ p x (λ n, f n x)}ᶜ)ᶜ
 
 /-- A sequence of measurable functions that are equal to `f` and verify property `p` on the
 measurable set `ae_seq_set hf p`. -/
 def ae_seq [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop) :
   ι → α → β :=
-λ i x, ite (x ∈ ae_seq_set hf p) ((hf i).some x) hβ.some
+λ i x, ite (x ∈ ae_seq_set hf p) ((hf i).mk (f i) x) hβ.some
 
 namespace ae_seq
 
 lemma measurable_fun_eq_fun_of_mem_ae_seq_set (hf : ∀ i, ae_measurable (f i) μ) {x : α}
   (hx : x ∈ ae_seq_set hf p) (i : ι) :
-  (hf i).some x = f i x :=
+  (hf i).mk (f i) x = f i x :=
 begin
-  have h_ss : ae_seq_set hf p ⊆ {x | ∀ i, f i x = (hf i).some x},
-  { rw [ae_seq_set, ←compl_compl {x | ∀ i, f i x = (hf i).some x}, set.compl_subset_compl],
+  have h_ss : ae_seq_set hf p ⊆ {x | ∀ i, f i x = (hf i).mk (f i) x},
+  { rw [ae_seq_set, ←compl_compl {x | ∀ i, f i x = (hf i).mk (f i) x}, set.compl_subset_compl],
     refine set.subset.trans (set.compl_subset_compl.mpr (λ x h, _)) (subset_to_measurable _ _),
     exact h.1, },
   exact (h_ss hx i).symm,
@@ -2310,23 +2310,23 @@ lemma ae_seq_set_is_measurable {hf : ∀ i, ae_measurable (f i) μ} :
 lemma measurable [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop)
   (i : ι) :
   measurable (ae_seq hf p i) :=
-measurable.ite ae_seq_set_is_measurable (hf i).some_spec.1 measurable_const
+measurable.ite ae_seq_set_is_measurable (hf i).measurable_mk measurable_const
 
 lemma measure_compl_ae_seq_set_eq_zero [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
   μ (ae_seq_set hf p)ᶜ = 0 :=
 begin
   rw [ae_seq_set, compl_compl, measure_to_measurable],
-  have hf_eq := λ i, (hf i).some_spec.2,
+  have hf_eq := λ i, (hf i).ae_eq_mk,
   simp_rw [filter.eventually_eq, ←ae_all_iff] at hf_eq,
   exact filter.eventually.and hf_eq hp,
 end
 
 lemma ae_seq_eq_measurable_fun_ae [hβ : nonempty β] [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
-  ∀ᵐ (a : α) ∂μ, ∀ (i : ι), (hf i).some a = ae_seq hf p i a :=
+  ∀ᵐ (a : α) ∂μ, ∀ (i : ι), (hf i).mk (f i) a = ae_seq hf p i a :=
 begin
-  have h_ss : ae_seq_set hf p ⊆ {a : α | ∀ i, (hf i).some a = ae_seq hf p i a},
+  have h_ss : ae_seq_set hf p ⊆ {a : α | ∀ i, (hf i).mk (f i) a = ae_seq hf p i a},
     from λ x hx i, by simp only [ae_seq, hx, if_true],
   exact le_antisymm (le_trans (measure_mono (set.compl_subset_compl.mpr h_ss))
     (le_of_eq (measure_compl_ae_seq_set_eq_zero hf hp))) (zero_le _),

@@ -538,6 +538,7 @@ section alg_hom_mk_adjoin_splits
 
 variables (F E K : Type*) [field F] [field E] [field K] [algebra F E] [algebra F K] {S : set E}
 
+/-- Lifts `L → K` of `F → K` -/
 def lifts := Σ (L : intermediate_field F E), (L →ₐ[F] K)
 
 variables {F E K}
@@ -584,6 +585,7 @@ begin
   exact ⟨w, hw, le_trans hxv hvw, le_trans hyv hvw, hzw⟩,
 end
 
+/-- An upper bound on a chain of lifts -/
 def lifts.upper_bound_intermediate_field {c : set (lifts F E K)} (hc : zorn.chain (≤) c) :
   intermediate_field F E :=
 { carrier := λ s, ∃ x : (lifts F E K), x ∈ set.insert ⊥ c ∧ (s ∈ x.1 : Prop),
@@ -601,6 +603,7 @@ def lifts.upper_bound_intermediate_field {c : set (lifts F E K)} (hc : zorn.chai
     exact ⟨z, hz, z.1.mul_mem (hxz.1 ha) (hyz.1 hb)⟩ },
   algebra_map_mem' := λ s, ⟨⊥, set.mem_insert ⊥ c, algebra_map_mem ⊥ s⟩ }
 
+/-- The lift on the upper bound on a chain of lifts -/
 noncomputable def lifts.upper_bound_alg_hom {c : set (lifts F E K)} (hc : zorn.chain (≤) c) :
   lifts.upper_bound_intermediate_field hc →ₐ[F] K :=
 { to_fun := λ s, (classical.some (subtype.mem s)).2 ⟨s, (classical.some_spec (subtype.mem s)).2⟩,
@@ -622,6 +625,7 @@ noncomputable def lifts.upper_bound_alg_hom {c : set (lifts F E K)} (hc : zorn.c
   end,
   commutes' := λ _, alg_hom.commutes _ _ }
 
+/-- An upper bound on a chain of lifts -/
 noncomputable def lifts.upper_bound {c : set (lifts F E K)} (hc : zorn.chain (≤) c) : lifts F E K :=
 ⟨lifts.upper_bound_intermediate_field hc, lifts.upper_bound_alg_hom hc⟩
 
@@ -640,6 +644,7 @@ begin
     exact congr_arg z.2 (subtype.ext hst) },
 end⟩
 
+/-- Extend a lift `x : lifts F E K` to an element `s : E` whose conjugates are all in `K` -/
 noncomputable def lifts.lift_of_splits (x : lifts F E K) {s : E} (h1 : is_integral F s)
   (h2 : (minpoly F s).splits (algebra_map F K)) : lifts F E K :=
 let h3 : is_integral x.1 s := is_integral_of_is_scalar_tower s h1 in

@@ -167,6 +167,11 @@ section orthogonal_group
 variables (n : Type u) [fintype n] [decidable_eq n]
 variables (β : Type v) [comm_ring β]
 
+
+/--
+  `orthogonal_group n` is the group of `n` by `n` complex matrices where the transpose is the
+  inverse.
+-/
 abbreviation orthogonal_group := @unitary_group n _ _ β _ star_ring_of_comm
 
 end orthogonal_group

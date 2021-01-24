@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import logic.basic
 import data.option.defs
-import tactic.rcases
+import tactic.basic
 
 /-!
 # Miscellaneous function constructions and lemmas

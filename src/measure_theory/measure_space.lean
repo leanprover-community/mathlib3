@@ -84,7 +84,7 @@ measure, almost everywhere, measure space, completion, null set, null measurable
 
 noncomputable theory
 
-open classical set filter function measurable_space
+open classical set filter (hiding map) function measurable_space
 open_locale classical topological_space big_operators filter
 
 variables {α β γ δ ι : Type*}
@@ -1267,7 +1267,7 @@ lemma ae_ball_iff {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S), Pr
   (∀ᵐ x ∂ μ, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᵐ x ∂ μ, p x i ‹_› :=
 eventually_countable_ball hS
 
-lemma ae_eq_refl (f : α → δ) : f =ᵐ[μ] f := eventually_eq.refl _ _
+lemma ae_eq_refl (f : α → δ) : f =ᵐ[μ] f := eventually_eq.rfl
 
 lemma ae_eq_symm {f g : α → δ} (h : f =ᵐ[μ] g) : g =ᵐ[μ] f :=
 h.symm
@@ -1360,8 +1360,12 @@ ae_eq_bot.trans restrict_eq_zero
 @[simp] lemma ae_restrict_ne_bot {s} : (μ.restrict s).ae.ne_bot ↔ 0 < μ s :=
 (not_congr ae_restrict_eq_bot).trans pos_iff_ne_zero.symm
 
+lemma self_mem_ae_restrict {s} (hs : is_measurable s) : s ∈ (μ.restrict s).ae :=
+by simp only [ae_restrict_eq hs, exists_prop, mem_principal_sets, mem_inf_sets];
+  exact ⟨_, univ_mem_sets, s, by rw [univ_inter, and_self]⟩
+
 /-- A version of the Borel-Cantelli lemma: if `sᵢ` is a sequence of measurable sets such that
-`∑ μ sᵢ` exists, then for almost all `x`, `x` does not belong to almost all `s`ᵢ. -/
+`∑ μ sᵢ` exists, then for almost all `x`, `x` does not belong to almost all `sᵢ`. -/
 lemma ae_eventually_not_mem {s : ℕ → set α} (hs : ∀ i, is_measurable (s i))
   (hs' : ∑' i, μ (s i) ≠ ⊤) : ∀ᵐ x ∂ μ, ∀ᶠ n in at_top, x ∉ s n :=
 begin
@@ -1831,13 +1835,15 @@ open measure_theory measure_theory.measure
 
 namespace measurable_equiv
 
-open equiv
+/-! Interactions of measurable equivalences and measures -/
+
+open equiv measure_theory.measure
 
 variables [measurable_space α] [measurable_space β] {μ : measure α} {ν : measure β}
 
 /-- If we map a measure along a measurable equivalence, we can compute the measure on all sets
   (not just the measurable ones). -/
-protected theorem map_apply (f : α ≃ᵐ β) (s : set β) : measure.map f μ s = μ (f ⁻¹' s) :=
+protected theorem map_apply (f : α ≃ᵐ β) (s : set β) : map f μ s = μ (f ⁻¹' s) :=
 begin
   refine le_antisymm _ (le_map_apply f.measurable s),
   rw [measure_eq_infi' μ],
@@ -1851,6 +1857,19 @@ begin
   { refine congr_arg μ (eq.symm _), convert preimage_id, exact funext f.left_inv },
   exacts [f.measurable, f.measurable_inv_fun ht]
 end
+
+@[simp] lemma map_symm_map (e : α ≃ᵐ β) : map e.symm (map e μ) = μ :=
+by simp [map_map e.symm.measurable e.measurable]
+
+@[simp] lemma map_map_symm (e : α ≃ᵐ β) : map e (map e.symm ν) = ν :=
+by simp [map_map e.measurable e.symm.measurable]
+
+lemma map_measurable_equiv_injective (e : α ≃ᵐ β) : injective (map e) :=
+by { intros μ₁ μ₂ hμ, apply_fun map e.symm at hμ, simpa [map_symm_map e] using hμ }
+
+lemma map_apply_eq_iff_map_symm_apply_eq (e : α ≃ᵐ β) : map e μ = ν ↔ map e.symm ν = μ :=
+by rw [← (map_measurable_equiv_injective e).eq_iff, map_map_symm, eq_comm]
+
 
 end measurable_equiv
 

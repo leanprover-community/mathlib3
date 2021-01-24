@@ -56,18 +56,14 @@ instance to_is_separable [h : is_galois F E] : is_separable F E := h.1
 @[priority 100] -- see Note [lower instance priority]
 instance to_normal [h : is_galois F E] : normal F E := h.2
 
-variables {F} {E}
+variables (F) {E}
 
-lemma integral (h : is_galois F E) (x : E) : is_integral F x :=
-Exists.cases_on (h.1 x) (λ H _, H)
+lemma integral [is_galois F E] (x : E) : is_integral F x := normal.is_integral F x
 
-lemma separable (h : is_galois F E) (x : E) :
-  (minimal_polynomial (integral h x)).separable :=
-Exists.cases_on (h.1 x) (λ _ H, H)
+lemma separable [h : is_galois F E] (x : E) : (minpoly F x).separable := (h.1 x).2
 
-lemma normal (h : is_galois F E) (x : E) :
-  (minimal_polynomial (integral h x)).splits (algebra_map F E) :=
-Exists.cases_on (h.2 x) (λ _ H, H)
+-- TODO(Commelin, Browning): rename this to `splits`
+lemma normal [is_galois F E] (x : E) : (minpoly F x).splits (algebra_map F E) := normal.splits F x
 
 variables (F) (E)
 
@@ -77,8 +73,8 @@ instance of_fixed_field (G : Type*) [group G] [fintype G] [mul_semiring_action G
 
 lemma intermediate_field.adjoin_simple.card_aut_eq_findim
   [finite_dimensional F E] {α : E} (hα : is_integral F α)
-  (h_sep : (minimal_polynomial hα).separable)
-  (h_splits : (minimal_polynomial hα).splits (algebra_map F F⟮α⟯)) :
+  (h_sep : (minpoly F α).separable)
+  (h_splits : (minpoly F α).splits (algebra_map F F⟮α⟯)) :
   fintype.card (F⟮α⟯ ≃ₐ[F] F⟮α⟯) = findim F F⟮α⟯ :=
 begin
   letI : fintype (F⟮α⟯ →ₐ[F] F⟮α⟯) := intermediate_field.fintype_of_alg_hom_adjoin_integral F hα,
@@ -99,10 +95,10 @@ begin
     map_mul' := λ _ _, rfl,
     map_add' := λ _ _, rfl,
     commutes' := λ _, rfl },
-  have H : is_integral F α := h.integral α,
-  have h_sep : (minimal_polynomial H).separable := h.separable α,
-  have h_splits : (minimal_polynomial H).splits (algebra_map F E) := h.normal α,
-  replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minimal_polynomial H),
+  have H : is_integral F α := is_galois.integral F α,
+  have h_sep : (minpoly F α).separable := is_galois.separable F α,
+  have h_splits : (minpoly F α).splits (algebra_map F E) := is_galois.normal F α,
+  replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minpoly F α),
   { convert polynomial.splits_comp_of_splits
     (algebra_map F E) iso.symm.to_alg_hom.to_ring_hom h_splits },
   rw ← linear_equiv.findim_eq iso.to_linear_equiv,
@@ -122,8 +118,8 @@ section is_galois_tower
 variables (F K E : Type*) [field F] [field K] [field E] {E' : Type*} [field E'] [algebra F E']
 variables [algebra F K] [algebra F E] [algebra K E] [is_scalar_tower F K E]
 
-lemma is_galois.tower_top_of_is_galois [h : is_galois F E] : is_galois K E :=
-⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩
+lemma is_galois.tower_top_of_is_galois [is_galois F E] : is_galois K E :=
+⟨is_separable_tower_top_of_is_separable F K E, normal.tower_top_of_normal F K E⟩
 
 variables {F E}
 
@@ -140,7 +136,7 @@ begin
 end
 
 lemma is_galois.of_alg_equiv [h : is_galois F E] (f : E ≃ₐ[F] E') : is_galois F E' :=
-⟨h.1.of_alg_hom f.symm, normal.of_alg_equiv f⟩
+⟨is_separable.of_alg_hom F E f.symm, normal.of_alg_equiv f⟩
 
 lemma alg_equiv.transfer_galois (f : E ≃ₐ[F] E') : is_galois F E ↔ is_galois F E' :=
 ⟨λ h, by exactI is_galois.of_alg_equiv f, λ h, by exactI is_galois.of_alg_equiv f.symm⟩
@@ -300,18 +296,15 @@ lemma is_separable_splitting_field [finite_dimensional F E] [h : is_galois F E] 
   ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
 begin
   cases field.exists_primitive_element h.1 with α h1,
-  have h2 : is_integral F α := h.integral α,
-  have h3 : (minimal_polynomial h2).separable := h.separable α,
-  have h4 : (minimal_polynomial h2).splits (algebra_map F E) := h.normal α,
-  use [minimal_polynomial h2, h3, h4],
+  use [minpoly F α, separable F α, is_galois.normal F α],
   rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
-  rw intermediate_field.adjoin_simple_to_subalgebra_of_integral F α h2,
+  rw intermediate_field.adjoin_simple_to_subalgebra_of_integral F α (integral F α),
   apply algebra.adjoin_mono,
   rw [set.singleton_subset_iff, finset.mem_coe, multiset.mem_to_finset, polynomial.mem_roots],
   { dsimp only [polynomial.is_root],
     rw [polynomial.eval_map, ←polynomial.aeval_def],
-    exact minimal_polynomial.aeval h2 },
-  { exact polynomial.map_ne_zero (minimal_polynomial.ne_zero h2) }
+    exact minpoly.aeval _ _ },
+  { exact polynomial.map_ne_zero (minpoly.ne_zero (integral F α)) }
 end
 
 lemma of_fixed_field_eq_bot [finite_dimensional F E]
@@ -342,8 +335,8 @@ lemma of_separable_splitting_field_aux [hFE : finite_dimensional F E]
 begin
   have h : is_integral K x := is_integral_of_is_scalar_tower x (is_integral_of_noetherian hFE x),
   have h1 : p ≠ 0 := λ hp, by rwa [hp, polynomial.map_zero, polynomial.roots_zero] at hx,
-  have h2 : (minimal_polynomial h) ∣ p.map (algebra_map F K),
-  { apply minimal_polynomial.dvd,
+  have h2 : (minpoly K x) ∣ p.map (algebra_map F K),
+  { apply minpoly.dvd,
     rw [polynomial.aeval_def, polynomial.eval₂_map, ←polynomial.eval_map],
     exact (polynomial.mem_roots (polynomial.map_ne_zero h1)).mp hx },
   let key_equiv : ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) ≃ Σ (f : K →ₐ[F] E),
@@ -382,7 +375,7 @@ begin
   apply intermediate_field.induction_on_adjoin_finset s P,
   { have key := intermediate_field.card_alg_hom_adjoin_integral F
       (show is_integral F (0 : E), by exact is_integral_zero),
-    rw [minimal_polynomial.zero, polynomial.nat_degree_X] at key,
+    rw [minpoly.zero, polynomial.nat_degree_X] at key,
     specialize key polynomial.separable_X (polynomial.splits_X (algebra_map F E)),
     rw [←@subalgebra.findim_bot F E _ _ _, ←intermediate_field.bot_to_subalgebra] at key,
     refine eq.trans _ key,

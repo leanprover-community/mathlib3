@@ -52,7 +52,7 @@ Linear algebra:
     row-reduced matrices: ''
   Endomorphism polynomials:
     annihilating polynomials: ''
-    minimal polynomial: 'minimal_polynomial'
+    minimal polynomial: 'minpoly'
     characteristic polynomial: 'char_poly'
     Cayley-Hamilton theorem: 'aeval_self_char_poly'
   Structure theory of endomorphisms:
@@ -166,7 +166,7 @@ Ring Theory:
     Newton's identities:
     polynomial derivative: 'polynomial.derivative'
     decomposition into sums of homogeneous polynomials: 'mv_polynomial.sum_homogeneous_component'
-    symmetric polynomials:
+    symmetric polynomials: 'mv_polynomial.is_symmetric'
   Field Theory:
     fields: 'field'
     characteristic of a ring: 'ring_char'
@@ -340,9 +340,9 @@ Single Variable Real Analysis:
     integral over a segment of piecewise continuous functions:
     antiderivatives:
     Riemann sums:
-    antiderivative of a continuous function: interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right
+    antiderivative of a continuous function: 'interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right'
     change of variable:
-    integration by parts:
+    integration by parts: 'interval_integral.integral_mul_deriv_eq_deriv_mul'
     improper integrals:
     absolute vs conditional convergence of improper integrals:
     comparison test for improper integrals:
@@ -512,7 +512,8 @@ Measures and integral Calculus:
     Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'
     change of variables for multiple integrals:
-    integration by parts:
+    change of variables to polar co-ordinates:
+    change of variables to spherical co-ordinates:
     convolution:
     regularization and approximation by convolution:
   Fourier Analysis:

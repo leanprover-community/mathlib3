@@ -59,13 +59,12 @@ begin
   { intros x hxz,
     exact le_antisymm (h_f_nonpos x) (h_f_nonneg_of_pos x hxz) },
 
-  have h_zero_of_zero : f 0 = 0,
+  intros x hx,
+  obtain (h_x_neg : x < 0) | (rfl : x = 0) := lt_or_eq_of_le hx,
+  { exact h_fx_zero_of_neg _ h_x_neg },
   { suffices : 0 ≤ f 0, from le_antisymm (h_f_nonpos 0) this,
     have hno : f (-1) = 0 := h_fx_zero_of_neg (-1) neg_one_lt_zero,
     have hp := hxt (-1) (-1),
     rw hno at hp,
     linarith },
-
-  intros x hx,
-  obtain (h_x_neg : x < 0) | (rfl : x = 0) := lt_or_eq_of_le hx; solve_by_elim
 end

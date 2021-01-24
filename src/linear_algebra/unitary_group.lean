@@ -64,11 +64,19 @@ def unitary_group : Type* := unitary_submonoid n α
 end
 
 variables {α : Type v} [comm_ring α] [star_ring α]
+variables {n : Type u} [decidable_eq n] [fintype n]
+
+namespace unitary_submonoid
+
+lemma star_mem {A : matrix n n α} (hA : A ∈ unitary_submonoid n α) :
+  star A ∈ unitary_submonoid n α :=
+show star (star A) ⬝ star A = 1, from matrix.nonsing_inv_left_right _ _ $ by rwa [star_star]
+
+end unitary_submonoid
 
 namespace unitary_group
 
-variables {n : Type u} [decidable_eq n] [fintype n]
-
+@[simp]
 lemma star_mul_self (A : unitary_group n α) : star A.1 ⬝ A.1 = 1 := A.2
 
 instance coe_matrix : has_coe (unitary_group n α) (matrix n n α) := ⟨subtype.val⟩
@@ -92,8 +100,7 @@ iff.trans subtype.ext_iff_val ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix
 (unitary_group.ext_iff A B).mpr
 
 instance : has_inv (unitary_group n α) :=
-⟨λ A, ⟨star A.1, matrix.nonsing_inv_left_right _ _ $
-  by { dsimp only, rw [star_star, star_mul_self]}⟩⟩
+⟨λ A, ⟨star A.1, unitary_submonoid.star_mem A.2⟩⟩
 
 instance : inhabited (unitary_group n α) := ⟨1⟩
 
@@ -167,9 +174,7 @@ end unitary_group
 
 section orthogonal_group
 
-variables (n : Type u) [fintype n] [decidable_eq n]
 variables (β : Type v) [comm_ring β]
-
 
 /--
   `orthogonal_group n` is the group of `n` by `n` complex matrices where the transpose is the

@@ -828,10 +828,10 @@ by rw [← mul_assoc, div_mul_cancel _ hb,
       ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
 
 @[field_simps] lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
-by simpa using @div_eq_div_iff _ _ a b c 1 hb one_ne_zero
+(div_eq_iff_mul_eq hb).trans eq_comm
 
 @[field_simps] lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
-by simpa using @div_eq_div_iff _ _ c 1 a b one_ne_zero hb
+eq_div_iff_mul_eq hb
 
 lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b :=
 by rw [div_eq_mul_inv, inv_div, mul_div_cancel' _ ha]

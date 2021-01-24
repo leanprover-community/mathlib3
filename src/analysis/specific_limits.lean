@@ -420,6 +420,7 @@ lemma summable_pow_mul_geometric_of_norm_lt_1 {R : Type*} [normed_ring R] [compl
   (k : ℕ) {r : R} (hr : ∥r∥ < 1) : summable (λ n, n ^ k * r ^ n : ℕ → R) :=
 summable_of_summable_norm $ summable_norm_pow_mul_geometric_of_norm_lt_1 _ hr
 
+/-- If `∥r∥ < 1`, then `∑' n : ℕ, n * r ^ n = r / (1 - r) ^ 2`, `has_sum` version. -/
 lemma has_sum_coe_mul_geometric_of_norm_lt_1 {𝕜 : Type*} [normed_field 𝕜] [complete_space 𝕜]
   {r : 𝕜} (hr : ∥r∥ < 1) : has_sum (λ n, n * r ^ n : ℕ → 𝕜) (r / (1 - r) ^ 2) :=
 begin
@@ -428,14 +429,19 @@ begin
   have B : has_sum (pow r : ℕ → 𝕜) (1 - r)⁻¹, from has_sum_geometric_of_norm_lt_1 hr,
   refine A.has_sum_iff.2 _,
   have hr' : r ≠ 1, by { rintro rfl, simpa [lt_irrefl] using hr },
-  rw [pow_two, ← div_div_eq_div_mul, eq_div_iff (sub_ne_zero.2 hr'.symm), mul_sub, mul_one,
-    mul_comm],
-  nth_rewrite 0 [tsum_eq_zero_add A],
-  simp only [nat.cast_zero, zero_mul, zero_add, nat.cast_succ, add_mul, one_mul, mul_assoc,
-    pow_succ, mul_left_comm _ r, tsum_mul_left],
-  rw [tsum_add A B.summable, mul_add, add_sub_cancel', B.tsum_eq, div_eq_mul_inv]
+  set s : 𝕜 := ∑' n : ℕ, n * r ^ n,
+  calc s = (1 - r) * s / (1 - r) : (mul_div_cancel_left _ (sub_ne_zero.2 hr'.symm)).symm
+  ... = (s - r * s) / (1 - r) : by rw [sub_mul, one_mul]
+  ... = ((0 : ℕ) * r ^ 0 + (∑' n : ℕ, (n + 1) * r ^ (n + 1)) - r * s) / (1 - r) :
+    by { congr, exact tsum_eq_zero_add A }
+  ... = (r * (∑' n : ℕ, (n + 1) * r ^ n) - r * s) / (1 - r) :
+    by simp [pow_succ, mul_left_comm _ r, tsum_mul_left]
+  ... = r / (1 - r) ^ 2 :
+    by simp [add_mul, tsum_add A B.summable, mul_add, B.tsum_eq, ← div_eq_mul_inv, pow_two,
+      div_div_eq_div_mul]
 end
 
+/-- If `∥r∥ < 1`, then `∑' n : ℕ, n * r ^ n = r / (1 - r) ^ 2`. -/
 lemma tsum_coe_mul_geometric_of_norm_lt_1 {𝕜 : Type*} [normed_field 𝕜] [complete_space 𝕜]
   {r : 𝕜} (hr : ∥r∥ < 1) :
   (∑' n : ℕ, n * r ^ n : 𝕜) = (r / (1 - r) ^ 2) :=

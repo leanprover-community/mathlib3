@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 
 Author: E.W.Ayers
 -/
+import data.list.defs
 
 /-!
 # Widgets used for tactic state and term-mode goal display
@@ -23,7 +24,6 @@ Lean itself calls the `widget_override.term_goal_widget` function to render
 term-mode goals and `widget_override.tactic_state_widget` to render the
 tactic state in a tactic proof.
 -/
-
 namespace widget_override
 open widget
 
@@ -67,19 +67,12 @@ meta def sf.of_eformat : eformat → sf
 | (of_format f) := sf.of_string $ format.to_string f
 | (compose x y) := sf.compose (sf.of_eformat x) (sf.of_eformat y)
 
-/-- `subtract x y` is some `z` when `∃ z, x = y ++ z` [fixme] this probably already exists. -/
-def subtract {α} [decidable_eq α]: (list α) → (list α) → option (list α)
-| a [] := some a -- [] ++ a = a
-| [] _ := none   -- (h::t) ++ _ ≠ []
--- if t₂ ++ z = t₁ then (h₁ :: t₁) ++ z = (h₁ :: t₂)
-| (h₁ :: t₁) (h₂ :: t₂) := if h₁ = h₂ then subtract t₁ t₂ else none
-
 /-- Get the subexpression and sf object at the given address, if any.
 The address must point to a `sf.tag_expr` boundary. -/
 meta def sf.follow : expr.address → sf → option (expr × sf)
 | [] s := none
 | l (sf.tag_expr ea e  m) := do
-  a ← subtract l ea,
+  a ← list.get_rest l ea,
   if a = [] then pure (e,m) else
   sf.follow a m
 | l (sf.block _ a) := sf.follow l a

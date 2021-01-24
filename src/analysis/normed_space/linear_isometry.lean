@@ -21,6 +21,7 @@ variables {R E F G G' : Type*} [semiring R]
   [normed_group E] [normed_group F] [normed_group G] [normed_group G']
   [semimodule R E] [semimodule R F] [semimodule R G] [semimodule R G']
 
+/-- An `R`-linear isometric embedding of one normed `R`-module into another. -/
 structure linear_isometry (R E F : Type*) [semiring R] [normed_group E] [normed_group F]
   [semimodule R E] [semimodule R F] extends E →ₗ[R] F :=
 (norm_map' : ∀ x, ∥to_fun x∥ = ∥x∥)
@@ -171,6 +172,8 @@ variables (R E)
 def refl : E ≃ₗᵢ[R] E := ⟨linear_equiv.refl R E, λ x, rfl⟩
 
 variables {R E}
+
+instance : inhabited (E →ₗᵢ[R] E) := ⟨refl R E⟩
 
 @[simp] lemma coe_refl : ⇑(refl R E) = id := rfl
 

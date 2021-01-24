@@ -243,8 +243,8 @@ lemma tendsto_pow_const_mul_const_pow_of_abs_lt_one (k : ℕ) {r : ℝ} (hr : ab
   tendsto (λ n, n ^ k * r ^ n : ℕ → ℝ) at_top (𝓝 0) :=
 begin
   by_cases h0 : r = 0,
-    from tendsto_const_nhds.congr'
-      (mem_at_top_sets.2 ⟨1, λ n hn, by simp [zero_lt_one.trans_le hn, h0]⟩),
+  { exact tendsto_const_nhds.congr'
+      (mem_at_top_sets.2 ⟨1, λ n hn, by simp [zero_lt_one.trans_le hn, h0]⟩) },
   have hr' : 1 < (abs r)⁻¹, from one_lt_inv (abs_pos.2 h0) hr,
   rw tendsto_zero_iff_norm_tendsto_zero,
   simpa [div_eq_mul_inv] using tendsto_pow_const_div_const_pow_of_one_lt k hr'

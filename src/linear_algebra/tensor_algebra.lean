@@ -6,6 +6,7 @@ Author: Adam Topaz.
 import algebra.free_algebra
 import algebra.ring_quot
 import algebra.triv_sq_zero_ext
+import linear_algebra.pi_tensor_product
 
 /-!
 # Tensor Algebras
@@ -139,6 +140,9 @@ def ι_inv : tensor_algebra R M →ₗ[R] M :=
 
 lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → tensor_algebra R M) :=
 λ x, by simp [ι_inv]
+
+def equiv_monoid_algebra_free_monoid :
+  tensor_algebra R M ≃ₐ[R] monoid_algebra R (Σ i : ℕ, tenprod (fin i)  ) ) :=
 
 end tensor_algebra
 

@@ -6,6 +6,7 @@ Authors: Frédéric Dupuis
 
 import group_theory.congruence
 import linear_algebra.multilinear
+import data.equiv.fin
 
 /-!
 # Tensor product of an indexed family of semimodules over commutative semirings
@@ -54,12 +55,11 @@ multilinear, tensor, tensor product
 -/
 
 noncomputable theory
-open_locale classical
 open function
 
 section semiring
 
-variables {ι : Type*} {R : Type*} [comm_semiring R]
+variables {ι : Type*} {R : Type*} [comm_semiring R] [decidable_eq ι]
 variables {R' : Type*} [comm_semiring R'] [algebra R' R]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
 variables {E : Type*} [add_comm_monoid E] [semimodule R E]
@@ -371,7 +371,7 @@ namespace pi_tensor_product
 open pi_tensor_product
 open_locale tensor_product
 
-variables {ι : Type*} {R : Type*} [comm_ring R]
+variables {ι : Type*} {R : Type*} [comm_ring R] [decidable_eq ι]
 variables {s : ι → Type*} [∀ i, add_comm_group (s i)] [∀ i, module R (s i)]
 
 /- Unlike for the binary tensor product, we require `R` to be a `comm_ring` here, otherwise
@@ -380,3 +380,67 @@ instance : add_comm_group (⨂[R] i, s i) := semimodule.add_comm_monoid_to_add_c
 
 end pi_tensor_product
 end ring
+
+section fin_algebra
+
+namespace pi_tensor_product
+open_locale tensor_product
+
+protected abbreviation fin (R : Type*) (n : ℕ) (M : Type*)
+  [comm_semiring R] [add_comm_monoid M] [semimodule R M] : Type* :=
+⨂[R] (i : fin n), M
+
+variables {R : Type*} {M : Type*} [comm_semiring R] [add_comm_monoid M] [semimodule R M]
+
+notation `⨂[`:100 R `]^`:80 n:max := pi_tensor_product.fin R n
+
+#print notation ^
+
+-- localized "notation `⨂[`:100 R `]^` n ` ` M := ⨂[R] (i : fin n), M"
+--   in tensor_product
+
+def one : ⨂[R]^0 M := pi_tensor_product.tprod R 0
+
+-- def mul' {n m : ℕ} : ((⨂[R]^n M) ⊗[R] (⨂[R]^n M)) →ₗ[R] ⨂[R]^(n + m) M :=
+-- tensor_product.lift begin
+--   apply tensor_product.lift,
+--   apply linear_map.applyₗ,
+--   apply linear_map.
+--   apply pi_tensor_product.lift,
+
+-- -- pi_tensor_product.lift (multilinear_map.dom_dom_congr sum_fin_sum_equiv _)
+-- end
+
+def mul {n m : ℕ} : (⨂[R]^n M) → (⨂[R]^m M) → ⨂[R]^(n + m) M :=
+λ a, pi_tensor_product.lift (pi_tensor_product.lift (
+    show multilinear_map R (λ (i : fin n), M) (multilinear_map R (λ (i : fin m), M) (⨂[R]^(n + m) M)),
+    from
+    { to_fun := λ a',
+      { to_fun := λ b', tprod R (λ i, (sum_fin_sum_equiv.symm i).elim a' b'),
+        map_add' := begin
+          intros,
+          sorry,
+          -- convert (tprod R).map_add m_1 _ x _ using 1,
+        end,
+        map_smul' := sorry },
+      map_add' := sorry,
+      map_smul' := sorry }
+   )) a
+  -- exact
+
+
+
+#check multilinear_map.map_add
+
+def mul {n m : ℕ} : (⨂[R]^n M) →ₗ[R] (⨂[R]^m M) →ₗ[R] ⨂[R]^(n + m) M :=
+linear_map.mk₂ R (λ a b, begin
+  refine pi_tensor_product.lift _ b,
+  refine pi_tensor_product.lift _ a,
+  refine { to_fun := λ a', { to_fun := λ b', _, .. }, .. },
+  refine tprod R (λ i, _),
+  refine (sum_fin_sum_equiv.symm i).elim a' b',
+end) sorry sorry sorry sorry
+
+end pi_tensor_product.fin
+
+end fin_algebra

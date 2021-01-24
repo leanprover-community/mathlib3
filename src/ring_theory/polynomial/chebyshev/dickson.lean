@@ -89,7 +89,7 @@ end
 
 variables (R S a)
 
-/-- `dickson₂` is the `n`-th Dickson polynomial of the first kind associated to the element `a∈R`-/
+/-- `dickson₂` is the `n`-th Dickson polynomial of the second kind associated to the element `a∈R`-/
 noncomputable def dickson₂ : ℕ → polynomial R
 | 0       := 1
 | 1       := X

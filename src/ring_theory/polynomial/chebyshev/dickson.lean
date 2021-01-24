@@ -20,6 +20,11 @@ When `a=0` they are just the family of monomials `x ^ n`.
 * `polynomial.dickson₁`: the Dickson polynomials of the first kind.
 * `polynomial.dickson₂`: the Dickson polynomials of the second kind.
 
+## References
+
+* Lidl, Mullen, Turnwald: "Dickson polynomials". Pitman Monographs and Surveys in Pure and Applied
+  Mathemmatics 65, Longman Group (1993)
+
 ## TODO
 
 * Move the definition of `lambdashev` from `chebyshev.defs` into this file

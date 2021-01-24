@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import logic.basic
 import data.option.defs
+import tactic.rcases
 
 /-!
 # Miscellaneous function constructions and lemmas
@@ -78,6 +79,20 @@ def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
 
 lemma injective.of_comp {g : γ → α} (I : injective (f ∘ g)) : injective g :=
 λ x y h, I $ show f (g x) = f (g y), from congr_arg f h
+
+lemma injective.dite_injective (p : α → Prop) [decidable_pred p]
+  (f : {a : α // p a} → β) (f' : {a : α // ¬ p a} → β)
+  (hf : function.injective f) (hf' : function.injective f')
+  (im_disj : ∀ {x x' : α} {hx : p x} {hx' : ¬ p x'}, f ⟨x, hx⟩ ≠ f' ⟨x', hx'⟩) :
+  function.injective (λ x, if h : p x then f ⟨x, h⟩ else f' ⟨x, h⟩) :=
+begin
+  { rintros x₁ x₂ (h : dite _ _ _ = dite _ _ _),
+    split_ifs at h,
+    { injection (hf h), },
+    { exact (im_disj h).elim, },
+    { exact (im_disj h.symm).elim, },
+    { injection (hf' h), }, },
+end
 
 lemma surjective.of_comp {g : γ → α} (S : surjective (f ∘ g)) : surjective f :=
 λ y, let ⟨x, h⟩ := S y in ⟨g x, h⟩

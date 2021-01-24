@@ -28,9 +28,9 @@ When `a=0` they are just the family of monomials `x ^ n`.
 ## TODO
 
 * Move the definition of `lambdashev` from `chebyshev.defs` into this file
-(or even remove it because it is a special case of the polynomials defined here?).
+  (or even remove it because it is a special case of the polynomials defined here?).
 * Show that `lambdashev` is equal to the characteristic polynomial of the adjacency matrix of a
-type A Dynkin diagram.
+  type A Dynkin diagram.
 -/
 
 noncomputable theory

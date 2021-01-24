@@ -172,8 +172,8 @@ variables {S : Type*} [comm_ring S]
 def SL_n_insertion (f : R →+* S) :
 monoid_hom (special_linear_group n R) (special_linear_group n S) :=
 { to_fun := λ g, ⟨f.map_matrix g, ring_hom.map_det_one f g.2⟩,
-  map_one' := sorry,
-  map_mul' := sorry }
+  map_one' := by simpa,
+  map_mul' := λ x y, by simpa }
 
 end special_linear_group
 

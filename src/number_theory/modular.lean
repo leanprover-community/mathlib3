@@ -1,5 +1,6 @@
 import linear_algebra.special_linear_group
 import data.complex.basic
+import data.matrix.notation
 import group_theory.group_action.defs
 
 namespace tactic.interactive
@@ -11,7 +12,7 @@ meta def show_nonzero := `[
     pow_ne_zero,
     ne_of_gt,
     ne_of_lt,
-    bottomNonZ
+    bottom_nonzero
     ] 10,
   all_goals {try {norm_cast}, try {norm_num}}
 ]
@@ -37,7 +38,6 @@ meta def clear_denoms := `[
 ]
 
 meta def discrete_field := `[
-  try {ext},
   try {field_simp *},
   try {clear_denoms},
   try {ring_exp},
@@ -57,32 +57,36 @@ open_locale classical
 open_locale big_operators
 
 
-def H : set ℂ := {z | 0< z.im}
-
---def SL2R := SL(2, ℝ)
+def H : set ℂ := { z | 0 < z.im }
 
 notation `SL(` n `,` R `)`:= special_linear_group (fin n) R
 
 def top : --SL2R --
 SL(2, ℝ)  → ℂ → ℂ :=
-λ g, λ z,
-(
-  ((g : matrix (fin 2) (fin 2) ℝ) 0 0 ) * z + ((g : matrix (fin 2) (fin 2) ℝ) 0 1 )
-)
+λ g, λ z, (g.1 0 0) * z + (g.1 0 1)
 
 def bottom : --SL2R --
 SL(2, ℝ)
  → ℂ → ℂ :=
-λ g, λ z,
-(
-  ((g : matrix (fin 2) (fin 2) ℝ) 1 0 ) * z + ((g : matrix (fin 2) (fin 2) ℝ) 1 1 )
-)
---λ g, λ z, ((special_linear_group.coe_matrix g) 0 0 )
+λ g, λ z, (g.1 1 0) * z + (g.1 1 1)
+
+def top' : --SL2Z --
+SL(2, ℤ)  → ℂ → ℂ :=
+λ g, λ z, ((g.1 0 0) : ℂ) * z + ((g.1 0 1) : ℂ)
+
+def bottom' : --SL2Z --
+SL(2, ℤ)
+ → ℂ → ℂ :=
+λ g, λ z, ((g.1 1 0) : ℂ) * z + ((g.1 1 1) : ℂ)
 
 def smul_aux : --SL2R --
 SL(2, ℝ) → ℂ → ℂ :=
-λ g, λ z,
-(top g z)/(bottom g z)
+λ g, λ z, (top g z) / (bottom g z)
+
+def smul_aux' : --SL2Z --
+SL(2, ℤ) → ℂ → ℂ :=
+λ g, λ z, (top' g z) / (bottom' g z)
+
 
 lemma split_fin2 (i : fin 2) : i = 0 ∨ i = 1 :=
 begin
@@ -101,13 +105,13 @@ end
 lemma det2 {F : Type*} [comm_ring F] (g: matrix (fin 2) (fin 2) F) :
 g.det = (g 0 0 )*(g 1 1)- (g 1 0 ) * (g  0 1 ) := sorry
 
-
 lemma ImOfGaction (g : SL(2, ℝ)) (z: ℂ) :
 (smul_aux g z).im = z.im / (complex.norm_sq (bottom g z)) :=
 begin
   by_cases bot_zero : bottom g z = 0,
   {
     rw smul_aux,
+    simp,
     simp [bot_zero],
   },
 
@@ -137,13 +141,7 @@ begin
   ring,
   rw this,
   simp,
-
   simp,
-  --rw (_ : (⇑g 1 0 * z.re + ⇑g 1 1) * (⇑g 0 0 * z.im) - ⇑g 1 0 * z.im * (⇑g 0 0 * z.re + ⇑g 0 1)
-  --= )
---  simp only [conj_im, mul_neg_eq_neg_mul_symm, conj_re, mul_im, mul_re, sub_neg_eq_add],
-
---  have : (complex.abs (bottom g z))^2  = (complex.abs (bottom g z))^2
 
 end
 
@@ -154,7 +152,7 @@ begin
   exact complex.zero_im,
 end
 
-lemma bottomRowNonZ (g : SL(2, ℝ)) :
+lemma bottomRowNonZ {g : SL(2, ℝ)} :
 g.val 1 0 = 0 → g.val 1 1 = 0 → false :=
 begin
   intros h1 h2,
@@ -165,89 +163,58 @@ begin
   exact detIs,
 end
 
-
-lemma czPd_nonZ (z:ℂ ) (g : SL(2, ℝ)) :
+lemma czPd_nonZ {z : ℂ} {g : SL(2, ℝ)} :
 bottom g z = 0 → z.im = 0 :=
 begin
   intros h,
   rw bottom at h,
   simp at h,
-  have hIm := isZThenReIm ((g 1 0) * z + (g 1 1)) h,
+  have hIm := isZThenReIm ((g.1 1 0) * z + (g.1 1 1)) h,
   simp at hIm,
   cases hIm,
   {
     rw hIm at h,
     simp at h,
     exfalso,
-    exact bottomRowNonZ g hIm h,
+    exact bottomRowNonZ hIm h,
   },
   exact hIm,
 end
 
-lemma czPd_nonZ_CP (z:ℂ ) (g : SL(2, ℝ)) :
+lemma czPd_nonZ_CP {z : ℂ} {g : SL(2, ℝ)} :
  z.im ≠  0 →  bottom g z ≠  0 :=
 begin
   intros h1,
   by_contra,
   simp at h,
-  have h2 := czPd_nonZ _ _ h,
+  have h2 := czPd_nonZ h,
   exact h1 h2,
 end
 
-lemma bottomNonZ  (g : SL(2, ℝ)) {z:ℂ} (h : z ∈ H) :
-  bottom g z ≠  0 :=
-begin
-  have : z.im ≠ 0,
-  {
-    rw H at h,
-    simp at h,
-    linarith,
-  },
-  exact czPd_nonZ_CP z g this,
-end
+lemma bottom_nonzero  {g : SL(2, ℝ)} {z : ℂ} (h : z ∈ H) :
+  bottom g z ≠  0 := czPd_nonZ_CP (ne_of_gt h)
 
-lemma im_nonZ_then_nonZ (z : ℂ) : z.im ≠ 0 → z≠ 0
-:=
-begin
-  intros h,
-  refine norm_sq_pos.mp _,
-  rw norm_sq,
-  simp,
-  have zRePos : 0 ≤ z.re * z.re,
-  {
-    exact mul_self_nonneg z.re,
-  },
-  have zImPos : 0 < z.im * z.im,
-  {
-    exact mul_self_pos h,
-  },
-  linarith,
-end
-
-lemma geNotEge (x :ℝ ) : 0≤ x → x≠ 0 → 0 <x :=
+lemma geNotEge {x : ℝ} : 0 ≤ x → x ≠ 0 → 0 <x :=
 begin
   intros h1 h2,
   exact (ne.symm h2).le_iff_lt.mp h1,
 end
 
-lemma GactsHtoH (g : SL(2, ℝ)) {z : ℂ} (hz : z ∈ H):
+@[simp] lemma im_pos_of_in_H {z : ℂ} : z ∈ H ↔ 0 < z.im := by refl
+
+@[simp] lemma smul_aux_def {g : SL(2,ℝ)} {z : ℂ} : smul_aux g z = top g z / bottom g z := by refl
+
+@[simp] lemma smul_aux_def' {g : SL(2,ℤ)} {z : ℂ} : smul_aux' g z = top' g z / bottom' g z := by refl
+
+lemma GactsHtoH {g : SL(2, ℝ)} {z : ℂ} (h : z ∈ H) :
 smul_aux g z ∈ H :=
 begin
-  rw H,
-  simp,
+  simp at h ⊢,
+  rw ←smul_aux_def,
   rw ImOfGaction,
-  have imZpos : 0 < z.im,
-  {
-    refine hz,
-  },
-
   by_cases bot_zero : bottom g z = 0,
   {
-    have zImZero : z.im=0,
-    {
-      exact czPd_nonZ _ _ bot_zero,
-    },
-    exfalso,
+    have zImZero : z.im = 0 := czPd_nonZ bot_zero,
     linarith,
   },
   have norm2Pos : 0 < norm_sq (bottom g z),
@@ -264,121 +231,129 @@ begin
     },
     exact (ne.symm norm2Z).le_iff_lt.mp norm2NonNeg,
   },
-  exact div_pos imZpos norm2Pos
+  exact div_pos h norm2Pos
 end
 
 --lemma OneActsHtoH  (z: ℂ) : smul_aux 1 z = z :=  by {rw [smul_aux, top, bottom], simp}
 
-lemma sumIs01 (f : fin 2 → ℂ ) :
+@[simp] lemma sumIs01 (f : fin 2 → ℂ ) :
 (∑ (x : fin 2), f x) = f 0 + f 1 :=
 begin
 --  library_search,
   sorry,
 end
 
-lemma GactGpactH (x y : SL(2, ℝ)) {z: ℂ} (hz : z ∈ H ) :
+lemma bot_cocycle {x y : SL(2,ℝ)} {z : ℂ} (h : z ∈ H) : bottom (x*y) z = bottom x (smul_aux y z) * bottom y z :=
+begin
+  rw smul_aux_def,
+  have d1 : bottom y z ≠ 0 := by show_nonzero,
+  simp [top, bottom],
+  field_simp *,
+  simp [matrix.mul, dot_product],
+  unfold_coes,
+  discrete_field,
+end
+
+lemma smul_mul {x y : SL(2, ℝ)} { z : ℂ } (h : z ∈ H) :
 smul_aux (x * y) z = smul_aux x (smul_aux y z) :=
 begin
-  have bot1NonZ : bottom (x * y) z ≠ 0,
-  {
-    show_nonzero,
-    --refine bottomNonZ _ _,
-    --exact hz,
-  },
-  have bot2NonZ : bottom y z ≠ 0,
-  {
-    show_nonzero,
-    --refine bottomNonZ _ _,
-    --exact hz,
-  },
-  have bot_x_prime_NonZ : bottom x (top y z / bottom y z) ≠ 0,
-  {
-
-    sorry
-  },
   rw smul_aux,
   simp,
-  field_simp,
-/-
-  rw (_ : top (x * y) z
-  =  bottom (x * y) z  * top x (top y z / bottom y z) / bottom x (top y z / bottom y z)),
-
-  ring,
--/
-  set B := bottom y z,
-  --set T := top y z,
-  rw top,
-  rw bottom,
-  simp,
-  rw matrix.mul,
-  simp,
-  repeat {rw dot_product},
-  simp,
-  repeat {rw sumIs01},
-  field_simp,
-  left,
-  dsimp [B],
-  rw bottom,
-  norm_num,
-  ring,
+  rw bot_cocycle,
+  have d1 : bottom ( x * y) z ≠ 0, by show_nonzero,
+  have d2 : bottom y z ≠ 0, by show_nonzero,
+  have hyz : top y z / bottom y z ∈ H,
+  {
+    rw ←smul_aux_def,
+    exact GactsHtoH h,
+  },
+  have d3 : bottom x (top y z / bottom y z) ≠ 0 := bottom_nonzero hyz,
+  field_simp [d3],
+  suffices : top (x * y) z  = top x (top y z / bottom y z) * bottom y z,
+  {
+    simp [this],
+    discrete_field,
+  },
+  rw [top, bottom],
+  simp [matrix.mul, dot_product],
+  unfold_coes,
+  discrete_field,
 end
+
 
 /-- The action of `SL(2, ℝ)` on the upper half-plane by fractional linear transformations. -/
 instance SL2R_action : mul_action SL(2, ℝ) H :=
-{ smul := λ g, λ z, ⟨smul_aux g z, GactsHtoH g z.property ⟩ ,
-  one_smul := λ z, by {apply subtype.ext, simp [smul_aux, top, bottom]},
-  mul_smul := λ g1 g2 z, by simpa using GactGpactH g1 g2 z.property }
+{ smul := λ g, λ z, ⟨smul_aux g z, GactsHtoH z.2⟩,
+  one_smul := λ z, by {ext1, unfold_coes, simp [smul_aux, top, bottom, z.2], norm_num},
+  mul_smul := λ g1 g2 z, by simpa using smul_mul z.2 }
 
 /-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action. -/
 instance SL2Z_action : mul_action SL(2, ℤ) H :=
 mul_action.comp_hom H (SL_n_insertion (int.cast_ring_hom ℝ))
 
+def T : SL(2,ℤ) := { val := ![![1, 1], ![0, 1]], property := by simp [det2] }
 
+def S : SL(2,ℤ) := { val := ![![0, -1], ![1, 0]], property := by simp [det2] }
 
-/-- HM:  On second thoughts, I don't think `ℤ` is literally a subring of `ℝ` (instead there's a
-cast from one to the other).  So this subring stuff is not needed. -/
-
--- lemma coe_to_det {R : Type*} [comm_ring R] {S : subring R} {n: ℕ } (g : matrix (fin n) (fin n) S ):
--- (g.det : R) = det (λ i j , (g i j : R )) :=
--- begin
---   rw det,
---   rw det,
---   sorry
--- end
-
--- def subgroup_SL {R : Type*} [comm_ring R] {S : subring R} {n : ℕ} : subgroup SL(n,R) :=
--- { carrier := _, -- λ g, ⟨g, ⟩, --{ a: matrix (fin n) (fin n) S | ∃ (b : SL(n,S)), a=b.val } ,
---   one_mem' := _,
---   mul_mem' := _,
---   inv_mem' := _ }
-
-
-
-
-
---begin
- -- sorry
---end
-
-def T : SL(2,ℤ) := { val :=  λ i j, if (i = 1 ∧ j = 0) then 0 else 1,
-  property := by simp [det2] }
-
-def S : SL(2,ℤ) := { val :=  λ i j, i - j,
-  property := by simp [det2] }
-
-
-
-lemma T_action {z : H} : ((T • z : H) : ℂ) = 1 + z :=
+lemma T_inv : T^(-1 : ℤ) = { val := ![![1, -1], ![0, 1]], property := by simp [det2] } :=
 begin
   sorry
 end
 
-lemma Tn_action {z : H} {n : ℤ} : ((T^n • z : H) : ℂ) = n + z :=
+lemma T_pow {n : ℤ} : T^n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
 begin
   sorry
 end
 
-lemma S_action (z : H) : ((S • z : H) : ℂ) = z⁻¹ :=
+lemma T_action' {z : ℂ} : smul_aux' T z = z + 1  :=
+begin
+  rw smul_aux_def',
+  simp [top'],
+  have d : bottom' T z ≠ 0, by simp [bottom', T],
+  field_simp [d],
+  simp [bottom', T],
+  discrete_field,
+end
+
+lemma Tn_action' {n : ℤ} {z : ℂ} : smul_aux' (T^n) z = z + n  :=
+begin
+  rw T_pow,
+  rw smul_aux_def',
+  simp [top'],
+  have d : bottom' (T^n) z ≠ 0, by simp [bottom', T_pow],
+  field_simp [d, T_pow],
+  simp [bottom', T_pow],
+  discrete_field,
+end
+
+lemma S_action' (z : ℂ) (hz : z ≠ 0) : smul_aux' S z = -z⁻¹ :=
+begin
+  rw S,
+  rw smul_aux_def',
+  simp [top'],
+  have d : bottom' S z ≠ 0, by simp [bottom', S, hz],
+  field_simp [d, S],
+  simp [bottom', S],
+  discrete_field,
+end
+
+lemma T_action {z : H} : (T • z).1 = z + 1 :=
+begin
+  unfold_coes,
+  have : (T • z).1 = smul_aux' T z,
+  {
+    sorry
+  },
+  rw this,
+  exact T_action',
+end
+
+lemma Tn_action {z : H} {n : ℤ} : (T^n • z).1 = n + z :=
+begin
+  sorry
+end
+
+lemma S_action (z : H) : (S • z).1 = -z⁻¹ :=
 begin
   sorry
 end
@@ -390,6 +365,26 @@ def fundamental_domain : set H :=
 notation `𝒟` := fundamental_domain
 
 notation `𝒟°` := interior 𝒟
+
+
+lemma finite_pairs {M : ℝ} {z : ℂ} :
+  set.finite {cd : ℤ × ℤ | complex.abs ((cd.1 : ℂ) * z + (cd.2 : ℂ)) ≤ M} :=
+begin
+  sorry
+end
+
+variables {g : SL(2,ℤ)} {z : H}
+
+lemma exists_g_with_max_Im (z : H) :
+  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ),  (g' • z).1.im ≤ (g • z).1.im :=
+begin
+  sorry
+end
+
+lemma find_appropriate_T {z : H} : ∃ (n : ℤ), (T^n • z).1.abs ≤ 1/2 :=
+begin
+  sorry
+end
 
 lemma is_fundom {z : H} : ∃ g : SL(2, ℤ),  (g • z) ∈ 𝒟 :=
 begin

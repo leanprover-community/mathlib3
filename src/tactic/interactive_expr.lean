@@ -103,6 +103,7 @@ meta def sf.collapse_restricted_quantifiers_pred : expr → tactic bool
 -- [fixme] add to this list! So many predicates. Maybe just include all of them.
 | _ := pure ff
 
+
 open expr.coord
 
 /-- If the given sf has the form `∀ (x : α), P x → Q`
@@ -194,6 +195,36 @@ After:
 meta def sf.elim_part_apps (s : sf) : sf :=
 elim_part_apps s []
 
+/-- Pretty print an expression as an sf and then apply a set of syntax-level transformations:
+- Remove annotation tags on partial applications
+- Merge adjacent of_string constructors
+- Collapse restricted quantifiers
+-/
+meta def pp_to_sf : expr → tactic sf
+| e := do
+    m ← sf.of_eformat <$> tactic.pp_tagged e,
+    let m := m.elim_part_apps,
+    let m := m.flatten,
+    let m := m.tag_expr [] e, -- Add an expr-boundary for the root expression.
+    m ← sf.replace sf.collapse_restricted_quantifiers_core m,
+    pure m
+
+/-- Strip tagging information and create a format from an sf. -/
+meta def format_of_sf : sf → format
+| (sf.tag_expr addr e a) := format_of_sf a
+| (sf.compose a b) := format.compose (format_of_sf a) (format_of_sf b)
+| (sf.of_string s) := format.of_string s
+| (sf.block i a) := format.nest i $ format_of_sf a
+| (sf.highlight c a) := format.highlight (format_of_sf a) c
+
+/-- Create a string from an sf, should look the same as a directly pretty printed string. -/
+meta def string_of_sf : sf → string
+| s := format.to_string $ format_of_sf s
+
+/-- A version of pretty print that also includes the quantifier collapse step. -/
+meta def pretty_print_with_collapsed_quantifiers : expr → tactic string
+| e := string_of_sf <$> pp_to_sf e
+
 /--
 The actions accepted by an expression widget.
 -/
@@ -250,7 +281,7 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
   click_attrs  : list (attr (action γ)) ←
     if some new_address = click_address then do
       content ← tc.to_html tooltip_component (e, new_address),
-      efmt : string ← format.to_string <$> tactic.pp e,
+      efmt : string ← pretty_print_with_collapsed_quantifiers e,
       gd_btn ← goto_def_button e,
       pure [tooltip $ h "div" [] [
           h "div" [cn "fr"] (gd_btn ++ [
@@ -308,11 +339,7 @@ $ tc.mk_simple
     end
   )
   (λ e ⟨ca, sa⟩, do
-    m ← sf.of_eformat <$> tactic.pp_tagged e,
-    let m := m.elim_part_apps,
-    let m := m.flatten,
-    let m := m.tag_expr [] e, -- [hack] in pp.cpp I forgot to add an expr-boundary for the root expression.
-    m ← sf.replace sf.collapse_restricted_quantifiers_core m,
+    m ← pp_to_sf e,
     v ← view tooltip_comp (prod.snd <$> ca) (prod.snd <$> sa) ⟨e, []⟩ m,
     pure $
     [ h "span" [

@@ -16,25 +16,26 @@ is well-founded. In this file we define three especially-useful characterisation
 proofs that they are indeed equivalent to well-foundedness.
 
 ## Main definitions
- * `is_sup_closed_compact`
- * `is_Sup_finite_compact`
- * `is_compact_element`
- * `is_compactly_generated`
+ * `complete_lattice.is_sup_closed_compact`
+ * `complete_lattice.is_Sup_finite_compact`
+ * `complete_lattice.is_compact_element`
+ * `complete_lattice.is_compactly_generated`
 
 ## Main results
 The main result is that the following four conditions are equivalent for a complete lattice:
  * `well_founded (>)`
- * `is_sup_closed_compact`
- * `is_Sup_finite_compact`
- * `∀ k, is_compact_element k`
+ * `complete_lattice.is_sup_closed_compact`
+ * `complete_lattice.is_Sup_finite_compact`
+ * `∀ k, complete_lattice.is_compact_element k`
 
 This is demonstrated by means of the following four lemmas:
- * `well_founded.is_Sup_finite_compact`
- * `is_Sup_finite_compact.is_sup_closed_compact`
- * `is_sup_closed_compact.well_founded`
- * `is_Sup_finite_compact_iff_all_elements_compact`
+ * `complete_lattice.well_founded.is_Sup_finite_compact`
+ * `complete_lattice.is_Sup_finite_compact.is_sup_closed_compact`
+ * `complete_lattice.is_sup_closed_compact.well_founded`
+ * `complete_lattice.is_Sup_finite_compact_iff_all_elements_compact`
 
- We also show well-founded lattices are compactly generated.
+ We also show well-founded lattices are compactly generated
+ (`complete_lattice.compactly_generated_of_well_founded`).
 
 ## Tags
 
@@ -55,19 +56,19 @@ same `Sup`. -/
 def is_Sup_finite_compact : Prop :=
 ∀ (s : set α), ∃ (t : finset α), ↑t ⊆ s ∧ Sup s = t.sup id
 
-/-- An element k of a complete lattice is said to be compact if any set that Sups
-above k has a finite subset that Sups above k -/
+/-- An element `k` of a complete lattice is said to be compact if any set with `Sup`
+above `k` has a finite subset with `Sup` above `k`.  Such an element is also called
+"finite" or "S-compact". -/
 def is_compact_element {α : Type*} [complete_lattice α] (k : α) :=
 ∀ s : set α, k ≤ Sup s → ∃ t : finset α, ↑t ⊆ s ∧ k ≤ t.sup id
 
 /-- A complete lattice is said to be compactly generated if any
-element is the Sup of compact elements-/
+element is the `Sup` of compact elements. -/
 def is_compactly_generated : Prop :=
 ∀ (x : α), ∃ (s : set α), (∀ x ∈ s, is_compact_element x) ∧ Sup s = x
 
-/-- Equivalently, an element k compact when any directed set that Sups above
-k already got above k at some point in the set. Such an element is also called
-"finite" or "S-compact" -/
+/-- An element `k` is compact if and only if any directed set with `Sup` above
+`k` already got above `k` at some point in the set. -/
 theorem is_compact_element_iff_le_of_directed_Sup_le (k : α) :
   is_compact_element k ↔
   ∀ s : set α, s.nonempty → directed_on (≤) s → k ≤ Sup s → ∃ x : α, x ∈ s ∧ k ≤ x :=
@@ -75,11 +76,11 @@ begin
   classical,
   split,
   { by_cases hbot : k = ⊥,
-    -- Any nonempty directed set certainly sups above ⊥
+    -- Any nonempty directed set certainly has sup above ⊥
     { rintros _ _ ⟨x, hx⟩ _ _, use x, by simp only [hx, hbot, bot_le, and_self], },
     { intros hk s hne hdir hsup,
       obtain ⟨t, ht⟩ := hk s hsup,
-      -- If t were empty, it would sup to ⊥, which is not above k ≠ ⊥.
+      -- If t were empty, its sup would be ⊥, which is not above k ≠ ⊥.
       have tne : t.nonempty,
       { by_contradiction n,
         rw [finset.nonempty_iff_ne_empty, not_not] at n,
@@ -93,7 +94,7 @@ begin
   { intros hk s hsup,
     -- Consider the set of finite joins of elements of the (plain) set s.
     let S : set α := { x | ∃ t : finset α, ↑t ⊆ s ∧ x = t.sup id },
-    -- S is directed, nonempty, and still sups above k.
+    -- S is directed, nonempty, and still has sup above k.
     have dir_US : directed_on (≤) S,
     { rintros x ⟨c, hc⟩ y ⟨d, hd⟩,
       use x ⊔ y,

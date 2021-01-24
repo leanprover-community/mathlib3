@@ -52,6 +52,9 @@ by { delta minpoly, rw dif_pos hx, exact (well_founded.min_mem degree_lt_wf _ hx
 lemma ne_zero [nontrivial A] (hx : is_integral A x) : minpoly A x ≠ 0 :=
 ne_zero_of_monic (monic hx)
 
+lemma eq_zero (hx : ¬ is_integral A x) : minpoly A x = 0 :=
+dif_neg hx
+
 variables (A x)
 
 /--An element is a root of its minimal polynomial.-/
@@ -60,6 +63,18 @@ begin
   delta minpoly, split_ifs with hx,
   { exact (well_founded.min_mem degree_lt_wf _ hx).2 },
   { exact aeval_zero _ }
+end
+
+lemma mem_range_of_degree_eq_one (hx : (minpoly A x).degree = 1) : x ∈ (algebra_map A B).range :=
+begin
+  have h : is_integral A x,
+  { by_contra h,
+    rw [eq_zero h, degree_zero, ←with_bot.coe_one] at hx,
+    exact (ne_of_lt (show ⊥ < ↑1, from with_bot.bot_lt_coe 1) hx) },
+  have key := minpoly.aeval A x,
+  rw [eq_X_add_C_of_degree_eq_one hx, (minpoly.monic h).leading_coeff, C_1, one_mul, aeval_add,
+      aeval_C, aeval_X, ←eq_neg_iff_add_eq_zero, ←ring_hom.map_neg] at key,
+  exact ⟨-(minpoly A x).coeff 0, subring.mem_top (-(minpoly A x).coeff 0), key.symm⟩,
 end
 
 /--The defining property of the minimal polynomial of an element x:

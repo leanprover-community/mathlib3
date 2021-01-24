@@ -1632,6 +1632,22 @@ lemma lintegral_dirac [measurable_singleton_class α] (a : α) (f : α → ennre
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (ae_eq_dirac f)]
 
+lemma lintegral_count' {f : α → ennreal} (hf : measurable f) :
+  ∫⁻ a, f a ∂count = ∑' a, f a :=
+begin
+  rw [count, lintegral_sum_measure],
+  congr,
+  exact funext (λ a, lintegral_dirac' a hf),
+end
+
+lemma lintegral_count [measurable_singleton_class α] (f : α → ennreal) :
+  ∫⁻ a, f a ∂count = ∑' a, f a :=
+begin
+  rw [count, lintegral_sum_measure],
+  congr,
+  exact funext (λ a, lintegral_dirac a f),
+end
+
 lemma ae_lt_top {f : α → ennreal} (hf : measurable f) (h2f : ∫⁻ x, f x ∂μ < ⊤) :
   ∀ᵐ x ∂μ, f x < ⊤ :=
 begin

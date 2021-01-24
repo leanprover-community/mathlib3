@@ -1582,6 +1582,12 @@ instance decidable_lo_hi_le (lo hi : ℕ) (P : ℕ → Prop) [H : decidable_pred
 decidable_of_iff (∀x, lo ≤ x → x < hi + 1 → P x) $
 ball_congr $ λ x hl, imp_congr lt_succ_iff iff.rfl
 
+instance decidable_exists_lt {P : ℕ → Prop} [h : decidable_pred P] :
+  decidable_pred (λ n, ∃ (m : ℕ), m < n ∧ P m)
+| 0 := is_false (by simp)
+| (n + 1) := decidable_of_decidable_of_iff (@or.decidable _ _ (decidable_exists_lt n) (h n))
+  (by simp only [lt_succ_iff_lt_or_eq, or_and_distrib_right, exists_or_distrib, exists_eq_left])
+
 /-! ### find -/
 
 theorem find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]

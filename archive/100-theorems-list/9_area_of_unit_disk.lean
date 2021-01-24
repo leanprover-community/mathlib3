@@ -233,7 +233,7 @@ end
 
 -- **Attempt II - via `region_under` and `region_between`, `lintegral` version**
 
-variables {α : Type*} [measure_space α] [sigma_finite (volume : measure α)]
+variables {α : Type*} [measurable_space α] {μ : measure α} [sigma_finite μ]
 
 open_locale classical
 
@@ -259,7 +259,7 @@ end
 /-- The region between two functions can be respresented as a left integral. -/
 theorem volume_region_between_eq_lintegral
   (hu : measurable u) (hv : measurable v) (hs : is_measurable s) :
-  volume.prod volume (region_between u v s) = ∫⁻ y in s, ennreal.of_real ((v - u) y) :=
+  μ.prod volume (region_between u v s) = ∫⁻ y in s, ennreal.of_real ((v - u) y) ∂μ :=
 begin
   rw measure.prod_apply,
   { have h : (λ x, volume {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)})
@@ -290,7 +290,7 @@ end
 
 /-- The volume "under" a function can be respresented as a left integral -/
 theorem volume_region_under_eq_lintegral (hv : measurable v) (hs : is_measurable s) :
-  (volume.prod volume) (region_under v s) = ∫⁻ y in s, ennreal.of_real (v y) :=
+  (μ.prod volume) (region_under v s) = ∫⁻ y in s, ennreal.of_real (v y) ∂μ :=
 begin
   rw measure.prod_apply,
   { have h : (λ x, volume {a | x ∈ s ∧ a ∈ Ico 0 (v x)}) = s.indicator (λ x, ennreal.of_real (v x)),
@@ -344,6 +344,7 @@ begin
     { exact neg_le_self zero_le_one } },
   { exact (((hc2.max continuous_const).integrable_on_compact compact_Icc).mono_set
       Ioc_subset_Icc_self).integrable },
+  { apply_instance },
 end
 
 def disc {r : ℝ} (h : 0 < r) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
@@ -406,16 +407,18 @@ begin
     { exact neg_le_self hr.le } },
   { exact (((hc2.max continuous_const).integrable_on_compact compact_Icc).mono_set
       Ioc_subset_Icc_self).integrable },
+  { apply_instance },
 end
 
 
 -- **Attempt III - via `region_under` and `region_between`, `integral` version**
 
 /-- The volume of the region between two functions can be respresented as an integral. -/
-theorem volume_region_between_eq_integral' (u_int : integrable_on u s) (v_int : integrable_on v s)
+theorem volume_region_between_eq_integral'
+  (u_int : integrable_on u s μ) (v_int : integrable_on v s μ)
   (u_meas : measurable u) (v_meas : measurable v) (hs : is_measurable s)
   (huv : ∀ x ∈ s, u x ≤ v x) :
-  volume.prod volume (region_between u v s) = ennreal.of_real (∫ y in s, (v - u) y) :=
+  μ.prod volume (region_between u v s) = ennreal.of_real (∫ y in s, (v - u) y ∂μ) :=
 begin
   let g : α → nnreal := λ x, if h : x ∈ s then ⟨v x - u x, by linarith [huv _ h]⟩ else 0,
   have h1 : (λ x, volume (prod.mk x ⁻¹' region_between u v s)) = s.indicator (λ x, ((g x):ennreal)),
@@ -429,7 +432,7 @@ begin
       rw ennreal.of_real_eq_coe_nnreal },
     { have hx : {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)} = ∅ := by simp [h],
       simp only [hx, measure_empty] } },
-  have h2 : v - u =ᵐ[volume.restrict s] (λ x, ((g x):ℝ)),
+  have h2 : v - u =ᵐ[μ.restrict s] (λ x, ((g x):ℝ)),
   { rw eventually_eq_iff_exists_mem,
     use s,
     simp only [measure.ae, mem_set_of_eq, filter.mem_mk, measure.restrict_apply hs.compl,
@@ -444,14 +447,15 @@ begin
 end
 
 /-- The volume of the region between two functions can be respresented as an integral. -/
-theorem volume_region_between_eq_integral (u_int : integrable_on u s) (v_int : integrable_on v s)
+theorem volume_region_between_eq_integral
+  (u_int : integrable_on u s μ) (v_int : integrable_on v s μ)
   (u_meas : measurable u) (v_meas : measurable v) (hs : is_measurable s)
   (huv : ∀ x ∈ s, u x ≤ v x) :
-  volume.prod volume (region_between u v s) = ennreal.of_real (∫ y in s, (v - u) y) :=
+  μ.prod volume (region_between u v s) = ennreal.of_real (∫ y in s, (v - u) y ∂μ) :=
 begin
   let g : α → nnreal := λ x, if h : x ∈ s then ⟨v x - u x, by linarith [huv _ h]⟩ else 0,
-  have h : v - u =ᵐ[volume.restrict s] (λ x, ((g x):ℝ))
-        ∧ (λ y : α, ennreal.of_real ((v-u) y)) =ᵐ[volume.restrict s] (λ x, ((g x):ennreal)),
+  have h : v - u =ᵐ[μ.restrict s] (λ x, ((g x):ℝ))
+        ∧ (λ y : α, ennreal.of_real ((v-u) y)) =ᵐ[μ.restrict s] (λ x, ((g x):ennreal)),
   { split;
     rw eventually_eq_iff_exists_mem;
     use s;
@@ -464,7 +468,8 @@ begin
     exact ennreal.of_real_eq_coe_nnreal (by linarith [huv x hx]) },
   rw [volume_region_between_eq_lintegral u_meas v_meas hs,
       integral_congr_ae h.1, lintegral_congr_ae h.2, lintegral_coe_eq_integral],
-  exact (integrable_congr h.1).mp (v_int.sub u_int),
+  { exact (integrable_congr h.1).mp (v_int.sub u_int) },
+  { apply_instance },
 end
 
 /-- The area of the unit disc, which can be represented as the region between the two curves

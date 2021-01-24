@@ -39,7 +39,8 @@ namespace polynomial
 
 variables (R S : Type*) [comm_ring R] [comm_ring S] (a : R)
 
-/-- `dickson₁` is the `n`-th Dickson polynomial of the first kind associated to the element `a∈R`-/
+/-- `dickson₁` is the `n`-th Dickson polynomial of the first kind associated to the element `a∈R`.
+-/
 noncomputable def dickson₁ : ℕ → polynomial R
 | 0       := 2
 | 1       := X

@@ -22,8 +22,7 @@ When `a=0` they are just the family of monomials `x ^ n`.
 
 ## References
 
-* Lidl, Mullen, Turnwald: "Dickson polynomials". Pitman Monographs and Surveys in Pure and Applied
-  Mathemmatics 65, Longman Group (1993)
+* [R. Lidl, G. L. Mullen and G. Turnwald, _Dickson polynomials_][MR1237403]
 
 ## TODO
 

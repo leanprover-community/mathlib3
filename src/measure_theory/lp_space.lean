@@ -671,8 +671,13 @@ def Lp {α} (E : Type*) [measurable_space α] [measurable_space E] [normed_group
 /-- make an element of Lp from a function verifying `mem_ℒp` -/
 def mem_ℒp.to_Lp {α E} [measurable_space α] [measurable_space E] [normed_group E]
   [borel_space E] [topological_space.second_countable_topology E]
-  {f : α → E} {p : ennreal} {μ : measure α} (h_mem_ℒp : mem_ℒp f p μ) : Lp E p μ :=
+  (f : α → E) {p : ennreal} {μ : measure α} (h_mem_ℒp : mem_ℒp f p μ) : Lp E p μ :=
 ⟨ae_eq_fun.mk f h_mem_ℒp.1, h_mem_ℒp.snorm_mk_lt_top⟩
+
+lemma mem_ℒp.coe_fn_to_Lp {α E} [measurable_space α] [measurable_space E] [normed_group E]
+  [borel_space E] [topological_space.second_countable_topology E] {μ : measure α} {p : ennreal}
+  {f : α → E} (hf : mem_ℒp f p μ) : hf.to_Lp f =ᵐ[μ] f :=
+ae_eq_fun.coe_fn_mk _ _
 
 namespace Lp
 
@@ -680,19 +685,13 @@ variables {α E F : Type*} [measurable_space α] {μ : measure α} [measurable_s
   [borel_space E] [topological_space.second_countable_topology E]
   [normed_group F] {p : ennreal}
 
-instance : add_comm_group (Lp E p μ) := add_subgroup.to_add_comm_group (Lp E p μ)
-
-lemma mem_Lp_iff_snorm_lt_top {f : α →ₘ[μ] E} : f ∈ Lp E p μ ↔ snorm f p μ < ⊤ :=
-by split; intro h; exact h
+lemma mem_Lp_iff_snorm_lt_top {f : α →ₘ[μ] E} : f ∈ Lp E p μ ↔ snorm f p μ < ⊤ := iff.refl _
 
 lemma antimono [finite_measure μ] {p q : ennreal} (hpq : p ≤ q) : Lp E q μ ≤ Lp E p μ :=
 λ f hf, (mem_ℒp.mem_ℒp_of_exponent_le ⟨f.ae_measurable, hf⟩ hpq).2
 
 lemma coe_fn_mk {f : α →ₘ[μ] E} (hf : snorm f p μ < ⊤) : ⇑(⟨f, hf⟩ : Lp E p μ) =ᵐ[μ] f :=
 by simp only [coe_fn_coe_base, subtype.coe_mk]
-
-lemma coe_fn_to_Lp {f : α → E} (hf : mem_ℒp f p μ) : hf.to_Lp =ᵐ[μ] f :=
-ae_eq_fun.coe_fn_mk _ _
 
 lemma snorm_lt_top (f : Lp E p μ) : snorm f p μ < ⊤ := f.prop
 
@@ -709,21 +708,21 @@ def Lp_norm (f : Lp E p μ) : ℝ := ennreal.to_real (snorm f p μ)
 
 instance : has_norm (Lp E p μ) := { norm := λ f, Lp_norm f }
 
-@[simp] lemma norm_eq_Lp_norm {f : Lp E p μ} : ∥f∥ = Lp_norm f := rfl
+@[simp] lemma Lp_norm_eq_norm {f : Lp E p μ} : Lp_norm f = ∥f∥ := rfl
 
 lemma coe_fn_zero : ⇑(0 : Lp E p μ) =ᵐ[μ] 0 := ae_eq_fun.coe_fn_zero
 
-@[simp] lemma Lp_norm_zero : Lp_norm (0 : Lp E p μ) = 0 :=
-by simp [Lp_norm, snorm_congr_ae ae_eq_fun.coe_fn_zero, snorm_zero]
+@[simp] lemma Lp_norm_zero : ∥(0 : Lp E p μ)∥ = 0 :=
+by simp [norm, Lp_norm, snorm_congr_ae ae_eq_fun.coe_fn_zero, snorm_zero]
 
 lemma mem_Lp_const (α) [measurable_space α] (μ : measure α) (c : E) [finite_measure μ] :
   @ae_eq_fun.const α _ _ μ _ c ∈ Lp E p μ :=
 (mem_ℒp_const c).snorm_mk_lt_top
 
-lemma Lp_norm_eq_zero_iff {f : Lp E p μ} (hp : 0 < p) : Lp_norm f = 0 ↔ f = 0 :=
+lemma norm_eq_zero_iff {f : Lp E p μ} (hp : 0 < p) : ∥f∥ = 0 ↔ f = 0 :=
 begin
   refine ⟨λ hf, _, λ hf, by simp [hf]⟩,
-  rw [Lp_norm, ennreal.to_real_eq_zero_iff] at hf,
+  rw [←Lp_norm_eq_norm, Lp_norm, ennreal.to_real_eq_zero_iff] at hf,
   cases hf,
   { rw snorm_eq_zero_iff (ae_measurable f) hp.ne.symm at hf,
     exact subtype.eq (ae_eq_fun.ext (hf.trans ae_eq_fun.coe_fn_zero.symm)), },
@@ -732,8 +731,8 @@ end
 
 lemma coe_fn_neg {f : Lp E p μ} : ⇑(-f) =ᵐ[μ] -f := ae_eq_fun.coe_fn_neg _
 
-@[simp] lemma Lp_norm_neg {f : Lp E p μ} : Lp_norm (-f) = Lp_norm f :=
-by rw [Lp_norm, Lp_norm, snorm_congr_ae coe_fn_neg, snorm_neg]
+@[simp] lemma norm_neg {f : Lp E p μ} : ∥-f∥ = ∥f∥ :=
+by rw [←Lp_norm_eq_norm, ←Lp_norm_eq_norm, Lp_norm, Lp_norm, snorm_congr_ae coe_fn_neg, snorm_neg]
 
 lemma coe_fn_add {f g : Lp E p μ} : ⇑(f + g) =ᵐ[μ] f + g := ae_eq_fun.coe_fn_add _ _
 
@@ -758,45 +757,39 @@ end
 
 instance [hp : fact (1 ≤ p)] : metric_space (Lp E p μ) :=
 { dist_self := λ _, by simp,
-  dist_comm := λ _ _, by { simp only [dist], rw [←Lp_norm_neg, neg_sub] },
+  dist_comm := λ _ _, by { simp only [dist, Lp_norm_eq_norm], rw [←norm_neg, neg_sub] },
   dist_triangle := dist_triangle',
-  eq_of_dist_eq_zero := λ _ _ h, by simpa [Lp_norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp),
+  eq_of_dist_eq_zero := λ _ _ h, by simpa [norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp),
     sub_eq_zero] using h, }
 
-instance [fact (1 ≤ p)] : normed_group (Lp E p μ) := { dist_eq := λ _ _, by simp [dist, norm] }
+instance [fact (1 ≤ p)] : normed_group (Lp E p μ) := { dist_eq := λ _ _, by simp }
 
 section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
-lemma mem_Lp_const_smul (c : 𝕜) (f : Lp E p μ) : c • f.val ∈ Lp E p μ :=
+lemma mem_Lp_const_smul (c : 𝕜) (f : Lp E p μ) : c • ↑f ∈ Lp E p μ :=
 begin
   rw [mem_Lp_iff_snorm_lt_top, snorm_congr_ae (ae_eq_fun.coe_fn_smul _ _), snorm_const_smul,
     ennreal.mul_lt_top_iff],
   exact or.inl ⟨ennreal.coe_lt_top, f.prop⟩,
 end
 
-instance : has_scalar 𝕜 (Lp E p μ) := { smul := λ c f, ⟨c • f.val, mem_Lp_const_smul c f⟩ }
+instance : has_scalar 𝕜 (Lp E p μ) := { smul := λ c f, ⟨c • ↑f, mem_Lp_const_smul c f⟩ }
 
 lemma coe_fn_smul {f : Lp E p μ} {c : 𝕜} : ⇑(c • f) =ᵐ[μ] c • f := ae_eq_fun.coe_fn_smul _ _
 
-@[simp] lemma Lp_norm_const_smul (c : 𝕜) (f : Lp E p μ) : Lp_norm (c • f) = ∥c∥ * Lp_norm f :=
-by rw [Lp_norm, snorm_congr_ae coe_fn_smul, snorm_const_smul c, ennreal.to_real_mul,  Lp_norm,
-    ennreal.coe_to_real, coe_nnnorm]
-
-instance : mul_action 𝕜 (Lp E p μ) :=
-{ one_smul := λ _, subtype.eq (one_smul 𝕜 _),
-  mul_smul := λ _ _ _, subtype.eq (mul_smul _ _ _) }
-
-instance : distrib_mul_action 𝕜 (Lp E p μ) :=
-{ smul_add := λ _ _ _, subtype.eq (smul_add _ _ _),
-  smul_zero := λ _, subtype.eq (smul_zero _) }
+@[simp] lemma norm_const_smul (c : 𝕜) (f : Lp E p μ) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
+by rw [←Lp_norm_eq_norm, ←Lp_norm_eq_norm,Lp_norm, snorm_congr_ae coe_fn_smul, snorm_const_smul c,
+  ennreal.to_real_mul,  Lp_norm, ennreal.coe_to_real, coe_nnnorm]
 
 instance : semimodule 𝕜 (Lp E p μ) :=
-{ add_smul := λ _ _ _, subtype.eq (add_smul _ _ _),
+{ one_smul := λ _, subtype.eq (one_smul 𝕜 _),
+  mul_smul := λ _ _ _, subtype.eq (mul_smul _ _ _),
+  smul_add := λ _ _ _, subtype.eq (smul_add _ _ _),
+  smul_zero := λ _, subtype.eq (smul_zero _),
+  add_smul := λ _ _ _, subtype.eq (add_smul _ _ _),
   zero_smul := λ _, subtype.eq (zero_smul _ _) }
-
-instance : vector_space 𝕜 (Lp E p μ) := infer_instance
 
 instance [fact (1 ≤ p)] : normed_space 𝕜 (Lp E p μ) := { norm_smul_le := λ _ _, by simp }
 

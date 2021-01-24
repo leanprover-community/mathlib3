@@ -252,16 +252,16 @@ begin
   dsimp only [region_between, Ioo, mem_set_of_eq, set_of_and],
   refine is_measurable.inter _ ((is_measurable_lt (hu.comp measurable_fst) measurable_snd).inter
     (is_measurable_lt measurable_snd (hv.comp measurable_fst))),
-  have h : {p : α × ℝ | p.1 ∈ s} = {p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ (univ : set ℝ)} := by simp,
   convert hs.prod is_measurable.univ,
+  simp only [and_true, mem_univ],
 end
 
-/-- The region between two functions can be respresented as a left integral -/
+/-- The region between two functions can be respresented as a left integral. -/
 theorem volume_region_between_eq_lintegral
   (hu : measurable u) (hv : measurable v) (hs : is_measurable s) :
   volume.prod volume (region_between u v s) = ∫⁻ y in s, ennreal.of_real ((v - u) y) :=
 begin
-  rw measure.prod_apply (is_measurable_region_between hu hv hs),
+  rw measure.prod_apply,
   { have h : (λ x, volume {a | x ∈ s ∧ a ∈ Ioo (u x) (v x)})
             = s.indicator (λ x, ennreal.of_real (v x - u x)),
     { funext x,
@@ -273,8 +273,8 @@ begin
         simp only [hx, measure_empty] } },
     dsimp only [region_between, preimage_set_of_eq],
     rw [h, lintegral_indicator];
-    simp only [hs, pi.sub_apply], },
-  { apply_instance },
+    simp only [hs, pi.sub_apply] },
+  { exact is_measurable_region_between hu hv hs },
 end
 
 /-- The volume "under" a function is measurable. -/
@@ -284,15 +284,15 @@ begin
   dsimp only [region_under, Ico, mem_set_of_eq, set_of_and],
   refine is_measurable.inter _ ((is_measurable_le measurable_const measurable_snd).inter
     (is_measurable_lt measurable_snd (hv.comp measurable_fst))),
-  have : {p : α × ℝ | p.1 ∈ s} = {p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ (univ : set ℝ)} := by simp,
   convert hs.prod is_measurable.univ,
+  simp only [and_true, mem_univ],
 end
 
 /-- The volume "under" a function can be respresented as a left integral -/
 theorem volume_region_under_eq_lintegral (hv : measurable v) (hs : is_measurable s) :
   (volume.prod volume) (region_under v s) = ∫⁻ y in s, ennreal.of_real (v y) :=
 begin
-  rw measure.prod_apply (is_measurable_region_under hv hs),
+  rw measure.prod_apply,
   { have h : (λ x, volume {a | x ∈ s ∧ a ∈ Ico 0 (v x)}) = s.indicator (λ x, ennreal.of_real (v x)),
     { funext x,
       rw indicator_apply,
@@ -303,7 +303,7 @@ begin
         simp only [hx, measure_empty] } },
     dsimp only [region_under, preimage_set_of_eq],
     rwa [h, lintegral_indicator] },
-  { apply_instance },
+  { exact is_measurable_region_under hv hs },
 end
 
 /-- The area of the unit disc, which can be represented as the region between the two curves
@@ -325,7 +325,7 @@ begin
       exact sqr_lt.mpr h.2 } },
   obtain ⟨hc1, hc2⟩ := ⟨(continuous_const.sub (continuous_pow 2)).sqrt, continuous_const.mul hc1⟩,
   convert volume_region_between_eq_lintegral (hc1.measurable).neg (hc1.measurable)
-          is_measurable_Ioc,
+            is_measurable_Ioc,
   simp only [pi.sub_apply, sub_neg_eq_add, ← two_mul],
   symmetry,
   convert lintegral_coe_eq_integral (λ x, (λ y, nnreal.of_real (2 * sqrt (1 - y^2))) x) _,
@@ -443,7 +443,7 @@ begin
           is_measurable_region_between u_meas v_meas hs],
 end
 
-
+/-- The volume of the region between two functions can be respresented as an integral. -/
 theorem volume_region_between_eq_integral (u_int : integrable_on u s) (v_int : integrable_on v s)
   (u_meas : measurable u) (v_meas : measurable v) (hs : is_measurable s)
   (huv : ∀ x ∈ s, u x ≤ v x) :
@@ -451,7 +451,7 @@ theorem volume_region_between_eq_integral (u_int : integrable_on u s) (v_int : i
 begin
   let g : α → nnreal := λ x, if h : x ∈ s then ⟨v x - u x, by linarith [huv _ h]⟩ else 0,
   have h : v - u =ᵐ[volume.restrict s] (λ x, ((g x):ℝ))
-          ∧ (λ y : α, ennreal.of_real ((v-u) y)) =ᵐ[volume.restrict s] (λ x, ((g x): ennreal)),
+        ∧ (λ y : α, ennreal.of_real ((v-u) y)) =ᵐ[volume.restrict s] (λ x, ((g x):ennreal)),
   { split;
     rw eventually_eq_iff_exists_mem;
     use s;

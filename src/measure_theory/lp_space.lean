@@ -30,8 +30,8 @@ TODO: prove that Lp is complete.
 
 * `mem_ℒp f p μ` : property that the function `f` is almost everywhere measurable and has finite
   p-seminorm for measure `μ` (`snorm f p μ < ∞`)
-* `Lp E p μ := {f : α →ₘ[μ} E // snorm f p μ < ∞}` : elements of `α →ₘ[μ] E` (see ae_eq_fun) such
-  that `snorm f p μ` is finite.
+* `Lp E p μ` : elements of `α →ₘ[μ] E` (see ae_eq_fun) such that `snorm f p μ` is finite. Defined
+  as an `add_subgroup` of `α →ₘ[μ] E`.
 
 -/
 
@@ -702,66 +702,52 @@ lemma ae_measurable (f : Lp E p μ) : ae_measurable f μ := f.val.ae_measurable
 
 lemma mem_ℒp (f : Lp E p μ) : mem_ℒp f p μ := ⟨ae_measurable f, f.prop⟩
 
-/-- The norm in Lp space (which verifies the triangle inequality only for `1 ≤ p`) -/
-def Lp_norm (f : Lp E p μ) : ℝ := ennreal.to_real (snorm f p μ)
-
-instance : has_norm (Lp E p μ) := { norm := λ f, Lp_norm f }
-
-@[simp] lemma Lp_norm_eq_norm {f : Lp E p μ} : Lp_norm f = ∥f∥ := rfl
-
 lemma coe_fn_zero : ⇑(0 : Lp E p μ) =ᵐ[μ] 0 := ae_eq_fun.coe_fn_zero
 
-@[simp] lemma Lp_norm_zero : ∥(0 : Lp E p μ)∥ = 0 :=
-by simp [norm, Lp_norm, snorm_congr_ae ae_eq_fun.coe_fn_zero, snorm_zero]
+lemma coe_fn_neg {f : Lp E p μ} : ⇑(-f) =ᵐ[μ] -f := ae_eq_fun.coe_fn_neg _
+
+lemma coe_fn_add {f g : Lp E p μ} : ⇑(f + g) =ᵐ[μ] f + g := ae_eq_fun.coe_fn_add _ _
+
+lemma coe_fn_sub {f g : Lp E p μ} : ⇑(f - g) =ᵐ[μ] f - g := ae_eq_fun.coe_fn_sub _ _
 
 lemma mem_Lp_const (α) [measurable_space α] (μ : measure α) (c : E) [finite_measure μ] :
   @ae_eq_fun.const α _ _ μ _ c ∈ Lp E p μ :=
 (mem_ℒp_const c).snorm_mk_lt_top
 
+instance : has_norm (Lp E p μ) := { norm := λ f, ennreal.to_real (snorm f p μ) }
+
+lemma norm_def (f : Lp E p μ) : ∥f∥ = ennreal.to_real (snorm f p μ) := rfl
+
+@[simp] lemma norm_zero : ∥(0 : Lp E p μ)∥ = 0 :=
+by simp [norm, snorm_congr_ae ae_eq_fun.coe_fn_zero, snorm_zero]
+
 lemma norm_eq_zero_iff {f : Lp E p μ} (hp : 0 < p) : ∥f∥ = 0 ↔ f = 0 :=
 begin
   refine ⟨λ hf, _, λ hf, by simp [hf]⟩,
-  rw [←Lp_norm_eq_norm, Lp_norm, ennreal.to_real_eq_zero_iff] at hf,
+  rw [norm_def, ennreal.to_real_eq_zero_iff] at hf,
   cases hf,
   { rw snorm_eq_zero_iff (ae_measurable f) hp.ne.symm at hf,
     exact subtype.eq (ae_eq_fun.ext (hf.trans ae_eq_fun.coe_fn_zero.symm)), },
   { exact absurd hf (snorm_ne_top f), },
 end
 
-lemma coe_fn_neg {f : Lp E p μ} : ⇑(-f) =ᵐ[μ] -f := ae_eq_fun.coe_fn_neg _
-
 @[simp] lemma norm_neg {f : Lp E p μ} : ∥-f∥ = ∥f∥ :=
-by rw [←Lp_norm_eq_norm, ←Lp_norm_eq_norm, Lp_norm, Lp_norm, snorm_congr_ae coe_fn_neg, snorm_neg]
+by rw [norm_def, norm_def, snorm_congr_ae coe_fn_neg, snorm_neg]
 
-lemma coe_fn_add {f g : Lp E p μ} : ⇑(f + g) =ᵐ[μ] f + g := ae_eq_fun.coe_fn_add _ _
-
-lemma coe_fn_sub {f g : Lp E p μ} : ⇑(f - g) =ᵐ[μ] f - g := ae_eq_fun.coe_fn_sub _ _
-
-instance : has_dist (Lp E p μ) := { dist := λ f g, Lp_norm (f - g) }
-
-@[simp] lemma dist_eq_Lp_norm_sub {f g : Lp E p μ} : dist f g = Lp_norm (f - g) := rfl
-
-private lemma dist_triangle' [hp : fact (1 ≤ p)] (f g h : Lp E p μ) :
-  dist f h ≤ dist f g + dist g h :=
-begin
-  simp only [dist, Lp_norm],
-  rw ←ennreal.to_real_add (snorm_ne_top (f - g)) (snorm_ne_top (g - h)),
-  suffices h_snorm : snorm ⇑(f - h) p μ ≤ snorm ⇑(f - g) p μ + snorm ⇑(g - h) p μ,
-  { rwa ennreal.to_real_le_to_real (snorm_ne_top (f - h)),
-    exact ennreal.add_ne_top.mpr ⟨snorm_ne_top (f - g), snorm_ne_top (g - h)⟩, },
-  have h_add : (f - h) = f - g + (g - h), by abel,
-  rw [h_add, snorm_congr_ae coe_fn_add],
-  exact snorm_add_le (ae_measurable (f - g)) (ae_measurable (g - h)) hp,
-end
-
-instance [hp : fact (1 ≤ p)] : metric_space (Lp E p μ) :=
-{ dist_self := λ _, by simp,
-  dist_comm := λ _ _, by { simp only [dist, Lp_norm_eq_norm], rw [←norm_neg, neg_sub] },
-  dist_triangle := dist_triangle',
-  eq_of_dist_eq_zero := λ _ _ h, by simpa [norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp),
-    sub_eq_zero] using h, }
-
-instance [fact (1 ≤ p)] : normed_group (Lp E p μ) := { dist_eq := λ _ _, by simp }
+instance [hp : fact (1 ≤ p)] : normed_group (Lp E p μ) :=
+normed_group.of_core _
+{ norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp),
+  triangle := begin
+    assume f g,
+    simp only [norm_def],
+    rw ← ennreal.to_real_add (snorm_ne_top f) (snorm_ne_top g),
+    suffices h_snorm : snorm ⇑(f + g) p μ ≤ snorm ⇑f p μ + snorm ⇑g p μ,
+    { rwa ennreal.to_real_le_to_real (snorm_ne_top (f + g)),
+      exact ennreal.add_ne_top.mpr ⟨snorm_ne_top f, snorm_ne_top g⟩, },
+    rw [snorm_congr_ae coe_fn_add],
+    exact snorm_add_le (ae_measurable f) (ae_measurable g) hp,
+  end,
+  norm_neg := by simp }
 
 section normed_space
 
@@ -778,10 +764,6 @@ instance : has_scalar 𝕜 (Lp E p μ) := { smul := λ c f, ⟨c • ↑f, mem_L
 
 lemma coe_fn_smul {f : Lp E p μ} {c : 𝕜} : ⇑(c • f) =ᵐ[μ] c • f := ae_eq_fun.coe_fn_smul _ _
 
-@[simp] lemma norm_const_smul (c : 𝕜) (f : Lp E p μ) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
-by rw [←Lp_norm_eq_norm, ←Lp_norm_eq_norm,Lp_norm, snorm_congr_ae coe_fn_smul, snorm_const_smul c,
-  ennreal.to_real_mul,  Lp_norm, ennreal.coe_to_real, coe_nnnorm]
-
 instance : semimodule 𝕜 (Lp E p μ) :=
 { one_smul := λ _, subtype.eq (one_smul 𝕜 _),
   mul_smul := λ _ _ _, subtype.eq (mul_smul _ _ _),
@@ -790,7 +772,12 @@ instance : semimodule 𝕜 (Lp E p μ) :=
   add_smul := λ _ _ _, subtype.eq (add_smul _ _ _),
   zero_smul := λ _, subtype.eq (zero_smul _ _) }
 
-instance [fact (1 ≤ p)] : normed_space 𝕜 (Lp E p μ) := { norm_smul_le := λ _ _, by simp }
+lemma norm_const_smul (c : 𝕜) (f : Lp E p μ) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
+by rw [norm_def, snorm_congr_ae coe_fn_smul, snorm_const_smul c,
+  ennreal.to_real_mul, ennreal.coe_to_real, coe_nnnorm, norm_def]
+
+instance [fact (1 ≤ p)] : normed_space 𝕜 (Lp E p μ) :=
+{ norm_smul_le := λ _ _, by simp [norm_const_smul] }
 
 end normed_space
 

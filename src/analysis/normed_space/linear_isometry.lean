@@ -173,7 +173,7 @@ def refl : E ≃ₗᵢ[R] E := ⟨linear_equiv.refl R E, λ x, rfl⟩
 
 variables {R E}
 
-instance : inhabited (E →ₗᵢ[R] E) := ⟨refl R E⟩
+instance : inhabited (E ≃ₗᵢ[R] E) := ⟨refl R E⟩
 
 @[simp] lemma coe_refl : ⇑(refl R E) = id := rfl
 

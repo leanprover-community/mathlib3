@@ -512,22 +512,64 @@ begin
   exact snorm'_add_le hf hg hq1_real,
 end
 
+lemma snorm_add_lt_top_of_one_le {f g : α → E} (hf : mem_ℒp f q μ) (hg : mem_ℒp g q μ)
+  (hq1 : 1 ≤ q) :
+  snorm (f + g) q μ < ⊤ :=
+lt_of_le_of_lt (snorm_add_le hf.1 hg.1 hq1) (ennreal.add_lt_top.mpr ⟨hf.2, hg.2⟩)
+
+lemma snorm'_add_lt_top_of_le_one {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ)
+  (hf_snorm : snorm' f p μ < ⊤) (hg_snorm : snorm' g p μ < ⊤) (hp_pos : 0 < p) (hp1 : p ≤ 1) :
+  snorm' (f + g) p μ < ⊤ :=
+calc (∫⁻ a, ↑(nnnorm ((f + g) a)) ^ p ∂μ) ^ (1 / p)
+    ≤ (∫⁻ a, (((λ a, (nnnorm (f a) : ennreal))
+        + (λ a, (nnnorm (g a) : ennreal))) a) ^ p ∂μ) ^ (1 / p) :
+begin
+  refine @ennreal.rpow_le_rpow _ _ (1/p) _ (by simp [hp_pos.le]),
+  refine lintegral_mono (λ a, ennreal.rpow_le_rpow _ hp_pos.le),
+  simp [←ennreal.coe_add, nnnorm_add_le],
+end
+... ≤ (∫⁻ a, (nnnorm (f a) : ennreal) ^ p + (nnnorm (g a) : ennreal) ^ p ∂μ) ^ (1 / p) :
+begin
+  refine @ennreal.rpow_le_rpow _ _ (1/p) (lintegral_mono (λ a, _)) (by simp [hp_pos.le]),
+  exact ennreal.rpow_add_le_add_rpow _ _ hp_pos hp1,
+end
+... < ⊤ :
+begin
+  refine @ennreal.rpow_lt_top_of_nonneg _ (1/p) (by simp [hp_pos.le]) _,
+  rw [lintegral_add' hf.nnnorm.ennreal_coe.ennreal_rpow_const
+    hg.nnnorm.ennreal_coe.ennreal_rpow_const, ennreal.add_ne_top, ←lt_top_iff_ne_top,
+    ←lt_top_iff_ne_top],
+  exact ⟨lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hp_pos hf_snorm,
+    lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hp_pos hg_snorm⟩,
+end
+
+lemma snorm_add_lt_top {f g : α → E} (hf : mem_ℒp f q μ) (hg : mem_ℒp g q μ) :
+  snorm (f + g) q μ < ⊤ :=
+begin
+  by_cases h0 : q = 0,
+  { simp [h0], },
+  rw ←ne.def at h0,
+  cases le_total 1 q with hq1 hq1,
+  { exact snorm_add_lt_top_of_one_le hf hg hq1, },
+  have hq_top : q ≠ ⊤, from (lt_of_le_of_lt hq1 ennreal.coe_lt_top).ne,
+  have hq_pos : 0 < q.to_real,
+  { rw [←ennreal.zero_to_real, @ennreal.to_real_lt_to_real 0 q ennreal.coe_ne_top hq_top],
+    exact ((zero_le q).lt_of_ne h0.symm), },
+  have hq1_real : q.to_real ≤ 1,
+  { rwa [←ennreal.one_to_real, @ennreal.to_real_le_to_real q 1 hq_top ennreal.coe_ne_top], },
+  rw snorm_eq_snorm' h0 hq_top,
+  rw [mem_ℒp, snorm_eq_snorm' h0 hq_top] at hf hg,
+  exact snorm'_add_lt_top_of_le_one hf.1 hg.1 hf.2 hg.2 hq_pos hq1_real,
+end
+
 section second_countable_topology
 variable [topological_space.second_countable_topology E]
 
-/-- TODO: prove mem_ℒp.add for all `q:ennreal`. `snorm_add_le` cannot be used for `q < 1` but the
-result still holds. -/
-lemma mem_ℒp.add {f g : α → E} (hf : mem_ℒp f q μ) (hg : mem_ℒp g q μ) (hq1 : 1 ≤ q) :
-  mem_ℒp (f + g) q μ :=
-begin
-  refine ⟨ae_measurable.add hf.1 hg.1, lt_of_le_of_lt (snorm_add_le hf.1 hg.1 hq1) _⟩,
-  rw ennreal.add_lt_top,
-  exact ⟨hf.2, hg.2⟩,
-end
+lemma mem_ℒp.add {f g : α → E} (hf : mem_ℒp f q μ) (hg : mem_ℒp g q μ) : mem_ℒp (f + g) q μ :=
+⟨ae_measurable.add hf.1 hg.1, snorm_add_lt_top hf hg⟩
 
-lemma mem_ℒp.sub {f g : α → E} (hf : mem_ℒp f q μ) (hg : mem_ℒp g q μ) (hq1 : 1 ≤ q) :
-  mem_ℒp (f-g) q μ :=
-by { rw sub_eq_add_neg, exact hf.add hg.neg hq1 }
+lemma mem_ℒp.sub {f g : α → E} (hf : mem_ℒp f q μ) (hg : mem_ℒp g q μ) : mem_ℒp (f - g) q μ :=
+by { rw sub_eq_add_neg, exact hf.add hg.neg }
 
 end second_countable_topology
 

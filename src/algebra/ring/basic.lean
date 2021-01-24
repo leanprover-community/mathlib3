@@ -174,6 +174,9 @@ lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
 /-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
 def odd (a : α) : Prop := ∃ k, a = 2*k + 1
 
+theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
+dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
+
 end semiring
 
 namespace add_monoid_hom
@@ -437,11 +440,7 @@ protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_
 { .. hf.semiring f zero one add mul, .. hf.comm_semigroup f mul }
 
 lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
-calc (a + b)*(a + b) = a*a + (1+1)*a*b + b*b : by simp [add_mul, mul_add, mul_comm, add_assoc]
-              ...     = a*a + 2*a*b + b*b    : by rw one_add_one_eq_two
-
-theorem dvd_add (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
-dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
+by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
 
 @[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
 

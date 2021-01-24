@@ -101,7 +101,7 @@ end
 
 @[simp] theorem powerset_len_empty (n : ℕ) {s : finset α} (h : s.card < n) :
   powerset_len n s = ∅ :=
-finset.card_eq_zero.mp (by rw [card_powerset_len, nat.choose_eq_zero_of_lt (nat.succ_le_succ h)])
+finset.card_eq_zero.mp (by rw [card_powerset_len, nat.choose_eq_zero_of_lt h])
 
 theorem powerset_len_eq_filter {n} {s : finset α} :
   powerset_len n s = (powerset s).filter (λ x, x.card = n) :=

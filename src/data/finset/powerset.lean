@@ -92,17 +92,15 @@ by cases s; simp [powerset_len, val_le_iff.symm]; refl
   card (powerset_len n s) = nat.choose (card s) n :=
 (card_pmap _ _ _).trans (card_powerset_len n s.1)
 
-@[simp] theorem powerset_len_zero (s : finset α) : powerset_len 0 s = {∅} :=
+@[simp]
+lemma powerset_len_zero (s : finset α) : finset.powerset_len 0 s = {∅} :=
 begin
-  ext,
-  rw [mem_powerset_len, mem_singleton, card_eq_zero],
-  refine ⟨λ h, h.2, λ h, _⟩,
-  rw h,
-  exact ⟨empty_subset s, rfl⟩,
+  ext, rw [mem_powerset_len, mem_singleton, card_eq_zero],
+  refine ⟨λ h, h.2, λ h, by { rw h, exact ⟨empty_subset s, rfl⟩ }⟩,
 end
 
-@[simp] theorem powerset_len_empty (n : ℕ) {s : finset α} (h : s.card ≤ n) :
-  powerset_len (n + 1) s = ∅ :=
+@[simp] theorem powerset_len_empty (n : ℕ) {s : finset α} (h : s.card < n) :
+  powerset_len n s = ∅ :=
 finset.card_eq_zero.mp (by rw [card_powerset_len, nat.choose_eq_zero_of_lt (nat.succ_le_succ h)])
 
 theorem powerset_len_eq_filter {n} {s : finset α} :

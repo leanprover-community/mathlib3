@@ -45,7 +45,7 @@ not the standard one unless there is a primitive `n`th root of unity in `R`. For
 To get the standard cyclotomic polynomials, we use `int_coeff_of_cycl`, with `R = ℂ`, to get a
 polynomial with integer coefficients and then we map it to `polynomial R`, for any ring `R`.
 To prove `cyclotomic.irreducible`, the irreducibility of `cyclotomic n ℤ`, we show in
-`minimal_polynomial_primitive_root_eq_cyclotomic` that `cyclotomic n ℤ` is the minimal polynomial of
+`minpoly_primitive_root_eq_cyclotomic` that `cyclotomic n ℤ` is the minimal polynomial of
 any `n`-th primitive root of unity `μ : K`, where `K` is a field of characteristic `0`.
 -/
 
@@ -660,35 +660,35 @@ end order
 
 end polynomial
 
-section minimial_polynomial
+section minpoly
 
 open is_primitive_root polynomial complex
 
 /-- The minimal polynomial of a primitive `n`-th root of unity `μ` divides `cyclotomic n ℤ`. -/
-lemma minimal_polynomial_primitive_root_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
+lemma minpoly_primitive_root_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
   (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
-  minimal_polynomial (is_integral h hpos) ∣ cyclotomic n ℤ :=
+  minpoly ℤ μ ∣ cyclotomic n ℤ :=
 begin
-  apply minimal_polynomial.integer_dvd (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
+  apply minpoly.integer_dvd (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
   simpa [aeval_def, eval₂_eq_eval_map, is_root.def] using is_root_cyclotomic hpos h
 end
 
 /-- `cyclotomic n ℤ` is the minimal polynomial of a primitive `n`-th root of unity `μ`. -/
-lemma minimal_polynomial_primitive_root_eq_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
+lemma cyclotomic_eq_minpoly {n : ℕ} {K : Type*} [field K] {μ : K}
   (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
-  cyclotomic n ℤ = minimal_polynomial (is_integral h hpos) :=
+  cyclotomic n ℤ = minpoly ℤ μ :=
 begin
-  refine eq_of_monic_of_dvd_of_nat_degree_le (minimal_polynomial.monic (is_integral h hpos))
-    (cyclotomic.monic n ℤ) (minimal_polynomial_primitive_root_dvd_cyclotomic h hpos) _,
-  simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minimal_polynomial h hpos
+  refine eq_of_monic_of_dvd_of_nat_degree_le (minpoly.monic (is_integral h hpos))
+    (cyclotomic.monic n ℤ) (minpoly_primitive_root_dvd_cyclotomic h hpos) _,
+  simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minpoly h hpos
 end
 
 /-- `cyclotomic n ℤ` is irreducible. -/
 lemma cyclotomic.irreducible {n : ℕ} (hpos : 0 < n) : irreducible (cyclotomic n ℤ) :=
 begin
   have h0 := (ne_of_lt hpos).symm,
-  rw [minimal_polynomial_primitive_root_eq_cyclotomic (is_primitive_root_exp n h0) hpos],
-  exact minimal_polynomial.irreducible (is_integral (is_primitive_root_exp n h0) hpos)
+  rw [cyclotomic_eq_minpoly (is_primitive_root_exp n h0) hpos],
+  exact minpoly.irreducible (is_integral (is_primitive_root_exp n h0) hpos)
 end
 
-end minimial_polynomial
+end minpoly

@@ -162,6 +162,9 @@ lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
 lemma nonempty.mono {s t : finset α} (hst : s ⊆ t) (hs : s.nonempty) : t.nonempty :=
 set.nonempty.mono hst hs
 
+lemma nonempty.forall_const {s : finset α} (h : s.nonempty) {p : Prop} : (∀ x ∈ s, p) ↔ p :=
+let ⟨x, hx⟩ := h in ⟨λ h, h x hx, λ h x hx, h⟩
+
 /-! ### empty -/
 
 /-- The empty finset -/

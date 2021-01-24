@@ -276,6 +276,23 @@ lemma monoid_with_zero_hom.ext_iff [monoid_with_zero M] [monoid_with_zero N]
   {f g : monoid_with_zero_hom M N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, monoid_with_zero_hom.ext h⟩
 
+@[simp, to_additive]
+lemma one_hom.mk_coe [has_one M] [has_one N]
+  (f : one_hom M N) (h1) : one_hom.mk f h1 = f :=
+one_hom.ext $ λ _, rfl
+@[simp, to_additive]
+lemma mul_hom.mk_coe [has_mul M] [has_mul N]
+  (f : mul_hom M N) (hmul) : mul_hom.mk f hmul = f :=
+mul_hom.ext $ λ _, rfl
+@[simp, to_additive]
+lemma monoid_hom.mk_coe [monoid M] [monoid N]
+  (f : M →* N) (h1 hmul) : monoid_hom.mk f h1 hmul = f :=
+monoid_hom.ext $ λ _, rfl
+@[simp]
+lemma monoid_with_zero_hom.mk_coe [monoid_with_zero M] [monoid_with_zero N]
+  (f : monoid_with_zero_hom M N) (h0 h1 hmul) : monoid_with_zero_hom.mk f h0 h1 hmul = f :=
+monoid_with_zero_hom.ext $ λ _, rfl
+
 end coes
 
 @[simp, to_additive]

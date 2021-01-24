@@ -775,8 +775,7 @@ begin
       congr,
       norm_num },
     rw [sub_eq_add_neg, rpow_add H, B, rpow_neg (le_of_lt H)],
-    field_simp [hx, ne_of_gt A],
-    ring }
+    field_simp }
 end
 
 lemma has_deriv_at.sqrt (hf : has_deriv_at f f' x) (hx : f x ≠ 0) :
@@ -1319,6 +1318,16 @@ begin
   { simp [h], },
 end
 
+lemma div_rpow_of_nonneg (x y : ennreal) {z : ℝ} (hz : 0 ≤ z) :
+  (x / y) ^ z = x ^ z / y ^ z :=
+begin
+  by_cases h0 : z = 0,
+  { simp [h0], },
+  rw ←ne.def at h0,
+  have hz_pos : 0 < z, from lt_of_le_of_ne hz h0.symm,
+  rw [div_eq_mul_inv, mul_rpow_of_nonneg x y⁻¹ hz, inv_rpow_of_pos hz_pos, ←div_eq_mul_inv],
+end
+
 lemma rpow_le_rpow {x y : ennreal} {z : ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
 begin
   rcases le_iff_eq_or_lt.1 h₂ with H|H, { simp [← H, le_refl] },
@@ -1407,6 +1416,18 @@ begin
   { simp at hx1,
     simp [coe_rpow_of_ne_zero h,
           nnreal.rpow_le_rpow_of_exponent_ge (bot_lt_iff_ne_bot.mpr h) hx1 hyz] }
+end
+
+lemma rpow_le_self_of_le_one {x : ennreal} {z : ℝ} (hx : x ≤ 1) (h_one_le : 1 ≤ z) : x ^ z ≤ x :=
+begin
+  nth_rewrite 1 ←ennreal.rpow_one x,
+  exact ennreal.rpow_le_rpow_of_exponent_ge hx h_one_le,
+end
+
+lemma le_rpow_self_of_one_le {x : ennreal} {z : ℝ} (hx : 1 ≤ x) (h_one_le : 1 ≤ z) : x ≤ x ^ z :=
+begin
+  nth_rewrite 0 ←ennreal.rpow_one x,
+  exact ennreal.rpow_le_rpow_of_exponent_le hx h_one_le,
 end
 
 lemma rpow_pos_of_nonneg {p : ℝ} {x : ennreal} (hx_pos : 0 < x) (hp_nonneg : 0 ≤ p) : 0 < x^p :=

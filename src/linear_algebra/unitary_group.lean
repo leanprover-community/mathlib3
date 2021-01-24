@@ -8,7 +8,7 @@ import linear_algebra.nonsingular_inverse
 import data.complex.basic
 
 /-!
-# The Unitrary Group
+# The Unitary Group
 
 This file defines elements of the unitary group `unitary_group n α`, where `α` is a `star_ring`.
 This consists of all `n` by `n` matrices with entries in `α` such that the star-transpose is its
@@ -45,11 +45,18 @@ section
 variables (n : Type u) [fintype n] [decidable_eq n]
 variables (α : Type v) [comm_ring α] [star_ring α]
 
+def unitary_submonoid : submonoid (matrix n n α) :=
+{ carrier := {A | star A ⬝ A = 1},
+  one_mem' := show star 1 ⬝ 1 = 1, by { rw [star_one, matrix.one_mul] },
+  mul_mem' := λ A B (hA : star A ⬝ A = 1) (hB : star B ⬝ B = 1), show star (A ⬝ B) ⬝ (A ⬝ B) = 1,
+    by { rwa [star_mul, ←matrix.mul_assoc, matrix.mul_assoc _ _ A, hA, matrix.mul_one] } }
+
 /--
   `unitary_group n` is the group of `n` by `n` complex matrices where the conjugate transpose is
   the inverse.
 -/
-def unitary_group : Type* := {A : matrix n n α // star A ⬝ A = 1}
+@[derive monoid]
+def unitary_group : Type* := unitary_submonoid n α
 
 end
 
@@ -58,6 +65,8 @@ variables {α : Type v} [comm_ring α] [star_ring α]
 namespace unitary_group
 
 variables {n : Type u} [decidable_eq n] [fintype n]
+
+lemma star_mul_self (A : unitary_group n α) : star A.1 ⬝ A.1 = 1 := A.2
 
 instance coe_matrix : has_coe (unitary_group n α) (matrix n n α) := ⟨subtype.val⟩
 
@@ -81,14 +90,7 @@ iff.trans subtype.ext_iff_val ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix
 
 instance : has_inv (unitary_group n α) :=
 ⟨λ A, ⟨star A.1, matrix.nonsing_inv_left_right _ _ $
-  by { dsimp only, rw [star_star, A.2]}⟩⟩
-
-instance : has_mul (unitary_group n α) :=
-⟨λ A B, ⟨A.1 ⬝ B.1, by rw [star_mul, ←matrix.mul_assoc,
-                                     matrix.mul_assoc _ _ A.1, A.2, matrix.mul_one, B.2],⟩⟩
-
-instance : has_one (unitary_group n α) :=
-⟨⟨1, by rw [star_one, matrix.one_mul]⟩⟩
+  by { dsimp only, rw [star_star, star_mul_self]}⟩⟩
 
 instance : inhabited (unitary_group n α) := ⟨1⟩
 
@@ -119,13 +121,9 @@ matrix.to_lin'_one
 end coe_lemmas
 
 instance : group (unitary_group n α) :=
-{ mul_assoc := λ A B C, subtype.eq (A.val.mul_assoc B.val C.val),
-  one_mul := λ M, subtype.eq $ one_mul _,
-  mul_one := λ M, subtype.eq $ mul_one _,
-  mul_left_inv := λ A, subtype.eq A.2,
-  ..unitary_group.has_mul,
+{ mul_left_inv := λ A, subtype.eq A.2,
   ..unitary_group.has_inv,
-  ..unitary_group.has_one }
+  ..unitary_group.monoid n α }
 
 /-- `to_linear_equiv A` is matrix multiplication of vectors by `A`, as a linear equivalence. -/
 def to_linear_equiv (A : unitary_group n α) : (n → α) ≃ₗ[α] (n → α) :=

@@ -126,7 +126,10 @@ meta def sf.collapse_restricted_quantifiers_core : sf → tactic sf
   expr.lam _ _ py pred ← pure pred,
   should_collapse ← sf.collapse_restricted_quantifiers_pred py,
   if ¬ should_collapse then pure s else do
-  a1 ← pure $ [app_arg, lam_var_type], -- [hack] There is a bug in the addresing code. Second binder has the address of the first binder!
+  -- [FIXME] There is a bug in the core addresing code that is fixed by this commit:
+  -- https://github.com/leanprover-community/lean/pull/520
+  -- once that is merged, swap the dfns for a1 and a2 below.
+  a1 ← pure $ [app_arg, lam_var_type],
   a2 ← pure $ [app_arg, lam_body, app_arg, lam_body],
   (e1, s1) ← sf.follow a1 a,
   (e2, s2) ← sf.follow a2 a,

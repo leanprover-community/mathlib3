@@ -1026,6 +1026,19 @@ begin
   simp only [span_singleton_le_iff_mem],
 end
 
+lemma span_eq_sup_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, span R {x} :=
+begin
+  apply le_antisymm,
+  { simp_rw [le_supr_iff, supr_le_iff],
+    intros u h,
+    rw span_le,
+    exact λ x hx, (span_singleton_le_iff_mem x u).mp (h x hx), },
+  { simp only [supr_le_iff],
+    intros x hx,
+    apply span_mono,
+    exact singleton_subset_iff.mpr hx },
+end
+
 /-- The product of two submodules is a submodule. -/
 def prod : submodule R (M × M₂) :=
 { carrier   := set.prod p q,

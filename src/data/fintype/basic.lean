@@ -229,6 +229,77 @@ def of_surjective [decidable_eq β] [fintype α] (f : α → β) (H : function.s
   fintype β :=
 ⟨univ.image f, λ b, let ⟨a, e⟩ := H b in e ▸ mem_image_of_mem _ (mem_univ _)⟩
 
+end fintype
+
+section inv
+
+variables [fintype α]
+
+lemma function.injective.exists_unique_fintype_of_mem_range {f : α → β} (hf : function.injective f)
+  {b : β} (hb : b ∈ set.range f) : ∃! a, a ∈ (finset.univ : finset α) ∧ f a = b :=
+begin
+  obtain ⟨a, rfl, ha⟩ := hf.exists_unique_of_mem_range hb,
+  exact ⟨a, ⟨finset.mem_univ a, rfl⟩, λ a' ha', ha a' ha'.right⟩
+end
+
+variables [decidable_eq β]
+
+section injective
+
+variables {f : α → β} (hf : function.injective f) {b : β} (hb : b ∈ set.range f)
+
+
+/--
+The inverse of an `injective` function `f : α → β`, given the hypothesis that the input `b : β`
+is in the `set.range f`. This is the computable version of `function.inv_fun` that requires
+`fintype α` and `decidable_eq β`. This function should not usually be used for actual computation
+because for most cases, an explicit inverse can be stated that has better computational properties.
+This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
+`N = fintype.card α`.
+-/
+def function.injective.inv_of_mem_range : α :=
+finset.choose (λ a, f a = b) finset.univ (hf.exists_unique_fintype_of_mem_range hb)
+
+@[simp] lemma function.injective.left_inv_of_inv_of_mem_range :
+  f (hf.inv_of_mem_range hb) = b :=
+(finset.choose_spec (λ a, f a = b) finset.univ (hf.exists_unique_fintype_of_mem_range hb)).right
+
+@[simp] lemma function.injective.right_inv_of_inv_of_mem_range (a : α) :
+  hf.inv_of_mem_range (set.mem_range_self a : f a ∈ set.range f) = a :=
+hf (finset.choose_spec (λ a', f a' = f a) finset.univ
+  (hf.exists_unique_fintype_of_mem_range (set.mem_range_self a))).right
+
+end injective
+
+section embedding
+
+variables (f : α ↪ β) {b : β} (hb : b ∈ set.range f)
+
+/--
+The inverse of an embedding `f : α ↪ β`, given the hypothesis that the input `b : β`
+is in the `set.range f`. This is the computable version of `function.inv_fun` that requires
+`fintype α` and `decidable_eq β`. This function should not usually be used for actual computation
+because for most cases, an explicit inverse can be stated that has better computational properties.
+This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
+`N = fintype.card α`.
+-/
+def function.embedding.inv_of_mem_range : α :=
+f.injective.inv_of_mem_range hb
+
+@[simp] lemma function.embedding.left_inv_of_inv_of_mem_range :
+  f (f.inv_of_mem_range hb) = b :=
+f.injective.left_inv_of_inv_of_mem_range hb
+
+@[simp] lemma function.embedding.right_inv_of_inv_of_mem_range (a : α) :
+  f.inv_of_mem_range (set.mem_range_self a : f a ∈ set.range f) = a :=
+f.injective.right_inv_of_inv_of_mem_range a
+
+end embedding
+
+end inv
+
+namespace fintype
+
 /-- Given an injective function to a fintype, the domain is also a
 fintype. This is noncomputable because injectivity alone cannot be
 used to construct preimages. -/

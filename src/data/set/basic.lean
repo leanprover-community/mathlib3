@@ -1782,6 +1782,10 @@ lemma injective.nonempty_apply_iff {f : set α → set β} (hf : injective f)
   (h2 : f ∅ = ∅) {s : set α} : (f s).nonempty ↔ s.nonempty :=
 by rw [← ne_empty_iff_nonempty, ← h2, ← ne_empty_iff_nonempty, hf.ne_iff]
 
+lemma injective.exists_unique_of_mem_range (hf : injective f) {b : β} (hb : b ∈ range f) :
+  ∃! a, f a = b :=
+by { obtain ⟨a, rfl⟩ := hb, exact ⟨a, rfl, λ a' ha', hf ha'⟩ }
+
 end function
 open function
 

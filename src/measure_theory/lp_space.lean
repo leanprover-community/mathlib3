@@ -682,8 +682,7 @@ ae_eq_fun.coe_fn_mk _ _
 namespace Lp
 
 variables {α E F : Type*} [measurable_space α] {μ : measure α} [measurable_space E] [normed_group E]
-  [borel_space E] [topological_space.second_countable_topology E]
-  [normed_group F] {p : ennreal}
+  [borel_space E] [topological_space.second_countable_topology E] {p : ennreal}
 
 lemma mem_Lp_iff_snorm_lt_top {f : α →ₘ[μ] E} : f ∈ Lp E p μ ↔ snorm f p μ < ⊤ := iff.refl _
 

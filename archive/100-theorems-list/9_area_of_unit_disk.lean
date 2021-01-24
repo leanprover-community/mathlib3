@@ -6,7 +6,6 @@ Authors: James Arthur, Benjamin Davidson, Andrew Souther
 
 import topology.metric_space.basic
 import measure_theory.interval_integral
-import measure_theory.prod
 import analysis.special_functions.trigonometric
 import analysis.mean_inequalities
 
@@ -264,7 +263,7 @@ lemma is_measurable_region_under (hg : measurable g) (hs : is_measurable s) :
 begin
   dsimp only [region_under, Ico, mem_set_of_eq, set_of_and],
   refine is_measurable.inter _ ((is_measurable_le measurable_const measurable_snd).inter
-    (is_measurable_lt measurable_snd (hv.comp measurable_fst))),
+    (is_measurable_lt measurable_snd (hg.comp measurable_fst))),
   convert hs.prod is_measurable.univ,
   simp only [and_true, mem_univ],
 end

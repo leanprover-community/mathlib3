@@ -80,6 +80,7 @@ src/algebraic_geometry/stalks.lean : line 47 : ERR_LIN : Line has more than 100 
 src/algebraic_geometry/stalks.lean : line 48 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/basic.lean : line 790 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 205 : ERR_LIN : Line has more than 100 characters
+src/analysis/analytic/composition.lean : line 520 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/deriv.lean : line 1105 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/local_extr.lean : line 22 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/local_extr.lean : line 305 : ERR_LIN : Line has more than 100 characters

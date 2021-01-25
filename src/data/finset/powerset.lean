@@ -92,8 +92,7 @@ by cases s; simp [powerset_len, val_le_iff.symm]; refl
   card (powerset_len n s) = nat.choose (card s) n :=
 (card_pmap _ _ _).trans (card_powerset_len n s.1)
 
-@[simp]
-lemma powerset_len_zero (s : finset α) : finset.powerset_len 0 s = {∅} :=
+@[simp] lemma powerset_len_zero (s : finset α) : finset.powerset_len 0 s = {∅} :=
 begin
   ext, rw [mem_powerset_len, mem_singleton, card_eq_zero],
   refine ⟨λ h, h.2, λ h, by { rw h, exact ⟨empty_subset s, rfl⟩ }⟩,
@@ -106,6 +105,17 @@ finset.card_eq_zero.mp (by rw [card_powerset_len, nat.choose_eq_zero_of_lt h])
 theorem powerset_len_eq_filter {n} {s : finset α} :
   powerset_len n s = (powerset s).filter (λ x, x.card = n) :=
 by { ext, simp [mem_powerset_len] }
+
+lemma powerset_card_bind [decidable_eq (finset α)] (s : finset α) :
+  finset.powerset s = (range (s.card + 1)).bind (λ i, powerset_len i s) :=
+begin
+  refine ext (λ a, ⟨λ ha, _, λ ha, _ ⟩),
+  { rw mem_bind,
+    exact ⟨a.card, mem_range.mpr (nat.lt_succ_of_le (card_le_of_subset (mem_powerset.mp ha))),
+      mem_powerset_len.mpr ⟨mem_powerset.mp ha, rfl⟩⟩ },
+  { rcases mem_bind.mp ha with ⟨i, hi, ha⟩,
+    exact mem_powerset.mpr (mem_powerset_len.mp ha).1, }
+end
 
 end powerset_len
 end finset

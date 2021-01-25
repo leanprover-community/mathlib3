@@ -168,4 +168,27 @@ begin
     exact ne_insert_of_not_mem _ _ (not_mem_of_mem_powerset_of_not_mem h₁ h) }
 end
 
+
+lemma powerset_prod [comm_monoid β] (s : finset α) [decidable_eq (finset α)] (f : finset α → β) :
+  ∏ t in powerset s, f t = ∏ j in range (card s + 1), ∏ t in powerset_len j s, f t :=
+begin
+  rw [powerset_card_bind, prod_bind],
+  intros i hi j hj hij,
+  rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
+  intros x hx hc hnc,
+  apply hij,
+  rwa ← hc,
+end
+
+lemma powerset_sum [add_comm_monoid β] (s : finset α) [decidable_eq (finset α)] (f : finset α → β) :
+  ∑ t in powerset s, f t = ∑ j in range (card s + 1), ∑ t in powerset_len j s, f t :=
+begin
+  rw [powerset_card_bind, sum_bind],
+  intros i hi j hj hij,
+  rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
+  intros x hx hc hnc,
+  apply hij,
+  rwa ← hc,
+end
+
 end finset

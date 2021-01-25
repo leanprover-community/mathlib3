@@ -72,7 +72,7 @@ end
 
 variables [decidable_eq β]
 
-lemma hall_cond_of_erase (a : α) (b : β)
+lemma hall_cond_of_erase {r : α → finset β} {a : α} (b : β)
   (ha : ∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (A.bind r).card)
   (A' : finset {a' : α | a' ≠ a}) :
   A'.card ≤ (A'.bind (λ a', (r a').erase b)).card :=
@@ -129,7 +129,7 @@ begin
   have card_α'_le : fintype.card α' ≤ n,
   { rw [set.card_ne_eq, hn],
     exact le_refl _, },
-  rcases ih r' card_α'_le (hall_cond_of_erase r a b ha) with ⟨f', hfinj, hfr⟩,
+  rcases ih r' card_α'_le (hall_cond_of_erase b ha) with ⟨f', hfinj, hfr⟩,
   /- Extend the resulting function. -/
   refine ⟨λ x, if h : x = a then b else f' ⟨x, h⟩, _, _⟩,
   { rintro x₁ x₂,
@@ -147,7 +147,7 @@ begin
       exact hfr.2, }, },
 end
 
-lemma hall_cond_of_restrict {α : Type u} (r : α → finset β) (A : finset α)
+lemma hall_cond_of_restrict {α : Type u} {r : α → finset β} {A : finset α}
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
   (A' : finset (A : set α)) :
   A'.card ≤ (A'.bind (λ a', r a')).card :=
@@ -160,7 +160,7 @@ begin
     simp, },
 end
 
-lemma hall_cond_of_compl {α : Type u} (r : α → finset β) (A : finset α)
+lemma hall_cond_of_compl {α : Type u} {r : α → finset β} {A : finset α}
   (huA : A.card = (A.bind r).card)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
   (B : finset (Aᶜ : set α)) :
@@ -219,7 +219,7 @@ begin
     rw ←hn,
     convert (card_lt_iff_ne_univ _).mpr hnA,
     convert fintype.card_coe _ },
-  rcases ih r' card_α'_le (hall_cond_of_restrict r A hr) with ⟨f', hf', hAf'⟩,
+  rcases ih r' card_α'_le (hall_cond_of_restrict hr) with ⟨f', hf', hAf'⟩,
   /- Restrict to `Aᶜ` in the domain and `(A.bind r)ᶜ` in the codomain. -/
   let α'' := (A : set α)ᶜ,
   let r'' : α'' → finset β := λ a'', r a'' \ A.bind r,
@@ -229,7 +229,7 @@ begin
     convert (card_compl_lt_iff_nonempty _).mpr hA,
     convert fintype.card_coe _,
     rw coe_compl, },
-  rcases ih r'' card_α''_le (hall_cond_of_compl r A huA hr) with ⟨f'', hf'', hAf''⟩,
+  rcases ih r'' card_α''_le (hall_cond_of_compl huA hr) with ⟨f'', hf'', hAf''⟩,
   /- Put them together -/
   have f'_mem_bind : ∀ {x'} (hx' : x' ∈ A), f' ⟨x', hx'⟩ ∈ A.bind r,
   { intros,
@@ -278,7 +278,7 @@ Here we combine the base case and the inductive step into
 a full strong induction proof, thus completing the proof
 of the second direction.
 -/
-theorem hall_hard_inductive (n : ℕ) (hn : fintype.card α = n)
+theorem hall_hard_inductive {r : α → finset β} {n : ℕ} (hn : fintype.card α = n)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin
@@ -290,7 +290,7 @@ begin
   { exact hall_hard_inductive_zero r hn },
   { apply hall_hard_inductive_step hn hr,
     introsI α' _ r' hα',
-    exact ih (fintype.card α') (nat.lt_succ_of_le hα') r' rfl, },
+    exact ih (fintype.card α') (nat.lt_succ_of_le hα') rfl, },
 end
 
 end hall_marriage_theorem
@@ -303,13 +303,13 @@ sets has at least `k` elements.
 
 Recall that `A.bind s` is the union of all the sets `s i` for `i ∈ A`.
 -/
-theorem all_card_le_bind_card_iff_exists_injective
+theorem finset.all_card_le_bind_card_iff_exists_injective
   {ι α : Type*} [fintype ι] [decidable_eq α] (s : ι → finset α) :
   (∀ (A : finset ι), A.card ≤ (A.bind s).card)
   ↔ (∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ s x) :=
 begin
   split,
-  { exact hall_marriage_theorem.hall_hard_inductive s (fintype.card ι) rfl },
+  { exact hall_marriage_theorem.hall_hard_inductive rfl },
   { rintro ⟨f, hf₁, hf₂⟩ A,
     rw ←card_image_of_injective A hf₁,
     apply card_le_of_subset,
@@ -340,7 +340,7 @@ an injective function `α → β` respecting the relation iff for every
 
 If `[fintype β]`, then `[∀ (a : α), fintype (rel.image r {a})]` is automatically implied.
 -/
-theorem all_card_le_rel_image_card_iff_exists_injective
+theorem fintype.all_card_le_rel_image_card_iff_exists_injective
   {α β : Type*} [fintype α] [decidable_eq β]
   (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})] :
   (∀ (A : finset α), A.card ≤ fintype.card (rel.image r A))
@@ -356,7 +356,7 @@ begin
   have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
   { simp [rel.image], },
   simp only [h, h'],
-  apply all_card_le_bind_card_iff_exists_injective,
+  apply finset.all_card_le_bind_card_iff_exists_injective,
 end
 
 /--
@@ -364,7 +364,7 @@ This is a version of Hall's Marriage Theorem in terms of a relation
 between finite types.  It is like `hall_rel` but uses `finset.filter`
 rather than `rel.image`.
 -/
-theorem all_card_le_filter_rel_iff_exists_injective
+theorem fintype.all_card_le_filter_rel_iff_exists_injective
   {α β : Type*} [fintype α] [fintype β]
   (r : α → β → Prop) [∀ a, decidable_pred (r a)] :
   (∀ (A : finset α), A.card ≤ (univ.filter (λ (b : β), ∃ a ∈ A, r a b)).card)
@@ -379,5 +379,5 @@ begin
   have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
   { simp, },
   simp_rw [h, h'],
-  apply all_card_le_bind_card_iff_exists_injective,
+  apply finset.all_card_le_bind_card_iff_exists_injective,
 end

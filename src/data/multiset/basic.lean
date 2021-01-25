@@ -822,7 +822,8 @@ lemma sum_map_mul_right [semiring β] {b : β} {s : multiset α} {f : α → β}
   sum (s.map (λa, f a * b)) = sum (s.map f) * b :=
 multiset.induction_on s (by simp) (assume a s ih, by simp [ih, add_mul])
 
-theorem prod_ne_zero {R : Type*} [integral_domain R] {m : multiset R} :
+theorem prod_ne_zero {R : Type*} [comm_semiring R] [no_zero_divisors R] [nontrivial R]
+  {m : multiset R} :
   (∀ x ∈ m, (x : _) ≠ 0) → m.prod ≠ 0 :=
 multiset.induction_on m (λ _, one_ne_zero) $ λ hd tl ih H,
   by { rw forall_mem_cons at H, rw prod_cons, exact mul_ne_zero H.1 (ih H.2) }

@@ -279,7 +279,7 @@ def mod (m k : ℕ+) : ℕ+ := (mod_div m k).1
 -/
 def div (m k : ℕ+) : ℕ  := (mod_div m k).2
 
-theorem mod_add_div (m k : ℕ+) : ((mod m k) : ℕ) + k * (div m k) = (m : ℕ) :=
+theorem mod_add_div (m k : ℕ+) : ((mod m k)  + k * (div m k) : ℕ) = m :=
 begin
   let h₀ := nat.mod_add_div (m : ℕ) (k : ℕ),
   have : ¬ ((m : ℕ) % (k : ℕ) = 0 ∧ (m : ℕ) / (k : ℕ) = 0),
@@ -289,7 +289,7 @@ begin
   exact (this.trans h₀),
 end
 
-theorem div_add_mod (m k : ℕ+) : (k : ℕ) * (div m k) + mod m k = m :=
+theorem div_add_mod (m k : ℕ+) : (k * (div m k) + mod m k : ℕ) = m :=
 (add_comm _ _).trans (mod_add_div _ _)
 
 theorem mod_coe (m k : ℕ+) :

@@ -171,6 +171,19 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
   add_mem' := λ a b ha hb, s.to_add_submonoid.closure_add_self_subset ⟨a, b, ha, hb, rfl⟩,
   smul_mem' := λ c x hx, s.closure_smul_self_subset ⟨⟨c, x⟩, ⟨set.mem_univ _, hx⟩, rfl⟩ }
 
+lemma submodule.submodule_topological_closure (s : submodule R M) :
+  s ≤ s.topological_closure :=
+subset_closure
+
+lemma submodule.is_closed_topological_closure (s : submodule R M) :
+  is_closed (s.topological_closure : set M) :=
+by convert is_closed_closure
+
+lemma submodule.topological_closure_minimal
+  (s : submodule R M) {t : submodule R M} (h : s ≤ t) (ht : is_closed t) :
+  s.topological_closure ≤ t :=
+closure_minimal h ht
+
 end closure
 
 section

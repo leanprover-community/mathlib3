@@ -170,6 +170,19 @@ def submonoid.topological_closure (s : submonoid M) : submonoid M :=
   one_mem' := subset_closure s.one_mem,
   mul_mem' := λ a b ha hb, s.closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩ }
 
+lemma submonoid.submonoid_topological_closure (s : submonoid M) :
+  s ≤ s.topological_closure :=
+subset_closure
+
+lemma submonoid.is_closed_topological_closure (s : submonoid M) :
+  is_closed (s.topological_closure : set M) :=
+by convert is_closed_closure
+
+lemma submonoid.topological_closure_minimal
+  (s : submonoid M) {t : submonoid M} (h : s ≤ t) (ht : is_closed t) :
+  s.topological_closure ≤ t :=
+closure_minimal h ht
+
 @[to_additive exists_open_nhds_zero_half]
 lemma exists_open_nhds_one_split {s : set M} (hs : s ∈ 𝓝 (1 : M)) :
   ∃ V : set M, is_open V ∧ (1 : M) ∈ V ∧ ∀ (v ∈ V) (w ∈ V), v * w ∈ s :=

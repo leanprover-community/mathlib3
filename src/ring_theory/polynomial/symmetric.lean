@@ -46,7 +46,7 @@ namespace mv_polynomial
 variables {σ : Type*} {R : Type*}
 variables {τ : Type*} {S : Type*}
 
-/-- A mv_polynomial φ is symmetric if it is invariant under
+/-- A mv_polynomial `φ` is symmetric if it is invariant under
 permutations of its variables by the  `rename` operation -/
 def is_symmetric [comm_semiring R] (φ : mv_polynomial σ R) : Prop :=
 ∀ e : perm σ, rename e φ = φ

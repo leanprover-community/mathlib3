@@ -2511,14 +2511,15 @@ end
 
 /-- An orthonormal set in an `inner_product_space` is maximal, if and only if the closure of its
 span is the whole space. -/
-lemma maximal_orthonormal_iff_dense_span (hv : orthonormal 𝕜 (coe : v → E)) :
-  (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ closure (span 𝕜 v : set E) = ⊤ :=
+lemma maximal_orthonormal_iff_dense_span [complete_space E] (hv : orthonormal 𝕜 (coe : v → E)) :
+  (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ (span 𝕜 v).topological_closure = ⊤ :=
 by rw [maximal_orthonormal_iff_orthogonal_complement_eq_bot hv, ← submodule.orthogonal_eq_top_iff,
-  ← (span 𝕜 v).orthogonal_orthogonal_eq_closure, submodule.coe_eq_top_iff_eq_top]
+  (span 𝕜 v).orthogonal_orthogonal_eq_closure]
 
 /-- Any orthonormal subset can be extended to an orthonormal set whose span is dense. -/
-lemma exists_subset_is_orthonormal_dense_span (hv : orthonormal 𝕜 (coe : v → E)) :
-  ∃ u ⊇ v, orthonormal 𝕜 (coe : u → E) ∧ closure (span 𝕜 u : set E) = ⊤ :=
+lemma exists_subset_is_orthonormal_dense_span
+  [complete_space E] (hv : orthonormal 𝕜 (coe : v → E)) :
+  ∃ u ⊇ v, orthonormal 𝕜 (coe : u → E) ∧ (span 𝕜 u).topological_closure = ⊤ :=
 begin
   obtain ⟨u, hus, hu, hu_max⟩ := exists_maximal_orthonormal hv,
   rw maximal_orthonormal_iff_dense_span hu at hu_max,
@@ -2527,8 +2528,8 @@ end
 
 variables (𝕜 E)
 /-- An inner product space admits an orthonormal set whose span is dense. -/
-lemma exists_is_orthonormal_dense_span :
-  ∃ u : set E, orthonormal 𝕜 (coe : u → E) ∧ closure (span 𝕜 u : set E) = ⊤ :=
+lemma exists_is_orthonormal_dense_span [complete_space E] :
+  ∃ u : set E, orthonormal 𝕜 (coe : u → E) ∧ (span 𝕜 u).topological_closure = ⊤ :=
 let ⟨u, hus, hu, hu_max⟩ := exists_subset_is_orthonormal_dense_span (orthonormal_empty 𝕜 E) in
 ⟨u, hu, hu_max⟩
 variables {𝕜 E}

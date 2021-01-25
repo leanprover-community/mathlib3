@@ -718,36 +718,36 @@ end
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
-lemma inner_right_finsupp_orthonormal {v : ι → E} (he : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
+lemma orthonormal.inner_right_finsupp {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
   ⟪v i, finsupp.total ι E 𝕜 v l⟫ = l i :=
-by simp [finsupp.total_apply, finsupp.inner_sum, orthonormal_iff_ite.mp he]
+by simp [finsupp.total_apply, finsupp.inner_sum, orthonormal_iff_ite.mp hv]
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
-lemma inner_left_finsupp_orthonormal {v : ι → E} (he : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
+lemma orthonormal.inner_left_finsupp {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
   ⟪finsupp.total ι E 𝕜 v l, v i⟫ = conj (l i) :=
-by rw [← inner_conj_sym, inner_right_finsupp_orthonormal he]
+by rw [← inner_conj_sym, hv.inner_right_finsupp]
 
 /-- An orthonormal set is linearly independent. -/
-lemma linear_independent_of_orthonormal {v : ι → E} (hv : orthonormal 𝕜 v) :
+lemma orthonormal.linear_independent {v : ι → E} (hv : orthonormal 𝕜 v) :
   linear_independent 𝕜 v :=
 begin
   rw linear_independent_iff,
   intros l hl,
   ext i,
   have key : ⟪v i, finsupp.total ι E 𝕜 v l⟫ = ⟪v i, 0⟫ := by rw hl,
-  simpa [inner_right_finsupp_orthonormal hv] using key
+  simpa [hv.inner_right_finsupp] using key
 end
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
 set. -/
-lemma inner_finsupp_orthonormal_eq_zero
+lemma orthonormal.inner_finsupp_eq_zero
   {v : ι → E} (hv : orthonormal 𝕜 v) {s : set ι} {i : ι} (hi : i ∉ s) {l : ι →₀ 𝕜}
   (hl : l ∈ finsupp.supported 𝕜 𝕜 s) :
   ⟪finsupp.total ι E 𝕜 v l, v i⟫ = 0 :=
 begin
   rw finsupp.mem_supported' at hl,
-  simp [inner_left_finsupp_orthonormal hv, hl i hi],
+  simp [hv.inner_left_finsupp, hl i hi],
 end
 
 /- The material that follows, culminating in the existence of a maximal orthonormal subset, is
@@ -803,7 +803,7 @@ open finite_dimensional
 lemma is_basis_of_orthonormal_of_card_eq_findim [fintype ι] [nonempty ι] {v : ι → E}
   (hv : orthonormal 𝕜 v) (card_eq : fintype.card ι = findim 𝕜 E) :
   is_basis 𝕜 v :=
-is_basis_of_linear_independent_of_card_eq_findim (linear_independent_of_orthonormal hv) card_eq
+is_basis_of_linear_independent_of_card_eq_findim hv.linear_independent card_eq
 
 end orthonormal_sets
 
@@ -2153,10 +2153,7 @@ end
 
 /-- `K` and `Kᗮ` have trivial intersection. -/
 lemma submodule.orthogonal_disjoint : disjoint K Kᗮ :=
-begin
-  simp_rw [submodule.disjoint_def, submodule.mem_orthogonal],
-  exact λ x hx ho, inner_self_eq_zero.1 (ho x hx)
-end
+by simp [disjoint_iff, K.inf_orthogonal_eq_bot]
 
 /-- `Kᗮ` can be characterized as the intersection of the kernels of the operations of
 inner product with each of the elements of `K`. -/
@@ -2506,7 +2503,7 @@ begin
         ∃ l ∈ finsupp.supported 𝕜 𝕜 (coe ⁻¹' v : set u), (finsupp.total ↥u E 𝕜 coe) l = y,
       { rw ← finsupp.mem_span_iff_total,
         simp [huv, inter_eq_self_of_subset_left, hy] },
-      exact inner_finsupp_orthonormal_eq_zero hu hxv' hl }
+      exact hu.inner_finsupp_eq_zero hxv' hl }
 end
 
 /-- An orthonormal set in an `inner_product_space` is maximal, if and only if the closure of its
@@ -2545,7 +2542,7 @@ begin
   rw submodule.orthogonal_eq_bot_iff hv_compl,
   have hv_coe : range (coe : v → E) = v := by simp,
   split,
-  { refine λ h, ⟨linear_independent_of_orthonormal hv, _⟩,
+  { refine λ h, ⟨hv.linear_independent, _⟩,
     convert h },
   { intros h,
     convert ← h.2 }

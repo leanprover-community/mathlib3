@@ -150,7 +150,7 @@ section has_continuous_mul
 variables [topological_space M] [monoid M] [has_continuous_mul M]
 
 @[to_additive]
-lemma submonoid.closure_mul_self_subset (s : submonoid M) :
+lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
   (closure (s : set M)) * closure (s : set M) ⊆ closure (s : set M) :=
 calc
 (closure (s : set M)) * closure (s : set M)
@@ -160,9 +160,11 @@ calc
 ... = closure s : by simp [s.submonoid_mul_self_eq]
 
 @[to_additive]
-lemma submonoid.closure_mul_self_eq (s : submonoid M) :
+lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :
   (closure (s : set M)) * closure (s : set M) = closure (s : set M) :=
-subset.antisymm s.closure_mul_self_subset (λ x hx, ⟨x, 1, hx, subset_closure s.one_mem, mul_one _⟩)
+subset.antisymm
+  s.top_closure_mul_self_subset
+  (λ x hx, ⟨x, 1, hx, subset_closure s.one_mem, mul_one _⟩)
 
 /-- The (topological-space) closure of a submonoid of a space `M` with `has_continuous_mul` is
 itself a submonoid. -/
@@ -170,7 +172,7 @@ itself a submonoid. -/
 def submonoid.topological_closure (s : submonoid M) : submonoid M :=
 { carrier := closure (s : set M),
   one_mem' := subset_closure s.one_mem,
-  mul_mem' := λ a b ha hb, s.closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩ }
+  mul_mem' := λ a b ha hb, s.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩ }
 
 lemma submonoid.submonoid_topological_closure (s : submonoid M) :
   s ≤ s.topological_closure :=

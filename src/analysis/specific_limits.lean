@@ -243,7 +243,7 @@ have (λ n, (∑ i in range n, r ^ i)) = (λ n, geom_series r n) := rfl,
 lemma summable_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : summable (λn:ℕ, r ^ n) :=
 ⟨_, has_sum_geometric_of_lt_1 h₁ h₂⟩
 
-lemma tsum_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+lemma tsum_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : ∑'n:ℕ, r ^ n = (1 - r)⁻¹ :=
 (has_sum_geometric_of_lt_1 h₁ h₂).tsum_eq
 
 lemma has_sum_geometric_two : has_sum (λn:ℕ, ((1:ℝ)/2) ^ n) 2 :=
@@ -252,7 +252,7 @@ by convert has_sum_geometric_of_lt_1 _ _; norm_num
 lemma summable_geometric_two : summable (λn:ℕ, ((1:ℝ)/2) ^ n) :=
 ⟨_, has_sum_geometric_two⟩
 
-lemma tsum_geometric_two : (∑'n:ℕ, ((1:ℝ)/2) ^ n) = 2 :=
+lemma tsum_geometric_two : ∑'n:ℕ, ((1:ℝ)/2) ^ n = 2 :=
 has_sum_geometric_two.tsum_eq
 
 lemma sum_geometric_two_le (n : ℕ) : ∑ (i : ℕ) in range n, (1 / (2 : ℝ)) ^ i ≤ 2 :=
@@ -274,7 +274,7 @@ end
 lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :=
 ⟨a, has_sum_geometric_two' a⟩
 
-lemma tsum_geometric_two' (a : ℝ) : (∑' n:ℕ, (a / 2) / 2^n) = a :=
+lemma tsum_geometric_two' (a : ℝ) : ∑' n:ℕ, (a / 2) / 2^n = a :=
 (has_sum_geometric_two' a).tsum_eq
 
 lemma nnreal.has_sum_geometric {r : ℝ≥0} (hr : r < 1) :
@@ -289,12 +289,12 @@ end
 lemma nnreal.summable_geometric {r : ℝ≥0} (hr : r < 1) : summable (λn:ℕ, r ^ n) :=
 ⟨_, nnreal.has_sum_geometric hr⟩
 
-lemma tsum_geometric_nnreal {r : ℝ≥0} (hr : r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+lemma tsum_geometric_nnreal {r : ℝ≥0} (hr : r < 1) : ∑'n:ℕ, r ^ n = (1 - r)⁻¹ :=
 (nnreal.has_sum_geometric hr).tsum_eq
 
 /-- The series `pow r` converges to `(1-r)⁻¹`. For `r < 1` the RHS is a finite number,
 and for `1 ≤ r` the RHS equals `∞`. -/
-lemma ennreal.tsum_geometric (r : ennreal) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+lemma ennreal.tsum_geometric (r : ennreal) : ∑'n:ℕ, r ^ n = (1 - r)⁻¹ :=
 begin
   cases lt_or_le r 1 with hr hr,
   { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
@@ -325,7 +325,7 @@ end
 lemma summable_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : summable (λn:ℕ, ξ ^ n) :=
 ⟨_, has_sum_geometric_of_norm_lt_1 h⟩
 
-lemma tsum_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : (∑'n:ℕ, ξ ^ n) = (1 - ξ)⁻¹ :=
+lemma tsum_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : ∑'n:ℕ, ξ ^ n = (1 - ξ)⁻¹ :=
 (has_sum_geometric_of_norm_lt_1 h).tsum_eq
 
 lemma has_sum_geometric_of_abs_lt_1 {r : ℝ} (h : abs r < 1) : has_sum (λn:ℕ, r ^ n) (1 - r)⁻¹ :=
@@ -334,7 +334,7 @@ has_sum_geometric_of_norm_lt_1 h
 lemma summable_geometric_of_abs_lt_1 {r : ℝ} (h : abs r < 1) : summable (λn:ℕ, r ^ n) :=
 summable_geometric_of_norm_lt_1 h
 
-lemma tsum_geometric_of_abs_lt_1 {r : ℝ} (h : abs r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+lemma tsum_geometric_of_abs_lt_1 {r : ℝ} (h : abs r < 1) : ∑'n:ℕ, r ^ n = (1 - r)⁻¹ :=
 tsum_geometric_of_norm_lt_1 h
 
 /-- A geometric series in a normed field is summable iff the norm of the common ratio is less than
@@ -384,7 +384,7 @@ lemma edist_le_of_edist_le_geometric_of_tendsto {a : α} (ha : tendsto f at_top 
   edist (f n) a ≤ (C * r^n) / (1 - r) :=
 begin
   convert edist_le_tsum_of_edist_le_of_tendsto _ hu ha _,
-  simp only [pow_add, ennreal.tsum_mul_left, ennreal.tsum_geometric, ennreal.div_def, mul_assoc]
+  simp only [pow_add, ennreal.tsum_mul_left, ennreal.tsum_geometric, div_eq_mul_inv, mul_assoc]
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, then the distance from
@@ -405,7 +405,7 @@ include hC hu
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then `f` is a Cauchy sequence.-/
 lemma cauchy_seq_of_edist_le_geometric_two : cauchy_seq f :=
 begin
-  simp only [ennreal.div_def, ennreal.inv_pow] at hu,
+  simp only [div_eq_mul_inv, ennreal.inv_pow] at hu,
   refine cauchy_seq_of_edist_le_geometric 2⁻¹ C _ hC hu,
   simp [ennreal.one_lt_two]
 end
@@ -418,8 +418,8 @@ include ha
 lemma edist_le_of_edist_le_geometric_two_of_tendsto (n : ℕ) :
   edist (f n) a ≤ 2 * C / 2^n :=
 begin
-  simp only [ennreal.div_def, ennreal.inv_pow] at hu,
-  rw [ennreal.div_def, mul_assoc, mul_comm, ennreal.inv_pow],
+  simp only [div_eq_mul_inv, ennreal.inv_pow] at *,
+  rw [mul_assoc, mul_comm],
   convert edist_le_of_edist_le_geometric_of_tendsto 2⁻¹ C hu ha n,
   rw [ennreal.one_sub_inv_two, ennreal.inv_inv]
 end
@@ -427,7 +427,7 @@ end
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from
 `f 0` to the limit of `f` is bounded above by `2 * C`. -/
 lemma edist_le_of_edist_le_geometric_two_of_tendsto₀: edist (f 0) a ≤ 2 * C :=
-by simpa only [pow_zero, ennreal.div_def, ennreal.inv_one, mul_one]
+by simpa only [pow_zero, div_eq_mul_inv, ennreal.inv_one, mul_one]
   using edist_le_of_edist_le_geometric_two_of_tendsto C hu ha 0
 
 end edist_le_geometric_two
@@ -495,9 +495,9 @@ lemma dist_le_of_le_geometric_two_of_tendsto {a : α} (ha : tendsto f at_top (�
   dist (f n) a ≤ C / 2^n :=
 begin
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu₂ (summable_geometric_two' C) ha n,
-  simp only [add_comm n, pow_add, (div_div_eq_div_mul _ _ _).symm],
+  simp only [add_comm n, pow_add, ← div_div_eq_div_mul],
   symmetry,
-  exact ((has_sum_geometric_two' C).mul_right _).tsum_eq
+  exact ((has_sum_geometric_two' C).div_const _).tsum_eq
 end
 
 end le_geometric
@@ -554,12 +554,12 @@ end
 /-- Bound for the sum of a geometric series in a normed ring.  This formula does not assume that the
 normed ring satisfies the axiom `∥1∥ = 1`. -/
 lemma normed_ring.tsum_geometric_of_norm_lt_1
-  (x : R) (h : ∥x∥ < 1) : ∥(∑' (n:ℕ), x ^ n)∥ ≤ ∥(1:R)∥ - 1 + (1 - ∥x∥)⁻¹ :=
+  (x : R) (h : ∥x∥ < 1) : ∥∑' n:ℕ, x ^ n∥ ≤ ∥(1:R)∥ - 1 + (1 - ∥x∥)⁻¹ :=
 begin
   rw tsum_eq_zero_add (normed_ring.summable_geometric_of_norm_lt_1 x h),
   simp only [pow_zero],
   refine le_trans (norm_add_le _ _) _,
-  have : ∥(∑' (b : ℕ), (λ n, x ^ (n + 1)) b)∥ ≤ (1 - ∥x∥)⁻¹ - 1,
+  have : ∥∑' b : ℕ, (λ n, x ^ (n + 1)) b∥ ≤ (1 - ∥x∥)⁻¹ - 1,
   { refine tsum_of_norm_bounded _ (λ b, norm_pow_le' _ (nat.succ_pos b)),
     convert (has_sum_nat_add_iff' 1).mpr (has_sum_geometric_of_lt_1 (norm_nonneg x) h),
     simp },
@@ -567,7 +567,7 @@ begin
 end
 
 lemma geom_series_mul_neg (x : R) (h : ∥x∥ < 1) :
-  (∑' (i:ℕ), x ^ i) * (1 - x) = 1 :=
+  (∑' i:ℕ, x ^ i) * (1 - x) = 1 :=
 begin
   have := ((normed_ring.summable_geometric_of_norm_lt_1 x h).has_sum.mul_right (1 - x)),
   refine tendsto_nhds_unique this.tendsto_sum_nat _,
@@ -579,7 +579,7 @@ begin
 end
 
 lemma mul_neg_geom_series (x : R) (h : ∥x∥ < 1) :
-  (1 - x) * (∑' (i:ℕ), x ^ i) = 1 :=
+  (1 - x) * ∑' i:ℕ, x ^ i = 1 :=
 begin
   have := (normed_ring.summable_geometric_of_norm_lt_1 x h).has_sum.mul_left (1 - x),
   refine tendsto_nhds_unique this.tendsto_sum_nat _,
@@ -624,7 +624,7 @@ end nnreal
 namespace ennreal
 
 theorem exists_pos_sum_of_encodable {ε : ennreal} (hε : 0 < ε) (ι) [encodable ι] :
-  ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ (∑' i, (ε' i : ennreal)) < ε :=
+  ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ ∑' i, (ε' i : ennreal) < ε :=
 begin
   rcases exists_between hε with ⟨r, h0r, hrε⟩,
   rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,

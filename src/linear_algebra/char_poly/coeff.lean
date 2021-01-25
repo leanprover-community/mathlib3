@@ -201,7 +201,7 @@ namespace matrix
 theorem is_integral : is_integral R M := ⟨char_poly M, ⟨char_poly_monic M, aeval_self_char_poly M⟩⟩
 
 theorem min_poly_dvd_char_poly {K : Type*} [field K] (M : matrix n n K) :
-  (minimal_polynomial M.is_integral) ∣ char_poly M :=
-minimal_polynomial.dvd M.is_integral (aeval_self_char_poly M)
+  (minpoly K M) ∣ char_poly M :=
+minpoly.dvd _ _ (aeval_self_char_poly M)
 
 end matrix

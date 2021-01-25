@@ -33,8 +33,6 @@ Let `R` be a commutative ring. Jacobson Rings are defined using the first of the
 Jacobson, Jacobson Ring
 -/
 
-set_option profiler true
-
 namespace ideal
 
 open polynomial
@@ -44,17 +42,16 @@ section technical_lemmas
 original proof of `quotient_mk_comp_C_is_integral_of_jacobson` to speed up processing.
 Honestly, I did not spend time to unwind their "meaning", hence the names are likely inappropriate.
 -/
-lemma injective_quotient_le_comap_map {R : Type*} [comm_ring R] (P : ideal (polynomial R)) : function.injective
-  ((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map
-         (map_ring_hom (quotient.mk (P.comap C))) le_comap_map) :=
+lemma injective_quotient_le_comap_map {R : Type*} [comm_ring R] (P : ideal (polynomial R)) :
+  function.injective ((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map
+    (map_ring_hom (quotient.mk (P.comap C))) le_comap_map) :=
 begin
   refine quotient_map_injective' (le_of_eq _),
   rw comap_map_of_surjective
     (map_ring_hom (quotient.mk ((P.comap C)))) (map_surjective _ quotient.mk_surjective),
   refine le_antisymm (sup_le le_rfl _) (le_sup_left_of_le le_rfl),
   refine λ p hp, polynomial_mem_ideal_of_coeff_mem_ideal P p (λ n, quotient.eq_zero_iff_mem.mp _),
-  rw [mem_comap, ideal.mem_bot, polynomial.ext_iff] at hp,
-  simpa only [coeff_map, coe_map_ring_hom] using hp n,
+  simpa only [coeff_map, coe_map_ring_hom] using ext_iff.mp (ideal.mem_bot.mp (mem_comap.mp hp)) n,
 end
 
 /-- The identity in this lemma is used in the proof of `quotient_mk_comp_C_is_integral_of_jacobson`.
@@ -541,14 +538,14 @@ begin
     simpa only [coeff_map, coe_map_ring_hom] using (polynomial.ext_iff.mp hp) n },
   refine ring_hom.is_integral_tower_bot_of_is_integral _ _ (injective_quotient_le_comap_map P) _,
   rw ← quotient_mk_maps_eq,
-  refine ring_hom.is_integral_trans _ _ _ _,
-  { exact (quotient.mk P').is_integral_of_surjective quotient.mk_surjective },
-  { apply quotient_mk_comp_C_is_integral_of_jacobson' _ _ (λ x hx, _),
-    any_goals { exact ideal.is_jacobson_quotient },
-    { exact or.rec_on (map_eq_top_or_is_maximal_of_surjective f hf hP)
-      (λ h, absurd (trans (h ▸ hPJ : P = comap f ⊤) comap_top : P = ⊤) hP.1) id },
-    { obtain ⟨z, rfl⟩ := quotient.mk_surjective x,
-      rwa [quotient.eq_zero_iff_mem, mem_comap, hPJ, mem_comap, coe_map_ring_hom, map_C] } },
+  refine ring_hom.is_integral_trans _ _
+    ((quotient.mk P').is_integral_of_surjective quotient.mk_surjective) _,
+  apply quotient_mk_comp_C_is_integral_of_jacobson' _ _ (λ x hx, _),
+  any_goals { exact ideal.is_jacobson_quotient },
+  { exact or.rec_on (map_eq_top_or_is_maximal_of_surjective f hf hP)
+    (λ h, absurd (trans (h ▸ hPJ : P = comap f ⊤) comap_top : P = ⊤) hP.1) id },
+  { obtain ⟨z, rfl⟩ := quotient.mk_surjective x,
+    rwa [quotient.eq_zero_iff_mem, mem_comap, hPJ, mem_comap, coe_map_ring_hom, map_C] }
 end
 
 lemma is_maximal_comap_C_of_is_jacobson : (P.comap (C : R →+* polynomial R)).is_maximal :=
@@ -558,9 +555,9 @@ begin
     (quotient_mk_comp_C_is_integral_of_jacobson P) ⊥ ((bot_quotient_is_maximal_iff _).mpr hP),
 end
 
-end integral_domain
+omit P hP
 
-lemma comp_C_integral_of_surjective_of_jacobson {R : Type*} [integral_domain R] [is_jacobson R]
+lemma comp_C_integral_of_surjective_of_jacobson
   {S : Type*} [field S] (f : (polynomial R) →+* S) (hf : function.surjective f) :
   (f.comp C).is_integral :=
 begin
@@ -571,6 +568,8 @@ begin
   refine ring_hom.is_integral_trans _ g (quotient_mk_comp_C_is_integral_of_jacobson f.ker)
     (g.is_integral_of_surjective (quotient.lift_surjective f.ker f _ hf)),
 end
+
+end integral_domain
 
 end polynomial
 
@@ -597,24 +596,400 @@ begin
   exact is_jacobson_mv_polynomial_fin _
 end
 
+set_option profiler true
+open polynomial ideal
+
+/-
+def Rn (R : Type*) [comm_semiring R] (n : ℕ) := mv_polynomial (fin n) R
+instance csRn (R : Type*) [comm_semiring R] (n : ℕ) : comm_semiring (Rn R n) := by library_search
+
+def Rn1 (R : Type*) [comm_semiring R] (n : ℕ) := polynomial Rn
+instance csr (R : Type*) [comm_semiring R] (n : ℕ) : comm_semiring (Rn1 R n) := sorry
+
+lemma C_factorisation (R : Type*) [comm_semiring R] (n : ℕ) :
+  (mv_polynomial.C : R →+* mv_polynomial (fin (n + 1)) R) =
+  (fin_succ_equiv R n).symm.to_ring_hom.comp
+    (polynomial.C.comp (mv_polynomial.C : R →+* mv_polynomial (fin n) R)) :=
+(fin_succ_equiv_comp_C_eq_C n).symm
+
+noncomputable def ϕ1 (R : Type*) [comm_semiring R] (n : ℕ) :
+  R →+* mv_polynomial (fin n) R := mv_polynomial.C
+noncomputable def ϕ2 (R : Type*) [comm_semiring R] (n : ℕ) :
+  (mv_polynomial (fin n) R) →+* (polynomial (mv_polynomial (fin n) R)) := polynomial.C
+noncomputable def ϕ3 (R : Type*) [comm_semiring R] (n : ℕ) :
+  polynomial (mv_polynomial (fin n) R) →+* mv_polynomial (fin (n + 1)) R :=
+(fin_succ_equiv R n).symm.to_ring_hom
+#check ϕ3
+noncomputable def ϕ (R : Type*) [comm_semiring R] (n : ℕ) :
+  R →+* (mv_polynomial (fin (n + 1 + 1)) R) := (ϕ3 R (n + 1)).comp ((ϕ2 R (n + 1)).comp (ϕ1 R (n + 1)))
+noncomputable def P3 (R : Type*) [comm_semiring R] (n : ℕ) (P : ideal (mv_polynomial (fin (n + 1)) R)) :
+  ideal (polynomial (mv_polynomial (fin n) R)) :=
+P.comap ((fin_succ_equiv R n).symm.to_ring_hom)
+
+variables {R : Type*} [integral_domain R] [is_jacobson R]
+variables {n : ℕ} (P : ideal (mv_polynomial (fin n) R)) [hP : P.is_maximal]
+-/
+
+/-
+#exit
+
+    let P2 : ideal (mv_polynomial (fin n) R) := P3.comap ϕ2,
+    let P1 : ideal R := P2.comap ϕ1,
+
+    let φ3 : P3.quotient →+* P.quotient := quotient_map P ϕ3 le_rfl,
+    let φ2 : P2.quotient →+* P3.quotient := quotient_map P3 ϕ2 le_rfl,
+    let φ1 : P1.quotient →+* P2.quotient := quotient_map P2 ϕ1 le_rfl,
+    let φ : P1.quotient →+* P.quotient := φ3.comp (φ2.comp φ1),
+
+lemma mv_polynomial.C_eq_C_comp_C :
+ (quotient.mk P).comp (((fin_succ_equiv R n).symm.to_ring_hom).comp ((polynomial.C).comp (mv_polynomial.C))) =
+   ((quotient_map P ((fin_succ_equiv R n).symm.to_ring_hom) le_rfl).comp ((quotient_map (P.comap ((fin_succ_equiv R n).symm.to_ring_hom)) (polynomial.C) le_rfl).comp (quotient_map ((P.comap (fin_succ_equiv R n).symm.to_ring_hom).comap (polynomial.C)) (mv_polynomial.C) le_rfl))).comp (quotient.mk (((P.comap ((fin_succ_equiv R n).symm.to_ring_hom)).comap (polynomial.C)).comap (mv_polynomial.C)))
+   :=
+begin
+  rw [ring_hom.comp_assoc, ring_hom.comp_assoc, quotient_map_comp_mk, ← ring_hom.comp_assoc ϕ1,
+      quotient_map_comp_mk, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc,
+      ← ring_hom.comp_assoc, quotient_map_comp_mk],
+end
+
+#exit
+lemma ind_step_no_mv {k : Type*} [comm_ring k] {i : k →+* R}
+  (IH : ∀ (P : ideal R) [hP : P.is_maximal],
+    ((quotient.mk P).comp i).is_integral)
+  (P : ideal (polynomial R))
+  [hP : P.is_maximal] :
+  (((quotient.mk P).comp ((C : R →+* polynomial R).comp i))).is_integral :=
+begin
+  apply @is_integral_trans _ _,
+  sorry,
+end
+
+lemma ind_step
+  (IH : ∀ (P : ideal (mv_polynomial (fin n) R)) [hP : P.is_maximal],
+    ((quotient.mk P).comp C).is_integral)
+  (P : ideal (polynomial (mv_polynomial (fin n) R))) [hP : P.is_maximal] :
+  ((quotient.mk P).comp C).is_integral :=
+begin
+  have : ∃ R1 : R →+* (mv_polynomial (fin n) R),
+    ∃ C1 : (mv_polynomial (fin n) R) →+* (mv_polynomial (fin n.succ) R),
+    (mv_polynomial.C : R →+* (mv_polynomial (fin n.succ) R)) =
+      C1.comp R1,
+      sorry,
+  rcases this with ⟨R1, C1, CR⟩,
+  have : ((quotient.mk P).comp C) = ((quotient.mk P).comp (C1.comp R1)),
+
+  erw CR,
+  conv {
+    congr,
+    congr,
+  },
+  apply is_integral_trans,
+  apply ind_step_no_mv _ P,
+  sorry,
+end
+
+lemma ind_step
+  (IH : ∀ (P : ideal (mv_polynomial (fin n) R)) [hP : P.is_maximal],
+    ((quotient.mk P).comp C).is_integral)
+  (P : ideal (mv_polynomial (fin n.succ) R)) [hP : P.is_maximal] :
+  ((quotient.mk P).comp C).is_integral :=
+begin
+  have : ∃ R1 : R →+* (mv_polynomial (fin n) R),
+    ∃ C1 : (mv_polynomial (fin n) R) →+* (mv_polynomial (fin n.succ) R),
+    (mv_polynomial.C : R →+* (mv_polynomial (fin n.succ) R)) =
+      C1.comp R1,
+      sorry,
+  rcases this with ⟨R1, C1, CR⟩,
+  rw CR,
+  apply is_integral_trans,
+  apply ind_step_no_mv _ P,
+  sorry,
+end
+
+--include hP
+
+lemma square {S : Type*} [comm_ring S] {i : R →+* S} (P : ideal S) :
+  (quotient.mk P).comp i =  :=
+begin
+  admit,
+end
+
+#exit
+
+lemma square (n : ℕ) (P : ideal (mv_polynomial (fin n.succ) R)) :
+  ((quotient.mk P).comp
+     ((fin_succ_equiv R n).symm.to_ring_hom.comp (((polynomial.C : mv_polynomial (fin n) R →+* polynomial (mv_polynomial (fin n) R))).comp (C : R →+* mv_polynomial (fin n) R)))) =
+     ((quotient_map P ((fin_succ_equiv R n).symm.to_ring_hom) le_rfl).comp ((quotient_map (P.comap ((fin_succ_equiv R n).symm.to_ring_hom)) (polynomial.C) le_rfl).comp
+      (quotient_map ((P.comap ((fin_succ_equiv R n).symm.to_ring_hom)).comap (polynomial.C)) (mv_polynomial.C) le_rfl))).comp (quotient.mk (P.comap C)) :=
+begin
+  admit,
+end
+-/
+end mv_polynomial
+
+end ideal
+
+section attempts
+
+open ideal is_scalar_tower
+
+variables {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A]
+variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
+variables {I : ideal R} {J : ideal S} {K : ideal A}
+
+lemma algebra_comp (hJ : I ≤ J.comap (algebra_map R S)) :
+  algebra I.quotient J.quotient :=
+ring_hom.to_algebra (ideal.quotient_map J (algebra_map R S) hJ)
+
+lemma le_comap_le (hJ : I ≤ J.comap (algebra_map R S)) (hK : J ≤ K.comap (algebra_map S A)) :
+  I ≤ ideal.comap (algebra_map R A) K :=
+le_trans hJ (by { rw [algebra_map_eq R S A, ← ideal.comap_comap], exact comap_mono hK })
+--variables {n : ℕ} (P : ideal (mv_polynomial (fin n) R)) [hP : P.is_maximal]
+
+open mv_polynomial
+
+/--
+`R → R[x+1] = ((R → R[x]) ∘ (R[x] → R[x][y])) ∘ (R[x][y] → R[x+1])`
+-/
+lemma C_factors {n : ℕ} :
+  (mv_polynomial.C : R →+* mv_polynomial (fin (n + 1)) R) =
+    ((mv_polynomial.fin_succ_equiv R n).symm.to_ring_hom).comp
+    (polynomial.C.comp mv_polynomial.C) :=
+begin
+  rw [← ring_hom.comp_assoc, ← fin_succ_equiv_comp_C_eq_C, ring_hom.comp_assoc],
+end
+
+lemma C_factors_1 {n : ℕ} :
+  ((mv_polynomial.fin_succ_equiv R n).to_ring_hom).comp (mv_polynomial.C : R →+* mv_polynomial (fin (n + 1)) R) =
+    (polynomial.C.comp mv_polynomial.C) :=
+by rw [C_factors, ← ring_hom.comp_assoc, ring_equiv.to_ring_hom_comp_symm_to_ring_hom, ring_hom.id_comp]
+
+lemma C_factors_type_ascriptions {n : ℕ} :
+  (mv_polynomial.C : R →+* mv_polynomial (fin (n + 1)) R) =
+    ((mv_polynomial.fin_succ_equiv R n).symm.to_ring_hom).comp
+    ((polynomial.C : mv_polynomial (fin n) R →+* polynomial (mv_polynomial (fin n) R)).comp
+      (mv_polynomial.C : R →+* mv_polynomial (fin n) R)) :=
+begin
+  rw [← ring_hom.comp_assoc, ← fin_succ_equiv_comp_C_eq_C, ring_hom.comp_assoc],
+end
+
+lemma algebra_comp_1 (hJ : I ≤ J.comap (algebra_map R S)) (hK : J ≤ K.comap (algebra_map S A)) :
+  (ideal.quotient_map K (algebra_map S A) hK).comp (ideal.quotient_map J (algebra_map R S) hJ) =
+    ideal.quotient_map K (algebra_map R A) (le_comap_le hJ hK) :=
+--variables {n : ℕ} (P : ideal (mv_polynomial (fin n) R)) [hP : P.is_maximal]
+begin
+  refine ring_hom.ext (λ x, _),
+  sorry
+end
+lemma quotient_mk_comp_1 (hJ : I ≤ J.comap (algebra_map R S)) (hK : J ≤ K.comap (algebra_map S A)) :
+  (ideal.quotient.mk K).comp (ideal.quotient.mk J) =
+    ideal.quotient_map K (algebra_map R A) (le_comap_le hJ hK) :=
+--variables {n : ℕ} (P : ideal (mv_polynomial (fin n) R)) [hP : P.is_maximal]
+begin
+  refine ring_hom.ext (λ x, _),
+  sorry
+end
+end attempts
+
+namespace ideal
+
+open mv_polynomial polynomial ideal ring_hom
+
 variables {R : Type*} [integral_domain R] [is_jacobson R]
 variables {n : ℕ} (P : ideal (mv_polynomial (fin n) R)) [hP : P.is_maximal]
 
-lemma quotient_mk_comp_C_is_integral_of_jacobson :
+include hP
+
+lemma quotient_mk_comp_C_is_integral_of_jacobson_mv :
   ((quotient.mk P).comp mv_polynomial.C : R →+* P.quotient).is_integral :=
 begin
   unfreezingI {induction n with n IH},
-  { have := (ring_equiv_of_equiv R (equiv.equiv_pempty $ fin.elim0)).trans (pempty_ring_equiv R),
-    refine ring_hom.is_integral_of_surjective _ (function.surjective.comp quotient.mk_surjective _),
+  { refine ring_hom.is_integral_of_surjective _ (function.surjective.comp quotient.mk_surjective _),
     exact C_surjective_fin_0 },
-  { let ϕ1 : R →+* mv_polynomial (fin n) R := mv_polynomial.C,
-    let ϕ2 : (mv_polynomial (fin n) R) →+* polynomial (mv_polynomial (fin n) R) := polynomial.C,
+  {
+--    rw comp_quotient_map_eq_of_comp_eq,
+    rw [← fin_succ_equiv_comp_C_eq_C, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc,
+      ← @quotient_map_comp_mk _ _ _ _ _ _ _ le_rfl, ring_hom.comp_assoc (polynomial.C),
+      ← @quotient_map_comp_mk _ _ _ _ _ _ _ le_rfl, ring_hom.comp_assoc, ring_hom.comp_assoc,
+      ← @quotient_map_comp_mk _ _ _ _ _ _ _ le_rfl, ← ring_hom.comp_assoc (quotient.mk _)],
+--forse ci sono riuscito!
+    refine ring_hom.is_integral_trans _ _ _ _,
+    { refine ring_hom.is_integral_trans _ _ (is_integral_of_surjective _ quotient.mk_surjective) _,
+--  rw comap_comap _,
+      apply ring_hom.is_integral_trans,
+      { apply (is_integral_quotient_map_iff _).mpr (IH _),
+        apply polynomial.is_maximal_comap_C_of_is_jacobson _,
+        { exact mv_polynomial.is_jacobson_mv_polynomial_fin n },
+        { apply comap_is_maximal_of_surjective ,
+          exact (fin_succ_equiv R n).symm.surjective } },
+      { apply (is_integral_quotient_map_iff _).mpr,
+        rw ← @quotient_map_comp_mk _ _ _ _ _ _ _ le_rfl,
+        refine ring_hom.is_integral_trans _ _ _ _,
+        { exact ring_hom.is_integral_of_surjective _ quotient.mk_surjective },
+        { refine (is_integral_quotient_map_iff _).mpr _,
+          apply polynomial.quotient_mk_comp_C_is_integral_of_jacobson _,
+          { exact mv_polynomial.is_jacobson_mv_polynomial_fin n },
+          { exact comap_is_maximal_of_surjective _ (fin_succ_equiv R n).symm.surjective } } } },
+    { refine (is_integral_quotient_map_iff _).mpr _,
+      refine ring_hom.is_integral_trans _ _ _ (is_integral_of_surjective _ quotient.mk_surjective),
+      exact ring_hom.is_integral_of_surjective _ (fin_succ_equiv R n).symm.surjective } }
+end
+
+#exit
+      /-
+      haveI : (P.comap ((fin_succ_equiv R n).symm.to_ring_hom)).is_maximal :=
+        comap_is_maximal_of_surjective ((fin_succ_equiv R n).symm.to_ring_hom)
+          (fin_succ_equiv R n).symm.surjective,
+      haveI : ((P.comap ((fin_succ_equiv R n).symm.to_ring_hom)).comap
+        (polynomial.C : mv_polynomial (fin n) R →+* (polynomial (mv_polynomial (fin n) R)))).is_maximal :=
+          polynomial.is_maximal_comap_C_of_is_jacobson (P.comap ((fin_succ_equiv R n).symm.to_ring_hom)),
+-/
+      apply polynomial.is_maximal_comap_C_of_is_jacobson _,
+      sorry,
+
+  --rw comap_comap,
+  --refine polynomial.quotient_mk_comp_C_is_integral_of_jacobson _,
+  refine is_integral_of_surjective _ (_),
+
+    apply quotient_map_surjective,
+
+  exact is_integral_of_surjective _ (quotient_map_surjective (fin_succ_equiv R n).symm.surjective),
+  --mv_polynomial.fin_succ_equiv,
+    rw ← ring_hom.comp_assoc (quotient.mk _),
+
+    --rw ← quotient_map_comp_mk,
+    rw comap_comap,
+    rw ← @quotient_map_comp_mk _ _ _ _ _ _ _ le_rfl,
+
+  apply ring_hom.is_integral_trans,
+
+rw ← @quotient_map_comp_mk _ _ _ _ _ _ _ le_rfl,
+apply ring_hom.is_integral_trans,
+/-
+  haveI : (P.comap ((fin_succ_equiv R n).symm.to_ring_hom)).is_maximal :=
+        comap_is_maximal_of_surjective ((fin_succ_equiv R n).symm.to_ring_hom)
+          (fin_succ_equiv R n).symm.surjective,
+      haveI : ((P.comap ((fin_succ_equiv R n).symm.to_ring_hom)).comap
+        (polynomial.C : mv_polynomial (fin n) R →+* (polynomial (mv_polynomial (fin n) R)))).is_maximal :=
+          polynomial.is_maximal_comap_C_of_is_jacobson (P.comap ((fin_succ_equiv R n).symm.to_ring_hom)),
+-/
+rw comap_comap,
+rw ring_hom.comp_assoc,
+sorry,
+sorry,
+apply ring_hom.is_integral_of_surjective,
+apply quotient_map_surjective,
+
+
+--library_search,
+apply ring_hom.is_integral_trans,
+unfold_coes,intro,induction b,
+rw comp_quotient_map_eq_of_comp_eq,
+    apply IH (comap ((fin_succ_equiv R n).symm.to_ring_hom.comp C) P),
+apply ring_hom.is_integral_of_surjective,
+
+--     ← @quotient_map_comp_mk _ _ _ _
+--      (P.comap (fin_succ_equiv R n).symm.to_ring_hom) _ _ le_rfl],
+
+  apply ring_hom.is_integral_trans,
+    rw [ring_hom.comp_assoc],
+--
+rw [ ← @quotient_map_comp_mk _ _ _ _
+      ((comap (fin_succ_equiv R n).symm.to_ring_hom P).comap ((polynomial.C).comp mv_polynomial.C)) _ _ le_rfl,
+    ← ring_hom.comp_assoc],
+
+    rw [← fin_succ_equiv_comp_C_eq_C, ← ring_hom.comp_assoc,
+     ← @quotient_map_comp_mk _ _ _ _
+      (P.comap (fin_succ_equiv R n).symm.to_ring_hom) _ _ le_rfl,
+    ring_hom.comp_assoc,
+    ← @quotient_map_comp_mk _ _ _ _
+      ((comap (fin_succ_equiv R n).symm.to_ring_hom P).comap ((polynomial.C).comp mv_polynomial.C)) _ _ le_rfl,
+    ← ring_hom.comp_assoc],
+
+    refine ring_hom.is_integral_trans _ _ (is_integral_of_surjective _ quotient.mk_surjective) _,
+/-
+    apply ring_hom.is_integral_trans,
+    sorry,
+    { refine ring_hom.is_integral_of_surjective _ _,
+      exact quotient_map_surjective (fin_succ_equiv R n).symm.surjective } }
+-/
+
+      --rw ← comp_quotient_map_eq_of_comp_eq rfl,
+
+    apply ring_hom.is_integral_trans,
+    {
+      apply ring_hom.is_integral_of_surjective,
+    apply quotient_map_surjective,
+      apply ring_hom.is_integral_trans,
+      rw ← quotient_map_mk,
+--    rw ← C_factors_1,
+
+
+
+      --rw [← comp_C, ← fin_succ_equiv_comp_C_eq_C n],
+
+
+      sorry,
+      haveI : (P.comap ((fin_succ_equiv R n).symm.to_ring_hom)).is_maximal :=
+        comap_is_maximal_of_surjective ((fin_succ_equiv R n).symm.to_ring_hom)
+          (fin_succ_equiv R n).symm.surjective,
+
+      haveI : ((P.comap ((fin_succ_equiv R n).symm.to_ring_hom)).comap
+        (polynomial.C : mv_polynomial (fin n) R →+* (polynomial (mv_polynomial (fin n) R)))).is_maximal :=
+          polynomial.is_maximal_comap_C_of_is_jacobson (P.comap ((fin_succ_equiv R n).symm.to_ring_hom)),
+      apply IH _,
+
+      apply ring_hom.is_integral_quotient_of_is_integral,
+      rw quotient_map,
+      refine ring_hom.is_integral_of_surjective _ _,
+
+      refine (is_integral_quotient_map_iff _).mpr _,
+
+
+--    rw comap,
+--    apply IH,
+--    refine ring_hom.is_integral_of_surjective _ _,
+    } },
+
+
+  --  apply quotient_map_surjective,
+end
+
+#exit
+    rw quotient_map,
+    rw is_integral_quotient_map_iff,
+    apply ring_hom.is_integral_of_surjective,
+    apply quotient_map_surjective,
+    sorry,
+
+
+    sorry,
+
+    --library_search,
+    sorry },
+    apply is_scalar_tower,
+    rw [← fin_succ_equiv_comp_C_eq_C n],
+    extract_goal,
+    refine ring_hom.is_integral_trans _ _ _ _,
+    apply is_integral_trans,
+    apply ind_step IH,
     let ϕ3 := (fin_succ_equiv R n).symm.to_ring_hom,
+    let P3 : ideal (polynomial (mv_polynomial (fin n) R)) := P.comap ((fin_succ_equiv R n).symm.to_ring_hom),
+    apply ideal.polynomial.quotient_mk_comp_C_is_integral_of_jacobson (P.comap ((fin_succ_equiv R n).symm.to_ring_hom)),
+--    let ϕ1 : R →+* mv_polynomial (fin n) R := mv_polynomial.C,
+    let ϕ2 : (mv_polynomial (fin n) R) →+* polynomial (mv_polynomial (fin n) R) := polynomial.C,
+    have : (quotient.mk P).comp (ϕ3.comp (ϕ2.comp (mv_polynomial.C))) =
+      ((quotient_map P ϕ3 le_rfl).comp ((quotient_map (P.comap ((fin_succ_equiv R n).symm.to_ring_hom)) ϕ2 le_rfl).comp
+        (quotient_map ((P.comap ((fin_succ_equiv R n).symm.to_ring_hom)).comap (polynomial.C)) (mv_polynomial.C) le_rfl))).comp (quotient.mk (((P.comap ((fin_succ_equiv R n).symm.to_ring_hom)).comap (polynomial.C)).comap (mv_polynomial.C))),
+    by rw [ring_hom.comp_assoc, ring_hom.comp_assoc, quotient_map_comp_mk, ← ring_hom.comp_assoc (mv_polynomial.C),
+      quotient_map_comp_mk, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc,
+      ← ring_hom.comp_assoc, quotient_map_comp_mk],
+    rw [← fin_succ_equiv_comp_C_eq_C n, this],
+--    let P2 : ideal (mv_polynomial (fin n) R) := P3.comap (polynomial.C),
+--    let P1 : ideal R := P2.comap (mv_polynomial.C),
+
+    refine ring_hom.is_integral_trans (quotient.mk ((P.comap ((fin_succ_equiv R n).symm.to_ring_hom).comap (polynomial.C)).comap (mv_polynomial.C))) _ _ _,
     let ϕ : R →+* (mv_polynomial (fin (n+1)) R) := ϕ3.comp (ϕ2.comp ϕ1),
 
-    let P3 : ideal (polynomial (mv_polynomial (fin n) R)) := P.comap ϕ3,
-    let P2 : ideal (mv_polynomial (fin n) R) := P3.comap ϕ2,
-    let P1 : ideal R := P2.comap ϕ1,
     haveI : P3.is_maximal := comap_is_maximal_of_surjective ϕ3 (fin_succ_equiv R n).symm.surjective,
     haveI : P2.is_maximal := polynomial.is_maximal_comap_C_of_is_jacobson P3,
 
@@ -640,8 +1015,10 @@ begin
       ← ring_hom.comp_assoc, quotient_map_comp_mk],
     rw [← fin_succ_equiv_comp_C_eq_C n, this],
     refine ring_hom.is_integral_trans (quotient.mk P1) φ _ hφ,
-    exact (quotient.mk P1).is_integral_of_surjective (quotient.mk_surjective) }
+    exact (quotient.mk P1).is_integral_of_surjective (quotient.mk_surjective)
 end
+
+#exit
 
 lemma comp_C_integral_of_surjective_of_jacobson
   {S : Type*} [field S] {n : ℕ} (f : (mv_polynomial (fin n) R) →+* S) (hf : function.surjective f) :

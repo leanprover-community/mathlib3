@@ -59,8 +59,8 @@ lemma denoms_clearable.add {N : ℕ} {a b : R} {f g : polynomial R} :
 lemma denoms_clearable_of_nat_degree_le (N : ℕ) (a b : R) {bi : K} (bu : bi * i b = 1) :
   ∀ (f : polynomial R), f.nat_degree ≤ N → denoms_clearable a b N f i :=
 induction_with_nat_degree_le N
-  (denoms_clearable_zero N a b bu)
-  (λ N_1 r r0, denoms_clearable_C_mul_X_pow N a b bu N_1 r)
+  (denoms_clearable_zero N a bu)
+  (λ N_1 r r0, denoms_clearable_C_mul_X_pow a bu r)
   (λ f g fN gN df dg, df.add dg)
 
 /-- If `i : R → K` is a ring homomorphism, `f` is a polynomial with coefficients in `R`,

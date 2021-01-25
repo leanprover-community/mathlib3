@@ -72,7 +72,7 @@ end
 
 variables [decidable_eq β]
 
-lemma hall_cond_of_erase (a : α) (b : β)
+lemma hall_cond_of_erase {r : α → finset β} {a : α} (b : β)
   (ha : ∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (A.bind r).card)
   (A' : finset {a' : α | a' ≠ a}) :
   A'.card ≤ (A'.bind (λ a', (r a').erase b)).card :=

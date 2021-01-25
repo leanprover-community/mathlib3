@@ -675,16 +675,16 @@ begin
   exact is_measurable.Union (λ i, hf i (is_open_lt' _).is_measurable)
 end
 
-private lemma ae_measurable.is_lub_of_nonempty {ι} (hδ : nonempty δ) (hι : nonempty ι)
+private lemma ae_measurable.is_lub_of_nonempty {ι} (hι : nonempty ι)
   {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_lub {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
-  haveI hα : nonempty α := nonempty.map g hδ,
   let p : δ → (ι → α) → Prop := λ x f', is_lub {a | ∃ i, f' i = a} (g x),
-  let g_seq := λ x, ite (x ∈ ae_seq_set hf p) (g x) hα.some,
+  let g_seq := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨g x⟩ : nonempty α).some,
   have hg_seq : ∀ b, is_lub {a | ∃ i, ae_seq hf p i b = a} (g_seq b),
   { intro b,
+    haveI hα : nonempty α := nonempty.map g ⟨b⟩,
     simp only [ae_seq, g_seq],
     split_ifs,
     { have h_set_eq : {a : α | ∃ (i : ι), (hf i).mk (f i) b = a} = {a : α | ∃ (i : ι), f i b = a},
@@ -698,7 +698,7 @@ begin
       rw h_singleton,
       exact is_lub_singleton, }, },
   refine ⟨g_seq, measurable.is_lub (ae_seq.measurable hf p) hg_seq, _⟩,
-  exact (ite_ae_eq_of_measure_compl_zero g (λ x, hα.some) (ae_seq_set hf p)
+  exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨g x⟩ : nonempty α).some) (ae_seq_set hf p)
     (ae_seq.measure_compl_ae_seq_set_eq_zero hf hg)).symm,
 end
 
@@ -707,21 +707,21 @@ lemma ae_measurable.is_lub {ι} {μ : measure δ} [encodable ι] {f : ι → δ 
   ae_measurable g μ :=
 begin
   by_cases hδ : nonempty δ, swap, { exact (measurable_of_not_nonempty hδ g).ae_measurable },
-  by_cases hι : nonempty ι, { exact ae_measurable.is_lub_of_nonempty hδ hι hf hg, },
+  by_cases hι : nonempty ι, { exact ae_measurable.is_lub_of_nonempty hι hf hg, },
   suffices : ∃ x, g =ᵐ[μ] λ y, g x,
   by { exact ⟨(λ y, g this.some), measurable_const, this.some_spec⟩, },
-  by_cases h_ne_bot : μ.ae.ne_bot,
-  swap, { use hδ.some, rw not_ne_bot at h_ne_bot, simp [h_ne_bot], },
-  haveI : μ.ae.ne_bot := h_ne_bot,
-  cases hg.exists with x hx,
-  refine ⟨x, hg.mono (λ y hy, _)⟩,
   have h_empty : ∀ x, {a : α | ∃ (i : ι), f i x = a} = ∅,
   { intro x,
     ext1 y,
     rw [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
     exact λ hi, hι (nonempty_of_exists hi), },
-  rw h_empty at hx hy,
-  exact (is_lub.unique hx hy).symm,
+  simp_rw h_empty at hg,
+  by_cases h_ne_bot : μ.ae.ne_bot,
+  swap, { use hδ.some, rw not_ne_bot at h_ne_bot, simp [h_ne_bot], },
+  haveI : μ.ae.ne_bot := h_ne_bot,
+  cases hg.exists with x hx,
+  refine ⟨x, hg.mono (λ y hy, _)⟩,
+  exact is_lub.unique hy hx,
 end
 
 lemma measurable.is_glb {ι} [encodable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ i, measurable (f i))
@@ -736,16 +736,16 @@ begin
   exact is_measurable.Union (λ i, hf i (is_open_gt' _).is_measurable)
 end
 
-private lemma ae_measurable.is_glb_of_nonempty {ι} (hδ : nonempty δ) (hι : nonempty ι)
+private lemma ae_measurable.is_glb_of_nonempty {ι} (hι : nonempty ι)
   {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_glb {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
-  haveI hα : nonempty α := nonempty.map g hδ,
   let p : δ → (ι → α) → Prop := λ x f', is_glb {a | ∃ i, f' i = a} (g x),
-  let g_seq := λ x, ite (x ∈ ae_seq_set hf p) (g x) hα.some,
+  let g_seq := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨g x⟩ : nonempty α).some,
   have hg_seq : ∀ b, is_glb {a | ∃ i, ae_seq hf p i b = a} (g_seq b),
   { intro b,
+    haveI hα : nonempty α := nonempty.map g ⟨b⟩,
     simp only [ae_seq, g_seq],
     split_ifs,
     { have h_set_eq : {a : α | ∃ (i : ι), (hf i).mk (f i) b = a} = {a : α | ∃ (i : ι), f i b = a},
@@ -759,7 +759,7 @@ begin
       rw h_singleton,
       exact is_glb_singleton, }, },
   refine ⟨g_seq, measurable.is_glb (ae_seq.measurable hf p) hg_seq, _⟩,
-  exact (ite_ae_eq_of_measure_compl_zero g (λ x, hα.some) (ae_seq_set hf p)
+  exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨g x⟩ : nonempty α).some) (ae_seq_set hf p)
     (ae_seq.measure_compl_ae_seq_set_eq_zero hf hg)).symm,
 end
 
@@ -768,21 +768,21 @@ lemma ae_measurable.is_glb {ι} {μ : measure δ} [encodable ι] {f : ι → δ 
   ae_measurable g μ :=
 begin
   by_cases hδ : nonempty δ, swap, { exact (measurable_of_not_nonempty hδ g).ae_measurable },
-  by_cases hι : nonempty ι, { exact ae_measurable.is_glb_of_nonempty hδ hι hf hg, },
+  by_cases hι : nonempty ι, { exact ae_measurable.is_glb_of_nonempty hι hf hg, },
   suffices : ∃ x, g =ᵐ[μ] λ y, g x,
   by { exact ⟨(λ y, g this.some), measurable_const, this.some_spec⟩, },
-  by_cases h_ne_bot : μ.ae.ne_bot,
-  swap, { use hδ.some, rw not_ne_bot at h_ne_bot, simp [h_ne_bot], },
-  haveI : μ.ae.ne_bot := h_ne_bot,
-  cases hg.exists with x hx,
-  refine ⟨x, hg.mono (λ y hy, _)⟩,
   have h_empty : ∀ x, {a : α | ∃ (i : ι), f i x = a} = ∅,
   { intro x,
     ext1 y,
     rw [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
     exact λ hi, hι (nonempty_of_exists hi), },
-  rw h_empty at hx hy,
-  exact (is_glb.unique hx hy).symm,
+  simp_rw h_empty at hg,
+  by_cases h_ne_bot : μ.ae.ne_bot,
+  swap, { use hδ.some, rw not_ne_bot at h_ne_bot, simp [h_ne_bot], },
+  haveI : μ.ae.ne_bot := h_ne_bot,
+  cases hg.exists with x hx,
+  refine ⟨x, hg.mono (λ y hy, _)⟩,
+  exact is_glb.unique hy hx,
 end
 
 end linear_order

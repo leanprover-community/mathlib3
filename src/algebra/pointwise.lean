@@ -437,4 +437,13 @@ lemma mul_subset_closure {s t u : set M} (hs : s ⊆ u) (ht : t ⊆ u) :
   s * t ⊆ submonoid.closure u :=
 mul_subset (subset.trans hs submonoid.subset_closure) (subset.trans ht submonoid.subset_closure)
 
+@[to_additive]
+lemma coe_mul_self_eq (s : submonoid M) : (s : set M) * s = s :=
+begin
+  ext x,
+  refine ⟨_, λ h, ⟨x, 1, h, s.one_mem, mul_one x⟩⟩,
+  rintros ⟨a, b, ha, hb, rfl⟩,
+  exact s.mul_mem ha hb
+end
+
 end submonoid

@@ -356,7 +356,7 @@ begin
   have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
   { simp [rel.image], },
   simp only [h, h'],
-  apply all_card_le_bind_card_iff_exists_injective,
+  apply finset.all_card_le_bind_card_iff_exists_injective,
 end
 
 /--

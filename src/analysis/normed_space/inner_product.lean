@@ -2435,7 +2435,7 @@ end orthogonal
 
 section orthonormal_basis
 
-/-! ### Existence of an orthonormal basis for a finite-dimensional inner product space -/
+/-! ### Existence of Hilbert basis, orthonormal basis, etc. -/
 
 variables {𝕜 E} {v : set E}
 
@@ -2531,8 +2531,8 @@ let ⟨u, hus, hu, hu_max⟩ := exists_subset_is_orthonormal_dense_span (orthono
 ⟨u, hu, hu_max⟩
 variables {𝕜 E}
 
-/-- A finite orthonormal set in an `inner_product_space` is maximal, if and only if it is a basis.
--/
+/-- An orthonormal set in a finite-dimensional `inner_product_space` is maximal, if and only if it
+is a basis. -/
 lemma maximal_orthonormal_iff_is_basis_of_finite_dimensional
   [finite_dimensional 𝕜 E] (hv : orthonormal 𝕜 (coe : v → E)) :
   (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ is_basis 𝕜 (coe : v → E) :=

@@ -163,7 +163,6 @@ end erase_lead
 required to be at least as big as the `nat_degree` of the polynomial.  This is useful to prove
 results where you want to change each term in a polynomial to something else depending on the
 `nat_degree` of the polynomial itself and not on the specific `nat_degree` of each term. -/
---@[elab_as_eliminator]
 lemma induction_with_nat_degree_le {R : Type*} [semiring R] {P : polynomial R → Prop} (N : ℕ)
   (P_0 : P 0)
   (P_C_mul_pow : ∀ n : ℕ, ∀ r : R, r ≠ 0 → n ≤ N → P (C r * X ^ n))

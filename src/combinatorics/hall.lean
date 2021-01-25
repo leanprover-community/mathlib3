@@ -303,7 +303,7 @@ sets has at least `k` elements.
 
 Recall that `A.bind s` is the union of all the sets `s i` for `i ∈ A`.
 -/
-theorem all_card_le_bind_card_iff_exists_injective
+theorem finset.all_card_le_bind_card_iff_exists_injective
   {ι α : Type*} [fintype ι] [decidable_eq α] (s : ι → finset α) :
   (∀ (A : finset ι), A.card ≤ (A.bind s).card)
   ↔ (∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ s x) :=

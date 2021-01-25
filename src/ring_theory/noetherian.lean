@@ -220,54 +220,32 @@ begin
   { rintro ⟨t, ht⟩,
     -- s is the sup of the spans of the members of t
     rw [span_eq_sup_of_singleton_spans, eq_comm] at ht,
-    -- Tweak this statement a bit for eventual application of sup_le_of_le_directed
+    -- Tweak this statement a bit to apply finset_sup_compact_of_compact
     change s = ⨆ (x : M) (H : x ∈ t), id (sp x) at ht,
     rw [←finset.supr_finset_image, ←(finset.sup_eq_supr (t.image sp) id)] at ht,
-    subst ht,
-    -- Use directed set definition of compact
-    rw complete_lattice.is_compact_element_iff_le_of_directed_Sup_le,
-    intros d hemp hdir hd,
-    by_cases htriv : t.nonempty,
-    { apply finset.sup_le_of_le_directed d hemp hdir,
-      intros n hn,
-      -- Show that n = sp a is below something in d.
-      obtain ⟨a, hat, haspan⟩ := finset.mem_image.mp hn,
-      subst haspan,
-      have asupd : a ∈ Sup d,
-      { suffices : span R {a} ≤ Sup d, from (le_def.mp this) (mem_span_singleton_self a),
-        exact le_trans (@finset.le_sup _ _ _ _ id _ hn) hd, },
-      -- a ∈ Sup d implies a is actually in some submodule in d, so sp a is below d.
-      obtain ⟨n, hnd, han⟩ := (mem_Sup_of_directed hemp hdir).mp asupd,
-      exact ⟨n, ⟨hnd, by rwa span_singleton_le_iff_mem⟩⟩, },
-    { rw finset.nonempty_iff_ne_empty at htriv, push_neg at htriv,
-      use set.nonempty.some hemp,
-      simp only [htriv, nonempty.some_mem, finset.sup_empty, bot_le, and_self,
-        finset.image_empty], }, },
+    subst ht, apply complete_lattice.finset_sup_compact_of_compact,
+    intros n hn,
+    obtain ⟨x, ⟨hxt, hxn⟩⟩ := finset.mem_image.mp hn,
+    subst hxn, exact singleton_span_is_compact_element x, },
   { intro h,
     -- s is the Sup of the spans of its elements.
-    have sjoin : s = ⨆ x ∈ ↑s, span R {x},
+    have ssup : s = ⨆ x ∈ ↑s, sp x,
     { nth_rewrite 0 ←(span_eq s), exact span_eq_sup_of_singleton_spans s, },
     -- Tweak this statement a bit to apply compactness
-    change s = ⨆ (x : M) (H : x ∈ ↑s), id (sp x) at sjoin,
-    rw ←supr_image at sjoin,
-    simp_rw [id.def, ←Sup_eq_supr] at sjoin,
-    -- s is actually the sup of the spans of finitely many elements.
-    obtain ⟨u, ⟨huspan, husup⟩⟩ := h (sp '' ↑s) (le_of_eq sjoin),
+    change s = ⨆ (x : M) (H : x ∈ ↑s), id (sp x) at ssup,
+    rw ←supr_image at ssup, simp_rw [id.def, ←Sup_eq_supr] at ssup,
+    -- s is then below (actually, equal to) the sup of the spans of finitely many elements.
+    obtain ⟨u, ⟨huspan, husup⟩⟩ := h (sp '' ↑s) (le_of_eq ssup),
+    replace husup : s = u.sup id,
+    { suffices : u.sup id ≤ s, from le_antisymm husup this,
+      rw [ssup, finset.sup_eq_Sup], exact Sup_le_Sup huspan, },
     obtain ⟨t, ⟨hts, htu⟩⟩ := finset.subset_image_iff.mp huspan,
     subst htu,
-    -- Which is precicely the set the generates s.
-    use t,
-    apply le_antisymm,
-    { rwa span_le, },
-    { rw span_eq_sup_of_singleton_spans,
-      simp only [le_supr_iff, supr_le_iff, finset.mem_coe],
-      intros b hb,
-      suffices : (t.image sp).sup id ≤ b, from le_trans husup this,
-      simp_rw [finset.sup_le_iff, id.def],
-      intros c hc,
-      obtain ⟨a, hat, hac⟩ := finset.mem_image.mp hc,
-      subst hac,
-      exact hb a hat, }, },
+    -- Tweak husup a bit to apply span_eq_sup_of_singleton_spans
+    simp_rw [(finset.sup_eq_supr (t.image sp) id), finset.supr_finset_image] at husup,
+    change s = ⨆ (y : M) (H : y ∈ (↑t : set M)), sp y at husup,
+    rw ←(span_eq_sup_of_singleton_spans ↑t) at husup,
+    exact ⟨t, eq.symm husup⟩, },
 end
 
 end submodule

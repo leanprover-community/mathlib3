@@ -81,7 +81,7 @@ def free_Koszul : Π (n : ℕ) (x : fin n.succ → R),
   cochain_complex.{u u+1} (Module.{u u} R)
 | 0 x := smul_cx R (x 0)
 | (n + 1) x := cochain_complex.tensor_product R
-  (smul_cx R (x 0)) (free_Koszul n (fin.init x))
+  (smul_cx R (x n.succ)) (free_Koszul n (fin.init x))
 
 def punit_equiv_of_subsingleton (M : Type u) [add_comm_group M]
   [module R M] [subsingleton M] : M ≃ₗ[R] punit :=
@@ -161,17 +161,30 @@ begin
       unfold smul_cx_X,
       apply_instance }},
 end
+#check category_theory.iso
 
+def hom_aux (x : fin 2 → R) :=
+@direct_sum.to_module R _ ({ i : ℤ × ℤ // i.1 + i.2 = 0}) _
+  (λ i, tensor_product R ((smul_cx R (x 1)).X i.1.1) ((smul_cx R (x 0)).X i.1.2)) _ _
+     (Module.of R R) _ _ $ λ i,
+    subtype.cases_on i $ λ i', prod.cases_on i' $ λ i j hij,
+    int.cases_on i (λ a, nat.rec_on a (int.cases_on j
+      (λ b, nat.rec_on b ((tensor_product.rid R R).to_linear_map)
+      (λ c, 0)) (λ b, 0)) (λ b, 0)) (λ a, 0)
+
+
+      #exit
 def Koszul_isom_20 (x : fin 2 → R) :
   (free_Koszul R 1 x).X 0 ≅ Module.of R R :=
-{ hom := direct_sum.to_module R _ (Module.of R R) $ λ i,
-    subtype.cases_on i $ λ i, prod.cases_on i $ λ i j hij,
+{ hom := @direct_sum.to_module R _ ({ i : ℤ × ℤ // i.1 + i.2 = 0}) _ (λ i, tensor_product R ((smul_cx R (x 1)).X i.1.1) ((smul_cx R (x 0)).X i.1.2)) _ _
+     (Module.of R R) _ _ $ λ i,
+    subtype.cases_on i $ λ i', prod.cases_on i' $ λ i j hij,
     int.cases_on i (λ a, nat.rec_on a (int.cases_on j
       (λ b, nat.rec_on b ((tensor_product.rid R R).to_linear_map)
       (λ c, 0)) (λ b, 0)) (λ b, 0)) (λ a, 0),
   inv := (direct_sum.lof R ({ i : ℤ × ℤ // i.1 + i.2 = 0}) _ (⟨(0, 0), zero_add _⟩)).comp
     (tensor_product.rid R R).symm.to_linear_map,
-  hom_inv_id' := by {ext1 i, cases i with i1 i2, cases i1 with i j, induction i with i i,
+  hom_inv_id' := sorry,/-by {ext1 i, cases i with i1 i2, cases i1 with i j, induction i with i i,
     induction i with i hi, induction j with j j, induction j with j hj, ext1 x,
       ext,
       rcases classical.em (i = ⟨(0, 0), zero_add _⟩) with ⟨rfl, hi⟩,
@@ -206,15 +219,18 @@ def Koszul_isom_20 (x : fin 2 → R) :
       unfold smul_cx,
       simp only,
       unfold smul_cx_X,
-      apply_instance},
+      apply_instance},-/
   inv_hom_id' := by {
-     ext,
-     simp only,
-     dsimp,
-     rw direct_sum.to_module_lof,
-     erw tensor_product.rid_symm_apply,
-     erw tensor_product.rid_tmul,
-     rw one_smul }  }
+    -- ext,
+    -- simp only,
+    -- dsimp,
+    -- rw direct_sum.to_module_lof,
+    -- erw tensor_product.rid_symm_apply,
+     --erw tensor_product.rid_tmul,
+     sorry
+     --rw one_smul
+
+     }  }
 
 def Koszul_isom_21 (x : fin 2 → R) :
   (free_Koszul R 1 x).X 1 ≅ (Module.of R (R × R)) :=

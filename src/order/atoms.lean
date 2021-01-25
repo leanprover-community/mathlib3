@@ -58,14 +58,13 @@ variable [order_bot α]
 def is_atom (a : α) : Prop := a ≠ ⊥ ∧ (∀ b, b < a → b = ⊥)
 
 lemma eq_bot_or_eq_of_le_atom {a b : α} (ha : is_atom a) (hab : b ≤ a) : b = ⊥ ∨ b = a :=
-or.imp_left (ha.2 b) (lt_or_eq_of_le hab)
+hab.lt_or_eq.imp_left (ha.2 b)
 
 lemma is_atom.Iic {x a : α} (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set.Iic x) :=
 ⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
 
 lemma is_atom.of_is_atom_coe_Iic {x : α} {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
-⟨λ con, ha.1 (subtype.ext con),
-  λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, le_trans (le_of_lt hba) a.prop⟩ hba)⟩
+⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, hba.le.trans a.prop⟩ hba)⟩
 
 end is_atom
 
@@ -78,15 +77,14 @@ variable [order_top α]
 def is_coatom (a : α) : Prop := a ≠ ⊤ ∧ (∀ b, a < b → b = ⊤)
 
 lemma eq_top_or_eq_of_coatom_le {a b : α} (ha : is_coatom a) (hab : a ≤ b) : b = ⊤ ∨ b = a :=
-or.imp (ha.2 b) eq_comm.2 (lt_or_eq_of_le hab)
+hab.lt_or_eq.imp (ha.2 b) eq_comm.2
 
 lemma is_coatom.Ici {x a : α} (ha : is_coatom a) (hax : x ≤ a) : is_coatom (⟨a, hax⟩ : set.Ici x) :=
 ⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
 
 lemma is_coatom.of_is_coatom_coe_Ici {x : α} {a : set.Ici x} (ha : is_coatom a) :
   is_coatom (a : α) :=
-⟨λ con, ha.1 (subtype.ext con),
-  λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, le_trans a.prop (le_of_lt hba)⟩ hba)⟩
+⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, le_trans a.prop hba.le⟩ hba)⟩
 
 end is_coatom
 
@@ -149,7 +147,7 @@ variables [is_atomic α]
 
 instance {x : α} : is_atomic (set.Iic x) :=
 ⟨λ ⟨y, hy⟩, (eq_bot_or_exists_atom_le y).imp subtype.mk_eq_mk.2
-  (λ ⟨a, ha, hay⟩, ⟨⟨a, le_trans hay hy⟩, ha.Iic (le_trans hay hy), hay⟩)⟩
+  (λ ⟨a, ha, hay⟩, ⟨⟨a, hay.trans hy⟩, ha.Iic (hay.trans hy), hay⟩)⟩
 
 end is_atomic
 

@@ -489,11 +489,9 @@ def delete_edge {G : simple_graph V} {v w : V} (h : G.adj v w) : simple_graph V 
             split,
             { contrapose,
               push_neg,
-              simp only [ne.def],
               exact haw },
             { contrapose,
               push_neg,
-              simp only [ne.def],
               exact hav },
           end,
   loopless := λ a, by simp only [simple_graph.irrefl, not_false_iff, and_false]}

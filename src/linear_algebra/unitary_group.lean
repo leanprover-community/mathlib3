@@ -68,9 +68,12 @@ variables {n : Type u} [decidable_eq n] [fintype n]
 
 namespace unitary_submonoid
 
-lemma star_mem {A : matrix n n α} (hA : A ∈ unitary_submonoid n α) :
-  star A ∈ unitary_submonoid n α :=
-show star (star A) ⬝ star A = 1, from matrix.nonsing_inv_left_right _ _ $ by rwa [star_star]
+@[simp]
+lemma star_mem_iff {A : matrix n n α} :
+  star A ∈ unitary_submonoid n α ↔ A ∈ unitary_submonoid n α  :=
+⟨λ ha, show star A ⬝ A = 1, from matrix.nonsing_inv_left_right _ _ $
+    by { nth_rewrite 0 [←star_star A], exact ha },
+ λ ha, show star (star A) ⬝ star A = 1, from matrix.nonsing_inv_left_right _ _ $ by rwa star_star⟩
 
 end unitary_submonoid
 
@@ -94,13 +97,13 @@ instance coe_fun : has_coe_to_fun (unitary_group n α) :=
 def to_lin' (A : unitary_group n α) := matrix.to_lin' A
 
 lemma ext_iff (A B : unitary_group n α) : A = B ↔ ∀ i j, A i j = B i j :=
-iff.trans subtype.ext_iff_val ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix.ext⟩
+subtype.ext_iff_val.trans ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix.ext⟩
 
 @[ext] lemma ext (A B : unitary_group n α) : (∀ i j, A i j = B i j) → A = B :=
 (unitary_group.ext_iff A B).mpr
 
 instance : has_inv (unitary_group n α) :=
-⟨λ A, ⟨star A.1, unitary_submonoid.star_mem A.2⟩⟩
+⟨λ A, ⟨star A.1, unitary_submonoid.star_mem_iff.mpr A.2⟩⟩
 
 instance : inhabited (unitary_group n α) := ⟨1⟩
 

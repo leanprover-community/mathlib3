@@ -36,7 +36,7 @@ noncomputable theory
 
 namespace polynomial
 
-variables (R S : Type*) [comm_ring R] [comm_ring S] (a : R)
+variables {R S : Type*} [comm_ring R] [comm_ring S] (a : R)
 
 /-- `dickson₁` is the `n`-th Dickson polynomial of the first kind associated to the element `a∈R`.
 -/
@@ -45,8 +45,8 @@ noncomputable def dickson₁ : ℕ → polynomial R
 | 1       := X
 | (n + 2) := X * dickson₁ (n + 1) - (monomial 0 a) * dickson₁ n
 
-@[simp] lemma dickson₁_zero : dickson₁ R a 0 = 2 := rfl
-@[simp] lemma dickson₁_one : dickson₁ R a 1 = X := rfl
+@[simp] lemma dickson₁_zero : dickson₁ a 0 = 2 := rfl
+@[simp] lemma dickson₁_one : dickson₁ a 1 = X := rfl
 lemma dickson₁_two : dickson₁ R a 2 = X ^ 2 - monomial 0 a * 2 :=
 by simp only [dickson₁, mul_one, pow_two]
 @[simp] lemma dickson₁_add_two (n : ℕ) :

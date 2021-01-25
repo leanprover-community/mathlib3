@@ -160,7 +160,7 @@ begin
     simp, },
 end
 
-lemma hall_cond_of_compl {α : Type u} (r : α → finset β) (A : finset α)
+lemma hall_cond_of_compl {α : Type u} {r : α → finset β} {A : finset α}
   (huA : A.card = (A.bind r).card)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
   (B : finset (Aᶜ : set α)) :

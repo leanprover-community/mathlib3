@@ -81,7 +81,7 @@ lemma injective.of_comp {g : γ → α} (I : injective (f ∘ g)) : injective g 
 λ x y h, I $ show f (g x) = f (g y), from congr_arg f h
 
 lemma injective.dite_injective (p : α → Prop) [decidable_pred p]
-  (f : {a : α // p a} → β) (f' : {a : α // ¬ p a} → β)
+  {f : {a : α // p a} → β} {f' : {a : α // ¬ p a} → β}
   (hf : function.injective f) (hf' : function.injective f')
   (im_disj : ∀ {x x' : α} {hx : p x} {hx' : ¬ p x'}, f ⟨x, hx⟩ ≠ f' ⟨x', hx'⟩) :
   function.injective (λ x, if h : p x then f ⟨x, h⟩ else f' ⟨x, h⟩) :=

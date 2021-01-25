@@ -269,7 +269,7 @@ begin
   { push_neg at h,
     rcases h with ⟨A, Ane, Anu, Ale⟩,
     have Aeq := nat.le_antisymm (hr _) Ale,
-    exact hall_hard_inductive_step_B r hn hr @ih A Ane Anu Aeq, },
+    exact hall_hard_inductive_step_B hn hr @ih A Ane Anu Aeq, },
 end
 
 /--

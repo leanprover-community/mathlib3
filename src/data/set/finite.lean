@@ -581,6 +581,10 @@ lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) :
   (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
 by ext; simp
 
+lemma to_finset_union {α : Type*} [fintype α] (s t : set α) :
+  (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
+by ext; simp
+
 end
 
 section

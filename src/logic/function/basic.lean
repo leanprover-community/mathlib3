@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import logic.basic
 import data.option.defs
-import tactic.basic
 
 /-!
 # Miscellaneous function constructions and lemmas
@@ -86,12 +85,15 @@ lemma injective.dite_injective (p : α → Prop) [decidable_pred p]
   (im_disj : ∀ {x x' : α} {hx : p x} {hx' : ¬ p x'}, f ⟨x, hx⟩ ≠ f' ⟨x', hx'⟩) :
   function.injective (λ x, if h : p x then f ⟨x, h⟩ else f' ⟨x, h⟩) :=
 begin
-  { rintros x₁ x₂ (h : dite _ _ _ = dite _ _ _),
+  intros x₁ x₂ h,
+
+    /-intros (h : dite _ _ _ = dite _ _ _),
     split_ifs at h,
     { injection (hf h), },
     { exact (im_disj h).elim, },
     { exact (im_disj h.symm).elim, },
-    { injection (hf' h), }, },
+    { injection (hf' h), }, },-/
+  sorry,
 end
 
 lemma surjective.of_comp {g : γ → α} (S : surjective (f ∘ g)) : surjective f :=

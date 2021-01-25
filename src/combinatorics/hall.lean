@@ -296,9 +296,9 @@ end hall_marriage_theorem
 
 /--
 This the version of Hall's Marriage Theorem in terms of indexed
-families of finite sets `s : ι → finset α`.  It states that there is
-set of distinct representatives if and only if every union of k of the
-sets has at least k elements.
+families of finite sets `s : ι → finset α`.  It states that there is a
+set of distinct representatives if and only if every union of `k` of the
+sets has at least `k` elements.
 
 Recall that `A.bind s` is the union of all the sets `s i` for `i ∈ A`.
 -/

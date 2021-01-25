@@ -3,7 +3,6 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov
 -/
-import analysis.normed_space.operator_norm
 import topology.metric_space.isometry
 
 /-!
@@ -56,13 +55,11 @@ coe_fn_injective $ funext h
 
 @[simp] lemma nnnorm_map (x : E) : nnnorm (f x) = nnnorm x := nnreal.eq $ f.norm_map x
 
-@[simp] lemma dist_map (x y : E) : dist (f x) (f y) = dist x y :=
-by rw [dist_eq_norm, ← f.map_sub, f.norm_map, dist_eq_norm]
+protected lemma isometry : isometry f :=
+f.to_linear_map.to_add_monoid_hom.isometry_of_norm f.norm_map
 
-protected lemma isometry : isometry f := isometry_emetric_iff_metric.2 f.dist_map
-
-@[simp] lemma edist_map (x y : E) : edist (f x) (f y) = edist x y :=
-f.isometry.edist_eq x y
+@[simp] lemma dist_map (x y : E) : dist (f x) (f y) = dist x y := f.isometry.dist_eq x y
+@[simp] lemma edist_map (x y : E) : edist (f x) (f y) = edist x y := f.isometry.edist_eq x y
 
 protected lemma injective : injective f := f.isometry.injective
 

@@ -111,6 +111,22 @@ lemma isometry.diam_range [metric_space α] [metric_space β] {f : α → β} (h
   metric.diam (range f) = metric.diam (univ : set α) :=
 by { rw ← image_univ, exact hf.diam_image univ }
 
+namespace add_monoid_hom
+
+variables {E F : Type*} [normed_group E] [normed_group F]
+
+lemma isometry_iff_norm (f : E →+ F) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
+begin
+  simp only [isometry_emetric_iff_metric, dist_eq_norm, ← f.map_sub],
+  refine ⟨λ h x, _, λ h x y, h _⟩,
+  simpa using h x 0
+end
+
+lemma isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+f.isometry_iff_norm.2 hf
+
+end add_monoid_hom
+
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
 @[nolint has_inhabited_instance] -- such a bijection need not exist
 structure isometric (α : Type*) (β : Type*) [emetric_space α] [emetric_space β]

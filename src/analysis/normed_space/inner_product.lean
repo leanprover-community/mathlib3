@@ -2281,11 +2281,11 @@ lemma submodule.orthogonal_orthogonal_eq_closure [complete_space E] :
   Kᗮᗮ = K.topological_closure :=
 begin
   refine le_antisymm _ _,
-  { convert submodule.orthogonal_orthogonal_monotone h,
-    haveI : complete_space K.topological_closure,
-    { exact s.is_closed_topological_closure.complete_space_coe },
+  { convert submodule.orthogonal_orthogonal_monotone K.submodule_topological_closure,
+    haveI : complete_space K.topological_closure :=
+      K.is_closed_topological_closure.complete_space_coe,
     rw K.topological_closure.orthogonal_orthogonal },
-  { exact Kᗮᗮ.topological_closure_minimal Kᗮ.is_closed_orthogonal K.le_orthogonal_orthogonal }
+  { exact K.topological_closure_minimal K.le_orthogonal_orthogonal Kᗮ.is_closed_orthogonal }
 end
 
 variables {K}

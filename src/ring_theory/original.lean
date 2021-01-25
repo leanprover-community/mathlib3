@@ -48,7 +48,7 @@ lemma injective_quotient_le_comap_map {R : Type*} [comm_ring R] (P : ideal (poly
 begin
   refine quotient_map_injective' (le_of_eq _),
   rw comap_map_of_surjective
-    (map_ring_hom (quotient.mk ((P.comap C)))) (map_surjective _ quotient.mk_surjective),
+    (map_ring_hom (quotient.mk (P.comap C))) (map_surjective _ quotient.mk_surjective),
   refine le_antisymm (sup_le le_rfl _) (le_sup_left_of_le le_rfl),
   refine λ p hp, polynomial_mem_ideal_of_coeff_mem_ideal P p (λ n, quotient.eq_zero_iff_mem.mp _),
   simpa only [coeff_map, coe_map_ring_hom] using ext_iff.mp (ideal.mem_bot.mp (mem_comap.mp hp)) n,
@@ -57,10 +57,10 @@ end
 /-- The identity in this lemma is used in the proof of `quotient_mk_comp_C_is_integral_of_jacobson`.
 It is isolated, since it speeds up the processing, avoiding a deterministic timeout. -/
 lemma quotient_mk_maps_eq {R : Type*} [comm_ring R] (P : ideal (polynomial R)) :
-  (((quotient.mk (map (map_ring_hom (quotient.mk (P.comap C))) P)).comp C).comp
-    (quotient.mk (P.comap C))) =
-  (((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map
-    (map_ring_hom (quotient.mk (P.comap C))) le_comap_map).comp ((quotient.mk P).comp C)) :=
+  ((quotient.mk (map (map_ring_hom (quotient.mk (P.comap C))) P)).comp C).comp
+    (quotient.mk (P.comap C)) =
+  ((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map
+    (map_ring_hom (quotient.mk (P.comap C))) le_comap_map).comp ((quotient.mk P).comp C) :=
 begin
   refine ring_hom.ext (λ x, _),
   repeat { rw [ring_hom.coe_comp, function.comp_app] },
@@ -76,7 +76,7 @@ variables {R S : Type*} [comm_ring R] [comm_ring S] {I : ideal R}
  the Jacobson radical of `I` is equal to `I`.
  See `is_jacobson_iff_prime_eq` and `is_jacobson_iff_Inf_maximal` for equivalent definitions. -/
 @[class] def is_jacobson (R : Type*) [comm_ring R] :=
-    ∀ (I : ideal R), I.radical = I → I.jacobson = I
+  ∀ (I : ideal R), I.radical = I → I.jacobson = I
 
 /--  A ring is a Jacobson ring if and only if for all prime ideals `P`,
  the Jacobson radical of `P` is equal to `P`. -/
@@ -437,7 +437,7 @@ is_jacobson_polynomial_iff_is_jacobson.mpr ‹is_jacobson R›
 end comm_ring
 
 section integral_domain
-variables {R S : Type*} [integral_domain R] [integral_domain S] [is_jacobson R]
+variables {R : Type*} [integral_domain R] [is_jacobson R]
 variables (P : ideal (polynomial R)) [hP : P.is_maximal]
 
 include P hP
@@ -463,7 +463,8 @@ begin
     (ϕ.map (M.mem_map_of_mem (φ : (P.comap C : ideal R).quotient →* P.quotient)) ϕ'),
   have hcomm: φ'.comp ϕ.to_map = ϕ'.to_map.comp φ := ϕ.map_comp _,
   have hφ : function.injective φ := quotient_map_injective,
-  have hM : (0 : ((P.comap C : ideal R)).quotient) ∉ M := λ hM, hp0 (let ⟨n, hn⟩ := hM in pow_eq_zero hn),
+  have hM : (0 : ((P.comap C : ideal R)).quotient) ∉ M :=
+    λ hM, hp0 (let ⟨n, hn⟩ := hM in pow_eq_zero hn),
   have hM' : (0 : P.quotient) ∉ M' :=
     λ hM', hM (let ⟨z, hz⟩ := hM' in (hφ (trans hz.2 φ.map_zero.symm)) ▸ hz.1),
   letI : integral_domain (localization M') :=
@@ -485,7 +486,8 @@ begin
 end
 
 /-- Used to bootstrap the more general `quotient_mk_comp_C_is_integral_of_jacobson` -/
-private lemma quotient_mk_comp_C_is_integral_of_jacobson' (hR : is_jacobson R) (hP' : ∀ (x : R), C x ∈ P → x = 0) :
+private lemma quotient_mk_comp_C_is_integral_of_jacobson' (hR : is_jacobson R)
+  (hP' : ∀ (x : R), C x ∈ P → x = 0) :
   ((quotient.mk P).comp C : R →+* P.quotient).is_integral :=
 begin
   let P' : ideal R := P.comap C,

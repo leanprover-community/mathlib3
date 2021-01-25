@@ -63,12 +63,12 @@ notation `SL(` n `,` R `)`:= special_linear_group (fin n) R
 
 def top : --SL2R --
 SL(2, ℝ)  → ℂ → ℂ :=
-λ g, λ z, (g.1 0 0) * z + (g.1 0 1)
+λ g, λ z, (g 0 0) * z + (g 0 1)
 
 def bottom : --SL2R --
 SL(2, ℝ)
  → ℂ → ℂ :=
-λ g, λ z, (g.1 1 0) * z + (g.1 1 1)
+λ g, λ z, (g 1 0) * z + (g 1 1)
 
 def top' : --SL2Z --
 SL(2, ℤ)  → ℂ → ℂ :=
@@ -169,7 +169,7 @@ begin
   intros h,
   rw bottom at h,
   simp at h,
-  have hIm := isZThenReIm ((g.1 1 0) * z + (g.1 1 1)) h,
+  have hIm := isZThenReIm ((g 1 0) * z + (g 1 1)) h,
   simp at hIm,
   cases hIm,
   {
@@ -287,9 +287,17 @@ instance SL2R_action : mul_action SL(2, ℝ) H :=
   one_smul := λ z, by {ext1, unfold_coes, simp [smul_aux, top, bottom, z.2], norm_num},
   mul_smul := λ g1 g2 z, by simpa using smul_mul z.2 }
 
+@[simp] lemma SL2R_action_apply (g : SL(2, ℝ)) (z : H) :
+  g • z = ⟨(top g z) / (bottom g z), GactsHtoH z.2⟩ :=
+rfl
+
 /-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action. -/
 instance SL2Z_action : mul_action SL(2, ℤ) H :=
-mul_action.comp_hom H (SL_n_insertion (int.cast_ring_hom ℝ))
+mul_action.comp_hom H (int.cast_ring_hom ℝ).map_SLn
+
+@[simp] lemma comp_hom_special_case (g : SL(2, ℤ)) (z : H) :
+  g • z = ((int.cast_ring_hom ℝ).map_SLn g) • z :=
+rfl
 
 def T : SL(2,ℤ) := { val := ![![1, 1], ![0, 1]], property := by simp [det2] }
 
@@ -315,6 +323,19 @@ begin
   discrete_field,
 end
 
+lemma T_action {z : H} : ↑(T • z) = (z:ℂ) + 1  :=
+begin
+  have h_bot : bottom ((int.cast_ring_hom ℝ).map_SLn T) z = 1,
+  { simp only [bottom],
+    simp only [ring_hom.map_SLn_apply'],
+    simp [T, special_linear_group.apply] },
+  have h_top : top ((int.cast_ring_hom ℝ).map_SLn T) z = (z:ℂ) + 1,
+  { simp only [top],
+    simp only [ring_hom.map_SLn_apply'],
+    simp [T, special_linear_group.apply] },
+  simp [h_bot, h_top]
+end
+
 lemma Tn_action' {n : ℤ} {z : ℂ} : smul_aux' (T^n) z = z + n  :=
 begin
   rw T_pow,
@@ -337,7 +358,7 @@ begin
   discrete_field,
 end
 
-lemma T_action {z : H} : (T • z).1 = z + 1 :=
+lemma T_action'' {z : H} : (T • z).1 = z + 1 :=
 begin
   unfold_coes,
   have : (T • z).1 = smul_aux' T z,

@@ -66,6 +66,8 @@ instance coe_fun : has_coe_to_fun (special_linear_group n R) :=
 { F   := λ _, n → n → R,
   coe := λ A, A.val }
 
+lemma apply (A : special_linear_group n R) (a b : n) : A a b = A.1 a b := rfl
+
 /--
   `to_lin' A` is matrix multiplication of vectors by `A`, as a linear map.
 
@@ -165,16 +167,27 @@ by { ext v i, rw [coe_to_GL, to_lin'_mul], refl }
 def embedding_GL : (special_linear_group n R) →* (general_linear_group R (n → R)) :=
 ⟨λ A, to_GL A, by simp, by simp⟩
 
+end special_linear_group
+
+end matrix
+
+variables {n : Type*} [decidable_eq n] [fintype n] {R : Type*} [comm_ring R]
 variables {S : Type*} [comm_ring S]
+
+open matrix
 
 /-- A ring homomorphism from `R` to `S` induces a group homomorphism from
 `special_linear_group n R` to `special_linear_group n S`. -/
-def SL_n_insertion (f : R →+* S) :
+def ring_hom.map_SLn (f : R →+* S) :
 monoid_hom (special_linear_group n R) (special_linear_group n S) :=
 { to_fun := λ g, ⟨f.map_matrix g, ring_hom.map_det_one f g.2⟩,
   map_one' := by simpa,
   map_mul' := λ x y, by simpa }
 
-end special_linear_group
+@[simp] lemma ring_hom.map_SLn_apply (f : R →+* S) (M : special_linear_group n R) :
+  ((f.map_SLn M) : matrix n n S) = matrix.map (M : matrix n n R) f :=
+rfl
 
-end matrix
+@[simp] lemma ring_hom.map_SLn_apply' (f : R →+* S) (M : special_linear_group n R) :
+  (f.map_SLn M : n → n → S) = λ a b, f (M a b) :=
+rfl

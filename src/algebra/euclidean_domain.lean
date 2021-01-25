@@ -48,7 +48,7 @@ theorem div_add_mod (a b : R) : b * (a / b) + a % b = a :=
 euclidean_domain.quotient_mul_add_remainder_eq _ _
 
 lemma mod_add_div (a b : R) : a % b + b * (a / b) = a :=
-by rw add_comm; exact div_add_mod _ _
+(add_comm _ _).trans (div_add_mod _ _)
 
 lemma mod_eq_sub_mul_div {R : Type*} [euclidean_domain R] (a b : R) :
   a % b = a - b * (a / b) :=

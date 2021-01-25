@@ -198,6 +198,16 @@ def fintype_mul [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [
   fintype (s * t : set α) :=
 set.fintype_image2 _ s t
 
+@[to_additive]
+lemma bdd_above_mul [ordered_comm_monoid α] {A B : set α} :
+  bdd_above A → bdd_above B → bdd_above (A * B) :=
+begin
+  rintros ⟨bA, hbA⟩ ⟨bB, hbB⟩,
+  use bA * bB,
+  rintros x ⟨xa, xb, hxa, hxb, rfl⟩,
+  exact mul_le_mul' (hbA hxa) (hbB hxb),
+end
+
 /-! ### Properties about inversion -/
 @[to_additive set.has_neg'] -- todo: remove prime once name becomes available
 instance [has_inv α] : has_inv (set α) :=

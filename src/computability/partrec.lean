@@ -601,7 +601,7 @@ option_some_iff.1 $
     (to₂ $ list_concat.comp (snd.comp fst) snd))).of_eq $
 λ a, begin
   simp, induction a.2 with n IH, {refl},
-  simp [IH, H, list.range_concat]
+  simp [IH, H, list.range_succ]
 end
 
 theorem list_of_fn : ∀ {n} {f : fin n → α → σ},

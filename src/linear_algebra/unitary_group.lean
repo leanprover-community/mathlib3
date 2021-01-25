@@ -75,6 +75,8 @@ lemma star_mem_iff {A : matrix n n α} :
     by { nth_rewrite 0 [←star_star A], exact ha },
  λ ha, show star (star A) ⬝ star A = 1, from matrix.nonsing_inv_left_right _ _ $ by rwa star_star⟩
 
+alias star_mem_iff ↔ mem_of_star_mem star_mem_of_mem
+
 end unitary_submonoid
 
 namespace unitary_group

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta, Adam Topaz
 -/
 import category_theory.functor_category
+import category_theory.fully_faithful
 
 namespace category_theory
 open category
@@ -19,21 +20,12 @@ The data of a monad on C consists of an endofunctor T together with natural tran
 - η_(TX) ≫ μ_X = 1_X (left unit)
 - Tη_X ≫ μ_X = 1_X (right unit)
 -/
-structure monad :=
-(T : C ⥤ C)
-(η [] : 𝟭 _ ⟶ T)
-(μ [] : T ⋙ T ⟶ T)
-(assoc' : ∀ X : C, T.map (nat_trans.app μ X) ≫ μ.app _ = μ.app (T.obj X) ≫ μ.app _ . obviously)
-(left_unit' : ∀ X : C, η.app (T.obj X) ≫ μ.app _ = 𝟙 _  . obviously)
-(right_unit' : ∀ X : C, T.map (η.app X) ≫ μ.app _ = 𝟙 _  . obviously)
-
-restate_axiom monad.assoc'
-restate_axiom monad.left_unit'
-restate_axiom monad.right_unit'
-attribute [simp, reassoc] monad.left_unit monad.right_unit
-
-notation `η_` := monad.η
-notation `μ_` := monad.μ
+structure monad extends C ⥤ C :=
+(η' [] : 𝟭 _ ⟶ to_functor)
+(μ' [] : to_functor ⋙ to_functor ⟶ to_functor)
+(assoc' : ∀ X : C, to_functor.map (nat_trans.app μ' X) ≫ μ'.app _ = μ'.app (to_functor.obj X) ≫ μ'.app _ . obviously)
+(left_unit' : ∀ X : C, η'.app (to_functor.obj X) ≫ μ'.app _ = 𝟙 _ . obviously)
+(right_unit' : ∀ X : C, to_functor.map (η'.app X) ≫ μ'.app _ = 𝟙 _ . obviously)
 
 /--
 The data of a comonad on C consists of an endofunctor G together with natural transformations
@@ -42,7 +34,7 @@ The data of a comonad on C consists of an endofunctor G together with natural tr
 - δ_X ≫ ε_(GX) = 1_X (left counit)
 - δ_X ≫ G ε_X = 1_X (right counit)
 -/
-class comonad :=
+structure comonad :=
 (G : C ⥤ C)
 (ε [] : G ⟶ 𝟭 _)
 (δ [] : G ⟶ (G ⋙ G))
@@ -58,61 +50,100 @@ attribute [simp, reassoc] comonad.left_counit comonad.right_counit
 notation `ε_` := comonad.ε
 notation `δ_` := comonad.δ
 
-instance coe_monad : has_coe (monad C) (C ⥤ C) := ⟨λ T, T.T⟩
+instance coe_monad : has_coe (monad C) (C ⥤ C) := ⟨λ T, T.to_functor⟩
 instance coe_comonad : has_coe (comonad C) (C ⥤ C) := ⟨λ G, G.G⟩
 
+@[simp] lemma monad_to_functor_eq_coe (T : monad C) : T.to_functor = T := rfl
+
 variables {C}
-abbreviation monad.obj (M : monad C) := M.T.obj
-abbreviation monad.map (M : monad C) := M.T.map
 
-abbreviation comonad.obj (M : comonad C) := M.G.obj
-abbreviation comonad.map (M : comonad C) := M.G.map
+def monad.η (T : monad C) : 𝟭 _ ⟶ (T : C ⥤ C) := T.η'
+def monad.μ (T : monad C) : (T : C ⥤ C) ⋙ (T : C ⥤ C) ⟶ T := T.μ'
 
--- /-- A morphisms of monads is a natural transformation compatible with η and μ. -/
--- structure monad_hom (M N : C ⥤ C) [monad M] [monad N] extends nat_trans M N :=
--- (app_η' : ∀ {X}, (η_ M).app X ≫ app X = (η_ N).app X . obviously)
--- (app_μ' : ∀ {X}, (μ_ M).app X ≫ app X = (M.map (app X) ≫ app (N.obj X)) ≫ (μ_ N).app X . obviously)
+notation `η_` := monad.η
+notation `μ_` := monad.μ
 
--- restate_axiom monad_hom.app_η'
--- restate_axiom monad_hom.app_μ'
--- attribute [simp, reassoc] monad_hom.app_η monad_hom.app_μ
+lemma monad.assoc (T : monad C) (X : C) :
+  (T : C ⥤ C).map (T.μ.app X) ≫ T.μ.app _ = T.μ.app _ ≫ T.μ.app _ :=
+T.assoc' X
+
+@[simp, reassoc] lemma monad.left_unit (T : monad C) (X : C) :
+  T.η.app ((↑T : C ⥤ C).obj X) ≫ T.μ.app X = 𝟙 ((↑T : C ⥤ C).obj X) :=
+T.left_unit' X
+
+@[simp, reassoc] lemma monad.right_unit (T : monad C) (X : C) :
+  (T : C ⥤ C).map (T.η.app X) ≫ T.μ.app X = 𝟙 ((↑T : C ⥤ C).obj X) :=
+T.right_unit' X
+
+-- abbreviation monad.obj (M : monad C) := (M : C ⥤ C).obj
+-- abbreviation monad.map (M : monad C) := (M : C ⥤ C).map
+
+-- abbreviation comonad.obj (M : comonad C) := M.G.obj
+-- abbreviation comonad.map (M : comonad C) := M.G.map
+
+/-- A morphism of monads is a natural transformation compatible with η and μ. -/
+@[ext]
+structure monad_hom (M N : monad C) extends nat_trans (M : C ⥤ C) N :=
+(app_η' : ∀ {X}, (η_ M).app X ≫ app X = (η_ N).app X . obviously)
+(app_μ' : ∀ {X}, (μ_ M).app X ≫ app X = ((M : C ⥤ C).map (app X) ≫ app (N.obj X)) ≫ (μ_ N).app X . obviously)
 
 -- /-- A morphisms of comonads is a natural transformation compatible with η and μ. -/
 -- structure comonad_hom (M N : C ⥤ C) [comonad M] [comonad N] extends nat_trans M N :=
 -- (app_ε' : ∀ {X}, app X ≫ (ε_ N).app X = (ε_ M).app X . obviously)
 -- (app_δ' : ∀ {X}, app X ≫ (δ_ N).app X = (δ_ M).app X ≫ app (M.obj X) ≫ N.map (app X) . obviously)
 
--- restate_axiom comonad_hom.app_ε'
--- restate_axiom comonad_hom.app_δ'
--- attribute [simp, reassoc] comonad_hom.app_ε comonad_hom.app_δ
+restate_axiom monad_hom.app_η'
+restate_axiom monad_hom.app_μ'
+attribute [simp, reassoc] monad_hom.app_η monad_hom.app_μ
 
--- namespace monad_hom
--- variables {M N L K : C ⥤ C} [monad M] [monad N] [monad L] [monad K]
+instance : category (monad C) :=
+{ hom := monad_hom,
+  id := λ M, { to_nat_trans := 𝟙 (M : C ⥤ C) },
+  comp := λ M N L f g,
+  { to_nat_trans := { app := λ X, f.app X ≫ g.app X } } }
 
--- @[ext]
--- theorem ext (f g : monad_hom M N) :
---   f.to_nat_trans = g.to_nat_trans → f = g := by {cases f, cases g, simp}
+instance {M : monad C} : inhabited (monad_hom M M) := ⟨𝟙 M⟩
 
--- variable (M)
--- /-- The identity natural transformations is a morphism of monads. -/
--- def id : monad_hom M M := { ..𝟙 M }
--- variable {M}
+-- /--
+-- We use this rather than `to_nat_trans` because `to_nat_trans` returns a `monad_hom` and Lean
+-- struggles to unify this with `⟶` sometimes.
+-- -/
+-- def has_hom.hom.as_nat_trans {T₁ T₂ : monad C} (f : T₁ ⟶ T₂) : ↑T₁ ⟶ (↑T₂ : C ⥤ C) :=
+-- f.to_nat_trans
 
--- instance : inhabited (monad_hom M M) := ⟨id _⟩
+-- @[simp] lemma to_nat_trans_eq_as_nat_trans {T₁ T₂ : monad C} (f : T₁ ⟶ T₂) :
+--   f.to_nat_trans = f.as_nat_trans := rfl
 
--- /-- The composition of two morphisms of monads. -/
--- def comp (f : monad_hom M N) (g : monad_hom N L) : monad_hom M L :=
--- { app := λ X, f.app X ≫ g.app X }
+@[simp] lemma id_as_nat_trans (T : monad C) : (𝟙 T : T ⟶ T).to_nat_trans = 𝟙 (T : C ⥤ C) := rfl
+@[simp] lemma comp_to_nat_trans {T₁ T₂ T₃ : monad C} (f : T₁ ⟶ T₂) (g : T₂ ⟶ T₃) :
+  (f ≫ g).to_nat_trans =
+    ((f.to_nat_trans : _ ⟶ (T₂ : C ⥤ C)) ≫ g.to_nat_trans : (T₁ : C ⥤ C) ⟶ T₃) :=
+rfl
 
--- @[simp] lemma id_comp (f : monad_hom M N) : (monad_hom.id M).comp f = f :=
--- by {ext, apply id_comp}
--- @[simp] lemma comp_id (f : monad_hom M N) : f.comp (monad_hom.id N) = f :=
--- by {ext, apply comp_id}
--- /-- Note: `category_theory.monad.bundled` provides a category instance for bundled monads.-/
--- @[simp] lemma assoc (f : monad_hom M N) (g : monad_hom N L) (h : monad_hom L K) :
---   (f.comp g).comp h = f.comp (g.comp h) := by {ext, apply assoc}
+-- -- restate_axiom monad_hom.app_η'
+-- -- restate_axiom monad_hom.app_μ'
+-- -- attribute [simp, reassoc] monad_hom.app_η monad_hom.app_μ
 
--- end monad_hom
+-- @[simp, reassoc] lemma monad_hom.app_η {M N : monad C} (h : M ⟶ N) {X} :
+--   (η_ M).app X ≫ h.app X = sorry :=
+-- begin
+
+-- end
+
+variable (C)
+
+@[simps]
+def monad_to_functor : monad C ⥤ (C ⥤ C) :=
+{ obj := λ T, T,
+  map := λ M N f, f.to_nat_trans }
+
+instance : faithful (monad_to_functor C) := {}.
+
+variable {C}
+
+@[simps {rhs_md := semireducible}]
+def iso.to_nat_iso {M N : monad C} (h : M ≅ N) : (M : C ⥤ C) ≅ N :=
+(monad_to_functor C).map_iso h
 
 -- namespace comonad_hom
 -- variables {M N L K : C ⥤ C} [comonad M] [comonad N] [comonad L] [comonad K]
@@ -120,6 +151,10 @@ abbreviation comonad.map (M : comonad C) := M.G.map
 -- @[ext]
 -- theorem ext (f g : comonad_hom M N) :
 --   f.to_nat_trans = g.to_nat_trans → f = g := by {cases f, cases g, simp}
+
+-- restate_axiom comonad_hom.app_ε'
+-- restate_axiom comonad_hom.app_δ'
+-- attribute [simp, reassoc] comonad_hom.app_ε comonad_hom.app_δ
 
 -- variable (M)
 -- /-- The identity natural transformations is a morphism of comonads. -/
@@ -144,31 +179,23 @@ abbreviation comonad.map (M : comonad C) := M.G.map
 
 namespace monad
 
+variable (C)
+
 @[simps]
 def id : monad C :=
-{ T := 𝟭 _,
-  η := 𝟙 _,
-  μ := 𝟙 _ }
+{ to_functor := 𝟭 _,
+  η' := 𝟙 _,
+  μ' := 𝟙 _ }
 
-instance : has_coe (monad C) (C ⥤ C) := ⟨monad.T⟩
-
-variables {C}
-abbreviation obj (M : monad C) := M.T.obj
-
-example (X : C) : (monad.id C).obj X = X :=
-begin
-
-end
-
--- instance : monad (𝟭 C) :=
--- { η := 𝟙 _,
---   μ := 𝟙 _ }
 end monad
 
 namespace comonad
-instance : comonad (𝟭 C) :=
-{ ε := 𝟙 _,
+
+def id : comonad C :=
+{ G := 𝟭 _,
+  ε := 𝟙 _,
   δ := 𝟙_ }
+
 end comonad
 
 end category_theory

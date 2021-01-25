@@ -32,18 +32,18 @@ namespace monad
 
 /-- An Eilenberg-Moore algebra for a monad `T`.
     cf Definition 5.2.3 in [Riehl][riehl2017]. -/
-structure algebra (T : C ⥤ C) [monad T] : Type (max u₁ v₁) :=
+structure algebra (T : monad C) : Type (max u₁ v₁) :=
 (A : C)
-(a : T.obj A ⟶ A)
+(a : (T : C ⥤ C).obj A ⟶ A)
 (unit' : (η_ T).app A ≫ a = 𝟙 A . obviously)
-(assoc' : (μ_ T).app A ≫ a = T.map a ≫ a . obviously)
+(assoc' : (μ_ T).app A ≫ a = (T : C ⥤ C).map a ≫ a . obviously)
 
 restate_axiom algebra.unit'
 restate_axiom algebra.assoc'
 attribute [reassoc] algebra.unit algebra.assoc
 
 namespace algebra
-variables {T : C ⥤ C} [monad T]
+variables {T : monad C}
 
 /-- A morphism of Eilenberg–Moore algebras for the monad `T`. -/
 @[ext] structure hom (A B : algebra T) :=
@@ -63,15 +63,14 @@ instance (A : algebra T) : inhabited (hom A A) := ⟨{ f := 𝟙 _ }⟩
 
 /-- Composition of Eilenberg–Moore algebra homomorphisms. -/
 def comp {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : hom P R :=
-{ f := f.f ≫ g.f,
-  h' := by rw [functor.map_comp, category.assoc, g.h, f.h_assoc] }
+{ f := f.f ≫ g.f }
 
 end hom
 
 instance : category_struct (algebra T) :=
 { hom := hom,
   id := hom.id,
-  comp := @hom.comp _ _ _ _ }
+  comp := @hom.comp _ _ _ }
 
 @[simp] lemma comp_eq_comp {A A' A'' : algebra T} (f : A ⟶ A') (g : A' ⟶ A'') :
   algebra.hom.comp f g = f ≫ g := rfl
@@ -95,11 +94,11 @@ def iso_mk {A B : algebra T} (h : A.A ≅ B.A) (w : T.map h.hom ≫ B.a = A.a �
 { hom := { f := h.hom },
   inv :=
   { f := h.inv,
-    h' := by { rw [h.eq_comp_inv, category.assoc, ←w, ←T.map_comp_assoc], simp } } }
+    h' := by { rw [h.eq_comp_inv, category.assoc, ←w, ←functor.map_comp_assoc], simp } } }
 
 end algebra
 
-variables (T : C ⥤ C) [monad T]
+variables (T : monad C)
 
 /-- The forgetful functor from the Eilenberg-Moore category, forgetting the algebraic structure. -/
 @[simps] def forget : algebra T ⥤ C :=
@@ -111,7 +110,7 @@ variables (T : C ⥤ C) [monad T]
 { obj := λ X,
   { A := T.obj X,
     a := (μ_ T).app X,
-    assoc' := (monad.assoc _).symm },
+    assoc' := (T.assoc _).symm },
   map := λ X Y f,
   { f := T.map f,
     h' := (μ_ T).naturality _ } }
@@ -132,13 +131,14 @@ adjunction.mk_of_hom_equiv
     { f := T.map f ≫ Y.a,
       h' :=
       begin
-        rw [free_obj_a, functor.map_comp, category.assoc, ←Y.assoc, ←(μ_ T).naturality_assoc],
+        dsimp only [free_obj_a, monad_to_functor_eq_coe],
+        rw [functor.map_comp, category.assoc, ←Y.assoc, ←(μ_ T).naturality_assoc],
         refl
       end },
-    left_inv := λ f, by { ext, simp },
+    left_inv := λ f, by { ext, dsimp, simp },
     right_inv := λ f,
     begin
-      dsimp only [forget_obj],
+      dsimp only [forget_obj, monad_to_functor_eq_coe],
       rw [←(η_ T).naturality_assoc, Y.unit],
       apply category.comp_id,
     end }}
@@ -149,12 +149,77 @@ Given an algebra morphism whose carrier part is an isomorphism, we get an algebr
 def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
 { inv :=
   { f := inv f.f,
-    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], simp } } }
+    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], dsimp, simp } } }
 
 instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
 { reflects := λ A B, algebra_iso_of_iso T }
 
 instance forget_faithful : faithful (forget T) := {}
+
+/--
+Given a monad morphism from `T₂` to `T₁`, we get a functor from the algebras of `T₁` to algebras of
+`T₂`.
+-/
+@[simps]
+def algebra_functor_of_monad_hom {T₁ T₂ : monad C} (h : T₂ ⟶ T₁) :
+  algebra T₁ ⥤ algebra T₂ :=
+{ obj := λ A,
+  { A := A.A,
+    a := h.app A.A ≫ A.a,
+    unit' := by { dsimp, simp [A.unit] },
+    assoc' := by { dsimp, simp [A.assoc] } },
+  map := λ A₁ A₂ f,
+  { f := f.f } }
+
+@[simps {rhs_md := semireducible}]
+def algebra_functor_of_monad_hom_id {T₁ : monad C} :
+  algebra_functor_of_monad_hom (𝟙 T₁) ≅ 𝟭 _ :=
+nat_iso.of_components
+  (λ X, algebra.iso_mk (iso.refl _) (by { dsimp, simp, }))
+  (λ X Y f, by { ext, dsimp, simp })
+
+@[simps {rhs_md := semireducible}]
+def algebra_functor_of_monad_hom_comp {T₁ T₂ T₃ : monad C} (f : T₁ ⟶ T₂) (g : T₂ ⟶ T₃) :
+  algebra_functor_of_monad_hom (f ≫ g) ≅
+    algebra_functor_of_monad_hom g ⋙ algebra_functor_of_monad_hom f :=
+nat_iso.of_components
+  (λ X, algebra.iso_mk (iso.refl _) (by { dsimp, simp }))
+  (λ X Y f, by { ext, dsimp, simp })
+
+/--
+If `f` and `g` are two equal morphisms of monads, then the functors of algebras induced by them
+are isomorphic.
+We define it like this as opposed to using `eq_to_iso` so that the components are nicer to prove
+lemmas about.
+-/
+@[simps {rhs_md := semireducible}]
+def algebra_functor_of_monad_hom_eq {T₁ T₂ : monad C} {f g : T₁ ⟶ T₂} (h : f = g) :
+  algebra_functor_of_monad_hom f ≅ algebra_functor_of_monad_hom g :=
+nat_iso.of_components
+  (λ X, algebra.iso_mk (iso.refl _) (by { dsimp, simp [h] }))
+  (λ X Y f, by { ext, dsimp, simp })
+
+/--
+Isomorphic monads give equivalent categories of algebras. Furthermore, they are equivalent as
+categories over `C`, that is, we have `algebra_equiv_of_iso_monads h ⋙ forget = forget`.
+-/
+@[simps]
+def algebra_equiv_of_iso_monads {T₁ T₂ : monad C} (h : T₁ ≅ T₂) :
+  algebra T₁ ≌ algebra T₂ :=
+{ functor := algebra_functor_of_monad_hom h.inv,
+  inverse := algebra_functor_of_monad_hom h.hom,
+  unit_iso :=
+    algebra_functor_of_monad_hom_id.symm ≪≫
+    algebra_functor_of_monad_hom_eq (by simp) ≪≫
+    algebra_functor_of_monad_hom_comp _ _,
+  counit_iso :=
+    (algebra_functor_of_monad_hom_comp _ _).symm ≪≫
+    algebra_functor_of_monad_hom_eq (by simp) ≪≫
+    algebra_functor_of_monad_hom_id }
+
+@[simp] lemma algebra_equiv_of_iso_monads_comp_forget {T₁ T₂ : monad C} (h : T₁ ⟶ T₂) :
+  algebra_functor_of_monad_hom h ⋙ forget _ = forget _ :=
+rfl
 
 end monad
 

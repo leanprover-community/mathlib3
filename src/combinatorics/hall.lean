@@ -278,7 +278,7 @@ Here we combine the base case and the inductive step into
 a full strong induction proof, thus completing the proof
 of the second direction.
 -/
-theorem hall_hard_inductive (n : ℕ) (hn : fintype.card α = n)
+theorem hall_hard_inductive {r : α → finset β} {n : ℕ} (hn : fintype.card α = n)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card) :
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin

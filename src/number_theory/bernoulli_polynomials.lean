@@ -49,16 +49,16 @@ begin
   rw finset.mem_range at hx,
   rintros h,
   rw nat.sub_eq_zero_iff_le at h,
-  apply le_lt_antisymm h hx,
+  apply nat.le_lt_antisymm h hx,
 end
 
 lemma range_succ_mem_le (n x : ℕ) (h : x ∈ finset.range (n+1)) : x ≤ n :=
 begin
   rw finset.mem_range at h,
-  exact lt_succ_iff.1 h,
+  exact nat.lt_succ_iff.1 h,
 end
 
-lemma sum_eq_sum_iff {α β : Type*} [canonically_ordered_add_monoid β] [add_comm_group β] ( f g : α → ℕ ) (s : finset α)
+/-lemma sum_eq_sum_iff {α β : Type*} [canonically_ordered_add_monoid β] [add_comm_group β] ( f g : α → ℕ ) (s : finset α)
 ( h : ∑ x in s, f x = ∑ x in s, g x) :  ∀ x ∈ s, f x  = g x :=
 begin
   conv at h
@@ -82,11 +82,13 @@ begin
   set g' := f - g with hg',
   have h1 := finset.sum_eq_zero_iff.1 h',
   sorry,
-end
+end -/
 
 end finset
 
 open_locale nat
+
+open nat
 
 def choose_eq_factorial_div_factorial' {a b : ℕ}
   (hab : a ≤ b) : (b.choose a : ℚ) = b! / (a! * (b - a)!) :=
@@ -182,7 +184,7 @@ begin
       rw [<-one_mul ↑(n.choose _)],
       rw <-@one_div_mul_cancel ℚ _ n.succ _,
       rw mul_assoc _ ↑(n.succ) _, rw mul_comm ↑(n.succ) _, rw <-cast_mul,
-      rw choose_mul_succ_eq, norm_num,
+      rw choose_mul_succ_eq, rw cast_mul, rw mul_div_cancel_of_imp _,
 
       rw [succ_sub _],
       rw [finset.sum_range_succ],skip,

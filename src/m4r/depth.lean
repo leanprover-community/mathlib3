@@ -36,7 +36,8 @@ dif_pos (exists_depth I N hfg)
 
 theorem seventeen_point_one [local_ring R] (s : fin 2 → R)
   (hx : set.range s ⊆ local_ring.maximal_ideal R) :
-  nonempty (reg_seq (⊤ : submodule R (fin 2 → R)) s) ↔ ((cochain_complex.cohomology _ 1).obj (free_Koszul R 1 s) = Module.of R punit) :=
+  nonempty (reg_seq (⊤ : submodule R (fin 2 → R)) s) ↔
+    ((cochain_complex.cohomology _ 1).obj (free_Koszul R 1 s) = Module.of R punit) :=
 sorry
 
 theorem seventeen_point_two [local_ring R] {n : ℕ} (s : fin n → R)
@@ -45,3 +46,5 @@ theorem seventeen_point_two [local_ring R] {n : ℕ} (s : fin n → R)
   (σ : equiv.perm (fin n)) :
   reg_seq (⊤ : submodule R (fin n → R)) (s ∘ σ) :=
 sorry
+
+end

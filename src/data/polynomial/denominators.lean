@@ -67,7 +67,7 @@ induction_with_nat_degree_le N
 `a, b` are elements of `R`, with `i b` invertible, then there is a `D ∈ R` such that
 `b ^ f.nat_degree * f (a / b)` equals `i D`. -/
 theorem denoms_clearable_nat_degree
-  (i : R →+* K) (f : polynomial R) (a b : R) (bi : K) (bu : bi * i b = 1) :
+  (i : R →+* K) (f : polynomial R) (a : R) (bu : bi * i b = 1) :
   denoms_clearable a b f.nat_degree f i :=
 denoms_clearable_of_nat_degree_le (f.nat_degree) a b bu f le_rfl
 

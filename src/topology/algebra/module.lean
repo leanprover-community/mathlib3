@@ -170,7 +170,7 @@ a submodule. -/
 def submodule.topological_closure (s : submodule R M) : submodule R M :=
 { carrier := closure (s : set M),
   zero_mem' := subset_closure s.zero_mem,
-  add_mem' := λ a b ha hb, s.to_add_submonoid.closure_add_self_subset ⟨a, b, ha, hb, rfl⟩,
+  add_mem' := λ a b ha hb, s.to_add_submonoid.top_closure_add_self_subset ⟨a, b, ha, hb, rfl⟩,
   smul_mem' := λ c x hx, s.closure_smul_self_subset ⟨⟨c, x⟩, ⟨set.mem_univ _, hx⟩, rfl⟩ }
 
 lemma submodule.submodule_topological_closure (s : submodule R M) :

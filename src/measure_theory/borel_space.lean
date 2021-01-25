@@ -719,9 +719,7 @@ begin
   by_cases h_ne_bot : μ.ae.ne_bot,
   swap, { use hδ.some, rw not_ne_bot at h_ne_bot, simp [h_ne_bot], },
   haveI : μ.ae.ne_bot := h_ne_bot,
-  cases hg.exists with x hx,
-  refine ⟨x, hg.mono (λ y hy, _)⟩,
-  exact is_lub.unique hy hx,
+  exact ⟨hg.exists.some, hg.mono (λ y hy, is_lub.unique hy hg.exists.some_spec)⟩,
 end
 
 lemma measurable.is_glb {ι} [encodable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ i, measurable (f i))
@@ -780,9 +778,7 @@ begin
   by_cases h_ne_bot : μ.ae.ne_bot,
   swap, { use hδ.some, rw not_ne_bot at h_ne_bot, simp [h_ne_bot], },
   haveI : μ.ae.ne_bot := h_ne_bot,
-  cases hg.exists with x hx,
-  refine ⟨x, hg.mono (λ y hy, _)⟩,
-  exact is_glb.unique hy hx,
+  exact ⟨hg.exists.some, hg.mono (λ y hy, is_glb.unique hy hg.exists.some_spec)⟩,
 end
 
 end linear_order

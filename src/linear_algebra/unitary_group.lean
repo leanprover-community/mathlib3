@@ -186,11 +186,11 @@ section orthogonal_group
 
 variables (β : Type v) [comm_ring β]
 
+local attribute [instance] star_ring_of_comm
 /--
-  `orthogonal_group n` is the group of `n` by `n` complex matrices where the transpose is the
-  inverse.
+  `orthogonal_group n` is the group of `n` by `n` matrices where the transpose is the inverse.
 -/
-abbreviation orthogonal_group := @unitary_group n _ _ β _ star_ring_of_comm
+abbreviation orthogonal_group := unitary_group n β
 
 end orthogonal_group
 

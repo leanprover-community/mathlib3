@@ -105,11 +105,11 @@ by simp only [dickson₂, mul_one, pow_two]
 by rw dickson₂
 
 lemma dickson₂_of_two_le (n : ℕ) (h : 2 ≤ n) :
-  dickson₂ a n = X * dickson₂ R a (n - 1) - (monomial 0 a) * dickson₂ R a (n - 2) :=
+  dickson₂ R a n = X * dickson₂ R a (n - 1) - (monomial 0 a) * dickson₂ R a (n - 2) :=
 begin
   obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
   rw add_comm,
-  exact dickson₂_add_two a n
+  exact dickson₂_add_two R a n
 end
 
 variables {R S a}

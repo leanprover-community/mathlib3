@@ -43,7 +43,7 @@ the Fréchet derivative.)
 -/
 
 open filter set
-open_locale topological_space big_operators classical
+open_locale topological_space big_operators classical filter
 
 namespace asymptotics
 
@@ -352,11 +352,11 @@ section bot
 
 variables (c f g)
 
-theorem is_O_with_bot : is_O_with c f g ⊥ := trivial
+@[simp] theorem is_O_with_bot : is_O_with c f g ⊥ := trivial
 
-theorem is_O_bot : is_O f g ⊥ := (is_O_with_bot c f g).is_O
+@[simp] theorem is_O_bot : is_O f g ⊥ := (is_O_with_bot 1 f g).is_O
 
-theorem is_o_bot : is_o f g ⊥ := λ c _, is_O_with_bot c f g
+@[simp] theorem is_o_bot : is_o f g ⊥ := λ c _, is_O_with_bot c f g
 
 end bot
 
@@ -946,6 +946,29 @@ theorem is_o.mul {f₁ f₂ : α → R} {g₁ g₂ : α → 𝕜} (h₁ : is_o f
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 h₁.mul_is_O h₂.is_O
 
+theorem is_O_with.pow' {f : α → R} {g : α → 𝕜} (h : is_O_with c f g l) :
+  ∀ n : ℕ, is_O_with (nat.cases_on n ∥(1 : R)∥ (λ n, c ^ (n + 1))) (λ x, f x ^ n) (λ x, g x ^ n) l
+| 0 := by simpa using is_O_with_const_const (1 : R) (@one_ne_zero 𝕜 _ _) l
+| 1 := by simpa
+| (n + 2) := by simpa [pow_succ] using h.mul (is_O_with.pow' (n + 1))
+
+theorem is_O_with.pow [norm_one_class R] {f : α → R} {g : α → 𝕜} (h : is_O_with c f g l) :
+  ∀ n : ℕ, is_O_with (c ^ n) (λ x, f x ^ n) (λ x, g x ^ n) l
+| 0 := by simpa using h.pow' 0
+| (n + 1) := h.pow' (n + 1)
+
+theorem is_O.pow {f : α → R} {g : α → 𝕜} (h : is_O f g l) (n : ℕ) :
+  is_O (λ x, f x ^ n) (λ x, g x ^ n) l :=
+let ⟨C, hC⟩ := h in ⟨_, hC.pow' n⟩
+
+theorem is_o.pow {f : α → R} {g : α → 𝕜} (h : is_o f g l) {n : ℕ} (hn : 0 < n) :
+  is_o (λ x, f x ^ n) (λ x, g x ^ n) l :=
+begin
+  cases n, exact hn.false.elim, clear hn,
+  induction n with n ihn, { simpa only [pow_one] },
+  exact h.mul ihn
+end
+
 /-! ### Scalar multiplication -/
 
 section smul_const
@@ -1262,13 +1285,21 @@ iff.trans (is_O_nat_at_top_iff (λ n h, (one_ne_zero h).elim)) $
 
 end asymptotics
 
+open asymptotics
+
+lemma summable_of_is_O {ι E} [normed_group E] [complete_space E] {f : ι → E} (g : ι → ℝ)
+  (hg : summable g) (h : is_O f g cofinite) : summable f :=
+let ⟨C, hC⟩ := h in summable_of_norm_bounded_eventually (λ x, C * ∥g x∥) (hg.abs.mul_left _) hC
+
+lemma summable_of_is_O_nat {E} [normed_group E] [complete_space E] {f : ℕ → E} (g : ℕ → ℝ)
+  (hg : summable g) (h : is_O f g at_top) : summable f :=
+summable_of_is_O g hg $ nat.cofinite_eq_at_top.symm ▸ h
+
 namespace local_homeomorph
 
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 
 variables {E : Type*} [has_norm E] {F : Type*} [has_norm F]
-
-open asymptotics
 
 /-- Transfer `is_O_with` over a `local_homeomorph`. -/
 lemma is_O_with_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target)

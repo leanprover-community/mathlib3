@@ -319,7 +319,7 @@ card_le_of_subset (subset_univ s)
 
 lemma finset.card_lt_iff_ne_univ [fintype α] (s : finset α) :
   s.card < fintype.card α ↔ s ≠ finset.univ :=
-iff.trans (has_le.le.lt_iff_ne (finset.card_le_univ s)) (not_iff_not_of_iff s.card_eq_iff_eq_univ)
+s.card_le_univ.lt_iff_ne.trans (not_iff_not_of_iff s.card_eq_iff_eq_univ)
 
 lemma finset.card_compl_lt_iff_nonempty [fintype α] [decidable_eq α] (s : finset α) :
   sᶜ.card < fintype.card α ↔ s.nonempty :=

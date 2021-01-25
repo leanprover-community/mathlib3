@@ -35,9 +35,8 @@ def ae_seq_set (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → 
 /-- A sequence of measurable functions that are equal to `f` and verify property `p` on the
 measurable set `ae_seq_set hf p`. -/
 noncomputable
-def ae_seq [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop) :
-  ι → α → β :=
-λ i x, ite (x ∈ ae_seq_set hf p) ((hf i).mk (f i) x) hβ.some
+def ae_seq (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop) : ι → α → β :=
+λ i x, ite (x ∈ ae_seq_set hf p) ((hf i).mk (f i) x) (⟨f i x⟩ : nonempty β).some
 
 namespace ae_seq
 
@@ -54,17 +53,17 @@ begin
   exact (h_ss hx i).symm,
 end
 
-lemma ae_seq_eq_mk_of_mem_ae_seq_set [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ) {x : α}
+lemma ae_seq_eq_mk_of_mem_ae_seq_set (hf : ∀ i, ae_measurable (f i) μ) {x : α}
   (hx : x ∈ ae_seq_set hf p) (i : ι) :
   ae_seq hf p i x = (hf i).mk (f i) x :=
 by simp only [ae_seq, hx, if_true]
 
-lemma ae_seq_eq_fun_of_mem_ae_seq_set [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ) {x : α}
+lemma ae_seq_eq_fun_of_mem_ae_seq_set (hf : ∀ i, ae_measurable (f i) μ) {x : α}
   (hx : x ∈ ae_seq_set hf p) (i : ι) :
   ae_seq hf p i x = f i x :=
 by simp only [ae_seq_eq_mk_of_mem_ae_seq_set hf hx i, mk_eq_fun_of_mem_ae_seq_set hf hx i]
 
-lemma prop_of_mem_ae_seq_set [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ)
+lemma prop_of_mem_ae_seq_set (hf : ∀ i, ae_measurable (f i) μ)
   {x : α} (hx : x ∈ ae_seq_set hf p) :
   p x (λ n, ae_seq hf p n x) :=
 begin
@@ -78,7 +77,7 @@ begin
   exact hx',
 end
 
-lemma fun_prop_of_mem_ae_seq_set [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ)
+lemma fun_prop_of_mem_ae_seq_set (hf : ∀ i, ae_measurable (f i) μ)
   {x : α} (hx : x ∈ ae_seq_set hf p) :
   p x (λ n, f n x) :=
 begin
@@ -94,10 +93,19 @@ lemma ae_seq_set_is_measurable {hf : ∀ i, ae_measurable (f i) μ} :
   is_measurable (ae_seq_set hf p) :=
 (is_measurable_to_measurable _ _).compl
 
-lemma measurable [hβ : nonempty β] (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop)
+lemma measurable (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop)
   (i : ι) :
   measurable (ae_seq hf p i) :=
-measurable.ite ae_seq_set_is_measurable (hf i).measurable_mk measurable_const
+begin
+  refine measurable.ite ae_seq_set_is_measurable (hf i).measurable_mk _,
+  by_cases hα : nonempty α,
+  swap, { exact measurable_of_not_nonempty hα _, },
+  have h_const : ∃ c, (λ x, (⟨f i x⟩ : nonempty β).some) = λ x, c,
+  by use (⟨f i hα.some⟩ : nonempty β).some,
+  cases h_const with c hc,
+  rw hc,
+  exact measurable_const,
+end
 
 lemma measure_compl_ae_seq_set_eq_zero [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
@@ -109,7 +117,7 @@ begin
   exact filter.eventually.and hf_eq hp,
 end
 
-lemma ae_seq_eq_mk_ae [hβ : nonempty β] [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
+lemma ae_seq_eq_mk_ae [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
   ∀ᵐ (a : α) ∂μ, ∀ (i : ι), ae_seq hf p i a = (hf i).mk (f i) a :=
 begin
@@ -119,7 +127,7 @@ begin
     (le_of_eq (measure_compl_ae_seq_set_eq_zero hf hp))) (zero_le _),
 end
 
-lemma ae_seq_eq_fun_ae [hβ : nonempty β] [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
+lemma ae_seq_eq_fun_ae [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
   ∀ᵐ (a : α) ∂μ, ∀ (i : ι), ae_seq hf p i a = f i a :=
 begin
@@ -128,12 +136,12 @@ begin
   exact measure_mono_null h_ss (measure_compl_ae_seq_set_eq_zero hf hp),
 end
 
-lemma ae_seq_n_eq_fun_n_ae [hβ : nonempty β] [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
+lemma ae_seq_n_eq_fun_n_ae [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) (n : ι) :
   ae_seq hf p n =ᵐ[μ] f n:=
 ae_all_iff.mp (ae_seq_eq_fun_ae hf hp) n
 
-lemma supr [hβ : nonempty β] [complete_lattice β] [encodable ι]
+lemma supr [complete_lattice β] [encodable ι]
   (hf : ∀ i, ae_measurable (f i) μ) (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
   (⨆ n, ae_seq hf p n) =ᵐ[μ] ⨆ n, f n :=
 begin

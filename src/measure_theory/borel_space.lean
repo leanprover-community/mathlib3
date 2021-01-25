@@ -1297,22 +1297,18 @@ lemma ae_measurable_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α → �
   (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (g x))) :
   ae_measurable g μ :=
 begin
-  by_cases hβ : nonempty β,
-  { let p : α → (ℕ → β) → Prop := λ x f', filter.at_top.tendsto (λ n, f' n) (𝓝 (g x)),
-    let hp : ∀ᵐ x ∂μ, p x (λ n, f n x), from h_ae_tendsto,
-    let ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) hβ.some,
-    refine ⟨ae_seq_lim, _, (ite_ae_eq_of_measure_compl_zero g (λ x, hβ.some)
-      (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm⟩,
-    refine measurable_of_tendsto_metric (@ae_seq.measurable α β _ _ _ f μ hβ hf p) _,
-    refine tendsto_pi.mpr (λ x, _),
-    simp_rw [ae_seq, ae_seq_lim],
-    split_ifs with hx,
-    { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
-      exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hβ hf x hx, },
-    { exact tendsto_const_nhds, }, },
-  { refine ⟨g, measurable_of_not_nonempty _ g, ae_eq_refl _⟩,
-    revert hβ,
-    exact mt (nonempty.map g), },
+  let p : α → (ℕ → β) → Prop := λ x f', filter.at_top.tendsto (λ n, f' n) (𝓝 (g x)),
+  let hp : ∀ᵐ x ∂μ, p x (λ n, f n x), from h_ae_tendsto,
+  let ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨f 0 x⟩ : nonempty β).some,
+  refine ⟨ae_seq_lim, _, (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f 0 x⟩ : nonempty β).some)
+    (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm⟩,
+  refine measurable_of_tendsto_metric (@ae_seq.measurable α β _ _ _ f μ hf p) _,
+  refine tendsto_pi.mpr (λ x, _),
+  simp_rw [ae_seq, ae_seq_lim],
+  split_ifs with hx,
+  { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
+    exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hf x hx, },
+  { exact tendsto_const_nhds, },
 end
 
 lemma measurable_of_tendsto_metric_ae {μ : measure α} [μ.is_complete] {f : ℕ → α → β} {g : α → β}

@@ -168,7 +168,8 @@ subset.antisymm
 
 /-- The (topological-space) closure of a submonoid of a space `M` with `has_continuous_mul` is
 itself a submonoid. -/
-@[to_additive]
+@[to_additive "The (topological-space) closure of an additive submonoid of a space `M` with
+`has_continuous_add` is itself an additive submonoid."]
 def submonoid.topological_closure (s : submonoid M) : submonoid M :=
 { carrier := closure (s : set M),
   one_mem' := subset_closure s.one_mem,

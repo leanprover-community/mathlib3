@@ -573,6 +573,10 @@ section
 
 local attribute [instance, priority 1] classical.prop_decidable
 
+lemma to_finset_compl {α : Type*} [fintype α] (s : set α) :
+  sᶜ.to_finset = (s.to_finset)ᶜ :=
+by ext; simp
+
 lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) :
   (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
 by ext; simp

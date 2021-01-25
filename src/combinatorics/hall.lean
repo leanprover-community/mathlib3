@@ -219,7 +219,7 @@ begin
     rw ←hn,
     convert (card_lt_iff_ne_univ _).mpr hnA,
     convert fintype.card_coe _ },
-  rcases ih r' card_α'_le (hall_cond_of_restrict r A hr) with ⟨f', hf', hAf'⟩,
+  rcases ih r' card_α'_le (hall_cond_of_restrict hr) with ⟨f', hf', hAf'⟩,
   /- Restrict to `Aᶜ` in the domain and `(A.bind r)ᶜ` in the codomain. -/
   let α'' := (A : set α)ᶜ,
   let r'' : α'' → finset β := λ a'', r a'' \ A.bind r,

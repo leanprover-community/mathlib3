@@ -319,7 +319,8 @@ lemma finset.card_compl [decidable_eq α] [fintype α] (s : finset α) :
 finset.card_univ_diff s
 
 lemma finset.compl_to_finset [decidable_eq α] [fintype α] (s : set α) :
-  sᶜ.to_finset = (s.to_finset)ᶜ:= by ext; simp only [mem_compl, set.mem_to_finset, set.mem_compl_eq]
+  sᶜ.to_finset = (s.to_finset)ᶜ :=
+by { ext, simp only [mem_compl, set.mem_to_finset, set.mem_compl_eq] }
 
 instance (n : ℕ) : fintype (fin n) :=
 ⟨finset.fin_range n, finset.mem_fin_range⟩

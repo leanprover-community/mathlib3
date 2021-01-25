@@ -107,6 +107,11 @@ subtype.ext_iff_val.trans ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix.ext
 instance : has_inv (unitary_group n α) :=
 ⟨λ A, ⟨star A.1, unitary_submonoid.star_mem_iff.mpr A.2⟩⟩
 
+instance : star_monoid (unitary_group n α) :=
+{ star := λ A, ⟨star A.1, unitary_submonoid.star_mem A.2⟩,
+  star_involutive := λ A, subtype.ext $ star_star A.1,
+  star_mul := λ A B, subtype.ext $ star_mul A.1 B.1 }
+
 instance : inhabited (unitary_group n α) := ⟨1⟩
 
 section coe_lemmas
@@ -172,7 +177,7 @@ by { ext1 v i, rw [coe_to_GL, to_lin'_mul], refl }
 
 /-- `unitary_group.embedding_GL` is the embedding from `unitary_group n α`
   to `general_linear_group n α`. -/
-def embedding_GL : (unitary_group n α) →* (general_linear_group α (n → α)) :=
+def embedding_GL : unitary_group n α →* general_linear_group α (n → α) :=
 ⟨λ A, to_GL A, by simp, by simp⟩
 
 end unitary_group

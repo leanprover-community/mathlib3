@@ -1,9 +1,11 @@
 import linear_algebra.special_linear_group
 import data.complex.basic
+import analysis.calculus.deriv
 import data.matrix.notation
 import group_theory.group_action.defs
 
 namespace tactic.interactive
+noncomputable theory
 
 meta def show_nonzero := `[
   apply_rules [
@@ -59,6 +61,8 @@ open_locale big_operators
 
 def H : set ℂ := { z | 0 < z.im }
 
+local notation `|` x `|` := _root_.abs x
+
 notation `SL(` n `,` R `)`:= special_linear_group (fin n) R
 
 def top : --SL2R --
@@ -70,23 +74,9 @@ SL(2, ℝ)
  → ℂ → ℂ :=
 λ g, λ z, (g.1 1 0) * z + (g.1 1 1)
 
-def top' : --SL2Z --
-SL(2, ℤ)  → ℂ → ℂ :=
-λ g, λ z, ((g.1 0 0) : ℂ) * z + ((g.1 0 1) : ℂ)
-
-def bottom' : --SL2Z --
-SL(2, ℤ)
- → ℂ → ℂ :=
-λ g, λ z, ((g.1 1 0) : ℂ) * z + ((g.1 1 1) : ℂ)
-
 def smul_aux : --SL2R --
 SL(2, ℝ) → ℂ → ℂ :=
 λ g, λ z, (top g z) / (bottom g z)
-
-def smul_aux' : --SL2Z --
-SL(2, ℤ) → ℂ → ℂ :=
-λ g, λ z, (top' g z) / (bottom' g z)
-
 
 lemma split_fin2 (i : fin 2) : i = 0 ∨ i = 1 :=
 begin
@@ -105,7 +95,7 @@ end
 lemma det2 {F : Type*} [comm_ring F] (g: matrix (fin 2) (fin 2) F) :
 g.det = (g 0 0 )*(g 1 1)- (g 1 0 ) * (g  0 1 ) := sorry
 
-lemma ImOfGaction (g : SL(2, ℝ)) (z: ℂ) :
+lemma im_mat_smul_complex (g : SL(2, ℝ)) (z: ℂ) :
 (smul_aux g z).im = z.im / (complex.norm_sq (bottom g z)) :=
 begin
   by_cases bot_zero : bottom g z = 0,
@@ -114,17 +104,13 @@ begin
     simp,
     simp [bot_zero],
   },
-
   have : complex.norm_sq (bottom g z) ≠ 0,
   { refine ne.symm (ne_of_lt _),
     simp [norm_sq_pos, bot_zero] },
-
   field_simp,
-
-  rw (_ : (smul_aux g z).im * norm_sq (bottom g z) = ((smul_aux g z) * norm_sq (bottom g z)).im),
-
-  rw ← mul_conj (bottom g z),
-  rw smul_aux,
+  have eq1 : (smul_aux g z).im * norm_sq (bottom g z) = ((smul_aux g z) * norm_sq (bottom g z)).im,
+    by simp,
+  rw [eq1, ← mul_conj (bottom g z), smul_aux],
   simp only [mul_neg_eq_neg_mul_symm,  sub_neg_eq_add],
   ring,
   field_simp [top, bottom],
@@ -132,17 +118,10 @@ begin
   have := matrix.special_linear_group.det_coe_matrix g,
   rw det2 g at this,
   ring,
-
   calc
   -(g 0 1 * z.im * g 1 0) + z.im * g 0 0 * g 1 1
-  = ( g 0 0 * g 1 1 - g 1 0  * g 0 1  ) * z.im  : _
-  ... = z.im : _,
-
-  ring,
-  rw this,
-  simp,
-  simp,
-
+  = ( g 0 0 * g 1 1 - g 1 0  * g 0 1  ) * z.im  : by {ring}
+  ... = z.im : by {rw this, simp}
 end
 
 lemma isZThenReIm (z:ℂ ) : z=0 → z.im=0:=
@@ -204,25 +183,17 @@ end
 
 @[simp] lemma smul_aux_def {g : SL(2,ℝ)} {z : ℂ} : smul_aux g z = top g z / bottom g z := by refl
 
-@[simp] lemma smul_aux_def' {g : SL(2,ℤ)} {z : ℂ} : smul_aux' g z = top' g z / bottom' g z := by refl
-
 lemma GactsHtoH {g : SL(2, ℝ)} {z : ℂ} (h : z ∈ H) :
 smul_aux g z ∈ H :=
 begin
   simp at h ⊢,
-  rw ←smul_aux_def,
-  rw ImOfGaction,
+  rw [←smul_aux_def, im_mat_smul_complex],
   by_cases bot_zero : bottom g z = 0,
-  {
-    have zImZero : z.im = 0 := czPd_nonZ bot_zero,
-    linarith,
-  },
+  { linarith [czPd_nonZ bot_zero] },
+  have norm2NonNeg : 0 ≤  norm_sq (bottom g z),
+  { apply complex.norm_sq_nonneg },
   have norm2Pos : 0 < norm_sq (bottom g z),
   {
-    have norm2NonNeg : 0 ≤  norm_sq (bottom g z),
-    {
-      refine complex.norm_sq_nonneg _,
-    },
     by_cases norm2Z : norm_sq (bottom g z) =0,
     {
       exfalso,
@@ -234,8 +205,6 @@ begin
   exact div_pos h norm2Pos
 end
 
---lemma OneActsHtoH  (z: ℂ) : smul_aux 1 z = z :=  by {rw [smul_aux, top, bottom], simp}
-
 @[simp] lemma sumIs01 (f : fin 2 → ℂ ) :
 (∑ (x : fin 2), f x) = f 0 + f 1 :=
 begin
@@ -243,12 +212,13 @@ begin
   sorry,
 end
 
-lemma bot_cocycle {x y : SL(2,ℝ)} {z : ℂ} (h : z ∈ H) : bottom (x*y) z = bottom x (smul_aux y z) * bottom y z :=
+lemma bot_cocycle {x y : SL(2,ℝ)} {z : ℂ} (h : z ∈ H) :
+  bottom (x * y) z = bottom x (smul_aux y z) * bottom y z :=
 begin
   rw smul_aux_def,
   have d1 : bottom y z ≠ 0 := by show_nonzero,
   simp [top, bottom],
-  field_simp *,
+  field_simp,
   simp [matrix.mul, dot_product],
   unfold_coes,
   discrete_field,
@@ -291,13 +261,85 @@ instance SL2R_action : mul_action SL(2, ℝ) H :=
 instance SL2Z_action : mul_action SL(2, ℤ) H :=
 mul_action.comp_hom H (SL_n_insertion (int.cast_ring_hom ℝ))
 
+instance has_coe_SL : has_coe SL(2,ℤ) SL(2,ℝ) := ⟨λ x, SL_n_insertion (int.cast_ring_hom ℝ) x⟩
+
+lemma mat_coe { g : SL(2,ℤ) } : (g : SL(2,ℝ)) =
+  { val := ![![g.1 0 0, g.1 0 1], ![g.1 1 0, g.1 1 1]], property :=
+  by {simp [det2], norm_cast, simpa [det2] using g.2 }} :=
+begin
+  ext i j,
+  dsimp,
+  fin_cases i,
+  all_goals {fin_cases j, simp, try{ refl }, try{ simp, refl }},
+end
+
+lemma mat_coe' { g : SL(2,ℤ) } : (g : SL(2,ℝ)) =
+  { val := ![![g 0 0, g 0 1], ![g 1 0, g 1 1]], property :=
+  by {simp [det2], norm_cast, simpa [det2] using g.2 }} :=
+begin
+  sorry
+end
+
+@[simp]
+lemma mat_compatibility {g : SL(2,ℤ)} {z : H} : ((g:SL(2,ℝ)) • z).1 = smul_aux g z :=
+begin
+  simp [mat_coe],
+  unfold_coes,
+  simp [top, bottom],
+  norm_cast,
+end
+
 def T : SL(2,ℤ) := { val := ![![1, 1], ![0, 1]], property := by simp [det2] }
 
 def S : SL(2,ℤ) := { val := ![![0, -1], ![1, 0]], property := by simp [det2] }
 
-lemma T_inv : T^(-1 : ℤ) = { val := ![![1, -1], ![0, 1]], property := by simp [det2] } :=
+lemma T_real : (T : SL(2,ℝ)) = { val := ![![(1:ℝ), (1:ℝ)], ![(0:ℝ), (1:ℝ)]],
+  property := by simp [det2] } :=
+begin
+  simp [T, mat_coe],
+end
+
+lemma S_real : (S : SL(2,ℝ)) = { val := ![![(0:ℤ), (-1:ℤ)], ![(1:ℤ), (0:ℤ)]],
+  property := by simp [det2] } :=
+begin
+  simp [S, mat_coe],
+end
+
+/- lemma mat_real {m : SL(2,ℝ) } : (m : SL(2,ℝ)) = { val := ![![m.1 0 0, m.1 0 1], ![m.1 1 0, m.1 1 1]],
+  property := by sorry } :=
+begin
+  simp [m, mat_coe],
+end
+ -/
+
+example : T⁻¹ * T = 1 := inv_mul_self T
+
+example { R : SL(2,ℤ) } : R * T = 1 → R = T⁻¹ := eq_inv_of_mul_eq_one
+
+example { R : SL(2,ℤ) } : T * R = 1 → T⁻¹ = R := inv_eq_of_mul_eq_one
+
+lemma mul_congr { x y : SL(2,ℤ)} : x.1 * y.1 = 1 ↔ x * y = 1 :=
 begin
   sorry
+end
+
+lemma T_inv : T⁻¹ = { val := ![![1, -1], ![0, 1]], property := by simp [det2] } :=
+begin
+  suffices : T * { val := ![![1, -1], ![0, 1]], property := by simp [det2] } = 1,
+  { exact inv_eq_of_mul_eq_one this},
+  have hh : matrix.mul T.1  ![![1, -1], ![0, 1]] = ![![1, 0], ![0, 1]], by simp [T],
+  simp [T],
+  rw ← mul_congr,
+  dsimp,
+  simp [hh],
+  ext,
+  fin_cases i,
+  all_goals {fin_cases j, try { simp }, tauto },
+end
+
+lemma T_n_def {n : ℤ} :  T^(-n) = (T⁻¹)^n:=
+begin
+  simp [inv_gpow, gpow_neg],
 end
 
 lemma T_pow {n : ℤ} : T^n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
@@ -305,57 +347,26 @@ begin
   sorry
 end
 
-lemma T_action' {z : ℂ} : smul_aux' T z = z + 1  :=
-begin
-  rw smul_aux_def',
-  simp [top'],
-  have d : bottom' T z ≠ 0, by simp [bottom', T],
-  field_simp [d],
-  simp [bottom', T],
-  discrete_field,
-end
-
-lemma Tn_action' {n : ℤ} {z : ℂ} : smul_aux' (T^n) z = z + n  :=
-begin
-  rw T_pow,
-  rw smul_aux_def',
-  simp [top'],
-  have d : bottom' (T^n) z ≠ 0, by simp [bottom', T_pow],
-  field_simp [d, T_pow],
-  simp [bottom', T_pow],
-  discrete_field,
-end
-
-lemma S_action' (z : ℂ) (hz : z ≠ 0) : smul_aux' S z = -z⁻¹ :=
-begin
-  rw S,
-  rw smul_aux_def',
-  simp [top'],
-  have d : bottom' S z ≠ 0, by simp [bottom', S, hz],
-  field_simp [d, S],
-  simp [bottom', S],
-  discrete_field,
-end
-
 lemma T_action {z : H} : (T • z).1 = z + 1 :=
 begin
-  unfold_coes,
-  have : (T • z).1 = smul_aux' T z,
-  {
-    sorry
-  },
-  rw this,
-  exact T_action',
+  change ((T:SL(2,ℝ)) • z).1 = z + 1,
+  simp only [mat_compatibility],
+  simp [smul_aux_def, T_real, top, bottom],
+  discrete_field,
 end
 
-lemma Tn_action {z : H} {n : ℤ} : (T^n • z).1 = n + z :=
+
+lemma Tn_action {z : H} {n : ℤ} : (T^n • z).1 = z + n :=
 begin
   sorry
 end
 
 lemma S_action (z : H) : (S • z).1 = -z⁻¹ :=
 begin
-  sorry
+  change ((S:SL(2,ℝ)) • z).1 = -z⁻¹,
+  simp only [mat_compatibility],
+  simp [smul_aux_def, S_real, top, bottom],
+  discrete_field,
 end
 
 
@@ -366,9 +377,14 @@ notation `𝒟` := fundamental_domain
 
 notation `𝒟°` := interior 𝒟
 
+lemma finite_integers {M : ℝ} :
+  set.finite {c : ℤ | |(c : ℝ)| ≤ M } :=
+begin
+  sorry
+end
 
 lemma finite_pairs {M : ℝ} {z : ℂ} :
-  set.finite {cd : ℤ × ℤ | complex.abs ((cd.1 : ℂ) * z + (cd.2 : ℂ)) ≤ M} :=
+  set.finite {cd : ℤ × ℤ | ((cd.1 : ℂ) * z + (cd.2 : ℂ)).abs ≤ M} :=
 begin
   sorry
 end
@@ -376,15 +392,18 @@ end
 variables {g : SL(2,ℤ)} {z : H}
 
 lemma exists_g_with_max_Im (z : H) :
-  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ),  (g' • z).1.im ≤ (g • z).1.im :=
+  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ),  (g' • z).val.im ≤ (g • z).val.im :=
 begin
   sorry
 end
 
-lemma find_appropriate_T {z : H} : ∃ (n : ℤ), (T^n • z).1.abs ≤ 1/2 :=
+lemma find_appropriate_T {z : H} : ∃ (n : ℤ), | (T^n • z).val.re | ≤ 1/2 :=
 begin
   sorry
 end
+
+
+example : linear_ordered_ring ℝ := real.linear_ordered_ring
 
 lemma is_fundom {z : H} : ∃ g : SL(2, ℤ),  (g • z) ∈ 𝒟 :=
 begin
@@ -400,7 +419,7 @@ end
 
 -- proof std domain is a fund dom for G
 
--- define modular form
+-- define modular form1
 
 -- define Eisenstein series
 

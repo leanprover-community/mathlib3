@@ -143,7 +143,7 @@ variable {α}
 namespace is_atomic
 
 instance is_coatomic_dual [h : is_atomic α] : is_coatomic (order_dual α) :=
-is_atomic_iff_is_coatomic_dual.1 h
+is_coatomic_dual_iff_is_atomic.2 h
 
 variables [is_atomic α]
 
@@ -155,7 +155,7 @@ end is_atomic
 
 namespace is_coatomic
 instance is_coatomic [h : is_coatomic α] : is_atomic (order_dual α) :=
-is_coatomic_iff_is_atomic_dual.1 h
+is_atomic_dual_iff_is_coatomic.2 h
 
 variables [is_coatomic α]
 
@@ -173,8 +173,8 @@ theorem is_atomic_iff_forall_is_atomic_Iic :
 
 theorem is_coatomic_iff_forall_is_coatomic_Ici :
   is_coatomic α ↔ ∀ (x : α), is_coatomic (set.Ici x) :=
-is_coatomic_iff_is_atomic_dual.trans $ is_atomic_iff_forall_is_atomic_Iic.trans $ forall_congr
-  (λ x, is_atomic_iff_is_coatomic_dual.trans iff.rfl)
+is_atomic_dual_iff_is_coatomic.symm.trans $ is_atomic_iff_forall_is_atomic_Iic.trans $ forall_congr
+  (λ x, is_coatomic_dual_iff_is_atomic.symm.trans iff.rfl)
 
 end atomic
 

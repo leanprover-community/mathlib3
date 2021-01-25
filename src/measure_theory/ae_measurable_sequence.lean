@@ -99,12 +99,8 @@ lemma measurable (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) �
 begin
   refine measurable.ite ae_seq_set_is_measurable (hf i).measurable_mk _,
   by_cases hα : nonempty α,
-  swap, { exact measurable_of_not_nonempty hα _, },
-  have h_const : ∃ c, (λ x, (⟨f i x⟩ : nonempty β).some) = λ x, c,
-  by use (⟨f i hα.some⟩ : nonempty β).some,
-  cases h_const with c hc,
-  rw hc,
-  exact measurable_const,
+  { exact @measurable_const _ _ _ _ (⟨f i hα.some⟩ : nonempty β).some },
+  { exact measurable_of_not_nonempty hα _ }
 end
 
 lemma measure_compl_ae_seq_set_eq_zero [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)

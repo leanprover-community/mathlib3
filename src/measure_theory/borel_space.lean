@@ -706,7 +706,8 @@ lemma ae_measurable.is_lub {ι} {μ : measure δ} [encodable ι] {f : ι → δ 
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_lub {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
-  by_cases hδ : nonempty δ, swap, { exact (measurable_of_not_nonempty hδ g).ae_measurable },
+  by_cases hμ : μ = 0, { rw hμ, exact ae_measurable_of_zero_measure },
+  haveI : μ.ae.ne_bot := by simpa [ne_bot],
   by_cases hι : nonempty ι, { exact ae_measurable.is_lub_of_nonempty hι hf hg, },
   suffices : ∃ x, g =ᵐ[μ] λ y, g x,
   by { exact ⟨(λ y, g this.some), measurable_const, this.some_spec⟩, },
@@ -716,9 +717,6 @@ begin
     rw [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
     exact λ hi, hι (nonempty_of_exists hi), },
   simp_rw h_empty at hg,
-  by_cases h_ne_bot : μ.ae.ne_bot,
-  swap, { use hδ.some, rw not_ne_bot at h_ne_bot, simp [h_ne_bot], },
-  haveI : μ.ae.ne_bot := h_ne_bot,
   exact ⟨hg.exists.some, hg.mono (λ y hy, is_lub.unique hy hg.exists.some_spec)⟩,
 end
 
@@ -765,7 +763,8 @@ lemma ae_measurable.is_glb {ι} {μ : measure δ} [encodable ι] {f : ι → δ 
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_glb {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
-  by_cases hδ : nonempty δ, swap, { exact (measurable_of_not_nonempty hδ g).ae_measurable },
+  by_cases hμ : μ = 0, { rw hμ, exact ae_measurable_of_zero_measure },
+  haveI : μ.ae.ne_bot := by simpa [ne_bot],
   by_cases hι : nonempty ι, { exact ae_measurable.is_glb_of_nonempty hι hf hg, },
   suffices : ∃ x, g =ᵐ[μ] λ y, g x,
   by { exact ⟨(λ y, g this.some), measurable_const, this.some_spec⟩, },
@@ -775,9 +774,6 @@ begin
     rw [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
     exact λ hi, hι (nonempty_of_exists hi), },
   simp_rw h_empty at hg,
-  by_cases h_ne_bot : μ.ae.ne_bot,
-  swap, { use hδ.some, rw not_ne_bot at h_ne_bot, simp [h_ne_bot], },
-  haveI : μ.ae.ne_bot := h_ne_bot,
   exact ⟨hg.exists.some, hg.mono (λ y hy, is_glb.unique hy hg.exists.some_spec)⟩,
 end
 

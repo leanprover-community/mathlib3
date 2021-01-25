@@ -2273,6 +2273,13 @@ lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : �
   (hg : measurable g) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
 ⟨g ∘ hf.mk f, hg.comp hf.measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk _⟩
 
+lemma ae_measurable_of_zero_measure {f : α → β} : ae_measurable f 0 :=
+begin
+  by_cases h : nonempty α,
+  { exact (@ae_measurable_const _ _ _ _ _ (f h.some)).congr rfl },
+  { exact (measurable_of_not_nonempty h f).ae_measurable }
+end
+
 end
 
 namespace is_compact

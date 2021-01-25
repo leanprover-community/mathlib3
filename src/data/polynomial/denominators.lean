@@ -29,7 +29,7 @@ In the implementation, we also use provide an inverse in the existential.
 def denoms_clearable (a b : R) (N : ℕ) (f : polynomial R) (i : R →+* K) : Prop :=
   ∃ D : R, ∃ bi : K, bi * i b = 1 ∧ i D = i b ^ N * eval (i a * bi) (f.map i)
 
-lemma denoms_clearable_zero (N : ℕ) (a b : R) (bu : bi * i b = 1) :
+lemma denoms_clearable_zero (N : ℕ) (a : R) (bu : bi * i b = 1) :
   denoms_clearable a b N 0 i :=
 ⟨0, bi, bu, by simp only [eval_zero, ring_hom.map_zero, mul_zero, map_zero]⟩
 

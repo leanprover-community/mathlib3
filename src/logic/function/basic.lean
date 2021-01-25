@@ -85,13 +85,13 @@ lemma injective.dite_injective (p : α → Prop) [decidable_pred p]
   (hf : function.injective f) (hf' : function.injective f')
   (im_disj : ∀ {x x' : α} {hx : p x} {hx' : ¬ p x'}, f ⟨x, hx⟩ ≠ f' ⟨x', hx'⟩) :
   function.injective (λ x, if h : p x then f ⟨x, h⟩ else f' ⟨x, h⟩) :=
-begin
-  { rintros x₁ x₂ (h : dite _ _ _ = dite _ _ _),
-    split_ifs at h,
-    { injection (hf h), },
-    { exact (im_disj h).elim, },
-    { exact (im_disj h.symm).elim, },
-    { injection (hf' h), }, },
+λ x₁ x₂ h, begin
+  dsimp only at h,
+  by_cases h₁ : p x₁; by_cases h₂ : p x₂,
+  { rw [dif_pos h₁, dif_pos h₂] at h, injection (hf h), },
+  { rw [dif_pos h₁, dif_neg h₂] at h, exact (im_disj h).elim, },
+  { rw [dif_neg h₁, dif_pos h₂] at h, exact (im_disj h.symm).elim, },
+  { rw [dif_neg h₁, dif_neg h₂] at h, injection (hf' h), }, 
 end
 
 lemma surjective.of_comp {g : γ → α} (S : surjective (f ∘ g)) : surjective f :=

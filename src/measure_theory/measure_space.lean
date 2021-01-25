@@ -1515,6 +1515,23 @@ Ioo_ae_eq_Ico.symm.trans Ioo_ae_eq_Ioc
 
 end no_atoms
 
+lemma ite_ae_eq_of_measure_zero {γ} (f : α → γ) (g : α → γ) (s : set α) (hs_zero : μ s = 0) :
+  (λ x, ite (x ∈ s) (f x) (g x)) =ᵐ[μ] g :=
+begin
+  have h_ss : sᶜ ⊆ {a : α | ite (a ∈ s) (f a) (g a) = g a},
+    from λ x hx, by simp [(set.mem_compl_iff _ _).mp hx],
+  refine measure_mono_null _ hs_zero,
+  nth_rewrite 0 ←compl_compl s,
+  rwa set.compl_subset_compl,
+end
+
+lemma ite_ae_eq_of_measure_compl_zero {γ} (f : α → γ) (g : α → γ) (s : set α) (hs_zero : μ sᶜ = 0) :
+  (λ x, ite (x ∈ s) (f x) (g x)) =ᵐ[μ] f :=
+begin
+  have h_ss : s ⊆ {a : α | ite (a ∈ s) (f a) (g a) = f a}, from λ x hx, by simp [hx],
+  exact measure_mono_null (set.compl_subset_compl.mpr h_ss) hs_zero,
+end
+
 namespace measure
 
 /-- A measure is called finite at filter `f` if it is finite at some set `s ∈ f`.
@@ -2274,6 +2291,13 @@ measurable_const.ae_measurable
 lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
   (hg : measurable g) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
 ⟨g ∘ hf.mk f, hg.comp hf.measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk _⟩
+
+lemma ae_measurable_of_zero_measure {f : α → β} : ae_measurable f 0 :=
+begin
+  by_cases h : nonempty α,
+  { exact (@ae_measurable_const _ _ _ _ _ (f h.some)).congr rfl },
+  { exact (measurable_of_not_nonempty h f).ae_measurable }
+end
 
 end
 

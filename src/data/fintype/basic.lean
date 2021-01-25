@@ -248,7 +248,6 @@ section injective
 
 variables {f : α → β} (hf : function.injective f) {b : β} (hb : b ∈ set.range f)
 
-
 /--
 The inverse of an `injective` function `f : α → β`, given the hypothesis that the input `b : β`
 is in the `set.range f`. This is the computable version of `function.inv_fun` that requires
@@ -260,7 +259,7 @@ This function computes by checking all terms `a : α` to find the `f a = b`, so 
 def function.injective.inv_of_mem_range : α :=
 finset.choose (λ a, f a = b) finset.univ (hf.exists_unique_fintype_of_mem_range hb)
 
-@[simp] lemma function.injective.left_inv_of_inv_of_mem_range :
+lemma function.injective.left_inv_of_inv_of_mem_range :
   f (hf.inv_of_mem_range hb) = b :=
 (finset.choose_spec (λ a, f a = b) finset.univ (hf.exists_unique_fintype_of_mem_range hb)).right
 

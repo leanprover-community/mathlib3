@@ -507,7 +507,7 @@ Measures and integral Calculus:
     finite dimensional vector-valued integrable functions: 'measure_theory.integrable'
     continuity of integrals with respect to parameters:
     differentiability of integrals with respect to parameters:
-    $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$:
+    $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$: 'measure_theory.Lp'
     Completeness of $\mathrm{L}^p$ spaces:
     Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'

@@ -165,6 +165,8 @@ set.subset.antisymm s.closure_smul_self_subset
 
 variables [has_continuous_add M]
 
+/-- The (topological-space) closure of a submodle of a topological `R`-semimodule `M` is itself
+a submonoid. -/
 def submodule.topological_closure (s : submodule R M) : submodule R M :=
 { carrier := closure (s : set M),
   zero_mem' := subset_closure s.zero_mem,

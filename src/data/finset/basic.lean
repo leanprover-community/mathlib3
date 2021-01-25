@@ -1587,6 +1587,10 @@ set.ext $ λ _, mem_image.trans set.mem_image_iff_bex.symm
 lemma nonempty.image (h : s.nonempty) (f : α → β) : (s.image f).nonempty :=
 let ⟨a, ha⟩ := h in ⟨f a, mem_image_of_mem f ha⟩
 
+@[simp]
+lemma nonempty.image_iff (f : α → β) : (s.image f).nonempty ↔ s.nonempty :=
+⟨λ ⟨y, hy⟩, by { rcases mem_image.mp hy with ⟨x, hx, _⟩, exact ⟨x, hx⟩, }, λ h, h.image f⟩
+
 theorem image_to_finset [decidable_eq α] {s : multiset α} :
   s.to_finset.image f = (s.map f).to_finset :=
 ext $ λ _, by simp only [mem_image, multiset.mem_to_finset, exists_prop, multiset.mem_map]
@@ -2107,6 +2111,14 @@ end
 lemma image_bind_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bind (λa, s.filter $ (λc, g c = a)) = s :=
 bind_filter_eq_of_maps_to (λ x, mem_image_of_mem g)
+
+lemma bind_erase {α β : Type*} [decidable_eq β] (f : α → finset β) (s : finset α) (b : β) :
+  s.bind (λ x, (f x).erase b) = (s.bind f).erase b :=
+begin
+  ext y,
+  simp only [exists_prop, finset.mem_bind, ne.def, finset.mem_erase],
+  tauto,
+end
 
 end bind
 

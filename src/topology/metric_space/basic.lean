@@ -280,10 +280,12 @@ by { ext, simp [dist_comm, uniform_space.ball] }
 /-- `closed_ball x ε` is the set of all points `y` with `dist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
 
+@[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ dist y x ≤ ε := iff.rfl
+
 /-- `sphere x ε` is the set of all points `y` with `dist y x = ε` -/
 def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 
-@[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ dist y x ≤ ε := iff.rfl
+@[simp] theorem mem_sphere : y ∈ sphere x ε ↔ dist y x = ε := iff.rfl
 
 theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ dist x y ≤ ε :=
 by { rw dist_comm, refl }
@@ -672,6 +674,18 @@ lemma is_open_singleton_iff {X : Type*} [metric_space X] {x : X} :
   is_open ({x} : set X) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
 by simp [is_open_iff, subset_singleton_iff, mem_ball]
 
+/-- Given a point `x` in a discrete subset `s` of a metric space, there is an open ball
+centered at `x` and intersecting `s` only at `x`. -/
+lemma exists_ball_inter_eq_singleton_of_mem_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
+  ∃ ε > 0, metric.ball x ε ∩ s = {x} :=
+nhds_basis_ball.exists_inter_eq_singleton_of_mem_discrete hx
+
+/-- Given a point `x` in a discrete subset `s` of a metric space, there is a closed ball
+of positive radius centered at `x` and intersecting `s` only at `x`. -/
+lemma exists_closed_ball_inter_eq_singleton_of_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
+  ∃ ε > 0, metric.closed_ball x ε ∩ s = {x} :=
+nhds_basis_closed_ball.exists_inter_eq_singleton_of_mem_discrete hx
+
 end metric
 
 open metric
@@ -1045,6 +1059,14 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
 lemma prod.dist_eq [metric_space β] {x y : α × β} :
   dist x y = max (dist x.1 y.1) (dist x.2 y.2) := rfl
 
+theorem ball_prod_same [metric_space β] (x : α) (y : β) (r : ℝ) :
+  (ball x r).prod (ball y r) = ball (x, y) r :=
+ext $ λ z, by simp [prod.dist_eq]
+
+theorem closed_ball_prod_same [metric_space β] (x : α) (y : β) (r : ℝ) :
+  (closed_ball x r).prod (closed_ball y r) = closed_ball (x, y) r :=
+ext $ λ z, by simp [prod.dist_eq]
+
 end prod
 
 theorem uniform_continuous_dist : uniform_continuous (λp:α×α, dist p.1 p.2) :=
@@ -1184,6 +1206,12 @@ subtype.eta _ _
 
 lemma dist_pi_def (f g : Πb, π b) :
   dist f g = (sup univ (λb, nndist (f b) (g b)) : ℝ≥0) := rfl
+
+@[simp] lemma dist_pi_const [nonempty β] (a b : α) : dist (λ x : β, a) (λ _, b) = dist a b :=
+by simpa only [dist_edist] using congr_arg ennreal.to_real (edist_pi_const a b)
+
+@[simp] lemma nndist_pi_const [nonempty β] (a b : α) : nndist (λ x : β, a) (λ _, b) = nndist a b :=
+nnreal.eq $ dist_pi_const a b
 
 lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
   dist f g < r ↔ ∀b, dist (f b) (g b) < r :=

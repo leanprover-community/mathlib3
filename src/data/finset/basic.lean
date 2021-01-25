@@ -162,6 +162,9 @@ lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
 lemma nonempty.mono {s t : finset α} (hst : s ⊆ t) (hs : s.nonempty) : t.nonempty :=
 set.nonempty.mono hst hs
 
+lemma nonempty.forall_const {s : finset α} (h : s.nonempty) {p : Prop} : (∀ x ∈ s, p) ↔ p :=
+let ⟨x, hx⟩ := h in ⟨λ h, h x hx, λ h x hx, h⟩
+
 /-! ### empty -/
 
 /-- The empty finset -/
@@ -203,6 +206,9 @@ exists_mem_of_ne_zero (mt val_eq_zero.1 h)
 
 theorem nonempty_iff_ne_empty {s : finset α} : s.nonempty ↔ s ≠ ∅ :=
 ⟨nonempty.ne_empty, nonempty_of_ne_empty⟩
+
+@[simp] theorem not_nonempty_iff_eq_empty {s : finset α} : ¬s.nonempty ↔ s = ∅ :=
+by { rw nonempty_iff_ne_empty, exact not_not, }
 
 theorem eq_empty_or_nonempty (s : finset α) : s = ∅ ∨ s.nonempty :=
 classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
@@ -247,6 +253,15 @@ begin
     refine ⟨finset.mem_singleton_self _, λ _, finset.mem_singleton.1⟩,
   ext, rw finset.mem_singleton,
   refine ⟨t.right _, λ r, r.symm ▸ t.left⟩
+end
+
+lemma eq_singleton_iff_nonempty_unique_mem {s : finset α} {a : α} :
+  s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
+begin
+  split,
+  { intros h, subst h, simp, },
+  { rintros ⟨hne, h_uniq⟩, rw eq_singleton_iff_unique_mem, refine ⟨_, h_uniq⟩,
+    rw ← h_uniq hne.some hne.some_spec, apply hne.some_spec, },
 end
 
 lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = {a}) ↔ ∃! a, a ∈ s :=
@@ -1033,6 +1048,14 @@ lemma le_piecewise_of_le_of_le {δ : α → Type*} [Π i, preorder (δ i)] {f g 
   (Hf : h ≤ f) (Hg : h ≤ g) : h ≤ s.piecewise f g :=
 λ x, piecewise_cases s f g (λ y, h x ≤ y) (Hf x) (Hg x)
 
+lemma piecewise_le_piecewise' {δ : α → Type*} [Π i, preorder (δ i)] {f g f' g' : Π i, δ i}
+  (Hf : ∀ x ∈ s, f x ≤ f' x) (Hg : ∀ x ∉ s, g x ≤ g' x) : s.piecewise f g ≤ s.piecewise f' g' :=
+λ x, by { by_cases hx : x ∈ s; simp [hx, *] }
+
+lemma piecewise_le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {f g f' g' : Π i, δ i}
+  (Hf : f ≤ f') (Hg : g ≤ g') : s.piecewise f g ≤ s.piecewise f' g' :=
+s.piecewise_le_piecewise' (λ x _, Hf x) (λ x _, Hg x)
+
 lemma piecewise_mem_Icc_of_mem_of_mem {δ : α → Type*} [Π i, preorder (δ i)] {f f₁ g g₁ : Π i, δ i}
   (hf : f ∈ set.Icc f₁ g₁) (hg : g ∈ set.Icc f₁ g₁) :
   s.piecewise f g ∈ set.Icc f₁ g₁ :=
@@ -1393,6 +1416,13 @@ finset.val_inj.symm.trans multiset.erase_dup_eq_zero
 by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
 
 end multiset
+
+namespace finset
+
+@[simp] lemma val_to_finset [decidable_eq α] (s : finset α) : s.val.to_finset = s :=
+by { ext, rw [multiset.mem_to_finset, ←mem_def] }
+
+end finset
 
 namespace list
 variable [decidable_eq α]
@@ -1830,7 +1860,7 @@ card_image_of_inj_on $ λ x _ y _ h, H h
 
 lemma fiber_card_ne_zero_iff_mem_image (s : finset α) (f : α → β) [decidable_eq β] (y : β) :
   (s.filter (λ x, f x = y)).card ≠ 0 ↔ y ∈ s.image f :=
-by { rw [←zero_lt_iff_ne_zero, card_pos, fiber_nonempty_iff_mem_image] }
+by { rw [←pos_iff_ne_zero, card_pos, fiber_nonempty_iff_mem_image] }
 
 @[simp] lemma card_map {α β} (f : α ↪ β) {s : finset α} : (s.map f).card = s.card :=
 multiset.card_map _ _

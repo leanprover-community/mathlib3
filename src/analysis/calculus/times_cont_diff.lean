@@ -2507,6 +2507,18 @@ begin
     exact Itop n (times_cont_diff_at_top.mp hf n) }
 end
 
+/-- Let `f` be a local homeomorphism of a nondiscrete normed field, let `a` be a point in its
+target. if `f` is `n` times continuously differentiable at `f.symm a`, and if the derivative at
+`f.symm a` is nonzero, then `f.symm` is `n` times continuously differentiable at the point `a`.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+theorem local_homeomorph.times_cont_diff_at_symm_deriv [complete_space 𝕜] {n : with_top ℕ}
+  (f : local_homeomorph 𝕜 𝕜) {f₀' a : 𝕜} (h₀ : f₀' ≠ 0) (ha : a ∈ f.target)
+  (hf₀' : has_deriv_at f f₀' (f.symm a)) (hf : times_cont_diff_at 𝕜 n f (f.symm a)) :
+  times_cont_diff_at 𝕜 n f.symm a :=
+f.times_cont_diff_at_symm ha (hf₀'.has_fderiv_at_equiv h₀) hf
+
 end function_inverse
 
 section real

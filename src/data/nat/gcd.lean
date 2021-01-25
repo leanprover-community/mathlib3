@@ -139,21 +139,36 @@ by rw [gcd_comm m n, gcd_gcd_self_left_right]
 lemma gcd_add_mul_self (m n k : ℕ) : gcd m (n + k * m) = gcd m n :=
 by simp [gcd_rec m (n + k * m), gcd_rec m n]
 
+theorem gcd_eq_zero_iff {i j : ℕ} : gcd i j = 0 ↔ i = 0 ∧ j = 0 :=
+begin
+  split,
+  { intro h,
+    exact ⟨eq_zero_of_gcd_eq_zero_left h, eq_zero_of_gcd_eq_zero_right h⟩, },
+  { intro h,
+    rw [h.1, h.2],
+    exact nat.gcd_zero_right _ }
+end
+
 /-! ### `lcm` -/
 
 theorem lcm_comm (m n : ℕ) : lcm m n = lcm n m :=
 by delta lcm; rw [mul_comm, gcd_comm]
 
+@[simp]
 theorem lcm_zero_left (m : ℕ) : lcm 0 m = 0 :=
 by delta lcm; rw [zero_mul, nat.zero_div]
 
+@[simp]
 theorem lcm_zero_right (m : ℕ) : lcm m 0 = 0 := lcm_comm 0 m ▸ lcm_zero_left m
 
+@[simp]
 theorem lcm_one_left (m : ℕ) : lcm 1 m = m :=
 by delta lcm; rw [one_mul, gcd_one_left, nat.div_one]
 
+@[simp]
 theorem lcm_one_right (m : ℕ) : lcm m 1 = m := lcm_comm 1 m ▸ lcm_one_left m
 
+@[simp]
 theorem lcm_self (m : ℕ) : lcm m m = m :=
 or.elim (eq_zero_or_pos m)
   (λh, by rw [h, lcm_zero_left])
@@ -183,6 +198,9 @@ dvd_antisymm
   (lcm_dvd
     (dvd.trans (dvd_lcm_left m n) (dvd_lcm_left (lcm m n) k))
     (lcm_dvd (dvd.trans (dvd_lcm_right m n) (dvd_lcm_left (lcm m n) k)) (dvd_lcm_right (lcm m n) k)))
+
+theorem lcm_ne_zero {m n : ℕ} (hm : m ≠ 0) (hn : n ≠ 0) : lcm m n ≠ 0 :=
+by { intro h, simpa [h, hm, hn] using gcd_mul_lcm m n, }
 
 /-!
 ### `coprime`

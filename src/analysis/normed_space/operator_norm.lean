@@ -15,7 +15,7 @@ its basic properties. In particular, show that this space is itself a normed spa
 -/
 
 noncomputable theory
-open_locale classical nnreal
+open_locale classical nnreal topological_space
 
 
 variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
@@ -192,18 +192,14 @@ norm control for the original element follows by rescaling. -/
 lemma linear_map.bound_of_continuous (f : E →ₗ[𝕜] F) (hf : continuous f) :
   ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
 begin
-  have : continuous_at f 0 := continuous_iff_continuous_at.1 hf _,
-  rcases (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).1 this 1 zero_lt_one
-    with ⟨ε, ε_pos, hε⟩,
-  simp only [mem_closed_ball, dist_zero_right, f.map_zero] at hε,
+  rcases normed_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
+  simp only [sub_zero, f.map_zero] at hε,
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨ε⁻¹ * ∥c∥, mul_pos (inv_pos.2 ε_pos) (lt_trans zero_lt_one hc), _⟩,
-  suffices : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
-    from f.bound_of_shell ε_pos hc this,
-  intros x hle hlt,
-  refine (hε _ hlt.le).trans _,
-  rwa [mul_assoc, ← div_le_iff' (inv_pos.2 ε_pos), div_eq_mul_inv, inv_inv', one_mul,
-    ← div_le_iff' (zero_lt_one.trans hc)]
+  have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
+  refine ⟨∥c∥ / ε, this, _⟩,
+  refine f.bound_of_shell ε_pos hc (λ x hle hlt, _),
+  refine (hε _ hlt).le.trans _,
+  rwa [← div_le_iff' this, one_div_div]
 end
 
 namespace continuous_linear_map
@@ -288,7 +284,7 @@ lipschitz_with.of_dist_le_mul $ λ x y,
   by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
 
 lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
-div_le_iff_of_nonneg_of_le (norm_nonneg _) f.op_norm_nonneg (le_op_norm _ _)
+div_le_of_nonneg_of_le_mul (norm_nonneg _) f.op_norm_nonneg (le_op_norm _ _)
 
 /-- The image of the unit ball under a continuous linear map is bounded. -/
 lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
@@ -315,6 +311,10 @@ begin
   refine op_norm_le_of_shell ε_pos hC hc (λ x _ hx, hf x _),
   rwa ball_0_eq
 end
+
+lemma op_norm_le_of_nhds_zero {f : E →L[𝕜] F} {C : ℝ} (hC : 0 ≤ C)
+  (hf : ∀ᶠ x in 𝓝 (0 : E), ∥f x∥ ≤ C * ∥x∥) : ∥f∥ ≤ C :=
+let ⟨ε, ε0, hε⟩ := metric.eventually_nhds_iff_ball.1 hf in op_norm_le_of_ball ε0 hC hε
 
 lemma op_norm_le_of_shell' {f : E →L[𝕜] F} {ε C : ℝ} (ε_pos : 0 < ε) (hC : 0 ≤ C)
   {c : 𝕜} (hc : ∥c∥ < 1) (hf : ∀ x, ε * ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) :
@@ -706,6 +706,8 @@ def apply (v : E) : (E →L[𝕜] F) →L[𝕜] F :=
 
 variables {𝕜 F}
 
+@[simp] lemma apply_apply (v : E) (f : E →L[𝕜] F) : apply 𝕜 F v f = f v := rfl
+
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
@@ -795,6 +797,17 @@ end extend_scalars
 
 end continuous_linear_map
 
+/-- The continuous linear map of inclusion from a submodule of `K` into `E`. -/
+def submodule.subtype_continuous (K : submodule 𝕜 E) : K →L[𝕜] E :=
+linear_map.mk_continuous
+  K.subtype
+  1
+  (λ x, by { simp only [one_mul, submodule.subtype_apply], refl })
+
+@[simp] lemma submodule.subtype_continuous_apply (K : submodule 𝕜 E) (v : K) :
+  submodule.subtype_continuous K v = (v : E) :=
+rfl
+
 section has_sum
 
 -- Results in this section hold for continuous additive monoid homomorphisms or equivalences but we
@@ -834,7 +847,7 @@ protected lemma continuous_linear_equiv.summable {f : ι → M} (e : M ≃L[R] M
 ⟨λ hf, (e.has_sum.1 hf.has_sum).summable, (e : M →L[R] M₂).summable⟩
 
 lemma continuous_linear_equiv.tsum_eq_iff [t2_space M] [t2_space M₂] {f : ι → M}
-  (e : M ≃L[R] M₂) {y : M₂} : (∑' z, e (f z)) = y ↔ (∑' z, f z) = e.symm y :=
+  (e : M ≃L[R] M₂) {y : M₂} : ∑' z, e (f z) = y ↔ ∑' z, f z = e.symm y :=
 begin
   by_cases hf : summable f,
   { exact ⟨λ h, (e.has_sum.mp ((e.summable.mpr hf).has_sum_iff.mpr h)).tsum_eq,

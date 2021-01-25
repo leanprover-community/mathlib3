@@ -309,6 +309,9 @@ theorem finite.preimage {s : set β} {f : α → β}
   (I : set.inj_on f (f⁻¹' s)) (h : finite s) : finite (f ⁻¹' s) :=
 finite_of_finite_image I (h.subset (image_preimage_subset f s))
 
+theorem finite.preimage_embedding {s : set β} (f : α ↪ β) (h : s.finite) : (f ⁻¹' s).finite :=
+finite.preimage (λ _ _ _ _ h', f.injective h') h
+
 instance fintype_Union [decidable_eq α] {ι : Type*} [fintype ι]
   (f : ι → set α) [∀ i, fintype (f i)] : fintype (⋃ i, f i) :=
 fintype.of_finset (finset.univ.bind (λ i, (f i).to_finset)) $ by simp
@@ -530,6 +533,11 @@ lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
    (hsub : s ⊆ t) (hcard : fintype.card t ≤ fintype.card s) : s = t :=
 (eq_or_ssubset_of_subset hsub).elim id
   (λ h, absurd hcard $ not_le_of_lt $ card_lt_card h)
+
+lemma subset_iff_to_finset_subset (s t : set α) [fintype s] [fintype t] :
+  s ⊆ t ↔ s.to_finset ⊆ t.to_finset :=
+⟨λ h x hx, set.mem_to_finset.mpr $ h $ set.mem_to_finset.mp hx,
+  λ h x hx, set.mem_to_finset.mp $ h $ set.mem_to_finset.mpr hx⟩
 
 lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
   [fintype (range f)] : fintype.card (range f) = fintype.card α :=

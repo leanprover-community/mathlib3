@@ -7,8 +7,6 @@ import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.binary_products
 
-universes v u
-
 /-!
 # Constructing binary product from pullbacks and terminal object.
 
@@ -16,6 +14,8 @@ If a category has pullbacks and a terminal object, then it has binary products.
 
 TODO: provide the dual result.
 -/
+
+universes v u
 
 open category_theory category_theory.category category_theory.limits
 

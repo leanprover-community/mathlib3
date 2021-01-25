@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.measure_space
+import measure_theory.ae_measurable_sequence
 import analysis.complex.basic
 import analysis.normed_space.finite_dimension
 import topology.G_delta
@@ -688,7 +689,7 @@ begin
     split_ifs,
     { have h_set_eq : {a : α | ∃ (i : ι), (hf i).mk (f i) b = a} = {a : α | ∃ (i : ι), f i b = a},
       { ext x,
-        simp_rw [set.mem_set_of_eq, ae_seq.measurable_fun_eq_fun_of_mem_ae_seq_set hf h], },
+        simp_rw [set.mem_set_of_eq, ae_seq.mk_eq_fun_of_mem_ae_seq_set hf h], },
       rw h_set_eq,
       exact ae_seq.fun_prop_of_mem_ae_seq_set hf h, },
     { have h_singleton : {a : α | ∃ (i : ι), hα.some = a} = {hα.some},
@@ -749,7 +750,7 @@ begin
     split_ifs,
     { have h_set_eq : {a : α | ∃ (i : ι), (hf i).mk (f i) b = a} = {a : α | ∃ (i : ι), f i b = a},
       { ext x,
-        simp_rw [set.mem_set_of_eq, ae_seq.measurable_fun_eq_fun_of_mem_ae_seq_set hf h], },
+        simp_rw [set.mem_set_of_eq, ae_seq.mk_eq_fun_of_mem_ae_seq_set hf h], },
       rw h_set_eq,
       exact ae_seq.fun_prop_of_mem_ae_seq_set hf h, },
     { have h_singleton : {a : α | ∃ (i : ι), hα.some = a} = {hα.some},
@@ -1306,7 +1307,7 @@ begin
     refine tendsto_pi.mpr (λ x, _),
     simp_rw [ae_seq, ae_seq_lim],
     split_ifs with hx,
-    { simp_rw ae_seq.measurable_fun_eq_fun_of_mem_ae_seq_set hf hx,
+    { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
       exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hβ hf x hx, },
     { exact tendsto_const_nhds, }, },
   { refine ⟨g, measurable_of_not_nonempty _ g, ae_eq_refl _⟩,
@@ -1345,7 +1346,7 @@ begin
   { intros x,
     simp only [f_lim, ae_seq],
     split_ifs,
-    { rw funext (λ n, ae_seq.measurable_fun_eq_fun_of_mem_ae_seq_set hf h n),
+    { rw funext (λ n, ae_seq.mk_eq_fun_of_mem_ae_seq_set hf h n),
       exact (hp_mem x h).some_spec, },
     { exact tendsto_const_nhds, }, },
   have h_ae_tendsto_f_lim : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)),

@@ -87,7 +87,7 @@ begin
   rw one_mul
 end
 
-variables {R S} (a)
+variables {R S a}
 
 /-- `dickson₂` is the `n`-th Dickson polynomial of the second kind associated to the element `a∈R`.
 -/

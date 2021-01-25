@@ -762,7 +762,7 @@ def perm.subtype_congr : equiv.perm ε :=
 perm_congr (sum_compl p) (sum_congr ep en)
 
 lemma perm.subtype_congr.apply (a : ε) :
-  ep.subtype_congr en a = dite (p a) (λ h, ep ⟨a, h⟩) (λ h, en ⟨a, h⟩) :=
+  ep.subtype_congr en a = if h : p a then ep ⟨a, h⟩ else en ⟨a, h⟩ :=
 by { by_cases h : p a; simp [perm.subtype_congr, h] }
 
 @[simp] lemma perm.subtype_congr.left_apply {a : ε} (h : p a) :

@@ -323,7 +323,7 @@ s.card_le_univ.lt_iff_ne.trans (not_iff_not_of_iff s.card_eq_iff_eq_univ)
 
 lemma finset.card_compl_lt_iff_nonempty [fintype α] [decidable_eq α] (s : finset α) :
   sᶜ.card < fintype.card α ↔ s.nonempty :=
-iff.trans (finset.card_lt_iff_ne_univ sᶜ) (compl_ne_univ_iff_nonempty s)
+sᶜ.card_lt_iff_ne_univ.trans s.compl_ne_univ_iff_nonempty
 
 lemma finset.card_univ_diff [decidable_eq α] [fintype α] (s : finset α) :
   (finset.univ \ s).card = fintype.card α - s.card :=

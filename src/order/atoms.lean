@@ -38,7 +38,7 @@ which are lattices with only two elements, and related ideas.
     * `is_simple_lattice.complete_boolean_algebra`
 
 ## Main results
-  * `is_atom_iff_is_coatom_dual` and `is_coatom_iff_is_atom_dual` express the (definitional) duality
+  * `is_atom_dual_iff_is_coatom` and `is_coatom_dual_iff_is_atom` express the (definitional) duality
    of `is_atom` and `is_coatom`.
   * `is_simple_lattice_iff_is_atom_top` and `is_simple_lattice_iff_is_coatom_bot` express the
   connection between atoms, coatoms, and simple lattices
@@ -110,9 +110,11 @@ end pairwise
 
 variables [bounded_lattice α] {a : α}
 
-lemma is_atom_iff_is_coatom_dual : is_atom a ↔ is_coatom (order_dual.to_dual a) := iff.refl _
+@[simp]
+lemma is_coatom_dual_iff_is_atom : is_coatom (order_dual.to_dual a) ↔ is_atom a := iff.refl _
 
-lemma is_coatom_iff_is_atom_dual : is_coatom a ↔ is_atom (order_dual.to_dual a) := iff.refl _
+@[simp]
+lemma is_atom_dual_iff_is_coatom : is_atom (order_dual.to_dual a) ↔ is_coatom a := iff.refl _
 
 end atoms
 
@@ -203,7 +205,7 @@ theorem is_atomistic_dual_iff_is_coatomistic : is_atomistic (order_dual α) ↔ 
 namespace is_atomistic
 
 instance is_coatomistic_dual [h : is_atomistic α] : is_coatomistic (order_dual α) :=
-is_atomistic_iff_is_coatomistic_dual.1 h
+is_coatomistic_dual_iff_is_atomistic.2 h
 
 variable [is_atomistic α]
 
@@ -219,7 +221,7 @@ end is_atomistic
 namespace is_coatomistic
 
 instance is_atomistic_dual [h : is_coatomistic α] : is_atomistic (order_dual α) :=
-is_coatomistic_iff_is_atomistic_dual.1 h
+is_atomistic_dual_iff_is_coatomistic.2 h
 
 variable [is_coatomistic α]
 
@@ -259,7 +261,7 @@ is_simple_lattice_iff_is_simple_lattice_order_dual.1 (by apply_instance)
 @[simp] lemma is_atom_top : is_atom (⊤ : α) :=
 ⟨top_ne_bot, λ a ha, or.resolve_right (eq_bot_or_eq_top a) (ne_of_lt ha)⟩
 
-@[simp] lemma is_coatom_bot : is_coatom (⊥ : α) := is_coatom_iff_is_atom_dual.2 is_atom_top
+@[simp] lemma is_coatom_bot : is_coatom (⊥ : α) := is_atom_dual_iff_is_coatom.1 is_atom_top
 
 end is_simple_lattice
 
@@ -278,7 +280,7 @@ instance : is_atomic α :=
 ⟨λ b, (eq_bot_or_eq_top b).imp_right (λ h, ⟨⊤, ⟨is_atom_top, ge_of_eq h⟩⟩)⟩
 
 @[priority 100]
-instance : is_coatomic α := is_coatomic_iff_is_atomic_dual.2 is_simple_lattice.is_atomic
+instance : is_coatomic α := is_atomic_dual_iff_is_coatomic.1 is_simple_lattice.is_atomic
 
 section decidable_eq
 variable [decidable_eq α]
@@ -357,7 +359,7 @@ instance : is_atomistic α :=
   (λ h, ⟨∅, ⟨h.trans Sup_empty.symm, λ a ha, false.elim (set.not_mem_empty _ ha)⟩⟩)
   (λ h, ⟨{⊤}, h.trans Sup_singleton.symm, λ a ha, (set.mem_singleton_iff.1 ha).symm ▸ is_atom_top⟩)⟩
 
-instance : is_coatomistic α := is_coatomistic_iff_is_atomistic_dual.2 is_simple_lattice.is_atomistic
+instance : is_coatomistic α := is_atomistic_dual_iff_is_coatomistic.1 is_simple_lattice.is_atomistic
 
 end is_simple_lattice
 namespace fintype

@@ -242,7 +242,7 @@ begin
     obtain ⟨t, ⟨hts, htu⟩⟩ := finset.subset_image_iff.mp huspan,
     subst htu,
     -- Tweak husup a bit to apply span_eq_sup_of_singleton_spans
-    simp_rw [(finset.sup_eq_supr (t.image sp) id), finset.supr_finset_image] at husup,
+    simp_rw [finset.sup_eq_supr (t.image sp) id, finset.supr_finset_image] at husup,
     change s = ⨆ (y : M) (H : y ∈ (↑t : set M)), sp y at husup,
     rw ←(span_eq_sup_of_singleton_spans ↑t) at husup,
     exact ⟨t, eq.symm husup⟩, },

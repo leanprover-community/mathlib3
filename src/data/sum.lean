@@ -129,20 +129,40 @@ update_eq_iff.2 ⟨by simp, by simp { contextual := tt }⟩
   update f (inl i) x ∘ inl = update (f ∘ inl) i x :=
 update_comp_eq_of_injective _ injective_inl _ _
 
+@[simp] lemma update_inl_apply_inl {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
+  {f : α ⊕ β → γ} {i j : α} {x : γ} :
+  update f (inl i) x (inl j) = update (f ∘ inl) i x j :=
+by rw ← update_inl_comp_inl
+
 @[simp] lemma update_inl_comp_inr {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
   {f : α ⊕ β → γ} {i : α} {x : γ} :
   update f (inl i) x ∘ inr = f ∘ inr :=
 update_comp_eq_of_forall_ne _ _ $ λ _, inr_ne_inl
+
+@[simp] lemma update_inl_apply_inr {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
+  {f : α ⊕ β → γ} {i : α} {j : β} {x : γ} :
+  update f (inl i) x (inr j) = f (inr j) :=
+function.update_noteq inr_ne_inl _ _
 
 @[simp] lemma update_inr_comp_inl {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
   {f : α ⊕ β → γ} {i : β} {x : γ} :
   update f (inr i) x ∘ inl = f ∘ inl :=
 update_comp_eq_of_forall_ne _ _ $ λ _, inl_ne_inr
 
+@[simp] lemma update_inr_apply_inl {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
+  {f : α ⊕ β → γ} {i : α} {j : β} {x : γ} :
+  update f (inr j) x (inl i) = f (inl i) :=
+function.update_noteq inl_ne_inr _ _
+
 @[simp] lemma update_inr_comp_inr {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
   {f : α ⊕ β → γ} {i : β} {x : γ} :
   update f (inr i) x ∘ inr = update (f ∘ inr) i x :=
 update_comp_eq_of_injective _ injective_inr _ _
+
+@[simp] lemma update_inr_apply_inr {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
+  {f : α ⊕ β → γ} {i j : β} {x : γ} :
+  update f (inr i) x (inr j) = update (f ∘ inr) i x j :=
+by rw ← update_inr_comp_inr
 
 section
   variables (ra : α → α → Prop) (rb : β → β → Prop)

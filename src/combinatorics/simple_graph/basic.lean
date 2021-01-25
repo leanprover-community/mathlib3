@@ -38,7 +38,7 @@ finitely many vertices.
 
 ## Naming Conventions
 
-* If the vertex type of a graph is finite, we refer to its cardinality as `card_verts`
+* If the vertex type of a graph is finite, we refer to its cardinality as `card_verts`.
 
 TODO: This is the simplest notion of an unoriented graph.  This should
 eventually fit into a more complete combinatorics hierarchy which
@@ -390,7 +390,7 @@ nat.lt_of_le_of_lt (G.card_common_neighbors_le_degree_left _ _) (G.degree_lt_car
 If the condition `G.adj v w` fails, then `card_common_neighbors_le_degree` is
 the best we can do in general.
 -/
-lemma card_common_neighbors_lt_degree_of_adj (v w : V) (h : G.adj v w) :
+lemma adj.card_common_neighbors_lt_degree {G : simple_graph V} {v w : V} (h : G.adj v w) :
   fintype.card (G.common_neighbors v w) < G.degree v :=
 begin
   classical,

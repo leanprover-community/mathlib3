@@ -195,6 +195,61 @@ lemma geom_le {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) (n : ℕ) (h : ∀ k < 
   c ^ n * u 0 ≤ u n :=
 by refine (monotone_mul_left_of_nonneg hc).seq_le_seq n _ _ h; simp [pow_succ, mul_assoc, le_refl]
 
+/-- For any natural `k` and a real `r > 1` we have `n ^ k = o(r ^ n)` as `n → ∞`. -/
+lemma is_o_pow_const_const_pow_of_one_lt {R : Type*} [normed_ring R] (k : ℕ) {r : ℝ} (hr : 1 < r) :
+  is_o (λ n, n ^ k : ℕ → R) (λ n, r ^ n) at_top :=
+begin
+  have : tendsto (λ x : ℝ, x ^ k) (𝓝[Ioi 1] 1) (𝓝 1),
+    from ((continuous_id.pow k).tendsto' (1 : ℝ) 1 (one_pow _)).mono_left inf_le_left,
+  obtain ⟨r' : ℝ, hr' : r' ^ k < r, h1 : 1 < r'⟩ :=
+    ((this.eventually (gt_mem_nhds hr)).and self_mem_nhds_within).exists,
+  have h0 : 0 ≤ r' := zero_le_one.trans h1.le,
+  suffices : is_O _ (λ n : ℕ, (r' ^ k) ^ n) at_top,
+    from this.trans_is_o (is_o_pow_pow_of_lt_left (pow_nonneg h0 _) hr'),
+  conv in ((r' ^ _) ^ _) { rw [← pow_mul, mul_comm, pow_mul] },
+  suffices : ∀ n : ℕ, ∥(n : R)∥ ≤ (r' - 1)⁻¹ * ∥(1 : R)∥ * ∥r' ^ n∥, from (is_O_of_le' _ this).pow _,
+  intro n, rw mul_right_comm,
+  refine n.norm_cast_le.trans (mul_le_mul_of_nonneg_right _ (norm_nonneg _)),
+  simpa [div_eq_inv_mul, real.norm_eq_abs, abs_of_nonneg h0] using n.cast_le_pow_div_sub h1
+end
+
+/-- For a real `r > 1` we have `n = o(r ^ n)` as `n → ∞`. -/
+lemma is_o_coe_const_pow_of_one_lt {R : Type*} [normed_ring R] {r : ℝ} (hr : 1 < r) :
+  is_o (coe : ℕ → R) (λ n, r ^ n) at_top :=
+by simpa only [pow_one] using is_o_pow_const_const_pow_of_one_lt 1 hr
+
+/-- If `∥r₁∥ < r₂`, then for any naturak `k` we have `n ^ k r₁ ^ n = o (r₂ ^ n)` as `n → ∞`. -/
+lemma is_o_pow_const_mul_const_pow_const_pow_of_norm_lt {R : Type*} [normed_ring R] (k : ℕ)
+  {r₁ : R} {r₂ : ℝ} (h : ∥r₁∥ < r₂) :
+  is_o (λ n, n ^ k * r₁ ^ n : ℕ → R) (λ n, r₂ ^ n) at_top :=
+begin
+  by_cases h0 : r₁ = 0,
+  { refine (is_o_zero _ _).congr' (mem_at_top_sets.2 $ ⟨1, λ n hn, _⟩) eventually_eq.rfl,
+    simp [zero_pow (zero_lt_one.trans_le hn), h0] },
+  rw [← ne.def, ← norm_pos_iff] at h0,
+  have A : is_o (λ n, n ^ k : ℕ → R) (λ n, (r₂ / ∥r₁∥) ^ n) at_top,
+    from is_o_pow_const_const_pow_of_one_lt k ((one_lt_div h0).2 h),
+  suffices : is_O (λ n, r₁ ^ n) (λ n, ∥r₁∥ ^ n) at_top,
+    by simpa [div_mul_cancel _ (pow_pos h0 _).ne'] using A.mul_is_O this,
+  exact is_O.of_bound 1 (by simpa using eventually_norm_pow_le r₁)
+end
+
+lemma tendsto_pow_const_div_const_pow_of_one_lt (k : ℕ) {r : ℝ} (hr : 1 < r) :
+  tendsto (λ n, n ^ k / r ^ n : ℕ → ℝ) at_top (𝓝 0) :=
+(is_o_pow_const_const_pow_of_one_lt k hr).tendsto_0
+
+/-- If `|r| < 1`, then `n ^ k r ^ n` tends to zero for any natural `k`. -/
+lemma tendsto_pow_const_mul_const_pow_of_abs_lt_one (k : ℕ) {r : ℝ} (hr : abs r < 1) :
+  tendsto (λ n, n ^ k * r ^ n : ℕ → ℝ) at_top (𝓝 0) :=
+begin
+  by_cases h0 : r = 0,
+  { exact tendsto_const_nhds.congr'
+      (mem_at_top_sets.2 ⟨1, λ n hn, by simp [zero_lt_one.trans_le hn, h0]⟩) },
+  have hr' : 1 < (abs r)⁻¹, from one_lt_inv (abs_pos.2 h0) hr,
+  rw tendsto_zero_iff_norm_tendsto_zero,
+  simpa [div_eq_mul_inv] using tendsto_pow_const_div_const_pow_of_one_lt k hr'
+end
+
 /-- If a sequence `v` of real numbers satisfies `k * v n ≤ v (n+1)` with `1 < k`,
 then it goes to +∞. -/
 lemma tendsto_at_top_of_geom_le {v : ℕ → ℝ} {c : ℝ} (h₀ : 0 < v 0) (hc : 1 < c)
@@ -350,6 +405,49 @@ begin
 end
 
 end geometric
+
+section mul_geometric
+
+lemma summable_norm_pow_mul_geometric_of_norm_lt_1 {R : Type*} [normed_ring R]
+  (k : ℕ) {r : R} (hr : ∥r∥ < 1) : summable (λ n : ℕ, ∥(n ^ k * r ^ n : R)∥) :=
+begin
+  rcases exists_between hr with ⟨r', hrr', h⟩,
+  exact summable_of_is_O_nat _ (summable_geometric_of_lt_1 ((norm_nonneg _).trans hrr'.le) h)
+    (is_o_pow_const_mul_const_pow_const_pow_of_norm_lt _ hrr').is_O.norm_left
+end
+
+lemma summable_pow_mul_geometric_of_norm_lt_1 {R : Type*} [normed_ring R] [complete_space R]
+  (k : ℕ) {r : R} (hr : ∥r∥ < 1) : summable (λ n, n ^ k * r ^ n : ℕ → R) :=
+summable_of_summable_norm $ summable_norm_pow_mul_geometric_of_norm_lt_1 _ hr
+
+/-- If `∥r∥ < 1`, then `∑' n : ℕ, n * r ^ n = r / (1 - r) ^ 2`, `has_sum` version. -/
+lemma has_sum_coe_mul_geometric_of_norm_lt_1 {𝕜 : Type*} [normed_field 𝕜] [complete_space 𝕜]
+  {r : 𝕜} (hr : ∥r∥ < 1) : has_sum (λ n, n * r ^ n : ℕ → 𝕜) (r / (1 - r) ^ 2) :=
+begin
+  have A : summable (λ n, n * r ^ n : ℕ → 𝕜),
+    by simpa using summable_pow_mul_geometric_of_norm_lt_1 1 hr,
+  have B : has_sum (pow r : ℕ → 𝕜) (1 - r)⁻¹, from has_sum_geometric_of_norm_lt_1 hr,
+  refine A.has_sum_iff.2 _,
+  have hr' : r ≠ 1, by { rintro rfl, simpa [lt_irrefl] using hr },
+  set s : 𝕜 := ∑' n : ℕ, n * r ^ n,
+  calc s = (1 - r) * s / (1 - r) : (mul_div_cancel_left _ (sub_ne_zero.2 hr'.symm)).symm
+  ... = (s - r * s) / (1 - r) : by rw [sub_mul, one_mul]
+  ... = ((0 : ℕ) * r ^ 0 + (∑' n : ℕ, (n + 1) * r ^ (n + 1)) - r * s) / (1 - r) :
+    by { congr, exact tsum_eq_zero_add A }
+  ... = (r * (∑' n : ℕ, (n + 1) * r ^ n) - r * s) / (1 - r) :
+    by simp [pow_succ, mul_left_comm _ r, tsum_mul_left]
+  ... = r / (1 - r) ^ 2 :
+    by simp [add_mul, tsum_add A B.summable, mul_add, B.tsum_eq, ← div_eq_mul_inv, pow_two,
+      div_div_eq_div_mul]
+end
+
+/-- If `∥r∥ < 1`, then `∑' n : ℕ, n * r ^ n = r / (1 - r) ^ 2`. -/
+lemma tsum_coe_mul_geometric_of_norm_lt_1 {𝕜 : Type*} [normed_field 𝕜] [complete_space 𝕜]
+  {r : 𝕜} (hr : ∥r∥ < 1) :
+  (∑' n : ℕ, n * r ^ n : 𝕜) = (r / (1 - r) ^ 2) :=
+(has_sum_coe_mul_geometric_of_norm_lt_1 hr).tsum_eq
+
+end mul_geometric
 
 /-!
 ### Sequences with geometrically decaying distance in metric spaces

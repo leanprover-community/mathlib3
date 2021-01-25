@@ -119,6 +119,27 @@ begin
     { rw [finset.sup_insert, id.def], exact h h_subset.1 (h₁ htne h_subset.2), }, },
 end
 
+lemma sup_le_of_le_directed {α : Type*} [semilattice_sup_bot α] (s : set α)
+  (hs : s.nonempty) (hdir : directed_on (≤) s) (t : finset α):
+  (∀ x ∈ t, ∃ y ∈ s, x ≤ y) → ∃ x, x ∈ s ∧ t.sup id ≤ x :=
+begin
+  classical,
+  apply finset.induction_on t,
+  { simpa only [forall_prop_of_true, and_true, forall_prop_of_false, bot_le, not_false_iff,
+      sup_empty, forall_true_iff, not_mem_empty], },
+  { intros a r har ih h,
+    have incs : ↑r ⊆ ↑(insert a r), by { rw finset.coe_subset, apply finset.subset_insert, },
+    -- x ∈ s is above the sup of r
+    obtain ⟨x, ⟨hxs, hsx_sup⟩⟩ := ih (λ x hx, h x $ incs hx),
+    -- y ∈ s is above a
+    obtain ⟨y, hys, hay⟩ := h a (finset.mem_insert_self a r),
+    -- z ∈ s is above x and y
+    obtain ⟨z, hzs, ⟨hxz, hyz⟩⟩ := hdir x hxs y hys,
+    use [z, hzs],
+    rw [sup_insert, id.def, _root_.sup_le_iff],
+    exact ⟨le_trans hay hyz, le_trans hsx_sup hxz⟩, },
+end
+
 end sup
 
 lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=

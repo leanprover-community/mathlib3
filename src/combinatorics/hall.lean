@@ -265,7 +265,7 @@ theorem hall_hard_inductive_step {r : α → finset β} {n : ℕ} (hn : fintype.
   ∃ (f : α → β), function.injective f ∧ ∀ x, f x ∈ r x :=
 begin
   by_cases h : ∀ (A : finset α), A.nonempty → A ≠ univ → A.card < (A.bind r).card,
-  { exact hall_hard_inductive_step_A r hn hr @ih h, },
+  { exact hall_hard_inductive_step_A hn hr @ih h, },
   { push_neg at h,
     rcases h with ⟨A, Ane, Anu, Ale⟩,
     have Aeq := nat.le_antisymm (hr _) Ale,

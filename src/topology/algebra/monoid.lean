@@ -181,7 +181,7 @@ lemma submonoid.is_closed_topological_closure (s : submonoid M) :
 by convert is_closed_closure
 
 lemma submonoid.topological_closure_minimal
-  (s : submonoid M) {t : submonoid M} (h : s ≤ t) (ht : is_closed t) :
+  (s : submonoid M) {t : submonoid M} (h : s ≤ t) (ht : is_closed (t : set M)) :
   s.topological_closure ≤ t :=
 closure_minimal h ht
 

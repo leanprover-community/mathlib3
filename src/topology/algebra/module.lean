@@ -182,7 +182,7 @@ lemma submodule.is_closed_topological_closure (s : submodule R M) :
 by convert is_closed_closure
 
 lemma submodule.topological_closure_minimal
-  (s : submodule R M) {t : submodule R M} (h : s ≤ t) (ht : is_closed t) :
+  (s : submodule R M) {t : submodule R M} (h : s ≤ t) (ht : is_closed (t : set M)) :
   s.topological_closure ≤ t :=
 closure_minimal h ht
 

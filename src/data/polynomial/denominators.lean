@@ -26,14 +26,14 @@ does not have denominators, if the inequality `f.nat_degree ≤ N` holds.
 
 In the implementation, we also use provide an inverse in the existential.
 -/
-def denoms_clearable (a b : R) (N : ℕ) (f : polynomial R) (i : R →+* K) :=
-  ∃ D : R, ∃ bi : K, bi * i b = 1 ∧ i D = i b ^ N * eval (i a * bi) (polynomial.map i f)
+def denoms_clearable (a b : R) (N : ℕ) (f : polynomial R) (i : R →+* K) : Prop :=
+  ∃ D : R, ∃ bi : K, bi * i b = 1 ∧ i D = i b ^ N * eval (i a * bi) (f.map i)
 
-lemma denoms_clearable_zero (N : ℕ) (a b : R) (bu : bi * i b = 1) :
+lemma denoms_clearable_zero (N : ℕ) (a : R) (bu : bi * i b = 1) :
   denoms_clearable a b N 0 i :=
 ⟨0, bi, bu, by simp only [eval_zero, ring_hom.map_zero, mul_zero, map_zero]⟩
 
-lemma denoms_clearable_C_mul_X_pow (N : ℕ) (a b : R) (bu : bi * i b = 1) (n : ℕ) (r : R)
+lemma denoms_clearable_C_mul_X_pow {N : ℕ} (a : R) (bu : bi * i b = 1) {n : ℕ} (r : R)
   (nN : n ≤ N) : denoms_clearable a b N (C r * X ^ n) i :=
 begin
   refine ⟨r * a ^ n * b ^ (N - n), bi, bu, _⟩,
@@ -56,19 +56,19 @@ lemma denoms_clearable.add {N : ℕ} {a b : R} {f g : polynomial R} :
     rwa mul_comm,
   end ⟩
 
-lemma denoms_clearable_of_nat_degree_le (N : ℕ) (a b : R) {bi : K} (bu : bi * i b = 1) :
+lemma denoms_clearable_of_nat_degree_le (N : ℕ) (a : R) (bu : bi * i b = 1) :
   ∀ (f : polynomial R), f.nat_degree ≤ N → denoms_clearable a b N f i :=
 induction_with_nat_degree_le N
-  (denoms_clearable_zero N a b bu)
-  (λ N_1 r r0, denoms_clearable_C_mul_X_pow N a b bu N_1 r)
+  (denoms_clearable_zero N a bu)
+  (λ N_1 r r0, denoms_clearable_C_mul_X_pow a bu r)
   (λ f g fN gN df dg, df.add dg)
 
 /-- If `i : R → K` is a ring homomorphism, `f` is a polynomial with coefficients in `R`,
 `a, b` are elements of `R`, with `i b` invertible, then there is a `D ∈ R` such that
 `b ^ f.nat_degree * f (a / b)` equals `i D`. -/
 theorem denoms_clearable_nat_degree
-  (i : R →+* K) (f : polynomial R) (a b : R) (bi : K) (bu : bi * i b = 1) :
+  (i : R →+* K) (f : polynomial R) (a : R) (bu : bi * i b = 1) :
   denoms_clearable a b f.nat_degree f i :=
-denoms_clearable_of_nat_degree_le (f.nat_degree) a b bu f le_rfl
+denoms_clearable_of_nat_degree_le f.nat_degree a bu f le_rfl
 
 end denoms_clearable

@@ -1324,16 +1324,13 @@ lemma measurable_limit_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α �
   ∃ (f_lim : α → β) (hf_lim_meas : measurable f_lim),
     ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)) :=
 begin
-  by_cases hα : nonempty α,
-  swap, { exact ⟨λ a, (hα ⟨a⟩).elim,
-    ⟨measurable_of_not_nonempty hα _, ae_of_all _ (λ a, (hα ⟨a⟩).elim)⟩⟩, },
-  haveI hβ : nonempty β := nonempty.map (f 0) hα,
   let p : α → (ℕ → β) → Prop := λ x f', ∃ l : β, filter.at_top.tendsto (λ n, f' n) (𝓝 l),
   have hp_mem : ∀ x, x ∈ ae_seq_set hf p → p x (λ n, f n x),
     from λ x hx, ae_seq.fun_prop_of_mem_ae_seq_set hf hx,
   have hμ_compl : μ (ae_seq_set hf p)ᶜ = 0,
     from ae_seq.measure_compl_ae_seq_set_eq_zero hf h_ae_tendsto,
-  let f_lim : α → β := λ x, dite (x ∈ ae_seq_set hf p) (λ h, (hp_mem x h).some) (λ h, hβ.some),
+  let f_lim : α → β := λ x, dite (x ∈ ae_seq_set hf p) (λ h, (hp_mem x h).some)
+    (λ h, (⟨f 0 x⟩ : nonempty β).some),
   have hf_lim_conv : ∀ x, x ∈ ae_seq_set hf p → filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)),
   { intros x hx_conv,
     simp only [f_lim, hx_conv, dif_pos],

@@ -289,6 +289,9 @@ begin
   exact (this.trans h₀).symm,
 end
 
+theorem div_add_mod (m k : ℕ+) : (m : ℕ) = k * (div m k) + mod m k :=
+by rw add_comm; exact mod_add_div _ _
+
 theorem mod_coe (m k : ℕ+) :
  ((mod m k) : ℕ) = ite ((m : ℕ) % (k : ℕ) = 0) (k : ℕ) ((m : ℕ) % (k : ℕ)) :=
 begin

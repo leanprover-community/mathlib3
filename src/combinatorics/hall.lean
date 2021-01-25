@@ -309,7 +309,7 @@ theorem finset.all_card_le_bind_card_iff_exists_injective
   ↔ (∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ s x) :=
 begin
   split,
-  { exact hall_marriage_theorem.hall_hard_inductive s (fintype.card ι) rfl },
+  { exact hall_marriage_theorem.hall_hard_inductive rfl },
   { rintro ⟨f, hf₁, hf₂⟩ A,
     rw ←card_image_of_injective A hf₁,
     apply card_le_of_subset,

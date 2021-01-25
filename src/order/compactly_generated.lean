@@ -120,6 +120,20 @@ begin
     use t, exact ⟨htS, by rwa ←htsup⟩, },
 end
 
+lemma finset_sup_compact_of_compact (s : finset α) :
+  (∀ x ∈ s, is_compact_element x) → is_compact_element (s.sup id) :=
+begin
+  intro h,
+  rw is_compact_element_iff_le_of_directed_Sup_le,
+  intros d hemp hdir hsup,
+  apply finset.sup_le_of_le_directed d hemp hdir,
+  intros x hxs,
+  specialize h x hxs,
+  rw is_compact_element_iff_le_of_directed_Sup_le at h,
+  specialize h d hemp hdir (_root_.le_trans (@finset.le_sup _ _ _ _ id _ hxs) hsup),
+  simpa only [exists_prop],
+end
+
 lemma well_founded.is_Sup_finite_compact (h : well_founded ((>) : α → α → Prop)) :
   is_Sup_finite_compact α :=
 begin

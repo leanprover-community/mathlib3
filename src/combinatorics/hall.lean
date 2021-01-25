@@ -229,7 +229,7 @@ begin
     convert (card_compl_lt_iff_nonempty _).mpr hA,
     convert fintype.card_coe _,
     rw coe_compl, },
-  rcases ih r'' card_α''_le (hall_cond_of_compl r A huA hr) with ⟨f'', hf'', hAf''⟩,
+  rcases ih r'' card_α''_le (hall_cond_of_compl huA hr) with ⟨f'', hf'', hAf''⟩,
   /- Put them together -/
   have f'_mem_bind : ∀ {x'} (hx' : x' ∈ A), f' ⟨x', hx'⟩ ∈ A.bind r,
   { intros,

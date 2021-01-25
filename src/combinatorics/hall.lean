@@ -213,6 +213,7 @@ begin
   /- Restrict to `A` -/
   let α' := (A : set α),
   let r' : α' → finset β := λ a', r a',
+  rw nat.add_one at hn,
   have card_α'_le : fintype.card α' ≤ n,
   { apply nat.le_of_lt_succ,
     rw ←hn,

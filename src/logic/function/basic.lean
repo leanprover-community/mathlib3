@@ -347,7 +347,7 @@ lemma update_comp_eq_of_forall_ne' {α'} (g : Π a, β a) {f : α' → α} {i : 
   (λ j, (update g i a) (f j)) = (λ j, g (f j)) :=
 funext $ λ x, update_noteq (h _) _ _
 
-/-- Non-dependent version of `function.update_comp_eq_of_not_mem_range'` -/
+/-- Non-dependent version of `function.update_comp_eq_of_forall_ne'` -/
 lemma update_comp_eq_of_forall_ne {α β : Sort*} (g : α' → β) {f : α → α'} {i : α'} (a : β)
   (h : ∀ x, f x ≠ i) :
   (update g i a) ∘ f = g ∘ f :=

@@ -162,31 +162,9 @@ calc map f.to_linear_map (M * N)
       rw f.to_linear_map_apply at fy_eq,
       ext,
       simp [fy_eq] }
-  end
-
-open_locale classical
-
-namespace finset
-/-- A finite set `U` contained in the product of two sets `S * S'` is also contained in the product
-of two finite sets `T * T' ⊆ S * S'`. -/
-lemma subset_mul {M : Type*} [monoid M] {S : set M} {S' : set M} {U : finset M} (f : ↑U ⊆ S * S') :
-  ∃ (T T' : finset M), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ U ⊆ T * T' :=
-begin
-  apply finset.induction_on' U,
-  { use [∅, ∅], simp only [finset.empty_subset, finset.coe_empty, empty_subset, and_self], },
-  rintros a s haU hs has ⟨T, T', hS, hS', h⟩,
-  obtain ⟨x, y, hx, hy, ha⟩ := mem_mul.1 (f haU),
-  use [insert x T, insert y T'], simp only [finset.coe_insert],
-  repeat {rw [set.insert_subset], }, use [hx, hS, hy, hS'],
-  refine finset.insert_subset.mpr _,
-  split, rw finset.mem_mul, use [x,y],
-  simp only [true_and, true_or, eq_self_iff_true, finset.mem_insert], assumption,
-  suffices g : (s : set M) ⊆ insert x T * insert y T', norm_cast at g, assumption,
-  transitivity ↑(T * T'), apply h, rw finset.coe_mul,
-  apply set.mul_subset_mul (set.subset_insert x T) (set.subset_insert y T'),
 end
 
-end finset
+open_locale classical
 
 lemma mem_span_mul_finite_of_mem_span_mul {S : set A} {S' : set A} {x : A}
   (hx : x ∈ span R (S * S')) :

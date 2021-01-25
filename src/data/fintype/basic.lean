@@ -311,7 +311,7 @@ eq_of_subset_of_card_le (subset_univ _) $ by rw [hs, finset.card_univ]
 
 lemma finset.card_eq_iff_eq_univ [fintype α] (s : finset α) :
   s.card = fintype.card α ↔ s = finset.univ :=
-⟨finset.eq_univ_of_card _, by { rintro rfl, exact finset.card_univ, }⟩
+⟨s.eq_univ_of_card, by { rintro rfl, exact finset.card_univ, }⟩
 
 lemma finset.card_le_univ [fintype α] (s : finset α) :
   s.card ≤ fintype.card α :=

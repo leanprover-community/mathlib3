@@ -157,7 +157,7 @@ calc
     = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M).prod s)) : by simp [closure_prod_eq]
 ... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M).prod s)) :
   image_closure_subset_closure_image continuous_mul
-... = closure s : by simp [s.submonoid_mul_self_eq]
+... = closure s : by simp [s.coe_mul_self_eq]
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :

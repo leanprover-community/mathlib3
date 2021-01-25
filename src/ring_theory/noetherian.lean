@@ -208,23 +208,25 @@ begin
   let sp : M → submodule R M := λ a, span R {a},
   split,
   { rintro ⟨t, ht⟩,
+    -- s is the sup of the spans of the members of t
     rw [span_eq_sup_of_singleton_spans, eq_comm] at ht,
-    -- ht says s is the sup of a finset of submodules, but not in a nice way...
+    -- Tweak this statement a bit for eventual application of sup_le_of_le_directed
     change s = ⨆ (x : M) (H : x ∈ t), id (sp x) at ht,
     rw [←finset.supr_finset_image, ←(finset.sup_eq_supr (t.image sp) id)] at ht,
-    -- Now it's more appropriate for the remainder
     subst ht,
-    -- Use directed set definition of compact (so we can apply mem_Sup_of_directed)
+    -- Use directed set definition of compact
     rw complete_lattice.is_compact_element_iff_le_of_directed_Sup_le,
     intros d hemp hdir hd,
     by_cases htriv : t.nonempty,
     { apply finset.sup_le_of_le_directed d hemp hdir,
       intros n hn,
+      -- Show that n = sp a is below something in d.
       obtain ⟨a, hat, haspan⟩ := finset.mem_image.mp hn,
       subst haspan,
       have asupd : a ∈ Sup d,
       { suffices : span R {a} ≤ Sup d, from (le_def.mp this) (mem_span_singleton_self a),
         exact le_trans (@finset.le_sup _ _ _ _ id _ hn) hd, },
+      -- a ∈ Sup d implies a is actually in some submodule in d, so sp a is below d.
       obtain ⟨n, hnd, han⟩ := (mem_Sup_of_directed hemp hdir).mp asupd,
       exact ⟨n, ⟨hnd, by rwa span_singleton_le_iff_mem⟩⟩, },
     { rw finset.nonempty_iff_ne_empty at htriv, push_neg at htriv,
@@ -232,16 +234,18 @@ begin
       simp only [htriv, nonempty.some_mem, finset.sup_empty, bot_le, and_self,
         finset.image_empty], }, },
   { intro h,
+    -- s is the Sup of the spans of its elements.
     have sjoin : s = ⨆ x ∈ ↑s, span R {x},
     { nth_rewrite 0 ←(span_eq s), exact span_eq_sup_of_singleton_spans s, },
-    -- Again, sjoin says s is the Sup of a set of submodules, but...
+    -- Tweak this statement a bit to apply compactness
     change s = ⨆ (x : M) (H : x ∈ ↑s), id (sp x) at sjoin,
     rw ←supr_image at sjoin,
     simp_rw [id.def, ←Sup_eq_supr] at sjoin,
-    -- Now it says it in a much nicer way.
+    -- s is actually the sup of the spans of finitely many elements.
     obtain ⟨u, ⟨huspan, husup⟩⟩ := h (sp '' ↑s) (le_of_eq sjoin),
     obtain ⟨t, ⟨hts, htu⟩⟩ := finset.subset_image_iff.mp huspan,
     subst htu,
+    -- Which is precicely the set the generates s.
     use t,
     apply le_antisymm,
     { rwa span_le, },

@@ -465,6 +465,10 @@ begin
   tauto,
 end
 
+lemma finset.compl_to_finset (α : Type u) [decidable_eq α] [fintype α] (s : set α) :
+  sᶜ.to_finset = (s.to_finset)ᶜ :=
+by ext; simp
+
 lemma neighbor_set_union_compl_neighbor_set_card [fintype V] (G : simple_graph V) (v : V) :
   (G.neighbor_set v ∪ Gᶜ.neighbor_set v).to_finset.card = fintype.card V - 1 :=
 begin
@@ -492,7 +496,6 @@ begin
   rw ← neighbor_set_union_compl_neighbor_set_card G v,
   rw ← h,
   simp,
-  rw set.to_finset_union,
   sorry,
 end
 

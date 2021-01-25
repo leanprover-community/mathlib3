@@ -68,14 +68,14 @@ variables {n : Type u} [decidable_eq n] [fintype n]
 
 namespace unitary_submonoid
 
+lemma star_mem {A : matrix n n α} (h : A ∈ unitary_submonoid n α) :
+  star A ∈ unitary_submonoid n α :=
+matrix.nonsing_inv_left_right _ _ $ (star_star A).symm ▸ h
+
 @[simp]
 lemma star_mem_iff {A : matrix n n α} :
-  star A ∈ unitary_submonoid n α ↔ A ∈ unitary_submonoid n α  :=
-⟨λ ha, show star A ⬝ A = 1, from matrix.nonsing_inv_left_right _ _ $
-    by { nth_rewrite 0 [←star_star A], exact ha },
- λ ha, show star (star A) ⬝ star A = 1, from matrix.nonsing_inv_left_right _ _ $ by rwa star_star⟩
-
-alias star_mem_iff ↔ mem_of_star_mem star_mem_of_mem
+  star A ∈ unitary_submonoid n α ↔ A ∈ unitary_submonoid n α :=
+⟨λ ha, star_star A ▸ star_mem ha, star_mem⟩
 
 end unitary_submonoid
 

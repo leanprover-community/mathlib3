@@ -1724,7 +1724,7 @@ lemma differentiable_on_fpow (hs : (0:𝕜) ∉ s) : differentiable_on 𝕜 (λx
 @[simp] lemma differentiable_at_fpow_iff : differentiable_at 𝕜 (λx:𝕜, x^m) x ↔ (x ≠ 0 ∨ 0 ≤ m) :=
 ⟨λ h, normed_field.continuous_at_fpow_iff.1 h.continuous_at, differentiable_at_fpow⟩
 
-lemma deriv_fpow : deriv (λx, x^m) x = (m : 𝕜) * x^(m-1) :=
+@[simp] lemma deriv_fpow : deriv (λx, x^m) x = (m : 𝕜) * x^(m-1) :=
 if hx : x ≠ 0 ∨ 0 ≤ m then
   (has_deriv_at_fpow m hx).deriv
 else

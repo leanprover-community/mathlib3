@@ -85,11 +85,10 @@ end
 /-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` -/
 lemma convex_on_fpow (m : ℤ) : convex_on (Ioi 0) (λ x : ℝ, x^m) :=
 begin
-  apply convex_on_of_deriv2_nonneg (convex_Ioi 0); try { rw [interior_Ioi] },
-  { exact (differentiable_on_fpow $ lt_irrefl _).continuous_on },
+  apply convex_on_open_of_deriv2_nonneg (convex_Ioi 0) (is_open_Ioi),
   { exact differentiable_on_fpow (lt_irrefl _) },
   { have : eq_on (deriv (λx:ℝ, x^m)) (λx, ↑m * x^(m-1)) (Ioi 0),
-      from λ x hx, deriv_fpow (ne_of_gt hx),
+      from λ x hx, deriv_fpow,
     refine (differentiable_on_congr this).2 _,
     exact (differentiable_on_fpow (lt_irrefl _)).const_mul _ },
   { intros x hx,

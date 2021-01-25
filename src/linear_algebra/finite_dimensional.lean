@@ -312,17 +312,6 @@ iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V 
 lemma findim_pos [finite_dimensional K V] [h : nontrivial V] : 0 < findim K V :=
 findim_pos_iff.mpr h
 
-/-- `has_zero` instance for `fin k` where `k` is the dimension of a nontrivial finite-dimensional
-vector space.  This is primarily useful so that `nonempty` can be deduced, by typeclass inference.
--/
-noncomputable instance has_zero_findim [nontrivial V] [finite_dimensional K V] :
-  has_zero (fin (findim K V)) :=
-begin
-  cases h : findim K V,
-  exact false.elim (ne_of_gt findim_pos h),
-  apply_instance
-end
-
 section
 open_locale big_operators
 open finset

@@ -287,7 +287,7 @@ begin
   intros,
   rcases n' with (_|_),
   { exact hall_hard_inductive_zero r hn },
-  { apply hall_hard_inductive_step r n' hn hr,
+  { apply hall_hard_inductive_step hn hr,
     introsI α' _ r' hα',
     exact ih (fintype.card α') (nat.lt_succ_of_le hα') r' rfl, },
 end

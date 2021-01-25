@@ -56,7 +56,7 @@ lemma denoms_clearable.add {N : ℕ} {a b : R} {f g : polynomial R} :
     rwa mul_comm,
   end ⟩
 
-lemma denoms_clearable_of_nat_degree_le (N : ℕ) (a b : R) {bi : K} (bu : bi * i b = 1) :
+lemma denoms_clearable_of_nat_degree_le (N : ℕ) (a : R) (bu : bi * i b = 1) :
   ∀ (f : polynomial R), f.nat_degree ≤ N → denoms_clearable a b N f i :=
 induction_with_nat_degree_le N
   (denoms_clearable_zero N a bu)

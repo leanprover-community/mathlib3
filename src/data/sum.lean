@@ -112,7 +112,7 @@ funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
   sum.elim (f ∘ inl) (f ∘ inr) = f :=
 funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
 
-open function (update update_eq_iff)
+open function (update update_eq_iff update_comp_eq_of_injective update_comp_eq_of_forall_ne)
 
 @[simp] lemma update_elim_inl {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
   {f : α → γ} {g : β → γ} {i : α} {x : γ} :
@@ -127,22 +127,22 @@ update_eq_iff.2 ⟨by simp, by simp { contextual := tt }⟩
 @[simp] lemma update_inl_comp_inl {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
   {f : α ⊕ β → γ} {i : α} {x : γ} :
   update f (inl i) x ∘ inl = update (f ∘ inl) i x :=
-by conv { congr, rw [← elim_comp_inl_inr f, update_elim_inl, elim_comp_inl] }
+update_comp_eq_of_injective _ injective_inl _ _
 
 @[simp] lemma update_inl_comp_inr {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
   {f : α ⊕ β → γ} {i : α} {x : γ} :
   update f (inl i) x ∘ inr = f ∘ inr :=
-by conv { congr, rw [← elim_comp_inl_inr f, update_elim_inl, elim_comp_inr] }
+update_comp_eq_of_forall_ne _ _ $ λ _, inr_ne_inl
 
 @[simp] lemma update_inr_comp_inl {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
   {f : α ⊕ β → γ} {i : β} {x : γ} :
   update f (inr i) x ∘ inl = f ∘ inl :=
-by conv { congr, rw [← elim_comp_inl_inr f, update_elim_inr, elim_comp_inl] }
+update_comp_eq_of_forall_ne _ _ $ λ _, inl_ne_inr
 
 @[simp] lemma update_inr_comp_inr {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
   {f : α ⊕ β → γ} {i : β} {x : γ} :
   update f (inr i) x ∘ inr = update (f ∘ inr) i x :=
-by conv { congr, rw [← elim_comp_inl_inr f, update_elim_inr, elim_comp_inr] }
+update_comp_eq_of_injective _ injective_inr _ _
 
 section
   variables (ra : α → α → Prop) (rb : β → β → Prop)

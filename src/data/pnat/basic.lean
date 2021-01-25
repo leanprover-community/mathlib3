@@ -290,7 +290,7 @@ begin
 end
 
 theorem div_add_mod (m k : ℕ+) : (m : ℕ) = k * (div m k) + mod m k :=
-(add_comm _ _).trans (mod_add_div _ _)
+by rw add_comm; exact mod_add_div _ _
 
 theorem mod_coe (m k : ℕ+) :
  ((mod m k) : ℕ) = ite ((m : ℕ) % (k : ℕ) = 0) (k : ℕ) ((m : ℕ) % (k : ℕ)) :=

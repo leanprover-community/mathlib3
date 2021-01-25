@@ -44,10 +44,10 @@ begin
   rw [bu, one_pow, mul_one],
 end
 
-lemma denoms_clearable.add {N : ℕ} {a b : R} {f g : polynomial R} :
-    denoms_clearable a b N f i →
-    denoms_clearable a b N g i →
-    denoms_clearable a b N (f + g) i :=
+lemma denoms_clearable.add {N : ℕ} {f g : polynomial R} :
+  denoms_clearable a b N f i →
+  denoms_clearable a b N g i →
+  denoms_clearable a b N (f + g) i :=
 λ ⟨Df, bf, bfu, Hf⟩ ⟨Dg, bg, bgu, Hg⟩, ⟨Df + Dg, bf, bfu,
   begin
     rw [ring_hom.map_add, polynomial.map_add, eval_add, mul_add, Hf, Hg],

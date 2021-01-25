@@ -132,11 +132,11 @@ export is_atomic (eq_bot_or_exists_atom_le) is_coatomic (eq_top_or_exists_le_coa
 
 variable {α}
 
-theorem is_atomic_iff_is_coatomic_dual : is_atomic α ↔ is_coatomic (order_dual α) :=
-⟨λ h, ⟨λ b, by apply h.eq_bot_or_exists_atom_le⟩, λ h, ⟨λ b, by apply h.eq_top_or_exists_le_coatom⟩⟩
-
-theorem is_coatomic_iff_is_atomic_dual : is_coatomic α ↔ is_atomic (order_dual α) :=
+@[simp] theorem is_coatomic_dual_iff_is_atomic : is_coatomic (order_dual α) ↔ is_atomic α :=
 ⟨λ h, ⟨λ b, by apply h.eq_top_or_exists_le_coatom⟩, λ h, ⟨λ b, by apply h.eq_bot_or_exists_atom_le⟩⟩
+
+@[simp] theorem is_atomic_dual_iff_is_coatomic : is_atomic (order_dual α) ↔ is_coatomic α :=
+⟨λ h, ⟨λ b, by apply h.eq_bot_or_exists_atom_le⟩, λ h, ⟨λ b, by apply h.eq_top_or_exists_le_coatom⟩⟩
 
 namespace is_atomic
 
@@ -192,11 +192,13 @@ export is_atomistic (eq_Sup_atoms) is_coatomistic (eq_Inf_coatoms)
 
 variable {α}
 
-theorem is_atomistic_iff_is_coatomistic_dual : is_atomistic α ↔ is_coatomistic (order_dual α) :=
-⟨λ h, ⟨λ b, by apply h.eq_Sup_atoms⟩, λ h, ⟨λ b, by apply h.eq_Inf_coatoms⟩⟩
-
-theorem is_coatomistic_iff_is_atomistic_dual : is_coatomistic α ↔ is_atomistic (order_dual α) :=
+@[simp]
+theorem is_coatomistic_dual_iff_is_atomistic : is_coatomistic (order_dual α) ↔ is_atomistic α :=
 ⟨λ h, ⟨λ b, by apply h.eq_Inf_coatoms⟩, λ h, ⟨λ b, by apply h.eq_Sup_atoms⟩⟩
+
+@[simp]
+theorem is_atomistic_dual_iff_is_coatomistic : is_atomistic (order_dual α) ↔ is_coatomistic α :=
+⟨λ h, ⟨λ b, by apply h.eq_Sup_atoms⟩, λ h, ⟨λ b, by apply h.eq_Inf_coatoms⟩⟩
 
 namespace is_atomistic
 

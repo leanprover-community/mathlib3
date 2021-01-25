@@ -172,6 +172,7 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
   smul_mem' := λ c x hx, s.closure_smul_self_subset ⟨⟨c, x⟩, ⟨set.mem_univ _, hx⟩, rfl⟩ }
 
 end closure
+
 section
 
 variables {R : Type*} {M : Type*} {a : R}

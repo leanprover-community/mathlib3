@@ -147,7 +147,7 @@ begin
       exact hfr.2, }, },
 end
 
-lemma hall_cond_of_restrict {α : Type u} (r : α → finset β) (A : finset α)
+lemma hall_cond_of_restrict {α : Type u} {r : α → finset β} {A : finset α}
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
   (A' : finset (A : set α)) :
   A'.card ≤ (A'.bind (λ a', r a')).card :=

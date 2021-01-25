@@ -256,7 +256,7 @@ end
 If `α` has cardinality `n + 1` and the statement of Hall's Marriage Theorem
 is true for all `α'` of cardinality ≤ `n`, then it is true for `α`.
 -/
-theorem hall_hard_inductive_step (n : ℕ) (hn : fintype.card α = n.succ)
+theorem hall_hard_inductive_step {r : α → finset β} {n : ℕ} (hn : fintype.card α = n + 1)
   (hr : ∀ (A : finset α), A.card ≤ (A.bind r).card)
   (ih : ∀ {α' : Type u} [fintype α'] (r' : α' → finset β),
         by exactI fintype.card α' ≤ n →

@@ -176,13 +176,13 @@ begin
   { exact λ f df f0, by rwa (finsupp.support_eq_empty.mp (card_eq_zero.mp f0)) },
   { intros f df f0,
     rw ← erase_lead_add_C_mul_X_pow f,
-    refine P_C_add f.erase_lead _ (le_trans erase_lead_nat_degree_le df) _ _ _,
-    { exact le_trans (nat_degree_C_mul_X_pow_le (leading_coeff f) (nat_degree f)) df },
-    { exact hc _ (le_trans erase_lead_nat_degree_le df) (erase_lead_card_support f0) },
+    refine P_C_add f.erase_lead _ (erase_lead_nat_degree_le.trans df) _ _ _,
+    { exact (nat_degree_C_mul_X_pow_le f.leading_coeff f.nat_degree).trans df },
+    { exact hc _ (erase_lead_nat_degree_le.trans df) (erase_lead_card_support f0) },
     { refine P_C_mul_pow _ _ _ df,
       rw [ne.def, leading_coeff_eq_zero],
       rintro rfl,
-      exact (not_le.mpr (nat.succ_pos c)) (eq.ge f0) } }
+      exact not_le.mpr c.succ_pos f0.ge } }
 end
 
 end polynomial

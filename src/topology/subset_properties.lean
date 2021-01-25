@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
-import topology.continuous_on
+import topology.bases
 import data.finset.order
 
 /-!
@@ -50,7 +50,7 @@ and in particular
 https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_definitions.
 -/
 
-open set filter classical
+open set filter classical topological_space
 open_locale classical topological_space filter
 
 universes u v
@@ -320,6 +320,9 @@ lemma compact_singleton {a : α} : is_compact ({a} : set α) :=
 λ f hf hfa, ⟨a, rfl, cluster_pt.of_le_nhds'
   (hfa.trans $ by simpa only [principal_singleton] using pure_le_nhds a) hf⟩
 
+lemma set.subsingleton.is_compact {s : set α} (hs : s.subsingleton) : is_compact s :=
+subsingleton.induction_on hs compact_empty $ λ x, compact_singleton
+
 lemma set.finite.compact_bUnion {s : set β} {f : β → set α} (hs : finite s)
   (hf : ∀i ∈ s, is_compact (f i)) :
   is_compact (⋃i ∈ s, f i) :=
@@ -441,6 +444,10 @@ end tube_lemma
 in the French literature, but we do not include it here. -/
 class compact_space (α : Type*) [topological_space α] : Prop :=
 (compact_univ : is_compact (univ : set α))
+
+@[priority 10] -- see Note [lower instance priority]
+instance subsingleton.compact_space [subsingleton α] : compact_space α :=
+⟨subsingleton_univ.is_compact⟩
 
 lemma compact_univ [h : compact_space α] : is_compact (univ : set α) := h.compact_univ
 
@@ -632,6 +639,12 @@ begin
   rwa [← mem_interior_iff_mem_nhds, hU.interior_eq]
 end
 
+/-- In a locally compact space every point has a compact neighborhood. -/
+lemma exists_compact_mem_nhds [locally_compact_space α] (x : α) :
+  ∃ K, is_compact K ∧ K ∈ 𝓝 x :=
+let ⟨K, hKc, hx, H⟩ := exists_compact_subset is_open_univ (mem_univ x)
+in ⟨K, hKc, mem_interior_iff_mem_nhds.1 hx⟩
+
 lemma ultrafilter.le_nhds_Lim [compact_space α] (F : ultrafilter α) :
   ↑F ≤ 𝓝 (@Lim _ _ (F : filter α).nonempty_of_ne_bot F) :=
 begin
@@ -639,14 +652,30 @@ begin
   exact le_nhds_Lim ⟨x,h⟩,
 end
 
-variables (α)
 /-- A σ-compact space is a space that is the union of a countable collection of compact subspaces.
   Note that a locally compact separable T₂ space need not be σ-compact.
   The sequence can be extracted using `topological_space.compact_covering`. -/
 class sigma_compact_space (α : Type*) [topological_space α] : Prop :=
 (exists_compact_covering : ∃ K : ℕ → set α, (∀ n, is_compact (K n)) ∧ (⋃ n, K n) = univ)
 
-variables [sigma_compact_space α]
+@[priority 200] -- see Note [lower instance priority]
+instance compact_space.sigma_compact [compact_space α] : sigma_compact_space α :=
+⟨⟨λ _, univ, λ _, compact_univ, Union_const _⟩⟩
+
+lemma sigma_compact_space.of_countable (S : set (set α)) (Hc : countable S)
+  (Hcomp : ∀ s ∈ S, is_compact s) (HU : ⋃₀ S = univ) : sigma_compact_space α :=
+⟨(exists_seq_cover_iff_countable ⟨_, compact_empty⟩).2 ⟨S, Hc, Hcomp, HU⟩⟩
+
+lemma sigma_compact_space_of_locally_compact_second_countable [locally_compact_space α]
+  [second_countable_topology α] : sigma_compact_space α :=
+begin
+  choose K hKc hxK h_ using λ x : α, exists_compact_subset is_open_univ (mem_univ x), clear h_,
+  rcases countable_cover_nhds (λ x, mem_interior_iff_mem_nhds.1 (hxK x)) with ⟨s, hsc, hsU⟩,
+  refine sigma_compact_space.of_countable _ (hsc.image K) (ball_image_iff.2 $ λ x _, hKc x) _,
+  rwa sUnion_image
+end
+
+variables (α) [sigma_compact_space α]
 open sigma_compact_space
 
 /-- An arbitrary compact covering of a σ-compact space. -/

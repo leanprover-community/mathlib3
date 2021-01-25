@@ -340,7 +340,7 @@ an injective function `α → β` respecting the relation iff for every
 
 If `[fintype β]`, then `[∀ (a : α), fintype (rel.image r {a})]` is automatically implied.
 -/
-theorem all_card_le_rel_image_card_iff_exists_injective
+theorem fintype.all_card_le_rel_image_card_iff_exists_injective
   {α β : Type*} [fintype α] [decidable_eq β]
   (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})] :
   (∀ (A : finset α), A.card ≤ fintype.card (rel.image r A))

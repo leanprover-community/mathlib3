@@ -129,7 +129,7 @@ begin
   have card_α'_le : fintype.card α' ≤ n,
   { rw [set.card_ne_eq, hn],
     exact le_refl _, },
-  rcases ih r' card_α'_le (hall_cond_of_erase r a b ha) with ⟨f', hfinj, hfr⟩,
+  rcases ih r' card_α'_le (hall_cond_of_erase b ha) with ⟨f', hfinj, hfr⟩,
   /- Extend the resulting function. -/
   refine ⟨λ x, if h : x = a then b else f' ⟨x, h⟩, _, _⟩,
   { rintro x₁ x₂,

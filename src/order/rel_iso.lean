@@ -528,6 +528,8 @@ e.to_equiv.symm_apply_eq
 lemma symm_injective : injective (symm : (α ≃o β) → (β ≃o α)) :=
 λ e e' h, by rw [← e.symm_symm, h, e'.symm_symm]
 
+@[simp] lemma to_equiv_symm (e : α ≃o β) : e.to_equiv.symm = e.symm.to_equiv := rfl
+
 /-- Composition of two order isomorphisms is an order isomorphism. -/
 @[trans] def trans (e : α ≃o β) (e' : β ≃o γ) : α ≃o γ := e.trans e'
 

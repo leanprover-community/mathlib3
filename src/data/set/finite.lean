@@ -573,7 +573,6 @@ section
 
 local attribute [instance, priority 1] classical.prop_decidable
 
-
 lemma to_finset_compl {α : Type*} [fintype α](s : set α) :
   sᶜ.to_finset = (s.to_finset)ᶜ := by ext; simp
 

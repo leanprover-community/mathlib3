@@ -311,7 +311,7 @@ eq_of_subset_of_card_le (subset_univ _) $ by rw [hs, finset.card_univ]
 
 lemma finset.card_eq_iff_eq_univ [fintype α] (s : finset α) :
   s.card = fintype.card α ↔ s = finset.univ :=
-⟨finset.eq_univ_of_card _, by { rintro rfl, exact finset.card_univ, }⟩
+⟨s.eq_univ_of_card, by { rintro rfl, exact finset.card_univ, }⟩
 
 lemma finset.card_le_univ [fintype α] (s : finset α) :
   s.card ≤ fintype.card α :=
@@ -319,11 +319,11 @@ card_le_of_subset (subset_univ s)
 
 lemma finset.card_lt_iff_ne_univ [fintype α] (s : finset α) :
   s.card < fintype.card α ↔ s ≠ finset.univ :=
-iff.trans (has_le.le.lt_iff_ne (finset.card_le_univ s)) (not_iff_not_of_iff s.card_eq_iff_eq_univ)
+s.card_le_univ.lt_iff_ne.trans (not_iff_not_of_iff s.card_eq_iff_eq_univ)
 
 lemma finset.card_compl_lt_iff_nonempty [fintype α] [decidable_eq α] (s : finset α) :
   sᶜ.card < fintype.card α ↔ s.nonempty :=
-iff.trans (finset.card_lt_iff_ne_univ sᶜ) (compl_ne_univ_iff_nonempty s)
+sᶜ.card_lt_iff_ne_univ.trans s.compl_ne_univ_iff_nonempty
 
 lemma finset.card_univ_diff [decidable_eq α] [fintype α] (s : finset α) :
   (finset.univ \ s).card = fintype.card α - s.card :=

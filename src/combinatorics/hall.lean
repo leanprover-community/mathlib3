@@ -364,7 +364,7 @@ This is a version of Hall's Marriage Theorem in terms of a relation
 between finite types.  It is like `hall_rel` but uses `finset.filter`
 rather than `rel.image`.
 -/
-theorem all_card_le_filter_rel_iff_exists_injective
+theorem fintype.all_card_le_filter_rel_iff_exists_injective
   {α β : Type*} [fintype α] [fintype β]
   (r : α → β → Prop) [∀ a, decidable_pred (r a)] :
   (∀ (A : finset α), A.card ≤ (univ.filter (λ (b : β), ∃ a ∈ A, r a b)).card)
@@ -379,5 +379,5 @@ begin
   have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
   { simp, },
   simp_rw [h, h'],
-  apply all_card_le_bind_card_iff_exists_injective,
+  apply finset.all_card_le_bind_card_iff_exists_injective,
 end

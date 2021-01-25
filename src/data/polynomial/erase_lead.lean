@@ -159,7 +159,7 @@ end
 
 end erase_lead
 
-/--  An induction lemma for polynomials. It takes a natural number `N` as a parameter, that is
+/-- An induction lemma for polynomials. It takes a natural number `N` as a parameter, that is
 required to be at least as big as the `nat_degree` of the polynomial.  This is useful to prove
 results where you want to change each term in a polynomial to something else depending on the
 `nat_degree` of the polynomial itself and not on the specific `nat_degree` of each term. -/

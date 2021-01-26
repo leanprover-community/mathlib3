@@ -970,8 +970,8 @@ lemma map_dfinsupp_prod (h : R →* S) (f : Π₀ i, β i) (g : Π i, β i → R
   h (f.prod g) = f.prod (λ a b, h (g a b)) := h.map_prod _ _
 
 @[to_additive]
-lemma coe_dfinsupp_prod
-  (f : Π₀ i, β i) (g : Π i, β i → R →* S) : ⇑(f.prod g) = f.prod (λ a b, (g a b)) := coe_prod _ _
+lemma coe_dfinsupp_prod (f : Π₀ i, β i) (g : Π i, β i → R →* S) :
+  ⇑(f.prod g) = f.prod (λ a b, (g a b)) := coe_prod _ _
 
 @[simp, to_additive]
 lemma dfinsupp_prod_apply (f : Π₀ i, β i) (g : Π i, β i → R →* S) (r : R) :

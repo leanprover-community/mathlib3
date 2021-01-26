@@ -217,35 +217,24 @@ begin
   -- Introduce shorthand for span of an element
   let sp : M → submodule R M := λ a, span R {a},
   split,
-  { rintro ⟨t, ht⟩,
-    -- s is the sup of the spans of the members of t
-    rw [span_eq_sup_of_singleton_spans, eq_comm] at ht,
-    -- Tweak this statement a bit to apply finset_sup_compact_of_compact
-    change s = ⨆ (x : M) (H : x ∈ t), id (sp x) at ht,
-    rw [←finset.supr_finset_image, ←(finset.sup_eq_supr (t.image sp) id)] at ht,
-    subst ht, apply complete_lattice.finset_sup_compact_of_compact,
-    intros n hn,
-    obtain ⟨x, ⟨hxt, hxn⟩⟩ := finset.mem_image.mp hn,
-    subst hxn, exact singleton_span_is_compact_element x, },
+  { rintro ⟨t, rfl⟩,
+    rw [span_eq_sup_of_singleton_spans], simp, rw ←(finset.sup_eq_supr t sp),
+    apply complete_lattice.finset_sup_compact_of_compact,
+    exact λ n _, singleton_span_is_compact_element n, },
   { intro h,
     -- s is the Sup of the spans of its elements.
-    have ssup : s = ⨆ x ∈ ↑s, sp x,
-    { nth_rewrite 0 ←(span_eq s), exact span_eq_sup_of_singleton_spans s, },
-    -- Tweak this statement a bit to apply compactness
-    change s = ⨆ (x : M) (H : x ∈ ↑s), id (sp x) at ssup,
-    rw ←supr_image at ssup, simp_rw [id.def, ←Sup_eq_supr] at ssup,
-    -- s is then below (actually, equal to) the sup of the spans of finitely many elements.
-    obtain ⟨u, ⟨huspan, husup⟩⟩ := h (sp '' ↑s) (le_of_eq ssup),
-    replace husup : s = u.sup id,
+    have sSup : s = Sup (sp '' ↑s),
+    { rw [Sup_eq_supr, supr_image, ←span_eq_sup_of_singleton_spans], simp only [span_eq], },
+    -- by h, s is then below (and equal to) the sup of the spans of finitely many elements.
+    obtain ⟨u, ⟨huspan, husup⟩⟩ := h (sp '' ↑s) (le_of_eq sSup),
+    have ssup : s = u.sup id,
     { suffices : u.sup id ≤ s, from le_antisymm husup this,
-      rw [ssup, finset.sup_eq_Sup], exact Sup_le_Sup huspan, },
-    obtain ⟨t, ⟨hts, htu⟩⟩ := finset.subset_image_iff.mp huspan,
-    subst htu,
-    -- Tweak husup a bit to apply span_eq_sup_of_singleton_spans
-    simp_rw [finset.sup_eq_supr (t.image sp) id, finset.supr_finset_image] at husup,
-    change s = ⨆ (y : M) (H : y ∈ (↑t : set M)), sp y at husup,
-    rw ←(span_eq_sup_of_singleton_spans ↑t) at husup,
-    exact ⟨t, eq.symm husup⟩, },
+      rw [sSup, finset.sup_eq_Sup], exact Sup_le_Sup huspan, },
+    obtain ⟨t, ⟨hts, rfl⟩⟩ := finset.subset_image_iff.mp huspan,
+    rw [←finset.sup_finset_image, function.comp.left_id, finset.sup_eq_supr] at ssup,
+    change s = ⨆ (y : M) (H : y ∈ (↑t : set M)), sp y at ssup,
+    rw [←span_eq_sup_of_singleton_spans, eq_comm] at ssup,
+    exact ⟨t, ssup⟩, },
 end
 
 end submodule

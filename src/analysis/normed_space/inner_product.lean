@@ -782,7 +782,8 @@ variables {E' : Type*} [inner_product_space 𝕜 E']
 by simp [inner_eq_sum_norm_sq_div_four, ← f.norm_map]
 
 /-- A linear isometric equivalence preserves the inner product. -/
-@[simp] lemma linear_isometry_equiv.inner_map_map (f : E ≃ₗᵢ[𝕜] E') (x y : E) : ⟪f x, f y⟫ = ⟪x, y⟫ :=
+@[simp] lemma linear_isometry_equiv.inner_map_map (f : E ≃ₗᵢ[𝕜] E') (x y : E) :
+  ⟪f x, f y⟫ = ⟪x, y⟫ :=
 f.to_linear_isometry.inner_map_map x y
 
 /-- A linear map that preserves the inner product is a linear isometry. -/

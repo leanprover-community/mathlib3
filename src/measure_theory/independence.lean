@@ -195,6 +195,7 @@ by {intros t1 t2 ht1 ht2, cases h with n h, exact h t1 t2 (set.mem_Inter.mp ht1 
 
 end indep
 
+/-! ### Deducing `indep` from `Indep` -/
 section from_Indep_to_indep
 
 lemma indep_sets_of_Indep_sets {α ι} {s : ι → set (set α)} [measurable_space α] {μ : measure α}
@@ -233,12 +234,13 @@ end
 end from_Indep_to_indep
 
 /-!
-### π-system lemma
+## π-system lemma
 
 Independence of measurable spaces is equivalent to independence of generating π-systems.
 -/
 
 section from_measurable_spaces_to_sets_of_sets
+/-! ### Independence of measurable space structures implies independence of generating π-systems -/
 
 lemma Indep_sets_of_Indep {α ι} [measurable_space α] {μ : measure α} {m : ι → measurable_space α}
   {s : ι → set (set α)} (hms : ∀ n, m n = measurable_space.generate_from (s n))
@@ -258,6 +260,7 @@ lemma indep_sets_of_indep {α} [measurable_space α] {μ : measure α} {s1 s2 : 
 end from_measurable_spaces_to_sets_of_sets
 
 section from_pi_systems_to_measurable_spaces
+/-! ### Independence of generating π-systems implies independence of measurable space structures -/
 
 private lemma indep_of_indep_sets_aux {α} {m2 : measurable_space α}
   {m : measurable_space α} {μ : measure α} [probability_measure μ] {p1 p2 : set (set α)}

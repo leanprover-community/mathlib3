@@ -1,3 +1,14 @@
+import analysis.specific_limits
+
+lemma foo (α : Type*) (x y : α) (hx : x = x) (hy : y = y) : z = z :=
+begin
+
+end
+
+
+#exit
+
+
 /-
 Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -175,7 +186,6 @@ lemma norm_le_div_pow_of_pos_of_lt_radius (p : formal_multilinear_series 𝕜 E 
   (h0 : 0 < r) (h : (r : ennreal) < p.radius) : ∃ C > 0, ∀ n, ∥p n∥ ≤ C / r ^ n :=
 let ⟨C, hC, hp⟩ := p.norm_mul_pow_le_of_lt_radius h in
 ⟨C, hC, λ n, iff.mpr (le_div_iff (pow_pos h0 _)) (hp n)⟩
-
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` is bounded. -/
 lemma nnnorm_mul_pow_le_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
@@ -406,13 +416,17 @@ begin
   simpa [mul_pow, mul_div_assoc, mul_assoc, div_mul_eq_mul_div] using hp y hy n
 end
 
+-- hack to speed up simp when dealing with complicated types
+local attribute [-instance] unique.subsingleton pi.subsingleton
+set_option trace.class_instances true
+
 /-- If `f` has formal power series `∑ n, pₙ` on a ball of radius `r`, then for `y, z` in any smaller
 ball, the norm of the difference `f y - f z - p 1 (λ _, y - z)` is bounded above by
 `C * (max ∥y - x∥ ∥z - x∥) * ∥y - z∥`. This lemma formulates this property using `is_O` and
 `filter.principal` on `E × E`. -/
 lemma has_fpower_series_on_ball.is_O_image_sub_image_sub_deriv_principal
   (hf : has_fpower_series_on_ball f p x r) (hr : r' < r) :
-  is_O (λ y : E × E, f (prod.fst y) - f (y.2) - (p 1 (λ _, y.1 - y.2)))
+  is_O (λ y : E × E, f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2)))
     (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓟 $ emetric.ball (x, x) r') :=
 begin
   lift r' to ℝ≥0 using ne_top_of_lt hr,
@@ -424,12 +438,12 @@ begin
   set L : E × E → ℝ := λ y,
     (C * (a / r') ^ 2) * (∥y - (x, x)∥ * ∥y.1 - y.2∥) * (a / (1 - a) ^ 2 + 2 / (1 - a)),
   have hL : ∀ y ∈ emetric.ball (x, x) r',
-    ∥f (prod.fst y) - f (y.2) - (p 1 (λ _, y.1 - y.2))∥ ≤ L y,
+    ∥f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))∥ ≤ L y,
   { intros y hy',
     have hy : y ∈ (emetric.ball x r).prod (emetric.ball x r),
     { rw [emetric.ball_prod_same], exact emetric.ball_subset_ball hr.le hy' },
     set A : ℕ → F := λ n, p n (λ _, y.1 - x) - p n (λ _, y.2 - x),
-    have hA : has_sum (λ n, A (n + 2)) (f (y.1) - f (y.2) - (p 1 (λ _, y.1 - y.2))),
+    have hA : has_sum (λ n, A (n + 2)) (f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))),
     { convert (has_sum_nat_add_iff' 2).2 ((hf.has_sum_sub hy.1).sub (hf.has_sum_sub hy.2)),
       rw [finset.sum_range_succ, finset.sum_range_one, hf.coeff_zero, hf.coeff_zero, sub_self,
         add_zero, ← subsingleton.pi_single_eq (0 : fin 1) (y.1 - x), pi.single,

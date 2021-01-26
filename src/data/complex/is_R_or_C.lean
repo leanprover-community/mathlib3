@@ -349,7 +349,7 @@ by { have := I_mul_I_ax, tauto }
 begin
   by_cases h : (I : K) = 0,
   { simp [h] },
-  { field_simp [h, mul_assoc, I_mul_I_of_nonzero h] }
+  { field_simp [mul_assoc, I_mul_I_of_nonzero h] }
 end
 
 @[simp] lemma inv_I : (I : K)⁻¹ = -I :=

@@ -773,10 +773,40 @@ begin
   simp only [pow_two, ← mul_div_right_comm, ← add_div]
 end
 
+section
+
+variables {E' : Type*} [inner_product_space 𝕜 E']
+
 /-- A linear isometry preserves the inner product. -/
-lemma linear_isometry.inner_map_map {E' : Type*} [inner_product_space 𝕜 E'] (f : E →ₗᵢ[𝕜] E')
-  (x y : E) : ⟪f x, f y⟫ = ⟪x, y⟫ :=
+@[simp] lemma linear_isometry.inner_map_map (f : E →ₗᵢ[𝕜] E') (x y : E) : ⟪f x, f y⟫ = ⟪x, y⟫ :=
 by simp [inner_eq_sum_norm_sq_div_four, ← f.norm_map]
+
+/-- A linear isometric equivalence preserves the inner product. -/
+@[simp] lemma linear_isometry_equiv.inner_map_map (f : E ≃ₗᵢ[𝕜] E') (x y : E) : ⟪f x, f y⟫ = ⟪x, y⟫ :=
+f.to_linear_isometry.inner_map_map x y
+
+/-- A linear map that preserves the inner product is a linear isometry. -/
+def linear_map.isometry_of_inner (f : E →ₗ[𝕜] E') (h : ∀ x y, ⟪f x, f y⟫ = ⟪x, y⟫) : E →ₗᵢ[𝕜] E' :=
+⟨f, λ x, by simp only [norm_eq_sqrt_inner, h]⟩
+
+@[simp] lemma linear_map.coe_isometry_of_inner (f : E →ₗ[𝕜] E') (h) :
+  ⇑(f.isometry_of_inner h) = f := rfl
+
+@[simp] lemma linear_map.isometry_of_inner_to_linear_map (f : E →ₗ[𝕜] E') (h) :
+  (f.isometry_of_inner h).to_linear_map = f := rfl
+
+/-- A linear equivalence that preserves the inner product is a linear isometric equivalence. -/
+def linear_equiv.isometry_of_inner (f : E ≃ₗ[𝕜] E') (h : ∀ x y, ⟪f x, f y⟫ = ⟪x, y⟫) :
+  E ≃ₗᵢ[𝕜] E' :=
+⟨f, ((f : E →ₗ[𝕜] E').isometry_of_inner h).norm_map⟩
+
+@[simp] lemma linear_equiv.coe_isometry_of_inner (f : E ≃ₗ[𝕜] E') (h) :
+  ⇑(f.isometry_of_inner h) = f := rfl
+
+@[simp] lemma linear_equiv.isometry_of_inner_to_linear_equiv (f : E ≃ₗ[𝕜] E') (h) :
+  (f.isometry_of_inner h).to_linear_equiv = f := rfl
+
+end
 
 /-- Polarization identity: The real inner product, in terms of the norm. -/
 lemma real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : F) :

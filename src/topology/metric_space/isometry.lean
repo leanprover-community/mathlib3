@@ -259,18 +259,18 @@ h.to_homeomorph.comp_continuous_iff'
 /-- The group of isometries. -/
 instance : group (α ≃ᵢ α) :=
   { one := isometric.refl _,
-    mul := λ e₁ e₂, e₁.trans e₂,
+    mul := λ e₁ e₂, e₂.trans e₁,
     inv := isometric.symm,
     mul_assoc := λ e₁ e₂ e₃, rfl,
     one_mul := λ e, ext $ λ _, rfl,
     mul_one := λ e, ext $ λ _, rfl,
-    mul_left_inv := λ e, ext e.apply_symm_apply }
+    mul_left_inv := λ e, ext e.symm_apply_apply }
 
 @[simp] lemma coe_one : ⇑(1 : α ≃ᵢ α) = id := rfl
 
-@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₂ ∘ e₁ := rfl
+@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
 
-lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₂ (e₁ x) := rfl
+lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
 
 @[simp] lemma inv_apply_self (e : α ≃ᵢ α) (x: α) : e⁻¹ (e x) = x := e.symm_apply_apply x
 

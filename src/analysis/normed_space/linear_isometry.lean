@@ -23,7 +23,7 @@ variables {R E F G G' : Type*} [semiring R]
 /-- An `R`-linear isometric embedding of one normed `R`-module into another. -/
 structure linear_isometry (R E F : Type*) [semiring R] [normed_group E] [normed_group F]
   [semimodule R E] [semimodule R F] extends E →ₗ[R] F :=
-(norm_map' : ∀ x, ∥to_fun x∥ = ∥x∥)
+(norm_map' : ∀ x, ∥to_linear_map x∥ = ∥x∥)
 
 notation E ` →ₗᵢ[`:25 R:25 `] `:0 F:0 := linear_isometry R E F
 
@@ -125,6 +125,9 @@ instance : monoid (E →ₗᵢ[R] E) :=
   one_mul := id_comp,
   mul_one := comp_id }
 
+@[simp] lemma coe_one : ⇑(1 : E →ₗᵢ[R] E) = id := rfl
+@[simp] lemma coe_mul (f g : E →ₗᵢ[R] E) : ⇑(f * g) = f ∘ g := rfl
+
 end linear_isometry
 
 /-- A linear isometric equivalence between two normed vector spaces. -/
@@ -202,9 +205,26 @@ def trans (e' : F ≃ₗᵢ[R] G) : E ≃ₗᵢ[R] G :=
 @[simp] lemma trans_symm : e.trans e.symm = refl R E := ext e.symm_apply_apply
 @[simp] lemma symm_trans : e.symm.trans e = refl R F := ext e.apply_symm_apply
 
-@[simp] lemma symm_trans_apply (e₁ : E ≃ₗᵢ[R] F) (e₂ : F ≃ₗᵢ[R] G) (c : G) :
-  (e₁.trans e₂).symm c = e₁.symm (e₂.symm c) :=
+@[simp] lemma coe_symm_trans (e₁ : E ≃ₗᵢ[R] F) (e₂ : F ≃ₗᵢ[R] G) :
+  ⇑(e₁.trans e₂).symm = e₁.symm ∘ e₂.symm :=
 rfl
+
+lemma trans_assoc (eEF : E ≃ₗᵢ[R] F) (eFG : F ≃ₗᵢ[R] G) (eGG' : G ≃ₗᵢ[R] G') :
+  eEF.trans (eFG.trans eGG') = (eEF.trans eFG).trans eGG' :=
+rfl
+
+instance : group (E ≃ₗᵢ[R] E) :=
+{ mul := λ e₁ e₂, e₂.trans e₁,
+  one := refl _ _,
+  inv := symm,
+  one_mul := trans_refl,
+  mul_one := refl_trans,
+  mul_assoc := λ _ _ _, trans_assoc _ _ _,
+  mul_left_inv := trans_symm }
+
+@[simp] lemma coe_one : ⇑(1 : E ≃ₗᵢ[R] E) = id := rfl
+@[simp] lemma coe_mul (e e' : E ≃ₗᵢ[R] E) : ⇑(e * e') = e ∘ e' := rfl
+@[simp] lemma coe_inv (e : E ≃ₗᵢ[R] E) : ⇑(e⁻¹) = e.symm := rfl
 
 /-- Reinterpret a `linear_isometry_equiv` as a `continuous_linear_equiv`. -/
 def to_continuous_linear_equiv : E ≃L[R] F :=

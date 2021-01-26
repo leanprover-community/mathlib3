@@ -703,6 +703,22 @@ end
 ⟨imp_of_not_imp_not _ _ (map_ne_zero _),
  λ hI, hI.symm ▸ map_zero h⟩
 
+@[simp, norm_cast]
+lemma coe_ideal_le_coe_ideal {I J : ideal R} :
+(I : fractional_ideal g) ≤ (J : fractional_ideal g) ↔ I ≤ J :=
+begin
+  split,
+  { intros h x hI,
+    rw le_iff_mem at h,
+    specialize h (g.to_map x),
+    simp only [mem_coe_ideal, exists_prop, exists_mem_to_map_eq] at h,
+    exact h hI },
+  { rintros h x hx,
+    simp only [val_eq_coe, coe_coe_ideal, localization_map.mem_coe_submodule] at hx ⊢,
+    obtain ⟨y, hy, y_eq⟩ := hx,
+    exact ⟨y, h hy, y_eq⟩ },
+end
+
 end fraction_map
 
 section quotient
@@ -806,6 +822,13 @@ begin
   rw [val_eq_coe, val_eq_coe, ←coe_mul],
   refl,
 end
+
+lemma mul_one_div_le_div {I J : fractional_ideal g} : I * (1 / J) ≤ I / J :=
+if hJ : J = 0 then by simp [hJ] else (le_div_iff_mul_le hJ).mpr $
+calc I * (1 / J) * J
+    = I * (J * (1 / J)) : by rw [mul_assoc, mul_comm (1 / J)]
+... ≤ I * 1 : mul_left_mono _ mul_one_div_le_one
+... = I : mul_one _
 
 @[simp] lemma div_one {I : fractional_ideal g} : I / 1 = I :=
 begin

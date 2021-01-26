@@ -716,9 +716,12 @@ begin
       tauto },
 end
 
-theorem fractional_ideal_invertible_of_dedekind (hR : is_dedekind_domain R) (hNF : ¬ is_field R)
+theorem fractional_ideal_invertible_of_dedekind (hR : is_dedekind_domain R)
   (I : fractional_ideal f) (hne : I ≠ ⊥) : I * (1 / I) = 1 :=
 begin
+  by_cases hNF : is_field R,
+  { obtain rfl : I = 1 := (I.eq_zero_or_one_of_is_field hNF).resolve_left hne,
+    simp },
   obtain ⟨a, J, ha, hJ⟩ : ∃ (a : R) (aI : ideal R), a ≠ 0 ∧ I = fractional_ideal.span_singleton (f.to_map a)⁻¹ * aI :=
     fractional_ideal.exists_eq_span_singleton_mul I,
   have hne_J : (↑J : fractional_ideal f) ≠ 0,
@@ -738,22 +741,22 @@ begin
     exacts [hR, hNF, (fractional_ideal.coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors R))).mp hne_J] },
 end
 
-lemma fractional_ideal_is_unit_of_dedekind {hR : is_dedekind_domain R} {hNF : ¬ is_field R}
+lemma fractional_ideal_is_unit_of_dedekind {hR : is_dedekind_domain R}
   (I : fractional_ideal f) (hne : I ≠ ⊥) : is_unit I :=
 begin
   apply is_unit_of_mul_eq_one I ((1 : fractional_ideal f) / I),
-  exact (fractional_ideal_invertible_of_dedekind _ hR hNF I hne)
+  exact fractional_ideal_invertible_of_dedekind _ hR I hne
 end
 
 lemma mul_one_div (h : is_dedekind_domain R) {I J : fractional_ideal f} : I * (1 / J) = I / J :=
 sorry
 
-noncomputable instance [hR : is_dedekind_domain R] [hNF : ¬ is_field R]: comm_group_with_zero (fractional_ideal f) :=
+noncomputable instance [hR : is_dedekind_domain R] : comm_group_with_zero (fractional_ideal f) :=
 { inv := λ I, 1 / I,
   div := λ I J, I / J,
   div_eq_mul_inv := λ I J, by rw [inv_eq, mul_one_div _ hR],
   inv_zero := fractional_ideal.div_zero,
-  mul_inv_cancel := λ I hI, by rw [inv_eq, fractional_ideal_invertible_of_dedekind _ hR hNF I hI],
+  mul_inv_cancel := λ I hI, by rw [inv_eq, fractional_ideal_invertible_of_dedekind _ hR I hI],
   .. fractional_ideal.nontrivial,
   .. fractional_ideal.comm_semiring }
 
@@ -894,7 +897,7 @@ end equivalence
 
 section ideal
 
-variables {R : Type*} [integral_domain R] [is_dedekind_domain R] [¬ is_field R]
+variables {R : Type*} [integral_domain R] [is_dedekind_domain R]
 
 open ring.fractional_ideal
 

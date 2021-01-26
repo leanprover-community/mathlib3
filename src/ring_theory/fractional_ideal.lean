@@ -1102,6 +1102,32 @@ begin
   apply is_noetherian_coe_to_fractional_ideal,
 end
 
+section field
+
+lemma eq_zero_or_one {K L : Type*} [field K] [field L] {f : fraction_map K L}
+  (I : fractional_ideal f) : I = 0 ∨ I = 1 :=
+begin
+  rw or_iff_not_imp_left,
+  intro hI,
+  simp only [← fractional_ideal.ext_iff, fractional_ideal.mem_one_iff],
+  intro x,
+  split,
+  { intro x_mem,
+    obtain ⟨n, d, rfl⟩ := f.mk'_surjective x,
+    refine ⟨n / d, _⟩,
+    rw [ring_hom.map_div, f.mk'_eq_div] },
+  { rintro ⟨x, rfl⟩,
+    obtain ⟨y, y_ne, y_mem⟩ := fractional_ideal.exists_ne_zero_mem_is_integer hI,
+    rw [← div_mul_cancel x y_ne, ring_hom.map_mul],
+    exact submodule.smul_mem I _ y_mem }
+end
+
+lemma eq_zero_or_one_of_is_field (hF : is_field R₁)
+  (I : fractional_ideal g) : I = 0 ∨ I = 1 :=
+by { letI : field R₁ := hF.to_field R₁, exact eq_zero_or_one I }
+
+end field
+
 end fractional_ideal
 
 end ring

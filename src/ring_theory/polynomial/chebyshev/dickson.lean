@@ -38,6 +38,60 @@ namespace polynomial
 
 variables {R S : Type*} [comm_ring R] [comm_ring S] (a : R)
 
+/-- `dickson'` is an auxiliary non-standard function that lets us unify some proofs for `dickson₁`
+and `dickson₂`.
+-/
+noncomputable def dickson' (p₀ : polynomial R) : ℕ → polynomial R
+| 0       := p₀
+| 1       := X
+| (n + 2) := X * dickson' (n + 1) - (monomial 0 a) * dickson' n
+
+abbreviation dickson₁ := dickson' a 2
+abbreviation dickson₂ := dickson' a 1
+
+variable (p₀ : polynomial R)
+
+@[simp] lemma dickson'_zero : dickson' a p₀ 0 = p₀ := rfl
+@[simp] lemma dickson'_one : dickson' a p₀ 1 = X := rfl
+lemma dickson'_two : dickson' a p₀ 2 = X ^ 2 - monomial 0 a * p₀ :=
+by simp only [dickson', mul_one, pow_two]
+@[simp] lemma dickson'_add_two (n : ℕ) :
+  dickson' a p₀ (n + 2) = X * dickson' a p₀ (n + 1) - (monomial 0 a) * dickson' a p₀ n :=
+by rw dickson'
+
+lemma dickson'_of_two_le (n : ℕ) (h : 2 ≤ n) :
+  dickson' a p₀ n = X * dickson' a p₀ (n - 1) - (monomial 0 a) * dickson' a p₀ (n - 2) :=
+begin
+  obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
+  rw add_comm,
+  exact dickson'_add_two a p₀ n
+end
+
+variables {R S a}
+
+lemma map_dickson' (f : R →+* S) :
+  ∀ (n : ℕ), map f (dickson' a p₀ n) = dickson' (f a) (map f p₀) n
+|0        := by simp only [dickson'_zero, map_nat_cast]
+|1        := by simp only [dickson'_one, map_X]
+| (n + 2) :=
+begin
+  simp only [dickson'_add_two, map_sub, map_mul, map_X, map_monomial],
+  rw [map_dickson' (n + 1), map_dickson' n]
+end
+/-
+lemma lambdashev_eq_dickson₁_of_eq_one :
+∀ (n : ℕ), lambdashev R n = dickson₁ 1 n
+| 0       := by simp only [lambdashev_zero, dickson'_zero]
+| 1       := by simp only [lambdashev_one, dickson'_one]
+| (n + 2) :=
+begin
+  simp only [lambdashev_add_two, dickson₁_add_two],
+  rw [lambdashev_eq_dickson₁_of_eq_one, lambdashev_eq_dickson₁_of_eq_one],
+  change X * dickson₁ (1 : R) (n + 1) - dickson₁ 1 n = X * dickson₁ 1 (n + 1) - 1 * dickson₁ 1 n,
+  rw one_mul
+end
+
+
 /-- `dickson₁` is the `n`-th Dickson polynomial of the first kind associated to the element `a∈R`.
 -/
 noncomputable def dickson₁ : ℕ → polynomial R
@@ -123,5 +177,6 @@ begin
   simp only [dickson₂_add_two, map_sub, map_mul, map_X, map_monomial],
   rw [map_dickson₂ (n + 1), map_dickson₂ n]
 end
+-/
 
 end polynomial

@@ -577,7 +577,7 @@ by simpa [add_comm] using
 
 lemma tsum_eq_zero_add [t2_space α] {f : ℕ → α} (hf : summable f) :
   ∑'b, f b = f 0 + ∑'b, f (b + 1) :=
-by simpa only [range_one, sum_singleton] using (sum_add_tsum_nat_add 1 hf).symm
+by simpa only [sum_range_one] using (sum_add_tsum_nat_add 1 hf).symm
 
 /-- For `f : ℕ → α`, then `∑' k, f (k + i)` tends to zero. This does not require a summability
 assumption on `f`, as otherwise all sums are zero. -/

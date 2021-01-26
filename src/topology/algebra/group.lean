@@ -573,27 +573,23 @@ begin
     rwa [mem_preimage, inv_mul_cancel_right] }
 end
 
-
 /-- Every locally compact separable topological group is σ-compact.
   Note: this is not true if we drop the topological group hypothesis. -/
 @[priority 100] instance separable_locally_compact_group.sigma_compact_space
   [separable_space G] [locally_compact_space G] : sigma_compact_space G :=
 begin
-  obtain ⟨L, h1L, h2L, h3L⟩ := exists_compact_subset is_open_univ (mem_univ (1 : G)),
+  obtain ⟨L, hLc, hL1⟩ := exists_compact_mem_nhds (1 : G),
   refine ⟨⟨λ n, (λ x, x * dense_seq G n) ⁻¹' L, _, _⟩⟩,
-  { intro n, exact (homeomorph.mul_right _).compact_preimage.mpr h1L },
-  { rw [eq_univ_iff_forall],
-    intro x,
-    obtain ⟨_, hn, ⟨n, rfl⟩⟩ : ((λ y, x * y) ⁻¹' L ∩ range (dense_seq G)).nonempty :=
-    (dense_iff_inter_open.mp (dense_range_dense_seq G) _
-      ((homeomorph.mul_left _).continuous.is_open_preimage _ is_open_interior)
-      ⟨x⁻¹, by simp [homeomorph.mul_left, h2L]⟩).mono
-      (inter_subset_inter_left _ $ preimage_mono $ interior_subset),
-    exact mem_Union.mpr ⟨n, hn⟩ }
+  { intro n, exact (homeomorph.mul_right _).compact_preimage.mpr hLc },
+  { refine Union_eq_univ_iff.2 (λ x, _),
+    obtain ⟨_, ⟨n, rfl⟩, hn⟩ : (range (dense_seq G) ∩ (λ y, x * y) ⁻¹' L).nonempty,
+    { rw [← (homeomorph.mul_left x).apply_symm_apply 1] at hL1,
+      exact (dense_range_dense_seq G).inter_nhds_nonempty
+        ((homeomorph.mul_left x).continuous.continuous_at $ hL1) },
+    exact ⟨n, hn⟩ }
 end
 
 end
-
 
 section
 variables [topological_space G] [comm_group G] [topological_group G]

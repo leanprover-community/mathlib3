@@ -218,7 +218,7 @@ begin
   let sp : M → submodule R M := λ a, span R {a},
   split,
   { rintro ⟨t, rfl⟩,
-    rw span_eq_sup_of_singleton_spans,
+    rw span_eq_supr_of_singleton_spans,
     change complete_lattice.is_compact_element (⨆ (x : M) (H : x ∈ t), span R {x}),
     rw ←(finset.sup_eq_supr t sp),
     apply complete_lattice.finset_sup_compact_of_compact,
@@ -226,7 +226,7 @@ begin
   { intro h,
     -- s is the Sup of the spans of its elements.
     have sSup : s = Sup (sp '' ↑s),
-    { rw [Sup_eq_supr, supr_image, ←span_eq_sup_of_singleton_spans], simp only [span_eq], },
+    { rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans], simp only [span_eq], },
     -- by h, s is then below (and equal to) the sup of the spans of finitely many elements.
     obtain ⟨u, ⟨huspan, husup⟩⟩ := h (sp '' ↑s) (le_of_eq sSup),
     have ssup : s = u.sup id,
@@ -235,7 +235,7 @@ begin
     obtain ⟨t, ⟨hts, rfl⟩⟩ := finset.subset_image_iff.mp huspan,
     rw [←finset.sup_finset_image, function.comp.left_id, finset.sup_eq_supr] at ssup,
     change s = ⨆ (y : M) (H : y ∈ (↑t : set M)), sp y at ssup,
-    rw [←span_eq_sup_of_singleton_spans, eq_comm] at ssup,
+    rw [←span_eq_supr_of_singleton_spans, eq_comm] at ssup,
     exact ⟨t, ssup⟩, },
 end
 

@@ -825,6 +825,9 @@ lemma span_union (s t : set M) : span R (s ∪ t) = span R s ⊔ span R t :=
 lemma span_Union {ι} (s : ι → set M) : span R (⋃ i, s i) = ⨆ i, span R (s i) :=
 (submodule.gi R M).gc.l_supr
 
+lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, span R {x} :=
+by simp only [←span_Union, set.bUnion_of_singleton s]
+
 @[simp] theorem coe_supr_of_directed {ι} [hι : nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) :
   ((supr S : submodule R M) : set M) = ⋃ i, S i :=
@@ -1025,9 +1028,6 @@ begin
   rw [← span_singleton_le_iff_mem, le_supr_iff],
   simp only [span_singleton_le_iff_mem],
 end
-
-lemma span_eq_sup_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, span R {x} :=
-by simp only [←span_Union, set.bUnion_of_singleton s]
 
 /-- The product of two submodules is a submodule. -/
 def prod : submodule R (M × M₂) :=

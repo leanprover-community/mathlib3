@@ -708,7 +708,7 @@ theorem orthonormal_subtype_iff_ite {s : set E} :
 begin
   rw orthonormal_iff_ite,
   split,
-  { intros h v hv w hw, --i hi j hj,
+  { intros h v hv w hw,
     convert h ⟨v, hv⟩ ⟨w, hw⟩ using 1,
     simp },
   { rintros h ⟨v, hv⟩ ⟨w, hw⟩,

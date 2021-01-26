@@ -16,8 +16,8 @@ What are `finset`s in mathlib?
 Terms of type `finset α` are subsets of `α` which are finite.
 In Lean, `finset α` is implemented to be 2 pieces of data:
 
-  1) `val` is a `multiset α` of elements
-  2) `no_dup` is a proof that `val` has no duplicates.
+  1. `val` is a `multiset α` of elements
+  2. `no_dup` is a proof that `val` has no duplicates.
 
 Finsets in Lean are constructive since you must exhibit
 a list of their underlying elements to use them.
@@ -26,15 +26,20 @@ uses the data of the underlying list does not depend on its ordering.
 In practice, however, this is handled on the multiset level by
 multiset API, so you will never have to do this explicitly.
 
-Finsets give a basic foundation for defining finite sums and products over types, in the form of
-  `∑ i in (s : finset α), f i` and `∏ i in (s : finset α), f i`.
+Finsets give a basic foundation for defining finite sums and products over types:
+
+  1. `∑ i in (s : finset α), f i`
+  2. `∏ i in (s : finset α), f i`.
+
 Lean refers to these operations as `big_operator`s.
 More information can be found in `algebra/big_operators/basic`.
+
 Confusingly, there are three different ways to sum over finite things: {finset, fintype, finsupp}.
 At their core, all three are operating on finsets!
-  1) `finset`s: sum over a finite subset of `α`;
-  2) `fintype`s : sum over `univ`, (i.e. everything), a finset that contains all of `α`;
-  3) `finsupp`s : given a finitely supported function `f : α → M`, sum over the support  of `f`,
+
+  1. `finset`s: sum over a finite subset of `α`;
+  2. `fintype`s : sum over `univ`, (i.e. everything), a finset that contains all of `α`;
+  3. `finsupp`s : given a finitely supported function `f : α → M`, sum over the support  of `f`,
       which is a finset of `α`.
 
 Finsets are directly used to define fintypes in Lean.

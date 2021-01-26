@@ -18,21 +18,6 @@ Based on equality of these `nat`s, equality proofs are generated using either
 
 open equiv tactic expr
 
-namespace norm_fin
-
-/-- If `a b : fin n`, then `prove_le_fin a b` proves `a ≠ b`. -/
-meta def prove_ne_fin : expr → expr → tactic expr
-| a b  := norm_fin.eval_rel a b $ λ n a' b' na nb,
-  if na = nb then failure
-  else if na < nb then do
-    p ← norm_fin.prove_lt_fin' n a b a' b',
-    pure $ `(@ne_of_lt (fin %%n) _).mk_app [a, b, p]
-  else do
-    p ← norm_fin.prove_lt_fin' n b a b' a',
-    pure $ `(@ne_of_gt (fin %%n) _).mk_app [a, b, p]
-
-end norm_fin
-
 open norm_num
 
 namespace norm_swap
@@ -59,8 +44,10 @@ example : equiv.swap 1 2 1 = 2 := by norm_num
     then let p : expr := `(@swap_apply_right.{1} %%α %%deceq_inst %%a %%b) in pure (a, p)
   else do
     nic ← mk_instance_cache α,
-    hca ← (prod.snd <$> prove_ne nic c a nc na) <|> norm_fin.prove_ne_fin c a,
-    hcb ← (prod.snd <$> prove_ne nic c b nc nb) <|> norm_fin.prove_ne_fin c b,
+    hca ← (prod.snd <$> prove_ne nic c a nc na) <|>
+      (do (_, ff, p) ← norm_fin.prove_eq_ne_fin c a, pure p),
+    hcb ← (prod.snd <$> prove_ne nic c b nc nb) <|>
+      (do (_, ff, p) ← norm_fin.prove_eq_ne_fin c b, pure p),
     let p : expr := `(@swap_apply_of_ne_of_ne.{1} %%α %%deceq_inst %%a %%b %%c %%hca %%hcb),
     pure (c, p)
 

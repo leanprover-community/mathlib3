@@ -35,8 +35,8 @@ namespace monad
 structure algebra (T : monad C) : Type (max u₁ v₁) :=
 (A : C)
 (a : (T : C ⥤ C).obj A ⟶ A)
-(unit' : (η_ T).app A ≫ a = 𝟙 A . obviously)
-(assoc' : (μ_ T).app A ≫ a = (T : C ⥤ C).map a ≫ a . obviously)
+(unit' : T.η.app A ≫ a = 𝟙 A . obviously)
+(assoc' : T.μ.app A ≫ a = (T : C ⥤ C).map a ≫ a . obviously)
 
 restate_axiom algebra.unit'
 restate_axiom algebra.assoc'
@@ -109,11 +109,11 @@ variables (T : monad C)
 @[simps] def free : C ⥤ algebra T :=
 { obj := λ X,
   { A := T.obj X,
-    a := (μ_ T).app X,
+    a := T.μ.app X,
     assoc' := (T.assoc _).symm },
   map := λ X Y f,
   { f := T.map f,
-    h' := (μ_ T).naturality _ } }
+    h' := T.μ.naturality _ } }
 
 instance [inhabited C] : inhabited (algebra T) :=
 ⟨(free T).obj (default C)⟩
@@ -126,20 +126,15 @@ instance [inhabited C] : inhabited (algebra T) :=
 def adj : T.free ⊣ T.forget :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
-  { to_fun := λ f, (η_ T).app X ≫ f.f,
+  { to_fun := λ f, T.η.app X ≫ f.f,
     inv_fun := λ f,
     { f := T.map f ≫ Y.a,
-      h' :=
-      begin
-        dsimp only [free_obj_a, monad_to_functor_eq_coe],
-        rw [functor.map_comp, category.assoc, ←Y.assoc, ←(μ_ T).naturality_assoc],
-        refl
-      end },
+      h' := by { dsimp, simp [←Y.assoc, ←T.μ.naturality_assoc] } },
     left_inv := λ f, by { ext, dsimp, simp },
     right_inv := λ f,
     begin
       dsimp only [forget_obj, monad_to_functor_eq_coe],
-      rw [←(η_ T).naturality_assoc, Y.unit],
+      rw [←T.η.naturality_assoc, Y.unit],
       apply category.comp_id,
     end }}
 
@@ -223,23 +218,22 @@ rfl
 
 end monad
 
-#exit
 namespace comonad
 
 /-- An Eilenberg-Moore coalgebra for a comonad `T`. -/
 @[nolint has_inhabited_instance]
-structure coalgebra (G : C ⥤ C) [comonad G] : Type (max u₁ v₁) :=
+structure coalgebra (G : comonad C) : Type (max u₁ v₁) :=
 (A : C)
 (a : A ⟶ G.obj A)
-(counit' : a ≫ (ε_ G).app A = 𝟙 A . obviously)
-(coassoc' : a ≫ (δ_ G).app A = a ≫ G.map a . obviously)
+(counit' : a ≫ G.ε.app A = 𝟙 A . obviously)
+(coassoc' : a ≫ G.δ.app A = a ≫ G.map a . obviously)
 
 restate_axiom coalgebra.counit'
 restate_axiom coalgebra.coassoc'
 attribute [reassoc] coalgebra.counit coalgebra.coassoc
 
 namespace coalgebra
-variables {G : C ⥤ C} [comonad G]
+variables {G : comonad C}
 
 /-- A morphism of Eilenberg-Moore coalgebras for the comonad `G`. -/
 @[ext, nolint has_inhabited_instance] structure hom (A B : coalgebra G) :=
@@ -257,8 +251,7 @@ def id (A : coalgebra G) : hom A A :=
 
 /-- Composition of Eilenberg–Moore coalgebra homomorphisms. -/
 def comp {P Q R : coalgebra G} (f : hom P Q) (g : hom Q R) : hom P R :=
-{ f := f.f ≫ g.f,
-  h' := by rw [functor.map_comp, f.h_assoc, g.h, category.assoc] }
+{ f := f.f ≫ g.f }
 
 end hom
 
@@ -266,7 +259,7 @@ end hom
 instance : category_struct (coalgebra G) :=
 { hom := hom,
   id := hom.id,
-  comp := @hom.comp _ _ _ _ }
+  comp := @hom.comp _ _ _ }
 
 @[simp] lemma comp_eq_comp {A A' A'' : coalgebra G} (f : A ⟶ A') (g : A' ⟶ A'') :
   coalgebra.hom.comp f g = f ≫ g := rfl
@@ -278,10 +271,7 @@ instance : category_struct (coalgebra G) :=
   (f ≫ g).f = f.f ≫ g.f := rfl
 
 /-- The category of Eilenberg-Moore coalgebras for a comonad. -/
-instance EilenbergMoore : category (coalgebra G) :=
-{ hom := hom,
-  id := hom.id,
-  comp := @hom.comp _ _ _ _ }
+instance EilenbergMoore : category (coalgebra G) := {}.
 
 /--
 To construct an isomorphism of coalgebras, it suffices to give an isomorphism of the carriers which
@@ -292,11 +282,11 @@ def iso_mk {A B : coalgebra G} (h : A.A ≅ B.A) (w : A.a ≫ G.map h.hom = h.ho
 { hom := { f := h.hom },
   inv :=
   { f := h.inv,
-    h' := by { rw [h.eq_inv_comp, ←reassoc_of w, ←G.map_comp], simp } } }
+    h' := by { rw [h.eq_inv_comp, ←reassoc_of w, ←functor.map_comp], simp } } }
 
 end coalgebra
 
-variables (G : C ⥤ C) [comonad G]
+variables (G : comonad C)
 
 /-- The forgetful functor from the Eilenberg-Moore category, forgetting the coalgebraic structure. -/
 @[simps] def forget : coalgebra G ⥤ C :=
@@ -309,7 +299,7 @@ Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalge
 def coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
 { inv :=
   { f := inv f.f,
-    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc, ←G.map_comp], simp } } }
+    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], dsimp, simp } } }
 
 instance forget_reflects_iso : reflects_isomorphisms (forget G) :=
 { reflects := λ A B, coalgebra_iso_of_iso G }
@@ -318,11 +308,11 @@ instance forget_reflects_iso : reflects_isomorphisms (forget G) :=
 @[simps] def cofree : C ⥤ coalgebra G :=
 { obj := λ X,
   { A := G.obj X,
-    a := (δ_ G).app X,
-    coassoc' := (comonad.coassoc _).symm },
+    a := G.δ.app X,
+    coassoc' := (G.coassoc _).symm },
   map := λ X Y f,
   { f := G.map f,
-    h' := ((δ_ G).naturality _).symm } }
+    h' := (G.δ.naturality _).symm } }
 
 /--
 The adjunction between the cofree and forgetful constructions for Eilenberg-Moore coalgebras
@@ -336,10 +326,10 @@ adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
   { to_fun := λ f,
     { f := X.a ≫ G.map f,
-      h' := by { rw [functor.map_comp, ← coalgebra.coassoc_assoc], simp } },
-    inv_fun := λ g, g.f ≫ (ε_ G).app Y,
+      h' := by { dsimp, simp [←coalgebra.coassoc_assoc] } },
+    inv_fun := λ g, g.f ≫ G.ε.app Y,
     left_inv := λ f,
-      by { dsimp, rw [category.assoc, (ε_ G).naturality, functor.id_map, X.counit_assoc] },
+      by { dsimp, rw [category.assoc, G.ε.naturality, functor.id_map, X.counit_assoc] },
     right_inv := λ g,
     begin
       ext1, dsimp,

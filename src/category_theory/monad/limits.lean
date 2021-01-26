@@ -307,9 +307,7 @@ begin
     { haveI := adjunction.left_adjoint_preserves_colimits (adjunction.of_right_adjoint R),
       apply_instance },
     apply_instance },
-  resetI,
-  apply creates_colimits_of_shape_of_nat_iso (monad.comparison_forget (adjunction.of_right_adjoint R)),
-  apply_instance,
+  exactI ⟨λ K, monadic_creates_colimit_of_preserves_colimit _ _⟩,
 end
 
 /-- A monadic functor creates colimits if it preserves colimits. -/

@@ -140,6 +140,12 @@ variables (e : E ≃ₗᵢ[R] F)
 
 instance : has_coe_to_fun (E ≃ₗᵢ[R] F) := ⟨_, λ f, f.to_fun⟩
 
+@[simp] lemma coe_mk (e : E ≃ₗ[R] F) (he : ∀ x, ∥e x∥ = ∥x∥) :
+  ⇑(mk e he) = e :=
+rfl
+
+@[simp] lemma coe_to_linear_equiv (e : E ≃ₗᵢ[R] F) : ⇑e.to_linear_equiv = e := rfl
+
 lemma to_linear_equiv_injective : injective (to_linear_equiv : (E ≃ₗᵢ[R] F) → (E ≃ₗ[R] F))
 | ⟨e, _⟩ ⟨_, _⟩ rfl := rfl
 

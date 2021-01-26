@@ -107,9 +107,10 @@ For a set `s`, the generated measurable space structure has measurable sets `∅
 def indep_set {α} [measurable_space α] {s t : set α} (μ : measure α . volume_tac) : Prop :=
 indep (generate_from {s}) (generate_from {t}) μ
 
-/-- A family of functions is independent if the family of measurable space structures they generate
-is independent. For a function `f` with codomain having measurable space `m`, the generated
-measurable space structure is `measurable_space.comap f m`. -/
+/-- A family of functions defined on the same space `α` and taking values in possibly different
+spaces, each with a measurable space structure, is independent if the family of measurable space
+structures they generate on `α` is independent. For a function `g` with codomain having measurable
+space `m`, the generated measurable space structure is `measurable_space.comap g m`. -/
 def Indep_fun {α ι} [measurable_space α] {β : ι → Type*} (m : Π (x : ι), measurable_space (β x))
   (f : Π (x : ι), α → β x) (μ : measure α . volume_tac) : Prop :=
 Indep (λ x, measurable_space.comap (f x) (m x)) μ
@@ -128,7 +129,7 @@ section indep
 lemma indep_sets.symm {α} {s₁ s₂ : set (set α)} [measurable_space α] {μ : measure α}
   (h : indep_sets s₁ s₂ μ) :
   indep_sets s₂ s₁ μ :=
-by {intros t1 t2 ht1 ht2, rw [set.inter_comm, mul_comm], exact h t2 t1 ht2 ht1, }
+by { intros t1 t2 ht1 ht2, rw [set.inter_comm, mul_comm], exact h t2 t1 ht2 ht1, }
 
 lemma indep.symm {α} {m₁ m₂ : measurable_space α} [measurable_space α] {μ : measure α}
   (h : indep m₁ m₂ μ) :
@@ -165,7 +166,8 @@ begin
   { exact h₂ t1 t2 ht1₂ ht2, },
 end
 
-lemma indep_sets.union_iff {α} [measurable_space α] {s₁ s₂ s' : set (set α)} {μ : measure α} :
+@[simp] lemma indep_sets.union_iff {α} [measurable_space α] {s₁ s₂ s' : set (set α)}
+  {μ : measure α} :
   indep_sets (s₁ ∪ s₂) s' μ ↔ indep_sets s₁ s' μ ∧ indep_sets s₂ s' μ :=
 ⟨λ h, ⟨indep_sets_of_indep_sets_of_le_left h (set.subset_union_left s₁ s₂),
     indep_sets_of_indep_sets_of_le_left h (set.subset_union_right s₁ s₂)⟩,

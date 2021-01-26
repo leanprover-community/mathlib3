@@ -686,23 +686,22 @@ continuous_linear_map.homothety_norm _ c.norm_smul_right_apply
 
 variables (𝕜 F)
 
-/-- The linear map obtained by applying a continuous linear map at a given vector. -/
-def applyₗ (v : E) : (E →L[𝕜] F) →ₗ[𝕜] F :=
-{ to_fun := λ f, f v,
-  map_add' := λ f g, f.add_apply g v,
-  map_smul' := λ x f, f.smul_apply x v }
+/-- The continuous linear map obtained by applying a continuous linear map at a given vector.
 
-lemma continuous_applyₗ (v : E) : continuous (continuous_linear_map.applyₗ 𝕜 F v) :=
-begin
-  apply (continuous_linear_map.applyₗ 𝕜 F v).continuous_of_bound,
-  intro f,
-  rw mul_comm,
-  exact f.le_op_norm v,
-end
-
-/-- The continuous linear map obtained by applying a continuous linear map at a given vector. -/
-def apply (v : E) : (E →L[𝕜] F) →L[𝕜] F :=
-⟨continuous_linear_map.applyₗ 𝕜 F v, continuous_linear_map.continuous_applyₗ _ _ _⟩
+This is the continuous version of `linear_map.applyₗ`. -/
+def apply : E →ₗ[𝕜] (E →L[𝕜] F) →L[𝕜] F :=
+{ to_fun := λ v,
+  { to_fun := λ f, f v,
+    map_add' := λ f g, f.add_apply g v,
+    map_smul' := λ x f, f.smul_apply x v,
+    cont := begin
+      rw linear_map.to_fun_eq_coe,
+      refine linear_map.continuous_of_bound _ (∥v∥) (λ f, _),
+      rw mul_comm,
+      exact f.le_op_norm v,
+    end },
+  map_add' := λ _ _, ext $ λ f, f.map_add _ _,
+  map_smul' := λ _ _, ext $ λ f, f.map_smul _ _, }
 
 variables {𝕜 F}
 

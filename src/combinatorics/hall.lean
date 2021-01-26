@@ -22,7 +22,7 @@ statement.  The list of distinct representatives is given by an
 injective function `f : ι → α` such that `∀ i, f i ∈ t i`.
 
 ## Main statements
-* `finset.all_card_le_bind_card_iff_exists_injective` is in terms of `t : ι → finset α`.
+* `finset.all_card_le_bUnion_card_iff_exists_injective` is in terms of `t : ι → finset α`.
 * `fintype.all_card_le_rel_image_card_iff_exists_injective` is in terms of a relation
   `r : α → β → Prop` such that `rel.image r {a}` is a finite set for all `a : α`.
 * `fintype.all_card_le_filter_rel_iff_exists_injective` is in terms of a relation

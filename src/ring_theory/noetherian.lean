@@ -210,8 +210,8 @@ begin
   exact ⟨y, ⟨hyd, by simpa only [span_le, singleton_subset_iff]⟩⟩,
 end
 
-/-- Finitely generated submodules are precicely compact elements in the submodule lattice -/
-theorem compact_iff_fg (s : submodule R M) : s.fg ↔ complete_lattice.is_compact_element s :=
+/-- Finitely generated submodules are precisely compact elements in the submodule lattice -/
+theorem fg_iff_compact (s : submodule R M) : s.fg ↔ complete_lattice.is_compact_element s :=
 begin
   classical,
   -- Introduce shorthand for span of an element

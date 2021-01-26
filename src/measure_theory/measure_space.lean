@@ -320,7 +320,7 @@ lemma sum_measure_preimage_singleton (s : finset β) {f : α → β}
   (hf : ∀ y ∈ s, is_measurable (f ⁻¹' {y})) :
   ∑ b in s, μ (f ⁻¹' {b}) = μ (f ⁻¹' ↑s) :=
 by simp only [← measure_bUnion_finset (pairwise_on_disjoint_fiber _ _) hf,
-  finset.bUnion_preimage_singleton]
+  finset.set_bUnion_preimage_singleton]
 
 lemma measure_diff (h : s₂ ⊆ s₁) (h₁ : is_measurable s₁) (h₂ : is_measurable s₂)
   (h_fin : μ s₂ < ⊤) :
@@ -385,8 +385,8 @@ begin
   refine supr_le (λ n, _),
   refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode2 ι k), s i)) _,
   exact measure_mono (bUnion_subset_bUnion_right (λ k hk, disjointed_subset)),
-  simp only [← finset.bUnion_option_to_finset, ← finset.bUnion_bind],
-  generalize : (finset.range n).bind (λ k, (encodable.decode2 ι k).to_finset) = t,
+  simp only [← finset.set_bUnion_option_to_finset, ← finset.set_bUnion_bUnion],
+  generalize : (finset.range n).bUnion (λ k, (encodable.decode2 ι k).to_finset) = t,
   rcases hd.finset_le t with ⟨i, hi⟩,
   exact le_supr_of_le i (measure_mono $ bUnion_subset hi)
 end
@@ -940,7 +940,7 @@ lemma restrict_finset_bUnion_congr {s : finset ι} {t : ι → set α}
 begin
   induction s using finset.induction_on with i s hi hs, { simp },
   simp only [finset.mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at htm ⊢,
-  simp only [finset.bUnion_insert, ← hs htm.2],
+  simp only [finset.set_bUnion_insert, ← hs htm.2],
   exact restrict_union_congr htm.1 (s.is_measurable_bUnion htm.2)
 end
 

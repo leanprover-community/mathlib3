@@ -1250,7 +1250,7 @@ begin
     exact classical.choice hf,
   end,
   let key : fintype α :=
-  { elems := univ.bind (λ (y : β), (f ⁻¹' {y}).to_finset),
+  { elems := univ.bUnion (λ (y : β), (f ⁻¹' {y}).to_finset),
     complete := by simp },
   exact infinite.not_fintype key,
 end

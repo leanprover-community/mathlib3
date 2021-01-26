@@ -63,6 +63,9 @@ by simp [exp_ne_zero]
 example : differentiable ℂ (λ x, (sin x) / (exp x)) :=
 by simp [exp_ne_zero]
 
+example (x : ℂ) : deriv (λ x, x ^ (-4:ℤ)) x = - 4 * x ^ (-5:ℤ) :=
+by norm_num [-fpow_neg]
+
 end complex
 
 namespace polynomial

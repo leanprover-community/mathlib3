@@ -1,14 +1,3 @@
-import analysis.specific_limits
-
-lemma foo (α : Type*) (x y : α) (hx : x = x) (hy : y = y) : z = z :=
-begin
-
-end
-
-
-#exit
-
-
 /-
 Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -418,7 +407,6 @@ end
 
 -- hack to speed up simp when dealing with complicated types
 local attribute [-instance] unique.subsingleton pi.subsingleton
-set_option trace.class_instances true
 
 /-- If `f` has formal power series `∑ n, pₙ` on a ball of radius `r`, then for `y, z` in any smaller
 ball, the norm of the difference `f y - f z - p 1 (λ _, y - z)` is bounded above by

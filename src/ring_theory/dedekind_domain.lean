@@ -621,19 +621,32 @@ begin
   let h_RalgK := ring_hom.to_algebra f.to_map,
   by_cases hntop : I = ⊤,
   { rw [hntop, ← ideal.one_eq_top],
-    sorry },
+    show (1 * (1 / 1) : fractional_ideal f) = 1,
+    simp },
     -- exact is_unit_one },
   -- { suffices hprod : ↑I * ((1: fractional_ideal f) / ↑I) = (1 : fractional_ideal f),
   --   { apply is_unit_of_mul_eq_one ↑I ((1 : fractional_ideal f) / ↑I) hprod },
     { by_contradiction h_abs,
       obtain ⟨J, hJ⟩ : ∃ (J : ideal R), ↑J = ↑I * (1 / ↑I : fractional_ideal f) :=
         fractional_ideal.le_one_iff_exists_coe_ideal.mp fractional_ideal.mul_one_div_le_one,
-      have hJ_bt : J ≠ 0 ∧ J ≠ ⊤,
-      { sorry,--devo capire perché non fa 0
-       },
+      by_cases hJ_b : J = ⊥,
+      { rw [hJ_b, fractional_ideal.coe_to_fractional_ideal_bot, eq_comm,
+            ← fractional_ideal.le_zero_iff, fractional_ideal.mul_le] at hJ,
+        obtain ⟨x, x_mem, x_ne⟩ := I.ne_bot_iff.mp hne,
+        specialize hJ (f.to_map x) _ 1 ((fractional_ideal.mem_div_iff_of_nonzero _).mpr _),
+        { simp only [fractional_ideal.mem_zero_iff, mul_one, f.to_map_eq_zero_iff] at hJ,
+          contradiction },
+        { exact fractional_ideal.mem_coe_ideal.mpr ⟨x, x_mem, rfl⟩ },
+        { rwa fractional_ideal.coe_to_fractional_ideal_ne_zero, exact le_refl _ },
+        { simp only [fractional_ideal.mem_coe_ideal, one_mul, fractional_ideal.mem_one_iff],
+          exact λ _ ⟨x, _, hx⟩, ⟨x, hx⟩ } },
+      have hJ_t : J ≠ ⊤,
+      { intro hJ_t,
+        rw [← hJ, hJ_t, ← ideal.one_eq_top] at h_abs,
+        exact h_abs rfl },
       obtain ⟨x, hx, h_xnotint⟩ : ∃ (x : f.codomain), x ∈ (1 / ↑J : fractional_ideal f) ∧ x ∉ (1 : fractional_ideal f),
       { apply exists_nonint_of_nebot,
-        exacts [hR, hNF, hJ_bt.1, hJ_bt.2] },
+        exacts [hR, hNF, hJ_b, hJ_t] },
       have h₁ : (submodule.span R {x} * (1 / ↑I : fractional_ideal f).val) ≤ (1 / ↑I : fractional_ideal f).val,
       { apply submodule.mul_le.mpr,
         intros z hz b hb,
@@ -656,14 +669,14 @@ begin
         rw mul_comm,
         exact h_by,
         exact (fractional_ideal.coe_to_fractional_ideal_ne_zero
-          (le_refl (non_zero_divisors R))).mpr hJ_bt.1,
+          (le_refl (non_zero_divisors R))).mpr hJ_b,
         exact (fractional_ideal.coe_to_fractional_ideal_ne_zero
           (le_refl (non_zero_divisors R))).mpr hne },--UNIFICARE I TRE EXACT!!!
       have h_pow : ∀ n : ℕ, x ^ n ∈ (1 / ↑I : fractional_ideal f),
       { intro n,
         induction n with n hn,
         { rw fractional_ideal.mem_div_iff_of_nonzero,
-          ring,
+          simp only [pow_zero, one_mul],
           intros y' hy',
           rw fractional_ideal.mem_one_iff,
           rw fractional_ideal.mem_coe_ideal at hy',
@@ -686,21 +699,11 @@ begin
         dsimp [A] at ha,
         rw [subalgebra.mem_to_submodule, alg_hom.mem_range] at ha,
         cases ha with p hp,
-        rw aeval_eq_sum_range at hp,sorry,
-        -- apply submodule.sum_mem,
-
-
-        -- apply polynomial.induction_on' hp,
-        -- { intros q₁ q₂, tauto },
-        -- intros,
-
-
-
-        --dovrebbe essere facile: φ p = a significa a = ∑ l_nx^n con
-          -- l_n in R e x^n in 1/I grazie a h_pow,
-
-            -- rw submodule.mem_div_iff_forall_mul_mem
-              },
+        rw aeval_eq_sum_range at hp,
+        rw ← hp,
+        apply submodule.sum_mem,
+        intros i hi,
+        exact submodule.smul_mem _ _ (h_pow i) },
       have h_xint : x ∈ integral_closure R f.codomain,
       { have h_noeth : is_noetherian R (1 / ↑I : fractional_ideal f).val :=
           by apply fractional_ideal.is_noetherian,

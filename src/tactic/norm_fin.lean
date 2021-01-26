@@ -426,6 +426,25 @@ do n ← get_fin_type a,
     nb ← eval_fin_m.lift b'.to_nat,
     f n (a', pa) (b', pb) (na % nn) (nb % nn)
 
+/-- Given `a b : fin n`, proves either `(n, tt, p)` where `p : a < b` or
+`(n, ff, p)` where `p : b ≤ a`. -/
+meta def prove_lt_ge_fin : expr → expr → tactic (expr × bool × expr)
+| a b := eval_rel a b $ λ n a' b' na nb,
+  if na < nb then prod.mk n <$> prod.mk tt <$> prove_lt_fin' n a b a' b'
+  else prod.mk n <$> prod.mk ff <$> prove_le_fin' n b a b' a'
+
+/-- Given `a b : fin n`, proves either `(n, tt, p)` where `p : a = b` or
+`(n, ff, p)` where `p : a ≠ b`. -/
+meta def prove_eq_ne_fin : expr → expr → tactic (expr × bool × expr)
+| a b := eval_rel a b $ λ n a' b' na nb,
+  if na = nb then prod.mk n <$> prod.mk tt <$> prove_eq_fin' n a b a' b'
+  else if na < nb then do
+    p ← prove_lt_fin' n a b a' b',
+    pure (n, ff, `(@ne_of_lt (fin %%n) _).mk_app [a, b, p])
+  else do
+    p ← prove_lt_fin' n b a b' a',
+    pure (n, ff, `(@ne_of_gt (fin %%n) _).mk_app [a, b, p])
+
 /-- A `norm_num` extension that evaluates equalities and inequalities on the type `fin n`.
 
 ```
@@ -433,42 +452,20 @@ example : (5 : fin 7) = fin.succ (fin.succ 3) := by norm_num
 ```
 -/
 @[norm_num] meta def eval_ineq : expr → tactic (expr × expr)
-| `(%%a < %%b) := eval_rel a b $ λ n a' b' na nb,
-  if na < nb then do
-    p ← prove_lt_fin' n a b a' b',
-    true_intro p
-  else do
-    p ← prove_le_fin' n b a b' a',
-    false_intro $ `(@not_lt_of_ge (fin %%n) _).mk_app [a, b, p]
-| `(%%a ≤ %%b) := eval_rel a b $ λ n a' b' na nb,
-  if na ≤ nb then do
-    p ← prove_le_fin' n a b a' b',
-    true_intro p
-  else do
-    p ← prove_lt_fin' n b a b' a',
-    false_intro $ `(@not_le_of_gt (fin %%n) _).mk_app [a, b, p]
-| `(%%a = %%b) := eval_rel a b $ λ n a' b' na nb,
-  if na = nb then do
-    p ← prove_eq_fin' n a b a' b',
-    true_intro p
-  else if na < nb then do
-    p ← prove_lt_fin' n a b a' b',
-    false_intro $ `(@ne_of_lt (fin %%n) _).mk_app [a, b, p]
-  else do
-    p ← prove_lt_fin' n b a b' a',
-    false_intro $ `(@ne_of_gt (fin %%n) _).mk_app [a, b, p]
+| `(%%a < %%b) := do
+  (n, lt, p) ← prove_lt_ge_fin a b,
+  if lt then true_intro p else false_intro (`(@not_lt_of_ge (fin %%n) _).mk_app [a, b, p])
+| `(%%a ≤ %%b) := do
+  (n, lt, p) ← prove_lt_ge_fin b a,
+  if lt then false_intro (`(@not_le_of_gt (fin %%n) _).mk_app [a, b, p]) else true_intro p
+| `(%%a = %%b) := do
+  (n, eq, p) ← prove_eq_ne_fin a b,
+  if eq then true_intro p else false_intro p
 | `(%%a > %%b) := mk_app ``has_lt.lt [b, a] >>= eval_ineq
 | `(%%a ≥ %%b) := mk_app ``has_le.le [b, a] >>= eval_ineq
-| `(%%a ≠ %%b) := eval_rel a b $ λ n a' b' na nb,
-  if na = nb then do
-    p ← prove_eq_fin' n a b a' b',
-    false_intro `(not_not_intro (%%p : (%%a : fin %%n) = %%b))
-  else if na < nb then do
-    p ← prove_lt_fin' n a b a' b',
-    true_intro $ `(@ne_of_lt (fin %%n) _).mk_app [a, b, p]
-  else do
-    p ← prove_lt_fin' n b a b' a',
-    true_intro $ `(@ne_of_gt (fin %%n) _).mk_app [a, b, p]
+| `(%%a ≠ %%b) := do
+  (n, eq, p) ← prove_eq_ne_fin a b,
+  if eq then false_intro `(not_not_intro (%%p : (%%a : fin %%n) = %%b)) else true_intro p
 | _ := failed
 
 /-- Evaluates `e : fin n` to a natural number less than `n`. Returns `none` if it is not a natural

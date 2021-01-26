@@ -15,14 +15,14 @@ import data.finset.intervals
   `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. It will be used for families of π-systems.
 * A family of measurable space structures (i.e. of σ-algebras) is independent with respect to a
   measure `μ` (typically defined on a finer σ-algebra) if the family of sets of measurable sets they
-  define is independent. `m : ι → measurable_space α` is independent with respect to measure `μ` if
-  for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
-  `f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i)`.
+  define is independent. I.e., `m : ι → measurable_space α` is independent with respect to a
+  measure `μ` if for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
+  `f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, then `μ (⋂ i in s, f i) = ∏ i in s, μ (f i)`.
 * Independence of sets (or events in probabilistic parlance) is defined as independence of the
   measurable space structures they generate: a set `s` generates the measurable space structure with
   measurable sets `∅, s, sᶜ, univ`.
 * Independence of functions (or random variables) is also defined as independence of the measurable
-  space structures they generate : a function `f` for which we have a measurable space `m` on the
+  space structures they generate: a function `f` for which we have a measurable space `m` on the
   codomain generates `measurable_space.comap f m`.
 
 ## Main statements
@@ -34,12 +34,12 @@ measurable space structures they generate are independent.
 ## Implementation notes
 
 We provide one main definition of independence:
-* `Indep_sets`: independence of a family of sets of sets `pi : ι → set (set α)`,
+* `Indep_sets`: independence of a family of sets of sets `pi : ι → set (set α)`.
 Three other independence notions are defined using `Indep_sets`:
-* `Indep`: independence of a family of measurable spaces `m : ι → measurable_space α`,
+* `Indep`: independence of a family of measurable space structures `m : ι → measurable_space α`,
 * `Indep_set`: independence of a family of sets `s : ι → set α`,
 * `Indep_fun`: independence of a family of functions. For measurable spaces
-  `m : Π (x : ι), measurable_space (β x)`, we consider functions `f : Π (x : ι), α → β x`.
+  `m : Π (i : ι), measurable_space (β i)`, we consider functions `f : Π (i : ι), α → β i`.
 
 Additionally, we provide four corresponding statements for two measurable space structures (resp.
 sets of sets, sets, functions) instead of a family. These properties are denoted by the same names
@@ -66,31 +66,33 @@ Part A, Chapter 4.
 open measure_theory measurable_space
 open_locale big_operators classical
 
+namespace probability_theory
+
 section definitions
 
 /-- A family of sets of sets `π : ι → set (set α)` is independent with respect to a measure `μ` if
 for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
-`f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `.
+`f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, then `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `.
 It will be used for families of pi_systems. -/
 def Indep_sets {α ι} [measurable_space α] (π : ι → set (set α)) (μ : measure α . volume_tac) :
   Prop :=
 ∀ (s : finset ι) {f : ι → set α} (H : ∀ i, i ∈ s → f i ∈ π i), μ (⋂ i ∈ s, f i) = ∏ i in s, μ (f i)
 
 /-- Two sets of sets `s₁, s₂` are independent with respect to a measure `μ` if for any sets
-`t₁ ∈ p₁, t₂ ∈ s₂`, `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
+`t₁ ∈ p₁, t₂ ∈ s₂`, then `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
 def indep_sets {α} [measurable_space α] (s1 s2 : set (set α)) (μ : measure α . volume_tac) : Prop :=
 ∀ t1 t2 : set α, t1 ∈ s1 → t2 ∈ s2 → μ (t1 ∩ t2) = μ t1 * μ t2
 
-/-- A family of measurable spaces structures (i.e. of σ-algebras) is independent with respect to a
+/-- A family of measurable space structures (i.e. of σ-algebras) is independent with respect to a
 measure `μ` (typically defined on a finer σ-algebra) if the family of sets of measurable sets they
 define is independent. `m : ι → measurable_space α` is independent with respect to measure `μ` if
 for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
-`f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. -/
+`f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, then `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. -/
 def Indep {α ι} (m : ι → measurable_space α) [measurable_space α] (μ : measure α . volume_tac) :
   Prop :=
 Indep_sets (λ x, (m x).is_measurable') μ
 
-/-- Two measurable spaces structures (or σ-algebras) `m₁, m₂` are independent with respect to a
+/-- Two measurable space structures (or σ-algebras) `m₁, m₂` are independent with respect to a
 measure `μ` (defined on a third σ-algebra) if for any sets `t₁ ∈ m₁, t₂ ∈ m₂`,
 `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
 def indep {α} (m₁ m₂ : measurable_space α) [measurable_space α] (μ : measure α . volume_tac) :
@@ -102,7 +104,7 @@ independent. For a set `s`, the generated measurable space has measurable sets `
 def Indep_set {α ι} [measurable_space α] (s : ι → set α) (μ : measure α . volume_tac) : Prop :=
 Indep (λ i, generate_from {s i}) μ
 
-/-- Two sets are independent if the two measurable spaces structures they generate are independent.
+/-- Two sets are independent if the two measurable space structures they generate are independent.
 For a set `s`, the generated measurable space structure has measurable sets `∅, s, sᶜ, univ`. -/
 def indep_set {α} [measurable_space α] {s t : set α} (μ : measure α . volume_tac) : Prop :=
 indep (generate_from {s}) (generate_from {t}) μ
@@ -110,14 +112,14 @@ indep (generate_from {s}) (generate_from {t}) μ
 /-- A family of functions defined on the same space `α` and taking values in possibly different
 spaces, each with a measurable space structure, is independent if the family of measurable space
 structures they generate on `α` is independent. For a function `g` with codomain having measurable
-space `m`, the generated measurable space structure is `measurable_space.comap g m`. -/
+space structure `m`, the generated measurable space structure is `measurable_space.comap g m`. -/
 def Indep_fun {α ι} [measurable_space α] {β : ι → Type*} (m : Π (x : ι), measurable_space (β x))
   (f : Π (x : ι), α → β x) (μ : measure α . volume_tac) : Prop :=
 Indep (λ x, measurable_space.comap (f x) (m x)) μ
 
 /-- Two functions are independent if the two measurable space structures they generate are
-independent. For a function `f` with codomain having measurable space `m`, the generated measurable
-space structure is `measurable_space.comap f m`. -/
+independent. For a function `f` with codomain having measurable space structure `m`, the generated
+measurable space structure is `measurable_space.comap f m`. -/
 def indep_fun {α β γ} [measurable_space α] (mβ : measurable_space β) (mγ : measurable_space γ)
   {f : α → β} {g : α → γ} (μ : measure α . volume_tac) : Prop :=
 indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) μ
@@ -198,7 +200,7 @@ end indep
 /-! ### Deducing `indep` from `Indep` -/
 section from_Indep_to_indep
 
-lemma indep_sets_of_Indep_sets {α ι} {s : ι → set (set α)} [measurable_space α] {μ : measure α}
+lemma Indep_sets.indep_sets {α ι} {s : ι → set (set α)} [measurable_space α] {μ : measure α}
   (h_indep : Indep_sets s μ) {i j : ι} (hij : i ≠ j) :
   indep_sets (s i) (s j) μ :=
 begin
@@ -223,12 +225,12 @@ begin
   rw [←h_inter, ←h_prod, h_indep {i, j} hf_m],
 end
 
-lemma indep_of_Indep {α ι} {m : ι → measurable_space α} [measurable_space α] {μ : measure α}
+lemma Indep.indep {α ι} {m : ι → measurable_space α} [measurable_space α] {μ : measure α}
   (h_indep : Indep m μ) {i j : ι} (hij : i ≠ j) :
   indep (m i) (m j) μ :=
 begin
   change indep_sets ((λ x, (m x).is_measurable') i) ((λ x, (m x).is_measurable') j) μ,
-  exact indep_sets_of_Indep_sets h_indep hij,
+  exact Indep_sets.indep_sets h_indep hij,
 end
 
 end from_Indep_to_indep
@@ -242,7 +244,7 @@ Independence of measurable spaces is equivalent to independence of generating π
 section from_measurable_spaces_to_sets_of_sets
 /-! ### Independence of measurable space structures implies independence of generating π-systems -/
 
-lemma Indep_sets_of_Indep {α ι} [measurable_space α] {μ : measure α} {m : ι → measurable_space α}
+lemma Indep.Indep_sets {α ι} [measurable_space α] {μ : measure α} {m : ι → measurable_space α}
   {s : ι → set (set α)} (hms : ∀ n, m n = measurable_space.generate_from (s n))
   (h_indep : Indep m μ) :
   Indep_sets s μ :=
@@ -252,7 +254,7 @@ begin
   exact is_measurable_generate_from (hfs x hxS),
 end
 
-lemma indep_sets_of_indep {α} [measurable_space α] {μ : measure α} {s1 s2 : set (set α)}
+lemma indep.indep_sets {α} [measurable_space α] {μ : measure α} {s1 s2 : set (set α)}
   (h_indep : indep (generate_from s1) (generate_from s2) μ) :
   indep_sets s1 s2 μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 (is_measurable_generate_from ht1) (is_measurable_generate_from ht2)
@@ -262,7 +264,7 @@ end from_measurable_spaces_to_sets_of_sets
 section from_pi_systems_to_measurable_spaces
 /-! ### Independence of generating π-systems implies independence of measurable space structures -/
 
-private lemma indep_of_indep_sets_aux {α} {m2 : measurable_space α}
+private lemma indep_sets.indep_aux {α} {m2 : measurable_space α}
   {m : measurable_space α} {μ : measure α} [probability_measure μ] {p1 p2 : set (set α)}
   (h2 : m2 ≤ m) (hp2 : is_pi_system p2) (hpm2 : m2 = generate_from p2)
   (hyp : indep_sets p1 p2 μ) {t1 t2 : set α} (ht1 : t1 ∈ p1) (ht2m : m2.is_measurable' t2) :
@@ -284,7 +286,7 @@ begin
   exact hyp t1 t ht1 ht,
 end
 
-lemma indep_of_indep_sets {α} {m1 m2 : measurable_space α} {m : measurable_space α}
+lemma indep_sets.indep {α} {m1 m2 : measurable_space α} {m : measurable_space α}
   {μ : measure α} [probability_measure μ] {p1 p2 : set (set α)} (h1 : m1 ≤ m) (h2 : m2 ≤ m)
   (hp1 : is_pi_system p1) (hp2 : is_pi_system p2) (hpm1 : m1 = generate_from p1)
   (hpm2 : m2 = generate_from p2) (hyp : indep_sets p1 p2 μ) :
@@ -304,7 +306,9 @@ begin
     rw hpm1,
     exact is_measurable_generate_from ht, },
   rw [measure.restrict_apply ht1, measure.smul_apply, mul_comm],
-  exact indep_of_indep_sets_aux h2 hp2 hpm2 hyp ht ht2,
+  exact indep_sets.indep_aux h2 hp2 hpm2 hyp ht ht2,
 end
 
 end from_pi_systems_to_measurable_spaces
+
+end probability_theory

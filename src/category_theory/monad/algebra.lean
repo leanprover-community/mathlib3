@@ -123,7 +123,7 @@ instance [inhabited C] : inhabited (algebra T) :=
 -- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
 -- those are added too
 @[simps unit counit {rhs_md := semireducible}]
-def adj : free T ⊣ forget T :=
+def adj : T.free ⊣ T.forget :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
   { to_fun := λ f, (η_ T).app X ≫ f.f,
@@ -223,6 +223,7 @@ rfl
 
 end monad
 
+#exit
 namespace comonad
 
 /-- An Eilenberg-Moore coalgebra for a comonad `T`. -/

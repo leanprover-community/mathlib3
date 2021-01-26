@@ -60,6 +60,12 @@ variables {C}
 def monad.η (T : monad C) : 𝟭 _ ⟶ (T : C ⥤ C) := T.η'
 def monad.μ (T : monad C) : (T : C ⥤ C) ⋙ (T : C ⥤ C) ⟶ T := T.μ'
 
+def monad.simps.to_functor (T : monad C) := (T : C ⥤ C)
+def monad.simps.η' (T : monad C) : 𝟭 _ ⟶ (T : C ⥤ C) := T.η
+def monad.simps.μ' (T : monad C) : (T : C ⥤ C) ⋙ (T : C ⥤ C) ⟶ (T : C ⥤ C) := T.μ
+
+initialize_simps_projections category_theory.monad (to_functor → coe, η' → η, μ' → μ)
+
 notation `η_` := monad.η
 notation `μ_` := monad.μ
 
@@ -183,9 +189,9 @@ variable (C)
 
 @[simps]
 def id : monad C :=
-{ to_functor := 𝟭 _,
-  η' := 𝟙 _,
-  μ' := 𝟙 _ }
+{ to_functor := 𝟭 C,
+  η' := 𝟙 (𝟭 C),
+  μ' := 𝟙 (𝟭 C) }
 
 end monad
 

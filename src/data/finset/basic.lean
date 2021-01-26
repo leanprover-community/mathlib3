@@ -1865,6 +1865,10 @@ by { rw [←pos_iff_ne_zero, card_pos, fiber_nonempty_iff_mem_image] }
 @[simp] lemma card_map {α β} (f : α ↪ β) {s : finset α} : (s.map f).card = s.card :=
 multiset.card_map _ _
 
+@[simp] lemma card_subtype (p : α → Prop) [decidable_pred p] (s : finset α) :
+  (s.subtype p).card = (s.filter p).card :=
+by simp [finset.subtype]
+
 lemma card_eq_of_bijective {s : finset α} {n : ℕ}
   (f : ∀i, i < n → α)
   (hf : ∀a∈s, ∃i, ∃h:i<n, f i h = a) (hf' : ∀i (h : i < n), f i h ∈ s)

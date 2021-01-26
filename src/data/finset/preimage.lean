@@ -44,21 +44,16 @@ finset.coe_injective (by simp)
 @[simp] lemma preimage_inter [decidable_eq α] [decidable_eq β] {f : α → β} {s t : finset β}
   (hs : set.inj_on f (f ⁻¹' ↑s)) (ht : set.inj_on f (f ⁻¹' ↑t)) :
   preimage (s ∩ t) f (λ x₁ hx₁ x₂ hx₂ hf, by {
-    simp at hx₁ hx₂,
+    simp only [set.mem_preimage, mem_inter_eq, mem_coe, coe_inter] at hx₁ hx₂,
     exact hs hx₁.1 hx₂.1 hf,
   }) = preimage s f hs ∩ preimage t f ht :=
 finset.coe_injective (by simp)
 
 @[simp] lemma preimage_union [decidable_eq α] [decidable_eq β] {f : α → β} {s t : finset β} (hst) :
-  preimage (s ∪ t) f hst = preimage s f (λ x₁ hx₁ x₂ hx₂ hf, by {
-    refine hst _ _ hf,
-    simpa using or.inl hx₁,
-    simpa using or.inl hx₂ ,
-  }) ∪ preimage t f (λ x₁ hx₁ x₂ hx₂ hf, by {
-    refine hst _ _ hf,
-    simpa using or.inr hx₁,
-    simpa using or.inr hx₂ ,
-  }) :=
+  preimage (s ∪ t) f hst = preimage s f (λ x₁ hx₁ x₂ hx₂ hf,
+    hst (by simpa using or.inl hx₁) (by simpa using or.inl hx₂) hf) ∪
+  preimage t f (λ x₁ hx₁ x₂ hx₂ hf,
+    hst (by simpa using or.inr hx₁) (by simpa using or.inr hx₂) hf) :=
 finset.coe_injective (by simp)
 
 @[simp] lemma preimage_compl [decidable_eq α] [decidable_eq β] [fintype α] [fintype β]

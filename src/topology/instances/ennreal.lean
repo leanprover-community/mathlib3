@@ -731,7 +731,7 @@ begin
   have h_of_real_sum : ∀ n,
     ∑ i in finset.range n, nnreal.of_real (f i) = nnreal.of_real ((finset.range n).sum f),
   { intro n,
-    rw nnreal.of_real_sum,
+    rw nnreal.of_real_sum_of_nonneg,
     exact λ a ha, hf_nonneg a, },
   simp_rw h_of_real_sum,
   exact nnreal.tendsto_of_real ((has_sum_iff_tendsto_nat_of_nonneg hf_nonneg _).mp hf.has_sum),
@@ -742,7 +742,7 @@ lemma ennreal.of_real_tsum_of_nonneg {f : ℕ → ℝ} (hf_nonneg : ∀ n, 0 ≤
 begin
   simp_rw ennreal.of_real,
   rw ennreal.tsum_coe_eq,
-  exact nnreal.has_sum_of_real hf_nonneg hf,
+  exact nnreal.has_sum_of_real_of_nonneg hf_nonneg hf,
 end
 
 lemma not_summable_iff_tendsto_nat_at_top_of_nonneg {f : ℕ → ℝ} (hf : ∀ n, 0 ≤ f n) :

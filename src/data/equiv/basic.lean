@@ -1157,7 +1157,8 @@ section
 open subtype
 
 /-- If `α` is equivalent to `β` and the predicates `p : α → Prop` and `q : β → Prop` are equivalent
-at corresponding points, then `{a // p a}` is equivalent to `{b // q b}`. -/
+at corresponding points, then `{a // p a}` is equivalent to `{b // q b}`.
+For the statement where `α = β`, that is, `e : perm α`, see `perm.subtype_perm`. -/
 def subtype_congr {p : α → Prop} {q : β → Prop}
   (e : α ≃ β) (h : ∀ a, p a ↔ q (e a)) : {a : α // p a} ≃ {b : β // q b} :=
 ⟨λ x, ⟨e x, (h _).1 x.2⟩,

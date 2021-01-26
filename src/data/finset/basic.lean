@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
+Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro, Hanting Zhang
 -/
 import data.multiset.finset_ops
 import tactic.monotonicity
@@ -16,45 +16,48 @@ What are `finset`s in mathlib?
 Terms of type `finset α` are subsets of `α` which are finite.
 In Lean, `finset α` is implemented to be 2 pieces of data:
 
-  1. `val` is a `multiset α` of elements
+  1. `val` is a `multiset α` of elements;
   2. `no_dup` is a proof that `val` has no duplicates.
 
-Finsets in Lean are constructive since you must exhibit
-a list of their underlying elements to use them.
-In particular, you must show that any function that
-uses the data of the underlying list does not depend on its ordering.
-In practice, however, this is handled on the multiset level by
-multiset API, so you will never have to do this explicitly.
+Finsets in Lean are constructive in that they have
+an underlying list that enumerates their elements.
+In particular, any function that uses the data of the underlying list cannot depend on its ordering.
+This is handled on the multiset level by multiset API, so don't worry about it explicitly.
 
 Finsets give a basic foundation for defining finite sums and products over types:
 
-  1. `∑ i in (s : finset α), f i`
+  1. `∑ i in (s : finset α), f i`;
   2. `∏ i in (s : finset α), f i`.
 
 Lean refers to these operations as `big_operator`s.
 More information can be found in `algebra/big_operators/basic`.
 
-Confusingly, there are three different ways to sum over finite things: {finset, fintype, finsupp}.
-At their core, all three are operating on finsets!
+Confusingly, there are four different ways to sum over finite things:
+{finset, fintype, finsupp dfinsupp}.
+At their core, all four are operating on finsets!
 
   1. `finset`s: sum over a finite subset of `α`;
   2. `fintype`s : sum over `univ`, (i.e. everything), a finset that contains all of `α`;
   3. `finsupp`s : given a finitely supported function `f : α → M`, sum over the support  of `f`,
       which is a finset of `α`.
+  4. `dfinsupp`'s : These are dependent functions with finite support. I haven't a clue.
 
 Finsets are directly used to define fintypes in Lean.
-A type `α` with an instance of `fintype α` represents the fact that `α` has finite elements.
-More information can be found in the `data/fintype` files.
+A `fintype α` instance for a type `α` consists of
+a universal `finset α` containing every term of `α`, called `univ`.
 
 ## Things defined in this file (not in the order listed):
 
 ## Fundamental Definitions and Misc:
 
-* Definition of finsets
-* Membership
-* Coercion to sets: Convert a finest to a set in the natural way.
-* Induction on finsets
-* finset.choose
+* `finset`: The whole point of this file.
+* `finset.has_mem`: Defines membership `a ∈ (s : finset α)`.
+* `finset.has_coe`: Coercion to sets in the natural way.
+* `finset.induction_on`: Induction on finsets.
+  To prove a state `P s` for some predicate `P` on `s : finset α`,
+  it suffices to prove the base case `P ∅` and the induction step
+  "for any `t ⊆ s` and `a ∈ s`, `P t` implies `P (t ∪ {a})`, or equivalently, `P (insert t a)`."
+* `finset.choose`: No idea.
 
 ## The lattice structure on subsets of finsets:
 
@@ -64,43 +67,61 @@ This can trip people up at first (like the beginner who is writing this),
 but really it's just some fancy way of expressing things.
 Just know `⊥` is called `bot` with `⊥ = ∅` and `⊤` is called `top` with `⊤ = univ`.
 
-* Subsets of finsets
-* finset.union
-* finset.inter
-* finset.disj_union
+* `finset.subset`: Lots of API about lattices, otherwise behaves exactly as one would expect.
+* `finset.union`: Defines `s ∪ t` (or `s ⊔ t`) as the union of `s` and `t`.
+  Behaves exactly as one would expect.
+  See `bUnion` for finite unions. Do we have arbitrary unions?
+* `finset.inter`: Defines `s ∩ t` (or `s ⊓ t`) as the intersection of `s` and `t`.
+  Behaves exactly as one would expect. See `bInter` for finite intersections...?
+* `finset.disj_union`:
 
 ## Operations on two or more finsets:
 
-* finset.cons and finset.insert
-* finset.union: see "The lattice structure on subsets of finsets"
-* finset.inter: see "The lattice structure on subsets of finsets"
-* finset.erase
-* finset.sdiff
-* finset.piecewise
-* finset.prod
-* finset.sigma
-* finset.bind
+* `finset.cons` and `finset.insert`:
+  These two are the same, execpt one is constructive? It's never mattered to me in practice.
+  For any `a : α`, `insert s a` returns `s ∪ {a}`.
+* `finset.union`: see "The lattice structure on subsets of finsets"
+* `finset.inter`: see "The lattice structure on subsets of finsets"
+* `finset.erase`: For any `a : α`, `erase s a` returns `s` with the element `a` removed.
+* `finset.sdiff`: Defines the set difference `s \ t` for finsets `s` and `t`.
+* `finset.piecewise`: I have no clue what this does, actually.
+* `finset.prod`: Defines finsets of `α × β` given finsets of `α` and `β`.
+  For arbitrary products, see the `finset.pi` file. Do we have category theory stuff?
+* `finset.sigma`: Defines finsets of `α ⊕ β` given finsets of `α` and `β`.
+  For arbitrary coproducts, see the `finset.pi` file. Do we have category theory stuff?
+* `finset.bUnion`: Finite unions of finsets.
 
 ## Maps on finsets:
 
 * big_operators
-* finset.map
-* finset.card
-* finset.image
-* finset.filter
+* `finset.map`:
+* `finset.card`: `card s : ℕ` returns the cardinalilty of `s : finset α`.
+  The API for `card`'s interaction with operations on finsets is extensive.
+* `finset.image`:
+* `finset.filter`: Given a predicate `p : α → Prop`,
+  we create the finset `{ x ∈ s : p x }` using `s.filter p`.
 
 ## Predicates on finsets:
 
 * disjoint
-* finset.nonempty
+* `finset.nonempty`: A finset is nonempty if it has elements.
+  This is equivalent to saying `s ≠ ∅`. In Lean the simp normal form is _____?
 
 ## Special constructions everyone should know about:
 
-* singleton
-* finset.empty
-* finset.range
-* finset.diag
-* finset.attach
+* `singleton`:
+* `finset.empty`: Denoted by `∅`. Behaves exactly as one would expect.
+* `finset.range`: For any `n : ℕ`, `range n` is equal to `{0, 1, ... , n - 1} ⊆ ℕ`.
+  This convention is consistent with other languages and normalizes `card (range n) = n`.
+  Beware, `n` is not in `range n`.
+* `finset.diag`:
+* `finset.attach`: This is an unintuitive name.
+
+## Equivalences between finsets
+
+* The `data.equiv` files describe a general type of equivalence, so look in there for any lemmas.
+  There is some API for rewriting sums and products from `s` to `t` given that `s ≃ t`.
+  But it's cumbersome to work with at times.
 
 -/
 

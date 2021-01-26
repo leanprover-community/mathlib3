@@ -769,9 +769,17 @@ by { by_cases h : p a; simp [perm.subtype_congr, h] }
   ep.subtype_congr en a = ep ⟨a, h⟩ :=
 by simp [perm.subtype_congr.apply, h]
 
+@[simp] lemma perm.subtype_congr.left_apply_subtype (a : {a // p a}) :
+  ep.subtype_congr en a = ep a :=
+by { convert perm.subtype_congr.left_apply _ _ a.property, simp }
+
 @[simp] lemma perm.subtype_congr.right_apply {a : ε} (h : ¬ p a) :
   ep.subtype_congr en a = en ⟨a, h⟩ :=
 by simp [perm.subtype_congr.apply, h]
+
+@[simp] lemma perm.subtype_congr.right_apply_subtype (a : {a // ¬ p a}) :
+  ep.subtype_congr en a = en a :=
+by { convert perm.subtype_congr.right_apply _ _ a.property, simp }
 
 @[simp] lemma perm.subtype_congr.refl :
   perm.subtype_congr (equiv.refl {a // p a}) (equiv.refl {a // ¬ p a}) = equiv.refl ε :=

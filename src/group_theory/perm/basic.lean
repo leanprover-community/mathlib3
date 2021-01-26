@@ -159,6 +159,23 @@ begin
   simpa using equiv.congr_fun h ⟨a, b⟩,
 end
 
+/-- `equiv.perm.subtype_congr` as a `monoid_hom`. -/
+@[simps] def subtype_congr_hom (p : α → Prop) [decidable_pred p] :
+  (perm {a // p a}) × (perm {a // ¬ p a}) →* perm α :=
+{ to_fun := λ pair, perm.subtype_congr pair.fst pair.snd,
+  map_one' := perm.subtype_congr.refl,
+  map_mul' := λ _ _, (perm.subtype_congr.trans _ _ _ _).symm }
+
+lemma subtype_congr_hom_injective (p : α → Prop) [decidable_pred p] :
+  function.injective (subtype_congr_hom p) :=
+begin
+  rintros ⟨⟩ ⟨⟩ h,
+  rw prod.mk.inj_iff,
+  split;
+  ext i;
+  simpa using equiv.congr_fun h i
+end
+
 end perm
 
 section swap

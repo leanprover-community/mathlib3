@@ -26,10 +26,10 @@ localized "notation n `!`:10000 := nat.factorial n" in nat
 @[simp] theorem factorial_one : 1! = 1 := rfl
 
 theorem mul_factorial_pred (hn : 0 < n) : n * (n - 1)! = n! :=
-have n - 1 + 1 = n, from nat.sub_add_cancel (succ_le_of_lt hn),
-calc n * (n - 1)! = (n - 1 + 1) * (n - 1)! : by rw this
-... = (n - 1 + 1)! : rfl
-... = n! : by rw this
+begin
+  have : n - 1 + 1 = n := nat.sub_add_cancel hn,
+  exact this ▸ rfl
+end
 
 theorem factorial_pos : ∀ n, 0 < n!
 | 0        := zero_lt_one

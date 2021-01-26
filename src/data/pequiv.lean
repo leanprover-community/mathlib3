@@ -140,7 +140,7 @@ by dsimp [of_set]; split_ifs; split; finish
 @[simp] lemma of_set_symm : (of_set s).symm = of_set s := rfl
 
 @[simp] lemma of_set_univ : of_set set.univ = pequiv.refl α :=
-by ext; dsimp [of_set]; simp [eq_comm]
+by refl
 
 @[simp] lemma of_set_eq_refl {s : set α} [decidable_pred s] :
   of_set s = pequiv.refl α ↔ s = set.univ :=

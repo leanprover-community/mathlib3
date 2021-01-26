@@ -217,9 +217,9 @@ calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) 
   end
 
 lemma support_mul (a b : monoid_algebra k G) :
-  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ * a₂}) :=
-subset.trans support_sum $ bind_mono $ assume a₁ _,
-  subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
+  (a * b).support ⊆ a.support.bUnion (λa₁, b.support.bUnion $ λa₂, {a₁ * a₂}) :=
+subset.trans support_sum $ bUnion_mono $ assume a₁ _,
+  subset.trans support_sum $ bUnion_mono $ assume a₂ _, support_single_subset
 
 @[simp] lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : monoid_algebra k G) * single a₂ b₂ = single (a₁ * a₂) (b₁ * b₂) :=
@@ -696,7 +696,7 @@ lemma mul_apply_antidiagonal (f g : add_monoid_algebra k G) (x : G) (s : finset 
 @monoid_algebra.mul_apply_antidiagonal k (multiplicative G) _ _ _ _ _ s @hs
 
 lemma support_mul (a b : add_monoid_algebra k G) :
-  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=
+  (a * b).support ⊆ a.support.bUnion (λa₁, b.support.bUnion $ λa₂, {a₁ + a₂}) :=
 @monoid_algebra.support_mul k (multiplicative G) _ _ _ _
 
 lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :

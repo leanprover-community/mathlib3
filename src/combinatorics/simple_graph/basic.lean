@@ -101,6 +101,9 @@ variables {V : Type u} (G : simple_graph V)
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
+instance neighbor_set.mem_decidable (v : V) [decidable_rel G.adj] :
+  decidable_pred (∈ G.neighbor_set v) := by { unfold neighbor_set, apply_instance }
+
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
 

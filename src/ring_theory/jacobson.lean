@@ -11,9 +11,9 @@ import ring_theory.localization
 /-!
 # Jacobson Rings
 The following conditions are equivalent for a ring `R`:
-1. Every radical ideal `I` is equal to its jacobson radical
+1. Every radical ideal `I` is equal to its Jacobson radical
 2. Every radical ideal `I` can be written as an intersection of maximal ideals
-3. Every prime ideal `I` is equal to its jacobson radical
+3. Every prime ideal `I` is equal to its Jacobson radical
 Any ring satisfying any of these equivalent conditions is said to be Jacobson.
 Some particular examples of Jacobson rings are also proven.
 `is_jacobson_quotient` says that the quotient of a Jacobson ring is Jacobson.
@@ -28,7 +28,7 @@ Let `R` be a commutative ring. Jacobson Rings are defined using the first of the
 * `is_jacobson_iff_Inf_maximal` is the equivalence between conditions 1 and 2 above.
 * `is_jacobson_of_surjective` says that if `R` is a Jacobson ring and `f : R →+* S` is surjective,
   then `S` is also a Jacobson ring
-* `is_jacobson_mv_polynomial` says that multi-variate polynomials over a jacobson ring are jacobson
+* `is_jacobson_mv_polynomial` says that multi-variate polynomials over a Jacobson ring are Jacobson.
 ## Tags
 Jacobson, Jacobson Ring
 -/
@@ -38,7 +38,8 @@ namespace ideal
 open polynomial
 
 section technical_lemmas
-/-- The two results in this section are independent of Jacobson.  I extracted them from the
+/-!
+The following two lemmas are independent of Jacobson.  I extracted them from the
 original proof of `quotient_mk_comp_C_is_integral_of_jacobson` to speed up processing.
 Honestly, I did not spend time to unwind their "meaning", hence the names are likely inappropriate.
 -/
@@ -109,7 +110,7 @@ lemma radical_eq_jacobson [H : is_jacobson R] (I : ideal R) : I.radical = I.jaco
 le_antisymm (le_Inf (λ J ⟨hJ, hJ_max⟩, (is_prime.radical_le_iff hJ_max.is_prime).mpr hJ))
             ((H I.radical (radical_idem I)) ▸ (jacobson_mono le_radical))
 
-/-- Fields have only two ideals, and the condition holds for both of them -/
+/-- Fields have only two ideals, and the condition holds for both of them.  -/
 @[priority 100]
 instance is_jacobson_field {K : Type*} [field K] : is_jacobson K :=
 λ I hI, or.rec_on (eq_bot_or_top I)
@@ -283,7 +284,7 @@ variables {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
 /-- If `I` is a prime ideal of `polynomial R` and `pX ∈ I` is a non-constant polynomial,
   then the map `R →+* R[x]/I` descends to an integral map when localizing at `pX.leading_coeff`.
   In particular `X` is integral because it satisfies `pX`, and constants are trivially integral,
-  so integrality of the entire extension follows by closure under addition and multiplication -/
+  so integrality of the entire extension follows by closure under addition and multiplication. -/
 lemma is_integral_localization_map_polynomial_quotient
   (P : ideal (polynomial R)) [P.is_prime] (pX : polynomial R) (hpX : pX ∈ P)
   (ϕ : localization_map (submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff) Rₘ)
@@ -328,7 +329,7 @@ begin
 end
 
 /-- If `f : R → S` descends to an integral map in the localization at `x`,
-  and `R` is a jacobson ring, then the intersection of all maximal ideals in `S` is trivial -/
+  and `R` is a Jacobson ring, then the intersection of all maximal ideals in `S` is trivial -/
 lemma jacobson_bot_of_integral_localization {R : Type*} [integral_domain R] [is_jacobson R]
   (φ : R →+* S) (hφ : function.injective φ) (x : R) (hx : x ≠ 0)
   (ϕ : localization_map (submonoid.powers x) Rₘ)
@@ -517,7 +518,7 @@ begin
     { exact is_integral_localization_map_polynomial_quotient P pX hpX _ _ } }
 end
 
-/-- If `R` is a jacobson field, and `P` is a maximal ideal of `polynomial R`,
+/-- If `R` is a Jacobson ring, and `P` is a maximal ideal of `polynomial R`,
   then `R → (polynomial R)/P` is an integral map. -/
 lemma quotient_mk_comp_C_is_integral_of_jacobson :
   ((quotient.mk P).comp C : R →+* P.quotient).is_integral :=
@@ -578,9 +579,9 @@ lemma is_jacobson_mv_polynomial_fin {R : Type*} [comm_ring R] [H : is_jacobson R
 | (n+1) := (is_jacobson_iso (fin_succ_equiv R n)).2
   (polynomial.is_jacobson_polynomial_iff_is_jacobson.2 (is_jacobson_mv_polynomial_fin n))
 
-/-- General form of the nullstellensatz for jacobson rings, since in a jacobson ring we have
-  `Inf {P maximal | P ≥ I} = Inf {P prime | P ≥ I} = I.radical`. Fields are always jacobson,
-  and in that special case this is (most of) the classical nullstellensatz,
+/-- General form of the nullstellensatz for Jacobson rings, since in a Jacobson ring we have
+  `Inf {P maximal | P ≥ I} = Inf {P prime | P ≥ I} = I.radical`. Fields are always Jacobson,
+  and in that special case this is (most of) the classical Nullstellensatz,
   since `I(V(I))` is the intersection of maximal ideals containing `I`, which is then `I.radical` -/
 instance {R : Type*} [comm_ring R] {ι : Type*} [fintype ι] [is_jacobson R] :
   is_jacobson (mv_polynomial ι R) :=

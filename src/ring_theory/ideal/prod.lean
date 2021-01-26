@@ -68,7 +68,7 @@ end
 @[simp] lemma map_prod_comm_prod :
   map ↑(ring_equiv.prod_comm : R × S ≃+* S × R) (prod I J) = prod J I :=
 begin
-  rw [@ideal_prod_eq S R _ _ (map _ _)],
+  refine trans (ideal_prod_eq _) _,
   simp [map_map],
 end
 

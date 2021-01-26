@@ -30,8 +30,8 @@ open set function
 
 open_locale classical big_operators
 
-/-- Ideal in a commutative ring is an additive subgroup `s` such that
-`a * b ∈ s` whenever `b ∈ s`. -/
+/-- An ideal in a commutative semiring `R` is an additive submonoid `s` such that
+`a * b ∈ s` whenever `b ∈ s`. If `R` is a ring, then `s` is an additive subgroup.  -/
 @[reducible] def ideal (R : Type u) [comm_semiring R] := submodule R R
 
 namespace ideal

@@ -13,22 +13,22 @@ import data.finset.intervals
 * A family of sets of sets `π : ι → set (set α)` is independent with respect to a measure `μ` if for
   any finite set of indices `s = {i_1, ..., i_n}`, for any sets `f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`,
   `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. It will be used for families of π-systems.
-* A family of measurable spaces structures (i.e. of σ-algebras) is independent with respect to a
+* A family of measurable space structures (i.e. of σ-algebras) is independent with respect to a
   measure `μ` (typically defined on a finer σ-algebra) if the family of sets of measurable sets they
   define is independent. `m : ι → measurable_space α` is independent with respect to measure `μ` if
   for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
-  `f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `.
+  `f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i)`.
 * Independence of sets (or events in probabilistic parlance) is defined as independence of the
-  measurable spaces they generate: a set `s` generates the measurable space with measurable sets
-  `∅, s, sᶜ, univ`.
+  measurable space structures they generate: a set `s` generates the measurable space structure with
+  measurable sets `∅, s, sᶜ, univ`.
 * Independence of functions (or random variables) is also defined as independence of the measurable
-  spaces they generate : a function `f` for which we have a measurable space `m` on the codomain
-  generates `measurable_space.comap f m`.
+  space structures they generate : a function `f` for which we have a measurable space `m` on the
+  codomain generates `measurable_space.comap f m`.
 
 ## Main statements
 
 * TODO: `Indep_of_Indep_sets`: if π-systems are independent as sets of sets, then the
-measurable spaces they generate are independent.
+measurable space structures they generate are independent.
 * `indep_of_indep_sets`: variant with two π-systems.
 
 ## Implementation notes
@@ -41,10 +41,10 @@ Three other independence notions are defined using `Indep_sets`:
 * `Indep_fun`: independence of a family of functions. For measurable spaces
   `m : Π (x : ι), measurable_space (β x)`, we consider functions `f : Π (x : ι), α → β x`.
 
-Additionally, we provide four corresponding statements for two measurable spaces (resp. sets of
-sets, sets, functions) instead of a family. These properties are denoted by the same names as for a
-family, but without a capital letter, for example `indep_fun` is the version of `Indep_fun` for two
-functions.
+Additionally, we provide four corresponding statements for two measurable space structures (resp.
+sets of sets, sets, functions) instead of a family. These properties are denoted by the same names
+as for a family, but without a capital letter, for example `indep_fun` is the version of `Indep_fun`
+for two functions.
 
 The definition of independence for `Indep_sets` uses finite sets (`finset`). An alternative and
 equivalent way of defining independence would have been to use countable sets.
@@ -68,16 +68,16 @@ open_locale big_operators classical
 
 section definitions
 
-/-- A family of sets of sets `π : ι → set (set α)` is independent with respect to measure `μ` if for
-any finite set of indices `s = {i_1, ..., i_n}`, for any sets
+/-- A family of sets of sets `π : ι → set (set α)` is independent with respect to a measure `μ` if
+for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
 `f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `.
 It will be used for families of pi_systems. -/
 def Indep_sets {α ι} [measurable_space α] (π : ι → set (set α)) (μ : measure α . volume_tac) :
   Prop :=
 ∀ (s : finset ι) {f : ι → set α} (H : ∀ i, i ∈ s → f i ∈ π i), μ (⋂ i ∈ s, f i) = ∏ i in s, μ (f i)
 
-/-- Two sets of sets `s₁, s₂` are independent with respect to
-measure `μ` if for any sets `t₁ ∈ p₁, t₂ ∈ s₂`, `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
+/-- Two sets of sets `s₁, s₂` are independent with respect to a measure `μ` if for any sets
+`t₁ ∈ p₁, t₂ ∈ s₂`, `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
 def indep_sets {α} [measurable_space α] (s1 s2 : set (set α)) (μ : measure α . volume_tac) : Prop :=
 ∀ t1 t2 : set α, t1 ∈ s1 → t2 ∈ s2 → μ (t1 ∩ t2) = μ t1 * μ t2
 

@@ -10,13 +10,13 @@ import data.finset.intervals
 /-!
 # Independence of sets of sets and measure spaces (σ-algebras)
 
-* A family of sets of sets `π : ι → set (set α)` is independent with respect to measure `μ` if for
-  any finite set of indices `s = {i_1, ..., i_n}`, for any sets
-  `f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. It will be used
-  for families of pi_systems.
-* A family of measurable spaces (or σ-algebras) is independent if the family of sets of measurable
-  sets they define is independent. `m : ι → measurable_space α` is independent with
-  respect to measure `μ` if for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
+* A family of sets of sets `π : ι → set (set α)` is independent with respect to a measure `μ` if for
+  any finite set of indices `s = {i_1, ..., i_n}`, for any sets `f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`,
+  `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. It will be used for families of π-systems.
+* A family of measurable spaces structures (i.e. of σ-algebras) is independent with respect to a
+  measure `μ` (typically defined on a finer σ-algebra) if the family of sets of measurable sets they
+  define is independent. `m : ι → measurable_space α` is independent with respect to measure `μ` if
+  for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
   `f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `.
 * Independence of sets (or events in probabilistic parlance) is defined as independence of the
   measurable spaces they generate: a set `s` generates the measurable space with measurable sets
@@ -42,7 +42,9 @@ Three other independence notions are defined using `Indep_sets`:
   `m : Π (x : ι), measurable_space (β x)`, we consider functions `f : Π (x : ι), α → β x`.
 
 Additionally, we provide four corresponding statements for two measurable spaces (resp. sets of
-sets, sets, functions) instead of a family.
+sets, sets, functions) instead of a family. These properties are denoted by the same names as for a
+family, but without a capital letter, for example `indep_fun` is the version of `Indep_fun` for two
+functions.
 
 The definition of independence for `Indep_sets` uses finite sets (`finset`). An alternative and
 equivalent way of defining independence would have been to use countable sets.
@@ -70,47 +72,53 @@ section definitions
 any finite set of indices `s = {i_1, ..., i_n}`, for any sets
 `f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `.
 It will be used for families of pi_systems. -/
-def Indep_sets {α ι} [measurable_space α] (π : ι → set (set α)) (μ : measure α) : Prop :=
+def Indep_sets {α ι} [measurable_space α] (π : ι → set (set α)) (μ : measure α . volume_tac) :
+  Prop :=
 ∀ (s : finset ι) {f : ι → set α} (H : ∀ i, i ∈ s → f i ∈ π i), μ (⋂ i ∈ s, f i) = ∏ i in s, μ (f i)
 
 /-- Two sets of sets `s₁, s₂` are independent with respect to
 measure `μ` if for any sets `t₁ ∈ p₁, t₂ ∈ s₂`, `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
-def indep_sets {α} [measurable_space α] (s1 s2 : set (set α)) (μ : measure α) : Prop :=
+def indep_sets {α} [measurable_space α] (s1 s2 : set (set α)) (μ : measure α . volume_tac) : Prop :=
 ∀ t1 t2 : set α, t1 ∈ s1 → t2 ∈ s2 → μ (t1 ∩ t2) = μ t1 * μ t2
 
-/-- A family of measurable spaces (or σ-algebras) `m : ι → measurable_space α` is independent with
-respect to measure `μ` if for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
+/-- A family of measurable spaces structures (i.e. of σ-algebras) is independent with respect to a
+measure `μ` (typically defined on a finer σ-algebra) if the family of sets of measurable sets they
+define is independent. `m : ι → measurable_space α` is independent with respect to measure `μ` if
+for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
 `f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. -/
-def Indep {α ι} (m : ι → measurable_space α) [measurable_space α] (μ : measure α) : Prop :=
+def Indep {α ι} (m : ι → measurable_space α) [measurable_space α] (μ : measure α . volume_tac) :
+  Prop :=
 Indep_sets (λ x, (m x).is_measurable') μ
 
-/-- Two measurable spaces (or σ-algebras) `m₁, m₂` are independent with respect to
-measure `μ` if for any sets `t₁ ∈ m₁, t₂ ∈ m₂`, `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
-def indep {α} (m₁ m₂ : measurable_space α) [measurable_space α] (μ : measure α) : Prop :=
+/-- Two measurable spaces structures (or σ-algebras) `m₁, m₂` are independent with respect to a
+measure `μ` (defined on a third σ-algebra) if for any sets `t₁ ∈ m₁, t₂ ∈ m₂`,
+`μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
+def indep {α} (m₁ m₂ : measurable_space α) [measurable_space α] (μ : measure α . volume_tac) :
+  Prop :=
 indep_sets (m₁.is_measurable') (m₂.is_measurable') μ
 
-/-- A family of sets is independent if the family of measurable spaces they generate is
+/-- A family of sets is independent if the family of measurable space structures they generate is
 independent. For a set `s`, the generated measurable space has measurable sets `∅, s, sᶜ, univ`. -/
-def Indep_set {α ι} [measurable_space α] (s : ι → set α) (μ : measure α) : Prop :=
+def Indep_set {α ι} [measurable_space α] (s : ι → set α) (μ : measure α . volume_tac) : Prop :=
 Indep (λ i, generate_from {s i}) μ
 
-/-- Two sets are independent if the two measurable spaces they generate are independent.
-For a set `s`, the generated measurable space has measurable sets `∅, s, sᶜ, univ`. -/
-def indep_set {α} [measurable_space α] {s t : set α} (μ : measure α) : Prop :=
+/-- Two sets are independent if the two measurable spaces structures they generate are independent.
+For a set `s`, the generated measurable space structure has measurable sets `∅, s, sᶜ, univ`. -/
+def indep_set {α} [measurable_space α] {s t : set α} (μ : measure α . volume_tac) : Prop :=
 indep (generate_from {s}) (generate_from {t}) μ
 
-/-- A family of functions is independent if the family of measurable spaces they generate is
-independent. For a function `f` with codomain having measurable space `m`, the generated measurable
-space is `measurable_space.comap f m`. -/
+/-- A family of functions is independent if the family of measurable space structures they generate
+is independent. For a function `f` with codomain having measurable space `m`, the generated
+measurable space structure is `measurable_space.comap f m`. -/
 def Indep_fun {α ι} [measurable_space α] {β : ι → Type*} (m : Π (x : ι), measurable_space (β x))
-  (f : Π (x : ι), α → β x) (μ : measure α) : Prop :=
+  (f : Π (x : ι), α → β x) (μ : measure α . volume_tac) : Prop :=
 Indep (λ x, measurable_space.comap (f x) (m x)) μ
 
-/-- Two functions are independent if the two measurable spaces they generate are independent.
-For a function `f` with codomain having measurable space `m`, the generated measurable
-space is `measurable_space.comap f m`. -/
+/-- Two functions are independent if the two measurable space structures they generate are
+independent. For a function `f` with codomain having measurable space `m`, the generated measurable
+space structure is `measurable_space.comap f m`. -/
 def indep_fun {α β γ} [measurable_space α] (mβ : measurable_space β) (mγ : measurable_space γ)
-  {f : α → β} {g : α → γ} (μ : measure α) : Prop :=
+  {f : α → β} {g : α → γ} (μ : measure α . volume_tac) : Prop :=
 indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) μ
 
 end definitions

@@ -272,7 +272,7 @@ end
 
 @[to_additive]
 lemma finset.prod_subtype {M : Type*} [comm_monoid M]
-  {p : α → Prop} {F : fintype (subtype p)} {s : finset α} (h : ∀ x, x ∈ s ↔ p x) (f : α → M) :
+  {p : α → Prop} {F : fintype (subtype p)} (s : finset α) (h : ∀ x, x ∈ s ↔ p x) (f : α → M) :
   ∏ a in s, f a = ∏ a : subtype p, f a :=
 have (∈ s) = p, from set.ext h,
 begin
@@ -280,6 +280,11 @@ begin
   substI p,
   congr
 end
+
+@[to_additive]
+lemma finset.prod_to_finset_eq_subtype {M : Type*} [comm_monoid M] [fintype α]
+  (p : α → Prop) (f : α → M) : ∏ a in {x | p x}.to_finset, f a = ∏ a : subtype p, f a :=
+by { rw ← finset.prod_subtype, simp }
 
 @[to_additive] lemma finset.prod_fiberwise [decidable_eq β] [fintype β] [comm_monoid γ]
   (s : finset α) (f : α → β) (g : α → γ) :

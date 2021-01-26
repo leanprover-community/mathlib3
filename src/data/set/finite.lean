@@ -534,6 +534,11 @@ lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
 (eq_or_ssubset_of_subset hsub).elim id
   (λ h, absurd hcard $ not_le_of_lt $ card_lt_card h)
 
+lemma subset_iff_to_finset_subset (s t : set α) [fintype s] [fintype t] :
+  s ⊆ t ↔ s.to_finset ⊆ t.to_finset :=
+⟨λ h x hx, set.mem_to_finset.mpr $ h $ set.mem_to_finset.mp hx,
+  λ h x hx, set.mem_to_finset.mp $ h $ set.mem_to_finset.mpr hx⟩
+
 lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
   [fintype (range f)] : fintype.card (range f) = fintype.card α :=
 eq.symm $ fintype.card_congr $ equiv.set.range f hf
@@ -568,8 +573,16 @@ section
 
 local attribute [instance, priority 1] classical.prop_decidable
 
+lemma to_finset_compl {α : Type*} [fintype α] (s : set α) :
+  sᶜ.to_finset = (s.to_finset)ᶜ :=
+by ext; simp
+
 lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) :
   (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
+by ext; simp
+
+lemma to_finset_union {α : Type*} [fintype α] (s t : set α) :
+  (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
 by ext; simp
 
 end

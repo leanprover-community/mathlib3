@@ -162,6 +162,9 @@ lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
 lemma nonempty.mono {s t : finset α} (hst : s ⊆ t) (hs : s.nonempty) : t.nonempty :=
 set.nonempty.mono hst hs
 
+lemma nonempty.forall_const {s : finset α} (h : s.nonempty) {p : Prop} : (∀ x ∈ s, p) ↔ p :=
+let ⟨x, hx⟩ := h in ⟨λ h, h x hx, λ h x hx, h⟩
+
 /-! ### empty -/
 
 /-- The empty finset -/
@@ -1413,6 +1416,13 @@ finset.val_inj.symm.trans multiset.erase_dup_eq_zero
 by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
 
 end multiset
+
+namespace finset
+
+@[simp] lemma val_to_finset [decidable_eq α] (s : finset α) : s.val.to_finset = s :=
+by { ext, rw [multiset.mem_to_finset, ←mem_def] }
+
+end finset
 
 namespace list
 variable [decidable_eq α]

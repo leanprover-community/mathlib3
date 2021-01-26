@@ -380,6 +380,22 @@ protected theorem add_mul_div_left (a : ℤ) {b : ℤ} (c : ℤ) (H : b ≠ 0) :
     (a + b * c) / b = a / b + c :=
 by rw [mul_comm, int.add_mul_div_right _ _ H]
 
+protected theorem add_div_of_dvd_right {a b c : ℤ} (H : c ∣ b) :
+  (a + b) / c = a / c + b / c :=
+begin
+  by_cases h1 : c = 0,
+  { simp [h1] },
+  cases H with k hk,
+  rw hk,
+  change c ≠ 0 at h1,
+  rw [mul_comm c k, int.add_mul_div_right _ _ h1, ←zero_add (k * c), int.add_mul_div_right _ _ h1,
+      int.zero_div, zero_add]
+end
+
+protected theorem add_div_of_dvd_left {a b c : ℤ} (H : c ∣ a) :
+  (a + b) / c = a / c + b / c :=
+by rw [add_comm, int.add_div_of_dvd_right H, add_comm]
+
 @[simp] protected theorem mul_div_cancel (a : ℤ) {b : ℤ} (H : b ≠ 0) : a * b / b = a :=
 by have := int.add_mul_div_right 0 a H;
    rwa [zero_add, int.zero_div, zero_add] at this
@@ -683,6 +699,9 @@ protected theorem mul_div_assoc (a : ℤ) : ∀ {b c : ℤ}, c ∣ b → (a * b)
 | ._ c ⟨d, rfl⟩ := if cz : c = 0 then by simp [cz] else
   by rw [mul_left_comm, int.mul_div_cancel_left _ cz, int.mul_div_cancel_left _ cz]
 
+protected theorem mul_div_assoc' (b : ℤ) {a c : ℤ} (h : c ∣ a) : a * b / c = a / c * b :=
+by rw [mul_comm, int.mul_div_assoc _ h, mul_comm]
+
 theorem div_dvd_div : ∀ {a b c : ℤ} (H1 : a ∣ b) (H2 : b ∣ c), b / a ∣ c / a
 | a ._ ._ ⟨b, rfl⟩ ⟨c, rfl⟩ := if az : a = 0 then by simp [az] else
   by rw [int.mul_div_cancel_left _ az, mul_assoc, int.mul_div_cancel_left _ az];
@@ -720,17 +739,15 @@ theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 | ._ b ⟨c, rfl⟩ := if bz : b = 0 then by simp [bz] else
   by rw [neg_mul_eq_mul_neg, int.mul_div_cancel_left _ bz, int.mul_div_cancel_left _ bz]
 
-lemma add_div_of_dvd {a b c : ℤ} :
-  c ∣ a → c ∣ b → (a + b) / c = a / c + b / c :=
+lemma sub_div_of_dvd {a b c : ℤ} (hcb : c ∣ b) : (a - b) / c = a / c - b / c :=
 begin
-  intros h1 h2,
-  by_cases h3 : c = 0,
-  { rw [h3, zero_dvd_iff] at *,
-    rw [h1, h2, h3], refl },
-  { apply mul_right_cancel' h3,
-    rw add_mul, repeat {rw [int.div_mul_cancel]};
-    try {apply dvd_add}; assumption }
+  rw [sub_eq_add_neg, sub_eq_add_neg, int.add_div_of_dvd_right ((dvd_neg c b).mpr hcb)],
+  congr,
+  exact neg_div_of_dvd hcb,
 end
+
+lemma sub_div_of_dvd_sub {a b c : ℤ} (hcab : c ∣ (a - b)) : (a - b) / c = a / c - b / c :=
+by rw [eq_sub_iff_add_eq, ← int.add_div_of_dvd_left hcab, sub_add_cancel]
 
 theorem div_sign : ∀ a b, a / sign b = a * sign b
 | a (n+1:ℕ) := by unfold sign; simp

@@ -51,6 +51,9 @@ begin
   exact ⟨λ k b hb, k _ _ hb rfl, λ k a' b hb h, h ▸ k _ hb⟩,
 end
 
+lemma sup_const {s : finset β} (h : s.nonempty) (c : α) : s.sup (λ _, c) = c :=
+eq_of_forall_ge_iff $ λ b, sup_le_iff.trans h.forall_const
+
 lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
 sup_le_iff.2
 
@@ -86,34 +89,16 @@ lemma sup_coe {P : α → Prop}
   (@sup _ _ (subtype.semilattice_sup_bot Pbot Psup) t f : α) = t.sup (λ x, f x) :=
 by { classical, rw [comp_sup_eq_sup_comp coe]; intros; refl }
 
+@[simp] lemma sup_to_finset {α β} [decidable_eq β]
+  (s : finset α) (f : α → multiset β) :
+  (s.sup f).to_finset = s.sup (λ x, (f x).to_finset) :=
+comp_sup_eq_sup_comp multiset.to_finset to_finset_union rfl
+
 theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_sup hn
 
 theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
 ⟨_, s.subset_range_sup_succ⟩
-
-lemma mem_sup {α β} [decidable_eq β] {s : finset α} {f : α → multiset β}
-  {x : β} : x ∈ s.sup f ↔ ∃ v ∈ s, x ∈ f v :=
-begin
-  classical,
-  apply s.induction_on,
-  { simp },
-  { intros a s has hxs,
-    rw [finset.sup_insert, multiset.sup_eq_union, multiset.mem_union],
-    split,
-    { intro hxi,
-      cases hxi with hf hf,
-      { refine ⟨a, _, hf⟩,
-        simp only [true_or, eq_self_iff_true, finset.mem_insert] },
-      { rcases hxs.mp hf with ⟨v, hv, hfv⟩,
-        refine ⟨v, _, hfv⟩,
-        simp only [hv, or_true, finset.mem_insert] } },
-    { rintros ⟨v, hv, hfv⟩,
-      rw [finset.mem_insert] at hv,
-      rcases hv with rfl | hv,
-      { exact or.inl hfv },
-      { refine or.inr (hxs.mpr ⟨v, hv, hfv⟩) } } },
-end
 
 lemma sup_subset {α β} [semilattice_sup_bot β] {s t : finset α} (hst : s ⊆ t) (f : α → β) :
   s.sup f ≤ t.sup f :=
@@ -132,6 +117,27 @@ begin
     cases t.eq_empty_or_nonempty with hte htne,
     { subst hte, simp only [insert_emptyc_eq, id.def, finset.sup_singleton, h_subset], },
     { rw [finset.sup_insert, id.def], exact h h_subset.1 (h₁ htne h_subset.2), }, },
+end
+
+lemma sup_le_of_le_directed {α : Type*} [semilattice_sup_bot α] (s : set α)
+  (hs : s.nonempty) (hdir : directed_on (≤) s) (t : finset α):
+  (∀ x ∈ t, ∃ y ∈ s, x ≤ y) → ∃ x, x ∈ s ∧ t.sup id ≤ x :=
+begin
+  classical,
+  apply finset.induction_on t,
+  { simpa only [forall_prop_of_true, and_true, forall_prop_of_false, bot_le, not_false_iff,
+      sup_empty, forall_true_iff, not_mem_empty], },
+  { intros a r har ih h,
+    have incs : ↑r ⊆ ↑(insert a r), by { rw finset.coe_subset, apply finset.subset_insert, },
+    -- x ∈ s is above the sup of r
+    obtain ⟨x, ⟨hxs, hsx_sup⟩⟩ := ih (λ x hx, h x $ incs hx),
+    -- y ∈ s is above a
+    obtain ⟨y, hys, hay⟩ := h a (finset.mem_insert_self a r),
+    -- z ∈ s is above x and y
+    obtain ⟨z, hzs, ⟨hxz, hyz⟩⟩ := hdir x hxs y hys,
+    use [z, hzs],
+    rw [sup_insert, id.def, _root_.sup_le_iff],
+    exact ⟨le_trans hay hyz, le_trans hsx_sup hxz⟩, },
 end
 
 end sup
@@ -432,8 +438,46 @@ begin
     refl }
 end
 
+lemma mem_sup {α β} [decidable_eq β] {s : finset α} {f : α → multiset β}
+  {x : β} : x ∈ s.sup f ↔ ∃ v ∈ s, x ∈ f v :=
+begin
+  classical,
+  apply s.induction_on,
+  { simp },
+  { intros a s has hxs,
+    rw [finset.sup_insert, multiset.sup_eq_union, multiset.mem_union],
+    split,
+    { intro hxi,
+      cases hxi with hf hf,
+      { refine ⟨a, _, hf⟩,
+        simp only [true_or, eq_self_iff_true, finset.mem_insert] },
+      { rcases hxs.mp hf with ⟨v, hv, hfv⟩,
+        refine ⟨v, _, hfv⟩,
+        simp only [hv, or_true, finset.mem_insert] } },
+    { rintros ⟨v, hv, hfv⟩,
+      rw [finset.mem_insert] at hv,
+      rcases hv with rfl | hv,
+      { exact or.inl hfv },
+      { refine or.inr (hxs.mpr ⟨v, hv, hfv⟩) } } },
+end
+
 end multiset
 
+namespace finset
+
+lemma mem_sup {α β} [decidable_eq β] {s : finset α} {f : α → finset β}
+  {x : β} : x ∈ s.sup f ↔ ∃ v ∈ s, x ∈ f v :=
+begin
+  change _ ↔ ∃ v ∈ s, x ∈ (f v).val,
+  rw [←multiset.mem_sup, ←multiset.mem_to_finset, sup_to_finset],
+  simp_rw [val_to_finset],
+end
+
+lemma sup_eq_bind {α β} [decidable_eq β] (s : finset α) (t : α → finset β) :
+  s.sup t = s.bind t :=
+by { ext, rw [mem_sup, mem_bind], }
+
+end finset
 
 section lattice
 variables {ι : Type*} {ι' : Sort*} [complete_lattice α]

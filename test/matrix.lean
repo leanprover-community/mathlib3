@@ -1,6 +1,6 @@
 import data.matrix.notation
 
-variables {α : Type} [semiring α]
+variables {α β : Type} [semiring α] [ring β]
 
 namespace matrix
 
@@ -8,6 +8,10 @@ open_locale matrix
 
 example {a a' b b' c c' d d' : α} :
   ![![a, b], ![c, d]] + ![![a', b'], ![c', d']] = ![![a + a', b + b'], ![c + c', d + d']] :=
+by simp
+
+example {a a' b b' c c' d d' : β} :
+  ![![a, b], ![c, d]] - ![![a', b'], ![c', d']] = ![![a - a', b - b'], ![c - c', d - d']] :=
 by simp
 
 example {a a' b b' c c' d d' : α} :

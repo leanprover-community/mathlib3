@@ -259,6 +259,15 @@ lemma function.injective.left_inv_of_inv_of_mem_range (b : set.range f) :
   hf.inv_of_mem_range (⟨f a, set.mem_range_self a⟩) = a :=
 hf (finset.choose_spec (λ a', f a' = f a) _ _).right
 
+lemma function.injective.inv_fun_restrict [nonempty α] :
+  (set.range f).restrict (inv_fun f) = hf.inv_of_mem_range :=
+begin
+  ext b,
+  rcases b with ⟨b, h⟩,
+  apply hf,
+  simp [hf.left_inv_of_inv_of_mem_range, @inv_fun_eq _ _ _ f b (set.mem_range.mp h)]
+end
+
 end injective
 
 section embedding
@@ -283,6 +292,15 @@ f.injective.left_inv_of_inv_of_mem_range b
 @[simp] lemma function.embedding.right_inv_of_inv_of_mem_range (a : α) :
   f.inv_of_mem_range ⟨f a, set.mem_range_self a⟩ = a :=
 f.injective.right_inv_of_inv_of_mem_range a
+
+lemma function.embedding.inv_fun_restrict [nonempty α] :
+  (set.range f).restrict (inv_fun f) = f.inv_of_mem_range :=
+begin
+  ext b,
+  rcases b with ⟨b, h⟩,
+  apply f.injective,
+  simp [f.left_inv_of_inv_of_mem_range, @inv_fun_eq _ _ _ f b (set.mem_range.mp h)]
+end
 
 end embedding
 

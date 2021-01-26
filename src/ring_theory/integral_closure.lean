@@ -494,7 +494,7 @@ lemma is_integral_quotient_map_iff {I : ideal S} :
     ((ideal.quotient.mk I).comp f : R →+* I.quotient).is_integral :=
 begin
   let g := ideal.quotient.mk (I.comap f),
-  have := @ideal.quotient_map_comp_mk R S _ _ _ I f le_rfl,
+  have := ideal.quotient_map_comp_mk le_rfl,
   refine ⟨λ h, _, λ h, ring_hom.is_integral_tower_top_of_is_integral g _ (this ▸ h)⟩,
   refine this ▸ ring_hom.is_integral_trans g (ideal.quotient_map I f le_rfl) _ h,
   exact ring_hom.is_integral_of_surjective g ideal.quotient.mk_surjective,

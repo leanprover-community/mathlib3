@@ -126,7 +126,8 @@ end
 
 /-- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the sum of `f x`, for some `x : fin (n + 1)` plus the remaining product -/
-theorem fin.sum_univ_succ_above [add_comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) (x : fin (n + 1)) :
+theorem fin.sum_univ_succ_above [add_comm_monoid β] {n : ℕ} (f : fin (n + 1) → β)
+  (x : fin (n + 1)) :
   ∑ i, f i = f x + ∑ i : fin n, f (x.succ_above i) :=
 by apply @fin.prod_univ_succ_above (multiplicative β)
 
@@ -196,7 +197,8 @@ by rw fintype.of_equiv_card; simp
 @[simp, to_additive]
 lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
   ∏ x in univ.attach, f x = ∏ x, f ⟨x, (mem_univ _)⟩ :=
-prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp) (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)
+prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp)
+  (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)
 
 /-- Taking a product over `univ.pi t` is the same as taking the product over `fintype.pi_finset t`.
   `univ.pi t` and `fintype.pi_finset t` are essentially the same `finset`, but differ

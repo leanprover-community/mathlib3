@@ -103,7 +103,8 @@ instance : has_scalar R (mv_polynomial σ R) := add_monoid_algebra.has_scalar
 instance : semimodule R (mv_polynomial σ R) := add_monoid_algebra.semimodule
 instance : algebra R (mv_polynomial σ R) := add_monoid_algebra.algebra
 
-/-- the coercion turning an `mv_polynomial` into the function which reports the coefficient of a given monomial -/
+/-- The coercion turning an `mv_polynomial` into the function which reports the coefficient
+of a given monomial. -/
 def coeff_coe_to_fun : has_coe_to_fun (mv_polynomial σ R) :=
 finsupp.has_coe_to_fun
 
@@ -166,7 +167,8 @@ instance infinite_of_infinite (σ : Type*) (R : Type*) [comm_semiring R] [infini
   infinite (mv_polynomial σ R) :=
 infinite.of_injective C (C_injective _ _)
 
-instance infinite_of_nonempty (σ : Type*) (R : Type*) [nonempty σ] [comm_semiring R] [nontrivial R] :
+instance infinite_of_nonempty (σ : Type*) (R : Type*) [nonempty σ] [comm_semiring R]
+  [nontrivial R] :
   infinite (mv_polynomial σ R) :=
 infinite.of_injective (λ i : ℕ, monomial (single (classical.arbitrary σ) i) 1)
 begin
@@ -516,8 +518,8 @@ end constant_coeff
 
 section as_sum
 
-@[simp]
-lemma support_sum_monomial_coeff (p : mv_polynomial σ R) : ∑ v in p.support, monomial v (coeff v p) = p :=
+@[simp] lemma support_sum_monomial_coeff (p : mv_polynomial σ R) :
+  ∑ v in p.support, monomial v (coeff v p) = p :=
 finsupp.sum_single p
 
 lemma as_sum (p : mv_polynomial σ R) : p = ∑ v in p.support, monomial v (coeff v p) :=
@@ -822,7 +824,7 @@ eval₂_map f g φ p
 coeff_map f φ 0
 
 lemma constant_coeff_comp_map (f : R →+* S₁) :
-  (constant_coeff : mv_polynomial σ S₁ →+* S₁).comp (mv_polynomial.map f) = f.comp (constant_coeff) :=
+  (constant_coeff : mv_polynomial σ S₁ →+* S₁).comp (mv_polynomial.map f) = f.comp constant_coeff :=
 by { ext; simp }
 
 lemma support_map_subset (p : mv_polynomial σ R) : (map f p).support ⊆ p.support :=

@@ -52,7 +52,7 @@ def shift (F : cochain_complex.{u u+1} (Module.{u u} R)) (i : ℤ) :
   d_squared' := by {ext m y,  exact shift_d_squared _ _ _ _ } }
 -/
 variables (R)
-
+#exit
 def smul_cx_X : ℤ → Module.{u u} R
 | 0 := Module.of R R
 | 1 := Module.of R R
@@ -163,14 +163,15 @@ begin
 end
 #check category_theory.iso
 
+#check tensor_product.rid
 def hom_aux (x : fin 2 → R) :=
 @direct_sum.to_module R _ ({ i : ℤ × ℤ // i.1 + i.2 = 0}) _
   (λ i, tensor_product R ((smul_cx R (x 1)).X i.1.1) ((smul_cx R (x 0)).X i.1.2)) _ _
      (Module.of R R) _ _ $ λ i,
-    subtype.cases_on i $ λ i', prod.cases_on i' $ λ i j hij,
+    subtype.cases_on i $ λ i', prod.cases_on i' $ λ i j,
     int.cases_on i (λ a, nat.rec_on a (int.cases_on j
-      (λ b, nat.rec_on b ((tensor_product.rid R R).to_linear_map)
-      (λ c, 0)) (λ b, 0)) (λ b, 0)) (λ a, 0)
+      (λ b, nat.rec_on b (λ hij, (tensor_product.rid R R).to_linear_map)
+      (λ c hij' hij, 0)) (λ b hij', 0)) (λ b hij' hij, 0)) (λ a hij, 0)
 
 
       #exit

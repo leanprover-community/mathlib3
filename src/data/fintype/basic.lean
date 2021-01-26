@@ -268,6 +268,9 @@ begin
   simp [hf.left_inv_of_inv_of_mem_range, @inv_fun_eq _ _ _ f b (set.mem_range.mp h)]
 end
 
+lemma function.injective.inv_of_mem_range_surjective : function.surjective hf.inv_of_mem_range :=
+λ a, ⟨⟨f a, set.mem_range_self a⟩, by simp⟩
+
 end injective
 
 section embedding
@@ -301,6 +304,9 @@ begin
   apply f.injective,
   simp [f.left_inv_of_inv_of_mem_range, @inv_fun_eq _ _ _ f b (set.mem_range.mp h)]
 end
+
+lemma function.embedding.inv_of_mem_range_surjective : function.surjective f.inv_of_mem_range :=
+λ a, ⟨⟨f a, set.mem_range_self a⟩, by simp⟩
 
 end embedding
 

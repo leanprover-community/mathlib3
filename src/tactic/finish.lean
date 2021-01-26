@@ -74,7 +74,7 @@ we replace the goal `p` with `∀ f, (p → f) → f` and introduce.
 theorem by_contradiction_trick (p : Prop) (h : ∀ f : Prop, (p → f) → f) : p :=
 h p id
 
-meta def preprocess_goal (cfg : auto_config) : tactic unit :=
+meta def preprocess_goal : tactic unit :=
 do repeat (intro1 >> skip),
    tgt ← target >>= whnf_reducible,
    if (¬ (is_false tgt)) then
@@ -263,7 +263,7 @@ meta def split_hyps : tactic unit := local_context >>= split_hyps_aux >>= guardb
 /-- Eagerly apply all the preprocessing rules -/
 meta def preprocess_hyps (cfg : auto_config) : tactic unit :=
 do repeat (intro1 >> skip),
-   preprocess_goal cfg,
+   preprocess_goal,
    normalize_hyps cfg,
    repeat (do_substs <|> split_hyps <|> eelim /-<|> self_simplify_hyps-/)
 

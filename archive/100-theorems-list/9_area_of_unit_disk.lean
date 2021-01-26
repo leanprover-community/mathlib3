@@ -37,7 +37,7 @@ begin
 end
 
 /-- The volume of the region between two measurable functions on a measurable set can be
-    respresented as a left integral. -/
+    respresented as a Lesbesgue integral. -/
 theorem volume_region_between_eq_lintegral
   (hf : measurable f) (hg : measurable g) (hs : is_measurable s) :
   μ.prod volume (region_between f g s) = ∫⁻ y in s, ennreal.of_real ((g - f) y) ∂μ :=
@@ -67,22 +67,15 @@ theorem volume_region_between_eq_integral
   (hfg : ∀ x ∈ s, f x ≤ g x) :
   μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
 begin
-  let u : α → nnreal := λ x, if h : x ∈ s then ⟨g x - f x, by linarith [hfg _ h]⟩ else 0,
-  have h : g - f =ᵐ[μ.restrict s] (λ x, ((u x):ℝ))
-        ∧ (λ y, ennreal.of_real ((g - f) y)) =ᵐ[μ.restrict s] (λ x, ((u x):ennreal)),
-  { split;
-    rw eventually_eq_iff_exists_mem;
-    use s;
-    simp only [measure.ae, mem_set_of_eq, filter.mem_mk, measure.restrict_apply hs.compl,
-              measure_empty, compl_inter_self, eq_self_iff_true, true_and];
-    intros x hx;
-    simp only [u, pi.sub_apply];
-    split_ifs,
-    { rw subtype.coe_mk },
-    { rw ennreal.of_real_eq_coe_nnreal } },
-  rw [volume_region_between_eq_lintegral, integral_congr_ae h.1, lintegral_congr_ae h.2,
-      lintegral_coe_eq_integral],
-  exacts [(integrable_congr h.1).mp (g_int.sub f_int), f_meas, g_meas, hs],
+  have h : g - f =ᵐ[μ.restrict s] λ y, (λ x, nnreal.of_real (g x - f x)) y,
+  { rw eventually_eq_iff_exists_mem,
+    use s,
+    simpa only [measure.ae, mem_set_of_eq, filter.mem_mk, measure.restrict_apply hs.compl,
+                measure_empty, compl_inter_self, eq_self_iff_true, true_and] using
+      λ x hx, (nnreal.coe_of_real _ (sub_nonneg.mpr (hfg x hx))).symm },
+  rw [volume_region_between_eq_lintegral, integral_congr_ae h, lintegral_congr_ae,
+      lintegral_coe_eq_integral _ ((integrable_congr h).mp (g_int.sub f_int))];
+  simpa only,
 end
 
 -- **FTC-2 stuff**
@@ -111,16 +104,6 @@ begin
   { rw [sqrt_eq_zero'.mpr h, div_zero] },
   { rw [div_eq_iff (sqrt_ne_zero h), mul_self_sqrt h.le] },
 end
-
-lemma add_sqr {a b : ℝ} : (a + b)^2 = a^2 + b^2 + 2 * a * b := by ring
-
-lemma sqr_add_le_of_nonneg {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) : a^2 + b^2 ≤ (a+b)^2 :=
-by simp only [add_sqr, add_mul, add_le_add_iff_right, ← pow_two, le_add_iff_nonneg_right,
-  mul_nonneg (mul_nonneg zero_le_two ha) hb]
-
-lemma sqr_add_le_of_nonpos {a b : ℝ} (ha : a ≤ 0) (hb : b ≤ 0) : a^2 + b^2 ≤ (a+b)^2 :=
-by simp only [add_sqr, add_mul, add_le_add_iff_right, ← pow_two, le_add_iff_nonneg_right,
-  mul_nonneg_of_nonpos_of_nonpos (mul_nonpos_of_nonneg_of_nonpos zero_le_two ha) hb]
 
 lemma sqr_abs {a : ℝ} : (abs a) ^ 2 = a ^ 2 :=
 by rw [← sqrt_sqr_eq_abs, sqr_sqrt (pow_two_nonneg a)]
@@ -268,7 +251,7 @@ begin
   simp only [and_true, mem_univ],
 end
 
-/-- The volume "under" a function can be respresented as a left integral -/
+/-- The volume "under" a function can be respresented as a Lesbesgue integral -/
 theorem volume_region_under_eq_lintegral (hg : measurable g) (hs : is_measurable s) :
   (μ.prod volume) (region_under g s) = ∫⁻ y in s, ennreal.of_real (g y) ∂μ :=
 begin
@@ -504,7 +487,7 @@ begin
 end
 
 
--- **Attempt III - via `region_under` and `region_between`, `integral` version**
+-- Attempt III - via `region_under` and `region_between`, `integral` version
 
 /-- The volume of the region between two functions can be respresented as an integral. -/
 theorem volume_region_between_eq_integral'

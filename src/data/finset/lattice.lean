@@ -606,6 +606,10 @@ lemma supr_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
   (⨆ x ∈ s.image f, g x) = (⨆ y ∈ s, g (f y)) :=
 by rw [← supr_coe, coe_image, supr_image, supr_coe]
 
+lemma sup_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
+  s.sup (g ∘ f) = (s.image f).sup g :=
+by { simp_rw [sup_eq_supr, comp_app], rw supr_finset_image, }
+
 lemma infi_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
   (⨅ x ∈ s.image f, g x) = (⨅ y ∈ s, g (f y)) :=
 by rw [← infi_coe, coe_image, infi_image, infi_coe]

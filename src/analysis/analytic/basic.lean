@@ -483,7 +483,7 @@ by simpa only [is_O_principal, mul_assoc, normed_field.norm_mul, norm_norm, prod
 `f y - f z - p 1 (λ _, y - z) = O(∥(y, z) - (x, x)∥ * ∥y - z∥)` as `(y, z) → (x, x)`.
 In particular, `f` is strictly differentiable at `x`. -/
 lemma has_fpower_series_at.is_O_image_sub_norm_mul_norm_sub (hf : has_fpower_series_at f p x) :
-  is_O (λ y : E × E, f (y.1) - f (y.2) - (p 1 (λ _, y.1 - y.2)))
+  is_O (λ y : E × E, f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2)))
     (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓝 (x, x)) :=
 begin
   rcases hf with ⟨r, hf⟩,

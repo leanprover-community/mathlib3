@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
 import algebra.pointwise
-import order.filter.basic
+import data.set.filter.basic
 /-!
 # Pointwise operations on filters.
 

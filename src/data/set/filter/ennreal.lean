@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 
 import data.real.ennreal
-import order.filter.countable_Inter
+import data.set.filter.countable_Inter
 import order.liminf_limsup
 
 /-!

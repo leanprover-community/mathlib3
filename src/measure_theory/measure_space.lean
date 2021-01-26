@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.outer_measure
-import order.filter.countable_Inter
+import data.set.filter.countable_Inter
 import data.set.accumulate
 
 /-!

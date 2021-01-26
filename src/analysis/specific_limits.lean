@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import algebra.geom_sum
-import order.filter.archimedean
+import data.set.filter.archimedean
 import order.iterate
 import topology.instances.ennreal
 import tactic.ring_exp

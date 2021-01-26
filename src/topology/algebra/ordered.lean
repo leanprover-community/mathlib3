@@ -15,7 +15,7 @@ import data.set.intervals.surj_on
 import data.set.intervals.pi
 import topology.algebra.group
 import topology.extend_from_subset
-import order.filter.interval
+import data.set.filter.interval
 
 /-!
 # Theory of topology on ordered spaces

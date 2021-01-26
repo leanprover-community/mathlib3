@@ -8,7 +8,7 @@ import data.set.countable
 import data.indicator_function
 import data.equiv.encodable.lattice
 import data.tprod
-import order.filter.lift
+import data.set.filter.lift
 
 /-!
 # Measurable spaces and measurable functions

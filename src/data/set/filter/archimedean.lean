@@ -3,7 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import order.filter.at_top_bot
+import data.set.filter.at_top_bot
 import algebra.archimedean
 
 /-!

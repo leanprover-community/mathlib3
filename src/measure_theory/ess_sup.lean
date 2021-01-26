@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import measure_theory.measure_space
-import order.filter.ennreal
+import data.set.filter.ennreal
 
 /-!
 # Essential supremum and infimum

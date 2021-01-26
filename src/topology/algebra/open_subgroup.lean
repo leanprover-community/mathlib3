@@ -3,7 +3,7 @@ Copyright (c) 2019 Johan Commelin All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import order.filter.lift
+import data.set.filter.lift
 import topology.opens
 import topology.algebra.ring
 

@@ -583,7 +583,7 @@ apply_nolint pell.x_sub_y_dvd_pow_lem unused_arguments
 apply_nolint pell.xz doc_blame
 apply_nolint pell.yz doc_blame
 
--- order/filter/partial.lean
+-- data/set/filter/partial.lean
 apply_nolint filter.pcomap' doc_blame
 apply_nolint filter.pmap doc_blame
 apply_nolint filter.ptendsto doc_blame

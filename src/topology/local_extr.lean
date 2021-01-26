@@ -3,7 +3,7 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import order.filter.extr
+import data.set.filter.extr
 import topology.continuous_on
 
 /-!
@@ -12,12 +12,12 @@ import topology.continuous_on
 ## Main definitions
 
 This file defines special versions of `is_*_filter f a l`, `*=min/max/extr`,
-from `order/filter/extr` for two kinds of filters: `nhds_within` and `nhds`.
+from `data/set/filter/extr` for two kinds of filters: `nhds_within` and `nhds`.
 These versions are called `is_local_*_on` and `is_local_*`, respectively.
 
 ## Main statements
 
-Many lemmas in this file restate those from `order/filter/extr`, and you can find
+Many lemmas in this file restate those from `data/set/filter/extr`, and you can find
 a detailed documentation there. These convenience lemmas are provided only to make the dot notation
 return propositions of expected types, not just `is_*_filter`.
 

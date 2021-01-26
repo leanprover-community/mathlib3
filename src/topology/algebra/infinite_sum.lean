@@ -8,7 +8,7 @@ import topology.instances.real
 import topology.algebra.module
 import data.indicator_function
 import data.equiv.encodable.lattice
-import order.filter.at_top_bot
+import data.set.filter.at_top_bot
 
 /-!
 # Infinite sum over a topological monoid

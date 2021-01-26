@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Zhouhang Zhou
 -/
 import measure_theory.integration
-import order.filter.germ
+import data.set.filter.germ
 
 /-!
 

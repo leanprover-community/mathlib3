@@ -205,7 +205,7 @@ by rw [chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂, ←sub_add, sub_
 
 variables {R S}
 
-lemma map_chebyshev₂ (f : R →+* S) :
+@[simp] lemma map_chebyshev₂ (f : R →+* S) :
   ∀ (n : ℕ), map f (chebyshev₂ R n) = chebyshev₂ S n
 | 0       := by simp only [chebyshev₂_zero, map_one]
 | 1       := begin simp only [chebyshev₂_one, map_X, map_mul, map_add, map_one],

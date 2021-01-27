@@ -36,7 +36,8 @@ match tgt with
 | some e := focus1 $ do
   e ← i_to_expr e <|> do {
     ty ← target,
-    e ← i_to_expr_strict ``(%%e : %%ty), -- for positional error messages, don't care about result
+    -- for positional error messages, we don't care about the result
+    e ← i_to_expr_strict ``(%%e : %%ty),
     pty ← pp ty, ptgt ← pp e,
     -- Fail deliberately, to advise regarding `simp; exact` usage
     fail ("simpa failed, 'using' expression type not directly " ++

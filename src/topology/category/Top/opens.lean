@@ -125,11 +125,11 @@ is_open.open_embedding_subtype_coe U.2
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
 def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
-{ obj := λ U, ⟨ f ⁻¹' U.val, f.continuous _ U.property ⟩,
+{ obj := λ U, ⟨ f ⁻¹' U.val, U.property.preimage f.continuous ⟩,
   map := λ U V i, ⟨ ⟨ λ a b, (le_of_hom i) b ⟩ ⟩ }.
 
-@[simp] lemma map_obj (f : X ⟶ Y) (U) (p) : (map f).obj ⟨U, p⟩ = ⟨f ⁻¹' U, f.continuous _ p⟩ :=
-rfl
+@[simp] lemma map_obj (f : X ⟶ Y) (U) (p) :
+  (map f).obj ⟨U, p⟩ = ⟨f ⁻¹' U, p.preimage f.continuous⟩ := rfl
 
 @[simp] lemma map_id_obj (U : opens X) : (map (𝟙 X)).obj U = U :=
 by { ext, refl } -- not quite `rfl`, since we don't have eta for records

@@ -52,7 +52,7 @@ Linear algebra:
     row-reduced matrices: ''
   Endomorphism polynomials:
     annihilating polynomials: ''
-    minimal polynomial: 'minimal_polynomial'
+    minimal polynomial: 'minpoly'
     characteristic polynomial: 'char_poly'
     Cayley-Hamilton theorem: 'aeval_self_char_poly'
   Structure theory of endomorphisms:
@@ -166,7 +166,7 @@ Ring Theory:
     Newton's identities:
     polynomial derivative: 'polynomial.derivative'
     decomposition into sums of homogeneous polynomials: 'mv_polynomial.sum_homogeneous_component'
-    symmetric polynomials:
+    symmetric polynomials: 'mv_polynomial.is_symmetric'
   Field Theory:
     fields: 'field'
     characteristic of a ring: 'ring_char'
@@ -212,8 +212,8 @@ Bilinear and Quadratic Forms Over a Vector Space:
     Gram-Schmidt orthogonalisation:
   Euclidean and Hermitian spaces:
     Euclidean vector spaces: 'inner_product_space'
-    Hermitian vector spaces:
-    dual isomorphism in the euclidean case:
+    Hermitian vector spaces: 'inner_product_space'
+    dual isomorphism in the euclidean case: 'inner_product_space.isometric.to_dual'
     orthogonal complement: 'submodule.orthogonal'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
     norm: 'inner_product_space.of_core.to_has_norm'
@@ -308,8 +308,8 @@ Single Variable Real Analysis:
     limits: 'filter.tendsto'
     intermediate value theorem: 'intermediate_value_Icc'
     image of a segment: 'real.image_Icc'
-    continuity of monotonic functions: 'continuous_of_strict_mono_surjective'
-    continuity of inverse functions: 'homeomorph_of_strict_mono_continuous'
+    continuity of monotonic functions: 'order_iso.continuous'
+    continuity of inverse functions: 'order_iso.to_homeomorph'
   Differentiability:
     derivative at a point: 'has_deriv_at'
     differentiable functions: 'has_deriv_at'
@@ -340,13 +340,12 @@ Single Variable Real Analysis:
     integral over a segment of piecewise continuous functions:
     antiderivatives:
     Riemann sums:
-    antiderivative of a continuous function:
+    antiderivative of a continuous function: 'interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right'
     change of variable:
-    integration by parts:
-    generalized integrals:
-    absolutely convergent integrals:
-    integration of asymptotic comparison relationships:
-    semi-convergent integrals:
+    integration by parts: 'interval_integral.integral_mul_deriv_eq_deriv_mul'
+    improper integrals:
+    absolute vs conditional convergence of improper integrals:
+    comparison test for improper integrals:
   Sequences and series of functions:
     pointwise convergence:
     uniform convergence: 'tendsto_uniformly'
@@ -383,8 +382,6 @@ Single Variable Complex Analysis:
     Cauchy formulas:
     analyticity of a holomorphic function:
     principle of isolated zeros:
-    Cauchy formulas:
-    analyticity of a holomorphic function:
     principle of analytic continuation:
     maximum principle:
     isolated singularities:
@@ -433,7 +430,7 @@ Topology:
     Hilbert projection theorem: 'exists_norm_eq_infi_of_complete_convex'
     orthogonal projection onto closed vector subspaces: 'orthogonal_projection_fn'
     dual space: 'normed_space.dual.inst'
-    Riesz representation theorem:
+    Riesz representation theorem: 'inner_product_space.to_dual'
     $l^2$ and $L^2$ cases:
     Hilbert (orthonormal) bases (in the separable case):
     Hilbert basis of trigonometric polynomials:
@@ -510,12 +507,13 @@ Measures and integral Calculus:
     finite dimensional vector-valued integrable functions: 'measure_theory.integrable'
     continuity of integrals with respect to parameters:
     differentiability of integrals with respect to parameters:
-    $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$:
+    $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$: 'measure_theory.Lp'
     Completeness of $\mathrm{L}^p$ spaces:
-    Holder's inequality:
+    Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'
     change of variables for multiple integrals:
-    integration by parts:
+    change of variables to polar co-ordinates:
+    change of variables to spherical co-ordinates:
     convolution:
     regularization and approximation by convolution:
   Fourier Analysis:

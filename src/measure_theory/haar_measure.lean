@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.content
-import measure_theory.group
+import measure_theory.prod_group
+
 /-!
 # Haar measure
 
@@ -26,6 +27,8 @@ formally using Tychonoff's theorem.
 This function `h` forms a content, which we can extend to an outer measure `μ`
 (`haar_outer_measure`), and obtain the Haar measure from that (`haar_measure`).
 We normalize the Haar measure so that the measure of `K₀` is `1`.
+We show that for second countable spaces any left invariant Borel measure is a scalar multiple of
+the Haar measure.
 
 Note that `μ` need not coincide with `h` on compact sets, according to
 [halmos1950measure, ch. X, §53 p.233]. However, we know that `h(K)` lies between `μ(Kᵒ)` and `μ(K)`,
@@ -334,8 +337,7 @@ lemma chaar_mono {K₀ : positive_compacts G} {K₁ K₂ : compacts G} (h : K₁
   chaar K₀ K₁ ≤ chaar K₀ K₂ :=
 begin
   let eval : (compacts G → ℝ) → ℝ := λ f, f K₂ - f K₁,
-  have : continuous eval := continuous_sub.comp
-    (continuous.prod_mk (continuous_apply K₂) (@continuous_apply _ (λ _, ℝ) _ K₁)),
+  have : continuous eval := (continuous_apply K₂).sub (continuous_apply K₁),
   rw [← sub_nonneg], show chaar K₀ ∈ eval ⁻¹' (Ici (0 : ℝ)),
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
@@ -348,10 +350,9 @@ lemma chaar_sup_le {K₀ : positive_compacts G} (K₁ K₂ : compacts G) :
   chaar K₀ (K₁ ⊔ K₂) ≤ chaar K₀ K₁ + chaar K₀ K₂ :=
 begin
   let eval : (compacts G → ℝ) → ℝ := λ f, f K₁ + f K₂ - f (K₁ ⊔ K₂),
-  have : continuous eval := continuous_sub.comp
-    (continuous.prod_mk (continuous_add.comp
-      (continuous.prod_mk (continuous_apply K₁) (@continuous_apply _ (λ _, ℝ) _ K₂)))
-      (@continuous_apply _ (λ _, ℝ) _(K₁ ⊔ K₂))),
+  have : continuous eval :=
+    ((@continuous_add ℝ _ _ _).comp ((continuous_apply K₁).prod_mk (continuous_apply K₂))).sub
+      (continuous_apply (K₁ ⊔ K₂)),
   rw [← sub_nonneg], show chaar K₀ ∈ eval ⁻¹' (Ici (0 : ℝ)),
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
@@ -369,14 +370,13 @@ begin
   rcases compact_open_separated_mul K₁.2 h1U₁ h2U₁ with ⟨V₁, h1V₁, h2V₁, h3V₁⟩,
   rcases compact_open_separated_mul K₂.2 h1U₂ h2U₂ with ⟨V₂, h1V₂, h2V₂, h3V₂⟩,
   let eval : (compacts G → ℝ) → ℝ := λ f, f K₁ + f K₂ - f (K₁ ⊔ K₂),
-  have : continuous eval := continuous_sub.comp
-    (continuous.prod_mk (continuous_add.comp
-      (continuous.prod_mk (continuous_apply K₁) (@continuous_apply _ (λ _, ℝ) _ K₂)))
-      (@continuous_apply _ (λ _, ℝ) _(K₁ ⊔ K₂))),
+  have : continuous eval :=
+    ((@continuous_add ℝ _ _ _).comp ((continuous_apply K₁).prod_mk (continuous_apply K₂))).sub
+      (continuous_apply (K₁ ⊔ K₂)),
   rw [eq_comm, ← sub_eq_zero], show chaar K₀ ∈ eval ⁻¹' {(0 : ℝ)},
   let V := V₁ ∩ V₂,
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀
-    ⟨V⁻¹, continuous_inv V (is_open_inter h1V₁ h1V₂),
+    ⟨V⁻¹, (is_open_inter h1V₁ h1V₂).preimage continuous_inv,
     by simp only [mem_inv, one_inv, h2V₁, h2V₂, V, mem_inter_eq, true_and]⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩,
@@ -395,8 +395,7 @@ lemma is_left_invariant_chaar {K₀ : positive_compacts G} (g : G) (K : compacts
   chaar K₀ (K.map _ $ continuous_mul_left g) = chaar K₀ K :=
 begin
   let eval : (compacts G → ℝ) → ℝ := λ f, f (K.map _ $ continuous_mul_left g) - f K,
-  have : continuous eval := continuous_sub.comp
-    (continuous.prod_mk (continuous_apply (K.map _ _)) (@continuous_apply _ (λ _, ℝ) _ K)),
+  have : continuous eval := (continuous_apply (K.map _ _)).sub (continuous_apply K),
   rw [← sub_eq_zero], show chaar K₀ ∈ eval ⁻¹' {(0 : ℝ)},
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
@@ -452,7 +451,7 @@ lemma haar_outer_measure_eq_infi (K₀ : positive_compacts G) (A : set G) :
 outer_measure.of_content_eq_infi echaar_sup_le A
 
 lemma echaar_le_haar_outer_measure {K₀ : positive_compacts G} (K : compacts G) :
-   echaar K₀ K ≤ haar_outer_measure K₀ K.1 :=
+  echaar K₀ K ≤ haar_outer_measure K₀ K.1 :=
 outer_measure.le_of_content_compacts echaar_sup_le K
 
 lemma haar_outer_measure_of_is_open {K₀ : positive_compacts G} (U : set G) (hU : is_open U) :
@@ -487,7 +486,7 @@ end
 
 lemma haar_outer_measure_pos_of_is_open {K₀ : positive_compacts G}
   {U : set G} (hU : is_open U) (h2U : U.nonempty) : 0 < haar_outer_measure K₀ U :=
-outer_measure.of_content_pos_of_is_open echaar_sup_le is_left_invariant_echaar
+outer_measure.of_content_pos_of_is_mul_left_invariant echaar_sup_le is_left_invariant_echaar
   ⟨K₀.1, K₀.2.1⟩ (by simp only [echaar_self, ennreal.zero_lt_one]) hU h2U
 
 lemma haar_outer_measure_self_pos {K₀ : positive_compacts G} :
@@ -541,22 +540,23 @@ def haar_measure (K₀ : positive_compacts G) : measure G :=
 
 lemma haar_measure_apply {K₀ : positive_compacts G} {s : set G} (hs : is_measurable s) :
   haar_measure K₀ s = haar_outer_measure K₀ s / haar_outer_measure K₀ K₀.1 :=
-by { simp only [haar_measure, hs, ennreal.div_def, mul_comm, to_measure_apply,
+by { simp only [haar_measure, hs, div_eq_mul_inv, mul_comm, to_measure_apply,
       algebra.id.smul_eq_mul, pi.smul_apply, measure.coe_smul] }
 
-lemma is_left_invariant_haar_measure (K₀ : positive_compacts G) :
-  is_left_invariant (haar_measure K₀) :=
+lemma is_mul_left_invariant_haar_measure (K₀ : positive_compacts G) :
+  is_mul_left_invariant (haar_measure K₀) :=
 begin
-  intros g A hA, rw [haar_measure_apply hA, haar_measure_apply (measurable_mul_left g hA)],
+  intros g A hA,
+  rw [haar_measure_apply hA, haar_measure_apply (measurable_mul_left g hA)],
   congr' 1,
-  exact outer_measure.is_left_invariant_of_content echaar_sup_le is_left_invariant_echaar g A
+  exact outer_measure.is_mul_left_invariant_of_content echaar_sup_le is_left_invariant_echaar g A
 end
 
 lemma haar_measure_self [locally_compact_space G] {K₀ : positive_compacts G} :
   haar_measure K₀ K₀.1 = 1 :=
 begin
   rw [haar_measure_apply K₀.2.1.is_measurable, ennreal.div_self],
-  { rw [← zero_lt_iff_ne_zero], exact haar_outer_measure_self_pos },
+  { rw [← pos_iff_ne_zero], exact haar_outer_measure_self_pos },
   { exact ne_of_lt (haar_outer_measure_lt_top_of_is_compact K₀.2.1) }
 end
 
@@ -565,7 +565,7 @@ lemma haar_measure_pos_of_is_open [locally_compact_space G] {K₀ : positive_com
 begin
   rw [haar_measure_apply hU.is_measurable, ennreal.div_pos_iff],
   refine ⟨_, ne_of_lt $ haar_outer_measure_lt_top_of_is_compact K₀.2.1⟩,
-  rw [← zero_lt_iff_ne_zero], apply haar_outer_measure_pos_of_is_open hU h2U
+  rw [← pos_iff_ne_zero], apply haar_outer_measure_pos_of_is_open hU h2U
 end
 
 lemma regular_haar_measure [locally_compact_space G] {K₀ : positive_compacts G} :
@@ -583,6 +583,35 @@ begin
     rw [to_measure_apply _ _ K.2.is_measurable], apply echaar_le_haar_outer_measure },
   { rw ennreal.inv_lt_top, apply haar_outer_measure_self_pos }
 end
+
+instance [locally_compact_space G] [separable_space G] (K₀ : positive_compacts G) :
+  sigma_finite (haar_measure K₀) :=
+regular_haar_measure.sigma_finite
+
+section unique
+
+variables [locally_compact_space G] [second_countable_topology G] {μ : measure G} [sigma_finite μ]
+
+/-- The Haar measure is unique up to scaling. More precisely: every σ-finite left invariant measure
+  is a scalar multiple of the Haar measure. -/
+theorem haar_measure_unique (hμ : is_mul_left_invariant μ)
+  (K₀ : positive_compacts G) : μ = μ K₀.1 • haar_measure K₀ :=
+begin
+  ext1 s hs,
+  have := measure_mul_measure_eq hμ (is_mul_left_invariant_haar_measure K₀)
+    regular_haar_measure K₀.2.1 hs,
+  rw [haar_measure_self, one_mul] at this,
+  rw [← this (by norm_num), smul_apply],
+end
+
+theorem regular_of_left_invariant (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
+  (h2K : (interior K).nonempty) (hμK : μ K < ⊤) : regular μ :=
+begin
+  rw [haar_measure_unique hμ ⟨K, hK, h2K⟩],
+  exact regular.smul regular_haar_measure hμK
+end
+
+end unique
 
 end measure
 end measure_theory

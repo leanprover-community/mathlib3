@@ -31,7 +31,7 @@ uniformly continuous.
 
 ## Implementation notes
 
-The parameter `K` has type `nnreal`. This way we avoid conjuction in the definition and have
+The parameter `K` has type `ℝ≥0`. This way we avoid conjuction in the definition and have
 coercions both to `ℝ` and `ennreal`. Constructors whose names end with `'` take `K : ℝ` as an
 argument, and return `lipschitz_with (nnreal.of_real K) f`.
 -/
@@ -99,7 +99,7 @@ begin
   have := h x y,
   rw [mul_comm] at this,
   replace := ennreal.div_le_of_le_mul this,
-  rwa [ennreal.div_def, mul_comm] at this
+  rwa [div_eq_mul_inv, mul_comm] at this
 end
 
 protected lemma of_edist_le (h : ∀ x y, edist (f x) (f y) ≤ edist x y) :

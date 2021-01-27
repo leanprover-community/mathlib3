@@ -24,6 +24,10 @@ monoid_hom.mk'
 
 @[simp, to_additive] lemma coe_map (f : M →* N) (x : units M) : ↑(map f x) = f x := rfl
 
+@[simp, to_additive] lemma coe_map_inv (f : M →* N) (u : units M) :
+  ↑(map f u)⁻¹ = f ↑u⁻¹ :=
+rfl
+
 @[simp, to_additive]
 lemma map_comp (f : M →* N) (g : N →* P) : map (g.comp f) = (map g).comp (map f) := rfl
 

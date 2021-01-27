@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 Hahn decomposition theorem
 
 TODO:
-* introduce finite measures (into nnreal)
+* introduce finite measures (into ℝ≥0)
 * show general for signed measures (into ℝ)
 -/
 import measure_theory.measure_space

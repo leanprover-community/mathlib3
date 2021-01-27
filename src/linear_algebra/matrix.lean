@@ -451,7 +451,7 @@ lemma is_basis.iff_det {v : ι → M} : is_basis R v ↔ is_unit (he.det v) :=
 begin
   split,
   { intro hv,
-    suffices : is_unit (linear_map.to_matrix he he (equiv_of_is_basis he hv $ equiv.refl ι)).det,
+    suffices : is_unit (linear_map.to_matrix he he (linear_equiv_of_is_basis he hv $ equiv.refl ι)).det,
     { rw [is_basis.det_apply, is_basis.to_matrix_eq_to_matrix_constr],
       exact this },
     apply linear_equiv.is_unit_det },
@@ -621,7 +621,7 @@ begin
   simp only [comap_infi, (ker_comp _ _).symm, proj_diagonal, ker_smul'],
   have : univ ⊆ {i : m | w i = 0} ∪ {i : m | w i = 0}ᶜ, { rw set.union_compl_self },
   exact (supr_range_std_basis_eq_infi_ker_proj K (λi:m, K)
-    (disjoint_compl_right {i | w i = 0}) this (finite.of_fintype _)).symm
+    disjoint_compl_right this (finite.of_fintype _)).symm
 end
 
 lemma range_diagonal [decidable_eq m] (w : m → K) :
@@ -637,7 +637,7 @@ lemma rank_diagonal [decidable_eq m] [decidable_eq K] (w : m → K) :
   rank (diagonal w).to_lin' = fintype.card { i // w i ≠ 0 } :=
 begin
   have hu : univ ⊆ {i : m | w i = 0}ᶜ ∪ {i : m | w i = 0}, { rw set.compl_union_self },
-  have hd : disjoint {i : m | w i ≠ 0} {i : m | w i = 0} := (disjoint_compl_right {i | w i = 0}).symm,
+  have hd : disjoint {i : m | w i ≠ 0} {i : m | w i = 0} := disjoint_compl_left,
   have h₁ := supr_range_std_basis_eq_infi_ker_proj K (λi:m, K) hd hu (finite.of_fintype _),
   have h₂ := @infi_ker_proj_equiv K _ _ (λi:m, K) _ _ _ _ (by simp; apply_instance) hd hu,
   rw [rank, range_diagonal, h₁, ←@dim_fun' K],
@@ -936,3 +936,39 @@ def alg_equiv_matrix {R : Type v} {M : Type w} {n : Type*} [fintype n]
   [comm_ring R] [add_comm_group M] [module R M] [decidable_eq n] {b : n → M} (h : is_basis R b) :
   module.End R M ≃ₐ[R] matrix n n R :=
 h.equiv_fun.alg_conj.trans alg_equiv_matrix'
+
+section
+
+variables {R : Type v} [semiring R] {n : Type w} [fintype n]
+
+@[simp] lemma matrix.dot_product_std_basis_eq_mul [decidable_eq n] (v : n → R) (c : R) (i : n) :
+  matrix.dot_product v (linear_map.std_basis R (λ _, R) i c) = v i * c :=
+begin
+  rw [matrix.dot_product, finset.sum_eq_single i, linear_map.std_basis_same],
+  exact λ _ _ hb, by rw [linear_map.std_basis_ne _ _ _ _ hb, mul_zero],
+  exact λ hi, false.elim (hi $ finset.mem_univ _)
+end
+
+@[simp] lemma matrix.dot_product_std_basis_one [decidable_eq n] (v : n → R) (i : n) :
+  matrix.dot_product v (linear_map.std_basis R (λ _, R) i 1) = v i :=
+by rw [matrix.dot_product_std_basis_eq_mul, mul_one]
+
+lemma matrix.dot_product_eq
+  (v w : n → R) (h : ∀ u, matrix.dot_product v u = matrix.dot_product w u) : v = w :=
+begin
+  funext x,
+  classical,
+  rw [← matrix.dot_product_std_basis_one v x, ← matrix.dot_product_std_basis_one w x, h],
+end
+
+lemma matrix.dot_product_eq_iff {v w : n → R} :
+  (∀ u, matrix.dot_product v u = matrix.dot_product w u) ↔ v = w :=
+⟨λ h, matrix.dot_product_eq v w h, λ h _, h ▸ rfl⟩
+
+lemma matrix.dot_product_eq_zero (v : n → R) (h : ∀ w, matrix.dot_product v w = 0) : v = 0 :=
+matrix.dot_product_eq _ _ $ λ u, (h u).symm ▸ (zero_dot_product u).symm
+
+lemma matrix.dot_product_eq_zero_iff {v : n → R} : (∀ w, matrix.dot_product v w = 0) ↔ v = 0 :=
+⟨λ h, matrix.dot_product_eq_zero v h, λ h w, h.symm ▸ zero_dot_product w⟩
+
+end

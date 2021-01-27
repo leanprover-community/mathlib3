@@ -8,6 +8,7 @@ import ring_theory.int.basic
 import algebra.group_with_zero.power
 import tactic.ring
 import tactic.ring_exp
+import tactic.field_simp
 
 /-!
 # Pythagorean Triples
@@ -161,7 +162,7 @@ begin
   obtain ⟨k, x0, y0, k0, h2, rfl, rfl⟩ :
     ∃ (k : ℕ) x0 y0, 0 < k ∧ int.gcd x0 y0 = 1 ∧ x = x0 * k ∧ y = y0 * k :=
     int.exists_gcd_one' (nat.pos_of_ne_zero h0),
-  have hk : (k : ℤ) ≠ 0, { norm_cast, rwa nat.pos_iff_ne_zero at k0 },
+  have hk : (k : ℤ) ≠ 0, { norm_cast, rwa pos_iff_ne_zero at k0 },
   rw [int.gcd_mul_right, h2, int.nat_abs_of_nat, one_mul] at h ⊢,
   rw [mul_comm x0, mul_comm y0, mul_iff k hk] at h,
   rwa [int.mul_div_cancel _ hk, int.mul_div_cancel _ hk, int.mul_div_cancel_left _ hk],
@@ -247,7 +248,7 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
   begin
     have h2 : (1 + 1 : K) = 2 := rfl,
     have h3 : (2 : K) ≠ 0, { convert hk 1, rw [one_pow 2, h2] },
-    field_simp [hk x, h2, h3, add_assoc, add_comm, add_sub_cancel'_right, mul_comm],
+    field_simp [hk x, h2, add_assoc, add_comm, add_sub_cancel'_right, mul_comm],
   end,
   right_inv := λ ⟨⟨x, y⟩, hxy, hy⟩,
   begin
@@ -258,8 +259,8 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
     have h4 : (2 : K) ≠ 0, { convert hk 1, rw one_pow 2, refl },
     simp only [prod.mk.inj_iff, subtype.mk_eq_mk],
     split,
-    { field_simp [h2, h3, h4], ring },
-    { field_simp [h2, h3, h4], rw [← add_neg_eq_iff_eq_add.mpr hxy.symm], ring }
+    { field_simp [h3], ring },
+    { field_simp [h3], rw [← add_neg_eq_iff_eq_add.mpr hxy.symm], ring }
   end }
 
 @[simp] lemma circle_equiv_apply (hk : ∀ x : K, 1 + x^2 ≠ 0) (x : K) :

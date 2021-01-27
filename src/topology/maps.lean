@@ -191,6 +191,12 @@ by rw [continuous_iff_coinduced_le, continuous_iff_coinduced_le, hf.right, coind
 protected lemma continuous {f : α → β} (hf : quotient_map f) : continuous f :=
 hf.continuous_iff.mp continuous_id
 
+protected lemma surjective {f : α → β} (hf : quotient_map f) : function.surjective f := hf.1
+
+protected lemma is_open_preimage {f : α → β} (hf : quotient_map f) {s : set β} :
+  is_open (f ⁻¹' s) ↔ is_open s :=
+((quotient_map_iff.1 hf).2 s).symm
+
 end quotient_map
 
 /-- A map `f : α → β` is said to be an *open map*, if the image of any open `U : set α`
@@ -199,7 +205,7 @@ def is_open_map [topological_space α] [topological_space β] (f : α → β) :=
 ∀ U : set α, is_open U → is_open (f '' U)
 
 namespace is_open_map
-variables [topological_space α] [topological_space β] [topological_space γ]
+variables [topological_space α] [topological_space β] [topological_space γ] {f : α → β}
 open function
 
 protected lemma id : is_open_map (@id α) := assume s hs, by rwa [image_id]
@@ -208,24 +214,27 @@ protected lemma comp
   {g : β → γ} {f : α → β} (hg : is_open_map g) (hf : is_open_map f) : is_open_map (g ∘ f) :=
 by intros s hs; rw [image_comp]; exact hg _ (hf _ hs)
 
-lemma is_open_range {f : α → β} (hf : is_open_map f) : is_open (range f) :=
+lemma is_open_range (hf : is_open_map f) : is_open (range f) :=
 by { rw ← image_univ, exact hf _ is_open_univ }
 
-lemma image_mem_nhds {f : α → β} (hf : is_open_map f) {x : α} {s : set α} (hx : s ∈ 𝓝 x) :
+lemma image_mem_nhds (hf : is_open_map f) {x : α} {s : set α} (hx : s ∈ 𝓝 x) :
   f '' s ∈ 𝓝 (f x) :=
 let ⟨t, hts, ht, hxt⟩ := mem_nhds_sets_iff.1 hx in
 mem_sets_of_superset (mem_nhds_sets (hf t ht) (mem_image_of_mem _ hxt)) (image_subset _ hts)
 
-lemma nhds_le {f : α → β} (hf : is_open_map f) (a : α) : 𝓝 (f a) ≤ (𝓝 a).map f :=
+lemma nhds_le (hf : is_open_map f) (a : α) : 𝓝 (f a) ≤ (𝓝 a).map f :=
 le_map $ λ s, hf.image_mem_nhds
+
+lemma of_nhds_le (hf : ∀ a, 𝓝 (f a) ≤ map f (𝓝 a)) : is_open_map f :=
+λ s hs, is_open_iff_mem_nhds.2 $ λ b ⟨a, has, hab⟩,
+  hab ▸ hf _ (image_mem_map $ mem_nhds_sets hs has)
 
 lemma of_inverse {f : α → β} {f' : β → α}
   (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
   is_open_map f :=
 begin
   assume s hs,
-  have : f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
-  rw ← this,
+  rw [image_eq_preimage_of_inverse r_inv l_inv],
   exact hs.preimage h
 end
 
@@ -239,7 +248,7 @@ lemma to_quotient_map {f : α → β}
     split,
     { exact continuous_def.1 cont s },
     { assume h,
-      rw ← @image_preimage_eq _ _ _ s surj,
+      rw ← surj.image_preimage s,
       exact open_map _ h }
   end⟩
 
@@ -247,15 +256,13 @@ end is_open_map
 
 lemma is_open_map_iff_nhds_le [topological_space α] [topological_space β] {f : α → β} :
   is_open_map f ↔ ∀(a:α), 𝓝 (f a) ≤ (𝓝 a).map f :=
-begin
-  refine ⟨λ hf, hf.nhds_le, λ h s hs, is_open_iff_mem_nhds.2 _⟩,
-  rintros b ⟨a, ha, rfl⟩,
-  exact h _ (filter.image_mem_map $ mem_nhds_sets hs ha)
-end
+⟨λ hf, hf.nhds_le, is_open_map.of_nhds_le⟩
 
 section is_closed_map
 variables [topological_space α] [topological_space β]
 
+/-- A map `f : α → β` is said to be a *closed map*, if the image of any closed `U : set α`
+is closed in `β`. -/
 def is_closed_map (f : α → β) := ∀ U : set α, is_closed U → is_closed (f '' U)
 
 end is_closed_map

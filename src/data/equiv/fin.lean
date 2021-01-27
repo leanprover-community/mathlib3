@@ -46,6 +46,18 @@ def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
     0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x,
   by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _]⟩
 
+@[simp] lemma fin_succ_equiv_zero {n : ℕ} :
+  (fin_succ_equiv n) 0 = none := rfl
+
+@[simp] lemma fin_succ_equiv_succ {n : ℕ} (m : fin n):
+  (fin_succ_equiv n) m.succ = some m := by simp [fin_succ_equiv]
+
+@[simp] lemma fin_succ_equiv_symm_none {n : ℕ} :
+  (fin_succ_equiv n).symm none = 0 := rfl
+
+@[simp] lemma fin_succ_equiv_symm_some {n : ℕ} (m : fin n) :
+  (fin_succ_equiv n).symm (some m) = m.succ := rfl
+
 /-- An equivalence that removes `i` and maps it to `none`.
 This is a version of `fin.pred_above` that produces `option (fin n)` instead of
 requiring a proof that the input is not `i`. -/

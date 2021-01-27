@@ -165,7 +165,7 @@ lemma is_closed_union : is_closed s₁ → is_closed s₂ → is_closed (s₁ �
 λ h₁ h₂, by unfold is_closed; rw compl_union; exact is_open_inter h₁ h₂
 
 lemma is_closed_sInter {s : set (set α)} : (∀t ∈ s, is_closed t) → is_closed (⋂₀ s) :=
-by simp only [is_closed, compl_sInter, sUnion_image]; exact assume h, is_open_Union $ assume t, is_open_Union $ assume ht, h t ht
+by simpa only [is_closed, compl_sInter, sUnion_image] using is_open_bUnion
 
 lemma is_closed_Inter {f : ι → set α} (h : ∀i, is_closed (f i)) : is_closed (⋂i, f i ) :=
 is_closed_sInter $ assume t ⟨i, (heq : f i = t)⟩, heq ▸ h i
@@ -254,9 +254,11 @@ is_open_interior.interior_eq
 @[simp] lemma interior_inter {s t : set α} : interior (s ∩ t) = interior s ∩ interior t :=
 subset.antisymm
   (subset_inter (interior_mono $ inter_subset_left s t) (interior_mono $ inter_subset_right s t))
-  (interior_maximal (inter_subset_inter interior_subset interior_subset) $ is_open_inter is_open_interior is_open_interior)
+  (interior_maximal (inter_subset_inter interior_subset interior_subset) $
+    is_open_inter is_open_interior is_open_interior)
 
-lemma interior_union_is_closed_of_interior_empty {s t : set α} (h₁ : is_closed s) (h₂ : interior t = ∅) :
+lemma interior_union_is_closed_of_interior_empty {s t : set α} (h₁ : is_closed s)
+  (h₂ : interior t = ∅) :
   interior (s ∪ t) = interior s :=
 have interior (s ∪ t) ⊆ s, from
   assume x ⟨u, ⟨(hu₁ : is_open u), (hu₂ : u ⊆ s ∪ t)⟩, (hx₁ : x ∈ u)⟩,
@@ -301,7 +303,7 @@ lemma is_closed.closure_subset_iff {s t : set α} (h₁ : is_closed t) :
   closure s ⊆ t ↔ s ⊆ t :=
 ⟨subset.trans subset_closure, assume h, closure_minimal h h₁⟩
 
-lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
+@[mono] lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_minimal (subset.trans h subset_closure) is_closed_closure
 
 lemma monotone_closure (α : Type*) [topological_space α] : monotone (@closure α _) :=
@@ -338,7 +340,8 @@ is_closed_closure.closure_eq
 
 @[simp] lemma closure_union {s t : set α} : closure (s ∪ t) = closure s ∪ closure t :=
 subset.antisymm
-  (closure_minimal (union_subset_union subset_closure subset_closure) $ is_closed_union is_closed_closure is_closed_closure)
+  (closure_minimal (union_subset_union subset_closure subset_closure) $
+    is_closed_union is_closed_closure is_closed_closure)
   ((monotone_closure α).le_map_sup s t)
 
 lemma interior_subset_closure {s : set α} : interior s ⊆ closure s :=
@@ -673,6 +676,9 @@ lemma cluster_pt.of_inf_right {x : α} {f g : filter α} (H : cluster_pt x $ f �
   cluster_pt x g :=
 H.mono inf_le_right
 
+lemma ultrafilter.cluster_pt_iff {x : α} {f : ultrafilter α} : cluster_pt x f ↔ ↑f ≤ 𝓝 x :=
+⟨f.le_of_inf_ne_bot', λ h, cluster_pt.of_le_nhds h⟩
+
 /-- A point `x` is a cluster point of a sequence `u` along a filter `F` if it is a cluster point
 of `map u F`. -/
 def map_cluster_pt {ι :Type*} (x : α) (F : filter ι) (u : ι → α) : Prop := cluster_pt x (map u F)
@@ -726,8 +732,8 @@ lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ ∀a∈s, s ∈ 𝓝 a :
 is_open_iff_nhds.trans $ forall_congr $ λ _, imp_congr_right $ λ _, le_principal_iff
 
 theorem is_open_iff_ultrafilter {s : set α} :
-  is_open s ↔ (∀ (x ∈ s) (l : filter α), is_ultrafilter l → l ≤ 𝓝 x → s ∈ l) :=
-by simp_rw [is_open_iff_mem_nhds, @mem_iff_ultrafilter _ (𝓝 _)]
+  is_open s ↔ (∀ (x ∈ s) (l : ultrafilter α), ↑l ≤ 𝓝 x → s ∈ l) :=
+by simp_rw [is_open_iff_mem_nhds, ← mem_iff_ultrafilter]
 
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
@@ -773,12 +779,8 @@ mem_closure_iff_nhds.trans
 /-- `x` belongs to the closure of `s` if and only if some ultrafilter
   supported on `s` converges to `x`. -/
 lemma mem_closure_iff_ultrafilter {s : set α} {x : α} :
-  x ∈ closure s ↔ ∃ (u : ultrafilter α), s ∈ u.val ∧ u.val ≤ 𝓝 x :=
-begin
-  rw closure_eq_cluster_pts, change cluster_pt x (𝓟 s) ↔ _, symmetry,
-  convert exists_ultrafilter_iff _, ext u,
-  rw [←le_principal_iff, inf_comm, le_inf_iff]
-end
+  x ∈ closure s ↔ ∃ (u : ultrafilter α), s ∈ u ∧ ↑u ≤ 𝓝 x :=
+by simp [closure_eq_cluster_pts, cluster_pt, ← exists_ultrafilter_iff, and.comm]
 
 lemma is_closed_iff_cluster_pt {s : set α} : is_closed s ↔ ∀a, cluster_pt a (𝓟 s) → a ∈ s :=
 calc is_closed s ↔ closure s ⊆ s : closure_subset_iff_is_closed.symm
@@ -807,6 +809,11 @@ lemma dense.inter_of_open_left {s t : set α} (hs : dense s) (ht : dense t) (hso
 lemma dense.inter_of_open_right {s t : set α} (hs : dense s) (ht : dense t) (hto : is_open t) :
   dense (s ∩ t) :=
 inter_comm t s ▸ ht.inter_of_open_left hs hto
+
+lemma dense.inter_nhds_nonempty {s t : set α} (hs : dense s) {x : α} (ht : t ∈ 𝓝 x) :
+  (s ∩ t).nonempty :=
+let ⟨U, hsub, ho, hx⟩ := mem_nhds_sets_iff.1 ht in
+  (hs.inter_open_nonempty U ho ⟨x, hx⟩).mono $ λ y hy, ⟨hy.2, hsub hy.1⟩
 
 lemma closure_diff {s t : set α} : closure s \ closure t ⊆ closure (s \ t) :=
 calc closure s \ closure t = (closure t)ᶜ ∩ closure s : by simp only [diff_eq, inter_comm]
@@ -862,12 +869,11 @@ If `f` is a filter satisfying `ne_bot f`, then `Lim' f` is a limit of the filter
 -/
 def Lim' (f : filter α) [ne_bot f] : α := @Lim _ _ (nonempty_of_ne_bot f) f
 
--- Note: `ultrafilter` is inside the `filter` namespace.
 /--
 If `F` is an ultrafilter, then `filter.ultrafilter.Lim F` is a limit of the filter, if it exists.
 Note that dot notation `F.Lim` can be used for `F : ultrafilter α`.
 -/
-def filter.ultrafilter.Lim : ultrafilter α → α := λ F, Lim' F.1
+def ultrafilter.Lim : ultrafilter α → α := λ F, Lim' F
 
 /-- If `f` is a filter in `β` and `g : β → α` is a function, then `lim f` is a limit of `g` at `f`,
 if it exists. -/
@@ -921,13 +927,7 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
     by simp only [mem_nhds_sets_iff]; exact assume i, ⟨(f i)ᶜ, subset.refl _, h₂ i, this i⟩,
   let ⟨t, h_sets, (h_fin : finite {i | (f i ∩ t).nonempty })⟩ := h₁ a in
 
-  calc 𝓝 a ≤ 𝓟 (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, (f i)ᶜ)) :
-  begin
-    rw [le_principal_iff],
-    apply @filter.inter_mem_sets _ (𝓝 a) _ _ h_sets,
-    apply @filter.Inter_mem_sets _ (𝓝 a) _ _ _ h_fin,
-    exact assume i h, this i
-  end
+  calc 𝓝 a ≤ 𝓟 (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, (f i)ᶜ)) : by simp *
   ... ≤ 𝓟 (⋃i, f i)ᶜ :
   begin
     simp only [principal_mono, subset_def, mem_compl_eq, mem_inter_eq,
@@ -1002,6 +1002,12 @@ lemma continuous.tendsto {f : α → β} (hf : continuous f) (x) :
 ((nhds_basis_opens x).tendsto_iff $ nhds_basis_opens $ f x).2 $
   λ t ⟨hxt, ht⟩, ⟨f ⁻¹' t, ⟨hxt, ht.preimage hf⟩, subset.refl _⟩
 
+/-- A version of `continuous.tendsto` that allows one to specify a simpler form of the limit.
+E.g., one can write `continuous_exp.tendsto' 0 1 exp_zero`. -/
+lemma continuous.tendsto' {f : α → β} (hf : continuous f) (x : α) (y : β) (h : f x = y) :
+  tendsto f (𝓝 x) (𝓝 y) :=
+h ▸ hf.tendsto x
+
 lemma continuous.continuous_at {f : α → β} {x : α} (h : continuous f) :
   continuous_at f x :=
 h.tendsto x
@@ -1016,11 +1022,11 @@ lemma continuous_iff_continuous_at {f : α → β} : continuous f ↔ ∀ x, con
   show is_open (f ⁻¹' s),
     from is_open_iff_nhds.2 $ λ a ha, le_principal_iff.2 $ hf _ (this a ha)⟩
 
-lemma continuous_const {b : β} : continuous (λa:α, b) :=
-continuous_iff_continuous_at.mpr $ assume a, tendsto_const_nhds
-
 lemma continuous_at_const {x : α} {b : β} : continuous_at (λ a:α, b) x :=
-continuous_const.continuous_at
+tendsto_const_nhds
+
+lemma continuous_const {b : β} : continuous (λa:α, b) :=
+continuous_iff_continuous_at.mpr $ assume a, continuous_at_const
 
 lemma continuous_at_id {x : α} : continuous_at id x :=
 continuous_id.continuous_at
@@ -1041,12 +1047,12 @@ lemma is_closed.preimage {f : α → β} (hf : continuous f) {s : set β} (h : i
   is_closed (f ⁻¹' s) :=
 continuous_iff_is_closed.mp hf s h
 
-lemma continuous_at_iff_ultrafilter {f : α → β} (x) : continuous_at f x ↔
-  ∀ g, is_ultrafilter g → g ≤ 𝓝 x → g.map f ≤ 𝓝 (f x) :=
+lemma continuous_at_iff_ultrafilter {f : α → β} {x} : continuous_at f x ↔
+  ∀ g : ultrafilter α, ↑g ≤ 𝓝 x → tendsto f g (𝓝 (f x)) :=
 tendsto_iff_ultrafilter f (𝓝 x) (𝓝 (f x))
 
 lemma continuous_iff_ultrafilter {f : α → β} :
-  continuous f ↔ ∀ x g, is_ultrafilter g → g ≤ 𝓝 x → g.map f ≤ 𝓝 (f x) :=
+  continuous f ↔ ∀ x (g : ultrafilter α), ↑g ≤ 𝓝 x → tendsto f g (𝓝 (f x)) :=
 by simp only [continuous_iff_continuous_at, continuous_at_iff_ultrafilter]
 
 /-- A piecewise defined function `if p then f else g` is continuous, if both `f` and `g`
@@ -1086,7 +1092,7 @@ by rw [this]; exact is_closed_union
   (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hg s hs)
 
 
-/- Continuity and partial functions -/
+/-! ### Continuity and partial functions -/
 
 /-- Continuity of a partial function -/
 def pcontinuous (f : α →. β) := ∀ s, is_open s → is_open (f.preimage s)

@@ -318,4 +318,17 @@ let ⟨T, cT, hT⟩ := is_open_Union_countable (λ s:S, s.1) (λ s, H s.1 s.2) i
   image_subset_iff.2 $ λ ⟨x, xs⟩ xt, xs,
   by rwa [sUnion_image, sUnion_eq_Union]⟩
 
+/-- In a topological space with second countable topology, if `f` is a function that sends each
+point `x` to a neighborhood of `x`, then for some countable set `s`, the neighborhoods `f x`,
+`x ∈ s`, cover the whole space. -/
+lemma countable_cover_nhds [second_countable_topology α] {f : α → set α}
+  (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
+begin
+  rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open_interior) with ⟨s, hsc, hsU⟩,
+  suffices : (⋃ x ∈ s, interior (f x)) = univ,
+    from ⟨s, hsc, flip eq_univ_of_subset this (bUnion_mono $ λ _ _, interior_subset)⟩,
+  simp only [hsU, eq_univ_iff_forall, mem_Union],
+  exact λ x, ⟨x, mem_interior_iff_mem_nhds.2 (hf x)⟩
+end
+
 end topological_space

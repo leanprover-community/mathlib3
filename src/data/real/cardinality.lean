@@ -86,7 +86,7 @@ lemma cantor_function_succ (f : ℕ → bool) (h1 : 0 ≤ c) (h2 : c < 1) :
   cantor_function c f = cond (f 0) 1 0 + c * cantor_function c (λ n, f (n+1)) :=
 begin
   rw [cantor_function, tsum_eq_zero_add (summable_cantor_function f h1 h2)],
-  rw [cantor_function_aux_succ, tsum_mul_left _ (summable_cantor_function _ h1 h2)], refl
+  rw [cantor_function_aux_succ, tsum_mul_left], refl
 end
 
 /-- `cantor_function c` is strictly increasing with if `0 < c < 1/2`, if we endow `ℕ → bool` with a
@@ -165,7 +165,7 @@ begin
   { convert Iic_union_Ioi, exact Iio_union_right },
   rw ← hu,
   refine lt_of_le_of_lt (mk_union_le _ _) _,
-  refine lt_of_le_of_lt (add_le_add_right _ (mk_union_le _ _)) _,
+  refine lt_of_le_of_lt (add_le_add_right (mk_union_le _ _) _) _,
   have h2 : (λ x, a + a - x) '' Ioi a = Iio a,
   { convert image_const_sub_Ioi _ _, simp },
   rw ← h2,

@@ -62,10 +62,10 @@ rfl
 end Profinite
 
 /-- The fully faithful embedding of `Profinite` in `Top`. -/
-@[simps {rhs_md := semireducible}, derive [full, faithful]]
+@[simps, derive [full, faithful]]
 def Profinite_to_Top : Profinite ⥤ Top := induced_functor _
 
-/-- The fully faithful embedding of `Profinite` in `Top`. -/
+/-- The fully faithful embedding of `Profinite` in `CompHaus`. -/
 @[simps] def Profinite_to_CompHaus : Profinite ⥤ CompHaus :=
 { obj := λ X, { to_Top := X.to_Top },
   map := λ _ _ f, f }

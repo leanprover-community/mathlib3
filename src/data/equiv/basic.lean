@@ -1948,7 +1948,7 @@ namespace function
 lemma update_comp_equiv {α β α' : Sort*} [decidable_eq α'] [decidable_eq α] (f : α → β) (g : α' ≃ α)
   (a : α) (v : β) :
   update f a v ∘ g = update (f ∘ g) (g.symm a) v :=
-by rw [←update_comp _ g.injective, g.apply_symm_apply]
+by rw [← update_comp_eq_of_injective _ g.injective, g.apply_symm_apply]
 
 lemma update_apply_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable_eq α]
   (f : α → β) (g : α' ≃ α) (a : α) (v : β) (a' : α') :

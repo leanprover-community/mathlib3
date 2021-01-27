@@ -111,6 +111,22 @@ lemma isometry.diam_range [metric_space α] [metric_space β] {f : α → β} (h
   metric.diam (range f) = metric.diam (univ : set α) :=
 by { rw ← image_univ, exact hf.diam_image univ }
 
+namespace add_monoid_hom
+
+variables {E F : Type*} [normed_group E] [normed_group F]
+
+lemma isometry_iff_norm (f : E →+ F) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
+begin
+  simp only [isometry_emetric_iff_metric, dist_eq_norm, ← f.map_sub],
+  refine ⟨λ h x, _, λ h x y, h _⟩,
+  simpa using h x 0
+end
+
+lemma isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+f.isometry_iff_norm.2 hf
+
+end add_monoid_hom
+
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
 @[nolint has_inhabited_instance] -- such a bijection need not exist
 structure isometric (α : Type*) (β : Type*) [emetric_space α] [emetric_space β]
@@ -138,6 +154,9 @@ protected lemma dist_eq {α β : Type*} [metric_space α] [metric_space β] (h :
 h.isometry.dist_eq x y
 
 protected lemma continuous (h : α ≃ᵢ β) : continuous h := h.isometry.continuous
+
+@[simp] lemma ediam_image (h : α ≃ᵢ β) (s : set α) : emetric.diam (h '' s) = emetric.diam s :=
+h.isometry.ediam_image s
 
 lemma to_equiv_inj : ∀ ⦃h₁ h₂ : α ≃ᵢ β⦄, (h₁.to_equiv = h₂.to_equiv) → h₁ = h₂
 | ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ H := by { dsimp at H, subst e₁ }
@@ -192,7 +211,7 @@ funext $ assume a, h.to_equiv.left_inv a
 lemma self_comp_symm (h : α ≃ᵢ β) : ⇑h ∘ ⇑h.symm = id :=
 funext $ assume a, h.to_equiv.right_inv a
 
-lemma range_coe (h : α ≃ᵢ β) : range h = univ :=
+@[simp] lemma range_eq_univ (h : α ≃ᵢ β) : range h = univ :=
 eq_univ_of_forall $ assume b, ⟨h.symm b, congr_fun h.self_comp_symm b⟩
 
 lemma image_symm (h : α ≃ᵢ β) : image h.symm = preimage h :=
@@ -203,6 +222,12 @@ lemma preimage_symm (h : α ≃ᵢ β) : preimage h.symm = image h :=
 
 @[simp] lemma symm_trans_apply (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) (x : γ) :
   (h₁.trans h₂).symm x = h₁.symm (h₂.symm x) := rfl
+
+lemma ediam_univ (h : α ≃ᵢ β) : emetric.diam (univ : set α) = emetric.diam (univ : set β) :=
+by rw [← h.range_eq_univ, h.isometry.ediam_range]
+
+@[simp] lemma ediam_preimage (h : α ≃ᵢ β) (s : set β) : emetric.diam (h ⁻¹' s) = emetric.diam s :=
+by rw [← image_symm, ediam_image]
 
 /-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
 protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
@@ -218,21 +243,34 @@ protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
   h.to_homeomorph.to_equiv = h.to_equiv :=
 rfl
 
+@[simp] lemma comp_continuous_on_iff {γ} [topological_space γ] (h : α ≃ᵢ β)
+  {f : γ → α} {s : set γ} :
+  continuous_on (h ∘ f) s ↔ continuous_on f s :=
+h.to_homeomorph.comp_continuous_on_iff _ _
+
+@[simp] lemma comp_continuous_iff {γ} [topological_space γ] (h : α ≃ᵢ β) {f : γ → α} :
+  continuous (h ∘ f) ↔ continuous f :=
+h.to_homeomorph.comp_continuous_iff
+
+@[simp] lemma comp_continuous_iff' {γ} [topological_space γ] (h : α ≃ᵢ β) {f : β → γ} :
+  continuous (f ∘ h) ↔ continuous f :=
+h.to_homeomorph.comp_continuous_iff'
+
 /-- The group of isometries. -/
 instance : group (α ≃ᵢ α) :=
   { one := isometric.refl _,
-    mul := λ e₁ e₂, e₁.trans e₂,
+    mul := λ e₁ e₂, e₂.trans e₁,
     inv := isometric.symm,
     mul_assoc := λ e₁ e₂ e₃, rfl,
     one_mul := λ e, ext $ λ _, rfl,
     mul_one := λ e, ext $ λ _, rfl,
-    mul_left_inv := λ e, ext e.apply_symm_apply }
+    mul_left_inv := λ e, ext e.symm_apply_apply }
 
 @[simp] lemma coe_one : ⇑(1 : α ≃ᵢ α) = id := rfl
 
-@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₂ ∘ e₁ := rfl
+@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
 
-lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₂ (e₁ x) := rfl
+lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
 
 @[simp] lemma inv_apply_self (e : α ≃ᵢ α) (x: α) : e⁻¹ (e x) = x := e.symm_apply_apply x
 
@@ -288,6 +326,21 @@ variable {G}
 @[simp] lemma coe_neg : ⇑(isometric.neg G) = has_neg.neg := rfl
 
 end normed_group
+
+end isometric
+
+namespace isometric
+
+variables [metric_space α] [metric_space β] (h : α ≃ᵢ β)
+
+@[simp] lemma diam_image (s : set α) : metric.diam (h '' s) = metric.diam s :=
+h.isometry.diam_image s
+
+@[simp] lemma diam_preimage (s : set β) : metric.diam (h ⁻¹' s) = metric.diam s :=
+by rw [← image_symm, diam_image]
+
+lemma diam_univ : metric.diam (univ : set α) = metric.diam (univ : set β) :=
+congr_arg ennreal.to_real h.ediam_univ
 
 end isometric
 

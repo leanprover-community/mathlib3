@@ -231,7 +231,7 @@ eq_inv_of_mul_eq_one $ by rw [← map_mul f, inv_mul_self, map_one f]
 @[to_additive]
 instance id : is_group_hom (@id α) := { }
 
-/-- The composition of two group homomomorphisms is a group homomorphism. -/
+/-- The composition of two group homomorphisms is a group homomorphism. -/
 @[to_additive] -- see Note [no instance on morphisms]
 lemma comp {γ} [group γ] (g : β → γ) [is_group_hom g] : is_group_hom (g ∘ f) :=
 { ..is_mul_hom.comp _ _ }

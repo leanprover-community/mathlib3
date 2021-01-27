@@ -83,7 +83,7 @@ nicely under the monad operations. -/
 def Integral : monad.algebra Measure :=
 { A      := Meas.of ennreal ,
   a      := ⟨λm:measure ennreal, ∫⁻ x, x ∂m, measure.measurable_lintegral measurable_id ⟩,
-  unit'  := subtype.eq $ funext $ assume r:ennreal, lintegral_dirac _ measurable_id,
+  unit'  := subtype.eq $ funext $ assume r:ennreal, lintegral_dirac' _ measurable_id,
   assoc' := subtype.eq $ funext $ assume μ : measure (measure ennreal),
     show ∫⁻ x, x ∂ μ.join = ∫⁻ x, x ∂ (measure.map (λm:measure ennreal, ∫⁻ x, x ∂m) μ),
     by rw [measure.lintegral_join, lintegral_map];

@@ -573,7 +573,7 @@ end
 
 /-- Given two ordinals `α = β`, then `rel_iso_out α β` is the order isomorphism between two
 model types for `α` and `β`. -/
-def rel_iso_out {α β : ordinal} (h : α = β) : rel_iso α.out.r β.out.r :=
+def rel_iso_out {α β : ordinal} (h : α = β) : α.out.r ≃r β.out.r :=
 begin
   rw [←quotient.out_eq α, ←quotient.out_eq β] at h, revert h,
   cases quotient.out α, cases quotient.out β, exact classical.choice ∘ quotient.exact
@@ -670,7 +670,7 @@ by rw [← typein_lt_typein r, typein_enum, typein_enum]
 
 lemma rel_iso_enum' {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s]
-  (f : rel_iso r s) (o : ordinal) : ∀(hr : o < type r) (hs : o < type s),
+  (f : r ≃r s) (o : ordinal) : ∀(hr : o < type r) (hs : o < type s),
   f (enum r o hr) = enum s o hs :=
 begin
   refine induction_on o _, rintros γ t wo ⟨g⟩ ⟨h⟩,
@@ -679,7 +679,7 @@ end
 
 lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s]
-  (f : rel_iso r s) (o : ordinal) (hr : o < type r) :
+  (f : r ≃r s) (o : ordinal) (hr : o < type r) :
   f (enum r o hr) =
   enum s o (by {convert hr using 1, apply quotient.sound, exact ⟨f.symm⟩ }) :=
 rel_iso_enum' _ _ _ _
@@ -734,16 +734,16 @@ quotient.sound ⟨⟨empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩
 
 @[simp] theorem card_zero : card 0 = 0 := rfl
 
-theorem zero_le (o : ordinal) : 0 ≤ o :=
+protected theorem zero_le (o : ordinal) : 0 ≤ o :=
 induction_on o $ λ α r _,
 ⟨⟨⟨embedding.of_not_nonempty $ λ ⟨a⟩, a.elim,
   λ a, a.elim⟩, λ a, a.elim⟩⟩
 
-@[simp] theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 :=
-by simp only [le_antisymm_iff, zero_le, and_true]
+@[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 :=
+by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
 
-theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 :=
-by simp only [lt_iff_le_and_ne, zero_le, true_and, ne.def, eq_comm]
+protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 :=
+by simp only [lt_iff_le_and_ne, ordinal.zero_le, true_and, ne.def, eq_comm]
 
 instance : has_one ordinal :=
 ⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
@@ -953,7 +953,7 @@ induction_on c $ λ β s _,
   end⟩⟩
 
 theorem le_add_right (a b : ordinal) : a ≤ a + b :=
-by simpa only [add_zero] using add_le_add_left (zero_le b) a
+by simpa only [add_zero] using add_le_add_left (ordinal.zero_le b) a
 
 theorem add_le_add_right {a b : ordinal} : a ≤ b → ∀ c, a + c ≤ b + c :=
 induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
@@ -967,7 +967,7 @@ induction_on c $ λ β s hs, (@type_le' _ _ _ _
 end⟩⟩
 
 theorem le_add_left (a b : ordinal) : a ≤ b + a :=
-by simpa only [zero_add] using add_le_add_right (zero_le b) a
+by simpa only [zero_add] using add_le_add_right (ordinal.zero_le b) a
 
 theorem lt_succ_self (o : ordinal.{u}) : o < succ o :=
 induction_on o $ λ α r _, ⟨⟨⟨⟨λ x, sum.inl x, λ _ _, sum.inl.inj⟩,

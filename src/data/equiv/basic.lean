@@ -155,6 +155,23 @@ set.eq_univ_of_forall e.surjective
 protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
 e.injective.subsingleton
 
+protected theorem subsingleton.symm (e : α ≃ β) [subsingleton α] : subsingleton β :=
+e.symm.injective.subsingleton
+
+instance equiv_subsingleton_cod [subsingleton β] :
+  subsingleton (α ≃ β) :=
+⟨λ f g, equiv.ext $ λ x, subsingleton.elim _ _⟩
+
+instance equiv_subsingleton_dom [subsingleton α] :
+  subsingleton (α ≃ β) :=
+⟨λ f g, equiv.ext $ λ x, @subsingleton.elim _ (equiv.subsingleton.symm f) _ _⟩
+
+instance perm_subsingleton [subsingleton α] : subsingleton (perm α) :=
+equiv.equiv_subsingleton_cod
+
+lemma perm.subsingleton_eq_refl [subsingleton α] (e : perm α) :
+  e = equiv.refl α := subsingleton.elim _ _
+
 /-- Transfer `decidable_eq` across an equivalence. -/
 protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
 e.injective.decidable_eq
@@ -178,6 +195,9 @@ protected def cast {α β : Sort*} (h : α = β) : α ≃ β :=
 rfl
 
 @[simp] theorem coe_refl : ⇑(equiv.refl α) = id := rfl
+
+@[simp] theorem perm.coe_subsingleton {α : Type*} [subsingleton α] (e : perm α) : ⇑(e) = id :=
+by rw [perm.subsingleton_eq_refl e, coe_refl]
 
 theorem refl_apply (x : α) : equiv.refl α x = x := rfl
 
@@ -256,6 +276,12 @@ def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃
   (ab.equiv_congr de).trans (bc.equiv_congr ef) = (ab.trans bc).equiv_congr (de.trans ef) :=
 by { ext, refl }
 
+@[simp] lemma equiv_congr_refl_left {α β γ} (bg : β ≃ γ) (e : α ≃ β) :
+  (equiv.refl α).equiv_congr bg e = e.trans bg := rfl
+
+@[simp] lemma equiv_congr_refl_right {α β} (ab e : α ≃ β) :
+  ab.equiv_congr (equiv.refl β) e = ab.symm.trans e := rfl
+
 @[simp] lemma equiv_congr_apply_apply {δ} (ab : α ≃ β) (cd : γ ≃ δ) (e : α ≃ γ) (x) :
   ab.equiv_congr cd e x = cd (e (ab.symm x)) := rfl
 
@@ -263,8 +289,17 @@ by { ext, refl }
 def perm_congr {α : Type*} {β : Type*} (e : α ≃ β) : perm α ≃ perm β :=
 equiv_congr e e
 
+lemma perm_congr_def {α β : Type*} (e : α ≃ β) (p : equiv.perm α) :
+  e.perm_congr p = (e.symm.trans p).trans e := rfl
+
+@[simp] lemma perm_congr_symm {α β : Type*} (e : α ≃ β) :
+  e.perm_congr.symm = e.symm.perm_congr := rfl
+
 @[simp] lemma perm_congr_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm α) (x) :
-e.perm_congr p x = e (p (e.symm x)) := rfl
+  e.perm_congr p x = e (p (e.symm x)) := rfl
+
+lemma perm_congr_symm_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm β) (x) :
+  e.perm_congr.symm p x = e.symm (p (e x)) := rfl
 
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
@@ -911,6 +946,16 @@ lemma sigma_equiv_prod_sigma_congr_right :
   (sigma_equiv_prod α₁ β₁).symm.trans (sigma_congr_right e) =
     (prod_congr_right e).trans (sigma_equiv_prod α₁ β₂).symm :=
 by { ext ⟨a, b⟩ : 1, simp }
+
+/-- A variation on `equiv.prod_congr` where the equivalence in the second component can depend
+  on the first component. A typical example is a shear mapping, explaining the name of this
+  declaration. -/
+@[simps {fully_applied := ff}]
+def prod_shear {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ : α₁ → β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
+{ to_fun := λ x : α₁ × β₁, (e₁ x.1, e₂ x.1 x.2),
+  inv_fun := λ y : α₂ × β₂, (e₁.symm y.1, (e₂ $ e₁.symm y.1).symm y.2),
+  left_inv := by { rintro ⟨x₁, y₁⟩, simp only [symm_apply_apply] },
+  right_inv := by { rintro ⟨x₁, y₁⟩, simp only [apply_symm_apply] } }
 
 end prod_congr
 
@@ -1571,7 +1616,7 @@ by { unfold swap_core, split_ifs; cc }
 def swap (a b : α) : perm α :=
 ⟨swap_core a b, swap_core a b, λr, swap_core_swap_core r a b, λr, swap_core_swap_core r a b⟩
 
-theorem swap_self (a : α) : swap a a = equiv.refl _ :=
+@[simp] theorem swap_self (a : α) : swap a a = equiv.refl _ :=
 ext $ λ r, swap_core_self r a
 
 theorem swap_comm (a b : α) : swap a b = swap b a :=
@@ -1604,14 +1649,18 @@ lemma comp_swap_eq_update (i j : α) (f : α → β) :
   f ∘ equiv.swap i j = update (update f j (f i)) i (f j) :=
 by rw [swap_eq_update, comp_update, comp_update, comp.right_id]
 
-@[simp] lemma symm_trans_swap_trans [decidable_eq β] (a b : α)
-  (e : α ≃ β) : (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
+@[simp] lemma symm_trans_swap_trans [decidable_eq β] (a b : α) (e : α ≃ β) :
+  (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
 equiv.ext (λ x, begin
   have : ∀ a, e.symm x = a ↔ x = e a :=
     λ a, by { rw @eq_comm _ (e.symm x), split; intros; simp * at * },
   simp [swap_apply_def, this],
   split_ifs; simp
 end)
+
+@[simp] lemma trans_swap_trans_symm [decidable_eq β] (a b : β)
+  (e : α ≃ β) : (e.trans (swap a b)).trans e.symm = swap (e.symm a) (e.symm b) :=
+symm_trans_swap_trans a b e.symm
 
 @[simp] lemma swap_apply_self (i j a : α) :
   swap i j (swap i j a) = a :=
@@ -1792,6 +1841,20 @@ end
 
 end equiv
 
+lemma function.injective.swap_apply [decidable_eq α] [decidable_eq β] {f : α → β}
+  (hf : function.injective f) (x y z : α) :
+  equiv.swap (f x) (f y) (f z) = f (equiv.swap x y z) :=
+begin
+  by_cases hx : z = x, by simp [hx],
+  by_cases hy : z = y, by simp [hy],
+  rw [equiv.swap_apply_of_ne_of_ne hx hy, equiv.swap_apply_of_ne_of_ne (hf.ne hx) (hf.ne hy)]
+end
+
+lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α → β}
+  (hf : function.injective f) (x y : α) :
+  equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
+funext $ λ z, hf.swap_apply _ _ _
+
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
 instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton
 
@@ -1885,7 +1948,7 @@ namespace function
 lemma update_comp_equiv {α β α' : Sort*} [decidable_eq α'] [decidable_eq α] (f : α → β) (g : α' ≃ α)
   (a : α) (v : β) :
   update f a v ∘ g = update (f ∘ g) (g.symm a) v :=
-by rw [←update_comp _ g.injective, g.apply_symm_apply]
+by rw [← update_comp_eq_of_injective _ g.injective, g.apply_symm_apply]
 
 lemma update_apply_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable_eq α]
   (f : α → β) (g : α' ≃ α) (a : α) (v : β) (a' : α') :

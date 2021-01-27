@@ -41,7 +41,8 @@ local notation `𝓚` := algebra_map ℝ _
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
-class is_R_or_C (K : Type*) extends nondiscrete_normed_field K, normed_algebra ℝ K, complete_space K :=
+class is_R_or_C (K : Type*)
+  extends nondiscrete_normed_field K, normed_algebra ℝ K, complete_space K :=
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (conj : K →+* K)
@@ -166,6 +167,9 @@ noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
 @[simp] lemma I_im (z : K) : im z * im (I : K) = im z := mul_im_I_ax z
 @[simp] lemma I_im' (z : K) : im (I : K) * im z = im z :=
 by rw [mul_comm, I_im _]
+
+lemma I_mul_re (z : K) : re (I * z) = - im z :=
+by simp only [I_re, zero_sub, I_im', zero_mul, mul_re]
 
 lemma I_mul_I : (I : K) = 0 ∨ (I : K) * I = -1 := I_mul_I_ax
 
@@ -345,7 +349,7 @@ by { have := I_mul_I_ax, tauto }
 begin
   by_cases h : (I : K) = 0,
   { simp [h] },
-  { field_simp [h], simp [mul_assoc, I_mul_I_of_nonzero h] }
+  { field_simp [mul_assoc, I_mul_I_of_nonzero h] }
 end
 
 @[simp] lemma inv_I : (I : K)⁻¹ = -I :=
@@ -413,7 +417,6 @@ begin
   haveI : char_zero K := char_zero_R_or_C,
   rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero'],
 end
-
 
 /-! ### Absolute value -/
 
@@ -660,27 +663,16 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   re_add_im_ax := λ z, by unfold_coes; simp [add_zero, id.def, mul_zero],
   of_real_re_ax := λ r, by simp only [add_monoid_hom.id_apply, algebra.id.map_eq_self],
   of_real_im_ax := λ r, by simp only [add_monoid_hom.zero_apply],
-  mul_re_ax := λ z w, by simp only [sub_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
+  mul_re_ax := λ z w,
+    by simp only [sub_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_ax := λ z w, by simp only [add_zero, zero_mul, mul_zero, add_monoid_hom.zero_apply],
   conj_re_ax := λ z, by simp only [ring_hom.id_apply],
   conj_im_ax := λ z, by simp only [neg_zero, add_monoid_hom.zero_apply],
   conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
-  norm_sq_eq_def_ax := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
+  norm_sq_eq_def_ax := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero, mul_zero,
+    add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
-  inv_def_ax :=
-    begin
-      intro z,
-      unfold_coes,
-      have H : z ≠ 0 → 1 / z = z / (z * z) := λ h,
-        calc
-          1 / z = 1 * (1 / z)           : (one_mul (1 / z)).symm
-            ... = (z / z) * (1 / z)     : congr_arg (λ x, x * (1 / z)) (div_self h).symm
-            ... = z / (z * z)           : by field_simp,
-      rcases lt_trichotomy z 0 with hlt|heq|hgt,
-      { field_simp [norm, abs, max_eq_right_of_lt (show z < -z, by linarith), pow_two, mul_inv', ←H (ne_of_lt hlt)] },
-      { simp [heq] },
-      { field_simp [norm, abs, max_eq_left_of_lt (show -z < z, by linarith), pow_two, mul_inv', ←H (ne_of_gt hgt)] },
-    end,
+  inv_def_ax := λ z, by simp [pow_two, real.norm_eq_abs, abs_mul_abs_self, ← div_eq_mul_inv],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
 
 noncomputable instance complex.is_R_or_C : is_R_or_C ℂ :=

@@ -169,8 +169,8 @@ begin
         mv_polynomial.vanishing_ideal_singleton_is_maximal⟩ },
 end
 
-@[simp] lemma is_prime.vanishing_ideal_zero_locus (P : ideal (mv_polynomial σ k)) [hP : P.is_prime] :
+@[simp] lemma is_prime.vanishing_ideal_zero_locus (P : ideal (mv_polynomial σ k)) [h : P.is_prime] :
   vanishing_ideal (zero_locus P) = P :=
-trans (vanishing_ideal_zero_locus_eq_radical P) hP.radical
+trans (vanishing_ideal_zero_locus_eq_radical P) h.radical
 
 end mv_polynomial

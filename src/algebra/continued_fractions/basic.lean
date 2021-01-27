@@ -55,9 +55,7 @@ variable {α}
 instance [has_repr α] : has_repr (gcf.pair α) :=
 ⟨λ p, "(a : " ++ (repr p.a) ++ ", b : " ++ (repr p.b) ++ ")"⟩
 
-/--
-Maps a function `f` on both components of a given pair.
--/
+/-- Maps a function `f` on both components of a given pair. -/
 def map {β : Type*} (f : α → β) (gp : gcf.pair α) : gcf.pair β :=
 ⟨f gp.a, f gp.b⟩
 

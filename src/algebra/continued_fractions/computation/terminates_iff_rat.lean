@@ -34,8 +34,7 @@ variables {K : Type*} [linear_ordered_field K] [floor_ring K]
 We will have to constantly coerce along our structures in the following proofs using their provided
 map functions.
 -/
-local attribute [simp] gcf.pair.map
-local attribute [simp] gcf.int_fract_pair.mapFr
+local attribute [simp] gcf.pair.map gcf.int_fract_pair.mapFr
 
 /-!
 We want to show that the computation of a continued fraction `gcf.of v` terminates if and only if
@@ -48,8 +47,8 @@ section rat_of_terminates
 
 variables (v : K) (n : ℕ)
 
-lemma exists_gcf_pair_rat_eq_of_nth_conts_aux : ∃ (conts : gcf.pair ℚ),
-  (gcf.of v).continuants_aux n = (conts.map coe : gcf.pair K) :=
+lemma exists_gcf_pair_rat_eq_of_nth_conts_aux :
+  ∃ (conts : gcf.pair ℚ), (gcf.of v).continuants_aux n = (conts.map coe : gcf.pair K) :=
 nat.strong_induction_on n
 begin
   clear n,
@@ -87,8 +86,8 @@ begin
       simp [next_continuants, next_numerator, next_denominator] } }
 end
 
-lemma exists_gcf_pair_rat_eq_nth_conts : ∃ (conts : gcf.pair ℚ),
-  (gcf.of v).continuants n = (conts.map coe : gcf.pair K) :=
+lemma exists_gcf_pair_rat_eq_nth_conts :
+  ∃ (conts : gcf.pair ℚ), (gcf.of v).continuants n = (conts.map coe : gcf.pair K) :=
 by { rw [nth_cont_eq_succ_nth_cont_aux], exact (exists_gcf_pair_rat_eq_of_nth_conts_aux v $ n + 1) }
 
 lemma exists_rat_eq_nth_numerator : ∃ (q : ℚ), (gcf.of v).numerators n = (q : K) :=
@@ -176,8 +175,8 @@ begin
 end
 
 lemma coe_stream_rat_eq :
-    ((int_fract_pair.stream q).map (option.map (mapFr coe)) : stream $ option $ int_fract_pair K)
-  = int_fract_pair.stream v :=
+  ((int_fract_pair.stream q).map (option.map (mapFr coe)) : stream $ option $ int_fract_pair K) =
+    int_fract_pair.stream v :=
 by { funext n, exact (int_fract_pair.coe_stream_nth_rat_eq v_eq_q n) }
 
 end int_fract_pair
@@ -192,7 +191,7 @@ begin
 end
 
 lemma coe_of_s_nth_rat_eq :
-  (((gcf.of q).s.nth n).map (gcf.pair.map coe): option $ gcf.pair K) = (gcf.of v).s.nth n :=
+  (((gcf.of q).s.nth n).map (gcf.pair.map coe) : option $ gcf.pair K) = (gcf.of v).s.nth n :=
 begin
   simp only [gcf.of, gcf.int_fract_pair.seq1, seq.map_nth, seq.nth_tail],
   simp only [seq.nth],

@@ -13,18 +13,13 @@ import category_theory.concrete_category
 /-!
 # Sheaves taking values in a category
 
-If C is a category with a Grothendieck topology, we define the notion of a sheaf
-taking values in an arbitrary category `A`. We follow the definition in
-https://stacks.math.columbia.edu/tag/00VR , noting that the presheaf of sets "defined above"
-can be seen in the comments between tags 00VQ and 00VR on the
-page https://stacks.math.columbia.edu/tag/00VL . The advantage of this definition is that
-we need no assumptions whatsoever on `A` other than the assumption that the morphisms
-in `C` and `A` live in the same universe.
-
-TODO: Everything.
-
+If C is a category with a Grothendieck topology, we define the notion of a sheaf taking values in
+an arbitrary category `A`. We follow the definition in https://stacks.math.columbia.edu/tag/00VR,
+noting that the presheaf of sets "defined above" can be seen in the comments between tags 00VQ and
+00VR on the page https://stacks.math.columbia.edu/tag/00VL. The advantage of this definition is
+that we need no assumptions whatsoever on `A` other than the assumption that the morphisms in `C`
+and `A` live in the same universe.
 -/
--- sheaves taking values in objects of a category
 
 universes v v' u' u
 
@@ -37,14 +32,12 @@ open opposite category_theory category limits sieve classical
 namespace presheaf
 
 variables {C : Type u} [category.{v} C]
-
 variables {A : Type u'} [category.{v} A]
-
 variables (J : grothendieck_topology C)
 
 -- We follow https://stacks.math.columbia.edu/tag/00VL definition 00VR
 
-/-
+/--
 A sheaf of A is a presheaf P : C^op => A such that for every X : A, the
 presheaf of types given by sending U : C to Hom_{A}(X, P U) is a sheaf of types.
 
@@ -63,15 +56,6 @@ variables (A : Type u') [category.{v} A]
 @[derive category]
 def Sheaf : Type* :=
 {P : Cᵒᵖ ⥤ A // presheaf.is_sheaf J P}
-
--- instance : inhabited (Sheaf (⊥ : grothendieck_topology C)) :=
--- ⟨⟨(functor.const _).obj punit,
---   λ X S hS,
---   begin
---     simp only [grothendieck_topology.bot_covering] at hS,
---     subst hS,
---     apply presieve.is_sheaf_for_top_sieve,
---   end⟩⟩
 
 /-- The inclusion functor from sheaves to presheaves. -/
 @[simps {rhs_md := semireducible}, derive [full, faithful]]
@@ -106,7 +90,11 @@ begin
     refl }
 end
 
-def Sheaf_of_types_equiv_Sheaf : Sheaf J (Type v) ≌ SheafOfTypes J :=
+/--
+The category of sheaves taking values in Type is the same as the category of set-valued sheaves.
+-/
+@[simps]
+def Sheaf_equiv_SheafOfTypes : Sheaf J (Type v) ≌ SheafOfTypes J :=
 { functor :=
   { obj := λ S, ⟨S.1, Sheaf_is_SheafOfTypes _ _ S.2⟩,
     map := λ S₁ S₂ f, f },
@@ -115,6 +103,9 @@ def Sheaf_of_types_equiv_Sheaf : Sheaf J (Type v) ≌ SheafOfTypes J :=
     map := λ S₁ S₂ f, f },
   unit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy),
   counit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy) }
+
+instance : inhabited (Sheaf (⊥ : grothendieck_topology C) (Type v)) :=
+⟨(SheafOfTypes_equiv_Sheaf _).inverse.obj (default _)⟩
 
 end category_theory
 

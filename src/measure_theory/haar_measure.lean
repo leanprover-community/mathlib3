@@ -285,18 +285,22 @@ begin
   have h2V₀ : (1 : G) ∈ V₀, { simp only [mem_Inter], rintro ⟨V, hV⟩ h2V, exact hV.2 },
   refine ⟨prehaar K₀.1 V₀, _⟩,
   split,
-  { apply prehaar_mem_haar_product K₀, use 1, rwa h1V₀.interior_eq  },
+  { apply prehaar_mem_haar_product K₀, use 1, rwa h1V₀.interior_eq },
   { simp only [mem_Inter], rintro ⟨V, hV⟩ h2V, apply subset_closure,
     apply mem_image_of_mem, rw [mem_set_of_eq],
     exact ⟨subset.trans (Inter_subset _ ⟨V, hV⟩) (Inter_subset _ h2V), h1V₀, h2V₀⟩ },
 end
 
 /-!
-### The Haar measure on compact sets
+### chaar
 -/
 
-/-- The Haar measure on compact sets, defined to be an arbitrary element in the intersection of
-  all the sets `cl_prehaar K₀ V` in `haar_product K₀`. -/
+/-- This is the "limit" of `prehaar K₀.1 U K` as `U` becomes a smaller and smaller open
+  neighborhood of `(1 : G)`. More precisely, it is defined to be an arbitrary element
+  in the intersection of all the sets `cl_prehaar K₀ V` in `haar_product K₀`.
+  This is roughly equal to the Haar measure on compact sets,
+  but it can differ slightly. According to [Halmos, §53, Th. C, pg 234] we have
+  `haar_measure K₀ (interior K.1) ≤ chaar K₀ K ≤ haar_measure K₀ K.1`. -/
 def chaar (K₀ : positive_compacts G) (K : compacts G) : ℝ :=
 classical.some (nonempty_Inter_cl_prehaar K₀) K
 
@@ -313,7 +317,8 @@ by { have := chaar_mem_haar_product K₀ K (mem_univ _), rw mem_Icc at this, exa
 
 lemma chaar_empty (K₀ : positive_compacts G) : chaar K₀ ⊥ = 0 :=
 begin
-  let eval : (compacts G → ℝ) → ℝ := λ f, f ⊥, have : continuous eval := continuous_apply ⊥,
+  let eval : (compacts G → ℝ) → ℝ := λ f, f ⊥,
+  have : continuous eval := continuous_apply ⊥,
   show chaar K₀ ∈ eval ⁻¹' {(0 : ℝ)},
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,

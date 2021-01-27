@@ -216,7 +216,7 @@ begin
   classical,
   -- Introduce shorthand for span of an element
   let sp : M → submodule R M := λ a, span R {a},
-  -- Establish a trivial equality for rewriting
+  -- Trivial rewrite lemma; a small hack since simp (only) & rw can't accomplish this smoothly.
   have supr_rw : ∀ t : finset M, (⨆ x ∈ t, sp x) = (⨆ x ∈ (↑t : set M), sp x), from λ t, by refl,
   split,
   { rintro ⟨t, rfl⟩,
@@ -226,7 +226,7 @@ begin
   { intro h,
     -- s is the Sup of the spans of its elements.
     have sSup : s = Sup (sp '' ↑s),
-    { rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans], simp only [span_eq], },
+    by rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans, eq_comm, span_eq],
     -- by h, s is then below (and equal to) the sup of the spans of finitely many elements.
     obtain ⟨u, ⟨huspan, husup⟩⟩ := h (sp '' ↑s) (le_of_eq sSup),
     have ssup : s = u.sup id,

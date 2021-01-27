@@ -1299,7 +1299,7 @@ meta def tactic.norm_num (step : expr → tactic (expr × expr))
   (hs : list simp_arg_type) (l : interactive.loc) : tactic unit :=
 repeat1 $ orelse' (tactic.norm_num1 step l) $
 interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
-  ff (simp_arg_type.except ``one_div :: hs) [] l
+  ff (simp_arg_type.except ``one_div :: hs) [] l >> skip
 
 namespace tactic.interactive
 open norm_num interactive interactive.types

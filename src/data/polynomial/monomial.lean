@@ -14,7 +14,6 @@ Preparatory lemmas for degree_basic.
 noncomputable theory
 
 open finsupp
-open_locale big_operators
 
 namespace polynomial
 
@@ -37,14 +36,6 @@ lemma C_1 : C (1 : R) = 1 := rfl
 lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
 
 lemma C_add : C (a + b) = C a + C b := C.map_add a b
-
-lemma C_sum {α : Type u} (s : finset α) (f : α → R) :
-C (∑ i in s, f i) = ∑ i in s, C (f i) :=
-(finset.sum_hom s (λ x, C x)).symm
-
-lemma C_prod {R : Type u} {α : Type u} (s : finset α) {f : α → R} [comm_semiring R] :
-C (∏ i in s, f i) = ∏ i in s, C (f i) :=
-(finset.prod_hom s (λ x, C x)).symm
 
 @[simp] lemma C_bit0 : C (bit0 a) = bit0 (C a) := C_add
 

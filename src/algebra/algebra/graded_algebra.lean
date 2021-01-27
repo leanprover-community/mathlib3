@@ -82,13 +82,13 @@ begin
   { convert @dfinsupp.sum_single ι (λ i, G[i]) _ _ _ a,
     ext1 i, ext1,
     congr, exact zero_add i,
-    rw subtype.heq_iff_coe_eq,
-    { rw [submodule.coe_mk, submodule.coe_mk, one_mul], },
-    { intro x, rw zero_add }, },
+    rw subtype.heq_iff_coe_eq (λ x, _),
+    { exact one_mul _, },
+    { rw zero_add }, },
   { convert @dfinsupp.sum_zero _ _ _ _ _ _ _ a,
     ext1 i, ext1,
     convert @dfinsupp.single_zero ι _ _ _ _,
-    simp only [zero_mul, submodule.coe_zero], }
+    exact zero_mul _, }
 end
 
 private lemma mul_one (a : G) : a * 1 = a := begin
@@ -98,11 +98,11 @@ private lemma mul_one (a : G) : a * 1 = a := begin
   ext1 i, ext1,
   rw dfinsupp.sum_single_index,
   { congr, exact add_zero i,
-    rw subtype.heq_iff_coe_eq,
-    { rw [submodule.coe_mk, submodule.coe_mk, mul_one], },
-    { intro x, rw add_zero }, },
+    rw subtype.heq_iff_coe_eq (λ x, _),
+    { exact mul_one _, },
+    { rw add_zero }, },
   { convert @dfinsupp.single_zero ι _ _ _ _,
-    rw [submodule.coe_zero, mul_zero], },
+    exact mul_zero _, },
 end
 
 private lemma zero_mul (a : G) : 0 * a = 0 := by { rw has_mul_mul, exact dfinsupp.sum_zero_index }
@@ -113,7 +113,7 @@ private lemma mul_assoc (a b c : G) : a * b * c = a * (b * c) := begin
   simp only [has_mul_mul, direct_sum.of, dfinsupp.single_add_hom, add_monoid_hom.coe_mk],
   convert dfinsupp.sum_sum_index (λ i : ι, _) (λ i (bi ci : G[i]), _),
   { ext1 ai, ext1,
-    simp,
+    -- simp,
     rw dfinsupp.sum_sum_index (λ i : ι, _) (λ i (bi ci : G[i]), _),
     { rw dfinsupp.sum_sum_index (λ i : ι, _) (λ i (bi ci : G[i]), _),
       { congr,
@@ -125,33 +125,33 @@ private lemma mul_assoc (a b c : G) : a * b * c = a * (b * c) := begin
             rw dfinsupp.sum_single_index,
             { congr' 1,
               exact (add_assoc ai bi ci).symm,
-              rw subtype.heq_iff_coe_eq,
-              { simp [mul_assoc], },
-              { intro x, simp [add_assoc] }, },
-            { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, }, },
-          { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, },
-          { convert dfinsupp.single_add, simp [mul_add]}, },
+              rw subtype.heq_iff_coe_eq (λ x, _),
+              { exact (mul_assoc _ _ _).symm, },
+              { rw add_assoc }, },
+            { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, exact mul_zero _, }, },
+          { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, exact mul_zero _, },
+          { convert dfinsupp.single_add, exact mul_add _ _ _ }, },
         { convert @dfinsupp.sum_zero ι (λ i, G[i]) _ _ _ _ _ _,
           ext1 ai, ext1,
-          { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, }, } },
+          { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, exact zero_mul _, }, } },
       { convert @dfinsupp.sum_zero ι (λ i, G[i]) _ _ _ _ _ _,
         ext1 ai, ext1,
-        { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, }, },
+        { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, exact zero_mul _, }, },
       { convert dfinsupp.sum_add,
         ext1 ai, ext1,
         rw ← dfinsupp.single_add,
         congr,
-        simp [add_mul], }, },
-    { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, },
-    { convert dfinsupp.single_add, simp [mul_add]}, },
+        exact add_mul _ _ _, }, },
+    { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, exact mul_zero _, },
+    { convert dfinsupp.single_add, exact mul_add _ _ _}, },
   { convert @dfinsupp.sum_zero ι (λ i, G[i]) _ _ _ _ _ _,
     ext1 ai, ext1,
-    { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, }, },
+    { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, exact zero_mul _, }, },
   { convert dfinsupp.sum_add,
     ext1 ai, ext1,
     rw ← dfinsupp.single_add,
     congr,
-    simp [add_mul], },
+    exact add_mul _ _ _, },
 end
 
 private lemma left_distrib (a b c : G) : a * (b + c) = a * b + a * c :=
@@ -160,8 +160,8 @@ begin
   convert dfinsupp.sum_add,
   ext1, ext1,
   convert dfinsupp.sum_add_index (λ i, _) (λ i ai bi, _),
-  { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, },
-  { convert dfinsupp.single_add, simp [mul_add] }
+  { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, exact mul_zero _, },
+  { convert dfinsupp.single_add, exact mul_add _ _ _ }
 end
 
 private lemma right_distrib (a b c : G) : (a + b) * c = a * c + b * c :=
@@ -171,11 +171,11 @@ begin
   { convert @dfinsupp.sum_zero ι (λ i, G[i]) _ _ _ _ _ _,
     ext1, ext1,
     convert @dfinsupp.single_zero ι _ _ _ _,
-    simp, },
+    exact zero_mul _, },
   convert dfinsupp.sum_add,
   ext1, ext1,
   convert dfinsupp.single_add,
-  simp [add_mul],
+  exact add_mul _ _ _,
 end
 
 instance : semiring G := {

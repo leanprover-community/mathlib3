@@ -187,8 +187,8 @@ lemma chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ :
 |1        := by {simp only [chebyshev₁_add_two, chebyshev₁_zero, chebyshev₁_add_two,
                               chebyshev₂_one, chebyshev₁_one], ring }
 |(n + 2)  := begin
-calc chebyshev₁ R (n + 2 + 2) = 2 * X * chebyshev₁ R (n + 2 + 1) - chebyshev₁ R (n + 2)
-                                : chebyshev₁_add_two _ _
+calc chebyshev₁ R (n + 2 + 2)
+    = 2 * X * chebyshev₁ R (n + 2 + 1) - chebyshev₁ R (n + 2) : chebyshev₁_add_two _ _
 ... = 2 * X * (X * chebyshev₁ R (n + 2) - (1 - X ^ 2) * chebyshev₂ R (n + 1))
                                         - (X * chebyshev₁ R (n + 1) - (1 - X ^ 2) * chebyshev₂ R n)
                           : by simp only [chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂]

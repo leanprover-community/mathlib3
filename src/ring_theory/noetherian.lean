@@ -216,11 +216,11 @@ begin
   classical,
   -- Introduce shorthand for span of an element
   let sp : M → submodule R M := λ a, span R {a},
+  -- Establish a trivial equality for rewriting
+  have supr_rw : ∀ t : finset M, (⨆ x ∈ t, sp x) = (⨆ x ∈ (↑t : set M), sp x), from λ t, by refl,
   split,
   { rintro ⟨t, rfl⟩,
-    rw span_eq_supr_of_singleton_spans,
-    change complete_lattice.is_compact_element (⨆ (x : M) (H : x ∈ t), span R {x}),
-    rw ←(finset.sup_eq_supr t sp),
+    rw [span_eq_supr_of_singleton_spans, ←supr_rw, ←(finset.sup_eq_supr t sp)],
     apply complete_lattice.finset_sup_compact_of_compact,
     exact λ n _, singleton_span_is_compact_element n, },
   { intro h,
@@ -233,9 +233,8 @@ begin
     { suffices : u.sup id ≤ s, from le_antisymm husup this,
       rw [sSup, finset.sup_eq_Sup], exact Sup_le_Sup huspan, },
     obtain ⟨t, ⟨hts, rfl⟩⟩ := finset.subset_image_iff.mp huspan,
-    rw [←finset.sup_finset_image, function.comp.left_id, finset.sup_eq_supr] at ssup,
-    change s = ⨆ (y : M) (H : y ∈ (↑t : set M)), sp y at ssup,
-    rw [←span_eq_supr_of_singleton_spans, eq_comm] at ssup,
+    rw [←finset.sup_finset_image, function.comp.left_id, finset.sup_eq_supr, supr_rw,
+      ←span_eq_supr_of_singleton_spans, eq_comm] at ssup,
     exact ⟨t, ssup⟩, },
 end
 

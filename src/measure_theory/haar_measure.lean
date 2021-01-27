@@ -178,7 +178,7 @@ lemma index_union_eq (K₁ K₂ : compacts G) {V : set G} (hV : (interior V).non
 begin
   apply le_antisymm (index_union_le K₁ K₂ hV),
   rcases index_elim (K₁.2.union K₂.2) hV with ⟨s, h1s, h2s⟩, rw [← h2s],
-  have : ∀(K : set G) , K ⊆ (⋃ g ∈ s, (λ h, g * h) ⁻¹' V) →
+  have : ∀ (K : set G) , K ⊆ (⋃ g ∈ s, (λ h, g * h) ⁻¹' V) →
     index K V ≤ (s.filter (λ g, ((λ (h : G), g * h) ⁻¹' V ∩ K).nonempty)).card,
   { intros K hK, apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of_eq],
     intros g hg, rcases hK hg with ⟨_, ⟨g₀, rfl⟩, _, ⟨h1g₀, rfl⟩, h2g₀⟩,

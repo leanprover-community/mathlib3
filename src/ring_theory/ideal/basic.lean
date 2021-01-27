@@ -583,8 +583,7 @@ begin
   rintro rfl,
   cases max with h1 h2,
   obtain ⟨I, hIbot, hItop⟩ := not_is_field_iff_exists_ideal_bot_lt_and_lt_top.mp not_field,
-  specialize h2 I hIbot,
-  exact ne_of_lt hItop h2,
+  exact ne_of_lt hItop (h2 I hIbot),
 end
 
 end ring

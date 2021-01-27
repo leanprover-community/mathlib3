@@ -225,6 +225,9 @@ def gi_generate : galois_insertion (generate : presieve X → sieve X) arrows :=
 lemma le_generate (R : presieve X) : R ≤ generate R :=
 gi_generate.gc.le_u_l R
 
+@[simp] lemma generate_sieve (S : sieve X) : generate S = S :=
+gi_generate.l_u_eq S
+
 /-- If the identity arrow is in a sieve, the sieve is maximal. -/
 lemma id_mem_iff_eq_top : S (𝟙 X) ↔ S = ⊤ :=
 ⟨λ h, top_unique $ λ Y f _, by simpa using downward_closed _ h f,

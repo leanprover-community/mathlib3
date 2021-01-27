@@ -1,10 +1,13 @@
 /-
-Copyright (c) 2020 Kevin Buzzard. All rights reserved.
+Copyright (c) 2020 Kevin Buzzard, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kevin Buzzard
+Authors: Kevin Buzzard, Bhavik Mehta
 -/
 
 import category_theory.sites.sheaf_of_types
+import category_theory.limits.yoneda
+import category_theory.limits.preserves.shapes.equalizers
+import category_theory.limits.preserves.shapes.products
 import category_theory.concrete_category
 
 /-!
@@ -49,12 +52,6 @@ https://stacks.math.columbia.edu/tag/00VR
 -/
 def is_sheaf (P : Cᵒᵖ ⥤ A) : Prop :=
 ∀ X : A, presieve.is_sheaf J (P ⋙ coyoneda.obj (op X))
-
-/-!
-
-## practice
-
--/
 
 end presheaf
 
@@ -131,7 +128,7 @@ namespace presheaf
 -- make sense otherwise). It's described between 00VQ and 00VR in stacks.
 -- we need [category.{u} A] possibly
 
-variables {C : Type v} [small_category C] [has_pullbacks C]
+variables {C : Type v} [small_category C]
 
 variables {A : Type u} [category.{v} A] [has_products A]
 
@@ -143,6 +140,8 @@ variables (P : Cᵒᵖ ⥤ A)
 
 def first_obj : A :=
 ∏ (λ (f : Σ V, {f : V ⟶ U // R f}), P.obj (op f.1))
+
+variables [has_pullbacks C]
 
 /--
 The rightmost object of the fork diagram of https://stacks.math.columbia.edu/tag/00VM, which
@@ -180,12 +179,57 @@ end
 def is_sheaf' (P : Cᵒᵖ ⥤ A) : Prop := ∀ (U : C) (R : presieve U) (hR : generate R ∈ J U),
 nonempty (is_limit (fork.of_ι _ (w R P)))
 
+def is_sheaf_for_is_sheaf_for' (P : Cᵒᵖ ⥤ A) (X) (U : C) (R : presieve U) :
+  is_limit ((coyoneda.obj X).map_cone (fork.of_ι _ (w R P))) ≃
+    is_limit (fork.of_ι _ (equalizer.presieve.w (P ⋙ coyoneda.obj X) R)) :=
+begin
+  apply equiv.trans (is_limit_map_cone_fork_equiv _ _) _,
+  apply (is_limit.postcompose_hom_equiv _ _).symm.trans (is_limit.equiv_iso_limit _),
+  { apply nat_iso.of_components _ _,
+    { rintro (_ | _),
+      { apply preserves_product.iso (coyoneda.obj X) },
+      { apply preserves_product.iso (coyoneda.obj X) } },
+    { rintro _ _ (_ | _),
+      { ext : 1,
+        dsimp [equalizer.presieve.first_map, first_map],
+        simp only [limit.lift_π, map_lift_pi_comparison, assoc, fan.mk_π_app, functor.map_comp],
+        erw limit.lift_π,
+        erw pi_comparison_comp_π_assoc,
+        simp },
+      { ext : 1,
+        dsimp [equalizer.presieve.second_map, second_map],
+        simp only [limit.lift_π, map_lift_pi_comparison, assoc, fan.mk_π_app, functor.map_comp],
+        erw limit.lift_π,
+        erw pi_comparison_comp_π_assoc,
+        simp },
+      { dsimp,
+        simp } } },
+  { refine fork.ext (iso.refl _) _,
+    dsimp [equalizer.fork_map, fork_map],
+    simp }
+
+end
+
 theorem is_sheaf_iff_is_sheaf' (P : Cᵒᵖ ⥤ A) :
 is_sheaf J P ↔ is_sheaf' J P :=
 begin
   split,
-  { sorry },
-  { sorry }
+  { intros h U R hR,
+    refine ⟨_⟩,
+    apply coyoneda_jointly_reflects_limits,
+    intro X,
+    have q : presieve.is_sheaf_for (P ⋙ coyoneda.obj X) _ := h X.unop _ hR,
+    rw ←presieve.is_sheaf_for_iff_generate at q,
+    rw equalizer.presieve.sheaf_condition at q,
+    replace q := classical.choice q,
+    apply (is_sheaf_for_is_sheaf_for' _ _ _ _).symm q },
+  { intros h U X S hS,
+    rw equalizer.presieve.sheaf_condition,
+    refine ⟨_⟩,
+    refine is_sheaf_for_is_sheaf_for' _ _ _ _ _,
+    apply is_limit_of_preserves,
+    apply classical.choice (h _ S _),
+    simpa }
 end
 
 end presheaf

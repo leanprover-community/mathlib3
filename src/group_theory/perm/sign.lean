@@ -701,24 +701,6 @@ end
 
 end congr
 
-@[simp] lemma sign_sum_congr {α β : Type*} [decidable_eq α] [decidable_eq β]
-  [fintype α] [fintype β] (σa : perm α) (σb : perm β) :
-  (sum_congr σa σb).sign = σa.sign * σb.sign :=
-begin
-  suffices : (sum_congr σa (1 : perm β)).sign = σa.sign ∧
-             (sum_congr (1 : perm α) σb).sign = σb.sign,
-  { rw [←this.1, ←this.2, ←sign_mul, sum_congr_mul, one_mul, mul_one], },
-  split,
-  { apply σa.swap_induction_on _ (λ σa' a₁ a₂ ha ih, _),
-    { simp },
-    { rw [←one_mul (1 : perm β), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_swap_one,
-          sign_swap ha, sign_swap (sum.injective_inl.ne_iff.mpr ha)], }, },
-  { apply σb.swap_induction_on _ (λ σb' b₁ b₂ hb ih, _),
-    { simp },
-    { rw [←one_mul (1 : perm α), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_one_swap,
-          sign_swap hb, sign_swap (sum.injective_inr.ne_iff.mpr hb)], }, }
-end
-
 /-- TODO: where does this belong?-/
 @[to_additive]
 lemma update_one_mul {α : Type*} [decidable_eq α] {β : α → Type*} (a : α) [∀ a, monoid (β a)] (b₁ b₂ : β a) :

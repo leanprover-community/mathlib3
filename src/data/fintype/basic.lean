@@ -108,6 +108,17 @@ begin
   simp,
 end
 
+@[simp] lemma univ_filter_exists (f : α → β) [fintype β]
+  [decidable_pred (λ y, ∃ x, f x = y)] [decidable_eq β] :
+  finset.univ.filter (λ y, ∃ x, f x = y) = finset.univ.image f :=
+by { ext, simp }
+
+/-- Note this is a special case of `(finset.image_preimage f univ _).symm`. -/
+lemma univ_filter_mem_range (f : α → β) [fintype β]
+  [decidable_pred (λ y, y ∈ set.range f)] [decidable_eq β] :
+  finset.univ.filter (λ y, y ∈ set.range f) = finset.univ.image f :=
+univ_filter_exists f
+
 end finset
 
 open finset function

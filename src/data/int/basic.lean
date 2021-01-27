@@ -476,6 +476,9 @@ theorem mod_add_div : ∀ (a b : ℤ), a % b + b * (a / b) = a
 | -[1+ m] (n+1:ℕ) := mod_add_div_aux m n.succ
 | -[1+ m] -[1+ n] := mod_add_div_aux m n.succ
 
+theorem div_add_mod (a b : ℤ) : b * (a / b) + a % b = a :=
+(add_comm _ _).trans (mod_add_div _ _)
+
 theorem mod_def (a b : ℤ) : a % b = a - b * (a / b) :=
 eq_sub_of_add_eq (mod_add_div _ _)
 

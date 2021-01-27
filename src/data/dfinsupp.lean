@@ -3,10 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
-import algebra.module.linear_map
 import algebra.module.pi
 import algebra.big_operators.basic
 import data.set.finite
+import group_theory.submonoid.basic
 
 /-!
 # Dependent functions with finite support
@@ -955,3 +955,28 @@ subtype_domain_sum
 end prod_and_sum
 
 end dfinsupp
+
+/-! ### Product and sum lemmas for bundled morphisms -/
+section
+
+variables [decidable_eq ι]
+
+namespace monoid_hom
+variables {R S : Type*} [comm_monoid R] [comm_monoid S]
+variables [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+
+@[simp, to_additive]
+lemma map_dfinsupp_prod (h : R →* S) (f : Π₀ i, β i) (g : Π i, β i → R) :
+  h (f.prod g) = f.prod (λ a b, h (g a b)) := h.map_prod _ _
+
+@[to_additive]
+lemma coe_dfinsupp_prod (f : Π₀ i, β i) (g : Π i, β i → R →* S) :
+  ⇑(f.prod g) = f.prod (λ a b, (g a b)) := coe_prod _ _
+
+@[simp, to_additive]
+lemma dfinsupp_prod_apply (f : Π₀ i, β i) (g : Π i, β i → R →* S) (r : R) :
+  (f.prod g) r = f.prod (λ a b, (g a b) r) := finset_prod_apply _ _ _
+
+end monoid_hom
+
+end

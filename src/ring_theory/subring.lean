@@ -372,12 +372,17 @@ variables {cR : Type u} [comm_ring cR]
 def subset_comm_ring (S : subring cR) : comm_ring S :=
 {mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..subring.to_ring S}
 
+/-- A subring of a non-trivial ring is non-trivial. -/
+instance {D : Type*} [ring D] [nontrivial D] (S : subring D) : nontrivial S :=
+S.to_subsemiring.nontrivial
+
+/-- A subring of a ring with no zero divisors has no zero divisors. -/
+instance {D : Type*} [ring D] [no_zero_divisors D] (S : subring D) : no_zero_divisors S :=
+S.to_subsemiring.no_zero_divisors
+
 /-- A subring of an integral domain is an integral domain. -/
 instance subring.domain {D : Type*} [integral_domain D] (S : subring D) : integral_domain S :=
-{ exists_pair_ne := ⟨0, 1, mt subtype.ext_iff_val.1 zero_ne_one⟩,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨x, hx⟩ ⟨y, hy⟩,
-    by { simp only [subtype.ext_iff_val, subtype.coe_mk], exact eq_zero_or_eq_zero_of_mul_eq_zero },
-  .. S.subset_comm_ring, }
+{ .. S.nontrivial, .. S.no_zero_divisors, .. S.subset_comm_ring }
 
 /-! # bot -/
 

@@ -742,13 +742,13 @@ lemma support_sum {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Ty
   [Π i₁, has_zero (β₁ i₁)] [Π i (x : β₁ i), decidable (x ≠ 0)]
   [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   {f : Π₀ i₁, β₁ i₁} {g : Π i₁, β₁ i₁ → Π₀ i, β i} :
-  (f.sum g).support ⊆ f.support.bind (λi, (g i (f i)).support) :=
+  (f.sum g).support ⊆ f.support.bUnion (λi, (g i (f i)).support) :=
 have ∀i₁ : ι, f.sum (λ (i : ι₁) (b : β₁ i), (g i b) i₁) ≠ 0 →
     (∃ (i : ι₁), f i ≠ 0 ∧ ¬ (g i (f i)) i₁ = 0),
   from assume i₁ h,
   let ⟨i, hi, ne⟩ := finset.exists_ne_zero_of_sum_ne_zero h in
   ⟨i, (f.mem_support_iff i).mp hi, ne⟩,
-by simpa [finset.subset_iff, mem_support_iff, finset.mem_bind, sum_apply] using this
+by simpa [finset.subset_iff, mem_support_iff, finset.mem_bUnion, sum_apply] using this
 
 @[simp, to_additive] lemma prod_one [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_monoid γ] {f : Π₀ i, β i} :

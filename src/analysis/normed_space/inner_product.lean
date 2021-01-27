@@ -733,9 +733,9 @@ include 𝕜
 lemma parallelogram_law_with_norm {x y : E} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 begin
-  simp only [(inner_self_eq_norm_square _).symm],
-  rw[←add_monoid_hom.map_add, parallelogram_law, two_mul, two_mul],
-  simp only [add_monoid_hom.map_add],
+  simp only [← inner_self_eq_norm_square],
+  rw[← re.map_add, parallelogram_law, two_mul, two_mul],
+  simp only [re.map_add],
 end
 omit 𝕜
 
@@ -743,15 +743,83 @@ lemma parallelogram_law_with_norm_real {x y : F} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 by { have h := @parallelogram_law_with_norm ℝ F _ _ x y, simpa using h }
 
+/-- Polarization identity: The real part of the  inner product, in terms of the norm. -/
+lemma re_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : E) :
+  re ⟪x, y⟫ = (∥x + y∥ * ∥x + y∥ - ∥x∥ * ∥x∥ - ∥y∥ * ∥y∥) / 2 :=
+by { rw norm_add_mul_self, ring }
+
+/-- Polarization identity: The real part of the  inner product, in terms of the norm. -/
+lemma re_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two (x y : E) :
+  re ⟪x, y⟫ = (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ - ∥x - y∥ * ∥x - y∥) / 2 :=
+by { rw [norm_sub_mul_self], ring }
+
+/-- Polarization identity: The real part of the  inner product, in terms of the norm. -/
+lemma re_inner_eq_norm_add_mul_self_sub_norm_sub_mul_self_div_four (x y : E) :
+  re ⟪x, y⟫ = (∥x + y∥ * ∥x + y∥ - ∥x - y∥ * ∥x - y∥) / 4 :=
+by { rw [norm_add_mul_self, norm_sub_mul_self], ring }
+
+/-- Polarization identity: The imaginary part of the inner product, in terms of the norm. -/
+lemma im_inner_eq_norm_sub_I_smul_mul_self_sub_norm_add_I_smul_mul_self_div_four (x y : E) :
+  im ⟪x, y⟫ = (∥x - IK • y∥ * ∥x - IK • y∥ - ∥x + IK • y∥ * ∥x + IK • y∥) / 4 :=
+by { simp only [norm_add_mul_self, norm_sub_mul_self, inner_smul_right, I_mul_re], ring }
+
+/-- Polarization identity: The inner product, in terms of the norm. -/
+lemma inner_eq_sum_norm_sq_div_four (x y : E) :
+  ⟪x, y⟫ = (∥x + y∥ ^ 2 - ∥x - y∥ ^ 2 + (∥x - IK • y∥ ^ 2 - ∥x + IK • y∥ ^ 2) * IK) / 4 :=
+begin
+  rw [← re_add_im ⟪x, y⟫, re_inner_eq_norm_add_mul_self_sub_norm_sub_mul_self_div_four,
+    im_inner_eq_norm_sub_I_smul_mul_self_sub_norm_add_I_smul_mul_self_div_four],
+  push_cast,
+  simp only [pow_two, ← mul_div_right_comm, ← add_div]
+end
+
+section
+
+variables {E' : Type*} [inner_product_space 𝕜 E']
+
+/-- A linear isometry preserves the inner product. -/
+@[simp] lemma linear_isometry.inner_map_map (f : E →ₗᵢ[𝕜] E') (x y : E) : ⟪f x, f y⟫ = ⟪x, y⟫ :=
+by simp [inner_eq_sum_norm_sq_div_four, ← f.norm_map]
+
+/-- A linear isometric equivalence preserves the inner product. -/
+@[simp] lemma linear_isometry_equiv.inner_map_map (f : E ≃ₗᵢ[𝕜] E') (x y : E) :
+  ⟪f x, f y⟫ = ⟪x, y⟫ :=
+f.to_linear_isometry.inner_map_map x y
+
+/-- A linear map that preserves the inner product is a linear isometry. -/
+def linear_map.isometry_of_inner (f : E →ₗ[𝕜] E') (h : ∀ x y, ⟪f x, f y⟫ = ⟪x, y⟫) : E →ₗᵢ[𝕜] E' :=
+⟨f, λ x, by simp only [norm_eq_sqrt_inner, h]⟩
+
+@[simp] lemma linear_map.coe_isometry_of_inner (f : E →ₗ[𝕜] E') (h) :
+  ⇑(f.isometry_of_inner h) = f := rfl
+
+@[simp] lemma linear_map.isometry_of_inner_to_linear_map (f : E →ₗ[𝕜] E') (h) :
+  (f.isometry_of_inner h).to_linear_map = f := rfl
+
+/-- A linear equivalence that preserves the inner product is a linear isometric equivalence. -/
+def linear_equiv.isometry_of_inner (f : E ≃ₗ[𝕜] E') (h : ∀ x y, ⟪f x, f y⟫ = ⟪x, y⟫) :
+  E ≃ₗᵢ[𝕜] E' :=
+⟨f, ((f : E →ₗ[𝕜] E').isometry_of_inner h).norm_map⟩
+
+@[simp] lemma linear_equiv.coe_isometry_of_inner (f : E ≃ₗ[𝕜] E') (h) :
+  ⇑(f.isometry_of_inner h) = f := rfl
+
+@[simp] lemma linear_equiv.isometry_of_inner_to_linear_equiv (f : E ≃ₗ[𝕜] E') (h) :
+  (f.isometry_of_inner h).to_linear_equiv = f := rfl
+
+end
+
 /-- Polarization identity: The real inner product, in terms of the norm. -/
 lemma real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : F) :
   ⟪x, y⟫_ℝ = (∥x + y∥ * ∥x + y∥ - ∥x∥ * ∥x∥ - ∥y∥ * ∥y∥) / 2 :=
-by rw norm_add_mul_self; ring
+re_to_real.symm.trans $
+  re_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two x y
 
 /-- Polarization identity: The real inner product, in terms of the norm. -/
 lemma real_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two (x y : F) :
   ⟪x, y⟫_ℝ = (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ - ∥x - y∥ * ∥x - y∥) / 2 :=
-by rw norm_sub_mul_self; ring
+re_to_real.symm.trans $
+  re_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two x y
 
 /-- Pythagorean theorem, if-and-only-if vector inner product form. -/
 lemma norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero (x y : F) :
@@ -2004,6 +2072,12 @@ subspaces. -/
 lemma submodule.orthogonal_le {K₁ K₂ : submodule 𝕜 E} (h : K₁ ≤ K₂) : K₂ᗮ ≤ K₁ᗮ :=
 (submodule.orthogonal_gc 𝕜 E).monotone_l h
 
+/-- `submodule.orthogonal.orthogonal` preserves the `≤` ordering of two
+subspaces. -/
+lemma submodule.orthogonal_orthogonal_monotone {K₁ K₂ : submodule 𝕜 E} (h : K₁ ≤ K₂) :
+  K₁ᗮᗮ ≤ K₂ᗮᗮ :=
+submodule.orthogonal_le (submodule.orthogonal_le h)
+
 /-- `K` is contained in `Kᗮᗮ`. -/
 lemma submodule.le_orthogonal_orthogonal : K ≤ Kᗮᗮ := (submodule.orthogonal_gc 𝕜 E).le_u_l _
 
@@ -2074,6 +2148,17 @@ begin
   { intros hv w hw,
     rw inner_eq_zero_sym,
     exact hw v hv }
+end
+
+lemma submodule.orthogonal_orthogonal_eq_closure [complete_space E] :
+  Kᗮᗮ = K.topological_closure :=
+begin
+  refine le_antisymm _ _,
+  { convert submodule.orthogonal_orthogonal_monotone K.submodule_topological_closure,
+    haveI : complete_space K.topological_closure :=
+      K.is_closed_topological_closure.complete_space_coe,
+    rw K.topological_closure.orthogonal_orthogonal },
+  { exact K.topological_closure_minimal K.le_orthogonal_orthogonal Kᗮ.is_closed_orthogonal }
 end
 
 variables {K}

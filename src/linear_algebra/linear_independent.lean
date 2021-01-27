@@ -631,7 +631,8 @@ end
 
 /-- Dedekind's linear independence of characters -/
 -- See, for example, Keith Conrad's note <https://kconrad.math.uconn.edu/blurbs/galoistheory/linearchar.pdf>
-theorem linear_independent_monoid_hom (G : Type*) [monoid G] (L : Type*) [integral_domain L] :
+theorem linear_independent_monoid_hom (G : Type*) [monoid G] (L : Type*) [comm_ring L]
+  [no_zero_divisors L] :
   @linear_independent _ L (G → L) (λ f, f : (G →* L) → (G → L)) _ _ _ :=
 by letI := classical.dec_eq (G →* L);
    letI : mul_action L L := distrib_mul_action.to_mul_action;

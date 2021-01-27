@@ -425,12 +425,12 @@ begin
   linarith
 end
 
-@[simp] lemma truncate_zero_zero {X : Type*} [topological_space X] {a b : X}
-  (γ : path a b) : γ.truncate 0 0 = (path.refl a).cast (by rw [min_self, γ.extend_zero]) γ.extend_zero :=
+@[simp] lemma truncate_zero_zero {X : Type*} [topological_space X] {a b : X} (γ : path a b) :
+  γ.truncate 0 0 = (path.refl a).cast (by rw [min_self, γ.extend_zero]) γ.extend_zero :=
 by convert γ.truncate_self 0; exact γ.extend_zero.symm
 
-@[simp] lemma truncate_one_one {X : Type*} [topological_space X] {a b : X}
-  (γ : path a b) : γ.truncate 1 1 = (path.refl b).cast (by rw [min_self, γ.extend_one]) γ.extend_one :=
+@[simp] lemma truncate_one_one {X : Type*} [topological_space X] {a b : X} (γ : path a b) :
+  γ.truncate 1 1 = (path.refl b).cast (by rw [min_self, γ.extend_one]) γ.extend_one :=
 by convert γ.truncate_self 1; exact γ.extend_one.symm
 
 @[simp] lemma truncate_zero_one {X : Type*} [topological_space X] {a b : X}
@@ -580,7 +580,8 @@ begin
 end
 
 lemma path_component_subset_component (x : X) : path_component x ⊆ connected_component x :=
-λ y h, subset_connected_component (is_connected_range h.some_path.continuous).2 ⟨0, by simp⟩ ⟨1, by simp⟩
+λ y h, subset_connected_component (is_connected_range h.some_path.continuous).2
+  ⟨0, by simp⟩ ⟨1, by simp⟩
 
 /-- The path component of `x` in `F` is the set of points that can be joined to `x` in `F`. -/
 def path_component_in (x : X) (F : set X) := {y | joined_in F x y}
@@ -588,7 +589,8 @@ def path_component_in (x : X) (F : set X) := {y | joined_in F x y}
 @[simp] lemma path_component_in_univ (x : X) : path_component_in x univ = path_component x :=
 by simp [path_component_in, path_component, joined_in, joined, exists_true_iff_nonempty]
 
-lemma joined.mem_path_component (hyz : joined y z) (hxy : y ∈ path_component x) : z ∈ path_component x :=
+lemma joined.mem_path_component (hyz : joined y z) (hxy : y ∈ path_component x) :
+  z ∈ path_component x :=
 hxy.trans hyz
 
 /-! ### Path connected sets -/
@@ -652,7 +654,8 @@ end
 
 lemma is_path_connected.exists_path_through_family
   {X : Type*} [topological_space X] {n : ℕ} {s : set X} (h : is_path_connected s)
-  (p : fin (n+1) → X) (hp : ∀ i, p i ∈ s) : ∃ γ : path (p 0) (p n), (range γ ⊆ s) ∧ (∀ i, p i ∈ range γ) :=
+  (p : fin (n+1) → X) (hp : ∀ i, p i ∈ s) :
+  ∃ γ : path (p 0) (p n), (range γ ⊆ s) ∧ (∀ i, p i ∈ range γ) :=
 begin
   let p' : ℕ → X := λ k, if h : k < n+1 then p ⟨k, h⟩ else p ⟨0, n.zero_lt_succ⟩,
   obtain ⟨γ, hγ⟩ : ∃ (γ : path (p' 0) (p' n)), (∀ i ≤ n, p' i ∈ range γ) ∧ range γ ⊆ s,

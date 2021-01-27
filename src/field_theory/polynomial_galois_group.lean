@@ -65,7 +65,10 @@ alg_equiv.restrict_normal_hom p.splitting_field
 
 section roots_action
 
-/-- The roots of `p` in `E` -/
+/-- The set of roots of `p` in `E`.
+
+If you have a non-separable polynomial, use `polynomial.roots` for a multiset
+where multiple roots have the appropriate multiplicity. -/
 def roots : set E := (p.map (algebra_map F E)).roots.to_finset
 
 /-- The roots of `p` in `p.splitting_field` -/

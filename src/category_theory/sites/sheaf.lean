@@ -105,7 +105,7 @@ def Sheaf_equiv_SheafOfTypes : Sheaf J (Type v) ≌ SheafOfTypes J :=
   counit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy) }
 
 instance : inhabited (Sheaf (⊥ : grothendieck_topology C) (Type v)) :=
-⟨(SheafOfTypes_equiv_Sheaf _).inverse.obj (default _)⟩
+⟨(Sheaf_equiv_SheafOfTypes _).inverse.obj (default _)⟩
 
 end category_theory
 

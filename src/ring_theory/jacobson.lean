@@ -23,6 +23,7 @@ Some particular examples of Jacobson rings are also proven.
 Let `R` be a commutative ring. Jacobson Rings are defined using the first of the above conditions
 * `is_jacobson R` is the proposition that `R` is a Jacobson ring. It is a class,
   implemented as the predicate that for any ideal, `I.radical = I` implies `I.jacobson = I`.
+
 ## Main statements
 * `is_jacobson_iff_prime_eq` is the equivalence between conditions 1 and 3 above.
 * `is_jacobson_iff_Inf_maximal` is the equivalence between conditions 1 and 2 above.

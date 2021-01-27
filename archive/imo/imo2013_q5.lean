@@ -94,7 +94,7 @@ begin
   exact h_y'_lt_x.not_le (le_of_all_pow_lt_succ hx h1_lt_y' hh)
 end
 
-lemma pos_on_pos_rats {f : ℚ → ℝ} {q : ℚ} (hq : 0 < q)
+lemma f_pos_of_pos {f : ℚ → ℝ} {q : ℚ} (hq : 0 < q)
   (H1 : ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
   (H4 : ∀ n : ℕ, 0 < n → (n : ℝ) ≤ f n) :
   0 < f q :=
@@ -143,7 +143,7 @@ begin
 
   calc ((x - 1 : ℚ) : ℝ) < f ⌊x⌋               : hx0
                      ... < f (x - ⌊x⌋) + f ⌊x⌋ : lt_add_of_pos_left (f ↑⌊x⌋)
-                                                   (pos_on_pos_rats (sub_pos.mpr h_lt) H1 H4)
+                                                   (f_pos_of_pos (sub_pos.mpr h_lt) H1 H4)
                      ... ≤ f (x - ⌊x⌋ + ⌊x⌋)   : H2 (x - ⌊x⌋) ⌊x⌋ (sub_pos.mpr h_lt)
                                                     (by exact_mod_cast h0fx)
                      ... = f x                 : by simp only [sub_add_cancel]
@@ -163,7 +163,7 @@ begin
   have hxp : 0 < x := zero_lt_one.trans hx,
   calc f ((x ^ (pn+1)) * x)
           ≤ f (x ^ (pn+1)) * f x : H1 (x ^ (pn+1)) x (pow_pos hxp (pn+1)) hxp
-      ... ≤ (f x) ^ (pn+1) * f x : (mul_le_mul_right (pos_on_pos_rats hxp H1 H4)).mpr hpn'
+      ... ≤ (f x) ^ (pn+1) * f x : (mul_le_mul_right (f_pos_of_pos hxp H1 H4)).mpr hpn'
 end
 
 lemma fixed_point_of_pos_nat_pow {f : ℚ → ℝ} {n : ℕ} (hn : 0 < n)
@@ -277,7 +277,7 @@ begin
                      ... ≤ (f x)^n : pow_f_le_f_pow hn hx H1 H4 },
     have hx' : 1 < (x : ℝ) := by exact_mod_cast hx,
     have hxp : 0 < x := zero_lt_one.trans hx,
-    exact le_of_all_pow_lt_succ' hx' (pos_on_pos_rats hxp H1 H4) hxnm1 },
+    exact le_of_all_pow_lt_succ' hx' (f_pos_of_pos hxp H1 H4) hxnm1 },
 
   have h_f_commutes_with_pos_nat_mul : ∀ n : ℕ, 0 < n → ∀ x : ℚ, 0 < x → f (n * x) = n * f x,
   { intros n hn x hx,

@@ -320,19 +320,14 @@ open finset
 variables {α₁ : Type*} {α₂ : Type*} {M : Type*} [fintype α₁] [fintype α₂] [comm_monoid M]
 
 @[to_additive]
+lemma fintype.prod_sum_elim (f : α₁ → M) (g : α₂ → M) :
+  (∏ x, sum.elim f g x) = (∏ a₁, f a₁) * (∏ a₂, g a₂) :=
+by { classical, rw [univ_sum_type, prod_sum_elim] }
+
+@[to_additive]
 lemma fintype.prod_sum_type (f : α₁ ⊕ α₂ → M) :
   (∏ x, f x) = (∏ a₁, f (sum.inl a₁)) * (∏ a₂, f (sum.inr a₂)) :=
-begin
-  classical,
-  let s : finset (α₁ ⊕ α₂) := univ.image sum.inr,
-  rw [← prod_sdiff (subset_univ s),
-      ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inl,
-      ← @prod_image (α₁ ⊕ α₂) _ _ _ _ _ _ sum.inr],
-  { congr, rw finset.ext_iff, rintro (a|a);
-    { simp only [mem_image, exists_eq, mem_sdiff, mem_univ, exists_false,
-        exists_prop_of_true, not_false_iff, and_self, not_true, and_false], } },
-  all_goals { intros, solve_by_elim [sum.inl.inj, sum.inr.inj], }
-end
+by simp only [← fintype.prod_sum_elim, sum.elim_comp_inl_inr]
 
 end
 

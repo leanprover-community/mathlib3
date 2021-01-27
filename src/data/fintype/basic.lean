@@ -501,6 +501,13 @@ fintype.of_equiv _ equiv.ulift.symm
   fintype.card (ulift α) = fintype.card α :=
 fintype.of_equiv_card _
 
+lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] [fintype (α ⊕ β)] [decidable_eq (α ⊕ β)] :
+  (univ : finset (α ⊕ β)) = map function.embedding.inl univ ∪ map function.embedding.inr univ :=
+begin
+  rw [eq_comm, eq_univ_iff_forall], simp only [mem_union, mem_map, exists_prop, mem_univ, true_and],
+  rintro (x|y), exacts [or.inl ⟨x, rfl⟩, or.inr ⟨y, rfl⟩]
+end
+
 instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕ β) :=
 @fintype.of_equiv _ _ (@sigma.fintype _
     (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) _

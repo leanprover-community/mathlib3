@@ -224,6 +224,10 @@ def mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
   continuous_multilinear_map 𝕜 E₁ E₂ :=
 { cont := f.continuous_of_bound C H, ..f }
 
+@[simp] lemma coe_mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
+  ⇑(f.mk_continuous C H) = f :=
+rfl
+
 /-- Given a multilinear map in `n` variables, if one restricts it to `k` variables putting `z` on
 the other coordinates, then the resulting restricted function satisfies an inequality
 `∥f.restr v∥ ≤ C * ∥z∥^(n-k) * Π ∥v i∥` if the original function satisfies `∥f v∥ ≤ C * Π ∥v i∥`. -/

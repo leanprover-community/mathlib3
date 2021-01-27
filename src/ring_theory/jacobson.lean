@@ -42,6 +42,8 @@ section technical_lemmas
 The following two lemmas are independent of Jacobson.  I extracted them from the
 original proof of `quotient_mk_comp_C_is_integral_of_jacobson` to speed up processing.
 Honestly, I did not spend time to unwind their "meaning", hence the names are likely inappropriate.
+
+TODO: clean up, move elsewhere
 -/
 lemma injective_quotient_le_comap_map {R : Type*} [comm_ring R] (P : ideal (polynomial R)) :
   function.injective ((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map

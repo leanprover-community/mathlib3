@@ -168,15 +168,15 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
   (∀a:quotient r, p a) ↔ (∀a:α, p ⟦a⟧) :=
 ⟨assume h x, h _, assume h a, a.induction_on h⟩
 
-@[simp] lemma quotient.lift_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
+@[simp] lemma quotient.lift_mk [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
   quotient.lift f h (quotient.mk x) = f x := rfl
 
-@[simp] lemma quotient.lift_on_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
+@[simp] lemma quotient.lift_on_mk [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
   quotient.lift_on (quotient.mk x) f h = f x := rfl
 
-@[simp] theorem quotient.lift_on_beta₂ {α : Sort*} {β : Sort*} [setoid α] (f : α → α → β)
+@[simp] theorem quotient.lift_on₂_mk {α : Sort*} {β : Sort*} [setoid α] (f : α → α → β)
   (h : ∀ (a₁ a₂ b₁ b₂ : α), a₁ ≈ b₁ → a₂ ≈ b₂ → f a₁ a₂ = f b₁ b₂) (x y : α) :
   quotient.lift_on₂ (quotient.mk x) (quotient.mk y) f h = f x y := rfl
 
@@ -253,7 +253,7 @@ quot.lift f (λ a b _, c a b)
 
 theorem ind {β : trunc α → Prop} : (∀ a : α, β (mk a)) → ∀ q : trunc α, β q := quot.ind
 
-protected theorem lift_beta (f : α → β) (c) (a : α) : lift f c (mk a) = f a := rfl
+protected theorem lift_mk (f : α → β) (c) (a : α) : lift f c (mk a) = f a := rfl
 
 /-- Lift a constant function on `q : trunc α`. -/
 @[reducible, elab_as_eliminator]
@@ -346,7 +346,7 @@ protected def lift_on' (q : quotient s₁) (f : α → φ)
   (h : ∀ a b, @setoid.r α s₁ a b → f a = f b) : φ := quotient.lift_on q f h
 
 @[simp]
-protected lemma lift_on'_beta (f : α → φ) (h) (x : α) :
+protected lemma lift_on'_mk' (f : α → φ) (h) (x : α) :
   quotient.lift_on' (@quotient.mk' _ s₁ x) f h = f x := rfl
 
 /-- A version of `quotient.lift_on₂` taking `{s₁ : setoid α} {s₂ : setoid β}` as implicit arguments
@@ -357,7 +357,7 @@ protected def lift_on₂' (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α 
 quotient.lift_on₂ q₁ q₂ f h
 
 @[simp]
-protected lemma lift_on₂'_beta (f : α → β → γ) (h) (a : α) (b : β) :
+protected lemma lift_on₂'_mk' (f : α → β → γ) (h) (a : α) (b : β) :
   quotient.lift_on₂' (@quotient.mk' _ s₁ a) (@quotient.mk' _ s₂ b) f h = f a b := rfl
 
 /-- A version of `quotient.ind` taking `{s : setoid α}` as an implicit argument instead of an

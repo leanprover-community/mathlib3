@@ -406,7 +406,7 @@ begin
     { exact quotient.sound (λ i, rfl) },
     rw H3, apply ih },
   have H2 : p (erase i ⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧),
-  { dsimp only [erase, quotient.lift_on_beta],
+  { dsimp only [erase, quotient.lift_on_mk],
     have H2 : ∀ j, j ∈ s ∨ ite (j = i) 0 (f j) = 0,
     { intro j, cases H j with H2 H2,
       { cases multiset.mem_cons.1 H2 with H3 H3,
@@ -530,7 +530,7 @@ end
 @[simp] theorem mem_support_to_fun (f : Π₀ i, β i) (i) : i ∈ f.support ↔ f i ≠ 0 :=
 begin
   refine quotient.induction_on f (λ x, _),
-  dsimp only [support, quotient.lift_on_beta],
+  dsimp only [support, quotient.lift_on_mk],
   rw [finset.mem_filter, multiset.mem_to_finset],
   exact and_iff_right_of_imp (x.3 i).resolve_right
 end

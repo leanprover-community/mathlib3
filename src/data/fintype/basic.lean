@@ -233,9 +233,11 @@ end fintype
 
 section inv
 
+namespace function
+
 variables [fintype α] [decidable_eq β]
 
-section injective
+namespace injective
 
 variables {f : α → β} (hf : function.injective f)
 
@@ -247,19 +249,19 @@ an explicit inverse can be stated that has better computational properties.
 This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
 `N = fintype.card α`.
 -/
-def function.injective.inv_of_mem_range : set.range f → α :=
+def inv_of_mem_range : set.range f → α :=
 λ b, finset.choose (λ a, f a = b) finset.univ ((exists_unique_congr (by simp)).mp
   (hf.exists_unique_of_mem_range b.property))
 
-lemma function.injective.left_inv_of_inv_of_mem_range (b : set.range f) :
+lemma left_inv_of_inv_of_mem_range (b : set.range f) :
   f (hf.inv_of_mem_range b) = b :=
 (finset.choose_spec (λ a, f a = b) _ _).right
 
-@[simp] lemma function.injective.right_inv_of_inv_of_mem_range (a : α) :
+@[simp] lemma right_inv_of_inv_of_mem_range (a : α) :
   hf.inv_of_mem_range (⟨f a, set.mem_range_self a⟩) = a :=
 hf (finset.choose_spec (λ a', f a' = f a) _ _).right
 
-lemma function.injective.inv_fun_restrict [nonempty α] :
+lemma inv_fun_restrict [nonempty α] :
   (set.range f).restrict (inv_fun f) = hf.inv_of_mem_range :=
 begin
   ext b,
@@ -268,12 +270,12 @@ begin
   simp [hf.left_inv_of_inv_of_mem_range, @inv_fun_eq _ _ _ f b (set.mem_range.mp h)]
 end
 
-lemma function.injective.inv_of_mem_range_surjective : function.surjective hf.inv_of_mem_range :=
+lemma inv_of_mem_range_surjective : function.surjective hf.inv_of_mem_range :=
 λ a, ⟨⟨f a, set.mem_range_self a⟩, by simp⟩
 
 end injective
 
-section embedding
+namespace embedding
 
 variables (f : α ↪ β) (b : set.range f)
 
@@ -285,18 +287,18 @@ an explicit inverse can be stated that has better computational properties.
 This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
 `N = fintype.card α`.
 -/
-def function.embedding.inv_of_mem_range : α :=
+def inv_of_mem_range : α :=
 f.injective.inv_of_mem_range b
 
-@[simp] lemma function.embedding.left_inv_of_inv_of_mem_range :
+@[simp] lemma left_inv_of_inv_of_mem_range :
   f (f.inv_of_mem_range b) = b :=
 f.injective.left_inv_of_inv_of_mem_range b
 
-@[simp] lemma function.embedding.right_inv_of_inv_of_mem_range (a : α) :
+@[simp] lemma right_inv_of_inv_of_mem_range (a : α) :
   f.inv_of_mem_range ⟨f a, set.mem_range_self a⟩ = a :=
 f.injective.right_inv_of_inv_of_mem_range a
 
-lemma function.embedding.inv_fun_restrict [nonempty α] :
+lemma inv_fun_restrict [nonempty α] :
   (set.range f).restrict (inv_fun f) = f.inv_of_mem_range :=
 begin
   ext b,
@@ -305,10 +307,12 @@ begin
   simp [f.left_inv_of_inv_of_mem_range, @inv_fun_eq _ _ _ f b (set.mem_range.mp h)]
 end
 
-lemma function.embedding.inv_of_mem_range_surjective : function.surjective f.inv_of_mem_range :=
+lemma inv_of_mem_range_surjective : function.surjective f.inv_of_mem_range :=
 λ a, ⟨⟨f a, set.mem_range_self a⟩, by simp⟩
 
 end embedding
+
+end function
 
 end inv
 

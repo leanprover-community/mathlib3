@@ -44,8 +44,8 @@ begin
     by_contra h_suppose_not,
     -- If we choose a small enough argument for f, then we get a contradiction.
     let s := (x * f x - f (f x)) / (f x),
-    have hm : min 0 s - 1 < s := lt_of_lt_of_le (sub_one_lt _) (min_le_right 0 s),
-    have hml : min 0 s - 1 < 0 := lt_of_lt_of_le (sub_one_lt _) (min_le_left 0 s),
+    have hm : min 0 s - 1 < s := (sub_one_lt _).trans_le (min_le_right 0 s),
+    have hml : min 0 s - 1 < 0 := (sub_one_lt _).trans_le (min_le_left 0 s),
 
     suffices : f (min 0 s - 1) < 0, from not_le.mpr this (h_f_nonneg_of_pos (min 0 s - 1) hml),
 
@@ -53,14 +53,14 @@ begin
     calc f (min 0 s - 1)
            ≤ (min 0 s - 1) * f x - x * f x + f (f x) : hxt x (min 0 s - 1)
       ...  < s * f x - x * f x + f (f x) : by linarith [(mul_lt_mul_right hp).mpr hm]
-      ...  = 0 : by rw ((eq_div_iff (ne.symm (ne_of_lt hp))).mp rfl); linarith },
+      ...  = 0 : by { rw [(eq_div_iff hp.ne.symm).mp rfl], linarith } },
 
   have h_fx_zero_of_neg : ∀ x < 0, f x = 0,
   { intros x hxz,
-    exact le_antisymm (h_f_nonpos x) (h_f_nonneg_of_pos x hxz) },
+    exact (h_f_nonpos x).antisymm (h_f_nonneg_of_pos x hxz) },
 
   intros x hx,
-  obtain (h_x_neg : x < 0) | (rfl : x = 0) := lt_or_eq_of_le hx,
+  obtain (h_x_neg : x < 0) | (rfl : x = 0) := hx.lt_or_eq,
   { exact h_fx_zero_of_neg _ h_x_neg },
   { suffices : 0 ≤ f 0, from le_antisymm (h_f_nonpos 0) this,
     have hno : f (-1) = 0 := h_fx_zero_of_neg (-1) neg_one_lt_zero,

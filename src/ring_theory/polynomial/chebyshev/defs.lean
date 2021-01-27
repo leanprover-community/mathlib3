@@ -219,9 +219,9 @@ end
 
 lemma chebyshev₁_derivative_eq_chebyshev₂ :
 ∀ (n : ℕ), derivative (chebyshev₁ R (n + 1)) = (n + 1) * chebyshev₂ R n
-|0        := by simp only [chebyshev₁_one, chebyshev₂_zero, derivative_X, nat.cast_zero, zero_add,
+| 0        := by simp only [chebyshev₁_one, chebyshev₂_zero, derivative_X, nat.cast_zero, zero_add,
                            mul_one]
-|1        := by { simp only [chebyshev₁_two, chebyshev₂_one, derivative_sub, derivative_one,
+| 1        := by { simp only [chebyshev₁_two, chebyshev₂_one, derivative_sub, derivative_one,
                               derivative_mul, derivative_X_pow, nat.cast_one,
                               nat.cast_two],
                     norm_num }

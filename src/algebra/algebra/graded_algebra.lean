@@ -54,16 +54,6 @@ decidable.rec_on (infer_instance : decidable ((x : A) ≠ 0))
   (λ hfalse, decidable.is_false $ by simp * at *)
   (λ htrue, decidable.is_true $ by simp * at *)
 
--- #4810
-lemma subtype.ext_iff_heq {α : Sort*} {p : α → Prop} {q : α → Prop} (h' : ∀ x, p x ↔ q x)
-  {a1 : {x // p x}} {a2 : {x // q x}} :
-  a1 == a2 ↔ (a1 : α) = (a2 : α) :=
-begin
-  have : p = q := funext (λ x, propext (h' x)),
-  subst this,
-  exact heq_iff_eq.trans subtype.ext_iff,
-end
-
 namespace semiring
 
 @[simps mul]
@@ -86,12 +76,13 @@ instance : has_one G := {
 
 private lemma one_mul (a : G) : 1 * a = a :=
 begin
-  simp only [has_mul_mul, has_one_one, direct_sum.of, add_monoid_hom.coe_mk],
+  simp only [has_mul_mul, has_one_one, direct_sum.of, dfinsupp.single_add_hom,
+    add_monoid_hom.coe_mk],
   rw dfinsupp.sum_single_index,
   { convert @dfinsupp.sum_single ι (λ i, G[i]) _ _ _ a,
     ext1 i, ext1,
     congr, exact zero_add i,
-    rw subtype.ext_iff_heq,
+    rw subtype.heq_iff_coe_eq,
     { rw [submodule.coe_mk, submodule.coe_mk, one_mul], },
     { intro x, rw zero_add }, },
   { convert @dfinsupp.sum_zero _ _ _ _ _ _ _ a,
@@ -101,16 +92,17 @@ begin
 end
 
 private lemma mul_one (a : G) : a * 1 = a := begin
-  simp only [has_mul_mul, has_one_one, direct_sum.of, add_monoid_hom.coe_mk],
+  simp only [has_mul_mul, has_one_one, direct_sum.of, dfinsupp.single_add_hom,
+    add_monoid_hom.coe_mk],
   convert @dfinsupp.sum_single ι _ _ _ _ a,
   ext1 i, ext1,
   rw dfinsupp.sum_single_index,
   { congr, exact add_zero i,
-    rw subtype.ext_iff_heq,
+    rw subtype.heq_iff_coe_eq,
     { rw [submodule.coe_mk, submodule.coe_mk, mul_one], },
     { intro x, rw add_zero }, },
   { convert @dfinsupp.single_zero ι _ _ _ _,
-    rw [submodule.coe_zero, mul_zero], }
+    rw [submodule.coe_zero, mul_zero], },
 end
 
 private lemma zero_mul (a : G) : 0 * a = 0 := by { rw has_mul_mul, exact dfinsupp.sum_zero_index }
@@ -118,7 +110,7 @@ private lemma zero_mul (a : G) : 0 * a = 0 := by { rw has_mul_mul, exact dfinsup
 private lemma mul_zero (a : G) : a * 0 = 0 := by { rw has_mul_mul, convert dfinsupp.sum_zero, }
 
 private lemma mul_assoc (a b c : G) : a * b * c = a * (b * c) := begin
-  simp only [has_mul_mul, direct_sum.of, add_monoid_hom.coe_mk],
+  simp only [has_mul_mul, direct_sum.of, dfinsupp.single_add_hom, add_monoid_hom.coe_mk],
   convert dfinsupp.sum_sum_index (λ i : ι, _) (λ i (bi ci : G[i]), _),
   { ext1 ai, ext1,
     simp,
@@ -133,7 +125,7 @@ private lemma mul_assoc (a b c : G) : a * b * c = a * (b * c) := begin
             rw dfinsupp.sum_single_index,
             { congr' 1,
               exact (add_assoc ai bi ci).symm,
-              rw subtype.ext_iff_heq,
+              rw subtype.heq_iff_coe_eq,
               { simp [mul_assoc], },
               { intro x, simp [add_assoc] }, },
             { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, }, },
@@ -164,7 +156,7 @@ end
 
 private lemma left_distrib (a b c : G) : a * (b + c) = a * b + a * c :=
 begin
-  simp only [has_mul_mul, direct_sum.of, add_monoid_hom.coe_mk],
+  simp only [has_mul_mul, direct_sum.of, dfinsupp.single_add_hom, add_monoid_hom.coe_mk],
   convert dfinsupp.sum_add,
   ext1, ext1,
   convert dfinsupp.sum_add_index (λ i, _) (λ i ai bi, _),
@@ -174,7 +166,7 @@ end
 
 private lemma right_distrib (a b c : G) : (a + b) * c = a * c + b * c :=
 begin
-  simp only [has_mul_mul, direct_sum.of, add_monoid_hom.coe_mk],
+  simp only [has_mul_mul, direct_sum.of, dfinsupp.single_add_hom, add_monoid_hom.coe_mk],
   convert dfinsupp.sum_add_index (λ i, _) (λ i ai bi, _),
   { convert @dfinsupp.sum_zero ι (λ i, G[i]) _ _ _ _ _ _,
     ext1, ext1,

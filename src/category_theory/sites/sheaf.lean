@@ -62,32 +62,25 @@ def Sheaf : Type* :=
 def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
 full_subcategory_inclusion (presheaf.is_sheaf J)
 
-theorem Sheaf_is_SheafOfTypes (P : Cᵒᵖ ⥤ Type v) (hP : presheaf.is_sheaf J P) :
-  presieve.is_sheaf J P :=
+lemma Sheaf_iff_SheafOfTypes (P : Cᵒᵖ ⥤ Type v) :
+  presheaf.is_sheaf J P ↔ presieve.is_sheaf J P :=
 begin
-  specialize hP punit,
-  apply presieve.is_sheaf_iso J _ hP,
-  apply coyoneda.iso_comp_punit,
-end
-
-theorem SheafOfTypes_is_Sheaf (P : Cᵒᵖ ⥤ Type v) (hP : presieve.is_sheaf J P) :
-  presheaf.is_sheaf J P :=
-begin
-  intros X Y S hS z hz,
-  change ∃! (t : X ⟶ _), _,
-  refine ⟨λ x, (hP S hS).amalgamate (λ Z f hf, z f hf x) _, _, _⟩,
-  { intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ hf₁ hf₂ h,
-    exact congr_fun (hz g₁ g₂ hf₁ hf₂ h) x },
-  { intros Z f hf,
-    ext x,
-    apply presieve.is_sheaf_for.valid_glue },
-  { intros y hy,
-    ext x,
-    apply (hP S hS).is_separated_for.ext,
-    intros Y' f hf,
-    rw presieve.is_sheaf_for.valid_glue _ _ _ hf,
-    rw ← hy _ hf,
-    refl }
+  split,
+  { intros hP,
+    apply presieve.is_sheaf_iso J (coyoneda.iso_comp_punit _) (hP punit) },
+  { intros hP X Y S hS z hz,
+    refine ⟨λ x, (hP S hS).amalgamate (λ Z f hf, z f hf x) _, _, _⟩,
+    { intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ hf₁ hf₂ h,
+      exact congr_fun (hz g₁ g₂ hf₁ hf₂ h) x },
+    { intros Z f hf,
+      ext x,
+      apply presieve.is_sheaf_for.valid_glue },
+    { intros y hy,
+      ext x,
+      apply (hP S hS).is_separated_for.ext,
+      intros Y' f hf,
+      rw [presieve.is_sheaf_for.valid_glue _ _ _ hf, ← hy _ hf],
+      refl } }
 end
 
 /--
@@ -96,10 +89,10 @@ The category of sheaves taking values in Type is the same as the category of set
 @[simps]
 def Sheaf_equiv_SheafOfTypes : Sheaf J (Type v) ≌ SheafOfTypes J :=
 { functor :=
-  { obj := λ S, ⟨S.1, Sheaf_is_SheafOfTypes _ _ S.2⟩,
+  { obj := λ S, ⟨S.1, (Sheaf_iff_SheafOfTypes _ _).1 S.2⟩,
     map := λ S₁ S₂ f, f },
   inverse :=
-  { obj := λ S, ⟨S.1, SheafOfTypes_is_Sheaf _ _ S.2⟩,
+  { obj := λ S, ⟨S.1, (Sheaf_iff_SheafOfTypes _ _).2 S.2⟩,
     map := λ S₁ S₂ f, f },
   unit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy),
   counit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy) }
@@ -117,16 +110,11 @@ namespace presheaf
 
 -- under here is the equalizer story, which is equivalent if A has products (and doesn't
 -- make sense otherwise). It's described between 00VQ and 00VR in stacks.
--- we need [category.{u} A] possibly
 
 variables {C : Type v} [small_category C]
-
 variables {A : Type u} [category.{v} A] [has_products A]
-
 variables (J : grothendieck_topology C)
-
 variables {U : C} (R : presieve U)
-
 variables (P : Cᵒᵖ ⥤ A)
 
 def first_obj : A :=
@@ -170,37 +158,35 @@ end
 def is_sheaf' (P : Cᵒᵖ ⥤ A) : Prop := ∀ (U : C) (R : presieve U) (hR : generate R ∈ J U),
 nonempty (is_limit (fork.of_ι _ (w R P)))
 
-def is_sheaf_for_is_sheaf_for' (P : Cᵒᵖ ⥤ A) (X) (U : C) (R : presieve U) :
-  is_limit ((coyoneda.obj X).map_cone (fork.of_ι _ (w R P))) ≃
-    is_limit (fork.of_ι _ (equalizer.presieve.w (P ⋙ coyoneda.obj X) R)) :=
+/-- Impl. An auxiliary lemma to convert between sheaf conditions. -/
+def is_sheaf_for_is_sheaf_for' (P : Cᵒᵖ ⥤ A) (s : A ⥤ Type v)
+  [Π J, preserves_limits_of_shape (discrete J) s] (U : C) (R : presieve U) :
+  is_limit (s.map_cone (fork.of_ι _ (w R P))) ≃
+    is_limit (fork.of_ι _ (equalizer.presieve.w (P ⋙ s) R)) :=
 begin
   apply equiv.trans (is_limit_map_cone_fork_equiv _ _) _,
   apply (is_limit.postcompose_hom_equiv _ _).symm.trans (is_limit.equiv_iso_limit _),
   { apply nat_iso.of_components _ _,
     { rintro (_ | _),
-      { apply preserves_product.iso (coyoneda.obj X) },
-      { apply preserves_product.iso (coyoneda.obj X) } },
+      { apply preserves_product.iso s },
+      { apply preserves_product.iso s } },
     { rintro _ _ (_ | _),
       { ext : 1,
         dsimp [equalizer.presieve.first_map, first_map],
         simp only [limit.lift_π, map_lift_pi_comparison, assoc, fan.mk_π_app, functor.map_comp],
-        erw limit.lift_π,
-        erw pi_comparison_comp_π_assoc,
-        simp },
+        erw pi_comparison_comp_π_assoc },
       { ext : 1,
         dsimp [equalizer.presieve.second_map, second_map],
         simp only [limit.lift_π, map_lift_pi_comparison, assoc, fan.mk_π_app, functor.map_comp],
-        erw limit.lift_π,
-        erw pi_comparison_comp_π_assoc,
-        simp },
+        erw pi_comparison_comp_π_assoc },
       { dsimp,
         simp } } },
   { refine fork.ext (iso.refl _) _,
     dsimp [equalizer.fork_map, fork_map],
     simp }
-
 end
 
+/-- The equalizer definition of a sheaf given by `is_sheaf'` is equivalent to `is_sheaf`. -/
 theorem is_sheaf_iff_is_sheaf' (P : Cᵒᵖ ⥤ A) :
   is_sheaf J P ↔ is_sheaf' J P :=
 begin
@@ -221,6 +207,32 @@ begin
     apply is_limit_of_preserves,
     apply classical.choice (h _ S _),
     simpa }
+end
+
+/--
+For a concrete category `(A, s)` where the forgetful functor `s : A ⥤ Type v` preserves limits and
+reflects isomorphisms, and `A` has limits, an `A`-valued presheaf `P : Cᵒᵖ ⥤ A` is a sheaf iff its
+underlying `Type`-valued presheaf `P ⋙ s : Cᵒᵖ ⥤ Type` is a sheaf.
+-/
+lemma sheaf_cond3 (P : Cᵒᵖ ⥤ A) (s : A ⥤ Type v)
+  [has_limits A] [preserves_limits s] [faithful s] [reflects_isomorphisms s] :
+  is_sheaf J P ↔ is_sheaf J (P ⋙ s) :=
+begin
+  rw is_sheaf_iff_is_sheaf',
+  rw is_sheaf_iff_is_sheaf',
+  apply forall_congr (λ U, _),
+  apply ball_congr (λ R hR, _),
+  letI : reflects_limits s := reflects_limits_of_reflects_isomorphisms,
+  have : is_limit (s.map_cone (fork.of_ι _ (w R P))) ≃ is_limit (fork.of_ι _ (w R (P ⋙ s))) :=
+    is_sheaf_for_is_sheaf_for' P s U R,
+  rw ← equiv.nonempty_iff_nonempty this,
+  split,
+  { apply nonempty.map,
+    intro t,
+    apply is_limit_of_preserves s t },
+  { apply nonempty.map _,
+    intro t,
+    apply is_limit_of_reflects s t }
 end
 
 end presheaf

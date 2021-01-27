@@ -47,10 +47,8 @@ presheaf of types given by sending U : C to Hom_{A}(X, P U) is a sheaf of types.
 
 https://stacks.math.columbia.edu/tag/00VR
 -/
-
-def is_sheaf (P : Cᵒᵖ ⥤ A) : Prop := ∀ X : A,
-presieve.is_sheaf J (P ⋙ coyoneda.obj (op X))
-
+def is_sheaf (P : Cᵒᵖ ⥤ A) : Prop :=
+∀ X : A, presieve.is_sheaf J (P ⋙ coyoneda.obj (op X))
 
 /-!
 
@@ -58,27 +56,13 @@ presieve.is_sheaf J (P ⋙ coyoneda.obj (op X))
 
 -/
 
-#check coyoneda.obj (op punit.{v+1})
-#check iso_comp_punit
-
-lemma practice (P : Cᵒᵖ ⥤ Type v) : P ≅ (P ⋙ coyoneda.obj (op punit.{v+1})) :=
-{ hom := { app := λ X a _, a },
-  inv := { app := λ X f, f punit.star},-- Hom (*, P X) → P X},
-  hom_inv_id' := by tidy,
-  inv_hom_id' := by tidy }
-
-example (P Q : Cᵒᵖ ⥤ Type v) (h : P ≅ Q) : presieve.is_sheaf J P → presieve.is_sheaf J Q :=
-begin
-  exact presieve.is_sheaf_iso J h,
-end
-
 end presheaf
 
 variables {C : Type u} [category.{v} C]
 variables (J : grothendieck_topology C)
 variables (A : Type u') [category.{v} A]
 
-/-- The category of sheaves on a grothendieck topology. -/
+/-- The category of sheaves taking values in `A` on a grothendieck topology. -/
 @[derive category]
 def Sheaf : Type* :=
 {P : Cᵒᵖ ⥤ A // presheaf.is_sheaf J P}
@@ -101,21 +85,39 @@ theorem Sheaf_is_SheafOfTypes (P : Cᵒᵖ ⥤ Type v) (hP : presheaf.is_sheaf J
   presieve.is_sheaf J P :=
 begin
   specialize hP punit,
-  apply presieve.is_sheaf_iso J,
-  apply practice,
+  apply presieve.is_sheaf_iso J _ hP,
+  apply coyoneda.iso_comp_punit,
 end
 
+theorem SheafOfTypes_is_Sheaf (P : Cᵒᵖ ⥤ Type v) (hP : presieve.is_sheaf J P) :
+  presheaf.is_sheaf J P :=
+begin
+  intros X Y S hS z hz,
+  change ∃! (t : X ⟶ _), _,
+  refine ⟨λ x, (hP S hS).amalgamate (λ Z f hf, z f hf x) _, _, _⟩,
+  { intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ hf₁ hf₂ h,
+    exact congr_fun (hz g₁ g₂ hf₁ hf₂ h) x },
+  { intros Z f hf,
+    ext x,
+    apply presieve.is_sheaf_for.valid_glue },
+  { intros y hy,
+    ext x,
+    apply (hP S hS).is_separated_for.ext,
+    intros Y' f hf,
+    rw presieve.is_sheaf_for.valid_glue _ _ _ hf,
+    rw ← hy _ hf,
+    refl }
+end
 
-theorem Sheaf_of_types_equiv_Sheaf : Sheaf J (Type v) ≌ SheafOfTypes J :=
-{ functor := { obj := λ S, ⟨S.1, _⟩,
-    map := _,
-    map_id' := _,
-    map_comp' := _ },
-  inverse := _,
-  unit_iso := _,
-  counit_iso := _,
-  --functor_unit_iso_comp' := _ }
-}
+def Sheaf_of_types_equiv_Sheaf : Sheaf J (Type v) ≌ SheafOfTypes J :=
+{ functor :=
+  { obj := λ S, ⟨S.1, Sheaf_is_SheafOfTypes _ _ S.2⟩,
+    map := λ S₁ S₂ f, f },
+  inverse :=
+  { obj := λ S, ⟨S.1, SheafOfTypes_is_Sheaf _ _ S.2⟩,
+    map := λ S₁ S₂ f, f },
+  unit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy),
+  counit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy) }
 
 end category_theory
 

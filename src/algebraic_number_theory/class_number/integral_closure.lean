@@ -75,13 +75,14 @@ lemma integral_closure.exists_is_basis
   [is_separable (localization_map.codomain f) L] [is_principal_ideal_ring R] :
   ∃ (n : ℕ) (b : fin n → (integral_closure R L)), is_basis R b :=
 begin
+  haveI := classical.dec_eq L,
   obtain ⟨s, b, hb, hb_int⟩ := is_dedekind_domain.exists_is_basis_integral L f,
   have le := is_dedekind_domain.integral_closure_le_span hb hb_int
-    unique_factorization_monoid.integrally_closed,
+    (unique_factorization_monoid.integrally_closed f),
   refine submodule.exists_is_basis_of_le_span _ le,
   refine linear_independent.of_scalar_tower _
     (show function.injective (algebra_map R f.codomain), from f.injective),
-  exact (@is_basis_dual_basis _ _ _ _ _ _ _ (λ _ _, classical.prop_decidable _) _ hb _).1
+  exact (is_basis_dual_basis hb).1
 end
 
 noncomputable def integral_closure.dim
@@ -179,7 +180,7 @@ section euclidean_domain
 variables {R K L : Type*} [euclidean_domain R] [field K] [field L]
 variables (f : fraction_map R K)
 variables [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
-variables [finite_dimensional f.codomain L] 
+variables [finite_dimensional f.codomain L]
 
 /-- If `L` is a finite dimensional extension of the field of fractions of a Euclidean domain `R`,
 there is a function mapping each `x : L` to the "closest" value that is integral over `R`. -/

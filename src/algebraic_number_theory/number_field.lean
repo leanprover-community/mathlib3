@@ -72,7 +72,7 @@ instance : integral_domain (ring_of_integers K) :=
 example (K : Type) [field K] (x : K) (h : x ≠ 0): x * (field.inv x) = 1 := field.mul_inv_cancel h
 
 instance integral_closure_int.is_dedekind_domain : is_dedekind_domain (integral_closure ℤ K) :=
-is_dedekind_domain.integral_closure int.fraction_map (principal_ideal_ring.to_dedekind_domain _)
+is_dedekind_domain.integral_closure int.fraction_map (principal_ideal_ring.is_dedekind_domain _)
 
 instance : is_dedekind_domain (ring_of_integers K) :=
 integral_closure_int.is_dedekind_domain K

@@ -13,7 +13,7 @@ open set topological_space metric
 open_locale topological_space
 
 namespace nnreal
-open_locale nnreal
+open_locale nnreal big_operators
 
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
@@ -73,6 +73,15 @@ instance : has_continuous_inv' ℝ≥0 :=
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
 by simp only [has_sum, coe_sum.symm, tendsto_coe]
 
+lemma has_sum_of_real_of_nonneg {f : α → ℝ} (hf_nonneg : ∀ n, 0 ≤ f n) (hf : summable f) :
+  has_sum (λ n, nnreal.of_real (f n)) (nnreal.of_real (∑' n, f n)) :=
+begin
+  have h_sum : (λ s, ∑ b in s, nnreal.of_real (f b)) = λ s, nnreal.of_real (∑ b in s, f b),
+    from funext (λ _, (of_real_sum_of_nonneg (λ n _, hf_nonneg n)).symm),
+  simp_rw [has_sum, h_sum],
+  exact tendsto_of_real hf.has_sum,
+end
+
 @[norm_cast] lemma summable_coe {f : α → ℝ≥0} : summable (λa, (f a : ℝ)) ↔ summable f :=
 begin
   split,
@@ -80,7 +89,7 @@ begin
   exact assume ⟨a, ha⟩, ⟨a.1, has_sum_coe.2 ha⟩
 end
 
-open_locale classical big_operators
+open_locale classical
 
 @[norm_cast] lemma coe_tsum {f : α → ℝ≥0} : ↑∑'a, f a = ∑'a, (f a : ℝ) :=
 if hf : summable f

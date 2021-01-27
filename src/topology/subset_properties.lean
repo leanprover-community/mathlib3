@@ -161,7 +161,7 @@ lemma is_compact.elim_finite_subcover {ι : Type v} (hs : is_compact s)
   ∃ t : finset ι, s ⊆ ⋃ i ∈ t, U i :=
 is_compact.induction_on hs ⟨∅, empty_subset _⟩ (λ s₁ s₂ hs ⟨t, hs₂⟩, ⟨t, subset.trans hs hs₂⟩)
   (λ s₁ s₂ ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
-    ⟨t₁ ∪ t₂, by { rw [finset.bUnion_union], exact union_subset_union ht₁ ht₂ }⟩)
+    ⟨t₁ ∪ t₂, by { rw [finset.set_bUnion_union], exact union_subset_union ht₁ ht₂ }⟩)
   (λ x hx, let ⟨i, hi⟩ := mem_Union.1 (hsU hx) in
     ⟨U i, mem_nhds_within.2 ⟨U i, hUo i, hi, inter_subset_left _ _⟩, {i}, by simp⟩)
 
@@ -333,12 +333,12 @@ compact_of_finite_subcover $ assume ι U hUo hsU,
             ... ⊆ ⋃j, U j     : hsU),
   let ⟨finite_subcovers, h⟩ := axiom_of_choice this in
   by haveI : fintype (subtype s) := hs.fintype; exact
-  let t := finset.bind finset.univ finite_subcovers in
+  let t := finset.bUnion finset.univ finite_subcovers in
   have (⋃i ∈ s, f i) ⊆ (⋃ i ∈ t, U i), from bUnion_subset $
     assume i hi, calc
     f i ⊆ (⋃ j ∈ finite_subcovers ⟨i, hi⟩, U j) : (h ⟨i, hi⟩)
     ... ⊆ (⋃ j ∈ t, U j) : bUnion_subset_bUnion_left $
-      assume j hj, finset.mem_bind.mpr ⟨_, finset.mem_univ _, hj⟩,
+      assume j hj, finset.mem_bUnion.mpr ⟨_, finset.mem_univ _, hj⟩,
   ⟨t, this⟩
 
 lemma compact_Union {f : β → set α} [fintype β]

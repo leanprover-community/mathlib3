@@ -158,7 +158,7 @@ lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
-    = _ : (finset.card_bind (by { intros, apply finset.disjoint_filter.2, cc })).symm
+    = _ : (finset.card_bUnion (by { intros, apply finset.disjoint_filter.2, cc })).symm
 ... = _ : congr_arg finset.card (finset.ext (begin
   assume a,
   suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,

@@ -756,7 +756,8 @@ by { dsimp [(∩), list.inter], congr, funext a, rw [p.mem_iff] }
 theorem perm.inter {l₁ l₂ t₁ t₂ : list α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : l₁ ∩ t₁ ~ l₂ ∩ t₂ :=
 p₂.inter_left l₂ ▸ p₁.inter_right t₁
 
-theorem perm.inter_append {l t₁ t₂ : list α} (h : disjoint t₁ t₂) : l ∩ (t₁ ++ t₂) ~ l ∩ t₁ ++ l ∩ t₂ :=
+theorem perm.inter_append {l t₁ t₂ : list α} (h : disjoint t₁ t₂) :
+  l ∩ (t₁ ++ t₂) ~ l ∩ t₁ ++ l ∩ t₂ :=
 begin
   induction l,
   case list.nil

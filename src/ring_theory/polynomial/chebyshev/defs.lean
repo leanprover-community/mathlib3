@@ -192,7 +192,7 @@ lemma chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ :
 | 0        := by {simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero], ring}
 | 1        := by {simp only [chebyshev₁_add_two, chebyshev₁_zero, chebyshev₁_add_two,
                               chebyshev₂_one, chebyshev₁_one], ring }
-| (n + 2)  := begin
+| (n + 2)  :=
 calc chebyshev₁ R (n + 2 + 2)
     = 2 * X * chebyshev₁ R (n + 2 + 1) - chebyshev₁ R (n + 2) : chebyshev₁_add_two _ _
 ... = 2 * X * (X * chebyshev₁ R (n + 2) - (1 - X ^ 2) * chebyshev₂ R (n + 1))
@@ -202,8 +202,7 @@ calc chebyshev₁ R (n + 2 + 2)
       - (1 - X ^ 2) * (2 * X * chebyshev₂ R (n + 1) - chebyshev₂ R n) :
             by ring
 ... = X * chebyshev₁ R (n + 2 + 1) - (1 - X ^ 2) * chebyshev₂ R (n + 2) :
-            by rw [chebyshev₁_add_two _ (n + 1), chebyshev₂_add_two],
-end
+            by rw [chebyshev₁_add_two _ (n + 1), chebyshev₂_add_two]
 
 lemma one_sub_X_pow_two_mul_chebyshev₂_eq_pol_in_chebyshev₁ (n : ℕ) :
   (1 - X ^ 2) * chebyshev₂ R n = X * chebyshev₁ R (n + 1) - chebyshev₁ R (n + 2) :=
@@ -257,7 +256,6 @@ lemma chebyshev₁_derivative_eq_chebyshev₂ :
 lemma one_sub_X_pow_two_mul_derivative_chebyshev₁_eq_poly_in_chebyshev₁ (n : ℕ) :
   (1 - X ^ 2)  * (derivative (chebyshev₁ R (n+1))) =
     (n + 1) * (chebyshev₁ R n - X * chebyshev₁ R (n+1)) :=
-begin
   calc
   (1 - X ^ 2)  * (derivative (chebyshev₁ R (n+1)))
   = (1 - X ^ 2 ) * ((n + 1) * chebyshev₂ R n) :
@@ -267,8 +265,7 @@ begin
   ... = (n + 1) * (X * chebyshev₁ R (n + 1) - (2 * X * chebyshev₁ R (n + 1) - chebyshev₁ R n)) :
             by rw [one_sub_X_pow_two_mul_chebyshev₂_eq_pol_in_chebyshev₁, chebyshev₁_add_two]
   ... = (n + 1) * (chebyshev₁ R n - X * chebyshev₁ R (n+1)) :
-            by ring,
-end
+            by ring
 
 lemma add_one_mul_chebyshev₁_eq_poly_in_chebyshev₂ (n : ℕ) :
   ((n : polynomial R) + 1) * chebyshev₁ R (n+1) =

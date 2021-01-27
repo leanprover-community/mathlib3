@@ -225,7 +225,7 @@ lemma chebyshev₁_derivative_eq_chebyshev₂ :
                               derivative_mul, derivative_X_pow, nat.cast_one,
                               nat.cast_two],
                     norm_num }
-|(n + 2)  := begin
+| (n + 2)  := begin
   calc derivative (chebyshev₁ R (n + 2 + 1))
       = 2 * chebyshev₁ R (n + 2) + 2 * X * derivative (chebyshev₁ R (n + 1 + 1))
                                  - derivative (chebyshev₁ R (n + 1))

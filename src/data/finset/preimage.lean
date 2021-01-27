@@ -54,8 +54,8 @@ finset.coe_injective (by simp)
 finset.coe_injective (by simp)
 
 @[simp] lemma preimage_compl [decidable_eq α] [decidable_eq β] [fintype α] [fintype β]
-  {f : α → β} {s : finset β} (hs : function.injective f) :
-  preimage sᶜ f (hs.inj_on _) = (preimage s f (hs.inj_on _))ᶜ :=
+  {f : α → β} (s : finset β) (hf : function.injective f) :
+  preimage sᶜ f (hf.inj_on _) = (preimage s f (hf.inj_on _))ᶜ :=
 finset.coe_injective (by simp)
 
 lemma monotone_preimage {f : α → β} (h : injective f) :

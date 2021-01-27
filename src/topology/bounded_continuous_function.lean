@@ -69,7 +69,7 @@ begin
                     ... ≤ C : le_max_right _ _
 end
 
-/-- The pointwise distance is controlled by the distance between functions, by definition -/
+/-- The pointwise distance is controlled by the distance between functions, by definition. -/
 lemma dist_coe_le_dist (x : α) : dist (f x) (g x) ≤ dist f g :=
 le_cInf dist_set_exists $ λb hb, hb.2 x
 

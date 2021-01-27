@@ -285,13 +285,13 @@ end category_theory
 -- (In this order the proofs are handled by `obviously`.)
 
 /-- Equivalences (between types in the same universe) are the same as (isomorphic to) isomorphisms
-of types -/
+of types. -/
 @[simps] def equiv_iso_iso {X Y : Type u} : (X ≃ Y) ≅ (X ≅ Y) :=
 { hom := λ e, e.to_iso,
   inv := λ i, i.to_equiv, }
 
 /-- Equivalences (between types in the same universe) are the same as (equivalent to) isomorphisms
-of types -/
+of types. -/
 -- We leave `X` and `Y` as explicit arguments here, because the coercions from `equiv` to a function
 -- won't fire without them.
 -- TODO: is it still true?

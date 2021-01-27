@@ -227,7 +227,7 @@ lemma to_embedding : embedding e :=
 protected lemma separable_space [separable_space α] : separable_space β :=
 de.to_dense_inducing.separable_space
 
-/-- The product of two dense embeddings is a dense embedding -/
+/-- The product of two dense embeddings is a dense embedding. -/
 protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁)
   (de₂ : dense_embedding e₂) :
   dense_embedding (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=

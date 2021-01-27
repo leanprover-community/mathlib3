@@ -444,7 +444,7 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
 end quotient
 
 section lattice
-variables {R : Type u} [comm_semiring R]
+variables {R : Type u} [comm_ring R]
 
 lemma mem_sup_left {S T : ideal R} : ∀ {x : R}, x ∈ S → x ∈ S ⊔ T :=
 show S ≤ S ⊔ T, from le_sup_left
@@ -649,11 +649,11 @@ not_congr is_unit_zero_iff
 @[simp] theorem one_not_mem_nonunits [monoid α] : (1:α) ∉ nonunits α :=
 not_not_intro is_unit_one
 
-theorem coe_subset_nonunits [comm_semiring α] {I : ideal α} (h : I ≠ ⊤) :
+theorem coe_subset_nonunits [comm_ring α] {I : ideal α} (h : I ≠ ⊤) :
   (I : set α) ⊆ nonunits α :=
 λ x hx hu, h $ I.eq_top_of_is_unit_mem hx hu
 
-lemma exists_max_ideal_of_mem_nonunits [comm_semiring α] (h : a ∈ nonunits α) :
+lemma exists_max_ideal_of_mem_nonunits [comm_ring α] (h : a ∈ nonunits α) :
   ∃ I : ideal α, I.is_maximal ∧ a ∈ I :=
 begin
   have : ideal.span ({a} : set α) ≠ ⊤,

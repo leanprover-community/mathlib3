@@ -142,42 +142,34 @@ begin
     exact this _ _,
   },
   intros i xi,
-  have := zero_add i,
   congr,
-  exact this,
+  exact zero_add i,
   exact one_lmul G xi,
 end
-
 
 private lemma mul_one : ∀ (a : G), a * 1= a :=
 begin
   suffices : ∀ i xi, dfinsupp.single (i + 0) (G.lmul xi G.lone) = dfinsupp.single i xi,
   {
-    -- simp_rw [has_mul_mul, has_one_one],
-    -- simp_rw [dfinsupp.lsingle_apply, dfinsupp.lsum_apply_single],
-    -- intro a,
-    -- rw ←linear_map.flip_apply,
-    -- simp only [dfinsupp.lsum_apply, linear_map.compr₂_apply,
-    --   dfinsupp.linear_map.dfinsupp_sum_apply, dfinsupp.lsingle_apply, linear_map.flip_apply],
-    -- convert dfinsupp.sum_single,
-    -- ext1 i, ext1 xi,
-    -- exact this _ _,
-    -- classical,
-    -- apply_instance,
-    sorry,
+    simp_rw [has_mul_mul, has_one_one],
+    simp_rw [dfinsupp.lsingle_apply, dfinsupp.lsum_apply_single],
+    intro a,
+    rw ←linear_map.flip_apply,
+    simp only [dfinsupp.lsum_apply, linear_map.compr₂_apply,
+      dfinsupp.linear_map.dfinsupp_sum_apply, dfinsupp.lsingle_apply, linear_map.flip_apply],
+    convert dfinsupp.sum_single,
+    ext1 i, ext1 xi,
+    exact this _ _,
+    classical,
+    apply_instance,
   },
   intros i xi,
-  apply dfinsupp.single_eq_single_iff,
-  -- have := add_zero i,
-  -- congr,
-  -- exact this,
-  -- exact lmul_one G xi,
+  congr,
+  exact add_zero i,
+  exact lmul_one G xi,
 end
 
-#print linear_map.flip
 
-
-#check dfinsupp.single_eq_single_iff
 -- private lemma mul_one (a : G) : a * 1 = a := begin
 --   simp only [has_mul_mul, has_one_one, direct_sum.of, add_monoid_hom.coe_mk],
 --   convert @dfinsupp.sum_single ι _ _ _ _ a,

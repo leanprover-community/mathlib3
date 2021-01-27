@@ -2590,7 +2590,7 @@ open polynomial complex
 
 /-- The `n`-th Chebyshev polynomial of the second kind evaluates on `cos θ` to the
 value `sin ((n+1) * θ) / sin θ`. -/
-lemma chebyshev₂_complex_cos (n : ℕ) (θ : ℂ) :
+lemma chebyshev₂_complex_cos (θ : ℂ) (n : ℕ) :
   (chebyshev₂ ℂ n).eval (cos θ) * sin θ = sin ((n+1) * θ) :=
 begin
   induction n with d hd,

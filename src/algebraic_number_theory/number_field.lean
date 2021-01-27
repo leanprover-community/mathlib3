@@ -42,9 +42,9 @@ lemma is_algebraic_of_number_field : algebra.is_algebraic ℚ K :=
   {exfalso, revert h2, simp}
 end
 
-def number_ring := @integral_closure ℤ K _
+def ring_of_integers := @integral_closure ℤ K _
 
-namespace number_ring
+namespace ring_of_integers
 
 open fraction_map
 
@@ -62,27 +62,27 @@ instance : is_separable int.fraction_map.codomain K := is_separable_of_char_zero
 
 lemma algebra_map_eq_coe : (algebra_map ℤ ℚ : ℤ → ℚ) = coe := rfl
 
-/-- `number_ring.fraction_map K` is the map `O_K → K`, as a `fraction_map`. -/
-def fraction_map : fraction_map (number_ring K) K :=
+/-- `ring_of_integers.fraction_map K` is the map `O_K → K`, as a `fraction_map`. -/
+def fraction_map : fraction_map (ring_of_integers K) K :=
 integral_closure.fraction_map_of_finite_extension K int.fraction_map
 
-instance : integral_domain (number_ring K) :=
-(number_ring K).integral_domain
+instance : integral_domain (ring_of_integers K) :=
+(ring_of_integers K).integral_domain
 
 example (K : Type) [field K] (x : K) (h : x ≠ 0): x * (field.inv x) = 1 := field.mul_inv_cancel h
 
 instance integral_closure_int.is_dedekind_domain : is_dedekind_domain (integral_closure ℤ K) :=
 is_dedekind_domain.integral_closure int.fraction_map (principal_ideal_ring.to_dedekind_domain _)
 
-instance : is_dedekind_domain (number_ring K) :=
+instance : is_dedekind_domain (ring_of_integers K) :=
 integral_closure_int.is_dedekind_domain K
 
-noncomputable instance : fintype (class_group (number_ring.fraction_map K)) :=
+noncomputable instance : fintype (class_group (ring_of_integers.fraction_map K)) :=
 class_group.finite_of_admissible K int.fraction_map int.admissible_abs
 
 /-- The class number of a number ring is the (finite) cardinality of the class group. -/
-noncomputable def class_number : ℕ := fintype.card (class_group (number_ring.fraction_map K))
+noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers.fraction_map K))
 
-end number_ring
+end ring_of_integers
 
 end number_field

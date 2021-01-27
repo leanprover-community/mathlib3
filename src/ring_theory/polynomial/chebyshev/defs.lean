@@ -189,10 +189,10 @@ by rw [chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁, add_comm (X * chebys
 
 lemma chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ :
 ∀ (n : ℕ), chebyshev₁ R (n+2) = X * chebyshev₁ R (n+1) - (1 - X ^ 2) * chebyshev₂ R n
-|0        := by {simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero], ring}
-|1        := by {simp only [chebyshev₁_add_two, chebyshev₁_zero, chebyshev₁_add_two,
+| 0        := by {simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero], ring}
+| 1        := by {simp only [chebyshev₁_add_two, chebyshev₁_zero, chebyshev₁_add_two,
                               chebyshev₂_one, chebyshev₁_one], ring }
-|(n + 2)  := begin
+| (n + 2)  := begin
 calc chebyshev₁ R (n + 2 + 2)
     = 2 * X * chebyshev₁ R (n + 2 + 1) - chebyshev₁ R (n + 2) : chebyshev₁_add_two _ _
 ... = 2 * X * (X * chebyshev₁ R (n + 2) - (1 - X ^ 2) * chebyshev₂ R (n + 1))
@@ -214,9 +214,12 @@ variables {R S}
 @[simp] lemma map_chebyshev₂ (f : R →+* S) :
   ∀ (n : ℕ), map f (chebyshev₂ R n) = chebyshev₂ S n
 | 0       := by simp only [chebyshev₂_zero, map_one]
-| 1       := begin simp only [chebyshev₂_one, map_X, map_mul, map_add, map_one],
-                   change map f (1+1) * X = 2 * X,
-                   simpa only [map_add, map_one] end
+| 1       :=
+begin
+  simp only [chebyshev₂_one, map_X, map_mul, map_add, map_one],
+  change map f (1+1) * X = 2 * X,
+  simpa only [map_add, map_one]
+end
 | (n + 2) :=
 begin
   simp only [chebyshev₂_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
@@ -252,8 +255,8 @@ lemma chebyshev₁_derivative_eq_chebyshev₂ :
               by norm_cast
 
 lemma one_sub_X_pow_two_mul_derivative_chebyshev₁_eq_poly_in_chebyshev₁ (n : ℕ) :
-(1 - X ^ 2)  * (derivative (chebyshev₁ R (n+1)))
-= (n + 1) * (chebyshev₁ R n - X * chebyshev₁ R (n+1)) :=
+  (1 - X ^ 2)  * (derivative (chebyshev₁ R (n+1))) =
+    (n + 1) * (chebyshev₁ R n - X * chebyshev₁ R (n+1)) :=
 begin
   calc
   (1 - X ^ 2)  * (derivative (chebyshev₁ R (n+1)))

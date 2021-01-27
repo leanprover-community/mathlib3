@@ -7,6 +7,7 @@ import data.complex.exponential
 import analysis.complex.basic
 import analysis.calculus.mean_value
 import measure_theory.borel_space
+import analysis.complex.real_deriv
 
 /-!
 # Complex and real exponential, real logarithm

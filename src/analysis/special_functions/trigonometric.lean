@@ -7,6 +7,7 @@ import analysis.special_functions.exp_log
 import data.set.intervals.infinite
 import algebra.quadratic_discriminant
 import ring_theory.polynomial.chebyshev.defs
+import analysis.calculus.times_cont_diff
 
 /-!
 # Trigonometric functions
@@ -2126,13 +2127,13 @@ have hay : abs y ≠ 0, from (mt abs_eq_zero.1 hy),
 λ h,
   have hre : abs (y / x) * x.re = y.re,
     by rw ← of_real_div at h;
-      simpa [-of_real_div] using congr_arg re h,
+      simpa [-of_real_div, -is_R_or_C.of_real_div] using congr_arg re h,
   have hre' : abs (x / y) * y.re = x.re,
     by rw [← hre, abs_div, abs_div, ← mul_assoc, div_mul_div,
       mul_comm (abs _), div_self (mul_ne_zero hay hax), one_mul],
   have him : abs (y / x) * x.im = y.im,
     by rw ← of_real_div at h;
-      simpa [-of_real_div] using congr_arg im h,
+      simpa [-of_real_div, -is_R_or_C.of_real_div] using congr_arg im h,
   have him' : abs (x / y) * y.im = x.im,
     by rw [← him, abs_div, abs_div, ← mul_assoc, div_mul_div,
       mul_comm (abs _), div_self (mul_ne_zero hay hax), one_mul],

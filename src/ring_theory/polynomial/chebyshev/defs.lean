@@ -267,9 +267,9 @@ lemma add_one_mul_chebyshev₁_eq_poly_in_chebyshev₂ (n : ℕ) :
     X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n) :=
 begin
   have h : derivative (chebyshev₁ R (n + 2)) = (chebyshev₂ R (n + 1) - X * chebyshev₂ R n)
-  + X * derivative (chebyshev₁ R (n + 1)) + 2 * X * chebyshev₂ R n
-  - (1 - X ^ 2) * derivative ( chebyshev₂ R n),
-  {conv_lhs {rw chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂},
+    + X * derivative (chebyshev₁ R (n + 1)) + 2 * X * chebyshev₂ R n
+    - (1 - X ^ 2) * derivative ( chebyshev₂ R n),
+  { conv_lhs { rw chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ },
   simp only [derivative_sub, derivative_mul, derivative_X, derivative_one, derivative_X_pow,
   one_mul, chebyshev₁_derivative_eq_chebyshev₂],
   rw [chebyshev₁_eq_chebyshev₂_sub_X_mul_chebyshev₂, nat.cast_bit0, nat.cast_one],

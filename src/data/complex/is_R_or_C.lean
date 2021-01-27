@@ -168,6 +168,9 @@ noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
 @[simp] lemma I_im' (z : K) : im (I : K) * im z = im z :=
 by rw [mul_comm, I_im _]
 
+lemma I_mul_re (z : K) : re (I * z) = - im z :=
+by simp only [I_re, zero_sub, I_im', zero_mul, mul_re]
+
 lemma I_mul_I : (I : K) = 0 ∨ (I : K) * I = -1 := I_mul_I_ax
 
 @[simp] lemma conj_re (z : K) : re (conj z) = re z := is_R_or_C.conj_re_ax z
@@ -346,7 +349,7 @@ by { have := I_mul_I_ax, tauto }
 begin
   by_cases h : (I : K) = 0,
   { simp [h] },
-  { field_simp [h], simp [mul_assoc, I_mul_I_of_nonzero h] }
+  { field_simp [mul_assoc, I_mul_I_of_nonzero h] }
 end
 
 @[simp] lemma inv_I : (I : K)⁻¹ = -I :=
@@ -414,7 +417,6 @@ begin
   haveI : char_zero K := char_zero_R_or_C,
   rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero'],
 end
-
 
 /-! ### Absolute value -/
 

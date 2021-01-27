@@ -7,6 +7,7 @@ import algebraic_geometry.prime_spectrum
 import data.multiset.finset_ops
 import linear_algebra.linear_independent
 import order.order_iso_nat
+import order.compactly_generated
 import ring_theory.ideal.operations
 
 /-!
@@ -197,6 +198,44 @@ begin
     unfold id,
     rw [f.map_smul, (hg y (hl1 hy)).2],
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
+end
+
+lemma singleton_span_is_compact_element (x : M) :
+  complete_lattice.is_compact_element (span R {x} : submodule R M) :=
+begin
+  rw complete_lattice.is_compact_element_iff_le_of_directed_Sup_le,
+  intros d hemp hdir hsup,
+  have : x ∈ Sup d, from (le_def.mp hsup) (mem_span_singleton_self x),
+  obtain ⟨y, ⟨hyd, hxy⟩⟩ := (mem_Sup_of_directed hemp hdir).mp this,
+  exact ⟨y, ⟨hyd, by simpa only [span_le, singleton_subset_iff]⟩⟩,
+end
+
+/-- Finitely generated submodules are precisely compact elements in the submodule lattice -/
+theorem fg_iff_compact (s : submodule R M) : s.fg ↔ complete_lattice.is_compact_element s :=
+begin
+  classical,
+  -- Introduce shorthand for span of an element
+  let sp : M → submodule R M := λ a, span R {a},
+  -- Trivial rewrite lemma; a small hack since simp (only) & rw can't accomplish this smoothly.
+  have supr_rw : ∀ t : finset M, (⨆ x ∈ t, sp x) = (⨆ x ∈ (↑t : set M), sp x), from λ t, by refl,
+  split,
+  { rintro ⟨t, rfl⟩,
+    rw [span_eq_supr_of_singleton_spans, ←supr_rw, ←(finset.sup_eq_supr t sp)],
+    apply complete_lattice.finset_sup_compact_of_compact,
+    exact λ n _, singleton_span_is_compact_element n, },
+  { intro h,
+    -- s is the Sup of the spans of its elements.
+    have sSup : s = Sup (sp '' ↑s),
+    by rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans, eq_comm, span_eq],
+    -- by h, s is then below (and equal to) the sup of the spans of finitely many elements.
+    obtain ⟨u, ⟨huspan, husup⟩⟩ := h (sp '' ↑s) (le_of_eq sSup),
+    have ssup : s = u.sup id,
+    { suffices : u.sup id ≤ s, from le_antisymm husup this,
+      rw [sSup, finset.sup_eq_Sup], exact Sup_le_Sup huspan, },
+    obtain ⟨t, ⟨hts, rfl⟩⟩ := finset.subset_image_iff.mp huspan,
+    rw [←finset.sup_finset_image, function.comp.left_id, finset.sup_eq_supr, supr_rw,
+      ←span_eq_supr_of_singleton_spans, eq_comm] at ssup,
+    exact ⟨t, ssup⟩, },
 end
 
 end submodule

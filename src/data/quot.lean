@@ -64,6 +64,15 @@ lemma factor_mk_eq {α : Type*} (r s : α → α → Prop) (h : ∀ x y, r x y �
 
 variables {γ : Sort*} {r : α → α → Prop} {s : β → β → Prop}
 
+/-- **Alias** of `lift_beta`, with more consistent name and argument order. -/
+@[simp]
+lemma lift_mk (a : α) (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) :
+  quot.lift f h (quot.mk r a) = f a := quot.lift_beta f h a
+
+@[simp]
+lemma lift_on_mk (a : α) (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) :
+  quot.lift_on (quot.mk r a) f h = f a := rfl
+
 /-- Descends a function `f : α → β → γ` to quotients of `α` and `β`. -/
 attribute [reducible, elab_as_eliminator]
 protected def lift₂

@@ -33,6 +33,8 @@ In this file we only give definitions and some very elementary simp-lemmas.
 This way, we can import this file in `analysis.special_functions.trigonometric`,
 and import that file in turn, in `ring_theory.polynomial.chebyshev.basic`.
 
+The basic API is taken from https://arxiv.org/pdf/2008.03575.pdf
+
 ## TODO
 
 * Add explicit formula involving square roots for Chebyshev polynomials

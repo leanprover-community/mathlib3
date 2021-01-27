@@ -168,9 +168,9 @@ end
 
 lemma chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ :
 ∀ (n : ℕ), chebyshev₂ R (n+1) = X * chebyshev₂ R n + chebyshev₁ R (n+1)
-|0        := by {simp only [chebyshev₂_zero, chebyshev₂_one, chebyshev₁_one], ring}
-|1        := by {simp only [chebyshev₂_one, chebyshev₁_two, chebyshev₂_two], ring}
-|(n + 2)  := begin
+| 0        := by {simp only [chebyshev₂_zero, chebyshev₂_one, chebyshev₁_one], ring}
+| 1        := by {simp only [chebyshev₂_one, chebyshev₁_two, chebyshev₂_two], ring}
+| (n + 2)  :=
   calc chebyshev₂ R (n + 2 + 1) = 2 * X * (X * chebyshev₂ R (n + 1) + chebyshev₁ R (n + 2))
                                           - (X * chebyshev₂ R n + chebyshev₁ R (n + 1)) :
             by simp only [chebyshev₂_add_two, chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ n,
@@ -180,7 +180,6 @@ lemma chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ :
             by ring
   ... = X * chebyshev₂ R (n + 2) + chebyshev₁ R (n + 2 + 1) :
             by simp only [chebyshev₂_add_two, chebyshev₁_add_two]
-end
 
 lemma chebyshev₁_eq_chebyshev₂_sub_X_mul_chebyshev₂ (n : ℕ) :
 chebyshev₁ R (n+1) = chebyshev₂ R (n+1) - X * chebyshev₂ R n :=

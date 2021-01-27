@@ -62,11 +62,13 @@ end
 lemma add_one_pow_unbounded_of_pos [ordered_semiring α] [nontrivial α] [archimedean α]
   (x : α) {y : α} (hy : 0 < y) :
   ∃ n : ℕ, x < (y + 1) ^ n :=
+have 0 ≤ 1 + y, from add_nonneg zero_le_one hy.le,
 let ⟨n, h⟩ := archimedean.arch x hy in
 ⟨n, calc x ≤ n •ℕ y : h
-       ... < 1 + n •ℕ y : lt_one_add _
-       ... ≤ (1 + y) ^ n : one_add_mul_le_pow' (mul_nonneg (le_of_lt hy) (le_of_lt hy))
-                             (le_of_lt $ lt_trans hy (lt_one_add y)) _
+       ... = n * y : nsmul_eq_mul _ _
+       ... < 1 + n * y : lt_one_add _
+       ... ≤ (1 + y) ^ n : one_add_mul_le_pow' (mul_nonneg hy.le hy.le) (mul_nonneg this this)
+                             (add_nonneg zero_le_two hy.le) _
        ... = (y + 1) ^ n : by rw [add_comm]⟩
 
 section linear_ordered_ring
@@ -83,7 +85,7 @@ lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 ≤ x) (hy : 1 < y) :
 have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_one_lt _ hy,
 by classical; exact let n := nat.find h in
   have hn  : x < y ^ n, from nat.find_spec h,
-  have hnp : 0 < n,     from nat.pos_iff_ne_zero.2 (λ hn0,
+  have hnp : 0 < n,     from pos_iff_ne_zero.2 (λ hn0,
     by rw [hn0, pow_zero] at hn; exact (not_le_of_gt hn hx)),
   have hnsp : nat.pred n + 1 = n,     from nat.succ_pred_eq_of_pos hnp,
   have hltn : nat.pred n < n,         from nat.pred_lt (ne_of_gt hnp),

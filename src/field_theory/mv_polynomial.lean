@@ -7,6 +7,7 @@ Multivariate functions of the form `α^n → α` are isomorphic to multivariate 
 `n` variables.
 -/
 
+import ring_theory.ideal.operations
 import linear_algebra.finsupp_vector_space
 import algebra.char_p.basic
 
@@ -23,6 +24,17 @@ variables {σ : Type u} {α : Type v}
 
 section
 variables (σ α) [field α] (m : ℕ)
+
+lemma quotient_mk_comp_C_injective (I : ideal (mv_polynomial σ α)) (hI : I ≠ ⊤) :
+  function.injective ((ideal.quotient.mk I).comp mv_polynomial.C) :=
+begin
+  refine (ring_hom.injective_iff _).2 (λ x hx, _),
+  rw [ring_hom.comp_apply, ideal.quotient.eq_zero_iff_mem] at hx,
+  refine classical.by_contradiction (λ hx0, absurd (I.eq_top_iff_one.2 _) hI),
+  have := I.smul_mem (mv_polynomial.C x⁻¹) hx,
+  rwa [smul_eq_mul, ← mv_polynomial.C.map_mul, inv_mul_cancel hx0, mv_polynomial.C_1] at this,
+end
+
 def restrict_total_degree : submodule α (mv_polynomial σ α) :=
 finsupp.supported _ _ {n | n.sum (λn e, e) ≤ m }
 

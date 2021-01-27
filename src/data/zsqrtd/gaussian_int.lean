@@ -132,7 +132,7 @@ local notation `abs'` := _root_.abs
 
 lemma norm_sq_le_norm_sq_of_re_le_of_im_le {x y : ℂ} (hre : abs' x.re ≤ abs' y.re)
   (him : abs' x.im ≤ abs' y.im) : x.norm_sq ≤ y.norm_sq :=
-by rw [norm_sq, norm_sq, ← _root_.abs_mul_self, _root_.abs_mul,
+by rw [norm_sq_apply, norm_sq_apply, ← _root_.abs_mul_self, _root_.abs_mul,
   ← _root_.abs_mul_self y.re, _root_.abs_mul y.re,
   ← _root_.abs_mul_self x.im, _root_.abs_mul x.im,
   ← _root_.abs_mul_self y.im, _root_.abs_mul y.im]; exact
@@ -146,7 +146,7 @@ calc ((x / y : ℂ) - ((x / y : ℤ[i]) : ℂ)).norm_sq =
     ((x / y : ℂ).im - ((x / y : ℤ[i]) : ℂ).im) * I : ℂ).norm_sq :
       congr_arg _ $ by apply complex.ext; simp
   ... ≤ (1 / 2 + 1 / 2 * I).norm_sq :
-  have abs' (2 / (2 * 2) : ℝ) = 1 / 2, by rw _root_.abs_of_nonneg; norm_num,
+  have abs' (2⁻¹ : ℝ) = 2⁻¹, from _root_.abs_of_nonneg (by norm_num),
   norm_sq_le_norm_sq_of_re_le_of_im_le
     (by rw [to_complex_div_re]; simp [norm_sq, this];
       simpa using abs_sub_round (x / y : ℂ).re)

@@ -130,7 +130,7 @@ is_iso_of_fully_faithful coyoneda f
 -- No need to use Cᵒᵖ here, works with any category
 /-- A Type-valued presheaf `P` is isomorphic to the composition of `P` with the
   coyoneda functor coming from `punit`. -/
-def iso_comp_punit (P : C ⥤ Type v₁) : (P ⋙ coyoneda.obj (op punit.{v₁+1})) ≅ P :=
+@[simps] def iso_comp_punit (P : C ⥤ Type v₁) : (P ⋙ coyoneda.obj (op punit.{v₁+1})) ≅ P :=
 { hom := { app := λ X f, f punit.star},
   inv := { app := λ X a _, a } }
 

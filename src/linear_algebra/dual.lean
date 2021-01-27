@@ -250,7 +250,7 @@ namespace vector_space
 universes u v
 variables {K : Type u} {V : Type v}
 variables [field K] [add_comm_group V] [vector_space K V]
-open module module.dual submodule linear_map cardinal is_basis
+open module module.dual submodule linear_map cardinal is_basis finite_dimensional
 
 theorem eval_ker : (eval K V).ker = ⊥ :=
 begin
@@ -267,27 +267,27 @@ begin
   exact one_ne_zero hx
 end
 
-theorem dual_dim_eq (h : dim K V < omega) :
+theorem dual_dim_eq [finite_dimensional K V] :
   cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
 begin
   classical,
-  rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
+  rcases exists_is_basis_fintype (dim_lt_omega K V) with ⟨b, hb, ⟨hf⟩⟩,
   resetI,
   exact hb.dual_dim_eq
 end
 
 
-lemma erange_coe (h : dim K V < omega) : (eval K V).range = ⊤ :=
+lemma erange_coe [finite_dimensional K V] : (eval K V).range = ⊤ :=
 begin
   classical,
-  rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
+  rcases exists_is_basis_fintype (dim_lt_omega K V) with ⟨b, hb, ⟨hf⟩⟩,
   unfreezingI { rw [← hb.to_dual_to_dual, range_comp, hb.to_dual_range, map_top, to_dual_range _] },
   apply_instance
 end
 
 /-- A vector space is linearly equivalent to the dual of its dual space. -/
-def eval_equiv (h : dim K V < omega) : V ≃ₗ[K] dual K (dual K V) :=
-linear_equiv.of_bijective (eval K V) eval_ker (erange_coe h)
+def eval_equiv [finite_dimensional K V] : V ≃ₗ[K] dual K (dual K V) :=
+linear_equiv.of_bijective (eval K V) eval_ker (erange_coe)
 
 end vector_space
 

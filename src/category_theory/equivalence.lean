@@ -5,6 +5,7 @@ Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.fully_faithful
 import category_theory.whiskering
+import category_theory.essential_image
 import tactic.slice
 
 /-!
@@ -271,7 +272,7 @@ by { dsimp [inv_fun_id_assoc], tidy }
 by { dsimp [inv_fun_id_assoc], tidy }
 
 /-- If `C` is equivalent to `D`, then `C ⥤ E` is equivalent to `D ⥤ E`. -/
-@[simps functor inverse unit_iso counit_iso {rhs_md:=semireducible}]
+@[simps functor inverse unit_iso counit_iso]
 def congr_left (e : C ≌ D) : (C ⥤ E) ≌ (D ⥤ E) :=
 equivalence.mk
   ((whiskering_left _ _ _).obj e.inverse)
@@ -280,7 +281,7 @@ equivalence.mk
   (nat_iso.of_components (λ F, e.inv_fun_id_assoc F) (by tidy))
 
 /-- If `C` is equivalent to `D`, then `E ⥤ C` is equivalent to `E ⥤ D`. -/
-@[simps functor inverse unit_iso counit_iso {rhs_md:=semireducible}]
+@[simps functor inverse unit_iso counit_iso]
 def congr_right (e : C ≌ D) : (E ⥤ C) ≌ (E ⥤ D) :=
 equivalence.mk
   ((whiskering_right _ _ _).obj e.functor)
@@ -489,29 +490,6 @@ eq_of_inv_eq_inv (functor_unit_comp _ _)
 
 end is_equivalence
 
-/--
-A functor `F : C ⥤ D` is essentially surjective if for every `d : D`, there is some `c : C`
-so `F.obj c ≅ D`.
-
-See https://stacks.math.columbia.edu/tag/001C.
--/
-class ess_surj (F : C ⥤ D) : Prop :=
-(obj_preimage [] (d : D) : ∃ c, nonempty (F.obj c ≅ d))
-
-namespace functor
-/-- Given an essentially surjective functor, we can find a preimage for every object `d` in the
-    codomain. Applying the functor to this preimage will yield an object isomorphic to `d`, see
-    `fun_obj_preimage_iso`. -/
-noncomputable def obj_preimage (F : C ⥤ D) [sF : ess_surj F] (d : D) : C :=
-classical.some (ess_surj.obj_preimage F d)
-/-- Applying an essentially surjective functor to a preimage of `d` yields an object that is
-    isomorphic to `d`. -/
-noncomputable def fun_obj_preimage_iso (F : C ⥤ D) [sF : ess_surj F] (d : D) :
-  F.obj (F.obj_preimage d) ≅ d :=
-classical.choice (classical.some_spec (ess_surj.obj_preimage F d))
-
-end functor
-
 namespace equivalence
 
 /--
@@ -548,7 +526,7 @@ instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
 
 @[simps] private noncomputable def equivalence_inverse (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : D ⥤ C :=
 { obj  := λ X, F.obj_preimage X,
-  map := λ X Y f, F.preimage ((F.fun_obj_preimage_iso X).hom ≫ f ≫ (F.fun_obj_preimage_iso Y).inv),
+  map := λ X Y f, F.preimage ((F.obj_obj_preimage_iso X).hom ≫ f ≫ (F.obj_obj_preimage_iso Y).inv),
   map_id' := λ X, begin apply F.map_injective, tidy end,
   map_comp' := λ X Y Z f g, by apply F.map_injective; simp }
 
@@ -561,14 +539,16 @@ noncomputable def equivalence_of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components
-    (λ X, (preimage_iso $ F.fun_obj_preimage_iso $ F.obj X).symm)
+    (λ X, (preimage_iso $ F.obj_obj_preimage_iso $ F.obj X).symm)
     (λ X Y f, by { apply F.map_injective, obviously }))
-  (nat_iso.of_components F.fun_obj_preimage_iso (by tidy))
+  (nat_iso.of_components F.obj_obj_preimage_iso (by tidy))
 
-@[simp] lemma functor_map_inj_iff (e : C ≌ D) {X Y : C} (f g : X ⟶ Y) : e.functor.map f = e.functor.map g ↔ f = g :=
+@[simp] lemma functor_map_inj_iff (e : C ≌ D) {X Y : C} (f g : X ⟶ Y) :
+  e.functor.map f = e.functor.map g ↔ f = g :=
 ⟨λ h, e.functor.map_injective h, λ h, h ▸ rfl⟩
 
-@[simp] lemma inverse_map_inj_iff (e : C ≌ D) {X Y : D} (f g : X ⟶ Y) : e.inverse.map f = e.inverse.map g ↔ f = g :=
+@[simp] lemma inverse_map_inj_iff (e : C ≌ D) {X Y : D} (f g : X ⟶ Y) :
+  e.inverse.map f = e.inverse.map g ↔ f = g :=
 functor_map_inj_iff e.symm f g
 
 end equivalence

@@ -197,7 +197,7 @@ The canonical ring homomorphism `algebra_map R A : R →* A` for any `R`-algebra
 packaged as an `R`-linear map.
 -/
 protected def linear_map : R →ₗ[R] A :=
-{ map_smul' := λ x y, begin dsimp, simp [algebra.smul_def], end,
+{ map_smul' := λ x y, by simp [algebra.smul_def],
   ..algebra_map R A }
 
 @[simp]
@@ -436,6 +436,9 @@ coe_fn_inj $ funext H
 theorem ext_iff {φ₁ φ₂ : A →ₐ[R] B} : φ₁ = φ₂ ↔ ∀ x, φ₁ x = φ₂ x :=
 ⟨alg_hom.congr_fun, ext⟩
 
+@[simp] theorem mk_coe {f : A →ₐ[R] B} (h₁ h₂ h₃ h₄ h₅) :
+  (⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →ₐ[R] B) = f := ext $ λ _, rfl
+
 @[simp]
 theorem commutes (r : R) : φ (algebra_map R A r) = algebra_map R B r := φ.commutes' r
 
@@ -476,6 +479,14 @@ lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α)
 
 @[simp] lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) :=
 φ.to_ring_hom.map_bit1 x
+
+/-- If a `ring_hom` is `R`-linear, then it is an `alg_hom`. -/
+def mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : A →ₐ[R] B :=
+{ to_fun := f,
+  commutes' := λ c, by simp only [algebra.algebra_map_eq_smul_one, h, f.map_one],
+  .. f }
+
+@[simp] lemma coe_mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : ⇑(mk' f h) = f := rfl
 
 section
 
@@ -708,7 +719,7 @@ def simps.inv_fun (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
 
 initialize_simps_projections alg_equiv (to_fun → apply, inv_fun → symm_apply)
 
-@[simp] lemma inv_fun_apply {e : A₁ ≃ₐ[R] A₂} {a : A₂} : e.inv_fun a = e.symm a := rfl
+@[simp] lemma inv_fun_eq_symm {e : A₁ ≃ₐ[R] A₂} : e.inv_fun = e.symm := rfl
 
 @[simp] lemma symm_symm {e : A₁ ≃ₐ[R] A₂} : e.symm.symm = e :=
 by { ext, refl, }
@@ -971,6 +982,32 @@ def comap : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
 
 end alg_hom
 
+namespace ring_hom
+
+variables {R S : Type*}
+
+/-- Reinterpret a `ring_hom` as an `ℕ`-algebra homomorphism. -/
+def to_nat_alg_hom [semiring R] [semiring S] [algebra ℕ R] [algebra ℕ S] (f : R →+* S) :
+  R →ₐ[ℕ] S :=
+{ to_fun := f, commutes' := λ n, by simp, .. f }
+
+/-- Reinterpret a `ring_hom` as a `ℤ`-algebra homomorphism. -/
+def to_int_alg_hom [ring R] [ring S] [algebra ℤ R] [algebra ℤ S] (f : R →+* S) :
+  R →ₐ[ℤ] S :=
+{ commutes' := λ n, by simp, .. f }
+
+@[simp] lemma map_rat_algebra_map [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+* S)
+  (r : ℚ) :
+  f (algebra_map ℚ R r) = algebra_map ℚ S r :=
+ring_hom.ext_iff.1 (subsingleton.elim (f.comp (algebra_map ℚ R)) (algebra_map ℚ S)) r
+
+/-- Reinterpret a `ring_hom` as a `ℚ`-algebra homomorphism. -/
+def to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+* S) :
+  R →ₐ[ℚ] S :=
+{ commutes' := f.map_rat_algebra_map, .. f }
+
+end ring_hom
+
 namespace rat
 
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
@@ -1065,18 +1102,11 @@ section nat
 
 variables (R : Type*) [semiring R]
 
-/-- Reinterpret a `ring_hom` as an `ℕ`-algebra homomorphism. -/
-def alg_hom_nat
-  {R : Type u} [semiring R] [algebra ℕ R]
-  {S : Type v} [semiring S] [algebra ℕ S]
-  (f : R →+* S) : R →ₐ[ℕ] S :=
-{ commutes' := λ i, show f _ = _, by simp, .. f }
-
 /-- Semiring ⥤ ℕ-Alg -/
 instance algebra_nat : algebra ℕ R :=
 { commutes' := nat.cast_commute,
   smul_def' := λ _ _, nsmul_eq_mul _ _,
-  .. nat.cast_ring_hom R }
+  to_ring_hom := nat.cast_ring_hom R }
 
 section span_nat
 open submodule
@@ -1098,25 +1128,11 @@ section int
 
 variables (R : Type*) [ring R]
 
-/-- Reinterpret a `ring_hom` as a `ℤ`-algebra homomorphism. -/
-def alg_hom_int
-  {R : Type u} [comm_ring R] [algebra ℤ R]
-  {S : Type v} [comm_ring S] [algebra ℤ S]
-  (f : R →+* S) : R →ₐ[ℤ] S :=
-{ commutes' := λ i, show f _ = _, by simp, .. f }
-
 /-- Ring ⥤ ℤ-Alg -/
 instance algebra_int : algebra ℤ R :=
 { commutes' := int.cast_commute,
   smul_def' := λ _ _, gsmul_eq_mul _ _,
-  .. int.cast_ring_hom R }
-
-/--
-Promote a ring homomorphisms to a `ℤ`-algebra homomorphism.
--/
-def ring_hom.to_int_alg_hom {R S : Type*} [ring R] [ring S] (f : R →+* S) : R →ₐ[ℤ] S :=
-{ commutes' := λ n, by simp,
-  .. f }
+  to_ring_hom := int.cast_ring_hom R }
 
 variables {R}
 

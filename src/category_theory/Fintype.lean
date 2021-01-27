@@ -40,7 +40,7 @@ instance {X : Fintype} : fintype X := X.2
 instance : category Fintype := induced_category.category bundled.α
 
 /-- The fully faithful embedding of `Fintype` into the category of types. -/
-@[derive [full, faithful], simps {rhs_md:=semireducible}]
+@[derive [full, faithful], simps]
 def incl : Fintype ⥤ Type* := induced_functor _
 
 instance : concrete_category Fintype := ⟨incl⟩
@@ -81,7 +81,7 @@ def incl : skeleton ⥤ Fintype :=
 instance : full incl := { preimage := λ _ _ f, f }
 instance : faithful incl := {}
 instance : ess_surj incl :=
-{ obj_preimage := λ X,
+{ mem_ess_image := λ X,
   let F := trunc.out (fintype.equiv_fin X) in
   ⟨fintype.card X, ⟨⟨F.symm, F, F.self_comp_symm, F.symm_comp_self⟩⟩⟩ }
 

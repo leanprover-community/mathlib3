@@ -42,8 +42,8 @@ variables {x y : ℝ≥0}
 @[pp_nodot] noncomputable def sqrt : ℝ≥0 ≃o ℝ≥0 :=
 order_iso.symm $ strict_mono.order_iso_of_surjective (λ x, x * x)
   (λ x y h, mul_self_lt_mul_self x.2 h) $
-  surjective_of_continuous (continuous_id.mul continuous_id) tendsto_mul_self_at_top
-    (by simp [order_bot.at_bot_eq])
+  (continuous_id.mul continuous_id).surjective tendsto_mul_self_at_top $
+    by simp [order_bot.at_bot_eq]
 
 lemma sqrt_eq_iff_sqr_eq : sqrt x = y ↔ y * y = x :=
 sqrt.to_equiv.apply_eq_iff_eq_symm_apply.trans eq_comm

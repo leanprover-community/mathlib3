@@ -242,7 +242,7 @@ begin
   rw [smul_sub, ← mul_smul, inv_mul_cancel (sub_ne_zero.2 hz), one_smul]
 end
 
-lemma has_deriv_within_at_iff_tendsto_slope {x : 𝕜} {s : set 𝕜} :
+lemma has_deriv_within_at_iff_tendsto_slope :
   has_deriv_within_at f f' s x ↔
     tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[s \ {x}] x) (𝓝 f') :=
 begin
@@ -250,7 +250,7 @@ begin
   exact has_deriv_at_filter_iff_tendsto_slope
 end
 
-lemma has_deriv_within_at_iff_tendsto_slope' {x : 𝕜} {s : set 𝕜} (hs : x ∉ s) :
+lemma has_deriv_within_at_iff_tendsto_slope' (hs : x ∉ s) :
   has_deriv_within_at f f' s x ↔
     tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[s] x) (𝓝 f') :=
 begin
@@ -258,10 +258,28 @@ begin
   exact diff_singleton_eq_self hs
 end
 
-lemma has_deriv_at_iff_tendsto_slope {x : 𝕜} :
+lemma has_deriv_at_iff_tendsto_slope :
   has_deriv_at f f' x ↔
     tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[{x}ᶜ] x) (𝓝 f') :=
 has_deriv_at_filter_iff_tendsto_slope
+
+@[simp] lemma has_deriv_within_at_diff_singleton :
+  has_deriv_within_at f f' (s \ {x}) x ↔ has_deriv_within_at f f' s x :=
+by simp only [has_deriv_within_at_iff_tendsto_slope, sdiff_idem_right]
+
+@[simp] lemma has_deriv_within_at_Ioi_iff_Ici [partial_order 𝕜] :
+  has_deriv_within_at f f' (Ioi x) x ↔ has_deriv_within_at f f' (Ici x) x :=
+by rw [← Ici_diff_left, has_deriv_within_at_diff_singleton]
+
+alias has_deriv_within_at_Ioi_iff_Ici ↔
+  has_deriv_within_at.Ici_of_Ioi has_deriv_within_at.Ioi_of_Ici
+
+@[simp] lemma has_deriv_within_at_Iio_iff_Iic [partial_order 𝕜] :
+  has_deriv_within_at f f' (Iio x) x ↔ has_deriv_within_at f f' (Iic x) x :=
+by rw [← Iic_diff_right, has_deriv_within_at_diff_singleton]
+
+alias has_deriv_within_at_Iio_iff_Iic ↔
+  has_deriv_within_at.Iic_of_Iio has_deriv_within_at.Iio_of_Iic
 
 theorem has_deriv_at_iff_is_o_nhds_zero : has_deriv_at f f' x ↔
   is_o (λh, f (x + h) - f x - h • f') (λh, h) (𝓝 0) :=
@@ -305,7 +323,8 @@ lemma has_deriv_within_at_inter (h : t ∈ 𝓝 x) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
 has_fderiv_within_at_inter h
 
-lemma has_deriv_within_at.union (hs : has_deriv_within_at f f' s x) (ht : has_deriv_within_at f f' t x) :
+lemma has_deriv_within_at.union (hs : has_deriv_within_at f f' s x)
+  (ht : has_deriv_within_at f f' t x) :
   has_deriv_within_at f f' (s ∪ t) x :=
 begin
   simp only [has_deriv_within_at, nhds_within_union],
@@ -525,6 +544,24 @@ lemma linear_map.deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
 e.has_deriv_within_at.deriv_within hxs
 
 end linear_map
+
+section analytic
+
+variables {p : formal_multilinear_series 𝕜 𝕜 F} {r : ennreal}
+
+lemma has_fpower_series_at.has_strict_deriv_at (h : has_fpower_series_at f p x) :
+  has_strict_deriv_at f (p 1 (λ _, 1)) x :=
+h.has_strict_fderiv_at.has_strict_deriv_at
+
+lemma has_fpower_series_at.has_deriv_at (h : has_fpower_series_at f p x) :
+  has_deriv_at f (p 1 (λ _, 1)) x :=
+h.has_strict_deriv_at.has_deriv_at
+
+lemma has_fpower_series_at.deriv (h : has_fpower_series_at f p x) :
+  deriv f x = p 1 (λ _, 1) :=
+h.has_deriv_at.deriv
+
+end analytic
 
 section add
 /-! ### Derivative of the sum of two functions -/
@@ -1394,7 +1431,7 @@ by simp [div_eq_inv_mul, differentiable_within_at.const_mul, hc]
 
 @[simp] lemma differentiable_at.div_const (hc : differentiable_at 𝕜 c x) {d : 𝕜} :
   differentiable_at 𝕜 (λ x, c x / d) x :=
-by simp [div_eq_inv_mul, hc]
+(hc.has_deriv_at.mul_const d⁻¹).differentiable_at
 
 lemma differentiable_on.div_const (hc : differentiable_on 𝕜 c s) {d : 𝕜} :
   differentiable_on 𝕜 (λx, c x / d) s :=
@@ -1459,6 +1496,11 @@ lemma local_homeomorph.has_deriv_at_symm (f : local_homeomorph 𝕜 𝕜) {a f' 
   (ha : a ∈ f.target) (hf' : f' ≠ 0) (htff' : has_deriv_at f f' (f.symm a)) :
   has_deriv_at f.symm f'⁻¹ a :=
 htff'.of_local_left_inverse (f.symm.continuous_at ha) hf' (f.eventually_right_inverse ha)
+
+lemma has_deriv_at.eventually_ne (h : has_deriv_at f f' x) (hf' : f' ≠ 0) :
+  ∀ᶠ z in 𝓝[{x}ᶜ] x, f z ≠ f x :=
+(has_deriv_at_iff_has_fderiv_at.1 h).eventually_ne
+  ⟨∥f'∥⁻¹, λ z, by field_simp [norm_smul, mt norm_eq_zero.1 hf']⟩
 
 theorem not_differentiable_within_at_of_local_left_inverse_has_deriv_within_at_zero
   {f g : 𝕜 → 𝕜} {a : 𝕜} {s t : set 𝕜} (ha : a ∈ s) (hsu : unique_diff_within_at 𝕜 s a)
@@ -1727,9 +1769,9 @@ lemma has_deriv_within_at.limsup_slope_le' (hf : has_deriv_within_at f f' s x)
 (has_deriv_within_at_iff_tendsto_slope' hs).1 hf (mem_nhds_sets is_open_Iio hr)
 
 lemma has_deriv_within_at.liminf_right_slope_le
-  (hf : has_deriv_within_at f f' (Ioi x) x) (hr : f' < r) :
+  (hf : has_deriv_within_at f f' (Ici x) x) (hr : f' < r) :
   ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r :=
-(hf.limsup_slope_le' (lt_irrefl x) hr).frequently
+(hf.Ioi_of_Ici.limsup_slope_le' (lt_irrefl x) hr).frequently
 
 end real
 
@@ -1784,9 +1826,9 @@ In other words, the limit inferior of this ratio as `z` tends to `x+0`
 is less than or equal to `∥f'∥`. See also `has_deriv_within_at.limsup_norm_slope_le`
 for a stronger version using limit superior and any set `s`. -/
 lemma has_deriv_within_at.liminf_right_norm_slope_le
-  (hf : has_deriv_within_at f f' (Ioi x) x) (hr : ∥f'∥ < r) :
+  (hf : has_deriv_within_at f f' (Ici x) x) (hr : ∥f'∥ < r) :
   ∃ᶠ z in 𝓝[Ioi x] x, ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
-(hf.limsup_norm_slope_le hr).frequently
+(hf.Ioi_of_Ici.limsup_norm_slope_le hr).frequently
 
 /-- If `f` has derivative `f'` within `(x, +∞)` at `x`, then for any `r > ∥f'∥` the ratio
 `(∥f z∥ - ∥f x∥) / (z - x)` is frequently less than `r` as `z → x+0`.
@@ -1800,10 +1842,10 @@ See also
 * `has_deriv_within_at.liminf_right_norm_slope_le` for a stronger version using
   `∥f z - f x∥` instead of `∥f z∥ - ∥f x∥`. -/
 lemma has_deriv_within_at.liminf_right_slope_norm_le
-  (hf : has_deriv_within_at f f' (Ioi x) x) (hr : ∥f'∥ < r) :
+  (hf : has_deriv_within_at f f' (Ici x) x) (hr : ∥f'∥ < r) :
   ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r :=
 begin
-  have := (hf.limsup_slope_norm_le hr).frequently,
+  have := (hf.Ioi_of_Ici.limsup_slope_norm_le hr).frequently,
   refine this.mp (eventually.mono self_mem_nhds_within _),
   assume z hxz hz,
   rwa [real.norm_eq_abs, abs_of_pos (sub_pos_of_lt hxz)] at hz

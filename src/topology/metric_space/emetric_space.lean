@@ -114,7 +114,7 @@ iff.intro (assume h, eq_of_edist_eq_zero (h.symm))
           (assume : x = y, this ▸ (edist_self _).symm)
 
 theorem edist_le_zero {x y : α} : (edist x y ≤ 0) ↔ x = y :=
-le_zero_iff_eq.trans edist_eq_zero
+nonpos_iff_eq_zero.trans edist_eq_zero
 
 /-- Triangle inequality for the extended distance -/
 theorem edist_triangle_left (x y z : α) : edist x y ≤ edist z x + edist z y :=
@@ -484,6 +484,9 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
 lemma edist_pi_def [Π b, emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
+@[simp] lemma edist_pi_const [nonempty β] (a b : α) : edist (λ x : β, a) (λ _, b) = edist a b :=
+finset.sup_const univ_nonempty (edist a b)
+
 end pi
 
 namespace emetric
@@ -581,6 +584,14 @@ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subset_compl_iff_disjoint.2
 
 theorem ball_mem_nhds (x : α) {ε : ennreal} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
+
+theorem ball_prod_same [emetric_space β] (x : α) (y : β) (r : ennreal) :
+  (ball x r).prod (ball y r) = ball (x, y) r :=
+ext $ λ z, max_lt_iff.symm
+
+theorem closed_ball_prod_same [emetric_space β] (x : α) (y : β) (r : ennreal) :
+  (closed_ball x r).prod (closed_ball y r) = closed_ball (x, y) r :=
+ext $ λ z, max_le_iff.symm
 
 /-- ε-characterization of the closure in emetric spaces -/
 theorem mem_closure_iff :
@@ -713,7 +724,7 @@ diam_le_iff_forall_edist_le.2 h
 
 /-- The diameter of a subsingleton vanishes. -/
 lemma diam_subsingleton (hs : s.subsingleton) : diam s = 0 :=
-le_zero_iff_eq.1 $ diam_le_of_forall_edist_le $
+nonpos_iff_eq_zero.1 $ diam_le_of_forall_edist_le $
 λ x hx y hy, (hs hx hy).symm ▸ edist_self y ▸ le_refl _
 
 /-- The diameter of the empty set vanishes -/
@@ -732,7 +743,7 @@ begin
   have := not_congr (@diam_eq_zero_iff _ _ s),
   dunfold set.subsingleton at this,
   push_neg at this,
-  simpa only [zero_lt_iff_ne_zero, exists_prop] using this
+  simpa only [pos_iff_ne_zero, exists_prop] using this
 end
 
 lemma diam_insert : diam (insert x s) = max (⨆ y ∈ s, edist x y) (diam s) :=

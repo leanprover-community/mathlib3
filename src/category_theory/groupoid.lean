@@ -71,4 +71,11 @@ end
 
 end
 
+instance induced_category.groupoid {C : Type u} (D : Type u₂) [groupoid.{v} D] (F : C → D) :
+   groupoid.{v} (induced_category D F) :=
+{ inv       := λ X Y f, groupoid.inv f,
+  inv_comp' := λ X Y f, groupoid.inv_comp f,
+  comp_inv' := λ X Y f, groupoid.comp_inv f,
+  .. induced_category.category F }
+
 end category_theory

@@ -194,8 +194,7 @@ begin
   have hbound : ∀ m : ℕ, 1 + (m : ℚ) * (a - 1) ≤ a^m,
   { intros m,
     have ha : -1 ≤ a := le_of_lt (lt_trans (neg_one_lt_zero.trans zero_lt_one) ha1),
-    have := one_add_sub_mul_le_pow ha m,
-    rwa [nsmul_eq_mul] at this },
+    exact one_add_mul_sub_le_pow ha m },
 
   -- Choose N greater than x / (a - 1).
   obtain ⟨N, hN⟩ := exists_nat_gt (max 0 (x / (a - 1))),

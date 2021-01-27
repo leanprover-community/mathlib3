@@ -1030,6 +1030,8 @@ begin
   simp only [span_singleton_le_iff_mem],
 end
 
+section
+
 open_locale classical
 
 /-- For every element in the span of a set, there exists a finite subset of the set
@@ -1051,6 +1053,8 @@ begin
     exact ⟨x, hxX, y, hyY, rfl⟩, },
   { rintros a x ⟨T, hT, h2⟩,
     exact ⟨T, hT, smul_mem _ _ h2⟩ }
+end
+
 end
 
 /-- The product of two submodules is a submodule. -/

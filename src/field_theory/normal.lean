@@ -25,9 +25,7 @@ noncomputable theory
 open_locale classical
 open polynomial is_scalar_tower
 
-universes u v w
-
-variables (F : Type u) (K : Type v) [field F] [field K] [algebra F K]
+variables (F K : Type*) [field F] [field K] [algebra F K]
 
 --TODO(Commelin): refactor normal to extend `is_algebraic`??
 
@@ -65,7 +63,7 @@ end
 
 section normal_tower
 
-variables (E : Type w) [field E] [algebra F E] [algebra K E] [is_scalar_tower F K E]
+variables (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_tower F K E]
 
 lemma normal.tower_top_of_normal [h : normal F E] : normal K E :=
 begin
@@ -78,7 +76,7 @@ begin
     (minpoly.dvd_map_of_is_scalar_tower F K x)⟩,
 end
 
-variables {F} {E} {E' : Type v} [field E'] [algebra F E']
+variables {F} {E} {E' : Type*} [field E'] [algebra F E']
 
 lemma normal.of_alg_equiv [h : normal F E] (f : E ≃ₐ[F] E') : normal F E' :=
 begin
@@ -165,7 +163,7 @@ end
 end normal_tower
 
 variables {F} {K} (ϕ ψ : K →ₐ[F] K) (χ ω : K ≃ₐ[F] K)
-  (E : Type w) [field E] [algebra F E] [algebra E K] [is_scalar_tower F E K]
+  (E : Type*) [field E] [algebra F E] [algebra E K] [is_scalar_tower F E K]
 
 /-- Restrict algebra homomorphism to image of normal subfield -/
 def alg_hom.restrict_normal_aux [h : normal F E] :

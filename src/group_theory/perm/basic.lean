@@ -140,13 +140,6 @@ sigma_congr_right_symm F
   (sigma_congr_right (1 : Π a, equiv.perm $ β a)) = 1 :=
 sigma_congr_right_refl
 
-/-- `equiv.perm.sigma_congr_right` as a `monoid_hom`. -/
-def sigma_congr_right_hom {α : Type*} {β : α → Type*} :
-  (Π a, perm (β a)) →* perm (Σ a, β a) :=
-{ to_fun := sigma_congr_right,
-  map_one' := sigma_congr_right_one,
-  map_mul' := λ a b, (sigma_congr_right_mul _ _).symm }
-
 end perm
 
 @[simp] lemma sigma_congr_right_update_refl_swap {α} {β : α → Type*}
@@ -169,12 +162,6 @@ end
 
 namespace perm
 
-@[simp] lemma sigma_congr_right_update_one_swap {α} {β : α → Type*}
-  [decidable_eq α] {a' : α} [decidable_eq (β a')] [decidable_eq (Σ a, β a)]
-  (i j : β a') :
-  sigma_congr_right (function.update 1 a' (equiv.swap i j)) = equiv.swap ⟨a', i⟩ ⟨a', j⟩  :=
-sigma_congr_right_update_refl_swap i j
-
 /-- `equiv.perm.sigma_congr_right` as a `monoid_hom`.
 
 This is particularly useful for its `monoid_hom.range` projection, which is the subgroup of
@@ -193,6 +180,12 @@ begin
   ext a b,
   simpa using equiv.congr_fun h ⟨a, b⟩,
 end
+
+@[simp] lemma sigma_congr_right_update_one_swap {α} {β : α → Type*}
+  [decidable_eq α] {a' : α} [decidable_eq (β a')] [decidable_eq (Σ a, β a)]
+  (i j : β a') :
+  sigma_congr_right (function.update 1 a' (equiv.swap i j)) = equiv.swap ⟨a', i⟩ ⟨a', j⟩  :=
+sigma_congr_right_update_refl_swap i j
 
 end perm
 

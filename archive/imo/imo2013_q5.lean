@@ -6,7 +6,6 @@ Authors: David Renshaw
 
 import algebra.geom_sum
 import data.rat.basic
-import data.rat.order
 import data.real.basic
 
 /-!

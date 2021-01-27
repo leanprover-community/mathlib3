@@ -80,23 +80,26 @@ instance is_add_group_hom_coe : is_add_group_hom (coe : α → completion α) :=
 
 variables {β : Type v} [uniform_space β] [add_group β] [uniform_add_group β]
 
-lemma is_add_group_hom_extension  [complete_space β] [separated_space β]
-  {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.extension f) :=
+lemma is_add_group_hom_extension  [complete_space β] [separated_space β] {f : α → β}
+  [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.extension f) :=
 have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 { map_add := assume a b, completion.induction_on₂ a b
   (is_closed_eq
     (continuous_extension.comp continuous_add)
     ((continuous_extension.comp continuous_fst).add (continuous_extension.comp continuous_snd)))
-  (assume a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf, is_add_hom.map_add f]) }
+  (λ a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf,
+    is_add_hom.map_add f]) }
 
 lemma is_add_group_hom_map
   {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.map f) :=
 @is_add_group_hom_extension _ _ _ _ _ _ _ _ _ _ _ (is_add_group_hom.comp _ _)
   ((continuous_coe _).comp hf)
 
-instance {α : Type u} [uniform_space α] [add_comm_group α] [uniform_add_group α] : add_comm_group (completion α) :=
+instance {α : Type u} [uniform_space α] [add_comm_group α] [uniform_add_group α] :
+  add_comm_group (completion α) :=
 { add_comm  := assume a b, completion.induction_on₂ a b
-    (is_closed_eq (continuous_map₂ continuous_fst continuous_snd) (continuous_map₂ continuous_snd continuous_fst))
+    (is_closed_eq (continuous_map₂ continuous_fst continuous_snd)
+      (continuous_map₂ continuous_snd continuous_fst))
     (assume x y, by { change ↑x + ↑y = ↑y + ↑x, rw [← coe_add, ← coe_add, add_comm]}),
   .. completion.add_group }
 end uniform_add_group

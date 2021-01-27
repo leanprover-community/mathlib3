@@ -25,9 +25,7 @@ noncomputable theory
 open_locale classical
 open polynomial is_scalar_tower
 
-universes u v w
-
-variables (F : Type u) (K : Type v) [field F] [field K] [algebra F K]
+variables (F K : Type*) [field F] [field K] [algebra F K]
 
 --TODO(Commelin): refactor normal to extend `is_algebraic`??
 
@@ -137,8 +135,8 @@ begin
   haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
   suffices : nonempty (D →ₐ[C] E),
   { exact nonempty.map (restrict_base F) this },
-  let S : finset D := ((p.map (algebra_map F E)).roots.map (algebra_map E D)).to_finset,
-  suffices : ⊤ ≤ intermediate_field.adjoin C ↑S,
+  let S : set D := ((p.map (algebra_map F E)).roots.map (algebra_map E D)).to_finset,
+  suffices : ⊤ ≤ intermediate_field.adjoin C S,
   { refine intermediate_field.alg_hom_mk_adjoin_splits' (top_le_iff.mp this) (λ y hy, _),
     rcases multiset.mem_map.mp (multiset.mem_to_finset.mp hy) with ⟨z, hz1, hz2⟩,
     have Hz : is_integral F z := is_integral_of_noetherian hFE z,
@@ -151,8 +149,8 @@ begin
       rw [←hz2, aeval_def, eval₂_map, ←algebra_map_eq F C D, algebra_map_eq F E D, ←hom_eval₂,
           ←aeval_def, minpoly.aeval F z, ring_hom.map_zero] } },
   rw [←intermediate_field.to_subalgebra_le_to_subalgebra, intermediate_field.top_to_subalgebra],
-  apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C ↑S),
-  suffices : (algebra.adjoin C (S : set D)).res F = (algebra.adjoin E {adjoin_root.root q}).res F,
+  apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C S),
+  suffices : (algebra.adjoin C S).res F = (algebra.adjoin E {adjoin_root.root q}).res F,
   { rw [adjoin_root.adjoin_root_eq_top, subalgebra.res_top, ←@subalgebra.res_top F C] at this,
     exact top_le_iff.mpr (subalgebra.res_inj F this) },
   dsimp only [S],
@@ -167,7 +165,7 @@ instance {p : polynomial F} : normal F p.splitting_field := normal.of_is_splitti
 end normal_tower
 
 variables {F} {K} (ϕ ψ : K →ₐ[F] K) (χ ω : K ≃ₐ[F] K)
-  (E : Type w) [field E] [algebra F E] [algebra E K] [is_scalar_tower F E K]
+  (E : Type*) [field E] [algebra F E] [algebra E K] [is_scalar_tower F E K]
 
 /-- Restrict algebra homomorphism to image of normal subfield -/
 def alg_hom.restrict_normal_aux [h : normal F E] :

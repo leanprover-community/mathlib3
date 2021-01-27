@@ -10,7 +10,7 @@ import algebra.big_operators.basic
 This file contains lemmas about prime elements of commutative rings.
 -/
 
-variables {R : Type*} [integral_domain R]
+variables {R : Type*} [comm_cancel_monoid_with_zero R]
 open finset
 
 open_locale big_operators

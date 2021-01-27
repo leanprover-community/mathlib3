@@ -266,6 +266,10 @@ lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
 subsemiring.mem_map
 
+instance no_zero_divisors {R A : Type*} [comm_ring R] [semiring A] [no_zero_divisors A]
+  [algebra R A] (S : subalgebra R A) : no_zero_divisors S :=
+S.to_subsemiring.no_zero_divisors
+
 instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
   (S : subalgebra R A) : integral_domain S :=
 @subring.domain A _ S _

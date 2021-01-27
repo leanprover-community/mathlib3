@@ -64,9 +64,9 @@ lemma factor_mk_eq {α : Type*} (r s : α → α → Prop) (h : ∀ x y, r x y �
 
 variables {γ : Sort*} {r : α → α → Prop} {s : β → β → Prop}
 
-/-- **Alias** of `lift_beta`, with more consistent name and argument order. -/
+/-- **Alias** of `quot.lift_beta`. -/
 @[simp]
-lemma lift_mk (a : α) (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) :
+lemma lift_mk (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) (a : α) :
   quot.lift f h (quot.mk r a) = f a := quot.lift_beta f h a
 
 @[simp]
@@ -85,9 +85,9 @@ quot.lift (λ a, quot.lift (f a) (hr a))
 q₁ q₂
 
 @[simp]
-lemma lift₂_mk  (a : α) (b : β) (f : α → β → γ)
+lemma lift₂_mk (f : α → β → γ)
   (hr : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂)
-  (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b) :
+  (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b) (a : α) (b : β) :
   quot.lift₂ f hr hs (quot.mk r a) (quot.mk s b) = f a b := rfl
 
 /-- Descends a function `f : α → β → γ` to quotients of `α` and `β` and applies it. -/
@@ -97,7 +97,7 @@ protected def lift_on₂ (p : quot r) (q : quot s) (f : α → β → γ)
   (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b) : γ := quot.lift₂ f hr hs p q
 
 @[simp]
-lemma lift_on₂_mk  (a : α) (b : β) (f : α → β → γ)
+lemma lift_on₂_mk (a : α) (b : β) (f : α → β → γ)
   (hr : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂)
   (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b) :
   quot.lift_on₂ (quot.mk r a) (quot.mk s b) f hr hs = f a b := rfl

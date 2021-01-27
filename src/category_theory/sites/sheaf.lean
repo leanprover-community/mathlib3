@@ -213,6 +213,10 @@ end
 For a concrete category `(A, s)` where the forgetful functor `s : A ⥤ Type v` preserves limits and
 reflects isomorphisms, and `A` has limits, an `A`-valued presheaf `P : Cᵒᵖ ⥤ A` is a sheaf iff its
 underlying `Type`-valued presheaf `P ⋙ s : Cᵒᵖ ⥤ Type` is a sheaf.
+
+Note this lemma applies for "algebraic" categories, eg groups, abelian groups and rings, but not
+for the category of topological spaces, topological rings, etc since reflecting isomorphisms doesn't
+hold.
 -/
 lemma sheaf_cond3 (P : Cᵒᵖ ⥤ A) (s : A ⥤ Type v)
   [has_limits A] [preserves_limits s] [faithful s] [reflects_isomorphisms s] :

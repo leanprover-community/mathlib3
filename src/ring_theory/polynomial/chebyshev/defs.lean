@@ -273,7 +273,7 @@ begin
   simp only [derivative_sub, derivative_mul, derivative_X, derivative_one, derivative_X_pow,
   one_mul, chebyshev₁_derivative_eq_chebyshev₂],
   rw [chebyshev₁_eq_chebyshev₂_sub_X_mul_chebyshev₂, nat.cast_bit0, nat.cast_one],
-  ring},
+  ring },
   calc ((n : polynomial R) + 1) * chebyshev₁ R (n + 1)
       = ((n : polynomial R) + 1 + 1) * (X * chebyshev₂ R n + chebyshev₁ R (n + 1))
         - X * ((n + 1) * chebyshev₂ R n) - (X * chebyshev₂ R n + chebyshev₁ R (n + 1))

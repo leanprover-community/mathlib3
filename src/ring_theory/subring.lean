@@ -376,7 +376,7 @@ def subset_comm_ring (S : subring cR) : comm_ring S :=
 instance {D : Type*} [ring D] [nontrivial D] (S : subring D) : nontrivial S :=
 S.to_subsemiring.nontrivial
 
-/-- A subring of an ring with no zero divisors has no zero divisors. -/
+/-- A subring of a ring with no zero divisors has no zero divisors. -/
 instance {D : Type*} [ring D] [no_zero_divisors D] (S : subring D) : no_zero_divisors S :=
 S.to_subsemiring.no_zero_divisors
 

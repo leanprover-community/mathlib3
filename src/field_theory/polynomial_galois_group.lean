@@ -179,7 +179,7 @@ variables (p q)
 def restrict_prod : (p * q).gal →* p.gal × q.gal :=
 monoid_hom.prod (restrict_dvd (dvd_mul_right p q)) (restrict_dvd (dvd_mul_left q p))
 
-lemma restrict_prod_inj : function.injective (restrict_prod p q) :=
+lemma restrict_prod_injective : function.injective (restrict_prod p q) :=
 begin
   by_cases hpq : (p * q) = 0,
   { haveI : unique (gal (p * q)) := by { rw hpq, apply_instance },

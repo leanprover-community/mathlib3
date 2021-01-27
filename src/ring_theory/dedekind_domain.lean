@@ -133,8 +133,7 @@ and is integrally closed in a given fraction field.
 In particular, this definition does not depend on the choice of this fraction field. -/
 lemma is_dedekind_domain_iff (f : fraction_map A K) :
   is_dedekind_domain A ↔
-    is_noetherian_ring A ∧ dimension_le_one A ∧
-    integral_closure A f.codomain = ⊥ :=
+    is_noetherian_ring A ∧ dimension_le_one A ∧ integral_closure A f.codomain = ⊥ :=
 ⟨λ ⟨hr, hd, hi⟩, ⟨hr, hd,
   by rw [←integral_closure_map_alg_equiv (fraction_ring.alg_equiv_of_quotient f),
          hi, algebra.map_bot]⟩,
@@ -156,9 +155,9 @@ lemma integrally_closed_iff_integral_implies_integer {R K : Type*}
 @[priority 100] -- see Note [lower instance priority]
 instance principal_ideal_ring.is_dedekind_domain [is_principal_ideal_ring A] :
   is_dedekind_domain A :=
-⟨principal_ideal_ring.is_noetherian_ring, dimension_le_one.principal_ideal_ring _,
- @unique_factorization_monoid.integrally_closed A _ _
-   (principal_ideal_ring.to_unique_factorization_monoid) _ (fraction_ring.of A)⟩
+⟨principal_ideal_ring.is_noetherian_ring,
+ dimension_le_one.principal_ideal_ring _,
+ unique_factorization_monoid.integrally_closed (fraction_ring.of A)⟩
 
 end principal_ideal_ring
 

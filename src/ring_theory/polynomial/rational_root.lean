@@ -124,6 +124,8 @@ lemma integer_of_integral {x : f.codomain} :
   is_integral A x → f.is_integer x :=
 λ ⟨p, hp, hx⟩, is_integer_of_is_root_of_monic hp hx
 
+variables (f)
+
 lemma integrally_closed : integral_closure A f.codomain = ⊥ :=
 eq_bot_iff.mpr (λ x hx, algebra.mem_bot.mpr (integer_of_integral hx))
 

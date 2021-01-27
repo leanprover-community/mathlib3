@@ -160,7 +160,7 @@ begin
   rw [set.image_singleton, ring_hom.algebra_map_to_algebra, adjoin_root.lift_root]
 end
 
-instance {p : polynomial F} : normal F p.splitting_field := normal.of_is_splitting_field p
+instance (p : polynomial F) : normal F p.splitting_field := normal.of_is_splitting_field p
 
 end normal_tower
 

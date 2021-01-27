@@ -263,8 +263,8 @@ begin
 end
 
 lemma add_one_mul_chebyshev₁_eq_poly_in_chebyshev₂ (n : ℕ) :
-((n : polynomial R)  + 1) * chebyshev₁ R (n+1)
-= X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n) :=
+  ((n : polynomial R) + 1) * chebyshev₁ R (n+1) =
+    X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n) :=
 begin
   have h : derivative (chebyshev₁ R (n + 2)) = (chebyshev₂ R (n + 1) - X * chebyshev₂ R n)
   + X * derivative (chebyshev₁ R (n + 1)) + 2 * X * chebyshev₂ R n

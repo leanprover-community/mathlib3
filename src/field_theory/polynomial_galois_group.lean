@@ -35,7 +35,7 @@ namespace polynomial
 variables {F : Type*} [field F] (p q : polynomial F) (E : Type*) [field E] [algebra F E]
 
 /-- The Galois group of a polynomial -/
-@[reducible] def gal := p.splitting_field ≃ₐ[F] p.splitting_field
+@[derive [has_coe_to_fun, group, fintype]] def gal := p.splitting_field ≃ₐ[F] p.splitting_field
 
 namespace gal
 

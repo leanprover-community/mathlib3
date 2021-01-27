@@ -580,8 +580,7 @@ not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
 lemma ne_bot_of_is_maximal_of_not_is_field [nontrivial R] {M : ideal R} (max : M.is_maximal)
   (not_field : ¬ is_field R) : M ≠ ⊥ :=
 begin
-  rintros h,
-  rw h at max,
+  rintro rfl,
   cases max with h1 h2,
   obtain ⟨I, hIbot, hItop⟩ := not_is_field_iff_exists_ideal_bot_lt_and_lt_top.mp not_field,
   specialize h2 I hIbot,

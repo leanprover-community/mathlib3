@@ -242,13 +242,13 @@ by simp only [← nnreal.eq_iff, ← dist_nndist, imp_self, nnreal.coe_zero, zer
 
 /--Triangle inequality for the nonnegative distance-/
 theorem nndist_triangle (x y z : α) : nndist x z ≤ nndist x y + nndist y z :=
-by simpa [nnreal.coe_le_coe] using dist_triangle x y z
+dist_triangle _ _ _
 
 theorem nndist_triangle_left (x y z : α) : nndist x y ≤ nndist z x + nndist z y :=
-by simpa [nnreal.coe_le_coe] using dist_triangle_left x y z
+dist_triangle_left _ _ _
 
 theorem nndist_triangle_right (x y z : α) : nndist x y ≤ nndist x z + nndist y z :=
-by simpa [nnreal.coe_le_coe] using dist_triangle_right x y z
+dist_triangle_right _ _ _
 
 /--Express `dist` in terms of `edist`-/
 lemma dist_edist (x y : α) : dist x y = (edist x y).to_real :=

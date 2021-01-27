@@ -99,6 +99,7 @@ instance : comm_ring ℤ√d := by refine
   zero           := 0,
   neg            := has_neg.neg,
   mul            := (*),
+  sub            := λ a b, a + -b,
   one            := 1, ..};
   { intros, simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm] }
 

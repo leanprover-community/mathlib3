@@ -33,9 +33,6 @@ iff.intro
 
 end finset
 
-lemma conj_injective [group α] {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
-λ a b h, by simpa [mul_left_inj, mul_right_inj] using h
-
 lemma mem_normalizer_fintype [group α] {s : set α} [fintype s] {x : α}
   (h : ∀ n, n ∈ s → x * n * x⁻¹ ∈ s) : x ∈ subgroup.set_normalizer s :=
 by haveI := classical.prop_decidable;
@@ -59,10 +56,6 @@ fintype.card_eq_one_iff.2
   ⟨⟨(1 : α), set.mem_singleton 1⟩, λ ⟨y, hy⟩, subtype.eq $ subgroup.mem_bot.1 hy⟩
 
 variables [fintype α] [dec : decidable_eq α]
-
-instance quotient_group.fintype (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
-  fintype (quotient s) :=
-@quotient.fintype _ _ (left_rel s) (λ _ _, d _)
 
 lemma card_eq_card_quotient_mul_card_subgroup (s : subgroup α) [fintype s]
   [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
@@ -165,7 +158,7 @@ lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
-    = _ : (finset.card_bind (by { intros, apply finset.disjoint_filter.2, cc })).symm
+    = _ : (finset.card_bUnion (by { intros, apply finset.disjoint_filter.2, cc })).symm
 ... = _ : congr_arg finset.card (finset.ext (begin
   assume a,
   suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
@@ -216,8 +209,6 @@ have ft_s : fintype (gpowers a),
   from @fintype.fintype_prod_right _ _ _ ft_prod _,
 have ft_cosets : fintype (quotient (gpowers a)),
   from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, (gpowers a).one_mem⟩⟩,
-have ft : fintype (quotient (gpowers a) × (gpowers a)),
-  from @prod.fintype _ _ ft_cosets ft_s,
 have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
   from calc fintype.card α = @fintype.card _ ft_prod :
       @fintype.card_congr _ _ _ ft_prod group_equiv_quotient_times_subgroup
@@ -304,6 +295,31 @@ lemma is_cyclic_of_order_of_eq_card [group α] [decidable_eq α] [fintype α]
 ⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le
   (set.subset_univ _)
   (by {rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers], refl})⟩⟩
+
+lemma is_cyclic_of_prime_card [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
+  (h : fintype.card α = p) : is_cyclic α :=
+⟨begin
+  obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1,
+  from fintype.exists_ne_of_one_lt_card (by { rw h, exact nat.prime.one_lt hp }) 1,
+  have : fintype.card (subgroup.gpowers g) ∣ p,
+  { rw ←h,
+    apply card_subgroup_dvd_card },
+  rw nat.dvd_prime hp at this,
+  cases this,
+  { rw fintype.card_eq_one_iff at this,
+    cases this with t ht,
+    suffices : g = 1,
+    { contradiction },
+    have hgt := ht ⟨g, by { change g ∈ subgroup.gpowers g, exact subgroup.mem_gpowers g }⟩,
+    rw [←ht 1] at hgt,
+    change (⟨_, _⟩ : subgroup.gpowers g) = ⟨_, _⟩ at hgt,
+    simpa using hgt },
+  { use g,
+    intro x,
+    rw [←h] at this,
+    rw subgroup.eq_top_of_card_eq _ this,
+    exact subgroup.mem_top _ }
+end⟩
 
 lemma order_of_eq_card_of_forall_mem_gpowers [group α] [decidable_eq α] [fintype α]
   {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=
@@ -472,7 +488,7 @@ lemma card_order_of_eq_totient_aux₂ {d : ℕ} (hd : d ∣ fintype.card α) :
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
 by_contradiction $ λ h,
 have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0 :=
-  not_not.1 (mt nat.pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁ hn hd) h)),
+  not_not.1 (mt pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁ hn hd) h)),
 let c := fintype.card α in
 have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
 lt_irrefl c $
@@ -494,7 +510,7 @@ lt_irrefl c $
         (λ h, by rw h))
   ... < φ d + ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
     lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
-      (λ h, nat.pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
+      (λ h, pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
   ... = ∑ m in insert d (((range c.succ).filter (∣ c)).erase d), φ m : eq.symm (sum_insert (by simp))
   ... = ∑ m in (range c.succ).filter (∣ c), φ m : finset.sum_congr
       (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩)) (λ _ _, rfl)

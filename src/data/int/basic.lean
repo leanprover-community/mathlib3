@@ -31,6 +31,7 @@ instance : comm_ring int :=
   one            := int.one,
   one_mul        := int.one_mul,
   mul_one        := int.mul_one,
+  sub            := int.sub,
   left_distrib   := int.distrib_left,
   right_distrib  := int.distrib_right,
   mul_comm       := int.mul_comm }
@@ -220,6 +221,10 @@ theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
 by cases a; cases b;
   simp only [← int.mul_def, int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
 
+lemma nat_abs_mul_nat_abs_eq {a b : ℤ} {c : ℕ} (h : a * b = (c : ℤ)) :
+  a.nat_abs * b.nat_abs = c :=
+by rw [← nat_abs_mul, h, nat_abs_of_nat]
+
 @[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
 by rw [← int.coe_nat_mul, nat_abs_mul_self]
 
@@ -375,6 +380,22 @@ protected theorem add_mul_div_left (a : ℤ) {b : ℤ} (c : ℤ) (H : b ≠ 0) :
     (a + b * c) / b = a / b + c :=
 by rw [mul_comm, int.add_mul_div_right _ _ H]
 
+protected theorem add_div_of_dvd_right {a b c : ℤ} (H : c ∣ b) :
+  (a + b) / c = a / c + b / c :=
+begin
+  by_cases h1 : c = 0,
+  { simp [h1] },
+  cases H with k hk,
+  rw hk,
+  change c ≠ 0 at h1,
+  rw [mul_comm c k, int.add_mul_div_right _ _ h1, ←zero_add (k * c), int.add_mul_div_right _ _ h1,
+      int.zero_div, zero_add]
+end
+
+protected theorem add_div_of_dvd_left {a b c : ℤ} (H : c ∣ a) :
+  (a + b) / c = a / c + b / c :=
+by rw [add_comm, int.add_div_of_dvd_right H, add_comm]
+
 @[simp] protected theorem mul_div_cancel (a : ℤ) {b : ℤ} (H : b ≠ 0) : a * b / b = a :=
 by have := int.add_mul_div_right 0 a H;
    rwa [zero_add, int.zero_div, zero_add] at this
@@ -455,6 +476,9 @@ theorem mod_add_div : ∀ (a b : ℤ), a % b + b * (a / b) = a
 | -[1+ m] (n+1:ℕ) := mod_add_div_aux m n.succ
 | -[1+ m] -[1+ n] := mod_add_div_aux m n.succ
 
+theorem div_add_mod (a b : ℤ) : b * (a / b) + a % b = a :=
+(add_comm _ _).trans (mod_add_div _ _)
+
 theorem mod_def (a b : ℤ) : a % b = a - b * (a / b) :=
 eq_sub_of_add_eq (mod_add_div _ _)
 
@@ -521,6 +545,13 @@ begin
         mul_comm _ (n * (b / n)), mul_assoc, add_mul_mod_self_left] }
 end
 
+@[simp] lemma neg_mod_two (i : ℤ) : (-i) % 2 = i % 2 :=
+begin
+  apply int.mod_eq_mod_iff_mod_sub_eq_zero.mpr,
+  convert int.mul_mod_right 2 (-i),
+  simp only [two_mul, sub_eq_add_neg]
+end
+
 local attribute [simp] -- Will be generalized to Euclidean domains.
 theorem mod_self {a : ℤ} : a % a = 0 :=
 by have := mul_mod_left 1 a; rwa one_mul at this
@@ -575,8 +606,8 @@ by rw [mul_comm, mul_comm c, mul_div_mul_of_pos _ _ H]
 by rw [mod_def, mod_def, mul_div_mul_of_pos _ _ H, mul_sub_left_distrib, mul_assoc]
 
 theorem lt_div_add_one_mul_self (a : ℤ) {b : ℤ} (H : 0 < b) : a < (a / b + 1) * b :=
-by rw [add_mul, one_mul, mul_comm]; apply lt_add_of_sub_left_lt;
-   rw [← mod_def]; apply mod_lt_of_pos _ H
+by { rw [add_mul, one_mul, mul_comm, ← sub_lt_iff_lt_add', ← mod_def],
+  exact mod_lt_of_pos _ H }
 
 theorem abs_div_le_abs : ∀ (a b : ℤ), abs (a / b) ≤ abs a :=
 suffices ∀ (a : ℤ) (n : ℕ), abs (a / n) ≤ abs a, from
@@ -671,6 +702,9 @@ protected theorem mul_div_assoc (a : ℤ) : ∀ {b c : ℤ}, c ∣ b → (a * b)
 | ._ c ⟨d, rfl⟩ := if cz : c = 0 then by simp [cz] else
   by rw [mul_left_comm, int.mul_div_cancel_left _ cz, int.mul_div_cancel_left _ cz]
 
+protected theorem mul_div_assoc' (b : ℤ) {a c : ℤ} (h : c ∣ a) : a * b / c = a / c * b :=
+by rw [mul_comm, int.mul_div_assoc _ h, mul_comm]
+
 theorem div_dvd_div : ∀ {a b c : ℤ} (H1 : a ∣ b) (H2 : b ∣ c), b / a ∣ c / a
 | a ._ ._ ⟨b, rfl⟩ ⟨c, rfl⟩ := if az : a = 0 then by simp [az] else
   by rw [int.mul_div_cancel_left _ az, mul_assoc, int.mul_div_cancel_left _ az];
@@ -708,17 +742,15 @@ theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 | ._ b ⟨c, rfl⟩ := if bz : b = 0 then by simp [bz] else
   by rw [neg_mul_eq_mul_neg, int.mul_div_cancel_left _ bz, int.mul_div_cancel_left _ bz]
 
-lemma add_div_of_dvd {a b c : ℤ} :
-  c ∣ a → c ∣ b → (a + b) / c = a / c + b / c :=
+lemma sub_div_of_dvd {a b c : ℤ} (hcb : c ∣ b) : (a - b) / c = a / c - b / c :=
 begin
-  intros h1 h2,
-  by_cases h3 : c = 0,
-  { rw [h3, zero_dvd_iff] at *,
-    rw [h1, h2, h3], refl },
-  { apply mul_right_cancel' h3,
-    rw add_mul, repeat {rw [int.div_mul_cancel]};
-    try {apply dvd_add}; assumption }
+  rw [sub_eq_add_neg, sub_eq_add_neg, int.add_div_of_dvd_right ((dvd_neg c b).mpr hcb)],
+  congr,
+  exact neg_div_of_dvd hcb,
 end
+
+lemma sub_div_of_dvd_sub {a b c : ℤ} (hcab : c ∣ (a - b)) : (a - b) / c = a / c - b / c :=
+by rw [eq_sub_iff_add_eq, ← int.add_div_of_dvd_left hcab, sub_add_cancel]
 
 theorem div_sign : ∀ a b, a / sign b = a * sign b
 | a (n+1:ℕ) := by unfold sign; simp
@@ -996,6 +1028,13 @@ by simpa only [units.ext_iff, units_nat_abs] using nat_abs_eq u
 
 lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 (units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+
+@[simp] lemma units_mul_self (u : units ℤ) : u * u = 1 :=
+(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+
+-- `units.coe_mul` is a "wrong turn" for the simplifier, this undoes it and simplifies further
+@[simp] lemma units_coe_mul_self (u : units ℤ) : (u * u : ℤ) = 1 :=
+by rw [←units.coe_mul, units_mul_self, units.coe_one]
 
 /-! ### bitwise ops -/
 

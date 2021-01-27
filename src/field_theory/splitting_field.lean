@@ -9,8 +9,9 @@ import ring_theory.adjoin_root
 import ring_theory.algebra_tower
 import ring_theory.algebraic
 import ring_theory.polynomial
-import field_theory.minimal_polynomial
+import field_theory.minpoly
 import linear_algebra.finite_dimensional
+import tactic.field_simp
 
 noncomputable theory
 open_locale classical big_operators
@@ -100,6 +101,9 @@ splits_of_splits_of_dvd i one_ne_zero (splits_one _) $ is_unit_iff_dvd_one.1 hu
 
 theorem splits_X_sub_C {x : α} : (X - C x).splits i :=
 splits_of_degree_eq_one _ $ degree_X_sub_C x
+
+theorem splits_X : X.splits i :=
+splits_of_degree_eq_one _ $ degree_X
 
 theorem splits_id_iff_splits {f : polynomial α} :
   (f.map i).splits (ring_hom.id β) ↔ f.splits i :=
@@ -362,31 +366,27 @@ end
 
 /-- A polynomial `p` that has as much roots as its degree
 can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
-lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α} (hzero : p ≠ 0)
+lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α}
   (hroots : p.roots.card = p.nat_degree) :
   (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod = p :=
 begin
-  have hcoeff : p.leading_coeff ≠ 0,
-  { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
-  have sameroots : p.roots = (normalize p).roots,
-  { rw [normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero,
-        roots_C_mul _ (inv_ne_zero hcoeff)] },
-  have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
-  { rw [← sameroots, normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero],
-    have hCzero : C (p.leading_coeff)⁻¹ ≠ 0,
-    { rw [ne.def, C_eq_zero], exact (inv_ne_zero hcoeff) },
-    simp only [nat_degree_C, zero_add, nat_degree_mul hCzero hzero],
-    exact hroots },
-  have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero) hrootsnorm,
-  rw [← sameroots, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
-  calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
-      = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
-  ... = p * C 1 : by field_simp [hcoeff]
-  ... = p : by simp only [mul_one, ring_hom.map_one]
+  by_cases hzero : p = 0,
+  { rw [hzero, leading_coeff_zero, ring_hom.map_zero, zero_mul], },
+  { have hcoeff : p.leading_coeff ≠ 0,
+    { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
+    have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
+    { rw [roots_normalize, normalize_apply, nat_degree_mul hzero (units.ne_zero _), hroots, coe_norm_unit,
+        nat_degree_C, add_zero], },
+    have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero) hrootsnorm,
+    rw [roots_normalize, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
+    calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
+        = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
+    ... = p * C 1 : by field_simp
+    ... = p : by simp only [mul_one, ring_hom.map_one], },
 end
 
 /-- A polynomial splits if and only if it has as much roots as its degree. -/
-lemma splits_iff_card_roots {p : polynomial α} (hzero : p ≠ 0) :
+lemma splits_iff_card_roots {p : polynomial α} :
   splits (ring_hom.id α) p ↔ p.roots.card = p.nat_degree :=
 begin
   split,
@@ -395,7 +395,7 @@ begin
     apply (splits_iff_exists_multiset (ring_hom.id α)).2,
     use p.roots,
     simp only [ring_hom.id_apply, map_id],
-    exact (C_leading_coeff_mul_prod_multiset_X_sub_C hzero hroots).symm },
+    exact (C_leading_coeff_mul_prod_multiset_X_sub_C hroots).symm },
 end
 
 end splits
@@ -408,53 +408,56 @@ section embeddings
 variables (F : Type*) [field F]
 
 /-- If `p` is the minimal polynomial of `a` over `F` then `F[a] ≃ₐ[F] F[x]/(p)` -/
-def alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial
-  {R : Type*} [comm_ring R] [algebra F R] (x : R) (hx : is_integral F x) :
-  algebra.adjoin F ({x} : set R) ≃ₐ[F] adjoin_root (minimal_polynomial hx) :=
+def alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly
+  {R : Type*} [comm_ring R] [algebra F R] (x : R) :
+  algebra.adjoin F ({x} : set R) ≃ₐ[F] adjoin_root (minpoly F x) :=
 alg_equiv.symm $ alg_equiv.of_bijective
   (alg_hom.cod_restrict
-    (adjoin_root.alg_hom _ x $ minimal_polynomial.aeval hx) _
+    (adjoin_root.lift_hom _ x $ minpoly.aeval F x) _
     (λ p, adjoin_root.induction_on _ p $ λ p,
       (algebra.adjoin_singleton_eq_range F x).symm ▸ (polynomial.aeval _).mem_range.mpr ⟨p, rfl⟩))
   ⟨(alg_hom.injective_cod_restrict _ _ _).2 $ (alg_hom.injective_iff _).2 $ λ p,
     adjoin_root.induction_on _ p $ λ p hp, ideal.quotient.eq_zero_iff_mem.2 $
-    ideal.mem_span_singleton.2 $ minimal_polynomial.dvd hx hp,
+    ideal.mem_span_singleton.2 $ minpoly.dvd F x hp,
   λ y, let ⟨p, _, hp⟩ := (subalgebra.ext_iff.1 (algebra.adjoin_singleton_eq_range F x) y).1 y.2 in
   ⟨adjoin_root.mk _ p, subtype.eq hp⟩⟩
 
 open finset
 
 -- Speed up the following proof.
-local attribute [irreducible] minimal_polynomial
+local attribute [irreducible] minpoly
 -- TODO: Why is this so slow?
 /-- If `K` and `L` are field extensions of `F` and we have `s : finset K` such that
 the minimal polynomial of each `x ∈ s` splits in `L` then `algebra.adjoin F s` embeds in `L`. -/
 theorem lift_of_splits {F K L : Type*} [field F] [field K] [field L]
   [algebra F K] [algebra F L] (s : finset K) :
-  (∀ x ∈ s, ∃ H : is_integral F x, polynomial.splits (algebra_map F L) (minimal_polynomial H)) →
+  (∀ x ∈ s, is_integral F x ∧ polynomial.splits (algebra_map F L) (minpoly F x)) →
   nonempty (algebra.adjoin F (↑s : set K) →ₐ[F] L) :=
 begin
   refine finset.induction_on s (λ H, _) (λ a s has ih H, _),
   { rw [coe_empty, algebra.adjoin_empty],
     exact ⟨(algebra.of_id F L).comp (algebra.bot_equiv F K)⟩ },
-  rw forall_mem_insert at H, rcases H with ⟨⟨H1, H2⟩, H3⟩, cases ih H3 with f, choose H3 H4 using H3,
+  rw forall_mem_insert at H, rcases H with ⟨⟨H1, H2⟩, H3⟩, cases ih H3 with f,
+  choose H3 H4 using H3,
   rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union],
   letI := (f : algebra.adjoin F (↑s : set K) →+* L).to_algebra,
   haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) :=
     (submodule.fg_iff_finite_dimensional _).1 (fg_adjoin_of_finite (set.finite_mem_finset s) H3),
   letI := field_of_finite_dimensional F (algebra.adjoin F (↑s : set K)),
   have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower a H1,
-  have H6 : (minimal_polynomial H5).splits (algebra_map (algebra.adjoin F (↑s : set K)) L),
+  have H6 : (minpoly (algebra.adjoin F (↑s : set K)) a).splits
+    (algebra_map (algebra.adjoin F (↑s : set K)) L),
   { refine polynomial.splits_of_splits_of_dvd _
-      (polynomial.map_ne_zero $ minimal_polynomial.ne_zero H1 :
+      (polynomial.map_ne_zero $ minpoly.ne_zero H1 :
         polynomial.map (algebra_map _ _) _ ≠ 0)
       ((polynomial.splits_map_iff _ _).2 _)
-      (minimal_polynomial.dvd _ _),
+      (minpoly.dvd _ _ _),
     { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
-    { rw [← is_scalar_tower.aeval_apply, minimal_polynomial.aeval H1] } },
-  obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (minimal_polynomial.degree_ne_zero H5),
-  exact ⟨subalgebra.of_under _ _ $ (adjoin_root.alg_hom (minimal_polynomial H5) y hy).comp $
-    alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial _ _ H5⟩
+    { rw [← is_scalar_tower.aeval_apply, minpoly.aeval] } },
+  obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (ne_of_lt (minpoly.degree_pos H5)).symm,
+  refine ⟨subalgebra.of_under _ _ _⟩,
+  refine (adjoin_root.lift_hom (minpoly (algebra.adjoin F (↑s : set K)) a) y hy).comp _,
+  exact alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly (algebra.adjoin F (↑s : set K)) a
 end
 
 end embeddings
@@ -702,7 +705,7 @@ alg_hom.comp (by { rw ← adjoin_roots β f, exact classical.choice (lift_of_spl
     have aeval y f = 0, from (eval₂_eq_eval_map _).trans $
       (mem_roots $ by exact map_ne_zero hf0).1 (multiset.mem_to_finset.mp hy),
     ⟨(is_algebraic_iff_is_integral _).1 ⟨f, hf0, this⟩,
-      splits_of_splits_of_dvd _ hf0 hf $ minimal_polynomial.dvd _ this⟩) })
+      splits_of_splits_of_dvd _ hf0 hf $ minpoly.dvd _ _ this⟩) })
   algebra.to_top
 
 theorem finite_dimensional (f : polynomial α) [is_splitting_field α β f] : finite_dimensional α β :=

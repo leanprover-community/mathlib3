@@ -154,6 +154,7 @@ def order_dual (α : Type*) := α
 
 namespace order_dual
 instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
+instance (α : Type*) [h : subsingleton α] : subsingleton (order_dual α) := h
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
 instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λx y:α, y < x⟩
 
@@ -188,9 +189,38 @@ instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
 
 instance : Π [inhabited α], inhabited (order_dual α) := id
 
+theorem preorder.dual_dual (α : Type*) [H : preorder α] :
+  order_dual.preorder (order_dual α) = H :=
+preorder.ext $ λ _ _, iff.rfl
+
+theorem partial_order.dual_dual (α : Type*) [H : partial_order α] :
+  order_dual.partial_order (order_dual α) = H :=
+partial_order.ext $ λ _ _, iff.rfl
+
+theorem linear_order.dual_dual (α : Type*) [H : linear_order α] :
+  order_dual.linear_order (order_dual α) = H :=
+linear_order.ext $ λ _ _, iff.rfl
+
+theorem cmp_le_flip {α} [has_le α] [@decidable_rel α (≤)] (x y : α) :
+  @cmp_le (order_dual α) _ _ x y = cmp_le y x := rfl
+
 end order_dual
 
 namespace strict_mono_incr_on
+
+section dual
+
+variables [preorder α] [preorder β] {f : α → β} {s : set α}
+
+protected lemma dual (H : strict_mono_incr_on f s) :
+  @strict_mono_incr_on (order_dual α) (order_dual β) _ _ f s :=
+λ x hx y hy, H hy hx
+
+protected lemma dual_right (H : strict_mono_incr_on f s) :
+  @strict_mono_decr_on α (order_dual β) _ _ f s :=
+H
+
+end dual
 
 variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α}
 
@@ -214,20 +244,33 @@ end strict_mono_incr_on
 
 namespace strict_mono_decr_on
 
+section dual
+
+variables [preorder α] [preorder β] {f : α → β} {s : set α}
+
+protected lemma dual (H : strict_mono_decr_on f s) :
+  @strict_mono_decr_on (order_dual α) (order_dual β) _ _ f s :=
+λ x hx y hy, H hy hx
+
+protected lemma dual_right (H : strict_mono_decr_on f s) :
+  @strict_mono_incr_on α (order_dual β) _ _ f s :=
+H
+
+end dual
+
 variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α}
 
 lemma le_iff_le (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x ≤ f y ↔ y ≤ x :=
-@strict_mono_incr_on.le_iff_le α (order_dual β) _ _ _ _ _ _ H hy hx
+H.dual_right.le_iff_le hy hx
 
 lemma lt_iff_lt (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x < f y ↔ y < x :=
-@strict_mono_incr_on.lt_iff_lt α (order_dual β) _ _ _ _ _ _ H hy hx
+H.dual_right.lt_iff_lt hy hx
 
 protected theorem compares (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) {o : ordering} :
   ordering.compares o (f x) (f y) ↔ ordering.compares o y x :=
-order_dual.dual_compares.trans $
-  @strict_mono_incr_on.compares α (order_dual β) _ _ _ _ _ _ H hy hx _
+order_dual.dual_compares.trans $ H.dual_right.compares hy hx
 
 end strict_mono_decr_on
 
@@ -249,7 +292,28 @@ protected theorem iterate [has_lt α] {f : α → α} (hf : strict_mono f) (n : 
 nat.rec_on n strict_mono_id (λ n ihn, ihn.comp hf)
 
 lemma id_le {φ : ℕ → ℕ} (h : strict_mono φ) : ∀ n, n ≤ φ n :=
-λ n, nat.rec_on n (nat.zero_le _) (λ n hn, nat.succ_le_of_lt (lt_of_le_of_lt hn $ h $ nat.lt_succ_self n))
+λ n, nat.rec_on n (nat.zero_le _)
+  (λ n hn, nat.succ_le_of_lt (lt_of_le_of_lt hn $ h $ nat.lt_succ_self n))
+
+protected lemma ite' [preorder α] [has_lt β] {f g : α → β} (hf : strict_mono f) (hg : strict_mono g)
+  {p : α → Prop} [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
+  (hfg : ∀ ⦃x y⦄, p x → ¬p y → x < y → f x < g y) :
+  strict_mono (λ x, if p x then f x else g x) :=
+begin
+  intros x y h,
+  by_cases hy : p y,
+  { have hx : p x := hp h hy,
+    simpa [hx, hy] using hf h },
+  { by_cases hx : p x,
+    { simpa [hx, hy] using hfg hx hy h },
+    { simpa [hx, hy] using hg h} }
+end
+
+protected lemma ite [preorder α] [preorder β] {f g : α → β} (hf : strict_mono f)
+  (hg : strict_mono g) {p : α → Prop} [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
+  (hfg : ∀ x, f x ≤ g x) :
+  strict_mono (λ x, if p x then f x else g x) :=
+hf.ite' hg hp $ λ x y hx hy h, (hf h).trans_le (hfg y)
 
 section
 variables [linear_order α] [preorder β] {f : α → β}
@@ -288,7 +352,8 @@ end strict_mono
 section
 open function
 
-lemma injective_of_lt_imp_ne [linear_order α] {f : α → β} (h : ∀ x y, x < y → f x ≠ f y) : injective f :=
+lemma injective_of_lt_imp_ne [linear_order α] {f : α → β} (h : ∀ x y, x < y → f x ≠ f y) :
+  injective f :=
 begin
   intros x y k,
   contrapose k,
@@ -307,6 +372,10 @@ begin
   exact ⟨h₁ h.1, λ e, h.2 (h₂ e)⟩
 end
 
+lemma monotone.strict_mono_iff_injective [linear_order α] [partial_order β] {f : α → β}
+  (h : monotone f) : strict_mono f ↔ injective f :=
+⟨λ h, h.injective, strict_mono_of_monotone_of_injective h⟩
+
 lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
   (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=
 λ a b, by simp [lt_iff_le_not_le, h] {contextual := tt}
@@ -319,6 +388,20 @@ instance pi.preorder {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] 
 { le       := λx y, ∀i, x i ≤ y i,
   le_refl  := assume a i, le_refl (a i),
   le_trans := assume a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
+
+lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] {x y : Π i, α i} :
+  x ≤ y ↔ ∀ i, x i ≤ y i :=
+iff.rfl
+
+lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
+  {x y : Π i, α i} {i : ι} {a : α i} :
+  x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
+function.forall_update_iff _ (λ j z, x j ≤ z)
+
+lemma update_le_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
+  {x y : Π i, α i} {i : ι} {a : α i} :
+  function.update x i a ≤ y ↔ a ≤ y i ∧ ∀ j ≠ i, x j ≤ y j :=
+function.forall_update_iff _ (λ j z, z ≤ y j)
 
 instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] :
   partial_order (Πi, α i) :=
@@ -399,7 +482,11 @@ partial_order.lift subtype.val subtype.val_injective
 instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
 linear_order.lift subtype.val subtype.val_injective
 
-lemma strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) := λ x y, id
+lemma subtype.mono_coe [preorder α] (t : set α) : monotone (coe : (subtype t) → α) :=
+λ x y, id
+
+lemma subtype.strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) :=
+λ x y, id
 
 instance prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λp q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩

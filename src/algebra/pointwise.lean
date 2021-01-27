@@ -5,6 +5,7 @@ Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module.basic
 import data.set.finite
+import group_theory.submonoid.basic
 
 /-!
 # Pointwise addition, multiplication, and scalar multiplication of sets.
@@ -197,6 +198,16 @@ def fintype_mul [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [
   fintype (s * t : set α) :=
 set.fintype_image2 _ s t
 
+@[to_additive]
+lemma bdd_above_mul [ordered_comm_monoid α] {A B : set α} :
+  bdd_above A → bdd_above B → bdd_above (A * B) :=
+begin
+  rintros ⟨bA, hbA⟩ ⟨bB, hbB⟩,
+  use bA * bB,
+  rintros x ⟨xa, xb, hxa, hxb, rfl⟩,
+  exact mul_le_mul' (hbA hxa) (hbB hxb),
+end
+
 /-! ### Properties about inversion -/
 @[to_additive set.has_neg'] -- todo: remove prime once name becomes available
 instance [has_inv α] : has_inv (set α) :=
@@ -351,9 +362,9 @@ end monoid
 
 end set
 
-section
-
 open set
+
+section
 
 variables {α : Type*} {β : Type*}
 
@@ -365,7 +376,7 @@ by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zer
 
 lemma mem_inv_smul_set_iff [field α] [mul_action α β] {a : α} (ha : a ≠ 0) (A : set β) (x : β) :
   x ∈ a⁻¹ • A ↔ a • x ∈ A :=
-by simp only [← image_smul, mem_image, inv_smul_eq_iff ha, exists_eq_right]
+by simp only [← image_smul, mem_image, inv_smul_eq_iff' ha, exists_eq_right]
 
 lemma mem_smul_set_iff_inv_smul_mem [field α] [mul_action α β] {a : α} (ha : a ≠ 0) (A : set β)
   (x : β) : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
@@ -410,3 +421,29 @@ lemma mul_card_le [has_mul α] {s t : finset α} : (s * t).card ≤ s.card * t.c
 by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
 
 end finset
+
+/-! Some lemmas about pointwise multiplication and submonoids. Ideally we put these in
+  `group_theory.submonoid.basic`, but currently we cannot because that file is imported by this. -/
+namespace submonoid
+
+variables {M : Type*} [monoid M]
+
+@[to_additive]
+lemma mul_subset {s t : set M} {S : submonoid M} (hs : s ⊆ S) (ht : t ⊆ S) : s * t ⊆ S :=
+by { rintro _ ⟨p, q, hp, hq, rfl⟩, exact submonoid.mul_mem _ (hs hp) (ht hq) }
+
+@[to_additive]
+lemma mul_subset_closure {s t u : set M} (hs : s ⊆ u) (ht : t ⊆ u) :
+  s * t ⊆ submonoid.closure u :=
+mul_subset (subset.trans hs submonoid.subset_closure) (subset.trans ht submonoid.subset_closure)
+
+@[to_additive]
+lemma coe_mul_self_eq (s : submonoid M) : (s : set M) * s = s :=
+begin
+  ext x,
+  refine ⟨_, λ h, ⟨x, 1, h, s.one_mem, mul_one x⟩⟩,
+  rintros ⟨a, b, ha, hb, rfl⟩,
+  exact s.mul_mem ha hb
+end
+
+end submonoid

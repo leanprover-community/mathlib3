@@ -85,8 +85,6 @@ def const (y : M') : C^n⟮I, M; I', M'⟯ := ⟨λ x, y, times_cont_mdiff_const
 
 end times_cont_mdiff_map
 
-open_locale manifold
-
 instance continuous_linear_map.has_coe_to_times_cont_mdiff_map :
   has_coe (E →L[𝕜] E') C^n⟮𝓘(𝕜, E), E; 𝓘(𝕜, E'), E'⟯ :=
 ⟨λ f, ⟨f.to_fun, f.times_cont_mdiff⟩⟩

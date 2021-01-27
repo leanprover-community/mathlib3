@@ -431,22 +431,15 @@ theorem volume_region_between_eq_integral
   (hfg : ∀ x ∈ s, f x ≤ g x) :
   μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
 begin
-  let u : α → nnreal := λ x, if h : x ∈ s then ⟨g x - f x, by linarith [hfg _ h]⟩ else 0,
-  have h : g - f =ᵐ[μ.restrict s] (λ x, ((u x):ℝ))
-        ∧ (λ y, ennreal.of_real ((g - f) y)) =ᵐ[μ.restrict s] (λ x, ((u x):ennreal)),
-  { split;
-    rw eventually_eq_iff_exists_mem;
-    use s;
-    simp only [measure.ae, mem_set_of_eq, filter.mem_mk, measure.restrict_apply hs.compl,
-              measure_empty, compl_inter_self, eq_self_iff_true, true_and];
-    intros x hx;
-    simp only [u, pi.sub_apply];
-    split_ifs,
-    { rw subtype.coe_mk },
-    { rw ennreal.of_real_eq_coe_nnreal } },
-  rw [volume_region_between_eq_lintegral, integral_congr_ae h.1, lintegral_congr_ae h.2,
-      lintegral_coe_eq_integral],
-  exacts [(integrable_congr h.1).mp (g_int.sub f_int), f_meas, g_meas, hs],
+  have h : g - f =ᵐ[μ.restrict s] λ y, (λ x, nnreal.of_real (g x - f x)) y,
+  { rw eventually_eq_iff_exists_mem,
+    use s,
+    simpa only [measure.ae, mem_set_of_eq, filter.mem_mk, measure.restrict_apply hs.compl,
+                measure_empty, compl_inter_self, eq_self_iff_true, true_and] using
+      λ x hx, (nnreal.coe_of_real _ (sub_nonneg.mpr (hfg x hx))).symm },
+  rw [volume_region_between_eq_lintegral, integral_congr_ae h, lintegral_congr_ae,
+      lintegral_coe_eq_integral _ ((integrable_congr h).mp (g_int.sub f_int))];
+  simpa only,
 end
 
 end region_between

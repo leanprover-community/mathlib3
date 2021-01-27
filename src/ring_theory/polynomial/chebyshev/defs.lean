@@ -33,8 +33,6 @@ In this file we only give definitions and some very elementary simp-lemmas.
 This way, we can import this file in `analysis.special_functions.trigonometric`,
 and import that file in turn, in `ring_theory.polynomial.chebyshev.basic`.
 
-The basic API is taken from https://arxiv.org/pdf/2008.03575.pdf
-
 ## References
 
 [Lionel Ponton, _Roots of the Chebyshev polynomials: A purely algebraic approach_]
@@ -185,7 +183,7 @@ by rw [chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁, add_comm (X * chebys
 
 lemma chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ :
   ∀ (n : ℕ), chebyshev₁ R (n+2) = X * chebyshev₁ R (n+1) - (1 - X ^ 2) * chebyshev₂ R n
-| 0        := by { simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero], ring}
+| 0        := by { simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero], ring }
 | 1        := by { simp only [chebyshev₁_add_two, chebyshev₁_zero, chebyshev₁_add_two,
                               chebyshev₂_one, chebyshev₁_one], ring }
 | (n + 2)  :=
@@ -269,7 +267,7 @@ lemma add_one_mul_chebyshev₁_eq_poly_in_chebyshev₂ (n : ℕ) :
 begin
   have h : derivative (chebyshev₁ R (n + 2)) = (chebyshev₂ R (n + 1) - X * chebyshev₂ R n)
     + X * derivative (chebyshev₁ R (n + 1)) + 2 * X * chebyshev₂ R n
-    - (1 - X ^ 2) * derivative ( chebyshev₂ R n),
+    - (1 - X ^ 2) * derivative (chebyshev₂ R n),
   { conv_lhs { rw chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ },
   simp only [derivative_sub, derivative_mul, derivative_X, derivative_one, derivative_X_pow,
   one_mul, chebyshev₁_derivative_eq_chebyshev₂],
@@ -285,10 +283,10 @@ begin
                   ←chebyshev₁_derivative_eq_chebyshev₂, ←nat.cast_one, ←nat.cast_add,
                   nat.cast_one, ←chebyshev₁_derivative_eq_chebyshev₂ (n + 1)]
   ... = (chebyshev₂ R (n + 1) - X * chebyshev₂ R n) + X * derivative (chebyshev₁ R (n + 1))
-        + 2 * X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n)
+        + 2 * X * chebyshev₂ R n - (1 - X ^ 2) * derivative (chebyshev₂ R n)
         - X * derivative (chebyshev₁ R (n + 1)) - chebyshev₂ R (n + 1) :
             by rw h
-  ... = X * chebyshev₂ R n - (1 - X ^ 2) * derivative ( chebyshev₂ R n) :
+  ... = X * chebyshev₂ R n - (1 - X ^ 2) * derivative (chebyshev₂ R n) :
             by ring,
 end
 

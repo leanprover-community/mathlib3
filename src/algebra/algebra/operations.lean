@@ -164,6 +164,8 @@ calc map f.to_linear_map (M * N)
       simp [fy_eq] }
 end
 
+section decidable_eq
+
 open_locale classical
 
 lemma mem_span_mul_finite_of_mem_span_mul {S : set A} {S' : set A} {x : A}
@@ -173,9 +175,12 @@ begin
   obtain ⟨U, h, hU⟩ := mem_span_finite_of_mem_span hx,
   obtain ⟨T, T', hS, hS', h⟩ := finset.subset_mul h,
   use [T, T', hS, hS'],
-  have h' : (U : set A) ⊆ T * T', norm_cast, assumption,
-  have h'' := span_mono h' hU, assumption,
+  have h' : (U : set A) ⊆ T * T', { assumption_mod_cast, },
+  have h'' := span_mono h' hU,
+  assumption,
 end
+
+end decidable_eq
 
 lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :
   ∃ (T T' : finset A), (T : set A) ⊆ P ∧ (T' : set A) ⊆ Q ∧ x ∈ span R (T * T' : set A) :=

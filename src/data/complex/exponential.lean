@@ -970,10 +970,7 @@ begin
 end
 
 lemma tan_eq_sin_div_cos : tan x = sin x / cos x :=
-begin
-  rw ← of_real_inj,
-  simp only [tan_eq_sin_div_cos, of_real_sin, of_real_cos, of_real_div, of_real_tan]
-end
+by rw [← of_real_inj, of_real_tan, tan_eq_sin_div_cos, of_real_div, of_real_sin, of_real_cos]
 
 lemma tan_mul_cos {x : ℝ} (hx : cos x ≠ 0) : tan x * cos x = sin x :=
 by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]

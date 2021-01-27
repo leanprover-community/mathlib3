@@ -89,7 +89,7 @@ def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
 /--
 The equivalence of functor categories given by currying/uncurrying.
 -/
-@[simps {rhs_md := semireducible}] -- create projection simp lemmas even though this isn't a `{ .. }`.
+@[simps] -- create projection simp lemmas even though this isn't a `{ .. }`.
 def currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E) :=
 equivalence.mk uncurry curry
   (nat_iso.of_components (λ F, nat_iso.of_components

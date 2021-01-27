@@ -61,6 +61,8 @@ by unfold monic; apply_instance
 @[simp] lemma monic.leading_coeff {p : polynomial R} (hp : p.monic) :
   leading_coeff p = 1 := hp
 
+lemma monic.coeff_nat_degree {p : polynomial R} (hp : p.monic) : p.coeff p.nat_degree = 1 := hp
+
 @[simp] lemma degree_zero : degree (0 : polynomial R) = ⊥ := rfl
 
 @[simp] lemma nat_degree_zero : nat_degree (0 : polynomial R) = 0 := rfl
@@ -71,6 +73,12 @@ lemma degree_eq_bot : degree p = ⊥ ↔ p = 0 :=
 ⟨λ h, by rw [degree, ← max_eq_sup_with_bot] at h;
   exact support_eq_empty.1 (max_eq_none.1 h),
 λ h, h.symm ▸ rfl⟩
+
+@[nontriviality] lemma degree_of_subsingleton [subsingleton R] : degree p = ⊥ :=
+by rw [subsingleton.elim p 0, degree_zero]
+
+@[nontriviality] lemma nat_degree_of_subsingleton [subsingleton R] : nat_degree p = 0 :=
+by rw [subsingleton.elim p 0, nat_degree_zero]
 
 lemma degree_eq_nat_degree (hp : p ≠ 0) : degree p = (nat_degree p : with_bot ℕ) :=
 let ⟨n, hn⟩ :=
@@ -675,7 +683,7 @@ lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
   λ hp0, le_of_not_gt (λ h, by simp [gt, degree_eq_bot, *] at *)⟩
 
 lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=
-by rw [← le_zero_iff_eq, nat_degree_le_iff_degree_le, with_bot.coe_zero]
+by rw [← nonpos_iff_eq_zero, nat_degree_le_iff_degree_le, with_bot.coe_zero]
 
 theorem degree_le_iff_coeff_zero (f : polynomial R) (n : with_bot ℕ) :
   degree f ≤ n ↔ ∀ m : ℕ, n < m → coeff f m = 0 :=
@@ -721,6 +729,9 @@ variables [semiring R] [nontrivial R] {p q : polynomial R}
 @[simp] lemma degree_X_pow (n : ℕ) : degree ((X : polynomial R) ^ n) = n :=
 by rw [X_pow_eq_monomial, degree_monomial _ (@one_ne_zero R _ _)]
 
+@[simp] lemma nat_degree_X_pow (n : ℕ) : nat_degree ((X : polynomial R) ^ n) = n :=
+nat_degree_eq_of_degree_eq_some (degree_X_pow n)
+
 theorem not_is_unit_X : ¬ is_unit (X : polynomial R) :=
 λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by { rw [← coeff_one_zero, ← hgf], simp }
 
@@ -735,7 +746,7 @@ section ring
 variables [ring R] {p q : polynomial R}
 
 lemma degree_sub_le (p q : polynomial R) : degree (p - q) ≤ max (degree p) (degree q) :=
-degree_neg q ▸ degree_add_le p (-q)
+by simpa only [sub_eq_add_neg, degree_neg q] using degree_add_le p (-q)
 
 lemma degree_sub_lt (hd : degree p = degree q)
   (hp0 : p ≠ 0) (hlc : leading_coeff p = leading_coeff q) :
@@ -823,8 +834,8 @@ by { apply nat_degree_eq_of_degree_eq_some, simp [degree_X_pow_sub_C hn], }
 
 end nonzero_ring
 
-section integral_domain
-variables [integral_domain R] {p q : polynomial R}
+section no_zero_divisors
+variables [comm_semiring R] [no_zero_divisors R] {p q : polynomial R}
 
 @[simp] lemma degree_mul : degree (p * q) = degree p + degree q :=
 if hp0 : p = 0 then by simp only [hp0, degree_zero, zero_mul, with_bot.bot_add]
@@ -832,7 +843,7 @@ else if hq0 : q = 0 then  by simp only [hq0, degree_zero, mul_zero, with_bot.add
 else degree_mul' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
     (mt leading_coeff_eq_zero.1 hq0)
 
-@[simp] lemma degree_pow (p : polynomial R) (n : ℕ) :
+@[simp] lemma degree_pow [nontrivial R] (p : polynomial R) (n : ℕ) :
   degree (p ^ n) = n •ℕ (degree p) :=
 by induction n; [simp only [pow_zero, degree_one, zero_nsmul],
 simp only [*, pow_succ, succ_nsmul, degree_mul]]
@@ -848,7 +859,7 @@ begin
       exact mul_ne_zero (mt leading_coeff_eq_zero.1 hp) (mt leading_coeff_eq_zero.1 hq) } }
 end
 
-@[simp] lemma leading_coeff_X_add_C (a b : R) (ha : a ≠ 0):
+@[simp] lemma leading_coeff_X_add_C [nontrivial R] (a b : R) (ha : a ≠ 0):
   leading_coeff (C a * X + C b) = a :=
 begin
   rw [add_comm, leading_coeff_add_of_degree_lt],
@@ -856,7 +867,7 @@ begin
   { simpa [degree_C ha] using lt_of_le_of_lt degree_C_le (with_bot.coe_lt_coe.2 zero_lt_one)}
 end
 
-/-- `polynomial.leading_coeff` bundled as a `monoid_hom` when `R` is an `integral_domain`, and thus
+/-- `polynomial.leading_coeff` bundled as a `monoid_hom` when `R` has `no_zero_divisors`, and thus
   `leading_coeff` is multiplicative -/
 def leading_coeff_hom : polynomial R →* R :=
 { to_fun := leading_coeff,
@@ -870,6 +881,6 @@ def leading_coeff_hom : polynomial R →* R :=
   leading_coeff (p ^ n) = leading_coeff p ^ n :=
 leading_coeff_hom.map_pow p n
 
-end integral_domain
+end no_zero_divisors
 
 end polynomial

@@ -8,7 +8,7 @@ by simp
 example : differentiable ℝ (λ (x : ℝ), exp ((sin x)^2) - exp (exp (cos (x - 3)))) :=
 by simp
 
-example (x : ℝ) : deriv (λ (x : ℝ), (cos x)^2 + (sin x)^2) x = 0 :=
+example (x : ℝ) : deriv (λ (x : ℝ), (cos x)^2 + 1 + (sin x)^2) x = 0 :=
 by { simp, ring }
 
 example (x : ℝ) : deriv (λ (x : ℝ), (1+x)^3 - x^3 - 3 * x^2 - 3 * x - 4) x = 0 :=
@@ -43,7 +43,7 @@ by simp
 example : differentiable ℂ (λ (x : ℂ), exp ((sin x)^2) - exp (exp (cos (x - 3)))) :=
 by simp
 
-example (x : ℂ) : deriv (λ (x : ℂ), (cos x)^2 + (sin x)^2) x = 0 :=
+example (x : ℂ) : deriv (λ (x : ℂ), (cos x)^2 + I + (sin x)^2) x = 0 :=
 by { simp, ring }
 
 example (x : ℂ) : deriv (λ x, cos (sin x) * exp x) x = (cos(sin(x))-sin(sin(x))*cos(x))*exp(x) :=

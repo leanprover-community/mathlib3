@@ -296,11 +296,11 @@ lemma unique_diff_within_at.inter' (hs : unique_diff_within_at 𝕜 s x) (ht : t
   unique_diff_within_at 𝕜 (s ∩ t) x :=
 (unique_diff_within_at_inter' ht).2 hs
 
+lemma unique_diff_within_at_of_mem_nhds (h : s ∈ 𝓝 x) : unique_diff_within_at 𝕜 s x :=
+by simpa only [univ_inter] using unique_diff_within_at_univ.inter h
+
 lemma is_open.unique_diff_within_at (hs : is_open s) (xs : x ∈ s) : unique_diff_within_at 𝕜 s x :=
-begin
-  have := unique_diff_within_at_univ.inter (mem_nhds_sets hs xs),
-  rwa univ_inter at this
-end
+unique_diff_within_at_of_mem_nhds (mem_nhds_sets hs xs)
 
 lemma unique_diff_on.inter (hs : unique_diff_on 𝕜 s) (ht : is_open t) : unique_diff_on 𝕜 (s ∩ t) :=
 λx hx, (hs x hx.1).inter (mem_nhds_sets ht hx.2)
@@ -341,7 +341,7 @@ begin
     simp [(submodule.span ℝ (tangent_cone_at ℝ s x)).eq_top_of_nonempty_interior'
       ⟨y - x, interior_mono submodule.subset_span this⟩] },
   rw [mem_interior_iff_mem_nhds] at hy ⊢,
-  apply mem_sets_of_superset ((is_open_map_add_right (-x)).image_mem_nhds hy),
+  apply mem_sets_of_superset ((is_open_map_sub_right x).image_mem_nhds hy),
   rintros _ ⟨z, zs, rfl⟩,
   exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs zs)
 end

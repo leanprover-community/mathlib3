@@ -61,15 +61,15 @@ begin
   exact sum_involution
     (λ σ _, σ * swap i j)
     (λ σ _,
-      have ∀ a, p (swap i j a) = p a := λ a, by simp only [swap_apply_def]; split_ifs; cc,
       have ∏ x, M (σ x) (p x) = ∏ x, M ((σ * swap i j) x) (p x),
-        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _) (by simp [this])
+        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _)
+          (by simp [apply_swap_eq_self hpij])
           (λ _ _ _ _ h, (swap i j).injective h)
           (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
-      by simp [sign_mul, this, sign_swap hij, prod_mul_distrib])
-    (λ σ _ _ h, hij (σ.injective $ by conv {to_lhs, rw ← h}; simp))
+      by simp [this, sign_swap hij, prod_mul_distrib])
+    (λ σ _ _, (not_congr mul_swap_eq_iff).mpr hij)
     (λ _ _, mem_univ _)
-    (λ _ _, equiv.ext $ by simp)
+    (λ σ _, mul_swap_involutive i j σ)
 end
 
 @[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
@@ -93,7 +93,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
         by rw ← σ⁻¹.prod_comp; simp [mul_apply],
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
-          by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp [sign_mul]
+          by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp
         ... = ε τ : by simp,
       by rw h; simp [this, mul_comm, mul_assoc, mul_left_comm])
     (λ _ _ _ _, mul_right_cancel) (λ τ _, ⟨τ * σ, by simp⟩))
@@ -189,20 +189,17 @@ variables {M : matrix n n R} {i j : n}
 /-- If a matrix has a repeated row, the determinant will be zero. -/
 theorem det_zero_of_row_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
 begin
-  have : ∀ σ, _root_.disjoint {σ} {swap i j * σ},
-  { intros σ,
-    rw [disjoint_singleton, mem_singleton],
-    exact (not_congr swap_mul_eq_iff).mpr i_ne_j },
-
-  apply finset.sum_cancels_of_partition_cancels (mod_swap i j),
-  intros σ _,
-  erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
-    sum_union (this σ), sum_singleton, sum_singleton],
+  apply finset.sum_involution
+    (λ σ _, swap i j * σ)
+    (λ σ _, _)
+    (λ σ _ _, (not_congr swap_mul_eq_iff).mpr i_ne_j)
+    (λ σ _, finset.mem_univ _)
+    (λ σ _, swap_mul_involutive i j σ),
   convert add_right_neg (↑↑(sign σ) * ∏ i, M (σ i) i),
-  rw [neg_mul_eq_neg_mul],
+  rw neg_mul_eq_neg_mul,
   congr,
   { rw [sign_mul, sign_swap i_ne_j], norm_num },
-  ext j, rw [perm.mul_apply, apply_swap_eq_self hij]
+  { ext j, rw [perm.mul_apply, apply_swap_eq_self hij], }
 end
 
 end det_zero
@@ -286,12 +283,8 @@ begin
     rintros ⟨k, x⟩,
     simp },
   { intros σ _,
-    rw finset.prod_mul_distrib,
-    congr,
-    { convert congr_arg (λ (x : units ℤ), (↑x : R)) (sign_prod_congr_left (λ k, σ k _)).symm,
-      simp, congr, ext, congr },
-    rw [← finset.univ_product_univ, finset.prod_product, finset.prod_comm],
-    simp },
+    rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product, finset.prod_comm],
+    simp [sign_prod_congr_left] },
   { intros σ σ' _ _ eq,
     ext x hx k,
     simp only at eq,

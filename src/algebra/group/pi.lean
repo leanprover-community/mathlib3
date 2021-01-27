@@ -37,15 +37,19 @@ instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
 
 @[to_additive]
-instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, .. };
-  tactic.pi_instance_derive_field
+instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
+  div_inv_monoid (Π i : I, f i) :=
+{ div_eq_mul_inv := λ x y, funext (λ i, div_eq_mul_inv (x i) (y i)),
+  .. pi.monoid, .. pi.has_div, .. pi.has_inv }
 
-@[simp] lemma sub_apply [∀ i, add_group $ f i] : (x - y) i = x i - y i := rfl
+@[to_additive]
+instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
+by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div, .. };
+  tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, .. };
+by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div, .. };
   tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
@@ -98,6 +102,17 @@ def monoid_hom.apply (i : I) : (Π i, f i) →* f i :=
 @[simp, to_additive]
 lemma monoid_hom.apply_apply (i : I) (g : Π i, f i) :
   (monoid_hom.apply f i) g = g i := rfl
+
+/-- Coercion of a `monoid_hom` into a function is itself a `monoid_hom`.
+
+See also `monoid_hom.eval`. -/
+@[simps, to_additive "Coercion of an `add_monoid_hom` into a function is itself a `add_monoid_hom`.
+
+See also `add_monoid_hom.eval`. "]
+def monoid_hom.coe_fn (α β : Type*) [monoid α] [comm_monoid β] : (α →* β) →* (α → β) :=
+{ to_fun := λ g, g,
+  map_one' := rfl,
+  map_mul' := λ x y, rfl, }
 
 end monoid_hom
 

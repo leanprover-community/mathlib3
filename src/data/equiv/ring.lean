@@ -78,6 +78,14 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
+protected lemma congr_arg {f : R ≃+* S} : Π {x x' : R}, x = x' → f x = f x'
+| _ _ rfl := rfl
+
+protected lemma congr_fun {f g : R ≃+* S} (h : f = g) (x : R) : f x = g x := h ▸ rfl
+
+lemma ext_iff {f g : R ≃+* S} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, ext⟩
+
 instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.to_mul_equiv⟩
 
 instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
@@ -239,6 +247,16 @@ equiv.symm_apply_apply (e.to_equiv)
 @[simp]
 lemma to_ring_hom_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
   (e₁.trans e₂).to_ring_hom = e₂.to_ring_hom.comp e₁.to_ring_hom := rfl
+
+@[simp]
+lemma to_ring_hom_comp_symm_to_ring_hom (e : R ≃+* S) :
+  e.to_ring_hom.comp e.symm.to_ring_hom = ring_hom.id _ :=
+by { ext, simp }
+
+@[simp]
+lemma symm_to_ring_hom_comp_to_ring_hom (e : R ≃+* S) :
+  e.symm.to_ring_hom.comp e.to_ring_hom = ring_hom.id _ :=
+by { ext, simp }
 
 /--
 Construct an equivalence of rings from homomorphisms in both directions, which are inverses.

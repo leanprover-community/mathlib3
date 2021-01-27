@@ -235,7 +235,7 @@ def module_equiv_finsupp (hv : is_basis R v) : M ≃ₗ[R] ι →₀ R :=
 
 /-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
 `v` and `v'` and a bijection between the indexing sets of the two bases. -/
-def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} (hv : is_basis R v) (hv' : is_basis R v')
+def linear_equiv_of_is_basis {v : ι → M} {v' : ι' → M'} (hv : is_basis R v) (hv' : is_basis R v')
   (e : ι ≃ ι') : M ≃ₗ[R] M' :=
 { inv_fun := hv'.constr (v ∘ e.symm),
   left_inv := have (hv'.constr (v ∘ e.symm)).comp (hv.constr (v' ∘ e)) = linear_map.id,
@@ -248,7 +248,7 @@ def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} (hv : is_basis R v) (hv' 
 
 /-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
 `v` and `v'` and a bijection between the two bases. -/
-def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' → M)
+def linear_equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' → M)
   (hv : is_basis R v) (hv' : is_basis R v')
   (hf : ∀i, f (v i) ∈ range v') (hg : ∀i, g (v' i) ∈ range v)
   (hgf : ∀i, g (f (v i)) = v i) (hfg : ∀i, f (g (v' i)) = v' i) :
@@ -266,33 +266,33 @@ def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' �
     λ y, congr_arg (λ h:M' →ₗ[R] M', h y) this,
   ..hv.constr (f ∘ v) }
 
-@[simp] lemma equiv_of_is_basis_comp {ι'' : Type*} {v : ι → M} {v' : ι' → M'} {v'' : ι'' → M''}
-  (hv : is_basis R v) (hv' : is_basis R v') (hv'' : is_basis R v'')
+@[simp] lemma linear_equiv_of_is_basis_comp {ι'' : Type*} {v : ι → M} {v' : ι' → M'}
+  {v'' : ι'' → M''} (hv : is_basis R v) (hv' : is_basis R v') (hv'' : is_basis R v'')
   (e : ι ≃ ι') (f : ι' ≃ ι'' ) :
-  (equiv_of_is_basis hv hv' e).trans (equiv_of_is_basis hv' hv'' f) =
-  equiv_of_is_basis hv hv'' (e.trans f) :=
+  (linear_equiv_of_is_basis hv hv' e).trans (linear_equiv_of_is_basis hv' hv'' f) =
+  linear_equiv_of_is_basis hv hv'' (e.trans f) :=
 begin
   apply linear_equiv.injective_to_linear_map,
   apply hv.ext,
   intros i,
-  simp [equiv_of_is_basis]
+  simp [linear_equiv_of_is_basis]
 end
 
-@[simp] lemma equiv_of_is_basis_refl :
-  equiv_of_is_basis hv hv (equiv.refl ι) = linear_equiv.refl R M :=
+@[simp] lemma linear_equiv_of_is_basis_refl :
+  linear_equiv_of_is_basis hv hv (equiv.refl ι) = linear_equiv.refl R M :=
 begin
   apply linear_equiv.injective_to_linear_map,
   apply hv.ext,
   intros i,
-  simp [equiv_of_is_basis]
+  simp [linear_equiv_of_is_basis]
 end
 
-lemma equiv_of_is_basis_trans_symm (e : ι ≃ ι') {v' : ι' → M'} (hv' : is_basis R v') :
-  (equiv_of_is_basis hv hv' e).trans (equiv_of_is_basis hv' hv e.symm) = linear_equiv.refl R M :=
+lemma linear_equiv_of_is_basis_trans_symm (e : ι ≃ ι') {v' : ι' → M'} (hv' : is_basis R v') :
+  (linear_equiv_of_is_basis hv hv' e).trans (linear_equiv_of_is_basis hv' hv e.symm) = linear_equiv.refl R M :=
 by simp
 
-lemma equiv_of_is_basis_symm_trans (e : ι ≃ ι') {v' : ι' → M'} (hv' : is_basis R v') :
-  (equiv_of_is_basis hv' hv e.symm).trans (equiv_of_is_basis hv hv' e) = linear_equiv.refl R M' :=
+lemma linear_equiv_of_is_basis_symm_trans (e : ι ≃ ι') {v' : ι' → M'} (hv' : is_basis R v') :
+  (linear_equiv_of_is_basis hv' hv e.symm).trans (linear_equiv_of_is_basis hv hv' e) = linear_equiv.refl R M' :=
 by simp
 
 lemma is_basis_inl_union_inr {v : ι → M} {v' : ι' → M'}

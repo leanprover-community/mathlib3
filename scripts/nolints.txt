@@ -408,7 +408,6 @@ apply_nolint rat.nonneg doc_blame
 -- data/real/basic.lean
 apply_nolint real.comm_ring_aux doc_blame
 apply_nolint real.le doc_blame
-apply_nolint real.sqrt_aux doc_blame
 
 -- data/real/cau_seq_completion.lean
 apply_nolint cau_seq.completion.Cauchy doc_blame
@@ -826,9 +825,6 @@ apply_nolint auto.preprocess_goal doc_blame
 apply_nolint auto.whnf_reducible doc_blame
 apply_nolint tactic.interactive.revert_all doc_blame
 
--- tactic/generalize_proofs.lean
-apply_nolint tactic.generalize_proofs doc_blame
-
 -- tactic/interactive.lean
 apply_nolint tactic.interactive.collect_struct doc_blame
 apply_nolint tactic.interactive.collect_struct' doc_blame
@@ -1163,7 +1159,6 @@ apply_nolint continuous_map.induced doc_blame
 
 -- topology/maps.lean
 apply_nolint inducing doc_blame
-apply_nolint is_closed_map doc_blame
 
 -- topology/metric_space/emetric_space.lean
 apply_nolint has_edist doc_blame

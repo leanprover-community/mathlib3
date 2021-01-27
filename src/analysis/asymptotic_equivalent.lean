@@ -101,9 +101,9 @@ lemma is_equivalent_const_iff_tendsto {c : β} (h : c ≠ 0) : u ~[l] const _ c 
 begin
   rw [is_equivalent, is_o_const_iff h],
   split; intro h;
-  [ { have := h.add tendsto_const_nhds, rw zero_add at this },
-    { have := h.add tendsto_const_nhds, rw ← sub_self c} ];
-  convert this; ext; simp [sub_eq_add_neg]
+  [ { have := h.sub tendsto_const_nhds, rw zero_sub (-c) at this },
+    { have := h.sub tendsto_const_nhds, rw ← sub_self c} ];
+  convert this; try { ext }; simp
 end
 
 lemma is_equivalent.tendsto_const {c : β} (hu : u ~[l] const _ c) : tendsto u l (𝓝 c) :=
@@ -191,7 +191,7 @@ begin
   { convert (habφ.comp₂ (•) $ eventually_eq.refl _ u).sub (eventually_eq.refl _ (λ x, b x • v x)),
     ext,
     rw [pi.mul_apply, mul_comm, mul_smul, ← smul_sub] },
-  refine (is_o_congr this.symm $ eventually_eq.refl _ _).mp ((is_O_refl b l).smul_is_o _),
+  refine (is_o_congr this.symm $ eventually_eq.rfl).mp ((is_O_refl b l).smul_is_o _),
 
   rcases huv.is_O.exists_pos with ⟨C, hC, hCuv⟩,
   rw is_equivalent at *,
@@ -251,7 +251,7 @@ variables {α β : Type*} [normed_linear_ordered_field β] {u v : α → β} {l 
 lemma is_equivalent.tendsto_at_top [order_topology β] (huv : u ~[l] v) (hu : tendsto u l at_top) :
   tendsto v l at_top :=
 let ⟨φ, hφ, h⟩ := huv.symm.exists_eq_mul in
-tendsto.congr' h.symm ((mul_comm u φ) ▸ (tendsto_mul_at_top zero_lt_one hu hφ))
+tendsto.congr' h.symm ((mul_comm u φ) ▸ (hu.at_top_mul zero_lt_one hφ))
 
 lemma is_equivalent.tendsto_at_top_iff [order_topology β] (huv : u ~[l] v) :
   tendsto u l at_top ↔ tendsto v l at_top := ⟨huv.tendsto_at_top, huv.symm.tendsto_at_top⟩

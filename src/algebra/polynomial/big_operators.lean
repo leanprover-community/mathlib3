@@ -126,13 +126,14 @@ end
 
 end comm_ring
 
-section integral_domain
-variables [integral_domain R] (f : ι → polynomial R)
+section no_zero_divisors
+variables [comm_ring R] [no_zero_divisors R] (f : ι → polynomial R)
 
-lemma nat_degree_prod (h : ∀ i ∈ s, f i ≠ 0) :
+lemma nat_degree_prod [nontrivial R] (h : ∀ i ∈ s, f i ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
-  apply nat_degree_prod', rw prod_ne_zero_iff,
+  apply nat_degree_prod',
+  rw prod_ne_zero_iff,
   intros x hx, simp [h x hx],
 end
 
@@ -140,5 +141,5 @@ lemma leading_coeff_prod :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
 by { rw ← leading_coeff_hom_apply, apply monoid_hom.map_prod }
 
-end integral_domain
+end no_zero_divisors
 end polynomial

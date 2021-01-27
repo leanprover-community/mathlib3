@@ -68,10 +68,10 @@ src/algebraic_geometry/sheafed_space.lean : line 50 : ERR_LIN : Line has more th
 src/algebraic_geometry/sheafed_space.lean : line 82 : ERR_LIN : Line has more than 100 characters
 src/algebraic_geometry/stalks.lean : line 47 : ERR_LIN : Line has more than 100 characters
 src/algebraic_geometry/stalks.lean : line 48 : ERR_LIN : Line has more than 100 characters
-src/analysis/analytic/basic.lean : line 790 : ERR_LIN : Line has more than 100 characters
+src/analysis/analytic/basic.lean : line 893 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 260 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 605 : ERR_LIN : Line has more than 100 characters
-src/analysis/calculus/deriv.lean : line 1105 : ERR_LIN : Line has more than 100 characters
+src/analysis/calculus/deriv.lean : line 1123 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/local_extr.lean : line 22 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/local_extr.lean : line 305 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/tangent_cone.lean : line 250 : ERR_LIN : Line has more than 100 characters

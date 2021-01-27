@@ -425,11 +425,11 @@ begin
   use [insert x T, insert y T'], simp only [finset.coe_insert],
   repeat {rw [set.insert_subset], }, use [hx, hS, hy, hS'],
   refine finset.insert_subset.mpr _,
-  split, rw finset.mem_mul, use [x,y],
-  simp only [true_and, true_or, eq_self_iff_true, finset.mem_insert], assumption,
-  suffices g : (s : set M) ⊆ insert x T * insert y T', norm_cast at g, assumption,
+  split, {rw finset.mem_mul, use [x,y],
+  simp only [true_and, true_or, eq_self_iff_true, finset.mem_insert], assumption, },
+  {suffices g : (s : set M) ⊆ insert x T * insert y T', norm_cast at g, assumption,
   transitivity ↑(T * T'), apply h, rw finset.coe_mul,
-  apply set.mul_subset_mul (set.subset_insert x T) (set.subset_insert y T'),
+  apply set.mul_subset_mul (set.subset_insert x T) (set.subset_insert y T'), },
 end
 
 end finset

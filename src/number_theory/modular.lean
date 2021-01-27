@@ -7,6 +7,8 @@ import group_theory.group_action.defs
 namespace tactic.interactive
 noncomputable theory
 
+-- set_option profiler true
+
 meta def show_nonzero := `[
   apply_rules [
     mul_ne_zero,
@@ -181,6 +183,12 @@ end
 
 @[simp] lemma im_pos_of_in_H {z : ℂ} : z ∈ H ↔ 0 < z.im := by refl
 
+lemma im_pos_of_in_H' {z : H} : 0 < z.val.im :=
+begin
+  have h : z.val ∈ H := z.2,
+  exact im_pos_of_in_H.mp h,
+end
+
 @[simp] lemma smul_aux_def {g : SL(2,ℝ)} {z : ℂ} : smul_aux g z = top g z / bottom g z := by refl
 
 lemma GactsHtoH {g : SL(2, ℝ)} {z : ℂ} (h : z ∈ H) :
@@ -221,7 +229,8 @@ begin
   field_simp,
   simp [matrix.mul, dot_product],
   unfold_coes,
-  discrete_field,
+  field_simp *,
+  ring,
 end
 
 lemma smul_mul {x y : SL(2, ℝ)} { z : ℂ } (h : z ∈ H) :
@@ -242,12 +251,14 @@ begin
   suffices : top (x * y) z  = top x (top y z / bottom y z) * bottom y z,
   {
     simp [this],
-    discrete_field,
+    ring,
   },
   rw [top, bottom],
   simp [matrix.mul, dot_product],
   unfold_coes,
-  discrete_field,
+  field_simp *,
+  ring,
+  exact h,
 end
 
 
@@ -305,13 +316,6 @@ begin
   simp [S, mat_coe],
 end
 
-/- lemma mat_real {m : SL(2,ℝ) } : (m : SL(2,ℝ)) = { val := ![![m.1 0 0, m.1 0 1], ![m.1 1 0, m.1 1 1]],
-  property := by sorry } :=
-begin
-  simp [m, mat_coe],
-end
- -/
-
 example : T⁻¹ * T = 1 := inv_mul_self T
 
 example { R : SL(2,ℤ) } : R * T = 1 → R = T⁻¹ := eq_inv_of_mul_eq_one
@@ -352,7 +356,7 @@ begin
   change ((T:SL(2,ℝ)) • z).1 = z + 1,
   simp only [mat_compatibility],
   simp [smul_aux_def, T_real, top, bottom],
-  discrete_field,
+  field_simp *,
 end
 
 
@@ -366,12 +370,12 @@ begin
   change ((S:SL(2,ℝ)) • z).1 = -z⁻¹,
   simp only [mat_compatibility],
   simp [smul_aux_def, S_real, top, bottom],
-  discrete_field,
+  field_simp *,
 end
 
 
 def fundamental_domain : set H :=
-{ z | 1 ≤ (complex.norm_sq z) ∧ (-1:ℝ) / 2 ≤ (complex.re z) ∧ (complex.re z) ≤ (1 :ℝ)/ 2 }
+{ z | 1 ≤ (complex.norm_sq z) ∧ |(complex.re z)| ≤ (1 :ℝ)/ 2 }
 
 notation `𝒟` := fundamental_domain
 
@@ -397,17 +401,161 @@ begin
   sorry
 end
 
-lemma find_appropriate_T {z : H} : ∃ (n : ℤ), | (T^n • z).val.re | ≤ 1/2 :=
+def G' : subgroup SL(2,ℤ) := subgroup.closure {S, T}
+
+example : T ∈ (subgroup.closure ({S, T} : set SL(2,ℤ))) :=
+begin
+  apply subgroup.mem_closure',
+  simp only [set.mem_insert_iff, true_or, set.mem_singleton, or_true, eq_self_iff_true],
+end
+
+example {G' : subgroup SL(2,ℤ)} {x y : SL(2,ℤ)} (hx : x ∈ G') (hy : y ∈ G') : x * y ∈ G' :=
+begin
+  exact subgroup.mul_mem G' hx hy,
+end
+
+example {n : ℤ} {g : SL(2,ℤ)} (hg : g ∈ G') : S * T^n * g ∈ G' :=
+begin
+  have hS : S ∈ G' :=
+    by {apply subgroup.mem_closure', simp},
+  have hT : T ∈ G' :=
+    by {apply subgroup.mem_closure', simp},
+  have hTn : T^n ∈ G' :=
+    by {apply subgroup.gpow_mem G' hT},
+  apply subgroup.mul_mem G',
+  { apply subgroup.mul_mem G' hS hTn },
+  exact hg,
+end
+
+example {g : SL(2,ℤ)} {z z' : H} : g • z = z' ↔ z = g⁻¹ • z' :=
+begin
+  exact eq_inv_smul_iff.symm,
+end
+
+lemma exists_g_with_max_Im' (z : H) :
+  ∃ g : SL(2,ℤ), (g ∈ G') ∧  ∀ g' : SL(2,ℤ), g' ∈ G' → ((g' : SL(2,ℤ)) • z).val.im ≤ ((g : SL(2,ℤ)) • z).val.im :=
 begin
   sorry
 end
 
-
-example : linear_ordered_ring ℝ := real.linear_ordered_ring
-
-lemma is_fundom {z : H} : ∃ g : SL(2, ℤ),  (g • z) ∈ 𝒟 :=
+lemma find_appropriate_T (z : H) : ∃ (n : ℤ), | (T^n • z).val.re | ≤ 1/2 :=
 begin
   sorry
+end
+
+lemma im_S_z {z : H} : (S • z).val.im = z.val.im / z.val.norm_sq :=
+begin
+  sorry
+end
+
+lemma im_Tn_z {z : H} {n : ℤ} : (T^n • z).val.im = z.val.im :=
+begin
+  sorry
+end
+
+lemma im_lt_im_S {z : H} (h: norm_sq z.val < 1) : z.val.im < (S • z).val.im :=
+begin
+  rw im_S_z,
+  have imz : 0 < z.val.im := im_pos_of_in_H',
+  have hnz : 0 < norm_sq z.val,
+  {
+    rw norm_sq_pos,
+    intro h,
+    rw h at imz,
+    rw zero_im at imz,
+    linarith,
+  },
+  set N := norm_sq z.val with hN,
+  set zim := z.val.im with hzim,
+  have : zim * N < zim, by nlinarith,
+  exact (lt_div_iff hnz).mpr this,
+end
+
+/- TODO : prove directly instead of by contraadiction
+-/
+lemma norm_sq_ge_one_of_act_S {z : H} (h : (S • z).val.im ≤ z.val.im) : 1 ≤ norm_sq z.val :=
+begin
+  by_contradiction hcontra,
+  push_neg at hcontra,
+  have := im_lt_im_S hcontra,
+  linarith,
+end
+
+/- By choosing from g or -g, we can impose conditions on the coefficients of g -/
+lemma sign_coef { z z' : H } (h : ∃ g : SL(2, ℤ), z' = g • z) :
+  ∃ g : SL(2, ℤ), 0 ≤ g.1 1 0 ∧ (g.1 1 0 = 0 → g.1 1 1 = 1 ∧ g.1 0 0 = 1) ∧ z' = g • z :=
+begin
+  sorry
+end
+
+lemma is_fundom {z : H} : ∃ g : SL(2,ℤ), g ∈ G' ∧ g • z ∈ 𝒟 :=
+begin
+  obtain ⟨g, hg1, hg2⟩ := exists_g_with_max_Im' z,
+  obtain ⟨n, hn⟩ := find_appropriate_T ((g : SL(2,ℤ)) • z),
+  use (T^n * g),
+  have hS : S ∈ G' := by {apply subgroup.mem_closure', simp},
+  have hT : T ∈ G' := by {apply subgroup.mem_closure', simp},
+  have hTn : T^n ∈ G' := by {apply subgroup.gpow_mem G' hT},
+  have hTng : T^n * g ∈ G' := G'.mul_mem hTn hg1,
+  have hSTg : S * T^n * g ∈ G' := G'.mul_mem (G'.mul_mem hS hTn) hg1,
+  replace hg2 := hg2 (S * T^n * g) hSTg,
+  set z' := (T^n * g) • z with z'df,
+  have imz' : z'.val.im = ((g : SL(2,ℤ)) • z).val.im,
+  { rw [z'df, ← smul_smul, im_Tn_z] },
+  rw smul_smul at hn,
+  change |z'.val.re| ≤ 1 / 2 at hn,
+  suffices : 1 ≤ z'.1.norm_sq, by exact ⟨hTng,⟨this, hn⟩⟩,
+  set w := (S * T^n * g) • z with hw,
+  apply norm_sq_ge_one_of_act_S,
+  replace hw : w = S•z',
+  {rw [hw, z'df, smul_smul, mul_assoc]},
+  rw imz',
+  rw ← hw,
+  exact hg2,
+end
+
+lemma fundom_no_repeats (z z' : H) (h : ∃ g : SL(2,ℤ), z' = g • z) (hz : z ∈ 𝒟) (hz' : z' ∈ 𝒟) :
+  (z = z') ∨
+  (z.val.re = -1/2 ∧ z' = T • z) ∨
+  (z'.val.re = -1/2 ∧ z = T • z') ∨
+  (z.val.abs = 1 ∧ z'.val.abs = 1 ∧ z' = S • z ∧ z = S • z') :=
+begin
+  wlog hwlog : z.val.im ≤ z'.val.im,
+  {
+    by_cases hne : z = z', tauto,
+    right,
+    replace h := sign_coef h,
+    obtain ⟨g, hcpos, hac, hg⟩ := h,
+    set a := g.1 0 0,
+    set b := g.1 0 1,
+    set c := g.1 1 0,
+    set d := g.1 1 1,
+    have hcd : complex.norm_sq (c * z + d) ≤ 1,
+    {
+      sorry
+    },
+    have hc : _root_.abs c ≤ 1,
+    {
+      sorry
+    },
+    replace hc : c = 0 ∨ c = 1,
+    {
+      sorry
+    },
+    rcases hc with  hc | hc ,
+    { -- case c = 0
+      have ha : a = 1 := (hac hc).2,
+      have hd : d = 1 := (hac hc).1,
+      sorry
+    },
+    { -- case c = 1
+      sorry
+    }
+  },
+  obtain ⟨g, hg⟩ := h,
+  have hh : ∃ g : SL(2,ℤ), z = g • z' := ⟨g⁻¹, by {simp [eq_inv_smul_iff, hg]}⟩,
+  specialize this hh hz' hz,
+  tauto,
 end
 
 

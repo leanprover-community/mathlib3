@@ -214,7 +214,7 @@ begin
   have h2 : t₂ = ite (j = i) t₁ t₂, by simp only [hij.symm, if_false],
   have h_inter : (⋂ (t : ι) (H : t ∈ ({i, j} : finset ι)), ite (t = i) t₁ t₂)
       = (ite (i = i) t₁ t₂) ∩ (ite (j = i) t₁ t₂),
-    by simp only [finset.bInter_singleton, finset.bInter_insert],
+    by simp only [finset.set_bInter_singleton, finset.set_bInter_insert],
   have h_prod : (∏ (t : ι) in ({i, j} : finset ι), μ (ite (t = i) t₁ t₂))
       = μ (ite (i = i) t₁ t₂) * μ (ite (j = i) t₁ t₂),
     by simp only [hij, finset.prod_singleton, finset.prod_insert, not_false_iff,
